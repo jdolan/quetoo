@@ -761,21 +761,31 @@ static int32_t R_LoadStageFrames(r_stage_t *s) {
 /**
  * @brief
  */
-static int32_t R_ParseStage(r_stage_t *s, cm_stage_t *cm) {
+static int32_t R_ParseStage(r_stage_t *s, const cm_stage_t *cm) {
 
 	s->cm = cm;
 
 	if (*cm->image) {
 
 		if (cm->flags & STAGE_TEXTURE) {
-			s->image = R_LoadImage(cm->image, IT_DIFFUSE);
+			if (*cm->image == '#') {
+				s->image = R_LoadImage(cm->image + 1, IT_DIFFUSE);
+			} else {
+				s->image = R_LoadImage(va("textures/%s", cm->image), IT_DIFFUSE);
+			}
 
 			if (s->image->type == IT_NULL) {
 				Com_Warn("Failed to resolve texture: %s\n", cm->image);
 				return -1;
 			}
 		} else if (cm->flags & STAGE_ENVMAP) {
-			s->image = R_LoadImage(cm->image, IT_ENVMAP);
+			if (*cm->image == '#') {
+				s->image = R_LoadImage(cm->image + 1, IT_ENVMAP);
+			} else if (*cm->image == '0' || cm->image_index > 0) {
+				s->image = R_LoadImage(va("envmaps/envmap_%d", cm->image_index), IT_ENVMAP);
+			} else {
+				s->image = R_LoadImage(va("envmaps/%s", cm->image), IT_ENVMAP);
+			}
 
 			if (s->image->type == IT_NULL) {
 				Com_Warn("Failed to resolve envmap: %s\n", cm->image);
@@ -783,6 +793,14 @@ static int32_t R_ParseStage(r_stage_t *s, cm_stage_t *cm) {
 			}
 		} else if (cm->flags & STAGE_FLARE) {
 			s->image = R_LoadImage(cm->image, IT_FLARE);
+
+			if (*cm->image == '#') {
+				s->image = R_LoadImage(cm->image + 1, IT_FLARE);
+			} else if (*cm->image == '0' || cm->image_index > 0) {
+				s->image = R_LoadImage(va("flares/flare_%d", cm->image_index), IT_FLARE);
+			} else {
+				s->image = R_LoadImage(va("flares/%s", cm->image), IT_FLARE);
+			}
 
 			if (s->image->type == IT_NULL) {
 				Com_Warn("Failed to resolve flare: %s\n", cm->image);
@@ -838,7 +856,11 @@ void R_LoadMaterials(r_model_t *mod) {
 		}
 
 		if (*cm_mat->normalmap && r_bumpmap->value) {
-			r_mat->normalmap = R_LoadImage(cm_mat->normalmap, IT_NORMALMAP);
+			if (*cm_mat->normalmap == '#') {
+				r_mat->normalmap = R_LoadImage(cm_mat->normalmap + 1, IT_NORMALMAP);
+			} else {
+				r_mat->normalmap = R_LoadImage(va("textures/%s", cm_mat->normalmap), IT_NORMALMAP);
+			}
 
 			if (r_mat->normalmap->type == IT_NULL) {
 				Com_Warn("Failed to resolve normalmap: %s\n", cm_mat->normalmap);
@@ -847,7 +869,11 @@ void R_LoadMaterials(r_model_t *mod) {
 		}
 
 		if (*cm_mat->specularmap && r_bumpmap->value) { // FIXME: r_specular->value?
-			r_mat->specularmap = R_LoadImage(cm_mat->specularmap, IT_SPECULARMAP);
+			if (*cm_mat->specularmap == '#') {
+				r_mat->specularmap = R_LoadImage(cm_mat->specularmap + 1, IT_SPECULARMAP);
+			} else {
+				r_mat->specularmap = R_LoadImage(va("textures/%s", cm_mat->specularmap), IT_SPECULARMAP);
+			}
 
 			if (r_mat->specularmap->type == IT_NULL) {
 				Com_Warn("Failed to resolve specularmap: %s\n", cm_mat->specularmap);
@@ -892,106 +918,16 @@ void R_LoadMaterials(r_model_t *mod) {
 	g_array_free(materials, true);
 }
 
-#define MAX_SAVE_MATERIALS 1000
-
-/**
- * @brief Comparator for R_SaveMaterials.
- */
-static gint R_SaveMaterials_Compare(gconstpointer m1, gconstpointer m2) {
-
-	const char *d1 = ((r_material_t *) m1)->diffuse->media.name;
-	const char *d2 = ((r_material_t *) m2)->diffuse->media.name;
-
-	return g_strcmp0(d1, d2);
-}
-
-/**
- * @brief Saves the materials properties for the current map.
- */
-void R_SaveMaterials_f(void) {
-	const r_model_t *world = r_model_state.world;
-
-	if (!world) {
-		Com_Print("No map loaded\n");
-		return;
-	}
-
-	char filename[MAX_QPATH];
-	uint16_t i;
-
-	if (Cmd_Argc() == 2) { // write the requested file
-		g_snprintf(filename, sizeof(filename), "materials/%s", Cmd_Argv(1));
-
-		if (!g_str_has_suffix(filename, ".mat")) {
-			g_strlcat(filename, ".mat", sizeof(filename));
-		}
-	} else { // or the next available one
-
-		const char *map = Basename(world->media.name);
-
-		for (i = 0; i < MAX_SAVE_MATERIALS; i++) {
-			g_snprintf(filename, sizeof(filename), "materials/%s%03u.mat", map, i);
-
-			if (!Fs_Exists(filename)) {
-				break;
-			}
-		}
-
-		if (i == MAX_SAVE_MATERIALS) {
-			Com_Warn("Failed to create %s\n", filename);
-			return;
-		}
-	}
-
-	file_t *file;
-	if (!(file = Fs_OpenWrite(filename))) {
-		Com_Warn("Failed to write %s\n", filename);
-		return;
-	}
-
-	GHashTable *materials = g_hash_table_new(g_direct_hash, g_direct_equal);
-
-	const r_bsp_texinfo_t *tex = world->bsp->texinfo;
-	for (i = 0; i < world->bsp->num_texinfo; i++, tex++) {
-		if (tex->material->normalmap) {
-			g_hash_table_insert(materials, tex->material, tex->material);
-		}
-	}
-
-	GList *list = g_list_sort(g_hash_table_get_keys(materials), R_SaveMaterials_Compare);
-
-	GList *e = list;
-	while (e) {
-		const r_material_t *m = (r_material_t *) e->data;
-
-		const char *diffuse = m->diffuse->media.name + strlen("textures/");
-		const char *normalmap = m->normalmap->media.name + strlen("textures/");
-
-		const char *s = va("{\n"
-		                   "\tmaterial %s\n"
-		                   "\tnormalmap %s\n"
-		                   "\tbump %01.1f\n"
-		                   "\thardness %01.1f\n"
-		                   "\tspecular %01.1f\n"
-		                   "\tparallax %01.1f\n"
-		                   "}\n", diffuse, normalmap, m->cm->bump, m->cm->hardness, m->cm->specular, m->cm->parallax);
-
-		Fs_Write(file, s, 1, strlen(s));
-		e = e->next;
-	}
-
-	g_list_free(list);
-	g_hash_table_destroy(materials);
-
-	Fs_Close(file);
-
-	Com_Print("Saved %s\n", Basename(filename));
+static void R_SaveMaterials_f(void) {
+	Cm_WriteMaterials();
 }
 
 /**
  * @brief
  */
 void R_InitMaterials(void) {
+
+	Cmd_Add("r_save_materials", R_SaveMaterials_f, CMD_RENDERER, "Write all of the loaded materials to the disk.");
 
 	r_material_state.vertex_len = INITIAL_VERTEX_COUNT;
 	r_material_state.element_len = INITIAL_VERTEX_COUNT;

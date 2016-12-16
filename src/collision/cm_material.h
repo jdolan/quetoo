@@ -60,13 +60,13 @@ typedef struct {
 // frame based material animation, lerp between consecutive images
 typedef struct {
 	uint16_t num_frames;
-	char **frames;
 	vec_t fps;
 } cm_stage_anim_t;
 
 typedef struct cm_stage_s {
 	uint32_t flags;
 	char image[MAX_QPATH];
+	int32_t image_index;
 	struct cm_material_s *material;
 	cm_stage_blend_t blend;
 	vec3_t color;
@@ -122,6 +122,9 @@ typedef struct cm_material_s {
 	const char *where;
 	char base[MAX_QPATH];
 	char key[MAX_QPATH];
+
+	char full_name[MAX_QPATH]; // the original full name of the material (#..., etc)
+	char material_file[MAX_QPATH]; // the material file we got loaded from
 	
 	char diffuse[MAX_QPATH];
 	char normalmap[MAX_QPATH];
@@ -145,6 +148,8 @@ void Cm_DumpMaterialAllocations(void);
 cm_material_t *Cm_LoadMaterial_(const char *where, const char *diffuse);
 #define Cm_LoadMaterial(diffuse) Cm_LoadMaterial_(__func__, diffuse)
 GArray *Cm_LoadMaterials(const char *path);
+
+void Cm_WriteMaterials(void);
 
 #ifdef __CM_LOCAL_H__
 	void Cm_InitMaterials(void);

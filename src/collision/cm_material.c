@@ -150,40 +150,29 @@ static inline GLenum Cm_BlendConstByName(const char *c) {
 /**
  * @brief
  */
-static int32_t Cm_LoadStageFrames(cm_stage_t *s) {
-	char name[MAX_QPATH];
-	int32_t i, j;
+static inline const char *Cm_BlendNameByConst(const GLenum c) {
 
-	if (!*s->image) {
-		Com_Warn("Texture not defined in anim stage\n");
-		return -1;
+	switch (c)
+	{
+	case GL_ONE:
+		return "GL_ONE";
+	case GL_ZERO:
+		return "GL_ZERO";
+	case GL_SRC_ALPHA:
+		return "GL_SRC_ALPHA";
+	case GL_ONE_MINUS_SRC_ALPHA:
+		return "GL_ONE_MINUS_SRC_ALPHA";
+	case GL_SRC_COLOR:
+		return "GL_SRC_COLOR";
+	case GL_DST_COLOR:
+		return "GL_DST_COLOR";
+	case GL_ONE_MINUS_SRC_COLOR:
+		return "GL_ONE_MINUS_SRC_COLOR";
 	}
 
-	g_strlcpy(name, s->image, sizeof(name));
-	const size_t len = strlen(name);
-
-	if ((i = (int32_t) strtol(&name[len - 1], NULL, 0)) < 0) {
-		Com_Warn("Texture name does not end in numeric: %s\n", name);
-		return -1;
-	}
-
-	// the first image was already loaded by the stage parse, so just copy
-	// the pointer into the array
-
-	s->anim.frames = Mem_LinkMalloc(s->anim.num_frames * sizeof(*s->anim.frames), s);
-	s->anim.frames[0] = s->image;
-
-	// now load the rest
-	name[len - 1] = '\0';
-	for (j = 1, i = i + 1; j < s->anim.num_frames; j++, i++) {
-		char frame[MAX_QPATH];
-
-		g_snprintf(frame, sizeof(frame), "%s%d", name, i);
-		s->anim.frames[j] = Mem_LinkMalloc(strlen(frame) + 1, s);
-		g_strlcpy(s->anim.frames[j], frame, strlen(frame));
-	}
-
-	return 0;
+	// ...
+	Com_Warn("Failed to resolve: %u\n", c);
+	return "GL_INVALID_ENUM";
 }
 
 /**
@@ -203,11 +192,7 @@ static int32_t Cm_ParseStage(cm_stage_t *s, const char **buffer) {
 		if (!g_strcmp0(c, "texture") || !g_strcmp0(c, "diffuse")) {
 
 			c = ParseToken(buffer);
-			if (*c == '#') {
-				g_strlcpy(s->image, ++c, sizeof(s->image));
-			} else {
-				g_strlcpy(s->image, va("textures/%s", c), sizeof(s->image));
-			}
+			g_strlcpy(s->image, c, sizeof(s->image));
 
 			s->flags |= STAGE_TEXTURE;
 			continue;
@@ -216,15 +201,8 @@ static int32_t Cm_ParseStage(cm_stage_t *s, const char **buffer) {
 		if (!g_strcmp0(c, "envmap")) {
 
 			c = ParseToken(buffer);
-			i = (int32_t) strtol(c, NULL, 0);
-
-			if (*c == '#') {
-				g_strlcpy(s->image, ++c, sizeof(s->image));
-			} else if (*c == '0' || i > 0) {
-				g_strlcpy(s->image, va("envmaps/envmap_%d", i), sizeof(s->image));
-			} else {
-				g_strlcpy(s->image, va("envmaps/%s", c), sizeof(s->image));
-			}
+			g_strlcpy(s->image, c, sizeof(s->image));
+			s->image_index = (int32_t) strtol(c, NULL, 0);
 
 			s->flags |= STAGE_ENVMAP;
 			continue;
@@ -443,15 +421,8 @@ static int32_t Cm_ParseStage(cm_stage_t *s, const char **buffer) {
 		if (!g_strcmp0(c, "flare")) {
 
 			c = ParseToken(buffer);
-			i = (int32_t) strtol(c, NULL, 0);
-
-			if (*c == '#') {
-				g_strlcpy(s->image, ++c, sizeof(s->image));
-			} else if (*c == '0' || i > 0) {
-				g_strlcpy(s->image, va("flares/flare_%d", i), sizeof(s->image));
-			} else {
-				g_strlcpy(s->image, va("flares/%s", c), sizeof(s->image));
-			}
+			g_strlcpy(s->image, c, sizeof(s->image));
+			s->image_index = (int32_t) strtol(c, NULL, 0);
 
 			s->flags |= STAGE_FLARE;
 			continue;
@@ -509,10 +480,6 @@ static int32_t Cm_ParseStage(cm_stage_t *s, const char **buffer) {
 cm_material_t *Cm_LoadMaterial_(const char *where, const char *diffuse) {
 	cm_material_t *mat;
 	char name[MAX_QPATH], base[MAX_QPATH], key[MAX_QPATH];
-
-	if (strstr(diffuse, "mossyrockies")) {
-		Com_Debug(DEBUG_BREAKPOINT, "\n");
-	}
 
 	if (!diffuse || !diffuse[0]) {
 		Com_Error(ERR_DROP, "NULL diffuse name\n");
@@ -600,19 +567,21 @@ GArray *Cm_LoadMaterials(const char *path) {
 
 		if (!g_strcmp0(c, "material")) {
 			c = ParseToken(&buffer);
+
+			// backup the old full name
+			char full_name[MAX_QPATH];
+			g_strlcpy(full_name, c, sizeof(full_name));
+
 			if (*c == '#') {
 				m = Cm_LoadMaterial(++c);
 			} else {
 				m = Cm_LoadMaterial(va("textures/%s", c));
 			}
+			
+			g_strlcpy(m->full_name, full_name, sizeof(m->full_name));
+			g_strlcpy(m->material_file, path, sizeof(m->material_file));
 
 			g_array_append_val(materials, m);
-
-			/*if (m->diffuse->type == IT_NULL) {
-				Com_Warn("Failed to resolve %s\n", c);
-				m = NULL;
-			}*/
-
 			continue;
 		}
 
@@ -622,20 +591,12 @@ GArray *Cm_LoadMaterials(const char *path) {
 
 		if (!g_strcmp0(c, "normalmap")) {
 			c = ParseToken(&buffer);
-			if (*c == '#') {
-				g_strlcpy(m->normalmap, ++c, sizeof(m->normalmap));
-			} else {
-				g_strlcpy(m->normalmap, va("textures/%s", c), sizeof(m->normalmap));
-			}
+			g_strlcpy(m->normalmap, c, sizeof(m->normalmap));
 		}
 
 		if (!g_strcmp0(c, "specularmap")) {
 			c = ParseToken(&buffer);
-			if (*c == '#') {
-				g_strlcpy(m->specularmap, ++c, sizeof(m->specularmap));
-			} else {
-				g_strlcpy(m->specularmap, va("textures/%s", c), sizeof(m->specularmap));
-			}
+			g_strlcpy(m->specularmap, c, sizeof(m->specularmap));
 		}
 
 		if (!g_strcmp0(c, "bump")) {
@@ -686,14 +647,6 @@ GArray *Cm_LoadMaterials(const char *path) {
 				continue;
 			}
 
-			// load animation frame images
-			if (s->flags & STAGE_ANIM) {
-				if (Cm_LoadStageFrames(s) == -1) {
-					Mem_Free(s);
-					continue;
-				}
-			}
-
 			// append the stage to the chain
 			if (!m->stages) {
 				m->stages = s;
@@ -725,4 +678,152 @@ GArray *Cm_LoadMaterials(const char *path) {
 	}
 
 	return materials;
+}
+
+/**
+ * @brief Callback to close our file handles.
+ */
+static void Cm_WriteMaterials_Destroy(gpointer value) {
+
+	Fs_Close((file_t *) value);
+}
+
+/**
+ * @brief Serialize the given stage.
+ */
+static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage, file_t *file) {
+	Fs_Print(file, "\t{\n");
+
+	if (stage->flags & STAGE_TEXTURE) {
+		Fs_Print(file, "\t\ttexture %s\n", stage->image);
+	} else if (stage->flags & STAGE_ENVMAP) {
+		Fs_Print(file, "\t\tenvmap %s\n", stage->image);
+	} else if (stage->flags & STAGE_FLARE) {
+		Fs_Print(file, "\t\tflare %s\n", stage->image);
+	} else {
+		Com_Warn("Material %s (from %s) has a stage with no texture\n", material->material_file, material->full_name);
+	}
+
+	if (stage->flags & STAGE_BLEND) {
+		Fs_Print(file, "\t\tblend %s %s\n", Cm_BlendNameByConst(stage->blend.src), Cm_BlendNameByConst(stage->blend.dest));
+	}
+
+	if (stage->flags & STAGE_COLOR) {
+		Fs_Print(file, "\t\tcolor %g %g %g\n", stage->color[0], stage->color[1], stage->color[2]);
+	}
+
+	if (stage->flags & STAGE_PULSE) {
+		Fs_Print(file, "\t\tpulse %g\n", stage->pulse.hz);
+	}
+
+	if (stage->flags & STAGE_STRETCH) {
+		Fs_Print(file, "\t\tstretch %g %g\n", stage->stretch.amp, stage->stretch.hz);
+	}
+
+	if (stage->flags & STAGE_ROTATE) {
+		Fs_Print(file, "\t\trotate %g\n", stage->rotate.hz);
+	}
+
+	if (stage->flags & STAGE_SCROLL_S) {
+		Fs_Print(file, "\t\tscroll.s %g\n", stage->scroll.s);
+	}
+
+	if (stage->flags & STAGE_SCROLL_T) {
+		Fs_Print(file, "\t\tscroll.t %g\n", stage->scroll.t);
+	}
+
+	if (stage->flags & STAGE_SCALE_S) {
+		Fs_Print(file, "\t\tscale.s %g\n", stage->scale.s);
+	}
+
+	if (stage->flags & STAGE_SCALE_T) {
+		Fs_Print(file, "\t\tscale.t %g\n", stage->scale.t);
+	}
+
+	if (stage->flags & STAGE_TERRAIN) {
+		Fs_Print(file, "\t\tterrain %g %g\n", stage->terrain.floor, stage->terrain.ceil);
+	}
+
+	if (stage->flags & STAGE_DIRTMAP) {
+		Fs_Print(file, "\t\tdirtmap %g\n", stage->dirt.intensity);
+	}
+
+	if (stage->flags & STAGE_ANIM) {
+		Fs_Print(file, "\t\tanim %u %g\n", stage->anim.num_frames, stage->anim.fps);
+	}
+
+	if (stage->flags & STAGE_LIGHTMAP) {
+		Fs_Print(file, "\t\tlightmap\n");
+	}
+
+	Fs_Print(file, "\t}\n");
+}
+
+/**
+ * @brief Serialize the given material.
+ */
+static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
+	Fs_Print(file, "{\n");
+
+	// write the innards
+	Fs_Print(file, "\tmaterial %s\n", material->full_name);
+	
+	if (*material->normalmap) {
+		Fs_Print(file, "\tnormalmap %s\n", material->normalmap);
+	}
+	if (*material->specularmap) {
+		Fs_Print(file, "\tspecularmap %s\n", material->specularmap);
+	}
+	
+	if (material->bump != DEFAULT_BUMP) {
+		Fs_Print(file, "\tbump %g\n", material->bump);
+	}
+	if (material->parallax != DEFAULT_BUMP) {
+		Fs_Print(file, "\tparallax %g\n", material->parallax);
+	}
+	if (material->hardness != DEFAULT_BUMP) {
+		Fs_Print(file, "\thardness %g\n", material->hardness);
+	}
+	if (material->specular != DEFAULT_BUMP) {
+		Fs_Print(file, "\tspecular %g\n", material->specular);
+	}
+
+	// write stages
+	for (cm_stage_t *stage = material->stages; stage; stage = stage->next) {
+		Cm_WriteStage(material, stage, file);
+	}
+
+	Fs_Print(file, "}\n");
+}
+
+/**
+ * @brief Serialize all of the .mat files that we have loaded in-memory back to the disk.
+ */
+void Cm_WriteMaterials(void) {
+	GHashTable *files_opened = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Cm_WriteMaterials_Destroy);
+	GHashTableIter iter;
+	gpointer key, value;
+
+	g_hash_table_iter_init (&iter, cm_materials.materials);
+
+	while (g_hash_table_iter_next (&iter, &key, &value)) {
+		cm_material_t *material = (cm_material_t *) value;
+
+		// don't write out materials with no mat file
+		if (!*material->material_file) {
+			continue;
+		}
+
+		file_t *file = g_hash_table_lookup(files_opened, material->material_file);
+
+		if (!file) {
+			file = Fs_OpenWrite(material->material_file);
+			g_hash_table_insert(files_opened, material->material_file, file);
+		}
+
+		Cm_WriteMaterial(material, file);
+	}
+
+	// finish writing
+	g_hash_table_destroy(files_opened);
 }
