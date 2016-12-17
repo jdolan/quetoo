@@ -405,8 +405,6 @@ static void R_Restart_f(void) {
 
 	R_Init();
 
-	Cm_DumpMaterialAllocations();
-
 	const cl_state_t state = cls.state;
 
 	if (cls.state == CL_ACTIVE) {

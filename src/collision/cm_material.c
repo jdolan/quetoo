@@ -38,7 +38,8 @@ typedef struct {
 static cm_materials_t cm_materials;
 
 /**
- * @brief Free material callback
+ * @brief Free material callback. Materials can reference other materials, so
+ * we have to check the stages to unref the ones that we are storing a reference to.
  */
 static void Cm_Material_Free(gpointer data) {
 
@@ -515,21 +516,6 @@ cm_material_t *Cm_LoadMaterial_(const char *where, const char *diffuse) {
 	Cm_RefMaterial(mat);
 
 	return mat;
-}
-
-// REMOVEME: this is just to ensure that all materials are indeed gone after
-// an r_restart.
-static void Cm_Materials_ForEach(gpointer key, gpointer value, gpointer ud) {
-	const cm_material_t *material = (const cm_material_t *) value;
-
-	Com_Print("%s -> %s (%u)\n", key, material->where, material->ref_count);
-}
-
-void Cm_DumpMaterialAllocations(void) {
-	
-	Com_Print("%u\n", g_hash_table_size(cm_materials.materials));
-
-	g_hash_table_foreach(cm_materials.materials, Cm_Materials_ForEach, NULL);
 }
 
 /**

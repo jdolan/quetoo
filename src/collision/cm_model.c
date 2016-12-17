@@ -432,8 +432,6 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 		}
 	}
 
-	Cm_DumpMaterialAllocations();
-
 	memset(&cm_bsp, 0, sizeof(cm_bsp));
 	cm_vis = (d_bsp_vis_t *) cm_bsp.visibility;
 
