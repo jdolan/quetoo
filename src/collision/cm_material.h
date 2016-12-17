@@ -108,9 +108,8 @@ typedef struct cm_stage_s {
 
 // composite mask for simplifying state management
 #define STAGE_TEXTURE_MATRIX (\
-                              STAGE_STRETCH | STAGE_ROTATE | STAGE_SCROLL_S | STAGE_SCROLL_T | \
-                              STAGE_SCALE_S | STAGE_SCALE_T \
-                             )
+	STAGE_STRETCH | STAGE_ROTATE | STAGE_SCROLL_S | STAGE_SCROLL_T | STAGE_SCALE_S | STAGE_SCALE_T \
+)
 
 #define DEFAULT_BUMP 1.0
 #define DEFAULT_PARALLAX 1.0

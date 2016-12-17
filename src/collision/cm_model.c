@@ -468,9 +468,9 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	cm_bsp.base = (byte *) buf;
 
 	// load materials, to resolve surface lists
-	char stripped_name[MAX_QPATH];
-	StripExtension(name, stripped_name);
-	GArray *materials = Cm_LoadMaterials(va("materials/%s.mat", Basename(stripped_name)));
+	char base[MAX_QPATH];
+	StripExtension(Basename(name), base);
+	GArray *materials = Cm_LoadMaterials(va("materials/%s.mat", base));
 
 	// load into heap
 	Cm_LoadEntityString(&header.lumps[BSP_LUMP_ENTITIES]);
