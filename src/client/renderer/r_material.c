@@ -855,29 +855,32 @@ void R_LoadMaterials(r_model_t *mod) {
 			continue;
 		}
 
-		if (*cm_mat->normalmap && r_bumpmap->value) {
-			if (*cm_mat->normalmap == '#') {
-				r_mat->normalmap = R_LoadImage(cm_mat->normalmap + 1, IT_NORMALMAP);
-			} else {
-				r_mat->normalmap = R_LoadImage(va("textures/%s", cm_mat->normalmap), IT_NORMALMAP);
+		if (r_bumpmap->value) { // if per-pixel lighting is enabled, resolve normal and specular
+
+			if (*cm_mat->normalmap) {
+				if (*cm_mat->normalmap == '#') {
+					r_mat->normalmap = R_LoadImage(cm_mat->normalmap + 1, IT_NORMALMAP);
+				} else {
+					r_mat->normalmap = R_LoadImage(va("textures/%s", cm_mat->normalmap), IT_NORMALMAP);
+				}
+
+				if (r_mat->normalmap->type == IT_NULL) {
+					Com_Warn("Failed to resolve normalmap: %s\n", cm_mat->normalmap);
+					r_mat->normalmap = NULL;
+				}
 			}
 
-			if (r_mat->normalmap->type == IT_NULL) {
-				Com_Warn("Failed to resolve normalmap: %s\n", cm_mat->normalmap);
-				r_mat->normalmap = NULL;
-			}
-		}
+			if (*cm_mat->specularmap) {
+				if (*cm_mat->specularmap == '#') {
+					r_mat->specularmap = R_LoadImage(cm_mat->specularmap + 1, IT_SPECULARMAP);
+				} else {
+					r_mat->specularmap = R_LoadImage(va("textures/%s", cm_mat->specularmap), IT_SPECULARMAP);
+				}
 
-		if (*cm_mat->specularmap && r_bumpmap->value) { // FIXME: r_specular->value?
-			if (*cm_mat->specularmap == '#') {
-				r_mat->specularmap = R_LoadImage(cm_mat->specularmap + 1, IT_SPECULARMAP);
-			} else {
-				r_mat->specularmap = R_LoadImage(va("textures/%s", cm_mat->specularmap), IT_SPECULARMAP);
-			}
-
-			if (r_mat->specularmap->type == IT_NULL) {
-				Com_Warn("Failed to resolve specularmap: %s\n", cm_mat->specularmap);
-				r_mat->specularmap = NULL;
+				if (r_mat->specularmap->type == IT_NULL) {
+					Com_Warn("Failed to resolve specularmap: %s\n", cm_mat->specularmap);
+					r_mat->specularmap = NULL;
+				}
 			}
 		}
 
