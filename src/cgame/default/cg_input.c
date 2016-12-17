@@ -63,7 +63,7 @@ void Cg_Move(pm_cmd_t *cmd) {
 	if (in_hook.state & 3) {
 		cmd->buttons |= BUTTON_HOOK;
 	}
-	
+
 	in_attack.state &= ~2;
 	in_hook.state &= ~2;
 
@@ -92,7 +92,7 @@ void Cg_ClearInput(void) {
 void Cg_InitInput(void) {
 
 	cg_run = cgi.Cvar("cl_run", "1", CVAR_ARCHIVE, NULL);
-	
+
 	cgi.Cmd("+speed", Cg_Speed_down_f, CMD_CGAME, NULL);
 	cgi.Cmd("-speed", Cg_Speed_up_f, CMD_CGAME, NULL);
 	cgi.Cmd("+attack", Cg_Attack_down_f, CMD_CGAME, NULL);

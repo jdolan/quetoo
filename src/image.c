@@ -213,8 +213,7 @@ _Bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height
 
 // there are _0 and _1 in here just to prevent padding
 // and so I can control the bytes explicitly. Dumb C.
-typedef struct
-{
+typedef struct {
 	uint8_t IDLength;        /* 00h  Size of Image ID field */
 	uint8_t ColorMapType;    /* 01h  Color map type */
 	uint8_t ImageType;       /* 02h  Image type code */
@@ -258,7 +257,7 @@ _Bool Img_WriteTGA(const char *path, byte *data, uint32_t width, uint32_t height
 
 	// write TGA header
 	SDL_RWwrite(f, &header, 18, 1);
-	
+
 	// write TGA data
 	SDL_RWwrite(f, data, width * height, 3);
 

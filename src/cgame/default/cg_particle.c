@@ -245,12 +245,13 @@ void Cg_AddParticles(void) {
 					}
 
 					const vec_t frac = (cgi.client->ticks - p->start) / (vec_t) (p->lifetime - 1);
-				
+
 					if (p->effects & PARTICLE_EFFECT_COLOR) {
 						Vector4Lerp(p->color_start, p->color_end, frac, p->part.color);
 
-						if (p->part.color[3] > 1.0)
+						if (p->part.color[3] > 1.0) {
 							p->part.color[3] = 1.0;
+						}
 					}
 
 					if (p->effects & PARTICLE_EFFECT_SCALE) {
@@ -287,12 +288,13 @@ void Cg_AddParticles(void) {
 					continue;
 				}
 			} else {
-				
+
 				if (p->effects & PARTICLE_EFFECT_COLOR) {
 					Vector4Copy(p->color_start, p->part.color);
 
-					if (p->part.color[3] > 1.0)
+					if (p->part.color[3] > 1.0) {
 						p->part.color[3] = 1.0;
+					}
 				}
 
 				if (p->effects & PARTICLE_EFFECT_SCALE) {
@@ -310,7 +312,7 @@ void Cg_AddParticles(void) {
 				cull = cgi.CullSphere(center, radius);
 			} else {
 				const vec_t radius = p->part.scale * 0.5;
-				
+
 				cull = cgi.CullSphere(p->part.org, radius);
 			}
 

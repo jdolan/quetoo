@@ -26,6 +26,8 @@
 #include "filesystem.h"
 #include "matrix.h"
 
+#include "cm_main.h"
+#include "cm_material.h"
 #include "cm_model.h"
 #include "cm_test.h"
 #include "cm_trace.h"

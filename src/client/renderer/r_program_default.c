@@ -200,10 +200,10 @@ void R_UseMaterial_default(const r_material_t *material) {
 		R_ProgramParameter1i(&p->glossmap, 0);
 	}
 
-	R_ProgramParameter1f(&p->bump, material->bump * r_bumpmap->value);
-	R_ProgramParameter1f(&p->parallax, material->parallax * r_parallax->value);
-	R_ProgramParameter1f(&p->hardness, material->hardness * r_hardness->value);
-	R_ProgramParameter1f(&p->specular, material->specular * r_specular->value);
+	R_ProgramParameter1f(&p->bump, material->cm->bump * r_bumpmap->value);
+	R_ProgramParameter1f(&p->parallax, material->cm->parallax * r_parallax->value);
+	R_ProgramParameter1f(&p->hardness, material->cm->hardness * r_hardness->value);
+	R_ProgramParameter1f(&p->specular, material->cm->specular * r_specular->value);
 }
 
 /**

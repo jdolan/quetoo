@@ -310,85 +310,62 @@ typedef struct r_particle_s {
 
 #define MAX_PARTICLES		16384
 
+// renderer-specific material stuff
 typedef struct {
-	GLenum src, dest;
-} r_stage_blend_t;
-
-typedef struct {
-	vec_t hz, dhz;
+	vec_t dhz;
 } r_stage_pulse_t;
 
 typedef struct {
-	vec_t hz, dhz;
-	vec_t amp, damp;
+	vec_t dhz;
+	vec_t damp;
 } r_stage_stretch_t;
 
 typedef struct {
-	vec_t hz, deg;
+	vec_t deg;
 } r_stage_rotate_t;
 
 typedef struct {
-	vec_t s, t;
 	vec_t ds, dt;
 } r_stage_scroll_t;
 
-typedef struct {
-	vec_t s, t;
-} r_stage_scale_t;
-
-typedef struct {
-	vec_t floor, ceil;
-	vec_t height;
-} r_stage_terrain_t;
-
-typedef struct {
-	vec_t intensity;
-} r_stage_dirt_t;
-
 // frame based material animation, lerp between consecutive images
 typedef struct {
-	uint16_t num_frames;
 	r_image_t **frames;
-	vec_t fps;
 	uint32_t dtime;
 	uint16_t dframe;
 } r_stage_anim_t;
 
 typedef struct r_stage_s {
-	uint32_t flags;
-	r_image_t *image;
+	const struct cm_stage_s *cm; // link to cm stage
+
+	// renderer-local stuff parsed from cm
 	struct r_material_s *material;
-	r_stage_blend_t blend;
-	vec3_t color;
+	r_image_t *image;
 	r_stage_pulse_t pulse;
 	r_stage_stretch_t stretch;
 	r_stage_rotate_t rotate;
 	r_stage_scroll_t scroll;
-	r_stage_scale_t scale;
-	r_stage_terrain_t terrain;
-	r_stage_dirt_t dirt;
 	r_stage_anim_t anim;
+
+	// next stage
 	struct r_stage_s *next;
 } r_stage_t;
 
-#define DEFAULT_BUMP 1.0
-#define DEFAULT_PARALLAX 1.0
-#define DEFAULT_HARDNESS 1.0
-#define DEFAULT_SPECULAR 1.0
-
 typedef struct r_material_s {
+	// from media
 	r_media_t media;
+
+	const struct cm_material_s *cm; // link to cm material
+
+	// renderer-local stuff parsed from cm
+	uint32_t time;
+	uint32_t flags; // these may differ from cm->flags
+
 	r_image_t *diffuse;
 	r_image_t *normalmap;
 	r_image_t *specularmap;
-	uint32_t flags;
-	uint32_t time;
-	vec_t bump;
-	vec_t parallax;
-	vec_t hardness;
-	vec_t specular;
+
 	r_stage_t *stages;
-	uint16_t num_stages;
 } r_material_t;
 
 // bsp model memory representation

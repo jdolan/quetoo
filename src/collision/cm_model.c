@@ -135,6 +135,7 @@ static void Cm_LoadBspSurfaces(const d_bsp_lump_t *l) {
 		g_strlcpy(out->name, in->texture, sizeof(out->name));
 		out->flags = LittleLong(in->flags);
 		out->value = LittleLong(in->value);
+		out->material = Cm_LoadMaterial(va("textures/%s", out->name));
 	}
 }
 
@@ -422,6 +423,15 @@ static void Cm_LoadBspAreaPortals(const d_bsp_lump_t *l) {
 cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	void *buf;
 
+	// unload materials
+	for (int32_t i = 0; i < cm_bsp.num_surfaces; ++i) {
+		cm_bsp_surface_t *surf = &cm_bsp.surfaces[i];
+
+		if (surf->material) {
+			Cm_UnrefMaterial(surf->material);
+		}
+	}
+
 	memset(&cm_bsp, 0, sizeof(cm_bsp));
 	cm_vis = (d_bsp_vis_t *) cm_bsp.visibility;
 
@@ -457,6 +467,11 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 
 	cm_bsp.base = (byte *) buf;
 
+	// load materials, to resolve surface lists
+	char base[MAX_QPATH];
+	StripExtension(Basename(name), base);
+	GArray *materials = Cm_LoadMaterials(va("materials/%s.mat", base));
+
 	// load into heap
 	Cm_LoadEntityString(&header.lumps[BSP_LUMP_ENTITIES]);
 	Cm_LoadBspPlanes(&header.lumps[BSP_LUMP_PLANES]);
@@ -470,6 +485,14 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	Cm_LoadBspVisibility(&header.lumps[BSP_LUMP_VISIBILITY]);
 	Cm_LoadBspAreas(&header.lumps[BSP_LUMP_AREAS]);
 	Cm_LoadBspAreaPortals(&header.lumps[BSP_LUMP_AREA_PORTALS]);
+
+	// unref the materials from the list
+	for (uint32_t i = 0; i < materials->len; ++i) {
+		cm_material_t *material = g_array_index(materials, cm_material_t *, i);
+		Cm_UnrefMaterial(material);
+	}
+
+	g_array_free(materials, true);
 
 	Fs_Free(buf);
 

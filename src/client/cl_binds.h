@@ -55,7 +55,7 @@ static const char *DEFAULT_BINDS =
     "bind y cl_message_mode_2\n"
 
     "bind \"mouse 1\" +attack\n"
-	"bind \"mouse 2\" +hook\n"
+    "bind \"mouse 2\" +hook\n"
     "bind \"mouse 3\" +move_up\n"
     "bind \"mouse wheel up\" weapon_next\n"
     "bind \"mouse wheel down\" weapon_previous\n"

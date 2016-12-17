@@ -337,7 +337,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL))) {
 			break;
 		}
-			
+
 		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 		p->lifetime = 250 + Randomf() * 100;
 
@@ -600,7 +600,7 @@ static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
 
 	p->lifetime = PARTICLE_IMMEDIATE;
 
-	cgi.ColorFromPalette(ent->current.animation1 ?: EFFECT_COLOR_GREEN, p->part.color);
+	cgi.ColorFromPalette(ent->current.animation1 ? : EFFECT_COLOR_GREEN, p->part.color);
 
 	p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
 	p->part.scale = 2.0;
@@ -630,7 +630,7 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t org) {
 	if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_explosion))) {
 
 		cgi.ColorFromPalette(206, p->color_start);
-		
+
 		p->effects |= PARTICLE_EFFECT_COLOR;
 		p->lifetime = 100;
 

@@ -112,7 +112,7 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 			}
 
 			Com_Debug(DEBUG_RENDERER, "Parsed %d: %d %d %d %d\n", md3->num_animations,
-									  a->first_frame, a->num_frames, a->looped_frames, a->hz);
+			          a->first_frame, a->num_frames, a->looped_frames, a->hz);
 
 			md3->num_animations++;
 			if (md3->num_animations == MD3_MAX_ANIMATIONS) {
@@ -577,7 +577,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 		out_mesh->num_elements = out_mesh->num_tris * 3;
 
 		Com_Debug(DEBUG_RENDERER, "%s: %s: %d triangles (%d elements)\n", mod->media.name, out_mesh->name, out_mesh->num_tris,
-								  out_mesh->num_elements);
+		          out_mesh->num_elements);
 
 		in_mesh = (d_md3_mesh_t *) ((byte *) in_mesh + in_mesh->size);
 	}
@@ -598,7 +598,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 	R_LoadMd3VertexArrays(mod);
 
 	Com_Debug(DEBUG_RENDERER, "%s\n  %d meshes\n  %d frames\n  %d tags\n  %d vertexes\n", mod->media.name,
-							  out_md3->num_meshes, out_md3->num_frames, out_md3->num_tags, mod->num_verts);
+	          out_md3->num_meshes, out_md3->num_frames, out_md3->num_tags, mod->num_verts);
 }
 
 /**

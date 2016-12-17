@@ -100,7 +100,7 @@ const r_atlas_image_t *R_GetAtlasImageFromAtlas(const r_atlas_t *atlas, const r_
  * @brief See if we have enough space for n number of nodes.
  */
 static void R_AtlasPacker_Reserve(r_packer_t *packer, const uint32_t new_nodes) {
-	
+
 	// make sure we have at least n new entries
 	if (packer->num_alloc_nodes <= packer->num_nodes + new_nodes) {
 
@@ -121,7 +121,7 @@ void R_AtlasPacker_InitPacker(r_packer_t *packer, const r_pixel_t max_width, con
 
 	if (packer->nodes == NULL) {
 
-		R_AtlasPacker_Reserve(packer, initial_size ?: 1);
+		R_AtlasPacker_Reserve(packer, initial_size ? : 1);
 
 	} else {
 
@@ -130,9 +130,9 @@ void R_AtlasPacker_InitPacker(r_packer_t *packer, const r_pixel_t max_width, con
 
 	packer->nodes[0] = (const r_packer_node_t) {
 		.width = root_width,
-		.height = root_height,
-		.right = -1,
-		.down = -1
+		 .height = root_height,
+		  .right = -1,
+		   .down = -1
 	};
 
 	packer->num_nodes++;
@@ -172,7 +172,7 @@ r_packer_node_t *R_AtlasPacker_FindNode(r_packer_t *packer, const uint32_t root,
 			node_queue[node_index + 1] = node->right;
 			node_index += 2;
 		} else if (width <= node->width && height <= node->height &&
-	           (node->x + width) <= packer->max_width && (node->y + height) <= packer->max_height) {
+		           (node->x + width) <= packer->max_width && (node->y + height) <= packer->max_height) {
 
 			return node;
 		}
@@ -193,20 +193,20 @@ r_packer_node_t *R_AtlasPacker_SplitNode(r_packer_t *packer, r_packer_node_t *no
 
 	const r_packer_node_t down_node = (const r_packer_node_t) {
 		.width = node->width,
-		.height = node->height - height,
-		.x = node->x,
-		.y = node->y + height,
-		.right = -1,
-		.down = -1
+		 .height = node->height - height,
+		  .x = node->x,
+		   .y = node->y + height,
+		    .right = -1,
+		     .down = -1
 	};
 
 	const r_packer_node_t right_node = (const r_packer_node_t) {
 		.width = node->width - width,
-		.height = height,
-		.x = node->x + width,
-		.y = node->y,
-		.right = -1,
-		.down = -1
+		 .height = height,
+		  .x = node->x + width,
+		   .y = node->y,
+		    .right = -1,
+		     .down = -1
 	};
 
 	R_AtlasPacker_Reserve(packer, 2);
@@ -232,42 +232,42 @@ static r_packer_node_t *R_AtlasPacker_Grow(r_packer_t *packer, const r_pixel_t w
 	const uint32_t new_root_id = packer->num_nodes;
 	const uint32_t new_connect_id = packer->num_nodes + 1;
 	const r_packer_node_t *old_root = &packer->nodes[packer->root];
-	
+
 	R_AtlasPacker_Reserve(packer, 2);
 
 	if (grow_direction == GROW_RIGHT) {
 
 		packer->nodes[new_root_id] = (const r_packer_node_t) {
 			.width = old_root->width + width,
-			.height = old_root->height,
-			.down = packer->root,
-			.right = new_connect_id
+			 .height = old_root->height,
+			  .down = packer->root,
+			   .right = new_connect_id
 		};
 
 		packer->nodes[new_connect_id] = (const r_packer_node_t) {
 			.width = width,
-			.height = old_root->height,
-			.x = old_root->width,
-			.y = 0,
-			.right = -1,
-			.down = -1
+			 .height = old_root->height,
+			  .x = old_root->width,
+			   .y = 0,
+			    .right = -1,
+			     .down = -1
 		};
 	} else {
 
 		packer->nodes[new_root_id] = (const r_packer_node_t) {
 			.width = old_root->width,
-			.height = old_root->height + height,
-			.right = packer->root,
-			.down = new_connect_id
+			 .height = old_root->height + height,
+			  .right = packer->root,
+			   .down = new_connect_id
 		};
 
 		packer->nodes[new_connect_id] = (const r_packer_node_t) {
 			.width = old_root->width,
-			.height = height,
-			.x = 0,
-			.y = old_root->height,
-			.right = -1,
-			.down = -1
+			 .height = height,
+			  .x = 0,
+			   .y = old_root->height,
+			    .right = -1,
+			     .down = -1
 		};
 	}
 
@@ -334,7 +334,8 @@ static void R_StitchAtlas(r_atlas_t *atlas, r_atlas_params_t *params) {
 
 	// stitch!
 	for (uint16_t i = 0; i < atlas->images->len; i++, image++) {
-		r_packer_node_t *node = R_AtlasPacker_FindNode(&packer, packer.root, image->input_image->width, image->input_image->height);
+		r_packer_node_t *node = R_AtlasPacker_FindNode(&packer, packer.root, image->input_image->width,
+		                        image->input_image->height);
 
 		if (node != NULL) {
 			node = R_AtlasPacker_SplitNode(&packer, node, image->input_image->width, image->input_image->height);
@@ -483,7 +484,7 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 
 	// stitch
 	R_StitchAtlas(atlas, &params);
-	
+
 	// set width/height
 	atlas->image.width = params.width;
 	atlas->image.height = params.height;

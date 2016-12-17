@@ -1041,7 +1041,7 @@ static void G_BfgProjectile_Think(g_entity_t *self) {
 		if (!G_CanDamage(ent, self)) {
 			continue;
 		}
-		
+
 		vec3_t end;
 
 		G_GetOrigin(ent, end);
@@ -1099,7 +1099,7 @@ void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int3
  * @brief
  */
 static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_bsp_plane_t *plane,
-                                  const cm_bsp_surface_t *surf) {
+                                   const cm_bsp_surface_t *surf) {
 
 	if (other == self->owner) {
 		return;
@@ -1114,12 +1114,12 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 	if (!G_IsSky(surf)) {
 
 		if (G_IsStructural(other, surf) || G_IsMeat(other)) {
-			
+
 			VectorClear(self->locals.velocity);
 			VectorClear(self->locals.avelocity);
 
 			self->owner->client->locals.hook_pull = true;
-			
+
 			self->locals.move_type = MOVE_TYPE_THINK;
 			self->solid = SOLID_NOT;
 			self->locals.enemy = other;
@@ -1149,7 +1149,7 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
  * @brief
  */
 static void G_HookTrail_Think(g_entity_t *ent) {
-	
+
 	const g_entity_t *hook = ent->locals.target_ent;
 	g_entity_t *player = ent->owner;
 
@@ -1176,7 +1176,7 @@ static void G_HookTrail_Think(g_entity_t *ent) {
  * @brief
  */
 static void G_HookProjectile_Think(g_entity_t *ent) {
-	
+
 	// if we're attached to something, copy velocities
 	if (ent->locals.enemy) {
 		g_entity_t *mover = ent->locals.enemy;
@@ -1202,13 +1202,13 @@ static void G_HookProjectile_Think(g_entity_t *ent) {
 			VectorSubtract(rotate, translate, delta);
 
 			VectorAdd(ent->s.origin, delta, ent->s.origin);
-		
+
 			// FIXME: any way we can have the hook move on all axis?
 			ent->s.angles[YAW] += amove[YAW];
 			ent->locals.target_ent->s.angles[YAW] += amove[YAW];
 
 			gi.LinkEntity(ent);
-	
+
 			VectorCopy(ent->s.origin, ent->owner->client->ps.pm_state.hook_position);
 		}
 
@@ -1254,7 +1254,7 @@ g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t d
 
 	projectile->locals.target_ent = trail;
 	trail->locals.target_ent = projectile;
-	
+
 	trail->owner = ent;
 	trail->solid = SOLID_NOT;
 	trail->locals.clip_mask = MASK_CLIP_PROJECTILE;

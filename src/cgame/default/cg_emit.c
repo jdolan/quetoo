@@ -75,6 +75,8 @@ void Cg_LoadEmits(void) {
 	cg_emit_t *e;
 	_Bool entity, emit;
 
+	Cg_FreeEmits();
+
 	ents = cgi.EntityString();
 
 	memset(class_name, 0, sizeof(class_name));

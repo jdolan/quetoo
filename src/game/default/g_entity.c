@@ -438,7 +438,7 @@ static void G_InitMedia(void) {
 	g_media.sounds.lightning_fly = gi.SoundIndex("weapons/lightning/fly");
 	g_media.sounds.quad_attack = gi.SoundIndex("quad/attack");
 	g_media.sounds.quad_expire = gi.SoundIndex("quad/expire");
-	
+
 	g_media.sounds.hook_fire = gi.SoundIndex("objects/hook/fire");
 	g_media.sounds.hook_fly = gi.SoundIndex("objects/hook/fly");
 	g_media.sounds.hook_hit = gi.SoundIndex("objects/hook/hit");
@@ -732,8 +732,7 @@ static void G_worldspawn(g_entity_t *ent) {
 			} else {
 				g_level.hook_allowed = g_level.ctf;
 			}
-		}
-		else {
+		} else {
 			g_level.hook_allowed = g_level.ctf;
 		}
 	}

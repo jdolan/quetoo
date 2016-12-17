@@ -339,11 +339,11 @@ static void Cl_DrawCounters(void) {
  */
 void Cl_UpdateScreen(void) {
 
-	cls.cgame->UpdateScreen();
-
-	R_BeginFrame();
-
 	if (cls.state == CL_ACTIVE) {
+
+		cls.cgame->UpdateScreen();
+
+		R_BeginFrame();
 
 		R_Setup3D();
 
@@ -354,7 +354,7 @@ void Cl_UpdateScreen(void) {
 		R_EnableBlend(false);
 
 		R_DrawSupersample();
-		
+
 		R_EnableBlend(true);
 
 		switch (cls.key_state.dest) {
@@ -373,6 +373,8 @@ void Cl_UpdateScreen(void) {
 				break;
 		}
 	} else {
+		R_BeginFrame();
+
 		R_Setup2D();
 
 		if (cls.state == CL_LOADING) {
@@ -387,6 +389,6 @@ void Cl_UpdateScreen(void) {
 	Ui_Draw();
 
 	R_EndFrame();
-		
+
 	Cl_ClearView();
 }

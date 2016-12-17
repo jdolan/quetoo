@@ -1,4 +1,3 @@
-#pragma once
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
@@ -20,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifdef __CG_LOCAL_H__
-void Cg_Move(pm_cmd_t *cmd);
-void Cg_ClearInput(void);
-void Cg_InitInput(void);
-#endif
+#pragma once
+
+void Cm_Init(void);
+void Cm_Shutdown(void);

@@ -674,8 +674,8 @@ static void Pm_CorrectPosition(void) {
 static bool Pm_CheckHookJump(void) {
 
 	if ((pm->s.type == PM_HOOK_PULL ||
-		pm->s.type == PM_HOOK_SWING) &&
-		pm->s.velocity[2] > PM_STEP_HEIGHT_MIN) {
+	        pm->s.type == PM_HOOK_SWING) &&
+	        pm->s.velocity[2] > PM_STEP_HEIGHT_MIN) {
 
 		// clear the ground indicators
 		pm->s.flags &= ~PMF_ON_GROUND;
@@ -970,7 +970,7 @@ static _Bool Pm_CheckWaterJump(void) {
 	vec3_t pos, pos2;
 
 	if (pm->s.type == PM_HOOK_PULL ||
-		pm->s.type == PM_HOOK_SWING) {
+	        pm->s.type == PM_HOOK_SWING) {
 		return false;
 	}
 
@@ -1426,7 +1426,9 @@ static void Pm_InitLocal(void) {
 	AngleVectors(pm->angles, pml.forward, pml.right, pml.up);
 
 	// and calculate the directional vectors in the XY plane
-	AngleVectors((vec3_t) { 0.0, pm->angles[1], pm->angles[2] }, pml.forward_xy, pml.right_xy, NULL);
+	AngleVectors((vec3_t) {
+		0.0, pm->angles[1], pm->angles[2]
+	}, pml.forward_xy, pml.right_xy, NULL);
 }
 
 /**
@@ -1436,7 +1438,7 @@ static void Pm_CheckHook(void) {
 
 	// hookers only
 	if (pm->s.type != PM_HOOK_PULL &&
-		pm->s.type != PM_HOOK_SWING) {
+	        pm->s.type != PM_HOOK_SWING) {
 
 		pm->s.flags &= ~PMF_HOOK_RELEASED;
 		return;
@@ -1452,7 +1454,7 @@ static void Pm_CheckHook(void) {
 		}
 
 		pm->cmd.forward = pm->cmd.right = 0;
-		
+
 		// pull physics
 		VectorSubtract(pm->s.hook_position, pm->s.origin, pm->s.velocity);
 		vec_t chain_len = VectorNormalize(pm->s.velocity);
@@ -1463,7 +1465,7 @@ static void Pm_CheckHook(void) {
 			VectorClear(pm->s.velocity);
 		}
 	} else {
-	
+
 		// check for disable
 		if (!(pm->s.flags & PMF_HOOK_RELEASED)) {
 
@@ -1471,7 +1473,7 @@ static void Pm_CheckHook(void) {
 				pm->s.flags |= PMF_HOOK_RELEASED;
 			}
 		} else {
-			
+
 			// if we let go of hook, just go back to normal. This helps with prediction.
 			if (pm->cmd.buttons & BUTTON_HOOK) {
 				pm->s.type = PM_NORMAL;
@@ -1484,7 +1486,7 @@ static void Pm_CheckHook(void) {
 
 		// chain physics
 		// grow/shrink chain based on input
-		if ((pm->cmd.up > 0 || !(pm->s.flags & PMF_HOOK_RELEASED)) && (pm->s.hook_length > PM_HOOK_MIN_LENGTH)) { 
+		if ((pm->cmd.up > 0 || !(pm->s.flags & PMF_HOOK_RELEASED)) && (pm->s.hook_length > PM_HOOK_MIN_LENGTH)) {
 
 			pm->s.hook_length = Max(pm->s.hook_length - hook_rate, PM_HOOK_MIN_LENGTH);
 		} else if ((pm->cmd.up < 0) && (pm->s.hook_length < PM_HOOK_MAX_LENGTH)) {
@@ -1504,8 +1506,8 @@ static void Pm_CheckHook(void) {
 
 			// determine player's velocity component of chain vector
 			VectorScale(chain_vec, DotProduct(pm->s.velocity, chain_vec) / DotProduct(chain_vec, chain_vec), vel_part);
-		
-			// restrainment default force 
+
+			// restrainment default force
 			force = (chain_len - pm->s.hook_length) * 5.0;
 
 			// if player's velocity heading is away from the hook
@@ -1526,8 +1528,8 @@ static void Pm_CheckHook(void) {
 				}
 			}
 		}
-			
-		// applies chain restrainment 
+
+		// applies chain restrainment
 		VectorNormalize(chain_vec);
 		VectorMA(pm->s.velocity, force, chain_vec, pm->s.velocity);
 	}

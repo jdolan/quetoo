@@ -245,23 +245,23 @@ static GLubyte R_GetElementSize(const GLenum type) {
 static GLenum R_GetGLTypeFromAttribType(const r_attrib_type_t type) {
 
 	switch (type) {
-	case R_ATTRIB_FLOAT:
-		return GL_FLOAT;
-	case R_ATTRIB_BYTE:
-		return GL_BYTE;
-	case R_ATTRIB_UNSIGNED_BYTE:
-		return GL_UNSIGNED_BYTE;
-	case R_ATTRIB_SHORT:
-		return GL_SHORT;
-	case R_ATTRIB_UNSIGNED_SHORT:
-		return GL_UNSIGNED_SHORT;
-	case R_ATTRIB_INT:
-		return GL_INT;
-	case R_ATTRIB_UNSIGNED_INT:
-		return GL_UNSIGNED_INT;
-	default:
-		Com_Error(ERR_FATAL, "Invalid R_ATTRIB_* type\n");
-		return GL_INVALID_ENUM;
+		case R_ATTRIB_FLOAT:
+			return GL_FLOAT;
+		case R_ATTRIB_BYTE:
+			return GL_BYTE;
+		case R_ATTRIB_UNSIGNED_BYTE:
+			return GL_UNSIGNED_BYTE;
+		case R_ATTRIB_SHORT:
+			return GL_SHORT;
+		case R_ATTRIB_UNSIGNED_SHORT:
+			return GL_UNSIGNED_SHORT;
+		case R_ATTRIB_INT:
+			return GL_INT;
+		case R_ATTRIB_UNSIGNED_INT:
+			return GL_UNSIGNED_INT;
+		default:
+			Com_Error(ERR_FATAL, "Invalid R_ATTRIB_* type\n");
+			return GL_INVALID_ENUM;
 	}
 }
 

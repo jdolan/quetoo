@@ -128,7 +128,7 @@ static void Cg_DrawVitals(const player_state_t *ps) {
 	}
 
 	if (atoi(cgi.ConfigString(CS_GAMEPLAY)) != GAME_INSTAGIB) {
-	
+
 		if (ps->stats[STAT_AMMO] > 0) {
 			const int16_t ammo = ps->stats[STAT_AMMO];
 			const int16_t ammo_low = ps->stats[STAT_AMMO_LOW];

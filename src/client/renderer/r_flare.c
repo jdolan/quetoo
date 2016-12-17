@@ -48,7 +48,7 @@ void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 
 	const r_stage_t *s = m->stages; // resolve the flare stage
 	while (s) {
-		if (s->flags & STAGE_FLARE) {
+		if (s->cm->flags & STAGE_FLARE) {
 			break;
 		}
 		s = s->next;
@@ -59,15 +59,15 @@ void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 	}
 
 	// resolve flare color
-	if (s->flags & STAGE_COLOR) {
-		VectorCopy(s->color, surf->flare->particle.color);
+	if (s->cm->flags & STAGE_COLOR) {
+		VectorCopy(s->cm->color, surf->flare->particle.color);
 	} else {
 		VectorCopy(surf->texinfo->material->diffuse->color, surf->flare->particle.color);
 	}
 
 	// and scaled radius
-	if (s->flags & (STAGE_SCALE_S | STAGE_SCALE_T)) {
-		surf->flare->radius *= (s->scale.s ? s->scale.s : s->scale.t);
+	if (s->cm->flags & (STAGE_SCALE_S | STAGE_SCALE_T)) {
+		surf->flare->radius *= (s->cm->scale.s ? s->cm->scale.s : s->cm->scale.t);
 	}
 
 	// and image

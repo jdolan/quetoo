@@ -60,14 +60,14 @@ extern vec3_t vec3_forward;
  * @return The maximum of the two values.
  */
 #ifndef Max
- #define Max(a, b) ({ typeof (a) _a = (a); typeof (b) _b = (b); _a > _b ? _a : _b; })
+	#define Max(a, b) ({ typeof (a) _a = (a); typeof (b) _b = (b); _a > _b ? _a : _b; })
 #endif
 
 /**
  * @return The minimum of the two values.
  */
 #ifndef Min
- #define Min(a, b) ({ typeof (a) _a = (a); typeof (b) _b = (b); _a < _b ? _a : _b; })
+	#define Min(a, b) ({ typeof (a) _a = (a); typeof (b) _b = (b); _a < _b ? _a : _b; })
 #endif
 
 #define DotProduct(x, y)			(x[0] * y[0] + x[1] * y[1] + x[2] * y[2])

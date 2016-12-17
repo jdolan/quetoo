@@ -234,7 +234,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
  * @brief
  */
 static void Cg_BurnEffect(const vec3_t org, const vec3_t dir, int32_t scale) {
-	
+
 	Cg_DecalEffect(org, dir, scale, cg_particles_burn);
 }
 

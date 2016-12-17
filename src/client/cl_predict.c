@@ -266,7 +266,7 @@ void Cl_CheckPredictionError(void) {
 
 	} else {
 		Com_Debug(DEBUG_CLIENT, "No delta\n");
-		
+
 		VectorCopy(cl.frame.ps.pm_state.origin, pr->view.origin);
 
 		UnpackVector(cl.frame.ps.pm_state.view_offset, pr->view.offset);

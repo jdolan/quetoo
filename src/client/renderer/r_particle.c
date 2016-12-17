@@ -202,7 +202,7 @@ static void R_ParticleTexcoords(const r_particle_t *p, r_particle_interleave_ver
 		Vector2Set(verts[3].texcoord, atlas_image->texcoords[0], atlas_image->texcoords[3]);
 	} else {
 		s = p->scroll_s * r_view.ticks / 1000.0;
-		t = p->scroll_t * r_view.ticks / 1000.0;
+		t = p->scroll_t *r_view.ticks / 1000.0;
 
 		vec_t x_offset = 1.0;
 
@@ -212,7 +212,7 @@ static void R_ParticleTexcoords(const r_particle_t *p, r_particle_interleave_ver
 			vec3_t distance;
 			VectorSubtract(p->org, p->end, distance);
 			const vec_t length = VectorLength(distance);
-		
+
 			x_offset = (length / p->scale) * p->repeat_scale;
 		}
 

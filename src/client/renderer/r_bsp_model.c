@@ -1151,7 +1151,8 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 
 	Com_Debug(DEBUG_RENDERER, "!================================\n");
 	Com_Debug(DEBUG_RENDERER, "!R_LoadBspModel: %s\n", mod->media.name);
-	Com_Debug(DEBUG_RENDERER, "!  Verts:          %d (%d unique, %d elements)\n", r_unique_vertices.num_vertexes, mod->num_verts,
+	Com_Debug(DEBUG_RENDERER, "!  Verts:          %d (%d unique, %d elements)\n", r_unique_vertices.num_vertexes,
+	          mod->num_verts,
 	          mod->num_elements);
 	Com_Debug(DEBUG_RENDERER, "!  Edges:          %d\n", mod->bsp->num_edges);
 	Com_Debug(DEBUG_RENDERER, "!  Surface edges:  %d\n", mod->bsp->num_surface_edges);

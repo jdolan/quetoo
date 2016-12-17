@@ -69,7 +69,7 @@ void Cg_ResolveWeather(const char *weather) {
 
 		if (strlen(c) > 3) { // try to parse fog color
 			vec_t *f = cgi.view->fog_color;
-			
+
 			err = sscanf(c + 4, "%f %f %f %f", f, f + 1, f + 2, f + 3);
 		}
 
