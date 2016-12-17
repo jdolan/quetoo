@@ -294,7 +294,7 @@ static void G_WeaponFired(g_entity_t *ent, uint32_t interval) {
 	if (g_level.gameplay != GAME_INSTAGIB) {
 		if (ent->client->locals.ammo_index) {
 			ent->client->locals.inventory[ent->client->locals.ammo_index] -=
-				ent->client->locals.weapon->quantity;
+			    ent->client->locals.weapon->quantity;
 		}
 	}
 
@@ -387,7 +387,7 @@ static void G_MuzzleFlash(g_entity_t *ent, g_muzzle_flash_t flash) {
  * @brief Detach the player's hook if it's still attached.
  */
 void G_ClientHookDetach(g_entity_t *ent) {
-	
+
 	if (!g_level.hook_allowed) {
 		return;
 	}
@@ -421,7 +421,7 @@ void G_ClientHookDetach(g_entity_t *ent) {
 		const vec_t fwd_speed = VectorLength(velocity) / 1.75;
 
 		if (ent->locals.velocity[2] > 50 &&
-			ent->locals.velocity[2] > fwd_speed) {
+		        ent->locals.velocity[2] > fwd_speed) {
 			G_SetAnimation(ent, ANIM_LEGS_JUMP2, true);
 		}
 	}
@@ -449,7 +449,7 @@ static void G_ClientHookCheckFire(g_entity_t *ent) {
 	// fire away!
 	vec3_t forward, right, up, org;
 	G_InitProjectile(ent, forward, right, up, org, -1.0);
-	
+
 	ent->client->locals.hook_pull = false;
 	ent->client->locals.hook_entity = G_HookProjectile(ent, org, forward);
 
@@ -480,7 +480,7 @@ void G_ClientHookThink(g_entity_t *ent) {
 	if (ent->client->locals.hook_entity) {
 
 		if ((ent->client->locals.persistent.hook_style == HOOK_PULL && !(ent->client->locals.buttons & BUTTON_HOOK)) ||
-			(ent->client->locals.persistent.hook_style == HOOK_SWING && (ent->client->locals.latched_buttons & BUTTON_HOOK))) {
+		        (ent->client->locals.persistent.hook_style == HOOK_SWING && (ent->client->locals.latched_buttons & BUTTON_HOOK))) {
 
 			G_ClientHookDetach(ent);
 		}

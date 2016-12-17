@@ -1031,7 +1031,7 @@ void G_SetClientHookStyle(g_entity_t *ent) {
 	}
 
 	g_hook_style_t hook_style;
-	
+
 	// respect user_info on default
 	if (!g_strcmp0(g_hook_style->string, "default")) {
 		hook_style = G_HookStyleByName(GetUserInfo(ent->client->locals.persistent.user_info, "hook_style"));

@@ -89,7 +89,7 @@ void G_ResetTeams(void) {
 
 	g_strlcpy(g_team_good.skin, "qforcer/blue", sizeof(g_team_good.skin));
 	g_strlcpy(g_team_evil.skin, "qforcer/red", sizeof(g_team_evil.skin));
-	
+
 	g_team_good.color = EFFECT_COLOR_BLUE;
 	g_team_evil.color = EFFECT_COLOR_RED;
 }
@@ -283,7 +283,7 @@ static void G_BeginIntermission(const char *map) {
 	gi.PositionedSound(g_level.intermission_origin, NULL, g_media.sounds.roar, ATTEN_NORM);
 
 	// stay on same level if not provided
-	g_level.next_map = map ?: g_level.name;
+	g_level.next_map = map ? : g_level.name;
 }
 
 /**
@@ -994,10 +994,13 @@ void G_Init(void) {
 	g_capture_limit = gi.Cvar("g_capture_limit", "8", CVAR_SERVER_INFO, "The capture limit per level");
 	g_cheats = gi.Cvar("g_cheats", "0", CVAR_SERVER_INFO, NULL);
 	g_ctf = gi.Cvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay");
-	g_hook = gi.Cvar("g_hook", "default", CVAR_SERVER_INFO, "Whether to allow the hook to be used or not. \"default\" only allows hook in CTF; 1 is always allow, 0 is never allow.");
-	g_hook_style = gi.Cvar("g_hook_style", "default", CVAR_SERVER_INFO, "Whether to allow only \"pull\", \"swing\" or any (\"default\") hook swing style.");
+	g_hook = gi.Cvar("g_hook", "default", CVAR_SERVER_INFO,
+	                 "Whether to allow the hook to be used or not. \"default\" only allows hook in CTF; 1 is always allow, 0 is never allow.");
+	g_hook_style = gi.Cvar("g_hook_style", "default", CVAR_SERVER_INFO,
+	                       "Whether to allow only \"pull\", \"swing\" or any (\"default\") hook swing style.");
 	g_hook_speed = gi.Cvar("g_hook_speed", "900", CVAR_SERVER_INFO, "The speed that the hook will fly at");
-	g_hook_pull_speed = gi.Cvar("g_hook_pull_speed", "700", CVAR_SERVER_INFO, "The speed that you get pulled towards the hook");
+	g_hook_pull_speed = gi.Cvar("g_hook_pull_speed", "700", CVAR_SERVER_INFO,
+	                            "The speed that you get pulled towards the hook");
 	g_frag_limit = gi.Cvar("g_frag_limit", "30", CVAR_SERVER_INFO, "The frag limit per level");
 	g_friendly_fire = gi.Cvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Enables friendly fire");
 	g_force_demo = gi.Cvar("g_force_demo", "0", CVAR_SERVER_INFO, "Force all players to record a demo");

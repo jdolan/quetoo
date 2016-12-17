@@ -102,7 +102,7 @@ void Cg_PredictMovement(const GList *cmds) {
 	if (!(cgi.client->frame.ps.pm_state.flags & PMF_NO_MOVEMENT_PREDICTION)) {
 		VectorCopy(pm.s.origin, pr->view.origin);
 	}
-	
+
 	if (!(cgi.client->frame.ps.pm_state.flags & PMF_NO_VIEW_PREDICTION)) {
 		UnpackVector(pm.s.view_offset, pr->view.offset);
 		UnpackAngles(pm.cmd.angles, pr->view.angles);

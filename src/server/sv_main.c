@@ -806,24 +806,24 @@ void Sv_Frame(const uint32_t msec) {
 static void Sv_InitLocal(void) {
 
 	sv_demo_list = Cvar_Add("sv_demo_list", "", CVAR_SERVER_INFO,
-			"A list of demo names to cycle through");
+	                        "A list of demo names to cycle through");
 	sv_download_url = Cvar_Add("sv_download_url", "", CVAR_SERVER_INFO,
-			"The base URL for in-game HTTP downloads");
+	                           "The base URL for in-game HTTP downloads");
 	sv_enforce_time = Cvar_Add("sv_enforce_time", va("%d", CMD_MSEC_MAX_DRIFT_ERRORS), 0,
-			"Prevents the most blatant form of speed cheeting, disable at your own risk");
+	                           "Prevents the most blatant form of speed cheeting, disable at your own risk");
 	sv_hostname = Cvar_Add("sv_hostname", "Quetoo", CVAR_SERVER_INFO | CVAR_ARCHIVE,
-			"The server hostname, visible in the server browser");
+	                       "The server hostname, visible in the server browser");
 	sv_max_clients = Cvar_Add("sv_max_clients", "1", CVAR_SERVER_INFO | CVAR_LATCH,
-			"The maximum number of clients the server will allow");
+	                          "The maximum number of clients the server will allow");
 	sv_no_areas = Cvar_Add("sv_no_areas", "0", CVAR_LATCH | CVAR_LO_ONLY,
-			"Disable server-side area management (developer tool)");
+	                       "Disable server-side area management (developer tool)");
 	sv_public = Cvar_Add("sv_public", "0", 0,
-			"Set to 1 to to advertise this server via the master server");
+	                     "Set to 1 to to advertise this server via the master server");
 	sv_rcon_password = Cvar_Add("rcon_password", "", 0,
-			"The remote console password. If set, only give this to trusted clients");
+	                            "The remote console password. If set, only give this to trusted clients");
 	sv_timeout = Cvar_Add("sv_timeout", va("%d", SV_TIMEOUT), 0, NULL);
 	sv_udp_download = Cvar_Add("sv_udp_download", "1", CVAR_ARCHIVE,
-			"If set, in-game UDP downloads will be allowed when HTTP downloads fail");
+	                           "If set, in-game UDP downloads will be allowed when HTTP downloads fail");
 
 	if (dedicated->value) {
 		Cvar_SetValue(sv_max_clients->name, 8.0);

@@ -195,7 +195,7 @@ static GList *G_MapList_Parse(const char *filename) {
  */
 const g_map_list_map_t *G_MapList_Find(GList *list, const char *name) {
 
-	for (list = list ?: g_map_list; list; list = list->next) {
+	for (list = list ? : g_map_list; list; list = list->next) {
 		const g_map_list_map_t *map = list->data;
 		if (!g_strcmp0(name, map->name)) {
 			return map;

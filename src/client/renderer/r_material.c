@@ -684,7 +684,7 @@ r_material_t *R_ConvertMaterial(cm_material_t *cm, const _Bool unref) {
 		mat = (r_material_t *) R_AllocMedia(cm->key, sizeof(r_material_t), MEDIA_MATERIAL);
 
 		mat->cm = cm;
-		
+
 		mat->media.Register = R_RegisterMaterial;
 		mat->media.Free = R_FreeMaterial;
 

@@ -128,7 +128,7 @@ void S_RegisterMedia(s_media_t *media) {
 			g_hash_table_insert(s_media_state.media, media->name, media);
 
 			s_media_state.keys = g_list_insert_sorted(s_media_state.keys, media->name,
-								 S_RegisterMedia_Compare);
+			                     S_RegisterMedia_Compare);
 		}
 
 		// re-seed the media to retain it
@@ -199,7 +199,7 @@ static gboolean S_FreeMedia_(gpointer key, gpointer value, gpointer data) {
 	if (media->Free) {
 		media->Free(media);
 	}
-	
+
 	g_list_free(media->dependencies);
 	s_media_state.keys = g_list_remove(s_media_state.keys, key);
 

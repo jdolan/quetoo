@@ -541,7 +541,7 @@ void Cl_InitKeys(void) {
 		const char *name = va("Mouse %d", b - SDL_SCANCODE_MOUSE1 + 1);
 		cl_key_names[b] = Mem_Link(Mem_CopyString(name), cl_key_names);
 	}
-	
+
 	cl_key_names[SDL_SCANCODE_MWHEELUP] = Mem_Link(Mem_CopyString("Mouse Wheel Up"), cl_key_names);
 	cl_key_names[SDL_SCANCODE_MWHEELDOWN] = Mem_Link(Mem_CopyString("Mouse Wheel Down"), cl_key_names);
 

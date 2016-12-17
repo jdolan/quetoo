@@ -354,7 +354,7 @@ void Cl_UpdateScreen(void) {
 		R_EnableBlend(false);
 
 		R_DrawSupersample();
-		
+
 		R_EnableBlend(true);
 
 		switch (cls.key_state.dest) {
@@ -389,6 +389,6 @@ void Cl_UpdateScreen(void) {
 	Ui_Draw();
 
 	R_EndFrame();
-		
+
 	Cl_ClearView();
 }

@@ -108,8 +108,8 @@ typedef struct cm_stage_s {
 
 // composite mask for simplifying state management
 #define STAGE_TEXTURE_MATRIX (\
-	STAGE_STRETCH | STAGE_ROTATE | STAGE_SCROLL_S | STAGE_SCROLL_T | STAGE_SCALE_S | STAGE_SCALE_T \
-)
+                              STAGE_STRETCH | STAGE_ROTATE | STAGE_SCROLL_S | STAGE_SCROLL_T | STAGE_SCALE_S | STAGE_SCALE_T \
+                             )
 
 #define DEFAULT_BUMP 1.0
 #define DEFAULT_PARALLAX 1.0
@@ -124,7 +124,7 @@ typedef struct cm_material_s {
 
 	char full_name[MAX_QPATH]; // the original full name of the material (#..., etc)
 	char material_file[MAX_QPATH]; // the material file we got loaded from
-	
+
 	char diffuse[MAX_QPATH];
 	char normalmap[MAX_QPATH];
 	char specularmap[MAX_QPATH];
@@ -151,6 +151,6 @@ GArray *Cm_LoadMaterials(const char *path);
 void Cm_WriteMaterials(void);
 
 #ifdef __CM_LOCAL_H__
-	void Cm_InitMaterials(void);
-	void Cm_ShutdownMaterials(void);
+void Cm_InitMaterials(void);
+void Cm_ShutdownMaterials(void);
 #endif /* __CM_LOCAL_H__ */

@@ -147,7 +147,7 @@ static void Cg_Init(void) {
 	cg_handicap = cgi.Cvar("handicap", "100", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                       "Your handicap, or disadvantage.");
 	cg_hook_style = cgi.Cvar("hook_style", "pull", CVAR_USER_INFO | CVAR_ARCHIVE,
-		                     "Your preferred hook style. Can be either \"pull\" or \"swing\".");
+	                         "Your preferred hook style. Can be either \"pull\" or \"swing\".");
 	cg_skin = cgi.Cvar("skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                   "Your player model and skin.");
 
@@ -279,19 +279,19 @@ static void Cg_UpdateConfigString(uint16_t i) {
 	const char *s = cgi.ConfigString(i);
 
 	switch (i) {
-	case CS_WEATHER:
-		Cg_ResolveWeather(s);
-		break;
-	case CS_HOOK_PULL_SPEED:
-		cg_state.hook_pull_speed = strtof(s, NULL);
-		break;
-	default:
-		if (i >= CS_CLIENTS && i < CS_CLIENTS + MAX_CLIENTS) {
-			cl_client_info_t *ci = &cgi.client->client_info[i - CS_CLIENTS];
-			Cg_LoadClient(ci, s);
-			cgi.LoadClientSounds(ci->model);
-		}
-		break;
+		case CS_WEATHER:
+			Cg_ResolveWeather(s);
+			break;
+		case CS_HOOK_PULL_SPEED:
+			cg_state.hook_pull_speed = strtof(s, NULL);
+			break;
+		default:
+			if (i >= CS_CLIENTS && i < CS_CLIENTS + MAX_CLIENTS) {
+				cl_client_info_t *ci = &cgi.client->client_info[i - CS_CLIENTS];
+				Cg_LoadClient(ci, s);
+				cgi.LoadClientSounds(ci->model);
+			}
+			break;
 	}
 }
 

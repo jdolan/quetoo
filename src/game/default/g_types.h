@@ -558,7 +558,7 @@ typedef struct {
 
 	struct {
 		uint16_t gibs[NUM_GIB_MODELS];
-		
+
 		uint16_t grenade;
 		uint16_t rocket;
 		uint16_t hook;
@@ -575,7 +575,7 @@ typedef struct {
 		uint16_t lightning_fly;
 		uint16_t quad_attack;
 		uint16_t quad_expire;
-		
+
 		uint16_t hook_fire;
 		uint16_t hook_hit;
 		uint16_t hook_pull;

@@ -349,8 +349,8 @@ static void Cl_UpdateLerp(void) {
 
 /**
  * @brief Interpolates the simulation for the most recently parsed server frame.
- * @remarks This can be called multiple times per frame, in the event that the client has received 
- * multiple server updates at once. This happens somewhat frequently, especially at higher server 
+ * @remarks This can be called multiple times per frame, in the event that the client has received
+ * multiple server updates at once. This happens somewhat frequently, especially at higher server
  * tick rates, or with significant network jitter.
  */
 void Cl_Interpolate(void) {

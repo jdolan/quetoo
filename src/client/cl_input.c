@@ -78,7 +78,7 @@ void Cl_KeyDown(button_t *b) {
 	}
 
 	// save the down time so that we can calculate fractional time later
-	b->down_time = atoi(Cmd_Argv(2)) ?: cl.ticks;
+	b->down_time = atoi(Cmd_Argv(2)) ? : cl.ticks;
 
 	// and indicate that the key is down
 	b->state |= 1;

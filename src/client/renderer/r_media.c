@@ -63,7 +63,7 @@ void R_DumpImages_f(void) {
 
 		if (media) {
 			if (media->type == MEDIA_IMAGE ||
-					media->type == MEDIA_ATLAS) {
+			        media->type == MEDIA_ATLAS) {
 
 				const r_image_t *image = (const r_image_t *) media;
 				GLubyte *pixels = Mem_Malloc(image->width * image->height * 4);
@@ -142,7 +142,7 @@ void R_RegisterMedia(r_media_t *media) {
 			g_hash_table_insert(r_media_state.media, media->name, media);
 
 			r_media_state.keys = g_list_insert_sorted(r_media_state.keys, media->name,
-								 R_RegisterMedia_Compare);
+			                     R_RegisterMedia_Compare);
 		}
 
 		// re-seed the media to retain it

@@ -423,7 +423,7 @@ static void Sv_DemoCompleted(void) {
 			}
 		}
 
-		const char *space = strchr(next_demo, ' ') ?: (next_demo + strlen(next_demo));
+		const char *space = strchr(next_demo, ' ') ? : (next_demo + strlen(next_demo));
 		size_t len = space - next_demo;
 
 		strncpy(demo_token, next_demo, len);

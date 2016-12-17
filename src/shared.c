@@ -522,7 +522,7 @@ u16vec_t PackTexcoord(const vec_t in) {
  * @brief Packs float texcoords [0,1) to [0,USHRT_MAX]
  */
 void PackTexcoords(const vec2_t in, u16vec2_t out) {
-	
+
 	out[0] = PackTexcoord(in[0]);
 	out[1] = PackTexcoord(in[1]);
 }

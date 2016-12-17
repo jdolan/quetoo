@@ -153,22 +153,21 @@ static inline GLenum Cm_BlendConstByName(const char *c) {
  */
 static inline const char *Cm_BlendNameByConst(const GLenum c) {
 
-	switch (c)
-	{
-	case GL_ONE:
-		return "GL_ONE";
-	case GL_ZERO:
-		return "GL_ZERO";
-	case GL_SRC_ALPHA:
-		return "GL_SRC_ALPHA";
-	case GL_ONE_MINUS_SRC_ALPHA:
-		return "GL_ONE_MINUS_SRC_ALPHA";
-	case GL_SRC_COLOR:
-		return "GL_SRC_COLOR";
-	case GL_DST_COLOR:
-		return "GL_DST_COLOR";
-	case GL_ONE_MINUS_SRC_COLOR:
-		return "GL_ONE_MINUS_SRC_COLOR";
+	switch (c) {
+		case GL_ONE:
+			return "GL_ONE";
+		case GL_ZERO:
+			return "GL_ZERO";
+		case GL_SRC_ALPHA:
+			return "GL_SRC_ALPHA";
+		case GL_ONE_MINUS_SRC_ALPHA:
+			return "GL_ONE_MINUS_SRC_ALPHA";
+		case GL_SRC_COLOR:
+			return "GL_SRC_COLOR";
+		case GL_DST_COLOR:
+			return "GL_DST_COLOR";
+		case GL_ONE_MINUS_SRC_COLOR:
+			return "GL_ONE_MINUS_SRC_COLOR";
 	}
 
 	// ...
@@ -442,8 +441,8 @@ static int32_t Cm_ParseStage(cm_stage_t *s, const char **buffer) {
 				}
 			}
 
-			Com_Debug(DEBUG_COLLISION, 
-					  "Parsed stage\n"
+			Com_Debug(DEBUG_COLLISION,
+			          "Parsed stage\n"
 			          "  flags: %d\n"
 			          "  texture: %s\n"
 			          "   -> material: %s\n"
@@ -563,7 +562,7 @@ GArray *Cm_LoadMaterials(const char *path) {
 			} else {
 				m = Cm_LoadMaterial(va("textures/%s", c));
 			}
-			
+
 			g_strlcpy(m->full_name, full_name, sizeof(m->full_name));
 			g_strlcpy(m->material_file, path, sizeof(m->material_file));
 
@@ -753,14 +752,14 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 
 	// write the innards
 	Fs_Print(file, "\tmaterial %s\n", material->full_name);
-	
+
 	if (*material->normalmap) {
 		Fs_Print(file, "\tnormalmap %s\n", material->normalmap);
 	}
 	if (*material->specularmap) {
 		Fs_Print(file, "\tspecularmap %s\n", material->specularmap);
 	}
-	
+
 	if (material->bump != DEFAULT_BUMP) {
 		Fs_Print(file, "\tbump %g\n", material->bump);
 	}
