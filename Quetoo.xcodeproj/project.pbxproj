@@ -282,6 +282,10 @@
 		CEA029C41C5E54F600341079 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEA082371DC6EC50001207AA /* r_atlas.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA082331DC6EBB7001207AA /* r_atlas.c */; };
 		CEA082381DC6EC59001207AA /* r_atlas.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA082341DC6EBB7001207AA /* r_atlas.h */; };
+		CEA3B48B1E0576D9004A6CF3 /* cm_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA3B4831E057569004A6CF3 /* cm_main.c */; };
+		CEA3B48C1E0576DE004A6CF3 /* cm_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA3B4841E057569004A6CF3 /* cm_main.h */; };
+		CEA3B48D1E0576E3004A6CF3 /* cm_material.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA3B4851E057569004A6CF3 /* cm_material.c */; };
+		CEA3B48E1E0576E7004A6CF3 /* cm_material.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA3B4861E057569004A6CF3 /* cm_material.h */; };
 		CEA936661DBCD88D00A12B79 /* r_program_corona.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA936621DBCD87400A12B79 /* r_program_corona.c */; };
 		CEA936671DBCD89000A12B79 /* r_program_corona.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA936631DBCD87400A12B79 /* r_program_corona.h */; };
 		CEB8D6271E00B73200043814 /* cg_input.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB8D6231E00B72100043814 /* cg_input.c */; };
@@ -1369,6 +1373,10 @@
 		CEA029F41C5E558100341079 /* quetoo-master */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-master"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEA082331DC6EBB7001207AA /* r_atlas.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_atlas.c; sourceTree = "<group>"; };
 		CEA082341DC6EBB7001207AA /* r_atlas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_atlas.h; sourceTree = "<group>"; };
+		CEA3B4831E057569004A6CF3 /* cm_main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_main.c; sourceTree = "<group>"; };
+		CEA3B4841E057569004A6CF3 /* cm_main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_main.h; sourceTree = "<group>"; };
+		CEA3B4851E057569004A6CF3 /* cm_material.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_material.c; sourceTree = "<group>"; };
+		CEA3B4861E057569004A6CF3 /* cm_material.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_material.h; sourceTree = "<group>"; };
 		CEA936601DBCD85400A12B79 /* corona_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = corona_fs.glsl; sourceTree = "<group>"; };
 		CEA936611DBCD85400A12B79 /* corona_vs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = corona_vs.glsl; sourceTree = "<group>"; };
 		CEA936621DBCD87400A12B79 /* r_program_corona.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_program_corona.c; sourceTree = "<group>"; };
@@ -2328,6 +2336,10 @@
 			isa = PBXGroup;
 			children = (
 				CE12D6291C5C58C300CD0B13 /* cm_local.h */,
+				CEA3B4831E057569004A6CF3 /* cm_main.c */,
+				CEA3B4841E057569004A6CF3 /* cm_main.h */,
+				CEA3B4851E057569004A6CF3 /* cm_material.c */,
+				CEA3B4861E057569004A6CF3 /* cm_material.h */,
 				CE12D62A1C5C58C300CD0B13 /* cm_model.c */,
 				CE12D62B1C5C58C300CD0B13 /* cm_model.h */,
 				CE12D62C1C5C58C300CD0B13 /* cm_test.c */,
@@ -2952,7 +2964,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE80FE721C5E437F00A21A51 /* cm_local.h in Headers */,
+				CEA3B48E1E0576E7004A6CF3 /* cm_material.h in Headers */,
 				CE80FE731C5E437F00A21A51 /* cm_model.h in Headers */,
+				CEA3B48C1E0576DE004A6CF3 /* cm_main.h in Headers */,
 				CE80FE741C5E437F00A21A51 /* cm_test.h in Headers */,
 				CE80FE751C5E437F00A21A51 /* cm_trace.h in Headers */,
 				CE80FE761C5E437F00A21A51 /* cm_types.h in Headers */,
@@ -3988,7 +4002,9 @@
 			files = (
 				CE80FE3B1C5E424300A21A51 /* cm_model.c in Sources */,
 				CE80FE3C1C5E424300A21A51 /* cm_test.c in Sources */,
+				CEA3B48B1E0576D9004A6CF3 /* cm_main.c in Sources */,
 				CE80FE3D1C5E424300A21A51 /* cm_trace.c in Sources */,
+				CEA3B48D1E0576E3004A6CF3 /* cm_material.c in Sources */,
 				CE80FE3E1C5E424300A21A51 /* cm_vis.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

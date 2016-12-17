@@ -918,6 +918,9 @@ void R_LoadMaterials(r_model_t *mod) {
 	g_array_free(materials, true);
 }
 
+/**
+ * @brief
+ */
 static void R_SaveMaterials_f(void) {
 	Cm_WriteMaterials();
 }
