@@ -608,40 +608,26 @@ void Cl_Frame(const uint32_t msec) {
 		}
 	}
 
-	// attempt to [re]connect to the server
 	Cl_AttemptConnect();
 
-	// run http downloads
 	Cl_HttpThink();
 
-	// update any stale media references
 	Cl_UpdateMedia();
 
-	// fetch updates from server
 	Cl_ReadPackets();
 
-	// fetch input from user
 	Cl_HandleEvents();
 
-	// and update the movement command
 	Cl_UpdateMovementCommand(msec);
 
-	// send any pending commands
 	Cl_SendCommands();
 
-	// predict all unacknowledged movements
 	Cl_PredictMovement();
 
-	// advance the simulation
 	Cl_Interpolate();
 
-	// and ask the cgame to populate the view
-	cls.cgame->UpdateView(&cl.frame);
-
-	// update the screen
 	Cl_UpdateScreen();
 
-	// update audio
 	S_Frame();
 
 	frame_time = quetoo.ticks;
