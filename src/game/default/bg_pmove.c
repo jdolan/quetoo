@@ -625,8 +625,8 @@ static void Pm_CorrectPosition(void) {
 					pos[1] += j * PM_NUDGE_DIST;
 					pos[2] += k * PM_NUDGE_DIST;
 
-					tr = pm->Trace(pos, pos, pm->mins, pm->maxs);
-					if (!tr.all_solid) {
+					tr = pm->Trace(pml.previous_origin, pos, pm->mins, pm->maxs);
+					if (tr.fraction == 1.0) {
 						VectorCopy(pos, pm->s.origin);
 						Pm_Debug("corrected %s\n", vtos(pm->s.origin));
 						return;
