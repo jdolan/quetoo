@@ -58,6 +58,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_BOB) {
+		VectorCopy(e->origin, e->termination);
 		e->origin[2] += 4.0 * sin(cgi.client->ticks * 0.005 + ent->current.number);
 	}
 

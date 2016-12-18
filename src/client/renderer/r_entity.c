@@ -285,7 +285,15 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 		                 r_model_state.bound_vertices);
 
 		// draw box
-		Matrix4x4_CreateFromEntity(&mat, e->origin, vec3_origin, e->scale);
+		const vec_t *origin;
+
+		if (e->effects & EF_BOB) {
+			origin = e->termination;
+		} else {
+			origin = e->origin;
+		}
+
+		Matrix4x4_CreateFromEntity(&mat, origin, vec3_origin, e->scale);
 
 		Matrix4x4_Concat(&mat, &modelview, &mat);
 
@@ -294,7 +302,7 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 		R_DrawArrays(GL_LINES, 0, (GLint) r_model_state.bound_element_count - 6);
 
 		// draw origin
-		Matrix4x4_CreateFromEntity(&mat, e->origin, e->angles, e->scale);
+		Matrix4x4_CreateFromEntity(&mat, origin, e->angles, e->scale);
 
 		Matrix4x4_Concat(&mat, &modelview, &mat);
 
