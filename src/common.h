@@ -41,7 +41,7 @@
  * of core net messages or serialized data types change. The game and client
  * game maintain PROTOCOL_MINOR as well.
  */
-#define PROTOCOL_MAJOR		1019
+#define PROTOCOL_MAJOR		1020
 
 /**
  * @brief The IP address of the master server, where the authoritative list of
@@ -133,20 +133,20 @@ void Com_PrintInfo(const char *s);
 const char *Com_GetDebug(void);
 void Com_SetDebug(const char *debug);
 
-void Com_Debug_(debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
-void Com_Debugv_(debug_t debug, const char *func, const char *fmt, va_list args);
+void Com_Debug_(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+void Com_Debugv_(const debug_t debug, const char *func, const char *fmt, va_list args) __attribute__((format(printf, 3, 0)));
 
 void Com_Error_(error_t error, const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 3, 4)));
-void Com_Errorv_(error_t error, const char *func, const char *fmt, va_list args) __attribute__((noreturn));
+void Com_Errorv_(error_t error, const char *func, const char *fmt, va_list args) __attribute__((noreturn, format(printf, 3, 0)));
 
 void Com_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void Com_Printv(const char *fmt, va_list args);
+void Com_Printv(const char *fmt, va_list args) __attribute__((format(printf, 1, 0)));
 
 void Com_Verbose(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void Com_Verbosev(const char *fmt, va_list args);
+void Com_Verbosev(const char *fmt, va_list args) __attribute__((format(printf, 1, 0)));
 
 void Com_Warn_(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-void Com_Warnv_(const char *func, const char *fmt, va_list args);
+void Com_Warnv_(const char *func, const char *fmt, va_list args) __attribute__((format(printf, 2, 0)));
 
 #define Com_Debug(debug, ...) Com_Debug_(debug, __func__, __VA_ARGS__)
 #define Com_Debugv(debug, fmt, args) Com_Debugv_(debug, __func__, fmt, args)

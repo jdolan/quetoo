@@ -480,34 +480,52 @@ void UnpackAngles(const uint16_t *in, vec3_t out) {
 
 /**
  * @brief Packs the specified bounding box to a limited precision integer
- * representation. Bits 0-5 represent X/Y, scaled down by a factor of 0.125.
- * Bits 5-10 contain the Z-mins, and 10-15 contain the Z-maxs.
+ * representation. Bits 0-8 represent X, bits 9-16 represent Y, bits 17-24 represent
+ * min Z, bits 25-32 represent max Z. This supports objects with any dimensions sized
+ * between -255 and 255 (symmetrical) on X/Y and -128 and 127 on Z.
  */
-void PackBounds(const vec3_t mins, const vec3_t maxs, uint16_t *out) {
+void PackBounds(const vec3_t mins, const vec3_t maxs, uint32_t *out) {
 
-	// x/y are assumed equal and symmetric
-	int32_t xy = Clamp(maxs[0] * 0.125, 1.0, 31.0);
+	union {
+		struct {
+			uint8_t x;
+			uint8_t y;
+			int8_t zd;
+			int8_t zu;
+		};
 
-	// z is asymmetric
-	int32_t zd = Clamp(-mins[2] * 0.125, 1.0, 31.0);
+		uint32_t ulong;
+	} out_packed = {
+		.x = Clamp(maxs[0], 0.0, 255.0),
+		.y = Clamp(maxs[1], 0.0, 255.0),
+		.zd = Clamp(mins[2], -128.0, 127.0),
+		.zu = Clamp(maxs[2], -128.0, 127.0)
+	};
 
-	// and z maxs can be negative, so shift them +32 units
-	int32_t zu = Clamp((maxs[2] + 32.0) * 0.125, 1.0, 63.0);
-
-	*out = (zu << 10) | (zd << 5) | xy;
+	*out = out_packed.ulong;
 }
 
 /**
  * @brief Unpacks the specified bounding box to mins and maxs.
+ * @see PackBounds
  */
-void UnpackBounds(const uint16_t in, vec3_t mins, vec3_t maxs) {
+void UnpackBounds(const uint32_t in, vec3_t mins, vec3_t maxs) {
+	
+	union {
+		uint32_t ulong;
 
-	const vec_t xy = (in & 31) * 8.0;
-	const vec_t zd = ((in >> 5) & 31) * 8.0;
-	const vec_t zu = ((in >> 10) & 31) * 8.0 - 32.0;
+		struct {
+			uint8_t x;
+			uint8_t y;
+			int8_t zd;
+			int8_t zu;
+		};
+	} in_packed = { 
+		.ulong = in
+	};
 
-	VectorSet(mins, -xy, -xy, -zd);
-	VectorSet(maxs, xy, xy, zu);
+	VectorSet(mins, -in_packed.x, -in_packed.y, in_packed.zd);
+	VectorSet(maxs, in_packed.x, in_packed.y, in_packed.zu);
 }
 
 /**

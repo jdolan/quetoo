@@ -457,7 +457,7 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 	}
 
 	if (bits & U_BOUNDS) {
-		Net_WriteShort(msg, to->bounds);
+		Net_WriteLong(msg, to->bounds);
 	}
 }
 
@@ -809,6 +809,6 @@ void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_stat
 	}
 
 	if (bits & U_BOUNDS) {
-		to->bounds = Net_ReadShort(msg);
+		to->bounds = Net_ReadLong(msg);
 	}
 }

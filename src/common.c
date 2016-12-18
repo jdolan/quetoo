@@ -100,6 +100,7 @@ void Com_SetDebug(const char *debug) {
  * @param args The format arguments.
  * @return The number of characters printed.
  */
+__attribute__((format(printf, 4, 0)))
 static int32_t Com_Sprintfv(char *str, size_t size, const char *func, const char *fmt, va_list args) {
 
 	assert(str);

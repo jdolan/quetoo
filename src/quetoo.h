@@ -597,7 +597,7 @@ typedef struct {
 	 * client-sided prediction so that players don't e.g. run through each
 	 * other. See PackBounds.
 	 */
-	uint16_t bounds;
+	uint32_t bounds;
 } entity_state_t;
 
 #define MAX_STATS			32

@@ -146,8 +146,8 @@ vec_t UnpackAngle(const uint16_t a);
 void UnpackAngles(const uint16_t *in, vec3_t out);
 vec_t ClampAngle(vec_t angle);
 void ClampAngles(vec3_t angles);
-void PackBounds(const vec3_t mins, const vec3_t maxs, uint16_t *out);
-void UnpackBounds(const uint16_t in, vec3_t mins, vec3_t maxs);
+void PackBounds(const vec3_t mins, const vec3_t maxs, uint32_t *out);
+void UnpackBounds(const uint32_t in, vec3_t mins, vec3_t maxs);
 u16vec_t PackTexcoord(const vec_t in);
 void PackTexcoords(const vec2_t in, u16vec2_t out);
 
