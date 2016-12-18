@@ -605,6 +605,47 @@ static _Bool Pm_CheckTrickJump(void) {
 	return true;
 }
 
+#define PM_SNAP_DISTANCE	0.250
+
+/**
+ * @brief This function is designed to keep the player from getting too close to
+ * other planes. If the player is close enough to another wall or box, it will adjust
+ * the position by shoving them away from it at a certain distance. It will only try
+ * to adjust the Z position if they are in the air, to prevent sliding across the ground.
+ */
+static void Pm_SnapToWalls(void) {
+
+	const vec3_t dirs[] = {
+		{ 1, 0, 0 },
+		{ -1, 0, 0 },
+		{ 0, 1, 0 },
+		{ 0, -1, 0 },
+		{ 0, 0, 1 },
+		{ 0, 0, -1 }
+	};
+
+	for (uint32_t i = 0; i < lengthof(dirs); ++i) {
+		if (i >= 4) {
+			if (pm->s.flags & PMF_ON_GROUND) {
+				continue;
+			}
+		}
+
+		const vec_t *dir = dirs[i];
+		const vec3_t end = { pm->s.origin[0] + (dir[0] * PM_SNAP_DISTANCE), pm->s.origin[1] + (dir[1] * PM_SNAP_DISTANCE), pm->s.origin[2] + (dir[2] * PM_SNAP_DISTANCE) };
+
+		cm_trace_t tr = pm->Trace(pm->s.origin, end, pm->mins, pm->maxs);
+
+		if (tr.fraction < 1.0) {
+
+			VectorCopy(tr.end, pm->s.origin);
+			VectorMA(pm->s.origin, -PM_SNAP_DISTANCE, dir, pm->s.origin);
+
+			i++; // skip the other plane since we can't hit both in the same frame
+		}
+	}
+}
+
 /**
  * @brief Shift around the current origin to find a valid position.
  */
@@ -1570,6 +1611,9 @@ void Pm_Move(pm_move_t *pm_move) {
 
 	// check for ground at new spot
 	Pm_CheckGround();
+
+	// snap us to adjacent walls
+	Pm_SnapToWalls();
 
 	// check for water level, water type at new spot
 	Pm_CheckWater();
