@@ -63,7 +63,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "+map fragpipe +give all +god"
+            argument = "+debug pmove_server +map fragpipe +give all +god"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

@@ -1156,7 +1156,7 @@ static void Pm_LadderMove(void) {
 static void Pm_WaterJumpMove(void) {
 	vec3_t pos;
 
-//	Pm_Debug("%s\n", vtos(pm->s.origin));
+	Pm_Debug("%s\n", vtos(pm->s.origin));
 
 	Pm_Friction();
 
@@ -1191,7 +1191,7 @@ static void Pm_WaterMove(void) {
 		return;
 	}
 
-//	Pm_Debug("%s\n", vtos(pm->s.origin));
+	Pm_Debug("%s\n", vtos(pm->s.origin));
 
 	// apply friction, slowing rapidly when first entering the water
 	VectorCopy(pm->s.velocity, vel);
@@ -1254,7 +1254,7 @@ static void Pm_AirMove(void) {
 	vec3_t vel, dir;
 	vec_t max_speed, speed, accel;
 
-//	Pm_Debug("%s\n", vtos(pm->s.velocity));
+	Pm_Debug("%s\n", vtos(pm->s.origin));
 
 	Pm_Friction();
 
@@ -1309,7 +1309,7 @@ static void Pm_WalkMove(void) {
 		return;
 	}
 
-//	Pm_Debug("%s\n", vtos(pm->s.origin));
+	Pm_Debug("%s\n", vtos(pm->s.origin));
 
 	Pm_Friction();
 

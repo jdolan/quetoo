@@ -1245,7 +1245,6 @@ static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const
 	} else {
 		return gi.Trace(start, end, mins, maxs, self, MASK_CLIP_PLAYER);
 	}
-
 }
 
 /**
