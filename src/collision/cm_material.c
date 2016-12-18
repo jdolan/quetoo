@@ -482,7 +482,7 @@ cm_material_t *Cm_LoadMaterial_(const char *where, const char *diffuse) {
 	char name[MAX_QPATH], base[MAX_QPATH], key[MAX_QPATH];
 
 	if (!diffuse || !diffuse[0]) {
-		Com_Error(ERR_DROP, "NULL diffuse name\n");
+		Com_Error(ERROR_DROP, "NULL diffuse name\n");
 	}
 
 	StripExtension(diffuse, name);

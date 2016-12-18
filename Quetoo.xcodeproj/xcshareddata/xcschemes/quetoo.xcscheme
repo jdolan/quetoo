@@ -63,8 +63,8 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "+set sv_map_list &quot;edge tokays fragpipe&quot;"
-            isEnabled = "NO">
+            argument = "+map fragpipe +give all +god"
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>

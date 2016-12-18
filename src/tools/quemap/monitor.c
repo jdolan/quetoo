@@ -64,7 +64,7 @@ static void Mon_SendString(const xmlChar *string) {
 		const size_t len = mon_state.message.size;
 
 		if (!Net_SendStream(mon_state.socket, data, len)) {
-			Com_Error(ERR_FATAL, "@Failed to send \"%s\"", string);
+			Com_Error(ERROR_FATAL, "@Failed to send \"%s\"", string);
 		}
 	}
 }
@@ -98,7 +98,7 @@ static void Mon_SendXML(xmlNodePtr node) {
  * friends will route through this so that stdout and stderr are duplicated to
  * GtkRadiant.
  */
-void Mon_SendMessage(err_t err, const char *msg) {
+void Mon_SendMessage(error_t err, const char *msg) {
 
 	xmlNodePtr message = xmlNewNode(NULL, xmlString("message"));
 	xmlNodeSetContent(message, xmlString(msg));
@@ -111,15 +111,15 @@ void Mon_SendMessage(err_t err, const char *msg) {
  * @brief Routes all XML-originating messages (Mon_Send* below) to the
  * appropriate stdio routines, escaping them to avoid infinite loops.
  */
-static void Mon_Stdio(err_t err, const char *msg) {
+static void Mon_Stdio(error_t err, const char *msg) {
 	switch (err) {
-		case ERR_PRINT:
+		case ERROR_PRINT:
 			Com_Print("@%s\n", msg);
 			break;
-		case ERR_WARN:
+		case ERROR_WARN:
 			Com_Warn("!@%s\n", msg);
 			break;
-		case ERR_FATAL:
+		case ERROR_FATAL:
 			Com_Error(err, "!@%s\n", msg);
 			break;
 		default:
@@ -130,7 +130,7 @@ static void Mon_Stdio(err_t err, const char *msg) {
 /**
  * @brief Sends a brush selection to GtkRadiant.
  */
-void Mon_SendSelect_(const char *func, err_t err, uint16_t e, uint16_t b, const char *msg) {
+void Mon_SendSelect_(const char *func, error_t err, uint16_t e, uint16_t b, const char *msg) {
 
 	xmlNodePtr select = xmlNewNode(NULL, xmlString("select"));
 	xmlNodeSetContent(select, xmlStringf("%s: Entity %u, Brush %u: %s", func, e, b, msg));
@@ -148,7 +148,7 @@ void Mon_SendSelect_(const char *func, err_t err, uint16_t e, uint16_t b, const 
 /**
  * @brief Sends a positional vector to GtkRadiant.
  */
-void Mon_SendPoint_(const char *func, err_t err, const vec3_t p, const char *msg) {
+void Mon_SendPoint_(const char *func, error_t err, const vec3_t p, const char *msg) {
 
 	xmlNodePtr point_msg = xmlNewNode(NULL, xmlString("pointmsg"));
 	xmlNodeSetContent(point_msg, xmlStringf("%s: Point %s: %s", func, vtos(p), msg));
@@ -166,7 +166,7 @@ void Mon_SendPoint_(const char *func, err_t err, const vec3_t p, const char *msg
 /**
  * @brief Sends a winding to GtkRadiant.
  */
-void Mon_SendWinding_(const char *func, err_t err, const vec3_t p[], uint16_t n, const char *msg) {
+void Mon_SendWinding_(const char *func, error_t err, const vec3_t p[], uint16_t n, const char *msg) {
 
 	xmlNodePtr winding_msg = xmlNewNode(NULL, xmlString("windingmsg"));
 	xmlNodeSetContent(winding_msg, xmlStringf("%s: %s", func, msg));
@@ -238,7 +238,7 @@ void Mon_Shutdown(const char *msg) {
 			// shut down immediately by an error in the monitor itself
 		} else {
 			if (msg) {
-				Mon_SendMessage(ERR_FATAL, msg);
+				Mon_SendMessage(ERROR_FATAL, msg);
 			}
 			Mon_SendString(xmlString("</q3map_feedback>"));
 			sleep(1);

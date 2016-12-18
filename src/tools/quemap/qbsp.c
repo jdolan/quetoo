@@ -209,7 +209,7 @@ static void ProcessWorldModel(void) {
 			LeakFile(tree);
 
 			if (leaktest) {
-				Com_Error(ERR_FATAL, "!--- MAP LEAKED, ABORTING LEAKTEST ---\n");
+				Com_Error(ERROR_FATAL, "!--- MAP LEAKED, ABORTING LEAKTEST ---\n");
 			}
 			Com_Verbose("**** leaked ****\n");
 		}

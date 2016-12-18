@@ -60,7 +60,7 @@ int32_t MAT_Main(void) {
 		LoadBSPFileTexinfo(bsp_name);
 
 		if (!(f = Fs_OpenWrite(path))) {
-			Com_Error(ERR_FATAL, "Couldn't open %s for writing\n", path);
+			Com_Error(ERROR_FATAL, "Couldn't open %s for writing\n", path);
 		}
 
 		for (i = 0; i < d_bsp.num_texinfo; i++) { // resolve the materials

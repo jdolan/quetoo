@@ -389,7 +389,7 @@ int32_t main(int32_t argc, char **argv) {
 	address.sin_addr.s_addr = INADDR_ANY;
 
 	if ((bind(ms_sock, (struct sockaddr *) &address, sizeof(address))) == -1) {
-		Com_Error(ERR_FATAL, "Failed to bind port %i\n", PORT_MASTER);
+		Com_Error(ERROR_FATAL, "Failed to bind port %i\n", PORT_MASTER);
 	}
 
 	Com_Print("Listening on %s\n", atos(&address));

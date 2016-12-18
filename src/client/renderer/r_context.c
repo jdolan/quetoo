@@ -50,7 +50,7 @@ void R_InitContext(void) {
 
 	if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
 		if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0) {
-			Com_Error(ERR_FATAL, "%s\n", SDL_GetError());
+			Com_Error(ERROR_FATAL, "%s\n", SDL_GetError());
 		}
 	}
 
@@ -97,7 +97,7 @@ void R_InitContext(void) {
 
 	if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING,
 	                        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, flags)) == NULL) {
-		Com_Error(ERR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
+		Com_Error(ERROR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
 	}
 
 	Com_Print("  Setting up OpenGL context..\n");
@@ -106,7 +106,7 @@ void R_InitContext(void) {
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 
 	if ((r_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
-		Com_Error(ERR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
+		Com_Error(ERROR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
 	}
 
 	int32_t attr[SDL_GL_CONTEXT_RELEASE_BEHAVIOR];

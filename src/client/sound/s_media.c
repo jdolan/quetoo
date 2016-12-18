@@ -169,7 +169,7 @@ s_media_t *S_FindMedia(const char *name) {
 s_media_t *S_AllocMedia(const char *name, size_t size) {
 
 	if (!name || !*name) {
-		Com_Error(ERR_DROP, "NULL name\n");
+		Com_Error(ERROR_DROP, "NULL name\n");
 	}
 
 	s_media_t *media = Mem_TagMalloc(size, MEM_TAG_SOUND);

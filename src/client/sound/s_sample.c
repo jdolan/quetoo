@@ -135,7 +135,7 @@ s_sample_t *S_LoadSample(const char *name) {
 	}
 
 	if (!name || !name[0]) {
-		Com_Error(ERR_DROP, "NULL name\n");
+		Com_Error(ERROR_DROP, "NULL name\n");
 	}
 
 	StripExtension(name, key);

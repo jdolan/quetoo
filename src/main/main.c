@@ -40,7 +40,7 @@ cvar_t *time_demo;
 cvar_t *time_scale;
 
 static void Debug(const debug_t debug, const char *msg);
-static void Error(err_t err, const char *msg) __attribute__((noreturn));
+static void Error(error_t err, const char *msg) __attribute__((noreturn));
 static void Print(const char *msg);
 static void Shutdown(const char *msg);
 static void Verbose(const char *msg);
@@ -55,7 +55,6 @@ static void Debug_f(void) {
 		Com_Print("Set or toggle debug categories.\nUsage: debug [category] ..\n");
 		Com_Print("Categories:\n");
 		const char *categories[] = {
-			"none",
 			"ai",
 			"cgame",
 			"client",
@@ -64,16 +63,48 @@ static void Debug_f(void) {
 			"filesystem",
 			"game",
 			"net",
-			"pmove",
+			"pmove_client",
+			"pmove_server",
 			"renderer",
 			"server",
 			"sound",
-			"all",
-			"breakpoint"
 		};
+
+		Com_Print("  none\n");
+
 		for (size_t i = 0; i < lengthof(categories); i++) {
-			Com_Print("  %s\n", categories[i]);
+			int32_t color = CON_COLOR_WHITE;
+			switch (1 << i) {
+				case DEBUG_AI:
+				case DEBUG_GAME:
+				case DEBUG_SERVER:
+					color = CON_COLOR_CYAN;
+					break;
+				case DEBUG_CGAME:
+				case DEBUG_CLIENT:
+				case DEBUG_RENDERER:
+				case DEBUG_SOUND:
+					color = CON_COLOR_MAGENTA;
+					break;
+				case DEBUG_COLLISION:
+				case DEBUG_CONSOLE:
+				case DEBUG_FILESYSTEM:
+				case DEBUG_NET:
+					color = CON_COLOR_YELLOW;
+					break;
+				case DEBUG_PMOVE_CLIENT:
+				case DEBUG_PMOVE_SERVER:
+					color = CON_COLOR_BLUE;
+					break;
+				default:
+					break;
+			}
+			Com_Print("  ^%d%s^7\n", color, categories[i]);
 		}
+
+		Com_Print("  ^2all^7\n");
+		Com_Print("  ^1breakpoint^7\n");
+
 		return;
 	}
 
@@ -92,7 +123,6 @@ static void Debug(const debug_t debug, const char *msg) {
 		case DEBUG_AI:
 		case DEBUG_GAME:
 		case DEBUG_SERVER:
-		case DEBUG_PMOVE:
 			color = CON_COLOR_CYAN;
 			break;
 		case DEBUG_CGAME:
@@ -100,6 +130,16 @@ static void Debug(const debug_t debug, const char *msg) {
 		case DEBUG_RENDERER:
 		case DEBUG_SOUND:
 			color = CON_COLOR_MAGENTA;
+			break;
+		case DEBUG_COLLISION:
+		case DEBUG_CONSOLE:
+		case DEBUG_FILESYSTEM:
+		case DEBUG_NET:
+			color = CON_COLOR_YELLOW;
+			break;
+		case DEBUG_PMOVE_CLIENT:
+		case DEBUG_PMOVE_SERVER:
+			color = CON_COLOR_BLUE;
 			break;
 		default:
 			break;
@@ -114,7 +154,7 @@ static _Bool jmp_set = false;
  * @brief Callback for subsystem failures. Depending on the severity, we may try to
  * recover, or we may shut the entire engine down and exit.
  */
-static void Error(err_t err, const char *msg) {
+static void Error(error_t err, const char *msg) {
 
 	if (quetoo.debug_mask & DEBUG_BREAKPOINT) {
 		SDL_TriggerBreakpoint();
@@ -122,19 +162,19 @@ static void Error(err_t err, const char *msg) {
 
 	Print(va("^1%s\n", msg));
 
-	if (err == ERR_DROP && !jmp_set) {
-		err = ERR_FATAL;
+	if (err == ERROR_DROP && !jmp_set) {
+		err = ERROR_FATAL;
 	}
 
 	switch (err) {
-		case ERR_DROP:
+		case ERROR_DROP:
 			Sv_ShutdownServer(msg);
 			Cl_Disconnect();
 			quetoo.recursive_error = false;
 			longjmp(env, err);
 			break;
 
-		case ERR_FATAL:
+		case ERROR_FATAL:
 		default:
 			Sys_Backtrace();
 			Shutdown(msg);
@@ -349,7 +389,7 @@ int32_t main(int32_t argc, char *argv[]) {
 
 	while (true) { // this is our main loop
 
-		if (setjmp(env)) { // an ERR_DROP was thrown
+		if (setjmp(env)) { // an ERROR_DROP was thrown
 			Com_Warn("Error detected, recovering..\n");
 			continue;
 		}

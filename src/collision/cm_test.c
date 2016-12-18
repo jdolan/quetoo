@@ -128,27 +128,27 @@ void Cm_InitBoxHull(void) {
 	static cm_bsp_surface_t null_surface;
 
 	if (cm_bsp.num_planes + 12 > MAX_BSP_PLANES) {
-		Com_Error(ERR_DROP, "MAX_BSP_PLANES\n");
+		Com_Error(ERROR_DROP, "MAX_BSP_PLANES\n");
 	}
 
 	if (cm_bsp.num_nodes + 6 > MAX_BSP_NODES) {
-		Com_Error(ERR_DROP, "MAX_BSP_NODES\n");
+		Com_Error(ERROR_DROP, "MAX_BSP_NODES\n");
 	}
 
 	if (cm_bsp.num_leafs + 1 > MAX_BSP_LEAFS) {
-		Com_Error(ERR_DROP, "MAX_BSP_LEAFS\n");
+		Com_Error(ERROR_DROP, "MAX_BSP_LEAFS\n");
 	}
 
 	if (cm_bsp.num_leaf_brushes + 1 > MAX_BSP_LEAF_BRUSHES) {
-		Com_Error(ERR_DROP, "MAX_BSP_LEAF_BRUSHES\n");
+		Com_Error(ERROR_DROP, "MAX_BSP_LEAF_BRUSHES\n");
 	}
 
 	if (cm_bsp.num_brushes + 1 > MAX_BSP_BRUSHES) {
-		Com_Error(ERR_DROP, "MAX_BSP_BRUSHES\n");
+		Com_Error(ERROR_DROP, "MAX_BSP_BRUSHES\n");
 	}
 
 	if (cm_bsp.num_brush_sides + 6 > MAX_BSP_BRUSH_SIDES) {
-		Com_Error(ERR_DROP, "MAX_BSP_BRUSH_SIDES\n");
+		Com_Error(ERROR_DROP, "MAX_BSP_BRUSH_SIDES\n");
 	}
 
 	// head node

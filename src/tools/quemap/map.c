@@ -117,7 +117,7 @@ static int32_t CreateNewFloatPlane(vec3_t normal, vec_t dist) {
 
 	// create a new plane
 	if (num_map_planes + 2 > MAX_BSP_PLANES) {
-		Com_Error(ERR_FATAL, "MAX_BSP_PLANES\n");
+		Com_Error(ERROR_FATAL, "MAX_BSP_PLANES\n");
 	}
 
 	p = &map_planes[num_map_planes];
@@ -288,7 +288,7 @@ static void AddBrushBevels(map_brush_t *b) {
 
 			if (i == b->num_sides) { // add a new side
 				if (num_map_brush_sides == MAX_BSP_BRUSH_SIDES) {
-					Com_Error(ERR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
+					Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
 				}
 				num_map_brush_sides++;
 				b->num_sides++;
@@ -399,7 +399,7 @@ static void AddBrushBevels(map_brush_t *b) {
 					}
 					// add this plane
 					if (num_map_brush_sides == MAX_BSP_BRUSH_SIDES) {
-						Com_Error(ERR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
+						Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
 					}
 
 					s2 = &b->original_sides[b->num_sides++];
@@ -508,7 +508,7 @@ static void ParseBrush(entity_t *mapent) {
 	vec3_t planepts[3];
 
 	if (num_map_brushes == MAX_BSP_BRUSHES) {
-		Com_Error(ERR_FATAL, "MAX_BSP_BRUSHES\n");
+		Com_Error(ERROR_FATAL, "MAX_BSP_BRUSHES\n");
 	}
 
 	b = &map_brushes[num_map_brushes];
@@ -525,7 +525,7 @@ static void ParseBrush(entity_t *mapent) {
 		}
 
 		if (num_map_brush_sides == MAX_BSP_BRUSH_SIDES) {
-			Com_Error(ERR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
+			Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
 		}
 		side = &map_brush_sides[num_map_brush_sides];
 
@@ -535,7 +535,7 @@ static void ParseBrush(entity_t *mapent) {
 				GetToken(true);
 			}
 			if (g_strcmp0(token, "(")) {
-				Com_Error(ERR_FATAL, "Parsing brush\n");
+				Com_Error(ERROR_FATAL, "Parsing brush\n");
 			}
 
 			for (j = 0; j < 3; j++) {
@@ -545,7 +545,7 @@ static void ParseBrush(entity_t *mapent) {
 
 			GetToken(false);
 			if (g_strcmp0(token, ")")) {
-				Com_Error(ERR_FATAL, "Parsing brush\n");
+				Com_Error(ERROR_FATAL, "Parsing brush\n");
 			}
 		}
 
@@ -555,7 +555,7 @@ static void ParseBrush(entity_t *mapent) {
 		GetToken(false);
 
 		if (strlen(token) > sizeof(td.name) - 1) {
-			Com_Error(ERR_FATAL, "Texture name \"%s\" is too long.\n", token);
+			Com_Error(ERROR_FATAL, "Texture name \"%s\" is too long.\n", token);
 		}
 
 		g_strlcpy(td.name, token, sizeof(td.name));
@@ -681,7 +681,7 @@ static void ParseBrush(entity_t *mapent) {
 		vec3_t origin;
 
 		if (num_entities == 1) {
-			Com_Error(ERR_FATAL,
+			Com_Error(ERROR_FATAL,
 			          "Entity %i, Brush %i: origin brushes not allowed in world\n",
 			          b->entity_num, b->brush_num);
 			return;
@@ -764,11 +764,11 @@ static _Bool ParseMapEntity(void) {
 	}
 
 	if (g_strcmp0(token, "{")) {
-		Com_Error(ERR_FATAL, "\"{\" not found\n");
+		Com_Error(ERROR_FATAL, "\"{\" not found\n");
 	}
 
 	if (num_entities == MAX_BSP_ENTITIES) {
-		Com_Error(ERR_FATAL, "MAX_BSP_ENTITIES\n");
+		Com_Error(ERROR_FATAL, "MAX_BSP_ENTITIES\n");
 	}
 
 	mapent = &entities[num_entities];
@@ -779,7 +779,7 @@ static _Bool ParseMapEntity(void) {
 
 	do {
 		if (!GetToken(true)) {
-			Com_Error(ERR_FATAL, "EOF without closing brace\n");
+			Com_Error(ERROR_FATAL, "EOF without closing brace\n");
 		}
 		if (!g_strcmp0(token, "}")) {
 			break;
@@ -829,7 +829,7 @@ static _Bool ParseMapEntity(void) {
 
 		if (mapent->num_brushes != 1)
 			Com_Error(
-			    ERR_FATAL,
+			    ERROR_FATAL,
 			    "ParseMapEntity: %i func_areaportal can only be a single brush\n",
 			    num_entities - 1);
 

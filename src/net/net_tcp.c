@@ -47,21 +47,21 @@ int32_t Net_Connect(const char *host, struct timeval *timeout) {
 			FD_SET((uint32_t) sock, &w_set);
 
 			if (select(sock + 1, NULL, &w_set, NULL, timeout) < 1) {
-				Com_Error(ERR_DROP, "%s\n", Net_GetErrorString());
+				Com_Error(ERROR_DROP, "%s\n", Net_GetErrorString());
 			}
 
 			int32_t error = -1;
 			socklen_t len = sizeof(error);
 
 			if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (char *) &error, &len) < 0) {
-				Com_Error(ERR_DROP, "%s\n", Net_GetErrorString());
+				Com_Error(ERROR_DROP, "%s\n", Net_GetErrorString());
 			}
 
 			if (error) {
-				Com_Error(ERR_DROP, "%s\n", strerror(error));
+				Com_Error(ERROR_DROP, "%s\n", strerror(error));
 			}
 		} else {
-			Com_Error(ERR_DROP, "%s\n", Net_GetErrorString());
+			Com_Error(ERROR_DROP, "%s\n", Net_GetErrorString());
 		}
 	}
 

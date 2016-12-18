@@ -138,10 +138,10 @@ void Sys_OpenLibrary(const char *name, void **handle) {
 			return;
 		}
 
-		Com_Error(ERR_DROP, "%s\n", dlerror());
+		Com_Error(ERROR_DROP, "%s\n", dlerror());
 	}
 
-	Com_Error(ERR_DROP, "Couldn't find %s\n", so_name);
+	Com_Error(ERROR_DROP, "Couldn't find %s\n", so_name);
 }
 
 /**
@@ -174,7 +174,7 @@ void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, 
 
 	if (!EntryPoint) {
 		Sys_CloseLibrary(handle);
-		Com_Error(ERR_DROP, "%s: Failed to resolve %s\n", name, entry_point);
+		Com_Error(ERROR_DROP, "%s: Failed to resolve %s\n", name, entry_point);
 	}
 
 	return EntryPoint(params);
@@ -249,7 +249,7 @@ void Sys_Signal(int32_t s) {
 			Com_Shutdown("Received signal %d, quitting...\n", s);
 			break;
 		default:
-			Com_Error(ERR_FATAL, "Received signal %d\n", s);
+			Com_Error(ERROR_FATAL, "Received signal %d\n", s);
 			break;
 	}
 }

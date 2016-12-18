@@ -70,35 +70,7 @@ typedef struct {
 
 static pm_locals_t pml;
 
-#if PM_DEBUG
-
-/**
- * @brief Handle printing of debugging messages for development.
- */
-static void Pm_Debug_(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-static void Pm_Debug_(const char *func, const char *fmt, ...) {
-	char msg[MAX_STRING_CHARS];
-
-	g_snprintf(msg, sizeof(msg), "%s: ", func);
-
-	const size_t len = strlen(msg);
-	va_list args;
-
-	va_start(args, fmt);
-	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
-	va_end(args);
-
-	if (pm->Debug) {
-		pm->Debug(msg);
-	} else {
-		fputs(msg, stdout);
-	}
-}
-
-#define Pm_Debug(...) Pm_Debug_(__func__, __VA_ARGS__)
-#else
-#define Pm_Debug(...)
-#endif
+#define Pm_Debug(...) pm->Debug(__func__, __VA_ARGS__)
 
 /**
  * @brief Slide off of the impacted plane.
@@ -656,6 +628,7 @@ static void Pm_CorrectPosition(void) {
 					tr = pm->Trace(pos, pos, pm->mins, pm->maxs);
 					if (!tr.all_solid) {
 						VectorCopy(pos, pm->s.origin);
+						Pm_Debug("corrected %s\n", vtos(pm->s.origin));
 						return;
 					}
 				}
@@ -669,15 +642,12 @@ static void Pm_CorrectPosition(void) {
 }
 
 /**
- * @brief Checks if we're a hook and moving upwards; if so, we release from ground immediately.
+ * @return True if the player is attempting to leave the ground via grappling hook.
  */
 static bool Pm_CheckHookJump(void) {
 
-	if ((pm->s.type == PM_HOOK_PULL ||
-	        pm->s.type == PM_HOOK_SWING) &&
-	        pm->s.velocity[2] > PM_STEP_HEIGHT_MIN) {
+	if ((pm->s.type == PM_HOOK_PULL || pm->s.type == PM_HOOK_SWING) && pm->s.velocity[2] > 4.0) {
 
-		// clear the ground indicators
 		pm->s.flags &= ~PMF_ON_GROUND;
 		pm->ground_entity = NULL;
 
@@ -685,6 +655,106 @@ static bool Pm_CheckHookJump(void) {
 	}
 
 	return false;
+}
+
+/**
+ * @brief
+ */
+static void Pm_CheckHook(void) {
+
+	// hookers only
+	if (pm->s.type != PM_HOOK_PULL && pm->s.type != PM_HOOK_SWING) {
+		pm->s.flags &= ~PMF_HOOK_RELEASED;
+		return;
+	}
+
+	// get chain length
+	if (pm->s.type == PM_HOOK_PULL) {
+
+		// if we let go of hook, just go back to normal
+		if (!(pm->cmd.buttons & BUTTON_HOOK)) {
+			pm->s.type = PM_NORMAL;
+			return;
+		}
+
+		pm->cmd.forward = pm->cmd.right = 0;
+
+		// pull physics
+		VectorSubtract(pm->s.hook_position, pm->s.origin, pm->s.velocity);
+		vec_t chain_len = VectorNormalize(pm->s.velocity);
+
+		if (chain_len > 8.0 && !Pm_CheckHookJump()) {
+			VectorScale(pm->s.velocity, Max(chain_len, pm->hook_pull_speed), pm->s.velocity);
+		} else {
+			VectorClear(pm->s.velocity);
+		}
+	} else {
+
+		// check for disable
+		if (!(pm->s.flags & PMF_HOOK_RELEASED)) {
+
+			if (!(pm->cmd.buttons & BUTTON_HOOK)) {
+				pm->s.flags |= PMF_HOOK_RELEASED;
+			}
+		} else {
+
+			// if we let go of hook, just go back to normal.
+			if (pm->cmd.buttons & BUTTON_HOOK) {
+				pm->s.type = PM_NORMAL;
+				pm->s.flags &= ~PMF_HOOK_RELEASED;
+				return;
+			}
+		}
+
+		const vec_t hook_rate = (pm->hook_pull_speed / 1.5) * pml.time;
+
+		// chain physics
+		// grow/shrink chain based on input
+		if ((pm->cmd.up > 0 || !(pm->s.flags & PMF_HOOK_RELEASED)) && (pm->s.hook_length > PM_HOOK_MIN_LENGTH)) {
+			pm->s.hook_length = Max(pm->s.hook_length - hook_rate, PM_HOOK_MIN_LENGTH);
+		} else if ((pm->cmd.up < 0) && (pm->s.hook_length < PM_HOOK_MAX_LENGTH)) {
+			pm->s.hook_length = Min(pm->s.hook_length + hook_rate, PM_HOOK_MAX_LENGTH);
+		}
+
+		vec3_t chain_vec;
+		vec_t chain_len, force = 0.0;
+
+		VectorSubtract(pm->s.hook_position, pm->s.origin, chain_vec);
+		chain_len = VectorLength(chain_vec);
+
+		// if player's location is beyond the chain's reach
+		if (chain_len > pm->s.hook_length) {
+			vec3_t vel_part;
+
+			// determine player's velocity component of chain vector
+			VectorScale(chain_vec, DotProduct(pm->s.velocity, chain_vec) / DotProduct(chain_vec, chain_vec), vel_part);
+
+			// restrainment default force
+			force = (chain_len - pm->s.hook_length) * 5.0;
+
+			// if player's velocity heading is away from the hook
+			if (DotProduct(pm->s.velocity, chain_vec) < 0.0) {
+
+				// if chain has streched for 24 units
+				if (chain_len > pm->s.hook_length + 24.0) {
+
+					// remove player's velocity component moving away from hook
+					VectorSubtract(pm->s.velocity, vel_part, pm->s.velocity);
+				}
+			} else { // if player's velocity heading is towards the hook
+
+				if (VectorLength(vel_part) < force) {
+					force -= VectorLength(vel_part);
+				} else {
+					force = 0.0;
+				}
+			}
+		}
+
+		// applies chain restrainment
+		VectorNormalize(chain_vec);
+		VectorMA(pm->s.velocity, force, chain_vec, pm->s.velocity);
+	}
 }
 
 /**
@@ -1086,7 +1156,7 @@ static void Pm_LadderMove(void) {
 static void Pm_WaterJumpMove(void) {
 	vec3_t pos;
 
-	Pm_Debug("%s\n", vtos(pm->s.origin));
+//	Pm_Debug("%s\n", vtos(pm->s.origin));
 
 	Pm_Friction();
 
@@ -1432,110 +1502,6 @@ static void Pm_InitLocal(void) {
 }
 
 /**
- * @brief
- */
-static void Pm_CheckHook(void) {
-
-	// hookers only
-	if (pm->s.type != PM_HOOK_PULL &&
-	        pm->s.type != PM_HOOK_SWING) {
-
-		pm->s.flags &= ~PMF_HOOK_RELEASED;
-		return;
-	}
-
-	// get chain length
-	if (pm->s.type == PM_HOOK_PULL) {
-
-		// if we let go of hook, just go back to normal. This helps with prediction.
-		if (!(pm->cmd.buttons & BUTTON_HOOK)) {
-			pm->s.type = PM_NORMAL;
-			return;
-		}
-
-		pm->cmd.forward = pm->cmd.right = 0;
-
-		// pull physics
-		VectorSubtract(pm->s.hook_position, pm->s.origin, pm->s.velocity);
-		vec_t chain_len = VectorNormalize(pm->s.velocity);
-
-		if (chain_len > 8.0 && !Pm_CheckHookJump()) {
-			VectorScale(pm->s.velocity, Max(chain_len, pm->hook_pull_speed), pm->s.velocity);
-		} else {
-			VectorClear(pm->s.velocity);
-		}
-	} else {
-
-		// check for disable
-		if (!(pm->s.flags & PMF_HOOK_RELEASED)) {
-
-			if (!(pm->cmd.buttons & BUTTON_HOOK)) {
-				pm->s.flags |= PMF_HOOK_RELEASED;
-			}
-		} else {
-
-			// if we let go of hook, just go back to normal. This helps with prediction.
-			if (pm->cmd.buttons & BUTTON_HOOK) {
-				pm->s.type = PM_NORMAL;
-				pm->s.flags &= ~PMF_HOOK_RELEASED;
-				return;
-			}
-		}
-
-		const vec_t hook_rate = (pm->hook_pull_speed / 1.5) * pml.time;
-
-		// chain physics
-		// grow/shrink chain based on input
-		if ((pm->cmd.up > 0 || !(pm->s.flags & PMF_HOOK_RELEASED)) && (pm->s.hook_length > PM_HOOK_MIN_LENGTH)) {
-
-			pm->s.hook_length = Max(pm->s.hook_length - hook_rate, PM_HOOK_MIN_LENGTH);
-		} else if ((pm->cmd.up < 0) && (pm->s.hook_length < PM_HOOK_MAX_LENGTH)) {
-
-			pm->s.hook_length = Min(pm->s.hook_length + hook_rate, PM_HOOK_MAX_LENGTH);
-		}
-
-		vec3_t chain_vec;
-		vec_t chain_len, force = 0.0;
-
-		VectorSubtract(pm->s.hook_position, pm->s.origin, chain_vec);
-		chain_len = VectorLength(chain_vec);
-
-		// if player's location is beyond the chain's reach
-		if (chain_len > pm->s.hook_length) {
-			vec3_t vel_part;
-
-			// determine player's velocity component of chain vector
-			VectorScale(chain_vec, DotProduct(pm->s.velocity, chain_vec) / DotProduct(chain_vec, chain_vec), vel_part);
-
-			// restrainment default force
-			force = (chain_len - pm->s.hook_length) * 5.0;
-
-			// if player's velocity heading is away from the hook
-			if (DotProduct(pm->s.velocity, chain_vec) < 0.0) {
-
-				// if chain has streched for 24 units
-				if (chain_len > pm->s.hook_length + 24.0) {
-
-					// remove player's velocity component moving away from hook
-					VectorSubtract(pm->s.velocity, vel_part, pm->s.velocity);
-				}
-			} else { // if player's velocity heading is towards the hook
-
-				if (VectorLength(vel_part) < force) {
-					force -= VectorLength(vel_part);
-				} else {
-					force = 0.0;
-				}
-			}
-		}
-
-		// applies chain restrainment
-		VectorNormalize(chain_vec);
-		VectorMA(pm->s.velocity, force, chain_vec, pm->s.velocity);
-	}
-}
-
-/**
  * @brief Called by the game and the client game to update the player's
  * authoritative or predicted movement state, respectively.
  */
@@ -1567,7 +1533,7 @@ void Pm_Move(pm_move_t *pm_move) {
 		pm->s.flags |= PMF_NO_PREDICTION;
 	}
 
-	// run hook code before anything else
+	// check for grapple hook
 	Pm_CheckHook();
 
 	// check for ducking

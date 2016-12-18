@@ -53,8 +53,8 @@ static void Shutdown(const char *msg);
 /**
  * @brief
  */
-static void Error(err_t err, const char *msg) __attribute__((noreturn));
-static void Error(err_t err, const char *msg) {
+static void Error(error_t err, const char *msg) __attribute__((noreturn));
+static void Error(error_t err, const char *msg) {
 
 	fprintf(stderr, "************ ERROR ************\n");
 	fprintf(stderr, "%s", msg);
@@ -76,7 +76,7 @@ static void Print(const char *msg) {
 			fputs(msg + 1, stdout);
 		} else {
 			fputs(msg, stdout);
-			Mon_SendMessage(ERR_PRINT, msg);
+			Mon_SendMessage(ERROR_PRINT, msg);
 		}
 
 		fflush(stdout);
@@ -107,7 +107,7 @@ static void Warn(const char *msg) {
 			fprintf(stderr, "WARNING: %s", msg + 1);
 		} else {
 			fprintf(stderr, "WARNING: %s", msg);
-			Mon_SendMessage(ERR_WARN, va("WARNING: %s", msg));
+			Mon_SendMessage(ERROR_WARN, va("WARNING: %s", msg));
 		}
 
 		fflush(stderr);
@@ -125,7 +125,7 @@ static void Init(void) {
 		freopen("CONOUT$", "w", stdout);
 		freopen("CONERR$", "w", stderr);
 	} else {
-		Com_Error(ERR_FATAL, "Failed to allocate console: %u\n", (uint32_t) GetLastError());
+		Com_Error(ERROR_FATAL, "Failed to allocate console: %u\n", (uint32_t) GetLastError());
 	}
 #endif
 
@@ -481,7 +481,7 @@ int32_t main(int32_t argc, char **argv) {
 	}
 
 	if (!do_bsp && !do_vis && !do_light && !do_aas && !do_mat && !do_zip) {
-		Com_Error(ERR_FATAL, "No action specified. Try %s -help\n", Com_Argv(0));
+		Com_Error(ERROR_FATAL, "No action specified. Try %s -help\n", Com_Argv(0));
 		return 0;
 	}
 

@@ -677,7 +677,7 @@ r_material_t *R_ConvertMaterial(cm_material_t *cm, const _Bool unref) {
 	r_material_t *mat;
 
 	if (!cm || !cm->diffuse[0]) {
-		Com_Error(ERR_DROP, "NULL diffuse name\n");
+		Com_Error(ERROR_DROP, "NULL diffuse name\n");
 	}
 
 	if (!(mat = (r_material_t *) R_FindMedia(cm->key))) {

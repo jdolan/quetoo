@@ -41,7 +41,7 @@ static void AddAsset(const char *name, _Bool required) {
 		g_hash_table_replace(qzip.assets, (gpointer) key, Mem_CopyString(name));
 	} else {
 		if (required) {
-			Com_Error(ERR_FATAL, "Failed to add %s\n", name);
+			Com_Error(ERROR_FATAL, "Failed to add %s\n", name);
 		} else {
 			Com_Verbose("Failed to add %s\n", name);
 		}

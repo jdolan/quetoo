@@ -144,7 +144,7 @@ static void CalcLightinfoExtents(light_info_t *l) {
 	if (l->tex_size[0] * l->tex_size[1] > MAX_BSP_LIGHTMAP) {
 		const winding_t *w = WindingForFace(s);
 
-		Mon_SendWinding(ERR_FATAL, (const vec3_t *) w->points, w->num_points,
+		Mon_SendWinding(ERROR_FATAL, (const vec3_t *) w->points, w->num_points,
 		                va("Surface too large to light (%dx%d)\n", l->tex_size[0], l->tex_size[1]));
 	}
 }
@@ -396,7 +396,7 @@ void BuildLights(void) {
 			if (target[0]) { // point towards target
 				entity_t *e2 = FindTargetEntity(target);
 				if (!e2) {
-					Mon_SendSelect(ERR_WARN, i, 0, va("Light at %s missing target", vtos(l->origin)));
+					Mon_SendSelect(ERROR_WARN, i, 0, va("Light at %s missing target", vtos(l->origin)));
 				} else {
 					VectorForKey(e2, "origin", dest);
 					VectorSubtract(dest, l->origin, l->normal);
@@ -570,7 +570,7 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs, vec_t *sampl
 					}
 					break;
 				default:
-					Mon_SendPoint(ERR_WARN, l->origin, "Light with bad type");
+					Mon_SendPoint(ERROR_WARN, l->origin, "Light with bad type");
 					break;
 			}
 
@@ -645,7 +645,7 @@ static void FacesWithVert(int32_t vert, int32_t *faces, int32_t *nfaces) {
 			if (v == vert) { // face references vert
 				faces[k++] = i;
 				if (k == MAX_VERT_FACES) {
-					Mon_SendPoint(ERR_FATAL, d_bsp.vertexes[v].point, "MAX_VERT_FACES");
+					Mon_SendPoint(ERROR_FATAL, d_bsp.vertexes[v].point, "MAX_VERT_FACES");
 				}
 				break;
 			}
@@ -931,7 +931,7 @@ void FinalLightFace(int32_t face_num) {
 	}
 
 	if (d_bsp.lightmap_data_size > MAX_BSP_LIGHTING) {
-		Com_Error(ERR_FATAL, "MAX_BSP_LIGHTING\n");
+		Com_Error(ERROR_FATAL, "MAX_BSP_LIGHTING\n");
 	}
 
 	ThreadUnlock();

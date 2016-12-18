@@ -175,7 +175,7 @@ void Cl_ParseConfigString(void) {
 	const uint16_t i = (uint16_t) Net_ReadShort(&net_message);
 
 	if (i >= MAX_CONFIG_STRINGS) {
-		Com_Error(ERR_DROP, "Invalid index %i\n", i);
+		Com_Error(ERROR_DROP, "Invalid index %i\n", i);
 	}
 
 	strcpy(cl.config_strings[i], Net_ReadString(&net_message));
@@ -251,7 +251,7 @@ static void Cl_ParseDownload(void) {
 				Fs_AddToSearchPath(cls.download.name);
 			}
 		} else {
-			Com_Error(ERR_DROP, "Failed to rename %s\n", cls.download.name);
+			Com_Error(ERROR_DROP, "Failed to rename %s\n", cls.download.name);
 		}
 
 		// get another file if needed
@@ -275,7 +275,7 @@ static void Cl_ParseServerData(void) {
 
 	// ensure protocol major matches
 	if (major != PROTOCOL_MAJOR) {
-		Com_Error(ERR_DROP, "Server is using protocol major %d\n", major);
+		Com_Error(ERROR_DROP, "Server is using protocol major %d\n", major);
 	}
 
 	// determine if we're viewing a demo
@@ -293,7 +293,7 @@ static void Cl_ParseServerData(void) {
 
 	// ensure protocol minor matches
 	if (minor != cls.cgame->protocol) {
-		Com_Error(ERR_DROP, "Server is using protocol minor %d\n", minor);
+		Com_Error(ERROR_DROP, "Server is using protocol minor %d\n", minor);
 	}
 
 	// parse client slot number, which is our entity number + 1
@@ -302,7 +302,7 @@ static void Cl_ParseServerData(void) {
 	// get the full level name
 	str = Net_ReadString(&net_message);
 	Com_Print("\n");
-	Com_Print("%c%s^7\n", 2, str);
+	Com_Print("^2%s^7\n", str);
 }
 
 /**
@@ -372,7 +372,7 @@ static void Cl_ParseSound(void) {
 	const byte flags = Net_ReadByte(&net_message);
 
 	if ((index = Net_ReadByte(&net_message)) > MAX_SOUNDS) {
-		Com_Error(ERR_DROP, "Bad index (%d)\n", index);
+		Com_Error(ERROR_DROP, "Bad index (%d)\n", index);
 	}
 
 	play.sample = cl.sound_precache[index];
@@ -424,7 +424,7 @@ void Cl_ParseServerMessage(void) {
 	// parse the message
 	while (true) {
 		if (net_message.read > net_message.size) {
-			Com_Error(ERR_DROP, "Bad server message\n");
+			Com_Error(ERROR_DROP, "Bad server message\n");
 		}
 
 		old_cmd = cmd;
@@ -454,7 +454,7 @@ void Cl_ParseServerMessage(void) {
 				break;
 
 			case SV_CMD_DISCONNECT:
-				Com_Error(ERR_DROP, "Server disconnected\n");
+				Com_Error(ERROR_DROP, "Server disconnected\n");
 				break;
 
 			case SV_CMD_DOWNLOAD:
@@ -496,7 +496,7 @@ void Cl_ParseServerMessage(void) {
 			default:
 				// delegate to the client game module before failing
 				if (!cls.cgame->ParseMessage(cmd)) {
-					Com_Error(ERR_DROP, "Illegible server message:\n"
+					Com_Error(ERROR_DROP, "Illegible server message:\n"
 					          " %d: last command was %s\n", cmd, sv_cmd_names[old_cmd]);
 				}
 				break;

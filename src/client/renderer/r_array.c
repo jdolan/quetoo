@@ -235,7 +235,7 @@ static GLubyte R_GetElementSize(const GLenum type) {
 		case R_ATTRIB_FLOAT:
 			return 4;
 		default:
-			Com_Error(ERR_DROP, "Bad GL type");
+			Com_Error(ERROR_DROP, "Bad GL type");
 	}
 }
 
@@ -260,7 +260,7 @@ static GLenum R_GetGLTypeFromAttribType(const r_attrib_type_t type) {
 		case R_ATTRIB_UNSIGNED_INT:
 			return GL_UNSIGNED_INT;
 		default:
-			Com_Error(ERR_FATAL, "Invalid R_ATTRIB_* type\n");
+			Com_Error(ERROR_FATAL, "Invalid R_ATTRIB_* type\n");
 			return GL_INVALID_ENUM;
 	}
 }
@@ -357,7 +357,7 @@ void R_CreateInterleaveBuffer_(r_buffer_t *buffer, const GLubyte struct_size, co
 	}
 
 	if (stride != struct_size) {
-		Com_Error(ERR_DROP, "Buffer interleave size doesn't match layout size\n");
+		Com_Error(ERROR_DROP, "Buffer interleave size doesn't match layout size\n");
 	}
 }
 

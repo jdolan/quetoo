@@ -274,7 +274,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 		for (int32_t i = 1; i < Cm_NumModels(); i++) {
 
 			if (i == MAX_MODELS) {
-				Com_Error(ERR_DROP, "Sub-model count exceeds protocol limits\n");
+				Com_Error(ERROR_DROP, "Sub-model count exceeds protocol limits\n");
 			}
 
 			char *s = sv.config_strings[CS_MODELS + i];

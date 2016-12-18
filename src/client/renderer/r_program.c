@@ -446,7 +446,7 @@ static void R_LoadShader(GLenum type, const char *name, r_shader_t *out_shader) 
 	int64_t len;
 
 	if (out_shader->id != 0) {
-		Com_Error(ERR_FATAL, "Memory corruption\n");
+		Com_Error(ERROR_FATAL, "Memory corruption\n");
 		return;
 	}
 

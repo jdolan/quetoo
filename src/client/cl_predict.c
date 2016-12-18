@@ -56,7 +56,7 @@ static int32_t Cl_HullForEntity(const entity_state_t *ent) {
 		const cm_bsp_model_t *mod = cl.cm_models[ent->model1];
 
 		if (!mod) {
-			Com_Error(ERR_DROP, "SOLID_BSP with no model\n");
+			Com_Error(ERROR_DROP, "SOLID_BSP with no model\n");
 		}
 
 		return mod->head_node;
@@ -292,7 +292,7 @@ void Cl_UpdatePrediction(void) {
 		Cm_LoadBspModel(bsp_name, &bs);
 
 		if (bs != bsp_size) {
-			Com_Error(ERR_DROP, "Local map version differs from server: "
+			Com_Error(ERROR_DROP, "Local map version differs from server: "
 			          "%" PRId64 " != %" PRId64 "\n", bs, bsp_size);
 		}
 	}

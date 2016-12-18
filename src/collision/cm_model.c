@@ -32,7 +32,7 @@ static void Cm_LoadEntityString(const d_bsp_lump_t *l) {
 	cm_bsp.entity_string_len = l->file_len;
 
 	if (l->file_len > MAX_BSP_ENT_STRING) {
-		Com_Error(ERR_DROP, "%d > MAX_BSP_ENT_STRING\n", l->file_len);
+		Com_Error(ERROR_DROP, "%d > MAX_BSP_ENT_STRING\n", l->file_len);
 	}
 
 	memcpy(cm_bsp.entity_string, cm_bsp.base + l->file_ofs, l->file_len);
@@ -46,16 +46,16 @@ static void Cm_LoadBspPlanes(const d_bsp_lump_t *l) {
 	const d_bsp_plane_t *in = (const void *) (cm_bsp.base + l->file_ofs);
 
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "Funny lump size\n");
+		Com_Error(ERROR_DROP, "Funny lump size\n");
 	}
 
 	const int32_t count = l->file_len / sizeof(*in);
 
 	if (count < 1) {
-		Com_Error(ERR_DROP, "Invalid plane count: %d\n", count);
+		Com_Error(ERROR_DROP, "Invalid plane count: %d\n", count);
 	}
 	if (count > MAX_BSP_PLANES) {
-		Com_Error(ERR_DROP, "%d > MAX_BSP_PLANES\n", count);
+		Com_Error(ERROR_DROP, "%d > MAX_BSP_PLANES\n", count);
 	}
 
 	cm_bsp_plane_t *out = cm_bsp.planes;
@@ -82,16 +82,16 @@ static void Cm_LoadBspNodes(const d_bsp_lump_t *l) {
 	const d_bsp_node_t *in = (const void *) (cm_bsp.base + l->file_ofs);
 
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "Funny lump size\n");
+		Com_Error(ERROR_DROP, "Funny lump size\n");
 	}
 
 	const int32_t count = l->file_len / sizeof(*in);
 
 	if (count < 1) {
-		Com_Error(ERR_DROP, "Invalid node count: %d\n", count);
+		Com_Error(ERROR_DROP, "Invalid node count: %d\n", count);
 	}
 	if (count > MAX_BSP_NODES) {
-		Com_Error(ERR_DROP, "%d > MAX_BSP_NODES\n", count);
+		Com_Error(ERROR_DROP, "%d > MAX_BSP_NODES\n", count);
 	}
 
 	cm_bsp_node_t *out = cm_bsp.nodes;
@@ -116,16 +116,16 @@ static void Cm_LoadBspSurfaces(const d_bsp_lump_t *l) {
 	const d_bsp_texinfo_t *in = (const void *) (cm_bsp.base + l->file_ofs);
 
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "Funny lump size\n");
+		Com_Error(ERROR_DROP, "Funny lump size\n");
 	}
 
 	const int32_t count = l->file_len / sizeof(*in);
 
 	if (count < 1) {
-		Com_Error(ERR_DROP, "Invalid surface count: %d\n", count);
+		Com_Error(ERROR_DROP, "Invalid surface count: %d\n", count);
 	}
 	if (count > MAX_BSP_TEXINFO) {
-		Com_Error(ERR_DROP, "%d > MAX_BSP_TEXINFO\n", count);
+		Com_Error(ERROR_DROP, "%d > MAX_BSP_TEXINFO\n", count);
 	}
 
 	cm_bsp_surface_t *out = cm_bsp.surfaces;
@@ -147,16 +147,16 @@ static void Cm_LoadBspLeafs(const d_bsp_lump_t *l) {
 	const d_bsp_leaf_t *in = (const void *) (cm_bsp.base + l->file_ofs);
 
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "Funny lump size\n");
+		Com_Error(ERROR_DROP, "Funny lump size\n");
 	}
 
 	const int32_t count = l->file_len / sizeof(*in);
 
 	if (count < 1) {
-		Com_Error(ERR_DROP, "Invalid leaf count: %d\n", count);
+		Com_Error(ERROR_DROP, "Invalid leaf count: %d\n", count);
 	}
 	if (count > MAX_BSP_LEAFS) {
-		Com_Error(ERR_DROP, "%d > MAX_BSP_LEAFS\n", count);
+		Com_Error(ERROR_DROP, "%d > MAX_BSP_LEAFS\n", count);
 	}
 
 	cm_bsp_leaf_t *out = cm_bsp.leafs;
@@ -171,7 +171,7 @@ static void Cm_LoadBspLeafs(const d_bsp_lump_t *l) {
 	}
 
 	if (cm_bsp.leafs[0].contents != CONTENTS_SOLID) {
-		Com_Error(ERR_DROP, "Map leaf 0 is not CONTENTS_SOLID\n");
+		Com_Error(ERROR_DROP, "Map leaf 0 is not CONTENTS_SOLID\n");
 	}
 }
 
@@ -183,16 +183,16 @@ static void Cm_LoadBspLeafBrushes(const d_bsp_lump_t *l) {
 	const uint16_t *in = (const void *) (cm_bsp.base + l->file_ofs);
 
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "Funny lump size\n");
+		Com_Error(ERROR_DROP, "Funny lump size\n");
 	}
 
 	const int32_t count = l->file_len / sizeof(*in);
 
 	if (count < 1) {
-		Com_Error(ERR_DROP, "Invalid leaf brush count: %d\n", count);
+		Com_Error(ERROR_DROP, "Invalid leaf brush count: %d\n", count);
 	}
 	if (count > MAX_BSP_LEAF_BRUSHES) {
-		Com_Error(ERR_DROP, "%d > MAX_BSP_LEAF_BRUSHES\n", count);
+		Com_Error(ERROR_DROP, "%d > MAX_BSP_LEAF_BRUSHES\n", count);
 	}
 
 	uint16_t *out = cm_bsp.leaf_brushes;
@@ -211,16 +211,16 @@ static void Cm_LoadBspInlineModels(const d_bsp_lump_t *l) {
 	const d_bsp_model_t *in = (const void *) (cm_bsp.base + l->file_ofs);
 
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "Funny lump size\n");
+		Com_Error(ERROR_DROP, "Funny lump size\n");
 	}
 
 	const int32_t count = l->file_len / sizeof(*in);
 
 	if (count < 1) {
-		Com_Error(ERR_DROP, "Invalid model count: %d\n", count);
+		Com_Error(ERROR_DROP, "Invalid model count: %d\n", count);
 	}
 	if (count > MAX_BSP_MODELS) {
-		Com_Error(ERR_DROP, "%d > MAX_BSP_MODELS\n", count);
+		Com_Error(ERROR_DROP, "%d > MAX_BSP_MODELS\n", count);
 	}
 
 	cm_bsp_model_t *out = cm_bsp.models;
@@ -246,16 +246,16 @@ static void Cm_LoadBspBrushes(const d_bsp_lump_t *l) {
 	const d_bsp_brush_t *in = (const void *) (cm_bsp.base + l->file_ofs);
 
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "Funny lump size\n");
+		Com_Error(ERROR_DROP, "Funny lump size\n");
 	}
 
 	const int32_t count = l->file_len / sizeof(*in);
 
 	if (count < 1) {
-		Com_Error(ERR_DROP, "Invalid brush count: %d\n", count);
+		Com_Error(ERROR_DROP, "Invalid brush count: %d\n", count);
 	}
 	if (count > MAX_BSP_BRUSHES) {
-		Com_Error(ERR_DROP, "%d > MAX_BSP_BRUSHES\n", count);
+		Com_Error(ERROR_DROP, "%d > MAX_BSP_BRUSHES\n", count);
 	}
 
 	cm_bsp_brush_t *out = cm_bsp.brushes;
@@ -276,16 +276,16 @@ static void Cm_LoadBspBrushSides(const d_bsp_lump_t *l) {
 	const d_bsp_brush_side_t *in = (const void *) (cm_bsp.base + l->file_ofs);
 
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "Funny lump size\n");
+		Com_Error(ERROR_DROP, "Funny lump size\n");
 	}
 
 	const int32_t count = l->file_len / sizeof(*in);
 
 	if (count < 1) {
-		Com_Error(ERR_DROP, "Invalid brush side count: %d\n", count);
+		Com_Error(ERROR_DROP, "Invalid brush side count: %d\n", count);
 	}
 	if (count > MAX_BSP_BRUSH_SIDES) {
-		Com_Error(ERR_DROP, "%d > MAX_BSP_BRUSH_SIDES\n", count);
+		Com_Error(ERROR_DROP, "%d > MAX_BSP_BRUSH_SIDES\n", count);
 	}
 
 	cm_bsp_brush_side_t *out = cm_bsp.brush_sides;
@@ -295,13 +295,13 @@ static void Cm_LoadBspBrushSides(const d_bsp_lump_t *l) {
 
 		const int32_t p = LittleShort(in->plane_num);
 		if (p >= cm_bsp.num_planes) {
-			Com_Error(ERR_DROP, "Brush side %d has invalid plane %d\n", i, p);
+			Com_Error(ERROR_DROP, "Brush side %d has invalid plane %d\n", i, p);
 		}
 		out->plane = &cm_bsp.planes[p];
 
 		const int32_t s = LittleShort(in->surf_num);
 		if (s >= cm_bsp.num_surfaces) {
-			Com_Error(ERR_DROP, "Brush side %d has invalid surface %d\n", i, s);
+			Com_Error(ERROR_DROP, "Brush side %d has invalid surface %d\n", i, s);
 		}
 		out->surface = &cm_bsp.surfaces[s];
 	}
@@ -334,7 +334,7 @@ static void Cm_LoadBspVisibility(const d_bsp_lump_t *l) {
 	cm_bsp.num_visibility = l->file_len;
 
 	if (l->file_len > MAX_BSP_VISIBILITY) {
-		Com_Error(ERR_DROP, "%d > MAX_BSP_VISIBILITY\n", l->file_len);
+		Com_Error(ERROR_DROP, "%d > MAX_BSP_VISIBILITY\n", l->file_len);
 	}
 
 	memcpy(cm_bsp.visibility, cm_bsp.base + l->file_ofs, l->file_len);
@@ -363,16 +363,16 @@ static void Cm_LoadBspAreas(const d_bsp_lump_t *l) {
 	const d_bsp_area_t *in = (const void *) (cm_bsp.base + l->file_ofs);
 
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "Funny lump size\n");
+		Com_Error(ERROR_DROP, "Funny lump size\n");
 	}
 
 	const int32_t count = l->file_len / sizeof(*in);
 
 	if (count < 0) {
-		Com_Error(ERR_DROP, "Invalid area count: %d\n", count);
+		Com_Error(ERROR_DROP, "Invalid area count: %d\n", count);
 	}
 	if (count > MAX_BSP_AREAS) {
-		Com_Error(ERR_DROP, "%d > MAX_BSP_AREAS\n", count);
+		Com_Error(ERROR_DROP, "%d > MAX_BSP_AREAS\n", count);
 	}
 
 	cm_bsp_area_t *out = cm_bsp.areas;
@@ -394,16 +394,16 @@ static void Cm_LoadBspAreaPortals(const d_bsp_lump_t *l) {
 	const d_bsp_area_portal_t *in = (const void *) (cm_bsp.base + l->file_ofs);
 
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "Funny lump size\n");
+		Com_Error(ERROR_DROP, "Funny lump size\n");
 	}
 
 	const int32_t count = l->file_len / sizeof(*in);
 
 	if (count < 0) {
-		Com_Error(ERR_DROP, "Invalid area portal count: %d\n", count);
+		Com_Error(ERROR_DROP, "Invalid area portal count: %d\n", count);
 	}
 	if (count > MAX_BSP_AREA_PORTALS) {
-		Com_Error(ERR_DROP, "%d > MAX_BSP_AREA_PORTALS\n", count);
+		Com_Error(ERROR_DROP, "%d > MAX_BSP_AREA_PORTALS\n", count);
 	}
 
 	d_bsp_area_portal_t *out = cm_bsp.area_portals;
@@ -446,7 +446,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	// load the file
 	const int64_t s = Fs_Load(name, &buf);
 	if (s == -1) {
-		Com_Error(ERR_DROP, "Couldn't load %s\n", name);
+		Com_Error(ERROR_DROP, "Couldn't load %s\n", name);
 	}
 
 	if (size) {
@@ -460,7 +460,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	}
 
 	if (header.version != BSP_VERSION && header.version != BSP_VERSION_QUETOO) {
-		Com_Error(ERR_DROP, "%s has unsupported version: %d\n", name, header.version);
+		Com_Error(ERROR_DROP, "%s has unsupported version: %d\n", name, header.version);
 	}
 
 	g_strlcpy(cm_bsp.name, name, sizeof(cm_bsp.name));
@@ -511,13 +511,13 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 cm_bsp_model_t *Cm_Model(const char *name) {
 
 	if (!name || name[0] != '*') {
-		Com_Error(ERR_DROP, "Bad name\n");
+		Com_Error(ERROR_DROP, "Bad name\n");
 	}
 
 	const int32_t num = atoi(name + 1);
 
 	if (num < 1 || num >= cm_bsp.num_models) {
-		Com_Error(ERR_DROP, "Bad number: %d\n", num);
+		Com_Error(ERROR_DROP, "Bad number: %d\n", num);
 	}
 
 	return &cm_bsp.models[num];
@@ -568,7 +568,7 @@ const char *Cm_WorldspawnValue(const char *key) {
 int32_t Cm_LeafContents(const int32_t leaf_num) {
 
 	if (leaf_num < 0 || leaf_num >= cm_bsp.num_leafs) {
-		Com_Error(ERR_DROP, "Bad number: %d\n", leaf_num);
+		Com_Error(ERROR_DROP, "Bad number: %d\n", leaf_num);
 	}
 
 	return cm_bsp.leafs[leaf_num].contents;
@@ -580,7 +580,7 @@ int32_t Cm_LeafContents(const int32_t leaf_num) {
 int32_t Cm_LeafCluster(const int32_t leaf_num) {
 
 	if (leaf_num < 0 || leaf_num >= cm_bsp.num_leafs) {
-		Com_Error(ERR_DROP, "Bad number: %d\n", leaf_num);
+		Com_Error(ERROR_DROP, "Bad number: %d\n", leaf_num);
 	}
 
 	return cm_bsp.leafs[leaf_num].cluster;
@@ -592,7 +592,7 @@ int32_t Cm_LeafCluster(const int32_t leaf_num) {
 int32_t Cm_LeafArea(const int32_t leaf_num) {
 
 	if (leaf_num < 0 || leaf_num >= cm_bsp.num_leafs) {
-		Com_Error(ERR_DROP, "Bad number: %d\n", leaf_num);
+		Com_Error(ERROR_DROP, "Bad number: %d\n", leaf_num);
 	}
 
 	return cm_bsp.leafs[leaf_num].area;

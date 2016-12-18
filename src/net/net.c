@@ -163,31 +163,31 @@ int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port) {
 		case NA_BROADCAST:
 		case NA_DATAGRAM:
 			if ((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
-				Com_Error(ERR_DROP, "socket: %s\n", Net_GetErrorString());
+				Com_Error(ERROR_DROP, "socket: %s\n", Net_GetErrorString());
 			}
 
 			if (setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (const void *) &i, sizeof(i)) == -1) {
-				Com_Error(ERR_DROP, "setsockopt: %s\n", Net_GetErrorString());
+				Com_Error(ERROR_DROP, "setsockopt: %s\n", Net_GetErrorString());
 			}
 			break;
 
 		case NA_STREAM:
 			if ((sock = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
-				Com_Error(ERR_DROP, "socket: %s\n", Net_GetErrorString());
+				Com_Error(ERROR_DROP, "socket: %s\n", Net_GetErrorString());
 			}
 
 			if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (const void *) &i, sizeof(i)) == -1) {
-				Com_Error(ERR_DROP, "setsockopt: %s\n", Net_GetErrorString());
+				Com_Error(ERROR_DROP, "setsockopt: %s\n", Net_GetErrorString());
 			}
 			break;
 
 		default:
-			Com_Error(ERR_DROP, "Invalid socket type: %d", type);
+			Com_Error(ERROR_DROP, "Invalid socket type: %d", type);
 	}
 
 	// make all sockets non-blocking
 	if (ioctl(sock, FIONBIO, (void *) &i) == -1) {
-		Com_Error(ERR_DROP, "ioctl: %s\n", Net_GetErrorString());
+		Com_Error(ERROR_DROP, "ioctl: %s\n", Net_GetErrorString());
 	}
 
 	struct sockaddr_in addr;
@@ -203,7 +203,7 @@ int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port) {
 	addr.sin_port = htons(port);
 
 	if (bind(sock, (void *) &addr, sizeof(addr)) == -1) {
-		Com_Error(ERR_DROP, "bind: %s\n", Net_GetErrorString());
+		Com_Error(ERROR_DROP, "bind: %s\n", Net_GetErrorString());
 	}
 
 	return sock;

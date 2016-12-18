@@ -420,7 +420,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
 	const int32_t version = LittleLong(in_md3->version);
 	if (version != MD3_VERSION) {
-		Com_Error(ERR_DROP, "%s has wrong version number "
+		Com_Error(ERROR_DROP, "%s has wrong version number "
 		          "(%i should be %i)\n", mod->media.name, version, MD3_VERSION);
 	}
 
@@ -437,19 +437,19 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 	out_md3->num_meshes = LittleLong(in_md3->num_meshes);
 
 	if (out_md3->num_frames < 1) {
-		Com_Error(ERR_DROP, "%s has no frames\n", mod->media.name);
+		Com_Error(ERROR_DROP, "%s has no frames\n", mod->media.name);
 	}
 
 	if (out_md3->num_frames > MD3_MAX_FRAMES) {
-		Com_Error(ERR_DROP, "%s has too many frames\n", mod->media.name);
+		Com_Error(ERROR_DROP, "%s has too many frames\n", mod->media.name);
 	}
 
 	if (out_md3->num_tags > MD3_MAX_TAGS) {
-		Com_Error(ERR_DROP, "%s has too many tags\n", mod->media.name);
+		Com_Error(ERROR_DROP, "%s has too many tags\n", mod->media.name);
 	}
 
 	if (out_md3->num_meshes > MD3_MAX_MESHES) {
-		Com_Error(ERR_DROP, "%s has too many meshes\n", mod->media.name);
+		Com_Error(ERROR_DROP, "%s has too many meshes\n", mod->media.name);
 	}
 
 	// load the frames
@@ -516,15 +516,15 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 		out_mesh->num_verts = LittleLong(in_mesh->num_verts);
 
 		if (out_mesh->num_skins > MD3_MAX_SHADERS) {
-			Com_Error(ERR_DROP, "%s: %s has too many skins\n", mod->media.name, out_mesh->name);
+			Com_Error(ERROR_DROP, "%s: %s has too many skins\n", mod->media.name, out_mesh->name);
 		}
 
 		if (out_mesh->num_tris > MD3_MAX_TRIANGLES) {
-			Com_Error(ERR_DROP, "%s: %s has too many triangles\n", mod->media.name, out_mesh->name);
+			Com_Error(ERROR_DROP, "%s: %s has too many triangles\n", mod->media.name, out_mesh->name);
 		}
 
 		if (out_mesh->num_verts > MD3_MAX_VERTS) {
-			Com_Error(ERR_DROP, "%s: %s has too many vertexes\n", mod->media.name, out_mesh->name);
+			Com_Error(ERROR_DROP, "%s: %s has too many vertexes\n", mod->media.name, out_mesh->name);
 		}
 
 		// load the triangle indexes
@@ -628,7 +628,7 @@ static r_obj_vertex_t *R_ObjVertexForIndices(r_model_t *mod, r_obj_t *obj, const
 	v->normal = g_list_nth_data(obj->normals, indices[2] - 1);
 
 	if (!v->point || !v->texcoords || !v->normal) {
-		Com_Error(ERR_DROP, "Invalid face indices for %s: %hu/%hu/%hu\n", mod->media.name,
+		Com_Error(ERROR_DROP, "Invalid face indices for %s: %hu/%hu/%hu\n", mod->media.name,
 		          indices[0], indices[1], indices[2]);
 	}
 
@@ -647,7 +647,7 @@ static void R_LoadObjPrimitive(r_model_t *mod, r_obj_t *obj, const char *line) {
 		vec_t *v = g_new(vec_t, 3);
 
 		if (sscanf(line + 2, "%f %f %f", &v[0], &v[2], &v[1]) != 3) {
-			Com_Error(ERR_DROP, "Malformed vertex for %s: %s\n", mod->media.name, line);
+			Com_Error(ERROR_DROP, "Malformed vertex for %s: %s\n", mod->media.name, line);
 		}
 
 		AddPointToBounds(v, mod->mins, mod->maxs);
@@ -659,7 +659,7 @@ static void R_LoadObjPrimitive(r_model_t *mod, r_obj_t *obj, const char *line) {
 		vec_t *vt = g_new(vec_t, 2);
 
 		if (sscanf(line + 3, "%f %f", &vt[0], &vt[1]) != 2) {
-			Com_Error(ERR_DROP, "Malformed texcoord for %s: %s\n", mod->media.name, line);
+			Com_Error(ERROR_DROP, "Malformed texcoord for %s: %s\n", mod->media.name, line);
 		}
 
 		vt[1] = -vt[1];
@@ -671,7 +671,7 @@ static void R_LoadObjPrimitive(r_model_t *mod, r_obj_t *obj, const char *line) {
 		vec_t *vn = g_new(vec_t, 3);
 
 		if (sscanf(line + 3, "%f %f %f", &vn[0], &vn[2], &vn[1]) != 3) {
-			Com_Error(ERR_DROP, "Malformed normal for %s: %s\n", mod->media.name, line);
+			Com_Error(ERROR_DROP, "Malformed normal for %s: %s\n", mod->media.name, line);
 		}
 
 		VectorNormalize(vn);
@@ -688,7 +688,7 @@ static void R_LoadObjPrimitive(r_model_t *mod, r_obj_t *obj, const char *line) {
 			int32_t n;
 
 			if (sscanf(c, "%hu/%hu/%hu%n", &indices[0], &indices[1], &indices[2], &n) != 3) {
-				Com_Error(ERR_DROP, "Malformed face for %s: %s\n", mod->media.name, line);
+				Com_Error(ERROR_DROP, "Malformed face for %s: %s\n", mod->media.name, line);
 			}
 
 			verts = g_list_append(verts, R_ObjVertexForIndices(mod, obj, indices));
@@ -700,7 +700,7 @@ static void R_LoadObjPrimitive(r_model_t *mod, r_obj_t *obj, const char *line) {
 		const size_t len = g_list_length(verts);
 
 		if (len < 3) {
-			Com_Error(ERR_DROP, "Malformed face for %s: %s\n", mod->media.name, line);
+			Com_Error(ERROR_DROP, "Malformed face for %s: %s\n", mod->media.name, line);
 		}
 
 		for (size_t i = 1; i < len - 1; i++) {
@@ -1048,7 +1048,7 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 	R_LoadObjPrimitives(mod, obj, buffer);
 
 	if (g_list_length(obj->tris) == 0) {
-		Com_Error(ERR_DROP, "Failed to load .obj: %s\n", mod->media.name);
+		Com_Error(ERROR_DROP, "Failed to load .obj: %s\n", mod->media.name);
 	}
 
 	// calculate tangents

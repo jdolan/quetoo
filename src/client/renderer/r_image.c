@@ -231,7 +231,7 @@ void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
 void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 
 	if (!image || !data) {
-		Com_Error(ERR_DROP, "NULL image or data\n");
+		Com_Error(ERROR_DROP, "NULL image or data\n");
 	}
 
 	if (!image->texnum) {
@@ -326,7 +326,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 	char key[MAX_QPATH];
 
 	if (!name || !name[0]) {
-		Com_Error(ERR_DROP, "NULL name\n");
+		Com_Error(ERROR_DROP, "NULL name\n");
 	}
 
 	StripExtension(name, key);

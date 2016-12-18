@@ -382,7 +382,7 @@ static int32_t Sv_HullForEntity(const g_entity_t *ent) {
 		const cm_bsp_model_t *mod = sv.cm_models[ent->s.model1];
 
 		if (!mod) {
-			Com_Error(ERR_DROP, "SOLID_BSP with no model\n");
+			Com_Error(ERROR_DROP, "SOLID_BSP with no model\n");
 		}
 
 		return mod->head_node;

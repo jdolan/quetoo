@@ -96,7 +96,7 @@ static int32_t FindTexinfo(d_bsp_texinfo_t *tx) {
 	}
 
 	if (i == MAX_BSP_TEXINFO) {
-		Com_Error(ERR_FATAL, "MAX_BSP_TEXINFO\n");
+		Com_Error(ERROR_FATAL, "MAX_BSP_TEXINFO\n");
 	}
 
 	*tc = *tx;

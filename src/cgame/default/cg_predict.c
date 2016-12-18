@@ -31,13 +31,6 @@ static cm_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end,
 }
 
 /**
- * @brief Debug messages for Pm_Move.
- */
-static void Cg_PredictMovement_Debug(const char *msg) {
-	cgi.Debug("!Client: %u %s", cgi.client->time, msg);
-}
-
-/**
  * @brief Run recent movement commands through the player movement code
  * locally, storing the resulting origin and angles so that they may be
  * interpolated to by Cl_UpdateView.
@@ -55,7 +48,7 @@ void Cg_PredictMovement(const GList *cmds) {
 	pm.PointContents = cgi.PointContents;
 	pm.Trace = Cg_PredictMovement_Trace;
 
-	pm.Debug = Cg_PredictMovement_Debug;
+	pm.Debug = cgi.PmDebug;
 
 	cl_predicted_state_t *pr = &cgi.client->predicted_state;
 

@@ -280,7 +280,7 @@ void Cmd_Enumerate(CmdEnumerateFunc func, void *data) {
 		if (cmd) {
 			func(cmd, data);
 		} else {
-			Com_Error(ERR_FATAL, "Missing command: %s\n", (char *) key->data);
+			Com_Error(ERROR_FATAL, "Missing command: %s\n", (char *) key->data);
 		}
 		key = key->next;
 	}

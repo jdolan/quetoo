@@ -172,7 +172,7 @@ _Bool Net_SendDatagram(net_src_t source, const net_addr_t *to, const void *data,
 			return false;
 		}
 	} else {
-		Com_Error(ERR_DROP, "Bad address type\n");
+		Com_Error(ERROR_DROP, "Bad address type\n");
 	}
 
 	struct sockaddr_in to_addr;

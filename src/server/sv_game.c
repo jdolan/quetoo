@@ -21,48 +21,46 @@
 
 #include "sv_local.h"
 
-
+/**
+ * @brief
+ */
 static void Sv_GameDebug(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 static void Sv_GameDebug(const char *func, const char *fmt, ...) {
-	char msg[MAX_STRING_CHARS];
 
-	if (fmt[0] != '!') {
-		g_snprintf(msg, sizeof(msg), "%s: ", func);
-	} else {
-		msg[0] = '\0';
-	}
-
-	const size_t len = strlen(msg);
 	va_list args;
-
 	va_start(args, fmt);
-	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
-	va_end(args);
 
-	Com_Debug(DEBUG_GAME, "!%s", msg);
+	Com_Debugv_(DEBUG_GAME, func, fmt, args);
+
+	va_end(args);
 }
 
 /**
- * @brief Abort the server with a game error, always emitting ERR_DROP.
+ * @brief
+ */
+static void Sv_GamePmDebug(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+static void Sv_GamePmDebug(const char *func, const char *fmt, ...) {
+
+	va_list args;
+	va_start(args, fmt);
+
+	Com_Debugv_(DEBUG_PMOVE_SERVER, func, fmt, args);
+
+	va_end(args);
+}
+
+/**
+ * @brief Abort the server with a game error, always emitting ERROR_DROP.
  */
 static void Sv_GameError(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
 static void Sv_GameError(const char *func, const char *fmt, ...) {
-	char msg[MAX_STRING_CHARS];
 
-	if (fmt[0] != '!') {
-		g_snprintf(msg, sizeof(msg), "%s: ", func);
-	} else {
-		msg[0] = '\0';
-	}
-
-	const size_t len = strlen(msg);
 	va_list args;
-
 	va_start(args, fmt);
-	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
-	va_end(args);
 
-	Com_Error(ERR_DROP, "!Game error: %s\n", msg);
+	Com_Errorv_(ERROR_DROP, func, fmt, args);
+
+	va_end(args);
 }
 
 /**
@@ -251,7 +249,7 @@ void Sv_InitGame(void) {
 	g_import_t import;
 
 	if (svs.game) {
-		Com_Error(ERR_FATAL, "Game already loaded");
+		Com_Error(ERROR_FATAL, "Game already loaded");
 	}
 
 	Com_Print("Game initialization...\n");
@@ -262,6 +260,7 @@ void Sv_InitGame(void) {
 
 	import.Print = Com_Print;
 	import.Debug_ = Sv_GameDebug;
+	import.PmDebug_ = Sv_GamePmDebug;
 	import.Warn_ = Com_Warn_;
 	import.Error_ = Sv_GameError;
 
@@ -327,11 +326,11 @@ void Sv_InitGame(void) {
 	svs.game = (g_export_t *) Sys_LoadLibrary("game", &game_handle, "G_LoadGame", &import);
 
 	if (!svs.game) {
-		Com_Error(ERR_DROP, "Failed to load game module\n");
+		Com_Error(ERROR_DROP, "Failed to load game module\n");
 	}
 
 	if (svs.game->api_version != GAME_API_VERSION) {
-		Com_Error(ERR_DROP, "Game is version %i, not %i\n", svs.game->api_version,
+		Com_Error(ERROR_DROP, "Game is version %i, not %i\n", svs.game->api_version,
 		          GAME_API_VERSION);
 	}
 

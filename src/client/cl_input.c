@@ -265,7 +265,7 @@ static _Bool Cl_HandleSystemEvent(const SDL_Event *event) {
 		switch (cls.state) {
 			case CL_CONNECTING:
 			case CL_CONNECTED:
-				Com_Error(ERR_DROP, "Connection aborted by user\n");
+				Com_Error(ERROR_DROP, "Connection aborted by user\n");
 			case CL_LOADING:
 				return false;
 			default:

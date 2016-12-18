@@ -156,7 +156,7 @@ _Bool Portal_VisFlood(const portal_t *p) {
  */
 static _Bool Portal_EntityFlood(const portal_t *p) {
 	if (p->nodes[0]->plane_num != PLANENUM_LEAF || p->nodes[1]->plane_num != PLANENUM_LEAF) {
-		Com_Error(ERR_FATAL, "Not a leaf\n");
+		Com_Error(ERROR_FATAL, "Not a leaf\n");
 	}
 
 	// can never cross to a solid
@@ -179,7 +179,7 @@ static int32_t c_tinyportals;
  */
 static void AddPortalToNodes(portal_t *p, node_t *front, node_t *back) {
 	if (p->nodes[0] || p->nodes[1]) {
-		Com_Error(ERR_FATAL, "Already included\n");
+		Com_Error(ERROR_FATAL, "Already included\n");
 	}
 
 	p->nodes[0] = front;
@@ -204,7 +204,7 @@ void RemovePortalFromNode(portal_t *portal, node_t *l) {
 	while (true) {
 		t = *pp;
 		if (!t) {
-			Com_Error(ERR_FATAL, "Portal not in leaf\n");
+			Com_Error(ERROR_FATAL, "Portal not in leaf\n");
 		}
 
 		if (t == portal) {
@@ -216,7 +216,7 @@ void RemovePortalFromNode(portal_t *portal, node_t *l) {
 		} else if (t->nodes[1] == l) {
 			pp = &t->next[1];
 		} else {
-			Com_Error(ERR_FATAL, "Portal not bounding leaf\n");
+			Com_Error(ERROR_FATAL, "Portal not bounding leaf\n");
 		}
 	}
 
@@ -347,7 +347,7 @@ void MakeNodePortal(node_t *node) {
 			VectorSubtract(vec3_origin, p->plane.normal, normal);
 			dist = -p->plane.dist;
 		} else {
-			Com_Error(ERR_FATAL, "Mis-linked portal\n");
+			Com_Error(ERROR_FATAL, "Mis-linked portal\n");
 		}
 
 		ChopWindingInPlace(&w, normal, dist, 0.1);
@@ -395,7 +395,7 @@ void SplitNodePortals(node_t *node) {
 		} else if (p->nodes[1] == node) {
 			side = 1;
 		} else {
-			Com_Error(ERR_FATAL, "Mis-linked portal\n");
+			Com_Error(ERROR_FATAL, "Mis-linked portal\n");
 		}
 		next_portal = p->next[side];
 
@@ -774,7 +774,7 @@ void EmitAreaPortals(void) {
 	d_bsp_area_portal_t *dp;
 
 	if (c_areas > MAX_BSP_AREAS) {
-		Com_Error(ERR_FATAL, "MAX_BSP_AREAS\n");
+		Com_Error(ERROR_FATAL, "MAX_BSP_AREAS\n");
 	}
 
 	d_bsp.num_areas = c_areas + 1;

@@ -114,7 +114,7 @@ void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_
 static void LightWorld(void) {
 
 	if (d_bsp.num_nodes == 0 || d_bsp.num_faces == 0) {
-		Com_Error(ERR_FATAL, "Empty map\n");
+		Com_Error(ERROR_FATAL, "Empty map\n");
 	}
 
 	// load the map for tracing
@@ -160,7 +160,7 @@ int32_t LIGHT_Main(void) {
 	LoadBSPFile(bsp_name);
 
 	if (!d_bsp.vis_data_size) {
-		Com_Error(ERR_FATAL, "No VIS information\n");
+		Com_Error(ERROR_FATAL, "No VIS information\n");
 	}
 
 	ParseEntities();

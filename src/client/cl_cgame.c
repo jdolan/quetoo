@@ -24,26 +24,45 @@
 static void *cgame_handle;
 
 /**
- * @brief Abort the server with a game error. This wraps Com_Error, always emitting ERR_DROP.
+ * @brief
+ */
+static void Cl_CgameDebug(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+static void Cl_CgameDebug(const char *func, const char *fmt, ...) {
+
+	va_list args;
+	va_start(args, fmt);
+
+	Com_Debugv_(DEBUG_CGAME, func, fmt, args);
+
+	va_end(args);
+}
+
+/**
+ * @brief
+ */
+static void Cl_CgamePmDebug(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+static void Cl_CgamePmDebug(const char *func, const char *fmt, ...) {
+
+	va_list args;
+	va_start(args, fmt);
+
+	Com_Debugv_(DEBUG_PMOVE_CLIENT, func, fmt, args);
+
+	va_end(args);
+}
+
+/**
+ * @brief Handle a client game error. This wraps Com_Error, always emitting ERROR_DROP.
  */
 static void Cl_CgameError(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
 static void Cl_CgameError(const char *func, const char *fmt, ...) {
-	char msg[MAX_STRING_CHARS];
 
-	if (fmt[0] != '!') {
-		g_snprintf(msg, sizeof(msg), "%s: ", func);
-	} else {
-		msg[0] = '\0';
-	}
-
-	const size_t len = strlen(msg);
 	va_list args;
-
 	va_start(args, fmt);
-	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
-	va_end(args);
 
-	Com_Error(ERR_DROP, "!Client game error: %s\n", msg);
+	Com_Errorv_(ERROR_DROP, func, fmt, args);
+
+	va_end(args);
 }
 
 /**
@@ -135,7 +154,8 @@ void Cl_InitCgame(void) {
 	import.view = &r_view;
 
 	import.Print = Com_Print;
-	import.Debug_ = Com_Debug_;
+	import.Debug_ = Cl_CgameDebug;
+	import.PmDebug = Cl_CgamePmDebug;
 	import.Warn_ = Com_Warn_;
 	import.Error_ = Cl_CgameError;
 
@@ -252,11 +272,11 @@ void Cl_InitCgame(void) {
 	cls.cgame = Sys_LoadLibrary("cgame", &cgame_handle, "Cg_LoadCgame", &import);
 
 	if (!cls.cgame) {
-		Com_Error(ERR_DROP, "Failed to load client game\n");
+		Com_Error(ERROR_DROP, "Failed to load client game\n");
 	}
 
 	if (cls.cgame->api_version != CGAME_API_VERSION) {
-		Com_Error(ERR_DROP, "Client game has wrong version (%d)\n", cls.cgame->api_version);
+		Com_Error(ERROR_DROP, "Client game has wrong version (%d)\n", cls.cgame->api_version);
 	}
 
 	cls.cgame->Init();

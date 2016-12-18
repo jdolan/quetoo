@@ -125,7 +125,7 @@ void Sv_BroadcastCommand(const char *fmt, ...) {
 static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
 
 	if (len > MAX_MSG_SIZE) {
-		Com_Error(ERR_DROP, "Single datagram message exceeded MAX_MSG_LEN\n");
+		Com_Error(ERROR_DROP, "Single datagram message exceeded MAX_MSG_LEN\n");
 	}
 
 	sv_client_message_t *msg = g_malloc0(sizeof(*msg));
@@ -368,7 +368,7 @@ static void Sv_SendClientDatagram(sv_client_t *cl) {
 	// the frame itself (player state and delta entities) must fit into a single message,
 	// since it is parsed as a single command by the client
 	if (buf.overflowed || buf.size > MAX_MSG_SIZE - 16) {
-		Com_Error(ERR_DROP, "Frame exceeds MAX_MSG_SIZE (%u)\n", (uint32_t) buf.size);
+		Com_Error(ERROR_DROP, "Frame exceeds MAX_MSG_SIZE (%u)\n", (uint32_t) buf.size);
 	}
 
 	// but we can packetize the remaining datagram messages, which are parsed individually

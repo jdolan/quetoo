@@ -30,7 +30,8 @@ static const char *DEBUG_CATEGORIES[] = {
 	"filesystem",
 	"game",
 	"net",
-	"pmove",
+	"pmove_client",
+	"pmove_server",
 	"renderer",
 	"server",
 	"sound"
@@ -46,7 +47,7 @@ const char *Com_GetDebug(void) {
 
 	for (size_t i = 0; i < lengthof(DEBUG_CATEGORIES); i++) {
 		if (quetoo.debug_mask & (1 << i)) {
-			if (i > 0) {
+			if (strlen(debug)) {
 				g_strlcat(debug, " ", sizeof(debug));
 			}
 			g_strlcat(debug, DEBUG_CATEGORIES[i], sizeof(debug));
@@ -91,34 +92,68 @@ void Com_SetDebug(const char *debug) {
 }
 
 /**
- * @brief Print a debug statement. If the format begins with '!', the function
- * name is omitted.
+ * @brief A helper to handle function name embedding in common debug / warn / error routines.
+ * @param str The outbut buffer.
+ * @param size The size of the output buffer.
+ * @param func An optional function name to prepend.
+ * @param fmt The format string.
+ * @param args The format arguments.
+ * @return The number of characters printed.
+ */
+static int32_t Com_Sprintfv(char *str, size_t size, const char *func, const char *fmt, va_list args) {
+
+	assert(str);
+	assert(size);
+	assert(fmt);
+
+	size_t len = 0;
+
+	if (func) {
+		if (fmt[0] == '!') { // skip it
+			fmt++;
+		} else {
+			g_snprintf(str, size, "%s: ", func);
+			len = strlen(str);
+		}
+	}
+
+	const int32_t count = vsnprintf(str + len, size - len, fmt, args);
+
+	/*
+	 * FIXME: This is a hack. I'd rather see this implemented as a Windows-only console appender
+	 * in console.c or something.
+	 */
+#if defined(_WIN32) && defined(_DEBUG) && defined(_MSC_VER)
+	OutputDebugString(str);
+#endif
+
+	return count;
+}
+
+/**
+ * @brief Print a debug statement. If the format begins with '!', the function name is omitted.
  */
 void Com_Debug_(const debug_t debug, const char *func, const char *fmt, ...) {
+
+	va_list args;
+	va_start(args, fmt);
+
+	Com_Debugv_(debug, func, fmt, args);
+
+	va_end(args);
+}
+
+/**
+ * @brief Print a debug statement. If the format begins with '!', the function name is omitted.
+ */
+void Com_Debugv_(const debug_t debug, const char *func, const char *fmt, va_list args) {
 
 	if ((quetoo.debug_mask & debug) == 0) {
 		return;
 	}
 
 	char msg[MAX_PRINT_MSG];
-
-	if (fmt[0] != '!') {
-		g_snprintf(msg, sizeof(msg), "%s: ", func);
-	} else {
-		msg[0] = '\0';
-		fmt++;
-	}
-
-	const size_t len = strlen(msg);
-
-	va_list args;
-	va_start(args, fmt);
-	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
-	va_end(args);
-
-#if defined(_WIN32) && defined(_DEBUG) && defined(_MSC_VER)
-	OutputDebugString(msg);
-#endif
+	Com_Sprintfv(msg, sizeof(msg), func, fmt, args);
 
 	if (quetoo.Debug) {
 		quetoo.Debug(debug, (const char *) msg);
@@ -131,12 +166,25 @@ void Com_Debug_(const debug_t debug, const char *func, const char *fmt, ...) {
 /**
  * @brief An error condition has occurred. This function does not return.
  */
-void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
+void Com_Error_(error_t error, const char *func, const char *fmt, ...) {
+
+	va_list args;
+	va_start(args, fmt);
+
+	Com_Errorv_(error, func, fmt, args);
+
+	va_end(args);
+}
+
+/**
+ * @brief An error condition has occurred. This function does not return.
+ */
+void Com_Errorv_(error_t err, const char *func, const char *fmt, va_list args) {
 
 	if (quetoo.recursive_error) {
 
 		if (quetoo.Error) {
-			quetoo.Error(err, (const char *) "Recursive error\n");
+			quetoo.Error(err, "Recursive error\n");
 		} else {
 			fputs("Recursive error\n", stderr);
 			fflush(stderr);
@@ -147,27 +195,10 @@ void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
 	}
 
 	char msg[MAX_PRINT_MSG];
-
-	if (fmt[0] != '!') {
-		g_snprintf(msg, sizeof(msg), "%s: ", func);
-	} else {
-		msg[0] = '\0';
-		fmt++;
-	}
-
-	const size_t len = strlen(msg);
-	va_list args;
-
-	va_start(args, fmt);
-	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
-	va_end(args);
-
-#if defined(_WIN32) && defined(_DEBUG) && defined(_MSC_VER)
-	OutputDebugString(msg);
-#endif
+	Com_Sprintfv(msg, sizeof(msg), func, fmt, args);
 
 	if (quetoo.Error) {
-		quetoo.Error(err, (const char *) msg);
+		quetoo.Error(err, msg);
 	} else {
 		fputs(msg, stderr);
 		fflush(stderr);
@@ -181,19 +212,25 @@ void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
  * @brief
  */
 void Com_Print(const char *fmt, ...) {
+
 	va_list args;
-	char msg[MAX_PRINT_MSG];
-
 	va_start(args, fmt);
-	vsnprintf(msg, sizeof(msg), fmt, args);
-	va_end(args);
 
-#if defined(_WIN32) && defined(_DEBUG) && defined(_MSC_VER)
-	OutputDebugString(msg);
-#endif
+	Com_Printv(fmt, args);
+
+	va_end(args);
+}
+
+/**
+ * @brief
+ */
+void Com_Printv(const char *fmt, va_list args) {
+
+	char msg[MAX_PRINT_MSG];
+	Com_Sprintfv(msg, sizeof(msg), NULL, fmt, args);
 
 	if (quetoo.Print) {
-		quetoo.Print((const char *) msg);
+		quetoo.Print(msg);
 	} else {
 		fputs(msg, stdout);
 		fflush(stdout);
@@ -205,28 +242,24 @@ void Com_Print(const char *fmt, ...) {
  */
 void Com_Warn_(const char *func, const char *fmt, ...) {
 
-	static char msg[MAX_PRINT_MSG];
-
-	if (fmt[0] != '!') {
-		g_snprintf(msg, sizeof(msg), "%s: ", func);
-	} else {
-		msg[0] = '\0';
-		fmt++;
-	}
-
-	const size_t len = strlen(msg);
 	va_list args;
-
 	va_start(args, fmt);
-	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
-	va_end(args);
 
-#if defined(_WIN32) && defined(_DEBUG) && defined(_MSC_VER)
-	OutputDebugString(msg);
-#endif
+	Com_Warnv_(func, fmt, args);
+
+	va_end(args);
+}
+
+/**
+ * @brief Prints a warning message.
+ */
+void Com_Warnv_(const char *func, const char *fmt, va_list args) {
+
+	char msg[MAX_PRINT_MSG];
+	Com_Sprintfv(msg, sizeof(msg), func, fmt, args);
 
 	if (quetoo.Warn) {
-		quetoo.Warn((const char *) msg);
+		quetoo.Warn(msg);
 	} else {
 		fprintf(stderr, "WARNING: %s", msg);
 		fflush(stderr);
@@ -237,16 +270,22 @@ void Com_Warn_(const char *func, const char *fmt, ...) {
  * @brief
  */
 void Com_Verbose(const char *fmt, ...) {
+
 	va_list args;
-	static char msg[MAX_PRINT_MSG];
-
 	va_start(args, fmt);
-	vsnprintf(msg, sizeof(msg), fmt, args);
-	va_end(args);
 
-#if defined(_WIN32) && defined(_DEBUG) && defined(_MSC_VER)
-	OutputDebugString(msg);
-#endif
+	Com_Verbosev(fmt, args);
+
+	va_end(args);
+}
+
+/**
+ * @brief
+ */
+void Com_Verbosev(const char *fmt, va_list args) {
+
+	char msg[MAX_PRINT_MSG];
+	Com_Sprintfv(msg, sizeof(msg), NULL, fmt, args);
 
 	if (quetoo.Verbose) {
 		quetoo.Verbose((const char *) msg);

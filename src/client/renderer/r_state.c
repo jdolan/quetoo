@@ -497,7 +497,7 @@ void R_UseMaterial(const r_material_t *material) {
 void R_PushMatrix(const r_matrix_id_t id) {
 
 	if (r_state.matrix_stacks[id].depth == MAX_MATRIX_STACK) {
-		Com_Error(ERR_DROP, "Matrix stack overflow");
+		Com_Error(ERROR_DROP, "Matrix stack overflow");
 	}
 
 	Matrix4x4_Copy(&r_state.matrix_stacks[id].matrices[r_state.matrix_stacks[id].depth++], &active_matrices[id]);
@@ -509,7 +509,7 @@ void R_PushMatrix(const r_matrix_id_t id) {
 void R_PopMatrix(const r_matrix_id_t id) {
 
 	if (r_state.matrix_stacks[id].depth == 0) {
-		Com_Error(ERR_DROP, "Matrix stack underflow");
+		Com_Error(ERROR_DROP, "Matrix stack underflow");
 	}
 
 	R_SetMatrix(id, &r_state.matrix_stacks[id].matrices[--r_state.matrix_stacks[id].depth]);

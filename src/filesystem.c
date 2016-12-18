@@ -267,7 +267,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 			b->len = Fs_Read(file, b->data, 1, FS_FILE_BUFFER);
 
 			if (b->len == -1) {
-				Com_Error(ERR_DROP, "%s: %s\n", filename, Fs_LastError());
+				Com_Error(ERROR_DROP, "%s: %s\n", filename, Fs_LastError());
 			}
 
 			list = g_list_append(list, b);
@@ -588,7 +588,7 @@ void Fs_Init(_Bool auto_load_archives) {
 	memset(&fs_state, 0, sizeof(fs_state_t));
 
 	if (PHYSFS_init(Com_Argv(0)) == 0) {
-		Com_Error(ERR_FATAL, "%s\n", PHYSFS_getLastError());
+		Com_Error(ERROR_FATAL, "%s\n", PHYSFS_getLastError());
 	}
 
 	fs_state.auto_load_archives = auto_load_archives;

@@ -621,7 +621,7 @@ void R_Draw2D(void) {
 static void R_InitFont(char *name) {
 
 	if (r_draw.num_fonts == MAX_FONTS) {
-		Com_Error(ERR_DROP, "MAX_FONTS reached\n");
+		Com_Error(ERROR_DROP, "MAX_FONTS reached\n");
 		return;
 	}
 

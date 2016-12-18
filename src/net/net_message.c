@@ -343,11 +343,11 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 	uint16_t bits = 0;
 
 	if (to->number <= 0) {
-		Com_Error(ERR_FATAL, "Unset entity number\n");
+		Com_Error(ERROR_FATAL, "Unset entity number\n");
 	}
 
 	if (to->number >= MAX_ENTITIES) {
-		Com_Error(ERR_FATAL, "Entity number >= MAX_ENTITIES\n");
+		Com_Error(ERROR_FATAL, "Entity number >= MAX_ENTITIES\n");
 	}
 
 	if (!VectorCompare(to->origin, from->origin)) {
@@ -632,7 +632,7 @@ void Net_ReadDir(mem_buf_t *msg, vec3_t dir) {
 	const int32_t b = Net_ReadByte(msg);
 
 	if (b >= NUM_APPROXIMATE_NORMALS) {
-		Com_Error(ERR_DROP, "%d out of range\n", b);
+		Com_Error(ERROR_DROP, "%d out of range\n", b);
 	}
 
 	VectorCopy(approximate_normals[b], dir);

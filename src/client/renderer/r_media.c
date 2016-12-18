@@ -188,7 +188,7 @@ r_media_t *R_FindMedia(const char *name) {
 r_media_t *R_AllocMedia(const char *name, size_t size, r_media_type_t type) {
 
 	if (!name || !*name) {
-		Com_Error(ERR_DROP, "NULL name\n");
+		Com_Error(ERROR_DROP, "NULL name\n");
 	}
 
 	r_media_t *media = Mem_TagMalloc(size, MEM_TAG_RENDERER);

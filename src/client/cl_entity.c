@@ -142,11 +142,11 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 		const uint16_t number = Net_ReadShort(&net_message);
 
 		if (number >= MAX_ENTITIES) {
-			Com_Error(ERR_DROP, "Bad number: %i\n", number);
+			Com_Error(ERROR_DROP, "Bad number: %i\n", number);
 		}
 
 		if (net_message.read > net_message.size) {
-			Com_Error(ERR_DROP, "End of message\n");
+			Com_Error(ERROR_DROP, "End of message\n");
 		}
 
 		if (!number) { // done
@@ -278,15 +278,15 @@ void Cl_ParseFrame(void) {
 		cl.delta_frame = &cl.frames[cl.frame.delta_frame_num & PACKET_MASK];
 
 		if (!cl.delta_frame->valid) {
-			Com_Error(ERR_DROP, "Delta from invalid frame\n");
+			Com_Error(ERROR_DROP, "Delta from invalid frame\n");
 		}
 
 		if (cl.delta_frame->frame_num != cl.frame.delta_frame_num) {
-			Com_Error(ERR_DROP, "Delta frame too old\n");
+			Com_Error(ERROR_DROP, "Delta frame too old\n");
 		}
 
 		else if (cl.entity_state - cl.delta_frame->entity_state > ENTITY_STATE_BACKUP - PACKET_BACKUP) {
-			Com_Error(ERR_DROP, "Delta entity state too old\n");
+			Com_Error(ERROR_DROP, "Delta entity state too old\n");
 		}
 
 		cl.frame.valid = true;

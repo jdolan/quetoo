@@ -106,7 +106,7 @@ r_model_t *R_LoadModel(const char *name) {
 	size_t i;
 
 	if (!name || !name[0]) {
-		Com_Error(ERR_DROP, "R_LoadModel: NULL name\n");
+		Com_Error(ERROR_DROP, "R_LoadModel: NULL name\n");
 	}
 
 	if (*name == '*') {

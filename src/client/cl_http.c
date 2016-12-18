@@ -73,7 +73,7 @@ void Cl_HttpDownload_Complete() {
 				Fs_AddToSearchPath(cls.download.name);
 			}
 		} else {
-			Com_Error(ERR_DROP, "Failed to rename %s\n", cls.download.name);
+			Com_Error(ERROR_DROP, "Failed to rename %s\n", cls.download.name);
 		}
 
 		cls.download.name[0] = '\0';

@@ -103,7 +103,7 @@ static void Cm_FloodArea(cm_bsp_area_t *area, int32_t flood_num) {
 			return;
 		}
 
-		Com_Error(ERR_DROP, "Re-flooded\n");
+		Com_Error(ERROR_DROP, "Re-flooded\n");
 	}
 
 	area->flood_num = flood_num;
@@ -147,7 +147,7 @@ void Cm_FloodAreas(void) {
 void Cm_SetAreaPortalState(const int32_t portal_num, const _Bool open) {
 
 	if (portal_num > cm_bsp.num_area_portals) {
-		Com_Error(ERR_DROP, "Portal %d > num_area_portals", portal_num);
+		Com_Error(ERROR_DROP, "Portal %d > num_area_portals", portal_num);
 	}
 
 	cm_bsp.portal_open[portal_num] = open;
@@ -164,7 +164,7 @@ _Bool Cm_AreasConnected(const int32_t area1, const int32_t area2) {
 	}
 
 	if (area1 > cm_bsp.num_areas || area2 > cm_bsp.num_areas) {
-		Com_Error(ERR_DROP, "Area %d > cm.num_areas\n", area1 > area2 ? area1 : area2);
+		Com_Error(ERROR_DROP, "Area %d > cm.num_areas\n", area1 > area2 ? area1 : area2);
 	}
 
 	if (cm_bsp.areas[area1].flood_num == cm_bsp.areas[area2].flood_num) {

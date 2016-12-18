@@ -1249,13 +1249,6 @@ static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const
 }
 
 /**
- * @brief Debug messages for Pm_Move.
- */
-static void G_ClientMove_Debug(const char *msg) {
-	gi.Debug("!Server: %u %s", g_level.time, msg);
-}
-
-/**
  * @brief Process the movement command, call Pm_Move and act on the result.
  */
 static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
@@ -1302,7 +1295,7 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	pm.PointContents = gi.PointContents;
 	pm.Trace = G_ClientMove_Trace;
 
-	pm.Debug = G_ClientMove_Debug;
+	pm.Debug = gi.PmDebug_;
 
 	// perform a move
 	Pm_Move(&pm);

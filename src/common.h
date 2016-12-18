@@ -86,12 +86,12 @@
  */
 #define CLIENT_RATE_MIN		8192
 
-/*
- * Disallow dangerous downloads for both the client and server.
+/**
+ * @brief Disallow dangerous downloads for both the client and server.
  */
 #define IS_INVALID_DOWNLOAD(f) (\
-                                !*f || *f == '/' || strstr(f, "..") || strchr(f, ' ') \
-                               )
+	!*f || *f == '/' || strstr(f, "..") || strchr(f, ' ') \
+)
 
 /**
  * @brief Debug cateogories.
@@ -105,10 +105,11 @@ typedef enum {
 	DEBUG_FILESYSTEM	= 1 << 5,
 	DEBUG_GAME			= 1 << 6,
 	DEBUG_NET			= 1 << 7,
-	DEBUG_PMOVE			= 1 << 8,
-	DEBUG_RENDERER		= 1 << 9,
-	DEBUG_SERVER		= 1 << 10,
-	DEBUG_SOUND			= 1 << 11,
+	DEBUG_PMOVE_CLIENT	= 1 << 8,
+	DEBUG_PMOVE_SERVER  = 1 << 9,
+	DEBUG_RENDERER		= 1 << 10,
+	DEBUG_SERVER		= 1 << 11,
+	DEBUG_SOUND			= 1 << 12,
 
 	DEBUG_BREAKPOINT	= (int32_t) (1u << 31),
 	DEBUG_ALL			= (int32_t) (0xFFFFFFFF & ~DEBUG_BREAKPOINT),
@@ -118,11 +119,11 @@ typedef enum {
  * @brief Error categories.
  */
 typedef enum {
-	ERR_PRINT = 1,
-	ERR_WARN,
-	ERR_FATAL, // program must exit
-	ERR_DROP // don't fully shit pants, but drop to console
-} err_t;
+	ERROR_PRINT = 1,
+	ERROR_WARN,
+	ERROR_DROP, // don't fully shit pants, but drop to console
+	ERROR_FATAL, // program must exit
+} error_t;
 
 int32_t Com_Argc(void);
 char *Com_Argv(int32_t arg); // range and null checked
@@ -132,15 +133,29 @@ void Com_PrintInfo(const char *s);
 const char *Com_GetDebug(void);
 void Com_SetDebug(const char *debug);
 
-void Com_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void Com_Verbose(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void Com_Debug_(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
-void Com_Warn_(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-void Com_Error_(const char *func, err_t err, const char *fmt, ...) __attribute__((noreturn, format(printf, 3, 4)));
+void Com_Debug_(debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+void Com_Debugv_(debug_t debug, const char *func, const char *fmt, va_list args);
 
-#define Com_Debug(mask, ...) Com_Debug_(mask, __func__, __VA_ARGS__)
-#define Com_Error(err, ...) Com_Error_(__func__, err, __VA_ARGS__)
+void Com_Error_(error_t error, const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 3, 4)));
+void Com_Errorv_(error_t error, const char *func, const char *fmt, va_list args) __attribute__((noreturn));
+
+void Com_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+void Com_Printv(const char *fmt, va_list args);
+
+void Com_Verbose(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+void Com_Verbosev(const char *fmt, va_list args);
+
+void Com_Warn_(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+void Com_Warnv_(const char *func, const char *fmt, va_list args);
+
+#define Com_Debug(debug, ...) Com_Debug_(debug, __func__, __VA_ARGS__)
+#define Com_Debugv(debug, fmt, args) Com_Debugv_(debug, __func__, fmt, args)
+
+#define Com_Error(error, ...) Com_Error_(error, __func__, __VA_ARGS__)
+#define Com_Errorv(error, fmt, args) Com_Errorv_(error, __func__, fmt, args)
+
 #define Com_Warn(...) Com_Warn_(__func__, __VA_ARGS__)
+#define Com_Warnv(fmt, args) Com_Warnv_(__func__, fmt, args)
 
 void Com_Init(int32_t argc, char *argv[]);
 void Com_Shutdown(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
@@ -159,18 +174,29 @@ typedef struct {
 	int32_t argc;
 	char **argv;
 
+	/**
+	 * @brief Milliseconds since the application was started.
+	 */
 	uint32_t ticks;
+
+	/**
+	 * @brief The initialized subsystems.
+	 */
 	uint32_t subsystems;
 
+	/**
+	 * @brief The enabled debug categories.
+	 */
 	debug_t debug_mask;
 
 	/**
-	 * @brief If your Error function doesn't exit, make sure to set this to false.
+	 * @brief Used by `Com_Error` to detect a cyclical error condition.
+	 * @remarks If your Error function doesn't exit, make sure to set this to false.
 	 */
 	_Bool recursive_error;
 
 	void (*Debug)(const debug_t debug, const char *msg);
-	void (*Error)(err_t err, const char *msg) __attribute__((noreturn));
+	void (*Error)(error_t error, const char *msg) __attribute__((noreturn));
 	void (*Print)(const char *msg);
 	void (*Verbose)(const char *msg);
 	void (*Warn)(const char *msg);
