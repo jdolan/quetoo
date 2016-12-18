@@ -1375,7 +1375,7 @@ static void Pm_WalkMove(void) {
 /**
  * @brief
  */
-static void Pm_SpectatorMove() {
+static void Pm_SpectatorMove(void) {
 	vec3_t vel;
 
 	Pm_Friction();
@@ -1400,6 +1400,14 @@ static void Pm_SpectatorMove() {
 
 	// do the move
 	VectorMA(pm->s.origin, pml.time, pm->s.velocity, pm->s.origin);
+}
+
+/**
+ * @brief
+ */
+static void Pm_FreezeMove(void) {
+
+	pm->s.flags |= PMF_NO_PREDICTION;
 }
 
 /**
@@ -1515,6 +1523,7 @@ void Pm_Move(pm_move_t *pm_move) {
 	Pm_InitLocal();
 
 	if (pm->s.type == PM_FREEZE) { // no movement
+		Pm_FreezeMove();
 		return;
 	}
 
@@ -1525,12 +1534,6 @@ void Pm_Move(pm_move_t *pm_move) {
 
 	if (pm->s.type == PM_DEAD) { // no control
 		pm->cmd.forward = pm->cmd.right = pm->cmd.up = 0;
-	}
-
-	// disable predictions if appropriate
-	if (pm->s.type == PM_FREEZE) {
-
-		pm->s.flags |= PMF_NO_PREDICTION;
 	}
 
 	// check for grapple hook
