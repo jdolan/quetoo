@@ -478,6 +478,17 @@ void UnpackAngles(const uint16_t *in, vec3_t out) {
 	}
 }
 
+typedef union {
+	struct {
+		uint8_t x;
+		uint8_t y;
+		int8_t zd;
+		int8_t zu;
+	};
+
+	uint32_t ulong;
+} packed_bounds_t;
+
 /**
  * @brief Packs the specified bounding box to a limited precision integer
  * representation. Bits 0-8 represent X, bits 9-16 represent Y, bits 17-24 represent
@@ -486,21 +497,12 @@ void UnpackAngles(const uint16_t *in, vec3_t out) {
  */
 void PackBounds(const vec3_t mins, const vec3_t maxs, uint32_t *out) {
 
-	union {
-		struct {
-			uint8_t x;
-			uint8_t y;
-			int8_t zd;
-			int8_t zu;
-		};
-
-		uint32_t ulong;
-	} out_packed = {
-		.x = Clamp(maxs[0], 0.0, 255.0),
-		.y = Clamp(maxs[1], 0.0, 255.0),
-		.zd = Clamp(mins[2], -128.0, 127.0),
-		.zu = Clamp(maxs[2], -128.0, 127.0)
-	};
+	packed_bounds_t out_packed;
+	
+	out_packed.x = Clamp(maxs[0], 0.0, 255.0);
+	out_packed.y = Clamp(maxs[1], 0.0, 255.0);
+	out_packed.zd = Clamp(mins[2], -128.0, 127.0);
+	out_packed.zu = Clamp(maxs[2], -128.0, 127.0);
 
 	*out = out_packed.ulong;
 }
@@ -510,19 +512,10 @@ void PackBounds(const vec3_t mins, const vec3_t maxs, uint32_t *out) {
  * @see PackBounds
  */
 void UnpackBounds(const uint32_t in, vec3_t mins, vec3_t maxs) {
-	
-	union {
-		uint32_t ulong;
 
-		struct {
-			uint8_t x;
-			uint8_t y;
-			int8_t zd;
-			int8_t zu;
-		};
-	} in_packed = { 
-		.ulong = in
-	};
+	packed_bounds_t in_packed;
+	
+	in_packed.ulong = in;
 
 	VectorSet(mins, -in_packed.x, -in_packed.y, in_packed.zd);
 	VectorSet(maxs, in_packed.x, in_packed.y, in_packed.zu);
