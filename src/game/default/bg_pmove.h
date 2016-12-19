@@ -123,6 +123,11 @@
 #define PM_NUDGE_DIST			1.0
 
 /**
+ * @brief Valid player positions are snapped a small distance away from planes.
+ */
+#define PM_SNAP_DISTANCE		PM_GROUND_DIST
+
+/**
  * @brief Player bounding box scaling. VectorScale(PM_MINS, PM_SCALE, mins)..
  */
 #define PM_SCALE 1.0

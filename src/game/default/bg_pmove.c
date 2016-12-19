@@ -605,8 +605,6 @@ static _Bool Pm_CheckTrickJump(void) {
 	return true;
 }
 
-#define PM_SNAP_DISTANCE	0.250
-
 /**
  * @brief This function is designed to keep the player from getting too close to
  * other planes. If the player is close enough to another wall or box, it will adjust
