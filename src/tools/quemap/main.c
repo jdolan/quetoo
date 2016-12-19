@@ -53,8 +53,8 @@ static void Shutdown(const char *msg);
 /**
  * @brief
  */
-static void Error(error_t err, const char *msg) __attribute__((noreturn));
-static void Error(error_t err, const char *msg) {
+static void Error(err_t err, const char *msg) __attribute__((noreturn));
+static void Error(err_t err, const char *msg) {
 
 	fprintf(stderr, "************ ERROR ************\n");
 	fprintf(stderr, "%s", msg);

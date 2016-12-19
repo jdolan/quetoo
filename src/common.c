@@ -167,7 +167,7 @@ void Com_Debugv_(const debug_t debug, const char *func, const char *fmt, va_list
 /**
  * @brief An error condition has occurred. This function does not return.
  */
-void Com_Error_(error_t error, const char *func, const char *fmt, ...) {
+void Com_Error_(err_t error, const char *func, const char *fmt, ...) {
 
 	va_list args;
 	va_start(args, fmt);
@@ -180,7 +180,7 @@ void Com_Error_(error_t error, const char *func, const char *fmt, ...) {
 /**
  * @brief An error condition has occurred. This function does not return.
  */
-void Com_Errorv_(error_t err, const char *func, const char *fmt, va_list args) {
+void Com_Errorv_(err_t err, const char *func, const char *fmt, va_list args) {
 
 	if (quetoo.recursive_error) {
 
