@@ -20,7 +20,7 @@
  */
 
 #include "cm_local.h"
-#include <gl/GL.h>
+#include <GL/gl.h>
 
 /**
  * @brief stores the state of loaded materials. Materials contain a reference count,
