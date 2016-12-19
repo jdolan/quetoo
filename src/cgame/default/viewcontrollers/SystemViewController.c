@@ -109,6 +109,7 @@ static void loadView(ViewController *self) {
 			cvar_t *r_shadows = cgi.CvarGet("r_shadows");
 			Select *shadowsSelect = (Select *) $(alloc(CvarSelect), initWithVariable, r_shadows);
 
+			$(shadowsSelect, addOption, "Highest", (ident) 3);
 			$(shadowsSelect, addOption, "High", (ident) 2);
 			$(shadowsSelect, addOption, "Low", (ident) 1);
 			$(shadowsSelect, addOption, "Off", (ident) 0);
