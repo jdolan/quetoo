@@ -638,7 +638,6 @@ static void Pm_SnapToWalls(void) {
 		const cm_trace_t tr = pm->Trace(pm->s.origin, end, pm->mins, pm->maxs);
 		if (tr.fraction < 1.0) {
 			VectorMA(tr.end, -PM_SNAP_DISTANCE, dirs[i], pm->s.origin);
-			i++; // skip the other plane since we can't hit both in the same frame
 		}
 	}
 }
