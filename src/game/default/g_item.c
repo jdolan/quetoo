@@ -481,6 +481,7 @@ void G_ResetDroppedFlag(g_entity_t *ent) {
 
 	f->sv_flags &= ~SVF_NO_CLIENT;
 	f->s.event = EV_ITEM_RESPAWN;
+	f->solid = SOLID_TRIGGER;
 
 	gi.LinkEntity(f);
 
