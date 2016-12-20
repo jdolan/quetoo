@@ -826,14 +826,14 @@ static void Cg_BfgEffect(const vec3_t org) {
 /**
  * @brief
  */
-static void Cg_RippleEffect(const vec3_t org, const vec_t size) {
+static void Cg_RippleEffect(const vec3_t org, const vec_t size, const uint8_t viscosity) {
 	cg_particle_t *p;
 	int32_t i;
 
 	if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_ripple)))
 		return;
 
-	p->lifetime = 500 + (Random() % 1500);
+	p->lifetime = (500 + (Random() % 1500)) * (viscosity * 0.1);
 
 	p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
@@ -878,6 +878,7 @@ void Cg_ParseTempEntity(void) {
 	vec3_t pos, pos2, dir;
 	vec_t size;
 	int32_t i, j;
+	uint8_t viscosity;
 
 	const uint8_t type = cgi.ReadByte();
 
@@ -969,7 +970,8 @@ void Cg_ParseTempEntity(void) {
 		case TE_RIPPLE: // liquid surface ripples
 			cgi.ReadPosition(pos);
 			size = cgi.ReadVector();
-			Cg_RippleEffect(pos, size);
+			viscosity = cgi.ReadByte();
+			Cg_RippleEffect(pos, size, viscosity);
 			break;
 
 		default:

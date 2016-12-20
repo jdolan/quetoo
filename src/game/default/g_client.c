@@ -901,6 +901,8 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		ent->locals.water_level = ent->locals.old_water_level = 0;
 		ent->locals.water_type = 0;
 
+		ent->locals.ripple_time = 0;
+
 		// hold in place briefly
 		ent->client->ps.pm_state.flags = PMF_TIME_TELEPORT;
 		ent->client->ps.pm_state.time = 20;
@@ -1298,14 +1300,6 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	pm.Trace = G_ClientMove_Trace;
 
 	pm.Debug = gi.PmDebug_;
-
-	// water ripples
-	vec3_t old_pos, ent_frame_delta;
-
-	VectorScale(ent->locals.velocity, QUETOO_TICK_SECONDS, ent_frame_delta);
-	VectorSubtract(ent->s.origin, ent_frame_delta, old_pos);
-
-	G_LiquidRipple(ent, old_pos, ent->s.origin, 70.0);
 
 	// perform a move
 	Pm_Move(&pm);

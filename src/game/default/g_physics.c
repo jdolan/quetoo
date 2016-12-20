@@ -24,28 +24,45 @@
 
 /**
  * @brief Spawn a liquid ripple between a start and end point, setting pos1 to
- * NULL will not test a trace
+ * NULL will not test a trace; doing this is not recommended
  */
-void G_LiquidRipple(g_entity_t *ent, const vec3_t start, const vec3_t end, const vec_t size) {
+void G_LiquidRipple(g_entity_t *ent, const vec3_t orig_start, const vec3_t orig_end, const vec_t size) {
 	vec3_t pos;
+	uint8_t viscosity = 10; // 10 is water, higher = denser
 
-	if (start != NULL) {
+	if (orig_start != NULL) {
+		vec3_t start, end;
+
+		if (orig_end[2] > orig_start[2]) { // swap start and end if coming out of water
+			VectorCopy(orig_start, end);
+			VectorCopy(orig_end, start);
+		} else {
+			VectorCopy(orig_start, start);
+			VectorCopy(orig_end, end);
+		}
+
 		const cm_trace_t tr = gi.Trace(start, end, NULL, NULL, ent, MASK_LIQUID);
 
 		if (!(tr.fraction != 1.0 && !tr.all_solid))
 			return;
 
+		if (tr.contents & CONTENTS_SLIME) // make ripples slower in slime
+			viscosity = 20;
+		else if (tr.contents & CONTENTS_LAVA) // and lava
+			viscosity = 30;
+
 		VectorCopy(tr.end, pos);
 	} else {
-		VectorCopy(end, pos);
+		VectorCopy(orig_end, pos);
 	}
 
-	pos[2] += 1; // put it above the liquid surface
+	pos[2] += 2; // put it above the liquid surface
 
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_RIPPLE);
 	gi.WritePosition(pos);
 	gi.WriteVector(size);
+	gi.WriteByte(viscosity);
 	gi.Multicast(pos, MULTICAST_PVS, NULL);
 }
 
@@ -122,9 +139,11 @@ static void G_CheckWater(g_entity_t *ent) {
 			VectorScale(ent->locals.velocity, 0.66, ent->locals.velocity);
 		}
 
-		G_LiquidRipple(ent, old_pos, pos, 40.0);
+		G_LiquidRipple(ent, old_pos, pos, 30.0);
 	} else if (old_water_level && !ent->locals.water_level) {
 		gi.PositionedSound(pos, ent, g_media.sounds.water_out, ATTEN_IDLE);
+
+		G_LiquidRipple(ent, old_pos, pos, 30.0);
 	}
 }
 

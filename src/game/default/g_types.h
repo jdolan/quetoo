@@ -909,6 +909,8 @@ typedef struct {
 	uint32_t touch_time;
 	uint32_t push_time;
 
+	uint32_t ripple_time; // spawn a liquid ripple when time > this
+
 	int16_t health;
 	int16_t max_health;
 	_Bool dead;
