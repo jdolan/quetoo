@@ -1296,6 +1296,14 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 
 	pm.Debug = gi.PmDebug_;
 
+	// water ripples
+	vec3_t old_pos, ent_frame_delta;
+
+	VectorScale(ent->locals.velocity, QUETOO_TICK_SECONDS, ent_frame_delta);
+	VectorSubtract(ent->s.origin, ent_frame_delta, old_pos);
+
+	G_LiquidRipple(ent, old_pos, ent->s.origin, 70.0);
+
 	// perform a move
 	Pm_Move(&pm);
 
