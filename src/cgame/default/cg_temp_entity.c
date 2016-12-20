@@ -826,8 +826,57 @@ static void Cg_BfgEffect(const vec3_t org) {
 /**
  * @brief
  */
+static void Cg_RippleEffect(const vec3_t org, const vec_t size) {
+	cg_particle_t *p;
+	int32_t i;
+
+	if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_ripple)))
+		return;
+
+	p->lifetime = 500 + (Random() % 1500);
+
+	p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
+
+	Vector4Set(p->color_start, 1.0, 1.0, 1.0, 2.0);
+	Vector4Set(p->color_end, 1.0, 1.0, 1.0, 0.0);
+
+	p->scale_start = size / 5.0;
+	p->scale_end = size;
+
+	VectorCopy(org, p->part.org);
+
+	for (i = 0; i < 10; i++) {
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_smoke)))
+			break;
+
+		p->lifetime = 200;
+
+		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
+
+		Vector4Set(p->color_start, 1.0, 1.0, 1.0, 1.0);
+		Vector4Set(p->color_end, 1.0, 1.0, 1.0, 0.0);
+
+		p->scale_start = 1.0;
+		p->scale_end = 4.0;
+
+		p->part.org[0] = org[0] + (Random() % 32) - 16;
+		p->part.org[1] = org[1] + (Random() % 32) - 16;
+		p->part.org[2] = org[2];
+
+		p->vel[0] = (Random() % 128) - 64;
+		p->vel[1] = (Random() % 128) - 64;
+		p->vel[2] = Random() % 128;
+
+		VectorSet(p->accel, 0.0, 0.0, -3.0 * PARTICLE_GRAVITY);
+	}
+}
+
+/**
+ * @brief
+ */
 void Cg_ParseTempEntity(void) {
 	vec3_t pos, pos2, dir;
+	vec_t size;
 	int32_t i, j;
 
 	const uint8_t type = cgi.ReadByte();
@@ -915,6 +964,12 @@ void Cg_ParseTempEntity(void) {
 			cgi.ReadPosition(pos);
 			cgi.ReadPosition(pos2);
 			Cg_BubbleTrail(pos, pos2, 1.0);
+			break;
+
+		case TE_RIPPLE: // liquid surface ripples
+			cgi.ReadPosition(pos);
+			size = cgi.ReadVector();
+			Cg_RippleEffect(pos, size);
 			break;
 
 		default:

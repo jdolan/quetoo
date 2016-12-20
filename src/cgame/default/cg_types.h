@@ -86,4 +86,3 @@ typedef struct cg_particles_s {
 #endif /* __CG_LOCAL_H__ */
 
 #endif /* __CG_TYPES_H__ */
-

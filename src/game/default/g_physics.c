@@ -23,6 +23,33 @@
 #include "bg_pmove.h"
 
 /**
+ * @brief Spawn a liquid ripple between a start and end point, setting pos1 to
+ * NULL will not test a trace
+ */
+void G_LiquidRipple(g_entity_t *ent, const vec3_t start, const vec3_t end, const vec_t size) {
+	vec3_t pos;
+
+	if (start != NULL) {
+		const cm_trace_t tr = gi.Trace(start, end, NULL, NULL, ent, MASK_LIQUID);
+
+		if (!(tr.fraction != 1.0 && !tr.all_solid))
+			return;
+
+		VectorCopy(tr.end, pos);
+	} else {
+		VectorCopy(end, pos);
+	}
+
+	pos[2] += 1; // put it above the liquid surface
+
+	gi.WriteByte(SV_CMD_TEMP_ENTITY);
+	gi.WriteByte(TE_RIPPLE);
+	gi.WritePosition(pos);
+	gi.WriteVector(size);
+	gi.Multicast(pos, MULTICAST_PVS, NULL);
+}
+
+/**
  * @see Pm_CheckGround
  */
 static void G_CheckGround(g_entity_t *ent) {
@@ -62,7 +89,7 @@ static void G_CheckGround(g_entity_t *ent) {
 }
 
 static void G_CheckWater(g_entity_t *ent) {
-	vec3_t pos, mins, maxs;
+	vec3_t old_pos, pos, mins, maxs, ent_frame_delta;
 
 	if (ent->locals.move_type == MOVE_TYPE_WALK) {
 		return;
@@ -86,11 +113,16 @@ static void G_CheckWater(g_entity_t *ent) {
 	ent->locals.water_type = tr.contents;
 	ent->locals.water_level = ent->locals.water_type ? 1 : 0;
 
+	VectorScale(ent->locals.velocity, QUETOO_TICK_SECONDS, ent_frame_delta);
+	VectorSubtract(pos, ent_frame_delta, old_pos);
+
 	if (!old_water_level && ent->locals.water_level) {
 		gi.PositionedSound(pos, ent, g_media.sounds.water_in, ATTEN_IDLE);
 		if (ent->locals.move_type == MOVE_TYPE_BOUNCE) {
 			VectorScale(ent->locals.velocity, 0.66, ent->locals.velocity);
 		}
+
+		G_LiquidRipple(ent, old_pos, pos, 40.0);
 	} else if (old_water_level && !ent->locals.water_level) {
 		gi.PositionedSound(pos, ent, g_media.sounds.water_out, ATTEN_IDLE);
 	}
