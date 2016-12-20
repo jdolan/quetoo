@@ -95,10 +95,11 @@ static void createAction(Control *control, const SDL_Event *event, ident sender,
 			}
 
 			const int64_t len = cgi.WriteFile(file, string->string.chars, string->string.length, 1);
+
 			if (len == -1) {
 				cgi.Warn("Failed to write %s\n", MAP_LIST_UI);
 			} else {
-				cgi.Debug("Wrote %s %lld bytes\n", MAP_LIST_UI, len);
+				cgi.Debug("Wrote %s %ld bytes\n", MAP_LIST_UI, len);
 			}
 
 			release(string);
@@ -291,4 +292,3 @@ Class _CreateServerViewController = {
 };
 
 #undef _Class
-
