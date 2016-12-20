@@ -98,7 +98,7 @@ static void Mon_SendXML(xmlNodePtr node) {
  * friends will route through this so that stdout and stderr are duplicated to
  * GtkRadiant.
  */
-void Mon_SendMessage(error_t err, const char *msg) {
+void Mon_SendMessage(err_t err, const char *msg) {
 
 	xmlNodePtr message = xmlNewNode(NULL, xmlString("message"));
 	xmlNodeSetContent(message, xmlString(msg));
@@ -111,7 +111,7 @@ void Mon_SendMessage(error_t err, const char *msg) {
  * @brief Routes all XML-originating messages (Mon_Send* below) to the
  * appropriate stdio routines, escaping them to avoid infinite loops.
  */
-static void Mon_Stdio(error_t err, const char *msg) {
+static void Mon_Stdio(err_t err, const char *msg) {
 	switch (err) {
 		case ERROR_PRINT:
 			Com_Print("@%s\n", msg);
@@ -130,7 +130,7 @@ static void Mon_Stdio(error_t err, const char *msg) {
 /**
  * @brief Sends a brush selection to GtkRadiant.
  */
-void Mon_SendSelect_(const char *func, error_t err, uint16_t e, uint16_t b, const char *msg) {
+void Mon_SendSelect_(const char *func, err_t err, uint16_t e, uint16_t b, const char *msg) {
 
 	xmlNodePtr select = xmlNewNode(NULL, xmlString("select"));
 	xmlNodeSetContent(select, xmlStringf("%s: Entity %u, Brush %u: %s", func, e, b, msg));
@@ -148,7 +148,7 @@ void Mon_SendSelect_(const char *func, error_t err, uint16_t e, uint16_t b, cons
 /**
  * @brief Sends a positional vector to GtkRadiant.
  */
-void Mon_SendPoint_(const char *func, error_t err, const vec3_t p, const char *msg) {
+void Mon_SendPoint_(const char *func, err_t err, const vec3_t p, const char *msg) {
 
 	xmlNodePtr point_msg = xmlNewNode(NULL, xmlString("pointmsg"));
 	xmlNodeSetContent(point_msg, xmlStringf("%s: Point %s: %s", func, vtos(p), msg));
@@ -166,7 +166,7 @@ void Mon_SendPoint_(const char *func, error_t err, const vec3_t p, const char *m
 /**
  * @brief Sends a winding to GtkRadiant.
  */
-void Mon_SendWinding_(const char *func, error_t err, const vec3_t p[], uint16_t n, const char *msg) {
+void Mon_SendWinding_(const char *func, err_t err, const vec3_t p[], uint16_t n, const char *msg) {
 
 	xmlNodePtr winding_msg = xmlNewNode(NULL, xmlString("windingmsg"));
 	xmlNodeSetContent(winding_msg, xmlStringf("%s: %s", func, msg));
