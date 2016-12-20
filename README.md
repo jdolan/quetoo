@@ -4,7 +4,7 @@
 
 # Quetoo BETA
 
-![Quetoo BETA](https://scontent-mia1-1.xx.fbcdn.net/t31.0-8/861008_617224188323107_1551552667_o.jpg)
+![Quetoo BETA](http://quetoo.org/files/15385369_1245001622212024_7988137002503923923_o.jpg)
 
 ## Overview
 
