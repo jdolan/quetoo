@@ -252,6 +252,7 @@ typedef struct {
 
 	char *binds[SDL_NUM_SCANCODES];
 	_Bool down[SDL_NUM_SCANCODES];
+	_Bool latched[SDL_NUM_SCANCODES];
 } cl_key_state_t;
 
 typedef struct {

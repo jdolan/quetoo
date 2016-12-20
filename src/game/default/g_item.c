@@ -23,7 +23,7 @@
 #include "bg_pmove.h"
 
 const vec3_t ITEM_MINS = { -16.0, -16.0, -16.0 };
-const vec3_t ITEM_MAXS = { 16.0, 16.0, 16.0 };
+const vec3_t ITEM_MAXS = { 16.0, 16.0, 32.0 };
 
 #define ITEM_SCALE 1.0
 
@@ -481,6 +481,7 @@ void G_ResetDroppedFlag(g_entity_t *ent) {
 
 	f->sv_flags &= ~SVF_NO_CLIENT;
 	f->s.event = EV_ITEM_RESPAWN;
+	f->solid = SOLID_TRIGGER;
 
 	gi.LinkEntity(f);
 
@@ -637,7 +638,7 @@ void G_TouchItem(g_entity_t *ent, g_entity_t *other,
                  const cm_bsp_surface_t *surf) {
 
 	if (other == ent->owner) {
-		if (ent->locals.ground_entity == NULL) {
+		if (ent->locals.touch_time > g_level.time) {
 			return;
 		}
 	}
@@ -776,6 +777,7 @@ g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
 	it->locals.move_type = MOVE_TYPE_BOUNCE;
 	it->locals.Touch = G_TouchItem;
 	it->s.effects = item->effects;
+	it->locals.touch_time = g_level.time + 1000;
 
 	gi.SetModel(it, item->model);
 
@@ -879,8 +881,16 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 
 	tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, MASK_SOLID);
 	if (tr.start_solid) {
-		gi.Warn("%s start_solid\n", etos(ent));
-		G_FreeEntity(ent);
+
+		// try thinner box
+		gi.Debug("%s in too small of a spot for large box, correcting..\n", etos(ent));
+		ent->maxs[2] /= 2.0;
+
+		tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, MASK_SOLID);
+		if (tr.start_solid) {
+			gi.Warn("%s start_solid\n", etos(ent));
+			G_FreeEntity(ent);
+		}
 		return;
 	}
 
