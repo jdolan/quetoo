@@ -833,9 +833,6 @@ static void Cg_RippleEffect(const vec3_t org, const vec_t size) {
 	if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_ripple)))
 		return;
 
-	vec3_t offset_pos;
-	VectorAdd(org, vec3_up, offset_pos);
-
 	p->lifetime = 500 + (Random() % 1500);
 
 	p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
@@ -846,7 +843,7 @@ static void Cg_RippleEffect(const vec3_t org, const vec_t size) {
 	p->scale_start = size / 5.0;
 	p->scale_end = size;
 
-	VectorCopy(offset_pos, p->part.org);
+	VectorCopy(org, p->part.org);
 
 	for (i = 0; i < 10; i++) {
 		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_smoke)))

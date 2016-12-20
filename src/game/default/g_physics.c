@@ -26,26 +26,27 @@
  * @brief Spawn a liquid ripple between a start and end point, setting pos1 to
  * NULL will not test a trace
  */
-void G_LiquidRipple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, const vec_t size) {
-	vec3_t end;
+void G_LiquidRipple(g_entity_t *ent, const vec3_t start, const vec3_t end, const vec_t size) {
+	vec3_t pos;
 
-	_Bool doadd = true;
+	if (start != NULL) {
+		const cm_trace_t tr = gi.Trace(start, end, NULL, NULL, ent, MASK_LIQUID);
 
-	if (pos1 != NULL) {
-		cm_trace_t tr = gi.Trace(pos1, pos2, NULL, NULL, ent, MASK_LIQUID);
-		doadd = (tr.fraction != 1.0 && !tr.all_solid);
-		VectorCopy(tr.end, end);
+		if (!(tr.fraction != 1.0 && !tr.all_solid))
+			return;
+
+		VectorCopy(tr.end, pos);
 	} else {
-		VectorCopy(pos2, end);
+		VectorCopy(end, pos);
 	}
 
-	if (doadd) {
-		gi.WriteByte(SV_CMD_TEMP_ENTITY);
-		gi.WriteByte(TE_RIPPLE);
-		gi.WritePosition(end);
-		gi.WriteVector(size);
-		gi.Multicast(pos2, MULTICAST_PVS, NULL);
-	}
+	pos[2] += 1; // put it above the liquid surface
+
+	gi.WriteByte(SV_CMD_TEMP_ENTITY);
+	gi.WriteByte(TE_RIPPLE);
+	gi.WritePosition(pos);
+	gi.WriteVector(size);
+	gi.Multicast(pos, MULTICAST_PVS, NULL);
 }
 
 
@@ -121,6 +122,7 @@ static void G_CheckWater(g_entity_t *ent) {
 		if (ent->locals.move_type == MOVE_TYPE_BOUNCE) {
 			VectorScale(ent->locals.velocity, 0.66, ent->locals.velocity);
 		}
+
 		G_LiquidRipple(ent, old_pos, pos, 40.0);
 	} else if (old_water_level && !ent->locals.water_level) {
 		gi.PositionedSound(pos, ent, g_media.sounds.water_out, ATTEN_IDLE);
