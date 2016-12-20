@@ -498,7 +498,7 @@ static void R_InitLocal(void) {
 	                        "Controls texture saturation");
 	r_screenshot_format = Cvar_Add("r_screenshot_format", "png", CVAR_ARCHIVE,
 	                               "Set your preferred screenshot format. Supports \"png\" or \"tga\".");
-	r_shadows = Cvar_Add("r_shadows", "3", CVAR_ARCHIVE | CVAR_R_MEDIA,
+	r_shadows = Cvar_Add("r_shadows", "2", CVAR_ARCHIVE | CVAR_R_MEDIA,
 	                     "Controls the rendering of mesh model shadows");
 	r_shell = Cvar_Add("r_shell", "2", CVAR_ARCHIVE | CVAR_R_MEDIA,
 	                   "Controls mesh shell effect (e.g. Quad Damage shell)");
