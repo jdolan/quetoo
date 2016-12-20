@@ -709,6 +709,7 @@ void R_InitPrograms(void) {
 		program_default->UseMaterial = R_UseMaterial_default;
 		program_default->UseFog = R_UseFog_default;
 		program_default->UseLight = R_UseLight_default;
+		program_default->UseCaustic = R_UseCaustic_default;
 		program_default->MatricesChanged = R_MatricesChanged_default;
 		program_default->UseAlphaTest = R_UseAlphaTest_default;
 		program_default->UseInterpolation = R_UseInterpolation_default;
@@ -752,4 +753,3 @@ void R_InitPrograms(void) {
 
 	R_UseProgram(program_null);
 }
-
