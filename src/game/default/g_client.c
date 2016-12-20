@@ -1204,7 +1204,10 @@ void G_ClientDisconnect(g_entity_t *ent) {
 		return;
 	}
 
-	G_TossQuadDamage(ent);
+	if (g_level.gameplay == GAME_DEATHMATCH || g_level.gameplay == GAME_DUEL) {
+		G_TossQuadDamage(ent);
+	}
+
 	G_TossFlag(ent);
 	G_ClientHookDetach(ent);
 
