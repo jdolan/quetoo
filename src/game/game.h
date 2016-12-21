@@ -24,7 +24,7 @@
 
 #include "shared.h"
 
-#define GAME_API_VERSION 3
+#define GAME_API_VERSION 4
 
 /**
  * @brief Server flags for g_entity_t.
