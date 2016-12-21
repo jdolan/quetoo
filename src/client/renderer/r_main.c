@@ -49,6 +49,7 @@ cvar_t *r_allow_high_dpi;
 cvar_t *r_anisotropy;
 cvar_t *r_brightness;
 cvar_t *r_bumpmap;
+cvar_t *r_caustics;
 cvar_t *r_contrast;
 cvar_t *r_draw_buffer;
 cvar_t *r_flares;
@@ -461,6 +462,8 @@ static void R_InitLocal(void) {
 	                        "Controls texture brightness");
 	r_bumpmap = Cvar_Add("r_bumpmap", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 	                     "Controls the intensity of bump-mapping effects");
+	r_caustics = Cvar_Add("r_caustics", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
+						"Enable or disable liquid caustic effects");
 	r_contrast = Cvar_Add("r_contrast", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 	                      "Controls texture contrast");
 	r_draw_buffer = Cvar_Add("r_draw_buffer", "GL_BACK", CVAR_ARCHIVE, NULL);

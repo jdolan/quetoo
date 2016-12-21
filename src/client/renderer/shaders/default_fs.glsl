@@ -149,7 +149,7 @@ void CausticFragment(in vec3 lightmap) {
 		float factor = noise3d((modelpoint * vec3(0.02, 0.02, 0.012)) + (TIME * 0.3));
 		factor = pow((1 - abs(factor)) + 0.03, 6);
 
-		gl_FragColor.rgb += clamp(CAUSTIC.COLOR * factor * ((lightmap * 2.0) - 1.0) * 0.2, 0.0, 1.0);
+		gl_FragColor.rgb += clamp(CAUSTIC.COLOR * factor * clamp((lightmap * 1.6) - 0.5, 0.1, 1.0) * 0.17, 0.0, 1.0);
 	}
 }
 

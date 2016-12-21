@@ -473,13 +473,11 @@ void R_EnableFog(_Bool enable) {
  */
 void R_EnableCaustic(_Bool enable) {
 
-	if (!r_state.active_program) {
+	if (!r_state.active_program)
 		return;
-	}
 
-	if (r_state.active_caustic_parameters.enable == enable || !r_state.active_program->UseCaustic) {
+	if (!r_caustics->value || r_state.active_caustic_parameters.enable == enable || !r_state.active_program->UseCaustic)
 		return;
-	}
 
 	r_state.active_caustic_parameters.enable = false;
 
