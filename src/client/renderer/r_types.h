@@ -93,7 +93,8 @@ typedef enum {
 	IT_SKY = 12 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_PIC = 13 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_ATLAS_MAP = 14 + (IT_MASK_MIPMAP), // image is an r_atlas_t*
-	IT_ATLAS_IMAGE = 15 // image is an r_atlas_image_t*
+	IT_ATLAS_IMAGE = 15, // image is an r_atlas_image_t*
+	IT_STAINMAP = 16 + (IT_MASK_FILTER),
 } r_image_type_t;
 
 /**
@@ -453,6 +454,9 @@ typedef struct {
 
 	// pointer to lightmap data on bsp.
 	const byte *lightmap_input;
+
+	r_image_t *stainmap; // the stainmap image to use
+	byte *stainmap_buffer; // the stainmap buffer
 } r_bsp_surface_t;
 
 /**

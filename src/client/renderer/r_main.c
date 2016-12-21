@@ -73,6 +73,7 @@ cvar_t *r_screenshot_format;
 cvar_t *r_shadows;
 cvar_t *r_shell;
 cvar_t *r_specular;
+cvar_t *r_stain_map;
 cvar_t *r_supersample;
 cvar_t *r_swap_interval;
 cvar_t *r_texture_mode;
@@ -504,6 +505,8 @@ static void R_InitLocal(void) {
 	                   "Controls mesh shell effect (e.g. Quad Damage shell)");
 	r_specular = Cvar_Add("r_specular", "1.0", CVAR_ARCHIVE,
 	                      "Controls the specularity of bump-mapping effects");
+	r_stain_map = Cvar_Add("r_stain_map", "1.0", CVAR_ARCHIVE,
+						  "Controls the stain mapping effects.");
 	r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT,
 	                           "Controls vertical refresh synchronization (v-sync)");
 	r_texture_mode = Cvar_Add("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR",

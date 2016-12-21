@@ -72,8 +72,10 @@ void R_GetError_(const char *function, const char *msg) {
 				s = va("%" PRIx32, err);
 				break;
 		}
-
-		Sys_Backtrace();
+		
+		if (r_get_error->integer >= 2) {
+			Sys_Backtrace();
+		}
 
 		Com_Warn("%s threw %s: %s.\n", function, s, msg);
 	}

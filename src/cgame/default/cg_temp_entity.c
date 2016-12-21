@@ -157,6 +157,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	int32_t j, k;
 
 	Cg_DecalEffect(org, dir, 1.5, cg_particles_bullet[Random() % 3]);
+	cgi.AddStain(org, (const vec3_t) { 0.0, 1.0, 0.0 }, 64.0);
 
 	k = 1 + (Random() % 5);
 

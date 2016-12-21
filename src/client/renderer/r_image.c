@@ -125,12 +125,6 @@ void R_Screenshot_f(void) {
 
 	s->buffer = Mem_LinkMalloc(s->width * s->height * 3, s);
 
-	// this doesn't need to be done strictly here, this could be rolled
-	// out to startup code, however this has been removed in the past
-	// when it was out in startup code, so it's easier to leave the pixel
-	// packing specification here before reading
-	glPixelStorei(GL_PACK_ALIGNMENT, 1);
-
 	if (r_state.supersample_fbo) {
 
 		R_BindDiffuseTexture(r_state.supersample_texture);
@@ -158,7 +152,8 @@ void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
 		VectorClear(color);
 	}
 
-	if (image->type == IT_LIGHTMAP) {
+	if (image->type == IT_LIGHTMAP ||
+		image->type == IT_STAINMAP) {
 		brightness = r_modulate->value;
 		mask = 2;
 	} else {
@@ -425,6 +420,10 @@ static void R_InitShellImage(void) {
  * @brief Initializes the images facilities, which includes generation of
  */
 void R_InitImages(void) {
+
+	// set up alignment parameters.
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
 	Img_InitPalette();
 

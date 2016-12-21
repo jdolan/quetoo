@@ -653,6 +653,11 @@ typedef struct cg_import_s {
 	void (*AddSustainedLight)(const r_sustained_light_t *s);
 
 	/**
+	 * @brief Add a stain to the scene.
+	 */
+	void (*AddStain)(const vec3_t org, const vec3_t color, const vec_t size);
+
+	/**
 	 * @defgroup draw-2d 2D drawing
 	 * @{
 	 */

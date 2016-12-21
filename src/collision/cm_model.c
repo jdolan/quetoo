@@ -487,12 +487,15 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	Cm_LoadBspAreaPortals(&header.lumps[BSP_LUMP_AREA_PORTALS]);
 
 	// unref the materials from the list
-	for (uint32_t i = 0; i < materials->len; ++i) {
-		cm_material_t *material = g_array_index(materials, cm_material_t *, i);
-		Cm_UnrefMaterial(material);
-	}
+	if (materials) {
 
-	g_array_free(materials, true);
+		for (uint32_t i = 0; i < materials->len; ++i) {
+			cm_material_t *material = g_array_index(materials, cm_material_t *, i);
+			Cm_UnrefMaterial(material);
+		}
+
+		g_array_free(materials, true);
+	}
 
 	Fs_Free(buf);
 

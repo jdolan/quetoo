@@ -128,7 +128,12 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 	if ((surf->flags & R_SURF_LIGHTMAP) && (stage->cm->flags & (STAGE_LIGHTMAP | STAGE_LIGHTING))) {
 
 		R_EnableTexture(texunit_lightmap, true);
-		R_BindLightmapTexture(surf->lightmap->texnum);
+
+		if (r_stain_map->integer && surf->stainmap) {
+			R_BindLightmapTexture(surf->stainmap->texnum);
+		} else {
+			R_BindLightmapTexture(surf->lightmap->texnum);
+		}
 
 		if (stage->cm->flags & STAGE_LIGHTING) { // hardware lighting
 

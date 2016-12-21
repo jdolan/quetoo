@@ -322,3 +322,135 @@ void R_DrawBspLights(void) {
 		R_AddParticle(&bl->debug);
 	}
 }
+
+
+/*
+===============
+R_StainNode
+===============
+*/
+static void R_StainNode(const vec3_t org, const vec3_t color, const vec_t size, const r_bsp_node_t *node) {
+
+	if (node->contents != CONTENTS_NODE) {
+		return;
+	}
+
+	vec_t			dist;
+
+	if (node->plane->type < SIDE_BOTH) {
+		dist = org[node->plane->type] - node->plane->dist;
+	} else {
+		dist = DotProduct(org, node->plane->normal) - node->plane->dist;
+	}
+
+	if (dist > size) {
+		R_StainNode (org, color, size, node->children[0]);
+		return;
+	} else if (dist < -size) {
+		R_StainNode (org, color, size, node->children[1]);
+		return;
+	}
+	
+	const r_bsp_surface_t	*surf = r_model_state.world->bsp->surfaces + node->first_surface;
+	uint32_t		c = node->num_surfaces;
+
+	for (; c; c--, surf++) {
+		if (!surf->lightmap ||
+			!surf->stainmap) {
+			return;
+		}
+
+		const r_bsp_texinfo_t	*tex = surf->texinfo;
+
+		if ((tex->flags & (SURF_SKY | SURF_BLEND_33 | SURF_BLEND_66 | SURF_WARP))) {
+			continue;
+		}
+
+		vec_t fdist = DotProduct(org, surf->plane->normal) - surf->plane->dist;
+
+		if (surf->flags & R_SURF_PLANE_BACK) {
+			fdist *= -1;
+		}
+
+		const vec_t frad = size - fabs(fdist);
+		vec_t fminlight = 0.0;
+
+		if (frad < fminlight)
+			continue;
+
+		fminlight = frad - fminlight;
+
+		vec3_t impact;
+		VectorMA(org, -fdist, surf->plane->normal, impact);
+
+		const vec2_t local = {
+			DotProduct (impact, tex->vecs[0]) + tex->vecs[0][3] - surf->st_mins[0],
+			DotProduct (impact, tex->vecs[1]) + tex->vecs[1][3] - surf->st_mins[1]
+		};
+
+		const r_pixel_t smax = surf->st_extents[0];
+		const r_pixel_t tmax = surf->st_extents[1];
+
+		uint16_t t = 0;
+		vec_t ftacc = 0.0;
+
+		byte *pfBL = surf->stainmap_buffer;
+		_Bool changes = false;
+
+		for (; t < tmax; t++, ftacc += 16.0)
+		{
+			const uint32_t td = (uint32_t) fabs(local[1] - ftacc);
+
+			uint16_t s = 0;
+			vec_t fsacc = 0.0;
+
+			for (; s < smax; s++, fsacc += 16.0, pfBL += 3)
+			{
+				const uint32_t sd = (uint32_t) fabs(local[0] - fsacc);
+
+				if (sd > td) {
+					fdist = sd + (td / 2);
+				} else {
+					fdist = td + (sd / 2);
+				}
+
+				if (fdist >= fminlight) {
+					continue;
+				}
+
+				for (uint32_t i = 0; i < 3; i++) {
+					//const int32_t test = pfBL[i] + ((frad - fdist) * color[i]);
+
+					//if (test < 255 && test > 0) {
+					//	const uint8_t col = Clamp(pfBL[i] * color[i], 0.0, 255.0);
+						pfBL[i] = 0;
+						changes = true;
+					//}
+				}
+			}
+		}
+
+		if (!changes) {
+			continue;
+		}
+		
+		R_BindDiffuseTexture(surf->stainmap->texnum);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, surf->lightmap_s, surf->lightmap_t, smax, tmax, GL_RGB, GL_UNSIGNED_BYTE, surf->stainmap_buffer);
+		R_GetError("stain");
+	}
+
+	R_StainNode(org, color, size, node->children[0]);
+	R_StainNode(org, color, size, node->children[1]);
+}
+
+/**
+ * @brief Add a stain to the map.
+ */
+void R_AddStain(const vec3_t org, const vec3_t color, const vec_t size)
+{
+	if (!r_stain_map->integer) {
+		return;
+	}
+
+	R_StainNode(org, color, size, r_model_state.world->bsp->nodes);
+}
