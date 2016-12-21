@@ -29,6 +29,7 @@ extern cvar_t *r_allow_high_dpi;
 extern cvar_t *r_anisotropy;
 extern cvar_t *r_brightness;
 extern cvar_t *r_bumpmap;
+extern cvar_t *r_caustics;
 extern cvar_t *r_contrast;
 extern cvar_t *r_draw_buffer;
 extern cvar_t *r_flares;
@@ -135,4 +136,3 @@ extern MeshModelsDrawFunc R_DrawMeshModels;
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_MAIN_H__ */
-

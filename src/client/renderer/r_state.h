@@ -110,6 +110,9 @@ typedef struct r_state_s {
 	// fog state
 	r_fog_parameters_t active_fog_parameters;
 
+	// caustic state
+	r_caustic_parameters_t active_caustic_parameters;
+
 	// stencil state
 	GLenum stencil_op_pass;
 	GLenum stencil_func_func;
@@ -199,12 +202,14 @@ void R_EnableShadow(const r_program_t *program, _Bool enable);
 void R_EnableWarp(const r_program_t *program, _Bool enable);
 void R_EnableShell(const r_program_t *program, _Bool enable);
 void R_EnableFog(_Bool enable);
+void R_EnableCaustic(_Bool enable);
 void R_UseMaterial(const r_material_t *material);
 void R_UseMatrices(void);
 void R_UseInterpolation(const vec_t lerp);
 void R_UseAlphaTest(void);
 void R_UseCurrentColor(void);
 void R_UseFog(void);
+void R_UseCaustic(void);
 void R_InitState(void);
 void R_ShutdownState(void);
 

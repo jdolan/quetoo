@@ -415,6 +415,7 @@ typedef struct {
 // r_bsp_surface_t flags
 #define R_SURF_PLANE_BACK	1
 #define R_SURF_LIGHTMAP		2
+#define R_SURF_UNDERLIQUID	4
 
 typedef struct {
 	int16_t vis_frame; // PVS frame

@@ -11,6 +11,7 @@ uniform bool DIFFUSE;
 uniform bool LIGHTMAP;
 uniform bool NORMALMAP;
 
+varying vec3 modelpoint;
 varying vec4 color;
 varying vec2 texcoords[2];
 varying vec3 point;
@@ -60,6 +61,8 @@ void FogVertex(void) {
  * @brief Shader entry point.
  */
 void main(void) {
+	// get model coordinate
+	modelpoint = vec3(mix(POSITION, NEXT_POSITION, TIME_FRACTION));
 
 	LightVertex();
 

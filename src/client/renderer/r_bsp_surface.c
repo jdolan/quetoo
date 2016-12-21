@@ -75,6 +75,8 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 			R_StencilFunc(GL_ALWAYS, 0, 0);
 		}
 	}
+
+	R_EnableCaustic(surf->flags & R_SURF_UNDERLIQUID);
 }
 
 /**

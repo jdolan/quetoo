@@ -34,7 +34,9 @@ typedef struct {
 	r_uniform1f_t parallax;
 	r_uniform1f_t hardness;
 	r_uniform1f_t specular;
+
 	r_uniform1f_t time_fraction;
+	r_uniform1f_t time;
 
 	r_sampler2d_t sampler0;
 	r_sampler2d_t sampler1;
@@ -44,6 +46,8 @@ typedef struct {
 
 	r_uniform_fog_t fog;
 	r_uniform_light_t *lights;
+
+	r_uniform_caustic_t caustic;
 
 	r_uniform_matrix4fv_t normal_mat;
 
@@ -124,10 +128,15 @@ void R_InitProgram_default(r_program_t *program) {
 		p->lights = NULL;
 	}
 
+	R_ProgramVariable(&p->caustic.enable, R_UNIFORM_INT, "CAUSTIC.ENABLE", true);
+	R_ProgramVariable(&p->caustic.color, R_UNIFORM_VEC3, "CAUSTIC.COLOR", true);
+
 	R_ProgramVariable(&p->normal_mat, R_UNIFORM_MAT4, "NORMAL_MAT", true);
 
 	R_ProgramVariable(&p->alpha_threshold, R_UNIFORM_FLOAT, "ALPHA_THRESHOLD", true);
+
 	R_ProgramVariable(&p->time_fraction, R_UNIFORM_FLOAT, "TIME_FRACTION", true);
+	R_ProgramVariable(&p->time, R_UNIFORM_FLOAT, "TIME", true);
 
 	R_ProgramParameter1i(&p->lightmap, 0);
 	R_ProgramParameter1i(&p->normalmap, 0);
@@ -147,7 +156,10 @@ void R_InitProgram_default(r_program_t *program) {
 	R_ProgramParameter1f(&p->fog.density, 0.0);
 	R_ProgramParameter1f(&p->alpha_threshold, ALPHA_TEST_DISABLED_THRESHOLD);
 
+	R_ProgramParameter1i(&p->caustic.enable, 0);
+
 	R_ProgramParameter1f(&p->time_fraction, 0.0f);
+	R_ProgramParameter1f(&p->time, 0.0f);
 }
 
 /**
@@ -240,6 +252,24 @@ void R_UseLight_default(const uint16_t light_index, const r_light_t *light) {
 		R_ProgramParameter1f(&p->lights[light_index].radius, light->radius);
 	} else {
 		R_ProgramParameter1f(&p->lights[light_index].radius, 0.0);
+	}
+}
+
+/**
+ * @brief
+ */
+void R_UseCaustic_default(const r_caustic_parameters_t *caustic) {
+
+	r_default_program_t *p = &r_default_program;
+
+	if (caustic && caustic->enable) {
+		R_ProgramParameter1i(&p->caustic.enable, caustic->enable);
+
+		R_ProgramParameter3fv(&p->caustic.color, caustic->color);
+
+		R_ProgramParameter1f(&p->time, r_view.ticks / 1000.0);
+	} else {
+		R_ProgramParameter1i(&p->caustic.enable, 0);
 	}
 }
 

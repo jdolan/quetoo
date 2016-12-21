@@ -203,6 +203,8 @@ static void R_DrawBspInlineModel_(const r_entity_t *e) {
 
 	R_EnableDepthMask(true);
 
+	R_EnableCaustic(false);
+
 	r_locals.frame = f; // undo the swap
 }
 
