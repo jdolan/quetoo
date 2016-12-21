@@ -901,6 +901,8 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		ent->locals.water_level = ent->locals.old_water_level = 0;
 		ent->locals.water_type = 0;
 
+		ent->locals.ripple_time = 0;
+
 		// hold in place briefly
 		ent->client->ps.pm_state.flags = PMF_TIME_TELEPORT;
 		ent->client->ps.pm_state.time = 20;
@@ -1204,7 +1206,10 @@ void G_ClientDisconnect(g_entity_t *ent) {
 		return;
 	}
 
-	G_TossQuadDamage(ent);
+	if (g_level.gameplay == GAME_DEATHMATCH || g_level.gameplay == GAME_DUEL) {
+		G_TossQuadDamage(ent);
+	}
+
 	G_TossFlag(ent);
 	G_ClientHookDetach(ent);
 

@@ -255,6 +255,8 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 		}
 
 		if ((gi.PointContents(start) & MASK_LIQUID) || (gi.PointContents(tr.end) & MASK_LIQUID)) {
+			G_LiquidRipple(ent, start, tr.end, 25.0);
+
 			G_BubbleTrail(start, &tr);
 		}
 	}
@@ -790,6 +792,8 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 
 		tr = gi.Trace(water_start, end, NULL, NULL, self, MASK_CLIP_PROJECTILE);
 		G_BubbleTrail(water_start, &tr);
+
+		G_LiquidRipple(self, start, end, 25.0);
 	} else {
 		if (self->locals.water_level) { // exited water, play sound, no trail
 			gi.PositionedSound(water_start, NULL, g_media.sounds.water_out, ATTEN_NORM);
@@ -901,6 +905,8 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 		}
 
 		if ((tr.contents & MASK_LIQUID) && !liquid) {
+			G_LiquidRipple(ent, pos, end, 60.0);
+
 			VectorCopy(tr.end, water_pos);
 
 			content_mask &= ~MASK_LIQUID;

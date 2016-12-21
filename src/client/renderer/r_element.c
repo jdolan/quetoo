@@ -49,9 +49,13 @@ void R_AddElement(const r_element_t *e) {
 	// copy the element in
 	*el = *e;
 
-	// and resolve its depth
-	VectorSubtract(r_view.origin, el->origin, delta);
-	el->depth = VectorLengthSquared(delta);
+	if (e->type == ELEMENT_PARTICLE && (((r_particle_t *) e->element)->flags & PARTICLE_FLAG_NO_DEPTH)) {
+		el->depth = 0;
+	} else {
+		// and resolve its depth
+		VectorSubtract(r_view.origin, el->origin, delta);
+		el->depth = VectorLengthSquared(delta);
+	}
 }
 
 /**
@@ -110,18 +114,14 @@ static int32_t R_SortParticles_Compare(const void *a, const void *b) {
 	const r_element_t *ae = ((const r_element_t *) a);
 	const r_element_t *be = ((const r_element_t *) b);
 
-	if (ae->type == ELEMENT_PARTICLE && be->type == ELEMENT_PARTICLE) {
-		const r_particle_t *ap = ((const r_particle_t *) ae->element);
-		const r_particle_t *bp = ((const r_particle_t *) be->element);
+	const r_particle_t *ap = ((const r_particle_t *) ae->element);
+	const r_particle_t *bp = ((const r_particle_t *) be->element);
 
-		if (bp->type == ap->type) {
-			return (int32_t) (intptr_t) (bp->image - ap->image);
-		}
-
-		return bp->type - ap->type;
+	if (bp->type == ap->type) {
+		return (int32_t) (intptr_t) (bp->image - ap->image);
 	}
 
-	return 0;
+	return bp->type - ap->type;
 }
 
 /**

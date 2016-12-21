@@ -28,7 +28,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1012
+#define PROTOCOL_MINOR 1013
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -169,7 +169,8 @@ typedef enum {
 	TE_BUBBLES,
 	TE_BFG_LASER,
 	TE_BFG,
-	TE_GIB
+	TE_GIB,
+	TE_RIPPLE
 } g_temp_entity_t;
 
 /**
@@ -907,6 +908,8 @@ typedef struct {
 
 	uint32_t touch_time;
 	uint32_t push_time;
+
+	uint32_t ripple_time; // spawn a liquid ripple when time > this
 
 	int16_t health;
 	int16_t max_health;

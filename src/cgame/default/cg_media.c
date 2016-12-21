@@ -66,6 +66,7 @@ cg_particles_t *cg_particles_flame;
 cg_particles_t *cg_particles_spark;
 cg_particles_t *cg_particles_inactive;
 cg_particles_t *cg_particles_bullet[3];
+cg_particles_t *cg_particles_ripple;
 
 /**
  * @brief Updates all media references for the client game.
@@ -150,6 +151,8 @@ void Cg_UpdateMedia(void) {
 		g_snprintf(name, sizeof(name), "particles/bullet_%zd", i);
 		cg_particles_bullet[i] = Cg_AllocParticles(cgi.LoadImage(name, IT_EFFECT), true);
 	}
+
+	cg_particles_ripple = Cg_AllocParticles(cgi.LoadImage("particles/ripple.tga", IT_EFFECT), true);
 
 	Cg_SetupParticleAtlas();
 
