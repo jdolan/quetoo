@@ -90,8 +90,8 @@
  * @brief Disallow dangerous downloads for both the client and server.
  */
 #define IS_INVALID_DOWNLOAD(f) (\
-	!*f || *f == '/' || strstr(f, "..") || strchr(f, ' ') \
-)
+                                !*f || *f == '/' || strstr(f, "..") || strchr(f, ' ') \
+                               )
 
 /**
  * @brief Debug cateogories.
@@ -134,10 +134,12 @@ const char *Com_GetDebug(void);
 void Com_SetDebug(const char *debug);
 
 void Com_Debug_(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
-void Com_Debugv_(const debug_t debug, const char *func, const char *fmt, va_list args) __attribute__((format(printf, 3, 0)));
+void Com_Debugv_(const debug_t debug, const char *func, const char *fmt, va_list args) __attribute__((format(printf, 3,
+        0)));
 
 void Com_Error_(err_t error, const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 3, 4)));
-void Com_Errorv_(err_t error, const char *func, const char *fmt, va_list args) __attribute__((noreturn, format(printf, 3, 0)));
+void Com_Errorv_(err_t error, const char *func, const char *fmt, va_list args) __attribute__((noreturn, format(printf,
+        3, 0)));
 
 void Com_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void Com_Printv(const char *fmt, va_list args) __attribute__((format(printf, 1, 0)));

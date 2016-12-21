@@ -588,8 +588,9 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 		if (out->contents & MASK_LIQUID) {
 			for (int32_t j = 0; j < out->num_leaf_surfaces; j++) {
-				if ((out->first_leaf_surface[j]->texinfo->flags & (SURF_SKY | SURF_BLEND_33 | SURF_BLEND_66 | SURF_WARP)))
+				if ((out->first_leaf_surface[j]->texinfo->flags & (SURF_SKY | SURF_BLEND_33 | SURF_BLEND_66 | SURF_WARP))) {
 					continue;
+				}
 
 				out->first_leaf_surface[j]->flags |= R_SURF_UNDERLIQUID;
 			}

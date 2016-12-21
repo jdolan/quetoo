@@ -253,8 +253,7 @@ static void Cl_KeyGame(const SDL_Event *event) {
 				cls.key_state.latched[key] = true;
 			}
 		} else {
-			if (cls.key_state.down[key] == true &&
-				cls.key_state.latched[key] == true) {
+			if (cls.key_state.down[key] == true && cls.key_state.latched[key] == true) {
 				g_snprintf(cmd, sizeof(cmd), "-%s %i %i\n", bind + 1, key, cl.ticks);
 				cls.key_state.latched[key] = false;
 			}

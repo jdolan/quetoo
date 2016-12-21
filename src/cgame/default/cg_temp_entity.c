@@ -833,8 +833,9 @@ static void Cg_RippleEffect(const vec3_t org, const vec_t size, const uint8_t vi
 	cg_particle_t *p;
 	int32_t i;
 
-	if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_ripple)))
+	if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_ripple))) {
 		return;
+	}
 
 	p->lifetime = (500 + (Random() % 1500)) * (viscosity * 0.1);
 
@@ -851,8 +852,9 @@ static void Cg_RippleEffect(const vec3_t org, const vec_t size, const uint8_t vi
 	VectorCopy(org, p->part.org);
 
 	for (i = 0; i < 10; i++) {
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_smoke)))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_smoke))) {
 			break;
+		}
 
 		p->lifetime = 200;
 
