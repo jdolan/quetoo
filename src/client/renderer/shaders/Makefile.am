@@ -7,6 +7,7 @@ shaders_DATA = \
 	default_vs.glsl \
 	fog_inc.glsl \
 	matrix_inc.glsl \
+	noise3d_inc.glsl \
 	null_fs.glsl \
 	null_vs.glsl \
 	shadow_fs.glsl \

@@ -82,6 +82,17 @@ typedef struct {
 	r_variable_t radius;
 } r_uniform_light_t;
 
+// caustic info
+typedef struct {
+	_Bool enable;
+	vec3_t color;
+} r_caustic_parameters_t;
+
+typedef struct {
+	r_variable_t enable;
+	r_variable_t color;
+} r_uniform_caustic_t;
+
 #define MAX_PROGRAM_VARIABLES 32
 
 // and glsl programs
@@ -104,6 +115,7 @@ typedef struct {
 	void (*UseShadow)(const r_shadow_t *s);
 	void (*UseFog)(const r_fog_parameters_t *fog);
 	void (*UseLight)(const uint16_t light_index, const r_light_t *light);
+	void (*UseCaustic)(const r_caustic_parameters_t *caustic);
 	void (*MatricesChanged)();
 	void (*UseAlphaTest)(const vec_t threshold);
 	void (*UseCurrentColor)(const vec4_t color);

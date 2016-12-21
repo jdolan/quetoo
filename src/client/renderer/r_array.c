@@ -692,6 +692,8 @@ static void R_PrepareProgram() {
 	R_UseCurrentColor();
 
 	R_UseFog();
+
+	R_UseCaustic();
 }
 
 /**

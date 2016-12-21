@@ -6,6 +6,7 @@
 
 #include "matrix_inc.glsl"
 #include "fog_inc.glsl"
+#include "noise3d_inc.glsl"
 
 #define MAX_LIGHTS $r_max_lights
 
@@ -30,6 +31,14 @@ uniform LightParameters LIGHTS;
 #define LIGHT_CLAMP_MAX 4.0
 #endif
 
+struct CausticParameters
+{
+	bool ENABLE;
+	vec3 COLOR;
+};
+
+uniform CausticParameters CAUSTIC;
+
 uniform bool DIFFUSE;
 uniform bool LIGHTMAP;
 uniform bool NORMALMAP;
@@ -48,6 +57,10 @@ uniform sampler2D SAMPLER4;
 
 uniform float ALPHA_THRESHOLD;
 
+uniform float TIME_FRACTION;
+uniform float TIME;
+
+varying vec3 modelpoint;
 varying vec4 color;
 varying vec2 texcoords[2];
 varying vec3 point;
@@ -79,7 +92,7 @@ vec2 BumpTexcoord(in float height) {
  * @brief Yield the diffuse modulation from bump-mapping.
  */
 vec3 BumpFragment(in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap) {
-	
+
 	float diffuse = max(dot(deluxemap, normalmap), 1.0);
 
 	float specular = HARDNESS * pow(max(-dot(eye, reflect(deluxemap, normalmap)), 0.0), 8.0 * SPECULAR);
@@ -88,12 +101,12 @@ vec3 BumpFragment(in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap) {
 }
 
 /**
- * @brief Yield the final sample color after factoring in dynamic light sources. 
+ * @brief Yield the final sample color after factoring in dynamic light sources.
  */
 void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 
 	vec3 light = vec3(0.0);
-	
+
 #if MAX_LIGHTS
 	/*
 	 * Iterate the hardware light sources, accumulating dynamic lighting for
@@ -111,7 +124,7 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 
 			float d = dot(normalmap, normalize(delta));
 			if (d > 0.0) {
-			
+
 				dist = 1.0 - dist / LIGHTS.RADIUS[i];
 				light += LIGHTS.COLOR[i] * d * LIGHT_ATTENUATION;
 			}
@@ -126,6 +139,18 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 
 	// lastly modulate the alpha channel by the color
 	gl_FragColor.a = diffuse.a * color.a;
+}
+
+/**
+ * @brief Render caustics
+ */
+void CausticFragment(in vec3 lightmap) {
+	if (CAUSTIC.ENABLE) {
+		float factor = noise3d((modelpoint * vec3(0.024, 0.024, 0.016)) + (TIME * 0.4));
+		factor = pow((1 - abs(factor)) + 0.03, 6);
+
+		gl_FragColor.rgb += clamp(CAUSTIC.COLOR * factor * clamp((lightmap * 1.6) - 0.5, 0.1, 1.0) * 0.17, 0.0, 1.0);
+	}
 }
 
 /**
@@ -161,8 +186,8 @@ void main(void) {
 
 		parallax = BumpTexcoord(normalmap.w);
 
-		normalmap.xyz = normalize(two * (normalmap.xyz + negHalf));	
-		normalmap.xyz = normalize(vec3(normalmap.x * BUMP, normalmap.y * BUMP, normalmap.z));	
+		normalmap.xyz = normalize(two * (normalmap.xyz + negHalf));
+		normalmap.xyz = normalize(vec3(normalmap.x * BUMP, normalmap.y * BUMP, normalmap.z));
 
 		vec3 glossmap = vec3(1.0);
 
@@ -196,6 +221,9 @@ void main(void) {
 
 	// add any dynamic lighting to yield the final fragment color
 	LightFragment(diffuse, lightmap, normalmap.xyz);
+
+    // underliquid caustics
+	CausticFragment(lightmap);
 
 	FogFragment(); // and lastly add fog
 }

@@ -469,6 +469,28 @@ void R_EnableFog(_Bool enable) {
 }
 
 /**
+ * @brief
+ */
+void R_EnableCaustic(_Bool enable) {
+
+	if (!r_state.active_program)
+		return;
+
+	if (!r_caustics->value || r_state.active_caustic_parameters.enable == enable || !r_state.active_program->UseCaustic)
+		return;
+
+	r_state.active_caustic_parameters.enable = false;
+
+	if (enable) {
+		r_state.active_caustic_parameters.enable = true;
+
+		const vec3_t c = { 1.0, 1.0, 1.0 }; // debugging
+
+		VectorCopy(c, r_state.active_caustic_parameters.color);
+	}
+}
+
+/**
  * @brief Setup the GLSL program for the specified material. If no program is
  * bound, this function simply returns.
  */
@@ -604,6 +626,16 @@ void R_UseFog(void) {
 
 	if (r_state.active_program->UseFog) {
 		r_state.active_program->UseFog(&r_state.active_fog_parameters);
+	}
+}
+
+/**
+ * @brief Uploads the current caustic data to the currently loaded program.
+ */
+void R_UseCaustic(void) {
+
+	if (r_state.active_program->UseCaustic) {
+		r_state.active_program->UseCaustic(&r_state.active_caustic_parameters);
 	}
 }
 
