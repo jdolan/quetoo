@@ -559,7 +559,6 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
  */
 static void R_LoadBspLeafs(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	r_bsp_leaf_t *out;
-	int32_t j;
 
 	const d_bsp_leaf_t *in = (const void *) (r_bsp_base + l->file_ofs);
 
@@ -572,7 +571,7 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 	for (uint16_t i = 0; i < bsp->num_leafs; i++, in++, out++) {
 
-		for (j = 0; j < 3; j++) {
+		for (int32_t j = 0; j < 3; j++) {
 			out->mins[j] = LittleShort(in->mins[j]);
 			out->maxs[j] = LittleShort(in->maxs[j]);
 		}
@@ -588,7 +587,7 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 		out->num_leaf_surfaces = (uint16_t) LittleShort(in->num_leaf_faces);
 
 		if (out->contents & MASK_LIQUID) {
-			for (j = 0; j < out->num_leaf_surfaces; j++) {
+			for (int32_t j = 0; j < out->num_leaf_surfaces; j++) {
 				if ((out->first_leaf_surface[j]->texinfo->flags & (SURF_SKY | SURF_BLEND_33 | SURF_BLEND_66 | SURF_WARP)))
 					continue;
 
