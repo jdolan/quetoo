@@ -60,6 +60,7 @@ uniform float ALPHA_THRESHOLD;
 uniform float TIME_FRACTION;
 uniform float TIME;
 
+varying vec3 modelpoint;
 varying vec4 color;
 varying vec2 texcoords[2];
 varying vec3 point;
@@ -141,16 +142,14 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 }
 
 /**
- * @brief Render caustics projected from a specified direction when underwater
+ * @brief Render caustics
  */
-void CausticFragment(void) {
+void CausticFragment(in vec3 lightmap) {
 	if (CAUSTIC.ENABLE) {
-		float factor = noise3d((point * 0.016) + (TIME * 0.4));
-		factor = clamp(factor + (factor * factor) + 0.5, 0.4, 1.0);
-		if (factor < 0.5)
-			factor = max(1.0 - factor, 0.0);
+		float factor = noise3d((modelpoint * vec3(0.02, 0.02, 0.012)) + (TIME * 0.3));
+		factor = pow((1 - abs(factor)) + 0.03, 6);
 
-		gl_FragColor.rgb *= CAUSTIC.COLOR * factor;
+		gl_FragColor.rgb += clamp(CAUSTIC.COLOR * factor * ((lightmap * 2.0) - 1.0) * 0.2, 0.0, 1.0);
 	}
 }
 
@@ -224,7 +223,7 @@ void main(void) {
 	LightFragment(diffuse, lightmap, normalmap.xyz);
 
     // underliquid caustics
-	CausticFragment();
+	CausticFragment(lightmap);
 
 	FogFragment(); // and lastly add fog
 }
