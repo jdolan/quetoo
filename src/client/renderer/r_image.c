@@ -152,8 +152,7 @@ void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
 		VectorClear(color);
 	}
 
-	if (image->type == IT_LIGHTMAP ||
-		image->type == IT_STAINMAP) {
+	if (image->type == IT_LIGHTMAP || image->type == IT_STAINMAP) {
 		brightness = r_modulate->value;
 		mask = 2;
 	} else {

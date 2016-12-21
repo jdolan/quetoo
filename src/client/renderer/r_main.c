@@ -464,7 +464,7 @@ static void R_InitLocal(void) {
 	r_bumpmap = Cvar_Add("r_bumpmap", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 	                     "Controls the intensity of bump-mapping effects");
 	r_caustics = Cvar_Add("r_caustics", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
-						"Enable or disable liquid caustic effects");
+	                      "Enable or disable liquid caustic effects");
 	r_contrast = Cvar_Add("r_contrast", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 	                      "Controls texture contrast");
 	r_draw_buffer = Cvar_Add("r_draw_buffer", "GL_BACK", CVAR_ARCHIVE, NULL);
@@ -509,7 +509,7 @@ static void R_InitLocal(void) {
 	r_specular = Cvar_Add("r_specular", "1.0", CVAR_ARCHIVE,
 	                      "Controls the specularity of bump-mapping effects");
 	r_stain_map = Cvar_Add("r_stain_map", "1.0", CVAR_ARCHIVE,
-						  "Controls the stain mapping effects.");
+	                       "Controls the stain mapping effects.");
 	r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT,
 	                           "Controls vertical refresh synchronization (v-sync)");
 	r_texture_mode = Cvar_Add("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR",
