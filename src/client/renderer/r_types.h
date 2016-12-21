@@ -286,7 +286,12 @@ typedef enum {
 	 * @brief Only for PARTICLE_BEAM - causes the beam to
 	 * repeat instead of stretch
 	 */
-	PARTICLE_FLAG_REPEAT = 1 << 0
+	PARTICLE_FLAG_REPEAT = 1 << 0,
+
+	/**
+	 * @brief Always sort closest to camera
+	 */
+	PARTICLE_FLAG_NO_DEPTH = 1 << 1,
 } r_particle_flags_t;
 
 /**

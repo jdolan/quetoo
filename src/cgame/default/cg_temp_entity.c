@@ -201,7 +201,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 			p->scale_end = 5.0 + Randomf() * 3.0;
 
 			VectorCopy(org, p->part.org);
-			VectorScale(dir, 50.0, p->vel);
+			VectorScale(dir, 50.0 + (Randomc() * 15.0), p->vel);
 			VectorScale(dir, -75.0, p->accel);
 			VectorMA(p->accel, 15.5, vec3_up, p->accel);
 		}
@@ -836,6 +836,8 @@ static void Cg_RippleEffect(const vec3_t org, const vec_t size, const uint8_t vi
 	p->lifetime = (500 + (Random() % 1500)) * (viscosity * 0.1);
 
 	p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
+
+	p->part.flags |= PARTICLE_FLAG_NO_DEPTH;
 
 	Vector4Set(p->color_start, 1.0, 1.0, 1.0, 2.0);
 	Vector4Set(p->color_end, 1.0, 1.0, 1.0, 0.0);
