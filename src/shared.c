@@ -498,7 +498,7 @@ typedef union {
 void PackBounds(const vec3_t mins, const vec3_t maxs, uint32_t *out) {
 
 	packed_bounds_t out_packed;
-	
+
 	out_packed.x = Clamp(maxs[0], 0.0, 255.0);
 	out_packed.y = Clamp(maxs[1], 0.0, 255.0);
 	out_packed.zd = Clamp(mins[2], -128.0, 127.0);
@@ -514,7 +514,7 @@ void PackBounds(const vec3_t mins, const vec3_t maxs, uint32_t *out) {
 void UnpackBounds(const uint32_t in, vec3_t mins, vec3_t maxs) {
 
 	packed_bounds_t in_packed;
-	
+
 	in_packed.ulong = in;
 
 	VectorSet(mins, -in_packed.x, -in_packed.y, in_packed.zd);

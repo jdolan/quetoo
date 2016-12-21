@@ -43,13 +43,15 @@ void G_LiquidRipple(g_entity_t *ent, const vec3_t orig_start, const vec3_t orig_
 
 		const cm_trace_t tr = gi.Trace(start, end, NULL, NULL, ent, MASK_LIQUID);
 
-		if (!(tr.fraction != 1.0 && !tr.all_solid))
+		if (!(tr.fraction != 1.0 && !tr.all_solid)) {
 			return;
+		}
 
-		if (tr.contents & CONTENTS_SLIME) // make ripples slower in slime
+		if (tr.contents & CONTENTS_SLIME) { // make ripples slower in slime
 			viscosity = 20;
-		else if (tr.contents & CONTENTS_LAVA) // and lava
+		} else if (tr.contents & CONTENTS_LAVA) { // and lava
 			viscosity = 30;
+		}
 
 		VectorCopy(tr.end, pos);
 	} else {
@@ -64,8 +66,9 @@ void G_LiquidRipple(g_entity_t *ent, const vec3_t orig_start, const vec3_t orig_
 	VectorNormalize(back);
 	VectorAdd(pos, back, back);
 
-	if (gi.PointContents(back) & MASK_LIQUID)
+	if (gi.PointContents(back) & MASK_LIQUID) {
 		return;
+	}
 
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_RIPPLE);
@@ -144,7 +147,7 @@ static void G_CheckWater(g_entity_t *ent) {
 
 	if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
 		if ((ent->locals.water_level && old_water_level) &&
-			g_level.time > ent->locals.ripple_time) {
+		        g_level.time > ent->locals.ripple_time) {
 			ent->locals.ripple_time = g_level.time + 400;
 
 			vec3_t top, bottom;
@@ -164,13 +167,15 @@ static void G_CheckWater(g_entity_t *ent) {
 			VectorScale(ent->locals.velocity, 0.66, ent->locals.velocity);
 		}
 
-		if (ent->locals.move_type != MOVE_TYPE_NO_CLIP)
+		if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
 			G_LiquidRipple(ent, old_pos, pos, 30.0);
+		}
 	} else if (old_water_level && !ent->locals.water_level) {
 		gi.PositionedSound(pos, ent, g_media.sounds.water_out, ATTEN_IDLE);
 
-		if (ent->locals.move_type != MOVE_TYPE_NO_CLIP)
+		if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
 			G_LiquidRipple(ent, old_pos, pos, 30.0);
+		}
 	}
 }
 

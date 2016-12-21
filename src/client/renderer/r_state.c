@@ -73,7 +73,9 @@ void R_GetError_(const char *function, const char *msg) {
 				break;
 		}
 
-		Sys_Backtrace();
+		if (r_get_error->integer >= 2) {
+			Sys_Backtrace();
+		}
 
 		Com_Warn("%s threw %s: %s.\n", function, s, msg);
 	}
@@ -473,11 +475,13 @@ void R_EnableFog(_Bool enable) {
  */
 void R_EnableCaustic(_Bool enable) {
 
-	if (!r_state.active_program)
+	if (!r_state.active_program) {
 		return;
+	}
 
-	if (!r_caustics->value || r_state.active_caustic_parameters.enable == enable || !r_state.active_program->UseCaustic)
+	if (!r_caustics->value || r_state.active_caustic_parameters.enable == enable || !r_state.active_program->UseCaustic) {
 		return;
+	}
 
 	r_state.active_caustic_parameters.enable = false;
 
