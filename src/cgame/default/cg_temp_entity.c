@@ -422,28 +422,57 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	if (!(cgi.PointContents(org) & MASK_LIQUID)) {
 
-		if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke))) {
+		for (int32_t i = 0; i < 32; i++) {
 
-			p->lifetime = 800;
-			p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
+			if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_explosion))) {
 
-			const vec_t smoke_color = 0.7 + Randomf() * 0.1;
+				p->lifetime = 800 + (Random() % 200);
+				p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-			VectorSet(p->color_start, smoke_color, smoke_color, smoke_color);
-			VectorClear(p->color_end);
+				Vector4Set(p->color_start, 0.7, 0.5, 0.1, 4.0 + Randomf());
+				Vector4Set(p->color_end, 0.7, 0.5, 0.1, 0.0);
 
-			p->scale_start = 12.0;
-			p->scale_end = 58.0;
+				p->scale_start = 10.0;
+				p->scale_end = 30.0 * ((Randomf() * 0.5) + 0.5);
 
-			p->part.roll = Randomc() * 100.0;
+				p->part.roll = Randomc() * 100.0;
 
-			VectorCopy(org, p->part.org);
-			p->part.org[2] += 10;
+				VectorCopy(org, p->part.org);
 
-			VectorSet(p->vel, Randomc(), Randomc(), Randomc());
+				vec_t mushroom = Randomf();
 
-			p->accel[2] = 20.0;
+				p->vel[0] = Randomc() * mushroom * 40.0;
+				p->vel[1] = Randomc() * mushroom * 40.0;
+				p->vel[2] = (mushroom * 150) + 50;
+
+				p->accel[2] = -300 * mushroom;
+			}
 		}
+	}
+
+	for (int32_t i = 0; i < 32; i++) {
+
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_smoke))) {
+			break;
+		}
+
+		p->lifetime = 800;
+		p->effects = PARTICLE_EFFECT_COLOR;
+
+		Vector4Set(p->color_start, 1.0, 1.0, 1.0, 0.5);
+		Vector4Copy(p->color_start, p->color_end);
+		p->color_end[3] = 0.0;
+
+		p->part.scale = 20.0;
+
+		VectorCopy(org, p->part.org);
+		p->part.org[2] += 8;
+
+		p->vel[0] = 100.0;
+
+		RotatePointAroundVector(p->vel, vec3_up, Random() % 360, p->vel);
+
+		p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
 	}
 
 	for (int32_t i = 0; i < 128; i++) {
