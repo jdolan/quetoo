@@ -84,12 +84,12 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 
 		G_LiquidRipple(ent, old_pos, ent->s.origin, 60.0);
 
-		if (water_level && g_level.time > ent->locals.ripple_time && ent->client->locals.speed > 50.0) {
+		if (water_level && g_level.time > ent->locals.ripple_time && ent->client->locals.speed > 10.0) {
 			ent->locals.ripple_time = g_level.time + 400;
 
 			vec3_t top, bottom;
 
-			VectorSet(top, ent->s.origin[0], ent->s.origin[1], ent->s.origin[2] + ent->maxs[2]);
+			VectorSet(top, ent->s.origin[0], ent->s.origin[1], ent->s.origin[2] + ent->maxs[2] + 16);
 			VectorSet(bottom, ent->s.origin[0], ent->s.origin[1], ent->s.origin[2] + ent->mins[2]);
 
 			G_LiquidRipple(ent, top, bottom, 40.0);

@@ -133,17 +133,35 @@ static void G_CheckWater(g_entity_t *ent) {
 	VectorScale(ent->locals.velocity, QUETOO_TICK_SECONDS, ent_frame_delta);
 	VectorSubtract(pos, ent_frame_delta, old_pos);
 
+	if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
+		if ((ent->locals.water_level && old_water_level) &&
+			g_level.time > ent->locals.ripple_time) {
+			ent->locals.ripple_time = g_level.time + 400;
+
+			vec3_t top, bottom;
+
+			VectorSet(top, ent->s.origin[0], ent->s.origin[1], ent->s.origin[2] + ent->maxs[2] + 16);
+			VectorSet(bottom, ent->s.origin[0], ent->s.origin[1], ent->s.origin[2] + ent->mins[2]);
+
+			G_LiquidRipple(ent, top, bottom, 20.0);
+		} else if (ent->locals.ripple_time > g_level.time + 400) { // initialize it JIC
+			ent->locals.ripple_time = 0;
+		}
+	}
+
 	if (!old_water_level && ent->locals.water_level) {
 		gi.PositionedSound(pos, ent, g_media.sounds.water_in, ATTEN_IDLE);
 		if (ent->locals.move_type == MOVE_TYPE_BOUNCE) {
 			VectorScale(ent->locals.velocity, 0.66, ent->locals.velocity);
 		}
 
-		G_LiquidRipple(ent, old_pos, pos, 30.0);
+		if (ent->locals.move_type != MOVE_TYPE_NO_CLIP)
+			G_LiquidRipple(ent, old_pos, pos, 30.0);
 	} else if (old_water_level && !ent->locals.water_level) {
 		gi.PositionedSound(pos, ent, g_media.sounds.water_out, ATTEN_IDLE);
 
-		G_LiquidRipple(ent, old_pos, pos, 30.0);
+		if (ent->locals.move_type != MOVE_TYPE_NO_CLIP)
+			G_LiquidRipple(ent, old_pos, pos, 30.0);
 	}
 }
 
