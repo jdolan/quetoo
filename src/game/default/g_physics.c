@@ -56,7 +56,16 @@ void G_LiquidRipple(g_entity_t *ent, const vec3_t orig_start, const vec3_t orig_
 		VectorCopy(orig_end, pos);
 	}
 
-	pos[2] += 2; // put it above the liquid surface
+	pos[2] += 1; // put it above the liquid surface
+
+	vec3_t back;
+
+	VectorSubtract(orig_end, orig_start, back);
+	VectorNormalize(back);
+	VectorAdd(pos, back, back);
+
+	if (gi.PointContents(back) & MASK_LIQUID)
+		return;
 
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_RIPPLE);
