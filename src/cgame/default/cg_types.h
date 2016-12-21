@@ -34,24 +34,38 @@
 #define PARTICLE_IMMEDIATE		1
 
 typedef enum {
-
 	PARTICLE_EFFECT_NONE,
 
 	PARTICLE_EFFECT_COLOR = 1 << 0, // use color lerp
 	PARTICLE_EFFECT_SCALE = 1 << 1, // use scale lerp
 } cg_particle_effects_t;
 
+typedef enum {
+	PARTICLE_SPECIAL_NONE,
+
+	PARTICLE_SPECIAL_BLOOD, // leave blood stains
+} cg_particle_special_t;
+
 typedef struct cg_particle_s {
 	r_particle_t part; // the r_particle_t to add to the view
 
 	// common particle components
-	cg_particle_effects_t effects;
 	uint32_t start; // client time when allocated
 	uint32_t lifetime; // client time particle should remain active for. a lifetime of 0 = infinite (make sure they get freed sometime though!), 1 = immediate
 	vec3_t vel;
 	vec3_t accel;
 
+	// special ID specific
+	cg_particle_special_t special; // a special ID that can be used for think routines
+
+	union {
+		struct {
+			uint32_t time; // next time to check for splat
+		} blood;
+	};
+
 	// effect flag specifics
+	cg_particle_effects_t effects; // flags for lerp effects
 	vec4_t color_start, color_end;
 	vec_t scale_start, scale_end;
 

@@ -327,7 +327,7 @@ void R_DrawBspLights(void) {
 /**
  * @brief
  */
-static void R_StainNode(const vec3_t org, const vec4_t color, const vec_t size, const r_bsp_node_t *node) {
+static void R_StainNode(const vec3_t org, const vec4_t color, const vec_t size, const r_bsp_node_t *node, uint32_t *num) {
 
 	if (node->contents != CONTENTS_NODE) {
 		return;
@@ -342,10 +342,10 @@ static void R_StainNode(const vec3_t org, const vec4_t color, const vec_t size, 
 	}
 
 	if (dist > size) {
-		R_StainNode (org, color, size, node->children[0]);
+		R_StainNode (org, color, size, node->children[0], num);
 		return;
 	} else if (dist < -size) {
-		R_StainNode (org, color, size, node->children[1]);
+		R_StainNode (org, color, size, node->children[1], num);
 		return;
 	}
 
@@ -420,6 +420,7 @@ static void R_StainNode(const vec3_t org, const vec4_t color, const vec_t size, 
 					if (pfBL[i] != new_color) {
 						pfBL[i] = new_color;
 						changes = true;
+						(*num)++;
 					}
 				}
 			}
@@ -435,18 +436,22 @@ static void R_StainNode(const vec3_t org, const vec4_t color, const vec_t size, 
 		R_GetError("stain");
 	}
 
-	R_StainNode(org, color, size, node->children[0]);
-	R_StainNode(org, color, size, node->children[1]);
+	R_StainNode(org, color, size, node->children[0], num);
+	R_StainNode(org, color, size, node->children[1], num);
 }
 
 /**
  * @brief Add a stain to the map.
  */
-void R_AddStain(const vec3_t org, const vec4_t color, const vec_t size) {
+uint32_t R_AddStain(const vec3_t org, const vec4_t color, const vec_t size) {
 
 	if (!r_stain_map->integer) {
-		return;
+		return 0;
 	}
 
-	R_StainNode(org, color, size, r_model_state.world->bsp->nodes);
+	uint32_t num = 0;
+
+	R_StainNode(org, color, size, r_model_state.world->bsp->nodes, &num);
+
+	return num;
 }

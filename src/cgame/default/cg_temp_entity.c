@@ -263,6 +263,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 		p->lifetime = 800 + Randomf() * 200;
 		p->effects = PARTICLE_EFFECT_COLOR;
+		p->special = PARTICLE_SPECIAL_BLOOD;
 
 		cgi.ColorFromPalette(232 + (Random() & 7), p->color_start);
 		VectorCopy(p->color_start, p->color_end);
@@ -325,6 +326,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 
 			p->lifetime = 350;
 			p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
+			p->special = PARTICLE_SPECIAL_BLOOD;
 
 			cgi.ColorFromPalette(232 + (Random() & 7), p->color_start);
 			VectorCopy(p->color_start, p->color_end);

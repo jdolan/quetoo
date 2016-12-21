@@ -718,6 +718,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 
 		p->lifetime = 1000 + Randomf() * 500;
 		p->effects |= PARTICLE_EFFECT_COLOR;
+		p->special = PARTICLE_SPECIAL_BLOOD;
 
 		cgi.ColorFromPalette(232 + (Random() & 7), p->color_start);
 		VectorCopy(p->color_start, p->color_end);
