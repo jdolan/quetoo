@@ -859,7 +859,7 @@ static void Cg_RippleEffect(const vec3_t org, const vec_t size, const uint8_t vi
 	cg_particle_t *p;
 	int32_t i;
 
-	if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_ripple))) {
+	if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_ripple[Random() % 3]))) {
 		return;
 	}
 
@@ -869,11 +869,11 @@ static void Cg_RippleEffect(const vec3_t org, const vec_t size, const uint8_t vi
 
 	p->part.flags |= PARTICLE_FLAG_NO_DEPTH;
 
-	Vector4Set(p->color_start, 1.0, 1.0, 1.0, 2.0);
+	Vector4Set(p->color_start, 1.0, 1.0, 1.0, 0.5 + (Randomf() * 1.5));
 	Vector4Set(p->color_end, 1.0, 1.0, 1.0, 0.0);
 
-	p->scale_start = size / 5.0;
-	p->scale_end = size;
+	p->scale_start = size / 4.0;
+	p->scale_end = size * ((Randomf() * 0.1) + 0.9);
 
 	VectorCopy(org, p->part.org);
 
