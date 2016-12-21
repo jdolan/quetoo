@@ -24,7 +24,7 @@
 
 #include "r_types.h"
 
-void R_AddStain(const vec3_t org, const vec3_t color, const vec_t size);
+void R_AddStain(const vec3_t org, const vec4_t color, const vec_t size);
 
 #ifdef __R_LOCAL_H__
 

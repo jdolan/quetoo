@@ -24,7 +24,7 @@
 
 #include "client/cl_types.h"
 
-#define CGAME_API_VERSION 7
+#define CGAME_API_VERSION 8
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -655,7 +655,7 @@ typedef struct cg_import_s {
 	/**
 	 * @brief Add a stain to the scene.
 	 */
-	void (*AddStain)(const vec3_t org, const vec3_t color, const vec_t size);
+	void (*AddStain)(const vec3_t org, const vec4_t color, const vec_t size);
 
 	/**
 	 * @defgroup draw-2d 2D drawing

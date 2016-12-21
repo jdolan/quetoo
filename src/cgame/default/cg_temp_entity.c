@@ -72,6 +72,10 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 		}
 	}
 
+	cgi.AddStain(org, (const vec4_t) {
+		s.light.color[0], s.light.color[1], s.light.color[2], 0.07
+	}, 24.0);
+
 	VectorAdd(org, dir, s.light.origin);
 	s.light.radius = 150.0;
 	s.sustain = 250;
@@ -157,9 +161,10 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	int32_t j, k;
 
 	Cg_DecalEffect(org, dir, 1.5, cg_particles_bullet[Random() % 3]);
-	cgi.AddStain(org, (const vec3_t) {
-		0.0, 1.0, 0.0
-	}, 64.0);
+
+	cgi.AddStain(org, (const vec4_t) {
+		0.0, 0.0, 0.0, 0.15
+	}, 5.0);
 
 	k = 1 + (Random() % 5);
 
@@ -236,9 +241,11 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 /**
  * @brief
  */
-static void Cg_BurnEffect(const vec3_t org, const vec3_t dir, int32_t scale) {
+static void Cg_BurnEffect(const vec3_t org, const vec3_t dir, const vec4_t color, int32_t scale) {
 
 	Cg_DecalEffect(org, dir, scale, cg_particles_burn);
+
+	cgi.AddStain(org, color, scale * 2.0);
 }
 
 /**
@@ -601,7 +608,7 @@ static void Cg_LightningEffect(const vec3_t org) {
 /**
  * @brief
  */
-static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, int32_t color) {
+static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir, int32_t flags, int32_t color) {
 	vec3_t vec, right, up, point;
 	cg_particle_t *p;
 	r_sustained_light_t s;
@@ -725,6 +732,10 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 	s.sustain += 250;
 
 	cgi.AddSustainedLight(&s);
+
+	Cg_BurnEffect(end, dir, (const vec4_t) {
+		s.light.color[0], s.light.color[1], s.light.color[2], 0.03
+	}, 16);
 }
 
 /**
@@ -914,7 +925,9 @@ void Cg_ParseTempEntity(void) {
 			cgi.ReadPosition(pos);
 			cgi.ReadDir(dir);
 			i = cgi.ReadByte();
-			Cg_BurnEffect(pos, dir, i);
+			Cg_BurnEffect(pos, dir, (const vec4_t) {
+				0.0, 0.0, 0.0, 0.05
+			}, i);
 			break;
 
 		case TE_BLOOD: // projectile hitting flesh
@@ -947,9 +960,10 @@ void Cg_ParseTempEntity(void) {
 		case TE_RAIL: // railgun effect
 			cgi.ReadPosition(pos);
 			cgi.ReadPosition(pos2);
+			cgi.ReadDir(dir);
 			i = cgi.ReadLong();
 			j = cgi.ReadByte();
-			Cg_RailEffect(pos, pos2, i, j);
+			Cg_RailEffect(pos, pos2, dir, i, j);
 			break;
 
 		case TE_EXPLOSION: // rocket and grenade explosions

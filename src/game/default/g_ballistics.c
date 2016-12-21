@@ -952,6 +952,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 	gi.WriteByte(TE_RAIL);
 	gi.WritePosition(start);
 	gi.WritePosition(tr.end);
+	gi.WriteDir(tr.plane.normal);
 	gi.WriteLong(tr.surface->flags);
 	gi.WriteByte(color);
 
@@ -962,16 +963,11 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 		gi.WriteByte(TE_RAIL);
 		gi.WritePosition(start);
 		gi.WritePosition(tr.end);
+		gi.WriteDir(tr.plane.normal);
 		gi.WriteLong(tr.surface->flags);
 		gi.WriteByte(color);
 
 		gi.Multicast(tr.end, MULTICAST_PHS, NULL);
-	}
-
-	// calculate position of burn mark
-	if (G_IsStructural(tr.ent, tr.surface) && G_IsStationary(tr.ent)) {
-		VectorMA(tr.end, -1.0, dir, tr.end);
-		G_BurnMark(tr.end, &tr.plane, tr.surface, 12);
 	}
 }
 

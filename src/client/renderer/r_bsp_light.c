@@ -327,7 +327,7 @@ void R_DrawBspLights(void) {
 /**
  * @brief
  */
-static void R_StainNode(const vec3_t org, const vec3_t color, const vec_t size, const r_bsp_node_t *node) {
+static void R_StainNode(const vec3_t org, const vec4_t color, const vec_t size, const r_bsp_node_t *node) {
 
 	if (node->contents != CONTENTS_NODE) {
 		return;
@@ -350,6 +350,7 @@ static void R_StainNode(const vec3_t org, const vec3_t color, const vec_t size, 
 	}
 
 	const r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces + node->first_surface;
+	const vec_t color_frac = color[3] * r_stain_map->value;
 
 	for (uint32_t c = node->num_surfaces; c; c--, surf++) {
 
@@ -414,13 +415,12 @@ static void R_StainNode(const vec3_t org, const vec3_t color, const vec_t size, 
 				}
 
 				for (uint32_t i = 0; i < 3; i++) {
-					//const int32_t test = pfBL[i] + ((frad - fdist) * color[i]);
+					const uint8_t new_color = (uint8_t) (Clamp(Lerp(pfBL[i] / 255.0, color[i], color_frac), 0.0, 1.0) * 255.0);
 
-					//if (test < 255 && test > 0) {
-					//	const uint8_t col = Clamp(pfBL[i] * color[i], 0.0, 255.0);
-					pfBL[i] = 0;
-					changes = true;
-					//}
+					if (pfBL[i] != new_color) {
+						pfBL[i] = new_color;
+						changes = true;
+					}
 				}
 			}
 		}
@@ -442,7 +442,7 @@ static void R_StainNode(const vec3_t org, const vec3_t color, const vec_t size, 
 /**
  * @brief Add a stain to the map.
  */
-void R_AddStain(const vec3_t org, const vec3_t color, const vec_t size) {
+void R_AddStain(const vec3_t org, const vec4_t color, const vec_t size) {
 
 	if (!r_stain_map->integer) {
 		return;
