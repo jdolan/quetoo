@@ -894,6 +894,8 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 
 	VectorMA(pos, MAX_WORLD_DIST, dir, end);
 
+	G_LiquidRipple(ent, pos, end, 60.0);
+
 	cm_trace_t tr;
 	memset(&tr, 0, sizeof(tr));
 
@@ -905,8 +907,6 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 		}
 
 		if ((tr.contents & MASK_LIQUID) && !liquid) {
-			G_LiquidRipple(ent, pos, end, 60.0);
-
 			VectorCopy(tr.end, water_pos);
 
 			content_mask &= ~MASK_LIQUID;
