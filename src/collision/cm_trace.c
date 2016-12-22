@@ -246,168 +246,91 @@ static void Cm_TestInLeaf(cm_trace_data_t *data, int32_t leaf_num) {
 }
 
 /**
- * @brief Temporary structured used for a single trace node
- */
-typedef struct {
-	int32_t num;
-	vec_t p1f, p2f;
-	vec3_t p1, p2;
-} cm_trace_node_t;
-
-/**
  * @brief
  */
-static void Cm_TraceToNode(cm_trace_data_t *data, const int32_t _num, const vec_t _p1f, const vec_t _p2f,
-                           const vec3_t _p1, const vec3_t _p2) {
+static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, vec_t p1f, vec_t p2f,
+                           const vec3_t p1, const vec3_t p2) {
 
-	static GArray *node_list;
+	if (data->trace.fraction <= p1f) {
+		return;    // already hit something nearer
+	}
 
-	if (!node_list) {
-		node_list = g_array_new(false, false, sizeof(cm_trace_node_t));
+	// if < 0, we are in a leaf node
+	if (num < 0) {
+		Cm_TraceToLeaf(data, -1 - num);
+		return;
+	}
+
+	// find the point distances to the separating plane
+	// and the offset for the size of the box
+	const cm_bsp_node_t *node = cm_bsp.nodes + num;
+	const cm_bsp_plane_t *plane = node->plane;
+
+	vec_t d1, d2, offset;
+	if (AXIAL(plane)) {
+		d1 = p1[plane->type] - plane->dist;
+		d2 = p2[plane->type] - plane->dist;
+		offset = data->extents[plane->type];
 	} else {
-		node_list->len = 0;
+		d1 = DotProduct(plane->normal, p1) - plane->dist;
+		d2 = DotProduct(plane->normal, p2) - plane->dist;
+		if (data->is_point) {
+			offset = 0.0;
+		} else
+			offset = fabsf(data->extents[0] * plane->normal[0])
+			         + fabsf(data->extents[1] * plane->normal[1])
+			         + fabsf(data->extents[2] * plane->normal[2]);
 	}
 
-	g_array_append_vals(node_list, &(const cm_trace_node_t) {
-		.num = _num,
-		.p1f = _p1f,
-		.p2f = _p2f,
-		.p1 = { _p1[0], _p1[1], _p1[2] },
-		.p2 = { _p2[0], _p2[1], _p2[2] }
-	}, 1);
-
-	while (node_list->len) {
-		// make a copy of the tail, since we'll be overwriting it later
-		const cm_trace_node_t trace_node = g_array_index(node_list, const cm_trace_node_t, --node_list->len);
-
-		// find the point distances to the separating plane
-		// and the offset for the size of the box
-		const cm_bsp_node_t *node = cm_bsp.nodes + trace_node.num;
-		const cm_bsp_plane_t *plane;
-	
-		vec_t d1, d2, offset;
-
-		// loop through to find nodes to consider, as well as
-		// any leafs that are accessible from this node
-		while (true) {
-			plane = node->plane;
-
-			if (AXIAL(plane)) {
-				d1 = trace_node.p1[plane->type] - plane->dist;
-				d2 = trace_node.p2[plane->type] - plane->dist;
-		
-				offset = data->extents[plane->type];
-			} else {
-				d1 = DotProduct(plane->normal, trace_node.p1) - plane->dist;
-				d2 = DotProduct(plane->normal, trace_node.p2) - plane->dist;
-
-				if (!data->is_point) {
-					offset =   fabsf(data->extents[0] * plane->normal[0])
-							 + fabsf(data->extents[1] * plane->normal[1])
-							 + fabsf(data->extents[2] * plane->normal[2]);
-				} else {
-					offset = 0.0;
-				}
-			}
-
-			// see which sides we need to consider
-			if (d1 >= offset && d2 >= offset) {
-
-				if (data->trace.fraction > trace_node.p1f) {
-
-					if (node->children[0] < 0) {
-						Cm_TraceToLeaf(data, -1 - node->children[0]);
-					} else {
-						node = cm_bsp.nodes + node->children[0];
-						continue;
-					}
-				}
-
-				plane = NULL;
-			} else if (d1 <= -offset && d2 <= -offset) {
-
-				if (data->trace.fraction > trace_node.p1f) {
-
-					if (node->children[1] < 0) {
-						Cm_TraceToLeaf(data, -1 - node->children[1]);
-					} else {
-						node = cm_bsp.nodes + node->children[1];
-						continue;
-					}
-				}
-
-				plane = NULL;
-			}
-
-			break;
-		}
-
-		if (plane == NULL) {
-			continue;
-		}
-
-		// put the cross point DIST_EPSILON pixels on the near side
-		int32_t side = 0;
-		vec_t frac1 = 1.0, frac2 = 0.0;
-
-		if (d1 < d2) {
-			const vec_t idist = 1.0 / (d1 - d2);
-			side = 1;
-			frac2 = (d1 + offset + DIST_EPSILON) * idist;
-			frac1 = (d1 - offset + DIST_EPSILON) * idist;
-		} else if (d1 > d2) {
-			const vec_t idist = 1.0 / (d1 - d2);
-			side = 0;
-			frac2 = (d1 - offset - DIST_EPSILON) * idist;
-			frac1 = (d1 + offset + DIST_EPSILON) * idist;
-		}
-
-		vec3_t mid;
-
-		// go past the node
-		frac2 = Clamp(frac2, 0.0, 1.0);
-
-		const vec_t midf2 = trace_node.p1f + (trace_node.p2f - trace_node.p1f) * frac2;
-
-		if (data->trace.fraction > midf2) {
-
-			if (node->children[side ^ 1] < 0) {
-				Cm_TraceToLeaf(data, -1 - node->children[side ^ 1]);
-			} else {
-				VectorLerp(trace_node.p1, trace_node.p2, frac2, mid);
-
-				g_array_append_vals(node_list, &(const cm_trace_node_t) {
-					.num = node->children[side ^ 1],
-					.p1f = midf2,
-					.p2f = trace_node.p2f,
-					.p1 = { mid[0], mid[1], mid[2] },
-					.p2 = { trace_node.p2[0], trace_node.p2[1], trace_node.p2[2] }
-				}, 1);
-			}
-		}
-
-		// move up to the node
-		frac1 = Clamp(frac1, 0.0, 1.0);
-
-		const vec_t midf1 = trace_node.p1f + (trace_node.p2f - trace_node.p1f) * frac1;
-	
-		if (data->trace.fraction > trace_node.p1f) {
-		
-			if (node->children[side] < 0) {
-				Cm_TraceToLeaf(data, -1 - node->children[side]);
-			} else {
-				VectorLerp(trace_node.p1, trace_node.p2, frac1, mid);
-
-				g_array_append_vals(node_list, &(const cm_trace_node_t) {
-					.num = node->children[side],
-					.p1f = trace_node.p1f,
-					.p2f = midf1,
-					.p1 = { trace_node.p1[0], trace_node.p1[1], trace_node.p1[2] },
-					.p2 = { mid[0], mid[1], mid[2] }
-				}, 1);
-			}
-		}
+	// see which sides we need to consider
+	if (d1 >= offset && d2 >= offset) {
+		Cm_TraceToNode(data, node->children[0], p1f, p2f, p1, p2);
+		return;
 	}
+	if (d1 <= -offset && d2 <= -offset) {
+		Cm_TraceToNode(data, node->children[1], p1f, p2f, p1, p2);
+		return;
+	}
+
+	// put the cross point DIST_EPSILON pixels on the near side
+	int32_t side;
+	vec_t frac1, frac2;
+
+	if (d1 < d2) {
+		const vec_t idist = 1.0 / (d1 - d2);
+		side = 1;
+		frac2 = (d1 + offset + DIST_EPSILON) * idist;
+		frac1 = (d1 - offset + DIST_EPSILON) * idist;
+	} else if (d1 > d2) {
+		const vec_t idist = 1.0 / (d1 - d2);
+		side = 0;
+		frac2 = (d1 - offset - DIST_EPSILON) * idist;
+		frac1 = (d1 + offset + DIST_EPSILON) * idist;
+	} else {
+		side = 0;
+		frac1 = 1.0;
+		frac2 = 0.0;
+	}
+
+	vec3_t mid;
+
+	// move up to the node
+	frac1 = Clamp(frac1, 0.0, 1.0);
+
+	const vec_t midf1 = p1f + (p2f - p1f) * frac1;
+
+	VectorLerp(p1, p2, frac1, mid);
+
+	Cm_TraceToNode(data, node->children[side], p1f, midf1, p1, mid);
+
+	// go past the node
+	frac2 = Clamp(frac2, 0.0, 1.0);
+
+	const vec_t midf2 = p1f + (p2f - p1f) * frac2;
+
+	VectorLerp(p1, p2, frac2, mid);
+
+	Cm_TraceToNode(data, node->children[side ^ 1], midf2, p2f, mid, p2);
 }
 
 /**
