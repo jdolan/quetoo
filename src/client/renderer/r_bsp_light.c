@@ -340,9 +340,7 @@ static void R_StainNode(const vec3_t org, const vec4_t color, const vec_t size, 
 	g_array_append_val(node_list, seed_node);
 
 	while (node_list->len) {
-		const r_bsp_node_t *node = g_array_index(node_list, const r_bsp_node_t *, node_list->len - 1);
-
-		node_list->len--;
+		const r_bsp_node_t *node = g_array_index(node_list, const r_bsp_node_t *, --node_list->len);
 
 		if (node->contents != CONTENTS_NODE) {
 			continue;
@@ -451,8 +449,7 @@ static void R_StainNode(const vec3_t org, const vec4_t color, const vec_t size, 
 			R_GetError("stain");
 		}
 
-		g_array_append_val(node_list, node->children[0]);
-		g_array_append_val(node_list, node->children[1]);
+		g_array_append_vals(node_list, &node->children, 2);
 	}
 }
 

@@ -160,11 +160,11 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	r_sustained_light_t s;
 	int32_t j, k;
 
-	Cg_DecalEffect(org, dir, 1.5, cg_particles_bullet[Random() % 3]);
+	Cg_DecalEffect(org, dir, 1.5 + Randomc() * 0.4, cg_particles_bullet[Random() % 3]);
 
 	cgi.AddStain(org, (const vec4_t) {
-		0.0, 0.0, 0.0, 0.15
-	}, 5.0);
+		0.0, 0.0, 0.0, 0.065
+	}, 6.5);
 
 	k = 1 + (Random() % 5);
 
