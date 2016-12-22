@@ -707,6 +707,8 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 	VectorSubtract(end, start, move);
 
 	vec_t dist = VectorNormalize(move);
+	uint32_t added = 0;
+
 	while (dist > 0.0) {
 		cg_particle_t *p;
 
@@ -718,7 +720,10 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 
 		p->lifetime = 1000 + Randomf() * 500;
 		p->effects |= PARTICLE_EFFECT_COLOR;
-		p->special = PARTICLE_SPECIAL_BLOOD;
+
+		if ((added++ % 6) == 0) {
+			p->special = PARTICLE_SPECIAL_BLOOD;
+		}
 
 		cgi.ColorFromPalette(232 + (Random() & 7), p->color_start);
 		VectorCopy(p->color_start, p->color_end);
@@ -726,7 +731,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 
 		p->part.scale = 3.0;
 
-		VectorScale(move, 40.0, p->vel);
+		VectorScale(move, 20.0, p->vel);
 
 		p->accel[0] = p->accel[1] = 0.0;
 		p->accel[2] = -PARTICLE_GRAVITY / 2.0;

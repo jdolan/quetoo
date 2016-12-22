@@ -263,7 +263,6 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 		p->lifetime = 800 + Randomf() * 200;
 		p->effects = PARTICLE_EFFECT_COLOR;
-		p->special = PARTICLE_SPECIAL_BLOOD;
 
 		cgi.ColorFromPalette(232 + (Random() & 7), p->color_start);
 		VectorCopy(p->color_start, p->color_end);
@@ -279,8 +278,12 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 		p->part.org[2] += 16.0 * PM_SCALE;
 
 		p->accel[0] = p->accel[1] = 0.0;
-		p->accel[2] = PARTICLE_GRAVITY / 4.0;
+		p->accel[2] = -PARTICLE_GRAVITY / 4.0;
 	}
+
+	cgi.AddStain(org, (const vec4_t) {
+		0.9 + Randomc(), 0.0, 0.0, 0.08
+	}, count);
 }
 
 #define GIB_STREAM_DIST 180.0
@@ -326,7 +329,6 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 
 			p->lifetime = 350;
 			p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
-			p->special = PARTICLE_SPECIAL_BLOOD;
 
 			cgi.ColorFromPalette(232 + (Random() & 7), p->color_start);
 			VectorCopy(p->color_start, p->color_end);
@@ -346,6 +348,10 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 			p->accel[2] = -PARTICLE_GRAVITY * 2.0;
 		}
 	}
+
+	cgi.AddStain(org, (const vec4_t) {
+		0.9 + Randomc(), 0.0, 0.0, 0.08
+	}, count * 5.0);
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_gib,
