@@ -458,6 +458,7 @@ typedef struct {
 
 	r_image_t *stainmap; // the stainmap image to use
 	byte *stainmap_buffer; // the stainmap buffer
+	_Bool stainmap_dirty; // whether this stainmap has been affected or not
 } r_bsp_surface_t;
 
 /**

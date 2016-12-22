@@ -247,7 +247,7 @@ static void R_UploadPackedLightmaps(uint32_t width, uint32_t height, r_bsp_model
 		r_bsp_surface_t *surf = (r_bsp_surface_t *) start->data;
 
 		const size_t stride = width * 3;
-		const size_t lightmap_offset = (surf->lightmap_t *width + surf->lightmap_s) * 3;
+		const size_t lightmap_offset = (surf->lightmap_t * width + surf->lightmap_s) * 3;
 
 		byte *sout = sample_buffer + lightmap_offset;
 		byte *dout = direction_buffer + lightmap_offset;

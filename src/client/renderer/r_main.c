@@ -363,6 +363,10 @@ void R_LoadMedia(void) {
 
 	R_LoadModel(cl.config_strings[CS_MODELS]); // load the world
 
+	Cl_LoadingProgress(55, "mopping up blood");
+
+	R_ResetStainMap(); // clear the stainmap if we have to
+
 	Cl_LoadingProgress(60, "models");
 
 	// load all other models
@@ -426,6 +430,14 @@ static void R_ToggleFullscreen_f(void) {
 	Cvar_Toggle("r_fullscreen");
 
 	R_Restart_f();
+}
+
+/**
+ * @brief Clears the stainmap.
+ */
+static void R_StainClear_f(void) {
+
+	R_ResetStainMap();
 }
 
 /**
@@ -530,6 +542,7 @@ static void R_InitLocal(void) {
 	Cmd_Add("r_toggle_fullscreen", R_ToggleFullscreen_f, CMD_SYSTEM | CMD_RENDERER,
 	        "Toggle fullscreen");
 	Cmd_Add("r_restart", R_Restart_f, CMD_RENDERER, "Restart the rendering subsystem");
+	Cmd_Add("r_stain_clear", R_StainClear_f, CMD_RENDERER, "Clear the stainmap");
 }
 
 /**

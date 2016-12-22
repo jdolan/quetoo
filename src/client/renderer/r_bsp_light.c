@@ -323,6 +323,65 @@ void R_DrawBspLights(void) {
 	}
 }
 
+/**
+ * @brief Resets the stainmaps that we have loaded, for level changes. This is kind of a
+ * slow function, so be careful calling this one.
+ */
+void R_ResetStainMap(void) {
+
+	if (!r_stain_map->integer) {
+		return;
+	}
+
+	GHashTable *stain_table = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, Mem_Free);
+
+	for (uint32_t s = 0; s < r_model_state.world->bsp->num_surfaces; s++) {
+		r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces + s;
+
+		// if this surf was never/can't be stained, don't bother
+		if (!surf->stainmap || !surf->stainmap_dirty) {
+			continue;
+		}
+
+		byte *lightmap = (byte *) g_hash_table_lookup(stain_table, surf->stainmap);
+
+		// load the original lightmap data in scratch buffer
+		if (!lightmap) {
+
+			lightmap = Mem_Malloc(surf->lightmap->width * surf->lightmap->height * 3);
+
+			R_BindDiffuseTexture(surf->lightmap->texnum);
+			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, lightmap);
+
+			// copy the lightmap over to the stainmap
+			R_BindDiffuseTexture(surf->stainmap->texnum);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surf->lightmap->width, surf->lightmap->height, 0, GL_RGB, GL_UNSIGNED_BYTE, lightmap);
+
+			g_hash_table_insert(stain_table, surf->stainmap, lightmap);
+		}
+
+		// copy over the old stain buffer
+		const size_t stride = surf->lightmap->width * 3;
+		const size_t stain_width = surf->st_extents[0] * 3;
+		const size_t lightmap_offset = (surf->lightmap_t * surf->lightmap->width + surf->lightmap_s) * 3;
+
+		byte *light = lightmap + lightmap_offset;
+		byte *stain = surf->stainmap_buffer;
+
+		for (int16_t t = 0; t < surf->st_extents[1]; t++) {
+			
+			memcpy(stain, light, stain_width);
+
+			stain += stain_width;
+			light += stride;
+		}
+
+		surf->stainmap_dirty = false;
+	}
+
+	// free all the scratch
+	g_hash_table_destroy(stain_table);
+}
 
 /**
  * @brief
@@ -364,7 +423,7 @@ static void R_StainNode(const vec3_t org, const vec4_t color, const vec_t size, 
 			continue;
 		}
 
-		const r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces + node->first_surface;
+		r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces + node->first_surface;
 
 		for (uint32_t c = node->num_surfaces; c; c--, surf++) {
 
@@ -444,6 +503,8 @@ static void R_StainNode(const vec3_t org, const vec4_t color, const vec_t size, 
 			if (!changes) {
 				continue;
 			}
+
+			surf->stainmap_dirty = true;
 
 			R_BindDiffuseTexture(surf->stainmap->texnum);
 			glTexSubImage2D(GL_TEXTURE_2D, 0, surf->lightmap_s, surf->lightmap_t, smax, tmax, GL_RGB, GL_UNSIGNED_BYTE,

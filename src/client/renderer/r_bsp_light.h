@@ -48,6 +48,7 @@ extern r_bsp_light_state_t r_bsp_light_state;
 
 void R_LoadBspLights(r_bsp_model_t *mod);
 void R_DrawBspLights(void);
+void R_ResetStainMap(void);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_BSP_LIGHT_H__ */
