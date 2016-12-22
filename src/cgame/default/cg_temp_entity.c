@@ -73,7 +73,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 	}
 
 	cgi.AddStain(org, (const vec4_t) {
-		s.light.color[0], s.light.color[1], s.light.color[2], 0.07
+		s.light.color[0], s.light.color[1], s.light.color[2], 0.2
 	}, 24.0);
 
 	VectorAdd(org, dir, s.light.origin);
@@ -163,7 +163,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	Cg_DecalEffect(org, dir, 1.5 + Randomc() * 0.4, cg_particles_bullet[Random() % 3]);
 
 	cgi.AddStain(org, (const vec4_t) {
-		0.0, 0.0, 0.0, 0.065
+		0.0, 0.0, 0.0, 0.4
 	}, 6.5);
 
 	k = 1 + (Random() % 5);
@@ -283,7 +283,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 	cgi.AddStain(org, (const vec4_t) {
 		0.9 + Randomc(), 0.0, 0.0, 0.08
-	}, count);
+	}, count * 4);
 }
 
 #define GIB_STREAM_DIST 180.0
@@ -350,8 +350,8 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 	}
 
 	cgi.AddStain(org, (const vec4_t) {
-		0.9 + Randomc(), 0.0, 0.0, 0.08
-	}, count * 5.0);
+		0.9 + Randomc(), 0.0, 0.0, 0.09
+	}, count * 8.0);
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_gib,
@@ -742,7 +742,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 	cgi.AddSustainedLight(&s);
 
 	Cg_BurnEffect(end, dir, (const vec4_t) {
-		s.light.color[0], s.light.color[1], s.light.color[2], 0.03
+		s.light.color[0], s.light.color[1], s.light.color[2], 0.1
 	}, 16);
 }
 
@@ -934,7 +934,7 @@ void Cg_ParseTempEntity(void) {
 			cgi.ReadDir(dir);
 			i = cgi.ReadByte();
 			Cg_BurnEffect(pos, dir, (const vec4_t) {
-				0.0, 0.0, 0.0, 0.05
+				0.0, 0.0, 0.0, 0.25
 			}, i);
 			break;
 
