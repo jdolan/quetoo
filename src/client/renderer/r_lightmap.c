@@ -233,7 +233,7 @@ static void R_UploadPackedLightmaps(uint32_t width, uint32_t height, r_bsp_model
 	// allocate the image
 	r_image_t *lightmap = R_AllocLightmap(width, height);
 	r_image_t *deluxemap = R_AllocDeluxemap(width, height);
-	r_image_t *stainmap;
+	r_image_t *stainmap = NULL;
 
 	if (r_stain_map->integer) {
 		stainmap = R_AllocStainmap(width, height);
