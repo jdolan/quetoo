@@ -155,6 +155,8 @@ int32_t LIGHT_Main(void) {
 
 	Com_Print("\n----- LIGHT -----\n\n");
 
+	Cm_Init();
+
 	const time_t start = time(NULL);
 
 	LoadBSPFile(bsp_name);
@@ -178,6 +180,8 @@ int32_t LIGHT_Main(void) {
 		Com_Print("%d Minutes ", (int32_t) (duration / 60));
 	}
 	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
+
+	Cm_Shutdown();
 
 	return 0;
 }
