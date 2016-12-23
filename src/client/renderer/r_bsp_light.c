@@ -410,6 +410,8 @@ static void R_StainNode(const vec3_t org, const vec4_t color, vec_t size, r_bsp_
 	const vec_t src_stain_alpha = color[3] * r_stain_map->value;
 	const vec_t dst_stain_alpha = 1.0 - src_stain_alpha;
 
+	const vec_t step = r_model_state.world->bsp->lightmaps->scale;
+
 	r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces + node->first_surface;
 
 	for (uint32_t i = 0; i < node->num_surfaces; i++, surf++) {
@@ -448,15 +450,15 @@ static void R_StainNode(const vec3_t org, const vec4_t color, vec_t size, r_bsp_
 
 		byte *buffer = surf->stainmap_buffer;
 
-		vec_t ftacc = 0.0;
+		vec_t tstep = 0.0;
 
-		for (uint16_t t = 0; t < tmax; t++, ftacc += 16.0) {
-			const uint32_t td = (uint32_t) fabs(point_st[1] - ftacc);
+		for (uint16_t t = 0; t < tmax; t++, tstep += step) {
+			const uint32_t td = (uint32_t) fabs(point_st[1] - tstep);
 
-			vec_t fsacc = 0.0; // FIXME: Increment by lightmap_scale?
+			vec_t sstep = 0.0;
 
-			for (uint16_t s = 0; s < smax; s++, fsacc += 16.0, buffer += 3) {
-				const uint32_t sd = (uint32_t) fabs(point_st[0] - fsacc);
+			for (uint16_t s = 0; s < smax; s++, sstep += step, buffer += 3) {
+				const uint32_t sd = (uint32_t) fabs(point_st[0] - sstep);
 
 				vec_t sample_dist;
 				if (sd > td) {
