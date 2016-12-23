@@ -20,6 +20,9 @@
  */
 
 #include "r_local.h"
+#include "client.h"
+
+extern cl_client_t cl;
 
 /*
  * Static light source loading.
@@ -408,7 +411,6 @@ static void R_StainNode(const vec3_t org, const vec4_t color, const vec_t size, 
 		}
 
 		vec_t dist;
-
 		if (node->plane->type < SIDE_BOTH) {
 			dist = org[node->plane->type] - node->plane->dist;
 		} else {
@@ -516,6 +518,42 @@ static void R_StainNode(const vec3_t org, const vec4_t color, const vec_t size, 
 	}
 }
 
+
+		/*
+static void R_RotateLightsForBspInlineModel(const r_entity_t *e) {
+	static vec3_t light_origins[MAX_LIGHTS];
+	static int16_t frame;
+
+	// for each frame, backup the light origins
+	if (frame != r_locals.frame) {
+		for (uint16_t i = 0; i < r_view.num_lights; i++) {
+			VectorCopy(r_view.lights[i].origin, light_origins[i]);
+		}
+		frame = r_locals.frame;
+	}
+
+	// for malformed inline models, simply return
+	if (e && e->model->bsp_inline->head_node == -1) {
+		return;
+	}
+
+	// for well-formed models, iterate the lights, transforming them into model
+	// space and marking surfaces, or restoring them if the model is NULL
+
+	const r_bsp_node_t *nodes = r_model_state.world->bsp->nodes;
+	r_light_t *l = r_view.lights;
+
+	for (uint16_t i = 0; i < r_view.num_lights; i++, l++) {
+		if (e) {
+			Matrix4x4_Transform(&e->inverse_matrix, light_origins[i], l->origin);
+			R_MarkLight(l, nodes + e->model->bsp_inline->head_node);
+		} else {
+			VectorCopy(light_origins[i], l->origin);
+		}
+	}
+}
+		*/
+
 /**
  * @brief Add a stain to the map.
  */
@@ -527,7 +565,52 @@ uint32_t R_AddStain(const vec3_t org, const vec4_t color, const vec_t size) {
 
 	uint32_t num = 0;
 
-	R_StainNode(org, color, size, r_model_state.world->bsp->nodes, &num);
+	for (int32_t i = 0; i < r_model_state.world->bsp->num_inline_models; ++i) {
+		
+		r_bsp_inline_model_t *model = r_model_state.world->bsp->inline_models + i;
+		vec3_t origin;
+
+		// bad nodes
+		if (model->head_node == -1 ||
+			!model->num_surfaces) {
+			continue;
+		}
+
+		r_bsp_node_t *node = r_model_state.world->bsp->nodes + model->head_node;
+
+		cl_entity_t *entity = NULL;
+
+		// find the entity that owns us
+		if (i != 0) {
+
+			for (uint16_t x = 0; x < cl.frame.num_entities; x++) {
+
+				const uint32_t snum = (cl.frame.entity_state + x) & ENTITY_STATE_MASK;
+				const entity_state_t *s = &cl.entity_states[snum];
+
+				if (s->solid < SOLID_BSP) {
+					continue;
+				}
+				
+				const cm_bsp_model_t *mod = cl.cm_models[s->model1];
+
+				if (mod->head_node == node->model->bsp_inline->head_node) {
+					entity = &cl.entities[s->number];
+					break;
+				}
+			}
+
+			if (!entity) {
+				continue;
+			}
+
+			Matrix4x4_Transform(&entity->inverse_matrix, org, origin);
+		} else {
+			VectorCopy(org, origin);
+		}
+
+		R_StainNode(origin, color, size, node, &num);
+	}
 
 	return num;
 }
