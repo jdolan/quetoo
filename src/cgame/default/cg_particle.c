@@ -226,11 +226,9 @@ static void Cg_UpdateParticleSpecial_Blood(cg_particle_t *p) {
 			p->part.org[2] + Randomc() * 8.0
 		};
 
-		if (cgi.AddStain(blood_pos, blood_color, p->part.scale + (Randomc() * 3.0))) {
-			p->blood.time = cgi.client->ticks + 32 + (Randomf() * 64);
-		} else {
-			p->blood.time = cgi.client->ticks + 16 + (Randomf() * 32);
-		}
+		cgi.AddStain(blood_pos, blood_color, p->part.scale + (Randomc() * 3.0));
+
+		p->blood.time = cgi.client->ticks + 32 + (Randomf() * 64);
 	}
 }
 

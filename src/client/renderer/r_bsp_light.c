@@ -389,133 +389,113 @@ void R_ResetStainMap(void) {
 /**
  * @brief
  */
-static void R_StainNode(const vec3_t org, const vec4_t color, const vec_t size, const r_bsp_node_t *seed_node, uint32_t *num) {
+static void R_StainNode(const vec3_t org, const vec4_t color, vec_t size, r_bsp_node_t *node) {
 
-	static GArray *node_list;
-	const vec_t stain_alpha = color[3] * r_stain_map->value;
-	const vec_t dst_stain_alpha = 1.0 - stain_alpha;
-
-	if (!node_list) {
-		node_list = g_array_new(false, false, sizeof(r_bsp_node_t *));
-	} else {
-		node_list->len = 0;
+	if (node->contents != CONTENTS_NODE) {
+		return;
 	}
 
-	g_array_append_val(node_list, seed_node);
+	const vec_t dist = DotProduct(org, node->plane->normal) - node->plane->dist;
 
-	while (node_list->len) {
-		const r_bsp_node_t *node = g_array_index(node_list, const r_bsp_node_t *, --node_list->len);
+	if (dist > size) { // front only
+		R_StainNode(org, color, size, node->children[0]);
+		return;
+	}
 
-		if (node->contents != CONTENTS_NODE) {
+	if (dist < -size) { // back only
+		R_StainNode(org, color, size, node->children[1]);
+		return;
+	}
+
+	const vec_t src_stain_alpha = color[3] * r_stain_map->value;
+	const vec_t dst_stain_alpha = 1.0 - src_stain_alpha;
+
+	r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces + node->first_surface;
+
+	for (uint32_t i = 0; i < node->num_surfaces; i++, surf++) {
+
+		if (!surf->lightmap || !surf->stainmap) {
 			continue;
 		}
 
-		vec_t dist;
-		if (node->plane->type < SIDE_BOTH) {
-			dist = org[node->plane->type] - node->plane->dist;
-		} else {
-			dist = DotProduct(org, node->plane->normal) - node->plane->dist;
-		}
+		const r_bsp_texinfo_t *tex = surf->texinfo;
 
-		if (dist > size) {
-			g_array_append_val(node_list, node->children[0]);
-			continue;
-		} else if (dist < -size) {
-			g_array_append_val(node_list, node->children[1]);
+		if ((tex->flags & (SURF_SKY | SURF_BLEND_33 | SURF_BLEND_66 | SURF_WARP))) {
 			continue;
 		}
 
-		r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces + node->first_surface;
+		vec_t face_dist = DotProduct(org, surf->plane->normal) - surf->plane->dist;
 
-		for (uint32_t c = node->num_surfaces; c; c--, surf++) {
+		if (surf->flags & R_SURF_PLANE_BACK) {
+			face_dist *= -1.0;
+		}
 
-			if (!surf->lightmap || !surf->stainmap) {
-				continue;
-			}
+		const vec_t stain = size - fabs(face_dist);
+		if (stain < 0.0) {
+			continue;
+		}
 
-			const r_bsp_texinfo_t	*tex = surf->texinfo;
+		vec3_t point;
+		VectorMA(org, -face_dist, surf->plane->normal, point);
 
-			if ((tex->flags & (SURF_SKY | SURF_BLEND_33 | SURF_BLEND_66 | SURF_WARP))) {
-				continue;
-			}
+		const vec2_t point_st = {
+			DotProduct(point, tex->vecs[0]) + tex->vecs[0][3] - surf->st_mins[0],
+			DotProduct(point, tex->vecs[1]) + tex->vecs[1][3] - surf->st_mins[1]
+		};
 
-			vec_t fdist = DotProduct(org, surf->plane->normal) - surf->plane->dist;
+		const r_pixel_t smax = surf->st_extents[0];
+		const r_pixel_t tmax = surf->st_extents[1];
 
-			if (surf->flags & R_SURF_PLANE_BACK) {
-				fdist *= -1;
-			}
+		byte *buffer = surf->stainmap_buffer;
 
-			const vec_t frad = size - fabs(fdist);
-			vec_t fminlight = 0.0;
+		vec_t ftacc = 0.0;
 
-			if (frad < fminlight) {
-				continue;
-			}
+		for (uint16_t t = 0; t < tmax; t++, ftacc += 16.0) {
+			const uint32_t td = (uint32_t) fabs(point_st[1] - ftacc);
 
-			fminlight = frad - fminlight;
+			vec_t fsacc = 0.0; // FIXME: Increment by lightmap_scale?
 
-			vec3_t impact;
-			VectorMA(org, -fdist, surf->plane->normal, impact);
+			for (uint16_t s = 0; s < smax; s++, fsacc += 16.0, buffer += 3) {
+				const uint32_t sd = (uint32_t) fabs(point_st[0] - fsacc);
 
-			const vec2_t local = {
-				DotProduct (impact, tex->vecs[0]) + tex->vecs[0][3] - surf->st_mins[0],
-				DotProduct (impact, tex->vecs[1]) + tex->vecs[1][3] - surf->st_mins[1]
-			};
+				vec_t sample_dist;
+				if (sd > td) {
+					sample_dist = sd + (td / 2);
+				} else {
+					sample_dist = td + (sd / 2);
+				}
 
-			const r_pixel_t smax = surf->st_extents[0];
-			const r_pixel_t tmax = surf->st_extents[1];
+				if (sample_dist >= stain) {
+					continue;
+				}
 
-			vec_t ftacc = 0.0;
+				for (uint32_t c = 0; c < 3; c++) {
 
-			byte *pfBL = surf->stainmap_buffer;
-			_Bool changes = false;
+					const vec_t blend = ((color[c]) * src_stain_alpha) + ((buffer[c] / 255.0) * dst_stain_alpha);
+					const uint8_t new_color = (uint8_t) (Clamp(blend, 0.0, 1.0) * 255.0);
 
-			for (uint16_t t = 0; t < tmax; t++, ftacc += 16.0) {
-				const uint32_t td = (uint32_t) fabs(local[1] - ftacc);
-
-				uint16_t s = 0;
-				vec_t fsacc = 0.0;
-
-				for (; s < smax; s++, fsacc += 16.0, pfBL += 3) {
-					const uint32_t sd = (uint32_t) fabs(local[0] - fsacc);
-
-					if (sd > td) {
-						fdist = sd + (td / 2);
-					} else {
-						fdist = td + (sd / 2);
-					}
-
-					if (fdist >= fminlight) {
-						continue;
-					}
-
-					for (uint32_t i = 0; i < 3; i++) {
-						const vec_t blend = ((color[i]) * stain_alpha) + ((pfBL[i] / 255.0) * dst_stain_alpha);
-						const uint8_t new_color = (uint8_t) (Clamp(blend, 0.0, 1.0) * 255.0);
-
-						if (pfBL[i] != new_color) {
-							pfBL[i] = new_color;
-							changes = true;
-							(*num)++;
-						}
+					if (buffer[c] != new_color) {
+						buffer[c] = new_color;
+						surf->stainmap_dirty = true;
 					}
 				}
 			}
-
-			if (!changes) {
-				continue;
-			}
-
-			surf->stainmap_dirty = true;
-
-			R_BindDiffuseTexture(surf->stainmap->texnum);
-			glTexSubImage2D(GL_TEXTURE_2D, 0, surf->lightmap_s, surf->lightmap_t, smax, tmax, GL_RGB, GL_UNSIGNED_BYTE,
-							surf->stainmap_buffer);
-			R_GetError("stain");
 		}
 
-		g_array_append_vals(node_list, &node->children, 2);
+		if (!surf->stainmap_dirty) {
+			continue;
+		}
+
+		R_BindDiffuseTexture(surf->stainmap->texnum); // FIXME: Diffuse?
+		glTexSubImage2D(GL_TEXTURE_2D, 0, surf->lightmap_s, surf->lightmap_t, smax, tmax, GL_RGB, GL_UNSIGNED_BYTE, surf->stainmap_buffer);
+
+		R_GetError(tex->name);
 	}
+
+	// recurse down both sides
+
+	R_StainNode(org, color, size, node->children[0]);
+	R_StainNode(org, color, size, node->children[1]);
 }
 
 
@@ -557,60 +537,35 @@ static void R_RotateLightsForBspInlineModel(const r_entity_t *e) {
 /**
  * @brief Add a stain to the map.
  */
-uint32_t R_AddStain(const vec3_t org, const vec4_t color, const vec_t size) {
+void R_AddStain(const vec3_t org, const vec4_t color, const vec_t size) {
 
 	if (!r_stain_map->integer) {
-		return 0;
+		return;
 	}
 
-	uint32_t num = 0;
+	R_StainNode(org, color, size, r_model_state.world->bsp->nodes);
 
-	for (int32_t i = 0; i < r_model_state.world->bsp->num_inline_models; ++i) {
-		
-		r_bsp_inline_model_t *model = r_model_state.world->bsp->inline_models + i;
-		vec3_t origin;
+	for (uint16_t i = 0; i < cl.frame.num_entities; i++) {
 
-		// bad nodes
-		if (model->head_node == -1 ||
-			!model->num_surfaces) {
+		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
+		const entity_state_t *s = &cl.entity_states[snum];
+
+		if (s->solid != SOLID_BSP) {
 			continue;
 		}
 
-		r_bsp_node_t *node = r_model_state.world->bsp->nodes + model->head_node;
+		const cl_entity_t *ent = &cl.entities[s->number];
+		const cm_bsp_model_t *mod = cl.cm_models[s->model1];
 
-		cl_entity_t *entity = NULL;
-
-		// find the entity that owns us
-		if (i != 0) {
-
-			for (uint16_t x = 0; x < cl.frame.num_entities; x++) {
-
-				const uint32_t snum = (cl.frame.entity_state + x) & ENTITY_STATE_MASK;
-				const entity_state_t *s = &cl.entity_states[snum];
-
-				if (s->solid < SOLID_BSP) {
-					continue;
-				}
-				
-				const cm_bsp_model_t *mod = cl.cm_models[s->model1];
-
-				if (mod->head_node == node->model->bsp_inline->head_node) {
-					entity = &cl.entities[s->number];
-					break;
-				}
-			}
-
-			if (!entity) {
-				continue;
-			}
-
-			Matrix4x4_Transform(&entity->inverse_matrix, org, origin);
-		} else {
-			VectorCopy(org, origin);
+		if (mod == NULL || mod->head_node == -1) {
+			continue;
 		}
 
-		R_StainNode(origin, color, size, node, &num);
-	}
+		vec3_t origin;
+		Matrix4x4_Transform(&ent->inverse_matrix, org, origin);
 
-	return num;
+		r_bsp_node_t *node = &r_model_state.world->bsp->nodes[mod->head_node];
+
+		R_StainNode(origin, color, size, node);
+	}
 }
