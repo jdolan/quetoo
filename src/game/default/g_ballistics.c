@@ -1119,7 +1119,7 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 
 	if (!G_IsSky(surf)) {
 
-		if (G_IsStructural(other, surf) || G_IsMeat(other)) {
+		if (G_IsStructural(other, surf) || (G_IsMeat(other) && G_OnSameTeam(other, self->owner))) {
 
 			VectorClear(self->locals.velocity);
 			VectorClear(self->locals.avelocity);
@@ -1128,7 +1128,11 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 
 			self->locals.move_type = MOVE_TYPE_THINK;
 			self->solid = SOLID_NOT;
+			VectorClear(self->mins);
+			VectorClear(self->maxs);
 			self->locals.enemy = other;
+
+			gi.LinkEntity(self);
 
 			VectorCopy(self->s.origin, self->owner->client->ps.pm_state.hook_position);
 
@@ -1141,7 +1145,11 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 			gi.Sound(self, g_media.sounds.hook_hit, ATTEN_NORM);
 		} else {
 
-			// FIXME: attach to non-brush models maybe?
+			VectorNormalize(self->locals.velocity);
+			G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, vec3_origin, 5, 0, 0, MOD_HOOK);
+
+			gi.Sound(self, g_media.sounds.gib_hits[Random() % 3], ATTEN_DEFAULT);
+
 			G_ClientHookDetach(self->owner);
 		}
 
