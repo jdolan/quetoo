@@ -393,6 +393,8 @@ static void R_StainNode(const vec3_t org, const vec4_t color, vec_t size, r_bsp_
 
 	if (node->contents != CONTENTS_NODE) {
 		return;
+	} else if (node->vis_frame != r_locals.vis_frame) {
+		return;
 	}
 
 	const vec_t dist = DotProduct(org, node->plane->normal) - node->plane->dist;
@@ -418,6 +420,8 @@ static void R_StainNode(const vec3_t org, const vec4_t color, vec_t size, r_bsp_
 
 		if (!surf->lightmap || !surf->stainmap) {
 			continue;
+		} else if (surf->vis_frame != r_locals.vis_frame) {
+			return;
 		}
 
 		const r_bsp_texinfo_t *tex = surf->texinfo;
