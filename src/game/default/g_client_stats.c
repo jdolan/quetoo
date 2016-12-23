@@ -35,6 +35,7 @@ void G_ClientToIntermission(g_entity_t *ent) {
 	VectorClear(ent->client->ps.pm_state.view_offset);
 
 	ent->client->ps.pm_state.type = PM_FREEZE;
+	ent->client->ps.pm_state.flags = PMF_NO_PREDICTION;
 
 	ent->s.model1 = 0;
 	ent->s.model2 = 0;

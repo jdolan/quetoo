@@ -877,7 +877,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 /**
  * @brief
  */
-static void Cg_RippleEffect(const vec3_t org, const vec_t size, const uint8_t viscosity) {
+static void Cg_RippleEffect(const vec3_t org, const vec3_t dir, const vec_t size, const uint8_t viscosity) {
 	cg_particle_t *p;
 	int32_t i;
 
@@ -887,9 +887,8 @@ static void Cg_RippleEffect(const vec3_t org, const vec_t size, const uint8_t vi
 
 	p->lifetime = (500 + (Random() % 1500)) * (viscosity * 0.1);
 
-	p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
-
-	p->part.flags |= PARTICLE_FLAG_NO_DEPTH;
+	p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
+	p->part.flags = PARTICLE_FLAG_NO_DEPTH;
 
 	Vector4Set(p->color_start, 1.0, 1.0, 1.0, 0.5 + (Randomf() * 1.5));
 	Vector4Set(p->color_end, 1.0, 1.0, 1.0, 0.0);
@@ -900,29 +899,48 @@ static void Cg_RippleEffect(const vec3_t org, const vec_t size, const uint8_t vi
 	VectorCopy(org, p->part.org);
 
 	for (i = 0; i < 10; i++) {
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_smoke))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_normal))) {
 			break;
 		}
 
-		p->lifetime = 200;
+		p->lifetime = 200 + Randomc() * 50;
 
-		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
+		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-		Vector4Set(p->color_start, 1.0, 1.0, 1.0, 1.0);
+		Vector4Set(p->color_start, 1.0, 1.0, 1.0, 2.0);
 		Vector4Set(p->color_end, 1.0, 1.0, 1.0, 0.0);
 
-		p->scale_start = 1.0;
-		p->scale_end = 4.0;
+		p->scale_start = 0.8;
+		p->scale_end = 0.5;
 
-		p->part.org[0] = org[0] + (Random() % 32) - 16;
-		p->part.org[1] = org[1] + (Random() % 32) - 16;
-		p->part.org[2] = org[2];
+		p->part.org[0] = org[0] + (Randomc() * 8.0);
+		p->part.org[1] = org[1] + (Randomc() * 8.0);
+		p->part.org[2] = org[2] + (Randomf() * 8.0);
 
-		p->vel[0] = (Random() % 128) - 64;
-		p->vel[1] = (Random() % 128) - 64;
-		p->vel[2] = Random() % 128;
+		p->vel[0] = Randomc() * 64.0;
+		p->vel[1] = Randomc() * 64.0;
+		p->vel[2] = 36.0 + Randomf() * 64.0;
 
-		VectorSet(p->accel, 0.0, 0.0, -3.0 * PARTICLE_GRAVITY);
+		VectorSet(p->accel, 0.0, 0.0, -PARTICLE_GRAVITY / 2.0);
+	}
+
+	if ((p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_beam))) {
+
+		p->lifetime = 150 + Randomf() * 150;
+		p->effects = PARTICLE_EFFECT_COLOR;
+
+		Vector4Set(p->color_start, 0.8, 0.8, 0.8, 0.45);
+		Vector4Set(p->color_end, 0.8, 0.8, 0.8, 0.0);
+
+		p->part.scale = 1.2 + Randomf() * 0.6;
+
+		VectorCopy(org, p->part.org);
+
+		VectorScale(dir, 24.0 + Randomf() * 25.0, p->vel);
+
+		p->spark.length = 0.7 + Randomf() * 0.01;
+
+		VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 	}
 }
 
@@ -1029,7 +1047,8 @@ void Cg_ParseTempEntity(void) {
 			cgi.ReadPosition(pos);
 			size = cgi.ReadVector();
 			viscosity = cgi.ReadByte();
-			Cg_RippleEffect(pos, size, viscosity);
+			cgi.ReadDir(dir);
+			Cg_RippleEffect(pos, dir, size, viscosity);
 			break;
 
 		default:

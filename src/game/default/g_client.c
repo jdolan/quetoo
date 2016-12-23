@@ -179,6 +179,10 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 				message = "tried to invade";
 				message2 = "'s personal space";
 				break;
+			case MOD_HOOK:
+				message = "had their intestines shredded by";
+				message2 = "'s grappling hook";
+				break;
 		}
 
 		if (message) {
@@ -1016,6 +1020,7 @@ void G_ClientBegin(g_entity_t *ent) {
 
 		if (G_MatchIsTimeout()) { // joined during a match timeout
 			ent->client->ps.pm_state.type = PM_FREEZE;
+			ent->client->ps.pm_state.flags = PMF_NO_PREDICTION;
 		}
 	}
 

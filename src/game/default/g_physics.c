@@ -27,7 +27,7 @@
  * NULL will not test a trace; doing this is not recommended
  */
 void G_LiquidRipple(g_entity_t *ent, const vec3_t orig_start, const vec3_t orig_end, const vec_t size) {
-	vec3_t pos;
+	vec3_t pos, dir;
 	uint8_t viscosity = 10; // 10 is water, higher = denser
 
 	if (orig_start != NULL) {
@@ -54,8 +54,10 @@ void G_LiquidRipple(g_entity_t *ent, const vec3_t orig_start, const vec3_t orig_
 		}
 
 		VectorCopy(tr.end, pos);
+		VectorCopy(tr.plane.normal, dir);
 	} else {
 		VectorCopy(orig_end, pos);
+		VectorCopy(vec3_up, dir);
 	}
 
 	pos[2] += 1; // put it above the liquid surface
@@ -75,6 +77,7 @@ void G_LiquidRipple(g_entity_t *ent, const vec3_t orig_start, const vec3_t orig_
 	gi.WritePosition(pos);
 	gi.WriteVector(size);
 	gi.WriteByte(viscosity);
+	gi.WriteDir(dir);
 	gi.Multicast(pos, MULTICAST_PVS, NULL);
 }
 
