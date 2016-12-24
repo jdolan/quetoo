@@ -263,21 +263,17 @@ static entity_animation_t Cg_NextAnimation(const entity_animation_t a) {
  * and entity. If a non-looping animation has completed, proceed to the next
  * animation in the sequence.
  */
-static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a, r_entity_t *e) {
-
-	e->frame = e->old_frame = 0;
-	e->lerp = 1.0;
-	e->back_lerp = 0.0;
+static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a) {
 
 	if (a->animation > md3->num_animations) {
-		cgi.Warn("Invalid animation: %s: %d\n", e->model->media.name, a->animation);
+		cgi.Warn("Invalid animation: %s: %d\n", md3->file_name, a->animation);
 		return;
 	}
 
 	const r_md3_animation_t *anim = &md3->animations[a->animation];
 
 	if (!anim->num_frames || !anim->hz) {
-		cgi.Warn("Bad animation sequence: %s: %d\n", e->model->media.name, a->animation);
+		cgi.Warn("Bad animation sequence: %s: %d\n", md3->file_name, a->animation);
 		return;
 	}
 
@@ -292,16 +288,15 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 			const entity_animation_t next = Cg_NextAnimation(a->animation);
 
 			if (next == a->animation) { // no change, just stay put
-				e->frame = anim->first_frame + anim->num_frames - 1;
-				e->lerp = 1.0;
-				e->back_lerp = 0.0;
+				a->frame = anim->first_frame + anim->num_frames - 1;
+				a->lerp = 1.0;
 				return;
 			}
 
 			a->animation = next; // or move into the next animation
 			a->time = cgi.client->ticks;
 
-			Cg_AnimateClientEntity_(md3, a, e);
+			Cg_AnimateClientEntity_(md3, a);
 			return;
 		}
 
@@ -324,21 +319,32 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 
 	a->lerp = (elapsed_time % frame_duration) / (vec_t) frame_duration;
 	a->fraction = elapsed_time / (vec_t) animation_duration;
-
-	e->frame = a->frame;
-	e->old_frame = a->old_frame;
-	e->lerp = a->lerp;
-	e->back_lerp = 1.0 - a->lerp;
 }
 
 /**
  * @brief Runs the animation sequences for the specified entity, setting the frame
  * indexes and interpolation fractions for the specified renderer entities.
  */
-void Cg_AnimateClientEntity(cl_entity_t *e, r_entity_t *torso, r_entity_t *legs) {
+void Cg_AnimateClientEntity(cl_entity_t *ent, r_entity_t *torso, r_entity_t *legs) {
 
-	const r_md3_t *md3 = (r_md3_t *) torso->model->mesh->data;
+	const cl_client_info_t *ci = &cgi.client->client_info[ent->current.client];
+	const r_md3_t *md3 = (r_md3_t *) ci->torso->mesh->data;
 
-	Cg_AnimateClientEntity_(md3, &e->animation1, torso);
-	Cg_AnimateClientEntity_(md3, &e->animation2, legs);
+	Cg_AnimateClientEntity_(md3, &ent->animation1);
+
+	if (torso) {
+		torso->frame = ent->animation1.frame;
+		torso->old_frame = ent->animation1.old_frame;
+		torso->lerp = ent->animation1.lerp;
+		torso->back_lerp = 1.0 - ent->animation1.lerp;
+	}
+
+	Cg_AnimateClientEntity_(md3, &ent->animation2);
+
+	if (legs) {
+		legs->frame = ent->animation1.frame;
+		legs->old_frame = ent->animation1.old_frame;
+		legs->lerp = ent->animation1.lerp;
+		legs->back_lerp = 1.0 - ent->animation1.lerp;
+	}
 }

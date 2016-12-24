@@ -235,7 +235,7 @@ static void R_UploadPackedLightmaps(uint32_t width, uint32_t height, r_bsp_model
 	r_image_t *deluxemap = R_AllocDeluxemap(width, height);
 	r_image_t *stainmap = NULL;
 
-	if (r_stain_map->integer) {
+	if (r_stainmap->integer) {
 		stainmap = R_AllocStainmap(width, height);
 	}
 
@@ -255,7 +255,7 @@ static void R_UploadPackedLightmaps(uint32_t width, uint32_t height, r_bsp_model
 		if (surf->lightmap_input) {
 			byte *stout = NULL;
 
-			if (r_stain_map->integer) {
+			if (r_stainmap->integer) {
 				surf->stainmap = stainmap;
 				stout = surf->stainmap_buffer = Mem_LinkMalloc(surf->st_extents[0] * surf->st_extents[1] * 3, bsp);
 			}
@@ -276,7 +276,7 @@ static void R_UploadPackedLightmaps(uint32_t width, uint32_t height, r_bsp_model
 	R_UploadImage(deluxemap, GL_RGB, direction_buffer);
 
 	// copy to the stainmap
-	if (r_stain_map->integer) {
+	if (r_stainmap->integer) {
 		R_UploadImage(stainmap, GL_RGB, sample_buffer);
 	}
 

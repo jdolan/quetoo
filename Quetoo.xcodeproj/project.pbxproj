@@ -278,6 +278,8 @@
 		CE80FFFB1C5E4D1800A21A51 /* writebsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7081C5C58C300CD0B13 /* writebsp.c */; };
 		CE80FFFE1C5E4D4400A21A51 /* libcollision.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.dylib */; };
 		CE80FFFF1C5E4D4400A21A51 /* libcommon.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.dylib */; };
+		CE8C734C1E0DE28000226317 /* r_stainmap.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8C734A1E0DE28000226317 /* r_stainmap.c */; };
+		CE8C734D1E0DE28000226317 /* r_stainmap.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8C734B1E0DE28000226317 /* r_stainmap.h */; };
 		CEA029C31C5E54C200341079 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEA029C41C5E54F600341079 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEA082371DC6EC50001207AA /* r_atlas.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA082331DC6EBB7001207AA /* r_atlas.c */; };
@@ -1364,6 +1366,8 @@
 		CE80FF6A1C5E494E00A21A51 /* libclient-null.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "libclient-null.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE80FF7F1C5E49C400A21A51 /* libserver.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libserver.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libncurses.6.dylib; path = /opt/local/lib/libncurses.6.dylib; sourceTree = "<absolute>"; };
+		CE8C734A1E0DE28000226317 /* r_stainmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_stainmap.c; sourceTree = "<group>"; };
+		CE8C734B1E0DE28000226317 /* r_stainmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_stainmap.h; sourceTree = "<group>"; };
 		CE92B3A91D2FF72200E9153A /* quemap-icon.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "quemap-icon.rc"; sourceTree = "<group>"; };
 		CE92B3AA1D2FF77800E9153A /* quemap.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = quemap.ico; sourceTree = "<group>"; };
 		CE92B3AB1D2FF7F600E9153A /* quetoo-dedicated-icon.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "quetoo-dedicated-icon.rc"; sourceTree = "<group>"; };
@@ -2280,6 +2284,8 @@
 				CE12D5E41C5C58C300CD0B13 /* r_program.h */,
 				CE12D5ED1C5C58C300CD0B13 /* r_sky.c */,
 				CE12D5EE1C5C58C300CD0B13 /* r_sky.h */,
+				CE8C734A1E0DE28000226317 /* r_stainmap.c */,
+				CE8C734B1E0DE28000226317 /* r_stainmap.h */,
 				CE12D5EF1C5C58C300CD0B13 /* r_state.c */,
 				CE12D5F01C5C58C300CD0B13 /* r_state.h */,
 				CE12D5F11C5C58C300CD0B13 /* r_types.h */,
@@ -3070,6 +3076,7 @@
 				CE3BCDC81DB6DD77002E6C6D /* r_glad_core.h in Headers */,
 				CED4388B1D9D34450052BAFA /* r_image.h in Headers */,
 				CED4388C1D9D34450052BAFA /* r_light.h in Headers */,
+				CE8C734D1E0DE28000226317 /* r_stainmap.h in Headers */,
 				CED4388D1D9D34450052BAFA /* r_lighting.h in Headers */,
 				CED4388E1D9D34450052BAFA /* r_lightmap.h in Headers */,
 				CED4388F1D9D34450052BAFA /* r_local.h in Headers */,
@@ -4118,6 +4125,7 @@
 				CED438511D9D34450052BAFA /* r_program.c in Sources */,
 				CEA936661DBCD88D00A12B79 /* r_program_corona.c in Sources */,
 				CED438521D9D34450052BAFA /* r_program_default.c in Sources */,
+				CE8C734C1E0DE28000226317 /* r_stainmap.c in Sources */,
 				CE3BCDC91DB6DD81002E6C6D /* r_program_null.c in Sources */,
 				CED438531D9D34450052BAFA /* r_program_shadow.c in Sources */,
 				CED438541D9D34450052BAFA /* r_program_shell.c in Sources */,

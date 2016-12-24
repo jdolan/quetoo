@@ -49,7 +49,7 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 	}
 
 	if (texunit_lightmap->enabled) { // lightmap texture
-		if (r_stain_map->integer && surf->stainmap) {
+		if (r_stainmap->integer && surf->stainmap) {
 			R_BindLightmapTexture(surf->stainmap->texnum);
 		} else {
 			R_BindLightmapTexture(surf->lightmap->texnum);

@@ -58,6 +58,7 @@
 #include "r_program_null.h"
 #include "r_program_corona.h"
 #include "r_sky.h"
+#include "r_stainmap.h"
 #include "r_state.h"
 #include "r_types.h"
 

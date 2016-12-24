@@ -74,7 +74,7 @@ cvar_t *r_screenshot_format;
 cvar_t *r_shadows;
 cvar_t *r_shell;
 cvar_t *r_specular;
-cvar_t *r_stain_map;
+cvar_t *r_stainmap;
 cvar_t *r_supersample;
 cvar_t *r_swap_interval;
 cvar_t *r_texture_mode;
@@ -163,6 +163,8 @@ void R_DrawView(void) {
 	R_AddSustainedLights();
 
 	R_AddFlares();
+
+	R_AddStains();
 
 	R_CullEntities();
 
@@ -365,7 +367,7 @@ void R_LoadMedia(void) {
 
 	Cl_LoadingProgress(55, "mopping up blood");
 
-	R_ResetStainMap(); // clear the stainmap if we have to
+	R_ResetStainmap(); // clear the stainmap if we have to
 
 	Cl_LoadingProgress(60, "models");
 
@@ -433,11 +435,10 @@ static void R_ToggleFullscreen_f(void) {
 }
 
 /**
- * @brief Clears the stainmap.
+ * @brief Resets the stainmap.
  */
-static void R_StainClear_f(void) {
-
-	R_ResetStainMap();
+static void R_ResetStainmap_f(void) {
+	R_ResetStainmap();
 }
 
 /**
@@ -520,7 +521,7 @@ static void R_InitLocal(void) {
 	                   "Controls mesh shell effect (e.g. Quad Damage shell)");
 	r_specular = Cvar_Add("r_specular", "1.0", CVAR_ARCHIVE,
 	                      "Controls the specularity of bump-mapping effects");
-	r_stain_map = Cvar_Add("r_stain_map", "1.0", CVAR_ARCHIVE,
+	r_stainmap = Cvar_Add("r_stainmap", "1.0", CVAR_ARCHIVE,
 	                       "Controls the stain mapping effects.");
 	r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT,
 	                           "Controls vertical refresh synchronization (v-sync)");
@@ -537,12 +538,12 @@ static void R_InitLocal(void) {
 
 	Cmd_Add("r_list_media", R_ListMedia_f, CMD_RENDERER, "List all currently loaded media");
 	Cmd_Add("r_dump_images", R_DumpImages_f, CMD_RENDERER, "Dump all loaded images. Careful!");
+	Cmd_Add("r_reset_stainmap", R_ResetStainmap_f, CMD_RENDERER, "Reset the stainmap");
 	Cmd_Add("r_screenshot", R_Screenshot_f, CMD_SYSTEM | CMD_RENDERER, "Take a screenshot");
 	Cmd_Add("r_sky", R_Sky_f, CMD_RENDERER, NULL);
 	Cmd_Add("r_toggle_fullscreen", R_ToggleFullscreen_f, CMD_SYSTEM | CMD_RENDERER,
 	        "Toggle fullscreen");
 	Cmd_Add("r_restart", R_Restart_f, CMD_RENDERER, "Restart the rendering subsystem");
-	Cmd_Add("r_stain_clear", R_StainClear_f, CMD_RENDERER, "Clear the stainmap");
 }
 
 /**

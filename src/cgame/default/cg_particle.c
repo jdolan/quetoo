@@ -213,20 +213,21 @@ static _Bool Cg_UpdateParticle_Spark(cg_particle_t *p, const vec_t delta, const 
 static void Cg_UpdateParticleSpecial_Blood(cg_particle_t *p) {
 
 	if (p->blood.time < cgi.client->ticks) {
-		const vec4_t blood_color = {
-			0.9 + Randomf() * 0.1,
-			0.0,
-			0.0,
-			0.3 + Randomc() * 0.25
-		};
 
-		const vec3_t blood_pos = {
-			p->part.org[0] + Randomc() * 8.0,
-			p->part.org[1] + Randomc() * 8.0,
-			p->part.org[2] + Randomc() * 8.0
-		};
-
-		cgi.AddStain(blood_pos, blood_color, p->part.scale + (Randomc() * 3.0));
+		cgi.AddStain(&(const r_stain_t) {
+			.origin = {
+				p->part.org[0] + Randomc() * 8.0,
+				p->part.org[1] + Randomc() * 8.0,
+				p->part.org[2] + Randomc() * 8.0
+			},
+			.color = {
+				0.9 + Randomf() * 0.1,
+				0.0,
+				0.0,
+				0.3 + Randomc() * 0.25
+			},
+			.radius = p->part.scale + (Randomc() * 3.0)
+		});
 
 		p->blood.time = cgi.client->ticks + 32 + (Randomf() * 64);
 	}

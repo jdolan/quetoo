@@ -449,12 +449,11 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 /**
  * @brief
  */
-static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, vec_t radius, int32_t color) {
-	int32_t i;
+static void Cg_EnergyTrail(cl_entity_t *ent, vec_t radius, int32_t color) {
 
 	const vec_t ltime = (vec_t) (cgi.client->ticks + ent->current.number) / 300.0;
 
-	for (i = 0; i < NUM_APPROXIMATE_NORMALS; i++) {
+	for (int32_t i = 0; i < NUM_APPROXIMATE_NORMALS; i++) {
 		cg_particle_t *p;
 
 		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL))) {
@@ -477,14 +476,12 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, vec_t radius, int
 		p->part.scale = 0.5 + (0.05 * radius);
 		p->lifetime = PARTICLE_IMMEDIATE;
 
-		int32_t j;
-		for (j = 0; j < 3; j++) {
-			// project the origin outward and forward
-			p->part.org[j] = org[j] + (approximate_normals[i][j] * dist) + forward[j] * radius;
+		for (int32_t j = 0; j < 3; j++) { // project the origin outward and forward
+			p->part.org[j] = ent->origin[j] + (approximate_normals[i][j] * dist) + forward[j] * radius;
 		}
 
 		vec3_t delta;
-		VectorSubtract(p->part.org, org, delta);
+		VectorSubtract(p->part.org, ent->origin, delta);
 		dist = VectorLength(delta) / (3.0 * radius);
 
 		cgi.ColorFromPalette(color + dist * 7.0, p->part.color);
@@ -492,29 +489,29 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, vec_t radius, int
 		VectorScale(delta, 100.0, p->accel);
 	}
 
-	if (cgi.PointContents(org) & MASK_LIQUID) {
-		Cg_BubbleTrail(ent->prev.origin, ent->current.origin, radius / 4.0);
+	if (cgi.PointContents(ent->origin) & MASK_LIQUID) {
+		Cg_BubbleTrail(ent->prev.origin, ent->origin, radius / 4.0);
 	}
 }
 
 /**
  * @brief
  */
-static void Cg_HyperblasterTrail(cl_entity_t *ent, const vec3_t org) {
+static void Cg_HyperblasterTrail(cl_entity_t *ent) {
 	r_light_t l;
 	cg_particle_t *p;
 
-	Cg_EnergyTrail(ent, org, 6.0, 107);
+	Cg_EnergyTrail(ent, 6.0, 107);
 
 	if ((p = Cg_AllocParticle(PARTICLE_CORONA, NULL))) {
 		VectorSet(p->part.color, 0.4, 0.7, 1.0);
-		VectorCopy(org, p->part.org);
+		VectorCopy(ent->origin, p->part.org);
 
 		p->lifetime = PARTICLE_IMMEDIATE;
 		p->part.scale = CORONA_SCALE(10.0, 0.15);
 	}
 
-	VectorCopy(org, l.origin);
+	VectorCopy(ent->origin, l.origin);
 	l.radius = 100.0;
 	VectorSet(l.color, 0.4, 0.7, 1.0);
 
@@ -620,9 +617,9 @@ static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
 /**
  * @brief
  */
-static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t org) {
+static void Cg_BfgTrail(cl_entity_t *ent) {
 
-	Cg_EnergyTrail(ent, org, 48.0, 206);
+	Cg_EnergyTrail(ent, 48.0, 206);
 
 	const vec_t mod = sin(cgi.client->ticks >> 5);
 
@@ -641,11 +638,11 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t org) {
 
 		p->part.roll = Randomc() * 100.0;
 
-		VectorCopy(org, p->part.org);
+		VectorCopy(ent->origin, p->part.org);
 	}
 
 	r_light_t l;
-	VectorCopy(org, l.origin);
+	VectorCopy(ent->origin, l.origin);
 	l.radius = 160.0 + 48.0 * mod;
 	VectorSet(l.color, 0.4, 1.0, 0.4);
 
@@ -655,7 +652,7 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t org) {
 /**
  * @brief
  */
-static void Cg_TeleporterTrail(cl_entity_t *ent, const vec3_t org) {
+static void Cg_TeleporterTrail(cl_entity_t *ent) {
 
 	if (ent->timestamp > cgi.client->ticks) {
 		return;
@@ -687,7 +684,7 @@ static void Cg_TeleporterTrail(cl_entity_t *ent, const vec3_t org) {
 		p->scale_start = 16.0;
 		p->scale_end = p->scale_start * 2.0;
 
-		VectorCopy(org, p->part.org);
+		VectorCopy(ent->origin, p->part.org);
 		p->part.org[2] -= (6.0 * i);
 		p->vel[2] = 120.0;
 	}
@@ -774,7 +771,7 @@ static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t 
  * and their current interpolated origin. Beam trails are a special case: the
  * old origin field is overridden to specify the endpoint of the beam.
  */
-void Cg_EntityTrail(cl_entity_t *ent, r_entity_t *e) {
+void Cg_EntityTrail(cl_entity_t *ent) {
 	const entity_state_t *s = &ent->current;
 
 	vec3_t start, end;
@@ -824,7 +821,7 @@ void Cg_EntityTrail(cl_entity_t *ent, r_entity_t *e) {
 			Cg_RocketTrail(ent, start, end);
 			break;
 		case TRAIL_HYPERBLASTER:
-			Cg_HyperblasterTrail(ent, e->origin);
+			Cg_HyperblasterTrail(ent);
 			break;
 		case TRAIL_LIGHTNING:
 			Cg_LightningTrail(ent, start, end);
@@ -833,10 +830,10 @@ void Cg_EntityTrail(cl_entity_t *ent, r_entity_t *e) {
 			Cg_HookTrail(ent, start, end);
 			break;
 		case TRAIL_BFG:
-			Cg_BfgTrail(ent, e->origin);
+			Cg_BfgTrail(ent);
 			break;
 		case TRAIL_TELEPORTER:
-			Cg_TeleporterTrail(ent, e->origin);
+			Cg_TeleporterTrail(ent);
 			break;
 		case TRAIL_GIB:
 			Cg_GibTrail(ent, start, end);

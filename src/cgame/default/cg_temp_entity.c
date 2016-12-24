@@ -72,9 +72,11 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 		}
 	}
 
-	cgi.AddStain(org, (const vec4_t) {
-		s.light.color[0], s.light.color[1], s.light.color[2], 0.2
-	}, 24.0);
+	cgi.AddStain(&(const r_stain_t) {
+		.origin = { org[0], org[1], org[2] },
+		 .color = { s.light.color[0], s.light.color[1], s.light.color[2], 0.2 },
+		  .radius = 24.0
+	});
 
 	VectorAdd(org, dir, s.light.origin);
 	s.light.radius = 150.0;
@@ -162,10 +164,6 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 
 	Cg_DecalEffect(org, dir, 1.5 + Randomc() * 0.4, cg_particles_bullet[Random() % 3]);
 
-	cgi.AddStain(org, (const vec4_t) {
-		0.0, 0.0, 0.0, 0.4
-	}, 6.5);
-
 	k = 1 + (Random() % 5);
 
 	while (k--) {
@@ -222,6 +220,12 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 
 	cgi.AddSustainedLight(&s);
 
+	cgi.AddStain(&(const r_stain_t) {
+		 .origin = { org[0], org[1], org[2] },
+		  .color = { 0.0, 0.0, 0.0, 0.4 },
+		   .radius = 6.0
+	});
+
 	if (cgi.client->ticks < last_ric_time) {
 		last_ric_time = 0;
 	}
@@ -245,7 +249,12 @@ static void Cg_BurnEffect(const vec3_t org, const vec3_t dir, const vec4_t color
 
 	Cg_DecalEffect(org, dir, scale, cg_particles_burn);
 
-	cgi.AddStain(org, color, scale * 2.0);
+	r_stain_t stain;
+	VectorCopy(org, stain.origin);
+	Vector4Copy(color, stain.color);
+	stain.radius = scale;
+
+	cgi.AddStain(&stain);
 }
 
 /**
@@ -281,9 +290,11 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 		p->accel[2] = -PARTICLE_GRAVITY / 4.0;
 	}
 
-	cgi.AddStain(org, (const vec4_t) {
-		0.9 + Randomc(), 0.0, 0.0, 0.08
-	}, count * 4);
+	cgi.AddStain(&(const r_stain_t) {
+		.origin = { org[0], org[1], org[2] },
+		 .color = { 0.9 + Randomc(), 0.0, 0.0, 0.08 },
+		  .radius = count * 4.0
+	});
 }
 
 #define GIB_STREAM_DIST 180.0
@@ -349,9 +360,11 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 		}
 	}
 
-	cgi.AddStain(org, (const vec4_t) {
-		0.9 + Randomc(), 0.0, 0.0, 0.09
-	}, count * 8.0);
+	cgi.AddStain(&(const r_stain_t) {
+		.origin = { org[0], org[1], org[2] },
+		 .color = { 0.9 + Randomc(), 0.0, 0.0, 0.09 },
+		  .radius = count * 8.0
+	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_gib,

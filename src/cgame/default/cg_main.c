@@ -243,7 +243,7 @@ static _Bool Cg_ParseMessage(int32_t cmd) {
 /**
  * @brief
  */
-static void Cg_DrawFrame(const cl_frame_t *frame) {
+static void Cg_UpdateScreen(const cl_frame_t *frame) {
 
 	Cg_DrawHud(&frame->ps);
 
@@ -314,10 +314,10 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.UpdateConfigString = Cg_UpdateConfigString;
 	cge.LoadClient = Cg_LoadClient;
 	cge.ParseMessage = Cg_ParseMessage;
+	cge.Interpolate = Cg_Interpolate;
 	cge.PredictMovement = Cg_PredictMovement;
 	cge.UpdateView = Cg_UpdateView;
 	cge.UpdateScreen = Cg_UpdateScreen;
-	cge.DrawFrame = Cg_DrawFrame;
 
 	return &cge;
 }

@@ -24,8 +24,6 @@
 
 #include "r_types.h"
 
-void R_AddStain(const vec3_t org, const vec4_t color, const vec_t size);
-
 #ifdef __R_LOCAL_H__
 
 typedef struct {
@@ -48,7 +46,6 @@ extern r_bsp_light_state_t r_bsp_light_state;
 
 void R_LoadBspLights(r_bsp_model_t *mod);
 void R_DrawBspLights(void);
-void R_ResetStainMap(void);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_BSP_LIGHT_H__ */

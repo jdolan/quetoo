@@ -802,6 +802,18 @@ typedef struct r_model_s {
 #define IS_BSP_INLINE_MODEL(m) (m && m->bsp_inline)
 
 /**
+ * @brief Stains are low-resolution color effects added to the map's lightmap
+ * data. They are persistent for the duration of the map.
+ */
+typedef struct {
+	vec3_t origin;
+	vec4_t color;
+	vec_t radius;
+} r_stain_t;
+
+#define MAX_STAINS			64
+
+/**
  * @brief Dynamic light sources expire immediately and must be re-added
  * for each frame they appear.
  */
@@ -1093,6 +1105,9 @@ typedef struct {
 
 	uint16_t num_lights;
 	r_light_t lights[MAX_LIGHTS];
+
+	uint16_t num_stains;
+	r_stain_t stains[MAX_STAINS];
 
 	r_sustained_light_t sustained_lights[MAX_LIGHTS];
 
