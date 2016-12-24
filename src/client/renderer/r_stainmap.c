@@ -146,6 +146,9 @@ static void R_StainNode(const r_stain_t *stain, r_bsp_node_t *node) {
 		// this is the texel we're checking to see should be stained.
 		// this is in diffuse texels, not lightmap texels.
 		vec2_t texel_check = { 0.0, 0.0 };
+		
+		const vec_t slen = 4.0 / VectorLengthSquared(tex->vecs[0]);
+		const vec_t tlen = 4.0 / VectorLengthSquared(tex->vecs[1]);
 
 		// the magical loop. So, an interesting thing to note here is that this loop
 		// operates on both lightmap and diffuse texture coordinates. It loops through
@@ -166,7 +169,7 @@ static void R_StainNode(const r_stain_t *stain, r_bsp_node_t *node) {
 				const vec2_t sample_diff = { point_st[0] - texel_check[0], point_st[1] - texel_check[1] };
 
 				// grab the distance of said vector above. No sqrt, since the intensity is squared.
-				const vec_t sample_dist = sample_diff[0] * sample_diff[0] + sample_diff[1] * sample_diff[1];
+				const vec_t sample_dist = (sample_diff[0] * sample_diff[0]) * slen + (sample_diff[1] * sample_diff[1]) * tlen;
 
 				// we're outside of the stain circle
 				if (sample_dist >= intensity_squared) {
@@ -174,6 +177,7 @@ static void R_StainNode(const r_stain_t *stain, r_bsp_node_t *node) {
 				}
 
 				// we stained! color bits are straightforward.
+				Com_Print("%f %f\n", slen, tlen);
 
 				for (uint32_t j = 0; j < 3; j++) {
 
