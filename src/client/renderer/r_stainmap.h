@@ -24,6 +24,8 @@
 void R_AddStain(const r_stain_t *s);
 
 #ifdef __R_LOCAL_H__
+void R_InitStainmaps(void);
+void R_ShutdownStainmaps(void);
 void R_AddStains(void);
 void R_ResetStainmap(void);
 #endif /* __R_LOCAL_H__ */

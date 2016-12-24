@@ -24,6 +24,9 @@
 
 extern cl_client_t cl;
 
+// a list of stained surfaces, for uploading
+static GHashTable *r_surfs_stained;
+
 /**
  * @brief
  */
@@ -177,8 +180,6 @@ static void R_StainNode(const r_stain_t *stain, r_bsp_node_t *node) {
 				}
 
 				// we stained! color bits are straightforward.
-				Com_Print("%f %f\n", slen, tlen);
-
 				for (uint32_t j = 0; j < 3; j++) {
 
 					const vec_t src = stain->color[j] * src_stain_alpha;
@@ -198,11 +199,8 @@ static void R_StainNode(const r_stain_t *stain, r_bsp_node_t *node) {
 			continue;
 		}
 
-		R_BindDiffuseTexture(surf->stainmap->texnum);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, surf->lightmap_s, surf->lightmap_t, smax, tmax, GL_RGB,
-						GL_UNSIGNED_BYTE, surf->stainmap_buffer);
-
-		R_GetError(tex->name);
+		// mark it to be uploaded at the end of the frame
+		g_hash_table_add(r_surfs_stained, surf);
 	}
 
 	// recurse down both sides
@@ -229,9 +227,31 @@ void R_AddStain(const r_stain_t *s) {
 }
 
 /**
+ * @brief
+ */
+static void R_AddStains_UploadSurfaces(gpointer key, gpointer value, gpointer userdata) {
+
+	const r_bsp_surface_t *surf = (r_bsp_surface_t *) value;
+
+	// bind as diffuse, since it's the only texunit that stays bound so that the
+	// GL_TEXTURE_2D resolves properly
+	R_BindDiffuseTexture(surf->stainmap->texnum);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, surf->lightmap_s, surf->lightmap_t, surf->st_extents[0], surf->st_extents[1], GL_RGB,
+					GL_UNSIGNED_BYTE, surf->stainmap_buffer);
+
+	R_GetError("stain upload");
+}
+
+/**
  * @brief Adds new stains from the view each frame.
  */
 void R_AddStains(void) {
+
+	// upload the stain maps that were modified
+	g_hash_table_foreach(r_surfs_stained, R_AddStains_UploadSurfaces, NULL);
+
+	// clear for next iteration
+	g_hash_table_remove_all(r_surfs_stained);
 
 	const r_stain_t *s = r_view.stains;
 	for (int32_t i = 0; i < r_view.num_stains; i++, s++) {
@@ -317,4 +337,20 @@ void R_ResetStainmap(void) {
 	}
 
 	g_hash_table_destroy(hash);
+}
+
+/**
+ * @brief Initialize the stainmap subsystem.
+ */
+void R_InitStainmaps(void) {
+
+	r_surfs_stained = g_hash_table_new(g_direct_hash, g_direct_equal);
+}
+
+/**
+ * @brief Shutdown the stainmap subsystem.
+ */
+void R_ShutdownStainmaps(void) {
+
+	g_hash_table_destroy(r_surfs_stained);
 }

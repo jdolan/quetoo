@@ -619,6 +619,8 @@ void R_Init(void) {
 
 	R_InitMaterials();
 
+	R_InitStainmaps();
+
 	Com_Print("Video initialized %dx%d %s\n", r_context.width, r_context.height,
 	          (r_context.fullscreen ? "fullscreen" : "windowed"));
 }
@@ -642,6 +644,8 @@ void R_Shutdown(void) {
 	R_ShutdownParticles();
 
 	R_ShutdownSky();
+
+	R_ShutdownStainmaps();
 
 	R_ShutdownMaterials();
 
