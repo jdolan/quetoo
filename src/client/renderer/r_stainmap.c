@@ -76,54 +76,104 @@ static void R_StainNode(const r_stain_t *stain, r_bsp_node_t *node) {
 		}
 
 		// THIS IS NOT RIGHT, BUT SOMETHIN LIKE THIS 
-		const vec_t step_s = tex->scale[0] * r_model_state.world->bsp->lightmaps->scale;
-		const vec_t step_t = tex->scale[1] * r_model_state.world->bsp->lightmaps->scale;
+		const vec_t step_s = 16.0;//tex->scale[0] * r_model_state.world->bsp->lightmaps->scale;
+		const vec_t step_t = 16.0;//tex->scale[1] * r_model_state.world->bsp->lightmaps->scale;
 
-		Com_Print("%s %3.2f %3.2f\n", tex->name, tex->scale[0], tex->scale[1]);
-		vec_t face_dist = DotProduct(stain->origin, surf->plane->normal) - surf->plane->dist;
+		// check if the plane is even touched by the stain to begin with.
+		// make the origin parallel to the plane normal (stain * 0,0,1 for up faces for instance)
+		const vec_t projected = DotProduct(stain->origin, surf->plane->normal);
 
-		if (surf->flags & R_SURF_PLANE_BACK) {
-			face_dist *= -1.0;
-		}
+		// subtract this projected distance by the surf's distance into the world, which
+		// gives us how far (in world units) the stain point is from the plane on the planes'
+		// axis. For most stains, this will be a very tiny value for planes that end up passing
+		// this check (like 0.03 or so). 
+		vec_t face_dist = projected - surf->plane->dist;
 
-		const vec_t intensity = stain->radius - fabs(face_dist);
+		// subtract the radius from the distance to see if we're close enough to potentially
+		// stain this plane.
+		const vec_t intensity = stain->radius - face_dist;
+
 		if (intensity < 0.0) {
 			continue;
 		}
 
-		vec3_t point;
-		VectorMA(stain->origin, -face_dist, surf->plane->normal, point);
+		// square the intensity, so we avoid a sqrt in distance check
+		const vec_t intensity_squared = intensity * intensity;
 
+		// AT THIS POINT, plane is within distance (on the plane's axis) to be stained.
+		// it still might be pretty far away though, so we gotta get technical.
+
+		// if we're not a back plane, we have to project "backwards" since our
+		// backwards is technically forwards. Since back planes are already pointing
+		// backwards we don't have to invert for those.
+		if (!(surf->flags & R_SURF_PLANE_BACK)) {
+			face_dist = -face_dist;
+		}
+
+		// project stain->origin onto the plane by multiplying it by face_dist * normal - this
+		// gives us "point", which is coplanar to the plane (lays exactly onto the plane)
+		vec3_t point;
+		VectorMA(stain->origin, face_dist, surf->plane->normal, point);
+
+		// convert the world space coordinate of "point" into texture ST coordinates.
+		// I wish I could say I understood how this worked exactly... here goes an attempt!
+		//
+		// The dotproduct of the point and the s/t directions (vecs[0] and vecs[1]) + dist (vecs[n][3])
+		// will give us the texture coordinate, -in texels-, of where this point is on the
+		// texture itself. If we manage to stain at the exact 0,0 point on a texture (like
+		// top-left of a crate) then, theoretically, this would give us the exact same value as
+		// st_mins[n]. st_mins[n] holds the lowest value (what one would think of as the "top-left" texcoord)
+		// of the texture coordinates. By subtracting the output of our projection by this, we get the offset to
+		// our texture-space stain position from the "0,0 point" of the texcoords. 
+		//
+		// Note that, again, this is in diffuse texel space! The crates on edge will give us
+		// values between -256 and 256 here (depending on which side it is). If we fire at the center of
+		// the crate, we'll get values like 128,128.
 		const vec2_t point_st = {
 			DotProduct(point, tex->vecs[0]) + tex->vecs[0][3] - surf->st_mins[0],
 			DotProduct(point, tex->vecs[1]) + tex->vecs[1][3] - surf->st_mins[1]
 		};
 
+		// store a copy of the LIGHTMAP extents. The aspect ratio of these match the ones in tex->vecs from what I can tell.
+		// (one of the squished boxes in the mega area on edge had approx (3.2, 0, 0) (0, 0, 4.0)
+		// for the vecs[0] and [1] respectively, and st_extents of 18,23 - (4.0 - 3.2) = 0.8, (23 * 0.8) = (18.4), which 
+		// seems to match up.
 		const r_pixel_t smax = surf->st_extents[0];
 		const r_pixel_t tmax = surf->st_extents[1];
 
 		byte *buffer = surf->stainmap_buffer;
 
-		vec_t dt = 0.0;
+		// this is the texel we're checking to see should be stained.
+		// this is in diffuse texels, not lightmap texels.
+		vec2_t texel_check = { 0.0, 0.0 };
 
-		for (uint16_t t = 0; t < tmax; t++, dt += step_t) {
-			const uint32_t td = (uint32_t) fabs(point_st[1] - dt);
+		// the magical loop. So, an interesting thing to note here is that this loop
+		// operates on both lightmap and diffuse texture coordinates. It loops through
+		// every pixel of the lightmap coordinates, but only for number purposes - the
+		// texcoord pixel s/t is never used. The only thing that -is- used is dt and ds, which
+		// are texel offsets from the diffuse texture. The silly thing is that this loop
+		// assumes that each diffuse texel is 1/16th of a lightmap texel on both axis (which may not always
+		// be true). Even sillier is that "1" texel is -not- 1 world-space unit, which makes the distance check
+		// weird because the intensity is in world space, not texel space.
+		for (uint16_t t = 0; t < tmax; t++, texel_check[1] += step_t) {
 
-			vec_t ds = 0.0;
+			texel_check[0] = 0.0;
 
-			for (uint16_t s = 0; s < smax; s++, ds += step_s, buffer += 3) {
-				const uint32_t sd = (uint32_t) fabs(point_st[0] - ds);
+			for (uint16_t s = 0; s < smax; s++, texel_check[0] += step_s, buffer += 3) {
 
-				vec_t sample_dist;
-				if (sd > td) {
-					sample_dist = sd + (td / 2);
-				} else {
-					sample_dist = td + (sd / 2);
-				}
+				// subtract our st stain point from the texel we're currently checking.
+				// this gives us a vector to the stain position.
+				const vec2_t sample_diff = { point_st[0] - texel_check[0], point_st[1] - texel_check[1] };
 
-				if (sample_dist >= intensity) {
+				// grab the distance of said vector above. No sqrt, since the intensity is squared.
+				const vec_t sample_dist = sample_diff[0] * sample_diff[0] + sample_diff[1] * sample_diff[1];
+
+				// we're outside of the stain circle
+				if (sample_dist >= intensity_squared) {
 					continue;
 				}
+
+				// we stained! color bits are straightforward.
 
 				for (uint32_t j = 0; j < 3; j++) {
 
