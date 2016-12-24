@@ -247,12 +247,6 @@ static void R_AddStains_UploadSurfaces(gpointer key, gpointer value, gpointer us
  */
 void R_AddStains(void) {
 
-	// upload the stain maps that were modified
-	g_hash_table_foreach(r_surfs_stained, R_AddStains_UploadSurfaces, NULL);
-
-	// clear for next iteration
-	g_hash_table_remove_all(r_surfs_stained);
-
 	const r_stain_t *s = r_view.stains;
 	for (int32_t i = 0; i < r_view.num_stains; i++, s++) {
 
@@ -282,6 +276,12 @@ void R_AddStains(void) {
 			R_StainNode(&stain, node);
 		}
 	}
+
+	// upload the stain maps that were modified
+	g_hash_table_foreach(r_surfs_stained, R_AddStains_UploadSurfaces, NULL);
+
+	// clear for next iteration
+	g_hash_table_remove_all(r_surfs_stained);
 }
 
 /**
