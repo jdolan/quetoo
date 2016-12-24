@@ -282,7 +282,7 @@ static _Bool G_FireWeapon(g_entity_t *ent) {
 /**
  * @brief
  */
-static void G_WeaponFired(g_entity_t *ent, uint32_t interval) {
+static void G_WeaponFired(g_entity_t *ent, uint32_t interval, uint32_t ammo_needed) {
 
 	// set the attack animation
 	G_SetAnimation(ent, ANIM_TORSO_ATTACK1, true);
@@ -294,7 +294,7 @@ static void G_WeaponFired(g_entity_t *ent, uint32_t interval) {
 	if (g_level.gameplay != GAME_INSTAGIB) {
 		if (ent->client->locals.ammo_index) {
 			ent->client->locals.inventory[ent->client->locals.ammo_index] -=
-			    ent->client->locals.weapon->quantity;
+			    ammo_needed;
 		}
 	}
 
@@ -506,7 +506,7 @@ void G_FireBlaster(g_entity_t *ent) {
 
 		G_ClientWeaponKick(ent, 1.0);
 
-		G_WeaponFired(ent, 450);
+		G_WeaponFired(ent, 450, ent->client->locals.weapon->quantity);
 	}
 }
 
@@ -526,7 +526,7 @@ void G_FireShotgun(g_entity_t *ent) {
 
 		G_ClientWeaponKick(ent, 1.5);
 
-		G_WeaponFired(ent, 500);
+		G_WeaponFired(ent, 500, ent->client->locals.weapon->quantity);
 	}
 }
 
@@ -556,7 +556,7 @@ void G_FireSuperShotgun(g_entity_t *ent) {
 
 		G_ClientWeaponKick(ent, 2.0);
 
-		G_WeaponFired(ent, 800);
+		G_WeaponFired(ent, 800, ent->client->locals.weapon->quantity);
 	}
 }
 
@@ -576,7 +576,7 @@ void G_FireMachinegun(g_entity_t *ent) {
 
 		G_ClientWeaponKick(ent, 0.055);
 
-		G_WeaponFired(ent, 76);
+		G_WeaponFired(ent, 76, ent->client->locals.weapon->quantity);
 	}
 }
 
@@ -712,21 +712,7 @@ void G_FireHandGrenade(g_entity_t *ent) {
 	G_SetAnimation(ent, ANIM_TORSO_ATTACK1, true);
 
 	// push the next fire time out by the interval (2 secs)
-	ent->client->locals.weapon_fire_time = g_level.time + (2 * 1000);
-
-	// and decrease their inventory
-	if (ent->client->locals.ammo_index) {
-		ent->client->locals.inventory[ent->client->locals.ammo_index] -= ammo_needed;
-	}
-
-	// play a quad damage sound if applicable
-	if (ent->client->locals.inventory[g_media.items.quad_damage]) {
-
-		if (ent->client->locals.quad_attack_time < g_level.time) {
-			gi.Sound(ent, g_media.sounds.quad_attack, ATTEN_NORM);
-			ent->client->locals.quad_attack_time = g_level.time + 500;
-		}
-	}
+	G_WeaponFired(ent, 2000, ammo_needed);
 
 	ent->client->locals.grenade_hold_time = 0;
 	ent->client->locals.grenade_hold_frame = 0;
@@ -748,7 +734,7 @@ void G_FireGrenadeLauncher(g_entity_t *ent) {
 
 		G_ClientWeaponKick(ent, 4.0);
 
-		G_WeaponFired(ent, 1000);
+		G_WeaponFired(ent, 1000, ent->client->locals.weapon->quantity);
 	}
 }
 
@@ -768,7 +754,7 @@ void G_FireRocketLauncher(g_entity_t *ent) {
 
 		G_ClientWeaponKick(ent, 2.0);
 
-		G_WeaponFired(ent, 1000);
+		G_WeaponFired(ent, 1000, ent->client->locals.weapon->quantity);
 	}
 }
 
@@ -788,7 +774,7 @@ void G_FireHyperblaster(g_entity_t *ent) {
 
 		G_ClientWeaponKick(ent, 1.0);
 
-		G_WeaponFired(ent, 84);
+		G_WeaponFired(ent, 84, ent->client->locals.weapon->quantity);
 	}
 }
 
@@ -818,7 +804,7 @@ void G_FireLightning(g_entity_t *ent) {
 
 		G_ClientWeaponKick(ent, 1.0);
 
-		G_WeaponFired(ent, 96);
+		G_WeaponFired(ent, 96, ent->client->locals.weapon->quantity);
 	}
 }
 
@@ -840,7 +826,7 @@ void G_FireRailgun(g_entity_t *ent) {
 
 		G_ClientWeaponKick(ent, 5.0);
 
-		G_WeaponFired(ent, 1800);
+		G_WeaponFired(ent, 1800, ent->client->locals.weapon->quantity);
 	}
 }
 
@@ -861,7 +847,7 @@ static void G_FireBfg_(g_entity_t *ent) {
 
 			G_ClientWeaponKick(ent->owner, 16.0);
 
-			G_WeaponFired(ent->owner, 2000);
+			G_WeaponFired(ent->owner, 2000, ent->client->locals.weapon->quantity);
 		}
 	}
 
