@@ -33,13 +33,15 @@ static void R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 
 	const vec_t dist = R_DistanceToSurface(stain->origin, surf);
 
-	if (fabs(dist) > stain->radius) {
+	const vec_t splash = stain->radius - fabs(dist);
+
+	if (splash < 0.0) {
 		return;
 	}
 
 	// project the stain onto the plane, in world space
 	vec3_t point;
-	VectorMA(stain->origin, dist, surf->plane->normal, point);
+	VectorMA(stain->origin, -dist, surf->plane->normal, point);
 
 	const r_bsp_texinfo_t *tex = surf->texinfo;
 
@@ -53,11 +55,8 @@ static void R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 	point_st[0] /= r_model_state.world->bsp->lightmaps->scale;
 	point_st[1] /= r_model_state.world->bsp->lightmaps->scale;
 
-	// resolve the stain intensity at the impact point
-	const vec_t radius = (stain->radius - fabs(dist)) * tex->scale[0];
-
 	// convert intensity to lightmap space, and square it to avoid a sqrt per luxel
-	const vec_t radius_st = (radius * radius) / r_model_state.world->bsp->lightmaps->scale;
+	const vec_t radius_st = splash * splash / tex->scale[0] / r_model_state.world->bsp->lightmaps->scale;
 
 	byte *buffer = surf->stainmap_buffer;
 
@@ -67,8 +66,8 @@ static void R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 		for (uint16_t s = 0; s < surf->lightmap_size[0]; s++, buffer += 3) {
 
 			const vec2_t delta = {
-				(point_st[0] - s) * tex->scale[0],
-				(point_st[1] - t ) * tex->scale[1]
+				fabs(point_st[0] - s) * tex->scale[0],
+				fabs(point_st[1] - t) * tex->scale[1]
 			};
 
 			const vec_t dist_st = (delta[0] * delta[0]) + (delta[1] * delta[1]);
@@ -79,7 +78,9 @@ static void R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 				continue;
 			}
 
-			const vec_t src_alpha = Clamp(stain->color[3] * atten * r_stainmap->value, 0.0, 1.0);
+			const vec_t intensity = stain->color[3] * atten * r_stainmap->value;
+
+			const vec_t src_alpha = Clamp(intensity, 0.0, 1.0);
 			const vec_t dst_alpha = 1.0 - src_alpha;
 
 			for (uint32_t j = 0; j < 3; j++) {
