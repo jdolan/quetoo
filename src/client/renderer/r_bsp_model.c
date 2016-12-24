@@ -782,30 +782,25 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 		const vec_t *tdir = surf->texinfo->vecs[1];
 		const vec_t toff = surf->texinfo->vecs[1][3];
 
-		// texture coordinates
-		vec_t s = DotProduct(vert->position, sdir) + soff;
-		s /= surf->texinfo->material->diffuse->width;
-
-		vec_t t = DotProduct(vert->position, tdir) + toff;
-		t /= surf->texinfo->material->diffuse->height;
-
-		mod->bsp->texcoords[*vertices][0] = s;
-		mod->bsp->texcoords[*vertices][1] = t;
-
-		// lightmap texture coordinates
-		if (surf->flags & R_SURF_LIGHTMAP) {
-			s = DotProduct(vert->position, sdir) + soff;
-			s -= surf->st_mins[0];
-			s += surf->lightmap_s * mod->bsp->lightmaps->scale;
-			s += mod->bsp->lightmaps->scale / 2.0;
-			s /= surf->lightmap->width * mod->bsp->lightmaps->scale;
-
-			t = DotProduct(vert->position, tdir) + toff;
-			t -= surf->st_mins[1];
-			t += surf->lightmap_t *mod->bsp->lightmaps->scale;
-			t += mod->bsp->lightmaps->scale / 2.0;
-			t /= surf->lightmap->height * mod->bsp->lightmaps->scale;
-		}
+ 		// texture coordinates
+ 		vec_t s = DotProduct(vert->position, sdir) + soff;
+ 		vec_t t = DotProduct(vert->position, tdir) + toff;
+ 
+		mod->bsp->texcoords[*vertices][0] = s / surf->texinfo->material->diffuse->width;
+		mod->bsp->texcoords[*vertices][1] = t / surf->texinfo->material->diffuse->height;
+ 
+ 		// lightmap texture coordinates
+ 		if (surf->flags & R_SURF_LIGHTMAP) {
+ 			s -= surf->st_mins[0];
+ 			s += surf->lightmap_s * mod->bsp->lightmaps->scale;
+ 			s += mod->bsp->lightmaps->scale / 2.0;
+ 			s /= surf->lightmap->width * mod->bsp->lightmaps->scale;
+ 
+ 			t -= surf->st_mins[1];
+			t += surf->lightmap_t * mod->bsp->lightmaps->scale;
+ 			t += mod->bsp->lightmaps->scale / 2.0;
+ 			t /= surf->lightmap->height * mod->bsp->lightmaps->scale;
+ 		}
 
 		mod->bsp->lightmap_texcoords[*vertices][0] = s;
 		mod->bsp->lightmap_texcoords[*vertices][1] = t;
