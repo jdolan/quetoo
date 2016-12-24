@@ -52,6 +52,7 @@
     <ClCompile Include="..\..\src\client\renderer\r_program_shell.c" />
     <ClCompile Include="..\..\src\client\renderer\r_program_warp.c" />
     <ClCompile Include="..\..\src\client\renderer\r_sky.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_stainmap.c" />
     <ClCompile Include="..\..\src\client\renderer\r_state.c" />
   </ItemGroup>
   <ItemGroup>
@@ -90,6 +91,7 @@
     <ClInclude Include="..\..\src\client\renderer\r_program_shell.h" />
     <ClInclude Include="..\..\src\client\renderer\r_program_warp.h" />
     <ClInclude Include="..\..\src\client\renderer\r_sky.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_stainmap.h" />
     <ClInclude Include="..\..\src\client\renderer\r_state.h" />
     <ClInclude Include="..\..\src\client\renderer\r_types.h" />
   </ItemGroup>

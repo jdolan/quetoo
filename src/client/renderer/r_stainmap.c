@@ -65,7 +65,9 @@ static void R_StainNode(const r_stain_t *stain, r_bsp_node_t *node) {
 		}
 
 		if (surf->vis_frame != r_locals.vis_frame) {
-			continue;
+			if (!node->model) { // and not a bsp submodel
+				continue;
+			}
 		}
 
 		const r_bsp_texinfo_t *tex = surf->texinfo;
