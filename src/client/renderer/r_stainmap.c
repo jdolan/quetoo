@@ -27,16 +27,18 @@ extern cl_client_t cl;
 static GHashTable *r_surfs_stained;
 
 /**
- * @brief
+ * @brief Attempt to stain the surface. Returns true if any pixels were modified.
  */
-static void R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
+static _Bool R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
+
+	_Bool surf_touched = false;
 
 	const vec_t dist = R_DistanceToSurface(stain->origin, surf);
 
 	const vec_t splash = stain->radius - fabs(dist);
 
 	if (splash < 0.0) {
-		return;
+		return false;
 	}
 
 	// project the stain onto the plane, in world space
@@ -56,7 +58,7 @@ static void R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 	point_st[1] /= r_model_state.world->bsp->lightmaps->scale;
 
 	// convert intensity to lightmap space, and square it to avoid a sqrt per luxel
-	const vec_t radius_st = splash * splash / tex->scale[0] / r_model_state.world->bsp->lightmaps->scale;
+	const vec_t radius_st = (splash * splash) / tex->scale[0] / r_model_state.world->bsp->lightmaps->scale;
 
 	byte *buffer = surf->stainmap_buffer;
 
@@ -91,9 +93,11 @@ static void R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 				buffer[j] = (uint8_t) (Clamp(src + dst, 0.0, 1.0) * 255.0);
 			}
 
-			surf->stainmap_dirty = true;
+			surf_touched = true;
 		}
 	}
+
+	return surf_touched;
 }
 
 /**
@@ -141,9 +145,7 @@ static void R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 			}
 		}
 
-		R_StainSurface(stain, surf);
-
-		if (surf->stainmap_dirty) {
+		if (R_StainSurface(stain, surf)) {
 			g_hash_table_add(r_surfs_stained, surf);
 		}
 	}
@@ -187,7 +189,8 @@ static void R_AddStains_UploadSurfaces(gpointer key, gpointer value, gpointer us
 
 	R_GetError(surf->texinfo->name);
 
-	surf->stainmap_dirty = false;
+	// mark the surface as having been modified, so reset knows it's resettable
+	surf->stainmap_dirty = true;
 }
 
 /**
