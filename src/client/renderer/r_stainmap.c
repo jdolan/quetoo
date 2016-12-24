@@ -243,7 +243,9 @@ void R_ResetStainmap(void) {
 	for (uint32_t s = 0; s < r_model_state.world->bsp->num_surfaces; s++) {
 		r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces + s;
 
-		if (!surf->stainmap) {
+		// skip if we don't have a stainmap or we weren't stained
+		if (!surf->stainmap ||
+			!surf->stainmap_dirty) {
 			continue;
 		}
 
