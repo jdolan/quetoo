@@ -33,6 +33,12 @@ static void R_StainNode(const r_stain_t *stain, r_bsp_node_t *node) {
 		return;
 	}
 
+	if (node->vis_frame != r_locals.vis_frame) {
+		if (!node->model) { // and not a bsp submodel
+			return;
+		}
+	}
+
 	const vec_t dist = DotProduct(stain->origin, node->plane->normal) - node->plane->dist;
 
 	if (dist > stain->radius) { // front only
@@ -55,6 +61,10 @@ static void R_StainNode(const r_stain_t *stain, r_bsp_node_t *node) {
 	for (uint32_t i = 0; i < node->num_surfaces; i++, surf++) {
 
 		if (!surf->lightmap || !surf->stainmap) {
+			continue;
+		}
+
+		if (surf->vis_frame != r_locals.vis_frame) {
 			continue;
 		}
 
