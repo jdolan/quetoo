@@ -83,9 +83,6 @@ static void R_StainNode(const r_stain_t *stain, r_bsp_node_t *node) {
 			continue;
 		}
 
-		// square the intensity, so we avoid a sqrt in distance check
-		const vec_t intensity_squared = (intensity * intensity) / r_model_state.world->bsp->lightmaps->scale;
-
 		// project the stain onto the plane, in world space
 		if (surf->flags & R_SURF_PLANE_BACK) {
 			VectorMA(stain->origin, dist, surf->plane->normal, point);
@@ -103,20 +100,24 @@ static void R_StainNode(const r_stain_t *stain, r_bsp_node_t *node) {
 		point_st[0] /= r_model_state.world->bsp->lightmaps->scale;
 		point_st[1] /= r_model_state.world->bsp->lightmaps->scale;
 
+		// convert intensity to lightmap space, and square it to avoid a sqrt per luxel
+		const vec_t intensity_st = (intensity * intensity) / r_model_state.world->bsp->lightmaps->scale;
+
 		byte *buffer = surf->stainmap_buffer;
 
-		// normalize for our default texture scale of 0.25
-		const vec_t slen = 4.0 / VectorLengthSquared(tex->vecs[0]);
-		const vec_t tlen = 4.0 / VectorLengthSquared(tex->vecs[1]);
-
+		// iterate the luxels and stain the ones that are within reach
 		for (uint16_t t = 0; t < surf->st_extents[1]; t++) {
 
 			for (uint16_t s = 0; s < surf->st_extents[0]; s++, buffer += 3) {
 
-				const vec2_t delta = { point_st[0] - s, point_st[1] - t };
-				const vec_t dist_squared = (delta[0] * delta[0]) * slen + (delta[1] * delta[1]) * tlen;
+				const vec2_t delta = {
+					(point_st[0] - s) * tex->scale[0],
+					(point_st[1] - t ) * tex->scale[1]
+				};
 
-				const vec_t atten = (intensity_squared - dist_squared) / intensity_squared;
+				const vec_t dist_st = (delta[0] * delta[0]) + (delta[1] * delta[1]);
+
+				const vec_t atten = (intensity_st - dist_st) / intensity_st;
 
 				if (atten <= 0.0) {
 					continue;
