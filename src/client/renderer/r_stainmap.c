@@ -102,6 +102,7 @@ static void R_StainNode(const r_stain_t *stain, r_bsp_node_t *node) {
 
 		// convert intensity to lightmap space, and square it to avoid a sqrt per luxel
 		const vec_t intensity_st = (intensity * intensity) / r_model_state.world->bsp->lightmaps->scale;
+		_Bool surf_touched = false;
 
 		byte *buffer = surf->stainmap_buffer;
 
@@ -135,13 +136,13 @@ static void R_StainNode(const r_stain_t *stain, r_bsp_node_t *node) {
 
 					if (buffer[j] != c) {
 						buffer[j] = c;
-						surf->stainmap_dirty = true;
+						surf_touched = surf->stainmap_dirty = true;
 					}
 				}
 			}
 		}
 
-		if (!surf->stainmap_dirty) {
+		if (!surf_touched) {
 			continue;
 		}
 
