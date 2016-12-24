@@ -24,25 +24,93 @@
 
 extern cl_client_t cl;
 
-// a list of stained surfaces, for uploading
 static GHashTable *r_surfs_stained;
 
 /**
  * @brief
  */
-static void R_StainNode(const r_stain_t *stain, r_bsp_node_t *node) {
+static void R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
+
+	const vec_t dist = R_DistanceToSurface(stain->origin, surf);
+
+	if (fabs(dist) > stain->radius) {
+		return;
+	}
+
+	// project the stain onto the plane, in world space
+	vec3_t point;
+	VectorMA(stain->origin, dist, surf->plane->normal, point);
+
+	const r_bsp_texinfo_t *tex = surf->texinfo;
+
+	// transform the impact point into texture space
+	vec2_t point_st = {
+		DotProduct(point, tex->vecs[0]) + tex->vecs[0][3] - surf->st_mins[0],
+		DotProduct(point, tex->vecs[1]) + tex->vecs[1][3] - surf->st_mins[1]
+	};
+
+	// and convert to lightmap space
+	point_st[0] /= r_model_state.world->bsp->lightmaps->scale;
+	point_st[1] /= r_model_state.world->bsp->lightmaps->scale;
+
+	// resolve the stain intensity at the impact point
+	const vec_t radius = (stain->radius - fabs(dist)) * tex->scale[0];
+
+	// convert intensity to lightmap space, and square it to avoid a sqrt per luxel
+	const vec_t radius_st = (radius * radius) / r_model_state.world->bsp->lightmaps->scale;
+
+	byte *buffer = surf->stainmap_buffer;
+
+	// iterate the luxels and stain the ones that are within reach
+	for (uint16_t t = 0; t < surf->lightmap_size[1]; t++) {
+
+		for (uint16_t s = 0; s < surf->lightmap_size[0]; s++, buffer += 3) {
+
+			const vec2_t delta = {
+				(point_st[0] - s) * tex->scale[0],
+				(point_st[1] - t ) * tex->scale[1]
+			};
+
+			const vec_t dist_st = (delta[0] * delta[0]) + (delta[1] * delta[1]);
+
+			const vec_t atten = (radius_st - dist_st) / radius_st;
+
+			if (atten <= 0.0) {
+				continue;
+			}
+
+			const vec_t src_alpha = Clamp(stain->color[3] * atten * r_stainmap->value, 0.0, 1.0);
+			const vec_t dst_alpha = 1.0 - src_alpha;
+
+			for (uint32_t j = 0; j < 3; j++) {
+
+				const vec_t src = stain->color[j] * src_alpha;
+				const vec_t dst = (buffer[j] / 255.0) * dst_alpha;
+
+				buffer[j] = (uint8_t) (Clamp(src + dst, 0.0, 1.0) * 255.0);
+			}
+
+			surf->stainmap_dirty = true;
+		}
+	}
+}
+
+/**
+ * @brief
+ */
+static void R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 
 	if (node->contents != CONTENTS_NODE) {
 		return;
 	}
 
 	if (node->vis_frame != r_locals.vis_frame) {
-		if (!node->model) { // and not a bsp submodel
+		if (!node->model) {
 			return;
 		}
 	}
 
-	const vec_t dist = DotProduct(stain->origin, node->plane->normal) - node->plane->dist;
+	const vec_t dist = Cm_DistanceToPlane(stain->origin, node->plane);
 
 	if (dist > stain->radius) { // front only
 		R_StainNode(stain, node->children[0]);
@@ -57,96 +125,26 @@ static void R_StainNode(const r_stain_t *stain, r_bsp_node_t *node) {
 	r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces + node->first_surface;
 
 	for (uint32_t i = 0; i < node->num_surfaces; i++, surf++) {
-		vec3_t point;
+
+		if (surf->texinfo->flags & (SURF_SKY | SURF_WARP)) {
+			continue;
+		}
 
 		if (!surf->lightmap || !surf->stainmap) {
 			continue;
 		}
 
 		if (surf->vis_frame != r_locals.vis_frame) {
-			if (!node->model) { // and not a bsp submodel
+			if (!node->model) {
 				continue;
 			}
 		}
 
-		const r_bsp_texinfo_t *tex = surf->texinfo;
+		R_StainSurface(stain, surf);
 
-		if ((tex->flags & (SURF_SKY | SURF_BLEND_33 | SURF_BLEND_66 | SURF_WARP))) {
-			continue;
+		if (surf->stainmap_dirty) {
+			g_hash_table_add(r_surfs_stained, surf);
 		}
-
-		const vec_t dist = DotProduct(stain->origin, surf->plane->normal) - surf->plane->dist;
-
-		const vec_t intensity = stain->radius - dist;
-
-		if (intensity < 0.0) {
-			continue;
-		}
-
-		// project the stain onto the plane, in world space
-		if (surf->flags & R_SURF_PLANE_BACK) {
-			VectorMA(stain->origin, dist, surf->plane->normal, point);
-		} else {
-			VectorMA(stain->origin, -dist, surf->plane->normal, point);
-		}
-
-		// transform the impact point into texture space
-		vec2_t point_st = {
-			DotProduct(point, tex->vecs[0]) + tex->vecs[0][3] - surf->st_mins[0],
-			DotProduct(point, tex->vecs[1]) + tex->vecs[1][3] - surf->st_mins[1]
-		};
-
-		// and convert to lightmap space
-		point_st[0] /= r_model_state.world->bsp->lightmaps->scale;
-		point_st[1] /= r_model_state.world->bsp->lightmaps->scale;
-
-		// convert intensity to lightmap space, and square it to avoid a sqrt per luxel
-		const vec_t intensity_st = (intensity * intensity) / r_model_state.world->bsp->lightmaps->scale;
-
-		byte *buffer = surf->stainmap_buffer;
-
-		// iterate the luxels and stain the ones that are within reach
-		for (uint16_t t = 0; t < surf->st_extents[1]; t++) {
-
-			for (uint16_t s = 0; s < surf->st_extents[0]; s++, buffer += 3) {
-
-				const vec2_t delta = {
-					(point_st[0] - s) * tex->scale[0],
-					(point_st[1] - t ) * tex->scale[1]
-				};
-
-				const vec_t dist_st = (delta[0] * delta[0]) + (delta[1] * delta[1]);
-
-				const vec_t atten = (intensity_st - dist_st) / intensity_st;
-
-				if (atten <= 0.0) {
-					continue;
-				}
-
-				const vec_t src_alpha = Clamp(stain->color[3] * atten * r_stainmap->value, 0.0, 1.0);
-				const vec_t dst_alpha = 1.0 - src_alpha;
-
-				for (uint32_t j = 0; j < 3; j++) {
-
-					const vec_t src = stain->color[j] * src_alpha;
-					const vec_t dst = (buffer[j] / 255.0) * dst_alpha;
-
-					const uint8_t c = (uint8_t) (Clamp(src + dst, 0.0, 1.0) * 255.0);
-
-					if (buffer[j] != c) {
-						buffer[j] = c;
-						surf->stainmap_dirty = true;
-					}
-				}
-			}
-		}
-
-		if (!surf->stainmap_dirty) {
-			continue;
-		}
-
-		// mark it to be uploaded at the end of the frame
-		g_hash_table_add(r_surfs_stained, surf);
 	}
 
 	// recurse down both sides
@@ -177,13 +175,18 @@ void R_AddStain(const r_stain_t *s) {
  */
 static void R_AddStains_UploadSurfaces(gpointer key, gpointer value, gpointer userdata) {
 
-	const r_bsp_surface_t *surf = (r_bsp_surface_t *) value;
+	r_bsp_surface_t *surf = (r_bsp_surface_t *) value;
 
 	R_BindDiffuseTexture(surf->stainmap->texnum);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, surf->lightmap_s, surf->lightmap_t, surf->st_extents[0], surf->st_extents[1], GL_RGB,
+	glTexSubImage2D(GL_TEXTURE_2D, 0,
+					surf->lightmap_s, surf->lightmap_t,
+					surf->lightmap_size[0], surf->lightmap_size[1],
+					GL_RGB,
 					GL_UNSIGNED_BYTE, surf->stainmap_buffer);
 
 	R_GetError(surf->texinfo->name);
+
+	surf->stainmap_dirty = false;
 }
 
 /**
@@ -236,7 +239,7 @@ void R_ResetStainmap(void) {
 	for (uint32_t s = 0; s < r_model_state.world->bsp->num_surfaces; s++) {
 		r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces + s;
 
-		if (!surf->stainmap || !surf->stainmap_dirty) {
+		if (!surf->stainmap) {
 			continue;
 		}
 
@@ -249,7 +252,8 @@ void R_ResetStainmap(void) {
 			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, lightmap);
 
 			R_BindDiffuseTexture(surf->stainmap->texnum);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surf->lightmap->width, surf->lightmap->height, 0, GL_RGB, GL_UNSIGNED_BYTE, lightmap);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surf->lightmap->width, surf->lightmap->height,
+						 0, GL_RGB, GL_UNSIGNED_BYTE, lightmap);
 
 			g_hash_table_insert(hash, surf->stainmap, lightmap);
 		}
@@ -260,11 +264,11 @@ void R_ResetStainmap(void) {
 		byte *lm = lightmap + offset;
 		byte *sm = surf->stainmap_buffer;
 
-		for (int16_t t = 0; t < surf->st_extents[1]; t++) {
+		for (int16_t t = 0; t < surf->lightmap_size[1]; t++) {
 
-			memcpy(sm, lm, surf->st_extents[0] * 3);
+			memcpy(sm, lm, surf->lightmap_size[0] * 3);
 
-			sm += surf->st_extents[0] * 3;
+			sm += surf->lightmap_size[0] * 3;
 			lm += stride;
 		}
 

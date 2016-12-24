@@ -86,8 +86,8 @@ static r_image_t *R_AllocLightmap_(r_image_type_t type, const r_pixel_t width, c
 static void R_BuildDefaultLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, byte *sout,
                                    byte *dout, size_t stride) {
 
-	const r_pixel_t smax = surf->st_extents[0];
-	const r_pixel_t tmax = surf->st_extents[1];
+	const r_pixel_t smax = surf->lightmap_size[0];
+	const r_pixel_t tmax = surf->lightmap_size[1];
 
 	stride -= (smax * 3);
 
@@ -133,8 +133,8 @@ static void R_FilterLightmap(r_pixel_t width, r_pixel_t height, byte *lightmap) 
 static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *surf, const byte *in,
                             byte *lout, byte *dout, byte *stout, size_t stride) {
 
-	const r_pixel_t smax = surf->st_extents[0];
-	const r_pixel_t tmax = surf->st_extents[1];
+	const r_pixel_t smax = surf->lightmap_size[0];
+	const r_pixel_t tmax = surf->lightmap_size[1];
 
 	const size_t size = smax * tmax;
 	stride -= (smax * 3);
@@ -203,7 +203,7 @@ static gint R_InsertBlock_CompareFunc(gconstpointer  a,
 	const r_bsp_surface_t *ai = (const r_bsp_surface_t *) a;
 	const r_bsp_surface_t *bi = (const r_bsp_surface_t *) b;
 
-	return bi->st_extents[1] - ai->st_extents[1];
+	return bi->lightmap_size[1] - ai->lightmap_size[1];
 }
 
 /**
@@ -257,7 +257,7 @@ static void R_UploadPackedLightmaps(uint32_t width, uint32_t height, r_bsp_model
 
 			if (r_stainmap->integer) {
 				surf->stainmap = stainmap;
-				stout = surf->stainmap_buffer = Mem_LinkMalloc(surf->st_extents[0] * surf->st_extents[1] * 3, bsp);
+				stout = surf->stainmap_buffer = Mem_LinkMalloc(surf->lightmap_size[0] * surf->lightmap_size[1] * 3, bsp);
 			}
 
 			R_BuildLightmap(bsp, surf, surf->lightmap_input, sout, dout, stout, stride);
@@ -298,8 +298,8 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 	r_packer_t packer;
 	memset(&packer, 0, sizeof(packer));
 
-	R_AtlasPacker_InitPacker(&packer, r_config.max_texture_size, r_config.max_texture_size, surf->st_extents[0],
-	                         surf->st_extents[1], bsp->num_surfaces / 2);
+	R_AtlasPacker_InitPacker(&packer, r_config.max_texture_size, r_config.max_texture_size, surf->lightmap_size[0],
+	                         surf->lightmap_size[1], bsp->num_surfaces / 2);
 
 	GSList *start = r_lightmap_state.blocks;
 
@@ -318,13 +318,12 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 		r_packer_node_t *node;
 
 		do {
-			node = R_AtlasPacker_FindNode(&packer, packer.root, surf->st_extents[0],
-			                              surf->st_extents[1]);
+			node = R_AtlasPacker_FindNode(&packer, packer.root, surf->lightmap_size[0], surf->lightmap_size[1]);
 
 			if (node != NULL) {
-				node = R_AtlasPacker_SplitNode(&packer, node, surf->st_extents[0], surf->st_extents[1]);
+				node = R_AtlasPacker_SplitNode(&packer, node, surf->lightmap_size[0], surf->lightmap_size[1]);
 			} else {
-				node = R_AtlasPacker_GrowNode(&packer, surf->st_extents[0], surf->st_extents[1]);
+				node = R_AtlasPacker_GrowNode(&packer, surf->lightmap_size[0], surf->lightmap_size[1]);
 			}
 
 			// can't fit any more, so upload and initialize a new packer
@@ -334,8 +333,8 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 				R_UploadPackedLightmaps(current_width, current_height, bsp, start, list);
 
 				// reinitialize packer
-				R_AtlasPacker_InitPacker(&packer, r_config.max_texture_size, r_config.max_texture_size, surf->st_extents[0],
-				                         surf->st_extents[1], 0);
+				R_AtlasPacker_InitPacker(&packer, r_config.max_texture_size, r_config.max_texture_size,
+										surf->lightmap_size[0], surf->lightmap_size[1], 0);
 
 				// new start position
 				start = list;
@@ -343,8 +342,8 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 				// reset accumulators
 				current_width = current_height = 0;
 			} else {
-				r_pixel_t w = node->x + surf->st_extents[0],
-				          h = node->y + surf->st_extents[1];
+				r_pixel_t w = node->x + surf->lightmap_size[0],
+				          h = node->y + surf->lightmap_size[1];
 
 				w = NearestMultiple(w, 4);
 				h = NearestMultiple(h, 4);

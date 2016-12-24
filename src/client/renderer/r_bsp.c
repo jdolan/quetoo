@@ -156,21 +156,10 @@ static void R_DrawBspInlineModel_(const r_entity_t *e) {
 	surf = &r_model_state.world->bsp->surfaces[e->model->bsp_inline->first_surface];
 
 	for (i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
-		const cm_bsp_plane_t *plane = surf->plane;
-		vec_t dot;
 
-		// find which side of the surf we are on
-		if (AXIAL(plane)) {
-			dot = r_bsp_model_org[plane->type] - plane->dist;
-		} else {
-			dot = DotProduct(r_bsp_model_org, plane->normal) - plane->dist;
-		}
+		const vec_t dist = R_DistanceToSurface(r_bsp_model_org, surf);
 
-		if (surf->flags & R_SURF_PLANE_BACK) {
-			dot = -dot;
-		}
-
-		if (dot > SIDE_EPSILON) { // visible, flag for rendering
+		if (dist > SIDE_EPSILON) { // visible, flag for rendering
 			surf->frame = r_locals.frame;
 			surf->back_frame = -1;
 		} else { // back-facing
@@ -258,21 +247,10 @@ static void R_AddBspInlineModelFlares_(const r_entity_t *e) {
 	r_bsp_surface_t *surf = &r_model_state.world->bsp->surfaces[e->model->bsp_inline->first_surface];
 
 	for (uint32_t i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
-		const cm_bsp_plane_t *plane = surf->plane;
-		vec_t dot;
 
-		// find which side of the surf we are on
-		if (AXIAL(plane)) {
-			dot = r_bsp_model_org[plane->type] - plane->dist;
-		} else {
-			dot = DotProduct(r_bsp_model_org, plane->normal) - plane->dist;
-		}
+		const vec_t dist = R_DistanceToSurface(r_bsp_model_org, surf);
 
-		if (surf->flags & R_SURF_PLANE_BACK) {
-			dot = -dot;
-		}
-
-		if (dot > SIDE_EPSILON) { // visible, flag for rendering
+		if (dist > SIDE_EPSILON) { // visible, flag for rendering
 			surf->frame = r_locals.frame;
 			surf->back_frame = -1;
 		} else { // back-facing
@@ -464,7 +442,6 @@ void R_DrawBspLeafs(void) {
  */
 static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 	int32_t side, side_bit;
-	vec_t dot;
 
 	if (node->contents == CONTENTS_SOLID) {
 		return;    // solid
@@ -499,15 +476,9 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 
 	// otherwise, traverse down the appropriate sides of the node
 
-	const cm_bsp_plane_t *plane = node->plane;
+	const vec_t dist = Cm_DistanceToPlane(r_view.origin, node->plane);
 
-	if (AXIAL(plane)) {
-		dot = r_view.origin[plane->type] - plane->dist;
-	} else {
-		dot = DotProduct(r_view.origin, plane->normal) - plane->dist;
-	}
-
-	if (dot > SIDE_EPSILON) {
+	if (dist > SIDE_EPSILON) {
 		side = 0;
 		side_bit = 0;
 	} else {
@@ -553,6 +524,20 @@ void R_MarkBspSurfaces(void) {
 
 	// flag all visible world surfaces
 	R_MarkBspSurfaces_(r_model_state.world->bsp->nodes);
+}
+
+/**
+ * @return The distance from the specified point to the given surface.
+ */
+vec_t R_DistanceToSurface(const vec3_t p, const r_bsp_surface_t *surf) {
+
+	const vec_t dist = Cm_DistanceToPlane(p, surf->plane);
+
+	if (surf->flags & R_SURF_PLANE_BACK) {
+		return -dist;
+	}
+
+	return dist;
 }
 
 /**

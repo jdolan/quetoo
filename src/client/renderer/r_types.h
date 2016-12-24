@@ -440,7 +440,6 @@ typedef struct {
 	vec2_t st_mins;
 	vec2_t st_maxs;
 	vec2_t st_center;
-	s16vec2_t st_extents;
 
 	GLuint index; // index into element buffer
 	GLuint *elements; // elements unique to this surf
@@ -449,6 +448,7 @@ typedef struct {
 
 	r_bsp_flare_t *flare;
 
+	r_pixel_t lightmap_size[2];
 	r_pixel_t lightmap_s, lightmap_t; // lightmap texture coords
 
 	r_image_t *lightmap;
