@@ -272,6 +272,9 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 			out->vecs[1][j] = LittleFloat(in->vecs[1][j]);
 		}
 
+		out->scale[0] = 1.0 / VectorLength(out->vecs[0]);
+		out->scale[1] = 1.0 / VectorLength(out->vecs[1]);
+
 		out->flags = LittleLong(in->flags);
 		out->value = LittleLong(in->value);
 

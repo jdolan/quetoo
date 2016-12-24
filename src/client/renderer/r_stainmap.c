@@ -54,7 +54,6 @@ static void R_StainNode(const r_stain_t *stain, r_bsp_node_t *node) {
 	const vec_t src_stain_alpha = stain->color[3] * r_stainmap->value;
 	const vec_t dst_stain_alpha = 1.0 - src_stain_alpha;
 
-	const vec_t step = r_model_state.world->bsp->lightmaps->scale;
 
 	r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces + node->first_surface;
 
@@ -76,6 +75,11 @@ static void R_StainNode(const r_stain_t *stain, r_bsp_node_t *node) {
 			continue;
 		}
 
+		// THIS IS NOT RIGHT, BUT SOMETHIN LIKE THIS 
+		const vec_t step_s = tex->scale[0] * r_model_state.world->bsp->lightmaps->scale;
+		const vec_t step_t = tex->scale[1] * r_model_state.world->bsp->lightmaps->scale;
+
+		Com_Print("%s %3.2f %3.2f\n", tex->name, tex->scale[0], tex->scale[1]);
 		vec_t face_dist = DotProduct(stain->origin, surf->plane->normal) - surf->plane->dist;
 
 		if (surf->flags & R_SURF_PLANE_BACK) {
@@ -100,15 +104,15 @@ static void R_StainNode(const r_stain_t *stain, r_bsp_node_t *node) {
 
 		byte *buffer = surf->stainmap_buffer;
 
-		vec_t tstep = 0.0;
+		vec_t dt = 0.0;
 
-		for (uint16_t t = 0; t < tmax; t++, tstep += step) {
-			const uint32_t td = (uint32_t) fabs(point_st[1] - tstep);
+		for (uint16_t t = 0; t < tmax; t++, dt += step_t) {
+			const uint32_t td = (uint32_t) fabs(point_st[1] - dt);
 
-			vec_t sstep = 0.0;
+			vec_t ds = 0.0;
 
-			for (uint16_t s = 0; s < smax; s++, sstep += step, buffer += 3) {
-				const uint32_t sd = (uint32_t) fabs(point_st[0] - sstep);
+			for (uint16_t s = 0; s < smax; s++, ds += step_s, buffer += 3) {
+				const uint32_t sd = (uint32_t) fabs(point_st[0] - ds);
 
 				vec_t sample_dist;
 				if (sd > td) {

@@ -397,6 +397,7 @@ typedef struct {
 typedef struct {
 	char name[32];
 	vec_t vecs[2][4];
+	vec2_t scale;
 	uint32_t flags;
 	int32_t value;
 	r_material_t *material;
