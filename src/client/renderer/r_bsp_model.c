@@ -411,7 +411,7 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 		surf->st_maxs[i] = bmaxs * bsp->lightmaps->scale;
 
 		surf->st_center[i] = (surf->st_maxs[i] + surf->st_mins[i]) / 2.0;
-		surf->st_extents[i] = (u16vec_t) (((surf->st_maxs[i] - surf->st_mins[i]) / bsp->lightmaps->scale) + 1.0);
+		surf->st_extents[i] = (s16vec_t) (((surf->st_maxs[i] - surf->st_mins[i]) / bsp->lightmaps->scale) + 1.0);
 	}
 }
 
