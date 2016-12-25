@@ -152,15 +152,13 @@ static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 		         self->locals.damage, self->locals.knockback, DMG_ENERGY, MOD_BLASTER);
 
 		if (G_IsStructural(other, surf)) {
-			vec3_t origin;
 
-			VectorMA(self->s.origin, 4.0, plane->normal, origin);
 			gi.WriteByte(SV_CMD_TEMP_ENTITY);
 			gi.WriteByte(TE_BLASTER);
-			gi.WritePosition(origin);
+			gi.WritePosition(self->s.origin);
 			gi.WriteDir(plane->normal);
 			gi.WriteByte(self->s.client);
-			gi.Multicast(origin, MULTICAST_PHS, NULL);
+			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
 		}
 	}
 

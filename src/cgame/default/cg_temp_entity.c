@@ -49,7 +49,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 		p->scale_start = 3.5;
 		p->scale_end = Randomf() * 1.0;
 
-		VectorCopy(org, p->part.org);
+		VectorAdd(org, dir, p->part.org);
 
 		VectorScale(dir, 150.0, p->vel);
 
@@ -64,7 +64,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 	cgi.ColorFromPalette(color, c);
 
 	cgi.AddSustainedLight(&(const r_sustained_light_t) {
-		.light.origin = { org[0], org[1], org[2] },
+		.light.origin = { org[0] + dir[0], org[1] + dir[1], org[2] + dir[2] },
 		 .light.color = { c[0], c[1], c[2] },
 		  .light.radius = 150.0,
 		   .sustain = 250
@@ -72,7 +72,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
-		 .color = { c[0], c[1], c[2], 1 },
+		 .color = { c[0], c[1], c[2], 0.33 },
 		  .radius = 2.0
 	});
 
