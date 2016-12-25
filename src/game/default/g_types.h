@@ -28,7 +28,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1013
+#define PROTOCOL_MINOR 1014
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -159,7 +159,7 @@ typedef enum {
 	TE_BLASTER,
 	TE_TRACER,
 	TE_BULLET,
-	TE_BURN,
+	TE_STAIN,
 	TE_BLOOD,
 	TE_SPARKS,
 	TE_HYPERBLASTER,

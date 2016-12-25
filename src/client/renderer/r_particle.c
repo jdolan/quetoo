@@ -120,21 +120,6 @@ static void R_ParticleVerts(const r_particle_t *p, r_particle_interleave_vertex_
 		return;
 	}
 
-	if (p->type == PARTICLE_DECAL) { // decals are aligned with surfaces
-		AngleVectors(p->dir, NULL, right, up);
-
-		VectorAdd(up, right, verts[0].vertex);
-		VectorSubtract(right, up, verts[1].vertex);
-		VectorNegate(verts[0].vertex, verts[2].vertex);
-		VectorNegate(verts[1].vertex, verts[3].vertex);
-
-		VectorMA(p->org, p->scale, verts[0].vertex, verts[0].vertex);
-		VectorMA(p->org, p->scale, verts[1].vertex, verts[1].vertex);
-		VectorMA(p->org, p->scale, verts[2].vertex, verts[2].vertex);
-		VectorMA(p->org, p->scale, verts[3].vertex, verts[3].vertex);
-		return;
-	}
-
 	// all other particles are aligned with the client's view
 
 	if (p->type == PARTICLE_WEATHER) { // keep it vertical

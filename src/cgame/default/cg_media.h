@@ -62,7 +62,6 @@
 	extern cg_particles_t *cg_particles_rain;
 	extern cg_particles_t *cg_particles_snow;
 	extern cg_particles_t *cg_particles_beam;
-	extern cg_particles_t *cg_particles_burn;
 	extern cg_particles_t *cg_particles_blood;
 	extern cg_particles_t *cg_particles_lightning;
 	extern cg_particles_t *cg_particles_rope;

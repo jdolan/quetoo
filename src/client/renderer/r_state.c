@@ -267,7 +267,7 @@ void R_PolygonOffset(GLfloat factor, GLfloat units) {
 }
 
 /**
- * @brief Enables polygon offset fill for decals, etc.
+ * @brief Enables polygon offset fill for materials, etc.
  */
 void R_EnablePolygonOffset(_Bool enable) {
 

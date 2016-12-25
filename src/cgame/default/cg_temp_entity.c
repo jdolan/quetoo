@@ -74,8 +74,8 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
-		 .color = { s.light.color[0], s.light.color[1], s.light.color[2], 0.2 },
-		  .radius = 24.0
+		 .color = { s.light.color[0], s.light.color[1], s.light.color[2], 1.0 },
+		  .radius = 4.0 + Randomc()
 	});
 
 	VectorAdd(org, dir, s.light.origin);
@@ -123,48 +123,13 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 }
 
 /**
- * @brief Make a decal!
- */
-static void Cg_DecalEffect(const vec3_t org, const vec3_t dir, const vec_t scale, cg_particles_t *ps) {
-
-	cg_particle_t *p = Cg_AllocParticle(PARTICLE_DECAL, ps);
-	vec3_t v;
-
-	if (!p) {
-		return;
-	}
-
-	p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
-
-	p->effects = PARTICLE_EFFECT_COLOR;
-	p->lifetime = 5000;
-
-	cgi.ColorFromPalette(Random() & 1, p->color_start);
-	VectorCopy(p->color_start, p->color_end);
-	p->color_start[3] = 2.0;
-	p->color_end[3] = 0.0;
-
-	p->part.scale = scale;
-
-	VectorScale(dir, -1.0, v);
-	VectorAngles(v, p->part.dir);
-	p->part.dir[ROLL] = Random() % 360;
-
-	VectorAdd(org, dir, p->part.org);
-}
-
-/**
  * @brief
  */
 static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	static uint32_t last_ric_time;
 	cg_particle_t *p;
 	r_sustained_light_t s;
-	int32_t j, k;
-
-	Cg_DecalEffect(org, dir, 1.5 + Randomc() * 0.4, cg_particles_bullet[Random() % 3]);
-
-	k = 1 + (Random() % 5);
+	int32_t k = 1 + (Random() % 5);
 
 	while (k--) {
 		if ((p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_beam))) {
@@ -180,7 +145,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 
 			VectorScale(dir, 290.0 + Randomf() * 50.0, p->vel);
 
-			for (j = 0; j < 3; j++) {
+			for (int32_t j = 0; j < 3; j++) {
 				p->vel[j] += Randomc() * 40.0;
 			}
 
@@ -223,7 +188,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	cgi.AddStain(&(const r_stain_t) {
 		 .origin = { org[0], org[1], org[2] },
 		  .color = { 0.0, 0.0, 0.0, 0.4 },
-		   .radius = 6.0
+		   .radius = 1.0
 	});
 
 	if (cgi.client->ticks < last_ric_time) {
@@ -245,25 +210,24 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 /**
  * @brief
  */
-static void Cg_BurnEffect(const vec3_t org, const vec3_t dir, const vec4_t color, int32_t scale) {
+static void Cg_StainEffect(const vec3_t org, byte color, byte alpha, vec_t radius) {
 
-	Cg_DecalEffect(org, dir, scale, cg_particles_burn);
+	vec3_t c;
+	cgi.ColorFromPalette(color, c);
 
-	r_stain_t stain;
-	VectorCopy(org, stain.origin);
-	Vector4Copy(color, stain.color);
-	stain.radius = scale;
-
-	cgi.AddStain(&stain);
+	cgi.AddStain(&(const r_stain_t) {
+		.origin = { org[0], org[1], org[2] },
+		 .color = { c[0], c[1], c[2], (alpha / 255.0) },
+		  .radius = radius + (radius * Randomc() * 0.15)
+	});
 }
 
 /**
  * @brief
  */
 static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
-	int32_t i, j;
 
-	for (i = 0; i < count; i++) {
+	for (int32_t i = 0; i < count; i++) {
 		cg_particle_t *p;
 
 		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_blood))) {
@@ -280,7 +244,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 		p->part.scale = 6.0;
 
 		const vec_t d = Random() & 31;
-		for (j = 0; j < 3; j++) {
+		for (int32_t j = 0; j < 3; j++) {
 			p->part.org[j] = org[j] + ((Random() & 7) - 4.0) + d * dir[j];
 			p->vel[j] = Randomc() * 20.0;
 		}
@@ -292,8 +256,8 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
-		 .color = { 0.9 + Randomc(), 0.0, 0.0, 0.08 },
-		  .radius = count * 4.0
+		 .color = { 0.9 + 0.2 * Randomc(), 0.0, 0.0, 0.33 },
+		  .radius = count
 	});
 }
 
@@ -306,9 +270,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 void Cg_GibEffect(const vec3_t org, int32_t count) {
 	cg_particle_t *p;
 	vec3_t o, v, tmp;
-	cm_trace_t tr;
 	vec_t dist;
-	int32_t i, j;
 
 	// if a player has died underwater, emit some bubbles
 	if (cgi.PointContents(org) & MASK_LIQUID) {
@@ -318,7 +280,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 		Cg_BubbleTrail(org, tmp, 16.0);
 	}
 
-	for (i = 0; i < count; i++) {
+	for (int32_t i = 0; i < count; i++) {
 
 		// set the origin and velocity for each gib stream
 		VectorSet(o, Randomc() * 8.0, Randomc() * 8.0, 8.0 + Randomc() * 12.0);
@@ -329,10 +291,10 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 		dist = GIB_STREAM_DIST;
 		VectorMA(o, dist, v, tmp);
 
-		tr = cgi.Trace(o, tmp, NULL, NULL, 0, MASK_CLIP_PROJECTILE);
+		const cm_trace_t tr = cgi.Trace(o, tmp, NULL, NULL, 0, MASK_CLIP_PROJECTILE);
 		dist = GIB_STREAM_DIST * tr.fraction;
 
-		for (j = 1; j < GIB_STREAM_COUNT; j++) {
+		for (int32_t j = 1; j < GIB_STREAM_COUNT; j++) {
 
 			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_blood))) {
 				break;
@@ -362,8 +324,8 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
-		 .color = { 0.9 + Randomc(), 0.0, 0.0, 0.09 },
-		  .radius = count * 8.0
+		 .color = { 0.9 + 0.2 * Randomc(), 0.0, 0.0, 0.66 },
+		  .radius = count * 2.0
 	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
@@ -754,9 +716,11 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 	cgi.AddSustainedLight(&s);
 
-	Cg_BurnEffect(end, dir, (const vec4_t) {
-		s.light.color[0], s.light.color[1], s.light.color[2], 0.1
-	}, 16);
+	cgi.AddStain(&(const r_stain_t) {
+		.origin = { end[0], end[1], end[2] },
+		 .color = { s.light.color[0], s.light.color[1], s.light.color[2], 1.0 },
+		  .radius = 8.0 + (8.0 * Randomc() * 0.15)
+	});
 }
 
 /**
@@ -933,9 +897,8 @@ static void Cg_RippleEffect(const vec3_t org, const vec3_t dir, const vec_t size
  */
 void Cg_ParseTempEntity(void) {
 	vec3_t pos, pos2, dir;
-	vec_t size;
+	vec_t v;
 	int32_t i, j;
-	uint8_t viscosity;
 
 	const uint8_t type = cgi.ReadByte();
 
@@ -960,13 +923,12 @@ void Cg_ParseTempEntity(void) {
 			Cg_BulletEffect(pos, dir);
 			break;
 
-		case TE_BURN: // burn mark on wall
+		case TE_STAIN: // stain on walls
 			cgi.ReadPosition(pos);
-			cgi.ReadDir(dir);
 			i = cgi.ReadByte();
-			Cg_BurnEffect(pos, dir, (const vec4_t) {
-				0.0, 0.0, 0.0, 0.25
-			}, i);
+			j = cgi.ReadByte();
+			v = cgi.ReadVector();
+			Cg_StainEffect(pos, i, j, v);
 			break;
 
 		case TE_BLOOD: // projectile hitting flesh
@@ -1029,10 +991,10 @@ void Cg_ParseTempEntity(void) {
 
 		case TE_RIPPLE: // liquid surface ripples
 			cgi.ReadPosition(pos);
-			size = cgi.ReadVector();
-			viscosity = cgi.ReadByte();
+			v = cgi.ReadVector();
+			i = cgi.ReadByte();
 			cgi.ReadDir(dir);
-			Cg_RippleEffect(pos, dir, size, viscosity);
+			Cg_RippleEffect(pos, dir, v, i);
 			break;
 
 		default:

@@ -135,14 +135,14 @@ static void G_BulletMark(vec3_t org, cm_bsp_plane_t *plane, cm_bsp_surface_t *su
 /**
  * @brief Used to add burn marks on surfaces hit by projectiles.
  */
-static void G_BurnMark(vec3_t org, const cm_bsp_plane_t *plane,
-                       const cm_bsp_surface_t *surf, uint8_t scale) {
+static void G_Stain(const vec3_t org, byte color, vec_t alpha, vec_t radius) {
 
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
-	gi.WriteByte(TE_BURN);
+	gi.WriteByte(TE_STAIN);
 	gi.WritePosition(org);
-	gi.WriteDir(plane->normal);
-	gi.WriteByte(scale);
+	gi.WriteByte(color);
+	gi.WriteByte((byte) (alpha * 255.0));
+	gi.WriteVector(radius);
 
 	gi.Multicast(org, MULTICAST_PHS, NULL);
 }
@@ -317,8 +317,8 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
 	gi.Multicast(origin, MULTICAST_PHS, NULL);
 
 	if (ent) {
-		if (G_IsStructural(ent, surf) && G_IsStationary(ent)) {
-			G_BurnMark(self->s.origin, plane, surf, 20);
+		if (G_IsStructural(ent, surf)) {
+			G_Stain(self->s.origin, rand() & 7, 0.66, 32.0);
 		}
 	}
 
@@ -429,10 +429,10 @@ static void G_HandGrenadeProjectile_Explode(g_entity_t *self) {
 			gi.LinkEntity(ent);
 		}
 
-		/*gi.WriteByte(SV_CMD_TEMP_ENTITY);
+		gi.WriteByte(SV_CMD_TEMP_ENTITY);
 		gi.WriteByte(TE_GIB);
 		gi.WritePosition(self->s.origin);
-		gi.Multicast(self->s.origin, MULTICAST_PVS, NULL);*/
+		gi.Multicast(self->s.origin, MULTICAST_PVS, NULL);
 	}
 
 	if (self->locals.enemy) { // direct hit
@@ -481,8 +481,8 @@ static void G_HandGrenadeProjectile_Explode(g_entity_t *self) {
 	gi.Multicast(origin, MULTICAST_PHS, NULL);
 
 	if (ent) {
-		if (G_IsStructural(ent, surf) && G_IsStationary(ent)) {
-			G_BurnMark(self->s.origin, plane, surf, 20);
+		if (G_IsStructural(ent, surf)) {
+			G_Stain(self->s.origin, rand() & 7, 0.66, 32.0);
 		}
 	}
 
@@ -660,9 +660,8 @@ static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other,
 			gi.WritePosition(origin);
 			gi.Multicast(origin, MULTICAST_PHS, NULL);
 
-			if (G_IsStructural(other, surf) && G_IsStationary(other)) {
-				VectorMA(self->s.origin, 2.0, plane->normal, origin);
-				G_BurnMark(origin, plane, surf, 20);
+			if (G_IsStructural(other, surf)) {
+				G_Stain(self->s.origin, rand() & 7, 0.66, 32.0);
 			}
 		}
 	}
@@ -751,7 +750,7 @@ static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 
 				if (G_IsStationary(other)) {
 					VectorMA(self->s.origin, 2.0, plane->normal, origin);
-					G_BurnMark(origin, plane, surf, 10);
+					G_Stain(origin, EFFECT_COLOR_BLUE, 0.33, 16.0);
 				}
 			}
 		}
@@ -905,8 +904,8 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 			self->locals.damage = 0;
 		} else { // or leave a mark
 			if (tr.contents & MASK_SOLID) {
-				if (G_IsStructural(tr.ent, tr.surface) && G_IsStationary(tr.ent)) {
-					G_BurnMark(tr.end, &tr.plane, tr.surface, 8);
+				if (G_IsStructural(tr.ent, tr.surface)) {
+					G_Stain(tr.end, rand() & 7, 0.33, 8.0);
 				}
 			}
 		}
@@ -1074,8 +1073,6 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 static void G_BfgProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_bsp_plane_t *plane,
                                   const cm_bsp_surface_t *surf) {
 
-	vec3_t pos;
-
 	if (other == self->owner) {
 		return;
 	}
@@ -1106,10 +1103,8 @@ static void G_BfgProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_
 			gi.WritePosition(origin);
 			gi.Multicast(origin, MULTICAST_PHS, NULL);
 
-			if (G_IsStructural(other, surf) && G_IsStationary(other)) {
-
-				VectorMA(self->s.origin, 2.0, plane->normal, pos);
-				G_BurnMark(pos, plane, surf, 30);
+			if (G_IsStructural(other, surf)) {
+				G_Stain(self->s.origin, rand() & 7, 0.66, 96.0);
 			}
 		}
 	}
