@@ -35,9 +35,9 @@ static _Bool R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 
 	const vec_t dist = R_DistanceToSurface(stain->origin, surf);
 
-	const vec_t splash = stain->radius - fabs(dist);
+	const vec_t radius = stain->radius - fabs(dist);
 
-	if (splash < 0.0) {
+	if (radius < 0.0) {
 		return false;
 	}
 
@@ -57,8 +57,13 @@ static _Bool R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 	point_st[0] /= r_model_state.world->bsp->lightmaps->scale;
 	point_st[1] /= r_model_state.world->bsp->lightmaps->scale;
 
-	// convert intensity to lightmap space, and square it to avoid a sqrt per luxel
-	const vec_t radius_st = (splash * splash) / tex->scale[0] / r_model_state.world->bsp->lightmaps->scale;
+	// transform the radius into lightmap space, accounting for unevenly scaled textures
+	const vec2_t splash = {
+		radius * tex->scale[0] / r_model_state.world->bsp->lightmaps->scale,
+		radius * tex->scale[1] / r_model_state.world->bsp->lightmaps->scale
+	};
+
+	const vec_t radius_st = sqrt(splash[0] * splash[0] + splash[1] * splash[1]);
 
 	byte *buffer = surf->stainmap_buffer;
 
@@ -72,15 +77,14 @@ static _Bool R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 				fabs(point_st[1] - t) * tex->scale[1]
 			};
 
-			const vec_t dist_st = (delta[0] * delta[0]) + (delta[1] * delta[1]);
-
+			const vec_t dist_st = sqrt(delta[0] * delta[0] + delta[1] * delta[1]);
 			const vec_t atten = (radius_st - dist_st) / radius_st;
 
 			if (atten <= 0.0) {
 				continue;
 			}
 
-			const vec_t intensity = stain->color[3] * atten * r_stainmap->value;
+			/*const vec_t intensity = stain->color[3] * atten * r_stainmap->value;
 
 			const vec_t src_alpha = Clamp(intensity, 0.0, 1.0);
 			const vec_t dst_alpha = 1.0 - src_alpha;
@@ -91,7 +95,8 @@ static _Bool R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 				const vec_t dst = (buffer[j] / 255.0) * dst_alpha;
 
 				buffer[j] = (uint8_t) (Clamp(src + dst, 0.0, 1.0) * 255.0);
-			}
+			}*/
+			buffer[0] = buffer[1] = buffer[2] = 0;
 
 			surf_touched = true;
 		}
