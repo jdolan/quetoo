@@ -64,7 +64,6 @@ cg_particles_t *cg_particles_rope;
 cg_particles_t *cg_particles_flame;
 cg_particles_t *cg_particles_spark;
 cg_particles_t *cg_particles_inactive;
-cg_particles_t *cg_particles_bullet[3];
 cg_particles_t *cg_particles_ripple[3];
 
 /**
@@ -144,11 +143,6 @@ void Cg_UpdateMedia(void) {
 	cg_particles_flame = Cg_AllocParticles(cgi.LoadImage("particles/flame.tga", IT_EFFECT), true);
 	cg_particles_spark = Cg_AllocParticles(cgi.LoadImage("particles/spark.tga", IT_EFFECT), true);
 	cg_particles_inactive = Cg_AllocParticles(cgi.LoadImage("particles/inactive.tga", IT_EFFECT), true);
-
-	for (size_t i = 0; i < lengthof(cg_particles_bullet); i++) {
-		g_snprintf(name, sizeof(name), "particles/bullet_%zd", i);
-		cg_particles_bullet[i] = Cg_AllocParticles(cgi.LoadImage(name, IT_EFFECT), true);
-	}
 
 	for (size_t i = 0; i < lengthof(cg_particles_ripple); i++) {
 		g_snprintf(name, sizeof(name), "particles/ripple_%zd", i);

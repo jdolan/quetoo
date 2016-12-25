@@ -68,7 +68,6 @@
 	extern cg_particles_t *cg_particles_flame;
 	extern cg_particles_t *cg_particles_spark;
 	extern cg_particles_t *cg_particles_inactive;
-	extern cg_particles_t *cg_particles_bullet[3];
 	extern cg_particles_t *cg_particles_ripple[3];
 
 	void Cg_UpdateMedia(void);

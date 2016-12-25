@@ -133,21 +133,6 @@ static void G_BulletMark(vec3_t org, cm_bsp_plane_t *plane, cm_bsp_surface_t *su
 }
 
 /**
- * @brief Used to add burn marks on surfaces hit by projectiles.
- */
-static void G_Stain(const vec3_t org, byte color, vec_t alpha, vec_t radius) {
-
-	gi.WriteByte(SV_CMD_TEMP_ENTITY);
-	gi.WriteByte(TE_STAIN);
-	gi.WritePosition(org);
-	gi.WriteByte(color);
-	gi.WriteByte((byte) (alpha * 255.0));
-	gi.WriteVector(radius);
-
-	gi.Multicast(org, MULTICAST_PHS, NULL);
-}
-
-/**
  * @brief
  */
 static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
@@ -173,7 +158,7 @@ static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 			gi.WriteByte(SV_CMD_TEMP_ENTITY);
 			gi.WriteByte(TE_BLASTER);
 			gi.WritePosition(origin);
-			gi.WritePosition(plane->normal);
+			gi.WriteDir(plane->normal);
 			gi.WriteByte(self->s.client);
 			gi.Multicast(origin, MULTICAST_PHS, NULL);
 		}
@@ -277,7 +262,6 @@ void G_ShotgunProjectiles(g_entity_t *ent, const vec3_t start, const vec3_t dir,
  * @brief
  */
 static void G_GrenadeProjectile_Explode(g_entity_t *self) {
-	vec3_t origin;
 
 	if (self->locals.enemy) { // direct hit
 		vec_t d, k, dist;
@@ -301,26 +285,10 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
 	G_RadiusDamage(self, self->owner, self->locals.enemy, self->locals.damage,
 	               self->locals.knockback, self->locals.damage_radius, MOD_GRENADE_SPLASH);
 
-	const g_entity_t *ent = self->locals.ground_entity;
-	const cm_bsp_plane_t *plane = &self->locals.ground_plane;
-	const cm_bsp_surface_t *surf = self->locals.ground_surface;
-
-	if (ent) {
-		VectorMA(self->s.origin, 16.0, plane->normal, origin);
-	} else {
-		VectorCopy(self->s.origin, origin);
-	}
-
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_EXPLOSION);
-	gi.WritePosition(origin);
-	gi.Multicast(origin, MULTICAST_PHS, NULL);
-
-	if (ent) {
-		if (G_IsStructural(ent, surf)) {
-			G_Stain(self->s.origin, rand() & 7, 0.66, 32.0);
-		}
-	}
+	gi.WritePosition(self->s.origin);
+	gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
 
 	G_FreeEntity(self);
 }
@@ -386,7 +354,6 @@ static void G_Gib_Think(g_entity_t *self) {
  * means of death messages
  */
 static void G_HandGrenadeProjectile_Explode(g_entity_t *self) {
-	vec3_t origin;
 	uint32_t mod = 0;
 
 	// GIB EXPLODE
@@ -465,26 +432,10 @@ static void G_HandGrenadeProjectile_Explode(g_entity_t *self) {
 	G_RadiusDamage(self, self->owner, self->locals.enemy, self->locals.damage,
 	               self->locals.knockback, self->locals.damage_radius, mod);
 
-	const g_entity_t *ent = self->locals.ground_entity;
-	const cm_bsp_plane_t *plane = &self->locals.ground_plane;
-	const cm_bsp_surface_t *surf = self->locals.ground_surface;
-
-	if (ent) {
-		VectorMA(self->s.origin, 16.0, plane->normal, origin);
-	} else {
-		VectorCopy(self->s.origin, origin);
-	}
-
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_EXPLOSION);
-	gi.WritePosition(origin);
-	gi.Multicast(origin, MULTICAST_PHS, NULL);
-
-	if (ent) {
-		if (G_IsStructural(ent, surf)) {
-			G_Stain(self->s.origin, rand() & 7, 0.66, 32.0);
-		}
-	}
+	gi.WritePosition(self->s.origin);
+	gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
 
 	G_FreeEntity(self);
 }
@@ -533,12 +484,17 @@ void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
 void G_GrenadeProjectile(g_entity_t *ent, vec3_t const start, const vec3_t dir, int32_t speed,
                          int16_t damage, int16_t knockback, vec_t damage_radius, uint32_t timer) {
 
+	const vec3_t mins = { -3.0, -3.0, -3.0 };
+	const vec3_t maxs = { 3.0, 3.0, 3.0 };
+
 	vec3_t forward, right, up;
 
 	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
+	VectorCopy(mins, projectile->mins);
+	VectorCopy(maxs, projectile->maxs);
 	VectorAngles(dir, projectile->s.angles);
 
 	AngleVectors(projectile->s.angles, forward, right, up);
@@ -578,9 +534,14 @@ void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile,
                              vec3_t const start, const vec3_t dir, int32_t speed, int16_t damage,
                              int16_t knockback, vec_t damage_radius, uint32_t timer) {
 
+	const vec3_t mins = { -2.0, -2.0, -2.0 };
+	const vec3_t maxs = { 2.0, 2.0, 2.0 };
+
 	vec3_t forward, right, up;
 
 	VectorCopy(start, projectile->s.origin);
+	VectorCopy(mins, projectile->mins);
+	VectorCopy(maxs, projectile->maxs);
 	VectorAngles(dir, projectile->s.angles);
 
 	AngleVectors(projectile->s.angles, forward, right, up);
@@ -659,10 +620,6 @@ static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other,
 			gi.WriteByte(TE_EXPLOSION);
 			gi.WritePosition(origin);
 			gi.Multicast(origin, MULTICAST_PHS, NULL);
-
-			if (G_IsStructural(other, surf)) {
-				G_Stain(self->s.origin, rand() & 7, 0.66, 32.0);
-			}
 		}
 	}
 
@@ -675,10 +632,15 @@ static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other,
 void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
                         int16_t damage, int16_t knockback, vec_t damage_radius) {
 
+	const vec3_t mins = { -2.0, -2.0, -2.0 };
+	const vec3_t maxs = { 2.0, 2.0, 2.0 };
+
 	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
+	VectorCopy(mins, projectile->mins);
+	VectorCopy(maxs, projectile->maxs);
 	VectorAngles(dir, projectile->s.angles);
 	VectorScale(dir, speed, projectile->locals.velocity);
 	VectorSet(projectile->locals.avelocity, 0.0, 0.0, 600.0);
@@ -724,17 +686,11 @@ static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 			G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, plane->normal,
 			         self->locals.damage, self->locals.knockback, DMG_ENERGY, MOD_HYPERBLASTER);
 
-			vec3_t origin;
-			if (G_IsStructural(other, surf)) {
-				VectorMA(self->s.origin, 16.0, plane->normal, origin);
-			} else if (G_IsMeat(other)) {
-				VectorCopy(self->s.origin, origin);
-			}
-
 			gi.WriteByte(SV_CMD_TEMP_ENTITY);
 			gi.WriteByte(TE_HYPERBLASTER);
-			gi.WritePosition(origin);
-			gi.Multicast(origin, MULTICAST_PHS, NULL);
+			gi.WritePosition(self->s.origin);
+			gi.WriteDir(plane->normal);
+			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
 
 			if (G_IsStructural(other, surf)) {
 
@@ -746,11 +702,6 @@ static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 					         self->locals.damage * 0.06, 0, DMG_ENERGY, MOD_HYPERBLASTER);
 
 					self->owner->locals.velocity[2] += 80.0;
-				}
-
-				if (G_IsStationary(other)) {
-					VectorMA(self->s.origin, 2.0, plane->normal, origin);
-					G_Stain(origin, EFFECT_COLOR_BLUE, 0.33, 16.0);
 				}
 			}
 		}
@@ -765,10 +716,15 @@ static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
                               int16_t damage, int16_t knockback) {
 
+	const vec3_t mins = { -3.0, -3.0, -3.0 };
+	const vec3_t maxs = { 3.0, 3.0, 3.0 };
+
 	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
+	VectorCopy(mins, projectile->mins);
+	VectorCopy(maxs, projectile->maxs);
 	VectorAngles(dir, projectile->s.angles);
 	VectorScale(dir, speed, projectile->locals.velocity);
 
@@ -824,7 +780,7 @@ static void G_LightningProjectile_Discharge(g_entity_t *self) {
 
 	// send discharge event
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
-	gi.WriteByte(TE_LIGHTNING);
+	gi.WriteByte(TE_LIGHTNING_DISCHARGE);
 	gi.WritePosition(self->s.origin);
 }
 
@@ -905,7 +861,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		} else { // or leave a mark
 			if (tr.contents & MASK_SOLID) {
 				if (G_IsStructural(tr.ent, tr.surface)) {
-					G_Stain(tr.end, rand() & 7, 0.33, 8.0);
+					// TODO: Send a lightning effect for impacting walls?
 				}
 			}
 		}
@@ -1091,21 +1047,10 @@ static void G_BfgProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_
 			G_RadiusDamage(self, self->owner, other, self->locals.damage, self->locals.knockback,
 			               self->locals.damage_radius, MOD_BFG_BLAST);
 
-			vec3_t origin;
-			if (G_IsStructural(other, surf)) {
-				VectorMA(self->s.origin, 16.0, plane->normal, origin);
-			} else {
-				VectorCopy(self->s.origin, origin);
-			}
-
 			gi.WriteByte(SV_CMD_TEMP_ENTITY);
 			gi.WriteByte(TE_BFG);
-			gi.WritePosition(origin);
-			gi.Multicast(origin, MULTICAST_PHS, NULL);
-
-			if (G_IsStructural(other, surf)) {
-				G_Stain(self->s.origin, rand() & 7, 0.66, 96.0);
-			}
+			gi.WritePosition(self->s.origin);
+			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
 		}
 	}
 
@@ -1165,10 +1110,15 @@ static void G_BfgProjectile_Think(g_entity_t *self) {
 void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
                      int16_t damage, int16_t knockback, vec_t damage_radius) {
 
+	const vec3_t mins = { -4.0, -4.0, -4.0 };
+	const vec3_t maxs = { 4.0, 4.0, 4.0 };
+
 	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
+	VectorCopy(mins, projectile->mins);
+	VectorCopy(maxs, projectile->maxs);
 	VectorScale(dir, speed, projectile->locals.velocity);
 
 	if (G_ImmediateWall(ent, projectile)) {

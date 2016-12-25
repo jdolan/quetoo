@@ -27,14 +27,12 @@
  */
 static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) {
 	cg_particle_t *p;
-	r_sustained_light_t s;
-	int32_t i, j;
 
 	if (!color) {
 		color = EFFECT_COLOR_ORANGE;
 	}
 
-	for (i = 0; i < 24; i++) {
+	for (int32_t i = 0; i < 24; i++) {
 
 		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_spark))) {
 			break;
@@ -55,34 +53,28 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 
 		VectorScale(dir, 150.0, p->vel);
 
-		for (j = 0; j < 3; j++) {
+		for (int32_t j = 0; j < 3; j++) {
 			p->vel[j] += Randomc() * 50.0;
 		}
 
 		p->accel[2] -= 2.0 * PARTICLE_GRAVITY;
 	}
 
-	cgi.ColorFromPalette(color, s.light.color);
+	vec3_t c;
+	cgi.ColorFromPalette(color, c);
 
-	VectorScale(s.light.color, 3.0, s.light.color);
-
-	for (i = 0; i < 3; i++) {
-		if (s.light.color[i] > 1.0) {
-			s.light.color[i] = 1.0;
-		}
-	}
+	cgi.AddSustainedLight(&(const r_sustained_light_t) {
+		.light.origin = { org[0], org[1], org[2] },
+		 .light.color = { c[0], c[1], c[2] },
+		  .light.radius = 150.0,
+		   .sustain = 250
+	});
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
-		 .color = { s.light.color[0], s.light.color[1], s.light.color[2], 1.0 },
-		  .radius = 4.0 + Randomc()
+		 .color = { c[0], c[1], c[2], 1 },
+		  .radius = 2.0
 	});
-
-	VectorAdd(org, dir, s.light.origin);
-	s.light.radius = 150.0;
-	s.sustain = 250;
-
-	cgi.AddSustainedLight(&s);
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_blaster_hit,
@@ -128,7 +120,6 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	static uint32_t last_ric_time;
 	cg_particle_t *p;
-	r_sustained_light_t s;
 	int32_t k = 1 + (Random() % 5);
 
 	while (k--) {
@@ -178,16 +169,16 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 		}
 	}
 
-	VectorAdd(org, dir, s.light.origin);
-	s.light.radius = 20.0;
-	VectorSet(s.light.color, 0.5, 0.3, 0.2);
-	s.sustain = 250;
-
-	cgi.AddSustainedLight(&s);
+	cgi.AddSustainedLight(&(const r_sustained_light_t) {
+		.light.origin = { org[0] + dir[0], org[1] + dir[1], org[2] + dir[2] },
+		 .light.color = { 0.5, 0.3, 0.2 },
+		  .light.radius = 20.0,
+		   .sustain = 250
+	});
 
 	cgi.AddStain(&(const r_stain_t) {
 		 .origin = { org[0], org[1], org[2] },
-		  .color = { 0.0, 0.0, 0.0, 0.4 },
+		  .color = { 0.0, 0.0, 0.0, 0.125 },
 		   .radius = 1.0
 	});
 
@@ -205,21 +196,6 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 			   .flags = S_PLAY_POSITIONED
 		});
 	}
-}
-
-/**
- * @brief
- */
-static void Cg_StainEffect(const vec3_t org, byte color, byte alpha, vec_t radius) {
-
-	vec3_t c;
-	cgi.ColorFromPalette(color, c);
-
-	cgi.AddStain(&(const r_stain_t) {
-		.origin = { org[0], org[1], org[2] },
-		 .color = { c[0], c[1], c[2], (alpha / 255.0) },
-		  .radius = radius + (radius * Randomc() * 0.15)
-	});
 }
 
 /**
@@ -340,10 +316,8 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
  * @brief
  */
 void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
-	r_sustained_light_t s;
-	int32_t i, j;
 
-	for (i = 0; i < count; i++) {
+	for (int32_t i = 0; i < count; i++) {
 		cg_particle_t *p;
 
 		if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark))) {
@@ -361,7 +335,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 		VectorScale(dir, 4, p->vel);
 
-		for (j = 0; j < 3; j++) {
+		for (int32_t j = 0; j < 3; j++) {
 			p->part.org[j] += Randomc() * 4.0;
 			p->vel[j] += Randomc() * 90.0;
 		}
@@ -374,12 +348,12 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 		VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 	}
 
-	VectorCopy(org, s.light.origin);
-	s.light.radius = 80.0;
-	VectorSet(s.light.color, 0.7, 0.5, 0.5);
-	s.sustain = 650;
-
-	cgi.AddSustainedLight(&s);
+	cgi.AddSustainedLight(&(const r_sustained_light_t) {
+		.light.origin = { org[0], org[1], org[2] },
+		 .light.color = { 0.7, 0.5, 0.5 },
+		  .light.radius = 80.0,
+		   .sustain = 650
+	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_sparks,
@@ -394,7 +368,6 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
  */
 static void Cg_ExplosionEffect(const vec3_t org) {
 	cg_particle_t *p;
-	r_sustained_light_t s;
 
 	if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_explosion))) {
 
@@ -495,12 +468,21 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 		VectorSet(p->accel, 0.0, 0.0, -PARTICLE_GRAVITY * 2.0);
 	}
 
-	VectorCopy(org, s.light.origin);
-	s.light.radius = 200.0;
-	VectorSet(s.light.color, 0.8, 0.4, 0.2);
-	s.sustain = 1000;
+	cgi.AddSustainedLight(&(const r_sustained_light_t) {
+		.light.origin = { org[0], org[1], org[2] },
+		 .light.color = { 0.8, 0.4, 0.2 },
+		  .light.radius = 200.0,
+		   .sustain = 1000
+	});
 
-	cgi.AddSustainedLight(&s);
+	vec3_t c;
+	cgi.ColorFromPalette(rand() & 7, c);
+
+	cgi.AddStain(&(const r_stain_t) {
+		.origin = { org[0], org[1], org[2] },
+		 .color = { c[0], c[1], c[2], 0.66 },
+		  .radius = 64.0 + (64.0 * Randomc() * 0.15)
+	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_explosion,
@@ -513,12 +495,13 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 /**
  * @brief
  */
-static void Cg_HyperblasterEffect(const vec3_t org) {
+static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 	cg_particle_t *p;
-	r_sustained_light_t s;
-	int32_t i;
 
-	for (i = 0; i < 2; i++) {
+	vec3_t color;
+	cgi.ColorFromPalette(113 + Random() % 3, color);
+
+	for (int32_t i = 0; i < 2; i++) {
 
 		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_explosion))) {
 			break;
@@ -527,8 +510,8 @@ static void Cg_HyperblasterEffect(const vec3_t org) {
 		p->lifetime = 150;
 		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-		cgi.ColorFromPalette(113 + Random() % 3, p->color_start);
-		VectorCopy(p->color_start, p->color_end);
+		VectorCopy(color, p->color_start);
+		VectorCopy(color, p->color_end);
 		p->color_end[3] = 0.0;
 
 		p->scale_start = 1.5;
@@ -536,15 +519,21 @@ static void Cg_HyperblasterEffect(const vec3_t org) {
 
 		p->part.roll = 100.0 * Randomc();
 
-		VectorCopy(org, p->part.org);
+		VectorAdd(org, dir, p->part.org);
 	}
 
-	VectorCopy(org, s.light.origin);
-	s.light.radius = 80.0;
-	VectorSet(s.light.color, 0.4, 0.7, 1.0);
-	s.sustain = 250;
+	cgi.AddSustainedLight(&(const r_sustained_light_t) {
+		.light.origin = { org[0] + dir[0], org[1] + dir[1], org[2] + dir[2] },
+		 .light.color = { 0.4, 0.7, 1.0 },
+		  .light.radius = 80.0,
+		   .sustain = 250
+	});
 
-	cgi.AddSustainedLight(&s);
+	cgi.AddStain(&(const r_stain_t) {
+		.origin = { org[0], org[1], org[2] },
+		 .color = { color[0], color[1], color[2], 0.33 },
+		  .radius = 16.0 + (16.0 * Randomc() * 0.15)
+	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_hyperblaster_hit,
@@ -557,28 +546,25 @@ static void Cg_HyperblasterEffect(const vec3_t org) {
 /**
  * @brief
  */
-static void Cg_LightningEffect(const vec3_t org) {
-	r_sustained_light_t s;
-	vec3_t tmp;
-	int32_t i, j;
+static void Cg_LightningDischargeEffect(const vec3_t org) {
 
-	for (i = 0; i < 40; i++) {
-
+	for (int32_t i = 0; i < 40; i++) {
+		vec3_t tmp;
 		VectorCopy(org, tmp);
 
-		for (j = 0; j < 3; j++) {
+		for (int32_t j = 0; j < 3; j++) {
 			tmp[j] = tmp[j] + (Random() % 96) - 48.0;
 		}
 
 		Cg_BubbleTrail(org, tmp, 4.0);
 	}
 
-	VectorCopy(org, s.light.origin);
-	s.light.radius = 160.0;
-	VectorSet(s.light.color, 0.6, 0.6, 1.0);
-	s.sustain = 750;
-
-	cgi.AddSustainedLight(&s);
+	cgi.AddSustainedLight(&(const r_sustained_light_t) {
+		.light.origin = { org[0], org[1], org[2] },
+		.light.color = { 0.6, 0.6, 1.0 },
+		.light.radius = 160.0,
+		.sustain = 750
+	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_lightning_discharge,
@@ -758,10 +744,8 @@ static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
  */
 static void Cg_BfgEffect(const vec3_t org) {
 	cg_particle_t *p;
-	r_sustained_light_t s;
-	int32_t i;
 
-	for (i = 0; i < 4; i++) {
+	for (int32_t i = 0; i < 4; i++) {
 
 		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_explosion))) {
 			break;
@@ -782,7 +766,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 		VectorCopy(org, p->part.org);
 	}
 
-	for (i = 0; i < 128; i++) {
+	for (int32_t i = 0; i < 128; i++) {
 
 		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL))) {
 			break;
@@ -807,12 +791,21 @@ static void Cg_BfgEffect(const vec3_t org) {
 		VectorSet(p->accel, 0.0, 0.0, -3.0 * PARTICLE_GRAVITY);
 	}
 
-	VectorCopy(org, s.light.origin);
-	s.light.radius = 200.0;
-	VectorSet(s.light.color, 0.8, 1.0, 0.5);
-	s.sustain = 1000;
+	cgi.AddSustainedLight(&(const r_sustained_light_t) {
+		.light.origin = { org[0], org[1], org[2] },
+		 .light.color = { 0.8, 1.0, 0.5 },
+		  .light.radius = 200.0,
+		   .sustain = 1000
+	});
 
-	cgi.AddSustainedLight(&s);
+	vec3_t c;
+	cgi.ColorFromPalette(rand() & 7, c);
+
+	cgi.AddStain(&(const r_stain_t) {
+		.origin = { org[0], org[1], org[2] },
+		 .color = { c[0], c[1], c[2], 0.66 },
+		  .radius = 96.0 + (96.0 * Randomc() * 0.15)
+	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_bfg_hit,
@@ -906,7 +899,7 @@ void Cg_ParseTempEntity(void) {
 
 		case TE_BLASTER:
 			cgi.ReadPosition(pos);
-			cgi.ReadPosition(dir);
+			cgi.ReadDir(dir);
 			i = cgi.ReadByte();
 			Cg_BlasterEffect(pos, dir, i);
 			break;
@@ -921,14 +914,6 @@ void Cg_ParseTempEntity(void) {
 			cgi.ReadPosition(pos);
 			cgi.ReadDir(dir);
 			Cg_BulletEffect(pos, dir);
-			break;
-
-		case TE_STAIN: // stain on walls
-			cgi.ReadPosition(pos);
-			i = cgi.ReadByte();
-			j = cgi.ReadByte();
-			v = cgi.ReadVector();
-			Cg_StainEffect(pos, i, j, v);
 			break;
 
 		case TE_BLOOD: // projectile hitting flesh
@@ -950,12 +935,13 @@ void Cg_ParseTempEntity(void) {
 
 		case TE_HYPERBLASTER: // hyperblaster hitting wall
 			cgi.ReadPosition(pos);
-			Cg_HyperblasterEffect(pos);
+			cgi.ReadDir(dir);
+			Cg_HyperblasterEffect(pos, dir);
 			break;
 
-		case TE_LIGHTNING: // lightning discharge in water
+		case TE_LIGHTNING_DISCHARGE: // lightning discharge in water
 			cgi.ReadPosition(pos);
-			Cg_LightningEffect(pos);
+			Cg_LightningDischargeEffect(pos);
 			break;
 
 		case TE_RAIL: // railgun effect
