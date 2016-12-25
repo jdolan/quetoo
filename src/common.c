@@ -21,6 +21,28 @@
 
 #include "common.h"
 
+/**
+ * @brief Sets up a log file that will be used for debugging issues
+ * with the game's initialization routines.
+ */
+static void Com_InitLog(void) {
+
+	quetoo.log_file = fopen(va("quetoo_%" PRIuPTR ".log", time(NULL)), "w");
+}
+
+/**
+ * @brief Logs a string to the log file.
+ */
+static void Com_LogString(const char *str) {
+
+	if (!str || !*str || !quetoo.log_file) {
+		return;
+	}
+
+	fprintf(quetoo.log_file, "%s", str);
+	fflush(quetoo.log_file);
+}
+
 static const char *DEBUG_CATEGORIES[] = {
 	"ai",
 	"cgame",
@@ -156,6 +178,8 @@ void Com_Debugv_(const debug_t debug, const char *func, const char *fmt, va_list
 	char msg[MAX_PRINT_MSG];
 	Com_Sprintfv(msg, sizeof(msg), func, fmt, args);
 
+	Com_LogString(msg);
+
 	if (quetoo.Debug) {
 		quetoo.Debug(debug, (const char *) msg);
 	} else {
@@ -198,6 +222,8 @@ void Com_Errorv_(err_t err, const char *func, const char *fmt, va_list args) {
 	char msg[MAX_PRINT_MSG];
 	Com_Sprintfv(msg, sizeof(msg), func, fmt, args);
 
+	Com_LogString(msg);
+
 	if (quetoo.Error) {
 		quetoo.Error(err, msg);
 	} else {
@@ -230,6 +256,8 @@ void Com_Printv(const char *fmt, va_list args) {
 	char msg[MAX_PRINT_MSG];
 	Com_Sprintfv(msg, sizeof(msg), NULL, fmt, args);
 
+	Com_LogString(msg);
+
 	if (quetoo.Print) {
 		quetoo.Print(msg);
 	} else {
@@ -258,6 +286,8 @@ void Com_Warnv_(const char *func, const char *fmt, va_list args) {
 
 	char msg[MAX_PRINT_MSG];
 	Com_Sprintfv(msg, sizeof(msg), func, fmt, args);
+
+	Com_LogString(msg);
 
 	if (quetoo.Warn) {
 		quetoo.Warn(msg);
@@ -288,6 +318,8 @@ void Com_Verbosev(const char *fmt, va_list args) {
 	char msg[MAX_PRINT_MSG];
 	Com_Sprintfv(msg, sizeof(msg), NULL, fmt, args);
 
+	Com_LogString(msg);
+
 	if (quetoo.Verbose) {
 		quetoo.Verbose((const char *) msg);
 	} else {
@@ -305,6 +337,24 @@ void Com_Init(int32_t argc, char *argv[]) {
 
 	quetoo.argc = argc;
 	quetoo.argv = argv;
+
+	// options that any Com_* implementation can use
+	for (int32_t i = 1; i < Com_Argc(); i++) {
+
+		// if we specified debug mode, quickly set it to all here
+		// so that early systems prior to init can write stuff out
+		if (!g_strcmp0(Com_Argv(i), "-debug") ||
+			!g_strcmp0(Com_Argv(i), "+debug")) {
+			Com_SetDebug("all");
+			continue;
+		}
+
+		if (!g_strcmp0(Com_Argv(i), "-log") ||
+			!g_strcmp0(Com_Argv(i), "+log")) {
+			Com_InitLog();
+			continue;
+		}
+	}
 
 	if (quetoo.Init) {
 		quetoo.Init();
@@ -330,6 +380,11 @@ void Com_Shutdown(const char *fmt, ...) {
 		quetoo.Shutdown(msg);
 	} else {
 		Com_Print("%s", msg);
+	}
+	
+	// close log file
+	if (quetoo.log_file) {
+		fclose(quetoo.log_file);
 	}
 
 	exit(0);

@@ -287,6 +287,9 @@ static void Init(void) {
 
 	Com_Print("Quetoo %s %s %s initialized\n", VERSION, __DATE__, BUILD_HOST);
 
+	// reset debug value since Cbuf may change it from Com's "all" init
+	Com_SetDebug("0");
+
 	// execute any +commands specified on the command line
 	Cbuf_InsertFromDefer();
 	Cbuf_Execute();

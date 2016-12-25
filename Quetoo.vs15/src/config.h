@@ -56,9 +56,9 @@
 #define _strngfx(s) _strngf(s)
 
 #if defined(__clang__)
-	#define BUILD_MACHINE "Clang " __clang_version__
+	#define BUILD_MACHINE "MSVC "  _strngfx(_MSC_VER) " using Clang " __clang_version__
 #elif defined(_MSC_VER)
-	#define BUILD_MACHINE "MSC " _strngfx(_MSC_VER)
+	#define BUILD_MACHINE "MSVC " _strngfx(_MSC_VER)
 #endif
 
 #if defined(_WIN64)
