@@ -847,7 +847,7 @@ static void G_FireBfg_(g_entity_t *ent) {
 
 			G_ClientWeaponKick(ent->owner, 16.0);
 
-			G_WeaponFired(ent->owner, 2000, ent->client->locals.weapon->quantity);
+			G_WeaponFired(ent->owner, 2000, ent->owner->client->locals.weapon->quantity);
 		}
 	}
 
@@ -865,6 +865,7 @@ void G_FireBfg(g_entity_t *ent) {
 
 		g_entity_t *timer = G_AllocEntity();
 		timer->owner = ent;
+		timer->sv_flags = SVF_NO_CLIENT;
 
 		timer->locals.Think = G_FireBfg_;
 		timer->locals.next_think = g_level.time + 1000 - QUETOO_TICK_MILLIS;
