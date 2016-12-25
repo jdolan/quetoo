@@ -197,6 +197,12 @@ typedef struct {
 	 */
 	_Bool recursive_error;
 
+	/**
+	 * @brief Used by the common printing functions to spit out a file that we can
+	 * use to diagnose startup errors.
+	 */
+	FILE *log_file;
+
 	void (*Debug)(const debug_t debug, const char *msg);
 	void (*Error)(err_t error, const char *msg) __attribute__((noreturn));
 	void (*Print)(const char *msg);
