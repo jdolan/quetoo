@@ -416,6 +416,31 @@ static void Cm_LoadBspAreaPortals(const d_bsp_lump_t *l) {
 }
 
 /**
+ * @brief
+ */
+GArray *Cm_LoadBspMaterials(const char *name) {
+
+	char base[MAX_QPATH];
+	StripExtension(Basename(name), base);
+
+	return Cm_LoadMaterials(va("materials/%s.mat", base));
+}
+
+/**
+ * @brief
+ */
+void Cm_UnloadBspMaterials(void) {
+
+	for (int32_t i = 0; i < cm_bsp.num_surfaces; i++) {
+		cm_bsp_surface_t *surf = &cm_bsp.surfaces[i];
+
+		if (surf->material) {
+			Cm_UnrefMaterial(surf->material);
+		}
+	}
+}
+
+/**
  * @brief Loads in the BSP and all sub-models for collision detection. This
  * function can also be used to initialize or clean up the collision model by
  * invoking with NULL.
@@ -423,14 +448,7 @@ static void Cm_LoadBspAreaPortals(const d_bsp_lump_t *l) {
 cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	void *buf;
 
-	// unload materials
-	for (int32_t i = 0; i < cm_bsp.num_surfaces; ++i) {
-		cm_bsp_surface_t *surf = &cm_bsp.surfaces[i];
-
-		if (surf->material) {
-			Cm_UnrefMaterial(surf->material);
-		}
-	}
+	Cm_UnloadBspMaterials();
 
 	memset(&cm_bsp, 0, sizeof(cm_bsp));
 	cm_vis = (d_bsp_vis_t *) cm_bsp.visibility;
@@ -467,10 +485,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 
 	cm_bsp.base = (byte *) buf;
 
-	// load materials, to resolve surface lists
-	char base[MAX_QPATH];
-	StripExtension(Basename(name), base);
-	GArray *materials = Cm_LoadMaterials(va("materials/%s.mat", base));
+	GArray *materials = Cm_LoadBspMaterials(name);
 
 	// load into heap
 	Cm_LoadEntityString(&header.lumps[BSP_LUMP_ENTITIES]);
@@ -487,12 +502,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	Cm_LoadBspAreaPortals(&header.lumps[BSP_LUMP_AREA_PORTALS]);
 
 	// unref the materials from the list
-	for (uint32_t i = 0; i < materials->len; ++i) {
-		cm_material_t *material = g_array_index(materials, cm_material_t *, i);
-		Cm_UnrefMaterial(material);
-	}
-
-	g_array_free(materials, true);
+	Cm_UnloadMaterials(materials);
 
 	Fs_Free(buf);
 

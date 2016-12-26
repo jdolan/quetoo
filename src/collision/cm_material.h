@@ -147,6 +147,7 @@ void Cm_DumpMaterialAllocations(void);
 cm_material_t *Cm_LoadMaterial_(const char *where, const char *diffuse);
 #define Cm_LoadMaterial(diffuse) Cm_LoadMaterial_(__func__, diffuse)
 GArray *Cm_LoadMaterials(const char *path);
+void Cm_UnloadMaterials(GArray *materials);
 
 void Cm_WriteMaterials(void);
 

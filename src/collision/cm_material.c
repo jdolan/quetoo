@@ -659,10 +659,24 @@ GArray *Cm_LoadMaterials(const char *path) {
 
 	if (!materials->len) {
 		g_array_free(materials, true);
-		return NULL;
+		materials = NULL;
 	}
 
 	return materials;
+}
+
+/**
+ * @brief
+ */
+void Cm_UnloadMaterials(GArray *materials) {
+
+	if (materials) {
+		for (uint32_t i = 0; i < materials->len; ++i) {
+			Cm_UnrefMaterial(g_array_index(materials, cm_material_t *, i));
+		}
+
+		g_array_free(materials, true);
+	}
 }
 
 /**
