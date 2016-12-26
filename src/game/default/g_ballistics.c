@@ -347,6 +347,7 @@ static void G_Gib_Think(g_entity_t *self) {
 	self->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 }
 
+#define GRENADE_HELD 1
 /**
  * @brief mostly a copy of the grenade launcher version but with different
  * means of death messages
@@ -420,7 +421,7 @@ static void G_HandGrenadeProjectile_Explode(g_entity_t *self) {
 	}
 
 	// they never tossed it
-	if (self->locals.held_grenade) {
+	if (self->locals.spawn_flags & GRENADE_HELD) {
 		mod = MOD_HANDGRENADE_KAMIKAZE;
 	} else {
 		mod = MOD_HANDGRENADE_SPLASH;
@@ -568,7 +569,7 @@ void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile,
 
 	// if client is holding it, let the nade know it's being held
 	if (ent->client->locals.grenade_hold_time) {
-		projectile->locals.held_grenade = true;
+		projectile->locals.spawn_flags = GRENADE_HELD;
 	}
 
 	projectile->locals.avelocity[0] = -300.0 + 10 * Randomc();
