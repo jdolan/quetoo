@@ -221,15 +221,15 @@ static void Cg_UpdateParticleSpecial_Blood(cg_particle_t *p) {
 				p->part.org[2] + Randomc() * 8.0
 			},
 			.color = {
-				0.9 + Randomf() * 0.1,
+				0.6 + Randomc() * 0.1,
 				0.0,
 				0.0,
-				0.3 + Randomc() * 0.25
+				0.25 + Randomf() * 0.125
 			},
-			.radius = p->part.scale + (Randomc() * 3.0)
+			.radius = p->part.scale * 0.125
 		});
 
-		p->blood.time = cgi.client->ticks + 32 + (Randomf() * 64);
+		p->blood.time = cgi.client->ticks + 96 + (Randomf() * 96);
 	}
 }
 

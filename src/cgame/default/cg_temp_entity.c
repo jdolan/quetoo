@@ -232,8 +232,8 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
-		 .color = { 0.9 + 0.2 * Randomc(), 0.0, 0.0, 0.33 },
-		  .radius = count
+		 .color = { 0.6 + 0.1 * Randomc(), 0.0, 0.0, 0.8 + Randomf() * 0.1 },
+		  .radius = count * 1.0
 	});
 }
 
@@ -300,8 +300,8 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
-		 .color = { 0.9 + 0.2 * Randomc(), 0.0, 0.0, 0.66 },
-		  .radius = count * 2.0
+		 .color = { 0.6 + 0.1 * Randomc(), 0.0, 0.0, 0.9 + Randomf() * 0.1 },
+		  .radius = count * 4.0
 	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
