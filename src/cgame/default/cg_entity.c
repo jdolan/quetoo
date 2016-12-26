@@ -65,6 +65,16 @@ _Bool Cg_IsDucking(const cl_entity_t *ent) {
 }
 
 /**
+ * @brief
+ */
+static void Cg_AnimateEntity(cl_entity_t *ent) {
+
+	if (ent->current.model1 == MODEL_CLIENT) {
+		Cg_AnimateClientEntity(ent, NULL, NULL);
+	}
+}
+
+/**
  * @brief Interpolate the current frame, processing any new events and advancing the simulation.
  */
 void Cg_Interpolate(const cl_frame_t *frame) {
@@ -82,10 +92,8 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 		// and particle and light trails
 		Cg_EntityTrail(ent);
 
-		// run client animations
-		if (ent->current.model1 == MODEL_CLIENT) {
-			Cg_AnimateClientEntity(ent, NULL, NULL);
-		}
+		// run animations
+		Cg_AnimateEntity(ent);
 	}
 }
 

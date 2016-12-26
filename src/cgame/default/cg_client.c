@@ -342,9 +342,9 @@ void Cg_AnimateClientEntity(cl_entity_t *ent, r_entity_t *torso, r_entity_t *leg
 	Cg_AnimateClientEntity_(md3, &ent->animation2);
 
 	if (legs) {
-		legs->frame = ent->animation1.frame;
-		legs->old_frame = ent->animation1.old_frame;
-		legs->lerp = ent->animation1.lerp;
-		legs->back_lerp = 1.0 - ent->animation1.lerp;
+		legs->frame = ent->animation2.frame;
+		legs->old_frame = ent->animation2.old_frame;
+		legs->lerp = ent->animation2.lerp;
+		legs->back_lerp = 1.0 - ent->animation2.lerp;
 	}
 }
