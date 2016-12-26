@@ -63,7 +63,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-t8 -bsp -vis -light maps/jgothic.map"
+            argument = "-bsp -vis -fast -light maps/dreams.map"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
