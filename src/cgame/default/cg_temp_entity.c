@@ -704,7 +704,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { end[0], end[1], end[2] },
-		 .color = { s.light.color[0], s.light.color[1], s.light.color[2], 1.0 },
+		 .color = { s.light.color[0], s.light.color[1], s.light.color[2], 0.66 },
 		  .radius = 8.0 + (8.0 * Randomc() * 0.15)
 	});
 }
@@ -803,7 +803,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
-		 .color = { c[0], c[1], c[2], 0.66 },
+		 .color = { c[0], c[1], c[2], 0.75 },
 		  .radius = 96.0 + (96.0 * Randomc() * 0.15)
 	});
 

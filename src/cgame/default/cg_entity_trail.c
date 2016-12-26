@@ -583,11 +583,16 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	l.radius = 90.0 + 10.0 * Randomc();
 	cgi.AddLight(&l);
 
-	cgi.AddStain(&(const r_stain_t) {
-		.origin = { end[0], end[1], end[2] },
-		 .color = { 0.0, 0.0, 0.0, 0.125 },
-		  .radius = 2.0
-	});
+	if (ent->timestamp < cgi.client->ticks) {
+
+		cgi.AddStain(&(const r_stain_t) {
+			.origin = { end[0], end[1], end[2] },
+			 .color = { 0.0, 0.0, 0.0, 0.33 },
+			  .radius = 2.0
+		});
+
+		ent->timestamp = cgi.client->ticks + 64;
+	}
 }
 
 /**
