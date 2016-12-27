@@ -86,13 +86,8 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 
 		cl_entity_t *ent = &cgi.client->entities[s->number];
 
-		// add events
 		Cg_EntityEvent(ent);
 
-		// and particle and light trails
-		Cg_EntityTrail(ent);
-
-		// run animations
 		Cg_AnimateEntity(ent);
 	}
 }
@@ -343,6 +338,8 @@ void Cg_AddEntities(const cl_frame_t *frame) {
 		const entity_state_t *s = &cgi.client->entity_states[snum];
 
 		cl_entity_t *ent = &cgi.client->entities[s->number];
+
+		Cg_EntityTrail(ent);
 
 		Cg_AddEntity(ent);
 	}
