@@ -22,10 +22,10 @@
 #include "cl_local.h"
 
 /**
- * @brief Returns true if client side prediction should be used. The actual
- * movement is handled by the client game.
+ * @brief Returns true if client side prediction should be used. The actual movement is handled by 
+ * the client game.
  */
-_Bool Cl_UsePrediction(const uint16_t mask) {
+_Bool Cl_UsePrediction(void) {
 
 	if (!cl_predict->value) {
 		return false;
@@ -39,7 +39,7 @@ _Bool Cl_UsePrediction(const uint16_t mask) {
 		return false;
 	}
 
-	if ((cl.frame.ps.pm_state.flags & mask) == mask) {
+	if (cl.frame.ps.pm_state.flags & PMF_NO_PREDICTION) {
 		return false;
 	}
 
@@ -202,7 +202,7 @@ cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, con
  */
 void Cl_PredictMovement(void) {
 
-	if (Cl_UsePrediction(PMF_NO_PREDICTION)) {
+	if (Cl_UsePrediction()) {
 
 		const uint32_t last = cls.net_chan.outgoing_sequence;
 		uint32_t ack = cls.net_chan.incoming_acknowledged;
@@ -231,7 +231,7 @@ void Cl_PredictMovement(void) {
  */
 void Cl_CheckPredictionError(void) {
 
-	if (!Cl_UsePrediction(PMF_NO_PREDICTION)) {
+	if (!Cl_UsePrediction()) {
 		return;
 	}
 
@@ -242,18 +242,8 @@ void Cl_CheckPredictionError(void) {
 		// calculate the last cl_cmd_t we sent that the server has processed
 		const uint32_t cmd = cls.net_chan.incoming_acknowledged & CMD_MASK;
 
-		if (!(cl.frame.ps.pm_state.flags & PMF_NO_MOVEMENT_PREDICTION)) {
-
-			// subtract what the server returned with what we had predicted it to be
-			VectorSubtract(cl.frame.ps.pm_state.origin, pr->origins[cmd], pr->error);
-		} else {
-
-			// just copy the other one over
-			VectorCopy(cl.frame.ps.pm_state.origin, pr->view.origin);
-
-			UnpackVector(cl.frame.ps.pm_state.view_offset, pr->view.offset);
-			UnpackAngles(cl.frame.ps.pm_state.view_angles, pr->view.angles);
-		}
+		// subtract what the server returned with what we had predicted it to be
+		VectorSubtract(cl.frame.ps.pm_state.origin, pr->origins[cmd], pr->error);
 
 		// if the error is too large, it was likely a teleport or respawn, so ignore it
 		const vec_t len = VectorLength(pr->error);

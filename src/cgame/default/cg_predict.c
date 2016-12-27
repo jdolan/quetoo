@@ -38,19 +38,19 @@ static cm_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end,
 void Cg_PredictMovement(const GList *cmds) {
 	static pm_move_t pm;
 
+	cl_predicted_state_t *pr = &cgi.client->predicted_state;
+
 	// copy current state to into the move
 	memset(&pm, 0, sizeof(pm));
 	pm.s = cgi.client->frame.ps.pm_state;
 
-	pm.ground_entity = cgi.client->predicted_state.ground_entity;
+	pm.ground_entity = pr->ground_entity;
 	pm.hook_pull_speed = Cg_GetHookPullSpeed();
 
 	pm.PointContents = cgi.PointContents;
 	pm.Trace = Cg_PredictMovement_Trace;
 
 	pm.Debug = cgi.PmDebug;
-
-	cl_predicted_state_t *pr = &cgi.client->predicted_state;
 
 	const GList *e = cmds;
 
@@ -92,14 +92,8 @@ void Cg_PredictMovement(const GList *cmds) {
 	}
 
 	// copy results out for rendering
-	if (!(cgi.client->frame.ps.pm_state.flags & PMF_NO_MOVEMENT_PREDICTION)) {
-		VectorCopy(pm.s.origin, pr->view.origin);
-	}
-
-	if (!(cgi.client->frame.ps.pm_state.flags & PMF_NO_VIEW_PREDICTION)) {
-		UnpackVector(pm.s.view_offset, pr->view.offset);
-		UnpackAngles(pm.cmd.angles, pr->view.angles);
-	}
-
+	VectorCopy(pm.s.origin, pr->view.origin);
+	UnpackVector(pm.s.view_offset, pr->view.offset);
+	UnpackAngles(pm.cmd.angles, pr->view.angles);
 	pr->ground_entity = pm.ground_entity;
 }

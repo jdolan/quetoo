@@ -81,7 +81,7 @@ static void Cl_UpdateViewSize(void) {
  */
 static void Cl_UpdateOrigin(const player_state_t *from, const player_state_t *to) {
 
-	if (Cl_UsePrediction(PMF_NO_MOVEMENT_PREDICTION)) {
+	if (Cl_UsePrediction()) {
 		const cl_predicted_state_t *pr = &cl.predicted_state;
 
 		// use client sided prediction
@@ -123,7 +123,7 @@ static void Cl_UpdateAngles(const player_state_t *from, const player_state_t *to
 	vec3_t old_angles, new_angles, angles;
 
 	// start with the predicted angles, or interpolate the server states
-	if (Cl_UsePrediction(PMF_NO_VIEW_PREDICTION)) {
+	if (Cl_UsePrediction()) {
 		VectorCopy(cl.predicted_state.view.angles, r_view.angles);
 	} else {
 		UnpackAngles(from->pm_state.view_angles, old_angles);
@@ -179,6 +179,9 @@ static void Cl_UpdateAngles(const player_state_t *from, const player_state_t *to
  */
 void Cl_UpdateView(void) {
 
+	r_view.ticks = cl.ticks;
+	r_view.area_bits = cl.frame.area_bits;
+
 	const player_state_t *ps = cl.delta_frame ? &cl.delta_frame->ps : &cl.frame.ps;
 
 	Cl_UpdateOrigin(ps, &cl.frame.ps);
@@ -186,9 +189,6 @@ void Cl_UpdateView(void) {
 	Cl_UpdateAngles(ps, &cl.frame.ps);
 
 	Cl_UpdateViewSize();
-
-	r_view.ticks = cl.ticks;
-	r_view.area_bits = cl.frame.area_bits;
 
 	cls.cgame->UpdateView(&cl.frame);
 }
