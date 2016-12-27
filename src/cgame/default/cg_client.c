@@ -289,7 +289,7 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 
 			if (next == a->animation) { // no change, just stay put
 				a->old_frame = a->frame;
-				a->lerp = 1.0;
+				a->lerp = a->fraction = 1.0;
 				return;
 			}
 
