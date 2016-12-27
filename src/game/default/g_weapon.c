@@ -57,6 +57,7 @@ static void G_ChangeWeapon(g_entity_t *ent, const g_item_t *item) {
 	ent->client->locals.next_weapon = item;
 	ent->client->locals.prev_weapon = ent->client->locals.weapon;
 
+	ent->client->locals.weapon_fire_time = g_level.time + 100; // enable fire
 	ent->client->locals.grenade_hold_time = 0; // put the pin back in
 
 	G_SetAnimation(ent, ANIM_TORSO_DROP, true);
