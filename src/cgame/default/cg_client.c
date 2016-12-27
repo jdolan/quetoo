@@ -288,7 +288,7 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 			const entity_animation_t next = Cg_NextAnimation(a->animation);
 
 			if (next == a->animation) { // no change, just stay put
-				a->frame = anim->first_frame + anim->num_frames - 1;
+				a->old_frame = a->frame;
 				a->lerp = 1.0;
 				return;
 			}
@@ -313,12 +313,10 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 			a->old_frame = a->frame;
 			a->frame = frame;
 		}
-	} else if (anim->num_frames == 1) {
-		a->old_frame = a->frame;
 	}
 
 	a->lerp = (elapsed_time % frame_duration) / (vec_t) frame_duration;
-	a->fraction = elapsed_time / (vec_t) animation_duration;
+	a->fraction = Clamp(elapsed_time / (vec_t) animation_duration, 0.0, 1.0);
 }
 
 /**
