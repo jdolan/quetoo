@@ -56,7 +56,7 @@ static void R_RegisterModel(r_media_t *self) {
 		for (i = 0; i < mod->bsp->num_surfaces; i++, s++) {
 			R_RegisterDependency(self, (r_media_t *) s->lightmap);
 			R_RegisterDependency(self, (r_media_t *) s->deluxemap);
-			
+
 			if (s->stainmap) {
 				R_RegisterDependency(self, (r_media_t *) s->stainmap);
 			}

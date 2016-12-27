@@ -37,4 +37,5 @@ style:
 		--pad-header \
 		--pad-oper \
 		--max-code-length=120 \
-		--style=java
+		--style=java \
+		--suffix=none

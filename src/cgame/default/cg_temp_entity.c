@@ -177,9 +177,9 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	});
 
 	cgi.AddStain(&(const r_stain_t) {
-		 .origin = { org[0], org[1], org[2] },
-		  .color = { 0.0, 0.0, 0.0, 0.125 },
-		   .radius = 1.0
+		.origin = { org[0], org[1], org[2] },
+		 .color = { 0.0, 0.0, 0.0, 0.125 },
+		  .radius = 1.0
 	});
 
 	if (cgi.client->ticks < last_ric_time) {
@@ -561,9 +561,9 @@ static void Cg_LightningDischargeEffect(const vec3_t org) {
 
 	cgi.AddSustainedLight(&(const r_sustained_light_t) {
 		.light.origin = { org[0], org[1], org[2] },
-		.light.color = { 0.6, 0.6, 1.0 },
-		.light.radius = 160.0,
-		.sustain = 750
+		 .light.color = { 0.6, 0.6, 1.0 },
+		  .light.radius = 160.0,
+		   .sustain = 750
 	});
 
 	cgi.AddSample(&(const s_play_sample_t) {

@@ -654,7 +654,6 @@ typedef struct cg_import_s {
 
 	/**
 	 * @brief Add a stain to the scene.
-	 * @returns The number of lightmaps that were stained.
 	 */
 	void (*AddStain)(const r_stain_t *s);
 

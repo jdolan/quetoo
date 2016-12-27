@@ -175,8 +175,7 @@ static void Cl_UpdateAngles(const player_state_t *from, const player_state_t *to
 }
 
 /**
- * @brief Updates the view definition for the simulation so that server frame interpolation can
- * occur.
+ * @brief Updates the view definition for the next render frame.
  */
 void Cl_UpdateView(void) {
 

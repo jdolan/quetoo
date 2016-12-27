@@ -179,10 +179,10 @@ static void R_AddStains_UploadSurfaces(gpointer key, gpointer value, gpointer us
 
 	R_BindDiffuseTexture(surf->stainmap->texnum);
 	glTexSubImage2D(GL_TEXTURE_2D, 0,
-					surf->lightmap_s, surf->lightmap_t,
-					surf->lightmap_size[0], surf->lightmap_size[1],
-					GL_RGB,
-					GL_UNSIGNED_BYTE, surf->stainmap_buffer);
+	                surf->lightmap_s, surf->lightmap_t,
+	                surf->lightmap_size[0], surf->lightmap_size[1],
+	                GL_RGB,
+	                GL_UNSIGNED_BYTE, surf->stainmap_buffer);
 
 	R_GetError(surf->texinfo->name);
 
@@ -241,8 +241,7 @@ void R_ResetStainmap(void) {
 		r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces + s;
 
 		// skip if we don't have a stainmap or we weren't stained
-		if (!surf->stainmap ||
-			!surf->stainmap_dirty) {
+		if (!surf->stainmap || !surf->stainmap_dirty) {
 			continue;
 		}
 
@@ -256,7 +255,7 @@ void R_ResetStainmap(void) {
 
 			R_BindDiffuseTexture(surf->stainmap->texnum);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surf->lightmap->width, surf->lightmap->height,
-						 0, GL_RGB, GL_UNSIGNED_BYTE, lightmap);
+			             0, GL_RGB, GL_UNSIGNED_BYTE, lightmap);
 
 			g_hash_table_insert(hash, surf->stainmap, lightmap);
 		}

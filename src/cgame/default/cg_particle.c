@@ -310,11 +310,11 @@ void Cg_AddParticles(void) {
 				}
 
 				switch (p->special) {
-				case PARTICLE_SPECIAL_BLOOD:
-					Cg_UpdateParticleSpecial_Blood(p);
-					break;
-				default:
-					break;
+					case PARTICLE_SPECIAL_BLOOD:
+						Cg_UpdateParticleSpecial_Blood(p);
+						break;
+					default:
+						break;
 				}
 
 				if (free) {

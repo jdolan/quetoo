@@ -223,7 +223,7 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 }
 
 /**
- * @brief Updates the view definition. The camera origin, bob effect, and field of view are each 
+ * @brief Updates the view definition. The camera origin, bob effect, and field of view are each
  * augmented here. Other modifications can be made at your own risk. This is called potentially
  * several times per client frame by the engine to prepare the view for frame interpolation.
  */
