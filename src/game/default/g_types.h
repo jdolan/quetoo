@@ -38,7 +38,8 @@ typedef enum {
 	SV_CMD_CENTER_PRINT = SV_CMD_CGAME,
 	SV_CMD_MUZZLE_FLASH,
 	SV_CMD_SCORES,
-	SV_CMD_TEMP_ENTITY
+	SV_CMD_TEMP_ENTITY,
+	SV_CMD_VIEW_KICK,
 } g_sv_packet_cmd_t;
 
 /**
@@ -822,15 +823,13 @@ typedef struct {
 	int16_t damage_health; // damage taken out of health
 	int16_t damage_inflicted; // damage done to other clients
 
-	uint32_t kick_angles_time; // time when view angle kick was last applied
-	vec3_t kick_angles; // the intended kick angles, which decay over time
-
 	int16_t max_boost_health; // max health can be boosted to
 
 	vec_t speed; // x/y speed after moving
 	vec3_t angles; // aiming direction
 	vec3_t forward, right, up; // aiming direction vectors
 	vec3_t cmd_angles; // angles sent over in the last command
+	vec3_t kick_angles; // view kick accumulated each server frame
 
 	uint32_t respawn_time; // eligible for respawn when time > this
 	uint32_t respawn_protection_time; // respawn protected till this time

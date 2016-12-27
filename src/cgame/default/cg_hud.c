@@ -532,7 +532,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		return;
 	}
 
-	if (cgi.client->third_person) {
+	if (cg_third_person->value) {
 		return;
 	}
 

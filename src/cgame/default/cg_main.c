@@ -233,6 +233,10 @@ static _Bool Cg_ParseMessage(int32_t cmd) {
 			Cg_ParseCenterPrint();
 			return true;
 
+		case SV_CMD_VIEW_KICK:
+			Cg_ParseViewKick();
+			return true;
+
 		default:
 			break;
 	}

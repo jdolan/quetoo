@@ -575,7 +575,7 @@ void G_FireMachinegun(g_entity_t *ent) {
 
 		G_MuzzleFlash(ent, MZ_MACHINEGUN);
 
-		G_ClientWeaponKick(ent, 0.055);
+		G_ClientWeaponKick(ent, 1.0);
 
 		G_WeaponFired(ent, 76, ent->client->locals.weapon->quantity);
 	}
@@ -773,7 +773,7 @@ void G_FireHyperblaster(g_entity_t *ent) {
 
 		G_MuzzleFlash(ent, MZ_HYPERBLASTER);
 
-		G_ClientWeaponKick(ent, 1.0);
+		G_ClientWeaponKick(ent, 1.5);
 
 		G_WeaponFired(ent, 84, ent->client->locals.weapon->quantity);
 	}
@@ -846,7 +846,7 @@ static void G_FireBfg_(g_entity_t *ent) {
 
 			G_MuzzleFlash(ent->owner, MZ_BFG);
 
-			G_ClientWeaponKick(ent->owner, 16.0);
+			G_ClientWeaponKick(ent->owner, 5.0);
 
 			G_WeaponFired(ent->owner, 2000, ent->owner->client->locals.weapon->quantity);
 		}

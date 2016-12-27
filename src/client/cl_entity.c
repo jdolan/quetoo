@@ -258,6 +258,8 @@ void Cl_ParseFrame(void) {
 
 	if (cl.frame.valid && !cl.frame.interpolated) {
 		Cl_Interpolate();
+
+		Cl_UpdateView();
 	}
 
 	memset(&cl.frame, 0, sizeof(cl.frame));

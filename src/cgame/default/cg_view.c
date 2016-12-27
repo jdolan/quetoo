@@ -93,11 +93,9 @@ static void Cg_UpdateFov(void) {
  */
 static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 	vec3_t angles, forward, dest;
-	vec3_t mins, maxs;
-	vec_t dist;
-	cm_trace_t tr;
 
-	cgi.client->third_person = cg_third_person->integer;
+	const vec3_t mins = { -8.0, -8.0, -8.0 };
+	const vec3_t maxs = { 8.0, 8.0, 8.0 };
 
 	if (!cg_third_person->value) {
 		return;
@@ -108,31 +106,73 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 
 	AngleVectors(angles, forward, NULL, NULL);
 
-	dist = cg_third_person->value;
-
-	if (!dist) {
-		dist = 1.0;
-	}
-
-	dist = fabs(150.0 * dist);
+	const vec_t dist = fabs(150.0 * cg_third_person->value);
 
 	// project the view origin back and up for 3rd person
 	VectorMA(cgi.view->origin, -dist, forward, dest);
 	dest[2] += 20.0;
 
 	// clip it to the world
-	VectorSet(mins, -5.0, -5.0, -5.0);
-	VectorSet(maxs, 5.0, 5.0, 5.0);
-	tr = cgi.Trace(cgi.view->origin, dest, mins, maxs, 0, MASK_CLIP_PLAYER);
+	const cm_trace_t tr = cgi.Trace(cgi.view->origin, dest, mins, maxs, 0, MASK_CLIP_PLAYER);
 	VectorCopy(tr.end, cgi.view->origin);
 
 	// adjust view angles to compensate for height offset
-	VectorMA(cgi.view->origin, 2048.0, forward, dest);
+	VectorMA(cgi.view->origin, 1024.0, forward, dest);
 	VectorSubtract(dest, cgi.view->origin, dest);
 
 	// copy angles back to view
 	VectorAngles(dest, cgi.view->angles);
 	AngleVectors(cgi.view->angles, cgi.view->forward, cgi.view->right, cgi.view->up);
+}
+
+typedef struct {
+	vec3_t kick;
+	vec3_t prev, next;
+	uint32_t timestamp;
+	uint32_t interval;
+} cg_view_kick_t;
+
+static cg_view_kick_t cg_view_kick;
+
+/**
+ * @brief Parse a view kick message from the server, updating the interpolation target.
+ */
+void Cg_ParseViewKick(void) {
+
+	VectorCopy(cg_view_kick.kick, cg_view_kick.prev);
+
+	cg_view_kick.next[PITCH] = cgi.ReadAngle();
+	cg_view_kick.next[ROLL] = cgi.ReadAngle();
+
+	vec3_t k;
+	VectorSubtract(cg_view_kick.next, cg_view_kick.kick, k);
+
+	cg_view_kick.timestamp = cgi.client->ticks;
+	cg_view_kick.interval = sqrt(VectorLength(k)) * 50;
+}
+
+/**
+ * @brief
+ */
+static void Cg_UpdateKick(const player_state_t *ps) {
+
+	if (cg_view_kick.timestamp > cgi.client->ticks) {
+		memset(&cg_view_kick, 0, sizeof(cg_view_kick));
+	}
+
+	const uint32_t delta = cgi.client->ticks - cg_view_kick.timestamp;
+	if (cg_view_kick.interval && delta < cg_view_kick.interval) {
+		const vec_t lerp = delta / (vec_t) cg_view_kick.interval;
+		AngleLerp(cg_view_kick.prev, cg_view_kick.next, lerp, cg_view_kick.kick);
+	} else {
+		VectorCopy(cg_view_kick.next, cg_view_kick.prev);
+		VectorClear(cg_view_kick.next);
+
+		cg_view_kick.timestamp = cgi.client->ticks;
+		cg_view_kick.interval = sqrt(VectorLength(cg_view_kick.kick)) * 200;
+	}
+
+	VectorAdd(cgi.view->angles, cg_view_kick.kick, cgi.view->angles);
 }
 
 /**
@@ -155,7 +195,6 @@ static vec_t Cg_BobSpeedModulus(const player_state_t *ps) {
 		const vec_t lerp = delta / (vec_t) 200;
 		speed = old_speed + lerp * (new_speed - old_speed);
 	} else {
-
 		const _Bool ducked = ps->pm_state.flags & PMF_DUCKED;
 		const vec_t max_speed = ducked ? PM_SPEED_DUCKED : PM_SPEED_AIR;
 
@@ -232,6 +271,8 @@ void Cg_UpdateView(const cl_frame_t *frame) {
 	Cg_UpdateFov();
 
 	Cg_UpdateThirdPerson(&frame->ps);
+
+	Cg_UpdateKick(&frame->ps);
 
 	Cg_UpdateBob(&frame->ps);
 

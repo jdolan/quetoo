@@ -26,9 +26,7 @@
  * @brief Inspect all damage received this frame and play a pain sound if appropriate.
  */
 static void G_ClientDamage(g_entity_t *ent) {
-	g_client_t *client;
-
-	client = ent->client;
+	g_client_t *client = ent->client;
 
 	if (client->locals.damage_health || client->locals.damage_armor) {
 		// play an appropriate pain sound
@@ -207,26 +205,6 @@ static void G_ClientWorldAngles(g_entity_t *ent) {
 }
 
 /**
- * @brief
- */
-static void G_ClientAddKick(g_entity_t *ent, const vec_t pitch, const vec_t roll) {
-
-	if (pitch || roll) {
-		vec_t *kick = ent->client->locals.kick_angles;
-
-		kick[PITCH] += pitch;
-		kick[ROLL] += roll;
-
-		const vec_t len = VectorLength(kick);
-		if (len > 15.0) {
-			VectorScale(kick, 15.0 / len, kick);
-		}
-
-		ent->client->locals.kick_angles_time = g_level.time;
-	}
-}
-
-/**
  * @brief Adds view kick in the specified direction to the specified client.
  */
 void G_ClientDamageKick(g_entity_t *ent, const vec3_t dir, const vec_t kick) {
@@ -235,89 +213,53 @@ void G_ClientDamageKick(g_entity_t *ent, const vec3_t dir, const vec_t kick) {
 	VectorNormalize2(dir, ndir);
 
 	const vec_t pitch = DotProduct(ndir, ent->client->locals.forward) * kick;
-	const vec_t roll = DotProduct(ndir, ent->client->locals.right) * kick;
+	ent->client->locals.kick_angles[PITCH] += pitch;
 
-	G_ClientAddKick(ent, pitch, roll);
+	const vec_t roll = DotProduct(ndir, ent->client->locals.right) * kick;
+	ent->client->locals.kick_angles[ROLL] += roll;
 }
 
 /**
  * @brief A convenience function for adding view kick from firing weapons.
  */
 void G_ClientWeaponKick(g_entity_t *ent, const vec_t kick) {
-	G_ClientAddKick(ent, -kick, 0.0);
+	ent->client->locals.kick_angles[PITCH] -= kick;
 }
 
 /**
  * @brief Adds view angle kick based on entity events (falling, landing, etc).
  */
-static void G_ClientEventKick(g_entity_t *ent) {
+void G_ClientFallKick(g_entity_t *ent, const vec_t kick) {
+	ent->client->locals.kick_angles[PITCH] += kick;
+}
+
+/**
+ * @brief Sends the kick angles accumulated this frame to the client.
+ */
+static void G_ClientKickAngles(g_entity_t *ent) {
 
 	switch (ent->s.event) {
 		case EV_CLIENT_LAND:
-			G_ClientAddKick(ent, 2.5, 0.0);
+			G_ClientFallKick(ent, 2.0);
 			break;
 		case EV_CLIENT_FALL:
-			G_ClientAddKick(ent, 5.0, 0.0);
+			G_ClientFallKick(ent, 3.0);
 			break;
 		case EV_CLIENT_FALL_FAR:
-			G_ClientAddKick(ent, 10.0, 0.0);
+			G_ClientFallKick(ent, 4.0);
 			break;
 		default:
 			break;
 	}
-}
 
-/**
- * @brief Reduces client view kick angles over time, using exponential decay.
- */
-static void G_ClientDecayKick(g_entity_t *ent) {
-
-	vec_t delta = 0.25 + VectorLengthSquared(ent->client->locals.kick_angles) * QUETOO_TICK_SECONDS;
-
-	for (int32_t i = 0; i < 3; i++) {
-
-		// clear angles smaller than our delta to avoid oscillations
-		if (fabs(ent->client->locals.kick_angles[i]) <= delta) {
-			ent->client->locals.kick_angles[i] = 0.0;
-		} else if (ent->client->locals.kick_angles[i] > 0.0) {
-			ent->client->locals.kick_angles[i] -= delta;
-		} else {
-			ent->client->locals.kick_angles[i] += delta;
-		}
-	}
-}
-
-/**
- * @brief Calculates the final view kick angles for the current frame. This factors in damage,
- * weapon and event kicks, and uses interpolation and exponential decay to produce a smooth effect.
- */
-static void G_ClientKickAngles(g_entity_t *ent) {
-	uint16_t *kick_angles = ent->client->ps.pm_state.kick_angles;
-
-	// spectators and dead clients receive no kick angles
-
-	if (ent->client->ps.pm_state.type > PM_HOOK_SWING) {
-		VectorClear(kick_angles);
-		return;
+	if (!VectorCompare(ent->client->locals.kick_angles, vec3_origin)) {
+		gi.WriteByte(SV_CMD_VIEW_KICK);
+		gi.WriteAngle(ent->client->locals.kick_angles[PITCH]);
+		gi.WriteAngle(ent->client->locals.kick_angles[ROLL]);
+		gi.Unicast(ent, false);
 	}
 
-	G_ClientEventKick(ent);
-
-	vec3_t kick;
-	UnpackAngles(kick_angles, kick);
-
-	// if a kick has recently occurred, interpolate it over a few frames
-
-	const vec_t frac = (g_level.time - ent->client->locals.kick_angles_time) / 75.0;
-	if (frac < 1.0) {
-		AngleLerp(kick, ent->client->locals.kick_angles, Clamp(frac, 0.0, 1.0), kick);
-	} else {
-		// otherwise, decay the kick, and use the resulting value directly
-		G_ClientDecayKick(ent);
-		VectorCopy(ent->client->locals.kick_angles, kick);
-	}
-
-	PackAngles(kick, kick_angles);
+	VectorClear(ent->client->locals.kick_angles);
 }
 
 /**
@@ -454,7 +396,7 @@ void G_ClientEndFrame(g_entity_t *ent) {
 	// apply all the damage taken this frame
 	G_ClientDamage(ent);
 
-	// set the kick angle for the view
+	// send the kick angles
 	G_ClientKickAngles(ent);
 
 	// and the angles on the world model

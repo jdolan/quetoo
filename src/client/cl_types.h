@@ -176,7 +176,6 @@ typedef struct {
 	vec3_t angles;
 
 	_Bool demo_server; // we're viewing a demo
-	_Bool third_person; // we're using a 3rd person camera
 
 	char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
 	uint16_t precache_check;
