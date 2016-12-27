@@ -19,15 +19,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CG_VIEW_H__
-#define __CG_VIEW_H__
+#pragma once
 
-#include "cg_types.h"
+void R_AddStain(const r_stain_t *s);
 
-#ifdef __CG_LOCAL_H__
-	void Cg_UpdateView(const cl_frame_t *frame);
-	void Cg_PopulateView(const cl_frame_t *frame);
-#endif /* __CG_LOCAL_H__ */
-
-#endif /* __CG_VIEW_H__ */
-
+#ifdef __R_LOCAL_H__
+void R_InitStainmaps(void);
+void R_ShutdownStainmaps(void);
+void R_AddStains(void);
+void R_ResetStainmap(void);
+#endif /* __R_LOCAL_H__ */

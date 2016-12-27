@@ -74,6 +74,7 @@ cvar_t *r_screenshot_format;
 cvar_t *r_shadows;
 cvar_t *r_shell;
 cvar_t *r_specular;
+cvar_t *r_stainmap;
 cvar_t *r_supersample;
 cvar_t *r_swap_interval;
 cvar_t *r_texture_mode;
@@ -162,6 +163,8 @@ void R_DrawView(void) {
 	R_AddSustainedLights();
 
 	R_AddFlares();
+
+	R_AddStains();
 
 	R_CullEntities();
 
@@ -362,6 +365,10 @@ void R_LoadMedia(void) {
 
 	R_LoadModel(cl.config_strings[CS_MODELS]); // load the world
 
+	Cl_LoadingProgress(55, "mopping up blood");
+
+	R_ResetStainmap(); // clear the stainmap if we have to
+
 	Cl_LoadingProgress(60, "models");
 
 	// load all other models
@@ -428,6 +435,13 @@ static void R_ToggleFullscreen_f(void) {
 }
 
 /**
+ * @brief Resets the stainmap.
+ */
+static void R_ResetStainmap_f(void) {
+	R_ResetStainmap();
+}
+
+/**
  * @brief Initializes console variables and commands for the renderer.
  */
 static void R_InitLocal(void) {
@@ -463,7 +477,7 @@ static void R_InitLocal(void) {
 	r_bumpmap = Cvar_Add("r_bumpmap", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 	                     "Controls the intensity of bump-mapping effects");
 	r_caustics = Cvar_Add("r_caustics", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
-						"Enable or disable liquid caustic effects");
+	                      "Enable or disable liquid caustic effects");
 	r_contrast = Cvar_Add("r_contrast", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 	                      "Controls texture contrast");
 	r_draw_buffer = Cvar_Add("r_draw_buffer", "GL_BACK", CVAR_ARCHIVE, NULL);
@@ -507,6 +521,8 @@ static void R_InitLocal(void) {
 	                   "Controls mesh shell effect (e.g. Quad Damage shell)");
 	r_specular = Cvar_Add("r_specular", "1.0", CVAR_ARCHIVE,
 	                      "Controls the specularity of bump-mapping effects");
+	r_stainmap = Cvar_Add("r_stainmap", "1.0", CVAR_ARCHIVE,
+	                      "Controls the stain mapping effects.");
 	r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT,
 	                           "Controls vertical refresh synchronization (v-sync)");
 	r_texture_mode = Cvar_Add("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR",
@@ -522,6 +538,7 @@ static void R_InitLocal(void) {
 
 	Cmd_Add("r_list_media", R_ListMedia_f, CMD_RENDERER, "List all currently loaded media");
 	Cmd_Add("r_dump_images", R_DumpImages_f, CMD_RENDERER, "Dump all loaded images. Careful!");
+	Cmd_Add("r_reset_stainmap", R_ResetStainmap_f, CMD_RENDERER, "Reset the stainmap");
 	Cmd_Add("r_screenshot", R_Screenshot_f, CMD_SYSTEM | CMD_RENDERER, "Take a screenshot");
 	Cmd_Add("r_sky", R_Sky_f, CMD_RENDERER, NULL);
 	Cmd_Add("r_toggle_fullscreen", R_ToggleFullscreen_f, CMD_SYSTEM | CMD_RENDERER,
@@ -602,6 +619,8 @@ void R_Init(void) {
 
 	R_InitMaterials();
 
+	R_InitStainmaps();
+
 	Com_Print("Video initialized %dx%d %s\n", r_context.width, r_context.height,
 	          (r_context.fullscreen ? "fullscreen" : "windowed"));
 }
@@ -625,6 +644,8 @@ void R_Shutdown(void) {
 	R_ShutdownParticles();
 
 	R_ShutdownSky();
+
+	R_ShutdownStainmaps();
 
 	R_ShutdownMaterials();
 

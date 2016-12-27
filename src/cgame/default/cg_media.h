@@ -62,14 +62,12 @@
 	extern cg_particles_t *cg_particles_rain;
 	extern cg_particles_t *cg_particles_snow;
 	extern cg_particles_t *cg_particles_beam;
-	extern cg_particles_t *cg_particles_burn;
 	extern cg_particles_t *cg_particles_blood;
 	extern cg_particles_t *cg_particles_lightning;
 	extern cg_particles_t *cg_particles_rope;
 	extern cg_particles_t *cg_particles_flame;
 	extern cg_particles_t *cg_particles_spark;
 	extern cg_particles_t *cg_particles_inactive;
-	extern cg_particles_t *cg_particles_bullet[3];
 	extern cg_particles_t *cg_particles_ripple[3];
 
 	void Cg_UpdateMedia(void);

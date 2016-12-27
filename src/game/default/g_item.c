@@ -846,7 +846,7 @@ void G_ResetItem(g_entity_t *ent) {
 	}
 
 	const _Bool inhibited = (g_level.gameplay == GAME_ARENA || g_level.gameplay == GAME_INSTAGIB)
-			&& ent->locals.item->type != ITEM_FLAG;
+	                        && ent->locals.item->type != ITEM_FLAG;
 
 	if (inhibited || (ent->locals.flags & FL_TEAM_SLAVE)) {
 		ent->sv_flags |= SVF_NO_CLIENT;

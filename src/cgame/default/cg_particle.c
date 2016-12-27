@@ -208,6 +208,32 @@ static _Bool Cg_UpdateParticle_Spark(cg_particle_t *p, const vec_t delta, const 
 }
 
 /**
+ * @brief
+ */
+static void Cg_UpdateParticleSpecial_Blood(cg_particle_t *p) {
+
+	if (p->blood.time < cgi.client->ticks) {
+
+		cgi.AddStain(&(const r_stain_t) {
+			.origin = {
+				p->part.org[0] + Randomc() * 8.0,
+				p->part.org[1] + Randomc() * 8.0,
+				p->part.org[2] + Randomc() * 8.0
+			},
+			.color = {
+				0.6 + Randomc() * 0.1,
+				0.0,
+				0.0,
+				0.25 + Randomf() * 0.125
+			},
+			.radius = p->part.scale * 0.125
+		});
+
+		p->blood.time = cgi.client->ticks + 96 + (Randomf() * 96);
+	}
+}
+
+/**
  * @brief Adds all particles that are active for this frame to the view.
  */
 void Cg_AddParticles(void) {
@@ -278,6 +304,14 @@ void Cg_AddParticles(void) {
 						break;
 					case PARTICLE_SPARK:
 						free = Cg_UpdateParticle_Spark(p, delta, delta_squared);
+						break;
+					default:
+						break;
+				}
+
+				switch (p->special) {
+					case PARTICLE_SPECIAL_BLOOD:
+						Cg_UpdateParticleSpecial_Blood(p);
 						break;
 					default:
 						break;

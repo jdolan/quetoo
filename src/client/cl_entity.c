@@ -403,7 +403,7 @@ void Cl_Interpolate(void) {
 		}
 	}
 
-	Cl_UpdateView();
+	cls.cgame->Interpolate(&cl.frame);
 
 	cl.frame.interpolated = true;
 }

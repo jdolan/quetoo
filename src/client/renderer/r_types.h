@@ -93,7 +93,8 @@ typedef enum {
 	IT_SKY = 12 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_PIC = 13 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_ATLAS_MAP = 14 + (IT_MASK_MIPMAP), // image is an r_atlas_t*
-	IT_ATLAS_IMAGE = 15 // image is an r_atlas_image_t*
+	IT_ATLAS_IMAGE = 15, // image is an r_atlas_image_t*
+	IT_STAINMAP = 16 + (IT_MASK_FILTER),
 } r_image_type_t;
 
 /**
@@ -270,7 +271,6 @@ typedef enum {
 	PARTICLE_NORMAL,
 	PARTICLE_SPARK,
 	PARTICLE_ROLL,
-	PARTICLE_DECAL,
 	PARTICLE_BUBBLE,
 	PARTICLE_BEAM,
 	PARTICLE_WEATHER,
@@ -396,6 +396,7 @@ typedef struct {
 typedef struct {
 	char name[32];
 	vec_t vecs[2][4];
+	vec2_t scale;
 	uint32_t flags;
 	int32_t value;
 	r_material_t *material;
@@ -438,7 +439,6 @@ typedef struct {
 	vec2_t st_mins;
 	vec2_t st_maxs;
 	vec2_t st_center;
-	s16vec2_t st_extents;
 
 	GLuint index; // index into element buffer
 	GLuint *elements; // elements unique to this surf
@@ -447,6 +447,7 @@ typedef struct {
 
 	r_bsp_flare_t *flare;
 
+	r_pixel_t lightmap_size[2];
 	r_pixel_t lightmap_s, lightmap_t; // lightmap texture coords
 
 	r_image_t *lightmap;
@@ -454,6 +455,10 @@ typedef struct {
 
 	// pointer to lightmap data on bsp.
 	const byte *lightmap_input;
+
+	r_image_t *stainmap; // the stainmap image to use
+	byte *stainmap_buffer; // the stainmap buffer
+	_Bool stainmap_dirty; // whether this stainmap has been affected or not
 } r_bsp_surface_t;
 
 /**
@@ -797,6 +802,18 @@ typedef struct r_model_s {
 #define IS_BSP_INLINE_MODEL(m) (m && m->bsp_inline)
 
 /**
+ * @brief Stains are low-resolution color effects added to the map's lightmap
+ * data. They are persistent for the duration of the map.
+ */
+typedef struct {
+	vec3_t origin;
+	vec4_t color;
+	vec_t radius;
+} r_stain_t;
+
+#define MAX_STAINS			64
+
+/**
  * @brief Dynamic light sources expire immediately and must be re-added
  * for each frame they appear.
  */
@@ -1088,6 +1105,9 @@ typedef struct {
 
 	uint16_t num_lights;
 	r_light_t lights[MAX_LIGHTS];
+
+	uint16_t num_stains;
+	r_stain_t stains[MAX_STAINS];
 
 	r_sustained_light_t sustained_lights[MAX_LIGHTS];
 

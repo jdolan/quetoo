@@ -24,7 +24,7 @@
 
 #include "client/cl_types.h"
 
-#define CGAME_API_VERSION 7
+#define CGAME_API_VERSION 10
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -653,6 +653,11 @@ typedef struct cg_import_s {
 	void (*AddSustainedLight)(const r_sustained_light_t *s);
 
 	/**
+	 * @brief Add a stain to the scene.
+	 */
+	void (*AddStain)(const r_stain_t *s);
+
+	/**
 	 * @defgroup draw-2d 2D drawing
 	 * @{
 	 */
@@ -722,10 +727,10 @@ typedef struct cg_export_s {
 	void (*LoadClient)(cl_client_info_t *cl, const char *s);
 
 	_Bool (*ParseMessage)(int32_t cmd);
+	void (*Interpolate)(const cl_frame_t *frame);
 	void (*PredictMovement)(const GList *cmds);
 	void (*UpdateView)(const cl_frame_t *frame);
-	void (*UpdateScreen)(void);
-	void (*DrawFrame)(const cl_frame_t *frame);
+	void (*UpdateScreen)(const cl_frame_t *frame);
 
 	void (*Move)(pm_cmd_t *cmd);
 

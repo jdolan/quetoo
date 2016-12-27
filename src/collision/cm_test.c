@@ -38,6 +38,18 @@ int32_t Cm_SignBitsForPlane(const cm_bsp_plane_t *p) {
 }
 
 /**
+ * @return The distance from `point` to `plane`.
+ */
+vec_t Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
+
+	if (AXIAL(plane)) {
+		return point[plane->type] - plane->dist;
+	}
+
+	return DotProduct(point, plane->normal) - plane->dist;
+}
+
+/**
  * @return The sidedness of the given bounds relative to the specified plane.
  * If the box straddles the plane, SIDE_BOTH is returned.
  */
@@ -242,16 +254,9 @@ static int32_t Cm_PointLeafnum_r(const vec3_t p, int32_t num) {
 
 	while (num >= 0) {
 		const cm_bsp_node_t *node = cm_bsp.nodes + num;
-		cm_bsp_plane_t *plane = node->plane;
+		const vec_t dist = Cm_DistanceToPlane(p, node->plane);
 
-		vec_t d;
-		if (AXIAL(plane)) {
-			d = p[plane->type] - plane->dist;
-		} else {
-			d = DotProduct(plane->normal, p) - plane->dist;
-		}
-
-		if (d < 0.0) {
+		if (dist < 0.0) {
 			num = node->children[1];
 		} else {
 			num = node->children[0];

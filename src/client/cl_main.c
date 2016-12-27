@@ -622,9 +622,11 @@ void Cl_Frame(const uint32_t msec) {
 
 	Cl_SendCommands();
 
+	Cl_Interpolate();
+
 	Cl_PredictMovement();
 
-	Cl_Interpolate();
+	Cl_UpdateView();
 
 	Cl_UpdateScreen();
 

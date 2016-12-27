@@ -42,8 +42,6 @@ static matrix4x4_t active_matrices[R_MATRIX_TOTAL];
  * @brief Queries OpenGL for any errors and prints them as warnings.
  */
 void R_GetError_(const char *function, const char *msg) {
-	GLenum err;
-	char *s;
 
 	if (!r_get_error->integer) {
 		return;
@@ -51,11 +49,12 @@ void R_GetError_(const char *function, const char *msg) {
 
 	while (true) {
 
-		if ((err = glGetError()) == GL_NO_ERROR) {
-			return;
-		}
+		const GLenum err = glGetError();
+		const char *s;
 
 		switch (err) {
+			case GL_NO_ERROR:
+				return;
 			case GL_INVALID_ENUM:
 				s = "GL_INVALID_ENUM";
 				break;
@@ -73,11 +72,11 @@ void R_GetError_(const char *function, const char *msg) {
 				break;
 		}
 
+		Com_Warn("%s threw %s: %s.\n", function, s, msg);
+
 		if (r_get_error->integer >= 2) {
 			Sys_Backtrace();
 		}
-
-		Com_Warn("%s threw %s: %s.\n", function, s, msg);
 	}
 }
 
@@ -268,7 +267,7 @@ void R_PolygonOffset(GLfloat factor, GLfloat units) {
 }
 
 /**
- * @brief Enables polygon offset fill for decals, etc.
+ * @brief Enables polygon offset fill for materials, etc.
  */
 void R_EnablePolygonOffset(_Bool enable) {
 

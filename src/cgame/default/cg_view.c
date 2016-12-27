@@ -223,10 +223,9 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 }
 
 /**
- * @brief Updates the view for the renderer. The camera origin, bob effect, and field
- * of view are each augmented here. Other modifications can be made at your own
- * risk. This is called once per frame by the engine to finalize the view so
- * that rendering may begin.
+ * @brief Updates the view definition. The camera origin, bob effect, and field of view are each
+ * augmented here. Other modifications can be made at your own risk. This is called potentially
+ * several times per client frame by the engine to prepare the view for frame interpolation.
  */
 void Cg_UpdateView(const cl_frame_t *frame) {
 
@@ -237,12 +236,6 @@ void Cg_UpdateView(const cl_frame_t *frame) {
 	Cg_UpdateBob(&frame->ps);
 
 	Cg_AddEntities(frame);
-}
-
-/**
-* @brief Updates any renderer-based screen components. This is done once per renderer frame.
-*/
-void Cg_UpdateScreen(void) {
 
 	Cg_AddEmits();
 

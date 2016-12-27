@@ -501,7 +501,6 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	Cm_LoadBspAreas(&header.lumps[BSP_LUMP_AREAS]);
 	Cm_LoadBspAreaPortals(&header.lumps[BSP_LUMP_AREA_PORTALS]);
 
-	// unref the materials from the list
 	Cm_UnloadMaterials(materials);
 
 	Fs_Free(buf);

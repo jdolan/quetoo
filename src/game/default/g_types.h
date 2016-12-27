@@ -28,7 +28,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1013
+#define PROTOCOL_MINOR 1014
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -159,11 +159,10 @@ typedef enum {
 	TE_BLASTER,
 	TE_TRACER,
 	TE_BULLET,
-	TE_BURN,
 	TE_BLOOD,
 	TE_SPARKS,
 	TE_HYPERBLASTER,
-	TE_LIGHTNING,
+	TE_LIGHTNING_DISCHARGE,
 	TE_RAIL,
 	TE_EXPLOSION,
 	TE_BUBBLES,
@@ -952,7 +951,6 @@ typedef struct {
 
 	const g_item_t *item; // for bonus items
 
-	_Bool held_grenade;	// is this entity a nade that is being held currently?
 } g_entity_locals_t;
 
 #include "game/game.h"

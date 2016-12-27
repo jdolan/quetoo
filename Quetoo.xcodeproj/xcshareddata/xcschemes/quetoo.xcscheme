@@ -63,7 +63,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "+map fragpipe +give all +god"
+            argument = "+map edge +give all +god"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

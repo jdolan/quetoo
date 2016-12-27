@@ -341,8 +341,6 @@ void Cl_UpdateScreen(void) {
 
 	if (cls.state == CL_ACTIVE) {
 
-		cls.cgame->UpdateScreen();
-
 		R_BeginFrame();
 
 		R_Setup3D();
@@ -369,7 +367,7 @@ void Cl_UpdateScreen(void) {
 				Cl_DrawCounters();
 				Cl_DrawRendererStats();
 				Cl_DrawSoundStats();
-				cls.cgame->DrawFrame(&cl.frame);
+				cls.cgame->UpdateScreen(&cl.frame);
 				break;
 		}
 	} else {

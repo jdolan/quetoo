@@ -37,6 +37,7 @@ noinst_HEADERS = \
 	r_program_shell.h \
 	r_program_warp.h \
 	r_sky.h \
+	r_stainmap.h \
 	r_state.h \
 	r_types.h \
 	renderer.h
@@ -78,6 +79,7 @@ librenderer_la_SOURCES = \
 	r_program_shell.c \
 	r_program_warp.c \
 	r_sky.c \
+	r_stainmap.c \
 	r_state.c
 
 librenderer_la_CFLAGS = \

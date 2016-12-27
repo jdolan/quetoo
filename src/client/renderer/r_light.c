@@ -101,7 +101,6 @@ void R_ResetLights(void) {
  * @brief Recursively populates light source bit masks for world surfaces.
  */
 void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node) {
-	uint16_t i;
 
 	if (node->contents != CONTENTS_NODE) { // leaf
 		return;
@@ -113,9 +112,7 @@ void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node) {
 		}
 	}
 
-	const cm_bsp_plane_t *plane = node->plane;
-
-	const vec_t dist = DotProduct(l->origin, plane->normal) - plane->dist;
+	const vec_t dist = Cm_DistanceToPlane(l->origin, node->plane);
 
 	if (dist > l->radius) { // front only
 		R_MarkLight(l, node->children[0]);
@@ -132,7 +129,7 @@ void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node) {
 	// mark all surfaces in this node
 	r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces + node->first_surface;
 
-	for (i = 0; i < node->num_surfaces; i++, surf++) {
+	for (uint32_t i = 0; i < node->num_surfaces; i++, surf++) {
 
 		if (surf->light_frame != r_locals.light_frame) { // reset it
 			surf->light_frame = r_locals.light_frame;

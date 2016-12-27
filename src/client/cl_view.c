@@ -28,7 +28,7 @@ void Cl_ClearView(void) {
 
 	// reset entity, light, particle and corona counts
 	r_view.num_entities = r_view.num_lights = 0;
-	r_view.num_particles = 0;
+	r_view.num_particles = r_view.num_stains = 0;
 
 	// reset counters
 	memset(r_view.num_binds, 0, sizeof(r_view.num_binds));
@@ -175,8 +175,7 @@ static void Cl_UpdateAngles(const player_state_t *from, const player_state_t *to
 }
 
 /**
- * @brief Updates the view definition for the renderer. If the view is out of date, it is populated
- * by the client game module.
+ * @brief Updates the view definition for the next render frame.
  */
 void Cl_UpdateView(void) {
 
@@ -188,10 +187,7 @@ void Cl_UpdateView(void) {
 
 	Cl_UpdateViewSize();
 
-	Cl_ClearView();
-
 	r_view.ticks = cl.ticks;
-
 	r_view.area_bits = cl.frame.area_bits;
 
 	cls.cgame->UpdateView(&cl.frame);

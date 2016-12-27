@@ -65,6 +65,34 @@ _Bool Cg_IsDucking(const cl_entity_t *ent) {
 }
 
 /**
+ * @brief
+ */
+static void Cg_AnimateEntity(cl_entity_t *ent) {
+
+	if (ent->current.model1 == MODEL_CLIENT) {
+		Cg_AnimateClientEntity(ent, NULL, NULL);
+	}
+}
+
+/**
+ * @brief Interpolate the current frame, processing any new events and advancing the simulation.
+ */
+void Cg_Interpolate(const cl_frame_t *frame) {
+
+	for (uint16_t i = 0; i < frame->num_entities; i++) {
+
+		const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
+		const entity_state_t *s = &cgi.client->entity_states[snum];
+
+		cl_entity_t *ent = &cgi.client->entities[s->number];
+
+		Cg_EntityEvent(ent);
+
+		Cg_AnimateEntity(ent);
+	}
+}
+
+/**
  * @brief Adds the numerous render entities which comprise a given client (player)
  * entity: head, torso, legs, weapon, flags, etc.
  */
@@ -255,14 +283,8 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 		}
 	}
 
-	// add events
-	Cg_EntityEvent(ent);
-
 	// add effects, augmenting the renderer entity
 	Cg_EntityEffects(ent, &e);
-
-	// and particle and light trails
-	Cg_EntityTrail(ent, &e);
 
 	// if there's no model associated with the entity, we're done
 	if (!ent->current.model1) {
@@ -316,6 +338,8 @@ void Cg_AddEntities(const cl_frame_t *frame) {
 		const entity_state_t *s = &cgi.client->entity_states[snum];
 
 		cl_entity_t *ent = &cgi.client->entities[s->number];
+
+		Cg_EntityTrail(ent);
 
 		Cg_AddEntity(ent);
 	}
