@@ -132,7 +132,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 				message = "was shredded by";
 				message2 = "'s shrapnel";
 				break;
-			case MOD_HANDGRENADE_HIT:
+			case MOD_HANDGRENADE:
 				message = "caught";
 				message2 = "'s handgrenade";
 				break;
