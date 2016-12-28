@@ -19,7 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __GAME_LOCAL_H__
+#pragma once
+
 #define __GAME_LOCAL_H__
 
 // this is the game name that we advertise to clients
@@ -53,5 +54,3 @@
 #include "g_types.h"
 #include "g_util.h"
 #include "g_weapon.h"
-
-#endif /* __GAME_LOCAL_H__ */

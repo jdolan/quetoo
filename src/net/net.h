@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __NET_H__
-#define __NET_H__
+#pragma once
 
 #include "net_types.h"
 
@@ -42,5 +41,3 @@ void Net_CloseSocket(int32_t sock);
 
 void Net_Init(void);
 void Net_Shutdown(void);
-
-#endif /* __NET_H__ */

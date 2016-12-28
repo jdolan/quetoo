@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CMD_H__
-#define __CMD_H__
+#pragma once
 
 #include "filesystem.h"
 
@@ -52,5 +51,3 @@ void Cmd_Init(void);
 void Cmd_Shutdown(void);
 
 extern void (*Cmd_ForwardToServer)(void);
-
-#endif /* __CMD_H__ */

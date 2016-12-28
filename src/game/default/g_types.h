@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __GAME_TYPES_H__ // don't collide with <glib/gtypes.h>
-#define __GAME_TYPES_H__
+#pragma once
 
 #include "shared.h"
 
@@ -973,5 +972,3 @@ typedef struct {
 #include "game/game.h"
 
 #endif /* __GAME_LOCAL_H__ */
-
-#endif /* __GAME_TYPES_H__ */

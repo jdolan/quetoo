@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CG_CLIENT_H__
-#define __CG_CLIENT_H__
+#pragma once
 
 #include "cg_types.h"
 
@@ -29,6 +28,3 @@
 	void Cg_LoadClients(void);
 	void Cg_AnimateClientEntity(cl_entity_t *ent, r_entity_t *torso, r_entity_t *legs);
 #endif /* __CG_LOCAL_H__ */
-
-#endif /* __CG_CLIENT_H__ */
-

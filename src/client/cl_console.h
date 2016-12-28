@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CL_CONSOLE_H__
-#define __CL_CONSOLE_H__
+#pragma once
 
 #include "cl_types.h"
 
@@ -35,6 +34,3 @@
 	void Cl_InitConsole(void);
 	void Cl_ShutdownConsole(void);
 #endif /* __CL_LOCAL_H__ */
-
-#endif /* __CL_CONSOLE_H__ */
-

@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_MESH_MODEL_H__
-#define __R_MESH_MODEL_H__
+#pragma once
 
 #include "r_types.h"
 
@@ -28,6 +27,3 @@
 	void R_LoadMd3Model(r_model_t *mod, void *buffer);
 	void R_LoadObjModel(r_model_t *mod, void *buffer);
 #endif /* __R_LOCAL_H__ */
-
-#endif /* __R_MESH_MODEL_H__ */
-

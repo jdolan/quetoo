@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CL_MOUSE_H__
-#define __CL_MOUSE_H__
+#pragma once
 
 #include "cl_types.h"
 
@@ -31,5 +30,3 @@
 	void Cl_MouseMotionEvent(const SDL_Event *event);
 
 #endif /* __CL_LOCAL_H__ */
-
-#endif /* __CL_MOUSE_H__ */

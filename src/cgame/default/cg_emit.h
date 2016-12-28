@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CG_EMIT_H__
-#define __CG_EMIT_H__
+#pragma once
 
 #include "cg_types.h"
 
@@ -29,6 +28,3 @@
 	void Cg_FreeEmits(void);
 	void Cg_AddEmits(void);
 #endif /* __CG_LOCAL_H__ */
-
-#endif /* __CG_EMIT_H__ */
-

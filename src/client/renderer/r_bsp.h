@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_BSP_H__
-#define __R_BSP_H__
+#pragma once
 
 vec_t R_DistanceToSurface(const vec3_t p, const r_bsp_surface_t *surf);
 const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_bsp_model_t *bsp);
@@ -38,5 +37,3 @@ _Bool R_CullSphere(const vec3_t point, const vec_t radius);
 	void R_MarkBspSurfaces(void);
 	void R_UpdateVis(void);
 #endif /* __R_LOCAL_H__ */
-
-#endif /* __R_BSP_H__ */

@@ -19,12 +19,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __GAME_UTIL_H__
-#define __GAME_UTIL_H__
-
-#ifdef __GAME_LOCAL_H__
+#pragma once
 
 #include "g_types.h"
+
+#ifdef __GAME_LOCAL_H__
 
 _Bool G_KillBox(g_entity_t *ent);
 void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, vec_t radius, uint32_t mod);
@@ -65,5 +64,3 @@ void G_TeamCenterPrint(g_team_t *team, const char *fmt, ...) __attribute__((form
 #define G_AllocEntity() G_AllocEntity_(__func__)
 
 #endif /* __GAME_LOCAL_H__ */
-
-#endif /* __GAME_UTIL_H__ */

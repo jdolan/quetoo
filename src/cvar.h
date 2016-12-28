@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CVAR_H__
-#define __CVAR_H__
+#pragma once
 
 #include "cmd.h"
 #include "filesystem.h"
@@ -52,5 +51,3 @@ void Cvar_WriteAll(file_t *f);
 _Bool Cvar_ExpandString(const char *input, const size_t in_size, GString **output);
 void Cvar_Init(void);
 void Cvar_Shutdown(void);
-
-#endif /* __CVAR_H__ */

@@ -21,8 +21,7 @@
 
 #include "r_types.h"
 
-#ifndef __R_ELEMENT_H__
-#define __R_ELEMENT_H__
+#pragma once
 
 #ifdef __R_LOCAL_H__
 	void R_AddElement(const r_element_t *e);
@@ -30,5 +29,3 @@
 	void R_DrawElements(void);
 	void R_InitElements(r_bsp_model_t *bsp);
 #endif /* __R_LOCAL_H__ */
-
-#endif /* __R_ELEMENT_H__ */

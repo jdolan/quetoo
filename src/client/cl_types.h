@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CL_TYPES_H__
-#define __CL_TYPES_H__
+#pragma once
 
 #include "net/net_types.h"
 #include "renderer/r_types.h"
@@ -334,4 +333,5 @@ typedef struct {
 	struct cg_export_s *cgame;
 } cl_static_t;
 
-#endif /* __CL_TYPES_H__ */
+#ifdef __CL_LOCAL_H__
+#endif /* __CL_LOCAL_H__ */

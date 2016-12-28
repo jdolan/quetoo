@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_PROGRAM_H__
-#define __R_PROGRAM_H__
+#pragma once
 
 #include "r_types.h"
 
@@ -147,5 +146,3 @@ void R_ShutdownPrograms(void);
 void R_InitPrograms(void);
 
 #endif /* __R_LOCAL_H__ */
-
-#endif /* __R_PROGRAM_H__ */

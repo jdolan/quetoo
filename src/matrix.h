@@ -18,8 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __MATRIX_H__
-#define __MATRIX_H__
+#pragma once
 
 #include "quetoo.h"
 
@@ -201,5 +200,3 @@ void Matrix4x4_FromFrustum (matrix4x4_t *out, double left, double right, double 
 // generate an orthogonal projection matrix from bounds
 void Matrix4x4_FromOrtho (matrix4x4_t *out, double left, double right, double bottom, double top, double nearval,
                           double farval);
-
-#endif /* __MATRIX_H__ */

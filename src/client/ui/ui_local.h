@@ -19,9 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __UI_LOCAL_H__
+#pragma once
+
 #define __UI_LOCAL_H__
-
 #include "ui.h"
-
-#endif /* __UI_LOCAL_H__ */

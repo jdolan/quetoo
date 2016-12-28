@@ -19,8 +19,7 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef __MONITOR_H__
-#define __MONITOR_H__
+#pragma once
 
 #include "common.h"
 
@@ -36,5 +35,3 @@ void Mon_SendPoint_(const char *func, err_t err, const vec3_t p, const char *msg
 
 _Bool Mon_Init(const char *host);
 void Mon_Shutdown(const char *msg);
-
-#endif /* __MONITOR_H__ */

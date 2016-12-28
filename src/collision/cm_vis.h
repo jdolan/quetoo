@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CM_VIS_H__
-#define __CM_VIS_H__
+#pragma once
 
 #include "cm_types.h"
 
@@ -38,5 +37,3 @@ extern _Bool cm_no_areas;
 #ifdef __CM_LOCAL_H__
 	void Cm_FloodAreas(void);
 #endif /* __CM_LOCAL_H__ */
-
-#endif /* __CM_VIS_H__ */

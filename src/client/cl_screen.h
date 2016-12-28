@@ -19,14 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CL_SCREEN_H__
-#define __CL_SCREEN_H__
+#pragma once
 
 #ifdef __CL_LOCAL_H__
 	void Cl_CenterPrint(char *s);
 	void Cl_AddNetGraph(void);
 	void Cl_UpdateScreen(void);
 #endif /* __CL_LOCAL_H__ */
-
-#endif /* __CL_SCREEN_H__ */
-

@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __S_SAMPLE_H__
-#define __S_SAMPLE_H__
+#pragma once
 
 s_sample_t *S_LoadSample(const char *name);
 
@@ -28,5 +27,3 @@ s_sample_t *S_LoadSample(const char *name);
 	s_sample_t *S_LoadModelSample(const char *model, const char *name);
 	s_sample_t *S_LoadEntitySample(const entity_state_t *ent, const char *name);
 #endif /* __S_LOCAL_H__ */
-
-#endif /* __S_SAMPLE_H__ */

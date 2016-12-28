@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __GAME_CLIENT_STATS_H__
-#define __GAME_CLIENT_STATS_H__
+#pragma once
 
 #include "g_types.h"
 
@@ -31,5 +30,3 @@
 	void G_ClientTeamsScoreboard(g_entity_t *client);
 	void G_ClientToIntermission(g_entity_t *client);
 #endif /* __GAME_LOCAL_H__ */
-
-#endif /* __GAME_CLIENT_STATS_H__ */

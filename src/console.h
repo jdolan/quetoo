@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CONSOLE_H__
-#define __CONSOLE_H__
+#pragma once
 
 #include <SDL2/SDL_mutex.h>
 
@@ -213,5 +212,3 @@ void Con_RemoveConsole(const console_t *console);
 void Con_AutocompleteInput_f(const uint32_t argi, GList **matches);
 void Con_Init(void);
 void Con_Shutdown(void);
-
-#endif /* __CONSOLE_H__ */

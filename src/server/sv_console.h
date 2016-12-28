@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __SV_CONSOLE_H__
-#define __SV_CONSOLE_H__
+#pragma once
 
 #include "sv_types.h"
 
@@ -29,5 +28,3 @@
 	void Sv_InitConsole(void);
 	void Sv_ShutdownConsole(void);
 #endif /* __SV_LOCAL_H__ */
-
-#endif /* __SV_CONSOLE_H__ */

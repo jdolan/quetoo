@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_PROGRAM_CORONA_H__
-#define __R_PROGRAM_CORONA_H__
+#pragma once
 
 #include "r_types.h"
 
@@ -29,5 +28,3 @@
 	void R_InitProgram_corona(r_program_t *program);
 	void R_UseFog_corona(const r_fog_parameters_t *value);
 #endif /* __R_LOCAL_H__ */
-
-#endif /* __R_PROGRAM_CORONA_H__ */

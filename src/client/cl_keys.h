@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CL_KEYS_H__
-#define __CL_KEYS_H__
+#pragma once
 
 #include "cl_types.h"
 
@@ -38,5 +37,3 @@ void Cl_Bind(SDL_Scancode key, const char *bind);
 	void Cl_ShutdownKeys(void);
 
 #endif /* __CL_LOCAL_H__ */
-
-#endif /* __CL_KEYS_H__ */

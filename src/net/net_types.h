@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __NET_TYPES_H__
-#define __NET_TYPES_H__
+#pragma once
 
 #if defined(_WIN32)
 
@@ -108,5 +107,3 @@ typedef struct {
 	size_t reliable_size;
 	byte reliable_buffer[MAX_MSG_SIZE - 10]; // un-acked reliable message
 } net_chan_t;
-
-#endif /* __NET_TYPES_H__ */

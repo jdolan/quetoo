@@ -19,7 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CG_LOCAL_H__
+#pragma once
+
 #define __CG_LOCAL_H__
 
 #define Debug(...) Debug_(__func__, __VA_ARGS__)
@@ -46,5 +47,3 @@
 #include "cg_ui.h"
 #include "cg_ui_data.h"
 #include "cg_view.h"
-
-#endif /* __CG_LOCAL_H__ */

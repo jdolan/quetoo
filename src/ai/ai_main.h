@@ -19,13 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __AI_MAIN_H__
-#define __AI_MAIN_H__
+#pragma once
 
 void Ai_Init(void);
 void Ai_Shutdown(void);
 
 #ifdef __AI_LOCAL_H__
 #endif /* __AI_LOCAL_H__ */
-
-#endif /* __AI_MAIN_H__ */

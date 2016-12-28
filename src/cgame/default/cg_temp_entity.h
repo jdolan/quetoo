@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CG_TEMP_ENTITY_H__
-#define __CG_TEMP_ENTITY_H__
+#pragma once
 
 #include "cg_types.h"
 
@@ -29,6 +28,3 @@
 	void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count);
 	void Cg_ParseTempEntity(void);
 #endif /* __CG_LOCAL_H__ */
-
-#endif /* __CG_TEMP_ENTITY_H__ */
-

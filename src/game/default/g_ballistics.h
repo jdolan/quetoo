@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __GAME_BALLISTICS_H__
-#define __GAME_BALLISTICS_H__
+#pragma once
 
 #include "g_types.h"
 
@@ -50,5 +49,3 @@ void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
                                const cm_bsp_plane_t *plane, const cm_bsp_surface_t *surf);
 g_entity_t *G_HookProjectile(g_entity_t *self, const vec3_t start, const vec3_t dir);
 #endif /* __GAME_LOCAL_H__ */
-
-#endif /* __GAME_BALLISTICS_H__ */

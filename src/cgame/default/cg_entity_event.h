@@ -19,14 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CG_ENTITY_EVENT_H__
-#define __CG_ENTITY_EVENT_H__
+#pragma once
 
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
 	void Cg_EntityEvent(cl_entity_t *e);
 #endif /* __CG_LOCAL_H__ */
-
-#endif /* __CG_ENTITY_EVENT_H__ */
-

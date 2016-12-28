@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __MEM_BUF_H__
-#define __MEM_BUF_H__
+#pragma once
 
 #include "quetoo.h"
 
@@ -40,5 +39,3 @@ void Mem_InitBuffer(mem_buf_t *buf, byte *data, size_t len);
 void Mem_ClearBuffer(mem_buf_t *buf);
 void *Mem_AllocBuffer(mem_buf_t *buf, size_t len);
 void Mem_WriteBuffer(mem_buf_t *buf, const void *data, size_t len);
-
-#endif /* __MEM_BUF_H__ */

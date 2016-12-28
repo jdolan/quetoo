@@ -19,15 +19,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __UI_TYPES_H__
-#define __UI_TYPES_H__
+#pragma once
 
 #include "src/client/renderer/r_types.h"
 
 #include <ObjectivelyMVC.h>
 
 #ifdef __UI_LOCAL_H__
-
 #endif /* __UI_LOCAL_H__ */
-
-#endif /* __UI_TYPES_H__ */

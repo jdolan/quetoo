@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_ATLAS_H__
-#define __R_ATLAS_H__
+#pragma once
 
 #include "r_types.h"
 
@@ -65,5 +64,3 @@ r_packer_node_t *R_AtlasPacker_FindNode(r_packer_t *packer, const uint32_t root,
 void R_InitAtlas(void);
 
 #endif /* __R_LOCAL_H__ */
-
-#endif /* __R_ATLAS_H__ */

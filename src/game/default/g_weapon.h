@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __GAME_WEAPON_H__
-#define __GAME_WEAPON_H__
+#pragma once
 
 #include "g_types.h"
 
@@ -45,5 +44,3 @@
 	void G_ClientHookThink(g_entity_t *ent);
 	void G_ClientHookDetach(g_entity_t *ent);
 #endif /* __GAME_LOCAL_H__ */
-
-#endif /* __GAME_WEAPON_H__ */

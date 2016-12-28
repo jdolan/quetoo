@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __S_MEDIA_H__
-#define __S_MEDIA_H__
+#pragma once
 
 #include "s_types.h"
 
@@ -39,5 +38,3 @@ void S_LoadClientSounds(const char *model);
 	void S_ShutdownMedia(void);
 
 #endif /* __S_LOCAL_H__ */
-
-#endif /* __S_MEDIA_H__ */

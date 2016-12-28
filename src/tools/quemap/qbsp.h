@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __QBSP_H__
-#define __QBSP_H__
+#pragma once
 
 #include "bspfile.h"
 #include "polylib.h"
@@ -261,5 +260,3 @@ void FreeTree_r(node_t *node);
 void FreeTreePortals_r(node_t *node);
 void PruneNodes_r(node_t *node);
 void PruneNodes(node_t *node);
-
-#endif /* __QBSP_H__ */

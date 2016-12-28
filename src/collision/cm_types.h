@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CM_TYPES_H__
-#define __CM_TYPES_H__
+#pragma once
 
 #include "quetoo.h"
 
@@ -171,5 +170,3 @@ typedef struct {
 } cm_bsp_area_t;
 
 #endif /* __CM_LOCAL_H__ */
-
-#endif /* __CM_TYPES_H__ */

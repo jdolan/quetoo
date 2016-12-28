@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CM_MODEL_H__
-#define __CM_MODEL_H__
+#pragma once
 
 #include "cm_types.h"
 
@@ -91,5 +90,3 @@ extern cm_bsp_t cm_bsp;
 extern cm_vis_t *cm_vis;
 
 #endif /* __CM_LOCAL_H__ */
-
-#endif /* __CM_MODEL_H__ */

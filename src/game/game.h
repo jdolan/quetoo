@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __GAME_H__
-#define __GAME_H__
+#pragma once
 
 #include "shared.h"
 
@@ -420,5 +419,3 @@ typedef struct {
 	const char *(*GameName)(void);
 
 } g_export_t;
-
-#endif /* __GAME_H__ */

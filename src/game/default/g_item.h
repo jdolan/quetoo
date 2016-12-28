@@ -19,12 +19,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __GAME_ITEM_H__
-#define __GAME_ITEM_H__
+#pragma once
+
+#include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
-
-	#include "g_types.h"
 
 	extern const g_item_t g_items[];
 	extern const uint16_t g_num_items;
@@ -57,5 +56,3 @@
 	void G_TouchItem(g_entity_t *ent, g_entity_t *other, const cm_bsp_plane_t *plane, const cm_bsp_surface_t *surf);
 
 #endif /* __GAME_LOCAL_H__ */
-
-#endif /* __GAME_ITEM_H__ */

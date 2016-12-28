@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_CONTEXT_H__
-#define __R_CONTEXT_H__
+#pragma once
 
 #include "r_types.h"
 
@@ -31,6 +30,3 @@ extern r_context_t r_context;
 	void R_InitContext(void);
 	void R_ShutdownContext(void);
 #endif /* __R_LOCAL_H__ */
-
-#endif /* __R_CONTEXT_H__ */
-

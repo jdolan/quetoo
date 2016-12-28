@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CLIENT_H__
-#define __CLIENT_H__
+#pragma once
 
 #include "collision/cmodel.h"
 #include "console.h"
@@ -49,5 +48,3 @@
 #include "cl_server.h"
 #include "cl_types.h"
 #include "cl_view.h"
-
-#endif /* __CLIENT_H__ */

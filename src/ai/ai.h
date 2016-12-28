@@ -19,11 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __AI_H__
-#define __AI_H__
+#pragma once
 
 #include "ai_goal.h"
 #include "ai_main.h"
 #include "ai_types.h"
-
-#endif /* __AI_H__ */

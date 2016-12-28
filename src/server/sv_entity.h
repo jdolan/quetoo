@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __SV_ENTITY_H__
-#define __SV_ENTITY_H__
+#pragma once
 
 #include "sv_types.h"
 
@@ -28,5 +27,3 @@
 	void Sv_WriteClientFrame(sv_client_t *client, mem_buf_t *msg);
 	void Sv_BuildClientFrame(sv_client_t *client);
 #endif /* __SV_LOCAL_H__ */
-
-#endif /* __SV_ENTITY_H__ */

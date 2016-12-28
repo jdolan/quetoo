@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __AI_TYPES_H__
-#define __AI_TYPES_H__
+#pragma once
 
 #include "mem.h"
 #include "game/game.h"
@@ -50,4 +49,5 @@ typedef struct {
 	ai_node_t *node;
 } ai_goal_t;
 
-#endif /* __AI_TYPES_H__ */
+#ifdef __AI_LOCAL_H__
+#endif /* __AI_LOCAL_H__ */

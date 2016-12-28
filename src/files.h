@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __FILES_H__
-#define __FILES_H__
+#pragma once
 
 #include "shared.h"
 
@@ -362,5 +361,3 @@ typedef struct {
 	int16_t mins[3];
 	int16_t maxs[3];
 } d_aas_leaf_t;
-
-#endif /*__FILES_H__*/

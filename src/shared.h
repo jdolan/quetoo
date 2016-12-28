@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __SHARED_H__
-#define __SHARED_H__
+#pragma once
 
 #include "collision/cm_types.h"
 
@@ -189,5 +188,3 @@ char *GetUserInfo(const char *s, const char *key);
 void DeleteUserInfo(char *s, const char *key);
 void SetUserInfo(char *s, const char *key, const char *value);
 _Bool ValidateUserInfo(const char *s);
-
-#endif /* __SHARED_H__ */

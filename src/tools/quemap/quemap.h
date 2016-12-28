@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __QUETOOMAP_H__
-#define __QUETOOMAP_H__
+#pragma once
 
 #include "files.h"
 #include "filesystem.h"
@@ -114,5 +113,3 @@ typedef void (*ThreadWorkFunc)(int32_t);
 void ThreadLock(void);
 void ThreadUnlock(void);
 void RunThreadsOn(int32_t workcount, _Bool progress, ThreadWorkFunc func);
-
-#endif /*__QUETOOMAP_H__*/

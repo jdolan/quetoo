@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __SCRIPLIB_H__
-#define __SCRIPLIB_H__
+#pragma once
 
 #include "quemap.h"
 
@@ -33,5 +32,3 @@ void ParseFromMemory(char *buffer, int32_t size);
 
 _Bool GetToken(_Bool crossline);
 _Bool TokenAvailable(void);
-
-#endif /* __SCRIPLIB_H__ */

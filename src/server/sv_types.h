@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __SV_TYPES_H__
-#define __SV_TYPES_H__
+#pragma once
 
 #include "game/game.h"
 #include "matrix.h"
@@ -273,5 +272,3 @@ typedef struct {
 #define NUM_FOR_ENTITY(e) ( ((byte *)(e) - (byte *) svs.game->entities) / svs.game->entity_size )
 
 #endif /* __SV_LOCAL_H__ */
-
-#endif /* __SV_TYPES_H__ */

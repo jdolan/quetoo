@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CG_TYPES_H__
-#define __CG_TYPES_H__
+#pragma once
 
 #include "cgame/cgame.h"
 #include "game/default/g_types.h"
@@ -98,5 +97,3 @@ typedef struct cg_particles_s {
 } cg_particles_t;
 
 #endif /* __CG_LOCAL_H__ */
-
-#endif /* __CG_TYPES_H__ */

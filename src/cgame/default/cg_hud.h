@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CG_HUD_H__
-#define __CG_HUD_H__
+#pragma once
 
 #include "cg_types.h"
 
@@ -28,6 +27,3 @@
 	void Cg_ParseCenterPrint(void);
 	void Cg_DrawHud(const player_state_t *ps);
 #endif /* __CG_LOCAL_H__ */
-
-#endif /* __CG_HUD_H__ */
-

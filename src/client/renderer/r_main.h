@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_MAIN_H__
-#define __R_MAIN_H__
+#pragma once
 
 #include "r_types.h"
 
@@ -134,5 +133,3 @@ extern BspSurfacesDrawFunc R_DrawBackBspSurfaces;
 extern MeshModelsDrawFunc R_DrawMeshModels;
 
 #endif /* __R_LOCAL_H__ */
-
-#endif /* __R_MAIN_H__ */

@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __BG_PMOVE_H__
-#define __BG_PMOVE_H__
+#pragma once
 
 #include "shared.h"
 
@@ -212,5 +211,3 @@ typedef struct {
  * @brief Performs one discrete movement of the player through the world.
  */
 void Pm_Move(pm_move_t *pm_move);
-
-#endif /* __BG_PMOVE_H__ */
