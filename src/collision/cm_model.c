@@ -418,7 +418,7 @@ static void Cm_LoadBspAreaPortals(const d_bsp_lump_t *l) {
 /**
  * @brief
  */
-GArray *Cm_LoadBspMaterials(const char *name) {
+static GArray *Cm_LoadBspMaterials(const char *name) {
 
 	char base[MAX_QPATH];
 	StripExtension(Basename(name), base);
@@ -429,7 +429,7 @@ GArray *Cm_LoadBspMaterials(const char *name) {
 /**
  * @brief
  */
-void Cm_UnloadBspMaterials(void) {
+static void Cm_UnloadBspMaterials(void) {
 
 	for (int32_t i = 0; i < cm_bsp.num_surfaces; i++) {
 		cm_bsp_surface_t *surf = &cm_bsp.surfaces[i];
