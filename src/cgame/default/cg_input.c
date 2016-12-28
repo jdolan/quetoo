@@ -30,7 +30,7 @@ static button_t cg_buttons[3];
 static cvar_t *cg_run;
 
 typedef struct {
-	vec3_t prev, next;
+	vec3_t prev, next, kick;
 	uint32_t timestamp;
 	uint32_t interval;
 } cg_view_kick_t;
@@ -44,15 +44,16 @@ void Cg_ParseViewKick(void) {
 
 	const vec3_t kick = { cgi.ReadAngle(), 0.0, cgi.ReadAngle() };
 
-	VectorCopy(cg_view_kick.next, cg_view_kick.prev);
-	VectorAdd(cg_view_kick.next, kick, cg_view_kick.next);
+	VectorCopy(cg_view_kick.kick, cg_view_kick.prev);
+	VectorAdd(cg_view_kick.prev, kick, cg_view_kick.next);
 
 	cg_view_kick.timestamp = cgi.client->unclamped_time;
-	cg_view_kick.interval = sqrt(VectorLength(kick)) * 50;
+	cg_view_kick.interval = 64;
 }
 
 /**
- * @brief
+ * @brief Augments the view offset and angles for the specified command.
+ * @see Cl_Look(pm_cmd_t)
  */
 void Cg_Look(pm_cmd_t *cmd) {
 
@@ -68,15 +69,23 @@ void Cg_Look(pm_cmd_t *cmd) {
 		VectorSubtract(cg_view_kick.next, cg_view_kick.prev, kick);
 		VectorScale(kick, frac, kick);
 
+		VectorAdd(cg_view_kick.kick, kick, cg_view_kick.kick);
 		VectorAdd(cgi.client->angles, kick, cgi.client->angles);
 		
-	} else if (!VectorCompare(cg_view_kick.next, vec3_origin)) {
+	} else if (!VectorCompare(cg_view_kick.kick, vec3_origin)) {
 
-		VectorCopy(cg_view_kick.next, cg_view_kick.prev);
-		VectorClear(cg_view_kick.next);
+		const vec_t len = VectorLength(cg_view_kick.kick);
+		if (len < 0.1) {
+			VectorSubtract(cgi.client->angles, cg_view_kick.kick, cgi.client->angles);
+			VectorClear(cg_view_kick.kick);
+		} else {
 
-		cg_view_kick.timestamp = cgi.client->unclamped_time;
-		cg_view_kick.interval = sqrt(VectorLength(cg_view_kick.prev)) * 200;
+			VectorCopy(cg_view_kick.kick, cg_view_kick.prev);
+			VectorClear(cg_view_kick.next);
+
+			cg_view_kick.timestamp = cgi.client->unclamped_time;
+			cg_view_kick.interval = 240;
+		}
 	}
 }
 
