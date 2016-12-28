@@ -279,7 +279,7 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 
 	const uint32_t frame_duration = 1000 / anim->hz;
 	const uint32_t animation_duration = anim->num_frames * frame_duration;
-	const uint32_t elapsed_time = cgi.client->ticks - a->time;
+	const uint32_t elapsed_time = cgi.client->unclamped_time - a->time;
 	int32_t frame = elapsed_time / frame_duration;
 
 	if (elapsed_time >= animation_duration) { // to loop, or not to loop
@@ -294,7 +294,7 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 			}
 
 			a->animation = next; // or move into the next animation
-			a->time = cgi.client->ticks;
+			a->time = cgi.client->unclamped_time;
 
 			Cg_AnimateClientEntity_(md3, a);
 			return;

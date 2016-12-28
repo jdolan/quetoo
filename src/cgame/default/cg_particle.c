@@ -91,7 +91,7 @@ cg_particle_t *Cg_AllocParticle(const r_particle_type_t type, cg_particles_t *pa
 
 	Cg_PushParticle(p, &particles->particles);
 
-	p->start = cgi.client->ticks;
+	p->start = cgi.client->unclamped_time;
 	p->lifetime = PARTICLE_INFINITE;
 
 	return p;
@@ -212,7 +212,7 @@ static _Bool Cg_UpdateParticle_Spark(cg_particle_t *p, const vec_t delta, const 
  */
 static void Cg_UpdateParticleSpecial_Blood(cg_particle_t *p) {
 
-	if (p->blood.time < cgi.client->ticks) {
+	if (p->blood.time < cgi.client->unclamped_time) {
 
 		cgi.AddStain(&(const r_stain_t) {
 			.origin = {
@@ -229,7 +229,7 @@ static void Cg_UpdateParticleSpecial_Blood(cg_particle_t *p) {
 			.radius = p->part.scale * 0.125
 		});
 
-		p->blood.time = cgi.client->ticks + 96 + (Randomf() * 96);
+		p->blood.time = cgi.client->unclamped_time + 96 + (Randomf() * 96);
 	}
 }
 
@@ -243,15 +243,15 @@ void Cg_AddParticles(void) {
 		return;
 	}
 
-	if (ticks > cgi.client->ticks) {
+	if (ticks > cgi.client->unclamped_time) {
 		ticks = 0;
 	}
 
-	const vec_t delta = (cgi.client->ticks - ticks) * 0.001;
+	const vec_t delta = (cgi.client->unclamped_time - ticks) * 0.001;
 	const vec_t delta_squared = delta * delta;
 	_Bool cull;
 
-	ticks = cgi.client->ticks;
+	ticks = cgi.client->unclamped_time;
 
 	cg_particles_t *ps = cg_active_particles;
 	while (ps) {
@@ -259,18 +259,18 @@ void Cg_AddParticles(void) {
 		cg_particle_t *p = ps->particles;
 		while (p) {
 			// update any particles allocated in previous frames
-			if (p->start != cgi.client->ticks) {
+			if (p->start != cgi.client->unclamped_time) {
 
 				// calculate where we are in time
 				if (p->lifetime) {
 
 					// get rid of expired particles
-					if (cgi.client->ticks >= p->start + (p->lifetime - 1)) {
+					if (cgi.client->unclamped_time >= p->start + (p->lifetime - 1)) {
 						p = Cg_FreeParticle(p, &ps->particles);
 						continue;
 					}
 
-					const vec_t frac = (cgi.client->ticks - p->start) / (vec_t) (p->lifetime - 1);
+					const vec_t frac = (cgi.client->unclamped_time - p->start) / (vec_t) (p->lifetime - 1);
 
 					if (p->effects & PARTICLE_EFFECT_COLOR) {
 						Vector4Lerp(p->color_start, p->color_end, frac, p->part.color);

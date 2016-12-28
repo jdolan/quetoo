@@ -596,7 +596,7 @@ void Cl_Frame(const uint32_t msec) {
 	cl.time += msec;
 
 	// and the unclamped simulation time
-	cl.ticks += msec;
+	cl.unclamped_time += msec;
 
 	// and the pending command duration
 	cmd_msec += msec;

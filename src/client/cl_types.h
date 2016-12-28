@@ -165,7 +165,7 @@ typedef struct {
 	uint32_t suppress_count; // number of messages rate suppressed
 
 	uint32_t time; // clamped simulation time that the client is rendering at
-	uint32_t ticks; // unclamped simulation time, useful for absolute durations
+	uint32_t unclamped_time; // unclamped simulation time, useful for absolute durations
 
 	vec_t lerp; // linear interpolation fraction between frames
 

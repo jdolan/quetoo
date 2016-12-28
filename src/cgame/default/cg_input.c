@@ -47,7 +47,7 @@ void Cg_ParseViewKick(void) {
 	VectorCopy(cg_view_kick.next, cg_view_kick.prev);
 	VectorAdd(cg_view_kick.next, kick, cg_view_kick.next);
 
-	cg_view_kick.timestamp = cgi.client->ticks;
+	cg_view_kick.timestamp = cgi.client->unclamped_time;
 	cg_view_kick.interval = sqrt(VectorLength(kick)) * 50;
 }
 
@@ -56,11 +56,11 @@ void Cg_ParseViewKick(void) {
  */
 void Cg_Look(pm_cmd_t *cmd) {
 
-	if (cg_view_kick.timestamp > cgi.client->ticks) {
+	if (cg_view_kick.timestamp > cgi.client->unclamped_time) {
 		memset(&cg_view_kick, 0, sizeof(cg_view_kick));
 	}
 
-	const uint32_t delta = cgi.client->ticks - cg_view_kick.timestamp;
+	const uint32_t delta = cgi.client->unclamped_time - cg_view_kick.timestamp;
 	if (delta < cg_view_kick.interval) {
 		const vec_t frac = Min(delta, cmd->msec) / (vec_t) cg_view_kick.interval;
 
@@ -75,7 +75,7 @@ void Cg_Look(pm_cmd_t *cmd) {
 		VectorCopy(cg_view_kick.next, cg_view_kick.prev);
 		VectorClear(cg_view_kick.next);
 
-		cg_view_kick.timestamp = cgi.client->ticks;
+		cg_view_kick.timestamp = cgi.client->unclamped_time;
 		cg_view_kick.interval = sqrt(VectorLength(cg_view_kick.prev)) * 200;
 	}
 }

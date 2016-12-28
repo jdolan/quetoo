@@ -31,7 +31,7 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 		return;
 	}
 
-	if (cgi.client->ticks < ent->timestamp) {
+	if (cgi.client->unclamped_time < ent->timestamp) {
 		return;
 	}
 
@@ -82,7 +82,7 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 			p->vel[2] += 6.0;
 			p->accel[2] = 10.0;
 
-			ent->timestamp = cgi.client->ticks + 3000;
+			ent->timestamp = cgi.client->unclamped_time + 3000;
 		}
 	} else if (cgi.view->weather & WEATHER_RAIN || cgi.view->weather & WEATHER_SNOW) {
 
@@ -112,7 +112,7 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 			p->vel[i] += 2.0 * Randomc();
 		}
 
-		ent->timestamp = cgi.client->ticks + 3000;
+		ent->timestamp = cgi.client->unclamped_time + 3000;
 	}
 }
 
@@ -451,7 +451,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
  */
 static void Cg_EnergyTrail(cl_entity_t *ent, vec_t radius, int32_t color) {
 
-	const vec_t ltime = (vec_t) (cgi.client->ticks + ent->current.number) / 300.0;
+	const vec_t ltime = (vec_t) (cgi.client->unclamped_time + ent->current.number) / 300.0;
 
 	for (int32_t i = 0; i < NUM_APPROXIMATE_NORMALS; i++) {
 		cg_particle_t *p;
@@ -583,7 +583,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	l.radius = 90.0 + 10.0 * Randomc();
 	cgi.AddLight(&l);
 
-	if (ent->timestamp < cgi.client->ticks) {
+	if (ent->timestamp < cgi.client->unclamped_time) {
 
 		cgi.AddStain(&(const r_stain_t) {
 			.origin = { end[0], end[1], end[2] },
@@ -591,7 +591,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 			  .radius = 2.0
 		});
 
-		ent->timestamp = cgi.client->ticks + 64;
+		ent->timestamp = cgi.client->unclamped_time + 64;
 	}
 }
 
@@ -632,7 +632,7 @@ static void Cg_BfgTrail(cl_entity_t *ent) {
 
 	Cg_EnergyTrail(ent, 48.0, 206);
 
-	const vec_t mod = sin(cgi.client->ticks >> 5);
+	const vec_t mod = sin(cgi.client->unclamped_time >> 5);
 
 	cg_particle_t *p;
 	if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_explosion))) {
@@ -665,7 +665,7 @@ static void Cg_BfgTrail(cl_entity_t *ent) {
  */
 static void Cg_TeleporterTrail(cl_entity_t *ent) {
 
-	if (ent->timestamp > cgi.client->ticks) {
+	if (ent->timestamp > cgi.client->unclamped_time) {
 		return;
 	}
 
@@ -676,7 +676,7 @@ static void Cg_TeleporterTrail(cl_entity_t *ent) {
 		   .flags = S_PLAY_ENTITY
 	});
 
-	ent->timestamp = cgi.client->ticks + 1000 + (2000 * Randomf());
+	ent->timestamp = cgi.client->unclamped_time + 1000 + (2000 * Randomf());
 
 	for (int32_t i = 0; i < 4; i++) {
 		cg_particle_t *p;
@@ -766,11 +766,11 @@ static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t 
 	l.radius = 85.0;
 
 	if (ent->current.effects & EF_DESPAWN) {
-		const vec_t decay = Clamp((cgi.client->ticks - ent->timestamp) / 1000.0, 0.0, 1.0);
+		const vec_t decay = Clamp((cgi.client->unclamped_time - ent->timestamp) / 1000.0, 0.0, 1.0);
 		l.radius *= (1.0 - decay);
 	} else {
 		Cg_SmokeTrail(ent, start, end);
-		ent->timestamp = cgi.client->ticks;
+		ent->timestamp = cgi.client->unclamped_time;
 		Cg_FlameTrail(ent, start, end);
 	}
 

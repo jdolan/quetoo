@@ -91,7 +91,7 @@ static void Cl_UpdateOrigin(const player_state_t *from, const player_state_t *to
 		VectorMA(r_view.origin, -(1.0 - cl.lerp), pr->error, r_view.origin);
 
 		// interpolate stair traversal
-		const uint32_t step_delta = cl.ticks - pr->step.timestamp;
+		const uint32_t step_delta = cl.unclamped_time - pr->step.timestamp;
 		if (step_delta < pr->step.interval) {
 			const vec_t lerp = (pr->step.interval - step_delta) / (vec_t) pr->step.interval;
 			r_view.origin[2] = r_view.origin[2] - lerp * pr->step.step;
@@ -162,7 +162,7 @@ static void Cl_UpdateAngles(const player_state_t *from, const player_state_t *to
  */
 void Cl_UpdateView(void) {
 
-	r_view.ticks = cl.ticks;
+	r_view.ticks = cl.unclamped_time;
 
 	r_view.area_bits = cl.frame.area_bits;
 

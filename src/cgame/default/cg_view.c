@@ -50,10 +50,10 @@ static void Cg_UpdateFov(void) {
 
 		if (time == 0) {
 			prev = cgi.view->fov[0] * 2.0, next = cg_fov->value;
-			time = cgi.client->ticks;
+			time = cgi.client->unclamped_time;
 		}
 
-		const vec_t frac = (cgi.client->ticks - time) / (cg_fov_interpolate->value * 100.0);
+		const vec_t frac = (cgi.client->unclamped_time - time) / (cg_fov_interpolate->value * 100.0);
 		if (frac >= 1.0) {
 			time = 0;
 			fov = next;
@@ -144,14 +144,14 @@ static vec_t Cg_BobSpeedModulus(const player_state_t *ps) {
 	static vec_t old_speed, new_speed;
 	static uint32_t ticks;
 
-	if (cgi.client->ticks < ticks) {
+	if (cgi.client->unclamped_time < ticks) {
 		ticks = 0;
 		old_speed = new_speed = 0.0;
 	}
 
 	vec_t speed;
 
-	const uint32_t delta = cgi.client->ticks - ticks;
+	const uint32_t delta = cgi.client->unclamped_time - ticks;
 	if (delta < 200) {
 		const vec_t lerp = delta / (vec_t) 200;
 		speed = old_speed + lerp * (new_speed - old_speed);
@@ -168,7 +168,7 @@ static vec_t Cg_BobSpeedModulus(const player_state_t *ps) {
 		new_speed = Clamp(new_speed, 0.0, 1.0);
 		speed = old_speed;
 
-		ticks = cgi.client->ticks;
+		ticks = cgi.client->unclamped_time;
 	}
 
 	return 0.66 + speed;
@@ -198,21 +198,21 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 		}
 	}
 
-	if (cgi.client->ticks < ticks) {
+	if (cgi.client->unclamped_time < ticks) {
 		bob = ticks = 0;
 	}
 
 	const vec_t mod = Cg_BobSpeedModulus(ps);
 
 	// then calculate how much bob to add this frame
-	vec_t frame_bob = Clamp(cgi.client->ticks - ticks, 1u, 1000u) * mod;
+	vec_t frame_bob = Clamp(cgi.client->unclamped_time - ticks, 1u, 1000u) * mod;
 
 	if (!(ps->pm_state.flags & PMF_ON_GROUND)) {
 		frame_bob *= 0.25;
 	}
 
 	bob += frame_bob;
-	ticks = cgi.client->ticks;
+	ticks = cgi.client->unclamped_time;
 
 	cgi.view->bob = sin(0.0045 * bob) * mod * mod;
 	cgi.view->bob *= cg_bob->value; // scale via cvar too

@@ -182,12 +182,12 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 		  .radius = 1.0
 	});
 
-	if (cgi.client->ticks < last_ric_time) {
+	if (cgi.client->unclamped_time < last_ric_time) {
 		last_ric_time = 0;
 	}
 
-	if (cgi.client->ticks - last_ric_time > 300) {
-		last_ric_time = cgi.client->ticks;
+	if (cgi.client->unclamped_time - last_ric_time > 300) {
+		last_ric_time = cgi.client->unclamped_time;
 
 		cgi.AddSample(&(const s_play_sample_t) {
 			.sample = cg_sample_machinegun_hit[Random() % 3],
