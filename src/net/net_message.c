@@ -242,10 +242,6 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
 		bits |= PS_PM_VIEW_ANGLES;
 	}
 
-	if (!VectorCompare(to->pm_state.kick_angles, from->pm_state.kick_angles)) {
-		bits |= PS_PM_KICK_ANGLES;
-	}
-
 	if (!VectorCompare(to->pm_state.delta_angles, from->pm_state.delta_angles)) {
 		bits |= PS_PM_DELTA_ANGLES;
 	}
@@ -294,12 +290,6 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
 		Net_WriteShort(msg, to->pm_state.view_angles[0]);
 		Net_WriteShort(msg, to->pm_state.view_angles[1]);
 		Net_WriteShort(msg, to->pm_state.view_angles[2]);
-	}
-
-	if (bits & PS_PM_KICK_ANGLES) {
-		Net_WriteShort(msg, to->pm_state.kick_angles[0]);
-		Net_WriteShort(msg, to->pm_state.kick_angles[1]);
-		Net_WriteShort(msg, to->pm_state.kick_angles[2]);
 	}
 
 	if (bits & PS_PM_DELTA_ANGLES) {
@@ -717,12 +707,6 @@ void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player
 		to->pm_state.view_angles[0] = Net_ReadShort(msg);
 		to->pm_state.view_angles[1] = Net_ReadShort(msg);
 		to->pm_state.view_angles[2] = Net_ReadShort(msg);
-	}
-
-	if (bits & PS_PM_KICK_ANGLES) {
-		to->pm_state.kick_angles[0] = Net_ReadShort(msg);
-		to->pm_state.kick_angles[1] = Net_ReadShort(msg);
-		to->pm_state.kick_angles[2] = Net_ReadShort(msg);
 	}
 
 	if (bits & PS_PM_DELTA_ANGLES) {

@@ -165,7 +165,7 @@ typedef struct {
 	uint32_t suppress_count; // number of messages rate suppressed
 
 	uint32_t time; // clamped simulation time that the client is rendering at
-	uint32_t ticks; // unclamped simulation time, useful for absolute durations
+	uint32_t unclamped_time; // unclamped simulation time, useful for absolute durations
 
 	vec_t lerp; // linear interpolation fraction between frames
 
@@ -176,7 +176,6 @@ typedef struct {
 	vec3_t angles;
 
 	_Bool demo_server; // we're viewing a demo
-	_Bool third_person; // we're using a 3rd person camera
 
 	char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
 	uint16_t precache_check;

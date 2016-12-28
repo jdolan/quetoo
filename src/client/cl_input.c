@@ -78,7 +78,7 @@ void Cl_KeyDown(button_t *b) {
 	}
 
 	// save the down time so that we can calculate fractional time later
-	b->down_time = atoi(Cmd_Argv(2)) ? : cl.ticks;
+	b->down_time = atoi(Cmd_Argv(2)) ? : cl.unclamped_time;
 
 	// and indicate that the key is down
 	b->state |= 1;
@@ -197,8 +197,8 @@ vec_t Cl_KeyState(button_t *key, uint32_t cmd_msec) {
 	key->msec = 0;
 
 	if (key->state) { // still down, reset downtime for next frame
-		msec += cl.ticks - key->down_time;
-		key->down_time = cl.ticks;
+		msec += cl.unclamped_time - key->down_time;
+		key->down_time = cl.unclamped_time;
 	}
 
 	const vec_t frac = (msec * 1000.0) / (cmd_msec * 1000.0);
@@ -431,7 +431,7 @@ static void Cl_ClampPitch(void) {
 	const pm_state_t *s = &cl.frame.ps.pm_state;
 
 	// ensure our pitch is valid
-	vec_t pitch = UnpackAngle(s->delta_angles[PITCH] + s->kick_angles[PITCH]);
+	vec_t pitch = UnpackAngle(s->delta_angles[PITCH]);
 
 	if (pitch > 180.0) {
 		pitch -= 360.0;
@@ -454,8 +454,7 @@ static void Cl_ClampPitch(void) {
 
 /**
  * @brief Accumulate view offset and angle modifications for the specified command.
- * @details In the event that the client is running at greater than 60hz, this is called multiple
- * times per tick. This view offset and angles to be used as early as possible for prediction.
+ * @details The resulting view offset and angles are used as early as possible for prediction.
  */
 void Cl_Look(pm_cmd_t *cmd) {
 
@@ -467,6 +466,8 @@ void Cl_Look(pm_cmd_t *cmd) {
 
 	cl.angles[PITCH] -= cl_pitch_speed->value * cmd->msec * Cl_KeyState(&in_look_up, cmd->msec);
 	cl.angles[PITCH] += cl_pitch_speed->value * cmd->msec * Cl_KeyState(&in_look_down, cmd->msec);
+
+	cls.cgame->Look(cmd);
 
 	Cl_ClampPitch();
 

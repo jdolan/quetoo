@@ -374,7 +374,6 @@ typedef struct {
 	int16_t gravity;
 	int16_t view_offset[3]; // add to origin to resolve eyes
 	uint16_t view_angles[3]; // base view angles
-	uint16_t kick_angles[3]; // offset for kick
 	uint16_t delta_angles[3]; // offset for spawns, pushers, etc.
 
 	vec3_t hook_position; // position we're hooking to

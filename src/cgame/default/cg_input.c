@@ -22,37 +22,66 @@
 #include "cg_local.h"
 #include "game/default/bg_pmove.h"
 
-static cvar_t *cg_run;
-
-// buttons local to cgame
 static button_t cg_buttons[3];
 #define in_speed cg_buttons[0]
 #define in_attack cg_buttons[1]
 #define in_hook cg_buttons[2]
 
-static void Cg_Speed_down_f(void) {
-	cgi.KeyDown(&in_speed);
+static cvar_t *cg_run;
+
+typedef struct {
+	vec3_t prev, next;
+	uint32_t timestamp;
+	uint32_t interval;
+} cg_view_kick_t;
+
+static cg_view_kick_t cg_view_kick;
+
+/**
+ * @brief Parse a view kick message from the server, updating the interpolation target.
+ */
+void Cg_ParseViewKick(void) {
+
+	const vec3_t kick = { cgi.ReadAngle(), 0.0, cgi.ReadAngle() };
+
+	VectorCopy(cg_view_kick.next, cg_view_kick.prev);
+	VectorAdd(cg_view_kick.next, kick, cg_view_kick.next);
+
+	cg_view_kick.timestamp = cgi.client->unclamped_time;
+	cg_view_kick.interval = sqrt(VectorLength(kick)) * 50;
 }
-static void Cg_Speed_up_f(void) {
-	cgi.KeyUp(&in_speed);
-}
-static void Cg_Attack_down_f(void) {
-	cgi.KeyDown(&in_attack);
-}
-static void Cg_Attack_up_f(void) {
-	cgi.KeyUp(&in_attack);
-}
-static void Cg_Hook_down_f(void) {
-	cgi.KeyDown(&in_hook);
-}
-static void Cg_Hook_up_f(void) {
-	cgi.KeyUp(&in_hook);
+
+/**
+ * @brief
+ */
+void Cg_Look(pm_cmd_t *cmd) {
+
+	if (cg_view_kick.timestamp > cgi.client->unclamped_time) {
+		memset(&cg_view_kick, 0, sizeof(cg_view_kick));
+	}
+
+	const uint32_t delta = cgi.client->unclamped_time - cg_view_kick.timestamp;
+	if (delta < cg_view_kick.interval) {
+		const vec_t frac = Min(delta, cmd->msec) / (vec_t) cg_view_kick.interval;
+
+		vec3_t kick;
+		VectorSubtract(cg_view_kick.next, cg_view_kick.prev, kick);
+		VectorScale(kick, frac, kick);
+
+		VectorAdd(cgi.client->angles, kick, cgi.client->angles);
+		
+	} else if (!VectorCompare(cg_view_kick.next, vec3_origin)) {
+
+		VectorCopy(cg_view_kick.next, cg_view_kick.prev);
+		VectorClear(cg_view_kick.next);
+
+		cg_view_kick.timestamp = cgi.client->unclamped_time;
+		cg_view_kick.interval = sqrt(VectorLength(cg_view_kick.prev)) * 200;
+	}
 }
 
 /**
  * @brief Accumulate movement and button interactions for the specified command.
- * @details This is called at ~60hz regardless of the client's framerate. This is to avoid micro-
- * commands, which introduce prediction errors (screen jitter).
  */
 void Cg_Move(pm_cmd_t *cmd) {
 
@@ -86,12 +115,36 @@ void Cg_ClearInput(void) {
 	memset(cg_buttons, 0, sizeof(cg_buttons));
 }
 
+static void Cg_Speed_down_f(void) {
+	cgi.KeyDown(&in_speed);
+}
+
+static void Cg_Speed_up_f(void) {
+	cgi.KeyUp(&in_speed);
+}
+
+static void Cg_Attack_down_f(void) {
+	cgi.KeyDown(&in_attack);
+}
+
+static void Cg_Attack_up_f(void) {
+	cgi.KeyUp(&in_attack);
+}
+
+static void Cg_Hook_down_f(void) {
+	cgi.KeyDown(&in_hook);
+}
+
+static void Cg_Hook_up_f(void) {
+	cgi.KeyUp(&in_hook);
+}
+
 /**
  * @brief Init cgame input system.
  */
 void Cg_InitInput(void) {
 
-	cg_run = cgi.Cvar("cl_run", "1", CVAR_ARCHIVE, NULL);
+	cg_run = cgi.Cvar("cg_run", "1", CVAR_ARCHIVE, NULL);
 
 	cgi.Cmd("+speed", Cg_Speed_down_f, CMD_CGAME, NULL);
 	cgi.Cmd("-speed", Cg_Speed_up_f, CMD_CGAME, NULL);

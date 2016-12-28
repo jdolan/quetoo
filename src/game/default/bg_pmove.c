@@ -1500,14 +1500,13 @@ static void Pm_ClampAngles(void) {
 	// copy the command angles into the outgoing state
 	VectorCopy(pm->cmd.angles, pm->s.view_angles);
 
-	// circularly clamp the angles with kick and deltas
+	// circularly clamp the view and delta angles
 	for (int32_t i = 0; i < 3; i++) {
 
 		const int16_t c = pm->cmd.angles[i];
-		const int16_t k = pm->s.kick_angles[i];
 		const int16_t d = pm->s.delta_angles[i];
 
-		pm->angles[i] = UnpackAngle(c + k + d);
+		pm->angles[i] = UnpackAngle(c + d);
 	}
 
 	// clamp pitch to prevent the player from looking up or down more than 90º

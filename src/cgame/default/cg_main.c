@@ -233,6 +233,10 @@ static _Bool Cg_ParseMessage(int32_t cmd) {
 			Cg_ParseCenterPrint();
 			return true;
 
+		case SV_CMD_VIEW_KICK:
+			Cg_ParseViewKick();
+			return true;
+
 		default:
 			break;
 	}
@@ -309,6 +313,7 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.Init = Cg_Init;
 	cge.Shutdown = Cg_Shutdown;
 	cge.ClearState = Cg_ClearState;
+	cge.Look = Cg_Look;
 	cge.Move = Cg_Move;
 	cge.UpdateMedia = Cg_UpdateMedia;
 	cge.UpdateConfigString = Cg_UpdateConfigString;

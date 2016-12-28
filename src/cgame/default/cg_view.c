@@ -50,10 +50,10 @@ static void Cg_UpdateFov(void) {
 
 		if (time == 0) {
 			prev = cgi.view->fov[0] * 2.0, next = cg_fov->value;
-			time = cgi.client->ticks;
+			time = cgi.client->unclamped_time;
 		}
 
-		const vec_t frac = (cgi.client->ticks - time) / (cg_fov_interpolate->value * 100.0);
+		const vec_t frac = (cgi.client->unclamped_time - time) / (cg_fov_interpolate->value * 100.0);
 		if (frac >= 1.0) {
 			time = 0;
 			fov = next;
@@ -93,11 +93,9 @@ static void Cg_UpdateFov(void) {
  */
 static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 	vec3_t angles, forward, dest;
-	vec3_t mins, maxs;
-	vec_t dist;
-	cm_trace_t tr;
 
-	cgi.client->third_person = cg_third_person->integer;
+	const vec3_t mins = { -8.0, -8.0, -8.0 };
+	const vec3_t maxs = { 8.0, 8.0, 8.0 };
 
 	if (!cg_third_person->value) {
 		return;
@@ -108,31 +106,34 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 
 	AngleVectors(angles, forward, NULL, NULL);
 
-	dist = cg_third_person->value;
-
-	if (!dist) {
-		dist = 1.0;
-	}
-
-	dist = fabs(150.0 * dist);
+	const vec_t dist = fabs(150.0 * cg_third_person->value);
 
 	// project the view origin back and up for 3rd person
 	VectorMA(cgi.view->origin, -dist, forward, dest);
 	dest[2] += 20.0;
 
 	// clip it to the world
-	VectorSet(mins, -5.0, -5.0, -5.0);
-	VectorSet(maxs, 5.0, 5.0, 5.0);
-	tr = cgi.Trace(cgi.view->origin, dest, mins, maxs, 0, MASK_CLIP_PLAYER);
+	const cm_trace_t tr = cgi.Trace(cgi.view->origin, dest, mins, maxs, 0, MASK_CLIP_PLAYER);
 	VectorCopy(tr.end, cgi.view->origin);
 
 	// adjust view angles to compensate for height offset
-	VectorMA(cgi.view->origin, 2048.0, forward, dest);
+	VectorMA(cgi.view->origin, 1024.0, forward, dest);
 	VectorSubtract(dest, cgi.view->origin, dest);
 
 	// copy angles back to view
 	VectorAngles(dest, cgi.view->angles);
 	AngleVectors(cgi.view->angles, cgi.view->forward, cgi.view->right, cgi.view->up);
+}
+
+/**
+ * @brief Augments the view angles based on game-dependent events.
+ */
+static void Cg_UpdateAngles(const player_state_t *ps) {
+
+	if (ps->pm_state.type == PM_DEAD) { // look only on x axis
+		cgi.view->angles[0] = 0.0;
+		cgi.view->angles[2] = 45.0;
+	}
 }
 
 /**
@@ -143,19 +144,18 @@ static vec_t Cg_BobSpeedModulus(const player_state_t *ps) {
 	static vec_t old_speed, new_speed;
 	static uint32_t ticks;
 
-	if (cgi.client->ticks < ticks) {
+	if (cgi.client->unclamped_time < ticks) {
 		ticks = 0;
 		old_speed = new_speed = 0.0;
 	}
 
 	vec_t speed;
 
-	const uint32_t delta = cgi.client->ticks - ticks;
+	const uint32_t delta = cgi.client->unclamped_time - ticks;
 	if (delta < 200) {
 		const vec_t lerp = delta / (vec_t) 200;
 		speed = old_speed + lerp * (new_speed - old_speed);
 	} else {
-
 		const _Bool ducked = ps->pm_state.flags & PMF_DUCKED;
 		const vec_t max_speed = ducked ? PM_SPEED_DUCKED : PM_SPEED_AIR;
 
@@ -168,7 +168,7 @@ static vec_t Cg_BobSpeedModulus(const player_state_t *ps) {
 		new_speed = Clamp(new_speed, 0.0, 1.0);
 		speed = old_speed;
 
-		ticks = cgi.client->ticks;
+		ticks = cgi.client->unclamped_time;
 	}
 
 	return 0.66 + speed;
@@ -198,21 +198,21 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 		}
 	}
 
-	if (cgi.client->ticks < ticks) {
+	if (cgi.client->unclamped_time < ticks) {
 		bob = ticks = 0;
 	}
 
 	const vec_t mod = Cg_BobSpeedModulus(ps);
 
 	// then calculate how much bob to add this frame
-	vec_t frame_bob = Clamp(cgi.client->ticks - ticks, 1u, 1000u) * mod;
+	vec_t frame_bob = Clamp(cgi.client->unclamped_time - ticks, 1u, 1000u) * mod;
 
 	if (!(ps->pm_state.flags & PMF_ON_GROUND)) {
 		frame_bob *= 0.25;
 	}
 
 	bob += frame_bob;
-	ticks = cgi.client->ticks;
+	ticks = cgi.client->unclamped_time;
 
 	cgi.view->bob = sin(0.0045 * bob) * mod * mod;
 	cgi.view->bob *= cg_bob->value; // scale via cvar too
@@ -232,6 +232,8 @@ void Cg_UpdateView(const cl_frame_t *frame) {
 	Cg_UpdateFov();
 
 	Cg_UpdateThirdPerson(&frame->ps);
+
+	Cg_UpdateAngles(&frame->ps);
 
 	Cg_UpdateBob(&frame->ps);
 

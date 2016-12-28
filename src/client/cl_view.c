@@ -91,7 +91,7 @@ static void Cl_UpdateOrigin(const player_state_t *from, const player_state_t *to
 		VectorMA(r_view.origin, -(1.0 - cl.lerp), pr->error, r_view.origin);
 
 		// interpolate stair traversal
-		const uint32_t step_delta = cl.ticks - pr->step.timestamp;
+		const uint32_t step_delta = cl.unclamped_time - pr->step.timestamp;
 		if (step_delta < pr->step.interval) {
 			const vec_t lerp = (pr->step.interval - step_delta) / (vec_t) pr->step.interval;
 			r_view.origin[2] = r_view.origin[2] - lerp * pr->step.step;
@@ -132,16 +132,7 @@ static void Cl_UpdateAngles(const player_state_t *from, const player_state_t *to
 		AngleLerp(old_angles, new_angles, cl.lerp, r_view.angles);
 	}
 
-	// add in the kick angles
-	if (!cl.third_person) {
-		UnpackAngles(from->pm_state.kick_angles, old_angles);
-		UnpackAngles(to->pm_state.kick_angles, new_angles);
-
-		AngleLerp(old_angles, new_angles, cl.lerp, angles);
-		VectorAdd(r_view.angles, angles, r_view.angles);
-	}
-
-	// and lastly the delta angles
+	// add the delta angles
 	UnpackAngles(from->pm_state.delta_angles, old_angles);
 	UnpackAngles(to->pm_state.delta_angles, new_angles);
 
@@ -164,14 +155,6 @@ static void Cl_UpdateAngles(const player_state_t *from, const player_state_t *to
 	}
 
 	VectorAdd(r_view.angles, angles, r_view.angles);
-
-	if (cl.frame.ps.pm_state.type == PM_DEAD) { // look only on x axis
-		r_view.angles[0] = 0.0;
-		r_view.angles[2] = 45.0;
-	}
-
-	// and finally set the view directional vectors
-	AngleVectors(r_view.angles, r_view.forward, r_view.right, r_view.up);
 }
 
 /**
@@ -179,7 +162,8 @@ static void Cl_UpdateAngles(const player_state_t *from, const player_state_t *to
  */
 void Cl_UpdateView(void) {
 
-	r_view.ticks = cl.ticks;
+	r_view.ticks = cl.unclamped_time;
+
 	r_view.area_bits = cl.frame.area_bits;
 
 	const player_state_t *ps = cl.delta_frame ? &cl.delta_frame->ps : &cl.frame.ps;
@@ -191,6 +175,8 @@ void Cl_UpdateView(void) {
 	Cl_UpdateViewSize();
 
 	cls.cgame->UpdateView(&cl.frame);
+
+	AngleVectors(r_view.angles, r_view.forward, r_view.right, r_view.up);
 }
 
 /**

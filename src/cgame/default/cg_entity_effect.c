@@ -54,16 +54,16 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	e->effects = ent->current.effects;
 
 	if (e->effects & EF_ROTATE) {
-		e->angles[YAW] = cgi.client->ticks / M_PI;
+		e->angles[YAW] = cgi.client->unclamped_time / M_PI;
 	}
 
 	if (e->effects & EF_BOB) {
 		VectorCopy(e->origin, e->termination);
-		e->origin[2] += 4.0 * sin(cgi.client->ticks * 0.005 + ent->current.number);
+		e->origin[2] += 4.0 * sin(cgi.client->unclamped_time * 0.005 + ent->current.number);
 	}
 
 	if (e->effects & EF_PULSE) {
-		const vec_t v = 0.4 + (cos(cgi.client->ticks * 0.005 + ent->current.number) + 1.0) * 0.6;
+		const vec_t v = 0.4 + (cos(cgi.client->unclamped_time * 0.005 + ent->current.number) + 1.0) * 0.6;
 		VectorSet(e->color, v, v, v);
 	} else {
 		VectorSet(e->color, 1.0, 1.0, 1.0);
@@ -113,11 +113,11 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	if (e->effects & EF_DESPAWN) {
 
 		if (!(ent->prev.effects & EF_DESPAWN)) {
-			ent->timestamp = cgi.client->ticks;
+			ent->timestamp = cgi.client->unclamped_time;
 		}
 
 		e->effects |= (EF_BLEND | EF_NO_LIGHTING);
-		e->color[3] = 1.0 - ((cgi.client->ticks - ent->timestamp) / 3000.0);
+		e->color[3] = 1.0 - ((cgi.client->unclamped_time - ent->timestamp) / 3000.0);
 	}
 
 	if (e->effects & EF_LIGHT) {

@@ -732,6 +732,7 @@ typedef struct cg_export_s {
 	void (*UpdateView)(const cl_frame_t *frame);
 	void (*UpdateScreen)(const cl_frame_t *frame);
 
+	void (*Look)(pm_cmd_t *cmd);
 	void (*Move)(pm_cmd_t *cmd);
 
 } cg_export_t;
