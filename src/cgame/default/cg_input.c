@@ -42,16 +42,13 @@ static cg_view_kick_t cg_view_kick;
  */
 void Cg_ParseViewKick(void) {
 
+	const vec3_t kick = { cgi.ReadAngle(), 0.0, cgi.ReadAngle() };
+
 	VectorCopy(cg_view_kick.next, cg_view_kick.prev);
-
-	cg_view_kick.next[PITCH] = cgi.ReadAngle();
-	cg_view_kick.next[ROLL] = cgi.ReadAngle();
-
-	vec3_t k;
-	VectorSubtract(cg_view_kick.next, cg_view_kick.prev, k);
+	VectorAdd(cg_view_kick.next, kick, cg_view_kick.next);
 
 	cg_view_kick.timestamp = cgi.client->ticks;
-	cg_view_kick.interval = sqrt(VectorLength(k)) * 50;
+	cg_view_kick.interval = sqrt(VectorLength(kick)) * 50;
 }
 
 /**
@@ -73,7 +70,7 @@ void Cg_Look(pm_cmd_t *cmd) {
 
 		VectorAdd(cgi.client->angles, kick, cgi.client->angles);
 		
-	} else {
+	} else if (!VectorCompare(cg_view_kick.next, vec3_origin)) {
 
 		VectorCopy(cg_view_kick.next, cg_view_kick.prev);
 		VectorClear(cg_view_kick.next);
