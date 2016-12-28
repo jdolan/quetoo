@@ -142,16 +142,16 @@ static void Cg_UpdateAngles(const player_state_t *ps) {
  */
 static vec_t Cg_BobSpeedModulus(const player_state_t *ps) {
 	static vec_t old_speed, new_speed;
-	static uint32_t ticks;
+	static uint32_t time;
 
-	if (cgi.client->unclamped_time < ticks) {
-		ticks = 0;
+	if (cgi.client->unclamped_time < time) {
+		time = 0;
 		old_speed = new_speed = 0.0;
 	}
 
 	vec_t speed;
 
-	const uint32_t delta = cgi.client->unclamped_time - ticks;
+	const uint32_t delta = cgi.client->unclamped_time - time;
 	if (delta < 200) {
 		const vec_t lerp = delta / (vec_t) 200;
 		speed = old_speed + lerp * (new_speed - old_speed);
@@ -168,7 +168,7 @@ static vec_t Cg_BobSpeedModulus(const player_state_t *ps) {
 		new_speed = Clamp(new_speed, 0.0, 1.0);
 		speed = old_speed;
 
-		ticks = cgi.client->unclamped_time;
+		time = cgi.client->unclamped_time;
 	}
 
 	return 0.66 + speed;
@@ -180,7 +180,7 @@ static vec_t Cg_BobSpeedModulus(const player_state_t *ps) {
  * are on the ground, determine the bob frequency and amplitude.
  */
 static void Cg_UpdateBob(const player_state_t *ps) {
-	static uint32_t bob, ticks;
+	static uint32_t bob, time;
 
 	if (!cg_bob->value) {
 		return;
@@ -188,11 +188,6 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 
 	if (cg_third_person->value) {
 		return;
-	}
-
-	if (cg_bob->modified) {
-		cgi.CvarSetValue(cg_bob->name, Clamp(cg_bob->value, 0.0, 2.0));
-		cg_bob->modified = false;
 	}
 
 	if (ps->pm_state.type > PM_HOOK_SWING) {
@@ -203,21 +198,26 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 		}
 	}
 
-	if (cgi.client->unclamped_time < ticks) {
-		bob = ticks = 0;
+	if (cg_bob->modified) {
+		cgi.CvarSetValue(cg_bob->name, Clamp(cg_bob->value, 0.0, 2.0));
+		cg_bob->modified = false;
+	}
+
+	if (cgi.client->unclamped_time < time) {
+		bob = time = 0;
 	}
 
 	const vec_t mod = Cg_BobSpeedModulus(ps);
 
 	// then calculate how much bob to add this frame
-	vec_t frame_bob = Clamp(cgi.client->unclamped_time - ticks, 1u, 1000u) * mod;
+	vec_t frame_bob = Clamp(cgi.client->unclamped_time - time, 1u, 1000u) * mod;
 
 	if (!(ps->pm_state.flags & PMF_ON_GROUND)) {
 		frame_bob *= 0.25;
 	}
 
 	bob += frame_bob;
-	ticks = cgi.client->unclamped_time;
+	time = cgi.client->unclamped_time;
 
 	cgi.view->bob = sin(0.0045 * bob) * mod * mod;
 	cgi.view->bob *= cg_bob->value; // scale via cvar too
