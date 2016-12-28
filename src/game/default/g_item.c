@@ -43,10 +43,9 @@ const g_item_t *G_ItemByIndex(uint16_t index) {
  * @brief
  */
 const g_item_t *G_FindItemByClassName(const char *class_name) {
-	int32_t i;
 
 	const g_item_t *it = g_items;
-	for (i = 0; i < g_num_items; i++, it++) {
+	for (int32_t i = 0; i < g_num_items; i++, it++) {
 
 		if (!it->class_name) {
 			continue;
@@ -64,14 +63,13 @@ const g_item_t *G_FindItemByClassName(const char *class_name) {
  * @brief
  */
 const g_item_t *G_FindItem(const char *name) {
-	int32_t i;
 
 	if (!name) {
 		return NULL;
 	}
 
 	const g_item_t *it = g_items;
-	for (i = 0; i < g_num_items; i++, it++) {
+	for (int32_t i = 0; i < g_num_items; i++, it++) {
 
 		if (!it->name) {
 			continue;
@@ -307,6 +305,38 @@ static _Bool G_PickupAmmo(g_entity_t *ent, g_entity_t *other) {
 	}
 
 	return true;
+}
+
+/**
+ * @brief When picking up grenades, give the hand grenades weapon in addition to the ammo.
+ */
+static _Bool G_PickupGrenades(g_entity_t *ent, g_entity_t *other) {
+
+	const _Bool pickup = G_PickupAmmo(ent, other);
+	if (pickup) {
+		const g_item_t *grenades = G_FindItem("Hand Grenades");
+		other->client->locals.inventory[ITEM_INDEX(grenades)]++;
+
+		if (other->client->locals.weapon == G_FindItem("Blaster")) {
+			G_UseWeapon(other, grenades);
+		}
+	}
+
+	return pickup;
+}
+
+/**
+ * @brief When picking up the grenade launcher, give the hand grenades weapon as well.
+ */
+static _Bool G_PickupGrenadeLauncher(g_entity_t *ent, g_entity_t *other) {
+
+	const _Bool pickup = G_PickupWeapon(ent, other);
+	if (pickup) {
+		const g_item_t *grenades = G_FindItem("Hand Grenades");
+		other->client->locals.inventory[ITEM_INDEX(grenades)]++;
+	}
+
+	return pickup;
 }
 
 /**
@@ -663,6 +693,14 @@ void G_TouchItem(g_entity_t *ent, g_entity_t *other,
 	if (pickup) {
 		// show icon and name on status bar
 		uint16_t icon = gi.ImageIndex(ent->locals.item->icon);
+
+		// when picking up nades, show the most appropriate icon and pickup name
+		if (ent->locals.item == G_FindItem("Grenades")) {
+			const g_item_t *grenadelauncher = G_FindItem("Grenade Launcher");
+			if (other->client->locals.inventory[ITEM_INDEX(grenadelauncher)]) {
+				icon = gi.ImageIndex(grenadelauncher->icon);
+			};
+		}
 
 		if (other->client->ps.stats[STAT_PICKUP_ICON] == icon) {
 			icon |= STAT_TOGGLE_BIT;
@@ -1270,6 +1308,40 @@ const g_item_t g_items[] = {
 		"weapons/machinegun/fire_3.wav weapons/machinegun/fire_4.wav"
 	},
 
+	/*QUAKED weapon_handgrenades (.2 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Hand Grenades.
+
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
+
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+	 -------- Radiant config --------
+	 model="models/objects/grenade/tris.md3"
+	 */
+	{
+		.class_name = "weapon_handgrenades",
+		.Pickup = G_PickupWeapon,
+		.Use = G_UseWeapon,
+		.Drop = NULL,
+		.Think = G_FireHandGrenade,
+		.pickup_sound = "weapons/common/pickup.wav",
+		.model = "models/objects/grenade/tris.md3",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/a_handgrenades",
+		.name = "Hand Grenades",
+		.quantity = 1,
+		.ammo = "Grenades",
+		.type = ITEM_WEAPON,
+		.tag = WEAPON_HAND_GRENADE,
+		.priority = 0.30,
+		.precaches = "weapons/handgrenades/hg_throw.wav weapons/handgrenades/hg_clang.ogg "
+		"weapons/handgrenades/hg_tick.ogg"
+	},
+
 	/*QUAKED weapon_grenadelauncher (.2 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
 	 Grenade Launcher.
 
@@ -1286,7 +1358,7 @@ const g_item_t g_items[] = {
 	 */
 	{
 		.class_name = "weapon_grenadelauncher",
-		.Pickup = G_PickupWeapon,
+		.Pickup = G_PickupGrenadeLauncher,
 		.Use = G_UseWeapon,
 		.Drop = G_DropWeapon,
 		.Think = G_FireGrenadeLauncher,
@@ -1552,10 +1624,10 @@ const g_item_t g_items[] = {
 	 */
 	{
 		.class_name = "ammo_grenades",
-		.Pickup = G_PickupAmmo,
-		.Use = G_UseWeapon,
+		.Pickup = G_PickupGrenades,
+		.Use = NULL,
 		.Drop = G_DropItem,
-		.Think = G_FireHandGrenade,
+		.Think = NULL,
 		.pickup_sound = "ammo/common/pickup.wav",
 		.model = "models/ammo/grenades/tris.md3",
 		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
@@ -1566,8 +1638,7 @@ const g_item_t g_items[] = {
 		.type = ITEM_AMMO,
 		.tag = AMMO_GRENADES,
 		.priority = 0.15,
-		.precaches = "weapons/handgrenades/hg_throw.wav weapons/handgrenades/hg_clang.ogg "
-		"weapons/handgrenades/hg_tick.ogg"
+		.precaches = ""
 	},
 
 	/*QUAKED ammo_rockets (.8 .2 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover

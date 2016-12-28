@@ -214,7 +214,7 @@ g_entity_t *G_TossWeapon(g_entity_t *ent) {
 
 	const g_item_t *weapon = ent->client->locals.weapon;
 
-	if (!weapon || !weapon->ammo) { // don't drop if not holding
+	if (!weapon || !weapon->Drop || !weapon->ammo) { // don't drop if not holding
 		return NULL;
 	}
 
@@ -553,7 +553,7 @@ void G_FireSuperShotgun(g_entity_t *ent) {
 
 		ent->client->locals.angles[YAW] -= 4.0;
 
-		G_MuzzleFlash(ent, MZ_SSHOTGUN);
+		G_MuzzleFlash(ent, MZ_SUPER_SHOTGUN);
 
 		G_ClientWeaponKick(ent, 2.0);
 
@@ -731,7 +731,7 @@ void G_FireGrenadeLauncher(g_entity_t *ent) {
 
 		G_GrenadeProjectile(ent, org, forward, 700, 100, 100, 185.0, 2500.0);
 
-		G_MuzzleFlash(ent, MZ_GRENADE);
+		G_MuzzleFlash(ent, MZ_GRENADE_LAUNCHER);
 
 		G_ClientWeaponKick(ent, 4.0);
 
@@ -751,7 +751,7 @@ void G_FireRocketLauncher(g_entity_t *ent) {
 
 		G_RocketProjectile(ent, org, forward, 1000, 100, 100, 150.0);
 
-		G_MuzzleFlash(ent, MZ_ROCKET);
+		G_MuzzleFlash(ent, MZ_ROCKET_LAUNCHER);
 
 		G_ClientWeaponKick(ent, 2.0);
 
@@ -844,7 +844,7 @@ static void G_FireBfg_(g_entity_t *ent) {
 
 			G_BfgProjectile(ent->owner, org, forward, 720, 180, 140, 512.0);
 
-			G_MuzzleFlash(ent->owner, MZ_BFG);
+			G_MuzzleFlash(ent->owner, MZ_BFG10K);
 
 			G_ClientWeaponKick(ent->owner, 8.0);
 

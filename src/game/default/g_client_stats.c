@@ -239,11 +239,11 @@ void G_ClientStats(g_entity_t *ent) {
 	const int16_t evil_flag = ITEM_INDEX(G_FindItemByClassName("item_flag_team2"));
 
 	if (client->locals.inventory[good_flag]) {
-		client->ps.stats[STAT_HELDFLAG] = 1;
+		client->ps.stats[STAT_CARRYING_FLAG] = 1;
 	} else if (client->locals.inventory[evil_flag]) {
-		client->ps.stats[STAT_HELDFLAG] = 2;
+		client->ps.stats[STAT_CARRYING_FLAG] = 2;
 	} else {
-		client->ps.stats[STAT_HELDFLAG] = 0;
+		client->ps.stats[STAT_CARRYING_FLAG] = 0;
 	}
 
 	// frags
@@ -317,15 +317,13 @@ void G_ClientStats(g_entity_t *ent) {
 	// weapon
 	const g_item_t *weapon = client->locals.weapon;
 	if (weapon) {
+		client->ps.stats[STAT_WEAPON] = gi.ModelIndex(client->locals.weapon->model);
 		client->ps.stats[STAT_WEAPON_ICON] = gi.ImageIndex(weapon->icon);
-		if (g_strcmp0(weapon->class_name, "ammo_grenades") == 0) {
-			client->ps.stats[STAT_WEAPON] = g_media.models.grenade;
-		} else {
-			client->ps.stats[STAT_WEAPON] = gi.ModelIndex(client->locals.weapon->model);
-		}
+		client->ps.stats[STAT_WEAPON_TAG] = weapon->tag;
 	} else {
-		client->ps.stats[STAT_WEAPON_ICON] = 0;
 		client->ps.stats[STAT_WEAPON] = 0;
+		client->ps.stats[STAT_WEAPON_ICON] = 0;
+		client->ps.stats[STAT_WEAPON_TAG] = 0;
 	}
 
 	if (g_level.time <= client->locals.quad_damage_time) {

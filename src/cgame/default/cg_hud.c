@@ -218,7 +218,7 @@ static void Cg_DrawHeldFlag(const player_state_t *ps) {
 	x = cgi.view->viewport.x + (HUD_PIC_HEIGHT / 2);
 	y = cgi.view->viewport.y + ((cgi.view->viewport.h / 2) - (HUD_PIC_HEIGHT * 2));
 
-	uint16_t flag = ps->stats[STAT_HELDFLAG];
+	uint16_t flag = ps->stats[STAT_CARRYING_FLAG];
 
 	if (flag != 0) {
 		cgi.Color(pulse);
