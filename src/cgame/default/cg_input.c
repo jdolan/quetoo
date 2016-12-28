@@ -44,16 +44,11 @@ void Cg_ParseViewKick(void) {
 
 	const vec3_t kick = { cgi.ReadAngle(), 0.0, cgi.ReadAngle() };
 
-	VectorCopy(cg_view_kick.next, cg_view_kick.prev);
-	VectorAdd(cg_view_kick.next, kick, cg_view_kick.next);
-
-	const vec_t len = VectorLength(cg_view_kick.next);
-	if (len > 8.0) {
-		VectorScale(cg_view_kick.next, 8.0 / len, cg_view_kick.next);
-	}
+	VectorCopy(cg_view_kick.kick, cg_view_kick.prev);
+	VectorAdd(cg_view_kick.prev, kick, cg_view_kick.next);
 
 	cg_view_kick.timestamp = cgi.client->unclamped_time;
-	cg_view_kick.interval = sqrt(VectorLength(kick)) * 50;
+	cg_view_kick.interval = 64;
 }
 
 /**
@@ -89,7 +84,7 @@ void Cg_Look(pm_cmd_t *cmd) {
 			VectorClear(cg_view_kick.next);
 
 			cg_view_kick.timestamp = cgi.client->unclamped_time;
-			cg_view_kick.interval = sqrt(VectorLength(cg_view_kick.prev)) * 100;
+			cg_view_kick.interval = 240;
 		}
 	}
 }
