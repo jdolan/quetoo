@@ -586,6 +586,7 @@ static void Cl_InitLocal(void) {
  */
 void Cl_Frame(const uint32_t msec) {
 	static uint32_t frame_time;
+	static uint32_t cmd_msec;
 
 	if (dedicated->value) {
 		return;
@@ -596,6 +597,9 @@ void Cl_Frame(const uint32_t msec) {
 
 	// and the unclamped simulation time
 	cl.ticks += msec;
+
+	// and the pending command duration
+	cmd_msec += msec;
 
 	if (time_demo->value) { // accumulate timed demo statistics
 		if (!cl.time_demo_start) {
@@ -618,7 +622,8 @@ void Cl_Frame(const uint32_t msec) {
 
 	Cl_HandleEvents();
 
-	Cl_UpdateMovementCommand(msec);
+	Cl_UpdateMovementCommand(cmd_msec);
+	cmd_msec = 0;
 
 	Cl_SendCommands();
 
