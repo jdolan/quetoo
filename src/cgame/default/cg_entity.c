@@ -23,6 +23,20 @@
 #include "game/default/bg_pmove.h"
 
 /**
+ * @return The entity bound to the client's view.
+ */
+cl_entity_t *Cg_Self(void) {
+
+	uint16_t index = cgi.client->client_num;
+
+	if (cgi.client->frame.ps.stats[STAT_CHASE]) {
+		index = cgi.client->frame.ps.stats[STAT_CHASE] - CS_CLIENTS;
+	}
+
+	return &cgi.client->entities[index + 1];
+}
+
+/**
  * @return True if the specified entity is bound to the local client.
  */
 _Bool Cg_IsSelf(const cl_entity_t *ent) {
@@ -33,7 +47,7 @@ _Bool Cg_IsSelf(const cl_entity_t *ent) {
 
 	if ((ent->current.effects & EF_CORPSE) == 0) {
 
-		if (ent->current.model1 == MODEL_CLIENT || (ent->current.effects & EF_BEAM)) {
+		if (ent->current.model1 == MODEL_CLIENT) {
 
 			if (ent->current.client == cgi.client->client_num) {
 				return true;

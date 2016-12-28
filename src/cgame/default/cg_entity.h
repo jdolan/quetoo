@@ -25,6 +25,7 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
+	cl_entity_t *Cg_Self(void);
 	_Bool Cg_IsSelf(const cl_entity_t *ent);
 	_Bool Cg_IsDucking(const cl_entity_t *ent);
 	void Cg_Interpolate(const cl_frame_t *frame);

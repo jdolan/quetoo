@@ -792,7 +792,7 @@ void Cg_EntityTrail(cl_entity_t *ent) {
 	if (s->effects & EF_BEAM) {
 
 		// client is overridden to specify owner of the beam
-		if (Cg_IsSelf(ent) && !cg_third_person->value) {
+		if (ent->current.client == cgi.client->client_num && !cg_third_person->value) {
 			// we own this beam (lightning, grapple, etc..)
 			// project start position below the view origin
 
