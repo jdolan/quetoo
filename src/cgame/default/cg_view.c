@@ -190,6 +190,11 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 		return;
 	}
 
+	if (cg_bob->modified) {
+		cgi.CvarSetValue(cg_bob->name, Clamp(cg_bob->value, 0.0, 2.0));
+		cg_bob->modified = false;
+	}
+
 	if (ps->pm_state.type > PM_HOOK_SWING) {
 
 		// if we're frozen and not chasing, don't bob
