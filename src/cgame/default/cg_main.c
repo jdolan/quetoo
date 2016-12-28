@@ -313,6 +313,7 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.Init = Cg_Init;
 	cge.Shutdown = Cg_Shutdown;
 	cge.ClearState = Cg_ClearState;
+	cge.Look = Cg_Look;
 	cge.Move = Cg_Move;
 	cge.UpdateMedia = Cg_UpdateMedia;
 	cge.UpdateConfigString = Cg_UpdateConfigString;

@@ -454,8 +454,7 @@ static void Cl_ClampPitch(void) {
 
 /**
  * @brief Accumulate view offset and angle modifications for the specified command.
- * @details In the event that the client is running at greater than 60hz, this is called multiple
- * times per tick. This view offset and angles to be used as early as possible for prediction.
+ * @details The resulting view offset and angles are used as early as possible for prediction.
  */
 void Cl_Look(pm_cmd_t *cmd) {
 
@@ -467,6 +466,8 @@ void Cl_Look(pm_cmd_t *cmd) {
 
 	cl.angles[PITCH] -= cl_pitch_speed->value * cmd->msec * Cl_KeyState(&in_look_up, cmd->msec);
 	cl.angles[PITCH] += cl_pitch_speed->value * cmd->msec * Cl_KeyState(&in_look_down, cmd->msec);
+
+	cls.cgame->Look(cmd);
 
 	Cl_ClampPitch();
 

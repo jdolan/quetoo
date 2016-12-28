@@ -155,11 +155,6 @@ static void Cl_UpdateAngles(const player_state_t *from, const player_state_t *to
 	}
 
 	VectorAdd(r_view.angles, angles, r_view.angles);
-
-	if (cl.frame.ps.pm_state.type == PM_DEAD) { // look only on x axis
-		r_view.angles[0] = 0.0;
-		r_view.angles[2] = 45.0;
-	}
 }
 
 /**
@@ -168,6 +163,7 @@ static void Cl_UpdateAngles(const player_state_t *from, const player_state_t *to
 void Cl_UpdateView(void) {
 
 	r_view.ticks = cl.ticks;
+
 	r_view.area_bits = cl.frame.area_bits;
 
 	const player_state_t *ps = cl.delta_frame ? &cl.delta_frame->ps : &cl.frame.ps;

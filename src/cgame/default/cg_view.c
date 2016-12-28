@@ -125,54 +125,15 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 	AngleVectors(cgi.view->angles, cgi.view->forward, cgi.view->right, cgi.view->up);
 }
 
-typedef struct {
-	vec3_t kick;
-	vec3_t prev, next;
-	uint32_t timestamp;
-	uint32_t interval;
-} cg_view_kick_t;
-
-static cg_view_kick_t cg_view_kick;
-
 /**
- * @brief Parse a view kick message from the server, updating the interpolation target.
+ * @brief Augments the view angles based on game-dependent events.
  */
-void Cg_ParseViewKick(void) {
+static void Cg_UpdateAngles(const player_state_t *ps) {
 
-	VectorCopy(cg_view_kick.kick, cg_view_kick.prev);
-
-	cg_view_kick.next[PITCH] = cgi.ReadAngle();
-	cg_view_kick.next[ROLL] = cgi.ReadAngle();
-
-	vec3_t k;
-	VectorSubtract(cg_view_kick.next, cg_view_kick.kick, k);
-
-	cg_view_kick.timestamp = cgi.client->ticks;
-	cg_view_kick.interval = sqrt(VectorLength(k)) * 50;
-}
-
-/**
- * @brief
- */
-static void Cg_UpdateKick(const player_state_t *ps) {
-
-	if (cg_view_kick.timestamp > cgi.client->ticks) {
-		memset(&cg_view_kick, 0, sizeof(cg_view_kick));
+	if (ps->pm_state.type == PM_DEAD) { // look only on x axis
+		cgi.view->angles[0] = 0.0;
+		cgi.view->angles[2] = 45.0;
 	}
-
-	const uint32_t delta = cgi.client->ticks - cg_view_kick.timestamp;
-	if (cg_view_kick.interval && delta < cg_view_kick.interval) {
-		const vec_t lerp = delta / (vec_t) cg_view_kick.interval;
-		AngleLerp(cg_view_kick.prev, cg_view_kick.next, lerp, cg_view_kick.kick);
-	} else {
-		VectorCopy(cg_view_kick.next, cg_view_kick.prev);
-		VectorClear(cg_view_kick.next);
-
-		cg_view_kick.timestamp = cgi.client->ticks;
-		cg_view_kick.interval = sqrt(VectorLength(cg_view_kick.kick)) * 200;
-	}
-
-	VectorAdd(cgi.view->angles, cg_view_kick.kick, cgi.view->angles);
 }
 
 /**
@@ -272,7 +233,7 @@ void Cg_UpdateView(const cl_frame_t *frame) {
 
 	Cg_UpdateThirdPerson(&frame->ps);
 
-	Cg_UpdateKick(&frame->ps);
+	Cg_UpdateAngles(&frame->ps);
 
 	Cg_UpdateBob(&frame->ps);
 

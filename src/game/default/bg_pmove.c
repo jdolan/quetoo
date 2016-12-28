@@ -1500,7 +1500,7 @@ static void Pm_ClampAngles(void) {
 	// copy the command angles into the outgoing state
 	VectorCopy(pm->cmd.angles, pm->s.view_angles);
 
-	// circularly clamp the view and delta
+	// circularly clamp the view and delta angles
 	for (int32_t i = 0; i < 3; i++) {
 
 		const int16_t c = pm->cmd.angles[i];
