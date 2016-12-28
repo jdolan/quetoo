@@ -33,9 +33,9 @@ typedef struct {
 	vec3_t prev, next, kick;
 	uint32_t timestamp;
 	uint32_t interval;
-} cg_view_kick_t;
+} cg_kick_t;
 
-static cg_view_kick_t cg_view_kick;
+static cg_kick_t cg_kick;
 
 /**
  * @brief Parse a view kick message from the server, updating the interpolation target.
@@ -44,11 +44,119 @@ void Cg_ParseViewKick(void) {
 
 	const vec3_t kick = { cgi.ReadAngle(), 0.0, cgi.ReadAngle() };
 
-	VectorCopy(cg_view_kick.kick, cg_view_kick.prev);
-	VectorAdd(cg_view_kick.prev, kick, cg_view_kick.next);
+	VectorCopy(cg_kick.kick, cg_kick.prev);
+	VectorAdd(cg_kick.prev, kick, cg_kick.next);
 
-	cg_view_kick.timestamp = cgi.client->unclamped_time;
-	cg_view_kick.interval = 64;
+	cg_kick.timestamp = cgi.client->unclamped_time;
+	cg_kick.interval = 64;
+}
+
+/**
+ * @brief Applies damage kick for the current command, ensuring that kick affects the player's aim.
+ */
+static void Cg_ViewKick(const pm_cmd_t *cmd) {
+
+	if (cg_kick.timestamp > cgi.client->unclamped_time) {
+		memset(&cg_kick, 0, sizeof(cg_kick));
+	}
+
+	const uint32_t delta = cgi.client->unclamped_time - cg_kick.timestamp;
+	if (delta < cg_kick.interval) {
+		const vec_t frac = Min(delta, cmd->msec) / (vec_t) cg_kick.interval;
+
+		vec3_t kick;
+		VectorSubtract(cg_kick.next, cg_kick.prev, kick);
+		VectorScale(kick, frac, kick);
+
+		VectorAdd(cg_kick.kick, kick, cg_kick.kick);
+		VectorAdd(cgi.client->angles, kick, cgi.client->angles);
+
+	} else if (!VectorCompare(cg_kick.kick, vec3_origin)) {
+
+		const vec_t len = VectorLength(cg_kick.kick);
+		if (len < 0.1) {
+			VectorSubtract(cgi.client->angles, cg_kick.kick, cgi.client->angles);
+			VectorClear(cg_kick.kick);
+		} else {
+
+			VectorCopy(cg_kick.kick, cg_kick.prev);
+			VectorClear(cg_kick.next);
+
+			cg_kick.timestamp = cgi.client->unclamped_time;
+			cg_kick.interval = 240;
+		}
+	}
+}
+
+/**
+ * @brief
+ */
+static void Cg_WeaponKick(const pm_cmd_t *cmd) {
+	static vec_t kick;
+
+	if (cg_third_person->value) {
+		return;
+	}
+
+	const cl_entity_t *ent = Cg_Self();
+
+	if (!ent) {
+		return;
+	}
+
+	vec_t delta = 0.0;
+
+	if (ent->animation1.animation == ANIM_TORSO_ATTACK1 && ent->animation1.fraction <= 0.33) {
+
+		const player_state_t *ps = &cgi.client->frame.ps;
+
+		vec_t degrees;
+
+		switch (ps->stats[STAT_WEAPON_TAG]) {
+			case WEAPON_BLASTER:
+				degrees = 1.0;
+				break;
+			case WEAPON_SHOTGUN:
+				degrees = 1.5;
+				break;
+			case WEAPON_SUPER_SHOTGUN:
+				degrees = 2.0;
+				break;
+			case WEAPON_MACHINEGUN:
+				degrees = 4.0;
+				break;
+			case WEAPON_HAND_GRENADE:
+				degrees = 2.0;
+				break;
+			case WEAPON_GRENADE_LAUNCHER:
+				degrees = 2.6;
+				break;
+			case WEAPON_ROCKET_LAUNCHER:
+				degrees = 2.4;
+				break;
+			case WEAPON_HYPERBLASTER:
+				degrees = 4.0;
+				break;
+			case WEAPON_LIGHTNING:
+				degrees = 2.0;
+				break;
+			case WEAPON_RAILGUN:
+				degrees = 5.0;
+				break;
+			case WEAPON_BFG10K:
+				degrees = 20.0;
+				break;
+			default:
+				return;
+		}
+
+		delta = Min(degrees - kick, degrees * (cmd->msec / 64.0));
+	} else {
+		delta = Min(kick, -kick * (cmd->msec / 196.0));
+	}
+
+	kick += delta;
+	cgi.client->angles[PITCH] -= delta;
 }
 
 /**
@@ -57,36 +165,9 @@ void Cg_ParseViewKick(void) {
  */
 void Cg_Look(pm_cmd_t *cmd) {
 
-	if (cg_view_kick.timestamp > cgi.client->unclamped_time) {
-		memset(&cg_view_kick, 0, sizeof(cg_view_kick));
-	}
+	Cg_ViewKick(cmd);
 
-	const uint32_t delta = cgi.client->unclamped_time - cg_view_kick.timestamp;
-	if (delta < cg_view_kick.interval) {
-		const vec_t frac = Min(delta, cmd->msec) / (vec_t) cg_view_kick.interval;
-
-		vec3_t kick;
-		VectorSubtract(cg_view_kick.next, cg_view_kick.prev, kick);
-		VectorScale(kick, frac, kick);
-
-		VectorAdd(cg_view_kick.kick, kick, cg_view_kick.kick);
-		VectorAdd(cgi.client->angles, kick, cgi.client->angles);
-		
-	} else if (!VectorCompare(cg_view_kick.kick, vec3_origin)) {
-
-		const vec_t len = VectorLength(cg_view_kick.kick);
-		if (len < 0.1) {
-			VectorSubtract(cgi.client->angles, cg_view_kick.kick, cgi.client->angles);
-			VectorClear(cg_view_kick.kick);
-		} else {
-
-			VectorCopy(cg_view_kick.kick, cg_view_kick.prev);
-			VectorClear(cg_view_kick.next);
-
-			cg_view_kick.timestamp = cgi.client->unclamped_time;
-			cg_view_kick.interval = 240;
-		}
-	}
+	Cg_WeaponKick(cmd);
 }
 
 /**

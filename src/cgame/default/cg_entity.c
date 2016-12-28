@@ -175,7 +175,7 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 /**
  * @brief Calculates a kick offset and angles based on our player's animation state.
  */
-static void Cg_WeaponKick(cl_entity_t *ent, vec3_t offset, vec3_t angles) {
+static void Cg_WeaponOffset(cl_entity_t *ent, vec3_t offset, vec3_t angles) {
 
 	const vec3_t drop_raise_offset = { -4.0, -4.0, -4.0 };
 	const vec3_t drop_raise_angles = { 25.0, -35.0, 2.0 };
@@ -220,20 +220,20 @@ static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 	}
 
 	if (ps->stats[STAT_HEALTH] <= 0) {
-		return;    // dead
+		return; // dead
 	}
 
 	if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
-		return;    // spectating
+		return; // spectating
 	}
 
 	if (!ps->stats[STAT_WEAPON]) {
-		return;    // no weapon, e.g. level intermission
+		return; // no weapon, e.g. level intermission
 	}
 
 	memset(&w, 0, sizeof(w));
 
-	Cg_WeaponKick(ent, offset, angles);
+	Cg_WeaponOffset(ent, offset, angles);
 
 	VectorCopy(cgi.view->origin, w.origin);
 

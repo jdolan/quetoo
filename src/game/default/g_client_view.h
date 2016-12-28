@@ -26,8 +26,6 @@
 
 #ifdef __GAME_LOCAL_H__
 	void G_ClientDamageKick(g_entity_t *ent, const vec3_t dir, const vec_t kick);
-	void G_ClientWeaponKick(g_entity_t *ent, const vec_t kick);
-	void G_ClientFallKick(g_entity_t *ent, const vec_t kick);
 	void G_ClientEndFrame(g_entity_t *ent);
 	void G_EndClientFrames(void);
 #endif /* __GAME_LOCAL_H__ */

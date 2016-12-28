@@ -220,16 +220,9 @@ void G_ClientDamageKick(g_entity_t *ent, const vec3_t dir, const vec_t kick) {
 }
 
 /**
- * @brief A convenience function for adding view kick from firing weapons.
- */
-void G_ClientWeaponKick(g_entity_t *ent, const vec_t kick) {
-	ent->client->locals.kick_angles[PITCH] -= kick;
-}
-
-/**
  * @brief Adds view angle kick based on entity events (falling, landing, etc).
  */
-void G_ClientFallKick(g_entity_t *ent, const vec_t kick) {
+static void G_ClientFallKick(g_entity_t *ent, const vec_t kick) {
 	ent->client->locals.kick_angles[PITCH] += kick;
 }
 
