@@ -124,13 +124,31 @@ typedef enum {
 	STAT_TIME,
 	STAT_VOTE,
 	STAT_WEAPON,
-	STAT_WEAPON_ICON
+	STAT_WEAPON_ICON,
+	STAT_WEAPON_TAG
 } g_stat_t;
 
 /**
  * @brief Forces a statistic field to be re-sent, even if the value has not changed.
  */
 #define STAT_TOGGLE_BIT		0x4000
+
+/**
+ * @brief Weapon tags to inform the client game which weapon the player wields.
+ */
+typedef enum {
+	WEAPON_BLASTER = 1,
+	WEAPON_SHOTGUN,
+	WEAPON_SUPER_SHOTGUN,
+	WEAPON_MACHINEGUN,
+	WEAPON_GRENADE_LAUNCHER,
+	WEAPON_HAND_GRENADE,
+	WEAPON_ROCKET_LAUNCHER,
+	WEAPON_HYPERBLASTER,
+	WEAPON_LIGHTNING,
+	WEAPON_RAILGUN,
+	WEAPON_BFG10K
+} g_weapon_tag_t;
 
 /**
  * @brief Muzzle flashes are bound to the entity that created them. This allows
