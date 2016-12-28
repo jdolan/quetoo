@@ -256,12 +256,18 @@ void G_ShotgunProjectiles(g_entity_t *ent, const vec3_t start, const vec3_t dir,
 	}
 }
 
+#define GRENADE_HELD 1
+
 /**
  * @brief
  */
 static void G_GrenadeProjectile_Explode(g_entity_t *self) {
+	uint32_t mod;
+
+	const _Bool hand_grenade = g_strcmp0(self->class_name, "ammo_grenades") == 0;
 
 	if (self->locals.enemy) { // direct hit
+
 		vec_t d, k, dist;
 		vec3_t v, dir;
 
@@ -275,157 +281,22 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
 
 		VectorSubtract(self->locals.enemy->s.origin, self->s.origin, dir);
 
+		mod = hand_grenade ? MOD_HANDGRENADE : MOD_GRENADE;
+
 		G_Damage(self->locals.enemy, self, self->owner, dir, self->s.origin, vec3_origin,
-		         (int16_t) d, (int16_t) k, DMG_RADIUS, MOD_GRENADE);
+				 (int16_t) d, (int16_t) k, DMG_RADIUS, mod);
 	}
 
-	// hurt anything else nearby
-	G_RadiusDamage(self, self->owner, self->locals.enemy, self->locals.damage,
-	               self->locals.knockback, self->locals.damage_radius, MOD_GRENADE_SPLASH);
-
-	gi.WriteByte(SV_CMD_TEMP_ENTITY);
-	gi.WriteByte(TE_EXPLOSION);
-	gi.WritePosition(self->s.origin);
-	gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
-
-	G_FreeEntity(self);
-}
-
-
-/**
- * @brief Sink into the floor after a few seconds, providing a window of time for us to be made into
- * giblets or knocked around. This is called by corpses and giblets alike.
- */
-static void G_Gib_Think(g_entity_t *self) {
-
-	const uint32_t age = g_level.time - self->locals.timestamp;
-
-	if (self->s.model1 == MODEL_CLIENT) {
-		if (age > 6000) {
-			const int16_t dmg = self->locals.health;
-
-			if (self->locals.water_type & CONTENTS_LAVA) {
-				G_Damage(self, NULL, NULL, NULL, NULL, NULL, dmg, 0, DMG_NO_ARMOR, MOD_LAVA);
-			}
-
-			if (self->locals.water_type & CONTENTS_SLIME) {
-				G_Damage(self, NULL, NULL, NULL, NULL, NULL, dmg, 0, DMG_NO_ARMOR, MOD_SLIME);
-			}
-		}
-	} else {
-		const vec_t speed = VectorLength(self->locals.velocity);
-
-		if (!(self->s.effects & EF_DESPAWN) && speed > 30.0) {
-			self->s.trail = TRAIL_GIB;
+	if (hand_grenade) {
+		if (self->locals.spawn_flags & GRENADE_HELD) {
+			mod = MOD_HANDGRENADE_KAMIKAZE;
 		} else {
-			self->s.trail = TRAIL_NONE;
+			mod = MOD_HANDGRENADE_SPLASH;
 		}
-	}
-
-	if (age > 33000) {
-		G_FreeEntity(self);
-		return;
-	}
-
-	// sink into the floor after a few seconds
-	if (age > 30000) {
-
-		self->s.effects |= EF_DESPAWN;
-
-		self->locals.move_type = MOVE_TYPE_NONE;
-		self->locals.take_damage = false;
-
-		self->solid = SOLID_NOT;
-
-		if (self->locals.ground_entity) {
-			self->s.origin[2] -= QUETOO_TICK_SECONDS * 8.0;
-		}
-
-		gi.LinkEntity(self);
-	}
-
-	self->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
-}
-
-#define GRENADE_HELD 1
-/**
- * @brief mostly a copy of the grenade launcher version but with different
- * means of death messages
- */
-static void G_HandGrenadeProjectile_Explode(g_entity_t *self) {
-	uint32_t mod = 0;
-
-	// GIB EXPLODE
-	{
-		const vec3_t mins[] = { { -3.0, -3.0, -3.0 }, { -6.0, -6.0, -6.0 }, { -9.0, -9.0, -9.0 } };
-		const vec3_t maxs[] = { { 3.0, 3.0, 3.0 }, { 6.0, 6.0, 6.0 }, { 9.0, 9.0, 9.0 } };
-
-		uint16_t i, count = 3 + Random() % 3;
-
-		for (i = 0; i < count; i++) {
-			g_entity_t *ent = G_AllocEntity();
-
-			VectorCopy(self->s.origin, ent->s.origin);
-			ent->s.origin[2] += 4.0;
-
-			VectorCopy(mins[i % NUM_GIB_MODELS], ent->mins);
-			VectorCopy(maxs[i % NUM_GIB_MODELS], ent->maxs);
-
-			ent->solid = SOLID_DEAD;
-
-			ent->s.model1 = g_media.models.gibs[i % NUM_GIB_MODELS];
-			ent->locals.noise_index = g_media.sounds.gib_hits[i % NUM_GIB_MODELS];
-
-			VectorCopy(self->locals.velocity, ent->locals.velocity);
-
-			const int16_t h = 500;
-
-			ent->locals.velocity[0] += h * Randomc();
-			ent->locals.velocity[1] += h * Randomc();
-			ent->locals.velocity[2] += h * Randomc();
-
-			ent->locals.clip_mask = MASK_CLIP_CORPSE;
-			ent->locals.dead = true;
-			ent->locals.mass = ((i % NUM_GIB_MODELS) + 1) * 20.0;
-			ent->locals.move_type = MOVE_TYPE_BOUNCE;
-			ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
-			ent->locals.take_damage = true;
-			ent->locals.Think = G_Gib_Think;
-
-			gi.LinkEntity(ent);
-		}
-
-		gi.WriteByte(SV_CMD_TEMP_ENTITY);
-		gi.WriteByte(TE_GIB);
-		gi.WritePosition(self->s.origin);
-		gi.Multicast(self->s.origin, MULTICAST_PVS, NULL);
-	}
-
-	if (self->locals.enemy) { // direct hit
-
-		vec_t d, k, dist;
-		vec3_t v, dir;
-
-		VectorAdd(self->locals.enemy->mins, self->locals.enemy->maxs, v);
-		VectorMA(self->locals.enemy->s.origin, 0.5, v, v);
-		VectorSubtract(self->s.origin, v, v);
-
-		dist = VectorLength(v);
-		d = self->locals.damage - 0.5 * dist;
-		k = self->locals.knockback - 0.5 * dist;
-
-		VectorSubtract(self->locals.enemy->s.origin, self->s.origin, dir);
-
-		G_Damage(self->locals.enemy, self, self->owner, dir, self->s.origin, vec3_origin,
-		         (int16_t) d, (int16_t) k, DMG_RADIUS, MOD_HANDGRENADE_HIT);
-	}
-
-	// they never tossed it
-	if (self->locals.spawn_flags & GRENADE_HELD) {
-		mod = MOD_HANDGRENADE_KAMIKAZE;
 	} else {
-		mod = MOD_HANDGRENADE_SPLASH;
+		mod = MOD_GRENADE_SPLASH;
 	}
+
 
 	// hurt anything else nearby
 	G_RadiusDamage(self, self->owner, self->locals.enemy, self->locals.damage,
@@ -470,11 +341,7 @@ void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
 	}
 
 	self->locals.enemy = other;
-	if (g_strcmp0(self->class_name, "ammo_grenades") == 0) {
-		G_HandGrenadeProjectile_Explode(self);
-	} else {
-		G_GrenadeProjectile_Explode(self);
-	}
+	G_GrenadeProjectile_Explode(self);
 }
 
 /**
@@ -582,7 +449,7 @@ void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile,
 	projectile->solid = SOLID_BOX;
 	projectile->sv_flags &= ~SVF_NO_CLIENT;
 	projectile->locals.move_type = MOVE_TYPE_BOUNCE;
-	projectile->locals.Think = G_HandGrenadeProjectile_Explode;
+	projectile->locals.Think = G_GrenadeProjectile_Explode;
 }
 /**
  * @brief
