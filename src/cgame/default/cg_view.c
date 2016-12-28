@@ -126,17 +126,6 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 }
 
 /**
- * @brief Augments the view angles based on game-dependent events.
- */
-static void Cg_UpdateAngles(const player_state_t *ps) {
-
-	if (ps->pm_state.type == PM_DEAD) { // look only on x axis
-		cgi.view->angles[0] = 0.0;
-		cgi.view->angles[2] = 45.0;
-	}
-}
-
-/**
  * @brief Periodically calculates the player's horizontal speed, and interpolates it
  * over a small interval to smooth out rapid changes in velocity.
  */
@@ -228,7 +217,28 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 }
 
 /**
- * @brief Updates the view definition. The camera origin, bob effect, and field of view are each
+ * @brief Augments the view origin based on game events.
+ */
+static void Cg_UpdateOrigin(const player_state_t *ps) {
+
+	Cg_UpdateThirdPerson(ps);
+
+	Cg_UpdateBob(ps);
+}
+
+/**
+ * @brief Augments the view angles based on game events.
+ */
+static void Cg_UpdateAngles(const player_state_t *ps) {
+
+	if (ps->pm_state.type == PM_DEAD) { // look only on x axis
+		cgi.view->angles[0] = 0.0;
+		cgi.view->angles[2] = 45.0;
+	}
+}
+
+/**
+ * @brief Updates the view definition. The camera origin, view angles, and field of view are each
  * augmented here. Other modifications can be made at your own risk. This is called potentially
  * several times per client frame by the engine to prepare the view for frame interpolation.
  */
@@ -236,11 +246,9 @@ void Cg_UpdateView(const cl_frame_t *frame) {
 
 	Cg_UpdateFov();
 
-	Cg_UpdateThirdPerson(&frame->ps);
+	Cg_UpdateOrigin(&frame->ps);
 
 	Cg_UpdateAngles(&frame->ps);
-
-	Cg_UpdateBob(&frame->ps);
 
 	Cg_AddEntities(frame);
 
