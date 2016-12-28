@@ -131,8 +131,13 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 			continue;
 		}
 
-		const int32_t head_node = Cl_HullForEntity(s);
 		const cl_entity_t *ent = &cl.entities[s->number];
+
+		if (ent == cl.entity) {
+			continue;
+		}
+
+		const int32_t head_node = Cl_HullForEntity(s);
 
 		cm_trace_t tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->mins, trace->maxs,
 		                                       head_node, trace->contents, &ent->matrix, &ent->inverse_matrix);

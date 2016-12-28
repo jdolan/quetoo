@@ -104,6 +104,8 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 
 		Cg_AnimateEntity(ent);
 	}
+
+	cgi.client->entity = Cg_Self();
 }
 
 /**

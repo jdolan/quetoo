@@ -155,6 +155,7 @@ typedef struct {
 	cl_frame_t *delta_frame; // the delta frame for the current frame
 
 	cl_entity_t entities[MAX_ENTITIES]; // client entities
+	cl_entity_t *entity; // our own entity, which may be our player, or chase camera target, etc..
 
 	entity_state_t entity_states[ENTITY_STATE_BACKUP]; // accumulated each frame
 	uint32_t entity_state; // index (not wrapped) into entity states
