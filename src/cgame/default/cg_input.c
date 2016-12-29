@@ -152,7 +152,7 @@ static void Cg_WeaponKick(const pm_cmd_t *cmd) {
 
 		delta = Min(degrees - kick, degrees * (cmd->msec / 64.0));
 	} else {
-		delta = Min(kick, -kick * (cmd->msec / 196.0));
+		delta = -Min(kick, kick * (cmd->msec / 196.0));
 	}
 
 	kick += delta;
