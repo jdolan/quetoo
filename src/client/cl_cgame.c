@@ -183,6 +183,7 @@ void Cl_InitCgame(void) {
 	import.CvarString = Cvar_GetString;
 	import.CvarValue = Cvar_GetValue;
 	import.CvarSetValue = Cvar_SetValue;
+	import.CvarToggle = Cvar_Toggle;
 	import.Cmd = Cmd_Add;
 	import.Cbuf = Cbuf_AddText;
 

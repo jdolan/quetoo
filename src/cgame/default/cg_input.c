@@ -209,7 +209,7 @@ void Cg_Move(pm_cmd_t *cmd) {
 			}
 
 			if (cgi.client->unclamped_time - time > 200) {
-				cgi.client->third_person = !cgi.client->third_person;
+				cgi.CvarToggle(cg_third_person_chasecam->name);
 				time = cgi.client->unclamped_time;
 			}
 		}

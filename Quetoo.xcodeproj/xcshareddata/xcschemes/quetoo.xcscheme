@@ -63,7 +63,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "+set r_fullscreen 1 +map edge +give all +god"
+            argument = "+set r_fullscreen 1 +map darkzone +give all +god"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

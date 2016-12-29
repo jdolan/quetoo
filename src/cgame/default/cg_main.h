@@ -62,7 +62,10 @@
 	extern cvar_t *cg_hook_style;
 	extern cvar_t *cg_skin;
 	extern cvar_t *cg_third_person;
-	extern cvar_t *cg_third_person_distance;
+	extern cvar_t *cg_third_person_chasecam;
+	extern cvar_t *cg_third_person_x;
+	extern cvar_t *cg_third_person_y;
+	extern cvar_t *cg_third_person_z;
 	extern cvar_t *cg_third_person_yaw;
 
 	extern cvar_t *g_gameplay;

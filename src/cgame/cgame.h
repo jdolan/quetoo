@@ -24,7 +24,7 @@
 
 #include "client/cl_types.h"
 
-#define CGAME_API_VERSION 10
+#define CGAME_API_VERSION 11
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -238,6 +238,11 @@ typedef struct cg_import_s {
 	 * @brief Sets the console variable by `name` to `value`.
 	 */
 	cvar_t *(*CvarSetValue)(const char *name, vec_t value);
+
+	/**
+	 * @brief Toggles the console variable by `name`.
+	 */
+	cvar_t *(*CvarToggle)(const char *name);
 
 	/**
 	 * @brief Registers and returns a console command.

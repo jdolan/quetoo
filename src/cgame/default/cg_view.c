@@ -122,16 +122,15 @@ static void Cg_UpdateStep(const player_state_t *ps) {
  * option, or as the default chase camera view.
  */
 static void Cg_UpdateThirdPerson(const player_state_t *ps) {
-	vec3_t angles, forward, dest;
+	vec3_t angles, forward, origin;
 
 	const vec3_t mins = { -8.0, -8.0, -8.0 };
 	const vec3_t maxs = { 8.0, 8.0, 8.0 };
 
-	if (cg_third_person->value) {
+	if (cg_third_person->value || (cg_third_person_chasecam->value && ps->stats[STAT_CHASE])) {
 		cgi.client->third_person = true;
-	}
-
-	if (!cgi.client->third_person) {
+	} else {
+		cgi.client->third_person = false;
 		return;
 	}
 
@@ -140,22 +139,33 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 
 	AngleVectors(angles, forward, NULL, NULL);
 
-	const vec_t dist = fabs(cg_third_person_distance->value);
+	vec3_t offset = {
+		cg_third_person_x->value,
+		cg_third_person_y->value,
+		cg_third_person_z->value
+	};
 
-	// project the view origin back and up for 3rd person
-	VectorMA(cgi.view->origin, -dist, forward, dest);
-	dest[2] += 20.0;
+	const vec_t len = VectorLength(offset);
+	if (len > 1024.0) {
+		VectorScale(offset, 1024.0 / len, offset);
+	}
+
+	VectorCopy(cgi.view->origin, origin);
+
+	VectorMA(origin, offset[2], cgi.view->up, origin);
+	VectorMA(origin, offset[1], cgi.view->right, origin);
+	VectorMA(origin, offset[0], cgi.view->forward, origin);
 
 	// clip it to the world
-	const cm_trace_t tr = cgi.Trace(cgi.view->origin, dest, mins, maxs, 0, MASK_CLIP_PLAYER);
+	const cm_trace_t tr = cgi.Trace(cgi.view->origin, origin, mins, maxs, 0, MASK_CLIP_PLAYER);
 	VectorCopy(tr.end, cgi.view->origin);
 
 	// adjust view angles to compensate for height offset
-	VectorMA(cgi.view->origin, 1024.0, forward, dest);
-	VectorSubtract(dest, cgi.view->origin, dest);
+	VectorMA(cgi.view->origin, 1024.0, forward, origin);
+	VectorSubtract(origin, cgi.view->origin, origin);
 
 	// copy angles back to view
-	VectorAngles(dest, cgi.view->angles);
+	VectorAngles(origin, cgi.view->angles);
 	AngleVectors(cgi.view->angles, cgi.view->forward, cgi.view->right, cgi.view->up);
 }
 
