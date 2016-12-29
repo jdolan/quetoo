@@ -182,7 +182,7 @@ static void CalcVis(void) {
 
 	SortPortals();
 
-	// fast vis just uses migh_tsee for a very loose bound
+	// fast vis just uses the flood result for a very loose bound
 	if (fastvis) {
 		for (i = 0; i < map_vis.num_portals * 2; i++) {
 			map_vis.portals[i].vis = map_vis.portals[i].flood;

@@ -131,6 +131,8 @@ static void Init(void) {
 
 	SDL_Init(SDL_INIT_TIMER);
 
+	Com_InitSubsystem(QUETOO_MAPTOOL);
+
 	Mem_Init();
 
 	Fs_Init(true);
@@ -145,11 +147,13 @@ static void Init(void) {
  */
 static void Shutdown(const char *msg) {
 
+	Com_QuitSubsystem(QUETOO_MAPTOOL);
+
+	Thread_Shutdown();
+
 	Mon_Shutdown(msg);
 
 	Sem_Shutdown();
-
-	Thread_Shutdown();
 
 	Fs_Shutdown();
 
