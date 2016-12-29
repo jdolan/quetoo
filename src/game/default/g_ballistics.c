@@ -116,6 +116,46 @@ static void G_Tracer(const vec3_t start, const vec3_t end) {
 }
 
 /**
+ * @brief Project a point laying on a mover as if it was moving.
+ */
+static void G_ProjectStructuralPoint(const g_entity_t *mover, const vec3_t point, vec3_t out) {
+	
+	VectorCopy(point, out);
+
+	if (!VectorCompare(mover->locals.velocity, vec3_origin) || !VectorCompare(mover->locals.avelocity, vec3_origin)) {
+
+		vec3_t move, amove;
+
+		VectorScale(mover->locals.velocity, QUETOO_TICK_SECONDS, move);
+		VectorScale(mover->locals.avelocity, QUETOO_TICK_SECONDS, amove);
+
+		vec3_t inverse_amove;
+		VectorNegate(amove, inverse_amove);
+		
+		vec3_t forward, right, up;
+		AngleVectors(inverse_amove, forward, right, up);
+
+		// translate the pushed entity
+		VectorAdd(out, move, out);
+
+		// then rotate the movement to comply with the pusher's rotation
+		vec3_t translate;
+		VectorSubtract(out, mover->s.origin, translate);
+
+		const vec3_t rotate = {
+			DotProduct(translate, forward),
+			-DotProduct(translate, right),
+			DotProduct(translate, up)
+		};
+
+		vec3_t delta;
+		VectorSubtract(rotate, translate, delta);
+
+		VectorAdd(out, delta, out);
+	}
+}
+
+/**
  * @brief Used to add impact marks on surfaces hit by bullets.
  */
 static void G_BulletMark(vec3_t org, cm_bsp_plane_t *plane, cm_bsp_surface_t *surf) {
@@ -152,13 +192,16 @@ static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 		         self->locals.damage, self->locals.knockback, DMG_ENERGY, MOD_BLASTER);
 
 		if (G_IsStructural(other, surf)) {
+			vec3_t end;
+
+			G_ProjectStructuralPoint(other, self->s.origin, end);
 
 			gi.WriteByte(SV_CMD_TEMP_ENTITY);
 			gi.WriteByte(TE_BLASTER);
-			gi.WritePosition(self->s.origin);
+			gi.WritePosition(end);
 			gi.WriteDir(plane->normal);
 			gi.WriteByte(self->s.client);
-			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
+			gi.Multicast(end, MULTICAST_PHS, NULL);
 		}
 	}
 
@@ -234,7 +277,11 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 		G_Damage(tr.ent, ent, ent, dir, tr.end, tr.plane.normal, damage, knockback, DMG_BULLET, mod);
 
 		if (G_IsStructural(tr.ent, tr.surface)) {
-			G_BulletMark(tr.end, &tr.plane, tr.surface);
+			vec3_t end;
+
+			G_ProjectStructuralPoint(tr.ent, tr.end, end);
+
+			G_BulletMark(end, &tr.plane, tr.surface);
 		}
 
 		if ((gi.PointContents(start) & MASK_LIQUID) || (gi.PointContents(tr.end) & MASK_LIQUID)) {
@@ -479,7 +526,8 @@ static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other,
 
 			vec3_t origin;
 			if (G_IsStructural(other, surf)) {
-				VectorMA(self->s.origin, 16.0, plane->normal, origin);
+				G_ProjectStructuralPoint(other, self->s.origin, origin);
+				VectorMA(origin, 16.0, plane->normal, origin);
 			} else {
 				VectorCopy(self->s.origin, origin);
 			}
@@ -554,11 +602,7 @@ static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 			G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, plane->normal,
 			         self->locals.damage, self->locals.knockback, DMG_ENERGY, MOD_HYPERBLASTER);
 
-			gi.WriteByte(SV_CMD_TEMP_ENTITY);
-			gi.WriteByte(TE_HYPERBLASTER);
-			gi.WritePosition(self->s.origin);
-			gi.WriteDir(plane->normal);
-			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
+			vec3_t end;
 
 			if (G_IsStructural(other, surf)) {
 
@@ -571,7 +615,17 @@ static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 
 					self->owner->locals.velocity[2] += 80.0;
 				}
+
+				G_ProjectStructuralPoint(other, self->s.origin, end);
+			} else {
+				VectorCopy(self->s.origin, end);
 			}
+
+			gi.WriteByte(SV_CMD_TEMP_ENTITY);
+			gi.WriteByte(TE_HYPERBLASTER);
+			gi.WritePosition(end);
+			gi.WriteDir(plane->normal);
+			gi.Multicast(end, MULTICAST_PHS, NULL);
 		}
 	}
 
