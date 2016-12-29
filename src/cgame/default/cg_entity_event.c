@@ -252,8 +252,10 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 		case EV_CLIENT_LAND:
 			play.sample = cgi.LoadSample("*land_1");
 			break;
-		case EV_CLIENT_STEP:
-			Cg_TraverseStep(&ent->step, ent->current.origin[2] - ent->prev.origin[2]);
+		case EV_CLIENT_STEP: {
+			const vec_t height = ent->current.origin[2] - ent->prev.origin[2];
+			Cg_TraverseStep(&ent->step, cgi.client->unclamped_time, height);
+		}
 			break;
 		case EV_CLIENT_SIZZLE:
 			play.sample = cgi.LoadSample("*sizzle_1");
@@ -277,7 +279,9 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 			break;
 	}
 
-	cgi.AddSample(&play);
+	if (play.sample) {
+		cgi.AddSample(&play);
+	}
 
 	s->event = 0;
 }

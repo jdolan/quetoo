@@ -81,16 +81,16 @@ _Bool Cg_IsDucking(const cl_entity_t *ent) {
 /**
  * @brief Setup step interpolation.
  */
-void Cg_TraverseStep(cl_entity_step_t *step, vec_t height) {
+void Cg_TraverseStep(cl_entity_step_t *step, uint32_t time, vec_t height) {
 
-	const uint32_t delta = cgi.client->unclamped_time - step->timestamp;
+	const uint32_t delta = time - step->timestamp;
 
 	if (delta < step->interval) {
 		const vec_t lerp = (step->interval - delta) / (vec_t) step->interval;
 		step->height = step->height * (1.0 - lerp) + height;
 	} else {
 		step->height = height;
-		step->timestamp = cgi.client->unclamped_time;
+		step->timestamp = time;
 	}
 
 	step->interval = 128.0 * (fabs(step->height) / PM_STEP_HEIGHT);
@@ -126,6 +126,8 @@ static void Cg_AnimateEntity(cl_entity_t *ent) {
  */
 void Cg_Interpolate(const cl_frame_t *frame) {
 
+	cgi.client->entity = Cg_Self();
+
 	for (uint16_t i = 0; i < frame->num_entities; i++) {
 
 		const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
@@ -142,8 +144,6 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 
 		Cg_AnimateEntity(ent);
 	}
-
-	cgi.client->entity = Cg_Self();
 }
 
 /**
