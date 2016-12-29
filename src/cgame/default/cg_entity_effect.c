@@ -27,7 +27,7 @@
 static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
 	cg_particle_t *p;
 
-	if (Cg_IsSelf(ent) && !cg_third_person->value) {
+	if (Cg_IsSelf(ent) && !cgi.client->third_person) {
 		return;
 	}
 

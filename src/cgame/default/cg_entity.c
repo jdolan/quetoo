@@ -163,7 +163,7 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	e->effects |= EF_CLIENT;
 
 	// don't draw ourselves unless third person is set
-	if (Cg_IsSelf(ent) && !cg_third_person->value) {
+	if (Cg_IsSelf(ent) && !cgi.client->third_person) {
 
 		e->effects |= EF_NO_DRAW;
 
@@ -256,7 +256,7 @@ static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 		return;
 	}
 
-	if (cg_third_person->value) {
+	if (cgi.client->third_person) {
 		return;
 	}
 
@@ -333,7 +333,7 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 
 	// set the bounding box, according to the server, for debugging
 	if (ent->current.solid != SOLID_BSP) {
-		if (!Cg_IsSelf(ent) || cg_third_person->value) {
+		if (!Cg_IsSelf(ent) || cgi.client->third_person) {
 			UnpackBounds(ent->current.bounds, e.mins, e.maxs);
 		}
 	}
@@ -358,7 +358,7 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 	}
 
 	// don't draw our own giblet
-	if (Cg_IsSelf(ent) && !cg_third_person->value) {
+	if (Cg_IsSelf(ent) && !cgi.client->third_person) {
 		e.effects |= EF_NO_DRAW;
 	}
 

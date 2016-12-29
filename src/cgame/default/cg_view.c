@@ -127,19 +127,20 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 	const vec3_t mins = { -8.0, -8.0, -8.0 };
 	const vec3_t maxs = { 8.0, 8.0, 8.0 };
 
-	if (!cg_third_person->value) {
-		cgi.client->third_person = false;
-		return;
+	if (cg_third_person->value) {
+		cgi.client->third_person = true;
 	}
 
-	cgi.client->third_person = true;
+	if (!cgi.client->third_person) {
+		return;
+	}
 
 	VectorCopy(cgi.view->angles, angles);
 	angles[YAW] += cg_third_person_yaw->value;
 
 	AngleVectors(angles, forward, NULL, NULL);
 
-	const vec_t dist = fabs(150.0 * cg_third_person->value);
+	const vec_t dist = fabs(cg_third_person_distance->value);
 
 	// project the view origin back and up for 3rd person
 	VectorMA(cgi.view->origin, -dist, forward, dest);
@@ -208,7 +209,7 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 		return;
 	}
 
-	if (cg_third_person->value) {
+	if (cgi.client->third_person) {
 		return;
 	}
 

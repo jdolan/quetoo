@@ -94,7 +94,7 @@ static void Cg_ViewKick(const pm_cmd_t *cmd) {
 static void Cg_WeaponKick(const pm_cmd_t *cmd) {
 	static vec_t kick;
 
-	if (cg_third_person->value) {
+	if (cgi.client->third_person) {
 		return;
 	}
 
@@ -193,6 +193,21 @@ void Cg_Move(pm_cmd_t *cmd) {
 	} else {
 		if (!(in_speed.state & 1)) {
 			cmd->buttons |= BUTTON_WALK;
+		}
+	}
+
+	if (cgi.client->frame.ps.stats[STAT_CHASE]) {
+		if (cmd->up) {
+			static uint32_t time;
+
+			if (time > cgi.client->unclamped_time) {
+				time = 0;
+			}
+
+			if (cgi.client->unclamped_time - time > 200) {
+				cgi.client->third_person = !cgi.client->third_person;
+				time = cgi.client->unclamped_time;
+			}
 		}
 	}
 }
