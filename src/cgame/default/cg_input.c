@@ -110,7 +110,7 @@ static void Cg_WeaponKick(const pm_cmd_t *cmd) {
 
 		const player_state_t *ps = &cgi.client->frame.ps;
 
-		vec_t degrees;
+		vec_t degrees, interval = 64.0;
 
 		switch (ps->stats[STAT_WEAPON_TAG]) {
 			case WEAPON_BLASTER:
@@ -124,6 +124,7 @@ static void Cg_WeaponKick(const pm_cmd_t *cmd) {
 				break;
 			case WEAPON_MACHINEGUN:
 				degrees = 4.0;
+				interval = 196.0;
 				break;
 			case WEAPON_HAND_GRENADE:
 				degrees = 2.0;
@@ -136,9 +137,11 @@ static void Cg_WeaponKick(const pm_cmd_t *cmd) {
 				break;
 			case WEAPON_HYPERBLASTER:
 				degrees = 4.0;
+				interval = 196.0;
 				break;
 			case WEAPON_LIGHTNING:
 				degrees = 2.0;
+				interval = 196.0;
 				break;
 			case WEAPON_RAILGUN:
 				degrees = 5.0;
@@ -150,7 +153,8 @@ static void Cg_WeaponKick(const pm_cmd_t *cmd) {
 				return;
 		}
 
-		delta = Min(degrees - kick, degrees * (cmd->msec / 64.0));
+		delta = Min(degrees - kick, degrees * (cmd->msec / interval));
+
 	} else {
 		delta = -Min(kick, kick * (cmd->msec / 196.0));
 	}
