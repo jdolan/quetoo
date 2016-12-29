@@ -88,6 +88,29 @@ static void Cg_UpdateFov(void) {
 }
 
 /**
+ * @brief
+ */
+static void Cg_UpdateStep(const player_state_t *ps) {
+
+	if (ps->stats[STAT_CHASE]) {
+
+		const cl_entity_t *ent = Cg_Self();
+
+		if (!ent) {
+			return;
+		}
+
+		cgi.view->origin[2] -= ent->step.delta_height;
+
+	} else {
+
+		Cg_InterpolateStep(&cgi.client->predicted_state.step);
+
+		cgi.view->origin[2] -= cgi.client->predicted_state.step.delta_height;
+	}
+}
+
+/**
  * @brief Update the third person offset, if any. This is used as a client-side
  * option, or as the default chase camera view.
  */
@@ -223,6 +246,8 @@ static void Cg_UpdateBob(const player_state_t *ps) {
  * @brief Augments the view origin based on game events.
  */
 static void Cg_UpdateOrigin(const player_state_t *ps) {
+
+	Cg_UpdateStep(ps);
 
 	Cg_UpdateThirdPerson(ps);
 

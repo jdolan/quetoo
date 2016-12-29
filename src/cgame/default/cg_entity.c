@@ -99,16 +99,16 @@ void Cg_TraverseStep(cl_entity_step_t *step, uint32_t time, vec_t height) {
 /**
  * @brief Interpolate the entity's step for the current frame.
  */
-vec_t Cg_InterpolateStep(cl_entity_step_t *step) {
+void Cg_InterpolateStep(cl_entity_step_t *step) {
 
 	const uint32_t delta = cgi.client->unclamped_time - step->timestamp;
 
 	if (delta < step->interval) {
 		const vec_t lerp = (step->interval - delta) / (vec_t) step->interval;
-		return lerp * step->height;
+		step->delta_height = lerp * step->height;
+	} else {
+		step->delta_height = 0.0;
 	}
-
-	return 0.0;
 }
 
 /**
@@ -137,9 +137,10 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 
 		Cg_EntityEvent(ent);
 
-		const vec_t step = Cg_InterpolateStep(&ent->step);
-		if (step) {
-			ent->origin[2] = ent->current.origin[2] - step;
+		Cg_InterpolateStep(&ent->step);
+
+		if (ent->step.delta_height) {
+			ent->origin[2] = ent->current.origin[2] - ent->step.delta_height;
 		}
 
 		Cg_AnimateEntity(ent);

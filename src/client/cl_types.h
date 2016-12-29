@@ -58,6 +58,7 @@ typedef struct {
 	uint32_t time;
 	uint32_t timestamp;
 	uint32_t interval;
+	vec_t delta_height;
 } cl_entity_step_t;
 
 typedef struct {
