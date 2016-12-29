@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CL_PARSE_H__
-#define __CL_PARSE_H__
+#pragma once
 
 #include "cl_types.h"
 
@@ -31,6 +30,3 @@
 	void Cl_Download_f(void);
 	void Cl_Precache_f(void);
 #endif /* __CL_LOCAL_H__ */
-
-#endif /* __CL_PARSE_H__ */
-

@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __NET_UDP_H__
-#define __NET_UDP_H__
+#pragma once
 
 #include "net.h"
 
@@ -29,5 +28,3 @@ _Bool Net_SendDatagram(net_src_t source, const net_addr_t *to, const void *data,
 
 void Net_Config(net_src_t source, _Bool up);
 void Net_Sleep(uint32_t msec);
-
-#endif /* __NET_UDP_H__ */

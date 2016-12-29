@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __RENDERER_H__
-#define __RENDERER_H__
+#pragma once
 
 #include "collision/cmodel.h"
 #include "console.h"
@@ -61,5 +60,3 @@
 #include "r_stainmap.h"
 #include "r_state.h"
 #include "r_types.h"
-
-#endif /*__RENDERER_H__*/

@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_ARRAY_H__
-#define __R_ARRAY_H__
+#pragma once
 
 #include "r_types.h"
 
@@ -66,5 +65,3 @@ void R_ResetArrayState(void);
 void R_DrawArrays(GLenum type, GLint start, GLsizei count);
 r_attribute_mask_t R_ArraysMask(void);
 #endif /* __R_LOCAL_H__ */
-
-#endif /* __R_ARRAY_H__ */

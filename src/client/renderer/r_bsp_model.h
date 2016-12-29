@@ -19,13 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_BSP_MODEL_H__
-#define __R_BSP_MODEL_H__
+#pragma once
 
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
 	void R_LoadBspModel(r_model_t *mod, void *buffer);
 #endif /* __R_LOCAL_H__ */
-
-#endif /* __R_BSP_MODEL_H__ */

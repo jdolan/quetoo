@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __GAME_CLIENT_CHASE_H__
-#define __GAME_CLIENT_CHASE_H__
+#pragma once
 
 #include "g_types.h"
 
@@ -30,5 +29,3 @@
 	void G_ClientChasePrevious(g_entity_t *ent);
 	void G_ClientChaseTarget(g_entity_t *ent);
 #endif /* __GAME_LOCAL_H__ */
-
-#endif /* __GAME_CLIENT_CHASE_H__ */

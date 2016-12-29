@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __SV_INIT_H__
-#define __SV_INIT_H__
+#pragma once
 
 #include "sv_types.h"
 
@@ -32,5 +31,3 @@ void Sv_ShutdownServer(const char *msg);
 	uint16_t Sv_ImageIndex(const char *name);
 	void Sv_InitServer(const char *name, sv_state_t state);
 #endif /* __SV_LOCAL_H__ */
-
-#endif /* __SV_INIT_H__ */

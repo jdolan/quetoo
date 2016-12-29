@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __SYS_H__
-#define __SYS_H__
+#pragma once
 
 #include "quetoo.h"
 
@@ -34,5 +33,3 @@ void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, 
 
 void Sys_Backtrace(void);
 void Sys_Signal(int32_t s) __attribute__((noreturn));
-
-#endif /* __SYS_H__ */

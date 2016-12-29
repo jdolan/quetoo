@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CL_ENTITY_H__
-#define __CL_ENTITY_H__
+#pragma once
 
 #include "cl_types.h"
 
@@ -29,6 +28,3 @@
 	void Cl_Interpolate(void);
 	void Cl_UpdateEntities(void);
 #endif /* __CL_LOCAL_H__ */
-
-#endif /* __CL_ENTITY_H__ */
-

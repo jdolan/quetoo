@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_DRAW_H__
-#define __R_DRAW_H__
+#pragma once
 
 #include "r_types.h"
 
@@ -44,5 +43,3 @@ void R_Draw2D(void);
 	void R_InitDraw(void);
 	void R_ShutdownDraw(void);
 #endif /* __R_LOCAL_H__ */
-
-#endif /* __R_DRAW_H__ */

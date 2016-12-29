@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __NET_MESSAGE_H__
-#define __NET_MESSAGE_H__
+#pragma once
 
 #include "common.h"
 
@@ -110,5 +109,3 @@ void Net_ReadDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, pm_cmd_t *to);
 void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player_state_t *to);
 void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_state_t *to,
                          uint16_t number, uint16_t bits);
-
-#endif /* __NET_MESSAGE_H__ */

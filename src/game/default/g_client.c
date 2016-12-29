@@ -1411,6 +1411,8 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 					cl->locals.jump_time = g_level.time;
 				}
 			}
+		} else if (pm.s.flags & PMF_ON_STAIRS) {
+			ent->s.event = EV_CLIENT_STEP;
 		}
 
 		// detect hitting the ground to help with animation blending

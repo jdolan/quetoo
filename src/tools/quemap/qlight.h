@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __QLIGHT_H__
-#define __QLIGHT_H__
+#pragma once
 
 #include "bspfile.h"
 #include "polylib.h"
@@ -75,5 +74,3 @@ void FreePatches(void);
 _Bool Light_PointPVS(const vec3_t org, byte *pvs);
 int32_t Light_PointLeafnum(const vec3_t point);
 void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask);
-
-#endif /* __QLIGHT_H__ */

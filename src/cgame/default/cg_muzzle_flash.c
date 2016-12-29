@@ -160,7 +160,7 @@ void Cg_ParseMuzzleFlash(void) {
 			sample = cg_sample_shotgun_fire;
 			Cg_SmokeFlash(ent);
 			break;
-		case MZ_SSHOTGUN:
+		case MZ_SUPER_SHOTGUN:
 			sample = cg_sample_supershotgun_fire;
 			Cg_SmokeFlash(ent);
 			break;
@@ -170,11 +170,11 @@ void Cg_ParseMuzzleFlash(void) {
 				Cg_SmokeFlash(ent);
 			}
 			break;
-		case MZ_ROCKET:
+		case MZ_ROCKET_LAUNCHER:
 			sample = cg_sample_rocketlauncher_fire;
 			Cg_SmokeFlash(ent);
 			break;
-		case MZ_GRENADE:
+		case MZ_GRENADE_LAUNCHER:
 			sample = cg_sample_grenadelauncher_fire;
 			Cg_SmokeFlash(ent);
 			break;
@@ -188,7 +188,7 @@ void Cg_ParseMuzzleFlash(void) {
 		case MZ_RAILGUN:
 			sample = cg_sample_railgun_fire;
 			break;
-		case MZ_BFG:
+		case MZ_BFG10K:
 			sample = cg_sample_bfg_fire;
 			Cg_EnergyFlash(ent, 200);
 			break;

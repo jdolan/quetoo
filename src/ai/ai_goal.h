@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __AI_GOAL_H__
-#define __AI_GOAL_H__
+#pragma once
 
 #include "ai_types.h"
 
@@ -28,7 +27,4 @@ ai_goal_t *Ai_AllocGoal(const ai_goal_type_t type, g_entity_t *ent);
 void Ai_FreeGoals(void);
 
 #ifdef __AI_LOCAL_H__
-
 #endif /* __AI_LOCAL_H__ */
-
-#endif /* __AI_GOAL_H__ */

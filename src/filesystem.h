@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __FILESYSTEM_H__
-#define __FILESYSTEM_H__
+#pragma once
 
 #include "common.h"
 #include "swap.h"
@@ -62,5 +61,3 @@ const char *Fs_RealDir(const char *filename);
 const char *Fs_RealPath(const char *path);
 void Fs_Init(_Bool auto_load_archives);
 void Fs_Shutdown(void);
-
-#endif /* __FILESYSTEM_H__ */

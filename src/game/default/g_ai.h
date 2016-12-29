@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __GAME_AI_H__
-#define __GAME_AI_H__
+#pragma once
 
 #include "g_types.h"
 
@@ -28,5 +27,3 @@
 	void G_Ai_Init(void);
 	void G_Ai_Shutdown(void);
 #endif /* __GAME_LOCAL_H__ */
-
-#endif /* __GAME_AI_H__ */

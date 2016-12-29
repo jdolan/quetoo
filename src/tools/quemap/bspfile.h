@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __BSPFILE_H__
-#define __BSPFILE_H__
+#pragma once
 
 #include "quemap.h"
 
@@ -130,5 +129,3 @@ void VectorForKey(const entity_t *ent, const char *key, vec3_t vec);
 epair_t *ParseEpair(void);
 
 extern int32_t subdivide_size;  // shared by qbsp and light
-
-#endif /* __BSPFILE_H__ */

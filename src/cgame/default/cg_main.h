@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CG_MAIN_H__
-#define __CG_MAIN_H__
+#pragma once
 
 #include "cg_types.h"
 
@@ -63,6 +62,7 @@
 	extern cvar_t *cg_hook_style;
 	extern cvar_t *cg_skin;
 	extern cvar_t *cg_third_person;
+	extern cvar_t *cg_third_person_distance;
 	extern cvar_t *cg_third_person_yaw;
 
 	extern cvar_t *g_gameplay;
@@ -75,6 +75,3 @@
 	cg_export_t *Cg_LoadCgame(cg_import_t *import);
 
 #endif /* __CG_LOCAL_H__ */
-
-#endif /* __CG_MAIN_H__ */
-

@@ -19,14 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_MESH_SHADOW_H__
-#define __R_MESH_SHADOW_H__
+#pragma once
 
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
 	void R_DrawMeshShadows_default(const r_entities_t *ents);
 #endif /* __R_LOCAL_H__ */
-
-#endif /* __R_MESH_SHADOW_H__ */
-

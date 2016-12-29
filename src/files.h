@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __FILES_H__
-#define __FILES_H__
+#pragma once
 
 #include "shared.h"
 
@@ -218,7 +217,7 @@ typedef struct {
 } d_bsp_normal_t;
 
 // lightmap information is 1/n texture resolution
-#define DEFAULT_LIGHTMAP_SCALE 16
+#define DEFAULT_LIGHTMAP_SCALE (1.0 / 16.0)
 
 // planes (x & ~1) and (x & ~1) + 1 are always opposites
 
@@ -362,5 +361,3 @@ typedef struct {
 	int16_t mins[3];
 	int16_t maxs[3];
 } d_aas_leaf_t;
-
-#endif /*__FILES_H__*/

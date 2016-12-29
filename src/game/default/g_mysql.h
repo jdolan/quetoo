@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __GAME_MYSQL_H__
-#define __GAME_MYSQL_H__
+#pragma once
 
 #include "g_types.h"
 
@@ -29,5 +28,3 @@
 	void G_MySQL_Init(void);
 	void G_MySQL_Shutdown(void);
 #endif /* __GAME_LOCAL_H__ */
-
-#endif /* __GAME_MYSQL_H__ */

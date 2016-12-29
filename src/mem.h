@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __MEM_H__
-#define __MEM_H__
+#pragma once
 
 #include "quetoo.h"
 
@@ -35,5 +34,3 @@ size_t Mem_Size(void);
 char *Mem_CopyString(const char *in);
 void Mem_Init(void);
 void Mem_Shutdown(void);
-
-#endif /* __MEM_H__ */

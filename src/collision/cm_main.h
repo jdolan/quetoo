@@ -23,3 +23,6 @@
 
 void Cm_Init(void);
 void Cm_Shutdown(void);
+
+#ifdef __CM_LOCAL_H__
+#endif /* __CM_LOCAL_H__ */

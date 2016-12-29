@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __QVIS_H__
-#define __QVIS_H__
+#pragma once
 
 #include "bspfile.h"
 
@@ -132,5 +131,3 @@ void BaseVis(int32_t portal_num);
 void FinalVis(int32_t portal_num);
 
 size_t CountBits(const byte *bits, size_t max);
-
-#endif /* __QVIS_H__ */

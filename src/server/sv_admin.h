@@ -19,13 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __SV_ADMIN_H__
-#define __SV_ADMIN_H__
+#pragma once
 
 #include "sv_types.h"
 
 #ifdef __SV_LOCAL_H__
 	void Sv_InitAdmin(void);
 #endif /* __SV_LOCAL_H__ */
-
-#endif /* __SV_ADMIN_H__ */

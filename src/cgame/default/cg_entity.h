@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CG_ENTITY_H__
-#define __CG_ENTITY_H__
+#pragma once
 
 #include "cg_types.h"
 
@@ -28,8 +27,8 @@
 	cl_entity_t *Cg_Self(void);
 	_Bool Cg_IsSelf(const cl_entity_t *ent);
 	_Bool Cg_IsDucking(const cl_entity_t *ent);
+	void Cg_TraverseStep(cl_entity_step_t *step, uint32_t time, vec_t height);
+	void Cg_InterpolateStep(cl_entity_step_t *step);
 	void Cg_Interpolate(const cl_frame_t *frame);
 	void Cg_AddEntities(const cl_frame_t *frame);
-#endif /* __CG_ENTITY_H__ */
-
 #endif /* __CG_ENTITY_H__ */

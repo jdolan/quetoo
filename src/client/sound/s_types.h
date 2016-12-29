@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __S_TYPES_H__
-#define __S_TYPES_H__
+#pragma once
 
 #include <SDL2/SDL_mixer.h>
 
@@ -92,4 +91,5 @@ typedef struct s_env_s {
 	uint16_t num_active_channels;
 } s_env_t;
 
-#endif /* __S_TYPES_H__ */
+#ifdef __S_LOCAL_H__
+#endif /* __S_LOCAL_H__ */

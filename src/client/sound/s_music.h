@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __S_MUSIC_H__
-#define __S_MUSIC_H__
+#pragma once
 
 #ifdef __S_LOCAL_H__
 
@@ -32,5 +31,3 @@
 	void S_ShutdownMusic(void);
 
 #endif /* __S_LOCAL_H__ */
-
-#endif /* __S_MUSIC_H__ */

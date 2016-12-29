@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CL_PREDICT_H__
-#define __CL_PREDICT_H__
+#pragma once
 
 #include "cl_types.h"
 
@@ -34,5 +33,3 @@ cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, con
 	void Cl_CheckPredictionError(void);
 	void Cl_UpdatePrediction(void);
 #endif /* __CL_LOCAL_H__ */
-
-#endif /* __CL_PREDICT_H__ */

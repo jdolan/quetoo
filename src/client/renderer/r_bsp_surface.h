@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_BSP_SURFACE_H__
-#define __R_BSP_SURFACE_H__
+#pragma once
 
 #include "r_types.h"
 
@@ -32,6 +31,3 @@
 	void R_DrawBlendWarpBspSurfaces_default(const r_bsp_surfaces_t *surfs);
 	void R_DrawBackBspSurfaces_default(const r_bsp_surfaces_t *surfs);
 #endif /* __R_LOCAL_H__ */
-
-#endif /* __R_BSP_SURFACE_H__ */
-

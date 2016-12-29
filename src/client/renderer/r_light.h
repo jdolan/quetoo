@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_LIGHT_H__
-#define __R_LIGHT_H__
+#pragma once
 
 #include "r_types.h"
 
@@ -34,6 +33,3 @@ void R_AddSustainedLight(const r_sustained_light_t *s);
 	void R_MarkLights(void);
 	void R_EnableLights(uint64_t mask);
 #endif /* __R_LOCAL_H__ */
-
-#endif /* __R_LIGHT_H__ */
-

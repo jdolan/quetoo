@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __GAME_MAIN_H__
-#define __GAME_MAIN_H__
+#pragma once
 
 #include "g_types.h"
 
@@ -95,5 +94,3 @@
 	g_export_t *G_LoadGame(g_import_t *import);
 
 #endif /* __GAME_LOCAL_H__ */
-
-#endif /* __GAME_MAIN_H__ */

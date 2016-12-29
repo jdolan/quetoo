@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __S_MAIN_H__
-#define __S_MAIN_H__
+#pragma once
 
 void S_Frame(void);
 void S_LoadMedia(void);
@@ -29,7 +28,4 @@ void S_Shutdown(void);
 void S_StopAllSounds(void);
 
 #ifdef __S_LOCAL_H__
-
 #endif /* __S_LOCAL_H__ */
-
-#endif /* __S_MAIN_H__ */

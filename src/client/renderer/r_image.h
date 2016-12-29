@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_IMAGE_H__
-#define __R_IMAGE_H__
+#pragma once
 
 #include "r_types.h"
 
@@ -46,5 +45,3 @@ void R_Screenshot_f(void);
 void R_InitImages(void);
 
 #endif /* __R_LOCAL_H__ */
-
-#endif /* __R_IMAGE_H__ */

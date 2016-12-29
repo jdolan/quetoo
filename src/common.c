@@ -411,8 +411,6 @@ void Com_QuitSubsystem(uint32_t s) {
 	quetoo.subsystems &= ~s;
 }
 
-
-
 /**
  * @brief Returns the command line argument count.
  */

@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CL_MEDIA_H__
-#define __CL_MEDIA_H__
+#pragma once
 
 #include "cl_types.h"
 
@@ -36,6 +35,3 @@ void Cl_LoadingProgress(uint16_t percent, const char *file);
 	void Cl_DrawLoading(void);
 
 #endif /* __CL_LOCAL_H__ */
-
-#endif /* __CL_MEDIA_H__ */
-

@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __QUETOO_H__
-#define __QUETOO_H__
+#pragma once
 
 #include "config.h"
 
@@ -644,5 +643,3 @@ typedef struct player_state_s {
 #define IS_LEGACY_COLOR(c)( \
                             *c == 1 || *c == 2 \
                           )
-
-#endif /* __QUETOO_H__ */

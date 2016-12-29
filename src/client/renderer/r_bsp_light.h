@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_BSP_LIGHT_H__
-#define __R_BSP_LIGHT_H__
+#pragma once
 
 #include "r_types.h"
 
@@ -47,6 +46,3 @@ extern r_bsp_light_state_t r_bsp_light_state;
 void R_LoadBspLights(r_bsp_model_t *mod);
 void R_DrawBspLights(void);
 #endif /* __R_LOCAL_H__ */
-
-#endif /* __R_BSP_LIGHT_H__ */
-

@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_PROGRAM_WARP_H__
-#define __R_PROGRAM_WARP_H__
+#pragma once
 
 #include "r_types.h"
 
@@ -31,5 +30,3 @@
 	void R_UseFog_warp(const r_fog_parameters_t *fog);
 	void R_UseCurrentColor_warp(const vec4_t color);
 #endif /* __R_LOCAL_H__ */
-
-#endif /* __R_PROGRAM_WARP_H__ */

@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CG_VIEW_H__
-#define __CG_VIEW_H__
+#pragma once
 
 #include "cg_types.h"
 
@@ -28,6 +27,3 @@
 	void Cg_UpdateView(const cl_frame_t *frame);
 	void Cg_PopulateView(const cl_frame_t *frame);
 #endif /* __CG_LOCAL_H__ */
-
-#endif /* __CG_VIEW_H__ */
-

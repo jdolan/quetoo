@@ -88,6 +88,36 @@ static void Cg_UpdateFov(void) {
 }
 
 /**
+ * @brief
+ */
+static void Cg_UpdateStep(const player_state_t *ps) {
+
+	if (ps->stats[STAT_CHASE] || cgi.client->demo_server || cgi.client->third_person) {
+
+		const cl_entity_t *ent = Cg_Self();
+		if (ent) {
+
+			if (ent->step.delta_height) {
+
+				const player_state_t *ops = cgi.client->delta_frame ? &cgi.client->delta_frame->ps : ps;
+
+				vec3_t from_offset, to_offset, offset;
+
+				UnpackVector(ops->pm_state.view_offset, from_offset);
+				UnpackVector(ps->pm_state.view_offset, to_offset);
+
+				VectorLerp(from_offset, to_offset, cgi.client->lerp, offset);
+
+				cgi.view->origin[2] = ps->pm_state.origin[2] - ent->step.delta_height + offset[2];
+			}
+		}
+	} else {
+		Cg_InterpolateStep(&cgi.client->predicted_state.step);
+		cgi.view->origin[2] -= cgi.client->predicted_state.step.delta_height;
+	}
+}
+
+/**
  * @brief Update the third person offset, if any. This is used as a client-side
  * option, or as the default chase camera view.
  */
@@ -97,7 +127,11 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 	const vec3_t mins = { -8.0, -8.0, -8.0 };
 	const vec3_t maxs = { 8.0, 8.0, 8.0 };
 
-	if (!cg_third_person->value) {
+	if (cg_third_person->value) {
+		cgi.client->third_person = true;
+	}
+
+	if (!cgi.client->third_person) {
 		return;
 	}
 
@@ -106,7 +140,7 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 
 	AngleVectors(angles, forward, NULL, NULL);
 
-	const vec_t dist = fabs(150.0 * cg_third_person->value);
+	const vec_t dist = fabs(cg_third_person_distance->value);
 
 	// project the view origin back and up for 3rd person
 	VectorMA(cgi.view->origin, -dist, forward, dest);
@@ -175,7 +209,7 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 		return;
 	}
 
-	if (cg_third_person->value) {
+	if (cgi.client->third_person) {
 		return;
 	}
 
@@ -220,6 +254,8 @@ static void Cg_UpdateBob(const player_state_t *ps) {
  * @brief Augments the view origin based on game events.
  */
 static void Cg_UpdateOrigin(const player_state_t *ps) {
+
+	Cg_UpdateStep(ps);
 
 	Cg_UpdateThirdPerson(ps);
 

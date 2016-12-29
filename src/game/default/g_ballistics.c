@@ -256,15 +256,14 @@ void G_ShotgunProjectiles(g_entity_t *ent, const vec3_t start, const vec3_t dir,
 	}
 }
 
-#define GRENADE_HELD 1
+#define HAND_GRENADE 1
+#define HAND_GRENADE_HELD 2
 
 /**
  * @brief
  */
 static void G_GrenadeProjectile_Explode(g_entity_t *self) {
 	uint32_t mod;
-
-	const _Bool hand_grenade = g_strcmp0(self->class_name, "ammo_grenades") == 0;
 
 	if (self->locals.enemy) { // direct hit
 
@@ -281,14 +280,14 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
 
 		VectorSubtract(self->locals.enemy->s.origin, self->s.origin, dir);
 
-		mod = hand_grenade ? MOD_HANDGRENADE : MOD_GRENADE;
+		mod = self->locals.spawn_flags & HAND_GRENADE ? MOD_HANDGRENADE : MOD_GRENADE;
 
 		G_Damage(self->locals.enemy, self, self->owner, dir, self->s.origin, vec3_origin,
 				 (int16_t) d, (int16_t) k, DMG_RADIUS, mod);
 	}
 
-	if (hand_grenade) {
-		if (self->locals.spawn_flags & GRENADE_HELD) {
+	if (self->locals.spawn_flags & HAND_GRENADE) {
+		if (self->locals.spawn_flags & HAND_GRENADE_HELD) {
 			mod = MOD_HANDGRENADE_KAMIKAZE;
 		} else {
 			mod = MOD_HANDGRENADE_SPLASH;
@@ -434,9 +433,11 @@ void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile,
 		VectorCopy(ent->s.origin, projectile->s.origin);
 	}
 
+	projectile->locals.spawn_flags = HAND_GRENADE;
+
 	// if client is holding it, let the nade know it's being held
 	if (ent->client->locals.grenade_hold_time) {
-		projectile->locals.spawn_flags = GRENADE_HELD;
+		projectile->locals.spawn_flags |= HAND_GRENADE_HELD;
 	}
 
 	projectile->locals.avelocity[0] = -300.0 + 10 * Randomc();
@@ -451,6 +452,7 @@ void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile,
 	projectile->locals.move_type = MOVE_TYPE_BOUNCE;
 	projectile->locals.Think = G_GrenadeProjectile_Explode;
 }
+
 /**
  * @brief
  */

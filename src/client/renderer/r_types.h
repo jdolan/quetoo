@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_TYPES_H__
-#define __R_TYPES_H__
+#pragma once
 
 #include "r_glad_core.h"
 
@@ -565,7 +564,7 @@ typedef struct {
  * @brief BSP lightmap parameters.
  */
 typedef struct {
-	uint16_t scale;
+	vec_t scale;
 	uint32_t size;
 	byte *data;
 } r_bsp_lightmaps_t;
@@ -1176,4 +1175,5 @@ typedef struct {
 	_Bool fullscreen;
 } r_context_t;
 
-#endif /* __R_TYPES_H__ */
+#ifdef __R_LOCAL_H__
+#endif /* __R_LOCAL_H__ */

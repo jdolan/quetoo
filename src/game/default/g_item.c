@@ -43,10 +43,9 @@ const g_item_t *G_ItemByIndex(uint16_t index) {
  * @brief
  */
 const g_item_t *G_FindItemByClassName(const char *class_name) {
-	int32_t i;
 
 	const g_item_t *it = g_items;
-	for (i = 0; i < g_num_items; i++, it++) {
+	for (int32_t i = 0; i < g_num_items; i++, it++) {
 
 		if (!it->class_name) {
 			continue;
@@ -64,14 +63,13 @@ const g_item_t *G_FindItemByClassName(const char *class_name) {
  * @brief
  */
 const g_item_t *G_FindItem(const char *name) {
-	int32_t i;
 
 	if (!name) {
 		return NULL;
 	}
 
 	const g_item_t *it = g_items;
-	for (i = 0; i < g_num_items; i++, it++) {
+	for (int32_t i = 0; i < g_num_items; i++, it++) {
 
 		if (!it->name) {
 			continue;
@@ -307,6 +305,38 @@ static _Bool G_PickupAmmo(g_entity_t *ent, g_entity_t *other) {
 	}
 
 	return true;
+}
+
+/**
+ * @brief When picking up grenades, give the hand grenades weapon in addition to the ammo.
+ */
+static _Bool G_PickupGrenades(g_entity_t *ent, g_entity_t *other) {
+
+	const _Bool pickup = G_PickupAmmo(ent, other);
+	if (pickup) {
+		const g_item_t *grenades = G_FindItem("Hand Grenades");
+		other->client->locals.inventory[ITEM_INDEX(grenades)]++;
+
+		if (other->client->locals.weapon == G_FindItem("Blaster")) {
+			G_UseWeapon(other, grenades);
+		}
+	}
+
+	return pickup;
+}
+
+/**
+ * @brief When picking up the grenade launcher, give the hand grenades weapon as well.
+ */
+static _Bool G_PickupGrenadeLauncher(g_entity_t *ent, g_entity_t *other) {
+
+	const _Bool pickup = G_PickupWeapon(ent, other);
+	if (pickup) {
+		const g_item_t *grenades = G_FindItem("Hand Grenades");
+		other->client->locals.inventory[ITEM_INDEX(grenades)]++;
+	}
+
+	return pickup;
 }
 
 /**
@@ -664,6 +694,14 @@ void G_TouchItem(g_entity_t *ent, g_entity_t *other,
 		// show icon and name on status bar
 		uint16_t icon = gi.ImageIndex(ent->locals.item->icon);
 
+		// when picking up nades, show the most appropriate icon and pickup name
+		if (ent->locals.item == G_FindItem("Grenades")) {
+			const g_item_t *grenadelauncher = G_FindItem("Grenade Launcher");
+			if (other->client->locals.inventory[ITEM_INDEX(grenadelauncher)]) {
+				icon = gi.ImageIndex(grenadelauncher->icon);
+			};
+		}
+
 		if (other->client->ps.stats[STAT_PICKUP_ICON] == icon) {
 			icon |= STAT_TOGGLE_BIT;
 		}
@@ -1020,22 +1058,22 @@ const g_item_t g_items[] = {
 	 model="models/armor/body/tris.md3"
 	 */
 	{
-		"item_armor_body",
-		G_PickupArmor,
-		NULL,
-		NULL,
-		NULL,
-		"armor/body/pickup.wav",
-		"models/armor/body/tris.md3",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/i_bodyarmor",
-		"Body Armor",
-		100,
-		NULL,
-		ITEM_ARMOR,
-		ARMOR_BODY,
-		0.80,
-		""
+		.class_name = "item_armor_body",
+		.Pickup = G_PickupArmor,
+		.Use = NULL,
+		.Drop = NULL,
+		.Think = NULL,
+		.pickup_sound = "armor/body/pickup.wav",
+		.model = "models/armor/body/tris.md3",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/i_bodyarmor",
+		.name = "Body Armor",
+		.quantity = 100,
+		.ammo = NULL,
+		.type = ITEM_ARMOR,
+		.tag = ARMOR_BODY,
+		.priority = 0.80,
+		.precaches = ""
 	},
 
 	/*QUAKED item_armor_combat (.8 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1053,22 +1091,22 @@ const g_item_t g_items[] = {
 	 model="models/armor/combat/tris.md3"
 	 */
 	{
-		"item_armor_combat",
-		G_PickupArmor,
-		NULL,
-		NULL,
-		NULL,
-		"armor/combat/pickup.wav",
-		"models/armor/combat/tris.md3",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/i_combatarmor",
-		"Combat Armor",
-		50,
-		NULL,
-		ITEM_ARMOR,
-		ARMOR_COMBAT,
-		0.66,
-		""
+		.class_name = "item_armor_combat",
+		.Pickup = G_PickupArmor,
+		.Use = NULL,
+		.Drop = NULL,
+		.Think = NULL,
+		.pickup_sound = "armor/combat/pickup.wav",
+		.model = "models/armor/combat/tris.md3",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/i_combatarmor",
+		.name = "Combat Armor",
+		.quantity = 50,
+		.ammo = NULL,
+		.type = ITEM_ARMOR,
+		.tag = ARMOR_COMBAT,
+		.priority = 0.66,
+		.precaches = ""
 	},
 
 	/*QUAKED item_armor_jacket (.2 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1086,22 +1124,22 @@ const g_item_t g_items[] = {
 	 model="models/armor/jacket/tris.md3"
 	 */
 	{
-		"item_armor_jacket",
-		G_PickupArmor,
-		NULL,
-		NULL,
-		NULL,
-		"armor/jacket/pickup.wav",
-		"models/armor/jacket/tris.md3",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/i_jacketarmor",
-		"Jacket Armor",
-		25,
-		NULL,
-		ITEM_ARMOR,
-		ARMOR_JACKET,
-		0.50,
-		""
+		.class_name = "item_armor_jacket",
+		.Pickup = G_PickupArmor,
+		.Use = NULL,
+		.Drop = NULL,
+		.Think = NULL,
+		.pickup_sound = "armor/jacket/pickup.wav",
+		.model = "models/armor/jacket/tris.md3",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/i_jacketarmor",
+		.name = "Jacket Armor",
+		.quantity = 25,
+		.ammo = NULL,
+		.type = ITEM_ARMOR,
+		.tag = ARMOR_JACKET,
+		.priority = 0.50,
+		.precaches = ""
 	},
 
 	/*QUAKED item_armor_shard (.1 .6 .1) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1119,22 +1157,22 @@ const g_item_t g_items[] = {
 	 model="models/armor/shard/tris.md3"
 	 */
 	{
-		"item_armor_shard",
-		G_PickupArmor,
-		NULL,
-		NULL,
-		NULL,
-		"armor/shard/pickup.wav",
-		"models/armor/shard/tris.md3",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/i_shard",
-		"Armor Shard",
-		3,
-		NULL,
-		ITEM_ARMOR,
-		ARMOR_SHARD,
-		0.10,
-		""
+		.class_name = "item_armor_shard",
+		.Pickup = G_PickupArmor,
+		.Use = NULL,
+		.Drop = NULL,
+		.Think = NULL,
+		.pickup_sound = "armor/shard/pickup.wav",
+		.model = "models/armor/shard/tris.md3",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/i_shard",
+		.name = "Armor Shard",
+		.quantity = 3,
+		.ammo = NULL,
+		.type = ITEM_ARMOR,
+		.tag = ARMOR_SHARD,
+		.priority = 0.10,
+		.precaches = ""
 	},
 
 	/*QUAKED weapon_blaster (.8 .8 .1) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1152,22 +1190,22 @@ const g_item_t g_items[] = {
 	 model="models/weapons/shotgun/tris.obj"
 	 */
 	{
-		"weapon_blaster",
-		G_PickupWeapon,
-		G_UseWeapon,
-		NULL,
-		G_FireBlaster,
-		"weapons/common/pickup.wav",
-		"models/weapons/blaster/tris.md3",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/w_blaster",
-		"Blaster",
-		0,
-		NULL,
-		ITEM_WEAPON,
-		0,
-		0.10,
-		"weapons/blaster/fire.wav"
+		.class_name = "weapon_blaster",
+		.Pickup = G_PickupWeapon,
+		.Use = G_UseWeapon,
+		.Drop = NULL,
+		.Think = G_FireBlaster,
+		.pickup_sound = "weapons/common/pickup.wav",
+		.model = "models/weapons/blaster/tris.md3",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/w_blaster",
+		.name = "Blaster",
+		.quantity = 0,
+		.ammo = NULL,
+		.type = ITEM_WEAPON,
+		.tag = WEAPON_BLASTER,
+		.priority = 0.10,
+		.precaches = "weapons/blaster/fire.wav"
 	},
 
 	/*QUAKED weapon_shotgun (.6 .6 .1) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1185,22 +1223,22 @@ const g_item_t g_items[] = {
 	 model="models/weapons/shotgun/tris.obj"
 	 */
 	{
-		"weapon_shotgun",
-		G_PickupWeapon,
-		G_UseWeapon,
-		G_DropWeapon,
-		G_FireShotgun,
-		"weapons/common/pickup.wav",
-		"models/weapons/shotgun/tris.obj",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/w_shotgun",
-		"Shotgun",
-		1,
-		"Shells",
-		ITEM_WEAPON,
-		0,
-		0.15,
-		"weapons/shotgun/fire.wav"
+		.class_name = "weapon_shotgun",
+		.Pickup = G_PickupWeapon,
+		.Use = G_UseWeapon,
+		.Drop = G_DropWeapon,
+		.Think = G_FireShotgun,
+		.pickup_sound = "weapons/common/pickup.wav",
+		.model = "models/weapons/shotgun/tris.obj",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/w_shotgun",
+		.name = "Shotgun",
+		.quantity = 1,
+		.ammo = "Shells",
+		.type = ITEM_WEAPON,
+		.tag = WEAPON_SHOTGUN,
+		.priority = 0.15,
+		.precaches = "weapons/shotgun/fire.wav"
 	},
 
 	/*QUAKED weapon_supershotgun (.6 .6 .1) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1218,22 +1256,22 @@ const g_item_t g_items[] = {
 	 model="models/weapons/supershotgun/tris.obj"
 	 */
 	{
-		"weapon_supershotgun",
-		G_PickupWeapon,
-		G_UseWeapon,
-		G_DropWeapon,
-		G_FireSuperShotgun,
-		"weapons/common/pickup.wav",
-		"models/weapons/supershotgun/tris.obj",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/w_sshotgun",
-		"Super Shotgun",
-		2,
-		"Shells",
-		ITEM_WEAPON,
-		0,
-		0.25,
-		"weapons/supershotgun/fire.wav"
+		.class_name = "weapon_supershotgun",
+		.Pickup = G_PickupWeapon,
+		.Use = G_UseWeapon,
+		.Drop = G_DropWeapon,
+		.Think = G_FireSuperShotgun,
+		.pickup_sound = "weapons/common/pickup.wav",
+		.model = "models/weapons/supershotgun/tris.obj",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/w_sshotgun",
+		.name = "Super Shotgun",
+		.quantity = 2,
+		.ammo = "Shells",
+		.type = ITEM_WEAPON,
+		.tag = WEAPON_SUPER_SHOTGUN,
+		.priority = 0.25,
+		.precaches = "weapons/supershotgun/fire.wav"
 	},
 
 	/*QUAKED weapon_machinegun (.8 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1251,23 +1289,57 @@ const g_item_t g_items[] = {
 	 model="models/weapons/machinegun/tris.obj"
 	 */
 	{
-		"weapon_machinegun",
-		G_PickupWeapon,
-		G_UseWeapon,
-		G_DropWeapon,
-		G_FireMachinegun,
-		"weapons/common/pickup.wav",
-		"models/weapons/machinegun/tris.obj",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/w_machinegun",
-		"Machinegun",
-		1,
-		"Bullets",
-		ITEM_WEAPON,
-		0,
-		0.30,
-		"weapons/machinegun/fire_1.wav weapons/machinegun/fire_2.wav "
+		.class_name = "weapon_machinegun",
+		.Pickup = G_PickupWeapon,
+		.Use = G_UseWeapon,
+		.Drop = G_DropWeapon,
+		.Think = G_FireMachinegun,
+		.pickup_sound = "weapons/common/pickup.wav",
+		.model = "models/weapons/machinegun/tris.obj",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/w_machinegun",
+		.name = "Machinegun",
+		.quantity = 1,
+		.ammo = "Bullets",
+		.type = ITEM_WEAPON,
+		.tag = WEAPON_MACHINEGUN,
+		.priority = 0.30,
+		.precaches = "weapons/machinegun/fire_1.wav weapons/machinegun/fire_2.wav "
 		"weapons/machinegun/fire_3.wav weapons/machinegun/fire_4.wav"
+	},
+
+	/*QUAKED weapon_handgrenades (.2 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Hand Grenades.
+
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
+
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+	 -------- Radiant config --------
+	 model="models/objects/grenade/tris.md3"
+	 */
+	{
+		.class_name = "weapon_handgrenades",
+		.Pickup = G_PickupWeapon,
+		.Use = G_UseWeapon,
+		.Drop = NULL,
+		.Think = G_FireHandGrenade,
+		.pickup_sound = "weapons/common/pickup.wav",
+		.model = "models/objects/grenade/tris.md3",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/a_handgrenades",
+		.name = "Hand Grenades",
+		.quantity = 1,
+		.ammo = "Grenades",
+		.type = ITEM_WEAPON,
+		.tag = WEAPON_HAND_GRENADE,
+		.priority = 0.30,
+		.precaches = "weapons/handgrenades/hg_throw.wav weapons/handgrenades/hg_clang.ogg "
+		"weapons/handgrenades/hg_tick.ogg"
 	},
 
 	/*QUAKED weapon_grenadelauncher (.2 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1285,22 +1357,22 @@ const g_item_t g_items[] = {
 	 model="models/weapons/grenadelauncher/tris.obj"
 	 */
 	{
-		"weapon_grenadelauncher",
-		G_PickupWeapon,
-		G_UseWeapon,
-		G_DropWeapon,
-		G_FireGrenadeLauncher,
-		"weapons/common/pickup.wav",
-		"models/weapons/grenadelauncher/tris.obj",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/w_glauncher",
-		"Grenade Launcher",
-		1,
-		"Grenades",
-		ITEM_WEAPON,
-		0,
-		0.40,
-		"models/objects/grenade/tris.md3 weapons/grenadelauncher/fire.wav"
+		.class_name = "weapon_grenadelauncher",
+		.Pickup = G_PickupGrenadeLauncher,
+		.Use = G_UseWeapon,
+		.Drop = G_DropWeapon,
+		.Think = G_FireGrenadeLauncher,
+		.pickup_sound = "weapons/common/pickup.wav",
+		.model = "models/weapons/grenadelauncher/tris.obj",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/w_glauncher",
+		.name = "Grenade Launcher",
+		.quantity = 1,
+		.ammo = "Grenades",
+		.type = ITEM_WEAPON,
+		.tag = WEAPON_GRENADE_LAUNCHER,
+		.priority = 0.40,
+		.precaches = "models/objects/grenade/tris.md3 weapons/grenadelauncher/fire.wav"
 	},
 
 	/*QUAKED weapon_rocketlauncher (.8 .2 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1318,22 +1390,22 @@ const g_item_t g_items[] = {
 	 model="models/weapons/rocketlauncher/tris.md3"
 	 */
 	{
-		"weapon_rocketlauncher",
-		G_PickupWeapon,
-		G_UseWeapon,
-		G_DropWeapon,
-		G_FireRocketLauncher,
-		"weapons/common/pickup.wav",
-		"models/weapons/rocketlauncher/tris.md3",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/w_rlauncher",
-		"Rocket Launcher",
-		1,
-		"Rockets",
-		ITEM_WEAPON,
-		0,
-		0.50,
-		"models/objects/rocket/tris.md3 objects/rocket/fly.wav "
+		.class_name = "weapon_rocketlauncher",
+		.Pickup = G_PickupWeapon,
+		.Use = G_UseWeapon,
+		.Drop = G_DropWeapon,
+		.Think = G_FireRocketLauncher,
+		.pickup_sound = "weapons/common/pickup.wav",
+		.model = "models/weapons/rocketlauncher/tris.md3",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/w_rlauncher",
+		.name = "Rocket Launcher",
+		.quantity = 1,
+		.ammo = "Rockets",
+		.type = ITEM_WEAPON,
+		.tag = WEAPON_ROCKET_LAUNCHER,
+		.priority = 0.50,
+		.precaches = "models/objects/rocket/tris.md3 objects/rocket/fly.wav "
 		"weapons/rocketlauncher/fire.wav"
 	},
 
@@ -1352,22 +1424,22 @@ const g_item_t g_items[] = {
 	 model="models/weapons/hyperblaster/tris.md3"
 	 */
 	{
-		"weapon_hyperblaster",
-		G_PickupWeapon,
-		G_UseWeapon,
-		G_DropWeapon,
-		G_FireHyperblaster,
-		"weapons/common/pickup.wav",
-		"models/weapons/hyperblaster/tris.md3",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/w_hyperblaster",
-		"Hyperblaster",
-		1,
-		"Cells",
-		ITEM_WEAPON,
-		0,
-		0.50,
-		"weapons/hyperblaster/fire.wav weapons/hyperblaster/hit.wav"
+		.class_name = "weapon_hyperblaster",
+		.Pickup = G_PickupWeapon,
+		.Use = G_UseWeapon,
+		.Drop = G_DropWeapon,
+		.Think = G_FireHyperblaster,
+		.pickup_sound = "weapons/common/pickup.wav",
+		.model = "models/weapons/hyperblaster/tris.md3",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/w_hyperblaster",
+		.name = "Hyperblaster",
+		.quantity = 1,
+		.ammo = "Cells",
+		.type = ITEM_WEAPON,
+		.tag = WEAPON_HYPERBLASTER,
+		.priority = 0.50,
+		.precaches = "weapons/hyperblaster/fire.wav weapons/hyperblaster/hit.wav"
 	},
 
 	/*QUAKED weapon_lightning (.9 .9 .9) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1398,7 +1470,7 @@ const g_item_t g_items[] = {
 		1,
 		"Bolts",
 		ITEM_WEAPON,
-		0,
+		WEAPON_LIGHTNING,
 		0.50,
 		"weapons/lightning/fire.wav weapons/lightning/fly.wav "
 		"weapons/lightning/discharge.wav"
@@ -1419,22 +1491,22 @@ const g_item_t g_items[] = {
 	 model="models/weapons/railgun/tris.obj"
 	 */
 	{
-		"weapon_railgun",
-		G_PickupWeapon,
-		G_UseWeapon,
-		G_DropWeapon,
-		G_FireRailgun,
-		"weapons/common/pickup.wav",
-		"models/weapons/railgun/tris.obj",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/w_railgun",
-		"Railgun",
-		1,
-		"Slugs",
-		ITEM_WEAPON,
-		0,
-		0.60,
-		"weapons/railgun/fire.wav"
+		.class_name = "weapon_railgun",
+		.Pickup = G_PickupWeapon,
+		.Use = G_UseWeapon,
+		.Drop = G_DropWeapon,
+		.Think = G_FireRailgun,
+		.pickup_sound = "weapons/common/pickup.wav",
+		.model = "models/weapons/railgun/tris.obj",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/w_railgun",
+		.name = "Railgun",
+		.quantity = 1,
+		.ammo = "Slugs",
+		.type = ITEM_WEAPON,
+		.tag = WEAPON_RAILGUN,
+		.priority = 0.60,
+		.precaches = "weapons/railgun/fire.wav"
 	},
 
 	/*QUAKED weapon_bfg (.4 1 .5) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1452,22 +1524,22 @@ const g_item_t g_items[] = {
 	 model="models/weapons/bfg/tris.md3"
 	 */
 	{
-		"weapon_bfg",
-		G_PickupWeapon,
-		G_UseWeapon,
-		G_DropWeapon,
-		G_FireBfg,
-		"weapons/common/pickup.wav",
-		"models/weapons/bfg/tris.md3",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/w_bfg",
-		"BFG10K",
-		1,
-		"Nukes",
-		ITEM_WEAPON,
-		0,
-		0.66,
-		"weapons/bfg/prime.wav weapons/bfg/hit.wav"
+		.class_name = "weapon_bfg",
+		.Pickup = G_PickupWeapon,
+		.Use = G_UseWeapon,
+		.Drop = G_DropWeapon,
+		.Think = G_FireBfg,
+		.pickup_sound = "weapons/common/pickup.wav",
+		.model = "models/weapons/bfg/tris.md3",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/w_bfg",
+		.name = "BFG10K",
+		.quantity = 1,
+		.ammo = "Nukes",
+		.type = ITEM_WEAPON,
+		.tag = WEAPON_BFG10K,
+		.priority = 0.66,
+		.precaches = "weapons/bfg/prime.wav weapons/bfg/hit.wav"
 	},
 
 	/*QUAKED ammo_shells (.6 .6 .1) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1485,22 +1557,22 @@ const g_item_t g_items[] = {
 	 model="models/ammo/shells/tris.md3"
 	 */
 	{
-		"ammo_shells",
-		G_PickupAmmo,
-		NULL,
-		G_DropItem,
-		NULL,
-		"ammo/common/pickup.wav",
-		"models/ammo/shells/tris.md3",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/a_shells",
-		"Shells",
-		10,
-		NULL,
-		ITEM_AMMO,
-		AMMO_SHELLS,
-		0.15,
-		""
+		.class_name = "ammo_shells",
+		.Pickup = G_PickupAmmo,
+		.Use = NULL,
+		.Drop = G_DropItem,
+		.Think = NULL,
+		.pickup_sound = "ammo/common/pickup.wav",
+		.model = "models/ammo/shells/tris.md3",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/a_shells",
+		.name = "Shells",
+		.quantity = 10,
+		.ammo = NULL,
+		.type = ITEM_AMMO,
+		.tag = AMMO_SHELLS,
+		.priority = 0.15,
+		.precaches = ""
 	},
 
 	/*QUAKED ammo_bullets (.8 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1518,22 +1590,22 @@ const g_item_t g_items[] = {
 	 model="models/ammo/bullets/tris.md3"
 	 */
 	{
-		"ammo_bullets",
-		G_PickupAmmo,
-		NULL,
-		G_DropItem,
-		NULL,
-		"ammo/common/pickup.wav",
-		"models/ammo/bullets/tris.md3",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/a_bullets",
-		"Bullets",
-		50,
-		NULL,
-		ITEM_AMMO,
-		AMMO_BULLETS,
-		0.15,
-		""
+		.class_name = "ammo_bullets",
+		.Pickup = G_PickupAmmo,
+		.Use = NULL,
+		.Drop = G_DropItem,
+		.Think = NULL,
+		.pickup_sound = "ammo/common/pickup.wav",
+		.model = "models/ammo/bullets/tris.md3",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/a_bullets",
+		.name = "Bullets",
+		.quantity = 50,
+		.ammo = NULL,
+		.type = ITEM_AMMO,
+		.tag = AMMO_BULLETS,
+		.priority = 0.15,
+		.precaches = ""
 	},
 
 	/*QUAKED ammo_grenades (.2 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1551,22 +1623,22 @@ const g_item_t g_items[] = {
 	 model="models/ammo/grenades/tris.md3"
 	 */
 	{
-		"ammo_grenades",
-		G_PickupAmmo,
-		G_UseWeapon,
-		G_DropItem,
-		G_FireHandGrenade,
-		"ammo/common/pickup.wav",
-		"models/ammo/grenades/tris.md3",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/a_handgrenades",
-		"Grenades",
-		10,
-		"grenades",
-		ITEM_AMMO,
-		AMMO_GRENADES,
-		0.15,
-		"weapons/handgrenades/hg_throw.wav weapons/handgrenades/hg_clang.ogg weapons/handgrenades/hg_tick.ogg"
+		.class_name = "ammo_grenades",
+		.Pickup = G_PickupGrenades,
+		.Use = NULL,
+		.Drop = G_DropItem,
+		.Think = NULL,
+		.pickup_sound = "ammo/common/pickup.wav",
+		.model = "models/ammo/grenades/tris.md3",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/a_handgrenades",
+		.name = "Grenades",
+		.quantity = 10,
+		.ammo = "grenades",
+		.type = ITEM_AMMO,
+		.tag = AMMO_GRENADES,
+		.priority = 0.15,
+		.precaches = ""
 	},
 
 	/*QUAKED ammo_rockets (.8 .2 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1584,22 +1656,22 @@ const g_item_t g_items[] = {
 	 model="models/ammo/rockets/tris.md3"
 	 */
 	{
-		"ammo_rockets",
-		G_PickupAmmo,
-		NULL,
-		G_DropItem,
-		NULL,
-		"ammo/common/pickup.wav",
-		"models/ammo/rockets/tris.md3",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/a_rockets",
-		"Rockets",
-		10,
-		NULL,
-		ITEM_AMMO,
-		AMMO_ROCKETS,
-		0.15,
-		""
+		.class_name = "ammo_rockets",
+		.Pickup = G_PickupAmmo,
+		.Use = NULL,
+		.Drop = G_DropItem,
+		.Think = NULL,
+		.pickup_sound = "ammo/common/pickup.wav",
+		.model = "models/ammo/rockets/tris.md3",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/a_rockets",
+		.name = "Rockets",
+		.quantity = 10,
+		.ammo = NULL,
+		.type = ITEM_AMMO,
+		.tag = AMMO_ROCKETS,
+		.priority = 0.15,
+		.precaches = ""
 	},
 
 	/*QUAKED ammo_cells (.4 .7 1) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1617,22 +1689,22 @@ const g_item_t g_items[] = {
 	 model="models/ammo/cells/tris.md3"
 	 */
 	{
-		"ammo_cells",
-		G_PickupAmmo,
-		NULL,
-		G_DropItem,
-		NULL,
-		"ammo/common/pickup.wav",
-		"models/ammo/cells/tris.md3",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/a_cells",
-		"Cells",
-		50,
-		NULL,
-		ITEM_AMMO,
-		AMMO_CELLS,
-		0.15,
-		""
+		.class_name = "ammo_cells",
+		.Pickup = G_PickupAmmo,
+		.Use = NULL,
+		.Drop = G_DropItem,
+		.Think = NULL,
+		.pickup_sound = "ammo/common/pickup.wav",
+		.model = "models/ammo/cells/tris.md3",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/a_cells",
+		.name = "Cells",
+		.quantity = 50,
+		.ammo = NULL,
+		.type = ITEM_AMMO,
+		.tag = AMMO_CELLS,
+		.priority = 0.15,
+		.precaches = ""
 	},
 
 	/*QUAKED ammo_bolts (.9 .9 .9) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1650,22 +1722,22 @@ const g_item_t g_items[] = {
 	 model="models/ammo/bolts/tris.md3"
 	 */
 	{
-		"ammo_bolts",
-		G_PickupAmmo,
-		NULL,
-		G_DropItem,
-		NULL,
-		"ammo/common/pickup.wav",
-		"models/ammo/bolts/tris.md3",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/a_bolts",
-		"Bolts",
-		25,
-		NULL,
-		ITEM_AMMO,
-		AMMO_BOLTS,
-		0.15,
-		""
+		.class_name = "ammo_bolts",
+		.Pickup = G_PickupAmmo,
+		.Use = NULL,
+		.Drop = G_DropItem,
+		.Think = NULL,
+		.pickup_sound = "ammo/common/pickup.wav",
+		.model = "models/ammo/bolts/tris.md3",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/a_bolts",
+		.name = "Bolts",
+		.quantity = 25,
+		.ammo = NULL,
+		.type = ITEM_AMMO,
+		.tag = AMMO_BOLTS,
+		.priority = 0.15,
+		.precaches = ""
 	},
 
 	/*QUAKED ammo_slugs (.1 .1 .8) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1683,22 +1755,22 @@ const g_item_t g_items[] = {
 	 model="models/ammo/slugs/tris.md3"
 	 */
 	{
-		"ammo_slugs",
-		G_PickupAmmo,
-		NULL,
-		G_DropItem,
-		NULL,
-		"ammo/common/pickup.wav",
-		"models/ammo/slugs/tris.md3",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/a_slugs",
-		"Slugs",
-		10,
-		NULL,
-		ITEM_AMMO,
-		AMMO_SLUGS,
-		0.15,
-		""
+		.class_name = "ammo_slugs",
+		.Pickup = G_PickupAmmo,
+		.Use = NULL,
+		.Drop = G_DropItem,
+		.Think = NULL,
+		.pickup_sound = "ammo/common/pickup.wav",
+		.model = "models/ammo/slugs/tris.md3",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/a_slugs",
+		.name = "Slugs",
+		.quantity = 10,
+		.ammo = NULL,
+		.type = ITEM_AMMO,
+		.tag = AMMO_SLUGS,
+		.priority = 0.15,
+		.precaches = ""
 	},
 
 	/*QUAKED ammo_nukes (.4 1 .5) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1716,22 +1788,22 @@ const g_item_t g_items[] = {
 	 model="models/ammo/nukes/tris.md3"
 	 */
 	{
-		"ammo_nukes",
-		G_PickupAmmo,
-		NULL,
-		G_DropItem,
-		NULL,
-		"ammo/common/pickup.wav",
-		"models/ammo/nukes/tris.md3",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/a_nukes",
-		"Nukes",
-		2,
-		NULL,
-		ITEM_AMMO,
-		AMMO_NUKES,
-		0.15,
-		""
+		.class_name = "ammo_nukes",
+		.Pickup = G_PickupAmmo,
+		.Use = NULL,
+		.Drop = G_DropItem,
+		.Think = NULL,
+		.pickup_sound = "ammo/common/pickup.wav",
+		.model = "models/ammo/nukes/tris.md3",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/a_nukes",
+		.name = "Nukes",
+		.quantity = 2,
+		.ammo = NULL,
+		.type = ITEM_AMMO,
+		.tag = AMMO_NUKES,
+		.priority = 0.15,
+		.precaches = ""
 	},
 
 	/*QUAKED item_adrenaline (.3 .3 1) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1749,22 +1821,22 @@ const g_item_t g_items[] = {
 	 model="models/powerups/adren/tris.obj"
 	 */
 	{
-		"item_adrenaline",
-		G_PickupAdrenaline,
-		NULL,
-		NULL,
-		NULL,
-		"adren/pickup.wav",
-		"models/powerups/adren/tris.obj",
-		EF_ROTATE | EF_PULSE,
-		"pics/p_adrenaline",
-		"Adrenaline",
-		0,
-		NULL,
-		0,
-		0,
-		0.45,
-		""
+		.class_name = "item_adrenaline",
+		.Pickup = G_PickupAdrenaline,
+		.Use = NULL,
+		.Drop = NULL,
+		.Think = NULL,
+		.pickup_sound = "adren/pickup.wav",
+		.model = "models/powerups/adren/tris.obj",
+		.effects = EF_ROTATE | EF_PULSE,
+		.icon = "pics/p_adrenaline",
+		.name = "Adrenaline",
+		.quantity = 0,
+		.ammo = NULL,
+		.type = 0,
+		.tag = 0,
+		.priority = 0.45,
+		.precaches = ""
 	},
 
 	/*QUAKED item_health_small (.3 1 .3) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1782,22 +1854,22 @@ const g_item_t g_items[] = {
 	 model="models/health/small/tris.obj"
 	 */
 	{
-		"item_health_small",
-		G_PickupHealth,
-		NULL,
-		NULL,
-		NULL,
-		"health/small/pickup.wav",
-		"models/health/small/tris.obj",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/i_small_health",
-		"Small Health",
-		3,
-		NULL,
-		ITEM_HEALTH,
-		HEALTH_SMALL,
-		0.10,
-		""
+		.class_name = "item_health_small",
+		.Pickup = G_PickupHealth,
+		.Use = NULL,
+		.Drop = NULL,
+		.Think = NULL,
+		.pickup_sound = "health/small/pickup.wav",
+		.model = "models/health/small/tris.obj",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/i_small_health",
+		.name = "Small Health",
+		.quantity = 3,
+		.ammo = NULL,
+		.type = ITEM_HEALTH,
+		.tag = HEALTH_SMALL,
+		.priority = 0.10,
+		.precaches = ""
 	},
 
 	/*QUAKED item_health (.8 .8 0) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1815,22 +1887,22 @@ const g_item_t g_items[] = {
 	 model="models/health/medium/tris.obj"
 	 */
 	{
-		"item_health",
-		G_PickupHealth,
-		NULL,
-		NULL,
-		NULL,
-		"health/medium/pickup.wav",
-		"models/health/medium/tris.obj",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/i_medium_health",
-		"Medium Health",
-		15,
-		NULL,
-		ITEM_HEALTH,
-		HEALTH_MEDIUM,
-		0.25,
-		""
+		.class_name = "item_health",
+		.Pickup = G_PickupHealth,
+		.Use = NULL,
+		.Drop = NULL,
+		.Think = NULL,
+		.pickup_sound = "health/medium/pickup.wav",
+		.model = "models/health/medium/tris.obj",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/i_medium_health",
+		.name = "Medium Health",
+		.quantity = 15,
+		.ammo = NULL,
+		.type = ITEM_HEALTH,
+		.tag = HEALTH_MEDIUM,
+		.priority = 0.25,
+		.precaches = ""
 	},
 
 	/*QUAKED item_health_large (1 0 0) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1848,22 +1920,22 @@ const g_item_t g_items[] = {
 	 model="models/health/large/tris.obj"
 	 */
 	{
-		"item_health_large",
-		G_PickupHealth,
-		NULL,
-		NULL,
-		NULL,
-		"health/large/pickup.wav",
-		"models/health/large/tris.obj",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/i_large_health",
-		"Large Health",
-		25,
-		NULL,
-		ITEM_HEALTH,
-		HEALTH_LARGE,
-		0.40,
-		""
+		.class_name = "item_health_large",
+		.Pickup = G_PickupHealth,
+		.Use = NULL,
+		.Drop = NULL,
+		.Think = NULL,
+		.pickup_sound = "health/large/pickup.wav",
+		.model = "models/health/large/tris.obj",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/i_large_health",
+		.name = "Large Health",
+		.quantity = 25,
+		.ammo = NULL,
+		.type = ITEM_HEALTH,
+		.tag = HEALTH_LARGE,
+		.priority = 0.40,
+		.precaches = ""
 	},
 
 	/*QUAKED item_health_mega (.3 .3 1) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1881,22 +1953,22 @@ const g_item_t g_items[] = {
 	 model="models/health/mega/tris.obj"
 	 */
 	{
-		"item_health_mega",
-		G_PickupHealth,
-		NULL,
-		NULL,
-		NULL,
-		"health/mega/pickup.wav",
-		"models/health/mega/tris.obj",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/i_mega_health",
-		"Mega Health",
-		75,
-		NULL,
-		ITEM_HEALTH,
-		HEALTH_MEGA,
-		0.60,
-		""
+		.class_name = "item_health_mega",
+		.Pickup = G_PickupHealth,
+		.Use = NULL,
+		.Drop = NULL,
+		.Think = NULL,
+		.pickup_sound = "health/mega/pickup.wav",
+		.model = "models/health/mega/tris.obj",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/i_mega_health",
+		.name = "Mega Health",
+		.quantity = 75,
+		.ammo = NULL,
+		.type = ITEM_HEALTH,
+		.tag = HEALTH_MEGA,
+		.priority = 0.60,
+		.precaches = ""
 	},
 
 	/*QUAKED item_flag_team1 (.2 .2 1) (-16 -16 -24) (16 16 32) triggered no_touch hover
@@ -1910,22 +1982,22 @@ const g_item_t g_items[] = {
 	 model="models/ctf/flag1/tris.md3"
 	 */
 	{
-		"item_flag_team1",
-		G_PickupFlag,
-		NULL,
-		G_DropFlag,
-		NULL,
-		NULL,
-		"models/ctf/flag1/tris.md3",
-		EF_BOB | EF_ROTATE,
-		"pics/i_flag1",
-		"Enemy Flag",
-		0,
-		NULL,
-		ITEM_FLAG,
-		0,
-		0.75,
-		"ctf/capture.wav ctf/steal.wav ctf/return.wav"
+		.class_name = "item_flag_team1",
+		.Pickup = G_PickupFlag,
+		.Use = NULL,
+		.Drop = G_DropFlag,
+		.Think = NULL,
+		.pickup_sound = NULL,
+		.model = "models/ctf/flag1/tris.md3",
+		.effects = EF_BOB | EF_ROTATE,
+		.icon = "pics/i_flag1",
+		.name = "Enemy Flag",
+		.quantity = 0,
+		.ammo = NULL,
+		.type = ITEM_FLAG,
+		.tag = 0,
+		.priority = 0.75,
+		.precaches = "ctf/capture.wav ctf/steal.wav ctf/return.wav"
 	},
 
 	/*QUAKED item_flag_team2 (1 .2 .2) (-16 -16 -24) (16 16 32) triggered no_touch hover
@@ -1939,22 +2011,22 @@ const g_item_t g_items[] = {
 	 model="models/ctf/flag2/tris.md3"
 	 */
 	{
-		"item_flag_team2",
-		G_PickupFlag,
-		NULL,
-		G_DropFlag,
-		NULL,
-		NULL,
-		"models/ctf/flag2/tris.md3",
-		EF_BOB | EF_ROTATE,
-		"pics/i_flag2",
-		"Enemy Flag",
-		0,
-		NULL,
-		ITEM_FLAG,
-		0,
-		0.75,
-		"ctf/capture.wav ctf/steal.wav ctf/return.wav"
+		.class_name = "item_flag_team2",
+		.Pickup = G_PickupFlag,
+		.Use = NULL,
+		.Drop = G_DropFlag,
+		.Think = NULL,
+		.pickup_sound = NULL,
+		.model = "models/ctf/flag2/tris.md3",
+		.effects = EF_BOB | EF_ROTATE,
+		.icon = "pics/i_flag2",
+		.name = "Enemy Flag",
+		.quantity = 0,
+		.ammo = NULL,
+		.type = ITEM_FLAG,
+		.tag = 0,
+		.priority = 0.75,
+		.precaches = "ctf/capture.wav ctf/steal.wav ctf/return.wav"
 	},
 
 	/*QUAKED item_quad (.2 .4 1) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1972,22 +2044,22 @@ const g_item_t g_items[] = {
 	 model="models/powerups/quad/tris.md3"
 	 */
 	{
-		"item_quad",
-		G_PickupQuadDamage,
-		NULL,
-		NULL,
-		NULL,
-		"quad/pickup.wav",
-		"models/powerups/quad/tris.md3",
-		EF_BOB | EF_ROTATE,
-		"pics/i_quad",
-		"Quad Damage",
-		0,
-		NULL,
-		ITEM_POWERUP,
-		0,
-		0.80,
-		"quad/attack.wav quad/expire.wav"
+		.class_name = "item_quad",
+		.Pickup = G_PickupQuadDamage,
+		.Use = NULL,
+		.Drop = NULL,
+		.Think = NULL,
+		.pickup_sound = "quad/pickup.wav",
+		.model = "models/powerups/quad/tris.md3",
+		.effects = EF_BOB | EF_ROTATE,
+		.icon = "pics/i_quad",
+		.name = "Quad Damage",
+		.quantity = 0,
+		.ammo = NULL,
+		.type = ITEM_POWERUP,
+		.tag = 0,
+		.priority = 0.80,
+		.precaches = "quad/attack.wav quad/expire.wav"
 	},
 };
 

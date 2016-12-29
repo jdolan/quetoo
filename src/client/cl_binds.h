@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CL_BINDS_H__
-#define __CL_BINDS_H__
+#pragma once
 
 static const char *DEFAULT_BINDS =
     "bind ` cl_toggle_console\n"
@@ -132,5 +131,3 @@ static const char *DEFAULT_BINDS =
 
     // and "default" autoexec.cfg
     "exec autoexec.cfg\n";
-
-#endif /* __CL_BINDS_H__ */

@@ -21,7 +21,7 @@
 
 #include "qlight.h"
 
-static int32_t lightmap_scale;
+static vec_t lightmap_scale;
 
 // light_info_t is a temporary bucket for lighting calculations
 typedef struct light_info_s {
@@ -132,8 +132,8 @@ static void CalcLightinfoExtents(light_info_t *l) {
 		l->exact_mins[i] = st_mins[i];
 		l->exact_maxs[i] = st_maxs[i];
 
-		lm_mins[i] = floor(st_mins[i] / lightmap_scale);
-		lm_maxs[i] = ceil(st_maxs[i] / lightmap_scale);
+		lm_mins[i] = floor(st_mins[i] * lightmap_scale);
+		lm_maxs[i] = ceil(st_maxs[i] * lightmap_scale);
 
 		l->tex_mins[i] = lm_mins[i];
 		l->tex_size[i] = lm_maxs[i] - lm_mins[i];
@@ -227,7 +227,7 @@ static void CalcPoints(light_info_t *l, vec_t sofs, vec_t tofs) {
 	h = l->tex_size[1] + 1;
 	w = l->tex_size[0] + 1;
 
-	step = lightmap_scale;
+	step = 1.0 / lightmap_scale;
 	starts = l->tex_mins[0] * step;
 	startt = l->tex_mins[1] * step;
 
@@ -471,9 +471,9 @@ void BuildLights(void) {
 			contrast = v;
 		}
 
-		// lightmap resolution downscale (e.g. 8 = 1 / 8)
-		lightmap_scale = (int32_t) FloatForKey(e, "lightmap_scale");
-		if (!lightmap_scale) {
+		// lightmap resolution downscale (e.g. 0.125, 0.0625)
+		lightmap_scale = FloatForKey(e, "lightmap_scale");
+		if (lightmap_scale == 0.0) {
 			lightmap_scale = DEFAULT_LIGHTMAP_SCALE;
 		}
 	}

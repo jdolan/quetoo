@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __GAME_TYPES_H__ // don't collide with <glib/gtypes.h>
-#define __GAME_TYPES_H__
+#pragma once
 
 #include "shared.h"
 
@@ -112,7 +111,7 @@ typedef enum {
 	STAT_DEATHS,
 	STAT_HEALTH,
 	STAT_HEALTH_ICON,
-	STAT_HELDFLAG,
+	STAT_CARRYING_FLAG,
 	STAT_PICKUP_ICON,
 	STAT_PICKUP_STRING,
 	STAT_QUAD_TIME,
@@ -124,13 +123,31 @@ typedef enum {
 	STAT_TIME,
 	STAT_VOTE,
 	STAT_WEAPON,
-	STAT_WEAPON_ICON
+	STAT_WEAPON_ICON,
+	STAT_WEAPON_TAG
 } g_stat_t;
 
 /**
  * @brief Forces a statistic field to be re-sent, even if the value has not changed.
  */
 #define STAT_TOGGLE_BIT		0x4000
+
+/**
+ * @brief Weapon tags to inform the client game which weapon the player wields.
+ */
+typedef enum {
+	WEAPON_BLASTER = 1,
+	WEAPON_SHOTGUN,
+	WEAPON_SUPER_SHOTGUN,
+	WEAPON_MACHINEGUN,
+	WEAPON_GRENADE_LAUNCHER,
+	WEAPON_HAND_GRENADE,
+	WEAPON_ROCKET_LAUNCHER,
+	WEAPON_HYPERBLASTER,
+	WEAPON_LIGHTNING,
+	WEAPON_RAILGUN,
+	WEAPON_BFG10K
+} g_weapon_tag_t;
 
 /**
  * @brief Muzzle flashes are bound to the entity that created them. This allows
@@ -140,14 +157,14 @@ typedef enum {
 typedef enum {
 	MZ_BLASTER,
 	MZ_SHOTGUN,
-	MZ_SSHOTGUN,
+	MZ_SUPER_SHOTGUN,
 	MZ_MACHINEGUN,
-	MZ_GRENADE,
-	MZ_ROCKET,
+	MZ_GRENADE_LAUNCHER,
+	MZ_ROCKET_LAUNCHER,
 	MZ_HYPERBLASTER,
 	MZ_LIGHTNING,
 	MZ_RAILGUN,
-	MZ_BFG,
+	MZ_BFG10K,
 	MZ_LOGOUT,
 } g_muzzle_flash_t;
 
@@ -208,6 +225,7 @@ typedef enum {
 	EV_CLIENT_GURP,
 	EV_CLIENT_JUMP,
 	EV_CLIENT_LAND,
+	EV_CLIENT_STEP,
 	EV_CLIENT_SIZZLE,
 	EV_ITEM_RESPAWN,
 	EV_ITEM_PICKUP,
@@ -955,5 +973,3 @@ typedef struct {
 #include "game/game.h"
 
 #endif /* __GAME_LOCAL_H__ */
-
-#endif /* __GAME_TYPES_H__ */

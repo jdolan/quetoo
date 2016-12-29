@@ -37,7 +37,7 @@ cl_entity_t *Cg_Self(void) {
 }
 
 /**
- * @return True if the specified entity is bound to the local client.
+ * @return True if the specified entity is bound to the local client's view.
  */
 _Bool Cg_IsSelf(const cl_entity_t *ent) {
 
@@ -79,6 +79,39 @@ _Bool Cg_IsDucking(const cl_entity_t *ent) {
 }
 
 /**
+ * @brief Setup step interpolation.
+ */
+void Cg_TraverseStep(cl_entity_step_t *step, uint32_t time, vec_t height) {
+
+	const uint32_t delta = time - step->timestamp;
+
+	if (delta < step->interval) {
+		const vec_t lerp = (step->interval - delta) / (vec_t) step->interval;
+		step->height = step->height * (1.0 - lerp) + height;
+	} else {
+		step->height = height;
+		step->timestamp = time;
+	}
+
+	step->interval = 128.0 * (fabs(step->height) / PM_STEP_HEIGHT);
+}
+
+/**
+ * @brief Interpolate the entity's step for the current frame.
+ */
+void Cg_InterpolateStep(cl_entity_step_t *step) {
+
+	const uint32_t delta = cgi.client->unclamped_time - step->timestamp;
+
+	if (delta < step->interval) {
+		const vec_t lerp = (step->interval - delta) / (vec_t) step->interval;
+		step->delta_height = lerp * step->height;
+	} else {
+		step->delta_height = 0.0;
+	}
+}
+
+/**
  * @brief
  */
 static void Cg_AnimateEntity(cl_entity_t *ent) {
@@ -93,6 +126,8 @@ static void Cg_AnimateEntity(cl_entity_t *ent) {
  */
 void Cg_Interpolate(const cl_frame_t *frame) {
 
+	cgi.client->entity = Cg_Self();
+
 	for (uint16_t i = 0; i < frame->num_entities; i++) {
 
 		const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
@@ -101,6 +136,12 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 		cl_entity_t *ent = &cgi.client->entities[s->number];
 
 		Cg_EntityEvent(ent);
+
+		Cg_InterpolateStep(&ent->step);
+
+		if (ent->step.delta_height) {
+			ent->origin[2] = ent->current.origin[2] - ent->step.delta_height;
+		}
 
 		Cg_AnimateEntity(ent);
 	}
@@ -122,7 +163,7 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	e->effects |= EF_CLIENT;
 
 	// don't draw ourselves unless third person is set
-	if (Cg_IsSelf(ent) && !cg_third_person->value) {
+	if (Cg_IsSelf(ent) && !cgi.client->third_person) {
 
 		e->effects |= EF_NO_DRAW;
 
@@ -175,7 +216,7 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 /**
  * @brief Calculates a kick offset and angles based on our player's animation state.
  */
-static void Cg_WeaponKick(cl_entity_t *ent, vec3_t offset, vec3_t angles) {
+static void Cg_WeaponOffset(cl_entity_t *ent, vec3_t offset, vec3_t angles) {
 
 	const vec3_t drop_raise_offset = { -4.0, -4.0, -4.0 };
 	const vec3_t drop_raise_angles = { 25.0, -35.0, 2.0 };
@@ -215,25 +256,25 @@ static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 		return;
 	}
 
-	if (cg_third_person->value) {
+	if (cgi.client->third_person) {
 		return;
 	}
 
 	if (ps->stats[STAT_HEALTH] <= 0) {
-		return;    // dead
+		return; // dead
 	}
 
 	if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
-		return;    // spectating
+		return; // spectating
 	}
 
 	if (!ps->stats[STAT_WEAPON]) {
-		return;    // no weapon, e.g. level intermission
+		return; // no weapon, e.g. level intermission
 	}
 
 	memset(&w, 0, sizeof(w));
 
-	Cg_WeaponKick(ent, offset, angles);
+	Cg_WeaponOffset(ent, offset, angles);
 
 	VectorCopy(cgi.view->origin, w.origin);
 
@@ -292,7 +333,7 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 
 	// set the bounding box, according to the server, for debugging
 	if (ent->current.solid != SOLID_BSP) {
-		if (!Cg_IsSelf(ent) || cg_third_person->value) {
+		if (!Cg_IsSelf(ent) || cgi.client->third_person) {
 			UnpackBounds(ent->current.bounds, e.mins, e.maxs);
 		}
 	}
@@ -317,7 +358,7 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 	}
 
 	// don't draw our own giblet
-	if (Cg_IsSelf(ent) && !cg_third_person->value) {
+	if (Cg_IsSelf(ent) && !cgi.client->third_person) {
 		e.effects |= EF_NO_DRAW;
 	}
 

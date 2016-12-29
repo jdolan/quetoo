@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_ENTITY_H__
-#define __R_ENTITY_H__
+#pragma once
 
 #include "r_types.h"
 
@@ -34,5 +33,3 @@ void R_SetMatrixForEntity(r_entity_t *e);
 	void R_CullEntities(void);
 	void R_DrawEntities(void);
 #endif /* __R_LOCAL_H__ */
-
-#endif /* __R_ENTITY_H__ */

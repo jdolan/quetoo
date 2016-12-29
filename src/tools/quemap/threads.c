@@ -64,7 +64,7 @@ static int32_t GetThreadWork(void) {
 
 	ThreadLock();
 
-	if (thread_work.index == thread_work.count) { // done
+	if (thread_work.index == thread_work.count || !Com_WasInit(QUETOO_MAPTOOL)) { // done or killed
 		ThreadUnlock();
 		return -1;
 	}

@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __S_MIX_H__
-#define __S_MIX_H__
+#pragma once
 
 void S_AddSample(const s_play_sample_t *play);
 
@@ -30,5 +29,3 @@ void S_AddSample(const s_play_sample_t *play);
 	void S_MixChannels(void);
 
 #endif /* __S_LOCAL_H__ */
-
-#endif /* __S_MIX_H__ */

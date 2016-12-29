@@ -19,9 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CM_LOCAL_H__
+#pragma once
+
 #define __CM_LOCAL_H__
-
 #include "cmodel.h"
-
-#endif /* __CM_LOCAL_H__ */

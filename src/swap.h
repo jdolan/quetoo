@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __SWAP_H__
-#define __SWAP_H__
+#pragma once
 
 #include "quetoo.h"
 
@@ -30,5 +29,3 @@ extern int32_t BigLong(int32_t l);
 extern int32_t LittleLong(int32_t l);
 extern vec_t BigFloat(vec_t f);
 extern vec_t LittleFloat(vec_t f);
-
-#endif /* __SWAP_H__ */

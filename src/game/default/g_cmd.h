@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __GAME_COMMANDS_H__
-#define __GAME_COMMANDS_H__
+#pragma once
 
 #include "g_types.h"
 
@@ -32,7 +31,4 @@
 	void G_Stuff_Sv_f(void);
 	void G_StuffAll_Sv_f(void);
 	void G_Mute_Sv_f(void);
-
 #endif /* __GAME_LOCAL_H__ */
-
-#endif /* __GAME_COMMANDS_H__ */

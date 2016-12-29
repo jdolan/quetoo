@@ -246,11 +246,16 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 		case EV_CLIENT_GURP:
 			Cg_GurpEffect(ent);
 			break;
+		case EV_CLIENT_JUMP:
+			play.sample = cgi.LoadSample(va("*jump_%d", Random() % 5 + 1));
+			break;
 		case EV_CLIENT_LAND:
 			play.sample = cgi.LoadSample("*land_1");
 			break;
-		case EV_CLIENT_JUMP:
-			play.sample = cgi.LoadSample(va("*jump_%d", Random() % 5 + 1));
+		case EV_CLIENT_STEP: {
+			const vec_t height = ent->current.origin[2] - ent->prev.origin[2];
+			Cg_TraverseStep(&ent->step, cgi.client->unclamped_time, height);
+		}
 			break;
 		case EV_CLIENT_SIZZLE:
 			play.sample = cgi.LoadSample("*sizzle_1");
@@ -274,7 +279,9 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 			break;
 	}
 
-	cgi.AddSample(&play);
+	if (play.sample) {
+		cgi.AddSample(&play);
+	}
 
 	s->event = 0;
 }

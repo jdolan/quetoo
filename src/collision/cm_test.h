@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CM_TEST_H__
-#define __CM_TEST_H__
+#pragma once
 
 #include "cm_types.h"
 
@@ -36,6 +35,4 @@ size_t Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int32_t *list, size_
 
 #ifdef __CM_LOCAL_H__
 	void Cm_InitBoxHull(void);
-#endif
-
-#endif /* __CM_TEST_H__ */
+#endif /* __CM_LOCAL_H__ */

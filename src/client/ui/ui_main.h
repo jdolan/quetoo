@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __UI_MAIN_H__
-#define __UI_MAIN_H__
+#pragma once
 
 #include "ui_types.h"
 
@@ -34,5 +33,3 @@ void Ui_Shutdown(void);
 
 #ifdef __UI_LOCAL_H__
 #endif /* __UI_LOCAL_H__ */
-
-#endif /* __UI_MAIN_H__ */

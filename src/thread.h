@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __THREAD_H__
-#define __THREAD_H__
+#pragma once
 
 #include <SDL2/SDL_thread.h>
 
@@ -54,5 +53,3 @@ void Thread_Init(ssize_t num_threads);
 void Thread_Shutdown(void);
 
 extern cvar_t *threads;
-
-#endif /*__THREAD_H__ */

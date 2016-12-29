@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CG_ENTITY_TRAIL_H__
-#define __CG_ENTITY_TRAIL_H__
+#pragma once
 
 #include "cg_types.h"
 
@@ -32,6 +31,3 @@
 	void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel);
 	void Cg_EntityTrail(cl_entity_t *ent);
 #endif /* __CG_LOCAL_H__ */
-
-#endif /* __CG_ENTITY_EFFECT_H__ */
-

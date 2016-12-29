@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __POLYLIB_H__
-#define __POLYLIB_H__
+#pragma once
 
 #include <float.h>
 
@@ -50,5 +49,3 @@ void FreeWinding(winding_t *w);
 void WindingBounds(const winding_t *w, vec3_t mins, vec3_t maxs);
 void ChopWindingInPlace(winding_t **w, const vec3_t normal, const vec_t dist, const vec_t epsilon);
 // frees the original if clipped
-
-#endif /* __POLYLIB_H__ */

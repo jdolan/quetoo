@@ -19,21 +19,19 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CG_PARTICLE_H__
-#define __CG_PARTICLE_H__
+#pragma once
 
 #ifdef __CG_LOCAL_H__
 
-#define PARTICLE_GRAVITY 180.0
-#define CORONA_SCALE(radius, flicker) \
-	((radius) + ((radius) * (flicker) * sin(0.09 * cgi.client->unclamped_time)))
+	#define PARTICLE_GRAVITY 180.0
 
-cg_particle_t *Cg_AllocParticle(const r_particle_type_t type, cg_particles_t *particles);
-cg_particles_t *Cg_AllocParticles(const r_image_t *image, const _Bool use_atlas);
-void Cg_InitParticles(void);
-void Cg_SetupParticleAtlas(void);
-void Cg_FreeParticles(void);
-void Cg_AddParticles(void);
+	#define CORONA_SCALE(radius, flicker) \
+		((radius) + ((radius) * (flicker) * sin(0.09 * cgi.client->unclamped_time)))
+
+	cg_particle_t *Cg_AllocParticle(const r_particle_type_t type, cg_particles_t *particles);
+	cg_particles_t *Cg_AllocParticles(const r_image_t *image, const _Bool use_atlas);
+	void Cg_InitParticles(void);
+	void Cg_SetupParticleAtlas(void);
+	void Cg_FreeParticles(void);
+	void Cg_AddParticles(void);
 #endif /* __CG_LOCAL_H__ */
-
-#endif /* __CG_PARTICLE_H__ */

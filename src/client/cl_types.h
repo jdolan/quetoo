@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CL_TYPES_H__
-#define __CL_TYPES_H__
+#pragma once
 
 #include "net/net_types.h"
 #include "renderer/r_types.h"
@@ -55,6 +54,14 @@ typedef struct {
 } cl_entity_animation_t;
 
 typedef struct {
+	vec_t height;
+	uint32_t time;
+	uint32_t timestamp;
+	uint32_t interval;
+	vec_t delta_height;
+} cl_entity_step_t;
+
+typedef struct {
 	entity_state_t baseline; // delta from this if not from a previous frame
 	entity_state_t current;
 	entity_state_t prev; // will always be valid, but might just be a copy of current
@@ -70,6 +77,8 @@ typedef struct {
 	vec3_t previous_origin; // the previous interpolated origin
 	vec3_t termination; // and termination
 	vec3_t angles; // and angles
+
+	cl_entity_step_t step; // the step the entity just traversed
 
 	matrix4x4_t matrix; // interpolated translation and rotation
 	matrix4x4_t inverse_matrix; // for box hull collision
@@ -115,12 +124,7 @@ typedef struct {
 		vec3_t angles; // and angles (local movement + delta angles)
 	} view;
 
-	struct {
-		vec_t step; // step height (up or down)
-		uint32_t time; // simulation time when step was traversed
-		uint32_t timestamp; // system time when step was traversed
-		uint32_t interval; // interpolation interval
-	} step;
+	cl_entity_step_t step; // the predicted step
 
 	struct g_entity_s *ground_entity;
 
@@ -156,6 +160,7 @@ typedef struct {
 	cl_frame_t *delta_frame; // the delta frame for the current frame
 
 	cl_entity_t entities[MAX_ENTITIES]; // client entities
+	cl_entity_t *entity; // our own entity, which may be our player, or chase camera target, etc..
 
 	entity_state_t entity_states[ENTITY_STATE_BACKUP]; // accumulated each frame
 	uint32_t entity_state; // index (not wrapped) into entity states
@@ -176,6 +181,7 @@ typedef struct {
 	vec3_t angles;
 
 	_Bool demo_server; // we're viewing a demo
+	_Bool third_person; // we're viewing third person camera
 
 	char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
 	uint16_t precache_check;
@@ -334,4 +340,5 @@ typedef struct {
 	struct cg_export_s *cgame;
 } cl_static_t;
 
-#endif /* __CL_TYPES_H__ */
+#ifdef __CL_LOCAL_H__
+#endif /* __CL_LOCAL_H__ */

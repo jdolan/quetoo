@@ -54,11 +54,11 @@ static _Bool R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 	};
 
 	// and convert to lightmap space
-	point_st[0] /= r_model_state.world->bsp->lightmaps->scale;
-	point_st[1] /= r_model_state.world->bsp->lightmaps->scale;
+	point_st[0] *= r_model_state.world->bsp->lightmaps->scale;
+	point_st[1] *= r_model_state.world->bsp->lightmaps->scale;
 
 	// transform the radius into lightmap space, accounting for unevenly scaled textures
-	const vec_t radius_st = Max(1.0, radius / r_model_state.world->bsp->lightmaps->scale);
+	const vec_t radius_st = Max(1.0, radius * r_model_state.world->bsp->lightmaps->scale);
 
 	byte *buffer = surf->stainmap_buffer;
 

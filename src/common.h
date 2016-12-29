@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __COMMON_H__
-#define __COMMON_H__
+#pragma once
 
 #include "shared.h"
 #include "mem.h"
@@ -223,5 +222,3 @@ extern cvar_t *dedicated;
 extern cvar_t *game;
 extern cvar_t *time_demo;
 extern cvar_t *time_scale;
-
-#endif /* __COMMON_H__ */

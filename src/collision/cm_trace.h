@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CM_TRACE_H__
-#define __CM_TRACE_H__
+#pragma once
 
 #include "cm_types.h"
 
@@ -31,4 +30,5 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const ve
                                   const vec3_t maxs, const int32_t head_node, const int32_t contents,
                                   const matrix4x4_t *matrix, const matrix4x4_t *inverse_matrix);
 
-#endif /* __CM_TRACE_H__ */
+#ifdef __CM_LOCAL_H__
+#endif /* __CM_LOCAL_H__ */

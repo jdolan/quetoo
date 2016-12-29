@@ -214,7 +214,7 @@ g_entity_t *G_TossWeapon(g_entity_t *ent) {
 
 	const g_item_t *weapon = ent->client->locals.weapon;
 
-	if (!weapon || !weapon->ammo) { // don't drop if not holding
+	if (!weapon || !weapon->Drop || !weapon->ammo) { // don't drop if not holding
 		return NULL;
 	}
 
@@ -505,8 +505,6 @@ void G_FireBlaster(g_entity_t *ent) {
 
 		G_MuzzleFlash(ent, MZ_BLASTER);
 
-		G_ClientWeaponKick(ent, 1.0);
-
 		G_WeaponFired(ent, 450, ent->client->locals.weapon->quantity);
 	}
 }
@@ -524,8 +522,6 @@ void G_FireShotgun(g_entity_t *ent) {
 		G_ShotgunProjectiles(ent, org, forward, 6, 4, 700, 300, 12, MOD_SHOTGUN);
 
 		G_MuzzleFlash(ent, MZ_SHOTGUN);
-
-		G_ClientWeaponKick(ent, 1.5);
 
 		G_WeaponFired(ent, 500, ent->client->locals.weapon->quantity);
 	}
@@ -553,9 +549,7 @@ void G_FireSuperShotgun(g_entity_t *ent) {
 
 		ent->client->locals.angles[YAW] -= 4.0;
 
-		G_MuzzleFlash(ent, MZ_SSHOTGUN);
-
-		G_ClientWeaponKick(ent, 2.0);
+		G_MuzzleFlash(ent, MZ_SUPER_SHOTGUN);
 
 		G_WeaponFired(ent, 800, ent->client->locals.weapon->quantity);
 	}
@@ -574,8 +568,6 @@ void G_FireMachinegun(g_entity_t *ent) {
 		G_BulletProjectile(ent, org, forward, 4, 6, 100, 200, MOD_MACHINEGUN);
 
 		G_MuzzleFlash(ent, MZ_MACHINEGUN);
-
-		G_ClientWeaponKick(ent, 0.66);
 
 		G_WeaponFired(ent, 100, ent->client->locals.weapon->quantity);
 	}
@@ -731,9 +723,7 @@ void G_FireGrenadeLauncher(g_entity_t *ent) {
 
 		G_GrenadeProjectile(ent, org, forward, 700, 100, 100, 185.0, 2500.0);
 
-		G_MuzzleFlash(ent, MZ_GRENADE);
-
-		G_ClientWeaponKick(ent, 4.0);
+		G_MuzzleFlash(ent, MZ_GRENADE_LAUNCHER);
 
 		G_WeaponFired(ent, 1000, ent->client->locals.weapon->quantity);
 	}
@@ -751,9 +741,7 @@ void G_FireRocketLauncher(g_entity_t *ent) {
 
 		G_RocketProjectile(ent, org, forward, 1000, 100, 100, 150.0);
 
-		G_MuzzleFlash(ent, MZ_ROCKET);
-
-		G_ClientWeaponKick(ent, 2.0);
+		G_MuzzleFlash(ent, MZ_ROCKET_LAUNCHER);
 
 		G_WeaponFired(ent, 1000, ent->client->locals.weapon->quantity);
 	}
@@ -772,8 +760,6 @@ void G_FireHyperblaster(g_entity_t *ent) {
 		G_HyperblasterProjectile(ent, org, forward, 1800, 12, 6);
 
 		G_MuzzleFlash(ent, MZ_HYPERBLASTER);
-
-		G_ClientWeaponKick(ent, 0.66);
 
 		G_WeaponFired(ent, 100, ent->client->locals.weapon->quantity);
 	}
@@ -803,8 +789,6 @@ void G_FireLightning(g_entity_t *ent) {
 
 		G_LightningProjectile(ent, org, forward, 8, 12);
 
-		G_ClientWeaponKick(ent, 0.15);
-
 		G_WeaponFired(ent, 100, ent->client->locals.weapon->quantity);
 	}
 }
@@ -825,8 +809,6 @@ void G_FireRailgun(g_entity_t *ent) {
 
 		G_MuzzleFlash(ent, MZ_RAILGUN);
 
-		G_ClientWeaponKick(ent, 5.0);
-
 		G_WeaponFired(ent, 1800, ent->client->locals.weapon->quantity);
 	}
 }
@@ -844,9 +826,7 @@ static void G_FireBfg_(g_entity_t *ent) {
 
 			G_BfgProjectile(ent->owner, org, forward, 720, 180, 140, 512.0);
 
-			G_MuzzleFlash(ent->owner, MZ_BFG);
-
-			G_ClientWeaponKick(ent->owner, 8.0);
+			G_MuzzleFlash(ent->owner, MZ_BFG10K);
 
 			G_WeaponFired(ent->owner, 2000, ent->owner->client->locals.weapon->quantity);
 		}

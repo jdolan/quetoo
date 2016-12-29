@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __SERVER_H__
-#define __SERVER_H__
+#pragma once
 
 #include "collision/cmodel.h"
 #include "console.h"
@@ -40,5 +39,3 @@
 #include "sv_send.h"
 #include "sv_types.h"
 #include "sv_world.h"
-
-#endif /* __SERVER_H__ */
