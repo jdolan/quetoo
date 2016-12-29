@@ -564,7 +564,7 @@ typedef struct {
  * @brief BSP lightmap parameters.
  */
 typedef struct {
-	uint16_t scale;
+	vec_t scale;
 	uint32_t size;
 	byte *data;
 } r_bsp_lightmaps_t;

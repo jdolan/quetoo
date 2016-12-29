@@ -71,8 +71,8 @@ static void R_LoadBspLightmaps(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 	// resolve lightmap scale
 	if ((c = Cm_WorldspawnValue("lightmap_scale"))) {
-		bsp->lightmaps->scale = strtoul(c, NULL, 0);
-		Com_Debug(DEBUG_RENDERER, "Resolved lightmap_scale: %d\n", bsp->lightmaps->scale);
+		bsp->lightmaps->scale = strtof(c, NULL);
+		Com_Debug(DEBUG_RENDERER, "Resolved lightmap_scale: %1.3f\n", bsp->lightmaps->scale);
 	}
 }
 
@@ -404,16 +404,16 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 	// bump the texture coordinate vectors to ensure we don't split samples
 	for (int32_t i = 0; i < 2; i++) {
 
-		const int32_t bmins = floor(st_mins[i] / bsp->lightmaps->scale);
-		const int32_t bmaxs = ceil(st_maxs[i] / bsp->lightmaps->scale);
+		const int32_t bmins = floor(st_mins[i] * bsp->lightmaps->scale);
+		const int32_t bmaxs = ceil(st_maxs[i] * bsp->lightmaps->scale);
 
-		surf->st_mins[i] = bmins * bsp->lightmaps->scale;
-		surf->st_maxs[i] = bmaxs * bsp->lightmaps->scale;
+		surf->st_mins[i] = bmins / bsp->lightmaps->scale;
+		surf->st_maxs[i] = bmaxs / bsp->lightmaps->scale;
 
 		surf->st_center[i] = (surf->st_maxs[i] + surf->st_mins[i]) / 2.0;
 
 		const vec_t size = surf->st_maxs[i] - surf->st_mins[i];
-		surf->lightmap_size[i] = (r_pixel_t) ((size / bsp->lightmaps->scale) + 1.0);
+		surf->lightmap_size[i] = (r_pixel_t) ((size * bsp->lightmaps->scale) + 1.0);
 	}
 }
 
@@ -794,14 +794,14 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 		// lightmap texture coordinates
 		if (surf->flags & R_SURF_LIGHTMAP) {
 			s -= surf->st_mins[0];
-			s += surf->lightmap_s * mod->bsp->lightmaps->scale;
-			s += mod->bsp->lightmaps->scale / 2.0;
-			s /= surf->lightmap->width * mod->bsp->lightmaps->scale;
+			s += surf->lightmap_s / mod->bsp->lightmaps->scale;
+			s += (1.0 / mod->bsp->lightmaps->scale) / 2.0;
+			s /= surf->lightmap->width / mod->bsp->lightmaps->scale;
 
 			t -= surf->st_mins[1];
-			t += surf->lightmap_t * mod->bsp->lightmaps->scale;
-			t += mod->bsp->lightmaps->scale / 2.0;
-			t /= surf->lightmap->height * mod->bsp->lightmaps->scale;
+			t += surf->lightmap_t / mod->bsp->lightmaps->scale;
+			t += (1.0 / mod->bsp->lightmaps->scale) / 2.0;
+			t /= surf->lightmap->height / mod->bsp->lightmaps->scale;
 		}
 
 		mod->bsp->lightmap_texcoords[*vertices][0] = s;

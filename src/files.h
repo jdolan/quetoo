@@ -217,7 +217,7 @@ typedef struct {
 } d_bsp_normal_t;
 
 // lightmap information is 1/n texture resolution
-#define DEFAULT_LIGHTMAP_SCALE 16
+#define DEFAULT_LIGHTMAP_SCALE (1.0 / 16.0)
 
 // planes (x & ~1) and (x & ~1) + 1 are always opposites
 
