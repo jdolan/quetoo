@@ -98,8 +98,11 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 	const vec3_t maxs = { 8.0, 8.0, 8.0 };
 
 	if (!cg_third_person->value) {
+		cgi.client->third_person = false;
 		return;
 	}
+
+	cgi.client->third_person = true;
 
 	VectorCopy(cgi.view->angles, angles);
 	angles[YAW] += cg_third_person_yaw->value;

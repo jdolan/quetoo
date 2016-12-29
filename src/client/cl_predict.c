@@ -35,7 +35,7 @@ _Bool Cl_UsePrediction(void) {
 		return false;
 	}
 
-	if (cl.demo_server) {
+	if (cl.demo_server || cl.third_person) {
 		return false;
 	}
 

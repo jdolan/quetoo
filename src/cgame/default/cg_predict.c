@@ -74,13 +74,13 @@ void Cg_PredictMovement(const GList *cmds) {
 
 				if (step_delta < pr->step.interval) {
 					const vec_t lerp = (pr->step.interval - step_delta) / (vec_t) pr->step.interval;
-					pr->step.step = pr->step.step * (1.0 - lerp) + pm.step;
+					pr->step.height = pr->step.height * (1.0 - lerp) + pm.step;
 				} else {
-					pr->step.step = pm.step;
+					pr->step.height = pm.step;
 					pr->step.timestamp = cmd->timestamp;
 				}
 
-				pr->step.interval = 128.0 * (fabs(pr->step.step) / PM_STEP_HEIGHT);
+				pr->step.interval = 128.0 * (fabs(pr->step.height) / PM_STEP_HEIGHT);
 			}
 		}
 

@@ -37,7 +37,7 @@ cl_entity_t *Cg_Self(void) {
 }
 
 /**
- * @return True if the specified entity is bound to the local client.
+ * @return True if the specified entity is bound to the local client's view.
  */
 _Bool Cg_IsSelf(const cl_entity_t *ent) {
 
@@ -79,6 +79,39 @@ _Bool Cg_IsDucking(const cl_entity_t *ent) {
 }
 
 /**
+ * @brief Setup step interpolation.
+ */
+void Cg_TraverseStep(cl_entity_step_t *step, vec_t height) {
+
+	const uint32_t delta = cgi.client->unclamped_time - step->timestamp;
+
+	if (delta < step->interval) {
+		const vec_t lerp = (step->interval - delta) / (vec_t) step->interval;
+		step->height = step->height * (1.0 - lerp) + height;
+	} else {
+		step->height = height;
+		step->timestamp = cgi.client->unclamped_time;
+	}
+
+	step->interval = 128.0 * (fabs(step->height) / PM_STEP_HEIGHT);
+}
+
+/**
+ * @brief Interpolate the entity's step for the current frame.
+ */
+vec_t Cg_InterpolateStep(cl_entity_step_t *step) {
+
+	const uint32_t delta = cgi.client->unclamped_time - step->timestamp;
+
+	if (delta < step->interval) {
+		const vec_t lerp = (step->interval - delta) / (vec_t) step->interval;
+		return lerp * step->height;
+	}
+
+	return 0.0;
+}
+
+/**
  * @brief
  */
 static void Cg_AnimateEntity(cl_entity_t *ent) {
@@ -101,6 +134,11 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 		cl_entity_t *ent = &cgi.client->entities[s->number];
 
 		Cg_EntityEvent(ent);
+
+		const vec_t step = Cg_InterpolateStep(&ent->step);
+		if (step) {
+			ent->origin[2] = ent->current.origin[2] - step;
+		}
 
 		Cg_AnimateEntity(ent);
 	}

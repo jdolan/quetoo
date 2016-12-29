@@ -54,6 +54,13 @@ typedef struct {
 } cl_entity_animation_t;
 
 typedef struct {
+	vec_t height;
+	uint32_t time;
+	uint32_t timestamp;
+	uint32_t interval;
+} cl_entity_step_t;
+
+typedef struct {
 	entity_state_t baseline; // delta from this if not from a previous frame
 	entity_state_t current;
 	entity_state_t prev; // will always be valid, but might just be a copy of current
@@ -69,6 +76,8 @@ typedef struct {
 	vec3_t previous_origin; // the previous interpolated origin
 	vec3_t termination; // and termination
 	vec3_t angles; // and angles
+
+	cl_entity_step_t step; // the step the entity just traversed
 
 	matrix4x4_t matrix; // interpolated translation and rotation
 	matrix4x4_t inverse_matrix; // for box hull collision
@@ -114,12 +123,7 @@ typedef struct {
 		vec3_t angles; // and angles (local movement + delta angles)
 	} view;
 
-	struct {
-		vec_t step; // step height (up or down)
-		uint32_t time; // simulation time when step was traversed
-		uint32_t timestamp; // system time when step was traversed
-		uint32_t interval; // interpolation interval
-	} step;
+	cl_entity_step_t step; // the predicted step
 
 	struct g_entity_s *ground_entity;
 
@@ -176,6 +180,7 @@ typedef struct {
 	vec3_t angles;
 
 	_Bool demo_server; // we're viewing a demo
+	_Bool third_person; // we're viewing third person camera
 
 	char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
 	uint16_t precache_check;

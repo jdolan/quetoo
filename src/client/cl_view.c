@@ -94,7 +94,7 @@ static void Cl_UpdateOrigin(const player_state_t *from, const player_state_t *to
 		const uint32_t step_delta = cl.unclamped_time - pr->step.timestamp;
 		if (step_delta < pr->step.interval) {
 			const vec_t lerp = (pr->step.interval - step_delta) / (vec_t) pr->step.interval;
-			r_view.origin[2] = r_view.origin[2] - lerp * pr->step.step;
+			r_view.origin[2] = r_view.origin[2] - lerp * pr->step.height;
 		}
 
 	} else { // just use interpolated values from frame
