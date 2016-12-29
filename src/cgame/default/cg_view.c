@@ -92,6 +92,7 @@ static void Cg_UpdateFov(void) {
  */
 static void Cg_UpdateStep(const player_state_t *ps) {
 
+	// FIXME: This should really be: !Cg_UsePrediction (need to borrow from cl_predict.c)
 	if (ps->stats[STAT_CHASE] || cgi.client->demo_server || cgi.client->third_person) {
 
 		const cl_entity_t *ent = Cg_Self();
