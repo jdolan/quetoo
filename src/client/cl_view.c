@@ -110,9 +110,6 @@ static void Cl_UpdateOrigin(const player_state_t *from, const player_state_t *to
 
 		VectorAdd(origin, offset, r_view.origin);
 	}
-
-	// update the contents mask for e.g. under-water effects
-	r_view.contents = Cl_PointContents(r_view.origin);
 }
 
 /**
@@ -175,6 +172,8 @@ void Cl_UpdateView(void) {
 	Cl_UpdateViewSize();
 
 	cls.cgame->UpdateView(&cl.frame);
+
+	r_view.contents = Cl_PointContents(r_view.origin);
 
 	AngleVectors(r_view.angles, r_view.forward, r_view.right, r_view.up);
 }
