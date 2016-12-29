@@ -90,8 +90,6 @@ static void Cl_UpdateOrigin(const player_state_t *from, const player_state_t *to
 		// add the interpolated prediction error
 		VectorMA(r_view.origin, -(1.0 - cl.lerp), pr->error, r_view.origin);
 
-		
-
 	} else { // just use interpolated values from frame
 		vec3_t origin;
 		vec3_t from_offset, to_offset, offset;

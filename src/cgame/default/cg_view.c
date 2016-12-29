@@ -92,20 +92,27 @@ static void Cg_UpdateFov(void) {
  */
 static void Cg_UpdateStep(const player_state_t *ps) {
 
-	if (ps->stats[STAT_CHASE]) {
+	if (ps->stats[STAT_CHASE] || cgi.client->demo_server || cgi.client->third_person) {
 
 		const cl_entity_t *ent = Cg_Self();
+		if (ent) {
 
-		if (!ent) {
-			return;
+			if (ent->step.delta_height) {
+
+				const player_state_t *ops = cgi.client->delta_frame ? &cgi.client->delta_frame->ps : ps;
+
+				vec3_t from_offset, to_offset, offset;
+
+				UnpackVector(ops->pm_state.view_offset, from_offset);
+				UnpackVector(ps->pm_state.view_offset, to_offset);
+
+				VectorLerp(from_offset, to_offset, cgi.client->lerp, offset);
+
+				cgi.view->origin[2] = ps->pm_state.origin[2] - ent->step.delta_height + offset[2];
+			}
 		}
-
-		cgi.view->origin[2] -= ent->step.delta_height;
-
 	} else {
-
 		Cg_InterpolateStep(&cgi.client->predicted_state.step);
-
 		cgi.view->origin[2] -= cgi.client->predicted_state.step.delta_height;
 	}
 }
