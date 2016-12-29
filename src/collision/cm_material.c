@@ -38,12 +38,10 @@ typedef struct {
 static cm_materials_t cm_materials;
 
 /**
- * @brief Free material callback. Materials can reference other materials, so
+ * @brief Materials can reference other materials, so
  * we have to check the stages to unref the ones that we are storing a reference to.
  */
-static void Cm_Material_Free(gpointer data) {
-
-	cm_material_t *material = (cm_material_t *) data;
+static void Cm_Material_Free(cm_material_t *material) {
 
 	for (cm_stage_t *stage = material->stages; stage; stage = stage->next) {
 
@@ -61,7 +59,17 @@ static void Cm_Material_Free(gpointer data) {
  */
 void Cm_InitMaterials(void) {
 
-	cm_materials.materials = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Cm_Material_Free);
+	cm_materials.materials = g_hash_table_new(g_str_hash, g_str_equal);
+}
+
+/**
+ * @brief Destroy callback. This just destroys the memory, since the ref bit
+ * isn't important if Cm is being shutdown.
+ */
+static gboolean Cm_ShutdownMaterials_FreeAll(gpointer key, gpointer value, gpointer userdata) {
+
+	Mem_Free(value);
+	return true;
 }
 
 /**
@@ -70,7 +78,9 @@ void Cm_InitMaterials(void) {
  */
 void Cm_ShutdownMaterials(void) {
 
+	g_hash_table_foreach_remove(cm_materials.materials, Cm_ShutdownMaterials_FreeAll, NULL);
 	g_hash_table_destroy(cm_materials.materials);
+
 	cm_materials.materials = NULL;
 }
 
@@ -98,6 +108,7 @@ _Bool Cm_UnrefMaterial(cm_material_t *mat) {
 	if (!mat->ref_count) {
 		Com_Debug(DEBUG_COLLISION, "Unref material %s\n", mat->diffuse);
 		g_hash_table_remove(cm_materials.materials, mat->key);
+		Cm_Material_Free(mat);
 		return true;
 	}
 
@@ -803,9 +814,9 @@ void Cm_WriteMaterials(void) {
 	GHashTableIter iter;
 	gpointer key, value;
 
-	g_hash_table_iter_init (&iter, cm_materials.materials);
+	g_hash_table_iter_init(&iter, cm_materials.materials);
 
-	while (g_hash_table_iter_next (&iter, &key, &value)) {
+	while (g_hash_table_iter_next(&iter, &key, &value)) {
 		cm_material_t *material = (cm_material_t *) value;
 
 		// don't write out materials with no mat file
