@@ -585,13 +585,50 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 	if (ent->timestamp < cgi.client->unclamped_time) {
 
-		cgi.AddStain(&(const r_stain_t) {
-			.origin = { end[0], end[1], end[2] },
-			 .color = { 0.0, 0.0, 0.0, 0.33 },
-			  .radius = 2.0
-		});
+		vec3_t pushed_end;
+		VectorMA(end, -2.0, dir, pushed_end);
 
-		ent->timestamp = cgi.client->unclamped_time + 64;
+		cm_trace_t tr = cgi.Trace(start, pushed_end, vec3_origin, vec3_origin, 0, MASK_SOLID);
+
+		if (tr.fraction < 1.0) {
+
+			cgi.AddStain(&(const r_stain_t) {
+				.origin = { end[0], end[1], end[2] },
+				 .color = { 0.0, 0.0, 0.0, 0.33 },
+				  .radius = 2.0
+			});
+
+			ent->timestamp = cgi.client->unclamped_time + 64;
+
+			for (int32_t i = 0; i < 24; i++) {
+				cg_particle_t *p;
+
+				if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark))) {
+					break;
+				}
+
+				p->lifetime = 100 + Randomf() * 150;
+
+				cgi.ColorFromPalette(EFFECT_COLOR_ORANGE + (Random() & 7), p->part.color);
+				p->part.color[3] = 0.7 + Randomf() * 0.3;
+
+				p->part.scale = 0.6 + Randomf() * 0.2;
+
+				VectorCopy(end, p->part.org);
+
+				for (int32_t j = 0; j < 3; j++) {
+					p->part.org[j] += Randomc() * 2.0;
+					p->vel[j] = Randomc() * 100.0;
+				}
+
+				p->accel[0] = Randomc() * 1.0;
+				p->accel[1] = Randomc() * 1.0;
+				p->accel[2] = -0.5 * PARTICLE_GRAVITY;
+				p->spark.length = 0.15;
+
+				VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
+			}
+		}
 	}
 }
 
