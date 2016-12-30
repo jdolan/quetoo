@@ -496,7 +496,7 @@ static int32_t Cm_ParseStage(cm_stage_t *s, const char **buffer) {
  * @brief Loads the r_material_t with the specified diffuse texture. This
  * increases ref count, so be sure to unref when you're done with the pointer.
  */
-cm_material_t *Cm_LoadMaterial_(const char *where, const char *diffuse) {
+cm_material_t *Cm_LoadMaterial(const char *diffuse) {
 	cm_material_t *mat;
 	char name[MAX_QPATH], base[MAX_QPATH], key[MAX_QPATH];
 
@@ -522,7 +522,6 @@ cm_material_t *Cm_LoadMaterial_(const char *where, const char *diffuse) {
 
 		mat = (cm_material_t *) Mem_Malloc(sizeof(cm_material_t));
 
-		mat->where = where;
 		g_strlcpy(mat->diffuse, name, sizeof(mat->diffuse));
 		g_strlcpy(mat->base, base, sizeof(mat->base));
 		g_strlcpy(mat->key, key, sizeof(mat->key));
