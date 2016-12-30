@@ -354,10 +354,9 @@ typedef enum {
 } pm_type_t;
 
 /**
- * @brief Player movement flags. The game is free to define more, to 16 bits.
+ * @brief Player movement flags. The game is free to define up to 16 bits.
  */
-#define PMF_NO_PREDICTION		(1 << 0)
-#define PMF_GAME				(1 << 1)
+#define PMF_GAME			(1 << 0)
 
 /**
  * @brief The player movement state contains quantized snapshots of player

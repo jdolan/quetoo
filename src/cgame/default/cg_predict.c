@@ -23,6 +23,26 @@
 #include "game/default/bg_pmove.h"
 
 /**
+ * @brief Returns true if client side prediction should be used.
+ */
+_Bool Cg_UsePrediction(void) {
+
+	if (!cg_predict->value) {
+		return false;
+	}
+
+	if (cgi.client->demo_server || cgi.client->third_person) {
+		return false;
+	}
+
+	if (cgi.client->frame.ps.pm_state.flags & PMF_NO_PREDICTION) {
+		return false;
+	}
+
+	return true;
+}
+
+/**
  * @brief Trace wrapper for Pm_Move.
  */
 static cm_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end, const vec3_t mins,

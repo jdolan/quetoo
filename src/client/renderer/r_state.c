@@ -755,7 +755,7 @@ void R_DepthRange(GLdouble znear, GLdouble zfar) {
 /**
  * @brief Shortcut to toggling texunits by ID, for cgame.
  */
-void R_EnableTextureID(const r_texunit_id_t texunit_id, _Bool enable) {
+void R_EnableTextureByIdentifier(const r_texunit_id_t texunit_id, _Bool enable) {
 
 	R_EnableTexture(&r_state.texunits[texunit_id], enable);
 }

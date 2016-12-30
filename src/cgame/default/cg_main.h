@@ -60,6 +60,7 @@
 	extern cvar_t *cg_hand;
 	extern cvar_t *cg_handicap;
 	extern cvar_t *cg_hook_style;
+	extern cvar_t *cg_predict;
 	extern cvar_t *cg_skin;
 	extern cvar_t *cg_third_person;
 	extern cvar_t *cg_third_person_chasecam;

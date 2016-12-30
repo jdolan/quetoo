@@ -257,7 +257,7 @@ void Cl_InitCgame(void) {
 	import.DrawMeshModel = R_DrawMeshModel_default;
 	import.EnableDepthTest = R_EnableDepthTest;
 	import.DepthRange = R_DepthRange;
-	import.EnableTextureID = R_EnableTextureID;
+	import.EnableTexture = R_EnableTextureByIdentifier;
 	import.SetViewport = R_SetViewport;
 	import.AddLight = R_AddLight;
 	import.AddParticle = R_AddParticle;

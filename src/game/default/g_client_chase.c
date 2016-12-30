@@ -61,7 +61,6 @@ void G_ClientChaseThink(g_entity_t *ent) {
 
 	// disable the spectator's input
 	ent->client->ps.pm_state.type = PM_FREEZE;
-	ent->client->ps.pm_state.flags = PMF_NO_PREDICTION;
 
 	gi.LinkEntity(ent);
 }

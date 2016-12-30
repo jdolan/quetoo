@@ -1020,7 +1020,6 @@ void G_ClientBegin(g_entity_t *ent) {
 
 		if (G_MatchIsTimeout()) { // joined during a match timeout
 			ent->client->ps.pm_state.type = PM_FREEZE;
-			ent->client->ps.pm_state.flags = PMF_NO_PREDICTION;
 		}
 	}
 

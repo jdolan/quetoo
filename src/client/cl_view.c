@@ -75,92 +75,12 @@ static void Cl_UpdateViewSize(void) {
 }
 
 /**
- * @brief The origin is typically calculated using client sided prediction, provided
- * the client is not viewing a demo, playing in 3rd person mode, or chasing
- * another player.
- */
-static void Cl_UpdateOrigin(const player_state_t *from, const player_state_t *to) {
-
-	if (Cl_UsePrediction()) {
-		const cl_predicted_state_t *pr = &cl.predicted_state;
-
-		// use client sided prediction
-		VectorAdd(pr->view.origin, pr->view.offset, r_view.origin);
-
-		// add the interpolated prediction error
-		VectorMA(r_view.origin, -(1.0 - cl.lerp), pr->error, r_view.origin);
-
-	} else { // just use interpolated values from frame
-		vec3_t origin;
-		vec3_t from_offset, to_offset, offset;
-
-		VectorLerp(from->pm_state.origin, to->pm_state.origin, cl.lerp, origin);
-
-		UnpackVector(from->pm_state.view_offset, from_offset);
-		UnpackVector(to->pm_state.view_offset, to_offset);
-
-		VectorLerp(from_offset, to_offset, cl.lerp, offset);
-
-		VectorAdd(origin, offset, r_view.origin);
-	}
-}
-
-/**
- * @brief The angles are typically fetched from input, after factoring in client-side
- * prediction, unless the client is watching a demo or chase camera.
- */
-static void Cl_UpdateAngles(const player_state_t *from, const player_state_t *to) {
-	vec3_t old_angles, new_angles, angles;
-
-	// start with the predicted angles, or interpolate the server states
-	if (Cl_UsePrediction()) {
-		VectorCopy(cl.predicted_state.view.angles, r_view.angles);
-	} else {
-		UnpackAngles(from->pm_state.view_angles, old_angles);
-		UnpackAngles(to->pm_state.view_angles, new_angles);
-
-		AngleLerp(old_angles, new_angles, cl.lerp, r_view.angles);
-	}
-
-	// add the delta angles
-	UnpackAngles(from->pm_state.delta_angles, old_angles);
-	UnpackAngles(to->pm_state.delta_angles, new_angles);
-
-	VectorCopy(new_angles, angles);
-
-	// check for small delta angles, and interpolate them
-	if (!VectorCompare(old_angles, new_angles)) {
-		int32_t i;
-
-		for (i = 0; i < 3; i++) {
-			const vec_t delta = fabs(new_angles[i] - old_angles[i]);
-			if (delta > 5.0 && delta < 355.0) {
-				break;
-			}
-		}
-
-		if (i == 3) {
-			AngleLerp(old_angles, new_angles, cl.lerp, angles);
-		}
-	}
-
-	VectorAdd(r_view.angles, angles, r_view.angles);
-}
-
-/**
- * @brief Updates the view definition for the next render frame.
+ * @brief Updates the view definition for the pending render frame.
  */
 void Cl_UpdateView(void) {
 
 	r_view.ticks = cl.unclamped_time;
-
 	r_view.area_bits = cl.frame.area_bits;
-
-	const player_state_t *ps = cl.delta_frame ? &cl.delta_frame->ps : &cl.frame.ps;
-
-	Cl_UpdateOrigin(ps, &cl.frame.ps);
-
-	Cl_UpdateAngles(ps, &cl.frame.ps);
 
 	Cl_UpdateViewSize();
 

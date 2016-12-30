@@ -551,7 +551,6 @@ typedef struct cg_import_s {
 	 */
 	void (*CompileAtlas)(r_atlas_t *atlas);
 
-
 	/**
 	 * @brief Loads the material with the given diffuse texture name.
 	 * @param name The diffuse texture name, e.g. `"models/objects/rocket/skin"`.
@@ -635,7 +634,7 @@ typedef struct cg_import_s {
 	/**
 	 * @brief Toggle the specified texunit.
 	 */
-	void (*EnableTextureID)(const r_texunit_id_t texunit_id, _Bool enable);
+	void (*EnableTexture)(const r_texunit_id_t tex, _Bool enable);
 
 	/**
 	 * @brief Change the rendering viewport.
@@ -720,25 +719,24 @@ typedef struct cg_import_s {
  * @brief The client game export struct exports client game functionality to the engine.
  */
 typedef struct cg_export_s {
+
 	uint16_t api_version;
 	uint16_t protocol;
 
 	void (*Init)(void);
 	void (*Shutdown)(void);
-
 	void (*ClearState)(void);
 	void (*UpdateMedia)(void);
 	void (*UpdateConfigString)(uint16_t index);
 	void (*LoadClient)(cl_client_info_t *cl, const char *s);
-
 	_Bool (*ParseMessage)(int32_t cmd);
+	void (*Look)(pm_cmd_t *cmd);
+	void (*Move)(pm_cmd_t *cmd);
 	void (*Interpolate)(const cl_frame_t *frame);
+	_Bool (*UsePrediction)(void);
 	void (*PredictMovement)(const GList *cmds);
 	void (*UpdateView)(const cl_frame_t *frame);
 	void (*UpdateScreen)(const cl_frame_t *frame);
-
-	void (*Look)(pm_cmd_t *cmd);
-	void (*Move)(pm_cmd_t *cmd);
 
 } cg_export_t;
 

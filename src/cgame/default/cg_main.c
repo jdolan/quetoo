@@ -65,6 +65,7 @@ cvar_t *cg_fov_interpolate;
 cvar_t *cg_hand;
 cvar_t *cg_handicap;
 cvar_t *cg_hook_style;
+cvar_t *cg_predict;
 cvar_t *cg_skin;
 cvar_t *cg_third_person;
 cvar_t *cg_third_person_chasecam;
@@ -153,6 +154,9 @@ static void Cg_Init(void) {
 	                       "Your handicap, or disadvantage.");
 	cg_hook_style = cgi.Cvar("hook_style", "pull", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                         "Your preferred hook style. Can be either \"pull\" or \"swing\".");
+
+	cg_predict = cgi.Cvar("cg_predict", "1", 0, "Use client side movement prediction");
+
 	cg_skin = cgi.Cvar("skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                   "Your player model and skin.");
 
@@ -335,6 +339,7 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.LoadClient = Cg_LoadClient;
 	cge.ParseMessage = Cg_ParseMessage;
 	cge.Interpolate = Cg_Interpolate;
+	cge.UsePrediction = Cg_UsePrediction;
 	cge.PredictMovement = Cg_PredictMovement;
 	cge.UpdateView = Cg_UpdateView;
 	cge.UpdateScreen = Cg_UpdateScreen;

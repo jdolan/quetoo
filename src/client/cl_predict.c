@@ -22,31 +22,6 @@
 #include "cl_local.h"
 
 /**
- * @brief Returns true if client side prediction should be used. The actual movement is handled by 
- * the client game.
- */
-_Bool Cl_UsePrediction(void) {
-
-	if (!cl_predict->value) {
-		return false;
-	}
-
-	if (cls.state != CL_ACTIVE) {
-		return false;
-	}
-
-	if (cl.demo_server || cl.third_person) {
-		return false;
-	}
-
-	if (cl.frame.ps.pm_state.flags & PMF_NO_PREDICTION) {
-		return false;
-	}
-
-	return true;
-}
-
-/**
  * @brief Prepares the collision model to clip to the specified entity. For
  * mesh models, the box hull must be set to reflect the bounds of the entity.
  */
@@ -207,27 +182,28 @@ cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, con
  */
 void Cl_PredictMovement(void) {
 
-	if (Cl_UsePrediction()) {
-
-		const uint32_t last = cls.net_chan.outgoing_sequence;
-		uint32_t ack = cls.net_chan.incoming_acknowledged;
-
-		// if we are too far out of date, just freeze in place
-		if (last - ack >= CMD_BACKUP) {
-			Com_Debug(DEBUG_CLIENT, "Exceeded CMD_BACKUP\n");
-			return;
-		}
-
-		GList *cmds = NULL;
-
-		while (++ack <= last) {
-			cmds = g_list_append(cmds, &cl.cmds[ack & CMD_MASK]);
-		}
-
-		cls.cgame->PredictMovement(cmds);
-
-		g_list_free(cmds);
+	if (!cls.cgame->UsePrediction()) {
+		return;
 	}
+
+	const uint32_t last = cls.net_chan.outgoing_sequence;
+	uint32_t ack = cls.net_chan.incoming_acknowledged;
+
+	// if we are too far out of date, just freeze in place
+	if (last - ack >= CMD_BACKUP) {
+		Com_Debug(DEBUG_CLIENT, "Exceeded CMD_BACKUP\n");
+		return;
+	}
+
+	GList *cmds = NULL;
+
+	while (++ack <= last) {
+		cmds = g_list_append(cmds, &cl.cmds[ack & CMD_MASK]);
+	}
+
+	cls.cgame->PredictMovement(cmds);
+
+	g_list_free(cmds);
 }
 
 /**
@@ -236,7 +212,7 @@ void Cl_PredictMovement(void) {
  */
 void Cl_CheckPredictionError(void) {
 
-	if (!Cl_UsePrediction()) {
+	if (!cls.cgame->UsePrediction()) {
 		return;
 	}
 

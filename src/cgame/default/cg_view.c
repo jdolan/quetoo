@@ -88,37 +88,6 @@ static void Cg_UpdateFov(void) {
 }
 
 /**
- * @brief
- */
-static void Cg_UpdateStep(const player_state_t *ps) {
-
-	// FIXME: This should really be: !Cg_UsePrediction (need to borrow from cl_predict.c)
-	if (ps->stats[STAT_CHASE] || cgi.client->demo_server || cgi.client->third_person) {
-
-		const cl_entity_t *ent = Cg_Self();
-		if (ent) {
-
-			if (ent->step.delta_height) {
-
-				const player_state_t *ops = cgi.client->delta_frame ? &cgi.client->delta_frame->ps : ps;
-
-				vec3_t from_offset, to_offset, offset;
-
-				UnpackVector(ops->pm_state.view_offset, from_offset);
-				UnpackVector(ps->pm_state.view_offset, to_offset);
-
-				VectorLerp(from_offset, to_offset, cgi.client->lerp, offset);
-
-				cgi.view->origin[2] = ps->pm_state.origin[2] - ent->step.delta_height + offset[2];
-			}
-		}
-	} else {
-		Cg_InterpolateStep(&cgi.client->predicted_state.step);
-		cgi.view->origin[2] -= cgi.client->predicted_state.step.delta_height;
-	}
-}
-
-/**
  * @brief Update the third person offset, if any. This is used as a client-side
  * option, or as the default chase camera view.
  */
@@ -258,44 +227,114 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 }
 
 /**
- * @brief Augments the view origin based on game events.
+ * @brief Resolves the view origin for the pending frame.
+ * @param ps0 The player state to interpolate from.
+ * @param ps1 The player state to interpolate to.
  */
-static void Cg_UpdateOrigin(const player_state_t *ps) {
+static void Cg_UpdateOrigin(const player_state_t *ps0, const player_state_t *ps1) {
 
-	Cg_UpdateStep(ps);
+	if (Cg_UsePrediction()) {
+		const cl_predicted_state_t *pr = &cgi.client->predicted_state;
 
-	Cg_UpdateThirdPerson(ps);
+		VectorAdd(pr->view.origin, pr->view.offset, cgi.view->origin);
 
-	Cg_UpdateBob(ps);
+		VectorMA(cgi.view->origin, -(1.0 - cgi.client->lerp), pr->error, cgi.view->origin);
 
-	cgi.view->contents = cgi.PointContents(cgi.view->origin);
+		Cg_InterpolateStep(&cgi.client->predicted_state.step);
+		cgi.view->origin[2] -= cgi.client->predicted_state.step.delta_height;
+
+	} else {
+
+		VectorLerp(ps0->pm_state.origin, ps1->pm_state.origin, cgi.client->lerp, cgi.view->origin);
+
+		vec3_t offset0, offset1, offset;
+		UnpackVector(ps0->pm_state.view_offset, offset0);
+		UnpackVector(ps1->pm_state.view_offset, offset1);
+
+		VectorLerp(offset0, offset1, cgi.client->lerp, offset);
+
+		VectorAdd(cgi.view->origin, offset, cgi.view->origin);
+
+		const cl_entity_t *ent = Cg_Self();
+		if (ent) {
+			if (ent->step.delta_height) {
+				cgi.view->origin[2] = ps1->pm_state.origin[2] - ent->step.delta_height + offset[2];
+			}
+		}
+	}
 }
 
 /**
- * @brief Augments the view angles based on game events.
+ * @brief Resolves the view angles for the pending frame.
+ * @param ps0 The player state to interpolate from.
+ * @param ps1 The player state to interpolate to.
  */
-static void Cg_UpdateAngles(const player_state_t *ps) {
+static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1) {
+	vec3_t angles0, angles1, angles;
 
-	if (ps->pm_state.type == PM_DEAD) { // look only on x axis
+	if (Cg_UsePrediction()) {
+		const cl_predicted_state_t *pr = &cgi.client->predicted_state;
+		VectorCopy(pr->view.angles, cgi.view->angles);
+	} else {
+		UnpackAngles(ps0->pm_state.view_angles, angles0);
+		UnpackAngles(ps1->pm_state.view_angles, angles1);
+
+		AngleLerp(angles0, angles1, cgi.client->lerp, cgi.view->angles);
+	}
+
+	UnpackAngles(ps0->pm_state.delta_angles, angles0);
+	UnpackAngles(ps1->pm_state.delta_angles, angles1);
+
+	VectorCopy(angles1, angles);
+
+	// for small delta angles, such as riding a rotator, interpolate them
+	if (!VectorCompare(angles0, angles1)) {
+		int32_t i;
+
+		for (i = 0; i < 3; i++) {
+			const vec_t delta = fabs(angles1[i] - angles0[i]);
+			if (delta > 5.0 && delta < 355.0) {
+				break;
+			}
+		}
+
+		if (i == 3) {
+			AngleLerp(angles0, angles1, cgi.client->lerp, angles);
+		}
+	}
+
+	VectorAdd(cgi.view->angles, angles, cgi.view->angles);
+
+	if (ps1->pm_state.type == PM_DEAD) {
 		cgi.view->angles[0] = 0.0;
 		cgi.view->angles[2] = 45.0;
 	}
-
-	AngleVectors(cgi.view->angles, cgi.view->forward, cgi.view->right, cgi.view->up);
 }
 
 /**
  * @brief Updates the view definition. The camera origin, view angles, and field of view are each
- * augmented here. Other modifications can be made at your own risk. This is called potentially
+ * calculated here. Other modifications can be made at your own risk. This is called potentially
  * several times per client frame by the engine to prepare the view for frame interpolation.
  */
 void Cg_UpdateView(const cl_frame_t *frame) {
 
+	const player_state_t *ps0 = cgi.client->delta_frame ? &cgi.client->delta_frame->ps : &frame->ps;
+
+	const player_state_t *ps1 = &frame->ps;
+
+	Cg_UpdateOrigin(ps0, ps1);
+
+	Cg_UpdateAngles(ps0, ps1);
+
+	Cg_UpdateThirdPerson(ps1);
+
 	Cg_UpdateFov();
 
-	Cg_UpdateOrigin(&frame->ps);
+	Cg_UpdateBob(ps1);
 
-	Cg_UpdateAngles(&frame->ps);
+	AngleVectors(cgi.view->angles, cgi.view->forward, cgi.view->right, cgi.view->up);
+
+	cgi.view->contents = cgi.PointContents(cgi.view->origin);
 
 	Cg_AddEntities(frame);
 

@@ -1099,7 +1099,6 @@ void G_CallTimeOut(g_entity_t *ent) {
 	// lock everyone in place
 	for (int32_t i = 1; i < sv_max_clients->integer; i++) {
 		g_game.entities[i].client->ps.pm_state.type = PM_FREEZE;
-		g_game.entities[i].client->ps.pm_state.type = PMF_NO_PREDICTION;
 	}
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s called a timeout, play with resume in %s\n",

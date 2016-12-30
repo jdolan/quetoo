@@ -41,7 +41,7 @@ const matrix4x4_t *R_GetMatrixPtr(const r_matrix_id_t id);
 void R_PushMatrix(const r_matrix_id_t id);
 void R_PopMatrix(const r_matrix_id_t id);
 
-void R_EnableTextureID(const r_texunit_id_t texunit_id, _Bool enable);
+void R_EnableTextureByIdentifier(const r_texunit_id_t texunit_id, _Bool enable);
 
 uint32_t R_GetNumAllocatedBuffers(void);
 uint32_t R_GetNumAllocatedBufferBytes(void);
