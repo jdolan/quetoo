@@ -271,6 +271,8 @@ static void Cg_UpdateOrigin(const player_state_t *ps) {
 	Cg_UpdateThirdPerson(ps);
 
 	Cg_UpdateBob(ps);
+
+	cgi.view->contents = cgi.PointContents(cgi.view->origin);
 }
 
 /**
@@ -282,6 +284,8 @@ static void Cg_UpdateAngles(const player_state_t *ps) {
 		cgi.view->angles[0] = 0.0;
 		cgi.view->angles[2] = 45.0;
 	}
+
+	AngleVectors(cgi.view->angles, cgi.view->forward, cgi.view->right, cgi.view->up);
 }
 
 /**
@@ -296,10 +300,6 @@ void Cg_UpdateView(const cl_frame_t *frame) {
 	Cg_UpdateOrigin(&frame->ps);
 
 	Cg_UpdateAngles(&frame->ps);
-
-	AngleVectors(cgi.view->angles, cgi.view->forward, cgi.view->right, cgi.view->up);
-
-	cgi.view->contents = cgi.PointContents(cgi.view->origin);
 
 	Cg_AddEntities(frame);
 
