@@ -116,7 +116,7 @@ static void R_AmbientIllumination(const r_lighting_t *l) {
 	}
 
 	VectorMA(l->origin, LIGHTING_AMBIENT_DIST, vec3_up, il.light.origin);
-	VectorScale(r_bsp_light_state.ambient, 1.0 / max, il.light.color);
+	VectorCopy(r_bsp_light_state.ambient, il.light.color);
 
 	il.type = ILLUM_AMBIENT;
 	il.light.radius = LIGHTING_AMBIENT_RADIUS;
