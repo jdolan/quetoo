@@ -61,6 +61,7 @@ static void loadView(ViewController *self) {
 			Cg_BindInput((View *) stackView, "Turn right", "+right");
 			Cg_BindInput((View *) stackView, "Center view", "center_view");
 			Cg_BindInput((View *) stackView, "Run / walk", "+speed");
+			Cg_CvarCheckboxInput((View *) stackView, "Always Run", "cg_run");
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -102,6 +103,7 @@ static void loadView(ViewController *self) {
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
 			Cg_BindInput((View *) stackView, "Attack", "+attack");
+			Cg_BindInput((View *) stackView, "Grapple Hook", "+hook");
 			Cg_BindInput((View *) stackView, "Next weapon", "weapon_next");
 			Cg_BindInput((View *) stackView, "Previous weapon", "weapon_previous");
 			Cg_BindInput((View *) stackView, "Zoom", "+ZOOM");
