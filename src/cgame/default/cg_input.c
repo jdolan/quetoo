@@ -124,7 +124,7 @@ static void Cg_WeaponKick(const pm_cmd_t *cmd) {
 				break;
 			case WEAPON_MACHINEGUN:
 				degrees = 4.0;
-				interval = 196.0;
+				interval = 1372.0;
 				break;
 			case WEAPON_HAND_GRENADE:
 				degrees = 2.0;
@@ -136,12 +136,12 @@ static void Cg_WeaponKick(const pm_cmd_t *cmd) {
 				degrees = 2.4;
 				break;
 			case WEAPON_HYPERBLASTER:
-				degrees = 4.0;
-				interval = 196.0;
+				degrees = 5.0;
+				interval = 1176.0;
 				break;
 			case WEAPON_LIGHTNING:
 				degrees = 2.0;
-				interval = 196.0;
+				interval = 784.0;
 				break;
 			case WEAPON_RAILGUN:
 				degrees = 5.0;
