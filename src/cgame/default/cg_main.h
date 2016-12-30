@@ -66,6 +66,7 @@
 	extern cvar_t *cg_third_person_x;
 	extern cvar_t *cg_third_person_y;
 	extern cvar_t *cg_third_person_z;
+	extern cvar_t *cg_third_person_pitch;
 	extern cvar_t *cg_third_person_yaw;
 
 	extern cvar_t *g_gameplay;
