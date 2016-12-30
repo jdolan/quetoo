@@ -433,10 +433,6 @@ static void Cl_ClampPitch(void) {
 	// ensure our pitch is valid
 	vec_t pitch = UnpackAngle(s->delta_angles[PITCH]);
 
-	if (pitch > 180.0) {
-		pitch -= 360.0;
-	}
-
 	if (cl.angles[PITCH] + pitch < -360.0) {
 		cl.angles[PITCH] += 360.0; // wrapped
 	}
