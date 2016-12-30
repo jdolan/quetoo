@@ -1405,7 +1405,7 @@ const g_item_t g_items[] = {
 		.type = ITEM_WEAPON,
 		.tag = WEAPON_ROCKET_LAUNCHER,
 		.priority = 0.50,
-		.precaches = "models/objects/rocket/tris.md3 objects/rocket/fly.wav "
+		.precaches = "models/objects/rocket/tris.obj objects/rocket/fly.wav "
 		"weapons/rocketlauncher/fire.wav"
 	},
 
@@ -1421,7 +1421,7 @@ const g_item_t g_items[] = {
 	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
 	 -------- Radiant config --------
-	 model="models/weapons/hyperblaster/tris.md3"
+	 model="models/weapons/hyperblaster/tris.obj"
 	 */
 	{
 		.class_name = "weapon_hyperblaster",
@@ -1430,7 +1430,7 @@ const g_item_t g_items[] = {
 		.Drop = G_DropWeapon,
 		.Think = G_FireHyperblaster,
 		.pickup_sound = "weapons/common/pickup.wav",
-		.model = "models/weapons/hyperblaster/tris.md3",
+		.model = "models/weapons/hyperblaster/tris.obj",
 		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
 		.icon = "pics/w_hyperblaster",
 		.name = "Hyperblaster",
@@ -1454,7 +1454,7 @@ const g_item_t g_items[] = {
 	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
 	 -------- Radiant config --------
-	 model="models/weapons/lightning/tris.md3"
+	 model="models/weapons/lightning/tris."
 	 */
 	{
 		"weapon_lightning",
@@ -1463,7 +1463,7 @@ const g_item_t g_items[] = {
 		G_DropWeapon,
 		G_FireLightning,
 		"weapons/common/pickup.wav",
-		"models/weapons/lightning/tris.md3",
+		"models/weapons/lightning/tris.obj",
 		EF_ROTATE | EF_BOB | EF_PULSE,
 		"pics/w_lightning",
 		"Lightning",
@@ -1521,7 +1521,7 @@ const g_item_t g_items[] = {
 	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
 	 -------- Radiant config --------
-	 model="models/weapons/bfg/tris.md3"
+	 model="models/weapons/bfg/tris.obj"
 	 */
 	{
 		.class_name = "weapon_bfg",
@@ -1530,7 +1530,7 @@ const g_item_t g_items[] = {
 		.Drop = G_DropWeapon,
 		.Think = G_FireBfg,
 		.pickup_sound = "weapons/common/pickup.wav",
-		.model = "models/weapons/bfg/tris.md3",
+		.model = "models/weapons/bfg/tris.obj",
 		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
 		.icon = "pics/w_bfg",
 		.name = "BFG10K",
@@ -1979,7 +1979,7 @@ const g_item_t g_items[] = {
 	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
 	 -------- Radiant config --------
-	 model="models/ctf/flag1/tris.md3"
+	 model="models/ctf/flag1/tris.obj"
 	 */
 	{
 		.class_name = "item_flag_team1",
@@ -1988,7 +1988,7 @@ const g_item_t g_items[] = {
 		.Drop = G_DropFlag,
 		.Think = NULL,
 		.pickup_sound = NULL,
-		.model = "models/ctf/flag1/tris.md3",
+		.model = "models/ctf/flag1/tris.obj",
 		.effects = EF_BOB | EF_ROTATE,
 		.icon = "pics/i_flag1",
 		.name = "Enemy Flag",
@@ -2008,7 +2008,7 @@ const g_item_t g_items[] = {
 	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
 	 -------- Radiant config --------
-	 model="models/ctf/flag2/tris.md3"
+	 model="models/ctf/flag2/tris.obj"
 	 */
 	{
 		.class_name = "item_flag_team2",
@@ -2017,7 +2017,7 @@ const g_item_t g_items[] = {
 		.Drop = G_DropFlag,
 		.Think = NULL,
 		.pickup_sound = NULL,
-		.model = "models/ctf/flag2/tris.md3",
+		.model = "models/ctf/flag2/tris.obj",
 		.effects = EF_BOB | EF_ROTATE,
 		.icon = "pics/i_flag2",
 		.name = "Enemy Flag",
@@ -2041,7 +2041,7 @@ const g_item_t g_items[] = {
 	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
 	 -------- Radiant config --------
-	 model="models/powerups/quad/tris.md3"
+	 model="models/powerups/quad/tris.obj"
 	 */
 	{
 		.class_name = "item_quad",
@@ -2050,7 +2050,7 @@ const g_item_t g_items[] = {
 		.Drop = NULL,
 		.Think = NULL,
 		.pickup_sound = "quad/pickup.wav",
-		.model = "models/powerups/quad/tris.md3",
+		.model = "models/powerups/quad/tris.obj",
 		.effects = EF_BOB | EF_ROTATE,
 		.icon = "pics/i_quad",
 		.name = "Quad Damage",
