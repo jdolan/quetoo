@@ -26,7 +26,6 @@
  */
 void Cm_Init(void) {
 
-	Cm_InitMaterials();
 }
 
 /**
