@@ -701,9 +701,6 @@ void G_FireHandGrenade(g_entity_t *ent) {
 	// play the sound if we throw it
 	gi.Sound(ent, g_media.sounds.grenade_throw, ATTEN_NORM);
 
-	// set the attack animation
-	G_SetAnimation(ent, ANIM_TORSO_ATTACK1, true);
-
 	// push the next fire time out by the interval (2 secs)
 	G_WeaponFired(ent, 2000, ammo_needed);
 

@@ -57,7 +57,7 @@ static void Cm_Material_Free(cm_material_t *material) {
 /**
  * @brief Load the common materials subsystem.
  */
-void Cm_InitMaterials(void) {
+static void Cm_InitMaterials(void) {
 
 	cm_materials.materials = g_hash_table_new(g_str_hash, g_str_equal);
 }
@@ -78,6 +78,10 @@ static gboolean Cm_ShutdownMaterials_FreeAll(gpointer key, gpointer value, gpoin
  */
 void Cm_ShutdownMaterials(void) {
 
+	if (!cm_materials.materials) {
+		return;
+	}
+
 	g_hash_table_foreach_remove(cm_materials.materials, Cm_ShutdownMaterials_FreeAll, NULL);
 	g_hash_table_destroy(cm_materials.materials);
 
@@ -88,6 +92,10 @@ void Cm_ShutdownMaterials(void) {
  * @brief Returns a reference to an already-loaded cm_material_t.
  */
 cm_material_t *Cm_FindMaterial(const char *diffuse) {
+
+	if (!cm_materials.materials) {
+		return NULL;
+	}
 
 	return (cm_material_t *) g_hash_table_lookup(cm_materials.materials, diffuse);
 }
@@ -488,9 +496,13 @@ static int32_t Cm_ParseStage(cm_stage_t *s, const char **buffer) {
  * @brief Loads the r_material_t with the specified diffuse texture. This
  * increases ref count, so be sure to unref when you're done with the pointer.
  */
-cm_material_t *Cm_LoadMaterial_(const char *where, const char *diffuse) {
+cm_material_t *Cm_LoadMaterial(const char *diffuse) {
 	cm_material_t *mat;
 	char name[MAX_QPATH], base[MAX_QPATH], key[MAX_QPATH];
+
+	if (!cm_materials.materials) {
+		Cm_InitMaterials();
+	}
 
 	if (!diffuse || !diffuse[0]) {
 		Com_Error(ERROR_DROP, "NULL diffuse name\n");
@@ -510,7 +522,6 @@ cm_material_t *Cm_LoadMaterial_(const char *where, const char *diffuse) {
 
 		mat = (cm_material_t *) Mem_Malloc(sizeof(cm_material_t));
 
-		mat->where = where;
 		g_strlcpy(mat->diffuse, name, sizeof(mat->diffuse));
 		g_strlcpy(mat->base, base, sizeof(mat->base));
 		g_strlcpy(mat->key, key, sizeof(mat->key));

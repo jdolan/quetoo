@@ -118,7 +118,6 @@ typedef struct cm_stage_s {
 
 typedef struct cm_material_s {
 	uint32_t ref_count; // refs for the cm system, do not touch
-	const char *where;
 	char base[MAX_QPATH];
 	char key[MAX_QPATH];
 
@@ -142,16 +141,12 @@ cm_material_t *Cm_FindMaterial(const char *diffuse);
 _Bool Cm_UnrefMaterial(cm_material_t *mat);
 void Cm_RefMaterial(cm_material_t *mat);
 
-void Cm_DumpMaterialAllocations(void);
-
-cm_material_t *Cm_LoadMaterial_(const char *where, const char *diffuse);
-#define Cm_LoadMaterial(diffuse) Cm_LoadMaterial_(__func__, diffuse)
+cm_material_t *Cm_LoadMaterial(const char *diffuse);
 GArray *Cm_LoadMaterials(const char *path);
 void Cm_UnloadMaterials(GArray *materials);
 
 void Cm_WriteMaterials(void);
 
 #ifdef __CM_LOCAL_H__
-void Cm_InitMaterials(void);
 void Cm_ShutdownMaterials(void);
 #endif /* __CM_LOCAL_H__ */
