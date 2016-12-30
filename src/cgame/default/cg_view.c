@@ -297,6 +297,10 @@ void Cg_UpdateView(const cl_frame_t *frame) {
 
 	Cg_UpdateAngles(&frame->ps);
 
+	AngleVectors(cgi.view->angles, cgi.view->forward, cgi.view->right, cgi.view->up);
+
+	cgi.view->contents = cgi.PointContents(cgi.view->origin);
+
 	Cg_AddEntities(frame);
 
 	Cg_AddEmits();
