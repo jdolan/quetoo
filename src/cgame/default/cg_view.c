@@ -123,7 +123,7 @@ static void Cg_UpdateStep(const player_state_t *ps) {
  * option, or as the default chase camera view.
  */
 static void Cg_UpdateThirdPerson(const player_state_t *ps) {
-	vec3_t angles, forward, origin;
+	vec3_t forward, right, up, origin, point;
 
 	const vec3_t mins = { -8.0, -8.0, -8.0 };
 	const vec3_t maxs = { 8.0, 8.0, 8.0 };
@@ -135,38 +135,34 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 		return;
 	}
 
-	VectorCopy(cgi.view->angles, angles);
-	angles[YAW] += cg_third_person_yaw->value;
-
-	AngleVectors(angles, forward, NULL, NULL);
-
-	vec3_t offset = {
+	const vec3_t offset = {
 		cg_third_person_x->value,
 		cg_third_person_y->value,
 		cg_third_person_z->value
 	};
 
-	const vec_t len = VectorLength(offset);
-	if (len > 1024.0) {
-		VectorScale(offset, 1024.0 / len, offset);
-	}
+	const vec3_t angles = {
+		cgi.view->angles[PITCH] + cg_third_person_pitch->value,
+		cgi.view->angles[YAW] + cg_third_person_yaw->value,
+		cgi.view->angles[ROLL]
+	};
+
+	AngleVectors(angles, forward, right, up);
+
+	VectorMA(cgi.view->origin, 512.0, forward, point);
 
 	VectorCopy(cgi.view->origin, origin);
 
-	VectorMA(origin, offset[2], cgi.view->up, origin);
-	VectorMA(origin, offset[1], cgi.view->right, origin);
-	VectorMA(origin, offset[0], cgi.view->forward, origin);
+	VectorMA(origin, offset[2], up, origin);
+	VectorMA(origin, offset[1], right, origin);
+	VectorMA(origin, offset[0], forward, origin);
 
-	// clip it to the world
 	const cm_trace_t tr = cgi.Trace(cgi.view->origin, origin, mins, maxs, 0, MASK_CLIP_PLAYER);
 	VectorCopy(tr.end, cgi.view->origin);
 
-	// adjust view angles to compensate for height offset
-	VectorMA(cgi.view->origin, 1024.0, forward, origin);
-	VectorSubtract(origin, cgi.view->origin, origin);
+	VectorSubtract(point, cgi.view->origin, point);
+	VectorAngles(point, cgi.view->angles);
 
-	// copy angles back to view
-	VectorAngles(origin, cgi.view->angles);
 	AngleVectors(cgi.view->angles, cgi.view->forward, cgi.view->right, cgi.view->up);
 }
 

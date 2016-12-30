@@ -71,6 +71,7 @@ cvar_t *cg_third_person_chasecam;
 cvar_t *cg_third_person_x;
 cvar_t *cg_third_person_y;
 cvar_t *cg_third_person_z;
+cvar_t *cg_third_person_pitch;
 cvar_t *cg_third_person_yaw;
 
 cvar_t *g_gameplay;
@@ -165,8 +166,10 @@ static void Cg_Init(void) {
 								 "The y offset for third person perspective.");
 	cg_third_person_z = cgi.Cvar("cg_third_person_z", "40.0", CVAR_ARCHIVE,
 								 "The z offset for third person perspective.");
+	cg_third_person_pitch = cgi.Cvar("cg_third_person_pitch", "0.0", CVAR_ARCHIVE,
+									 "The pitch offset for third person perspective.");
 	cg_third_person_yaw = cgi.Cvar("cg_third_person_yaw", "0.0", CVAR_ARCHIVE,
-	                               "Yaw offset for third person perspective.");
+								   "The yaw offset for third person perspective.");
 
 	g_gameplay = cgi.Cvar("g_gameplay", "default", CVAR_SERVER_INFO,
 	                      "Selects deathmatch, duel, arena, or instagib combat");
