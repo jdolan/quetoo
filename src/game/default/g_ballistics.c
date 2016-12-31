@@ -775,6 +775,10 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		}
 	}
 
+	// clear the angles for impact effects
+	VectorClear(self->s.angles);
+	self->s.animation1 = 0;
+
 	if (self->locals.damage) { // shoot, removing our damage until it is renewed
 		if (G_TakesDamage(tr.ent)) { // try to damage what we hit
 			G_Damage(tr.ent, self, self->owner, forward, tr.end, tr.plane.normal,
@@ -783,7 +787,8 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		} else { // or leave a mark
 			if (tr.contents & MASK_SOLID) {
 				if (G_IsStructural(tr.ent, tr.surface)) {
-					// TODO: Send a lightning effect for impacting walls?
+					VectorAngles(tr.plane.normal, self->s.angles);
+					self->s.animation1 = 1;
 				}
 			}
 		}
