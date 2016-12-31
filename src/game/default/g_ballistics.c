@@ -777,7 +777,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 
 	// clear the angles for impact effects
 	VectorClear(self->s.angles);
-	self->s.animation1 = 0;
+	self->s.animation1 = LIGHTNING_NO_HIT;
 
 	if (self->locals.damage) { // shoot, removing our damage until it is renewed
 		if (G_TakesDamage(tr.ent)) { // try to damage what we hit
@@ -788,7 +788,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 			if (tr.contents & MASK_SOLID) {
 				if (G_IsStructural(tr.ent, tr.surface)) {
 					VectorAngles(tr.plane.normal, self->s.angles);
-					self->s.animation1 = 1;
+					self->s.animation1 = LIGHTNING_SOLID_HIT;
 				}
 			}
 		}

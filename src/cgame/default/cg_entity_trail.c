@@ -594,69 +594,70 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 		ent->timestamp = cgi.client->unclamped_time + 64;
 	}
 
-	if (ent->current.animation1 == 1) {
+	if (ent->current.animation1 != LIGHTNING_SOLID_HIT) {
+		return
+	}
 
-		cg_particle_t *p;
+	cg_particle_t *p;
 
-		if ((p = Cg_AllocParticle(PARTICLE_CORONA, NULL))) {
-			cgi.ColorFromPalette(EFFECT_COLOR_BLUE + (Random() & 3), p->part.color);
-			VectorCopy(end, p->part.org);
+	if ((p = Cg_AllocParticle(PARTICLE_CORONA, NULL))) {
+		cgi.ColorFromPalette(EFFECT_COLOR_BLUE + (Random() & 3), p->part.color);
+		VectorCopy(end, p->part.org);
+
+		p->lifetime = PARTICLE_IMMEDIATE;
+		p->part.scale = CORONA_SCALE(24.0, 0.25);
+	}
+
+	// lightning zaps!
+	for (i = 2 + Randomf() * 3; i >= 0; i--) {
+			
+		vec3_t forward, right, up;
+		vec3_t zap_start, zap_end;
+		const int32_t num_zaps = 3 + Randomf() * 3;
+
+		AngleVectors(ent->angles, forward, right, up);
+
+		VectorCopy(end, zap_start);
+		VectorMA(zap_start, Randomc() * 8.0, forward, zap_start);
+		VectorMA(zap_start, Randomc() * 8.0, right, zap_start);
+
+		for (int32_t k = 0; k < num_zaps; k++) {
+			
+			VectorMA(zap_start, 1.0 + Randomf() * 1.0, forward, zap_end);
+
+			vec_t angle_change;
+
+			if (k == 0) {
+				angle_change = 10.0;
+			} else {
+				angle_change = 6.0;
+			}
+
+			VectorMA(zap_end, Randomc() * angle_change, right, zap_end);
+			VectorMA(zap_end, Randomc() * angle_change, up, zap_end);
+
+			// zap!
+			if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_lightning))) {
+				return;
+			}
 
 			p->lifetime = PARTICLE_IMMEDIATE;
-			p->part.scale = CORONA_SCALE(24.0, 0.25);
-		}
 
-		// lightning zaps!
-		for (i = 2 + Randomf() * 3; i >= 0; i--) {
-			
-			vec3_t forward, right, up;
-			vec3_t zap_start, zap_end;
-			const int32_t num_zaps = 3 + Randomf() * 3;
+			cgi.ColorFromPalette(12 + (Random() & 3), p->part.color);
 
-			AngleVectors(ent->angles, forward, right, up);
+			p->part.scale = 2.0;
+			p->part.scroll_s = -2.0;
 
-			VectorCopy(end, zap_start);
-			VectorMA(zap_start, Randomc() * 8.0, forward, zap_start);
-			VectorMA(zap_start, Randomc() * 8.0, right, zap_start);
+			VectorCopy(zap_start, p->part.org);
+			VectorCopy(zap_end, p->part.end);
 
-			for (int32_t k = 0; k < num_zaps; k++) {
-			
-				VectorMA(zap_start, 1.0 + Randomf() * 1.0, forward, zap_end);
+			vec3_t zap_dir;
+			VectorSubtract(zap_end, zap_start, zap_dir);
+			VectorNormalize(zap_dir);
+			VectorAngles(zap_dir, zap_dir);
+			AngleVectors(zap_dir, forward, right, up);
 
-				vec_t angle_change;
-
-				if (k == 0) {
-					angle_change = 10.0;
-				} else {
-					angle_change = 6.0;
-				}
-
-				VectorMA(zap_end, Randomc() * angle_change, right, zap_end);
-				VectorMA(zap_end, Randomc() * angle_change, up, zap_end);
-
-				// zap!
-				if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_lightning))) {
-					return;
-				}
-
-				p->lifetime = PARTICLE_IMMEDIATE;
-
-				cgi.ColorFromPalette(12 + (Random() & 3), p->part.color);
-
-				p->part.scale = 2.0;
-				p->part.scroll_s = -2.0;
-
-				VectorCopy(zap_start, p->part.org);
-				VectorCopy(zap_end, p->part.end);
-
-				vec3_t zap_dir;
-				VectorSubtract(zap_end, zap_start, zap_dir);
-				VectorNormalize(zap_dir);
-				VectorAngles(zap_dir, zap_dir);
-				AngleVectors(zap_dir, forward, right, up);
-
-				VectorCopy(zap_end, zap_start);
-			}
+			VectorCopy(zap_end, zap_start);
 		}
 	}
 }

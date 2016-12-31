@@ -495,6 +495,13 @@ typedef enum {
 } entity_animation_t;
 
 /**
+ * @brief Constants for animation1 that the lightning gun uses for
+ * its hit detection routines.
+ */
+#define LIGHTNING_NO_HIT		0
+#define LIGHTNING_SOLID_HIT		1
+
+/**
  * @brief Restarts the current animation sequence.
  */
 #define ANIM_TOGGLE_BIT 0x80
