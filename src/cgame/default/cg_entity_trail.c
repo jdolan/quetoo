@@ -595,7 +595,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	}
 
 	if (ent->current.animation1 != LIGHTNING_SOLID_HIT) {
-		return
+		return;
 	}
 
 	cg_particle_t *p;
