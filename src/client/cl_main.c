@@ -626,11 +626,13 @@ void Cl_Frame(const uint32_t msec) {
 
 	Cl_SendCommands();
 
-	Cl_Interpolate();
+	if (cls.state == CL_ACTIVE) {
+		Cl_Interpolate();
 
-	Cl_PredictMovement();
+		Cl_PredictMovement();
 
-	Cl_UpdateView();
+		Cl_UpdateView();
+	}
 
 	Cl_UpdateScreen();
 
