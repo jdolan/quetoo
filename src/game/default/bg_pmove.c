@@ -608,8 +608,7 @@ static _Bool Pm_CheckTrickJump(void) {
 /**
  * @brief This function is designed to keep the player from getting too close to
  * other planes. If the player is close enough to another wall or box, it will adjust
- * the position by shoving them away from it at a certain distance. It will only try
- * to adjust the Z position if they are in the air, to prevent sliding across the ground.
+ * the position by shoving them away from it at a certain distance.
  */
 static void Pm_SnapToWalls(void) {
 
@@ -617,25 +616,20 @@ static void Pm_SnapToWalls(void) {
 		{  1.0,  0.0,  0.0 },
 		{ -1.0,  0.0,  0.0 },
 		{  0.0,  1.0,  0.0 },
-		{  0.0, -1.0,  0.0 },
-		{  0.0,  0.0,  1.0 },
-		{  0.0,  0.0, -1.0 }
+		{  0.0, -1.0,  0.0 }
 	};
 
 	for (uint32_t i = 0; i < lengthof(dirs); i++) {
-
-		if (i >= 4) {
-			if (pm->s.flags & PMF_ON_GROUND) {
-				continue;
-			}
-		}
 
 		vec3_t end;
 		VectorMA(pm->s.origin, PM_SNAP_DISTANCE, dirs[i], end);
 
 		const cm_trace_t tr = pm->Trace(pm->s.origin, end, pm->mins, pm->maxs);
 		if (tr.fraction < 1.0) {
-			VectorMA(tr.end, -PM_SNAP_DISTANCE, dirs[i], pm->s.origin);
+			if (tr.plane.normal[2] < PM_STEP_NORMAL &&
+				tr.plane.normal[2] > -PM_STEP_NORMAL) {
+				VectorMA(tr.end, -PM_SNAP_DISTANCE, dirs[i], pm->s.origin);
+			}
 		}
 	}
 }
