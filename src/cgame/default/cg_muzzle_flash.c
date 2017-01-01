@@ -84,7 +84,7 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 	org[2] += Cg_IsDucking(ent) ? -2.0 : 20.0;
 
 	VectorCopy(org, s.light.origin);
-	s.light.radius = 80.0;
+	s.light.radius = 120.0;
 	VectorSet(s.light.color, 0.8, 0.7, 0.5);
 	s.sustain = 300;
 
