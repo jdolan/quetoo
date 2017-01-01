@@ -40,7 +40,7 @@
 
 #define BSP_LIGHT_SUN_SCALE 1.0
 #define BSP_LIGHT_MERGE_THRESHOLD 24.0
-#define BSP_LIGHT_SURFACE_RADIUS_SCALE 0.4
+#define BSP_LIGHT_SURFACE_RADIUS_SCALE 1.0
 #define BSP_LIGHT_POINT_RADIUS_SCALE 1.0
 #define BSP_LIGHT_POINT_DEFAULT_RADIUS 300.0
 
@@ -211,6 +211,7 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 		}
 	}
 
+	
 	// parse the entity string for point lights
 	const char *ents = Cm_EntityString();
 
