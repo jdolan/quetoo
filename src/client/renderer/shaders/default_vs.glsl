@@ -4,6 +4,8 @@
 
 #version 120
 
+#define VERTEX_SHADER
+
 #include "matrix_inc.glsl"
 #include "fog_inc.glsl"
 
@@ -46,15 +48,6 @@ void LightVertex(void) {
 		tangent = normalize(vec3(NORMAL_MAT * temp_tangent));
 		bitangent = cross(normal, tangent) * temp_tangent.w;
 	}
-}
-
-/**
- * @brief Calculate the interpolated fog value for the vertex.
- */
-void FogVertex(void) {
-
-	fog = (gl_Position.z - FOG.START) / (FOG.END - FOG.START);
-	fog = clamp(fog, 0.0, 1.0) * FOG.DENSITY;
 }
 
 /**

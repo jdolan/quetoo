@@ -437,6 +437,11 @@ static int32_t Cm_ParseStage(cm_stage_t *s, const char **buffer) {
 			continue;
 		}
 
+		if (!g_strcmp0(c, "skip_fog")) {
+			s->flags |= STAGE_SKIP_FOG;
+			continue;
+		}
+
 		if (!g_strcmp0(c, "flare")) {
 
 			c = ParseToken(buffer);

@@ -4,6 +4,8 @@
 
 #version 120
 
+#define FRAGMENT_SHADER
+
 uniform vec4 LIGHT;
 uniform vec4 PLANE;
 uniform vec4 GLOBAL_COLOR;

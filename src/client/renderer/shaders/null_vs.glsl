@@ -4,6 +4,8 @@
 
 #version 120
 
+#define VERTEX_SHADER
+
 #include "matrix_inc.glsl"
 #include "fog_inc.glsl"
 
@@ -19,15 +21,6 @@ attribute vec4 COLOR;
 uniform float TIME_FRACTION;
 
 attribute vec3 NEXT_POSITION;
-
-/**
- * @brief Calculate the interpolated fog value for the vertex.
- */
-void FogVertex(void) {
-
-	fog = (gl_Position.z - FOG.START) / (FOG.END - FOG.START);
-	fog = clamp(fog, 0.0, 1.0) * FOG.DENSITY;
-}
 
 /**
  * @brief Shader entry point.

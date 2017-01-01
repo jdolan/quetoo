@@ -351,14 +351,18 @@ static void R_SetStageState(const r_bsp_surface_t *surf, const r_stage_t *stage)
 
 		// modulate the alpha value for pulses
 		if (stage->cm->flags & STAGE_PULSE) {
-			R_EnableFog(false); // disable fog, since it also sets alpha
 			color[3] = stage->pulse.dhz;
 		} else {
-			R_EnableFog(true); // ensure fog is available
 			color[3] = 1.0;
 		}
 
 		R_Color(color);
+	}
+
+	if (stage->cm->flags & (STAGE_SKIP_FOG | STAGE_PULSE)) {
+		R_EnableFog(false); // disable fog
+	} else {
+		R_EnableFog(true); // ensure we have fog
 	}
 }
 

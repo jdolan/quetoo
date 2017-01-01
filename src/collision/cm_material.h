@@ -99,6 +99,7 @@ typedef struct cm_stage_s {
 #define STAGE_LIGHTMAP			(1 << 13)
 #define STAGE_DIRTMAP			(1 << 14)
 #define STAGE_FLARE				(1 << 15)
+#define STAGE_SKIP_FOG			(1 << 16)
 
 // set on stages eligible for static, dynamic, and per-pixel lighting
 #define STAGE_LIGHTING			(1 << 30)

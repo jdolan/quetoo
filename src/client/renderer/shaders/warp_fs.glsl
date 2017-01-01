@@ -4,6 +4,8 @@
 
 #version 120
 
+#define FRAGMENT_SHADER
+
 #include "fog_inc.glsl"
 
 uniform float OFFSET;

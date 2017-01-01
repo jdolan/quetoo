@@ -4,6 +4,8 @@
 
 #version 120
 
+#define FRAGMENT_SHADER
+
 #include "matrix_inc.glsl"
 #include "fog_inc.glsl"
 #include "noise3d_inc.glsl"

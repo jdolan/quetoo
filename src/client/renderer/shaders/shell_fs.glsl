@@ -4,6 +4,8 @@
 
 #version 120
 
+#define FRAGMENT_SHADER
+
 uniform sampler2D SAMPLER0;
 uniform vec4 GLOBAL_COLOR;
 

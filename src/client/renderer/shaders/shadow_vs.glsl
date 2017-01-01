@@ -4,6 +4,8 @@
 
 #version 120
 
+#define VERTEX_SHADER
+
 #include "fog_inc.glsl"
 #include "matrix_inc.glsl"
 
@@ -26,11 +28,11 @@ void ShadowVertex() {
 }
 
 /**
- * @brief
+ * @brief Calculate the fog mix factor. This is different for shadows.
  */
-void FogVertex(void) {
+void FogShadowVertex(void) {
     fog = (gl_Position.z - FOG.START) / (FOG.END - FOG.START) / point.w;
-    fog = clamp(fog, 0.0, 1.0) * FOG.DENSITY;
+    fog = clamp(fog * FOG.DENSITY, 0.0, 1.0);
 }
 
 /**
@@ -43,5 +45,5 @@ void main(void) {
 	// mvp transform into clip space
 	gl_Position = PROJECTION_MAT * point;
 	    
-    FogVertex();
+    FogShadowVertex();
 }

@@ -4,6 +4,8 @@
 
 #version 120
 
+#define VERTEX_SHADER
+
 #include "matrix_inc.glsl"
 
 uniform float OFFSET;
@@ -20,7 +22,6 @@ uniform float TIME_FRACTION;
 
 attribute vec3 NEXT_POSITION;
 attribute vec3 NEXT_NORMAL;
-
 
 /**
  * @brief Shader entry point.
