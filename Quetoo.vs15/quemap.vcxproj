@@ -95,7 +95,7 @@
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>COPY_QUEMAP "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)"</Command>
+      <Command>COPY_DEPENDENCIES "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)" &amp;&amp; COPY_QUEMAP "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
