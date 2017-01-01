@@ -1,5 +1,0 @@
-Grab the Glib include files http://ftp.gnome.org/pub/GNOME/sources/glib/2.50
-and place them here. This includes the gio, glib and gobject subfolders 
-even though Quetoo does not use them.
-
-glibconfig.h is pre-generated for 2.50, so please use 2.50.1.
