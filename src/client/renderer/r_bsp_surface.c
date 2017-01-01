@@ -66,6 +66,10 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 		} else {
 			R_EnableLights(0);
 		}
+
+		R_EnableCaustic(surf->flags & R_SURF_UNDERLIQUID);
+	} else {
+		R_EnableCaustic(false);
 	}
 
 	if (r_state.stencil_test_enabled) { // write to stencil buffer to clip shadows
@@ -75,8 +79,6 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 			R_StencilFunc(GL_ALWAYS, 0, 0);
 		}
 	}
-
-	R_EnableCaustic(surf->flags & R_SURF_UNDERLIQUID);
 }
 
 /**
@@ -120,6 +122,8 @@ static void R_DrawBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 		R_UseMaterial(NULL);
 
 		R_EnableLights(0);
+
+		R_EnableCaustic(false);
 	}
 
 	R_Color(NULL);

@@ -446,7 +446,7 @@ void R_EnableFog(_Bool enable) {
 		return;
 	}
 
-	if (!r_fog->value || r_state.fog_enabled == enable || !r_state.active_program->UseFog) {
+	if (!r_fog->value || r_state.fog_enabled == enable) {
 		return;
 	}
 
@@ -478,7 +478,7 @@ void R_EnableCaustic(_Bool enable) {
 		return;
 	}
 
-	if (!r_caustics->value || r_state.active_caustic_parameters.enable == enable || !r_state.active_program->UseCaustic) {
+	if (!r_caustics->value || r_state.active_caustic_parameters.enable == enable) {
 		return;
 	}
 
