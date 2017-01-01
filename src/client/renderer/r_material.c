@@ -359,10 +359,10 @@ static void R_SetStageState(const r_bsp_surface_t *surf, const r_stage_t *stage)
 		R_Color(color);
 	}
 
-	if (stage->cm->flags & (STAGE_SKIP_FOG | STAGE_PULSE)) {
-		R_EnableFog(false); // disable fog
+	if (stage->cm->flags & STAGE_FOG) {
+		R_EnableFog(true);
 	} else {
-		R_EnableFog(true); // ensure we have fog
+		R_EnableFog(false);
 	}
 }
 

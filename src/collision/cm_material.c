@@ -437,8 +437,8 @@ static int32_t Cm_ParseStage(cm_stage_t *s, const char **buffer) {
 			continue;
 		}
 
-		if (!g_strcmp0(c, "skip_fog")) {
-			s->flags |= STAGE_SKIP_FOG;
+		if (!g_strcmp0(c, "fog")) {
+			s->flags |= STAGE_FOG;
 			continue;
 		}
 
@@ -463,6 +463,11 @@ static int32_t Cm_ParseStage(cm_stage_t *s, const char **buffer) {
 					s->material = Cm_LoadMaterial(s->image);
 					s->flags |= STAGE_LIGHTING;
 				}
+			}
+
+			// a blend dest other than GL_ONE should use fog by default
+			if (s->blend.dest != GL_ONE) {
+				s->flags |= STAGE_FOG;
 			}
 
 			Com_Debug(DEBUG_COLLISION,
