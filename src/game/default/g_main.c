@@ -925,6 +925,10 @@ static void G_Frame(void) {
 
 			if (ent->client) {
 				G_ClientBeginFrame(ent);
+
+				if (ent->ai) {
+					G_RunThink(ent);
+				}
 			} else {
 				G_RunEntity(ent);
 			}

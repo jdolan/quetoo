@@ -200,7 +200,7 @@ static void G_CheckWater(g_entity_t *ent) {
 /**
  * @brief Runs thinking code for this frame if necessary
  */
-static void G_RunThink(g_entity_t *ent) {
+void G_RunThink(g_entity_t *ent) {
 
 	if (ent->locals.next_think == 0) {
 		return;
