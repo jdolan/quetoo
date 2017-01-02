@@ -149,35 +149,50 @@ static void G_CheckWater(g_entity_t *ent) {
 	VectorSubtract(pos, ent_frame_delta, old_pos);
 
 	if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
-		if ((ent->locals.water_level && old_water_level) &&
-		        g_level.time > ent->locals.ripple_time) {
-			ent->locals.ripple_time = g_level.time + 400;
 
-			vec3_t top, bottom;
+		if (!(ent->sv_flags & SVF_NO_CLIENT)) {
 
-			VectorSet(top, ent->s.origin[0], ent->s.origin[1], ent->s.origin[2] + ent->maxs[2] + 16);
-			VectorSet(bottom, ent->s.origin[0], ent->s.origin[1], ent->s.origin[2] + ent->mins[2]);
+			const _Bool in_motion = !VectorCompare(ent->locals.velocity, vec3_origin);
+			const _Bool in_water = ent->locals.water_level && old_water_level;
 
-			G_LiquidRipple(ent, top, bottom, 20.0);
-		} else if (ent->locals.ripple_time > g_level.time + 400) { // initialize it JIC
-			ent->locals.ripple_time = 0;
+			if (in_motion && in_water && g_level.time > ent->locals.ripple_time) {
+
+				ent->locals.ripple_time = g_level.time + 400;
+
+				vec3_t top, bottom;
+
+				VectorMA(ent->s.origin, ent->maxs[2] + 16.0, vec3_up, top);
+				VectorMA(ent->s.origin, ent->mins[2], vec3_down, bottom);
+
+				G_LiquidRipple(ent, top, bottom, 20.0);
+			} else if (ent->locals.ripple_time > g_level.time + 400) {
+				ent->locals.ripple_time = 0;
+			}
 		}
 	}
 
 	if (!old_water_level && ent->locals.water_level) {
-		gi.PositionedSound(pos, ent, g_media.sounds.water_in, ATTEN_IDLE);
+		
 		if (ent->locals.move_type == MOVE_TYPE_BOUNCE) {
 			VectorScale(ent->locals.velocity, 0.66, ent->locals.velocity);
 		}
 
-		if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
-			G_LiquidRipple(ent, old_pos, pos, 30.0);
-		}
-	} else if (old_water_level && !ent->locals.water_level) {
-		gi.PositionedSound(pos, ent, g_media.sounds.water_out, ATTEN_IDLE);
+		if (!(ent->sv_flags & SVF_NO_CLIENT)) {
+			gi.PositionedSound(pos, ent, g_media.sounds.water_in, ATTEN_IDLE);
 
-		if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
-			G_LiquidRipple(ent, old_pos, pos, 30.0);
+			if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
+				G_LiquidRipple(ent, old_pos, pos, 30.0);
+			}
+		}
+
+	} else if (old_water_level && !ent->locals.water_level) {
+
+		if (!(ent->sv_flags & SVF_NO_CLIENT)) {
+			gi.PositionedSound(pos, ent, g_media.sounds.water_out, ATTEN_IDLE);
+
+			if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
+				G_LiquidRipple(ent, old_pos, pos, 30.0);
+			}
 		}
 	}
 }
