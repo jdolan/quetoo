@@ -33,11 +33,10 @@ static _Bool R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 
 	_Bool surf_touched = false;
 
+	// determine if the surface is within range
 	const vec_t dist = R_DistanceToSurface(stain->origin, surf);
 
-	const vec_t radius = stain->radius - fabs(dist);
-
-	if (radius < 0.0) {
+	if (fabs(dist) > stain->radius) {
 		return false;
 	}
 
@@ -56,6 +55,9 @@ static _Bool R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 	// and convert to lightmap space
 	point_st[0] *= r_model_state.world->bsp->lightmaps->scale;
 	point_st[1] *= r_model_state.world->bsp->lightmaps->scale;
+
+	// resolve the radius of the stain where it impacts the surface
+	const vec_t radius = sqrt(stain->radius * stain->radius - dist * dist);
 
 	// transform the radius into lightmap space, accounting for unevenly scaled textures
 	const vec_t radius_st = (radius / tex->scale[0]) * r_model_state.world->bsp->lightmaps->scale;
