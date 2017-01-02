@@ -27,5 +27,6 @@
 	#define DEFAULT_GRAVITY 800.0
 	void G_LiquidRipple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, const vec_t size);
 	void G_TouchOccupy(g_entity_t *ent);
+	void G_RunThink(g_entity_t *ent);
 	void G_RunEntity(g_entity_t *ent);
 #endif /* __GAME_LOCAL_H__ */

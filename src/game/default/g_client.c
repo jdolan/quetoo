@@ -965,7 +965,12 @@ void G_ClientRespawn(g_entity_t *ent, _Bool voluntary) {
 void G_ClientBegin(g_entity_t *ent) {
 	char welcome[MAX_STRING_CHARS];
 
+	// backup & restore AI state, since it gets wiped
+	const _Bool ai = ent->ai;
+
 	G_InitEntity(ent, "client");
+
+	ent->ai = ai;
 
 	const int32_t entity_num = (int32_t) (ptrdiff_t) (ent - g_game.entities - 1);
 	ent->client = g_game.clients + entity_num;

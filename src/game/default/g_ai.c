@@ -43,13 +43,13 @@ static void G_Ai_Spawn(g_entity_t *self) {
 	self->ai = true; // and away we go!
 
 	G_ClientConnect(self, DEFAULT_USER_INFO);
+	G_ClientUserInfoChanged(self, DEFAULT_USER_INFO);
 	G_ClientBegin(self);
 
 	gi.Debug("Spawned %s at %s", self->client->locals.persistent.net_name, vtos(self->s.origin));
 
 	self->locals.Think = G_Ai_ClientThink;
 	self->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
-
 }
 
 /**
