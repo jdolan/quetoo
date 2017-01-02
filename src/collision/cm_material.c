@@ -589,16 +589,42 @@ GArray *Cm_LoadMaterials(const char *path) {
 			char full_name[MAX_QPATH];
 			g_strlcpy(full_name, c, sizeof(full_name));
 
+			const char *material_name;
+
 			if (*c == '#') {
 				m = Cm_LoadMaterial(++c);
 			} else {
 				m = Cm_LoadMaterial(va("textures/%s", c));
 			}
 
+			g_array_append_val(materials, m);
+
+			// if our ref count isn't 1, we're already loaded, so just skip to the next material
+			if (m->ref_count != 1) {
+				m = NULL;
+				int32_t brace_count = 1;
+
+				while (brace_count > 0) {
+
+					c = ParseToken(&buffer);
+
+					if (*c == '{') {
+						brace_count++;
+						continue;
+					}
+
+					if (*c == '}') {
+						brace_count--;
+						continue;
+					}
+				}
+
+				continue;
+			}
+
 			g_strlcpy(m->full_name, full_name, sizeof(m->full_name));
 			g_strlcpy(m->material_file, path, sizeof(m->material_file));
 
-			g_array_append_val(materials, m);
 			continue;
 		}
 
