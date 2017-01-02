@@ -153,6 +153,10 @@ static void R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 	R_StainNode(stain, node->children[1]);
 }
 
+
+static r_particle_t stain_tests[32];
+static int32_t stain_test;
+
 /**
  * @brief Add a stain to the map.
  */
@@ -168,6 +172,15 @@ void R_AddStain(const r_stain_t *s) {
 	}
 
 	r_view.stains[r_view.num_stains++] = *s;
+
+	r_particle_t *stain_particle = &stain_tests[(stain_test = (stain_test + 1) % 32)];
+
+	VectorCopy(s->origin, stain_particle->org);
+	Vector4Set(stain_particle->color, 1.0, 1.0, 1.0, 1.0);
+	stain_particle->scale = s->radius;
+	stain_particle->type = PARTICLE_FLARE;
+	stain_particle->image = R_LoadImage("particles/particle", IT_EFFECT);
+	stain_particle->blend = GL_ONE;
 }
 
 /**
@@ -194,6 +207,18 @@ static void R_AddStains_UploadSurfaces(gpointer key, gpointer value, gpointer us
  * @brief Adds new stains from the view each frame.
  */
 void R_AddStains(void) {
+	
+	static uint32_t ticks;
+
+	uint32_t tick_diff = cl.unclamped_time - ticks;
+	for (int32_t i = 0; i < 32; ++i) {
+		if (stain_tests[i].blend && stain_tests[i].color[3] > 0) {
+
+			R_AddParticle(&stain_tests[i]);
+			stain_tests[i].color[3] -= tick_diff * 0.0005;
+		}
+	}
+	ticks = cl.unclamped_time;
 
 	const r_stain_t *s = r_view.stains;
 	for (int32_t i = 0; i < r_view.num_stains; i++, s++) {
