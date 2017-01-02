@@ -799,7 +799,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 	});
 
 	vec3_t c;
-	cgi.ColorFromPalette(rand() & 7, c);
+	cgi.ColorFromPalette(203 + Random() % 3 , c);
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
