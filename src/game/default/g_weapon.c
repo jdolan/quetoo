@@ -565,11 +565,11 @@ void G_FireMachinegun(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_BulletProjectile(ent, org, forward, 4, 6, 100, 200, MOD_MACHINEGUN);
+		G_BulletProjectile(ent, org, forward, 4, 4, 200, 300, MOD_MACHINEGUN);
 
 		G_MuzzleFlash(ent, MZ_MACHINEGUN);
 
-		G_WeaponFired(ent, 100, ent->client->locals.weapon->quantity);
+		G_WeaponFired(ent, 50, ent->client->locals.weapon->quantity);
 	}
 }
 
