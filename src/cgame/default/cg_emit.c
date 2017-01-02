@@ -21,8 +21,8 @@
 
 #include "cg_local.h"
 
-/*
- * Emits are client-sided entities for emitting lights, particles, coronas,
+/**
+ * @file Emits are client-sided entities for emitting lights, particles, coronas,
  * ambient sounds, etc. They are run once per frame, and culled by both
  * PHS and PVS, depending on their flags.
  */
@@ -35,8 +35,8 @@
 #define EMIT_SOUND		0x20
 #define EMIT_MODEL		0x40
 
-// these emits are ONLY visible; they have no hearable component
-#define EMIT_VISIBLE (EMIT_LIGHT | EMIT_CORONA | EMIT_MODEL)
+#define EMIT_PVS (EMIT_LIGHT | EMIT_SPARKS | EMIT_STEAM | EMIT_FLAME | EMIT_CORONA | EMIT_MODEL)
+#define EMIT_PHS (EMIT_PVS | EMIT_SOUND)
 
 typedef struct cl_emit_s {
 	int32_t flags;
@@ -63,7 +63,7 @@ typedef struct cl_emit_s {
 
 #define MAX_EMITS 256
 static cg_emit_t cg_emits[MAX_EMITS];
-static uint16_t cg_num_emits;
+static size_t cg_num_emits;
 
 /**
  * @brief Parse misc_emits from the bsp after it has been loaded. This must
@@ -229,6 +229,11 @@ void Cg_LoadEmits(void) {
 				cgi.Debug("Added %d emit at %s\n", e->flags, vtos(e->org));
 
 				cg_num_emits++;
+
+				if (cg_num_emits == lengthof(cg_emits)) {
+					cgi.Warn("MAX_EMITS reached\n");
+					return;
+				}
 			} else {
 				memset(&cg_emits[cg_num_emits], 0, sizeof(cg_emit_t));
 			}
@@ -355,9 +360,9 @@ static cg_emit_t *Cg_UpdateEmit(cg_emit_t *e) {
 	em = *e;
 
 	if (!cgi.LeafHearable(e->leaf)) {
-		em.flags = 0;
+		em.flags &= ~EMIT_PHS;
 	} else if (!cgi.LeafVisible(e->leaf)) {
-		em.flags &= ~EMIT_VISIBLE;
+		em.flags &= ~EMIT_PVS;
 	}
 
 	if (em.flags && em.hz && em.time < cgi.client->unclamped_time) { // update the time stamp
@@ -377,7 +382,7 @@ void Cg_AddEmits(void) {
 		return;
 	}
 
-	for (int32_t i = 0; i < cg_num_emits; i++) {
+	for (size_t i = 0; i < cg_num_emits; i++) {
 
 		cg_emit_t *e = Cg_UpdateEmit(&cg_emits[i]);
 
