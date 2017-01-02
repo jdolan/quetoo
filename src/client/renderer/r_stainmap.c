@@ -115,12 +115,12 @@ static void R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 
 	const vec_t dist = Cm_DistanceToPlane(stain->origin, node->plane);
 
-	if (dist > stain->radius) { // front only
+	if (dist > stain->radius * 2.0) { // front only
 		R_StainNode(stain, node->children[0]);
 		return;
 	}
 
-	if (dist < -stain->radius) { // back only
+	if (dist < -stain->radius * 2.0) { // back only
 		R_StainNode(stain, node->children[1]);
 		return;
 	}
