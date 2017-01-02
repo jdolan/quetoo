@@ -28,10 +28,9 @@
  * be freed automatically.
  */
 void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
-	r_material_t *m;
 	vec3_t span;
 
-	m = surf->texinfo->material;
+	const r_material_t *m = surf->texinfo->material;
 
 	if (!(m->flags & STAGE_FLARE)) { // surface is not flared
 		return;

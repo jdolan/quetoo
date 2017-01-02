@@ -210,7 +210,6 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 			R_AddBspLight(bsp, origin, surf->texinfo->emissive, radius * s->brightness);
 		}
 	}
-
 	
 	// parse the entity string for point lights
 	const char *ents = Cm_EntityString();
