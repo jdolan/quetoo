@@ -600,7 +600,7 @@ GArray *Cm_LoadMaterials(const char *path) {
 			// if our ref count isn't 1, we're already loaded, so just skip to the next material
 			if (m->ref_count != 1) {
 				int32_t brace_count = 1;
-				
+
 				while (brace_count > 0) {
 
 					c = ParseToken(&buffer);
