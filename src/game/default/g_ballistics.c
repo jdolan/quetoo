@@ -158,7 +158,7 @@ static void G_ProjectStructuralPoint(const g_entity_t *mover, const vec3_t point
 /**
  * @brief Used to add impact marks on surfaces hit by bullets.
  */
-static void G_BulletMark(vec3_t org, cm_bsp_plane_t *plane, cm_bsp_surface_t *surf) {
+static void G_BulletImpact(vec3_t org, cm_bsp_plane_t *plane, cm_bsp_surface_t *surf) {
 
 	if (surf->flags & SURF_ALPHA_TEST) {
 		return;
@@ -281,7 +281,7 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 
 			G_ProjectStructuralPoint(tr.ent, tr.end, end);
 
-			G_BulletMark(end, &tr.plane, tr.surface);
+			G_BulletImpact(end, &tr.plane, tr.surface);
 		}
 
 		if ((gi.PointContents(start) & MASK_LIQUID) || (gi.PointContents(tr.end) & MASK_LIQUID)) {
