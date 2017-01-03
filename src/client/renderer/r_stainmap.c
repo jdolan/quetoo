@@ -71,19 +71,25 @@ static _Bool R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 	// transform the radius into lightmap space, accounting for unevenly scaled textures
 	const vec_t radius_st = (radius / tex->scale[0]) * r_model_state.world->bsp->lightmaps->scale;
 
+	// square it, so we can avoid roots later
+	const vec_t radius_sts = radius_st * radius_st;
+
 	byte *buffer = surf->stainmap_buffer;
 
 	// iterate the luxels and stain the ones that are within reach
 	for (uint16_t t = 0; t < surf->lightmap_size[1]; t++) {
 
 		const vec_t delta_t = round(fabs(point_st[1] - t));
+		const vec_t delta_st = delta_t * delta_t; // squared
 
 		for (uint16_t s = 0; s < surf->lightmap_size[0]; s++, buffer += 3) {
 
 			const vec_t delta_s = round(fabs(point_st[0] - s));
-			const vec_t dist_st = sqrt(delta_s * delta_s + delta_t * delta_t);
+			const vec_t delta_ss = delta_s * delta_s; // squared
 
-			const vec_t atten = (radius_st - dist_st) / radius_st;
+			const vec_t dist_st = delta_st + delta_ss;
+
+			const vec_t atten = (radius_sts - dist_st) / radius_sts;
 
 			if (atten <= 0.0) {
 				continue;
