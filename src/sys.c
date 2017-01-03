@@ -192,6 +192,7 @@ void Sys_Backtrace(void) {
 
 	fflush(stderr);
 #elif defined(_MSC_VER)
+	/*
 	HANDLE process = GetCurrentProcess();
 
 	SymSetOptions(SYMOPT_UNDNAME);
@@ -230,7 +231,7 @@ void Sys_Backtrace(void) {
 	} else {
 		fprintf(stderr, "Couldn't get stack trace.\n");
 		fflush(stderr);
-	}
+	}*/
 #endif
 }
 
