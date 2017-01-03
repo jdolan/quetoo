@@ -33,11 +33,10 @@ static _Bool R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 
 	_Bool surf_touched = false;
 
+	// determine if the surface is within range
 	const vec_t dist = R_DistanceToSurface(stain->origin, surf);
 
-	const vec_t radius = stain->radius - fabs(dist);
-
-	if (radius < 0.0) {
+	if (fabs(dist) > stain->radius) {
 		return false;
 	}
 
@@ -57,21 +56,25 @@ static _Bool R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 	point_st[0] *= r_model_state.world->bsp->lightmaps->scale;
 	point_st[1] *= r_model_state.world->bsp->lightmaps->scale;
 
+	// resolve the radius of the stain where it impacts the surface
+	const vec_t radius = sqrt(stain->radius * stain->radius - dist * dist);
+
 	// transform the radius into lightmap space, accounting for unevenly scaled textures
-	const vec_t radius_st = Max(1.0, radius * r_model_state.world->bsp->lightmaps->scale);
+	const vec_t radius_st = (radius / tex->scale[0]) * r_model_state.world->bsp->lightmaps->scale;
 
 	byte *buffer = surf->stainmap_buffer;
 
 	// iterate the luxels and stain the ones that are within reach
 	for (uint16_t t = 0; t < surf->lightmap_size[1]; t++) {
 
+		const vec_t delta_t = fabs(point_st[1] - t);
+
 		for (uint16_t s = 0; s < surf->lightmap_size[0]; s++, buffer += 3) {
 
-			const vec2_t delta_st = { fabs(point_st[0] - s), fabs(point_st[1] - t) };
+			const vec_t delta_s = fabs(point_st[0] - s);
+			const vec_t dist_st = sqrt(delta_s * delta_s + delta_t * delta_t);
 
-			const vec_t dist_st = sqrt(delta_st[0] * delta_st[0] + delta_st[1] * delta_st[1]);
-
-			const vec_t atten = (radius_st - dist_st * tex->scale[0]) / radius_st;
+			const vec_t atten = (radius_st - dist_st) / radius_st;
 
 			if (atten <= 0.0) {
 				continue;
@@ -114,12 +117,12 @@ static void R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 
 	const vec_t dist = Cm_DistanceToPlane(stain->origin, node->plane);
 
-	if (dist > stain->radius) { // front only
+	if (dist > stain->radius * 2.0) { // front only
 		R_StainNode(stain, node->children[0]);
 		return;
 	}
 
-	if (dist < -stain->radius) { // back only
+	if (dist < -stain->radius * 2.0) { // back only
 		R_StainNode(stain, node->children[1]);
 		return;
 	}
@@ -153,10 +156,6 @@ static void R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 	R_StainNode(stain, node->children[1]);
 }
 
-
-static r_particle_t stain_tests[32];
-static int32_t stain_test;
-
 /**
  * @brief Add a stain to the map.
  */
@@ -172,15 +171,6 @@ void R_AddStain(const r_stain_t *s) {
 	}
 
 	r_view.stains[r_view.num_stains++] = *s;
-
-	r_particle_t *stain_particle = &stain_tests[(stain_test = (stain_test + 1) % 32)];
-
-	VectorCopy(s->origin, stain_particle->org);
-	Vector4Set(stain_particle->color, 1.0, 1.0, 1.0, 1.0);
-	stain_particle->scale = s->radius;
-	stain_particle->type = PARTICLE_FLARE;
-	stain_particle->image = R_LoadImage("particles/particle", IT_EFFECT);
-	stain_particle->blend = GL_ONE;
 }
 
 /**
@@ -207,18 +197,6 @@ static void R_AddStains_UploadSurfaces(gpointer key, gpointer value, gpointer us
  * @brief Adds new stains from the view each frame.
  */
 void R_AddStains(void) {
-	
-	static uint32_t ticks;
-
-	uint32_t tick_diff = cl.unclamped_time - ticks;
-	for (int32_t i = 0; i < 32; ++i) {
-		if (stain_tests[i].blend && stain_tests[i].color[3] > 0) {
-
-			R_AddParticle(&stain_tests[i]);
-			stain_tests[i].color[3] -= tick_diff * 0.0005;
-		}
-	}
-	ticks = cl.unclamped_time;
 
 	const r_stain_t *s = r_view.stains;
 	for (int32_t i = 0; i < r_view.num_stains; i++, s++) {

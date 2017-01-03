@@ -73,7 +73,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
 		 .color = { c[0], c[1], c[2], 0.33 },
-		  .radius = 2.0
+		  .radius = 4.0
 	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
@@ -178,8 +178,8 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
-		 .color = { 0.0, 0.0, 0.0, 0.125 },
-		  .radius = 1.0
+		 .color = { 0.0, 0.0, 0.0, 0.675 },
+		  .radius = 2.0
 	});
 
 	if (cgi.client->unclamped_time < last_ric_time) {
@@ -532,7 +532,7 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
 		 .color = { color[0], color[1], color[2], 0.33 },
-		  .radius = 16.0 + (16.0 * Randomc() * 0.15)
+		  .radius = 16.0
 	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
@@ -705,7 +705,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { end[0], end[1], end[2] },
 		 .color = { s.light.color[0], s.light.color[1], s.light.color[2], 0.66 },
-		  .radius = 8.0 + (8.0 * Randomc() * 0.15)
+		  .radius = 8.0
 	});
 }
 
@@ -804,7 +804,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
 		 .color = { c[0], c[1], c[2], 0.75 },
-		  .radius = 96.0 + (96.0 * Randomc() * 0.15)
+		  .radius = 96.0
 	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
