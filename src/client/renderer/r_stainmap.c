@@ -44,6 +44,15 @@ static _Bool R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 	vec3_t point;
 	VectorMA(stain->origin, -dist, surf->plane->normal, point);
 
+	vec3_t dir;
+	VectorSubtract(point, stain->origin, dir);
+	VectorNormalize(dir);
+
+	// see if we are even facing the point
+	if (DotProduct(dir, surf->plane->normal) > 0.0) {
+		return false;
+	}
+
 	const r_bsp_texinfo_t *tex = surf->texinfo;
 
 	// transform the impact point into texture space
@@ -55,7 +64,7 @@ static _Bool R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 	// and convert to lightmap space
 	point_st[0] *= r_model_state.world->bsp->lightmaps->scale;
 	point_st[1] *= r_model_state.world->bsp->lightmaps->scale;
-
+	
 	// resolve the radius of the stain where it impacts the surface
 	const vec_t radius = sqrt(stain->radius * stain->radius - dist * dist);
 
@@ -67,11 +76,11 @@ static _Bool R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 	// iterate the luxels and stain the ones that are within reach
 	for (uint16_t t = 0; t < surf->lightmap_size[1]; t++) {
 
-		const vec_t delta_t = fabs(point_st[1] - t);
+		const vec_t delta_t = round(fabs(point_st[1] - t));
 
 		for (uint16_t s = 0; s < surf->lightmap_size[0]; s++, buffer += 3) {
 
-			const vec_t delta_s = fabs(point_st[0] - s);
+			const vec_t delta_s = round(fabs(point_st[0] - s));
 			const vec_t dist_st = sqrt(delta_s * delta_s + delta_t * delta_t);
 
 			const vec_t atten = (radius_st - dist_st) / radius_st;
