@@ -192,46 +192,7 @@ void Sys_Backtrace(void) {
 
 	fflush(stderr);
 #elif defined(_MSC_VER)
-	/*
-	HANDLE process = GetCurrentProcess();
-
-	SymSetOptions(SYMOPT_UNDNAME);
-
-	if (SymInitialize(process, NULL, TRUE)) {
-		void *symbols[MAXSHORT];
-
-		WORD frames = CaptureStackBackTrace(0, MAXSHORT, symbols, NULL);
-
-		SYMBOL_INFO *symbol = Mem_Malloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char));
-		symbol->MaxNameLen = 255;
-		symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-
-		for (int32_t i = 0; i < frames; i++) {
-			const char *symbol_name = "unknown symbol";
-
-			SymFromAddr(process, (DWORD64)(symbols[i]), 0, symbol);
-
-			if (symbol->NameLen) {
-				symbol_name = symbol->Name;
-			}
-			if (symbol->ModBase) {
-				IMAGEHLP_MODULE module;
-				module.SizeOfStruct = sizeof(module);
-				SymGetModuleInfo(process, (DWORD)symbol->ModBase, &module);
-				fprintf(stderr, "%s ", module.ImageName);
-			} else {
-				fprintf(stderr, "unknown module ");
-			}
-
-			fprintf(stderr, "(%s+%lux) [0x%" PRIx64 "]\n", symbol_name, symbol->Register, symbol->Address);
-		}
-
-		fflush(stderr);
-		Mem_Free(symbol);
-	} else {
-		fprintf(stderr, "Couldn't get stack trace.\n");
-		fflush(stderr);
-	}*/
+	RaiseException(EXCEPTION_NONCONTINUABLE_EXCEPTION, EXCEPTION_NONCONTINUABLE, 0, NULL);
 #endif
 }
 

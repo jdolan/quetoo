@@ -294,8 +294,7 @@ static void Cl_MessageMode2_f(void) {
  */
 static void Cl_Crash_f(void) {
 
-	int32_t *x = NULL;
-	*x = 0;
+	Sys_Backtrace();
 }
 
 /**
