@@ -129,7 +129,7 @@ void G_UseBestWeapon(g_entity_t *ent) {
 	} else if (G_HasItem(ent, "grenade launcher", 1) && G_HasItem(ent, "grenades", 1)) {
 		item = G_FindItem("grenade launcher");
 	} else if (G_HasItem(ent, "grenades", 1)) {
-		item = G_FindItem("grenades");
+		item = G_FindItem("hand grenades");
 	} else if (G_HasItem(ent, "machinegun", 1) && G_HasItem(ent, "bullets", 1)) {
 		item = G_FindItem("machinegun");
 	} else if (G_HasItem(ent, "super shotgun", 1) && G_HasItem(ent, "shells", 2)) {
@@ -336,12 +336,7 @@ void G_ClientWeaponThink(g_entity_t *ent) {
 				const g_item_t *item = ent->client->locals.weapon;
 				if (item) {
 
-					// special case for grenades since they're ammo and weapon
-					if (g_strcmp0(item->class_name, "ammo_grenades") == 0) {
-						ent->s.model2 = g_media.models.grenade;
-					} else {
-						ent->s.model2 = gi.ModelIndex(item->model);
-					}
+					ent->s.model2 = gi.ModelIndex(item->model);
 
 					if (item->ammo) {
 						ent->client->locals.ammo_index = ITEM_INDEX(G_FindItem(item->ammo));
