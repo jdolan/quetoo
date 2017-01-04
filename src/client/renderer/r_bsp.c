@@ -140,8 +140,6 @@ static void R_RotateLightsForBspInlineModel(const r_entity_t *e) {
  */
 static void R_DrawBspInlineModel_(const r_entity_t *e) {
 	static int16_t frame = -2;
-	r_bsp_surface_t *surf;
-	uint16_t i;
 
 	// temporarily swap the view frame so that the surface drawing
 	// routines pickup only the inline model's surfaces
@@ -153,9 +151,9 @@ static void R_DrawBspInlineModel_(const r_entity_t *e) {
 		frame = -2;
 	}
 
-	surf = &r_model_state.world->bsp->surfaces[e->model->bsp_inline->first_surface];
+	r_bsp_surface_t *surf = &r_model_state.world->bsp->surfaces[e->model->bsp_inline->first_surface];
 
-	for (i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
+	for (uint16_t i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
 
 		const vec_t dist = R_DistanceToSurface(r_bsp_model_org, surf);
 
