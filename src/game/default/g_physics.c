@@ -473,9 +473,18 @@ void G_TouchOccupy(g_entity_t *ent) {
 			continue;
 		}
 
+		if (occupied->solid == SOLID_PROJECTILE && occupied->owner == ent) {
+			continue;
+		}
+
 		if (occupied->locals.Touch) {
+			static cm_bsp_plane_t plane = {
+				.normal = { 0.0, 0.0, 1.0 },
+				.dist = 0.0,
+				.type = PLANE_Z
+			};
 			gi.Debug("%s occupying %s\n", etos(ent), etos(occupied));
-			occupied->locals.Touch(occupied, ent, NULL, NULL);
+			occupied->locals.Touch(occupied, ent, &plane, NULL);
 		}
 
 		if (!ent->in_use) {
