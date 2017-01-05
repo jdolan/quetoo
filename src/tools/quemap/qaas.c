@@ -38,7 +38,7 @@ static d_aas_t d_aas;
 static void CreateAASNodes(void) {
 	uint16_t i;
 
-	const d_bsp_node_t *in = d_bsp.nodes;
+	const bsp_node_t *in = d_bsp.nodes;
 	d_aas_node_t *out = d_aas.nodes;
 
 	for (i = 0; i < d_bsp.num_nodes; i++, in++, out++) {
@@ -53,7 +53,7 @@ static void CreateAASNodes(void) {
  * @brief Returns true if the specified leaf is navigable (has an upward-facing
  * solid plane), false otherwise.
  */
-static _Bool PruneAASNodes_isNavigable(const d_bsp_leaf_t *leaf) {
+static _Bool PruneAASNodes_isNavigable(const bsp_leaf_t *leaf) {
 	uint16_t i;
 
 	if ((leaf->contents & MASK_CLIP_PLAYER) == 0) {
@@ -63,14 +63,14 @@ static _Bool PruneAASNodes_isNavigable(const d_bsp_leaf_t *leaf) {
 	const uint16_t *lb = &d_bsp.leaf_brushes[leaf->first_leaf_brush];
 
 	for (i = 0; i < leaf->num_leaf_brushes; i++, lb++) {
-		const d_bsp_brush_t *brush = &d_bsp.brushes[*lb];
+		const bsp_brush_t *brush = &d_bsp.brushes[*lb];
 
 		if (brush->contents & MASK_CLIP_PLAYER) {
-			const d_bsp_brush_side_t *bs = &d_bsp.brush_sides[brush->first_side];
+			const bsp_brush_side_t *bs = &d_bsp.brush_sides[brush->first_brush_side];
 			int32_t j;
 
 			for (j = 0; j < brush->num_sides; j++, bs++) {
-				const d_bsp_plane_t *plane = &d_bsp.planes[bs->plane_num];
+				const bsp_plane_t *plane = &d_bsp.planes[bs->plane_num];
 
 				if (plane->normal[2] > AI_NODE_MIN_NORMAL) {
 					return true;
@@ -167,7 +167,7 @@ static void WriteAASFile(void) {
 
 	SwapAASFile();
 
-	d_bsp_header_t header;
+	bsp_header_t header;
 	memset(&header, 0, sizeof(header));
 
 	header.ident = LittleLong(AAS_IDENT);

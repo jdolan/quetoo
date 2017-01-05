@@ -84,8 +84,8 @@ void CalcTextureReflectivity(void) {
 /**
  * @brief
  */
-static inline _Bool HasLight(const d_bsp_face_t *f) {
-	const d_bsp_texinfo_t *tex;
+static inline _Bool HasLight(const bsp_face_t *f) {
+	const bsp_texinfo_t *tex;
 
 	tex = &d_bsp.texinfo[f->texinfo];
 	return (tex->flags & SURF_LIGHT) && tex->value;
@@ -94,8 +94,8 @@ static inline _Bool HasLight(const d_bsp_face_t *f) {
 /**
  * @brief
  */
-static inline _Bool IsSky(const d_bsp_face_t *f) {
-	const d_bsp_texinfo_t *tex;
+static inline _Bool IsSky(const bsp_face_t *f) {
+	const bsp_texinfo_t *tex;
 
 	tex = &d_bsp.texinfo[f->texinfo];
 	return tex->flags & SURF_SKY;
@@ -107,7 +107,7 @@ static inline _Bool IsSky(const d_bsp_face_t *f) {
 static inline void EmissiveLight(patch_t *patch) {
 
 	if (HasLight(patch->face)) {
-		const d_bsp_texinfo_t *tex = &d_bsp.texinfo[patch->face->texinfo];
+		const bsp_texinfo_t *tex = &d_bsp.texinfo[patch->face->texinfo];
 		const vec_t *ref = texture_reflectivity[patch->face->texinfo];
 
 		VectorScale(ref, tex->value, patch->light);
@@ -119,7 +119,7 @@ static inline void EmissiveLight(patch_t *patch) {
  */
 static void BuildPatch(int32_t fn, winding_t *w) {
 	patch_t *patch;
-	d_bsp_plane_t *plane;
+	bsp_plane_t *plane;
 
 	patch = (patch_t *) Mem_Malloc(sizeof(*patch));
 
@@ -184,7 +184,7 @@ void BuildPatches(void) {
 
 	for (i = 0; i < d_bsp.num_models; i++) {
 
-		const d_bsp_model_t *mod = &d_bsp.models[i];
+		const bsp_model_t *mod = &d_bsp.models[i];
 		const entity_t *ent = EntityForModel(i);
 
 		// bmodels with origin brushes need to be offset into their
@@ -194,7 +194,7 @@ void BuildPatches(void) {
 		for (j = 0; j < mod->num_faces; j++) {
 
 			const int32_t facenum = mod->first_face + j;
-			d_bsp_face_t *f = &d_bsp.faces[facenum];
+			bsp_face_t *f = &d_bsp.faces[facenum];
 
 			VectorCopy(origin, face_offset[facenum]);
 
@@ -300,7 +300,7 @@ void SubdividePatches(void) {
 
 	for (i = 0; i < MAX_BSP_FACES; i++) {
 
-		const d_bsp_face_t *f = &d_bsp.faces[i];
+		const bsp_face_t *f = &d_bsp.faces[i];
 		patch_t *p = face_patches[i];
 
 		if (p && !IsSky(f)) { // break it up

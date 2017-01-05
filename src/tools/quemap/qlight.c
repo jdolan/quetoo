@@ -50,8 +50,8 @@ int32_t Light_PointLeafnum(const vec3_t point) {
 
 	nodenum = 0;
 	while (nodenum >= 0) {
-		d_bsp_node_t *node = &d_bsp.nodes[nodenum];
-		d_bsp_plane_t *plane = &d_bsp.planes[node->plane_num];
+		bsp_node_t *node = &d_bsp.nodes[nodenum];
+		bsp_plane_t *plane = &d_bsp.planes[node->plane_num];
 		vec_t dist = DotProduct(point, plane->normal) - plane->dist;
 		if (dist > 0) {
 			nodenum = node->children[0];
@@ -67,7 +67,7 @@ int32_t Light_PointLeafnum(const vec3_t point) {
  * @brief
  */
 _Bool Light_PointPVS(const vec3_t org, byte *pvs) {
-	d_bsp_leaf_t *leaf;
+	bsp_leaf_t *leaf;
 
 	if (!d_bsp.vis_data_size) {
 		memset(pvs, 0xff, (d_bsp.num_leafs + 7) / 8);

@@ -96,7 +96,7 @@ static int32_t c_pruned;
  * @brief
  */
 void PruneNodes_r(node_t *node) {
-	bsp_brush_t *b, *next;
+	qbsp_brush_t *b, *next;
 
 	if (node->plane_num == PLANENUM_LEAF) {
 		return;

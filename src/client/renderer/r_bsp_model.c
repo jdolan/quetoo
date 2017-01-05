@@ -67,7 +67,7 @@ static void R_LoadBspLightmaps(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 		memcpy(bsp->lightmaps->data, r_bsp_base + l->file_ofs, l->file_len);
 	}
 
-	bsp->lightmaps->scale = DEFAULT_LIGHTMAP_SCALE;
+	bsp->lightmaps->scale = BSP_DEFAULT_LIGHTMAP_SCALE;
 
 	// resolve lightmap scale
 	if ((c = Cm_WorldspawnValue("lightmap_scale"))) {
@@ -87,7 +87,7 @@ static void R_LoadBspClusters(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 		return;
 	}
 
-	d_bsp_vis_t *vis = (d_bsp_vis_t *) (r_bsp_base + l->file_ofs);
+	bsp_vis_t *vis = (bsp_vis_t *) (r_bsp_base + l->file_ofs);
 
 	bsp->num_clusters = LittleLong(vis->num_clusters);
 	bsp->clusters = Mem_LinkMalloc(bsp->num_clusters * sizeof(r_bsp_cluster_t), bsp);
@@ -99,7 +99,7 @@ static void R_LoadBspClusters(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 static void R_LoadBspVertexes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	r_bsp_vertex_t *out;
 
-	const d_bsp_vertex_t *in = (const void *) (r_bsp_base + l->file_ofs);
+	const bsp_vertex_t *in = (const void *) (r_bsp_base + l->file_ofs);
 
 	if (l->file_len % sizeof(*in)) {
 		Com_Error(ERROR_DROP, "Funny lump size\n");
@@ -122,7 +122,7 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
  */
 static void R_LoadBspNormals(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
-	const d_bsp_normal_t *in = (const void *) (r_bsp_base + l->file_ofs);
+	const bsp_normal_t *in = (const void *) (r_bsp_base + l->file_ofs);
 
 	if (l->file_len % sizeof(*in)) {
 		Com_Error(ERROR_DROP, "Funny lump size\n");
@@ -149,7 +149,7 @@ static void R_LoadBspNormals(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 static void R_LoadBspInlineModels(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	r_bsp_inline_model_t *out;
 
-	const d_bsp_model_t *in = (const void *) (r_bsp_base + l->file_ofs);
+	const bsp_model_t *in = (const void *) (r_bsp_base + l->file_ofs);
 
 	if (l->file_len % sizeof(*in)) {
 		Com_Error(ERROR_DROP, "Funny lump size\n");
@@ -233,7 +233,7 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 static void R_LoadBspEdges(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	r_bsp_edge_t *out;
 
-	const d_bsp_edge_t *in = (const void *) (r_bsp_base + l->file_ofs);
+	const bsp_edge_t *in = (const void *) (r_bsp_base + l->file_ofs);
 
 	if (l->file_len % sizeof(*in)) {
 		Com_Error(ERROR_DROP, "Funny lump size\n");
@@ -255,7 +255,7 @@ static void R_LoadBspEdges(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 static void R_LoadBspTexinfo(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	r_bsp_texinfo_t *out;
 
-	const d_bsp_texinfo_t *in = (const void *) (r_bsp_base + l->file_ofs);
+	const bsp_texinfo_t *in = (const void *) (r_bsp_base + l->file_ofs);
 
 	if (l->file_len % sizeof(*in)) {
 		Com_Error(ERROR_DROP, "Funny lump size\n");
@@ -424,7 +424,7 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	r_bsp_surface_t *out;
 
-	const d_bsp_face_t *in = (const void *) (r_bsp_base + l->file_ofs);
+	const bsp_face_t *in = (const void *) (r_bsp_base + l->file_ofs);
 
 	if (l->file_len % sizeof(*in)) {
 		Com_Error(ERROR_DROP, "Funny lump size\n");
@@ -522,7 +522,7 @@ static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent) {
 static void R_LoadBspNodes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	r_bsp_node_t *out;
 
-	const d_bsp_node_t *in = (const void *) (r_bsp_base + l->file_ofs);
+	const bsp_node_t *in = (const void *) (r_bsp_base + l->file_ofs);
 
 	if (l->file_len % sizeof(*in)) {
 		Com_Error(ERROR_DROP, "Funny lump size\n");
@@ -565,7 +565,7 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 static void R_LoadBspLeafs(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	r_bsp_leaf_t *out;
 
-	const d_bsp_leaf_t *in = (const void *) (r_bsp_base + l->file_ofs);
+	const bsp_leaf_t *in = (const void *) (r_bsp_base + l->file_ofs);
 
 	if (l->file_len % sizeof(*in)) {
 		Com_Error(ERROR_DROP, "Funny lump size");
@@ -662,7 +662,7 @@ static void R_LoadBspSurfaceEdges(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
  */
 static void R_LoadBspPlanes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
-	const d_bsp_plane_t *in = (const void *) (r_bsp_base + l->file_ofs);
+	const bsp_plane_t *in = (const void *) (r_bsp_base + l->file_ofs);
 
 	if (l->file_len % sizeof(*in)) {
 		Com_Error(ERROR_DROP, "Funny lump size\n");
@@ -1089,9 +1089,9 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	extern void Cl_LoadingProgress(uint16_t percent, const char *file);
 
 	// byte-swap the entire header
-	d_bsp_header_t header = *(d_bsp_header_t *) buffer;
+	bsp_header_t header = *(bsp_header_t *) buffer;
 
-	for (size_t i = 0; i < sizeof(d_bsp_header_t) / sizeof(int32_t); i++) {
+	for (size_t i = 0; i < sizeof(bsp_header_t) / sizeof(int32_t); i++) {
 		((int32_t *) &header)[i] = LittleLong(((int32_t *) &header)[i]);
 	}
 

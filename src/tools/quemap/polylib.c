@@ -234,9 +234,9 @@ winding_t *WindingForPlane(const vec3_t normal, const vec_t dist) {
 /**
  * @brief
  */
-winding_t *WindingForFace(const d_bsp_face_t *f) {
+winding_t *WindingForFace(const bsp_face_t *f) {
 	int32_t i;
-	d_bsp_vertex_t *dv;
+	bsp_vertex_t *dv;
 	int32_t v;
 	winding_t *w;
 

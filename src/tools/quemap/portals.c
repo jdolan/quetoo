@@ -650,7 +650,7 @@ static void FloodAreas_r(node_t *node) {
 
 	if (node->contents == CONTENTS_AREA_PORTAL) {
 		// this node is part of an area portal
-		const bsp_brush_t *b = node->brushes;
+		const qbsp_brush_t *b = node->brushes;
 		entity_t *e = &entities[b->original->entity_num];
 
 		// if the current area has already touched this
@@ -741,7 +741,7 @@ static void FindAreas_r(node_t *node) {
  * =============
  */
 static void SetAreaPortalAreas_r(node_t *node) {
-	bsp_brush_t *b;
+	qbsp_brush_t *b;
 	entity_t *e;
 
 	if (node->plane_num != PLANENUM_LEAF) {
@@ -771,7 +771,7 @@ static void SetAreaPortalAreas_r(node_t *node) {
  */
 void EmitAreaPortals(void) {
 	int32_t i, j;
-	d_bsp_area_portal_t *dp;
+	bsp_area_portal_t *dp;
 
 	if (c_areas > MAX_BSP_AREAS) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_AREAS\n");
@@ -874,7 +874,7 @@ void FillOutside(node_t *head_node) {
  */
 static void FindPortalSide(portal_t *p) {
 	int32_t viscontents;
-	bsp_brush_t *bb;
+	qbsp_brush_t *bb;
 	int32_t i, j;
 	int32_t plane_num;
 	side_t *bestside;

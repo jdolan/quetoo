@@ -95,7 +95,7 @@ static int32_t brush_start, brush_end;
 static void ProcessBlock_Thread(int32_t blocknum) {
 	int32_t xblock, yblock;
 	vec3_t mins, maxs;
-	bsp_brush_t *brushes;
+	qbsp_brush_t *brushes;
 	tree_t *tree;
 	node_t *node;
 
@@ -247,7 +247,7 @@ static void ProcessSubModel(void) {
 	entity_t *e;
 	int32_t start, end;
 	tree_t *tree;
-	bsp_brush_t *list;
+	qbsp_brush_t *list;
 	vec3_t mins, maxs;
 
 	e = &entities[entity_num];

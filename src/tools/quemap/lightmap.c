@@ -40,7 +40,7 @@ typedef struct light_info_s {
 	vec2_t exact_mins, exact_maxs;
 
 	int32_t tex_mins[2], tex_size[2];
-	d_bsp_face_t *face;
+	bsp_face_t *face;
 } light_info_t;
 
 // face extents
@@ -58,13 +58,13 @@ static face_extents_t face_extents[MAX_BSP_FACES];
  * the face normal and towards the face center to help with traces.
  */
 static void BuildFaceExtents(void) {
-	const d_bsp_vertex_t *v;
+	const bsp_vertex_t *v;
 	int32_t i, j, k;
 
 	for (k = 0; k < d_bsp.num_faces; k++) {
 
-		const d_bsp_face_t *s = &d_bsp.faces[k];
-		const d_bsp_texinfo_t *tex = &d_bsp.texinfo[s->texinfo];
+		const bsp_face_t *s = &d_bsp.faces[k];
+		const bsp_texinfo_t *tex = &d_bsp.texinfo[s->texinfo];
 
 		vec_t *mins = face_extents[s - d_bsp.faces].mins;
 		vec_t *maxs = face_extents[s - d_bsp.faces].maxs;
@@ -118,7 +118,7 @@ static void BuildFaceExtents(void) {
  * @brief Fills in l->texmins[] and l->texsize[], l->exactmins[] and l->exactmaxs[]
  */
 static void CalcLightinfoExtents(light_info_t *l) {
-	const d_bsp_face_t *s;
+	const bsp_face_t *s;
 	vec_t *st_mins, *st_maxs;
 	vec2_t lm_mins, lm_maxs;
 	int32_t i;
@@ -153,7 +153,7 @@ static void CalcLightinfoExtents(light_info_t *l) {
  * @brief Fills in tex_org, world_to_tex. and tex_to_world
  */
 static void CalcLightinfoVectors(light_info_t *l) {
-	const d_bsp_texinfo_t *tex;
+	const bsp_texinfo_t *tex;
 	int32_t i;
 	vec3_t tex_normal;
 	vec_t dist_scale;
@@ -302,7 +302,7 @@ static entity_t *FindTargetEntity(const char *target) {
 void BuildLights(void) {
 	size_t i;
 	light_t *l;
-	const d_bsp_leaf_t *leaf;
+	const bsp_leaf_t *leaf;
 	int32_t cluster;
 	const char *target;
 	vec3_t dest;
@@ -474,7 +474,7 @@ void BuildLights(void) {
 		// lightmap resolution downscale (e.g. 0.125, 0.0625)
 		lightmap_scale = FloatForKey(e, "lightmap_scale");
 		if (lightmap_scale == 0.0) {
-			lightmap_scale = DEFAULT_LIGHTMAP_SCALE;
+			lightmap_scale = BSP_DEFAULT_LIGHTMAP_SCALE;
 		}
 	}
 }
@@ -631,7 +631,7 @@ static void FacesWithVert(int32_t vert, int32_t *faces, int32_t *nfaces) {
 
 	k = 0;
 	for (i = 0; i < d_bsp.num_faces; i++) {
-		const d_bsp_face_t *face = &d_bsp.faces[i];
+		const bsp_face_t *face = &d_bsp.faces[i];
 
 		if (!(d_bsp.texinfo[face->texinfo].flags & SURF_PHONG)) {
 			continue;
@@ -679,8 +679,8 @@ void BuildVertexNormals(void) {
 
 		for (j = 0; j < num_vert_faces; j++) {
 
-			const d_bsp_face_t *face = &d_bsp.faces[vert_faces[j]];
-			const d_bsp_plane_t *plane = &d_bsp.planes[face->plane_num];
+			const bsp_face_t *face = &d_bsp.faces[vert_faces[j]];
+			const bsp_plane_t *plane = &d_bsp.planes[face->plane_num];
 
 			// scale the contribution of each face based on size
 			const face_extents_t *extents = &face_extents[vert_faces[j]];
@@ -764,9 +764,9 @@ static const vec_t sampleofs[MAX_SAMPLES][2] = {
  * @brief
  */
 void BuildFacelights(int32_t face_num) {
-	d_bsp_face_t *face;
-	d_bsp_plane_t *plane;
-	d_bsp_texinfo_t *tex;
+	bsp_face_t *face;
+	bsp_plane_t *plane;
+	bsp_texinfo_t *tex;
 	vec_t *center;
 	vec_t *sdir, *tdir, scale;
 	vec3_t pos;
@@ -904,7 +904,7 @@ void BuildFacelights(int32_t face_num) {
  * final map format.
  */
 void FinalLightFace(int32_t face_num) {
-	d_bsp_face_t *f;
+	bsp_face_t *f;
 	int32_t j, k;
 	vec3_t temp;
 	vec3_t dir;

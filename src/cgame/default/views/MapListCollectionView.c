@@ -109,7 +109,7 @@ static void enumerateMaps(const char *path, void *data) {
 	file_t *file = cgi.OpenFile(path);
 	if (file) {
 
-		d_bsp_header_t header;
+		bsp_header_t header;
 		if (cgi.ReadFile(file, (void *) &header, sizeof(header), 1) == 1) {
 
 			for (size_t i = 0; i < sizeof(header) / sizeof(int32_t); i++) {

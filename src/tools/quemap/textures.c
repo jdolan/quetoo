@@ -70,9 +70,9 @@ static void TextureAxisFromPlane(map_plane_t *pln, vec3_t xv, vec3_t yv) {
  * @brief Resolve the texinfo with identical properties to the one specified, or
  * allocate a new one.
  */
-static int32_t FindTexinfo(d_bsp_texinfo_t *tx) {
+static int32_t FindTexinfo(bsp_texinfo_t *tx) {
 	int32_t i;
-	d_bsp_texinfo_t *tc = d_bsp.texinfo;
+	bsp_texinfo_t *tc = d_bsp.texinfo;
 
 	for (i = 0; i < d_bsp.num_texinfo; i++, tc++) {
 
@@ -112,7 +112,7 @@ int32_t TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt, vec3
 	vec_t ang, sinv, cosv;
 	vec_t ns, nt;
 	vec2_t shift;
-	d_bsp_texinfo_t tx;
+	bsp_texinfo_t tx;
 	int32_t i, j, sv, tv;
 
 	if (!bt->name[0]) {

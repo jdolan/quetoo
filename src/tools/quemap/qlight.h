@@ -32,7 +32,7 @@ typedef enum {
 } light_type_t;
 
 typedef struct patch_s {
-	d_bsp_face_t *face;
+	bsp_face_t *face;
 	winding_t *winding;
 
 	vec3_t origin;

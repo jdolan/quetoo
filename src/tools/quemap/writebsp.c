@@ -30,7 +30,7 @@ static int32_t c_facenodes;
  */
 static void EmitPlanes(void) {
 	int32_t i;
-	d_bsp_plane_t *dp;
+	bsp_plane_t *dp;
 	map_plane_t *mp;
 
 	mp = map_planes;
@@ -46,7 +46,7 @@ static void EmitPlanes(void) {
 /**
  * @brief
  */
-static void EmitLeafFace(d_bsp_leaf_t *leaf_p, face_t *f) {
+static void EmitLeafFace(bsp_leaf_t *leaf_p, face_t *f) {
 	int32_t i;
 	int32_t face_num;
 
@@ -88,11 +88,11 @@ static void EmitLeafFace(d_bsp_leaf_t *leaf_p, face_t *f) {
  * @brief
  */
 static void EmitLeaf(node_t *node) {
-	d_bsp_leaf_t *leaf_p;
+	bsp_leaf_t *leaf_p;
 	portal_t *p;
 	int32_t s;
 	face_t *f;
-	bsp_brush_t *b;
+	qbsp_brush_t *b;
 	int32_t i;
 	ptrdiff_t brush_num;
 
@@ -161,7 +161,7 @@ static void EmitLeaf(node_t *node) {
  * @brief
  */
 static void EmitFace(face_t *f) {
-	d_bsp_face_t *df;
+	bsp_face_t *df;
 	int32_t i;
 	int32_t e;
 
@@ -209,7 +209,7 @@ static void EmitFace(face_t *f) {
  * @brief
  */
 static int32_t EmitDrawNode_r(node_t *node) {
-	d_bsp_node_t *n;
+	bsp_node_t *n;
 	face_t *f;
 	int32_t i;
 
@@ -305,9 +305,9 @@ void SetModelNumbers(void) {
  */
 static void EmitBrushes(void) {
 	int32_t i, j, bnum, s, x;
-	d_bsp_brush_t *db;
+	bsp_brush_t *db;
 	map_brush_t *b;
-	d_bsp_brush_side_t *cp;
+	bsp_brush_side_t *cp;
 	vec3_t normal;
 	vec_t dist;
 	int32_t plane_num;
@@ -320,7 +320,7 @@ static void EmitBrushes(void) {
 		db = &d_bsp.brushes[bnum];
 
 		db->contents = b->contents;
-		db->first_side = d_bsp.num_brush_sides;
+		db->first_brush_side = d_bsp.num_brush_sides;
 		db->num_sides = b->num_sides;
 
 		for (j = 0; j < b->num_sides; j++) {
@@ -412,7 +412,7 @@ void EndBSPFile(void) {
  * @brief
  */
 void BeginModel(void) {
-	d_bsp_model_t *mod;
+	bsp_model_t *mod;
 	int32_t start, end;
 	map_brush_t *b;
 	int32_t j;
@@ -452,7 +452,7 @@ void BeginModel(void) {
  * @brief
  */
 void EndModel(void) {
-	d_bsp_model_t *mod;
+	bsp_model_t *mod;
 
 	mod = &d_bsp.models[d_bsp.num_models];
 

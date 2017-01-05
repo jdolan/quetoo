@@ -474,7 +474,7 @@ void FixTjuncs(node_t *head_node) {
  * Called by writebsp. Don't allow four way edges
  */
 int32_t GetEdge2(int32_t v1, int32_t v2, face_t *f) {
-	d_bsp_edge_t *edge;
+	bsp_edge_t *edge;
 	int32_t i;
 
 	c_tryedges++;
@@ -692,7 +692,7 @@ static void SubdivideFace(node_t *node, face_t *f) {
 	vec_t mins, maxs;
 	vec_t v;
 	int32_t axis, i;
-	const d_bsp_texinfo_t *tex;
+	const bsp_texinfo_t *tex;
 	vec3_t temp;
 	vec_t dist;
 	winding_t *w, *frontw, *backw;

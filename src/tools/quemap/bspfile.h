@@ -25,7 +25,7 @@
 
 typedef struct d_bsp_s {
 	int32_t num_models;
-	d_bsp_model_t models[MAX_BSP_MODELS];
+	bsp_model_t models[MAX_BSP_MODELS];
 
 	int32_t vis_data_size;
 	byte vis_data[MAX_BSP_VISIBILITY];
@@ -37,28 +37,28 @@ typedef struct d_bsp_s {
 	char entity_string[MAX_BSP_ENT_STRING];
 
 	int32_t num_leafs;
-	d_bsp_leaf_t leafs[MAX_BSP_LEAFS];
+	bsp_leaf_t leafs[MAX_BSP_LEAFS];
 
 	int32_t num_planes;
-	d_bsp_plane_t planes[MAX_BSP_PLANES];
+	bsp_plane_t planes[MAX_BSP_PLANES];
 
 	int32_t num_vertexes;
-	d_bsp_vertex_t vertexes[MAX_BSP_VERTS];
+	bsp_vertex_t vertexes[MAX_BSP_VERTS];
 
 	int32_t num_normals;
-	d_bsp_normal_t normals[MAX_BSP_VERTS];
+	bsp_normal_t normals[MAX_BSP_VERTS];
 
 	int32_t num_nodes;
-	d_bsp_node_t nodes[MAX_BSP_NODES];
+	bsp_node_t nodes[MAX_BSP_NODES];
 
 	int32_t num_texinfo;
-	d_bsp_texinfo_t texinfo[MAX_BSP_TEXINFO];
+	bsp_texinfo_t texinfo[MAX_BSP_TEXINFO];
 
 	int32_t num_faces;
-	d_bsp_face_t faces[MAX_BSP_FACES];
+	bsp_face_t faces[MAX_BSP_FACES];
 
 	int32_t num_edges;
-	d_bsp_edge_t edges[MAX_BSP_EDGES];
+	bsp_edge_t edges[MAX_BSP_EDGES];
 
 	int32_t num_leaf_faces;
 	uint16_t leaf_faces[MAX_BSP_LEAF_FACES];
@@ -70,22 +70,22 @@ typedef struct d_bsp_s {
 	int32_t face_edges[MAX_BSP_FACE_EDGES];
 
 	int32_t num_areas;
-	d_bsp_area_t areas[MAX_BSP_AREAS];
+	bsp_area_t areas[MAX_BSP_AREAS];
 
 	int32_t num_area_portals;
-	d_bsp_area_portal_t area_portals[MAX_BSP_AREA_PORTALS];
+	bsp_area_portal_t area_portals[MAX_BSP_AREA_PORTALS];
 
 	int32_t num_brushes;
-	d_bsp_brush_t brushes[MAX_BSP_BRUSHES];
+	bsp_brush_t brushes[MAX_BSP_BRUSHES];
 
 	int32_t num_brush_sides;
-	d_bsp_brush_side_t brush_sides[MAX_BSP_BRUSH_SIDES];
+	bsp_brush_side_t brush_sides[MAX_BSP_BRUSH_SIDES];
 
 	byte dpop[256];
 } d_bsp_t;
 
 extern d_bsp_t d_bsp;
-extern d_bsp_vis_t *d_vis;
+extern bsp_vis_t *d_vis;
 
 
 void DecompressVis(const byte *in, byte *decompressed);

@@ -22,53 +22,25 @@
 #include "cm_local.h"
 
 cm_bsp_t cm_bsp;
-cm_vis_t *cm_vis;
 
 /**
  * @brief
  */
-static void Cm_LoadEntityString(const d_bsp_lump_t *l) {
+static void Cm_LoadBspPlanes(void) {
 
-	cm_bsp.entity_string_len = l->file_len;
+	const int32_t num_planes = cm_bsp.bsp.num_planes;
+	const bsp_plane_t *in = cm_bsp.bsp.planes;
 
-	if (l->file_len > MAX_BSP_ENT_STRING) {
-		Com_Error(ERROR_DROP, "%d > MAX_BSP_ENT_STRING\n", l->file_len);
-	}
+	cm_bsp_plane_t *out = cm_bsp.planes = Mem_Malloc(sizeof(cm_bsp_plane_t) * (num_planes + 12)); // extra for box hull
 
-	memcpy(cm_bsp.entity_string, cm_bsp.base + l->file_ofs, l->file_len);
-}
+	for (int32_t i = 0; i < num_planes; i++, in++, out++) {
 
-/**
- * @brief
- */
-static void Cm_LoadBspPlanes(const d_bsp_lump_t *l) {
+		// copied from bsp_
+		VectorCopy(in->normal, out->normal);
+		out->dist = in->dist;
+		out->type = in->type;
 
-	const d_bsp_plane_t *in = (const void *) (cm_bsp.base + l->file_ofs);
-
-	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERROR_DROP, "Funny lump size\n");
-	}
-
-	const int32_t count = l->file_len / sizeof(*in);
-
-	if (count < 1) {
-		Com_Error(ERROR_DROP, "Invalid plane count: %d\n", count);
-	}
-	if (count > MAX_BSP_PLANES) {
-		Com_Error(ERROR_DROP, "%d > MAX_BSP_PLANES\n", count);
-	}
-
-	cm_bsp_plane_t *out = cm_bsp.planes;
-	cm_bsp.num_planes = count;
-
-	for (int32_t i = 0; i < count; i++, in++, out++) {
-
-		for (int32_t j = 0; j < 3; j++) {
-			out->normal[j] = LittleFloat(in->normal[j]);
-		}
-
-		out->dist = LittleFloat(in->dist);
-		out->type = LittleLong(in->type);
+		// local to cm_
 		out->sign_bits = Cm_SignBitsForPlane(out);
 		out->num = (i >> 1) + 1;
 	}
@@ -77,33 +49,19 @@ static void Cm_LoadBspPlanes(const d_bsp_lump_t *l) {
 /**
  * @brief
  */
-static void Cm_LoadBspNodes(const d_bsp_lump_t *l) {
+static void Cm_LoadBspNodes(void) {
 
-	const d_bsp_node_t *in = (const void *) (cm_bsp.base + l->file_ofs);
+	const int32_t num_nodes = cm_bsp.bsp.num_nodes;
+	const bsp_node_t *in = cm_bsp.bsp.nodes;
 
-	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERROR_DROP, "Funny lump size\n");
-	}
+	cm_bsp_node_t *out = cm_bsp.nodes = Mem_Malloc(sizeof(cm_bsp_node_t) * (num_nodes + 6)); // extra for box hull
 
-	const int32_t count = l->file_len / sizeof(*in);
+	for (int32_t i = 0; i < num_nodes; i++, in++, out++) {
 
-	if (count < 1) {
-		Com_Error(ERROR_DROP, "Invalid node count: %d\n", count);
-	}
-	if (count > MAX_BSP_NODES) {
-		Com_Error(ERROR_DROP, "%d > MAX_BSP_NODES\n", count);
-	}
-
-	cm_bsp_node_t *out = cm_bsp.nodes;
-	cm_bsp.num_nodes = count;
-
-	for (int32_t i = 0; i < count; i++, in++, out++) {
-
-		out->plane = cm_bsp.planes + LittleLong(in->plane_num);
+		out->plane = cm_bsp.planes + in->plane_num;
 
 		for (int32_t j = 0; j < 2; j++) {
-			const int32_t child = LittleLong(in->children[j]);
-			out->children[j] = child;
+			out->children[j] = in->children[j];
 		}
 	}
 }
@@ -111,30 +69,18 @@ static void Cm_LoadBspNodes(const d_bsp_lump_t *l) {
 /**
  * @brief
  */
-static void Cm_LoadBspSurfaces(const d_bsp_lump_t *l) {
+static void Cm_LoadBspSurfaces(void) {
 
-	const d_bsp_texinfo_t *in = (const void *) (cm_bsp.base + l->file_ofs);
+	const int32_t num_texinfo = cm_bsp.bsp.num_texinfo;
+	const bsp_texinfo_t *in = cm_bsp.bsp.texinfo;
 
-	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERROR_DROP, "Funny lump size\n");
-	}
+	cm_bsp_surface_t *out = cm_bsp.surfaces = Mem_Malloc(sizeof(cm_bsp_surface_t) * num_texinfo);
 
-	const int32_t count = l->file_len / sizeof(*in);
+	for (int32_t i = 0; i < num_texinfo; i++, in++, out++) {
 
-	if (count < 1) {
-		Com_Error(ERROR_DROP, "Invalid surface count: %d\n", count);
-	}
-	if (count > MAX_BSP_TEXINFO) {
-		Com_Error(ERROR_DROP, "%d > MAX_BSP_TEXINFO\n", count);
-	}
-
-	cm_bsp_surface_t *out = cm_bsp.surfaces;
-	cm_bsp.num_surfaces = count;
-
-	for (int32_t i = 0; i < count; i++, in++, out++) {
 		g_strlcpy(out->name, in->texture, sizeof(out->name));
-		out->flags = LittleLong(in->flags);
-		out->value = LittleLong(in->value);
+		out->flags = in->flags;
+		out->value = in->value;
 		out->material = Cm_LoadMaterial(va("textures/%s", out->name));
 	}
 }
@@ -142,32 +88,20 @@ static void Cm_LoadBspSurfaces(const d_bsp_lump_t *l) {
 /**
  * @brief
  */
-static void Cm_LoadBspLeafs(const d_bsp_lump_t *l) {
+static void Cm_LoadBspLeafs(void) {
 
-	const d_bsp_leaf_t *in = (const void *) (cm_bsp.base + l->file_ofs);
+	const int32_t num_leafs = cm_bsp.bsp.num_leafs;
+	const bsp_leaf_t *in = cm_bsp.bsp.leafs;
 
-	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERROR_DROP, "Funny lump size\n");
-	}
+	cm_bsp_leaf_t *out = cm_bsp.leafs = Mem_Malloc(sizeof(cm_bsp_leaf_t) * (num_leafs + 1)); // extra for box hull
 
-	const int32_t count = l->file_len / sizeof(*in);
+	for (int32_t i = 0; i < num_leafs; i++, in++, out++) {
 
-	if (count < 1) {
-		Com_Error(ERROR_DROP, "Invalid leaf count: %d\n", count);
-	}
-	if (count > MAX_BSP_LEAFS) {
-		Com_Error(ERROR_DROP, "%d > MAX_BSP_LEAFS\n", count);
-	}
-
-	cm_bsp_leaf_t *out = cm_bsp.leafs;
-	cm_bsp.num_leafs = count;
-
-	for (int32_t i = 0; i < count; i++, in++, out++) {
-		out->contents = LittleLong(in->contents);
-		out->cluster = LittleShort(in->cluster);
-		out->area = LittleShort(in->area);
-		out->first_leaf_brush = LittleShort(in->first_leaf_brush);
-		out->num_leaf_brushes = LittleShort(in->num_leaf_brushes);
+		out->contents = in->contents;
+		out->cluster = in->cluster;
+		out->area = in->area;
+		out->first_leaf_brush = in->first_leaf_brush;
+		out->num_leaf_brushes = in->num_leaf_brushes;
 	}
 
 	if (cm_bsp.leafs[0].contents != CONTENTS_SOLID) {
@@ -178,131 +112,87 @@ static void Cm_LoadBspLeafs(const d_bsp_lump_t *l) {
 /**
  * @brief
  */
-static void Cm_LoadBspLeafBrushes(const d_bsp_lump_t *l) {
+static void Cm_LoadBspLeafBrushes(void) {
 
-	const uint16_t *in = (const void *) (cm_bsp.base + l->file_ofs);
+	const int32_t num_leaf_brushes = cm_bsp.bsp.num_leaf_brushes;
+	const uint16_t *in = cm_bsp.bsp.leaf_brushes;
 
-	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERROR_DROP, "Funny lump size\n");
-	}
+	uint16_t *out = cm_bsp.leaf_brushes = Mem_Malloc(sizeof(uint16_t) * (num_leaf_brushes + 1)); // extra for box hull
 
-	const int32_t count = l->file_len / sizeof(*in);
+	for (int32_t i = 0; i < num_leaf_brushes; i++, in++, out++) {
 
-	if (count < 1) {
-		Com_Error(ERROR_DROP, "Invalid leaf brush count: %d\n", count);
-	}
-	if (count > MAX_BSP_LEAF_BRUSHES) {
-		Com_Error(ERROR_DROP, "%d > MAX_BSP_LEAF_BRUSHES\n", count);
-	}
-
-	uint16_t *out = cm_bsp.leaf_brushes;
-	cm_bsp.num_leaf_brushes = count;
-
-	for (int32_t i = 0; i < count; i++, in++, out++) {
-		*out = LittleShort(*in);
+		*out = *in;
 	}
 }
 
 /**
  * @brief
  */
-static void Cm_LoadBspInlineModels(const d_bsp_lump_t *l) {
+static void Cm_LoadBspInlineModels(void) {
 
-	const d_bsp_model_t *in = (const void *) (cm_bsp.base + l->file_ofs);
+	const int32_t num_models = cm_bsp.bsp.num_models;
+	const bsp_model_t *in = cm_bsp.bsp.models;
 
-	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERROR_DROP, "Funny lump size\n");
-	}
+	cm_bsp_model_t *out = cm_bsp.models = Mem_Malloc(sizeof(cm_bsp_model_t) * num_models);
 
-	const int32_t count = l->file_len / sizeof(*in);
-
-	if (count < 1) {
-		Com_Error(ERROR_DROP, "Invalid model count: %d\n", count);
-	}
-	if (count > MAX_BSP_MODELS) {
-		Com_Error(ERROR_DROP, "%d > MAX_BSP_MODELS\n", count);
-	}
-
-	cm_bsp_model_t *out = cm_bsp.models;
-	cm_bsp.num_models = count;
-
-	for (int32_t i = 0; i < count; i++, in++, out++) {
+	for (int32_t i = 0; i < num_models; i++, in++, out++) {
 
 		for (int32_t j = 0; j < 3; j++) {
-			out->mins[j] = LittleFloat(in->mins[j]) - 1.0;
-			out->maxs[j] = LittleFloat(in->maxs[j]) + 1.0;
-			out->origin[j] = LittleFloat(in->origin[j]);
+			out->mins[j] = in->mins[j] - 1.0;
+			out->maxs[j] = in->maxs[j] + 1.0;
+			out->origin[j] = in->origin[j];
 		}
 
-		out->head_node = LittleLong(in->head_node);
+		out->head_node = in->head_node;
 	}
 }
 
 /**
  * @brief
  */
-static void Cm_LoadBspBrushes(const d_bsp_lump_t *l) {
+static void Cm_LoadBspBrushes(void) {
 
-	const d_bsp_brush_t *in = (const void *) (cm_bsp.base + l->file_ofs);
+	const int32_t num_brushes = cm_bsp.bsp.num_brushes;
+	const bsp_brush_t *in = cm_bsp.bsp.brushes;
 
-	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERROR_DROP, "Funny lump size\n");
-	}
+	cm_bsp_brush_t *out = cm_bsp.brushes = Mem_Malloc(sizeof(cm_bsp_brush_t) * (num_brushes + 1)); // extra for box hull
 
-	const int32_t count = l->file_len / sizeof(*in);
+	for (int32_t i = 0; i < num_brushes; i++, in++, out++) {
 
-	if (count < 1) {
-		Com_Error(ERROR_DROP, "Invalid brush count: %d\n", count);
-	}
-	if (count > MAX_BSP_BRUSHES) {
-		Com_Error(ERROR_DROP, "%d > MAX_BSP_BRUSHES\n", count);
-	}
-
-	cm_bsp_brush_t *out = cm_bsp.brushes;
-	cm_bsp.num_brushes = count;
-
-	for (int32_t i = 0; i < count; i++, out++, in++) {
-		out->first_brush_side = LittleLong(in->first_side);
-		out->num_sides = LittleLong(in->num_sides);
-		out->contents = LittleLong(in->contents);
+		out->first_brush_side = in->first_brush_side;
+		out->num_sides = in->num_sides;
+		out->contents = in->contents;
 	}
 }
 
 /**
  * @brief
  */
-static void Cm_LoadBspBrushSides(const d_bsp_lump_t *l) {
+static void Cm_LoadBspBrushSides(void) {
 
-	const d_bsp_brush_side_t *in = (const void *) (cm_bsp.base + l->file_ofs);
+	const int32_t num_brush_sides = cm_bsp.bsp.num_brush_sides;
+	const bsp_brush_side_t *in = cm_bsp.bsp.brush_sides;
 
-	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERROR_DROP, "Funny lump size\n");
-	}
+	cm_bsp_brush_side_t *out = cm_bsp.brush_sides = Mem_Malloc(sizeof(cm_bsp_brush_side_t) * (num_brush_sides + 6)); // extra for box hull
 
-	const int32_t count = l->file_len / sizeof(*in);
+	for (int32_t i = 0; i < num_brush_sides; i++, in++, out++) {
 
-	if (count < 1) {
-		Com_Error(ERROR_DROP, "Invalid brush side count: %d\n", count);
-	}
-	if (count > MAX_BSP_BRUSH_SIDES) {
-		Com_Error(ERROR_DROP, "%d > MAX_BSP_BRUSH_SIDES\n", count);
-	}
-
-	cm_bsp_brush_side_t *out = cm_bsp.brush_sides;
-	cm_bsp.num_brush_sides = count;
-
-	for (int32_t i = 0; i < count; i++, in++, out++) {
-
-		const int32_t p = LittleShort(in->plane_num);
-		if (p >= cm_bsp.num_planes) {
+		const int32_t p = in->plane_num;
+		
+		// TODO: should these errors be moved to cm_bsp? a Bsp_Validate<Lump> func?
+		if (p >= cm_bsp.bsp.num_planes) {
 			Com_Error(ERROR_DROP, "Brush side %d has invalid plane %d\n", i, p);
 		}
+
 		out->plane = &cm_bsp.planes[p];
 
-		const int32_t s = LittleShort(in->surf_num);
-		if (s >= cm_bsp.num_surfaces) {
+		const int32_t s = in->surf_num;
+		
+		// NOTE: "surface" and "texinfo" are used interchangably here. yuck.
+		if (s >= cm_bsp.bsp.num_texinfo) {
 			Com_Error(ERROR_DROP, "Brush side %d has invalid surface %d\n", i, s);
 		}
+		
 		out->surface = &cm_bsp.surfaces[s];
 	}
 }
@@ -313,7 +203,7 @@ static void Cm_LoadBspBrushSides(const d_bsp_lump_t *l) {
 static void Cm_SetupBspBrushes(void) {
 	cm_bsp_brush_t *b = cm_bsp.brushes;
 
-	for (int32_t i = 0; i < cm_bsp.num_brushes; i++, b++) {
+	for (int32_t i = 0; i < cm_bsp.bsp.num_brushes; i++, b++) {
 		const cm_bsp_brush_side_t *bs = cm_bsp.brush_sides + b->first_brush_side;
 
 		b->mins[0] = -bs[0].plane->dist;
@@ -329,58 +219,30 @@ static void Cm_SetupBspBrushes(void) {
 /**
  * @brief
  */
-static void Cm_LoadBspVisibility(const d_bsp_lump_t *l) {
-
-	cm_bsp.num_visibility = l->file_len;
-
-	if (l->file_len > MAX_BSP_VISIBILITY) {
-		Com_Error(ERROR_DROP, "%d > MAX_BSP_VISIBILITY\n", l->file_len);
-	}
-
-	memcpy(cm_bsp.visibility, cm_bsp.base + l->file_ofs, l->file_len);
-
-	cm_vis = (d_bsp_vis_t *) cm_bsp.visibility;
-	cm_vis->num_clusters = LittleLong(cm_vis->num_clusters);
-
-	for (int32_t i = 0; i < cm_vis->num_clusters; i++) {
-		cm_vis->bit_offsets[i][0] = LittleLong(cm_vis->bit_offsets[i][0]);
-		cm_vis->bit_offsets[i][1] = LittleLong(cm_vis->bit_offsets[i][1]);
-	}
+static void Cm_LoadBspVisibility(void) {
 
 	// If we have no visibility data, pad the clusters so that Cm_DecompressVis
 	// produces correctly-sized rows. If we don't do this, non-VIS'ed maps will
 	// not produce any visible entities.
-	if (cm_bsp.num_visibility == 0) {
-		cm_vis->num_clusters = cm_bsp.num_leafs;
+	if (cm_bsp.bsp.vis_data_size == 0) {
+		cm_bsp.bsp.vis_data.vis->num_clusters = cm_bsp.bsp.num_leafs;
 	}
 }
 
 /**
  * @brief
  */
-static void Cm_LoadBspAreas(const d_bsp_lump_t *l) {
+static void Cm_LoadBspAreas(void) {
 
-	const d_bsp_area_t *in = (const void *) (cm_bsp.base + l->file_ofs);
+	const int32_t num_areas = cm_bsp.bsp.num_areas;
+	const bsp_area_t *in = cm_bsp.bsp.areas;
 
-	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERROR_DROP, "Funny lump size\n");
-	}
+	cm_bsp_area_t *out = cm_bsp.areas = Mem_Malloc(sizeof(cm_bsp_area_t) * num_areas);
 
-	const int32_t count = l->file_len / sizeof(*in);
+	for (int32_t i = 0; i < num_areas; i++, in++, out++) {
 
-	if (count < 0) {
-		Com_Error(ERROR_DROP, "Invalid area count: %d\n", count);
-	}
-	if (count > MAX_BSP_AREAS) {
-		Com_Error(ERROR_DROP, "%d > MAX_BSP_AREAS\n", count);
-	}
-
-	cm_bsp_area_t *out = cm_bsp.areas;
-	cm_bsp.num_areas = count;
-
-	for (int32_t i = 0; i < count; i++, in++, out++) {
-		out->num_area_portals = LittleLong(in->num_area_portals);
-		out->first_area_portal = LittleLong(in->first_area_portal);
+		out->num_area_portals = in->num_area_portals;
+		out->first_area_portal = in->first_area_portal;
 		out->flood_valid = 0;
 		out->flood_num = 0;
 	}
@@ -389,30 +251,11 @@ static void Cm_LoadBspAreas(const d_bsp_lump_t *l) {
 /**
  * @brief
  */
-static void Cm_LoadBspAreaPortals(const d_bsp_lump_t *l) {
+static void Cm_LoadBspAreaPortals(void) {
 
-	const d_bsp_area_portal_t *in = (const void *) (cm_bsp.base + l->file_ofs);
+	const int32_t num_area_portals = cm_bsp.bsp.num_area_portals;
 
-	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERROR_DROP, "Funny lump size\n");
-	}
-
-	const int32_t count = l->file_len / sizeof(*in);
-
-	if (count < 0) {
-		Com_Error(ERROR_DROP, "Invalid area portal count: %d\n", count);
-	}
-	if (count > MAX_BSP_AREA_PORTALS) {
-		Com_Error(ERROR_DROP, "%d > MAX_BSP_AREA_PORTALS\n", count);
-	}
-
-	d_bsp_area_portal_t *out = cm_bsp.area_portals;
-	cm_bsp.num_area_portals = count;
-
-	for (int32_t i = 0; i < count; i++, in++, out++) {
-		out->portal_num = LittleLong(in->portal_num);
-		out->other_area = LittleLong(in->other_area);
-	}
+	cm_bsp.portal_open = Mem_Malloc(sizeof(bool) * num_area_portals);
 }
 
 /**
@@ -431,7 +274,7 @@ static GArray *Cm_LoadBspMaterials(const char *name) {
  */
 static void Cm_UnloadBspMaterials(void) {
 
-	for (int32_t i = 0; i < cm_bsp.num_surfaces; i++) {
+	for (int32_t i = 0; i < cm_bsp.bsp.num_texinfo; i++) {
 		cm_bsp_surface_t *surf = &cm_bsp.surfaces[i];
 
 		if (surf->material) {
@@ -441,17 +284,46 @@ static void Cm_UnloadBspMaterials(void) {
 }
 
 /**
+ * @brief Lumps we need to load for the CM subsystem.
+ */
+#define CM_BSP_LUMPS \
+	(1 << BSP_LUMP_ENTITIES) | \
+	(1 << BSP_LUMP_PLANES) | \
+	(1 << BSP_LUMP_NODES) | \
+	(1 << BSP_LUMP_TEXINFO) | \
+	(1 << BSP_LUMP_LEAFS) | \
+	(1 << BSP_LUMP_LEAF_BRUSHES) | \
+	(1 << BSP_LUMP_MODELS) | \
+	(1 << BSP_LUMP_BRUSHES) | \
+	(1 << BSP_LUMP_BRUSH_SIDES) | \
+	(1 << BSP_LUMP_VISIBILITY) | \
+	(1 << BSP_LUMP_AREAS) | \
+	(1 << BSP_LUMP_AREA_PORTALS)
+
+/**
  * @brief Loads in the BSP and all sub-models for collision detection. This
  * function can also be used to initialize or clean up the collision model by
  * invoking with NULL.
  */
 cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
-	void *buf;
 
 	Cm_UnloadBspMaterials();
 
+	Bsp_UnloadLumps(&cm_bsp.bsp, BSP_LUMPS_ALL);
+	
+	// free dynamic memory
+	Mem_Free(cm_bsp.planes);
+	Mem_Free(cm_bsp.nodes);
+	Mem_Free(cm_bsp.surfaces);
+	Mem_Free(cm_bsp.leafs);
+	Mem_Free(cm_bsp.leaf_brushes);
+	Mem_Free(cm_bsp.models);
+	Mem_Free(cm_bsp.brushes);
+	Mem_Free(cm_bsp.brush_sides);
+	Mem_Free(cm_bsp.areas);
+	Mem_Free(cm_bsp.portal_open);
+
 	memset(&cm_bsp, 0, sizeof(cm_bsp));
-	cm_vis = (d_bsp_vis_t *) cm_bsp.visibility;
 
 	// clean up and return
 	if (!name) {
@@ -461,49 +333,53 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 		return &cm_bsp.models[0];
 	}
 
-	// load the file
-	const int64_t s = Fs_Load(name, &buf);
-	if (s == -1) {
+	// load the common BSP structure and the lumps we need
+	file_t *file = Fs_OpenRead(name);
+
+	if (!file) {
+		Fs_Close(file);
 		Com_Error(ERROR_DROP, "Couldn't load %s\n", name);
 	}
 
+	int32_t version = Bsp_Verify(file);
+
+	if (version != BSP_VERSION && version != BSP_VERSION_QUETOO) {
+		Fs_Close(file);
+		Com_Error(ERROR_DROP, "%s has unsupported version: %d\n", name, version);
+	}
+
+	if (!Bsp_LoadLumps(file, &cm_bsp.bsp, CM_BSP_LUMPS)) {
+		Fs_Close(file);
+		Com_Error(ERROR_DROP, "Lump error loading %s\n", name);
+	}
+
+	// in theory, by this point the BSP is valid - now we have to create the cm_
+	// structures out of the raw file data
 	if (size) {
-		*size = s;
+		*size = Bsp_Size(file);
 	}
-
-	// byte-swap the entire header
-	d_bsp_header_t header = *(d_bsp_header_t *) buf;
-	for (size_t i = 0; i < sizeof(d_bsp_header_t) / sizeof(int32_t); i++) {
-		((int32_t *) &header)[i] = LittleLong(((int32_t *) &header)[i]);
-	}
-
-	if (header.version != BSP_VERSION && header.version != BSP_VERSION_QUETOO) {
-		Com_Error(ERROR_DROP, "%s has unsupported version: %d\n", name, header.version);
-	}
-
+	
 	g_strlcpy(cm_bsp.name, name, sizeof(cm_bsp.name));
 
-	cm_bsp.base = (byte *) buf;
+	Fs_Close(file);
 
+	// load materials so they are cached and ready to go, since they're
+	// stored in a special file per-map
 	GArray *materials = Cm_LoadBspMaterials(name);
 
-	// load into heap
-	Cm_LoadEntityString(&header.lumps[BSP_LUMP_ENTITIES]);
-	Cm_LoadBspPlanes(&header.lumps[BSP_LUMP_PLANES]);
-	Cm_LoadBspNodes(&header.lumps[BSP_LUMP_NODES]);
-	Cm_LoadBspSurfaces(&header.lumps[BSP_LUMP_TEXINFO]);
-	Cm_LoadBspLeafs(&header.lumps[BSP_LUMP_LEAFS]);
-	Cm_LoadBspLeafBrushes(&header.lumps[BSP_LUMP_LEAF_BRUSHES]);
-	Cm_LoadBspInlineModels(&header.lumps[BSP_LUMP_MODELS]);
-	Cm_LoadBspBrushes(&header.lumps[BSP_LUMP_BRUSHES]);
-	Cm_LoadBspBrushSides(&header.lumps[BSP_LUMP_BRUSH_SIDES]);
-	Cm_LoadBspVisibility(&header.lumps[BSP_LUMP_VISIBILITY]);
-	Cm_LoadBspAreas(&header.lumps[BSP_LUMP_AREAS]);
-	Cm_LoadBspAreaPortals(&header.lumps[BSP_LUMP_AREA_PORTALS]);
+	Cm_LoadBspPlanes();
+	Cm_LoadBspNodes();
+	Cm_LoadBspSurfaces();
+	Cm_LoadBspLeafs();
+	Cm_LoadBspLeafBrushes();
+	Cm_LoadBspInlineModels();
+	Cm_LoadBspBrushes();
+	Cm_LoadBspBrushSides();
+	Cm_LoadBspVisibility();
+	Cm_LoadBspAreas();
+	Cm_LoadBspAreaPortals();
 
 	Cm_UnloadMaterials(materials);
-
-	Fs_Free(buf);
 
 	Cm_SetupBspBrushes();
 
@@ -525,7 +401,7 @@ cm_bsp_model_t *Cm_Model(const char *name) {
 
 	const int32_t num = atoi(name + 1);
 
-	if (num < 1 || num >= cm_bsp.num_models) {
+	if (num < 1 || num >= cm_bsp.bsp.num_models) {
 		Com_Error(ERROR_DROP, "Bad number: %d\n", num);
 	}
 
@@ -536,21 +412,21 @@ cm_bsp_model_t *Cm_Model(const char *name) {
  * @brief
  */
 int32_t Cm_NumClusters(void) {
-	return cm_vis->num_clusters;
+	return cm_bsp.bsp.vis_data.vis->num_clusters;
 }
 
 /**
  * @brief
  */
 int32_t Cm_NumModels(void) {
-	return cm_bsp.num_models;
+	return cm_bsp.bsp.num_models;
 }
 
 /**
  * @brief
  */
 const char *Cm_EntityString(void) {
-	return cm_bsp.entity_string;
+	return cm_bsp.bsp.entity_string;
 }
 
 /**
@@ -576,7 +452,7 @@ const char *Cm_WorldspawnValue(const char *key) {
  */
 int32_t Cm_LeafContents(const int32_t leaf_num) {
 
-	if (leaf_num < 0 || leaf_num >= cm_bsp.num_leafs) {
+	if (leaf_num < 0 || leaf_num >= cm_bsp.bsp.num_leafs) {
 		Com_Error(ERROR_DROP, "Bad number: %d\n", leaf_num);
 	}
 
@@ -588,7 +464,7 @@ int32_t Cm_LeafContents(const int32_t leaf_num) {
  */
 int32_t Cm_LeafCluster(const int32_t leaf_num) {
 
-	if (leaf_num < 0 || leaf_num >= cm_bsp.num_leafs) {
+	if (leaf_num < 0 || leaf_num >= cm_bsp.bsp.num_leafs) {
 		Com_Error(ERROR_DROP, "Bad number: %d\n", leaf_num);
 	}
 
@@ -600,7 +476,7 @@ int32_t Cm_LeafCluster(const int32_t leaf_num) {
  */
 int32_t Cm_LeafArea(const int32_t leaf_num) {
 
-	if (leaf_num < 0 || leaf_num >= cm_bsp.num_leafs) {
+	if (leaf_num < 0 || leaf_num >= cm_bsp.bsp.num_leafs) {
 		Com_Error(ERROR_DROP, "Bad number: %d\n", leaf_num);
 	}
 
