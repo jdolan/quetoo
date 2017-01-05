@@ -133,11 +133,11 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;libshared.lib;libpmove.lib;libswap.lib;libmatrix.lib;SDL2.lib;SDL2_ttf.lib;SDL2_image.lib;pthread.lib;opengl32.lib;iconv.lib;fontconfig.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;libshared.lib;libpmove.lib;libswap.lib;libmatrix.lib;SDL2.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>cgame.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
-      <Command>COPY_CGAME "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)"</Command>
+      <Command>COPY_DEPENDENCIES "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)" "$(Configuration)" &amp;&amp; COPY_CGAME "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
