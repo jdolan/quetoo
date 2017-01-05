@@ -38,7 +38,7 @@ typedef struct {
 	vec_t saturation;
 	vec_t contrast;
 
-	GList *lights;
+	GSList *lights;
 } r_bsp_light_state_t;
 
 extern r_bsp_light_state_t r_bsp_light_state;

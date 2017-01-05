@@ -561,15 +561,6 @@ typedef struct {
 } r_bsp_cluster_t;
 
 /**
- * @brief BSP lightmap parameters.
- */
-typedef struct {
-	vec_t scale;
-	uint32_t size;
-	byte *data;
-} r_bsp_lightmaps_t;
-
-/**
  * @brief BSP light sources.
  */
 typedef struct {
@@ -690,6 +681,9 @@ typedef enum {
 typedef struct {
 	int32_t version;
 
+	uint32_t num_edges;
+	bsp_edge_t *edges;
+
 	uint16_t num_inline_models;
 	r_bsp_inline_model_t *inline_models;
 
@@ -698,9 +692,6 @@ typedef struct {
 
 	uint16_t num_leafs;
 	r_bsp_leaf_t *leafs;
-
-	uint32_t num_edges;
-	r_bsp_edge_t *edges;
 
 	uint16_t num_nodes;
 	r_bsp_node_t *nodes;
@@ -720,7 +711,7 @@ typedef struct {
 	uint16_t num_clusters;
 	r_bsp_cluster_t *clusters;
 
-	r_bsp_lightmaps_t *lightmaps;
+	vec_t lightmap_scale;
 
 	uint16_t num_bsp_lights;
 	r_bsp_light_t *bsp_lights;

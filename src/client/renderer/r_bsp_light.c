@@ -148,7 +148,7 @@ static void R_AddBspLight(r_bsp_model_t *bsp, vec3_t origin, vec3_t color, vec_t
 	}
 
 	r_bsp_light_t *bl = NULL;
-	GList *e = r_bsp_light_state.lights;
+	GSList *e = r_bsp_light_state.lights;
 	while (e) {
 		vec3_t delta;
 
@@ -165,7 +165,7 @@ static void R_AddBspLight(r_bsp_model_t *bsp, vec3_t origin, vec3_t color, vec_t
 
 	if (!bl) { // or allocate a new one
 		bl = Mem_LinkMalloc(sizeof(*bl), bsp);
-		r_bsp_light_state.lights = g_list_prepend(r_bsp_light_state.lights, bl);
+		r_bsp_light_state.lights = g_slist_prepend(r_bsp_light_state.lights, bl);
 
 		VectorCopy(origin, bl->light.origin);
 		bl->leaf = R_LeafForPoint(bl->light.origin, bsp);
@@ -281,10 +281,10 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 	}
 
 	// allocate the lights array and copy them in
-	bsp->num_bsp_lights = g_list_length(r_bsp_light_state.lights);
+	bsp->num_bsp_lights = g_slist_length(r_bsp_light_state.lights);
 	bsp->bsp_lights = Mem_LinkMalloc(sizeof(r_bsp_light_t) * bsp->num_bsp_lights, bsp);
 
-	GList *e = r_bsp_light_state.lights;
+	GSList *e = r_bsp_light_state.lights;
 	r_bsp_light_t *bl = bsp->bsp_lights;
 	while (e) {
 		*bl++ = *((r_bsp_light_t *) e->data);
@@ -292,7 +292,7 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 	}
 
 	// reset state
-	g_list_free_full(r_bsp_light_state.lights, Mem_Free);
+	g_slist_free_full(r_bsp_light_state.lights, Mem_Free);
 	r_bsp_light_state.lights = NULL;
 
 	Com_Debug(DEBUG_RENDERER, "Loaded %d bsp lights\n", bsp->num_bsp_lights);

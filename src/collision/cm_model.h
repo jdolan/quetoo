@@ -36,10 +36,6 @@ int32_t Cm_LeafContents(const int32_t leaf_num);
 int32_t Cm_LeafCluster(const int32_t leaf_num);
 int32_t Cm_LeafArea(const int32_t leaf_num);
 
-#ifdef __CM_LOCAL_H__
-
-#include "files.h"
-
 typedef struct {
 	char name[MAX_QPATH];
 	bsp_file_t bsp;
@@ -58,7 +54,9 @@ typedef struct {
 	int32_t flood_valid;
 } cm_bsp_t;
 
-typedef bsp_vis_t cm_vis_t;
+cm_bsp_t *Cm_Bsp(void);
+
+#ifdef __CM_LOCAL_H__
 
 extern cm_bsp_t cm_bsp;
 

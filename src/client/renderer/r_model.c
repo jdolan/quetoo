@@ -121,14 +121,15 @@ r_model_t *R_LoadModel(const char *name) {
 
 	if (!(mod = (r_model_t *) R_FindMedia(key))) {
 
-		void *buf = NULL;
 		const r_model_format_t *format = r_model_formats;
+		char file_name[MAX_QPATH];
+
 		for (i = 0; i < lengthof(r_model_formats); i++, format++) {
 
-			StripExtension(name, key);
-			strcat(key, format->extension);
+			strncpy(file_name, key, MAX_QPATH);
+			strcat(file_name, format->extension);
 
-			if (Fs_Load(key, &buf) != -1) {
+			if (Fs_Exists(file_name)) {
 				break;
 			}
 		}
@@ -142,8 +143,6 @@ r_model_t *R_LoadModel(const char *name) {
 			return NULL;
 		}
 
-		StripExtension(name, key);
-
 		mod = (r_model_t *) R_AllocMedia(key, sizeof(r_model_t), format->media_type);
 
 		mod->media.Register = R_RegisterModel;
@@ -153,12 +152,26 @@ r_model_t *R_LoadModel(const char *name) {
 
 		// load the materials first, so that we can resolve surfaces lists
 		R_LoadMaterials(mod);
+		
+		if (mod->type == MOD_BSP) {
+			file_t *file = Fs_OpenRead(file_name);
 
-		// load it
-		format->Load(mod, buf);
+			// load it
+			format->Load(mod, file);
 
-		// free the file
-		Fs_Free(buf);
+			// close the file
+			Fs_Close(file);
+		} else {
+			void *buf = NULL;
+
+			Fs_Load(file_name, &buf);
+
+			// load it
+			format->Load(mod, buf);
+
+			// free the file
+			Fs_Free(buf);
+		}
 
 		// calculate an approximate radius from the bounding box
 		vec3_t tmp;

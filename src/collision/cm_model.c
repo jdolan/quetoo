@@ -187,13 +187,17 @@ static void Cm_LoadBspBrushSides(void) {
 		out->plane = &cm_bsp.planes[p];
 
 		const int32_t s = in->surf_num;
+
+		if (s == USHRT_MAX) {
+			out->surface = NULL;
+		} else {
+			// NOTE: "surface" and "texinfo" are used interchangably here. yuck.
+			if (s >= cm_bsp.bsp.num_texinfo) {
+				Com_Error(ERROR_DROP, "Brush side %d has invalid surface %d\n", i, s);
+			}
 		
-		// NOTE: "surface" and "texinfo" are used interchangably here. yuck.
-		if (s >= cm_bsp.bsp.num_texinfo) {
-			Com_Error(ERROR_DROP, "Brush side %d has invalid surface %d\n", i, s);
+			out->surface = &cm_bsp.surfaces[s];
 		}
-		
-		out->surface = &cm_bsp.surfaces[s];
 	}
 }
 
@@ -481,4 +485,12 @@ int32_t Cm_LeafArea(const int32_t leaf_num) {
 	}
 
 	return cm_bsp.leafs[leaf_num].area;
+}
+
+/**
+ * @brief
+ */
+cm_bsp_t *Cm_Bsp(void) {
+
+	return &cm_bsp;
 }
