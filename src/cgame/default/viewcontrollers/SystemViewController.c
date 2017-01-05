@@ -188,18 +188,18 @@ static void initialize(Class *clazz) {
 }
 
 Class *_SystemViewController(void) {
-	static Class _class;
+	static Class clazz;
 	
-	if (!_class.name) {
-		_class.name = "SystemViewController";
-		_class.superclass = _MenuViewController();
-		_class.instanceSize = sizeof(SystemViewController);
-		_class.interfaceOffset = offsetof(SystemViewController, interface);
-		_class.interfaceSize = sizeof(SystemViewControllerInterface);
-		_class.initialize = initialize;
+	if (!clazz.name) {
+		clazz.name = "SystemViewController";
+		clazz.superclass = _MenuViewController();
+		clazz.instanceSize = sizeof(SystemViewController);
+		clazz.interfaceOffset = offsetof(SystemViewController, interface);
+		clazz.interfaceSize = sizeof(SystemViewControllerInterface);
+		clazz.initialize = initialize;
 	}
 
-	return &_class;
+	return &clazz;
 }
 
 #undef _Class

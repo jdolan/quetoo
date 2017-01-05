@@ -231,18 +231,18 @@ static void initialize(Class *clazz) {
 }
 
 Class *_ServersTableView(void) {
-	static Class _class;
+	static Class clazz;
 	
-	if (!_class.name) {
-		_class.name = "ServersTableView";
-		_class.superclass = _TableView();
-		_class.instanceSize = sizeof(ServersTableView);
-		_class.interfaceOffset = offsetof(ServersTableView, interface);
-		_class.interfaceSize = sizeof(ServersTableViewInterface);
-		_class.initialize = initialize;
+	if (!clazz.name) {
+		clazz.name = "ServersTableView";
+		clazz.superclass = _TableView();
+		clazz.instanceSize = sizeof(ServersTableView);
+		clazz.interfaceOffset = offsetof(ServersTableView, interface);
+		clazz.interfaceSize = sizeof(ServersTableViewInterface);
+		clazz.initialize = initialize;
 	}
 
-	return &_class;
+	return &clazz;
 }
 
 #undef _Class

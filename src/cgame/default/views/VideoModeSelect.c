@@ -136,18 +136,18 @@ static void initialize(Class *clazz) {
 }
 
 Class *_VideoModeSelect(void) {
-	static Class _class;
+	static Class clazz;
 	
-	if (!_class.name) {
-		_class.name = "VideoModeSelect";
-		_class.superclass = _Select();
-		_class.instanceSize = sizeof(VideoModeSelect);
-		_class.interfaceOffset = offsetof(VideoModeSelect, interface);
-		_class.interfaceSize = sizeof(VideoModeSelectInterface);
-		_class.initialize = initialize;
+	if (!clazz.name) {
+		clazz.name = "VideoModeSelect";
+		clazz.superclass = _Select();
+		clazz.instanceSize = sizeof(VideoModeSelect);
+		clazz.interfaceOffset = offsetof(VideoModeSelect, interface);
+		clazz.interfaceSize = sizeof(VideoModeSelectInterface);
+		clazz.initialize = initialize;
 	}
 
-	return &_class;
+	return &clazz;
 }
 
 #undef _Class

@@ -157,18 +157,18 @@ static void initialize(Class *clazz) {
 }
 
 Class *_BindTextView(void) {
-	static Class _class;
+	static Class clazz;
 	
-	if (!_class.name) {
-		_class.name = "BindTextView";
-		_class.superclass = _TextView();
-		_class.instanceSize = sizeof(BindTextView);
-		_class.interfaceOffset = offsetof(BindTextView, interface);
-		_class.interfaceSize = sizeof(BindTextViewInterface);
-		_class.initialize = initialize;
+	if (!clazz.name) {
+		clazz.name = "BindTextView";
+		clazz.superclass = _TextView();
+		clazz.instanceSize = sizeof(BindTextView);
+		clazz.interfaceOffset = offsetof(BindTextView, interface);
+		clazz.interfaceSize = sizeof(BindTextViewInterface);
+		clazz.initialize = initialize;
 	}
 
-	return &_class;
+	return &clazz;
 }
 
 #undef _Class

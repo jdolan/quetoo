@@ -91,18 +91,18 @@ static void initialize(Class *clazz) {
 }
 
 Class *_CvarSlider(void) {
-	static Class _class;
+	static Class clazz;
 	
-	if (!_class.name) {
-		_class.name = "CvarSlider";
-		_class.superclass = _Slider();
-		_class.instanceSize = sizeof(CvarSlider);
-		_class.interfaceOffset = offsetof(CvarSlider, interface);
-		_class.interfaceSize = sizeof(CvarSliderInterface);
-		_class.initialize = initialize;
+	if (!clazz.name) {
+		clazz.name = "CvarSlider";
+		clazz.superclass = _Slider();
+		clazz.instanceSize = sizeof(CvarSlider);
+		clazz.interfaceOffset = offsetof(CvarSlider, interface);
+		clazz.interfaceSize = sizeof(CvarSliderInterface);
+		clazz.initialize = initialize;
 	}
 
-	return &_class;
+	return &clazz;
 }
 
 #undef _Class

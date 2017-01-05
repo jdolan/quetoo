@@ -146,18 +146,18 @@ static void initialize(Class *clazz) {
 }
 
 Class *_KeysViewController(void) {
-	static Class _class;
+	static Class clazz;
 	
-	if (!_class.name) {
-		_class.name = "KeysViewController";
-		_class.superclass = _MenuViewController();
-		_class.instanceSize = sizeof(KeysViewController);
-		_class.interfaceOffset = offsetof(KeysViewController, interface);
-		_class.interfaceSize = sizeof(KeysViewControllerInterface);
-		_class.initialize = initialize;
+	if (!clazz.name) {
+		clazz.name = "KeysViewController";
+		clazz.superclass = _MenuViewController();
+		clazz.instanceSize = sizeof(KeysViewController);
+		clazz.interfaceOffset = offsetof(KeysViewController, interface);
+		clazz.interfaceSize = sizeof(KeysViewControllerInterface);
+		clazz.initialize = initialize;
 	}
 
-	return &_class;
+	return &clazz;
 }
 
 #undef _Class

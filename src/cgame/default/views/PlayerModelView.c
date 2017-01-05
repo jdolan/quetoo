@@ -298,18 +298,18 @@ static void initialize(Class *clazz) {
 }
 
 Class *_PlayerModelView(void) {
-	static Class _class;
+	static Class clazz;
 	
-	if (!_class.name) {
-		_class.name = "PlayerModelView";
-		_class.superclass = _View();
-		_class.instanceSize = sizeof(PlayerModelView);
-		_class.interfaceOffset = offsetof(PlayerModelView, interface);
-		_class.interfaceSize = sizeof(PlayerModelViewInterface);
-		_class.initialize = initialize;
+	if (!clazz.name) {
+		clazz.name = "PlayerModelView";
+		clazz.superclass = _View();
+		clazz.instanceSize = sizeof(PlayerModelView);
+		clazz.interfaceOffset = offsetof(PlayerModelView, interface);
+		clazz.interfaceSize = sizeof(PlayerModelViewInterface);
+		clazz.initialize = initialize;
 	}
 
-	return &_class;
+	return &clazz;
 }
 
 #undef _Class

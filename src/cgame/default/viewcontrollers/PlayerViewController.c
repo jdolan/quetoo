@@ -153,18 +153,18 @@ static void initialize(Class *clazz) {
 }
 
 Class *_PlayerViewController(void) {
-	static Class _class;
+	static Class clazz;
 	
-	if (!_class.name) {
-		_class.name = "PlayerViewController";
-		_class.superclass = _MenuViewController();
-		_class.instanceSize = sizeof(PlayerViewController);
-		_class.interfaceOffset = offsetof(PlayerViewController, interface);
-		_class.interfaceSize = sizeof(PlayerViewControllerInterface);
-		_class.initialize = initialize;
+	if (!clazz.name) {
+		clazz.name = "PlayerViewController";
+		clazz.superclass = _MenuViewController();
+		clazz.instanceSize = sizeof(PlayerViewController);
+		clazz.interfaceOffset = offsetof(PlayerViewController, interface);
+		clazz.interfaceSize = sizeof(PlayerViewControllerInterface);
+		clazz.initialize = initialize;
 	}
 
-	return &_class;
+	return &clazz;
 }
 
 #undef _Class

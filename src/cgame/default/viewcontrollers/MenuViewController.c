@@ -82,18 +82,18 @@ static void initialize(Class *clazz) {
 }
 
 Class *_MenuViewController(void) {
-	static Class _class;
+	static Class clazz;
 	
-	if (!_class.name) {
-		_class.name = "MenuViewController";
-		_class.superclass = _ViewController();
-		_class.instanceSize = sizeof(MenuViewController);
-		_class.interfaceOffset = offsetof(MenuViewController, interface);
-		_class.interfaceSize = sizeof(MenuViewControllerInterface);
-		_class.initialize = initialize;
+	if (!clazz.name) {
+		clazz.name = "MenuViewController";
+		clazz.superclass = _ViewController();
+		clazz.instanceSize = sizeof(MenuViewController);
+		clazz.interfaceOffset = offsetof(MenuViewController, interface);
+		clazz.interfaceSize = sizeof(MenuViewControllerInterface);
+		clazz.initialize = initialize;
 	}
 
-	return &_class;
+	return &clazz;
 }
 
 #undef _Class

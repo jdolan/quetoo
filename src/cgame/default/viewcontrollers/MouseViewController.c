@@ -167,18 +167,18 @@ static void initialize(Class *clazz) {
 }
 
 Class *_MouseViewController(void) {
-	static Class _class;
+	static Class clazz;
 	
-	if (!_class.name) {
-		_class.name = "MouseViewController";
-		_class.superclass = _MenuViewController();
-		_class.instanceSize = sizeof(MouseViewController);
-		_class.interfaceOffset = offsetof(MouseViewController, interface);
-		_class.interfaceSize = sizeof(MouseViewControllerInterface);
-		_class.initialize = initialize;
+	if (!clazz.name) {
+		clazz.name = "MouseViewController";
+		clazz.superclass = _MenuViewController();
+		clazz.instanceSize = sizeof(MouseViewController);
+		clazz.interfaceOffset = offsetof(MouseViewController, interface);
+		clazz.interfaceSize = sizeof(MouseViewControllerInterface);
+		clazz.initialize = initialize;
 	}
 
-	return &_class;
+	return &clazz;
 }
 
 #undef _Class

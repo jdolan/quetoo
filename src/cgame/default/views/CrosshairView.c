@@ -145,18 +145,18 @@ static void initialize(Class *clazz) {
 }
 
 Class *_CrosshairView(void) {
-	static Class _class;
+	static Class clazz;
 	
-	if (!_class.name) {
-		_class.name = "CrosshairView";
-		_class.superclass = _View();
-		_class.instanceSize = sizeof(CrosshairView);
-		_class.interfaceOffset = offsetof(CrosshairView, interface);
-		_class.interfaceSize = sizeof(CrosshairViewInterface);
-		_class.initialize = initialize;
+	if (!clazz.name) {
+		clazz.name = "CrosshairView";
+		clazz.superclass = _View();
+		clazz.instanceSize = sizeof(CrosshairView);
+		clazz.interfaceOffset = offsetof(CrosshairView, interface);
+		clazz.interfaceSize = sizeof(CrosshairViewInterface);
+		clazz.initialize = initialize;
 	}
 
-	return &_class;
+	return &clazz;
 }
 
 #undef _Class

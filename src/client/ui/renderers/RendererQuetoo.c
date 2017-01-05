@@ -168,18 +168,18 @@ static void initialize(Class *clazz) {
 }
 
 Class *_RendererQuetoo(void) {
-	static Class _class;
+	static Class clazz;
 	
-	if (!_class.name) {
-		_class.name = "RendererQuetoo";
-		_class.superclass = _Renderer();
-		_class.instanceSize = sizeof(RendererQuetoo);
-		_class.interfaceOffset = offsetof(RendererQuetoo, interface);
-		_class.interfaceSize = sizeof(RendererQuetooInterface);
-		_class.initialize = initialize;
+	if (!clazz.name) {
+		clazz.name = "RendererQuetoo";
+		clazz.superclass = _Renderer();
+		clazz.instanceSize = sizeof(RendererQuetoo);
+		clazz.interfaceOffset = offsetof(RendererQuetoo, interface);
+		clazz.interfaceSize = sizeof(RendererQuetooInterface);
+		clazz.initialize = initialize;
 	}
 
-	return &_class;
+	return &clazz;
 }
 
 #undef _Class

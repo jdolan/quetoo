@@ -71,18 +71,18 @@ static void initialize(Class *clazz) {
 }
 
 Class *_PrimaryButton(void) {
-	static Class _class;
+	static Class clazz;
 	
-	if (!_class.name) {
-		_class.name = "PrimaryButton";
-		_class.superclass = _Button();
-		_class.instanceSize = sizeof(PrimaryButton);
-		_class.interfaceOffset = offsetof(PrimaryButton, interface);
-		_class.interfaceSize = sizeof(PrimaryButtonInterface);
-		_class.initialize = initialize;
+	if (!clazz.name) {
+		clazz.name = "PrimaryButton";
+		clazz.superclass = _Button();
+		clazz.instanceSize = sizeof(PrimaryButton);
+		clazz.interfaceOffset = offsetof(PrimaryButton, interface);
+		clazz.interfaceSize = sizeof(PrimaryButtonInterface);
+		clazz.initialize = initialize;
 	}
 
-	return &_class;
+	return &clazz;
 }
 
 #undef _Class

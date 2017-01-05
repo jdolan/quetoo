@@ -130,18 +130,18 @@ static void initialize(Class *clazz) {
 }
 
 Class *_MultiplayerViewController(void) {
-	static Class _class;
+	static Class clazz;
 	
-	if (!_class.name) {
-		_class.name = "MultiplayerViewController";
-		_class.superclass = _MenuViewController();
-		_class.instanceSize = sizeof(MultiplayerViewController);
-		_class.interfaceOffset = offsetof(MultiplayerViewController, interface);
-		_class.interfaceSize = sizeof(MultiplayerViewControllerInterface);
-		_class.initialize = initialize;
+	if (!clazz.name) {
+		clazz.name = "MultiplayerViewController";
+		clazz.superclass = _MenuViewController();
+		clazz.instanceSize = sizeof(MultiplayerViewController);
+		clazz.interfaceOffset = offsetof(MultiplayerViewController, interface);
+		clazz.interfaceSize = sizeof(MultiplayerViewControllerInterface);
+		clazz.initialize = initialize;
 	}
 
-	return &_class;
+	return &clazz;
 }
 
 #undef _Class

@@ -72,18 +72,18 @@ static void initialize(Class *clazz) {
 }
 
 Class *_MapListCollectionItemView(void) {
-	static Class _class;
+	static Class clazz;
 	
-	if (!_class.name) {
-		_class.name = "MapListCollectionItemView";
-		_class.superclass = _CollectionItemView();
-		_class.instanceSize = sizeof(MapListCollectionItemView);
-		_class.interfaceOffset = offsetof(MapListCollectionItemView, interface);
-		_class.interfaceSize = sizeof(MapListCollectionItemViewInterface);
-		_class.initialize = initialize;
+	if (!clazz.name) {
+		clazz.name = "MapListCollectionItemView";
+		clazz.superclass = _CollectionItemView();
+		clazz.instanceSize = sizeof(MapListCollectionItemView);
+		clazz.interfaceOffset = offsetof(MapListCollectionItemView, interface);
+		clazz.interfaceSize = sizeof(MapListCollectionItemViewInterface);
+		clazz.initialize = initialize;
 	}
 
-	return &_class;
+	return &clazz;
 }
 
 #undef _Class

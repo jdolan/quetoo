@@ -124,18 +124,18 @@ static void initialize(Class *clazz) {
 }
 
 Class *_CvarSelect(void) {
-	static Class _class;
+	static Class clazz;
 	
-	if (!_class.name) {
-		_class.name = "CvarSelect";
-		_class.superclass = _Select();
-		_class.instanceSize = sizeof(CvarSelect);
-		_class.interfaceOffset = offsetof(CvarSelect, interface);
-		_class.interfaceSize = sizeof(CvarSelectInterface);
-		_class.initialize = initialize;
+	if (!clazz.name) {
+		clazz.name = "CvarSelect";
+		clazz.superclass = _Select();
+		clazz.instanceSize = sizeof(CvarSelect);
+		clazz.interfaceOffset = offsetof(CvarSelect, interface);
+		clazz.interfaceSize = sizeof(CvarSelectInterface);
+		clazz.initialize = initialize;
 	}
 
-	return &_class;
+	return &clazz;
 }
 
 #undef _Class

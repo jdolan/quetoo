@@ -120,18 +120,18 @@ static void initialize(Class *clazz) {
 }
 
 Class *_SkinSelect(void) {
-	static Class _class;
+	static Class clazz;
 	
-	if (!_class.name) {
-		_class.name = "SkinSelect";
-		_class.superclass = _Select();
-		_class.instanceSize = sizeof(SkinSelect);
-		_class.interfaceOffset = offsetof(SkinSelect, interface);
-		_class.interfaceSize = sizeof(SkinSelectInterface);
-		_class.initialize = initialize;
+	if (!clazz.name) {
+		clazz.name = "SkinSelect";
+		clazz.superclass = _Select();
+		clazz.instanceSize = sizeof(SkinSelect);
+		clazz.interfaceOffset = offsetof(SkinSelect, interface);
+		clazz.interfaceSize = sizeof(SkinSelectInterface);
+		clazz.initialize = initialize;
 	}
 
-	return &_class;
+	return &clazz;
 }
 
 #undef _Class
