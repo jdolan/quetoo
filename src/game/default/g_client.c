@@ -904,8 +904,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		ent->locals.take_damage = true;
 		ent->locals.water_level = ent->locals.old_water_level = 0;
 		ent->locals.water_type = 0;
-
-		ent->locals.ripple_time = 0;
+		ent->locals.ripple_size = 32.0;
 
 		// hold in place briefly
 		ent->client->ps.pm_state.flags = PMF_TIME_TELEPORT;

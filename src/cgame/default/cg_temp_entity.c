@@ -818,9 +818,8 @@ static void Cg_BfgEffect(const vec3_t org) {
 /**
  * @brief
  */
-static void Cg_RippleEffect(const vec3_t org, const vec3_t dir, const vec_t size, const uint8_t viscosity) {
+static void Cg_RippleEffect(const vec3_t org, const vec_t size, const uint8_t viscosity) {
 	cg_particle_t *p;
-	int32_t i;
 
 	if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_ripple[Random() % 3]))) {
 		return;
@@ -831,15 +830,22 @@ static void Cg_RippleEffect(const vec3_t org, const vec3_t dir, const vec_t size
 	p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 	p->part.flags = PARTICLE_FLAG_NO_DEPTH;
 
-	Vector4Set(p->color_start, 1.0, 1.0, 1.0, 0.5 + (Randomf() * 1.5));
-	Vector4Set(p->color_end, 1.0, 1.0, 1.0, 0.0);
+	Vector4Set(p->color_start, 0.5, 0.5, 0.5, 0.3 + (Randomf() * 0.2));
+	Vector4Set(p->color_end, 0.0, 0.0, 0.0, 0.0);
 
-	p->scale_start = size / 4.0;
-	p->scale_end = size * ((Randomf() * 0.1) + 0.9);
+	p->scale_start = size + Randomc() * 0.5;
+	p->scale_end = size * (3.0 + Randomf() * 0.5);
 
 	VectorCopy(org, p->part.org);
+}
 
-	for (i = 0; i < 10; i++) {
+/**
+ * @brief
+ */
+static void Cg_SplashEffect(const vec3_t org, const vec3_t dir) {
+	cg_particle_t *p;
+
+	for (int32_t i = 0; i < 10; i++) {
 		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_normal))) {
 			break;
 		}
@@ -890,7 +896,6 @@ static void Cg_RippleEffect(const vec3_t org, const vec3_t dir, const vec_t size
  */
 void Cg_ParseTempEntity(void) {
 	vec3_t pos, pos2, dir;
-	vec_t v;
 	int32_t i, j;
 
 	const uint8_t type = cgi.ReadByte();
@@ -977,10 +982,13 @@ void Cg_ParseTempEntity(void) {
 
 		case TE_RIPPLE: // liquid surface ripples
 			cgi.ReadPosition(pos);
-			v = cgi.ReadVector();
-			i = cgi.ReadByte();
 			cgi.ReadDir(dir);
-			Cg_RippleEffect(pos, dir, v, i);
+			i = cgi.ReadByte();
+			j = cgi.ReadByte();
+			Cg_RippleEffect(pos, i, j);
+			if (cgi.ReadByte()) {
+				Cg_SplashEffect(pos, dir);
+			}
 			break;
 
 		default:

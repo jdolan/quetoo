@@ -73,27 +73,6 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 	const uint8_t water_level = ent->locals.water_level;
 	const uint8_t old_water_level = ent->locals.old_water_level;
 
-	// water ripples
-	if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
-		vec3_t old_pos, ent_frame_delta;
-
-		VectorScale(ent->locals.velocity, QUETOO_TICK_SECONDS, ent_frame_delta);
-		VectorSubtract(ent->s.origin, ent_frame_delta, old_pos);
-
-		G_LiquidRipple(ent, old_pos, ent->s.origin, 60.0);
-
-		if (water_level && g_level.time > ent->locals.ripple_time && ent->client->locals.speed > 10.0) {
-			ent->locals.ripple_time = g_level.time + 400;
-
-			vec3_t top, bottom;
-
-			VectorSet(top, ent->s.origin[0], ent->s.origin[1], ent->s.origin[2] + ent->maxs[2] + 16);
-			VectorSet(bottom, ent->s.origin[0], ent->s.origin[1], ent->s.origin[2] + ent->mins[2]);
-
-			G_LiquidRipple(ent, top, bottom, 40.0);
-		}
-	}
-
 	// if just entered a water volume, play a sound
 	if (!old_water_level && water_level) {
 		gi.Sound(ent, g_media.sounds.water_in, ATTEN_NORM);
@@ -102,6 +81,13 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 	// completely exited the water
 	if (old_water_level && !water_level) {
 		gi.Sound(ent, g_media.sounds.water_out, ATTEN_NORM);
+	}
+
+	// same water level, head out of water
+	if ((old_water_level == water_level) && (water_level > 0 && water_level < 3)) {
+		if (VectorLength(ent->locals.velocity) > 10.0) {
+			G_Ripple(ent, NULL, NULL, 0.0, false);
+		}
 	}
 
 	if (ent->locals.dead == false) { // if we're alive, we can drown

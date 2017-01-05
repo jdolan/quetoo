@@ -23,65 +23,6 @@
 #include "bg_pmove.h"
 
 /**
- * @brief Spawn a liquid ripple between a start and end point, setting pos1 to
- * NULL will not test a trace; doing this is not recommended
- */
-void G_LiquidRipple(g_entity_t *ent, const vec3_t orig_start, const vec3_t orig_end, const vec_t size) {
-	vec3_t pos, dir;
-	uint8_t viscosity = 10; // 10 is water, higher = denser
-
-	if (orig_start != NULL) {
-		vec3_t start, end;
-
-		if (orig_end[2] > orig_start[2]) { // swap start and end if coming out of water
-			VectorCopy(orig_start, end);
-			VectorCopy(orig_end, start);
-		} else {
-			VectorCopy(orig_start, start);
-			VectorCopy(orig_end, end);
-		}
-
-		const cm_trace_t tr = gi.Trace(start, end, NULL, NULL, ent, MASK_LIQUID);
-
-		if (!(tr.fraction != 1.0 && !tr.all_solid)) {
-			return;
-		}
-
-		if (tr.contents & CONTENTS_SLIME) { // make ripples slower in slime
-			viscosity = 20;
-		} else if (tr.contents & CONTENTS_LAVA) { // and lava
-			viscosity = 30;
-		}
-
-		VectorCopy(tr.end, pos);
-		VectorCopy(tr.plane.normal, dir);
-	} else {
-		VectorCopy(orig_end, pos);
-		VectorCopy(vec3_up, dir);
-	}
-
-	pos[2] += 1; // put it above the liquid surface
-
-	vec3_t back;
-
-	VectorSubtract(orig_end, orig_start, back);
-	VectorNormalize(back);
-	VectorAdd(pos, back, back);
-
-	if (gi.PointContents(back) & MASK_LIQUID) {
-		return;
-	}
-
-	gi.WriteByte(SV_CMD_TEMP_ENTITY);
-	gi.WriteByte(TE_RIPPLE);
-	gi.WritePosition(pos);
-	gi.WriteVector(size);
-	gi.WriteByte(viscosity);
-	gi.WriteDir(dir);
-	gi.Multicast(pos, MULTICAST_PVS, NULL);
-}
-
-/**
  * @see Pm_CheckGround
  */
 static void G_CheckGround(g_entity_t *ent) {
@@ -127,6 +68,10 @@ static void G_CheckWater(g_entity_t *ent) {
 		return;
 	}
 
+	if (ent->solid == SOLID_NOT) {
+		return;
+	}
+
 	// check for water interaction
 	const uint8_t old_water_level = ent->locals.water_level;
 
@@ -140,36 +85,13 @@ static void G_CheckWater(g_entity_t *ent) {
 		VectorCopy(ent->maxs, maxs);
 	}
 
-	cm_trace_t tr = gi.Trace(pos, pos, mins, maxs, ent, MASK_LIQUID);
+	const cm_trace_t tr = gi.Trace(pos, pos, mins, maxs, ent, MASK_LIQUID);
 
 	ent->locals.water_type = tr.contents;
 	ent->locals.water_level = ent->locals.water_type ? 1 : 0;
 
 	VectorScale(ent->locals.velocity, QUETOO_TICK_SECONDS, ent_frame_delta);
 	VectorSubtract(pos, ent_frame_delta, old_pos);
-
-	if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
-
-		if (!(ent->sv_flags & SVF_NO_CLIENT)) {
-
-			const _Bool in_motion = !VectorCompare(ent->locals.velocity, vec3_origin);
-			const _Bool in_water = ent->locals.water_level && old_water_level;
-
-			if (in_motion && in_water && g_level.time > ent->locals.ripple_time) {
-
-				ent->locals.ripple_time = g_level.time + 400;
-
-				vec3_t top, bottom;
-
-				VectorMA(ent->s.origin, ent->maxs[2] + 16.0, vec3_up, top);
-				VectorMA(ent->s.origin, ent->mins[2], vec3_down, bottom);
-
-				G_LiquidRipple(ent, top, bottom, 20.0);
-			} else if (ent->locals.ripple_time > g_level.time + 400) {
-				ent->locals.ripple_time = 0;
-			}
-		}
-	}
 
 	if (!old_water_level && ent->locals.water_level) {
 		
@@ -181,7 +103,7 @@ static void G_CheckWater(g_entity_t *ent) {
 			gi.PositionedSound(pos, ent, g_media.sounds.water_in, ATTEN_IDLE);
 
 			if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
-				G_LiquidRipple(ent, old_pos, pos, 30.0);
+				G_Ripple(ent, NULL, NULL, 0.0, true);
 			}
 		}
 
@@ -191,7 +113,7 @@ static void G_CheckWater(g_entity_t *ent) {
 			gi.PositionedSound(pos, ent, g_media.sounds.water_out, ATTEN_IDLE);
 
 			if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
-				G_LiquidRipple(ent, old_pos, pos, 30.0);
+				G_Ripple(ent, NULL, NULL, 0.0, true);
 			}
 		}
 	}
