@@ -138,14 +138,14 @@ static void initialize(Class *clazz) {
 Class *_VideoModeSelect(void) {
 	static Class clazz;
 	
-	if (!clazz.name) {
+	do_once({
 		clazz.name = "VideoModeSelect";
 		clazz.superclass = _Select();
 		clazz.instanceSize = sizeof(VideoModeSelect);
 		clazz.interfaceOffset = offsetof(VideoModeSelect, interface);
 		clazz.interfaceSize = sizeof(VideoModeSelectInterface);
 		clazz.initialize = initialize;
-	}
+	});
 
 	return &clazz;
 }

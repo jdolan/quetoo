@@ -190,14 +190,14 @@ static void initialize(Class *clazz) {
 Class *_SystemViewController(void) {
 	static Class clazz;
 	
-	if (!clazz.name) {
+	do_once({
 		clazz.name = "SystemViewController";
 		clazz.superclass = _MenuViewController();
 		clazz.instanceSize = sizeof(SystemViewController);
 		clazz.interfaceOffset = offsetof(SystemViewController, interface);
 		clazz.interfaceSize = sizeof(SystemViewControllerInterface);
 		clazz.initialize = initialize;
-	}
+	});
 
 	return &clazz;
 }

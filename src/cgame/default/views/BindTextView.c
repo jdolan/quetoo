@@ -159,14 +159,14 @@ static void initialize(Class *clazz) {
 Class *_BindTextView(void) {
 	static Class clazz;
 	
-	if (!clazz.name) {
+	do_once({
 		clazz.name = "BindTextView";
 		clazz.superclass = _TextView();
 		clazz.instanceSize = sizeof(BindTextView);
 		clazz.interfaceOffset = offsetof(BindTextView, interface);
 		clazz.interfaceSize = sizeof(BindTextViewInterface);
 		clazz.initialize = initialize;
-	}
+	});
 
 	return &clazz;
 }

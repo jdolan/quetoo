@@ -155,14 +155,14 @@ static void initialize(Class *clazz) {
 Class *_PlayerViewController(void) {
 	static Class clazz;
 	
-	if (!clazz.name) {
+	do_once({
 		clazz.name = "PlayerViewController";
 		clazz.superclass = _MenuViewController();
 		clazz.instanceSize = sizeof(PlayerViewController);
 		clazz.interfaceOffset = offsetof(PlayerViewController, interface);
 		clazz.interfaceSize = sizeof(PlayerViewControllerInterface);
 		clazz.initialize = initialize;
-	}
+	});
 
 	return &clazz;
 }

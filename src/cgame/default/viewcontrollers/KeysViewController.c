@@ -148,14 +148,14 @@ static void initialize(Class *clazz) {
 Class *_KeysViewController(void) {
 	static Class clazz;
 	
-	if (!clazz.name) {
+	do_once({
 		clazz.name = "KeysViewController";
 		clazz.superclass = _MenuViewController();
 		clazz.instanceSize = sizeof(KeysViewController);
 		clazz.interfaceOffset = offsetof(KeysViewController, interface);
 		clazz.interfaceSize = sizeof(KeysViewControllerInterface);
 		clazz.initialize = initialize;
-	}
+	});
 
 	return &clazz;
 }

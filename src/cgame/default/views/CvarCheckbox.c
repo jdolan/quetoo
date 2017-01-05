@@ -95,14 +95,14 @@ static void initialize(Class *clazz) {
 Class *_CvarCheckbox(void) {
 	static Class clazz;
 	
-	if (!clazz.name) {
+	do_once({
 		clazz.name = "CvarCheckbox";
 		clazz.superclass = _Checkbox();
 		clazz.instanceSize = sizeof(CvarCheckbox);
 		clazz.interfaceOffset = offsetof(CvarCheckbox, interface);
 		clazz.interfaceSize = sizeof(CvarCheckboxInterface);
 		clazz.initialize = initialize;
-	}
+	});
 
 	return &clazz;
 }

@@ -147,14 +147,14 @@ static void initialize(Class *clazz) {
 Class *_CrosshairView(void) {
 	static Class clazz;
 	
-	if (!clazz.name) {
+	do_once({
 		clazz.name = "CrosshairView";
 		clazz.superclass = _View();
 		clazz.instanceSize = sizeof(CrosshairView);
 		clazz.interfaceOffset = offsetof(CrosshairView, interface);
 		clazz.interfaceSize = sizeof(CrosshairViewInterface);
 		clazz.initialize = initialize;
-	}
+	});
 
 	return &clazz;
 }

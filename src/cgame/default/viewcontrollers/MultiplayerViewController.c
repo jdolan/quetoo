@@ -132,14 +132,14 @@ static void initialize(Class *clazz) {
 Class *_MultiplayerViewController(void) {
 	static Class clazz;
 	
-	if (!clazz.name) {
+	do_once({
 		clazz.name = "MultiplayerViewController";
 		clazz.superclass = _MenuViewController();
 		clazz.instanceSize = sizeof(MultiplayerViewController);
 		clazz.interfaceOffset = offsetof(MultiplayerViewController, interface);
 		clazz.interfaceSize = sizeof(MultiplayerViewControllerInterface);
 		clazz.initialize = initialize;
-	}
+	});
 
 	return &clazz;
 }

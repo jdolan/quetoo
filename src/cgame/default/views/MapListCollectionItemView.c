@@ -74,14 +74,14 @@ static void initialize(Class *clazz) {
 Class *_MapListCollectionItemView(void) {
 	static Class clazz;
 	
-	if (!clazz.name) {
+	do_once({
 		clazz.name = "MapListCollectionItemView";
 		clazz.superclass = _CollectionItemView();
 		clazz.instanceSize = sizeof(MapListCollectionItemView);
 		clazz.interfaceOffset = offsetof(MapListCollectionItemView, interface);
 		clazz.interfaceSize = sizeof(MapListCollectionItemViewInterface);
 		clazz.initialize = initialize;
-	}
+	});
 
 	return &clazz;
 }

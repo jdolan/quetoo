@@ -170,14 +170,14 @@ static void initialize(Class *clazz) {
 Class *_RendererQuetoo(void) {
 	static Class clazz;
 	
-	if (!clazz.name) {
+	do_once({
 		clazz.name = "RendererQuetoo";
 		clazz.superclass = _Renderer();
 		clazz.instanceSize = sizeof(RendererQuetoo);
 		clazz.interfaceOffset = offsetof(RendererQuetoo, interface);
 		clazz.interfaceSize = sizeof(RendererQuetooInterface);
 		clazz.initialize = initialize;
-	}
+	});
 
 	return &clazz;
 }

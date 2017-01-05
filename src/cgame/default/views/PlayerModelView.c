@@ -300,14 +300,14 @@ static void initialize(Class *clazz) {
 Class *_PlayerModelView(void) {
 	static Class clazz;
 	
-	if (!clazz.name) {
+	do_once({
 		clazz.name = "PlayerModelView";
 		clazz.superclass = _View();
 		clazz.instanceSize = sizeof(PlayerModelView);
 		clazz.interfaceOffset = offsetof(PlayerModelView, interface);
 		clazz.interfaceSize = sizeof(PlayerModelViewInterface);
 		clazz.initialize = initialize;
-	}
+	});
 
 	return &clazz;
 }

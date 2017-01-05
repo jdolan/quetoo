@@ -93,14 +93,14 @@ static void initialize(Class *clazz) {
 Class *_CvarSlider(void) {
 	static Class clazz;
 	
-	if (!clazz.name) {
+	do_once({
 		clazz.name = "CvarSlider";
 		clazz.superclass = _Slider();
 		clazz.instanceSize = sizeof(CvarSlider);
 		clazz.interfaceOffset = offsetof(CvarSlider, interface);
 		clazz.interfaceSize = sizeof(CvarSliderInterface);
 		clazz.initialize = initialize;
-	}
+	});
 
 	return &clazz;
 }

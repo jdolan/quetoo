@@ -122,14 +122,14 @@ static void initialize(Class *clazz) {
 Class *_SkinSelect(void) {
 	static Class clazz;
 	
-	if (!clazz.name) {
+	do_once({
 		clazz.name = "SkinSelect";
 		clazz.superclass = _Select();
 		clazz.instanceSize = sizeof(SkinSelect);
 		clazz.interfaceOffset = offsetof(SkinSelect, interface);
 		clazz.interfaceSize = sizeof(SkinSelectInterface);
 		clazz.initialize = initialize;
-	}
+	});
 
 	return &clazz;
 }

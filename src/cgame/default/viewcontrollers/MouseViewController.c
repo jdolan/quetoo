@@ -169,14 +169,14 @@ static void initialize(Class *clazz) {
 Class *_MouseViewController(void) {
 	static Class clazz;
 	
-	if (!clazz.name) {
+	do_once({
 		clazz.name = "MouseViewController";
 		clazz.superclass = _MenuViewController();
 		clazz.instanceSize = sizeof(MouseViewController);
 		clazz.interfaceOffset = offsetof(MouseViewController, interface);
 		clazz.interfaceSize = sizeof(MouseViewControllerInterface);
 		clazz.initialize = initialize;
-	}
+	});
 
 	return &clazz;
 }

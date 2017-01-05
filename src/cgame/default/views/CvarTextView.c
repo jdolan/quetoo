@@ -89,14 +89,14 @@ static void initialize(Class *clazz) {
 Class *_CvarTextView(void) {
 	static Class clazz;
 	
-	if (!clazz.name) {
+	do_once({
 		clazz.name = "CvarTextView";
 		clazz.superclass = _TextView();
 		clazz.instanceSize = sizeof(CvarTextView);
 		clazz.interfaceOffset = offsetof(CvarTextView, interface);
 		clazz.interfaceSize = sizeof(CvarTextViewInterface);
 		clazz.initialize = initialize;
-	}
+	});
 
 	return &clazz;
 }

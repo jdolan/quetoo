@@ -285,14 +285,14 @@ static void initialize(Class *clazz) {
 Class *_CreateServerViewController(void) {
 	static Class clazz;
 	
-	if (!clazz.name) {
+	do_once({
 		clazz.name = "CreateServerViewController";
 		clazz.superclass = _MenuViewController();
 		clazz.instanceSize = sizeof(CreateServerViewController);
 		clazz.interfaceOffset = offsetof(CreateServerViewController, interface);
 		clazz.interfaceSize = sizeof(CreateServerViewControllerInterface);
 		clazz.initialize = initialize;
-	}
+	});
 
 	return &clazz;
 }

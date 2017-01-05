@@ -84,14 +84,14 @@ static void initialize(Class *clazz) {
 Class *_MenuViewController(void) {
 	static Class clazz;
 	
-	if (!clazz.name) {
+	do_once({
 		clazz.name = "MenuViewController";
 		clazz.superclass = _ViewController();
 		clazz.instanceSize = sizeof(MenuViewController);
 		clazz.interfaceOffset = offsetof(MenuViewController, interface);
 		clazz.interfaceSize = sizeof(MenuViewControllerInterface);
 		clazz.initialize = initialize;
-	}
+	});
 
 	return &clazz;
 }
