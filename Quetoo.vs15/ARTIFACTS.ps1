@@ -34,12 +34,12 @@ copy "$outdir\que*.pdb" "Quetoo\bin\"
 # copy Objectively
 $libdir = "..\..\Objectively\Objectively.vs15\bin"
 copy "$libdir\${env:Platform}Release\Objectively.dll" "Quetoo\bin\"
-copy "$libdir\${env:Platform}Release\Objectively.obj" "Quetoo\bin\"
+copy "$libdir\${env:Platform}Release\Objectively.pdb" "Quetoo\bin\"
 
 # copy ObjectivelyMVC
 $libdir = "..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin"
 copy "$libdir\${env:Platform}Release\ObjectivelyMVC.dll" "Quetoo\bin\"
-copy "$libdir\${env:Platform}Release\ObjectivelyMVC.obj" "Quetoo\bin\"
+copy "$libdir\${env:Platform}Release\ObjectivelyMVC.pdb" "Quetoo\bin\"
 
 # copy external libs
 $libdir = "libs"
