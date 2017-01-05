@@ -74,5 +74,5 @@ struct RendererQuetooInterface {
 /**
  * @brief The RendererQuetoo Class.
  */
-extern Class _RendererQuetoo;
+extern Class *_RendererQuetoo(void);
 

@@ -76,11 +76,11 @@ static void loadView(ViewController *self) {
 	panel->contentView->distribution = StackViewDistributionFillEqually;
 	panel->contentView->view.autoresizingMask = ViewAutoresizingNone;
 
-	Cg_PrimaryButton((View *) panel->contentView, "MULTIPLAYER", action, self, &_MultiplayerViewController);
-	Cg_PrimaryButton((View *) panel->contentView, "KEYS", action, self, &_KeysViewController);
-	Cg_PrimaryButton((View *) panel->contentView, "MOUSE", action, self, &_MouseViewController);
-	Cg_PrimaryButton((View *) panel->contentView, "PLAYER", action, self, &_PlayerViewController);
-	Cg_PrimaryButton((View *) panel->contentView, "SYSTEM", action, self, &_SystemViewController);
+	Cg_PrimaryButton((View *) panel->contentView, "MULTIPLAYER", action, self, _MultiplayerViewController());
+	Cg_PrimaryButton((View *) panel->contentView, "KEYS", action, self, _KeysViewController());
+	Cg_PrimaryButton((View *) panel->contentView, "MOUSE", action, self, _MouseViewController());
+	Cg_PrimaryButton((View *) panel->contentView, "PLAYER", action, self, _PlayerViewController());
+	Cg_PrimaryButton((View *) panel->contentView, "SYSTEM", action, self, _SystemViewController());
 	Cg_PrimaryButton((View *) panel->contentView, "QUIT", action, self, NULL);
 
 	SDL_Size size = MakeSize(min(cgi.context->window_width, 1024), 36);
@@ -114,14 +114,20 @@ static void initialize(Class *clazz) {
 	((MainViewControllerInterface *) clazz->def->interface)->init = init;
 }
 
-Class _MainViewController = {
-	.name = "MainViewController",
-	.superclass = &_NavigationViewController,
-	.instanceSize = sizeof(MainViewController),
-	.interfaceOffset = offsetof(MainViewController, interface),
-	.interfaceSize = sizeof(MainViewControllerInterface),
-	.initialize = initialize,
-};
+Class *_MainViewController(void) {
+	static Class _class;
+	
+	if (!_class.name) {
+		_class.name = "MainViewController";
+		_class.superclass = _NavigationViewController();
+		_class.instanceSize = sizeof(MainViewController);
+		_class.interfaceOffset = offsetof(MainViewController, interface);
+		_class.interfaceSize = sizeof(MainViewControllerInterface);
+		_class.initialize = initialize;
+	}
+
+	return &_class;
+}
 
 #undef _Class
 

@@ -282,13 +282,19 @@ static void initialize(Class *clazz) {
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 }
 
-Class _CreateServerViewController = {
-	.name = "CreateServerViewController",
-	.superclass = &_MenuViewController,
-	.instanceSize = sizeof(CreateServerViewController),
-	.interfaceOffset = offsetof(CreateServerViewController, interface),
-	.interfaceSize = sizeof(CreateServerViewControllerInterface),
-	.initialize = initialize,
-};
+Class *_CreateServerViewController(void) {
+	static Class _class;
+	
+	if (!_class.name) {
+		_class.name = "CreateServerViewController";
+		_class.superclass = _MenuViewController();
+		_class.instanceSize = sizeof(CreateServerViewController);
+		_class.interfaceOffset = offsetof(CreateServerViewController, interface);
+		_class.interfaceSize = sizeof(CreateServerViewControllerInterface);
+		_class.initialize = initialize;
+	}
+
+	return &_class;
+}
 
 #undef _Class

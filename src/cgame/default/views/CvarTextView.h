@@ -81,5 +81,5 @@ struct CvarTextViewInterface {
 /**
  * @brief The CvarTextView Class.
  */
-extern Class _CvarTextView;
+extern Class *_CvarTextView(void);
 

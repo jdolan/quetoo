@@ -76,5 +76,5 @@ struct PrimaryButtonInterface {
 /**
  * @brief The PrimaryButton Class.
  */
-extern Class _PrimaryButton;
+extern Class *_PrimaryButton(void);
 

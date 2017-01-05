@@ -79,5 +79,5 @@ struct CrosshairViewInterface {
 /**
  * @brief The CrosshairView Class.
  */
-extern Class _CrosshairView;
+extern Class *_CrosshairView(void);
 

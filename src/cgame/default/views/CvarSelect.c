@@ -123,14 +123,20 @@ static void initialize(Class *clazz) {
 	((CvarSelectInterface *) clazz->def->interface)->initWithVariableName = initWithVariableName;
 }
 
-Class _CvarSelect = {
-	.name = "CvarSelect",
-	.superclass = &_Select,
-	.instanceSize = sizeof(CvarSelect),
-	.interfaceOffset = offsetof(CvarSelect, interface),
-	.interfaceSize = sizeof(CvarSelectInterface),
-	.initialize = initialize,
-};
+Class *_CvarSelect(void) {
+	static Class _class;
+	
+	if (!_class.name) {
+		_class.name = "CvarSelect";
+		_class.superclass = _Select();
+		_class.instanceSize = sizeof(CvarSelect);
+		_class.interfaceOffset = offsetof(CvarSelect, interface);
+		_class.interfaceSize = sizeof(CvarSelectInterface);
+		_class.initialize = initialize;
+	}
+
+	return &_class;
+}
 
 #undef _Class
 

@@ -144,14 +144,20 @@ static void initialize(Class *clazz) {
 	((CrosshairViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 }
 
-Class _CrosshairView = {
-	.name = "CrosshairView",
-	.superclass = &_View,
-	.instanceSize = sizeof(CrosshairView),
-	.interfaceOffset = offsetof(CrosshairView, interface),
-	.interfaceSize = sizeof(CrosshairViewInterface),
-	.initialize = initialize,
-};
+Class *_CrosshairView(void) {
+	static Class _class;
+	
+	if (!_class.name) {
+		_class.name = "CrosshairView";
+		_class.superclass = _View();
+		_class.instanceSize = sizeof(CrosshairView);
+		_class.interfaceOffset = offsetof(CrosshairView, interface);
+		_class.interfaceSize = sizeof(CrosshairViewInterface);
+		_class.initialize = initialize;
+	}
+
+	return &_class;
+}
 
 #undef _Class
 

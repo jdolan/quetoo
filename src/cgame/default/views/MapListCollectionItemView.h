@@ -89,5 +89,5 @@ struct MapListCollectionItemViewInterface {
 /**
  * @brief The MapListCollectionItemView Class.
  */
-extern Class _MapListCollectionItemView;
+extern Class *_MapListCollectionItemView(void);
 

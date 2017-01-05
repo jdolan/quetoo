@@ -297,14 +297,20 @@ static void initialize(Class *clazz) {
 	((PlayerModelViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 }
 
-Class _PlayerModelView = {
-	.name = "PlayerModelView",
-	.superclass = &_View,
-	.instanceSize = sizeof(PlayerModelView),
-	.interfaceOffset = offsetof(PlayerModelView, interface),
-	.interfaceSize = sizeof(PlayerModelViewInterface),
-	.initialize = initialize,
-};
+Class *_PlayerModelView(void) {
+	static Class _class;
+	
+	if (!_class.name) {
+		_class.name = "PlayerModelView";
+		_class.superclass = _View();
+		_class.instanceSize = sizeof(PlayerModelView);
+		_class.interfaceOffset = offsetof(PlayerModelView, interface);
+		_class.interfaceSize = sizeof(PlayerModelViewInterface);
+		_class.initialize = initialize;
+	}
+
+	return &_class;
+}
 
 #undef _Class
 

@@ -66,5 +66,5 @@ struct KeysViewControllerInterface {
 /**
  * @brief The KeysViewController Class.
  */
-extern Class _KeysViewController;
+extern Class *_KeysViewController(void);
 

@@ -80,4 +80,4 @@ struct MenuViewControllerInterface {
 /**
  * @brief The MenuViewController Class.
  */
-extern Class _MenuViewController;
+extern Class *_MenuViewController(void);

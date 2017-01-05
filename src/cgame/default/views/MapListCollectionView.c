@@ -319,14 +319,20 @@ static void initialize(Class *clazz) {
 	((MapListCollectionViewInterface *) clazz->def->interface)->selectedMaps = selectedMaps;
 }
 
-Class _MapListCollectionView = {
-	.name = "MapListCollectionView",
-	.superclass = &_CollectionView,
-	.instanceSize = sizeof(MapListCollectionView),
-	.interfaceOffset = offsetof(MapListCollectionView, interface),
-	.interfaceSize = sizeof(MapListCollectionViewInterface),
-	.initialize = initialize,
-};
+Class *_MapListCollectionView(void) {
+	static Class _class;
+	
+	if (!_class.name) {
+		_class.name = "MapListCollectionView";
+		_class.superclass = _CollectionView();
+		_class.instanceSize = sizeof(MapListCollectionView);
+		_class.interfaceOffset = offsetof(MapListCollectionView, interface);
+		_class.interfaceSize = sizeof(MapListCollectionViewInterface);
+		_class.initialize = initialize;
+	}
+
+	return &_class;
+}
 
 #undef _Class
 

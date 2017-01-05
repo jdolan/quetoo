@@ -145,14 +145,20 @@ static void initialize(Class *clazz) {
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 }
 
-Class _KeysViewController = {
-	.name = "KeysViewController",
-	.superclass = &_MenuViewController,
-	.instanceSize = sizeof(KeysViewController),
-	.interfaceOffset = offsetof(KeysViewController, interface),
-	.interfaceSize = sizeof(KeysViewControllerInterface),
-	.initialize = initialize,
-};
+Class *_KeysViewController(void) {
+	static Class _class;
+	
+	if (!_class.name) {
+		_class.name = "KeysViewController";
+		_class.superclass = _MenuViewController();
+		_class.instanceSize = sizeof(KeysViewController);
+		_class.interfaceOffset = offsetof(KeysViewController, interface);
+		_class.interfaceSize = sizeof(KeysViewControllerInterface);
+		_class.initialize = initialize;
+	}
+
+	return &_class;
+}
 
 #undef _Class
 

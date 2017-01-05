@@ -65,5 +65,5 @@ struct SystemViewControllerInterface {
 /**
  * @brief The SystemViewController Class.
  */
-extern Class _SystemViewController;
+extern Class *_SystemViewController(void);
 

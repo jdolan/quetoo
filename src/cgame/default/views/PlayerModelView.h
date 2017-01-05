@@ -100,5 +100,5 @@ struct PlayerModelViewInterface {
 /**
  * @brief The PlayerModelView Class.
  */
-extern Class _PlayerModelView;
+extern Class *_PlayerModelView(void);
 

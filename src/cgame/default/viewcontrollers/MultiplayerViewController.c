@@ -56,7 +56,7 @@ static void refreshAction(Control *control, const SDL_Event *event, ident sender
  */
 static void connectAction(Control *control, const SDL_Event *event, ident sender, ident data) {
 
-	if ($((Object *) control, isKindOfClass, &_TableView)) {
+	if ($((Object *) control, isKindOfClass, _TableView())) {
 		if (event->button.clicks < 2) {
 			return;
 		}
@@ -129,14 +129,20 @@ static void initialize(Class *clazz) {
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 }
 
-Class _MultiplayerViewController = {
-	.name = "MultiplayerViewController",
-	.superclass = &_MenuViewController,
-	.instanceSize = sizeof(MultiplayerViewController),
-	.interfaceOffset = offsetof(MultiplayerViewController, interface),
-	.interfaceSize = sizeof(MultiplayerViewControllerInterface),
-	.initialize = initialize,
-};
+Class *_MultiplayerViewController(void) {
+	static Class _class;
+	
+	if (!_class.name) {
+		_class.name = "MultiplayerViewController";
+		_class.superclass = _MenuViewController();
+		_class.instanceSize = sizeof(MultiplayerViewController);
+		_class.interfaceOffset = offsetof(MultiplayerViewController, interface);
+		_class.interfaceSize = sizeof(MultiplayerViewControllerInterface);
+		_class.initialize = initialize;
+	}
+
+	return &_class;
+}
 
 #undef _Class
 

@@ -135,14 +135,20 @@ static void initialize(Class *clazz) {
 	((VideoModeSelectInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 }
 
-Class _VideoModeSelect = {
-	.name = "VideoModeSelect",
-	.superclass = &_Select,
-	.instanceSize = sizeof(VideoModeSelect),
-	.interfaceOffset = offsetof(VideoModeSelect, interface),
-	.interfaceSize = sizeof(VideoModeSelectInterface),
-	.initialize = initialize,
-};
+Class *_VideoModeSelect(void) {
+	static Class _class;
+	
+	if (!_class.name) {
+		_class.name = "VideoModeSelect";
+		_class.superclass = _Select();
+		_class.instanceSize = sizeof(VideoModeSelect);
+		_class.interfaceOffset = offsetof(VideoModeSelect, interface);
+		_class.interfaceSize = sizeof(VideoModeSelectInterface);
+		_class.initialize = initialize;
+	}
+
+	return &_class;
+}
 
 #undef _Class
 

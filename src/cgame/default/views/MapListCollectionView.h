@@ -94,5 +94,5 @@ struct MapListCollectionViewInterface {
 /**
  * @brief The MapListCollectionView Class.
  */
-extern Class _MapListCollectionView;
+extern Class *_MapListCollectionView(void);
 

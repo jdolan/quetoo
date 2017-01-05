@@ -74,5 +74,5 @@ struct MainViewControllerInterface {
 /**
  * @brief The MainViewController Class.
  */
-extern Class _MainViewController;
+extern Class *_MainViewController(void);
 

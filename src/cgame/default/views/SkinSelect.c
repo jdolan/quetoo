@@ -119,14 +119,20 @@ static void initialize(Class *clazz) {
 	((SkinSelectInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 }
 
-Class _SkinSelect = {
-	.name = "SkinSelect",
-	.superclass = &_Select,
-	.instanceSize = sizeof(SkinSelect),
-	.interfaceOffset = offsetof(SkinSelect, interface),
-	.interfaceSize = sizeof(SkinSelectInterface),
-	.initialize = initialize,
-};
+Class *_SkinSelect(void) {
+	static Class _class;
+	
+	if (!_class.name) {
+		_class.name = "SkinSelect";
+		_class.superclass = _Select();
+		_class.instanceSize = sizeof(SkinSelect);
+		_class.interfaceOffset = offsetof(SkinSelect, interface);
+		_class.interfaceSize = sizeof(SkinSelectInterface);
+		_class.initialize = initialize;
+	}
+
+	return &_class;
+}
 
 #undef _Class
 

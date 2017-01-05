@@ -86,14 +86,20 @@ static void initialize(Class *clazz) {
 	((CvarTextViewInterface *) clazz->def->interface)->initWithVariable = initWithVariable;
 }
 
-Class _CvarTextView = {
-	.name = "CvarTextView",
-	.superclass = &_TextView,
-	.instanceSize = sizeof(CvarTextView),
-	.interfaceOffset = offsetof(CvarTextView, interface),
-	.interfaceSize = sizeof(CvarTextViewInterface),
-	.initialize = initialize,
-};
+Class *_CvarTextView(void) {
+	static Class _class;
+	
+	if (!_class.name) {
+		_class.name = "CvarTextView";
+		_class.superclass = _TextView();
+		_class.instanceSize = sizeof(CvarTextView);
+		_class.interfaceOffset = offsetof(CvarTextView, interface);
+		_class.interfaceSize = sizeof(CvarTextViewInterface);
+		_class.initialize = initialize;
+	}
+
+	return &_class;
+}
 
 #undef _Class
 

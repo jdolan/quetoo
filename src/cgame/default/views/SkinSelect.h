@@ -74,5 +74,5 @@ struct SkinSelectInterface {
 /**
  * @brief The SkinSelect Class.
  */
-extern Class _SkinSelect;
+extern Class *_SkinSelect(void);
 

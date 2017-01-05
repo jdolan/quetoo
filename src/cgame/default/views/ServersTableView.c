@@ -230,14 +230,20 @@ static void initialize(Class *clazz) {
 	((ServersTableViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 }
 
-Class _ServersTableView = {
-	.name = "ServersTableView",
-	.superclass = &_TableView,
-	.instanceSize = sizeof(ServersTableView),
-	.interfaceOffset = offsetof(ServersTableView, interface),
-	.interfaceSize = sizeof(ServersTableViewInterface),
-	.initialize = initialize,
-};
+Class *_ServersTableView(void) {
+	static Class _class;
+	
+	if (!_class.name) {
+		_class.name = "ServersTableView";
+		_class.superclass = _TableView();
+		_class.instanceSize = sizeof(ServersTableView);
+		_class.interfaceOffset = offsetof(ServersTableView, interface);
+		_class.interfaceSize = sizeof(ServersTableViewInterface);
+		_class.initialize = initialize;
+	}
+
+	return &_class;
+}
 
 #undef _Class
 

@@ -83,5 +83,5 @@ struct CvarSliderInterface {
 /**
  * @brief The CvarSlider Class.
  */
-extern Class _CvarSlider;
+extern Class *_CvarSlider(void);
 

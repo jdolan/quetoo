@@ -71,5 +71,5 @@ struct MouseViewControllerInterface {
 /**
  * @brief The MouseViewController Class.
  */
-extern Class _MouseViewController;
+extern Class *_MouseViewController(void);
 

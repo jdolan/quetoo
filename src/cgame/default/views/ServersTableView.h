@@ -75,5 +75,5 @@ struct ServersTableViewInterface {
 /**
  * @brief The ServersTableView Class.
  */
-extern Class _ServersTableView;
+extern Class *_ServersTableView(void);
 

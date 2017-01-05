@@ -98,5 +98,5 @@ struct CvarSelectInterface {
 /**
  * @brief The CvarSelect Class.
  */
-extern Class _CvarSelect;
+extern Class *_CvarSelect(void);
 

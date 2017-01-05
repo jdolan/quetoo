@@ -80,5 +80,5 @@ struct VideoModeSelectInterface {
 /**
  * @brief The VideoModeSelect Class.
  */
-extern Class _VideoModeSelect;
+extern Class *_VideoModeSelect(void);
 

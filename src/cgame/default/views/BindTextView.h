@@ -80,4 +80,4 @@ struct BindTextViewInterface {
 /**
  * @brief The BindTextView Class.
  */
-extern Class _BindTextView;
+extern Class *_BindTextView(void);

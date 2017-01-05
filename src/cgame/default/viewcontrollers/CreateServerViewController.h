@@ -87,5 +87,5 @@ struct CreateServerViewControllerInterface {
 /**
  * @brief The CreateServerViewController Class.
  */
-extern Class _CreateServerViewController;
+extern Class *_CreateServerViewController(void);
 

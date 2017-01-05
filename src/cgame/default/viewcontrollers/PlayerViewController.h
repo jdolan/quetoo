@@ -71,5 +71,5 @@ struct PlayerViewControllerInterface {
 /**
  * @brief The PlayerViewController Class.
  */
-extern Class _PlayerViewController;
+extern Class *_PlayerViewController(void);
 
