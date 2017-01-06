@@ -1,27 +1,27 @@
 #include "cm_local.h"
 
 /**
- * @brief Stores positions to offsets in bsp_file_t to various lump data
+ * @brief Metadata for BSP lumps
  */
 typedef struct {
-	size_t num_offset; // offset to size
-	size_t ptr_offset; // offset to ptr
-	size_t ptr_size; // size of the data we're pointed to
-} bsp_lump_ofs_t;
+	size_t size_ofs; // offset to size
+	size_t data_ofs; // offset to ptr
+	size_t type_size; // size of the data we're pointed to
+} bsp_lump_meta_t;
 
-#ifndef member_sizeof
+#ifndef BSP_SIZEOF
 	#define BSP_SIZEOF(T, F) \
 		sizeof(*((T *) 0)->F)
 #endif
 
 #define BSP_LUMP_NUM_STRUCT(n) \
-	{ .num_offset = offsetof(bsp_file_t, num_ ## n), .ptr_offset = offsetof(bsp_file_t, n), .ptr_size = BSP_SIZEOF(bsp_file_t, n) }
+	{ .size_ofs = offsetof(bsp_file_t, num_ ## n), .data_ofs = offsetof(bsp_file_t, n), .type_size = BSP_SIZEOF(bsp_file_t, n) }
 #define BSP_LUMP_SIZE_STRUCT(n) \
-	{ .num_offset = offsetof(bsp_file_t, n ## _size), .ptr_offset = offsetof(bsp_file_t, n), .ptr_size = sizeof(byte) }
+	{ .size_ofs = offsetof(bsp_file_t, n ## _size), .data_ofs = offsetof(bsp_file_t, n), .type_size = sizeof(byte) }
 #define BSP_LUMP_SKIP \
 	{ 0, 0, 0 }
 
-static bsp_lump_ofs_t bsp_lump_ofs[BSP_TOTAL_LUMPS] = {
+static bsp_lump_meta_t bsp_lump_meta[BSP_TOTAL_LUMPS] = {
 	BSP_LUMP_SIZE_STRUCT(entity_string),
 	BSP_LUMP_NUM_STRUCT(planes),
 	BSP_LUMP_NUM_STRUCT(vertexes),
@@ -431,25 +431,54 @@ static void Bsp_GetLumpPosition(file_t *file, const bsp_lump_id_t lump_id, d_bsp
 }
 
 /**
- * @brief Get the lump offset data for the specified lump. Returns NULL if
- * the specified lump is not valid.
+ * @brief Set if the lump is valid but the ptrs do not exist.
  */
-static bsp_lump_ofs_t *Bsp_GetLumpOffsets(const bsp_lump_id_t lump_id) {
+#define LUMP_SKIPPED	-1
 
-	if (lump_id < 0 || lump_id >= BSP_TOTAL_LUMPS) {
-		return NULL;
-	}
-
-	return &bsp_lump_ofs[lump_id];
-}
-
+/**
+ * @brief Convenience to calculate bsp_file offset in bytes
+ */
 #define BSP_BYTE_OFFSET(bsp, bytes) \
 	(((byte *) bsp) + bytes)
 
 /**
+ * @brief Get the lump offset data for the specified lump. Returns false if the
+ * lump is not valid. num and data will be filled with the pointer to the lump's
+ * count and data pointers in memory. They may be empty. If num is LUMP_SKIPPED,
+ * the lump is a valid lump but not stored/used by the library.
+ */
+static _Bool Bsp_GetLumpOffsets(const bsp_file_t *bsp, const bsp_lump_id_t lump_id, int32_t **num, void ***data) {
+
+	if (lump_id < 0 || lump_id >= BSP_TOTAL_LUMPS) {
+		return false;
+	}
+
+	bsp_lump_meta_t *meta = &bsp_lump_meta[lump_id];
+
+	if (!meta->type_size) {
+		
+		if (num) {
+			*num = LUMP_SKIPPED;
+		}
+
+	} else {
+
+		if (num) {
+			*num = (int32_t *) BSP_BYTE_OFFSET(bsp, meta->size_ofs);
+		}
+
+		if (data) {
+			*data = (void **) BSP_BYTE_OFFSET(bsp, meta->data_ofs);
+		}
+	}
+
+	return true;
+}
+
+/**
  * @brief Check whether the specified lump is loaded in memory or not.
  */
-_Bool Bsp_LumpLoaded(bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
+_Bool Bsp_LumpLoaded(const bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
 
 	return bsp->loaded_lumps & (bsp_lump_id_t) (1 << lump_id);
 }
@@ -462,33 +491,26 @@ void Bsp_UnloadLump(bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
 	if (!Bsp_LumpLoaded(bsp, lump_id)) {
 		return;
 	}
+	
+	int32_t *lump_count;
+	void **lump_data;
 
-	bsp_lump_ofs_t *ofs = Bsp_GetLumpOffsets(lump_id);
-
-	if (!ofs) {
+	if (!Bsp_GetLumpOffsets(bsp, lump_id, &lump_count, &lump_data)) {
 		Com_Error(ERROR_DROP, "Tried to load an invalid lump (%i)\n", lump_id);
 	}
 
 	// lump is valid but we're skipping it
-	if (ofs->ptr_size == 0) {
-		return;
-	}
-
-	int32_t *num_of_lump = (int32_t *) BSP_BYTE_OFFSET(bsp, ofs->num_offset);
-	void **lump_ptr = (void **) BSP_BYTE_OFFSET(bsp, ofs->ptr_offset);
-
-	// already unloaded
-	if (*num_of_lump == -1) {
+	if (*lump_count == LUMP_SKIPPED) {
 		return;
 	}
 
 	// free memory
-	if (*lump_ptr) {
-		Mem_Free(*lump_ptr);
-		*lump_ptr = NULL;
+	if (*lump_data) {
+		Mem_Free(*lump_data);
+		*lump_data = NULL;
 	}
 
-	*num_of_lump = 0;
+	*lump_count = 0;
 
 	bsp->loaded_lumps &= ~((bsp_lump_id_t) (1 << lump_id));
 }
@@ -512,14 +534,15 @@ void Bsp_UnloadLumps(bsp_file_t *bsp, const bsp_lump_id_t lump_bits) {
  */
 _Bool Bsp_LoadLump(file_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
 
-	bsp_lump_ofs_t *ofs = Bsp_GetLumpOffsets(lump_id);
+	int32_t *lump_count;
+	void **lump_data;
 
-	if (!ofs) {
+	if (!Bsp_GetLumpOffsets(bsp, lump_id, &lump_count, &lump_data)) {
 		Com_Error(ERROR_DROP, "Tried to load an invalid lump (%i)\n", lump_id);
 	}
 
 	// lump is valid but we're skipping it
-	if (ofs->ptr_size == 0) {
+	if (*lump_count == LUMP_SKIPPED) {
 		return true;
 	}
 
@@ -530,15 +553,14 @@ _Bool Bsp_LoadLump(file_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
 	d_bsp_lump_t lump;
 	Bsp_GetLumpPosition(file, lump_id, &lump);
 
-	if (lump.file_len % ofs->ptr_size) {
-		Com_Error(ERROR_DROP, "Lump (%i) size (%i) doesn't match expected data type (%" PRIuPTR ")\n", lump_id, lump.file_len, ofs->ptr_size);
+	const size_t lump_type_size = bsp_lump_meta[lump_id].type_size;
+
+	if (lump.file_len % lump_type_size) {
+		Com_Error(ERROR_DROP, "Lump (%i) size (%i) doesn't match expected data type (%" PRIuPTR ")\n", lump_id, lump.file_len, lump_type_size);
 	}
 
-	int32_t *num_of_lump = (int32_t *) BSP_BYTE_OFFSET(bsp, ofs->num_offset);
-	void **lump_ptr = (void **) BSP_BYTE_OFFSET(bsp, ofs->ptr_offset);
-
-	*num_of_lump = lump.file_len / ofs->ptr_size;
-	*lump_ptr = Mem_Malloc(lump.file_len);
+	*lump_count = lump.file_len / lump_type_size;
+	*lump_data = Mem_Malloc(lump.file_len);
 
 	// blit the data into memory
 	if (lump.file_ofs && lump.file_len) {
@@ -547,7 +569,7 @@ _Bool Bsp_LoadLump(file_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
 			return false;
 		}
 
-		if (Fs_Read(file, *lump_ptr, 1, lump.file_len) != lump.file_len) {
+		if (Fs_Read(file, *lump_data, 1, lump.file_len) != lump.file_len) {
 			return false;
 		}
 
@@ -586,16 +608,17 @@ _Bool Bsp_LoadLumps(file_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_bits
  * @brief Overwrite the specified lump in the specified file with the one contained in the BSP
  * specified. You can use this if you're only opening the BSP to edit a specific lump.
  */
-void Bsp_OverwriteLump(file_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
+void Bsp_OverwriteLump(file_t *file, const bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
 
-	bsp_lump_ofs_t *ofs = Bsp_GetLumpOffsets(lump_id);
+	int32_t *lump_count;
+	void **lump_data;
 
-	if (!ofs) {
-		Com_Error(ERROR_FATAL, "Tried to load an invalid lump\n");
+	if (!Bsp_GetLumpOffsets(bsp, lump_id, &lump_count, &lump_data)) {
+		Com_Error(ERROR_DROP, "Tried to load an invalid lump (%i)\n", lump_id);
 	}
 
 	// lump is valid but we're skipping it
-	if (ofs->ptr_size == 0) {
+	if (*lump_count == LUMP_SKIPPED) {
 		return;
 	}
 
@@ -603,13 +626,12 @@ void Bsp_OverwriteLump(file_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_i
 	d_bsp_lump_t lump;
 	Bsp_GetLumpPosition(file, lump_id, &lump);
 
-	int32_t *num_of_lump = (int32_t *) BSP_BYTE_OFFSET(bsp, ofs->num_offset);
-	void **lump_ptr = (void **) BSP_BYTE_OFFSET(bsp, ofs->ptr_offset);
+	const size_t lump_type_size = bsp_lump_meta[lump_id].type_size;
 
 	// make sure we're the same size for now.
 	// FIXME: implement this later so we can actually overwrite lumps
 	// with smaller/bigger ones.
-	if (lump.file_len != (int32_t) (ofs->ptr_size * (*num_of_lump))) {
+	if (lump.file_len != (int32_t) (lump_type_size * (*lump_count))) {
 		Com_Error(ERROR_FATAL, "Not implemented\n");
 	}
 
@@ -622,7 +644,7 @@ void Bsp_OverwriteLump(file_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_i
 	}
 #endif
 
-	Fs_Write(file, *lump_ptr, lump.file_len, 1);
+	Fs_Write(file, *lump_data, lump.file_len, 1);
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
 	// swap back to memory endianness
@@ -636,7 +658,7 @@ void Bsp_OverwriteLump(file_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_i
  * @brief Writes the specified BSP to the file. This will write from the current
  * position of the file.
  */
-void Bsp_Write(file_t *file, bsp_file_t *bsp, const int32_t version) {
+void Bsp_Write(file_t *file, const bsp_file_t *bsp, const int32_t version) {
 	
 	// create the header
 	bsp_header_t header;
@@ -653,22 +675,19 @@ void Bsp_Write(file_t *file, bsp_file_t *bsp, const int32_t version) {
 	int64_t current_position = Fs_Tell(file);
 	memset(header.lumps, 0, sizeof(header.lumps));
 
-	for (int32_t i = 0; i < BSP_TOTAL_LUMPS; i++) {
-		bsp_lump_ofs_t *ofs = Bsp_GetLumpOffsets(i);
-		
-		if (ofs->ptr_size == 0) {
+	for (bsp_lump_id_t i = 0; i < BSP_TOTAL_LUMPS; i++) {
+		int32_t *lump_count;
+		void **lump_data;
+		const size_t lump_type_size = bsp_lump_meta[i].type_size;
+
+		Bsp_GetLumpOffsets(bsp, i, &lump_count, &lump_data);
+
+		// lump is valid but we're skipping it
+		if (*lump_count <= 0) {
 			continue;
 		}
-
-		int32_t *num_of_lump = (int32_t *) BSP_BYTE_OFFSET(bsp, ofs->num_offset);
-		void **lump_ptr = (void **) BSP_BYTE_OFFSET(bsp, ofs->ptr_offset);
-
-		if (*num_of_lump == 0) {
-			continue; // nothing in lump? don't write it
-		}
-
 		// write and increase position for next lump
-		header.lumps[i].file_len = Fs_Write(file, *lump_ptr, ofs->ptr_size, *num_of_lump) * ofs->ptr_size;
+		header.lumps[i].file_len = Fs_Write(file, *lump_data, lump_type_size, *lump_count) * lump_type_size;
 		header.lumps[i].file_ofs = (int32_t) current_position;
 
 		current_position += header.lumps[i].file_len;
