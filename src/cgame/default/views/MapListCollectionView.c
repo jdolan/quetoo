@@ -321,8 +321,9 @@ static void initialize(Class *clazz) {
 
 Class *_MapListCollectionView(void) {
 	static Class clazz;
+	static Once once;
 	
-	do_once({
+	do_once(&once, {
 		clazz.name = "MapListCollectionView";
 		clazz.superclass = _CollectionView();
 		clazz.instanceSize = sizeof(MapListCollectionView);

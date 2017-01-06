@@ -232,8 +232,9 @@ static void initialize(Class *clazz) {
 
 Class *_ServersTableView(void) {
 	static Class clazz;
+	static Once once;
 	
-	do_once({
+	do_once(&once, {
 		clazz.name = "ServersTableView";
 		clazz.superclass = _TableView();
 		clazz.instanceSize = sizeof(ServersTableView);

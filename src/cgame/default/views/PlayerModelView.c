@@ -299,8 +299,9 @@ static void initialize(Class *clazz) {
 
 Class *_PlayerModelView(void) {
 	static Class clazz;
+	static Once once;
 	
-	do_once({
+	do_once(&once, {
 		clazz.name = "PlayerModelView";
 		clazz.superclass = _View();
 		clazz.instanceSize = sizeof(PlayerModelView);

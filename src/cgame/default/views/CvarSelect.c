@@ -125,8 +125,9 @@ static void initialize(Class *clazz) {
 
 Class *_CvarSelect(void) {
 	static Class clazz;
+	static Once once;
 	
-	do_once({
+	do_once(&once, {
 		clazz.name = "CvarSelect";
 		clazz.superclass = _Select();
 		clazz.instanceSize = sizeof(CvarSelect);

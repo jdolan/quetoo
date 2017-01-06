@@ -189,8 +189,9 @@ static void initialize(Class *clazz) {
 
 Class *_SystemViewController(void) {
 	static Class clazz;
+	static Once once;
 	
-	do_once({
+	do_once(&once, {
 		clazz.name = "SystemViewController";
 		clazz.superclass = _MenuViewController();
 		clazz.instanceSize = sizeof(SystemViewController);
