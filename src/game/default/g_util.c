@@ -53,7 +53,7 @@ void G_InitPlayerSpawn(g_entity_t *ent) {
 /**
  * @brief Determines the initial position and directional vectors of a projectile.
  */
-void G_InitProjectile(const g_entity_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org,
+void G_InitProjectile(const g_entity_t *ent, const vec3_t forward, vec3_t right, vec3_t up, const vec3_t org,
                       const float hand_scale) {
 	vec3_t view, pos;
 
@@ -70,36 +70,42 @@ void G_InitProjectile(const g_entity_t *ent, vec3_t forward, vec3_t right, vec3_
 	vec3_t ent_forward, ent_right, ent_up;
 	AngleVectors(ent->s.angles, ent_forward, ent_right, ent_up);
 
-	VectorMA(view, 12.0, ent_forward, org);
+	vec3_t proj_org;
+
+	VectorMA(view, 12.0, ent_forward, proj_org);
 
 	switch (ent->client->locals.persistent.hand) {
 		case HAND_RIGHT:
-			VectorMA(org, 6.0 * hand_scale, ent_right, org);
+			VectorMA(proj_org, 6.0 * hand_scale, ent_right, proj_org);
 			break;
 		case HAND_LEFT:
-			VectorMA(org, -6.0 * hand_scale, ent_right, org);
+			VectorMA(proj_org, -6.0 * hand_scale, ent_right, proj_org);
 			break;
 		default:
 			break;
 	}
 
 	if ((ent->client->ps.pm_state.flags & PMF_DUCKED)) {
-		VectorMA(org, -6.0, ent_up, org);
+		VectorMA(proj_org, -6.0, ent_up, proj_org);
 	} else {
-		VectorMA(org, -12.0, ent_up, org);
+		VectorMA(proj_org, -12.0, ent_up, proj_org);
 	}
+
+	vec3_t proj_forward;
 
 	// if the projected origin is invalid, use the entity's origin
 	if (gi.Trace(org, org, NULL, NULL, ent, MASK_CLIP_PROJECTILE).start_solid) {
-		VectorCopy(ent->s.origin, org);
+		VectorCopy(ent->s.origin, proj_org);
+	} else {
+		VectorCopy(org, proj_org);
 	}
 
 	// return the projectile's directional vectors
-	VectorSubtract(pos, org, forward);
-	VectorNormalize(forward);
+	VectorSubtract(pos, proj_org, proj_forward);
+	VectorNormalize(proj_forward);
 
 	if (right || up) {
-		VectorAngles(forward, view);
+		VectorAngles(proj_forward, view);
 		AngleVectors(view, NULL, right, up);
 	}
 }

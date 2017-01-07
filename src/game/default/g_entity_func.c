@@ -187,7 +187,7 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
  * accelerative movements are initiated through this function. Animations are
  * also kicked off here.
  */
-static void G_MoveInfo_Linear_Init(g_entity_t *ent, vec3_t dest, void (*Done)(g_entity_t *)) {
+static void G_MoveInfo_Linear_Init(g_entity_t *ent, const vec3_t dest, void (*Done)(g_entity_t *)) {
 	g_move_info_t *move = &ent->locals.move_info;
 
 	VectorClear(ent->locals.velocity);

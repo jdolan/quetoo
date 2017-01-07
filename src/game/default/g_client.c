@@ -471,7 +471,8 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 
 	if (nade_hold_time != 0) {
 
-		G_InitProjectile(self, vec3_forward, vec3_forward, vec3_up, self->s.origin, 1.0);
+		G_InitProjectile(self, vec3_forward, NULL, NULL, self->s.origin, 1.0);
+
 		G_HandGrenadeProjectile(
 		    self,					// player
 		    self->client->locals.held_grenade,	// the grenade
