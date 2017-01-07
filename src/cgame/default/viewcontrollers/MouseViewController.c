@@ -166,6 +166,10 @@ static void initialize(Class *clazz) {
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 }
 
+/**
+ * @fn Class *MouseViewController::_MouseViewController(void)
+ * @memberof MouseViewController
+ */
 Class *_MouseViewController(void) {
 	static Class clazz;
 	static Once once;

@@ -282,6 +282,10 @@ static void initialize(Class *clazz) {
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 }
 
+/**
+ * @fn Class *CreateServerViewController::_CreateServerViewController(void)
+ * @memberof CreateServerViewController
+ */
 Class *_CreateServerViewController(void) {
 	static Class clazz;
 	static Once once;

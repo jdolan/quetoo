@@ -145,6 +145,10 @@ static void initialize(Class *clazz) {
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 }
 
+/**
+ * @fn Class *KeysViewController::_KeysViewController(void)
+ * @memberof KeysViewController
+ */
 Class *_KeysViewController(void) {
 	static Class clazz;
 	static Once once;

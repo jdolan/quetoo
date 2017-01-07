@@ -123,6 +123,10 @@ static void initialize(Class *clazz) {
 	((CvarSelectInterface *) clazz->def->interface)->initWithVariableName = initWithVariableName;
 }
 
+/**
+ * @fn Class *CvarSelect::_CvarSelect(void)
+ * @memberof CvarSelect
+ */
 Class *_CvarSelect(void) {
 	static Class clazz;
 	static Once once;

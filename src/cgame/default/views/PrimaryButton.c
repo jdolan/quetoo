@@ -70,6 +70,10 @@ static void initialize(Class *clazz) {
 	((PrimaryButtonInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 }
 
+/**
+ * @fn Class *PrimaryButton::_PrimaryButton(void)
+ * @memberof PrimaryButton
+ */
 Class *_PrimaryButton(void) {
 	static Class clazz;
 	static Once once;

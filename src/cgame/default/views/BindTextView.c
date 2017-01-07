@@ -156,6 +156,10 @@ static void initialize(Class *clazz) {
 	((BindTextViewInterface *) clazz->def->interface)->initWithBind = initWithBind;
 }
 
+/**
+ * @fn Class *BindTextView::_BindTextView(void)
+ * @memberof BindTextView
+ */
 Class *_BindTextView(void) {
 	static Class clazz;
 	static Once once;

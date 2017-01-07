@@ -92,6 +92,10 @@ static void initialize(Class *clazz) {
 	((CvarCheckboxInterface *) clazz->def->interface)->initWithVariable = initWithVariable;
 }
 
+/**
+ * @fn Class *CvarCheckbox::_CvarCheckbox(void)
+ * @memberof CvarCheckbox
+ */
 Class *_CvarCheckbox(void) {
 	static Class clazz;
 	static Once once;

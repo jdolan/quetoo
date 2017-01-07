@@ -71,6 +71,10 @@ static void initialize(Class *clazz) {
 	((MapListCollectionItemViewInterface *) clazz->def->interface)->setMapListItemInfo = setMapListItemInfo;
 }
 
+/**
+ * @fn Class *MapListCollectionItemView::_MapListCollectionItemView(void)
+ * @memberof MapListCollectionItemView
+ */
 Class *_MapListCollectionItemView(void) {
 	static Class clazz;
 	static Once once;

@@ -129,6 +129,10 @@ static void initialize(Class *clazz) {
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 }
 
+/**
+ * @fn Class *MultiplayerViewController::_MultiplayerViewController(void)
+ * @memberof MultiplayerViewController
+ */
 Class *_MultiplayerViewController(void) {
 	static Class clazz;
 	static Once once;

@@ -86,6 +86,10 @@ static void initialize(Class *clazz) {
 	((CvarTextViewInterface *) clazz->def->interface)->initWithVariable = initWithVariable;
 }
 
+/**
+ * @fn Class *CvarTextView::_CvarTextView(void)
+ * @memberof CvarTextView
+ */
 Class *_CvarTextView(void) {
 	static Class clazz;
 	static Once once;

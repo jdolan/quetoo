@@ -90,6 +90,10 @@ static void initialize(Class *clazz) {
 	((CvarSliderInterface *) clazz->def->interface)->initWithVariable = initWithVariable;
 }
 
+/**
+ * @fn Class *CvarSlider::_CvarSlider(void)
+ * @memberof CvarSlider
+ */
 Class *_CvarSlider(void) {
 	static Class clazz;
 	static Once once;

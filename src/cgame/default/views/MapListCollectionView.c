@@ -319,6 +319,10 @@ static void initialize(Class *clazz) {
 	((MapListCollectionViewInterface *) clazz->def->interface)->selectedMaps = selectedMaps;
 }
 
+/**
+ * @fn Class *MapListCollectionView::_MapListCollectionView(void)
+ * @memberof MapListCollectionView
+ */
 Class *_MapListCollectionView(void) {
 	static Class clazz;
 	static Once once;

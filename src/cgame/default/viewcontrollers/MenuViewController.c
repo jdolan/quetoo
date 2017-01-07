@@ -81,6 +81,10 @@ static void initialize(Class *clazz) {
 	((MenuViewControllerInterface *) clazz->def->interface)->mainViewController = mainViewController;
 }
 
+/**
+ * @fn Class *MenuViewController::_MenuViewController(void)
+ * @memberof MenuViewController
+ */
 Class *_MenuViewController(void) {
 	static Class clazz;
 	static Once once;

@@ -297,6 +297,10 @@ static void initialize(Class *clazz) {
 	((PlayerModelViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 }
 
+/**
+ * @fn Class *PlayerModelView::_PlayerModelView(void)
+ * @memberof PlayerModelView
+ */
 Class *_PlayerModelView(void) {
 	static Class clazz;
 	static Once once;

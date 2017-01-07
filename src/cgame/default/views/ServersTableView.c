@@ -230,6 +230,10 @@ static void initialize(Class *clazz) {
 	((ServersTableViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 }
 
+/**
+ * @fn Class *ServersTableView::_ServersTableView(void)
+ * @memberof ServersTableView
+ */
 Class *_ServersTableView(void) {
 	static Class clazz;
 	static Once once;

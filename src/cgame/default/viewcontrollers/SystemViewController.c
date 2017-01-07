@@ -187,6 +187,10 @@ static void initialize(Class *clazz) {
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 }
 
+/**
+ * @fn Class *SystemViewController::_SystemViewController(void)
+ * @memberof SystemViewController
+ */
 Class *_SystemViewController(void) {
 	static Class clazz;
 	static Once once;

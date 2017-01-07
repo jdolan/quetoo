@@ -144,6 +144,10 @@ static void initialize(Class *clazz) {
 	((CrosshairViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 }
 
+/**
+ * @fn Class *CrosshairView::_CrosshairView(void)
+ * @memberof CrosshairView
+ */
 Class *_CrosshairView(void) {
 	static Class clazz;
 	static Once once;

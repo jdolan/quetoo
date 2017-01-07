@@ -167,6 +167,10 @@ static void initialize(Class *clazz) {
 	((RendererQuetooInterface *) clazz->def->interface)->init = init;
 }
 
+/**
+ * @fn Class *RendererQuetoo::_RendererQuetoo(void)
+ * @memberof RendererQuetoo
+ */
 Class *_RendererQuetoo(void) {
 	static Class clazz;
 	static Once once;

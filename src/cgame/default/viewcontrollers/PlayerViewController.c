@@ -152,6 +152,10 @@ static void initialize(Class *clazz) {
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 }
 
+/**
+ * @fn Class *PlayerViewController::_PlayerViewController(void)
+ * @memberof PlayerViewController
+ */
 Class *_PlayerViewController(void) {
 	static Class clazz;
 	static Once once;

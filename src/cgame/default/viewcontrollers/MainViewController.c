@@ -114,6 +114,10 @@ static void initialize(Class *clazz) {
 	((MainViewControllerInterface *) clazz->def->interface)->init = init;
 }
 
+/**
+ * @fn Class *MainViewController::_MainViewController(void)
+ * @memberof MainViewController
+ */
 Class *_MainViewController(void) {
 	static Class clazz;
 	static Once once;

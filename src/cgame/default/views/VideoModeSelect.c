@@ -135,6 +135,10 @@ static void initialize(Class *clazz) {
 	((VideoModeSelectInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 }
 
+/**
+ * @fn Class *VideoModeSelect::_VideoModeSelect(void)
+ * @memberof VideoModeSelect
+ */
 Class *_VideoModeSelect(void) {
 	static Class clazz;
 	static Once once;

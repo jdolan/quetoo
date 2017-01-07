@@ -119,6 +119,10 @@ static void initialize(Class *clazz) {
 	((SkinSelectInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 }
 
+/**
+ * @fn Class *SkinSelect::_SkinSelect(void)
+ * @memberof SkinSelect
+ */
 Class *_SkinSelect(void) {
 	static Class clazz;
 	static Once once;
