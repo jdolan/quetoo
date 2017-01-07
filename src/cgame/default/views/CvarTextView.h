@@ -79,7 +79,10 @@ struct CvarTextViewInterface {
 };
 
 /**
- * @brief The CvarTextView Class.
+ * @fn Class *CvarTextView::_CvarTextView(void)
+ * @brief The CvarTextView archetype.
+ * @return The CvarTextView Class.
+ * @memberof CvarTextView
  */
 extern Class *_CvarTextView(void);
 

@@ -77,7 +77,10 @@ struct CrosshairViewInterface {
 };
 
 /**
- * @brief The CrosshairView Class.
+ * @fn Class *CrosshairView::_CrosshairView(void)
+ * @brief The CrosshairView archetype.
+ * @return The CrosshairView Class.
+ * @memberof CrosshairView
  */
 extern Class *_CrosshairView(void);
 

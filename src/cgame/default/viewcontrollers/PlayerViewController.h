@@ -69,7 +69,10 @@ struct PlayerViewControllerInterface {
 };
 
 /**
- * @brief The PlayerViewController Class.
+ * @fn Class *PlayerViewController::_PlayerViewController(void)
+ * @brief The PlayerViewController archetype.
+ * @return The PlayerViewController Class.
+ * @memberof PlayerViewController
  */
 extern Class *_PlayerViewController(void);
 

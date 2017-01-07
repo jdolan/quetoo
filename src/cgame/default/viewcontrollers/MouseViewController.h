@@ -69,7 +69,10 @@ struct MouseViewControllerInterface {
 };
 
 /**
- * @brief The MouseViewController Class.
+ * @fn Class *MouseViewController::_MouseViewController(void)
+ * @brief The MouseViewController archetype.
+ * @return The MouseViewController Class.
+ * @memberof MouseViewController
  */
 extern Class *_MouseViewController(void);
 

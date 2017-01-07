@@ -78,7 +78,10 @@ struct VideoModeSelectInterface {
 };
 
 /**
- * @brief The VideoModeSelect Class.
+ * @fn Class *VideoModeSelect::_VideoModeSelect(void)
+ * @brief The VideoModeSelect archetype.
+ * @return The VideoModeSelect Class.
+ * @memberof VideoModeSelect
  */
 extern Class *_VideoModeSelect(void);
 

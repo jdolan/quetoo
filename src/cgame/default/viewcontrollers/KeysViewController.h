@@ -64,7 +64,10 @@ struct KeysViewControllerInterface {
 };
 
 /**
- * @brief The KeysViewController Class.
+ * @fn Class *KeysViewController::_KeysViewController(void)
+ * @brief The KeysViewController archetype.
+ * @return The KeysViewController Class.
+ * @memberof KeysViewController
  */
 extern Class *_KeysViewController(void);
 

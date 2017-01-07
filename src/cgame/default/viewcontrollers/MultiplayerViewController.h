@@ -63,7 +63,10 @@ struct MultiplayerViewControllerInterface {
 };
 
 /**
- * @brief The MultiplayerViewController Class.
+ * @fn Class *MultiplayerViewController::_MultiplayerViewController(void)
+ * @brief The MultiplayerViewController archetype.
+ * @return The MultiplayerViewController Class.
+ * @memberof MultiplayerViewController
  */
 extern Class *_MultiplayerViewController(void);
 

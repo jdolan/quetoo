@@ -72,7 +72,10 @@ struct SkinSelectInterface {
 };
 
 /**
- * @brief The SkinSelect Class.
+ * @fn Class *SkinSelect::_SkinSelect(void)
+ * @brief The SkinSelect archetype.
+ * @return The SkinSelect Class.
+ * @memberof SkinSelect
  */
 extern Class *_SkinSelect(void);
 

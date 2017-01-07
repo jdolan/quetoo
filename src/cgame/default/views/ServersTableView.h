@@ -73,7 +73,10 @@ struct ServersTableViewInterface {
 };
 
 /**
- * @brief The ServersTableView Class.
+ * @fn Class *ServersTableView::_ServersTableView(void)
+ * @brief The ServersTableView archetype.
+ * @return The ServersTableView Class.
+ * @memberof ServersTableView
  */
 extern Class *_ServersTableView(void);
 

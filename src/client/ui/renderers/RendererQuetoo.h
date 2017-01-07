@@ -72,7 +72,10 @@ struct RendererQuetooInterface {
 };
 
 /**
- * @brief The RendererQuetoo Class.
+ * @fn Class *RendererQuetoo::_RendererQuetoo(void)
+ * @brief The RendererQuetoo archetype.
+ * @return The RendererQuetoo Class.
+ * @memberof RendererQuetoo
  */
 extern Class *_RendererQuetoo(void);
 

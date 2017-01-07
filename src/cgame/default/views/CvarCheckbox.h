@@ -78,7 +78,10 @@ struct CvarCheckboxInterface {
 };
 
 /**
- * @brief The CvarCheckbox Class.
+ * @fn Class *CvarCheckbox::_CvarCheckbox(void)
+ * @brief The CvarCheckbox archetype.
+ * @return The CvarCheckbox Class.
+ * @memberof CvarCheckbox
  */
 extern Class *_CvarCheckbox(void);
 

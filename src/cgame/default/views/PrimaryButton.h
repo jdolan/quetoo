@@ -74,7 +74,10 @@ struct PrimaryButtonInterface {
 };
 
 /**
- * @brief The PrimaryButton Class.
+ * @fn Class *PrimaryButton::_PrimaryButton(void)
+ * @brief The PrimaryButton archetype.
+ * @return The PrimaryButton Class.
+ * @memberof PrimaryButton
  */
 extern Class *_PrimaryButton(void);
 

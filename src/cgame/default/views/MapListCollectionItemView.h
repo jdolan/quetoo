@@ -87,7 +87,10 @@ struct MapListCollectionItemViewInterface {
 };
 
 /**
- * @brief The MapListCollectionItemView Class.
+ * @fn Class *MapListCollectionItemView::_MapListCollectionItemView(void)
+ * @brief The MapListCollectionItemView archetype.
+ * @return The MapListCollectionItemView Class.
+ * @memberof MapListCollectionItemView
  */
 extern Class *_MapListCollectionItemView(void);
 
