@@ -25,6 +25,24 @@
 /**
  * @brief
  */
+static _Bool G_Ai_Can_Target(const g_entity_t *self, const g_entity_t *other) {
+
+	if (other == self || !other->client || !other->in_use || other->locals.dead || (other->sv_flags & SVF_NO_CLIENT)) {
+		return false;
+	}
+
+	cm_trace_t tr = gi.Trace(self->s.origin, other->s.origin, vec3_origin, vec3_origin, self, MASK_CLIP_PROJECTILE);
+
+	if (tr.fraction < 1.0 && tr.ent == other) {
+		return true;
+	}
+
+	return false;
+}
+
+/**
+ * @brief
+ */
 static void G_Ai_ClientThink(g_entity_t *self) {
 	pm_cmd_t cmd;
 
@@ -37,16 +55,15 @@ static void G_Ai_ClientThink(g_entity_t *self) {
 		
 		g_entity_t *player = NULL;
 
-		for (int32_t i = 1; i <= sv_max_clients->integer; i++) {
+		if (self->locals.enemy && G_Ai_Can_Target(self, self->locals.enemy)) {
 
-			g_entity_t *ent = &g_game.entities[i];
+			player = self->locals.enemy;
+		} else {
+			for (int32_t i = 1; i <= sv_max_clients->integer; i++) {
 
-			if (ent != self && ent->in_use) {
+				g_entity_t *ent = &g_game.entities[i];
 
-				cm_trace_t tr = gi.Trace(self->s.origin, ent->s.origin, vec3_origin, vec3_origin, self, MASK_CLIP_PROJECTILE);
-
-				if (tr.fraction < 1.0 && tr.ent == ent) {
-
+				if (G_Ai_Can_Target(self, ent)) {
 					player = ent;
 					break;
 				}
@@ -56,17 +73,22 @@ static void G_Ai_ClientThink(g_entity_t *self) {
 		if (player) {
 			vec3_t dir, angles;
 
+			self->locals.enemy = player;
+
 			VectorSubtract(player->s.origin, self->s.origin, dir);
 			VectorNormalize(dir);
 			VectorAngles(dir, angles);
 			VectorSubtract(angles, self->client->locals.angles, angles);
+			
+			angles[0] += Randomc() * 5.0;
+			angles[1] += Randomc() * 5.0;
 
 			u16vec3_t delta;
 			PackAngles(angles, delta);
 
 			VectorAdd(delta, self->client->ps.pm_state.delta_angles, self->client->ps.pm_state.delta_angles);
 
-			cmd.forward = 100;
+			cmd.forward = 500;
 
 			if ((Random() % 128) == 0) {
 				cmd.up = 10;
@@ -91,8 +113,10 @@ static void G_Ai_ClientThink(g_entity_t *self) {
 				
 				VectorAdd(delta, self->client->ps.pm_state.delta_angles, self->client->ps.pm_state.delta_angles);
 			} else {
-				cmd.forward = 100;
+				cmd.forward = 300;
 			}
+
+			self->locals.enemy = NULL;
 		}
 	}
 
