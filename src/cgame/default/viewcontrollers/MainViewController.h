@@ -72,7 +72,10 @@ struct MainViewControllerInterface {
 };
 
 /**
- * @brief The MainViewController Class.
+ * @fn Class *MainViewController::_MainViewController(void)
+ * @brief The MainViewController archetype.
+ * @return The MainViewController Class.
+ * @memberof MainViewController
  */
-extern Class _MainViewController;
+extern Class *_MainViewController(void);
 

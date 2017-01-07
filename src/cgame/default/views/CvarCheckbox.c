@@ -92,14 +92,25 @@ static void initialize(Class *clazz) {
 	((CvarCheckboxInterface *) clazz->def->interface)->initWithVariable = initWithVariable;
 }
 
-Class _CvarCheckbox = {
-	.name = "CvarCheckbox",
-	.superclass = &_Checkbox,
-	.instanceSize = sizeof(CvarCheckbox),
-	.interfaceOffset = offsetof(CvarCheckbox, interface),
-	.interfaceSize = sizeof(CvarCheckboxInterface),
-	.initialize = initialize,
-};
+/**
+ * @fn Class *CvarCheckbox::_CvarCheckbox(void)
+ * @memberof CvarCheckbox
+ */
+Class *_CvarCheckbox(void) {
+	static Class clazz;
+	static Once once;
+	
+	do_once(&once, {
+		clazz.name = "CvarCheckbox";
+		clazz.superclass = _Checkbox();
+		clazz.instanceSize = sizeof(CvarCheckbox);
+		clazz.interfaceOffset = offsetof(CvarCheckbox, interface);
+		clazz.interfaceSize = sizeof(CvarCheckboxInterface);
+		clazz.initialize = initialize;
+	});
+
+	return &clazz;
+}
 
 #undef _Class
 

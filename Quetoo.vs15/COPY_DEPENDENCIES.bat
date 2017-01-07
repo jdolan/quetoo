@@ -5,6 +5,10 @@ IF [%2] == [""] GOTO INVALID
 
 set quetoo_folder=%1
 set build_platform=%2
+set build_configuration=%3
+
+copy "..\..\Objectively\Objectively.vs15\bin\%build_platform%%build_configuration%\Objectively*" "%quetoo_folder%\bin\*" /y
+copy "..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\%build_platform%%build_configuration%\ObjectivelyMVC*" "%quetoo_folder%\bin\*" /y
 
 copy "libs\gettext\%build_platform%\bin\*.dll" "%quetoo_folder%\bin\*" /y
 copy "libs\glib\%build_platform%\bin\*.dll" "%quetoo_folder%\bin\*" /y

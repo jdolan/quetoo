@@ -90,14 +90,25 @@ static void initialize(Class *clazz) {
 	((CvarSliderInterface *) clazz->def->interface)->initWithVariable = initWithVariable;
 }
 
-Class _CvarSlider = {
-	.name = "CvarSlider",
-	.superclass = &_Slider,
-	.instanceSize = sizeof(CvarSlider),
-	.interfaceOffset = offsetof(CvarSlider, interface),
-	.interfaceSize = sizeof(CvarSliderInterface),
-	.initialize = initialize,
-};
+/**
+ * @fn Class *CvarSlider::_CvarSlider(void)
+ * @memberof CvarSlider
+ */
+Class *_CvarSlider(void) {
+	static Class clazz;
+	static Once once;
+	
+	do_once(&once, {
+		clazz.name = "CvarSlider";
+		clazz.superclass = _Slider();
+		clazz.instanceSize = sizeof(CvarSlider);
+		clazz.interfaceOffset = offsetof(CvarSlider, interface);
+		clazz.interfaceSize = sizeof(CvarSliderInterface);
+		clazz.initialize = initialize;
+	});
+
+	return &clazz;
+}
 
 #undef _Class
 

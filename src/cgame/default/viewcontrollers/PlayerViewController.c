@@ -152,14 +152,25 @@ static void initialize(Class *clazz) {
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 }
 
-Class _PlayerViewController = {
-	.name = "PlayerViewController",
-	.superclass = &_MenuViewController,
-	.instanceSize = sizeof(PlayerViewController),
-	.interfaceOffset = offsetof(PlayerViewController, interface),
-	.interfaceSize = sizeof(PlayerViewControllerInterface),
-	.initialize = initialize,
-};
+/**
+ * @fn Class *PlayerViewController::_PlayerViewController(void)
+ * @memberof PlayerViewController
+ */
+Class *_PlayerViewController(void) {
+	static Class clazz;
+	static Once once;
+	
+	do_once(&once, {
+		clazz.name = "PlayerViewController";
+		clazz.superclass = _MenuViewController();
+		clazz.instanceSize = sizeof(PlayerViewController);
+		clazz.interfaceOffset = offsetof(PlayerViewController, interface);
+		clazz.interfaceSize = sizeof(PlayerViewControllerInterface);
+		clazz.initialize = initialize;
+	});
+
+	return &clazz;
+}
 
 #undef _Class
 

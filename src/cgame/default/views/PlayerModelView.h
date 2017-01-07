@@ -98,7 +98,10 @@ struct PlayerModelViewInterface {
 };
 
 /**
- * @brief The PlayerModelView Class.
+ * @fn Class *PlayerModelView::_PlayerModelView(void)
+ * @brief The PlayerModelView archetype.
+ * @return The PlayerModelView Class.
+ * @memberof PlayerModelView
  */
-extern Class _PlayerModelView;
+extern Class *_PlayerModelView(void);
 

@@ -123,14 +123,25 @@ static void initialize(Class *clazz) {
 	((CvarSelectInterface *) clazz->def->interface)->initWithVariableName = initWithVariableName;
 }
 
-Class _CvarSelect = {
-	.name = "CvarSelect",
-	.superclass = &_Select,
-	.instanceSize = sizeof(CvarSelect),
-	.interfaceOffset = offsetof(CvarSelect, interface),
-	.interfaceSize = sizeof(CvarSelectInterface),
-	.initialize = initialize,
-};
+/**
+ * @fn Class *CvarSelect::_CvarSelect(void)
+ * @memberof CvarSelect
+ */
+Class *_CvarSelect(void) {
+	static Class clazz;
+	static Once once;
+	
+	do_once(&once, {
+		clazz.name = "CvarSelect";
+		clazz.superclass = _Select();
+		clazz.instanceSize = sizeof(CvarSelect);
+		clazz.interfaceOffset = offsetof(CvarSelect, interface);
+		clazz.interfaceSize = sizeof(CvarSelectInterface);
+		clazz.initialize = initialize;
+	});
+
+	return &clazz;
+}
 
 #undef _Class
 

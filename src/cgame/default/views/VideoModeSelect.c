@@ -135,14 +135,25 @@ static void initialize(Class *clazz) {
 	((VideoModeSelectInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 }
 
-Class _VideoModeSelect = {
-	.name = "VideoModeSelect",
-	.superclass = &_Select,
-	.instanceSize = sizeof(VideoModeSelect),
-	.interfaceOffset = offsetof(VideoModeSelect, interface),
-	.interfaceSize = sizeof(VideoModeSelectInterface),
-	.initialize = initialize,
-};
+/**
+ * @fn Class *VideoModeSelect::_VideoModeSelect(void)
+ * @memberof VideoModeSelect
+ */
+Class *_VideoModeSelect(void) {
+	static Class clazz;
+	static Once once;
+	
+	do_once(&once, {
+		clazz.name = "VideoModeSelect";
+		clazz.superclass = _Select();
+		clazz.instanceSize = sizeof(VideoModeSelect);
+		clazz.interfaceOffset = offsetof(VideoModeSelect, interface);
+		clazz.interfaceSize = sizeof(VideoModeSelectInterface);
+		clazz.initialize = initialize;
+	});
+
+	return &clazz;
+}
 
 #undef _Class
 

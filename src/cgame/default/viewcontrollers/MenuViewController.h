@@ -78,6 +78,9 @@ struct MenuViewControllerInterface {
 };
 
 /**
- * @brief The MenuViewController Class.
+ * @fn Class *MenuViewController::_MenuViewController(void)
+ * @brief The MenuViewController archetype.
+ * @return The MenuViewController Class.
+ * @memberof MenuViewController
  */
-extern Class _MenuViewController;
+extern Class *_MenuViewController(void);

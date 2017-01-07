@@ -166,14 +166,25 @@ static void initialize(Class *clazz) {
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 }
 
-Class _MouseViewController = {
-	.name = "MouseViewController",
-	.superclass = &_MenuViewController,
-	.instanceSize = sizeof(MouseViewController),
-	.interfaceOffset = offsetof(MouseViewController, interface),
-	.interfaceSize = sizeof(MouseViewControllerInterface),
-	.initialize = initialize,
-};
+/**
+ * @fn Class *MouseViewController::_MouseViewController(void)
+ * @memberof MouseViewController
+ */
+Class *_MouseViewController(void) {
+	static Class clazz;
+	static Once once;
+	
+	do_once(&once, {
+		clazz.name = "MouseViewController";
+		clazz.superclass = _MenuViewController();
+		clazz.instanceSize = sizeof(MouseViewController);
+		clazz.interfaceOffset = offsetof(MouseViewController, interface);
+		clazz.interfaceSize = sizeof(MouseViewControllerInterface);
+		clazz.initialize = initialize;
+	});
+
+	return &clazz;
+}
 
 #undef _Class
 

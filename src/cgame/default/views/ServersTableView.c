@@ -230,14 +230,25 @@ static void initialize(Class *clazz) {
 	((ServersTableViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 }
 
-Class _ServersTableView = {
-	.name = "ServersTableView",
-	.superclass = &_TableView,
-	.instanceSize = sizeof(ServersTableView),
-	.interfaceOffset = offsetof(ServersTableView, interface),
-	.interfaceSize = sizeof(ServersTableViewInterface),
-	.initialize = initialize,
-};
+/**
+ * @fn Class *ServersTableView::_ServersTableView(void)
+ * @memberof ServersTableView
+ */
+Class *_ServersTableView(void) {
+	static Class clazz;
+	static Once once;
+	
+	do_once(&once, {
+		clazz.name = "ServersTableView";
+		clazz.superclass = _TableView();
+		clazz.instanceSize = sizeof(ServersTableView);
+		clazz.interfaceOffset = offsetof(ServersTableView, interface);
+		clazz.interfaceSize = sizeof(ServersTableViewInterface);
+		clazz.initialize = initialize;
+	});
+
+	return &clazz;
+}
 
 #undef _Class
 

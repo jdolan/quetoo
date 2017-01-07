@@ -167,14 +167,25 @@ static void initialize(Class *clazz) {
 	((RendererQuetooInterface *) clazz->def->interface)->init = init;
 }
 
-Class _RendererQuetoo = {
-	.name = "RendererQuetoo",
-	.superclass = &_Renderer,
-	.instanceSize = sizeof(RendererQuetoo),
-	.interfaceOffset = offsetof(RendererQuetoo, interface),
-	.interfaceSize = sizeof(RendererQuetooInterface),
-	.initialize = initialize
-};
+/**
+ * @fn Class *RendererQuetoo::_RendererQuetoo(void)
+ * @memberof RendererQuetoo
+ */
+Class *_RendererQuetoo(void) {
+	static Class clazz;
+	static Once once;
+	
+	do_once(&once, {
+		clazz.name = "RendererQuetoo";
+		clazz.superclass = _Renderer();
+		clazz.instanceSize = sizeof(RendererQuetoo);
+		clazz.interfaceOffset = offsetof(RendererQuetoo, interface);
+		clazz.interfaceSize = sizeof(RendererQuetooInterface);
+		clazz.initialize = initialize;
+	});
+
+	return &clazz;
+}
 
 #undef _Class
 

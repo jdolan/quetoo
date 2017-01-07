@@ -54,11 +54,11 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>libcmodel.lib;libcommon.lib;libconsole.lib;libfilesystem.lib;libmatrix.lib;libmem.lib;libnet.lib;libserver.lib;libshared.lib;libswap.lib;libsys.lib;libthread.lib;curses.lib;glib-2.0.lib;libcurl.lib;SDL2.lib;physfs.lib;ws2_32.lib;iconv.lib;pthread.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libcmodel.lib;libcommon.lib;libconsole.lib;libfilesystem.lib;libmatrix.lib;libmem.lib;libnet.lib;libserver.lib;libshared.lib;libswap.lib;libsys.lib;libthread.lib;curses.lib;glib-2.0.lib;libcurl.lib;SDL2.lib;physfs.lib;ws2_32.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>COPY_DEPENDENCIES "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)" &amp;&amp; COPY_QUETOO-DEDICATED "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)"</Command>
+      <Command>COPY_DEPENDENCIES "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)" "$(Configuration)" &amp;&amp; COPY_QUETOO-DEDICATED "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

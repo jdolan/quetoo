@@ -96,7 +96,10 @@ struct CvarSelectInterface {
 };
 
 /**
- * @brief The CvarSelect Class.
+ * @fn Class *CvarSelect::_CvarSelect(void)
+ * @brief The CvarSelect archetype.
+ * @return The CvarSelect Class.
+ * @memberof CvarSelect
  */
-extern Class _CvarSelect;
+extern Class *_CvarSelect(void);
 

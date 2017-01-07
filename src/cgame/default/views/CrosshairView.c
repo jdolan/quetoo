@@ -144,14 +144,25 @@ static void initialize(Class *clazz) {
 	((CrosshairViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 }
 
-Class _CrosshairView = {
-	.name = "CrosshairView",
-	.superclass = &_View,
-	.instanceSize = sizeof(CrosshairView),
-	.interfaceOffset = offsetof(CrosshairView, interface),
-	.interfaceSize = sizeof(CrosshairViewInterface),
-	.initialize = initialize,
-};
+/**
+ * @fn Class *CrosshairView::_CrosshairView(void)
+ * @memberof CrosshairView
+ */
+Class *_CrosshairView(void) {
+	static Class clazz;
+	static Once once;
+	
+	do_once(&once, {
+		clazz.name = "CrosshairView";
+		clazz.superclass = _View();
+		clazz.instanceSize = sizeof(CrosshairView);
+		clazz.interfaceOffset = offsetof(CrosshairView, interface);
+		clazz.interfaceSize = sizeof(CrosshairViewInterface);
+		clazz.initialize = initialize;
+	});
+
+	return &clazz;
+}
 
 #undef _Class
 
