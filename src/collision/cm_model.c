@@ -225,7 +225,7 @@ static void Cm_SetupBspBrushes(void) {
  */
 static void Cm_LoadBspVisibility(void) {
 
-	// If we have no visibility data, pad the clusters so that Cm_DecompressVis
+	// If we have no visibility data, pad the clusters so that Bsp_DecompressVis
 	// produces correctly-sized rows. If we don't do this, non-VIS'ed maps will
 	// not produce any visible entities.
 	if (cm_bsp.bsp.vis_data_size == 0) {

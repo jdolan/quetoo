@@ -7,6 +7,7 @@ typedef struct {
 	size_t size_ofs; // offset to size
 	size_t data_ofs; // offset to ptr
 	size_t type_size; // size of the data we're pointed to
+	size_t max_count; // the max size of this lump (in elements, not bytes)
 } bsp_lump_meta_t;
 
 #ifndef BSP_SIZEOF
@@ -14,34 +15,34 @@ typedef struct {
 		sizeof(*((T *) 0)->F)
 #endif
 
-#define BSP_LUMP_NUM_STRUCT(n) \
-	{ .size_ofs = offsetof(bsp_file_t, num_ ## n), .data_ofs = offsetof(bsp_file_t, n), .type_size = BSP_SIZEOF(bsp_file_t, n) }
-#define BSP_LUMP_SIZE_STRUCT(n) \
-	{ .size_ofs = offsetof(bsp_file_t, n ## _size), .data_ofs = offsetof(bsp_file_t, n), .type_size = sizeof(byte) }
+#define BSP_LUMP_NUM_STRUCT(n, m) \
+	{ .size_ofs = offsetof(bsp_file_t, num_ ## n), .data_ofs = offsetof(bsp_file_t, n), .type_size = BSP_SIZEOF(bsp_file_t, n), .max_count = m }
+#define BSP_LUMP_SIZE_STRUCT(n, m) \
+	{ .size_ofs = offsetof(bsp_file_t, n ## _size), .data_ofs = offsetof(bsp_file_t, n), .type_size = sizeof(byte), .max_count = m }
 #define BSP_LUMP_SKIP \
 	{ 0, 0, 0 }
 
 static bsp_lump_meta_t bsp_lump_meta[BSP_TOTAL_LUMPS] = {
-	BSP_LUMP_SIZE_STRUCT(entity_string),
-	BSP_LUMP_NUM_STRUCT(planes),
-	BSP_LUMP_NUM_STRUCT(vertexes),
-	BSP_LUMP_SIZE_STRUCT(vis_data),
-	BSP_LUMP_NUM_STRUCT(nodes),
-	BSP_LUMP_NUM_STRUCT(texinfo),
-	BSP_LUMP_NUM_STRUCT(faces),
-	BSP_LUMP_SIZE_STRUCT(lightmap_data),
-	BSP_LUMP_NUM_STRUCT(leafs),
-	BSP_LUMP_NUM_STRUCT(leaf_faces),
-	BSP_LUMP_NUM_STRUCT(leaf_brushes),
-	BSP_LUMP_NUM_STRUCT(edges),
-	BSP_LUMP_NUM_STRUCT(face_edges),
-	BSP_LUMP_NUM_STRUCT(models),
-	BSP_LUMP_NUM_STRUCT(brushes),
-	BSP_LUMP_NUM_STRUCT(brush_sides),
+	BSP_LUMP_SIZE_STRUCT(entity_string, MAX_BSP_ENT_STRING),
+	BSP_LUMP_NUM_STRUCT(planes, MAX_BSP_PLANES),
+	BSP_LUMP_NUM_STRUCT(vertexes, MAX_BSP_VERTS),
+	BSP_LUMP_SIZE_STRUCT(vis_data, MAX_BSP_VISIBILITY),
+	BSP_LUMP_NUM_STRUCT(nodes, MAX_BSP_NODES),
+	BSP_LUMP_NUM_STRUCT(texinfo, MAX_BSP_TEXINFO),
+	BSP_LUMP_NUM_STRUCT(faces, MAX_BSP_FACES),
+	BSP_LUMP_SIZE_STRUCT(lightmap_data, MAX_BSP_LIGHTING),
+	BSP_LUMP_NUM_STRUCT(leafs, MAX_BSP_LEAFS),
+	BSP_LUMP_NUM_STRUCT(leaf_faces, MAX_BSP_LEAF_FACES),
+	BSP_LUMP_NUM_STRUCT(leaf_brushes, MAX_BSP_LEAF_BRUSHES),
+	BSP_LUMP_NUM_STRUCT(edges, MAX_BSP_EDGES),
+	BSP_LUMP_NUM_STRUCT(face_edges, MAX_BSP_FACE_EDGES),
+	BSP_LUMP_NUM_STRUCT(models, MAX_BSP_MODELS),
+	BSP_LUMP_NUM_STRUCT(brushes, MAX_BSP_BRUSHES),
+	BSP_LUMP_NUM_STRUCT(brush_sides, MAX_BSP_BRUSH_SIDES),
 	BSP_LUMP_SKIP,
-	BSP_LUMP_NUM_STRUCT(areas),
-	BSP_LUMP_NUM_STRUCT(area_portals),
-	BSP_LUMP_NUM_STRUCT(normals)
+	BSP_LUMP_NUM_STRUCT(areas, MAX_BSP_AREAS),
+	BSP_LUMP_NUM_STRUCT(area_portals, MAX_BSP_AREA_PORTALS),
+	BSP_LUMP_NUM_STRUCT(normals, MAX_BSP_VERTS)
 };
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
@@ -560,6 +561,11 @@ _Bool Bsp_LoadLump(file_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
 	}
 
 	*lump_count = lump.file_len / lump_type_size;
+
+	if (*lump_count >= bsp_lump_meta[lump_id].max_count) {
+		Com_Error(ERROR_DROP, "Lump (%i) count (%i) exceeds max (%u)\n", lump_id, *lump_count, bsp_lump_meta[lump_id].max_count);
+	}
+
 	*lump_data = Mem_Malloc(lump.file_len);
 
 	// blit the data into memory
@@ -576,7 +582,7 @@ _Bool Bsp_LoadLump(file_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
 		// swap the lump if required
 		if (bsp_swap_funcs[lump_id]) {
-			bsp_swap_funcs[lump_id](*lump_ptr, *num_of_lump);
+			bsp_swap_funcs[lump_id](*lump_data, *lump_count);
 		}
 #endif
 	}
@@ -602,6 +608,40 @@ _Bool Bsp_LoadLumps(file_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_bits
 	}
 
 	return true;
+}
+
+/**
+ * @brief Allocates data for the specified lump in the BSP. If the lump is already loaded,
+ * the data will either be expanded or truncated to the specified count. Note that "count"
+ * is not in bytes, but rather the number of components to allocate - this depends on the
+ * lump_id (for instance, the VERTEXES lump will allocate count * bsp_vertex_t). This
+ * will count as loading a lump as well. Since realloc is used here, be careful that you
+ * aren't storing a pointer to the old lump data. The lump size pointer (as in, num_x or x_size)
+ * won't be modified by this function call, so be careful!
+ */
+void Bsp_AllocLump(bsp_file_t *bsp, const bsp_lump_id_t lump_id, const size_t count) {
+
+	// mark as loaded
+	if (!Bsp_LumpLoaded(bsp, lump_id)) {
+		bsp->loaded_lumps |= (bsp_lump_id_t) (1 << lump_id);
+	}
+
+	int32_t *lump_count;
+	void **lump_data;
+
+	if (!Bsp_GetLumpOffsets(bsp, lump_id, &lump_count, &lump_data)) {
+		Com_Error(ERROR_DROP, "Tried to allocate an invalid lump (%i)\n", lump_id);
+	}
+
+	// lump is valid but we're skipping it
+	if (*lump_count == LUMP_SKIPPED) {
+		return;
+	}
+
+	// calculate size
+	const size_t lump_type_size = bsp_lump_meta[lump_id].type_size;
+
+	*lump_data = Mem_Realloc(*lump_data, lump_type_size * count);
 }
 
 /**
@@ -640,7 +680,7 @@ void Bsp_OverwriteLump(file_t *file, const bsp_file_t *bsp, const bsp_lump_id_t 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
 	// swap lump to disk endianness
 	if (bsp_swap_funcs[lump_id]) {
-		bsp_swap_funcs[lump_id](*lump_ptr, *num_of_lump);
+		bsp_swap_funcs[lump_id](*lump_data, *lump_count);
 	}
 #endif
 
@@ -649,7 +689,7 @@ void Bsp_OverwriteLump(file_t *file, const bsp_file_t *bsp, const bsp_lump_id_t 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
 	// swap back to memory endianness
 	if (bsp_swap_funcs[lump_id]) {
-		bsp_swap_funcs[lump_id](*lump_ptr, *num_of_lump);
+		bsp_swap_funcs[lump_id](*lump_data, *lump_count);
 	}
 #endif
 }
@@ -686,9 +726,24 @@ void Bsp_Write(file_t *file, const bsp_file_t *bsp, const int32_t version) {
 		if (*lump_count <= 0) {
 			continue;
 		}
+
+#if SDL_BYTEORDER != SDL_LIL_ENDIAN
+		// swap lump to disk endianness
+		if (bsp_swap_funcs[i]) {
+			bsp_swap_funcs[i](*lump_data, *lump_count);
+		}
+#endif
+
 		// write and increase position for next lump
 		header.lumps[i].file_len = Fs_Write(file, *lump_data, lump_type_size, *lump_count) * lump_type_size;
 		header.lumps[i].file_ofs = (int32_t) current_position;
+
+#if SDL_BYTEORDER != SDL_LIL_ENDIAN
+		// swap back to memory endianness
+		if (bsp_swap_funcs[lump_id]) {
+			bsp_swap_funcs[lump_id](*lump_data, *lump_count);
+		}
+#endif
 
 		current_position += header.lumps[i].file_len;
 	}
@@ -699,4 +754,68 @@ void Bsp_Write(file_t *file, const bsp_file_t *bsp, const int32_t version) {
 
 	// return to where we were
 	Fs_Seek(file, current_position);
+}
+
+/**
+ * @brief
+ */
+void Bsp_DecompressVis(const bsp_file_t *bsp, const byte *in, byte *out) {
+	const int32_t row = (bsp->vis_data.vis->num_clusters + 7) >> 3;
+	byte *out_p = out;
+
+	if (!in || !bsp->vis_data_size) { // no vis info, so make all visible
+		for (int32_t i = 0; i < row; i++) {
+			*out_p++ = 0xff;
+		}
+	} else {
+		do {
+			if (*in) {
+				*out_p++ = *in++;
+				continue;
+			}
+
+			int32_t c = in[1];
+			in += 2;
+			if ((out_p - out) + c > row) {
+				c = (int32_t) (row - (out_p - out));
+				Com_Warn("Overrun\n");
+			}
+			while (c) {
+				*out_p++ = 0;
+				c--;
+			}
+		} while (out_p - out < row);
+	}
+}
+
+/**
+ * @brief
+ */
+int32_t Bsp_CompressVis(const bsp_file_t *bsp, const byte *vis, byte *dest) {
+	int32_t j;
+	int32_t rep;
+	int32_t visrow;
+	byte *dest_p;
+
+	dest_p = dest;
+	visrow = (bsp->vis_data.vis->num_clusters + 7) >> 3;
+
+	for (j = 0; j < visrow; j++) {
+		*dest_p++ = vis[j];
+		if (vis[j]) {
+			continue;
+		}
+
+		rep = 1;
+		for (j++; j < visrow; j++)
+			if (vis[j] || rep == 0xff) {
+				break;
+			} else {
+				rep++;
+			}
+		*dest_p++ = rep;
+		j--;
+	}
+
+	return (int32_t) (ptrdiff_t) (dest_p - dest);
 }

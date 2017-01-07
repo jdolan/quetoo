@@ -61,18 +61,19 @@ static void BuildFaceExtents(void) {
 	const bsp_vertex_t *v;
 	int32_t i, j, k;
 
-	for (k = 0; k < d_bsp.num_faces; k++) {
+	for (k = 0; k < bsp_file.num_faces; k++) {
 
-		const bsp_face_t *s = &d_bsp.faces[k];
-		const bsp_texinfo_t *tex = &d_bsp.texinfo[s->texinfo];
+		const bsp_face_t *s = &bsp_file.faces[k];
+		const bsp_texinfo_t *tex = &bsp_file.texinfo[s->texinfo];
+		const uint32_t face_index = s - bsp_file.faces;
 
-		vec_t *mins = face_extents[s - d_bsp.faces].mins;
-		vec_t *maxs = face_extents[s - d_bsp.faces].maxs;
+		vec_t *mins = face_extents[face_index].mins;
+		vec_t *maxs = face_extents[face_index].maxs;
 
-		vec_t *center = face_extents[s - d_bsp.faces].center;
+		vec_t *center = face_extents[face_index].center;
 
-		vec_t *st_mins = face_extents[s - d_bsp.faces].st_mins;
-		vec_t *st_maxs = face_extents[s - d_bsp.faces].st_maxs;
+		vec_t *st_mins = face_extents[face_index].st_mins;
+		vec_t *st_maxs = face_extents[face_index].st_maxs;
 
 		VectorSet(mins, 999999, 999999, 999999);
 		VectorSet(maxs, -999999, -999999, -999999);
@@ -81,11 +82,11 @@ static void BuildFaceExtents(void) {
 		st_maxs[0] = st_maxs[1] = -999999;
 
 		for (i = 0; i < s->num_edges; i++) {
-			const int32_t e = d_bsp.face_edges[s->first_edge + i];
+			const int32_t e = bsp_file.face_edges[s->first_edge + i];
 			if (e >= 0) {
-				v = d_bsp.vertexes + d_bsp.edges[e].v[0];
+				v = bsp_file.vertexes + bsp_file.edges[e].v[0];
 			} else {
-				v = d_bsp.vertexes + d_bsp.edges[-e].v[1];
+				v = bsp_file.vertexes + bsp_file.edges[-e].v[1];
 			}
 
 			for (j = 0; j < 3; j++) { // calculate mins, maxs
@@ -125,8 +126,8 @@ static void CalcLightinfoExtents(light_info_t *l) {
 
 	s = l->face;
 
-	st_mins = face_extents[s - d_bsp.faces].st_mins;
-	st_maxs = face_extents[s - d_bsp.faces].st_maxs;
+	st_mins = face_extents[s - bsp_file.faces].st_mins;
+	st_maxs = face_extents[s - bsp_file.faces].st_maxs;
 
 	for (i = 0; i < 2; i++) {
 		l->exact_mins[i] = st_mins[i];
@@ -159,7 +160,7 @@ static void CalcLightinfoVectors(light_info_t *l) {
 	vec_t dist_scale;
 	vec_t dist;
 
-	tex = &d_bsp.texinfo[l->face->texinfo];
+	tex = &bsp_file.texinfo[l->face->texinfo];
 
 	// convert from vec_t to double
 	for (i = 0; i < 2; i++) {
@@ -325,7 +326,7 @@ void BuildLights(void) {
 
 			VectorCopy(p->origin, l->origin);
 
-			leaf = &d_bsp.leafs[Light_PointLeafnum(l->origin)];
+			leaf = &bsp_file.leafs[Light_PointLeafnum(l->origin)];
 			cluster = leaf->cluster;
 			l->next = lights[cluster];
 			lights[cluster] = l;
@@ -353,7 +354,7 @@ void BuildLights(void) {
 
 		VectorForKey(e, "origin", l->origin);
 
-		leaf = &d_bsp.leafs[Light_PointLeafnum(l->origin)];
+		leaf = &bsp_file.leafs[Light_PointLeafnum(l->origin)];
 		cluster = leaf->cluster;
 
 		l->next = lights[cluster];
@@ -533,7 +534,7 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs, vec_t *sampl
 	int32_t i;
 
 	// iterate over lights, which are in buckets by cluster
-	for (i = 0; i < d_vis->num_clusters; i++) {
+	for (i = 0; i < bsp_file.vis_data.vis->num_clusters; i++) {
 
 		if (!(pvs[i >> 3] & (1 << (i & 7)))) {
 			continue;
@@ -630,22 +631,22 @@ static void FacesWithVert(int32_t vert, int32_t *faces, int32_t *nfaces) {
 	int32_t i, j, k;
 
 	k = 0;
-	for (i = 0; i < d_bsp.num_faces; i++) {
-		const bsp_face_t *face = &d_bsp.faces[i];
+	for (i = 0; i < bsp_file.num_faces; i++) {
+		const bsp_face_t *face = &bsp_file.faces[i];
 
-		if (!(d_bsp.texinfo[face->texinfo].flags & SURF_PHONG)) {
+		if (!(bsp_file.texinfo[face->texinfo].flags & SURF_PHONG)) {
 			continue;
 		}
 
 		for (j = 0; j < face->num_edges; j++) {
 
-			const int32_t e = d_bsp.face_edges[face->first_edge + j];
-			const int32_t v = e >= 0 ? d_bsp.edges[e].v[0] : d_bsp.edges[-e].v[1];
+			const int32_t e = bsp_file.face_edges[face->first_edge + j];
+			const int32_t v = e >= 0 ? bsp_file.edges[e].v[0] : bsp_file.edges[-e].v[1];
 
 			if (v == vert) { // face references vert
 				faces[k++] = i;
 				if (k == MAX_VERT_FACES) {
-					Mon_SendPoint(ERROR_FATAL, d_bsp.vertexes[v].point, "MAX_VERT_FACES");
+					Mon_SendPoint(ERROR_FATAL, bsp_file.vertexes[v].point, "MAX_VERT_FACES");
 				}
 				break;
 			}
@@ -667,9 +668,9 @@ void BuildVertexNormals(void) {
 
 	BuildFaceExtents();
 
-	for (i = 0; i < d_bsp.num_vertexes; i++) {
+	for (i = 0; i < bsp_file.num_vertexes; i++) {
 
-		VectorClear(d_bsp.normals[i].normal);
+		VectorClear(bsp_file.normals[i].normal);
 
 		FacesWithVert(i, vert_faces, &num_vert_faces);
 
@@ -679,8 +680,8 @@ void BuildVertexNormals(void) {
 
 		for (j = 0; j < num_vert_faces; j++) {
 
-			const bsp_face_t *face = &d_bsp.faces[vert_faces[j]];
-			const bsp_plane_t *plane = &d_bsp.planes[face->plane_num];
+			const bsp_face_t *face = &bsp_file.faces[vert_faces[j]];
+			const bsp_plane_t *plane = &bsp_file.planes[face->plane_num];
 
 			// scale the contribution of each face based on size
 			const face_extents_t *extents = &face_extents[vert_faces[j]];
@@ -694,10 +695,10 @@ void BuildVertexNormals(void) {
 				VectorScale(plane->normal, scale, norm);
 			}
 
-			VectorAdd(d_bsp.normals[i].normal, norm, d_bsp.normals[i].normal);
+			VectorAdd(bsp_file.normals[i].normal, norm, bsp_file.normals[i].normal);
 		}
 
-		VectorNormalize(d_bsp.normals[i].normal);
+		VectorNormalize(bsp_file.normals[i].normal);
 	}
 }
 
@@ -712,17 +713,17 @@ static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal)
 
 	// calculate the distance to each vertex
 	for (i = 0; i < l->face->num_edges; i++) {
-		const int32_t e = d_bsp.face_edges[l->face->first_edge + i];
+		const int32_t e = bsp_file.face_edges[l->face->first_edge + i];
 		uint16_t v;
 
 		if (e >= 0) {
-			v = d_bsp.edges[e].v[0];
+			v = bsp_file.edges[e].v[0];
 		} else {
-			v = d_bsp.edges[-e].v[1];
+			v = bsp_file.edges[-e].v[1];
 		}
 
 		vec3_t delta;
-		VectorSubtract(pos, d_bsp.vertexes[v].point, delta);
+		VectorSubtract(pos, bsp_file.vertexes[v].point, delta);
 
 		dist[i] = VectorLength(delta);
 		total_dist += dist[i];
@@ -733,17 +734,17 @@ static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal)
 
 	// add in weighted components from the vertex normals
 	for (i = 0; i < l->face->num_edges; i++) {
-		const int32_t e = d_bsp.face_edges[l->face->first_edge + i];
+		const int32_t e = bsp_file.face_edges[l->face->first_edge + i];
 		uint16_t v;
 
 		if (e >= 0) {
-			v = d_bsp.edges[e].v[0];
+			v = bsp_file.edges[e].v[0];
 		} else {
-			v = d_bsp.edges[-e].v[1];
+			v = bsp_file.edges[-e].v[1];
 		}
 
 		const vec_t mix = powf(max_dist - dist[i], 4.0) / powf(max_dist, 4.0);
-		VectorMA(normal, mix, d_bsp.normals[v].normal, normal);
+		VectorMA(normal, mix, bsp_file.normals[v].normal, normal);
 
 		// printf("%03.2f / %03.2f contributes %01.2f\n", dist[i], max_dist, mix);
 	}
@@ -782,10 +783,9 @@ void BuildFacelights(int32_t face_num) {
 		return;
 	}
 
-	face = &d_bsp.faces[face_num];
-	plane = &d_bsp.planes[face->plane_num];
-
-	tex = &d_bsp.texinfo[face->texinfo];
+	face = &bsp_file.faces[face_num];
+	plane = &bsp_file.planes[face->plane_num];
+	tex = &bsp_file.texinfo[face->texinfo];
 
 	if (tex->flags & (SURF_SKY | SURF_WARP)) {
 		return;    // non-lit texture
@@ -911,10 +911,10 @@ void FinalLightFace(int32_t face_num) {
 	face_light_t *fl;
 	byte *dest;
 
-	f = &d_bsp.faces[face_num];
+	f = &bsp_file.faces[face_num];
 	fl = &face_lights[face_num];
 
-	if (d_bsp.texinfo[f->texinfo].flags & (SURF_WARP | SURF_SKY)) {
+	if (bsp_file.texinfo[f->texinfo].flags & (SURF_WARP | SURF_SKY)) {
 		return;    // non-lit texture
 	}
 
@@ -923,21 +923,21 @@ void FinalLightFace(int32_t face_num) {
 
 	ThreadLock();
 
-	f->light_ofs = d_bsp.lightmap_data_size;
-	d_bsp.lightmap_data_size += fl->num_samples * 3;
+	f->light_ofs = bsp_file.lightmap_data_size;
+	bsp_file.lightmap_data_size += fl->num_samples * 3;
 
 	if (!legacy) { // account for light direction data as well
-		d_bsp.lightmap_data_size += fl->num_samples * 3;
+		bsp_file.lightmap_data_size += fl->num_samples * 3;
 	}
 
-	if (d_bsp.lightmap_data_size > MAX_BSP_LIGHTING) {
+	if (bsp_file.lightmap_data_size > MAX_BSP_LIGHTING) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_LIGHTING\n");
 	}
 
 	ThreadUnlock();
 
 	// write it out
-	dest = &d_bsp.lightmap_data[f->light_ofs];
+	dest = &bsp_file.lightmap_data[f->light_ofs];
 
 	for (j = 0; j < fl->num_samples; j++) {
 

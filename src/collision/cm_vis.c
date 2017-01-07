@@ -28,50 +28,18 @@ _Bool cm_no_areas = false;
 
 /**
  * @brief
- */
-static void Cm_DecompressVis(const byte *in, byte *out) {
-
-	const int32_t row = (cm_bsp.bsp.vis_data.vis->num_clusters + 7) >> 3;
-	byte *out_p = out;
-
-	if (!in || !cm_bsp.bsp.vis_data_size) { // no vis info, so make all visible
-		for (int32_t i = 0; i < row; i++) {
-			*out_p++ = 0xff;
-		}
-	} else {
-		do {
-			if (*in) {
-				*out_p++ = *in++;
-				continue;
-			}
-
-			int32_t c = in[1];
-			in += 2;
-			if ((out_p - out) + c > row) {
-				c = (int32_t) (row - (out_p - out));
-				Com_Warn("Overrun\n");
-			}
-			while (c) {
-				*out_p++ = 0;
-				c--;
-			}
-		} while (out_p - out < row);
-	}
-}
-
-/**
- * @brief
  *
  * @remarks `pvs` must be at least `MAX_BSP_LEAFS >> 3` in length.
  */
 size_t Cm_ClusterPVS(const int32_t cluster, byte *pvs) {
 
-	const size_t len = (cm_bsp.bsp.vis_data.vis->num_clusters + 7) >> 3;
+	const bsp_vis_t *vis = cm_bsp.bsp.vis_data.vis;
+	const size_t len = (vis->num_clusters + 7) >> 3;
 
 	if (cluster == -1) {
 		memset(pvs, 0, len);
 	} else {
-		Cm_DecompressVis(cm_bsp.bsp.vis_data.raw + cm_bsp.bsp.vis_data.vis->bit_offsets[cluster][DVIS_PVS], pvs);
+		Bsp_DecompressVis(&cm_bsp.bsp, cm_bsp.bsp.vis_data.raw + vis->bit_offsets[cluster][DVIS_PVS], pvs);
 	}
 
 	return len;
@@ -81,13 +49,14 @@ size_t Cm_ClusterPVS(const int32_t cluster, byte *pvs) {
  * @brief
  */
 size_t Cm_ClusterPHS(const int32_t cluster, byte *phs) {
-
-	const size_t len = (cm_bsp.bsp.vis_data.vis->num_clusters + 7) >> 3;
+	
+	const bsp_vis_t *vis = cm_bsp.bsp.vis_data.vis;
+	const size_t len = (vis->num_clusters + 7) >> 3;
 
 	if (cluster == -1) {
 		memset(phs, 0, len);
 	} else {
-		Cm_DecompressVis(cm_bsp.bsp.vis_data.raw + cm_bsp.bsp.vis_data.vis->bit_offsets[cluster][DVIS_PHS], phs);
+		Bsp_DecompressVis(&cm_bsp.bsp, cm_bsp.bsp.vis_data.raw + vis->bit_offsets[cluster][DVIS_PHS], phs);
 	}
 
 	return len;

@@ -410,15 +410,15 @@ int32_t ZIP_Main(void) {
 
 	qzip.assets = g_hash_table_new_full(g_str_hash, g_str_equal, Mem_Free, Mem_Free);
 
-	LoadBSPFile(bsp_name);
+	LoadBSPFile(bsp_name, (1 << BSP_LUMP_TEXINFO) | (1 << BSP_LUMP_ENTITIES));
 
 	// add the textures, normalmaps, specular maps, ..
-	for (i = 0; i < d_bsp.num_texinfo; i++) {
+	for (i = 0; i < bsp_file.num_texinfo; i++) {
 		char base[MAX_QPATH];
 
-		AddImage(va("textures/%s", d_bsp.texinfo[i].texture), true);
+		AddImage(va("textures/%s", bsp_file.texinfo[i].texture), true);
 
-		g_strlcpy(base, d_bsp.texinfo[i].texture, sizeof(base));
+		g_strlcpy(base, bsp_file.texinfo[i].texture, sizeof(base));
 
 		if (g_str_has_suffix(base, "_d")) {
 			base[strlen(base) - 2] = '\0';

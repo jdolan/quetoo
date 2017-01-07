@@ -50,8 +50,8 @@ int32_t Light_PointLeafnum(const vec3_t point) {
 
 	nodenum = 0;
 	while (nodenum >= 0) {
-		bsp_node_t *node = &d_bsp.nodes[nodenum];
-		bsp_plane_t *plane = &d_bsp.planes[node->plane_num];
+		bsp_node_t *node = &bsp_file.nodes[nodenum];
+		bsp_plane_t *plane = &bsp_file.planes[node->plane_num];
 		vec_t dist = DotProduct(point, plane->normal) - plane->dist;
 		if (dist > 0) {
 			nodenum = node->children[0];
@@ -67,19 +67,18 @@ int32_t Light_PointLeafnum(const vec3_t point) {
  * @brief
  */
 _Bool Light_PointPVS(const vec3_t org, byte *pvs) {
-	bsp_leaf_t *leaf;
 
-	if (!d_bsp.vis_data_size) {
-		memset(pvs, 0xff, (d_bsp.num_leafs + 7) / 8);
+	if (!bsp_file.vis_data_size) {
+		memset(pvs, 0xff, (bsp_file.num_leafs + 7) / 8);
 		return true;
 	}
 
-	leaf = &d_bsp.leafs[Light_PointLeafnum(org)];
+	const bsp_leaf_t *leaf = &bsp_file.leafs[Light_PointLeafnum(org)];
 	if (leaf->cluster == -1) {
 		return false;    // in solid leaf
 	}
 
-	DecompressVis(d_bsp.vis_data + d_vis->bit_offsets[leaf->cluster][DVIS_PVS], pvs);
+	Bsp_DecompressVis(&bsp_file, bsp_file.vis_data.raw + bsp_file.vis_data.vis->bit_offsets[leaf->cluster][DVIS_PVS], pvs);
 	return true;
 }
 
@@ -113,7 +112,7 @@ void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_
  */
 static void LightWorld(void) {
 
-	if (d_bsp.num_nodes == 0 || d_bsp.num_faces == 0) {
+	if (bsp_file.num_nodes == 0 || bsp_file.num_faces == 0) {
 		Com_Error(ERROR_FATAL, "Empty map\n");
 	}
 
@@ -141,11 +140,13 @@ static void LightWorld(void) {
 	BuildVertexNormals();
 
 	// build initial facelights
-	RunThreadsOn(d_bsp.num_faces, true, BuildFacelights);
+	RunThreadsOn(bsp_file.num_faces, true, BuildFacelights);
 
 	// finalize it and write it out
-	d_bsp.lightmap_data_size = 0;
-	RunThreadsOn(d_bsp.num_faces, true, FinalLightFace);
+	bsp_file.lightmap_data_size = 0;
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTMAPS, MAX_BSP_LIGHTING);
+
+	RunThreadsOn(bsp_file.num_faces, true, FinalLightFace);
 }
 
 /**
@@ -159,9 +160,9 @@ int32_t LIGHT_Main(void) {
 
 	const time_t start = time(NULL);
 
-	LoadBSPFile(bsp_name);
+	const int32_t version = LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
 
-	if (!d_bsp.vis_data_size) {
+	if (!bsp_file.vis_data_size) {
 		Com_Error(ERROR_FATAL, "No VIS information\n");
 	}
 
@@ -171,7 +172,7 @@ int32_t LIGHT_Main(void) {
 
 	LightWorld();
 
-	WriteBSPFile(bsp_name);
+	WriteBSPFile(bsp_name, version);
 
 	const time_t end = time(NULL);
 	const time_t duration = end - start;

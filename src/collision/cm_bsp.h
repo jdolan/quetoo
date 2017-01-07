@@ -276,5 +276,8 @@ void Bsp_UnloadLump(bsp_file_t *bsp, const bsp_lump_id_t lump_id);
 void Bsp_UnloadLumps(bsp_file_t *bsp, const bsp_lump_id_t lump_bits);
 _Bool Bsp_LoadLump(file_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_id);
 _Bool Bsp_LoadLumps(file_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_bits);
+void Bsp_AllocLump(bsp_file_t *bsp, const bsp_lump_id_t lump_id, const size_t count);
 void Bsp_OverwriteLump(file_t *file, const bsp_file_t *bsp, const bsp_lump_id_t lump_id);
 void Bsp_Write(file_t *file, const bsp_file_t *bsp, const int32_t version);
+int32_t Bsp_CompressVis(const bsp_file_t *bsp, const byte *vis, byte *dest);
+void Bsp_DecompressVis(const bsp_file_t *bsp, const byte *in, byte *out);

@@ -72,9 +72,9 @@ static void TextureAxisFromPlane(map_plane_t *pln, vec3_t xv, vec3_t yv) {
  */
 static int32_t FindTexinfo(bsp_texinfo_t *tx) {
 	int32_t i;
-	bsp_texinfo_t *tc = d_bsp.texinfo;
+	bsp_texinfo_t *tc = bsp_file.texinfo;
 
-	for (i = 0; i < d_bsp.num_texinfo; i++, tc++) {
+	for (i = 0; i < bsp_file.num_texinfo; i++, tc++) {
 
 		if (tc->flags != tx->flags) {
 			continue;
@@ -100,7 +100,7 @@ static int32_t FindTexinfo(bsp_texinfo_t *tx) {
 	}
 
 	*tc = *tx;
-	d_bsp.num_texinfo++;
+	bsp_file.num_texinfo++;
 	return i;
 }
 

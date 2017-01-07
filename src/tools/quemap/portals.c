@@ -777,11 +777,11 @@ void EmitAreaPortals(void) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_AREAS\n");
 	}
 
-	d_bsp.num_areas = c_areas + 1;
-	d_bsp.num_area_portals = 1; // leave 0 as an error
+	bsp_file.num_areas = c_areas + 1;
+	bsp_file.num_area_portals = 1; // leave 0 as an error
 
 	for (i = 1; i <= c_areas; i++) {
-		d_bsp.areas[i].first_area_portal = d_bsp.num_area_portals;
+		bsp_file.areas[i].first_area_portal = bsp_file.num_area_portals;
 		for (j = 0; j < num_entities; j++) {
 			const entity_t *e = &entities[j];
 
@@ -789,23 +789,23 @@ void EmitAreaPortals(void) {
 				continue;
 			}
 
-			dp = &d_bsp.area_portals[d_bsp.num_area_portals];
+			dp = &bsp_file.area_portals[bsp_file.num_area_portals];
 
 			if (e->portal_areas[0] == i) {
 				dp->portal_num = e->area_portal_num;
 				dp->other_area = e->portal_areas[1];
-				d_bsp.num_area_portals++;
+				bsp_file.num_area_portals++;
 			} else if (e->portal_areas[1] == i) {
 				dp->portal_num = e->area_portal_num;
 				dp->other_area = e->portal_areas[0];
-				d_bsp.num_area_portals++;
+				bsp_file.num_area_portals++;
 			}
 		}
-		d_bsp.areas[i].num_area_portals = d_bsp.num_area_portals - d_bsp.areas[i].first_area_portal;
+		bsp_file.areas[i].num_area_portals = bsp_file.num_area_portals - bsp_file.areas[i].first_area_portal;
 	}
 
-	Com_Verbose("%5i num_areas\n", d_bsp.num_areas);
-	Com_Verbose("%5i num_area_portals\n", d_bsp.num_area_portals);
+	Com_Verbose("%5i num_areas\n", bsp_file.num_areas);
+	Com_Verbose("%5i num_area_portals\n", bsp_file.num_area_portals);
 }
 
 /**

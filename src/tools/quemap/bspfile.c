@@ -22,486 +22,66 @@
 #include "bspfile.h"
 #include "scriplib.h"
 
-d_bsp_t d_bsp;
-bsp_vis_t *d_vis = (bsp_vis_t *) d_bsp.vis_data;
-
-/**
- * @brief
- */
-int32_t CompressVis(const byte *vis, byte *dest) {
-	int32_t j;
-	int32_t rep;
-	int32_t visrow;
-	byte *dest_p;
-
-	dest_p = dest;
-	visrow = (d_vis->num_clusters + 7) >> 3;
-
-	for (j = 0; j < visrow; j++) {
-		*dest_p++ = vis[j];
-		if (vis[j]) {
-			continue;
-		}
-
-		rep = 1;
-		for (j++; j < visrow; j++)
-			if (vis[j] || rep == 0xff) {
-				break;
-			} else {
-				rep++;
-			}
-		*dest_p++ = rep;
-		j--;
-	}
-
-	return (int32_t) (ptrdiff_t) (dest_p - dest);
-}
-
-/**
- * @brief
- */
-void DecompressVis(const byte *in, byte *decompressed) {
-	int32_t c;
-	byte *out;
-	int32_t row;
-
-	row = (d_vis->num_clusters + 7) >> 3;
-	out = decompressed;
-
-	do {
-		if (*in) {
-			*out++ = *in++;
-			continue;
-		}
-
-		c = in[1];
-		if (!c) {
-			Com_Error(ERROR_FATAL, "0 repeat\n");
-		}
-		in += 2;
-		while (c) {
-			*out++ = 0;
-			c--;
-		}
-	} while (out - decompressed < row);
-}
-
-/**
- * @brief Byte swaps all data in a bsp file.
- */
-static void SwapBSPFile(_Bool todisk) {
-	int32_t i, j;
-
-	// models
-	for (i = 0; i < d_bsp.num_models; i++) {
-		bsp_model_t *d = &d_bsp.models[i];
-
-		d->first_face = LittleLong(d->first_face);
-		d->num_faces = LittleLong(d->num_faces);
-		d->head_node = LittleLong(d->head_node);
-
-		for (j = 0; j < 3; j++) {
-			d->mins[j] = LittleFloat(d->mins[j]);
-			d->maxs[j] = LittleFloat(d->maxs[j]);
-			d->origin[j] = LittleFloat(d->origin[j]);
-		}
-	}
-
-	// vertexes
-	for (i = 0; i < d_bsp.num_vertexes; i++) {
-		for (j = 0; j < 3; j++) {
-			d_bsp.vertexes[i].point[j] = LittleFloat(d_bsp.vertexes[i].point[j]);
-		}
-	}
-
-	// planes
-	for (i = 0; i < d_bsp.num_planes; i++) {
-		for (j = 0; j < 3; j++) {
-			d_bsp.planes[i].normal[j] = LittleFloat(d_bsp.planes[i].normal[j]);
-		}
-		d_bsp.planes[i].dist = LittleFloat(d_bsp.planes[i].dist);
-		d_bsp.planes[i].type = LittleLong(d_bsp.planes[i].type);
-	}
-
-	// texinfos
-	for (i = 0; i < d_bsp.num_texinfo; i++) {
-		for (j = 0; j < 4; j++) {
-			d_bsp.texinfo[i].vecs[0][j] = LittleFloat(d_bsp.texinfo[i].vecs[0][j]);
-			d_bsp.texinfo[i].vecs[1][j] = LittleFloat(d_bsp.texinfo[i].vecs[1][j]);
-		}
-		d_bsp.texinfo[i].flags = LittleLong(d_bsp.texinfo[i].flags);
-		d_bsp.texinfo[i].value = LittleLong(d_bsp.texinfo[i].value);
-		d_bsp.texinfo[i].next_texinfo = LittleLong(d_bsp.texinfo[i].next_texinfo);
-	}
-
-	// faces
-	for (i = 0; i < d_bsp.num_faces; i++) {
-		d_bsp.faces[i].texinfo = LittleShort(d_bsp.faces[i].texinfo);
-		d_bsp.faces[i].plane_num = LittleShort(d_bsp.faces[i].plane_num);
-		d_bsp.faces[i].side = LittleShort(d_bsp.faces[i].side);
-		d_bsp.faces[i].light_ofs = LittleLong(d_bsp.faces[i].light_ofs);
-		d_bsp.faces[i].first_edge = LittleLong(d_bsp.faces[i].first_edge);
-		d_bsp.faces[i].num_edges = LittleShort(d_bsp.faces[i].num_edges);
-	}
-
-	// nodes
-	for (i = 0; i < d_bsp.num_nodes; i++) {
-		d_bsp.nodes[i].plane_num = LittleLong(d_bsp.nodes[i].plane_num);
-		for (j = 0; j < 3; j++) {
-			d_bsp.nodes[i].mins[j] = LittleShort(d_bsp.nodes[i].mins[j]);
-			d_bsp.nodes[i].maxs[j] = LittleShort(d_bsp.nodes[i].maxs[j]);
-		}
-		d_bsp.nodes[i].children[0] = LittleLong(d_bsp.nodes[i].children[0]);
-		d_bsp.nodes[i].children[1] = LittleLong(d_bsp.nodes[i].children[1]);
-		d_bsp.nodes[i].first_face = LittleShort(d_bsp.nodes[i].first_face);
-		d_bsp.nodes[i].num_faces = LittleShort(d_bsp.nodes[i].num_faces);
-	}
-
-	// leafs
-	for (i = 0; i < d_bsp.num_leafs; i++) {
-		d_bsp.leafs[i].contents = LittleLong(d_bsp.leafs[i].contents);
-		d_bsp.leafs[i].cluster = LittleShort(d_bsp.leafs[i].cluster);
-		d_bsp.leafs[i].area = LittleShort(d_bsp.leafs[i].area);
-		for (j = 0; j < 3; j++) {
-			d_bsp.leafs[i].mins[j] = LittleShort(d_bsp.leafs[i].mins[j]);
-			d_bsp.leafs[i].maxs[j] = LittleShort(d_bsp.leafs[i].maxs[j]);
-		}
-
-		d_bsp.leafs[i].first_leaf_face = LittleShort(d_bsp.leafs[i].first_leaf_face);
-		d_bsp.leafs[i].num_leaf_faces = LittleShort(d_bsp.leafs[i].num_leaf_faces);
-		d_bsp.leafs[i].first_leaf_brush = LittleShort(d_bsp.leafs[i].first_leaf_brush);
-		d_bsp.leafs[i].num_leaf_brushes = LittleShort(d_bsp.leafs[i].num_leaf_brushes);
-	}
-
-	// leaf faces
-	for (i = 0; i < d_bsp.num_leaf_faces; i++) {
-		d_bsp.leaf_faces[i] = LittleShort(d_bsp.leaf_faces[i]);
-	}
-
-	// leaf brushes
-	for (i = 0; i < d_bsp.num_leaf_brushes; i++) {
-		d_bsp.leaf_brushes[i] = LittleShort(d_bsp.leaf_brushes[i]);
-	}
-
-	// surf edges
-	for (i = 0; i < d_bsp.num_face_edges; i++) {
-		d_bsp.face_edges[i] = LittleLong(d_bsp.face_edges[i]);
-	}
-
-	// edges
-	for (i = 0; i < d_bsp.num_edges; i++) {
-		d_bsp.edges[i].v[0] = LittleShort(d_bsp.edges[i].v[0]);
-		d_bsp.edges[i].v[1] = LittleShort(d_bsp.edges[i].v[1]);
-	}
-
-	// brushes
-	for (i = 0; i < d_bsp.num_brushes; i++) {
-		d_bsp.brushes[i].first_brush_side = LittleLong(d_bsp.brushes[i].first_brush_side);
-		d_bsp.brushes[i].num_sides = LittleLong(d_bsp.brushes[i].num_sides);
-		d_bsp.brushes[i].contents = LittleLong(d_bsp.brushes[i].contents);
-	}
-
-	// areas
-	for (i = 0; i < d_bsp.num_areas; i++) {
-		d_bsp.areas[i].num_area_portals = LittleLong(d_bsp.areas[i].num_area_portals);
-		d_bsp.areas[i].first_area_portal = LittleLong(d_bsp.areas[i].first_area_portal);
-	}
-
-	// area portals
-	for (i = 0; i < d_bsp.num_area_portals; i++) {
-		d_bsp.area_portals[i].portal_num = LittleLong(d_bsp.area_portals[i].portal_num);
-		d_bsp.area_portals[i].other_area = LittleLong(d_bsp.area_portals[i].other_area);
-	}
-
-	// brush sides
-	for (i = 0; i < d_bsp.num_brush_sides; i++) {
-		d_bsp.brush_sides[i].plane_num = LittleShort(d_bsp.brush_sides[i].plane_num);
-		d_bsp.brush_sides[i].surf_num = LittleShort(d_bsp.brush_sides[i].surf_num);
-	}
-
-	// visibility
-	if (todisk) {
-		j = d_vis->num_clusters;
-	} else {
-		j = LittleLong(d_vis->num_clusters);
-	}
-	d_vis->num_clusters = LittleLong(d_vis->num_clusters);
-	for (i = 0; i < j; i++) {
-		d_vis->bit_offsets[i][0] = LittleLong(d_vis->bit_offsets[i][0]);
-		d_vis->bit_offsets[i][1] = LittleLong(d_vis->bit_offsets[i][1]);
-	}
-}
-
-static bsp_header_t *header;
-
-static int32_t CopyLump(int32_t lump, void *dest, int32_t size) {
-	int32_t length, ofs;
-
-	length = header->lumps[lump].file_len;
-	ofs = header->lumps[lump].file_ofs;
-
-	if (length % size) {
-		Com_Error(ERROR_FATAL, "Funny lump size\n");
-	}
-
-	memcpy(dest, (byte *)header + ofs, length);
-
-	return length / size;
-}
-
-/**
- * @brief
- */
-void LoadBSPFile(char *file_name) {
-	uint32_t i;
-
-	// load the file header
-	if (Fs_Load(file_name, (void **) (char *) &header) == -1) {
-		Com_Error(ERROR_FATAL, "Failed to open %s\n", file_name);
-	}
-
-	// swap the header
-	for (i = 0; i < sizeof(bsp_header_t) / 4; i++) {
-		((int32_t *) header)[i] = LittleLong(((int32_t *) header)[i]);
-	}
-
-	if (header->ident != BSP_IDENT) {
-		Com_Error(ERROR_FATAL, "%s is not a IBSP file\n", file_name);
-	}
-
-	if (header->version != BSP_VERSION && header->version != BSP_VERSION_QUETOO)
-		Com_Error(ERROR_FATAL, "%s is unsupported version %i\n", file_name,
-		          header->version);
-
-	d_bsp.num_models = CopyLump(BSP_LUMP_MODELS, d_bsp.models, sizeof(bsp_model_t));
-	d_bsp.num_vertexes = CopyLump(BSP_LUMP_VERTEXES, d_bsp.vertexes, sizeof(bsp_vertex_t));
-
-	d_bsp.num_normals = d_bsp.num_vertexes;
-
-	if (header->version == BSP_VERSION_QUETOO) { // enhanced format
-		d_bsp.num_normals = CopyLump(BSP_LUMP_NORMALS, d_bsp.normals, sizeof(bsp_normal_t));
-	}
-
-	d_bsp.num_planes = CopyLump(BSP_LUMP_PLANES, d_bsp.planes, sizeof(bsp_plane_t));
-	d_bsp.num_leafs = CopyLump(BSP_LUMP_LEAFS, d_bsp.leafs, sizeof(bsp_leaf_t));
-	d_bsp.num_nodes = CopyLump(BSP_LUMP_NODES, d_bsp.nodes, sizeof(bsp_node_t));
-	d_bsp.num_texinfo = CopyLump(BSP_LUMP_TEXINFO, d_bsp.texinfo, sizeof(bsp_texinfo_t));
-	d_bsp.num_faces = CopyLump(BSP_LUMP_FACES, d_bsp.faces, sizeof(bsp_face_t));
-	d_bsp.num_leaf_faces = CopyLump(BSP_LUMP_LEAF_FACES, d_bsp.leaf_faces,
-	                                sizeof(d_bsp.leaf_faces[0]));
-	d_bsp.num_leaf_brushes = CopyLump(BSP_LUMP_LEAF_BRUSHES, d_bsp.leaf_brushes,
-	                                  sizeof(d_bsp.leaf_brushes[0]));
-	d_bsp.num_face_edges = CopyLump(BSP_LUMP_FACE_EDGES, d_bsp.face_edges,
-	                                sizeof(d_bsp.face_edges[0]));
-	d_bsp.num_edges = CopyLump(BSP_LUMP_EDGES, d_bsp.edges, sizeof(bsp_edge_t));
-	d_bsp.num_brushes = CopyLump(BSP_LUMP_BRUSHES, d_bsp.brushes, sizeof(bsp_brush_t));
-	d_bsp.num_brush_sides = CopyLump(BSP_LUMP_BRUSH_SIDES, d_bsp.brush_sides,
-	                                 sizeof(bsp_brush_side_t));
-	d_bsp.num_areas = CopyLump(BSP_LUMP_AREAS, d_bsp.areas, sizeof(bsp_area_t));
-	d_bsp.num_area_portals = CopyLump(BSP_LUMP_AREA_PORTALS, d_bsp.area_portals,
-	                                  sizeof(bsp_area_portal_t));
-
-	d_bsp.vis_data_size = CopyLump(BSP_LUMP_VISIBILITY, d_bsp.vis_data, 1);
-	d_bsp.lightmap_data_size = CopyLump(BSP_LUMP_LIGHTMAPS, d_bsp.lightmap_data, 1);
-	d_bsp.entity_string_len = CopyLump(BSP_LUMP_ENTITIES, d_bsp.entity_string, 1);
-
-	CopyLump(BSP_LUMP_POP, d_bsp.dpop, 1);
-
-	Mem_Free(header); // everything has been copied out
-
-	// swap everything
-	SwapBSPFile(false);
-
-	if (verbose) {
-		PrintBSPFileSizes();
-	}
-}
-
-/**
- * @brief Only loads the texinfo lump, so we can scan for textures.
- */
-void LoadBSPFileTexinfo(char *file_name) {
-	uint32_t i;
-	file_t *f;
-	int32_t length, ofs;
-
-	header = Mem_Malloc(sizeof(*header));
-
-	if (!(f = Fs_OpenRead(file_name))) {
-		Com_Error(ERROR_FATAL, "Could not open %s\n", file_name);
-	}
-
-	Fs_Read(f, header, sizeof(*header), 1);
-
-	// swap the header
-	for (i = 0; i < sizeof(*header) / 4; i++) {
-		((int32_t *) header)[i] = LittleLong(((int32_t *) header)[i]);
-	}
-
-	if (header->ident != BSP_IDENT) {
-		Com_Error(ERROR_FATAL, "%s is not a bsp file\n", file_name);
-	}
-
-	if (header->version != BSP_VERSION && header->version != BSP_VERSION_QUETOO)
-		Com_Error(ERROR_FATAL, "%s is unsupported version %i\n", file_name,
-		          header->version);
-
-	length = header->lumps[BSP_LUMP_TEXINFO].file_len;
-	ofs = header->lumps[BSP_LUMP_TEXINFO].file_ofs;
-
-	Fs_Seek(f, ofs);
-	Fs_Read(f, d_bsp.texinfo, length, 1);
-	Fs_Close(f);
-
-	d_bsp.num_texinfo = length / sizeof(bsp_texinfo_t);
-
-	Mem_Free(header); // everything has been copied out
-
-	SwapBSPFile(false);
-}
-
-static file_t *fp;
-
-/**
- * @brief
- */
-static void AddLump(int32_t lump_num, void *data, int32_t len) {
-	d_bsp_lump_t *lump;
-
-	lump = &header->lumps[lump_num];
-
-	lump->file_ofs = LittleLong((int32_t) Fs_Tell(fp));
-	lump->file_len = LittleLong(len);
-
-	Fs_Write(fp, data, 1, (len + 3) & ~3);
-}
-
-/**
- * @brief Swaps the bsp file in place, so it should not be referenced again
- */
-void WriteBSPFile(char *file_name) {
-	static bsp_header_t h;
-	header = &h;
-
-	if (verbose) {
-		PrintBSPFileSizes();
-	}
-
-	SwapBSPFile(true);
-
-	header->ident = LittleLong(BSP_IDENT);
-
-	if (legacy) { // quake2 .bsp format
-		header->version = LittleLong(BSP_VERSION);
-	} else
-		// enhanced format
-	{
-		header->version = LittleLong(BSP_VERSION_QUETOO);
-	}
-
-	if (!(fp = Fs_OpenWrite(file_name))) {
-		Com_Error(ERROR_FATAL, "Could not open %s\n", file_name);
-	}
-
-	Fs_Write(fp, header, 1, sizeof(bsp_header_t));
-
-	AddLump(BSP_LUMP_PLANES, d_bsp.planes, d_bsp.num_planes * sizeof(bsp_plane_t));
-	AddLump(BSP_LUMP_LEAFS, d_bsp.leafs, d_bsp.num_leafs * sizeof(bsp_leaf_t));
-	AddLump(BSP_LUMP_VERTEXES, d_bsp.vertexes, d_bsp.num_vertexes * sizeof(bsp_vertex_t));
-
-	if (!legacy) { // write vertex normals
-		AddLump(BSP_LUMP_NORMALS, d_bsp.normals, d_bsp.num_normals * sizeof(bsp_normal_t));
-	}
-
-	AddLump(BSP_LUMP_NODES, d_bsp.nodes, d_bsp.num_nodes * sizeof(bsp_node_t));
-	AddLump(BSP_LUMP_TEXINFO, d_bsp.texinfo, d_bsp.num_texinfo * sizeof(bsp_texinfo_t));
-	AddLump(BSP_LUMP_FACES, d_bsp.faces, d_bsp.num_faces * sizeof(bsp_face_t));
-	AddLump(BSP_LUMP_BRUSHES, d_bsp.brushes, d_bsp.num_brushes * sizeof(bsp_brush_t));
-	AddLump(BSP_LUMP_BRUSH_SIDES, d_bsp.brush_sides,
-	        d_bsp.num_brush_sides * sizeof(bsp_brush_side_t));
-	AddLump(BSP_LUMP_LEAF_FACES, d_bsp.leaf_faces,
-	        d_bsp.num_leaf_faces * sizeof(d_bsp.leaf_faces[0]));
-	AddLump(BSP_LUMP_LEAF_BRUSHES, d_bsp.leaf_brushes,
-	        d_bsp.num_leaf_brushes * sizeof(d_bsp.leaf_brushes[0]));
-	AddLump(BSP_LUMP_FACE_EDGES, d_bsp.face_edges,
-	        d_bsp.num_face_edges * sizeof(d_bsp.face_edges[0]));
-	AddLump(BSP_LUMP_EDGES, d_bsp.edges, d_bsp.num_edges * sizeof(bsp_edge_t));
-	AddLump(BSP_LUMP_MODELS, d_bsp.models, d_bsp.num_models * sizeof(bsp_model_t));
-	AddLump(BSP_LUMP_AREAS, d_bsp.areas, d_bsp.num_areas * sizeof(bsp_area_t));
-	AddLump(BSP_LUMP_AREA_PORTALS, d_bsp.area_portals,
-	        d_bsp.num_area_portals * sizeof(bsp_area_portal_t));
-
-	AddLump(BSP_LUMP_LIGHTMAPS, d_bsp.lightmap_data, d_bsp.lightmap_data_size);
-	AddLump(BSP_LUMP_VISIBILITY, d_bsp.vis_data, d_bsp.vis_data_size);
-	AddLump(BSP_LUMP_ENTITIES, d_bsp.entity_string, d_bsp.entity_string_len);
-	AddLump(BSP_LUMP_POP, d_bsp.dpop, sizeof(d_bsp.dpop));
-
-	// rewrite the header with the populated lumps
-
-	Fs_Seek(fp, 0);
-	Fs_Write(fp, header, 1, sizeof(bsp_header_t));
-
-	Fs_Close(fp);
-}
+bsp_file_t bsp_file;
 
 /**
  * @brief Dumps info about current file
  */
-void PrintBSPFileSizes(void) {
+static void PrintBSPFileSizes(void) {
 
 	if (!num_entities) {
 		ParseEntities();
 	}
 
-	Com_Verbose("%5i models       %7i\n", d_bsp.num_models,
-	            (int32_t) (d_bsp.num_models * sizeof(bsp_model_t)));
+	Com_Verbose("%5i models       %7i\n", bsp_file.num_models,
+	            (int32_t) (bsp_file.num_models * sizeof(bsp_model_t)));
 
-	Com_Verbose("%5i brushes      %7i\n", d_bsp.num_brushes,
-	            (int32_t) (d_bsp.num_brushes * sizeof(bsp_brush_t)));
+	Com_Verbose("%5i brushes      %7i\n", bsp_file.num_brushes,
+	            (int32_t) (bsp_file.num_brushes * sizeof(bsp_brush_t)));
 
-	Com_Verbose("%5i brush_sides  %7i\n", d_bsp.num_brush_sides,
-	            (int32_t) (d_bsp.num_brush_sides * sizeof(bsp_brush_side_t)));
+	Com_Verbose("%5i brush_sides  %7i\n", bsp_file.num_brush_sides,
+	            (int32_t) (bsp_file.num_brush_sides * sizeof(bsp_brush_side_t)));
 
-	Com_Verbose("%5i planes       %7i\n", d_bsp.num_planes,
-	            (int32_t) (d_bsp.num_planes * sizeof(bsp_plane_t)));
+	Com_Verbose("%5i planes       %7i\n", bsp_file.num_planes,
+	            (int32_t) (bsp_file.num_planes * sizeof(bsp_plane_t)));
 
-	Com_Verbose("%5i texinfo      %7i\n", d_bsp.num_texinfo,
-	            (int32_t) (d_bsp.num_texinfo * sizeof(bsp_texinfo_t)));
+	Com_Verbose("%5i texinfo      %7i\n", bsp_file.num_texinfo,
+	            (int32_t) (bsp_file.num_texinfo * sizeof(bsp_texinfo_t)));
 
-	Com_Verbose("%5i entdata      %7i\n", num_entities, d_bsp.entity_string_len);
+	Com_Verbose("%5i entdata      %7i\n", num_entities, bsp_file.entity_string_size);
 
 	Com_Verbose("\n");
 
-	Com_Verbose("%5i vertexes     %7i\n", d_bsp.num_vertexes,
-	            (int32_t) (d_bsp.num_vertexes * sizeof(bsp_vertex_t)));
+	Com_Verbose("%5i vertexes     %7i\n", bsp_file.num_vertexes,
+	            (int32_t) (bsp_file.num_vertexes * sizeof(bsp_vertex_t)));
 
-	Com_Verbose("%5i normals      %7i\n", d_bsp.num_normals,
-	            (int32_t) (d_bsp.num_normals * sizeof(bsp_normal_t)));
+	Com_Verbose("%5i normals      %7i\n", bsp_file.num_normals,
+	            (int32_t) (bsp_file.num_normals * sizeof(bsp_normal_t)));
 
-	Com_Verbose("%5i nodes        %7i\n", d_bsp.num_nodes,
-	            (int32_t) (d_bsp.num_nodes * sizeof(bsp_node_t)));
+	Com_Verbose("%5i nodes        %7i\n", bsp_file.num_nodes,
+	            (int32_t) (bsp_file.num_nodes * sizeof(bsp_node_t)));
 
-	Com_Verbose("%5i faces        %7i\n", d_bsp.num_faces,
-	            (int32_t) (d_bsp.num_faces * sizeof(bsp_face_t)));
+	Com_Verbose("%5i faces        %7i\n", bsp_file.num_faces,
+	            (int32_t) (bsp_file.num_faces * sizeof(bsp_face_t)));
 
-	Com_Verbose("%5i leafs        %7i\n", d_bsp.num_leafs,
-	            (int32_t) (d_bsp.num_leafs * sizeof(bsp_leaf_t)));
+	Com_Verbose("%5i leafs        %7i\n", bsp_file.num_leafs,
+	            (int32_t) (bsp_file.num_leafs * sizeof(bsp_leaf_t)));
 
-	Com_Verbose("%5i leaf_faces   %7i\n", d_bsp.num_leaf_faces,
-	            (int32_t) (d_bsp.num_leaf_faces * sizeof(d_bsp.leaf_faces[0])));
+	Com_Verbose("%5i leaf_faces   %7i\n", bsp_file.num_leaf_faces,
+	            (int32_t) (bsp_file.num_leaf_faces * sizeof(bsp_file.leaf_faces[0])));
 
-	Com_Verbose("%5i leaf_brushes %7i\n", d_bsp.num_leaf_brushes,
-	            (int32_t) (d_bsp.num_leaf_brushes * sizeof(d_bsp.leaf_brushes[0])));
+	Com_Verbose("%5i leaf_brushes %7i\n", bsp_file.num_leaf_brushes,
+	            (int32_t) (bsp_file.num_leaf_brushes * sizeof(bsp_file.leaf_brushes[0])));
 
-	Com_Verbose("%5i surf_edges   %7i\n", d_bsp.num_face_edges,
-	            (int32_t) (d_bsp.num_face_edges * sizeof(d_bsp.face_edges[0])));
+	Com_Verbose("%5i surf_edges   %7i\n", bsp_file.num_face_edges,
+	            (int32_t) (bsp_file.num_face_edges * sizeof(bsp_file.face_edges[0])));
 
-	Com_Verbose("%5i edges        %7i\n", d_bsp.num_edges,
-	            (int32_t) (d_bsp.num_edges * sizeof(bsp_edge_t)));
+	Com_Verbose("%5i edges        %7i\n", bsp_file.num_edges,
+	            (int32_t) (bsp_file.num_edges * sizeof(bsp_edge_t)));
 
-	Com_Verbose("      lightmap     %7i\n", d_bsp.lightmap_data_size);
+	Com_Verbose("      lightmap     %7i\n", bsp_file.lightmap_data_size);
 
-	Com_Verbose("      vis          %7i\n", d_bsp.vis_data_size);
+	Com_Verbose("      vis          %7i\n", bsp_file.vis_data_size);
 }
 
 uint16_t num_entities;
@@ -588,7 +168,7 @@ static _Bool ParseEntity(void) {
 void ParseEntities(void) {
 	int32_t subdivide;
 
-	ParseFromMemory(d_bsp.entity_string, d_bsp.entity_string_len);
+	ParseFromMemory(bsp_file.entity_string, bsp_file.entity_string_size);
 
 	num_entities = 0;
 	while (ParseEntity()) {
@@ -612,7 +192,8 @@ void UnparseEntities(void) {
 	int32_t i;
 	char key[1024], value[1024];
 
-	buf = d_bsp.entity_string;
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_ENTITIES, MAX_BSP_ENT_STRING);
+	buf = bsp_file.entity_string;
 	end = buf;
 	*end = 0;
 
@@ -643,7 +224,7 @@ void UnparseEntities(void) {
 		}
 	}
 
-	d_bsp.entity_string_len = (int32_t) (ptrdiff_t) (end - buf + 1);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_ENTITIES, (size_t) (ptrdiff_t) (end - buf + 1));
 }
 
 void SetKeyValue(entity_t *ent, const char *key, const char *value) {
@@ -691,3 +272,26 @@ void VectorForKey(const entity_t *ent, const char *key, vec3_t vec) {
 	}
 }
 
+int32_t LoadBSPFile(const char *bsp_name, const bsp_lump_id_t lumps) {
+	file_t *file = Fs_OpenRead(bsp_name);
+	const int32_t version = Bsp_Verify(file);
+
+	if (!version) {
+		Com_Error(ERROR_FATAL, "Invalid BSP file at %s\n", bsp_name);
+	}
+
+	Bsp_LoadLumps(file, &bsp_file, lumps);
+	Fs_Close(file);
+
+	return version;
+}
+
+void WriteBSPFile(const char *bsp_name, const int32_t version) {
+	file_t *file = Fs_OpenWrite(bsp_name);
+	Bsp_Write(file, &bsp_file, version);
+	Fs_Close(file);
+
+	if (verbose) {
+		PrintBSPFileSizes();
+	}
+}

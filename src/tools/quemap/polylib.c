@@ -244,14 +244,14 @@ winding_t *WindingForFace(const bsp_face_t *f) {
 	w->num_points = f->num_edges;
 
 	for (i = 0; i < f->num_edges; i++) {
-		const int32_t se = d_bsp.face_edges[f->first_edge + i];
+		const int32_t se = bsp_file.face_edges[f->first_edge + i];
 		if (se < 0) {
-			v = d_bsp.edges[-se].v[1];
+			v = bsp_file.edges[-se].v[1];
 		} else {
-			v = d_bsp.edges[se].v[0];
+			v = bsp_file.edges[se].v[0];
 		}
 
-		dv = &d_bsp.vertexes[v];
+		dv = &bsp_file.vertexes[v];
 		VectorCopy(dv->point, w->points[i]);
 	}
 
