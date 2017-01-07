@@ -83,8 +83,6 @@ static void G_Ai_ClientThink(g_entity_t *self) {
 			cm_trace_t tr = gi.Trace(self->s.origin, end, vec3_origin, vec3_origin, self, MASK_CLIP_PLAYER);
 
 			if (tr.fraction < 1.0) {
-				cmd.forward = 100;
-			} else {
 				u16vec3_t delta;
 				
 				PackAngles((const vec3_t) {
@@ -92,6 +90,8 @@ static void G_Ai_ClientThink(g_entity_t *self) {
 				}, delta);
 				
 				VectorAdd(delta, self->client->ps.pm_state.delta_angles, self->client->ps.pm_state.delta_angles);
+			} else {
+				cmd.forward = 100;
 			}
 		}
 	}
