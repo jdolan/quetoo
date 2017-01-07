@@ -114,14 +114,6 @@ static void R_LoadBspSurfaceEdges(r_bsp_model_t *bsp) {
 static void R_LoadBspLightmaps(r_bsp_model_t *bsp) {
 	const char *c;
 
-	/*if (bsp_file->lightmap_data_size) {
-		bsp->lightmaps.size = 0;
-		bsp->lightmaps.data = NULL;
-	} else {
-		bsp->lightmaps.size = bsp_file->lightmap_data_size;
-		bsp->lightmaps.data = bsp_file->lightmap_data;
-	}*/
-
 	bsp->lightmap_scale = BSP_DEFAULT_LIGHTMAP_SCALE;
 
 	// resolve lightmap scale
