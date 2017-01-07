@@ -20,6 +20,7 @@
  */
 
 #include "g_local.h"
+#include "bg_pmove.h"
 
 /**
  * @brief
@@ -29,6 +30,52 @@ static void G_Ai_ClientThink(g_entity_t *self) {
 
 	memset(&cmd, 0, sizeof(cmd));
 	cmd.msec = QUETOO_TICK_MILLIS;
+
+	if (self->locals.dead) {
+		cmd.buttons = self->client->locals.buttons ^ BUTTON_ATTACK;
+	} else {
+		
+		g_entity_t *player = NULL;
+
+		for (int32_t i = 1; i <= sv_max_clients->integer; i++) {
+
+			g_entity_t *ent = &g_game.entities[i];
+
+			if (ent != self && ent->in_use) {
+
+				cm_trace_t tr = gi.Trace(self->s.origin, ent->s.origin, vec3_origin, vec3_origin, self, MASK_CLIP_PROJECTILE);
+
+				if (tr.fraction < 1.0 && tr.ent == ent) {
+
+					player = ent;
+					break;
+				}
+			}
+		}
+
+		if (player) {
+			vec3_t dir;
+			vec3_t angles;
+
+			VectorSubtract(player->s.origin, self->s.origin, dir);
+			VectorNormalize(dir);
+			VectorAngles(dir, angles);
+			VectorSubtract(angles, self->client->locals.angles, angles);
+
+			u16vec3_t delta;
+			PackAngles(angles, delta);
+
+			VectorAdd(delta, self->client->ps.pm_state.delta_angles, self->client->ps.pm_state.delta_angles);
+
+			cmd.forward = 100;
+
+			if ((Random() % 128) == 0) {
+				cmd.up = 10;
+			}
+
+			cmd.buttons |= BUTTON_ATTACK;
+		}
+	}
 
 	G_ClientThink(self, &cmd);
 
@@ -84,9 +131,34 @@ static void G_Ai_Add_f(void) {
 /**
  * @brief
  */
-void G_Ai_Init(void) {
+static void G_Ai_Remove_f(void) {
+	int32_t i, count = 1;
 
+	if (gi.Argc() > 1) {
+		count = Clamp(atoi(gi.Argv(1)), 1, sv_max_clients->integer);
+	}
+	
+	for (i = 0; i < count; i++) {
+
+		g_entity_t *ent = &g_game.entities[1];
+		int32_t j;
+
+		for (j = 1; j <= sv_max_clients->integer; j++, ent++) {
+			if (ent->in_use && ent->ai) {
+				G_ClientDisconnect(ent);
+				break;
+			}
+		}
+	}
+}
+
+/**
+ * @brief
+ */
+void G_Ai_Init(void) {
+	
 	gi.Cmd("g_ai_add", G_Ai_Add_f, CMD_GAME, "Add one or more AI to the game");
+	gi.Cmd("g_ai_remove", G_Ai_Remove_f, CMD_GAME, "Remove one or more AI from the game");
 }
 
 /**
