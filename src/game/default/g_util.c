@@ -53,7 +53,7 @@ void G_InitPlayerSpawn(g_entity_t *ent) {
 /**
  * @brief Determines the initial position and directional vectors of a projectile.
  */
-void G_InitProjectile(const g_entity_t *ent, const vec3_t forward, vec3_t right, vec3_t up, const vec3_t org,
+void G_InitProjectile(const g_entity_t *ent, vec3_t forward, vec3_t right, vec3_t up, const vec3_t org,
                       const float hand_scale) {
 	vec3_t view, pos;
 
@@ -91,8 +91,6 @@ void G_InitProjectile(const g_entity_t *ent, const vec3_t forward, vec3_t right,
 		VectorMA(proj_org, -12.0, ent_up, proj_org);
 	}
 
-	vec3_t proj_forward;
-
 	// if the projected origin is invalid, use the entity's origin
 	if (gi.Trace(org, org, NULL, NULL, ent, MASK_CLIP_PROJECTILE).start_solid) {
 		VectorCopy(ent->s.origin, proj_org);
@@ -100,13 +98,15 @@ void G_InitProjectile(const g_entity_t *ent, const vec3_t forward, vec3_t right,
 		VectorCopy(org, proj_org);
 	}
 
-	// return the projectile's directional vectors
-	VectorSubtract(pos, proj_org, proj_forward);
-	VectorNormalize(proj_forward);
+	if (forward) {
+		// return the projectile's directional vectors
+		VectorSubtract(pos, proj_org, forward);
+		VectorNormalize(forward);
 
-	if (right || up) {
-		VectorAngles(proj_forward, view);
-		AngleVectors(view, NULL, right, up);
+		if (right || up) {
+			VectorAngles(forward, view);
+			AngleVectors(view, NULL, right, up);
+		}
 	}
 }
 

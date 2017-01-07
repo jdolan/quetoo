@@ -54,8 +54,7 @@ static void G_Ai_ClientThink(g_entity_t *self) {
 		}
 
 		if (player) {
-			vec3_t dir;
-			vec3_t angles;
+			vec3_t dir, angles;
 
 			VectorSubtract(player->s.origin, self->s.origin, dir);
 			VectorNormalize(dir);
@@ -74,6 +73,26 @@ static void G_Ai_ClientThink(g_entity_t *self) {
 			}
 
 			cmd.buttons |= BUTTON_ATTACK;
+		} else {
+			vec3_t forward, end;
+
+			AngleVectors((const vec3_t) { 0, self->client->locals.angles[1], 0 }, forward, NULL, NULL);
+
+			VectorMA(self->s.origin, 24, forward, end);
+
+			cm_trace_t tr = gi.Trace(self->s.origin, end, vec3_origin, vec3_origin, self, MASK_CLIP_PLAYER);
+
+			if (tr.fraction < 1.0) {
+				cmd.forward = 100;
+			} else {
+				u16vec3_t delta;
+				
+				PackAngles((const vec3_t) {
+					0, 90 + Randomc() * 45, 0
+				}, delta);
+				
+				VectorAdd(delta, self->client->ps.pm_state.delta_angles, self->client->ps.pm_state.delta_angles);
+			}
 		}
 	}
 
