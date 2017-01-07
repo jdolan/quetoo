@@ -229,6 +229,7 @@ static void Cm_LoadBspVisibility(void) {
 	// produces correctly-sized rows. If we don't do this, non-VIS'ed maps will
 	// not produce any visible entities.
 	if (cm_bsp.bsp.vis_data_size == 0) {
+		Bsp_AllocLump(&cm_bsp.bsp, BSP_LUMP_VISIBILITY, MAX_BSP_VISIBILITY);
 		cm_bsp.bsp.vis_data.vis->num_clusters = cm_bsp.bsp.num_leafs;
 	}
 }

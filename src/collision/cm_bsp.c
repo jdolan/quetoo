@@ -20,7 +20,7 @@ typedef struct {
 #define BSP_LUMP_SIZE_STRUCT(n, m) \
 	{ .size_ofs = offsetof(bsp_file_t, n ## _size), .data_ofs = offsetof(bsp_file_t, n), .type_size = sizeof(byte), .max_count = m }
 #define BSP_LUMP_SKIP \
-	{ 0, 0, 0 }
+	{ 0, 0, 0, 0 }
 
 static bsp_lump_meta_t bsp_lump_meta[BSP_TOTAL_LUMPS] = {
 	BSP_LUMP_SIZE_STRUCT(entity_string, MAX_BSP_ENT_STRING),
@@ -434,7 +434,7 @@ static void Bsp_GetLumpPosition(file_t *file, const bsp_lump_id_t lump_id, d_bsp
 /**
  * @brief Set if the lump is valid but the ptrs do not exist.
  */
-#define LUMP_SKIPPED	-1
+#define LUMP_SKIPPED	(int32_t *) (ptrdiff_t) -1u
 
 /**
  * @brief Convenience to calculate bsp_file offset in bytes
@@ -501,7 +501,7 @@ void Bsp_UnloadLump(bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
 	}
 
 	// lump is valid but we're skipping it
-	if (*lump_count == LUMP_SKIPPED) {
+	if (lump_count == LUMP_SKIPPED) {
 		return;
 	}
 
@@ -543,7 +543,7 @@ _Bool Bsp_LoadLump(file_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
 	}
 
 	// lump is valid but we're skipping it
-	if (*lump_count == LUMP_SKIPPED) {
+	if (lump_count == LUMP_SKIPPED) {
 		return true;
 	}
 
@@ -562,8 +562,8 @@ _Bool Bsp_LoadLump(file_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
 
 	*lump_count = lump.file_len / lump_type_size;
 
-	if (*lump_count >= bsp_lump_meta[lump_id].max_count) {
-		Com_Error(ERROR_DROP, "Lump (%i) count (%i) exceeds max (%u)\n", lump_id, *lump_count, bsp_lump_meta[lump_id].max_count);
+	if (*lump_count >= (int32_t) bsp_lump_meta[lump_id].max_count) {
+		Com_Error(ERROR_DROP, "Lump (%i) count (%i) exceeds max (%" PRIuPTR ")\n", lump_id, *lump_count, bsp_lump_meta[lump_id].max_count);
 	}
 
 	*lump_data = Mem_Malloc(lump.file_len);
@@ -634,7 +634,7 @@ void Bsp_AllocLump(bsp_file_t *bsp, const bsp_lump_id_t lump_id, const size_t co
 	}
 
 	// lump is valid but we're skipping it
-	if (*lump_count == LUMP_SKIPPED) {
+	if (lump_count == LUMP_SKIPPED) {
 		return;
 	}
 
@@ -658,7 +658,7 @@ void Bsp_OverwriteLump(file_t *file, const bsp_file_t *bsp, const bsp_lump_id_t 
 	}
 
 	// lump is valid but we're skipping it
-	if (*lump_count == LUMP_SKIPPED) {
+	if (lump_count == LUMP_SKIPPED) {
 		return;
 	}
 
@@ -723,7 +723,8 @@ void Bsp_Write(file_t *file, const bsp_file_t *bsp, const int32_t version) {
 		Bsp_GetLumpOffsets(bsp, i, &lump_count, &lump_data);
 
 		// lump is valid but we're skipping it
-		if (*lump_count <= 0) {
+		if (lump_count == LUMP_SKIPPED ||
+			*lump_count == 0) {
 			continue;
 		}
 
