@@ -26,22 +26,22 @@
 /**
  * @brief The origin (0, 0, 0).
  */
-extern vec3_t vec3_origin;
+extern const vec3_t vec3_origin;
 
 /**
  * @brief Up (0, 0, 1).
  */
-extern vec3_t vec3_up;
+extern const vec3_t vec3_up;
 
 /**
  * @brief Down (0, 0, -1).
  */
-extern vec3_t vec3_down;
+extern const vec3_t vec3_down;
 
 /**
  * @brief Forward (0, 1, 0).
  */
-extern vec3_t vec3_forward;
+extern const vec3_t vec3_forward;
 
 /**
  * @brief Math library.

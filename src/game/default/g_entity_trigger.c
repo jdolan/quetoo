@@ -243,7 +243,7 @@ static void G_trigger_push_Touch(g_entity_t *self, g_entity_t *other,
 
 		if (other->locals.push_time < g_level.time) {
 			other->locals.push_time = g_level.time + 1500;
-			gi.Sound(other, gi.SoundIndex("world/jumppad"), ATTEN_NORM);
+			gi.Sound(other, self->locals.move_info.sound_start, ATTEN_NORM);
 		}
 	}
 
@@ -284,6 +284,7 @@ void G_trigger_push(g_entity_t *self) {
 	G_Trigger_Init(self);
 
 	self->locals.Touch = G_trigger_push_Touch;
+	self->locals.move_info.sound_start = gi.SoundIndex("world/jumppad");
 
 	if (!self->locals.speed) {
 		self->locals.speed = 100;

@@ -94,13 +94,15 @@ void G_InitProjectile(const g_entity_t *ent, vec3_t forward, vec3_t right, vec3_
 		VectorCopy(ent->s.origin, org);
 	}
 
-	// return the projectile's directional vectors
-	VectorSubtract(pos, org, forward);
-	VectorNormalize(forward);
+	if (forward) {
+		// return the projectile's directional vectors
+		VectorSubtract(pos, org, forward);
+		VectorNormalize(forward);
 
-	if (right || up) {
-		VectorAngles(forward, view);
-		AngleVectors(view, NULL, right, up);
+		if (right || up) {
+			VectorAngles(forward, view);
+			AngleVectors(view, NULL, right, up);
+		}
 	}
 }
 

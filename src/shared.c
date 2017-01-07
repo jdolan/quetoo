@@ -23,13 +23,13 @@
 
 #include "shared.h"
 
-vec3_t vec3_origin = { 0.0, 0.0, 0.0 };
+const vec3_t vec3_origin = { 0.0, 0.0, 0.0 };
 
-vec3_t vec3_up = { 0.0, 0.0, 1.0 };
+const vec3_t vec3_up = { 0.0, 0.0, 1.0 };
 
-vec3_t vec3_down = { 0.0, 0.0, -1.0 };
+const vec3_t vec3_down = { 0.0, 0.0, -1.0 };
 
-vec3_t vec3_forward = { 0.0, 1.0, 0.0 };
+const vec3_t vec3_forward = { 0.0, 1.0, 0.0 };
 
 /**
  * @brief Returns a pseudo-random positive integer.
