@@ -644,7 +644,7 @@ void Bsp_OverwriteLump(file_t *file, const bsp_file_t *bsp, const bsp_lump_id_t 
 	}
 #endif
 
-	Fs_Write(file, *lump_data, lump.file_len, 1);
+	Fs_Write(file, *lump_data, lump_type_size, *lump_count);
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
 	// swap back to memory endianness
