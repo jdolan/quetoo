@@ -179,7 +179,6 @@ static void Cm_LoadBspBrushSides(void) {
 
 		const int32_t p = in->plane_num;
 		
-		// TODO: should these errors be moved to cm_bsp? a Bsp_Validate<Lump> func?
 		if (p >= cm_bsp.bsp.num_planes) {
 			Com_Error(ERROR_DROP, "Brush side %d has invalid plane %d\n", i, p);
 		}

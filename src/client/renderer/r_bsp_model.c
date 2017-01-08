@@ -22,13 +22,6 @@
 #include "r_local.h"
 #include "client.h" // load in a few Cl_ functions
 
-/**
- * @brief Quick references to the cm_ bsp that is currently loaded. We use this
- * to populate some stuff in r_bsp.
- */
-static cm_bsp_t *cm_bsp;
-static bsp_file_t *bsp_file;
-
 /*
  * Structures used for intermediate representation of data
  * to compile unique vertex list and element array
@@ -55,9 +48,9 @@ static r_bsp_unique_verts_t r_unique_vertices;
 static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 	r_bsp_vertex_t *out;
 
-	const bsp_vertex_t *in = bsp_file->vertexes;
+	const bsp_vertex_t *in = bsp->file->vertexes;
 
-	r_unique_vertices.num_vertexes = bsp_file->num_vertexes;
+	r_unique_vertices.num_vertexes = bsp->file->num_vertexes;
 	r_unique_vertices.vertexes = out = Mem_LinkMalloc(r_unique_vertices.num_vertexes * sizeof(*out), bsp);
 
 	for (uint16_t i = 0; i < r_unique_vertices.num_vertexes; i++, in++, out++) {
@@ -72,11 +65,10 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
  */
 static void R_LoadBspNormals(r_bsp_model_t *bsp) {
 
-	const bsp_normal_t *in = bsp_file->normals;
-
-	// TODO: move to validate funcs
-	if (bsp_file->num_normals != r_unique_vertices.num_vertexes) { // ensure sane normals count
-		Com_Error(ERROR_DROP, "Bad count (%d != %d)\n", bsp_file->num_normals, r_unique_vertices.num_vertexes);
+	const bsp_normal_t *in = bsp->file->normals;
+	
+	if (bsp->file->num_normals != r_unique_vertices.num_vertexes) { // ensure sane normals count
+		Com_Error(ERROR_DROP, "Bad count (%d != %d)\n", bsp->file->num_normals, r_unique_vertices.num_vertexes);
 	}
 
 	r_bsp_vertex_t *out = r_unique_vertices.vertexes;
@@ -84,26 +76,6 @@ static void R_LoadBspNormals(r_bsp_model_t *bsp) {
 	for (uint16_t i = 0; i < r_unique_vertices.num_vertexes; i++, in++, out++) {
 		VectorCopy(in->normal, out->normal);
 	}
-}
-
-/**
- * @brief Loads all r_bsp_edge_t for the specified BSP model.
- * FIXME is entirely duplicated content, can remove
- */
-static void R_LoadBspEdges(r_bsp_model_t *bsp) {
-
-	bsp->num_edges = bsp_file->num_edges;
-	bsp->edges = bsp_file->edges;
-}
-
-/**
- * @brief
- * FIXME is entirely duplicated content, can remove
- */
-static void R_LoadBspSurfaceEdges(r_bsp_model_t *bsp) {
-
-	bsp->num_surface_edges = bsp_file->num_face_edges;
-	bsp->surface_edges = bsp_file->face_edges;
 }
 
 /**
@@ -128,10 +100,7 @@ static void R_LoadBspLightmaps(r_bsp_model_t *bsp) {
  */
 static void R_LoadBspPlanes(r_bsp_model_t *bsp) {
 
-	bsp->num_planes = bsp_file->num_planes;
-	bsp->planes = cm_bsp->planes;
-
-	bsp->plane_shadows = Mem_LinkMalloc(((bsp->num_planes / 2) + 1) * sizeof(uint16_t), bsp);
+	bsp->plane_shadows = Mem_LinkMalloc(((bsp->file->num_planes / 2) + 1) * sizeof(uint16_t), bsp);
 }
 
 /**
@@ -141,9 +110,9 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp) {
 static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
 	r_bsp_texinfo_t *out;
 
-	const bsp_texinfo_t *in = bsp_file->texinfo;
+	const bsp_texinfo_t *in = bsp->file->texinfo;
 
-	bsp->num_texinfo = bsp_file->num_texinfo;
+	bsp->num_texinfo = bsp->file->num_texinfo;
 	bsp->texinfo = out = Mem_LinkMalloc(bsp->num_texinfo * sizeof(*out), bsp);
 
 	for (uint16_t i = 0; i < bsp->num_texinfo; i++, in++, out++) {
@@ -187,7 +156,7 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
  * @brief Convenience for resolving r_bsp_vertex_t from surface edges.
  */
 #define R_BSP_VERTEX(b, e) ((e) >= 0 ? \
-                            (&r_unique_vertices.vertexes[b->edges[(e)].v[0]]) : (&r_unique_vertices.vertexes[b->edges[-(e)].v[1]]) \
+                            (&r_unique_vertices.vertexes[b->file->edges[(e)].v[0]]) : (&r_unique_vertices.vertexes[b->file->edges[-(e)].v[1]]) \
                            )
 
 /**
@@ -198,7 +167,7 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
 static const r_bsp_vertex_t *R_UnwindBspSurface(const r_bsp_model_t *bsp,
         const r_bsp_surface_t *surf, uint16_t *index) {
 
-	const int32_t *edges = &bsp->surface_edges[surf->first_edge];
+	const int32_t *edges = &bsp->file->face_edges[surf->first_edge];
 
 	const r_bsp_vertex_t *v0 = R_BSP_VERTEX(bsp, edges[*index]);
 	while (*index < surf->num_edges - 1) {
@@ -237,7 +206,7 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 
 	const r_bsp_texinfo_t *tex = surf->texinfo;
 
-	const int32_t *e = &bsp->surface_edges[surf->first_edge];
+	const int32_t *e = &bsp->file->face_edges[surf->first_edge];
 
 	for (uint16_t i = 0; i < surf->num_edges; i++, e++) {
 		const r_bsp_vertex_t *v = R_BSP_VERTEX(bsp, *e);
@@ -304,11 +273,11 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
 
 	r_bsp_surface_t *out;
-	const bsp_face_t *in = bsp_file->faces;
+	const bsp_face_t *in = bsp->file->faces;
 
 	uint32_t start = SDL_GetTicks();
 
-	bsp->num_surfaces = bsp_file->num_faces;
+	bsp->num_surfaces = bsp->file->num_faces;
 	bsp->surfaces = out = Mem_LinkMalloc(bsp->num_surfaces * sizeof(*out), bsp);
 
 	for (uint16_t i = 0; i < bsp->num_surfaces; i++, in++, out++) {
@@ -318,7 +287,7 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
 
 		// resolve plane
 		const uint16_t plane_num = in->plane_num;
-		out->plane = bsp->planes + plane_num;
+		out->plane = bsp->cm->planes + plane_num;
 
 		// and sidedness
 		const int16_t side = in->side;
@@ -348,7 +317,7 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
 
 		// lastly lighting info
 		const int32_t ofs = in->light_ofs;
-		const byte *data = (ofs == -1) ? NULL : bsp_file->lightmap_data + ofs;
+		const byte *data = (ofs == -1) ? NULL : bsp->file->lightmap_data + ofs;
 
 		// to create the lightmap and deluxemap
 		R_CreateBspSurfaceLightmap(bsp, out, data);
@@ -360,7 +329,7 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
 	R_EndBspSurfaceLightmaps(bsp);
 
 	// free the lightmap lump, we're done with it
-	if (bsp_file->lightmap_data_size) {
+	if (bsp->file->lightmap_data_size) {
 		out = bsp->surfaces;
 
 		for (uint16_t i = 0; i < bsp->num_surfaces; i++, out++) {
@@ -378,16 +347,15 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
 static void R_LoadBspLeafSurfaces(r_bsp_model_t *bsp) {
 	r_bsp_surface_t **out;
 
-	const uint16_t *in = bsp_file->leaf_faces;
+	const uint16_t *in = bsp->file->leaf_faces;
 
-	bsp->num_leaf_surfaces = bsp_file->num_leaf_faces;
+	bsp->num_leaf_surfaces = bsp->file->num_leaf_faces;
 	bsp->leaf_surfaces = out = Mem_LinkMalloc(bsp->num_leaf_surfaces * sizeof(*out), bsp);
 
 	for (uint16_t i = 0; i < bsp->num_leaf_surfaces; i++) {
 
 		const uint16_t j = in[i];
 
-		// TODO: move to bsp verification
 		if (j >= bsp->num_surfaces) {
 			Com_Error(ERROR_DROP, "Bad surface number: %d\n", j);
 		}
@@ -402,9 +370,9 @@ static void R_LoadBspLeafSurfaces(r_bsp_model_t *bsp) {
 static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
 	r_bsp_leaf_t *out;
 
-	const bsp_leaf_t *in = bsp_file->leafs;
+	const bsp_leaf_t *in = bsp->file->leafs;
 
-	bsp->num_leafs = bsp_file->num_leafs;
+	bsp->num_leafs = bsp->file->num_leafs;
 	bsp->leafs = out = Mem_LinkMalloc(bsp->num_leafs * sizeof(*out), bsp);
 
 	for (uint16_t i = 0; i < bsp->num_leafs; i++, in++, out++) {
@@ -457,9 +425,9 @@ static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent) {
 static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 	r_bsp_node_t *out;
 
-	const bsp_node_t *in = bsp_file->nodes;
+	const bsp_node_t *in = bsp->file->nodes;
 
-	bsp->num_nodes = bsp_file->num_nodes;
+	bsp->num_nodes = bsp->file->num_nodes;
 	bsp->nodes = out = Mem_LinkMalloc(bsp->num_nodes * sizeof(*out), bsp);
 
 	for (uint16_t i = 0; i < bsp->num_nodes; i++, in++, out++) {
@@ -468,7 +436,7 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 		VectorCopy(in->maxs, out->maxs);
 
 		const int32_t p = in->plane_num;
-		out->plane = bsp->planes + p;
+		out->plane = bsp->cm->planes + p;
 
 		out->first_surface = in->first_face;
 		out->num_surfaces = in->num_faces;
@@ -496,11 +464,11 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
  */
 static void R_LoadBspClusters(r_bsp_model_t *bsp) {
 
-	if (!bsp_file->vis_data_size) {
+	if (!bsp->file->vis_data_size) {
 		return;
 	}
 
-	bsp_vis_t *vis = bsp_file->vis_data.vis;
+	bsp_vis_t *vis = bsp->file->vis_data.vis;
 
 	bsp->num_clusters = vis->num_clusters;
 	bsp->clusters = Mem_LinkMalloc(bsp->num_clusters * sizeof(r_bsp_cluster_t), bsp);
@@ -559,9 +527,9 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 	r_bsp_inline_model_t *out;
 
-	const bsp_model_t *in = bsp_file->models;
+	const bsp_model_t *in = bsp->file->models;
 
-	bsp->num_inline_models = bsp_file->num_models;;
+	bsp->num_inline_models = bsp->file->num_models;;
 	bsp->inline_models = out = Mem_LinkMalloc(bsp->num_inline_models * sizeof(*out), bsp);
 
 	for (uint16_t i = 0; i < bsp->num_inline_models; i++, in++, out++) {
@@ -578,7 +546,6 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 		out->head_node = in->head_node;
 
 		// some (old) maps have invalid inline model head_nodes
-		// FIXME: move this to validation step
 		if (out->head_node < 0 || out->head_node >= bsp->num_nodes) {
 			Com_Warn("Bad head_node for %d: %d\n", i, out->head_node);
 			out->head_node = -1;
@@ -670,7 +637,7 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 
 	surf->index = *elements;
 
-	const int32_t *e = &mod->bsp->surface_edges[surf->first_edge];
+	const int32_t *e = &mod->bsp->file->face_edges[surf->first_edge];
 
 	for (uint16_t i = 0; i < surf->num_edges; i++, e++) {
 		const r_bsp_vertex_t *vert = R_BSP_VERTEX(mod->bsp, *e);
@@ -1007,16 +974,16 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	// guaranteed that the cm system has the BSP loaded by here, so
 	// let's just use its data as a base
 	file_t *file = (file_t *) buffer;
-	cm_bsp = Cm_Bsp();
-	bsp_file = &cm_bsp->bsp;
+	mod->bsp->cm = Cm_Bsp();
+	mod->bsp->file = &mod->bsp->cm->bsp;
 
 	int32_t version = Bsp_Verify(file);
 
 	// load in lumps that the renderer needs
-	Bsp_LoadLumps(file, bsp_file, R_BSP_LUMPS);
+	Bsp_LoadLumps(file, mod->bsp->file, R_BSP_LUMPS);
 
 	if (version == BSP_VERSION_QUETOO) { // enhanced format
-		Bsp_LoadLumps(file, bsp_file, R_BSP_LUMPS_ENHANCED);
+		Bsp_LoadLumps(file, mod->bsp->file, R_BSP_LUMPS_ENHANCED);
 	}
 
 	mod->bsp = Mem_LinkMalloc(sizeof(r_bsp_model_t), mod);
@@ -1030,16 +997,10 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 		R_LoadBspNormals(mod->bsp);
 	}
 
-	Cl_LoadingProgress(8, "edges");
-	R_LoadBspEdges(mod->bsp);
-
-	Cl_LoadingProgress(12, "surface edges");
-	R_LoadBspSurfaceEdges(mod->bsp);
-
-	Cl_LoadingProgress(16, "lightmaps");
+	Cl_LoadingProgress(8, "lightmaps");
 	R_LoadBspLightmaps(mod->bsp);
 
-	Cl_LoadingProgress(20, "planes");
+	Cl_LoadingProgress(14, "planes");
 	R_LoadBspPlanes(mod->bsp);
 
 	Cl_LoadingProgress(24, "texinfo");
@@ -1082,8 +1043,8 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Com_Debug(DEBUG_RENDERER, "!  Verts:          %d (%d unique, %d elements)\n", r_unique_vertices.num_vertexes,
 	          mod->num_verts,
 	          mod->num_elements);
-	Com_Debug(DEBUG_RENDERER, "!  Edges:          %d\n", mod->bsp->num_edges);
-	Com_Debug(DEBUG_RENDERER, "!  Surface edges:  %d\n", mod->bsp->num_surface_edges);
+	Com_Debug(DEBUG_RENDERER, "!  Edges:          %d\n", mod->bsp->file->num_edges);
+	Com_Debug(DEBUG_RENDERER, "!  Surface edges:  %d\n", mod->bsp->file->num_face_edges);
 	Com_Debug(DEBUG_RENDERER, "!  Faces:          %d\n", mod->bsp->num_surfaces);
 	Com_Debug(DEBUG_RENDERER, "!  Nodes:          %d\n", mod->bsp->num_nodes);
 	Com_Debug(DEBUG_RENDERER, "!  Leafs:          %d\n", mod->bsp->num_leafs);

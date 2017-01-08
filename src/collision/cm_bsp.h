@@ -203,67 +203,64 @@ typedef struct {
 typedef struct {
 	// BSP lumps
 	int32_t entity_string_size;
-	char *entity_string;//[MAX_BSP_ENT_STRING];
+	char *entity_string;
 
 	int32_t num_planes;
-	bsp_plane_t *planes;//[MAX_BSP_PLANES];
+	bsp_plane_t *planes;
 
 	int32_t num_vertexes;
-	bsp_vertex_t *vertexes;//[MAX_BSP_VERTS];
+	bsp_vertex_t *vertexes;
 
 	int32_t vis_data_size;
 	union {
 		bsp_vis_t *vis;
 		byte *raw;
-	} vis_data;//[MAX_BSP_VISIBILITY];
+	} vis_data;
 
 	int32_t num_nodes;
-	bsp_node_t *nodes;//[MAX_BSP_NODES];
+	bsp_node_t *nodes;
 
 	int32_t num_texinfo;
-	bsp_texinfo_t *texinfo;//[MAX_BSP_TEXINFO];
+	bsp_texinfo_t *texinfo;
 
 	int32_t num_faces;
-	bsp_face_t *faces;//[MAX_BSP_FACES];
+	bsp_face_t *faces;
 
 	int32_t lightmap_data_size;
-	byte *lightmap_data;//[MAX_BSP_LIGHTING];
+	byte *lightmap_data;
 
 	int32_t num_leafs;
-	bsp_leaf_t *leafs;//[MAX_BSP_LEAFS];
+	bsp_leaf_t *leafs;
 
 	int32_t num_leaf_faces;
-	uint16_t *leaf_faces;//[MAX_BSP_LEAF_FACES];
+	uint16_t *leaf_faces;
 
 	int32_t num_leaf_brushes;
-	uint16_t *leaf_brushes;//[MAX_BSP_LEAF_BRUSHES];
+	uint16_t *leaf_brushes;
 
 	int32_t num_edges;
-	bsp_edge_t *edges;//[MAX_BSP_EDGES];
+	bsp_edge_t *edges;
 
 	int32_t num_face_edges;
-	int32_t *face_edges;//[MAX_BSP_FACE_EDGES];
+	int32_t *face_edges;
 
 	int32_t num_models;
-	bsp_model_t *models;//[MAX_BSP_MODELS];
+	bsp_model_t *models;
 
 	int32_t num_brushes;
-	bsp_brush_t *brushes;//[MAX_BSP_BRUSHES];
+	bsp_brush_t *brushes;
 
 	int32_t num_brush_sides;
-	bsp_brush_side_t *brush_sides;//[MAX_BSP_BRUSH_SIDES];
-
-	// FIXME: never used by the game?
-	//byte dpop[256];
+	bsp_brush_side_t *brush_sides;
 
 	int32_t num_areas;
-	bsp_area_t *areas;//[MAX_BSP_AREAS];
+	bsp_area_t *areas;
 
 	int32_t num_area_portals;
-	bsp_area_portal_t *area_portals;//[MAX_BSP_AREA_PORTALS];
+	bsp_area_portal_t *area_portals;
 
 	int32_t num_normals;
-	bsp_normal_t *normals;//[MAX_BSP_VERTS];
+	bsp_normal_t *normals;
 
 	// local to bsp_file_t
 	bsp_lump_id_t loaded_lumps;

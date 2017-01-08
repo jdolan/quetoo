@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26014.0
+VisualStudioVersion = 15.0.26020.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "quetoo", "quetoo.vcxproj", "{A05CAC53-F8F2-4A14-9C81-8A34F4EA9085}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -404,6 +404,9 @@ Global
 		{B1E86937-5A7A-48F6-9DAB-A1D2900C3AE1} = {570EB326-F102-4C08-8B17-4C2B600BDAC7}
 		{AD4CEB0F-306E-4D57-B579-503239939766} = {12075155-7B18-4525-885E-A2CCD24EFE04}
 		{3E6B97C6-1F51-4D72-BDFE-1D492F5EDA6C} = {12075155-7B18-4525-885E-A2CCD24EFE04}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true

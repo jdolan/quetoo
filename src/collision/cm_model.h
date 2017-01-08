@@ -40,17 +40,17 @@ typedef struct {
 	char name[MAX_QPATH];
 	bsp_file_t bsp;
 
-	cm_bsp_plane_t *planes;//[MAX_BSP_PLANES + 12]; // extra for box hull
-	cm_bsp_node_t *nodes;//[MAX_BSP_NODES + 6]; // extra for box hull
-	cm_bsp_surface_t *surfaces;//[MAX_BSP_TEXINFO];
-	cm_bsp_leaf_t *leafs;//[MAX_BSP_LEAFS + 1]; // extra for box hull
-	uint16_t *leaf_brushes;//[MAX_BSP_LEAF_BRUSHES + 1]; // extra for box hull
-	cm_bsp_model_t *models;//[MAX_BSP_MODELS];
-	cm_bsp_brush_t *brushes;//[MAX_BSP_BRUSHES + 1]; // extra for box hull
-	cm_bsp_brush_side_t *brush_sides;//[MAX_BSP_BRUSH_SIDES + 6]; // extra for box hull
-	cm_bsp_area_t *areas;//[MAX_BSP_AREAS];
+	cm_bsp_plane_t *planes;
+	cm_bsp_node_t *nodes;
+	cm_bsp_surface_t *surfaces;
+	cm_bsp_leaf_t *leafs;
+	uint16_t *leaf_brushes;
+	cm_bsp_model_t *models;
+	cm_bsp_brush_t *brushes;
+	cm_bsp_brush_side_t *brush_sides;
+	cm_bsp_area_t *areas;
 
-	_Bool *portal_open;//[MAX_BSP_AREA_PORTALS];
+	_Bool *portal_open;
 	int32_t flood_valid;
 } cm_bsp_t;
 
