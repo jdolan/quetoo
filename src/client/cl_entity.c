@@ -272,25 +272,30 @@ void Cl_ParseFrame(void) {
 	}
 
 	if (cl.frame.delta_frame_num <= 0) { // uncompressed frame
-		cl.delta_frame = NULL;
-		cl.frame.valid = true;
+		cl.delta_frame = cl.previous_frame = NULL;
 	} else { // delta compressed frame
 		cl.delta_frame = &cl.frames[cl.frame.delta_frame_num & PACKET_MASK];
 
 		if (!cl.delta_frame->valid) {
 			Com_Error(ERROR_DROP, "Delta from invalid frame\n");
-		}
-
-		if (cl.delta_frame->frame_num != cl.frame.delta_frame_num) {
+		} else if (cl.delta_frame->frame_num != cl.frame.delta_frame_num) {
 			Com_Error(ERROR_DROP, "Delta frame too old\n");
-		}
-
-		else if (cl.entity_state - cl.delta_frame->entity_state > ENTITY_STATE_BACKUP - PACKET_BACKUP) {
+		} else if (cl.entity_state - cl.delta_frame->entity_state > ENTITY_STATE_BACKUP - PACKET_BACKUP) {
 			Com_Error(ERROR_DROP, "Delta entity state too old\n");
 		}
 
-		cl.frame.valid = true;
+		cl.previous_frame = &cl.frames[(cl.frame.frame_num - 1) & PACKET_MASK];
+
+		if (cl.previous_frame->frame_num != (cl.frame.frame_num - 1)) {
+			Com_Debug(DEBUG_CLIENT, "Previous frame too old\n");
+			cl.previous_frame = NULL;
+		} else if (!cl.previous_frame->valid) {
+			Com_Debug(DEBUG_CLIENT, "Previous frame invalid\n");
+			cl.previous_frame = NULL;
+		}
 	}
+
+	cl.frame.valid = true;
 
 	const size_t len = Net_ReadByte(&net_message); // read area_bits
 	Net_ReadData(&net_message, &cl.frame.area_bits, len);
