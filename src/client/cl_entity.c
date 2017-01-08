@@ -420,7 +420,8 @@ void Cl_Interpolate(void) {
 				UnpackBounds(ent->current.bounds, ent->mins, ent->maxs);
 			}
 
-			Cm_EntityBounds(ent->current.solid, ent->current.origin, angles, ent->mins, ent->maxs, ent->abs_mins, ent->abs_maxs);
+			Cm_EntityBounds(ent->current.solid, ent->current.origin, angles, ent->mins, ent->maxs,
+							ent->abs_mins, ent->abs_maxs);
 
 			Matrix4x4_CreateFromEntity(&ent->matrix, ent->current.origin, angles, 1.0);
 			Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
