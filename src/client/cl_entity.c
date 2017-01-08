@@ -383,31 +383,6 @@ void Cl_Interpolate(void) {
 			VectorCopy(ent->current.angles, ent->angles);
 		}
 
-		if (ent->current.solid) { // interpolate the collision state for the entity
-
-			if (ent->current.solid == SOLID_BSP) {
-				const r_model_t *mod = cl.model_precache[ent->current.model1];
-
-				assert(mod);
-				assert(mod->bsp_inline);
-
-				VectorCopy(mod->bsp_inline->mins, ent->mins);
-				VectorCopy(mod->bsp_inline->maxs, ent->maxs);
-			} else {
-				UnpackBounds(ent->current.bounds, ent->mins, ent->maxs);
-			}
-
-			// FIXME: Should use ent->origin, ent->angles, but that introduces prediction errors
-
-			Cm_EntityBounds(ent->current.solid, ent->current.origin, ent->current.angles,
-							ent->mins, ent->maxs, ent->abs_mins, ent->abs_maxs);
-
-			const vec_t *angles = ent->current.solid == SOLID_BSP ? ent->current.angles : vec3_origin;
-
-			Matrix4x4_CreateFromEntity(&ent->matrix, ent->current.origin, angles, 1.0);
-			Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
-		}
-
 		if (ent->current.animation1 != ent->prev.animation1 || !ent->animation1.time) {
 			ent->animation1.animation = ent->current.animation1 & ~ANIM_TOGGLE_BIT;
 			ent->animation1.time = cl.unclamped_time;
@@ -416,6 +391,39 @@ void Cl_Interpolate(void) {
 		if (ent->current.animation2 != ent->prev.animation2 || !ent->animation2.time) {
 			ent->animation2.animation = ent->current.animation2 & ~ANIM_TOGGLE_BIT;
 			ent->animation2.time = cl.unclamped_time;
+		}
+
+		if (ent->current.solid > SOLID_DEAD) {
+			const vec_t *angles;
+
+			// FIXME
+			//
+			// Currently, the entity's collision state is snapped to the most recently received
+			// server frame, rather than its interpolated state. This works well with the prediction
+			// code, but has certain side effects, such as shadows flickering while riding platforms
+			// etc. Ideally, we would create the clipping matrix from ent->origin and ent->angles,
+			// but this introduces prediction error issues. Need to understand why the prediction
+			// code doesn't play well with the more accurate collision simulation.
+
+			if (ent->current.solid == SOLID_BSP) {
+				angles = ent->current.angles;
+
+				const r_model_t *mod = cl.model_precache[ent->current.model1];
+
+				assert(mod);
+				assert(mod->bsp_inline);
+
+				VectorCopy(mod->bsp_inline->mins, ent->mins);
+				VectorCopy(mod->bsp_inline->maxs, ent->maxs);
+			} else {
+				angles = vec3_origin;
+				UnpackBounds(ent->current.bounds, ent->mins, ent->maxs);
+			}
+
+			Cm_EntityBounds(ent->current.solid, ent->current.origin, angles, ent->mins, ent->maxs, ent->abs_mins, ent->abs_maxs);
+
+			Matrix4x4_CreateFromEntity(&ent->matrix, ent->current.origin, angles, 1.0);
+			Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
 		}
 	}
 
