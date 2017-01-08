@@ -31,7 +31,6 @@ cvar_t *cl_ignore;
 cvar_t *cl_max_fps;
 cvar_t *cl_team_chat_sound;
 cvar_t *cl_timeout;
-cvar_t *cl_view_size;
 
 cvar_t *name;
 cvar_t *message_level;
@@ -541,7 +540,6 @@ static void Cl_InitLocal(void) {
 	cl_max_fps = Cvar_Add("cl_max_fps", "0", CVAR_ARCHIVE, NULL);
 	cl_team_chat_sound = Cvar_Add("cl_team_chat_sound", "misc/teamchat", 0, NULL);
 	cl_timeout = Cvar_Add("cl_timeout", "15.0", 0, NULL);
-	cl_view_size = Cvar_Add("cl_view_size", "100.0", CVAR_ARCHIVE, NULL);
 
 	// user info
 

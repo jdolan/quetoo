@@ -31,7 +31,6 @@ extern cvar_t *cl_ignore;
 extern cvar_t *cl_max_fps;
 extern cvar_t *cl_team_chat_sound;
 extern cvar_t *cl_timeout;
-extern cvar_t *cl_view_size;
 
 // user_info
 extern cvar_t *name;
