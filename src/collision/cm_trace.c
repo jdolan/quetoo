@@ -501,3 +501,73 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const ve
 
 	return trace;
 }
+
+/**
+ * @brief Calculates a suitable bounding box for tracing to an entity.
+ * @param solid The entity's solid type.
+ * @param origin The entity's origin.
+ * @param angles The entity's angles.
+ * @param mins The entity's mins, in model space.
+ * @param maxs The entity's maxs, in model space.
+ * @param bounds_mins The resulting bounds mins, in world space.
+ * @param bounds_maxs The resulting bounds maxs, in world space.
+ * @remarks BSP entities have asymmetrical bounding boxes, requiring special attention.
+ */
+void Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angles,
+					 const vec3_t mins, const vec3_t maxs, vec_t *bounds_mins, vec_t *bounds_maxs) {
+
+	if (solid == SOLID_BSP && !VectorCompare(angles, vec3_origin)) {
+		vec_t max = 0.0;
+
+		for (int32_t i = 0; i < 3; i++) {
+			vec_t v = fabsf(mins[i]);
+			if (v > max) {
+				max = v;
+			}
+			v = fabsf(maxs[i]);
+			if (v > max) {
+				max = v;
+			}
+		}
+		for (int32_t i = 0; i < 3; i++) {
+			bounds_mins[i] = origin[i] - max;
+			bounds_maxs[i] = origin[i] + max;
+		}
+	} else {
+		VectorAdd(origin, mins, bounds_mins);
+		VectorAdd(origin, maxs, bounds_maxs);
+	}
+
+	// spread the bounds to ensure that floating point precision doesn't preclude us from
+	// testing an entity that we do in fact need to check
+
+	bounds_mins[0] -= 1.0;
+	bounds_mins[1] -= 1.0;
+	bounds_mins[2] -= 1.0;
+	bounds_maxs[0] += 1.0;
+	bounds_maxs[1] += 1.0;
+	bounds_maxs[2] += 1.0;
+}
+
+/**
+ * @brief Calculates the bounding box for a trace.
+ * @param start The trace start point, in world space.
+ * @param end The trace end point, in world space.
+ * @param mins The bounding box mins, in model space.
+ * @param maxs The bounding box maxs, in model space.
+ * @param bounds_mins The resulting bounds mins, in world space.
+ * @param bounds_maxs The resulting bounds maxs, in world space.
+ */
+void Cm_TraceBounds(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
+						   vec_t *bounds_mins, vec_t *bounds_maxs) {
+
+	for (int32_t i = 0; i < 3; i++) {
+		if (end[i] > start[i]) {
+			bounds_mins[i] = start[i] + mins[i] - 1.0;
+			bounds_maxs[i] = end[i] + maxs[i] + 1.0;
+		} else {
+			bounds_mins[i] = end[i] + mins[i] - 1.0;
+			bounds_maxs[i] = start[i] + maxs[i] + 1.0;
+		}
+	}
+}
