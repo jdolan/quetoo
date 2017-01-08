@@ -187,14 +187,25 @@ static void initialize(Class *clazz) {
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 }
 
-Class _SystemViewController = {
-	.name = "SystemViewController",
-	.superclass = &_MenuViewController,
-	.instanceSize = sizeof(SystemViewController),
-	.interfaceOffset = offsetof(SystemViewController, interface),
-	.interfaceSize = sizeof(SystemViewControllerInterface),
-	.initialize = initialize,
-};
+/**
+ * @fn Class *SystemViewController::_SystemViewController(void)
+ * @memberof SystemViewController
+ */
+Class *_SystemViewController(void) {
+	static Class clazz;
+	static Once once;
+	
+	do_once(&once, {
+		clazz.name = "SystemViewController";
+		clazz.superclass = _MenuViewController();
+		clazz.instanceSize = sizeof(SystemViewController);
+		clazz.interfaceOffset = offsetof(SystemViewController, interface);
+		clazz.interfaceSize = sizeof(SystemViewControllerInterface);
+		clazz.initialize = initialize;
+	});
+
+	return &clazz;
+}
 
 #undef _Class
 

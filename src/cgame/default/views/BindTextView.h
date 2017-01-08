@@ -78,6 +78,9 @@ struct BindTextViewInterface {
 };
 
 /**
- * @brief The BindTextView Class.
+ * @fn Class *BindTextView::_BindTextView(void)
+ * @brief The BindTextView archetype.
+ * @return The BindTextView Class.
+ * @memberof BindTextView
  */
-extern Class _BindTextView;
+extern Class *_BindTextView(void);

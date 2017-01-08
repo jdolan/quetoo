@@ -81,7 +81,10 @@ struct CvarSliderInterface {
 };
 
 /**
- * @brief The CvarSlider Class.
+ * @fn Class *CvarSlider::_CvarSlider(void)
+ * @brief The CvarSlider archetype.
+ * @return The CvarSlider Class.
+ * @memberof CvarSlider
  */
-extern Class _CvarSlider;
+extern Class *_CvarSlider(void);
 

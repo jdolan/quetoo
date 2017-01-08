@@ -156,14 +156,25 @@ static void initialize(Class *clazz) {
 	((BindTextViewInterface *) clazz->def->interface)->initWithBind = initWithBind;
 }
 
-Class _BindTextView = {
-	.name = "BindTextView",
-	.superclass = &_TextView,
-	.instanceSize = sizeof(BindTextView),
-	.interfaceOffset = offsetof(BindTextView, interface),
-	.interfaceSize = sizeof(BindTextViewInterface),
-	.initialize = initialize,
-};
+/**
+ * @fn Class *BindTextView::_BindTextView(void)
+ * @memberof BindTextView
+ */
+Class *_BindTextView(void) {
+	static Class clazz;
+	static Once once;
+	
+	do_once(&once, {
+		clazz.name = "BindTextView";
+		clazz.superclass = _TextView();
+		clazz.instanceSize = sizeof(BindTextView);
+		clazz.interfaceOffset = offsetof(BindTextView, interface);
+		clazz.interfaceSize = sizeof(BindTextViewInterface);
+		clazz.initialize = initialize;
+	});
+
+	return &clazz;
+}
 
 #undef _Class
 

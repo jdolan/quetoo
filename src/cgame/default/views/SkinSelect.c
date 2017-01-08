@@ -119,14 +119,25 @@ static void initialize(Class *clazz) {
 	((SkinSelectInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 }
 
-Class _SkinSelect = {
-	.name = "SkinSelect",
-	.superclass = &_Select,
-	.instanceSize = sizeof(SkinSelect),
-	.interfaceOffset = offsetof(SkinSelect, interface),
-	.interfaceSize = sizeof(SkinSelectInterface),
-	.initialize = initialize,
-};
+/**
+ * @fn Class *SkinSelect::_SkinSelect(void)
+ * @memberof SkinSelect
+ */
+Class *_SkinSelect(void) {
+	static Class clazz;
+	static Once once;
+	
+	do_once(&once, {
+		clazz.name = "SkinSelect";
+		clazz.superclass = _Select();
+		clazz.instanceSize = sizeof(SkinSelect);
+		clazz.interfaceOffset = offsetof(SkinSelect, interface);
+		clazz.interfaceSize = sizeof(SkinSelectInterface);
+		clazz.initialize = initialize;
+	});
+
+	return &clazz;
+}
 
 #undef _Class
 

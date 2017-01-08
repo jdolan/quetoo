@@ -31,6 +31,16 @@ copy "$outdir\game.pdb" "Quetoo\lib\default\"
 copy "$outdir\que*.exe" "Quetoo\bin\"
 copy "$outdir\que*.pdb" "Quetoo\bin\"
 
+# copy Objectively
+$libdir = "..\..\Objectively\Objectively.vs15\bin"
+copy "$libdir\${env:Platform}Release\Objectively.dll" "Quetoo\bin\"
+copy "$libdir\${env:Platform}Release\Objectively.pdb" "Quetoo\bin\"
+
+# copy ObjectivelyMVC
+$libdir = "..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin"
+copy "$libdir\${env:Platform}Release\ObjectivelyMVC.dll" "Quetoo\bin\"
+copy "$libdir\${env:Platform}Release\ObjectivelyMVC.pdb" "Quetoo\bin\"
+
 # copy external libs
 $libdir = "libs"
 copy "$libdir\sdl_mixer\lib\${env:Platform}\*.dll" "Quetoo\bin\"

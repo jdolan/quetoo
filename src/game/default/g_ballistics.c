@@ -116,6 +116,85 @@ static void G_Tracer(const vec3_t start, const vec3_t end) {
 }
 
 /**
+ * @brief Emit a water ripple and optional splash effect.
+ * @details The caller must pass either an entity, or two points to trace between.
+ * @param ent The entity entering the water, or NULL.
+ * @param pos1 The start position to trace for liquid from, or NULL.
+ * @param pos2 The end position to trace for liquid to, or NULL.
+ * @param size The ripple size, or 0.0 to use the entity's size.
+ * @param splash True to emit a splash effect, false otherwise.
+ */
+void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, vec_t size, _Bool splash) {
+	vec3_t start, end;
+
+	if (ent) {
+
+		if (g_level.time - ent->locals.ripple_time < 100) {
+			return;
+		}
+
+		ent->locals.ripple_time = g_level.time;
+
+		VectorAdd(ent->s.origin, ent->maxs, start);
+		VectorAdd(ent->s.origin, ent->mins, end);
+
+		start[0] = end[0] = (start[0] + end[0]) * 0.5;
+		start[1] = end[1] = (start[1] + end[1]) * 0.5;
+
+		start[2] += 16.0, end[2] -= 16.0;
+
+	} else {
+		VectorCopy(pos1, start);
+		VectorCopy(pos2, end);
+	}
+
+	const cm_trace_t tr = gi.Trace(start, end, NULL, NULL, ent, MASK_LIQUID);
+	if (tr.start_solid || tr.fraction == 1.0) {
+		gi.Debug("%s failed to resolve water\n", etos(ent));
+		return;
+	}
+
+	vec_t viscosity;
+
+	if (tr.contents & CONTENTS_SLIME) {
+		viscosity = 20.0;
+	} else if (tr.contents & CONTENTS_LAVA) {
+		viscosity = 30.0;
+	} else if (tr.contents & CONTENTS_WATER) {
+		viscosity = 10.0;
+	} else {
+		gi.Debug("%s failed to resolve water type\n", etos(ent));
+		return;
+	}
+
+	vec3_t pos, dir;
+
+	VectorAdd(tr.end, vec3_up, pos);
+	VectorCopy(tr.plane.normal, dir);
+
+	if (ent && size == 0.0) {
+		if (ent->locals.ripple_size) {
+			size = ent->locals.ripple_size;
+		} else {
+			vec3_t bounds;
+			VectorSubtract(ent->maxs, ent->mins, bounds);
+
+			size = Clamp(VectorLength(bounds), 12.0, 64.0);
+		}
+	}
+
+	gi.WriteByte(SV_CMD_TEMP_ENTITY);
+	gi.WriteByte(TE_RIPPLE);
+	gi.WritePosition(pos);
+	gi.WriteDir(dir);
+	gi.WriteByte((uint8_t) size);
+	gi.WriteByte((uint8_t) viscosity);
+	gi.WriteByte((uint8_t) splash);
+
+	gi.Multicast(pos, MULTICAST_PVS, NULL);
+}
+
+/**
  * @brief Project a point laying on a mover as if it was moving.
  */
 static void G_ProjectStructuralPoint(const g_entity_t *mover, const vec3_t point, vec3_t out) {
@@ -284,9 +363,8 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 			G_BulletImpact(end, &tr.plane, tr.surface);
 		}
 
-		if ((gi.PointContents(start) & MASK_LIQUID) || (gi.PointContents(tr.end) & MASK_LIQUID)) {
-			G_LiquidRipple(ent, start, tr.end, 25.0);
-
+		if (gi.PointContents(tr.end) & MASK_LIQUID) {
+			G_Ripple(NULL, start, tr.end, 8.0, true);
 			G_BubbleTrail(start, &tr);
 		}
 	}
@@ -570,6 +648,7 @@ void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 	projectile->locals.damage = damage;
 	projectile->locals.damage_radius = damage_radius;
 	projectile->locals.knockback = knockback;
+	projectile->locals.ripple_size = 32.0;
 	projectile->locals.move_type = MOVE_TYPE_FLY;
 	projectile->locals.next_think = g_level.time + 8000;
 	projectile->locals.Think = G_FreeEntity;
@@ -767,7 +846,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		tr = gi.Trace(water_start, end, NULL, NULL, self, MASK_CLIP_PROJECTILE);
 		G_BubbleTrail(water_start, &tr);
 
-		G_LiquidRipple(self, start, end, 25.0);
+		G_Ripple(NULL, start, end, 16.0, true);
 	} else {
 		if (self->locals.water_level) { // exited water, play sound, no trail
 			gi.PositionedSound(water_start, NULL, g_media.sounds.water_out, ATTEN_NORM);
@@ -873,7 +952,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 
 	VectorMA(pos, MAX_WORLD_DIST, dir, end);
 
-	G_LiquidRipple(ent, pos, end, 60.0);
+	G_Ripple(NULL, pos, end, 24.0, true);
 
 	cm_trace_t tr;
 	memset(&tr, 0, sizeof(tr));

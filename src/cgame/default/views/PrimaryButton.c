@@ -70,14 +70,25 @@ static void initialize(Class *clazz) {
 	((PrimaryButtonInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 }
 
-Class _PrimaryButton = {
-	.name = "PrimaryButton",
-	.superclass = &_Button,
-	.instanceSize = sizeof(PrimaryButton),
-	.interfaceOffset = offsetof(PrimaryButton, interface),
-	.interfaceSize = sizeof(PrimaryButtonInterface),
-	.initialize = initialize,
-};
+/**
+ * @fn Class *PrimaryButton::_PrimaryButton(void)
+ * @memberof PrimaryButton
+ */
+Class *_PrimaryButton(void) {
+	static Class clazz;
+	static Once once;
+	
+	do_once(&once, {
+		clazz.name = "PrimaryButton";
+		clazz.superclass = _Button();
+		clazz.instanceSize = sizeof(PrimaryButton);
+		clazz.interfaceOffset = offsetof(PrimaryButton, interface);
+		clazz.interfaceSize = sizeof(PrimaryButtonInterface);
+		clazz.initialize = initialize;
+	});
+
+	return &clazz;
+}
 
 #undef _Class
 

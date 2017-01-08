@@ -181,7 +181,7 @@ _Bool WindingIsTiny(const winding_t *w);
 // textures.c
 int32_t FindMiptex(char *name);
 
-int32_t TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt, vec3_t origin);
+int32_t TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt, const vec3_t origin);
 
 void FindGCD(int32_t *v);
 

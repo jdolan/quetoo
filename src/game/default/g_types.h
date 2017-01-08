@@ -187,7 +187,7 @@ typedef enum {
 	TE_BFG_LASER,
 	TE_BFG,
 	TE_GIB,
-	TE_RIPPLE
+	TE_RIPPLE,
 } g_temp_entity_t;
 
 /**
@@ -925,8 +925,8 @@ typedef struct {
 
 	uint32_t touch_time;
 	uint32_t push_time;
-
-	uint32_t ripple_time; // spawn a liquid ripple when time > this
+	uint32_t ripple_time;
+	vec_t ripple_size;
 
 	int16_t health;
 	int16_t max_health;

@@ -63,7 +63,10 @@ struct SystemViewControllerInterface {
 };
 
 /**
- * @brief The SystemViewController Class.
+ * @fn Class *SystemViewController::_SystemViewController(void)
+ * @brief The SystemViewController archetype.
+ * @return The SystemViewController Class.
+ * @memberof SystemViewController
  */
-extern Class _SystemViewController;
+extern Class *_SystemViewController(void);
 

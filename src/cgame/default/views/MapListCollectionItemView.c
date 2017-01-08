@@ -71,14 +71,25 @@ static void initialize(Class *clazz) {
 	((MapListCollectionItemViewInterface *) clazz->def->interface)->setMapListItemInfo = setMapListItemInfo;
 }
 
-Class _MapListCollectionItemView = {
-	.name = "MapListCollectionItemView",
-	.superclass = &_CollectionItemView,
-	.instanceSize = sizeof(MapListCollectionItemView),
-	.interfaceOffset = offsetof(MapListCollectionItemView, interface),
-	.interfaceSize = sizeof(MapListCollectionItemViewInterface),
-	.initialize = initialize,
-};
+/**
+ * @fn Class *MapListCollectionItemView::_MapListCollectionItemView(void)
+ * @memberof MapListCollectionItemView
+ */
+Class *_MapListCollectionItemView(void) {
+	static Class clazz;
+	static Once once;
+	
+	do_once(&once, {
+		clazz.name = "MapListCollectionItemView";
+		clazz.superclass = _CollectionItemView();
+		clazz.instanceSize = sizeof(MapListCollectionItemView);
+		clazz.interfaceOffset = offsetof(MapListCollectionItemView, interface);
+		clazz.interfaceSize = sizeof(MapListCollectionItemViewInterface);
+		clazz.initialize = initialize;
+	});
+
+	return &clazz;
+}
 
 #undef _Class
 

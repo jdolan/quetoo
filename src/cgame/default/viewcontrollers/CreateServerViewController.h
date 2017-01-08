@@ -85,7 +85,10 @@ struct CreateServerViewControllerInterface {
 };
 
 /**
- * @brief The CreateServerViewController Class.
+ * @fn Class *CreateServerViewController::_CreateServerViewController(void)
+ * @brief The CreateServerViewController archetype.
+ * @return The CreateServerViewController Class.
+ * @memberof CreateServerViewController
  */
-extern Class _CreateServerViewController;
+extern Class *_CreateServerViewController(void);
 

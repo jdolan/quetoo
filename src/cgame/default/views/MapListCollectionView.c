@@ -319,14 +319,25 @@ static void initialize(Class *clazz) {
 	((MapListCollectionViewInterface *) clazz->def->interface)->selectedMaps = selectedMaps;
 }
 
-Class _MapListCollectionView = {
-	.name = "MapListCollectionView",
-	.superclass = &_CollectionView,
-	.instanceSize = sizeof(MapListCollectionView),
-	.interfaceOffset = offsetof(MapListCollectionView, interface),
-	.interfaceSize = sizeof(MapListCollectionViewInterface),
-	.initialize = initialize,
-};
+/**
+ * @fn Class *MapListCollectionView::_MapListCollectionView(void)
+ * @memberof MapListCollectionView
+ */
+Class *_MapListCollectionView(void) {
+	static Class clazz;
+	static Once once;
+	
+	do_once(&once, {
+		clazz.name = "MapListCollectionView";
+		clazz.superclass = _CollectionView();
+		clazz.instanceSize = sizeof(MapListCollectionView);
+		clazz.interfaceOffset = offsetof(MapListCollectionView, interface);
+		clazz.interfaceSize = sizeof(MapListCollectionViewInterface);
+		clazz.initialize = initialize;
+	});
+
+	return &clazz;
+}
 
 #undef _Class
 
