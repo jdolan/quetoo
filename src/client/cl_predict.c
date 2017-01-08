@@ -25,10 +25,10 @@
  * @brief Prepares the collision model to clip to the specified entity. For
  * mesh models, the box hull must be set to reflect the bounds of the entity.
  */
-static int32_t Cl_HullForEntity(const entity_state_t *ent) {
+static int32_t Cl_HullForEntity(const entity_state_t *s) {
 
-	if (ent->solid == SOLID_BSP) {
-		const cm_bsp_model_t *mod = cl.cm_models[ent->model1];
+	if (s->solid == SOLID_BSP) {
+		const cm_bsp_model_t *mod = cl.cm_models[s->model1];
 
 		if (!mod) {
 			Com_Error(ERROR_DROP, "SOLID_BSP with no model\n");
@@ -37,13 +37,12 @@ static int32_t Cl_HullForEntity(const entity_state_t *ent) {
 		return mod->head_node;
 	}
 
-	vec3_t emins, emaxs;
-	UnpackBounds(ent->bounds, emins, emaxs);
+	const cl_entity_t *ent = &cl.entities[s->number];
 
-	if (ent->client) {
-		return Cm_SetBoxHull(emins, emaxs, CONTENTS_MONSTER);
+	if (s->client) {
+		return Cm_SetBoxHull(ent->mins, ent->maxs, CONTENTS_MONSTER);
 	} else {
-		return Cm_SetBoxHull(emins, emaxs, CONTENTS_SOLID);
+		return Cm_SetBoxHull(ent->mins, ent->maxs, CONTENTS_SOLID);
 	}
 }
 
@@ -84,6 +83,7 @@ int32_t Cl_PointContents(const vec3_t point) {
 typedef struct {
 	const vec_t *mins, *maxs;
 	const vec_t *start, *end;
+	vec3_t box_mins, box_maxs;
 	cm_trace_t trace;
 	uint16_t skip;
 	int32_t contents;
@@ -107,13 +107,13 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 			continue;
 		}
 
-		if (s->number == cl.client_num + 1) {
-			continue;
-		}
-
 		const cl_entity_t *ent = &cl.entities[s->number];
 
 		if (ent == cl.entity) {
+			continue;
+		}
+
+		if (!BoxIntersect(ent->abs_mins, ent->abs_maxs, trace->box_mins, trace->box_maxs)) {
 			continue;
 		}
 
@@ -170,6 +170,8 @@ cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, con
 	trace.maxs = maxs;
 	trace.skip = skip;
 	trace.contents = contents;
+
+	Cm_TraceBounds(start, end, mins, maxs, trace.box_maxs, trace.box_maxs);
 
 	Cl_ClipTraceToEntities(&trace);
 
