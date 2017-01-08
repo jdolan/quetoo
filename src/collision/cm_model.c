@@ -74,7 +74,7 @@ static void Cm_LoadBspSurfaces(void) {
 	const int32_t num_texinfo = cm_bsp.bsp.num_texinfo;
 	const bsp_texinfo_t *in = cm_bsp.bsp.texinfo;
 
-	cm_bsp_surface_t *out = cm_bsp.surfaces = Mem_Malloc(sizeof(cm_bsp_surface_t) * num_texinfo);
+	cm_bsp_texinfo_t *out = cm_bsp.texinfos = Mem_Malloc(sizeof(cm_bsp_texinfo_t) * num_texinfo);
 
 	for (int32_t i = 0; i < num_texinfo; i++, in++, out++) {
 
@@ -195,7 +195,7 @@ static void Cm_LoadBspBrushSides(void) {
 				Com_Error(ERROR_DROP, "Brush side %d has invalid surface %d\n", i, s);
 			}
 		
-			out->surface = &cm_bsp.surfaces[s];
+			out->surface = &cm_bsp.texinfos[s];
 		}
 	}
 }
@@ -279,7 +279,7 @@ static GArray *Cm_LoadBspMaterials(const char *name) {
 static void Cm_UnloadBspMaterials(void) {
 
 	for (int32_t i = 0; i < cm_bsp.bsp.num_texinfo; i++) {
-		cm_bsp_surface_t *surf = &cm_bsp.surfaces[i];
+		cm_bsp_texinfo_t *surf = &cm_bsp.texinfos[i];
 
 		if (surf->material) {
 			Cm_UnrefMaterial(surf->material);
@@ -318,7 +318,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	// free dynamic memory
 	Mem_Free(cm_bsp.planes);
 	Mem_Free(cm_bsp.nodes);
-	Mem_Free(cm_bsp.surfaces);
+	Mem_Free(cm_bsp.texinfos);
 	Mem_Free(cm_bsp.leafs);
 	Mem_Free(cm_bsp.leaf_brushes);
 	Mem_Free(cm_bsp.models);

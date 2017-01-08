@@ -72,7 +72,7 @@ typedef struct {
 	int32_t flags;
 	int32_t value;
 	struct cm_material_s *material;
-} cm_bsp_surface_t;
+} cm_bsp_texinfo_t;
 
 /**
  * @brief Inline BSP models are segments of the collision model that may move.
@@ -122,7 +122,7 @@ typedef struct {
 	/**
 	 * @brief The impacted surface, or `NULL`.
 	 */
-	cm_bsp_surface_t *surface;
+	cm_bsp_texinfo_t *surface;
 
 	/**
 	 * @brief The contents mask of the impacted brush, or 0.
@@ -142,7 +142,7 @@ typedef struct {
 
 typedef struct {
 	cm_bsp_plane_t *plane;
-	cm_bsp_surface_t *surface;
+	cm_bsp_texinfo_t *surface;
 } cm_bsp_brush_side_t;
 
 typedef struct {

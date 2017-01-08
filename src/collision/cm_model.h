@@ -42,7 +42,7 @@ typedef struct {
 
 	cm_bsp_plane_t *planes;
 	cm_bsp_node_t *nodes;
-	cm_bsp_surface_t *surfaces;
+	cm_bsp_texinfo_t *texinfos;
 	cm_bsp_leaf_t *leafs;
 	uint16_t *leaf_brushes;
 	cm_bsp_model_t *models;

@@ -62,7 +62,7 @@ typedef struct {
 	vec_t time; // the command duration in seconds
 
 	// ground interactions
-	cm_bsp_surface_t *ground_surface;
+	cm_bsp_texinfo_t *ground_surface;
 	cm_bsp_plane_t ground_plane;
 	int32_t ground_contents;
 

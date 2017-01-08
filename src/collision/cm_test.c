@@ -137,7 +137,7 @@ static cm_box_t cm_box;
  * just beyond the parsed size of the map.
  */
 void Cm_InitBoxHull(void) {
-	static cm_bsp_surface_t null_surface;
+	static cm_bsp_texinfo_t null_surface;
 
 	if (cm_bsp.bsp.num_planes + 12 > MAX_BSP_PLANES) {
 		Com_Error(ERROR_DROP, "MAX_BSP_PLANES\n");
