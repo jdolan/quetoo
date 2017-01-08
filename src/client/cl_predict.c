@@ -64,8 +64,13 @@ int32_t Cl_PointContents(const vec3_t point) {
 			continue;
 		}
 
-		const int32_t head_node = Cl_HullForEntity(s);
 		const cl_entity_t *ent = &cl.entities[s->number];
+
+		if (ent == cl.entity) {
+			continue;
+		}
+
+		const int32_t head_node = Cl_HullForEntity(s);
 
 		contents |= Cm_TransformedPointContents(point, head_node, &ent->inverse_matrix);
 	}
