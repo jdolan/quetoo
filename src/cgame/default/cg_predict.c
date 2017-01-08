@@ -31,11 +31,15 @@ _Bool Cg_UsePrediction(void) {
 		return false;
 	}
 
-	if (cgi.client->demo_server || cgi.client->third_person) {
+	if (cgi.client->demo_server) {
 		return false;
 	}
 
-	if (cgi.client->frame.ps.pm_state.flags & PMF_NO_PREDICTION) {
+	if (cgi.client->third_person) {
+		return false;
+	}
+
+	if (cgi.client->frame.ps.pm_state.type == PM_FREEZE) {
 		return false;
 	}
 

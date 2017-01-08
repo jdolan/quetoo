@@ -158,7 +158,6 @@ extern const vec3_t PM_MAXS;
 #define PMF_TIME_TELEPORT		(PMF_GAME << 11) // time frozen in place
 #define PMF_GIBLET				(PMF_GAME << 12) // player is a giblet
 #define PMF_HOOK_RELEASED		(PMF_GAME << 13) // player's hook key was released
-#define PMF_NO_PREDICTION		(PMF_GAME << 15) // disable client side prediction
 
 /**
  * @brief The mask of pm_state_t.flags affecting pm_state_t.time.
