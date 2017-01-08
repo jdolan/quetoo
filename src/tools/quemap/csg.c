@@ -60,10 +60,10 @@
  * The originals are undisturbed.
  * ===============
  */
-static qbsp_brush_t *SubtractBrush(qbsp_brush_t *a, qbsp_brush_t *b) {   // a - b = out (list)
+static brush_t *SubtractBrush(brush_t *a, brush_t *b) {   // a - b = out (list)
 	int32_t i;
-	qbsp_brush_t *front, *back;
-	qbsp_brush_t *out, *in;
+	brush_t *front, *back;
+	brush_t *out, *in;
 
 	in = a;
 	out = NULL;
@@ -95,7 +95,7 @@ static qbsp_brush_t *SubtractBrush(qbsp_brush_t *a, qbsp_brush_t *b) {   // a - 
  * There will be false negatives for some non-axial combinations.
  * ===============
  */
-static _Bool BrushesDisjoint(const qbsp_brush_t *a, const qbsp_brush_t *b) {
+static _Bool BrushesDisjoint(const brush_t *a, const brush_t *b) {
 	int32_t i, j;
 
 	// check bounding boxes
@@ -126,10 +126,10 @@ static int32_t maxplane_nums[3];
  * Any planes shared with the box edge will be set to no texinfo
  * ===============
  */
-static qbsp_brush_t *ClipBrushToBox(qbsp_brush_t *brush, vec3_t clipmins,
+static brush_t *ClipBrushToBox(brush_t *brush, vec3_t clipmins,
                                    vec3_t clipmaxs) {
 	int32_t i, j;
-	qbsp_brush_t *front, *back;
+	brush_t *front, *back;
 	int32_t p;
 
 	for (j = 0; j < 2; j++) {
@@ -175,9 +175,9 @@ static qbsp_brush_t *ClipBrushToBox(qbsp_brush_t *brush, vec3_t clipmins,
  * MakeBspBrushList
  * ===============
  */
-qbsp_brush_t *MakeBspBrushList(int32_t startbrush, int32_t endbrush, vec3_t clipmins,
+brush_t *MakeBspBrushList(int32_t startbrush, int32_t endbrush, vec3_t clipmins,
                               vec3_t clipmaxs) {
-	qbsp_brush_t *brushlist, *newbrush;
+	brush_t *brushlist, *newbrush;
 	int32_t i, j;
 	int32_t c_faces;
 	int32_t c_brushes;
@@ -267,8 +267,8 @@ qbsp_brush_t *MakeBspBrushList(int32_t startbrush, int32_t endbrush, vec3_t clip
  * AddBspBrushListToTail
  * ===============
  */
-static qbsp_brush_t *AddBrushListToTail(qbsp_brush_t *list, qbsp_brush_t *tail) {
-	qbsp_brush_t *walk, *next;
+static brush_t *AddBrushListToTail(brush_t *list, brush_t *tail) {
+	brush_t *walk, *next;
 
 	for (walk = list; walk; walk = next) { // add to end of list
 		next = walk->next;
@@ -287,9 +287,9 @@ static qbsp_brush_t *AddBrushListToTail(qbsp_brush_t *list, qbsp_brush_t *tail) 
  * Builds a new list that doesn't hold the given brush
  * ===========
  */
-static qbsp_brush_t *CullList(qbsp_brush_t *list, const qbsp_brush_t *skip1) {
-	qbsp_brush_t *newlist;
-	qbsp_brush_t *next;
+static brush_t *CullList(brush_t *list, const brush_t *skip1) {
+	brush_t *newlist;
+	brush_t *next;
 
 	newlist = NULL;
 
@@ -308,7 +308,7 @@ static qbsp_brush_t *CullList(qbsp_brush_t *list, const qbsp_brush_t *skip1) {
 /**
  * @brief Returns true if b1 is allowed to bite b2
  */
-static inline _Bool BrushGE(const qbsp_brush_t *b1, const qbsp_brush_t *b2) {
+static inline _Bool BrushGE(const brush_t *b1, const brush_t *b2) {
 	// detail brushes never bite structural brushes
 	if ((b1->original->contents & CONTENTS_DETAIL) && !(b2->original->contents
 	        & CONTENTS_DETAIL)) {
@@ -324,11 +324,11 @@ static inline _Bool BrushGE(const qbsp_brush_t *b1, const qbsp_brush_t *b2) {
  * @brief Carves any intersecting solid brushes into the minimum number
  * of non-intersecting brushes.
  */
-qbsp_brush_t *ChopBrushes(qbsp_brush_t *head) {
-	qbsp_brush_t *b1, *b2, *next;
-	qbsp_brush_t *tail;
-	qbsp_brush_t *keep;
-	qbsp_brush_t *sub, *sub2;
+brush_t *ChopBrushes(brush_t *head) {
+	brush_t *b1, *b2, *next;
+	brush_t *tail;
+	brush_t *keep;
+	brush_t *sub, *sub2;
 	int32_t c1, c2;
 
 	Com_Verbose("---- ChopBrushes ----\n");

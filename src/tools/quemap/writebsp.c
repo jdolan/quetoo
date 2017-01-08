@@ -92,7 +92,7 @@ static void EmitLeaf(node_t *node) {
 	portal_t *p;
 	int32_t s;
 	face_t *f;
-	qbsp_brush_t *b;
+	brush_t *b;
 	int32_t i;
 	ptrdiff_t brush_num;
 

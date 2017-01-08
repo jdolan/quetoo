@@ -24,7 +24,7 @@
 /**
  * @brief Sets the mins/maxs based on the windings
  */
-static void BoundBrush(qbsp_brush_t *brush) {
+static void BoundBrush(brush_t *brush) {
 	int32_t i, j;
 	winding_t *w;
 
@@ -43,7 +43,7 @@ static void BoundBrush(qbsp_brush_t *brush) {
 /**
  * @brief
  */
-static void CreateBrushWindings(qbsp_brush_t *brush) {
+static void CreateBrushWindings(brush_t *brush) {
 	int32_t i, j;
 	winding_t *w;
 	side_t *side;
@@ -73,8 +73,8 @@ static void CreateBrushWindings(qbsp_brush_t *brush) {
 /**
  * @brief Creates a new axial brush
  */
-static qbsp_brush_t *BrushFromBounds(vec3_t mins, vec3_t maxs) {
-	qbsp_brush_t *b;
+static brush_t *BrushFromBounds(vec3_t mins, vec3_t maxs) {
+	brush_t *b;
 	int32_t i;
 	vec3_t normal;
 	vec_t dist;
@@ -100,7 +100,7 @@ static qbsp_brush_t *BrushFromBounds(vec3_t mins, vec3_t maxs) {
 /**
  * @brief
  */
-static vec_t BrushVolume(qbsp_brush_t *brush) {
+static vec_t BrushVolume(brush_t *brush) {
 	int32_t i;
 	winding_t *w;
 	vec3_t corner;
@@ -146,7 +146,7 @@ static vec_t BrushVolume(qbsp_brush_t *brush) {
 /**
  * @brief
  */
-int32_t CountBrushList(qbsp_brush_t *brushes) {
+int32_t CountBrushList(brush_t *brushes) {
 	int32_t c;
 
 	c = 0;
@@ -195,9 +195,9 @@ void FreeNode(node_t *node) {
 /**
  * @brief
  */
-qbsp_brush_t *AllocBrush(int32_t num_sides) {
+brush_t *AllocBrush(int32_t num_sides) {
 
-	const size_t size = (size_t) & (((qbsp_brush_t *) 0)->sides[num_sides]);
+	const size_t size = (size_t) & (((brush_t *) 0)->sides[num_sides]);
 
 	if (debug) {
 		SDL_SemPost(semaphores.active_brushes);
@@ -209,7 +209,7 @@ qbsp_brush_t *AllocBrush(int32_t num_sides) {
 /**
  * @brief
  */
-void FreeBrush(qbsp_brush_t *brush) {
+void FreeBrush(brush_t *brush) {
 	int32_t i;
 
 	for (i = 0; i < brush->num_sides; i++)
@@ -227,8 +227,8 @@ void FreeBrush(qbsp_brush_t *brush) {
 /**
  * @brief
  */
-void FreeBrushList(qbsp_brush_t *brushes) {
-	qbsp_brush_t *next;
+void FreeBrushList(brush_t *brushes) {
+	brush_t *next;
 
 	for (; brushes; brushes = next) {
 		next = brushes->next;
@@ -240,12 +240,12 @@ void FreeBrushList(qbsp_brush_t *brushes) {
 /**
  * @brief Duplicates the brush, the sides, and the windings
  */
-qbsp_brush_t *CopyBrush(qbsp_brush_t *brush) {
-	qbsp_brush_t *newbrush;
+brush_t *CopyBrush(brush_t *brush) {
+	brush_t *newbrush;
 	size_t size;
 	int32_t i;
 
-	size = (size_t) & (((qbsp_brush_t *) 0)->sides[brush->num_sides]);
+	size = (size_t) & (((brush_t *) 0)->sides[brush->num_sides]);
 
 	newbrush = AllocBrush(brush->num_sides);
 	memcpy(newbrush, brush, size);
@@ -307,7 +307,7 @@ static int32_t Map_BoxOnPlaneSide(vec3_t mins, vec3_t maxs, map_plane_t *plane) 
 /**
  * @brief
  */
-static int32_t TestBrushToPlanenum(qbsp_brush_t *brush, int32_t plane_num, int32_t *numsplits,
+static int32_t TestBrushToPlanenum(brush_t *brush, int32_t plane_num, int32_t *numsplits,
                                    _Bool *hintsplit, int32_t *epsilonbrush) {
 	int32_t i, j, num;
 	map_plane_t *plane;
@@ -433,8 +433,8 @@ static _Bool WindingIsHuge(winding_t *w) {
 /**
  * @brief
  */
-static void LeafNode(node_t *node, qbsp_brush_t *brushes) {
-	qbsp_brush_t *b;
+static void LeafNode(node_t *node, brush_t *brushes) {
+	brush_t *b;
 	int32_t i;
 
 	node->plane_num = PLANENUM_LEAF;
@@ -470,7 +470,7 @@ static void CheckPlaneAgainstParents(int32_t pnum, node_t *node) {
 }
 
 static _Bool CheckPlaneAgainstVolume(int32_t pnum, node_t *node) {
-	qbsp_brush_t *front, *back;
+	brush_t *front, *back;
 	_Bool good;
 
 	SplitBrush(node->volume, pnum, &front, &back);
@@ -492,9 +492,9 @@ static _Bool CheckPlaneAgainstVolume(int32_t pnum, node_t *node) {
  * to partition the brushes with.
  * Returns NULL if there are no valid planes to split with..
  */
-static side_t *SelectSplitSide(qbsp_brush_t *brushes, node_t *node) {
+static side_t *SelectSplitSide(brush_t *brushes, node_t *node) {
 	int32_t value, bestvalue;
-	qbsp_brush_t *brush, *test;
+	brush_t *brush, *test;
 	side_t *side, *bestside;
 	int32_t i, j, pass, numpasses;
 	int32_t pnum;
@@ -641,7 +641,7 @@ static side_t *SelectSplitSide(qbsp_brush_t *brushes, node_t *node) {
 /**
  * @brief
  */
-static int32_t BrushMostlyOnSide(qbsp_brush_t *brush, map_plane_t *plane) {
+static int32_t BrushMostlyOnSide(brush_t *brush, map_plane_t *plane) {
 	int32_t i, j;
 	winding_t *w;
 	vec_t d, max;
@@ -672,8 +672,8 @@ static int32_t BrushMostlyOnSide(qbsp_brush_t *brush, map_plane_t *plane) {
 /**
  * @brief Generates two new brushes, leaving the original unchanged
  */
-void SplitBrush(qbsp_brush_t *brush, int32_t plane_num, qbsp_brush_t **front, qbsp_brush_t **back) {
-	qbsp_brush_t *b[2];
+void SplitBrush(brush_t *brush, int32_t plane_num, brush_t **front, brush_t **back) {
+	brush_t *b[2];
 	int32_t i, j;
 	winding_t *w, *cw[2], *midwinding;
 	map_plane_t *plane, *plane2;
@@ -836,9 +836,9 @@ void SplitBrush(qbsp_brush_t *brush, int32_t plane_num, qbsp_brush_t **front, qb
 /**
  * @brief
  */
-static void SplitBrushList(qbsp_brush_t *brushes, node_t *node, qbsp_brush_t **front,
-                           qbsp_brush_t **back) {
-	qbsp_brush_t *brush, *newbrush, *newbrush2;
+static void SplitBrushList(brush_t *brushes, node_t *node, brush_t **front,
+                           brush_t **back) {
+	brush_t *brush, *newbrush, *newbrush2;
 	side_t *side;
 	int32_t sides;
 	int32_t i;
@@ -893,11 +893,11 @@ static void SplitBrushList(qbsp_brush_t *brushes, node_t *node, qbsp_brush_t **f
  * BuildTree_r
  * ================
  */
-static node_t *BuildTree_r(node_t *node, qbsp_brush_t *brushes) {
+static node_t *BuildTree_r(node_t *node, brush_t *brushes) {
 	node_t *newnode;
 	side_t *bestside;
 	int32_t i;
-	qbsp_brush_t *children[2];
+	brush_t *children[2];
 
 	if (debug) {
 		SDL_SemPost(semaphores.vis_nodes);
@@ -946,9 +946,9 @@ static node_t *BuildTree_r(node_t *node, qbsp_brush_t *brushes) {
  * The incoming list will be freed before exiting
  * =================
  */
-tree_t *BrushBSP(qbsp_brush_t *brushlist, vec3_t mins, vec3_t maxs) {
+tree_t *BrushBSP(brush_t *brushlist, vec3_t mins, vec3_t maxs) {
 	node_t *node;
-	qbsp_brush_t *b;
+	brush_t *b;
 	int32_t c_faces, c_nonvisfaces;
 	int32_t c_brushes;
 	tree_t *tree;
