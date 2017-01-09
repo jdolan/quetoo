@@ -689,7 +689,7 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	bsp->plane_shadows = Mem_LinkMalloc(((count >> 1) + 1) * sizeof(uint16_t), bsp);
 }
 
-#define BSP_VERTEX_INDEX_FOR_KEY(ptr) ((GLuint) (ptr))
+#define BSP_VERTEX_INDEX_FOR_KEY(ptr) ((GLuint) (ptrdiff_t) (ptr))
 #define BSP_VERTEX_INDEX_AS_KEY(i) ((gpointer) (ptrdiff_t) *(i))
 
 #define vec2_hash(v) ((uint32_t)((v)[0] * 73856093) ^ (uint32_t)((v)[1] * 83492791))
