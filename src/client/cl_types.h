@@ -77,6 +77,8 @@ typedef struct {
 	vec3_t previous_origin; // the previous interpolated origin
 	vec3_t termination; // and termination
 	vec3_t angles; // and angles
+	vec3_t mins, maxs; // bounding box
+	vec3_t abs_mins, abs_maxs; // absolute bounding box
 
 	cl_entity_step_t step; // the step the entity just traversed
 
@@ -157,7 +159,8 @@ typedef struct {
 	cl_frame_t frame; // the most recent frame received from server
 	cl_frame_t frames[PACKET_BACKUP]; // for calculating delta compression
 
-	cl_frame_t *delta_frame; // the delta frame for the current frame
+	const cl_frame_t *delta_frame; // the delta frame for the current frame
+	const cl_frame_t *previous_frame; // the last interpolated frame, if sequential
 
 	cl_entity_t entities[MAX_ENTITIES]; // client entities
 	cl_entity_t *entity; // our own entity, which may be our player, or chase camera target, etc..

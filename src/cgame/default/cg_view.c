@@ -308,6 +308,8 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
 	if (ps1->pm_state.type == PM_DEAD) {
 		cgi.view->angles[0] = 0.0;
 		cgi.view->angles[2] = 45.0;
+	} else if (ps1->pm_state.type == PM_FREEZE) {
+		VectorCopy(cgi.view->angles, cgi.client->angles);
 	}
 }
 
@@ -318,7 +320,13 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
  */
 void Cg_UpdateView(const cl_frame_t *frame) {
 
-	const player_state_t *ps0 = cgi.client->delta_frame ? &cgi.client->delta_frame->ps : &frame->ps;
+	const player_state_t *ps0;
+
+	if (cgi.client->previous_frame) {
+		ps0 = &cgi.client->previous_frame->ps;
+	} else {
+		ps0 = &frame->ps;
+	}
 
 	const player_state_t *ps1 = &frame->ps;
 

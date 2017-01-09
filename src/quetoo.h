@@ -367,8 +367,8 @@ typedef struct {
 	pm_type_t type;
 	vec3_t origin;
 	vec3_t velocity;
-	uint16_t flags; // PMF_NO_PREDICTION, etc..
-	uint16_t time; // duration for temporal PMF_ flags
+	uint16_t flags; // game-specific state flags
+	uint16_t time; // duration for temporal state flags
 	int16_t gravity;
 	int16_t view_offset[3]; // add to origin to resolve eyes
 	uint16_t view_angles[3]; // base view angles

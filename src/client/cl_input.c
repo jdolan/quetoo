@@ -427,11 +427,10 @@ void Cl_HandleEvents(void) {
 /**
  * @brief
  */
-static void Cl_ClampPitch(void) {
-	const pm_state_t *s = &cl.frame.ps.pm_state;
+static void Cl_ClampPitch(const player_state_t *ps) {
 
 	// ensure our pitch is valid
-	vec_t pitch = UnpackAngle(s->delta_angles[PITCH]);
+	vec_t pitch = UnpackAngle(ps->pm_state.delta_angles[PITCH]);
 
 	if (cl.angles[PITCH] + pitch < -360.0) {
 		cl.angles[PITCH] += 360.0; // wrapped
@@ -465,7 +464,7 @@ void Cl_Look(pm_cmd_t *cmd) {
 
 	cls.cgame->Look(cmd);
 
-	Cl_ClampPitch();
+	Cl_ClampPitch(&cl.frame.ps);
 
 	PackAngles(cl.angles, cmd->angles);
 }

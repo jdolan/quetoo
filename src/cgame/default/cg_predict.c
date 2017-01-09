@@ -31,11 +31,15 @@ _Bool Cg_UsePrediction(void) {
 		return false;
 	}
 
-	if (cgi.client->demo_server || cgi.client->third_person) {
+	if (cgi.client->demo_server) {
 		return false;
 	}
 
-	if (cgi.client->frame.ps.pm_state.flags & PMF_NO_PREDICTION) {
+	if (cgi.client->third_person) {
+		return false;
+	}
+
+	if (cgi.client->frame.ps.pm_state.type == PM_FREEZE) {
 		return false;
 	}
 
@@ -51,9 +55,8 @@ static cm_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end,
 }
 
 /**
- * @brief Run recent movement commands through the player movement code
- * locally, storing the resulting origin and angles so that they may be
- * interpolated to by Cl_UpdateView.
+ * @brief Run recent movement commands through the player movement code locally, storing the
+ * resulting state so that it may be interpolated to and reconciled later.
  */
 void Cg_PredictMovement(const GList *cmds) {
 	static pm_move_t pm;

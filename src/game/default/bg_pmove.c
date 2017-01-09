@@ -1436,7 +1436,7 @@ static void Pm_SpectatorMove(void) {
  */
 static void Pm_FreezeMove(void) {
 
-	pm->s.flags |= PMF_NO_PREDICTION;
+	Pm_Debug("%s\n", vtos(pm->s.origin));
 }
 
 /**
@@ -1467,7 +1467,6 @@ static void Pm_Init(void) {
 	pm->step = 0.0;
 
 	// reset flags that we test each move
-	pm->s.flags &= ~(PMF_NO_PREDICTION);
 	pm->s.flags &= ~(PMF_ON_GROUND | PMF_ON_STAIRS | PMF_ON_LADDER);
 	pm->s.flags &= ~(PMF_JUMPED | PMF_UNDER_WATER);
 

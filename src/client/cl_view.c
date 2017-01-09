@@ -21,6 +21,8 @@
 
 #include "cl_local.h"
 
+static cvar_t *cl_view_size;
+
 /**
  * @brief Clears all volatile view members so that a new scene may be populated.
  */
@@ -105,6 +107,9 @@ static void Cl_ViewSizeDown_f(void) {
  * @brief
  */
 void Cl_InitView(void) {
+
+	cl_view_size = Cvar_Add("cl_view_size", "100.0", CVAR_ARCHIVE, NULL);
+
 	Cmd_Add("cl_view_size_up", Cl_ViewSizeUp_f, CMD_CLIENT, NULL);
 	Cmd_Add("cl_view_size_down", Cl_ViewSizeDown_f, CMD_CLIENT, NULL);
 }

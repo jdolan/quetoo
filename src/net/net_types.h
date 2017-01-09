@@ -48,11 +48,11 @@
 #include "common.h"
 
 /**
- * @brief Max length of a single packet. No individual message can exceed
- * this length. However, large server frames can be split into multiple
+ * @brief Max length of a single packet. No individual command can exceed
+ * this length. However, large server messages can be split into multiple
  * messages and sent in series. See Sv_SendClientDatagram.
  */
-#define MAX_MSG_SIZE 1400
+#define MAX_MSG_SIZE 4096
 
 typedef enum {
 	NA_LOOP,

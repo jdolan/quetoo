@@ -1070,7 +1070,7 @@ typedef struct {
 	matrix4x4_t matrix; // the base modelview matrix
 	matrix4x4_t inverse_matrix;
 
-	uint32_t contents; // view origin contents mask
+	int32_t contents; // view origin contents mask
 	vec_t bob;
 
 	uint32_t ticks; // unclamped simulation time

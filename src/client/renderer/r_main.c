@@ -215,7 +215,7 @@ void R_DrawView(void) {
 	vec3_t tmp;
 	VectorMA(r_view.origin, MAX_WORLD_DIST, r_view.forward, tmp);
 
-	cm_trace_t tr = Cl_Trace(r_view.origin, tmp, NULL, NULL, cl.client_num + 1, MASK_SOLID);
+	cm_trace_t tr = Cl_Trace(r_view.origin, tmp, NULL, NULL, 0, MASK_SOLID);
 	if (tr.fraction > 0.0 && tr.fraction < 1.0) {
 		Com_Print("%s: %d: %s\n", tr.surface->name, tr.plane.num, vtos(tr.plane.normal));
 	}
@@ -274,8 +274,8 @@ static void R_Clear(void) {
 		bits |= GL_COLOR_BUFFER_BIT;
 	}
 
-	// of if the client is no-clipping around the world
-	if (cl.frame.ps.pm_state.type == PM_SPECTATOR) {
+	// or if the client is no-clipping around the world
+	if (r_view.contents & CONTENTS_SOLID) {
 		bits |= GL_COLOR_BUFFER_BIT;
 	}
 

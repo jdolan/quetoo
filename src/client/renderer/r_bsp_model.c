@@ -510,7 +510,7 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 		m->radius = m->bsp_inline->radius;
 
 		// setup the nodes
-		if (i > 1 && m->bsp_inline->head_node != -1) {
+		if (m->bsp_inline->head_node != -1) {
 			r_bsp_node_t *nodes = &mod->bsp->nodes[m->bsp_inline->head_node];
 			R_SetupBspInlineModel(nodes, m);
 		}
@@ -556,7 +556,7 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 	}
 }
 
-#define BSP_VERTEX_INDEX_FOR_KEY(ptr) ((GLuint) (ptr))
+#define BSP_VERTEX_INDEX_FOR_KEY(ptr) ((GLuint) (ptrdiff_t) (ptr))
 #define BSP_VERTEX_INDEX_AS_KEY(i) ((gpointer) (ptrdiff_t) *(i))
 
 #define vec2_hash(v) ((uint32_t)((v)[0] * 73856093) ^ (uint32_t)((v)[1] * 83492791))
