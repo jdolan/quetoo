@@ -359,7 +359,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, const char **buffe
 				// a terrain blend or dirtmap means light it
 				if (s->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
 					s->material = Cm_LoadMaterial(s->image);
-					Mem_Link(m, s->material);
+					Mem_Link(s->material, m);
 					s->flags |= STAGE_LIGHTING;
 				}
 			}
@@ -484,7 +484,11 @@ cm_material_t *Cm_LoadMaterials(const char *path, size_t *count) {
 			g_strlcpy(mat->full_name, c, sizeof(mat->full_name));
 
 			// prepend to the material list
-			mat->next = m;
+			if (m) {
+				mat->next = m;
+				Mem_Link(m, mat);
+			}
+
 			m = mat;
 
 			parsing_material = true;

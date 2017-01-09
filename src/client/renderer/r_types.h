@@ -359,7 +359,7 @@ typedef struct r_material_s {
 	// from media
 	r_media_t media;
 
-	const struct cm_material_s *cm; // link to cm material
+	struct cm_material_s *cm; // copy of cm material
 
 	// renderer-local stuff parsed from cm
 	uint32_t time;

@@ -23,7 +23,6 @@
 
 #include "r_types.h"
 
-r_material_t *R_ConvertMaterial(cm_material_t *cm, const _Bool unload);
 r_material_t *R_LoadMaterial(const char *name);
 
 #ifdef __R_LOCAL_H__

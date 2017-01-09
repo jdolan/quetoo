@@ -639,7 +639,7 @@ static void R_RegisterMaterial(r_media_t *self) {
 static void R_FreeMaterial(r_media_t *self) {
 	r_material_t *mat = (r_material_t *) self;
 
-	Cm_UnrefMaterial((cm_material_t *) mat->cm);
+	Cm_FreeMaterial(mat->cm);
 }
 
 /**
@@ -679,23 +679,29 @@ static void R_LoadSpecularmap(r_material_t *mat, const char *base) {
 }
 
 /**
- * @brief Loads the r_material_t from the specified cm_material_t. Optionally unreferences
- * the cm reference we passed into it if you don't intend on using it again.
+ * @brief Loads the r_material_t from the specified cm_material_t.
  */
-r_material_t *R_ConvertMaterial(cm_material_t *cm, const _Bool unref) {
+static r_material_t *R_ConvertMaterial(cm_material_t *cm, const _Bool map_material) {
 	r_material_t *mat;
 
 	if (!cm || !cm->diffuse[0]) {
 		Com_Error(ERROR_DROP, "NULL diffuse name\n");
 	}
 
-	if (!(mat = (r_material_t *) R_FindMedia(cm->key))) {
-		mat = (r_material_t *) R_AllocMedia(cm->key, sizeof(r_material_t), MEDIA_MATERIAL);
+	char material_key[MAX_QPATH];
+	Cm_NormalizeMaterial(cm->base, material_key, sizeof(material_key));
+	g_snprintf(material_key, sizeof(material_key), "%s_mat", material_key);
+
+	if (!(mat = (r_material_t *) R_FindMedia(material_key))) {
+		mat = (r_material_t *) R_AllocMedia(material_key, sizeof(r_material_t), MEDIA_MATERIAL);
 
 		mat->cm = cm;
 
 		mat->media.Register = R_RegisterMaterial;
-		mat->media.Free = R_FreeMaterial;
+
+		if (!map_material) {
+			mat->media.Free = R_FreeMaterial;
+		}
 
 		mat->diffuse = R_LoadImage(cm->diffuse, IT_DIFFUSE);
 		if (mat->diffuse->type == IT_DIFFUSE) {
@@ -706,22 +712,27 @@ r_material_t *R_ConvertMaterial(cm_material_t *cm, const _Bool unref) {
 		}
 
 		R_RegisterMedia((r_media_t *) mat);
-		Cm_RefMaterial(cm);
-	}
-
-	if (unref) {
-		Cm_UnrefMaterial(cm);
 	}
 
 	return mat;
 }
 
 /**
- * @brief Loads the r_material_t from the specified texture and unreferences the cm_ it loads once.
+ * @brief Loads the r_material_t from the specified texture.
  */
 r_material_t *R_LoadMaterial(const char *name) {
 
-	return R_ConvertMaterial(Cm_LoadMaterial(name), true);
+	r_material_t *mat;
+	char material_key[MAX_QPATH];
+	StripExtension(name, material_key);
+	Cm_NormalizeMaterial(material_key, material_key, sizeof(material_key));
+	g_snprintf(material_key, sizeof(material_key), "%s_mat", material_key);
+
+	if (!(mat = (r_material_t *) R_FindMedia(material_key))) {
+		mat = R_ConvertMaterial(Cm_LoadMaterial(name), false);
+	}
+
+	return mat;
 }
 
 /**
@@ -770,7 +781,7 @@ static int32_t R_LoadStageFrames(r_stage_t *s) {
 /**
  * @brief
  */
-static int32_t R_ParseStage(r_stage_t *s, const cm_stage_t *cm) {
+static int32_t R_ParseStage(r_stage_t *s, const cm_stage_t *cm, const _Bool map_material) {
 
 	s->cm = cm;
 
@@ -820,7 +831,7 @@ static int32_t R_ParseStage(r_stage_t *s, const cm_stage_t *cm) {
 
 	// load material if lighting
 	if (cm->flags & STAGE_LIGHTING) {
-		s->material = R_ConvertMaterial(cm->material, false);
+		s->material = R_ConvertMaterial(cm->material, map_material);
 	}
 
 	return 0;
@@ -832,30 +843,33 @@ static int32_t R_ParseStage(r_stage_t *s, const cm_stage_t *cm) {
  * materials/${model_name}.mat for BSP models.
  */
 void R_LoadMaterials(r_model_t *mod) {
-	char path[MAX_QPATH];
 
-	memset(path, 0, sizeof(path));
+	cm_material_t *cm_mat;
 
 	// load the materials file for parsing
 	if (mod->type == MOD_BSP) {
-		g_snprintf(path, sizeof(path), "materials/%s", Basename(mod->media.name));
+		cm_mat = Cm_Bsp()->materials;
 	} else {
+		char path[MAX_QPATH];
 		g_snprintf(path, sizeof(path), "%s", mod->media.name);
+		strcat(path, ".mat");
+		cm_mat = Cm_LoadMaterials(path, NULL);
 	}
 
-	strcat(path, ".mat");
-
-	GArray *materials = Cm_LoadMaterials(path);
-
-	if (!materials) {
+	if (!cm_mat) {
 		return;
 	}
 
-	for (size_t i = 0; i < materials->len; i++) {
-		cm_material_t *cm_mat = g_array_index(materials, cm_material_t *, i);
-		r_material_t *r_mat = R_ConvertMaterial(cm_mat, true);
+	for (; cm_mat; cm_mat = cm_mat->next) {
+		r_material_t *r_mat = R_ConvertMaterial(cm_mat, mod->type == MOD_BSP);
+
+		// unhook free, since map materials are freed by the Cm subsystem
+		if (mod->type == MOD_BSP) {
+			r_mat->media.Free = NULL;
+		}
 
 		if (!r_mat) {
+			Com_Warn("Failed to convert %s\n", cm_mat->diffuse);
 			continue;
 		}
 
@@ -896,7 +910,7 @@ void R_LoadMaterials(r_model_t *mod) {
 		for (cm_stage_t *cm_stage = cm_mat->stages; cm_stage; cm_stage = cm_stage->next) {
 			r_stage_t *r_stage = (r_stage_t *) Mem_LinkMalloc(sizeof(r_stage_t), r_mat);
 
-			if (R_ParseStage(r_stage, cm_stage) == -1) {
+			if (R_ParseStage(r_stage, cm_stage, mod->type == MOD_BSP) == -1) {
 				Mem_Free(r_stage);
 				continue;
 			}
@@ -926,15 +940,18 @@ void R_LoadMaterials(r_model_t *mod) {
 
 		Com_Debug(DEBUG_RENDERER, "Parsed material %s with %d stages\n", r_mat->diffuse->media.name, cm_mat->num_stages);
 	}
-
-	g_array_free(materials, true);
 }
 
 /**
  * @brief
  */
 static void R_SaveMaterials_f(void) {
-	Cm_WriteMaterials();
+	r_model_t *mod = r_model_state.world;
+
+	char path[MAX_QPATH];
+	g_snprintf(path, sizeof(path), "materials/%s.mat", Basename(mod->media.name));
+
+	Cm_WriteMaterial(path, mod->bsp->cm->materials);
 }
 
 /**
@@ -942,7 +959,7 @@ static void R_SaveMaterials_f(void) {
  */
 void R_InitMaterials(void) {
 
-	Cmd_Add("r_save_materials", R_SaveMaterials_f, CMD_RENDERER, "Write all of the loaded materials to the disk.");
+	Cmd_Add("r_save_materials", R_SaveMaterials_f, CMD_RENDERER, "Write all of the loaded map materials to the disk.");
 
 	r_material_state.vertex_len = INITIAL_VERTEX_COUNT;
 	r_material_state.element_len = INITIAL_VERTEX_COUNT;

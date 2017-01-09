@@ -291,6 +291,61 @@ char *Mem_CopyString(const char *in) {
 }
 
 /**
+ * @brief
+ */
+static gint Mem_Stats_Sort(gconstpointer a, gconstpointer b) {
+
+	return ((const mem_stat_t *) b)->size - ((const mem_stat_t *) a)->size;
+}
+
+/**
+ * @brief Fetches stats about allocated memory to the console.
+ */
+GArray *Mem_Stats(void) {
+
+	GHashTableIter it;
+	gpointer key, value;
+
+	SDL_mutexP(mem_state.lock);
+
+	GArray *stat_array = g_array_new(false, true, sizeof(mem_stat_t));
+
+	g_hash_table_iter_init(&it, mem_state.blocks);
+
+	while (g_hash_table_iter_next(&it, &key, &value)) {
+		const mem_block_t *b = (const mem_block_t *) key;
+		mem_stat_t *stats = NULL;
+
+		for (size_t i = 0; i < stat_array->len; i++) {
+
+			mem_stat_t *stat_i = &g_array_index(stat_array, mem_stat_t, i);
+
+			if (stat_i->tag == b->tag) {
+				stats = stat_i;
+				break;
+			}
+		}
+
+		if (stats == NULL) {
+			stat_array = g_array_append_vals(stat_array, &(const mem_stat_t) {
+				.tag = b->tag,
+				.size = b->size,
+				.count = 1
+			}, 1);
+		} else {
+			stats->size += b->size;
+			stats->count++;
+		}
+	}
+
+	SDL_mutexV(mem_state.lock);
+
+	g_array_sort(stat_array, Mem_Stats_Sort);
+
+	return stat_array;
+}
+
+/**
  * @brief Initializes the managed memory subsystem. This should be one of the first
  * subsystems initialized by Quetoo.
  */

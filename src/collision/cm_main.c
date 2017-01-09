@@ -33,5 +33,4 @@ void Cm_Init(void) {
  */
 void Cm_Shutdown(void) {
 
-	Cm_ShutdownMaterials();
 }
