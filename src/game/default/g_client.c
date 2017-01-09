@@ -1225,10 +1225,12 @@ void G_ClientDisconnect(g_entity_t *ent) {
 	gi.BroadcastPrint(PRINT_HIGH, "%s bitched out\n", ent->client->locals.persistent.net_name);
 
 	// send effect
-	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
-	gi.WriteShort(ent->s.number);
-	gi.WriteByte(MZ_LOGOUT);
-	gi.Multicast(ent->s.origin, MULTICAST_PHS, NULL);
+	if (!ent->client->locals.persistent.spectator) {
+		gi.WriteByte(SV_CMD_MUZZLE_FLASH);
+		gi.WriteShort(ent->s.number);
+		gi.WriteByte(MZ_LOGOUT);
+		gi.Multicast(ent->s.origin, MULTICAST_PHS, NULL);
+	}
 
 	gi.UnlinkEntity(ent);
 
