@@ -82,6 +82,8 @@ typedef struct {
 
 	_Bool portal_open[MAX_BSP_AREA_PORTALS];
 	int32_t flood_valid;
+
+	cm_material_t *materials;
 } cm_bsp_t;
 
 typedef d_bsp_vis_t cm_vis_t;

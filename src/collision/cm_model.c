@@ -135,7 +135,18 @@ static void Cm_LoadBspSurfaces(const d_bsp_lump_t *l) {
 		g_strlcpy(out->name, in->texture, sizeof(out->name));
 		out->flags = LittleLong(in->flags);
 		out->value = LittleLong(in->value);
-		out->material = Cm_LoadMaterial(va("textures/%s", out->name));
+
+		char material_name[MAX_QPATH];
+		g_snprintf(material_name, "textures/%s", out->name);
+		Cm_NormalizeMaterial(material_name, material_name, sizeof(material_name));
+
+		for (cm_material_t *material = cm_bsp.materials; material; material = material->next) {
+			
+			if (!g_strcmp0(material->base, material_name)) {
+				out->material = material;
+				break;
+			}
+		}
 	}
 }
 
@@ -418,12 +429,12 @@ static void Cm_LoadBspAreaPortals(const d_bsp_lump_t *l) {
 /**
  * @brief
  */
-static GArray *Cm_LoadBspMaterials(const char *name) {
+static cm_material_t *Cm_LoadBspMaterials(const char *name) {
 
 	char base[MAX_QPATH];
 	StripExtension(Basename(name), base);
 
-	return Cm_LoadMaterials(va("materials/%s.mat", base));
+	return Cm_LoadMaterials(va("materials/%s.mat", base), NULL);
 }
 
 /**
@@ -431,13 +442,8 @@ static GArray *Cm_LoadBspMaterials(const char *name) {
  */
 static void Cm_UnloadBspMaterials(void) {
 
-	for (int32_t i = 0; i < cm_bsp.num_surfaces; i++) {
-		cm_bsp_surface_t *surf = &cm_bsp.surfaces[i];
-
-		if (surf->material) {
-			Cm_UnrefMaterial(surf->material);
-		}
-	}
+	Cm_FreeMaterial(cm_bsp.materials);
+	cm_bsp.materials = NULL;
 }
 
 /**
@@ -485,7 +491,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 
 	cm_bsp.base = (byte *) buf;
 
-	GArray *materials = Cm_LoadBspMaterials(name);
+	cm_bsp.materials = Cm_LoadBspMaterials(name);
 
 	// load into heap
 	Cm_LoadEntityString(&header.lumps[BSP_LUMP_ENTITIES]);
@@ -500,8 +506,6 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	Cm_LoadBspVisibility(&header.lumps[BSP_LUMP_VISIBILITY]);
 	Cm_LoadBspAreas(&header.lumps[BSP_LUMP_AREAS]);
 	Cm_LoadBspAreaPortals(&header.lumps[BSP_LUMP_AREA_PORTALS]);
-
-	Cm_UnloadMaterials(materials);
 
 	Fs_Free(buf);
 
