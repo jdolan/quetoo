@@ -117,6 +117,14 @@ typedef struct cm_stage_s {
 #define DEFAULT_HARDNESS 1.0
 #define DEFAULT_SPECULAR 1.0
 
+typedef enum {
+	FOOTSTEP_BASIC,
+	FOOTSTEP_GRASS,
+
+	// you can add your own footstep types after 32, we won't ever use that many
+	FOOTSTEP_GAME = 32
+} cm_footsteps_t;
+
 typedef struct cm_material_s {
 	uint32_t ref_count; // refs for the cm system, do not touch
 	char base[MAX_QPATH];
@@ -133,6 +141,7 @@ typedef struct cm_material_s {
 	vec_t parallax;
 	vec_t hardness;
 	vec_t specular;
+	cm_footsteps_t footsteps;
 	cm_stage_t *stages;
 	uint16_t num_stages;
 } cm_material_t;

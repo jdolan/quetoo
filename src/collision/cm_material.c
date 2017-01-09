@@ -23,6 +23,17 @@
 #include <GL/gl.h>
 
 /**
+ * @brief Footstep strings that can be used as "footsteps"
+ * instead of the raw integral value.
+ */
+static const char *cm_footstep_names[] = {
+	"basic",
+	"grass",
+
+	NULL
+};
+
+/**
  * @brief stores the state of loaded materials. Materials contain a reference count,
  * which allow them to be shared between a collision model and a renderer view
  * without conflicting.
@@ -675,6 +686,23 @@ GArray *Cm_LoadMaterials(const char *path) {
 			}
 		}
 
+		if (!g_strcmp0(c, "footsteps")) {
+			const char *footsteps = ParseToken(&buffer);
+
+			for (; m->footsteps < (cm_footsteps_t) lengthof(cm_footstep_names); m->footsteps++) {
+			
+				if (!g_strcmp0(footsteps, cm_footstep_names[m->footsteps])) {
+					break;
+				}
+			}
+
+			// didn't find one, assume it's integer; it'll be 0 if invalid anyways.
+			if (m->footsteps == (cm_footsteps_t) lengthof(cm_footstep_names)) {
+
+				m->footsteps = (cm_footsteps_t) strtoul(footsteps, NULL, 10);
+			}
+		}
+
 		if (*c == '{' && in_material) {
 
 			cm_stage_t *s = (cm_stage_t *) Mem_LinkMalloc(sizeof(*s), m);
@@ -837,6 +865,14 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 	}
 	if (material->specular != DEFAULT_BUMP) {
 		Fs_Print(file, "\tspecular %g\n", material->specular);
+	}
+	if (material->footsteps != FOOTSTEP_BASIC) {
+
+		if (material->footsteps < (cm_footsteps_t) lengthof(cm_footstep_names)) {
+			Fs_Print(file, "\tfootsteps %s\n", cm_footstep_names[material->footsteps]);
+		} else {
+			Fs_Print(file, "\tfootsteps %d\n", material->footsteps);
+		}
 	}
 
 	// write stages

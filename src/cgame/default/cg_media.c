@@ -41,7 +41,7 @@ s_sample_t *cg_sample_explosion;
 s_sample_t *cg_sample_teleport;
 s_sample_t *cg_sample_respawn;
 s_sample_t *cg_sample_sparks;
-s_sample_t *cg_sample_footsteps[4];
+cg_sample_footsteps_t cg_sample_footsteps;
 s_sample_t *cg_sample_rain;
 s_sample_t *cg_sample_snow;
 s_sample_t *cg_sample_underwater;
@@ -115,9 +115,14 @@ void Cg_UpdateMedia(void) {
 		cg_sample_machinegun_hit[i] = cgi.LoadSample(name);
 	}
 
-	for (size_t i = 0; i < lengthof(cg_sample_footsteps); i++) {
+	for (size_t i = 0; i < lengthof(cg_sample_footsteps.basic); i++) {
 		g_snprintf(name, sizeof(name), "#players/common/step_%zd", i + 1);
-		cg_sample_footsteps[i] = cgi.LoadSample(name);
+		cg_sample_footsteps.basic[i] = cgi.LoadSample(name);
+	}
+
+	for (size_t i = 0; i < lengthof(cg_sample_footsteps.grass); i++) {
+		g_snprintf(name, sizeof(name), "#players/common/step_grass_%zd", i + 1);
+		cg_sample_footsteps.grass[i] = cgi.LoadSample(name);
 	}
 
 	Cg_InitParticles();

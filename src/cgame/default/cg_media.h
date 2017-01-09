@@ -44,7 +44,13 @@
 	extern s_sample_t *cg_sample_teleport;
 	extern s_sample_t *cg_sample_respawn;
 	extern s_sample_t *cg_sample_sparks;
-	extern s_sample_t *cg_sample_footsteps[4];
+
+	typedef struct {
+		s_sample_t *basic[4];
+		s_sample_t *grass[4];
+	} cg_sample_footsteps_t;
+
+	extern cg_sample_footsteps_t cg_sample_footsteps;
 	extern s_sample_t *cg_sample_rain;
 	extern s_sample_t *cg_sample_snow;
 	extern s_sample_t *cg_sample_underwater;
