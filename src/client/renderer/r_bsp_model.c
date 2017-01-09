@@ -225,6 +225,9 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 		// register with the subsystem
 		R_RegisterDependency((r_media_t *) mod, (r_media_t *) m);
 	}
+
+	// ensure world nodes do not reference a model
+	R_SetupBspInlineModel(mod->bsp->nodes, NULL);
 }
 
 /**
