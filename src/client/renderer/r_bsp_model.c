@@ -974,6 +974,9 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	// guaranteed that the cm system has the BSP loaded by here, so
 	// let's just use its data as a base
 	file_t *file = (file_t *) buffer;
+
+	mod->bsp = Mem_LinkMalloc(sizeof(r_bsp_model_t), mod);
+
 	mod->bsp->cm = Cm_Bsp();
 	mod->bsp->file = &mod->bsp->cm->bsp;
 
@@ -986,7 +989,6 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 		Bsp_LoadLumps(file, mod->bsp->file, R_BSP_LUMPS_ENHANCED);
 	}
 
-	mod->bsp = Mem_LinkMalloc(sizeof(r_bsp_model_t), mod);
 	mod->bsp->version = version;
 
 	Cl_LoadingProgress(4, "vertices");

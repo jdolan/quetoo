@@ -311,6 +311,11 @@ static void Cm_UnloadBspMaterials(void) {
  */
 cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 
+	// don't re-load if we don't have to
+	if (name && !g_strcmp0(name, cm_bsp.name)) {
+		return &cm_bsp.models[0];
+	}
+
 	Cm_UnloadBspMaterials();
 
 	Bsp_UnloadLumps(&cm_bsp.bsp, BSP_LUMPS_ALL);
