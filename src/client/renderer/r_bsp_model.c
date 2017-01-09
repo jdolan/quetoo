@@ -217,7 +217,7 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 		m->radius = m->bsp_inline->radius;
 
 		// setup the nodes
-		if (i > 1 && m->bsp_inline->head_node != -1) {
+		if (m->bsp_inline->head_node != -1) {
 			r_bsp_node_t *nodes = &mod->bsp->nodes[m->bsp_inline->head_node];
 			R_SetupBspInlineModel(nodes, m);
 		}
