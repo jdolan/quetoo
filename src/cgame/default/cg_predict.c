@@ -55,9 +55,8 @@ static cm_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end,
 }
 
 /**
- * @brief Run recent movement commands through the player movement code
- * locally, storing the resulting origin and angles so that they may be
- * interpolated to by Cl_UpdateView.
+ * @brief Run recent movement commands through the player movement code locally, storing the
+ * resulting state so that it may be interpolated to and reconciled later.
  */
 void Cg_PredictMovement(const GList *cmds) {
 	static pm_move_t pm;

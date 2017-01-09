@@ -42,8 +42,17 @@ static void Cl_ParsePlayerState(const cl_frame_t *delta_frame, cl_frame_t *frame
 /**
  * @return True if the delta is valid and interpolation should be used.
  */
-static _Bool Cl_ValidDeltaEntity(const entity_state_t *from, const entity_state_t *to) {
+static _Bool Cl_ValidDeltaEntity(const cl_frame_t *frame, const cl_entity_t *ent,
+								 const entity_state_t *from, const entity_state_t *to) {
 	vec3_t delta;
+
+	if (frame->delta_frame_num == -1) {
+		return false;
+	}
+
+	if (ent->frame_num != frame->frame_num - 1) {
+		return false;
+	}
 
 	if (from->model1 != to->model1) {
 		return false;
@@ -51,7 +60,7 @@ static _Bool Cl_ValidDeltaEntity(const entity_state_t *from, const entity_state_
 
 	VectorSubtract(from->origin, to->origin, delta);
 
-	if (VectorLength(delta) > 256.0) {
+	if (VectorLength(delta) > 64.0) { // MAX_SPEED * QUETOO_TICK_SECONDS = 60.0
 		return false;
 	}
 
@@ -74,7 +83,7 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t
 	Net_ReadDeltaEntity(&net_message, from, to, number, bits);
 
 	// check to see if the delta was successful and valid
-	if (ent->frame_num != cl.frame.frame_num - 1 || !Cl_ValidDeltaEntity(from, to)) {
+	if (!Cl_ValidDeltaEntity(frame, ent, from, to)) {
 		ent->prev = *to; // copy the current state to the previous
 		ent->animation1.time = ent->animation2.time = 0;
 		ent->animation1.frame = ent->animation2.frame = -1;
@@ -87,23 +96,8 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t
 	ent->frame_num = cl.frame.frame_num;
 	ent->current = *to;
 
-	// update clipping matrices, snapping the entity to the frame
-	if (ent->current.solid) {
-		if (ent->current.solid == SOLID_BSP) {
-			if (bits & (U_ORIGIN | U_ANGLES)) {
-				Matrix4x4_CreateFromEntity(&ent->matrix, ent->current.origin, ent->current.angles, 1.0);
-				Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
-			}
-		} else { // bounding-box entities
-			if (bits & U_ORIGIN) {
-				Matrix4x4_CreateFromEntity(&ent->matrix, ent->current.origin, vec3_origin, 1.0);
-				Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
-			}
-		}
-	}
-
 	// mark the lighting cache as dirty
-	if (bits & U_ORIGIN) {
+	if (bits & (U_ORIGIN | U_TERMINATION | U_ANGLES | U_MODELS | U_BOUNDS)) {
 		ent->lighting.state = LIGHTING_DIRTY;
 	}
 
@@ -378,21 +372,18 @@ void Cl_Interpolate(void) {
 		if (!VectorCompare(ent->prev.origin, ent->current.origin)) {
 			VectorCopy(ent->origin, ent->previous_origin);
 			VectorLerp(ent->prev.origin, ent->current.origin, cl.lerp, ent->origin);
-			ent->lighting.state = LIGHTING_DIRTY;
 		} else {
 			VectorCopy(ent->current.origin, ent->origin);
 		}
 
 		if (!VectorCompare(ent->prev.termination, ent->current.termination)) {
 			VectorLerp(ent->prev.termination, ent->current.termination, cl.lerp, ent->termination);
-			ent->lighting.state = LIGHTING_DIRTY;
 		} else {
 			VectorCopy(ent->current.termination, ent->termination);
 		}
 
 		if (!VectorCompare(ent->prev.angles, ent->current.angles)) {
 			AngleLerp(ent->prev.angles, ent->current.angles, cl.lerp, ent->angles);
-			ent->lighting.state = LIGHTING_DIRTY;
 		} else {
 			VectorCopy(ent->current.angles, ent->angles);
 		}
@@ -405,6 +396,40 @@ void Cl_Interpolate(void) {
 		if (ent->current.animation2 != ent->prev.animation2 || !ent->animation2.time) {
 			ent->animation2.animation = ent->current.animation2 & ~ANIM_TOGGLE_BIT;
 			ent->animation2.time = cl.unclamped_time;
+		}
+
+		if (ent->current.solid > SOLID_DEAD) {
+			const vec_t *angles;
+
+			// FIXME
+			//
+			// Currently, the entity's collision state is snapped to the most recently received
+			// server frame, rather than its interpolated state. This works well with the prediction
+			// code, but has certain side effects, such as shadows flickering while riding platforms
+			// etc. Ideally, we would create the clipping matrix from ent->origin and ent->angles,
+			// but this introduces prediction error issues. Need to understand why the prediction
+			// code doesn't play well with the more accurate collision simulation.
+
+			if (ent->current.solid == SOLID_BSP) {
+				angles = ent->current.angles;
+
+				const r_model_t *mod = cl.model_precache[ent->current.model1];
+
+				assert(mod);
+				assert(mod->bsp_inline);
+
+				VectorCopy(mod->bsp_inline->mins, ent->mins);
+				VectorCopy(mod->bsp_inline->maxs, ent->maxs);
+			} else {
+				angles = vec3_origin;
+				UnpackBounds(ent->current.bounds, ent->mins, ent->maxs);
+			}
+
+			Cm_EntityBounds(ent->current.solid, ent->current.origin, angles, ent->mins, ent->maxs,
+							ent->abs_mins, ent->abs_maxs);
+
+			Matrix4x4_CreateFromEntity(&ent->matrix, ent->current.origin, angles, 1.0);
+			Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
 		}
 	}
 

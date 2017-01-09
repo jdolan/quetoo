@@ -28,7 +28,7 @@
 /**
  * @brief The default game / cgame module name.
  */
-#define DEFAULT_GAME "default"
+#define DEFAULT_GAME		"default"
 
 /**
  * @brief The max length of any given output message (stdio).
