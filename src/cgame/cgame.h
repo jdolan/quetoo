@@ -24,7 +24,7 @@
 
 #include "client/cl_types.h"
 
-#define CGAME_API_VERSION 11
+#define CGAME_API_VERSION 12
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -195,6 +195,12 @@ typedef struct cg_import_s {
 	 * @param data User data.
 	 */
 	void (*EnumerateFiles)(const char *pattern, Fs_EnumerateFunc enumerator, void *data);
+
+	/**
+	 * @brief Check if a file exists or not.
+	 * @return True if the specified filename exists on the search path.
+	 */
+	_Bool (*FileExists)(const char *path);
 
 	/**
 	 * @}
@@ -435,6 +441,11 @@ typedef struct cg_import_s {
 	 * @return True if `leaf` is in the potentially visible set for the current frame.
 	 */
 	_Bool (*LeafVisible)(const r_bsp_leaf_t *leaf);
+
+	/**
+	 * @brief Enumerate all of the currently loaded materials.
+	 */
+	void (*EnumerateMaterials)(EnumerateMaterialsCallback callback);
 
 	/**
 	 * @}

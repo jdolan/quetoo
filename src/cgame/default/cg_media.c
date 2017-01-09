@@ -20,6 +20,7 @@
  */
 
 #include "cg_local.h"
+#include "collision/cmodel.h"
 
 s_sample_t *cg_sample_blaster_fire;
 s_sample_t *cg_sample_blaster_hit;
@@ -41,7 +42,6 @@ s_sample_t *cg_sample_explosion;
 s_sample_t *cg_sample_teleport;
 s_sample_t *cg_sample_respawn;
 s_sample_t *cg_sample_sparks;
-cg_sample_footsteps_t cg_sample_footsteps;
 s_sample_t *cg_sample_rain;
 s_sample_t *cg_sample_snow;
 s_sample_t *cg_sample_underwater;
@@ -66,6 +66,110 @@ cg_particles_t *cg_particles_spark;
 cg_particles_t *cg_particles_inactive;
 cg_particles_t *cg_particles_ripple[3];
 
+typedef struct {
+	GHashTable *sample_table;
+} cg_footsteps_t;
+
+static cg_footsteps_t cg_footsteps;
+
+/**
+ * @brief Free callback for footstep table
+ */
+static void Cg_FootstepsTable_Destroy(gpointer value) {
+	g_array_free((GArray *) value, true);
+}
+
+/**
+ * @brief
+ */
+static void Cg_FootstepsTable_EnumerateFiles(const char *file, void *data) {
+
+	(*((size_t *) data))++;
+}
+
+/**
+ * @brief
+ */
+static void Cg_FootstepsTable_Load(const char *footsteps) {
+	GArray *sounds = (GArray *) g_hash_table_lookup(cg_footsteps.sample_table, footsteps);
+
+	if (sounds) { // already loaded
+		return;
+	}
+
+	size_t count = 0;
+	cgi.EnumerateFiles(va("players/common/step_%s_*", footsteps), Cg_FootstepsTable_EnumerateFiles, &count);
+
+	if (!count) {
+		cgi.Warn("Map has footsteps material %s but no sound files exist\n", footsteps);
+		return;
+	}
+
+	sounds = g_array_new(false, false, sizeof(s_sample_t *));
+
+	for (size_t i = 0; i < count; i++) {
+
+		char name[MAX_QPATH];
+		g_snprintf(name, sizeof(name), "#players/common/step_%s_%zd", footsteps, i + 1);
+
+		s_sample_t *sample = cgi.LoadSample(name);
+		sounds = g_array_append_val(sounds, sample);
+	}
+
+	g_hash_table_insert(cg_footsteps.sample_table, (gpointer) footsteps, sounds);
+}
+
+/**
+ * @brief Populate and load the footsteps in the map
+ */
+static void Cg_FootstepsTable_Populate(cm_material_t *material) {
+
+	if (*material->footsteps) {
+		Cg_FootstepsTable_Load(material->footsteps);
+	}
+}
+
+/**
+ * @brief Return a sample for the specified footstep type.
+ */
+s_sample_t *Cg_GetFootstepSample(const char *footsteps) {
+
+	if (!footsteps || !*footsteps) {
+		footsteps = "basic";
+	}
+
+	GArray *sounds = (GArray *) g_hash_table_lookup(cg_footsteps.sample_table, footsteps);
+
+	if (!sounds) { // already loaded
+		cgi.Warn("Footstep sound %s not valid\n", footsteps);
+		return cg_sample_gib; // just return some random sound so that we never return NULL
+	}
+
+	return g_array_index(sounds, s_sample_t *, Random() % sounds->len);
+}
+
+/**
+ * @brief Loads all of the footstep sounds for this map.
+ */
+static void Cg_InitFootsteps(void) {
+
+	cg_footsteps.sample_table = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Cg_FootstepsTable_Destroy);
+	
+	// load the hardcoded "basic" set
+	GArray *basic_samples = g_array_new(false, false, sizeof(s_sample_t *));
+
+	basic_samples = g_array_append_vals(basic_samples, (const s_sample_t *[]) {
+		cgi.LoadSample("#players/common/step_1"),
+		cgi.LoadSample("#players/common/step_2"),
+		cgi.LoadSample("#players/common/step_3"),
+		cgi.LoadSample("#players/common/step_4")
+	}, 4);
+
+	g_hash_table_insert(cg_footsteps.sample_table, "basic", basic_samples);
+
+	cgi.EnumerateMaterials(Cg_FootstepsTable_Populate);
+}
+
 /**
  * @brief Updates all media references for the client game.
  */
@@ -73,6 +177,11 @@ void Cg_UpdateMedia(void) {
 	char name[MAX_QPATH];
 
 	Cg_FreeParticles();
+
+	if (cg_footsteps.sample_table) {
+		g_hash_table_destroy(cg_footsteps.sample_table);
+		cg_footsteps.sample_table = NULL;
+	}
 
 	cgi.FreeTag(MEM_TAG_CGAME);
 	cgi.FreeTag(MEM_TAG_CGAME_LEVEL);
@@ -115,15 +224,7 @@ void Cg_UpdateMedia(void) {
 		cg_sample_machinegun_hit[i] = cgi.LoadSample(name);
 	}
 
-	for (size_t i = 0; i < lengthof(cg_sample_footsteps.basic); i++) {
-		g_snprintf(name, sizeof(name), "#players/common/step_%zd", i + 1);
-		cg_sample_footsteps.basic[i] = cgi.LoadSample(name);
-	}
-
-	for (size_t i = 0; i < lengthof(cg_sample_footsteps.grass); i++) {
-		g_snprintf(name, sizeof(name), "#players/common/step_grass_%zd", i + 1);
-		cg_sample_footsteps.grass[i] = cgi.LoadSample(name);
-	}
+	Cg_InitFootsteps();
 
 	Cg_InitParticles();
 

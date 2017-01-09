@@ -221,9 +221,9 @@ static void Cg_DrownEffect(cl_entity_t *ent) {
 /**
  * @brief
  */
-s_sample_t *Cg_Footstep(cl_entity_t *ent) {
+static s_sample_t *Cg_Footstep(cl_entity_t *ent) {
 
-	s_sample_t *sample = cg_sample_footsteps.basic[Random() % lengthof(cg_sample_footsteps.basic)];
+	const char *footsteps = "basic";
 
 	vec3_t mins, maxs;
 	UnpackBounds(ent->current.bounds, mins, maxs);
@@ -234,16 +234,11 @@ s_sample_t *Cg_Footstep(cl_entity_t *ent) {
 		ent->origin[2] - PM_STEP_HEIGHT
 	}, mins, maxs, ent->current.number, CONTENTS_SOLID);
 
-	if (tr.fraction < 1.0 && tr.surface && tr.surface->material) {
-		
-		switch (tr.surface->material->footsteps) {
-		case FOOTSTEP_GRASS:
-			sample = cg_sample_footsteps.grass[Random() % lengthof(cg_sample_footsteps.grass)];
-			break;
-		}
+	if (tr.fraction < 1.0 && tr.surface && tr.surface->material && *tr.surface->material->footsteps) {
+		footsteps = tr.surface->material->footsteps;
 	}
 
-	return sample;
+	return Cg_GetFootstepSample(footsteps);
 }
 
 /**
