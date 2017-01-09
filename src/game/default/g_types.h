@@ -830,6 +830,7 @@ typedef struct {
 
 	uint32_t weapon_think_time; // time when the weapon think was called
 	uint32_t weapon_fire_time; // can fire when time > this
+	uint32_t weapon_fired_time; // weapon was last fired
 	uint32_t weapon_change_time; // time when weapon was changed
 
 	uint32_t hook_think_time; // time when the hook think was called
