@@ -66,11 +66,7 @@ cg_particles_t *cg_particles_spark;
 cg_particles_t *cg_particles_inactive;
 cg_particles_t *cg_particles_ripple[3];
 
-typedef struct {
-	GHashTable *sample_table;
-} cg_footsteps_t;
-
-static cg_footsteps_t cg_footsteps;
+static GHashTable *cg_footstep_table;
 
 /**
  * @brief Free callback for footstep table
@@ -91,7 +87,7 @@ static void Cg_FootstepsTable_EnumerateFiles(const char *file, void *data) {
  * @brief
  */
 static void Cg_FootstepsTable_Load(const char *footsteps) {
-	GArray *sounds = (GArray *) g_hash_table_lookup(cg_footsteps.sample_table, footsteps);
+	GArray *sounds = (GArray *) g_hash_table_lookup(cg_footstep_table, footsteps);
 
 	if (sounds) { // already loaded
 		return;
@@ -116,7 +112,7 @@ static void Cg_FootstepsTable_Load(const char *footsteps) {
 		sounds = g_array_append_val(sounds, sample);
 	}
 
-	g_hash_table_insert(cg_footsteps.sample_table, (gpointer) footsteps, sounds);
+	g_hash_table_insert(cg_footstep_table, (gpointer) footsteps, sounds);
 }
 
 /**
@@ -135,14 +131,14 @@ static void Cg_FootstepsTable_Populate(cm_material_t *material) {
 s_sample_t *Cg_GetFootstepSample(const char *footsteps) {
 
 	if (!footsteps || !*footsteps) {
-		footsteps = "basic";
+		footsteps = "default";
 	}
 
-	GArray *sounds = (GArray *) g_hash_table_lookup(cg_footsteps.sample_table, footsteps);
+	GArray *sounds = (GArray *) g_hash_table_lookup(cg_footstep_table, footsteps);
 
-	if (!sounds) { // already loaded
+	if (!sounds) { // bad mapper!
 		cgi.Warn("Footstep sound %s not valid\n", footsteps);
-		return cg_sample_gib; // just return some random sound so that we never return NULL
+		return Cg_GetFootstepSample("default"); // this should never recurse
 	}
 
 	return g_array_index(sounds, s_sample_t *, Random() % sounds->len);
@@ -153,19 +149,19 @@ s_sample_t *Cg_GetFootstepSample(const char *footsteps) {
  */
 static void Cg_InitFootsteps(void) {
 
-	cg_footsteps.sample_table = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Cg_FootstepsTable_Destroy);
+	cg_footstep_table = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Cg_FootstepsTable_Destroy);
 	
-	// load the hardcoded "basic" set
-	GArray *basic_samples = g_array_new(false, false, sizeof(s_sample_t *));
+	// load the hardcoded default set
+	GArray *default_samples = g_array_new(false, false, sizeof(s_sample_t *));
 
-	basic_samples = g_array_append_vals(basic_samples, (const s_sample_t *[]) {
+	default_samples = g_array_append_vals(default_samples, (const s_sample_t *[]) {
 		cgi.LoadSample("#players/common/step_1"),
 		cgi.LoadSample("#players/common/step_2"),
 		cgi.LoadSample("#players/common/step_3"),
 		cgi.LoadSample("#players/common/step_4")
 	}, 4);
 
-	g_hash_table_insert(cg_footsteps.sample_table, "basic", basic_samples);
+	g_hash_table_insert(cg_footstep_table, "default", default_samples);
 
 	cgi.EnumerateMaterials(Cg_FootstepsTable_Populate);
 }
@@ -178,9 +174,9 @@ void Cg_UpdateMedia(void) {
 
 	Cg_FreeParticles();
 
-	if (cg_footsteps.sample_table) {
-		g_hash_table_destroy(cg_footsteps.sample_table);
-		cg_footsteps.sample_table = NULL;
+	if (cg_footstep_table) {
+		g_hash_table_destroy(cg_footstep_table);
+		cg_footstep_table = NULL;
 	}
 
 	cgi.FreeTag(MEM_TAG_CGAME);

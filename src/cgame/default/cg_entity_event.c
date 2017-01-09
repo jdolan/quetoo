@@ -223,16 +223,20 @@ static void Cg_DrownEffect(cl_entity_t *ent) {
  */
 static s_sample_t *Cg_Footstep(cl_entity_t *ent) {
 
-	const char *footsteps = "basic";
+	const char *footsteps = "default";
 
 	vec3_t mins, maxs;
 	UnpackBounds(ent->current.bounds, mins, maxs);
 
-	cm_trace_t tr = cgi.Trace(ent->origin, (const vec3_t) {
-		ent->origin[0],
-		ent->origin[1],
-		ent->origin[2] - PM_STEP_HEIGHT
-	}, mins, maxs, ent->current.number, CONTENTS_SOLID);
+	cm_trace_t tr = cgi.Trace((const vec3_t) {
+		ent->current.origin[0],
+		ent->current.origin[1],
+		ent->current.origin[2] + mins[2]
+	}, (const vec3_t) {
+		ent->current.origin[0],
+		ent->current.origin[1],
+		ent->current.origin[2] + mins[2] - PM_STEP_HEIGHT
+	}, vec3_origin, vec3_origin, ent->current.number, MASK_SOLID);
 
 	if (tr.fraction < 1.0 && tr.surface && tr.surface->material && *tr.surface->material->footsteps) {
 		footsteps = tr.surface->material->footsteps;

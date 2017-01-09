@@ -254,7 +254,7 @@ typedef struct cm_material_s {
 	uint16_t num_stages;
 } cm_material_t;
 
-typedef void (*EnumerateMaterialsCallback) (cm_material_t *material);
+typedef void (*Cm_EnumerateMaterialsFunc) (cm_material_t *material);
 
 #ifdef __CM_LOCAL_H__
 

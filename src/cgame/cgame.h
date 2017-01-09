@@ -445,7 +445,7 @@ typedef struct cg_import_s {
 	/**
 	 * @brief Enumerate all of the currently loaded materials.
 	 */
-	void (*EnumerateMaterials)(EnumerateMaterialsCallback callback);
+	void (*EnumerateMaterials)(Cm_EnumerateMaterialsFunc enumerator);
 
 	/**
 	 * @}

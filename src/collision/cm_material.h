@@ -34,8 +34,8 @@ void Cm_UnloadMaterials(GArray *materials);
 
 void Cm_WriteMaterials(void);
 
-typedef void (*EnumerateMaterialsCallback) (cm_material_t *material);
-void Cm_EnumerateMaterials(EnumerateMaterialsCallback callback);
+typedef void (*Cm_EnumerateMaterialsFunc) (cm_material_t *material);
+void Cm_EnumerateMaterials(Cm_EnumerateMaterialsFunc enumerator);
 
 #ifdef __CM_LOCAL_H__
 void Cm_ShutdownMaterials(void);

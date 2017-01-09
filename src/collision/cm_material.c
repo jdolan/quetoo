@@ -844,7 +844,8 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 		Fs_Print(file, "\tspecular %g\n", material->specular);
 	}
 
-	if (*material->footsteps) {
+	// if not empty/default, write footsteps
+	if (*material->footsteps && g_strcmp0(material->footsteps, "default")) {
 		Fs_Print(file, "\tfootsteps %s\n", material->footsteps);
 	}
 
@@ -891,7 +892,7 @@ void Cm_WriteMaterials(void) {
 /**
  * @brief Enumerate all of the currently loaded materials.
  */
-void Cm_EnumerateMaterials(EnumerateMaterialsCallback callback) {
+void Cm_EnumerateMaterials(Cm_EnumerateMaterialsFunc enumerator) {
 
 	GHashTableIter iter;
 	gpointer key, value;
@@ -900,6 +901,6 @@ void Cm_EnumerateMaterials(EnumerateMaterialsCallback callback) {
 
 	while (g_hash_table_iter_next(&iter, &key, &value)) {
 		cm_material_t *material = (cm_material_t *) value;
-		callback(material);
+		enumerator(material);
 	}
 }
