@@ -27,7 +27,7 @@
  */
 static void G_misc_teleporter_Touch(g_entity_t *self, g_entity_t *other,
                                     const cm_bsp_plane_t *plane,
-                                    const cm_bsp_surface_t *surf) {
+                                    const cm_bsp_texinfo_t *surf) {
 
 	if (!G_IsMeat(other)) {
 		return;
@@ -166,7 +166,7 @@ static void G_misc_fireball_Think(g_entity_t *self) {
  */
 static void G_misc_fireball_Touch(g_entity_t *self, g_entity_t *other,
                                   const cm_bsp_plane_t *plane,
-                                  const cm_bsp_surface_t *surf) {
+                                  const cm_bsp_texinfo_t *surf) {
 
 	if (g_level.time - self->locals.touch_time > 500) {
 		self->locals.touch_time = g_level.time;

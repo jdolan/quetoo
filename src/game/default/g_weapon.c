@@ -44,7 +44,6 @@ static void G_ChangeWeapon(g_entity_t *ent, const g_item_t *item) {
 		}
 
 		ent->client->locals.weapon_change_time = 0;
-
 		return;
 	}
 
@@ -290,6 +289,7 @@ static void G_WeaponFired(g_entity_t *ent, uint32_t interval, uint32_t ammo_need
 
 	// push the next fire time out by the interval
 	ent->client->locals.weapon_fire_time = g_level.time + interval;
+	ent->client->locals.weapon_fired_time = g_level.time;
 
 	// and decrease their inventory
 	if (g_level.gameplay != GAME_INSTAGIB) {
@@ -329,7 +329,6 @@ void G_ClientWeaponThink(g_entity_t *ent) {
 
 		const uint32_t delta = ent->client->locals.weapon_change_time - g_level.time;
 		if (delta <= 250) {
-
 			if (ent->client->locals.weapon != ent->client->locals.next_weapon) {
 				ent->client->locals.weapon = ent->client->locals.next_weapon;
 
@@ -346,20 +345,27 @@ void G_ClientWeaponThink(g_entity_t *ent) {
 				} else {
 					ent->s.model2 = 0;
 				}
-			} else if (delta <= QUETOO_TICK_MILLIS) {
+			}
+		}
+	} else {
 
-				ent->client->locals.next_weapon = NULL;
+		// if the change sequence is complete, clear the next weapon, and reset the animation
+		if (G_IsAnimation(ent, ANIM_TORSO_DROP) || G_IsAnimation(ent, ANIM_TORSO_RAISE)) {
 
+			ent->client->locals.next_weapon = NULL;
+			G_SetAnimation(ent, ANIM_TORSO_STAND1, false);
+
+		// if the attack animation is complete, go back to standing
+		} else if (G_IsAnimation(ent, ANIM_TORSO_ATTACK1)) {
+			if (g_level.time - ent->client->locals.weapon_fired_time > 400) {
 				G_SetAnimation(ent, ANIM_TORSO_STAND1, false);
 			}
 		}
 
-		return;
-	}
-
-	// call active weapon fire routine
-	if (ent->client->locals.weapon && ent->client->locals.weapon->Think) {
-		ent->client->locals.weapon->Think(ent);
+		// call active weapon think routine
+		if (ent->client->locals.weapon && ent->client->locals.weapon->Think) {
+			ent->client->locals.weapon->Think(ent);
+		}
 	}
 }
 

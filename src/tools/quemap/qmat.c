@@ -57,14 +57,14 @@ int32_t MAT_Main(void) {
 		Com_Print("Materials file %s exists, skipping...\n", path);
 	} else { // do it
 
-		LoadBSPFileTexinfo(bsp_name);
+		LoadBSPFile(bsp_name, (1 << BSP_LUMP_TEXINFO));
 
 		if (!(f = Fs_OpenWrite(path))) {
 			Com_Error(ERROR_FATAL, "Couldn't open %s for writing\n", path);
 		}
 
-		for (i = 0; i < d_bsp.num_texinfo; i++) { // resolve the materials
-			AddMaterial(d_bsp.texinfo[i].texture);
+		for (i = 0; i < bsp_file.num_texinfo; i++) { // resolve the materials
+			AddMaterial(bsp_file.texinfo[i].texture);
 		}
 
 		GList *material = materials;

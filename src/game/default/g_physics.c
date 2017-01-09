@@ -251,7 +251,7 @@ static void G_Friction(g_entity_t *ent) {
 	vec_t friction = 0.0;
 
 	if (ent->locals.ground_entity) {
-		const cm_bsp_surface_t *surf = ent->locals.ground_surface;
+		const cm_bsp_texinfo_t *surf = ent->locals.ground_surface;
 		if (surf && (surf->flags & SURF_SLICK)) {
 			friction = PM_FRICT_GROUND_SLICK;
 		} else {

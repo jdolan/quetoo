@@ -238,9 +238,9 @@ static int32_t BrushContents(const map_brush_t *b) {
 
 	s = &b->original_sides[0];
 	contents = s->contents;
-	trans = d_bsp.texinfo[s->texinfo].flags;
+	trans = bsp_file.texinfo[s->texinfo].flags;
 	for (i = 1; i < b->num_sides; i++, s++) {
-		trans |= d_bsp.texinfo[s->texinfo].flags;
+		trans |= bsp_file.texinfo[s->texinfo].flags;
 		if (s->contents != contents) {
 			Com_Verbose("Entity %i, Brush %i: mixed face contents\n", b->entity_num, b->brush_num);
 			break;

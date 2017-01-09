@@ -665,7 +665,7 @@ static g_entity_t *G_DropFlag(g_entity_t *ent, const g_item_t *item) {
  */
 void G_TouchItem(g_entity_t *ent, g_entity_t *other,
                  const cm_bsp_plane_t *plane,
-                 const cm_bsp_surface_t *surf) {
+                 const cm_bsp_texinfo_t *surf) {
 
 	if (other == ent->owner) {
 		if (ent->locals.touch_time > g_level.time) {

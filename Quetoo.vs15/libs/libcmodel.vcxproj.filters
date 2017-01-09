@@ -36,6 +36,9 @@
     <ClInclude Include="..\..\src\collision\cm_main.h">
       <Filter>src\collision</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\collision\cm_bsp.h">
+      <Filter>src\collision</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\collision\cm_model.c">
@@ -54,6 +57,9 @@
       <Filter>src\collision</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\collision\cm_main.c">
+      <Filter>src\collision</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\collision\cm_bsp.c">
       <Filter>src\collision</Filter>
     </ClCompile>
   </ItemGroup>

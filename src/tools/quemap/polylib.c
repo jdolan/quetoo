@@ -234,9 +234,9 @@ winding_t *WindingForPlane(const vec3_t normal, const vec_t dist) {
 /**
  * @brief
  */
-winding_t *WindingForFace(const d_bsp_face_t *f) {
+winding_t *WindingForFace(const bsp_face_t *f) {
 	int32_t i;
-	d_bsp_vertex_t *dv;
+	bsp_vertex_t *dv;
 	int32_t v;
 	winding_t *w;
 
@@ -244,14 +244,14 @@ winding_t *WindingForFace(const d_bsp_face_t *f) {
 	w->num_points = f->num_edges;
 
 	for (i = 0; i < f->num_edges; i++) {
-		const int32_t se = d_bsp.face_edges[f->first_edge + i];
+		const int32_t se = bsp_file.face_edges[f->first_edge + i];
 		if (se < 0) {
-			v = d_bsp.edges[-se].v[1];
+			v = bsp_file.edges[-se].v[1];
 		} else {
-			v = d_bsp.edges[se].v[0];
+			v = bsp_file.edges[se].v[0];
 		}
 
-		dv = &d_bsp.vertexes[v];
+		dv = &bsp_file.vertexes[v];
 		VectorCopy(dv->point, w->points[i]);
 	}
 

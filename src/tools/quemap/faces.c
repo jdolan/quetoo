@@ -110,7 +110,7 @@ static int32_t FindVertex(const vec3_t in) {
 		vec3_t delta;
 
 		// compare the points; we go out of our way to avoid using VectorLength
-		VectorSubtract(d_bsp.vertexes[vnum].point, vert, delta);
+		VectorSubtract(bsp_file.vertexes[vnum].point, vert, delta);
 
 		if (delta[0] < POINT_EPSILON && delta[0] > -POINT_EPSILON) {
 			if (delta[1] < POINT_EPSILON && delta[1] > -POINT_EPSILON) {
@@ -122,20 +122,20 @@ static int32_t FindVertex(const vec3_t in) {
 	}
 
 	// emit a vertex
-	if (d_bsp.num_vertexes == MAX_BSP_VERTS) {
+	if (bsp_file.num_vertexes == MAX_BSP_VERTS) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_VERTS\n");
 	}
 
-	VectorCopy(vert, d_bsp.vertexes[d_bsp.num_vertexes].point);
+	VectorCopy(vert, bsp_file.vertexes[bsp_file.num_vertexes].point);
 
-	vertex_chain[d_bsp.num_vertexes] = hash_verts[h];
-	hash_verts[h] = d_bsp.num_vertexes;
+	vertex_chain[bsp_file.num_vertexes] = hash_verts[h];
+	hash_verts[h] = bsp_file.num_vertexes;
 
 	c_uniqueverts++;
 
-	d_bsp.num_vertexes++;
+	bsp_file.num_vertexes++;
 
-	return d_bsp.num_vertexes - 1;
+	return bsp_file.num_vertexes - 1;
 }
 
 static int32_t c_faces;
@@ -237,12 +237,12 @@ static void EmitFaceVertexes(node_t *node, face_t *f) {
 	w = f->w;
 	for (i = 0; i < w->num_points; i++) {
 		if (noweld) { // make every point unique
-			if (d_bsp.num_vertexes == MAX_BSP_VERTS) {
+			if (bsp_file.num_vertexes == MAX_BSP_VERTS) {
 				Com_Error(ERROR_FATAL, "MAX_BSP_VERTS\n");
 			}
-			superverts[i] = d_bsp.num_vertexes;
-			VectorCopy(w->points[i], d_bsp.vertexes[d_bsp.num_vertexes].point);
-			d_bsp.num_vertexes++;
+			superverts[i] = bsp_file.num_vertexes;
+			VectorCopy(w->points[i], bsp_file.vertexes[bsp_file.num_vertexes].point);
+			bsp_file.num_vertexes++;
 			c_uniqueverts++;
 			c_totalverts++;
 		} else {
@@ -330,7 +330,7 @@ static void TestEdge(vec_t start, vec_t end, int32_t p1, int32_t p2, int32_t sta
 			continue;
 		}
 
-		VectorCopy(d_bsp.vertexes[j].point, p);
+		VectorCopy(bsp_file.vertexes[j].point, p);
 
 		VectorSubtract(p, edge_start, delta);
 		dist = DotProduct(delta, edge_dir);
@@ -381,8 +381,8 @@ static void FixFaceEdges(node_t *node, face_t *f) {
 		const int32_t p1 = f->vertexnums[i];
 		const int32_t p2 = f->vertexnums[(i + 1) % f->num_points];
 
-		VectorCopy(d_bsp.vertexes[p1].point, edge_start);
-		VectorCopy(d_bsp.vertexes[p2].point, e2);
+		VectorCopy(bsp_file.vertexes[p1].point, edge_start);
+		VectorCopy(bsp_file.vertexes[p2].point, e2);
 
 		FindEdgeVertexes(edge_start, e2);
 
@@ -474,14 +474,14 @@ void FixTjuncs(node_t *head_node) {
  * Called by writebsp. Don't allow four way edges
  */
 int32_t GetEdge2(int32_t v1, int32_t v2, face_t *f) {
-	d_bsp_edge_t *edge;
+	bsp_edge_t *edge;
 	int32_t i;
 
 	c_tryedges++;
 
 	if (!noshare) {
-		for (i = first_bsp_model_edge; i < d_bsp.num_edges; i++) {
-			edge = &d_bsp.edges[i];
+		for (i = first_bsp_model_edge; i < bsp_file.num_edges; i++) {
+			edge = &bsp_file.edges[i];
 			if (v1 == edge->v[1] && v2 == edge->v[0] && edge_faces[i][0]->contents == f->contents) {
 				if (edge_faces[i][1]) {
 					continue;
@@ -492,16 +492,16 @@ int32_t GetEdge2(int32_t v1, int32_t v2, face_t *f) {
 		}
 	}
 	// emit an edge
-	if (d_bsp.num_edges >= MAX_BSP_EDGES) {
+	if (bsp_file.num_edges >= MAX_BSP_EDGES) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_EDGES\n");
 	}
-	edge = &d_bsp.edges[d_bsp.num_edges];
+	edge = &bsp_file.edges[bsp_file.num_edges];
 	edge->v[0] = v1;
 	edge->v[1] = v2;
-	edge_faces[d_bsp.num_edges][0] = f;
-	d_bsp.num_edges++;
+	edge_faces[bsp_file.num_edges][0] = f;
+	bsp_file.num_edges++;
 
-	return d_bsp.num_edges - 1;
+	return bsp_file.num_edges - 1;
 }
 
 /*
@@ -692,7 +692,7 @@ static void SubdivideFace(node_t *node, face_t *f) {
 	vec_t mins, maxs;
 	vec_t v;
 	int32_t axis, i;
-	const d_bsp_texinfo_t *tex;
+	const bsp_texinfo_t *tex;
 	vec3_t temp;
 	vec_t dist;
 	winding_t *w, *frontw, *backw;
@@ -702,7 +702,7 @@ static void SubdivideFace(node_t *node, face_t *f) {
 	}
 
 	// special (non-surface cached) faces don't need subdivision
-	tex = &d_bsp.texinfo[f->texinfo];
+	tex = &bsp_file.texinfo[f->texinfo];
 
 	if (tex->flags & (SURF_SKY | SURF_WARP)) {
 		return;

@@ -174,7 +174,7 @@ static void CreateVisPortals_r(node_t *node) {
 static int32_t clusterleaf;
 static void SaveClusters_r(node_t *node) {
 	if (node->plane_num == PLANENUM_LEAF) {
-		d_bsp.leafs[clusterleaf++].cluster = node->cluster;
+		bsp_file.leafs[clusterleaf++].cluster = node->cluster;
 		return;
 	}
 	SaveClusters_r(node->children[0]);

@@ -48,6 +48,6 @@ void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile, vec3_t con
                              const vec3_t dir, int32_t speed, int16_t damage, int16_t knockback, vec_t damage_radius,
                              uint32_t timer);
 void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
-                               const cm_bsp_plane_t *plane, const cm_bsp_surface_t *surf);
+                               const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *surf);
 g_entity_t *G_HookProjectile(g_entity_t *self, const vec3_t start, const vec3_t dir);
 #endif /* __GAME_LOCAL_H__ */

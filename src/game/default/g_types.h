@@ -830,6 +830,7 @@ typedef struct {
 
 	uint32_t weapon_think_time; // time when the weapon think was called
 	uint32_t weapon_fire_time; // can fire when time > this
+	uint32_t weapon_fired_time; // weapon was last fired
 	uint32_t weapon_change_time; // time when weapon was changed
 
 	uint32_t hook_think_time; // time when the hook think was called
@@ -918,7 +919,7 @@ typedef struct {
 	uint32_t next_think;
 	void (*Think)(g_entity_t *self);
 	void (*Blocked)(g_entity_t *self, g_entity_t *other); // move to move_info?
-	void (*Touch)(g_entity_t *self, g_entity_t *other, const cm_bsp_plane_t *plane, const cm_bsp_surface_t *surf);
+	void (*Touch)(g_entity_t *self, g_entity_t *other, const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *surf);
 	void (*Use)(g_entity_t *self, g_entity_t *other, g_entity_t *activator);
 	void (*Pain)(g_entity_t *self, g_entity_t *other, int16_t damage, int16_t knockback);
 	void (*Die)(g_entity_t *self, g_entity_t *attacker, uint32_t mod);
@@ -957,7 +958,7 @@ typedef struct {
 
 	g_entity_t *ground_entity;
 	cm_bsp_plane_t ground_plane;
-	cm_bsp_surface_t *ground_surface;
+	cm_bsp_texinfo_t *ground_surface;
 	int32_t ground_contents;
 
 	int32_t water_type;

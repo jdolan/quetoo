@@ -386,8 +386,6 @@ typedef struct {
  */
 #define R_STENCIL_REF(pnum) (((pnum) % 0xff) + 1)
 
-typedef cm_bsp_plane_t r_bsp_plane_t;
-
 typedef struct {
 	uint16_t v[2];
 } r_bsp_edge_t;
@@ -423,7 +421,7 @@ typedef struct {
 	int16_t light_frame; // dynamic lighting frame
 	uint64_t light_mask; // bit mask of dynamic light sources
 
-	r_bsp_plane_t *plane;
+	cm_bsp_plane_t *plane;
 	uint16_t flags; // R_SURF flags
 
 	int32_t first_edge; // look up in model->surf_edges, negative numbers
@@ -521,7 +519,7 @@ typedef struct r_bsp_node_s {
 	struct r_model_s *model;
 
 	// node specific
-	r_bsp_plane_t *plane;
+	cm_bsp_plane_t *plane;
 	struct r_bsp_node_s *children[2];
 
 	uint16_t first_surface;
@@ -559,15 +557,6 @@ typedef struct {
 typedef struct {
 	int16_t vis_frame; // PVS eligibility
 } r_bsp_cluster_t;
-
-/**
- * @brief BSP lightmap parameters.
- */
-typedef struct {
-	vec_t scale;
-	uint32_t size;
-	byte *data;
-} r_bsp_lightmaps_t;
 
 /**
  * @brief BSP light sources.
@@ -690,17 +679,18 @@ typedef enum {
 typedef struct {
 	int32_t version;
 
+	/**
+	 * @brief Reference to the cm_ bsp that is currently loaded. We use this
+	 * to populate some stuff in r_bsp.
+	 */
+	cm_bsp_t *cm;
+	bsp_file_t *file;
+
 	uint16_t num_inline_models;
 	r_bsp_inline_model_t *inline_models;
 
-	uint16_t num_planes;
-	r_bsp_plane_t *planes;
-
 	uint16_t num_leafs;
 	r_bsp_leaf_t *leafs;
-
-	uint32_t num_edges;
-	r_bsp_edge_t *edges;
 
 	uint16_t num_nodes;
 	r_bsp_node_t *nodes;
@@ -711,16 +701,13 @@ typedef struct {
 	uint16_t num_surfaces;
 	r_bsp_surface_t *surfaces;
 
-	uint32_t num_surface_edges;
-	int32_t *surface_edges;
-
 	uint16_t num_leaf_surfaces;
 	r_bsp_surface_t **leaf_surfaces;
 
 	uint16_t num_clusters;
 	r_bsp_cluster_t *clusters;
 
-	r_bsp_lightmaps_t *lightmaps;
+	vec_t lightmap_scale;
 
 	uint16_t num_bsp_lights;
 	r_bsp_light_t *bsp_lights;
@@ -741,7 +728,6 @@ typedef struct {
 
 	// an array of shadow counts, indexed by plane number
 	uint16_t *plane_shadows;
-
 } r_bsp_model_t;
 
 /**

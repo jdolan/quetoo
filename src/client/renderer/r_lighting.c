@@ -47,7 +47,6 @@ static vec3_t r_lighting_points[13];
 static void R_LightingPoints(const r_lighting_t *l) {
 	vec3_t *p = r_lighting_points;
 
-
 	VectorSet(p[0], l->mins[0], l->mins[1], l->mins[2]);
 	VectorSet(p[1], l->mins[0], l->mins[1], l->origin[2]);
 	VectorSet(p[2], l->mins[0], l->mins[1], l->maxs[2]);
@@ -65,22 +64,6 @@ static void R_LightingPoints(const r_lighting_t *l) {
 	VectorSet(p[11], l->maxs[0], l->mins[1], l->maxs[2]);
 
 	VectorSet(p[12], l->origin[0], l->origin[1], l->origin[2]);
-
-	/*
-	VectorSet(p[0], l->mins[0], l->mins[1], l->mins[2]);
-	VectorSet(p[1], l->mins[0], l->mins[1], l->maxs[2]);
-
-	VectorSet(p[2], l->mins[0], l->maxs[1], l->mins[2]);
-	VectorSet(p[3], l->mins[0], l->maxs[1], l->maxs[2]);
-
-	VectorSet(p[4], l->maxs[0], l->maxs[1], l->mins[2]);
-	VectorSet(p[5], l->maxs[0], l->maxs[1], l->maxs[2]);
-
-	VectorSet(p[6], l->maxs[0], l->mins[1], l->mins[2]);
-	VectorSet(p[7], l->maxs[0], l->mins[1], l->maxs[2]);
-
-	VectorSet(p[8], l->origin[0], l->origin[1], l->origin[2]);
-	*/
 }
 
 /**

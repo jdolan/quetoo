@@ -95,7 +95,7 @@ static int32_t brush_start, brush_end;
 static void ProcessBlock_Thread(int32_t blocknum) {
 	int32_t xblock, yblock;
 	vec3_t mins, maxs;
-	bsp_brush_t *brushes;
+	brush_t *brushes;
 	tree_t *tree;
 	node_t *node;
 
@@ -247,7 +247,7 @@ static void ProcessSubModel(void) {
 	entity_t *e;
 	int32_t start, end;
 	tree_t *tree;
-	bsp_brush_t *list;
+	brush_t *list;
 	vec3_t mins, maxs;
 
 	e = &entities[entity_num];
@@ -281,7 +281,7 @@ static void ProcessModels(void) {
 			continue;
 		}
 
-		Com_Verbose("############### model %i ###############\n", d_bsp.num_models);
+		Com_Verbose("############### model %i ###############\n", bsp_file.num_models);
 		BeginModel();
 		if (entity_num == 0) {
 			ProcessWorldModel();
@@ -297,6 +297,32 @@ static void ProcessModels(void) {
 /**
  * @brief
  */
+static void CreateBSPFile(void) {
+	
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_PLANES, MAX_BSP_PLANES);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_VERTEXES, MAX_BSP_VERTS);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_NODES, MAX_BSP_NODES);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_TEXINFO, MAX_BSP_TEXINFO);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_FACES, MAX_BSP_FACES);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_LEAFS, MAX_BSP_LEAFS);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_LEAF_FACES, MAX_BSP_LEAF_FACES);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_LEAF_BRUSHES, MAX_BSP_LEAF_BRUSHES);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_EDGES, MAX_BSP_EDGES);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_FACE_EDGES, MAX_BSP_FACE_EDGES);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_MODELS, MAX_BSP_MODELS);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_BRUSHES, MAX_BSP_BRUSHES);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_BRUSH_SIDES, MAX_BSP_BRUSH_SIDES);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_AREAS, MAX_BSP_AREAS);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_AREA_PORTALS, MAX_BSP_AREA_PORTALS);
+
+	if (!legacy) {
+		Bsp_AllocLump(&bsp_file, BSP_LUMP_NORMALS, MAX_BSP_VERTS);
+	}
+}
+
+/**
+ * @brief
+ */
 int32_t BSP_Main(void) {
 	char base[MAX_OS_PATH];
 
@@ -307,7 +333,7 @@ int32_t BSP_Main(void) {
 	StripExtension(map_name, base);
 
 	// clear the whole bsp structure
-	memset(&d_bsp, 0, sizeof(d_bsp));
+	memset(&bsp_file, 0, sizeof(bsp_file));
 
 	// delete portal and line files
 	remove(va("%s.prt", base));
@@ -316,7 +342,7 @@ int32_t BSP_Main(void) {
 	// if onlyents, just grab the entities and re-save
 	if (onlyents) {
 
-		LoadBSPFile(bsp_name);
+		const int32_t version = LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
 		num_entities = 0;
 
 		LoadMapFile(map_name);
@@ -324,8 +350,10 @@ int32_t BSP_Main(void) {
 
 		UnparseEntities();
 
-		WriteBSPFile(bsp_name);
+		WriteBSPFile(bsp_name, version);
 	} else {
+
+		CreateBSPFile();
 		// start from scratch
 		LoadMapFile(map_name);
 		SetModelNumbers();
