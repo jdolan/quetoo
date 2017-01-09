@@ -36,11 +36,11 @@ void CalcTextureReflectivity(void) {
 	// always set index 0 even if no textures
 	VectorSet(texture_reflectivity[0], 0.5, 0.5, 0.5);
 
-	for (i = 0; i < d_bsp.num_texinfo; i++) {
+	for (i = 0; i < bsp_file.num_texinfo; i++) {
 
 		// see if an earlier texinfo already got the value
 		for (j = 0; j < i; j++) {
-			if (!g_strcmp0(d_bsp.texinfo[i].texture, d_bsp.texinfo[j].texture)) {
+			if (!g_strcmp0(bsp_file.texinfo[i].texture, bsp_file.texinfo[j].texture)) {
 				VectorCopy(texture_reflectivity[j], texture_reflectivity[i]);
 				break;
 			}
@@ -51,7 +51,7 @@ void CalcTextureReflectivity(void) {
 		}
 
 		// load the image to calculate reflectivity
-		g_snprintf(path, sizeof(path), "textures/%s", d_bsp.texinfo[i].texture);
+		g_snprintf(path, sizeof(path), "textures/%s", bsp_file.texinfo[i].texture);
 
 		if (!Img_LoadImage(path, &surf)) {
 			Com_Warn("Couldn't load %s\n", path);
@@ -70,7 +70,7 @@ void CalcTextureReflectivity(void) {
 			color[2] += *pos++; // b
 		}
 
-		Com_Verbose("Loaded %s (%dx%d)\n", d_bsp.texinfo[i].texture, surf->w, surf->h);
+		Com_Verbose("Loaded %s (%dx%d)\n", bsp_file.texinfo[i].texture, surf->w, surf->h);
 
 		SDL_FreeSurface(surf);
 
@@ -84,20 +84,20 @@ void CalcTextureReflectivity(void) {
 /**
  * @brief
  */
-static inline _Bool HasLight(const d_bsp_face_t *f) {
-	const d_bsp_texinfo_t *tex;
+static inline _Bool HasLight(const bsp_face_t *f) {
+	const bsp_texinfo_t *tex;
 
-	tex = &d_bsp.texinfo[f->texinfo];
+	tex = &bsp_file.texinfo[f->texinfo];
 	return (tex->flags & SURF_LIGHT) && tex->value;
 }
 
 /**
  * @brief
  */
-static inline _Bool IsSky(const d_bsp_face_t *f) {
-	const d_bsp_texinfo_t *tex;
+static inline _Bool IsSky(const bsp_face_t *f) {
+	const bsp_texinfo_t *tex;
 
-	tex = &d_bsp.texinfo[f->texinfo];
+	tex = &bsp_file.texinfo[f->texinfo];
 	return tex->flags & SURF_SKY;
 }
 
@@ -107,7 +107,7 @@ static inline _Bool IsSky(const d_bsp_face_t *f) {
 static inline void EmissiveLight(patch_t *patch) {
 
 	if (HasLight(patch->face)) {
-		const d_bsp_texinfo_t *tex = &d_bsp.texinfo[patch->face->texinfo];
+		const bsp_texinfo_t *tex = &bsp_file.texinfo[patch->face->texinfo];
 		const vec_t *ref = texture_reflectivity[patch->face->texinfo];
 
 		VectorScale(ref, tex->value, patch->light);
@@ -119,17 +119,17 @@ static inline void EmissiveLight(patch_t *patch) {
  */
 static void BuildPatch(int32_t fn, winding_t *w) {
 	patch_t *patch;
-	d_bsp_plane_t *plane;
+	bsp_plane_t *plane;
 
 	patch = (patch_t *) Mem_Malloc(sizeof(*patch));
 
 	face_patches[fn] = patch;
 
-	patch->face = &d_bsp.faces[fn];
+	patch->face = &bsp_file.faces[fn];
 	patch->winding = w;
 
 	// resolve the normal
-	plane = &d_bsp.planes[patch->face->plane_num];
+	plane = &bsp_file.planes[patch->face->plane_num];
 
 	if (patch->face->side) {
 		VectorNegate(plane->normal, patch->normal);
@@ -182,9 +182,9 @@ void BuildPatches(void) {
 	winding_t *w;
 	vec3_t origin;
 
-	for (i = 0; i < d_bsp.num_models; i++) {
+	for (i = 0; i < bsp_file.num_models; i++) {
 
-		const d_bsp_model_t *mod = &d_bsp.models[i];
+		const bsp_model_t *mod = &bsp_file.models[i];
 		const entity_t *ent = EntityForModel(i);
 
 		// bmodels with origin brushes need to be offset into their
@@ -194,7 +194,7 @@ void BuildPatches(void) {
 		for (j = 0; j < mod->num_faces; j++) {
 
 			const int32_t facenum = mod->first_face + j;
-			d_bsp_face_t *f = &d_bsp.faces[facenum];
+			bsp_face_t *f = &bsp_file.faces[facenum];
 
 			VectorCopy(origin, face_offset[facenum]);
 
@@ -300,7 +300,7 @@ void SubdividePatches(void) {
 
 	for (i = 0; i < MAX_BSP_FACES; i++) {
 
-		const d_bsp_face_t *f = &d_bsp.faces[i];
+		const bsp_face_t *f = &bsp_file.faces[i];
 		patch_t *p = face_patches[i];
 
 		if (p && !IsSky(f)) { // break it up

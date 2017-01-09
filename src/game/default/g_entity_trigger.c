@@ -85,7 +85,7 @@ static void G_trigger_multiple_Use(g_entity_t *ent, g_entity_t *other,
  */
 static void G_trigger_multiple_Touch(g_entity_t *self, g_entity_t *other,
                                      const cm_bsp_plane_t *plane,
-                                     const cm_bsp_surface_t *surf) {
+                                     const cm_bsp_texinfo_t *surf) {
 
 	if (!other->client) {
 		const _Bool isProjectile = other->owner && other->owner->client;
@@ -230,7 +230,7 @@ void G_trigger_always(g_entity_t *ent) {
  */
 static void G_trigger_push_Touch(g_entity_t *self, g_entity_t *other,
                                  const cm_bsp_plane_t *plane,
-                                 const cm_bsp_surface_t *surf) {
+                                 const cm_bsp_texinfo_t *surf) {
 
 	if (other->locals.move_type == MOVE_TYPE_WALK || other->locals.move_type == MOVE_TYPE_BOUNCE) {
 
@@ -320,7 +320,7 @@ static void G_trigger_hurt_Use(g_entity_t *self, g_entity_t *other,
  */
 static void G_trigger_hurt_Touch(g_entity_t *self, g_entity_t *other,
                                  const cm_bsp_plane_t *plane,
-                                 const cm_bsp_surface_t *surf) {
+                                 const cm_bsp_texinfo_t *surf) {
 
 	if (!other->locals.take_damage) { // deal with items that land on us
 
@@ -399,7 +399,7 @@ void G_trigger_hurt(g_entity_t *self) {
  */
 static void G_trigger_exec_Touch(g_entity_t *self, g_entity_t *other,
                                  const cm_bsp_plane_t *plane,
-                                 const cm_bsp_surface_t *surf) {
+                                 const cm_bsp_texinfo_t *surf) {
 
 	if (self->locals.timestamp > g_level.time) {
 		return;

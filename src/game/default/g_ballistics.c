@@ -237,7 +237,7 @@ static void G_ProjectStructuralPoint(const g_entity_t *mover, const vec3_t point
 /**
  * @brief Used to add impact marks on surfaces hit by bullets.
  */
-static void G_BulletImpact(vec3_t org, cm_bsp_plane_t *plane, cm_bsp_surface_t *surf) {
+static void G_BulletImpact(vec3_t org, cm_bsp_plane_t *plane, cm_bsp_texinfo_t *surf) {
 
 	if (surf->flags & SURF_ALPHA_TEST) {
 		return;
@@ -255,7 +255,7 @@ static void G_BulletImpact(vec3_t org, cm_bsp_plane_t *plane, cm_bsp_surface_t *
  * @brief
  */
 static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
-                                      const cm_bsp_plane_t *plane, const cm_bsp_surface_t *surf) {
+                                      const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *surf) {
 
 	if (other == self->owner) {
 		return;
@@ -438,7 +438,7 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
  * @brief
  */
 void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
-                               const cm_bsp_plane_t *plane, const cm_bsp_surface_t *surf) {
+                               const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *surf) {
 
 	if (other == self->owner) {
 		return;
@@ -582,7 +582,7 @@ void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile,
  * @brief
  */
 static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other,
-                                     const cm_bsp_plane_t *plane, const cm_bsp_surface_t *surf) {
+                                     const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *surf) {
 
 	if (other == self->owner) {
 		return;
@@ -664,7 +664,7 @@ void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
  * @brief
  */
 static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
-        const cm_bsp_plane_t *plane, const cm_bsp_surface_t *surf) {
+        const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *surf) {
 
 	if (other == self->owner) {
 		return;
@@ -1033,7 +1033,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
  * @brief
  */
 static void G_BfgProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_bsp_plane_t *plane,
-                                  const cm_bsp_surface_t *surf) {
+                                  const cm_bsp_texinfo_t *surf) {
 
 	if (other == self->owner) {
 		return;
@@ -1149,7 +1149,7 @@ void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int3
  * @brief
  */
 static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_bsp_plane_t *plane,
-                                   const cm_bsp_surface_t *surf) {
+                                   const cm_bsp_texinfo_t *surf) {
 
 	if (other == self->owner) {
 		return;

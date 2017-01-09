@@ -226,7 +226,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
  * @brief Play a sloppy sound when impacting the world.
  */
 static void G_ClientGiblet_Touch(g_entity_t *self, g_entity_t *other,
-                                 const cm_bsp_plane_t *plane, const cm_bsp_surface_t *surf) {
+                                 const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *surf) {
 
 	if (surf && (surf->flags & SURF_SKY)) {
 		G_FreeEntity(self);

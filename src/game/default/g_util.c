@@ -783,7 +783,7 @@ _Bool G_IsStationary(const g_entity_t *ent) {
 /**
  * @return True if the specified entity and surface are structural.
  */
-_Bool G_IsStructural(const g_entity_t *ent, const cm_bsp_surface_t *surf) {
+_Bool G_IsStructural(const g_entity_t *ent, const cm_bsp_texinfo_t *surf) {
 
 	if (ent) {
 		if (ent->solid == SOLID_BSP) {
@@ -802,7 +802,7 @@ _Bool G_IsStructural(const g_entity_t *ent, const cm_bsp_surface_t *surf) {
 /**
  * @return True if the specified entity and surface are sky.
  */
-_Bool G_IsSky(const cm_bsp_surface_t *surf) {
+_Bool G_IsSky(const cm_bsp_texinfo_t *surf) {
 
 	if (surf && (surf->flags & SURF_SKY)) {
 		return true;

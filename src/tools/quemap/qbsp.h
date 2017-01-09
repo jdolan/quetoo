@@ -57,7 +57,7 @@ typedef struct side_s {
 	_Bool bevel; // don't ever use for bsp splitting
 } side_t;
 
-typedef struct brush_s {
+typedef struct {
 	int32_t entity_num;
 	int32_t brush_num;
 
@@ -92,14 +92,14 @@ typedef struct face_s {
 	int32_t vertexnums[MAXEDGES];
 } face_t;
 
-typedef struct bsp_brush_s {
-	struct bsp_brush_s *next;
+typedef struct brush_s {
+	struct brush_s *next;
 	vec3_t mins, maxs;
 	int32_t side, test_side; // side of node during construction
 	map_brush_t *original;
 	int32_t num_sides;
 	side_t sides[6]; // variably sized
-} bsp_brush_t;
+} brush_t;
 
 #define	MAX_NODE_BRUSHES	8
 typedef struct node_s {
@@ -107,7 +107,7 @@ typedef struct node_s {
 	int32_t plane_num; // -1 = leaf node
 	struct node_s *parent;
 	vec3_t mins, maxs; // valid after portalization
-	bsp_brush_t *volume; // one for each leaf/node
+	brush_t *volume; // one for each leaf/node
 
 	// nodes only
 	_Bool detail_seperator; // a detail brush caused the split
@@ -116,7 +116,7 @@ typedef struct node_s {
 	face_t *faces;
 
 	// leafs only
-	bsp_brush_t *brushes; // fragments of all brushes in this leaf
+	brush_t *brushes; // fragments of all brushes in this leaf
 	int32_t contents; // OR of all brush contents
 	int32_t occupied; // 1 or greater can reach entity
 	entity_t *occupant; // for leak file testing
@@ -191,28 +191,28 @@ int32_t FindIntPlane(int32_t *inormal, int32_t *iorigin);
 void CreateBrush(int32_t brush_num);
 
 // csg.c
-bsp_brush_t *MakeBspBrushList(int32_t startbrush, int32_t endbrush, vec3_t clipmins,
+brush_t *MakeBspBrushList(int32_t startbrush, int32_t endbrush, vec3_t clipmins,
                               vec3_t clipmaxs);
-bsp_brush_t *ChopBrushes(bsp_brush_t *head);
+brush_t *ChopBrushes(brush_t *head);
 
-void WriteBrushMap(char *name, bsp_brush_t *list);
+void WriteBrushMap(char *name, brush_t *list);
 
 // brushbsp.c
-void WriteBrushList(char *name, bsp_brush_t *brush, _Bool onlyvis);
+void WriteBrushList(char *name, brush_t *brush, _Bool onlyvis);
 
-bsp_brush_t *CopyBrush(bsp_brush_t *brush);
+brush_t *CopyBrush(brush_t *brush);
 
-void SplitBrush(bsp_brush_t *brush, int32_t plane_num, bsp_brush_t **front, bsp_brush_t **back);
+void SplitBrush(brush_t *brush, int32_t plane_num, brush_t **front, brush_t **back);
 
 tree_t *AllocTree(void);
 node_t *AllocNode(void);
 void FreeNode(node_t *node);
-bsp_brush_t *AllocBrush(int32_t num_sides);
-int32_t CountBrushList(bsp_brush_t *brushes);
-void FreeBrush(bsp_brush_t *brushes);
-void FreeBrushList(bsp_brush_t *brushes);
+brush_t *AllocBrush(int32_t num_sides);
+int32_t CountBrushList(brush_t *brushes);
+void FreeBrush(brush_t *brushes);
+void FreeBrushList(brush_t *brushes);
 
-tree_t *BrushBSP(bsp_brush_t *brushlist, vec3_t mins, vec3_t maxs);
+tree_t *BrushBSP(brush_t *brushlist, vec3_t mins, vec3_t maxs);
 
 // portals.c
 int32_t VisibleContents(int32_t contents);

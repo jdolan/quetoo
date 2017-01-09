@@ -158,7 +158,7 @@ static void ClusterMerge(uint32_t leaf_num) {
 	Com_Debug(DEBUG_ALL, "Cluster %4i : %4zi visible\n", leaf_num, numvis);
 	visibility_count += numvis;
 
-	i = CompressVis(uncompressed, compressed);
+	i = Bsp_CompressVis(&bsp_file, uncompressed, compressed);
 
 	dest = map_vis.pointer;
 	map_vis.pointer += i;
@@ -167,7 +167,7 @@ static void ClusterMerge(uint32_t leaf_num) {
 		Com_Error(ERROR_FATAL, "VIS expansion overflow\n");
 	}
 
-	d_vis->bit_offsets[leaf_num][DVIS_PVS] = (int32_t) (ptrdiff_t) (dest - map_vis.base);
+	bsp_file.vis_data.vis->bit_offsets[leaf_num][DVIS_PVS] = (int32_t) (ptrdiff_t) (dest - map_vis.base);
 
 	memcpy(dest, compressed, i);
 }
@@ -284,9 +284,12 @@ static void LoadPortals(const char *filename) {
 	map_vis.uncompressed_size = map_vis.portal_clusters * map_vis.leaf_bytes;
 	map_vis.uncompressed = Mem_Malloc(map_vis.uncompressed_size);
 
-	map_vis.base = map_vis.pointer = d_bsp.vis_data;
-	d_vis->num_clusters = map_vis.portal_clusters;
-	map_vis.pointer = (byte *) &d_vis->bit_offsets[map_vis.portal_clusters];
+	// allocate vis data
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_VISIBILITY, MAX_BSP_VISIBILITY);
+
+	map_vis.base = map_vis.pointer = bsp_file.vis_data.raw;
+	bsp_file.vis_data.vis->num_clusters = map_vis.portal_clusters;
+	map_vis.pointer = (byte *) &bsp_file.vis_data.vis->bit_offsets[map_vis.portal_clusters];
 
 	map_vis.end = map_vis.base + MAX_BSP_VISIBILITY;
 
@@ -416,7 +419,7 @@ static void CalcPHS(void) {
 			}
 
 		// compress the bit string
-		j = CompressVis(uncompressed, compressed);
+		j = Bsp_CompressVis(&bsp_file, uncompressed, compressed);
 
 		dest = map_vis.pointer;
 		map_vis.pointer += j;
@@ -425,7 +428,7 @@ static void CalcPHS(void) {
 			Com_Error(ERROR_FATAL, "Overflow\n");
 		}
 
-		d_vis->bit_offsets[i][DVIS_PHS] = (int32_t) (ptrdiff_t) (dest - map_vis.base);
+		bsp_file.vis_data.vis->bit_offsets[i][DVIS_PHS] = (int32_t) (ptrdiff_t) (dest - map_vis.base);
 
 		memcpy(dest, compressed, j);
 	}
@@ -447,9 +450,9 @@ int32_t VIS_Main(void) {
 
 	const time_t start = time(NULL);
 
-	LoadBSPFile(bsp_name);
+	const int32_t version = LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
 
-	if (d_bsp.num_nodes == 0 || d_bsp.num_faces == 0) {
+	if (bsp_file.num_nodes == 0 || bsp_file.num_faces == 0) {
 		Com_Error(ERROR_FATAL, "Empty map\n");
 	}
 
@@ -462,11 +465,11 @@ int32_t VIS_Main(void) {
 
 	CalcPHS();
 
-	d_bsp.vis_data_size = (int32_t) (ptrdiff_t) (map_vis.pointer - d_bsp.vis_data);
-	Com_Print("VIS data: %d bytes (compressed from %u bytes)\n", d_bsp.vis_data_size,
+	bsp_file.vis_data_size = (int32_t) (ptrdiff_t) (map_vis.pointer - bsp_file.vis_data.raw);
+	Com_Print("VIS data: %d bytes (compressed from %u bytes)\n", bsp_file.vis_data_size,
 	          (uint32_t) (map_vis.uncompressed_size * 2));
 
-	WriteBSPFile(bsp_name);
+	WriteBSPFile(bsp_name, version);
 
 	const time_t end = time(NULL);
 	const time_t duration = end - start;
