@@ -64,7 +64,7 @@ typedef enum {
 	BSP_LUMP_POP,
 	BSP_LUMP_AREAS,
 	BSP_LUMP_AREA_PORTALS,
-	BSP_LUMP_NORMALS, // new for q2w
+	BSP_LUMP_NORMALS, // new for Quetoo
 
 	BSP_TOTAL_LUMPS,
 

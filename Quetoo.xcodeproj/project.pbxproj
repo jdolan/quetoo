@@ -95,6 +95,8 @@
 		CE5CDC391D9F51A90034757D /* ui_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5CDBB41D9F45090034757D /* ui_types.h */; };
 		CE5CDC3A1D9F51A90034757D /* ui.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5CDBAE1D9F45090034757D /* ui.h */; };
 		CE5CDC3D1D9F5B710034757D /* libui.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5CDC321D9F51580034757D /* libui.dylib */; };
+		CE6C2D111E24902900F55B0A /* cm_bsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6C2D0F1E24902900F55B0A /* cm_bsp.c */; };
+		CE6C2D121E24902900F55B0A /* cm_bsp.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6C2D101E24902900F55B0A /* cm_bsp.h */; };
 		CE8000001C5E4D4400A21A51 /* libminizip.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.dylib */; };
 		CE8000021C5E4D4400A21A51 /* libshared.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.dylib */; };
 		CE8000031C5E4ED700A21A51 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
@@ -1351,6 +1353,8 @@
 		CE5CDBD41D9F450A0034757D /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE5CDC321D9F51580034757D /* libui.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libui.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE5CDC341D9F51990034757D /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = ../ObjectivelyMVC/build/Debug/libObjectivelyMVC.dylib; sourceTree = "<group>"; };
+		CE6C2D0F1E24902900F55B0A /* cm_bsp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_bsp.c; sourceTree = "<group>"; };
+		CE6C2D101E24902900F55B0A /* cm_bsp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_bsp.h; sourceTree = "<group>"; };
 		CE72D8A91D404ACA002129FC /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = ../ObjectivelyMVC/build/Debug/libObjectivelyMVC.dylib; sourceTree = "<group>"; };
 		CE8000051C5E4F0500A21A51 /* libxml2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.dylib; path = /opt/local/lib/libxml2.2.dylib; sourceTree = "<absolute>"; };
 		CE8000071C5E52A200A21A51 /* libz.1.2.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.8.dylib; path = /opt/local/lib/libz.1.2.8.dylib; sourceTree = "<absolute>"; };
@@ -2341,6 +2345,8 @@
 		CE12D6281C5C58C300CD0B13 /* collision */ = {
 			isa = PBXGroup;
 			children = (
+				CE6C2D0F1E24902900F55B0A /* cm_bsp.c */,
+				CE6C2D101E24902900F55B0A /* cm_bsp.h */,
 				CE12D6291C5C58C300CD0B13 /* cm_local.h */,
 				CEA3B4831E057569004A6CF3 /* cm_main.c */,
 				CEA3B4841E057569004A6CF3 /* cm_main.h */,
@@ -2975,6 +2981,7 @@
 				CEA3B48C1E0576DE004A6CF3 /* cm_main.h in Headers */,
 				CE80FE741C5E437F00A21A51 /* cm_test.h in Headers */,
 				CE80FE751C5E437F00A21A51 /* cm_trace.h in Headers */,
+				CE6C2D121E24902900F55B0A /* cm_bsp.h in Headers */,
 				CE80FE761C5E437F00A21A51 /* cm_types.h in Headers */,
 				CE80FE771C5E437F00A21A51 /* cm_vis.h in Headers */,
 			);
@@ -4008,6 +4015,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE80FE3B1C5E424300A21A51 /* cm_model.c in Sources */,
+				CE6C2D111E24902900F55B0A /* cm_bsp.c in Sources */,
 				CE80FE3C1C5E424300A21A51 /* cm_test.c in Sources */,
 				CEA3B48B1E0576D9004A6CF3 /* cm_main.c in Sources */,
 				CE80FE3D1C5E424300A21A51 /* cm_trace.c in Sources */,

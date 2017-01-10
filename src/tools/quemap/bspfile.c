@@ -224,7 +224,7 @@ void UnparseEntities(void) {
 		}
 	}
 
-	bsp_file.entity_string_size = (size_t) (ptrdiff_t) (end - buf + 1);
+	bsp_file.entity_string_size = (int32_t) (ptrdiff_t) (end - buf + 1);
 }
 
 void SetKeyValue(entity_t *ent, const char *key, const char *value) {
