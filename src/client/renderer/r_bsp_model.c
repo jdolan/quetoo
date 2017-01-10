@@ -271,6 +271,8 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
  * deluxemap creation is driven by this function.
  */
 static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
+	
+	static r_bsp_texinfo_t null_texinfo;
 
 	r_bsp_surface_t *out;
 	const bsp_face_t *in = bsp->file->faces;
@@ -300,10 +302,14 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
 
 		// then texinfo
 		const uint16_t ti = in->texinfo;
-		if (ti >= bsp->num_texinfo) {
-			Com_Error(ERROR_DROP, "Bad texinfo number: %d\n", ti);
+		if (ti == USHRT_MAX) {
+			out->texinfo = &null_texinfo;
+		} else {
+			if (ti >= bsp->num_texinfo) {
+				Com_Error(ERROR_DROP, "Bad texinfo number: %d\n", ti);
+			}
+			out->texinfo = bsp->texinfo + ti;
 		}
-		out->texinfo = bsp->texinfo + ti;
 
 		if (!(out->texinfo->flags & (SURF_WARP | SURF_SKY))) {
 			out->flags |= R_SURF_LIGHTMAP;
