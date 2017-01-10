@@ -22,6 +22,7 @@
 #pragma once
 
 #include "g_types.h"
+#include "ai/ai.h"
 
 #ifdef __GAME_LOCAL_H__
 	void G_Ai_Init(void);

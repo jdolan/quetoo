@@ -24,5 +24,8 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
+	void G_Ai_SetEntityGoal(ai_goal_t *goal, ai_goal_type_t type, vec_t priority, g_entity_t *entity);
+	void G_Ai_CopyGoal(const ai_goal_t *from, ai_goal_t *to);
+	void G_Ai_ClearGoal(ai_goal_t *goal);
 	void G_Ai_AllocNodes(void);
 #endif /* __GAME_LOCAL_H__ */

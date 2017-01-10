@@ -23,6 +23,75 @@
 #include "ai/ai.h"
 
 /**
+ * @brief Add the specified goal function to the bot, and run it at the specified
+ * time offset.
+ */
+void G_Ai_AddFuncGoal(g_entity_t *ent, G_AIGoalFunc func, uint32_t time_offset) {
+
+	for (int32_t i = 0; i < MAX_AI_FUNCGOALS; i++) {
+		g_ai_funcgoal_t *funcgoal = &ent->locals.ai_locals->funcgoals[i];
+		
+		if (funcgoal->think) {
+			continue;
+		}
+
+		funcgoal->think = func;
+		funcgoal->nextthink = g_level.time + time_offset;
+		funcgoal->time = g_level.time;
+		return;
+	}
+
+	gi.Warn("Bot ran out of empty goal slots\n");
+}
+
+/**
+ * @brief Remove the specified goal function from the bot.
+ */
+void G_Ai_RemoveFuncGoal(g_entity_t *ent, G_AIGoalFunc func) {
+	
+	for (int32_t i = 0; i < MAX_AI_FUNCGOALS; i++) {
+		g_ai_funcgoal_t *funcgoal = &ent->locals.ai_locals->funcgoals[i];
+		
+		if (funcgoal->think != func) {
+			continue;
+		}
+
+		funcgoal->think = NULL;
+		funcgoal->nextthink = 0;
+		return;
+	}
+}
+
+/**
+ * @brief Setup entity goal for the specified target.
+ */
+void G_Ai_SetEntityGoal(ai_goal_t *goal, ai_goal_type_t type, vec_t priority, g_entity_t *entity) {
+
+	goal->type = type;
+	goal->time = g_level.time;
+	goal->priority = priority;
+	goal->ent = entity;
+}
+
+/**
+ * @brief Copy a goal from one target to another
+ */
+void G_Ai_CopyGoal(const ai_goal_t *from, ai_goal_t *to) {
+
+	memcpy(to, from, sizeof(ai_goal_t));
+	to->time = g_level.time;
+}
+
+/**
+ * @brief Clear a goal
+ */
+void G_Ai_ClearGoal(ai_goal_t *goal) {
+
+	memset(goal, 0, sizeof(ai_goal_t));
+	goal->time = g_level.time;
+}
+
+/**
  * @brief Allocs a g_ai_node_t for the specified item entity.
  */
 /*static ai_goal_t *G_Ai_AllocGoal_Item(g_entity_t *ent) {

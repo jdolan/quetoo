@@ -26,5 +26,8 @@
 ai_goal_t *Ai_AllocGoal(const ai_goal_type_t type, g_entity_t *ent);
 void Ai_FreeGoals(void);
 
+void G_Ai_RemoveFuncGoal(g_entity_t *ent, G_AIGoalFunc func);
+void G_Ai_AddFuncGoal(g_entity_t *ent, G_AIGoalFunc func, uint32_t time_offset);
+
 #ifdef __AI_LOCAL_H__
 #endif /* __AI_LOCAL_H__ */

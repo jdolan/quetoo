@@ -193,6 +193,7 @@ typedef struct {
 	int32_t (*Argc)(void);
 	const char *(*Argv)(int32_t arg);
 	const char *(*Args)(void);
+	void (*TokenizeString)(const char *text);
 
 	/**
 	 * @brief Console command buffer interaction.

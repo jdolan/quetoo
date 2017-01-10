@@ -282,6 +282,7 @@ void Sv_InitGame(void) {
 	import.Argc = Cmd_Argc;
 	import.Argv = Cmd_Argv;
 	import.Args = Cmd_Args;
+	import.TokenizeString = Cmd_TokenizeString;
 
 	import.Cbuf = Cbuf_AddText;
 
