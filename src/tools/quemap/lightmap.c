@@ -65,7 +65,7 @@ static void BuildFaceExtents(void) {
 
 		const bsp_face_t *s = &bsp_file.faces[k];
 		const bsp_texinfo_t *tex = &bsp_file.texinfo[s->texinfo];
-		const uint32_t face_index = s - bsp_file.faces;
+		const size_t face_index = (ptrdiff_t) (s - bsp_file.faces);
 
 		vec_t *mins = face_extents[face_index].mins;
 		vec_t *maxs = face_extents[face_index].maxs;

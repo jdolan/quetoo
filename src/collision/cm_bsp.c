@@ -450,7 +450,7 @@ static void Bsp_GetLumpPosition(file_t *file, const bsp_lump_id_t lump_id, d_bsp
  */
 static _Bool Bsp_GetLumpOffsets(const bsp_file_t *bsp, const bsp_lump_id_t lump_id, int32_t **num, void ***data) {
 
-	if (lump_id < 0 || lump_id >= BSP_TOTAL_LUMPS) {
+	if (lump_id >= BSP_TOTAL_LUMPS) {
 		return false;
 	}
 
@@ -723,8 +723,7 @@ void Bsp_Write(file_t *file, const bsp_file_t *bsp, const int32_t version) {
 		Bsp_GetLumpOffsets(bsp, i, &lump_count, &lump_data);
 
 		// lump is valid but we're skipping it
-		if (lump_count == LUMP_SKIPPED ||
-			*lump_count == 0) {
+		if (lump_count == LUMP_SKIPPED || *lump_count == 0) {
 			continue;
 		}
 
@@ -736,7 +735,8 @@ void Bsp_Write(file_t *file, const bsp_file_t *bsp, const int32_t version) {
 #endif
 
 		// write and increase position for next lump
-		header.lumps[i].file_len = Fs_Write(file, *lump_data, lump_type_size, *lump_count) * lump_type_size;
+		const int64_t len = Fs_Write(file, *lump_data, lump_type_size, *lump_count);
+		header.lumps[i].file_len = (int32_t) (len * lump_type_size);
 		header.lumps[i].file_ofs = (int32_t) current_position;
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
