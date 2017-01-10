@@ -170,6 +170,8 @@ static void Cm_LoadBspBrushes(void) {
  */
 static void Cm_LoadBspBrushSides(void) {
 
+	static cm_bsp_texinfo_t null_texinfo;
+
 	const int32_t num_brush_sides = cm_bsp.bsp.num_brush_sides;
 	const bsp_brush_side_t *in = cm_bsp.bsp.brush_sides;
 
@@ -188,7 +190,7 @@ static void Cm_LoadBspBrushSides(void) {
 		const int32_t s = in->surf_num;
 
 		if (s == USHRT_MAX) {
-			out->surface = NULL;
+			out->surface = &null_texinfo;
 		} else {
 			// NOTE: "surface" and "texinfo" are used interchangably here. yuck.
 			if (s >= cm_bsp.bsp.num_texinfo) {
