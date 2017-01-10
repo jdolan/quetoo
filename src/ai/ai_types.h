@@ -94,6 +94,7 @@ typedef struct g_entity_ai_s {
 	ai_goal_t move_target;
 
 	vec_t wander_angle;
+	vec3_t ghost_position;
 } g_entity_ai_t;
 
 #ifdef __AI_LOCAL_H__

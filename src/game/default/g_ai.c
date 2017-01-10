@@ -49,34 +49,6 @@ static _Bool G_Ai_Can_Target(const g_entity_t *self, const g_entity_t *other) {
 
 #ifdef AI_UNUSED
 /**
- * @brief Ignore ourselves, clipping to the correct mask based on our status.
- */
-static cm_trace_t G_Ai_ClientMove_Trace(const vec3_t start, const vec3_t end, const vec3_t mins,
-                                     const vec3_t maxs) {
-
-	const g_entity_t *self = g_level.current_entity;
-
-	if (self->locals.dead) {
-		return gi.Trace(start, end, mins, maxs, self, MASK_CLIP_CORPSE);
-	} else {
-		return gi.Trace(start, end, mins, maxs, self, MASK_CLIP_PLAYER);
-	}
-}
-
-/**
- * @brief
- */
-static void G_Ai_Turn(g_entity_t *self, const vec_t angle) {
-	static u16vec3_t delta;
-				
-	PackAngles((const vec3_t) {
-		0, angle, 0
-	}, delta);
-				
-	VectorAdd(delta, self->client->ps.pm_state.delta_angles, self->client->ps.pm_state.delta_angles);
-}
-
-/**
  * @brief Executes a console command as if the bot typed it.
  */
 static void G_Ai_Command(g_entity_t *self, const char *command) {
@@ -117,6 +89,7 @@ static uint32_t G_Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 			// enemy went out of our LOS, aim at where they were for a while
 			if (!ai->aim_target.ent->locals.dead && !(ai->aim_target.ent->sv_flags & SVF_NO_CLIENT)) {
 				G_Ai_SetEntityGoal(&ai->aim_target, AI_GOAL_GHOST, G_Ai_EnemyPriority(self, ai->aim_target.ent, false), ai->aim_target.ent);
+				VectorCopy(ai->aim_target.ent->s.origin, ai->ghost_position);
 			} else {
 				G_Ai_ClearGoal(&ai->aim_target);
 			}
@@ -243,53 +216,6 @@ static uint32_t G_Ai_FuncGoal_Acrobatics(g_entity_t *self, pm_cmd_t *cmd) {
 static void G_Ai_Wander(g_entity_t *self, pm_cmd_t *cmd) {
 	g_entity_ai_t *ai = self->locals.ai_locals;
 
-/*
-	pm_move_t pm;
-	pm.s = self->client->ps.pm_state;
-
-	VectorCopy(self->s.origin, pm.s.origin);
-
-	if (self->client->locals.hook_pull) {
-
-		if (self->client->locals.persistent.hook_style == HOOK_SWING) {
-			pm.s.type = PM_HOOK_SWING;
-		} else {
-			pm.s.type = PM_HOOK_PULL;
-		}
-	} else {
-		VectorCopy(self->locals.velocity, pm.s.velocity);
-	}
-
-	pm.cmd = *cmd;
-	pm.ground_entity = self->locals.ground_entity;
-	pm.hook_pull_speed = g_hook_pull_speed->value;
-
-	pm.PointContents = gi.PointContents;
-	pm.Trace = G_Ai_ClientMove_Trace;
-
-	pm.Debug = gi.PmDebug_;
-
-	// perform a move; predict a few frames ahead
-	for (int32_t i = 0; i < 4; ++i) {
-		Pm_Move(&pm);
-	}
-	
-	vec3_t move_dir;
-	VectorSubtract(pm.s.origin, self->s.origin, move_dir);
-	vec_t move_dist = VectorLength(move_dir);
-
-	 else if (self->locals.ground_entity && !pm.ground_entity) { // predicted ground is gone
-		if ((Random() % 64) == 0) {
-			cmd->up = 10; // randomly decide to dive off the predicted cliff
-		} else {
-			G_Ai_Turn(self, 90 + Randomc() * 45); // miss the cliff
-		}
-	}
-	else if (move_dist <= 20) { // predicted move went nowhere
-		G_Ai_Turn(self, Randomf() * 4);
-	}
-*/
-
 	vec3_t forward;
 	AngleVectors((const vec3_t) { 0, ai->wander_angle, 0 }, forward, NULL, NULL);
 
@@ -302,14 +228,8 @@ static void G_Ai_Wander(g_entity_t *self, pm_cmd_t *cmd) {
 		vec_t angle = 45 + Randomf() * 45;
 
 		ai->wander_angle += (Randomf() < 0.5) ? -angle : angle;
+		ai->wander_angle = ClampAngle(ai->wander_angle);
 	}
-	
-	AngleVectors((const vec3_t) { 0, ai->wander_angle, 0 }, forward, NULL, NULL);
-
-	VectorScale(forward, PM_SPEED_RUN, forward);
-
-	cmd->forward = forward[0];
-	cmd->right = forward[1];
 }
 
 /**
@@ -319,16 +239,36 @@ static void G_Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	g_entity_ai_t *ai = self->locals.ai_locals;
 	ai_goal_t *move_target = &ai->move_target;
 
+	vec3_t movement_goal;
+
 	// TODO: node navigation.
-	if (move_target->type <= AI_GOAL_NAV ||
-		move_target->type == AI_GOAL_GHOST) {
+	if (move_target->type <= AI_GOAL_NAV) {
 		G_Ai_Wander(self, cmd);
-		return;
+	}
+
+	switch (move_target->type) {
+	default: {
+		vec3_t movement_dir = { 0, ai->wander_angle, 0 };
+		AngleVectors(movement_dir, movement_dir, NULL, NULL);
+		VectorMA(self->s.origin, 1.0, movement_dir, movement_goal);
+	}
+		break;
+	case AI_GOAL_ITEM:
+	case AI_GOAL_ENEMY:
+		VectorCopy(move_target->ent->s.origin, movement_goal);
+		break;
 	}
 
 	vec3_t move_direction;
-	VectorSubtract(move_target->ent->s.origin, self->s.origin, move_direction);
+	VectorSubtract(movement_goal, self->s.origin, move_direction);
 	VectorNormalize(move_direction);
+	VectorAngles(move_direction, move_direction);
+	move_direction[0] = move_direction[2] = 0.0;
+
+	const vec3_t view_direction = { 0.0, self->client->locals.angles[1], 0.0};
+	VectorSubtract(view_direction, move_direction, move_direction);
+
+	AngleVectors(move_direction, move_direction, NULL, NULL);
 
 	VectorScale(move_direction, PM_SPEED_RUN, move_direction);
 
@@ -336,6 +276,42 @@ static void G_Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	cmd->right = move_direction[1];
 }
 
+static vec_t AngleMod(const vec_t a) {
+	return (360.0 / 65536) * ((int32_t) (a * (65536 / 360.0)) & 65535);
+}
+
+static vec_t G_Ai_CalculateAngle(g_entity_t *self, const vec_t speed, vec_t current, const vec_t ideal) {
+	current = AngleMod(current);
+
+	if (current == ideal)
+		return current;
+
+	vec_t move = ideal - current;
+
+	if (ideal > current) {
+		if (move >= 180.0) {
+			move = move - 360.0;
+		}
+	}
+	else {
+		if (move <= -180.0) {
+			move = move + 360.0;
+		}
+	}
+
+	if (move > 0) {
+		if (move > speed) {
+			move = speed;
+		}
+	}
+	else {
+		if (move < -speed) {
+			move = -speed;
+		}
+	}
+	
+	return AngleMod(current + move);
+}
 
 /**
  * @brief Turn/look towards our current target
@@ -352,21 +328,28 @@ static void G_Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	} else {
 		vec3_t aim_direction;
 
-		VectorSubtract(aim_target->ent->s.origin, self->s.origin, aim_direction);
+		if (aim_target->type == AI_GOAL_GHOST) {
+			VectorSubtract(aim_target->ent->s.origin, self->s.origin, aim_direction);
+		} else {
+			VectorSubtract(ai->ghost_position, self->s.origin, aim_direction);
+		}
 		VectorNormalize(aim_direction);
 		VectorAngles(aim_direction, ideal_angles);
 
 		// fuzzy angle
-		ideal_angles[0] += sin(g_level.time / (128.0 + Randomc())) * 1.5;
-		ideal_angles[1] += cos(g_level.time / (128.0 + Randomc())) * 1.5;
+		ideal_angles[0] += sin(g_level.time / (128.0 + Randomc())) * 3.0;
+		ideal_angles[1] += cos(g_level.time / (128.0 + Randomc())) * 3.0;
 	}
 
-	VectorSubtract(ideal_angles, self->client->locals.angles, ideal_angles);
-			
-	u16vec3_t delta;
-	PackAngles(ideal_angles, delta);
+	for (int32_t i = 0; i < 2; ++i) {
+		ideal_angles[i] = G_Ai_CalculateAngle(self, 6.5, self->client->locals.angles[i], ideal_angles[i]);
+	}
 
-	VectorAdd(delta, self->client->ps.pm_state.delta_angles, self->client->ps.pm_state.delta_angles);
+	vec3_t delta;
+	UnpackAngles(self->client->ps.pm_state.delta_angles, delta);
+	VectorSubtract(ideal_angles, delta, ideal_angles);
+
+	PackAngles(ideal_angles, cmd->angles);
 }
 
 /**
@@ -412,130 +395,6 @@ static void G_Ai_ClientThink(g_entity_t *self) {
 		G_Ai_MoveToTarget(self, &cmd);
 		G_Ai_TurnToTarget(self, &cmd);
 	}
-
-	/*if (self->locals.dead) {
-		cmd.buttons = self->client->locals.buttons ^ BUTTON_ATTACK;
-	} else {
-		
-		g_entity_t *player = NULL;
-
-		if (self->locals.enemy && G_Ai_Can_Target(self, self->locals.enemy)) {
-
-			player = self->locals.enemy;
-		} else {
-			for (int32_t i = 1; i <= sv_max_clients->integer; i++) {
-
-				g_entity_t *ent = &g_game.entities[i];
-
-				if (G_Ai_Can_Target(self, ent)) {
-					player = ent;
-					break;
-				}
-			}
-		}
-
-		if (player) {
-			vec3_t dir, angles;
-
-			self->locals.enemy = player;
-
-			VectorSubtract(player->s.origin, self->s.origin, dir);
-			VectorNormalize(dir);
-			VectorAngles(dir, angles);
-			VectorSubtract(angles, self->client->locals.angles, angles);
-			
-			angles[0] += Randomc() * 5.0;
-			angles[1] += Randomc() * 5.0;
-
-			u16vec3_t delta;
-			PackAngles(angles, delta);
-
-			VectorAdd(delta, self->client->ps.pm_state.delta_angles, self->client->ps.pm_state.delta_angles);
-
-			cmd.forward = 500;
-
-			if (self->locals.ground_entity) {
-
-				if (self->client->ps.pm_state.flags & PMF_DUCKED) {
-					
-					if ((Random() % 32) == 0) { // uncrouch eventually
-						cmd.up = 0;
-					}
-				} else {
-
-					if ((Random() % 32) == 0) { // randomly crouch
-						cmd.up = -10;
-					} else if ((Random() % 86) == 0) { // randomly pop, to confuse our enemies
-						cmd.up = 10;
-					}
-				}
-			} else {
-
-				cmd.up = 0;
-			}
-
-			cmd.buttons |= BUTTON_ATTACK;
-		} else {
-			vec3_t forward, end;
-
-			cmd.forward = 300;
-
-			static pm_move_t pm;
-
-			pm.s = self->client->ps.pm_state;
-
-			VectorCopy(self->s.origin, pm.s.origin);
-
-			if (self->client->locals.hook_pull) {
-
-				if (self->client->locals.persistent.hook_style == HOOK_SWING) {
-					pm.s.type = PM_HOOK_SWING;
-				} else {
-					pm.s.type = PM_HOOK_PULL;
-				}
-			} else {
-				VectorCopy(self->locals.velocity, pm.s.velocity);
-			}
-
-			pm.cmd = cmd;
-			pm.ground_entity = self->locals.ground_entity;
-			pm.hook_pull_speed = g_hook_pull_speed->value;
-
-			pm.PointContents = gi.PointContents;
-			pm.Trace = G_Ai_ClientMove_Trace;
-
-			pm.Debug = gi.PmDebug_;
-
-			// perform a move; predict a few frames ahead
-			for (int32_t i = 0; i < 4; ++i) {
-				Pm_Move(&pm);
-			}
-
-			AngleVectors((const vec3_t) { 0, self->client->locals.angles[1], 0 }, forward, NULL, NULL);
-
-			VectorMA(self->s.origin, 28, forward, end);
-
-			cm_trace_t tr = gi.Trace(self->s.origin, end, vec3_origin, vec3_origin, self, MASK_CLIP_PLAYER);
-
-			vec3_t move_dir;
-			VectorSubtract(pm.s.origin, self->s.origin, move_dir);
-			vec_t move_dist = VectorLength(move_dir);
-
-			if (tr.fraction < 1.0) { // hit a wall
-				G_Ai_Turn(self, 90 + Randomc() * 45);
-			} else if (self->locals.ground_entity && !pm.ground_entity) { // predicted ground is gone
-				if ((Random() % 64) == 0) {
-					cmd.up = 10; // randomly decide to dive off the predicted cliff
-				} else {
-					G_Ai_Turn(self, 90 + Randomc() * 45); // miss the cliff
-				}
-			} else if (move_dist <= 20) { // predicted move went nowhere
-				G_Ai_Turn(self, Randomf() * 4);
-			}
-
-			self->locals.enemy = NULL;
-		}
-	}*/
 
 	G_ClientThink(self, &cmd);
 
