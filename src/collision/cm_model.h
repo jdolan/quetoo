@@ -38,6 +38,7 @@ int32_t Cm_LeafArea(const int32_t leaf_num);
 
 typedef struct {
 	char name[MAX_QPATH];
+	int64_t size;
 	bsp_file_t bsp;
 
 	cm_bsp_plane_t *planes;

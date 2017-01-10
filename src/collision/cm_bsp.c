@@ -398,7 +398,7 @@ int64_t Bsp_Size(file_t *file) {
 
 	for (bsp_lump_id_t i = 0; i < BSP_TOTAL_LUMPS; i++) {
 
-		total = Max(total, (int64_t) (LittleLong(header.lumps[i].file_ofs) + LittleLong(header.lumps[i].file_len)));
+		total += LittleLong(header.lumps[i].file_len);
 	}
 
 	return total;
