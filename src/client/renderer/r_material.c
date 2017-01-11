@@ -639,7 +639,10 @@ static void R_RegisterMaterial(r_media_t *self) {
 static void R_FreeMaterial(r_media_t *self) {
 	r_material_t *mat = (r_material_t *) self;
 
-	Cm_FreeMaterial(mat->cm);
+	// BSP materials have to be handled specially because of dependencies
+	if (mat->mod_type != MOD_BSP) {
+		Cm_FreeMaterial(mat->cm);
+	}
 }
 
 /**
@@ -681,7 +684,7 @@ static void R_LoadSpecularmap(r_material_t *mat, const char *base) {
 /**
  * @brief Loads the r_material_t from the specified cm_material_t.
  */
-static r_material_t *R_ConvertMaterial(cm_material_t *cm, const _Bool map_material) {
+static r_material_t *R_ConvertMaterial(cm_material_t *cm, const r_model_t *mod) {
 	r_material_t *mat;
 
 	if (!cm || !cm->diffuse[0]) {
@@ -697,11 +700,12 @@ static r_material_t *R_ConvertMaterial(cm_material_t *cm, const _Bool map_materi
 
 		mat->cm = cm;
 
-		mat->media.Register = R_RegisterMaterial;
-
-		if (!map_material) {
-			mat->media.Free = R_FreeMaterial;
+		if (mod) {
+			mat->mod_type = mod->type;
 		}
+
+		mat->media.Register = R_RegisterMaterial;
+		mat->media.Free = R_FreeMaterial;
 
 		mat->diffuse = R_LoadImage(cm->diffuse, IT_DIFFUSE);
 		if (mat->diffuse->type == IT_DIFFUSE) {
@@ -729,7 +733,7 @@ r_material_t *R_LoadMaterial(const char *name) {
 	g_snprintf(material_key, sizeof(material_key), "%s_mat", material_key);
 
 	if (!(mat = (r_material_t *) R_FindMedia(material_key))) {
-		mat = R_ConvertMaterial(Cm_LoadMaterial(name), false);
+		mat = R_ConvertMaterial(Cm_LoadMaterial(name), NULL);
 	}
 
 	return mat;
@@ -781,7 +785,7 @@ static int32_t R_LoadStageFrames(r_stage_t *s) {
 /**
  * @brief
  */
-static int32_t R_ParseStage(r_stage_t *s, const cm_stage_t *cm, const _Bool map_material) {
+static int32_t R_ParseStage(r_stage_t *s, const cm_stage_t *cm, const r_model_t *mod) {
 
 	s->cm = cm;
 
@@ -831,7 +835,7 @@ static int32_t R_ParseStage(r_stage_t *s, const cm_stage_t *cm, const _Bool map_
 
 	// load material if lighting
 	if (cm->flags & STAGE_LIGHTING) {
-		s->material = R_ConvertMaterial(cm->material, map_material);
+		s->material = R_ConvertMaterial(cm->material, mod);
 	}
 
 	return 0;
@@ -840,8 +844,8 @@ static int32_t R_ParseStage(r_stage_t *s, const cm_stage_t *cm, const _Bool map_
 /**
  * @brief Loads an r_material_t from a cm_material_t
  */
-static void R_LoadMaterial_(cm_material_t *cm_mat, const _Bool map_material) {
-	r_material_t *r_mat = R_ConvertMaterial(cm_mat, map_material);
+static void R_LoadMaterial_(cm_material_t *cm_mat, const r_model_t *mod) {
+	r_material_t *r_mat = R_ConvertMaterial(cm_mat, mod);
 
 	if (!r_mat) {
 		Com_Warn("Failed to convert %s\n", cm_mat->diffuse);
@@ -885,7 +889,7 @@ static void R_LoadMaterial_(cm_material_t *cm_mat, const _Bool map_material) {
 	for (cm_stage_t *cm_stage = cm_mat->stages; cm_stage; cm_stage = cm_stage->next) {
 		r_stage_t *r_stage = (r_stage_t *) Mem_LinkMalloc(sizeof(r_stage_t), r_mat);
 
-		if (R_ParseStage(r_stage, cm_stage, map_material) == -1) {
+		if (R_ParseStage(r_stage, cm_stage, mod) == -1) {
 			Mem_Free(r_stage);
 			continue;
 		}
@@ -939,7 +943,7 @@ void R_LoadMaterials(r_model_t *mod) {
 	}
 
 	for (; cm_mat; cm_mat = cm_mat->next) {
-		R_LoadMaterial_(cm_mat, mod->type == MOD_BSP);
+		R_LoadMaterial_(cm_mat, mod);
 	}
 }
 
