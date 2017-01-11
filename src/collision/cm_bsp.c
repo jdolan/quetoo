@@ -429,6 +429,9 @@ static void Bsp_GetLumpPosition(file_t *file, const bsp_lump_id_t lump_id, d_bsp
 
 	Fs_Seek(file, sizeof(int32_t) + sizeof(int32_t) + (sizeof(d_bsp_lump_t) * lump_id));
 	Fs_Read(file, lump, sizeof(d_bsp_lump_t), 1);
+	
+	lump->file_len = LittleLong(lump->file_len);
+	lump->file_ofs = LittleLong(lump->file_ofs);
 }
 
 /**
@@ -736,8 +739,10 @@ void Bsp_Write(file_t *file, const bsp_file_t *bsp, const int32_t version) {
 
 		// write and increase position for next lump
 		const int64_t len = Fs_Write(file, *lump_data, lump_type_size, *lump_count);
-		header.lumps[i].file_len = (int32_t) (len * lump_type_size);
-		header.lumps[i].file_ofs = (int32_t) current_position;
+		const int64_t lump_size = (int32_t) (len * lump_type_size);
+
+		header.lumps[i].file_len = LittleLong((int32_t) lump_size);
+		header.lumps[i].file_ofs = LittleLong((int32_t) current_position);
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
 		// swap back to memory endianness
@@ -746,7 +751,7 @@ void Bsp_Write(file_t *file, const bsp_file_t *bsp, const int32_t version) {
 		}
 #endif
 
-		current_position += header.lumps[i].file_len;
+		current_position += lump_size;
 	}
 
 	// go back and write the finished header
