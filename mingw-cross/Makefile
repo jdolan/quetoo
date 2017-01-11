@@ -1,4 +1,4 @@
-# Makefile for Quetoo Windows distributable.
+# Makefile for Quetoo Windows distributable, requires awscli.
 # export PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/bin:${PATH}
 
 ARCH = x86_64
@@ -10,12 +10,8 @@ BINDIR = $(INSTALL)/bin
 ETCDIR = $(INSTALL)/etc
 LIBDIR = $(INSTALL)/lib
 DATADIR = $(INSTALL)/share
-REMOTE_USER = $(shell whoami)
-RSYNC_REPOSITORY = quetoo.org:/opt/rsync/quetoo-mingw/$(ARCH)
-RSYNC_TARGET = $(REMOTE_USER)@$(RSYNC_REPOSITORY)
 DIST = $(TARGET)/Quetoo-BETA-$(ARCH).zip
-HTTP_REPOSITORY = quetoo.org:/var/www/quetoo.org/files
-HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
+S3_BUCKET = s3://quetoo
 
 all: clean install-lib dist
 
@@ -46,14 +42,14 @@ install-data:
 	cp -r $(DATA)/target/* $(DATADIR)
 
 release:
-	rsync -rzhP --delete $(BINDIR) $(ETCDIR) $(LIBDIR) $(RSYNC_TARGET)
+	aws s3 sync $(INSTALL) $(S3_BUCKET)/$(HOST)
 
 dist:
 	rm -f Quetoo; ln -s $(INSTALL)
 	zip -9 -r $(DIST) Quetoo
 
 dist-release:
-	rsync -rzhP $(DIST) $(HTTP_TARGET)
+	aws s3 cp $(DIST) $(S3_BUCKET)
 
 clean:
 	rm -rf $(TARGET)/*

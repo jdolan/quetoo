@@ -1,4 +1,4 @@
-# Makefile for Quetoo Linux distributable
+# Makefile for Quetoo Linux distributable, requires awscli.
 
 ARCH = x86_64
 HOST = $(ARCH)-pc-linux
@@ -9,12 +9,8 @@ INSTALL = $(TARGET)/$(ARTIFACT)
 LIBDIR = $(INSTALL)/lib
 BINDIR = $(INSTALL)/bin
 DATADIR = $(INSTALL)/share
-REMOTE_USER = $(shell whoami)
-RSYNC_REPOSITORY = quetoo.org:/opt/rsync/$(ARTIFACT)-linux/$(ARCH)
-RSYNC_TARGET = $(REMOTE_USER)@$(RSYNC_REPOSITORY)
 DIST = $(TARGET)/$(ARTIFACT)-BETA-$(ARCH).tar.gz
-HTTP_REPOSITORY = quetoo.org:/var/www/quetoo.org/files
-HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
+S3_BUCKET = s3://quetoo
 
 all: clean install-lib dist
 
@@ -50,16 +46,15 @@ install-data:
 	cp -r $(DATA)/target/* $(DATADIR)
 
 release:
-	rsync -rzhP --delete $(INSTALL)/*.* $(BINDIR) $(LIBDIR) $(RSYNC_TARGET)
+	aws s3 sync $(INSTALL) $(S3_BUCKET)/$(HOST)
 
 dist:
 	tar -czvf $(DIST) -C $(TARGET) $(ARTIFACT)
 
 dist-release:
-	rsync -rzhP $(DIST) $(HTTP_TARGET)
+	aws s3 cp $(DIST) $(S3_BUCKET)
 
 clean:
 	rm -rf $(TARGET)/*
 
 .PHONY: all all-data configure compile pre-install install install-lib install-data release dist dist-release clean
-

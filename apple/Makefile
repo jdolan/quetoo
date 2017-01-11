@@ -1,6 +1,8 @@
-# Makefile for Quetoo.app, requires http://macdylibbundler.sourceforge.net/
+# Makefile for Quetoo.app, requires awscli and dylibbundler.
+# http://macdylibbundler.sourceforge.net/
 
 ARCH = x86_64
+HOST = $(ARCH)-apple-darwin
 DATA = ../../quetoo-data
 TARGET = target
 INSTALL = $(TARGET)/Quetoo
@@ -8,13 +10,9 @@ QUETOO = $(INSTALL)/Quetoo.app
 BINDIR = $(QUETOO)/Contents/MacOS
 LIBDIR = $(QUETOO)/Contents/MacOS/lib
 DATADIR = $(QUETOO)/Contents/Resources
-REMOTE_USER = $(shell whoami)
-RSYNC_REPOSITORY = quetoo.org:/opt/rsync/quetoo-apple/$(ARCH)
-RSYNC_TARGET = $(REMOTE_USER)@$(RSYNC_REPOSITORY)
 DIST = $(TARGET)/Quetoo-BETA-$(ARCH).dmg
 VOLUME_NAME = "Quetoo BETA $(ARCH)"
-HTTP_REPOSITORY = quetoo.org:/var/www/quetoo.org/files
-HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
+S3_BUCKET = s3://quetoo
 
 all: clean install-lib post-install dist
 
@@ -59,18 +57,16 @@ post-install:
 	./set-icon.sh $(DATADIR)/quetoo-update.icns $(BINDIR)/quetoo-update
 
 release:
-	rsync -rzhP --delete $(BINDIR) $(RSYNC_TARGET)
-	rsync -rzhP --delete $(DATADIR)/*.* $(RSYNC_TARGET)/Resources/
+	aws s3 sync $(INSTALL) $(S3_BUCKET)/$(HOST)
 
 dist:
 	ln -f -s /Applications $(TARGET)/Applications
 	hdiutil create -ov $(DIST) -srcfolder $(TARGET) -volname $(VOLUME_NAME)
 
 dist-release:
-	rsync -rzhP $(DIST) $(HTTP_TARGET)
+	aws s3 cp $(DIST) $(S3_BUCKET)
 
 clean:
 	rm -rf $(TARGET)/*
 
 .PHONY: all all-data configure compile pre-install install install-lib install-data post-install release dist dist-release clean
-
