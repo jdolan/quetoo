@@ -689,7 +689,7 @@ static r_material_t *R_ConvertMaterial(cm_material_t *cm, const _Bool map_materi
 		Com_Error(ERROR_DROP, "NULL diffuse name\n");
 	}
 
-	Cm_NormalizeMaterial(cm->base, key, sizeof(key));
+	Cm_MaterialName(cm->base, key, sizeof(key));
 	g_strlcat(key, "_mat", sizeof(key));
 
 	r_material_t *mat = (r_material_t *) R_FindMedia(key);
@@ -725,7 +725,7 @@ r_material_t *R_LoadMaterial(const char *name) {
 	char key[MAX_QPATH];
 
 	StripExtension(name, key);
-	Cm_NormalizeMaterial(key, key, sizeof(key));
+	Cm_MaterialName(key, key, sizeof(key));
 
 	g_strlcat(key, "_mat", sizeof(key));
 	r_material_t *mat = (r_material_t *) R_FindMedia(key);
@@ -853,8 +853,7 @@ void R_LoadMaterials(r_model_t *mod) {
 		cm_mat = Cm_Bsp()->materials;
 	} else {
 		char path[MAX_QPATH];
-		g_snprintf(path, sizeof(path), "%s", mod->media.name);
-		strcat(path, ".mat");
+		g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
 		cm_mat = Cm_LoadMaterials(path, NULL);
 	}
 

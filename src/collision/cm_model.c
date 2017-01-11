@@ -84,7 +84,7 @@ static void Cm_LoadBspSurfaces(void) {
 
 		char material_name[MAX_QPATH];
 		g_snprintf(material_name, sizeof(material_name), "textures/%s", out->name);
-		Cm_NormalizeMaterial(material_name, material_name, sizeof(material_name));
+		Cm_MaterialName(material_name, material_name, sizeof(material_name));
 
 		for (cm_material_t *material = cm_bsp.materials; material; material = material->next) {
 			

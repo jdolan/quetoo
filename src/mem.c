@@ -294,8 +294,7 @@ char *Mem_CopyString(const char *in) {
  * @brief
  */
 static gint Mem_Stats_Sort(gconstpointer a, gconstpointer b) {
-
-	return ((const mem_stat_t *) b)->size - ((const mem_stat_t *) a)->size;
+	return (gint) (((const mem_stat_t *) b)->size - ((const mem_stat_t *) a)->size);
 }
 
 /**

@@ -126,7 +126,7 @@ typedef struct cm_material_s {
 	/**
 	 * @brief The full name of the material as it appears in the .mat file
 	 */
-	char full_name[MAX_QPATH];
+	char name[MAX_QPATH];
 
 	/**
 	 * @brief The image to use for the diffuse map
@@ -191,4 +191,7 @@ void Cm_FreeMaterial(cm_material_t *material);
 cm_material_t *Cm_LoadMaterials(const char *path, size_t *count);
 void Cm_WriteMaterial(const char *filename, const cm_material_t *material);
 
-void Cm_NormalizeMaterial(const char *input, char *output, size_t output_len);
+void Cm_MaterialName(const char *in, char *out, size_t len);
+
+#ifdef __CM_LOCAL_H__
+#endif /* __CM_LOCAL_H__ */

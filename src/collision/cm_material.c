@@ -404,13 +404,14 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, const char **buffe
 /**
  * @brief Normalizes a material's input name and fills the buffer with the base name.
  */
-void Cm_NormalizeMaterial(const char *input, char *output, size_t output_len) {
-	if (output != input) {
-		g_strlcpy(output, input, output_len);
+void Cm_MaterialName(const char *in, char *out, size_t len) {
+
+	if (out != in) {
+		g_strlcpy(out, in, len);
 	}
 
-	if (g_str_has_suffix(output, "_d")) {
-		output[strlen(output) - 2] = '\0';
+	if (g_str_has_suffix(out, "_d")) {
+		out[strlen(out) - 2] = '\0';
 	}
 }
 
@@ -426,7 +427,7 @@ cm_material_t *Cm_LoadMaterial(const char *diffuse) {
 	cm_material_t *mat = Mem_TagMalloc(sizeof(cm_material_t), MEM_TAG_MATERIAL);
 
 	StripExtension(diffuse, mat->diffuse);
-	Cm_NormalizeMaterial(mat->diffuse, mat->base, sizeof(mat->base));
+	Cm_MaterialName(mat->diffuse, mat->base, sizeof(mat->base));
 
 	mat->bump = DEFAULT_BUMP;
 	mat->hardness = DEFAULT_HARDNESS;
@@ -481,7 +482,7 @@ cm_material_t *Cm_LoadMaterials(const char *path, size_t *count) {
 				mat = Cm_LoadMaterial(va("textures/%s", c));
 			}
 
-			g_strlcpy(mat->full_name, c, sizeof(mat->full_name));
+			g_strlcpy(mat->name, c, sizeof(mat->name));
 
 			// prepend to the material list
 			if (m) {
@@ -600,7 +601,7 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 	} else if (stage->flags & STAGE_FLARE) {
 		Fs_Print(file, "\t\tflare %s\n", stage->image);
 	} else {
-		Com_Warn("Material %s has a stage with no texture?\n", material->full_name);
+		Com_Warn("Material %s has a stage with no texture?\n", material->name);
 	}
 
 	if (stage->flags & STAGE_BLEND) {
@@ -665,7 +666,7 @@ static void Cm_WriteMaterial_(const cm_material_t *material, file_t *file) {
 	Fs_Print(file, "{\n");
 
 	// write the innards
-	Fs_Print(file, "\tmaterial %s\n", material->full_name);
+	Fs_Print(file, "\tmaterial %s\n", material->name);
 
 	if (*material->normalmap) {
 		Fs_Print(file, "\tnormalmap %s\n", material->normalmap);
