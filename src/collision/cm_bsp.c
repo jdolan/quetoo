@@ -388,17 +388,12 @@ static Bsp_SwapFunction bsp_swap_funcs[BSP_TOTAL_LUMPS] = {
 /**
  * @brief Calculates the effective size of the BSP file.
  */
-int64_t Bsp_Size(file_t *file) {
-	bsp_header_t header;
-
-	Fs_Seek(file, 0);
-	Fs_Read(file, &header, sizeof(header), 1);
-	
+int64_t Bsp_Size(const bsp_header_t *file) {
 	int64_t total = 0;
 
 	for (bsp_lump_id_t i = 0; i < BSP_TOTAL_LUMPS; i++) {
 
-		total += LittleLong(header.lumps[i].file_len);
+		total += LittleLong(file->lumps[i].file_len);
 	}
 
 	return total;
@@ -408,28 +403,21 @@ int64_t Bsp_Size(file_t *file) {
  * @brief Verifies that a file is indeed a BSP file and returns
  * the version number. Returns -1 if it is not a valid BSP.
  */
-int32_t Bsp_Verify(file_t *file) {
+int32_t Bsp_Verify(const bsp_header_t *file) {
 
-	bsp_header_t header;
-
-	Fs_Seek(file, 0);
-	Fs_Read(file, &header, sizeof(header), 1);
-	
-	if (LittleLong(header.ident) != BSP_IDENT) {
+	if (LittleLong(file->ident) != BSP_IDENT) {
 		return -1;
 	}
 
-	return LittleLong(header.version);
+	return LittleLong(file->version);
 }
 
 /**
  * @brief Read the lump length/offset from the BSP file.
  */
-static void Bsp_GetLumpPosition(file_t *file, const bsp_lump_id_t lump_id, d_bsp_lump_t *lump) {
-
-	Fs_Seek(file, sizeof(int32_t) + sizeof(int32_t) + (sizeof(d_bsp_lump_t) * lump_id));
-	Fs_Read(file, lump, sizeof(d_bsp_lump_t), 1);
+static void Bsp_GetLumpPosition(const bsp_header_t *file, const bsp_lump_id_t lump_id, d_bsp_lump_t *lump) {
 	
+	*lump = file->lumps[lump_id];
 	lump->file_len = LittleLong(lump->file_len);
 	lump->file_ofs = LittleLong(lump->file_ofs);
 }
@@ -536,7 +524,7 @@ void Bsp_UnloadLumps(bsp_file_t *bsp, const bsp_lump_id_t lump_bits) {
  * @brief Load a lump into memory from the specified BSP file. Returns false
  * if an error occured during the load that is recoverable.
  */
-_Bool Bsp_LoadLump(file_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
+_Bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
 
 	int32_t *lump_count;
 	void **lump_data;
@@ -574,13 +562,9 @@ _Bool Bsp_LoadLump(file_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
 	// blit the data into memory
 	if (lump.file_ofs && lump.file_len) {
 
-		if (!Fs_Seek(file, lump.file_ofs)) {
-			return false;
-		}
+		const byte *file_lump = ((byte *) file) + lump.file_ofs;
 
-		if (Fs_Read(file, *lump_data, 1, lump.file_len) != lump.file_len) {
-			return false;
-		}
+		memcpy(*lump_data, file_lump, lump.file_len);
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
 		// swap the lump if required
@@ -599,7 +583,7 @@ _Bool Bsp_LoadLump(file_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
  * @brief Loads the specified lumps into memory. If a failure occurs at any point during
  * loading, it will stop trying to load more and return false.
  */
-_Bool Bsp_LoadLumps(file_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_bits) {
+_Bool Bsp_LoadLumps(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_bits) {
 
 	for (bsp_lump_id_t i = 0; i < BSP_TOTAL_LUMPS; i++) {
 	
@@ -645,56 +629,6 @@ void Bsp_AllocLump(bsp_file_t *bsp, const bsp_lump_id_t lump_id, const size_t co
 	const size_t lump_type_size = bsp_lump_meta[lump_id].type_size;
 
 	*lump_data = Mem_Realloc(*lump_data, lump_type_size * count);
-}
-
-/**
- * @brief Overwrite the specified lump in the specified file with the one contained in the BSP
- * specified. You can use this if you're only opening the BSP to edit a specific lump.
- */
-void Bsp_OverwriteLump(file_t *file, const bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
-
-	int32_t *lump_count;
-	void **lump_data;
-
-	if (!Bsp_GetLumpOffsets(bsp, lump_id, &lump_count, &lump_data)) {
-		Com_Error(ERROR_DROP, "Tried to load an invalid lump (%i)\n", lump_id);
-	}
-
-	// lump is valid but we're skipping it
-	if (lump_count == LUMP_SKIPPED) {
-		return;
-	}
-
-	// find the lump in the file
-	d_bsp_lump_t lump;
-	Bsp_GetLumpPosition(file, lump_id, &lump);
-
-	const size_t lump_type_size = bsp_lump_meta[lump_id].type_size;
-
-	// make sure we're the same size for now.
-	// FIXME: implement this later so we can actually overwrite lumps
-	// with smaller/bigger ones.
-	if (lump.file_len != (int32_t) (lump_type_size * (*lump_count))) {
-		Com_Error(ERROR_FATAL, "Not implemented\n");
-	}
-
-	Fs_Seek(file, lump.file_ofs);
-
-#if SDL_BYTEORDER != SDL_LIL_ENDIAN
-	// swap lump to disk endianness
-	if (bsp_swap_funcs[lump_id]) {
-		bsp_swap_funcs[lump_id](*lump_data, *lump_count);
-	}
-#endif
-
-	Fs_Write(file, *lump_data, lump_type_size, *lump_count);
-
-#if SDL_BYTEORDER != SDL_LIL_ENDIAN
-	// swap back to memory endianness
-	if (bsp_swap_funcs[lump_id]) {
-		bsp_swap_funcs[lump_id](*lump_data, *lump_count);
-	}
-#endif
 }
 
 /**

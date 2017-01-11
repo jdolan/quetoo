@@ -356,22 +356,21 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	}
 
 	// load the common BSP structure and the lumps we need
-	file_t *file = Fs_OpenRead(name);
-
-	if (!file) {
-		Fs_Close(file);
+	bsp_header_t *file;
+	
+	if (!Fs_Load(name, (void **) &file)) {
 		Com_Error(ERROR_DROP, "Couldn't load %s\n", name);
 	}
 
 	int32_t version = Bsp_Verify(file);
 
 	if (version != BSP_VERSION && version != BSP_VERSION_QUETOO) {
-		Fs_Close(file);
+		Fs_Free(file);
 		Com_Error(ERROR_DROP, "%s has unsupported version: %d\n", name, version);
 	}
 
 	if (!Bsp_LoadLumps(file, &cm_bsp.bsp, CM_BSP_LUMPS)) {
-		Fs_Close(file);
+		Fs_Free(file);
 		Com_Error(ERROR_DROP, "Lump error loading %s\n", name);
 	}
 
@@ -383,7 +382,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	
 	g_strlcpy(cm_bsp.name, name, sizeof(cm_bsp.name));
 
-	Fs_Close(file);
+	Fs_Free(file);
 
 	cm_bsp.materials = Cm_LoadBspMaterials(name);
 

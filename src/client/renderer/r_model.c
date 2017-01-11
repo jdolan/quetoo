@@ -153,25 +153,15 @@ r_model_t *R_LoadModel(const char *name) {
 		// load the materials first, so that we can resolve surfaces lists
 		R_LoadMaterials(mod);
 		
-		if (mod->type == MOD_BSP) {
-			file_t *file = Fs_OpenRead(file_name);
+		void *buf = NULL;
 
-			// load it
-			format->Load(mod, file);
+		Fs_Load(file_name, &buf);
 
-			// close the file
-			Fs_Close(file);
-		} else {
-			void *buf = NULL;
+		// load it
+		format->Load(mod, buf);
 
-			Fs_Load(file_name, &buf);
-
-			// load it
-			format->Load(mod, buf);
-
-			// free the file
-			Fs_Free(buf);
-		}
+		// free the file
+		Fs_Free(buf);
 
 		// calculate an approximate radius from the bounding box
 		vec3_t tmp;
