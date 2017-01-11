@@ -585,6 +585,8 @@ cm_material_t *Cm_LoadMaterials(const char *path, size_t *count) {
 		}
 	}
 
+	Fs_Free(buf);
+
 	return m;
 }
 
