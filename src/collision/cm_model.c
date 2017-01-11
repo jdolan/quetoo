@@ -81,7 +81,18 @@ static void Cm_LoadBspSurfaces(void) {
 		g_strlcpy(out->name, in->texture, sizeof(out->name));
 		out->flags = in->flags;
 		out->value = in->value;
-		out->material = Cm_LoadMaterial(va("textures/%s", out->name));
+
+		char material_name[MAX_QPATH];
+		g_snprintf(material_name, sizeof(material_name), "textures/%s", out->name);
+		Cm_MaterialName(material_name, material_name, sizeof(material_name));
+
+		for (cm_material_t *material = cm_bsp.materials; material; material = material->next) {
+			
+			if (!g_strcmp0(material->base, material_name)) {
+				out->material = material;
+				break;
+			}
+		}
 	}
 }
 
@@ -267,12 +278,12 @@ static void Cm_LoadBspAreaPortals(void) {
 /**
  * @brief
  */
-static GArray *Cm_LoadBspMaterials(const char *name) {
+static cm_material_t *Cm_LoadBspMaterials(const char *name) {
 
 	char base[MAX_QPATH];
 	StripExtension(Basename(name), base);
 
-	return Cm_LoadMaterials(va("materials/%s.mat", base));
+	return Cm_LoadMaterials(va("materials/%s.mat", base), NULL);
 }
 
 /**
@@ -280,13 +291,8 @@ static GArray *Cm_LoadBspMaterials(const char *name) {
  */
 static void Cm_UnloadBspMaterials(void) {
 
-	for (int32_t i = 0; i < cm_bsp.bsp.num_texinfo; i++) {
-		cm_bsp_texinfo_t *surf = &cm_bsp.texinfos[i];
-
-		if (surf->material) {
-			Cm_UnrefMaterial(surf->material);
-		}
-	}
+	Cm_FreeMaterial(cm_bsp.materials);
+	cm_bsp.materials = NULL;
 }
 
 /**
@@ -350,22 +356,21 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	}
 
 	// load the common BSP structure and the lumps we need
-	file_t *file = Fs_OpenRead(name);
-
-	if (!file) {
-		Fs_Close(file);
+	bsp_header_t *file;
+	
+	if (!Fs_Load(name, (void **) &file)) {
 		Com_Error(ERROR_DROP, "Couldn't load %s\n", name);
 	}
 
 	int32_t version = Bsp_Verify(file);
 
 	if (version != BSP_VERSION && version != BSP_VERSION_QUETOO) {
-		Fs_Close(file);
+		Fs_Free(file);
 		Com_Error(ERROR_DROP, "%s has unsupported version: %d\n", name, version);
 	}
 
 	if (!Bsp_LoadLumps(file, &cm_bsp.bsp, CM_BSP_LUMPS)) {
-		Fs_Close(file);
+		Fs_Free(file);
 		Com_Error(ERROR_DROP, "Lump error loading %s\n", name);
 	}
 
@@ -377,11 +382,9 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	
 	g_strlcpy(cm_bsp.name, name, sizeof(cm_bsp.name));
 
-	Fs_Close(file);
+	Fs_Free(file);
 
-	// load materials so they are cached and ready to go, since they're
-	// stored in a special file per-map
-	GArray *materials = Cm_LoadBspMaterials(name);
+	cm_bsp.materials = Cm_LoadBspMaterials(name);
 
 	Cm_LoadBspPlanes();
 	Cm_LoadBspNodes();
@@ -394,8 +397,6 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	Cm_LoadBspVisibility();
 	Cm_LoadBspAreas();
 	Cm_LoadBspAreaPortals();
-
-	Cm_UnloadMaterials(materials);
 
 	Cm_SetupBspBrushes();
 

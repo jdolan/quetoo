@@ -83,34 +83,34 @@ typedef struct cm_stage_s {
 
 // stage flags will persist on the stage structures but may also bubble
 // up to the material flags to determine render eligibility
-#define STAGE_TEXTURE			(1 << 0)
-#define STAGE_ENVMAP			(1 << 1)
-#define STAGE_BLEND				(1 << 2)
-#define STAGE_COLOR				(1 << 3)
-#define STAGE_PULSE				(1 << 4)
-#define STAGE_STRETCH			(1 << 5)
-#define STAGE_ROTATE			(1 << 6)
-#define STAGE_SCROLL_S			(1 << 7)
-#define STAGE_SCROLL_T			(1 << 8)
-#define STAGE_SCALE_S			(1 << 9)
-#define STAGE_SCALE_T			(1 << 10)
-#define STAGE_TERRAIN			(1 << 11)
-#define STAGE_ANIM				(1 << 12)
-#define STAGE_LIGHTMAP			(1 << 13)
-#define STAGE_DIRTMAP			(1 << 14)
-#define STAGE_FLARE				(1 << 15)
-#define STAGE_FOG				(1 << 16)
+typedef enum {
+	STAGE_TEXTURE			= (1 << 0),
+	STAGE_ENVMAP			= (1 << 1),
+	STAGE_BLEND				= (1 << 2),
+	STAGE_COLOR				= (1 << 3),
+	STAGE_PULSE				= (1 << 4),
+	STAGE_STRETCH			= (1 << 5),
+	STAGE_ROTATE			= (1 << 6),
+	STAGE_SCROLL_S			= (1 << 7),
+	STAGE_SCROLL_T			= (1 << 8),
+	STAGE_SCALE_S			= (1 << 9),
+	STAGE_SCALE_T			= (1 << 10),
+	STAGE_TERRAIN			= (1 << 11),
+	STAGE_ANIM				= (1 << 12),
+	STAGE_LIGHTMAP			= (1 << 13),
+	STAGE_DIRTMAP			= (1 << 14),
+	STAGE_FLARE				= (1 << 15),
+	STAGE_FOG				= (1 << 16),
 
-// set on stages eligible for static, dynamic, and per-pixel lighting
-#define STAGE_LIGHTING			(1 << 30)
+	// set on stages eligible for static, dynamic, and per-pixel lighting
+	STAGE_LIGHTING			= (1 << 30),
 
-// set on stages with valid render passes
-#define STAGE_DIFFUSE 			(1u << 31)
+	// set on stages with valid render passes
+	STAGE_DIFFUSE 			= (int32_t) (1u << 31),
 
-// composite mask for simplifying state management
-#define STAGE_TEXTURE_MATRIX (\
-                              STAGE_STRETCH | STAGE_ROTATE | STAGE_SCROLL_S | STAGE_SCROLL_T | STAGE_SCALE_S | STAGE_SCALE_T \
-                             )
+	// composite mask for simplifying state management
+	STAGE_TEXTURE_MATRIX = (STAGE_STRETCH | STAGE_ROTATE | STAGE_SCROLL_S | STAGE_SCROLL_T | STAGE_SCALE_S | STAGE_SCALE_T)
+} cm_material_flags_t;
 
 #define DEFAULT_BUMP 1.0
 #define DEFAULT_PARALLAX 1.0
@@ -118,36 +118,80 @@ typedef struct cm_stage_s {
 #define DEFAULT_SPECULAR 1.0
 
 typedef struct cm_material_s {
-	uint32_t ref_count; // refs for the cm system, do not touch
+	/**
+	 * @brief The base name of this material without suffixes
+	 */
 	char base[MAX_QPATH];
-	char key[MAX_QPATH];
 
-	char full_name[MAX_QPATH]; // the original full name of the material (#..., etc)
-	char material_file[MAX_QPATH]; // the material file we got loaded from
+	/**
+	 * @brief The full name of the material as it appears in the .mat file
+	 */
+	char name[MAX_QPATH];
 
+	/**
+	 * @brief The image to use for the diffuse map
+	 */
 	char diffuse[MAX_QPATH];
+	
+	/**
+	 * @brief The image to use for the normal map
+	 */
 	char normalmap[MAX_QPATH];
+
+	/**
+	 * @brief The image to use for the specular/shiny map
+	 */
 	char specularmap[MAX_QPATH];
-	uint32_t flags;
+	
+	/**
+	 * @brief Flags for the material.
+	 */
+	cm_material_flags_t flags;
+
+	/**
+	 * @brief The bump factor to use for the normal map.
+	 */
 	vec_t bump;
+
+	/**
+	 * @brief The parallel factor to use for the normal map.
+	 */
 	vec_t parallax;
+
+	/**
+	 * @brief The hardness factor to use for the normal map.
+	 */
 	vec_t hardness;
+
+	/**
+	 * @brief The specular factor to use for the specular map.
+	 */
 	vec_t specular;
+
+	/**
+	 * @brief Pointer to the first stage in the stage list. NOT an array;
+	 * be sure to use ->next to traverse.
+	 */
 	cm_stage_t *stages;
+
+	/**
+	 * @brief The total number of stages in the "stages" list.
+	 */
 	uint16_t num_stages;
+
+	/**
+	 * @brief The next material, if this is a material list.
+	 */
+	struct cm_material_s *next;
 } cm_material_t;
 
-cm_material_t *Cm_FindMaterial(const char *diffuse);
-
-_Bool Cm_UnrefMaterial(cm_material_t *mat);
-void Cm_RefMaterial(cm_material_t *mat);
-
 cm_material_t *Cm_LoadMaterial(const char *diffuse);
-GArray *Cm_LoadMaterials(const char *path);
-void Cm_UnloadMaterials(GArray *materials);
+void Cm_FreeMaterial(cm_material_t *material);
 
-void Cm_WriteMaterials(void);
+cm_material_t *Cm_LoadMaterials(const char *path, size_t *count);
+void Cm_WriteMaterial(const char *filename, const cm_material_t *material);
+
+void Cm_MaterialName(const char *in, char *out, size_t len);
 
 #ifdef __CM_LOCAL_H__
-void Cm_ShutdownMaterials(void);
 #endif /* __CM_LOCAL_H__ */

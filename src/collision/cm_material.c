@@ -23,116 +23,14 @@
 #include <GL/gl.h>
 
 /**
- * @brief stores the state of loaded materials. Materials contain a reference count,
- * which allow them to be shared between a collision model and a renderer view
- * without conflicting.
+ * @brief Free the memory for the specified material or material list. Only call this
+ * for the head material in a material list.
+ * @note This may seem like it's missing code, but it's not; material lists
+ * have their memory link-allocated, and children materials are linked as well.
  */
-typedef struct {
-
-	/**
-	 * @brief Hash table of loaded materials.
-	 */
-	GHashTable *materials;
-} cm_materials_t;
-
-static cm_materials_t cm_materials;
-
-/**
- * @brief Materials can reference other materials, so
- * we have to check the stages to unref the ones that we are storing a reference to.
- */
-static void Cm_Material_Free(cm_material_t *material) {
-
-	for (cm_stage_t *stage = material->stages; stage; stage = stage->next) {
-
-		if (stage->material) {
-
-			Cm_UnrefMaterial(stage->material);
-		}
-	}
+void Cm_FreeMaterial(cm_material_t *material) {
 
 	Mem_Free(material);
-}
-
-/**
- * @brief Load the common materials subsystem.
- */
-static void Cm_InitMaterials(void) {
-
-	cm_materials.materials = g_hash_table_new(g_str_hash, g_str_equal);
-}
-
-/**
- * @brief Destroy callback. This just destroys the memory, since the ref bit
- * isn't important if Cm is being shutdown.
- */
-static gboolean Cm_ShutdownMaterials_FreeAll(gpointer key, gpointer value, gpointer userdata) {
-
-	Mem_Free(value);
-	return true;
-}
-
-/**
- * @brief Shutdown the common materials subsystem. This frees all of the materials,
- * so this should only be done on a complete system shutdown/reboot.
- */
-void Cm_ShutdownMaterials(void) {
-
-	if (!cm_materials.materials) {
-		return;
-	}
-
-	g_hash_table_foreach_remove(cm_materials.materials, Cm_ShutdownMaterials_FreeAll, NULL);
-	g_hash_table_destroy(cm_materials.materials);
-
-	cm_materials.materials = NULL;
-}
-
-/**
- * @brief Returns a reference to an already-loaded cm_material_t.
- */
-cm_material_t *Cm_FindMaterial(const char *diffuse) {
-
-	if (!cm_materials.materials) {
-		return NULL;
-	}
-
-	return (cm_material_t *) g_hash_table_lookup(cm_materials.materials, diffuse);
-}
-
-/**
- * @brief Decrease the reference count of the material by 1. If it reaches
- * zero, the material is freed and "mat" will no longer be valid.
- */
-_Bool Cm_UnrefMaterial(cm_material_t *mat) {
-
-	if (!mat->ref_count) {
-		Com_Warn("Material ref count is bad: %s\n", mat->diffuse);
-		return false;
-	}
-
-	mat->ref_count--;
-
-	if (!mat->ref_count) {
-		Com_Debug(DEBUG_COLLISION, "Unref material %s\n", mat->diffuse);
-		g_hash_table_remove(cm_materials.materials, mat->key);
-		Cm_Material_Free(mat);
-		return true;
-	}
-
-	Com_Debug(DEBUG_COLLISION, "Retain material %s\n", mat->diffuse);
-	return false;
-}
-
-/**
- * @brief Increase the reference count of the material by 1. This is only needed
- * if you're transferring a pointer to a material somewhere else and the original
- * might get freed.
- */
-void Cm_RefMaterial(cm_material_t *mat) {
-
-	Com_Debug(DEBUG_COLLISION, "Ref material %s\n", mat->diffuse);
-	mat->ref_count++;
 }
 
 /**
@@ -197,7 +95,7 @@ static inline const char *Cm_BlendNameByConst(const GLenum c) {
 /**
  * @brief
  */
-static int32_t Cm_ParseStage(cm_stage_t *s, const char **buffer) {
+static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, const char **buffer) {
 	int32_t i;
 
 	while (true) {
@@ -461,6 +359,7 @@ static int32_t Cm_ParseStage(cm_stage_t *s, const char **buffer) {
 				// a terrain blend or dirtmap means light it
 				if (s->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
 					s->material = Cm_LoadMaterial(s->image);
+					Mem_Link(s->material, m);
 					s->flags |= STAGE_LIGHTING;
 				}
 			}
@@ -503,59 +402,47 @@ static int32_t Cm_ParseStage(cm_stage_t *s, const char **buffer) {
 }
 
 /**
- * @brief Loads the r_material_t with the specified diffuse texture. This
- * increases ref count, so be sure to unref when you're done with the pointer.
+ * @brief Normalizes a material's input name and fills the buffer with the base name.
+ */
+void Cm_MaterialName(const char *in, char *out, size_t len) {
+
+	if (out != in) {
+		g_strlcpy(out, in, len);
+	}
+
+	if (g_str_has_suffix(out, "_d")) {
+		out[strlen(out) - 2] = '\0';
+	}
+}
+
+/**
+ * @brief Loads the material with the specified diffuse texture.
  */
 cm_material_t *Cm_LoadMaterial(const char *diffuse) {
-	cm_material_t *mat;
-	char name[MAX_QPATH], base[MAX_QPATH], key[MAX_QPATH];
-
-	if (!cm_materials.materials) {
-		Cm_InitMaterials();
-	}
 
 	if (!diffuse || !diffuse[0]) {
 		Com_Error(ERROR_DROP, "NULL diffuse name\n");
 	}
 
-	StripExtension(diffuse, name);
+	cm_material_t *mat = Mem_TagMalloc(sizeof(cm_material_t), MEM_TAG_MATERIAL);
 
-	g_strlcpy(base, name, sizeof(base));
+	StripExtension(diffuse, mat->diffuse);
+	Cm_MaterialName(mat->diffuse, mat->base, sizeof(mat->base));
 
-	if (g_str_has_suffix(base, "_d")) {
-		base[strlen(base) - 2] = '\0';
-	}
-
-	g_snprintf(key, sizeof(key), "%s_mat", base);
-
-	if (!(mat = Cm_FindMaterial(key))) {
-
-		mat = (cm_material_t *) Mem_Malloc(sizeof(cm_material_t));
-
-		g_strlcpy(mat->diffuse, name, sizeof(mat->diffuse));
-		g_strlcpy(mat->base, base, sizeof(mat->base));
-		g_strlcpy(mat->key, key, sizeof(mat->key));
-
-		mat->bump = DEFAULT_BUMP;
-		mat->hardness = DEFAULT_HARDNESS;
-		mat->parallax = DEFAULT_PARALLAX;
-		mat->specular = DEFAULT_SPECULAR;
-
-		g_hash_table_insert(cm_materials.materials, mat->key, mat);
-	}
-
-	Cm_RefMaterial(mat);
+	mat->bump = DEFAULT_BUMP;
+	mat->hardness = DEFAULT_HARDNESS;
+	mat->parallax = DEFAULT_PARALLAX;
+	mat->specular = DEFAULT_SPECULAR;
 
 	return mat;
 }
 
 /**
  * @brief Loads all of the materials for the specified .mat file. This must be
- * a full, absolute path to a .mat file WITH extension. The resulting materials all have
- * their reference counts increased, so be sure to free this bunch afterwards! A
- * GArray containing the list of materials loaded by this function is returned.
+ * a full, absolute path to a .mat file WITH extension. The resulting materials are all
+ * linked together by the returned material pointer, so don't lose that one!
  */
-GArray *Cm_LoadMaterials(const char *path) {
+cm_material_t *Cm_LoadMaterials(const char *path, size_t *count) {
 	void *buf;
 
 	if (Fs_Load(path, &buf) == -1) {
@@ -564,10 +451,12 @@ GArray *Cm_LoadMaterials(const char *path) {
 	}
 
 	const char *buffer = (char *) buf;
-	GArray *materials = g_array_new(false, true, sizeof(cm_material_t *));
-
-	_Bool in_material = false;
 	cm_material_t *m = NULL;
+	_Bool in_material = false, parsing_material = false;
+
+	if (count) {
+		*count = 0;
+	}
 
 	while (true) {
 
@@ -585,44 +474,29 @@ GArray *Cm_LoadMaterials(const char *path) {
 		if (!g_strcmp0(c, "material")) {
 			c = ParseToken(&buffer);
 
-			// backup the old full name
-			char full_name[MAX_QPATH];
-			g_strlcpy(full_name, c, sizeof(full_name));
+			cm_material_t *mat;
 
 			if (*c == '#') {
-				m = Cm_LoadMaterial(++c);
+				mat = Cm_LoadMaterial(c + 1);
 			} else {
-				m = Cm_LoadMaterial(va("textures/%s", c));
+				mat = Cm_LoadMaterial(va("textures/%s", c));
 			}
 
-			g_array_append_val(materials, m);
+			g_strlcpy(mat->name, c, sizeof(mat->name));
 
-			// if our ref count isn't 1, we're already loaded, so just skip to the next material
-			if (m->ref_count != 1) {
-				int32_t brace_count = 1;
-
-				while (brace_count > 0) {
-
-					c = ParseToken(&buffer);
-
-					if (*c == '{') {
-						brace_count++;
-					} else if (*c == '}') {
-						brace_count--;
-					}
-				}
-
-				m = NULL;
-				continue;
+			// prepend to the material list
+			if (m) {
+				mat->next = m;
+				Mem_Link(m, mat);
 			}
 
-			g_strlcpy(m->full_name, full_name, sizeof(m->full_name));
-			g_strlcpy(m->material_file, path, sizeof(m->material_file));
+			m = mat;
 
+			parsing_material = true;
 			continue;
 		}
 
-		if (!m) {
+		if (!m && !parsing_material) {
 			continue;
 		}
 
@@ -679,7 +553,7 @@ GArray *Cm_LoadMaterials(const char *path) {
 
 			cm_stage_t *s = (cm_stage_t *) Mem_LinkMalloc(sizeof(*s), m);
 
-			if (Cm_ParseStage(s, &buffer) == -1) {
+			if (Cm_ParseStage(m, s, &buffer) == -1) {
 				Mem_Free(s);
 				continue;
 			}
@@ -703,40 +577,17 @@ GArray *Cm_LoadMaterials(const char *path) {
 		if (*c == '}' && in_material) {
 			Com_Debug(DEBUG_COLLISION, "Parsed material %s with %d stages\n", m->diffuse, m->num_stages);
 			in_material = false;
-			m = NULL;
+			parsing_material = false;
+
+			if (count) {
+				(*count)++;
+			}
 		}
 	}
 
 	Fs_Free(buf);
 
-	if (!materials->len) {
-		g_array_free(materials, true);
-		materials = NULL;
-	}
-
-	return materials;
-}
-
-/**
- * @brief
- */
-void Cm_UnloadMaterials(GArray *materials) {
-
-	if (materials) {
-		for (uint32_t i = 0; i < materials->len; ++i) {
-			Cm_UnrefMaterial(g_array_index(materials, cm_material_t *, i));
-		}
-
-		g_array_free(materials, true);
-	}
-}
-
-/**
- * @brief Callback to close our file handles.
- */
-static void Cm_WriteMaterials_Destroy(gpointer value) {
-
-	Fs_Close((file_t *) value);
+	return m;
 }
 
 /**
@@ -752,7 +603,7 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 	} else if (stage->flags & STAGE_FLARE) {
 		Fs_Print(file, "\t\tflare %s\n", stage->image);
 	} else {
-		Com_Warn("Material %s (from %s) has a stage with no texture\n", material->material_file, material->full_name);
+		Com_Warn("Material %s has a stage with no texture?\n", material->name);
 	}
 
 	if (stage->flags & STAGE_BLEND) {
@@ -813,11 +664,11 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 /**
  * @brief Serialize the given material.
  */
-static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
+static void Cm_WriteMaterial_(const cm_material_t *material, file_t *file) {
 	Fs_Print(file, "{\n");
 
 	// write the innards
-	Fs_Print(file, "\tmaterial %s\n", material->full_name);
+	Fs_Print(file, "\tmaterial %s\n", material->name);
 
 	if (*material->normalmap) {
 		Fs_Print(file, "\tnormalmap %s\n", material->normalmap);
@@ -848,33 +699,14 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 }
 
 /**
- * @brief Serialize all of the .mat files that we have loaded in-memory back to the disk.
+ * @brief Serialize the material(s) into the specified file.
  */
-void Cm_WriteMaterials(void) {
-	GHashTable *files_opened = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Cm_WriteMaterials_Destroy);
-	GHashTableIter iter;
-	gpointer key, value;
+void Cm_WriteMaterial(const char *filename, const cm_material_t *material) {
+	file_t *file = Fs_OpenWrite(filename);
 
-	g_hash_table_iter_init(&iter, cm_materials.materials);
-
-	while (g_hash_table_iter_next(&iter, &key, &value)) {
-		cm_material_t *material = (cm_material_t *) value;
-
-		// don't write out materials with no mat file
-		if (!*material->material_file) {
-			continue;
-		}
-
-		file_t *file = g_hash_table_lookup(files_opened, material->material_file);
-
-		if (!file) {
-			file = Fs_OpenWrite(material->material_file);
-			g_hash_table_insert(files_opened, material->material_file, file);
-		}
-
-		Cm_WriteMaterial(material, file);
+	for (; material; material = material->next) {
+		Cm_WriteMaterial_(material, file);
 	}
 
-	// finish writing
-	g_hash_table_destroy(files_opened);
+	Fs_Close(file);
 }

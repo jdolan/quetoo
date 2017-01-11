@@ -273,15 +273,22 @@ void VectorForKey(const entity_t *ent, const char *key, vec3_t vec) {
 }
 
 int32_t LoadBSPFile(const char *bsp_name, const bsp_lump_id_t lumps) {
-	file_t *file = Fs_OpenRead(bsp_name);
+
+	bsp_header_t *file;
+
+	if (!Fs_Load(bsp_name, (void **) &file)) {
+		Com_Error(ERROR_FATAL, "Invalid BSP file at %s\n", bsp_name);
+	}
+	
 	const int32_t version = Bsp_Verify(file);
 
 	if (!version) {
+		Fs_Free(file);
 		Com_Error(ERROR_FATAL, "Invalid BSP file at %s\n", bsp_name);
 	}
 
 	Bsp_LoadLumps(file, &bsp_file, lumps);
-	Fs_Close(file);
+	Fs_Free(file);
 
 	return version;
 }

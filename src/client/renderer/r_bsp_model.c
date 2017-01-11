@@ -977,9 +977,7 @@ static void R_LoadBspSurfacesArrays(r_model_t *mod) {
  */
 void R_LoadBspModel(r_model_t *mod, void *buffer) {
 
-	// guaranteed that the cm system has the BSP loaded by here, so
-	// let's just use its data as a base
-	file_t *file = (file_t *) buffer;
+	bsp_header_t *file = (bsp_header_t *) buffer;
 
 	mod->bsp = Mem_LinkMalloc(sizeof(r_bsp_model_t), mod);
 

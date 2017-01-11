@@ -22,7 +22,6 @@
     <ClInclude Include="..\..\src\collision\cmodel.h" />
     <ClInclude Include="..\..\src\collision\cm_bsp.h" />
     <ClInclude Include="..\..\src\collision\cm_local.h" />
-    <ClInclude Include="..\..\src\collision\cm_main.h" />
     <ClInclude Include="..\..\src\collision\cm_material.h" />
     <ClInclude Include="..\..\src\collision\cm_model.h" />
     <ClInclude Include="..\..\src\collision\cm_test.h" />
@@ -32,7 +31,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\collision\cm_bsp.c" />
-    <ClCompile Include="..\..\src\collision\cm_main.c" />
     <ClCompile Include="..\..\src\collision\cm_material.c" />
     <ClCompile Include="..\..\src\collision\cm_model.c" />
     <ClCompile Include="..\..\src\collision\cm_test.c" />

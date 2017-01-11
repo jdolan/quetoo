@@ -174,6 +174,9 @@ typedef enum {
 	MEM_TAG_UI,
 	MEM_TAG_CGAME,
 	MEM_TAG_CGAME_LEVEL,
+	MEM_TAG_MATERIAL,
+
+	MEM_TAG_TOTAL,
 	MEM_TAG_ALL = -1
 } mem_tag_t;
 
