@@ -32,5 +32,17 @@ void *Mem_Realloc(void *p, size_t size);
 void *Mem_Link(void *parent, void *child);
 size_t Mem_Size(void);
 char *Mem_CopyString(const char *in);
+
+/**
+ * @brief Struct used for return values of Mem_Stats
+ */
+typedef struct {
+	mem_tag_t	tag; // tag
+	size_t		size; // total size in bytes
+	size_t		count; // number of blocks
+} mem_stat_t;
+
+GArray *Mem_Stats(void);
+
 void Mem_Init(void);
 void Mem_Shutdown(void);

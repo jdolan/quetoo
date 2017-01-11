@@ -68,6 +68,14 @@ typedef union {
 	uint32_t c;
 } r_color_t;
 
+typedef enum {
+	MOD_BAD,
+	MOD_BSP,
+	MOD_BSP_INLINE,
+	MOD_MD3,
+	MOD_OBJ
+} r_model_type_t;
+
 // high bits OR'ed with image types
 #define IT_MASK_MIPMAP	128
 #define IT_MASK_FILTER	256
@@ -359,7 +367,8 @@ typedef struct r_material_s {
 	// from media
 	r_media_t media;
 
-	const struct cm_material_s *cm; // link to cm material
+	struct cm_material_s *cm; // the parsed material
+	r_model_type_t mod_type;
 
 	// renderer-local stuff parsed from cm
 	uint32_t time;
@@ -666,15 +675,6 @@ typedef struct {
 
 	GList *tangents;
 } r_obj_t;
-
-// shared structure for all model types
-typedef enum {
-	MOD_BAD,
-	MOD_BSP,
-	MOD_BSP_INLINE,
-	MOD_MD3,
-	MOD_OBJ
-} r_model_type_t;
 
 typedef struct {
 	int32_t version;

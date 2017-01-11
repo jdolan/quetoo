@@ -81,7 +81,18 @@ static void Cm_LoadBspSurfaces(void) {
 		g_strlcpy(out->name, in->texture, sizeof(out->name));
 		out->flags = in->flags;
 		out->value = in->value;
-		out->material = Cm_LoadMaterial(va("textures/%s", out->name));
+
+		char material_name[MAX_QPATH];
+		g_snprintf(material_name, sizeof(material_name), "textures/%s", out->name);
+		Cm_MaterialName(material_name, material_name, sizeof(material_name));
+
+		for (cm_material_t *material = cm_bsp.materials; material; material = material->next) {
+			
+			if (!g_strcmp0(material->base, material_name)) {
+				out->material = material;
+				break;
+			}
+		}
 	}
 }
 
@@ -267,12 +278,12 @@ static void Cm_LoadBspAreaPortals(void) {
 /**
  * @brief
  */
-static GArray *Cm_LoadBspMaterials(const char *name) {
+static cm_material_t *Cm_LoadBspMaterials(const char *name) {
 
 	char base[MAX_QPATH];
 	StripExtension(Basename(name), base);
 
-	return Cm_LoadMaterials(va("materials/%s.mat", base));
+	return Cm_LoadMaterials(va("materials/%s.mat", base), NULL);
 }
 
 /**
@@ -280,13 +291,8 @@ static GArray *Cm_LoadBspMaterials(const char *name) {
  */
 static void Cm_UnloadBspMaterials(void) {
 
-	for (int32_t i = 0; i < cm_bsp.bsp.num_texinfo; i++) {
-		cm_bsp_texinfo_t *surf = &cm_bsp.texinfos[i];
-
-		if (surf->material) {
-			Cm_UnrefMaterial(surf->material);
-		}
-	}
+	Cm_FreeMaterial(cm_bsp.materials);
+	cm_bsp.materials = NULL;
 }
 
 /**
@@ -379,9 +385,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 
 	Fs_Close(file);
 
-	// load materials so they are cached and ready to go, since they're
-	// stored in a special file per-map
-	GArray *materials = Cm_LoadBspMaterials(name);
+	cm_bsp.materials = Cm_LoadBspMaterials(name);
 
 	Cm_LoadBspPlanes();
 	Cm_LoadBspNodes();
@@ -394,8 +398,6 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	Cm_LoadBspVisibility();
 	Cm_LoadBspAreas();
 	Cm_LoadBspAreaPortals();
-
-	Cm_UnloadMaterials(materials);
 
 	Cm_SetupBspBrushes();
 
