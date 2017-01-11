@@ -838,6 +838,84 @@ static int32_t R_ParseStage(r_stage_t *s, const cm_stage_t *cm, const _Bool map_
 }
 
 /**
+ * @brief Loads an r_material_t from a cm_material_t
+ */
+static void R_LoadMaterial_(cm_material_t *cm_mat, const _Bool map_material) {
+	r_material_t *r_mat = R_ConvertMaterial(cm_mat, map_material);
+
+	if (!r_mat) {
+		Com_Warn("Failed to convert %s\n", cm_mat->diffuse);
+		return;
+	}
+
+	if (r_mat->diffuse->type == IT_NULL) {
+		Com_Warn("Failed to resolve %s\n", cm_mat->diffuse);
+		return;
+	}
+
+	if (r_bumpmap->value) { // if per-pixel lighting is enabled, resolve normal and specular
+
+		if (*cm_mat->normalmap) {
+			if (*cm_mat->normalmap == '#') {
+				r_mat->normalmap = R_LoadImage(cm_mat->normalmap + 1, IT_NORMALMAP);
+			} else {
+				r_mat->normalmap = R_LoadImage(va("textures/%s", cm_mat->normalmap), IT_NORMALMAP);
+			}
+
+			if (r_mat->normalmap->type == IT_NULL) {
+				Com_Warn("Failed to resolve normalmap: %s\n", cm_mat->normalmap);
+				r_mat->normalmap = NULL;
+			}
+		}
+
+		if (*cm_mat->specularmap) {
+			if (*cm_mat->specularmap == '#') {
+				r_mat->specularmap = R_LoadImage(cm_mat->specularmap + 1, IT_SPECULARMAP);
+			} else {
+				r_mat->specularmap = R_LoadImage(va("textures/%s", cm_mat->specularmap), IT_SPECULARMAP);
+			}
+
+			if (r_mat->specularmap->type == IT_NULL) {
+				Com_Warn("Failed to resolve specularmap: %s\n", cm_mat->specularmap);
+				r_mat->specularmap = NULL;
+			}
+		}
+	}
+
+	for (cm_stage_t *cm_stage = cm_mat->stages; cm_stage; cm_stage = cm_stage->next) {
+		r_stage_t *r_stage = (r_stage_t *) Mem_LinkMalloc(sizeof(r_stage_t), r_mat);
+
+		if (R_ParseStage(r_stage, cm_stage, map_material) == -1) {
+			Mem_Free(r_stage);
+			continue;
+		}
+
+		// load animation frame images
+		if (cm_stage->flags & STAGE_ANIM) {
+			if (R_LoadStageFrames(r_stage) == -1) {
+				Mem_Free(r_stage);
+				continue;
+			}
+		}
+
+		// append the stage to the chain
+		if (!r_mat->stages) {
+			r_mat->stages = r_stage;
+		} else {
+			r_stage_t *ss = r_mat->stages;
+			while (ss->next) {
+				ss = ss->next;
+			}
+			ss->next = r_stage;
+		}
+
+		r_mat->flags |= cm_stage->flags;
+	}
+
+	Com_Debug(DEBUG_RENDERER, "Parsed material %s with %d stages\n", r_mat->diffuse->media.name, cm_mat->num_stages);
+}
+
+/**
  * @brief Loads all materials for the specified model. This is accomplished by
  * parsing the material definitions in ${model_name}.mat for mesh models, and
  * materials/${model_name}.mat for BSP models.
@@ -861,84 +939,7 @@ void R_LoadMaterials(r_model_t *mod) {
 	}
 
 	for (; cm_mat; cm_mat = cm_mat->next) {
-		r_material_t *r_mat = R_ConvertMaterial(cm_mat, mod->type == MOD_BSP);
-
-		// unhook free, since map materials are freed by the Cm subsystem
-		if (mod->type == MOD_BSP) {
-			r_mat->media.Free = NULL;
-		}
-
-		if (!r_mat) {
-			Com_Warn("Failed to convert %s\n", cm_mat->diffuse);
-			continue;
-		}
-
-		if (r_mat->diffuse->type == IT_NULL) {
-			Com_Warn("Failed to resolve %s\n", cm_mat->diffuse);
-			continue;
-		}
-
-		if (r_bumpmap->value) { // if per-pixel lighting is enabled, resolve normal and specular
-
-			if (*cm_mat->normalmap) {
-				if (*cm_mat->normalmap == '#') {
-					r_mat->normalmap = R_LoadImage(cm_mat->normalmap + 1, IT_NORMALMAP);
-				} else {
-					r_mat->normalmap = R_LoadImage(va("textures/%s", cm_mat->normalmap), IT_NORMALMAP);
-				}
-
-				if (r_mat->normalmap->type == IT_NULL) {
-					Com_Warn("Failed to resolve normalmap: %s\n", cm_mat->normalmap);
-					r_mat->normalmap = NULL;
-				}
-			}
-
-			if (*cm_mat->specularmap) {
-				if (*cm_mat->specularmap == '#') {
-					r_mat->specularmap = R_LoadImage(cm_mat->specularmap + 1, IT_SPECULARMAP);
-				} else {
-					r_mat->specularmap = R_LoadImage(va("textures/%s", cm_mat->specularmap), IT_SPECULARMAP);
-				}
-
-				if (r_mat->specularmap->type == IT_NULL) {
-					Com_Warn("Failed to resolve specularmap: %s\n", cm_mat->specularmap);
-					r_mat->specularmap = NULL;
-				}
-			}
-		}
-
-		for (cm_stage_t *cm_stage = cm_mat->stages; cm_stage; cm_stage = cm_stage->next) {
-			r_stage_t *r_stage = (r_stage_t *) Mem_LinkMalloc(sizeof(r_stage_t), r_mat);
-
-			if (R_ParseStage(r_stage, cm_stage, mod->type == MOD_BSP) == -1) {
-				Mem_Free(r_stage);
-				continue;
-			}
-
-			// load animation frame images
-			if (cm_stage->flags & STAGE_ANIM) {
-				if (R_LoadStageFrames(r_stage) == -1) {
-					Mem_Free(r_stage);
-					continue;
-				}
-			}
-
-			// append the stage to the chain
-			if (!r_mat->stages) {
-				r_mat->stages = r_stage;
-			} else {
-				r_stage_t *ss = r_mat->stages;
-				while (ss->next) {
-					ss = ss->next;
-				}
-				ss->next = r_stage;
-			}
-
-			r_mat->flags |= cm_stage->flags;
-			continue;
-		}
-
-		Com_Debug(DEBUG_RENDERER, "Parsed material %s with %d stages\n", r_mat->diffuse->media.name, cm_mat->num_stages);
+		R_LoadMaterial_(cm_mat, mod->type == MOD_BSP);
 	}
 }
 

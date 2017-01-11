@@ -415,7 +415,7 @@ void Cm_NormalizeMaterial(const char *input, char *output, size_t output_len) {
 }
 
 /**
- * @brief Loads the r_material_t with the specified diffuse texture.
+ * @brief Loads the material with the specified diffuse texture.
  */
 cm_material_t *Cm_LoadMaterial(const char *diffuse) {
 
