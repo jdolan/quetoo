@@ -512,7 +512,7 @@ void Bsp_UnloadLump(bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
  */
 void Bsp_UnloadLumps(bsp_file_t *bsp, const bsp_lump_id_t lump_bits) {
 
-	for (bsp_lump_id_t i = 0; i < BSP_TOTAL_LUMPS; i++) {
+	for (bsp_lump_id_t i = BSP_LUMP_ENTITIES; i < BSP_TOTAL_LUMPS; i++) {
 	
 		if (lump_bits & (bsp_lump_id_t) (i << 1)) {
 			Bsp_UnloadLump(bsp, i);
@@ -585,7 +585,7 @@ _Bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_
  */
 _Bool Bsp_LoadLumps(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_bits) {
 
-	for (bsp_lump_id_t i = 0; i < BSP_TOTAL_LUMPS; i++) {
+	for (bsp_lump_id_t i = BSP_LUMP_ENTITIES; i < BSP_TOTAL_LUMPS; i++) {
 	
 		if (lump_bits & (bsp_lump_id_t) (1 << i)) {
 			if (!Bsp_LoadLump(file, bsp, i)) {
