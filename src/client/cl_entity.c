@@ -40,7 +40,8 @@ static void Cl_ParsePlayerState(const cl_frame_t *delta_frame, cl_frame_t *frame
 }
 
 /**
- * @return True if the delta is valid and interpolation should be used.
+ * @return True if the delta is valid and the entity should be interpolated, false
+ * if the delta is invalid and the entity should be snapped to `to`.
  */
 static _Bool Cl_ValidDeltaEntity(const cl_frame_t *frame, const cl_entity_t *ent,
 								 const entity_state_t *from, const entity_state_t *to) {
@@ -50,15 +51,17 @@ static _Bool Cl_ValidDeltaEntity(const cl_frame_t *frame, const cl_entity_t *ent
 		return false;
 	}
 
-	if (ent->frame_num != frame->frame_num - 1) {
+	if (cl.previous_frame) {
+		if (ent->frame_num != cl.previous_frame->frame_num) {
+			return false;
+		}
+	}
+
+	if (ent->current.model1 != to->model1) {
 		return false;
 	}
 
-	if (from->model1 != to->model1) {
-		return false;
-	}
-
-	VectorSubtract(from->origin, to->origin, delta);
+	VectorSubtract(ent->current.origin, to->origin, delta);
 
 	if (VectorLength(delta) > 64.0) { // MAX_SPEED * QUETOO_TICK_SECONDS = 60.0
 		return false;
