@@ -476,9 +476,9 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 		G_HandGrenadeProjectile(
 		    self,					// player
 		    self->client->locals.held_grenade,	// the grenade
-		    self->s.origin,				// starting point
+		    self->s.origin,			// starting point
 		    vec3_up,				// direction
-		    0,					// how fast it flies
+		    0,						// how fast it flies
 		    120,					// damage dealt
 		    120,					// knockback
 		    185.0,					// blast radius
@@ -502,6 +502,9 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 	self->client->locals.show_scores = true;
 
 	self->client->locals.persistent.deaths++;
+
+	const vec3_t delta_angles = { 0.0, 0.0, 45.0 };
+	PackAngles(delta_angles, self->client->ps.pm_state.delta_angles);
 
 	gi.LinkEntity(self);
 }
@@ -1225,7 +1228,7 @@ void G_ClientDisconnect(g_entity_t *ent) {
 	gi.BroadcastPrint(PRINT_HIGH, "%s bitched out\n", ent->client->locals.persistent.net_name);
 
 	// send effect
-	if (!ent->client->locals.persistent.spectator) {
+	if (G_IsMeat(ent)) {
 		gi.WriteByte(SV_CMD_MUZZLE_FLASH);
 		gi.WriteShort(ent->s.number);
 		gi.WriteByte(MZ_LOGOUT);
