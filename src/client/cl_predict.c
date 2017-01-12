@@ -171,7 +171,7 @@ cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, con
 	trace.skip = skip;
 	trace.contents = contents;
 
-	Cm_TraceBounds(start, end, mins, maxs, trace.box_maxs, trace.box_maxs);
+	Cm_TraceBounds(start, end, mins, maxs, trace.box_mins, trace.box_maxs);
 
 	Cl_ClipTraceToEntities(&trace);
 
