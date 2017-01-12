@@ -80,6 +80,7 @@ game_la_LDFLAGS = \
 	-shared
 
 game_la_LIBADD = \
+	$(top_builddir)/src/ai/libai.la \
 	libpmove.la \
 	@MYSQL_LIBS@
 
