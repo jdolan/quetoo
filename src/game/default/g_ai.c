@@ -440,7 +440,7 @@ static void G_Ai_Spawn(g_entity_t *self) {
 
 	self->ai = true; // and away we go!
 
-	char *userinfo = self->client->locals.persistent.user_info;
+	char userinfo[MAX_USER_INFO_STRING];
 	g_strlcpy(userinfo, DEFAULT_USER_INFO, MAX_USER_INFO_STRING);
 	SetUserInfo(userinfo, "skin", g_array_index(g_ai_skins, g_ai_skin_t, Random() % g_ai_skins->len));
 	SetUserInfo(userinfo, "color", va("%i", Random() % 256));
@@ -458,7 +458,7 @@ static void G_Ai_Spawn(g_entity_t *self) {
 		g_ai_name_suffix++;
 	}
 
-	G_ClientConnect(self, self->client->locals.persistent.user_info);
+	G_ClientConnect(self, userinfo);
 	G_ClientBegin(self);
 
 	self->locals.ai_locals = &g_ai_locals[self->s.number - 1];
