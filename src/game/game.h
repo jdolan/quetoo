@@ -22,8 +22,9 @@
 #pragma once
 
 #include "shared.h"
+#include "filesystem.h"
 
-#define GAME_API_VERSION 4
+#define GAME_API_VERSION 5
 
 /**
  * @brief Server flags for g_entity_t.
@@ -179,6 +180,14 @@ typedef struct {
 	 */
 	int64_t (*LoadFile)(const char *file_name, void **buffer);
 	void (*FreeFile)(void *buffer);
+
+	/**
+	 * @brief Enumerates files matching `pattern`, calling the given function.
+	 * @param pattern A Unix glob style pattern.
+	 * @param enumerator The enumerator function.
+	 * @param data User data.
+	 */
+	void (*EnumerateFiles)(const char *pattern, Fs_EnumerateFunc enumerator, void *data);
 
 	/**
 	 * @brief Console variable and console command management.

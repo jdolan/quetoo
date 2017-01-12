@@ -22,6 +22,13 @@
 #include "g_local.h"
 #include "bg_pmove.h"
 
+typedef char g_ai_skin_t[MAX_QPATH];
+
+/**
+ * @brief
+ */
+static GArray *g_ai_skins;
+
 static cvar_t *g_ai_passive;
 static g_entity_ai_t *g_ai_locals;
 
@@ -409,8 +416,12 @@ static void G_Ai_Spawn(g_entity_t *self) {
 
 	self->ai = true; // and away we go!
 
-	G_ClientConnect(self, DEFAULT_USER_INFO);
-	G_ClientUserInfoChanged(self, DEFAULT_USER_INFO);
+	char *userinfo = self->client->locals.persistent.user_info;
+	g_strlcpy(userinfo, DEFAULT_USER_INFO, MAX_USER_INFO_STRING);
+	SetUserInfo(userinfo, "skin", g_array_index(g_ai_skins, g_ai_skin_t, Random() % g_ai_skins->len));
+	SetUserInfo(userinfo, "color", va("%i", Random() % 256));
+
+	G_ClientConnect(self, self->client->locals.persistent.user_info);
 	G_ClientBegin(self);
 
 	self->locals.ai_locals = &g_ai_locals[self->s.number - 1];
@@ -480,6 +491,47 @@ static void G_Ai_Remove_f(void) {
 }
 
 /**
+ * @brief Fs_EnumerateFunc for resolving available skins for a give model.
+ */
+static void G_Ai_EnumerateSkins(const char *path, void *data) {
+	char name[MAX_QPATH];
+	char *s = strstr(path, "players/");
+
+	if (s) {
+		StripExtension(s + strlen("players/"), name);
+
+		if (g_str_has_suffix(name, "_i")) {
+			name[strlen(name) - strlen("_i")] = '\0';
+
+			for (size_t i = 0; i < g_ai_skins->len; i++) {
+
+				if (g_strcmp0(g_array_index(g_ai_skins, g_ai_skin_t, i), name) == 0) {
+					return;
+				}
+			}
+
+			g_array_append_val(g_ai_skins, name);
+		}
+	}
+}
+
+/**
+ * @brief Fs_EnumerateFunc for resolving available models.
+ */
+static void G_Ai_EnumerateModels(const char *path, void *data) {
+	gi.EnumerateFiles(va("%s/*.tga", path), G_Ai_EnumerateSkins, NULL);
+}
+
+/**
+ * @brief
+ */
+static void G_Ai_InitSkins(void) {
+	g_ai_skins = g_array_new(false, false, sizeof(g_ai_skin_t));
+
+	gi.EnumerateFiles("players/*", G_Ai_EnumerateModels, NULL);
+}
+
+/**
  * @brief
  */
 void G_Ai_Init(void) {
@@ -490,6 +542,8 @@ void G_Ai_Init(void) {
 	g_ai_passive = gi.Cvar("g_ai_passive", "0", 0, "Whether the bots will attack or not");
 
 	g_ai_locals = (g_entity_ai_t *) gi.Malloc(sizeof(g_entity_ai_t) * sv_max_clients->integer, MEM_TAG_AI);
+
+	G_Ai_InitSkins();
 }
 
 /**

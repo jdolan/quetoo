@@ -271,6 +271,7 @@ void Sv_InitGame(void) {
 
 	import.LoadFile = Fs_Load;
 	import.FreeFile = Fs_Free;
+	import.EnumerateFiles = Fs_Enumerate;
 
 	import.Cvar = Cvar_Add;
 	import.CvarString = Cvar_GetString;
