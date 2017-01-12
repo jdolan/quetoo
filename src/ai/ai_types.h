@@ -25,6 +25,23 @@
 #include "game/game.h"
 
 typedef struct {
+	g_import_t *gi;
+	g_export_t *ge;
+} ai_import_t;
+
+#ifdef __AI_LOCAL_H__
+
+typedef struct {
+	uint32_t frame_num;
+	uint32_t time;
+} ai_level_t;
+
+/**
+ * @brief The default user info string (name and skin).
+ */
+#define DEFAULT_BOT_INFO "\\name\\newbiebot\\skin\\qforcer/default"
+
+typedef struct {
 	GList *portals;
 } ai_path_t;
 
@@ -73,7 +90,7 @@ typedef struct {
 	G_AIGoalFunc think;
 	uint32_t nextthink;
 	uint32_t time; // time this funcgoal was added
-} g_ai_funcgoal_t;
+} ai_funcgoal_t;
 
 /**
  * @brief The total number of functional goals the AI may have at once.
@@ -83,8 +100,8 @@ typedef struct {
 /**
  * @brief AI-specific locals
  */
-typedef struct g_entity_ai_s {
-	g_ai_funcgoal_t funcgoals[MAX_AI_FUNCGOALS];
+typedef struct ai_locals_s {
+	ai_funcgoal_t funcgoals[MAX_AI_FUNCGOALS];
 
 	// the AI can have two distinct targets: one it's aiming at,
 	// and one it's moving towards. These aren't pointers because
@@ -95,7 +112,5 @@ typedef struct g_entity_ai_s {
 
 	vec_t wander_angle;
 	vec3_t ghost_position;
-} g_entity_ai_t;
-
-#ifdef __AI_LOCAL_H__
+} ai_locals_t;
 #endif /* __AI_LOCAL_H__ */

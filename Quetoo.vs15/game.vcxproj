@@ -23,7 +23,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\game\default\g_ai.h" />
-    <ClInclude Include="..\src\game\default\g_ai_goal.h" />
     <ClInclude Include="..\src\game\default\g_ballistics.h" />
     <ClInclude Include="..\src\game\default\g_client.h" />
     <ClInclude Include="..\src\game\default\g_client_chase.h" />
@@ -50,7 +49,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\game\default\g_ai.c" />
-    <ClCompile Include="..\src\game\default\g_ai_goal.c" />
     <ClCompile Include="..\src\game\default\g_ballistics.c" />
     <ClCompile Include="..\src\game\default\g_client.c" />
     <ClCompile Include="..\src\game\default\g_client_chase.c" />
@@ -97,7 +95,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>glib-2.0.lib;libshared.lib;libpmove.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glib-2.0.lib;libshared.lib;libpmove.lib;libai.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>game.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
