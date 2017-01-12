@@ -152,7 +152,7 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 	i = 0;
 	t = s;
 	while (*t) { // check for non-printable chars
-		if (*t <= 32) {
+		if (*t < 32 || *t >= 127) {
 			i = -1;
 			break;
 		}
