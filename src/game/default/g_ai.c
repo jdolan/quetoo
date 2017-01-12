@@ -329,10 +329,11 @@ static void G_Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		vec3_t aim_direction;
 
 		if (aim_target->type == AI_GOAL_GHOST) {
-			VectorSubtract(aim_target->ent->s.origin, self->s.origin, aim_direction);
-		} else {
 			VectorSubtract(ai->ghost_position, self->s.origin, aim_direction);
+		} else {
+			VectorSubtract(aim_target->ent->s.origin, self->s.origin, aim_direction);
 		}
+
 		VectorNormalize(aim_direction);
 		VectorAngles(aim_direction, ideal_angles);
 
