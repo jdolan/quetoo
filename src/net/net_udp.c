@@ -48,6 +48,7 @@ static net_udp_state_t net_udp_state;
 
 static cvar_t *net_loop_latency;
 static cvar_t *net_loop_jitter;
+static cvar_t *net_loop_loss;
 
 /**
  * @brief Reads a pending message, if available, from the loop buffer.
@@ -67,7 +68,7 @@ static _Bool Net_ReceiveDatagram_Loop(net_src_t source, net_addr_t *from, mem_bu
 	const uint32_t i = loop->recv & (MAX_NET_UDP_LOOPS - 1);
 	const net_udp_loop_message_t *msg = &loop->messages[i];
 
-	// simulate network latency and jitter for debugging net protocol locally
+	// simulate network latency and jitter
 	const uint32_t delta = quetoo.ticks - msg->timestamp;
 	const uint32_t threshold = net_loop_latency->value * 0.5 + net_loop_jitter->value * Randomf();
 
@@ -76,6 +77,11 @@ static _Bool Net_ReceiveDatagram_Loop(net_src_t source, net_addr_t *from, mem_bu
 	}
 
 	loop->recv++;
+
+	// simulate network packet loss
+	if (net_loop_loss->value > Randomf()) {
+		return false;
+	}
 
 	memcpy(buf->data, msg->data, msg->size);
 	buf->size = msg->size;
@@ -238,5 +244,7 @@ void Net_Config(net_src_t source, _Bool up) {
 
 	net_loop_jitter = Cvar_Add("net_loop_jitter", "0", CVAR_LO_ONLY,
 	                           "Simulate network jitter, in milliseconds, on localhost (developer tool)");
-}
 
+	net_loop_loss = Cvar_Add("net_loop_loss", "0.0", CVAR_LO_ONLY,
+							 "Simulate network packet loss, as a fraction, on localhost (developer tool)");
+}
