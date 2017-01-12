@@ -62,6 +62,9 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 		case MOD_TRIGGER_HURT:
 			message = "was in the wrong place";
 			break;
+		case MOD_ACT_OF_GOD:
+			message = "was killed by an act of god";
+			break;
 	}
 
 	if (attacker == self) {

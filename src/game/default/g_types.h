@@ -703,6 +703,7 @@ typedef struct {
 #define MOD_HANDGRENADE_KAMIKAZE	27
 #define MOD_FIREBALL				28
 #define MOD_HOOK					29
+#define MOD_ACT_OF_GOD				30
 #define MOD_FRIENDLY_FIRE			0x8000000
 
 /**

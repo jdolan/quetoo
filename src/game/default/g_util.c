@@ -381,29 +381,40 @@ void G_FreeEntity(g_entity_t *ent) {
 }
 
 /**
- * @brief Kills all entities that would touch the proposed new positioning
- * of the entity. The entity should be unlinked before calling this!
+ * @brief Kills all entities that would touch the proposed new positioning of the entity.
+ * @remarks This doesn't work correctly for rotating BSP entities.
  */
-_Bool G_KillBox(g_entity_t *ent) {
+void G_KillBox(g_entity_t *ent) {
+	g_entity_t *ents[MAX_ENTITIES];
+	vec3_t mins, maxs;
 
-	// kill all solids that take damage, including corpses for bonus giblets
-	while (true) {
-		cm_trace_t tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, MASK_MEAT);
+	VectorAdd(ent->s.origin, ent->mins, mins);
+	VectorAdd(ent->s.origin, ent->maxs, maxs);
 
-		if (!tr.ent) {
-			break;
+	size_t i, len = gi.BoxEntities(mins, maxs, ents, lengthof(ents), BOX_COLLIDE);
+	for (i = 0; i < len; i++) {
+
+		if (ents[i] == ent) {
+			continue;
 		}
 
-		// nail it
-		G_Damage(tr.ent, ent, NULL, NULL, NULL, NULL, 999, 0, DMG_NO_GOD, MOD_TELEFRAG);
+		if (G_IsMeat(ents[i])) {
 
-		// if we didn't kill it, fail
-		if (tr.ent->solid) {
-			return false;
+			G_Damage(ents[i], ent, NULL, NULL, NULL, NULL, 999, 0, DMG_NO_GOD, MOD_TELEFRAG);
+
+			if (ents[i]->in_use && !ents[i]->locals.dead) {
+				break;
+			}
+		} else {
+			break;
 		}
 	}
 
-	return true; // all clear
+	if (i < len) {
+		if (G_IsMeat(ent)) {
+			G_Damage(ent, NULL, ent, NULL, NULL, NULL, 999, 0, DMG_NO_GOD, MOD_ACT_OF_GOD);
+		}
+	}
 }
 
 /**
