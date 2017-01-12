@@ -52,7 +52,7 @@
  * this length. However, large server messages can be split into multiple
  * messages and sent in series. See Sv_SendClientDatagram.
  */
-#define MAX_MSG_SIZE 4096
+#define MAX_MSG_SIZE 4096 * 8
 
 typedef enum {
 	NA_LOOP,

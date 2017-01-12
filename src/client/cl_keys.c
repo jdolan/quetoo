@@ -172,10 +172,10 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 			break;
 
 		case SDLK_PAGEUP:
-			if (cl_console.scroll + cl_console.height < console_state.len) {
+			if (cl_console.scroll + cl_console.height < console_state.strings.length) {
 				cl_console.scroll += cl_console.height;
 			} else {
-				cl_console.scroll = console_state.len;
+				cl_console.scroll = console_state.strings.length;
 			}
 			break;
 
@@ -188,7 +188,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 			break;
 
 		case SDLK_HOME:
-			cl_console.scroll = console_state.len;
+			cl_console.scroll = console_state.strings.length;
 			break;
 
 		case SDLK_END:

@@ -564,5 +564,8 @@ void Ai_Init(ai_import_t *import) {
  * @brief Shuts down the AI subsystem.
  */
 void Ai_Shutdown(void) {
+	g_array_free(ai_skins, true);
+	ai_skins = NULL;
+
 	aii.gi->FreeTag(MEM_TAG_AI);
 }

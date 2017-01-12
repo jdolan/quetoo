@@ -67,10 +67,9 @@ static void Con_FreeString(console_string_t *str) {
  */
 static void Con_FreeStrings(void) {
 
-	g_list_free_full(console_state.strings, (GDestroyNotify) Con_FreeString);
+	g_queue_free_full(&console_state.strings, (GDestroyNotify) Con_FreeString);
 
-	console_state.strings = NULL;
-	console_state.len = 0;
+	memset(&console_state.strings, 0, sizeof(console_state.strings));
 	console_state.size = 0;
 }
 
@@ -99,7 +98,7 @@ static void Con_Dump_f(void) {
 	} else {
 		SDL_LockMutex(console_state.lock);
 
-		const GList *list = console_state.strings;
+		const GList *list = console_state.strings.head;
 		while (list) {
 			const char *c = ((console_string_t *) list->data)->chars;
 			while (*c) {
@@ -146,20 +145,18 @@ void Con_Append(int32_t level, const char *string) {
 
 	SDL_LockMutex(console_state.lock);
 
-	console_state.strings = g_list_append(console_state.strings, str);
+	g_queue_push_tail(&console_state.strings, str);
 	console_state.size += str->size;
 
 	while (console_state.size > CON_MAX_SIZE) {
-		GList *first = g_list_first(console_state.strings);
+		GList *first = console_state.strings.head;
 		str = first->data;
 
-		console_state.strings = g_list_remove_link(console_state.strings, first);
+		g_queue_unlink(&console_state.strings, first);
 		console_state.size -= str->size;
 
 		g_list_free_full(first, (GDestroyNotify) Con_FreeString);
 	}
-
-	console_state.len = g_list_length(console_state.strings);
 
 	SDL_UnlockMutex(console_state.lock);
 
@@ -266,7 +263,7 @@ size_t Con_Tail(const console_t *console, char **lines, size_t max_lines) {
 	ssize_t back = console->scroll + max_lines;
 
 	GList *start = NULL;
-	GList *list = g_list_last(console_state.strings);
+	GList *list = console_state.strings.tail;
 	while (list) {
 		const console_string_t *str = list->data;
 
