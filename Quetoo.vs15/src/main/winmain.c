@@ -106,8 +106,7 @@ int CALLBACK WinMain(
 #endif
 		return main(__argc, __argv);
 #if defined(_MSC_VER)
-	} __except (GenerateCrashDump((MINIDUMP_TYPE)(MiniDumpNormal | MiniDumpWithFullMemory | MiniDumpWithHandleData |
-	                              MiniDumpWithUnloadedModules), GetExceptionInformation())) {
+	} __except (GenerateCrashDump((MINIDUMP_TYPE)(MiniDumpNormal | MiniDumpWithHandleData), GetExceptionInformation())) {
 		return 0;
 	}
 #endif
