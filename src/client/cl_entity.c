@@ -179,7 +179,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 			}
 
 			if (from_number != number) {
-				Com_Warn("U_REMOVE: %u != %u\n", from_number, number);
+				Com_Debug(DEBUG_CLIENT, "U_REMOVE: %u != %u\n", from_number, number);
 			}
 
 			index++;
