@@ -1228,7 +1228,7 @@ void G_ClientDisconnect(g_entity_t *ent) {
 	gi.BroadcastPrint(PRINT_HIGH, "%s bitched out\n", ent->client->locals.persistent.net_name);
 
 	// send effect
-	if (!ent->client->locals.persistent.spectator) {
+	if (G_IsMeat(ent)) {
 		gi.WriteByte(SV_CMD_MUZZLE_FLASH);
 		gi.WriteShort(ent->s.number);
 		gi.WriteByte(MZ_LOGOUT);
