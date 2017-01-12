@@ -333,6 +333,10 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 		ent->locals.velocity[0] += h * Randomc();
 		ent->locals.velocity[1] += h * Randomc();
 		ent->locals.velocity[2] += 100.0 + (h * Randomf());
+		
+		ent->locals.avelocity[0] = Randomc() * 100;
+		ent->locals.avelocity[1] = Randomc() * 100;
+		ent->locals.avelocity[2] = Randomc() * 100;
 
 		ent->locals.clip_mask = MASK_CLIP_CORPSE;
 		ent->locals.dead = true;
@@ -360,6 +364,10 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 		self->locals.velocity[0] += h * Randomc();
 		self->locals.velocity[1] += h * Randomc();
 		self->locals.velocity[2] += 100.0 + (h * Randomf());
+		
+		self->locals.avelocity[0] = Randomc() * 100;
+		self->locals.avelocity[1] = Randomc() * 100;
+		self->locals.avelocity[2] = Randomc() * 100;
 
 		self->locals.Die = NULL;
 
