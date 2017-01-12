@@ -412,6 +412,30 @@ static void G_Ai_ClientThink(g_entity_t *self) {
 /**
  * @brief
  */
+static const char g_ai_names[][MAX_NET_NAME] = {
+	"Stroggo",
+	"Enforcer",
+	"Berserker",
+	"Gunner",
+	"Gladiator",
+	"Makron",
+	"Brain"
+};
+
+/**
+ * @brief
+ */
+static const uint32_t g_ai_names_count = lengthof(g_ai_names);
+
+/**
+ * @brief
+ */
+static uint32_t g_ai_name_index;
+static uint32_t g_ai_name_suffix;
+
+/**
+ * @brief
+ */
 static void G_Ai_Spawn(g_entity_t *self) {
 
 	self->ai = true; // and away we go!
@@ -420,6 +444,19 @@ static void G_Ai_Spawn(g_entity_t *self) {
 	g_strlcpy(userinfo, DEFAULT_USER_INFO, MAX_USER_INFO_STRING);
 	SetUserInfo(userinfo, "skin", g_array_index(g_ai_skins, g_ai_skin_t, Random() % g_ai_skins->len));
 	SetUserInfo(userinfo, "color", va("%i", Random() % 256));
+	
+	if (g_ai_name_suffix == 0) {
+		SetUserInfo(userinfo, "name", g_ai_names[g_ai_name_index]);
+	} else {
+		SetUserInfo(userinfo, "name", va("%s %i", g_ai_names[g_ai_name_index], g_ai_name_suffix + 1));
+	}
+
+	g_ai_name_index++;
+
+	if (g_ai_name_index == g_ai_names_count) {
+		g_ai_name_index = 0;
+		g_ai_name_suffix++;
+	}
 
 	G_ClientConnect(self, self->client->locals.persistent.user_info);
 	G_ClientBegin(self);
