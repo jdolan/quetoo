@@ -25,7 +25,7 @@
 
 #ifdef __GAME_LOCAL_H__
 
-_Bool G_KillBox(g_entity_t *ent);
+void G_KillBox(g_entity_t *ent);
 void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, vec_t radius, uint32_t mod);
 void G_Gib(g_entity_t *ent);
 void G_InitPlayerSpawn(g_entity_t *ent);
