@@ -31,6 +31,7 @@ void *Mem_Malloc(size_t size);
 void *Mem_Realloc(void *p, size_t size);
 void *Mem_Link(void *parent, void *child);
 size_t Mem_Size(void);
+char *Mem_TagCopyString(const char *in, mem_tag_t tag);
 char *Mem_CopyString(const char *in);
 
 /**

@@ -237,7 +237,12 @@ static const char *mem_tag_names[MEM_TAG_TOTAL] = {
 	"ui",
 	"cgame",
 	"cgame_level",
-	"material"
+	"material",
+	"cmd",
+	"cvar",
+	"cmodel",
+	"bsp",
+	"fs"
 };
 
 /**

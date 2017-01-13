@@ -162,14 +162,14 @@ cvar_t *Cvar_Add(const char *name, const char *value, uint32_t flags, const char
 			if (var->default_value) {
 				Mem_Free((void *) var->default_value);
 			}
-			var->default_value = Mem_Link(Mem_CopyString(value), var);
+			var->default_value = Mem_Link(Mem_TagCopyString(value, MEM_TAG_CVAR), var);
 		}
 		var->flags |= flags;
 		if (description) {
 			if (var->description) {
 				Mem_Free((void *) var->description);
 			}
-			var->description = Mem_Link(Mem_CopyString(description), var);
+			var->description = Mem_Link(Mem_TagCopyString(description, MEM_TAG_CVAR), var);
 		}
 		return var;
 	}
@@ -179,18 +179,18 @@ cvar_t *Cvar_Add(const char *name, const char *value, uint32_t flags, const char
 	}
 
 	// create a new variable
-	var = Mem_Malloc(sizeof(*var));
+	var = Mem_TagMalloc(sizeof(*var), MEM_TAG_CVAR);
 
-	var->name = Mem_Link(Mem_CopyString(name), var);
-	var->default_value = Mem_Link(Mem_CopyString(value), var);
-	var->string = Mem_Link(Mem_CopyString(value), var);
+	var->name = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CVAR), var);
+	var->default_value = Mem_Link(Mem_TagCopyString(value, MEM_TAG_CVAR), var);
+	var->string = Mem_Link(Mem_TagCopyString(value, MEM_TAG_CVAR), var);
 	var->value = strtof(var->string, NULL);
 	var->integer = (int32_t) strtol(var->string, NULL, 0);
 	var->modified = true;
 	var->flags = flags;
 
 	if (description) {
-		var->description = Mem_Link(Mem_CopyString(description), var);
+		var->description = Mem_Link(Mem_TagCopyString(description, MEM_TAG_CVAR), var);
 	}
 
 	gpointer key = (gpointer) var->name;
@@ -260,12 +260,12 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 
 			if (Com_WasInit(QUETOO_SERVER)) {
 				Com_Print("%s will be changed for next game.\n", name);
-				var->latched_string = Mem_Link(Mem_CopyString(value), var);
+				var->latched_string = Mem_Link(Mem_TagCopyString(value, MEM_TAG_CVAR), var);
 			} else {
 				if (var->string) {
 					Mem_Free(var->string);
 				}
-				var->string = Mem_Link(Mem_CopyString(value), var);
+				var->string = Mem_Link(Mem_TagCopyString(value, MEM_TAG_CVAR), var);
 				var->value = strtof(var->string, NULL);
 				var->integer = (int32_t) strtol(var->string, NULL, 0);
 				var->modified = true;

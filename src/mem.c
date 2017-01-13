@@ -317,13 +317,21 @@ size_t Mem_Size(void) {
 /**
  * @brief Allocates and returns a copy of the specified string.
  */
-char *Mem_CopyString(const char *in) {
+char *Mem_TagCopyString(const char *in, mem_tag_t tag) {
 	char *out;
 
-	out = Mem_Malloc(strlen(in) + 1);
+	out = Mem_TagMalloc(strlen(in) + 1, tag);
 	strcpy(out, in);
 
 	return out;
+}
+
+/**
+ * @brief Allocates and returns a copy of the specified string.
+ */
+char *Mem_CopyString(const char *in) {
+
+	return Mem_TagCopyString(in, MEM_TAG_DEFAULT);
 }
 
 /**
