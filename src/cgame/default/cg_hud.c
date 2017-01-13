@@ -58,6 +58,23 @@ typedef struct cg_center_print_s {
 
 static cg_center_print_t center_print;
 
+typedef struct {
+	// pickup
+	uint32_t last_pulse_time;
+	int16_t pickup_pulse;
+		
+	// damage
+	uint32_t last_damage_time;
+
+	// blend
+	uint32_t last_blend_time;
+	int32_t color;
+	vec_t alpha;
+	int16_t pickup;
+} cg_hud_locals_t;
+
+static cg_hud_locals_t cg_hud_locals;
+
 /**
  * @brief Draws the icon at the specified ConfigString index, relative to CS_IMAGES.
  */
@@ -593,19 +610,16 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 
 	// pulse the crosshair size and alpha based on pickups
 	if (cg_draw_crosshair_pulse->value) {
-		static uint32_t last_pulse_time;
-		static int16_t pickup;
-
 		// determine if we've picked up an item
 		const int16_t p = ps->stats[STAT_PICKUP_ICON];
 
-		if (p != -1 && (p != pickup)) {
-			last_pulse_time = cgi.client->unclamped_time;
+		if (p != -1 && (p != cg_hud_locals.pickup_pulse)) {
+			cg_hud_locals.last_pulse_time = cgi.client->unclamped_time;
 		}
 
-		pickup = p;
+		cg_hud_locals.pickup_pulse = p;
 
-		const vec_t delta = 1.0 - ((cgi.client->unclamped_time - last_pulse_time) / 500.0);
+		const vec_t delta = 1.0 - ((cgi.client->unclamped_time - cg_hud_locals.last_pulse_time) / 500.0);
 
 		if (delta > 0.0) {
 			scale += cg_draw_crosshair_pulse->value * 0.5 * delta;
@@ -688,41 +702,33 @@ static void Cg_DrawCenterPrint(const player_state_t *ps) {
  * @brief Draw a full-screen blend effect based on world interaction.
  */
 static void Cg_DrawBlend(const player_state_t *ps) {
-	static int16_t pickup;
-	static uint32_t last_blend_time;
-	static int32_t color;
-	static vec_t alpha;
-
+	
 	if (!cg_draw_blend->value) {
 		return;
-	}
-
-	if (last_blend_time > cgi.client->unclamped_time) {
-		last_blend_time = 0;
 	}
 
 	// determine if we've picked up an item
 	const int16_t p = ps->stats[STAT_PICKUP_ICON] & ~STAT_TOGGLE_BIT;
 
-	if (p > -1 && (p != pickup)) {
-		last_blend_time = cgi.client->unclamped_time;
-		color = 215;
-		alpha = 0.3;
+	if (p > -1 && (p != cg_hud_locals.pickup)) {
+		cg_hud_locals.last_blend_time = cgi.client->unclamped_time;
+		cg_hud_locals.color = 215;
+		cg_hud_locals.alpha = 0.3;
 	}
-	pickup = p;
+	cg_hud_locals.pickup = p;
 
 	// or taken damage
 	const int16_t d = ps->stats[STAT_DAMAGE_ARMOR] + ps->stats[STAT_DAMAGE_HEALTH];
 
 	if (d) {
-		last_blend_time = cgi.client->unclamped_time;
-		color = 240;
-		alpha = 0.3;
+		cg_hud_locals.last_blend_time = cgi.client->unclamped_time;
+		cg_hud_locals.color = 240;
+		cg_hud_locals.alpha = 0.3;
 	}
 
 	// determine the current blend color based on the above events
-	vec_t t = (vec_t) (cgi.client->unclamped_time - last_blend_time) / 500.0;
-	vec_t al = cg_draw_blend->value * (alpha - (t * alpha));
+	vec_t t = (vec_t) (cgi.client->unclamped_time - cg_hud_locals.last_blend_time) / 500.0;
+	vec_t al = cg_draw_blend->value * (cg_hud_locals.alpha - (t * cg_hud_locals.alpha));
 
 	if (al < 0.0 || al > 1.0) {
 		al = 0.0;
@@ -734,11 +740,11 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	if (al < 0.3 * cg_draw_blend->value && (contents & MASK_LIQUID)) {
 		if (al < 0.15 * cg_draw_blend->value) { // don't override damage or pickup blend
 			if (contents & CONTENTS_LAVA) {
-				color = 71;
+				cg_hud_locals.color = 71;
 			} else if (contents & CONTENTS_SLIME) {
-				color = 201;
+				cg_hud_locals.color = 201;
 			} else {
-				color = 114;
+				cg_hud_locals.color = 114;
 			}
 		}
 		al = 0.3 * cg_draw_blend->value;
@@ -747,7 +753,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	// if we have a blend, draw it
 	if (al > 0.0) {
 		cgi.DrawFill(cgi.view->viewport.x, cgi.view->viewport.y,
-		             cgi.view->viewport.w, cgi.view->viewport.h, color, al);
+		             cgi.view->viewport.w, cgi.view->viewport.h, cg_hud_locals.color, al);
 	}
 }
 
@@ -758,16 +764,10 @@ static void Cg_DrawDamageInflicted(const player_state_t *ps) {
 
 	const int16_t dmg = ps->stats[STAT_DAMAGE_INFLICT];
 	if (dmg) {
-		static uint32_t last_damage_time;
-
-		// wrap timer around level changes
-		if (last_damage_time > cgi.client->unclamped_time) {
-			last_damage_time = 0;
-		}
 
 		// play the hit sound
-		if (cgi.client->unclamped_time - last_damage_time > 50) {
-			last_damage_time = cgi.client->unclamped_time;
+		if (cgi.client->unclamped_time - cg_hud_locals.last_damage_time > 50) {
+			cg_hud_locals.last_damage_time = cgi.client->unclamped_time;
 
 			cgi.AddSample(&(const s_play_sample_t) {
 				.sample = dmg >= 25 ? cg_sample_hits[1] : cg_sample_hits[0]
@@ -822,4 +822,12 @@ void Cg_DrawHud(const player_state_t *ps) {
 	Cg_DrawBlend(ps);
 
 	Cg_DrawDamageInflicted(ps);
+}
+
+/**
+ * @brief Clear HUD-related state.
+ */
+void Cg_ClearHud(void) {
+
+	memset(&cg_hud_locals, 0, sizeof(cg_hud_locals));
 }
