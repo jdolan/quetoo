@@ -249,18 +249,29 @@ static void MemStats_f(void) {
 
 	Com_Print("Memory stats:\n");
 
+	size_t sum = 0, reported_total = 0;
+
 	for (size_t i = 0; i < stats->len; i++) {
 
 		mem_stat_t *stat_i = &g_array_index(stats, mem_stat_t, i);
 		const char *tag_name;
 
-		if (stat_i->tag < MEM_TAG_TOTAL) {
+		if (stat_i->tag == -1) {
+			Com_Print("total: %zd bytes\n", stat_i->size);
+			reported_total = stat_i->size;
+			continue;
+		} else if (stat_i->tag < MEM_TAG_TOTAL) {
 			tag_name = mem_tag_names[stat_i->tag];
 		} else {
 			tag_name = va("#%d", stat_i->tag);
 		}
 
 		Com_Print(" [%s] %zd bytes - %zd blocks\n", tag_name, stat_i->size, stat_i->count);
+		sum += stat_i->size;
+	}
+
+	if (sum != reported_total) {
+		Com_Print("WARNING: %zd bytes summed vs %zd bytes reported!\n", sum, reported_total);
 	}
 
 	g_array_free(stats, true);
