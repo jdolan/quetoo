@@ -293,7 +293,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 			VectorMA(target->locals.avelocity, ascale, knockback_avel, target->locals.avelocity);
 		}
 
-		if (client) { // make sure the client can leave the ground
+		if (client && target->locals.velocity[2] >= PM_STEP_HEIGHT) { // make sure the client can leave the ground
 			client->ps.pm_state.flags |= PMF_TIME_PUSHED;
 			client->ps.pm_state.time = 120;
 		}
