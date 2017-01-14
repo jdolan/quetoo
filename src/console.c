@@ -54,7 +54,7 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
 /**
  * @brief Frees the specified console_str_t.
  */
-static void Con_FreeString(console_string_t *str) {
+static void Con_FreeString(console_string_t *str, gpointer user_data) {
 
 	if (str) {
 		g_free(str->chars);
@@ -67,9 +67,9 @@ static void Con_FreeString(console_string_t *str) {
  */
 static void Con_FreeStrings(void) {
 
-	g_queue_free_full(&console_state.strings, (GDestroyNotify) Con_FreeString);
+	g_queue_foreach(&console_state.strings, (GFunc) Con_FreeString, NULL);
+	g_queue_remove_all(&console_state.strings, NULL);
 
-	memset(&console_state.strings, 0, sizeof(console_state.strings));
 	console_state.size = 0;
 }
 
