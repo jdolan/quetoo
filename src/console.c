@@ -30,20 +30,55 @@ console_state_t console_state;
  */
 static console_string_t *Con_AllocString(int32_t level, const char *string) {
 
-	console_string_t *str = g_new0(console_string_t, 1);
+	console_string_t *str = Mem_TagMalloc(sizeof(console_string_t), MEM_TAG_CONSOLE);
 	if (str == NULL) {
 		raise(SIGABRT);
 		return NULL;
 	}
 
+	size_t string_len = strlen(string);
+	size_t string_copy = string_len;
+	_Bool needs_reset = false;
+	_Bool needs_newline = false;
+
+	// both ^7\n and \n^7 are valid
+	if (!g_str_has_suffix(string, "^7\n") &&
+		!g_str_has_suffix(string, "\n^7")) {
+
+		needs_reset = !g_str_has_suffix(string, "^7");
+		needs_newline = !g_str_has_suffix(string, "\n");
+
+		if (needs_reset) {
+			string_len += 2;
+		} else {
+			string_copy -= 2;
+		}
+
+		if (needs_newline) {
+			string_len++;
+		} else {
+			string_copy--;
+		}
+	}
+
 	str->level = level;
-	str->chars = g_strdup(string ?: "");
+	str->chars = Mem_LinkMalloc(string_len + 1, str);
+
+	strncpy(str->chars, string, string_copy);
+
+	if (needs_reset || needs_newline) {
+		const char *string_suffix = "^7\n";
+		strncpy(str->chars + string_copy, string_suffix, strlen(string_suffix));
+	}
+
+	str->chars[string_len] = '\0';
+
 	if (str->chars == NULL) {
 		raise(SIGABRT);
 		return NULL;
 	}
 
-	str->size = strlen(str->chars);
+	str->size = string_len;
 	str->length = StrColorLen(str->chars);
 
 	str->timestamp = quetoo.ticks;
@@ -57,8 +92,7 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
 static void Con_FreeString(console_string_t *str, gpointer user_data) {
 
 	if (str) {
-		g_free(str->chars);
-		g_free(str);
+		Mem_Free(str);
 	}
 }
 

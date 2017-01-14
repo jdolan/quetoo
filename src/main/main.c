@@ -242,7 +242,8 @@ static const char *mem_tag_names[MEM_TAG_TOTAL] = {
 	"cvar",
 	"cmodel",
 	"bsp",
-	"fs"
+	"fs",
+	"console"
 };
 
 /**
