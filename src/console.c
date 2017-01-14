@@ -30,7 +30,7 @@ console_state_t console_state;
  */
 static console_string_t *Con_AllocString(int32_t level, const char *string) {
 
-	console_string_t *str = Mem_TagMalloc(sizeof(console_string_t), MEM_TAG_CONSOLE);
+	console_string_t *str = g_new0(console_string_t, 1);
 	if (str == NULL) {
 		raise(SIGABRT);
 		return NULL;
@@ -62,7 +62,7 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
 	}
 
 	str->level = level;
-	str->chars = Mem_LinkMalloc(string_len + 1, str);
+	str->chars = g_new0(char, string_len + 1);
 
 	strncpy(str->chars, string, string_copy);
 
@@ -92,7 +92,8 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
 static void Con_FreeString(console_string_t *str, gpointer user_data) {
 
 	if (str) {
-		Mem_Free(str);
+		g_free(str->chars);
+		g_free(str);
 	}
 }
 
