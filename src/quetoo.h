@@ -141,6 +141,7 @@ typedef union {
 #define CMD_SOUND			0x20 // added by sound
 #define CMD_UI				0x40 // added by user interface
 #define CMD_CGAME			0x80 // added by client game module
+#define CMD_AI				0x100 // added by AI module
 
 /**
  * @brief Console variable flags.

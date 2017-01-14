@@ -233,6 +233,67 @@ static void Sv_Sound(const g_entity_t *ent, const uint16_t index, const uint16_t
 	Sv_PositionedSound(NULL, ent, index, atten);
 }
 
+static void *ai_handle;
+
+/**
+ * @brief
+ */
+static ai_export_t *Sv_LoadAi(ai_import_t *import) {
+
+	if (!*ai->string) {
+		return NULL;
+	}
+
+	svs.ai = (ai_export_t *) Sys_LoadLibrary("ai", &ai_handle, "Ai_LoadAi", import);
+
+	if (!svs.ai) {
+		Com_Warn("Failed to load AI module\n");
+		Sys_CloseLibrary(&ai_handle);
+		svs.ai = NULL;
+		return NULL;
+	}
+
+	if (svs.ai->api_version != AI_API_VERSION) {
+		Com_Warn("AI is version %i, not %i\n", svs.ai->api_version, AI_API_VERSION);
+		Sys_CloseLibrary(&ai_handle);
+		svs.ai = NULL;
+		return NULL;
+	}
+
+	svs.ai->Init();
+
+	Com_Print("AI initialized.\n");
+	Com_InitSubsystem(QUETOO_AI);
+
+	return svs.ai;
+}
+
+/**
+ * @brief Called when the AI needs to be killed.
+ */
+static void Sv_ShutdownAI(void) {
+
+	if (!svs.ai) {
+		return;
+	}
+
+	Com_Print("AI shutdown...\n");
+
+	svs.ai->Shutdown();
+	svs.ai = NULL;
+
+	Cmd_RemoveAll(CMD_AI);
+
+	// the game module code should call this, but lets not assume
+	Mem_FreeTag(MEM_TAG_AI);
+
+	Com_Print("AI down\n");
+	Com_QuitSubsystem(QUETOO_AI);
+
+	Sys_CloseLibrary(&ai_handle);
+}
+
+
 static void *game_handle;
 
 /**
@@ -325,6 +386,8 @@ void Sv_InitGame(void) {
 	import.BroadcastPrint = Sv_BroadcastPrint;
 	import.ClientPrint = Sv_ClientPrint;
 
+	import.LoadAi = Sv_LoadAi;
+
 	svs.game = (g_export_t *) Sys_LoadLibrary("game", &game_handle, "G_LoadGame", &import);
 
 	if (!svs.game) {
@@ -351,6 +414,9 @@ void Sv_ShutdownGame(void) {
 	if (!svs.game) {
 		return;
 	}
+
+	// shutdown AI first
+	Sv_ShutdownAI();
 
 	Com_Print("Game shutdown...\n");
 

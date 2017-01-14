@@ -21,17 +21,12 @@
 
 #pragma once
 
-void Ai_GetUserInfo(const g_entity_t *self, char *userinfo);
-void Ai_Think(g_entity_t *self, pm_cmd_t *cmd);
-void Ai_Begin(g_entity_t *self);
-void Ai_Frame(void);
-void Ai_Init(ai_import_t *import);
-void Ai_Shutdown(void);
-
 #ifdef __AI_LOCAL_H__
 extern cvar_t *ai_passive;
 extern ai_level_t ai_level;
 extern ai_import_t aii;
+extern ai_export_t aie;
 
 ai_locals_t *Ai_GetLocals(const g_entity_t *ent);
+ai_export_t *Ai_LoadAi(ai_import_t *import);
 #endif /* __AI_LOCAL_H__ */

@@ -21,16 +21,10 @@
 
 #pragma once
 
-#include "mem.h"
 #include "game/game.h"
-
-typedef struct {
-	g_import_t *gi;
-	g_export_t *ge;
-} ai_import_t;
+#include "shared.h"
 
 #ifdef __AI_LOCAL_H__
-
 typedef struct {
 	uint32_t frame_num;
 	uint32_t time;
@@ -40,17 +34,6 @@ typedef struct {
  * @brief The default user info string (name and skin).
  */
 #define DEFAULT_BOT_INFO "\\name\\newbiebot\\skin\\qforcer/default"
-
-typedef struct {
-	GList *portals;
-} ai_path_t;
-
-typedef struct {
-	cm_bsp_plane_t *plane;
-	vec3_t mins;
-	vec3_t maxs;
-	GHashTable *paths;
-} ai_node_t;
 
 typedef enum {
 	AI_GOAL_NONE,
@@ -65,11 +48,7 @@ typedef struct {
 	ai_goal_type_t type;
 	vec_t priority;
 	uint32_t time; // time this goal was set
-	
-	union {
-		g_entity_t *ent; // for AI_GOAL_ITEM/ENEMY_TEAMMATE
-		ai_node_t *node; // for AI_GOAL_NAV
-	};
+	g_entity_t *ent; // for AI_GOAL_ITEM/ENEMY_TEAMMATE
 } ai_goal_t;
 
 /**
@@ -81,13 +60,13 @@ typedef struct {
  * @brief A functional AI goal. It returns the amount of time to wait
  * until the goal should be run again.
  */
-typedef uint32_t (*G_AIGoalFunc)(g_entity_t *ent, pm_cmd_t *cmd);
+typedef uint32_t (*AI_GoalFunc)(g_entity_t *ent, pm_cmd_t *cmd);
 
 /**
  * @brief A functional AI goal. 
  */
 typedef struct {
-	G_AIGoalFunc think;
+	AI_GoalFunc think;
 	uint32_t nextthink;
 	uint32_t time; // time this funcgoal was added
 } ai_funcgoal_t;

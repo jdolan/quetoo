@@ -36,6 +36,8 @@
 	extern g_import_t gi;
 	extern g_export_t ge;
 
+	extern ai_export_t aie;
+
 	extern uint32_t g_means_of_death;
 
 	extern cvar_t *g_admin_password;

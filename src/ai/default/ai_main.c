@@ -28,9 +28,14 @@ static cvar_t *sv_max_clients;
 cvar_t *ai_passive;
 
 /**
- * @brief Game imports ptr.
+ * @brief AI imports.
  */
 ai_import_t aii;
+
+/**
+ * @brief AI exports.
+ */
+ai_export_t aie;
 
 /**
  * @brief Ptr to AI locals that are hooked to bot entities.
@@ -84,7 +89,7 @@ static void Ai_EnumerateSkins(const char *path, void *data) {
  */
 static void Ai_EnumerateModels(const char *path, void *data) {
 	
-	aii.gi->EnumerateFiles(va("%s/*.tga", path), Ai_EnumerateSkins, NULL);
+	aii.EnumerateFiles(va("%s/*.tga", path), Ai_EnumerateSkins, NULL);
 }
 
 /**
@@ -93,7 +98,7 @@ static void Ai_EnumerateModels(const char *path, void *data) {
 static void Ai_InitSkins(void) {
 
 	ai_skins = g_array_new(false, false, sizeof(ai_skin_t));
-	aii.gi->EnumerateFiles("players/*", Ai_EnumerateModels, NULL);
+	aii.EnumerateFiles("players/*", Ai_EnumerateModels, NULL);
 }
 
 /**
@@ -124,7 +129,7 @@ static uint32_t ai_name_suffix;
 /**
  * @brief Create the user info for the specified bot entity.
  */
-void Ai_GetUserInfo(const g_entity_t *self, char *userinfo) {
+static void Ai_GetUserInfo(const g_entity_t *self, char *userinfo) {
 	g_strlcpy(userinfo, DEFAULT_BOT_INFO, MAX_USER_INFO_STRING);
 	SetUserInfo(userinfo, "skin", g_array_index(ai_skins, ai_skin_t, Random() % ai_skins->len));
 	SetUserInfo(userinfo, "color", va("%i", Random() % 256));
@@ -156,7 +161,7 @@ static _Bool Ai_Can_Target(const g_entity_t *self, const g_entity_t *other) {
 		return false;
 	}
 
-	cm_trace_t tr = aii.gi->Trace(self->s.origin, other->s.origin, vec3_origin, vec3_origin, self, MASK_CLIP_PROJECTILE);
+	cm_trace_t tr = aii.Trace(self->s.origin, other->s.origin, vec3_origin, vec3_origin, self, MASK_CLIP_PROJECTILE);
 
 	if (tr.fraction < 1.0 && tr.ent == other) {
 		return true;
@@ -191,7 +196,7 @@ static vec_t Ai_EnemyPriority(g_entity_t *self, g_entity_t *target, const _Bool 
  * @brief Yields a pointer to the edict by the given number by negotiating the
  * edicts array based on the reported size of g_entity_t.
  */
-#define ENTITY_FOR_NUM(n) ( (g_entity_t *) ((byte *) aii.ge->entities + aii.ge->entity_size * (n)) )
+#define ENTITY_FOR_NUM(n) ( (g_entity_t *) ((byte *) aii.entities + aii.entity_size * (n)) )
 
 /**
  * @brief Funcgoal that controls the AI's lust for blood
@@ -312,7 +317,7 @@ static uint32_t Ai_FuncGoal_Acrobatics(g_entity_t *self, pm_cmd_t *cmd) {
 	}
 
 	// do some acrobatics
-	if (G_Ai_GroundEntity(self)) {
+	if (aii.G_GroundEntity(self)) {
 
 		if (self->client->ps.pm_state.flags & PMF_DUCKED) {
 					
@@ -349,7 +354,7 @@ static void Ai_Wander(g_entity_t *self, pm_cmd_t *cmd) {
 	vec3_t end;
 	VectorMA(self->s.origin, (self->maxs[0] - self->mins[0]) * 2.0, forward, end);
 
-	cm_trace_t tr = aii.gi->Trace(self->s.origin, end, vec3_origin, vec3_origin, self, MASK_CLIP_PLAYER);
+	cm_trace_t tr = aii.Trace(self->s.origin, end, vec3_origin, vec3_origin, self, MASK_CLIP_PLAYER);
 
 	if (tr.fraction < 1.0) { // hit a wall
 		vec_t angle = 45 + Randomf() * 45;
@@ -392,7 +397,7 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	VectorAngles(move_direction, move_direction);
 	move_direction[0] = move_direction[2] = 0.0;
 
-	const vec3_t view_direction = { 0.0, G_Ai_ViewAngles(self)[1], 0.0};
+	const vec3_t view_direction = { 0.0, aii.G_ViewAngles(self)[1], 0.0};
 	VectorSubtract(view_direction, move_direction, move_direction);
 
 	AngleVectors(move_direction, move_direction, NULL, NULL);
@@ -469,7 +474,7 @@ static void Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		ideal_angles[1] += cos(ai_level.time / 164.0) * 4.0;
 	}
 
-	const vec_t *view_angles = G_Ai_ViewAngles(self);
+	const vec_t *view_angles = aii.G_ViewAngles(self);
 
 	for (int32_t i = 0; i < 2; ++i) {
 		ideal_angles[i] = Ai_CalculateAngle(self, 6.5, view_angles[i], ideal_angles[i]);
@@ -485,7 +490,7 @@ static void Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 /**
  * @brief Called every frame for every AI.
  */
-void Ai_Think(g_entity_t *self, pm_cmd_t *cmd) {
+static void Ai_Think(g_entity_t *self, pm_cmd_t *cmd) {
 
 	ai_locals_t *ai = Ai_GetLocals(self);
 
@@ -527,7 +532,7 @@ void Ai_Think(g_entity_t *self, pm_cmd_t *cmd) {
 /**
  * @brief Called when an AI is first spawned and is ready to go.
  */
-void Ai_Begin(g_entity_t *self) {
+static void Ai_Begin(g_entity_t *self) {
 
 	ai_locals_t *ai = Ai_GetLocals(self);
 	memset(ai, 0, sizeof(*ai));
@@ -540,7 +545,7 @@ void Ai_Begin(g_entity_t *self) {
 /**
  * @brief Called every frame.
  */
-void Ai_Frame(void) {
+static void Ai_Frame(void) {
 
 	ai_level.frame_num++;
 	ai_level.time = ai_level.frame_num * QUETOO_TICK_MILLIS;
@@ -549,23 +554,44 @@ void Ai_Frame(void) {
 /**
  * @brief Initializes the AI subsystem.
  */
-void Ai_Init(ai_import_t *import) {
-	aii = *import;
+static void Ai_Init(void) {
 
-	sv_max_clients = aii.gi->Cvar("sv_max_clients", 0, 0, "");
+	sv_max_clients = aii.Cvar("sv_max_clients", 0, 0, "");
 
-	ai_passive = aii.gi->Cvar("ai_passive", "0", 0, "Whether the bots will attack or not");
-	ai_locals = (ai_locals_t *) aii.gi->Malloc(sizeof(ai_locals_t) * sv_max_clients->integer, MEM_TAG_AI);
+	ai_passive = aii.Cvar("ai_passive", "0", 0, "Whether the bots will attack or not");
+	ai_locals = (ai_locals_t *) aii.Malloc(sizeof(ai_locals_t) * sv_max_clients->integer, MEM_TAG_AI);
 
 	Ai_InitSkins();
 }
 
 /**
- * @brief Shuts down the AI subsystem.
+ * @brief Shuts down the AI subsystem
+ .
  */
-void Ai_Shutdown(void) {
+static void Ai_Shutdown(void) {
 	g_array_free(ai_skins, true);
 	ai_skins = NULL;
 
-	aii.gi->FreeTag(MEM_TAG_AI);
+	aii.FreeTag(MEM_TAG_AI);
+}
+
+/**
+ * @brief Load the AI subsystem.
+ */
+ai_export_t *Ai_LoadAi(ai_import_t *import) {
+
+	aii = *import;
+
+	aie.api_version = AI_API_VERSION;
+
+	aie.Init = Ai_Init;
+	aie.Shutdown = Ai_Shutdown;
+
+	aie.Frame = Ai_Frame;
+
+	aie.GetUserInfo = Ai_GetUserInfo;
+	aie.Begin = Ai_Begin;
+	aie.Think = Ai_Think;
+
+	return &aie;
 }

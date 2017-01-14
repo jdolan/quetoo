@@ -21,10 +21,12 @@
 
 #pragma once
 
-#define __AI_LOCAL_H__
+#include "ai_types.h"
 
-#include "ai.h"
-
-#define Debug(...) Debug_(__func__, __VA_ARGS__)
-#define Error(...) Error_(__func__, __VA_ARGS__)
-#define Warn(...) Warn_(__func__, __VA_ARGS__)
+#ifdef __AI_LOCAL_H__
+void Ai_RemoveFuncGoal(g_entity_t *ent, AI_GoalFunc func);
+void Ai_AddFuncGoal(g_entity_t *ent, AI_GoalFunc func, uint32_t time_offset);
+void Ai_SetEntityGoal(ai_goal_t *goal, ai_goal_type_t type, vec_t priority, g_entity_t *entity);
+void Ai_CopyGoal(const ai_goal_t *from, ai_goal_t *to);
+void Ai_ClearGoal(ai_goal_t *goal);
+#endif /* __AI_LOCAL_H__ */

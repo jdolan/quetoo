@@ -25,7 +25,7 @@
  * @brief Add the specified goal function to the bot, and run it at the specified
  * time offset.
  */
-void Ai_AddFuncGoal(g_entity_t *ent, G_AIGoalFunc func, uint32_t time_offset) {
+void Ai_AddFuncGoal(g_entity_t *ent, AI_GoalFunc func, uint32_t time_offset) {
 	ai_locals_t *ai = Ai_GetLocals(ent);
 
 	for (int32_t i = 0; i < MAX_AI_FUNCGOALS; i++) {
@@ -41,13 +41,13 @@ void Ai_AddFuncGoal(g_entity_t *ent, G_AIGoalFunc func, uint32_t time_offset) {
 		return;
 	}
 
-	aii.gi->Warn("Bot ran out of empty goal slots\n");
+	aii.Warn("Bot ran out of empty goal slots\n");
 }
 
 /**
  * @brief Remove the specified goal function from the bot.
  */
-void Ai_RemoveFuncGoal(g_entity_t *ent, G_AIGoalFunc func) {
+void Ai_RemoveFuncGoal(g_entity_t *ent, AI_GoalFunc func) {
 	ai_locals_t *ai = Ai_GetLocals(ent);
 
 	for (int32_t i = 0; i < MAX_AI_FUNCGOALS; i++) {

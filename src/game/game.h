@@ -23,6 +23,7 @@
 
 #include "shared.h"
 #include "filesystem.h"
+#include "ai/ai.h"
 
 #define GAME_API_VERSION 5
 
@@ -338,6 +339,10 @@ typedef struct {
 	void (*ClientPrint)(const g_entity_t *ent, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3,
 	        4)));
 
+	/**
+	 * @brief Load AI functions
+	 */
+	ai_export_t *(*LoadAi)(ai_import_t *import);
 } g_import_t;
 
 /**

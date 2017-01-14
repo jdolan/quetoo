@@ -24,9 +24,6 @@
 #include "g_types.h"
 #include "ai/ai.h"
 
-const vec_t *G_Ai_ViewAngles(g_entity_t *self);
-g_entity_t *G_Ai_GroundEntity(g_entity_t *self);
-
 #ifdef __GAME_LOCAL_H__
 	void G_Ai_Init(void);
 	void G_Ai_Shutdown(void);

@@ -24,6 +24,8 @@
 g_import_t gi;
 g_export_t ge;
 
+ai_export_t aie;
+
 g_game_t g_game;
 
 g_level_t g_level;
@@ -904,7 +906,7 @@ static void G_Frame(void) {
 	g_level.frame_num++;
 	g_level.time = g_level.frame_num * QUETOO_TICK_MILLIS;
 
-	Ai_Frame();
+	aie.Frame();
 
 	// check for level change after running intermission
 	if (g_level.intermission_time) {
