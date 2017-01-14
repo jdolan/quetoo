@@ -80,7 +80,7 @@ static void Con_FreeString(console_string_t *str, gpointer user_data) {
 static void Con_FreeStrings(void) {
 
 	g_queue_foreach(&console_state.strings, (GFunc) Con_FreeString, NULL);
-	g_queue_remove_all(&console_state.strings, NULL);
+	g_queue_clear(&console_state.strings);
 
 	console_state.size = 0;
 }
