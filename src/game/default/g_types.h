@@ -882,9 +882,6 @@ typedef struct {
 	const g_item_t *last_dropped; // last dropped item, used for variable expansion
 } g_client_locals_t;
 
-// FIXME ???
-typedef struct g_entity_ai_s g_entity_ai_t;
-
 /**
  * @brief Finally the g_entity_locals structure extends the server stub to
  * provide all of the state management the game module requires.
@@ -972,8 +969,6 @@ typedef struct {
 	int32_t area_portal; // the area portal to toggle
 
 	const g_item_t *item; // for bonus items
-
-	g_entity_ai_t *ai_locals; // bot locals
 } g_entity_locals_t;
 
 #include "game/game.h"
