@@ -36,42 +36,19 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
 		return NULL;
 	}
 
-	size_t string_len = strlen(string);
-	size_t string_copy = string_len;
-	_Bool needs_reset = false;
-	_Bool needs_newline = false;
-
-	// both ^7\n and \n^7 are valid
-	if (!g_str_has_suffix(string, "^7\n") &&
-		!g_str_has_suffix(string, "\n^7")) {
-
-		needs_reset = !g_str_has_suffix(string, "^7");
-		needs_newline = !g_str_has_suffix(string, "\n");
-
-		if (needs_reset) {
-			string_len += 2;
-		} else {
-			string_copy -= 2;
-		}
-
-		if (needs_newline) {
-			string_len++;
-		} else {
-			string_copy--;
-		}
-	}
+	const size_t string_len = strlen(string) + 3;
 
 	str->level = level;
-	str->chars = g_new0(char, string_len + 1);
+	str->chars = g_new0(char, string_len);
 
-	strncpy(str->chars, string, string_copy);
+	g_strlcpy(str->chars, string, string_len); // copy in input
+	g_strchomp(str->chars); // remove \n if it's there
 
-	if (needs_reset || needs_newline) {
-		const char *string_suffix = "^7\n";
-		strncpy(str->chars + string_copy, string_suffix, strlen(string_suffix));
+	if (!g_str_has_suffix(str->chars, "^7")) { // append ^7 if we need it
+		g_strlcat(str->chars, "^7", string_len);
 	}
 
-	str->chars[string_len] = '\0';
+	g_strlcat(str->chars, "\n", string_len);
 
 	if (str->chars == NULL) {
 		raise(SIGABRT);
