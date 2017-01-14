@@ -1531,6 +1531,8 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 			if (cl->locals.chase_target == other) { // no one to chase
 				cl->locals.chase_target = NULL;
 			}
+
+			G_ClientChaseThink(ent);
 		}
 	}
 
@@ -1566,6 +1568,8 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 			} else {
 				G_ClientChaseTarget(ent);
 			}
+
+			G_ClientChaseThink(ent);
 		} else if (cl->locals.weapon_think_time < g_level.time) {
 			G_ClientWeaponThink(ent);
 		}
