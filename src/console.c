@@ -37,7 +37,7 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
 	}
 
 	str->level = level;
-	str->chars = g_strdup(string ? string : "");
+	str->chars = g_strdup(string ?: "");
 	if (str->chars == NULL) {
 		raise(SIGABRT);
 		return NULL;
