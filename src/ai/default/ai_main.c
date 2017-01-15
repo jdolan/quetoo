@@ -30,12 +30,12 @@ cvar_t *ai_passive;
 /**
  * @brief AI imports.
  */
-ai_import_t aii;
+ai_import_t aim;
 
 /**
  * @brief AI exports.
  */
-ai_export_t aie;
+ai_export_t aix;
 
 /**
  * @brief Ptr to AI locals that are hooked to bot entities.
@@ -89,7 +89,7 @@ static void Ai_EnumerateSkins(const char *path, void *data) {
  */
 static void Ai_EnumerateModels(const char *path, void *data) {
 	
-	aii.EnumerateFiles(va("%s/*.tga", path), Ai_EnumerateSkins, NULL);
+	aim.EnumerateFiles(va("%s/*.tga", path), Ai_EnumerateSkins, NULL);
 }
 
 /**
@@ -98,7 +98,7 @@ static void Ai_EnumerateModels(const char *path, void *data) {
 static void Ai_InitSkins(void) {
 
 	ai_skins = g_array_new(false, false, sizeof(ai_skin_t));
-	aii.EnumerateFiles("players/*", Ai_EnumerateModels, NULL);
+	aim.EnumerateFiles("players/*", Ai_EnumerateModels, NULL);
 }
 
 /**
@@ -161,7 +161,7 @@ static _Bool Ai_Can_Target(const g_entity_t *self, const g_entity_t *other) {
 		return false;
 	}
 
-	cm_trace_t tr = aii.Trace(self->s.origin, other->s.origin, vec3_origin, vec3_origin, self, MASK_CLIP_PROJECTILE);
+	cm_trace_t tr = aim.Trace(self->s.origin, other->s.origin, vec3_origin, vec3_origin, self, MASK_CLIP_PROJECTILE);
 
 	if (tr.fraction < 1.0 && tr.ent == other) {
 		return true;
@@ -196,7 +196,7 @@ static vec_t Ai_EnemyPriority(g_entity_t *self, g_entity_t *target, const _Bool 
  * @brief Yields a pointer to the edict by the given number by negotiating the
  * edicts array based on the reported size of g_entity_t.
  */
-#define ENTITY_FOR_NUM(n) ( (g_entity_t *) ((byte *) aii.entities + aii.entity_size * (n)) )
+#define ENTITY_FOR_NUM(n) ( (g_entity_t *) ((byte *) aim.entities + aim.entity_size * (n)) )
 
 /**
  * @brief Funcgoal that controls the AI's lust for blood
@@ -317,7 +317,7 @@ static uint32_t Ai_FuncGoal_Acrobatics(g_entity_t *self, pm_cmd_t *cmd) {
 	}
 
 	// do some acrobatics
-	if (aii.G_GroundEntity(self)) {
+	if (*self->ail.ground_entity) {
 
 		if (self->client->ps.pm_state.flags & PMF_DUCKED) {
 					
@@ -354,7 +354,7 @@ static void Ai_Wander(g_entity_t *self, pm_cmd_t *cmd) {
 	vec3_t end;
 	VectorMA(self->s.origin, (self->maxs[0] - self->mins[0]) * 2.0, forward, end);
 
-	cm_trace_t tr = aii.Trace(self->s.origin, end, vec3_origin, vec3_origin, self, MASK_CLIP_PLAYER);
+	cm_trace_t tr = aim.Trace(self->s.origin, end, vec3_origin, vec3_origin, self, MASK_CLIP_PLAYER);
 
 	if (tr.fraction < 1.0) { // hit a wall
 		vec_t angle = 45 + Randomf() * 45;
@@ -397,7 +397,7 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	VectorAngles(move_direction, move_direction);
 	move_direction[0] = move_direction[2] = 0.0;
 
-	const vec3_t view_direction = { 0.0, aii.G_ViewAngles(self)[1], 0.0};
+	const vec3_t view_direction = { 0.0, self->client->ail.angles[1], 0.0};
 	VectorSubtract(view_direction, move_direction, move_direction);
 
 	AngleVectors(move_direction, move_direction, NULL, NULL);
@@ -474,7 +474,7 @@ static void Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		ideal_angles[1] += cos(ai_level.time / 164.0) * 4.0;
 	}
 
-	const vec_t *view_angles = aii.G_ViewAngles(self);
+	const vec_t *view_angles = self->client->ail.angles;
 
 	for (int32_t i = 0; i < 2; ++i) {
 		ideal_angles[i] = Ai_CalculateAngle(self, 6.5, view_angles[i], ideal_angles[i]);
@@ -530,16 +530,25 @@ static void Ai_Think(g_entity_t *self, pm_cmd_t *cmd) {
 }
 
 /**
- * @brief Called when an AI is first spawned and is ready to go.
+ * @brief Called every time an AI spawns
  */
-static void Ai_Begin(g_entity_t *self) {
-
+static void Ai_Spawn(g_entity_t *self) {
 	ai_locals_t *ai = Ai_GetLocals(self);
 	memset(ai, 0, sizeof(*ai));
+
+	if (self->solid == SOLID_NOT) { // intermission, spectator, etc
+		return;
+	}
 
 	Ai_AddFuncGoal(self, Ai_FuncGoal_Hunt, 0);
 	Ai_AddFuncGoal(self, Ai_FuncGoal_Weaponry, 0);
 	Ai_AddFuncGoal(self, Ai_FuncGoal_Acrobatics, 0);
+}
+
+/**
+ * @brief Called when an AI is first spawned and is ready to go.
+ */
+static void Ai_Begin(g_entity_t *self) {
 }
 
 /**
@@ -556,10 +565,10 @@ static void Ai_Frame(void) {
  */
 static void Ai_Init(void) {
 
-	sv_max_clients = aii.Cvar("sv_max_clients", 0, 0, "");
+	sv_max_clients = aim.Cvar("sv_max_clients", 0, 0, "");
 
-	ai_passive = aii.Cvar("ai_passive", "0", 0, "Whether the bots will attack or not");
-	ai_locals = (ai_locals_t *) aii.Malloc(sizeof(ai_locals_t) * sv_max_clients->integer, MEM_TAG_AI);
+	ai_passive = aim.Cvar("ai_passive", "0", 0, "Whether the bots will attack or not");
+	ai_locals = (ai_locals_t *) aim.Malloc(sizeof(ai_locals_t) * sv_max_clients->integer, MEM_TAG_AI);
 
 	Ai_InitSkins();
 }
@@ -572,7 +581,7 @@ static void Ai_Shutdown(void) {
 	g_array_free(ai_skins, true);
 	ai_skins = NULL;
 
-	aii.FreeTag(MEM_TAG_AI);
+	aim.FreeTag(MEM_TAG_AI);
 }
 
 /**
@@ -580,18 +589,19 @@ static void Ai_Shutdown(void) {
  */
 ai_export_t *Ai_LoadAi(ai_import_t *import) {
 
-	aii = *import;
+	aim = *import;
 
-	aie.api_version = AI_API_VERSION;
+	aix.api_version = AI_API_VERSION;
 
-	aie.Init = Ai_Init;
-	aie.Shutdown = Ai_Shutdown;
+	aix.Init = Ai_Init;
+	aix.Shutdown = Ai_Shutdown;
 
-	aie.Frame = Ai_Frame;
+	aix.Frame = Ai_Frame;
 
-	aie.GetUserInfo = Ai_GetUserInfo;
-	aie.Begin = Ai_Begin;
-	aie.Think = Ai_Think;
+	aix.GetUserInfo = Ai_GetUserInfo;
+	aix.Begin = Ai_Begin;
+	aix.Spawn = Ai_Spawn;
+	aix.Think = Ai_Think;
 
-	return &aie;
+	return &aix;
 }

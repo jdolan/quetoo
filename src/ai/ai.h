@@ -23,7 +23,16 @@
 
 #define AI_API_VERSION 1
 
+/**
+ * @brief Forward declaration of entity type, since
+ * game.h requires ai.h
+ */
 typedef struct g_entity_s g_entity_t;
+
+/**
+ * @brief Items are opaque pointers to AI.
+ */
+typedef struct g_item_s g_item_t;
 
 /**
  * @brief Functions and the like that the AI system imports from the game.
@@ -133,8 +142,6 @@ typedef struct {
 	 */
 	const g_entity_t *entities;
 	size_t entity_size;
-	const g_entity_t *(*G_GroundEntity)(const g_entity_t *self);
-	const vec_t *(*G_ViewAngles)(const g_entity_t *self);
 } ai_import_t;
 
 /**
@@ -162,14 +169,51 @@ typedef struct {
 	 * @brief Generate the user info for the specified bot.
 	 */
 	void (*GetUserInfo)(const g_entity_t *self, char *userinfo);
-
+	
 	/**
 	 * @brief Called to setup an AI's initial state.
 	 */
 	void (*Begin)(g_entity_t *self);
 
 	/**
+	 * @brief Called when an AI spawns.
+	 */
+	void (*Spawn)(g_entity_t *self);
+
+	/**
 	 * @brief Call cause an AI to think. Returns the movement command for the bot.
 	 */
 	void (*Think)(g_entity_t *self, pm_cmd_t *cmd);
 } ai_export_t;
+
+/**
+ * @brief Struct of parameters from g_client_t that the bot
+ * will make use of.
+ */
+typedef struct {
+	/**
+	 * @brief Pointer to view angles
+	 */
+	const vec_t *angles;
+
+	/**
+	 * @brief Pointer to inventory
+	 */
+	const int16_t *inventory;
+
+	/**
+	 * @brief Pointer to current weapon
+	 */
+	const g_item_t *const *weapon;
+} ai_client_locals_t;
+
+/**
+ * @brief Struct of parameters from g_entity_t that the bot
+ * will make use of.
+ */
+typedef struct {
+	/**
+	 * @brief Pointer to ground entity
+	 */
+	g_entity_t *const *ground_entity;
+} ai_entity_locals_t;

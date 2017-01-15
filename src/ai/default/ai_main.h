@@ -24,8 +24,8 @@
 #ifdef __AI_LOCAL_H__
 extern cvar_t *ai_passive;
 extern ai_level_t ai_level;
-extern ai_import_t aii;
-extern ai_export_t aie;
+extern ai_import_t aim;
+extern ai_export_t aix;
 
 ai_locals_t *Ai_GetLocals(const g_entity_t *ent);
 ai_export_t *Ai_LoadAi(ai_import_t *import);

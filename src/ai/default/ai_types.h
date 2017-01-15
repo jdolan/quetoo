@@ -60,13 +60,13 @@ typedef struct {
  * @brief A functional AI goal. It returns the amount of time to wait
  * until the goal should be run again.
  */
-typedef uint32_t (*AI_GoalFunc)(g_entity_t *ent, pm_cmd_t *cmd);
+typedef uint32_t (*Ai_GoalFunc)(g_entity_t *ent, pm_cmd_t *cmd);
 
 /**
  * @brief A functional AI goal. 
  */
 typedef struct {
-	AI_GoalFunc think;
+	Ai_GoalFunc think;
 	uint32_t nextthink;
 	uint32_t time; // time this funcgoal was added
 } ai_funcgoal_t;

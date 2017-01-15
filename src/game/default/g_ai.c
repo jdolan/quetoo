@@ -41,6 +41,24 @@ static void G_Ai_ClientThink(g_entity_t *self) {
 /**
  * @brief
  */
+void G_Ai_SetClientLocals(g_client_t *client) {
+
+	client->ail.inventory = client->locals.inventory;
+	client->ail.angles = client->locals.angles;
+	client->ail.weapon = &client->locals.weapon;
+}
+
+/**
+ * @brief
+ */
+void G_Ai_SetEntityLocals(g_entity_t *ent) {
+
+	ent->ail.ground_entity = &ent->locals.ground_entity;
+}
+
+/**
+ * @brief
+ */
 static void G_Ai_ClientBegin(g_entity_t *self) {
 
 	G_ClientBegin(self);
@@ -225,20 +243,6 @@ void G_Ai_ClientDisconnect(g_entity_t *ent) {
 }
 
 /**
- * @brief Temporary, until we figure out how to expose this
- */
-static const g_entity_t *G_Ai_GroundEntity(const g_entity_t *self) {
-	return self->locals.ground_entity;
-}
-
-/**
- * @brief Temporary, until we figure out how to expose this
- */
-static const vec_t *G_Ai_ViewAngles(const g_entity_t *self) {
-	return self->client->locals.angles;
-}
-
-/**
  * @brief
  */
 void G_Ai_Frame(void) {
@@ -341,8 +345,6 @@ void G_Ai_Init(void) {
 	// SCRATCH
 	import.entities = ge.entities;
 	import.entity_size = ge.entity_size;
-	import.G_GroundEntity = G_Ai_GroundEntity;
-	import.G_ViewAngles = G_Ai_ViewAngles;
 	
 	ai_export_t *exports = gi.LoadAi(&import);
 

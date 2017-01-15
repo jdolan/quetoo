@@ -44,7 +44,7 @@
 #ifndef __GAME_LOCAL_H__
 
 /**
- * @brief This is the server's definition of the client and edict structures. The
+ * @brief This is the server's definition of the client and entity structures. The
  * game module is free to add additional members to these structures, provided
  * they communicate the actual size of them at runtime through the game export
  * structure.
@@ -64,10 +64,27 @@ typedef struct {
 #endif /* __GAME_LOCAL_H__ */
 
 struct g_client_s {
-	player_state_t ps; // communicated by server to clients
+	/**
+	 * @brief Communicated by server to clients
+	 */
+	player_state_t ps;
+	
+	/**
+	 * @brief This player's ping
+	 */
 	uint32_t ping;
 
-	g_client_locals_t locals; // game-local data members
+	/**
+	 * @brief Parameters of the client that the AI can interact with
+	 */
+	ai_client_locals_t ail;
+	
+	/**
+	 * @brief The game module can extend the client structure through this
+	 * opaque field. Therefore, the actual size of g_client_t is returned to the
+	 * server through ge.client_size.
+	 */
+	g_client_locals_t locals;
 };
 
 /**
@@ -139,11 +156,16 @@ struct g_entity_s {
 	 * pointer to the variable-sized g_client_t.
 	 */
 	g_client_t *client;
+	
+	/**
+	 * @brief Parameters of the entity that the AI can interact with
+	 */
+	ai_entity_locals_t ail;
 
 	/**
-	 * @brief The game module can extend the edict structure through this
+	 * @brief The game module can extend the entity structure through this
 	 * opaque field. Therefore, the actual size of g_entity_t is returned to the
-	 * server through ge.edict_size.
+	 * server through ge.entity_size.
 	 */
 	g_entity_locals_t locals; // game-local data members
 };
@@ -306,8 +328,8 @@ typedef struct {
 	 *
 	 * @param mins The area bounds in world space.
 	 * @param maxs The area bounds in world space.
-	 * @param list The list of edicts to populate.
-	 * @param len The maximum number of edicts to return (lengthof(list)).
+	 * @param list The list of entities to populate.
+	 * @param len The maximum number of entities to return (lengthof(list)).
 	 * @param type The entity type to return (BOX_SOLID, BOX_TRIGGER, ..).
 	 *
 	 * @return The number of entities found.
@@ -432,5 +454,4 @@ typedef struct {
 	 * @brief Used to advertise the game name to server browsers.
 	 */
 	const char *(*GameName)(void);
-
 } g_export_t;

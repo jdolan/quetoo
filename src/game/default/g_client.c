@@ -923,6 +923,10 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 	}
 
 	gi.LinkEntity(ent);
+
+	if (aix) {
+		G_Ai_SetClientLocals(ent->client);
+	}
 }
 
 /**
@@ -944,6 +948,10 @@ void G_ClientRespawn(g_entity_t *ent, _Bool voluntary) {
 
 	ent->client->locals.respawn_time = g_level.time;
 	ent->client->locals.respawn_protection_time = g_level.time + g_respawn_protection->value * 1000;
+
+	if (aix) {
+		aix->Spawn(ent);
+	}
 
 	if (!voluntary) { // don't announce involuntary spectator changes
 		return;
