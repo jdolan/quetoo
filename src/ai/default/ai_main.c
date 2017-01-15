@@ -157,7 +157,8 @@ static _Bool Ai_Can_Target(const g_entity_t *self, const g_entity_t *other) {
 		return false;
 	}
 
-	if (other == self || !other->client || !other->in_use || other->solid == SOLID_DEAD || (other->sv_flags & SVF_NO_CLIENT)) {
+	if (other == self || !other->client || !other->in_use || other->solid == SOLID_DEAD || (other->sv_flags & SVF_NO_CLIENT) ||
+		aim.OnSameTeam(self, other)) {
 		return false;
 	}
 
@@ -561,6 +562,14 @@ static void Ai_Frame(void) {
 }
 
 /**
+ * @brief Sets up level state for bots.
+ */
+static void Ai_GameStarted(void) {
+
+	aim.GetGameType(&ai_level.gametype);
+}
+
+/**
  * @brief Initializes the AI subsystem.
  */
 static void Ai_Init(void) {
@@ -602,6 +611,8 @@ ai_export_t *Ai_LoadAi(ai_import_t *import) {
 	aix.Begin = Ai_Begin;
 	aix.Spawn = Ai_Spawn;
 	aix.Think = Ai_Think;
+
+	aix.GameRestarted = Ai_GameStarted;
 
 	return &aix;
 }

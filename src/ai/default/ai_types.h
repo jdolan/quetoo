@@ -22,12 +22,14 @@
 #pragma once
 
 #include "game/game.h"
-#include "shared.h"
+#include "game/default/g_types.h"
 
 #ifdef __AI_LOCAL_H__
+
 typedef struct {
 	uint32_t frame_num;
 	uint32_t time;
+	g_gametype_t gametype;
 } ai_level_t;
 
 /**

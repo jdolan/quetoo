@@ -41,6 +41,16 @@ static void G_Ai_ClientThink(g_entity_t *self) {
 /**
  * @brief
  */
+static void G_Ai_GetGameType(g_gametype_t *gametype) {
+	gametype->gameplay = g_level.gameplay;
+	gametype->ctf = g_level.ctf;
+	gametype->match = g_level.match;
+	gametype->teams = g_level.teams;
+}
+
+/**
+ * @brief
+ */
 void G_Ai_SetClientLocals(g_client_t *client) {
 
 	client->ail.inventory = client->locals.inventory;
@@ -182,7 +192,6 @@ static void G_Ai_RemoveBots(const int32_t count) {
 		clamped--;
 	}
 }
-
 
 /**
  * @brief
@@ -341,6 +350,10 @@ void G_Ai_Init(void) {
 	import.AreasConnected = gi.AreasConnected;
 
 	import.BoxEntities = gi.BoxEntities;
+
+	import.GetGameType = G_Ai_GetGameType;
+
+	import.OnSameTeam = G_OnSameTeam;
 
 	// SCRATCH
 	import.entities = ge.entities;

@@ -30,6 +30,11 @@
 typedef struct g_entity_s g_entity_t;
 
 /**
+ * @brief Forward declaration
+ */
+typedef struct g_gametype_s g_gametype_t;
+
+/**
  * @brief Items are opaque pointers to AI.
  */
 typedef struct g_item_s g_item_t;
@@ -138,6 +143,16 @@ typedef struct {
 	                      const uint32_t type);
 
 	/**
+	 * @brief Fetch details about the game's gameplay
+	 */
+	void (*GetGameType)(g_gametype_t *gametype);
+
+	/**
+	 * @brief Query if two entities are on the same team
+	 */
+	_Bool (*OnSameTeam)(const g_entity_t *self, const g_entity_t *other);
+
+	/**
 	 * @brief TODO FIXME - TEMPORARY API SCRATCH SPACE.
 	 */
 	const g_entity_t *entities;
@@ -149,6 +164,11 @@ typedef struct {
  */
 typedef struct {
 	int32_t	api_version;
+
+	/**
+	 * @brief Called when the game has restarted
+	 */
+	void (*GameRestarted)(void);
 
 	/**
 	 * @brief Initialize AI facilities. This is called by the server, do not call it.

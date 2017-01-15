@@ -305,6 +305,16 @@ typedef enum {
 } g_gameplay_t;
 
 /**
+ * @brief
+ */
+typedef struct g_gametype_s {
+	g_gameplay_t gameplay;
+	_Bool teams;
+	_Bool ctf;
+	_Bool match;
+} g_gametype_t;
+
+/**
  * @brief Hook style.
  */
 typedef enum {
@@ -634,8 +644,8 @@ typedef struct {
 	g_gameplay_t gameplay;
 	_Bool teams;
 	_Bool ctf;
-	_Bool hook_allowed;
 	_Bool match;
+	_Bool hook_allowed;
 	_Bool rounds;
 	int32_t frag_limit;
 	int32_t round_limit;

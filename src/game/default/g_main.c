@@ -152,6 +152,10 @@ void G_ResetItems(void) {
  */
 static void G_RestartGame(_Bool teamz) {
 
+	if (aix) { // reset bot level state before they respawn
+		aix->GameRestarted();
+	}
+
 	if (g_level.match_time) {
 		g_level.match_num++;
 	}
