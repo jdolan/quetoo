@@ -25,6 +25,11 @@
 #include "ai/ai.h"
 
 #ifdef __GAME_LOCAL_H__
+	extern cvar_t *g_ai_fill_slots;
+
+	void G_Ai_ClientConnect(g_entity_t *ent);
+	void G_Ai_ClientDisconnect(g_entity_t *ent);
 	void G_Ai_Init(void);
 	void G_Ai_Shutdown(void);
+	void G_Ai_Frame(void);
 #endif /* __GAME_LOCAL_H__ */

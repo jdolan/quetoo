@@ -552,7 +552,10 @@ typedef struct {
 	g_client_t *clients; // [sv_max_clients]
 
 	g_spawn_temp_t spawn;
+
 	_Bool ai_loaded; // whether the AI is loaded or not
+	uint8_t ai_fill_slots; // total number of empty slots the AI should fill
+	uint8_t ai_left_to_spawn; // the number of AI bots that we're waiting to spawn in
 } g_game_t;
 
 extern g_game_t g_game;

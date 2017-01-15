@@ -21,6 +21,8 @@
 
 #include "g_local.h"
 
+cvar_t *g_ai_fill_slots;
+
 /**
  * @brief
  */
@@ -30,7 +32,7 @@ static void G_Ai_ClientThink(g_entity_t *self) {
 	memset(&cmd, 0, sizeof(cmd));
 	cmd.msec = QUETOO_TICK_MILLIS;
 
-	aie.Think(self, &cmd);
+	aix->Think(self, &cmd);
 	G_ClientThink(self, &cmd);
 
 	self->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
@@ -43,7 +45,7 @@ static void G_Ai_ClientBegin(g_entity_t *self) {
 
 	G_ClientBegin(self);
 
-	aie.Begin(self);
+	aix->Begin(self);
 
 	gi.Debug("Spawned %s at %s", self->client->locals.persistent.net_name, vtos(self->s.origin));
 
@@ -56,12 +58,12 @@ static void G_Ai_ClientBegin(g_entity_t *self) {
  */
 static void G_Ai_Spawn(g_entity_t *self, const uint32_t time_offset) {
 
-	self->ai = true; // and away we go!
-
 	char userinfo[MAX_USER_INFO_STRING];
-	aie.GetUserInfo(self, userinfo);
+	aix->GetUserInfo(self, userinfo);
 
 	G_ClientConnect(self, userinfo);
+
+	self->ai = true; // and away we go!
 	
 	if (!time_offset) {
 		G_Ai_ClientBegin(self);
@@ -74,46 +76,81 @@ static void G_Ai_Spawn(g_entity_t *self, const uint32_t time_offset) {
 }
 
 /**
- * @brief
+ * @brief Calculate the number of empty client slots.
  */
-static void G_Ai_Add_f(void) {
-	int32_t i, count = 1;
+static uint8_t G_Ai_EmptySlots(void) {
+	uint8_t empty_slots = 0;
 
-	if (gi.Argc() > 1) {
-		count = Clamp(atoi(gi.Argv(1)), 1, sv_max_clients->integer);
-	}
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 
-	for (i = 0; i < count; i++) {
+		g_entity_t *ent = &g_game.entities[i + 1];
 
-		g_entity_t *ent = &g_game.entities[1];
-		int32_t j;
-
-		for (j = 1; j <= sv_max_clients->integer; j++, ent++) {
-			if (!ent->in_use) {
-				G_Ai_Spawn(ent, i * (QUETOO_TICK_MILLIS * 20.0));
-				break;
-			}
-		}
-
-		if (j > sv_max_clients->integer) {
-			gi.Print("No client slots available, increase sv_max_clients\n");
-			break;
+		if (!ent->in_use) {
+			empty_slots++;
 		}
 	}
+
+	return empty_slots;
+}
+
+/**
+ * @brief Calculate the number of bots.
+ */
+static uint8_t G_Ai_NumberOfBots(void) {
+	uint8_t filled_slots = 0;
+
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+
+		g_entity_t *ent = &g_game.entities[i + 1];
+
+		if (ent->in_use && ent->ai) {
+			filled_slots++;
+		}
+	}
+
+	return filled_slots;
+}
+
+/**
+ * @brief Calculate the number of connected clients (bots and players alike).
+ */
+static uint8_t G_Ai_NumberOfClients(void) {
+	uint8_t filled_slots = 0;
+
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+
+		g_entity_t *ent = &g_game.entities[i + 1];
+
+		if (ent->in_use) {
+			filled_slots++;
+		}
+	}
+
+	return filled_slots;
+}
+
+static void G_Ai_AddBots(const int32_t count) {
+	int32_t empty_slots = G_Ai_EmptySlots();
+
+	if (!empty_slots) {
+		gi.Print("No client slots available, increase sv_max_clients.\n");
+		return;
+	}
+
+	g_game.ai_left_to_spawn += Min(count, empty_slots);
 }
 
 /**
  * @brief
  */
-static void G_Ai_Remove_f(void) {
-	int32_t i, count = 1;
+static void G_Ai_RemoveBots(const int32_t count) {
+	int32_t clamped = Min(G_Ai_NumberOfBots(), sv_max_clients->integer);
 
-	if (gi.Argc() > 1) {
-		count = Clamp(atoi(gi.Argv(1)), 1, sv_max_clients->integer);
+	if (!clamped) {
+		return;
 	}
 	
-	for (i = 0; i < count; i++) {
-
+	while (clamped) {
 		g_entity_t *ent = &g_game.entities[1];
 		int32_t j;
 
@@ -123,6 +160,67 @@ static void G_Ai_Remove_f(void) {
 				break;
 			}
 		}
+
+		clamped--;
+	}
+}
+
+
+/**
+ * @brief
+ */
+static void G_Ai_Add_f(void) {
+	int32_t count = 1;
+	
+	if (gi.Argc() > 1) {
+		count = atoi(gi.Argv(1));
+	}
+
+	G_Ai_AddBots(count);
+}
+
+/**
+ * @brief
+ */
+static void G_Ai_Remove_f(void) {
+	int32_t count = 1;
+
+	if (gi.Argc() > 1) {
+		count = atoi(gi.Argv(1));
+	}
+	
+	G_Ai_RemoveBots(count);
+}
+
+/**
+ * @brief
+ */
+void G_Ai_ClientConnect(g_entity_t *ent) {
+
+	if (!aix) {
+		return;
+	}
+
+	// decrement bots waiting to spawn
+	if (g_game.ai_left_to_spawn) {
+		g_game.ai_left_to_spawn--;
+	}
+}
+
+/**
+ * @brief
+ */
+void G_Ai_ClientDisconnect(g_entity_t *ent) {
+
+	if (!aix) {
+		return;
+	}
+
+	// see if this opened up a slot for a bot
+	uint8_t empty_slots = G_Ai_EmptySlots();
+
+	if (empty_slots && G_Ai_NumberOfClients() < g_game.ai_fill_slots) {
+		g_game.ai_left_to_spawn++;
 	}
 }
 
@@ -138,6 +236,60 @@ static const g_entity_t *G_Ai_GroundEntity(const g_entity_t *self) {
  */
 static const vec_t *G_Ai_ViewAngles(const g_entity_t *self) {
 	return self->client->locals.angles;
+}
+
+/**
+ * @brief
+ */
+void G_Ai_Frame(void) {
+
+	if (!aix) {
+		return;
+	}
+
+	// don't run bots for a few frames so that the game has settled
+	if (g_level.frame_num <= 5) {
+		return;
+	}
+
+	if (g_ai_fill_slots->modified) {
+		g_ai_fill_slots->modified = false;
+
+		if (g_ai_fill_slots->integer == -1) {
+			g_ai_fill_slots->integer = sv_max_clients->integer;
+		} else {
+			g_game.ai_fill_slots = Clamp(g_ai_fill_slots->integer, 0, sv_max_clients->integer);
+		}
+
+		int32_t slot_diff = g_ai_fill_slots->integer - G_Ai_NumberOfClients();
+
+		if (slot_diff > 0) {
+			G_Ai_AddBots(slot_diff);
+		} else if (slot_diff < 0) {
+			G_Ai_RemoveBots(abs(slot_diff));
+		}
+	}
+
+	// spawn as many bots as we have left to go
+	while (g_game.ai_left_to_spawn) {
+		g_entity_t *ent = &g_game.entities[1];
+		int32_t j;
+
+		for (j = 1; j <= sv_max_clients->integer; j++, ent++) {
+			if (!ent->in_use) {
+				G_Ai_Spawn(ent, (g_game.ai_left_to_spawn - 1) * 500);
+				break;
+			}
+		}
+
+		if (j > sv_max_clients->integer) { // should never happen
+			gi.Print("Desync in ai_left_to_spawn?\n");
+			g_game.ai_left_to_spawn = 0;
+			break;
+		}
+	}
+
+	aix->Frame();
 }
 
 /**
@@ -195,14 +347,13 @@ void G_Ai_Init(void) {
 	ai_export_t *exports = gi.LoadAi(&import);
 
 	if (!exports) {
-		g_game.ai_loaded = false;
 		return;
 	}
 
-	g_game.ai_loaded = true;
-
-	aie = *exports;
+	aix = exports;
 	
+	g_ai_fill_slots = gi.Cvar("g_ai_fill_slots", "0", CVAR_SERVER_INFO, "The number of bots to automatically fill in empty slots in the server. Specify -1 to fill all available slots.");
+
 	gi.Cmd("g_ai_add", G_Ai_Add_f, CMD_GAME, "Add one or more AI to the game");
 	gi.Cmd("g_ai_remove", G_Ai_Remove_f, CMD_GAME, "Remove one or more AI from the game");
 }

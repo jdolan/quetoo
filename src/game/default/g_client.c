@@ -1186,6 +1186,11 @@ _Bool G_ClientConnect(g_entity_t *ent, char *user_info) {
 		}
 	}
 
+	// if a bot currently has this slot, get rid of it
+	if (ent->ai) {
+		G_ClientDisconnect(ent);
+	}
+
 	// they can connect
 	ent->client = g_game.clients + (ent - g_game.entities - 1);
 
@@ -1205,6 +1210,9 @@ _Bool G_ClientConnect(g_entity_t *ent, char *user_info) {
 	}
 
 	ent->sv_flags = 0; // make sure we start with known default
+
+	G_Ai_ClientConnect(ent); // tell AI a client has connected
+
 	return true;
 }
 
@@ -1240,6 +1248,7 @@ void G_ClientDisconnect(g_entity_t *ent) {
 	ent->in_use = false;
 	ent->solid = SOLID_NOT;
 	ent->sv_flags = SVF_NO_CLIENT;
+	ent->ai = false;
 
 	memset(&ent->s, 0, sizeof(ent->s));
 	ent->s.number = ent - g_game.entities;
@@ -1248,6 +1257,8 @@ void G_ClientDisconnect(g_entity_t *ent) {
 
 	const int32_t entity_num = (int32_t) (ptrdiff_t) (ent - g_game.entities - 1);
 	gi.ConfigString(CS_CLIENTS + entity_num, "");
+
+	G_Ai_ClientDisconnect(ent); // tell AI
 }
 
 /**

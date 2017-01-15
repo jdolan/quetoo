@@ -499,6 +499,28 @@ void G_SpawnEntities(const char *name, const char *entities) {
 
 	g_strlcpy(g_level.name, name, sizeof(g_level.name));
 
+	// see if we have bots to keep
+	if (aix) {
+		g_game.ai_fill_slots = 0;
+		g_game.ai_left_to_spawn = 0;
+
+		if (g_ai_fill_slots->integer) {
+			if (g_ai_fill_slots->integer == -1) {
+				g_game.ai_fill_slots = sv_max_clients->integer;
+			} else {
+				g_game.ai_fill_slots = Clamp(g_ai_fill_slots->integer, 0, sv_max_clients->integer);
+			}
+
+			g_game.ai_left_to_spawn = g_game.ai_fill_slots;
+		} else {
+			for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+				if (g_game.entities[i + 1].ai) {
+					g_game.ai_left_to_spawn++;
+				}
+			}
+		}
+	}
+
 	memset(g_game.entities, 0, g_max_entities->value * sizeof(g_entity_t));
 
 	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
