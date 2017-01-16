@@ -69,7 +69,6 @@ after_build:
 
     [Environment]::CurrentDirectory = $PWD
 test: off
-deploy: off
 artifacts:
 - path: Quetoo-BETA-MSVC.zip
 on_finish:
