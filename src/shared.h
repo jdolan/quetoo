@@ -69,6 +69,13 @@ extern const vec3_t vec3_forward;
 	#define Min(a, b) ({ typeof (a) _a = (a); typeof (b) _b = (b); _a < _b ? _a : _b; })
 #endif
 
+/**
+ * @return The sign (-1, 0 or 1) of the value.
+ */
+#ifndef Sign
+	#define Sign(a) ({ typeof (a) _a = (a); ((_a > 0) - (_a < 0)); })
+#endif
+
 #define DotProduct(x, y)			(x[0] * y[0] + x[1] * y[1] + x[2] * y[2])
 #define VectorCompare(a, b)			(a[0] == b[0] && a[1] == b[1] && a[2] == b[2])
 #define Vector4Compare(a, b)		(a[0] == b[0] && a[1] == b[1] && a[2] == b[2] && a[3] == b[3])

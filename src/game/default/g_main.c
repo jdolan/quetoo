@@ -143,6 +143,8 @@ void G_ResetItems(void) {
 
 		G_ResetItem(ent);
 	}
+
+	G_Ai_RegisterItems();
 }
 
 /**

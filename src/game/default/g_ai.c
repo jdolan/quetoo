@@ -20,8 +20,16 @@
  */
 
 #include "g_local.h"
+#include "ai/default/ai_types.h"
 
 cvar_t *g_ai_fill_slots;
+
+/**
+ * @brief MAYBE TEMPORARY
+ */
+static uint16_t G_Ai_ItemIndex(const g_item_t *item) {
+	return item - g_items;
+}
 
 /**
  * @brief
@@ -52,8 +60,11 @@ void G_Ai_SetClientLocals(g_client_t *client) {
  * @brief
  */
 void G_Ai_SetEntityLocals(g_entity_t *ent) {
-
+	
 	ent->ail.ground_entity = &ent->locals.ground_entity;
+	ent->ail.item = &ent->locals.item;
+	ent->ail.velocity = ent->locals.velocity;
+	ent->ail.health = &ent->locals.health;
 }
 
 /**
@@ -298,6 +309,115 @@ void G_Ai_Frame(void) {
 /**
  * @brief
  */
+static void G_Ai_RegisterItem(const g_item_t *item) {
+
+	if (!item || item->type == ITEM_WEAPON) {
+		gi.Warn("Invalid item registration\n");
+		return;
+	}
+
+	ai_item_t ai_item;
+	
+	ai_item.class_name = item->class_name;
+
+	switch (item->type) {
+	default:
+		gi.Warn("Invalid item registration\n");
+		break;
+	case ITEM_AMMO:
+		ai_item.flags = AI_ITEM_AMMO;
+		break;
+	case ITEM_ARMOR:
+		ai_item.flags = AI_ITEM_ARMOR;
+		break;
+	case ITEM_FLAG:
+		ai_item.flags = AI_ITEM_FLAG;
+		break;
+	case ITEM_HEALTH:
+		ai_item.flags = AI_ITEM_HEALTH;
+		break;
+	case ITEM_POWERUP:
+		ai_item.flags = AI_ITEM_POWERUP;
+		break;
+	}
+
+	ai_item.name = item->name;
+	ai_item.priority = item->priority;
+	ai_item.quantity = item->quantity;
+	ai_item.tag = item->tag;
+
+	ai_item.ammo = 0;
+	ai_item.speed = 0;
+	ai_item.time = 0;
+
+	aix->RegisterItem(G_Ai_ItemIndex(item), &ai_item);
+}
+
+/**
+ * @brief
+ */
+static void G_Ai_RegisterWeapon(const g_item_t *item, const ai_item_flags_t weapon_flags, const int32_t speed, const uint32_t time) {
+
+	if (!item || item->type != ITEM_WEAPON) {
+		gi.Warn("Invalid item registration\n");
+		return;
+	}
+
+	ai_item_t ai_item;
+	
+	ai_item.class_name = item->class_name;
+	if (item->ammo) {
+		ai_item.ammo = G_Ai_ItemIndex(G_FindItem(item->ammo));
+	} else {
+		ai_item.ammo = 0;
+	}
+	ai_item.flags = AI_ITEM_WEAPON | weapon_flags;
+
+	ai_item.name = item->name;
+	ai_item.priority = item->priority;
+	ai_item.quantity = item->quantity;
+	ai_item.tag = item->tag;
+
+	ai_item.speed = speed;
+	ai_item.time = time;
+
+	aix->RegisterItem(G_Ai_ItemIndex(item), &ai_item);
+}
+
+/**
+ * @brief 
+ */
+void G_Ai_RegisterItems(void) {
+
+	if (!aix) {
+		return;
+	}
+
+	for (uint16_t i = 0; i < g_num_items; i++) {
+
+		if (g_items[i].type == ITEM_WEAPON) {
+			continue;
+		}
+
+		G_Ai_RegisterItem(&g_items[i]);
+	}
+	
+	G_Ai_RegisterWeapon(G_FindItem("Blaster"), AI_WEAPON_PROJECTILE, 1000, 0);
+	G_Ai_RegisterWeapon(G_FindItem("Shotgun"), AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE | AI_WEAPON_MED_RANGE, 0, 0);
+	G_Ai_RegisterWeapon(G_FindItem("Super Shotgun"), AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE, 0, 0);
+	G_Ai_RegisterWeapon(G_FindItem("Machinegun"), AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE | AI_WEAPON_MED_RANGE, 0, 0);
+	G_Ai_RegisterWeapon(G_FindItem("Grenade Launcher"), AI_WEAPON_PROJECTILE | AI_WEAPON_EXPLOSIVE, 700, 0);
+	G_Ai_RegisterWeapon(G_FindItem("Hand Grenades"), AI_WEAPON_PROJECTILE | AI_WEAPON_EXPLOSIVE | AI_WEAPON_TIMED | AI_WEAPON_MED_RANGE, 1000, 3000);
+	G_Ai_RegisterWeapon(G_FindItem("Rocket Launcher"), AI_WEAPON_PROJECTILE | AI_WEAPON_EXPLOSIVE | AI_WEAPON_MED_RANGE | AI_WEAPON_LONG_RANGE, 1000, 0);
+	G_Ai_RegisterWeapon(G_FindItem("Hyperblaster"), AI_WEAPON_PROJECTILE | AI_WEAPON_MED_RANGE, 1800, 0);
+	G_Ai_RegisterWeapon(G_FindItem("Lightning"), AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE, 0, 0);
+	G_Ai_RegisterWeapon(G_FindItem("Railgun"), AI_WEAPON_HITSCAN | AI_WEAPON_LONG_RANGE, 0, 0);
+	G_Ai_RegisterWeapon(G_FindItem("BFG10K"), AI_WEAPON_PROJECTILE | AI_WEAPON_MED_RANGE | AI_WEAPON_LONG_RANGE, 720, 0);
+}
+
+/**
+ * @brief
+ */
 void G_Ai_Init(void) {
 
 	ai_import_t import;
@@ -344,10 +464,12 @@ void G_Ai_Init(void) {
 	import.GetConfigString = gi.GetConfigString;
 	
 	import.OnSameTeam = G_OnSameTeam;
+	import.ClientCommand = G_ClientCommand;
 
 	// SCRATCH
 	import.entities = ge.entities;
 	import.entity_size = ge.entity_size;
+	import.ItemIndex = G_Ai_ItemIndex;
 	
 	ai_export_t *exports = gi.LoadAi(&import);
 

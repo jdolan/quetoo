@@ -151,7 +151,7 @@ static void Ai_GetUserInfo(const g_entity_t *self, char *userinfo) {
 /**
  * @brief
  */
-static _Bool Ai_Can_Target(const g_entity_t *self, const g_entity_t *other) {
+static _Bool Ai_CanTarget(const g_entity_t *self, const g_entity_t *other) {
 
 	if (ai_passive->integer) {
 		return false;
@@ -171,16 +171,160 @@ static _Bool Ai_Can_Target(const g_entity_t *self, const g_entity_t *other) {
 	return false;
 }
 
-#ifdef AI_UNUSED
 /**
  * @brief Executes a console command as if the bot typed it.
  */
 static void Ai_Command(g_entity_t *self, const char *command) {
 
-	gi.TokenizeString(command);
-	G_ClientCommand(self);
+	aim.TokenizeString(command);
+	aim.ClientCommand(self);
 }
-#endif
+
+typedef struct {
+	const ai_item_t *item;
+	vec_t weight;
+} ai_weapon_pick_t;
+
+/**
+ * @brief
+ */
+static int32_t Ai_PickBestWeapon_Compare(const void *a, const void *b) {
+
+	const ai_weapon_pick_t *w0 = (const ai_weapon_pick_t *) a;
+	const ai_weapon_pick_t *w1 = (const ai_weapon_pick_t *) b;
+
+	return Sign(w1->weight - w0->weight);
+}
+
+typedef enum {
+	RANGE_MELEE = 32,
+	RANGE_SHORT = 128,
+	RANGE_MED = 512,
+	RANGE_LONG = 1024
+} ai_range_t;
+
+/**
+ * @brief
+ */
+static ai_range_t Ai_GetRange(const vec_t distance) {
+	if (distance < RANGE_MELEE) {
+		return RANGE_MELEE;
+	} else if (distance < RANGE_SHORT) {
+		return RANGE_SHORT;
+	} else if (distance < RANGE_MED) {
+		return RANGE_MED;
+	}
+
+	return RANGE_LONG;
+}
+
+/**
+ * @brief Picks a weapon for the AI based on its target
+ */
+static void Ai_PickBestWeapon(g_entity_t *self) {
+	ai_locals_t *ai = Ai_GetLocals(self);
+
+	ai->weapon_check_time = ai_level.time + 500; // don't try again for a bit
+
+	if (ai->aim_target.type != AI_GOAL_ENEMY) {
+		return;
+	}
+
+	const vec_t targ_dist = VectorDistance(self->s.origin, ai->aim_target.ent->s.origin);
+	const ai_range_t targ_range = Ai_GetRange(targ_dist);
+
+	ai_weapon_pick_t weapons[ai_num_weapons];
+	uint16_t num_weapons = 0;
+
+	for (uint16_t i = 0; i < ai_num_items; i++) {
+		const ai_item_t *item = &ai_items[i];
+
+		if (!(item->flags & AI_ITEM_WEAPON)) { // not weapon
+			continue;
+		}
+
+		if (!(self->client->ail.inventory[i])) { // don't got
+			continue;
+		}
+
+		if (item->ammo && self->client->ail.inventory[item->ammo] < item->quantity) { // no ammo
+			continue;
+		}
+		
+		// calculate weight, start with base weapon priority
+		vec_t weight = item->priority;
+
+		switch (targ_range) { // range bonus
+		case RANGE_MELEE:
+		case RANGE_SHORT:
+			if (item->flags & AI_WEAPON_SHORT_RANGE) {
+				weight *= 2.5;
+			} else {
+				weight /= 2.5;
+			}
+			break;
+		case RANGE_MED:
+			if (item->flags & AI_WEAPON_MED_RANGE) {
+				weight *= 2.5;
+			} else {
+				weight /= 2.5;
+			}
+			break;
+		case RANGE_LONG:
+			if (item->flags & AI_WEAPON_LONG_RANGE) {
+				weight *= 2.5;
+			} else {
+				weight /= 2.5;
+			}
+			break;
+		}
+
+		if ((*ai->aim_target.ent->ail.health < 25) &&
+			(item->flags & AI_WEAPON_EXPLOSIVE)) { // bonus for explosive at low enemy health
+			weight *= 1.5;
+		}
+
+		// additional penalty for long range + projectile unless explicitly long range
+		if ((item->flags & AI_WEAPON_PROJECTILE) &&
+			!(item->flags & AI_WEAPON_LONG_RANGE)) {
+			weight /= 2.0;
+		}
+
+		// penalty for explosive weapons at short range
+		if ((item->flags & AI_WEAPON_EXPLOSIVE) &&
+			targ_range <= RANGE_SHORT) {
+			weight /= 2.0;
+		}
+
+		// penalty for explosive weapons at low self health
+		if ((*self->ail.health < 25) &&
+			(item->flags & AI_WEAPON_EXPLOSIVE)) {
+			weight /= 2.0;
+		}
+
+		weight *= item->priority;
+
+		weapons[num_weapons++] = (ai_weapon_pick_t) {
+			.item = item,
+			.weight = weight
+		};
+	}
+
+	if (num_weapons <= 1) { // if we only have 1 here, we're already using it
+		return;
+	}
+
+	qsort(weapons, num_weapons, sizeof(ai_weapon_pick_t), Ai_PickBestWeapon_Compare);
+
+	const ai_weapon_pick_t *best_weapon = &weapons[0];
+
+	if (aim.ItemIndex(*self->client->ail.weapon) == Ai_ItemIndex(best_weapon->item)) {
+		return;
+	}
+
+	Ai_Command(self, va("use %s", best_weapon->item->name));
+	ai->weapon_check_time = ai_level.time + 3000; // don't try again for a bit
+}
 
 /**
  * @brief Calculate a priority for the specified target.
@@ -214,7 +358,7 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 	if (ai->aim_target.type == AI_GOAL_ENEMY) {
 
 		// check to see if the enemy has gone out of our line of sight
-		if (!Ai_Can_Target(self, ai->aim_target.ent)) {
+		if (!Ai_CanTarget(self, ai->aim_target.ent)) {
 
 			// enemy went out of our LOS, aim at where they were for a while
 			if (ai->aim_target.ent->solid != SOLID_DEAD && !(ai->aim_target.ent->sv_flags & SVF_NO_CLIENT)) {
@@ -242,6 +386,10 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 
 	// still have an enemy
 	if (ai->aim_target.type == AI_GOAL_ENEMY) {
+
+		if (ai->weapon_check_time < ai_level.time) { // check for a new weapon every once in a while
+			Ai_PickBestWeapon(self);
+		}
 		
 		return QUETOO_TICK_MILLIS * 3;
 	}
@@ -253,7 +401,7 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 
 		g_entity_t *ent = ENTITY_FOR_NUM(i);
 
-		if (Ai_Can_Target(self, ent)) {
+		if (Ai_CanTarget(self, ent)) {
 
 			player = ent;
 			break;
@@ -264,6 +412,8 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 	if (player) {
 
 		Ai_SetEntityGoal(&ai->aim_target, AI_GOAL_ENEMY, Ai_EnemyPriority(self, player, true), player);
+
+		Ai_PickBestWeapon(self);
 
 		// re-run hunt with the new target
 		return Ai_FuncGoal_Hunt(self, cmd);
@@ -587,7 +737,6 @@ static void Ai_Init(void) {
 
 /**
  * @brief Shuts down the AI subsystem
- .
  */
 static void Ai_Shutdown(void) {
 	g_array_free(ai_skins, true);
@@ -616,6 +765,8 @@ ai_export_t *Ai_LoadAi(ai_import_t *import) {
 	aix.Think = Ai_Think;
 
 	aix.GameRestarted = Ai_GameStarted;
+
+	aix.RegisterItem = Ai_RegisterItem;
 
 	return &aix;
 }

@@ -31,5 +31,6 @@
 #define Warn(...) Warn_(__func__, __VA_ARGS__)
 
 #include "ai_goal.h"
+#include "ai_item.h"
 #include "ai_main.h"
 #include "ai_types.h"

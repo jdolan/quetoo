@@ -27,12 +27,18 @@
     <ClInclude Include="..\src\ai\default\ai_types.h">
       <Filter>src\default</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\ai\default\ai_item.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ai\default\ai_goal.c">
       <Filter>src\default</Filter>
     </ClCompile>
     <ClCompile Include="..\src\ai\default\ai_main.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ai\default\ai_item.c">
       <Filter>src\default</Filter>
     </ClCompile>
   </ItemGroup>

@@ -19,20 +19,28 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+#include "ai_local.h"
 
-#include "g_types.h"
-#include "ai/ai.h"
+ai_item_t ai_items[MAX_ITEMS];
+uint16_t ai_num_items;
+uint16_t ai_num_weapons;
 
-#ifdef __GAME_LOCAL_H__
-	extern cvar_t *g_ai_fill_slots;
+void Ai_RegisterItem(const uint16_t index, const ai_item_t *item) {
 
-	void G_Ai_RegisterItems(void);
-	void G_Ai_SetClientLocals(g_client_t *client);
-	void G_Ai_SetEntityLocals(g_entity_t *ent);
-	void G_Ai_ClientConnect(g_entity_t *ent);
-	void G_Ai_ClientDisconnect(g_entity_t *ent);
-	void G_Ai_Init(void);
-	void G_Ai_Shutdown(void);
-	void G_Ai_Frame(void);
-#endif /* __GAME_LOCAL_H__ */
+	if (index >= MAX_ITEMS) {
+		aim.Warn("Bad item ID for item\n");
+		return;
+	}
+
+	ai_num_items++;
+
+	if (item->flags & AI_ITEM_WEAPON) {
+		ai_num_weapons++;
+	}
+
+	memcpy(&ai_items[index], item, sizeof(ai_item_t));
+}
+
+uint16_t Ai_ItemIndex(const ai_item_t *item) {
+	return item - ai_items;
+}

@@ -147,13 +147,24 @@ typedef struct {
 	 * @brief Query if two entities are on the same team
 	 */
 	_Bool (*OnSameTeam)(const g_entity_t *self, const g_entity_t *other);
+	
+	/**
+	 * @brief Called to issue a command from the bot
+	 */
+	void (*ClientCommand)(g_entity_t *self);
 
 	/**
 	 * @brief TODO FIXME - TEMPORARY API SCRATCH SPACE.
 	 */
 	const g_entity_t *entities;
 	size_t entity_size;
+	uint16_t (*ItemIndex)(const g_item_t *item);
 } ai_import_t;
+
+/**
+ * @brief Forward declaration of item registration struct.
+ */
+typedef struct ai_item_s ai_item_t;
 
 /**
  * @brief Functions and the like that the AI system exports to the game.
@@ -200,6 +211,11 @@ typedef struct {
 	 * @brief Call cause an AI to think. Returns the movement command for the bot.
 	 */
 	void (*Think)(g_entity_t *self, pm_cmd_t *cmd);
+
+	/**
+	 * @brief Register an item on the AI system
+	 */
+	void (*RegisterItem)(const uint16_t index, const ai_item_t *item);
 } ai_export_t;
 
 /**
@@ -232,4 +248,19 @@ typedef struct {
 	 * @brief Pointer to ground entity
 	 */
 	g_entity_t *const *ground_entity;
+
+	/**
+	 * @brief Pointer to item stored in this entity
+	 */
+	const g_item_t *const *item;
+
+	/**
+	 * @brief Pointer to velocity
+	 */
+	const vec_t *velocity;
+
+	/**
+	 * @brief Pointer to health
+	 */
+	const int16_t *health;
 } ai_entity_locals_t;

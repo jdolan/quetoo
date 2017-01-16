@@ -21,18 +21,13 @@
 
 #pragma once
 
-#include "g_types.h"
-#include "ai/ai.h"
+#include "ai_types.h"
 
-#ifdef __GAME_LOCAL_H__
-	extern cvar_t *g_ai_fill_slots;
+#ifdef __AI_LOCAL_H__
+	extern ai_item_t ai_items[];
+	extern uint16_t ai_num_items;
+	extern uint16_t ai_num_weapons;
 
-	void G_Ai_RegisterItems(void);
-	void G_Ai_SetClientLocals(g_client_t *client);
-	void G_Ai_SetEntityLocals(g_entity_t *ent);
-	void G_Ai_ClientConnect(g_entity_t *ent);
-	void G_Ai_ClientDisconnect(g_entity_t *ent);
-	void G_Ai_Init(void);
-	void G_Ai_Shutdown(void);
-	void G_Ai_Frame(void);
-#endif /* __GAME_LOCAL_H__ */
+	void Ai_RegisterItem(const uint16_t index, const ai_item_t *item);
+	uint16_t Ai_ItemIndex(const ai_item_t *item);
+#endif

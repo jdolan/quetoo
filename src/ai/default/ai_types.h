@@ -24,8 +24,43 @@
 #include "game/game.h"
 #include "game/default/g_types.h"
 
-#ifdef __AI_LOCAL_H__
+/**
+ * @brief Flags that bots use for its timing
+ */
+typedef enum {
+	AI_ITEM_AMMO			= (1 << 0), // will give ammo
+	AI_ITEM_ARMOR			= (1 << 1), // is armor
+	AI_ITEM_FLAG			= (1 << 2), // is a flag
+	AI_ITEM_HEALTH			= (1 << 3), // will restore health
+	AI_ITEM_POWERUP			= (1 << 4), // is powerup
+	AI_ITEM_WEAPON			= (1 << 5), // is a weapon
 
+	AI_WEAPON_PROJECTILE	= (1 << 16), // fires a projectile with "speed" speed
+	AI_WEAPON_HITSCAN		= (1 << 17), // fires hitscan shot(s)
+	AI_WEAPON_TIMED			= (1 << 18), // a holdable that must be thrown within "time" milliseconds
+	AI_WEAPON_EXPLOSIVE		= (1 << 19), // fires explosive shots (might hurt self),
+	AI_WEAPON_SHORT_RANGE	= (1 << 20), // weapon works at close range
+	AI_WEAPON_MED_RANGE		= (1 << 21), // weapon works at medium range
+	AI_WEAPON_LONG_RANGE	= (1 << 22) // weapon works at long range
+} ai_item_flags_t;
+
+/**
+ * @brief Forward declaration of item registration struct.
+ */
+typedef struct ai_item_s {
+	const char *class_name;
+	const char *name;
+	ai_item_flags_t flags;
+	uint16_t ammo; // index to item
+	g_weapon_tag_t tag;
+	vec_t priority;
+	uint16_t quantity;
+
+	int32_t speed; // used for projectile weapons
+	uint32_t time; // used for timing items (handgrenades)
+} ai_item_t;
+
+#ifdef __AI_LOCAL_H__
 typedef struct {
 	uint32_t frame_num;
 	uint32_t time;
@@ -96,5 +131,7 @@ typedef struct ai_locals_s {
 
 	vec_t wander_angle;
 	vec3_t ghost_position;
+
+	uint32_t weapon_check_time;
 } ai_locals_t;
 #endif /* __AI_LOCAL_H__ */
