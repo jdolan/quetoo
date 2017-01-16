@@ -40,7 +40,8 @@ static void Cl_ParsePlayerState(const cl_frame_t *delta_frame, cl_frame_t *frame
 }
 
 /**
- * @return True if the delta is valid and interpolation should be used.
+ * @return True if the delta is valid and the entity should be interpolated, false
+ * if the delta is invalid and the entity should be snapped to `to`.
  */
 static _Bool Cl_ValidDeltaEntity(const cl_frame_t *frame, const cl_entity_t *ent,
 								 const entity_state_t *from, const entity_state_t *to) {
@@ -50,15 +51,17 @@ static _Bool Cl_ValidDeltaEntity(const cl_frame_t *frame, const cl_entity_t *ent
 		return false;
 	}
 
-	if (ent->frame_num != frame->frame_num - 1) {
+	if (cl.previous_frame) {
+		if (ent->frame_num != cl.previous_frame->frame_num) {
+			return false;
+		}
+	}
+
+	if (ent->current.model1 != to->model1) {
 		return false;
 	}
 
-	if (from->model1 != to->model1) {
-		return false;
-	}
-
-	VectorSubtract(from->origin, to->origin, delta);
+	VectorSubtract(ent->current.origin, to->origin, delta);
 
 	if (VectorLength(delta) > 64.0) { // MAX_SPEED * QUETOO_TICK_SECONDS = 60.0
 		return false;
@@ -71,7 +74,7 @@ static _Bool Cl_ValidDeltaEntity(const cl_frame_t *frame, const cl_entity_t *ent
  * @brief Reads deltas from the given base and adds the resulting entity to the
  * current frame.
  */
-static void Cl_ReadDeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t number, uint16_t bits) {
+static void Cl_ReadDeltaEntity(cl_frame_t *frame, const entity_state_t *from, uint16_t number, uint16_t bits) {
 
 	cl_entity_t *ent = &cl.entities[number];
 
@@ -120,14 +123,14 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 	frame->entity_state = cl.entity_state;
 	frame->num_entities = 0;
 
-	entity_state_t *state = NULL;
-	uint16_t delta_number;
+	entity_state_t *from = NULL;
+	uint16_t from_number;
 
 	if (delta_frame == NULL || delta_frame->num_entities == 0) {
-		delta_number = UINT16_MAX;
+		from_number = UINT16_MAX;
 	} else {
-		state = &cl.entity_states[delta_frame->entity_state & ENTITY_STATE_MASK];
-		delta_number = state->number;
+		from = &cl.entity_states[delta_frame->entity_state & ENTITY_STATE_MASK];
+		from_number = from->number;
 	}
 
 	uint32_t index = 0;
@@ -148,21 +151,21 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 		}
 
 		// before dealing with new entities, copy unchanged entities into the frame
-		while (delta_number < number) {
+		while (from_number < number) {
 
 			if (cl_show_net_messages->integer == 3) {
-				Com_Print("   unchanged: %i\n", delta_number);
+				Com_Print("   unchanged: %i\n", from_number);
 			}
 
-			Cl_ReadDeltaEntity(frame, state, delta_number, 0);
+			Cl_ReadDeltaEntity(frame, from, from_number, 0);
 
 			index++;
 
 			if (index >= delta_frame->num_entities) {
-				delta_number = UINT16_MAX;
+				from_number = UINT16_MAX;
 			} else {
-				state = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
-				delta_number = state->number;
+				from = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
+				from_number = from->number;
 			}
 		}
 
@@ -175,43 +178,43 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 				Com_Print("   remove: %i\n", number);
 			}
 
-			if (delta_number != number) {
-				Com_Warn("U_REMOVE: %u != %u\n", delta_number, number);
+			if (from_number != number) {
+				Com_Debug(DEBUG_CLIENT, "U_REMOVE: %u != %u\n", from_number, number);
 			}
 
 			index++;
 
 			if (index >= delta_frame->num_entities) {
-				delta_number = UINT16_MAX;
+				from_number = UINT16_MAX;
 			} else {
-				state = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
-				delta_number = state->number;
+				from = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
+				from_number = from->number;
 			}
 
 			continue;
 		}
 
-		if (delta_number == number) { // delta from previous state
+		if (from_number == number) { // delta from previous state
 
 			if (cl_show_net_messages->integer == 3) {
 				Com_Print("   delta: %i\n", number);
 			}
 
-			Cl_ReadDeltaEntity(frame, state, number, bits);
+			Cl_ReadDeltaEntity(frame, from, number, bits);
 
 			index++;
 
 			if (index >= delta_frame->num_entities) {
-				delta_number = UINT16_MAX;
+				from_number = UINT16_MAX;
 			} else {
-				state = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
-				delta_number = state->number;
+				from = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
+				from_number = from->number;
 			}
 
 			continue;
 		}
 
-		if (delta_number > number) { // delta from baseline
+		if (from_number > number) { // delta from baseline
 
 			if (cl_show_net_messages->integer == 3) {
 				Com_Print("   baseline: %i\n", number);
@@ -224,21 +227,21 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 	}
 
 	// any remaining entities in the old frame are copied over
-	while (delta_number != UINT16_MAX) { // one or more entities from the old packet are unchanged
+	while (from_number != UINT16_MAX) { // one or more entities from the old packet are unchanged
 
 		if (cl_show_net_messages->integer == 3) {
-			Com_Print("   unchanged: %i\n", delta_number);
+			Com_Print("   unchanged: %i\n", from_number);
 		}
 
-		Cl_ReadDeltaEntity(frame, state, delta_number, 0);
+		Cl_ReadDeltaEntity(frame, from, from_number, 0);
 
 		index++;
 
 		if (index >= delta_frame->num_entities) {
-			delta_number = UINT16_MAX;
+			from_number = UINT16_MAX;
 		} else {
-			state = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
-			delta_number = state->number;
+			from = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
+			from_number = from->number;
 		}
 	}
 }

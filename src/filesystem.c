@@ -261,7 +261,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 		}
 
 		while (!Fs_Eof(file)) {
-			fs_block_t *b = Mem_Malloc(sizeof(fs_block_t));
+			fs_block_t *b = Mem_TagMalloc(sizeof(fs_block_t), MEM_TAG_FS);
 
 			b->data = Mem_LinkMalloc(FS_FILE_BUFFER, b);
 			b->len = Fs_Read(file, b->data, 1, FS_FILE_BUFFER);
@@ -276,7 +276,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 
 		if (buffer) {
 			if (len > 0) {
-				byte *buf = *buffer = Mem_Malloc(len + 1);
+				byte *buf = *buffer = Mem_TagMalloc(len + 1, MEM_TAG_FS);
 
 				GList *e = list;
 				while (e) {

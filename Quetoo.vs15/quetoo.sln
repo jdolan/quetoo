@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.25802.0
+VisualStudioVersion = 15.0.26020.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "quetoo", "quetoo.vcxproj", "{A05CAC53-F8F2-4A14-9C81-8A34F4EA9085}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -86,6 +86,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "game", "game.vcxproj", "{A6
 	ProjectSection(ProjectDependencies) = postProject
 		{2F1C792E-6243-462B-AF0D-E2554E77D5C5} = {2F1C792E-6243-462B-AF0D-E2554E77D5C5}
 		{B1E86937-5A7A-48F6-9DAB-A1D2900C3AE1} = {B1E86937-5A7A-48F6-9DAB-A1D2900C3AE1}
+		{6EBF61D4-CA15-4D8A-A957-7C9CF8A3E815} = {6EBF61D4-CA15-4D8A-A957-7C9CF8A3E815}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "quetoo-update", "quetoo-update.vcxproj", "{A11F8826-C984-45ED-A335-AB616DEE1CCA}"
@@ -133,6 +134,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	EndProjectSection
 EndProject
 Global
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
 		Debug|x64 = Debug|x64

@@ -72,7 +72,7 @@ void Cbuf_InsertText(const char *text) {
 	// copy off any commands still remaining in the exec buffer
 	const size_t size = cmd_state.buf.size;
 	if (size) {
-		temp = Mem_Malloc(size);
+		temp = Mem_TagMalloc(size, MEM_TAG_CMD);
 		memcpy(temp, cmd_state.buf.data, size);
 		Mem_ClearBuffer(&cmd_state.buf);
 	} else {
@@ -303,14 +303,14 @@ cmd_t *Cmd_Add(const char *name, CmdExecuteFunc function, uint32_t flags,
 		return cmd;
 	}
 
-	cmd = Mem_Malloc(sizeof(*cmd));
+	cmd = Mem_TagMalloc(sizeof(*cmd), MEM_TAG_CMD);
 
-	cmd->name = Mem_Link(Mem_CopyString(name), cmd);
+	cmd->name = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CMD), cmd);
 	cmd->Execute = function;
 	cmd->flags = flags;
 
 	if (description) {
-		cmd->description = Mem_Link(Mem_CopyString(description), cmd);
+		cmd->description = Mem_Link(Mem_TagCopyString(description, MEM_TAG_CMD), cmd);
 	}
 
 	gpointer key = (gpointer) name;
@@ -344,10 +344,10 @@ static cmd_t *Cmd_Alias(const char *name, const char *commands) {
 		return cmd;
 	}
 
-	cmd = Mem_Malloc(sizeof(*cmd));
+	cmd = Mem_TagMalloc(sizeof(*cmd), MEM_TAG_CMD);
 
-	cmd->name = Mem_Link(Mem_CopyString(name), cmd);
-	cmd->commands = Mem_Link(Mem_CopyString(commands), cmd);
+	cmd->name = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CMD), cmd);
+	cmd->commands = Mem_Link(Mem_TagCopyString(commands, MEM_TAG_CMD), cmd);
 
 	gpointer *key = (gpointer *) cmd->name;
 
@@ -407,7 +407,7 @@ static void Cmd_CompleteCommand_enumerate(cmd_t *cmd, void *data) {
 			Com_Print("\t%s\n", cmd->commands);
 		}
 
-		*matches = g_list_prepend(*matches, Mem_CopyString(cmd->name));
+		*matches = g_list_prepend(*matches, Mem_TagCopyString(cmd->name, MEM_TAG_CMD));
 	}
 }
 

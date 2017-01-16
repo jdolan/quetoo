@@ -24,8 +24,8 @@
 
 #include "mem.h"
 
-#define MEM_MAGIC 0x69
-typedef byte mem_magic_t;
+#define MEM_MAGIC 0x69696969
+typedef uint32_t mem_magic_t;
 
 typedef struct mem_block_s {
 	mem_magic_t magic;
@@ -34,6 +34,10 @@ typedef struct mem_block_s {
 	GList *children;
 	size_t size;
 } mem_block_t;
+
+typedef struct {
+	mem_magic_t magic;
+} mem_footer_t;
 
 typedef struct {
 	GHashTable *blocks;
@@ -55,6 +59,13 @@ static mem_block_t *Mem_CheckMagic(void *p) {
 
 		if (b->magic != MEM_MAGIC) {
 			fprintf(stderr, "Invalid magic (%d) for %p\n", b->magic, p);
+			raise(SIGABRT);
+		}
+
+		mem_footer_t *footer = (mem_footer_t *) (((byte *) p) + b->size);
+
+		if (footer->magic != MEM_MAGIC) {
+			fprintf(stderr, "Invalid footer magic (%d) for %p\n", b->magic, p);
 			raise(SIGABRT);
 		}
 	}
@@ -124,6 +135,13 @@ void Mem_FreeTag(mem_tag_t tag) {
 }
 
 /**
+ * @brief Returns the total size of a memory block.
+ */
+static size_t Mem_BlockSize(const size_t size) {
+	return size + sizeof(mem_block_t) + sizeof(mem_footer_t);
+}
+
+/**
  * @brief Performs the grunt work of allocating a mem_block_t and inserting it
  * into the managed memory structures. Note that parent should be a pointer to
  * a previously allocated structure, and not to a mem_block_t.
@@ -138,7 +156,7 @@ static void *Mem_Malloc_(size_t size, mem_tag_t tag, void *parent) {
 	mem_block_t *b, *p = Mem_CheckMagic(parent);
 
 	// allocate the block plus the desired size
-	const size_t s = size + sizeof(mem_block_t);
+	const size_t s = Mem_BlockSize(size);
 
 	if (!(b = calloc(s, 1))) {
 		fprintf(stderr, "Failed to allocate %u bytes\n", (uint32_t) s);
@@ -150,6 +168,11 @@ static void *Mem_Malloc_(size_t size, mem_tag_t tag, void *parent) {
 	b->tag = tag;
 	b->parent = p;
 	b->size = size;
+
+	void *data = (void *) (b + 1);
+
+	mem_footer_t *footer = (mem_footer_t *) (((byte *) data) + size);
+	footer->magic = MEM_MAGIC;
 
 	// insert it into the managed memory structures
 	SDL_mutexP(mem_state.lock);
@@ -165,7 +188,7 @@ static void *Mem_Malloc_(size_t size, mem_tag_t tag, void *parent) {
 	SDL_mutexV(mem_state.lock);
 
 	// return the address in front of the block
-	return (void *) (b + 1);
+	return data;
 }
 
 /**
@@ -220,7 +243,8 @@ void *Mem_Realloc(void *p, size_t size) {
 	mem_block_t *b = Mem_CheckMagic(p), *new_b;
 
 	// allocate the block plus the desired size
-	const size_t s = size + sizeof(mem_block_t);
+	const size_t old_size = b->size;
+	const size_t s = Mem_BlockSize(size);
 
 	b->size = size;
 
@@ -230,6 +254,13 @@ void *Mem_Realloc(void *p, size_t size) {
 		return NULL;
 	}
 
+	void *data = (void *) (new_b + 1);
+
+	mem_footer_t *footer = (mem_footer_t *) (((byte *) data) + size);
+	footer->magic = MEM_MAGIC;
+	
+	SDL_mutexP(mem_state.lock);
+
 	// re-seat us in our parent or in global hash list
 	if (new_b->parent) {
 		new_b->parent->children = g_list_remove(new_b->parent->children, b);
@@ -238,8 +269,13 @@ void *Mem_Realloc(void *p, size_t size) {
 		g_hash_table_remove(mem_state.blocks, b);
 		g_hash_table_add(mem_state.blocks, new_b);
 	}
+	
+	mem_state.size -= old_size;
+	mem_state.size += size;
 
-	return (void *) (new_b + 1);
+	SDL_mutexV(mem_state.lock);
+
+	return data;
 }
 
 /**
@@ -281,13 +317,21 @@ size_t Mem_Size(void) {
 /**
  * @brief Allocates and returns a copy of the specified string.
  */
-char *Mem_CopyString(const char *in) {
+char *Mem_TagCopyString(const char *in, mem_tag_t tag) {
 	char *out;
 
-	out = Mem_Malloc(strlen(in) + 1);
+	out = Mem_TagMalloc(strlen(in) + 1, tag);
 	strcpy(out, in);
 
 	return out;
+}
+
+/**
+ * @brief Allocates and returns a copy of the specified string.
+ */
+char *Mem_CopyString(const char *in) {
+
+	return Mem_TagCopyString(in, MEM_TAG_DEFAULT);
 }
 
 /**
@@ -295,6 +339,20 @@ char *Mem_CopyString(const char *in) {
  */
 static gint Mem_Stats_Sort(gconstpointer a, gconstpointer b) {
 	return (gint) (((const mem_stat_t *) b)->size - ((const mem_stat_t *) a)->size);
+}
+
+/**
+ * @brief
+ */
+static size_t Mem_CalculateBlockSize(const mem_block_t *b) {
+
+	size_t size = b->size;
+
+	for (GList *child = b->children; child; child = child->next) {
+		size += Mem_CalculateBlockSize((const mem_block_t *) child->data);
+	}
+
+	return size;
 }
 
 /**
@@ -308,6 +366,12 @@ GArray *Mem_Stats(void) {
 	SDL_mutexP(mem_state.lock);
 
 	GArray *stat_array = g_array_new(false, true, sizeof(mem_stat_t));
+
+	stat_array = g_array_append_vals(stat_array, &(const mem_stat_t) {
+		.tag = -1,
+		.size = mem_state.size,
+		.count = 0
+	}, 1);
 
 	g_hash_table_iter_init(&it, mem_state.blocks);
 
@@ -328,11 +392,11 @@ GArray *Mem_Stats(void) {
 		if (stats == NULL) {
 			stat_array = g_array_append_vals(stat_array, &(const mem_stat_t) {
 				.tag = b->tag,
-				.size = b->size,
+				.size = Mem_CalculateBlockSize(b),
 				.count = 1
 			}, 1);
 		} else {
-			stats->size += b->size;
+			stats->size += Mem_CalculateBlockSize(b);
 			stats->count++;
 		}
 	}

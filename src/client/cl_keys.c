@@ -172,10 +172,10 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 			break;
 
 		case SDLK_PAGEUP:
-			if (cl_console.scroll + cl_console.height < console_state.len) {
+			if (cl_console.scroll + cl_console.height < console_state.strings.length) {
 				cl_console.scroll += cl_console.height;
 			} else {
-				cl_console.scroll = console_state.len;
+				cl_console.scroll = console_state.strings.length;
 			}
 			break;
 
@@ -188,7 +188,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 			break;
 
 		case SDLK_HOME:
-			cl_console.scroll = console_state.len;
+			cl_console.scroll = console_state.strings.length;
 			break;
 
 		case SDLK_END:
@@ -445,7 +445,7 @@ static void Cl_Bind_Autocomplete_f(const uint32_t argi, GList **matches) {
 			//Com_Print("dbg: %s vs %s: %s\n", keyName, pattern, GlobMatch(pattern, keyName) ? "yes" : "no");
 
 			if (GlobMatch(pattern, keyName)) {
-				*matches = g_list_prepend(*matches, Mem_CopyString(keyName));
+				*matches = g_list_prepend(*matches, Mem_TagCopyString(keyName, MEM_TAG_CLIENT));
 				Com_Print("%s\n", keyName);
 			}
 		}
@@ -534,18 +534,18 @@ void Cl_InitKeys(void) {
 	for (SDL_Scancode k = SDLK_UNKNOWN; k <= SDL_SCANCODE_APP2; k++) {
 		const char *name = SDL_GetScancodeName(k);
 		if (strlen(name)) {
-			cl_key_names[k] = Mem_Link(Mem_CopyString(name), cl_key_names);
+			cl_key_names[k] = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CLIENT), cl_key_names);
 		}
 	}
 
 	for (SDL_Buttoncode b = SDL_SCANCODE_MOUSE1; b <= SDL_SCANCODE_MOUSE15; b++) {
 
 		const char *name = va("Mouse %d", b - SDL_SCANCODE_MOUSE1 + 1);
-		cl_key_names[b] = Mem_Link(Mem_CopyString(name), cl_key_names);
+		cl_key_names[b] = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CLIENT), cl_key_names);
 	}
 
-	cl_key_names[SDL_SCANCODE_MWHEELUP] = Mem_Link(Mem_CopyString("Mouse Wheel Up"), cl_key_names);
-	cl_key_names[SDL_SCANCODE_MWHEELDOWN] = Mem_Link(Mem_CopyString("Mouse Wheel Down"), cl_key_names);
+	cl_key_names[SDL_SCANCODE_MWHEELUP] = Mem_Link(Mem_TagCopyString("Mouse Wheel Up", MEM_TAG_CLIENT), cl_key_names);
+	cl_key_names[SDL_SCANCODE_MWHEELDOWN] = Mem_Link(Mem_TagCopyString("Mouse Wheel Down", MEM_TAG_CLIENT), cl_key_names);
 
 	memset(&cls.key_state, 0, sizeof(cl_key_state_t));
 

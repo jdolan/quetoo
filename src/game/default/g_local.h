@@ -32,7 +32,6 @@
 #define Error(...) Error_(__func__, __VA_ARGS__)
 
 #include "g_ai.h"
-#include "g_ai_goal.h"
 #include "g_ballistics.h"
 #include "g_client_chase.h"
 #include "g_client_stats.h"

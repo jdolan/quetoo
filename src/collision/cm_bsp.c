@@ -557,7 +557,7 @@ _Bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_
 		Com_Error(ERROR_DROP, "Lump (%i) count (%i) exceeds max (%" PRIuPTR ")\n", lump_id, *lump_count, bsp_lump_meta[lump_id].max_count);
 	}
 
-	*lump_data = Mem_Malloc(lump.file_len);
+	*lump_data = Mem_TagMalloc(lump.file_len, MEM_TAG_BSP);
 
 	// blit the data into memory
 	if (lump.file_ofs && lump.file_len) {
