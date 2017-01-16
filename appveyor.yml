@@ -86,8 +86,8 @@ before_deploy:
     [Environment]::CurrentDirectory = $PWD
 deploy:
 - provider: S3
-  access_key_id: $env:S3_ID
-  secret_access_key: $env:S3_KEY
+  access_key_id: $(S3_ID)
+  secret_access_key: $(S3_KEY)
   bucket: quetoo
   folder: dist
   artifact: Quetoo-BETA-i686-MSVC.zip
@@ -95,8 +95,8 @@ deploy:
     platform: Win32
 
 - provider: S3
-  access_key_id: $env:S3_ID
-  secret_access_key: $env:S3_KEY
+  access_key_id: $(S3_ID)
+  secret_access_key: $(S3_KEY)
   bucket: quetoo
   folder: dist
   artifact: Quetoo-BETA-x86_64-MSVC.zip
