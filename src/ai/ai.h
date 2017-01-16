@@ -30,11 +30,6 @@
 typedef struct g_entity_s g_entity_t;
 
 /**
- * @brief Forward declaration
- */
-typedef struct g_gametype_s g_gametype_t;
-
-/**
  * @brief Items are opaque pointers to AI.
  */
 typedef struct g_item_s g_item_t;
@@ -141,11 +136,12 @@ typedef struct {
 	 */
 	size_t (*BoxEntities)(const vec3_t mins, const vec3_t maxs, g_entity_t **list, const size_t len,
 	                      const uint32_t type);
-
+	
 	/**
-	 * @brief Fetch details about the game's gameplay
+	 * @brief Configuration strings are used to transmit arbitrary tokens such
+	 * as model names, skin names, team names and weather effects. See CS_GAME.
 	 */
-	void (*GetGameType)(g_gametype_t *gametype);
+	const char *(*GetConfigString)(const uint16_t index);
 
 	/**
 	 * @brief Query if two entities are on the same team

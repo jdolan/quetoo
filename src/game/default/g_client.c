@@ -1149,7 +1149,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	}
 
 	// combine name and skin into a config_string
-	gi.ConfigString(CS_CLIENTS + (cl - g_game.clients),
+	gi.SetConfigString(CS_CLIENTS + (cl - g_game.clients),
 	                va("%s\\%s", cl->locals.persistent.net_name, cl->locals.persistent.skin));
 
 	// set hand, if anything should go wrong, it defaults to 0 (centered)
@@ -1264,7 +1264,7 @@ void G_ClientDisconnect(g_entity_t *ent) {
 	memset(ent->client, 0, sizeof(g_client_t));
 
 	const int32_t entity_num = (int32_t) (ptrdiff_t) (ent - g_game.entities - 1);
-	gi.ConfigString(CS_CLIENTS + entity_num, "");
+	gi.SetConfigString(CS_CLIENTS + entity_num, "");
 
 	G_Ai_ClientDisconnect(ent); // tell AI
 }

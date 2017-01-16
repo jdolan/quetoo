@@ -84,10 +84,10 @@ void G_ResetTeams(void) {
 	memset(&g_team_evil, 0, sizeof(g_team_evil));
 
 	g_strlcpy(g_team_good.name, "Good", sizeof(g_team_good.name));
-	gi.ConfigString(CS_TEAM_GOOD, g_team_good.name);
+	gi.SetConfigString(CS_TEAM_GOOD, g_team_good.name);
 
 	g_strlcpy(g_team_evil.name, "Evil", sizeof(g_team_evil.name));
-	gi.ConfigString(CS_TEAM_EVIL, g_team_evil.name);
+	gi.SetConfigString(CS_TEAM_EVIL, g_team_evil.name);
 
 	g_strlcpy(g_team_good.skin, "qforcer/blue", sizeof(g_team_good.skin));
 	g_strlcpy(g_team_evil.skin, "qforcer/red", sizeof(g_team_evil.skin));
@@ -111,7 +111,7 @@ void G_ResetVote(void) {
 		g_game.entities[i + 1].client->locals.persistent.vote = VOTE_NO_OP;
 	}
 
-	gi.ConfigString(CS_VOTE, NULL);
+	gi.SetConfigString(CS_VOTE, NULL);
 
 	g_level.votes[0] = g_level.votes[1] = g_level.votes[2] = 0;
 	g_level.vote_cmd[0] = 0;
@@ -713,7 +713,7 @@ static void G_CheckRules(void) {
 		g_gameplay->modified = false;
 
 		g_level.gameplay = G_GameplayByName(g_gameplay->string);
-		gi.ConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
+		gi.SetConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
 
 		restart = true;
 
@@ -761,7 +761,7 @@ static void G_CheckRules(void) {
 		gi.BroadcastPrint(PRINT_HIGH, "Hook pull speed has been changed to %f\n",
 		                  g_hook_pull_speed->value);
 
-		gi.ConfigString(CS_HOOK_PULL_SPEED, g_hook_pull_speed->string);
+		gi.SetConfigString(CS_HOOK_PULL_SPEED, g_hook_pull_speed->string);
 	}
 
 	if (g_hook_style->modified) {
@@ -791,7 +791,7 @@ static void G_CheckRules(void) {
 			gi.CvarSetValue(g_teams->name, 1.0);
 		} else {
 			g_level.teams = g_teams->integer;
-			gi.ConfigString(CS_TEAMS, va("%d", g_level.teams));
+			gi.SetConfigString(CS_TEAMS, va("%d", g_level.teams));
 
 			gi.BroadcastPrint(PRINT_HIGH, "Teams have been %s\n",
 			                  g_level.teams ? "enabled" : "disabled");
@@ -804,7 +804,7 @@ static void G_CheckRules(void) {
 		g_ctf->modified = false;
 
 		g_level.ctf = g_ctf->integer;
-		gi.ConfigString(CS_CTF, va("%d", g_level.ctf));
+		gi.SetConfigString(CS_CTF, va("%d", g_level.ctf));
 
 		gi.BroadcastPrint(PRINT_HIGH, "CTF has been %s\n", g_level.ctf ? "enabled" : "disabled");
 
@@ -819,7 +819,7 @@ static void G_CheckRules(void) {
 			gi.CvarSetValue(g_match->name, 1.0);
 		} else {
 			g_level.match = g_match->integer;
-			gi.ConfigString(CS_MATCH, va("%d", g_level.match));
+			gi.SetConfigString(CS_MATCH, va("%d", g_level.match));
 
 			g_level.warmup = g_level.match; // toggle warmup
 			g_level.match_status = MSTAT_WARMUP;
@@ -835,7 +835,7 @@ static void G_CheckRules(void) {
 		g_rounds->modified = false;
 
 		g_level.rounds = g_rounds->integer;
-		gi.ConfigString(CS_ROUNDS, va("%d", g_level.rounds));
+		gi.SetConfigString(CS_ROUNDS, va("%d", g_level.rounds));
 
 		g_level.warmup = g_level.rounds; // toggle warmup
 
@@ -1176,7 +1176,7 @@ void G_RunTimers(void) {
 		if (G_MatchIsCountdown() && !G_MatchIsPlaying()) { // match mode, everyone ready, show countdown
 
 			j = (g_level.match_time - g_level.time) / 1000 % 60;
-			gi.ConfigString(CS_TIME, va("Warmup %s", G_FormatTime(g_level.match_time - g_level.time)));
+			gi.SetConfigString(CS_TIME, va("Warmup %s", G_FormatTime(g_level.match_time - g_level.time)));
 
 			if (j <= 5) {
 
@@ -1189,10 +1189,10 @@ void G_RunTimers(void) {
 			}
 
 		} else if (G_MatchIsWarmup()) {	// not everyone ready yet
-			gi.ConfigString(CS_TIME, va("Warmup %s", G_FormatTime(g_time_limit->integer * 60 * 1000)));
+			gi.SetConfigString(CS_TIME, va("Warmup %s", G_FormatTime(g_time_limit->integer * 60 * 1000)));
 		} else if (G_MatchIsTimeout()) { // mid match, player called timeout
 			j = (g_level.timeout_time - g_level.time) / 1000;
-			gi.ConfigString(CS_TIME, va("Timeout %s",
+			gi.SetConfigString(CS_TIME, va("Timeout %s",
 			                            G_FormatTime(g_level.timeout_time - g_level.time))
 			               );
 
@@ -1208,7 +1208,7 @@ void G_RunTimers(void) {
 				G_TeamCenterPrint(&g_team_evil, "%s\n", (!j) ? "Fight!" : va("%d", j));
 			}
 		} else {
-			gi.ConfigString(CS_TIME, G_FormatTime(time));
+			gi.SetConfigString(CS_TIME, G_FormatTime(time));
 		}
 	}
 }

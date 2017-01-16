@@ -956,7 +956,7 @@ static void G_Vote_f(g_entity_t *ent) {
 		g_level.votes[VOTE_YES] = 1;
 	}
 
-	gi.ConfigString(CS_VOTE, g_level.vote_cmd); // send to layout
+	gi.SetConfigString(CS_VOTE, g_level.vote_cmd); // send to layout
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s has called a vote:\n"
 	                  "  %s\n"
@@ -1097,7 +1097,7 @@ static void G_Teamname_f(g_entity_t *ent) {
 	t->name_time = g_level.time;
 
 	cs = t == &g_team_good ? CS_TEAM_GOOD : CS_TEAM_EVIL;
-	gi.ConfigString(cs, t->name);
+	gi.SetConfigString(cs, t->name);
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s changed team_name to %s\n",
 	                  ent->client->locals.persistent.net_name, t->name);
@@ -1159,7 +1159,7 @@ static void G_Teamskin_f(g_entity_t *ent) {
 
 		g_strlcpy(cl->locals.persistent.skin, s, sizeof(cl->locals.persistent.skin));
 
-		gi.ConfigString(CS_CLIENTS + i,
+		gi.SetConfigString(CS_CLIENTS + i,
 		                va("%s\\%s", cl->locals.persistent.net_name, cl->locals.persistent.skin));
 	}
 

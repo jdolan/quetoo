@@ -950,7 +950,7 @@ void G_PrecacheItem(const g_item_t *it) {
 		return;
 	}
 
-	gi.ConfigString(CS_ITEMS + ITEM_INDEX(it), it->name);
+	gi.SetConfigString(CS_ITEMS + ITEM_INDEX(it), it->name);
 
 	if (it->pickup_sound) {
 		gi.SoundIndex(it->pickup_sound);

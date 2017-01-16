@@ -25,7 +25,7 @@
 #include "filesystem.h"
 #include "ai/ai.h"
 
-#define GAME_API_VERSION 5
+#define GAME_API_VERSION 6
 
 /**
  * @brief Server flags for g_entity_t.
@@ -236,7 +236,8 @@ typedef struct {
 	 * @brief Configuration strings are used to transmit arbitrary tokens such
 	 * as model names, skin names, team names and weather effects. See CS_GAME.
 	 */
-	void (*ConfigString)(const uint16_t index, const char *string);
+	void (*SetConfigString)(const uint16_t index, const char *string);
+	const char *(*GetConfigString)(const uint16_t index);
 
 	/**
 	 * @brief Returns the configuration string index for the given asset,

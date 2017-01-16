@@ -29,7 +29,10 @@
 typedef struct {
 	uint32_t frame_num;
 	uint32_t time;
-	g_gametype_t gametype;
+	g_gameplay_t gameplay;
+	_Bool teams;
+	_Bool ctf;
+	_Bool match;
 } ai_level_t;
 
 /**

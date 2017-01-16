@@ -87,7 +87,7 @@ static void Sv_SetModel(g_entity_t *ent, const char *name) {
 /**
  * @brief
  */
-static void Sv_ConfigString(const uint16_t index, const char *val) {
+static void Sv_SetConfigString(const uint16_t index, const char *val) {
 
 	if (index >= MAX_CONFIG_STRINGS) {
 		Com_Warn("Bad index %u\n", index);
@@ -114,6 +114,19 @@ static void Sv_ConfigString(const uint16_t index, const char *val) {
 
 		Sv_Multicast(NULL, MULTICAST_ALL_R, NULL);
 	}
+}
+
+/**
+ * @brief
+ */
+static const char *Sv_GetConfigString(const uint16_t index) {
+
+	if (index >= MAX_CONFIG_STRINGS) {
+		Com_Warn("Bad index %u\n", index);
+		return NULL;
+	}
+
+	return sv.config_strings[index];
 }
 
 /*
@@ -347,8 +360,9 @@ void Sv_InitGame(void) {
 	import.TokenizeString = Cmd_TokenizeString;
 
 	import.Cbuf = Cbuf_AddText;
-
-	import.ConfigString = Sv_ConfigString;
+	
+	import.SetConfigString = Sv_SetConfigString;
+	import.GetConfigString = Sv_GetConfigString;
 
 	import.ModelIndex = Sv_ModelIndex;
 	import.SoundIndex = Sv_SoundIndex;

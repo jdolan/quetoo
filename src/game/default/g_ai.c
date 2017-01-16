@@ -41,16 +41,6 @@ static void G_Ai_ClientThink(g_entity_t *self) {
 /**
  * @brief
  */
-static void G_Ai_GetGameType(g_gametype_t *gametype) {
-	gametype->gameplay = g_level.gameplay;
-	gametype->ctf = g_level.ctf;
-	gametype->match = g_level.match;
-	gametype->teams = g_level.teams;
-}
-
-/**
- * @brief
- */
 void G_Ai_SetClientLocals(g_client_t *client) {
 
 	client->ail.inventory = client->locals.inventory;
@@ -351,8 +341,8 @@ void G_Ai_Init(void) {
 
 	import.BoxEntities = gi.BoxEntities;
 
-	import.GetGameType = G_Ai_GetGameType;
-
+	import.GetConfigString = gi.GetConfigString;
+	
 	import.OnSameTeam = G_OnSameTeam;
 
 	// SCRATCH

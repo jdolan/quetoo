@@ -566,7 +566,10 @@ static void Ai_Frame(void) {
  */
 static void Ai_GameStarted(void) {
 
-	aim.GetGameType(&ai_level.gametype);
+	ai_level.gameplay = atoi(aim.GetConfigString(CS_GAMEPLAY));
+	ai_level.match = atoi(aim.GetConfigString(CS_MATCH));
+	ai_level.ctf = atoi(aim.GetConfigString(CS_CTF));
+	ai_level.teams = atoi(aim.GetConfigString(CS_TEAMS));
 }
 
 /**
