@@ -71,7 +71,7 @@ after_build:
 test: off
 artifacts:
 - path: Quetoo-BETA-MSVC.zip
-before_deploy:
+on_finish:
 - ps:  >-
     Push-Location "Quetoo.vs15\"
 
