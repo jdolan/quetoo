@@ -84,24 +84,7 @@ before_deploy:
     Pop-Location
 
     [Environment]::CurrentDirectory = $PWD
-deploy:
-- provider: S3
-  access_key_id: $(S3_ID)
-  secret_access_key: $(S3_KEY)
-  bucket: quetoo
-  folder: dist
-  artifact: Quetoo-BETA-i686-MSVC.zip
-  on:
-    platform: Win32
-
-- provider: S3
-  access_key_id: $(S3_ID)
-  secret_access_key: $(S3_KEY)
-  bucket: quetoo
-  folder: dist
-  artifact: Quetoo-BETA-x86_64-MSVC.zip
-  on:
-    platform: x64
+deploy: off
 cache:
   - Quetoo.vs15\libs\curses\tmp.zip -> appveyor.yml
   - Quetoo.vs15\libs\glib\include\tmp.tar.xz -> appveyor.yml
