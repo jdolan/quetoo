@@ -85,6 +85,12 @@ on_finish:
     Pop-Location
 
     [Environment]::CurrentDirectory = $PWD
+deploy:
+  - provider: Environment
+    name: Quetoo Dist $(env:Platform)
+
+  - provider: Environment
+    name: Quetoo $(env:Platform)
 cache:
   - Quetoo.vs15\libs\curses\tmp.zip -> appveyor.yml
   - Quetoo.vs15\libs\glib\include\tmp.tar.xz -> appveyor.yml

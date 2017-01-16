@@ -5,4 +5,4 @@ $QUETOO_DIST_NAME = "Quetoo-BETA-" + $QUETOO_ARCH + "-MSVS.zip"
 Push-AppveyorArtifact "..\Quetoo-BETA-MSVC.zip" -FileName $QUETOO_DIST_NAME -DeploymentName "Quetoo Dist"
 
 $root = Resolve-Path ".\Quetoo\";
-[IO.Directory]::GetFiles($root.Path, '*.*', 'AllDirectories') | % { Push-AppveyorArtifact $_ -FileName $_.Substring($root.Path.Length + 1) -DeploymentName $QUETOO_DIST_NAME }
+[IO.Directory]::GetFiles($root.Path, '*.*', 'AllDirectories') | % { Push-AppveyorArtifact $_ -FileName ("Quetoo\" + $_.Substring($root.Path.Length)) -DeploymentName $QUETOO_DEPLOY }
