@@ -55,6 +55,17 @@ build:
   parallel: false
   verbosity: minimal
   project: Quetoo.vs15\quetoo.sln
+after_build:
+- ps: >-
+    Push-Location "Quetoo.vs15\"
+
+    [Environment]::CurrentDirectory = $PWD
+
+    7z a ..\Quetoo-BETA-MSVC.zip Quetoo\
+
+    Pop-Location
+
+    [Environment]::CurrentDirectory = $PWD
 test: off
 artifacts:
 - path: Quetoo-BETA-MSVC.zip
