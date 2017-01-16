@@ -80,6 +80,8 @@ on_finish:
 
     .\SYNC.ps1
 
+    .\AWS.ps1
+
     Pop-Location
 
     [Environment]::CurrentDirectory = $PWD
