@@ -260,7 +260,7 @@ static int32_t R_CompareIllumination(const void *a, const void *b) {
 	const r_illumination_t *il0 = (const r_illumination_t *) a;
 	const r_illumination_t *il1 = (const r_illumination_t *) b;
 
-	return (int32_t) (il1->diffuse - il0->diffuse);
+	return Sign(il1->diffuse - il0->diffuse);
 }
 
 /**
@@ -309,7 +309,7 @@ static int32_t R_CompareShadow(const void *a, const void *b) {
 	const r_shadow_t *s0 = (const r_shadow_t *) a;
 	const r_shadow_t *s1 = (const r_shadow_t *) b;
 
-	return (int32_t) (s1->shadow - s0->shadow);
+	return Sign(s1->shadow - s0->shadow);
 }
 
 /**
