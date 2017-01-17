@@ -51,9 +51,9 @@ static void G_Ai_ClientThink(g_entity_t *self) {
  */
 void G_Ai_SetClientLocals(g_client_t *client) {
 
-	client->ail.inventory = client->locals.inventory;
-	client->ail.angles = client->locals.angles;
-	client->ail.weapon = &client->locals.weapon;
+	client->ai_locals.inventory = client->locals.inventory;
+	client->ai_locals.angles = client->locals.angles;
+	client->ai_locals.weapon = &client->locals.weapon;
 }
 
 /**
@@ -61,10 +61,10 @@ void G_Ai_SetClientLocals(g_client_t *client) {
  */
 void G_Ai_SetEntityLocals(g_entity_t *ent) {
 	
-	ent->ail.ground_entity = &ent->locals.ground_entity;
-	ent->ail.item = &ent->locals.item;
-	ent->ail.velocity = ent->locals.velocity;
-	ent->ail.health = &ent->locals.health;
+	ent->ai_locals.ground_entity = &ent->locals.ground_entity;
+	ent->ai_locals.item = &ent->locals.item;
+	ent->ai_locals.velocity = ent->locals.velocity;
+	ent->ai_locals.health = &ent->locals.health;
 }
 
 /**

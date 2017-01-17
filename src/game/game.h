@@ -77,7 +77,7 @@ struct g_client_s {
 	/**
 	 * @brief Parameters of the client that the AI can interact with
 	 */
-	ai_client_locals_t ail;
+	ai_client_locals_t ai_locals;
 	
 	/**
 	 * @brief The game module can extend the client structure through this
@@ -160,7 +160,7 @@ struct g_entity_s {
 	/**
 	 * @brief Parameters of the entity that the AI can interact with
 	 */
-	ai_entity_locals_t ail;
+	ai_entity_locals_t ai_locals;
 
 	/**
 	 * @brief The game module can extend the entity structure through this

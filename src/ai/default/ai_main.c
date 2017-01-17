@@ -243,11 +243,11 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 			continue;
 		}
 
-		if (!(self->client->ail.inventory[i])) { // don't got
+		if (!(self->client->ai_locals.inventory[i])) { // don't got
 			continue;
 		}
 
-		if (item->ammo && self->client->ail.inventory[item->ammo] < item->quantity) { // no ammo
+		if (item->ammo && self->client->ai_locals.inventory[item->ammo] < item->quantity) { // no ammo
 			continue;
 		}
 		
@@ -279,7 +279,7 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 			break;
 		}
 
-		if ((*ai->aim_target.ent->ail.health < 25) &&
+		if ((*ai->aim_target.ent->ai_locals.health < 25) &&
 			(item->flags & AI_WEAPON_EXPLOSIVE)) { // bonus for explosive at low enemy health
 			weight *= 1.5;
 		}
@@ -297,7 +297,7 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 		}
 
 		// penalty for explosive weapons at low self health
-		if ((*self->ail.health < 25) &&
+		if ((*self->ai_locals.health < 25) &&
 			(item->flags & AI_WEAPON_EXPLOSIVE)) {
 			weight /= 2.0;
 		}
@@ -318,7 +318,7 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 
 	const ai_weapon_pick_t *best_weapon = &weapons[0];
 
-	if (aim.ItemIndex(*self->client->ail.weapon) == Ai_ItemIndex(best_weapon->item)) {
+	if (aim.ItemIndex(*self->client->ai_locals.weapon) == Ai_ItemIndex(best_weapon->item)) {
 		return;
 	}
 
@@ -468,7 +468,7 @@ static uint32_t Ai_FuncGoal_Acrobatics(g_entity_t *self, pm_cmd_t *cmd) {
 	}
 
 	// do some acrobatics
-	if (*self->ail.ground_entity) {
+	if (*self->ai_locals.ground_entity) {
 
 		if (self->client->ps.pm_state.flags & PMF_DUCKED) {
 					
@@ -548,7 +548,7 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	VectorAngles(move_direction, move_direction);
 	move_direction[0] = move_direction[2] = 0.0;
 
-	const vec3_t view_direction = { 0.0, self->client->ail.angles[1], 0.0};
+	const vec3_t view_direction = { 0.0, self->client->ai_locals.angles[1], 0.0};
 	VectorSubtract(view_direction, move_direction, move_direction);
 
 	AngleVectors(move_direction, move_direction, NULL, NULL);
@@ -625,7 +625,7 @@ static void Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		ideal_angles[1] += cos(ai_level.time / 164.0) * 4.0;
 	}
 
-	const vec_t *view_angles = self->client->ail.angles;
+	const vec_t *view_angles = self->client->ai_locals.angles;
 
 	for (int32_t i = 0; i < 2; ++i) {
 		ideal_angles[i] = Ai_CalculateAngle(self, 6.5, view_angles[i], ideal_angles[i]);
