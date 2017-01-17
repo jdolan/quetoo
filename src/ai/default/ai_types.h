@@ -55,6 +55,7 @@ typedef struct ai_item_s {
 	g_weapon_tag_t tag;
 	vec_t priority;
 	uint16_t quantity;
+	uint16_t max;
 
 	int32_t speed; // used for projectile weapons
 	uint32_t time; // used for timing items (handgrenades)

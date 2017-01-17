@@ -455,6 +455,7 @@ typedef struct g_item_s {
 	const char *name; // for printing on pickup
 
 	uint16_t quantity; // for ammo: how much, for weapons: how much per shot
+	uint16_t max; // for ammo: max we can hold at once
 	const char *ammo; // for weapons: the ammo item name
 
 	g_item_type_t type; // g_item_type_t, see above
@@ -813,15 +814,6 @@ typedef struct {
 	uint32_t scores_time; // eligible for scores when time > this
 
 	int16_t inventory[MAX_ITEMS];
-
-	int16_t max_shells;
-	int16_t max_bullets;
-	int16_t max_grenades;
-	int16_t max_rockets;
-	int16_t max_cells;
-	int16_t max_bolts;
-	int16_t max_slugs;
-	int16_t max_nukes;
 
 	const g_item_t *weapon;
 	const g_item_t *prev_weapon;

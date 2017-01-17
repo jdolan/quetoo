@@ -602,16 +602,6 @@ static _Bool G_GiveLevelLocals(g_entity_t *ent) {
 static void G_InitClientInventory(g_entity_t *ent) {
 	const g_item_t *item;
 
-	// set max inventory levels
-	ent->client->locals.max_shells = 80;
-	ent->client->locals.max_bullets = 200;
-	ent->client->locals.max_grenades = 50;
-	ent->client->locals.max_rockets = 50;
-	ent->client->locals.max_cells = 200;
-	ent->client->locals.max_bolts = 150;
-	ent->client->locals.max_slugs = 50;
-	ent->client->locals.max_nukes = 10;
-
 	// instagib gets railgun and slugs, both in normal mode and warmup
 	if (g_level.gameplay == GAME_INSTAGIB) {
 		G_Give(ent, "Railgun", 1);

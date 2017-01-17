@@ -376,6 +376,7 @@ static void G_Ai_RegisterWeapon(const g_item_t *item, const ai_item_flags_t weap
 	ai_item.name = item->name;
 	ai_item.priority = item->priority;
 	ai_item.quantity = item->quantity;
+	ai_item.max = item->max;
 	ai_item.tag = item->tag;
 
 	ai_item.speed = speed;

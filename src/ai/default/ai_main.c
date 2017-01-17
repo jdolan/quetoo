@@ -148,6 +148,13 @@ static void Ai_GetUserInfo(const g_entity_t *self, char *userinfo) {
 	}
 }
 
+static _Bool Ai_CanSee(const g_entity_t *self, const g_entity_t *other) {
+
+	cm_trace_t tr = aim.Trace(self->s.origin, other->s.origin, vec3_origin, vec3_origin, self, MASK_CLIP_PROJECTILE);
+
+	return tr.fraction < 1.0 && tr.ent == other;
+}
+
 /**
  * @brief
  */
@@ -162,13 +169,7 @@ static _Bool Ai_CanTarget(const g_entity_t *self, const g_entity_t *other) {
 		return false;
 	}
 
-	cm_trace_t tr = aim.Trace(self->s.origin, other->s.origin, vec3_origin, vec3_origin, self, MASK_CLIP_PROJECTILE);
-
-	if (tr.fraction < 1.0 && tr.ent == other) {
-		return true;
-	}
-
-	return false;
+	return Ai_CanSee(self, other);
 }
 
 /**
@@ -180,6 +181,9 @@ static void Ai_Command(g_entity_t *self, const char *command) {
 	aim.ClientCommand(self);
 }
 
+/**
+ * @brief
+ */
 typedef struct {
 	const ai_item_t *item;
 	vec_t weight;
