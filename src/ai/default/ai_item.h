@@ -30,4 +30,5 @@
 
 	void Ai_RegisterItem(const uint16_t index, const ai_item_t *item);
 	uint16_t Ai_ItemIndex(const ai_item_t *item);
+	ai_item_t *Ai_ItemForGameItem(const g_item_t *item);
 #endif

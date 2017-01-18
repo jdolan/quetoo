@@ -65,6 +65,9 @@ void G_Ai_SetEntityLocals(g_entity_t *ent) {
 	ent->ai_locals.item = &ent->locals.item;
 	ent->ai_locals.velocity = ent->locals.velocity;
 	ent->ai_locals.health = &ent->locals.health;
+	ent->ai_locals.max_health = &ent->locals.max_health;
+	ent->ai_locals.max_armor = &ent->locals.max_armor;
+	ent->ai_locals.water_level = &ent->locals.water_level;
 }
 
 /**
@@ -345,6 +348,7 @@ static void G_Ai_RegisterItem(const g_item_t *item) {
 	ai_item.priority = item->priority;
 	ai_item.quantity = item->quantity;
 	ai_item.tag = item->tag;
+	ai_item.max = item->max;
 
 	ai_item.ammo = 0;
 	ai_item.speed = 0;
@@ -367,7 +371,9 @@ static void G_Ai_RegisterWeapon(const g_item_t *item, const ai_item_flags_t weap
 	
 	ai_item.class_name = item->class_name;
 	if (item->ammo) {
-		ai_item.ammo = G_Ai_ItemIndex(G_FindItem(item->ammo));
+		const g_item_t *ammo = G_FindItem(item->ammo);
+		ai_item.ammo = G_Ai_ItemIndex(ammo);
+		ai_item.max = ammo->max;
 	} else {
 		ai_item.ammo = 0;
 	}
@@ -376,7 +382,6 @@ static void G_Ai_RegisterWeapon(const g_item_t *item, const ai_item_flags_t weap
 	ai_item.name = item->name;
 	ai_item.priority = item->priority;
 	ai_item.quantity = item->quantity;
-	ai_item.max = item->max;
 	ai_item.tag = item->tag;
 
 	ai_item.speed = speed;
@@ -411,7 +416,7 @@ void G_Ai_RegisterItems(void) {
 	G_Ai_RegisterWeapon(G_FindItem("Hand Grenades"), AI_WEAPON_PROJECTILE | AI_WEAPON_EXPLOSIVE | AI_WEAPON_TIMED | AI_WEAPON_MED_RANGE, 1000, 3000);
 	G_Ai_RegisterWeapon(G_FindItem("Rocket Launcher"), AI_WEAPON_PROJECTILE | AI_WEAPON_EXPLOSIVE | AI_WEAPON_MED_RANGE | AI_WEAPON_LONG_RANGE, 1000, 0);
 	G_Ai_RegisterWeapon(G_FindItem("Hyperblaster"), AI_WEAPON_PROJECTILE | AI_WEAPON_MED_RANGE, 1800, 0);
-	G_Ai_RegisterWeapon(G_FindItem("Lightning"), AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE, 0, 0);
+	G_Ai_RegisterWeapon(G_FindItem("Lightning Gun"), AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE, 0, 0);
 	G_Ai_RegisterWeapon(G_FindItem("Railgun"), AI_WEAPON_HITSCAN | AI_WEAPON_LONG_RANGE, 0, 0);
 	G_Ai_RegisterWeapon(G_FindItem("BFG10K"), AI_WEAPON_PROJECTILE | AI_WEAPON_MED_RANGE | AI_WEAPON_LONG_RANGE, 720, 0);
 }

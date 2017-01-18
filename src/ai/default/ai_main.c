@@ -23,6 +23,12 @@
 #include "game/default/bg_pmove.h"
 #include "game/default/g_ai.h"
 
+/**
+ * @brief Yields a pointer to the edict by the given number by negotiating the
+ * edicts array based on the reported size of g_entity_t.
+ */
+#define ENTITY_FOR_NUM(n) ( (g_entity_t *) ((byte *) aim.entities + aim.entity_size * (n)) )
+
 ai_level_t ai_level;
 static cvar_t *sv_max_clients;
 cvar_t *ai_passive;
@@ -152,7 +158,7 @@ static _Bool Ai_CanSee(const g_entity_t *self, const g_entity_t *other) {
 
 	cm_trace_t tr = aim.Trace(self->s.origin, other->s.origin, vec3_origin, vec3_origin, self, MASK_CLIP_PROJECTILE);
 
-	return tr.fraction < 1.0 && tr.ent == other;
+	return BoxIntersect(tr.end, tr.end, other->abs_mins, other->abs_maxs);
 }
 
 /**
@@ -160,12 +166,8 @@ static _Bool Ai_CanSee(const g_entity_t *self, const g_entity_t *other) {
  */
 static _Bool Ai_CanTarget(const g_entity_t *self, const g_entity_t *other) {
 
-	if (ai_passive->integer) {
-		return false;
-	}
-
-	if (other == self || !other->client || !other->in_use || other->solid == SOLID_DEAD || (other->sv_flags & SVF_NO_CLIENT) ||
-		aim.OnSameTeam(self, other)) {
+	if (other == self || !other->in_use || other->solid == SOLID_DEAD || other->solid == SOLID_NOT ||
+		(other->sv_flags & SVF_NO_CLIENT) || (other->client && aim.OnSameTeam(self, other))) {
 		return false;
 	}
 
@@ -185,21 +187,155 @@ static void Ai_Command(g_entity_t *self, const char *command) {
  * @brief
  */
 typedef struct {
+	const g_entity_t *entity;
 	const ai_item_t *item;
 	vec_t weight;
-} ai_weapon_pick_t;
+} ai_item_pick_t;
 
 /**
  * @brief
  */
-static int32_t Ai_PickBestWeapon_Compare(const void *a, const void *b) {
+static int32_t Ai_ItemPick_Compare(const void *a, const void *b) {
 
-	const ai_weapon_pick_t *w0 = (const ai_weapon_pick_t *) a;
-	const ai_weapon_pick_t *w1 = (const ai_weapon_pick_t *) b;
+	const ai_item_pick_t *w0 = (const ai_item_pick_t *) a;
+	const ai_item_pick_t *w1 = (const ai_item_pick_t *) b;
 
 	return Sign(w1->weight - w0->weight);
 }
 
+/**
+ * @brief
+ */
+static _Bool Ai_ItemReachable(const g_entity_t *self, const g_entity_t *other) {
+
+	return fabs(other->s.origin[2] - self->s.origin[2]) <= PM_STEP_HEIGHT;
+}
+
+/**
+ * @brief
+ */
+static _Bool Ai_ItemRequired(const g_entity_t *self, const ai_item_t *item) {
+
+	// don't need health if we're at/above max health
+	if (item->flags & AI_ITEM_HEALTH) {
+		return *self->ai_locals.health < *self->ai_locals.max_health;
+	}
+
+	// FIXME: armor
+	if ((item->flags & AI_ITEM_ARMOR)) {
+		return false;
+	}
+
+	// check max ammo
+	if (item->flags & AI_ITEM_AMMO) {
+		return self->client->ai_locals.inventory[Ai_ItemIndex(item)] < item->max;
+	}
+
+	// everything else is fair game
+	return true;
+}
+
+/**
+ * @brief Seek for items if we're not doing anything better.
+ */
+static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
+
+	if (self->solid == SOLID_DEAD) {
+		return QUETOO_TICK_MILLIS;
+	}
+
+	ai_locals_t *ai = Ai_GetLocals(self);
+
+	// see if we're already hunting
+	if (ai->move_target.type == AI_GOAL_ENEMY) {
+		return QUETOO_TICK_MILLIS * 5;
+	}
+
+	if (ai->move_target.type == AI_GOAL_ITEM) {
+
+		// check to see if the item has gone out of our line of sight
+		if (!Ai_CanTarget(self, ai->move_target.ent) ||
+			!Ai_ItemReachable(self, ai->move_target.ent) ||
+			!Ai_ItemRequired(self, Ai_ItemForGameItem(*ai->move_target.ent->ai_locals.item))) {
+
+			if (ai->aim_target.ent == ai->move_target.ent) {
+				Ai_ClearGoal(&ai->aim_target);
+			}
+
+			Ai_ClearGoal(&ai->move_target);
+		} else if (ai->aim_target.type <= AI_GOAL_GHOST) { // aim towards item so it doesn't look like we're a feckin' cheater
+			Ai_CopyGoal(&ai->move_target, &ai->aim_target);
+		}
+	}
+
+	// still have an item
+	if (ai->move_target.type == AI_GOAL_ITEM) {
+		return QUETOO_TICK_MILLIS * 3;
+	}
+
+	// if we're aiming for an active target, don't look for new items
+	if (ai->aim_target.type == AI_GOAL_ENEMY) {
+		return QUETOO_TICK_MILLIS * 3;
+	}
+
+	// we lost our enemy, start looking for a new one
+	GArray *items_visible = g_array_new(false, false, sizeof(ai_item_pick_t));
+
+	for (int32_t i = sv_max_clients->integer + 1; i <= MAX_ENTITIES; i++) {
+
+		g_entity_t *ent = ENTITY_FOR_NUM(i);
+
+		if (!ent->in_use) {
+			continue;
+		}
+
+		if (ent->s.solid != SOLID_TRIGGER) {
+			continue;
+		}
+
+		if (!*ent->ai_locals.item) {
+			continue;
+		}
+
+		// most likely an item!
+		ai_item_t *item = Ai_ItemForGameItem(*ent->ai_locals.item);
+
+		if (!Ai_CanTarget(self, ent) ||
+			!Ai_ItemReachable(self, ent) ||
+			!Ai_ItemRequired(self, item)) {
+			continue;
+		}
+
+		g_array_append_vals(items_visible, &(const ai_item_pick_t) {
+			.entity = ent,
+			.item = item,
+			.weight = item->priority
+		}, 1);
+	}
+
+	// found one, set it up
+	if (items_visible->len) {
+
+		if (items_visible->len > 1) {
+			g_array_sort(items_visible, Ai_ItemPick_Compare);
+		}
+
+		Ai_SetEntityGoal(&ai->move_target, AI_GOAL_ITEM, 1.0, g_array_index(items_visible, ai_item_pick_t, 0).entity);
+
+		g_array_free(items_visible, true);
+
+		// re-run with the new target
+		return Ai_FuncGoal_FindItems(self, cmd);
+	}
+
+	g_array_free(items_visible, true);
+
+	return QUETOO_TICK_MILLIS * 5;
+}
+
+/**
+ * @brief Range constants.
+ */
 typedef enum {
 	RANGE_MELEE = 32,
 	RANGE_SHORT = 128,
@@ -237,7 +373,7 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 	const vec_t targ_dist = VectorDistance(self->s.origin, ai->aim_target.ent->s.origin);
 	const ai_range_t targ_range = Ai_GetRange(targ_dist);
 
-	ai_weapon_pick_t weapons[ai_num_weapons];
+	ai_item_pick_t weapons[ai_num_weapons];
 	uint16_t num_weapons = 0;
 
 	for (uint16_t i = 0; i < ai_num_items; i++) {
@@ -308,7 +444,7 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 
 		weight *= item->priority;
 
-		weapons[num_weapons++] = (ai_weapon_pick_t) {
+		weapons[num_weapons++] = (ai_item_pick_t) {
 			.item = item,
 			.weight = weight
 		};
@@ -318,9 +454,9 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 		return;
 	}
 
-	qsort(weapons, num_weapons, sizeof(ai_weapon_pick_t), Ai_PickBestWeapon_Compare);
+	qsort(weapons, num_weapons, sizeof(ai_item_pick_t), Ai_ItemPick_Compare);
 
-	const ai_weapon_pick_t *best_weapon = &weapons[0];
+	const ai_item_pick_t *best_weapon = &weapons[0];
 
 	if (aim.ItemIndex(*self->client->ai_locals.weapon) == Ai_ItemIndex(best_weapon->item)) {
 		return;
@@ -333,19 +469,13 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 /**
  * @brief Calculate a priority for the specified target.
  */
-static vec_t Ai_EnemyPriority(g_entity_t *self, g_entity_t *target, const _Bool visible) {
+static vec_t Ai_EnemyPriority(const g_entity_t *self, const g_entity_t *target, const _Bool visible) {
 
 	// TODO: all of this function. Enemies with more powerful weapons need a higher weight.
 	// Enemies with lower health need a higher weight. Enemies carrying flags need an even higher weight.
 
 	return 10.0;
 }
-
-/**
- * @brief Yields a pointer to the edict by the given number by negotiating the
- * edicts array based on the reported size of g_entity_t.
- */
-#define ENTITY_FOR_NUM(n) ( (g_entity_t *) ((byte *) aim.entities + aim.entity_size * (n)) )
 
 /**
  * @brief Funcgoal that controls the AI's lust for blood
@@ -357,6 +487,19 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 	}
 
 	ai_locals_t *ai = Ai_GetLocals(self);
+	
+	if (ai_passive->integer) {
+		
+		if (ai->aim_target.type == AI_GOAL_ENEMY) {
+			Ai_ClearGoal(&ai->aim_target);
+		}
+
+		if (ai->move_target.type == AI_GOAL_ENEMY) {
+			Ai_ClearGoal(&ai->move_target);
+		}
+
+		return QUETOO_TICK_MILLIS;
+	}
 
 	// see if we're already hunting
 	if (ai->aim_target.type == AI_GOAL_ENEMY) {
@@ -479,14 +622,14 @@ static uint32_t Ai_FuncGoal_Acrobatics(g_entity_t *self, pm_cmd_t *cmd) {
 			if ((Random() % 32) == 0) { // uncrouch eventually
 				cmd->up = 0;
 			} else {
-				cmd->up = -10;
+				cmd->up = -PM_SPEED_JUMP;
 			}
 		} else {
 
 			if ((Random() % 32) == 0) { // randomly crouch
-				cmd->up = -10;
+				cmd->up = -PM_SPEED_JUMP;
 			} else if ((Random() % 86) == 0) { // randomly pop, to confuse our enemies
-				cmd->up = 10;
+				cmd->up = PM_SPEED_JUMP;
 			}
 		}
 	} else {
@@ -516,6 +659,25 @@ static void Ai_Wander(g_entity_t *self, pm_cmd_t *cmd) {
 
 		ai->wander_angle += (Randomf() < 0.5) ? -angle : angle;
 		ai->wander_angle = ClampAngle(ai->wander_angle);
+	}
+
+	vec3_t move_dir;
+	VectorSubtract(ai->last_origin, self->s.origin, move_dir);
+	vec_t move_len = VectorLength(move_dir);
+
+	if (move_len < (PM_SPEED_RUN * QUETOO_TICK_SECONDS) / 8.0) {
+		ai->no_movement_frames++;
+
+		if (ai->no_movement_frames >= QUETOO_TICK_RATE) {
+			vec_t angle = 45 + Randomf() * 45;
+
+			ai->wander_angle += (Randomf() < 0.5) ? -angle : angle;
+			ai->wander_angle = ClampAngle(ai->wander_angle);
+
+			ai->no_movement_frames = 0;
+		}
+	} else {
+		ai->no_movement_frames = 0;
 	}
 }
 
@@ -561,6 +723,10 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 
 	cmd->forward = move_direction[0];
 	cmd->right = move_direction[1];
+
+	if (*self->ai_locals.water_level >= WATER_WAIST) {
+		cmd->up = PM_SPEED_JUMP;
+	}
 }
 
 static vec_t AngleMod(const vec_t a) {
@@ -682,6 +848,8 @@ static void Ai_Think(g_entity_t *self, pm_cmd_t *cmd) {
 		Ai_MoveToTarget(self, cmd);
 		Ai_TurnToTarget(self, cmd);
 	}
+
+	VectorCopy(self->s.origin, ai->last_origin);
 }
 
 /**
@@ -698,6 +866,7 @@ static void Ai_Spawn(g_entity_t *self) {
 	Ai_AddFuncGoal(self, Ai_FuncGoal_Hunt, 0);
 	Ai_AddFuncGoal(self, Ai_FuncGoal_Weaponry, 0);
 	Ai_AddFuncGoal(self, Ai_FuncGoal_Acrobatics, 0);
+	Ai_AddFuncGoal(self, Ai_FuncGoal_FindItems, 0);
 }
 
 /**

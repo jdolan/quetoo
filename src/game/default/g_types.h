@@ -959,8 +959,8 @@ typedef struct {
 	int32_t ground_contents;
 
 	int32_t water_type;
-	uint8_t old_water_level;
-	uint8_t water_level;
+	pm_water_level_t old_water_level;
+	pm_water_level_t water_level;
 
 	int32_t area_portal; // the area portal to toggle
 

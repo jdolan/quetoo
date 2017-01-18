@@ -89,7 +89,7 @@ typedef struct {
 	ai_goal_type_t type;
 	vec_t priority;
 	uint32_t time; // time this goal was set
-	g_entity_t *ent; // for AI_GOAL_ITEM/ENEMY_TEAMMATE
+	const g_entity_t *ent; // for AI_GOAL_ITEM/ENEMY_TEAMMATE
 } ai_goal_t;
 
 /**
@@ -134,5 +134,8 @@ typedef struct ai_locals_s {
 	vec3_t ghost_position;
 
 	uint32_t weapon_check_time;
+
+	vec3_t last_origin;
+	uint32_t no_movement_frames;
 } ai_locals_t;
 #endif /* __AI_LOCAL_H__ */

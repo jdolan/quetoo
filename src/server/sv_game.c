@@ -24,13 +24,13 @@
 /**
  * @brief
  */
-static void Sv_GameDebug(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-static void Sv_GameDebug(const char *func, const char *fmt, ...) {
+static void Sv_GameDebug(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+static void Sv_GameDebug(const debug_t debug, const char *func, const char *fmt, ...) {
 
 	va_list args;
 	va_start(args, fmt);
 
-	Com_Debugv_(DEBUG_GAME, func, fmt, args);
+	Com_Debugv_(debug, func, fmt, args);
 
 	va_end(args);
 }

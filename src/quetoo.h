@@ -351,6 +351,16 @@ typedef enum {
 #define PM_HOOK_MAX_LENGTH	(2048)
 
 /**
+ * @brief Water level
+ */
+typedef enum {
+	WATER_NONE,
+	WATER_FEET,
+	WATER_WAIST,
+	WATER_UNDER
+} pm_water_level_t;
+
+/**
  * @brief General player movement and capabilities classification.
  */
 typedef enum {

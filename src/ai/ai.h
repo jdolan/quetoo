@@ -44,7 +44,7 @@ typedef struct {
 	char write_dir[MAX_OS_PATH];
 
 	void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-	void (*Debug_)(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+	void (*Debug_)(debug_t debug, const char *func, const char *fmt, ...) __attribute__((debug, format(printf, 3, 4)));
 	void (*PmDebug_)(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 	void (*Warn_)(const char *func, const char *fmr, ...) __attribute__((format(printf, 2, 3)));
 	void (*Error_)(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
@@ -263,4 +263,19 @@ typedef struct {
 	 * @brief Pointer to health
 	 */
 	const int16_t *health;
+
+	/**
+	 * @brief Pointer to max health
+	 */
+	const int16_t *max_health;
+
+	/**
+	 * @brief Pointer to max armor
+	 */
+	const int16_t *max_armor;
+
+	/**
+	 * @brief Pointer to water level
+	 */
+	const pm_water_level_t *water_level;
 } ai_entity_locals_t;

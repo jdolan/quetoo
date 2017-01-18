@@ -70,8 +70,8 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 		return;
 	}
 
-	const uint8_t water_level = ent->locals.water_level;
-	const uint8_t old_water_level = ent->locals.old_water_level;
+	const pm_water_level_t water_level = ent->locals.water_level;
+	const pm_water_level_t old_water_level = ent->locals.old_water_level;
 
 	// if just entered a water volume, play a sound
 	if (!old_water_level && water_level) {
@@ -84,7 +84,7 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 	}
 
 	// same water level, head out of water
-	if ((old_water_level == water_level) && (water_level > 0 && water_level < 3)) {
+	if ((old_water_level == water_level) && (water_level > WATER_FEET && water_level < WATER_UNDER)) {
 		if (VectorLength(ent->locals.velocity) > 10.0) {
 			G_Ripple(ent, NULL, NULL, 0.0, false);
 		}
@@ -93,7 +93,7 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 	if (ent->locals.dead == false) { // if we're alive, we can drown
 
 		// head just coming out of water, play a gasp if we were down for a while
-		if (old_water_level == 3 && water_level != 3 && (client->locals.drown_time - g_level.time) < 8000) {
+		if (old_water_level == WATER_UNDER && water_level != WATER_UNDER && (client->locals.drown_time - g_level.time) < 8000) {
 			vec3_t org;
 
 			UnpackVector(client->ps.pm_state.view_offset, org);
@@ -103,7 +103,7 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 		}
 
 		// check for drowning
-		if (water_level != 3) { // take some air, push out drown time
+		if (water_level != WATER_UNDER) { // take some air, push out drown time
 			client->locals.drown_time = g_level.time + 12000;
 			ent->locals.damage = 0;
 		} else { // we're under water
@@ -283,7 +283,7 @@ static void G_ClientAnimation(g_entity_t *ent) {
 	if (!ent->locals.ground_entity) { // not on the ground
 
 		if (g_level.time - cl->jump_time > 400) {
-			if (ent->locals.water_level == 3 && cl->speed > 10.0) { // swimming
+			if (ent->locals.water_level == WATER_UNDER && cl->speed > 10.0) { // swimming
 				G_SetAnimation(ent, ANIM_LEGS_SWIM, false);
 				return;
 			}

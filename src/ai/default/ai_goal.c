@@ -66,7 +66,9 @@ void Ai_RemoveFuncGoal(g_entity_t *ent, Ai_GoalFunc func) {
 /**
  * @brief Setup entity goal for the specified target.
  */
-void Ai_SetEntityGoal(ai_goal_t *goal, ai_goal_type_t type, vec_t priority, g_entity_t *entity) {
+void Ai_SetEntityGoal(ai_goal_t *goal, ai_goal_type_t type, vec_t priority, const g_entity_t *entity) {
+
+	aim.Debug("New goal: %s (%f priority)\n", etos(entity), priority);
 
 	goal->type = type;
 	goal->time = ai_level.time;
