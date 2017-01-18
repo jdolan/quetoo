@@ -668,7 +668,9 @@ static void Ai_Wander(g_entity_t *self, pm_cmd_t *cmd) {
 	if (move_len < (PM_SPEED_RUN * QUETOO_TICK_SECONDS) / 8.0) {
 		ai->no_movement_frames++;
 
-		if (ai->no_movement_frames >= QUETOO_TICK_RATE) {
+		if (ai->no_movement_frames >= QUETOO_TICK_RATE / 2.0) { // try a jump first
+			cmd->up = PM_SPEED_JUMP;
+		} else if (ai->no_movement_frames >= QUETOO_TICK_RATE) { // just turn around
 			vec_t angle = 45 + Randomf() * 45;
 
 			ai->wander_angle += (Randomf() < 0.5) ? -angle : angle;
