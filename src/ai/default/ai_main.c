@@ -184,6 +184,11 @@ static void Ai_Command(g_entity_t *self, const char *command) {
 }
 
 /**
+ * @brief The max distance we'll try to hunt an item at.
+ */
+#define AI_MAX_ITEM_DISTANCE 512
+
+/**
  * @brief
  */
 typedef struct {
@@ -206,9 +211,24 @@ static int32_t Ai_ItemPick_Compare(const void *a, const void *b) {
 /**
  * @brief
  */
-static _Bool Ai_ItemReachable(const g_entity_t *self, const g_entity_t *other) {
+static vec_t Ai_ItemReachable(const g_entity_t *self, const g_entity_t *other) {
 
-	return fabs(other->s.origin[2] - self->s.origin[2]) <= PM_STEP_HEIGHT;
+	vec3_t line;
+	VectorSubtract(self->s.origin, other->s.origin, line);
+
+	if (fabs(line[2] - line[2]) >= PM_STEP_HEIGHT * 2.0) {
+		return -1.0;
+	}
+
+	line[2] = 0.0;
+
+	const vec_t distance = VectorLength(line);
+
+	if (distance >= AI_MAX_ITEM_DISTANCE) {
+		return -1.0;
+	}
+
+	return distance;
 }
 
 /**
@@ -236,6 +256,20 @@ static _Bool Ai_ItemRequired(const g_entity_t *self, const ai_item_t *item) {
 }
 
 /**
+ * @brief
+ */
+static void Ai_ResetWander(const g_entity_t *self, const vec3_t where_to) {
+	ai_locals_t *ai = Ai_GetLocals(self);
+	vec3_t dir;
+
+	VectorSubtract(where_to, self->s.origin, dir);
+	VectorNormalize(dir);
+	VectorAngles(dir, dir);
+
+	ai->wander_angle = dir[1];
+}
+
+/**
  * @brief Seek for items if we're not doing anything better.
  */
 static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
@@ -255,8 +289,10 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 
 		// check to see if the item has gone out of our line of sight
 		if (!Ai_CanTarget(self, ai->move_target.ent) ||
-			!Ai_ItemReachable(self, ai->move_target.ent) ||
+			Ai_ItemReachable(self, ai->move_target.ent) < 0.0 ||
 			!Ai_ItemRequired(self, Ai_ItemForGameItem(*ai->move_target.ent->ai_locals.item))) {
+
+			Ai_ResetWander(self, ai->move_target.ent->s.origin);
 
 			if (ai->aim_target.ent == ai->move_target.ent) {
 				Ai_ClearGoal(&ai->aim_target);
@@ -299,9 +335,10 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 
 		// most likely an item!
 		ai_item_t *item = Ai_ItemForGameItem(*ent->ai_locals.item);
+		vec_t distance;
 
 		if (!Ai_CanTarget(self, ent) ||
-			!Ai_ItemReachable(self, ent) ||
+			(distance = Ai_ItemReachable(self, ent)) < 0.0 ||
 			!Ai_ItemRequired(self, item)) {
 			continue;
 		}
@@ -309,7 +346,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 		g_array_append_vals(items_visible, &(const ai_item_pick_t) {
 			.entity = ent,
 			.item = item,
-			.weight = item->priority
+			.weight = (AI_MAX_ITEM_DISTANCE - distance) * item->priority
 		}, 1);
 	}
 
@@ -500,7 +537,7 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 
 		return QUETOO_TICK_MILLIS;
 	}
-
+	
 	// see if we're already hunting
 	if (ai->aim_target.type == AI_GOAL_ENEMY) {
 
@@ -511,6 +548,7 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 			if (ai->aim_target.ent->solid != SOLID_DEAD && !(ai->aim_target.ent->sv_flags & SVF_NO_CLIENT)) {
 				Ai_SetEntityGoal(&ai->aim_target, AI_GOAL_GHOST, Ai_EnemyPriority(self, ai->aim_target.ent, false), ai->aim_target.ent);
 				VectorCopy(ai->aim_target.ent->s.origin, ai->ghost_position);
+				Ai_ResetWander(self, ai->ghost_position);
 			} else {
 				Ai_ClearGoal(&ai->aim_target);
 			}

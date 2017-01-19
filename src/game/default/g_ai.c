@@ -176,7 +176,7 @@ static void G_Ai_AddBots(const int32_t count) {
  * @brief
  */
 static void G_Ai_RemoveBots(const int32_t count) {
-	int32_t clamped = Min(G_Ai_NumberOfBots(), sv_max_clients->integer);
+	int32_t clamped = Min(count, G_Ai_NumberOfBots());
 
 	if (!clamped) {
 		return;
