@@ -159,6 +159,7 @@ typedef struct {
 	const g_entity_t *entities;
 	size_t entity_size;
 	uint16_t (*ItemIndex)(const g_item_t *item);
+	_Bool (*CanPickupItem)(const g_entity_t *self, const g_item_t *item);
 } ai_import_t;
 
 /**

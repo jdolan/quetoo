@@ -234,25 +234,9 @@ static vec_t Ai_ItemReachable(const g_entity_t *self, const g_entity_t *other) {
 /**
  * @brief
  */
-static _Bool Ai_ItemRequired(const g_entity_t *self, const ai_item_t *item) {
+static _Bool Ai_ItemRequired(const g_entity_t *self, const g_item_t *item) {
 
-	// don't need health if we're at/above max health
-	if (item->flags & AI_ITEM_HEALTH) {
-		return *self->ai_locals.health < *self->ai_locals.max_health;
-	}
-
-	// FIXME: armor
-	if ((item->flags & AI_ITEM_ARMOR)) {
-		return false;
-	}
-
-	// check max ammo
-	if (item->flags & AI_ITEM_AMMO) {
-		return self->client->ai_locals.inventory[Ai_ItemIndex(item)] < item->max;
-	}
-
-	// everything else is fair game
-	return true;
+	return aim.CanPickupItem(self, item);
 }
 
 /**
@@ -290,7 +274,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 		// check to see if the item has gone out of our line of sight
 		if (!Ai_CanTarget(self, ai->move_target.ent) ||
 			Ai_ItemReachable(self, ai->move_target.ent) < 0.0 ||
-			!Ai_ItemRequired(self, Ai_ItemForGameItem(*ai->move_target.ent->ai_locals.item))) {
+			!Ai_ItemRequired(self, *ai->move_target.ent->ai_locals.item)) {
 
 			Ai_ResetWander(self, ai->move_target.ent->s.origin);
 
@@ -339,7 +323,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 
 		if (!Ai_CanTarget(self, ent) ||
 			(distance = Ai_ItemReachable(self, ent)) < 0.0 ||
-			!Ai_ItemRequired(self, item)) {
+			!Ai_ItemRequired(self, *ent->ai_locals.item)) {
 			continue;
 		}
 

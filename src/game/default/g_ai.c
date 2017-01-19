@@ -34,6 +34,50 @@ static uint16_t G_Ai_ItemIndex(const g_item_t *item) {
 /**
  * @brief
  */
+static _Bool G_Ai_CanPickupItem(const g_entity_t *self, const g_item_t *item) {
+	
+	if (item->type == ITEM_HEALTH) {
+		// stimpack/mega is always gettable
+		if (item->tag == HEALTH_SMALL || item->tag == HEALTH_MEGA) {
+			return true;
+		}
+
+		return self->locals.health < self->locals.max_health;
+	} else if (item->type == ITEM_ARMOR) {
+		const g_item_t *current_armor = G_ClientArmor(self);
+
+		// no armor or shard or not filled up, can get.
+		if (!current_armor ||
+			item->tag == ARMOR_SHARD ||
+			self->client->locals.inventory[ITEM_INDEX(current_armor)] < current_armor->max) {
+			return true;
+		}
+
+		return false;
+	} else if (item->type == ITEM_AMMO) { // just if we need the ammo
+		return self->client->locals.inventory[ITEM_INDEX(item)] < item->max;
+	} else if (item->type == ITEM_WEAPON) {
+
+		if (self->client->locals.inventory[ITEM_INDEX(item)]) { // we have the weapon
+
+			if (item->ammo) {
+				const g_item_t *ammo = G_FindItem(item->ammo);
+
+				return self->client->locals.inventory[ITEM_INDEX(ammo)] < ammo->max;
+			}
+
+			return false;
+		}
+
+		return true;
+	}
+
+	return true;
+}
+
+/**
+ * @brief
+ */
 static void G_Ai_ClientThink(g_entity_t *self) {
 	pm_cmd_t cmd;
 
@@ -476,6 +520,7 @@ void G_Ai_Init(void) {
 	import.entities = ge.entities;
 	import.entity_size = ge.entity_size;
 	import.ItemIndex = G_Ai_ItemIndex;
+	import.CanPickupItem = G_Ai_CanPickupItem;
 	
 	ai_export_t *exports = gi.LoadAi(&import);
 

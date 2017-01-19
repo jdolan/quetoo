@@ -356,9 +356,9 @@ static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
  */
 const g_armor_info_t *G_ArmorInfo(const g_item_t *armor) {
 	static const g_armor_info_t armor_info[] = {
-		{ ARMOR_BODY, 100, 200, 0.8, 0.6 },
-		{ ARMOR_COMBAT, 50, 100, 0.6, 0.3 },
-		{ ARMOR_JACKET, 25, 50, 0.3, 0.0 }
+		{ ARMOR_BODY, 0.8, 0.6 },
+		{ ARMOR_COMBAT, 0.6, 0.3 },
+		{ ARMOR_JACKET, 0.3, 0.0 }
 	};
 
 	if (!armor) {
@@ -412,7 +412,7 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 			const vec_t salvage = current_info->normal_protection / new_info->normal_protection;
 			const int16_t salvage_count = salvage * other->client->locals.inventory[ITEM_INDEX(current_armor)];
 
-			const int16_t new_count = Clamp(salvage_count + new_armor->quantity, 0, new_info->max_count);
+			const int16_t new_count = Clamp(salvage_count + new_armor->quantity, 0, new_armor->max);
 
 			if (new_count < other->locals.max_armor) {
 				other->client->locals.inventory[ITEM_INDEX(current_armor)] = 0;
@@ -428,7 +428,7 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 			const int16_t salvage_count = salvage * new_armor->quantity;
 
 			int16_t new_count = salvage_count + other->client->locals.inventory[ITEM_INDEX(current_armor)];
-			new_count = Clamp(new_count, 0, current_info->max_count);
+			new_count = Clamp(new_count, 0, current_armor->max);
 
 			// take it
 			if (other->client->locals.inventory[ITEM_INDEX(current_armor)] < new_count &&
@@ -1037,6 +1037,7 @@ const g_item_t g_items[] = {
 		.icon = "pics/i_bodyarmor",
 		.name = "Body Armor",
 		.quantity = 100,
+		.max = 200,
 		.ammo = NULL,
 		.type = ITEM_ARMOR,
 		.tag = ARMOR_BODY,
@@ -1070,6 +1071,7 @@ const g_item_t g_items[] = {
 		.icon = "pics/i_combatarmor",
 		.name = "Combat Armor",
 		.quantity = 50,
+		.max = 100,
 		.ammo = NULL,
 		.type = ITEM_ARMOR,
 		.tag = ARMOR_COMBAT,
@@ -1103,6 +1105,7 @@ const g_item_t g_items[] = {
 		.icon = "pics/i_jacketarmor",
 		.name = "Jacket Armor",
 		.quantity = 25,
+		.max = 50,
 		.ammo = NULL,
 		.type = ITEM_ARMOR,
 		.tag = ARMOR_JACKET,
