@@ -685,6 +685,7 @@ static void Ai_Wander(g_entity_t *self, pm_cmd_t *cmd) {
 
 	vec3_t move_dir;
 	VectorSubtract(ai->last_origin, self->s.origin, move_dir);
+	move_dir[2] = 0.0;
 	vec_t move_len = VectorLength(move_dir);
 
 	if (move_len < (PM_SPEED_RUN * QUETOO_TICK_SECONDS) / 8.0) {
