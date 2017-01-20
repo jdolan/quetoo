@@ -61,6 +61,8 @@ after_build:
 
     [Environment]::CurrentDirectory = $PWD
 
+    Remove-Item .\Quetoo\* -include *.exp,*.lib,*.ilk -recurse
+
     7z a ..\Quetoo-BETA-MSVC.zip Quetoo\
 
     Pop-Location
