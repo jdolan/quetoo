@@ -355,7 +355,7 @@ static void R_CastShadows(r_lighting_t *l, const r_illumination_t *il) {
 				break;
 			}
 
-			if (s - l->shadows == lengthof(l->shadows)) {
+			if (s - l->shadows == lengthof(l->shadows) - 1) {
 				Com_Debug(DEBUG_RENDERER, "Entity %u @ %s: MAX_SHADOWS\n", l->number, vtos(l->origin));
 				return;
 			}
