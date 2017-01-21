@@ -365,6 +365,8 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 
 		self->locals.mass = 20.0;
 
+		self->solid = SOLID_DEAD;
+
 		gi.LinkEntity(self);
 	} else {
 		G_FreeEntity(self);
