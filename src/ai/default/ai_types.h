@@ -123,6 +123,10 @@ typedef struct {
 typedef struct ai_locals_s {
 	ai_funcgoal_t funcgoals[MAX_AI_FUNCGOALS];
 
+	vec3_t last_origin;
+	vec3_t aim_forward; // calculated at start of thinking
+	vec3_t eye_origin; //  ^^^
+
 	// the AI can have two distinct targets: one it's aiming at,
 	// and one it's moving towards. These aren't pointers because
 	// the priority of an item/enemy might be different depending on
@@ -135,7 +139,6 @@ typedef struct ai_locals_s {
 
 	uint32_t weapon_check_time;
 
-	vec3_t last_origin;
 	uint32_t no_movement_frames;
 } ai_locals_t;
 #endif /* __AI_LOCAL_H__ */

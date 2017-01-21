@@ -154,11 +154,32 @@ static void Ai_GetUserInfo(const g_entity_t *self, char *userinfo) {
 	}
 }
 
+/**
+ * @brief
+ */
 static _Bool Ai_CanSee(const g_entity_t *self, const g_entity_t *other) {
+	
+	// see if we're even facing the object
+	ai_locals_t *ai = Ai_GetLocals(self);
 
-	cm_trace_t tr = aim.Trace(self->s.origin, other->s.origin, vec3_origin, vec3_origin, self, MASK_CLIP_PROJECTILE);
+	vec3_t dir;
+	VectorSubtract(other->s.origin, ai->eye_origin, dir);
+	VectorNormalize(dir);
 
-	return BoxIntersect(tr.end, tr.end, other->abs_mins, other->abs_maxs);
+	vec_t dot = DotProduct(ai->aim_forward, dir);
+
+	if (dot < 0.65) {
+		return false;
+	}
+
+	cm_trace_t tr = aim.Trace(ai->eye_origin, other->s.origin, vec3_origin, vec3_origin, self, MASK_CLIP_PROJECTILE);
+
+	if (!BoxIntersect(tr.end, tr.end, other->abs_mins, other->abs_maxs)) {
+		return false; // something was in the way of our trace
+	}
+
+	// got it!
+	return true;
 }
 
 /**
@@ -216,7 +237,7 @@ static vec_t Ai_ItemReachable(const g_entity_t *self, const g_entity_t *other) {
 	vec3_t line;
 	VectorSubtract(self->s.origin, other->s.origin, line);
 
-	if (fabs(line[2] - line[2]) >= PM_STEP_HEIGHT * 2.0) {
+	if (fabs(line[2]) >= PM_STEP_HEIGHT) {
 		return -1.0;
 	}
 
@@ -273,6 +294,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 
 		// check to see if the item has gone out of our line of sight
 		if (!Ai_CanTarget(self, ai->move_target.ent) ||
+			!*ai->move_target.ent->ai_locals.item || // item picked up and changed into something else
 			Ai_ItemReachable(self, ai->move_target.ent) < 0.0 ||
 			!Ai_ItemRequired(self, *ai->move_target.ent->ai_locals.item)) {
 
@@ -691,15 +713,15 @@ static void Ai_Wander(g_entity_t *self, pm_cmd_t *cmd) {
 	if (move_len < (PM_SPEED_RUN * QUETOO_TICK_SECONDS) / 8.0) {
 		ai->no_movement_frames++;
 
-		if (ai->no_movement_frames >= QUETOO_TICK_RATE / 2.0) { // try a jump first
-			cmd->up = PM_SPEED_JUMP;
-		} else if (ai->no_movement_frames >= QUETOO_TICK_RATE) { // just turn around
+		if (ai->no_movement_frames >= QUETOO_TICK_RATE) { // just turn around
 			vec_t angle = 45 + Randomf() * 45;
 
 			ai->wander_angle += (Randomf() < 0.5) ? -angle : angle;
 			ai->wander_angle = ClampAngle(ai->wander_angle);
 
 			ai->no_movement_frames = 0;
+		} else if (ai->no_movement_frames >= QUETOO_TICK_RATE / 2.0) { // try a jump first
+			cmd->up = PM_SPEED_JUMP;
 		}
 	} else {
 		ai->no_movement_frames = 0;
@@ -843,6 +865,12 @@ static void Ai_Think(g_entity_t *self, pm_cmd_t *cmd) {
 	if (self->solid == SOLID_DEAD) {
 		Ai_ClearGoal(&ai->aim_target);
 		Ai_ClearGoal(&ai->move_target);
+	} else {
+		AngleVectors(self->client->ai_locals.angles, ai->aim_forward, NULL, NULL);
+
+		for (int32_t i = 0; i < 3; i++) {
+			ai->eye_origin[i] = self->s.origin[i] + UnpackAngle(self->client->ps.pm_state.view_offset[i]);
+		}
 	}
 
 	// run functional goals
