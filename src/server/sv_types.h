@@ -22,6 +22,7 @@
 #pragma once
 
 #include "game/game.h"
+#include "ai/ai.h"
 #include "matrix.h"
 
 #ifdef __SV_LOCAL_H__
@@ -257,6 +258,7 @@ typedef struct {
 	sv_challenge_t challenges[MAX_CHALLENGES]; // to prevent invalid IPs from connecting
 
 	g_export_t *game;
+	ai_export_t *ai;
 } sv_static_t;
 
 /**

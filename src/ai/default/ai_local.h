@@ -21,18 +21,16 @@
 
 #pragma once
 
-#include "g_types.h"
-#include "ai/ai.h"
+#define __AI_LOCAL_H__
 
-#ifdef __GAME_LOCAL_H__
-	extern cvar_t *g_ai_max_clients;
+// this is the AI name that we advertise to clients
+#define AI_NAME "default"
 
-	void G_Ai_RegisterItems(void);
-	void G_Ai_SetClientLocals(g_client_t *client);
-	void G_Ai_SetEntityLocals(g_entity_t *ent);
-	void G_Ai_ClientConnect(g_entity_t *ent);
-	void G_Ai_ClientDisconnect(g_entity_t *ent);
-	void G_Ai_Init(void);
-	void G_Ai_Shutdown(void);
-	void G_Ai_Frame(void);
-#endif /* __GAME_LOCAL_H__ */
+#define Debug(...) Debug_(DEBUG_AI, __func__, __VA_ARGS__)
+#define Error(...) Error_(__func__, __VA_ARGS__)
+#define Warn(...) Warn_(__func__, __VA_ARGS__)
+
+#include "ai_goal.h"
+#include "ai_item.h"
+#include "ai_main.h"
+#include "ai_types.h"

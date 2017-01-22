@@ -21,18 +21,12 @@
 
 #pragma once
 
-#include "g_types.h"
-#include "ai/ai.h"
+#include "ai_types.h"
 
-#ifdef __GAME_LOCAL_H__
-	extern cvar_t *g_ai_max_clients;
-
-	void G_Ai_RegisterItems(void);
-	void G_Ai_SetClientLocals(g_client_t *client);
-	void G_Ai_SetEntityLocals(g_entity_t *ent);
-	void G_Ai_ClientConnect(g_entity_t *ent);
-	void G_Ai_ClientDisconnect(g_entity_t *ent);
-	void G_Ai_Init(void);
-	void G_Ai_Shutdown(void);
-	void G_Ai_Frame(void);
-#endif /* __GAME_LOCAL_H__ */
+#ifdef __AI_LOCAL_H__
+void Ai_RemoveFuncGoal(g_entity_t *ent, Ai_GoalFunc func);
+void Ai_AddFuncGoal(g_entity_t *ent, Ai_GoalFunc func, uint32_t time_offset);
+void Ai_SetEntityGoal(ai_goal_t *goal, ai_goal_type_t type, vec_t priority, const g_entity_t *entity);
+void Ai_CopyGoal(const ai_goal_t *from, ai_goal_t *to);
+void Ai_ClearGoal(ai_goal_t *goal);
+#endif /* __AI_LOCAL_H__ */

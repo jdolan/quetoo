@@ -340,6 +340,10 @@ void G_InitEntity(g_entity_t *ent, const char *class_name) {
 
 	ent->locals.timestamp = g_level.time;
 	ent->s.number = ent - g_game.entities;
+
+	if (aix) {
+		G_Ai_SetEntityLocals(ent);
+	}
 }
 
 /**

@@ -24,13 +24,13 @@
 /**
  * @brief
  */
-static void Sv_GameDebug(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-static void Sv_GameDebug(const char *func, const char *fmt, ...) {
+static void Sv_GameDebug(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+static void Sv_GameDebug(const debug_t debug, const char *func, const char *fmt, ...) {
 
 	va_list args;
 	va_start(args, fmt);
 
-	Com_Debugv_(DEBUG_GAME, func, fmt, args);
+	Com_Debugv_(debug, func, fmt, args);
 
 	va_end(args);
 }
@@ -87,7 +87,7 @@ static void Sv_SetModel(g_entity_t *ent, const char *name) {
 /**
  * @brief
  */
-static void Sv_ConfigString(const uint16_t index, const char *val) {
+static void Sv_SetConfigString(const uint16_t index, const char *val) {
 
 	if (index >= MAX_CONFIG_STRINGS) {
 		Com_Warn("Bad index %u\n", index);
@@ -114,6 +114,19 @@ static void Sv_ConfigString(const uint16_t index, const char *val) {
 
 		Sv_Multicast(NULL, MULTICAST_ALL_R, NULL);
 	}
+}
+
+/**
+ * @brief
+ */
+static const char *Sv_GetConfigString(const uint16_t index) {
+
+	if (index >= MAX_CONFIG_STRINGS) {
+		Com_Warn("Bad index %u\n", index);
+		return NULL;
+	}
+
+	return sv.config_strings[index];
 }
 
 /*
@@ -233,6 +246,67 @@ static void Sv_Sound(const g_entity_t *ent, const uint16_t index, const uint16_t
 	Sv_PositionedSound(NULL, ent, index, atten);
 }
 
+static void *ai_handle;
+
+/**
+ * @brief
+ */
+static ai_export_t *Sv_LoadAi(ai_import_t *import) {
+
+	if (!*ai->string) {
+		return NULL;
+	}
+
+	svs.ai = (ai_export_t *) Sys_LoadLibrary("ai", &ai_handle, "Ai_LoadAi", import);
+
+	if (!svs.ai) {
+		Com_Warn("Failed to load AI module\n");
+		Sys_CloseLibrary(&ai_handle);
+		svs.ai = NULL;
+		return NULL;
+	}
+
+	if (svs.ai->api_version != AI_API_VERSION) {
+		Com_Warn("AI is version %i, not %i\n", svs.ai->api_version, AI_API_VERSION);
+		Sys_CloseLibrary(&ai_handle);
+		svs.ai = NULL;
+		return NULL;
+	}
+
+	svs.ai->Init();
+
+	Com_Print("AI initialized.\n");
+	Com_InitSubsystem(QUETOO_AI);
+
+	return svs.ai;
+}
+
+/**
+ * @brief Called when the AI needs to be killed.
+ */
+static void Sv_ShutdownAI(void) {
+
+	if (!svs.ai) {
+		return;
+	}
+
+	Com_Print("AI shutdown...\n");
+
+	svs.ai->Shutdown();
+	svs.ai = NULL;
+
+	Cmd_RemoveAll(CMD_AI);
+
+	// the game module code should call this, but lets not assume
+	Mem_FreeTag(MEM_TAG_AI);
+
+	Com_Print("AI down\n");
+	Com_QuitSubsystem(QUETOO_AI);
+
+	Sys_CloseLibrary(&ai_handle);
+}
+
+
 static void *game_handle;
 
 /**
@@ -286,8 +360,9 @@ void Sv_InitGame(void) {
 	import.TokenizeString = Cmd_TokenizeString;
 
 	import.Cbuf = Cbuf_AddText;
-
-	import.ConfigString = Sv_ConfigString;
+	
+	import.SetConfigString = Sv_SetConfigString;
+	import.GetConfigString = Sv_GetConfigString;
 
 	import.ModelIndex = Sv_ModelIndex;
 	import.SoundIndex = Sv_SoundIndex;
@@ -325,6 +400,8 @@ void Sv_InitGame(void) {
 	import.BroadcastPrint = Sv_BroadcastPrint;
 	import.ClientPrint = Sv_ClientPrint;
 
+	import.LoadAi = Sv_LoadAi;
+
 	svs.game = (g_export_t *) Sys_LoadLibrary("game", &game_handle, "G_LoadGame", &import);
 
 	if (!svs.game) {
@@ -351,6 +428,9 @@ void Sv_ShutdownGame(void) {
 	if (!svs.game) {
 		return;
 	}
+
+	// shutdown AI first
+	Sv_ShutdownAI();
 
 	Com_Print("Game shutdown...\n");
 

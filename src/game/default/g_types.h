@@ -387,8 +387,6 @@ typedef enum {
  */
 typedef struct {
 	g_armor_t tag;
-	int16_t base_count;
-	int16_t max_count;
 	vec_t normal_protection;
 	vec_t energy_protection;
 } g_armor_info_t;
@@ -455,6 +453,7 @@ typedef struct g_item_s {
 	const char *name; // for printing on pickup
 
 	uint16_t quantity; // for ammo: how much, for weapons: how much per shot
+	uint16_t max; // for ammo: max we can hold at once
 	const char *ammo; // for weapons: the ammo item name
 
 	g_item_type_t type; // g_item_type_t, see above
@@ -552,6 +551,10 @@ typedef struct {
 	g_client_t *clients; // [sv_max_clients]
 
 	g_spawn_temp_t spawn;
+
+	_Bool ai_loaded; // whether the AI is loaded or not
+	uint8_t ai_fill_slots; // total number of empty slots the AI should fill
+	uint8_t ai_left_to_spawn; // the number of AI bots that we're waiting to spawn in
 } g_game_t;
 
 extern g_game_t g_game;
@@ -630,8 +633,8 @@ typedef struct {
 	g_gameplay_t gameplay;
 	_Bool teams;
 	_Bool ctf;
-	_Bool hook_allowed;
 	_Bool match;
+	_Bool hook_allowed;
 	_Bool rounds;
 	int32_t frag_limit;
 	int32_t round_limit;
@@ -810,15 +813,6 @@ typedef struct {
 
 	int16_t inventory[MAX_ITEMS];
 
-	int16_t max_shells;
-	int16_t max_bullets;
-	int16_t max_grenades;
-	int16_t max_rockets;
-	int16_t max_cells;
-	int16_t max_bolts;
-	int16_t max_slugs;
-	int16_t max_nukes;
-
 	const g_item_t *weapon;
 	const g_item_t *prev_weapon;
 	const g_item_t *next_weapon;
@@ -963,8 +957,8 @@ typedef struct {
 	int32_t ground_contents;
 
 	int32_t water_type;
-	uint8_t old_water_level;
-	uint8_t water_level;
+	pm_water_level_t old_water_level;
+	pm_water_level_t water_level;
 
 	int32_t area_portal; // the area portal to toggle
 

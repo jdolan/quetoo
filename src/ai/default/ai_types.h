@@ -21,36 +21,60 @@
 
 #pragma once
 
-#include "mem.h"
 #include "game/game.h"
+#include "game/default/g_types.h"
 
-typedef struct {
-	g_import_t *gi;
-	g_export_t *ge;
-} ai_import_t;
+/**
+ * @brief Flags that bots use for its timing
+ */
+typedef enum {
+	AI_ITEM_AMMO			= (1 << 0), // will give ammo
+	AI_ITEM_ARMOR			= (1 << 1), // is armor
+	AI_ITEM_FLAG			= (1 << 2), // is a flag
+	AI_ITEM_HEALTH			= (1 << 3), // will restore health
+	AI_ITEM_POWERUP			= (1 << 4), // is powerup
+	AI_ITEM_WEAPON			= (1 << 5), // is a weapon
+
+	AI_WEAPON_PROJECTILE	= (1 << 16), // fires a projectile with "speed" speed
+	AI_WEAPON_HITSCAN		= (1 << 17), // fires hitscan shot(s)
+	AI_WEAPON_TIMED			= (1 << 18), // a holdable that must be thrown within "time" milliseconds
+	AI_WEAPON_EXPLOSIVE		= (1 << 19), // fires explosive shots (might hurt self),
+	AI_WEAPON_SHORT_RANGE	= (1 << 20), // weapon works at close range
+	AI_WEAPON_MED_RANGE		= (1 << 21), // weapon works at medium range
+	AI_WEAPON_LONG_RANGE	= (1 << 22) // weapon works at long range
+} ai_item_flags_t;
+
+/**
+ * @brief Forward declaration of item registration struct.
+ */
+typedef struct ai_item_s {
+	const char *class_name;
+	const char *name;
+	ai_item_flags_t flags;
+	uint16_t ammo; // index to item
+	g_weapon_tag_t tag;
+	vec_t priority;
+	uint16_t quantity;
+	uint16_t max;
+
+	int32_t speed; // used for projectile weapons
+	uint32_t time; // used for timing items (handgrenades)
+} ai_item_t;
 
 #ifdef __AI_LOCAL_H__
-
 typedef struct {
 	uint32_t frame_num;
 	uint32_t time;
+	g_gameplay_t gameplay;
+	_Bool teams;
+	_Bool ctf;
+	_Bool match;
 } ai_level_t;
 
 /**
  * @brief The default user info string (name and skin).
  */
 #define DEFAULT_BOT_INFO "\\name\\newbiebot\\skin\\qforcer/default"
-
-typedef struct {
-	GList *portals;
-} ai_path_t;
-
-typedef struct {
-	cm_bsp_plane_t *plane;
-	vec3_t mins;
-	vec3_t maxs;
-	GHashTable *paths;
-} ai_node_t;
 
 typedef enum {
 	AI_GOAL_NONE,
@@ -65,11 +89,7 @@ typedef struct {
 	ai_goal_type_t type;
 	vec_t priority;
 	uint32_t time; // time this goal was set
-	
-	union {
-		g_entity_t *ent; // for AI_GOAL_ITEM/ENEMY_TEAMMATE
-		ai_node_t *node; // for AI_GOAL_NAV
-	};
+	const g_entity_t *ent; // for AI_GOAL_ITEM/ENEMY_TEAMMATE
 } ai_goal_t;
 
 /**
@@ -81,13 +101,13 @@ typedef struct {
  * @brief A functional AI goal. It returns the amount of time to wait
  * until the goal should be run again.
  */
-typedef uint32_t (*G_AIGoalFunc)(g_entity_t *ent, pm_cmd_t *cmd);
+typedef uint32_t (*Ai_GoalFunc)(g_entity_t *ent, pm_cmd_t *cmd);
 
 /**
  * @brief A functional AI goal. 
  */
 typedef struct {
-	G_AIGoalFunc think;
+	Ai_GoalFunc think;
 	uint32_t nextthink;
 	uint32_t time; // time this funcgoal was added
 } ai_funcgoal_t;
@@ -103,6 +123,10 @@ typedef struct {
 typedef struct ai_locals_s {
 	ai_funcgoal_t funcgoals[MAX_AI_FUNCGOALS];
 
+	vec3_t last_origin;
+	vec3_t aim_forward; // calculated at start of thinking
+	vec3_t eye_origin; //  ^^^
+
 	// the AI can have two distinct targets: one it's aiming at,
 	// and one it's moving towards. These aren't pointers because
 	// the priority of an item/enemy might be different depending on
@@ -112,5 +136,9 @@ typedef struct ai_locals_s {
 
 	vec_t wander_angle;
 	vec3_t ghost_position;
+
+	uint32_t weapon_check_time;
+
+	uint32_t no_movement_frames;
 } ai_locals_t;
 #endif /* __AI_LOCAL_H__ */

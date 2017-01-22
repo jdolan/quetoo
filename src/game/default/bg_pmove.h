@@ -195,7 +195,7 @@ typedef struct {
 	struct g_entity_s *ground_entity; // (out)
 
 	int32_t water_type; // water type and level (out)
-	uint8_t water_level;
+	pm_water_level_t water_level;
 
 	vec_t step; // traversed step height (out)
 

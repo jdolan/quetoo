@@ -64,7 +64,7 @@ static mem_block_t *Mem_CheckMagic(void *p) {
 
 		mem_footer_t *footer = (mem_footer_t *) (((byte *) p) + b->size);
 
-		if (footer->magic != MEM_MAGIC) {
+		if (footer->magic != (MEM_MAGIC + b->size)) {
 			fprintf(stderr, "Invalid footer magic (%d) for %p\n", b->magic, p);
 			raise(SIGABRT);
 		}
@@ -172,7 +172,7 @@ static void *Mem_Malloc_(size_t size, mem_tag_t tag, void *parent) {
 	void *data = (void *) (b + 1);
 
 	mem_footer_t *footer = (mem_footer_t *) (((byte *) data) + size);
-	footer->magic = MEM_MAGIC;
+	footer->magic = MEM_MAGIC + b->size;
 
 	// insert it into the managed memory structures
 	SDL_mutexP(mem_state.lock);
@@ -257,7 +257,7 @@ void *Mem_Realloc(void *p, size_t size) {
 	void *data = (void *) (new_b + 1);
 
 	mem_footer_t *footer = (mem_footer_t *) (((byte *) data) + size);
-	footer->magic = MEM_MAGIC;
+	footer->magic = MEM_MAGIC + new_b->size;
 	
 	SDL_mutexP(mem_state.lock);
 

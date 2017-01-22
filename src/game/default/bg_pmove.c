@@ -460,7 +460,7 @@ static void Pm_Friction(void) {
 		if (pm->s.flags & PMF_ON_LADDER) {
 			friction = PM_FRICT_LADDER;
 		} else {
-			if (pm->water_level > 1) {
+			if (pm->water_level > WATER_FEET) {
 				friction = PM_FRICT_WATER;
 			} else {
 				if (pm->s.flags & PMF_ON_GROUND) {
@@ -514,7 +514,7 @@ static void Pm_Gravity(void) {
 
 	vec_t gravity = pm->s.gravity;
 
-	if (pm->water_level > 2) {
+	if (pm->water_level > WATER_WAIST) {
 		gravity *= PM_GRAVITY_WATER;
 	}
 
@@ -876,7 +876,8 @@ static void Pm_CheckGround(void) {
 static void Pm_CheckWater(void) {
 	vec3_t pos;
 
-	pm->water_level = pm->water_type = 0;
+	pm->water_level = WATER_NONE;
+	pm->water_type = 0;
 
 	VectorCopy(pm->s.origin, pos);
 	pos[2] = pm->s.origin[2] + pm->mins[2] + PM_GROUND_DIST;
@@ -885,7 +886,7 @@ static void Pm_CheckWater(void) {
 	if (contents & MASK_LIQUID) {
 
 		pm->water_type = contents;
-		pm->water_level = 1;
+		pm->water_level = WATER_FEET;
 
 		pos[2] = pm->s.origin[2];
 
@@ -894,7 +895,7 @@ static void Pm_CheckWater(void) {
 		if (contents & MASK_LIQUID) {
 
 			pm->water_type |= contents;
-			pm->water_level = 2;
+			pm->water_level = WATER_WAIST;
 
 			pos[2] = pm->s.origin[2] + pml.view_offset[2] + 1.0;
 
@@ -902,7 +903,7 @@ static void Pm_CheckWater(void) {
 
 			if (contents & MASK_LIQUID) {
 				pm->water_type |= contents;
-				pm->water_level = 3;
+				pm->water_level = WATER_UNDER;
 
 				pm->s.flags |= PMF_UNDER_WATER;
 			}
@@ -999,7 +1000,7 @@ static _Bool Pm_CheckJump(void) {
 	vec_t jump = PM_SPEED_JUMP;
 
 	// factoring in water level
-	if (pm->water_level > 1) {
+	if (pm->water_level > WATER_FEET) {
 		jump *= PM_SPEED_JUMP_MOD_WATER;
 	}
 
@@ -1077,7 +1078,7 @@ static _Bool Pm_CheckWaterJump(void) {
 		return false;
 	}
 
-	if (pm->water_level != 2) {
+	if (pm->water_level != WATER_WAIST) {
 		return false;
 	}
 
@@ -1247,7 +1248,7 @@ static void Pm_WaterMove(void) {
 
 	// disable water skiing
 	if (pm->s.type != PM_HOOK_PULL && pm->s.type != PM_HOOK_SWING) {
-		if (pm->water_level == 2) {
+		if (pm->water_level == WATER_WAIST) {
 			vec3_t view;
 
 			VectorAdd(pm->s.origin, pml.view_offset, view);
@@ -1330,7 +1331,7 @@ static void Pm_WalkMove(void) {
 	vec3_t forward, right, vel, dir;
 
 	if (Pm_CheckJump()) { // jumped away
-		if (pm->water_level > 1) {
+		if (pm->water_level > WATER_FEET) {
 			Pm_WaterMove();
 		} else {
 			Pm_AirMove();
@@ -1360,7 +1361,7 @@ static void Pm_WalkMove(void) {
 	speed = VectorNormalize(dir);
 
 	// clamp to max speed
-	if (pm->water_level > 1) {
+	if (pm->water_level > WATER_FEET) {
 		max_speed = PM_SPEED_WATER;
 	} else if (pm->s.flags & PMF_DUCKED) {
 		max_speed = PM_SPEED_DUCKED;
@@ -1462,7 +1463,8 @@ static void Pm_Init(void) {
 	VectorClear(pm->angles);
 
 	pm->num_touch_ents = 0;
-	pm->water_type = pm->water_level = 0;
+	pm->water_level = WATER_NONE;
+	pm->water_type = 0;
 
 	pm->step = 0.0;
 
@@ -1586,7 +1588,7 @@ void Pm_Move(pm_move_t *pm_move) {
 		Pm_LadderMove();
 	} else if (pm->s.flags & PMF_ON_GROUND) {
 		Pm_WalkMove();
-	} else if (pm->water_level > 1) {
+	} else if (pm->water_level > WATER_FEET) {
 		Pm_WaterMove();
 	} else {
 		Pm_AirMove();

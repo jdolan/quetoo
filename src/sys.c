@@ -192,7 +192,9 @@ void Sys_Backtrace(void) {
 
 	fflush(stderr);
 #elif defined(_MSC_VER)
+#if defined(_DEBUG)
 	DebugBreak();
+#endif
 	RaiseException(EXCEPTION_NONCONTINUABLE_EXCEPTION, EXCEPTION_NONCONTINUABLE, 0, NULL);
 #endif
 }

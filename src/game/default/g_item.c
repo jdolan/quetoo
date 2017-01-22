@@ -209,25 +209,9 @@ g_entity_t *G_TossQuadDamage(g_entity_t *ent) {
  */
 _Bool G_AddAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
 	uint16_t index;
-	int16_t max;
+	int16_t max = item->max;
 
-	if (item->tag == AMMO_SHELLS) {
-		max = ent->client->locals.max_shells;
-	} else if (item->tag == AMMO_BULLETS) {
-		max = ent->client->locals.max_bullets;
-	} else if (item->tag == AMMO_GRENADES) {
-		max = ent->client->locals.max_grenades;
-	} else if (item->tag == AMMO_ROCKETS) {
-		max = ent->client->locals.max_rockets;
-	} else if (item->tag == AMMO_CELLS) {
-		max = ent->client->locals.max_cells;
-	} else if (item->tag == AMMO_BOLTS) {
-		max = ent->client->locals.max_bolts;
-	} else if (item->tag == AMMO_SLUGS) {
-		max = ent->client->locals.max_slugs;
-	} else if (item->tag == AMMO_NUKES) {
-		max = ent->client->locals.max_nukes;
-	} else {
+	if (!max) {
 		return false;
 	}
 
@@ -249,25 +233,9 @@ _Bool G_AddAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
  */
 _Bool G_SetAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
 	uint16_t index;
-	int16_t max;
+	int16_t max = item->max;
 
-	if (item->tag == AMMO_SHELLS) {
-		max = ent->client->locals.max_shells;
-	} else if (item->tag == AMMO_BULLETS) {
-		max = ent->client->locals.max_bullets;
-	} else if (item->tag == AMMO_GRENADES) {
-		max = ent->client->locals.max_grenades;
-	} else if (item->tag == AMMO_ROCKETS) {
-		max = ent->client->locals.max_rockets;
-	} else if (item->tag == AMMO_CELLS) {
-		max = ent->client->locals.max_cells;
-	} else if (item->tag == AMMO_BOLTS) {
-		max = ent->client->locals.max_bolts;
-	} else if (item->tag == AMMO_SLUGS) {
-		max = ent->client->locals.max_slugs;
-	} else if (item->tag == AMMO_NUKES) {
-		max = ent->client->locals.max_nukes;
-	} else {
+	if (!max) {
 		return false;
 	}
 
@@ -388,9 +356,9 @@ static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
  */
 const g_armor_info_t *G_ArmorInfo(const g_item_t *armor) {
 	static const g_armor_info_t armor_info[] = {
-		{ ARMOR_BODY, 100, 200, 0.8, 0.6 },
-		{ ARMOR_COMBAT, 50, 100, 0.6, 0.3 },
-		{ ARMOR_JACKET, 25, 50, 0.3, 0.0 }
+		{ ARMOR_BODY, 0.8, 0.6 },
+		{ ARMOR_COMBAT, 0.6, 0.3 },
+		{ ARMOR_JACKET, 0.3, 0.0 }
 	};
 
 	if (!armor) {
@@ -444,7 +412,7 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 			const vec_t salvage = current_info->normal_protection / new_info->normal_protection;
 			const int16_t salvage_count = salvage * other->client->locals.inventory[ITEM_INDEX(current_armor)];
 
-			const int16_t new_count = Clamp(salvage_count + new_armor->quantity, 0, new_info->max_count);
+			const int16_t new_count = Clamp(salvage_count + new_armor->quantity, 0, new_armor->max);
 
 			if (new_count < other->locals.max_armor) {
 				other->client->locals.inventory[ITEM_INDEX(current_armor)] = 0;
@@ -460,7 +428,7 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 			const int16_t salvage_count = salvage * new_armor->quantity;
 
 			int16_t new_count = salvage_count + other->client->locals.inventory[ITEM_INDEX(current_armor)];
-			new_count = Clamp(new_count, 0, current_info->max_count);
+			new_count = Clamp(new_count, 0, current_armor->max);
 
 			// take it
 			if (other->client->locals.inventory[ITEM_INDEX(current_armor)] < new_count &&
@@ -950,7 +918,7 @@ void G_PrecacheItem(const g_item_t *it) {
 		return;
 	}
 
-	gi.ConfigString(CS_ITEMS + ITEM_INDEX(it), it->name);
+	gi.SetConfigString(CS_ITEMS + ITEM_INDEX(it), it->name);
 
 	if (it->pickup_sound) {
 		gi.SoundIndex(it->pickup_sound);
@@ -1069,6 +1037,7 @@ const g_item_t g_items[] = {
 		.icon = "pics/i_bodyarmor",
 		.name = "Body Armor",
 		.quantity = 100,
+		.max = 200,
 		.ammo = NULL,
 		.type = ITEM_ARMOR,
 		.tag = ARMOR_BODY,
@@ -1102,6 +1071,7 @@ const g_item_t g_items[] = {
 		.icon = "pics/i_combatarmor",
 		.name = "Combat Armor",
 		.quantity = 50,
+		.max = 100,
 		.ammo = NULL,
 		.type = ITEM_ARMOR,
 		.tag = ARMOR_COMBAT,
@@ -1135,6 +1105,7 @@ const g_item_t g_items[] = {
 		.icon = "pics/i_jacketarmor",
 		.name = "Jacket Armor",
 		.quantity = 25,
+		.max = 50,
 		.ammo = NULL,
 		.type = ITEM_ARMOR,
 		.tag = ARMOR_JACKET,
@@ -1454,25 +1425,25 @@ const g_item_t g_items[] = {
 	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
 	 -------- Radiant config --------
-	 model="models/weapons/lightning/tris."
+	 model="models/weapons/lightning/tris.obj"
 	 */
 	{
-		"weapon_lightning",
-		G_PickupWeapon,
-		G_UseWeapon,
-		G_DropWeapon,
-		G_FireLightning,
-		"weapons/common/pickup.wav",
-		"models/weapons/lightning/tris.obj",
-		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/w_lightning",
-		"Lightning",
-		1,
-		"Bolts",
-		ITEM_WEAPON,
-		WEAPON_LIGHTNING,
-		0.50,
-		"weapons/lightning/fire.wav weapons/lightning/fly.wav "
+		.class_name = "weapon_lightning",
+		.Pickup = G_PickupWeapon,
+		.Use = G_UseWeapon,
+		.Drop = G_DropWeapon,
+		.Think = G_FireLightning,
+		.pickup_sound = "weapons/common/pickup.wav",
+		.model = "models/weapons/lightning/tris.obj",
+		.effects = EF_ROTATE | EF_BOB | EF_PULSE,
+		.icon = "pics/w_lightning",
+		.name = "Lightning Gun",
+		.quantity = 1,
+		.ammo = "Bolts",
+		.type = ITEM_WEAPON,
+		.tag = WEAPON_LIGHTNING,
+		.priority = 0.50,
+		.precaches = "weapons/lightning/fire.wav weapons/lightning/fly.wav "
 		"weapons/lightning/discharge.wav"
 	},
 
@@ -1568,6 +1539,7 @@ const g_item_t g_items[] = {
 		.icon = "pics/a_shells",
 		.name = "Shells",
 		.quantity = 10,
+		.max = 80,
 		.ammo = NULL,
 		.type = ITEM_AMMO,
 		.tag = AMMO_SHELLS,
@@ -1601,6 +1573,7 @@ const g_item_t g_items[] = {
 		.icon = "pics/a_bullets",
 		.name = "Bullets",
 		.quantity = 50,
+		.max = 200,
 		.ammo = NULL,
 		.type = ITEM_AMMO,
 		.tag = AMMO_BULLETS,
@@ -1634,6 +1607,7 @@ const g_item_t g_items[] = {
 		.icon = "pics/a_handgrenades",
 		.name = "Grenades",
 		.quantity = 10,
+		.max = 50,
 		.ammo = "grenades",
 		.type = ITEM_AMMO,
 		.tag = AMMO_GRENADES,
@@ -1668,6 +1642,7 @@ const g_item_t g_items[] = {
 		.icon = "pics/a_rockets",
 		.name = "Rockets",
 		.quantity = 10,
+		.max = 50,
 		.ammo = NULL,
 		.type = ITEM_AMMO,
 		.tag = AMMO_ROCKETS,
@@ -1701,6 +1676,7 @@ const g_item_t g_items[] = {
 		.icon = "pics/a_cells",
 		.name = "Cells",
 		.quantity = 50,
+		.max = 200,
 		.ammo = NULL,
 		.type = ITEM_AMMO,
 		.tag = AMMO_CELLS,
@@ -1734,6 +1710,7 @@ const g_item_t g_items[] = {
 		.icon = "pics/a_bolts",
 		.name = "Bolts",
 		.quantity = 25,
+		.max = 150,
 		.ammo = NULL,
 		.type = ITEM_AMMO,
 		.tag = AMMO_BOLTS,
@@ -1767,6 +1744,7 @@ const g_item_t g_items[] = {
 		.icon = "pics/a_slugs",
 		.name = "Slugs",
 		.quantity = 10,
+		.max = 50,
 		.ammo = NULL,
 		.type = ITEM_AMMO,
 		.tag = AMMO_SLUGS,
@@ -1800,6 +1778,7 @@ const g_item_t g_items[] = {
 		.icon = "pics/a_nukes",
 		.name = "Nukes",
 		.quantity = 2,
+		.max = 10,
 		.ammo = NULL,
 		.type = ITEM_AMMO,
 		.tag = AMMO_NUKES,

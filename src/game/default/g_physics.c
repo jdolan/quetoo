@@ -86,7 +86,7 @@ static void G_CheckWater(g_entity_t *ent) {
 	const cm_trace_t tr = gi.Trace(pos, pos, mins, maxs, ent, MASK_LIQUID);
 
 	ent->locals.water_type = tr.contents;
-	ent->locals.water_level = ent->locals.water_type ? 1 : 0;
+	ent->locals.water_level = ent->locals.water_type ? WATER_FEET : WATER_NONE;
 
 	VectorScale(ent->locals.velocity, QUETOO_TICK_SECONDS, ent_frame_delta);
 	VectorSubtract(pos, ent_frame_delta, old_pos);

@@ -19,12 +19,32 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+#include "ai_local.h"
 
-#define __AI_LOCAL_H__
+ai_item_t ai_items[MAX_ITEMS];
+uint16_t ai_num_items;
+uint16_t ai_num_weapons;
 
-#include "ai.h"
+void Ai_RegisterItem(const uint16_t index, const ai_item_t *item) {
 
-#define Debug(...) Debug_(__func__, __VA_ARGS__)
-#define Error(...) Error_(__func__, __VA_ARGS__)
-#define Warn(...) Warn_(__func__, __VA_ARGS__)
+	if (index >= MAX_ITEMS) {
+		aim.Warn("Bad item ID for item\n");
+		return;
+	}
+
+	ai_num_items++;
+
+	if (item->flags & AI_ITEM_WEAPON) {
+		ai_num_weapons++;
+	}
+
+	memcpy(&ai_items[index], item, sizeof(ai_item_t));
+}
+
+uint16_t Ai_ItemIndex(const ai_item_t *item) {
+	return item - ai_items;
+}
+
+ai_item_t *Ai_ItemForGameItem(const g_item_t *item) {
+	return ai_items + aim.ItemIndex(item);
+}

@@ -840,7 +840,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 
 		if (!self->locals.water_level) {
 			gi.PositionedSound(water_start, NULL, g_media.sounds.water_in, ATTEN_NORM);
-			self->locals.water_level = 1;
+			self->locals.water_level = WATER_FEET;
 		}
 
 		tr = gi.Trace(water_start, end, NULL, NULL, self, MASK_CLIP_PROJECTILE);
@@ -850,7 +850,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 	} else {
 		if (self->locals.water_level) { // exited water, play sound, no trail
 			gi.PositionedSound(water_start, NULL, g_media.sounds.water_out, ATTEN_NORM);
-			self->locals.water_level = 0;
+			self->locals.water_level = WATER_NONE;
 		}
 	}
 

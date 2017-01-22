@@ -44,6 +44,7 @@ install-lib: install
 		-x $(BINDIR)/quetoo \
 		-x $(BINDIR)/quetoo-dedicated \
 		-x $(BINDIR)/quetoo-update \
+		-X $(LIBDIR)/default/ai.so \
 		-x $(LIBDIR)/default/cgame.so \
 		-x $(LIBDIR)/default/game.so \
 	-d $(LIBDIR) -of -p @executable_path/lib

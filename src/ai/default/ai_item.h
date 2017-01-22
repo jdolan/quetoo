@@ -24,9 +24,11 @@
 #include "ai_types.h"
 
 #ifdef __AI_LOCAL_H__
-void Ai_RemoveFuncGoal(g_entity_t *ent, G_AIGoalFunc func);
-void Ai_AddFuncGoal(g_entity_t *ent, G_AIGoalFunc func, uint32_t time_offset);
-void Ai_SetEntityGoal(ai_goal_t *goal, ai_goal_type_t type, vec_t priority, g_entity_t *entity);
-void Ai_CopyGoal(const ai_goal_t *from, ai_goal_t *to);
-void Ai_ClearGoal(ai_goal_t *goal);
-#endif /* __AI_LOCAL_H__ */
+	extern ai_item_t ai_items[];
+	extern uint16_t ai_num_items;
+	extern uint16_t ai_num_weapons;
+
+	void Ai_RegisterItem(const uint16_t index, const ai_item_t *item);
+	uint16_t Ai_ItemIndex(const ai_item_t *item);
+	ai_item_t *Ai_ItemForGameItem(const g_item_t *item);
+#endif

@@ -303,6 +303,16 @@ static void Sv_Connect_f(void) {
 		}
 	}
 
+	// no free slots, see if there's an AI slot ready to go. server will boot them.
+	if (!client) {
+		for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
+			if (cl->state == SV_CLIENT_FREE && cl->entity->ai) { // we have a free one
+				client = cl;
+				break;
+			}
+		}
+	}
+
 	// no soup for you, next!!
 	if (!client) {
 		Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nServer is full\n");

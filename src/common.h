@@ -31,6 +31,11 @@
 #define DEFAULT_GAME		"default"
 
 /**
+ * @brief The default ai module name.
+ */
+#define DEFAULT_AI			"default"
+
+/**
  * @brief The max length of any given output message (stdio).
  */
 #define MAX_PRINT_MSG		2048
@@ -167,6 +172,7 @@ void Com_Shutdown(const char *fmt, ...) __attribute__((noreturn, format(printf, 
 #define QUETOO_CLIENT		0x4
 #define QUETOO_CGAME		0x8
 #define QUETOO_MAPTOOL		0x10
+#define QUETOO_AI			0x20
 
 /**
  * @brief Global engine structure.
@@ -220,5 +226,6 @@ void Com_QuitSubsystem(uint32_t s);
 
 extern cvar_t *dedicated;
 extern cvar_t *game;
+extern cvar_t *ai;
 extern cvar_t *time_demo;
 extern cvar_t *time_scale;
