@@ -169,6 +169,11 @@ typedef struct cm_material_s {
 	vec_t specular;
 
 	/**
+	 * @brief The name for the footstep sounds to query on this surface
+	 */
+	char footsteps[MAX_QPATH];
+
+	/**
 	 * @brief Pointer to the first stage in the stage list. NOT an array;
 	 * be sure to use ->next to traverse.
 	 */

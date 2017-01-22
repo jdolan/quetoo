@@ -447,6 +447,13 @@ const char *Cm_EntityString(void) {
 }
 
 /**
+ * @brief
+ */
+const cm_material_t *Cm_MapMaterials(void) {
+	return cm_bsp.materials;
+}
+
+/**
  * @brief Parses values from the worldspawn entity definition.
  */
 const char *Cm_WorldspawnValue(const char *key) {

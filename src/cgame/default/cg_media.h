@@ -44,12 +44,14 @@
 	extern s_sample_t *cg_sample_teleport;
 	extern s_sample_t *cg_sample_respawn;
 	extern s_sample_t *cg_sample_sparks;
-	extern s_sample_t *cg_sample_footsteps[4];
+
 	extern s_sample_t *cg_sample_rain;
 	extern s_sample_t *cg_sample_snow;
 	extern s_sample_t *cg_sample_underwater;
 	extern s_sample_t *cg_sample_hits[2];
 	extern s_sample_t *cg_sample_gib;
+
+	s_sample_t *Cg_GetFootstepSample(const char *footsteps);
 
 	extern cg_particles_t *cg_particles_normal;
 	extern cg_particles_t *cg_particles_explosion;
