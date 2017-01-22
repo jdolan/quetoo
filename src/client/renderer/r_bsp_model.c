@@ -100,7 +100,7 @@ static void R_LoadBspLightmaps(r_bsp_model_t *bsp) {
  */
 static void R_LoadBspPlanes(r_bsp_model_t *bsp) {
 
-	bsp->plane_shadows = Mem_LinkMalloc(((bsp->file->num_planes / 2) + 1) * sizeof(uint16_t), bsp);
+	bsp->plane_shadows = Mem_LinkMalloc(bsp->file->num_planes * sizeof(uint16_t), bsp);
 }
 
 /**
