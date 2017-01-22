@@ -61,15 +61,12 @@ after_build:
 
     [Environment]::CurrentDirectory = $PWD
 
-    .\ARTIFACTS.ps1
-
     7z a ..\Quetoo-BETA-MSVC.zip Quetoo\
 
     Pop-Location
 
     [Environment]::CurrentDirectory = $PWD
 test: off
-deploy: off
 artifacts:
 - path: Quetoo-BETA-MSVC.zip
 on_finish:
@@ -80,9 +77,12 @@ on_finish:
 
     .\SYNC.ps1
 
+    .\AWS.ps1
+
     Pop-Location
 
     [Environment]::CurrentDirectory = $PWD
+deploy: off
 cache:
   - Quetoo.vs15\libs\curses\tmp.zip -> appveyor.yml
   - Quetoo.vs15\libs\glib\include\tmp.tar.xz -> appveyor.yml
