@@ -350,14 +350,14 @@ static void R_CastShadows(r_lighting_t *l, const r_illumination_t *il) {
 		r_shadow_t *s = l->shadows;
 		while (s->illumination) {
 
-			if (s->illumination == il && s->plane.num == tr.plane.num) {
-				s->shadow = Max(s->shadow, shadow);
-				break;
-			}
-
 			if (s - l->shadows == lengthof(l->shadows) - 1) {
 				Com_Debug(DEBUG_RENDERER, "Entity %u @ %s: MAX_SHADOWS\n", l->number, vtos(l->origin));
 				return;
+			}
+
+			if (s->illumination == il && s->plane.num == tr.plane.num) {
+				s->shadow = Max(s->shadow, shadow);
+				break;
 			}
 
 			s++;
