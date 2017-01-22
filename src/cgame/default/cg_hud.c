@@ -892,6 +892,5 @@ void Cg_DrawHud(const player_state_t *ps) {
  * @brief Clear HUD-related state.
  */
 void Cg_ClearHud(void) {
-
 	memset(&cg_hud_locals, 0, sizeof(cg_hud_locals));
 }
