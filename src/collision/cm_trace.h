@@ -31,10 +31,10 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const ve
                                   const matrix4x4_t *matrix, const matrix4x4_t *inverse_matrix);
 
 void Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angles,
-					 const vec3_t mins, const vec3_t maxs, vec_t *bounds_mins, vec_t *bounds_maxs);
+                     const vec3_t mins, const vec3_t maxs, vec_t *bounds_mins, vec_t *bounds_maxs);
 
 void Cm_TraceBounds(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-					vec_t *bounds_mins, vec_t *bounds_maxs);
+                    vec_t *bounds_mins, vec_t *bounds_maxs);
 
 #ifdef __CM_LOCAL_H__
 #endif /* __CM_LOCAL_H__ */

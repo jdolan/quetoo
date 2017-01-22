@@ -24,9 +24,9 @@
 #include "cl_types.h"
 
 #ifdef __CL_LOCAL_H__
-	void Cl_HttpDownload_Complete(void);
-	_Bool Cl_HttpDownload(void);
-	void Cl_HttpThink(void);
-	void Cl_InitHttp(void);
-	void Cl_ShutdownHttp(void);
+void Cl_HttpDownload_Complete(void);
+_Bool Cl_HttpDownload(void);
+void Cl_HttpThink(void);
+void Cl_InitHttp(void);
+void Cl_ShutdownHttp(void);
 #endif /* __CL_LOCAL_H__ */

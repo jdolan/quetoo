@@ -198,7 +198,7 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, vec_t size,
  * @brief Project a point laying on a mover as if it was moving.
  */
 static void G_ProjectStructuralPoint(const g_entity_t *mover, const vec3_t point, vec3_t out) {
-	
+
 	VectorCopy(point, out);
 
 	if (!VectorCompare(mover->locals.velocity, vec3_origin) || !VectorCompare(mover->locals.avelocity, vec3_origin)) {
@@ -210,7 +210,7 @@ static void G_ProjectStructuralPoint(const g_entity_t *mover, const vec3_t point
 
 		vec3_t inverse_amove;
 		VectorNegate(amove, inverse_amove);
-		
+
 		vec3_t forward, right, up;
 		AngleVectors(inverse_amove, forward, right, up);
 
@@ -408,7 +408,7 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
 		mod = self->locals.spawn_flags & HAND_GRENADE ? MOD_HANDGRENADE : MOD_GRENADE;
 
 		G_Damage(self->locals.enemy, self, self->owner, dir, self->s.origin, vec3_origin,
-				 (int16_t) d, (int16_t) k, DMG_RADIUS, mod);
+		         (int16_t) d, (int16_t) k, DMG_RADIUS, mod);
 	}
 
 	if (self->locals.spawn_flags & HAND_GRENADE) {
@@ -840,7 +840,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 
 		if (!self->locals.water_level) {
 			gi.PositionedSound(water_start, NULL, g_media.sounds.water_in, ATTEN_NORM);
-			self->locals.water_level = 1;
+			self->locals.water_level = WATER_FEET;
 		}
 
 		tr = gi.Trace(water_start, end, NULL, NULL, self, MASK_CLIP_PROJECTILE);
@@ -850,7 +850,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 	} else {
 		if (self->locals.water_level) { // exited water, play sound, no trail
 			gi.PositionedSound(water_start, NULL, g_media.sounds.water_out, ATTEN_NORM);
-			self->locals.water_level = 0;
+			self->locals.water_level = WATER_NONE;
 		}
 	}
 

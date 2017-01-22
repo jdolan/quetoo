@@ -499,6 +499,28 @@ void G_SpawnEntities(const char *name, const char *entities) {
 
 	g_strlcpy(g_level.name, name, sizeof(g_level.name));
 
+	// see if we have bots to keep
+	if (aix) {
+		g_game.ai_fill_slots = 0;
+		g_game.ai_left_to_spawn = 0;
+
+		if (g_ai_max_clients->integer) {
+			if (g_ai_max_clients->integer == -1) {
+				g_game.ai_fill_slots = sv_max_clients->integer;
+			} else {
+				g_game.ai_fill_slots = Clamp(g_ai_max_clients->integer, 0, sv_max_clients->integer);
+			}
+
+			g_game.ai_left_to_spawn = g_game.ai_fill_slots;
+		} else {
+			for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+				if (g_game.entities[i + 1].ai) {
+					g_game.ai_left_to_spawn++;
+				}
+			}
+		}
+	}
+
 	memset(g_game.entities, 0, g_max_entities->value * sizeof(g_entity_t));
 
 	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
@@ -583,7 +605,7 @@ static void G_WorldspawnMusic(void) {
 	if (*g_level.music == '\0') {
 		int32_t shuffle = Random();
 		for (i = 0; i < MAX_MUSICS; i++) {
-			gi.ConfigString(CS_MUSICS + i, va("track%d", ((i + shuffle) % MAX_MUSICS) + 1));
+			gi.SetConfigString(CS_MUSICS + i, va("track%d", ((i + shuffle) % MAX_MUSICS) + 1));
 		}
 		return;
 	}
@@ -604,7 +626,7 @@ static void G_WorldspawnMusic(void) {
 		}
 
 		if (*t != '\0') {
-			gi.ConfigString(CS_MUSICS + i++, g_strstrip(t));
+			gi.SetConfigString(CS_MUSICS + i++, g_strstrip(t));
 		}
 
 		t = strtok(NULL, ",");
@@ -652,29 +674,29 @@ static void G_worldspawn(g_entity_t *ent) {
 	{
 		g_strlcpy(g_level.title, g_level.name, sizeof(g_level.title));
 	}
-	gi.ConfigString(CS_NAME, g_level.title);
+	gi.SetConfigString(CS_NAME, g_level.title);
 
 	if (map && *map->sky) { // prefer maps.lst sky
-		gi.ConfigString(CS_SKY, map->sky);
+		gi.SetConfigString(CS_SKY, map->sky);
 	} else { // or fall back on worldspawn
 		if (g_game.spawn.sky && *g_game.spawn.sky) {
-			gi.ConfigString(CS_SKY, g_game.spawn.sky);
+			gi.SetConfigString(CS_SKY, g_game.spawn.sky);
 		} else
 			// or default to unit1_
 		{
-			gi.ConfigString(CS_SKY, "unit1_");
+			gi.SetConfigString(CS_SKY, "unit1_");
 		}
 	}
 
 	if (map && *map->weather) { // prefer maps.lst weather
-		gi.ConfigString(CS_WEATHER, map->weather);
+		gi.SetConfigString(CS_WEATHER, map->weather);
 	} else { // or fall back on worldspawn
 		if (g_game.spawn.weather && *g_game.spawn.weather) {
-			gi.ConfigString(CS_WEATHER, g_game.spawn.weather);
+			gi.SetConfigString(CS_WEATHER, g_game.spawn.weather);
 		} else
 			// or default to none
 		{
-			gi.ConfigString(CS_WEATHER, "none");
+			gi.SetConfigString(CS_WEATHER, "none");
 		}
 	}
 
@@ -699,7 +721,8 @@ static void G_worldspawn(g_entity_t *ent) {
 			g_level.gameplay = GAME_DEATHMATCH;
 		}
 	}
-	gi.ConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
+
+	gi.SetConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
 
 	if (map && map->teams > -1) { // prefer maps.lst teams
 		g_level.teams = map->teams;
@@ -741,9 +764,9 @@ static void G_worldspawn(g_entity_t *ent) {
 		g_level.teams = 0;
 	}
 
-	gi.ConfigString(CS_TEAMS, va("%d", g_level.teams));
-	gi.ConfigString(CS_CTF, va("%d", g_level.ctf));
-	gi.ConfigString(CS_HOOK_PULL_SPEED, g_hook_pull_speed->string);
+	gi.SetConfigString(CS_TEAMS, va("%d", g_level.teams));
+	gi.SetConfigString(CS_CTF, va("%d", g_level.ctf));
+	gi.SetConfigString(CS_HOOK_PULL_SPEED, g_hook_pull_speed->string);
 
 	if (map && map->match > -1) { // prefer maps.lst match
 		g_level.match = map->match;
@@ -769,8 +792,8 @@ static void G_worldspawn(g_entity_t *ent) {
 		g_level.match = 0;
 	}
 
-	gi.ConfigString(CS_MATCH, va("%d", g_level.match));
-	gi.ConfigString(CS_ROUNDS, va("%d", g_level.rounds));
+	gi.SetConfigString(CS_MATCH, va("%d", g_level.match));
+	gi.SetConfigString(CS_ROUNDS, va("%d", g_level.rounds));
 
 	if (map && map->frag_limit > -1) { // prefer maps.lst frag_limit
 		g_level.frag_limit = map->frag_limit;
@@ -836,8 +859,8 @@ static void G_worldspawn(g_entity_t *ent) {
 
 	G_WorldspawnMusic();
 
-	gi.ConfigString(CS_VOTE, "");
-	gi.ConfigString(CS_TEAM_GOOD, g_team_good.name);
-	gi.ConfigString(CS_TEAM_EVIL, g_team_evil.name);
+	gi.SetConfigString(CS_VOTE, "");
+	gi.SetConfigString(CS_TEAM_GOOD, g_team_good.name);
+	gi.SetConfigString(CS_TEAM_EVIL, g_team_evil.name);
 }
 

@@ -25,8 +25,8 @@
 
 #ifdef __CL_LOCAL_H__
 
-	void Cl_MouseButtonEvent(const SDL_Event *event);
-	void Cl_MouseWheelEvent(const SDL_Event *event);
-	void Cl_MouseMotionEvent(const SDL_Event *event);
+void Cl_MouseButtonEvent(const SDL_Event *event);
+void Cl_MouseWheelEvent(const SDL_Event *event);
+void Cl_MouseMotionEvent(const SDL_Event *event);
 
 #endif /* __CL_LOCAL_H__ */

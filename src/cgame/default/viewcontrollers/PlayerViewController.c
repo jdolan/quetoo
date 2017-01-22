@@ -159,7 +159,7 @@ static void initialize(Class *clazz) {
 Class *_PlayerViewController(void) {
 	static Class clazz;
 	static Once once;
-	
+
 	do_once(&once, {
 		clazz.name = "PlayerViewController";
 		clazz.superclass = _MenuViewController();

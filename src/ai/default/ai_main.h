@@ -21,12 +21,12 @@
 
 #pragma once
 
-#include "ai_types.h"
-
 #ifdef __AI_LOCAL_H__
-void Ai_RemoveFuncGoal(g_entity_t *ent, G_AIGoalFunc func);
-void Ai_AddFuncGoal(g_entity_t *ent, G_AIGoalFunc func, uint32_t time_offset);
-void Ai_SetEntityGoal(ai_goal_t *goal, ai_goal_type_t type, vec_t priority, g_entity_t *entity);
-void Ai_CopyGoal(const ai_goal_t *from, ai_goal_t *to);
-void Ai_ClearGoal(ai_goal_t *goal);
+extern cvar_t *ai_passive;
+extern ai_level_t ai_level;
+extern ai_import_t aim;
+extern ai_export_t aix;
+
+ai_locals_t *Ai_GetLocals(const g_entity_t *ent);
+ai_export_t *Ai_LoadAi(ai_import_t *import);
 #endif /* __AI_LOCAL_H__ */

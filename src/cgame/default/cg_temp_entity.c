@@ -65,9 +65,9 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 
 	cgi.AddSustainedLight(&(const r_sustained_light_t) {
 		.light.origin = { org[0] + dir[0], org[1] + dir[1], org[2] + dir[2] },
-		 .light.color = { c[0], c[1], c[2] },
-		  .light.radius = 150.0,
-		   .sustain = 250
+		       .light.color = { c[0], c[1], c[2] },
+		              .light.radius = 150.0,
+		                     .sustain = 250
 	});
 
 	cgi.AddStain(&(const r_stain_t) {
@@ -171,9 +171,9 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 
 	cgi.AddSustainedLight(&(const r_sustained_light_t) {
 		.light.origin = { org[0] + dir[0], org[1] + dir[1], org[2] + dir[2] },
-		 .light.color = { 0.5, 0.3, 0.2 },
-		  .light.radius = 20.0,
-		   .sustain = 250
+		       .light.color = { 0.5, 0.3, 0.2 },
+		              .light.radius = 20.0,
+		                     .sustain = 250
 	});
 
 	cgi.AddStain(&(const r_stain_t) {
@@ -350,9 +350,9 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 	cgi.AddSustainedLight(&(const r_sustained_light_t) {
 		.light.origin = { org[0], org[1], org[2] },
-		 .light.color = { 0.7, 0.5, 0.5 },
-		  .light.radius = 80.0,
-		   .sustain = 650
+		       .light.color = { 0.7, 0.5, 0.5 },
+		              .light.radius = 80.0,
+		                     .sustain = 650
 	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
@@ -470,9 +470,9 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	cgi.AddSustainedLight(&(const r_sustained_light_t) {
 		.light.origin = { org[0], org[1], org[2] },
-		 .light.color = { 0.8, 0.4, 0.2 },
-		  .light.radius = 200.0,
-		   .sustain = 1000
+		       .light.color = { 0.8, 0.4, 0.2 },
+		              .light.radius = 200.0,
+		                     .sustain = 1000
 	});
 
 	vec3_t c;
@@ -524,9 +524,9 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 
 	cgi.AddSustainedLight(&(const r_sustained_light_t) {
 		.light.origin = { org[0] + dir[0], org[1] + dir[1], org[2] + dir[2] },
-		 .light.color = { 0.4, 0.7, 1.0 },
-		  .light.radius = 80.0,
-		   .sustain = 250
+		       .light.color = { 0.4, 0.7, 1.0 },
+		              .light.radius = 80.0,
+		                     .sustain = 250
 	});
 
 	cgi.AddStain(&(const r_stain_t) {
@@ -561,9 +561,9 @@ static void Cg_LightningDischargeEffect(const vec3_t org) {
 
 	cgi.AddSustainedLight(&(const r_sustained_light_t) {
 		.light.origin = { org[0], org[1], org[2] },
-		 .light.color = { 0.6, 0.6, 1.0 },
-		  .light.radius = 160.0,
-		   .sustain = 750
+		       .light.color = { 0.6, 0.6, 1.0 },
+		              .light.radius = 160.0,
+		                     .sustain = 750
 	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
@@ -793,9 +793,9 @@ static void Cg_BfgEffect(const vec3_t org) {
 
 	cgi.AddSustainedLight(&(const r_sustained_light_t) {
 		.light.origin = { org[0], org[1], org[2] },
-		 .light.color = { 0.8, 1.0, 0.5 },
-		  .light.radius = 200.0,
-		   .sustain = 1000
+		       .light.color = { 0.8, 1.0, 0.5 },
+		              .light.radius = 200.0,
+		                     .sustain = 1000
 	});
 
 	vec3_t c;

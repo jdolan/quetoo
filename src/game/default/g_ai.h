@@ -24,10 +24,15 @@
 #include "g_types.h"
 #include "ai/ai.h"
 
-const vec_t *G_Ai_ViewAngles(g_entity_t *self);
-g_entity_t *G_Ai_GroundEntity(g_entity_t *self);
-
 #ifdef __GAME_LOCAL_H__
-	void G_Ai_Init(void);
-	void G_Ai_Shutdown(void);
+extern cvar_t *g_ai_max_clients;
+
+void G_Ai_RegisterItems(void);
+void G_Ai_SetClientLocals(g_client_t *client);
+void G_Ai_SetEntityLocals(g_entity_t *ent);
+void G_Ai_ClientConnect(g_entity_t *ent);
+void G_Ai_ClientDisconnect(g_entity_t *ent);
+void G_Ai_Init(void);
+void G_Ai_Shutdown(void);
+void G_Ai_Frame(void);
 #endif /* __GAME_LOCAL_H__ */

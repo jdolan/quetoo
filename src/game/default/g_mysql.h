@@ -24,7 +24,7 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
-	void G_MySQL_ClientObituary(const g_entity_t *self, const g_entity_t *attacker, const uint32_t mod);
-	void G_MySQL_Init(void);
-	void G_MySQL_Shutdown(void);
+void G_MySQL_ClientObituary(const g_entity_t *self, const g_entity_t *attacker, const uint32_t mod);
+void G_MySQL_Init(void);
+void G_MySQL_Shutdown(void);
 #endif /* __GAME_LOCAL_H__ */

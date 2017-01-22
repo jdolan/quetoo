@@ -44,7 +44,7 @@ static void Cl_ParsePlayerState(const cl_frame_t *delta_frame, cl_frame_t *frame
  * if the delta is invalid and the entity should be snapped to `to`.
  */
 static _Bool Cl_ValidDeltaEntity(const cl_frame_t *frame, const cl_entity_t *ent,
-								 const entity_state_t *from, const entity_state_t *to) {
+                                 const entity_state_t *from, const entity_state_t *to) {
 	vec3_t delta;
 
 	if (frame->delta_frame_num == -1) {
@@ -429,7 +429,7 @@ void Cl_Interpolate(void) {
 			}
 
 			Cm_EntityBounds(ent->current.solid, ent->current.origin, angles, ent->mins, ent->maxs,
-							ent->abs_mins, ent->abs_maxs);
+			                ent->abs_mins, ent->abs_maxs);
 
 			Matrix4x4_CreateFromEntity(&ent->matrix, ent->current.origin, angles, 1.0);
 			Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);

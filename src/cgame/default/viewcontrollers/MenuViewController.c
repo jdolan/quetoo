@@ -88,7 +88,7 @@ static void initialize(Class *clazz) {
 Class *_MenuViewController(void) {
 	static Class clazz;
 	static Once once;
-	
+
 	do_once(&once, {
 		clazz.name = "MenuViewController";
 		clazz.superclass = _ViewController();

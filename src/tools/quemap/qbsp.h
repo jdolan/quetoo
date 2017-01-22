@@ -192,7 +192,7 @@ void CreateBrush(int32_t brush_num);
 
 // csg.c
 brush_t *MakeBspBrushList(int32_t startbrush, int32_t endbrush, vec3_t clipmins,
-                              vec3_t clipmaxs);
+                          vec3_t clipmaxs);
 brush_t *ChopBrushes(brush_t *head);
 
 void WriteBrushMap(char *name, brush_t *list);

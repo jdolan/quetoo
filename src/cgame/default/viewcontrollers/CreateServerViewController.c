@@ -289,7 +289,7 @@ static void initialize(Class *clazz) {
 Class *_CreateServerViewController(void) {
 	static Class clazz;
 	static Once once;
-	
+
 	do_once(&once, {
 		clazz.name = "CreateServerViewController";
 		clazz.superclass = _MenuViewController();

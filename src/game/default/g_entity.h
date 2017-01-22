@@ -24,5 +24,5 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
-	void G_SpawnEntities(const char *name, const char *entities);
+void G_SpawnEntities(const char *name, const char *entities);
 #endif /* __GAME_LOCAL_H__ */

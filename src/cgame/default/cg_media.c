@@ -20,6 +20,7 @@
  */
 
 #include "cg_local.h"
+#include "collision/cmodel.h"
 
 s_sample_t *cg_sample_blaster_fire;
 s_sample_t *cg_sample_blaster_hit;
@@ -41,7 +42,6 @@ s_sample_t *cg_sample_explosion;
 s_sample_t *cg_sample_teleport;
 s_sample_t *cg_sample_respawn;
 s_sample_t *cg_sample_sparks;
-s_sample_t *cg_sample_footsteps[4];
 s_sample_t *cg_sample_rain;
 s_sample_t *cg_sample_snow;
 s_sample_t *cg_sample_underwater;
@@ -65,6 +65,105 @@ cg_particles_t *cg_particles_flame;
 cg_particles_t *cg_particles_spark;
 cg_particles_t *cg_particles_inactive;
 cg_particles_t *cg_particles_ripple[3];
+
+static GHashTable *cg_footstep_table;
+
+/**
+ * @brief Free callback for footstep table
+ */
+static void Cg_FootstepsTable_Destroy(gpointer value) {
+	g_array_free((GArray *) value, true);
+}
+
+/**
+ * @brief
+ */
+static void Cg_FootstepsTable_EnumerateFiles(const char *file, void *data) {
+
+	(*((size_t *) data))++;
+}
+
+/**
+ * @brief
+ */
+static void Cg_FootstepsTable_Load(const char *footsteps) {
+	GArray *sounds = (GArray *) g_hash_table_lookup(cg_footstep_table, footsteps);
+
+	if (sounds) { // already loaded
+		return;
+	}
+
+	size_t count = 0;
+	cgi.EnumerateFiles(va("players/common/step_%s_*", footsteps), Cg_FootstepsTable_EnumerateFiles, &count);
+
+	if (!count) {
+		cgi.Warn("Map has footsteps material %s but no sound files exist\n", footsteps);
+		return;
+	}
+
+	sounds = g_array_new(false, false, sizeof(s_sample_t *));
+
+	for (size_t i = 0; i < count; i++) {
+
+		char name[MAX_QPATH];
+		g_snprintf(name, sizeof(name), "#players/common/step_%s_%zd", footsteps, i + 1);
+
+		s_sample_t *sample = cgi.LoadSample(name);
+		sounds = g_array_append_val(sounds, sample);
+	}
+
+	g_hash_table_insert(cg_footstep_table, (gpointer) footsteps, sounds);
+}
+
+/**
+ * @brief Return a sample for the specified footstep type.
+ */
+s_sample_t *Cg_GetFootstepSample(const char *footsteps) {
+
+	if (!footsteps || !*footsteps) {
+		footsteps = "default";
+	}
+
+	GArray *sounds = (GArray *) g_hash_table_lookup(cg_footstep_table, footsteps);
+
+	if (!sounds) { // bad mapper!
+		cgi.Warn("Footstep sound %s not valid\n", footsteps);
+		return Cg_GetFootstepSample("default"); // this should never recurse
+	}
+
+	return g_array_index(sounds, s_sample_t *, Random() % sounds->len);
+}
+
+/**
+ * @brief Loads all of the footstep sounds for this map.
+ */
+static void Cg_InitFootsteps(void) {
+
+	if (cg_footstep_table) {
+		g_hash_table_destroy(cg_footstep_table);
+	}
+
+	cg_footstep_table = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Cg_FootstepsTable_Destroy);
+
+	// load the hardcoded default set
+	GArray *default_samples = g_array_new(false, false, sizeof(s_sample_t *));
+
+	default_samples = g_array_append_vals(default_samples, (const s_sample_t *[]) {
+		cgi.LoadSample("#players/common/step_1"),
+		               cgi.LoadSample("#players/common/step_2"),
+		               cgi.LoadSample("#players/common/step_3"),
+		               cgi.LoadSample("#players/common/step_4")
+	}, 4);
+
+	g_hash_table_insert(cg_footstep_table, "default", default_samples);
+
+	for (const cm_material_t *material = cgi.MapMaterials(); material; material = material->next) {
+
+		if (*material->footsteps) {
+			Cg_FootstepsTable_Load(material->footsteps);
+		}
+	}
+}
 
 /**
  * @brief Updates all media references for the client game.
@@ -115,10 +214,7 @@ void Cg_UpdateMedia(void) {
 		cg_sample_machinegun_hit[i] = cgi.LoadSample(name);
 	}
 
-	for (size_t i = 0; i < lengthof(cg_sample_footsteps); i++) {
-		g_snprintf(name, sizeof(name), "#players/common/step_%zd", i + 1);
-		cg_sample_footsteps[i] = cgi.LoadSample(name);
-	}
+	Cg_InitFootsteps();
 
 	Cg_InitParticles();
 

@@ -31,7 +31,8 @@ static void Cm_LoadBspPlanes(void) {
 	const int32_t num_planes = cm_bsp.bsp.num_planes;
 	const bsp_plane_t *in = cm_bsp.bsp.planes;
 
-	cm_bsp_plane_t *out = cm_bsp.planes = Mem_TagMalloc(sizeof(cm_bsp_plane_t) * (num_planes + 12), MEM_TAG_CMODEL); // extra for box hull
+	cm_bsp_plane_t *out = cm_bsp.planes = Mem_TagMalloc(sizeof(cm_bsp_plane_t) * (num_planes + 12),
+	                                      MEM_TAG_CMODEL); // extra for box hull
 
 	for (int32_t i = 0; i < num_planes; i++, in++, out++) {
 
@@ -54,7 +55,8 @@ static void Cm_LoadBspNodes(void) {
 	const int32_t num_nodes = cm_bsp.bsp.num_nodes;
 	const bsp_node_t *in = cm_bsp.bsp.nodes;
 
-	cm_bsp_node_t *out = cm_bsp.nodes = Mem_TagMalloc(sizeof(cm_bsp_node_t) * (num_nodes + 6), MEM_TAG_CMODEL); // extra for box hull
+	cm_bsp_node_t *out = cm_bsp.nodes = Mem_TagMalloc(sizeof(cm_bsp_node_t) * (num_nodes + 6),
+	                                    MEM_TAG_CMODEL); // extra for box hull
 
 	for (int32_t i = 0; i < num_nodes; i++, in++, out++) {
 
@@ -87,7 +89,7 @@ static void Cm_LoadBspSurfaces(void) {
 		Cm_MaterialName(material_name, material_name, sizeof(material_name));
 
 		for (cm_material_t *material = cm_bsp.materials; material; material = material->next) {
-			
+
 			if (!g_strcmp0(material->base, material_name)) {
 				out->material = material;
 				break;
@@ -104,7 +106,8 @@ static void Cm_LoadBspLeafs(void) {
 	const int32_t num_leafs = cm_bsp.bsp.num_leafs;
 	const bsp_leaf_t *in = cm_bsp.bsp.leafs;
 
-	cm_bsp_leaf_t *out = cm_bsp.leafs = Mem_TagMalloc(sizeof(cm_bsp_leaf_t) * (num_leafs + 1), MEM_TAG_CMODEL); // extra for box hull
+	cm_bsp_leaf_t *out = cm_bsp.leafs = Mem_TagMalloc(sizeof(cm_bsp_leaf_t) * (num_leafs + 1),
+	                                    MEM_TAG_CMODEL); // extra for box hull
 
 	for (int32_t i = 0; i < num_leafs; i++, in++, out++) {
 
@@ -128,7 +131,8 @@ static void Cm_LoadBspLeafBrushes(void) {
 	const int32_t num_leaf_brushes = cm_bsp.bsp.num_leaf_brushes;
 	const uint16_t *in = cm_bsp.bsp.leaf_brushes;
 
-	uint16_t *out = cm_bsp.leaf_brushes = Mem_TagMalloc(sizeof(uint16_t) * (num_leaf_brushes + 1), MEM_TAG_CMODEL); // extra for box hull
+	uint16_t *out = cm_bsp.leaf_brushes = Mem_TagMalloc(sizeof(uint16_t) * (num_leaf_brushes + 1),
+	                                      MEM_TAG_CMODEL); // extra for box hull
 
 	for (int32_t i = 0; i < num_leaf_brushes; i++, in++, out++) {
 
@@ -166,7 +170,8 @@ static void Cm_LoadBspBrushes(void) {
 	const int32_t num_brushes = cm_bsp.bsp.num_brushes;
 	const bsp_brush_t *in = cm_bsp.bsp.brushes;
 
-	cm_bsp_brush_t *out = cm_bsp.brushes = Mem_TagMalloc(sizeof(cm_bsp_brush_t) * (num_brushes + 1), MEM_TAG_CMODEL); // extra for box hull
+	cm_bsp_brush_t *out = cm_bsp.brushes = Mem_TagMalloc(sizeof(cm_bsp_brush_t) * (num_brushes + 1),
+	                                       MEM_TAG_CMODEL); // extra for box hull
 
 	for (int32_t i = 0; i < num_brushes; i++, in++, out++) {
 
@@ -186,12 +191,13 @@ static void Cm_LoadBspBrushSides(void) {
 	const int32_t num_brush_sides = cm_bsp.bsp.num_brush_sides;
 	const bsp_brush_side_t *in = cm_bsp.bsp.brush_sides;
 
-	cm_bsp_brush_side_t *out = cm_bsp.brush_sides = Mem_TagMalloc(sizeof(cm_bsp_brush_side_t) * (num_brush_sides + 6), MEM_TAG_CMODEL); // extra for box hull
+	cm_bsp_brush_side_t *out = cm_bsp.brush_sides = Mem_TagMalloc(sizeof(cm_bsp_brush_side_t) * (num_brush_sides + 6),
+	                           MEM_TAG_CMODEL); // extra for box hull
 
 	for (int32_t i = 0; i < num_brush_sides; i++, in++, out++) {
 
 		const int32_t p = in->plane_num;
-		
+
 		if (p >= cm_bsp.bsp.num_planes) {
 			Com_Error(ERROR_DROP, "Brush side %d has invalid plane %d\n", i, p);
 		}
@@ -207,7 +213,7 @@ static void Cm_LoadBspBrushSides(void) {
 			if (s >= cm_bsp.bsp.num_texinfo) {
 				Com_Error(ERROR_DROP, "Brush side %d has invalid surface %d\n", i, s);
 			}
-		
+
 			out->surface = &cm_bsp.texinfos[s];
 		}
 	}
@@ -332,7 +338,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	Cm_UnloadBspMaterials();
 
 	Bsp_UnloadLumps(&cm_bsp.bsp, BSP_LUMPS_ALL);
-	
+
 	// free dynamic memory
 	Mem_Free(cm_bsp.planes);
 	Mem_Free(cm_bsp.nodes);
@@ -357,7 +363,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 
 	// load the common BSP structure and the lumps we need
 	bsp_header_t *file;
-	
+
 	if (!Fs_Load(name, (void **) &file)) {
 		Com_Error(ERROR_DROP, "Couldn't load %s\n", name);
 	}
@@ -379,7 +385,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	if (size) {
 		cm_bsp.size = *size = Bsp_Size(file);
 	}
-	
+
 	g_strlcpy(cm_bsp.name, name, sizeof(cm_bsp.name));
 
 	Fs_Free(file);
@@ -444,6 +450,13 @@ int32_t Cm_NumModels(void) {
  */
 const char *Cm_EntityString(void) {
 	return cm_bsp.bsp.entity_string;
+}
+
+/**
+ * @brief
+ */
+const cm_material_t *Cm_MapMaterials(void) {
+	return cm_bsp.materials;
 }
 
 /**

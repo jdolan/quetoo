@@ -24,5 +24,5 @@
 #include "sv_types.h"
 
 #ifdef __SV_LOCAL_H__
-	void Sv_InitAdmin(void);
+void Sv_InitAdmin(void);
 #endif /* __SV_LOCAL_H__ */

@@ -549,6 +549,11 @@ cm_material_t *Cm_LoadMaterials(const char *path, size_t *count) {
 			}
 		}
 
+		if (!g_strcmp0(c, "footsteps")) {
+			const char *footsteps = ParseToken(&buffer);
+			g_strlcpy(m->footsteps, footsteps, sizeof(m->footsteps));
+		}
+
 		if (*c == '{' && in_material) {
 
 			cm_stage_t *s = (cm_stage_t *) Mem_LinkMalloc(sizeof(*s), m);
@@ -688,6 +693,11 @@ static void Cm_WriteMaterial_(const cm_material_t *material, file_t *file) {
 	}
 	if (material->specular != DEFAULT_BUMP) {
 		Fs_Print(file, "\tspecular %g\n", material->specular);
+	}
+
+	// if not empty/default, write footsteps
+	if (*material->footsteps && g_strcmp0(material->footsteps, "default")) {
+		Fs_Print(file, "\tfootsteps %s\n", material->footsteps);
 	}
 
 	// write stages

@@ -63,7 +63,7 @@ static _Bool R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 	// and convert to lightmap space
 	point_st[0] *= r_model_state.world->bsp->lightmap_scale;
 	point_st[1] *= r_model_state.world->bsp->lightmap_scale;
-	
+
 	// resolve the radius of the stain where it impacts the surface
 	const vec_t radius = sqrt(stain->radius * stain->radius - dist * dist);
 
@@ -79,7 +79,7 @@ static _Bool R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 	for (uint16_t t = 0; t < surf->lightmap_size[1]; t++) {
 
 		const vec_t delta_t = round(fabs(point_st[1] - t));
-		const vec_t delta_t_squared = delta_t * delta_t;
+		const vec_t delta_t_squared = delta_t *delta_t;
 
 		for (uint16_t s = 0; s < surf->lightmap_size[0]; s++, buffer += 3) {
 
@@ -277,7 +277,7 @@ void R_ResetStainmap(void) {
 			g_hash_table_insert(hash, surf->stainmap, lightmap);
 		}
 
-		const size_t offset = (surf->lightmap_t * surf->lightmap->width + surf->lightmap_s) * 3;
+		const size_t offset = (surf->lightmap_t *surf->lightmap->width + surf->lightmap_s) * 3;
 		const size_t stride = surf->lightmap->width * 3;
 
 		byte *lm = lightmap + offset;

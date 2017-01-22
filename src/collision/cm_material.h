@@ -132,7 +132,7 @@ typedef struct cm_material_s {
 	 * @brief The image to use for the diffuse map
 	 */
 	char diffuse[MAX_QPATH];
-	
+
 	/**
 	 * @brief The image to use for the normal map
 	 */
@@ -142,7 +142,7 @@ typedef struct cm_material_s {
 	 * @brief The image to use for the specular/shiny map
 	 */
 	char specularmap[MAX_QPATH];
-	
+
 	/**
 	 * @brief Flags for the material.
 	 */
@@ -167,6 +167,11 @@ typedef struct cm_material_s {
 	 * @brief The specular factor to use for the specular map.
 	 */
 	vec_t specular;
+
+	/**
+	 * @brief The name for the footstep sounds to query on this surface
+	 */
+	char footsteps[MAX_QPATH];
 
 	/**
 	 * @brief Pointer to the first stage in the stage list. NOT an array;

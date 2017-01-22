@@ -93,7 +93,7 @@ static void initialize(Class *clazz) {
 Class *_CvarTextView(void) {
 	static Class clazz;
 	static Once once;
-	
+
 	do_once(&once, {
 		clazz.name = "CvarTextView";
 		clazz.superclass = _TextView();

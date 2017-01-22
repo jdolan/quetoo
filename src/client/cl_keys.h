@@ -30,10 +30,10 @@ void Cl_Bind(SDL_Scancode key, const char *bind);
 
 #ifdef __CL_LOCAL_H__
 
-	void Cl_SetKeyDest(cl_key_dest_t dest);
-	void Cl_KeyEvent(const SDL_Event *event);
-	void Cl_WriteBindings(file_t *f);
-	void Cl_InitKeys(void);
-	void Cl_ShutdownKeys(void);
+void Cl_SetKeyDest(cl_key_dest_t dest);
+void Cl_KeyEvent(const SDL_Event *event);
+void Cl_WriteBindings(file_t *f);
+void Cl_InitKeys(void);
+void Cl_ShutdownKeys(void);
 
 #endif /* __CL_LOCAL_H__ */

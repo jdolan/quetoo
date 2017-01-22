@@ -97,7 +97,7 @@ static void initialize(Class *clazz) {
 Class *_CvarSlider(void) {
 	static Class clazz;
 	static Once once;
-	
+
 	do_once(&once, {
 		clazz.name = "CvarSlider";
 		clazz.superclass = _Slider();
