@@ -139,6 +139,7 @@ static void Ai_GetUserInfo(const g_entity_t *self, char *userinfo) {
 	g_strlcpy(userinfo, DEFAULT_BOT_INFO, MAX_USER_INFO_STRING);
 	SetUserInfo(userinfo, "skin", g_array_index(ai_skins, ai_skin_t, Random() % ai_skins->len));
 	SetUserInfo(userinfo, "color", va("%i", Random() % 256));
+	SetUserInfo(userinfo, "hand", va("%i", Random() % 3));
 	
 	if (ai_name_suffix == 0) {
 		SetUserInfo(userinfo, "name", ai_names[ai_name_index]);
