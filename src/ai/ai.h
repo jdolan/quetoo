@@ -102,7 +102,7 @@ typedef struct {
 	 */
 	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
 	                    const g_entity_t *skip, const int32_t contents);
-	
+
 	/**
 	 * @return The contents mask at the specific point. The point is tested
 	 * against the world as well as all solid entities.
@@ -136,7 +136,7 @@ typedef struct {
 	 */
 	size_t (*BoxEntities)(const vec3_t mins, const vec3_t maxs, g_entity_t **list, const size_t len,
 	                      const uint32_t type);
-	
+
 	/**
 	 * @brief Configuration strings are used to transmit arbitrary tokens such
 	 * as model names, skin names, team names and weather effects. See CS_GAME.
@@ -147,7 +147,7 @@ typedef struct {
 	 * @brief Query if two entities are on the same team
 	 */
 	_Bool (*OnSameTeam)(const g_entity_t *self, const g_entity_t *other);
-	
+
 	/**
 	 * @brief Called to issue a command from the bot
 	 */
@@ -197,7 +197,7 @@ typedef struct {
 	 * @brief Generate the user info for the specified bot.
 	 */
 	void (*GetUserInfo)(const g_entity_t *self, char *userinfo);
-	
+
 	/**
 	 * @brief Called to setup an AI's initial state.
 	 */

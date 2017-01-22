@@ -24,8 +24,8 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
-	#define DEFAULT_GRAVITY 800.0
-	void G_TouchOccupy(g_entity_t *ent);
-	void G_RunThink(g_entity_t *ent);
-	void G_RunEntity(g_entity_t *ent);
+#define DEFAULT_GRAVITY 800.0
+void G_TouchOccupy(g_entity_t *ent);
+void G_RunThink(g_entity_t *ent);
+void G_RunEntity(g_entity_t *ent);
 #endif /* __GAME_LOCAL_H__ */

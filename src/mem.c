@@ -258,7 +258,7 @@ void *Mem_Realloc(void *p, size_t size) {
 
 	mem_footer_t *footer = (mem_footer_t *) (((byte *) data) + size);
 	footer->magic = MEM_MAGIC + new_b->size;
-	
+
 	SDL_mutexP(mem_state.lock);
 
 	// re-seat us in our parent or in global hash list
@@ -269,7 +269,7 @@ void *Mem_Realloc(void *p, size_t size) {
 		g_hash_table_remove(mem_state.blocks, b);
 		g_hash_table_add(mem_state.blocks, new_b);
 	}
-	
+
 	mem_state.size -= old_size;
 	mem_state.size += size;
 
@@ -369,8 +369,8 @@ GArray *Mem_Stats(void) {
 
 	stat_array = g_array_append_vals(stat_array, &(const mem_stat_t) {
 		.tag = -1,
-		.size = mem_state.size,
-		.count = 0
+		 .size = mem_state.size,
+		  .count = 0
 	}, 1);
 
 	g_hash_table_iter_init(&it, mem_state.blocks);
@@ -392,8 +392,8 @@ GArray *Mem_Stats(void) {
 		if (stats == NULL) {
 			stat_array = g_array_append_vals(stat_array, &(const mem_stat_t) {
 				.tag = b->tag,
-				.size = Mem_CalculateBlockSize(b),
-				.count = 1
+				 .size = Mem_CalculateBlockSize(b),
+				  .count = 1
 			}, 1);
 		} else {
 			stats->size += Mem_CalculateBlockSize(b);

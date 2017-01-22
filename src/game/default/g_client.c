@@ -23,7 +23,7 @@
 #include "bg_pmove.h"
 
 /**
- * @brief Make a tasteless death announcement, insert a row into MySQL, and record scores. Side 
+ * @brief Make a tasteless death announcement, insert a row into MySQL, and record scores. Side
  * effects are the best!
  */
 static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
@@ -99,7 +99,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 		}
 
 		g_snprintf(buffer, sizeof(buffer), msg, self->client->locals.persistent.net_name,
-				   attacker->client->locals.persistent.net_name);
+		           attacker->client->locals.persistent.net_name);
 
 		if (friendy_fire) {
 			g_strlcat(buffer, " (^1TEAMKILL^7)", sizeof(buffer));
@@ -176,7 +176,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 				a = attacker->client->locals.inventory[ITEM_INDEX(armor)];
 			}
 			gi.ClientPrint(self, PRINT_MEDIUM, "%s had %d health and %d armor\n",
-						   attacker->client->locals.persistent.net_name, attacker->locals.health, a);
+			               attacker->client->locals.persistent.net_name, attacker->locals.health, a);
 		}
 	}
 
@@ -190,8 +190,8 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 			}
 
 			if ((g_level.teams || g_level.ctf) &&
-				self->client->locals.persistent.team &&
-				attacker->client->locals.persistent.team) {
+			        self->client->locals.persistent.team &&
+			        attacker->client->locals.persistent.team) {
 
 				if (friendy_fire) {
 					attacker->client->locals.persistent.team->score--;
@@ -319,7 +319,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 		ent->locals.velocity[0] += h * Randomc();
 		ent->locals.velocity[1] += h * Randomc();
 		ent->locals.velocity[2] += 100.0 + (h * Randomf());
-		
+
 		for (int32_t i = 0; i < 3; ++i) {
 			ent->locals.avelocity[i] = Randomc() * 100;
 			ent->s.angles[i] = Randomf() * 360;
@@ -351,7 +351,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 		self->locals.velocity[0] += h * Randomc();
 		self->locals.velocity[1] += h * Randomc();
 		self->locals.velocity[2] += 100.0 + (h * Randomf());
-		
+
 		for (int32_t i = 0; i < 3; ++i) {
 			self->locals.avelocity[i] = Randomc() * 100;
 			self->s.angles[i] = Randomf() * 360;
@@ -1142,7 +1142,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 
 	// combine name and skin into a config_string
 	gi.SetConfigString(CS_CLIENTS + (cl - g_game.clients),
-	                va("%s\\%s", cl->locals.persistent.net_name, cl->locals.persistent.skin));
+	                   va("%s\\%s", cl->locals.persistent.net_name, cl->locals.persistent.skin));
 
 	// set hand, if anything should go wrong, it defaults to 0 (centered)
 	cl->locals.persistent.hand = (g_hand_t) strtol(GetUserInfo(user_info, "hand"), NULL, 10);

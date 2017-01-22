@@ -587,8 +587,8 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 		cgi.AddStain(&(const r_stain_t) {
 			.origin = { end[0], end[1], end[2] },
-				.color = { 0.0, 0.0, 0.0, 0.33 },
-				.radius = 2.0
+			 .color = { 0.0, 0.0, 0.0, 0.33 },
+			  .radius = 2.0
 		});
 
 		ent->timestamp = cgi.client->unclamped_time + 64;
@@ -610,7 +610,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 	// lightning zaps!
 	for (i = 2 + Randomf() * 3; i >= 0; i--) {
-			
+
 		vec3_t forward, right, up;
 		vec3_t zap_start, zap_end;
 		const int32_t num_zaps = 3 + Randomf() * 3;
@@ -622,7 +622,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 		VectorMA(zap_start, Randomc() * 8.0, right, zap_start);
 
 		for (int32_t k = 0; k < num_zaps; k++) {
-			
+
 			VectorMA(zap_start, 1.0 + Randomf() * 1.0, forward, zap_end);
 
 			vec_t angle_change;

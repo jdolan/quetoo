@@ -163,7 +163,7 @@ static void initialize(Class *clazz) {
 Class *_BindTextView(void) {
 	static Class clazz;
 	static Once once;
-	
+
 	do_once(&once, {
 		clazz.name = "BindTextView";
 		clazz.superclass = _TextView();

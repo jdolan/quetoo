@@ -11,8 +11,8 @@ typedef struct {
 } bsp_lump_meta_t;
 
 #ifndef BSP_SIZEOF
-	#define BSP_SIZEOF(T, F) \
-		sizeof(*((T *) 0)->F)
+#define BSP_SIZEOF(T, F) \
+	sizeof(*((T *) 0)->F)
 #endif
 
 #define BSP_LUMP_NUM_STRUCT(n, m) \
@@ -59,7 +59,7 @@ static void Bsp_SwapPlanes(void *lump, const int32_t num) {
 	bsp_plane_t *plane = (bsp_plane_t *) lump;
 
 	for (int32_t i = 0; i < num; i++) {
-		
+
 		for (int32_t j = 0; j < 3; j++) {
 			plane->normal[j] = LittleFloat(plane->normal[j]);
 		}
@@ -117,12 +117,12 @@ static void Bsp_SwapNodes(void *lump, const int32_t num) {
 	for (int32_t i = 0; i < num; i++) {
 
 		node->plane_num = LittleLong(node->plane_num);
-		
+
 		for (int32_t j = 0; j < 3; j++) {
 			node->mins[j] = LittleShort(node->mins[j]);
 			node->maxs[j] = LittleShort(node->maxs[j]);
 		}
-		
+
 		node->children[0] = LittleLong(node->children[0]);
 		node->children[1] = LittleLong(node->children[1]);
 		node->first_face = LittleShort(node->first_face);
@@ -140,12 +140,12 @@ static void Bsp_SwapTexinfos(void *lump, const int32_t num) {
 	bsp_texinfo_t *texinfo = (bsp_texinfo_t *) lump;
 
 	for (int32_t i = 0; i < num; i++) {
-		
+
 		for (int32_t j = 0; j < 4; j++) {
 			texinfo->vecs[0][j] = LittleFloat(texinfo->vecs[0][j]);
 			texinfo->vecs[1][j] = LittleFloat(texinfo->vecs[1][j]);
 		}
-		
+
 		texinfo->flags = LittleLong(texinfo->flags);
 		texinfo->value = LittleLong(texinfo->value);
 		texinfo->next_texinfo = LittleLong(texinfo->next_texinfo);
@@ -233,9 +233,9 @@ static void Bsp_SwapLeafBrushes(void *lump, const int32_t num) {
 static void Bsp_SwapEdges(void *lump, const int32_t num) {
 
 	bsp_edge_t *edge = (bsp_edge_t *) lump;
-	
+
 	for (int32_t i = 0; i < num; i++) {
-		
+
 		edge->v[0] = LittleShort(edge->v[0]);
 		edge->v[1] = LittleShort(edge->v[1]);
 
@@ -249,9 +249,9 @@ static void Bsp_SwapEdges(void *lump, const int32_t num) {
 static void Bsp_SwapFaceEdges(void *lump, const int32_t num) {
 
 	int32_t *face_edge = (int32_t *) lump;
-	
+
 	for (int32_t i = 0; i < num; i++) {
-		
+
 		face_edge[i] = LittleLong(face_edge[i]);
 	}
 }
@@ -262,7 +262,7 @@ static void Bsp_SwapFaceEdges(void *lump, const int32_t num) {
 static void Bsp_SwapModels(void *lump, const int32_t num) {
 
 	bsp_model_t *model = (bsp_model_t *) lump;
-	
+
 	for (int32_t i = 0; i < num; i++) {
 
 		model->first_face = LittleLong(model->first_face);
@@ -285,9 +285,9 @@ static void Bsp_SwapModels(void *lump, const int32_t num) {
 static void Bsp_SwapBrushes(void *lump, const int32_t num) {
 
 	bsp_brush_t *brush = (bsp_brush_t *) lump;
-	
+
 	for (int32_t i = 0; i < num; i++) {
-		
+
 		brush->first_brush_side = LittleLong(brush->first_brush_side);
 		brush->num_sides = LittleLong(brush->num_sides);
 		brush->contents = LittleLong(brush->contents);
@@ -302,9 +302,9 @@ static void Bsp_SwapBrushes(void *lump, const int32_t num) {
 static void Bsp_SwapBrushSides(void *lump, const int32_t num) {
 
 	bsp_brush_side_t *brush_side = (bsp_brush_side_t *) lump;
-	
+
 	for (int32_t i = 0; i < num; i++) {
-		
+
 		brush_side->plane_num = LittleShort(brush_side->plane_num);
 		brush_side->surf_num = LittleShort(brush_side->surf_num);
 
@@ -318,9 +318,9 @@ static void Bsp_SwapBrushSides(void *lump, const int32_t num) {
 static void Bsp_SwapAreas(void *lump, const int32_t num) {
 
 	bsp_area_t *area = (bsp_area_t *) lump;
-	
+
 	for (int32_t i = 0; i < num; i++) {
-		
+
 		area->num_area_portals = LittleLong(area->num_area_portals);
 		area->first_area_portal = LittleLong(area->first_area_portal);
 
@@ -334,9 +334,9 @@ static void Bsp_SwapAreas(void *lump, const int32_t num) {
 static void Bsp_SwapAreaPortals(void *lump, const int32_t num) {
 
 	bsp_area_portal_t *area_portal = (bsp_area_portal_t *) lump;
-	
+
 	for (int32_t i = 0; i < num; i++) {
-		
+
 		area_portal->portal_num = LittleLong(area_portal->portal_num);
 		area_portal->other_area = LittleLong(area_portal->other_area);
 
@@ -350,9 +350,9 @@ static void Bsp_SwapAreaPortals(void *lump, const int32_t num) {
 static void Bsp_SwapNormals(void *lump, const int32_t num) {
 
 	bsp_normal_t *normal = (bsp_normal_t *) lump;
-	
+
 	for (int32_t i = 0; i < num; i++) {
-		
+
 		for (int32_t j = 0; j < 3; j++) {
 			normal->normal[j] = LittleFloat(normal->normal[j]);
 		}
@@ -416,7 +416,7 @@ int32_t Bsp_Verify(const bsp_header_t *file) {
  * @brief Read the lump length/offset from the BSP file.
  */
 static void Bsp_GetLumpPosition(const bsp_header_t *file, const bsp_lump_id_t lump_id, d_bsp_lump_t *lump) {
-	
+
 	*lump = file->lumps[lump_id];
 	lump->file_len = LittleLong(lump->file_len);
 	lump->file_ofs = LittleLong(lump->file_ofs);
@@ -448,7 +448,7 @@ static _Bool Bsp_GetLumpOffsets(const bsp_file_t *bsp, const bsp_lump_id_t lump_
 	bsp_lump_meta_t *meta = &bsp_lump_meta[lump_id];
 
 	if (!meta->type_size) {
-		
+
 		if (num) {
 			*num = LUMP_SKIPPED;
 		}
@@ -475,7 +475,7 @@ _Bool Bsp_LumpLoaded(const bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
 	return bsp->loaded_lumps & (bsp_lump_id_t) (1 << lump_id);
 }
 
-/** 
+/**
  * @brief Unloads the specified lump from memory.
  */
 void Bsp_UnloadLump(bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
@@ -483,7 +483,7 @@ void Bsp_UnloadLump(bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
 	if (!Bsp_LumpLoaded(bsp, lump_id)) {
 		return;
 	}
-	
+
 	int32_t *lump_count;
 	void **lump_data;
 
@@ -513,7 +513,7 @@ void Bsp_UnloadLump(bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
 void Bsp_UnloadLumps(bsp_file_t *bsp, const bsp_lump_id_t lump_bits) {
 
 	for (bsp_lump_id_t i = BSP_LUMP_ENTITIES; i < BSP_TOTAL_LUMPS; i++) {
-	
+
 		if (lump_bits & (bsp_lump_id_t) (i << 1)) {
 			Bsp_UnloadLump(bsp, i);
 		}
@@ -540,7 +540,7 @@ _Bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_
 
 	// unload the lump if we're already loaded
 	Bsp_UnloadLump(bsp, lump_id);
-	
+
 	// find the lump in the file
 	d_bsp_lump_t lump;
 	Bsp_GetLumpPosition(file, lump_id, &lump);
@@ -548,13 +548,15 @@ _Bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_
 	const size_t lump_type_size = bsp_lump_meta[lump_id].type_size;
 
 	if (lump.file_len % lump_type_size) {
-		Com_Error(ERROR_DROP, "Lump (%i) size (%i) doesn't match expected data type (%" PRIuPTR ")\n", lump_id, lump.file_len, lump_type_size);
+		Com_Error(ERROR_DROP, "Lump (%i) size (%i) doesn't match expected data type (%" PRIuPTR ")\n", lump_id, lump.file_len,
+		          lump_type_size);
 	}
 
 	*lump_count = lump.file_len / lump_type_size;
 
 	if (*lump_count >= (int32_t) bsp_lump_meta[lump_id].max_count) {
-		Com_Error(ERROR_DROP, "Lump (%i) count (%i) exceeds max (%" PRIuPTR ")\n", lump_id, *lump_count, bsp_lump_meta[lump_id].max_count);
+		Com_Error(ERROR_DROP, "Lump (%i) count (%i) exceeds max (%" PRIuPTR ")\n", lump_id, *lump_count,
+		          bsp_lump_meta[lump_id].max_count);
 	}
 
 	*lump_data = Mem_TagMalloc(lump.file_len, MEM_TAG_BSP);
@@ -586,7 +588,7 @@ _Bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_
 _Bool Bsp_LoadLumps(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_bits) {
 
 	for (bsp_lump_id_t i = BSP_LUMP_ENTITIES; i < BSP_TOTAL_LUMPS; i++) {
-	
+
 		if (lump_bits & (bsp_lump_id_t) (1 << i)) {
 			if (!Bsp_LoadLump(file, bsp, i)) {
 				return false;
@@ -636,7 +638,7 @@ void Bsp_AllocLump(bsp_file_t *bsp, const bsp_lump_id_t lump_id, const size_t co
  * position of the file.
  */
 void Bsp_Write(file_t *file, const bsp_file_t *bsp, const int32_t version) {
-	
+
 	// create the header
 	bsp_header_t header;
 

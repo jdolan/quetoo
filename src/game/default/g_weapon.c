@@ -355,7 +355,7 @@ void G_ClientWeaponThink(g_entity_t *ent) {
 			ent->client->locals.next_weapon = NULL;
 			G_SetAnimation(ent, ANIM_TORSO_STAND1, false);
 
-		// if the attack animation is complete, go back to standing
+			// if the attack animation is complete, go back to standing
 		} else if (G_IsAnimation(ent, ANIM_TORSO_ATTACK1)) {
 			if (g_level.time - ent->client->locals.weapon_fired_time > 400) {
 				G_SetAnimation(ent, ANIM_TORSO_STAND1, false);

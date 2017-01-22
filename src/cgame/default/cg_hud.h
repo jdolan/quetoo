@@ -24,7 +24,7 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
-	void Cg_ParseCenterPrint(void);
-	void Cg_DrawHud(const player_state_t *ps);
-	void Cg_ClearHud(void);
+void Cg_ParseCenterPrint(void);
+void Cg_DrawHud(const player_state_t *ps);
+void Cg_ClearHud(void);
 #endif /* __CG_LOCAL_H__ */

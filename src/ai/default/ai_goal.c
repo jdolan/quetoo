@@ -30,7 +30,7 @@ void Ai_AddFuncGoal(g_entity_t *ent, Ai_GoalFunc func, uint32_t time_offset) {
 
 	for (int32_t i = 0; i < MAX_AI_FUNCGOALS; i++) {
 		ai_funcgoal_t *funcgoal = &ai->funcgoals[i];
-		
+
 		if (funcgoal->think) {
 			continue;
 		}
@@ -52,7 +52,7 @@ void Ai_RemoveFuncGoal(g_entity_t *ent, Ai_GoalFunc func) {
 
 	for (int32_t i = 0; i < MAX_AI_FUNCGOALS; i++) {
 		ai_funcgoal_t *funcgoal = &ai->funcgoals[i];
-		
+
 		if (funcgoal->think != func) {
 			continue;
 		}

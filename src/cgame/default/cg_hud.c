@@ -62,7 +62,7 @@ typedef struct {
 	// pickup
 	uint32_t last_pulse_time;
 	int16_t pickup_pulse;
-		
+
 	// damage
 	uint32_t last_hit_sound_time;
 
@@ -739,7 +739,8 @@ static void Cg_AddBlendPalette(vec4_t blend, const uint8_t color, const vec_t al
  * @param blend_decay_time The length of the blend in milliseconds.
  * @param blend_alpha The base alpha value.
  */
-static vec_t Cg_CalculateBlendAlpha(const uint32_t blend_start_time, const uint32_t blend_decay_time, const vec_t blend_alpha) {
+static vec_t Cg_CalculateBlendAlpha(const uint32_t blend_start_time, const uint32_t blend_decay_time,
+                                    const vec_t blend_alpha) {
 
 	if ((cgi.client->unclamped_time - blend_start_time) <= blend_decay_time) {
 		const vec_t time_factor = (vec_t) (cgi.client->unclamped_time - blend_start_time) / blend_decay_time;
@@ -760,7 +761,7 @@ static vec_t Cg_CalculateBlendAlpha(const uint32_t blend_start_time, const uint3
  * @brief Draw a full-screen blend effect based on world interaction.
  */
 static void Cg_DrawBlend(const player_state_t *ps) {
-	
+
 	if (!cg_draw_blend->value) {
 		return;
 	}
@@ -782,7 +783,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 
 		Cg_AddBlendPalette(blend, color, 0.3);
 	}
-	 
+
 	// add supplementary blends.
 	// pickups
 	const int16_t p = ps->stats[STAT_PICKUP_ICON] & ~STAT_TOGGLE_BIT;
@@ -792,9 +793,10 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	}
 
 	cg_hud_locals.pickup = p;
-			
+
 	if (cg_hud_locals.last_pickup_time) {
-		Cg_AddBlendPalette(blend, 215, Cg_CalculateBlendAlpha(cg_hud_locals.last_pickup_time, CG_PICKUP_BLEND_TIME, CG_PICKUP_BLEND_ALPHA));
+		Cg_AddBlendPalette(blend, 215, Cg_CalculateBlendAlpha(cg_hud_locals.last_pickup_time, CG_PICKUP_BLEND_TIME,
+		                   CG_PICKUP_BLEND_ALPHA));
 	}
 
 	// taken damage
@@ -805,7 +807,8 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	}
 
 	if (cg_hud_locals.last_damage_time) {
-		Cg_AddBlendPalette(blend, 240, Cg_CalculateBlendAlpha(cg_hud_locals.last_damage_time, CG_DAMAGE_BLEND_TIME, CG_DAMAGE_BLEND_ALPHA));
+		Cg_AddBlendPalette(blend, 240, Cg_CalculateBlendAlpha(cg_hud_locals.last_damage_time, CG_DAMAGE_BLEND_TIME,
+		                   CG_DAMAGE_BLEND_ALPHA));
 	}
 
 	// if we have a blend, draw it

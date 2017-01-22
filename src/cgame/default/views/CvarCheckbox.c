@@ -99,7 +99,7 @@ static void initialize(Class *clazz) {
 Class *_CvarCheckbox(void) {
 	static Class clazz;
 	static Once once;
-	
+
 	do_once(&once, {
 		clazz.name = "CvarCheckbox";
 		clazz.superclass = _Checkbox();

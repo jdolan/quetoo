@@ -514,7 +514,7 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const ve
  * @remarks BSP entities have asymmetrical bounding boxes, requiring special attention.
  */
 void Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angles,
-					 const vec3_t mins, const vec3_t maxs, vec_t *bounds_mins, vec_t *bounds_maxs) {
+                     const vec3_t mins, const vec3_t maxs, vec_t *bounds_mins, vec_t *bounds_maxs) {
 
 	if (solid == SOLID_BSP && !VectorCompare(angles, vec3_origin)) {
 		vec_t max = 0.0;
@@ -559,7 +559,7 @@ void Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angl
  * @param bounds_maxs The resulting bounds maxs, in world space.
  */
 void Cm_TraceBounds(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-						   vec_t *bounds_mins, vec_t *bounds_maxs) {
+                    vec_t *bounds_mins, vec_t *bounds_maxs) {
 
 	for (int32_t i = 0; i < 3; i++) {
 		if (end[i] > start[i]) {

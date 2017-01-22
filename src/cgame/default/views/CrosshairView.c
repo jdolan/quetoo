@@ -151,7 +151,7 @@ static void initialize(Class *clazz) {
 Class *_CrosshairView(void) {
 	static Class clazz;
 	static Once once;
-	
+
 	do_once(&once, {
 		clazz.name = "CrosshairView";
 		clazz.superclass = _View();

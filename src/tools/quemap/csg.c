@@ -127,7 +127,7 @@ static int32_t maxplane_nums[3];
  * ===============
  */
 static brush_t *ClipBrushToBox(brush_t *brush, vec3_t clipmins,
-                                   vec3_t clipmaxs) {
+                               vec3_t clipmaxs) {
 	int32_t i, j;
 	brush_t *front, *back;
 	int32_t p;
@@ -176,7 +176,7 @@ static brush_t *ClipBrushToBox(brush_t *brush, vec3_t clipmins,
  * ===============
  */
 brush_t *MakeBspBrushList(int32_t startbrush, int32_t endbrush, vec3_t clipmins,
-                              vec3_t clipmaxs) {
+                          vec3_t clipmaxs) {
 	brush_t *brushlist, *newbrush;
 	int32_t i, j;
 	int32_t c_faces;

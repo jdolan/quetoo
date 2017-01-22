@@ -132,7 +132,7 @@ typedef struct cm_material_s {
 	 * @brief The image to use for the diffuse map
 	 */
 	char diffuse[MAX_QPATH];
-	
+
 	/**
 	 * @brief The image to use for the normal map
 	 */
@@ -142,7 +142,7 @@ typedef struct cm_material_s {
 	 * @brief The image to use for the specular/shiny map
 	 */
 	char specularmap[MAX_QPATH];
-	
+
 	/**
 	 * @brief Flags for the material.
 	 */

@@ -35,5 +35,5 @@ _Bool Cm_HeadnodeVisible(const int32_t head_node, const byte *vis);
 extern _Bool cm_no_areas;
 
 #ifdef __CM_LOCAL_H__
-	void Cm_FloodAreas(void);
+void Cm_FloodAreas(void);
 #endif /* __CM_LOCAL_H__ */

@@ -66,7 +66,7 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 static void R_LoadBspNormals(r_bsp_model_t *bsp) {
 
 	const bsp_normal_t *in = bsp->file->normals;
-	
+
 	if (bsp->file->num_normals != r_unique_vertices.num_vertexes) { // ensure sane normals count
 		Com_Error(ERROR_DROP, "Bad count (%d != %d)\n", bsp->file->num_normals, r_unique_vertices.num_vertexes);
 	}
@@ -117,7 +117,7 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
 
 	for (uint16_t i = 0; i < bsp->num_texinfo; i++, in++, out++) {
 		g_strlcpy(out->name, in->texture, sizeof(out->name));
-		
+
 		Vector4Copy(in->vecs[0], out->vecs[0]);
 		Vector4Copy(in->vecs[1], out->vecs[1]);
 
@@ -271,7 +271,7 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
  * deluxemap creation is driven by this function.
  */
 static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
-	
+
 	static r_bsp_texinfo_t null_texinfo;
 
 	r_bsp_surface_t *out;
@@ -1032,7 +1032,7 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 
 	Cl_LoadingProgress(50, "lights");
 	R_LoadBspLights(mod->bsp);
-	
+
 	Cl_LoadingProgress(52, "inline models");
 	R_SetupBspInlineModels(mod);
 

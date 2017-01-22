@@ -279,7 +279,7 @@ static void MemStats_f(void) {
 	if (sum != reported_total) {
 		Com_Print("WARNING: %zd bytes summed vs %zd bytes reported!\n", sum, reported_total);
 	}
-	
+
 	Com_Print(" [console] approx. %zd bytes - approx. %zd blocks\n", console_state.size, console_state.strings.length);
 
 	g_array_free(stats, true);

@@ -400,7 +400,7 @@ typedef struct cg_import_s {
 	 * @return The entities string for the currently loaded level.
 	 */
 	const char *(*EntityString)(void);
-	
+
 	/**
 	 * @return The materials for the currently loaded level.
 	 */

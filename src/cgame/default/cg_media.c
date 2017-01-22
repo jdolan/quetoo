@@ -144,15 +144,15 @@ static void Cg_InitFootsteps(void) {
 	}
 
 	cg_footstep_table = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Cg_FootstepsTable_Destroy);
-	
+
 	// load the hardcoded default set
 	GArray *default_samples = g_array_new(false, false, sizeof(s_sample_t *));
 
 	default_samples = g_array_append_vals(default_samples, (const s_sample_t *[]) {
 		cgi.LoadSample("#players/common/step_1"),
-		cgi.LoadSample("#players/common/step_2"),
-		cgi.LoadSample("#players/common/step_3"),
-		cgi.LoadSample("#players/common/step_4")
+		               cgi.LoadSample("#players/common/step_2"),
+		               cgi.LoadSample("#players/common/step_3"),
+		               cgi.LoadSample("#players/common/step_4")
 	}, 4);
 
 	g_hash_table_insert(cg_footstep_table, "default", default_samples);

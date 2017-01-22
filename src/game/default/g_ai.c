@@ -35,7 +35,7 @@ static uint16_t G_Ai_ItemIndex(const g_item_t *item) {
  * @brief
  */
 static _Bool G_Ai_CanPickupItem(const g_entity_t *self, const g_item_t *item) {
-	
+
 	if (item->type == ITEM_HEALTH) {
 		// stimpack/mega is always gettable
 		if (item->tag == HEALTH_SMALL || item->tag == HEALTH_MEGA) {
@@ -48,8 +48,8 @@ static _Bool G_Ai_CanPickupItem(const g_entity_t *self, const g_item_t *item) {
 
 		// no armor or shard or not filled up, can get.
 		if (!current_armor ||
-			item->tag == ARMOR_SHARD ||
-			self->client->locals.inventory[ITEM_INDEX(current_armor)] < current_armor->max) {
+		        item->tag == ARMOR_SHARD ||
+		        self->client->locals.inventory[ITEM_INDEX(current_armor)] < current_armor->max) {
 			return true;
 		}
 
@@ -104,7 +104,7 @@ void G_Ai_SetClientLocals(g_client_t *client) {
  * @brief
  */
 void G_Ai_SetEntityLocals(g_entity_t *ent) {
-	
+
 	ent->ai_locals.ground_entity = &ent->locals.ground_entity;
 	ent->ai_locals.item = &ent->locals.item;
 	ent->ai_locals.velocity = ent->locals.velocity;
@@ -140,7 +140,7 @@ static void G_Ai_Spawn(g_entity_t *self, const uint32_t time_offset) {
 	G_ClientConnect(self, userinfo);
 
 	self->ai = true; // and away we go!
-	
+
 	if (!time_offset) {
 		G_Ai_ClientBegin(self);
 	} else {
@@ -225,7 +225,7 @@ static void G_Ai_RemoveBots(const int32_t count) {
 	if (!clamped) {
 		return;
 	}
-	
+
 	while (clamped) {
 		g_entity_t *ent = &g_game.entities[1];
 		int32_t j;
@@ -246,7 +246,7 @@ static void G_Ai_RemoveBots(const int32_t count) {
  */
 static void G_Ai_Add_f(void) {
 	int32_t count = 1;
-	
+
 	if (gi.Argc() > 1) {
 		count = atoi(gi.Argv(1));
 	}
@@ -263,7 +263,7 @@ static void G_Ai_Remove_f(void) {
 	if (gi.Argc() > 1) {
 		count = atoi(gi.Argv(1));
 	}
-	
+
 	G_Ai_RemoveBots(count);
 }
 
@@ -364,28 +364,28 @@ static void G_Ai_RegisterItem(const g_item_t *item) {
 	}
 
 	ai_item_t ai_item;
-	
+
 	ai_item.class_name = item->class_name;
 
 	switch (item->type) {
-	default:
-		gi.Warn("Invalid item registration\n");
-		break;
-	case ITEM_AMMO:
-		ai_item.flags = AI_ITEM_AMMO;
-		break;
-	case ITEM_ARMOR:
-		ai_item.flags = AI_ITEM_ARMOR;
-		break;
-	case ITEM_FLAG:
-		ai_item.flags = AI_ITEM_FLAG;
-		break;
-	case ITEM_HEALTH:
-		ai_item.flags = AI_ITEM_HEALTH;
-		break;
-	case ITEM_POWERUP:
-		ai_item.flags = AI_ITEM_POWERUP;
-		break;
+		default:
+			gi.Warn("Invalid item registration\n");
+			break;
+		case ITEM_AMMO:
+			ai_item.flags = AI_ITEM_AMMO;
+			break;
+		case ITEM_ARMOR:
+			ai_item.flags = AI_ITEM_ARMOR;
+			break;
+		case ITEM_FLAG:
+			ai_item.flags = AI_ITEM_FLAG;
+			break;
+		case ITEM_HEALTH:
+			ai_item.flags = AI_ITEM_HEALTH;
+			break;
+		case ITEM_POWERUP:
+			ai_item.flags = AI_ITEM_POWERUP;
+			break;
 	}
 
 	ai_item.name = item->name;
@@ -404,7 +404,8 @@ static void G_Ai_RegisterItem(const g_item_t *item) {
 /**
  * @brief
  */
-static void G_Ai_RegisterWeapon(const g_item_t *item, const ai_item_flags_t weapon_flags, const int32_t speed, const uint32_t time) {
+static void G_Ai_RegisterWeapon(const g_item_t *item, const ai_item_flags_t weapon_flags, const int32_t speed,
+                                const uint32_t time) {
 
 	if (!item || item->type != ITEM_WEAPON) {
 		gi.Warn("Invalid item registration\n");
@@ -412,7 +413,7 @@ static void G_Ai_RegisterWeapon(const g_item_t *item, const ai_item_flags_t weap
 	}
 
 	ai_item_t ai_item;
-	
+
 	ai_item.class_name = item->class_name;
 	if (item->ammo) {
 		const g_item_t *ammo = G_FindItem(item->ammo);
@@ -435,7 +436,7 @@ static void G_Ai_RegisterWeapon(const g_item_t *item, const ai_item_flags_t weap
 }
 
 /**
- * @brief 
+ * @brief
  */
 void G_Ai_RegisterItems(void) {
 
@@ -451,14 +452,16 @@ void G_Ai_RegisterItems(void) {
 
 		G_Ai_RegisterItem(&g_items[i]);
 	}
-	
+
 	G_Ai_RegisterWeapon(G_FindItem("Blaster"), AI_WEAPON_PROJECTILE, 1000, 0);
 	G_Ai_RegisterWeapon(G_FindItem("Shotgun"), AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE | AI_WEAPON_MED_RANGE, 0, 0);
 	G_Ai_RegisterWeapon(G_FindItem("Super Shotgun"), AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE, 0, 0);
 	G_Ai_RegisterWeapon(G_FindItem("Machinegun"), AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE | AI_WEAPON_MED_RANGE, 0, 0);
 	G_Ai_RegisterWeapon(G_FindItem("Grenade Launcher"), AI_WEAPON_PROJECTILE | AI_WEAPON_EXPLOSIVE, 700, 0);
-	G_Ai_RegisterWeapon(G_FindItem("Hand Grenades"), AI_WEAPON_PROJECTILE | AI_WEAPON_EXPLOSIVE | AI_WEAPON_TIMED | AI_WEAPON_MED_RANGE, 1000, 3000);
-	G_Ai_RegisterWeapon(G_FindItem("Rocket Launcher"), AI_WEAPON_PROJECTILE | AI_WEAPON_EXPLOSIVE | AI_WEAPON_MED_RANGE | AI_WEAPON_LONG_RANGE, 1000, 0);
+	G_Ai_RegisterWeapon(G_FindItem("Hand Grenades"),
+	                    AI_WEAPON_PROJECTILE | AI_WEAPON_EXPLOSIVE | AI_WEAPON_TIMED | AI_WEAPON_MED_RANGE, 1000, 3000);
+	G_Ai_RegisterWeapon(G_FindItem("Rocket Launcher"),
+	                    AI_WEAPON_PROJECTILE | AI_WEAPON_EXPLOSIVE | AI_WEAPON_MED_RANGE | AI_WEAPON_LONG_RANGE, 1000, 0);
 	G_Ai_RegisterWeapon(G_FindItem("Hyperblaster"), AI_WEAPON_PROJECTILE | AI_WEAPON_MED_RANGE, 1800, 0);
 	G_Ai_RegisterWeapon(G_FindItem("Lightning Gun"), AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE, 0, 0);
 	G_Ai_RegisterWeapon(G_FindItem("Railgun"), AI_WEAPON_HITSCAN | AI_WEAPON_LONG_RANGE, 0, 0);
@@ -512,7 +515,7 @@ void G_Ai_Init(void) {
 	import.BoxEntities = gi.BoxEntities;
 
 	import.GetConfigString = gi.GetConfigString;
-	
+
 	import.OnSameTeam = G_OnSameTeam;
 	import.ClientCommand = G_ClientCommand;
 
@@ -521,7 +524,7 @@ void G_Ai_Init(void) {
 	import.entity_size = ge.entity_size;
 	import.ItemIndex = G_Ai_ItemIndex;
 	import.CanPickupItem = G_Ai_CanPickupItem;
-	
+
 	ai_export_t *exports = gi.LoadAi(&import);
 
 	if (!exports) {
@@ -529,8 +532,9 @@ void G_Ai_Init(void) {
 	}
 
 	aix = exports;
-	
-	g_ai_max_clients = gi.Cvar("g_ai_max_clients", "0", CVAR_SERVER_INFO, "The number of bots to automatically fill in empty slots in the server. Specify -1 to fill all available slots.");
+
+	g_ai_max_clients = gi.Cvar("g_ai_max_clients", "0", CVAR_SERVER_INFO,
+	                           "The number of bots to automatically fill in empty slots in the server. Specify -1 to fill all available slots.");
 
 	gi.Cmd("g_ai_add", G_Ai_Add_f, CMD_GAME, "Add one or more AI to the game");
 	gi.Cmd("g_ai_remove", G_Ai_Remove_f, CMD_GAME, "Remove one or more AI from the game");

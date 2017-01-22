@@ -68,7 +68,7 @@ struct g_client_s {
 	 * @brief Communicated by server to clients
 	 */
 	player_state_t ps;
-	
+
 	/**
 	 * @brief This player's ping
 	 */
@@ -78,7 +78,7 @@ struct g_client_s {
 	 * @brief Parameters of the client that the AI can interact with
 	 */
 	ai_client_locals_t ai_locals;
-	
+
 	/**
 	 * @brief The game module can extend the client structure through this
 	 * opaque field. Therefore, the actual size of g_client_t is returned to the
@@ -156,7 +156,7 @@ struct g_entity_s {
 	 * pointer to the variable-sized g_client_t.
 	 */
 	g_client_t *client;
-	
+
 	/**
 	 * @brief Parameters of the entity that the AI can interact with
 	 */

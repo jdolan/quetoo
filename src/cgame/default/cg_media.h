@@ -24,52 +24,52 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
-	extern s_sample_t *cg_sample_blaster_fire;
-	extern s_sample_t *cg_sample_blaster_hit;
-	extern s_sample_t *cg_sample_shotgun_fire;
-	extern s_sample_t *cg_sample_supershotgun_fire;
-	extern s_sample_t *cg_sample_machinegun_fire[4];
-	extern s_sample_t *cg_sample_machinegun_hit[3];
-	extern s_sample_t *cg_sample_grenadelauncher_fire;
-	extern s_sample_t *cg_sample_rocketlauncher_fire;
-	extern s_sample_t *cg_sample_hyperblaster_fire;
-	extern s_sample_t *cg_sample_hyperblaster_hit;
-	extern s_sample_t *cg_sample_lightning_fire;
-	extern s_sample_t *cg_sample_lightning_discharge;
-	extern s_sample_t *cg_sample_railgun_fire;
-	extern s_sample_t *cg_sample_bfg_fire;
-	extern s_sample_t *cg_sample_bfg_hit;
+extern s_sample_t *cg_sample_blaster_fire;
+extern s_sample_t *cg_sample_blaster_hit;
+extern s_sample_t *cg_sample_shotgun_fire;
+extern s_sample_t *cg_sample_supershotgun_fire;
+extern s_sample_t *cg_sample_machinegun_fire[4];
+extern s_sample_t *cg_sample_machinegun_hit[3];
+extern s_sample_t *cg_sample_grenadelauncher_fire;
+extern s_sample_t *cg_sample_rocketlauncher_fire;
+extern s_sample_t *cg_sample_hyperblaster_fire;
+extern s_sample_t *cg_sample_hyperblaster_hit;
+extern s_sample_t *cg_sample_lightning_fire;
+extern s_sample_t *cg_sample_lightning_discharge;
+extern s_sample_t *cg_sample_railgun_fire;
+extern s_sample_t *cg_sample_bfg_fire;
+extern s_sample_t *cg_sample_bfg_hit;
 
-	extern s_sample_t *cg_sample_explosion;
-	extern s_sample_t *cg_sample_teleport;
-	extern s_sample_t *cg_sample_respawn;
-	extern s_sample_t *cg_sample_sparks;
+extern s_sample_t *cg_sample_explosion;
+extern s_sample_t *cg_sample_teleport;
+extern s_sample_t *cg_sample_respawn;
+extern s_sample_t *cg_sample_sparks;
 
-	extern s_sample_t *cg_sample_rain;
-	extern s_sample_t *cg_sample_snow;
-	extern s_sample_t *cg_sample_underwater;
-	extern s_sample_t *cg_sample_hits[2];
-	extern s_sample_t *cg_sample_gib;
+extern s_sample_t *cg_sample_rain;
+extern s_sample_t *cg_sample_snow;
+extern s_sample_t *cg_sample_underwater;
+extern s_sample_t *cg_sample_hits[2];
+extern s_sample_t *cg_sample_gib;
 
-	s_sample_t *Cg_GetFootstepSample(const char *footsteps);
+s_sample_t *Cg_GetFootstepSample(const char *footsteps);
 
-	extern cg_particles_t *cg_particles_normal;
-	extern cg_particles_t *cg_particles_explosion;
-	extern cg_particles_t *cg_particles_debris[4];
-	extern cg_particles_t *cg_particles_teleporter;
-	extern cg_particles_t *cg_particles_smoke;
-	extern cg_particles_t *cg_particles_steam;
-	extern cg_particles_t *cg_particles_bubble;
-	extern cg_particles_t *cg_particles_rain;
-	extern cg_particles_t *cg_particles_snow;
-	extern cg_particles_t *cg_particles_beam;
-	extern cg_particles_t *cg_particles_blood;
-	extern cg_particles_t *cg_particles_lightning;
-	extern cg_particles_t *cg_particles_rope;
-	extern cg_particles_t *cg_particles_flame;
-	extern cg_particles_t *cg_particles_spark;
-	extern cg_particles_t *cg_particles_inactive;
-	extern cg_particles_t *cg_particles_ripple[3];
+extern cg_particles_t *cg_particles_normal;
+extern cg_particles_t *cg_particles_explosion;
+extern cg_particles_t *cg_particles_debris[4];
+extern cg_particles_t *cg_particles_teleporter;
+extern cg_particles_t *cg_particles_smoke;
+extern cg_particles_t *cg_particles_steam;
+extern cg_particles_t *cg_particles_bubble;
+extern cg_particles_t *cg_particles_rain;
+extern cg_particles_t *cg_particles_snow;
+extern cg_particles_t *cg_particles_beam;
+extern cg_particles_t *cg_particles_blood;
+extern cg_particles_t *cg_particles_lightning;
+extern cg_particles_t *cg_particles_rope;
+extern cg_particles_t *cg_particles_flame;
+extern cg_particles_t *cg_particles_spark;
+extern cg_particles_t *cg_particles_inactive;
+extern cg_particles_t *cg_particles_ripple[3];
 
-	void Cg_UpdateMedia(void);
+void Cg_UpdateMedia(void);
 #endif /* __CG_LOCAL_H__ */

@@ -24,8 +24,8 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
-	void G_ClientChaseThink(g_entity_t *ent);
-	void G_ClientChaseNext(g_entity_t *ent);
-	void G_ClientChasePrevious(g_entity_t *ent);
-	void G_ClientChaseTarget(g_entity_t *ent);
+void G_ClientChaseThink(g_entity_t *ent);
+void G_ClientChaseNext(g_entity_t *ent);
+void G_ClientChasePrevious(g_entity_t *ent);
+void G_ClientChaseTarget(g_entity_t *ent);
 #endif /* __GAME_LOCAL_H__ */

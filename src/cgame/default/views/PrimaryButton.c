@@ -77,7 +77,7 @@ static void initialize(Class *clazz) {
 Class *_PrimaryButton(void) {
 	static Class clazz;
 	static Once once;
-	
+
 	do_once(&once, {
 		clazz.name = "PrimaryButton";
 		clazz.superclass = _Button();

@@ -34,5 +34,5 @@ size_t Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int32_t *list, size_
                       int32_t head_node);
 
 #ifdef __CM_LOCAL_H__
-	void Cm_InitBoxHull(void);
+void Cm_InitBoxHull(void);
 #endif /* __CM_LOCAL_H__ */

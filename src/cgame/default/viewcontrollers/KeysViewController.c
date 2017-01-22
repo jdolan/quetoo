@@ -152,7 +152,7 @@ static void initialize(Class *clazz) {
 Class *_KeysViewController(void) {
 	static Class clazz;
 	static Once once;
-	
+
 	do_once(&once, {
 		clazz.name = "KeysViewController";
 		clazz.superclass = _MenuViewController();

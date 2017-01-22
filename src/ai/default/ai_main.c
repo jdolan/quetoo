@@ -94,7 +94,7 @@ static void Ai_EnumerateSkins(const char *path, void *data) {
  * @brief Fs_EnumerateFunc for resolving available models.
  */
 static void Ai_EnumerateModels(const char *path, void *data) {
-	
+
 	aim.EnumerateFiles(va("%s/*.tga", path), Ai_EnumerateSkins, NULL);
 }
 
@@ -140,7 +140,7 @@ static void Ai_GetUserInfo(const g_entity_t *self, char *userinfo) {
 	SetUserInfo(userinfo, "skin", g_array_index(ai_skins, ai_skin_t, Random() % ai_skins->len));
 	SetUserInfo(userinfo, "color", va("%i", Random() % 256));
 	SetUserInfo(userinfo, "hand", va("%i", Random() % 3));
-	
+
 	if (ai_name_suffix == 0) {
 		SetUserInfo(userinfo, "name", ai_names[ai_name_index]);
 	} else {
@@ -159,7 +159,7 @@ static void Ai_GetUserInfo(const g_entity_t *self, char *userinfo) {
  * @brief
  */
 static _Bool Ai_CanSee(const g_entity_t *self, const g_entity_t *other) {
-	
+
 	// see if we're even facing the object
 	ai_locals_t *ai = Ai_GetLocals(self);
 
@@ -189,7 +189,7 @@ static _Bool Ai_CanSee(const g_entity_t *self, const g_entity_t *other) {
 static _Bool Ai_CanTarget(const g_entity_t *self, const g_entity_t *other) {
 
 	if (other == self || !other->in_use || other->solid == SOLID_DEAD || other->solid == SOLID_NOT ||
-		(other->sv_flags & SVF_NO_CLIENT) || (other->client && aim.OnSameTeam(self, other))) {
+	        (other->sv_flags & SVF_NO_CLIENT) || (other->client && aim.OnSameTeam(self, other))) {
 		return false;
 	}
 
@@ -295,9 +295,9 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 
 		// check to see if the item has gone out of our line of sight
 		if (!Ai_CanTarget(self, ai->move_target.ent) ||
-			!*ai->move_target.ent->ai_locals.item || // item picked up and changed into something else
-			Ai_ItemReachable(self, ai->move_target.ent) < 0.0 ||
-			!Ai_ItemRequired(self, *ai->move_target.ent->ai_locals.item)) {
+		        !*ai->move_target.ent->ai_locals.item || // item picked up and changed into something else
+		        Ai_ItemReachable(self, ai->move_target.ent) < 0.0 ||
+		        !Ai_ItemRequired(self, *ai->move_target.ent->ai_locals.item)) {
 
 			Ai_ResetWander(self, ai->move_target.ent->s.origin);
 
@@ -345,15 +345,15 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 		vec_t distance;
 
 		if (!Ai_CanTarget(self, ent) ||
-			(distance = Ai_ItemReachable(self, ent)) < 0.0 ||
-			!Ai_ItemRequired(self, *ent->ai_locals.item)) {
+		        (distance = Ai_ItemReachable(self, ent)) < 0.0 ||
+		        !Ai_ItemRequired(self, *ent->ai_locals.item)) {
 			continue;
 		}
 
 		g_array_append_vals(items_visible, &(const ai_item_pick_t) {
 			.entity = ent,
-			.item = item,
-			.weight = (AI_MAX_ITEM_DISTANCE - distance) * item->priority
+			 .item = item,
+			  .weight = (AI_MAX_ITEM_DISTANCE - distance) * item->priority
 		}, 1);
 	}
 
@@ -434,55 +434,55 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 		if (item->ammo && self->client->ai_locals.inventory[item->ammo] < item->quantity) { // no ammo
 			continue;
 		}
-		
+
 		// calculate weight, start with base weapon priority
 		vec_t weight = item->priority;
 
 		switch (targ_range) { // range bonus
-		case RANGE_MELEE:
-		case RANGE_SHORT:
-			if (item->flags & AI_WEAPON_SHORT_RANGE) {
-				weight *= 2.5;
-			} else {
-				weight /= 2.5;
-			}
-			break;
-		case RANGE_MED:
-			if (item->flags & AI_WEAPON_MED_RANGE) {
-				weight *= 2.5;
-			} else {
-				weight /= 2.5;
-			}
-			break;
-		case RANGE_LONG:
-			if (item->flags & AI_WEAPON_LONG_RANGE) {
-				weight *= 2.5;
-			} else {
-				weight /= 2.5;
-			}
-			break;
+			case RANGE_MELEE:
+			case RANGE_SHORT:
+				if (item->flags & AI_WEAPON_SHORT_RANGE) {
+					weight *= 2.5;
+				} else {
+					weight /= 2.5;
+				}
+				break;
+			case RANGE_MED:
+				if (item->flags & AI_WEAPON_MED_RANGE) {
+					weight *= 2.5;
+				} else {
+					weight /= 2.5;
+				}
+				break;
+			case RANGE_LONG:
+				if (item->flags & AI_WEAPON_LONG_RANGE) {
+					weight *= 2.5;
+				} else {
+					weight /= 2.5;
+				}
+				break;
 		}
 
 		if ((*ai->aim_target.ent->ai_locals.health < 25) &&
-			(item->flags & AI_WEAPON_EXPLOSIVE)) { // bonus for explosive at low enemy health
+		        (item->flags & AI_WEAPON_EXPLOSIVE)) { // bonus for explosive at low enemy health
 			weight *= 1.5;
 		}
 
 		// additional penalty for long range + projectile unless explicitly long range
 		if ((item->flags & AI_WEAPON_PROJECTILE) &&
-			!(item->flags & AI_WEAPON_LONG_RANGE)) {
+		        !(item->flags & AI_WEAPON_LONG_RANGE)) {
 			weight /= 2.0;
 		}
 
 		// penalty for explosive weapons at short range
 		if ((item->flags & AI_WEAPON_EXPLOSIVE) &&
-			targ_range <= RANGE_SHORT) {
+		        targ_range <= RANGE_SHORT) {
 			weight /= 2.0;
 		}
 
 		// penalty for explosive weapons at low self health
 		if ((*self->ai_locals.health < 25) &&
-			(item->flags & AI_WEAPON_EXPLOSIVE)) {
+		        (item->flags & AI_WEAPON_EXPLOSIVE)) {
 			weight /= 2.0;
 		}
 
@@ -490,7 +490,7 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 
 		weapons[num_weapons++] = (ai_item_pick_t) {
 			.item = item,
-			.weight = weight
+			 .weight = weight
 		};
 	}
 
@@ -525,15 +525,15 @@ static vec_t Ai_EnemyPriority(const g_entity_t *self, const g_entity_t *target, 
  * @brief Funcgoal that controls the AI's lust for blood
  */
 static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
-	
+
 	if (self->solid == SOLID_DEAD) {
 		return QUETOO_TICK_MILLIS;
 	}
 
 	ai_locals_t *ai = Ai_GetLocals(self);
-	
+
 	if (ai_passive->integer) {
-		
+
 		if (ai->aim_target.type == AI_GOAL_ENEMY) {
 			Ai_ClearGoal(&ai->aim_target);
 		}
@@ -544,7 +544,7 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 
 		return QUETOO_TICK_MILLIS;
 	}
-	
+
 	// see if we're already hunting
 	if (ai->aim_target.type == AI_GOAL_ENEMY) {
 
@@ -582,7 +582,7 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 		if (ai->weapon_check_time < ai_level.time) { // check for a new weapon every once in a while
 			Ai_PickBestWeapon(self);
 		}
-		
+
 		return QUETOO_TICK_MILLIS * 3;
 	}
 
@@ -618,7 +618,7 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
  * @brief Funcgoal that controls the AI's weaponry.
  */
 static uint32_t Ai_FuncGoal_Weaponry(g_entity_t *self, pm_cmd_t *cmd) {
-	
+
 	// if we're dead, just keep clicking so we respawn.
 	if (self->solid == SOLID_DEAD) {
 
@@ -654,7 +654,7 @@ static uint32_t Ai_FuncGoal_Acrobatics(g_entity_t *self, pm_cmd_t *cmd) {
 	}
 
 	ai_locals_t *ai = Ai_GetLocals(self);
-	
+
 	if (ai->aim_target.type != AI_GOAL_ENEMY) {
 		return QUETOO_TICK_MILLIS * 5;
 	}
@@ -663,7 +663,7 @@ static uint32_t Ai_FuncGoal_Acrobatics(g_entity_t *self, pm_cmd_t *cmd) {
 	if (*self->ai_locals.ground_entity) {
 
 		if (self->client->ps.pm_state.flags & PMF_DUCKED) {
-					
+
 			if ((Random() % 32) == 0) { // uncrouch eventually
 				cmd->up = 0;
 			} else {
@@ -692,7 +692,9 @@ static void Ai_Wander(g_entity_t *self, pm_cmd_t *cmd) {
 	ai_locals_t *ai = Ai_GetLocals(self);
 
 	vec3_t forward;
-	AngleVectors((const vec3_t) { 0, ai->wander_angle, 0 }, forward, NULL, NULL);
+	AngleVectors((const vec3_t) {
+		0, ai->wander_angle, 0
+	}, forward, NULL, NULL);
 
 	vec3_t end;
 	VectorMA(self->s.origin, (self->maxs[0] - self->mins[0]) * 2.0, forward, end);
@@ -744,16 +746,16 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	}
 
 	switch (move_target->type) {
-	default: {
-		vec3_t movement_dir = { 0, ai->wander_angle, 0 };
-		AngleVectors(movement_dir, movement_dir, NULL, NULL);
-		VectorMA(self->s.origin, 1.0, movement_dir, movement_goal);
-	}
-		break;
-	case AI_GOAL_ITEM:
-	case AI_GOAL_ENEMY:
-		VectorCopy(move_target->ent->s.origin, movement_goal);
-		break;
+		default: {
+				vec3_t movement_dir = { 0, ai->wander_angle, 0 };
+				AngleVectors(movement_dir, movement_dir, NULL, NULL);
+				VectorMA(self->s.origin, 1.0, movement_dir, movement_goal);
+			}
+			break;
+		case AI_GOAL_ITEM:
+		case AI_GOAL_ENEMY:
+			VectorCopy(move_target->ent->s.origin, movement_goal);
+			break;
 	}
 
 	vec3_t move_direction;
@@ -784,8 +786,9 @@ static vec_t AngleMod(const vec_t a) {
 static vec_t Ai_CalculateAngle(g_entity_t *self, const vec_t speed, vec_t current, const vec_t ideal) {
 	current = AngleMod(current);
 
-	if (current == ideal)
+	if (current == ideal) {
 		return current;
+	}
 
 	vec_t move = ideal - current;
 
@@ -793,8 +796,7 @@ static vec_t Ai_CalculateAngle(g_entity_t *self, const vec_t speed, vec_t curren
 		if (move >= 180.0) {
 			move = move - 360.0;
 		}
-	}
-	else {
+	} else {
 		if (move <= -180.0) {
 			move = move + 360.0;
 		}
@@ -804,13 +806,12 @@ static vec_t Ai_CalculateAngle(g_entity_t *self, const vec_t speed, vec_t curren
 		if (move > speed) {
 			move = speed;
 		}
-	}
-	else {
+	} else {
 		if (move < -speed) {
 			move = -speed;
 		}
 	}
-	
+
 	return AngleMod(current + move);
 }
 
@@ -877,7 +878,7 @@ static void Ai_Think(g_entity_t *self, pm_cmd_t *cmd) {
 	// run functional goals
 	for (int32_t i = 0; i < MAX_AI_FUNCGOALS; i++) {
 		ai_funcgoal_t *funcgoal = &ai->funcgoals[i];
-		
+
 		if (!funcgoal->think) {
 			continue;
 		}
@@ -894,7 +895,7 @@ static void Ai_Think(g_entity_t *self, pm_cmd_t *cmd) {
 			funcgoal->nextthink = ai_level.time + time;
 		}
 	}
-	
+
 	if (self->solid != SOLID_DEAD) {
 		// FIXME: should these be funcgoals?
 		// they'd have to be appended to the end of the list always

@@ -78,7 +78,7 @@ static void initialize(Class *clazz) {
 Class *_MapListCollectionItemView(void) {
 	static Class clazz;
 	static Once once;
-	
+
 	do_once(&once, {
 		clazz.name = "MapListCollectionItemView";
 		clazz.superclass = _CollectionItemView();

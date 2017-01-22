@@ -104,7 +104,7 @@ typedef struct {
 typedef uint32_t (*Ai_GoalFunc)(g_entity_t *ent, pm_cmd_t *cmd);
 
 /**
- * @brief A functional AI goal. 
+ * @brief A functional AI goal.
  */
 typedef struct {
 	Ai_GoalFunc think;

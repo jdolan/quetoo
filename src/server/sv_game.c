@@ -24,7 +24,8 @@
 /**
  * @brief
  */
-static void Sv_GameDebug(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+static void Sv_GameDebug(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3,
+        4)));
 static void Sv_GameDebug(const debug_t debug, const char *func, const char *fmt, ...) {
 
 	va_list args;
@@ -360,7 +361,7 @@ void Sv_InitGame(void) {
 	import.TokenizeString = Cmd_TokenizeString;
 
 	import.Cbuf = Cbuf_AddText;
-	
+
 	import.SetConfigString = Sv_SetConfigString;
 	import.GetConfigString = Sv_GetConfigString;
 

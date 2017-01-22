@@ -1195,8 +1195,8 @@ void G_RunTimers(void) {
 		} else if (G_MatchIsTimeout()) { // mid match, player called timeout
 			j = (g_level.timeout_time - g_level.time) / 1000;
 			gi.SetConfigString(CS_TIME, va("Timeout %s",
-			                            G_FormatTime(g_level.timeout_time - g_level.time))
-			               );
+			                               G_FormatTime(g_level.timeout_time - g_level.time))
+			                  );
 
 			if (j <= 10) {
 

@@ -1160,7 +1160,7 @@ static void G_Teamskin_f(g_entity_t *ent) {
 		g_strlcpy(cl->locals.persistent.skin, s, sizeof(cl->locals.persistent.skin));
 
 		gi.SetConfigString(CS_CLIENTS + i,
-		                va("%s\\%s", cl->locals.persistent.net_name, cl->locals.persistent.skin));
+		                   va("%s\\%s", cl->locals.persistent.net_name, cl->locals.persistent.skin));
 	}
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s changed team_skin to %s\n",

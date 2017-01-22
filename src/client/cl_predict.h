@@ -28,7 +28,7 @@ cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, con
                     const uint16_t skip, const int32_t contents);
 
 #ifdef __CL_LOCAL_H__
-	void Cl_PredictMovement(void);
-	void Cl_CheckPredictionError(void);
-	void Cl_UpdatePrediction(void);
+void Cl_PredictMovement(void);
+void Cl_CheckPredictionError(void);
+void Cl_UpdatePrediction(void);
 #endif /* __CL_LOCAL_H__ */
