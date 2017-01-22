@@ -25,7 +25,7 @@
 #include "ai/ai.h"
 
 #ifdef __GAME_LOCAL_H__
-	extern cvar_t *g_ai_fill_slots;
+	extern cvar_t *g_ai_max_clients;
 
 	void G_Ai_RegisterItems(void);
 	void G_Ai_SetClientLocals(g_client_t *client);

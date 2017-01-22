@@ -504,11 +504,11 @@ void G_SpawnEntities(const char *name, const char *entities) {
 		g_game.ai_fill_slots = 0;
 		g_game.ai_left_to_spawn = 0;
 
-		if (g_ai_fill_slots->integer) {
-			if (g_ai_fill_slots->integer == -1) {
+		if (g_ai_max_clients->integer) {
+			if (g_ai_max_clients->integer == -1) {
 				g_game.ai_fill_slots = sv_max_clients->integer;
 			} else {
-				g_game.ai_fill_slots = Clamp(g_ai_fill_slots->integer, 0, sv_max_clients->integer);
+				g_game.ai_fill_slots = Clamp(g_ai_max_clients->integer, 0, sv_max_clients->integer);
 			}
 
 			g_game.ai_left_to_spawn = g_game.ai_fill_slots;

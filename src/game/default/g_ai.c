@@ -22,7 +22,7 @@
 #include "g_local.h"
 #include "ai/default/ai_types.h"
 
-cvar_t *g_ai_fill_slots;
+cvar_t *g_ai_max_clients;
 
 /**
  * @brief MAYBE TEMPORARY
@@ -313,16 +313,16 @@ void G_Ai_Frame(void) {
 		return;
 	}
 
-	if (g_ai_fill_slots->modified) {
-		g_ai_fill_slots->modified = false;
+	if (g_ai_max_clients->modified) {
+		g_ai_max_clients->modified = false;
 
-		if (g_ai_fill_slots->integer == -1) {
-			g_ai_fill_slots->integer = sv_max_clients->integer;
+		if (g_ai_max_clients->integer == -1) {
+			g_ai_max_clients->integer = sv_max_clients->integer;
 		} else {
-			g_game.ai_fill_slots = Clamp(g_ai_fill_slots->integer, 0, sv_max_clients->integer);
+			g_game.ai_fill_slots = Clamp(g_ai_max_clients->integer, 0, sv_max_clients->integer);
 		}
 
-		int32_t slot_diff = g_ai_fill_slots->integer - G_Ai_NumberOfClients();
+		int32_t slot_diff = g_ai_max_clients->integer - G_Ai_NumberOfClients();
 
 		if (slot_diff > 0) {
 			G_Ai_AddBots(slot_diff);
@@ -530,7 +530,7 @@ void G_Ai_Init(void) {
 
 	aix = exports;
 	
-	g_ai_fill_slots = gi.Cvar("g_ai_fill_slots", "0", CVAR_SERVER_INFO, "The number of bots to automatically fill in empty slots in the server. Specify -1 to fill all available slots.");
+	g_ai_max_clients = gi.Cvar("g_ai_max_clients", "0", CVAR_SERVER_INFO, "The number of bots to automatically fill in empty slots in the server. Specify -1 to fill all available slots.");
 
 	gi.Cmd("g_ai_add", G_Ai_Add_f, CMD_GAME, "Add one or more AI to the game");
 	gi.Cmd("g_ai_remove", G_Ai_Remove_f, CMD_GAME, "Remove one or more AI from the game");
