@@ -196,7 +196,7 @@ void G_ClientStats(g_entity_t *ent) {
 	g_client_t *client = ent->client;
 
 	// ammo
-	if (client->locals.ammo_index) {
+	if (client->locals.ammo_index && client->locals.weapon) {
 		const g_item_t *ammo = &g_items[client->locals.ammo_index];
 		const g_item_t *weap = client->locals.weapon;
 		client->ps.stats[STAT_AMMO_ICON] = gi.ImageIndex(weap->icon);
@@ -210,14 +210,7 @@ void G_ClientStats(g_entity_t *ent) {
 	// armor
 	const g_item_t *armor = G_ClientArmor(ent);
 	if (armor) {
-		if (armor->tag == ARMOR_BODY) {
-			client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("pics/i_bodyarmor");
-		} else if (armor->tag == ARMOR_COMBAT) {
-			client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("pics/i_combatarmor");
-		} else {
-			client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("pics/i_jacketarmor");
-		}
-
+		client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex(armor->icon);
 		client->ps.stats[STAT_ARMOR] = client->locals.inventory[ITEM_INDEX(armor)];
 	} else {
 		client->ps.stats[STAT_ARMOR_ICON] = 0;
