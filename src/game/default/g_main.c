@@ -894,6 +894,7 @@ static void G_ExitLevel(void) {
 }
 
 #define INTERMISSION (10.0 * 1000) // intermission duration
+
 /**
  * @brief The main game module "think" function, called once per server frame.
  * Nothing would happen in Quake land if this weren't called.
@@ -902,6 +903,8 @@ static void G_Frame(void) {
 
 	g_level.frame_num++;
 	g_level.time = g_level.frame_num * QUETOO_TICK_MILLIS;
+
+	Ai_Frame();
 
 	// check for level change after running intermission
 	if (g_level.intermission_time) {

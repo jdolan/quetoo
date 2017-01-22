@@ -23,202 +23,191 @@
 #include "bg_pmove.h"
 
 /**
- * @brief Make a tasteless death announcement.
+ * @brief Make a tasteless death announcement, insert a row into MySQL, and record scores. Side 
+ * effects are the best!
  */
 static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
+	char buffer[MAX_PRINT_MSG];
+
+	const _Bool frag = attacker && (attacker != self) && attacker->client;
 
 	const _Bool friendy_fire = (mod & MOD_FRIENDLY_FIRE) == MOD_FRIENDLY_FIRE;
 	mod &= ~MOD_FRIENDLY_FIRE;
 
-	if (!g_level.warmup) { // insert to db
-		G_MySQL_ClientObituary(self, attacker, mod);
-	}
+	if (frag) { // killed by another player
 
-	char *message = NULL;
-	char *message2 = "";
+		const char *msg = "%s was killed by %s";
 
-	switch (mod) {
-		case MOD_SUICIDE:
-			message = "suicides";
-			break;
-		case MOD_FALLING:
-			message = "cratered";
-			break;
-		case MOD_CRUSH:
-			message = "was squished";
-			break;
-		case MOD_WATER:
-			message = "sleeps with the fishes";
-			break;
-		case MOD_SLIME:
-			message = "melted";
-			break;
-		case MOD_LAVA:
-			message = "did a back flip into the lava";
-			break;
-		case MOD_FIREBALL:
-			message = "tasted the lava rainbow";
-			break;
-		case MOD_TRIGGER_HURT:
-			message = "was in the wrong place";
-			break;
-	}
-
-	if (attacker == self) {
-		switch (mod) {
-			case MOD_GRENADE_SPLASH:
-				message = "went pop";
-				break;
-			case MOD_HANDGRENADE_KAMIKAZE:
-				message = "tried to put the pin back in";
-				break;
-			case MOD_HANDGRENADE_SPLASH:
-				message = "has no hair left";
-				break;
-			case MOD_ROCKET_SPLASH:
-				message = "blew up";
-				break;
-			case MOD_LIGHTNING_DISCHARGE:
-				message = "took a toaster bath";
-				break;
-			case MOD_BFG_BLAST:
-				message = "should have used a smaller gun";
-				break;
-			default:
-				message = "sucks at life";
-				break;
-		}
-	}
-
-	if (message) { // suicide
-		gi.BroadcastPrint(PRINT_HIGH, "%s %s.\n", self->client->locals.persistent.net_name, message);
-
-		if (g_level.warmup) {
-			return;
-		}
-
-		self->client->locals.persistent.score--;
-
-		if ((g_level.teams || g_level.ctf) && self->client->locals.persistent.team) {
-			self->client->locals.persistent.team->score--;
-		}
-
-		return;
-	}
-
-	if (attacker && attacker->client) {
 		switch (mod) {
 			case MOD_BLASTER:
-				message = "was humiliated by";
-				message2 = "'s blaster";
+				msg = "%s was humiliated by %s's blaster";
 				break;
 			case MOD_SHOTGUN:
-				message = "was gunned down by";
-				message2 = "'s shotgun";
+				msg = "%s was gunned down by %s's shotgun";
 				break;
 			case MOD_SUPER_SHOTGUN:
-				message = "was blown away by";
-				message2 = "'s super shotgun";
+				msg = "%s was blown away by %s's super shotgun";
 				break;
 			case MOD_MACHINEGUN:
-				message = "was perforated by";
-				message2 = "'s machinegun";
+				msg = "%s was perforated by %s's machinegun";
 				break;
 			case MOD_GRENADE:
-				message = "was popped by";
-				message2 = "'s grenade";
+				msg = "%s was popped by %s's grenade";
 				break;
 			case MOD_GRENADE_SPLASH:
-				message = "was shredded by";
-				message2 = "'s shrapnel";
+				msg = "%s was shredded by %s's shrapnel";
 				break;
 			case MOD_HANDGRENADE:
-				message = "caught";
-				message2 = "'s handgrenade";
+				msg = "%s caught %s's handgrenade";
 				break;
 			case MOD_HANDGRENADE_SPLASH:
-				message = "felt the burn from";
-				message2 = "'s handgrenade";
+				msg = "%s felt the burn from %s's handgrenade";
 				break;
 			case MOD_HANDGRENADE_KAMIKAZE:
-				message = "felt";
-				message2 = "'s pain";
+				msg = "%s felt %s's pain";
 				break;
 			case MOD_ROCKET:
-				message = "ate";
-				message2 = "'s rocket";
+				msg = "%s ate %s's rocket";
 				break;
 			case MOD_ROCKET_SPLASH:
-				message = "almost dodged";
-				message2 = "'s rocket";
+				msg = "%s almost dodged %s's rocket";
 				break;
 			case MOD_HYPERBLASTER:
-				message = "was melted by";
-				message2 = "'s hyperblaster";
+				msg = "%s was melted by %s's hyperblaster";
 				break;
 			case MOD_LIGHTNING:
-				message = "got a charge out of";
-				message2 = "'s lightning";
+				msg = "%s got a charge out of %s's lightning";
 				break;
 			case MOD_LIGHTNING_DISCHARGE:
-				message = "was shocked by";
-				message2 = "'s discharge";
+				msg = "%s was shocked by %s's discharge";
 				break;
 			case MOD_RAILGUN:
-				message = "was railed by";
+				msg = "%s was railed by %s";
 				break;
 			case MOD_BFG_LASER:
-				message = "saw the pretty lights from";
-				message2 = "'s BFG";
+				msg = "%s saw the pretty lights from %s's BFG";
 				break;
 			case MOD_BFG_BLAST:
-				message = "was disintegrated by";
-				message2 = "'s BFG blast";
+				msg = "%s was disintegrated by %s's BFG blast";
 				break;
 			case MOD_TELEFRAG:
-				message = "tried to invade";
-				message2 = "'s personal space";
+				msg = "%s tried to invade %s's personal space";
 				break;
 			case MOD_HOOK:
-				message = "had their intestines shredded by";
-				message2 = "'s grappling hook";
+				msg = "%s had their intestines shredded by %s's grappling hook";
 				break;
 		}
 
-		if (message) {
+		g_snprintf(buffer, sizeof(buffer), msg, self->client->locals.persistent.net_name,
+				   attacker->client->locals.persistent.net_name);
 
-			gi.BroadcastPrint(PRINT_HIGH, "%s%s %s %s%s\n", (friendy_fire ? "^1TEAMKILL^7 " : ""),
-			                  self->client->locals.persistent.net_name, message,
-			                  attacker->client->locals.persistent.net_name, message2);
+		if (friendy_fire) {
+			g_strlcat(buffer, " (^1TEAMKILL^7)", sizeof(buffer));
+		}
 
-			if (g_show_attacker_stats->integer) {
-				int16_t a = 0;
-				const g_item_t *armor = G_ClientArmor(attacker);
-				if (armor) {
-					a = attacker->client->locals.inventory[ITEM_INDEX(armor)];
-				}
-				gi.ClientPrint(self, PRINT_MEDIUM, "%s had %d health and %d armor\n",
-				               attacker->client->locals.persistent.net_name, attacker->locals.health, a);
+	} else { // killed by self or world
+
+		const char *msg = "%s sucks at life";
+
+		switch (mod) {
+			case MOD_SUICIDE:
+				msg = "%s suicides";
+				break;
+			case MOD_FALLING:
+				msg = "%s cratered";
+				break;
+			case MOD_CRUSH:
+				msg = "%swas squished";
+				break;
+			case MOD_WATER:
+				msg = "%s sleeps with the fishes";
+				break;
+			case MOD_SLIME:
+				msg = "%s melted";
+				break;
+			case MOD_LAVA:
+				msg = "%s did a back flip into the lava";
+				break;
+			case MOD_FIREBALL:
+				msg = "%s tasted the lava rainbow";
+				break;
+			case MOD_TRIGGER_HURT:
+				msg = "%s was in the wrong place";
+				break;
+			case MOD_ACT_OF_GOD:
+				msg = "%s was killed by an act of god";
+				break;
+		}
+
+		if (attacker == self) {
+			switch (mod) {
+				case MOD_GRENADE_SPLASH:
+					msg = "%s went pop";
+					break;
+				case MOD_HANDGRENADE_KAMIKAZE:
+					msg = "%s tried to put the pin back in";
+					break;
+				case MOD_HANDGRENADE_SPLASH:
+					msg = "%s has no hair left";
+					break;
+				case MOD_ROCKET_SPLASH:
+					msg = "%s blew up";
+					break;
+				case MOD_LIGHTNING_DISCHARGE:
+					msg = "%s took a toaster bath";
+					break;
+				case MOD_BFG_BLAST:
+					msg = "%s should have used a smaller gun";
+					break;
 			}
+		}
 
-			if (g_level.warmup) {
-				return;
+		g_snprintf(buffer, sizeof(buffer), msg, self->client->locals.persistent.net_name);
+	}
+
+	gi.BroadcastPrint(PRINT_HIGH, "%s\n", buffer);
+
+	if (frag) {
+
+		if (g_show_attacker_stats->integer) {
+			int16_t a = 0;
+			const g_item_t *armor = G_ClientArmor(attacker);
+			if (armor) {
+				a = attacker->client->locals.inventory[ITEM_INDEX(armor)];
 			}
+			gi.ClientPrint(self, PRINT_MEDIUM, "%s had %d health and %d armor\n",
+						   attacker->client->locals.persistent.net_name, attacker->locals.health, a);
+		}
+	}
 
+	if (!g_level.warmup) {
+
+		if (frag) {
 			if (friendy_fire) {
 				attacker->client->locals.persistent.score--;
 			} else {
 				attacker->client->locals.persistent.score++;
 			}
 
-			if ((g_level.teams || g_level.ctf) && attacker->client->locals.persistent.team) { // handle team scores too
+			if ((g_level.teams || g_level.ctf) &&
+				self->client->locals.persistent.team &&
+				attacker->client->locals.persistent.team) {
+
 				if (friendy_fire) {
 					attacker->client->locals.persistent.team->score--;
 				} else {
 					attacker->client->locals.persistent.team->score++;
 				}
 			}
+		} else {
+			self->client->locals.persistent.score--;
+
+			if ((g_level.teams || g_level.ctf) && self->client->locals.persistent.team) {
+				self->client->locals.persistent.team->score--;
+			}
 		}
+
+		G_MySQL_ClientObituary(self, attacker, mod);
 	}
 }
 
@@ -226,7 +215,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
  * @brief Play a sloppy sound when impacting the world.
  */
 static void G_ClientGiblet_Touch(g_entity_t *self, g_entity_t *other,
-                                 const cm_bsp_plane_t *plane, const cm_bsp_surface_t *surf) {
+                                 const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *surf) {
 
 	if (surf && (surf->flags & SURF_SKY)) {
 		G_FreeEntity(self);
@@ -330,6 +319,11 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 		ent->locals.velocity[0] += h * Randomc();
 		ent->locals.velocity[1] += h * Randomc();
 		ent->locals.velocity[2] += 100.0 + (h * Randomf());
+		
+		for (int32_t i = 0; i < 3; ++i) {
+			ent->locals.avelocity[i] = Randomc() * 100;
+			ent->s.angles[i] = Randomf() * 360;
+		}
 
 		ent->locals.clip_mask = MASK_CLIP_CORPSE;
 		ent->locals.dead = true;
@@ -357,6 +351,11 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 		self->locals.velocity[0] += h * Randomc();
 		self->locals.velocity[1] += h * Randomc();
 		self->locals.velocity[2] += 100.0 + (h * Randomf());
+		
+		for (int32_t i = 0; i < 3; ++i) {
+			self->locals.avelocity[i] = Randomc() * 100;
+			self->s.angles[i] = Randomf() * 360;
+		}
 
 		self->locals.Die = NULL;
 
@@ -476,9 +475,9 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 		G_HandGrenadeProjectile(
 		    self,					// player
 		    self->client->locals.held_grenade,	// the grenade
-		    self->s.origin,				// starting point
+		    self->s.origin,			// starting point
 		    vec3_up,				// direction
-		    0,					// how fast it flies
+		    0,						// how fast it flies
 		    120,					// damage dealt
 		    120,					// knockback
 		    185.0,					// blast radius
@@ -502,6 +501,9 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 	self->client->locals.show_scores = true;
 
 	self->client->locals.persistent.deaths++;
+
+	const vec3_t delta_angles = { 0.0, 0.0, 45.0 };
+	PackAngles(delta_angles, self->client->ps.pm_state.delta_angles);
 
 	gi.LinkEntity(self);
 }
@@ -1225,7 +1227,7 @@ void G_ClientDisconnect(g_entity_t *ent) {
 	gi.BroadcastPrint(PRINT_HIGH, "%s bitched out\n", ent->client->locals.persistent.net_name);
 
 	// send effect
-	if (!ent->client->locals.persistent.spectator) {
+	if (G_IsMeat(ent)) {
 		gi.WriteByte(SV_CMD_MUZZLE_FLASH);
 		gi.WriteShort(ent->s.number);
 		gi.WriteByte(MZ_LOGOUT);
@@ -1515,6 +1517,8 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 			if (cl->locals.chase_target == other) { // no one to chase
 				cl->locals.chase_target = NULL;
 			}
+
+			G_ClientChaseThink(ent);
 		}
 	}
 
@@ -1550,6 +1554,8 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 			} else {
 				G_ClientChaseTarget(ent);
 			}
+
+			G_ClientChaseThink(ent);
 		} else if (cl->locals.weapon_think_time < g_level.time) {
 			G_ClientWeaponThink(ent);
 		}

@@ -116,16 +116,6 @@ static void Cg_FootstepsTable_Load(const char *footsteps) {
 }
 
 /**
- * @brief Populate and load the footsteps in the map
- */
-static void Cg_FootstepsTable_Populate(cm_material_t *material) {
-
-	if (*material->footsteps) {
-		Cg_FootstepsTable_Load(material->footsteps);
-	}
-}
-
-/**
  * @brief Return a sample for the specified footstep type.
  */
 s_sample_t *Cg_GetFootstepSample(const char *footsteps) {
@@ -149,6 +139,10 @@ s_sample_t *Cg_GetFootstepSample(const char *footsteps) {
  */
 static void Cg_InitFootsteps(void) {
 
+	if (cg_footstep_table) {
+		g_hash_table_destroy(cg_footstep_table);
+	}
+
 	cg_footstep_table = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Cg_FootstepsTable_Destroy);
 	
 	// load the hardcoded default set
@@ -163,7 +157,12 @@ static void Cg_InitFootsteps(void) {
 
 	g_hash_table_insert(cg_footstep_table, "default", default_samples);
 
-	cgi.EnumerateMaterials(Cg_FootstepsTable_Populate);
+	for (const cm_material_t *material = cgi.MapMaterials(); material; material = material->next) {
+
+		if (*material->footsteps) {
+			Cg_FootstepsTable_Load(material->footsteps);
+		}
+	}
 }
 
 /**
@@ -173,11 +172,6 @@ void Cg_UpdateMedia(void) {
 	char name[MAX_QPATH];
 
 	Cg_FreeParticles();
-
-	if (cg_footstep_table) {
-		g_hash_table_destroy(cg_footstep_table);
-		cg_footstep_table = NULL;
-	}
 
 	cgi.FreeTag(MEM_TAG_CGAME);
 	cgi.FreeTag(MEM_TAG_CGAME_LEVEL);

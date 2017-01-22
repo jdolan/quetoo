@@ -160,36 +160,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 	}
 
 	// set the absolute bounding box; ensure it is symmetrical
-	if (ent->solid == SOLID_BSP && !VectorCompare(ent->s.angles, vec3_origin)) { // expand for rotation
-		vec_t max = 0.0;
-
-		for (i = 0; i < 3; i++) {
-			vec_t v = fabsf(ent->mins[i]);
-			if (v > max) {
-				max = v;
-			}
-			v = fabsf(ent->maxs[i]);
-			if (v > max) {
-				max = v;
-			}
-		}
-		for (i = 0; i < 3; i++) {
-			ent->abs_mins[i] = ent->s.origin[i] - max;
-			ent->abs_maxs[i] = ent->s.origin[i] + max;
-		}
-	} else { // normal
-		VectorAdd(ent->s.origin, ent->mins, ent->abs_mins);
-		VectorAdd(ent->s.origin, ent->maxs, ent->abs_maxs);
-	}
-
-	// spread the bounds to ensure that any rounding to the network
-	// protocol precision doesn't conflict with collision detection
-	ent->abs_mins[0] -= 1.0;
-	ent->abs_mins[1] -= 1.0;
-	ent->abs_mins[2] -= 1.0;
-	ent->abs_maxs[0] += 1.0;
-	ent->abs_maxs[1] += 1.0;
-	ent->abs_maxs[2] += 1.0;
+	Cm_EntityBounds(ent->solid, ent->s.origin, ent->s.angles, ent->mins, ent->maxs, ent->abs_mins, ent->abs_maxs);
 
 	sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
 
@@ -508,23 +479,6 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 }
 
 /**
- * @brief
- */
-static void Sv_TraceBounds(sv_trace_t *trace) {
-	int32_t i;
-
-	for (i = 0; i < 3; i++) {
-		if (trace->end[i] > trace->start[i]) {
-			trace->box_mins[i] = trace->start[i] + trace->mins[i] - 1.0;
-			trace->box_maxs[i] = trace->end[i] + trace->maxs[i] + 1.0;
-		} else {
-			trace->box_mins[i] = trace->end[i] + trace->mins[i] - 1.0;
-			trace->box_maxs[i] = trace->start[i] + trace->maxs[i] + 1.0;
-		}
-	}
-}
-
-/**
  * @brief Moves the given box volume through the world from start to end.
  *
  * The skipped edict, and edicts owned by him, are explicitly not checked.
@@ -562,7 +516,7 @@ cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, con
 	trace.contents = contents;
 
 	// create the bounding box of the entire move
-	Sv_TraceBounds(&trace);
+	Cm_TraceBounds(start, end, mins, maxs, trace.box_mins, trace.box_maxs);
 
 	// clip to other solid entities
 	Sv_ClipTraceToEntities(&trace);

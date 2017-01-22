@@ -650,7 +650,7 @@ static void FloodAreas_r(node_t *node) {
 
 	if (node->contents == CONTENTS_AREA_PORTAL) {
 		// this node is part of an area portal
-		const bsp_brush_t *b = node->brushes;
+		const brush_t *b = node->brushes;
 		entity_t *e = &entities[b->original->entity_num];
 
 		// if the current area has already touched this
@@ -741,7 +741,7 @@ static void FindAreas_r(node_t *node) {
  * =============
  */
 static void SetAreaPortalAreas_r(node_t *node) {
-	bsp_brush_t *b;
+	brush_t *b;
 	entity_t *e;
 
 	if (node->plane_num != PLANENUM_LEAF) {
@@ -771,17 +771,17 @@ static void SetAreaPortalAreas_r(node_t *node) {
  */
 void EmitAreaPortals(void) {
 	int32_t i, j;
-	d_bsp_area_portal_t *dp;
+	bsp_area_portal_t *dp;
 
 	if (c_areas > MAX_BSP_AREAS) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_AREAS\n");
 	}
 
-	d_bsp.num_areas = c_areas + 1;
-	d_bsp.num_area_portals = 1; // leave 0 as an error
+	bsp_file.num_areas = c_areas + 1;
+	bsp_file.num_area_portals = 1; // leave 0 as an error
 
 	for (i = 1; i <= c_areas; i++) {
-		d_bsp.areas[i].first_area_portal = d_bsp.num_area_portals;
+		bsp_file.areas[i].first_area_portal = bsp_file.num_area_portals;
 		for (j = 0; j < num_entities; j++) {
 			const entity_t *e = &entities[j];
 
@@ -789,23 +789,23 @@ void EmitAreaPortals(void) {
 				continue;
 			}
 
-			dp = &d_bsp.area_portals[d_bsp.num_area_portals];
+			dp = &bsp_file.area_portals[bsp_file.num_area_portals];
 
 			if (e->portal_areas[0] == i) {
 				dp->portal_num = e->area_portal_num;
 				dp->other_area = e->portal_areas[1];
-				d_bsp.num_area_portals++;
+				bsp_file.num_area_portals++;
 			} else if (e->portal_areas[1] == i) {
 				dp->portal_num = e->area_portal_num;
 				dp->other_area = e->portal_areas[0];
-				d_bsp.num_area_portals++;
+				bsp_file.num_area_portals++;
 			}
 		}
-		d_bsp.areas[i].num_area_portals = d_bsp.num_area_portals - d_bsp.areas[i].first_area_portal;
+		bsp_file.areas[i].num_area_portals = bsp_file.num_area_portals - bsp_file.areas[i].first_area_portal;
 	}
 
-	Com_Verbose("%5i num_areas\n", d_bsp.num_areas);
-	Com_Verbose("%5i num_area_portals\n", d_bsp.num_area_portals);
+	Com_Verbose("%5i num_areas\n", bsp_file.num_areas);
+	Com_Verbose("%5i num_area_portals\n", bsp_file.num_area_portals);
 }
 
 /**
@@ -874,7 +874,7 @@ void FillOutside(node_t *head_node) {
  */
 static void FindPortalSide(portal_t *p) {
 	int32_t viscontents;
-	bsp_brush_t *bb;
+	brush_t *bb;
 	int32_t i, j;
 	int32_t plane_num;
 	side_t *bestside;

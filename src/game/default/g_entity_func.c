@@ -455,7 +455,7 @@ static void G_func_plat_Use(g_entity_t *ent, g_entity_t *other,
  */
 static void G_func_plat_Touch(g_entity_t *ent, g_entity_t *other,
                               const cm_bsp_plane_t *plane,
-                              const cm_bsp_surface_t *surf) {
+                              const cm_bsp_texinfo_t *surf) {
 
 	if (!other->client) {
 		return;
@@ -617,7 +617,7 @@ void G_func_plat(g_entity_t *ent) {
  */
 static void G_func_rotating_Touch(g_entity_t *self, g_entity_t *other,
                                   const cm_bsp_plane_t *plane,
-                                  const cm_bsp_surface_t *surf) {
+                                  const cm_bsp_texinfo_t *surf) {
 
 	if (self->locals.damage) {
 		if (!VectorCompare(self->locals.avelocity, vec3_origin)) {
@@ -779,7 +779,7 @@ static void G_func_button_Use(g_entity_t *self, g_entity_t *other,
  */
 static void G_func_button_Touch(g_entity_t *self, g_entity_t *other,
                                 const cm_bsp_plane_t *plane,
-                                const cm_bsp_surface_t *surf) {
+                                const cm_bsp_texinfo_t *surf) {
 
 	if (!other->client) {
 		return;
@@ -1035,7 +1035,7 @@ static void G_func_door_Use(g_entity_t *self, g_entity_t *other, g_entity_t *act
  */
 static void G_func_door_TouchTrigger(g_entity_t *self, g_entity_t *other,
                                      const cm_bsp_plane_t *plane,
-                                     const cm_bsp_surface_t *surf) {
+                                     const cm_bsp_texinfo_t *surf) {
 
 	if (other->locals.health <= 0) {
 		return;
@@ -1177,7 +1177,7 @@ static void G_func_door_Die(g_entity_t *self, g_entity_t *attacker, uint32_t mod
  */
 static void G_func_door_Touch(g_entity_t *self, g_entity_t *other,
                               const cm_bsp_plane_t *plane,
-                              const cm_bsp_surface_t *surf) {
+                              const cm_bsp_texinfo_t *surf) {
 
 	if (!other->client) {
 		return;

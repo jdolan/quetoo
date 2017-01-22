@@ -7,16 +7,19 @@ set quetoo_folder=%1
 set build_platform=%2
 set build_configuration=%3
 
-copy "..\..\Objectively\Objectively.vs15\bin\%build_platform%%build_configuration%\Objectively*" "%quetoo_folder%\bin\*" /y
-copy "..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\%build_platform%%build_configuration%\ObjectivelyMVC*" "%quetoo_folder%\bin\*" /y
+robocopy "../mingw-cross/Quetoo-i686/etc/fonts/" "%quetoo_folder%/etc/fonts/" * /E /NJH /NJS /FP /NP /V | findstr /v "*EXTRA File"
+robocopy "../mingw-cross/Quetoo-i686/bin/" "%quetoo_folder%/bin/" * /E /NJH /NJS /FP /NP /V | findstr /v "*EXTRA File"
 
-copy "libs\gettext\%build_platform%\bin\*.dll" "%quetoo_folder%\bin\*" /y
-copy "libs\glib\%build_platform%\bin\*.dll" "%quetoo_folder%\bin\*" /y
-copy "libs\sdl_mixer\lib\%build_platform%\*.dll" "%quetoo_folder%\bin\*" /y
+robocopy "../../Objectively/Objectively.vs15/bin/%build_platform%%build_configuration%/" "%quetoo_folder%/bin/" Objectively.* /E /NJH /NJS /FP /NP /V | findstr /v "*EXTRA File"
+robocopy "../../ObjectivelyMVC/ObjectivelyMVC.vs15/bin/%build_platform%%build_configuration%/" "%quetoo_folder%/bin/" ObjectivelyMVC.* /E /NJH /NJS /FP /NP /V | findstr /v "*EXTRA File"
 
-copy "..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\lib\%build_platform%\*.dll" "%quetoo_folder%\bin\*" /y
-copy "..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\lib\%build_platform%\*.dll" "%quetoo_folder%\bin\*" /y
-copy "..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\lib\%build_platform%\*.dll" "%quetoo_folder%\bin\*" /y
+robocopy "libs/gettext/%build_platform%/bin/" "%quetoo_folder%/bin/" *.dll /E /NJH /NJS /FP /NP /V | findstr /v "*EXTRA File"
+robocopy "libs/glib/%build_platform%/bin/" "%quetoo_folder%/bin/" *.dll /E /NJH /NJS /FP /NP /V | findstr /v "*EXTRA File"
+robocopy "libs/sdl_mixer/lib/%build_platform%/" "%quetoo_folder%/bin/" *.dll /E /NJH /NJS /FP /NP /V | findstr /v "*EXTRA File"
+
+robocopy "../../ObjectivelyMVC/ObjectivelyMVC.vs15/libs/sdl/lib/%build_platform%/" "%quetoo_folder%/bin/" *.dll /E /NJH /NJS /FP /NP /V | findstr /v "*EXTRA File"
+robocopy "../../ObjectivelyMVC/ObjectivelyMVC.vs15/libs/sdl_image/lib/%build_platform%/" "%quetoo_folder%/bin/" *.dll /E /NJH /NJS /FP /NP /V | findstr /v "*EXTRA File"
+robocopy "../../ObjectivelyMVC/ObjectivelyMVC.vs15/libs/sdl_ttf/lib/%build_platform%/" "%quetoo_folder%/bin/" *.dll /E /NJH /NJS /FP /NP /V | findstr /v "*EXTRA File"
 
 GOTO DONE
 

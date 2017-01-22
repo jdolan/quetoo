@@ -50,7 +50,7 @@ void Cl_MouseWheelEvent(const SDL_Event *event) {
 
 		case KEY_CONSOLE: {
 				const int64_t scroll = cl_console.scroll + event->wheel.y;
-				cl_console.scroll = Clamp(scroll, 0, (int64_t) console_state.len);
+				cl_console.scroll = Clamp(scroll, 0, (int64_t) console_state.strings.length);
 			}
 			break;
 

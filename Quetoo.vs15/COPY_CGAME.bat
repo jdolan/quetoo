@@ -6,7 +6,7 @@ IF [%2] == [""] GOTO INVALID
 set quetoo_folder=%1
 set build_name=%2
 
-copy "bin\%build_name%\cgame*" "%quetoo_folder%\lib\default\*" /y
+robocopy "bin/%build_name%/" "%quetoo_folder%/lib/default/" cgame* /E /NJH /NJS /FP /NP /V | findstr /v "*EXTRA File"
 
 GOTO DONE
 

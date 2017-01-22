@@ -23,8 +23,10 @@
 
 #include "ai_types.h"
 
-ai_goal_t *Ai_AllocGoal(const ai_goal_type_t type, g_entity_t *ent);
-void Ai_FreeGoals(void);
-
 #ifdef __AI_LOCAL_H__
+void Ai_RemoveFuncGoal(g_entity_t *ent, G_AIGoalFunc func);
+void Ai_AddFuncGoal(g_entity_t *ent, G_AIGoalFunc func, uint32_t time_offset);
+void Ai_SetEntityGoal(ai_goal_t *goal, ai_goal_type_t type, vec_t priority, g_entity_t *entity);
+void Ai_CopyGoal(const ai_goal_t *from, ai_goal_t *to);
+void Ai_ClearGoal(ai_goal_t *goal);
 #endif /* __AI_LOCAL_H__ */

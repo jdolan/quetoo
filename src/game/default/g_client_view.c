@@ -362,15 +362,15 @@ void G_ClientEndFrame(g_entity_t *ent) {
 		return;
 	}
 
+	// check for water entry / exit, burn from lava, slime, etc
+	G_ClientWaterInteraction(ent);
+
 	// set the stats for this client
 	if (ent->client->locals.persistent.spectator) {
 		G_ClientSpectatorStats(ent);
 	} else {
 		G_ClientStats(ent);
 	}
-
-	// check for water entry / exit, burn from lava, slime, etc
-	G_ClientWaterInteraction(ent);
 
 	// apply all the damage taken this frame
 	G_ClientDamage(ent);

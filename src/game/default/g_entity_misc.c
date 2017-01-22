@@ -27,7 +27,7 @@
  */
 static void G_misc_teleporter_Touch(g_entity_t *self, g_entity_t *other,
                                     const cm_bsp_plane_t *plane,
-                                    const cm_bsp_surface_t *surf) {
+                                    const cm_bsp_texinfo_t *surf) {
 
 	if (!G_IsMeat(other)) {
 		return;
@@ -166,7 +166,7 @@ static void G_misc_fireball_Think(g_entity_t *self) {
  */
 static void G_misc_fireball_Touch(g_entity_t *self, g_entity_t *other,
                                   const cm_bsp_plane_t *plane,
-                                  const cm_bsp_surface_t *surf) {
+                                  const cm_bsp_texinfo_t *surf) {
 
 	if (g_level.time - self->locals.touch_time > 500) {
 		self->locals.touch_time = g_level.time;
@@ -203,7 +203,7 @@ static void G_misc_fireball_Fly(g_entity_t *self) {
 	ent->solid = SOLID_TRIGGER;
 	ent->locals.move_type = MOVE_TYPE_BOUNCE;
 
-	gi.SetModel(ent, "models/gibs/gib_1/tris");
+	ent->s.model1 = g_media.models.gibs[0];
 	ent->locals.damage = self->locals.damage;
 
 	ent->locals.Touch = G_misc_fireball_Touch;

@@ -72,12 +72,7 @@ typedef struct {
 	/**
 	 * @brief The console strings.
 	 */
-	GList *strings;
-
-	/**
-	 * @brief The length of `strings`.
-	 */
-	size_t len;
+	GQueue strings;
 
 	/**
 	 * @brief The length of the console strings in characters.

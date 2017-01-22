@@ -33,7 +33,7 @@
     <ClInclude Include="..\..\src\collision\cm_material.h">
       <Filter>src\collision</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\collision\cm_main.h">
+    <ClInclude Include="..\..\src\collision\cm_bsp.h">
       <Filter>src\collision</Filter>
     </ClInclude>
   </ItemGroup>
@@ -53,7 +53,7 @@
     <ClCompile Include="..\..\src\collision\cm_material.c">
       <Filter>src\collision</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\collision\cm_main.c">
+    <ClCompile Include="..\..\src\collision\cm_bsp.c">
       <Filter>src\collision</Filter>
     </ClCompile>
   </ItemGroup>

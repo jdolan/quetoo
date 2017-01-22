@@ -36,14 +36,26 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
 		return NULL;
 	}
 
+	const size_t string_len = strlen(string) + 3;
+
 	str->level = level;
-	str->chars = g_strdup(string ? string : "");
+	str->chars = g_new0(char, string_len);
+
+	g_strlcpy(str->chars, string, string_len); // copy in input
+	g_strchomp(str->chars); // remove \n if it's there
+
+	if (!g_str_has_suffix(str->chars, "^7")) { // append ^7 if we need it
+		g_strlcat(str->chars, "^7", string_len);
+	}
+
+	g_strlcat(str->chars, "\n", string_len);
+
 	if (str->chars == NULL) {
 		raise(SIGABRT);
 		return NULL;
 	}
 
-	str->size = strlen(str->chars);
+	str->size = string_len;
 	str->length = StrColorLen(str->chars);
 
 	str->timestamp = quetoo.ticks;
@@ -54,7 +66,7 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
 /**
  * @brief Frees the specified console_str_t.
  */
-static void Con_FreeString(console_string_t *str) {
+static void Con_FreeString(console_string_t *str, gpointer user_data) {
 
 	if (str) {
 		g_free(str->chars);
@@ -67,10 +79,9 @@ static void Con_FreeString(console_string_t *str) {
  */
 static void Con_FreeStrings(void) {
 
-	g_list_free_full(console_state.strings, (GDestroyNotify) Con_FreeString);
+	g_queue_foreach(&console_state.strings, (GFunc) Con_FreeString, NULL);
+	g_queue_clear(&console_state.strings);
 
-	console_state.strings = NULL;
-	console_state.len = 0;
 	console_state.size = 0;
 }
 
@@ -99,7 +110,7 @@ static void Con_Dump_f(void) {
 	} else {
 		SDL_LockMutex(console_state.lock);
 
-		const GList *list = console_state.strings;
+		const GList *list = console_state.strings.head;
 		while (list) {
 			const char *c = ((console_string_t *) list->data)->chars;
 			while (*c) {
@@ -146,20 +157,18 @@ void Con_Append(int32_t level, const char *string) {
 
 	SDL_LockMutex(console_state.lock);
 
-	console_state.strings = g_list_append(console_state.strings, str);
+	g_queue_push_tail(&console_state.strings, str);
 	console_state.size += str->size;
 
 	while (console_state.size > CON_MAX_SIZE) {
-		GList *first = g_list_first(console_state.strings);
+		GList *first = console_state.strings.head;
 		str = first->data;
 
-		console_state.strings = g_list_remove_link(console_state.strings, first);
+		g_queue_unlink(&console_state.strings, first);
 		console_state.size -= str->size;
 
 		g_list_free_full(first, (GDestroyNotify) Con_FreeString);
 	}
-
-	console_state.len = g_list_length(console_state.strings);
 
 	SDL_UnlockMutex(console_state.lock);
 
@@ -266,7 +275,7 @@ size_t Con_Tail(const console_t *console, char **lines, size_t max_lines) {
 	ssize_t back = console->scroll + max_lines;
 
 	GList *start = NULL;
-	GList *list = g_list_last(console_state.strings);
+	GList *list = console_state.strings.tail;
 	while (list) {
 		const console_string_t *str = list->data;
 

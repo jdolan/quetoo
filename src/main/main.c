@@ -225,6 +225,64 @@ static void Quit_f(void) {
 	Com_Shutdown("Server quit\n");
 }
 
+static const char *mem_tag_names[MEM_TAG_TOTAL] = {
+	"default",
+	"server",
+	"ai",
+	"game",
+	"game_level",
+	"client",
+	"renderer",
+	"sound",
+	"ui",
+	"cgame",
+	"cgame_level",
+	"material",
+	"cmd",
+	"cvar",
+	"cmodel",
+	"bsp",
+	"fs"
+};
+
+/**
+ * @brief
+ */
+static void MemStats_f(void) {
+
+	GArray *stats = Mem_Stats();
+
+	Com_Print("Memory stats:\n");
+
+	size_t sum = 0, reported_total = 0;
+
+	for (size_t i = 0; i < stats->len; i++) {
+
+		mem_stat_t *stat_i = &g_array_index(stats, mem_stat_t, i);
+		const char *tag_name;
+
+		if (stat_i->tag == -1) {
+			Com_Print("total: %zd bytes\n", stat_i->size);
+			reported_total = stat_i->size;
+			continue;
+		} else if (stat_i->tag < MEM_TAG_TOTAL) {
+			tag_name = mem_tag_names[stat_i->tag];
+		} else {
+			tag_name = va("#%d", stat_i->tag);
+		}
+
+		Com_Print(" [%s] %zd bytes - %zd blocks\n", tag_name, stat_i->size, stat_i->count);
+		sum += stat_i->size;
+	}
+
+	if (sum != reported_total) {
+		Com_Print("WARNING: %zd bytes summed vs %zd bytes reported!\n", sum, reported_total);
+	}
+	
+	Com_Print(" [console] approx. %zd bytes - approx. %zd blocks\n", console_state.size, console_state.strings.length);
+
+	g_array_free(stats, true);
+}
 
 /**
  * @brief
@@ -238,8 +296,6 @@ static void Init(void) {
 	Cmd_Init();
 
 	Cvar_Init();
-
-	Cm_Init();
 
 	verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information");
 
@@ -276,6 +332,7 @@ static void Init(void) {
 
 	Con_Init();
 
+	Cmd_Add("mem_stats", MemStats_f, CMD_SYSTEM, "Print memory stats");
 	Cmd_Add("debug", Debug_f, CMD_SYSTEM, "Control debugging output");
 	Cmd_Add("quit", Quit_f, CMD_SYSTEM, "Quit Quetoo");
 
@@ -321,8 +378,6 @@ static void Shutdown(const char *msg) {
 	Cvar_Shutdown();
 
 	Cmd_Shutdown();
-
-	Cm_Shutdown();
 
 	Fs_Shutdown();
 

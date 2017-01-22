@@ -28,50 +28,18 @@ _Bool cm_no_areas = false;
 
 /**
  * @brief
- */
-static void Cm_DecompressVis(const byte *in, byte *out) {
-
-	const int32_t row = (cm_vis->num_clusters + 7) >> 3;
-	byte *out_p = out;
-
-	if (!in || !cm_bsp.num_visibility) { // no vis info, so make all visible
-		for (int32_t i = 0; i < row; i++) {
-			*out_p++ = 0xff;
-		}
-	} else {
-		do {
-			if (*in) {
-				*out_p++ = *in++;
-				continue;
-			}
-
-			int32_t c = in[1];
-			in += 2;
-			if ((out_p - out) + c > row) {
-				c = (int32_t) (row - (out_p - out));
-				Com_Warn("Overrun\n");
-			}
-			while (c) {
-				*out_p++ = 0;
-				c--;
-			}
-		} while (out_p - out < row);
-	}
-}
-
-/**
- * @brief
  *
  * @remarks `pvs` must be at least `MAX_BSP_LEAFS >> 3` in length.
  */
 size_t Cm_ClusterPVS(const int32_t cluster, byte *pvs) {
 
-	const size_t len = (cm_vis->num_clusters + 7) >> 3;
+	const bsp_vis_t *vis = cm_bsp.bsp.vis_data.vis;
+	const size_t len = (vis->num_clusters + 7) >> 3;
 
 	if (cluster == -1) {
 		memset(pvs, 0, len);
 	} else {
-		Cm_DecompressVis(cm_bsp.visibility + cm_vis->bit_offsets[cluster][DVIS_PVS], pvs);
+		Bsp_DecompressVis(&cm_bsp.bsp, cm_bsp.bsp.vis_data.raw + vis->bit_offsets[cluster][DVIS_PVS], pvs);
 	}
 
 	return len;
@@ -81,13 +49,14 @@ size_t Cm_ClusterPVS(const int32_t cluster, byte *pvs) {
  * @brief
  */
 size_t Cm_ClusterPHS(const int32_t cluster, byte *phs) {
-
-	const size_t len = (cm_vis->num_clusters + 7) >> 3;
+	
+	const bsp_vis_t *vis = cm_bsp.bsp.vis_data.vis;
+	const size_t len = (vis->num_clusters + 7) >> 3;
 
 	if (cluster == -1) {
 		memset(phs, 0, len);
 	} else {
-		Cm_DecompressVis(cm_bsp.visibility + cm_vis->bit_offsets[cluster][DVIS_PHS], phs);
+		Bsp_DecompressVis(&cm_bsp.bsp, cm_bsp.bsp.vis_data.raw + vis->bit_offsets[cluster][DVIS_PHS], phs);
 	}
 
 	return len;
@@ -109,7 +78,7 @@ static void Cm_FloodArea(cm_bsp_area_t *area, int32_t flood_num) {
 	area->flood_num = flood_num;
 	area->flood_valid = cm_bsp.flood_valid;
 
-	const d_bsp_area_portal_t *p = &cm_bsp.area_portals[area->first_area_portal];
+	const bsp_area_portal_t *p = &cm_bsp.bsp.area_portals[area->first_area_portal];
 
 	for (int32_t i = 0; i < area->num_area_portals; i++, p++) {
 		if (cm_bsp.portal_open[p->portal_num]) {
@@ -128,7 +97,7 @@ void Cm_FloodAreas(void) {
 	cm_bsp.flood_valid++;
 
 	// area 0 is not used
-	for (int32_t i = flood_num = 1; i < cm_bsp.num_areas; i++) {
+	for (int32_t i = flood_num = 1; i < cm_bsp.bsp.num_areas; i++) {
 		cm_bsp_area_t *area = &cm_bsp.areas[i];
 
 		if (area->flood_valid == cm_bsp.flood_valid) {
@@ -146,7 +115,7 @@ void Cm_FloodAreas(void) {
  */
 void Cm_SetAreaPortalState(const int32_t portal_num, const _Bool open) {
 
-	if (portal_num > cm_bsp.num_area_portals) {
+	if (portal_num > cm_bsp.bsp.num_area_portals) {
 		Com_Error(ERROR_DROP, "Portal %d > num_area_portals", portal_num);
 	}
 
@@ -163,7 +132,7 @@ _Bool Cm_AreasConnected(const int32_t area1, const int32_t area2) {
 		return true;
 	}
 
-	if (area1 > cm_bsp.num_areas || area2 > cm_bsp.num_areas) {
+	if (area1 > cm_bsp.bsp.num_areas || area2 > cm_bsp.bsp.num_areas) {
 		Com_Error(ERROR_DROP, "Area %d > cm.num_areas\n", area1 > area2 ? area1 : area2);
 	}
 
@@ -182,7 +151,7 @@ _Bool Cm_AreasConnected(const int32_t area1, const int32_t area2) {
  */
 int32_t Cm_WriteAreaBits(const int32_t area, byte *out) {
 
-	const int32_t bytes = (cm_bsp.num_areas + 7) >> 3;
+	const int32_t bytes = (cm_bsp.bsp.num_areas + 7) >> 3;
 
 	if (cm_no_areas) { // for debugging, send everything
 		memset(out, 0xff, bytes);
@@ -190,7 +159,7 @@ int32_t Cm_WriteAreaBits(const int32_t area, byte *out) {
 		const int32_t flood_num = cm_bsp.areas[area].flood_num;
 		memset(out, 0, bytes);
 
-		for (int32_t i = 0; i < cm_bsp.num_areas; i++) {
+		for (int32_t i = 0; i < cm_bsp.bsp.num_areas; i++) {
 			if (cm_bsp.areas[i].flood_num == flood_num || !area) {
 				out[i >> 3] |= 1 << (i & 7);
 			}

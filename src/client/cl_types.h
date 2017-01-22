@@ -77,6 +77,8 @@ typedef struct {
 	vec3_t previous_origin; // the previous interpolated origin
 	vec3_t termination; // and termination
 	vec3_t angles; // and angles
+	vec3_t mins, maxs; // bounding box
+	vec3_t abs_mins, abs_maxs; // absolute bounding box
 
 	cl_entity_step_t step; // the step the entity just traversed
 

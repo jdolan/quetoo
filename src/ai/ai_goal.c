@@ -21,42 +21,73 @@
 
 #include "ai_local.h"
 
-typedef struct {
-	GList *goals;
-} ai_goal_state_t;
+/**
+ * @brief Add the specified goal function to the bot, and run it at the specified
+ * time offset.
+ */
+void Ai_AddFuncGoal(g_entity_t *ent, G_AIGoalFunc func, uint32_t time_offset) {
+	ai_locals_t *ai = Ai_GetLocals(ent);
 
-static ai_goal_state_t ai_goal_state;
+	for (int32_t i = 0; i < MAX_AI_FUNCGOALS; i++) {
+		ai_funcgoal_t *funcgoal = &ai->funcgoals[i];
+		
+		if (funcgoal->think) {
+			continue;
+		}
+
+		funcgoal->think = func;
+		funcgoal->nextthink = ai_level.time + time_offset;
+		funcgoal->time = ai_level.time;
+		return;
+	}
+
+	aii.gi->Warn("Bot ran out of empty goal slots\n");
+}
 
 /**
- * @brief Utility function for instantiating ai_goal_t.
+ * @brief Remove the specified goal function from the bot.
  */
-ai_goal_t *Ai_AllocGoal(const ai_goal_type_t type, g_entity_t *ent) {
-	ai_goal_t *goal = Mem_TagMalloc(sizeof(*goal), MEM_TAG_AI);
+void Ai_RemoveFuncGoal(g_entity_t *ent, G_AIGoalFunc func) {
+	ai_locals_t *ai = Ai_GetLocals(ent);
+
+	for (int32_t i = 0; i < MAX_AI_FUNCGOALS; i++) {
+		ai_funcgoal_t *funcgoal = &ai->funcgoals[i];
+		
+		if (funcgoal->think != func) {
+			continue;
+		}
+
+		funcgoal->think = NULL;
+		funcgoal->nextthink = 0;
+		return;
+	}
+}
+
+/**
+ * @brief Setup entity goal for the specified target.
+ */
+void Ai_SetEntityGoal(ai_goal_t *goal, ai_goal_type_t type, vec_t priority, g_entity_t *entity) {
 
 	goal->type = type;
-	goal->ent = ent;
-
-	// append the goal to the list
-	ai_goal_state.goals = g_list_prepend(ai_goal_state.goals, goal);
-
-	return goal;
+	goal->time = ai_level.time;
+	goal->priority = priority;
+	goal->ent = entity;
 }
 
 /**
- * @brief GDestroyNotify for ai_goal_t.
+ * @brief Copy a goal from one target to another
  */
-static void Ai_FreeGoal(gpointer data) {
-	ai_goal_t *goal = (ai_goal_t *) data;
+void Ai_CopyGoal(const ai_goal_t *from, ai_goal_t *to) {
 
-	Mem_Free(goal);
+	memcpy(to, from, sizeof(ai_goal_t));
+	to->time = ai_level.time;
 }
 
 /**
- * @brief Frees all ai_goal_t.
+ * @brief Clear a goal
  */
-void Ai_FreeGoals(void) {
+void Ai_ClearGoal(ai_goal_t *goal) {
 
-	g_list_free_full(ai_goal_state.goals, Ai_FreeGoal);
-
-	memset(&ai_goal_state, 0, sizeof(ai_goal_state));
+	memset(goal, 0, sizeof(ai_goal_t));
+	goal->time = ai_level.time;
 }

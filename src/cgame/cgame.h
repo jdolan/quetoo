@@ -400,6 +400,11 @@ typedef struct cg_import_s {
 	 * @return The entities string for the currently loaded level.
 	 */
 	const char *(*EntityString)(void);
+	
+	/**
+	 * @return The materials for the currently loaded level.
+	 */
+	const cm_material_t *(*MapMaterials)(void);
 
 	/**
 	 * @defgroup collision Collision model
@@ -441,11 +446,6 @@ typedef struct cg_import_s {
 	 * @return True if `leaf` is in the potentially visible set for the current frame.
 	 */
 	_Bool (*LeafVisible)(const r_bsp_leaf_t *leaf);
-
-	/**
-	 * @brief Enumerate all of the currently loaded materials.
-	 */
-	void (*EnumerateMaterials)(Cm_EnumerateMaterialsFunc enumerator);
 
 	/**
 	 * @}

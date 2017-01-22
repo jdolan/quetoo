@@ -25,42 +25,54 @@
  * @brief
  */
 void G_ClientChaseThink(g_entity_t *ent) {
-	vec3_t new_delta;
-
 	g_entity_t *targ = ent->client->locals.chase_target;
 
-	// calculate delta angles if switching targets
-	if (targ != ent->client->locals.old_chase_target) {
-		VectorSubtract(ent->client->locals.angles, targ->client->locals.angles, new_delta);
-		ent->client->locals.old_chase_target = targ;
+	if (targ) {
+		vec3_t new_delta;
+
+		// calculate delta angles if switching targets
+		if (targ != ent->client->locals.old_chase_target) {
+			VectorSubtract(ent->client->locals.angles, targ->client->locals.angles, new_delta);
+			ent->client->locals.old_chase_target = targ;
+		} else {
+			VectorClear(new_delta);
+		}
+
+		// copy origin
+		VectorCopy(targ->s.origin, ent->s.origin);
+
+		// velocity
+		VectorCopy(targ->locals.velocity, ent->locals.velocity);
+
+		// and angles
+		VectorCopy(targ->client->locals.angles, ent->client->locals.angles);
+
+		// and player state
+		memcpy(&ent->client->ps, &targ->client->ps, sizeof(player_state_t));
+
+		// add in delta angles in case we've switched targets
+		if (!VectorCompare(new_delta, vec3_origin)) {
+			vec3_t delta_angles;
+
+			UnpackAngles(ent->client->ps.pm_state.delta_angles, delta_angles);
+			VectorAdd(delta_angles, new_delta, delta_angles);
+
+			PackAngles(delta_angles, ent->client->ps.pm_state.delta_angles);
+		}
+
+		// disable the spectator's input
+		ent->client->ps.pm_state.type = PM_FREEZE;
 	} else {
-		VectorClear(new_delta);
-	}
-
-	// copy origin
-	VectorCopy(targ->s.origin, ent->s.origin);
-
-	// velocity
-	VectorCopy(targ->locals.velocity, ent->locals.velocity);
-
-	// and angles
-	VectorCopy(targ->client->locals.angles, ent->client->locals.angles);
-
-	// and player state
-	memcpy(&ent->client->ps, &targ->client->ps, sizeof(player_state_t));
-
-	// add in delta angles in case we've switched targets
-	if (!VectorCompare(new_delta, vec3_origin)) {
 		vec3_t delta_angles;
 
 		UnpackAngles(ent->client->ps.pm_state.delta_angles, delta_angles);
-		VectorAdd(delta_angles, new_delta, delta_angles);
+		delta_angles[2] = -delta_angles[2];
 
 		PackAngles(delta_angles, ent->client->ps.pm_state.delta_angles);
-	}
 
-	// disable the spectator's input
-	ent->client->ps.pm_state.type = PM_FREEZE;
+		// enable the spectator's input
+		ent->client->ps.pm_state.type = PM_SPECTATOR;
+	}
 
 	gi.LinkEntity(ent);
 }
@@ -142,7 +154,6 @@ void G_ClientChaseTarget(g_entity_t *ent) {
 		other = g_game.entities + i;
 		if (other->in_use && !other->client->locals.persistent.spectator) {
 			ent->client->locals.chase_target = other;
-			G_ClientChaseThink(ent);
 			return;
 		}
 	}

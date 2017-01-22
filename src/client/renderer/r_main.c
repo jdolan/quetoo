@@ -106,7 +106,7 @@ void R_UpdateFrustum(void) {
 		return;
 	}
 
-	r_bsp_plane_t *p = r_locals.frustum;
+	cm_bsp_plane_t *p = r_locals.frustum;
 
 	vec_t ang = Radians(r_view.fov[0]);
 	vec_t xs = sin(ang);
