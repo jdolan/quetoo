@@ -1,6 +1,13 @@
 #!/bin/bash
 
-QUETOO_HOME=$(dirname "$0")
-QUETOO_HOME=${QUETOO_HOME/Update.app*/Quetoo.app}
+BINDIR=$(dirname "$0")
 
-open "${QUETOO_HOME}/Contents/MacOS/quetoo-update"
+UPDATE=${BINDIR}/quetoo-update-1.0-SNAPSHOT.jar
+
+if [ ! -f "${UPDATE}" ]; then
+	UPDATE=${BINDIR}/quetoo-update-1.0-SNAPSHOT-small.jar;
+fi
+
+QUETOO_HOME=${BINDIR/Update.app*/}
+
+java -jar "${UPDATE}" --gui --dir "${QUETOO_HOME}"

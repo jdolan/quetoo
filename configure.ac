@@ -259,10 +259,10 @@ dnl --------------------------
 
 AC_MSG_CHECKING(which tools to build)
 
-TOOLS="quemap update"
+TOOLS="quemap quetoo-master"
 
 AC_ARG_WITH(tools,
-	AS_HELP_STRING([--with-tools='quemap update ...'],
+	AS_HELP_STRING([--with-tools='quemap quetoo-master...'],
 		[build specified tools]
 	)
 )
@@ -449,9 +449,8 @@ AC_CONFIG_FILES([
 	src/server/Makefile
 	src/tests/Makefile
 	src/tools/Makefile
-	src/tools/master/Makefile
 	src/tools/quemap/Makefile
-	src/tools/update/Makefile
+	src/tools/quetoo-master/Makefile
 ])
 
 AC_OUTPUT
