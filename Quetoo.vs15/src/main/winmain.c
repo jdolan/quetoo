@@ -87,7 +87,8 @@ static HRESULT GenerateCrashDump(MINIDUMP_TYPE flags, EXCEPTION_POINTERS *seh) {
 	// close the file
 	CloseHandle(hFile);
 
-	MessageBox(NULL, "A dump has been generated. Check the bin folder for a .dmp file.", "Crash!", MB_OK | MB_ICONERROR);
+	MessageBox(NULL, "Quetoo has encountered an unrecoverable error. Please go to http://quetoo.org and file an issue report. Check the bin folder for a .dmp file, this will be instrumental to figuring out the problem. Thank you!", "Crash!", MB_OK | MB_ICONERROR);
+	exit(error);
 
 	return error;
 }
@@ -106,7 +107,7 @@ int CALLBACK WinMain(
 #endif
 		return main(__argc, __argv);
 #if defined(_MSC_VER)
-	} __except (GenerateCrashDump((MINIDUMP_TYPE)(MiniDumpNormal | MiniDumpWithHandleData), GetExceptionInformation())) {
+	} __except (GenerateCrashDump((MINIDUMP_TYPE)(MiniDumpNormal | MiniDumpWithHandleData | MiniDumpWithDataSegs | MiniDumpWithFullMemory | MiniDumpWithoutOptionalData | MiniDumpIgnoreInaccessibleMemory), GetExceptionInformation())) {
 		return 0;
 	}
 #endif

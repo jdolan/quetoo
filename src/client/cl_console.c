@@ -297,6 +297,15 @@ static void Cl_Crash_f(void) {
 	Sys_Backtrace();
 }
 
+/** 
+ * @brief
+ */
+__attribute__((noreturn))
+static void Cl_Fatal_f(void) {
+
+	Com_Error(ERROR_FATAL, "Nope!\n");
+}
+
 /**
  * @brief Initializes the client console.
  */
@@ -335,8 +344,9 @@ void Cl_InitConsole(void) {
 	Cmd_Add("cl_toggle_console", Cl_ToggleConsole_f, CMD_SYSTEM | CMD_CLIENT, "Toggle the console");
 	Cmd_Add("cl_message_mode", Cl_MessageMode_f, CMD_CLIENT, "Activate chat");
 	Cmd_Add("cl_message_mode_2", Cl_MessageMode2_f, CMD_CLIENT, "Activate team chat");
-
+	
 	Cmd_Add("crash", Cl_Crash_f, CMD_SYSTEM, "Do a crash");
+	Cmd_Add("fatal", Cl_Fatal_f, CMD_SYSTEM, "Do a fatal");
 
 	Com_Print("Client console initialized\n");
 }
@@ -359,8 +369,9 @@ void Cl_ShutdownConsole(void) {
 	Cmd_Remove("cl_toggle_console");
 	Cmd_Remove("cl_message_mode");
 	Cmd_Remove("cl_message_mode_2");
-
+	
 	Cmd_Remove("crash");
+	Cmd_Remove("fatal");
 
 	Com_Print("Client console shutdown\n");
 }
