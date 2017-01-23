@@ -169,7 +169,7 @@ static _Bool Ai_CanSee(const g_entity_t *self, const g_entity_t *other) {
 
 	vec_t dot = DotProduct(ai->aim_forward, dir);
 
-	if (dot < 0.65) {
+	if (dot < 0.5) {
 		return false;
 	}
 
