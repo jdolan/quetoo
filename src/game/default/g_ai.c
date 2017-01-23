@@ -519,6 +519,20 @@ void G_Ai_Init(void) {
 
 	import.OnSameTeam = G_OnSameTeam;
 	import.ClientCommand = G_ClientCommand;
+	
+	import.Multicast = gi.Multicast;
+	import.Unicast = gi.Unicast;
+	import.WriteData = gi.WriteData;
+	import.WriteChar = gi.WriteChar;
+	import.WriteByte = gi.WriteByte;
+	import.WriteShort = gi.WriteShort;
+	import.WriteLong = gi.WriteLong;
+	import.WriteString = gi.WriteString;
+	import.WriteVector = gi.WriteVector;
+	import.WritePosition = gi.WritePosition;
+	import.WriteDir = gi.WriteDir;
+	import.WriteAngle = gi.WriteAngle;
+	import.WriteAngles = gi.WriteAngles;
 
 	// SCRATCH
 	import.entities = ge.entities;

@@ -230,6 +230,8 @@ static int32_t Ai_ItemPick_Compare(const void *a, const void *b) {
 	return Sign(w1->weight - w0->weight);
 }
 
+#define AI_ITEM_UNREACHABLE -1.0
+
 /**
  * @brief
  */
@@ -239,15 +241,31 @@ static vec_t Ai_ItemReachable(const g_entity_t *self, const g_entity_t *other) {
 	VectorSubtract(self->s.origin, other->s.origin, line);
 
 	if (fabs(line[2]) >= PM_STEP_HEIGHT) {
-		return -1.0;
+		return AI_ITEM_UNREACHABLE;
 	}
-
-	line[2] = 0.0;
 
 	const vec_t distance = VectorLength(line);
 
 	if (distance >= AI_MAX_ITEM_DISTANCE) {
-		return -1.0;
+		return AI_ITEM_UNREACHABLE;
+	}
+
+	// if the distance is over a chasm, let's see if we can even reach it
+	if (distance >= 32.0) {
+
+		vec3_t fall_start;
+		VectorAdd(self->s.origin, other->s.origin, fall_start);
+		VectorScale(fall_start, 0.5, fall_start);
+		
+		vec3_t fall_end;
+		VectorCopy(fall_start, fall_end);
+		fall_end[2] -= PM_STEP_HEIGHT * 2.0;
+
+		cm_trace_t tr = aim.Trace(fall_start, fall_end, vec3_origin, vec3_origin, NULL, CONTENTS_SOLID);
+
+		if (tr.start_solid || tr.all_solid || tr.fraction == 1.0) {
+			return AI_ITEM_UNREACHABLE;
+		}
 	}
 
 	return distance;
@@ -296,8 +314,8 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 		// check to see if the item has gone out of our line of sight
 		if (!Ai_GoalHasEntity(&ai->move_target, ai->move_target.ent) || // item picked up and changed into something else
 				!Ai_CanTarget(self, ai->move_target.ent) ||
-		        Ai_ItemReachable(self, ai->move_target.ent) < 0.0 ||
-		        !Ai_ItemRequired(self, *ai->move_target.ent->ai_locals.item)) {
+				!Ai_ItemRequired(self, *ai->move_target.ent->ai_locals.item) ||
+		        Ai_ItemReachable(self, ai->move_target.ent) == AI_ITEM_UNREACHABLE) {
 
 			Ai_ResetWander(self, ai->move_target.ent->s.origin);
 
@@ -345,8 +363,8 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 		vec_t distance;
 
 		if (!Ai_CanTarget(self, ent) ||
-		        (distance = Ai_ItemReachable(self, ent)) < 0.0 ||
-		        !Ai_ItemRequired(self, *ent->ai_locals.item)) {
+				!Ai_ItemRequired(self, *ent->ai_locals.item) ||
+		        (distance = Ai_ItemReachable(self, ent)) == AI_ITEM_UNREACHABLE) {
 			continue;
 		}
 
