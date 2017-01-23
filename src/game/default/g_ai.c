@@ -28,7 +28,7 @@ cvar_t *g_ai_max_clients;
  * @brief MAYBE TEMPORARY
  */
 static uint16_t G_Ai_ItemIndex(const g_item_t *item) {
-	return item - g_items;
+	return item->index;
 }
 
 /**
@@ -49,21 +49,20 @@ static _Bool G_Ai_CanPickupItem(const g_entity_t *self, const g_item_t *item) {
 		// no armor or shard or not filled up, can get.
 		if (!current_armor ||
 		        item->tag == ARMOR_SHARD ||
-		        self->client->locals.inventory[ITEM_INDEX(current_armor)] < current_armor->max) {
+		        self->client->locals.inventory[current_armor->index] < current_armor->max) {
 			return true;
 		}
 
 		return false;
 	} else if (item->type == ITEM_AMMO) { // just if we need the ammo
-		return self->client->locals.inventory[ITEM_INDEX(item)] < item->max;
+		return self->client->locals.inventory[item->index] < item->max;
 	} else if (item->type == ITEM_WEAPON) {
 
-		if (self->client->locals.inventory[ITEM_INDEX(item)]) { // we have the weapon
+		if (self->client->locals.inventory[item->index]) { // we have the weapon
 
 			if (item->ammo) {
-				const g_item_t *ammo = G_FindItem(item->ammo);
-
-				return self->client->locals.inventory[ITEM_INDEX(ammo)] < ammo->max;
+				const g_item_t *ammo = item->ammo_item;
+				return self->client->locals.inventory[ammo->index] < ammo->max;
 			}
 
 			return false;
@@ -137,9 +136,9 @@ static void G_Ai_Spawn(g_entity_t *self, const uint32_t time_offset) {
 	char userinfo[MAX_USER_INFO_STRING];
 	aix->GetUserInfo(self, userinfo);
 
-	G_ClientConnect(self, userinfo);
+	self->client->ai = true; // and away we go!
 
-	self->ai = true; // and away we go!
+	G_ClientConnect(self, userinfo);
 
 	if (!time_offset) {
 		G_Ai_ClientBegin(self);
@@ -179,7 +178,7 @@ static uint8_t G_Ai_NumberOfBots(void) {
 
 		g_entity_t *ent = &g_game.entities[i + 1];
 
-		if (ent->in_use && ent->ai) {
+		if (ent->in_use && ent->client->ai) {
 			filled_slots++;
 		}
 	}
@@ -231,7 +230,7 @@ static void G_Ai_RemoveBots(const int32_t count) {
 		int32_t j;
 
 		for (j = 1; j <= sv_max_clients->integer; j++, ent++) {
-			if (ent->in_use && ent->ai) {
+			if (ent->in_use && ent->client->ai) {
 				G_ClientDisconnect(ent);
 				break;
 			}
@@ -398,7 +397,7 @@ static void G_Ai_RegisterItem(const g_item_t *item) {
 	ai_item.speed = 0;
 	ai_item.time = 0;
 
-	aix->RegisterItem(G_Ai_ItemIndex(item), &ai_item);
+	aix->RegisterItem(item->index, &ai_item);
 }
 
 /**
@@ -416,8 +415,8 @@ static void G_Ai_RegisterWeapon(const g_item_t *item, const ai_item_flags_t weap
 
 	ai_item.class_name = item->class_name;
 	if (item->ammo) {
-		const g_item_t *ammo = G_FindItem(item->ammo);
-		ai_item.ammo = G_Ai_ItemIndex(ammo);
+		const g_item_t *ammo = item->ammo_item;
+		ai_item.ammo = ammo->index;
 		ai_item.max = ammo->max;
 	} else {
 		ai_item.ammo = 0;
@@ -432,7 +431,7 @@ static void G_Ai_RegisterWeapon(const g_item_t *item, const ai_item_flags_t weap
 	ai_item.speed = speed;
 	ai_item.time = time;
 
-	aix->RegisterItem(G_Ai_ItemIndex(item), &ai_item);
+	aix->RegisterItem(item->index, &ai_item);
 }
 
 /**
@@ -446,26 +445,28 @@ void G_Ai_RegisterItems(void) {
 
 	for (uint16_t i = 0; i < g_num_items; i++) {
 
-		if (g_items[i].type == ITEM_WEAPON) {
+		const g_item_t *item = G_ItemByIndex(i);
+
+		if (item->type == ITEM_WEAPON) { // items are registered below
 			continue;
 		}
 
-		G_Ai_RegisterItem(&g_items[i]);
+		G_Ai_RegisterItem(item);
 	}
 
-	G_Ai_RegisterWeapon(G_FindItem("Blaster"), AI_WEAPON_PROJECTILE, 1000, 0);
-	G_Ai_RegisterWeapon(G_FindItem("Shotgun"), AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE | AI_WEAPON_MED_RANGE, 0, 0);
-	G_Ai_RegisterWeapon(G_FindItem("Super Shotgun"), AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE, 0, 0);
-	G_Ai_RegisterWeapon(G_FindItem("Machinegun"), AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE | AI_WEAPON_MED_RANGE, 0, 0);
-	G_Ai_RegisterWeapon(G_FindItem("Grenade Launcher"), AI_WEAPON_PROJECTILE | AI_WEAPON_EXPLOSIVE, 700, 0);
-	G_Ai_RegisterWeapon(G_FindItem("Hand Grenades"),
+	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_BLASTER], AI_WEAPON_PROJECTILE, 1000, 0);
+	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_SHOTGUN], AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE | AI_WEAPON_MED_RANGE, 0, 0);
+	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_SUPER_SHOTGUN], AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE, 0, 0);
+	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_MACHINEGUN], AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE | AI_WEAPON_MED_RANGE, 0, 0);
+	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_GRENADE_LAUNCHER], AI_WEAPON_PROJECTILE | AI_WEAPON_EXPLOSIVE, 700, 0);
+	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_HAND_GRENADE],
 	                    AI_WEAPON_PROJECTILE | AI_WEAPON_EXPLOSIVE | AI_WEAPON_TIMED | AI_WEAPON_MED_RANGE, 1000, 3000);
-	G_Ai_RegisterWeapon(G_FindItem("Rocket Launcher"),
+	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_ROCKET_LAUNCHER],
 	                    AI_WEAPON_PROJECTILE | AI_WEAPON_EXPLOSIVE | AI_WEAPON_MED_RANGE | AI_WEAPON_LONG_RANGE, 1000, 0);
-	G_Ai_RegisterWeapon(G_FindItem("Hyperblaster"), AI_WEAPON_PROJECTILE | AI_WEAPON_MED_RANGE, 1800, 0);
-	G_Ai_RegisterWeapon(G_FindItem("Lightning Gun"), AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE, 0, 0);
-	G_Ai_RegisterWeapon(G_FindItem("Railgun"), AI_WEAPON_HITSCAN | AI_WEAPON_LONG_RANGE, 0, 0);
-	G_Ai_RegisterWeapon(G_FindItem("BFG10K"), AI_WEAPON_PROJECTILE | AI_WEAPON_MED_RANGE | AI_WEAPON_LONG_RANGE, 720, 0);
+	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_HYPERBLASTER], AI_WEAPON_PROJECTILE | AI_WEAPON_MED_RANGE, 1800, 0);
+	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_LIGHTNING], AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE, 0, 0);
+	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_RAILGUN], AI_WEAPON_HITSCAN | AI_WEAPON_LONG_RANGE, 0, 0);
+	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_BFG10K], AI_WEAPON_PROJECTILE | AI_WEAPON_MED_RANGE | AI_WEAPON_LONG_RANGE, 720, 0);
 }
 
 /**
@@ -518,6 +519,20 @@ void G_Ai_Init(void) {
 
 	import.OnSameTeam = G_OnSameTeam;
 	import.ClientCommand = G_ClientCommand;
+	
+	import.Multicast = gi.Multicast;
+	import.Unicast = gi.Unicast;
+	import.WriteData = gi.WriteData;
+	import.WriteChar = gi.WriteChar;
+	import.WriteByte = gi.WriteByte;
+	import.WriteShort = gi.WriteShort;
+	import.WriteLong = gi.WriteLong;
+	import.WriteString = gi.WriteString;
+	import.WriteVector = gi.WriteVector;
+	import.WritePosition = gi.WritePosition;
+	import.WriteDir = gi.WriteDir;
+	import.WriteAngle = gi.WriteAngle;
+	import.WriteAngles = gi.WriteAngles;
 
 	// SCRATCH
 	import.entities = ge.entities;

@@ -94,6 +94,9 @@ void G_ResetTeams(void) {
 
 	g_team_good.color = EFFECT_COLOR_BLUE;
 	g_team_evil.color = EFFECT_COLOR_RED;
+	
+	g_strlcpy(g_team_good.flag, "item_flag_team1", sizeof(g_team_good.flag));
+	g_strlcpy(g_team_evil.flag, "item_flag_team2", sizeof(g_team_evil.flag));
 }
 
 /**
@@ -937,7 +940,7 @@ static void G_Frame(void) {
 			if (ent->client) {
 				G_ClientBeginFrame(ent);
 
-				if (ent->ai) {
+				if (ent->client->ai) {
 					G_RunThink(ent);
 				}
 			} else {

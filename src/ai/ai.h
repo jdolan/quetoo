@@ -21,13 +21,14 @@
 
 #pragma once
 
-#define AI_API_VERSION 1
+#define AI_API_VERSION 2
 
 /**
  * @brief Forward declaration of entity type, since
  * game.h requires ai.h
  */
 typedef struct g_entity_s g_entity_t;
+typedef _Bool (*EntityFilterFunc)(const g_entity_t *ent);
 
 /**
  * @brief Items are opaque pointers to AI.
@@ -152,6 +153,23 @@ typedef struct {
 	 * @brief Called to issue a command from the bot
 	 */
 	void (*ClientCommand)(g_entity_t *self);
+
+	/**
+	 * @brief Network messaging facilities.
+	 */
+	void (*Multicast)(const vec3_t org, multicast_t to, EntityFilterFunc filter);
+	void (*Unicast)(const g_entity_t *ent, const _Bool reliable);
+	void (*WriteData)(const void *data, size_t len);
+	void (*WriteChar)(const int32_t c);
+	void (*WriteByte)(const int32_t c);
+	void (*WriteShort)(const int32_t c);
+	void (*WriteLong)(const int32_t c);
+	void (*WriteString)(const char *s);
+	void (*WriteVector)(const vec_t v);
+	void (*WritePosition)(const vec3_t pos);
+	void (*WriteDir)(const vec3_t pos); // single byte encoded, very coarse
+	void (*WriteAngle)(const vec_t v);
+	void (*WriteAngles)(const vec3_t angles);
 
 	/**
 	 * @brief TODO FIXME - TEMPORARY API SCRATCH SPACE.

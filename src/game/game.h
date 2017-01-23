@@ -25,7 +25,7 @@
 #include "filesystem.h"
 #include "ai/ai.h"
 
-#define GAME_API_VERSION 6
+#define GAME_API_VERSION 7
 
 /**
  * @brief Server flags for g_entity_t.
@@ -64,6 +64,11 @@ typedef struct {
 #endif /* __GAME_LOCAL_H__ */
 
 struct g_client_s {
+	/**
+	 * @brief True if the client is AI-controlled.
+	 */
+	_Bool ai;
+
 	/**
 	 * @brief Communicated by server to clients
 	 */
@@ -118,9 +123,15 @@ struct g_entity_s {
 	_Bool in_use;
 
 	/**
-	 * @brief True if the entity represents an AI-controlled client.
+	 * @brief This is a special ID that is increased for every entity that spawns and
+	 * wraps around. Because of certain game behaviors, the entity system may, in a very short
+	 * period of time, delete and replace an entity without the knowledge of other systems (for instance
+	 * a dropped item may get freed and replaced with a projectile in a single frame), and if those systems
+	 * (such as the AI) hold a reference to that entity thinking it was still a dropped item, it
+	 * may be catastrophic. This ID is a second line of defense, as if this ID changes, the entity
+	 * is no longer the same entity it used to reference, and is more accurate than referencing classnames
 	 */
-	_Bool ai;
+	uint16_t spawn_id;
 
 	/**
 	 * @brief Server-specific flags bitmask (e.g. SVF_NO_CLIENT).

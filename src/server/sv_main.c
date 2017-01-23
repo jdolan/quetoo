@@ -296,18 +296,19 @@ static void Sv_Connect_f(void) {
 	// otherwise, treat as a fresh connect to a new slot
 	if (!client) {
 		for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
-			if (cl->state == SV_CLIENT_FREE && !cl->entity->ai) { // we have a free one
+			if (cl->state == SV_CLIENT_FREE && !cl->entity->client->ai) { // we have a free one
 				client = cl;
 				break;
 			}
 		}
 	}
 
-	// no free slots, see if there's an AI slot ready to go. server will boot them.
+	// no free slots, see if there's an AI slot ready to go and boot them.
 	if (!client) {
 		for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
-			if (cl->state == SV_CLIENT_FREE && cl->entity->ai) { // we have a free one
+			if (cl->state == SV_CLIENT_FREE && cl->entity->client->ai) { // we have a free one
 				client = cl;
+				svs.game->ClientDisconnect(cl->entity);
 				break;
 			}
 		}

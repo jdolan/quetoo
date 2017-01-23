@@ -173,7 +173,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 			int16_t a = 0;
 			const g_item_t *armor = G_ClientArmor(attacker);
 			if (armor) {
-				a = attacker->client->locals.inventory[ITEM_INDEX(armor)];
+				a = attacker->client->locals.inventory[armor->index];
 			}
 			gi.ClientPrint(self, PRINT_MEDIUM, "%s had %d health and %d armor\n",
 			               attacker->client->locals.persistent.net_name, attacker->locals.health, a);
@@ -528,15 +528,15 @@ static void G_Give(g_entity_t *ent, char *it, int16_t quantity) {
 		return;
 	}
 
-	const uint16_t index = ITEM_INDEX(item);
+	const uint16_t index = item->index;
 
 	if (item->type == ITEM_WEAPON) { // weapons receive quantity as ammo
 		ent->client->locals.inventory[index]++;
 
 		if (item->ammo) {
-			const g_item_t *ammo = G_FindItem(item->ammo);
+			const g_item_t *ammo = item->ammo_item;
 			if (ammo) {
-				const uint16_t ammo_index = ITEM_INDEX(ammo);
+				const uint16_t ammo_index = ammo->index;
 
 				if (quantity > -1) {
 					ent->client->locals.inventory[ammo_index] = quantity;
@@ -608,15 +608,16 @@ static void G_InitClientInventory(g_entity_t *ent) {
 	if (g_level.gameplay == GAME_INSTAGIB) {
 		G_Give(ent, "Railgun", 1);
 		G_Give(ent, "Grenades", 1);
-		item = G_FindItem("Railgun");
+		item = g_media.items.weapons[WEAPON_RAILGUN];
 	}
 	// arena or dm warmup yields all weapons, health, etc..
 	else if ((g_level.gameplay == GAME_ARENA) || g_level.warmup) {
 		G_Give(ent, "Railgun", 50);
-		G_Give(ent, "Lightning", 200);
+		G_Give(ent, "Lightning Gun", 200);
 		G_Give(ent, "Hyperblaster", 200);
 		G_Give(ent, "Rocket Launcher", 50);
 		G_Give(ent, "Grenade Launcher", 50);
+		G_Give(ent, "Hand Grenades", 1);
 		G_Give(ent, "Machinegun", 200);
 		G_Give(ent, "Super Shotgun", 80);
 		G_Give(ent, "Shotgun", 80);
@@ -624,12 +625,12 @@ static void G_InitClientInventory(g_entity_t *ent) {
 
 		G_Give(ent, "Body Armor", -1);
 
-		item = G_FindItem("Rocket Launcher");
+		item = g_media.items.weapons[WEAPON_ROCKET_LAUNCHER];
 	}
 	// dm gets the blaster
 	else {
 		G_Give(ent, "Blaster", -1);
-		item = G_FindItem("Blaster");
+		item = g_media.items.weapons[WEAPON_BLASTER];
 	}
 
 	// use the best weapon given by the level
@@ -826,6 +827,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 	// clear the client and restore the persistent state
 	memset(ent->client, 0, sizeof(*ent->client));
 	ent->client->locals.persistent = persistent;
+	ent->client->ai = persistent.ai;
 
 	// find a spawn point
 	const g_entity_t *spawn = G_SelectSpawnPoint(ent);
@@ -967,15 +969,10 @@ void G_ClientRespawn(g_entity_t *ent, _Bool voluntary) {
 void G_ClientBegin(g_entity_t *ent) {
 	char welcome[MAX_STRING_CHARS];
 
-	// backup & restore AI state, since it gets wiped
-	const _Bool ai = ent->ai;
-
 	G_InitEntity(ent, "client");
+	ent->client = g_game.clients + (ent->s.number - 1);
 
-	ent->ai = ai;
-
-	const int32_t entity_num = (int32_t) (ptrdiff_t) (ent - g_game.entities - 1);
-	ent->client = g_game.clients + entity_num;
+	ent->client->locals.persistent.ai = ent->client->ai;
 
 	VectorClear(ent->client->locals.cmd_angles);
 	ent->client->locals.persistent.first_frame = g_level.frame_num;
@@ -1179,28 +1176,23 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 _Bool G_ClientConnect(g_entity_t *ent, char *user_info) {
 
 	// check password
-	if (strlen(g_password->string) && !ent->ai) {
+	if (strlen(g_password->string) && !ent->client->ai) {
 		if (g_strcmp0(g_password->string, GetUserInfo(user_info, "password"))) {
 			SetUserInfo(user_info, "rejmsg", "Password required or incorrect.");
 			return false;
 		}
 	}
 
-	// if a bot currently has this slot, get rid of it
-	if (ent->ai) {
-		G_ClientDisconnect(ent);
+	// they can connect
+	// FIXME: is this ever NULL?
+	if (!ent->client) {
+		gi.Error("ISH NULL\n");
+	} else {
+		ent->client = g_game.clients + (ent - g_game.entities - 1);
 	}
 
-	// they can connect
-	ent->client = g_game.clients + (ent - g_game.entities - 1);
-
 	// clean up locals things which are not reset on spawns
-	ent->client->locals.persistent.score = 0;
-	ent->client->locals.persistent.team = NULL;
-	ent->client->locals.persistent.vote = VOTE_NO_OP;
-	ent->client->locals.persistent.spectator = false;
-	ent->client->locals.persistent.net_name[0] = 0;
-	ent->client->locals.persistent.deaths = 0;
+	memset(&ent->client->locals.persistent, 0, sizeof(ent->client->locals.persistent));
 
 	// set name, skin, etc..
 	G_ClientUserInfoChanged(ent, user_info);
@@ -1248,7 +1240,6 @@ void G_ClientDisconnect(g_entity_t *ent) {
 	ent->in_use = false;
 	ent->solid = SOLID_NOT;
 	ent->sv_flags = SVF_NO_CLIENT;
-	ent->ai = false;
 
 	memset(&ent->s, 0, sizeof(ent->s));
 	ent->s.number = ent - g_game.entities;
@@ -1470,12 +1461,12 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
  */
 static void G_ClientInventoryThink(g_entity_t *ent) {
 
-	if (ent->client->locals.inventory[g_media.items.quad_damage]) { // if they have quad
+	if (ent->client->locals.inventory[g_media.items.powerups[POWERUP_QUAD]->index]) { // if they have quad
 
 		if (ent->client->locals.quad_damage_time < g_level.time) { // expire it
 
 			ent->client->locals.quad_damage_time = 0.0;
-			ent->client->locals.inventory[g_media.items.quad_damage] = 0;
+			ent->client->locals.inventory[g_media.items.powerups[POWERUP_QUAD]->index] = 0;
 
 			gi.Sound(ent, g_media.sounds.quad_expire, ATTEN_NORM);
 

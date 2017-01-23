@@ -329,7 +329,15 @@ void G_SetMoveDir(vec3_t angles, vec3_t move_dir) {
 }
 
 /**
- * @brief
+ * @brief A unique value that wraps around that represents the spawn ID
+ * of this entity.
+ * @see g_entity_t.spawn_id
+ */
+static uint16_t g_spawn_id;
+
+/**
+ * @brief Initialize an entity. This clears the entity memory, sets up the members
+ * that need to be there for entity system to work (number, etc) and marks it as in_use.
  */
 void G_InitEntity(g_entity_t *ent, const char *class_name) {
 
@@ -340,6 +348,7 @@ void G_InitEntity(g_entity_t *ent, const char *class_name) {
 
 	ent->locals.timestamp = g_level.time;
 	ent->s.number = ent - g_game.entities;
+	ent->spawn_id = (g_spawn_id++);
 
 	if (aix) {
 		G_Ai_SetEntityLocals(ent);
@@ -525,11 +534,11 @@ g_team_t *G_TeamForFlag(g_entity_t *ent) {
 		return NULL;
 	}
 
-	if (!g_strcmp0(ent->class_name, "item_flag_team1")) {
+	if (!g_strcmp0(ent->class_name, g_team_good.flag)) {
 		return &g_team_good;
 	}
 
-	if (!g_strcmp0(ent->class_name, "item_flag_team2")) {
+	if (!g_strcmp0(ent->class_name, g_team_evil.flag)) {
 		return &g_team_evil;
 	}
 
@@ -541,18 +550,9 @@ g_team_t *G_TeamForFlag(g_entity_t *ent) {
  */
 g_entity_t *G_FlagForTeam(g_team_t *t) {
 	g_entity_t *ent;
-	char class_name[32];
 	uint32_t i;
 
 	if (!g_level.ctf) {
-		return NULL;
-	}
-
-	if (t == &g_team_good) {
-		g_strlcpy(class_name, "item_flag_team1", sizeof(class_name));
-	} else if (t == &g_team_evil) {
-		g_strlcpy(class_name, "item_flag_team2", sizeof(class_name));
-	} else {
 		return NULL;
 	}
 
@@ -571,7 +571,7 @@ g_entity_t *G_FlagForTeam(g_team_t *t) {
 			continue;
 		}
 
-		if (!g_strcmp0(ent->class_name, class_name)) {
+		if (!g_strcmp0(ent->class_name, t->flag)) {
 			return ent;
 		}
 	}

@@ -196,10 +196,10 @@ void G_ClientStats(g_entity_t *ent) {
 	g_client_t *client = ent->client;
 
 	// ammo
-	if (client->locals.ammo_index && client->locals.weapon) {
-		const g_item_t *ammo = &g_items[client->locals.ammo_index];
+	if (client->locals.weapon && client->locals.ammo_index) {
+		const g_item_t *ammo = G_ItemByIndex(client->locals.ammo_index);
 		const g_item_t *weap = client->locals.weapon;
-		client->ps.stats[STAT_AMMO_ICON] = gi.ImageIndex(weap->icon);
+		client->ps.stats[STAT_AMMO_ICON] = weap->icon_index;
 		client->ps.stats[STAT_AMMO] = client->locals.inventory[client->locals.ammo_index];
 		client->ps.stats[STAT_AMMO_LOW] = ammo->quantity;
 	} else {
@@ -210,8 +210,8 @@ void G_ClientStats(g_entity_t *ent) {
 	// armor
 	const g_item_t *armor = G_ClientArmor(ent);
 	if (armor) {
-		client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex(armor->icon);
-		client->ps.stats[STAT_ARMOR] = client->locals.inventory[ITEM_INDEX(armor)];
+		client->ps.stats[STAT_ARMOR_ICON] = armor->icon_index;
+		client->ps.stats[STAT_ARMOR] = client->locals.inventory[armor->index];
 	} else {
 		client->ps.stats[STAT_ARMOR_ICON] = 0;
 		client->ps.stats[STAT_ARMOR] = 0;
@@ -227,8 +227,8 @@ void G_ClientStats(g_entity_t *ent) {
 
 	// held flag
 
-	const int16_t good_flag = ITEM_INDEX(G_FindItemByClassName("item_flag_team1"));
-	const int16_t evil_flag = ITEM_INDEX(G_FindItemByClassName("item_flag_team2"));
+	const int16_t good_flag = g_media.items.flags[FLAG_GOOD]->index;
+	const int16_t evil_flag = g_media.items.flags[FLAG_EVIL]->index;
 
 	if (client->locals.inventory[good_flag]) {
 		client->ps.stats[STAT_CARRYING_FLAG] = 1;
@@ -248,13 +248,13 @@ void G_ClientStats(g_entity_t *ent) {
 		client->ps.stats[STAT_HEALTH] = 0;
 	} else {
 		if (ent->locals.health > 100) {
-			client->ps.stats[STAT_HEALTH_ICON] = gi.ImageIndex("pics/i_mega_health");
+			client->ps.stats[STAT_HEALTH_ICON] = g_media.items.health[HEALTH_MEGA]->icon_index;
 		} else if (ent->locals.health > 75) {
-			client->ps.stats[STAT_HEALTH_ICON] = gi.ImageIndex("pics/i_health");
+			client->ps.stats[STAT_HEALTH_ICON] = g_media.images.health;
 		} else if (ent->locals.health > 25) {
-			client->ps.stats[STAT_HEALTH_ICON] = gi.ImageIndex("pics/i_medium_health");
+			client->ps.stats[STAT_HEALTH_ICON] = g_media.items.health[HEALTH_MEDIUM]->icon_index;
 		} else {
-			client->ps.stats[STAT_HEALTH_ICON] = gi.ImageIndex("pics/i_large_health");
+			client->ps.stats[STAT_HEALTH_ICON] = g_media.items.health[HEALTH_LARGE]->icon_index;
 		}
 		client->ps.stats[STAT_HEALTH] = ent->locals.health;
 	}
@@ -309,8 +309,8 @@ void G_ClientStats(g_entity_t *ent) {
 	// weapon
 	const g_item_t *weapon = client->locals.weapon;
 	if (weapon) {
-		client->ps.stats[STAT_WEAPON] = gi.ModelIndex(client->locals.weapon->model);
-		client->ps.stats[STAT_WEAPON_ICON] = gi.ImageIndex(weapon->icon);
+		client->ps.stats[STAT_WEAPON] = client->locals.weapon->model_index;
+		client->ps.stats[STAT_WEAPON_ICON] = weapon->icon_index;
 		client->ps.stats[STAT_WEAPON_TAG] = weapon->tag;
 	} else {
 		client->ps.stats[STAT_WEAPON] = 0;

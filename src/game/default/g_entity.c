@@ -95,8 +95,9 @@ static void G_SpawnEntity(g_entity_t *ent) {
 	}
 
 	// check item spawn functions
-	const g_item_t *item = g_items;
-	for (i = 0; i < g_num_items; i++, item++) {
+	for (i = 0; i < g_num_items; i++) {
+
+		const g_item_t *item = G_ItemByIndex(i);
 
 		if (!item->class_name) {
 			continue;
@@ -401,6 +402,9 @@ static void G_InitMedia(void) {
 
 	memset(&g_media, 0, sizeof(g_media));
 
+	// preload items/set item media ptrs
+	G_InitItems();
+
 	// precache sexed sounds; clients will load these when a new player model
 	// gets loaded.
 	gi.SoundIndex("*gurp_1");
@@ -420,11 +424,6 @@ static void G_InitMedia(void) {
 	gi.SoundIndex("*pain50_1");
 	gi.SoundIndex("*pain75_1");
 	gi.SoundIndex("*pain100_1");
-
-	g_media.items.jacket_armor = ITEM_INDEX(G_FindItemByClassName("item_armor_jacket"));
-	g_media.items.combat_armor = ITEM_INDEX(G_FindItemByClassName("item_armor_combat"));
-	g_media.items.body_armor = ITEM_INDEX(G_FindItemByClassName("item_armor_body"));
-	g_media.items.quad_damage = ITEM_INDEX(G_FindItemByClassName("item_quad"));
 
 	g_media.models.grenade = gi.ModelIndex("models/objects/grenade/tris");
 	g_media.models.rocket = gi.ModelIndex("models/objects/rocket/tris");
@@ -464,27 +463,7 @@ static void G_InitMedia(void) {
 
 	g_media.sounds.roar = gi.SoundIndex("world/ominous_bwah");
 
-	// precache all weapons, even if the map doesn't contain them
-	G_PrecacheItem(G_FindItem("Blaster"));
-	G_PrecacheItem(G_FindItem("Shotgun"));
-	G_PrecacheItem(G_FindItem("Super Shotgun"));
-	G_PrecacheItem(G_FindItem("Machinegun"));
-	G_PrecacheItem(G_FindItem("Grenade Launcher"));
-	G_PrecacheItem(G_FindItem("Rocket Launcher"));
-	G_PrecacheItem(G_FindItem("Hyperblaster"));
-	G_PrecacheItem(G_FindItem("Lightning"));
-	G_PrecacheItem(G_FindItem("Railgun"));
-	G_PrecacheItem(G_FindItem("BFG10K"));
-
-	// precache these so that the HUD icons are available
-	G_PrecacheItem(G_FindItem("Large Health"));
-	G_PrecacheItem(G_FindItem("Medium Health"));
-	G_PrecacheItem(G_FindItem("Small Health"));
-	G_PrecacheItem(G_FindItem("Body Armor"));
-	G_PrecacheItem(G_FindItem("Combat Armor"));
-	G_PrecacheItem(G_FindItem("Jacket Armor"));
-
-	gi.ImageIndex("pics/i_health");
+	g_media.images.health = gi.ImageIndex("pics/i_health");
 }
 
 /**
@@ -514,7 +493,7 @@ void G_SpawnEntities(const char *name, const char *entities) {
 			g_game.ai_left_to_spawn = g_game.ai_fill_slots;
 		} else {
 			for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-				if (g_game.entities[i + 1].ai) {
+				if (g_game.entities[i + 1].client && g_game.entities[i + 1].client->ai) {
 					g_game.ai_left_to_spawn++;
 				}
 			}
@@ -584,6 +563,8 @@ void G_SpawnEntities(const char *name, const char *entities) {
 
 	gi.Debug("%i entities inhibited\n", inhibited);
 
+	G_InitMedia();
+
 	G_InitEntityTeams();
 
 	G_ResetItems();
@@ -591,8 +572,6 @@ void G_SpawnEntities(const char *name, const char *entities) {
 	G_ResetTeams();
 
 	G_ResetVote();
-
-	G_InitMedia();
 }
 
 /**

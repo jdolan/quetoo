@@ -71,7 +71,7 @@ static const char *G_MySQL_EntityName(const g_entity_t *ent) {
 
 	StripColors(ent->client->locals.persistent.net_name, name);
 
-	if (ent->ai) {
+	if (ent->client->ai) {
 		g_strlcat(name, " [bot]", sizeof(name));
 	}
 

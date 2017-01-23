@@ -32,6 +32,10 @@ void Ai_RegisterItem(const uint16_t index, const ai_item_t *item) {
 		return;
 	}
 
+	if (ai_items[index].flags) { // already registered, just ignore
+		return;
+	}
+
 	ai_num_items++;
 
 	if (item->flags & AI_ITEM_WEAPON) {

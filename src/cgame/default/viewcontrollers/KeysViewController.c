@@ -112,11 +112,11 @@ static void loadView(ViewController *self) {
 			Cg_BindInput((View *) stackView, "Shotgun", "use shotgun");
 			Cg_BindInput((View *) stackView, "Super shotgun", "use super shotgun");
 			Cg_BindInput((View *) stackView, "Machinegun", "use machinegun");
-			Cg_BindInput((View *) stackView, "Hand grenades", "use grenades");
+			Cg_BindInput((View *) stackView, "Hand grenades", "use hand grenades");
 			Cg_BindInput((View *) stackView, "Grenade launcher", "use grenade launcher");
 			Cg_BindInput((View *) stackView, "Rocket launcher", "use rocket launcher");
 			Cg_BindInput((View *) stackView, "Hyperblaster", "use hyperblaster");
-			Cg_BindInput((View *) stackView, "Lightning", "use lightning");
+			Cg_BindInput((View *) stackView, "Lightning", "use lightning gun");
 			Cg_BindInput((View *) stackView, "Railgun", "use railgun");
 			Cg_BindInput((View *) stackView, "BFG-10K", "use bfg10k");
 

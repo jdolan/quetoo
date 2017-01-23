@@ -136,7 +136,9 @@ typedef enum {
  * @brief Weapon tags to inform the client game which weapon the player wields.
  */
 typedef enum {
-	WEAPON_BLASTER = 1,
+	WEAPON_NONE,
+
+	WEAPON_BLASTER,
 	WEAPON_SHOTGUN,
 	WEAPON_SUPER_SHOTGUN,
 	WEAPON_MACHINEGUN,
@@ -146,7 +148,9 @@ typedef enum {
 	WEAPON_HYPERBLASTER,
 	WEAPON_LIGHTNING,
 	WEAPON_RAILGUN,
-	WEAPON_BFG10K
+	WEAPON_BFG10K,
+
+	WEAPON_TOTAL
 } g_weapon_tag_t;
 
 /**
@@ -361,6 +365,7 @@ typedef struct g_entity_s g_entity_t;
  */
 typedef enum {
 	AMMO_NONE,
+	
 	AMMO_SHELLS,
 	AMMO_BULLETS,
 	AMMO_GRENADES,
@@ -368,7 +373,9 @@ typedef enum {
 	AMMO_CELLS,
 	AMMO_BOLTS,
 	AMMO_SLUGS,
-	AMMO_NUKES
+	AMMO_NUKES,
+
+	AMMO_TOTAL
 } g_ammo_t;
 
 /**
@@ -376,10 +383,13 @@ typedef enum {
  */
 typedef enum {
 	ARMOR_NONE,
+
 	ARMOR_JACKET,
 	ARMOR_COMBAT,
 	ARMOR_BODY,
-	ARMOR_SHARD
+	ARMOR_SHARD,
+
+	ARMOR_TOTAL
 } g_armor_t;
 
 /**
@@ -396,11 +406,38 @@ typedef struct {
  */
 typedef enum {
 	HEALTH_NONE,
+
 	HEALTH_SMALL,
 	HEALTH_MEDIUM,
 	HEALTH_LARGE,
-	HEALTH_MEGA
+	HEALTH_MEGA,
+
+	HEALTH_TOTAL
 } g_health_t;
+
+/**
+ * @brief Flag types.
+ */
+typedef enum {
+	FLAG_NONE,
+
+	FLAG_GOOD,
+	FLAG_EVIL,
+
+	FLAG_TOTAL
+} g_flag_t;
+
+/**
+ * @brief Powerup types.
+ */
+typedef enum {
+	POWERUP_NONE,
+
+	POWERUP_QUAD,
+	POWERUP_ADRENALINE,
+
+	POWERUP_TOTAL
+} g_powerup_t;
 
 /**
  * @brief Move types govern the physics dispatch in G_RunEntity.
@@ -426,41 +463,142 @@ typedef enum {
  * @brief Item types.
  */
 typedef enum {
+	ITEM_NONE,
+
 	ITEM_AMMO,
 	ITEM_ARMOR,
 	ITEM_FLAG,
 	ITEM_HEALTH,
 	ITEM_POWERUP,
-	ITEM_WEAPON
+	ITEM_WEAPON,
+
+	ITEM_TOTAL
 } g_item_type_t;
 
 /**
  * @brief Items are touchable entities that players visit to acquire inventory.
  */
 typedef struct g_item_s {
-	const char *class_name; // spawning name
+	/**
+	 * @brief The spawn name of the entity, used for maps.
+	 */
+	const char *class_name;
 
+	/**
+	 * @brief Called when a player touches this item. Returning false
+	 * prevents the item from being picked up.
+	 */
 	_Bool (*Pickup)(g_entity_t *ent, g_entity_t *other);
+
+	/**
+	 * @brief Called when an item is "use"d from the inventory.
+	 */
 	void (*Use)(g_entity_t *ent, const struct g_item_s *item);
+
+	/**
+	 * @brief Called when an item is dropped from the inventory. Must return
+	 * the item that was dropped, or NULL if the item can't currently be dropped.
+	 */
 	g_entity_t *(*Drop)(g_entity_t *ent, const struct g_item_s *item);
+
+	/**
+	 * @brief Called every frame for a player that is holding this weapon.
+	 */
 	void (*Think)(g_entity_t *ent);
 
+	/**
+	 * @brief The ammo this weapon uses
+	 */
+	const char *ammo;
+
+	/**
+	 * @brief The sound to play when this item is picked up.
+	 */
 	const char *pickup_sound;
+
+	/**
+	 * @brief The model to use for this item in the world.
+	 */
 	const char *model;
+
+	/**
+	 * @brief The effect flags on the pickup item
+	 */
 	uint32_t effects;
 
-	const char *icon; // for the HUD and pickup
-	const char *name; // for printing on pickup
+	/**
+	 * @brief The icon used when picking this item up, or in the HUD
+	 * for weapons holding the ammo.
+	 */
+	const char *icon;
 
-	uint16_t quantity; // for ammo: how much, for weapons: how much per shot
-	uint16_t max; // for ammo: max we can hold at once
-	const char *ammo; // for weapons: the ammo item name
+	/**
+	 * @brief The display name of this item.
+	 */
+	const char *name;
 
-	g_item_type_t type; // g_item_type_t, see above
-	uint16_t tag; // type-specific flags
+	/**
+	 * @brief For ammo, how much is stored in a box of ammo. For weapons, how much
+	 * ammo is consumed per shot.
+	 */
+	uint16_t quantity;
+
+	/**
+	 * @brief For ammo/armor, the max we can hold at once
+	 */
+	uint16_t max;
+	
+	/**
+	 * @brief A special tag that items can use for type-specific data.
+	 */
+	uint16_t tag;
+
+	/**
+	 * @brief The type category for this item.
+	 * @see g_item_type_t
+	 */
+	g_item_type_t type;
+
+	/** 
+	 * @brief A value to determine the relative priority of items.
+	 */
 	vec_t priority; // AI priority level
 
-	const char *precaches; // string of all models, sounds, and images this item will use
+	/**
+	 * @brief A string list of models, sounds and images that this model will use in a game.
+	 * This allows quick precaching of all of the items in a map.
+	 */
+	const char *precaches;
+
+	/**
+	 * @brief The index of this item in the list.
+	 * @note This is calculated should not be specified in the item list.
+	 */
+	uint16_t index;
+
+	/**
+	 * @brief The pointer to the ammo item this weapon uses.
+	 * @note This is calculated and should not be specified in the item list.
+	 */
+	const struct g_item_s *ammo_item;
+
+	/**
+	 * @brief The index of the icon image
+	 * @note This is calculated and should not be specified in the item list.
+	 */
+	uint16_t icon_index;
+
+	/**
+	 * @brief The index of the model
+	 * @note This is calculated and should not be specified in the item list.
+	 */
+	uint16_t model_index;
+
+	/**
+	 * @brief The index of the pickup sound
+	 * @note This is calculated and should not be specified in the item list.
+	 */
+	uint16_t pickup_sound_index;
 } g_item_t;
 
 /**
@@ -571,14 +709,16 @@ extern g_game_t g_game;
  * @brief This structure holds references to frequently accessed media.
  */
 typedef struct {
-	struct {
-		uint16_t body_armor;
-		uint16_t combat_armor;
-		uint16_t jacket_armor;
-		uint16_t quad_damage;
+	struct g_media_items_t {
+		const g_item_t *ammo[AMMO_TOTAL];
+		const g_item_t *armor[ARMOR_TOTAL];
+		const g_item_t *flags[FLAG_TOTAL];
+		const g_item_t *health[HEALTH_TOTAL];
+		const g_item_t *powerups[POWERUP_TOTAL];
+		const g_item_t *weapons[WEAPON_TOTAL];
 	} items;
 
-	struct {
+	struct g_media_models_t {
 		uint16_t gibs[NUM_GIB_MODELS];
 
 		uint16_t grenade;
@@ -586,7 +726,7 @@ typedef struct {
 		uint16_t hook;
 	} models;
 
-	struct {
+	struct g_media_sounds_t {
 		uint16_t gib_hits[NUM_GIB_MODELS];
 
 		uint16_t bfg_hit;
@@ -616,6 +756,10 @@ typedef struct {
 
 		uint16_t roar;
 	} sounds;
+
+	struct g_media_images_t {
+		uint16_t health;
+	} images;
 
 } g_media_t;
 
@@ -741,6 +885,7 @@ typedef enum {
 typedef struct {
 	char name[16]; // kept short for HUD consideration
 	char skin[32];
+	char flag[32]; // flag classname
 	int8_t color;
 	int16_t score;
 	int16_t captures;
@@ -791,6 +936,7 @@ typedef struct {
 	_Bool admin; // client is special?
 	_Bool spectator; // client is a spectator
 	_Bool ready; // ready
+	_Bool ai; // is AI
 
 	g_vote_t vote; // current vote (yes/no)
 	uint32_t match_num; // most recent match

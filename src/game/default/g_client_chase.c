@@ -97,7 +97,7 @@ void G_ClientChaseNext(g_entity_t *ent) {
 
 		e = g_game.entities + i;
 
-		if (!e->in_use) {
+		if (!e->in_use || e->solid == SOLID_NOT) {
 			continue;
 		}
 
@@ -130,7 +130,7 @@ void G_ClientChasePrevious(g_entity_t *ent) {
 
 		e = g_game.entities + i;
 
-		if (!e->in_use) {
+		if (!e->in_use || e->solid == SOLID_NOT) {
 			continue;
 		}
 
@@ -152,7 +152,7 @@ void G_ClientChaseTarget(g_entity_t *ent) {
 
 	for (i = 1; i <= sv_max_clients->integer; i++) {
 		other = g_game.entities + i;
-		if (other->in_use && !other->client->locals.persistent.spectator) {
+		if (other->in_use && other->solid && !other->client->locals.persistent.spectator) {
 			ent->client->locals.chase_target = other;
 			return;
 		}

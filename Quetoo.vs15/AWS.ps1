@@ -5,7 +5,7 @@ $QUETOO_RELEASE_SRC = "Quetoo/";
 $QUETOO_RELEASE_BUCKET = $QUETOO_BUCKET + $QUETOO_ARCH + "-pc-windows"
 
 $QUETOO_SNAPSHOT_SRC = "../Quetoo-BETA-MSVC.zip"
-$QUETOO_SNAPSHOT_BUCKET = $QUETOO_BUCKET + "snapshots/Quetoo-BETA-" + $QUETOO_ARCH + "-PC-Windows.zip"
+$QUETOO_SNAPSHOT_BUCKET = $QUETOO_BUCKET + "snapshots/Quetoo-BETA-" + $QUETOO_ARCH + "-pc-windows.zip"
 
 $aws_exe = "aws.exe"
 

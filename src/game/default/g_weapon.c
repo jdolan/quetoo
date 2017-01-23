@@ -32,10 +32,10 @@ static void G_ChangeWeapon(g_entity_t *ent, const g_item_t *item) {
 
 		if (item) {
 
-			ent->s.model2 = gi.ModelIndex(item->model);
+			ent->s.model2 = item->model_index;
 
 			if (item->ammo) {
-				ent->client->locals.ammo_index = ITEM_INDEX(G_FindItem(item->ammo));
+				ent->client->locals.ammo_index = item->ammo_item->index;
 			} else {
 				ent->client->locals.ammo_index = 0;
 			}
@@ -70,13 +70,11 @@ static void G_ChangeWeapon(g_entity_t *ent, const g_item_t *item) {
 _Bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other) {
 
 	// add the weapon to inventory
-	const uint16_t index = ITEM_INDEX(ent->locals.item);
+	other->client->locals.inventory[ent->locals.item->index]++;
 
-	other->client->locals.inventory[index]++;
-
-	const g_item_t *ammo = G_FindItem(ent->locals.item->ammo);
+	const g_item_t *ammo = ent->locals.item->ammo_item;
 	if (ammo) {
-		const int16_t *stock = &other->client->locals.inventory[ITEM_INDEX(ammo)];
+		const int16_t *stock = &other->client->locals.inventory[ammo->index];
 
 		if (*stock >= ent->locals.health) {
 			G_AddAmmo(other, ammo, ent->locals.health / 2);
@@ -91,7 +89,7 @@ _Bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other) {
 	}
 
 	// auto-change if it's the first weapon we pick up
-	if (other->client->locals.weapon == G_FindItem("Blaster")) {
+	if (other->client->locals.weapon == g_media.items.weapons[WEAPON_BLASTER]) {
 		G_ChangeWeapon(other, ent->locals.item);
 	}
 
@@ -101,11 +99,17 @@ _Bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other) {
 /**
  * @return True if the client has both weapon and ammo, false otherwise.
  */
-static _Bool G_HasItem(const g_entity_t *ent, const char *item, const int16_t quantity) {
+static _Bool G_HasWeapon(const g_entity_t *ent, const g_item_t *weapon) {
 
-	const uint16_t it = ITEM_INDEX(G_FindItem(item));
+	if (!ent->client->locals.inventory[weapon->index]) {
+		return false;
+	}
 
-	return ent->client->locals.inventory[it] >= quantity;
+	if (weapon->ammo && ent->client->locals.inventory[weapon->ammo_item->index] < weapon->quantity) {
+		return false;
+	}
+
+	return true;
 }
 
 /**
@@ -115,28 +119,28 @@ void G_UseBestWeapon(g_entity_t *ent) {
 
 	const g_item_t *item = NULL;
 
-	if (G_HasItem(ent, "bfg10k", 1) && G_HasItem(ent, "nukes", 1)) {
-		item = G_FindItem("bfg10k");
-	} else if (G_HasItem(ent, "railgun", 1) && G_HasItem(ent, "slugs", 1)) {
-		item = G_FindItem("railgun");
-	} else if (G_HasItem(ent, "lightning", 1) && G_HasItem(ent, "bolts", 1)) {
-		item = G_FindItem("lightning");
-	} else if (G_HasItem(ent, "hyperblaster", 1) && G_HasItem(ent, "cells", 1)) {
-		item = G_FindItem("hyperblaster");
-	} else if (G_HasItem(ent, "rocket launcher", 1) && G_HasItem(ent, "rockets", 1)) {
-		item = G_FindItem("rocket launcher");
-	} else if (G_HasItem(ent, "grenade launcher", 1) && G_HasItem(ent, "grenades", 1)) {
-		item = G_FindItem("grenade launcher");
-	} else if (G_HasItem(ent, "grenades", 1)) {
-		item = G_FindItem("hand grenades");
-	} else if (G_HasItem(ent, "machinegun", 1) && G_HasItem(ent, "bullets", 1)) {
-		item = G_FindItem("machinegun");
-	} else if (G_HasItem(ent, "super shotgun", 1) && G_HasItem(ent, "shells", 2)) {
-		item = G_FindItem("super shotgun");
-	} else if (G_HasItem(ent, "shotgun", 1) && G_HasItem(ent, "shells", 1)) {
-		item = G_FindItem("shotgun");
-	} else if (G_HasItem(ent, "blaster", 1)) {
-		item = G_FindItem("blaster");
+	if (G_HasWeapon(ent, g_media.items.weapons[WEAPON_BFG10K])) {
+		item = g_media.items.weapons[WEAPON_BFG10K];
+	} else if (G_HasWeapon(ent, g_media.items.weapons[WEAPON_RAILGUN])) {
+		item = g_media.items.weapons[WEAPON_RAILGUN];
+	} else if (G_HasWeapon(ent, g_media.items.weapons[WEAPON_LIGHTNING])) {
+		item = g_media.items.weapons[WEAPON_LIGHTNING];
+	} else if (G_HasWeapon(ent, g_media.items.weapons[WEAPON_HYPERBLASTER])) {
+		item = g_media.items.weapons[WEAPON_HYPERBLASTER];
+	} else if (G_HasWeapon(ent, g_media.items.weapons[WEAPON_ROCKET_LAUNCHER])) {
+		item = g_media.items.weapons[WEAPON_ROCKET_LAUNCHER];
+	} else if (G_HasWeapon(ent, g_media.items.weapons[WEAPON_GRENADE_LAUNCHER])) {
+		item = g_media.items.weapons[WEAPON_GRENADE_LAUNCHER];
+	} else if (G_HasWeapon(ent, g_media.items.weapons[WEAPON_HAND_GRENADE])) {
+		item = g_media.items.weapons[WEAPON_HAND_GRENADE];
+	} else if (G_HasWeapon(ent, g_media.items.weapons[WEAPON_MACHINEGUN])) {
+		item = g_media.items.weapons[WEAPON_MACHINEGUN];
+	} else if (G_HasWeapon(ent, g_media.items.weapons[WEAPON_SUPER_SHOTGUN])) {
+		item = g_media.items.weapons[WEAPON_SUPER_SHOTGUN];
+	} else if (G_HasWeapon(ent, g_media.items.weapons[WEAPON_SHOTGUN])) {
+		item = g_media.items.weapons[WEAPON_SHOTGUN];
+	} else if (G_HasWeapon(ent, g_media.items.weapons[WEAPON_BLASTER])) {
+		item = g_media.items.weapons[WEAPON_BLASTER];
 	}
 
 	G_ChangeWeapon(ent, item);
@@ -153,9 +157,8 @@ void G_UseWeapon(g_entity_t *ent, const g_item_t *item) {
 	}
 
 	if (item->ammo) { // ensure we have ammo
-		uint16_t index = ITEM_INDEX(G_FindItem(item->ammo));
 
-		if (!ent->client->locals.inventory[index]) {
+		if (!ent->client->locals.inventory[item->ammo_item->index]) {
 			gi.ClientPrint(ent, PRINT_HIGH, "Not enough ammo for %s\n", item->name);
 			return;
 		}
@@ -170,7 +173,7 @@ void G_UseWeapon(g_entity_t *ent, const g_item_t *item) {
  */
 g_entity_t *G_DropWeapon(g_entity_t *ent, const g_item_t *item) {
 
-	const uint16_t index = ITEM_INDEX(item);
+	const uint16_t index = item->index;
 
 	g_client_locals_t *cl = &ent->client->locals;
 
@@ -180,8 +183,8 @@ g_entity_t *G_DropWeapon(g_entity_t *ent, const g_item_t *item) {
 		return NULL;
 	}
 
-	const g_item_t *ammo = G_FindItem(item->ammo);
-	const uint16_t ammo_index = ITEM_INDEX(ammo);
+	const g_item_t *ammo = item->ammo_item;
+	const uint16_t ammo_index = ammo->index;
 
 	if (cl->inventory[ammo_index] <= 0) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Can't drop a weapon without ammo\n");
@@ -300,7 +303,7 @@ static void G_WeaponFired(g_entity_t *ent, uint32_t interval, uint32_t ammo_need
 	}
 
 	// play a quad damage sound if applicable
-	if (ent->client->locals.inventory[g_media.items.quad_damage]) {
+	if (ent->client->locals.inventory[g_media.items.powerups[POWERUP_QUAD]->index]) {
 
 		if (ent->client->locals.quad_attack_time < g_level.time) {
 			gi.Sound(ent, g_media.sounds.quad_attack, ATTEN_NORM);
@@ -335,10 +338,10 @@ void G_ClientWeaponThink(g_entity_t *ent) {
 				const g_item_t *item = ent->client->locals.weapon;
 				if (item) {
 
-					ent->s.model2 = gi.ModelIndex(item->model);
+					ent->s.model2 = item->model_index;
 
 					if (item->ammo) {
-						ent->client->locals.ammo_index = ITEM_INDEX(G_FindItem(item->ammo));
+						ent->client->locals.ammo_index = item->ammo_item->index;
 					} else {
 						ent->client->locals.ammo_index = 0;
 					}
@@ -817,7 +820,7 @@ void G_FireRailgun(g_entity_t *ent) {
 static void G_FireBfg_(g_entity_t *ent) {
 
 	if (ent->owner->locals.dead == false) {
-		if (ent->owner->client->locals.weapon == G_FindItemByClassName("weapon_bfg")) {
+		if (ent->owner->client->locals.weapon == g_media.items.weapons[WEAPON_BFG10K]) {
 			vec3_t forward, right, up, org;
 
 			G_InitProjectile(ent->owner, forward, right, up, org, 1.0);

@@ -153,7 +153,7 @@ static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
  */
 void Sv_Unicast(const g_entity_t *ent, const _Bool reliable) {
 
-	if (ent && !ent->ai) {
+	if (ent && !ent->client->ai) {
 
 		const uint16_t n = NUM_FOR_ENTITY(ent);
 		if (n < 1 || n > sv_max_clients->integer) {
@@ -237,7 +237,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
 			continue;
 		}
 
-		if (cl->entity->ai) {
+		if (cl->entity->client->ai) {
 			continue;
 		}
 

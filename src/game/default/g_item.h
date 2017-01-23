@@ -25,34 +25,34 @@
 
 #ifdef __GAME_LOCAL_H__
 
-extern const g_item_t g_items[];
-extern const uint16_t g_num_items;
+	extern const uint16_t g_num_items;
+	
+	const g_item_t *G_ItemList(void);
 
-#define ITEM_INDEX(x) (uint32_t) (ptrdiff_t) ((x) - g_items)
+	/**
+	* @brief Item bounding box scaling.
+	*/
+	#define ITEM_SCALE 1.0
 
-/**
-* @brief Item bounding box scaling.
-*/
-#define ITEM_SCALE 1.0
+	extern const vec3_t ITEM_MINS;
+	extern const vec3_t ITEM_MAXS;
 
-extern const vec3_t ITEM_MINS;
-extern const vec3_t ITEM_MAXS;
-
-_Bool G_AddAmmo(g_entity_t *ent, const g_item_t *item, int16_t count);
-g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item);
-const g_item_t *G_FindItem(const char *name);
-const g_item_t *G_FindItemByClassName(const char *class_name);
-const g_item_t *G_ItemByIndex(uint16_t index);
-const g_item_t *G_ClientArmor(const g_entity_t *ent);
-const g_armor_info_t *G_ArmorInfo(const g_item_t *armor);
-void G_PrecacheItem(const g_item_t *it);
-void G_ResetDroppedFlag(g_entity_t *ent);
-void G_ResetItem(g_entity_t *ent);
-void G_SetItemRespawn(g_entity_t *ent, uint32_t delay);
-void G_SpawnItem(g_entity_t *ent, const g_item_t *item);
-_Bool G_SetAmmo(g_entity_t *ent, const g_item_t *item, int16_t count);
-g_entity_t *G_TossFlag(g_entity_t *self);
-g_entity_t *G_TossQuadDamage(g_entity_t *self);
-void G_TouchItem(g_entity_t *ent, g_entity_t *other, const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *surf);
+	_Bool G_AddAmmo(g_entity_t *ent, const g_item_t *item, int16_t count);
+	g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item);
+	const g_item_t *G_FindItem(const char *name);
+	const g_item_t *G_FindItemByClassName(const char *class_name);
+	const g_item_t *G_ItemByIndex(uint16_t index);
+	const g_item_t *G_ClientArmor(const g_entity_t *ent);
+	const g_armor_info_t *G_ArmorInfo(const g_item_t *armor);
+	void G_PrecacheItem(const g_item_t *it);
+	void G_ResetDroppedFlag(g_entity_t *ent);
+	void G_ResetItem(g_entity_t *ent);
+	void G_SetItemRespawn(g_entity_t *ent, uint32_t delay);
+	void G_SpawnItem(g_entity_t *ent, const g_item_t *item);
+	_Bool G_SetAmmo(g_entity_t *ent, const g_item_t *item, int16_t count);
+	g_entity_t *G_TossFlag(g_entity_t *self);
+	g_entity_t *G_TossQuadDamage(g_entity_t *self);
+	void G_TouchItem(g_entity_t *ent, g_entity_t *other, const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *surf);
+	void G_InitItems(void);
 
 #endif /* __GAME_LOCAL_H__ */
