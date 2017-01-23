@@ -972,10 +972,7 @@ void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
 		ent->s.model1 = gi.ModelIndex(ent->model);
 	} else {
 
-		if (!ent->locals.item->model_index) { // if we're not loaded yet, do it here
-			G_InitItem((g_item_t *) ent->locals.item);
-		}
-
+		G_InitItem((g_item_t *) ent->locals.item);
 		ent->s.model1 = ent->locals.item->model_index;
 	}
 
