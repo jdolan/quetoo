@@ -7,9 +7,9 @@
 	<key>CFBundleDisplayName</key>
 	<string>Quetoo Update</string>
 	<key>CFBundleExecutable</key>
-	<string>Update</string>
+	<string>quetoo-update</string>
 	<key>CFBundleIconFile</key>
-	<string>update.icns</string>
+	<string>quetoo-update.icns</string>
 	<key>CFBundleIdentifier</key>
 	<string>org.quetoo.update</string>
 	<key>CFBundleName</key>

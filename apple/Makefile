@@ -3,14 +3,13 @@
 
 ARCH = x86_64
 HOST = $(ARCH)-apple-darwin
-UPDATE = quetoo-update-1.0-SNAPSHOT-small.jar
+UPDATE = quetoo-update-small.jar
 TARGET = target
 INSTALL = $(TARGET)/Quetoo
 QUETOO = $(INSTALL)/Quetoo.app
 BINDIR = $(QUETOO)/Contents/MacOS
 LIBDIR = $(QUETOO)/Contents/MacOS/lib
 DATADIR = $(QUETOO)/Contents/Resources
-UPDATE_BINDIR = $(INSTALL)/Update.app/Contents/MacOS
 SNAPSHOT = $(TARGET)/Quetoo-BETA-$(HOST).dmg
 VOLUME_NAME = "Quetoo BETA $(HOST)"
 QUETOO_S3_BUCKET = s3://quetoo
@@ -44,12 +43,14 @@ install-lib: install
 		-x $(BINDIR)/quetoo \
 		-x $(BINDIR)/quetoo-dedicated \
 		-x $(BINDIR)/quetoo-master \
+		-x $(BINDIR)/quetoo-update \
+		-x $(LIBDIR)/default/ai.so \
 		-x $(LIBDIR)/default/cgame.so \
 		-x $(LIBDIR)/default/game.so \
 	-d $(LIBDIR) -of -p @executable_path/lib
 
 install-update:
-	aws s3 cp $(QUETOO_S3_BUCKET)/snapshots/$(UPDATE) $(UPDATE_BINDIR)/
+	aws s3 cp $(QUETOO_S3_BUCKET)/snapshots/$(UPDATE) $(LIBDIR)/
 
 install-data:
 	aws s3 sync $(QUETOO_DATA_S3_BUCKET)/ $(DATADIR)
@@ -59,7 +60,7 @@ post-install:
 	./set-icon.sh $(DATADIR)/quemap.icns $(BINDIR)/quemap
 	./set-icon.sh $(DATADIR)/quetoo.icns $(BINDIR)/quetoo
 	./set-icon.sh $(DATADIR)/quetoo-dedicated.icns $(BINDIR)/quetoo-dedicated
-	./set-icon.sh $(DATADIR)/quetoo-update.icns $(UPDATE_BINDIR)/$(UPDATE_BIN)
+	./set-icon.sh $(DATADIR)/quetoo-update.icns $(BINDIR)/quetoo-update
 
 release:
 	aws s3 sync --exclude 'Icon*' $(INSTALL) $(QUETOO_S3_BUCKET)/$(HOST)

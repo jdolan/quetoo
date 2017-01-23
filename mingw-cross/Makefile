@@ -3,7 +3,7 @@
 
 ARCH = x86_64
 HOST = $(ARCH)-w64-mingw32
-UPDATE = quetoo-update-1.0-SNAPSHOT-small.jar
+UPDATE = quetoo-update-small.jar
 TARGET = target
 INSTALL = $(TARGET)/Quetoo
 BINDIR = $(INSTALL)/bin
@@ -37,11 +37,14 @@ install-lib: install
 		$(BINDIR)/quemap.exe \
 		$(BINDIR)/quetoo.exe \
 		$(BINDIR)/quetoo-dedicated.exe \
+		$(BINDIR)/quetoo-master.exe \
+		$(BINDIR)/quetoo-update.exe \
+		$(LIBDIR)/default/ai.dll \
 		$(LIBDIR)/default/cgame.dll \
 		$(LIBDIR)/default/game.dll
 
 install-update:
-	aws s3 cp $(QUETOO_S3_BUCKET)/snapshots/$(UPDATE) $(BINDIR)/
+	aws s3 cp $(QUETOO_S3_BUCKET)/snapshots/$(UPDATE) $(LIBDIR)/
 
 install-data:
 	aws s3 sync $(QUETOO_DATA_S3_BUCKET)/ $(DATADIR)
