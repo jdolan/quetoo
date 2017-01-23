@@ -2067,7 +2067,7 @@ const g_item_t *G_ItemByIndex(uint16_t index) {
  */
 static void G_InitItem(g_item_t *item) {
 
-	if (item->model_index) { // already set up
+	if (item->model_index) { // already set up - items can never have modelindex 0 since the world is 0
 		return;
 	}
 
