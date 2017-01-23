@@ -136,9 +136,9 @@ static void G_Ai_Spawn(g_entity_t *self, const uint32_t time_offset) {
 	char userinfo[MAX_USER_INFO_STRING];
 	aix->GetUserInfo(self, userinfo);
 
-	G_ClientConnect(self, userinfo);
+	self->client->ai = true; // and away we go!
 
-	self->ai = true; // and away we go!
+	G_ClientConnect(self, userinfo);
 
 	if (!time_offset) {
 		G_Ai_ClientBegin(self);
@@ -178,7 +178,7 @@ static uint8_t G_Ai_NumberOfBots(void) {
 
 		g_entity_t *ent = &g_game.entities[i + 1];
 
-		if (ent->in_use && ent->ai) {
+		if (ent->in_use && ent->client->ai) {
 			filled_slots++;
 		}
 	}
@@ -230,7 +230,7 @@ static void G_Ai_RemoveBots(const int32_t count) {
 		int32_t j;
 
 		for (j = 1; j <= sv_max_clients->integer; j++, ent++) {
-			if (ent->in_use && ent->ai) {
+			if (ent->in_use && ent->client->ai) {
 				G_ClientDisconnect(ent);
 				break;
 			}

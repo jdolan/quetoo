@@ -936,6 +936,7 @@ typedef struct {
 	_Bool admin; // client is special?
 	_Bool spectator; // client is a spectator
 	_Bool ready; // ready
+	_Bool ai; // is AI
 
 	g_vote_t vote; // current vote (yes/no)
 	uint32_t match_num; // most recent match

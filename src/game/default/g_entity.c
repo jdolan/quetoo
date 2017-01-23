@@ -493,7 +493,7 @@ void G_SpawnEntities(const char *name, const char *entities) {
 			g_game.ai_left_to_spawn = g_game.ai_fill_slots;
 		} else {
 			for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-				if (g_game.entities[i + 1].ai) {
+				if (g_game.entities[i + 1].client && g_game.entities[i + 1].client->ai) {
 					g_game.ai_left_to_spawn++;
 				}
 			}

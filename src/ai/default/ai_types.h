@@ -89,7 +89,8 @@ typedef struct {
 	ai_goal_type_t type;
 	vec_t priority;
 	uint32_t time; // time this goal was set
-	const g_entity_t *ent; // for AI_GOAL_ITEM/ENEMY_TEAMMATE
+	const g_entity_t *ent; // for AI_GOAL_ITEM/ENEMY/TEAMMATE
+	uint16_t ent_id; // FOR AI_GOAL_ITEM/ENEMY/TEAMMATE
 } ai_goal_t;
 
 /**

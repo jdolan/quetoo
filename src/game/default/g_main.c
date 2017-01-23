@@ -940,7 +940,7 @@ static void G_Frame(void) {
 			if (ent->client) {
 				G_ClientBeginFrame(ent);
 
-				if (ent->ai) {
+				if (ent->client->ai) {
 					G_RunThink(ent);
 				}
 			} else {

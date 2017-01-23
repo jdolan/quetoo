@@ -74,6 +74,15 @@ void Ai_SetEntityGoal(ai_goal_t *goal, ai_goal_type_t type, vec_t priority, cons
 	goal->time = ai_level.time;
 	goal->priority = priority;
 	goal->ent = entity;
+	goal->ent_id = entity->spawn_id;
+}
+
+/**
+ * @brief Check if the goal references the same entity still
+ */
+_Bool Ai_GoalHasEntity(const ai_goal_t *goal, const g_entity_t *ent) {
+
+	return goal->ent == ent && goal->ent_id == ent->spawn_id;
 }
 
 /**
