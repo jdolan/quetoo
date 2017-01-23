@@ -2067,10 +2067,6 @@ const g_item_t *G_ItemByIndex(uint16_t index) {
  */
 static void G_InitItem(g_item_t *item) {
 
-	if (item->model_index) { // already set up - items can never have modelindex 0 since the world is 0
-		return;
-	}
-
 	item->index = (uint16_t) (ptrdiff_t) (item - g_items);
 
 	if (item->ammo) {
@@ -2081,17 +2077,9 @@ static void G_InitItem(g_item_t *item) {
 		}
 	}
 
-	if (item->icon) {
-		item->icon_index = gi.ImageIndex(item->icon);
-	}
-
-	if (item->model) {
-		item->model_index = gi.ModelIndex(item->model);
-	}
-
-	if (item->pickup_sound) {
-		item->pickup_sound_index = gi.SoundIndex(item->pickup_sound);
-	}
+	item->icon_index = gi.ImageIndex(item->icon);
+	item->model_index = gi.ModelIndex(item->model);
+	item->pickup_sound_index = gi.SoundIndex(item->pickup_sound);
 }
 
 /**
