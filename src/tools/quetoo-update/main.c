@@ -27,6 +27,9 @@
 #include <glib.h>
 
 #ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+
 	#ifndef realpath
 		#define realpath(rel, abs) _fullpath(abs, rel, MAX_PATH)
 	#endif
@@ -37,7 +40,7 @@
 /**
  * @return The quetoo-update jar file.
  */
-gchar *get_quetoo_update_jar(const char *argv0, const char *jar) {
+static gchar *get_quetoo_update_jar(const char *argv0, const char *jar) {
 
 	gchar *update_jar = NULL;
 
@@ -78,7 +81,7 @@ int main(int argc, char **argv) {
 
 		const GSpawnFlags flags = G_SPAWN_SEARCH_PATH | G_SPAWN_CHILD_INHERITS_STDIN;
 
-		GError *error;
+		GError *error = NULL;
 
 		if (g_spawn_async(NULL, args, NULL, flags, NULL, NULL, NULL, &error)) {
 			status = 0;
