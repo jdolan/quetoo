@@ -23,7 +23,7 @@
 #include "bg_pmove.h"
 
 /**
- * @brief Make a tasteless death announcement, insert a row into MySQL, and record scores. Side 
+ * @brief Make a tasteless death announcement, insert a row into MySQL, and record scores. Side
  * effects are the best!
  */
 static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
@@ -99,7 +99,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 		}
 
 		g_snprintf(buffer, sizeof(buffer), msg, self->client->locals.persistent.net_name,
-				   attacker->client->locals.persistent.net_name);
+		           attacker->client->locals.persistent.net_name);
 
 		if (friendy_fire) {
 			g_strlcat(buffer, " (^1TEAMKILL^7)", sizeof(buffer));
@@ -176,7 +176,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 				a = attacker->client->locals.inventory[armor->index];
 			}
 			gi.ClientPrint(self, PRINT_MEDIUM, "%s had %d health and %d armor\n",
-						   attacker->client->locals.persistent.net_name, attacker->locals.health, a);
+			               attacker->client->locals.persistent.net_name, attacker->locals.health, a);
 		}
 	}
 
@@ -190,8 +190,8 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 			}
 
 			if ((g_level.teams || g_level.ctf) &&
-				self->client->locals.persistent.team &&
-				attacker->client->locals.persistent.team) {
+			        self->client->locals.persistent.team &&
+			        attacker->client->locals.persistent.team) {
 
 				if (friendy_fire) {
 					attacker->client->locals.persistent.team->score--;
@@ -319,7 +319,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 		ent->locals.velocity[0] += h * Randomc();
 		ent->locals.velocity[1] += h * Randomc();
 		ent->locals.velocity[2] += 100.0 + (h * Randomf());
-		
+
 		for (int32_t i = 0; i < 3; ++i) {
 			ent->locals.avelocity[i] = Randomc() * 100;
 			ent->s.angles[i] = Randomf() * 360;
@@ -351,7 +351,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 		self->locals.velocity[0] += h * Randomc();
 		self->locals.velocity[1] += h * Randomc();
 		self->locals.velocity[2] += 100.0 + (h * Randomf());
-		
+
 		for (int32_t i = 0; i < 3; ++i) {
 			self->locals.avelocity[i] = Randomc() * 100;
 			self->s.angles[i] = Randomf() * 360;
@@ -364,6 +364,8 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 		self->s.model1 = g_media.models.gibs[2];
 
 		self->locals.mass = 20.0;
+
+		self->solid = SOLID_DEAD;
 
 		gi.LinkEntity(self);
 	} else {
@@ -601,16 +603,6 @@ static _Bool G_GiveLevelLocals(g_entity_t *ent) {
  */
 static void G_InitClientInventory(g_entity_t *ent) {
 	const g_item_t *item;
-
-	// set max inventory levels
-	ent->client->locals.max_shells = 80;
-	ent->client->locals.max_bullets = 200;
-	ent->client->locals.max_grenades = 50;
-	ent->client->locals.max_rockets = 50;
-	ent->client->locals.max_cells = 200;
-	ent->client->locals.max_bolts = 150;
-	ent->client->locals.max_slugs = 50;
-	ent->client->locals.max_nukes = 10;
 
 	// instagib gets railgun and slugs, both in normal mode and warmup
 	if (g_level.gameplay == GAME_INSTAGIB) {
@@ -924,6 +916,10 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 	}
 
 	gi.LinkEntity(ent);
+
+	if (aix) {
+		G_Ai_SetClientLocals(ent->client);
+	}
 }
 
 /**
@@ -945,6 +941,10 @@ void G_ClientRespawn(g_entity_t *ent, _Bool voluntary) {
 
 	ent->client->locals.respawn_time = g_level.time;
 	ent->client->locals.respawn_protection_time = g_level.time + g_respawn_protection->value * 1000;
+
+	if (aix) {
+		aix->Spawn(ent);
+	}
 
 	if (!voluntary) { // don't announce involuntary spectator changes
 		return;
@@ -1142,8 +1142,8 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	}
 
 	// combine name and skin into a config_string
-	gi.ConfigString(CS_CLIENTS + (cl - g_game.clients),
-	                va("%s\\%s", cl->locals.persistent.net_name, cl->locals.persistent.skin));
+	gi.SetConfigString(CS_CLIENTS + (cl - g_game.clients),
+	                   va("%s\\%s", cl->locals.persistent.net_name, cl->locals.persistent.skin));
 
 	// set hand, if anything should go wrong, it defaults to 0 (centered)
 	cl->locals.persistent.hand = (g_hand_t) strtol(GetUserInfo(user_info, "hand"), NULL, 10);
@@ -1187,6 +1187,11 @@ _Bool G_ClientConnect(g_entity_t *ent, char *user_info) {
 		}
 	}
 
+	// if a bot currently has this slot, get rid of it
+	if (ent->ai) {
+		G_ClientDisconnect(ent);
+	}
+
 	// they can connect
 	ent->client = g_game.clients + (ent - g_game.entities - 1);
 
@@ -1206,6 +1211,9 @@ _Bool G_ClientConnect(g_entity_t *ent, char *user_info) {
 	}
 
 	ent->sv_flags = 0; // make sure we start with known default
+
+	G_Ai_ClientConnect(ent); // tell AI a client has connected
+
 	return true;
 }
 
@@ -1241,6 +1249,7 @@ void G_ClientDisconnect(g_entity_t *ent) {
 	ent->in_use = false;
 	ent->solid = SOLID_NOT;
 	ent->sv_flags = SVF_NO_CLIENT;
+	ent->ai = false;
 
 	memset(&ent->s, 0, sizeof(ent->s));
 	ent->s.number = ent - g_game.entities;
@@ -1248,7 +1257,9 @@ void G_ClientDisconnect(g_entity_t *ent) {
 	memset(ent->client, 0, sizeof(g_client_t));
 
 	const int32_t entity_num = (int32_t) (ptrdiff_t) (ent - g_game.entities - 1);
-	gi.ConfigString(CS_CLIENTS + entity_num, "");
+	gi.SetConfigString(CS_CLIENTS + entity_num, "");
+
+	G_Ai_ClientDisconnect(ent); // tell AI
 }
 
 /**
@@ -1363,7 +1374,7 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 				}
 
 				// landing events take priority over jump events
-				if (pm.water_level < 3 && ent->s.event != EV_CLIENT_LAND) {
+				if (pm.water_level < WATER_UNDER && ent->s.event != EV_CLIENT_LAND) {
 					ent->s.event = EV_CLIENT_JUMP;
 				}
 

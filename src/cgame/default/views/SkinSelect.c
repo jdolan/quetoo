@@ -126,7 +126,7 @@ static void initialize(Class *clazz) {
 Class *_SkinSelect(void) {
 	static Class clazz;
 	static Once once;
-	
+
 	do_once(&once, {
 		clazz.name = "SkinSelect";
 		clazz.superclass = _Select();

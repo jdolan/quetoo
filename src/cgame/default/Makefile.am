@@ -69,4 +69,3 @@ cgame_la_LIBADD = \
 	$(top_builddir)/src/game/default/libpmove.la \
 	$(top_builddir)/src/libswap.la \
 	$(top_builddir)/src/libmatrix.la
-

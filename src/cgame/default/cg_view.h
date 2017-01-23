@@ -24,6 +24,6 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
-	void Cg_UpdateView(const cl_frame_t *frame);
-	void Cg_PopulateView(const cl_frame_t *frame);
+void Cg_UpdateView(const cl_frame_t *frame);
+void Cg_PopulateView(const cl_frame_t *frame);
 #endif /* __CG_LOCAL_H__ */

@@ -94,6 +94,15 @@
 		CE5CDC391D9F51A90034757D /* ui_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5CDBB41D9F45090034757D /* ui_types.h */; };
 		CE5CDC3A1D9F51A90034757D /* ui.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5CDBAE1D9F45090034757D /* ui.h */; };
 		CE5CDC3D1D9F5B710034757D /* libui.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5CDC321D9F51580034757D /* libui.dylib */; };
+		CE67EF771E3501E8009C2819 /* ai_goal.c in Sources */ = {isa = PBXBuildFile; fileRef = CE67EF641E3500C0009C2819 /* ai_goal.c */; };
+		CE67EF7E1E3501F9009C2819 /* ai_goal.h in Headers */ = {isa = PBXBuildFile; fileRef = CE67EF651E3500C0009C2819 /* ai_goal.h */; };
+		CE67EF7F1E3501F9009C2819 /* ai_item.c in Sources */ = {isa = PBXBuildFile; fileRef = CE67EF661E3500C0009C2819 /* ai_item.c */; };
+		CE67EF801E3501F9009C2819 /* ai_item.h in Headers */ = {isa = PBXBuildFile; fileRef = CE67EF671E3500C0009C2819 /* ai_item.h */; };
+		CE67EF811E3501F9009C2819 /* ai_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE67EF681E3500C0009C2819 /* ai_local.h */; };
+		CE67EF821E3501F9009C2819 /* ai_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE67EF691E3500C0009C2819 /* ai_main.c */; };
+		CE67EF831E3501F9009C2819 /* ai_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE67EF6A1E3500C0009C2819 /* ai_main.h */; };
+		CE67EF841E3501F9009C2819 /* ai_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE67EF6B1E3500C0009C2819 /* ai_types.h */; };
+		CE67EF851E35023B009C2819 /* ai.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5521C5C58C300CD0B13 /* ai.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CE6C2D111E24902900F55B0A /* cm_bsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6C2D0F1E24902900F55B0A /* cm_bsp.c */; };
 		CE6C2D121E24902900F55B0A /* cm_bsp.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6C2D101E24902900F55B0A /* cm_bsp.h */; };
 		CE8000001C5E4D4400A21A51 /* libminizip.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.dylib */; };
@@ -176,12 +185,6 @@
 		CE80FEA51C5E445500A21A51 /* cg_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D57D1C5C58C300CD0B13 /* cg_types.h */; };
 		CE80FEA61C5E445500A21A51 /* cg_view.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D57F1C5C58C300CD0B13 /* cg_view.h */; };
 		CE80FEA71C5E445D00A21A51 /* cgame.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D55C1C5C58C300CD0B13 /* cgame.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		CE80FEC91C5E451100A21A51 /* ai_goal.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5531C5C58C300CD0B13 /* ai_goal.c */; };
-		CE80FECA1C5E451100A21A51 /* ai_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5561C5C58C300CD0B13 /* ai_main.c */; };
-		CE80FECB1C5E451E00A21A51 /* ai_goal.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5541C5C58C300CD0B13 /* ai_goal.h */; };
-		CE80FECC1C5E451E00A21A51 /* ai_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5551C5C58C300CD0B13 /* ai_local.h */; };
-		CE80FECD1C5E451E00A21A51 /* ai_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5571C5C58C300CD0B13 /* ai_main.h */; };
-		CE80FECE1C5E451E00A21A51 /* ai_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5581C5C58C300CD0B13 /* ai_types.h */; };
 		CE80FF311C5E473500A21A51 /* cl_cgame.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5861C5C58C300CD0B13 /* cl_cgame.c */; };
 		CE80FF321C5E473500A21A51 /* cl_cmd.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5881C5C58C300CD0B13 /* cl_cmd.c */; };
 		CE80FF331C5E473500A21A51 /* cl_console.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D58A1C5C58C300CD0B13 /* cl_console.c */; };
@@ -244,7 +247,6 @@
 		CE80FFBE1C5E4A3200A21A51 /* sv_world.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6B61C5C58C300CD0B13 /* sv_world.h */; };
 		CE80FFC71C5E4AD800A21A51 /* libclient.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FEE41C5E45EC00A21A51 /* libclient.dylib */; };
 		CE80FFC81C5E4AD800A21A51 /* libserver.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FF7F1C5E49C400A21A51 /* libserver.dylib */; };
-		CE80FFCE1C5E4B9B00A21A51 /* libai.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FEC61C5E44E800A21A51 /* libai.dylib */; };
 		CE80FFCF1C5E4B9B00A21A51 /* libclient-null.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FF6A1C5E494E00A21A51 /* libclient-null.dylib */; };
 		CE80FFD01C5E4B9B00A21A51 /* libcollision.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.dylib */; };
 		CE80FFD11C5E4B9B00A21A51 /* libcommon.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.dylib */; };
@@ -384,7 +386,6 @@
 		CED439591D9D3AB20052BAFA /* libfilesystem.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7A4C1D9CB483000FA6B2 /* libfilesystem.dylib */; };
 		CED4395A1D9D3AB20052BAFA /* libmatrix.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7A831D9CB5C9000FA6B2 /* libmatrix.dylib */; };
 		CED4395B1D9D3AC60052BAFA /* libcommon.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.dylib */; };
-		CED4395C1D9D3ACC0052BAFA /* libcollision.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.dylib */; };
 		CED4395D1D9D3AE40052BAFA /* libai.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FEC61C5E44E800A21A51 /* libai.dylib */; };
 		CED4395E1D9D3AE40052BAFA /* libnet.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.dylib */; };
 		CED4395F1D9D3B0E0052BAFA /* libshared.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.dylib */; };
@@ -537,6 +538,13 @@
 			remoteGlobalIDString = CE5CDC1A1D9F51580034757D;
 			remoteInfo = ui;
 		};
+		CE67EF751E3501C7009C2819 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE12D7CC1C5C5D5C00CD0B13;
+			remoteInfo = game;
+		};
 		CE80FDF11C5E3E5C00A21A51 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
@@ -599,13 +607,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = CE80FEAB1C5E44E800A21A51;
 			remoteInfo = ai;
-		};
-		CE80FFDD1C5E4C2700A21A51 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE80FE0E1C5E421900A21A51;
-			remoteInfo = collision;
 		};
 		CE80FFE11C5E4CEE00A21A51 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -933,12 +934,6 @@
 		CE12D5351C5C58C300CD0B13 /* .turd */ = {isa = PBXFileReference; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
 		CE12D5371C5C58C300CD0B13 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		CE12D5521C5C58C300CD0B13 /* ai.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ai.h; sourceTree = "<group>"; };
-		CE12D5531C5C58C300CD0B13 /* ai_goal.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ai_goal.c; sourceTree = "<group>"; };
-		CE12D5541C5C58C300CD0B13 /* ai_goal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ai_goal.h; sourceTree = "<group>"; };
-		CE12D5551C5C58C300CD0B13 /* ai_local.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ai_local.h; sourceTree = "<group>"; };
-		CE12D5561C5C58C300CD0B13 /* ai_main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ai_main.c; sourceTree = "<group>"; };
-		CE12D5571C5C58C300CD0B13 /* ai_main.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ai_main.h; sourceTree = "<group>"; };
-		CE12D5581C5C58C300CD0B13 /* ai_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ai_types.h; sourceTree = "<group>"; };
 		CE12D5591C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE12D55C1C5C58C300CD0B13 /* cgame.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cgame.h; sourceTree = "<group>"; };
 		CE12D55E1C5C58C300CD0B13 /* cg_client.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_client.c; sourceTree = "<group>"; };
@@ -1127,8 +1122,8 @@
 		CE12D63E1C5C58C300CD0B13 /* filesystem.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = filesystem.h; sourceTree = "<group>"; };
 		CE12D6411C5C58C300CD0B13 /* bg_pmove.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_pmove.c; sourceTree = "<group>"; };
 		CE12D6421C5C58C300CD0B13 /* bg_pmove.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_pmove.h; sourceTree = "<group>"; };
-		CE12D6431C5C58C300CD0B13 /* g_ai.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_ai.c; sourceTree = "<group>"; };
-		CE12D6441C5C58C300CD0B13 /* g_ai.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_ai.h; sourceTree = "<group>"; };
+		CE12D6431C5C58C300CD0B13 /* g_ai.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = g_ai.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
+		CE12D6441C5C58C300CD0B13 /* g_ai.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = g_ai.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		CE12D6471C5C58C300CD0B13 /* g_ballistics.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_ballistics.c; sourceTree = "<group>"; };
 		CE12D6481C5C58C300CD0B13 /* g_ballistics.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_ballistics.h; sourceTree = "<group>"; };
 		CE12D6491C5C58C300CD0B13 /* g_client.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_client.c; sourceTree = "<group>"; };
@@ -1143,7 +1138,7 @@
 		CE12D6521C5C58C300CD0B13 /* g_cmd.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_cmd.h; sourceTree = "<group>"; };
 		CE12D6531C5C58C300CD0B13 /* g_combat.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_combat.c; sourceTree = "<group>"; };
 		CE12D6541C5C58C300CD0B13 /* g_combat.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_combat.h; sourceTree = "<group>"; };
-		CE12D6551C5C58C300CD0B13 /* g_entity.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_entity.c; sourceTree = "<group>"; };
+		CE12D6551C5C58C300CD0B13 /* g_entity.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = g_entity.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		CE12D6561C5C58C300CD0B13 /* g_entity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_entity.h; sourceTree = "<group>"; };
 		CE12D6571C5C58C300CD0B13 /* g_entity_func.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_entity_func.c; sourceTree = "<group>"; };
 		CE12D6581C5C58C300CD0B13 /* g_entity_func.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_entity_func.h; sourceTree = "<group>"; };
@@ -1348,6 +1343,15 @@
 		CE5CDBD41D9F450A0034757D /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE5CDC321D9F51580034757D /* libui.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libui.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE5CDC341D9F51990034757D /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = ../ObjectivelyMVC/build/Debug/libObjectivelyMVC.dylib; sourceTree = "<group>"; };
+		CE67EF641E3500C0009C2819 /* ai_goal.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ai_goal.c; sourceTree = "<group>"; };
+		CE67EF651E3500C0009C2819 /* ai_goal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ai_goal.h; sourceTree = "<group>"; };
+		CE67EF661E3500C0009C2819 /* ai_item.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ai_item.c; sourceTree = "<group>"; };
+		CE67EF671E3500C0009C2819 /* ai_item.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ai_item.h; sourceTree = "<group>"; };
+		CE67EF681E3500C0009C2819 /* ai_local.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ai_local.h; sourceTree = "<group>"; };
+		CE67EF691E3500C0009C2819 /* ai_main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ai_main.c; sourceTree = "<group>"; };
+		CE67EF6A1E3500C0009C2819 /* ai_main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ai_main.h; sourceTree = "<group>"; };
+		CE67EF6B1E3500C0009C2819 /* ai_types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ai_types.h; sourceTree = "<group>"; };
+		CE67EF741E3500E8009C2819 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE6C2D0F1E24902900F55B0A /* cm_bsp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_bsp.c; sourceTree = "<group>"; };
 		CE6C2D101E24902900F55B0A /* cm_bsp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_bsp.h; sourceTree = "<group>"; };
 		CE72D8A91D404ACA002129FC /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = ../ObjectivelyMVC/build/Debug/libObjectivelyMVC.dylib; sourceTree = "<group>"; };
@@ -1516,7 +1520,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE80FFCE1C5E4B9B00A21A51 /* libai.dylib in Frameworks */,
 				CE80FFCF1C5E4B9B00A21A51 /* libclient-null.dylib in Frameworks */,
 				CE80FFD01C5E4B9B00A21A51 /* libcollision.dylib in Frameworks */,
 				CE80FFD11C5E4B9B00A21A51 /* libcommon.dylib in Frameworks */,
@@ -1610,7 +1613,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CED4395C1D9D3ACC0052BAFA /* libcollision.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2091,13 +2093,8 @@
 		CE12D5511C5C58C300CD0B13 /* ai */ = {
 			isa = PBXGroup;
 			children = (
+				CE67EF631E3500C0009C2819 /* default */,
 				CE12D5521C5C58C300CD0B13 /* ai.h */,
-				CE12D5531C5C58C300CD0B13 /* ai_goal.c */,
-				CE12D5541C5C58C300CD0B13 /* ai_goal.h */,
-				CE12D5551C5C58C300CD0B13 /* ai_local.h */,
-				CE12D5561C5C58C300CD0B13 /* ai_main.c */,
-				CE12D5571C5C58C300CD0B13 /* ai_main.h */,
-				CE12D5581C5C58C300CD0B13 /* ai_types.h */,
 				CE12D5591C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = ai;
@@ -2802,6 +2799,22 @@
 			path = views;
 			sourceTree = "<group>";
 		};
+		CE67EF631E3500C0009C2819 /* default */ = {
+			isa = PBXGroup;
+			children = (
+				CE67EF641E3500C0009C2819 /* ai_goal.c */,
+				CE67EF651E3500C0009C2819 /* ai_goal.h */,
+				CE67EF661E3500C0009C2819 /* ai_item.c */,
+				CE67EF671E3500C0009C2819 /* ai_item.h */,
+				CE67EF681E3500C0009C2819 /* ai_local.h */,
+				CE67EF691E3500C0009C2819 /* ai_main.c */,
+				CE67EF6A1E3500C0009C2819 /* ai_main.h */,
+				CE67EF6B1E3500C0009C2819 /* ai_types.h */,
+				CE67EF741E3500E8009C2819 /* Makefile.am */,
+			);
+			path = default;
+			sourceTree = "<group>";
+		};
 		CEFC78991D9BE432000FA6B2 /* viewcontrollers */ = {
 			isa = PBXGroup;
 			children = (
@@ -2992,10 +3005,12 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE80FECB1C5E451E00A21A51 /* ai_goal.h in Headers */,
-				CE80FECC1C5E451E00A21A51 /* ai_local.h in Headers */,
-				CE80FECD1C5E451E00A21A51 /* ai_main.h in Headers */,
-				CE80FECE1C5E451E00A21A51 /* ai_types.h in Headers */,
+				CE67EF851E35023B009C2819 /* ai.h in Headers */,
+				CE67EF7E1E3501F9009C2819 /* ai_goal.h in Headers */,
+				CE67EF801E3501F9009C2819 /* ai_item.h in Headers */,
+				CE67EF811E3501F9009C2819 /* ai_local.h in Headers */,
+				CE67EF831E3501F9009C2819 /* ai_main.h in Headers */,
+				CE67EF841E3501F9009C2819 /* ai_types.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3457,7 +3472,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				CE80FFDE1C5E4C2700A21A51 /* PBXTargetDependency */,
+				CE67EF761E3501C7009C2819 /* PBXTargetDependency */,
 			);
 			name = ai;
 			productName = game;
@@ -4026,8 +4041,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE80FEC91C5E451100A21A51 /* ai_goal.c in Sources */,
-				CE80FECA1C5E451100A21A51 /* ai_main.c in Sources */,
+				CE67EF771E3501E8009C2819 /* ai_goal.c in Sources */,
+				CE67EF7F1E3501F9009C2819 /* ai_item.c in Sources */,
+				CE67EF821E3501F9009C2819 /* ai_main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4269,6 +4285,11 @@
 			target = CE5CDC1A1D9F51580034757D /* ui */;
 			targetProxy = CE5CDC3B1D9F51B80034757D /* PBXContainerItemProxy */;
 		};
+		CE67EF761E3501C7009C2819 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE12D7CC1C5C5D5C00CD0B13 /* game */;
+			targetProxy = CE67EF751E3501C7009C2819 /* PBXContainerItemProxy */;
+		};
 		CE80FDF21C5E3E5C00A21A51 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = CE80FDB41C5E3D4E00A21A51 /* shared */;
@@ -4313,11 +4334,6 @@
 			isa = PBXTargetDependency;
 			target = CE80FEAB1C5E44E800A21A51 /* ai */;
 			targetProxy = CE80FFDB1C5E4C1400A21A51 /* PBXContainerItemProxy */;
-		};
-		CE80FFDE1C5E4C2700A21A51 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE80FE0E1C5E421900A21A51 /* collision */;
-			targetProxy = CE80FFDD1C5E4C2700A21A51 /* PBXContainerItemProxy */;
 		};
 		CE80FFE21C5E4CEE00A21A51 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;

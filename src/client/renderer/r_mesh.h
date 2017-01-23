@@ -26,9 +26,9 @@
 void R_DrawMeshModel_default(const r_entity_t *e);
 
 #ifdef __R_LOCAL_H__
-	void R_ApplyMeshModelTag(r_entity_t *e);
-	void R_ApplyMeshModelConfig(r_entity_t *e);
-	_Bool R_CullMeshModel(const r_entity_t *e);
-	void R_UpdateMeshModelLighting(const r_entity_t *e);
-	void R_DrawMeshModels_default(const r_entities_t *ents);
+void R_ApplyMeshModelTag(r_entity_t *e);
+void R_ApplyMeshModelConfig(r_entity_t *e);
+_Bool R_CullMeshModel(const r_entity_t *e);
+void R_UpdateMeshModelLighting(const r_entity_t *e);
+void R_DrawMeshModels_default(const r_entities_t *ents);
 #endif /* __R_LOCAL_H__ */

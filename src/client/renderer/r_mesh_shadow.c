@@ -195,9 +195,8 @@ static r_sorted_entity_shadow_t r_sorted_shadows[MAX_SHADOWS * MAX_ENTITIES];
 static int R_SortEntityShadows(const void *a, const void *b) {
 	const r_sorted_entity_shadow_t *sa = (const r_sorted_entity_shadow_t *) a;
 	const r_sorted_entity_shadow_t *sb = (const r_sorted_entity_shadow_t *) b;
-	const vec_t cmp = sb->shadow->shadow - sa->shadow->shadow;
 
-	return (cmp == 0) ? 0 : (cmp < 0) ? -1 : 1;
+	return Sign(sb->shadow->shadow - sa->shadow->shadow);
 }
 
 /**

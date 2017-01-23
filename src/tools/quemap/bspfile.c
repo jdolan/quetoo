@@ -279,7 +279,7 @@ int32_t LoadBSPFile(const char *bsp_name, const bsp_lump_id_t lumps) {
 	if (!Fs_Load(bsp_name, (void **) &file)) {
 		Com_Error(ERROR_FATAL, "Invalid BSP file at %s\n", bsp_name);
 	}
-	
+
 	const int32_t version = Bsp_Verify(file);
 
 	if (!version) {

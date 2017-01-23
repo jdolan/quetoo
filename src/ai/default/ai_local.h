@@ -21,17 +21,16 @@
 
 #pragma once
 
-void Ai_GetUserInfo(const g_entity_t *self, char *userinfo);
-void Ai_Think(g_entity_t *self, pm_cmd_t *cmd);
-void Ai_Begin(g_entity_t *self);
-void Ai_Frame(void);
-void Ai_Init(ai_import_t *import);
-void Ai_Shutdown(void);
+#define __AI_LOCAL_H__
 
-#ifdef __AI_LOCAL_H__
-extern cvar_t *ai_passive;
-extern ai_level_t ai_level;
-extern ai_import_t aii;
+// this is the AI name that we advertise to clients
+#define AI_NAME "default"
 
-ai_locals_t *Ai_GetLocals(const g_entity_t *ent);
-#endif /* __AI_LOCAL_H__ */
+#define Debug(...) Debug_(DEBUG_AI, __func__, __VA_ARGS__)
+#define Error(...) Error_(__func__, __VA_ARGS__)
+#define Warn(...) Warn_(__func__, __VA_ARGS__)
+
+#include "ai_goal.h"
+#include "ai_item.h"
+#include "ai_main.h"
+#include "ai_types.h"

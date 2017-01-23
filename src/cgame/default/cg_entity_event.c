@@ -20,6 +20,8 @@
  */
 
 #include "cg_local.h"
+#include "game/default/bg_pmove.h"
+#include "collision/cmodel.h"
 
 /**
  * @brief
@@ -217,6 +219,33 @@ static void Cg_DrownEffect(cl_entity_t *ent) {
 }
 
 /**
+ * @brief
+ */
+static s_sample_t *Cg_Footstep(cl_entity_t *ent) {
+
+	const char *footsteps = "default";
+
+	vec3_t mins, maxs;
+	UnpackBounds(ent->current.bounds, mins, maxs);
+
+	cm_trace_t tr = cgi.Trace((const vec3_t) {
+		ent->current.origin[0],
+		ent->current.origin[1],
+		ent->current.origin[2] + mins[2]
+	}, (const vec3_t) {
+		ent->current.origin[0],
+		ent->current.origin[1],
+		ent->current.origin[2] + mins[2] - PM_STEP_HEIGHT
+	}, vec3_origin, vec3_origin, ent->current.number, MASK_SOLID);
+
+	if (tr.fraction < 1.0 && tr.surface && tr.surface->material && *tr.surface->material->footsteps) {
+		footsteps = tr.surface->material->footsteps;
+	}
+
+	return Cg_GetFootstepSample(footsteps);
+}
+
+/**
  * @brief Process any event set on the given entity. These are only valid for a single
  * frame, so we reset the event flag after processing it.
  */
@@ -241,7 +270,7 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 			play.sample = cgi.LoadSample("*fall_1");
 			break;
 		case EV_CLIENT_FOOTSTEP:
-			play.sample = cg_sample_footsteps[Random() & 3];
+			play.sample = Cg_Footstep(ent);
 			break;
 		case EV_CLIENT_GURP:
 			Cg_GurpEffect(ent);

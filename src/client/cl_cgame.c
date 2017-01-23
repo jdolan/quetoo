@@ -176,6 +176,7 @@ void Cl_InitCgame(void) {
 	import.LoadFile = Fs_Load;
 	import.FreeFile = Fs_Free;
 	import.EnumerateFiles = Fs_Enumerate;
+	import.FileExists = Fs_Exists;
 
 	import.Cvar = Cvar_Add;
 	import.CvarGet = Cvar_Get;
@@ -215,6 +216,7 @@ void Cl_InitCgame(void) {
 	import.ReadAngles = Cl_ReadAngles;
 
 	import.EntityString = Cm_EntityString;
+	import.MapMaterials = Cm_MapMaterials;
 
 	import.PointContents = Cl_PointContents;
 	import.Trace = Cl_Trace;

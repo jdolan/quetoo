@@ -44,7 +44,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libthread", "libs\libthread
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libfilesystem", "libs\libfilesystem.vcxproj", "{817CECDD-9A82-4EA6-BC55-500462CFAE0A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libai", "libs\libai.vcxproj", "{6EBF61D4-CA15-4D8A-A957-7C9CF8A3E815}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ai", "ai.vcxproj", "{6EBF61D4-CA15-4D8A-A957-7C9CF8A3E815}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcmodel", "libs\libcmodel.vcxproj", "{76EBD445-3535-4652-BE8B-7DE4F03591CE}"
 EndProject

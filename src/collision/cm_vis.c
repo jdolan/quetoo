@@ -49,7 +49,7 @@ size_t Cm_ClusterPVS(const int32_t cluster, byte *pvs) {
  * @brief
  */
 size_t Cm_ClusterPHS(const int32_t cluster, byte *phs) {
-	
+
 	const bsp_vis_t *vis = cm_bsp.bsp.vis_data.vis;
 	const size_t len = (vis->num_clusters + 7) >> 3;
 

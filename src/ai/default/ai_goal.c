@@ -25,12 +25,12 @@
  * @brief Add the specified goal function to the bot, and run it at the specified
  * time offset.
  */
-void Ai_AddFuncGoal(g_entity_t *ent, G_AIGoalFunc func, uint32_t time_offset) {
+void Ai_AddFuncGoal(g_entity_t *ent, Ai_GoalFunc func, uint32_t time_offset) {
 	ai_locals_t *ai = Ai_GetLocals(ent);
 
 	for (int32_t i = 0; i < MAX_AI_FUNCGOALS; i++) {
 		ai_funcgoal_t *funcgoal = &ai->funcgoals[i];
-		
+
 		if (funcgoal->think) {
 			continue;
 		}
@@ -41,18 +41,18 @@ void Ai_AddFuncGoal(g_entity_t *ent, G_AIGoalFunc func, uint32_t time_offset) {
 		return;
 	}
 
-	aii.gi->Warn("Bot ran out of empty goal slots\n");
+	aim.Warn("Bot ran out of empty goal slots\n");
 }
 
 /**
  * @brief Remove the specified goal function from the bot.
  */
-void Ai_RemoveFuncGoal(g_entity_t *ent, G_AIGoalFunc func) {
+void Ai_RemoveFuncGoal(g_entity_t *ent, Ai_GoalFunc func) {
 	ai_locals_t *ai = Ai_GetLocals(ent);
 
 	for (int32_t i = 0; i < MAX_AI_FUNCGOALS; i++) {
 		ai_funcgoal_t *funcgoal = &ai->funcgoals[i];
-		
+
 		if (funcgoal->think != func) {
 			continue;
 		}
@@ -66,7 +66,9 @@ void Ai_RemoveFuncGoal(g_entity_t *ent, G_AIGoalFunc func) {
 /**
  * @brief Setup entity goal for the specified target.
  */
-void Ai_SetEntityGoal(ai_goal_t *goal, ai_goal_type_t type, vec_t priority, g_entity_t *entity) {
+void Ai_SetEntityGoal(ai_goal_t *goal, ai_goal_type_t type, vec_t priority, const g_entity_t *entity) {
+
+	aim.Debug("New goal: %s (%f priority)\n", etos(entity), priority);
 
 	goal->type = type;
 	goal->time = ai_level.time;

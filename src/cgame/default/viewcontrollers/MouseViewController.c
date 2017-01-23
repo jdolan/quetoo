@@ -173,7 +173,7 @@ static void initialize(Class *clazz) {
 Class *_MouseViewController(void) {
 	static Class clazz;
 	static Once once;
-	
+
 	do_once(&once, {
 		clazz.name = "MouseViewController";
 		clazz.superclass = _MenuViewController();

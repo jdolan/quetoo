@@ -192,25 +192,9 @@ g_entity_t *G_TossQuadDamage(g_entity_t *ent) {
  */
 _Bool G_AddAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
 	uint16_t index;
-	int16_t max;
+	int16_t max = item->max;
 
-	if (item->tag == AMMO_SHELLS) {
-		max = ent->client->locals.max_shells;
-	} else if (item->tag == AMMO_BULLETS) {
-		max = ent->client->locals.max_bullets;
-	} else if (item->tag == AMMO_GRENADES) {
-		max = ent->client->locals.max_grenades;
-	} else if (item->tag == AMMO_ROCKETS) {
-		max = ent->client->locals.max_rockets;
-	} else if (item->tag == AMMO_CELLS) {
-		max = ent->client->locals.max_cells;
-	} else if (item->tag == AMMO_BOLTS) {
-		max = ent->client->locals.max_bolts;
-	} else if (item->tag == AMMO_SLUGS) {
-		max = ent->client->locals.max_slugs;
-	} else if (item->tag == AMMO_NUKES) {
-		max = ent->client->locals.max_nukes;
-	} else {
+	if (!max) {
 		return false;
 	}
 
@@ -232,25 +216,9 @@ _Bool G_AddAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
  */
 _Bool G_SetAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
 	uint16_t index;
-	int16_t max;
+	int16_t max = item->max;
 
-	if (item->tag == AMMO_SHELLS) {
-		max = ent->client->locals.max_shells;
-	} else if (item->tag == AMMO_BULLETS) {
-		max = ent->client->locals.max_bullets;
-	} else if (item->tag == AMMO_GRENADES) {
-		max = ent->client->locals.max_grenades;
-	} else if (item->tag == AMMO_ROCKETS) {
-		max = ent->client->locals.max_rockets;
-	} else if (item->tag == AMMO_CELLS) {
-		max = ent->client->locals.max_cells;
-	} else if (item->tag == AMMO_BOLTS) {
-		max = ent->client->locals.max_bolts;
-	} else if (item->tag == AMMO_SLUGS) {
-		max = ent->client->locals.max_slugs;
-	} else if (item->tag == AMMO_NUKES) {
-		max = ent->client->locals.max_nukes;
-	} else {
+	if (!max) {
 		return false;
 	}
 
@@ -373,9 +341,9 @@ static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
  */
 const g_armor_info_t *G_ArmorInfo(const g_item_t *armor) {
 	static const g_armor_info_t armor_info[] = {
-		{ ARMOR_BODY, 100, 200, 0.8, 0.6 },
-		{ ARMOR_COMBAT, 50, 100, 0.6, 0.3 },
-		{ ARMOR_JACKET, 25, 50, 0.3, 0.0 }
+		{ ARMOR_BODY, 0.8, 0.6 },
+		{ ARMOR_COMBAT, 0.6, 0.3 },
+		{ ARMOR_JACKET, 0.3, 0.0 }
 	};
 
 	if (!armor) {
@@ -429,7 +397,7 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 			const vec_t salvage = current_info->normal_protection / new_info->normal_protection;
 			const int16_t salvage_count = salvage * other->client->locals.inventory[current_armor->index];
 
-			const int16_t new_count = Clamp(salvage_count + new_armor->quantity, 0, new_info->max_count);
+			const int16_t new_count = Clamp(salvage_count + new_armor->quantity, 0, new_armor->max);
 
 			if (new_count < other->locals.max_armor) {
 				other->client->locals.inventory[current_armor->index] = 0;
@@ -445,7 +413,7 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 			const int16_t salvage_count = salvage * new_armor->quantity;
 
 			int16_t new_count = salvage_count + other->client->locals.inventory[current_armor->index];
-			new_count = Clamp(new_count, 0, current_info->max_count);
+			new_count = Clamp(new_count, 0, current_armor->max);
 
 			// take it
 			if (other->client->locals.inventory[current_armor->index] < new_count &&
@@ -927,7 +895,7 @@ void G_PrecacheItem(const g_item_t *it) {
 		return;
 	}
 
-	gi.ConfigString(CS_ITEMS + it->index, it->name);
+	gi.SetConfigString(CS_ITEMS + it->index, it->name);
 
 	if (it->pickup_sound) {
 		gi.SoundIndex(it->pickup_sound);
@@ -984,6 +952,8 @@ void G_PrecacheItem(const g_item_t *it) {
 	}
 }
 
+static void G_InitItem(g_item_t *item);
+
 /**
  * @brief Sets the clipping size and plants the object on the floor.
  *
@@ -1001,6 +971,11 @@ void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
 	if (ent->model) {
 		ent->s.model1 = gi.ModelIndex(ent->model);
 	} else {
+
+		if (!ent->locals.item->model_index) { // if we're not loaded yet, do it here
+			G_InitItem((g_item_t *) ent->locals.item);
+		}
+
 		ent->s.model1 = ent->locals.item->model_index;
 	}
 
@@ -1054,6 +1029,7 @@ static g_item_t g_items[] = {
 		.icon = "pics/i_bodyarmor",
 		.name = "Body Armor",
 		.quantity = 100,
+		.max = 200,
 		.ammo = NULL,
 		.type = ITEM_ARMOR,
 		.tag = ARMOR_BODY,
@@ -1087,6 +1063,7 @@ static g_item_t g_items[] = {
 		.icon = "pics/i_combatarmor",
 		.name = "Combat Armor",
 		.quantity = 50,
+		.max = 100,
 		.ammo = NULL,
 		.type = ITEM_ARMOR,
 		.tag = ARMOR_COMBAT,
@@ -1120,6 +1097,7 @@ static g_item_t g_items[] = {
 		.icon = "pics/i_jacketarmor",
 		.name = "Jacket Armor",
 		.quantity = 25,
+		.max = 50,
 		.ammo = NULL,
 		.type = ITEM_ARMOR,
 		.tag = ARMOR_JACKET,
@@ -1439,7 +1417,7 @@ static g_item_t g_items[] = {
 	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
 	 -------- Radiant config --------
-	 model="models/weapons/lightning/tris."
+	 model="models/weapons/lightning/tris.obj"
 	 */
 	{
 		.class_name = "weapon_lightning",
@@ -1553,6 +1531,7 @@ static g_item_t g_items[] = {
 		.icon = "pics/a_shells",
 		.name = "Shells",
 		.quantity = 10,
+		.max = 80,
 		.ammo = NULL,
 		.type = ITEM_AMMO,
 		.tag = AMMO_SHELLS,
@@ -1586,6 +1565,7 @@ static g_item_t g_items[] = {
 		.icon = "pics/a_bullets",
 		.name = "Bullets",
 		.quantity = 50,
+		.max = 200,
 		.ammo = NULL,
 		.type = ITEM_AMMO,
 		.tag = AMMO_BULLETS,
@@ -1619,6 +1599,7 @@ static g_item_t g_items[] = {
 		.icon = "pics/a_handgrenades",
 		.name = "Grenades",
 		.quantity = 10,
+		.max = 50,
 		.ammo = "grenades",
 		.type = ITEM_AMMO,
 		.tag = AMMO_GRENADES,
@@ -1653,6 +1634,7 @@ static g_item_t g_items[] = {
 		.icon = "pics/a_rockets",
 		.name = "Rockets",
 		.quantity = 10,
+		.max = 50,
 		.ammo = NULL,
 		.type = ITEM_AMMO,
 		.tag = AMMO_ROCKETS,
@@ -1686,6 +1668,7 @@ static g_item_t g_items[] = {
 		.icon = "pics/a_cells",
 		.name = "Cells",
 		.quantity = 50,
+		.max = 200,
 		.ammo = NULL,
 		.type = ITEM_AMMO,
 		.tag = AMMO_CELLS,
@@ -1719,6 +1702,7 @@ static g_item_t g_items[] = {
 		.icon = "pics/a_bolts",
 		.name = "Bolts",
 		.quantity = 25,
+		.max = 150,
 		.ammo = NULL,
 		.type = ITEM_AMMO,
 		.tag = AMMO_BOLTS,
@@ -1752,6 +1736,7 @@ static g_item_t g_items[] = {
 		.icon = "pics/a_slugs",
 		.name = "Slugs",
 		.quantity = 10,
+		.max = 50,
 		.ammo = NULL,
 		.type = ITEM_AMMO,
 		.tag = AMMO_SLUGS,
@@ -1785,6 +1770,7 @@ static g_item_t g_items[] = {
 		.icon = "pics/a_nukes",
 		.name = "Nukes",
 		.quantity = 2,
+		.max = 10,
 		.ammo = NULL,
 		.type = ITEM_AMMO,
 		.tag = AMMO_NUKES,
@@ -2075,6 +2061,40 @@ const g_item_t *G_ItemByIndex(uint16_t index) {
 }
 
 /**
+ * @brief Called to set up a specific item in the item list. This might be called
+ * during item spawning (since bmodels have to spawn before any modelindex calls
+ * can safely be made) but will be called for every other item once that is done.
+ */
+static void G_InitItem(g_item_t *item) {
+
+	if (item->model_index) { // already set up
+		return;
+	}
+
+	item->index = (uint16_t) (ptrdiff_t) (item - g_items);
+
+	if (item->ammo) {
+		item->ammo_item = G_FindItem(item->ammo);
+
+		if (!item->ammo_item) {
+			gi.Error("Invalid ammo specified for weapon\n");
+		}
+	}
+
+	if (item->icon) {
+		item->icon_index = gi.ImageIndex(item->icon);
+	}
+
+	if (item->model) {
+		item->model_index = gi.ModelIndex(item->model);
+	}
+
+	if (item->pickup_sound) {
+		item->pickup_sound_index = gi.SoundIndex(item->pickup_sound);
+	}
+}
+
+/**
  * @brief Called to setup special private data for the item list.
  */
 void G_InitItems(void) {
@@ -2082,27 +2102,49 @@ void G_InitItems(void) {
 	for (uint16_t i = 0; i < g_num_items; i++) {
 
 		g_item_t *item = &g_items[i];
+		G_InitItem(item);
 
-		item->index = i;
-
-		if (item->ammo) {
-			item->ammo_item = G_FindItem(item->ammo);
-
-			if (!item->ammo_item) {
-				gi.Error("Invalid ammo specified for weapon\n");
-			}
+		// set up media pointers
+		const g_item_t **array = NULL;
+		
+		switch (item->type) {
+		default:
+			gi.Error("Item %s has an invalid type\n", item->name);
+		case ITEM_AMMO:
+			array = g_media.items.ammo;
+			break;
+		case ITEM_ARMOR:
+			array = g_media.items.armor;
+			break;
+		case ITEM_FLAG:
+			array = g_media.items.flags;
+			break;
+		case ITEM_HEALTH:
+			array = g_media.items.health;
+			break;
+		case ITEM_POWERUP:
+			array = g_media.items.powerups;
+			break;
+		case ITEM_WEAPON:
+			array = g_media.items.weapons;
+			break;
 		}
 
-		if (item->icon) {
-			item->icon_index = gi.ImageIndex(item->icon);
+		if (!item->tag) {
+			gi.Error("Item %s has an invalid tag\n", item->name);
+		}
+		
+		if (array[item->tag]) {
+			gi.Error("Item %s has the same tag as %s\n", item->name, array[item->tag]->name);
 		}
 
-		if (item->model) {
-			item->model_index = gi.ModelIndex(item->model);
-		}
+		array[item->tag] = item;
 
-		if (item->pickup_sound) {
-			item->pickup_sound_index = gi.SoundIndex(item->pickup_sound);
+	// precache all weapons/health/armor, even if the map doesn't contain them
+		if (item->type == ITEM_WEAPON ||
+			item->type == ITEM_HEALTH ||
+			item->type == ITEM_ARMOR) {
+			G_PrecacheItem(item);
 		}
 	}
 }

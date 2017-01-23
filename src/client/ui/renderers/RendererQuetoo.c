@@ -174,7 +174,7 @@ static void initialize(Class *clazz) {
 Class *_RendererQuetoo(void) {
 	static Class clazz;
 	static Once once;
-	
+
 	do_once(&once, {
 		clazz.name = "RendererQuetoo";
 		clazz.superclass = _Renderer();

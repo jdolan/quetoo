@@ -27,9 +27,9 @@ void R_AddLight(const r_light_t *l);
 void R_AddSustainedLight(const r_sustained_light_t *s);
 
 #ifdef __R_LOCAL_H__
-	void R_AddSustainedLights(void);
-	void R_ResetLights(void);
-	void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node);
-	void R_MarkLights(void);
-	void R_EnableLights(uint64_t mask);
+void R_AddSustainedLights(void);
+void R_ResetLights(void);
+void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node);
+void R_MarkLights(void);
+void R_EnableLights(uint64_t mask);
 #endif /* __R_LOCAL_H__ */
