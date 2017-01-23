@@ -31,7 +31,7 @@ static const char *DEFAULT_BINDS =
     "bind 5 use grenade launcher\n"
     "bind 6 use rocket launcher\n"
     "bind 7 use hyperblaster\n"
-    "bind 8 use lightning\n"
+    "bind 8 use lightning gun\n"
     "bind 9 use railgun\n"
     "bind 0 use bfg10k\n"
     "bind g use hand grenades\n"
@@ -87,7 +87,7 @@ static const char *DEFAULT_BINDS =
     // spam alias for pros
     "alias SPAM \""
     "use hyperblaster;"
-    "use lightning;"
+    "use lightning gun;"
     "bind f SPAM"
     "\"\n"
 

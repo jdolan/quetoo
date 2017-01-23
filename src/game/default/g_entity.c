@@ -95,8 +95,9 @@ static void G_SpawnEntity(g_entity_t *ent) {
 	}
 
 	// check item spawn functions
-	const g_item_t *item = g_items;
-	for (i = 0; i < g_num_items; i++, item++) {
+	for (i = 0; i < g_num_items; i++) {
+
+		const g_item_t *item = G_ItemByIndex(i);
 
 		if (!item->class_name) {
 			continue;
@@ -420,11 +421,52 @@ static void G_InitMedia(void) {
 	gi.SoundIndex("*pain50_1");
 	gi.SoundIndex("*pain75_1");
 	gi.SoundIndex("*pain100_1");
+		
+	// set up item pointers that we use in the game
+	for (uint16_t i = 0; i < g_num_items; i++) {
+		const g_item_t *item = G_ItemByIndex(i);
+		const g_item_t **array = NULL;
+		
+		switch (item->type) {
+		default:
+			gi.Error("Item %s has an invalid type\n", item->name);
+		case ITEM_AMMO:
+			array = g_media.items.ammo;
+			break;
+		case ITEM_ARMOR:
+			array = g_media.items.armor;
+			break;
+		case ITEM_FLAG:
+			array = g_media.items.flags;
+			break;
+		case ITEM_HEALTH:
+			array = g_media.items.health;
+			break;
+		case ITEM_POWERUP:
+			array = g_media.items.powerups;
+			break;
+		case ITEM_WEAPON:
+			array = g_media.items.weapons;
+			break;
+		}
 
-	g_media.items.jacket_armor = ITEM_INDEX(G_FindItemByClassName("item_armor_jacket"));
-	g_media.items.combat_armor = ITEM_INDEX(G_FindItemByClassName("item_armor_combat"));
-	g_media.items.body_armor = ITEM_INDEX(G_FindItemByClassName("item_armor_body"));
-	g_media.items.quad_damage = ITEM_INDEX(G_FindItemByClassName("item_quad"));
+		if (!item->tag) {
+			gi.Error("Item %s has an invalid tag\n", item->name);
+		}
+		
+		if (array[item->tag]) {
+			gi.Error("Item %s has the same tag as %s\n", item->name, array[item->tag]->name);
+		}
+
+		array[item->tag] = item;
+
+	// precache all weapons/health/armor, even if the map doesn't contain them
+		if (item->type == ITEM_WEAPON ||
+			item->type == ITEM_HEALTH ||
+			item->type == ITEM_ARMOR) {
+			G_PrecacheItem(item);
+		}
+	}
 
 	g_media.models.grenade = gi.ModelIndex("models/objects/grenade/tris");
 	g_media.models.rocket = gi.ModelIndex("models/objects/rocket/tris");
@@ -464,27 +506,7 @@ static void G_InitMedia(void) {
 
 	g_media.sounds.roar = gi.SoundIndex("world/ominous_bwah");
 
-	// precache all weapons, even if the map doesn't contain them
-	G_PrecacheItem(G_FindItem("Blaster"));
-	G_PrecacheItem(G_FindItem("Shotgun"));
-	G_PrecacheItem(G_FindItem("Super Shotgun"));
-	G_PrecacheItem(G_FindItem("Machinegun"));
-	G_PrecacheItem(G_FindItem("Grenade Launcher"));
-	G_PrecacheItem(G_FindItem("Rocket Launcher"));
-	G_PrecacheItem(G_FindItem("Hyperblaster"));
-	G_PrecacheItem(G_FindItem("Lightning"));
-	G_PrecacheItem(G_FindItem("Railgun"));
-	G_PrecacheItem(G_FindItem("BFG10K"));
-
-	// precache these so that the HUD icons are available
-	G_PrecacheItem(G_FindItem("Large Health"));
-	G_PrecacheItem(G_FindItem("Medium Health"));
-	G_PrecacheItem(G_FindItem("Small Health"));
-	G_PrecacheItem(G_FindItem("Body Armor"));
-	G_PrecacheItem(G_FindItem("Combat Armor"));
-	G_PrecacheItem(G_FindItem("Jacket Armor"));
-
-	gi.ImageIndex("pics/i_health");
+	g_media.images.health = gi.ImageIndex("pics/i_health");
 }
 
 /**

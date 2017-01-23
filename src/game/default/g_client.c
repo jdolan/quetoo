@@ -173,7 +173,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 			int16_t a = 0;
 			const g_item_t *armor = G_ClientArmor(attacker);
 			if (armor) {
-				a = attacker->client->locals.inventory[ITEM_INDEX(armor)];
+				a = attacker->client->locals.inventory[armor->index];
 			}
 			gi.ClientPrint(self, PRINT_MEDIUM, "%s had %d health and %d armor\n",
 						   attacker->client->locals.persistent.net_name, attacker->locals.health, a);
@@ -526,15 +526,15 @@ static void G_Give(g_entity_t *ent, char *it, int16_t quantity) {
 		return;
 	}
 
-	const uint16_t index = ITEM_INDEX(item);
+	const uint16_t index = item->index;
 
 	if (item->type == ITEM_WEAPON) { // weapons receive quantity as ammo
 		ent->client->locals.inventory[index]++;
 
 		if (item->ammo) {
-			const g_item_t *ammo = G_FindItem(item->ammo);
+			const g_item_t *ammo = item->ammo_item;
 			if (ammo) {
-				const uint16_t ammo_index = ITEM_INDEX(ammo);
+				const uint16_t ammo_index = ammo->index;
 
 				if (quantity > -1) {
 					ent->client->locals.inventory[ammo_index] = quantity;
@@ -616,15 +616,16 @@ static void G_InitClientInventory(g_entity_t *ent) {
 	if (g_level.gameplay == GAME_INSTAGIB) {
 		G_Give(ent, "Railgun", 1);
 		G_Give(ent, "Grenades", 1);
-		item = G_FindItem("Railgun");
+		item = g_media.items.weapons[WEAPON_RAILGUN];
 	}
 	// arena or dm warmup yields all weapons, health, etc..
 	else if ((g_level.gameplay == GAME_ARENA) || g_level.warmup) {
 		G_Give(ent, "Railgun", 50);
-		G_Give(ent, "Lightning", 200);
+		G_Give(ent, "Lightning Gun", 200);
 		G_Give(ent, "Hyperblaster", 200);
 		G_Give(ent, "Rocket Launcher", 50);
 		G_Give(ent, "Grenade Launcher", 50);
+		G_Give(ent, "Hand Grenades", 1);
 		G_Give(ent, "Machinegun", 200);
 		G_Give(ent, "Super Shotgun", 80);
 		G_Give(ent, "Shotgun", 80);
@@ -632,12 +633,12 @@ static void G_InitClientInventory(g_entity_t *ent) {
 
 		G_Give(ent, "Body Armor", -1);
 
-		item = G_FindItem("Rocket Launcher");
+		item = g_media.items.weapons[WEAPON_ROCKET_LAUNCHER];
 	}
 	// dm gets the blaster
 	else {
 		G_Give(ent, "Blaster", -1);
-		item = G_FindItem("Blaster");
+		item = g_media.items.weapons[WEAPON_BLASTER];
 	}
 
 	// use the best weapon given by the level
@@ -1459,12 +1460,12 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
  */
 static void G_ClientInventoryThink(g_entity_t *ent) {
 
-	if (ent->client->locals.inventory[g_media.items.quad_damage]) { // if they have quad
+	if (ent->client->locals.inventory[g_media.items.powerups[POWERUP_QUAD]->index]) { // if they have quad
 
 		if (ent->client->locals.quad_damage_time < g_level.time) { // expire it
 
 			ent->client->locals.quad_damage_time = 0.0;
-			ent->client->locals.inventory[g_media.items.quad_damage] = 0;
+			ent->client->locals.inventory[g_media.items.powerups[POWERUP_QUAD]->index] = 0;
 
 			gi.Sound(ent, g_media.sounds.quad_expire, ATTEN_NORM);
 

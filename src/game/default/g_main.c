@@ -92,6 +92,9 @@ void G_ResetTeams(void) {
 
 	g_team_good.color = EFFECT_COLOR_BLUE;
 	g_team_evil.color = EFFECT_COLOR_RED;
+	
+	g_strlcpy(g_team_good.flag, "item_flag_team1", sizeof(g_team_good.flag));
+	g_strlcpy(g_team_evil.flag, "item_flag_team2", sizeof(g_team_evil.flag));
 }
 
 /**
@@ -1042,6 +1045,8 @@ void G_Init(void) {
 	sv_hostname = gi.Cvar("sv_hostname", "Quetoo", CVAR_SERVER_INFO, NULL);
 
 	dedicated = gi.Cvar("dedicated", "0", CVAR_NO_SET, NULL);
+
+	G_InitItems();
 
 	G_InitVote();
 
