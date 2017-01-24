@@ -29,6 +29,7 @@
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#include <process.h>
 
 	#ifndef realpath
 		#define realpath(rel, abs) _fullpath(abs, rel, MAX_PATH)
@@ -79,6 +80,28 @@ int main(int argc, char **argv) {
 		memcpy(args[3], argv[1], (argc - 1) * sizeof(char *));
 		args[argc + 2] = NULL;
 
+#if defined(_WIN32)
+		STARTUPINFO si;
+		PROCESS_INFORMATION pi;
+
+		ZeroMemory( &si, sizeof(si) );
+		si.cb = sizeof(si);
+		ZeroMemory( &pi, sizeof(pi) );
+
+		gchar *cmdline = g_strjoinv(" ", args);
+
+		gchar *dir_name = g_path_get_dirname(quetoo_update_jar);
+
+		if (CreateProcess(NULL, cmdline, NULL, NULL, true, 0, NULL, dir_name, &si, &pi)) {
+			status = 0;
+		} else {
+			status = GetLastError();
+			fprintf(stderr, "Failed spawn process: %d\n", status);
+		}
+
+		g_free(dir_name);
+		g_free(cmdline);
+#else
 		const GSpawnFlags flags = G_SPAWN_SEARCH_PATH | G_SPAWN_CHILD_INHERITS_STDIN;
 
 		GError *error = NULL;
@@ -89,6 +112,7 @@ int main(int argc, char **argv) {
 			fprintf(stderr, "Failed spawn process: %d: %s\n", error->code, error->message);
 			status = error->code;
 		}
+#endif
 
 		g_free(quetoo_update_jar);
 	} else {
