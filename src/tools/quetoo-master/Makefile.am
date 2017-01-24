@@ -12,4 +12,3 @@ quetoo_master_CFLAGS = \
 
 quetoo_master_LDADD = \
 	$(top_srcdir)/src/libfilesystem.la
-

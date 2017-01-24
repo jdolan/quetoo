@@ -1,3 +1,4 @@
+
 bin_PROGRAMS = \
 	quetoo-update
 
@@ -9,12 +10,16 @@ quetoo_update_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
 
+quetoo_update_LDADD = \
+	@BASE_LIBS@ \
+	@GLIB_LIBS@
+
 if WINDOWS
 
 .rc.o:
 	@WINDRES@ $^ -o $@
 
 quetoo_update_SOURCES += \
-	update-icon.rc
+	quetoo-update-icon.rc
 
 endif

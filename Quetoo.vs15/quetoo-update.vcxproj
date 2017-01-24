@@ -19,13 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\tools\update\main.c" />
+    <Image Include="..\src\tools\quetoo-update\quetoo-update.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\src\tools\update\update.ico" />
+    <ResourceCompile Include="..\src\tools\quetoo-update\quetoo-update-icon.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\src\tools\update\update-icon.rc" />
+    <ClCompile Include="..\src\tools\quetoo-update\main.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A11F8826-C984-45ED-A335-AB616DEE1CCA}</ProjectGuid>

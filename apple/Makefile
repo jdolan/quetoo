@@ -1,30 +1,29 @@
-# Makefile for Quetoo.app, requires http://macdylibbundler.sourceforge.net/
+# Makefile for Quetoo.app, requires awscli and dylibbundler.
+# http://macdylibbundler.sourceforge.net/
 
 ARCH = x86_64
-DATA = ../../quetoo-data
+HOST = $(ARCH)-apple-darwin
+UPDATE = quetoo-update-small.jar
 TARGET = target
 INSTALL = $(TARGET)/Quetoo
 QUETOO = $(INSTALL)/Quetoo.app
 BINDIR = $(QUETOO)/Contents/MacOS
 LIBDIR = $(QUETOO)/Contents/MacOS/lib
 DATADIR = $(QUETOO)/Contents/Resources
-REMOTE_USER = $(shell whoami)
-RSYNC_REPOSITORY = quetoo.org:/opt/rsync/quetoo-apple/$(ARCH)
-RSYNC_TARGET = $(REMOTE_USER)@$(RSYNC_REPOSITORY)
-DIST = $(TARGET)/Quetoo-BETA-$(ARCH).dmg
-VOLUME_NAME = "Quetoo BETA $(ARCH)"
-HTTP_REPOSITORY = quetoo.org:/var/www/quetoo.org/files
-HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
+SNAPSHOT = $(TARGET)/Quetoo-BETA-$(HOST).dmg
+VOLUME_NAME = "Quetoo BETA $(HOST)"
+QUETOO_S3_BUCKET = s3://quetoo
+QUETOO_DATA_S3_BUCKET = s3://quetoo-data
 
-all: clean install-lib post-install dist
+all: clean install-lib install-update post-install snapshot
 
-all-data: clean install-lib install-data post-install dist
+all-data: clean install-lib install-update install-data post-install snapshot
 
 configure:
 	cd .. ; autoreconf -i; ./configure --prefix=/
 	
 compile: configure
-	make -C .. all
+	make -C .. -j8 all
 
 pre-install:
 	install -d $(INSTALL)
@@ -43,14 +42,18 @@ install-lib: install
 		-x $(BINDIR)/quemap \
 		-x $(BINDIR)/quetoo \
 		-x $(BINDIR)/quetoo-dedicated \
+		-x $(BINDIR)/quetoo-master \
 		-x $(BINDIR)/quetoo-update \
-		-X $(LIBDIR)/default/ai.so \
+		-x $(LIBDIR)/default/ai.so \
 		-x $(LIBDIR)/default/cgame.so \
 		-x $(LIBDIR)/default/game.so \
 	-d $(LIBDIR) -of -p @executable_path/lib
 
+install-update:
+	aws s3 cp $(QUETOO_S3_BUCKET)/snapshots/$(UPDATE) $(LIBDIR)/
+
 install-data:
-	cp -R $(DATA)/target/* $(DATADIR)
+	aws s3 sync $(QUETOO_DATA_S3_BUCKET)/ $(DATADIR)
 
 post-install:
 	./set-icon.sh $(DATADIR)/quetoo-folder.icns $(INSTALL)
@@ -60,18 +63,17 @@ post-install:
 	./set-icon.sh $(DATADIR)/quetoo-update.icns $(BINDIR)/quetoo-update
 
 release:
-	rsync -rzhP --delete $(BINDIR) $(RSYNC_TARGET)
-	rsync -rzhP --delete $(DATADIR)/*.* $(RSYNC_TARGET)/Resources/
+	aws s3 sync --exclude 'Icon*' $(INSTALL) $(QUETOO_S3_BUCKET)/$(HOST)
 
-dist:
+snapshot:
 	ln -f -s /Applications $(TARGET)/Applications
-	hdiutil create -ov $(DIST) -srcfolder $(TARGET) -volname $(VOLUME_NAME)
+	hdiutil create -ov $(SNAPSHOT) -srcfolder $(TARGET) -volname $(VOLUME_NAME)
+	rm -f $(TARGET)/Applications
 
-dist-release:
-	rsync -rzhP $(DIST) $(HTTP_TARGET)
+snapshot-release:
+	aws s3 cp $(SNAPSHOT) $(QUETOO_S3_BUCKET)/snapshots/
 
 clean:
 	rm -rf $(TARGET)/*
 
-.PHONY: all all-data configure compile pre-install install install-lib install-data post-install release dist dist-release clean
-
+.PHONY: all all-data configure compile pre-install install install-lib install-update install-data post-install release snapshot snapshot-release clean

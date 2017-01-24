@@ -1,25 +1,22 @@
-# Makefile for Quetoo Windows distributable.
+# Makefile for Quetoo Windows distributable, requires awscli.
 # export PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/bin:${PATH}
 
 ARCH = x86_64
 HOST = $(ARCH)-w64-mingw32
-DATA = ../../quetoo-data
+UPDATE = quetoo-update-small.jar
 TARGET = target
 INSTALL = $(TARGET)/Quetoo
 BINDIR = $(INSTALL)/bin
 ETCDIR = $(INSTALL)/etc
 LIBDIR = $(INSTALL)/lib
 DATADIR = $(INSTALL)/share
-REMOTE_USER = $(shell whoami)
-RSYNC_REPOSITORY = quetoo.org:/opt/rsync/quetoo-mingw/$(ARCH)
-RSYNC_TARGET = $(REMOTE_USER)@$(RSYNC_REPOSITORY)
-DIST = $(TARGET)/Quetoo-BETA-$(ARCH).zip
-HTTP_REPOSITORY = quetoo.org:/var/www/quetoo.org/files
-HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
+SNAPSHOT = $(TARGET)/Quetoo-BETA-$(ARCH).zip
+QUETOO_S3_BUCKET = s3://quetoo
+QUETOO_DATA_S3_BUCKET = s3://quetoo-data
 
-all: clean install-lib dist
+all: clean install-lib install-update snapshot
 
-all-data: clean install-lib install-data dist
+all-data: clean install-lib install-update install-data snapshot
 
 configure:
 	cd .. ; autoreconf -i; ./configure --host=$(HOST) --prefix=/
@@ -40,23 +37,29 @@ install-lib: install
 		$(BINDIR)/quemap.exe \
 		$(BINDIR)/quetoo.exe \
 		$(BINDIR)/quetoo-dedicated.exe \
-		$(BINDIR)/quetoo-update.exe
+		$(BINDIR)/quetoo-master.exe \
+		$(BINDIR)/quetoo-update.exe \
+		$(LIBDIR)/default/ai.dll \
+		$(LIBDIR)/default/cgame.dll \
+		$(LIBDIR)/default/game.dll
+
+install-update:
+	aws s3 cp $(QUETOO_S3_BUCKET)/snapshots/$(UPDATE) $(LIBDIR)/
 
 install-data:
-	cp -r $(DATA)/target/* $(DATADIR)
+	aws s3 sync $(QUETOO_DATA_S3_BUCKET)/ $(DATADIR)
 
 release:
-	rsync -rzhP --delete $(BINDIR) $(ETCDIR) $(LIBDIR) $(RSYNC_TARGET)
+	aws s3 sync $(INSTALL) $(QUETOO_S3_BUCKET)/$(HOST)
 
-dist:
+snapshot:
 	rm -f Quetoo; ln -s $(INSTALL)
-	zip -9 -r $(DIST) Quetoo
+	zip -9 -r $(SNAPSHOT) Quetoo
 
-dist-release:
-	rsync -rzhP $(DIST) $(HTTP_TARGET)
+snapshot-release:
+	aws s3 cp $(SNAPSHOT) $(QUETOO_S3_BUCKET)/snapshots/
 
 clean:
 	rm -rf $(TARGET)/*
 
-.PHONY: all all-data configure compile pre-install install install-lib install-data release dist dist-release clean
-
+.PHONY: all all-data configure compile pre-install install install-lib install-data release snapshot snapshot-release clean

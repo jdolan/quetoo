@@ -1,38 +1,30 @@
-# Makefile for Quetoo Linux distributable
+# Makefile for Quetoo Linux snapshotributable, requires awscli.
 
 ARCH = x86_64
 HOST = $(ARCH)-pc-linux
-DATA = ../../quetoo-data
-ARTIFACT = quetoo
+UPDATE = quetoo-update-small.jar
 TARGET = target
-INSTALL = $(TARGET)/$(ARTIFACT)
-LIBDIR = $(INSTALL)/lib
+INSTALL = $(TARGET)/quetoo
 BINDIR = $(INSTALL)/bin
+LIBDIR = $(INSTALL)/lib
 DATADIR = $(INSTALL)/share
-REMOTE_USER = $(shell whoami)
-RSYNC_REPOSITORY = quetoo.org:/opt/rsync/$(ARTIFACT)-linux/$(ARCH)
-RSYNC_TARGET = $(REMOTE_USER)@$(RSYNC_REPOSITORY)
-DIST = $(TARGET)/$(ARTIFACT)-BETA-$(ARCH).tar.gz
-HTTP_REPOSITORY = quetoo.org:/var/www/quetoo.org/files
-HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
+SNAPSHOT = $(TARGET)/quetoo-BETA-$(HOST).tar.gz
+QUETOO_S3_BUCKET = s3://quetoo
+QUETOO_DATA_S3_BUCKET = s3://quetoo-data
 
-all: clean install-lib dist
+all: clean install-lib install-update snapshot
 
-all-data: clean install-lib install-data dist
+all-data: clean install-lib install-update install-data snapshot
 
 configure:
-	cd .. ; autoreconf -i; ./configure \
-		LDFLAGS='-Wl,-rpath=XORIGIN/../lib' \
-		--host=$(HOST) \
-		--prefix=/ \
-		--with-tools='master quemap update'
-	
+	cd .. ; autoreconf -i; ./configure LDFLAGS='-Wl,-rpath=XORIGIN/../lib' --host=$(HOST) --prefix=/
+
 compile: configure
 	make -C .. all
 
 pre-install:
 	install -d $(INSTALL)
-	cp -r $(ARTIFACT)/* $(INSTALL)
+	cp -r quetoo/* $(INSTALL)
 	find $(INSTALL) -name .turd -delete
 
 install: compile pre-install
@@ -44,22 +36,27 @@ install-lib: install
 		$(BINDIR)/quetoo \
 		$(BINDIR)/quetoo-dedicated \
 		$(BINDIR)/quetoo-master \
-		$(BINDIR)/quetoo-update
+		$(BINDIR)/quetoo-update \
+		$(LIBDIR)/default/ai.so \
+		$(LIBDIR)/default/cgame.so \
+		$(LIBDIR)/default/game.so
+
+install-update:
+	aws s3 cp $(QUETOO_S3_BUCKET)/snapshots/$(UPDATE) $(LIBDIR)/
 
 install-data:
-	cp -r $(DATA)/target/* $(DATADIR)
+	aws s3 sync $(QUETOO_DATA_S3_BUCKET)/ $(DATADIR)
 
 release:
-	rsync -rzhP --delete $(INSTALL)/*.* $(BINDIR) $(LIBDIR) $(RSYNC_TARGET)
+	aws s3 sync $(INSTALL) $(QUETOO_S3_BUCKET)/$(HOST)
 
-dist:
-	tar -czvf $(DIST) -C $(TARGET) $(ARTIFACT)
+snapshot:
+	tar -czvf $(SNAPSHOT) -C $(TARGET) quetoo
 
-dist-release:
-	rsync -rzhP $(DIST) $(HTTP_TARGET)
+snapshot-release:
+	aws s3 cp $(SNAPSHOT) $(QUETOO_S3_BUCKET)/snapshots/
 
 clean:
 	rm -rf $(TARGET)/*
 
-.PHONY: all all-data configure compile pre-install install install-lib install-data release dist dist-release clean
-
+.PHONY: all all-data configure compile pre-install install install-lib install-update install-data release snapshot snapshot-release clean

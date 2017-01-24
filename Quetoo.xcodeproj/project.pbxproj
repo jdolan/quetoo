@@ -17,7 +17,6 @@
 				CEA029C01C5E548B00341079 /* PBXTargetDependency */,
 				CEA029B81C5E546200341079 /* PBXTargetDependency */,
 				CEA029BA1C5E546200341079 /* PBXTargetDependency */,
-				CE1CCD9C1D9D446300891F05 /* PBXTargetDependency */,
 				CEA029BC1C5E546200341079 /* PBXTargetDependency */,
 				CEA029F91C5E560100341079 /* PBXTargetDependency */,
 			);
@@ -27,7 +26,6 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
-		CE0B64991D8A3A450011F974 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE0B64961D89EA380011F974 /* main.c */; };
 		CE12D7A91C5C5C3200CD0B13 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D67A1C5C58C300CD0B13 /* main.c */; };
 		CE12D7D11C5C5D6A00CD0B13 /* g_ai.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6431C5C58C300CD0B13 /* g_ai.c */; };
 		CE12D7D31C5C5D6A00CD0B13 /* g_ballistics.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6471C5C58C300CD0B13 /* g_ballistics.c */; };
@@ -75,7 +73,6 @@
 		CE12D8F81C5CF97E00CD0B13 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8191C5C614B00CD0B13 /* AppKit.framework */; };
 		CE1CCD9A1D9D41DA00891F05 /* libncurses.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */; };
 		CE1CCD9D1D9D49C700891F05 /* libswap.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC79D01D9CB22E000FA6B2 /* libswap.dylib */; };
-		CE2DB5471D88F9B300560994 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE2DB5161D88F74000560994 /* main.c */; };
 		CE3BCDC71DB6DD71002E6C6D /* r_glad_core.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3BCDB71DB6DCE0002E6C6D /* r_glad_core.c */; };
 		CE3BCDC81DB6DD77002E6C6D /* r_glad_core.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3BCDB81DB6DCE0002E6C6D /* r_glad_core.h */; };
 		CE3BCDC91DB6DD81002E6C6D /* r_program_null.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3BCDB91DB6DCE0002E6C6D /* r_program_null.c */; };
@@ -103,6 +100,10 @@
 		CE67EF831E3501F9009C2819 /* ai_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE67EF6A1E3500C0009C2819 /* ai_main.h */; };
 		CE67EF841E3501F9009C2819 /* ai_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE67EF6B1E3500C0009C2819 /* ai_types.h */; };
 		CE67EF851E35023B009C2819 /* ai.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5521C5C58C300CD0B13 /* ai.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		CE67EF961E350DCC009C2819 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE67EF8A1E350D54009C2819 /* main.c */; };
+		CE67EF971E350E16009C2819 /* libshared.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.dylib */; };
+		CE67EFAD1E351AA8009C2819 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE67EF991E351A7B009C2819 /* main.c */; };
+		CE67EFAE1E356962009C2819 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE6C2D111E24902900F55B0A /* cm_bsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6C2D0F1E24902900F55B0A /* cm_bsp.c */; };
 		CE6C2D121E24902900F55B0A /* cm_bsp.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6C2D101E24902900F55B0A /* cm_bsp.h */; };
 		CE8000001C5E4D4400A21A51 /* libminizip.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.dylib */; };
@@ -517,13 +518,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		CE1CCD9B1D9D446300891F05 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE2DB5171D88F98600560994;
-			remoteInfo = "quetoo-update";
-		};
 		CE5CDC1C1D9F51580034757D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
@@ -867,7 +861,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
-		CE2DB5421D88F98600560994 /* CopyFiles */ = {
+		CE67EFA81E351A95009C2819 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = /usr/share/man/man1/;
@@ -900,8 +894,6 @@
 		CE0B647C1D8979160011F974 /* fonts.conf */ = {isa = PBXFileReference; lastKnownFileType = text; path = fonts.conf; sourceTree = "<group>"; };
 		CE0B647E1D8979780011F974 /* fonts.conf */ = {isa = PBXFileReference; lastKnownFileType = text; path = fonts.conf; sourceTree = "<group>"; };
 		CE0B64811D89955B0011F974 /* .turd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
-		CE0B64961D89EA380011F974 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
-		CE0B64971D89EA380011F974 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE12D4A71C5C58C300CD0B13 /* config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
 		CE12D4A81C5C58C300CD0B13 /* configure.ac */ = {isa = PBXFileReference; lastKnownFileType = text; path = configure.ac; sourceTree = "<group>"; };
 		CE12D4FF1C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -1316,8 +1308,6 @@
 		CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSDL2-2.0.0.dylib"; path = "/opt/local/lib/libSDL2-2.0.0.dylib"; sourceTree = "<absolute>"; };
 		CE12D8F41C5CF86600CD0B13 /* quetoo-dedicated */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-dedicated"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE27BE561D9167C700F87B2C /* libObjectively.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectively.dylib; path = "../../Library/Developer/Xcode/DerivedData/Quetoo-eijmznjiunzbaafulkyjapfulhqz/Build/Products/Debug/libObjectively.dylib"; sourceTree = "<group>"; };
-		CE2DB5161D88F74000560994 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
-		CE2DB5461D88F98600560994 /* quetoo-update */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-update"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE3BCDB71DB6DCE0002E6C6D /* r_glad_core.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_glad_core.c; sourceTree = "<group>"; };
 		CE3BCDB81DB6DCE0002E6C6D /* r_glad_core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_glad_core.h; sourceTree = "<group>"; };
 		CE3BCDB91DB6DCE0002E6C6D /* r_program_null.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_program_null.c; sourceTree = "<group>"; };
@@ -1329,9 +1319,6 @@
 		CE3BCDEC1DB91AF7002E6C6D /* RendererQuetoo.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = RendererQuetoo.c; sourceTree = "<group>"; };
 		CE3BCDED1DB91AF7002E6C6D /* RendererQuetoo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RendererQuetoo.h; sourceTree = "<group>"; };
 		CE3BCDF21DB91B52002E6C6D /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
-		CE5A5AB61D890190001A00CC /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
-		CE5A5AB71D890349001A00CC /* update-icon.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "update-icon.rc"; sourceTree = "<group>"; };
-		CE5A5AB81D8904FC001A00CC /* update.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = update.ico; sourceTree = "<group>"; };
 		CE5BD59B1D3EE3B800C43B85 /* libObjectivelyMVC.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.0.dylib; path = ../../../../usr/local/lib/libObjectivelyMVC.0.dylib; sourceTree = "<group>"; };
 		CE5CDBAC1D9F45090034757D /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE5CDBAE1D9F45090034757D /* ui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui.h; sourceTree = "<group>"; };
@@ -1352,6 +1339,13 @@
 		CE67EF6A1E3500C0009C2819 /* ai_main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ai_main.h; sourceTree = "<group>"; };
 		CE67EF6B1E3500C0009C2819 /* ai_types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ai_types.h; sourceTree = "<group>"; };
 		CE67EF741E3500E8009C2819 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CE67EF8A1E350D54009C2819 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		CE67EF8C1E350D54009C2819 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CE67EF991E351A7B009C2819 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		CE67EF9A1E351A7B009C2819 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CE67EFAC1E351A95009C2819 /* quetoo-update */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-update"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE67EFAF1E356AF2009C2819 /* quetoo-update-icon.rc */ = {isa = PBXFileReference; lastKnownFileType = text; path = "quetoo-update-icon.rc"; sourceTree = "<group>"; };
+		CE67EFB01E356B6F009C2819 /* quetoo-update.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = "quetoo-update.ico"; sourceTree = "<group>"; };
 		CE6C2D0F1E24902900F55B0A /* cm_bsp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_bsp.c; sourceTree = "<group>"; };
 		CE6C2D101E24902900F55B0A /* cm_bsp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_bsp.h; sourceTree = "<group>"; };
 		CE72D8A91D404ACA002129FC /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = ../ObjectivelyMVC/build/Debug/libObjectivelyMVC.dylib; sourceTree = "<group>"; };
@@ -1538,19 +1532,20 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		CE2DB5381D88F98600560994 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		CE5CDC231D9F51580034757D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				CE5CDC241D9F51580034757D /* librenderer.dylib in Frameworks */,
 				CE5CDC351D9F51990034757D /* libObjectivelyMVC.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE67EFA11E351A95009C2819 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE67EFAE1E356962009C2819 /* libglib-2.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1613,6 +1608,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE67EF971E350E16009C2819 /* libshared.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1815,15 +1811,6 @@
 				CE0B64811D89955B0011F974 /* .turd */,
 			);
 			path = bin;
-			sourceTree = "<group>";
-		};
-		CE0B648C1D89E9FE0011F974 /* master */ = {
-			isa = PBXGroup;
-			children = (
-				CE0B64961D89EA380011F974 /* main.c */,
-				CE0B64971D89EA380011F974 /* Makefile.am */,
-			);
-			path = master;
 			sourceTree = "<group>";
 		};
 		CE12D4A01C5C579D00CD0B13 = {
@@ -2504,10 +2491,10 @@
 		CE12D6E01C5C58C300CD0B13 /* tools */ = {
 			isa = PBXGroup;
 			children = (
-				CE0B648C1D89E9FE0011F974 /* master */,
 				CE12D6E31C5C58C300CD0B13 /* mapfoo */,
 				CE12D6E51C5C58C300CD0B13 /* quemap */,
-				CE2DB5151D88F6F900560994 /* update */,
+				CE67EF861E350D54009C2819 /* quetoo-master */,
+				CE67EF981E351A7B009C2819 /* quetoo-update */,
 				CE12D6E11C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = tools;
@@ -2694,7 +2681,6 @@
 				CE80FF6A1C5E494E00A21A51 /* libclient-null.dylib */,
 				CE80FF7F1C5E49C400A21A51 /* libserver.dylib */,
 				CEA029F41C5E558100341079 /* quetoo-master */,
-				CE2DB5461D88F98600560994 /* quetoo-update */,
 				CEFC79D01D9CB22E000FA6B2 /* libswap.dylib */,
 				CEFC79DC1D9CB287000FA6B2 /* libmem.dylib */,
 				CEFC79EE1D9CB2D2000FA6B2 /* libthread.dylib */,
@@ -2709,6 +2695,7 @@
 				CED438AD1D9D34450052BAFA /* librenderer.dylib */,
 				CED4393B1D9D344E0052BAFA /* libsound.dylib */,
 				CE5CDC321D9F51580034757D /* libui.dylib */,
+				CE67EFAC1E351A95009C2819 /* quetoo-update */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2744,17 +2731,6 @@
 				CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		CE2DB5151D88F6F900560994 /* update */ = {
-			isa = PBXGroup;
-			children = (
-				CE2DB5161D88F74000560994 /* main.c */,
-				CE5A5AB71D890349001A00CC /* update-icon.rc */,
-				CE5A5AB81D8904FC001A00CC /* update.ico */,
-				CE5A5AB61D890190001A00CC /* Makefile.am */,
-			);
-			path = update;
 			sourceTree = "<group>";
 		};
 		CE3BCDEB1DB91AF7002E6C6D /* renderers */ = {
@@ -2813,6 +2789,26 @@
 				CE67EF741E3500E8009C2819 /* Makefile.am */,
 			);
 			path = default;
+			sourceTree = "<group>";
+		};
+		CE67EF861E350D54009C2819 /* quetoo-master */ = {
+			isa = PBXGroup;
+			children = (
+				CE67EF8A1E350D54009C2819 /* main.c */,
+				CE67EF8C1E350D54009C2819 /* Makefile.am */,
+			);
+			path = "quetoo-master";
+			sourceTree = "<group>";
+		};
+		CE67EF981E351A7B009C2819 /* quetoo-update */ = {
+			isa = PBXGroup;
+			children = (
+				CE67EF991E351A7B009C2819 /* main.c */,
+				CE67EFAF1E356AF2009C2819 /* quetoo-update-icon.rc */,
+				CE67EFB01E356B6F009C2819 /* quetoo-update.ico */,
+				CE67EF9A1E351A7B009C2819 /* Makefile.am */,
+			);
+			path = "quetoo-update";
 			sourceTree = "<group>";
 		};
 		CEFC78991D9BE432000FA6B2 /* viewcontrollers */ = {
@@ -3334,23 +3330,6 @@
 			productReference = CE12D8F41C5CF86600CD0B13 /* quetoo-dedicated */;
 			productType = "com.apple.product-type.tool";
 		};
-		CE2DB5171D88F98600560994 /* quetoo-update */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = CE2DB5431D88F98600560994 /* Build configuration list for PBXNativeTarget "quetoo-update" */;
-			buildPhases = (
-				CE2DB51E1D88F98600560994 /* Sources */,
-				CE2DB5381D88F98600560994 /* Frameworks */,
-				CE2DB5421D88F98600560994 /* CopyFiles */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = "quetoo-update";
-			productName = quemap;
-			productReference = CE2DB5461D88F98600560994 /* quetoo-update */;
-			productType = "com.apple.product-type.tool";
-		};
 		CE5CDC1A1D9F51580034757D /* ui */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CE5CDC2F1D9F51580034757D /* Build configuration list for PBXNativeTarget "ui" */;
@@ -3368,6 +3347,23 @@
 			productName = game;
 			productReference = CE5CDC321D9F51580034757D /* libui.dylib */;
 			productType = "com.apple.product-type.library.dynamic";
+		};
+		CE67EF9C1E351A95009C2819 /* quetoo-update */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CE67EFA91E351A95009C2819 /* Build configuration list for PBXNativeTarget "quetoo-update" */;
+			buildPhases = (
+				CE67EF9F1E351A95009C2819 /* Sources */,
+				CE67EFA11E351A95009C2819 /* Frameworks */,
+				CE67EFA81E351A95009C2819 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "quetoo-update";
+			productName = quemap;
+			productReference = CE67EFAC1E351A95009C2819 /* quetoo-update */;
+			productType = "com.apple.product-type.tool";
 		};
 		CE80FD861C5E3B6F00A21A51 /* quemap */ = {
 			isa = PBXNativeTarget;
@@ -3859,7 +3855,7 @@
 				CE12D7341C5C5B9300CD0B13 /* quetoo */,
 				CE12D87B1C5CF86600CD0B13 /* quetoo-dedicated */,
 				CEA029C51C5E558100341079 /* quetoo-master */,
-				CE2DB5171D88F98600560994 /* quetoo-update */,
+				CE67EF9C1E351A95009C2819 /* quetoo-update */,
 				CE80FD861C5E3B6F00A21A51 /* quemap */,
 				CEA029B31C5E545B00341079 /* Quetoo */,
 			);
@@ -3946,20 +3942,20 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		CE2DB51E1D88F98600560994 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CE2DB5471D88F9B300560994 /* main.c in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		CE5CDC1D1D9F51580034757D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				CE5CDC331D9F518B0034757D /* ui_main.c in Sources */,
 				CE3BCDF01DB91B01002E6C6D /* RendererQuetoo.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE67EF9F1E351A95009C2819 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE67EFAD1E351AA8009C2819 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4099,7 +4095,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE0B64991D8A3A450011F974 /* main.c in Sources */,
+				CE67EF961E350DCC009C2819 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4270,11 +4266,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		CE1CCD9C1D9D446300891F05 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE2DB5171D88F98600560994 /* quetoo-update */;
-			targetProxy = CE1CCD9B1D9D446300891F05 /* PBXContainerItemProxy */;
-		};
 		CE5CDC1B1D9F51580034757D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = CED438201D9D34450052BAFA /* renderer */;
@@ -4899,58 +4890,6 @@
 			};
 			name = Release;
 		};
-		CE2DB5441D88F98600560994 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
-				CLANG_CXX_LIBRARY = "libc++";
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = dwarf;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_TESTABILITY = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
-				MTL_ENABLE_DEBUG_INFO = YES;
-				OTHER_CFLAGS = "-DLIBXML_ICONV_ENABLED=0";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
-		CE2DB5451D88F98600560994 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
-				CLANG_CXX_LIBRARY = "libc++";
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_NS_ASSERTIONS = NO;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
-				MTL_ENABLE_DEBUG_INFO = NO;
-				OTHER_CFLAGS = "-DLIBXML_ICONV_ENABLED=0";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Release;
-		};
 		CE5CDC301D9F51580034757D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -5021,6 +4960,66 @@
 					"-undefined",
 					dynamic_lookup,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		CE67EFAA1E351A95009C2819 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/local/lib,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				OTHER_CFLAGS = "-DLIBXML_ICONV_ENABLED=0";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CE67EFAB1E351A95009C2819 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/local/lib,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_CFLAGS = "-DLIBXML_ICONV_ENABLED=0";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -6776,20 +6775,20 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		CE2DB5431D88F98600560994 /* Build configuration list for PBXNativeTarget "quetoo-update" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				CE2DB5441D88F98600560994 /* Debug */,
-				CE2DB5451D88F98600560994 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		CE5CDC2F1D9F51580034757D /* Build configuration list for PBXNativeTarget "ui" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CE5CDC301D9F51580034757D /* Debug */,
 				CE5CDC311D9F51580034757D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CE67EFA91E351A95009C2819 /* Build configuration list for PBXNativeTarget "quetoo-update" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CE67EFAA1E351A95009C2819 /* Debug */,
+				CE67EFAB1E351A95009C2819 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

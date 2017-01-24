@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "0810"
+   LastUpgradeVersion = "0820"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "CE2DB5171D88F98600560994"
+               BlueprintIdentifier = "CE67EF9C1E351A95009C2819"
                BuildableName = "quetoo-update"
                BlueprintName = "quetoo-update"
                ReferencedContainer = "container:Quetoo.xcodeproj">
@@ -32,7 +32,7 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE2DB5171D88F98600560994"
+            BlueprintIdentifier = "CE67EF9C1E351A95009C2819"
             BuildableName = "quetoo-update"
             BlueprintName = "quetoo-update"
             ReferencedContainer = "container:Quetoo.xcodeproj">
@@ -55,7 +55,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE2DB5171D88F98600560994"
+            BlueprintIdentifier = "CE67EF9C1E351A95009C2819"
             BuildableName = "quetoo-update"
             BlueprintName = "quetoo-update"
             ReferencedContainer = "container:Quetoo.xcodeproj">
@@ -74,7 +74,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE2DB5171D88F98600560994"
+            BlueprintIdentifier = "CE67EF9C1E351A95009C2819"
             BuildableName = "quetoo-update"
             BlueprintName = "quetoo-update"
             ReferencedContainer = "container:Quetoo.xcodeproj">
