@@ -38,10 +38,7 @@ install-lib: install
 		$(BINDIR)/quetoo.exe \
 		$(BINDIR)/quetoo-dedicated.exe \
 		$(BINDIR)/quetoo-master.exe \
-		$(BINDIR)/quetoo-update.exe \
-		$(LIBDIR)/default/ai.dll \
-		$(LIBDIR)/default/cgame.dll \
-		$(LIBDIR)/default/game.dll
+		$(BINDIR)/quetoo-update.exe
 
 install-update:
 	aws s3 cp $(QUETOO_S3_BUCKET)/snapshots/$(UPDATE) $(LIBDIR)/
