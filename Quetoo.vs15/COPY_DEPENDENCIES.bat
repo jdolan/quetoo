@@ -8,7 +8,6 @@ set build_platform=%2
 set build_configuration=%3
 
 robocopy "../mingw-cross/Quetoo-i686/etc/fonts/" "%quetoo_folder%/etc/fonts/" * /E /NJH /NJS /FP /NP /V | findstr /v "*EXTRA File"
-robocopy "../mingw-cross/Quetoo-i686/bin/" "%quetoo_folder%/bin/" * /E /NJH /NJS /FP /NP /V | findstr /v "*EXTRA File"
 
 robocopy "../../Objectively/Objectively.vs15/bin/%build_platform%%build_configuration%/" "%quetoo_folder%/bin/" Objectively.* /E /NJH /NJS /FP /NP /V | findstr /v "*EXTRA File"
 robocopy "../../ObjectivelyMVC/ObjectivelyMVC.vs15/bin/%build_platform%%build_configuration%/" "%quetoo_folder%/bin/" ObjectivelyMVC.* /E /NJH /NJS /FP /NP /V | findstr /v "*EXTRA File"
