@@ -749,6 +749,23 @@ static void Ai_Wander(g_entity_t *self, pm_cmd_t *cmd) {
 	}
 }
 
+static g_entity_t *ai_current_entity;
+
+/**
+ * @brief Ignore ourselves, clipping to the correct mask based on our status.
+ */
+static cm_trace_t Ai_ClientMove_Trace(const vec3_t start, const vec3_t end, const vec3_t mins,
+                                     const vec3_t maxs) {
+
+	const g_entity_t *self = ai_current_entity;
+
+	if (self->solid == SOLID_DEAD) {
+		return aim.Trace(start, end, mins, maxs, self, MASK_CLIP_CORPSE);
+	} else {
+		return aim.Trace(start, end, mins, maxs, self, MASK_CLIP_PLAYER);
+	}
+}
+
 /**
  * @brief Move towards our current target
  */
@@ -794,6 +811,54 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 
 	if (*self->ai_locals.water_level >= WATER_WAIST) {
 		cmd->up = PM_SPEED_JUMP;
+	}
+
+	ai_current_entity = self;
+
+	// predict ahead
+	pm_move_t pm;
+
+	memset(&pm, 0, sizeof(pm));
+	pm.s = self->client->ps.pm_state;
+
+	VectorCopy(self->s.origin, pm.s.origin);
+
+	/*if (self->client->locals.hook_pull) {
+
+		if (self->client->locals.persistent.hook_style == HOOK_SWING) {
+			pm.s.type = PM_HOOK_SWING;
+		} else {
+			pm.s.type = PM_HOOK_PULL;
+		}
+	} else {*/
+		VectorCopy(self->ai_locals.velocity, pm.s.velocity);
+	/*}*/
+
+	pm.s.type = PM_NORMAL;
+
+	pm.cmd = *cmd;
+	pm.ground_entity = *self->ai_locals.ground_entity;
+	//pm.hook_pull_speed = g_hook_pull_speed->value;
+
+	pm.PointContents = aim.PointContents;
+	pm.Trace = Ai_ClientMove_Trace;
+
+	pm.Debug = aim.PmDebug_;
+
+	// perform a move; predict a few frames ahead
+	for (int32_t i = 0; i < 8; ++i) {
+		Pm_Move(&pm);
+	}
+
+	if (*self->ai_locals.ground_entity && !pm.ground_entity) { // predicted ground is gone
+		if (move_target->type <= AI_GOAL_NAV) {
+			vec_t angle = 45 + Randomf() * 45;
+
+			ai->wander_angle += (Randomf() < 0.5) ? -angle : angle;
+			ai->wander_angle = ClampAngle(ai->wander_angle); // turn around to miss the cliff
+		} else {
+			cmd->forward = cmd->right = 0; // stop for now
+		}
 	}
 }
 
@@ -918,8 +983,8 @@ static void Ai_Think(g_entity_t *self, pm_cmd_t *cmd) {
 		// FIXME: should these be funcgoals?
 		// they'd have to be appended to the end of the list always
 		// and we can't really enforce that.
-		Ai_MoveToTarget(self, cmd);
 		Ai_TurnToTarget(self, cmd);
+		Ai_MoveToTarget(self, cmd);
 	}
 
 	VectorCopy(self->s.origin, ai->last_origin);
