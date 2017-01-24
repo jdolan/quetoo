@@ -27,9 +27,17 @@
 #include <glib.h>
 
 #ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <process.h>
+	#define WIN32_LEAN_AND_MEAN
+	#include <windows.h>
+	#include <process.h>
+
+	#ifndef spawnvp
+		#define spawnvp _spawnvp
+	#endif
+
+	#ifndef P_NOWAIT
+		#define P_NOWAIT _P_NOWAIT
+	#endif
 
 	#ifndef realpath
 		#define realpath(rel, abs) _fullpath(abs, rel, MAX_PATH)
@@ -80,39 +88,12 @@ int main(int argc, char **argv) {
 		memcpy(args[3], argv[1], (argc - 1) * sizeof(char *));
 		args[argc + 2] = NULL;
 
-#if defined(_WIN32)
-		STARTUPINFO si;
-		PROCESS_INFORMATION pi;
-
-		ZeroMemory( &si, sizeof(si) );
-		si.cb = sizeof(si);
-		ZeroMemory( &pi, sizeof(pi) );
-
-		gchar *cmdline = g_strjoinv(" ", args);
-
-		gchar *dir_name = g_path_get_dirname(quetoo_update_jar);
-
-		if (CreateProcess(NULL, cmdline, NULL, NULL, true, 0, NULL, dir_name, &si, &pi)) {
+		if (spawnvp(P_NOWAIT, args[0], (const char *const *) args)) {
 			status = 0;
 		} else {
-			status = GetLastError();
+			status = errno;
 			fprintf(stderr, "Failed spawn process: %d\n", status);
 		}
-
-		g_free(dir_name);
-		g_free(cmdline);
-#else
-		const GSpawnFlags flags = G_SPAWN_SEARCH_PATH | G_SPAWN_CHILD_INHERITS_STDIN;
-
-		GError *error = NULL;
-
-		if (g_spawn_async(NULL, args, NULL, flags, NULL, NULL, NULL, &error)) {
-			status = 0;
-		} else {
-			fprintf(stderr, "Failed spawn process: %d: %s\n", error->code, error->message);
-			status = error->code;
-		}
-#endif
 
 		g_free(quetoo_update_jar);
 	} else {
