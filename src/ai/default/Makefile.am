@@ -28,4 +28,4 @@ ai_la_LDFLAGS = \
 	-shared
 
 ai_la_LIBADD = \
-	$(top_builddir)/src/libshared.la
+	$(top_builddir)/src/game/default/libpmove.la
