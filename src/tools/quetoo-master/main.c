@@ -18,13 +18,34 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <signal.h>
 #include <errno.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
+#include <signal.h>
 #include <sys/types.h>
-#include <sys/select.h>
-#include <sys/socket.h>
+
+#if defined(_WIN32)
+
+	#include <winsock2.h>
+	#include <ws2tcpip.h>
+
+	#include <inttypes.h>
+	typedef uint32_t in_addr_t;
+	typedef uint16_t in_port_t;
+
+	#undef  EWOULDBLOCK
+	#define EWOULDBLOCK  WSAEWOULDBLOCK
+	#undef  ECONNREFUSED
+	#define ECONNREFUSED WSAECONNREFUSED
+	#undef  EINPROGRESS
+	#define EINPROGRESS  WSAEINPROGRESS
+
+#else
+
+	#include <arpa/inet.h>
+	#include <netinet/in.h>
+	#include <sys/select.h>
+	#include <sys/socket.h>
+
+#endif
 
 #include "filesystem.h"
 
@@ -359,9 +380,12 @@ int32_t main(int32_t argc, char **argv) {
 	quetoo.Shutdown = Shutdown;
 
 	signal(SIGINT, Sys_Signal);
-	signal(SIGQUIT, Sys_Signal);
 	signal(SIGSEGV, Sys_Signal);
 	signal(SIGTERM, Sys_Signal);
+
+#ifdef SIGQUIT
+	signal(SIGQUIT, Sys_Signal);
+#endif
 
 	Com_Init(argc, argv);
 
