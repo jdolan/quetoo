@@ -36,11 +36,33 @@
 		#define execvp _execvp
 	#endif
 
-#ifndef realpath
+	#ifndef realpath
 		#define realpath(rel, abs) _fullpath(abs, rel, MAX_PATH)
 	#endif
 #else
 	#include <unistd.h>
+#endif
+
+#if defined(__APPLE__) || defined(__x86_64__) || defined(_WIN64) || defined(__MINGW64__) || defined(__LP64__)
+	#define ARCH "x86_64"
+#else
+	#define ARCH "i686"
+#endif
+
+#if defined(__APPLE__)
+	#define HOST "apple"
+#elif defined(__linux__)
+	#define HOST "linux"
+#elif defined(_WIN32)
+	#if defined(__MINGW32__) || defined(__CYGWIN__)
+		#define HOST "mingw"
+	#elif defined(_MSC_VER)
+		#define HOST "pc-windows"
+	#endif
+#endif
+
+#if !defined(HOST) || !defined(ARCH)
+#error Unknown OS.
 #endif
 
 #define DEFAULT_UPDATE_JAR "quetoo-update-small.jar"
@@ -82,18 +104,31 @@ int main(int argc, char **argv) {
 	gchar *quetoo_update_jar = get_quetoo_update_jar(argv[0], jar);
 	if (quetoo_update_jar) {
 
-		gchar *args[argc + 3];
-		args[0] = "java", args[1] = "-jar", args[2] = quetoo_update_jar;
-		memcpy(args[3], argv[1], (argc - 1) * sizeof(char *));
-		args[argc + 2] = NULL;
+		GPtrArray *args = g_ptr_array_new();
+		g_ptr_array_add(args, "java");
+		g_ptr_array_add(args, "-jar");
+		g_ptr_array_add(args, quetoo_update_jar);
+		g_ptr_array_add(args, "--arch");
+		g_ptr_array_add(args, ARCH);
+		g_ptr_array_add(args, "--host");
+		g_ptr_array_add(args, HOST);
 
-		if (execvp(args[0], (const char *const *) args) != -1) {
+		for (int i = 0; i < argc - 1; i++) {
+			g_ptr_array_add(args, argv + i);
+		}
+
+		g_ptr_array_add(args, NULL);
+
+		const gchar *const *argptr = (const gchar *const *) &g_ptr_array_index(args, 0);
+
+		if (execvp(argptr[0], argptr) != -1) {
 			status = 0;
 		} else {
 			status = errno;
 			fprintf(stderr, "Failed spawn process: %d\n", status);
 		}
 
+		g_ptr_array_free(args, true);
 		g_free(quetoo_update_jar);
 	} else {
 		fprintf(stderr, "Failed to resolve %s\n", jar);
