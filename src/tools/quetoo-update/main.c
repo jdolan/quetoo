@@ -31,15 +31,11 @@
 	#include <windows.h>
 	#include <process.h>
 
-	#ifndef spawnvp
-		#define spawnvp _spawnvp
+	#ifndef execvp
+		#define execvp _execvp
 	#endif
 
-	#ifndef P_NOWAIT
-		#define P_NOWAIT _P_NOWAIT
-	#endif
-
-	#ifndef realpath
+#ifndef realpath
 		#define realpath(rel, abs) _fullpath(abs, rel, MAX_PATH)
 	#endif
 #endif
@@ -88,7 +84,7 @@ int main(int argc, char **argv) {
 		memcpy(args[3], argv[1], (argc - 1) * sizeof(char *));
 		args[argc + 2] = NULL;
 
-		if (spawnvp(P_NOWAIT, args[0], (const char *const *) args)) {
+		if (execvp(args[0], (const char *const *) args) != -1) {
 			status = 0;
 		} else {
 			status = errno;
