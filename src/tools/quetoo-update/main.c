@@ -39,6 +39,8 @@
 #ifndef realpath
 		#define realpath(rel, abs) _fullpath(abs, rel, MAX_PATH)
 	#endif
+#else
+	#include <unistd.h>
 #endif
 
 #define DEFAULT_UPDATE_JAR "quetoo-update-small.jar"
