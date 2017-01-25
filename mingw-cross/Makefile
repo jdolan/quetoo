@@ -10,7 +10,7 @@ BINDIR = $(INSTALL)/bin
 ETCDIR = $(INSTALL)/etc
 LIBDIR = $(INSTALL)/lib
 DATADIR = $(INSTALL)/share
-SNAPSHOT = $(TARGET)/Quetoo-BETA-$(ARCH).zip
+SNAPSHOT = $(TARGET)/Quetoo-BETA-$(HOST).zip
 QUETOO_S3_BUCKET = s3://quetoo
 QUETOO_DATA_S3_BUCKET = s3://quetoo-data
 
