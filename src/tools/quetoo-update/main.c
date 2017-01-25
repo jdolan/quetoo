@@ -30,11 +30,31 @@
 #ifdef _WIN32
 	#define WIN32_LEAN_AND_MEAN
 	#include <windows.h>
-	#include <process.h>
+	#include <shellapi.h>
 
-	#ifndef execvp
-		#define execvp _execvp
-	#endif
+/**
+ * @brief Windows must use CreateProcess because _spawn/_exec on Windows keeps the calling process running, which
+ * is definitely not what we want.
+ */
+static intptr_t execvp(const char *filename, const char *const *args) {
+	gchar *cmdline = g_strjoinv(" ", (gchar **) (args + 1));
+	
+	const int result = (int) ShellExecute(NULL, "open", filename, cmdline, NULL, SW_HIDE);
+
+	if (result <= 32) {
+		g_free(cmdline);
+		return GetLastError();
+	}
+
+	g_free(cmdline);
+	return 0;
+}
+
+int main(int argc, char **argv);
+
+int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+	return main(__argc, __argv);
+}
 
 	#ifndef realpath
 		#define realpath(rel, abs) _fullpath(abs, rel, MAX_PATH)
