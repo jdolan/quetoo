@@ -31,18 +31,18 @@ void R_CompileAtlas(r_atlas_t *atlas);
 #ifdef __R_LOCAL_H__
 
 typedef struct {
-	r_pixel_t width;
-	r_pixel_t height;
-	r_pixel_t x;
-	r_pixel_t y;
+	uint32_t width;
+	uint32_t height;
+	uint32_t x;
+	uint32_t y;
 
 	uint32_t right;
 	uint32_t down; // nodes to the right/below this one
 } r_packer_node_t;
 
 typedef struct {
-	r_pixel_t max_width;
-	r_pixel_t max_height;
+	uint32_t max_width;
+	uint32_t max_height;
 
 	r_packer_node_t *nodes;
 	uint32_t num_nodes, num_alloc_nodes;
@@ -52,14 +52,14 @@ typedef struct {
 	_Bool keep_square;
 } r_packer_t;
 
-void R_AtlasPacker_InitPacker(r_packer_t *packer, const r_pixel_t max_width, const r_pixel_t max_height,
-                              const r_pixel_t root_width, const r_pixel_t root_height, const uint32_t initial_size);
+void R_AtlasPacker_InitPacker(r_packer_t *packer, const uint32_t max_width, const uint32_t max_height,
+                              const uint32_t root_width, const uint32_t root_height, const uint32_t initial_size);
 void R_AtlasPacker_FreePacker(r_packer_t *packer);
-r_packer_node_t *R_AtlasPacker_GrowNode(r_packer_t *packer, const r_pixel_t width, const r_pixel_t height);
-r_packer_node_t *R_AtlasPacker_SplitNode(r_packer_t *packer, r_packer_node_t *node, const r_pixel_t width,
-        const r_pixel_t height);
-r_packer_node_t *R_AtlasPacker_FindNode(r_packer_t *packer, const uint32_t root, const r_pixel_t width,
-                                        const r_pixel_t height);
+r_packer_node_t *R_AtlasPacker_GrowNode(r_packer_t *packer, const uint32_t width, const uint32_t height);
+r_packer_node_t *R_AtlasPacker_SplitNode(r_packer_t *packer, r_packer_node_t *node, const uint32_t width,
+        const uint32_t height);
+r_packer_node_t *R_AtlasPacker_FindNode(r_packer_t *packer, const uint32_t root, const uint32_t width,
+                                        const uint32_t height);
 
 void R_InitAtlas(void);
 

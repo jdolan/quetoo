@@ -44,7 +44,7 @@ static void R_FreeLightmap(r_media_t *media) {
 /**
  * @brief Allocates a new lightmap (or deluxemap) image handle.
  */
-static r_image_t *R_AllocLightmap_(r_image_type_t type, const r_pixel_t width, const r_pixel_t height) {
+static r_image_t *R_AllocLightmap_(r_image_type_t type, const uint32_t width, const uint32_t height) {
 	static uint32_t count;
 	char name[MAX_QPATH];
 
@@ -86,13 +86,13 @@ static r_image_t *R_AllocLightmap_(r_image_type_t type, const r_pixel_t width, c
 static void R_BuildDefaultLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, byte *sout,
                                    byte *dout, size_t stride) {
 
-	const r_pixel_t smax = surf->lightmap_size[0];
-	const r_pixel_t tmax = surf->lightmap_size[1];
+	const uint32_t smax = surf->lightmap_size[0];
+	const uint32_t tmax = surf->lightmap_size[1];
 
 	stride -= (smax * 3);
 
-	for (r_pixel_t i = 0; i < tmax; i++, sout += stride, dout += stride) {
-		for (r_pixel_t j = 0; j < smax; j++) {
+	for (uint32_t i = 0; i < tmax; i++, sout += stride, dout += stride) {
+		for (uint32_t j = 0; j < smax; j++) {
 
 			sout[0] = 255;
 			sout[1] = 255;
@@ -112,7 +112,7 @@ static void R_BuildDefaultLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, by
 /**
  * @brief Apply brightness, saturation and contrast to the lightmap.
  */
-static void R_FilterLightmap(r_pixel_t width, r_pixel_t height, byte *lightmap) {
+static void R_FilterLightmap(uint32_t width, uint32_t height, byte *lightmap) {
 	static r_image_t image = { .type = IT_LIGHTMAP };
 
 	image.width = width;
@@ -133,8 +133,8 @@ static void R_FilterLightmap(r_pixel_t width, r_pixel_t height, byte *lightmap) 
 static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *surf, const byte *in,
                             byte *lout, byte *dout, byte *stout, size_t stride) {
 
-	const r_pixel_t smax = surf->lightmap_size[0];
-	const r_pixel_t tmax = surf->lightmap_size[1];
+	const uint32_t smax = surf->lightmap_size[0];
+	const uint32_t tmax = surf->lightmap_size[1];
 
 	const size_t size = smax * tmax;
 	stride -= (smax * 3);
@@ -176,8 +176,8 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 	lm = lightmap;
 	dm = deluxemap;
 
-	for (r_pixel_t t = 0; t < tmax; t++, lout += stride, dout += stride) {
-		for (r_pixel_t s = 0; s < smax; s++) {
+	for (uint32_t t = 0; t < tmax; t++, lout += stride, dout += stride) {
+		for (uint32_t s = 0; s < smax; s++) {
 
 			// copy the lightmap and deluxemap to the strided block
 			*lout++ = *lm++;
@@ -303,7 +303,7 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 
 	GSList *start = r_lightmap_state.blocks;
 
-	r_pixel_t current_width = 0, current_height = 0;
+	uint32_t current_width = 0, current_height = 0;
 
 	for (GSList *list = r_lightmap_state.blocks; ; list = list->next) {
 
@@ -334,7 +334,7 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 
 				// reinitialize packer
 				R_AtlasPacker_InitPacker(&packer, r_config.max_texture_size, r_config.max_texture_size,
-				                         surf->lightmap_size[0], surf->lightmap_size[1], 0);
+				                         surf->lightmap_size[0], surf->lightmap_size[1], bsp->num_surfaces / 2);
 
 				// new start position
 				start = list;
@@ -342,8 +342,8 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 				// reset accumulators
 				current_width = current_height = 0;
 			} else {
-				r_pixel_t w = node->x + surf->lightmap_size[0],
-				          h = node->y + surf->lightmap_size[1];
+				uint32_t w = node->x + surf->lightmap_size[0],
+				         h = node->y + surf->lightmap_size[1];
 
 				w = NearestMultiple(w, 4);
 				h = NearestMultiple(h, 4);

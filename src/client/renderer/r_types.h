@@ -1143,7 +1143,7 @@ typedef struct {
 	/**
 	 * @brief Actual OpenGL size being rendered after supersampling
 	 */
-	r_pixel_t render_width, render_height;
+	uint32_t render_width, render_height;
 
 	/**
 	 * @brief Window size as reported by SDL_GetWindowSize (High-DPI compatibility).
