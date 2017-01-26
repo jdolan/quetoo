@@ -1011,7 +1011,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 	gi.WritePosition(start);
 	gi.WritePosition(tr.end);
 	gi.WriteDir(tr.plane.normal);
-	gi.WriteLong(tr.surface->flags);
+	gi.WriteLong(tr.surface ? tr.surface->flags : 0);
 	gi.WriteByte(color);
 
 	gi.Multicast(start, MULTICAST_PHS, NULL);
@@ -1022,7 +1022,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 		gi.WritePosition(start);
 		gi.WritePosition(tr.end);
 		gi.WriteDir(tr.plane.normal);
-		gi.WriteLong(tr.surface->flags);
+		gi.WriteLong(tr.surface ? tr.surface->flags : 0);
 		gi.WriteByte(color);
 
 		gi.Multicast(tr.end, MULTICAST_PHS, NULL);
