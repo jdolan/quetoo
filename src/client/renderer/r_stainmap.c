@@ -252,6 +252,12 @@ void R_AddStains(void) {
  */
 void R_ResetStainmap(void) {
 
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
 	GHashTable *hash = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, Mem_Free);
 
 	for (uint32_t s = 0; s < r_model_state.world->bsp->num_surfaces; s++) {
