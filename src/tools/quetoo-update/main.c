@@ -66,28 +66,28 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 #if defined(__APPLE__)
 	#define ARCH "x86_64"
-	#define HOST "apple-darwin"
+	#define HOST "apple_darwin"
 #elif defined(__linux__)
 	#if defined(__x86_64__)
 		#define ARCH "x86_64"
 	#else
 		#define ARCH "i686"
 	#endif
-	#define HOST "pc-linux"
+	#define HOST "pc_linux"
 #elif defined __MINGW32__
 	#if defined(__MINGW64__)
 		#define ARCH "x86_64"
 	#else
 		#define ARCH "i686"
 	#endif
-	#define HOST "w64-mingw32"
+	#define HOST "w64_mingw32"
 #elif defined(_MSC_VER)
 	#if defined(_WIN64)
 		#define ARCH "x86_64"
 	#else
 		#define ARCH "i686"
 	#endif
-	#define HOST "pc-windows"
+	#define HOST "pc_windows"
 #else
 	#error Unknown architecture or host
 #endif
