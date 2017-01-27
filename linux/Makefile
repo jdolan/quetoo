@@ -2,7 +2,7 @@
 
 ARCH = x86_64
 HOST = $(ARCH)-pc-linux
-UPDATE = quetoo-update-small.jar
+UPDATE = quetoo-installer-small.jar
 TARGET = target
 INSTALL = $(TARGET)/quetoo
 BINDIR = $(INSTALL)/bin
