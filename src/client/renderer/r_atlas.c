@@ -375,6 +375,12 @@ static void R_StitchAtlas(r_atlas_t *atlas, r_atlas_params_t *params) {
  * @brief Generate mipmap levels for the specified atlas.
  */
 static void R_GenerateAtlasMips(r_atlas_t *atlas, r_atlas_params_t *params) {
+	
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
 	for (uint16_t i = 0; i < params->num_mips; i++) {
 		const uint16_t mip_scale = 1 << i;
@@ -429,6 +435,8 @@ static void R_GenerateAtlasMips(r_atlas_t *atlas, r_atlas_params_t *params) {
 				           (image->position[0] + image->input_image->width) / (vec_t) params->width,
 				           (image->position[1] + image->input_image->height) / (vec_t) params->height);
 			}
+
+			R_GetError(NULL);
 		}
 
 		Mem_Free(pixels);
