@@ -22,8 +22,8 @@
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <glib.h>
 
@@ -33,8 +33,8 @@
 	#include <shellapi.h>
 
 /**
- * @brief Windows must use CreateProcess because _spawn/_exec on Windows keeps the calling process running, which
- * is definitely not what we want.
+ * @brief Windows must use CreateProcess because _spawn/_exec on Windows keeps the calling process 
+ * running, which is definitely not what we want.
  */
 static intptr_t execvp(const char *filename, const char *const *args) {
 	gchar *cmdline = g_strjoinv(" ", (gchar **) (args + 1));
@@ -59,38 +59,45 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	#ifndef realpath
 		#define realpath(rel, abs) _fullpath(abs, rel, MAX_PATH)
 	#endif
+
 #else
 	#include <unistd.h>
 #endif
 
-#if defined(__APPLE__) || defined(__x86_64__) || defined(_WIN64) || defined(__MINGW64__) || defined(__LP64__)
-	#define ARCH "x86_64"
-#else
-	#define ARCH "i686"
-#endif
-
 #if defined(__APPLE__)
-	#define HOST "apple"
+	#define ARCH "x86_64"
+	#define HOST "apple-darwin"
 #elif defined(__linux__)
-	#define HOST "linux"
-#elif defined(_WIN32)
-	#if defined(__MINGW32__) || defined(__CYGWIN__)
-		#define HOST "mingw"
-	#elif defined(_MSC_VER)
-		#define HOST "pc-windows"
+	#if defined(__x86_64__)
+		#define ARCH "x86_64"
+	#else
+		#define ARCH "i686"
 	#endif
+	#define HOST "pc-linux"
+#elif defined __MINGW32__
+	#if defined(__MINGW64__)
+		#define ARCH "x86_64"
+	#else
+		#define ARCH "i686"
+	#endif
+	#define HOST "w64-mingw32"
+#elif defined(_MSC_VER)
+	#if defined(_WIN64)
+		#define ARCH "x86_64"
+	#else
+		#define ARCH "i686"
+	#endif
+	#define HOST "pc-windows"
+#else
+	#error Unknown architecture or host
 #endif
 
-#if !defined(HOST) || !defined(ARCH)
-#error Unknown OS.
-#endif
-
-#define DEFAULT_UPDATE_JAR "quetoo-update-small.jar"
+#define QUETOO_INSTALLER_JAR "quetoo-installer-small.jar"
 
 /**
- * @return The quetoo-update jar file.
+ * @return The quetoo-installer jar file.
  */
-static gchar *get_quetoo_update_jar(const char *argv0, const char *jar) {
+static gchar *get_quetoo_installer_jar(const char *argv0, const char *jar) {
 
 	gchar *update_jar = NULL;
 
@@ -99,7 +106,7 @@ static gchar *get_quetoo_update_jar(const char *argv0, const char *jar) {
 
 		gchar *dir = g_path_get_dirname(path);
 		if (dir) {
-#ifdef __APPLE__
+#if defined(__APPLE__)
 			update_jar = g_build_path(G_DIR_SEPARATOR_S, dir, "lib", jar, NULL);
 #else
 			update_jar = g_build_path(G_DIR_SEPARATOR_S, dir, "..", "lib", jar, NULL);
@@ -119,15 +126,15 @@ static gchar *get_quetoo_update_jar(const char *argv0, const char *jar) {
 int main(int argc, char **argv) {
 	int status = 1;
 
-	const char *jar = g_getenv("QUETOO_UPDATE_JAR") ?: DEFAULT_UPDATE_JAR;
+	const char *jar = g_getenv("QUETOO_INSTALLER_JAR") ?: QUETOO_INSTALLER_JAR;
 
-	gchar *quetoo_update_jar = get_quetoo_update_jar(argv[0], jar);
-	if (quetoo_update_jar) {
+	gchar *quetoo_installer_jar = get_quetoo_installer_jar(argv[0], jar);
+	if (quetoo_installer_jar) {
 
 		GPtrArray *args = g_ptr_array_new();
 		g_ptr_array_add(args, "java");
 		g_ptr_array_add(args, "-jar");
-		g_ptr_array_add(args, quetoo_update_jar);
+		g_ptr_array_add(args, quetoo_installer_jar);
 		g_ptr_array_add(args, "--arch");
 		g_ptr_array_add(args, ARCH);
 		g_ptr_array_add(args, "--host");
@@ -139,7 +146,7 @@ int main(int argc, char **argv) {
 
 		g_ptr_array_add(args, NULL);
 
-		const gchar *const *argptr = (const gchar *const *) &g_ptr_array_index(args, 0);
+		char *const *argptr = (char *const *) &g_ptr_array_index(args, 0);
 
 		if (execvp(argptr[0], argptr) != -1) {
 			status = 0;
@@ -149,7 +156,7 @@ int main(int argc, char **argv) {
 		}
 
 		g_ptr_array_free(args, true);
-		g_free(quetoo_update_jar);
+		g_free(quetoo_installer_jar);
 	} else {
 		fprintf(stderr, "Failed to resolve %s\n", jar);
 	}
