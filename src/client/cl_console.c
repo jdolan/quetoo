@@ -45,15 +45,20 @@ static void Cl_DrawConsole_Background(void) {
 
 		const vec_t x_scale = r_context.width / (vec_t) image->width;
 		const vec_t y_scale = r_context.height / (vec_t) image->height;
-
+		
 		const vec_t scale = Max(x_scale, y_scale);
+		r_pixel_t ch;
+
+		R_BindFont("small", NULL, &ch);
+
+		r_pixel_t y = cl_console.height * ch;
 
 		if (cls.state == CL_ACTIVE) {
 			R_Color((const vec4_t) {
 				1.0, 1.0, 1.0, cl_console_background_alpha->value
 			});
 
-			R_DrawImage(0, -r_context.window_height * 0.3333333, scale, image);
+			R_DrawImage(0, (-image->height * scale) + y + ch * 1.25, scale, image);
 
 			R_Color(NULL);
 		} else {
@@ -66,18 +71,9 @@ static void Cl_DrawConsole_Background(void) {
  * @brief
  */
 static void Cl_DrawConsole_Buffer(void) {
-	r_pixel_t cw, ch, height;
+	r_pixel_t ch;
 
-	R_BindFont("small", &cw, &ch);
-
-	if (cls.state == CL_ACTIVE) {
-		height = r_context.height * 0.666;
-	} else {
-		height = r_context.height;
-	}
-
-	cl_console.width = r_context.width / cw;
-	cl_console.height = (height / ch) - 1;
+	R_BindFont("small", NULL, &ch);
 
 	char *lines[cl_console.height];
 	const size_t count = Con_Tail(&cl_console, lines, cl_console.height);
@@ -127,6 +123,19 @@ static void Cl_DrawConsole_Input(void) {
  * @brief
  */
 void Cl_DrawConsole(void) {
+
+	r_pixel_t cw, ch, height;
+
+	R_BindFont("small", &cw, &ch);
+
+	if (cls.state == CL_ACTIVE) {
+		height = r_context.height * 0.666;
+	} else {
+		height = r_context.height;
+	}
+
+	cl_console.width = r_context.width / cw;
+	cl_console.height = (height / ch) - 1;
 
 	Cl_DrawConsole_Background();
 
