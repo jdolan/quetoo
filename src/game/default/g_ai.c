@@ -144,9 +144,13 @@ static void G_Ai_Spawn(g_entity_t *self, const uint32_t time_offset) {
 		G_Ai_ClientBegin(self);
 	} else {
 		self->in_use = true;
+
 		self->locals.move_type = MOVE_TYPE_THINK;
 		self->locals.Think = G_Ai_ClientBegin;
 		self->locals.next_think = g_level.time + time_offset;
+
+		G_Ai_SetEntityLocals(self);
+		G_Ai_SetClientLocals(self->client);
 	}
 }
 

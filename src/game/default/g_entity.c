@@ -644,6 +644,8 @@ static void G_worldspawn(g_entity_t *ent) {
 	ent->in_use = true; // since the world doesn't use G_Spawn()
 	ent->s.model1 = 0; // world model is always index 1
 
+	G_Ai_SetEntityLocals(ent);
+
 	const g_map_list_map_t *map = G_MapList_Find(NULL, g_level.name);
 
 	if (ent->locals.message && *ent->locals.message) {
