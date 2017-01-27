@@ -1,6 +1,6 @@
 $QUETOO_BUCKET = "s3://quetoo/"
 $QUETOO_RELEASE_SRC = "Quetoo/";
-$QUETOO_UPDATE = "quetoo-update-small.jar"
+$QUETOO_UPDATE = "quetoo-installer-small.jar"
 $QUETOO_LIB_DIR = $QUETOO_RELEASE_SRC + "lib/"
 
 $aws_exe = "aws.exe"
