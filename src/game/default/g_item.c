@@ -2050,7 +2050,7 @@ const g_item_t *G_ItemList(void) {
  */
 const g_item_t *G_ItemByIndex(uint16_t index) {
 
-	if (index < 0 || index >= g_num_items) {
+	if (index >= g_num_items) {
 		return NULL;
 	}
 
