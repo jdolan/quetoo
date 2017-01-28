@@ -760,6 +760,13 @@ static void G_CheckRules(void) {
 		                  g_hook_speed->value);
 	}
 
+	if (g_friendly_fire->modified) {
+		g_friendly_fire->modified = false;
+
+		gi.BroadcastPrint(PRINT_HIGH, "Friendly fire has been changed to %i\n",
+		                  g_friendly_fire->integer);
+	}
+
 	if (g_hook_pull_speed->modified) {
 		g_hook_pull_speed->modified = false;
 
@@ -994,6 +1001,14 @@ static const char *G_GameName(void) {
 }
 
 /**
+ * @brief Restart the game.
+ */
+static void G_Restart_Sv_f(void) {
+
+	G_RestartGame(false);
+}
+
+/**
  * @brief This will be called when the game module is first loaded.
  */
 void G_Init(void) {
@@ -1085,6 +1100,7 @@ void G_Init(void) {
 	gi.Cmd("unmute", G_Mute_Sv_f, CMD_GAME, "Allow a muted client to talk again");
 	gi.Cmd("stuff", G_Stuff_Sv_f, CMD_GAME, "Force a client to execute a command");
 	gi.Cmd("stuff_all", G_StuffAll_Sv_f, CMD_GAME, "Force all players to execute a command");
+	gi.Cmd("g_restart", G_Restart_Sv_f, CMD_GAME, "Force the game to restart");
 
 	gi.Print("  Game initialized\n");
 }
