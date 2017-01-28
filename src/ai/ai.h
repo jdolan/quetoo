@@ -21,19 +21,20 @@
 
 #pragma once
 
-#define AI_API_VERSION 2
+#define AI_API_VERSION 3
 
 /**
  * @brief Forward declaration of entity type, since
  * game.h requires ai.h
  */
 typedef struct g_entity_s g_entity_t;
-typedef _Bool (*EntityFilterFunc)(const g_entity_t *ent);
 
 /**
  * @brief Items are opaque pointers to AI.
  */
 typedef struct g_item_s g_item_t;
+
+typedef _Bool (*EntityFilterFunc)(const g_entity_t *ent);
 
 /**
  * @brief Functions and the like that the AI system imports from the game.
@@ -169,7 +170,7 @@ typedef struct {
 	void (*WritePosition)(const vec3_t pos);
 	void (*WriteDir)(const vec3_t pos); // single byte encoded, very coarse
 	void (*WriteAngle)(const vec_t v);
-	void (*WriteAngles)(const vec3_t angles);
+	void (*WriteAngles)(const vec3_t angles); 
 
 	/**
 	 * @brief TODO FIXME - TEMPORARY API SCRATCH SPACE.
@@ -181,9 +182,11 @@ typedef struct {
 } ai_import_t;
 
 /**
- * @brief Forward declaration of item registration struct.
+ * @brief Forward declaration of AI structs.
  */
 typedef struct ai_item_s ai_item_t;
+typedef struct ai_entity_data_s ai_entity_data_t;
+typedef struct ai_client_data_s ai_client_data_t;
 
 /**
  * @brief Functions and the like that the AI system exports to the game.
@@ -205,6 +208,11 @@ typedef struct {
 	 * @brief Shutdown AI facilities. This is called by the server, do not call it.
 	 */
 	void (*Shutdown)(void);
+
+	/**
+	 * @brief Called once by game to setup its data pointers
+	 */
+	void (*SetDataPointers)(ai_entity_data_t *entity, ai_client_data_t *client);
 
 	/**
 	 * @brief Run an AI frame.
@@ -236,65 +244,3 @@ typedef struct {
 	 */
 	void (*RegisterItem)(const uint16_t index, const ai_item_t *item);
 } ai_export_t;
-
-/**
- * @brief Struct of parameters from g_client_t that the bot
- * will make use of.
- */
-typedef struct {
-	/**
-	 * @brief Pointer to view angles
-	 */
-	const vec_t *angles;
-
-	/**
-	 * @brief Pointer to inventory
-	 */
-	const int16_t *inventory;
-
-	/**
-	 * @brief Pointer to current weapon
-	 */
-	const g_item_t *const *weapon;
-} ai_client_locals_t;
-
-/**
- * @brief Struct of parameters from g_entity_t that the bot
- * will make use of.
- */
-typedef struct {
-	/**
-	 * @brief Pointer to ground entity
-	 */
-	g_entity_t *const *ground_entity;
-
-	/**
-	 * @brief Pointer to item stored in this entity
-	 */
-	const g_item_t *const *item;
-
-	/**
-	 * @brief Pointer to velocity
-	 */
-	const vec_t *velocity;
-
-	/**
-	 * @brief Pointer to health
-	 */
-	const int16_t *health;
-
-	/**
-	 * @brief Pointer to max health
-	 */
-	const int16_t *max_health;
-
-	/**
-	 * @brief Pointer to max armor
-	 */
-	const int16_t *max_armor;
-
-	/**
-	 * @brief Pointer to water level
-	 */
-	const pm_water_level_t *water_level;
-} ai_entity_locals_t;

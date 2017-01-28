@@ -23,6 +23,9 @@
 #include "game/default/bg_pmove.h"
 #include "game/default/g_ai.h"
 
+ai_entity_data_t ai_entity_data;
+ai_client_data_t ai_client_data;
+
 /**
  * @brief Yields a pointer to the edict by the given number by negotiating the
  * edicts array based on the reported size of g_entity_t.
@@ -52,6 +55,7 @@ static ai_locals_t *ai_locals;
  * @brief Get the locals for the specified bot entity.
  */
 ai_locals_t *Ai_GetLocals(const g_entity_t *ent) {
+
 	return ai_locals + (ent->s.number - 1);
 }
 
@@ -314,7 +318,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 		// check to see if the item has gone out of our line of sight
 		if (!Ai_GoalHasEntity(&ai->move_target, ai->move_target.ent) || // item picked up and changed into something else
 				!Ai_CanTarget(self, ai->move_target.ent) ||
-				!Ai_ItemRequired(self, *ai->move_target.ent->ai_locals.item) ||
+				!Ai_ItemRequired(self, ENTITY_DATA(ai->move_target.ent, item)) ||
 		        Ai_ItemReachable(self, ai->move_target.ent) == AI_ITEM_UNREACHABLE) {
 
 			Ai_ResetWander(self, ai->move_target.ent->s.origin);
@@ -342,7 +346,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 	// we lost our enemy, start looking for a new one
 	GArray *items_visible = g_array_new(false, false, sizeof(ai_item_pick_t));
 
-	for (int32_t i = sv_max_clients->integer + 1; i <= MAX_ENTITIES; i++) {
+	for (int32_t i = sv_max_clients->integer + 1; i < MAX_ENTITIES; i++) {
 
 		g_entity_t *ent = ENTITY_FOR_NUM(i);
 
@@ -354,16 +358,18 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 			continue;
 		}
 
-		if (!*ent->ai_locals.item) {
+		const g_item_t *ent_item = ENTITY_DATA(ent, item);
+
+		if (!ent_item) {
 			continue;
 		}
 
 		// most likely an item!
-		ai_item_t *item = Ai_ItemForGameItem(*ent->ai_locals.item);
+		ai_item_t *item = Ai_ItemForGameItem(ent_item);
 		vec_t distance;
 
 		if (!Ai_CanTarget(self, ent) ||
-				!Ai_ItemRequired(self, *ent->ai_locals.item) ||
+				!Ai_ItemRequired(self, ent_item) ||
 		        (distance = Ai_ItemReachable(self, ent)) == AI_ITEM_UNREACHABLE) {
 			continue;
 		}
@@ -438,6 +444,8 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 	ai_item_pick_t weapons[ai_num_weapons];
 	uint16_t num_weapons = 0;
 
+	const int16_t *inventory = CLIENT_DATA_ARRAY(self->client, inventory);
+
 	for (uint16_t i = 0; i < ai_num_items; i++) {
 		const ai_item_t *item = &ai_items[i];
 
@@ -445,11 +453,11 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 			continue;
 		}
 
-		if (!(self->client->ai_locals.inventory[i])) { // don't got
+		if (!inventory[i]) { // don't got
 			continue;
 		}
 
-		if (item->ammo && self->client->ai_locals.inventory[item->ammo] < item->quantity) { // no ammo
+		if (item->ammo && inventory[item->ammo] < item->quantity) { // no ammo
 			continue;
 		}
 
@@ -481,7 +489,7 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 				break;
 		}
 
-		if ((*ai->aim_target.ent->ai_locals.health < 25) &&
+		if ((ENTITY_DATA(ai->aim_target.ent, health) < 25) &&
 		        (item->flags & AI_WEAPON_EXPLOSIVE)) { // bonus for explosive at low enemy health
 			weight *= 1.5;
 		}
@@ -499,7 +507,7 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 		}
 
 		// penalty for explosive weapons at low self health
-		if ((*self->ai_locals.health < 25) &&
+		if ((ENTITY_DATA(self, health) < 25) &&
 		        (item->flags & AI_WEAPON_EXPLOSIVE)) {
 			weight /= 2.0;
 		}
@@ -520,7 +528,7 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 
 	const ai_item_pick_t *best_weapon = &weapons[0];
 
-	if (aim.ItemIndex(*self->client->ai_locals.weapon) == Ai_ItemIndex(best_weapon->item)) {
+	if (aim.ItemIndex(CLIENT_DATA(self->client, weapon)) == Ai_ItemIndex(best_weapon->item)) {
 		return;
 	}
 
@@ -678,7 +686,7 @@ static uint32_t Ai_FuncGoal_Acrobatics(g_entity_t *self, pm_cmd_t *cmd) {
 	}
 
 	// do some acrobatics
-	if (*self->ai_locals.ground_entity) {
+	if (ENTITY_DATA(self, ground_entity)) {
 
 		if (self->client->ps.pm_state.flags & PMF_DUCKED) {
 
@@ -799,7 +807,7 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	VectorAngles(move_direction, move_direction);
 	move_direction[0] = move_direction[2] = 0.0;
 
-	const vec3_t view_direction = { 0.0, self->client->ai_locals.angles[1], 0.0};
+	const vec3_t view_direction = { 0.0, CLIENT_DATA_ARRAY(self->client, angles)[1], 0.0};
 	VectorSubtract(view_direction, move_direction, move_direction);
 
 	AngleVectors(move_direction, move_direction, NULL, NULL);
@@ -809,7 +817,7 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	cmd->forward = move_direction[0];
 	cmd->right = move_direction[1];
 
-	if (*self->ai_locals.water_level >= WATER_WAIST) {
+	if (ENTITY_DATA(self, water_level) >= WATER_WAIST) {
 		cmd->up = PM_SPEED_JUMP;
 	}
 
@@ -831,13 +839,13 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 			pm.s.type = PM_HOOK_PULL;
 		}
 	} else {*/
-		VectorCopy(self->ai_locals.velocity, pm.s.velocity);
+		VectorCopy(ENTITY_DATA_ARRAY(self, velocity), pm.s.velocity);
 	/*}*/
 
 	pm.s.type = PM_NORMAL;
 
 	pm.cmd = *cmd;
-	pm.ground_entity = *self->ai_locals.ground_entity;
+	pm.ground_entity = ENTITY_DATA(self, ground_entity);
 	//pm.hook_pull_speed = g_hook_pull_speed->value;
 
 	pm.PointContents = aim.PointContents;
@@ -850,7 +858,7 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		Pm_Move(&pm);
 	}
 
-	if (*self->ai_locals.ground_entity && !pm.ground_entity) { // predicted ground is gone
+	if (ENTITY_DATA(self, ground_entity) && !pm.ground_entity) { // predicted ground is gone
 		if (move_target->type <= AI_GOAL_NAV) {
 			vec_t angle = 45 + Randomf() * 45;
 
@@ -927,7 +935,7 @@ static void Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		ideal_angles[1] += cos(ai_level.time / 164.0) * 4.0;
 	}
 
-	const vec_t *view_angles = self->client->ai_locals.angles;
+	const vec_t *view_angles = CLIENT_DATA_ARRAY(self->client, angles);
 
 	for (int32_t i = 0; i < 2; ++i) {
 		ideal_angles[i] = Ai_CalculateAngle(self, 6.5, view_angles[i], ideal_angles[i]);
@@ -951,7 +959,7 @@ static void Ai_Think(g_entity_t *self, pm_cmd_t *cmd) {
 		Ai_ClearGoal(&ai->aim_target);
 		Ai_ClearGoal(&ai->move_target);
 	} else {
-		AngleVectors(self->client->ai_locals.angles, ai->aim_forward, NULL, NULL);
+		AngleVectors(CLIENT_DATA_ARRAY(self->client, angles), ai->aim_forward, NULL, NULL);
 
 		for (int32_t i = 0; i < 3; i++) {
 			ai->eye_origin[i] = self->s.origin[i] + UnpackAngle(self->client->ps.pm_state.view_offset[i]);
@@ -1034,6 +1042,15 @@ static void Ai_GameStarted(void) {
 }
 
 /**
+ * @brief Sets up data offsets to local game data
+ */
+static void Ai_SetDataPointers(ai_entity_data_t *entity, ai_client_data_t *client) {
+
+	ai_entity_data = *entity;
+	ai_client_data = *client;
+}
+
+/**
  * @brief Initializes the AI subsystem.
  */
 static void Ai_Init(void) {
@@ -1078,6 +1095,8 @@ ai_export_t *Ai_LoadAi(ai_import_t *import) {
 	aix.GameRestarted = Ai_GameStarted;
 
 	aix.RegisterItem = Ai_RegisterItem;
+
+	aix.SetDataPointers = Ai_SetDataPointers;
 
 	return &aix;
 }

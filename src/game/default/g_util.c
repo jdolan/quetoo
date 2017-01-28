@@ -362,10 +362,6 @@ void G_InitEntity(g_entity_t *ent, const char *class_name) {
 	ent->locals.timestamp = g_level.time;
 	ent->s.number = ent - g_game.entities;
 	ent->spawn_id = (g_spawn_id++);
-
-	if (aix) {
-		G_Ai_SetEntityLocals(ent);
-	}
 }
 
 /**

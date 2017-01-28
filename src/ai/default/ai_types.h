@@ -61,6 +61,68 @@ typedef struct ai_item_s {
 	uint32_t time; // used for timing items (handgrenades)
 } ai_item_t;
 
+/**
+ * @brief Struct of parameters from g_client_t that the bot
+ * will make use of. These will be offsets, not actual pointers.
+ */
+typedef struct ai_client_data_s {
+	/**
+	 * @brief Offset to view angles
+	 */
+	const vec_t *angles;
+
+	/**
+	 * @brief Offset to inventory
+	 */
+	const int16_t *inventory;
+
+	/**
+	 * @brief Offset to current weapon
+	 */
+	const g_item_t *const *weapon;
+} ai_client_data_t;
+
+/**
+ * @brief Struct of parameters from g_entity_t that the bot
+ * will make use of. These will be offsets, not actual pointers.
+ */
+typedef struct ai_entity_data_s {
+	/**
+	 * @brief Offset to ground entity
+	 */
+	g_entity_t *const *ground_entity;
+
+	/**
+	 * @brief Offset to item stored in this entity
+	 */
+	const g_item_t *const *item;
+
+	/**
+	 * @brief Offset to velocity
+	 */
+	const vec_t *velocity;
+
+	/**
+	 * @brief Offset to health
+	 */
+	const int16_t *health;
+
+	/**
+	 * @brief Offset to max health
+	 */
+	const int16_t *max_health;
+
+	/**
+	 * @brief Offset to max armor
+	 */
+	const int16_t *max_armor;
+
+	/**
+	 * @brief Offset to water level
+	 */
+	const pm_water_level_t *water_level;
+} ai_entity_data_t;
+
 #ifdef __AI_LOCAL_H__
 typedef struct {
 	uint32_t frame_num;

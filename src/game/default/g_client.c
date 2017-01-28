@@ -917,10 +917,6 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 	}
 
 	gi.LinkEntity(ent);
-
-	if (aix) {
-		G_Ai_SetClientLocals(ent->client);
-	}
 }
 
 /**

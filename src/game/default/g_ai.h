@@ -28,8 +28,6 @@
 extern cvar_t *g_ai_max_clients;
 
 void G_Ai_RegisterItems(void);
-void G_Ai_SetClientLocals(g_client_t *client);
-void G_Ai_SetEntityLocals(g_entity_t *ent);
 void G_Ai_ClientConnect(g_entity_t *ent);
 void G_Ai_ClientDisconnect(g_entity_t *ent);
 void G_Ai_Init(void);

@@ -146,7 +146,7 @@ int main(int argc, char **argv) {
 
 		g_ptr_array_add(args, NULL);
 
-		char *const *argptr = (char *const *) &g_ptr_array_index(args, 0);
+		const char *const *argptr = (const char *const *) &g_ptr_array_index(args, 0);
 
 		if (execvp(argptr[0], argptr) != -1) {
 			status = 0;

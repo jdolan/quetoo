@@ -92,30 +92,6 @@ static void G_Ai_ClientThink(g_entity_t *self) {
 /**
  * @brief
  */
-void G_Ai_SetClientLocals(g_client_t *client) {
-
-	client->ai_locals.inventory = client->locals.inventory;
-	client->ai_locals.angles = client->locals.angles;
-	client->ai_locals.weapon = &client->locals.weapon;
-}
-
-/**
- * @brief
- */
-void G_Ai_SetEntityLocals(g_entity_t *ent) {
-
-	ent->ai_locals.ground_entity = &ent->locals.ground_entity;
-	ent->ai_locals.item = &ent->locals.item;
-	ent->ai_locals.velocity = ent->locals.velocity;
-	ent->ai_locals.health = &ent->locals.health;
-	ent->ai_locals.max_health = &ent->locals.max_health;
-	ent->ai_locals.max_armor = &ent->locals.max_armor;
-	ent->ai_locals.water_level = &ent->locals.water_level;
-}
-
-/**
- * @brief
- */
 static void G_Ai_ClientBegin(g_entity_t *self) {
 
 	G_ClientBegin(self);
@@ -148,9 +124,6 @@ static void G_Ai_Spawn(g_entity_t *self, const uint32_t time_offset) {
 		self->locals.move_type = MOVE_TYPE_THINK;
 		self->locals.Think = G_Ai_ClientBegin;
 		self->locals.next_think = g_level.time + time_offset;
-
-		G_Ai_SetEntityLocals(self);
-		G_Ai_SetClientLocals(self->client);
 	}
 }
 
@@ -473,6 +446,34 @@ void G_Ai_RegisterItems(void) {
 	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_BFG10K], AI_WEAPON_PROJECTILE | AI_WEAPON_MED_RANGE | AI_WEAPON_LONG_RANGE, 720, 0);
 }
 
+#define ENTITY_PTR_OFFSET(m) \
+			entity.m = (typeof(entity.m)) offsetof(g_entity_locals_t, m)
+
+#define CLIENT_PTR_OFFSET(m) \
+			client.m = (typeof(client.m)) offsetof(g_client_locals_t, m)
+
+/**
+ * @brief
+ */
+static void G_Ai_SetDataPointers(void) {
+	static ai_entity_data_t entity;
+	static ai_client_data_t client;
+	
+	ENTITY_PTR_OFFSET(ground_entity);
+	ENTITY_PTR_OFFSET(item);
+	ENTITY_PTR_OFFSET(velocity);
+	ENTITY_PTR_OFFSET(health);
+	ENTITY_PTR_OFFSET(max_health);
+	ENTITY_PTR_OFFSET(max_armor);
+	ENTITY_PTR_OFFSET(water_level);
+	
+	CLIENT_PTR_OFFSET(angles);
+	CLIENT_PTR_OFFSET(inventory);
+	CLIENT_PTR_OFFSET(weapon);
+
+	aix->SetDataPointers(&entity, &client);
+}
+
 /**
  * @brief
  */
@@ -551,6 +552,8 @@ void G_Ai_Init(void) {
 	}
 
 	aix = exports;
+
+	G_Ai_SetDataPointers();
 
 	g_ai_max_clients = gi.Cvar("g_ai_max_clients", "0", CVAR_SERVER_INFO,
 	                           "The number of bots to automatically fill in empty slots in the server. Specify -1 to fill all available slots.");
