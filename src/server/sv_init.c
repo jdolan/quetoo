@@ -249,13 +249,12 @@ static void Sv_InitClients(void) {
  * load the rest.
  */
 static void Sv_LoadMedia(const char *server, sv_state_t state) {
-	int64_t bsp_size;
+	int64_t bsp_size = -1;
 
 	strcpy(sv.name, server);
 	strcpy(sv.config_strings[CS_NAME], server);
 
 	if (state == SV_ACTIVE_DEMO) { // loading a demo
-		sv.cm_models[0] = Cm_LoadBspModel(NULL, &bsp_size);
 
 		sv.demo_file = Fs_OpenRead(va("demos/%s.demo", sv.name));
 		svs.spawn_count = 0;
@@ -303,6 +302,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 
 		Com_Print("  Loaded map %s, %d entities.\n", sv.name, svs.game->num_entities);
 	}
+
 	g_snprintf(sv.config_strings[CS_BSP_SIZE], MAX_STRING_CHARS, "%" PRId64, bsp_size);
 
 	Cvar_FullSet("map_name", sv.name, CVAR_SERVER_INFO | CVAR_NO_SET);

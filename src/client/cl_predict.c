@@ -261,7 +261,7 @@ void Cl_CheckPredictionError(void) {
 void Cl_UpdatePrediction(void) {
 
 	// ensure the world model is loaded
-	if (!Com_WasInit(QUETOO_SERVER) || !Cm_NumModels()) {
+	if (!Com_WasInit(QUETOO_SERVER) || cl.demo_server || !Cm_NumModels()) {
 		int64_t bs;
 
 		const char *bsp_name = cl.config_strings[CS_MODELS];
