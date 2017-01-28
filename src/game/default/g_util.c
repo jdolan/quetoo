@@ -336,12 +336,25 @@ void G_SetMoveDir(vec3_t angles, vec3_t move_dir) {
 static uint16_t g_spawn_id;
 
 /**
+ * @brief Clear an entity's local data to empty. This function
+ * retains any data that the entity client should always keep.
+ */
+void G_ClearEntity(g_entity_t *ent) {
+
+	g_client_t *client = ent->client;
+
+	memset(ent, 0, sizeof(*ent));
+
+	ent->client = client;
+}
+
+/**
  * @brief Initialize an entity. This clears the entity memory, sets up the members
  * that need to be there for entity system to work (number, etc) and marks it as in_use.
  */
 void G_InitEntity(g_entity_t *ent, const char *class_name) {
 
-	memset(ent, 0, sizeof(*ent));
+	G_ClearEntity(ent);
 
 	ent->class_name = class_name;
 	ent->in_use = true;
@@ -389,7 +402,7 @@ void G_FreeEntity(g_entity_t *ent) {
 		return;
 	}
 
-	memset(ent, 0, sizeof(*ent));
+	G_ClearEntity(ent);
 	ent->class_name = "free";
 }
 

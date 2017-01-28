@@ -327,7 +327,7 @@ static const char *G_ParseEntity(const char *data, g_entity_t *ent) {
 	}
 
 	if (!init) {
-		memset(ent, 0, sizeof(*ent));
+		G_ClearEntity(ent);
 	}
 
 	return data;
@@ -499,8 +499,9 @@ void G_SpawnEntities(const char *name, const char *entities) {
 			}
 		}
 	}
-
+	
 	memset(g_game.entities, 0, g_max_entities->value * sizeof(g_entity_t));
+	memset(g_game.clients, 0, sv_max_clients->value * sizeof(g_client_t));
 
 	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 		g_game.entities[i + 1].client = g_game.clients + i;

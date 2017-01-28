@@ -1064,6 +1064,11 @@ void G_Init(void) {
 	ge.max_entities = g_max_entities->integer;
 	ge.num_entities = sv_max_clients->integer + 1;
 
+	// set up client pointers
+	for (int32_t i = 1; i <= sv_max_clients->integer; i++) {
+		g_game.entities[i].client = g_game.clients + (i - 1);
+	}
+
 	G_Ai_Init(); // initialize the AI
 
 	G_MapList_Init();

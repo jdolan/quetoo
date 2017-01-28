@@ -1184,12 +1184,7 @@ _Bool G_ClientConnect(g_entity_t *ent, char *user_info) {
 	}
 
 	// they can connect
-	// FIXME: is this ever NULL?
-	if (!ent->client) {
-		gi.Error("ISH NULL\n");
-	} else {
-		ent->client = g_game.clients + (ent - g_game.entities - 1);
-	}
+	ent->client = g_game.clients + (ent - g_game.entities - 1);
 
 	// clean up locals things which are not reset on spawns
 	memset(&ent->client->locals.persistent, 0, sizeof(ent->client->locals.persistent));
