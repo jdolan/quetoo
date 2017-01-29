@@ -36,7 +36,7 @@
  * @brief Windows must use CreateProcess because _spawn/_exec on Windows keeps the calling process 
  * running, which is definitely not what we want.
  */
-static intptr_t execvp(const char *filename, const char *const *args) {
+static intptr_t execvp(const char *filename, char *const * args) {
 	gchar *cmdline = g_strjoinv(" ", (gchar **) (args + 1));
 	
 	const int result = (int) ShellExecute(NULL, "open", filename, cmdline, NULL, SW_HIDE);
