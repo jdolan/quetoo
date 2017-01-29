@@ -23,7 +23,7 @@
 
 #include "s_types.h"
 
-void S_LoadClientSounds(const char *model);
+void S_LoadClientSamples(const char *model);
 
 #ifdef __S_LOCAL_H__
 

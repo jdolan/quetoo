@@ -474,15 +474,15 @@ typedef struct cg_import_s {
 	s_sample_t *(*LoadSample)(const char *name);
 
 	/**
+	 * @brief Precache all sound samples for a given player model.
+	 */
+	void (*LoadClientSamples)(const char *model);
+
+	/**
 	 * @brief Adds a sound sample to the playback queue.
 	 * @param play The play sample.
 	 */
 	void (*AddSample)(const s_play_sample_t *play);
-
-	/**
-	 * @brief Precache all of the sounds for a given player model.
-	 */
-	void (*LoadClientSounds)(const char *model);
 
 	/**
 	 * @brief Resolves an RGB floating point color from the specified palette index.

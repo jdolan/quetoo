@@ -126,11 +126,6 @@ static _Bool Cg_ValidateClient(cl_client_info_t *ci) {
 		return false;
 	}
 
-	VectorScale(PM_MINS, PM_SCALE, ci->legs->mins);
-	VectorScale(PM_MAXS, PM_SCALE, ci->legs->maxs);
-
-	ci->legs->radius = (ci->legs->maxs[2] - ci->legs->mins[2]) / 2.0;
-
 	return true;
 }
 
@@ -198,7 +193,16 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 	}
 
 	// ensure we were able to load everything
-	if (!Cg_ValidateClient(ci)) {
+	if (Cg_ValidateClient(ci)) {
+
+		VectorScale(PM_MINS, PM_SCALE, ci->legs->mins);
+		VectorScale(PM_MAXS, PM_SCALE, ci->legs->maxs);
+
+		ci->legs->radius = (ci->legs->maxs[2] - ci->legs->mins[2]) / 2.0;
+
+		cgi.LoadClientSamples(ci->model);
+	} else {
+		cgi.Warn("Failed to load client info %s\n", s);
 
 		if (!g_strcmp0(s, DEFAULT_CLIENT_INFO)) {
 			cgi.Error("Failed to load default client info\n");
@@ -213,11 +217,10 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
  * @brief Load all client info strings from the server.
  */
 void Cg_LoadClients(void) {
-	int32_t i;
 
 	memset(cgi.client->client_info, 0, sizeof(cgi.client->client_info));
 
-	for (i = 0; i < MAX_CLIENTS; i++) {
+	for (int32_t i = 0; i < MAX_CLIENTS; i++) {
 		cl_client_info_t *ci = &cgi.client->client_info[i];
 		const char *s = cgi.ConfigString(CS_CLIENTS + i);
 
@@ -226,7 +229,6 @@ void Cg_LoadClients(void) {
 		}
 
 		Cg_LoadClient(ci, s);
-		cgi.LoadClientSounds(ci->model);
 	}
 }
 
