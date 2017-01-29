@@ -484,8 +484,8 @@ static void R_InitLocal(void) {
 	r_flares = Cvar_Add("r_flares", "1.0", CVAR_ARCHIVE,
 	                    "Controls the rendering of light source flares");
 	r_fog = Cvar_Add("r_fog", "1", CVAR_ARCHIVE, "Controls the rendering of fog effects");
-	r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT,
-	                        "Controls fullscreen mode");
+	r_fullscreen = Cvar_Add("r_fullscreen", "2", CVAR_ARCHIVE | CVAR_R_CONTEXT,
+	                        "Controls fullscreen mode. 1 = exclusive, 2 = borderless");
 	r_gamma = Cvar_Add("r_gamma", "1.0", CVAR_ARCHIVE | CVAR_R_CONTEXT,
 	                   "Controls video gamma (brightness)");
 	r_hardness = Cvar_Add("r_hardness", "1.0", CVAR_ARCHIVE,

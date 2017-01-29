@@ -71,7 +71,13 @@ void R_InitContext(void) {
 			w = best.w;
 			h = best.h;
 		}
-		flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+
+		if (r_fullscreen->integer == 2) {
+			flags |= SDL_WINDOW_BORDERLESS;
+		} else {
+			flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+		}
+
 	} else {
 		w = Max(0, r_windowed_width->integer);
 		h = Max(0, r_windowed_height->integer);

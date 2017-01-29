@@ -68,7 +68,16 @@ static void loadView(ViewController *self) {
 			Cg_Input((View *) stackView, "Video mode", videoModeSelect);
 			release(videoModeSelect);
 
-			Cg_CvarCheckboxInput((View *) stackView, "Fullscreen", "r_fullscreen");
+			cvar_t *r_fullscreen = cgi.CvarGet("r_fullscreen");
+			Select *fullscreenSelect = (Select *) $(alloc(CvarSelect), initWithVariable, r_fullscreen);
+
+			$(fullscreenSelect, addOption, "Windowed", (ident) 0);
+			$(fullscreenSelect, addOption, "Fullscreen", (ident) 1);
+			$(fullscreenSelect, addOption, "Borderless Fullscreen", (ident) 2);
+
+			Cg_Input((View *) stackView, "Window Mode", (Control *) fullscreenSelect);
+			release(fullscreenSelect);
+
 			Cg_CvarCheckboxInput((View *) stackView, "Vertical Sync", "r_swap_interval");
 
 			$((View *) box, addSubview, (View *) stackView);
