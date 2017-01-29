@@ -103,16 +103,6 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, const entity_state_t *from, ui
 	if (bits & (U_ORIGIN | U_TERMINATION | U_ANGLES | U_MODELS | U_BOUNDS)) {
 		ent->lighting.state = LIGHTING_DIRTY;
 	}
-
-	// add any new auto-looped sounds
-	if (ent->current.sound) {
-		S_AddSample(&(const s_play_sample_t) {
-			.sample = cl.sound_precache[ent->current.sound],
-			 .entity = ent->current.number,
-			  .attenuation = ATTEN_IDLE,
-			   .flags = S_PLAY_ENTITY | S_PLAY_LOOP | S_PLAY_FRAME
-		});
-	}
 }
 
 /**
@@ -399,6 +389,16 @@ void Cl_Interpolate(void) {
 		if (ent->current.animation2 != ent->prev.animation2 || !ent->animation2.time) {
 			ent->animation2.animation = ent->current.animation2 & ~ANIM_TOGGLE_BIT;
 			ent->animation2.time = cl.unclamped_time;
+		}
+
+		if (ent->current.sound) {
+			S_AddSample(&(const s_play_sample_t) {
+				.sample = cl.sound_precache[ent->current.sound],
+				.entity = ent->current.number,
+				.attenuation = ATTEN_IDLE,
+				.flags = S_PLAY_ENTITY | S_PLAY_LOOP | S_PLAY_FRAME
+			});
+			ent->current.sound = 0;
 		}
 
 		if (ent->current.solid > SOLID_DEAD) {
