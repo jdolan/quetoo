@@ -1189,6 +1189,7 @@ _Bool G_ClientConnect(g_entity_t *ent, char *user_info) {
 	}
 
 	ent->sv_flags = 0; // make sure we start with known default
+	ent->in_use = true;
 
 	G_Ai_ClientConnect(ent); // tell AI a client has connected
 
