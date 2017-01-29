@@ -2,9 +2,9 @@ SUBDIRS = \
 	. \
 	collision \
 	net \
-	ai \
 	server \
 	game \
+	ai \
 	client \
 	cgame \
 	main \
