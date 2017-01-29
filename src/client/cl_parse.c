@@ -200,7 +200,9 @@ void Cl_ParseConfigString(void) {
 		}
 	}
 
-	cls.cgame->UpdateConfigString(i);
+	if (cls.state == CL_ACTIVE) {
+		cls.cgame->UpdateConfigString(i);
+	}
 }
 
 /**
