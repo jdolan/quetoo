@@ -54,7 +54,11 @@ static GList *G_MapList_Parse(const char *filename) {
 			if (map) {
 				gi.Error("Malformed maps.lst at \"%s\"\n", c);
 			}
+
 			map = gi.Malloc(sizeof(g_map_list_map_t), MEM_TAG_GAME);
+
+			// setup defaults
+			map->hook = -1;
 		}
 
 		if (map == NULL) { // skip any whitespace between maps

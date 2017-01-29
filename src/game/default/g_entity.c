@@ -724,21 +724,7 @@ static void G_worldspawn(g_entity_t *ent) {
 		}
 	}
 
-	if (g_strcmp0(g_hook->string, "default")) { // check cvar first
-		g_level.hook_allowed = !!g_hook->integer;
-	} else if (map && map->hook != -1) { // check maps.lst
-		g_level.hook_allowed = (map->hook == -1) ? g_level.ctf : !!map->hook;
-	} else { // check worldspawn
-		if (g_game.spawn.hook && *g_game.spawn.hook) {
-			if (g_strcmp0(g_game.spawn.hook, "default")) {
-				g_level.hook_allowed = !!atoi(g_game.spawn.hook);
-			} else {
-				g_level.hook_allowed = g_level.ctf;
-			}
-		} else {
-			g_level.hook_allowed = g_level.ctf;
-		}
-	}
+	g_level.hook_map = map->hook;
 
 	if (g_level.teams && g_level.ctf) { // ctf overrides teams
 		g_level.teams = 0;

@@ -151,6 +151,28 @@ void G_ResetItems(void) {
 }
 
 /**
+ * @brief Checks and sets up the hook state
+ */
+static void G_CheckHook(void) {
+
+	if (g_strcmp0(g_hook->string, "default")) { // check cvar first
+		g_level.hook_allowed = !!g_hook->integer;
+	} else if (g_level.hook_map != -1) { // check maps.lst
+		g_level.hook_allowed = (g_level.hook_map == -1) ? g_level.ctf : !!g_level.hook_map;
+	} else { // check worldspawn
+		if (g_game.spawn.hook && *g_game.spawn.hook) {
+			if (g_strcmp0(g_game.spawn.hook, "default")) {
+				g_level.hook_allowed = !!atoi(g_game.spawn.hook);
+			} else {
+				g_level.hook_allowed = g_level.ctf;
+			}
+		} else {
+			g_level.hook_allowed = g_level.ctf;
+		}
+	}
+}
+
+/**
  * @brief For normal games, this just means reset scores and respawn.
  * For match games, this means cancel the match and force everyone
  * to ready again. Teams are only reset when teamz is true.
@@ -217,6 +239,8 @@ static void G_RestartGame(_Bool teamz) {
 
 		G_ClientRespawn(ent, false);
 	}
+
+	G_CheckHook();
 
 	G_ResetItems();
 
@@ -364,8 +388,6 @@ static void G_CheckVote(void) {
 		G_ResetVote();
 	}
 }
-
-
 
 /**
  * @brief
@@ -743,11 +765,7 @@ static void G_CheckRules(void) {
 	if (g_hook->modified) {
 		g_hook->modified = false;
 
-		if (!g_strcmp0(g_hook->string, "default")) {
-			g_level.hook_allowed = g_level.ctf;
-		} else {
-			g_level.hook_allowed = !!g_hook->integer;
-		}
+		G_CheckHook();
 
 		gi.BroadcastPrint(PRINT_HIGH, "Hook has been %s\n",
 		                  g_level.hook_allowed ? "enabled" : "disabled");

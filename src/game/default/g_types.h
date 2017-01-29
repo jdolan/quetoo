@@ -778,8 +778,9 @@ typedef struct {
 	_Bool teams;
 	_Bool ctf;
 	_Bool match;
-	_Bool hook_allowed;
 	_Bool rounds;
+	_Bool hook_allowed;
+	int32_t hook_map; // the map's hook allowance, for voting/restart/etc
 	int32_t frag_limit;
 	int32_t round_limit;
 	int32_t capture_limit;
