@@ -60,7 +60,7 @@ static void G_CheckGround(g_entity_t *ent) {
 }
 
 static void G_CheckWater(g_entity_t *ent) {
-	vec3_t old_pos, pos, mins, maxs, ent_frame_delta;
+	vec3_t pos, mins, maxs;
 
 	if (ent->locals.move_type == MOVE_TYPE_WALK) {
 		return;
@@ -87,9 +87,6 @@ static void G_CheckWater(g_entity_t *ent) {
 
 	ent->locals.water_type = tr.contents;
 	ent->locals.water_level = ent->locals.water_type ? WATER_FEET : WATER_NONE;
-
-	VectorScale(ent->locals.velocity, QUETOO_TICK_SECONDS, ent_frame_delta);
-	VectorSubtract(pos, ent_frame_delta, old_pos);
 
 	if (!old_water_level && ent->locals.water_level) {
 
