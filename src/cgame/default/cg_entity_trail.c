@@ -321,7 +321,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 
 	vec3_t delta;
 
-	vec_t step = 1.5;
+	vec_t step = 1.0;
 
 	if (cgi.PointContents(end) & MASK_LIQUID) {
 		Cg_BubbleTrail(start, end, 12.0);
@@ -339,14 +339,15 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		}
 
 		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
-		p->lifetime = 250 + Randomf() * 100;
+		p->lifetime = 200 + Randomf() * 100;
 
 		cgi.ColorFromPalette(col + (Random() & 5), p->color_start);
 		VectorCopy(p->color_start, p->color_end);
+		p->color_start[3] = 0.66;
 		p->color_end[3] = 0.0;
 
-		p->scale_start = 2.0;
-		p->scale_end = 1.0;
+		p->scale_start = 3.0;
+		p->scale_end = 1.5;
 
 		VectorMA(start, d, delta, p->part.org);
 		VectorScale(delta, -24.0, p->vel);
