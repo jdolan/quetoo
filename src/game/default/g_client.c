@@ -883,7 +883,6 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		VectorScale(PM_MAXS, PM_SCALE, ent->maxs);
 
 		ent->s.model1 = MODEL_CLIENT;
-		ent->s.client = ent - g_game.entities - 1;
 		ent->s.event = EV_CLIENT_TELEPORT;
 
 		G_SetAnimation(ent, ANIM_TORSO_STAND1, true);
@@ -966,7 +965,6 @@ void G_ClientBegin(g_entity_t *ent) {
 	char welcome[MAX_STRING_CHARS];
 
 	G_InitEntity(ent, "client");
-	ent->client = g_game.clients + (ent->s.number - 1);
 
 	ent->client->locals.persistent.ai = ent->client->ai;
 
@@ -1179,8 +1177,6 @@ _Bool G_ClientConnect(g_entity_t *ent, char *user_info) {
 	}
 
 	// they can connect
-	ent->client = g_game.clients + (ent - g_game.entities - 1);
-
 	// clean up locals things which are not reset on spawns
 	memset(&ent->client->locals.persistent, 0, sizeof(ent->client->locals.persistent));
 
