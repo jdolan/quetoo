@@ -339,7 +339,6 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.Move = Cg_Move;
 	cge.UpdateMedia = Cg_UpdateMedia;
 	cge.UpdateConfigString = Cg_UpdateConfigString;
-	cge.LoadClient = Cg_LoadClient;
 	cge.ParseMessage = Cg_ParseMessage;
 	cge.Interpolate = Cg_Interpolate;
 	cge.UsePrediction = Cg_UsePrediction;
