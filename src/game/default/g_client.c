@@ -1121,8 +1121,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	if (strlen(s) && !strstr(s, "..")) { // something valid-ish was provided
 		g_strlcpy(cl->locals.persistent.skin, s, sizeof(cl->locals.persistent.skin));
 	} else {
-		g_strlcpy(cl->locals.persistent.skin, "qforcer/default",
-		          sizeof(cl->locals.persistent.skin));
+		g_strlcpy(cl->locals.persistent.skin, "qforcer/default", sizeof(cl->locals.persistent.skin));
 	}
 
 	// set color

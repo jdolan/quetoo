@@ -21,6 +21,8 @@
 
 #include "cl_local.h"
 
+#define MAX_DELTA_ORIGIN 64.0 // MAX_SPEED * QUETOO_TICK_SECONDS = 60.0
+
 /**
  * @brief Parse the player_state_t for the current frame from the server, using delta
  * compression for all fields where possible.
@@ -63,7 +65,7 @@ static _Bool Cl_ValidDeltaEntity(const cl_frame_t *frame, const cl_entity_t *ent
 
 	VectorSubtract(ent->current.origin, to->origin, delta);
 
-	if (VectorLength(delta) > 64.0) { // MAX_SPEED * QUETOO_TICK_SECONDS = 60.0
+	if (VectorLength(delta) > MAX_DELTA_ORIGIN) {
 		return false;
 	}
 
@@ -102,16 +104,6 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, const entity_state_t *from, ui
 	// mark the lighting cache as dirty
 	if (bits & (U_ORIGIN | U_TERMINATION | U_ANGLES | U_MODELS | U_BOUNDS)) {
 		ent->lighting.state = LIGHTING_DIRTY;
-	}
-
-	// add any new auto-looped sounds
-	if (ent->current.sound) {
-		S_AddSample(&(const s_play_sample_t) {
-			.sample = cl.sound_precache[ent->current.sound],
-			 .entity = ent->current.number,
-			  .attenuation = ATTEN_IDLE,
-			   .flags = S_PLAY_ENTITY | S_PLAY_LOOP | S_PLAY_FRAME
-		});
 	}
 }
 
@@ -331,7 +323,18 @@ void Cl_ParseFrame(void) {
  */
 static void Cl_UpdateLerp(void) {
 
-	if (cl.delta_frame == NULL || time_demo->value) {
+	_Bool no_lerp = cl.delta_frame == NULL || cl_no_lerp->value || time_demo->value;
+
+	if (no_lerp == false && cl.previous_frame) {
+		vec3_t delta;
+
+		VectorSubtract(cl.frame.ps.pm_state.origin, cl.previous_frame->ps.pm_state.origin, delta);
+		if (VectorLength(delta) > MAX_DELTA_ORIGIN) {
+			no_lerp = true;
+		}
+	}
+
+	if (no_lerp) {
 		cl.time = cl.frame.time;
 		cl.lerp = 1.0;
 	} else {
@@ -399,6 +402,16 @@ void Cl_Interpolate(void) {
 		if (ent->current.animation2 != ent->prev.animation2 || !ent->animation2.time) {
 			ent->animation2.animation = ent->current.animation2 & ~ANIM_TOGGLE_BIT;
 			ent->animation2.time = cl.unclamped_time;
+		}
+
+		if (ent->current.sound) {
+			S_AddSample(&(const s_play_sample_t) {
+				.sample = cl.sound_precache[ent->current.sound],
+				.entity = ent->current.number,
+				.attenuation = ATTEN_IDLE,
+				.flags = S_PLAY_ENTITY | S_PLAY_LOOP | S_PLAY_FRAME
+			});
+			ent->current.sound = 0;
 		}
 
 		if (ent->current.solid > SOLID_DEAD) {

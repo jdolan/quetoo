@@ -306,17 +306,18 @@ static void Cg_UpdateConfigString(uint16_t i) {
 	switch (i) {
 		case CS_WEATHER:
 			Cg_ResolveWeather(s);
-			break;
+			return;
 		case CS_HOOK_PULL_SPEED:
 			cg_state.hook_pull_speed = strtof(s, NULL);
-			break;
+			return;
 		default:
-			if (i >= CS_CLIENTS && i < CS_CLIENTS + MAX_CLIENTS) {
-				cl_client_info_t *ci = &cgi.client->client_info[i - CS_CLIENTS];
-				Cg_LoadClient(ci, s);
-				cgi.LoadClientSounds(ci->model);
-			}
+
 			break;
+	}
+
+	if (i >= CS_CLIENTS && i < CS_CLIENTS + MAX_CLIENTS) {
+		cl_client_info_t *ci = &cgi.client->client_info[i - CS_CLIENTS];
+		Cg_LoadClient(ci, s);
 	}
 }
 
@@ -338,7 +339,6 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.Move = Cg_Move;
 	cge.UpdateMedia = Cg_UpdateMedia;
 	cge.UpdateConfigString = Cg_UpdateConfigString;
-	cge.LoadClient = Cg_LoadClient;
 	cge.ParseMessage = Cg_ParseMessage;
 	cge.Interpolate = Cg_Interpolate;
 	cge.UsePrediction = Cg_UsePrediction;

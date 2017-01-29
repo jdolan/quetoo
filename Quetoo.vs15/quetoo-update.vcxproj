@@ -30,12 +30,13 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A11F8826-C984-45ED-A335-AB616DEE1CCA}</ProjectGuid>
     <RootNamespace>quetoo-update</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="build_settings.props" />
   </ImportGroup>
   <PropertyGroup>
-    <OutDir>$(QuetooOutDir)</OutDir>
+    <OutDir>C:\steam games\Quetoo\bin</OutDir>
     <IntDir>$(QuetooIntDir)</IntDir>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -56,7 +57,8 @@
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>COPY_DEPENDENCIES "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)" "$(Configuration)" &amp;&amp; COPY_QUETOO-UPDATE "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

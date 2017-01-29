@@ -474,15 +474,15 @@ typedef struct cg_import_s {
 	s_sample_t *(*LoadSample)(const char *name);
 
 	/**
+	 * @brief Precache all sound samples for a given player model.
+	 */
+	void (*LoadClientSamples)(const char *model);
+
+	/**
 	 * @brief Adds a sound sample to the playback queue.
 	 * @param play The play sample.
 	 */
 	void (*AddSample)(const s_play_sample_t *play);
-
-	/**
-	 * @brief Precache all of the sounds for a given player model.
-	 */
-	void (*LoadClientSounds)(const char *model);
 
 	/**
 	 * @brief Resolves an RGB floating point color from the specified palette index.
@@ -739,7 +739,6 @@ typedef struct cg_export_s {
 	void (*ClearState)(void);
 	void (*UpdateMedia)(void);
 	void (*UpdateConfigString)(uint16_t index);
-	void (*LoadClient)(cl_client_info_t *cl, const char *s);
 	_Bool (*ParseMessage)(int32_t cmd);
 	void (*Look)(pm_cmd_t *cmd);
 	void (*Move)(pm_cmd_t *cmd);

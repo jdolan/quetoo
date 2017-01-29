@@ -276,7 +276,7 @@ static ai_export_t *Sv_LoadAi(ai_import_t *import) {
 
 	svs.ai->Init();
 
-	Com_Print("AI initialized.\n");
+	Com_Print("  AI initialized.\n");
 	Com_InitSubsystem(QUETOO_AI);
 
 	return svs.ai;

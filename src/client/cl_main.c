@@ -29,6 +29,7 @@ cvar_t *cl_draw_net_graph;
 cvar_t *cl_editor;
 cvar_t *cl_ignore;
 cvar_t *cl_max_fps;
+cvar_t *cl_no_lerp;
 cvar_t *cl_team_chat_sound;
 cvar_t *cl_timeout;
 
@@ -538,6 +539,7 @@ static void Cl_InitLocal(void) {
 	cl_editor = Cvar_Add("cl_editor", "0", CVAR_LO_ONLY, "Activate the in-game editor");
 	cl_ignore = Cvar_Add("cl_ignore", "", 0, NULL);
 	cl_max_fps = Cvar_Add("cl_max_fps", "0", CVAR_ARCHIVE, NULL);
+	cl_no_lerp = Cvar_Add("cl_no_lerp", "0", CVAR_LO_ONLY, "Disable frame interpolation (developer tool)");
 	cl_team_chat_sound = Cvar_Add("cl_team_chat_sound", "misc/teamchat", 0, NULL);
 	cl_timeout = Cvar_Add("cl_timeout", "15.0", 0, NULL);
 

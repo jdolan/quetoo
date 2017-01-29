@@ -230,8 +230,8 @@ void Cl_InitCgame(void) {
 	import.KeyState = Cl_KeyState;
 
 	import.LoadSample = S_LoadSample;
+	import.LoadClientSamples = S_LoadClientSamples;
 	import.AddSample = S_AddSample;
-	import.LoadClientSounds = S_LoadClientSounds;
 
 	import.CullBox = R_CullBox;
 	import.CullSphere = R_CullSphere;

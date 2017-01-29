@@ -106,7 +106,7 @@ static gchar *ArgvQuote(const gchar *argument, const _Bool force)
  * @brief Windows must use CreateProcess because _spawn/_exec on Windows keeps the calling process 
  * running, which is definitely not what we want.
  */
-static intptr_t execvp(const char *filename, const char *const *args) {
+static intptr_t execvp(const char *filename, char *const * args) {
 	GString *cmdline = g_string_new("");
 
 	for (int i = 1; ; i++) {
@@ -234,7 +234,7 @@ int main(int argc, char **argv) {
 
 		g_ptr_array_add(args, NULL);
 
-		const char *const *argptr = (const char *const *) &g_ptr_array_index(args, 0);
+		char *const *argptr = (char *const *) &g_ptr_array_index(args, 0);
 
 		if (execvp(argptr[0], argptr) != -1) {
 			status = 0;
