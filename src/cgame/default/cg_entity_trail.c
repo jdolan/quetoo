@@ -788,7 +788,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 	while (dist > 0.0) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_blood))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_blood))) {
 			break;
 		}
 
