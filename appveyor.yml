@@ -65,21 +65,17 @@ after_build:
 
     .\AWS_UPDATER.ps1
 
-    7z a ..\Quetoo-BETA-MSVC.zip Quetoo\
+    7z a ..\Quetoo.zip Quetoo\
 
     Pop-Location
 
     [Environment]::CurrentDirectory = $PWD
 test: off
-artifacts:
-- path: Quetoo-BETA-MSVC.zip
 on_finish:
 - ps:  >-
     Push-Location "Quetoo.vs15\"
 
     [Environment]::CurrentDirectory = $PWD
-
-    .\SYNC.ps1
 
     .\AWS.ps1
 
