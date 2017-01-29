@@ -369,7 +369,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 static void Cg_ExplosionEffect(const vec3_t org) {
 	cg_particle_t *p;
 
-	if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_explosion))) {
+	if ((p = Cg_AllocParticle(PARTICLE_EXPLOSION, cg_particles_explosion))) {
 
 		p->lifetime = 250;
 		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
@@ -440,7 +440,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	for (int32_t i = 0; i < 32; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_debris[Random() % 4]))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_debris[Random() % 4]))) {
 			break;
 		}
 
@@ -461,8 +461,6 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 		p->vel[1] = Randomc() * 200.0;
 		p->vel[2] = Randomc() * 200.0;
 
-		p->part.roll = Randomc() * 1000.0;
-
 		p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
 
 		VectorSet(p->accel, 0.0, 0.0, -PARTICLE_GRAVITY * 2.0);
@@ -470,9 +468,9 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	cgi.AddSustainedLight(&(const r_sustained_light_t) {
 		.light.origin = { org[0], org[1], org[2] },
-		       .light.color = { 0.8, 0.4, 0.2 },
-		              .light.radius = 200.0,
-		                     .sustain = 1000
+		 .light.color = { 0.8, 0.4, 0.2 },
+		  .light.radius = 200.0,
+		   .sustain = 1000
 	});
 
 	vec3_t c;
@@ -503,7 +501,7 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 
 	for (int32_t i = 0; i < 2; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_explosion))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_EXPLOSION, cg_particles_explosion))) {
 			break;
 		}
 
@@ -679,7 +677,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_explosion))) {
+	if (!(p = Cg_AllocParticle(PARTICLE_EXPLOSION, cg_particles_explosion))) {
 		return;
 	}
 
@@ -747,7 +745,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 
 	for (int32_t i = 0; i < 4; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_explosion))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_EXPLOSION, cg_particles_explosion))) {
 			break;
 		}
 

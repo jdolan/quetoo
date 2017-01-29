@@ -134,7 +134,7 @@ static void R_ParticleVerts(const r_particle_t *p, r_particle_interleave_vertex_
 			VectorScale(r_particle_state.splash_right[1], p->scale, right);
 			VectorScale(r_particle_state.splash_up[1], p->scale, up);
 		}
-	} else if (p->type == PARTICLE_ROLL) { // roll it
+	} else if (p->type == PARTICLE_ROLL || p->type == PARTICLE_EXPLOSION) { // roll it
 		vec3_t dir;
 
 		VectorCopy(r_view.angles, dir);
@@ -321,20 +321,18 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 		if (p->image) {
 			texnum = p->image->texnum;
 		} else if (p->type == PARTICLE_CORONA) {
-			texnum = last_texnum;    // corona texture switching = no
+			texnum = last_texnum; // corona texture switching = no
 		}
 
 		// draw pending particles
-		if ((texnum != last_texnum ||
-		        p->type != last_type ||
-		        p->blend != last_blend) && i > j) {
+		if ((texnum != last_texnum || p->type != last_type || p->blend != last_blend) && i > j) {
 			R_DrawArrays(GL_TRIANGLES, (base + j) * 6, (i - j) * 6);
 			j = i;
 		}
 
 		// change states
 		if (p->type != last_type) {
-			if (p->type == PARTICLE_ROLL) {
+			if (p->type == PARTICLE_EXPLOSION) {
 				R_DepthRange(0.0, 0.999);
 			} else {
 				R_DepthRange(0.0, 1.0);
@@ -370,9 +368,6 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 		R_DrawArrays(GL_TRIANGLES, (base + j) * 6, (i - j) * 6);
 	}
 
-	// restore depth range
-	R_DepthRange(0.0, 1.0);
-
 	// restore array pointers
 	R_UnbindAttributeBuffer(R_ARRAY_POSITION);
 	R_UnbindAttributeBuffer(R_ARRAY_DIFFUSE);
@@ -381,6 +376,8 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	R_UnbindAttributeBuffer(R_ARRAY_ELEMENTS);
 
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	R_DepthRange(0.0, 1.0);
 
 	R_EnableColorArray(false);
 
