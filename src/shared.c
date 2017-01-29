@@ -1152,7 +1152,7 @@ void DeleteUserInfo(char *s, const char *key) {
 		*o = '\0';
 
 		if (!g_strcmp0(key, pkey)) {
-			strcpy(start, s); // remove this part
+			memmove(start, s, strlen(s) + 1);
 			return;
 		}
 

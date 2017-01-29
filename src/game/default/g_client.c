@@ -883,6 +883,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		VectorScale(PM_MAXS, PM_SCALE, ent->maxs);
 
 		ent->s.model1 = MODEL_CLIENT;
+		ent->s.client = ent->s.number - 1;
 		ent->s.event = EV_CLIENT_TELEPORT;
 
 		G_SetAnimation(ent, ANIM_TORSO_STAND1, true);
