@@ -125,6 +125,8 @@ static void G_Ai_Spawn(g_entity_t *self, const uint32_t time_offset) {
 		self->locals.Think = G_Ai_ClientBegin;
 		self->locals.next_think = g_level.time + time_offset;
 	}
+
+	g_game.ai_left_to_spawn--;
 }
 
 /**
@@ -221,6 +223,12 @@ static void G_Ai_RemoveBots(const int32_t count) {
  * @brief
  */
 static void G_Ai_Add_f(void) {
+	
+	if (g_game.ai_fill_slots) {
+		gi.Print("g_ai_max_clients is set - change that instead\n");
+		return;
+	}
+
 	int32_t count = 1;
 
 	if (gi.Argc() > 1) {
@@ -234,6 +242,12 @@ static void G_Ai_Add_f(void) {
  * @brief
  */
 static void G_Ai_Remove_f(void) {
+	
+	if (g_game.ai_fill_slots) {
+		gi.Print("g_ai_max_clients is set - change that instead\n");
+		return;
+	}
+
 	int32_t count = 1;
 
 	if (gi.Argc() > 1) {
@@ -252,9 +266,15 @@ void G_Ai_ClientConnect(g_entity_t *ent) {
 		return;
 	}
 
-	// decrement bots waiting to spawn
-	if (g_game.ai_left_to_spawn) {
-		g_game.ai_left_to_spawn--;
+	// see if this overfilled the server
+	if (g_game.ai_fill_slots) {
+
+		uint8_t num_bots = G_Ai_NumberOfBots();
+		uint8_t num_clients = G_Ai_NumberOfClients();
+
+		if (num_bots && num_clients > g_game.ai_fill_slots) {
+			G_Ai_RemoveBots(1);
+		}
 	}
 }
 
@@ -267,11 +287,13 @@ void G_Ai_ClientDisconnect(g_entity_t *ent) {
 		return;
 	}
 
-	// see if this opened up a slot for a bot
-	uint8_t empty_slots = G_Ai_EmptySlots();
+	if (g_game.ai_fill_slots) {
+		// see if this opened up a slot for a bot
+		uint8_t empty_slots = G_Ai_EmptySlots();
 
-	if (empty_slots && G_Ai_NumberOfClients() < g_game.ai_fill_slots) {
-		g_game.ai_left_to_spawn++;
+		if (empty_slots && G_Ai_NumberOfClients() < g_game.ai_fill_slots) {
+			g_game.ai_left_to_spawn++;
+		}
 	}
 }
 
