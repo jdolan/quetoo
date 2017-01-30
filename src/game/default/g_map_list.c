@@ -66,6 +66,7 @@ static GList *G_MapList_Parse(const char *filename) {
 			map->frag_limit = -1;
 			map->round_limit = -1;
 			map->capture_limit = -1;
+			map->time_limit = -1;
 			map->hook = -1;
 		}
 
