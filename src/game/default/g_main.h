@@ -87,6 +87,7 @@ void G_Init(void);
 void G_Shutdown(void);
 void G_ResetItems(void);
 void G_ResetTeams(void);
+void G_ResetSpawnPoints(void);
 void G_ResetVote(void);
 void G_CallTimeOut(g_entity_t *ent);
 void G_CallTimeIn(void);

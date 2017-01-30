@@ -48,6 +48,7 @@ static g_entity_spawn_t g_entity_spawns[] = { // entity class names -> spawn fun
 	{ "info_player_start", G_info_player_start },
 	{ "info_player_team1", G_info_player_team1 },
 	{ "info_player_team2", G_info_player_team2 },
+	{ "info_player_team_any", G_info_player_team_any },
 
 	{ "misc_teleporter", G_misc_teleporter },
 	{ "misc_teleporter_dest", G_misc_teleporter_dest },
@@ -467,6 +468,267 @@ static void G_InitMedia(void) {
 }
 
 /**
+ * @brief Sorts the spawns so that the furthest from the flag are at the beginning.
+ */
+static int32_t G_CreateTeamSpawnPoints_CompareFunc(gconstpointer a, gconstpointer b, gpointer user_data) {
+
+	g_entity_t *flag = (g_entity_t *) user_data;
+	
+	const g_entity_t *ap = (const g_entity_t *) a;
+	const g_entity_t *bp = (const g_entity_t *) b;
+
+	return Sign(VectorDistanceSquared(flag->s.origin, bp->s.origin) - VectorDistanceSquared(flag->s.origin, ap->s.origin));
+}
+
+/**
+ * @brief Creates team spawns if the map doesn't have one. Also creates flags, although
+ * chances are they will be in crap positions.
+ */
+static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_good_spawns, GSList **team_evil_spawns) {
+
+	// find our flags
+	g_entity_t *good_flag, *evil_flag;
+	g_entity_t *reused_spawns[2] = { NULL, NULL };
+	
+	good_flag = G_FlagForTeam(&g_team_good);
+	evil_flag = G_FlagForTeam(&g_team_evil);
+
+	if (!!good_flag != !!evil_flag) {
+		gi.Error("Make sure you have both flags in your map!\n");
+	} else if (!good_flag) {
+		// no flag in map, so let's make one by repurposing the furthest spawn points
+
+		if (g_slist_length(*dm_spawns) < 4) {
+			return; // not enough points to make a flag
+		}
+
+		vec_t furthest_dist = 0;
+
+		for (GSList *pa = *dm_spawns; pa; pa = pa->next) {
+			for (GSList *pb = *dm_spawns; pb; pb = pb->next) {
+
+				if (pa == pb) {
+					continue;
+				}
+				
+				g_entity_t *pae = (g_entity_t *) pa->data;
+				g_entity_t *pab = (g_entity_t *) pb->data;
+
+				if ((reused_spawns[0] == pae && reused_spawns[1] == pab) ||
+					(reused_spawns[0] == pab && reused_spawns[1] == pae)) {
+					continue;
+				}
+
+				vec3_t line;
+				VectorSubtract(pae->s.origin, pab->s.origin, line);
+				line[2] /= 10.0; // don't consider Z as heavily as X/Y
+
+				const vec_t dist = VectorLengthSquared(line);
+
+				if (dist > furthest_dist) {
+
+					reused_spawns[0] = pae;
+					reused_spawns[1] = pab;
+					furthest_dist = dist;
+				}
+			}
+		}
+
+		if (!reused_spawns[0] || !reused_spawns[1] || !furthest_dist) {
+			return; // error in finding furthest points
+		}
+		
+		good_flag = G_AllocEntity_(g_team_good.flag);
+		evil_flag = G_AllocEntity_(g_team_evil.flag);
+
+		if (Random() & 1) {
+			VectorCopy(reused_spawns[0]->s.origin, good_flag->s.origin);
+			VectorCopy(reused_spawns[1]->s.origin, evil_flag->s.origin);
+		} else {
+			VectorCopy(reused_spawns[1]->s.origin, good_flag->s.origin);
+			VectorCopy(reused_spawns[0]->s.origin, evil_flag->s.origin);
+		}
+		
+		G_SpawnItem(good_flag, g_media.items.flags[FLAG_GOOD]);
+		G_SpawnItem(evil_flag, g_media.items.flags[FLAG_EVIL]);
+	}
+
+	for (GSList *point = *dm_spawns; point; point = point->next) {
+
+		g_entity_t *p = (g_entity_t *) point->data;
+
+		if (p == reused_spawns[0] || p == reused_spawns[1]) {
+			continue;
+		}
+
+		const vec_t dist_to_good = VectorDistanceSquared(good_flag->s.origin, p->s.origin);
+		const vec_t dist_to_evil = VectorDistanceSquared(evil_flag->s.origin, p->s.origin);
+
+		if (dist_to_good < dist_to_evil) {
+			*team_good_spawns = g_slist_prepend(*team_good_spawns, p);
+		} else {
+			*team_evil_spawns = g_slist_prepend(*team_evil_spawns, p);
+		}
+	}
+
+	if (g_slist_length(*team_good_spawns) == g_slist_length(*team_evil_spawns)) {
+		return; // best case scenario
+	}
+	
+	// unmatched spawns, we need to move some spawns
+	*team_good_spawns = g_slist_sort_with_data(*team_good_spawns, G_CreateTeamSpawnPoints_CompareFunc, good_flag);
+	*team_evil_spawns = g_slist_sort_with_data(*team_evil_spawns, G_CreateTeamSpawnPoints_CompareFunc, evil_flag);
+		
+	int32_t num_good_spawns = (int32_t) g_slist_length(*team_good_spawns);
+	int32_t num_evil_spawns = (int32_t) g_slist_length(*team_evil_spawns);
+	int32_t diff = abs(num_good_spawns - num_evil_spawns);
+
+	GSList **from, **to;
+
+	if (num_good_spawns > num_evil_spawns) {
+		from = team_good_spawns;
+		to = team_evil_spawns;
+	} else {
+		from = team_evil_spawns;
+		to = team_good_spawns;
+	}
+
+	// odd number of points, make one neutral
+	if (diff & 1) {
+		g_entity_t *point = (g_entity_t *) ((*from)->data);
+
+		*to = g_slist_prepend(*to, point);
+	}
+
+	int32_t num_move = diff - 1;
+	
+	// move spawns to the other team
+	while (num_move) {
+
+		g_entity_t *point = (g_entity_t *) ((*from)->data);
+
+		*from = g_slist_remove(*from, point);
+		*to = g_slist_prepend(*to, point);
+
+		num_move--;
+	}
+}
+
+/**
+ * @brief Set up the list of spawn points.
+ */
+static void G_InitSpawnPoints(void) {
+
+	// first, set up all of the deathmatch points
+	GSList *dm_spawns = NULL;
+	g_entity_t *spot = NULL;
+	
+	while ((spot = G_Find(spot, EOFS(class_name), "info_player_deathmatch")) != NULL) {
+		dm_spawns = g_slist_prepend(dm_spawns, spot);
+	}
+
+	spot = NULL;
+
+	// for legacy maps
+	if (!g_slist_length(dm_spawns)) {
+
+		while ((spot = G_Find(spot, EOFS(class_name), "info_player_start")) != NULL) {
+			dm_spawns = g_slist_prepend(dm_spawns, spot);
+		}
+	}
+	
+	// find the team points, if we have any explicit ones in the map
+	GSList *team_good_spawns = NULL;
+	GSList *team_evil_spawns = NULL;
+	spot = NULL;
+
+	while ((spot = G_Find(spot, EOFS(class_name), "info_player_team_any")) != NULL) {
+		team_good_spawns = g_slist_prepend(team_good_spawns, spot);
+		team_evil_spawns = g_slist_prepend(team_evil_spawns, spot);
+	}
+
+	spot = NULL;
+
+	while ((spot = G_Find(spot, EOFS(class_name), g_team_good.spawn)) != NULL) {
+		team_good_spawns = g_slist_prepend(team_good_spawns, spot);
+	}
+
+	g_team_good.spawn_points.count = g_slist_length(team_good_spawns);
+
+	spot = NULL;
+
+	while ((spot = G_Find(spot, EOFS(class_name), g_team_evil.spawn)) != NULL) {
+		team_evil_spawns = g_slist_prepend(team_evil_spawns, spot);
+	}
+
+	g_team_evil.spawn_points.count = g_slist_length(team_evil_spawns);
+
+	// only one team
+	if (!!g_team_good.spawn_points.count != !!g_team_evil.spawn_points.count) {
+		gi.Error("Map has spawns for only a single team. Use info_player_deathmatch for these!\n");
+	}
+
+	g_level.spawn_points.count = g_slist_length(dm_spawns);
+
+	GSList *point = NULL;
+
+	// in the odd case that the map only has team spawns, we'll use them
+	if (!g_level.spawn_points.count && g_team_good.spawn_points.count) {
+
+		if (g_team_good.spawn_points.count) {
+			for (point = team_good_spawns; point; point = point->next) {
+				dm_spawns = g_slist_prepend(dm_spawns, (g_entity_t *) point->data);
+			}
+		
+			for (point = team_evil_spawns; point; point = point->next) {
+				dm_spawns = g_slist_prepend(dm_spawns, (g_entity_t *) point->data);
+			}
+		} else {
+			gi.Error("Map has no spawn points! You need some info_player_deathmatch's (or info_player_team1/2/_any for teamplay maps).\n");
+		}
+	}
+
+	// if we have team spawns, copy them over
+	if (!g_team_good.spawn_points.count) {
+
+		// none in the map, let's make some!
+		G_CreateTeamSpawnPoints(&dm_spawns, &team_good_spawns, &team_evil_spawns);
+
+		// re-calculate final values since the above may change them
+		g_team_good.spawn_points.count = g_slist_length(team_good_spawns);
+		g_team_evil.spawn_points.count = g_slist_length(team_evil_spawns);
+		g_level.spawn_points.count = g_slist_length(dm_spawns);
+	}
+
+	// copy all the data in!
+	size_t i;
+
+	g_team_good.spawn_points.spots = gi.Malloc(sizeof(g_entity_t *) * g_team_good.spawn_points.count, MEM_TAG_GAME);
+	
+	for (i = 0, point = team_good_spawns; point; point = point->next, i++) {
+		g_team_good.spawn_points.spots[i] = (g_entity_t *) point->data;
+	}
+	
+	g_slist_free(team_good_spawns);
+	
+	g_team_evil.spawn_points.spots = gi.Malloc(sizeof(g_entity_t *) * g_team_evil.spawn_points.count, MEM_TAG_GAME);
+		
+	for (i = 0, point = team_evil_spawns; point; point = point->next, i++) {
+		g_team_evil.spawn_points.spots[i] = (g_entity_t *) point->data;
+	}
+	
+	g_slist_free(team_evil_spawns);
+
+	g_level.spawn_points.spots = gi.Malloc(sizeof(g_entity_t *) * g_level.spawn_points.count, MEM_TAG_GAME);
+
+	for (i = 0, point = dm_spawns; point; point = point->next, i++) {
+		g_level.spawn_points.spots[i] = (g_entity_t *) point->data;
+	}
+
+	g_slist_free(dm_spawns);
+}
+
+/**
  * @brief Creates a server's entity / program execution context by
  * parsing textual entity definitions out of an ent file.
  */
@@ -572,6 +834,10 @@ void G_SpawnEntities(const char *name, const char *entities) {
 	G_ResetItems();
 
 	G_ResetTeams();
+
+	G_InitSpawnPoints();
+
+	G_ResetSpawnPoints();
 
 	G_ResetVote();
 }

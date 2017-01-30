@@ -97,6 +97,9 @@ void G_ResetTeams(void) {
 	
 	g_strlcpy(g_team_good.flag, "item_flag_team1", sizeof(g_team_good.flag));
 	g_strlcpy(g_team_evil.flag, "item_flag_team2", sizeof(g_team_evil.flag));
+	
+	g_strlcpy(g_team_good.spawn, "info_player_team1", sizeof(g_team_good.spawn));
+	g_strlcpy(g_team_evil.spawn, "info_player_team2", sizeof(g_team_evil.spawn));
 }
 
 /**
@@ -173,6 +176,49 @@ static void G_CheckHook(void) {
 }
 
 /**
+ * @brief Setup the effects for spawn points
+ */
+static void G_ResetTeamSpawnPoints(g_spawn_points_t *points, const g_entity_trail_t trail) {
+
+	for (size_t i = 0; i < points->count; i++) {
+		g_entity_t *ent = points->spots[i];
+
+		if (trail && (g_level.teams || g_level.ctf)) {
+
+			if (ent->s.trail) {
+				ent->s.trail = TRAIL_NEUTRAL_SPAWN;
+			} else {
+				ent->s.trail = trail;
+			}
+			ent->sv_flags = 0;
+		
+			gi.LinkEntity(ent);
+		} else {
+
+			ent->s.trail = 0;
+			ent->sv_flags = SVF_NO_CLIENT;
+
+			gi.UnlinkEntity(ent);
+		}
+	}
+}
+
+/**
+ * @brief Setup the effects for spawn points
+ */
+void G_ResetSpawnPoints(void) {
+	
+	// reset trails to 0 first
+	G_ResetTeamSpawnPoints(&g_team_good.spawn_points, 0);
+	G_ResetTeamSpawnPoints(&g_team_evil.spawn_points, 0);
+
+	// then apply team-based trails, this is done twice
+	// so neutrality gets applied properly
+	G_ResetTeamSpawnPoints(&g_team_good.spawn_points, TRAIL_GOOD_SPAWN);
+	G_ResetTeamSpawnPoints(&g_team_evil.spawn_points, TRAIL_EVIL_SPAWN);
+}
+
+/**
  * @brief For normal games, this just means reset scores and respawn.
  * For match games, this means cancel the match and force everyone
  * to ready again. Teams are only reset when teamz is true.
@@ -243,6 +289,8 @@ static void G_RestartGame(_Bool teamz) {
 	G_CheckHook();
 
 	G_ResetItems();
+
+	G_ResetSpawnPoints();
 
 	g_level.match_time = g_level.round_time = 0;
 	g_team_good.score = g_team_evil.score = 0;

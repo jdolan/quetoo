@@ -117,7 +117,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 				msg = "%s cratered";
 				break;
 			case MOD_CRUSH:
-				msg = "%swas squished";
+				msg = "%s was squished";
 				break;
 			case MOD_WATER:
 				msg = "%s sleeps with the fishes";
@@ -686,46 +686,69 @@ static vec_t G_EnemyRangeFromSpot(g_entity_t *ent, g_entity_t *spot) {
 }
 
 /**
- * @brief
+ * @brief Checks if spawning a player in this spot would cause a telefrag.
  */
-static g_entity_t *G_SelectRandomSpawnPoint(const char *class_name) {
-	g_entity_t *spot;
-	int32_t count = 0;
+static _Bool G_WouldTelefrag(const vec3_t spot) {
+	g_entity_t *ents[MAX_ENTITIES];
+	vec3_t mins, maxs;
 
-	spot = NULL;
+	VectorAdd(spot, PM_MINS, mins);
+	VectorAdd(spot, PM_MAXS, maxs);
+	
+	mins[2] += PM_STEP_HEIGHT;
+	maxs[2] += PM_STEP_HEIGHT;
 
-	while ((spot = G_Find(spot, EOFS(class_name), class_name)) != NULL) {
-		count++;
+	const size_t len = gi.BoxEntities(mins, maxs, ents, lengthof(ents), BOX_COLLIDE);
+
+	for (size_t i = 0; i < len; i++) {
+
+		if (G_IsMeat(ents[i])) {
+			return true;
+		}
 	}
 
-	if (!count) {
-		return NULL;
-	}
-
-	count = Random() % count;
-
-	while (count-- >= 0) {
-		spot = G_Find(spot, EOFS(class_name), class_name);
-	}
-
-	return spot;
+	return false;
 }
 
 /**
  * @brief
  */
-static g_entity_t *G_SelectFarthestSpawnPoint(g_entity_t *ent, const char *class_name) {
+static g_entity_t *G_SelectRandomSpawnPoint(const g_spawn_points_t *spawn_points) {
+
+	uint32_t empty_spawns[spawn_points->count];
+	uint32_t num_empty_spawns = 0;
+
+	for (uint32_t i = 0; i < spawn_points->count; i++) {
+
+		if (!G_WouldTelefrag(spawn_points->spots[i]->s.origin)) {
+			empty_spawns[num_empty_spawns++] = i;
+		}
+	}
+
+	// none empty, pick randomly
+	if (!num_empty_spawns) {
+		return spawn_points->spots[Random() % spawn_points->count];
+	}
+
+	return spawn_points->spots[empty_spawns[Random() % num_empty_spawns]];
+}
+
+/**
+ * @brief
+ */
+static g_entity_t *G_SelectFarthestSpawnPoint(g_entity_t *ent, const g_spawn_points_t *spawn_points) {
 	g_entity_t *spot, *best_spot;
 	vec_t dist, best_dist;
 
 	spot = best_spot = NULL;
 	best_dist = 0.0;
 
-	while ((spot = G_Find(spot, EOFS(class_name), class_name)) != NULL) {
-
+	for (size_t i = 0; i < spawn_points->count; i++) {
+		
+		spot = spawn_points->spots[i];
 		dist = G_EnemyRangeFromSpot(ent, spot);
 
-		if (dist > best_dist) {
+		if (dist > best_dist && !G_WouldTelefrag(spot->s.origin)) {
 			best_spot = spot;
 			best_dist = dist;
 		}
@@ -735,11 +758,7 @@ static g_entity_t *G_SelectFarthestSpawnPoint(g_entity_t *ent, const char *class
 		return best_spot;
 	}
 
-	// if there is an enemy just spawned on each and every start spot
-	// we have no choice to turn one into a telefrag meltdown
-	spot = G_Find(NULL, EOFS(class_name), class_name);
-
-	return spot;
+	return G_SelectRandomSpawnPoint(spawn_points);
 }
 
 /**
@@ -748,10 +767,10 @@ static g_entity_t *G_SelectFarthestSpawnPoint(g_entity_t *ent, const char *class
 static g_entity_t *G_SelectDeathmatchSpawnPoint(g_entity_t *ent) {
 
 	if (g_spawn_farthest->value) {
-		return G_SelectFarthestSpawnPoint(ent, "info_player_deathmatch");
+		return G_SelectFarthestSpawnPoint(ent, &g_level.spawn_points);
 	}
 
-	return G_SelectRandomSpawnPoint("info_player_deathmatch");
+	return G_SelectRandomSpawnPoint(&g_level.spawn_points);
 }
 
 /**
@@ -763,14 +782,11 @@ static g_entity_t *G_SelectTeamSpawnPoint(g_entity_t *ent) {
 		return NULL;
 	}
 
-	const char *class_name = ent->client->locals.persistent.team == &g_team_good ?
-	                         "info_player_team1" : "info_player_team2";
-
 	if (g_spawn_farthest->value) {
-		return G_SelectFarthestSpawnPoint(ent, class_name);
+		return G_SelectFarthestSpawnPoint(ent, &ent->client->locals.persistent.team->spawn_points);
 	}
 
-	return G_SelectRandomSpawnPoint(class_name);
+	return G_SelectRandomSpawnPoint(&ent->client->locals.persistent.team->spawn_points);
 }
 
 /**
@@ -785,21 +801,6 @@ static g_entity_t *G_SelectSpawnPoint(g_entity_t *ent) {
 
 	if (spawn == NULL) { // fall back on DM spawns (e.g CTF games on DM maps)
 		spawn = G_SelectDeathmatchSpawnPoint(ent);
-	}
-
-	// and lastly fall back on single player start
-	if (spawn == NULL) {
-		while ((spawn = G_Find(spawn, EOFS(class_name), "info_player_start")) != NULL) {
-			if (spawn->locals.target_name == NULL) { // hopefully without a target
-				break;
-			}
-		}
-
-		if (spawn == NULL) { // last resort, find any
-			if ((spawn = G_Find(spawn, EOFS(class_name), "info_player_start")) == NULL) {
-				gi.Error("Couldn't find spawn point\n");
-			}
-		}
 	}
 
 	return spawn;

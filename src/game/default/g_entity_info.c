@@ -81,3 +81,13 @@ void G_info_player_team1(g_entity_t *self) {
 void G_info_player_team2(g_entity_t *self) {
 	G_InitPlayerSpawn(self);
 }
+
+/*QUAKED G_info_player_team_any (1 0 0) (-16 -16 -24) (16 16 32)
+ Player spawn point for any team in teams or CTF gameplay.
+
+ -------- Keys --------
+ angle : The angle at which the player will face when spawned.
+*/
+void G_info_player_team_any(g_entity_t *self) {
+	G_InitPlayerSpawn(self);
+}

@@ -58,6 +58,14 @@ static GList *G_MapList_Parse(const char *filename) {
 			map = gi.Malloc(sizeof(g_map_list_map_t), MEM_TAG_GAME);
 
 			// setup defaults
+			map->gameplay = -1;
+			map->teams = -1;
+			map->ctf = -1;
+			map->match = -1;
+			map->rounds = -1;
+			map->frag_limit = -1;
+			map->round_limit = -1;
+			map->capture_limit = -1;
 			map->hook = -1;
 		}
 

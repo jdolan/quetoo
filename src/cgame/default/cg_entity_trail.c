@@ -731,20 +731,22 @@ static void Cg_BfgTrail(cl_entity_t *ent) {
 /**
  * @brief
  */
-static void Cg_TeleporterTrail(cl_entity_t *ent) {
+static void Cg_TeleporterTrail(cl_entity_t *ent, const uint8_t color, const _Bool sound) {
 
 	if (ent->timestamp > cgi.client->unclamped_time) {
 		return;
 	}
 
-	cgi.AddSample(&(const s_play_sample_t) {
-		.sample = cg_sample_respawn,
-		 .entity = ent->current.number,
-		  .attenuation = ATTEN_IDLE,
-		   .flags = S_PLAY_ENTITY
-	});
+	if (sound) {
+		cgi.AddSample(&(const s_play_sample_t) {
+			.sample = cg_sample_respawn,
+			 .entity = ent->current.number,
+			  .attenuation = ATTEN_IDLE,
+			   .flags = S_PLAY_ENTITY
+		});
+	}
 
-	ent->timestamp = cgi.client->unclamped_time + 1000 + (2000 * Randomf());
+	ent->timestamp = cgi.client->unclamped_time + 1000 + (500 * Randomf());
 
 	for (int32_t i = 0; i < 4; i++) {
 		cg_particle_t *p;
@@ -754,9 +756,9 @@ static void Cg_TeleporterTrail(cl_entity_t *ent) {
 		}
 
 		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
-		p->lifetime = 350;
+		p->lifetime = 450;
 
-		cgi.ColorFromPalette(216, p->color_start);
+		cgi.ColorFromPalette(color, p->color_start);
 		VectorCopy(p->color_start, p->color_end);
 		p->color_end[3] = 0.0;
 
@@ -913,7 +915,16 @@ void Cg_EntityTrail(cl_entity_t *ent) {
 			Cg_BfgTrail(ent);
 			break;
 		case TRAIL_TELEPORTER:
-			Cg_TeleporterTrail(ent);
+			Cg_TeleporterTrail(ent, 216, true);
+			break;
+		case TRAIL_GOOD_SPAWN:
+			Cg_TeleporterTrail(ent, EFFECT_COLOR_BLUE, false);
+			break;
+		case TRAIL_EVIL_SPAWN:
+			Cg_TeleporterTrail(ent, EFFECT_COLOR_RED, false);
+			break;
+		case TRAIL_NEUTRAL_SPAWN:
+			Cg_TeleporterTrail(ent, EFFECT_COLOR_WHITE, false);
 			break;
 		case TRAIL_GIB:
 			Cg_GibTrail(ent, start, end);

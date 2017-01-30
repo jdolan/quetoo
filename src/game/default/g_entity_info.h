@@ -30,4 +30,5 @@ void G_info_notnull(g_entity_t *self);
 void G_info_player_start(g_entity_t *ent);
 void G_info_player_team1(g_entity_t *ent);
 void G_info_player_team2(g_entity_t *ent);
+void G_info_player_team_any(g_entity_t *ent);
 #endif /* __GAME_LOCAL_H__ */

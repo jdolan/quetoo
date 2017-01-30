@@ -260,7 +260,10 @@ typedef enum {
 	TRAIL_TELEPORTER,
 	TRAIL_GIB,
 	TRAIL_FIREBALL,
-	TRAIL_HOOK
+	TRAIL_HOOK,
+	TRAIL_GOOD_SPAWN,
+	TRAIL_EVIL_SPAWN,
+	TRAIL_NEUTRAL_SPAWN
 } g_entity_trail_t;
 
 /**
@@ -764,6 +767,14 @@ typedef struct {
 } g_media_t;
 
 /**
+ * @brief
+ */
+typedef struct {
+	uint32_t count;
+	g_entity_t **spots;
+} g_spawn_points_t;
+
+/**
  * @brief The main structure for all world management. This is cleared at each
  * level load.
  */
@@ -816,6 +827,8 @@ typedef struct {
 	g_entity_t *timeout_caller; // who called it?
 	uint32_t timeout_time;
 	uint32_t timeout_frame;
+
+	g_spawn_points_t spawn_points;
 } g_level_t;
 
 /**
@@ -887,11 +900,14 @@ typedef struct {
 	char name[16]; // kept short for HUD consideration
 	char skin[32];
 	char flag[32]; // flag classname
+	char spawn[32]; // spawn classname
 	int8_t color;
 	int16_t score;
 	int16_t captures;
 	uint32_t name_time;
 	uint32_t skin_time;
+
+	g_spawn_points_t spawn_points;
 } g_team_t;
 
 /**
