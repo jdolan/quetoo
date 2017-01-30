@@ -991,7 +991,11 @@ static void G_worldspawn(g_entity_t *ent) {
 		}
 	}
 
-	g_level.hook_map = map->hook;
+	if (map && map->hook > -1) {
+		g_level.hook_map = map->hook;
+	} else {
+		g_level.hook_map = -1;
+	}
 
 	if (g_level.teams && g_level.ctf) { // ctf overrides teams
 		g_level.teams = 0;
