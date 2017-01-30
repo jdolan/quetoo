@@ -616,6 +616,49 @@ static g_entity_t *G_DropFlag(g_entity_t *ent, const g_item_t *item) {
 /**
  * @brief
  */
+static void G_DropItem_SetExpiration(g_entity_t *ent) {
+
+	if (ent->locals.item->type == ITEM_FLAG) { // flags go back to base
+		ent->locals.Think = G_ResetDroppedFlag;
+	} else { // everything else just gets freed
+		ent->locals.Think = G_FreeEntity;
+	}
+
+	uint32_t expiration;
+	if (ent->locals.item->type == ITEM_POWERUP) { // expire from last touch
+		expiration = ent->locals.timestamp - g_level.time;
+	} else { // general case
+		expiration = 30000;
+	}
+
+	const int32_t contents = gi.PointContents(ent->s.origin);
+
+	if (contents & CONTENTS_LAVA) { // expire more quickly in lava
+		expiration /= 5;
+	}
+	if (contents & CONTENTS_SLIME) { // and slime
+		expiration /= 2;
+	}
+
+	ent->locals.next_think = g_level.time + expiration;
+}
+
+/**
+ * @brief
+ */
+static void G_DropItem_Think(g_entity_t *ent) {
+
+	// continue to think as we drop to the floor
+	if (ent->locals.ground_entity || (gi.PointContents(ent->s.origin) & MASK_LIQUID)) {
+		G_DropItem_SetExpiration(ent);
+	} else {
+		ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
+	}
+}
+
+/**
+ * @brief
+ */
 void G_TouchItem(g_entity_t *ent, g_entity_t *other,
                  const cm_bsp_plane_t *plane,
                  const cm_bsp_texinfo_t *surf) {
@@ -640,6 +683,11 @@ void G_TouchItem(g_entity_t *ent, g_entity_t *other,
 
 	if (g_level.warmup) {
 		return; // warmup mode
+	}
+
+	// if we still haven't thunk from being dropped, set the expiration now
+	if (ent->locals.Think == G_DropItem_Think) {
+		G_DropItem_SetExpiration(ent);
 	}
 
 	const _Bool pickup = ent->locals.item->Pickup(ent, other);
@@ -672,42 +720,6 @@ void G_TouchItem(g_entity_t *ent, g_entity_t *other,
 		if (ent->locals.spawn_flags & SF_ITEM_DROPPED) {
 			G_FreeEntity(ent);
 		}
-	}
-}
-
-/**
- * @brief
- */
-static void G_DropItem_Think(g_entity_t *ent) {
-
-	// continue to think as we drop to the floor
-	if (ent->locals.ground_entity) {
-
-		if (ent->locals.item->type == ITEM_FLAG) { // flags go back to base
-			ent->locals.Think = G_ResetDroppedFlag;
-		} else { // everything else just gets freed
-			ent->locals.Think = G_FreeEntity;
-		}
-
-		uint32_t expiration;
-		if (ent->locals.item->type == ITEM_POWERUP) { // expire from last touch
-			expiration = ent->locals.timestamp - g_level.time;
-		} else { // general case
-			expiration = 30000;
-		}
-
-		const int32_t contents = gi.PointContents(ent->s.origin);
-
-		if (contents & CONTENTS_LAVA) { // expire more quickly in lava
-			expiration /= 5;
-		}
-		if (contents & CONTENTS_SLIME) { // and slime
-			expiration /= 2;
-		}
-
-		ent->locals.next_think = g_level.time + expiration;
-	} else {
-		ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 	}
 }
 
