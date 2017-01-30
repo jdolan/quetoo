@@ -320,7 +320,7 @@ static void Cg_UpdateConfigString(uint16_t i) {
 		cl_client_info_t *ci = &cgi.client->client_info[i - CS_CLIENTS];
 		Cg_LoadClient(ci, s);
 
-		cl_entity_t *ent = &cgi.client->entities[i - CS_CLIENTS];
+		cl_entity_t *ent = &cgi.client->entities[i - CS_CLIENTS + 1];
 
 		ent->animation1.time = ent->animation2.time = 0;
 		ent->animation1.frame = ent->animation2.frame = -1;
