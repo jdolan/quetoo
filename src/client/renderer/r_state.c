@@ -1000,6 +1000,7 @@ void R_InitState(void) {
 
 	glEnable(GL_CULL_FACE);
 	glFrontFace(GL_CW);
+	glDepthFunc(GL_LEQUAL);
 
 	R_GetError("Post-init");
 }
