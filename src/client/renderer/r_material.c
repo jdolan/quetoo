@@ -511,14 +511,14 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 		r_material_t *m = surf->texinfo->material;
 
-		vec_t j = -10.0;
-		for (const r_stage_t *s = m->stages; s; s = s->next, j -= 10.0) {
+		vec_t j = R_OFFSET_UNITS;
+		for (const r_stage_t *s = m->stages; s; s = s->next, j += R_OFFSET_UNITS) {
 
 			if (!(s->cm->flags & STAGE_DIFFUSE)) {
 				continue;
 			}
 
-			R_PolygonOffset(-0.125, j); // increase depth offset for each stage
+			R_PolygonOffset(R_OFFSET_FACTOR, j); // increase depth offset for each stage
 
 			R_SetStageState(surf, s);
 
@@ -578,7 +578,7 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 	// some stages will manipulate texcoords
 
 	r_stage_t *s = m->stages;
-	for (vec_t j = -1.0; s; s = s->next, j--) {
+	for (vec_t j = R_OFFSET_UNITS; s; s = s->next, j += R_OFFSET_UNITS) {
 
 		if (!(s->cm->flags & STAGE_DIFFUSE)) {
 			continue;
@@ -586,7 +586,7 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 
 		R_UpdateMaterialStage(m, s);
 
-		R_PolygonOffset(j, 1.0); // increase depth offset for each stage
+		R_PolygonOffset(R_OFFSET_FACTOR, j); // increase depth offset for each stage
 
 		R_SetStageState(NULL, s);
 

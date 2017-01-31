@@ -394,6 +394,8 @@ void R_DrawBspLeafs(void) {
 
 	R_EnablePolygonOffset(true);
 
+	R_PolygonOffset(R_OFFSET_FACTOR, R_OFFSET_UNITS);
+
 	const r_bsp_leaf_t *l = r_model_state.world->bsp->leafs;
 
 	for (uint16_t i = 0; i < r_model_state.world->bsp->num_leafs; i++, l++) {

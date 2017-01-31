@@ -26,6 +26,9 @@
 r_material_t *R_LoadMaterial(const char *name);
 
 #ifdef __R_LOCAL_H__
+#define R_OFFSET_UNITS -1.0
+#define R_OFFSET_FACTOR -1.0
+
 // stage flags will persist on the stage structures but may also bubble
 // up to the material flags to determine render eligibility
 #define STAGE_TEXTURE			(1 << 0)

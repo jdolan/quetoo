@@ -245,6 +245,8 @@ void R_DrawMeshShadows_default(const r_entities_t *ents) {
 
 	R_EnablePolygonOffset(true);
 
+	R_PolygonOffset(R_OFFSET_FACTOR, R_OFFSET_UNITS);
+
 	R_EnableShadow(program_shadow, true);
 
 	R_EnableStencilTest(GL_ZERO, true);

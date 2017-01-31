@@ -286,8 +286,6 @@ void R_EnablePolygonOffset(_Bool enable) {
 	}
 
 	r_view.num_state_changes[R_STATE_ENABLE_POLYGON_OFFSET]++;
-
-	R_PolygonOffset(-1.0, 1.0);
 }
 
 /**
@@ -973,7 +971,7 @@ void R_InitState(void) {
 	R_EnableTexture(texunit_diffuse, true);
 
 	// polygon offset parameters
-	R_PolygonOffset(-1.0, 1.0);
+	R_PolygonOffset(0.0, 0.0);
 
 	// alpha blend parameters
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1001,7 +999,6 @@ void R_InitState(void) {
 	R_InitSupersample();
 
 	glEnable(GL_CULL_FACE);
-
 	glFrontFace(GL_CW);
 
 	R_GetError("Post-init");
