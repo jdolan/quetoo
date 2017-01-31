@@ -228,8 +228,8 @@ int main(int argc, char **argv) {
 		g_ptr_array_add(args, "--host");
 		g_ptr_array_add(args, HOST);
 
-		for (int i = 0; i < argc - 1; i++) {
-			g_ptr_array_add(args, argv + i);
+		for (int i = 1; i < argc; i++) {
+			g_ptr_array_add(args, argv[i]);
 		}
 
 		g_ptr_array_add(args, NULL);
