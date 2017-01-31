@@ -1129,12 +1129,33 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 		cl->locals.persistent.color = cl->locals.persistent.team->color;
 	} else {
 		s = GetUserInfo(user_info, "color");
-		cl->locals.persistent.color = G_ColorByName(s, EFFECT_COLOR_DEFAULT);
+
+		cl->locals.persistent.color = -1;
+
+		if (strlen(s) && strcmp(s, "default")) { // not default
+
+			int32_t hue = atoi(s);
+
+			if (hue >= 0) {
+				cl->locals.persistent.color = Min(hue, 360);
+			}
+		}
+	}
+
+	gchar client_info[MAX_USER_INFO_STRING] = { '\0' };
+
+	// build the userinfo string
+	g_strlcat(client_info, cl->locals.persistent.net_name, MAX_USER_INFO_STRING);
+	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
+	g_strlcat(client_info, cl->locals.persistent.skin, MAX_USER_INFO_STRING);
+
+	if (cl->locals.persistent.color != -1) {
+		g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
+		g_strlcat(client_info, va("%i", cl->locals.persistent.color), MAX_USER_INFO_STRING);
 	}
 
 	// combine name and skin into a config_string
-	gi.SetConfigString(CS_CLIENTS + (cl - g_game.clients),
-	                   va("%s\\%s", cl->locals.persistent.net_name, cl->locals.persistent.skin));
+	gi.SetConfigString(CS_CLIENTS + (cl - g_game.clients), client_info);
 
 	// set hand, if anything should go wrong, it defaults to 0 (centered)
 	cl->locals.persistent.hand = (g_hand_t) strtol(GetUserInfo(user_info, "hand"), NULL, 10);

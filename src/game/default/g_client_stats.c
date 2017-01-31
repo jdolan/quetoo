@@ -72,7 +72,7 @@ static void G_UpdateScore(const g_entity_t *ent, g_score_t *s) {
 	s->ping = ent->client->ping < 999 ? ent->client->ping : 999;
 
 	if (ent->client->locals.persistent.spectator) {
-		s->color = 0;
+		s->color = -1;
 		s->flags |= SCORE_SPECTATOR;
 	} else {
 		if (g_level.match) {

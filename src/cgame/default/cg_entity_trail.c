@@ -316,7 +316,7 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, vec_t density) {
  */
 static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
-	const uint8_t col = ent->current.client ? ent->current.client : EFFECT_COLOR_ORANGE;
+	const color_t col = Cg_ResolveEffectColor(ent->current.client, EFFECT_COLOR_ORANGE);
 	cg_particle_t *p;
 
 	vec3_t delta;
@@ -341,7 +341,9 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 		p->lifetime = 200 + Randomf() * 100;
 
-		cgi.ColorFromPalette(col + (Random() & 5), p->color_start);
+		// TODO: color modulation
+		//cgi.ColorFromPalette(col + (Random() & 5), p->color_start);
+		ColorToVec4(col, p->color_start);
 		VectorCopy(p->color_start, p->color_end);
 		p->color_start[3] = 0.66;
 		p->color_end[3] = 0.0;
@@ -357,7 +359,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 	}
 
 	vec3_t color;
-	cgi.ColorFromPalette(col, color);
+	ColorToVec3(col, color);
 
 	VectorScale(color, 3.0, color);
 
@@ -416,7 +418,9 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 		p->lifetime = 250 + Randomf() * 200;
 		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-		cgi.ColorFromPalette(EFFECT_COLOR_ORANGE + (Random() & 5), p->color_start);
+		// TODO: color modulation
+		//cgi.ColorFromPalette(EFFECT_COLOR_ORANGE + (Random() & 5), p->color_start);
+		ColorToVec4(EFFECT_COLOR_ORANGE, p->color_start);
 		VectorCopy(p->color_start, p->color_end);
 		p->color_end[3] = 0.0;
 
@@ -602,7 +606,9 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	cg_particle_t *p;
 
 	if ((p = Cg_AllocParticle(PARTICLE_CORONA, NULL))) {
-		cgi.ColorFromPalette(EFFECT_COLOR_BLUE + (Random() & 3), p->part.color);
+		// TODO: color modulation
+		//cgi.ColorFromPalette(EFFECT_COLOR_BLUE + (Random() & 3), p->part.color);
+		ColorToVec4(EFFECT_COLOR_BLUE, p->part.color);
 		VectorCopy(end, p->part.org);
 
 		p->lifetime = PARTICLE_IMMEDIATE;
@@ -676,7 +682,7 @@ static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
 
 	p->lifetime = PARTICLE_IMMEDIATE;
 
-	cgi.ColorFromPalette(ent->current.animation1 ? : EFFECT_COLOR_GREEN, p->part.color);
+	ColorToVec4(Cg_ResolveEffectColor(ent->current.client, EFFECT_COLOR_GREEN), p->part.color);
 
 	p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
 	p->part.scale = 2.0;
@@ -731,7 +737,7 @@ static void Cg_BfgTrail(cl_entity_t *ent) {
 /**
  * @brief
  */
-static void Cg_TeleporterTrail(cl_entity_t *ent, const uint8_t color, const _Bool sound) {
+static void Cg_TeleporterTrail(cl_entity_t *ent, const color_t color, const _Bool sound) {
 
 	if (ent->timestamp > cgi.client->unclamped_time) {
 		return;
@@ -758,7 +764,7 @@ static void Cg_TeleporterTrail(cl_entity_t *ent, const uint8_t color, const _Boo
 		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 		p->lifetime = 450;
 
-		cgi.ColorFromPalette(color, p->color_start);
+		ColorToVec4(color, p->color_start);
 		VectorCopy(p->color_start, p->color_end);
 		p->color_end[3] = 0.0;
 
@@ -915,7 +921,7 @@ void Cg_EntityTrail(cl_entity_t *ent) {
 			Cg_BfgTrail(ent);
 			break;
 		case TRAIL_TELEPORTER:
-			Cg_TeleporterTrail(ent, 216, true);
+			Cg_TeleporterTrail(ent, ColorFromRGB(255, 255, 211), true);
 			break;
 		case TRAIL_GOOD_SPAWN:
 			Cg_TeleporterTrail(ent, EFFECT_COLOR_BLUE, false);

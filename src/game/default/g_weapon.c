@@ -382,7 +382,7 @@ static void G_MuzzleFlash(g_entity_t *ent, g_muzzle_flash_t flash) {
 	gi.WriteByte(flash);
 
 	if (flash == MZ_BLASTER) {
-		gi.WriteByte(ent->client ? ent->client->locals.persistent.color : 0);
+		gi.WriteByte(ent->s.number);
 	}
 
 	gi.Multicast(ent->s.origin, MULTICAST_PHS, NULL);

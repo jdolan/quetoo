@@ -721,28 +721,28 @@ int32_t G_ColorByName(const char *s, int32_t def) {
 	}
 
 	if (!g_ascii_strcasecmp(s, "red")) {
-		return EFFECT_COLOR_RED;
+		return PALETTE_COLOR_RED;
 	}
 	if (!g_ascii_strcasecmp(s, "green")) {
-		return EFFECT_COLOR_GREEN;
+		return PALETTE_COLOR_GREEN;
 	}
 	if (!g_ascii_strcasecmp(s, "blue")) {
-		return EFFECT_COLOR_BLUE;
+		return PALETTE_COLOR_BLUE;
 	}
 	if (!g_ascii_strcasecmp(s, "yellow")) {
-		return EFFECT_COLOR_YELLOW;
+		return PALETTE_COLOR_YELLOW;
 	}
 	if (!g_ascii_strcasecmp(s, "orange")) {
-		return EFFECT_COLOR_ORANGE;
+		return PALETTE_COLOR_ORANGE;
 	}
 	if (!g_ascii_strcasecmp(s, "white")) {
-		return EFFECT_COLOR_WHITE;
+		return PALETTE_COLOR_WHITE;
 	}
 	if (!g_ascii_strcasecmp(s, "pink")) {
-		return EFFECT_COLOR_PINK;
+		return PALETTE_COLOR_PINK;
 	}
 	if (!g_ascii_strcasecmp(s, "purple")) {
-		return EFFECT_COLOR_PURPLE;
+		return PALETTE_COLOR_PURPLE;
 	}
 
 	return def;

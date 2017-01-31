@@ -88,11 +88,15 @@ typedef struct {
 	r_lighting_t lighting; // cached static lighting info
 } cl_entity_t;
 
+// the total number of tokens info can contain
+#define MAX_CLIENT_INFO_ENTRIES		3
+
 typedef struct {
-	char info[MAX_QPATH]; // the full info string, e.g. newbie\qforcer/blue
-	char name[MAX_QPATH]; // the player name, e.g. newbie
-	char model[MAX_QPATH]; // the model name, e.g. qforcer
-	char skin[MAX_QPATH]; // the skin name, e.g. blue
+	char info[MAX_STRING_CHARS]; // the full info string, e.g. newbie\qforcer/blue
+	char name[MAX_USER_INFO_VALUE]; // the player name, e.g. newbie
+	char model[MAX_USER_INFO_VALUE]; // the model name, e.g. qforcer
+	char skin[MAX_USER_INFO_VALUE]; // the skin name, e.g. blue
+	color_t color; // the effect color, parsed from info as a hue value
 
 	r_model_t *head;
 	r_material_t *head_skins[MD3_MAX_MESHES];

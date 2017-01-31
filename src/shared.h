@@ -195,3 +195,17 @@ char *GetUserInfo(const char *s, const char *key);
 void DeleteUserInfo(char *s, const char *key);
 void SetUserInfo(char *s, const char *key, const char *value);
 _Bool ValidateUserInfo(const char *s);
+
+/**
+ * @brief Color manipulation functions
+ */
+_Bool ColorParseHex(const char *s, color_t *color);
+_Bool ColorToHex(const color_t color, char *s, const size_t s_len);
+void ColorToVec3(const color_t color, vec3_t vec);
+void ColorToVec4(const color_t color, vec4_t vec);
+void ColorFromVec3(const vec3_t vec, color_t *color);
+void ColorFromVec4(const vec4_t vec, color_t *color);
+color_t ColorFromHSV(const vec3_t hsv);
+
+// max length of a color string is "rrggbbaa\0" - "default" fits in here
+#define COLOR_MAX_LENGTH		9

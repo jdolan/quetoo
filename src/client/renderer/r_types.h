@@ -60,14 +60,6 @@ typedef struct r_media_s {
 
 typedef int16_t r_pixel_t;
 
-// 32 bit RGBA colors
-typedef union {
-	struct {
-		byte r, g, b, a;
-	} bytes;
-	uint32_t c;
-} r_color_t;
-
 typedef enum {
 	MOD_BAD,
 	MOD_BSP,
@@ -261,7 +253,7 @@ typedef struct {
 	const r_image_t *input_image; // image ptr
 	u16vec2_t position; // position in pixels
 	vec4_t texcoords; // position in texcoords
-	r_color_t *scratch; // scratch space for image
+	color_t *scratch; // scratch space for image
 } r_atlas_image_t;
 
 /**

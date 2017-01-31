@@ -146,23 +146,6 @@ typedef struct r_draw_s {
 static r_draw_t r_draw;
 
 /**
- * @return An `r_color_t` from the given parameters.
- */
-r_color_t R_MakeColor(byte r, byte g, byte b, byte a) {
-
-	r_color_t color = {
-		.bytes = {
-			.r = r,
-			.g = g,
-			.b = b,
-			.a = a,
-		}
-	};
-
-	return color;
-}
-
-/**
  * @brief Make a quad by passing index to first vertex and last element ID.
  */
 static void R_MakeQuadU32(uint32_t *indices, const uint32_t vertex_id) {

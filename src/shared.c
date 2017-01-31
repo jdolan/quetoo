@@ -1230,3 +1230,196 @@ void SetUserInfo(char *s, const char *key, const char *value) {
 	}
 	*s = '\0';
 }
+
+/**
+ * @brief Attempt to convert a hexadecimal value to its string representation.
+ */
+_Bool ColorParseHex(const char *s, color_t *color) {
+	const size_t s_len = strlen(s);
+
+	if (s_len != 3 && s_len != 6 && // rgb or rrggbb format
+		s_len != 4 && s_len != 8) { // rgba or rrggbbaa format
+		return false;
+	}
+
+	switch (s_len) {
+	case 3:
+		if (sscanf(s, "%1hhx%1hhx%1hhx", &color->r, &color->g, &color->b) != 3) {
+			return false;
+		}
+
+		for (int32_t i = 0; i < 3; i++) {
+			color->bytes[i] |= color->bytes[i] << 4;
+		}
+
+		color->a = 0xFF;
+		break;
+	case 6:
+		if (sscanf(s, "%2hhx%2hhx%2hhx", &color->r, &color->g, &color->b) != 3) {
+			return false;
+		}
+
+		color->a = 0xFF;
+		break;
+
+	case 4:
+		if (sscanf(s, "%1hhx%1hhx%1hhx%1hhx", &color->r, &color->g, &color->b, &color->a) != 4) {
+			return false;
+		}
+
+		for (int32_t i = 0; i < 4; i++) {
+			color->bytes[i] |= color->bytes[i] << 4;
+		}
+		break;
+	case 8:
+		if (sscanf(s, "%2hhx%2hhx%2hhx%2hhx", &color->r, &color->g, &color->b, &color->a) != 4) {
+			return false;
+		}
+
+		break;
+	}
+
+	return color;
+}
+
+#define COLOR_BYTES_ARE_SAME(x) \
+	((x & 15) == ((x >> 4) & 15))
+
+/**
+ * @brief Attempt to convert a color to a hexadecimal string representation.
+ */
+_Bool ColorToHex(const color_t color, char *s, const size_t s_len) {
+	
+	_Bool is_short_form = COLOR_BYTES_ARE_SAME(color.r) &&
+						  COLOR_BYTES_ARE_SAME(color.g) &&
+						  COLOR_BYTES_ARE_SAME(color.b);
+	_Bool is_32_bit = color.a != 0xFF;
+
+	if (is_32_bit) {
+		is_short_form = is_short_form && COLOR_BYTES_ARE_SAME(color.a);
+	
+		if (is_short_form) {
+			if (g_strlcat(s, va("%1x%1x%1x%1x", color.r & 15, color.g & 15, color.b & 15, color.a & 15), s_len) >= s_len) {
+				return false;
+			}
+		} else {
+			if (g_strlcat(s, va("%02x%02x%02x%02x", color.r, color.g, color.b, color.a), s_len) >= s_len) {
+				return false;
+			}
+		}
+	} else {
+
+		if (is_short_form) {
+			if (g_strlcat(s, va("%1x%1x%1x", color.r & 15, color.g & 15, color.b & 15), s_len) >= s_len) {
+				return false;
+			}
+		} else {
+			if (g_strlcat(s, va("%02x%02x%02x", color.r, color.g, color.b), s_len) >= s_len) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+/**
+ * @brief
+ */
+void ColorToVec3(const color_t color, vec3_t vec) {
+
+	for (int32_t i = 0; i < 3; i++) {
+		vec[i] = color.bytes[i] / 255.0;
+	}
+}
+
+/**
+ * @brief
+ */
+void ColorToVec4(const color_t color, vec4_t vec) {
+
+	for (int32_t i = 0; i < 4; i++) {
+		vec[i] = color.bytes[i] / 255.0;
+	}
+}
+
+/**
+ * @brief
+ */
+void ColorFromVec3(const vec3_t vec, color_t *color) {
+
+	for (int32_t i = 0; i < 3; i++) {
+		color->bytes[i] = (uint8_t) (Clamp(vec[i], 0.0, 1.0) * 255.0);
+	}
+
+	color->a = 0xFF;
+}
+
+/**
+ * @brief
+ */
+void ColorFromVec4(const vec4_t vec, color_t *color) {
+
+	for (int32_t i = 0; i < 4; i++) {
+		color->bytes[i] = (uint8_t) (Clamp(vec[i], 0.0, 1.0) * 255.0);
+	}
+}
+
+/**
+ * @brief
+ */
+color_t ColorFromHSV(const vec3_t hsv) {
+	color_t out = { .a = 0xFF };
+
+	if (hsv[1] <= 0.0) {
+		out.r = (uint8_t) (hsv[2] * 255.0);
+		out.g = out.r;
+		out.b = out.r;
+		return out;
+	}
+
+	const vec_t hh = Clamp(hsv[0], 0, 360.0) / 60.0;
+	const int32_t i = (int32_t) hh;
+	const vec_t ff = hh - i;
+	const vec_t p = hsv[2] * (1.0 - hsv[1]);
+	const vec_t q = hsv[2] * (1.0 - (hsv[1] * ff));
+	const vec_t t = hsv[2] * (1.0 - (hsv[1] * (1.0 - ff)));
+
+	vec3_t color_float;
+
+	switch(i) {
+	case 0:
+		color_float[0] = hsv[2];
+		color_float[1] = t;
+		color_float[2] = p;
+		break;
+	case 1:
+		color_float[0] = q;
+		color_float[1] = hsv[2];
+		color_float[2] = p;
+		break;
+	case 2:
+		color_float[0] = p;
+		color_float[1] = hsv[2];
+		color_float[2] = t;
+		break;
+	case 3:
+		color_float[0] = p;
+		color_float[1] = q;
+		color_float[2] = hsv[2];
+		break;
+	case 4:
+		color_float[0] = t;
+		color_float[1] = p;
+		color_float[2] = hsv[2];
+		break;
+	default:
+		color_float[0] = hsv[2];
+		color_float[1] = p;
+		color_float[2] = q;
+		break;
+	}
+
+	ColorFromVec3(color_float, &out);
+	return out;
+}

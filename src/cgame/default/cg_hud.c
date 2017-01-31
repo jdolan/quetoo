@@ -820,7 +820,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 		}
 
 		cgi.DrawFill(cgi.view->viewport.x, cgi.view->viewport.y,
-		             cgi.view->viewport.w, cgi.view->viewport.h, final_color.c, -1.0);
+		             cgi.view->viewport.w, cgi.view->viewport.h, final_color.u32, -1.0);
 	}
 }
 

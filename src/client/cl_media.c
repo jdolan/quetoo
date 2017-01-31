@@ -188,16 +188,16 @@ void Cl_DrawLoading(void) {
 	// then the progress bar and percentage
 	R_BindFont("medium", &cw, &ch);
 
-	const r_color_t bg = R_MakeColor(24, 128, 24, 48);
-	const r_color_t fg = R_MakeColor(48, 255, 48, 128);
+	const color_t bg = ColorFromRGBA(24, 128, 24, 48);
+	const color_t fg = ColorFromRGBA(48, 255, 48, 128);
 
 	const r_pixel_t x = r_context.width * 0.25;
 	const r_pixel_t y = r_context.height * 0.66;
 
 	const r_pixel_t w = r_context.width * 0.5;
 
-	R_DrawFill(x, y - 2, w, ch + 4, bg.c, -1.0);
-	R_DrawFill(x + 1, y - 1, (w - 2) * (cls.loading.percent / 100.0), ch + 2, fg.c, -1.0);
+	R_DrawFill(x, y - 2, w, ch + 4, bg.u32, -1.0);
+	R_DrawFill(x + 1, y - 1, (w - 2) * (cls.loading.percent / 100.0), ch + 2, fg.u32, -1.0);
 
 	const char *percent = va("%2d%%", cls.loading.percent);
 	const r_pixel_t px = (r_context.width - R_StringWidth(percent)) / 2;

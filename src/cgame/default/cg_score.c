@@ -78,32 +78,6 @@ void Cg_ParseScores(void) {
 		}
 	}
 
-	/*
-	 // to test the scoreboard, uncomment this block
-	 uint16_t i;
-	 for (i = cg_score_state.num_scores; i < 16; i++) {
-	 cg_score_state.scores[i].client
-	 = cg_score_state.scores[cg_score_state.num_scores - 1].client;
-	 cg_score_state.scores[i].ping = i;
-	 cg_score_state.scores[i].score = i;
-	 cg_score_state.scores[i].captures = i;
-
-	 if (i % 6 == 0) { // some spectators
-	 cg_score_state.scores[i].flags = SCORES_SPECTATOR;
-	 cg_score_state.scores[i].color = 0;
-	 } else {
-	 if (cg_score_state.teams) {
-	 cg_score_state.scores[i].flags = i & 1 ? SCORES_TEAM_GOOD : SCORES_TEAM_EVIL;
-	 cg_score_state.scores[i].color = ColorByName(i & 1 ? "blue" : "red", 0);
-	 } else {
-	 cg_score_state.scores[i].flags = 0;
-	 cg_score_state.scores[i].color = (i + 16) * 3;
-	 }
-	 }
-	 }
-	 cg_score_state.num_scores = i;
-	 */
-
 	qsort(cg_score_state.scores, cg_score_state.num_scores, sizeof(g_score_t),
 	      Cg_ParseScores_Compare);
 }
@@ -185,7 +159,15 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 	const r_pixel_t fw = SCORES_COL_WIDTH - SCORES_ICON_WIDTH - 1;
 	const r_pixel_t fh = SCORES_ROW_HEIGHT - 1;
 
-	cgi.DrawFill(x, y, fw, fh, s->color, fa);
+	if (s->color != -1) {
+		color_t color = ColorFromHSV((const vec3_t) {
+			s->color, 1.0, 1.0
+		});
+	
+		color.a = (uint8_t) (fa * 255.0);
+
+		cgi.DrawFill(x, y, fw, fh, color.u32, -1.0);
+	}
 
 	cgi.BindFont("small", &cw, &ch);
 

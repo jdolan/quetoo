@@ -25,12 +25,8 @@
 /**
  * @brief
  */
-static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) {
+static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t color) {
 	cg_particle_t *p;
-
-	if (!color) {
-		color = EFFECT_COLOR_ORANGE;
-	}
 
 	for (int32_t i = 0; i < 24; i++) {
 
@@ -41,7 +37,9 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 		p->lifetime = 450 + Randomf() * 450;
 
-		cgi.ColorFromPalette(color + (Random() & 5), p->color_start);
+		// TODO: color modulation
+		//cgi.ColorFromPalette(color + (Random() & 5), p->color_start);
+		ColorToVec4(color, p->color_start);
 		p->color_start[3] = 2.0;
 		VectorCopy(p->color_start, p->color_end);
 		p->color_end[3] = 0.0;
@@ -61,7 +59,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 	}
 
 	vec3_t c;
-	cgi.ColorFromPalette(color, c);
+	ColorToVec3(color, c);
 
 	cgi.AddSustainedLight(&(const r_sustained_light_t) {
 		.light.origin = { org[0] + dir[0], org[1] + dir[1], org[2] + dir[2] },
@@ -575,16 +573,14 @@ static void Cg_LightningDischargeEffect(const vec3_t org) {
 /**
  * @brief
  */
-static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir, int32_t flags, int32_t color) {
+static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir, int32_t flags, const color_t color) {
 	vec3_t vec, right, up, point;
 	cg_particle_t *p;
 	r_sustained_light_t s;
 
-	color = color ? color : EFFECT_COLOR_BLUE;
-
 	VectorCopy(start, s.light.origin);
 	s.light.radius = 100.0;
-	cgi.ColorFromPalette(color, s.light.color);
+	ColorToVec3(color, s.light.color);
 	s.sustain = 500;
 
 	cgi.AddSustainedLight(&s);
@@ -596,7 +592,9 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 	}
 
 	// white cores for some colors, shifted for others
-	switch (color) {
+	// FIXME: what to do here for 24-bit colors?
+	ColorToVec4(ColorFromRGB(235, 235, 235), p->color_start);
+	/*switch (color) {
 		case EFFECT_COLOR_RED:
 			cgi.ColorFromPalette(229, p->color_start);
 			break;
@@ -608,7 +606,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		default:
 			cgi.ColorFromPalette(color + 6, p->color_start);
 			break;
-	}
+	}*/
 
 	p->lifetime = 1000;
 	p->effects = PARTICLE_EFFECT_COLOR;
@@ -638,7 +636,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		p->lifetime = 500 + ((i / len) * 500.0);
 		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-		cgi.ColorFromPalette(color, p->color_start);
+		ColorToVec4(color, p->color_start);
 		VectorCopy(p->color_start, p->color_end);
 		p->color_end[3] = 0.0;
 
@@ -684,7 +682,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 	p->lifetime = 250;
 	p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-	cgi.ColorFromPalette(color, p->color_start);
+	ColorToVec4(color, p->color_start);
 	VectorCopy(p->color_start, p->color_end);
 	p->color_start[3] = 1.25;
 	p->color_end[3] = 0.0;
@@ -904,7 +902,7 @@ void Cg_ParseTempEntity(void) {
 			cgi.ReadPosition(pos);
 			cgi.ReadDir(dir);
 			i = cgi.ReadByte();
-			Cg_BlasterEffect(pos, dir, i);
+			Cg_BlasterEffect(pos, dir, Cg_ResolveEffectColor(i ? i - 1 : i, EFFECT_COLOR_ORANGE));
 			break;
 
 		case TE_TRACER:
@@ -953,7 +951,7 @@ void Cg_ParseTempEntity(void) {
 			cgi.ReadDir(dir);
 			i = cgi.ReadLong();
 			j = cgi.ReadByte();
-			Cg_RailEffect(pos, pos2, dir, i, j);
+			Cg_RailEffect(pos, pos2, dir, i, Cg_ResolveEffectColor(j ? j - 1 : 0, EFFECT_COLOR_BLUE));
 			break;
 
 		case TE_EXPLOSION: // rocket and grenade explosions

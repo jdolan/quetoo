@@ -24,7 +24,7 @@
 /**
  * @brief
  */
-static void Cg_EnergyFlash(const cl_entity_t *ent, uint8_t color) {
+static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
 	r_sustained_light_t s;
 	vec3_t forward, right, org, org2;
 
@@ -47,7 +47,7 @@ static void Cg_EnergyFlash(const cl_entity_t *ent, uint8_t color) {
 
 	VectorCopy(org, s.light.origin);
 	s.light.radius = 80.0;
-	cgi.ColorFromPalette(color, s.light.color);
+	ColorToVec3(color, s.light.color);
 	s.sustain = 450;
 
 	cgi.AddSustainedLight(&s);
@@ -154,7 +154,7 @@ void Cg_ParseMuzzleFlash(void) {
 		case MZ_BLASTER:
 			c = cgi.ReadByte();
 			sample = cg_sample_blaster_fire;
-			Cg_EnergyFlash(ent, c ? c : EFFECT_COLOR_ORANGE);
+			Cg_EnergyFlash(ent, Cg_ResolveEffectColor(c ? c - 1 : 0, EFFECT_COLOR_ORANGE));
 			break;
 		case MZ_SHOTGUN:
 			sample = cg_sample_shotgun_fire;
@@ -180,7 +180,7 @@ void Cg_ParseMuzzleFlash(void) {
 			break;
 		case MZ_HYPERBLASTER:
 			sample = cg_sample_hyperblaster_fire;
-			Cg_EnergyFlash(ent, 105);
+			Cg_EnergyFlash(ent, ColorFromRGB(191, 123, 111));
 			break;
 		case MZ_LIGHTNING:
 			sample = cg_sample_lightning_fire;
@@ -190,7 +190,7 @@ void Cg_ParseMuzzleFlash(void) {
 			break;
 		case MZ_BFG10K:
 			sample = cg_sample_bfg_fire;
-			Cg_EnergyFlash(ent, 200);
+			Cg_EnergyFlash(ent, ColorFromRGB(75, 91, 39));
 			break;
 		case MZ_LOGOUT:
 			sample = cg_sample_teleport;

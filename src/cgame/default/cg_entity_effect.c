@@ -22,6 +22,18 @@
 #include "cg_local.h"
 
 /**
+ * @brief Resolve a client color from the entity index given in the effect
+ */
+color_t Cg_ResolveEffectColor(const uint8_t index, const color_t default_color) {
+
+	if (index >= MAX_CLIENTS) {
+		return default_color;
+	}
+
+	return Cg_ClientEffectColor(&cgi.client->client_info[index], default_color);
+}
+
+/**
  * @brief
  */
 static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {

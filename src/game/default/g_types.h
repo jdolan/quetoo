@@ -200,7 +200,7 @@ typedef enum {
 typedef struct {
 	uint16_t client;
 	int16_t ping;
-	uint8_t color;
+	int16_t color;
 	int16_t score;
 	int16_t captures;
 	uint16_t deaths;
@@ -267,23 +267,39 @@ typedef enum {
 } g_entity_trail_t;
 
 /**
- * @brief Effect colors for particle trails and dynamic light flashes.
+ * @brief Effect colors for particle trails and dynamic light flashes. Note that
+ * when these are passed around, they are in the format rrggbb[aa], so don't use
+ * 0x integers since they might not be the right endianness! You can force it with
+ * BigLong, though.
  */
-#define EFFECT_COLOR_RED 232
-#define EFFECT_COLOR_GREEN 201
-#define EFFECT_COLOR_BLUE 119
-#define EFFECT_COLOR_YELLOW 219
-#define EFFECT_COLOR_ORANGE 225
-#define EFFECT_COLOR_WHITE 216
-#define EFFECT_COLOR_PINK 247
-#define EFFECT_COLOR_PURPLE 187
-#define EFFECT_COLOR_DEFAULT 0
+#define EFFECT_COLOR_RED		ColorFromRGB(155, 31, 0)
+#define EFFECT_COLOR_GREEN		ColorFromRGB(75, 91, 39)
+#define EFFECT_COLOR_BLUE		ColorFromRGB(11, 63, 83)
+#define EFFECT_COLOR_YELLOW		ColorFromRGB(255, 255, 83)
+#define EFFECT_COLOR_ORANGE		ColorFromRGB(255, 147, 0)
+#define EFFECT_COLOR_WHITE		ColorFromRGB(255, 255, 211)
+#define EFFECT_COLOR_PINK		ColorFromRGB(235, 151, 127)
+#define EFFECT_COLOR_PURPLE		ColorFromRGB(39, 39, 63)
+#define EFFECT_COLOR_DEFAULT	ColorFromRGBA(0, 0, 0, 0)
 
 /**
- * @brief Scoreboard background colors.
+ * @brief Color palette indexes for the above.
  */
-#define TEAM_COLOR_GOOD 243
-#define TEAM_COLOR_EVIL 242
+#define PALETTE_COLOR_RED 232
+#define PALETTE_COLOR_GREEN 201
+#define PALETTE_COLOR_BLUE 119
+#define PALETTE_COLOR_YELLOW 219
+#define PALETTE_COLOR_ORANGE 225
+#define PALETTE_COLOR_WHITE 216
+#define PALETTE_COLOR_PINK 247
+#define PALETTE_COLOR_PURPLE 187
+#define PALETTE_COLOR_DEFAULT 0
+
+/**
+ * @brief Scoreboard background color hues.
+ */
+#define TEAM_COLOR_GOOD			240
+#define TEAM_COLOR_EVIL			0
 
 /**
  * @brief Entity state model number to indicate that the entity is a client.
@@ -901,7 +917,7 @@ typedef struct {
 	char skin[32];
 	char flag[32]; // flag classname
 	char spawn[32]; // spawn classname
-	int8_t color;
+	int16_t color;
 	int16_t score;
 	int16_t captures;
 	uint32_t name_time;
@@ -944,7 +960,7 @@ typedef struct {
 	g_hook_style_t hook_style; // the player's current hook style
 
 	g_team_t *team; // current team (good/evil)
-	int32_t color; // weapon effect colors
+	int16_t color; // weapon effect colors
 
 	int16_t score;
 	int16_t captures;

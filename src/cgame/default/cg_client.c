@@ -130,13 +130,26 @@ static _Bool Cg_ValidateClient(cl_client_info_t *ci) {
 }
 
 /**
+ * @brief Resolve a client's custom effect color, or default_color if the client
+ * has "default" specified.
+ */
+color_t Cg_ClientEffectColor(const cl_client_info_t *cl, const color_t default_color) {
+	
+	if (cl->color.a) {
+		return cl->color;
+	}
+
+	return default_color;
+}
+
+/**
  * @brief Resolves the player name, model and skins for the specified user info string.
  * If validation fails, we fall back on the DEFAULT_CLIENT_INFO constant.
  */
 void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 	char path[MAX_QPATH];
 	const char *t;
-	char *u = NULL, *v;
+	char *v = NULL;
 	int32_t i;
 
 	cgi.Debug("%s\n", s);
@@ -159,58 +172,80 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 		return;
 	}
 
-	// isolate the player's name
-	g_strlcpy(ci->name, s, sizeof(ci->name));
+	// split info into tokens
+	gchar **info = g_strsplit(s, "\\", MAX_CLIENT_INFO_ENTRIES);
+	const size_t num_info = g_strv_length(info);
 
-	if ((v = strchr(ci->name, '\\'))) { // check for name\model/skin
-
-		if ((u = strchr(v, '/'))) { // it's well-formed
-			*v = *u = '\0';
-
-			strcpy(ci->model, v + 1);
-			strcpy(ci->skin, u + 1);
-		}
-	}
-
-	if (v && u) { // load the models
-		g_snprintf(path, sizeof(path), "players/%s/head.md3", ci->model);
-		if ((ci->head = cgi.LoadModel(path))) {
-			Cg_LoadClientSkins(ci->head, ci->head_skins, ci->skin);
-		}
-
-		g_snprintf(path, sizeof(path), "players/%s/upper.md3", ci->model);
-		if ((ci->torso = cgi.LoadModel(path))) {
-			Cg_LoadClientSkins(ci->torso, ci->torso_skins, ci->skin);
-		}
-
-		g_snprintf(path, sizeof(path), "players/%s/lower.md3", ci->model);
-		if ((ci->legs = cgi.LoadModel(path))) {
-			Cg_LoadClientSkins(ci->legs, ci->legs_skins, ci->skin);
-		}
-
-		g_snprintf(path, sizeof(path), "players/%s/%s_i", ci->model, ci->skin);
-		ci->icon = cgi.LoadImage(path, IT_PIC);
-	}
-
-	// ensure we were able to load everything
-	if (Cg_ValidateClient(ci)) {
-
-		VectorScale(PM_MINS, PM_SCALE, ci->legs->mins);
-		VectorScale(PM_MAXS, PM_SCALE, ci->legs->maxs);
-
-		ci->legs->radius = (ci->legs->maxs[2] - ci->legs->mins[2]) / 2.0;
-
-		cgi.LoadClientSamples(ci->model);
-	} else {
-		cgi.Warn("Failed to load client info %s\n", s);
-
-		if (!g_strcmp0(s, DEFAULT_CLIENT_INFO)) {
-			cgi.Error("Failed to load default client info\n");
-		}
-
-		// and if we weren't, use the default
+	if (!num_info) { // invalid info
 		Cg_LoadClient(ci, DEFAULT_CLIENT_INFO);
+	} else {
+
+		// copy in the name, first token
+		g_strlcpy(ci->name, info[0], sizeof(ci->name));
+
+		// check for valid skin
+		if ((v = strchr(info[1], '/'))) { // it's well-formed
+			*v = '\0';
+
+			g_strlcpy(ci->model, info[1], sizeof(ci->model));
+			g_strlcpy(ci->skin, v + 1, sizeof(ci->skin));
+
+			// load the models
+			g_snprintf(path, sizeof(path), "players/%s/head.md3", ci->model);
+			if ((ci->head = cgi.LoadModel(path))) {
+				Cg_LoadClientSkins(ci->head, ci->head_skins, ci->skin);
+			}
+
+			g_snprintf(path, sizeof(path), "players/%s/upper.md3", ci->model);
+			if ((ci->torso = cgi.LoadModel(path))) {
+				Cg_LoadClientSkins(ci->torso, ci->torso_skins, ci->skin);
+			}
+
+			g_snprintf(path, sizeof(path), "players/%s/lower.md3", ci->model);
+			if ((ci->legs = cgi.LoadModel(path))) {
+				Cg_LoadClientSkins(ci->legs, ci->legs_skins, ci->skin);
+			}
+
+			g_snprintf(path, sizeof(path), "players/%s/%s_i", ci->model, ci->skin);
+			ci->icon = cgi.LoadImage(path, IT_PIC);
+		}
+
+		ci->color = EFFECT_COLOR_DEFAULT;
+
+		// if we have effect color, parse it
+		if (num_info > 2) {
+
+			int32_t hue = Clamp(atoi(info[2]), 0, 360);
+
+			ci->color = ColorFromHSV((const vec3_t) {
+				hue,
+				1.0,
+				0.5
+			});
+		}
+
+		// ensure we were able to load everything
+		if (Cg_ValidateClient(ci)) {
+
+			VectorScale(PM_MINS, PM_SCALE, ci->legs->mins);
+			VectorScale(PM_MAXS, PM_SCALE, ci->legs->maxs);
+
+			ci->legs->radius = (ci->legs->maxs[2] - ci->legs->mins[2]) / 2.0;
+
+			cgi.LoadClientSamples(ci->model);
+		} else {
+			cgi.Warn("Failed to load client info %s\n", s);
+
+			if (!g_strcmp0(s, DEFAULT_CLIENT_INFO)) {
+				cgi.Error("Failed to load default client info\n");
+			}
+
+			// and if we weren't, use the default
+			Cg_LoadClient(ci, DEFAULT_CLIENT_INFO);
+		}
 	}
+
+	g_strfreev(info);
 }
 
 /**

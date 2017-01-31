@@ -319,13 +319,6 @@ void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 	projectile->locals.Touch = G_BlasterProjectile_Touch;
 	projectile->s.trail = TRAIL_BLASTER;
 
-	// set the color, overloading the client byte
-	if (ent->client) {
-		projectile->s.client = ent->client->locals.persistent.color;
-	} else {
-		projectile->s.client = 0;
-	}
-
 	gi.LinkEntity(projectile);
 }
 
@@ -991,20 +984,6 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 		VectorCopy(tr.end, pos);
 	}
 
-	uint8_t color = EFFECT_COLOR_DEFAULT;
-	if (ent && ent->client) {
-		// use team colors, or client's color
-		if (g_level.teams || g_level.ctf) {
-			if (ent->client->locals.persistent.team == &g_team_good) {
-				color = EFFECT_COLOR_BLUE;
-			} else {
-				color = EFFECT_COLOR_RED;
-			}
-		} else {
-			color = ent->client->locals.persistent.color;
-		}
-	}
-
 	// send rail trail
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_RAIL);
@@ -1012,7 +991,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 	gi.WritePosition(tr.end);
 	gi.WriteDir(tr.plane.normal);
 	gi.WriteLong(tr.surface ? tr.surface->flags : 0);
-	gi.WriteByte(color);
+	gi.WriteByte(ent->s.number);
 
 	gi.Multicast(start, MULTICAST_PHS, NULL);
 
@@ -1023,7 +1002,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 		gi.WritePosition(tr.end);
 		gi.WriteDir(tr.plane.normal);
 		gi.WriteLong(tr.surface ? tr.surface->flags : 0);
-		gi.WriteByte(color);
+		gi.WriteByte(ent->s.number);
 
 		gi.Multicast(tr.end, MULTICAST_PHS, NULL);
 	}
@@ -1327,13 +1306,6 @@ g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t d
 
 	// angle is used for rendering on client side
 	VectorCopy(projectile->s.angles, trail->s.angles);
-
-	// set the color, overloading the client byte
-	if (ent->client) {
-		trail->s.animation1 = ent->client->locals.persistent.color;
-	} else {
-		trail->s.animation1 = 0;
-	}
 
 	gi.LinkEntity(trail);
 	return projectile;
