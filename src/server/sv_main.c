@@ -824,7 +824,7 @@ static void Sv_InitLocal(void) {
 	                       "Disable server-side area management (developer tool)");
 	sv_public = Cvar_Add("sv_public", "0", 0,
 	                     "Set to 1 to to advertise this server via the master server");
-	sv_rcon_password = Cvar_Add("rcon_password", "", 0,
+	sv_rcon_password = Cvar_Add("sv_rcon_password", "", 0,
 	                            "The remote console password. If set, only give this to trusted clients");
 	sv_timeout = Cvar_Add("sv_timeout", va("%d", SV_TIMEOUT), 0, NULL);
 	sv_udp_download = Cvar_Add("sv_udp_download", "1", CVAR_ARCHIVE,
