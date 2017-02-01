@@ -24,6 +24,43 @@
 #include "cm_types.h"
 
 typedef struct {
+	/**
+	 * @brief The image to use for the normal map
+	 */
+	char normalmap[MAX_QPATH];
+
+	/**
+	 * @brief The image to use for the specular/shiny map
+	 */
+	char specularmap[MAX_QPATH];
+
+	/**
+	 * @brief The bump factor to use for the normal map.
+	 */
+	vec_t bump;
+
+	/**
+	 * @brief The parallel factor to use for the normal map.
+	 */
+	vec_t parallax;
+
+	/**
+	 * @brief The hardness factor to use for the normal map.
+	 */
+	vec_t hardness;
+
+	/**
+	 * @brief The specular factor to use for the specular map.
+	 */
+	vec_t specular;
+
+	/**
+	 * @brief The name for the footstep sounds to query on this surface
+	 */
+	char footsteps[MAX_QPATH];
+} cm_stage_diffuse_t;
+
+typedef struct {
 	uint32_t src, dest;
 } cm_stage_blend_t;
 
@@ -70,6 +107,7 @@ typedef struct cm_stage_s {
 	struct cm_material_s *material;
 	cm_stage_blend_t blend;
 	vec3_t color;
+	cm_stage_diffuse_t diffuse;
 	cm_stage_pulse_t pulse;
 	cm_stage_stretch_t stretch;
 	cm_stage_rotate_t rotate;
@@ -129,49 +167,9 @@ typedef struct cm_material_s {
 	char name[MAX_QPATH];
 
 	/**
-	 * @brief The image to use for the diffuse map
-	 */
-	char diffuse[MAX_QPATH];
-
-	/**
-	 * @brief The image to use for the normal map
-	 */
-	char normalmap[MAX_QPATH];
-
-	/**
-	 * @brief The image to use for the specular/shiny map
-	 */
-	char specularmap[MAX_QPATH];
-
-	/**
 	 * @brief Flags for the material.
 	 */
 	cm_material_flags_t flags;
-
-	/**
-	 * @brief The bump factor to use for the normal map.
-	 */
-	vec_t bump;
-
-	/**
-	 * @brief The parallel factor to use for the normal map.
-	 */
-	vec_t parallax;
-
-	/**
-	 * @brief The hardness factor to use for the normal map.
-	 */
-	vec_t hardness;
-
-	/**
-	 * @brief The specular factor to use for the specular map.
-	 */
-	vec_t specular;
-
-	/**
-	 * @brief The name for the footstep sounds to query on this surface
-	 */
-	char footsteps[MAX_QPATH];
 
 	/**
 	 * @brief Pointer to the first stage in the stage list. NOT an array;
@@ -185,9 +183,9 @@ typedef struct cm_material_s {
 	uint16_t num_stages;
 
 	/**
-	 * @brief The next material, if this is a material list.
+	 * @brief The linked queue for this material. We are in this list somewhere.
 	 */
-	struct cm_material_s *next;
+	GQueue *list;
 } cm_material_t;
 
 cm_material_t *Cm_LoadMaterial(const char *diffuse);

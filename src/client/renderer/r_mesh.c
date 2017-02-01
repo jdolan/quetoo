@@ -241,7 +241,7 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 
 		r_mesh_state.material = e->skins[0] ? e->skins[0] : e->model->mesh->material;
 
-		R_BindDiffuseTexture(r_mesh_state.material->diffuse->texnum);
+		R_BindDiffuseTexture(r_mesh_state.material->stages->image->texnum);
 
 		R_SetMeshColor_default(e);
 
@@ -315,15 +315,36 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 			if (i > 0) { // update the diffuse state for the current mesh
 				r_mesh_state.material = e->skins[i] ? e->skins[i] : e->model->mesh->material;
 
-				R_BindDiffuseTexture(r_mesh_state.material->diffuse->texnum);
+				R_BindDiffuseTexture(r_mesh_state.material->stages->image->texnum);
 
 				R_UseMaterial(r_mesh_state.material);
 			}
 		}
 
-		R_DrawArrays(GL_TRIANGLES, offset, mesh->num_elements);
+		// draw opaque first
+		if (!(r_mesh_state.material->flags & STAGE_BLEND)) {
+			R_DrawMeshMaterial(r_mesh_state.material, offset, mesh->num_elements);
+		}
 
-		R_DrawMeshMaterial(r_mesh_state.material, offset, mesh->num_elements);
+		offset += mesh->num_elements;
+	}
+
+	offset = 0;
+	mesh = md3->meshes;
+	for (uint16_t i = 0; i < md3->num_meshes; i++, mesh++) {
+
+		if (!r_draw_wireframe->value) {
+			r_mesh_state.material = e->skins[i] ? e->skins[i] : e->model->mesh->material;
+
+			R_BindDiffuseTexture(r_mesh_state.material->stages->image->texnum);
+
+			R_UseMaterial(r_mesh_state.material);
+		}
+
+		// draw blended stuff
+		if (r_mesh_state.material->flags & STAGE_BLEND) {
+			R_DrawMeshMaterial(r_mesh_state.material, offset, mesh->num_elements);
+		}
 
 		offset += mesh->num_elements;
 	}
@@ -339,8 +360,6 @@ void R_DrawMeshModel_default(const r_entity_t *e) {
 	if (e->model->type == MOD_MD3) {
 		R_DrawMeshParts_default(e, (const r_md3_t *) e->model->mesh->data);
 	} else {
-		R_DrawArrays(GL_TRIANGLES, 0, e->model->num_elements);
-
 		R_DrawMeshMaterial(r_mesh_state.material, 0, e->model->num_elements);
 	}
 

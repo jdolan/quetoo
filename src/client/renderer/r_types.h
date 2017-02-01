@@ -323,6 +323,11 @@ typedef struct r_particle_s {
 
 // renderer-specific material stuff
 typedef struct {
+	r_image_t *normalmap;
+	r_image_t *specularmap;
+} r_stage_diffuse_t;
+
+typedef struct {
 	vec_t dhz;
 } r_stage_pulse_t;
 
@@ -352,6 +357,7 @@ typedef struct r_stage_s {
 	// renderer-local stuff parsed from cm
 	struct r_material_s *material;
 	r_image_t *image;
+	r_stage_diffuse_t diffuse;
 	r_stage_pulse_t pulse;
 	r_stage_stretch_t stretch;
 	r_stage_rotate_t rotate;
@@ -372,10 +378,6 @@ typedef struct r_material_s {
 	// renderer-local stuff parsed from cm
 	uint32_t time;
 	uint32_t flags; // these may differ from cm->flags
-
-	r_image_t *diffuse;
-	r_image_t *normalmap;
-	r_image_t *specularmap;
 
 	r_stage_t *stages;
 } r_material_t;

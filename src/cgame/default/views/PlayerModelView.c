@@ -69,6 +69,8 @@ static void render(View *self, Renderer *renderer) {
 		$(self, updateBindings);
 	}
 
+	cgi.view->ticks = cgi.client->unclamped_time;
+
 	if (this->client.torso) {
 		$(this, animate);
 

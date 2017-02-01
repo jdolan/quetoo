@@ -29,37 +29,6 @@ r_material_t *R_LoadMaterial(const char *name);
 #define R_OFFSET_UNITS -1.0
 #define R_OFFSET_FACTOR -1.0
 
-// stage flags will persist on the stage structures but may also bubble
-// up to the material flags to determine render eligibility
-#define STAGE_TEXTURE			(1 << 0)
-#define STAGE_ENVMAP			(1 << 1)
-#define STAGE_BLEND				(1 << 2)
-#define STAGE_COLOR				(1 << 3)
-#define STAGE_PULSE				(1 << 4)
-#define STAGE_STRETCH			(1 << 5)
-#define STAGE_ROTATE			(1 << 6)
-#define STAGE_SCROLL_S			(1 << 7)
-#define STAGE_SCROLL_T			(1 << 8)
-#define STAGE_SCALE_S			(1 << 9)
-#define STAGE_SCALE_T			(1 << 10)
-#define STAGE_TERRAIN			(1 << 11)
-#define STAGE_ANIM				(1 << 12)
-#define STAGE_LIGHTMAP			(1 << 13)
-#define STAGE_DIRTMAP			(1 << 14)
-#define STAGE_FLARE				(1 << 15)
-
-// set on stages eligible for static, dynamic, and per-pixel lighting
-#define STAGE_LIGHTING			(1 << 30)
-
-// set on stages with valid render passes
-#define STAGE_DIFFUSE 			(1u << 31)
-
-// composite mask for simplifying state management
-#define STAGE_TEXTURE_MATRIX (\
-                              STAGE_STRETCH | STAGE_ROTATE | STAGE_SCROLL_S | STAGE_SCROLL_T | \
-                              STAGE_SCALE_S | STAGE_SCALE_T \
-                             )
-
 void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs);
 void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count);
 void R_LoadMaterials(r_model_t *mod);

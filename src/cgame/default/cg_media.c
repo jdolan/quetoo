@@ -156,11 +156,13 @@ static void Cg_InitFootsteps(void) {
 	}, 4);
 
 	g_hash_table_insert(cg_footstep_table, "default", default_samples);
+	
+	for (GList *list = cgi.MapMaterials()->list->head; list; list = list->next) {
 
-	for (const cm_material_t *material = cgi.MapMaterials(); material; material = material->next) {
+		cm_material_t *material = (cm_material_t *) list->data;
 
-		if (*material->footsteps) {
-			Cg_FootstepsTable_Load(material->footsteps);
+		if (*material->stages->diffuse.footsteps) {
+			Cg_FootstepsTable_Load(material->stages->diffuse.footsteps);
 		}
 	}
 }

@@ -88,11 +88,15 @@ static void Cm_LoadBspSurfaces(void) {
 		g_snprintf(material_name, sizeof(material_name), "textures/%s", out->name);
 		Cm_MaterialName(material_name, material_name, sizeof(material_name));
 
-		for (cm_material_t *material = cm_bsp.materials; material; material = material->next) {
+		if (cm_bsp.materials) {
+			for (GList *list = cm_bsp.materials->list->head; list; list = list->next) {
 
-			if (!g_strcmp0(material->base, material_name)) {
-				out->material = material;
-				break;
+				cm_material_t *material = (cm_material_t *) list->data;
+
+				if (!g_strcmp0(material->base, material_name)) {
+					out->material = material;
+					break;
+				}
 			}
 		}
 	}
@@ -297,7 +301,12 @@ static cm_material_t *Cm_LoadBspMaterials(const char *name) {
  */
 static void Cm_UnloadBspMaterials(void) {
 
-	Cm_FreeMaterial(cm_bsp.materials);
+	if (cm_bsp.materials) {
+		for (GList *list = cm_bsp.materials->list->head; list; list = list->next) {
+			Cm_FreeMaterial((cm_material_t *) list->data);
+		}
+	}
+
 	cm_bsp.materials = NULL;
 }
 

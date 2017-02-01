@@ -137,8 +137,8 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
 			if (len != -1) {
 				d_wal_t *wal = (d_wal_t *) buffer;
 
-				out->material->diffuse->width = LittleLong(wal->width);
-				out->material->diffuse->height = LittleLong(wal->height);
+				out->material->stages->image->width = LittleLong(wal->width);
+				out->material->stages->image->height = LittleLong(wal->height);
 
 				Fs_Free(buffer);
 			}
@@ -146,7 +146,7 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
 
 		// resolve emissive lighting
 		if ((out->flags & SURF_LIGHT) && out->value) {
-			VectorScale(out->material->diffuse->color, out->value, out->emissive);
+			VectorScale(out->material->stages->image->color, out->value, out->emissive);
 			out->light = ColorNormalize(out->emissive, out->emissive);
 		}
 	}
@@ -661,8 +661,8 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 		vec_t s = DotProduct(vert->position, sdir) + soff;
 		vec_t t = DotProduct(vert->position, tdir) + toff;
 
-		mod->bsp->texcoords[*vertices][0] = s / surf->texinfo->material->diffuse->width;
-		mod->bsp->texcoords[*vertices][1] = t / surf->texinfo->material->diffuse->height;
+		mod->bsp->texcoords[*vertices][0] = s / surf->texinfo->material->stages->image->width;
+		mod->bsp->texcoords[*vertices][1] = t / surf->texinfo->material->stages->image->height;
 
 		// lightmap texture coordinates
 		if (surf->flags & R_SURF_LIGHTMAP) {

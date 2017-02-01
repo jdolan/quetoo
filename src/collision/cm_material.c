@@ -23,12 +23,18 @@
 #include <GL/gl.h>
 
 /**
- * @brief Free the memory for the specified material or material list. Only call this
- * for the head material in a material list.
- * @note This may seem like it's missing code, but it's not; material lists
- * have their memory link-allocated, and children materials are linked as well.
+ * @brief Free the memory for the specified material. This does not free the whole
+ * list, so if this contains linked materials, be sure to rid them as well.
  */
 void Cm_FreeMaterial(cm_material_t *material) {
+
+	if (material->list) {
+		g_queue_remove(material->list, material);
+
+		if (g_queue_is_empty(material->list)) {
+			g_queue_free(material->list);
+		}
+	}
 
 	Mem_Free(material);
 }
@@ -387,7 +393,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, const char **buffe
 			          "  terrain.ceil: %5f\n"
 			          "  anim.num_frames: %d\n"
 			          "  anim.fps: %3f\n", s->flags, (*s->image ? s->image : "NULL"),
-			          (s->material ? s->material->diffuse : "NULL"), s->blend.src,
+			          (s->material ? s->material->stages->image : "NULL"), s->blend.src,
 			          s->blend.dest, s->color[0], s->color[1], s->color[2], s->pulse.hz,
 			          s->stretch.amp, s->stretch.hz, s->rotate.hz, s->scroll.s, s->scroll.t,
 			          s->scale.s, s->scale.t, s->terrain.floor, s->terrain.ceil, s->anim.num_frames,
@@ -416,7 +422,26 @@ void Cm_MaterialName(const char *in, char *out, size_t len) {
 }
 
 /**
- * @brief Loads the material with the specified diffuse texture.
+ * @brief
+ */
+static void Cm_AttachStage(cm_material_t *m, cm_stage_t *s) {
+
+	m->num_stages++;
+
+	if (!m->stages) {
+		m->stages = s;
+		return;
+	}
+
+	cm_stage_t *ss = m->stages;
+	while (ss->next) {
+		ss = ss->next;
+	}
+	ss->next = s;
+}
+
+/**
+ * @brief Loads the material and sets up the diffuse stage.
  */
 cm_material_t *Cm_LoadMaterial(const char *diffuse) {
 
@@ -425,14 +450,20 @@ cm_material_t *Cm_LoadMaterial(const char *diffuse) {
 	}
 
 	cm_material_t *mat = Mem_TagMalloc(sizeof(cm_material_t), MEM_TAG_MATERIAL);
+	cm_stage_t *stage = (cm_stage_t *) Mem_LinkMalloc(sizeof(*stage), mat);
 
-	StripExtension(diffuse, mat->diffuse);
-	Cm_MaterialName(mat->diffuse, mat->base, sizeof(mat->base));
+	StripExtension(diffuse, stage->image);
+	Cm_MaterialName(diffuse, mat->base, sizeof(mat->base));
 
-	mat->bump = DEFAULT_BUMP;
-	mat->hardness = DEFAULT_HARDNESS;
-	mat->parallax = DEFAULT_PARALLAX;
-	mat->specular = DEFAULT_SPECULAR;
+	stage->diffuse.bump = DEFAULT_BUMP;
+	stage->diffuse.hardness = DEFAULT_HARDNESS;
+	stage->diffuse.parallax = DEFAULT_PARALLAX;
+	stage->diffuse.specular = DEFAULT_SPECULAR;
+
+	stage->flags |= STAGE_TEXTURE | STAGE_DIFFUSE;
+	mat->flags |= stage->flags;
+
+	Cm_AttachStage(mat, stage);
 
 	return mat;
 }
@@ -457,6 +488,8 @@ cm_material_t *Cm_LoadMaterials(const char *path, size_t *count) {
 	if (count) {
 		*count = 0;
 	}
+
+	GQueue *list = g_queue_new();
 
 	while (true) {
 
@@ -484,12 +517,6 @@ cm_material_t *Cm_LoadMaterials(const char *path, size_t *count) {
 
 			g_strlcpy(mat->name, c, sizeof(mat->name));
 
-			// prepend to the material list
-			if (m) {
-				mat->next = m;
-				Mem_Link(m, mat);
-			}
-
 			m = mat;
 
 			parsing_material = true;
@@ -502,56 +529,74 @@ cm_material_t *Cm_LoadMaterials(const char *path, size_t *count) {
 
 		if (!g_strcmp0(c, "normalmap")) {
 			c = ParseToken(&buffer);
-			g_strlcpy(m->normalmap, c, sizeof(m->normalmap));
+			g_strlcpy(m->stages->diffuse.normalmap, c, sizeof(m->stages->diffuse.normalmap));
 		}
 
 		if (!g_strcmp0(c, "specularmap")) {
 			c = ParseToken(&buffer);
-			g_strlcpy(m->specularmap, c, sizeof(m->specularmap));
+			g_strlcpy(m->stages->diffuse.specularmap, c, sizeof(m->stages->diffuse.specularmap));
 		}
 
 		if (!g_strcmp0(c, "bump")) {
 
-			m->bump = strtod(ParseToken(&buffer), NULL);
+			m->stages->diffuse.bump = strtod(ParseToken(&buffer), NULL);
 
-			if (m->bump < 0.0) {
-				Com_Warn("Invalid bump value for %s\n", m->diffuse);
-				m->bump = DEFAULT_BUMP;
+			if (m->stages->diffuse.bump < 0.0) {
+				Com_Warn("Invalid bump value for %s\n", m->base);
+				m->stages->diffuse.bump = DEFAULT_BUMP;
 			}
 		}
 
 		if (!g_strcmp0(c, "parallax")) {
 
-			m->parallax = strtod(ParseToken(&buffer), NULL);
+			m->stages->diffuse.parallax = strtod(ParseToken(&buffer), NULL);
 
-			if (m->parallax < 0.0) {
-				Com_Warn("Invalid parallax value for %s\n", m->diffuse);
-				m->parallax = DEFAULT_PARALLAX;
+			if (m->stages->diffuse.parallax < 0.0) {
+				Com_Warn("Invalid parallax value for %s\n", m->base);
+				m->stages->diffuse.parallax = DEFAULT_PARALLAX;
 			}
 		}
 
 		if (!g_strcmp0(c, "hardness")) {
 
-			m->hardness = strtod(ParseToken(&buffer), NULL);
+			m->stages->diffuse.hardness = strtod(ParseToken(&buffer), NULL);
 
-			if (m->hardness < 0.0) {
-				Com_Warn("Invalid hardness value for %s\n", m->diffuse);
-				m->hardness = DEFAULT_HARDNESS;
+			if (m->stages->diffuse.hardness < 0.0) {
+				Com_Warn("Invalid hardness value for %s\n", m->base);
+				m->stages->diffuse.hardness = DEFAULT_HARDNESS;
 			}
 		}
 
 		if (!g_strcmp0(c, "specular")) {
-			m->specular = strtod(ParseToken(&buffer), NULL);
+			m->stages->diffuse.specular = strtod(ParseToken(&buffer), NULL);
 
-			if (m->specular < 0.0) {
-				Com_Warn("Invalid specular value for %s\n", m->diffuse);
-				m->specular = DEFAULT_SPECULAR;
+			if (m->stages->diffuse.specular < 0.0) {
+				Com_Warn("Invalid specular value for %s\n", m->base);
+				m->stages->diffuse.specular = DEFAULT_SPECULAR;
 			}
 		}
 
 		if (!g_strcmp0(c, "footsteps")) {
 			const char *footsteps = ParseToken(&buffer);
-			g_strlcpy(m->footsteps, footsteps, sizeof(m->footsteps));
+			g_strlcpy(m->stages->diffuse.footsteps, footsteps, sizeof(m->stages->diffuse.footsteps));
+		}
+
+		if (!g_strcmp0(c, "diffuse")) {
+
+			c = ParseToken(&buffer);
+
+			if (*c == '{') {
+				cm_stage_t *s = m->stages;
+
+				if (Cm_ParseStage(m, s, &buffer) == -1) {
+					Com_Debug(DEBUG_COLLISION, "Couldn't load a stage in %s\n", m->base);
+					Mem_Free(s);
+					continue;
+				}
+
+				m->flags |= s->flags;
+				continue;
+			}
 		}
 
 		if (*c == '{' && in_material) {
@@ -559,28 +604,23 @@ cm_material_t *Cm_LoadMaterials(const char *path, size_t *count) {
 			cm_stage_t *s = (cm_stage_t *) Mem_LinkMalloc(sizeof(*s), m);
 
 			if (Cm_ParseStage(m, s, &buffer) == -1) {
+				Com_Debug(DEBUG_COLLISION, "Couldn't load a stage in %s\n", m->base);
 				Mem_Free(s);
 				continue;
 			}
 
 			// append the stage to the chain
-			if (!m->stages) {
-				m->stages = s;
-			} else {
-				cm_stage_t *ss = m->stages;
-				while (ss->next) {
-					ss = ss->next;
-				}
-				ss->next = s;
-			}
+			Cm_AttachStage(m, s);
 
 			m->flags |= s->flags;
-			m->num_stages++;
 			continue;
 		}
 
 		if (*c == '}' && in_material) {
-			Com_Debug(DEBUG_COLLISION, "Parsed material %s with %d stages\n", m->diffuse, m->num_stages);
+			m->list = list;
+			g_queue_push_tail(list, m);
+
+			Com_Debug(DEBUG_COLLISION, "Parsed material %s with %d stages\n", m->base, m->num_stages);
 			in_material = false;
 			parsing_material = false;
 
@@ -591,7 +631,6 @@ cm_material_t *Cm_LoadMaterials(const char *path, size_t *count) {
 	}
 
 	Fs_Free(buf);
-
 	return m;
 }
 
@@ -675,33 +714,33 @@ static void Cm_WriteMaterial_(const cm_material_t *material, file_t *file) {
 	// write the innards
 	Fs_Print(file, "\tmaterial %s\n", material->name);
 
-	if (*material->normalmap) {
-		Fs_Print(file, "\tnormalmap %s\n", material->normalmap);
+	if (*material->stages->diffuse.normalmap) {
+		Fs_Print(file, "\tnormalmap %s\n", material->stages->diffuse.normalmap);
 	}
-	if (*material->specularmap) {
-		Fs_Print(file, "\tspecularmap %s\n", material->specularmap);
+	if (*material->stages->diffuse.specularmap) {
+		Fs_Print(file, "\tspecularmap %s\n", material->stages->diffuse.specularmap);
 	}
 
-	if (material->bump != DEFAULT_BUMP) {
-		Fs_Print(file, "\tbump %g\n", material->bump);
+	if (material->stages->diffuse.bump != DEFAULT_BUMP) {
+		Fs_Print(file, "\tbump %g\n", material->stages->diffuse.bump);
 	}
-	if (material->parallax != DEFAULT_BUMP) {
-		Fs_Print(file, "\tparallax %g\n", material->parallax);
+	if (material->stages->diffuse.parallax != DEFAULT_PARALLAX) {
+		Fs_Print(file, "\tparallax %g\n", material->stages->diffuse.parallax);
 	}
-	if (material->hardness != DEFAULT_BUMP) {
-		Fs_Print(file, "\thardness %g\n", material->hardness);
+	if (material->stages->diffuse.hardness != DEFAULT_HARDNESS) {
+		Fs_Print(file, "\thardness %g\n", material->stages->diffuse.hardness);
 	}
-	if (material->specular != DEFAULT_BUMP) {
-		Fs_Print(file, "\tspecular %g\n", material->specular);
+	if (material->stages->diffuse.specular != DEFAULT_SPECULAR) {
+		Fs_Print(file, "\tspecular %g\n", material->stages->diffuse.specular);
 	}
 
 	// if not empty/default, write footsteps
-	if (*material->footsteps && g_strcmp0(material->footsteps, "default")) {
-		Fs_Print(file, "\tfootsteps %s\n", material->footsteps);
+	if (*material->stages->diffuse.footsteps && g_strcmp0(material->stages->diffuse.footsteps, "default")) {
+		Fs_Print(file, "\tfootsteps %s\n", material->stages->diffuse.footsteps);
 	}
 
 	// write stages
-	for (cm_stage_t *stage = material->stages; stage; stage = stage->next) {
+	for (cm_stage_t *stage = material->stages + 1; stage; stage = stage->next) {
 		Cm_WriteStage(material, stage, file);
 	}
 
@@ -714,8 +753,8 @@ static void Cm_WriteMaterial_(const cm_material_t *material, file_t *file) {
 void Cm_WriteMaterial(const char *filename, const cm_material_t *material) {
 	file_t *file = Fs_OpenWrite(filename);
 
-	for (; material; material = material->next) {
-		Cm_WriteMaterial_(material, file);
+	for (GList *list = material->list->head; list; list = list->next) {
+		Cm_WriteMaterial_((const cm_material_t *) list->data, file);
 	}
 
 	Fs_Close(file);
