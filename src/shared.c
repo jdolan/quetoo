@@ -180,8 +180,6 @@ void PerpendicularVector(const vec3_t in, vec3_t out) {
 	VectorNormalize(out);
 }
 
-void TangentToGLTangent(const vec4_t tangent, int32_t *integer);
-
 /**
  * @brief Projects the normalized directional vectors on to the normal's plane.
  * The fourth component of the resulting tangent vector represents sidedness.

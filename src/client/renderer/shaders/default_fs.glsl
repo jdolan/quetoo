@@ -43,6 +43,7 @@ uniform CausticParameters CAUSTIC;
 
 uniform bool DIFFUSE;
 uniform bool LIGHTMAP;
+uniform bool DELUXEMAP;
 uniform bool NORMALMAP;
 uniform bool GLOSSMAP;
 
@@ -181,8 +182,11 @@ void main(void) {
 	vec3 bump = vec3(1.0);
 
 	if (NORMALMAP) {
-		deluxemap = texture2D(SAMPLER2, texcoords[1]).rgb;
-		deluxemap = normalize(two * (deluxemap + negHalf));
+
+		if (DELUXEMAP) {
+			deluxemap = texture2D(SAMPLER2, texcoords[1]).rgb;
+			deluxemap = normalize(two * (deluxemap + negHalf));
+		}
 
 		normalmap = texture2D(SAMPLER3, texcoords[0]);
 

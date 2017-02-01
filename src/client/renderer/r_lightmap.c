@@ -227,7 +227,7 @@ static void R_UploadPackedLightmaps(uint32_t width, uint32_t height, r_bsp_model
 
 	// edge case, no blocks left
 	if (!width || !height || !start) {
-		return;
+		Com_Error(ERROR_DROP, "Unable to load lightmaps - this is bad!");
 	}
 
 	// allocate the image

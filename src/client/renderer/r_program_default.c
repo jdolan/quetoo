@@ -27,6 +27,7 @@ typedef struct {
 
 	r_uniform1i_t diffuse;
 	r_uniform1i_t lightmap;
+	r_uniform1i_t deluxemap;
 	r_uniform1i_t normalmap;
 	r_uniform1i_t glossmap;
 
@@ -95,6 +96,7 @@ void R_InitProgram_default(r_program_t *program) {
 
 	R_ProgramVariable(&p->diffuse, R_UNIFORM_INT, "DIFFUSE", true);
 	R_ProgramVariable(&p->lightmap, R_UNIFORM_INT, "LIGHTMAP", true);
+	R_ProgramVariable(&p->deluxemap, R_UNIFORM_INT, "DELUXEMAP", true);
 	R_ProgramVariable(&p->normalmap, R_UNIFORM_INT, "NORMALMAP", true);
 	R_ProgramVariable(&p->glossmap, R_UNIFORM_INT, "GLOSSMAP", true);
 
@@ -138,7 +140,9 @@ void R_InitProgram_default(r_program_t *program) {
 	R_ProgramVariable(&p->time_fraction, R_UNIFORM_FLOAT, "TIME_FRACTION", true);
 	R_ProgramVariable(&p->time, R_UNIFORM_FLOAT, "TIME", true);
 
+	R_ProgramParameter1i(&p->diffuse, 0);
 	R_ProgramParameter1i(&p->lightmap, 0);
+	R_ProgramParameter1i(&p->deluxemap, 0);
 	R_ProgramParameter1i(&p->normalmap, 0);
 	R_ProgramParameter1i(&p->glossmap, 0);
 
@@ -182,6 +186,7 @@ void R_UseProgram_default(void) {
 	r_default_program_t *p = &r_default_program;
 
 	R_ProgramParameter1i(&p->diffuse, texunit_diffuse->enabled);
+	R_ProgramParameter1i(&p->deluxemap, texunit_deluxemap->enabled);
 	R_ProgramParameter1i(&p->lightmap, texunit_lightmap->enabled);
 }
 
