@@ -336,7 +336,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 			image->width = surf->w;
 			image->height = surf->h;
-			image->type = type;
+			image->type = type & ~IT_MASK_FAIL;
 
 			if (image->type == IT_NORMALMAP) {
 				R_LoadHeightmap(name, surf);
@@ -350,6 +350,11 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 			SDL_FreeSurface(surf);
 		} else {
+
+			if (type & IT_MASK_FAIL) {
+				return NULL;
+			}
+
 			Com_Debug(DEBUG_RENDERER, "Couldn't load %s\n", key);
 			image = r_image_state.null;
 		}

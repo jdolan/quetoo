@@ -22,7 +22,9 @@
 #include "cg_local.h"
 #include "game/default/bg_pmove.h"
 
-#define DEFAULT_CLIENT_INFO "newbie\\qforcer/default"
+#define DEFAULT_CLIENT_MODEL "qforcer"
+#define DEFAULT_CLIENT_SKIN "default"
+#define DEFAULT_CLIENT_INFO "newbie\\" DEFAULT_CLIENT_MODEL "/" DEFAULT_CLIENT_SKIN
 
 /**
  * @brief Parses a single line of a .skin definition file. Note that, unlike Quake3,
@@ -62,7 +64,7 @@ static void Cg_LoadClientSkin(r_material_t **skins, const r_md3_t *md3, char *li
  * within the model. If a skin can not be resolved for any mesh, the entire
  * skins array is invalidated so that the default will be loaded.
  */
-static void Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, const char *skin) {
+static _Bool Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, const char *skin) {
 	char path[MAX_QPATH], line[MAX_STRING_CHARS];
 	char *buffer;
 	int32_t i, j;
@@ -75,7 +77,7 @@ static void Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, const
 		cgi.Debug("%s not found\n", path);
 
 		skins[0] = NULL;
-		return;
+		return false;
 	}
 
 	const r_md3_t *md3 = (r_md3_t *) mod->mesh->data;
@@ -111,12 +113,13 @@ static void Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, const
 	}
 
 	cgi.FreeFile(buffer);
+	return skins[0] != NULL;
 }
 
 /**
  * @brief Ensures that models and skins were resolved for the specified client info.
  */
-static _Bool Cg_ValidateClient(cl_client_info_t *ci) {
+static _Bool Cg_ValidateSkin(cl_client_info_t *ci) {
 
 	if (!ci->head || !ci->torso || !ci->legs) {
 		return false;
@@ -143,11 +146,46 @@ color_t Cg_ClientEffectColor(const cl_client_info_t *cl, const color_t default_c
 }
 
 /**
+ * @brief Resolve and load the specified model/skin for the player.
+ */
+static _Bool Cg_LoadClientModel(cl_client_info_t *ci, const char *model, const char *skin) {
+
+	g_strlcpy(ci->model, model, sizeof(ci->model));
+	g_strlcpy(ci->skin, skin, sizeof(ci->skin));
+
+	char path[MAX_QPATH];
+
+	g_snprintf(path, sizeof(path), "players/%s/head.md3", ci->model);
+	if ((ci->head = cgi.LoadModel(path)) &&
+		Cg_LoadClientSkins(ci->head, ci->head_skins, ci->skin)) {
+
+		g_snprintf(path, sizeof(path), "players/%s/upper.md3", ci->model);
+		if ((ci->torso = cgi.LoadModel(path)) &&
+			Cg_LoadClientSkins(ci->torso, ci->torso_skins, ci->skin)) {
+
+			g_snprintf(path, sizeof(path), "players/%s/lower.md3", ci->model);
+			if ((ci->legs = cgi.LoadModel(path)) &&
+				Cg_LoadClientSkins(ci->legs, ci->legs_skins, ci->skin)) {
+
+				g_snprintf(path, sizeof(path), "players/%s/%s_i", ci->model, ci->skin);
+				ci->icon = cgi.LoadImage(path, IT_PIC | IT_MASK_FAIL);
+
+				if (ci->icon) {
+					return true;
+				}
+			}
+		}
+	}
+
+	// if we reach here, something up above didn't load
+	return false;
+}
+
+/**
  * @brief Resolves the player name, model and skins for the specified user info string.
  * If validation fails, we fall back on the DEFAULT_CLIENT_INFO constant.
  */
 void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
-	char path[MAX_QPATH];
 	const char *t;
 	char *v = NULL;
 	int32_t i;
@@ -187,27 +225,12 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 		if ((v = strchr(info[1], '/'))) { // it's well-formed
 			*v = '\0';
 
-			g_strlcpy(ci->model, info[1], sizeof(ci->model));
-			g_strlcpy(ci->skin, v + 1, sizeof(ci->skin));
-
 			// load the models
-			g_snprintf(path, sizeof(path), "players/%s/head.md3", ci->model);
-			if ((ci->head = cgi.LoadModel(path))) {
-				Cg_LoadClientSkins(ci->head, ci->head_skins, ci->skin);
+			if (!Cg_LoadClientModel(ci, info[1], v + 1)) {
+				if (!Cg_LoadClientModel(ci, DEFAULT_CLIENT_MODEL, DEFAULT_CLIENT_SKIN)) {
+					cgi.Error("Failed to load default client model\n");
+				}
 			}
-
-			g_snprintf(path, sizeof(path), "players/%s/upper.md3", ci->model);
-			if ((ci->torso = cgi.LoadModel(path))) {
-				Cg_LoadClientSkins(ci->torso, ci->torso_skins, ci->skin);
-			}
-
-			g_snprintf(path, sizeof(path), "players/%s/lower.md3", ci->model);
-			if ((ci->legs = cgi.LoadModel(path))) {
-				Cg_LoadClientSkins(ci->legs, ci->legs_skins, ci->skin);
-			}
-
-			g_snprintf(path, sizeof(path), "players/%s/%s_i", ci->model, ci->skin);
-			ci->icon = cgi.LoadImage(path, IT_PIC);
 		}
 
 		ci->color = EFFECT_COLOR_DEFAULT;
@@ -223,26 +246,21 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 				0.5
 			});
 		}
-
+		
 		// ensure we were able to load everything
-		if (Cg_ValidateClient(ci)) {
-
-			VectorScale(PM_MINS, PM_SCALE, ci->legs->mins);
-			VectorScale(PM_MAXS, PM_SCALE, ci->legs->maxs);
-
-			ci->legs->radius = (ci->legs->maxs[2] - ci->legs->mins[2]) / 2.0;
-
-			cgi.LoadClientSamples(ci->model);
-		} else {
-			cgi.Warn("Failed to load client info %s\n", s);
-
+		if (!Cg_ValidateSkin(ci)) {
+			
 			if (!g_strcmp0(s, DEFAULT_CLIENT_INFO)) {
 				cgi.Error("Failed to load default client info\n");
 			}
-
-			// and if we weren't, use the default
-			Cg_LoadClient(ci, DEFAULT_CLIENT_INFO);
 		}
+
+		VectorScale(PM_MINS, PM_SCALE, ci->legs->mins);
+		VectorScale(PM_MAXS, PM_SCALE, ci->legs->maxs);
+
+		ci->legs->radius = (ci->legs->maxs[2] - ci->legs->mins[2]) / 2.0;
+
+		cgi.LoadClientSamples(ci->model);
 	}
 
 	g_strfreev(info);

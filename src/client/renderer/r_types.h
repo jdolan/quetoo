@@ -72,6 +72,12 @@ typedef enum {
 #define IT_MASK_MIPMAP	128
 #define IT_MASK_FILTER	256
 
+/**
+ * @brief Don't return the null white picture if we can't find the image, return
+ * null instead.
+ */
+#define IT_MASK_FAIL	512 
+
 #define IT_MASK_TYPE	0x7F
 #define IT_MASK_FLAGS	(-1 & ~IT_MASK_TYPE)
 
