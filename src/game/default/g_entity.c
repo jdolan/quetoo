@@ -673,8 +673,7 @@ static void G_InitSpawnPoints(void) {
 	GSList *point = NULL;
 
 	// in the odd case that the map only has team spawns, we'll use them
-	if (!g_level.spawn_points.count && g_team_good.spawn_points.count) {
-
+	if (!g_level.spawn_points.count) {
 		if (g_team_good.spawn_points.count) {
 			for (point = team_good_spawns; point; point = point->next) {
 				dm_spawns = g_slist_prepend(dm_spawns, (g_entity_t *) point->data);

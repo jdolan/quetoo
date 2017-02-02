@@ -557,7 +557,6 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
  */
 void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count) {
 	const _Bool old_blend = r_state.blend_enabled;
-	const _Bool old_depth_mask = r_state.depth_mask_enabled;
 
 	if (!r_materials->value || r_draw_wireframe->value) {
 		return;
@@ -581,7 +580,6 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 		}
 
 		R_EnableBlend((s->cm->flags & STAGE_BLEND));
-		R_EnableDepthMask(!(s->cm->flags & STAGE_BLEND));
 
 		R_UpdateMaterialStage(m, s);
 
@@ -595,7 +593,6 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 	R_EnablePolygonOffset(false);
 
 	R_EnableBlend(old_blend);
-	R_EnableDepthMask(old_depth_mask);
 
 	Matrix4x4_CreateIdentity(&r_texture_matrix);
 
