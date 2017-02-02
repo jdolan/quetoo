@@ -169,39 +169,26 @@ void G_UseWeapon(g_entity_t *ent, const g_item_t *item) {
 }
 
 /**
- * @brief Drop the specified weapon if the client has sufficient ammo.
+ * @brief Drop the specified weapon if the client has sufficient ammo. Does not remove quantity,
+ * that must be handled by the caller.
  */
 g_entity_t *G_DropWeapon(g_entity_t *ent, const g_item_t *item) {
-
-	const uint16_t index = item->index;
-
 	g_client_locals_t *cl = &ent->client->locals;
-
-	// see if we're already using it and we only have one
-	if ((item == cl->weapon || item == cl->next_weapon) && (cl->inventory[index] == 1)) {
-		gi.ClientPrint(ent, PRINT_HIGH, "Can't drop current weapon\n");
-		return NULL;
-	}
 
 	const g_item_t *ammo = item->ammo_item;
 	const uint16_t ammo_index = ammo->index;
 
-	if (cl->inventory[ammo_index] <= 0) {
-		gi.ClientPrint(ent, PRINT_HIGH, "Can't drop a weapon without ammo\n");
-		return NULL;
-	}
-
 	g_entity_t *dropped = G_DropItem(ent, item);
 
 	if (dropped) {
-		cl->inventory[index]--;
-
 		// now adjust dropped ammo quantity to reflect what we actually had available
 		if (cl->inventory[ammo_index] < ammo->quantity) {
 			dropped->locals.health = cl->inventory[ammo_index];
 		}
 
-		G_AddAmmo(ent, ammo, -dropped->locals.health);
+		if (dropped->locals.health) {
+			G_AddAmmo(ent, ammo, -dropped->locals.health);
+		}
 	} else {
 		gi.Debug("Failed to drop %s\n", item->name);
 	}

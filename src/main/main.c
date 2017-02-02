@@ -321,7 +321,7 @@ static void Init(void) {
 	time_demo = Cvar_Add("time_demo", "0", CVAR_LO_ONLY, "Benchmark and stress test");
 	time_scale = Cvar_Add("time_scale", "1.0", CVAR_LO_ONLY, "Controls time lapse");
 
-	const char *s = va("Quetoo %s %s %s", VERSION, __DATE__, BUILD_HOST);
+	const char *s = va("Quetoo %s %s", VERSION, COMMIT_ID);
 	Cvar_Add("version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
 	quetoo.Debug = Debug;
@@ -346,7 +346,7 @@ static void Init(void) {
 
 	Cl_Init();
 
-	Com_Print("Quetoo %s %s %s initialized\n", VERSION, __DATE__, BUILD_HOST);
+	Com_Print("Quetoo %s %s, built %s @ %s initialized\n", VERSION, COMMIT_ID, __DATE__, BUILD_HOST);
 
 	// reset debug value since Cbuf may change it from Com's "all" init
 	Com_SetDebug("0");
