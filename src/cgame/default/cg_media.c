@@ -161,8 +161,8 @@ static void Cg_InitFootsteps(void) {
 		for (GList *list = cgi.MapMaterials()->list->head; list; list = list->next) {
 			cm_material_t *material = (cm_material_t *) list->data;
 
-			if (*material->stages->diffuse.footsteps) {
-				Cg_FootstepsTable_Load(material->stages->diffuse.footsteps);
+			if (*material->footsteps) {
+				Cg_FootstepsTable_Load(material->footsteps);
 			}
 		}
 	}

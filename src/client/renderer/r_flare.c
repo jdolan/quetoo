@@ -61,7 +61,7 @@ void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 	if (s->cm->flags & STAGE_COLOR) {
 		VectorCopy(s->cm->color, surf->flare->particle.color);
 	} else {
-		VectorCopy(surf->texinfo->material->stages->image->color, surf->flare->particle.color);
+		VectorCopy(surf->texinfo->material->diffuse->color, surf->flare->particle.color);
 	}
 
 	// and scaled radius

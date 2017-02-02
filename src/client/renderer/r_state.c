@@ -513,7 +513,7 @@ void R_UseMaterial(const r_material_t *material) {
 		r_state.active_program->UseMaterial(material);
 	}
 
-	R_GetError(material ? material->stages->image->media.name : r_state.active_program->name);
+	R_GetError(material ? material->diffuse->media.name : r_state.active_program->name);
 }
 
 /**

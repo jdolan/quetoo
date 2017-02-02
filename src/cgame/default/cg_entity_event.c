@@ -238,8 +238,8 @@ static s_sample_t *Cg_Footstep(cl_entity_t *ent) {
 		ent->current.origin[2] + mins[2] - PM_STEP_HEIGHT
 	}, vec3_origin, vec3_origin, ent->current.number, MASK_SOLID);
 
-	if (tr.fraction < 1.0 && tr.surface && tr.surface->material && *tr.surface->material->stages->diffuse.footsteps) {
-		footsteps = tr.surface->material->stages->diffuse.footsteps;
+	if (tr.fraction < 1.0 && tr.surface && tr.surface->material && *tr.surface->material->footsteps) {
+		footsteps = tr.surface->material->footsteps;
 	}
 
 	return Cg_GetFootstepSample(footsteps);

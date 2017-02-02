@@ -197,7 +197,7 @@ void R_UseMaterial_default(const r_material_t *material) {
 
 	r_default_program_t *p = &r_default_program;
 
-	if (!material || !material->stages->diffuse.normalmap ||
+	if (!material || !material->normalmap ||
 	        !r_bumpmap->value || r_draw_bsp_lightmaps->value) {
 
 		R_DisableAttribute(R_ARRAY_TANGENT);
@@ -207,20 +207,20 @@ void R_UseMaterial_default(const r_material_t *material) {
 
 	R_EnableAttribute(R_ARRAY_TANGENT);
 
-	R_BindNormalmapTexture(material->stages->diffuse.normalmap->texnum);
+	R_BindNormalmapTexture(material->normalmap->texnum);
 	R_ProgramParameter1i(&p->normalmap, 1);
 
-	if (material->stages->diffuse.specularmap) {
-		R_BindSpecularmapTexture(material->stages->diffuse.specularmap->texnum);
+	if (material->specularmap) {
+		R_BindSpecularmapTexture(material->specularmap->texnum);
 		R_ProgramParameter1i(&p->glossmap, 1);
 	} else {
 		R_ProgramParameter1i(&p->glossmap, 0);
 	}
 
-	R_ProgramParameter1f(&p->bump, material->cm->stages->diffuse.bump * r_bumpmap->value);
-	R_ProgramParameter1f(&p->parallax, material->cm->stages->diffuse.parallax * r_parallax->value);
-	R_ProgramParameter1f(&p->hardness, material->cm->stages->diffuse.hardness * r_hardness->value);
-	R_ProgramParameter1f(&p->specular, material->cm->stages->diffuse.specular * r_specular->value);
+	R_ProgramParameter1f(&p->bump, material->cm->bump * r_bumpmap->value);
+	R_ProgramParameter1f(&p->parallax, material->cm->parallax * r_parallax->value);
+	R_ProgramParameter1f(&p->hardness, material->cm->hardness * r_hardness->value);
+	R_ProgramParameter1f(&p->specular, material->cm->specular * r_specular->value);
 }
 
 /**

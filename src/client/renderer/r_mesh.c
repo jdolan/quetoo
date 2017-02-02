@@ -241,7 +241,7 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 
 		r_mesh_state.material = e->skins[0] ? e->skins[0] : e->model->mesh->material;
 
-		R_BindDiffuseTexture(r_mesh_state.material->stages->image->texnum);
+		R_BindDiffuseTexture(r_mesh_state.material->diffuse->texnum);
 
 		R_SetMeshColor_default(e);
 
@@ -305,30 +305,6 @@ static void R_ResetMeshState_default(const r_entity_t *e) {
 /**
  * @brief Draw the diffuse pass of each mesh segment for the specified model.
  */
-static void R_DrawMeshPartsMaterials_default(const r_entity_t *e, const r_md3_t *md3, const _Bool opaque) {
-	uint32_t offset = 0;
-
-	const r_md3_mesh_t *mesh = md3->meshes;
-	for (uint16_t i = 0; i < md3->num_meshes; i++, mesh++) {
-
-		r_mesh_state.material = e->skins[i] ? e->skins[i] : e->model->mesh->material;
-
-		R_BindDiffuseTexture(r_mesh_state.material->stages->image->texnum);
-
-		R_UseMaterial(r_mesh_state.material);
-
-		// draw opaque first
-		if (!(r_mesh_state.material->flags & STAGE_BLEND) == opaque) {
-			R_DrawMeshMaterial(r_mesh_state.material, offset, mesh->num_elements);
-		}
-
-		offset += mesh->num_elements;
-	}
-}
-
-/**
- * @brief Draw the diffuse pass of each mesh segment for the specified model with no materials.
- */
 static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 	uint32_t offset = 0;
 
@@ -339,21 +315,24 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 			if (i > 0) { // update the diffuse state for the current mesh
 				r_mesh_state.material = e->skins[i] ? e->skins[i] : e->model->mesh->material;
 
-				R_BindDiffuseTexture(r_mesh_state.material->stages->image->texnum);
+				R_BindDiffuseTexture(r_mesh_state.material->diffuse->texnum);
 
 				R_UseMaterial(r_mesh_state.material);
 			}
 		}
 
 		R_DrawArrays(GL_TRIANGLES, offset, mesh->num_elements);
+
+		R_DrawMeshMaterial(r_mesh_state.material, offset, mesh->num_elements);
+
 		offset += mesh->num_elements;
 	}
 }
 
 /**
- * @brief
+ * @brief Draws the mesh model for the given entity.
  */
-static void R_DrawMeshModelBasic_default(const r_entity_t *e) {
+void R_DrawMeshModel_default(const r_entity_t *e) {
 
 	R_SetMeshState_default(e);
 
@@ -361,34 +340,21 @@ static void R_DrawMeshModelBasic_default(const r_entity_t *e) {
 		R_DrawMeshParts_default(e, (const r_md3_t *) e->model->mesh->data);
 	} else {
 		R_DrawArrays(GL_TRIANGLES, 0, e->model->num_elements);
+
+		R_DrawMeshMaterial(r_mesh_state.material, 0, e->model->num_elements);
 	}
 
-	R_ResetMeshState_default(e); // reset state
-}
-
-/**
- * @brief
- */
-static void R_DrawMeshModelMaterials_default(const r_entity_t *e, const _Bool opaque) {
-
-	R_SetMeshState_default(e);
-
-	if (e->model->type == MOD_MD3) {
-		R_DrawMeshPartsMaterials_default(e, (const r_md3_t *) e->model->mesh->data, opaque);
-	} else {
-		if (!!(r_mesh_state.material->flags & STAGE_BLEND) == opaque) {
-			R_DrawMeshMaterial(r_mesh_state.material, 0, e->model->num_elements);
-		}
-	}
+	r_view.num_mesh_tris += e->model->num_tris;
 
 	R_ResetMeshState_default(e); // reset state
+
+	r_view.num_mesh_models++;
 }
 
 /**
  * @brief Draws all mesh models for the current frame.
  */
 void R_DrawMeshModels_default(const r_entities_t *ents) {
-	const _Bool basic_rendering = !r_materials->integer || r_draw_wireframe->integer;
 
 	R_EnableLighting(program_default, true);
 
@@ -397,43 +363,16 @@ void R_DrawMeshModels_default(const r_entities_t *ents) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
 
-	if (basic_rendering) {
+	for (size_t i = 0; i < ents->count; i++) {
+		const r_entity_t *e = ents->entities[i];
 
-		for (size_t i = 0; i < ents->count; i++) {
-			const r_entity_t *e = ents->entities[i];
-
-			if (e->effects & EF_NO_DRAW) {
-				continue;
-			}
-
-			r_view.current_entity = e;
-
-			R_DrawMeshModelBasic_default(e);
-		}
-	} else {
-		for (size_t i = 0; i < ents->count; i++) {
-			const r_entity_t *e = ents->entities[i];
-
-			if (e->effects & EF_NO_DRAW) {
-				continue;
-			}
-
-			r_view.current_entity = e;
-
-			R_DrawMeshModelMaterials_default(e, true);
+		if (e->effects & EF_NO_DRAW) {
+			continue;
 		}
 
-		for (size_t i = 0; i < ents->count; i++) {
-			const r_entity_t *e = ents->entities[i];
+		r_view.current_entity = e;
 
-			if (e->effects & EF_NO_DRAW) {
-				continue;
-			}
-
-			r_view.current_entity = e;
-
-			R_DrawMeshModelMaterials_default(e, false);
-		}
+		R_DrawMeshModel_default(e);
 	}
 
 	r_view.current_entity = NULL;
@@ -455,19 +394,4 @@ void R_DrawMeshModels_default(const r_entities_t *ents) {
 	R_EnableBlend(false);
 
 	R_EnableDepthMask(true);
-}
-
-/**
- * @brief Draws the mesh model for the given entity. This is a slightly simplified method
- * that the cgame can use to draw models to the screen with respect to r_materials.
- */
-void R_DrawMeshModel_default(const r_entity_t *e) {
-	const _Bool basic_rendering = !r_materials->integer || r_draw_wireframe->integer;
-
-	if (basic_rendering) {
-		R_DrawMeshModelBasic_default(e);
-	} else {
-		R_DrawMeshModelMaterials_default(e, false);
-		R_DrawMeshModelMaterials_default(e, true);
-	}
 }
