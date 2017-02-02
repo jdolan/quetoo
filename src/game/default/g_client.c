@@ -829,6 +829,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 	memset(ent->client, 0, sizeof(*ent->client));
 	ent->client->locals.persistent = persistent;
 	ent->client->ai = persistent.ai;
+	ent->client->connected = persistent.connected;
 
 	// find a spawn point
 	const g_entity_t *spawn = G_SelectSpawnPoint(ent);
@@ -967,7 +968,8 @@ void G_ClientBegin(g_entity_t *ent) {
 	char welcome[MAX_STRING_CHARS];
 
 	G_InitEntity(ent, "client");
-
+	
+	ent->client->locals.persistent.connected = ent->client->connected;
 	ent->client->locals.persistent.ai = ent->client->ai;
 
 	VectorClear(ent->client->locals.cmd_angles);
@@ -1211,7 +1213,7 @@ _Bool G_ClientConnect(g_entity_t *ent, char *user_info) {
 	}
 
 	ent->sv_flags = 0; // make sure we start with known default
-	ent->in_use = true;
+	ent->client->connected = true;
 
 	G_Ai_ClientConnect(ent); // tell AI a client has connected
 

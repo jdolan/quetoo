@@ -70,6 +70,11 @@ struct g_client_s {
 	_Bool ai;
 
 	/**
+	 * @brief True if the client's slot is taken.
+	 */
+	_Bool connected;
+
+	/**
 	 * @brief Communicated by server to clients
 	 */
 	player_state_t ps;

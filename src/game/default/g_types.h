@@ -970,6 +970,7 @@ typedef struct {
 	_Bool spectator; // client is a spectator
 	_Bool ready; // ready
 	_Bool ai; // is AI
+	_Bool connected; // is connected
 
 	g_vote_t vote; // current vote (yes/no)
 	uint32_t match_num; // most recent match
