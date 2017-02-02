@@ -335,6 +335,10 @@ static void R_SetStageState(const r_bsp_surface_t *surf, const r_stage_t *stage)
 		R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
+	if (!surf) {
+		return;
+	}
+
 	// for terrain, enable the color array
 	if (stage->cm->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
 		R_EnableColorArray(true);
@@ -588,6 +592,8 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 		R_SetStageState(NULL, s);
 
 		R_DrawArrays(GL_TRIANGLES, offset, count);
+
+		r_view.num_mesh_tris += count;
 	}
 
 	R_EnablePolygonOffset(false);
@@ -601,6 +607,8 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 	R_EnableFog(true);
 
 	R_EnableColorArray(false);
+
+	r_view.num_mesh_models++;
 }
 
 /**
