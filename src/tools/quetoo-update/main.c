@@ -28,17 +28,17 @@
 #include <glib.h>
 
 #ifdef _WIN32
-	#define WIN32_LEAN_AND_MEAN
-	#include <windows.h>
-	#include <shellapi.h>
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <shellapi.h>
 
 /**
  * @brief Find the first character of a given list of characters.
  */
 static int str_find_first_of(const char *string, const char *characters) {
-	
+
 	for (const char *c = string; *c; c++) {
-		
+
 		for (const char *character = characters; *character; character++) {
 
 			if (*c == *character) {
@@ -56,11 +56,10 @@ static int str_find_first_of(const char *string, const char *characters) {
     Arguments in a command line should be separated by spaces; this
     function does not add these spaces. Thanks @ https://blogs.msdn.microsoft.com/twistylittlepassagesallalike/2011/04/23/everyone-quotes-command-line-arguments-the-wrong-way/
  */
-static gchar *ArgvQuote(const gchar *argument, const _Bool force)
-{
-    if (!force &&
-        strlen(argument) > 0 &&
-        str_find_first_of(argument, " \t\n\v\"") == -1) {
+static gchar *ArgvQuote(const gchar *argument, const _Bool force) {
+	if (!force &&
+	        strlen(argument) > 0 &&
+	        str_find_first_of(argument, " \t\n\v\"") == -1) {
 		return g_strdup(argument);
 	}
 
@@ -68,12 +67,12 @@ static gchar *ArgvQuote(const gchar *argument, const _Bool force)
 
 	for (const char *c = argument; ; ++c) {
 		size_t num_slashes = 0;
-        
+
 		while (*c && *c == '\\') {
 			c++;
 			num_slashes++;
 		}
-        
+
 		if (!*c) {
 
 			for (size_t i = 0; i < num_slashes * 2; i++) {
@@ -81,14 +80,12 @@ static gchar *ArgvQuote(const gchar *argument, const _Bool force)
 			}
 
 			break;
-		}
-		else if (*c == '"') {
+		} else if (*c == '"') {
 
 			for (size_t i = 0; i < (num_slashes * 2) + 1; i++) {
 				g_string_append_c(commandLine, '\\');
 			}
-		}
-		else {
+		} else {
 
 			for (size_t i = 0; i < num_slashes; i++) {
 				g_string_append_c(commandLine, '\\');
@@ -97,20 +94,20 @@ static gchar *ArgvQuote(const gchar *argument, const _Bool force)
 
 		g_string_append_c(commandLine, *c);
 	}
-    
+
 	g_string_append_c(commandLine, '"');
 	return g_string_free(commandLine, false);
 }
 
 /**
- * @brief Windows must use CreateProcess because _spawn/_exec on Windows keeps the calling process 
+ * @brief Windows must use CreateProcess because _spawn/_exec on Windows keeps the calling process
  * running, which is definitely not what we want.
  */
-static intptr_t execvp(const char *filename, char *const * args) {
+static intptr_t execvp(const char *filename, char *const *args) {
 	GString *cmdline = g_string_new("");
 
 	for (int i = 1; ; i++) {
-		
+
 		if (!args[i]) {
 			break;
 		} else if (i != 1) {
@@ -144,12 +141,12 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	return main(__argc, __argv);
 }
 
-	#ifndef realpath
-		#define realpath(rel, abs) _fullpath(abs, rel, MAX_PATH)
-	#endif
+#ifndef realpath
+	#define realpath(rel, abs) _fullpath(abs, rel, MAX_PATH)
+#endif
 
 #else
-	#include <unistd.h>
+#include <unistd.h>
 #endif
 
 #if defined(__APPLE__)
@@ -214,7 +211,7 @@ static gchar *get_quetoo_installer_jar(const char *argv0, const char *jar) {
 int main(int argc, char **argv) {
 	int status = 1;
 
-	const char *jar = g_getenv("QUETOO_INSTALLER_JAR") ?: QUETOO_INSTALLER_JAR;
+	const char *jar = g_getenv("QUETOO_INSTALLER_JAR") ? : QUETOO_INSTALLER_JAR;
 
 	gchar *quetoo_installer_jar = get_quetoo_installer_jar(argv[0], jar);
 	if (quetoo_installer_jar) {

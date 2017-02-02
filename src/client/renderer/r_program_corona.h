@@ -24,7 +24,7 @@
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
-void R_PreLink_corona(const r_program_t *program);
-void R_InitProgram_corona(r_program_t *program);
-void R_UseFog_corona(const r_fog_parameters_t *value);
+	void R_PreLink_corona(const r_program_t *program);
+	void R_InitProgram_corona(r_program_t *program);
+	void R_UseFog_corona(const r_fog_parameters_t *value);
 #endif /* __R_LOCAL_H__ */

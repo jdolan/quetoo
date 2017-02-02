@@ -22,9 +22,9 @@
 #pragma once
 
 #ifdef __CG_LOCAL_H__
-void Cg_ParseViewKick(void);
-void Cg_Look(pm_cmd_t *cmd);
-void Cg_Move(pm_cmd_t *cmd);
-void Cg_ClearInput(void);
-void Cg_InitInput(void);
+	void Cg_ParseViewKick(void);
+	void Cg_Look(pm_cmd_t *cmd);
+	void Cg_Move(pm_cmd_t *cmd);
+	void Cg_ClearInput(void);
+	void Cg_InitInput(void);
 #endif

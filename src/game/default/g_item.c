@@ -922,7 +922,7 @@ void G_PrecacheItem(const g_item_t *it) {
 	// parse everything for its ammo
 	if (it->ammo) {
 		const g_item_t *ammo = it->ammo_item;
-		
+
 		if (ammo != it) {
 			G_PrecacheItem(ammo);
 		}
@@ -2103,44 +2103,44 @@ void G_InitItems(void) {
 
 		// set up media pointers
 		const g_item_t **array = NULL;
-		
+
 		switch (item->type) {
-		default:
-			gi.Error("Item %s has an invalid type\n", item->name);
-		case ITEM_AMMO:
-			array = g_media.items.ammo;
-			break;
-		case ITEM_ARMOR:
-			array = g_media.items.armor;
-			break;
-		case ITEM_FLAG:
-			array = g_media.items.flags;
-			break;
-		case ITEM_HEALTH:
-			array = g_media.items.health;
-			break;
-		case ITEM_POWERUP:
-			array = g_media.items.powerups;
-			break;
-		case ITEM_WEAPON:
-			array = g_media.items.weapons;
-			break;
+			default:
+				gi.Error("Item %s has an invalid type\n", item->name);
+			case ITEM_AMMO:
+				array = g_media.items.ammo;
+				break;
+			case ITEM_ARMOR:
+				array = g_media.items.armor;
+				break;
+			case ITEM_FLAG:
+				array = g_media.items.flags;
+				break;
+			case ITEM_HEALTH:
+				array = g_media.items.health;
+				break;
+			case ITEM_POWERUP:
+				array = g_media.items.powerups;
+				break;
+			case ITEM_WEAPON:
+				array = g_media.items.weapons;
+				break;
 		}
 
 		if (!item->tag) {
 			gi.Error("Item %s has an invalid tag\n", item->name);
 		}
-		
+
 		if (array[item->tag]) {
 			gi.Error("Item %s has the same tag as %s\n", item->name, array[item->tag]->name);
 		}
 
 		array[item->tag] = item;
 
-	// precache all weapons/health/armor, even if the map doesn't contain them
+		// precache all weapons/health/armor, even if the map doesn't contain them
 		if (item->type == ITEM_WEAPON ||
-			item->type == ITEM_HEALTH ||
-			item->type == ITEM_ARMOR) {
+		        item->type == ITEM_HEALTH ||
+		        item->type == ITEM_ARMOR) {
 			G_PrecacheItem(item);
 		}
 	}

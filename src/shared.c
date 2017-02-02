@@ -1236,45 +1236,45 @@ _Bool ColorParseHex(const char *s, color_t *color) {
 	const size_t s_len = strlen(s);
 
 	if (s_len != 3 && s_len != 6 && // rgb or rrggbb format
-		s_len != 4 && s_len != 8) { // rgba or rrggbbaa format
+	        s_len != 4 && s_len != 8) { // rgba or rrggbbaa format
 		return false;
 	}
 
 	switch (s_len) {
-	case 3:
-		if (sscanf(s, "%1hhx%1hhx%1hhx", &color->r, &color->g, &color->b) != 3) {
-			return false;
-		}
+		case 3:
+			if (sscanf(s, "%1hhx%1hhx%1hhx", &color->r, &color->g, &color->b) != 3) {
+				return false;
+			}
 
-		for (int32_t i = 0; i < 3; i++) {
-			color->bytes[i] |= color->bytes[i] << 4;
-		}
+			for (int32_t i = 0; i < 3; i++) {
+				color->bytes[i] |= color->bytes[i] << 4;
+			}
 
-		color->a = 0xFF;
-		break;
-	case 6:
-		if (sscanf(s, "%2hhx%2hhx%2hhx", &color->r, &color->g, &color->b) != 3) {
-			return false;
-		}
+			color->a = 0xFF;
+			break;
+		case 6:
+			if (sscanf(s, "%2hhx%2hhx%2hhx", &color->r, &color->g, &color->b) != 3) {
+				return false;
+			}
 
-		color->a = 0xFF;
-		break;
+			color->a = 0xFF;
+			break;
 
-	case 4:
-		if (sscanf(s, "%1hhx%1hhx%1hhx%1hhx", &color->r, &color->g, &color->b, &color->a) != 4) {
-			return false;
-		}
+		case 4:
+			if (sscanf(s, "%1hhx%1hhx%1hhx%1hhx", &color->r, &color->g, &color->b, &color->a) != 4) {
+				return false;
+			}
 
-		for (int32_t i = 0; i < 4; i++) {
-			color->bytes[i] |= color->bytes[i] << 4;
-		}
-		break;
-	case 8:
-		if (sscanf(s, "%2hhx%2hhx%2hhx%2hhx", &color->r, &color->g, &color->b, &color->a) != 4) {
-			return false;
-		}
+			for (int32_t i = 0; i < 4; i++) {
+				color->bytes[i] |= color->bytes[i] << 4;
+			}
+			break;
+		case 8:
+			if (sscanf(s, "%2hhx%2hhx%2hhx%2hhx", &color->r, &color->g, &color->b, &color->a) != 4) {
+				return false;
+			}
 
-		break;
+			break;
 	}
 
 	return color;
@@ -1287,15 +1287,15 @@ _Bool ColorParseHex(const char *s, color_t *color) {
  * @brief Attempt to convert a color to a hexadecimal string representation.
  */
 _Bool ColorToHex(const color_t color, char *s, const size_t s_len) {
-	
+
 	_Bool is_short_form = COLOR_BYTES_ARE_SAME(color.r) &&
-						  COLOR_BYTES_ARE_SAME(color.g) &&
-						  COLOR_BYTES_ARE_SAME(color.b);
+	                      COLOR_BYTES_ARE_SAME(color.g) &&
+	                      COLOR_BYTES_ARE_SAME(color.b);
 	_Bool is_32_bit = color.a != 0xFF;
 
 	if (is_32_bit) {
 		is_short_form = is_short_form && COLOR_BYTES_ARE_SAME(color.a);
-	
+
 		if (is_short_form) {
 			if (g_strlcat(s, va("%1x%1x%1x%1x", color.r & 15, color.g & 15, color.b & 15, color.a & 15), s_len) >= s_len) {
 				return false;
@@ -1385,37 +1385,37 @@ color_t ColorFromHSV(const vec3_t hsv) {
 
 	vec3_t color_float;
 
-	switch(i) {
-	case 0:
-		color_float[0] = hsv[2];
-		color_float[1] = t;
-		color_float[2] = p;
-		break;
-	case 1:
-		color_float[0] = q;
-		color_float[1] = hsv[2];
-		color_float[2] = p;
-		break;
-	case 2:
-		color_float[0] = p;
-		color_float[1] = hsv[2];
-		color_float[2] = t;
-		break;
-	case 3:
-		color_float[0] = p;
-		color_float[1] = q;
-		color_float[2] = hsv[2];
-		break;
-	case 4:
-		color_float[0] = t;
-		color_float[1] = p;
-		color_float[2] = hsv[2];
-		break;
-	default:
-		color_float[0] = hsv[2];
-		color_float[1] = p;
-		color_float[2] = q;
-		break;
+	switch (i) {
+		case 0:
+			color_float[0] = hsv[2];
+			color_float[1] = t;
+			color_float[2] = p;
+			break;
+		case 1:
+			color_float[0] = q;
+			color_float[1] = hsv[2];
+			color_float[2] = p;
+			break;
+		case 2:
+			color_float[0] = p;
+			color_float[1] = hsv[2];
+			color_float[2] = t;
+			break;
+		case 3:
+			color_float[0] = p;
+			color_float[1] = q;
+			color_float[2] = hsv[2];
+			break;
+		case 4:
+			color_float[0] = t;
+			color_float[1] = p;
+			color_float[2] = hsv[2];
+			break;
+		default:
+			color_float[0] = hsv[2];
+			color_float[1] = p;
+			color_float[2] = q;
+			break;
 	}
 
 	ColorFromVec3(color_float, &out);

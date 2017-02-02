@@ -25,12 +25,12 @@
 
 #ifdef __GAME_LOCAL_H__
 
-extern GList *g_map_list;
+	extern GList *g_map_list;
 
-const g_map_list_map_t *G_MapList_Find(GList *list, const char *name);
-const g_map_list_map_t *G_MapList_Next(void);
+	const g_map_list_map_t *G_MapList_Find(GList *list, const char *name);
+	const g_map_list_map_t *G_MapList_Next(void);
 
-void G_MapList_Init(void);
-void G_MapList_Shutdown(void);
+	void G_MapList_Init(void);
+	void G_MapList_Shutdown(void);
 
 #endif /* __GAME_LOCAL_H__ */

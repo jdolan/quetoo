@@ -24,6 +24,6 @@
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
-void R_LoadMd3Model(r_model_t *mod, void *buffer);
-void R_LoadObjModel(r_model_t *mod, void *buffer);
+	void R_LoadMd3Model(r_model_t *mod, void *buffer);
+	void R_LoadObjModel(r_model_t *mod, void *buffer);
 #endif /* __R_LOCAL_H__ */

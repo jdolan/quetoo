@@ -137,7 +137,7 @@ static _Bool Cg_ValidateSkin(cl_client_info_t *ci) {
  * has "default" specified.
  */
 color_t Cg_ClientEffectColor(const cl_client_info_t *cl, const color_t default_color) {
-	
+
 	if (cl->color.a) {
 		return cl->color;
 	}
@@ -157,15 +157,15 @@ static _Bool Cg_LoadClientModel(cl_client_info_t *ci, const char *model, const c
 
 	g_snprintf(path, sizeof(path), "players/%s/head.md3", ci->model);
 	if ((ci->head = cgi.LoadModel(path)) &&
-		Cg_LoadClientSkins(ci->head, ci->head_skins, ci->skin)) {
+	        Cg_LoadClientSkins(ci->head, ci->head_skins, ci->skin)) {
 
 		g_snprintf(path, sizeof(path), "players/%s/upper.md3", ci->model);
 		if ((ci->torso = cgi.LoadModel(path)) &&
-			Cg_LoadClientSkins(ci->torso, ci->torso_skins, ci->skin)) {
+		        Cg_LoadClientSkins(ci->torso, ci->torso_skins, ci->skin)) {
 
 			g_snprintf(path, sizeof(path), "players/%s/lower.md3", ci->model);
 			if ((ci->legs = cgi.LoadModel(path)) &&
-				Cg_LoadClientSkins(ci->legs, ci->legs_skins, ci->skin)) {
+			        Cg_LoadClientSkins(ci->legs, ci->legs_skins, ci->skin)) {
 
 				g_snprintf(path, sizeof(path), "players/%s/%s_i", ci->model, ci->skin);
 				ci->icon = cgi.LoadImage(path, IT_PIC | IT_MASK_FAIL);
@@ -246,10 +246,10 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 				0.5
 			});
 		}
-		
+
 		// ensure we were able to load everything
 		if (!Cg_ValidateSkin(ci)) {
-			
+
 			if (!g_strcmp0(s, DEFAULT_CLIENT_INFO)) {
 				cgi.Error("Failed to load default client info\n");
 			}

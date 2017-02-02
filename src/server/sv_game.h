@@ -24,6 +24,6 @@
 #include "sv_types.h"
 
 #ifdef __SV_LOCAL_H__
-void Sv_InitGame(void);
-void Sv_ShutdownGame(void);
+	void Sv_InitGame(void);
+	void Sv_ShutdownGame(void);
 #endif /* __SV_LOCAL_H__ */

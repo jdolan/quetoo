@@ -24,6 +24,6 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
-void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e);
-color_t Cg_ResolveEffectColor(const uint8_t index, const color_t default_color);
+	void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e);
+	color_t Cg_ResolveEffectColor(const uint8_t index, const color_t default_color);
 #endif /* __CG_LOCAL_H__ */

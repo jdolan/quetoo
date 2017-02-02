@@ -942,7 +942,7 @@ void R_LoadMaterials(r_model_t *mod) {
 					continue;
 				}
 			}
-			
+
 			// attach stage
 			R_AttachStage(r_mat, r_stage);
 

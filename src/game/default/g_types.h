@@ -384,7 +384,7 @@ typedef struct g_entity_s g_entity_t;
  */
 typedef enum {
 	AMMO_NONE,
-	
+
 	AMMO_SHELLS,
 	AMMO_BULLETS,
 	AMMO_GRENADES,
@@ -566,7 +566,7 @@ typedef struct g_item_s {
 	 * @brief For ammo/armor, the max we can hold at once
 	 */
 	uint16_t max;
-	
+
 	/**
 	 * @brief A special tag that items can use for type-specific data.
 	 */
@@ -578,7 +578,7 @@ typedef struct g_item_s {
 	 */
 	g_item_type_t type;
 
-	/** 
+	/**
 	 * @brief A value to determine the relative priority of items.
 	 */
 	vec_t priority; // AI priority level

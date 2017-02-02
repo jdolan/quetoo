@@ -31,7 +31,7 @@ extern ai_entity_data_t ai_entity_data;
 extern ai_client_data_t ai_client_data;
 
 #define BASE_DATA_RESOLVE(from, member) \
-		((typeof(member)) ((byte *) (from) + ((ptrdiff_t) member)))
+	((typeof(member)) ((byte *) (from) + ((ptrdiff_t) member)))
 
 /**
  * @brief Resolve the entity data ptr for the specified member

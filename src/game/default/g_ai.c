@@ -223,7 +223,7 @@ static void G_Ai_RemoveBots(const int32_t count) {
  * @brief
  */
 static void G_Ai_Add_f(void) {
-	
+
 	if (g_game.ai_fill_slots) {
 		gi.Print("g_ai_max_clients is set - change that instead\n");
 		return;
@@ -242,7 +242,7 @@ static void G_Ai_Add_f(void) {
  * @brief
  */
 static void G_Ai_Remove_f(void) {
-	
+
 	if (g_game.ai_fill_slots) {
 		gi.Print("g_ai_max_clients is set - change that instead\n");
 		return;
@@ -454,9 +454,11 @@ void G_Ai_RegisterItems(void) {
 	}
 
 	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_BLASTER], AI_WEAPON_PROJECTILE, 1000, 0);
-	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_SHOTGUN], AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE | AI_WEAPON_MED_RANGE, 0, 0);
+	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_SHOTGUN],
+	                    AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE | AI_WEAPON_MED_RANGE, 0, 0);
 	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_SUPER_SHOTGUN], AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE, 0, 0);
-	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_MACHINEGUN], AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE | AI_WEAPON_MED_RANGE, 0, 0);
+	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_MACHINEGUN],
+	                    AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE | AI_WEAPON_MED_RANGE, 0, 0);
 	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_GRENADE_LAUNCHER], AI_WEAPON_PROJECTILE | AI_WEAPON_EXPLOSIVE, 700, 0);
 	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_HAND_GRENADE],
 	                    AI_WEAPON_PROJECTILE | AI_WEAPON_EXPLOSIVE | AI_WEAPON_TIMED | AI_WEAPON_MED_RANGE, 1000, 3000);
@@ -465,14 +467,15 @@ void G_Ai_RegisterItems(void) {
 	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_HYPERBLASTER], AI_WEAPON_PROJECTILE | AI_WEAPON_MED_RANGE, 1800, 0);
 	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_LIGHTNING], AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE, 0, 0);
 	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_RAILGUN], AI_WEAPON_HITSCAN | AI_WEAPON_LONG_RANGE, 0, 0);
-	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_BFG10K], AI_WEAPON_PROJECTILE | AI_WEAPON_MED_RANGE | AI_WEAPON_LONG_RANGE, 720, 0);
+	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_BFG10K],
+	                    AI_WEAPON_PROJECTILE | AI_WEAPON_MED_RANGE | AI_WEAPON_LONG_RANGE, 720, 0);
 }
 
 #define ENTITY_PTR_OFFSET(m) \
-			entity.m = (typeof(entity.m)) offsetof(g_entity_locals_t, m)
+	entity.m = (typeof(entity.m)) offsetof(g_entity_locals_t, m)
 
 #define CLIENT_PTR_OFFSET(m) \
-			client.m = (typeof(client.m)) offsetof(g_client_locals_t, m)
+	client.m = (typeof(client.m)) offsetof(g_client_locals_t, m)
 
 /**
  * @brief
@@ -480,7 +483,7 @@ void G_Ai_RegisterItems(void) {
 static void G_Ai_SetDataPointers(void) {
 	static ai_entity_data_t entity;
 	static ai_client_data_t client;
-	
+
 	ENTITY_PTR_OFFSET(ground_entity);
 	ENTITY_PTR_OFFSET(item);
 	ENTITY_PTR_OFFSET(velocity);
@@ -488,7 +491,7 @@ static void G_Ai_SetDataPointers(void) {
 	ENTITY_PTR_OFFSET(max_health);
 	ENTITY_PTR_OFFSET(max_armor);
 	ENTITY_PTR_OFFSET(water_level);
-	
+
 	CLIENT_PTR_OFFSET(angles);
 	CLIENT_PTR_OFFSET(inventory);
 	CLIENT_PTR_OFFSET(weapon);
@@ -546,7 +549,7 @@ void G_Ai_Init(void) {
 
 	import.OnSameTeam = G_OnSameTeam;
 	import.ClientCommand = G_ClientCommand;
-	
+
 	import.Multicast = gi.Multicast;
 	import.Unicast = gi.Unicast;
 	import.WriteData = gi.WriteData;

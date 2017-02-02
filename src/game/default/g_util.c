@@ -450,7 +450,7 @@ void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, vec_t radius,
 	gi.WritePosition(ent->s.origin);
 	gi.Multicast(ent->s.origin, MULTICAST_PHS, NULL);
 
-	G_RadiusDamage(ent, ent, NULL, damage, knockback, radius, mod ?: MOD_EXPLOSIVE);
+	G_RadiusDamage(ent, ent, NULL, damage, knockback, radius, mod ? : MOD_EXPLOSIVE);
 
 	G_FreeEntity(ent);
 }

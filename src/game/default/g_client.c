@@ -694,7 +694,7 @@ static _Bool G_WouldTelefrag(const vec3_t spot) {
 
 	VectorAdd(spot, PM_MINS, mins);
 	VectorAdd(spot, PM_MAXS, maxs);
-	
+
 	mins[2] += PM_STEP_HEIGHT;
 	maxs[2] += PM_STEP_HEIGHT;
 
@@ -744,7 +744,7 @@ static g_entity_t *G_SelectFarthestSpawnPoint(g_entity_t *ent, const g_spawn_poi
 	best_dist = 0.0;
 
 	for (size_t i = 0; i < spawn_points->count; i++) {
-		
+
 		spot = spawn_points->spots[i];
 		dist = G_EnemyRangeFromSpot(ent, spot);
 
@@ -968,7 +968,7 @@ void G_ClientBegin(g_entity_t *ent) {
 	char welcome[MAX_STRING_CHARS];
 
 	G_InitEntity(ent, "client");
-	
+
 	ent->client->locals.persistent.connected = ent->client->connected;
 	ent->client->locals.persistent.ai = ent->client->ai;
 

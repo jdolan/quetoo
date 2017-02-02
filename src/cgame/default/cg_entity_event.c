@@ -230,12 +230,12 @@ static s_sample_t *Cg_Footstep(cl_entity_t *ent) {
 
 	cm_trace_t tr = cgi.Trace((const vec3_t) {
 		ent->current.origin[0],
-		ent->current.origin[1],
-		ent->current.origin[2] + mins[2]
+		    ent->current.origin[1],
+		    ent->current.origin[2] + mins[2]
 	}, (const vec3_t) {
 		ent->current.origin[0],
-		ent->current.origin[1],
-		ent->current.origin[2] + mins[2] - PM_STEP_HEIGHT
+		    ent->current.origin[1],
+		    ent->current.origin[2] + mins[2] - PM_STEP_HEIGHT
 	}, vec3_origin, vec3_origin, ent->current.number, MASK_SOLID);
 
 	if (tr.fraction < 1.0 && tr.surface && tr.surface->material && *tr.surface->material->footsteps) {
@@ -282,9 +282,9 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 			play.sample = cgi.LoadSample("*land_1");
 			break;
 		case EV_CLIENT_STEP: {
-			const vec_t height = ent->current.origin[2] - ent->prev.origin[2];
-			Cg_TraverseStep(&ent->step, cgi.client->unclamped_time, height);
-		}
+				const vec_t height = ent->current.origin[2] - ent->prev.origin[2];
+				Cg_TraverseStep(&ent->step, cgi.client->unclamped_time, height);
+			}
 			break;
 		case EV_CLIENT_SIZZLE:
 			play.sample = cgi.LoadSample("*sizzle_1");

@@ -21,19 +21,19 @@
 
 #ifndef __SOUND_H__
 
-#include "s_types.h"
-#include "s_main.h"
-#include "s_media.h"
-#include "s_mix.h"
-#include "s_music.h"
-#include "s_sample.h"
+	#include "s_types.h"
+	#include "s_main.h"
+	#include "s_media.h"
+	#include "s_mix.h"
+	#include "s_music.h"
+	#include "s_sample.h"
 
-extern s_env_t s_env;
+	extern s_env_t s_env;
 
-extern cvar_t *s_ambient;
-extern cvar_t *s_music_volume;
-extern cvar_t *s_rate;
-extern cvar_t *s_reverse;
-extern cvar_t *s_volume;
+	extern cvar_t *s_ambient;
+	extern cvar_t *s_music_volume;
+	extern cvar_t *s_rate;
+	extern cvar_t *s_reverse;
+	extern cvar_t *s_volume;
 
 #endif /* __SOUND_H__ */
