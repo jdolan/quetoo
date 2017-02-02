@@ -157,12 +157,13 @@ static void Cg_InitFootsteps(void) {
 
 	g_hash_table_insert(cg_footstep_table, "default", default_samples);
 	
-	for (GList *list = cgi.MapMaterials()->list->head; list; list = list->next) {
+	if (cgi.MapMaterials() && cgi.MapMaterials()->list) {
+		for (GList *list = cgi.MapMaterials()->list->head; list; list = list->next) {
+			cm_material_t *material = (cm_material_t *) list->data;
 
-		cm_material_t *material = (cm_material_t *) list->data;
-
-		if (*material->stages->diffuse.footsteps) {
-			Cg_FootstepsTable_Load(material->stages->diffuse.footsteps);
+			if (*material->stages->diffuse.footsteps) {
+				Cg_FootstepsTable_Load(material->stages->diffuse.footsteps);
+			}
 		}
 	}
 }

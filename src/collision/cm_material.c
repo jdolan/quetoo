@@ -753,8 +753,10 @@ static void Cm_WriteMaterial_(const cm_material_t *material, file_t *file) {
 void Cm_WriteMaterial(const char *filename, const cm_material_t *material) {
 	file_t *file = Fs_OpenWrite(filename);
 
-	for (GList *list = material->list->head; list; list = list->next) {
-		Cm_WriteMaterial_((const cm_material_t *) list->data, file);
+	if (material->list) {
+		for (GList *list = material->list->head; list; list = list->next) {
+			Cm_WriteMaterial_((const cm_material_t *) list->data, file);
+		}
 	}
 
 	Fs_Close(file);

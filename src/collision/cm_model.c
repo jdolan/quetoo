@@ -88,7 +88,7 @@ static void Cm_LoadBspSurfaces(void) {
 		g_snprintf(material_name, sizeof(material_name), "textures/%s", out->name);
 		Cm_MaterialName(material_name, material_name, sizeof(material_name));
 
-		if (cm_bsp.materials) {
+		if (cm_bsp.materials && cm_bsp.materials->list) {
 			for (GList *list = cm_bsp.materials->list->head; list; list = list->next) {
 
 				cm_material_t *material = (cm_material_t *) list->data;
@@ -301,7 +301,7 @@ static cm_material_t *Cm_LoadBspMaterials(const char *name) {
  */
 static void Cm_UnloadBspMaterials(void) {
 
-	if (cm_bsp.materials) {
+	if (cm_bsp.materials && cm_bsp.materials->list) {
 		for (GList *list = cm_bsp.materials->list->head; list; list = list->next) {
 			Cm_FreeMaterial((cm_material_t *) list->data);
 		}

@@ -904,7 +904,7 @@ void R_LoadMaterials(r_model_t *mod) {
 		cm_mat = Cm_LoadMaterials(path, NULL);
 	}
 
-	if (!cm_mat) {
+	if (!cm_mat || !cm_mat->list) {
 		return;
 	}
 
