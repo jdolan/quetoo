@@ -280,20 +280,37 @@ static void G_Drop_f(g_entity_t *ent) {
 
 	const uint16_t index = it->index;
 
-	if (!ent->client->locals.inventory[index]) {
+	if (ent->client->locals.inventory[index] == 0) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Out of item: %s\n", s);
 		return;
 	}
 
-	if (ent->client->locals.inventory[index] < it->quantity) {
+	uint16_t drop_quantity;
+
+	if (it->type == ITEM_AMMO) {
+		drop_quantity = it->quantity;
+	} else {
+		drop_quantity = 1;
+	}
+
+	if (ent->client->locals.inventory[index] < drop_quantity) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Quantity too low: %s\n", s);
 		return;
 	}
 
-	ent->client->locals.inventory[index] -= it->quantity;
+	ent->client->locals.inventory[index] -= drop_quantity;
 	ent->client->locals.last_dropped = it;
 
 	it->Drop(ent, it);
+
+	// adjust weapon if we need to
+	if (it->type == ITEM_WEAPON) {
+		if (ent->client->locals.weapon == it &&
+			!ent->client->locals.next_weapon &&
+			!ent->client->locals.inventory[index]) {
+			G_UseBestWeapon(ent);
+		}
+	}
 }
 
 /**
