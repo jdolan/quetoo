@@ -384,7 +384,7 @@ typedef struct g_entity_s g_entity_t;
  */
 typedef enum {
 	AMMO_NONE,
-	
+
 	AMMO_SHELLS,
 	AMMO_BULLETS,
 	AMMO_GRENADES,
@@ -566,7 +566,7 @@ typedef struct g_item_s {
 	 * @brief For ammo/armor, the max we can hold at once
 	 */
 	uint16_t max;
-	
+
 	/**
 	 * @brief A special tag that items can use for type-specific data.
 	 */
@@ -578,7 +578,7 @@ typedef struct g_item_s {
 	 */
 	g_item_type_t type;
 
-	/** 
+	/**
 	 * @brief A value to determine the relative priority of items.
 	 */
 	vec_t priority; // AI priority level
@@ -975,6 +975,9 @@ typedef struct {
 	g_vote_t vote; // current vote (yes/no)
 	uint32_t match_num; // most recent match
 	uint32_t round_num; // most recent arena round
+
+	_Bool show_scores; // sets layout bit mask in player state
+	uint32_t scores_time; // eligible for scores when time > this
 } g_client_persistent_t;
 
 /**
@@ -987,9 +990,6 @@ typedef struct {
 	pm_cmd_t cmd;
 
 	g_client_persistent_t persistent;
-
-	_Bool show_scores; // sets layout bit mask in player state
-	uint32_t scores_time; // eligible for scores when time > this
 
 	int16_t inventory[MAX_ITEMS];
 

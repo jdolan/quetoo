@@ -1360,7 +1360,7 @@ static void G_Spectate_f(g_entity_t *ent) {
  * @brief
  */
 static void G_Score_f(g_entity_t *ent) {
-	ent->client->locals.show_scores = !ent->client->locals.show_scores;
+	ent->client->locals.persistent.show_scores = !ent->client->locals.persistent.show_scores;
 }
 
 /**
