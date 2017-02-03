@@ -191,15 +191,16 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 	cgi.DrawString(x, y, va("%d frags", s->score), CON_COLOR_DEFAULT);
 
 	// deaths
-	cgi.DrawString(x + fw / 2, y, va("%d deaths", s->deaths), CON_COLOR_DEFAULT);
+	char *deaths = va("%d deaths ", s->deaths);
+	cgi.DrawString(x + fw - cgi.StringWidth(deaths), y, deaths, CON_COLOR_DEFAULT);
+	y += ch;
 
 	// ready/not ready
 	if (atoi(cgi.ConfigString(CS_MATCH))) {
 		if (s->flags & SCORE_NOT_READY) {
-			cgi.DrawString(x + cw * 14, y, "not ready", CON_COLOR_DEFAULT);
+			cgi.DrawString(x + fw - cgi.StringWidth("not ready "), y, "not ready", CON_COLOR_DEFAULT);
 		}
 	}
-	y += ch;
 
 	// captures
 	if (!cg_score_state.ctf) {

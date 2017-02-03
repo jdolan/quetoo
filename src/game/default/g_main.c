@@ -249,6 +249,7 @@ static void G_RestartGame(_Bool teamz) {
 		cl->locals.persistent.ready = false; // back to warmup
 		cl->locals.persistent.score = 0;
 		cl->locals.persistent.captures = 0;
+		cl->locals.persistent.deaths = 0;
 
 		if (teamz) { // reset teams
 			cl->locals.persistent.team = NULL;
@@ -1057,12 +1058,6 @@ static const char *G_GameName(void) {
 		g_strlcpy(name, va("Team %s", name), size);
 	}
 
-	// matches are implied for duel mode
-	if (g_level.rounds) {
-		g_strlcat(name, " | Rounds", size);
-	} else if (g_level.match && g_level.gameplay != GAME_DUEL) {
-		g_strlcat(name, " | Matches", size);
-	}
 	return name;
 }
 
@@ -1280,7 +1275,7 @@ void G_RunTimers(void) {
 				G_TeamCenterPrint(&g_team_evil, "%s\n", (!j) ? "Fight!" : va("%d", j));
 			}
 
-		} else if (G_MatchIsWarmup()) {	// not everyone ready yet
+		} else if (G_MatchIsWarmup() || g_level.warmup) {	// not everyone ready yet
 			gi.SetConfigString(CS_TIME, va("Warmup %s", G_FormatTime(g_time_limit->integer * 60 * 1000)));
 		} else if (G_MatchIsTimeout()) { // mid match, player called timeout
 			j = (g_level.timeout_time - g_level.time) / 1000;
