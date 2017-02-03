@@ -46,7 +46,7 @@ void G_ClientToIntermission(g_entity_t *ent) {
 	ent->locals.dead = true;
 
 	// show scores
-	ent->client->locals.show_scores = true;
+	ent->client->locals.persistent.show_scores = true;
 
 	// hide the HUD
 	memset(ent->client->locals.inventory, 0, sizeof(ent->client->locals.inventory));
@@ -149,11 +149,11 @@ void G_ClientScores(g_entity_t *ent) {
 	static g_score_t scores[MAX_CLIENTS + 2];
 	static size_t count;
 
-	if (!ent->client->locals.show_scores || (ent->client->locals.scores_time > g_level.time)) {
+	if (!ent->client->locals.persistent.show_scores || (ent->client->locals.persistent.scores_time > g_level.time)) {
 		return;
 	}
 
-	ent->client->locals.scores_time = g_level.time + 500;
+	ent->client->locals.persistent.scores_time = g_level.time + 500;
 
 	// update the scoreboard if it's stale; this is shared to all clients
 	if (g_level.scores_time <= g_level.time) {
@@ -278,7 +278,7 @@ void G_ClientStats(g_entity_t *ent) {
 
 	// scores
 	client->ps.stats[STAT_SCORES] = 0;
-	if (g_level.intermission_time || client->locals.show_scores) {
+	if (g_level.intermission_time || client->locals.persistent.show_scores) {
 		client->ps.stats[STAT_SCORES] |= 1;
 	}
 
@@ -339,7 +339,7 @@ void G_ClientSpectatorStats(g_entity_t *ent) {
 		                               - 1;
 
 		// scores are independent of chase camera target
-		if (g_level.intermission_time || client->locals.show_scores) {
+		if (g_level.intermission_time || client->locals.persistent.show_scores) {
 			client->ps.stats[STAT_SCORES] = 1;
 		} else {
 			client->ps.stats[STAT_SCORES] = 0;
@@ -349,4 +349,3 @@ void G_ClientSpectatorStats(g_entity_t *ent) {
 		client->ps.stats[STAT_CHASE] = 0;
 	}
 }
-

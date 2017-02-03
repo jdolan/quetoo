@@ -500,7 +500,7 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 	self->locals.take_damage = true;
 
 	self->client->locals.respawn_time = g_level.time + 1800; // respawn after death animation finishes
-	self->client->locals.show_scores = true;
+	self->client->locals.persistent.show_scores = true;
 
 	self->client->locals.persistent.deaths++;
 
@@ -694,7 +694,7 @@ static _Bool G_WouldTelefrag(const vec3_t spot) {
 
 	VectorAdd(spot, PM_MINS, mins);
 	VectorAdd(spot, PM_MAXS, maxs);
-	
+
 	mins[2] += PM_STEP_HEIGHT;
 	maxs[2] += PM_STEP_HEIGHT;
 
@@ -744,7 +744,7 @@ static g_entity_t *G_SelectFarthestSpawnPoint(g_entity_t *ent, const g_spawn_poi
 	best_dist = 0.0;
 
 	for (size_t i = 0; i < spawn_points->count; i++) {
-		
+
 		spot = spawn_points->spots[i];
 		dist = G_EnemyRangeFromSpot(ent, spot);
 
@@ -826,6 +826,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 	VectorCopy(ent->client->locals.cmd_angles, cmd_angles);
 
 	// clear the client and restore the persistent state
+
 	memset(ent->client, 0, sizeof(*ent->client));
 	ent->client->locals.persistent = persistent;
 	ent->client->ai = persistent.ai;
@@ -968,7 +969,7 @@ void G_ClientBegin(g_entity_t *ent) {
 	char welcome[MAX_STRING_CHARS];
 
 	G_InitEntity(ent, "client");
-	
+
 	ent->client->locals.persistent.connected = ent->client->connected;
 	ent->client->locals.persistent.ai = ent->client->ai;
 
