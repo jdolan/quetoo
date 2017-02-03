@@ -1057,12 +1057,6 @@ static const char *G_GameName(void) {
 		g_strlcpy(name, va("Team %s", name), size);
 	}
 
-	// matches are implied for duel mode
-	if (g_level.rounds) {
-		g_strlcat(name, " | Rounds", size);
-	} else if (g_level.match && g_level.gameplay != GAME_DUEL) {
-		g_strlcat(name, " | Matches", size);
-	}
 	return name;
 }
 
