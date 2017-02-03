@@ -90,6 +90,11 @@ static void Cg_Init(void) {
 
 	cgi.Print("  Client game initialization...\n");
 
+	const char *s = va("Quetoo Client Game %s %s", VERSION, COMMIT_ID);
+	cgi.Cvar("cgame_version", s, CVAR_NO_SET, NULL);
+
+	cgi.Print("Client Game %s %s, built %s @ %s loaded\n", VERSION, COMMIT_ID, __DATE__, BUILD_HOST);
+
 	Cg_InitInput();
 
 	cg_add_emits = cgi.Cvar("cg_add_emits", "1", 0,

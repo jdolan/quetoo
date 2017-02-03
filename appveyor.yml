@@ -52,9 +52,20 @@ install:
 
     [Environment]::CurrentDirectory = $PWD
 build:
-  parallel: false
+  parallel: true
   verbosity: minimal
   project: Quetoo.vs15\quetoo.sln
+before_build:
+- ps: >-
+    Push-Location "Quetoo.vs15\"
+
+    [Environment]::CurrentDirectory = $PWD
+
+    .\VERSION.ps1
+    
+    Pop-Location
+
+    [Environment]::CurrentDirectory = $PWD
 after_build:
 - ps: >-
     Push-Location "Quetoo.vs15\"

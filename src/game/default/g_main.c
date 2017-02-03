@@ -1076,6 +1076,11 @@ void G_Init(void) {
 
 	gi.Print("  Game initialization...\n");
 
+	const char *s = va("Quetoo Game %s %s", VERSION, COMMIT_ID);
+	gi.Cvar("game_version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
+
+	gi.Print("Quetoo Game %s %s, built %s @ %s loaded\n", VERSION, COMMIT_ID, __DATE__, BUILD_HOST);
+
 	memset(&g_game, 0, sizeof(g_game));
 
 	gi.Cvar("game_name", GAME_NAME, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
