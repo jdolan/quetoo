@@ -1,4 +1,4 @@
-$commit = $env:APPVEYOR_REPO_COMMIT
+$commit = '"' + $env:APPVEYOR_REPO_COMMIT + '"'
 $content = [IO.File]::ReadAllText("src/config.h")
 
 if ($content -imatch '#define(?:\s*)COMMIT_ID(?:\s*)(?:.*?)\r?\n')
