@@ -70,6 +70,12 @@ typedef struct cm_stage_s {
 	struct cm_material_s *material;
 	cm_stage_blend_t blend;
 	vec3_t color;
+
+	/**
+	 * @brief Whether the stage will pull color from the mesh model entity being rendered.
+	 */
+	_Bool mesh_color;
+
 	cm_stage_pulse_t pulse;
 	cm_stage_stretch_t stretch;
 	cm_stage_rotate_t rotate;
@@ -172,6 +178,11 @@ typedef struct cm_material_s {
 	 * @brief The name for the footstep sounds to query on this surface
 	 */
 	char footsteps[MAX_QPATH];
+
+	/**
+	 * @brief Whether only stages should be rendered or the diffuse should too
+	 */
+	_Bool only_stages;
 
 	/**
 	 * @brief Pointer to the first stage in the stage list. NOT an array;

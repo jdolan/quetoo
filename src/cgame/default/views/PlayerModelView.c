@@ -53,6 +53,18 @@ static void renderMeshEntity(r_entity_t *e) {
 	cgi.DrawMeshModel(e);
 }
 
+/**
+ * @brief Renders the given entity stub.
+ */
+static void renderMeshMaterialsEntity(r_entity_t *e) {
+
+	cgi.view->current_entity = e;
+
+	cgi.SetMatrixForEntity(e);
+
+	cgi.DrawMeshModelMaterials(e);
+}
+
 #define NEAR_Z 1.0
 #define FAR_Z  MAX_WORLD_COORD
 
@@ -113,6 +125,11 @@ static void render(View *self, Renderer *renderer) {
 		renderMeshEntity(&this->torso);
 		renderMeshEntity(&this->head);
 		renderMeshEntity(&this->weapon);
+		
+		renderMeshMaterialsEntity(&this->legs);
+		renderMeshMaterialsEntity(&this->torso);
+		renderMeshMaterialsEntity(&this->head);
+		renderMeshMaterialsEntity(&this->weapon);
 
 		cgi.DepthRange(0.0, 1.0);
 		cgi.EnableDepthTest(false);

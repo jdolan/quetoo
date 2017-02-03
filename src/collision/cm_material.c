@@ -356,6 +356,11 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, const char **buffe
 			continue;
 		}
 
+		if (!g_strcmp0(c, "mesh_color")) {
+			s->mesh_color = true;
+			continue;
+		}
+
 		if (*c == '}') {
 
 			// a texture, or envmap means render it
@@ -574,6 +579,10 @@ cm_material_t *Cm_LoadMaterials(const char *path, size_t *count) {
 		if (!g_strcmp0(c, "footsteps")) {
 			const char *footsteps = ParseToken(&buffer);
 			g_strlcpy(m->footsteps, footsteps, sizeof(m->footsteps));
+		}
+
+		if (!g_strcmp0(c, "stages_only")) {
+			m->only_stages = true;
 		}
 
 		if (*c == '{' && in_material) {

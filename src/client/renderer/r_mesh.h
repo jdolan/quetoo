@@ -24,8 +24,16 @@
 #include "r_types.h"
 
 void R_DrawMeshModel_default(const r_entity_t *e);
+void R_DrawMeshModelMaterials_default(const r_entity_t *e);
 
 #ifdef __R_LOCAL_H__
+typedef struct {
+	r_material_t *material;
+	vec4_t color; // the last color we bound
+} r_mesh_state_t;
+
+extern r_mesh_state_t r_mesh_state;
+
 void R_ApplyMeshModelTag(r_entity_t *e);
 void R_ApplyMeshModelConfig(r_entity_t *e);
 _Bool R_CullMeshModel(const r_entity_t *e);

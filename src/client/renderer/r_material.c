@@ -335,8 +335,22 @@ static void R_SetStageState(const r_bsp_surface_t *surf, const r_stage_t *stage)
 		R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
-	// for terrain, enable the color array
-	if (stage->cm->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
+	// for meshes, see if we want to use the mesh color
+	if (!surf && stage->cm->mesh_color) {
+		R_EnableColorArray(false);
+
+		VectorCopy(r_mesh_state.color, color);
+
+		// modulate the alpha value for pulses
+		if (stage->cm->flags & STAGE_PULSE) {
+			color[3] = stage->pulse.dhz;
+		} else {
+			color[3] = r_mesh_state.color[3];
+		}
+
+		R_Color(color);
+	} else if (stage->cm->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
+		// for terrain, enable the color array
 		R_EnableColorArray(true);
 	} else {
 		R_EnableColorArray(false);
@@ -575,8 +589,6 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 
 	R_EnablePolygonOffset(true);
 
-	// some stages will manipulate texcoords
-
 	r_stage_t *s = m->stages;
 	for (vec_t j = R_OFFSET_UNITS; s; s = s->next, j += R_OFFSET_UNITS) {
 
@@ -591,6 +603,9 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 		R_SetStageState(NULL, s);
 
 		R_DrawArrays(GL_TRIANGLES, offset, count);
+
+		r_view.num_mesh_tris += count;
+		r_view.num_mesh_models++;
 	}
 
 	R_EnablePolygonOffset(false);

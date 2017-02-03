@@ -24,7 +24,7 @@
 
 #include "client/cl_types.h"
 
-#define CGAME_API_VERSION 12
+#define CGAME_API_VERSION 13
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -628,9 +628,14 @@ typedef struct cg_import_s {
 	void (*PopMatrix)(const r_matrix_id_t id);
 
 	/**
-	 * @brief Draws the mesh model for the given entity.
+	 * @brief Draws the mesh model diffuse pass for the given entity.
 	 */
 	void (*DrawMeshModel)(const r_entity_t *e);
+
+	/**
+	 * @brief Draws the mesh model materials for the given entity.
+	 */
+	void (*DrawMeshModelMaterials)(const r_entity_t *e);
 
 	/**
 	 * @brief Toggle the state of depth testing.

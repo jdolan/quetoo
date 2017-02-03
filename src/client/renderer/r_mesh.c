@@ -21,11 +21,7 @@
 
 #include "r_local.h"
 
-typedef struct {
-	r_material_t *material;
-} r_mesh_state_t;
-
-static r_mesh_state_t r_mesh_state;
+r_mesh_state_t r_mesh_state;
 
 /**
  * @brief Applies any client-side transformations specified by the model's world or
@@ -205,6 +201,8 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
 	}
 
 	R_Color(color);
+
+	Vector4Copy(color, r_mesh_state.color);
 }
 
 /**
@@ -303,6 +301,13 @@ static void R_ResetMeshState_default(const r_entity_t *e) {
 }
 
 /**
+ * @brief Returns whether or not the main diffuse stage of a mesh should be rendered.
+ */
+static _Bool R_DrawMeshDiffuse_default(void) {
+	return r_draw_wireframe->value || !r_materials->value || !r_mesh_state.material->cm->only_stages;
+}
+
+/**
  * @brief Draw the diffuse pass of each mesh segment for the specified model.
  */
 static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
@@ -321,7 +326,35 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 			}
 		}
 
+		if (!R_DrawMeshDiffuse_default()) {
+			offset += mesh->num_elements;
+			continue;
+		}
+		
 		R_DrawArrays(GL_TRIANGLES, offset, mesh->num_elements);
+
+		offset += mesh->num_elements;
+	}
+}
+
+/**
+ * @brief Draw the material passes of each mesh segment for the specified model.
+ */
+static void R_DrawMeshPartsMaterials_default(const r_entity_t *e, const r_md3_t *md3) {
+	uint32_t offset = 0;
+
+	const r_md3_mesh_t *mesh = md3->meshes;
+	for (uint16_t i = 0; i < md3->num_meshes; i++, mesh++) {
+
+		if (!r_draw_wireframe->value) {
+			if (i > 0) { // update the diffuse state for the current mesh
+				r_mesh_state.material = e->skins[i] ? e->skins[i] : e->model->mesh->material;
+
+				R_BindDiffuseTexture(r_mesh_state.material->diffuse->texnum);
+
+				R_UseMaterial(r_mesh_state.material);
+			}
+		}
 
 		R_DrawMeshMaterial(r_mesh_state.material, offset, mesh->num_elements);
 
@@ -330,7 +363,7 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 }
 
 /**
- * @brief Draws the mesh model for the given entity.
+ * @brief Draws the mesh model for the given entity. This only draws the base model.
  */
 void R_DrawMeshModel_default(const r_entity_t *e) {
 
@@ -339,16 +372,39 @@ void R_DrawMeshModel_default(const r_entity_t *e) {
 	if (e->model->type == MOD_MD3) {
 		R_DrawMeshParts_default(e, (const r_md3_t *) e->model->mesh->data);
 	} else {
-		R_DrawArrays(GL_TRIANGLES, 0, e->model->num_elements);
 
-		R_DrawMeshMaterial(r_mesh_state.material, 0, e->model->num_elements);
+		if (!R_DrawMeshDiffuse_default()) {
+			R_ResetMeshState_default(e); // reset state
+			return;
+		}
+
+		R_DrawArrays(GL_TRIANGLES, 0, e->model->num_elements);
 	}
 
 	r_view.num_mesh_tris += e->model->num_tris;
+	r_view.num_mesh_models++;
 
 	R_ResetMeshState_default(e); // reset state
+}
 
-	r_view.num_mesh_models++;
+/**
+ * @brief Draws the mesh materials for the given entity.
+ */
+void R_DrawMeshModelMaterials_default(const r_entity_t *e) {
+
+	if (r_draw_wireframe->value || !r_materials->value) {
+		return;
+	}
+
+	R_SetMeshState_default(e);
+
+	if (e->model->type == MOD_MD3) {
+		R_DrawMeshPartsMaterials_default(e, (const r_md3_t *) e->model->mesh->data);
+	} else {
+		R_DrawMeshMaterial(r_mesh_state.material, 0, e->model->num_elements);
+	}
+
+	R_ResetMeshState_default(e); // reset state
 }
 
 /**
@@ -373,6 +429,18 @@ void R_DrawMeshModels_default(const r_entities_t *ents) {
 		r_view.current_entity = e;
 
 		R_DrawMeshModel_default(e);
+	}
+
+	for (size_t i = 0; i < ents->count; i++) {
+		const r_entity_t *e = ents->entities[i];
+
+		if (e->effects & EF_NO_DRAW) {
+			continue;
+		}
+
+		r_view.current_entity = e;
+
+		R_DrawMeshModelMaterials_default(e);
 	}
 
 	r_view.current_entity = NULL;
