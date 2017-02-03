@@ -156,7 +156,7 @@ static void Cg_InitFootsteps(void) {
 	}, 4);
 
 	g_hash_table_insert(cg_footstep_table, "default", default_samples);
-	
+
 	if (cgi.MapMaterials() && cgi.MapMaterials()->list) {
 		for (GList *list = cgi.MapMaterials()->list->head; list; list = list->next) {
 			cm_material_t *material = (cm_material_t *) list->data;

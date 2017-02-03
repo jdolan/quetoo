@@ -26,7 +26,7 @@
 #ifdef __GAME_LOCAL_H__
 
 	extern const uint16_t g_num_items;
-	
+
 	const g_item_t *G_ItemList(void);
 
 	/**

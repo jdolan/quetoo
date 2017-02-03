@@ -466,9 +466,9 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	cgi.AddSustainedLight(&(const r_sustained_light_t) {
 		.light.origin = { org[0], org[1], org[2] },
-		 .light.color = { 0.8, 0.4, 0.2 },
-		  .light.radius = 200.0,
-		   .sustain = 1000
+		       .light.color = { 0.8, 0.4, 0.2 },
+		              .light.radius = 200.0,
+		                     .sustain = 1000
 	});
 
 	vec3_t c;
@@ -795,7 +795,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 	});
 
 	vec3_t c;
-	cgi.ColorFromPalette(203 + Random() % 3 , c);
+	cgi.ColorFromPalette(203 + Random() % 3, c);
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },

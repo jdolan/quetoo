@@ -26,12 +26,12 @@
 r_material_t *R_LoadMaterial(const char *name);
 
 #ifdef __R_LOCAL_H__
-#define R_OFFSET_UNITS -1.0
-#define R_OFFSET_FACTOR -1.0
+	#define R_OFFSET_UNITS -1.0
+	#define R_OFFSET_FACTOR -1.0
 
-void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs);
-void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count);
-void R_LoadMaterials(r_model_t *mod);
-void R_InitMaterials(void);
-void R_ShutdownMaterials(void);
+	void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs);
+	void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count);
+	void R_LoadMaterials(r_model_t *mod);
+	void R_InitMaterials(void);
+	void R_ShutdownMaterials(void);
 #endif /* __R_LOCAL_H__ */

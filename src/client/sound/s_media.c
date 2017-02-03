@@ -39,7 +39,7 @@ void S_LoadClientSamples(const char *model) {
 	const GList *key = s_media_state.keys;
 	while (key) {
 		s_media_t *media = g_hash_table_lookup(s_media_state.media, key->data);
-		
+
 		if (media && media->name[0] == '*') {
 			sounds = g_slist_prepend(sounds, media);
 		}

@@ -22,5 +22,5 @@
 #pragma once
 
 #ifdef __R_LOCAL_H__
-void R_UpdateLighting(r_lighting_t *lighting);
+	void R_UpdateLighting(r_lighting_t *lighting);
 #endif /* __R_LOCAL_H__ */

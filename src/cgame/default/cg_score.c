@@ -163,7 +163,7 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 		color_t color = ColorFromHSV((const vec3_t) {
 			s->color, 1.0, 1.0
 		});
-	
+
 		color.a = (uint8_t) (fa * 255.0);
 
 		cgi.DrawFill(x, y, fw, fh, color.u32, -1.0);

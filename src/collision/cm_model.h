@@ -62,6 +62,6 @@ cm_bsp_t *Cm_Bsp(void);
 
 #ifdef __CM_LOCAL_H__
 
-extern cm_bsp_t cm_bsp;
+	extern cm_bsp_t cm_bsp;
 
 #endif /* __CM_LOCAL_H__ */

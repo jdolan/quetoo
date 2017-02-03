@@ -95,18 +95,18 @@ typedef union {
 	}; // as separate components
 
 	byte bytes[4]; // as four bytes, for loopage
-	
+
 	uint32_t u32; // as a full uint32_t
 } color_t;
 
 #define ColorFromRGBA(rr, gg, bb, aa) \
-		((color_t) { .r = rr, .g = gg, .b = bb, .a = aa })
+	((color_t) { .r = rr, .g = gg, .b = bb, .a = aa })
 
 #define ColorFromRGB(r, g, b) \
-		ColorFromRGBA(r, g, b, 255)
+	ColorFromRGBA(r, g, b, 255)
 
 #define ColorFromU32(v) \
-		((color_t) { .u32 = v })
+	((color_t) { .u32 = v })
 
 /**
  * @brief Indices for angle vectors.

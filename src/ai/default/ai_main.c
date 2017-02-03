@@ -260,7 +260,7 @@ static vec_t Ai_ItemReachable(const g_entity_t *self, const g_entity_t *other) {
 		vec3_t fall_start;
 		VectorAdd(self->s.origin, other->s.origin, fall_start);
 		VectorScale(fall_start, 0.5, fall_start);
-		
+
 		vec3_t fall_end;
 		VectorCopy(fall_start, fall_end);
 		fall_end[2] -= PM_STEP_HEIGHT * 2.0;
@@ -317,8 +317,8 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 
 		// check to see if the item has gone out of our line of sight
 		if (!Ai_GoalHasEntity(&ai->move_target, ai->move_target.ent) || // item picked up and changed into something else
-				!Ai_CanTarget(self, ai->move_target.ent) ||
-				!Ai_ItemRequired(self, ENTITY_DATA(ai->move_target.ent, item)) ||
+		        !Ai_CanTarget(self, ai->move_target.ent) ||
+		        !Ai_ItemRequired(self, ENTITY_DATA(ai->move_target.ent, item)) ||
 		        Ai_ItemReachable(self, ai->move_target.ent) == AI_ITEM_UNREACHABLE) {
 
 			Ai_ResetWander(self, ai->move_target.ent->s.origin);
@@ -369,7 +369,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 		vec_t distance;
 
 		if (!Ai_CanTarget(self, ent) ||
-				!Ai_ItemRequired(self, ent_item) ||
+		        !Ai_ItemRequired(self, ent_item) ||
 		        (distance = Ai_ItemReachable(self, ent)) == AI_ITEM_UNREACHABLE) {
 			continue;
 		}
@@ -763,7 +763,7 @@ static g_entity_t *ai_current_entity;
  * @brief Ignore ourselves, clipping to the correct mask based on our status.
  */
 static cm_trace_t Ai_ClientMove_Trace(const vec3_t start, const vec3_t end, const vec3_t mins,
-                                     const vec3_t maxs) {
+                                      const vec3_t maxs) {
 
 	const g_entity_t *self = ai_current_entity;
 
@@ -839,7 +839,7 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 			pm.s.type = PM_HOOK_PULL;
 		}
 	} else {*/
-		VectorCopy(ENTITY_DATA_ARRAY(self, velocity), pm.s.velocity);
+	VectorCopy(ENTITY_DATA_ARRAY(self, velocity), pm.s.velocity);
 	/*}*/
 
 	pm.s.type = PM_NORMAL;

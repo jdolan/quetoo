@@ -24,7 +24,7 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
-void Cg_ResolveWeather(const char *weather);
-void Cg_AddEffects(void);
-void Cg_LoadEffects(void);
+	void Cg_ResolveWeather(const char *weather);
+	void Cg_AddEffects(void);
+	void Cg_LoadEffects(void);
 #endif /* __CG_LOCAL_H__ */

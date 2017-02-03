@@ -375,7 +375,7 @@ static void R_StitchAtlas(r_atlas_t *atlas, r_atlas_params_t *params) {
  * @brief Generate mipmap levels for the specified atlas.
  */
 static void R_GenerateAtlasMips(r_atlas_t *atlas, r_atlas_params_t *params) {
-	
+
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 

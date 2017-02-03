@@ -25,8 +25,8 @@
 
 #ifdef __SV_LOCAL_H__
 
-void Sv_HeartbeatMasters(void);
-void Sv_InitMasters(void);
-void Sv_ShutdownMasters(void);
+	void Sv_HeartbeatMasters(void);
+	void Sv_InitMasters(void);
+	void Sv_ShutdownMasters(void);
 
 #endif /* __SV_LOCAL_H__ */

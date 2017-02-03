@@ -25,7 +25,7 @@ void S_AddSample(const s_play_sample_t *play);
 
 #ifdef __S_LOCAL_H__
 
-void S_FreeChannel(int32_t c);
-void S_MixChannels(void);
+	void S_FreeChannel(int32_t c);
+	void S_MixChannels(void);
 
 #endif /* __S_LOCAL_H__ */

@@ -170,7 +170,7 @@ typedef struct {
 	void (*WritePosition)(const vec3_t pos);
 	void (*WriteDir)(const vec3_t pos); // single byte encoded, very coarse
 	void (*WriteAngle)(const vec_t v);
-	void (*WriteAngles)(const vec3_t angles); 
+	void (*WriteAngles)(const vec3_t angles);
 
 	/**
 	 * @brief TODO FIXME - TEMPORARY API SCRATCH SPACE.

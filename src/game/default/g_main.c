@@ -94,10 +94,10 @@ void G_ResetTeams(void) {
 
 	g_team_good.color = TEAM_COLOR_GOOD;
 	g_team_evil.color = TEAM_COLOR_EVIL;
-	
+
 	g_strlcpy(g_team_good.flag, "item_flag_team1", sizeof(g_team_good.flag));
 	g_strlcpy(g_team_evil.flag, "item_flag_team2", sizeof(g_team_evil.flag));
-	
+
 	g_strlcpy(g_team_good.spawn, "info_player_team1", sizeof(g_team_good.spawn));
 	g_strlcpy(g_team_evil.spawn, "info_player_team2", sizeof(g_team_evil.spawn));
 }
@@ -191,7 +191,7 @@ static void G_ResetTeamSpawnPoints(g_spawn_points_t *points, const g_entity_trai
 				ent->s.trail = trail;
 			}
 			ent->sv_flags = 0;
-		
+
 			gi.LinkEntity(ent);
 		} else {
 
@@ -207,7 +207,7 @@ static void G_ResetTeamSpawnPoints(g_spawn_points_t *points, const g_entity_trai
  * @brief Setup the effects for spawn points
  */
 void G_ResetSpawnPoints(void) {
-	
+
 	// reset trails to 0 first
 	G_ResetTeamSpawnPoints(&g_team_good.spawn_points, 0);
 	G_ResetTeamSpawnPoints(&g_team_evil.spawn_points, 0);

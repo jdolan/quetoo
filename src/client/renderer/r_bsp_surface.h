@@ -24,10 +24,10 @@
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
-void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs);
-void R_DrawOpaqueWarpBspSurfaces_default(const r_bsp_surfaces_t *surfs);
-void R_DrawAlphaTestBspSurfaces_default(const r_bsp_surfaces_t *surfs);
-void R_DrawBlendBspSurfaces_default(const r_bsp_surfaces_t *surfs);
-void R_DrawBlendWarpBspSurfaces_default(const r_bsp_surfaces_t *surfs);
-void R_DrawBackBspSurfaces_default(const r_bsp_surfaces_t *surfs);
+	void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs);
+	void R_DrawOpaqueWarpBspSurfaces_default(const r_bsp_surfaces_t *surfs);
+	void R_DrawAlphaTestBspSurfaces_default(const r_bsp_surfaces_t *surfs);
+	void R_DrawBlendBspSurfaces_default(const r_bsp_surfaces_t *surfs);
+	void R_DrawBlendWarpBspSurfaces_default(const r_bsp_surfaces_t *surfs);
+	void R_DrawBackBspSurfaces_default(const r_bsp_surfaces_t *surfs);
 #endif /* __R_LOCAL_H__ */

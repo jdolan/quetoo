@@ -24,5 +24,5 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
-void Cg_ParseMuzzleFlash(void);
+	void Cg_ParseMuzzleFlash(void);
 #endif /* __CG_LOCAL_H__ */

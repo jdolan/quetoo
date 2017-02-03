@@ -77,7 +77,7 @@ static void loadView(ViewController *self) {
 
 			Select *colorSelect = (Select *) $(alloc(CvarSelect), initWithVariable, cg_color);
 
-			$(colorSelect, addOption, "default", (ident) -1);
+			$(colorSelect, addOption, "default", (ident) - 1);
 			$(colorSelect, addOption, "red", (ident) 0);
 			$(colorSelect, addOption, "orange", (ident) 20);
 			$(colorSelect, addOption, "yellow", (ident) 60);
