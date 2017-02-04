@@ -1074,12 +1074,12 @@ static void G_Restart_Sv_f(void) {
  */
 void G_Init(void) {
 
-	gi.Print("  Game initialization...\n");
+	gi.Print("  ^5Game module initialization...\n");
 
-	const char *s = va("Quetoo Game %s %s", VERSION, COMMIT_ID);
-	gi.Cvar("game_version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
+	const char *s = va("%s %s %s", VERSION, BUILD_HOST, REVISION);
+	cvar_t *game_version = gi.Cvar("game_version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
-	gi.Print("Quetoo Game %s %s, built %s @ %s loaded\n", VERSION, COMMIT_ID, __DATE__, BUILD_HOST);
+	gi.Print("  ^5Version %s\n", game_version->string);
 
 	memset(&g_game, 0, sizeof(g_game));
 
@@ -1157,9 +1157,13 @@ void G_Init(void) {
 	G_MySQL_Init();
 
 	// set these to false to avoid spurious game restarts and alerts on init
-	g_gameplay->modified = g_ctf->modified = g_cheats->modified =
-	                           g_frag_limit->modified = g_round_limit->modified = g_capture_limit->modified =
-	                                       g_time_limit->modified = false;
+	g_gameplay->modified =
+			g_ctf->modified =
+			g_cheats->modified =
+			g_frag_limit->modified =
+			g_round_limit->modified =
+			g_capture_limit->modified =
+			g_time_limit->modified = false;
 
 	// add game-specific server console commands
 	gi.Cmd("mute", G_Mute_Sv_f, CMD_GAME, "Prevent a client from talking");
@@ -1168,7 +1172,7 @@ void G_Init(void) {
 	gi.Cmd("stuff_all", G_StuffAll_Sv_f, CMD_GAME, "Force all players to execute a command");
 	gi.Cmd("g_restart", G_Restart_Sv_f, CMD_GAME, "Force the game to restart");
 
-	gi.Print("  Game initialized\n");
+	gi.Print("  ^5Game module initialized\n");
 }
 
 /**
@@ -1177,7 +1181,7 @@ void G_Init(void) {
  */
 void G_Shutdown(void) {
 
-	gi.Print("  Game shutdown...\n");
+	gi.Print("  ^5Game module shutdown...\n");
 
 	G_MySQL_Shutdown();
 	G_MapList_Shutdown();

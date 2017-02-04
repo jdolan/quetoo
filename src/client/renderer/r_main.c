@@ -567,8 +567,8 @@ static void R_InitConfig(void) {
 	Com_Print("  Renderer:   ^2%s^7\n", r_config.renderer);
 	Com_Print("  Vendor:     ^2%s^7\n", r_config.vendor);
 	Com_Print("  Version:    ^2%s^7\n", r_config.version);
-	Com_Print("  Tex Units:  ^2%i^7\n", r_config.max_texunits);
-	Com_Print("  Tex Size:   ^2%i^7\n", r_config.max_texture_size);
+	Com_Verbose("  Tex Units:  ^2%i^7\n", r_config.max_texunits);
+	Com_Verbose("  Tex Size:   ^2%i^7\n", r_config.max_texture_size);
 
 	const char *e = r_config.extensions, *c = r_config.extensions;
 	while (*c) {

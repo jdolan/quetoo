@@ -1055,18 +1055,30 @@ static void Ai_SetDataPointers(ai_entity_data_t *entity, ai_client_data_t *clien
  */
 static void Ai_Init(void) {
 
+	aim.Print("  ^5Ai module initialization...\n");
+
+	const char *s = va("%s %s %s", VERSION, BUILD_HOST, REVISION);
+	cvar_t *ai_version = aim.Cvar("ai_version", s, CVAR_NO_SET, NULL);
+
+	aim.Print("  ^5Version %s\n", ai_version->string);
+
 	sv_max_clients = aim.Cvar("sv_max_clients", 0, 0, "");
 
 	ai_passive = aim.Cvar("ai_passive", "0", 0, "Whether the bots will attack or not");
 	ai_locals = (ai_locals_t *) aim.Malloc(sizeof(ai_locals_t) * sv_max_clients->integer, MEM_TAG_AI);
 
 	Ai_InitSkins();
+
+	aim.Print("  ^5Ai module initialized\n");
 }
 
 /**
  * @brief Shuts down the AI subsystem
  */
 static void Ai_Shutdown(void) {
+
+	aim.Print("  ^5Ai module shutdown...\n");
+
 	g_array_free(ai_skins, true);
 	ai_skins = NULL;
 

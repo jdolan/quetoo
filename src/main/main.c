@@ -33,6 +33,7 @@ static jmp_buf env;
 quetoo_t quetoo;
 
 static cvar_t *verbose;
+static cvar_t *version;
 
 cvar_t *dedicated;
 cvar_t *game;
@@ -298,6 +299,9 @@ static void Init(void) {
 
 	Cvar_Init();
 
+	char *s = va("%s %s %s", VERSION, BUILD_HOST, REVISION);
+	version = Cvar_Add("version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
+
 	verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information");
 
 	dedicated = Cvar_Add("dedicated", "0", CVAR_NO_SET, "Run a dedicated server");
@@ -321,9 +325,6 @@ static void Init(void) {
 	time_demo = Cvar_Add("time_demo", "0", CVAR_LO_ONLY, "Benchmark and stress test");
 	time_scale = Cvar_Add("time_scale", "1.0", CVAR_LO_ONLY, "Controls time lapse");
 
-	const char *s = va("Quetoo %s %s", VERSION, COMMIT_ID);
-	Cvar_Add("version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
-
 	quetoo.Debug = Debug;
 	quetoo.Error = Error;
 	quetoo.Print = Print;
@@ -346,7 +347,7 @@ static void Init(void) {
 
 	Cl_Init();
 
-	Com_Print("Quetoo %s %s, built %s @ %s initialized\n", VERSION, COMMIT_ID, __DATE__, BUILD_HOST);
+	Com_Print("Quetoo %s initialized", version->string);
 
 	// reset debug value since Cbuf may change it from Com's "all" init
 	Com_SetDebug("0");

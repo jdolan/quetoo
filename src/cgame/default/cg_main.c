@@ -25,8 +25,7 @@
  * @brief Local state to the cgame per server.
  */
 typedef struct {
-
-	vec_t		hook_pull_speed;
+	vec_t hook_pull_speed;
 } cg_state_t;
 
 static cg_state_t cg_state;
@@ -88,12 +87,12 @@ cg_import_t cgi;
  */
 static void Cg_Init(void) {
 
-	cgi.Print("  Client game initialization...\n");
+	cgi.Print("  ^6Client game module initialization...\n");
 
-	const char *s = va("Quetoo Client Game %s %s", VERSION, COMMIT_ID);
-	cgi.Cvar("cgame_version", s, CVAR_NO_SET, NULL);
+	const char *s = va("%s %s %s", VERSION, BUILD_HOST, REVISION);
+	cvar_t *cgame_version = cgi.Cvar("cgame_version", s, CVAR_NO_SET, NULL);
 
-	cgi.Print("Client Game %s %s, built %s @ %s loaded\n", VERSION, COMMIT_ID, __DATE__, BUILD_HOST);
+	cgi.Print("  ^6Version %s\n", cgame_version->string);
 
 	Cg_InitInput();
 
@@ -218,7 +217,7 @@ static void Cg_Init(void) {
 
 	Cg_InitUi();
 
-	cgi.Print("  Client game initialized\n");
+	cgi.Print("  ^6Client game module initialized\n");
 }
 
 /**
@@ -226,7 +225,7 @@ static void Cg_Init(void) {
  */
 static void Cg_Shutdown(void) {
 
-	cgi.Print("  Client game shutdown...\n");
+	cgi.Print("  ^6Client game module shutdown...\n");
 
 	Cg_ShutdownUi();
 

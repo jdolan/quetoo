@@ -34,11 +34,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-// if we don't have a commit ID in config.h (local build) then use this
-#ifndef COMMIT_ID
-	#define COMMIT_ID "unversioned"
-#endif
-
 #if HAVE_UNISTD_H
 	#include <unistd.h>
 #endif

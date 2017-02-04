@@ -16,6 +16,16 @@ AC_DEFINE_UNQUOTED(BUILD_HOST,
 AC_SUBST(PROGRAM)
 AC_SUBST(VERSION)
 
+AC_CHECK_PROG(GIT, git, 1)
+
+if [[ ! -z "${GIT}" ]]; then
+	REVISION=`git rev-parse --short HEAD`
+else
+	REVISION="unversioned"
+fi
+
+AC_DEFINE_UNQUOTED(REVISION, "$REVISION", [Git revision])
+
 AM_INIT_AUTOMAKE([foreign])
 AM_SILENT_RULES([yes])
 

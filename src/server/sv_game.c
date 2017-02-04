@@ -254,6 +254,8 @@ static void *ai_handle;
  */
 static ai_export_t *Sv_LoadAi(ai_import_t *import) {
 
+	Com_Print("Ai initialization...\n");
+
 	if (!*ai->string) {
 		return NULL;
 	}
@@ -261,14 +263,14 @@ static ai_export_t *Sv_LoadAi(ai_import_t *import) {
 	svs.ai = (ai_export_t *) Sys_LoadLibrary("ai", &ai_handle, "Ai_LoadAi", import);
 
 	if (!svs.ai) {
-		Com_Warn("Failed to load AI module\n");
+		Com_Warn("Failed to load Ai module\n");
 		Sys_CloseLibrary(&ai_handle);
 		svs.ai = NULL;
 		return NULL;
 	}
 
 	if (svs.ai->api_version != AI_API_VERSION) {
-		Com_Warn("AI is version %i, not %i\n", svs.ai->api_version, AI_API_VERSION);
+		Com_Warn("Ai module is version %i, not %i\n", svs.ai->api_version, AI_API_VERSION);
 		Sys_CloseLibrary(&ai_handle);
 		svs.ai = NULL;
 		return NULL;
@@ -276,7 +278,7 @@ static ai_export_t *Sv_LoadAi(ai_import_t *import) {
 
 	svs.ai->Init();
 
-	Com_Print("  AI initialized.\n");
+	Com_Print("Ai initialized\n");
 	Com_InitSubsystem(QUETOO_AI);
 
 	return svs.ai;
@@ -285,13 +287,13 @@ static ai_export_t *Sv_LoadAi(ai_import_t *import) {
 /**
  * @brief Called when the AI needs to be killed.
  */
-static void Sv_ShutdownAI(void) {
+static void Sv_ShutdownAi(void) {
 
 	if (!svs.ai) {
 		return;
 	}
 
-	Com_Print("AI shutdown...\n");
+	Com_Print("Ai shutdown...\n");
 
 	svs.ai->Shutdown();
 	svs.ai = NULL;
@@ -301,7 +303,7 @@ static void Sv_ShutdownAI(void) {
 	// the game module code should call this, but lets not assume
 	Mem_FreeTag(MEM_TAG_AI);
 
-	Com_Print("AI down\n");
+	Com_Print("Ai down\n");
 	Com_QuitSubsystem(QUETOO_AI);
 
 	Sys_CloseLibrary(&ai_handle);
@@ -431,7 +433,7 @@ void Sv_ShutdownGame(void) {
 	}
 
 	// shutdown AI first
-	Sv_ShutdownAI();
+	Sv_ShutdownAi();
 
 	Com_Print("Game shutdown...\n");
 
