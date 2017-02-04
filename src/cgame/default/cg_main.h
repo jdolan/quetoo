@@ -75,6 +75,9 @@ extern cvar_t *g_teams;
 extern cvar_t *g_ctf;
 extern cvar_t *g_match;
 
+extern cvar_t *qj_max_ping;
+extern cvar_t *qj_min_clients;
+
 extern cg_import_t cgi;
 
 cg_export_t *Cg_LoadCgame(cg_import_t *import);

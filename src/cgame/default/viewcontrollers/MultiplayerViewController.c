@@ -31,6 +31,83 @@
 #pragma mark - Actions
 
 /**
+ * @brief ActionFunction for the Quickjoin button.
+ * @description Selects a server based on maximum ping and minimum players. Any
+ * server that matches the above criteria will be weighted by how much "better"
+ * they are by how much lower their ping is and how many more players there are.
+ */
+static void quickjoinAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+
+	const uint16_t max_ping = Clamp(qj_max_ping->integer, 0, 999);
+	const uint16_t min_clients = Clamp(qj_min_clients->integer, 0, MAX_CLIENTS);
+
+	GList *server = cgi.Servers();
+
+	cl_server_info_t *svdata;
+	uint32_t total_weight = 0;
+
+	while (server != NULL) {
+		svdata = (cl_server_info_t *) server->data;
+
+		server = server->next;
+
+		uint32_t weight = 1;
+
+		if (svdata->ping > max_ping ||
+			svdata->clients < min_clients ||
+			svdata->clients >= svdata->max_clients) {
+
+			weight = 0;
+		} else {
+			// more weight for more populated servers
+			weight += svdata->clients - min_clients;
+
+			// more weight for lower ping servers
+			weight += ((int16_t) (max_ping - svdata->ping)) / 20;
+		}
+
+		total_weight += weight;
+	}
+
+	if(total_weight == 0) {
+		return;
+	}
+
+	server = cgi.Servers();
+
+	uint32_t random_weight = Random() % total_weight;
+	uint32_t current_weight = 0;
+
+	while (server != NULL) {
+		svdata = (cl_server_info_t *) server->data;
+
+		server = server->next;
+
+		uint32_t weight = 1;
+
+		if (svdata->ping > max_ping ||
+			svdata->clients < min_clients ||
+			svdata->clients >= svdata->max_clients) {
+
+			weight = 0;
+		} else {
+			// more weight for more populated servers
+			weight += svdata->clients - min_clients;
+
+			// more weight for lower ping servers
+			weight += ((uint32_t) (max_ping - svdata->ping)) / 20;
+		}
+
+		current_weight += weight;
+
+		if (current_weight > random_weight) {
+			cgi.Connect(&svdata->addr);
+			break;
+		}
+	}
+}
+
+/**
  * @brief ActionFunction for the Create button.
  */
 static void createAction(Control *control, const SDL_Event *event, ident sender, ident data) {
@@ -113,6 +190,7 @@ static void loadView(ViewController *self) {
 	{
 		this->panel->accessoryView->view.hidden = false;
 
+		Cg_Button((View *) this->panel->accessoryView, "Quickjoin", quickjoinAction, self, NULL);
 		Cg_Button((View *) this->panel->accessoryView, "Create..", createAction, self, NULL);
 		Cg_Button((View *) this->panel->accessoryView, "Refresh", refreshAction, self, NULL);
 		Cg_Button((View *) this->panel->accessoryView, "Connect", connectAction, self, servers);
@@ -150,4 +228,3 @@ Class *_MultiplayerViewController(void) {
 }
 
 #undef _Class
-

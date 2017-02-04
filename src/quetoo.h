@@ -90,7 +90,7 @@ typedef union {
 	}; // as separate components
 
 	byte bytes[4]; // as four bytes, for loopage
-	
+
 	uint32_t u32; // as a full uint32_t
 } color_t;
 

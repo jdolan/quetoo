@@ -79,6 +79,9 @@ cvar_t *g_teams;
 cvar_t *g_ctf;
 cvar_t *g_match;
 
+cvar_t *qj_max_ping;
+cvar_t *qj_min_clients;
+
 cg_import_t cgi;
 
 /**
@@ -187,6 +190,11 @@ static void Cg_Init(void) {
 	                 "Enables capture the flag gameplay");
 	g_match = cgi.Cvar("g_match", "0", CVAR_SERVER_INFO,
 	                   "Enables match play requiring players to ready");
+
+	qj_max_ping = cgi.Cvar("qj_max_ping", "100", CVAR_SERVER_INFO,
+	        "Maximum ping allowed for quickjoin");
+	qj_min_clients = cgi.Cvar("qj_min_clients", "1", CVAR_SERVER_INFO,
+	        "Minimum clients allowed for quickjoin");
 
 	// add forward to server commands for tab completion
 
