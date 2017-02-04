@@ -316,7 +316,6 @@ static void Cg_UpdateConfigString(uint16_t i) {
 			cg_state.hook_pull_speed = strtof(s, NULL);
 			return;
 		default:
-
 			break;
 	}
 

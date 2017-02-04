@@ -85,6 +85,7 @@ extern g_team_t g_team_good, g_team_evil;
 
 void G_Init(void);
 void G_Shutdown(void);
+void G_CheckHook(void);
 void G_ResetItems(void);
 void G_ResetTeams(void);
 void G_ResetSpawnPoints(void);

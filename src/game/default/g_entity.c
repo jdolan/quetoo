@@ -832,6 +832,8 @@ void G_SpawnEntities(const char *name, const char *entities) {
 
 	G_ResetItems();
 
+	G_CheckHook();
+
 	G_ResetTeams();
 
 	G_InitSpawnPoints();

@@ -156,7 +156,7 @@ void G_ResetItems(void) {
 /**
  * @brief Checks and sets up the hook state
  */
-static void G_CheckHook(void) {
+void G_CheckHook(void) {
 
 	if (g_strcmp0(g_hook->string, "default")) { // check cvar first
 		g_level.hook_allowed = !!g_hook->integer;
