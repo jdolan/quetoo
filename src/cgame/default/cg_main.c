@@ -210,7 +210,6 @@ static void Cg_Init(void) {
 	cgi.Cmd("team_skin", NULL, CMD_CGAME, NULL);
 	cgi.Cmd("spectate", NULL, CMD_CGAME, NULL);
 	cgi.Cmd("join", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("score", NULL, CMD_CGAME, NULL);
 	cgi.Cmd("ready", NULL, CMD_CGAME, NULL);
 	cgi.Cmd("unready", NULL, CMD_CGAME, NULL);
 	cgi.Cmd("player_list", NULL, CMD_CGAME, NULL);

@@ -78,7 +78,7 @@ static void loadView(ViewController *self) {
 
 			Cg_BindInput((View *) stackView, "Say", "cl_message_mode");
 			Cg_BindInput((View *) stackView, "Say Team", "cl_message_mode_2");
-			Cg_BindInput((View *) stackView, "Show score", "+SCORE");
+			Cg_BindInput((View *) stackView, "Show score", "+score");
 			Cg_BindInput((View *) stackView, "Take screenshot", "r_screenshot");
 
 			$((View *) box, addSubview, (View *) stackView);

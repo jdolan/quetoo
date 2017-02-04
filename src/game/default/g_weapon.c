@@ -425,18 +425,16 @@ void G_ClientHookDetach(g_entity_t *ent) {
 static void G_ClientHookCheckFire(g_entity_t *ent) {
 
 	// hook can fire, see if we should
-	const uint32_t buttons = ent->client->locals.latched_buttons;
-
-	if (!(buttons & BUTTON_HOOK)) {
+	if (!(ent->client->locals.latched_buttons & BUTTON_HOOK)) {
 		return;
 	}
-
-	ent->client->locals.latched_buttons &= ~BUTTON_HOOK;
 
 	// use small epsilon for low server frame rates
 	if (ent->client->locals.hook_fire_time > g_level.time + 1) {
 		return;
 	}
+
+	ent->client->locals.latched_buttons &= ~BUTTON_HOOK;
 
 	// fire away!
 	vec3_t forward, right, up, org;
@@ -446,6 +444,7 @@ static void G_ClientHookCheckFire(g_entity_t *ent) {
 	ent->client->locals.hook_entity = G_HookProjectile(ent, org, forward);
 
 	gi.Sound(ent, g_media.sounds.hook_fire, ATTEN_NORM);
+	ent->client->locals.hook_think_time = g_level.time;
 }
 
 /**
@@ -466,8 +465,6 @@ void G_ClientHookThink(g_entity_t *ent) {
 		return;
 	}
 
-	ent->client->locals.hook_think_time = g_level.time;
-
 	// send off to the proper sub-function
 	if (ent->client->locals.hook_entity) {
 
@@ -475,6 +472,8 @@ void G_ClientHookThink(g_entity_t *ent) {
 		        (ent->client->locals.persistent.hook_style == HOOK_SWING && (ent->client->locals.latched_buttons & BUTTON_HOOK))) {
 
 			G_ClientHookDetach(ent);
+			ent->client->locals.latched_buttons &= ~BUTTON_HOOK;
+			ent->client->locals.hook_think_time = g_level.time;
 		}
 	} else {
 

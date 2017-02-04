@@ -1357,13 +1357,6 @@ static void G_Spectate_f(g_entity_t *ent) {
 }
 
 /**
- * @brief
- */
-static void G_Score_f(g_entity_t *ent) {
-	ent->client->locals.persistent.show_scores = !ent->client->locals.persistent.show_scores;
-}
-
-/**
  * @brief resumes the current match
  */
 static void G_Timein_f(g_entity_t *ent) {
@@ -1464,11 +1457,7 @@ void G_ClientCommand(g_entity_t *ent) {
 	}
 
 	// these commands are allowed in a timeout
-	if (g_strcmp0(cmd, "score") == 0) {
-		G_Score_f(ent);
-		return;
-
-	} else if (g_strcmp0(cmd, "vote") == 0) { // maybe
+	if (g_strcmp0(cmd, "vote") == 0) { // maybe
 		G_Vote_f(ent);
 		return;
 

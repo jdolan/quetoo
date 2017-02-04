@@ -63,11 +63,8 @@ static const char *DEFAULT_BINDS =
     "bind , slow_motion\n"
     "bind . fast_forward\n"
 
-    // score alias
-    "alias +SCORE score\n"
-    "alias -SCORE score\n"
-
-    "bind tab +SCORE\n"
+	// score
+    "bind tab +score\n"
 
     // zoom alias for nubs
     "alias +ZOOM \""

@@ -1513,6 +1513,8 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 		return;
 	}
 
+	ent->client->locals.persistent.show_scores = !!(cmd->buttons & BUTTON_SCORE);
+
 	if (g_level.match_status & MSTAT_TIMEOUT) {
 		return;
 	}
@@ -1537,26 +1539,22 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 		}
 	}
 
-	// process hook, do it before PMove
-	if (cl->locals.latched_buttons & BUTTON_HOOK) {
-
-		if (cl->locals.persistent.spectator) {
-
-			// TODO: hook this into spectator maybe?
-		} else if (cl->locals.hook_think_time < g_level.time) {
-
-			G_ClientHookThink(ent);
-		}
-	}
+	// setup buttons now, since pmove won't modify them
+	cl->locals.old_buttons = cl->locals.buttons;
+	cl->locals.buttons = cmd->buttons;
+	cl->locals.latched_buttons |= cl->locals.buttons & ~cl->locals.old_buttons;
 
 	if (!cl->locals.chase_target) { // move through the world
+
+		// process hook buttons
+		if (cl->locals.hook_think_time < g_level.time) {
+			G_ClientHookThink(ent);
+		}
+
 		G_ClientMove(ent, cmd);
 	}
 
 	cl->locals.cmd = *cmd;
-	cl->locals.old_buttons = cl->locals.buttons;
-	cl->locals.buttons = cmd->buttons;
-	cl->locals.latched_buttons |= cl->locals.buttons & ~cl->locals.old_buttons;
 
 	// fire weapon if requested
 	if (cl->locals.latched_buttons & BUTTON_ATTACK) {

@@ -140,6 +140,7 @@ extern const vec3_t PM_MAXS;
 #define BUTTON_ATTACK		(1 << 0)
 #define BUTTON_WALK			(1 << 1)
 #define BUTTON_HOOK			(1 << 2)
+#define BUTTON_SCORE		(1 << 3)
 
 /**
  * @brief Game-specific flags for pm_state_t.flags.

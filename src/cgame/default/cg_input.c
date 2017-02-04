@@ -22,10 +22,11 @@
 #include "cg_local.h"
 #include "game/default/bg_pmove.h"
 
-static button_t cg_buttons[3];
+static button_t cg_buttons[4];
 #define in_speed cg_buttons[0]
 #define in_attack cg_buttons[1]
 #define in_hook cg_buttons[2]
+#define in_score cg_buttons[3]
 
 static cvar_t *cg_run;
 
@@ -187,6 +188,10 @@ void Cg_Move(pm_cmd_t *cmd) {
 		cmd->buttons |= BUTTON_HOOK;
 	}
 
+	if (in_score.state & 3) {
+		cmd->buttons |= BUTTON_SCORE;
+	}
+
 	in_attack.state &= ~2;
 	in_hook.state &= ~2;
 
@@ -248,6 +253,14 @@ static void Cg_Hook_up_f(void) {
 	cgi.KeyUp(&in_hook);
 }
 
+static void Cg_Score_down_f(void) {
+	cgi.KeyDown(&in_score);
+}
+
+static void Cg_Score_up_f(void) {
+	cgi.KeyUp(&in_score);
+}
+
 /**
  * @brief Init cgame input system.
  */
@@ -261,6 +274,8 @@ void Cg_InitInput(void) {
 	cgi.Cmd("-attack", Cg_Attack_up_f, CMD_CGAME, NULL);
 	cgi.Cmd("+hook", Cg_Hook_down_f, CMD_CGAME, NULL);
 	cgi.Cmd("-hook", Cg_Hook_up_f, CMD_CGAME, NULL);
+	cgi.Cmd("+score", Cg_Score_down_f, CMD_CGAME, NULL);
+	cgi.Cmd("-score", Cg_Score_up_f, CMD_CGAME, NULL);
 
 	Cg_ClearInput();
 }
