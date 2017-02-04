@@ -89,3 +89,5 @@
 #define VERSION "0.1.0"
 
 #undef HAVE_UNISTD_H
+
+#define REVISION "unversioned"
