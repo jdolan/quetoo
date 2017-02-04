@@ -120,7 +120,6 @@ static void G_Ai_Spawn(g_entity_t *self, const uint32_t time_offset) {
 		G_Ai_ClientBegin(self);
 	} else {
 		self->in_use = true;
-
 		self->locals.move_type = MOVE_TYPE_THINK;
 		self->locals.Think = G_Ai_ClientBegin;
 		self->locals.next_think = g_level.time + time_offset;
@@ -139,7 +138,7 @@ static uint8_t G_Ai_EmptySlots(void) {
 
 		g_entity_t *ent = &g_game.entities[i + 1];
 
-		if (!ent->in_use) {
+		if (!ent->in_use && !ent->client->connected) {
 			empty_slots++;
 		}
 	}
@@ -157,7 +156,7 @@ static uint8_t G_Ai_NumberOfBots(void) {
 
 		g_entity_t *ent = &g_game.entities[i + 1];
 
-		if (ent->in_use && ent->client->ai) {
+		if (ent->in_use && ent->client->connected && ent->client->ai) {
 			filled_slots++;
 		}
 	}
@@ -209,7 +208,7 @@ static void G_Ai_RemoveBots(const int32_t count) {
 		int32_t j;
 
 		for (j = 1; j <= sv_max_clients->integer; j++, ent++) {
-			if (ent->in_use && ent->client->ai) {
+			if (ent->in_use && ent->client->connected && ent->client->ai) {
 				G_ClientDisconnect(ent);
 				break;
 			}
@@ -335,7 +334,7 @@ void G_Ai_Frame(void) {
 		int32_t j;
 
 		for (j = 1; j <= sv_max_clients->integer; j++, ent++) {
-			if (!ent->in_use) {
+			if (!ent->in_use && !ent->client->connected) {
 				G_Ai_Spawn(ent, (g_game.ai_left_to_spawn - 1) * 500);
 				break;
 			}
