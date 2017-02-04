@@ -305,6 +305,8 @@ void R_BeginFrame(void) {
 
 	if (r_state.supersample_fbo) {
 
+		R_Clear();
+
 		glBindFramebuffer(GL_FRAMEBUFFER, r_state.supersample_fbo);
 	}
 
