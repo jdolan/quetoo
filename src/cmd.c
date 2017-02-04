@@ -67,25 +67,28 @@ void Cbuf_AddText(const char *text) {
  * @brief Inserts command text at the beginning of the buffer.
  */
 void Cbuf_InsertText(const char *text) {
-	void *temp;
 
-	// copy off any commands still remaining in the exec buffer
-	const size_t size = cmd_state.buf.size;
-	if (size) {
-		temp = Mem_TagMalloc(size, MEM_TAG_CMD);
-		memcpy(temp, cmd_state.buf.data, size);
-		Mem_ClearBuffer(&cmd_state.buf);
-	} else {
-		temp = NULL;    // shut up compiler
-	}
+	if (text  && strlen(text)) {
+		void *temp;
 
-	// add the entire text of the file
-	Cbuf_AddText(text);
+		// copy off any commands still remaining in the exec buffer
+		const size_t size = cmd_state.buf.size;
+		if (size) {
+			temp = Mem_TagMalloc(size, MEM_TAG_CMD);
+			memcpy(temp, cmd_state.buf.data, size);
+			Mem_ClearBuffer(&cmd_state.buf);
+		} else {
+			temp = NULL; // shut up compiler
+		}
 
-	// add the copied off data
-	if (size) {
-		Mem_WriteBuffer(&cmd_state.buf, temp, size);
-		Mem_Free(temp);
+		// add the entire text of the file
+		Cbuf_AddText(text);
+
+		// add the copied off data
+		if (size) {
+			Mem_WriteBuffer(&cmd_state.buf, temp, size);
+			Mem_Free(temp);
+		}
 	}
 }
 
