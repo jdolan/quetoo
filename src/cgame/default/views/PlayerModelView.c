@@ -159,6 +159,8 @@ static void updateBindings(View *self) {
 
 	PlayerModelView *this = (PlayerModelView *) self;
 
+	this->animation1.frame = this->animation2.frame = -1;
+
 	char string[MAX_STRING_CHARS];
 	g_snprintf(string, sizeof(string), "newbie\\%s", cg_skin->string);
 
@@ -233,9 +235,14 @@ static void animate_(const r_md3_t *md3, cl_entity_animation_t *a, r_entity_t *e
 
 	frame = anim->first_frame + frame;
 
-	if (frame != a->frame) { // shuffle the frames
-		a->old_frame = a->frame;
-		a->frame = frame;
+	if (frame != a->frame) {
+		if (a->frame == -1) {
+			a->old_frame = frame;
+			a->frame = frame;
+		} else {
+			a->old_frame = a->frame;
+			a->frame = frame;
+		}
 	}
 
 	a->lerp = (elapsedTime % frameTime) / (vec_t) frameTime;
