@@ -38,7 +38,9 @@ static void updateBindings(View *self) {
 
 	const cvar_t *var = ((CvarTextView *) self)->var;
 
-	this->defaultText = var->string;
+	free(this->defaultText);
+
+	this->defaultText = strdup(var->string);
 }
 
 #pragma mark - CvarTextView
