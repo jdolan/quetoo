@@ -210,10 +210,14 @@ size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_l
 
 	size_t count = 0;
 
+	int8_t wrap_color = CON_COLOR_DEFAULT, color = CON_COLOR_DEFAULT;
+
 	const char *line = chars;
 	while (*line) {
 
 		size_t width = 0;
+
+		wrap_color = color;
 
 		const char *c = line;
 		while (*c && width < line_width) {
@@ -223,8 +227,10 @@ size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_l
 			}
 
 			if (IS_COLOR(c)) {
+				color = *(c + 1) - '0';
 				c += 2;
 			} else if (IS_LEGACY_COLOR(c)) {
+				color = CON_COLOR_ALT;
 				c += 1;
 			} else {
 				c++;
@@ -246,7 +252,12 @@ size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_l
 
 		if (lines) {
 			if (count < max_lines) {
-				lines[count] = g_strndup(line, eol - line);
+				lines[count] = g_malloc((eol - line) + 3);
+				lines[count][0] = COLOR_ESC;
+				lines[count][1] = wrap_color + '0';
+				lines[count][2] = '\0';
+				lines[count][0] = 0;
+				strncat(lines[count], line, eol - line);
 			} else {
 				break;
 			}

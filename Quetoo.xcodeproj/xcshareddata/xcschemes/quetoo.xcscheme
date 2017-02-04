@@ -63,8 +63,12 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "+set r_fullscreen 1 +map darkzone +give all +god"
+            argument = "+set r_fullscreen 0"
             isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+set r_fullscreen 1 +map darkzone +give all +god"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_fullscreen 0 +set sv_max_clients 2 +map edge +set g_cheats 1 +give all +god"
