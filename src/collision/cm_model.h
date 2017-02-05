@@ -30,7 +30,7 @@ int32_t Cm_NumClusters(void);
 int32_t Cm_NumModels(void);
 
 const char *Cm_EntityString(void);
-const cm_material_t *Cm_MapMaterials(void);
+const cm_material_t **Cm_MapMaterials(size_t *num_materials);
 const char *Cm_WorldspawnValue(const char *key);
 
 int32_t Cm_LeafContents(const int32_t leaf_num);
@@ -55,7 +55,8 @@ typedef struct {
 	_Bool *portal_open;
 	int32_t flood_valid;
 
-	cm_material_t *materials;
+	cm_material_t **materials;
+	size_t num_materials;
 } cm_bsp_t;
 
 cm_bsp_t *Cm_Bsp(void);

@@ -28,15 +28,16 @@
  */
 void Cm_FreeMaterial(cm_material_t *material) {
 
-	if (material->list) {
-		g_queue_remove(material->list, material);
-
-		if (g_queue_is_empty(material->list)) {
-			g_queue_free(material->list);
-		}
-	}
-
 	Mem_Free(material);
+}
+
+/**
+ * @brief Frees the material list allocated by LoadMaterials. This doesn't
+ * free the actual materials, so be sure they're safe!
+ */
+void Cm_FreeMaterialList(cm_material_t **materials) {
+
+	g_free(materials);
 }
 
 /**
@@ -369,8 +370,6 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, const char **buffe
 
 				// a terrain blend or dirtmap means light it
 				if (s->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
-					s->material = Cm_LoadMaterial(s->image);
-					Mem_Link(s->material, m);
 					s->flags |= STAGE_LIGHTING;
 				}
 			}
@@ -398,7 +397,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, const char **buffe
 			          "  terrain.ceil: %5f\n"
 			          "  anim.num_frames: %d\n"
 			          "  anim.fps: %3f\n", s->flags, (*s->image ? s->image : "NULL"),
-			          (s->material ? s->material->diffuse : "NULL"), s->blend.src,
+			          ((s->flags & STAGE_LIGHTING) ? "true" : "false"), s->blend.src,
 			          s->blend.dest, s->color[0], s->color[1], s->color[2], s->pulse.hz,
 			          s->stretch.amp, s->stretch.hz, s->rotate.hz, s->scroll.s, s->scroll.t,
 			          s->scale.s, s->scale.t, s->terrain.floor, s->terrain.ceil, s->anim.num_frames,
@@ -469,11 +468,15 @@ cm_material_t *Cm_LoadMaterial(const char *diffuse) {
 
 /**
  * @brief Loads all of the materials for the specified .mat file. This must be
- * a full, absolute path to a .mat file WITH extension. The resulting materials are all
- * linked together by the returned material pointer, so don't lose that one!
+ * a full, absolute path to a .mat file WITH extension. Returns a pointer to the
+ * start of the list of materials loaded by this function.
  */
-cm_material_t *Cm_LoadMaterials(const char *path, size_t *count) {
+cm_material_t **Cm_LoadMaterials(const char *path, size_t *count) {
 	void *buf;
+
+	if (count) {
+		*count = 0;
+	}
 
 	if (Fs_Load(path, &buf) == -1) {
 		Com_Debug(DEBUG_COLLISION, "Couldn't load %s\n", path);
@@ -484,11 +487,7 @@ cm_material_t *Cm_LoadMaterials(const char *path, size_t *count) {
 	cm_material_t *m = NULL;
 	_Bool in_material = false, parsing_material = false;
 
-	if (count) {
-		*count = 0;
-	}
-
-	GQueue *list = g_queue_new();
+	GArray *materials = g_array_new(false, false, sizeof(cm_material_t *));
 
 	while (true) {
 
@@ -525,7 +524,6 @@ cm_material_t *Cm_LoadMaterials(const char *path, size_t *count) {
 		if (!m && !parsing_material) {
 			continue;
 		}
-
 
 		if (!g_strcmp0(c, "normalmap")) {
 			c = ParseToken(&buffer);
@@ -603,8 +601,7 @@ cm_material_t *Cm_LoadMaterials(const char *path, size_t *count) {
 		}
 
 		if (*c == '}' && in_material) {
-			m->list = list;
-			g_queue_push_tail(list, m);
+			g_array_append_val(materials, m);
 
 			Com_Debug(DEBUG_COLLISION, "Parsed material %s with %d stages\n", m->diffuse, m->num_stages);
 			in_material = false;
@@ -617,7 +614,7 @@ cm_material_t *Cm_LoadMaterials(const char *path, size_t *count) {
 	}
 
 	Fs_Free(buf);
-	return m;
+	return (cm_material_t **) g_array_free(materials, false);
 }
 
 /**
@@ -736,13 +733,11 @@ static void Cm_WriteMaterial_(const cm_material_t *material, file_t *file) {
 /**
  * @brief Serialize the material(s) into the specified file.
  */
-void Cm_WriteMaterial(const char *filename, const cm_material_t *material) {
+void Cm_WriteMaterials(const char *filename, const cm_material_t **materials, const size_t num_materials) {
 	file_t *file = Fs_OpenWrite(filename);
 
-	if (material->list) {
-		for (GList *list = material->list->head; list; list = list->next) {
-			Cm_WriteMaterial_((const cm_material_t *) list->data, file);
-		}
+	for (size_t i = 0; i < num_materials; i++) {
+		Cm_WriteMaterial_(materials[i], file);
 	}
 
 	Fs_Close(file);

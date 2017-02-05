@@ -88,15 +88,12 @@ static void Cm_LoadBspSurfaces(void) {
 		g_snprintf(material_name, sizeof(material_name), "textures/%s", out->name);
 		Cm_MaterialName(material_name, material_name, sizeof(material_name));
 
-		if (cm_bsp.materials && cm_bsp.materials->list) {
-			for (GList *list = cm_bsp.materials->list->head; list; list = list->next) {
+		for (size_t i = 0; i < cm_bsp.num_materials; i++) {
+			cm_material_t *material = cm_bsp.materials[i];
 
-				cm_material_t *material = (cm_material_t *) list->data;
-
-				if (!g_strcmp0(material->base, material_name)) {
-					out->material = material;
-					break;
-				}
+			if (!g_strcmp0(material->base, material_name)) {
+				out->material = material;
+				break;
 			}
 		}
 	}
@@ -288,12 +285,12 @@ static void Cm_LoadBspAreaPortals(void) {
 /**
  * @brief
  */
-static cm_material_t *Cm_LoadBspMaterials(const char *name) {
+static cm_material_t **Cm_LoadBspMaterials(const char *name, size_t *count) {
 
 	char base[MAX_QPATH];
 	StripExtension(Basename(name), base);
 
-	return Cm_LoadMaterials(va("materials/%s.mat", base), NULL);
+	return Cm_LoadMaterials(va("materials/%s.mat", base), count);
 }
 
 /**
@@ -301,12 +298,11 @@ static cm_material_t *Cm_LoadBspMaterials(const char *name) {
  */
 static void Cm_UnloadBspMaterials(void) {
 
-	if (cm_bsp.materials && cm_bsp.materials->list) {
-		for (GList *list = cm_bsp.materials->list->head; list; list = list->next) {
-			Cm_FreeMaterial((cm_material_t *) list->data);
-		}
+	for (size_t i = 0; i < cm_bsp.num_materials; i++) {
+		Cm_FreeMaterial(cm_bsp.materials[i]);
 	}
 
+	Cm_FreeMaterialList(cm_bsp.materials);
 	cm_bsp.materials = NULL;
 }
 
@@ -399,7 +395,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 
 	Fs_Free(file);
 
-	cm_bsp.materials = Cm_LoadBspMaterials(name);
+	cm_bsp.materials = Cm_LoadBspMaterials(name, &cm_bsp.num_materials);
 
 	Cm_LoadBspPlanes();
 	Cm_LoadBspNodes();
@@ -464,8 +460,9 @@ const char *Cm_EntityString(void) {
 /**
  * @brief
  */
-const cm_material_t *Cm_MapMaterials(void) {
-	return cm_bsp.materials;
+const cm_material_t **Cm_MapMaterials(size_t *num_materials) {
+	*num_materials = cm_bsp.num_materials;
+	return (const cm_material_t **) cm_bsp.materials;
 }
 
 /**

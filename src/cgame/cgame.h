@@ -24,7 +24,7 @@
 
 #include "client/cl_types.h"
 
-#define CGAME_API_VERSION 13
+#define CGAME_API_VERSION 14
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -404,7 +404,7 @@ typedef struct cg_import_s {
 	/**
 	 * @return The materials for the currently loaded level.
 	 */
-	const cm_material_t *(*MapMaterials)(void);
+	const cm_material_t **(*MapMaterials)(size_t *num_materials);
 
 	/**
 	 * @defgroup collision Collision model

@@ -67,7 +67,6 @@ typedef struct cm_stage_s {
 	uint32_t flags;
 	char image[MAX_QPATH];
 	int32_t image_index;
-	struct cm_material_s *material;
 	cm_stage_blend_t blend;
 	vec3_t color;
 
@@ -194,18 +193,14 @@ typedef struct cm_material_s {
 	 * @brief The total number of stages in the "stages" list.
 	 */
 	uint16_t num_stages;
-
-	/**
-	 * @brief The linked queue for this material. We are in this list somewhere.
-	 */
-	GQueue *list;
 } cm_material_t;
 
 cm_material_t *Cm_LoadMaterial(const char *diffuse);
 void Cm_FreeMaterial(cm_material_t *material);
+void Cm_FreeMaterialList(cm_material_t **materials);
 
-cm_material_t *Cm_LoadMaterials(const char *path, size_t *count);
-void Cm_WriteMaterial(const char *filename, const cm_material_t *material);
+cm_material_t **Cm_LoadMaterials(const char *path, size_t *count);
+void Cm_WriteMaterials(const char *filename, const cm_material_t **materials, const size_t num_materials);
 
 void Cm_MaterialName(const char *in, char *out, size_t len);
 
