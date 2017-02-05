@@ -39,8 +39,8 @@
  */
 static void quickjoinAction(Control *control, const SDL_Event *event, ident sender, ident data) {
 
-	const int16_t max_ping = Clamp(cg_quickjoin_max_ping->integer, 0, 999);
-	const int16_t min_clients = Clamp(cg_quickjoin_min_clients->integer, 0, MAX_CLIENTS);
+	const int16_t max_ping = Clamp(cg_quick_join_max_ping->integer, 0, 999);
+	const int16_t min_clients = Clamp(cg_quick_join_min_clients->integer, 0, MAX_CLIENTS);
 
 	GList *server = cgi.Servers();
 

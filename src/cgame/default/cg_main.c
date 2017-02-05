@@ -65,6 +65,8 @@ cvar_t *cg_hand;
 cvar_t *cg_handicap;
 cvar_t *cg_hook_style;
 cvar_t *cg_predict;
+cvar_t *cg_quick_join_max_ping;
+cvar_t *cg_quick_join_min_clients;
 cvar_t *cg_skin;
 cvar_t *cg_third_person;
 cvar_t *cg_third_person_chasecam;
@@ -73,9 +75,6 @@ cvar_t *cg_third_person_y;
 cvar_t *cg_third_person_z;
 cvar_t *cg_third_person_pitch;
 cvar_t *cg_third_person_yaw;
-cvar_t *cg_quickjoin_max_ping;
-cvar_t *cg_quickjoin_min_clients;
-
 
 cvar_t *g_gameplay;
 cvar_t *g_teams;
@@ -164,10 +163,10 @@ static void Cg_Init(void) {
 
 	cg_predict = cgi.Cvar("cg_predict", "1", 0, "Use client side movement prediction");
 
-	cg_quickjoin_max_ping = cgi.Cvar("cg_quickjoin_max_ping", "100", CVAR_SERVER_INFO,
-	        "Maximum ping allowed for quick join");
-	cg_quickjoin_min_clients = cgi.Cvar("cg_quickjoin_min_clients", "1", CVAR_SERVER_INFO,
-	        "Minimum clients allowed for quick join");
+	cg_quick_join_max_ping = cgi.Cvar("cg_quick_join_max_ping", "100", CVAR_SERVER_INFO,
+	        			  "Maximum ping allowed for quick join");
+	cg_quick_join_min_clients = cgi.Cvar("cg_quick_join_min_clients", "1", CVAR_SERVER_INFO,
+	        			     "Minimum clients allowed for quick join");
 
 	cg_skin = cgi.Cvar("skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                   "Your player model and skin.");
