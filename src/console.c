@@ -256,7 +256,6 @@ size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_l
 				lines[count][0] = COLOR_ESC;
 				lines[count][1] = wrap_color + '0';
 				lines[count][2] = '\0';
-				lines[count][0] = 0;
 				strncat(lines[count], line, eol - line);
 			} else {
 				break;
