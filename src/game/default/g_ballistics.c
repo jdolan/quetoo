@@ -279,7 +279,7 @@ static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 			gi.WriteByte(TE_BLASTER);
 			gi.WritePosition(end);
 			gi.WriteDir(plane->normal);
-			gi.WriteByte(self->s.client);
+			gi.WriteByte(self->s.number);
 			gi.Multicast(end, MULTICAST_PHS, NULL);
 		}
 	}

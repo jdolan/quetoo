@@ -902,7 +902,7 @@ void Cg_ParseTempEntity(void) {
 			cgi.ReadPosition(pos);
 			cgi.ReadDir(dir);
 			i = cgi.ReadByte();
-			Cg_BlasterEffect(pos, dir, Cg_ResolveEffectColor(i ? i - 1 : i, EFFECT_COLOR_ORANGE));
+			Cg_BlasterEffect(pos, dir, Cg_ResolveEffectColor(i ? i - 1 : 0, EFFECT_COLOR_ORANGE));
 			break;
 
 		case TE_TRACER:
