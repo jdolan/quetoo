@@ -115,8 +115,7 @@ void Netchan_OutOfBandPrint(int32_t sock, const net_addr_t *addr, const char *fo
 }
 
 /**
- * @brief Called to open a channel to a remote system. If greater than zero,
- * the specified qport will be used. Otherwise, one is determined at random.
+ * @brief Called to open a channel to a remote system.
  */
 void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t *addr, uint8_t qport) {
 
@@ -124,14 +123,7 @@ void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t *addr, uint8_t
 
 	chan->source = source;
 	chan->remote_address = *addr;
-
-	if (qport) {
-		chan->qport = qport;
-	} else {
-		while (!chan->qport) {
-			chan->qport = Random() & 0xff;
-		}
-	}
+	chan->qport = qport;
 
 	chan->last_received = quetoo.ticks;
 	chan->incoming_sequence = 0;
