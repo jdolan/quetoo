@@ -32,18 +32,20 @@
 
 /**
  * @brief ActionFunction for the Quickjoin button.
- * @description Selects a server based on maximum ping and minimum players. Any
- * server that matches the above criteria will be weighted by how much "better"
- * they are by how much lower their ping is and how many more players there are.
+ * @description Selects a server based on minumum ping and maximum players with
+ * a bit of lovely random thrown in. Any server that matches the criteria will
+ * be weighted by how much "better" they are by how much lower their ping is and
+ * how many more players there are.
  */
 static void quickjoinAction(Control *control, const SDL_Event *event, ident sender, ident data) {
 
-	const uint16_t max_ping = Clamp(qj_max_ping->integer, 0, 999);
-	const uint16_t min_clients = Clamp(qj_min_clients->integer, 0, MAX_CLIENTS);
+	const int16_t max_ping = Clamp(cg_quickjoin_max_ping->integer, 0, 999);
+	const int16_t min_clients = Clamp(cg_quickjoin_min_clients->integer, 0, MAX_CLIENTS);
 
 	GList *server = cgi.Servers();
 
 	cl_server_info_t *svdata;
+
 	uint32_t total_weight = 0;
 
 	while (server != NULL) {
@@ -51,22 +53,21 @@ static void quickjoinAction(Control *control, const SDL_Event *event, ident send
 
 		server = server->next;
 
-		uint32_t weight = 1;
+		int16_t weight = 1;
 
-		if (svdata->ping > max_ping ||
-			svdata->clients < min_clients ||
-			svdata->clients >= svdata->max_clients) {
-
-			weight = 0;
-		} else {
+		if (!(svdata->clients < min_clients || svdata->clients >= svdata->max_clients)) {
 			// more weight for more populated servers
-			weight += svdata->clients - min_clients;
+			weight += ((int16_t) (svdata->clients - min_clients)) * 5;
 
 			// more weight for lower ping servers
-			weight += ((int16_t) (max_ping - svdata->ping)) / 20;
+			weight += ((int16_t) (max_ping - svdata->ping)) / 10;
+
+			if (svdata->ping > max_ping) { // one third weight for high ping servers
+				weight /= 3;
+			}
 		}
 
-		total_weight += weight;
+		total_weight += max(weight, 1);
 	}
 
 	if(total_weight == 0) {
@@ -190,7 +191,7 @@ static void loadView(ViewController *self) {
 	{
 		this->panel->accessoryView->view.hidden = false;
 
-		Cg_Button((View *) this->panel->accessoryView, "Quickjoin", quickjoinAction, self, NULL);
+		Cg_Button((View *) this->panel->accessoryView, "Quick Join", quickjoinAction, self, NULL);
 		Cg_Button((View *) this->panel->accessoryView, "Create..", createAction, self, NULL);
 		Cg_Button((View *) this->panel->accessoryView, "Refresh", refreshAction, self, NULL);
 		Cg_Button((View *) this->panel->accessoryView, "Connect", connectAction, self, servers);
