@@ -42,69 +42,67 @@ static void quickjoinAction(Control *control, const SDL_Event *event, ident send
 	const int16_t max_ping = Clamp(cg_quick_join_max_ping->integer, 0, 999);
 	const int16_t min_clients = Clamp(cg_quick_join_min_clients->integer, 0, MAX_CLIENTS);
 
-	GList *server = cgi.Servers();
-
-	cl_server_info_t *svdata;
-
 	uint32_t total_weight = 0;
 
-	while (server != NULL) {
-		svdata = (cl_server_info_t *) server->data;
+	const GList *list = cgi.Servers();
 
-		server = server->next;
+	while (list != NULL) {
+		const cl_server_info_t *server = list->data;
 
 		int16_t weight = 1;
 
-		if (!(svdata->clients < min_clients || svdata->clients >= svdata->max_clients)) {
+		if (!(server->clients < min_clients || server->clients >= server->max_clients)) {
 			// more weight for more populated servers
-			weight += ((int16_t) (svdata->clients - min_clients)) * 5;
+			weight += ((int16_t) (server->clients - min_clients)) * 5;
 
 			// more weight for lower ping servers
-			weight += ((int16_t) (max_ping - svdata->ping)) / 10;
+			weight += ((int16_t) (max_ping - server->ping)) / 10;
 
-			if (svdata->ping > max_ping) { // one third weight for high ping servers
+			if (server->ping > max_ping) { // one third weight for high ping servers
 				weight /= 3;
 			}
 		}
 
 		total_weight += max(weight, 1);
+
+		list = list->next;
 	}
 
-	if(total_weight == 0) {
+	if (total_weight == 0) {
 		return;
 	}
 
-	server = cgi.Servers();
+	list = cgi.Servers();
 
 	uint32_t random_weight = Random() % total_weight;
 	uint32_t current_weight = 0;
 
-	while (server != NULL) {
-		svdata = (cl_server_info_t *) server->data;
-
-		server = server->next;
+	while (list != NULL) {
+		const cl_server_info_t *server = list->data;
 
 		uint32_t weight = 1;
 
-		if (svdata->ping > max_ping ||
-			svdata->clients < min_clients ||
-			svdata->clients >= svdata->max_clients) {
+		if (server->ping > max_ping ||
+			server->clients < min_clients ||
+			server->clients >= server->max_clients) {
 
 			weight = 0;
 		} else {
 			// more weight for more populated servers
-			weight += svdata->clients - min_clients;
+			weight += server->clients - min_clients;
 
 			// more weight for lower ping servers
-			weight += ((uint32_t) (max_ping - svdata->ping)) / 20;
+			weight += ((uint32_t) (max_ping - server->ping)) / 20;
 		}
 
 		current_weight += weight;
 
 		if (current_weight > random_weight) {
-			cgi.Connect(&svdata->addr);
+			cgi.Connect(&server->addr);
 			break;
 		}
+
+		list = list->next;
 	}
 }
 

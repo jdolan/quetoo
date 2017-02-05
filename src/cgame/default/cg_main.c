@@ -163,10 +163,10 @@ static void Cg_Init(void) {
 
 	cg_predict = cgi.Cvar("cg_predict", "1", 0, "Use client side movement prediction");
 
-	cg_quick_join_max_ping = cgi.Cvar("cg_quick_join_max_ping", "100", CVAR_SERVER_INFO,
-	        			  "Maximum ping allowed for quick join");
-	cg_quick_join_min_clients = cgi.Cvar("cg_quick_join_min_clients", "1", CVAR_SERVER_INFO,
-	        			     "Minimum clients allowed for quick join");
+	cg_quick_join_max_ping = cgi.Cvar("cg_quick_join_max_ping", "200", CVAR_SERVER_INFO,
+									  "Maximum ping allowed for quick join");
+	cg_quick_join_min_clients = cgi.Cvar("cg_quick_join_min_clients", "0", CVAR_SERVER_INFO,
+										 "Minimum clients allowed for quick join");
 
 	cg_skin = cgi.Cvar("skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                   "Your player model and skin.");
