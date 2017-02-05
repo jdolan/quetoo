@@ -64,15 +64,15 @@
       <CommandLineArguments>
          <CommandLineArgument
             argument = "+set r_fullscreen 0"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+set r_fullscreen 1 +map rage +give all +god"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+set r_fullscreen 0 +set sv_max_clients 24 +map edge +set g_cheats 1 +give all +god"
             isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set r_fullscreen 1 +map darkzone +give all +god"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set r_fullscreen 0 +set sv_max_clients 2 +map edge +set g_cheats 1 +give all +god"
-            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>

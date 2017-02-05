@@ -797,7 +797,7 @@ static void Pm_CheckGround(void) {
 	}
 
 	// if we jumped, or been pushed, do not attempt to seek ground
-	if (pm->s.flags & (PMF_JUMPED | PMF_TIME_PUSHED)) {
+	if (pm->s.flags & (PMF_JUMPED | PMF_TIME_PUSHED | PMF_ON_LADDER)) {
 		return;
 	}
 
@@ -926,9 +926,8 @@ static void Pm_CheckDuck(void) {
 	} else {
 
 		_Bool is_ducking = pm->s.flags & PMF_DUCKED;
-		_Bool wants_ducking = pm->cmd.up < 0;
+		_Bool wants_ducking = (pm->cmd.up < 0) && !(pm->s.flags & PMF_ON_LADDER);
 
-		// see if we can unduck
 		if (!is_ducking && wants_ducking) {
 			pm->s.flags |= PMF_DUCKED;
 		} else if (is_ducking && !wants_ducking) {
@@ -1048,7 +1047,7 @@ static void Pm_CheckLadder(void) {
 		return;
 	}
 
-	VectorMA(pm->s.origin, 1.0, pml.forward_xy, pos);
+	VectorMA(pm->s.origin, 4.0, pml.forward_xy, pos);
 
 	const cm_trace_t trace = pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs);
 
@@ -1056,7 +1055,7 @@ static void Pm_CheckLadder(void) {
 		pm->s.flags |= PMF_ON_LADDER;
 
 		pm->ground_entity = NULL;
-		pm->s.flags &= ~PMF_ON_GROUND;
+		pm->s.flags &= ~(PMF_ON_GROUND | PMF_DUCKED);
 	}
 }
 
@@ -1565,6 +1564,9 @@ void Pm_Move(pm_move_t *pm_move) {
 		pm->cmd.forward = pm->cmd.right = pm->cmd.up = 0;
 	}
 
+	// check for ladders
+	Pm_CheckLadder();
+
 	// check for grapple hook
 	Pm_CheckHook();
 
@@ -1576,9 +1578,6 @@ void Pm_Move(pm_move_t *pm_move) {
 
 	// check for ground
 	Pm_CheckGround();
-
-	// check for ladders
-	Pm_CheckLadder();
 
 	if (pm->s.flags & PMF_TIME_TELEPORT) {
 		// pause in place briefly

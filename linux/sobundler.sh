@@ -7,11 +7,13 @@
 SKIP='
 	libc.so*
 	libdl.so*
+	libdrm.so*
 	libGL.so*
 	libm.so*
 	libpthread.so*
 	libresolv.so*
 	librt.so*
+	libstdc++.so*
 '
 
 while getopts "d:" opt; do
