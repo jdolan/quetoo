@@ -135,7 +135,7 @@ static void Init(void) {
 
 	Mem_Init();
 
-	Fs_Init(true);
+	Fs_Init(FS_AUTO_LOAD_ARCHIVES | FS_FILESYSTEM_PATHS);
 
 	Sem_Init();
 

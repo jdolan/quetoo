@@ -331,7 +331,7 @@ static void Init(void) {
 	quetoo.Verbose = Verbose;
 	quetoo.Warn = Warn;
 
-	Fs_Init(true);
+	Fs_Init(FS_AUTO_LOAD_ARCHIVES);
 
 	Thread_Init(threads->integer);
 
