@@ -51,18 +51,18 @@ static _Bool Cvar_InfoValidate(const char *s) {
 static cvar_t *Cvar_Get_(const char *name, const _Bool case_sensitive) {
 
 	if (cvar_vars) {
-		GSList *list = (GSList *) g_hash_table_lookup(cvar_vars, name);
+		const GQueue *queue = (GQueue *) g_hash_table_lookup(cvar_vars, name);
 
-		if (list) {
-			if (list->next == NULL) { // only 1 entry, return it
-				cvar_t *cvar = (cvar_t *) list->data;
+		if (queue) {
+			if (queue->length == 1) { // only 1 entry, return it
+				cvar_t *cvar = (cvar_t *) queue->head->data;
 
 				if (!case_sensitive || g_strcmp0(cvar->name, name) == 0) {
-					return (cvar_t *) list->data;
+					return cvar;
 				}
 			} else {
 				// only return the exact match
-				for (; list; list = list->next) {
+				for (const GList *list = queue->head; list; list = list->next) {
 					cvar_t *cvar = (cvar_t *) list->data;
 
 					if (!g_strcmp0(cvar->name, name)) {
@@ -123,8 +123,9 @@ void Cvar_Enumerate(CvarEnumerateFunc func, void *data) {
 	g_hash_table_iter_init(&iter, cvar_vars);
 
 	while (g_hash_table_iter_next (&iter, &key, &value)) {
-		
-		for (GSList *list = (GSList *) value; list; list = list->next) {
+		const GQueue *queue = (GQueue *) value;
+
+		for (const GList *list = queue->head; list; list = list->next) {
 			func((cvar_t *) list->data, data);
 		}
 	}
@@ -138,7 +139,7 @@ static const char *cvar_complete_pattern;
 static void Cvar_CompleteVar_enumerate(cvar_t *var, void *data) {
 	GList **matches = (GList **) data;
 
-	if (GlobiMatch(cvar_complete_pattern, var->name)) {
+	if (GlobMatch(cvar_complete_pattern, var->name, GLOB_CASE_INSENSITIVE)) {
 		Com_Print("^2%s^7 is \"^3%s^7\" (default is \"^3%s^7\")\n", var->name, var->string, var->default_value);
 
 		if (var->description) {
@@ -215,16 +216,14 @@ cvar_t *Cvar_Add(const char *name, const char *value, uint32_t flags, const char
 	}
 
 	gpointer key = (gpointer) var->name;
+	GQueue *queue = (GQueue *) g_hash_table_lookup(cvar_vars, key);
 
-	GSList *list = (GSList *) g_hash_table_lookup(cvar_vars, key);
-	const _Bool existed = !!list;
-
-	list = g_slist_append(list, var);
-
-	if (!existed) {
-		g_hash_table_insert(cvar_vars, key, list);
+	if (!queue) {
+		queue = g_queue_new();
+		g_hash_table_insert(cvar_vars, key, queue);
 	}
 
+	g_queue_push_head(queue, var);
 	return var;
 }
 
@@ -743,8 +742,8 @@ _Bool Cvar_ExpandString(const char *input, const size_t in_size, GString **outpu
  * @brief
  */
 static void Cvar_HashTable_Free(gpointer list) {
-
-	g_slist_free_full((GSList *) list, Mem_Free);
+	
+	g_queue_free_full((GQueue *) list, Mem_Free);
 }
 
 /**

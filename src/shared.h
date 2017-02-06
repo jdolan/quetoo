@@ -169,8 +169,12 @@ void ColorDecompose3(const vec3_t in, u8vec3_t out);
 /**
  * @brief String manipulation functions.
  */
-_Bool GlobMatch(const char *pattern, const char *text);
-_Bool GlobiMatch(const char *pattern, const char *text);
+typedef enum {
+	GLOB_FLAGS_NONE = 0,
+	GLOB_CASE_INSENSITIVE = (1 << 0)
+} glob_flags_t;
+
+_Bool GlobMatch(const char *pattern, const char *text, const glob_flags_t flags);
 char *CommonPrefix(GList *words);
 const char *Basename(const char *path);
 void Dirname(const char *in, char *out);

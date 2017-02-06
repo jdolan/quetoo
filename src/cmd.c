@@ -265,7 +265,7 @@ void Cmd_TokenizeString(const char *text) {
 static cmd_t *Cmd_Get_(const char *name, const _Bool case_sensitive) {
 
 	if (cmd_state.commands) {
-		GQueue *queue = (GQueue *) g_hash_table_lookup(cmd_state.commands, name);
+		const GQueue *queue = (GQueue *) g_hash_table_lookup(cmd_state.commands, name);
 
 		if (queue) {
 			if (queue->length == 1) { // only 1 entry, return it
@@ -276,7 +276,7 @@ static cmd_t *Cmd_Get_(const char *name, const _Bool case_sensitive) {
 				}
 			} else {
 				// only return the exact match
-				for (GList *list = queue->head; list; list = list->next) {
+				for (const GList *list = queue->head; list; list = list->next) {
 					cmd_t *cmd = (cmd_t *) list->data;
 
 					if (!g_strcmp0(cmd->name, name)) {
@@ -307,9 +307,9 @@ void Cmd_Enumerate(CmdEnumerateFunc func, void *data) {
 	g_hash_table_iter_init(&iter, cmd_state.commands);
 
 	while (g_hash_table_iter_next (&iter, &key, &value)) {
-		GQueue *queue = (GQueue *) value;
+		const GQueue *queue = (GQueue *) value;
 
-		for (GList *list = queue->head; list; list = list->next) {
+		for (const GList *list = queue->head; list; list = list->next) {
 			func((cmd_t *) list->data, data);
 		}
 	}
@@ -343,7 +343,6 @@ cmd_t *Cmd_Add(const char *name, CmdExecuteFunc function, uint32_t flags,
 	}
 
 	gpointer key = (gpointer) name;
-
 	GQueue *queue = (GQueue *) g_hash_table_lookup(cmd_state.commands, key);
 
 	if (!queue) {
@@ -417,7 +416,7 @@ void Cmd_Remove(const char *name) {
 	cmd_t *cmd = Cmd_Get_(name, true);
 
 	if (cmd) {
-		GQueue *queue = Cmd_Remove_(cmd);
+		const GQueue *queue = Cmd_Remove_(cmd);
 
 		if (!queue->length) {
 			g_hash_table_remove(cmd_state.commands, name);
@@ -434,9 +433,9 @@ void Cmd_RemoveAll(uint32_t flags) {
 	g_hash_table_iter_init(&iter, cmd_state.commands);
 
 	while (g_hash_table_iter_next (&iter, &key, &value)) {
-		GQueue *queue = (GQueue *) value;
+		const GQueue *queue = (GQueue *) value;
 		
-		for (GList *list = queue->head; list; list = list->next) {
+		for (const GList *list = queue->head; list; list = list->next) {
 			cmd_t *cmd = (cmd_t *) list->data;
 
 			if (cmd->flags & flags) {
@@ -459,7 +458,7 @@ static const char *cmd_complete_pattern;
 static void Cmd_CompleteCommand_enumerate(cmd_t *cmd, void *data) {
 	GList **matches = (GList **) data;
 
-	if (GlobiMatch(cmd_complete_pattern, cmd->name)) {
+	if (GlobMatch(cmd_complete_pattern, cmd->name, GLOB_CASE_INSENSITIVE)) {
 
 		if (cmd->Execute) {
 			Com_Print("^1%s^7\n", cmd->name);
