@@ -32,7 +32,6 @@ typedef struct cmd_args_s {
 
 typedef struct cmd_state_s {
 	GHashTable *commands;
-	GList *keys;
 
 	mem_buf_t buf;
 	char buffers[2][CBUF_CHARS];
@@ -261,31 +260,58 @@ void Cmd_TokenizeString(const char *text) {
 }
 
 /**
- * @return The command by the specified name, or `NULL`.
+ * @return The variable by the specified name, or `NULL`.
  */
-cmd_t *Cmd_Get(const char *name) {
+static cmd_t *Cmd_Get_(const char *name, const _Bool case_sensitive) {
 
 	if (cmd_state.commands) {
-		return (cmd_t *) g_hash_table_lookup(cmd_state.commands, name);
+		GQueue *queue = (GQueue *) g_hash_table_lookup(cmd_state.commands, name);
+
+		if (queue) {
+			if (queue->length == 1) { // only 1 entry, return it
+				cmd_t *cmd = (cmd_t *) queue->head->data;
+
+				if (!case_sensitive || g_strcmp0(cmd->name, name) == 0) {
+					return cmd;
+				}
+			} else {
+				// only return the exact match
+				for (GList *list = queue->head; list; list = list->next) {
+					cmd_t *cmd = (cmd_t *) list->data;
+
+					if (!g_strcmp0(cmd->name, name)) {
+						return cmd;
+					}
+				}
+			}
+		}
 	}
 
 	return NULL;
 }
 
 /**
+ * @return The variable by the specified name, or `NULL`.
+ */
+cmd_t *Cmd_Get(const char *name) {
+
+	return Cmd_Get_(name, false);
+}
+
+/**
  * @brief Enumerates all known commands with the given function.
  */
 void Cmd_Enumerate(CmdEnumerateFunc func, void *data) {
+	GHashTableIter iter;
+	gpointer key, value;
+	g_hash_table_iter_init(&iter, cmd_state.commands);
 
-	GList *key = cmd_state.keys;
-	while (key) {
-		cmd_t *cmd = g_hash_table_lookup(cmd_state.commands, key->data);
-		if (cmd) {
-			func(cmd, data);
-		} else {
-			Com_Error(ERROR_FATAL, "Missing command: %s\n", (char *) key->data);
+	while (g_hash_table_iter_next (&iter, &key, &value)) {
+		GQueue *queue = (GQueue *) value;
+
+		for (GList *list = queue->head; list; list = list->next) {
+			func((cmd_t *) list->data, data);
 		}
-		key = key->next;
 	}
 }
 
@@ -301,7 +327,7 @@ cmd_t *Cmd_Add(const char *name, CmdExecuteFunc function, uint32_t flags,
 		return NULL;
 	}
 
-	if ((cmd = Cmd_Get(name))) {
+	if ((cmd = Cmd_Get_(name, true))) {
 		Com_Debug(DEBUG_CONSOLE, "%s already defined\n", name);
 		return cmd;
 	}
@@ -318,9 +344,14 @@ cmd_t *Cmd_Add(const char *name, CmdExecuteFunc function, uint32_t flags,
 
 	gpointer key = (gpointer) name;
 
-	g_hash_table_insert(cmd_state.commands, key, cmd);
-	cmd_state.keys = g_list_insert_sorted(cmd_state.keys, key, (GCompareFunc) strcmp);
+	GQueue *queue = (GQueue *) g_hash_table_lookup(cmd_state.commands, key);
 
+	if (!queue) {
+		queue = g_queue_new();
+		g_hash_table_insert(cmd_state.commands, key, queue);
+	}
+
+	g_queue_push_head(queue, cmd);
 	return cmd;
 }
 
@@ -342,7 +373,7 @@ static cmd_t *Cmd_Alias(const char *name, const char *commands) {
 		return NULL;
 	}
 
-	if ((cmd = Cmd_Get(name))) {
+	if ((cmd = Cmd_Get_(name, true))) {
 		Com_Debug(DEBUG_CONSOLE, "%s already defined\n", name);
 		return cmd;
 	}
@@ -354,39 +385,70 @@ static cmd_t *Cmd_Alias(const char *name, const char *commands) {
 
 	gpointer *key = (gpointer *) cmd->name;
 
-	g_hash_table_insert(cmd_state.commands, key, cmd);
-	cmd_state.keys = g_list_insert_sorted(cmd_state.keys, key, (GCompareFunc) strcmp);
+	GQueue *queue = (GQueue *) g_hash_table_lookup(cmd_state.commands, key);
 
+	if (!queue) {
+		queue = g_queue_new();
+		g_hash_table_insert(cmd_state.commands, key, queue);
+	}
+
+	g_queue_push_head(queue, cmd);
 	return cmd;
+}
+
+/**
+ * @brief Removes the specified command. Returns the backing queue.
+ */
+static GQueue *Cmd_Remove_(cmd_t *cmd) {
+	GQueue *queue = (GQueue *) g_hash_table_lookup(cmd_state.commands, cmd->name);
+
+	if (!g_queue_remove(queue, cmd)) {
+		Com_Error(ERROR_FATAL, "Missing command");
+	}
+
+	Mem_Free(cmd);
+	return queue;
 }
 
 /**
  * @brief Removes the specified command.
  */
 void Cmd_Remove(const char *name) {
-	g_hash_table_remove(cmd_state.commands, name);
-}
+	cmd_t *cmd = Cmd_Get_(name, true);
 
-/**
- * @brief GHRFunc for Cmd_RemoveAll.
- */
-static gboolean Cmd_RemoveAll_(gpointer key, gpointer value, gpointer data) {
-	cmd_t *cmd = (cmd_t *) value;
-	uint32_t flags = *((uint32_t *) data);
+	if (cmd) {
+		GQueue *queue = Cmd_Remove_(cmd);
 
-	if (cmd->flags & flags) {
-		cmd_state.keys = g_list_remove(cmd_state.keys, key);
-		return true;
+		if (!queue->length) {
+			g_hash_table_remove(cmd_state.commands, name);
+		}
 	}
-
-	return false;
 }
 
 /**
  * @brief Removes all commands which match the specified flags mask.
  */
 void Cmd_RemoveAll(uint32_t flags) {
-	g_hash_table_foreach_remove(cmd_state.commands, Cmd_RemoveAll_, &flags);
+	GHashTableIter iter;
+	gpointer key, value;
+	g_hash_table_iter_init(&iter, cmd_state.commands);
+
+	while (g_hash_table_iter_next (&iter, &key, &value)) {
+		GQueue *queue = (GQueue *) value;
+		
+		for (GList *list = queue->head; list; list = list->next) {
+			cmd_t *cmd = (cmd_t *) list->data;
+
+			if (cmd->flags & flags) {
+				Cmd_Remove_(cmd);
+				
+				if (!queue->length) {
+					g_hash_table_iter_remove(&iter);
+					break;
+				}
+			}
+		}
+	}
 }
 
 static const char *cmd_complete_pattern;
@@ -397,7 +459,7 @@ static const char *cmd_complete_pattern;
 static void Cmd_CompleteCommand_enumerate(cmd_t *cmd, void *data) {
 	GList **matches = (GList **) data;
 
-	if (GlobMatch(cmd_complete_pattern, cmd->name)) {
+	if (GlobiMatch(cmd_complete_pattern, cmd->name)) {
 
 		if (cmd->Execute) {
 			Com_Print("^1%s^7\n", cmd->name);
@@ -492,7 +554,7 @@ static void Cmd_Alias_f(void) {
 		return;
 	}
 
-	if (Cmd_Get(Cmd_Argv(1))) {
+	if (Cmd_Get_(Cmd_Argv(1), true)) {
 		Com_Print("%s is a command\n", Cmd_Argv(1));
 		return;
 	}
@@ -586,13 +648,21 @@ static void Cmd_Wait_f(void) {
 }
 
 /**
+ * @brief
+ */
+static void Cmd_HashTable_Free(gpointer list) {
+
+	g_queue_free_full((GQueue *) list, Mem_Free);
+}
+
+/**
  * @brief Initializes the command subsystem.
  */
 void Cmd_Init(void) {
 
 	memset(&cmd_state, 0, sizeof(cmd_state));
 
-	cmd_state.commands = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Mem_Free);
+	cmd_state.commands = g_hash_table_new_full(g_stri_hash, g_stri_equal, NULL, Cmd_HashTable_Free);
 
 	Mem_InitBuffer(&cmd_state.buf, (byte *) cmd_state.buffers[0], sizeof(cmd_state.buffers[0]));
 
@@ -635,7 +705,6 @@ void Cmd_Init(void) {
 void Cmd_Shutdown(void) {
 
 	g_hash_table_destroy(cmd_state.commands);
-	g_list_free(cmd_state.keys);
 }
 
 /*

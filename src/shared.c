@@ -645,7 +645,7 @@ char *CommonPrefix(GList *words) {
 		while (e) {
 			const char *w = (char *) e->data;
 
-			if (!c || w[i] != c) { // prefix no longer common
+			if (!c || tolower(w[i]) != tolower(c)) { // prefix no longer common
 				return common_prefix;
 			}
 
@@ -657,10 +657,12 @@ char *CommonPrefix(GList *words) {
 	return common_prefix;
 }
 
+static _Bool GlobMatch_(const char *pattern, const char *text, const _Bool case_sensitive);
+
 /**
  * @brief Handles wildcard suffixes for GlobMatch.
  */
-static _Bool GlobMatchStar(const char *pattern, const char *text) {
+static _Bool GlobMatchStar(const char *pattern, const char *text, const _Bool case_sensitive) {
 	const char *p = pattern, *t = text;
 	register char c, c1;
 
@@ -680,7 +682,7 @@ static _Bool GlobMatchStar(const char *pattern, const char *text) {
 	}
 
 	while (true) {
-		if ((c == '[' || *t == c1) && GlobMatch(p - 1, t)) {
+		if ((c == '[' || *t == c1) && GlobMatch_(p - 1, t, case_sensitive)) {
 			return true;
 		}
 		if (*t++ == '\0') {
@@ -709,7 +711,7 @@ static _Bool GlobMatchStar(const char *pattern, const char *text) {
  * To suppress the special syntactic significance of any of `[]*?!-\',
  * and match the character exactly, precede it with a `\'.
  */
-_Bool GlobMatch(const char *pattern, const char *text) {
+static _Bool GlobMatch_(const char *pattern, const char *text, const _Bool case_sensitive) {
 	const char *p = pattern, *t = text;
 	register char c;
 
@@ -734,7 +736,7 @@ _Bool GlobMatch(const char *pattern, const char *text) {
 				break;
 
 			case '*':
-				return GlobMatchStar(p, t);
+				return GlobMatchStar(p, t, case_sensitive);
 
 			case '[': {
 					register char c1 = *t++;
@@ -804,13 +806,63 @@ match:
 				}
 
 			default:
-				if (c != *t++) {
-					return 0;
+				if (case_sensitive) {
+					if (c != *t++) {
+						return 0;
+					}
+				} else {
+					if (tolower(c) != tolower(*t++)) {
+						return 0;
+					}
 				}
 				break;
 		}
 
 	return *t == '\0';
+}
+
+/**
+ * @brief Matches the pattern against specified text, returning true if the pattern
+ * matches, false otherwise.
+ *
+ * A match means the entire string TEXT is used up in matching.
+ *
+ * In the pattern string, `*' matches any sequence of characters,
+ * `?' matches any character, [SET] matches any character in the specified set,
+ * [!SET] matches any character not in the specified set.
+ *
+ * A set is composed of characters or ranges; a range looks like
+ * character hyphen character(as in 0-9 or A-Z).
+ * [0-9a-zA-Z_] is the set of characters allowed in C identifiers.
+ * Any other character in the pattern must be matched exactly.
+ *
+ * To suppress the special syntactic significance of any of `[]*?!-\',
+ * and match the character exactly, precede it with a `\'.
+ */
+_Bool GlobMatch(const char *pattern, const char *text) {
+	return GlobMatch_(pattern, text, true);
+}
+
+/**
+ * @brief Matches the pattern against specified text case-insensitively, returning true
+ * if the pattern matches, false otherwise.
+ *
+ * A match means the entire string TEXT is used up in matching.
+ *
+ * In the pattern string, `*' matches any sequence of characters,
+ * `?' matches any character, [SET] matches any character in the specified set,
+ * [!SET] matches any character not in the specified set.
+ *
+ * A set is composed of characters or ranges; a range looks like
+ * character hyphen character(as in 0-9 or A-Z).
+ * [0-9a-zA-Z_] is the set of characters allowed in C identifiers.
+ * Any other character in the pattern must be matched exactly.
+ *
+ * To suppress the special syntactic significance of any of `[]*?!-\',
+ * and match the character exactly, precede it with a `\'.
+ */
+_Bool GlobiMatch(const char *pattern, const char *text) {
+	return GlobMatch_(pattern, text, false);
 }
 
 /**
@@ -1420,4 +1472,32 @@ color_t ColorFromHSV(const vec3_t hsv) {
 
 	ColorFromVec3(color_float, &out);
 	return out;
+}
+
+/**
+ * @brief Case-insensitive version of g_str_equal
+ */
+gboolean
+g_stri_equal (gconstpointer v1,
+             gconstpointer v2)
+{
+  const gchar *string1 = v1;
+  const gchar *string2 = v2;
+
+  return stricmp(string1, string2) == 0;
+}
+
+/**
+ * @brief Case-insensitive version of g_str_hash
+ */
+guint
+g_stri_hash (gconstpointer v)
+{
+  const signed char *p;
+  guint32 h = 5381;
+
+  for (p = v; *p != '\0'; p++)
+    h = (h << 5) + h + tolower(*p);
+
+  return h;
 }
