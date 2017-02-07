@@ -106,9 +106,9 @@ typedef struct {
 } sv_frame_t;
 
 /**
- * @brief Clients are dropped after 120 seconds without receiving a packet.
+ * @brief Clients are dropped after 20 seconds without receiving a packet.
  */
-#define SV_TIMEOUT 120
+#define SV_TIMEOUT 20
 
 /**
  * @brief Frame latency accounting, used to estimate ping.
