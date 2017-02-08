@@ -138,7 +138,7 @@ static _Bool Ms_BlacklistServer(struct sockaddr_in *from) {
 			continue;
 		}
 
-		if (GlobMatch(l, ip)) {
+		if (GlobMatch(l, ip, GLOB_FLAGS_NONE)) {
 			blacklisted = true;
 			break;
 		}

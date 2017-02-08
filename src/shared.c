@@ -1432,7 +1432,7 @@ color_t ColorFromHSV(const vec3_t hsv) {
  * @brief Case-insensitive version of g_str_equal
  */
 gboolean g_stri_equal(gconstpointer v1, gconstpointer v2) {
-	return stricmp((const gchar *) v1, (const gchar *) v2) == 0;
+	return g_ascii_strcasecmp((const gchar *) v1, (const gchar *) v2) == 0;
 }
 
 /**
