@@ -404,6 +404,7 @@ void G_FreeEntity(g_entity_t *ent) {
 
 /**
  * @brief Kills all entities that would touch the proposed new positioning of the entity.
+ * FIXME gibs randomly, need to fix this
  * @remarks This doesn't work correctly for rotating BSP entities.
  */
 void G_KillBox(g_entity_t *ent) {

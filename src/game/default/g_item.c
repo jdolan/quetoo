@@ -860,28 +860,41 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 
 	if (!(ent->locals.spawn_flags & SF_ITEM_HOVER)) {
 		ent->locals.move_type = MOVE_TYPE_BOUNCE;
-
-		// make an effort to come up out of the floor (broken maps)
-		tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, MASK_SOLID);
-		if (tr.start_solid) {
-			gi.Debug("%s start_solid, correcting..\n", etos(ent));
-			ent->s.origin[2] += 8.0;
-		}
 	} else {
 		ent->locals.move_type = MOVE_TYPE_FLY;
 	}
 
 	tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, MASK_SOLID);
 	if (tr.start_solid) {
-
 		// try thinner box
 		gi.Debug("%s in too small of a spot for large box, correcting..\n", etos(ent));
 		ent->maxs[2] /= 2.0;
-
+		
 		tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, MASK_SOLID);
 		if (tr.start_solid) {
-			gi.Warn("%s start_solid\n", etos(ent));
-			G_FreeEntity(ent);
+
+			gi.Debug("%s still can't fit, trying Q2 box..\n", etos(ent));
+
+			for (int32_t i = 0; i < 3; i++) {
+				ent->maxs[i] -= 2.0;
+				ent->mins[i] += 2.0;
+			}
+
+			// try Quake 2 box
+			tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, MASK_SOLID);
+			if (tr.start_solid) {
+
+				gi.Debug("%s trying higher, last attempt..\n", etos(ent));
+				
+				ent->s.origin[2] += 8.0;
+
+				// make an effort to come up out of the floor (broken maps)
+				tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, MASK_SOLID);
+				if (tr.start_solid) {
+					gi.Warn("%s start_solid\n", etos(ent));
+					G_FreeEntity(ent);
+				}
+			}
 		}
 		return;
 	}

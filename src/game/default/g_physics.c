@@ -282,8 +282,6 @@ static void G_Accelerate(g_entity_t *ent, vec3_t dir, vec_t speed, vec_t accel) 
 		accel_speed = add_speed;
 	}
 
-	//gi.Print("%3.2f %3.2f %3.2f\n", current_speed, add_speed, accel_speed);
-
 	VectorMA(ent->locals.velocity, accel_speed, dir, ent->locals.velocity);
 }
 
@@ -656,8 +654,7 @@ static void G_Physics_Push(g_entity_t *ent) {
 	// make sure all team slaves can move before committing any moves
 	for (g_entity_t *part = ent; part; part = part->locals.team_chain) {
 		if (!VectorCompare(part->locals.velocity, vec3_origin) ||
-		        !VectorCompare(part->locals.avelocity, vec3_origin)) { // object is moving
-
+				!VectorCompare(part->locals.avelocity, vec3_origin)) { // object is moving
 			vec3_t move, amove;
 
 			VectorScale(part->locals.velocity, QUETOO_TICK_SECONDS, move);
@@ -922,16 +919,6 @@ void G_RunEntity(g_entity_t *ent) {
 			break;
 		default:
 			gi.Error("Bad move type %i\n", ent->locals.move_type);
-	}
-
-	// move all team members to the new origin
-	g_entity_t *e = ent->locals.team_chain;
-	while (e) {
-		VectorCopy(ent->s.origin, e->s.origin);
-
-		gi.LinkEntity(e);
-
-		e = e->locals.team_chain;
 	}
 
 	// update BSP sub-model animations based on move state

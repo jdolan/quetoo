@@ -1123,7 +1123,6 @@ typedef struct {
 	int16_t damage;
 	int16_t knockback;
 	vec_t damage_radius;
-//	int16_t sounds; // make this a spawntemp var?
 	int32_t count;
 
 	g_entity_t *enemy;
