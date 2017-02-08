@@ -321,8 +321,8 @@ static void Check_MAT_Options(int32_t argc) {
 static void PrintHelpMessage(void) {
 	Com_Print("General options\n");
 	Com_Print("-v -verbose\n");
-	Com_Print("-l -legacy - compile a legacy Quake II map\n");
 	Com_Print("-d -debug\n");
+	Com_Print("-l -legacy - compile a legacy Quake II map\n");
 	Com_Print("-t -threads <int>\n");
 	Com_Print("-p -path <game directory> - add the path to the search directory\n");
 	Com_Print("-w -wpath <game directory> - add the write path to the search directory\n");
@@ -389,7 +389,7 @@ int32_t main(int32_t argc, char **argv) {
 	_Bool do_mat = false;
 	_Bool do_zip = false;
 
-	printf("Quetoo Map %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
+	printf("Quetoo Map %s %s %s\n", VERSION, BUILD_HOST, REVISION);
 
 	memset(&quetoo, 0, sizeof(quetoo));
 

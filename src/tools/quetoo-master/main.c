@@ -369,7 +369,7 @@ static void Shutdown(const char *msg) {
  */
 int32_t main(int32_t argc, char **argv) {
 
-	printf("Quetoo Master Server %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
+	printf("Quetoo Master Server %s %s %s\n", VERSION, BUILD_HOST, REVISION);
 
 	memset(&quetoo, 0, sizeof(quetoo));
 
