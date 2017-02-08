@@ -675,15 +675,15 @@ static void G_InitSpawnPoints(void) {
 
 	// in the odd case that the map only has team spawns, we'll use them
 	if (!g_level.spawn_points.count) {
-		if (g_team_red->spawn_points.count) {
-			for (point = team_spawns[TEAM_RED]; point; point = point->next) {
+		for (g_team_id_t team_id = TEAM_RED; team_id < TEAM_TOTAL; team_id++) {
+			for (point = team_spawns[team_id]; point; point = point->next) {
 				dm_spawns = g_slist_prepend(dm_spawns, (g_entity_t *) point->data);
 			}
+		}
 		
-			for (point = team_spawns[TEAM_BLUE]; point; point = point->next) {
-				dm_spawns = g_slist_prepend(dm_spawns, (g_entity_t *) point->data);
-			}
-		} else {
+		g_level.spawn_points.count = g_slist_length(dm_spawns);
+
+		if (!g_level.spawn_points.count) {
 			gi.Error("Map has no spawn points! You need some info_player_deathmatch's (or info_player_team1/2/_any for teamplay maps).\n");
 		}
 	}
