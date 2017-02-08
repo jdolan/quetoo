@@ -36,7 +36,7 @@ static s_music_state_t s_music_state;
 static _Bool S_RetainMusic(s_media_t *self) {
 	s_music_t *music = (s_music_t *) self;
 
-	return GlobMatch("track*", music->media.name);
+	return GlobMatch("track*", music->media.name, GLOB_FLAGS_NONE);
 }
 
 /**

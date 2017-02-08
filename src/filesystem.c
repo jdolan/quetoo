@@ -359,7 +359,7 @@ static void Fs_Enumerate_(void *data, const char *dir, const char *filename) {
 
 	g_snprintf(path, sizeof(path), "%s%s", dir, filename);
 
-	if (GlobMatch(en->pattern, path)) {
+	if (GlobMatch(en->pattern, path, GLOB_FLAGS_NONE)) {
 		en->function(path, en->data);
 	}
 }

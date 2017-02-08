@@ -7,6 +7,7 @@
 	#define itoa _itoa
 	#define getpid _getpid
 	#define strdup _strdup
+	#define stricmp _stricmp
 #endif
 
 #ifdef _WIN64

@@ -329,7 +329,7 @@ static void Cl_ParsePrint(void) {
 					break;
 				}
 
-				if (GlobMatch(pattern, string)) {
+				if (GlobMatch(pattern, string, GLOB_FLAGS_NONE)) {
 					return;
 				}
 			}
