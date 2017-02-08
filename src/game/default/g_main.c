@@ -946,7 +946,7 @@ static void G_CheckRules(void) {
 		int32_t num_teams;
 
 		if (!g_strcmp0(g_num_teams->string, "default")) {
-			num_teams = -1; // FIXME: auto-pick based on # of flags or team spawns that are valid
+			num_teams = -1; // G_InitNumTeams will pick this up
 		} else {
 			num_teams = Clamp(g_num_teams->integer, 2, TEAM_TOTAL);
 		}

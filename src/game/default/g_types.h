@@ -923,6 +923,7 @@ typedef struct {
 	uint32_t name_time;
 	uint32_t skin_time;
 	g_spawn_points_t spawn_points;
+	g_entity_t *flag_entity;
 } g_team_t;
 
 /**

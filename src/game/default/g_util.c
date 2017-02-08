@@ -555,37 +555,14 @@ g_team_t *G_TeamForFlag(const g_entity_t *ent) {
 
 /**
  * @brief
- * FIXME cache flag in g_team_t
  */
 g_entity_t *G_FlagForTeam(const g_team_t *t) {
-	g_entity_t *ent;
-	uint32_t i;
 
 	if (!g_level.ctf) {
 		return NULL;
 	}
 
-	i = sv_max_clients->integer + 1;
-	while (i < ge.num_entities) {
-
-		ent = &ge.entities[i++];
-
-		if (!ent->locals.item || ent->locals.item->type != ITEM_FLAG) {
-			continue;
-		}
-
-		// when a carrier is killed, we spawn a new temporary flag
-		// where they died. we are generally not interested in these.
-		if (ent->locals.spawn_flags & SF_ITEM_DROPPED) {
-			continue;
-		}
-
-		if (!g_strcmp0(ent->class_name, t->flag)) {
-			return ent;
-		}
-	}
-
-	return NULL;
+	return t->flag_entity;
 }
 
 /**

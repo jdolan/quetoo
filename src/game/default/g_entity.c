@@ -635,7 +635,12 @@ static void G_InitSpawnPoints(void) {
 		}
 	}
 	
-	// find the team points, if we have any explicit ones in the map
+	// find the team points, if we have any explicit ones in the map.
+	// start by finding the flags
+	for (g_team_id_t team_id = TEAM_RED; team_id < TEAM_TOTAL; team_id++) {
+		g_teamlist[team_id].flag_entity = G_Find(NULL, EOFS(class_name), g_teamlist[team_id].flag);
+	}
+
 	GSList *team_spawns[TEAM_TOTAL];
 
 	memset(team_spawns, 0, sizeof(team_spawns));
