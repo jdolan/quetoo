@@ -172,23 +172,23 @@ static void updateBindings(View *self) {
 	Vector4Set(this->legs.color, 1.0, 1.0, 1.0, 1.0);
 
 	this->torso.model = this->client.torso;
-	this->torso.parent = &this->legs;
+	//this->torso.parent = &this->legs;
 	this->torso.scale = 1.0;
-	this->torso.tag_name = "tag_torso";
+	//this->torso.tag_name = "tag_torso";
 	this->torso.effects = EF_NO_LIGHTING;
 	Vector4Set(this->torso.color, 1.0, 1.0, 1.0, 1.0);
 
 	this->head.model = this->client.head;
-	this->head.parent = &this->torso;
+	//this->head.parent = &this->torso;
 	this->head.scale = 1.0;
-	this->head.tag_name = "tag_head";
+	//this->head.tag_name = "tag_head";
 	this->head.effects = EF_NO_LIGHTING;
 	Vector4Set(this->head.color, 1.0, 1.0, 1.0, 1.0);
 
 	this->weapon.model = cgi.LoadModel("models/weapons/rocketlauncher/tris");
-	this->weapon.parent = &this->torso;
+	//this->weapon.parent = &this->torso;
 	this->weapon.scale = 1.0;
-	this->weapon.tag_name = "tag_weapon";
+	//this->weapon.tag_name = "tag_weapon";
 	this->weapon.effects = EF_NO_LIGHTING;
 	Vector4Set(this->weapon.color, 1.0, 1.0, 1.0, 1.0);
 

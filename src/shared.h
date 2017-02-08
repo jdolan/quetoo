@@ -125,7 +125,9 @@ void AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up);
 
 void VectorLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out);
 void Vector4Lerp(const vec4_t from, const vec4_t to, const vec_t frac, vec4_t out);
-void AngleLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out);
+
+vec_t AngleLerp(vec_t from, vec_t to, const vec_t frac);
+void AnglesLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out);
 
 _Bool BoxIntersect(const vec3_t mins0, const vec3_t maxs0, const vec3_t mins1, const vec3_t maxs1);
 void ProjectPointOnPlane(const vec3_t p, const vec3_t normal, vec3_t out);

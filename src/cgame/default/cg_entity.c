@@ -148,6 +148,87 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 }
 
 /**
+ * @brief Applies transformation and rotation for the specified linked entity.
+ */
+void Cg_ApplyMeshModelTag(r_entity_t *child, const r_entity_t *parent, const char *tag_name) {
+
+	if (!parent || !parent->model || parent->model->type != MOD_MD3) {
+		cgi.Warn("Invalid parent entity\n");
+		return;
+	}
+
+	if (!tag_name || !*tag_name) {
+		cgi.Warn("NULL tag_name\n");
+		return;
+	}
+
+	// interpolate the tag over the frames of the parent entity
+
+	const r_md3_tag_t *t1 = cgi.GetMeshModelTag(parent->model, parent->old_frame, tag_name);
+	const r_md3_tag_t *t2 = cgi.GetMeshModelTag(parent->model, parent->frame, tag_name);
+
+	if (!t1 || !t2) {
+		return;
+	}
+
+	matrix4x4_t local, parent_matrix, world;
+
+	Matrix4x4_Interpolate(&local, &t2->matrix, &t1->matrix, parent->back_lerp);
+	Matrix4x4_Normalize(&local, &local);
+
+	// add local origins to the local offset
+	Matrix4x4_ConcatTranslate(&local, child->origin[0], child->origin[1], child->origin[2]);
+	Matrix4x4_ConcatRotate(&local, child->angles[ROLL], 1.0, 0.0, 0.0);
+	Matrix4x4_ConcatRotate(&local, child->angles[PITCH], 0.0, 1.0, 0.0);
+	Matrix4x4_ConcatRotate(&local, child->angles[YAW], 0.0, 0.0, 1.0);
+
+	Matrix4x4_CreateFromEntity(&parent_matrix, parent->origin, parent->angles, parent->scale);
+
+	Matrix4x4_Concat(&world, &parent_matrix, &local);
+
+	child->effects |= EF_LINKED;
+
+	vec3_t forward;
+
+	Matrix4x4_ToVectors(&world, forward, NULL, NULL, child->origin);
+
+	VectorAngles(forward, child->angles);
+}
+
+/**
+ * @brief Binds a linked model to its parent, and copies it into the view structure.
+ */
+r_entity_t *Cg_AddLinkedEntity(const r_entity_t *parent, const r_model_t *model,
+                                    const char *tag_name) {
+
+	if (!parent) {
+		cgi.Warn("NULL parent\n");
+		return NULL;
+	}
+
+	r_entity_t ent = *parent;
+
+	VectorClear(ent.origin);
+	VectorClear(ent.angles);
+
+	ent.model = model;
+
+	memset(ent.skins, 0, sizeof(ent.skins));
+	ent.num_skins = 0;
+
+	ent.frame = ent.old_frame = 0;
+
+	ent.lerp = 1.0;
+	ent.back_lerp = 0.0;
+
+	r_entity_t *r_ent = cgi.AddEntity(&ent);
+
+	Cg_ApplyMeshModelTag(r_ent, parent, tag_name);
+
+	return r_ent;
+}
+
+/**
  * @brief Adds the numerous render entities which comprise a given client (player)
  * entity: head, torso, legs, weapon, flags, etc.
  */
@@ -179,33 +260,60 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	// copy the specified entity to all body segments
 	head = torso = legs = *e;
 
+	vec3_t right;
+	AngleVectors(legs.angles, NULL, right, NULL);
+
+	vec3_t move_dir;
+	VectorSubtract(ent->prev.origin, ent->current.origin, move_dir);
+	move_dir[2] = 0.0; // don't care about z, just x/y
+
+	vec_t leg_yaw_offset = 0.0;
+
+	if (VectorLength(move_dir) > PM_STOP_EPSILON * 0.5) {
+		VectorNormalize(move_dir);
+		leg_yaw_offset = DotProduct(move_dir, right) * 65.0;
+
+		if (ent->animation2.animation == ANIM_LEGS_BACK ||
+			ent->animation2.reverse) {
+			leg_yaw_offset = -leg_yaw_offset;
+		}
+	}
+
+	ent->leg_angles = AngleLerp(ent->leg_angles, leg_yaw_offset, 0.1);
+
+	legs.model = ci->legs;
+	legs.angles[1] += ent->leg_angles;
+	legs.angles[0] = legs.angles[2] = 0.0; // legs only use yaw
+	memcpy(legs.skins, ci->legs_skins, sizeof(legs.skins));
+
 	head.model = ci->head;
+	VectorClear(head.origin);
+	head.angles[1] = 0.0; // legs twisted already, we just need to pitch/roll
+	// this is applied twice so head pivots on chest as well
 	memcpy(head.skins, ci->head_skins, sizeof(head.skins));
 
 	torso.model = ci->torso;
+	VectorClear(torso.origin);
+	torso.angles[1] = -ent->leg_angles; // legs twisted already, we just need to pitch/roll
 	memcpy(torso.skins, ci->torso_skins, sizeof(torso.skins));
-
-	legs.model = ci->legs;
-	memcpy(legs.skins, ci->legs_skins, sizeof(legs.skins));
 
 	Cg_AnimateClientEntity(ent, &torso, &legs);
 
-	torso.parent = cgi.AddEntity(&legs);
-	torso.tag_name = "tag_torso";
-
-	head.parent = cgi.AddEntity(&torso);
-	head.tag_name = "tag_head";
-
-	cgi.AddEntity(&head);
+	r_entity_t *r_legs = cgi.AddEntity(&legs);
+	r_entity_t *r_torso = cgi.AddEntity(&torso);
+	r_entity_t *r_head = cgi.AddEntity(&head);
+	
+	Cg_ApplyMeshModelTag(r_torso, r_legs, "tag_torso");
+	Cg_ApplyMeshModelTag(r_head, r_torso, "tag_head");
 
 	if (s->model2) {
 		r_model_t *model = cgi.client->model_precache[s->model2];
-		cgi.AddLinkedEntity(head.parent, model, "tag_weapon");
+		Cg_AddLinkedEntity(r_torso, model, "tag_weapon");
 	}
 
 	if (s->model3) {
 		r_model_t *model = cgi.client->model_precache[s->model3];
-		cgi.AddLinkedEntity(head.parent, model, "tag_head");
+		Cg_AddLinkedEntity(r_torso, model, "tag_head");
 	}
 
 	if (s->model4) {

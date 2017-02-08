@@ -26,7 +26,7 @@ static r_sorted_entities_t r_sorted_entities;
 /**
  * @brief Adds an entity to the view.
  */
-const r_entity_t *R_AddEntity(const r_entity_t *ent) {
+r_entity_t *R_AddEntity(const r_entity_t *ent) {
 
 	if (r_view.num_entities == lengthof(r_view.entities)) {
 		Com_Warn("MAX_ENTITIES exceeded\n");
@@ -37,35 +37,6 @@ const r_entity_t *R_AddEntity(const r_entity_t *ent) {
 	r_view.entities[r_view.num_entities] = *ent;
 
 	return &r_view.entities[r_view.num_entities++];
-}
-
-/**
- * @brief Binds a linked model to its parent, and copies it into the view structure.
- */
-const r_entity_t *R_AddLinkedEntity(const r_entity_t *parent, const r_model_t *model,
-                                    const char *tag_name) {
-
-	if (!parent) {
-		Com_Warn("NULL parent\n");
-		return NULL;
-	}
-
-	r_entity_t ent = *parent;
-
-	ent.parent = parent;
-	ent.tag_name = tag_name;
-
-	ent.model = model;
-
-	memset(ent.skins, 0, sizeof(ent.skins));
-	ent.num_skins = 0;
-
-	ent.frame = ent.old_frame = 0;
-
-	ent.lerp = 1.0;
-	ent.back_lerp = 0.0;
-
-	return R_AddEntity(&ent);
 }
 
 /**
@@ -94,39 +65,6 @@ void R_RotateForEntity(const r_entity_t *e) {
  * matrix for the entity in the process.
  */
 void R_SetMatrixForEntity(r_entity_t *e) {
-
-	if (e->parent) {
-		vec3_t forward;
-
-		if (!IS_MESH_MODEL(e->model)) {
-			Com_Warn("Invalid model for linked entity\n");
-			return;
-		}
-
-		const r_entity_t *p = e->parent;
-		while (p->parent) {
-			p = p->parent;
-		}
-
-		AngleVectors(p->angles, forward, NULL, NULL);
-
-		VectorClear(e->origin);
-		VectorClear(e->angles);
-
-		Matrix4x4_CreateFromEntity(&e->matrix, e->origin, e->angles, e->scale);
-
-		R_ApplyMeshModelTag(e);
-
-		R_ApplyMeshModelConfig(e);
-
-		Matrix4x4_Invert_Simple(&e->inverse_matrix, &e->matrix);
-
-		Matrix4x4_Transform(&e->matrix, vec3_origin, e->origin);
-		Matrix4x4_Transform(&e->matrix, vec3_forward, forward);
-
-		VectorAngles(forward, e->angles);
-		return;
-	}
 
 	Matrix4x4_CreateFromEntity(&e->matrix, e->origin, e->angles, e->scale);
 
@@ -267,7 +205,7 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 	for (size_t i = 0; i < ents->count; i++) {
 		const r_entity_t *e = ents->entities[i];
 
-		if (e->parent || (e->effects & EF_WEAPON) || !IS_MESH_MODEL(e->model)) {
+		if ((e->effects & EF_WEAPON) || !IS_MESH_MODEL(e->model)) {
 			continue;
 		}
 

@@ -237,25 +237,28 @@ void Vector4Lerp(const vec4_t from, const vec4_t to, const vec_t frac, vec4_t ou
  * @brief Produces the linear interpolation of the two angles for the given fraction.
  * Care is taken to keep the values between -180.0 and 180.0.
  */
-void AngleLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out) {
-	vec3_t _from, _to;
+vec_t AngleLerp(vec_t from, vec_t to, const vec_t frac) {
 
-	// copy the vectors to safely clamp this lerp
-	VectorCopy(from, _from);
-	VectorCopy(to, _to);
-
-	for (int32_t i = 0; i < 3; i++) {
-
-		if (_to[i] - _from[i] > 180.0) {
-			_to[i] -= 360.0;
-		}
-
-		if (_to[i] - _from[i] < -180.0) {
-			_to[i] += 360.0;
-		}
+	if (to - from > 180.0) {
+		to -= 360.0;
 	}
 
-	VectorLerp(_from, _to, frac, out);
+	if (to - from < -180.0) {
+		to += 360.0;
+	}
+
+	return Lerp(from, to, frac);
+}
+
+/**
+ * @brief Produces the linear interpolation of the two angles for the given fraction.
+ * Care is taken to keep the values between -180.0 and 180.0.
+ */
+void AnglesLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out) {
+
+	for (int32_t i = 0; i < 3; i++) {
+		out[i] = AngleLerp(from[i], to[i], frac);
+	}
 }
 
 /**

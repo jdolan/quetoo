@@ -1111,31 +1111,47 @@ void Matrix4x4_CreateFromQuakeEntity(matrix4x4_t *out, double x, double y, doubl
 
 void Matrix4x4_ToVectors(const matrix4x4_t *in, vec_t vx[3], vec_t vy[3], vec_t vz[3], vec_t t[3]) {
 #if MATRIX4x4_OPENGLORIENTATION
-	vx[0] = in->m[0][0];
-	vx[1] = in->m[0][1];
-	vx[2] = in->m[0][2];
-	vy[0] = in->m[1][0];
-	vy[1] = in->m[1][1];
-	vy[2] = in->m[1][2];
-	vz[0] = in->m[2][0];
-	vz[1] = in->m[2][1];
-	vz[2] = in->m[2][2];
-	t [0] = in->m[3][0];
-	t [1] = in->m[3][1];
-	t [2] = in->m[3][2];
+	if (vx) {
+		vx[0] = in->m[0][0];
+		vx[1] = in->m[0][1];
+		vx[2] = in->m[0][2];
+	}
+	if (vy) {
+		vy[0] = in->m[1][0];
+		vy[1] = in->m[1][1];
+		vy[2] = in->m[1][2];
+	}
+	if (vz) {
+		vz[0] = in->m[2][0];
+		vz[1] = in->m[2][1];
+		vz[2] = in->m[2][2];
+	}
+	if (t) {
+		t [0] = in->m[3][0];
+		t [1] = in->m[3][1];
+		t [2] = in->m[3][2];
+	}
 #else
-	vx[0] = in->m[0][0];
-	vx[1] = in->m[1][0];
-	vx[2] = in->m[2][0];
-	vy[0] = in->m[0][1];
-	vy[1] = in->m[1][1];
-	vy[2] = in->m[2][1];
-	vz[0] = in->m[0][2];
-	vz[1] = in->m[1][2];
-	vz[2] = in->m[2][2];
-	t [0] = in->m[0][3];
-	t [1] = in->m[1][3];
-	t [2] = in->m[2][3];
+	if (vx) {
+		vx[0] = in->m[0][0];
+		vx[1] = in->m[1][0];
+		vx[2] = in->m[2][0];
+	}
+	if (vy) {
+		vy[0] = in->m[0][1];
+		vy[1] = in->m[1][1];
+		vy[2] = in->m[2][1];
+	}
+	if (vz) {
+		vz[0] = in->m[0][2];
+		vz[1] = in->m[1][2];
+		vz[2] = in->m[2][2];
+	}
+	if (t) {
+		t [0] = in->m[0][3];
+		t [1] = in->m[1][3];
+		t [2] = in->m[2][3];
+	}
 #endif
 }
 

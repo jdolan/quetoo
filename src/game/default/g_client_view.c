@@ -307,9 +307,18 @@ static void G_ClientAnimation(g_entity_t *ent) {
 
 	if (g_level.time - 400 > cl->land_time && g_level.time - 50 > cl->ground_time) {
 
+		vec3_t angles, forward;
+
+		VectorSet(angles, 0.0, ent->s.angles[YAW], 0.0);
+		AngleVectors(angles, forward, NULL, NULL);
+
+		const _Bool backwards = DotProduct(ent->locals.velocity, forward) < -0.1;
+
 		if (ent->client->ps.pm_state.flags & PMF_DUCKED) { // ducked
 			if (cl->speed < 1.0) {
 				G_SetAnimation(ent, ANIM_LEGS_IDLECR, false);
+			} else if (backwards) {
+				G_SetAnimation(ent, ANIM_LEGS_WALKCR | ANIM_REVERSE_BIT, false);
 			} else {
 				G_SetAnimation(ent, ANIM_LEGS_WALKCR, false);
 			}
@@ -322,19 +331,21 @@ static void G_ClientAnimation(g_entity_t *ent) {
 			return;
 		}
 
-		vec3_t angles, forward;
+		entity_animation_t anim = ANIM_LEGS_RUN;
 
-		VectorSet(angles, 0.0, ent->s.angles[YAW], 0.0);
-		AngleVectors(angles, forward, NULL, NULL);
+		if (cl->speed < 200.0) {
+			anim = ANIM_LEGS_WALK;
 
-		if (DotProduct(ent->locals.velocity, forward) < -0.1) {
-			G_SetAnimation(ent, ANIM_LEGS_BACK, false);
-		} else if (cl->speed < 200.0) {
-			G_SetAnimation(ent, ANIM_LEGS_WALK, false);
+			if (backwards) {
+				anim |= ANIM_REVERSE_BIT;
+			}
 		} else {
-			G_SetAnimation(ent, ANIM_LEGS_RUN, false);
+			if (backwards) {
+				anim = ANIM_LEGS_BACK;
+			}
 		}
 
+		G_SetAnimation(ent, anim, false);
 		return;
 	}
 }

@@ -279,7 +279,7 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
 		UnpackAngles(ps0->pm_state.view_angles, angles0);
 		UnpackAngles(ps1->pm_state.view_angles, angles1);
 
-		AngleLerp(angles0, angles1, cgi.client->lerp, cgi.view->angles);
+		AnglesLerp(angles0, angles1, cgi.client->lerp, cgi.view->angles);
 	}
 
 	UnpackAngles(ps0->pm_state.delta_angles, angles0);
@@ -299,7 +299,7 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
 		}
 
 		if (i == 3) {
-			AngleLerp(angles0, angles1, cgi.client->lerp, angles);
+			AnglesLerp(angles0, angles1, cgi.client->lerp, angles);
 		}
 	}
 
