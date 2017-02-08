@@ -253,7 +253,7 @@ static void Sv_Download_f(void) {
 
 	const char **pattern = allowed_patterns;
 	while (pattern) { // ensure download name is allowed
-		if (GlobMatch(*pattern, filename)) {
+		if (GlobMatch(*pattern, filename, GLOB_FLAGS_NONE)) {
 			break;
 		}
 		pattern++;

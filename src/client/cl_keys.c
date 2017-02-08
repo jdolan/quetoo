@@ -444,7 +444,7 @@ static void Cl_Bind_Autocomplete_f(const uint32_t argi, GList **matches) {
 
 			//Com_Print("dbg: %s vs %s: %s\n", keyName, pattern, GlobMatch(pattern, keyName) ? "yes" : "no");
 
-			if (GlobMatch(pattern, keyName)) {
+			if (GlobMatch(pattern, keyName, GLOB_CASE_INSENSITIVE)) {
 				*matches = g_list_prepend(*matches, Mem_TagCopyString(keyName, MEM_TAG_CLIENT));
 				Com_Print("%s\n", keyName);
 			}
