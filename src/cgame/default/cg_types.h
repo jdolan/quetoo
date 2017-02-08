@@ -96,4 +96,15 @@ typedef struct cg_particles_s {
 	struct cg_particles_s *next;
 } cg_particles_t;
 
+/**
+ * @brief Stores info related to teams on the server.
+ */
+typedef struct {
+	char team_name[MAX_USER_INFO_KEY];
+	int16_t hue;
+	color_t color;
+} cg_team_info_t;
+
+extern cg_team_info_t cg_team_info[TEAM_TOTAL];
+
 #endif /* __CG_LOCAL_H__ */

@@ -1208,6 +1208,7 @@ static void G_HookTrail_Think(g_entity_t *ent) {
 	}
 
 	ent->locals.next_think = g_level.time + 1;
+	gi.LinkEntity(ent);
 }
 
 /**

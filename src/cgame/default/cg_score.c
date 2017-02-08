@@ -26,7 +26,7 @@
 #define SCORES_ICON_WIDTH 48
 
 typedef struct {
-	g_score_t scores[MAX_CLIENTS + 2];
+	g_score_t scores[MAX_CLIENTS + TEAM_TOTAL];
 	uint16_t num_scores;
 
 	_Bool teams;
@@ -72,9 +72,9 @@ void Cg_ParseScores(void) {
 
 		cg_score_state.num_scores = index + count;
 
-		// the aggregate scores are the last two in the array
+		// the aggregate scores are the last set in the array
 		if (cg_score_state.ctf || cg_score_state.teams) {
-			cg_score_state.num_scores -= 2;
+			cg_score_state.num_scores -= TEAM_TOTAL;
 		}
 	}
 
@@ -112,7 +112,7 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
 
 		x = cgi.context->width / 2 - SCORES_COL_WIDTH + SCORES_ICON_WIDTH;
 
-		g_snprintf(string, sizeof(string), "%s^7 %d %s", cgi.ConfigString(CS_TEAM_GOOD), score_num,
+		g_snprintf(string, sizeof(string), "%s^7 %d %s", cg_team_info[TEAM_RED].team_name, score_num,
 		           cg_score_state.ctf ? "caps" : "frags");
 
 		cgi.DrawString(x, y, string, CON_COLOR_BLUE);
@@ -122,7 +122,7 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
 
 		x += SCORES_COL_WIDTH;
 
-		g_snprintf(string, sizeof(string), "%s^7 %d %s", cgi.ConfigString(CS_TEAM_EVIL), score_num,
+		g_snprintf(string, sizeof(string), "%s^7 %d %s", cg_team_info[TEAM_BLUE].team_name, score_num,
 		           cg_score_state.ctf ? "caps" : "frags");
 
 		cgi.DrawString(x, y, string, CON_COLOR_RED);
@@ -147,7 +147,7 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 
 	// flag carrier icon
 	if (atoi(cgi.ConfigString(CS_CTF)) && (s->flags & SCORE_CTF_FLAG)) {
-		const int32_t team = (s->flags & SCORE_TEAM_GOOD) ? 1 : 2;
+		const int32_t team = s->team;
 		const r_image_t *flag = cgi.LoadImage(va("pics/i_flag%d", team), IT_PIC);
 		cgi.DrawImage(x, y, 0.33, flag);
 	}
@@ -229,7 +229,7 @@ static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 	for (i = 0; i < cg_score_state.num_scores; i++) {
 		const g_score_t *s = &cg_score_state.scores[i];
 
-		if (!(s->flags & SCORE_TEAM_GOOD)) {
+		if (s->team != TEAM_RED + 1) {
 			continue;
 		}
 
@@ -248,7 +248,7 @@ static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 	for (i = 0; i < cg_score_state.num_scores; i++) {
 		const g_score_t *s = &cg_score_state.scores[i];
 
-		if (!(s->flags & SCORE_TEAM_EVIL)) {
+		if (s->team != TEAM_BLUE + 1) {
 			continue;
 		}
 
@@ -260,6 +260,8 @@ static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 			y += SCORES_ROW_HEIGHT;
 		}
 	}
+
+	// FIXME: draw scoreboards for green/orange
 
 	x -= SCORES_COL_WIDTH;
 	y = start_y;

@@ -282,7 +282,7 @@ static void G_Accelerate(g_entity_t *ent, vec3_t dir, vec_t speed, vec_t accel) 
 		accel_speed = add_speed;
 	}
 
-	gi.Print("%3.2f %3.2f %3.2f\n", current_speed, add_speed, accel_speed);
+	//gi.Print("%3.2f %3.2f %3.2f\n", current_speed, add_speed, accel_speed);
 
 	VectorMA(ent->locals.velocity, accel_speed, dir, ent->locals.velocity);
 }

@@ -727,6 +727,11 @@ static g_entity_t *G_SelectRandomSpawnPoint(const g_spawn_points_t *spawn_points
 
 	// none empty, pick randomly
 	if (!num_empty_spawns) {
+
+		if (!spawn_points->count) {
+			return G_SelectRandomSpawnPoint(&g_level.spawn_points);
+		}
+
 		return spawn_points->spots[Random() % spawn_points->count];
 	}
 
@@ -769,7 +774,7 @@ static g_entity_t *G_SelectDeathmatchSpawnPoint(g_entity_t *ent) {
 	if (g_spawn_farthest->value) {
 		return G_SelectFarthestSpawnPoint(ent, &g_level.spawn_points);
 	}
-
+	
 	return G_SelectRandomSpawnPoint(&g_level.spawn_points);
 }
 
@@ -1116,7 +1121,16 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 
 	// set skin
 	if ((g_level.teams || g_level.ctf) && cl->locals.persistent.team) { // players must use team_skin to change
-		s = cl->locals.persistent.team->skin;
+		s = GetUserInfo(user_info, "skin");
+
+		char *p;
+
+		if (strlen(s) && (p = strchr(s, '/'))) {
+			*p = 0;
+			s = va("%s/%s", s, cl->locals.persistent.team->skin);
+		} else {
+			s = va("%s/%s", DEFAULT_USER_MODEL, cl->locals.persistent.team->skin);
+		}
 	} else {
 		s = GetUserInfo(user_info, "skin");
 	}
@@ -1124,7 +1138,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	if (strlen(s) && !strstr(s, "..")) { // something valid-ish was provided
 		g_strlcpy(cl->locals.persistent.skin, s, sizeof(cl->locals.persistent.skin));
 	} else {
-		g_strlcpy(cl->locals.persistent.skin, "qforcer/default", sizeof(cl->locals.persistent.skin));
+		g_strlcpy(cl->locals.persistent.skin, DEFAULT_USER_MODEL "/" DEFAULT_USER_SKIN, sizeof(cl->locals.persistent.skin));
 	}
 
 	// set color

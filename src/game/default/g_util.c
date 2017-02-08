@@ -519,12 +519,11 @@ g_team_t *G_TeamByName(const char *c) {
 		return NULL;
 	}
 
-	if (!StrColorCmp(g_team_good.name, c)) {
-		return &g_team_good;
-	}
+	for (g_team_id_t team_id = TEAM_RED; team_id < g_level.num_teams; team_id++) {
 
-	if (!StrColorCmp(g_team_evil.name, c)) {
-		return &g_team_evil;
+		if (!StrColorCmp(g_teamlist[team_id].name, c)) {
+			return &g_teamlist[team_id];
+		}
 	}
 
 	return NULL;
@@ -533,7 +532,7 @@ g_team_t *G_TeamByName(const char *c) {
 /**
  * @brief
  */
-g_team_t *G_TeamForFlag(g_entity_t *ent) {
+g_team_t *G_TeamForFlag(const g_entity_t *ent) {
 
 	if (!g_level.ctf) {
 		return NULL;
@@ -543,12 +542,11 @@ g_team_t *G_TeamForFlag(g_entity_t *ent) {
 		return NULL;
 	}
 
-	if (!g_strcmp0(ent->class_name, g_team_good.flag)) {
-		return &g_team_good;
-	}
+	for (g_team_id_t team_id = TEAM_RED; team_id < g_level.num_teams; team_id++) {
 
-	if (!g_strcmp0(ent->class_name, g_team_evil.flag)) {
-		return &g_team_evil;
+		if (!g_strcmp0(ent->class_name, g_teamlist[team_id].flag)) {
+			return &g_teamlist[team_id];
+		}
 	}
 
 	return NULL;
@@ -556,8 +554,9 @@ g_team_t *G_TeamForFlag(g_entity_t *ent) {
 
 /**
  * @brief
+ * FIXME cache flag in g_team_t
  */
-g_entity_t *G_FlagForTeam(g_team_t *t) {
+g_entity_t *G_FlagForTeam(const g_team_t *t) {
 	g_entity_t *ent;
 	uint32_t i;
 
@@ -591,30 +590,31 @@ g_entity_t *G_FlagForTeam(g_team_t *t) {
 /**
  * @brief
  */
-uint32_t G_EffectForTeam(g_team_t *t) {
+uint32_t G_EffectForTeam(const g_team_t *t) {
 
 	if (!t) {
 		return 0;
 	}
 
-	return (t == &g_team_good ? EF_CTF_BLUE : EF_CTF_RED);
+	return t->effect;
 }
 
 /**
- * @brief
+ * @brief Get the flag we're holding
  */
-g_team_t *G_OtherTeam(g_team_t *t) {
+const g_item_t *G_HoldingFlagTeam(const g_entity_t *ent) {
 
-	if (!t) {
-		return NULL;
-	}
+	for (g_team_id_t team_id = TEAM_RED; team_id < g_level.num_teams; team_id++) {
 
-	if (t == &g_team_good) {
-		return &g_team_evil;
-	}
+		if (&g_teamlist[team_id] == ent->client->locals.persistent.team) {
+			continue;
+		}
 
-	if (t == &g_team_evil) {
-		return &g_team_good;
+		g_entity_t *f = G_FlagForTeam(&g_teamlist[team_id]);
+			
+		if (f && ent->client->locals.inventory[f->locals.item->index]) {
+			return f->locals.item;
+		}
 	}
 
 	return NULL;
@@ -623,7 +623,7 @@ g_team_t *G_OtherTeam(g_team_t *t) {
 /*
  *	Return the number of players on the given team.
  */
-size_t G_TeamSize(g_team_t *team) {
+size_t G_TeamSize(const g_team_t *team) {
 	size_t count = 0;
 
 	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
@@ -643,26 +643,34 @@ size_t G_TeamSize(g_team_t *team) {
  * @brief
  */
 g_team_t *G_SmallestTeam(void) {
-	int32_t i, g, e;
 	g_client_t *cl;
+	uint8_t num_clients[TEAM_TOTAL];
 
-	g = e = 0;
+	memset(num_clients, 0, sizeof(num_clients));
 
-	for (i = 0; i < sv_max_clients->integer; i++) {
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 		if (!g_game.entities[i + 1].in_use) {
 			continue;
 		}
 
 		cl = g_game.entities[i + 1].client;
 
-		if (cl->locals.persistent.team == &g_team_good) {
-			g++;
-		} else if (cl->locals.persistent.team == &g_team_evil) {
-			e++;
+		if (!cl->locals.persistent.team) {
+			continue;
+		}
+
+		num_clients[cl->locals.persistent.team->id]++;
+	}
+
+	g_team_t *smallest = NULL;
+
+	for (g_team_id_t i = TEAM_RED; i < g_level.num_teams; i++) {
+		if (!smallest || num_clients[smallest->id] < num_clients[i]) {
+			smallest = &g_teamlist[i];
 		}
 	}
 
-	return g < e ? &g_team_good : &g_team_evil;
+	return smallest;
 }
 
 

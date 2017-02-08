@@ -737,13 +737,13 @@ static void Cg_BfgTrail(cl_entity_t *ent) {
 /**
  * @brief
  */
-static void Cg_TeleporterTrail(cl_entity_t *ent, const color_t color, const _Bool sound) {
+static void Cg_TeleporterTrail(cl_entity_t *ent, const color_t color, const _Bool spawn_point) {
 
 	if (ent->timestamp > cgi.client->unclamped_time) {
 		return;
 	}
 
-	if (sound) {
+	if (!spawn_point) {
 		cgi.AddSample(&(const s_play_sample_t) {
 			.sample = cg_sample_respawn,
 			 .entity = ent->current.number,
@@ -754,7 +754,9 @@ static void Cg_TeleporterTrail(cl_entity_t *ent, const color_t color, const _Boo
 
 	ent->timestamp = cgi.client->unclamped_time + 1000 + (500 * Randomf());
 
-	for (int32_t i = 0; i < 4; i++) {
+	const int32_t num_particles = (spawn_point) ? 1 : 4;
+
+	for (int32_t i = 0; i < num_particles; i++) {
 		cg_particle_t *p;
 
 		if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_teleporter))) {
@@ -772,8 +774,8 @@ static void Cg_TeleporterTrail(cl_entity_t *ent, const color_t color, const _Boo
 		p->scale_end = p->scale_start * 2.0;
 
 		VectorCopy(ent->origin, p->part.org);
-		p->part.org[2] -= (6.0 * i);
-		p->vel[2] = 120.0;
+		p->part.org[2] -= (spawn_point ? 16.0 : (6.0 * i));
+		p->vel[2] = (spawn_point ? 20.0 : 120.0);
 	}
 }
 
@@ -921,16 +923,10 @@ void Cg_EntityTrail(cl_entity_t *ent) {
 			Cg_BfgTrail(ent);
 			break;
 		case TRAIL_TELEPORTER:
-			Cg_TeleporterTrail(ent, ColorFromRGB(255, 255, 211), true);
+			Cg_TeleporterTrail(ent, ColorFromRGB(255, 255, 211), false);
 			break;
-		case TRAIL_GOOD_SPAWN:
-			Cg_TeleporterTrail(ent, EFFECT_COLOR_BLUE, false);
-			break;
-		case TRAIL_EVIL_SPAWN:
-			Cg_TeleporterTrail(ent, EFFECT_COLOR_RED, false);
-			break;
-		case TRAIL_NEUTRAL_SPAWN:
-			Cg_TeleporterTrail(ent, EFFECT_COLOR_WHITE, false);
+		case TRAIL_SPAWN_POINT:
+			Cg_TeleporterTrail(ent, ent->current.client >= TEAM_TOTAL ? EFFECT_COLOR_WHITE : cg_team_info[ent->current.client].color, true);
 			break;
 		case TRAIL_GIB:
 			Cg_GibTrail(ent, start, end);

@@ -81,18 +81,13 @@ static void G_UpdateScore(const g_entity_t *ent, g_score_t *s) {
 			}
 		}
 		if (g_level.ctf) {
-			if (ent->s.effects & (EF_CTF_BLUE | EF_CTF_RED)) {
+			if (ent->s.effects & EF_CTF_MASK) {
 				s->flags |= SCORE_CTF_FLAG;
 			}
 		}
 		if (ent->client->locals.persistent.team) {
-			if (ent->client->locals.persistent.team == &g_team_good) {
-				s->color = TEAM_COLOR_GOOD;
-				s->flags |= SCORE_TEAM_GOOD;
-			} else {
-				s->color = TEAM_COLOR_EVIL;
-				s->flags |= SCORE_TEAM_EVIL;
-			}
+			s->color = ent->client->locals.persistent.team->color;
+			s->team = ent->client->locals.persistent.team->id + 1;
 		} else {
 			s->color = ent->client->locals.persistent.color;
 		}
@@ -123,19 +118,17 @@ static size_t G_UpdateScores(g_score_t *scores) {
 
 	// and optionally concatenate the team scores
 	if (g_level.teams || g_level.ctf) {
-		memset(s, 0, sizeof(*s) * 2);
+		memset(s, 0, sizeof(*s) * TEAM_TOTAL);
 
-		s->client = MAX_CLIENTS;
-		s->score = g_team_good.score;
-		s->captures = g_team_good.captures;
-		s->flags = SCORE_TEAM_GOOD | SCORE_AGGREGATE;
-		s++;
+		for (g_team_id_t team_id = TEAM_RED; team_id < TEAM_TOTAL; team_id++) {
+			g_team_t *team = &g_teamlist[team_id];
 
-		s->client = MAX_CLIENTS;
-		s->score = g_team_evil.score;
-		s->captures = g_team_evil.captures;
-		s->flags = SCORE_TEAM_EVIL | SCORE_AGGREGATE;
-		s++;
+			s->client = MAX_CLIENTS;
+			s->score = team->score;
+			s->captures = team->captures;
+			s->flags = team->id | SCORE_AGGREGATE;
+			s++;
+		}
 	}
 
 	return (size_t) (s - scores);
@@ -146,7 +139,7 @@ static size_t G_UpdateScores(g_score_t *scores) {
  * chunks to overcome the 1400 byte UDP packet limitation.
  */
 void G_ClientScores(g_entity_t *ent) {
-	static g_score_t scores[MAX_CLIENTS + 2];
+	static g_score_t scores[MAX_CLIENTS + TEAM_TOTAL];
 	static size_t count;
 
 	if (!ent->client->locals.persistent.show_scores || (ent->client->locals.persistent.scores_time > g_level.time)) {
@@ -226,16 +219,14 @@ void G_ClientStats(g_entity_t *ent) {
 	client->ps.stats[STAT_DAMAGE_INFLICT] = client->locals.damage_inflicted;
 
 	// held flag
+	client->ps.stats[STAT_CARRYING_FLAG] = 0;
 
-	const int16_t good_flag = g_media.items.flags[FLAG_GOOD]->index;
-	const int16_t evil_flag = g_media.items.flags[FLAG_EVIL]->index;
+	for (g_team_id_t team_id = TEAM_RED; team_id < g_level.num_teams; team_id++) {
 
-	if (client->locals.inventory[good_flag]) {
-		client->ps.stats[STAT_CARRYING_FLAG] = 1;
-	} else if (client->locals.inventory[evil_flag]) {
-		client->ps.stats[STAT_CARRYING_FLAG] = 2;
-	} else {
-		client->ps.stats[STAT_CARRYING_FLAG] = 0;
+		if (client->locals.inventory[g_media.items.flags[team_id]->index]) {
+			client->ps.stats[STAT_CARRYING_FLAG] = team_id + 1;
+			break;
+		}
 	}
 
 	// frags
@@ -282,14 +273,10 @@ void G_ClientStats(g_entity_t *ent) {
 		client->ps.stats[STAT_SCORES] |= 1;
 	}
 
-	if ((g_level.teams || g_level.ctf) && client->locals.persistent.team) { // send team_name
-		if (client->locals.persistent.team == &g_team_good) {
-			client->ps.stats[STAT_TEAM] = CS_TEAM_GOOD;
-		} else {
-			client->ps.stats[STAT_TEAM] = CS_TEAM_EVIL;
-		}
+	if ((g_level.teams || g_level.ctf) && client->locals.persistent.team) { // send team ID, -1 is no team
+		client->ps.stats[STAT_TEAM] = client->locals.persistent.team->id;
 	} else {
-		client->ps.stats[STAT_TEAM] = 0;
+		client->ps.stats[STAT_TEAM] = -1;
 	}
 
 	// time

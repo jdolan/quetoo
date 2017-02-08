@@ -289,7 +289,7 @@ static void Cl_DrawCounters(void) {
 	static int32_t last_draw_time, last_speed_time;
 	r_pixel_t cw, ch;
 
-	if (!cl_draw_counters->value) {
+	if (!cl_draw_counters->integer) {
 		return;
 	}
 
@@ -319,6 +319,10 @@ static void Cl_DrawCounters(void) {
 
 		cl.frame_counter = 0;
 		cl.packet_counter = 0;
+	}
+
+	if (cl_draw_position->integer) {
+		R_DrawString(r_context.width - 14 * cw, y - ch, va("%4.0f %4.0f %4.0f", cl.frame.ps.pm_state.origin[0], cl.frame.ps.pm_state.origin[1], cl.frame.ps.pm_state.origin[2]), CON_COLOR_DEFAULT);
 	}
 
 	R_DrawString(x, y, spd, CON_COLOR_DEFAULT);

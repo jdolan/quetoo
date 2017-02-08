@@ -305,6 +305,34 @@ static void Cg_ClearState(void) {
 	Cg_ClearHud();
 }
 
+cg_team_info_t cg_team_info[TEAM_TOTAL];
+
+/**
+ * @brief Resolve team info from team configstring
+ */
+static void Cg_ResolveTeamInfo(const char *s) {
+
+	gchar **info = g_strsplit(s, "\\", 0);
+	const size_t info_count = g_strv_length(info);
+
+	if (info_count != lengthof(cg_team_info) * 2) {
+		cgi.Error("Invalid team data");
+	}
+
+	cg_team_info_t *team = cg_team_info;
+
+	for (size_t i = 0; i < info_count; i += 2, team++) {
+		
+		g_strlcpy(team->team_name, info[i], sizeof(team->team_name));
+		team->hue = (int16_t) atoi(info[i + 1]);
+		team->color = ColorFromHSV((const vec3_t) {
+			team->hue,
+			1.0,
+			1.0
+		});
+	}
+}
+
 /**
  * @brief An updated configuration string has just been received from the server.
  * Refresh related variables and media that aren't managed by the engine.
@@ -319,6 +347,9 @@ static void Cg_UpdateConfigString(uint16_t i) {
 			return;
 		case CS_HOOK_PULL_SPEED:
 			cg_state.hook_pull_speed = strtof(s, NULL);
+			return;
+		case CS_TEAM_INFO:
+			Cg_ResolveTeamInfo(s);
 			return;
 		default:
 			break;

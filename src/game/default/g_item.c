@@ -480,8 +480,8 @@ void G_ResetDroppedFlag(g_entity_t *ent) {
  * Take the enemy's flag.
  */
 static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
-	g_team_t *t, *ot;
-	g_entity_t *f, *of;
+	g_team_t *t;
+	g_entity_t *f;
 	int32_t index;
 
 	if (!other->client->locals.persistent.team) {
@@ -493,14 +493,6 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 	}
 
 	if (!(f = G_FlagForTeam(t))) {
-		return false;
-	}
-
-	if (!(ot = G_OtherTeam(t))) {
-		return false;
-	}
-
-	if (!(of = G_FlagForTeam(ot))) {
 		return false;
 	}
 
@@ -523,30 +515,37 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 			return true;
 		}
 
-		index = of->locals.item->index;
-		if (other->client->locals.inventory[index]) { // capture
+		const g_item_t *ofi = G_HoldingFlagTeam(other);
 
-			other->client->locals.inventory[index] = 0;
-			other->s.effects &= ~G_EffectForTeam(ot);
-			other->s.model3 = 0;
+		if (ofi) {
+			const g_team_t *ot = &g_teamlist[ofi->tag];
+			g_entity_t *of = G_FlagForTeam(ot);
 
-			of->solid = SOLID_TRIGGER;
-			of->sv_flags &= ~SVF_NO_CLIENT; // reset the other flag
+			index = of->locals.item->index;
+			if (other->client->locals.inventory[index]) { // capture
 
-			gi.LinkEntity(of);
+				other->client->locals.inventory[index] = 0;
+				other->s.effects &= ~G_EffectForTeam(ot);
+				other->s.model3 = 0;
 
-			of->s.event = EV_ITEM_RESPAWN;
+				of->solid = SOLID_TRIGGER;
+				of->sv_flags &= ~SVF_NO_CLIENT; // reset the other flag
 
-			gi.Sound(other, gi.SoundIndex("ctf/capture"), ATTEN_NONE);
+				gi.LinkEntity(of);
 
-			gi.BroadcastPrint(PRINT_HIGH, "%s captured the %s flag\n",
-			                  other->client->locals.persistent.net_name, ot->name);
+				of->s.event = EV_ITEM_RESPAWN;
 
-			t->captures++;
-			other->client->locals.persistent.captures++;
+				gi.Sound(other, gi.SoundIndex("ctf/capture"), ATTEN_NONE);
 
-			return false;
-		}
+				gi.BroadcastPrint(PRINT_HIGH, "%s captured the %s flag\n",
+								  other->client->locals.persistent.net_name, ot->name);
+
+				t->captures++;
+				other->client->locals.persistent.captures++;
+
+				return false;
+			}
+		}	
 
 		// touching our own flag for no particular reason
 		return false;
@@ -578,18 +577,14 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
  * @brief
  */
 g_entity_t *G_TossFlag(g_entity_t *ent) {
-	g_team_t *ot;
-	g_entity_t *of;
+	const g_item_t *ofi;
 
-	if (!(ot = G_OtherTeam(ent->client->locals.persistent.team))) {
+	if (!(ofi = G_HoldingFlagTeam(ent))) {
 		return NULL;
 	}
 
-	if (!(of = G_FlagForTeam(ot))) {
-		return NULL;
-	}
-
-	const int32_t index = of->locals.item->index;
+	const g_team_t *ot = &g_teamlist[ofi->tag];
+	const int32_t index = ofi->index;
 
 	if (!ent->client->locals.inventory[index]) {
 		return NULL;
@@ -598,12 +593,12 @@ g_entity_t *G_TossFlag(g_entity_t *ent) {
 	ent->client->locals.inventory[index] = 0;
 
 	ent->s.model3 = 0;
-	ent->s.effects &= ~(EF_CTF_RED | EF_CTF_BLUE);
+	ent->s.effects &= ~EF_CTF_MASK;
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag\n",
 	                  ent->client->locals.persistent.net_name, ot->name);
 
-	return G_DropItem(ent, of->locals.item);
+	return G_DropItem(ent, ofi);
 }
 
 /**
@@ -752,7 +747,7 @@ g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
 		VectorCopy(ent->s.origin, it->s.origin);
 	}
 
-	tr = gi.Trace(ent->s.origin, it->s.origin, it->mins, it->maxs, ent, MASK_CLIP_PLAYER);
+	tr = gi.Trace(ent->s.origin, it->s.origin, it->mins, it->maxs, ent, MASK_SOLID);
 
 	// we're in a bad spot, forget it
 	if (tr.start_solid) {
@@ -823,7 +818,8 @@ void G_ResetItem(g_entity_t *ent) {
 	ent->locals.Touch = G_TouchItem;
 
 	if (ent->locals.item->type == ITEM_FLAG) {
-		if (g_level.ctf == false) {
+		if (g_level.ctf == false ||
+			ent->locals.item->tag > g_level.num_teams) {
 			ent->sv_flags |= SVF_NO_CLIENT;
 			ent->solid = SOLID_NOT;
 		}
@@ -1976,7 +1972,7 @@ static g_item_t g_items[] = {
 		.quantity = 0,
 		.ammo = NULL,
 		.type = ITEM_FLAG,
-		.tag = FLAG_GOOD,
+		.tag = TEAM_RED,
 		.priority = 0.75,
 		.precaches = "ctf/capture.wav ctf/steal.wav ctf/return.wav"
 	},
@@ -2005,7 +2001,65 @@ static g_item_t g_items[] = {
 		.quantity = 0,
 		.ammo = NULL,
 		.type = ITEM_FLAG,
-		.tag = FLAG_EVIL,
+		.tag = TEAM_BLUE,
+		.priority = 0.75,
+		.precaches = "ctf/capture.wav ctf/steal.wav ctf/return.wav"
+	},
+
+	/*QUAKED item_flag_team3 (1 .2 .2) (-16 -16 -24) (16 16 32) triggered no_touch hover
+
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+	 -------- Radiant config --------
+	 model="models/ctf/flag3/tris.obj"
+	 */
+	{
+		.class_name = "item_flag_team3",
+		.Pickup = G_PickupFlag,
+		.Use = NULL,
+		.Drop = G_DropFlag,
+		.Think = NULL,
+		.pickup_sound = NULL,
+		.model = "models/ctf/flag3/tris.obj",
+		.effects = EF_BOB | EF_ROTATE,
+		.icon = "pics/i_flag3",
+		.name = "Enemy Flag",
+		.quantity = 0,
+		.ammo = NULL,
+		.type = ITEM_FLAG,
+		.tag = TEAM_GREEN,
+		.priority = 0.75,
+		.precaches = "ctf/capture.wav ctf/steal.wav ctf/return.wav"
+	},
+
+	/*QUAKED item_flag_team4 (1 .2 .2) (-16 -16 -24) (16 16 32) triggered no_touch hover
+
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+	 -------- Radiant config --------
+	 model="models/ctf/flag4/tris.obj"
+	 */
+	{
+		.class_name = "item_flag_team4",
+		.Pickup = G_PickupFlag,
+		.Use = NULL,
+		.Drop = G_DropFlag,
+		.Think = NULL,
+		.pickup_sound = NULL,
+		.model = "models/ctf/flag4/tris.obj",
+		.effects = EF_BOB | EF_ROTATE,
+		.icon = "pics/i_flag4",
+		.name = "Enemy Flag",
+		.quantity = 0,
+		.ammo = NULL,
+		.type = ITEM_FLAG,
+		.tag = TEAM_ORANGE,
 		.priority = 0.75,
 		.precaches = "ctf/capture.wav ctf/steal.wav ctf/return.wav"
 	},
@@ -2125,10 +2179,6 @@ void G_InitItems(void) {
 		case ITEM_WEAPON:
 			array = g_media.items.weapons;
 			break;
-		}
-
-		if (!item->tag) {
-			gi.Error("Item %s has an invalid tag\n", item->name);
 		}
 		
 		if (array[item->tag]) {
