@@ -643,7 +643,7 @@ g_team_t *G_SmallestTeam(void) {
 	g_team_t *smallest = NULL;
 
 	for (g_team_id_t i = TEAM_RED; i < g_level.num_teams; i++) {
-		if (!smallest || num_clients[smallest->id] < num_clients[i]) {
+		if (!smallest || num_clients[i] < num_clients[smallest->id]) {
 			smallest = &g_teamlist[i];
 		}
 	}
