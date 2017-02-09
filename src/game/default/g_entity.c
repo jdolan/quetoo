@@ -108,6 +108,8 @@ static g_entity_spawn_t g_entity_spawns[] = { // entity class names -> spawn fun
 	{ "info_player_start", G_info_player_start },
 	{ "info_player_team1", G_info_player_team1 },
 	{ "info_player_team2", G_info_player_team2 },
+	{ "info_player_team3", G_info_player_team3 },
+	{ "info_player_team4", G_info_player_team4 },
 	{ "info_player_team_any", G_info_player_team_any },
 
 	{ "misc_teleporter", G_misc_teleporter },
@@ -960,6 +962,7 @@ static void G_WorldspawnMusic(void) {
  gameplay : The gameplay mode, one of "deathmatch, instagib, arena."
  hook : Enables the grappling hook (unset for gameplay default, 0 = disabled, 1 = enabled)."
  teams : Enables and enforces teams play (enabled = 1, auto-balance = 2).
+ num_teams : Enforces number of teams (disabled = -1, must be between 2 and 4)
  ctf : Enables CTF play (enabled = 1, auto-balance = 2).
  match : Enables match play (round-based elimination with warmup) (enabled = 1).
  fraglimit : The frag limit (default 20).

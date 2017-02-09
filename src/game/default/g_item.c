@@ -496,6 +496,8 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 		return false;
 	}
 
+	const g_item_t *ofi = G_HoldingFlagTeam(other);
+
 	if (t == other->client->locals.persistent.team) { // our flag
 
 		if (ent->locals.spawn_flags & SF_ITEM_DROPPED) { // return it if necessary
@@ -514,8 +516,6 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 			return true;
 		}
-
-		const g_item_t *ofi = G_HoldingFlagTeam(other);
 
 		if (ofi) {
 			const g_team_t *ot = &g_teamlist[ofi->tag];
@@ -551,7 +551,10 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 		return false;
 	}
 
-	// it's enemy's flag, so take it
+	// it's enemy's flag, so take it if we can
+	if (ofi) {
+		return false; // we have one already
+	}
 
 	f->solid = SOLID_NOT;
 	f->sv_flags |= SVF_NO_CLIENT;
