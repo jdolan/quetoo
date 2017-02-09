@@ -20,7 +20,7 @@
  */
 
 #include "qbsp.h"
-#include "scriplib.h"
+#include "scriptlib.h"
 
 int32_t num_map_brushes;
 map_brush_t map_brushes[MAX_BSP_BRUSHES];

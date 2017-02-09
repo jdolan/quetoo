@@ -24,10 +24,11 @@
 #include "quemap.h"
 
 #define	MAXTOKEN 1024
-
 extern char token[MAXTOKEN];
 
 void LoadScriptFile(const char *file_name);
+void UnloadScriptFiles(void);
+
 void ParseFromMemory(char *buffer, int32_t size);
 
 _Bool GetToken(_Bool crossline);
