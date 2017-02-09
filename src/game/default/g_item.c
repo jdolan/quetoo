@@ -896,10 +896,10 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 				if (tr.start_solid) {
 					gi.Warn("%s start_solid\n", etos(ent));
 					G_FreeEntity(ent);
+					return;
 				}
 			}
 		}
-		return;
 	}
 
 	G_ResetItem(ent);
