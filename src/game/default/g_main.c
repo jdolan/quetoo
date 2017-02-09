@@ -1197,7 +1197,7 @@ void G_InitNumTeams(void) {
 		g_level.num_teams = Clamp(g_level.num_teams, 2, TEAM_TOTAL);
 	}
 
-	gi.SetConfigString(CS_TEAMS, va("%d", (g_level.teams || g_level.teams) ? g_level.num_teams : 0));
+	gi.SetConfigString(CS_TEAMS, va("%d", (g_level.teams || g_level.ctf) ? g_level.num_teams : 0));
 }
 
 /**
