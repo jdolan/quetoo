@@ -26,6 +26,11 @@
 #include "sys.h"
 
 /**
+ * @brief Default filesystem initialization flags.
+ */
+#define FS_NONE					0x0
+
+/**
  * @brief If set, supported archives (.pk3, .pak) in search paths will be
  * automatically loaded. Set this to false for tools that require the write
  * directory, but not read access to the Quake file system (e.g quetoo-master).

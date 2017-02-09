@@ -30,7 +30,7 @@ void setup(void) {
 
 	Mem_Init();
 
-	Fs_Init(0);
+	Fs_Init(FS_NONE);
 
 	Cmd_Init();
 

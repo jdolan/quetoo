@@ -22,7 +22,7 @@
 #include "tests.h"
 
 #define main Ms_Main
-#include "../tools/master/main.c"
+#include "../tools/quetoo-master/main.c"
 #undef main
 
 /**
@@ -32,7 +32,7 @@ void setup(void) {
 
 	Mem_Init();
 
-	Fs_Init(0);
+	Fs_Init(FS_NONE);
 }
 
 /**
