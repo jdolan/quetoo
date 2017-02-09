@@ -29,7 +29,7 @@ typedef struct {
 	g_score_t scores[MAX_CLIENTS + TEAM_TOTAL];
 	uint16_t num_scores;
 
-	_Bool teams;
+	int32_t teams;
 	_Bool ctf;
 } cg_score_state_t;
 
@@ -103,29 +103,41 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
 
 	// team names and scores
 	if (cg_score_state.teams || cg_score_state.ctf) {
-		char string[MAX_QPATH];
-
-		g_score_t *score = &cg_score_state.scores[cg_score_state.num_scores];
-		int16_t score_num = cg_score_state.teams ? score->score : score->captures;
-
 		cgi.BindFont("small", &cw, &ch);
 
-		x = cgi.context->width / 2 - SCORES_COL_WIDTH + SCORES_ICON_WIDTH;
+		g_score_t *score = &cg_score_state.scores[cg_score_state.num_scores];
 
-		g_snprintf(string, sizeof(string), "%s^7 %d %s", cg_team_info[TEAM_RED].team_name, score_num,
-		           cg_score_state.ctf ? "caps" : "frags");
+		// start from center
+		x = cgi.context->width / 2;
+		x -= SCORES_COL_WIDTH * (cg_score_state.teams / 2.0);
+		x += SCORES_ICON_WIDTH;
 
-		cgi.DrawString(x, y, string, CON_COLOR_BLUE);
+		for (int32_t i = 0; i < cg_score_state.teams; i++, score++) {
+			int16_t score_num = cg_score_state.ctf ? score->captures : score->score;
+			int32_t color_id;
 
-		score++;
-		score_num = cg_score_state.teams ? score->score : score->captures;
+			// FIXME: pls
+			switch (i) {
+			case TEAM_RED:
+			default:
+				color_id = CON_COLOR_RED;
+				break;
+			case TEAM_BLUE:
+				color_id = CON_COLOR_BLUE;
+				break;
+			case TEAM_GREEN:
+				color_id = CON_COLOR_GREEN;
+				break;
+			case TEAM_ORANGE:
+				color_id = CON_COLOR_YELLOW;
+				break;
+			}
 
-		x += SCORES_COL_WIDTH;
+			cgi.DrawString(x, y, va("%s^7 %d %s", cg_team_info[i].team_name, score_num,
+									cg_score_state.ctf ? "caps" : "frags"), color_id);
 
-		g_snprintf(string, sizeof(string), "%s^7 %d %s", cg_team_info[TEAM_BLUE].team_name, score_num,
-		           cg_score_state.ctf ? "caps" : "frags");
-
-		cgi.DrawString(x, y, string, CON_COLOR_RED);
+			x += SCORES_COL_WIDTH;
+		}
 
 		y += ch;
 	}
@@ -223,46 +235,31 @@ static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 	rows = (cgi.context->height - (2 * start_y)) / SCORES_ROW_HEIGHT;
 	rows = rows < 3 ? 3 : rows;
 
-	x = (cgi.context->width / 2) - SCORES_COL_WIDTH;
+	x = cgi.context->width / 2;
+	x -= SCORES_COL_WIDTH * (cg_score_state.teams / 2.0);
+
 	y = start_y;
 
-	for (i = 0; i < cg_score_state.num_scores; i++) {
-		const g_score_t *s = &cg_score_state.scores[i];
+	for (int32_t t = 0; t < cg_score_state.teams; t++, x += SCORES_COL_WIDTH, y = start_y) {
+		for (i = 0; i < cg_score_state.num_scores; i++) {
+			const g_score_t *s = &cg_score_state.scores[i];
 
-		if (s->team != TEAM_RED + 1) {
-			continue;
-		}
+			if (s->team != t + 1) {
+				continue;
+			}
 
-		if ((int16_t) i == rows) {
-			break;
-		}
+			if ((int16_t) i == rows) {
+				break;
+			}
 
-		if (Cg_DrawScore(x, y, s)) {
-			y += SCORES_ROW_HEIGHT;
+			if (Cg_DrawScore(x, y, s)) {
+				y += SCORES_ROW_HEIGHT;
+			}
 		}
 	}
 
-	x += SCORES_COL_WIDTH;
-	y = start_y;
-
-	for (i = 0; i < cg_score_state.num_scores; i++) {
-		const g_score_t *s = &cg_score_state.scores[i];
-
-		if (s->team != TEAM_BLUE + 1) {
-			continue;
-		}
-
-		if ((int16_t) i == rows) {
-			break;
-		}
-
-		if (Cg_DrawScore(x, y, s)) {
-			y += SCORES_ROW_HEIGHT;
-		}
-	}
-
-	// FIXME: draw scoreboards for green/orange
-
+	x = cgi.context->width / 2;
+	x -= SCORES_COL_WIDTH * (cg_score_state.teams / 2.0);
 	x -= SCORES_COL_WIDTH;
 	y = start_y;
 
@@ -335,9 +332,9 @@ void Cg_DrawScores(const player_state_t *ps) {
 
 	const r_pixel_t start_y = Cg_DrawScoresHeader();
 
-	if (cg_score_state.teams) {
+	if (cg_score_state.ctf) {
 		Cg_DrawTeamScores(start_y);
-	} else if (cg_score_state.ctf) {
+	} else if (cg_score_state.teams) {
 		Cg_DrawTeamScores(start_y);
 	} else {
 		Cg_DrawDmScores(start_y);

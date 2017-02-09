@@ -500,8 +500,7 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 	self->locals.take_damage = true;
 
 	self->client->locals.respawn_time = g_level.time + 1800; // respawn after death animation finishes
-	self->client->locals.persistent.show_scores = true;
-
+	self->client->locals.show_scores = true;
 	self->client->locals.persistent.deaths++;
 
 	const vec3_t delta_angles = { 0.0, 0.0, 45.0 };
@@ -1527,8 +1526,6 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 		return;
 	}
 
-	ent->client->locals.persistent.show_scores = !!(cmd->buttons & BUTTON_SCORE);
-
 	if (g_level.match_status & MSTAT_TIMEOUT) {
 		return;
 	}
@@ -1609,6 +1606,13 @@ void G_ClientBeginFrame(g_entity_t *ent) {
 
 	if (g_level.intermission_time) {
 		return;
+	}
+
+	if (ent->locals.dead ||
+		((ent->client->locals.buttons | ent->client->locals.latched_buttons) & BUTTON_SCORE)) {
+		ent->client->locals.show_scores = true;
+	} else {
+		ent->client->locals.show_scores = false;
 	}
 
 	g_client_t *cl = ent->client;

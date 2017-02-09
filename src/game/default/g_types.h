@@ -985,9 +985,6 @@ typedef struct {
 	g_vote_t vote; // current vote (yes/no)
 	uint32_t match_num; // most recent match
 	uint32_t round_num; // most recent arena round
-
-	_Bool show_scores; // sets layout bit mask in player state
-	uint32_t scores_time; // eligible for scores when time > this
 } g_client_persistent_t;
 
 /**
@@ -1064,6 +1061,9 @@ typedef struct {
 	g_entity_t *old_chase_target; // player we were chasing
 
 	const g_item_t *last_dropped; // last dropped item, used for variable expansion
+
+	_Bool show_scores; // sets layout bit mask in player state
+	uint32_t scores_time; // eligible for scores when time > this
 } g_client_locals_t;
 
 /**
