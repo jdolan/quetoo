@@ -19,7 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <sys/stat.h>
 #include <physfs.h>
 
 #include "filesystem.h"
@@ -420,12 +419,11 @@ static void Fs_AddToSearchPath_enumerate(const char *path, void *data);
  * archives within it.
  */
 void Fs_AddToSearchPath(const char *dir) {
-	struct stat s;
 
-	if (stat(dir, &s) == 0) {
+	if (g_file_test(dir, G_FILE_TEST_EXISTS)) {
 		Com_Print("Adding path %s..\n", dir);
 
-		const _Bool is_dir = S_ISDIR(s.st_mode);
+		const _Bool is_dir = g_file_test(dir, G_FILE_TEST_IS_DIR);
 
 		if (PHYSFS_mount(dir, NULL, !is_dir) == 0) {
 			Com_Warn("%s: %s\n", dir, PHYSFS_getLastError());
@@ -520,10 +518,9 @@ void Fs_SetGame(const char *dir) {
  * @brief Sets the [user-specific] target directory for writing files.
  */
 void Fs_SetWriteDir(const char *dir) {
-	struct stat s;
 
-	if (stat(dir, &s) == 0) {
-		if (!S_ISDIR(s.st_mode)) {
+	if (g_file_test(dir, G_FILE_TEST_EXISTS)) {
+		if (!g_file_test(dir, G_FILE_TEST_IS_DIR)) {
 			Com_Warn("%s exists but is not a directory\n", dir);
 			return;
 		}
