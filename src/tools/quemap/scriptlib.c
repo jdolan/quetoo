@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "scriplib.h"
+#include "scriptlib.h"
 
 /*
  * 						PARSING STUFF
@@ -43,7 +43,6 @@ static _Bool endofscript;
  * @brief
  */
 static void AddScriptToStack(const char *file_name) {
-	int64_t size;
 
 	script++;
 	if (script == &scriptstack[MAX_INCLUDES]) {
@@ -52,7 +51,7 @@ static void AddScriptToStack(const char *file_name) {
 
 	strcpy(script->file_name, file_name);
 
-	size = Fs_Load(script->file_name, (void **) (char *) &script->buffer);
+	const int64_t size = Fs_Load(script->file_name, (void **) (char *) &script->buffer);
 
 	if (size == -1) {
 		Com_Error(ERROR_FATAL, "Could not load %s\n", script->file_name);
@@ -74,6 +73,21 @@ void LoadScriptFile(const char *file_name) {
 	AddScriptToStack(file_name);
 
 	endofscript = false;
+}
+
+/**
+ * @brief
+ */
+void UnloadScriptFiles(void) {
+
+	for (size_t i = 0; i < lengthof(scriptstack); i++) {
+		if (scriptstack[i].buffer) {
+			Com_Verbose("Unloading %s\n", scriptstack[i].file_name);
+			Fs_Free(scriptstack[i].buffer);
+		}
+	}
+
+	memset(scriptstack, 0, sizeof(scriptstack));
 }
 
 /**
@@ -108,7 +122,8 @@ static _Bool EndOfScript(_Bool crossline) {
 		return false;
 	}
 
-	Mem_Free(script->buffer);
+	Fs_Free(script->buffer);
+	script->buffer = NULL;
 	if (script == scriptstack + 1) {
 		endofscript = true;
 		return false;

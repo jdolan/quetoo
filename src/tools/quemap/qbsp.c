@@ -21,6 +21,7 @@
 
 #include "quemap.h"
 #include "qbsp.h"
+#include "scriptlib.h"
 
 vec_t microvolume = 0.125;
 _Bool noprune = false;
@@ -360,6 +361,8 @@ int32_t BSP_Main(void) {
 
 		ProcessModels();
 	}
+
+	UnloadScriptFiles();
 
 	const time_t end = time(NULL);
 	const time_t duration = end - start;

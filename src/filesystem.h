@@ -25,6 +25,18 @@
 #include "swap.h"
 #include "sys.h"
 
+/**
+ * @brief Default filesystem initialization flags.
+ */
+#define FS_NONE					0x0
+
+/**
+ * @brief If set, supported archives (.pk3, .pak) in search paths will be
+ * automatically loaded. Set this to false for tools that require the write
+ * directory, but not read access to the Quake file system (e.g quetoo-master).
+ */
+#define FS_AUTO_LOAD_ARCHIVES   0x1
+
 typedef struct {
 	void *opaque;
 } file_t;
@@ -59,5 +71,5 @@ void Fs_SetWriteDir(const char *dir);
 const char *Fs_WriteDir(void);
 const char *Fs_RealDir(const char *filename);
 const char *Fs_RealPath(const char *path);
-void Fs_Init(_Bool auto_load_archives);
+void Fs_Init(const uint32_t flags);
 void Fs_Shutdown(void);

@@ -19,7 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <sys/stat.h>
 #include <physfs.h>
 
 #include "filesystem.h"
@@ -29,11 +28,9 @@
 typedef struct fs_state_s {
 
 	/**
-	 * @brief If true, supported archives (.pk3, .pak) in search paths will be
-	 * automatically loaded. Set this to false for tools that require the write
-	 * directory, but not read access to the Quake file system (e.g q2wmaster).
+	 * @brief The FS_* flags.
 	 */
-	_Bool auto_load_archives;
+	uint32_t flags;
 
 	/**
 	 * @brief The base directory of the install, if running from a bundled
@@ -422,19 +419,18 @@ static void Fs_AddToSearchPath_enumerate(const char *path, void *data);
  * archives within it.
  */
 void Fs_AddToSearchPath(const char *dir) {
-	struct stat s;
 
-	if (stat(dir, &s) == 0) {
+	if (g_file_test(dir, G_FILE_TEST_EXISTS)) {
 		Com_Print("Adding path %s..\n", dir);
 
-		const _Bool is_dir = S_ISDIR(s.st_mode);
+		const _Bool is_dir = g_file_test(dir, G_FILE_TEST_IS_DIR);
 
 		if (PHYSFS_mount(dir, NULL, !is_dir) == 0) {
 			Com_Warn("%s: %s\n", dir, PHYSFS_getLastError());
 			return;
 		}
 
-		if (fs_state.auto_load_archives && is_dir) {
+		if ((fs_state.flags & FS_AUTO_LOAD_ARCHIVES) && is_dir) {
 			Fs_Enumerate("*.pak", Fs_AddToSearchPath_enumerate, (void *) dir);
 			Fs_Enumerate("*.pk3", Fs_AddToSearchPath_enumerate, (void *) dir);
 		}
@@ -522,10 +518,9 @@ void Fs_SetGame(const char *dir) {
  * @brief Sets the [user-specific] target directory for writing files.
  */
 void Fs_SetWriteDir(const char *dir) {
-	struct stat s;
 
-	if (stat(dir, &s) == 0) {
-		if (!S_ISDIR(s.st_mode)) {
+	if (g_file_test(dir, G_FILE_TEST_EXISTS)) {
+		if (!g_file_test(dir, G_FILE_TEST_IS_DIR)) {
 			Com_Warn("%s exists but is not a directory\n", dir);
 			return;
 		}
@@ -583,7 +578,7 @@ const char *Fs_RealPath(const char *path) {
 /**
  * @brief Initializes the file subsystem.
  */
-void Fs_Init(_Bool auto_load_archives) {
+void Fs_Init(const uint32_t flags) {
 
 	memset(&fs_state, 0, sizeof(fs_state_t));
 
@@ -591,7 +586,7 @@ void Fs_Init(_Bool auto_load_archives) {
 		Com_Error(ERROR_FATAL, "%s\n", PHYSFS_getLastError());
 	}
 
-	fs_state.auto_load_archives = auto_load_archives;
+	fs_state.flags = flags;
 
 	PHYSFS_permitSymbolicLinks(true);
 

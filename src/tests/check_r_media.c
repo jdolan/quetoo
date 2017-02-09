@@ -45,17 +45,17 @@ void teardown(void) {
 START_TEST(check_R_RegisterMedia) {
 	R_BeginLoading();
 
-	r_media_t *parent1 = R_AllocMedia("parent1", sizeof(r_media_t));
+	r_media_t *parent1 = R_AllocMedia("parent1", sizeof(r_media_t), MEDIA_GENERIC);
 	R_RegisterMedia(parent1);
 
 	ck_assert_msg(R_FindMedia("parent1") == parent1, "Failed to find parent1");
 
-	r_media_t *child1 = R_AllocMedia("child1", sizeof(r_media_t));
+	r_media_t *child1 = R_AllocMedia("child1", sizeof(r_media_t), MEDIA_GENERIC);
 	R_RegisterDependency(parent1, child1);
 
 	ck_assert_msg(R_FindMedia("child1") == child1, "Failed to find child1");
 
-	r_media_t *grandchild1 = R_AllocMedia("grandchild1", sizeof(r_media_t));
+	r_media_t *grandchild1 = R_AllocMedia("grandchild1", sizeof(r_media_t), MEDIA_GENERIC);
 	R_RegisterDependency(child1, grandchild1);
 
 	R_FreeMedia();
@@ -80,12 +80,12 @@ START_TEST(check_R_RegisterMedia) {
 
 	R_BeginLoading();
 
-	r_media_t *copy0 = R_AllocMedia("copy", sizeof(r_media_t));
+	r_media_t *copy0 = R_AllocMedia("copy", sizeof(r_media_t), MEDIA_GENERIC);
 	R_RegisterMedia(copy0);
 
 	ck_assert_msg(R_FindMedia("copy") == copy0, "Failed to find copy0");
 
-	r_media_t *copy1 = R_AllocMedia("copy", sizeof(r_media_t));
+	r_media_t *copy1 = R_AllocMedia("copy", sizeof(r_media_t), MEDIA_GENERIC);
 	R_RegisterMedia(copy1);
 
 	ck_assert_msg(R_FindMedia("copy") == copy1, "Failed to replace copy0 with copy1");

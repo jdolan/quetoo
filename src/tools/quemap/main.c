@@ -135,7 +135,7 @@ static void Init(void) {
 
 	Mem_Init();
 
-	Fs_Init(true);
+	Fs_Init(FS_AUTO_LOAD_ARCHIVES);
 
 	Sem_Init();
 
@@ -321,8 +321,8 @@ static void Check_MAT_Options(int32_t argc) {
 static void PrintHelpMessage(void) {
 	Com_Print("General options\n");
 	Com_Print("-v -verbose\n");
-	Com_Print("-l -legacy - compile a legacy Quake II map\n");
 	Com_Print("-d -debug\n");
+	Com_Print("-l -legacy - compile a legacy Quake II map\n");
 	Com_Print("-t -threads <int>\n");
 	Com_Print("-p -path <game directory> - add the path to the search directory\n");
 	Com_Print("-w -wpath <game directory> - add the write path to the search directory\n");
@@ -389,7 +389,7 @@ int32_t main(int32_t argc, char **argv) {
 	_Bool do_mat = false;
 	_Bool do_zip = false;
 
-	printf("Quetoo Map %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
+	printf("Quetoo Map %s %s %s\n", VERSION, BUILD_HOST, REVISION);
 
 	memset(&quetoo, 0, sizeof(quetoo));
 
@@ -492,11 +492,21 @@ int32_t main(int32_t argc, char **argv) {
 	Thread_Init(num_threads);
 	Com_Print("Using %u threads\n", Thread_Count());
 
-	// ugly little hack to localize global paths to game paths for e.g. GtkRadiant
-	const char *c = strstr(Com_Argv(Com_Argc() - 1), "/maps/");
-	c = c ? c + 1 : Com_Argv(Com_Argc() - 1);
+	const char *filename = Com_Argv(Com_Argc() - 1);
+	if (g_file_test(filename, G_FILE_TEST_EXISTS | G_FILE_TEST_IS_REGULAR)) {
+		gchar *dirname = g_path_get_dirname(filename);
+		if (dirname) {
+			Fs_AddToSearchPath(dirname);
+			g_free(dirname);
 
-	StripExtension(c, map_name);
+			gchar *basename = g_path_get_basename(filename);
+			StripExtension(basename, map_name);
+			g_free(basename);
+		}
+	} else {
+		StripExtension(filename, map_name);
+	}
+
 	g_strlcpy(bsp_name, map_name, sizeof(bsp_name));
 	g_strlcat(map_name, ".map", sizeof(map_name));
 	g_strlcat(bsp_name, ".bsp", sizeof(bsp_name));

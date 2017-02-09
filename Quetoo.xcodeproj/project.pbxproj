@@ -274,7 +274,7 @@
 		CE80FFF41C5E4D1800A21A51 /* qmat.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6FE1C5C58C300CD0B13 /* qmat.c */; };
 		CE80FFF51C5E4D1800A21A51 /* qvis.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7001C5C58C300CD0B13 /* qvis.c */; };
 		CE80FFF61C5E4D1800A21A51 /* qzip.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7021C5C58C300CD0B13 /* qzip.c */; };
-		CE80FFF71C5E4D1800A21A51 /* scriplib.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7031C5C58C300CD0B13 /* scriplib.c */; };
+		CE80FFF71C5E4D1800A21A51 /* scriptlib.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7031C5C58C300CD0B13 /* scriptlib.c */; };
 		CE80FFF81C5E4D1800A21A51 /* textures.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7051C5C58C300CD0B13 /* textures.c */; };
 		CE80FFF91C5E4D1800A21A51 /* threads.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7061C5C58C300CD0B13 /* threads.c */; };
 		CE80FFFA1C5E4D1800A21A51 /* tree.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7071C5C58C300CD0B13 /* tree.c */; };
@@ -1261,8 +1261,8 @@
 		CE12D7001C5C58C300CD0B13 /* qvis.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = qvis.c; sourceTree = "<group>"; };
 		CE12D7011C5C58C300CD0B13 /* qvis.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = qvis.h; sourceTree = "<group>"; };
 		CE12D7021C5C58C300CD0B13 /* qzip.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = qzip.c; sourceTree = "<group>"; };
-		CE12D7031C5C58C300CD0B13 /* scriplib.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = scriplib.c; sourceTree = "<group>"; };
-		CE12D7041C5C58C300CD0B13 /* scriplib.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = scriplib.h; sourceTree = "<group>"; };
+		CE12D7031C5C58C300CD0B13 /* scriptlib.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = scriptlib.c; sourceTree = "<group>"; };
+		CE12D7041C5C58C300CD0B13 /* scriptlib.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = scriptlib.h; sourceTree = "<group>"; };
 		CE12D7051C5C58C300CD0B13 /* textures.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = textures.c; sourceTree = "<group>"; };
 		CE12D7061C5C58C300CD0B13 /* threads.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = threads.c; sourceTree = "<group>"; };
 		CE12D7071C5C58C300CD0B13 /* tree.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tree.c; sourceTree = "<group>"; };
@@ -2540,8 +2540,8 @@
 				CE12D7001C5C58C300CD0B13 /* qvis.c */,
 				CE12D7011C5C58C300CD0B13 /* qvis.h */,
 				CE12D7021C5C58C300CD0B13 /* qzip.c */,
-				CE12D7031C5C58C300CD0B13 /* scriplib.c */,
-				CE12D7041C5C58C300CD0B13 /* scriplib.h */,
+				CE12D7031C5C58C300CD0B13 /* scriptlib.c */,
+				CE12D7041C5C58C300CD0B13 /* scriptlib.h */,
 				CE12D7051C5C58C300CD0B13 /* textures.c */,
 				CE12D7061C5C58C300CD0B13 /* threads.c */,
 				CE12D7071C5C58C300CD0B13 /* tree.c */,
@@ -3983,7 +3983,7 @@
 				CE80FFF41C5E4D1800A21A51 /* qmat.c in Sources */,
 				CE80FFF51C5E4D1800A21A51 /* qvis.c in Sources */,
 				CE80FFF61C5E4D1800A21A51 /* qzip.c in Sources */,
-				CE80FFF71C5E4D1800A21A51 /* scriplib.c in Sources */,
+				CE80FFF71C5E4D1800A21A51 /* scriptlib.c in Sources */,
 				CE80FFF81C5E4D1800A21A51 /* textures.c in Sources */,
 				CE80FFF91C5E4D1800A21A51 /* threads.c in Sources */,
 				CE80FFFA1C5E4D1800A21A51 /* tree.c in Sources */,

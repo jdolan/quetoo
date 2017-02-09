@@ -88,7 +88,6 @@ check_r_media_CFLAGS = \
 	@OPENGL_CFLAGS@
 check_r_media_LDADD = \
 	$(TESTS_LIBS) \
-	$(top_builddir)/src/libmem.la \
 	$(top_builddir)/src/client/renderer/librenderer.la
 
 check_thread_SOURCES = \
