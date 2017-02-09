@@ -239,7 +239,7 @@ static void Sv_ListEntities_f(void) {
 		const g_entity_t *e = ENTITY_FOR_NUM(i);
 
 		if (Cmd_Argc() > 1) {
-			if (!GlobMatch(Cmd_Argv(1), e->class_name)) {
+			if (!GlobMatch(Cmd_Argv(1), e->class_name, GLOB_FLAGS_NONE)) {
 				continue;
 			}
 		}

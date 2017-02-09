@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include "config.h"
+
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
@@ -213,6 +215,8 @@ static gchar *get_quetoo_installer_jar(const char *argv0, const char *jar) {
  */
 int main(int argc, char **argv) {
 	int status = 1;
+
+	printf("Quetoo Update %s %s %s\n", VERSION, BUILD_HOST, REVISION);
 
 	const char *jar = g_getenv("QUETOO_INSTALLER_JAR") ?: QUETOO_INSTALLER_JAR;
 

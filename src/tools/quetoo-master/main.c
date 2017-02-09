@@ -138,7 +138,7 @@ static _Bool Ms_BlacklistServer(struct sockaddr_in *from) {
 			continue;
 		}
 
-		if (GlobMatch(l, ip)) {
+		if (GlobMatch(l, ip, GLOB_FLAGS_NONE)) {
 			blacklisted = true;
 			break;
 		}
@@ -345,7 +345,7 @@ static void Init(void) {
 
 	Mem_Init();
 
-	Fs_Init(false);
+	Fs_Init(FS_NONE);
 }
 
 /**
@@ -369,7 +369,7 @@ static void Shutdown(const char *msg) {
  */
 int32_t main(int32_t argc, char **argv) {
 
-	printf("Quetoo Master Server %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
+	printf("Quetoo Master Server %s %s %s\n", VERSION, BUILD_HOST, REVISION);
 
 	memset(&quetoo, 0, sizeof(quetoo));
 

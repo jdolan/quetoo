@@ -20,7 +20,7 @@
  */
 
 #include "bspfile.h"
-#include "scriplib.h"
+#include "scriptlib.h"
 
 bsp_file_t bsp_file;
 

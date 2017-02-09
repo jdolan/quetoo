@@ -1,8 +1,8 @@
+#define QUETOO_WINMAIN
+
 // Special file to redirect winmain
 #include "config.h"
 #include "shared.h"
-
-extern int32_t main(int32_t argc, char **argv);
 
 #if defined(_MSC_VER)
 #include <DbgHelp.h>
@@ -96,16 +96,20 @@ static HRESULT GenerateCrashDump(MINIDUMP_TYPE flags, EXCEPTION_POINTERS *seh) {
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunreachable-code"
+#if !defined(QUETOO_CONSOLE)
 int CALLBACK WinMain(
     _In_ HINSTANCE hInstance,
     _In_ HINSTANCE hPrevInstance,
     _In_ LPSTR     lpCmdLine,
     _In_ int       nCmdShow
 ) {
+#else
+int main(int argc, char **argv) {
+#endif
 #if defined(_MSC_VER)
 	__try {
 #endif
-		return main(__argc, __argv);
+		return quetoo_main(__argc, __argv);
 #if defined(_MSC_VER)
 	} __except (GenerateCrashDump((MINIDUMP_TYPE)(MiniDumpNormal | MiniDumpWithHandleData | MiniDumpWithDataSegs | MiniDumpWithFullMemory | MiniDumpWithoutOptionalData | MiniDumpIgnoreInaccessibleMemory), GetExceptionInformation())) {
 		return 0;

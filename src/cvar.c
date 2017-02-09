@@ -22,12 +22,7 @@
 #include "console.h"
 #include "filesystem.h"
 
-typedef struct {
-	GHashTable *vars;
-	GList *keys;
-} cvar_state_t;
-
-static cvar_state_t cvar_state;
+static GHashTable *cvar_vars;
 
 _Bool cvar_user_info_modified;
 
@@ -53,13 +48,40 @@ static _Bool Cvar_InfoValidate(const char *s) {
 /**
  * @return The variable by the specified name, or `NULL`.
  */
-cvar_t *Cvar_Get(const char *name) {
+static cvar_t *Cvar_Get_(const char *name, const _Bool case_sensitive) {
 
-	if (cvar_state.vars) {
-		return (cvar_t *) g_hash_table_lookup(cvar_state.vars, name);
+	if (cvar_vars) {
+		const GQueue *queue = (GQueue *) g_hash_table_lookup(cvar_vars, name);
+
+		if (queue) {
+			if (queue->length == 1) { // only 1 entry, return it
+				cvar_t *cvar = (cvar_t *) queue->head->data;
+
+				if (!case_sensitive || g_strcmp0(cvar->name, name) == 0) {
+					return cvar;
+				}
+			} else {
+				// only return the exact match
+				for (const GList *list = queue->head; list; list = list->next) {
+					cvar_t *cvar = (cvar_t *) list->data;
+
+					if (!g_strcmp0(cvar->name, name)) {
+						return cvar;
+					}
+				}
+			}
+		}
 	}
 
 	return NULL;
+}
+
+/**
+ * @return The variable by the specified name, or `NULL`.
+ */
+cvar_t *Cvar_Get(const char *name) {
+
+	return Cvar_Get_(name, false);
 }
 
 /**
@@ -96,16 +118,16 @@ const char *Cvar_GetString(const char *name) {
  * @brief Enumerates all known variables with the given function.
  */
 void Cvar_Enumerate(CvarEnumerateFunc func, void *data) {
+	GHashTableIter iter;
+	gpointer key, value;
+	g_hash_table_iter_init(&iter, cvar_vars);
 
-	GList *key = cvar_state.keys;
-	while (key) {
-		cvar_t *var = g_hash_table_lookup(cvar_state.vars, key->data);
-		if (var) {
-			func(var, data);
-		} else {
-			Com_Error(ERROR_FATAL, "Missing variable: %s\n", (char * ) key->data);
+	while (g_hash_table_iter_next (&iter, &key, &value)) {
+		const GQueue *queue = (GQueue *) value;
+
+		for (const GList *list = queue->head; list; list = list->next) {
+			func((cvar_t *) list->data, data);
 		}
-		key = key->next;
 	}
 }
 
@@ -117,7 +139,7 @@ static const char *cvar_complete_pattern;
 static void Cvar_CompleteVar_enumerate(cvar_t *var, void *data) {
 	GList **matches = (GList **) data;
 
-	if (GlobMatch(cvar_complete_pattern, var->name)) {
+	if (GlobMatch(cvar_complete_pattern, var->name, GLOB_CASE_INSENSITIVE)) {
 		Com_Print("^2%s^7 is \"^3%s^7\" (default is \"^3%s^7\")\n", var->name, var->string, var->default_value);
 
 		if (var->description) {
@@ -156,7 +178,7 @@ cvar_t *Cvar_Add(const char *name, const char *value, uint32_t flags, const char
 	}
 
 	// update existing variables with meta data from owning subsystem
-	cvar_t *var = Cvar_Get(name);
+	cvar_t *var = Cvar_Get_(name, true);
 	if (var) {
 		if (value) {
 			if (var->default_value) {
@@ -194,10 +216,14 @@ cvar_t *Cvar_Add(const char *name, const char *value, uint32_t flags, const char
 	}
 
 	gpointer key = (gpointer) var->name;
+	GQueue *queue = (GQueue *) g_hash_table_lookup(cvar_vars, key);
 
-	g_hash_table_insert(cvar_state.vars, key, var);
-	cvar_state.keys = g_list_insert_sorted(cvar_state.keys, key, (GCompareFunc) strcmp);
+	if (!queue) {
+		queue = g_queue_new();
+		g_hash_table_insert(cvar_vars, key, queue);
+	}
 
+	g_queue_push_head(queue, var);
 	return var;
 }
 
@@ -207,7 +233,7 @@ cvar_t *Cvar_Add(const char *name, const char *value, uint32_t flags, const char
 static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 	cvar_t *var;
 
-	var = Cvar_Get(name);
+	var = Cvar_Get_(name, true);
 	if (!var) { // create it
 		return Cvar_Add(name, value, 0, NULL);
 	}
@@ -329,7 +355,7 @@ cvar_t *Cvar_Set(const char *name, const char *value) {
 cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags) {
 	cvar_t *var;
 
-	var = Cvar_Get(name);
+	var = Cvar_Get_(name, true);
 	if (!var) { // create it
 		return Cvar_Add(name, value, flags, NULL);
 	}
@@ -369,7 +395,7 @@ cvar_t *Cvar_SetValue(const char *name, vec_t value) {
  */
 cvar_t *Cvar_Toggle(const char *name) {
 
-	cvar_t *var = Cvar_Get(name) ? : Cvar_Add(name, "0", 0, NULL);
+	cvar_t *var = Cvar_Get_(name, true) ? : Cvar_Add(name, "0", 0, NULL);
 
 	if (var->value) {
 		return Cvar_SetValue(name, 0.0);
@@ -713,6 +739,14 @@ _Bool Cvar_ExpandString(const char *input, const size_t in_size, GString **outpu
 }
 
 /**
+ * @brief
+ */
+static void Cvar_HashTable_Free(gpointer list) {
+	
+	g_queue_free_full((GQueue *) list, Mem_Free);
+}
+
+/**
  * @brief Initializes the console variable subsystem. Parses the command line
  * arguments looking for "+set" directives. Any variables initialized at the
  * command line will be flagged as "sticky" and retain their values through
@@ -720,9 +754,7 @@ _Bool Cvar_ExpandString(const char *input, const size_t in_size, GString **outpu
  */
 void Cvar_Init(void) {
 
-	memset(&cvar_state, 0, sizeof(cvar_state));
-
-	cvar_state.vars = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Mem_Free);
+	cvar_vars = g_hash_table_new_full(g_stri_hash, g_stri_equal, NULL, Cvar_HashTable_Free);
 
 	cmd_t *set_cmd = Cmd_Add("set", Cvar_Set_f, 0, "Set a console variable");
 	cmd_t *seta_cmd = Cmd_Add("seta", Cvar_Set_f, 0, "Set an archived console variable");
@@ -746,7 +778,7 @@ void Cvar_Init(void) {
 		if (!strncmp(s, "+set", 4)) {
 			Cmd_ExecuteString(va("%s %s %s\n", Com_Argv(i) + 1, Com_Argv(i + 1), Com_Argv(i + 2)));
 
-			cvar_t *var = Cvar_Get(Com_Argv(i + 1));
+			cvar_t *var = Cvar_Get_(Com_Argv(i + 1), true);
 			if (var) {
 				var->flags |= CVAR_CLI;
 			} else {
@@ -773,8 +805,8 @@ void Cvar_Init(void) {
  */
 void Cvar_Shutdown(void) {
 
-	g_hash_table_destroy(cvar_state.vars);
-	g_list_free(cvar_state.keys);
+	g_hash_table_destroy(cvar_vars);
+	cvar_vars = NULL;
 
 	Cmd_Remove("set");
 	Cmd_Remove("seta");
