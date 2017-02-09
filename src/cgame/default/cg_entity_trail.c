@@ -737,26 +737,22 @@ static void Cg_BfgTrail(cl_entity_t *ent) {
 /**
  * @brief
  */
-static void Cg_TeleporterTrail(cl_entity_t *ent, const color_t color, const _Bool spawn_point) {
+static void Cg_TeleporterTrail(cl_entity_t *ent, const color_t color) {
 
 	if (ent->timestamp > cgi.client->unclamped_time) {
 		return;
 	}
 
-	if (!spawn_point) {
-		cgi.AddSample(&(const s_play_sample_t) {
-			.sample = cg_sample_respawn,
-			 .entity = ent->current.number,
-			  .attenuation = ATTEN_IDLE,
-			   .flags = S_PLAY_ENTITY
-		});
-	}
+	cgi.AddSample(&(const s_play_sample_t) {
+		.sample = cg_sample_respawn,
+			.entity = ent->current.number,
+			.attenuation = ATTEN_IDLE,
+			.flags = S_PLAY_ENTITY
+	});
 
 	ent->timestamp = cgi.client->unclamped_time + 1000 + (500 * Randomf());
 
-	const int32_t num_particles = (spawn_point) ? 1 : 4;
-
-	for (int32_t i = 0; i < num_particles; i++) {
+	for (int32_t i = 0; i < 4; i++) {
 		cg_particle_t *p;
 
 		if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_teleporter))) {
@@ -774,9 +770,41 @@ static void Cg_TeleporterTrail(cl_entity_t *ent, const color_t color, const _Boo
 		p->scale_end = p->scale_start * 2.0;
 
 		VectorCopy(ent->origin, p->part.org);
-		p->part.org[2] -= (spawn_point ? 16.0 : (6.0 * i));
-		p->vel[2] = (spawn_point ? 20.0 : 120.0);
+		p->part.org[2] -= (6.0 * i);
+		p->vel[2] = 120.0;
 	}
+}
+
+/**
+ * @brief
+ */
+static void Cg_SpawnPointTrail(cl_entity_t *ent, const color_t color) {
+
+	if (ent->timestamp > cgi.client->unclamped_time) {
+		return;
+	}
+
+	ent->timestamp = cgi.client->unclamped_time + 1000;
+
+	cg_particle_t *p;
+
+	if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_teleporter))) {
+		return;
+	}
+
+	p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
+	p->lifetime = 450;
+
+	ColorToVec4(color, p->color_start);
+	VectorCopy(p->color_start, p->color_end);
+	p->color_end[3] = 0.0;
+
+	p->scale_start = 16.0;
+	p->scale_end = p->scale_start / 3.0;
+
+	VectorCopy(ent->origin, p->part.org);
+	p->part.org[2] -= 20.0;
+	p->vel[2] = 2.0;
 }
 
 /**
@@ -923,10 +951,10 @@ void Cg_EntityTrail(cl_entity_t *ent) {
 			Cg_BfgTrail(ent);
 			break;
 		case TRAIL_TELEPORTER:
-			Cg_TeleporterTrail(ent, ColorFromRGB(255, 255, 211), false);
+			Cg_TeleporterTrail(ent, ColorFromRGB(255, 255, 211));
 			break;
 		case TRAIL_SPAWN_POINT:
-			Cg_TeleporterTrail(ent, ent->current.client >= TEAM_TOTAL ? EFFECT_COLOR_WHITE : cg_team_info[ent->current.client].color, true);
+			Cg_SpawnPointTrail(ent, ent->current.client >= TEAM_TOTAL ? EFFECT_COLOR_WHITE : cg_team_info[ent->current.client].color);
 			break;
 		case TRAIL_GIB:
 			Cg_GibTrail(ent, start, end);
