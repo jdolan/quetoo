@@ -614,6 +614,9 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
 		
 		G_SpawnItem(red_flag, g_media.items.flags[TEAM_RED]);
 		G_SpawnItem(blue_flag, g_media.items.flags[TEAM_BLUE]);
+		
+		g_teamlist[TEAM_RED].flag_entity = red_flag;
+		g_teamlist[TEAM_BLUE].flag_entity = blue_flag;
 	}
 
 	for (GSList *point = *dm_spawns; point; point = point->next) {
