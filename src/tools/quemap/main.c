@@ -135,7 +135,7 @@ static void Init(void) {
 
 	Mem_Init();
 
-	Fs_Init(FS_AUTO_LOAD_ARCHIVES | FS_FILESYSTEM_PATHS);
+	Fs_Init(FS_AUTO_LOAD_ARCHIVES);
 
 	Sem_Init();
 
@@ -492,11 +492,21 @@ int32_t main(int32_t argc, char **argv) {
 	Thread_Init(num_threads);
 	Com_Print("Using %u threads\n", Thread_Count());
 
-	// ugly little hack to localize global paths to game paths for e.g. GtkRadiant
-	const char *c = strstr(Com_Argv(Com_Argc() - 1), "/maps/");
-	c = c ? c + 1 : Com_Argv(Com_Argc() - 1);
+	const char *filename = Com_Argv(Com_Argc() - 1);
+	if (g_file_test(filename, G_FILE_TEST_EXISTS | G_FILE_TEST_IS_REGULAR)) {
+		gchar *dirname = g_path_get_dirname(filename);
+		if (dirname) {
+			Fs_AddToSearchPath(dirname);
+			g_free(dirname);
 
-	StripExtension(c, map_name);
+			gchar *basename = g_path_get_basename(filename);
+			StripExtension(basename, map_name);
+			g_free(basename);
+		}
+	} else {
+		StripExtension(filename, map_name);
+	}
+
 	g_strlcpy(bsp_name, map_name, sizeof(bsp_name));
 	g_strlcat(map_name, ".map", sizeof(map_name));
 	g_strlcat(bsp_name, ".bsp", sizeof(bsp_name));

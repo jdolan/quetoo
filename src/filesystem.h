@@ -32,12 +32,6 @@
  */
 #define FS_AUTO_LOAD_ARCHIVES   0x1
 
-/**
- * @brief If set, fall back on filesystem paths (relative or absolute) if game
- * paths do not resolve to an asset.
- */
-#define FS_FILESYSTEM_PATHS 0x2
-
 typedef struct {
 	void *opaque;
 } file_t;
