@@ -119,16 +119,6 @@ static void Warn(const char *msg) {
  */
 static void Init(void) {
 
-#if defined(_WIN32)
-	if (AllocConsole()) {
-		freopen("CONIN$", "r", stdin);
-		freopen("CONOUT$", "w", stdout);
-		freopen("CONERR$", "w", stderr);
-	} else {
-		Com_Error(ERROR_FATAL, "Failed to allocate console: %u\n", (uint32_t) GetLastError());
-	}
-#endif
-
 	SDL_Init(SDL_INIT_TIMER);
 
 	Com_InitSubsystem(QUETOO_MAPTOOL);
