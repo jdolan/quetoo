@@ -622,6 +622,7 @@ static void G_InitClientInventory(g_entity_t *ent) {
 		G_Give(ent, "Lightning Gun", 200);
 		G_Give(ent, "Hyperblaster", 200);
 		G_Give(ent, "Rocket Launcher", 50);
+		G_Give(ent, "Hand Grenades", 1);
 		G_Give(ent, "Grenade Launcher", 50);
 		G_Give(ent, "Machinegun", 200);
 		G_Give(ent, "Super Shotgun", 80);
