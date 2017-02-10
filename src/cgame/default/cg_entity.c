@@ -340,7 +340,6 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 
 	if (s->model2) {
 		r_model_t *model = cgi.client->model_precache[s->model2];
-		cgi.AddLinkedEntity(head.parent, model, "tag_weapon");
 		r_entity_t *m2 = Cg_AddLinkedEntity(r_torso, model, "tag_weapon");
 
 		if (self_draw) {
