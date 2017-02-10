@@ -60,8 +60,6 @@ static void renderMeshMaterialsEntity(r_entity_t *e) {
 
 	cgi.view->current_entity = e;
 
-	cgi.SetMatrixForEntity(e);
-
 	cgi.DrawMeshModelMaterials(e);
 }
 
@@ -114,7 +112,7 @@ static void render(View *self, Renderer *renderer) {
 		Matrix4x4_ConcatRotate(&mat,  90.0, 0.0, 0.0, 1.0);
 		Matrix4x4_ConcatTranslate(&mat, 64.0, 0.0, -8.0);
 
-		Matrix4x4_ConcatRotate(&mat, cgi.client->unclamped_time * 0.08, 0.0, 0.0, 1.0);
+		Matrix4x4_ConcatRotate(&mat, cgi.client->unclamped_time * 0.04, 0.0, 0.0, 1.0);
 
 		cgi.SetMatrix(R_MATRIX_MODELVIEW, &mat);
 
@@ -172,23 +170,17 @@ static void updateBindings(View *self) {
 	Vector4Set(this->legs.color, 1.0, 1.0, 1.0, 1.0);
 
 	this->torso.model = this->client.torso;
-	this->torso.parent = &this->legs;
 	this->torso.scale = 1.0;
-	this->torso.tag_name = "tag_torso";
 	this->torso.effects = EF_NO_LIGHTING;
 	Vector4Set(this->torso.color, 1.0, 1.0, 1.0, 1.0);
 
 	this->head.model = this->client.head;
-	this->head.parent = &this->torso;
 	this->head.scale = 1.0;
-	this->head.tag_name = "tag_head";
 	this->head.effects = EF_NO_LIGHTING;
 	Vector4Set(this->head.color, 1.0, 1.0, 1.0, 1.0);
 
 	this->weapon.model = cgi.LoadModel("models/weapons/rocketlauncher/tris");
-	this->weapon.parent = &this->torso;
 	this->weapon.scale = 1.0;
-	this->weapon.tag_name = "tag_weapon";
 	this->weapon.effects = EF_NO_LIGHTING;
 	Vector4Set(this->weapon.color, 1.0, 1.0, 1.0, 1.0);
 
@@ -271,6 +263,25 @@ static void animate(PlayerModelView *self) {
 
 	self->weapon.frame = 0;
 	self->weapon.lerp = 1.0;
+	
+	VectorClear(self->legs.origin);
+	VectorClear(self->torso.origin);
+	VectorClear(self->head.origin);
+	VectorClear(self->weapon.origin);
+	
+	VectorClear(self->legs.angles);
+	VectorClear(self->torso.angles);
+	VectorClear(self->head.angles);
+	VectorClear(self->weapon.angles);
+
+	Matrix4x4_CreateFromEntity(&self->legs.matrix, self->legs.origin, self->legs.angles, self->legs.scale);
+	Matrix4x4_CreateFromEntity(&self->torso.matrix, self->torso.origin, self->torso.angles, self->torso.scale);
+	Matrix4x4_CreateFromEntity(&self->head.matrix, self->head.origin, self->head.angles, self->head.scale);
+	Matrix4x4_CreateFromEntity(&self->weapon.matrix, self->weapon.origin, self->weapon.angles, self->weapon.scale);
+
+	Cg_ApplyMeshModelTag(&self->torso, &self->legs, "tag_torso");
+	Cg_ApplyMeshModelTag(&self->head, &self->torso, "tag_head");
+	Cg_ApplyMeshModelTag(&self->weapon, &self->torso, "tag_weapon");
 }
 
 /**

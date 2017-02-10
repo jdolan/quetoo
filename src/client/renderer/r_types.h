@@ -893,10 +893,6 @@ typedef struct r_lighting_s {
  * when an entity moves.
  */
 typedef struct r_entity_s {
-
-	const struct r_entity_s *parent; // for linked models
-	const char *tag_name;
-
 	vec3_t origin;
 	vec3_t termination;
 	vec3_t angles;

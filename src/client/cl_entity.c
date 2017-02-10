@@ -93,6 +93,7 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, const entity_state_t *from, ui
 		ent->animation1.time = ent->animation2.time = 0;
 		ent->animation1.frame = ent->animation2.frame = -1;
 		VectorCopy(to->origin, ent->previous_origin);
+		ent->legs_yaw = to->angles[1];
 	} else { // shuffle the last state to previous
 		ent->prev = ent->current;
 	}
@@ -389,19 +390,21 @@ void Cl_Interpolate(void) {
 		}
 
 		if (!VectorCompare(ent->prev.angles, ent->current.angles)) {
-			AngleLerp(ent->prev.angles, ent->current.angles, cl.lerp, ent->angles);
+			AnglesLerp(ent->prev.angles, ent->current.angles, cl.lerp, ent->angles);
 		} else {
 			VectorCopy(ent->current.angles, ent->angles);
 		}
 
 		if (ent->current.animation1 != ent->prev.animation1 || !ent->animation1.time) {
-			ent->animation1.animation = ent->current.animation1 & ~ANIM_TOGGLE_BIT;
+			ent->animation1.animation = ent->current.animation1 & ANIM_MASK_VALUE;
 			ent->animation1.time = cl.unclamped_time;
+			ent->animation1.reverse = ent->current.animation1 & ANIM_REVERSE_BIT;
 		}
 
 		if (ent->current.animation2 != ent->prev.animation2 || !ent->animation2.time) {
-			ent->animation2.animation = ent->current.animation2 & ~ANIM_TOGGLE_BIT;
+			ent->animation2.animation = ent->current.animation2 & ANIM_MASK_VALUE;
 			ent->animation2.time = cl.unclamped_time;
+			ent->animation2.reverse = ent->current.animation2 & ANIM_REVERSE_BIT;
 		}
 
 		if (ent->current.sound) {
