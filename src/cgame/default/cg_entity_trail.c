@@ -953,7 +953,7 @@ void Cg_EntityTrail(cl_entity_t *ent) {
 		case TRAIL_TELEPORTER:
 			Cg_TeleporterTrail(ent, ColorFromRGB(255, 255, 211));
 			break;
-		case TRAIL_SPAWN_POINT:
+		case TRAIL_PLAYER_SPAWN:
 			Cg_SpawnPointTrail(ent, ent->current.client >= MAX_TEAMS ? EFFECT_COLOR_WHITE : cg_team_info[ent->current.client].color);
 			break;
 		case TRAIL_GIB:
