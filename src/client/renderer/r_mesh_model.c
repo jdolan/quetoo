@@ -945,7 +945,7 @@ static void R_LoadObjShellVertexArrays(r_model_t *mod, r_obj_t *obj, GLuint *ele
 
 		if (g_hash_table_lookup_extended(index_remap_table, (gconstpointer) (ptrdiff_t) *element, NULL, &new_element)) {
 
-			*element = (GLuint) new_element;
+			*element = (GLuint) (ptrdiff_t) new_element;
 		}
 	}
 

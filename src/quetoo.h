@@ -95,13 +95,13 @@ typedef union {
 } color_t;
 
 #define ColorFromRGBA(rr, gg, bb, aa) \
-		((color_t) { .r = rr, .g = gg, .b = bb, .a = aa })
+		({ color_t _c; _c.r = rr; _c.g = gg; _c.b = bb; _c.a = aa; _c; })
 
 #define ColorFromRGB(r, g, b) \
 		ColorFromRGBA(r, g, b, 255)
 
 #define ColorFromU32(v) \
-		((color_t) { .u32 = v })
+		({ color_t _c; _c.u32 = v; _c; })
 
 /**
  * @brief Indices for angle vectors.
