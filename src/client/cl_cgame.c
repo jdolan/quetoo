@@ -250,7 +250,7 @@ void Cl_InitCgame(void) {
 	import.WorldModel = R_WorldModel;
 
 	import.AddEntity = R_AddEntity;
-	import.GetMeshModelTag = R_GetMeshModelTag;
+	import.MeshModelTag = R_MeshModelTag;
 	import.SetMatrixForEntity = R_SetMatrixForEntity;
 	import.SetMatrix = R_SetMatrix;
 	import.GetMatrix = R_GetMatrix;
