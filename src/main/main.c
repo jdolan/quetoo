@@ -264,7 +264,7 @@ static void MemStats_f(void) {
 		const char *tag_name;
 
 		if (stat_i->tag == -1) {
-			Com_Print("total: %zd bytes\n", stat_i->size);
+			Com_Print("total: %zu bytes\n", stat_i->size);
 			reported_total = stat_i->size;
 			continue;
 		} else if (stat_i->tag < MEM_TAG_TOTAL) {
@@ -273,15 +273,15 @@ static void MemStats_f(void) {
 			tag_name = va("#%d", stat_i->tag);
 		}
 
-		Com_Print(" [%s] %zd bytes - %zd blocks\n", tag_name, stat_i->size, stat_i->count);
+		Com_Print(" [%s] %zu bytes - %zu blocks\n", tag_name, stat_i->size, stat_i->count);
 		sum += stat_i->size;
 	}
 
 	if (sum != reported_total) {
-		Com_Print("WARNING: %zd bytes summed vs %zd bytes reported!\n", sum, reported_total);
+		Com_Print("WARNING: %zu bytes summed vs %zu bytes reported!\n", sum, reported_total);
 	}
 
-	Com_Print(" [console] approx. %zd bytes - approx. %zd blocks\n", console_state.size, console_state.strings.length);
+	Com_Print(" [console] approx. %zu bytes - approx. %u blocks\n", console_state.size, console_state.strings.length);
 
 	g_array_free(stats, true);
 }

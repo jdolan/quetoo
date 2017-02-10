@@ -67,6 +67,7 @@ typedef struct {
 	int32_t gameplay;
 	int32_t hook;
 	int32_t teams;
+	int32_t num_teams;
 	int32_t ctf;
 	int32_t match;
 	int32_t rounds;
@@ -82,16 +83,15 @@ typedef struct {
  * @brief ConfigStrings that are local to the game module.
  */
 #define CS_GAMEPLAY			(CS_GENERAL + 0)  // gameplay string
-#define CS_TEAMS			(CS_GENERAL + 1)  // are teams enabled?
+#define CS_TEAMS			(CS_GENERAL + 1)  // are teams enabled? if so, # of teams
 #define CS_CTF				(CS_GENERAL + 2)  // is capture enabled?
 #define CS_MATCH			(CS_GENERAL + 3)  // is match mode enabled?
 #define CS_ROUNDS			(CS_GENERAL + 4)  // are rounds enabled?
-#define CS_TEAM_GOOD		(CS_GENERAL + 5)  // good team name
-#define CS_TEAM_EVIL		(CS_GENERAL + 6)  // evil team name
-#define CS_TIME				(CS_GENERAL + 7)  // level or match timer
-#define CS_ROUND			(CS_GENERAL + 8)  // round number
-#define CS_VOTE				(CS_GENERAL + 9)  // vote string\yes count\no count
-#define CS_HOOK_PULL_SPEED	(CS_GENERAL + 10) // hook speed
+#define CS_TEAM_INFO		(CS_GENERAL + 5)  // team info, separated by \ (name\color\name\color, etc)
+#define CS_TIME				(CS_GENERAL + 6)  // level or match timer
+#define CS_ROUND			(CS_GENERAL + 7)  // round number
+#define CS_VOTE				(CS_GENERAL + 8)  // vote string\yes count\no count
+#define CS_HOOK_PULL_SPEED	(CS_GENERAL + 9) // hook speed
 
 /**
  * @brief Player state statistics (inventory, score, etc).
@@ -205,17 +205,16 @@ typedef struct {
 	int16_t captures;
 	uint16_t deaths;
 	uint8_t flags;
+	uint8_t team;
 } g_score_t;
 
 /**
  * @brief Player scores flags.
  */
-#define SCORE_TEAM_GOOD		(1 << 0)
-#define SCORE_TEAM_EVIL		(1 << 1)
-#define SCORE_CTF_FLAG		(1 << 2)
-#define SCORE_NOT_READY		(1 << 3)
-#define SCORE_SPECTATOR		(1 << 4)
-#define SCORE_AGGREGATE		(1 << 5)
+#define SCORE_CTF_FLAG		(1 << 0)
+#define SCORE_NOT_READY		(1 << 1)
+#define SCORE_SPECTATOR		(1 << 2)
+#define SCORE_AGGREGATE		(1 << 3)
 
 /**
  * @brief Game-specific entity events.
@@ -242,10 +241,14 @@ typedef enum {
 #define EF_CORPSE			(EF_GAME << 1) // to differentiate own corpse from self
 #define EF_RESPAWN			(EF_GAME << 2) // yellow shell
 #define EF_QUAD				(EF_GAME << 3) // green shell
-#define EF_CTF_BLUE			(EF_GAME << 4) // blue shell
-#define EF_CTF_RED			(EF_GAME << 5) // red shell
-#define EF_DESPAWN			(EF_GAME << 6) // translucent
-#define EF_LIGHT			(EF_GAME << 7) // colored light
+#define EF_CTF_RED			(EF_GAME << 4) // carrying red flag
+#define EF_CTF_BLUE			(EF_GAME << 5) // carrying blue flag
+#define EF_CTF_GREEN		(EF_GAME << 6) // carrying green flag
+#define EF_CTF_ORANGE		(EF_GAME << 7) // carrying orange flag
+#define EF_DESPAWN			(EF_GAME << 8) // translucent
+#define EF_LIGHT			(EF_GAME << 9) // colored light
+
+#define EF_CTF_MASK			(EF_CTF_RED | EF_CTF_BLUE | EF_CTF_GREEN | EF_CTF_ORANGE)
 
 /**
  * @brief Game-specific entity state trails.
@@ -261,9 +264,7 @@ typedef enum {
 	TRAIL_GIB,
 	TRAIL_FIREBALL,
 	TRAIL_HOOK,
-	TRAIL_GOOD_SPAWN,
-	TRAIL_EVIL_SPAWN,
-	TRAIL_NEUTRAL_SPAWN
+	TRAIL_PLAYER_SPAWN
 } g_entity_trail_t;
 
 /**
@@ -298,8 +299,22 @@ typedef enum {
 /**
  * @brief Scoreboard background color hues.
  */
-#define TEAM_COLOR_GOOD			240
-#define TEAM_COLOR_EVIL			0
+#define TEAM_COLOR_RED			0
+#define TEAM_COLOR_BLUE			240
+#define TEAM_COLOR_GREEN		120
+#define TEAM_COLOR_ORANGE		30
+
+/**
+ * @brief Team ID
+ */
+typedef enum {
+	TEAM_RED,
+	TEAM_BLUE,
+	TEAM_GREEN,
+	TEAM_ORANGE,
+
+	MAX_TEAMS
+} g_team_id_t;
 
 /**
  * @brief Entity state model number to indicate that the entity is a client.
@@ -383,8 +398,6 @@ typedef struct g_entity_s g_entity_t;
  * @brief Ammunition types.
  */
 typedef enum {
-	AMMO_NONE,
-
 	AMMO_SHELLS,
 	AMMO_BULLETS,
 	AMMO_GRENADES,
@@ -401,8 +414,6 @@ typedef enum {
  * @brief Armor types.
  */
 typedef enum {
-	ARMOR_NONE,
-
 	ARMOR_JACKET,
 	ARMOR_COMBAT,
 	ARMOR_BODY,
@@ -424,8 +435,6 @@ typedef struct {
  * @brief Health types.
  */
 typedef enum {
-	HEALTH_NONE,
-
 	HEALTH_SMALL,
 	HEALTH_MEDIUM,
 	HEALTH_LARGE,
@@ -435,23 +444,9 @@ typedef enum {
 } g_health_t;
 
 /**
- * @brief Flag types.
- */
-typedef enum {
-	FLAG_NONE,
-
-	FLAG_GOOD,
-	FLAG_EVIL,
-
-	FLAG_TOTAL
-} g_flag_t;
-
-/**
  * @brief Powerup types.
  */
 typedef enum {
-	POWERUP_NONE,
-
 	POWERUP_QUAD,
 	POWERUP_ADRENALINE,
 
@@ -482,8 +477,6 @@ typedef enum {
  * @brief Item types.
  */
 typedef enum {
-	ITEM_NONE,
-
 	ITEM_AMMO,
 	ITEM_ARMOR,
 	ITEM_FLAG,
@@ -633,6 +626,7 @@ typedef struct {
 	char *gameplay;
 	char *hook;
 	char *teams;
+	char *num_teams;
 	char *ctf;
 	char *match;
 	char *rounds;
@@ -731,7 +725,7 @@ typedef struct {
 	struct g_media_items_t {
 		const g_item_t *ammo[AMMO_TOTAL];
 		const g_item_t *armor[ARMOR_TOTAL];
-		const g_item_t *flags[FLAG_TOTAL];
+		const g_item_t *flags[MAX_TEAMS];
 		const g_item_t *health[HEALTH_TOTAL];
 		const g_item_t *powerups[POWERUP_TOTAL];
 		const g_item_t *weapons[WEAPON_TOTAL];
@@ -807,6 +801,7 @@ typedef struct {
 	_Bool match;
 	_Bool rounds;
 	_Bool hook_allowed;
+	int32_t num_teams;
 	int32_t hook_map; // the map's hook allowance, for voting/restart/etc
 	int32_t frag_limit;
 	int32_t round_limit;
@@ -913,23 +908,38 @@ typedef enum {
  * @brief There are two teams in the default game module.
  */
 typedef struct {
+	// static info, valid for all and default teams
+	g_team_id_t id; // id for team, to prevent us from needing to do ptr compare
 	char name[16]; // kept short for HUD consideration
 	char skin[32];
 	char flag[32]; // flag classname
 	char spawn[32]; // spawn classname
 	int16_t color;
+	int16_t effect;
+
+	// dynamic info, valid for all teams
 	int16_t score;
 	int16_t captures;
 	uint32_t name_time;
 	uint32_t skin_time;
-
 	g_spawn_points_t spawn_points;
+	g_entity_t *flag_entity;
 } g_team_t;
+
+/**
+ * @brief The default player model
+ */
+#define DEFAULT_USER_MODEL "qforcer"
+
+/**
+ * @brief The default player skin
+ */
+#define DEFAULT_USER_SKIN "default"
 
 /**
  * @brief The default user info string (name and skin).
  */
-#define DEFAULT_USER_INFO "\\name\\newbie\\skin\\qforcer/default"
+#define DEFAULT_USER_INFO "\\name\\newbie\\skin\\" DEFAULT_USER_MODEL "/" DEFAULT_USER_SKIN
 
 /**
  * @brief The full length of a net name, in bytes (including non-printables).
@@ -959,7 +969,7 @@ typedef struct {
 
 	g_hook_style_t hook_style; // the player's current hook style
 
-	g_team_t *team; // current team (good/evil)
+	g_team_t *team; // current team
 	int16_t color; // weapon effect colors
 
 	int16_t score;
@@ -975,9 +985,6 @@ typedef struct {
 	g_vote_t vote; // current vote (yes/no)
 	uint32_t match_num; // most recent match
 	uint32_t round_num; // most recent arena round
-
-	_Bool show_scores; // sets layout bit mask in player state
-	uint32_t scores_time; // eligible for scores when time > this
 } g_client_persistent_t;
 
 /**
@@ -1054,6 +1061,9 @@ typedef struct {
 	g_entity_t *old_chase_target; // player we were chasing
 
 	const g_item_t *last_dropped; // last dropped item, used for variable expansion
+
+	_Bool show_scores; // sets layout bit mask in player state
+	uint32_t scores_time; // eligible for scores when time > this
 } g_client_locals_t;
 
 /**
@@ -1114,7 +1124,6 @@ typedef struct {
 	int16_t damage;
 	int16_t knockback;
 	vec_t damage_radius;
-//	int16_t sounds; // make this a spawntemp var?
 	int32_t count;
 
 	g_entity_t *enemy;

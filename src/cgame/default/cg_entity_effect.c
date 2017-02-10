@@ -100,6 +100,15 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		VectorMA(e->shell, 0.5, l.color, e->shell);
 	}
 
+	if (e->effects & EF_CTF_RED) {
+		r_light_t l = { { 0.0, 0.0, 0.0 }, { 1.0, 0.3, 0.3 }, 80.0 };
+
+		VectorCopy(e->origin, l.origin);
+		cgi.AddLight(&l);
+
+		VectorMA(e->shell, 0.5, l.color, e->shell);
+	}
+
 	if (e->effects & EF_CTF_BLUE) {
 		r_light_t l = { { 0.0, 0.0, 0.0 }, { 0.3, 0.3, 1.0 }, 80.0 };
 
@@ -109,8 +118,17 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		VectorMA(e->shell, 0.5, l.color, e->shell);
 	}
 
-	if (e->effects & EF_CTF_RED) {
-		r_light_t l = { { 0.0, 0.0, 0.0 }, { 1.0, 0.3, 0.3 }, 80.0 };
+	if (e->effects & EF_CTF_GREEN) {
+		r_light_t l = { { 0.0, 0.0, 0.0 }, { 0.3, 1.0, 0.3 }, 80.0 };
+
+		VectorCopy(e->origin, l.origin);
+		cgi.AddLight(&l);
+
+		VectorMA(e->shell, 0.5, l.color, e->shell);
+	}
+
+	if (e->effects & EF_CTF_ORANGE) {
+		r_light_t l = { { 0.0, 0.0, 0.0 }, { 1.0, 0.7, 0.1 }, 80.0 };
 
 		VectorCopy(e->origin, l.origin);
 		cgi.AddLight(&l);

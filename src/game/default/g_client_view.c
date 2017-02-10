@@ -396,7 +396,7 @@ void G_ClientEndFrame(g_entity_t *ent) {
 	G_ClientAnimation(ent);
 
 	// if the scoreboard is up, update it
-	if (ent->client->locals.persistent.show_scores) {
+	if (ent->client->locals.show_scores) {
 		G_ClientScores(ent);
 	}
 }

@@ -53,6 +53,7 @@ cvar_t *g_inhibit;
 cvar_t *g_match;
 cvar_t *g_max_entities;
 cvar_t *g_motd;
+cvar_t *g_num_teams;
 cvar_t *g_password;
 cvar_t *g_player_projectile;
 cvar_t *g_random_map;
@@ -73,33 +74,67 @@ cvar_t *sv_max_clients;
 cvar_t *sv_hostname;
 cvar_t *dedicated;
 
-g_team_t g_team_good, g_team_evil;
+g_team_t g_teamlist[MAX_TEAMS];
+static g_team_t g_teamlist_default[MAX_TEAMS];
+
+/**
+ * @brief
+ */
+static void G_InitTeam(const g_team_id_t id, const char *name, const char *skin, const int16_t color, const int16_t effect) {
+	g_team_t *team = &g_teamlist[id];
+
+	team->id = id;
+	g_strlcpy(team->name, name, sizeof(team->name));
+	g_strlcpy(team->skin, skin, sizeof(team->skin));
+	team->color = color;
+	team->effect = effect;
+	g_strlcpy(team->flag, va("item_flag_team%i", id + 1), sizeof(team->flag));
+	g_strlcpy(team->spawn, va("info_player_team%i", id + 1), sizeof(team->spawn));
+}
 
 /**
  * @brief
  */
 void G_ResetTeams(void) {
 
-	memset(&g_team_good, 0, sizeof(g_team_good));
-	memset(&g_team_evil, 0, sizeof(g_team_evil));
-
-	g_strlcpy(g_team_good.name, "Good", sizeof(g_team_good.name));
-	gi.SetConfigString(CS_TEAM_GOOD, g_team_good.name);
-
-	g_strlcpy(g_team_evil.name, "Evil", sizeof(g_team_evil.name));
-	gi.SetConfigString(CS_TEAM_EVIL, g_team_evil.name);
-
-	g_strlcpy(g_team_good.skin, "qforcer/blue", sizeof(g_team_good.skin));
-	g_strlcpy(g_team_evil.skin, "qforcer/red", sizeof(g_team_evil.skin));
-
-	g_team_good.color = TEAM_COLOR_GOOD;
-	g_team_evil.color = TEAM_COLOR_EVIL;
+	memset(g_teamlist, 0, sizeof(g_teamlist));
 	
-	g_strlcpy(g_team_good.flag, "item_flag_team1", sizeof(g_team_good.flag));
-	g_strlcpy(g_team_evil.flag, "item_flag_team2", sizeof(g_team_evil.flag));
+	G_InitTeam(TEAM_RED, "Red", "red", TEAM_COLOR_RED, EF_CTF_RED);
+	G_InitTeam(TEAM_BLUE, "Blue", "blue", TEAM_COLOR_BLUE, EF_CTF_BLUE);
+	G_InitTeam(TEAM_GREEN, "Green", "green", TEAM_COLOR_GREEN, EF_CTF_GREEN);
+	G_InitTeam(TEAM_ORANGE, "Orange", "orange", TEAM_COLOR_ORANGE, EF_CTF_ORANGE);
+
+	memcpy(g_teamlist_default, g_teamlist, sizeof(g_teamlist));
 	
-	g_strlcpy(g_team_good.spawn, "info_player_team1", sizeof(g_team_good.spawn));
-	g_strlcpy(g_team_evil.spawn, "info_player_team2", sizeof(g_team_evil.spawn));
+	G_SetTeamNames();
+}
+
+/**
+ * @brief Send the names of the teams to the clients.
+ */
+void G_SetTeamNames(void) {
+	char team_info[MAX_STRING_CHARS] = { '\0' };
+
+	for (int32_t t = 0; t < MAX_TEAMS; t++) {
+
+		if (t != TEAM_RED) {
+			strcat(team_info, "\\");
+		}
+		
+		strcat(team_info, g_teamlist[t].name);
+		strcat(team_info, "\\");
+		strcat(team_info, va("%i", g_teamlist[t].color));
+	}
+
+	gi.SetConfigString(CS_TEAM_INFO, team_info);
+}
+
+/**
+ * @brief Fetch the defaults for a team
+ */
+const g_team_t *G_TeamDefaults(const g_team_t *team) {
+
+	return &g_teamlist_default[team->id];
 }
 
 /**
@@ -178,7 +213,7 @@ void G_CheckHook(void) {
 /**
  * @brief Setup the effects for spawn points
  */
-static void G_ResetTeamSpawnPoints(g_spawn_points_t *points, const g_entity_trail_t trail) {
+static void G_ResetTeamSpawnPoints(g_spawn_points_t *points, const g_entity_trail_t trail, const g_team_id_t team_id) {
 
 	for (size_t i = 0; i < points->count; i++) {
 		g_entity_t *ent = points->spots[i];
@@ -186,10 +221,11 @@ static void G_ResetTeamSpawnPoints(g_spawn_points_t *points, const g_entity_trai
 		if (trail && (g_level.teams || g_level.ctf)) {
 
 			if (ent->s.trail) {
-				ent->s.trail = TRAIL_NEUTRAL_SPAWN;
+				ent->s.client = MAX_TEAMS;
 			} else {
-				ent->s.trail = trail;
+				ent->s.client = team_id;
 			}
+			ent->s.trail = trail;
 			ent->sv_flags = 0;
 		
 			gi.LinkEntity(ent);
@@ -209,13 +245,15 @@ static void G_ResetTeamSpawnPoints(g_spawn_points_t *points, const g_entity_trai
 void G_ResetSpawnPoints(void) {
 	
 	// reset trails to 0 first
-	G_ResetTeamSpawnPoints(&g_team_good.spawn_points, 0);
-	G_ResetTeamSpawnPoints(&g_team_evil.spawn_points, 0);
+	for (int32_t t = 0; t < MAX_TEAMS; t++) {
+		G_ResetTeamSpawnPoints(&g_teamlist[t].spawn_points, 0, 0);
+	}
 
 	// then apply team-based trails, this is done twice
 	// so neutrality gets applied properly
-	G_ResetTeamSpawnPoints(&g_team_good.spawn_points, TRAIL_GOOD_SPAWN);
-	G_ResetTeamSpawnPoints(&g_team_evil.spawn_points, TRAIL_EVIL_SPAWN);
+	for (int32_t t = 0; t < MAX_TEAMS; t++) {
+		G_ResetTeamSpawnPoints(&g_teamlist[t].spawn_points, TRAIL_PLAYER_SPAWN, t);
+	}
 }
 
 /**
@@ -284,6 +322,7 @@ static void G_RestartGame(_Bool teamz) {
 			}
 		}
 
+		G_ClientUserInfoChanged(ent, ent->client->locals.persistent.user_info);
 		G_ClientRespawn(ent, false);
 	}
 
@@ -294,8 +333,10 @@ static void G_RestartGame(_Bool teamz) {
 	G_ResetSpawnPoints();
 
 	g_level.match_time = g_level.round_time = 0;
-	g_team_good.score = g_team_evil.score = 0;
-	g_team_good.captures = g_team_evil.captures = 0;
+
+	for (int32_t i = 0; i < MAX_TEAMS; i++) {
+		g_teamlist[i].score = g_teamlist[i].captures = 0;
+	}
 
 	gi.BroadcastPrint(PRINT_HIGH, "Game restarted\n");
 	gi.Sound(&g_game.entities[0], g_media.sounds.teleport, ATTEN_NONE);
@@ -442,7 +483,7 @@ static void G_CheckVote(void) {
  * @brief
  */
 static void G_CheckRoundStart(void) {
-	int32_t i, g, e, clients;
+	int32_t i, clients;
 	g_client_t *cl;
 
 	if (!g_level.rounds) {
@@ -453,7 +494,10 @@ static void G_CheckRoundStart(void) {
 		return;
 	}
 
-	clients = g = e = 0;
+	clients = 0;
+
+	uint8_t teams_ready[MAX_TEAMS];
+	memset(teams_ready, 0, sizeof(teams_ready));
 
 	for (i = 0; i < sv_max_clients->integer; i++) {
 		if (!g_game.entities[i + 1].in_use) {
@@ -469,7 +513,7 @@ static void G_CheckRoundStart(void) {
 		clients++;
 
 		if (g_level.teams) {
-			cl->locals.persistent.team == &g_team_good ? g++ : e++;
+			teams_ready[cl->locals.persistent.team->id]++;
 		}
 	}
 
@@ -477,15 +521,25 @@ static void G_CheckRoundStart(void) {
 		return;
 	}
 
-	if (g_level.teams && (!g || !e)) { // need at least 1 player per team
-		return;
+	if (g_level.teams || g_level.ctf) { // need at least 1 player per team
+
+		for (int32_t i = 0; i < g_level.num_teams; i++) {
+			if (!teams_ready[i]) {
+				return;
+			}
+		}
 	}
 
-	if ((int32_t) g_level.teams == 2 && (g != e)) { // balanced teams required
-		if (g_level.frame_num % 100 == 0) {
-			gi.BroadcastPrint(PRINT_HIGH, "Teams must be balanced for round to start\n");
+	if ((int32_t) g_level.teams == 2 || (int32_t) g_level.ctf == 2) { // balanced teams required
+
+		for (int32_t i = 0; i < g_level.num_teams; i++) {
+			if (teams_ready[i] != teams_ready[0]) {
+				if (g_level.frame_num % 100 == 0) {
+					gi.BroadcastPrint(PRINT_HIGH, "Teams must be balanced for round to start\n");
+				}
+				return;
+			}
 		}
-		return;
 	}
 
 	gi.BroadcastPrint(PRINT_HIGH, "Round starting in 10 seconds...\n");
@@ -541,7 +595,7 @@ static void G_CheckRoundLimit() {
  * @brief
  */
 static void G_CheckRoundEnd(void) {
-	uint32_t i, g, e, clients;
+	uint32_t i, clients;
 	int32_t j;
 	g_entity_t *winner;
 	g_client_t *cl;
@@ -555,7 +609,11 @@ static void G_CheckRoundEnd(void) {
 	}
 
 	winner = NULL;
-	g = e = clients = 0;
+	clients = 0;
+
+	uint8_t teams_count[MAX_TEAMS];
+	memset(teams_count, 0, sizeof(teams_count));
+
 	for (j = 0; j < sv_max_clients->integer; j++) {
 		if (!g_game.entities[j + 1].in_use) {
 			continue;
@@ -570,7 +628,7 @@ static void G_CheckRoundEnd(void) {
 		winner = &g_game.entities[j + 1];
 
 		if (g_level.teams) {
-			cl->locals.persistent.team == &g_team_good ? g++ : e++;
+			teams_count[cl->locals.persistent.team->id]++;
 		}
 
 		clients++;
@@ -584,7 +642,13 @@ static void G_CheckRoundEnd(void) {
 	}
 
 	if (g_level.teams || g_level.ctf) { // teams rounds continue if each team has a player
-		if (g > 0 && e > 0) {
+		_Bool do_continue = true;
+
+		for (int32_t i = 0; do_continue && i < g_level.num_teams; i++) {
+			do_continue = do_continue && !teams_count[i];
+		}
+
+		if (do_continue) {
 			return;
 		}
 	} else if (clients > 1) { // ffa continues if two players are alive
@@ -630,7 +694,7 @@ static void G_CheckRoundEnd(void) {
  * @brief
  */
 static void G_CheckMatchEnd(void) {
-	int32_t i, g, e, clients;
+	int32_t i, clients;
 	g_client_t *cl;
 
 	if (!g_level.match) {
@@ -641,7 +705,11 @@ static void G_CheckMatchEnd(void) {
 		return; // no match currently running
 	}
 
-	g = e = clients = 0;
+	clients = 0;
+
+	uint8_t teams_count[MAX_TEAMS];
+	memset(teams_count, 0, sizeof(teams_count));
+
 	for (i = 0; i < sv_max_clients->integer; i++) {
 		if (!g_game.entities[i + 1].in_use) {
 			continue;
@@ -654,7 +722,7 @@ static void G_CheckMatchEnd(void) {
 		}
 
 		if (g_level.teams || g_level.ctf) {
-			cl->locals.persistent.team == &g_team_good ? g++ : e++;
+			teams_count[cl->locals.persistent.team->id]++;
 		}
 
 		clients++;
@@ -666,10 +734,17 @@ static void G_CheckMatchEnd(void) {
 		return;
 	}
 
-	if ((g_level.teams || g_level.ctf) && (!g || !e)) {
-		gi.BroadcastPrint(PRINT_HIGH, "Not enough players left\n");
-		g_level.match_time = 0;
-		return;
+	if (g_level.teams || g_level.ctf) {
+		for (int32_t i = 0; i < g_level.num_teams; i++) {
+
+			if (teams_count[i]) {
+				continue;
+			}
+
+			gi.BroadcastPrint(PRINT_HIGH, "Not enough players left\n");
+			g_level.match_time = 0;
+			return;
+		}
 	}
 }
 
@@ -754,10 +829,12 @@ static void G_CheckRules(void) {
 	if (!g_level.ctf && g_level.frag_limit) { // check frag_limit
 
 		if (g_level.teams) { // check team scores
-			if (g_team_good.score >= g_level.frag_limit || g_team_evil.score >= g_level.frag_limit) {
-				gi.BroadcastPrint(PRINT_HIGH, "Frag limit hit\n");
-				G_EndLevel();
-				return;
+			for (int32_t i = 0; i < g_level.num_teams; i++) {
+				if (g_teamlist[i].score >= g_level.frag_limit) {
+					gi.BroadcastPrint(PRINT_HIGH, "Frag limit hit\n");
+					G_EndLevel();
+					return;
+				}
 			}
 		} else { // or individual scores
 			for (i = 0; i < sv_max_clients->integer; i++) {
@@ -777,11 +854,12 @@ static void G_CheckRules(void) {
 
 	if (g_level.ctf && g_level.capture_limit) { // check capture limit
 
-		if (g_team_good.captures >= g_level.capture_limit || g_team_evil.captures
-		        >= g_level.capture_limit) {
-			gi.BroadcastPrint(PRINT_HIGH, "Capture limit hit\n");
-			G_EndLevel();
-			return;
+		for (int32_t i = 0; i < g_level.num_teams; i++) {
+			if (g_teamlist[i].captures >= g_level.capture_limit) {
+				gi.BroadcastPrint(PRINT_HIGH, "Capture limit hit\n");
+				G_EndLevel();
+				return;
+			}
 		}
 	}
 
@@ -861,6 +939,31 @@ static void G_CheckRules(void) {
 		g_level.gravity = g_gravity->integer;
 	}
 
+	if (g_num_teams->modified) { // reset teams, scores, etc
+		g_num_teams->modified = false;
+
+		int32_t num_teams;
+
+		if (!g_strcmp0(g_num_teams->string, "default")) {
+			num_teams = -1; // G_InitNumTeams will pick this up
+		} else {
+			num_teams = Clamp(g_num_teams->integer, 2, MAX_TEAMS);
+		}
+
+		if (g_level.num_teams != num_teams) {
+			g_level.num_teams = num_teams;
+
+			if (g_teams->integer) {
+				G_InitNumTeams();
+
+				gi.BroadcastPrint(PRINT_HIGH, "Number of teams set to %i\n",
+								  g_level.num_teams);
+
+				restart = true;
+			}
+		}
+	}
+
 	if (g_teams->modified) { // reset teams, scores
 		g_teams->modified = false;
 
@@ -870,7 +973,7 @@ static void G_CheckRules(void) {
 			gi.CvarSetValue(g_teams->name, 1.0);
 		} else {
 			g_level.teams = g_teams->integer;
-			gi.SetConfigString(CS_TEAMS, va("%d", g_level.teams));
+			G_InitNumTeams();
 
 			gi.BroadcastPrint(PRINT_HIGH, "Teams have been %s\n",
 			                  g_level.teams ? "enabled" : "disabled");
@@ -1070,6 +1173,33 @@ static void G_Restart_Sv_f(void) {
 }
 
 /**
+ * @brief Set up the CS_TEAMS configstring to the number of valid teams we have
+ */
+void G_InitNumTeams(void) {
+
+	if (g_level.num_teams == -1) { // set to default, so let's set number of teams
+		g_level.num_teams = 0;
+
+		for (int32_t t = 0; t < MAX_TEAMS; t++) {
+
+			if (!g_teamlist[t].spawn_points.count) {
+				break;
+			}
+
+			g_level.num_teams++;
+		}
+
+		if (g_level.num_teams < 2) {
+			gi.Warn("Map only seems to have one available team?");
+		}
+
+		g_level.num_teams = Clamp(g_level.num_teams, 2, MAX_TEAMS);
+	}
+
+	gi.SetConfigString(CS_TEAMS, va("%d", (g_level.teams || g_level.ctf) ? g_level.num_teams : 0));
+}
+
+/**
  * @brief This will be called when the game module is first loaded.
  */
 void G_Init(void) {
@@ -1110,6 +1240,7 @@ void G_Init(void) {
 	                     "Allows usage of player handicap. 0 disallows handicap, 1 allows handicap, 2 allows handicap but disables damage reduction. (default 1)");
 	g_inhibit = gi.Cvar("g_inhibit", "", CVAR_SERVER_INFO,
 	                    "Prevents entities from spawning using a class name filter (e.g.: \"weapon_bfg ammo_nukes item_quad\")");
+	g_num_teams = gi.Cvar("g_num_teams", "default", CVAR_SERVER_INFO, "The number of teams allowed. By default, picks the valid amount for the map, or 2.");
 	g_match = gi.Cvar("g_match", "0", CVAR_SERVER_INFO, "Enables match play requiring players to ready");
 	g_max_entities = gi.Cvar("g_max_entities", "1024", CVAR_LATCH, NULL);
 	g_motd = gi.Cvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect");
@@ -1280,8 +1411,9 @@ void G_RunTimers(void) {
 					gi.Sound(&g_game.entities[0], g_media.sounds.countdown[j], ATTEN_NONE);
 				}
 
-				G_TeamCenterPrint(&g_team_good, "%s\n", (!j) ? "Fight!" : va("%d", j));
-				G_TeamCenterPrint(&g_team_evil, "%s\n", (!j) ? "Fight!" : va("%d", j));
+				for (int32_t i = 0; i < g_level.num_teams; i++) {
+					G_TeamCenterPrint(&g_teamlist[i], "%s\n", (!j) ? "Fight!" : va("%d", j));
+				}
 			}
 
 		} else if (G_MatchIsWarmup() || g_level.warmup) {	// not everyone ready yet
@@ -1299,9 +1431,10 @@ void G_RunTimers(void) {
 				} else {
 					G_CallTimeIn();
 				}
-
-				G_TeamCenterPrint(&g_team_good, "%s\n", (!j) ? "Fight!" : va("%d", j));
-				G_TeamCenterPrint(&g_team_evil, "%s\n", (!j) ? "Fight!" : va("%d", j));
+				
+				for (int32_t i = 0; i < g_level.num_teams; i++) {
+					G_TeamCenterPrint(&g_teamlist[i], "%s\n", (!j) ? "Fight!" : va("%d", j));
+				}
 			}
 		} else {
 			gi.SetConfigString(CS_TIME, G_FormatTime(time));
