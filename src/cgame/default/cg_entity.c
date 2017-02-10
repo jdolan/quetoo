@@ -259,6 +259,21 @@ r_entity_t *Cg_AddLinkedEntity(const r_entity_t *parent, const r_model_t *model,
 }
 
 /**
+ * @brief The min velocity we should apply leg rotation on.
+ */
+#define CLIENT_SPEED_EPSILON		0.5
+
+/**
+ * @brief The max yaw that we'll rotate the legs by when moving left/right.
+ */
+#define CLIENT_LEG_YAW_MAX			65.0
+
+/**
+ * @brief The speed (0 to 1) that the legs will catch up to the current leg yaw.
+ */
+#define CLIENT_LEG_YAW_LERP_SPEED	0.1
+
+/**
  * @brief Adds the numerous render entities which comprise a given client (player)
  * entity: head, torso, legs, weapon, flags, etc.
  */
@@ -299,17 +314,19 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 
 	vec_t leg_yaw_offset = 0.0;
 
-	if (VectorLength(move_dir) > PM_STOP_EPSILON * 0.5) {
-		VectorNormalize(move_dir);
-		leg_yaw_offset = DotProduct(move_dir, right) * 65.0;
+	if (ent->animation2.animation < ANIM_LEGS_SWIM) {
+		if (VectorLength(move_dir) > CLIENT_SPEED_EPSILON) {
+			VectorNormalize(move_dir);
+			leg_yaw_offset = DotProduct(move_dir, right) * CLIENT_LEG_YAW_MAX;
 
-		if (ent->animation2.animation == ANIM_LEGS_BACK ||
-			ent->animation2.reverse) {
-			leg_yaw_offset = -leg_yaw_offset;
+			if (ent->animation2.animation == ANIM_LEGS_BACK ||
+				ent->animation2.reverse) {
+				leg_yaw_offset = -leg_yaw_offset;
+			}
 		}
 	}
 
-	ent->legs_yaw = AngleLerp(ent->legs_yaw, leg_yaw_offset, 0.1);
+	ent->legs_yaw = AngleLerp(ent->legs_yaw, leg_yaw_offset, CLIENT_LEG_YAW_LERP_SPEED);
 
 	legs.model = ci->legs;
 	legs.angles[1] += ent->legs_yaw;
