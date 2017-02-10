@@ -1237,7 +1237,7 @@ static void G_Ready_f(g_entity_t *ent) {
 
 	clients = 0;
 
-	uint8_t teams_ready[TEAM_TOTAL];
+	uint8_t teams_ready[MAX_TEAMS];
 	memset(teams_ready, 0, sizeof(teams_ready));
 
 	for (i = 0; i < sv_max_clients->integer; i++) { // is everyone ready?

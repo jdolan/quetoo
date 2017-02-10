@@ -578,9 +578,9 @@ uint32_t G_EffectForTeam(const g_team_t *t) {
 }
 
 /**
- * @brief Get the flag we're holding
+ * @brief Get the flag a player is holding, or NULL if we're not a flag-bearer.
  */
-const g_item_t *G_HoldingFlagTeam(const g_entity_t *ent) {
+const g_item_t *G_IsFlagBearer(const g_entity_t *ent) {
 
 	for (g_team_id_t team_id = TEAM_RED; team_id < g_level.num_teams; team_id++) {
 
@@ -622,7 +622,7 @@ size_t G_TeamSize(const g_team_t *team) {
  */
 g_team_t *G_SmallestTeam(void) {
 	g_client_t *cl;
-	uint8_t num_clients[TEAM_TOTAL];
+	uint8_t num_clients[MAX_TEAMS];
 
 	memset(num_clients, 0, sizeof(num_clients));
 

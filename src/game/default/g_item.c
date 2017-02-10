@@ -496,7 +496,7 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 		return false;
 	}
 
-	const g_item_t *ofi = G_HoldingFlagTeam(other);
+	const g_item_t *ofi = G_IsFlagBearer(other);
 
 	if (t == other->client->locals.persistent.team) { // our flag
 
@@ -582,7 +582,7 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 g_entity_t *G_TossFlag(g_entity_t *ent) {
 	const g_item_t *ofi;
 
-	if (!(ofi = G_HoldingFlagTeam(ent))) {
+	if (!(ofi = G_IsFlagBearer(ent))) {
 		return NULL;
 	}
 

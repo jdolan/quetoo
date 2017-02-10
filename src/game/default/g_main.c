@@ -74,8 +74,8 @@ cvar_t *sv_max_clients;
 cvar_t *sv_hostname;
 cvar_t *dedicated;
 
-g_team_t g_teamlist[TEAM_TOTAL];
-static g_team_t g_teamlist_default[TEAM_TOTAL];
+g_team_t g_teamlist[MAX_TEAMS];
+static g_team_t g_teamlist_default[MAX_TEAMS];
 
 /**
  * @brief
@@ -115,7 +115,7 @@ void G_ResetTeams(void) {
 void G_SetTeamNames(void) {
 	char team_info[MAX_STRING_CHARS] = { '\0' };
 
-	for (g_team_id_t id = TEAM_RED; id < TEAM_TOTAL; id++) {
+	for (g_team_id_t id = TEAM_RED; id < MAX_TEAMS; id++) {
 
 		if (id != TEAM_RED) {
 			strcat(team_info, "\\");
@@ -221,7 +221,7 @@ static void G_ResetTeamSpawnPoints(g_spawn_points_t *points, const g_entity_trai
 		if (trail && (g_level.teams || g_level.ctf)) {
 
 			if (ent->s.trail) {
-				ent->s.client = TEAM_TOTAL;
+				ent->s.client = MAX_TEAMS;
 			} else {
 				ent->s.client = team_id;
 			}
@@ -245,7 +245,7 @@ static void G_ResetTeamSpawnPoints(g_spawn_points_t *points, const g_entity_trai
 void G_ResetSpawnPoints(void) {
 	
 	// reset trails to 0 first
-	for (g_team_id_t team = TEAM_RED; team < TEAM_TOTAL; team++) {
+	for (g_team_id_t team = TEAM_RED; team < MAX_TEAMS; team++) {
 		G_ResetTeamSpawnPoints(&g_teamlist[team].spawn_points, 0, 0);
 	}
 
@@ -334,7 +334,7 @@ static void G_RestartGame(_Bool teamz) {
 
 	g_level.match_time = g_level.round_time = 0;
 
-	for (g_team_id_t team_id = TEAM_RED; team_id < TEAM_TOTAL; team_id++) {
+	for (g_team_id_t team_id = TEAM_RED; team_id < MAX_TEAMS; team_id++) {
 		g_teamlist[team_id].score = 0;
 		g_teamlist[team_id].captures = 0;
 	}
@@ -497,7 +497,7 @@ static void G_CheckRoundStart(void) {
 
 	clients = 0;
 
-	uint8_t teams_ready[TEAM_TOTAL];
+	uint8_t teams_ready[MAX_TEAMS];
 	memset(teams_ready, 0, sizeof(teams_ready));
 
 	for (i = 0; i < sv_max_clients->integer; i++) {
@@ -612,7 +612,7 @@ static void G_CheckRoundEnd(void) {
 	winner = NULL;
 	clients = 0;
 
-	uint8_t teams_count[TEAM_TOTAL];
+	uint8_t teams_count[MAX_TEAMS];
 	memset(teams_count, 0, sizeof(teams_count));
 
 	for (j = 0; j < sv_max_clients->integer; j++) {
@@ -708,7 +708,7 @@ static void G_CheckMatchEnd(void) {
 
 	clients = 0;
 
-	uint8_t teams_count[TEAM_TOTAL];
+	uint8_t teams_count[MAX_TEAMS];
 	memset(teams_count, 0, sizeof(teams_count));
 
 	for (i = 0; i < sv_max_clients->integer; i++) {
@@ -948,7 +948,7 @@ static void G_CheckRules(void) {
 		if (!g_strcmp0(g_num_teams->string, "default")) {
 			num_teams = -1; // G_InitNumTeams will pick this up
 		} else {
-			num_teams = Clamp(g_num_teams->integer, 2, TEAM_TOTAL);
+			num_teams = Clamp(g_num_teams->integer, 2, MAX_TEAMS);
 		}
 
 		if (g_level.num_teams != num_teams) {
@@ -1181,7 +1181,7 @@ void G_InitNumTeams(void) {
 	if (g_level.num_teams == -1) { // set to default, so let's set number of teams
 		g_level.num_teams = 0;
 
-		for (g_team_id_t team_id = TEAM_RED; team_id < TEAM_TOTAL; team_id++) {
+		for (g_team_id_t team_id = TEAM_RED; team_id < MAX_TEAMS; team_id++) {
 
 			if (!g_teamlist[team_id].spawn_points.count) {
 				break;
@@ -1194,7 +1194,7 @@ void G_InitNumTeams(void) {
 			gi.Warn("Map only seems to have one available team?");
 		}
 
-		g_level.num_teams = Clamp(g_level.num_teams, 2, TEAM_TOTAL);
+		g_level.num_teams = Clamp(g_level.num_teams, 2, MAX_TEAMS);
 	}
 
 	gi.SetConfigString(CS_TEAMS, va("%d", (g_level.teams || g_level.ctf) ? g_level.num_teams : 0));

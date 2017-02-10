@@ -305,7 +305,7 @@ static void Cg_ClearState(void) {
 	Cg_ClearHud();
 }
 
-cg_team_info_t cg_team_info[TEAM_TOTAL];
+cg_team_info_t cg_team_info[MAX_TEAMS];
 
 /**
  * @brief Resolve team info from team configstring

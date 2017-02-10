@@ -118,9 +118,9 @@ static size_t G_UpdateScores(g_score_t *scores) {
 
 	// and optionally concatenate the team scores
 	if (g_level.teams || g_level.ctf) {
-		memset(s, 0, sizeof(*s) * TEAM_TOTAL);
+		memset(s, 0, sizeof(*s) * MAX_TEAMS);
 
-		for (g_team_id_t team_id = TEAM_RED; team_id < TEAM_TOTAL; team_id++) {
+		for (g_team_id_t team_id = TEAM_RED; team_id < MAX_TEAMS; team_id++) {
 			g_team_t *team = &g_teamlist[team_id];
 
 			s->client = MAX_CLIENTS;
@@ -139,7 +139,7 @@ static size_t G_UpdateScores(g_score_t *scores) {
  * chunks to overcome the 1400 byte UDP packet limitation.
  */
 void G_ClientScores(g_entity_t *ent) {
-	static g_score_t scores[MAX_CLIENTS + TEAM_TOTAL];
+	static g_score_t scores[MAX_CLIENTS + MAX_TEAMS];
 	static size_t count;
 
 	if (!ent->client->locals.show_scores || (ent->client->locals.scores_time > g_level.time)) {

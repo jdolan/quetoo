@@ -39,7 +39,7 @@ void G_SetMoveDir(vec3_t angles, vec3_t movedir);
 char *G_GameplayName(int32_t g);
 g_gameplay_t G_GameplayByName(const char *c);
 g_team_t *G_TeamByName(const char *c);
-const g_item_t *G_HoldingFlagTeam(const g_entity_t *ent);
+const g_item_t *G_IsFlagBearer(const g_entity_t *ent);
 g_team_t *G_TeamForFlag(const g_entity_t *ent);
 g_entity_t *G_FlagForTeam(const g_team_t *t);
 uint32_t G_EffectForTeam(const g_team_t *t);

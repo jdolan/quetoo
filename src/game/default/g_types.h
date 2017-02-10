@@ -241,10 +241,10 @@ typedef enum {
 #define EF_CORPSE			(EF_GAME << 1) // to differentiate own corpse from self
 #define EF_RESPAWN			(EF_GAME << 2) // yellow shell
 #define EF_QUAD				(EF_GAME << 3) // green shell
-#define EF_CTF_RED			(EF_GAME << 4) // blue shell
-#define EF_CTF_BLUE			(EF_GAME << 5) // red shell
-#define EF_CTF_GREEN		(EF_GAME << 6) // red shell
-#define EF_CTF_ORANGE		(EF_GAME << 7) // red shell
+#define EF_CTF_RED			(EF_GAME << 4) // carrying red flag
+#define EF_CTF_BLUE			(EF_GAME << 5) // carrying blue flag
+#define EF_CTF_GREEN		(EF_GAME << 6) // carrying green flag
+#define EF_CTF_ORANGE		(EF_GAME << 7) // carrying orange flag
 #define EF_DESPAWN			(EF_GAME << 8) // translucent
 #define EF_LIGHT			(EF_GAME << 9) // colored light
 
@@ -313,7 +313,7 @@ typedef enum {
 	TEAM_GREEN,
 	TEAM_ORANGE,
 
-	TEAM_TOTAL
+	MAX_TEAMS
 } g_team_id_t;
 
 /**
@@ -725,7 +725,7 @@ typedef struct {
 	struct g_media_items_t {
 		const g_item_t *ammo[AMMO_TOTAL];
 		const g_item_t *armor[ARMOR_TOTAL];
-		const g_item_t *flags[TEAM_TOTAL];
+		const g_item_t *flags[MAX_TEAMS];
 		const g_item_t *health[HEALTH_TOTAL];
 		const g_item_t *powerups[POWERUP_TOTAL];
 		const g_item_t *weapons[WEAPON_TOTAL];

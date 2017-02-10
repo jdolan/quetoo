@@ -82,7 +82,7 @@ extern cvar_t *sv_max_clients;
 extern cvar_t *sv_hostname;
 extern cvar_t *dedicated;
 
-extern g_team_t g_teamlist[TEAM_TOTAL];
+extern g_team_t g_teamlist[MAX_TEAMS];
 
 #define g_team_red (&g_teamlist[TEAM_RED])
 #define g_team_blue (&g_teamlist[TEAM_BLUE])

@@ -105,6 +105,6 @@ typedef struct {
 	color_t color;
 } cg_team_info_t;
 
-extern cg_team_info_t cg_team_info[TEAM_TOTAL];
+extern cg_team_info_t cg_team_info[MAX_TEAMS];
 
 #endif /* __CG_LOCAL_H__ */

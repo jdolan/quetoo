@@ -26,7 +26,7 @@
 #define SCORES_ICON_WIDTH 48
 
 typedef struct {
-	g_score_t scores[MAX_CLIENTS + TEAM_TOTAL];
+	g_score_t scores[MAX_CLIENTS + MAX_TEAMS];
 	uint16_t num_scores;
 
 	int32_t teams;
@@ -74,7 +74,7 @@ void Cg_ParseScores(void) {
 
 		// the aggregate scores are the last set in the array
 		if (cg_score_state.ctf || cg_score_state.teams) {
-			cg_score_state.num_scores -= TEAM_TOTAL;
+			cg_score_state.num_scores -= MAX_TEAMS;
 		}
 	}
 
