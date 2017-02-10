@@ -28,6 +28,7 @@
 	#include <sys/time.h>
 #else
 	#include <DbgHelp.h>
+	#include <SDL.h>
 #endif
 
 #if defined(_WIN32)
@@ -183,7 +184,7 @@ void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, 
 /**
  * @brief On platforms supporting it, print a backtrace.
  */
-void Sys_Backtrace(void) {
+void Sys_Backtrace(const char *msg) {
 #if HAVE_EXECINFO
 	void *symbols[MAX_BACKTRACE_SYMBOLS];
 
@@ -193,9 +194,34 @@ void Sys_Backtrace(void) {
 	fflush(stderr);
 #elif defined(_MSC_VER)
 #if defined(_DEBUG)
-	DebugBreak();
+	assert(0);
+#else
+	const SDL_MessageBoxButtonData buttons[] = {
+		{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 0, "No" },
+		{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, "Yes" }
+	};
+
+	const SDL_MessageBoxData messageboxdata = {
+		SDL_MESSAGEBOX_ERROR, /* .flags */
+		NULL, /* .window */
+		"Fatal Error", /* .title */
+		va("%s\n\nGenerate crash dump?", msg), /* .message */
+		lengthof(buttons), /* .numbuttons */
+		buttons, /* .buttons */
+		NULL /* .colorScheme */
+	};
+
+	int buttonid;
+
+	if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
+		SDL_Log("error displaying message box");
+		return;
+	}
+
+	if (buttonid == 1) {
+		RaiseException(EXCEPTION_NONCONTINUABLE_EXCEPTION, EXCEPTION_NONCONTINUABLE, 0, NULL);
+	}
 #endif
-	RaiseException(EXCEPTION_NONCONTINUABLE_EXCEPTION, EXCEPTION_NONCONTINUABLE, 0, NULL);
 #endif
 }
 
