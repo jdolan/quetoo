@@ -221,10 +221,10 @@ void G_ClientStats(g_entity_t *ent) {
 	// held flag
 	client->ps.stats[STAT_CARRYING_FLAG] = 0;
 
-	for (g_team_id_t team_id = TEAM_RED; team_id < g_level.num_teams; team_id++) {
+	for (int32_t i = 0; i < g_level.num_teams; i++) {
 
-		if (client->locals.inventory[g_media.items.flags[team_id]->index]) {
-			client->ps.stats[STAT_CARRYING_FLAG] = team_id + 1;
+		if (client->locals.inventory[g_media.items.flags[i]->index]) {
+			client->ps.stats[STAT_CARRYING_FLAG] = i + 1;
 			break;
 		}
 	}

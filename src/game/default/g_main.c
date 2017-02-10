@@ -334,9 +334,8 @@ static void G_RestartGame(_Bool teamz) {
 
 	g_level.match_time = g_level.round_time = 0;
 
-	for (g_team_id_t team_id = TEAM_RED; team_id < MAX_TEAMS; team_id++) {
-		g_teamlist[team_id].score = 0;
-		g_teamlist[team_id].captures = 0;
+	for (int32_t i = 0; i < MAX_TEAMS; i++) {
+		g_teamlist[i].score = g_teamlist[i].captures = 0;
 	}
 
 	gi.BroadcastPrint(PRINT_HIGH, "Game restarted\n");
@@ -524,8 +523,8 @@ static void G_CheckRoundStart(void) {
 
 	if (g_level.teams || g_level.ctf) { // need at least 1 player per team
 
-		for (g_team_id_t team_id = TEAM_RED; team_id < g_level.num_teams; team_id++) {
-			if (!teams_ready[team_id]) {
+		for (int32_t i = 0; i < g_level.num_teams; i++) {
+			if (!teams_ready[i]) {
 				return;
 			}
 		}
@@ -533,8 +532,8 @@ static void G_CheckRoundStart(void) {
 
 	if ((int32_t) g_level.teams == 2 || (int32_t) g_level.ctf == 2) { // balanced teams required
 
-		for (g_team_id_t team_id = TEAM_RED + 1; team_id < g_level.num_teams; team_id++) {
-			if (teams_ready[team_id] != teams_ready[TEAM_RED]) {
+		for (int32_t i = 0; i < g_level.num_teams; i++) {
+			if (teams_ready[i] != teams_ready[0]) {
 				if (g_level.frame_num % 100 == 0) {
 					gi.BroadcastPrint(PRINT_HIGH, "Teams must be balanced for round to start\n");
 				}
@@ -645,8 +644,8 @@ static void G_CheckRoundEnd(void) {
 	if (g_level.teams || g_level.ctf) { // teams rounds continue if each team has a player
 		_Bool do_continue = true;
 
-		for (g_team_id_t team_id = TEAM_RED; do_continue && team_id < g_level.num_teams; team_id++) {
-			do_continue = do_continue && !teams_count[team_id];
+		for (int32_t i = 0; do_continue && i < g_level.num_teams; i++) {
+			do_continue = do_continue && !teams_count[i];
 		}
 
 		if (do_continue) {
@@ -736,9 +735,9 @@ static void G_CheckMatchEnd(void) {
 	}
 
 	if (g_level.teams || g_level.ctf) {
-		for (g_team_id_t team_id = TEAM_RED; team_id < g_level.num_teams; team_id++) {
+		for (int32_t i = 0; i < g_level.num_teams; i++) {
 
-			if (teams_count[team_id]) {
+			if (teams_count[i]) {
 				continue;
 			}
 
@@ -830,8 +829,8 @@ static void G_CheckRules(void) {
 	if (!g_level.ctf && g_level.frag_limit) { // check frag_limit
 
 		if (g_level.teams) { // check team scores
-			for (g_team_id_t team_id = TEAM_RED; team_id < g_level.num_teams; team_id++) {
-				if (g_teamlist[team_id].score >= g_level.frag_limit) {
+			for (int32_t i = 0; i < g_level.num_teams; i++) {
+				if (g_teamlist[i].score >= g_level.frag_limit) {
 					gi.BroadcastPrint(PRINT_HIGH, "Frag limit hit\n");
 					G_EndLevel();
 					return;
@@ -855,8 +854,8 @@ static void G_CheckRules(void) {
 
 	if (g_level.ctf && g_level.capture_limit) { // check capture limit
 
-		for (g_team_id_t team_id = TEAM_RED; team_id < g_level.num_teams; team_id++) {
-			if (g_teamlist[team_id].captures >= g_level.capture_limit) {
+		for (int32_t i = 0; i < g_level.num_teams; i++) {
+			if (g_teamlist[i].captures >= g_level.capture_limit) {
 				gi.BroadcastPrint(PRINT_HIGH, "Capture limit hit\n");
 				G_EndLevel();
 				return;
@@ -1412,8 +1411,8 @@ void G_RunTimers(void) {
 					gi.Sound(&g_game.entities[0], g_media.sounds.countdown[j], ATTEN_NONE);
 				}
 
-				for (g_team_id_t team_id = TEAM_RED; team_id < g_level.num_teams; team_id++) {
-					G_TeamCenterPrint(&g_teamlist[team_id], "%s\n", (!j) ? "Fight!" : va("%d", j));
+				for (int32_t i = 0; i < g_level.num_teams; i++) {
+					G_TeamCenterPrint(&g_teamlist[i], "%s\n", (!j) ? "Fight!" : va("%d", j));
 				}
 			}
 
@@ -1433,8 +1432,8 @@ void G_RunTimers(void) {
 					G_CallTimeIn();
 				}
 				
-				for (g_team_id_t team_id = TEAM_RED; team_id < g_level.num_teams; team_id++) {
-					G_TeamCenterPrint(&g_teamlist[team_id], "%s\n", (!j) ? "Fight!" : va("%d", j));
+				for (int32_t i = 0; i < g_level.num_teams; i++) {
+					G_TeamCenterPrint(&g_teamlist[i], "%s\n", (!j) ? "Fight!" : va("%d", j));
 				}
 			}
 		} else {

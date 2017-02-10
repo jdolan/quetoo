@@ -1272,8 +1272,8 @@ static void G_Ready_f(g_entity_t *ent) {
 
 	if (g_level.teams || g_level.ctf) { // need at least 1 player per team
 
-		for (g_team_id_t team_id = TEAM_RED; team_id < g_level.num_teams; team_id++) {
-			if (!teams_ready[team_id]) {
+		for (int32_t i = 0; i < g_level.num_teams; i++) {
+			if (!teams_ready[i]) {
 				return;
 			}
 		}
@@ -1281,9 +1281,8 @@ static void G_Ready_f(g_entity_t *ent) {
 
 	if ((int32_t) g_level.teams == 2 || (int32_t) g_level.ctf == 2) { // balanced teams required
 
-		
-		for (g_team_id_t team_id = TEAM_RED + 1; team_id < g_level.num_teams; team_id++) {
-			if (teams_ready[team_id] != teams_ready[TEAM_RED]) {
+		for (int32_t i = 1; i < g_level.num_teams; i++) {
+			if (teams_ready[i] != teams_ready[0]) {
 				gi.BroadcastPrint(PRINT_HIGH, "Teams must be balanced for match to start\n");
 				return;
 			}
