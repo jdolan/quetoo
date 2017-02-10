@@ -147,8 +147,32 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 	}
 }
 
+inline void Matrix4x4_ToAngles(const matrix4x4_t *m, vec3_t angles)
+{
+    if (m->m[0][0] == 1.0f)
+    {
+        angles[YAW] = atan2f(m->m[0][2], m->m[2][3]);
+        angles[PITCH] = 0;
+        angles[ROLL] = 0;
+
+    }else if (m->m[0][0] == -1.0f)
+    {
+        angles[YAW] = atan2f(m->m[0][2], m->m[2][3]);
+        angles[PITCH] = 0;
+        angles[ROLL] = 0;
+    }else 
+    {
+
+        angles[YAW] = atan2(-m->m[2][0],m->m[0][0]);
+        angles[PITCH] = asin(m->m[1][0]);
+        angles[ROLL] = atan2(-m->m[1][2],m->m[1][1]);
+    }
+}
+
 /**
- * @brief Applies transformation and rotation for the specified linked entity.
+ * @brief Applies transformation and rotation for the specified linked entity. The "matrix"
+ * component of the parent and child must be set up already. The child's matrix will be modified
+ * by this function and is used instead of origin/angles/scale.
  */
 void Cg_ApplyMeshModelTag(r_entity_t *child, const r_entity_t *parent, const char *tag_name) {
 
@@ -171,28 +195,32 @@ void Cg_ApplyMeshModelTag(r_entity_t *child, const r_entity_t *parent, const cha
 		return;
 	}
 
-	matrix4x4_t local, parent_matrix, world;
+	matrix4x4_t local, world;
 
 	Matrix4x4_Interpolate(&local, &t2->matrix, &t1->matrix, parent->back_lerp);
 	Matrix4x4_Normalize(&local, &local);
 
 	// add local origins to the local offset
-	Matrix4x4_ConcatTranslate(&local, child->origin[0], child->origin[1], child->origin[2]);
-	Matrix4x4_ConcatRotate(&local, child->angles[ROLL], 1.0, 0.0, 0.0);
-	Matrix4x4_ConcatRotate(&local, child->angles[PITCH], 0.0, 1.0, 0.0);
-	Matrix4x4_ConcatRotate(&local, child->angles[YAW], 0.0, 0.0, 1.0);
+	Matrix4x4_Concat(&local, &local, &child->matrix);
 
-	Matrix4x4_CreateFromEntity(&parent_matrix, parent->origin, parent->angles, parent->scale);
-
-	Matrix4x4_Concat(&world, &parent_matrix, &local);
+	// move by parent matrix
+	Matrix4x4_Concat(&world, &parent->matrix, &local);
 
 	child->effects |= EF_LINKED;
 
+	// calculate final origin/angles
 	vec3_t forward;
 
 	Matrix4x4_ToVectors(&world, forward, NULL, NULL, child->origin);
 
 	VectorAngles(forward, child->angles);
+
+	Matrix4x4_ToAngles(&world, child->angles);
+
+	child->scale = Matrix4x4_ScaleFromMatrix(&world);
+
+	// copy matrix over to child
+	Matrix4x4_Copy(&child->matrix, &world);
 }
 
 /**
@@ -222,6 +250,8 @@ r_entity_t *Cg_AddLinkedEntity(const r_entity_t *parent, const r_model_t *model,
 	ent.back_lerp = 0.0;
 
 	r_entity_t *r_ent = cgi.AddEntity(&ent);
+
+	Matrix4x4_CreateFromEntity(&r_ent->matrix, r_ent->origin, r_ent->angles, r_ent->scale);
 
 	Cg_ApplyMeshModelTag(r_ent, parent, tag_name);
 
@@ -302,6 +332,10 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	r_entity_t *r_legs = cgi.AddEntity(&legs);
 	r_entity_t *r_torso = cgi.AddEntity(&torso);
 	r_entity_t *r_head = cgi.AddEntity(&head);
+	
+	Matrix4x4_CreateFromEntity(&r_legs->matrix, r_legs->origin, r_legs->angles, r_legs->scale);
+	Matrix4x4_CreateFromEntity(&r_torso->matrix, r_torso->origin, r_torso->angles, r_torso->scale);
+	Matrix4x4_CreateFromEntity(&r_head->matrix, r_head->origin, r_head->angles, r_head->scale);
 	
 	Cg_ApplyMeshModelTag(r_torso, r_legs, "tag_torso");
 	Cg_ApplyMeshModelTag(r_head, r_torso, "tag_head");

@@ -172,7 +172,7 @@ static void G_ClientWorldAngles(g_entity_t *ent) {
 		return;
 	}
 
-	ent->s.angles[PITCH] = ent->client->locals.angles[PITCH] / 3.0;
+	ent->s.angles[PITCH] = ent->client->locals.angles[PITCH] / 1.5;
 	ent->s.angles[YAW] = ent->client->locals.angles[YAW];
 
 	// set roll based on lateral velocity and ground entity

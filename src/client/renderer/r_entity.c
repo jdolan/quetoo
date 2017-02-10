@@ -66,7 +66,9 @@ void R_RotateForEntity(const r_entity_t *e) {
  */
 void R_SetMatrixForEntity(r_entity_t *e) {
 
-	Matrix4x4_CreateFromEntity(&e->matrix, e->origin, e->angles, e->scale);
+	if (!(e->effects & EF_LINKED)) { // child models use explicit matrix, do not recompute
+		Matrix4x4_CreateFromEntity(&e->matrix, e->origin, e->angles, e->scale);
+	}
 
 	if (IS_MESH_MODEL(e->model)) {
 		R_ApplyMeshModelConfig(e);
