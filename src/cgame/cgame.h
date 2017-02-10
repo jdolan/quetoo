@@ -606,11 +606,11 @@ typedef struct cg_import_s {
 	/**
 	 * @brief Returns the desired tag structure, or `NULL`.
 	 * @param mod The model to check for the specified tag.
-	 * @param frame The frame to fetch the tag on.
 	 * @param name The name of the tag.
+	 * @param frame The frame to fetch the tag on.
 	 * @return The tag structure.
 	 */
-	const r_md3_tag_t *(*GetMeshModelTag)(const r_model_t *mod, int32_t frame, const char *name);
+	const r_md3_tag_t *(*MeshModelTag)(const r_model_t *mod, const int32_t frame, const char *name);
 
 	/**
 	 * @brief Change the matrix identified by "id" with the values from "matrix".

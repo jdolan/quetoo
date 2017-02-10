@@ -25,7 +25,7 @@
 
 void R_DrawMeshModel_default(const r_entity_t *e);
 void R_DrawMeshModelMaterials_default(const r_entity_t *e);
-const r_md3_tag_t *R_GetMeshModelTag(const r_model_t *mod, int32_t frame, const char *name);
+const r_md3_tag_t *R_MeshModelTag(const r_model_t *mod, const char *name, const int32_t frame);
 
 #ifdef __R_LOCAL_H__
 typedef struct {

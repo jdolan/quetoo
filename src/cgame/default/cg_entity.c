@@ -188,8 +188,8 @@ void Cg_ApplyMeshModelTag(r_entity_t *child, const r_entity_t *parent, const cha
 
 	// interpolate the tag over the frames of the parent entity
 
-	const r_md3_tag_t *t1 = cgi.GetMeshModelTag(parent->model, parent->old_frame, tag_name);
-	const r_md3_tag_t *t2 = cgi.GetMeshModelTag(parent->model, parent->frame, tag_name);
+	const r_md3_tag_t *t1 = cgi.MeshModelTag(parent->model, tag_name, parent->old_frame);
+	const r_md3_tag_t *t2 = cgi.MeshModelTag(parent->model, tag_name, parent->frame);
 
 	if (!t1 || !t2) {
 		return;

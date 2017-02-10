@@ -63,7 +63,7 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
  * @param name The name of the tag.
  * @return The tag structure.
 */
-const r_md3_tag_t *R_GetMeshModelTag(const r_model_t *mod, int32_t frame, const char *name) {
+const r_md3_tag_t *R_MeshModelTag(const r_model_t *mod, const char *name, const int32_t frame) {
 
 	if (frame > mod->mesh->num_frames) {
 		Com_Warn("%s: Invalid frame: %d\n", mod->media.name, frame);
