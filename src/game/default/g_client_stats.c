@@ -120,8 +120,8 @@ static size_t G_UpdateScores(g_score_t *scores) {
 	if (g_level.teams || g_level.ctf) {
 		memset(s, 0, sizeof(*s) * MAX_TEAMS);
 
-		for (g_team_id_t team_id = TEAM_RED; team_id < MAX_TEAMS; team_id++) {
-			g_team_t *team = &g_teamlist[team_id];
+		for (i = 0; i < MAX_TEAMS; i++) {
+			g_team_t *team = &g_teamlist[i];
 
 			s->client = MAX_CLIENTS;
 			s->score = team->score;

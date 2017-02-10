@@ -705,8 +705,8 @@ static void G_InitSpawnPoints(void) {
 	
 	// find the team points, if we have any explicit ones in the map.
 	// start by finding the flags
-	for (g_team_id_t team_id = TEAM_RED; team_id < MAX_TEAMS; team_id++) {
-		g_teamlist[team_id].flag_entity = G_Find(NULL, EOFS(class_name), g_teamlist[team_id].flag);
+	for (int32_t t = 0; t < MAX_TEAMS; t++) {
+		g_teamlist[t].flag_entity = G_Find(NULL, EOFS(class_name), g_teamlist[t].flag);
 	}
 
 	GSList *team_spawns[MAX_TEAMS];
@@ -716,20 +716,20 @@ static void G_InitSpawnPoints(void) {
 	spot = NULL;
 
 	while ((spot = G_Find(spot, EOFS(class_name), "info_player_team_any")) != NULL) {
-		for (g_team_id_t team_id = TEAM_RED; team_id < MAX_TEAMS; team_id++) {
-			team_spawns[team_id] = g_slist_prepend(team_spawns[team_id], spot);
+		for (int32_t t = 0; t < MAX_TEAMS; t++) {
+			team_spawns[t] = g_slist_prepend(team_spawns[t], spot);
 		}
 	}
 
-	for (g_team_id_t team_id = TEAM_RED; team_id < MAX_TEAMS; team_id++) {
+	for (int32_t t = 0; t < MAX_TEAMS; t++) {
 		spot = NULL;
-		g_team_t *team = &g_teamlist[team_id];
+		g_team_t *team = &g_teamlist[t];
 
 		while ((spot = G_Find(spot, EOFS(class_name), team->spawn)) != NULL) {
-			team_spawns[team_id] = g_slist_prepend(team_spawns[team_id], spot);
+			team_spawns[t] = g_slist_prepend(team_spawns[t], spot);
 		}
 
-		team->spawn_points.count = g_slist_length(team_spawns[team_id]);
+		team->spawn_points.count = g_slist_length(team_spawns[t]);
 	}
 
 	// only one team
@@ -743,8 +743,8 @@ static void G_InitSpawnPoints(void) {
 
 	// in the odd case that the map only has team spawns, we'll use them
 	if (!g_level.spawn_points.count) {
-		for (g_team_id_t team_id = TEAM_RED; team_id < MAX_TEAMS; team_id++) {
-			for (point = team_spawns[team_id]; point; point = point->next) {
+		for (int32_t t = 0; t < MAX_TEAMS; t++) {
+			for (point = team_spawns[t]; point; point = point->next) {
 				dm_spawns = g_slist_prepend(dm_spawns, (g_entity_t *) point->data);
 			}
 		}
@@ -763,8 +763,8 @@ static void G_InitSpawnPoints(void) {
 		G_CreateTeamSpawnPoints(&dm_spawns, &team_spawns[TEAM_RED], &team_spawns[TEAM_BLUE]);
 
 		// re-calculate final values since the above may change them
-		for (g_team_id_t team_id = TEAM_RED; team_id < MAX_TEAMS; team_id++) {
-			g_teamlist[team_id].spawn_points.count = g_slist_length(team_spawns[team_id]);
+		for (int32_t t = 0; t < MAX_TEAMS; t++) {
+			g_teamlist[t].spawn_points.count = g_slist_length(team_spawns[t]);
 		}
 
 		g_level.spawn_points.count = g_slist_length(dm_spawns);
@@ -773,14 +773,14 @@ static void G_InitSpawnPoints(void) {
 	// copy all the data in!
 	size_t i;
 
-	for (g_team_id_t team_id = TEAM_RED; team_id < MAX_TEAMS; team_id++) {
-		g_teamlist[team_id].spawn_points.spots = gi.Malloc(sizeof(g_entity_t *) * g_teamlist[team_id].spawn_points.count, MEM_TAG_GAME_LEVEL);
+	for (int32_t t = 0; t < MAX_TEAMS; t++) {
+		g_teamlist[t].spawn_points.spots = gi.Malloc(sizeof(g_entity_t *) * g_teamlist[t].spawn_points.count, MEM_TAG_GAME_LEVEL);
 	
-		for (i = 0, point = team_spawns[team_id]; point; point = point->next, i++) {
-			g_teamlist[team_id].spawn_points.spots[i] = (g_entity_t *) point->data;
+		for (i = 0, point = team_spawns[t]; point; point = point->next, i++) {
+			g_teamlist[t].spawn_points.spots[i] = (g_entity_t *) point->data;
 		}
 	
-		g_slist_free(team_spawns[team_id]);
+		g_slist_free(team_spawns[t]);
 	}
 	
 	g_level.spawn_points.spots = gi.Malloc(sizeof(g_entity_t *) * g_level.spawn_points.count, MEM_TAG_GAME_LEVEL);

@@ -115,15 +115,15 @@ void G_ResetTeams(void) {
 void G_SetTeamNames(void) {
 	char team_info[MAX_STRING_CHARS] = { '\0' };
 
-	for (g_team_id_t id = TEAM_RED; id < MAX_TEAMS; id++) {
+	for (int32_t t = 0; t < MAX_TEAMS; t++) {
 
-		if (id != TEAM_RED) {
+		if (t != TEAM_RED) {
 			strcat(team_info, "\\");
 		}
 		
-		strcat(team_info, g_teamlist[id].name);
+		strcat(team_info, g_teamlist[t].name);
 		strcat(team_info, "\\");
-		strcat(team_info, va("%i", g_teamlist[id].color));
+		strcat(team_info, va("%i", g_teamlist[t].color));
 	}
 
 	gi.SetConfigString(CS_TEAM_INFO, team_info);
@@ -245,14 +245,14 @@ static void G_ResetTeamSpawnPoints(g_spawn_points_t *points, const g_entity_trai
 void G_ResetSpawnPoints(void) {
 	
 	// reset trails to 0 first
-	for (g_team_id_t team = TEAM_RED; team < MAX_TEAMS; team++) {
-		G_ResetTeamSpawnPoints(&g_teamlist[team].spawn_points, 0, 0);
+	for (int32_t t = 0; t < MAX_TEAMS; t++) {
+		G_ResetTeamSpawnPoints(&g_teamlist[t].spawn_points, 0, 0);
 	}
 
 	// then apply team-based trails, this is done twice
 	// so neutrality gets applied properly
-	for (g_team_id_t team = TEAM_RED; team < g_level.num_teams; team++) {
-		G_ResetTeamSpawnPoints(&g_teamlist[team].spawn_points, TRAIL_PLAYER_SPAWN, team);
+	for (int32_t t = 0; t < MAX_TEAMS; t++) {
+		G_ResetTeamSpawnPoints(&g_teamlist[t].spawn_points, TRAIL_PLAYER_SPAWN, t);
 	}
 }
 
@@ -1181,9 +1181,9 @@ void G_InitNumTeams(void) {
 	if (g_level.num_teams == -1) { // set to default, so let's set number of teams
 		g_level.num_teams = 0;
 
-		for (g_team_id_t team_id = TEAM_RED; team_id < MAX_TEAMS; team_id++) {
+		for (int32_t t = 0; t < MAX_TEAMS; t++) {
 
-			if (!g_teamlist[team_id].spawn_points.count) {
+			if (!g_teamlist[t].spawn_points.count) {
 				break;
 			}
 
