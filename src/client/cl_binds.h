@@ -22,8 +22,6 @@
 #pragma once
 
 static const char *DEFAULT_BINDS =
-    "bind ` cl_toggle_console\n"
-    "bind f8 cl_toggle_console\n"
     "bind 1 use blaster\n"
     "bind 2 use shotgun\n"
     "bind 3 use super shotgun\n"
@@ -127,4 +125,8 @@ static const char *DEFAULT_BINDS =
     "exec quetoo.cfg\n"
 
     // and "default" autoexec.cfg
-    "exec autoexec.cfg\n";
+    "exec autoexec.cfg\n"
+
+	// bind these last in case somebody is using a Quake 2 config
+    "bind ` cl_toggle_console\n"
+    "bind f8 cl_toggle_console\n";

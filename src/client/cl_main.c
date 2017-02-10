@@ -25,6 +25,7 @@
 
 cvar_t *cl_chat_sound;
 cvar_t *cl_draw_counters;
+cvar_t *cl_draw_position;
 cvar_t *cl_draw_net_graph;
 cvar_t *cl_editor;
 cvar_t *cl_ignore;
@@ -535,6 +536,7 @@ static void Cl_InitLocal(void) {
 	// register our variables
 	cl_chat_sound = Cvar_Add("cl_chat_sound", "misc/chat", 0, NULL);
 	cl_draw_counters = Cvar_Add("cl_draw_counters", "1", CVAR_ARCHIVE, NULL);
+	cl_draw_position = Cvar_Add("cl_draw_position", "0", CVAR_LO_ONLY, "Draw your current position to the screen");
 	cl_draw_net_graph = Cvar_Add("cl_draw_net_graph", "1", CVAR_ARCHIVE, NULL);
 	cl_editor = Cvar_Add("cl_editor", "0", CVAR_LO_ONLY, "Activate the in-game editor");
 	cl_ignore = Cvar_Add("cl_ignore", "", 0, NULL);

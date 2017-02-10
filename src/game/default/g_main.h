@@ -58,6 +58,7 @@ extern cvar_t *g_gameplay;
 extern cvar_t *g_gravity;
 extern cvar_t *g_handicap;
 extern cvar_t *g_inhibit;
+extern cvar_t *g_num_teams;
 extern cvar_t *g_match;
 extern cvar_t *g_max_entities;
 extern cvar_t *g_motd;
@@ -81,13 +82,21 @@ extern cvar_t *sv_max_clients;
 extern cvar_t *sv_hostname;
 extern cvar_t *dedicated;
 
-extern g_team_t g_team_good, g_team_evil;
+extern g_team_t g_teamlist[MAX_TEAMS];
+
+#define g_team_red (&g_teamlist[TEAM_RED])
+#define g_team_blue (&g_teamlist[TEAM_BLUE])
+#define g_team_green (&g_teamlist[TEAM_GREEN])
+#define g_team_orange (&g_teamlist[TEAM_ORANGE])
 
 void G_Init(void);
 void G_Shutdown(void);
 void G_CheckHook(void);
 void G_ResetItems(void);
 void G_ResetTeams(void);
+void G_InitNumTeams(void);
+void G_SetTeamNames(void);
+const g_team_t *G_TeamDefaults(const g_team_t *team);
 void G_ResetSpawnPoints(void);
 void G_ResetVote(void);
 void G_CallTimeOut(g_entity_t *ent);

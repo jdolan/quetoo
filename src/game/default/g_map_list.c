@@ -60,6 +60,7 @@ static GList *G_MapList_Parse(const char *filename) {
 			// setup defaults
 			map->gameplay = -1;
 			map->teams = -1;
+			map->num_teams = -1;
 			map->ctf = -1;
 			map->match = -1;
 			map->rounds = -1;
@@ -121,6 +122,11 @@ static GList *G_MapList_Parse(const char *filename) {
 
 		if (!g_strcmp0(c, "teams")) {
 			map->teams = (int32_t) strtol(ParseToken(&buffer), NULL, 0);
+			continue;
+		}
+
+		if (!g_strcmp0(c, "num_teams")) {
+			map->num_teams = (int32_t) strtol(ParseToken(&buffer), NULL, 0);
 			continue;
 		}
 

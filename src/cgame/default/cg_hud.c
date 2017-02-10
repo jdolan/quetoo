@@ -512,9 +512,8 @@ static void Cg_DrawReady(const player_state_t *ps) {
 static void Cg_DrawTeam(const player_state_t *ps) {
 	const int16_t team = ps->stats[STAT_TEAM];
 	r_pixel_t x, y;
-	int32_t color;
 
-	if (!team) {
+	if (team == -1) {
 		return;
 	}
 
@@ -522,19 +521,13 @@ static void Cg_DrawTeam(const player_state_t *ps) {
 		return;
 	}
 
-	if (team == CS_TEAM_GOOD) {
-		color = 243;
-	} else if (team == CS_TEAM_EVIL) {
-		color = 242;
-	} else {
-		cgi.Warn("Unknown team: %d\n", team);
-		return;
-	}
+	color_t color = cg_team_info[team].color;
+	color.a = 38;
 
 	x = cgi.view->viewport.x;
 	y = cgi.view->viewport.y + cgi.view->viewport.h - 64;
 
-	cgi.DrawFill(x, y, cgi.view->viewport.w, 64, color, 0.15);
+	cgi.DrawFill(x, y, cgi.view->viewport.w, 64, color.u32, -1.0);
 }
 
 /**

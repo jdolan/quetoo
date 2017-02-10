@@ -241,7 +241,6 @@ static void G_Use_f(g_entity_t *ent) {
  * @brief
  */
 static void G_Drop_f(g_entity_t *ent) {
-	g_entity_t *f;
 	const g_item_t *it;
 
 	// we don't drop in instagib or arena
@@ -256,15 +255,10 @@ static void G_Drop_f(g_entity_t *ent) {
 	const char *s = gi.Args();
 	it = NULL;
 
-	if (!g_strcmp0(s, "flag")) { // find the correct flag
-
-		f = G_FlagForTeam(G_OtherTeam(ent->client->locals.persistent.team));
-		if (f) {
-			it = f->locals.item;
-		}
-	} else
-		// or just look up the item
-	{
+	if (!g_strcmp0(s, "flag")) {
+		G_TossFlag(ent);
+		return;
+	} else { // or just look up the item
 		it = G_FindItem(s);
 	}
 
@@ -728,6 +722,7 @@ static const char *vote_cmds[] = {
 	"g_rounds",
 	"g_spawn_farthest",
 	"g_teams",
+	"g_num_teams",
 	"g_time_limit",
 	"g_hook",
 	"g_hook_style",
@@ -1059,8 +1054,7 @@ static void G_AddClientToRound(g_entity_t *ent) {
 static void G_Team_f(g_entity_t *ent) {
 
 	if ((g_level.teams || g_level.ctf) && gi.Argc() != 2) {
-		gi.ClientPrint(ent, PRINT_HIGH, "Usage: %s <%s|%s>\n", gi.Argv(0), g_team_good.name,
-		               g_team_evil.name);
+		gi.ClientPrint(ent, PRINT_HIGH, "Usage: %s <team name>\n", gi.Argv(0));
 		return;
 	}
 
@@ -1085,7 +1079,6 @@ static void G_Team_f(g_entity_t *ent) {
  * @brief
  */
 static void G_Teamname_f(g_entity_t *ent) {
-	int32_t cs;
 	g_team_t *t;
 
 	if (gi.Argc() != 2) {
@@ -1106,16 +1099,17 @@ static void G_Teamname_f(g_entity_t *ent) {
 
 	const char *s = gi.Argv(1);
 
-	if (*s != '\0') { // something valid-ish was provided
+	if (*s != '\0' &&
+		strlen(s) < MAX_TEAM_NAME &&
+		!strchr(s, '|')) { // something valid-ish was provided
 		g_strlcpy(t->name, s, sizeof(t->name));
 	} else {
-		strcpy(t->name, (t == &g_team_good ? "Good" : "Evil"));
+		strcpy(t->name, G_TeamDefaults(t)->name);
 	}
 
 	t->name_time = g_level.time;
 
-	cs = t == &g_team_good ? CS_TEAM_GOOD : CS_TEAM_EVIL;
-	gi.SetConfigString(cs, t->name);
+	G_SetTeamNames();
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s changed team_name to %s\n",
 	                  ent->client->locals.persistent.net_name, t->name);
@@ -1147,24 +1141,14 @@ static void G_Teamskin_f(g_entity_t *ent) {
 
 	const char *s = gi.Argv(1);
 
-	if (s != '\0') { // something valid-ish was provided
+	if (s != '\0' &&
+		!strchr(s, '/')) { // something valid-ish was provided
 		g_strlcpy(t->skin, s, sizeof(t->skin));
 	} else {
-		strcpy(t->skin, "qforcer");
+		strcpy(t->skin, G_TeamDefaults(t)->skin);
 	}
 
 	s = t->skin;
-
-	char *c = strchr(s, '/');
-
-	// let players use just the model name, client will find skin
-	if (!c || *c == '\0') {
-		if (c) { // null terminate for strcat
-			*c = '\0';
-		}
-
-		strncat(t->skin, "/default", sizeof(t->skin) - 1 - strlen(s));
-	}
 
 	t->skin_time = g_level.time;
 
@@ -1175,7 +1159,12 @@ static void G_Teamskin_f(g_entity_t *ent) {
 			continue;
 		}
 
-		g_strlcpy(cl->locals.persistent.skin, s, sizeof(cl->locals.persistent.skin));
+		char *skin_start = strchr(cl->locals.persistent.skin, '/');
+		*skin_start = 0;
+
+		const char *new_model = va("%s/%s", cl->locals.persistent.skin, s);
+
+		g_strlcpy(cl->locals.persistent.skin, new_model, sizeof(cl->locals.persistent.skin));
 
 		gi.SetConfigString(CS_CLIENTS + i,
 		                   va("%s\\%s", cl->locals.persistent.net_name, cl->locals.persistent.skin));
@@ -1225,7 +1214,7 @@ static void G_Unready_f(g_entity_t *ent) {
  * @brief If match is enabled, all clients must issue ready for game to start.
  */
 static void G_Ready_f(g_entity_t *ent) {
-	int32_t i, g, e, clients;
+	int32_t i, clients;
 	g_client_t *cl;
 
 	if (!g_level.match) {
@@ -1246,7 +1235,10 @@ static void G_Ready_f(g_entity_t *ent) {
 	ent->client->locals.persistent.ready = true;
 	gi.BroadcastPrint(PRINT_HIGH, "%s is ready\n", ent->client->locals.persistent.net_name);
 
-	clients = g = e = 0;
+	clients = 0;
+
+	uint8_t teams_ready[MAX_TEAMS];
+	memset(teams_ready, 0, sizeof(teams_ready));
 
 	for (i = 0; i < sv_max_clients->integer; i++) { // is everyone ready?
 		cl = g_game.clients + i;
@@ -1266,7 +1258,7 @@ static void G_Ready_f(g_entity_t *ent) {
 		clients++;
 
 		if (g_level.teams || g_level.ctf) {
-			cl->locals.persistent.team == &g_team_good ? g++ : e++;
+			teams_ready[cl->locals.persistent.team->id]++;
 		}
 	}
 
@@ -1278,13 +1270,24 @@ static void G_Ready_f(g_entity_t *ent) {
 		return;
 	}
 
-	if ((g_level.teams || g_level.ctf) && (!g || !e)) { // need at least 1 player per team
-		return;
+	if (g_level.teams || g_level.ctf) { // need at least 1 player per team
+
+		for (g_team_id_t team_id = TEAM_RED; team_id < g_level.num_teams; team_id++) {
+			if (!teams_ready[team_id]) {
+				return;
+			}
+		}
 	}
 
-	if (((int32_t) g_level.teams == 2 || (int32_t) g_level.ctf == 2) && (g != e)) { // balanced teams required
-		gi.BroadcastPrint(PRINT_HIGH, "Teams must be balanced for match to start\n");
-		return;
+	if ((int32_t) g_level.teams == 2 || (int32_t) g_level.ctf == 2) { // balanced teams required
+
+		
+		for (g_team_id_t team_id = TEAM_RED + 1; team_id < g_level.num_teams; team_id++) {
+			if (teams_ready[team_id] != teams_ready[TEAM_RED]) {
+				gi.BroadcastPrint(PRINT_HIGH, "Teams must be balanced for match to start\n");
+				return;
+			}
+		}
 	}
 
 	g_warmup_time->integer = Clamp(g_warmup_time->integer, 0, 30);
@@ -1337,8 +1340,7 @@ static void G_Spectate_f(g_entity_t *ent) {
 			if (g_auto_join->value) { // assign them to a team
 				G_AddClientToTeam(ent, G_SmallestTeam()->name);
 			} else { // or ask them to pick
-				gi.ClientPrint(ent, PRINT_HIGH, "Use team <%s|%s> to join the game\n",
-				               g_team_good.name, g_team_evil.name);
+				gi.ClientPrint(ent, PRINT_HIGH, "Use team <team name> to join the game\n");
 				return;
 			}
 		}

@@ -23,8 +23,8 @@
 
 #include "r_types.h"
 
-const r_entity_t *R_AddEntity(const r_entity_t *e);
-const r_entity_t *R_AddLinkedEntity(const r_entity_t *parent, const r_model_t *model, const char *tag_name);
+r_entity_t *R_AddEntity(const r_entity_t *e);
+r_entity_t *R_AddLinkedEntity(const r_entity_t *parent, const r_model_t *model, const char *tag_name);
 void R_SetMatrixForEntity(r_entity_t *e);
 
 #ifdef __R_LOCAL_H__

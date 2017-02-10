@@ -63,7 +63,7 @@ void G_info_player_deathmatch(g_entity_t *self) {
 }
 
 /*QUAKED info_player_team1 (0 0 1) (-16 -16 -24) (16 16 32)
- Player spawn point for blue team in teams or CTF gameplay.
+ Player spawn point for red team in teams or CTF gameplay.
 
  -------- Keys --------
  angle : The angle at which the player will face when spawned.
@@ -73,12 +73,32 @@ void G_info_player_team1(g_entity_t *self) {
 }
 
 /*QUAKED info_player_team2 (1 0 0) (-16 -16 -24) (16 16 32)
- Player spawn point for red team in teams or CTF gameplay.
+ Player spawn point for blue team in teams or CTF gameplay.
 
  -------- Keys --------
  angle : The angle at which the player will face when spawned.
 */
 void G_info_player_team2(g_entity_t *self) {
+	G_InitPlayerSpawn(self);
+}
+
+/*QUAKED info_player_team3 (1 0 0) (-16 -16 -24) (16 16 32)
+ Player spawn point for green team in teams or CTF gameplay.
+
+ -------- Keys --------
+ angle : The angle at which the player will face when spawned.
+*/
+void G_info_player_team3(g_entity_t *self) {
+	G_InitPlayerSpawn(self);
+}
+
+/*QUAKED info_player_team4 (1 0 0) (-16 -16 -24) (16 16 32)
+ Player spawn point for orange team in teams or CTF gameplay.
+
+ -------- Keys --------
+ angle : The angle at which the player will face when spawned.
+*/
+void G_info_player_team4(g_entity_t *self) {
 	G_InitPlayerSpawn(self);
 }
 

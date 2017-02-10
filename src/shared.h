@@ -196,6 +196,9 @@ char *vtos(const vec3_t v);
 #define MAX_USER_INFO_VALUE		64
 #define MAX_USER_INFO_STRING	512
 
+// max name of a team
+#define MAX_TEAM_NAME			32
+
 char *GetUserInfo(const char *s, const char *key);
 void DeleteUserInfo(char *s, const char *key);
 void SetUserInfo(char *s, const char *key, const char *value);

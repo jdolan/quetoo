@@ -179,7 +179,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 		if (area) {
 			if (sent->areas[0] && sent->areas[0] != area) {
 				if (sent->areas[1] && sent->areas[1] != area && sv.state == SV_LOADING) {
-					Com_Warn("Object touching 3 areas at %s\n", vtos(ent->abs_mins));
+					Com_Warn("%s touching 3 areas at %s\n", etos(ent), vtos(ent->abs_mins));
 				}
 				sent->areas[1] = area;
 			} else {
