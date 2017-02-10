@@ -264,7 +264,7 @@ typedef enum {
 	TRAIL_GIB,
 	TRAIL_FIREBALL,
 	TRAIL_HOOK,
-	TRAIL_SPAWN_POINT
+	TRAIL_PLAYER_SPAWN
 } g_entity_trail_t;
 
 /**
