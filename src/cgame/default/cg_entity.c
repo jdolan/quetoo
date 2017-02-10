@@ -147,28 +147,6 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 	}
 }
 
-inline void Matrix4x4_ToAngles(const matrix4x4_t *m, vec3_t angles)
-{
-    if (m->m[0][0] == 1.0f)
-    {
-        angles[YAW] = atan2f(m->m[0][2], m->m[2][3]);
-        angles[PITCH] = 0;
-        angles[ROLL] = 0;
-
-    }else if (m->m[0][0] == -1.0f)
-    {
-        angles[YAW] = atan2f(m->m[0][2], m->m[2][3]);
-        angles[PITCH] = 0;
-        angles[ROLL] = 0;
-    }else 
-    {
-
-        angles[YAW] = atan2(-m->m[2][0],m->m[0][0]);
-        angles[PITCH] = asin(m->m[1][0]);
-        angles[ROLL] = atan2(-m->m[1][2],m->m[1][1]);
-    }
-}
-
 /**
  * @brief Applies transformation and rotation for the specified linked entity. The "matrix"
  * component of the parent and child must be set up already. The child's matrix will be modified
@@ -214,8 +192,6 @@ void Cg_ApplyMeshModelTag(r_entity_t *child, const r_entity_t *parent, const cha
 	Matrix4x4_ToVectors(&world, forward, NULL, NULL, child->origin);
 
 	VectorAngles(forward, child->angles);
-
-	Matrix4x4_ToAngles(&world, child->angles);
 
 	child->scale = Matrix4x4_ScaleFromMatrix(&world);
 
