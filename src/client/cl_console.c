@@ -303,7 +303,7 @@ static void Cl_MessageMode2_f(void) {
  */
 static void Cl_Crash_f(void) {
 
-	Sys_Backtrace();
+	Sys_Backtrace("lol");
 }
 
 /**

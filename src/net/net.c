@@ -22,6 +22,7 @@
 #include <errno.h>
 
 #if defined(_WIN32)
+	#define _WINSOCK_DEPRECATED_NO_WARNINGS
 	#define ioctl ioctlsocket
 #else
 	#include <netdb.h>
@@ -48,7 +49,18 @@ int32_t Net_GetError(void) {
  * @return A printable error string for the most recent OS-level network error.
  */
 const char *Net_GetErrorString(void) {
+#if defined(_WIN32)
+	static char s[MAX_STRING_CHARS] = { 0 };
+	
+	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 
+				   NULL, Net_GetError(),
+				   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+				   s, sizeof(s), NULL);
+	
+	return s;
+#else
 	return strerror(Net_GetError());
+#endif
 }
 
 /**
