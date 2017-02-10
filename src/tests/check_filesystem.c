@@ -29,7 +29,7 @@ void setup(void) {
 
 	Mem_Init();
 
-	Fs_Init(true);
+	Fs_Init(FS_AUTO_LOAD_ARCHIVES);
 }
 
 /**

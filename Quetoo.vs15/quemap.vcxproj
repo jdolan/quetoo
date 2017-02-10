@@ -41,7 +41,7 @@
     <ClCompile Include="..\src\tools\quemap\qmat.c" />
     <ClCompile Include="..\src\tools\quemap\qvis.c" />
     <ClCompile Include="..\src\tools\quemap\qzip.c" />
-    <ClCompile Include="..\src\tools\quemap\scriplib.c" />
+    <ClCompile Include="..\src\tools\quemap\scriptlib.c" />
     <ClCompile Include="..\src\tools\quemap\textures.c" />
     <ClCompile Include="..\src\tools\quemap\threads.c" />
     <ClCompile Include="..\src\tools\quemap\tree.c" />
@@ -58,7 +58,7 @@
     <ClInclude Include="..\src\tools\quemap\qlight.h" />
     <ClInclude Include="..\src\tools\quemap\quemap.h" />
     <ClInclude Include="..\src\tools\quemap\qvis.h" />
-    <ClInclude Include="..\src\tools\quemap\scriplib.h" />
+    <ClInclude Include="..\src\tools\quemap\scriptlib.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\src\tools\quemap\quemap.ico" />
@@ -90,9 +90,12 @@
     <LibraryPath>$(QuetooFullLibraryPath);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>QUETOO_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
     <Link>
       <AdditionalDependencies>SDL2.lib;SDL2_image.lib;glib-2.0.lib;libswap.lib;libimage.lib;libmatrix.lib;libthread.lib;libcmodel.lib;libmem.lib;libfilesystem.lib;libshared.lib;libcommon.lib;libsys.lib;libnet.lib;physfs.lib;dbghelp.lib;Wldap32.lib;libxml2.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
     </Link>
     <PostBuildEvent>
       <Command>COPY_DEPENDENCIES "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)" "$(Configuration)" &amp;&amp; COPY_QUEMAP "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)"</Command>

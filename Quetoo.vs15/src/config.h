@@ -7,6 +7,7 @@
 	#define itoa _itoa
 	#define getpid _getpid
 	#define strdup _strdup
+	#define stricmp _stricmp
 #endif
 
 #ifdef _WIN64
@@ -91,3 +92,9 @@
 #undef HAVE_UNISTD_H
 
 #define REVISION "unversioned"
+
+#ifndef QUETOO_WINMAIN
+#define main quetoo_main
+#endif
+
+int quetoo_main(int argc, char **argv);

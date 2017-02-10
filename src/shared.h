@@ -171,7 +171,12 @@ void ColorDecompose3(const vec3_t in, u8vec3_t out);
 /**
  * @brief String manipulation functions.
  */
-_Bool GlobMatch(const char *pattern, const char *text);
+typedef enum {
+	GLOB_FLAGS_NONE = 0,
+	GLOB_CASE_INSENSITIVE = (1 << 0)
+} glob_flags_t;
+
+_Bool GlobMatch(const char *pattern, const char *text, const glob_flags_t flags);
 char *CommonPrefix(GList *words);
 const char *Basename(const char *path);
 void Dirname(const char *in, char *out);
@@ -211,3 +216,6 @@ color_t ColorFromHSV(const vec3_t hsv);
 
 // max length of a color string is "rrggbbaa\0" - "default" fits in here
 #define COLOR_MAX_LENGTH		9
+
+gboolean g_stri_equal (gconstpointer v1, gconstpointer v2);
+guint g_stri_hash (gconstpointer v);

@@ -9,7 +9,7 @@ noinst_HEADERS = \
 	qbsp.h \
 	qlight.h \
 	qvis.h \
-	scriplib.h
+	scriptlib.h
 
 quemap_SOURCES = \
 	brush.c \
@@ -32,7 +32,7 @@ quemap_SOURCES = \
 	qlight.c \
 	qvis.c \
 	qzip.c \
-	scriplib.c \
+	scriptlib.c \
 	textures.c \
 	threads.c \
 	tree.c \

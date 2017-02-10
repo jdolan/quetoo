@@ -648,7 +648,7 @@ char *CommonPrefix(GList *words) {
 		while (e) {
 			const char *w = (char *) e->data;
 
-			if (!c || w[i] != c) { // prefix no longer common
+			if (!c || tolower(w[i]) != tolower(c)) { // prefix no longer common
 				return common_prefix;
 			}
 
@@ -663,7 +663,7 @@ char *CommonPrefix(GList *words) {
 /**
  * @brief Handles wildcard suffixes for GlobMatch.
  */
-static _Bool GlobMatchStar(const char *pattern, const char *text) {
+static _Bool GlobMatchStar(const char *pattern, const char *text, const glob_flags_t flags) {
 	const char *p = pattern, *t = text;
 	register char c, c1;
 
@@ -683,7 +683,7 @@ static _Bool GlobMatchStar(const char *pattern, const char *text) {
 	}
 
 	while (true) {
-		if ((c == '[' || *t == c1) && GlobMatch(p - 1, t)) {
+		if ((c == '[' || *t == c1) && GlobMatch(p - 1, t, flags)) {
 			return true;
 		}
 		if (*t++ == '\0') {
@@ -712,7 +712,7 @@ static _Bool GlobMatchStar(const char *pattern, const char *text) {
  * To suppress the special syntactic significance of any of `[]*?!-\',
  * and match the character exactly, precede it with a `\'.
  */
-_Bool GlobMatch(const char *pattern, const char *text) {
+_Bool GlobMatch(const char *pattern, const char *text, const glob_flags_t flags) {
 	const char *p = pattern, *t = text;
 	register char c;
 
@@ -737,7 +737,7 @@ _Bool GlobMatch(const char *pattern, const char *text) {
 				break;
 
 			case '*':
-				return GlobMatchStar(p, t);
+				return GlobMatchStar(p, t, flags);
 
 			case '[': {
 					register char c1 = *t++;
@@ -807,8 +807,14 @@ match:
 				}
 
 			default:
-				if (c != *t++) {
-					return 0;
+				if (flags & GLOB_CASE_INSENSITIVE) {
+					if (tolower(c) != tolower(*t++)) {
+						return 0;
+					}
+				} else {
+					if (c != *t++) {
+						return 0;
+					}
 				}
 				break;
 		}
@@ -1423,4 +1429,24 @@ color_t ColorFromHSV(const vec3_t hsv) {
 
 	ColorFromVec3(color_float, &out);
 	return out;
+}
+
+/**
+ * @brief Case-insensitive version of g_str_equal
+ */
+gboolean g_stri_equal(gconstpointer v1, gconstpointer v2) {
+	return g_ascii_strcasecmp((const gchar *) v1, (const gchar *) v2) == 0;
+}
+
+/**
+ * @brief Case-insensitive version of g_str_hash
+ */
+guint g_stri_hash(gconstpointer v) {
+	guint32 h = 5381;
+
+	for (const char *p = (const char *) v; *p; p++) {
+		h = (h << 5) + h + tolower(*p);
+	}
+
+	return h;
 }
