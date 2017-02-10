@@ -309,23 +309,23 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		}
 	}
 
-	ent->leg_angles = AngleLerp(ent->leg_angles, leg_yaw_offset, 0.1);
+	ent->legs_yaw = AngleLerp(ent->legs_yaw, leg_yaw_offset, 0.1);
 
 	legs.model = ci->legs;
-	legs.angles[1] += ent->leg_angles;
+	legs.angles[1] += ent->legs_yaw;
 	legs.angles[0] = legs.angles[2] = 0.0; // legs only use yaw
 	memcpy(legs.skins, ci->legs_skins, sizeof(legs.skins));
+
+	torso.model = ci->torso;
+	VectorClear(torso.origin);
+	torso.angles[1] = -ent->legs_yaw; // legs twisted already, we just need to pitch/roll
+	memcpy(torso.skins, ci->torso_skins, sizeof(torso.skins));
 
 	head.model = ci->head;
 	VectorClear(head.origin);
 	head.angles[1] = 0.0; // legs twisted already, we just need to pitch/roll
 	// this is applied twice so head pivots on chest as well
 	memcpy(head.skins, ci->head_skins, sizeof(head.skins));
-
-	torso.model = ci->torso;
-	VectorClear(torso.origin);
-	torso.angles[1] = -ent->leg_angles; // legs twisted already, we just need to pitch/roll
-	memcpy(torso.skins, ci->torso_skins, sizeof(torso.skins));
 
 	Cg_AnimateClientEntity(ent, &torso, &legs);
 

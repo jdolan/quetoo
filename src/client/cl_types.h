@@ -80,7 +80,7 @@ typedef struct {
 	vec3_t angles; // and angles
 	vec3_t mins, maxs; // bounding box
 	vec3_t abs_mins, abs_maxs; // absolute bounding box
-	vec_t leg_angles; // only used by player models, the leg angle we're currently at
+	vec_t legs_yaw; // only used by player models, the leg angle we're currently at
 
 	cl_entity_step_t step; // the step the entity just traversed
 
