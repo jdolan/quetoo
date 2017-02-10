@@ -26,7 +26,7 @@ static r_sorted_entities_t r_sorted_entities;
 /**
  * @brief Adds an entity to the view.
  */
-const r_entity_t *R_AddEntity(const r_entity_t *ent) {
+r_entity_t *R_AddEntity(const r_entity_t *ent) {
 
 	if (r_view.num_entities == lengthof(r_view.entities)) {
 		Com_Warn("MAX_ENTITIES exceeded\n");
@@ -42,7 +42,7 @@ const r_entity_t *R_AddEntity(const r_entity_t *ent) {
 /**
  * @brief Binds a linked model to its parent, and copies it into the view structure.
  */
-const r_entity_t *R_AddLinkedEntity(const r_entity_t *parent, const r_model_t *model,
+r_entity_t *R_AddLinkedEntity(const r_entity_t *parent, const r_model_t *model,
                                     const char *tag_name) {
 
 	if (!parent) {

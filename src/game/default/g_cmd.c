@@ -255,8 +255,9 @@ static void G_Drop_f(g_entity_t *ent) {
 	const char *s = gi.Args();
 	it = NULL;
 
-	if (!g_strcmp0(s, "flag")) { // find the correct flag
-		it = G_HoldingFlagTeam(ent);
+	if (!g_strcmp0(s, "flag")) {
+		G_TossFlag(ent);
+		return;
 	} else { // or just look up the item
 		it = G_FindItem(s);
 	}

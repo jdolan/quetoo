@@ -160,7 +160,10 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		return;
 	}
 
+	const uint32_t effects = e->effects;
+
 	e->effects |= EF_CLIENT;
+	e->effects &= EF_CTF_MASK;
 
 	// don't draw ourselves unless third person is set
 	if (Cg_IsSelf(ent) && !cgi.client->third_person) {
@@ -205,7 +208,8 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 
 	if (s->model3) {
 		r_model_t *model = cgi.client->model_precache[s->model3];
-		cgi.AddLinkedEntity(head.parent, model, "tag_head");
+		r_entity_t *m3 = cgi.AddLinkedEntity(head.parent, model, "tag_head");
+		m3->effects = effects;
 	}
 
 	if (s->model4) {

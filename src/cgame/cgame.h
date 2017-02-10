@@ -585,7 +585,7 @@ typedef struct cg_import_s {
 	 * @brief Adds an entity to the scene for the current frame.
 	 * @return The added entity.
 	 */
-	const r_entity_t *(*AddEntity)(const r_entity_t *e);
+	r_entity_t *(*AddEntity)(const r_entity_t *e);
 
 	/**
 	 * @brief Adds a linked entity to the scene for the current frame.
@@ -595,7 +595,7 @@ typedef struct cg_import_s {
 	 * @return The linked entity.
 	 * @remarks The parent entity must have been previously returned by `AddEntity`.
 	 */
-	const r_entity_t *(*AddLinkedEntity)(const r_entity_t *parent, const r_model_t *model, const char *tag_name);
+	r_entity_t *(*AddLinkedEntity)(const r_entity_t *parent, const r_model_t *model, const char *tag_name);
 
 	/**
 	 * @brief Sets the model-view-projection matrix for the given entity.
