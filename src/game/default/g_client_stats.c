@@ -310,6 +310,21 @@ void G_ClientStats(g_entity_t *ent) {
 	} else {
 		client->ps.stats[STAT_QUAD_TIME] = 0;
 	}
+
+	// change-able weapons
+	client->ps.stats[STAT_WEAPONS] = 0;
+
+	if (!client->locals.persistent.spectator && !ent->locals.dead) {
+		for (int32_t i = WEAPON_NONE + 1; i <= WEAPON_TOTAL; i++) {
+			const g_item_t *weapon = g_media.items.weapons[i];
+			const g_item_t *ammo = weapon->ammo_item;
+
+			if (client->locals.inventory[weapon->index] &&
+				(!ammo || client->locals.inventory[ammo->index] >= weapon->quantity)) {
+				client->ps.stats[STAT_WEAPONS] |= 1 << (i - 1);
+			}
+		}
+	}
 }
 
 /**

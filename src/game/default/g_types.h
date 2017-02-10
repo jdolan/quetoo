@@ -124,7 +124,8 @@ typedef enum {
 	STAT_VOTE,
 	STAT_WEAPON,
 	STAT_WEAPON_ICON,
-	STAT_WEAPON_TAG
+	STAT_WEAPON_TAG,
+	STAT_WEAPONS
 } g_stat_t;
 
 /**

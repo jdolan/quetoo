@@ -477,7 +477,8 @@ typedef struct {
 #define CS_ZIP				3 // zip name for current level
 #define CS_BSP_SIZE			4 // for catching incompatible maps
 #define CS_MODELS			5 // bsp, bsp sub-models, and mesh models
-#define CS_SOUNDS			(CS_MODELS + MAX_MODELS)
+#define CS_WEAPONS			6 // weapon list, for the change weapon UI
+#define CS_SOUNDS			(CS_WEAPONS + MAX_MODELS)
 #define CS_MUSICS			(CS_SOUNDS + MAX_SOUNDS)
 #define CS_IMAGES			(CS_MUSICS + MAX_MUSICS)
 #define CS_ITEMS			(CS_IMAGES + MAX_IMAGES)
@@ -630,7 +631,15 @@ typedef struct {
 	uint32_t bounds;
 } entity_state_t;
 
-#define MAX_STATS			32
+/**
+ * @brief The max number of generic stats the server can communicate to a client.
+ */
+#define MAX_STATS			48
+
+/**
+ * @brief The number of bits a stat can hold
+ */
+#define MAX_STAT_BITS		(sizeof(int16_t) * 8)
 
 /**
  * @brief Player state structures contain authoritative snapshots of the
