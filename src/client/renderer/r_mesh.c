@@ -34,7 +34,7 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
 	const r_mesh_config_t *c;
 	if (e->effects & EF_WEAPON) {
 		c = e->model->mesh->view_config;
-	} else if (e->parent) {
+	} else if (e->effects & EF_LINKED) {
 		c = e->model->mesh->link_config;
 	} else {
 		c = e->model->mesh->world_config;
@@ -58,8 +58,12 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
 
 /**
  * @brief Returns the desired tag structure, or `NULL`.
- */
-static const r_md3_tag_t *R_GetMeshModelTag(const r_model_t *mod, int32_t frame, const char *name) {
+ * @param mod The model to check for the specified tag.
+ * @param frame The frame to fetch the tag on.
+ * @param name The name of the tag.
+ * @return The tag structure.
+*/
+const r_md3_tag_t *R_MeshModelTag(const r_model_t *mod, const char *name, const int32_t frame) {
 
 	if (frame > mod->mesh->num_frames) {
 		Com_Warn("%s: Invalid frame: %d\n", mod->media.name, frame);
@@ -77,43 +81,6 @@ static const r_md3_tag_t *R_GetMeshModelTag(const r_model_t *mod, int32_t frame,
 
 	Com_Warn("%s: Tag not found: %s\n", mod->media.name, name);
 	return NULL;
-}
-
-/**
- * @brief Applies transformation and rotation for the specified linked entity.
- */
-void R_ApplyMeshModelTag(r_entity_t *e) {
-
-	if (!e->parent || !e->parent->model || e->parent->model->type != MOD_MD3) {
-		Com_Warn("Invalid parent entity\n");
-		return;
-	}
-
-	if (!e->tag_name) {
-		Com_Warn("NULL tag_name\n");
-		return;
-	}
-
-	// interpolate the tag over the frames of the parent entity
-
-	const r_md3_tag_t *t1 = R_GetMeshModelTag(e->parent->model, e->parent->old_frame, e->tag_name);
-	const r_md3_tag_t *t2 = R_GetMeshModelTag(e->parent->model, e->parent->frame, e->tag_name);
-
-	if (!t1 || !t2) {
-		return;
-	}
-
-	matrix4x4_t local, lerped, normalized;
-
-	Matrix4x4_Concat(&local, &e->parent->matrix, &e->matrix);
-
-	Matrix4x4_Interpolate(&lerped, &t2->matrix, &t1->matrix, e->parent->back_lerp);
-	Matrix4x4_Normalize(&normalized, &lerped);
-
-	Matrix4x4_Concat(&e->matrix, &local, &normalized);
-
-	//Com_Debug("%s: %3.2f %3.2f %3.2f\n", e->tag_name,
-	//		e->matrix.m[0][3], e->matrix.m[1][3], e->matrix.m[2][3]);
 }
 
 /**

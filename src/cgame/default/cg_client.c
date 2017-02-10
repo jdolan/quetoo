@@ -358,6 +358,10 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 		frame = (frame - anim->num_frames) % anim->looped_frames;
 	}
 
+	if (a->reverse) {
+		frame = (anim->num_frames - 1) - frame;
+	}
+
 	frame = anim->first_frame + frame;
 
 	if (frame != a->frame) {

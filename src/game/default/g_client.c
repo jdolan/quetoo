@@ -97,9 +97,12 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 				msg = "%s had their intestines shredded by %s's grappling hook";
 				break;
 		}
-
+		
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
 		g_snprintf(buffer, sizeof(buffer), msg, self->client->locals.persistent.net_name,
 		           attacker->client->locals.persistent.net_name);
+#pragma clang diagnostic pop
 
 		if (friendy_fire) {
 			g_strlcat(buffer, " (^1TEAMKILL^7)", sizeof(buffer));
@@ -161,8 +164,11 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 					break;
 			}
 		}
-
+		
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
 		g_snprintf(buffer, sizeof(buffer), msg, self->client->locals.persistent.net_name);
+#pragma clang diagnostic pop
 	}
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s\n", buffer);
@@ -615,8 +621,8 @@ static void G_InitClientInventory(g_entity_t *ent) {
 		G_Give(ent, "Lightning Gun", 200);
 		G_Give(ent, "Hyperblaster", 200);
 		G_Give(ent, "Rocket Launcher", 50);
-		G_Give(ent, "Grenade Launcher", 50);
 		G_Give(ent, "Hand Grenades", 1);
+		G_Give(ent, "Grenade Launcher", 50);
 		G_Give(ent, "Machinegun", 200);
 		G_Give(ent, "Super Shotgun", 80);
 		G_Give(ent, "Shotgun", 80);
