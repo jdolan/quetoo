@@ -414,10 +414,10 @@ typedef enum {
  * @brief Armor types.
  */
 typedef enum {
+	ARMOR_SHARD,
 	ARMOR_JACKET,
 	ARMOR_COMBAT,
 	ARMOR_BODY,
-	ARMOR_SHARD,
 
 	ARMOR_TOTAL
 } g_armor_t;
