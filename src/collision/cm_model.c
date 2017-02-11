@@ -369,7 +369,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	// load the common BSP structure and the lumps we need
 	bsp_header_t *file;
 
-	if (!Fs_Load(name, (void **) &file)) {
+	if (Fs_Load(name, (void **) &file) == -1) {
 		Com_Error(ERROR_DROP, "Couldn't load %s\n", name);
 	}
 

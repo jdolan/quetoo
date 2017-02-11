@@ -276,7 +276,7 @@ int32_t LoadBSPFile(const char *bsp_name, const bsp_lump_id_t lumps) {
 
 	bsp_header_t *file;
 
-	if (!Fs_Load(bsp_name, (void **) &file)) {
+	if (Fs_Load(bsp_name, (void **) &file) == -1) {
 		Com_Error(ERROR_FATAL, "Invalid BSP file at %s\n", bsp_name);
 	}
 
