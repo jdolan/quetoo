@@ -19,8 +19,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <SDL2/SDL_opengl.h>
+
 #include "cm_local.h"
-#include <GL/gl.h>
 
 /**
  * @brief Free the memory for the specified material. This does not free the whole
