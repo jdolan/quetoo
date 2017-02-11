@@ -310,102 +310,6 @@ static void G_Drop_f(g_entity_t *ent) {
 /**
  * @brief
  */
-static void G_WeaponPrevious_f(g_entity_t *ent) {
-
-	g_client_t *cl = ent->client;
-
-	if (cl->locals.persistent.spectator) {
-
-		if (cl->locals.chase_target) { // chase the previous player
-			G_ClientChasePrevious(ent);
-		}
-
-		return;
-	}
-
-	if (!cl->locals.weapon) {
-		return;
-	}
-
-	const uint16_t selected_weapon = cl->locals.weapon->index;
-
-	// scan for the next valid one
-	for (int32_t i = 1; i <= MAX_ITEMS; i++) {
-		const uint16_t index = (selected_weapon + MAX_ITEMS - i) % MAX_ITEMS;
-
-		if (!cl->locals.inventory[index]) {
-			continue;
-		}
-
-		const g_item_t *it = G_ItemByIndex(index);
-
-		if (!it->Use) {
-			continue;
-		}
-
-		if (it->type != ITEM_WEAPON) {
-			continue;
-		}
-
-		it->Use(ent, it);
-
-		if (cl->locals.next_weapon == it) {
-			return; // successful
-		}
-	}
-}
-
-/**
- * @brief
- */
-static void G_WeaponNext_f(g_entity_t *ent) {
-
-	g_client_t *cl = ent->client;
-
-	if (cl->locals.persistent.spectator) {
-
-		if (cl->locals.chase_target) { // chase the next player
-			G_ClientChaseNext(ent);
-		}
-
-		return;
-	}
-
-	if (!cl->locals.weapon) {
-		return;
-	}
-
-	const uint16_t selected_weapon = cl->locals.weapon->index;
-
-	// scan for the next valid one
-	for (int32_t i = 1; i <= MAX_ITEMS; i++) {
-		const uint16_t index = (selected_weapon + i) % MAX_ITEMS;
-
-		if (!cl->locals.inventory[index]) {
-			continue;
-		}
-
-		const g_item_t *it = G_ItemByIndex(index);
-
-		if (!it->Use) {
-			continue;
-		}
-
-		if (it->type != ITEM_WEAPON) {
-			continue;
-		}
-
-		it->Use(ent, it);
-
-		if (cl->locals.next_weapon == it) {
-			return; // successful
-		}
-	}
-}
-
-/**
- * @brief
- */
 static void G_WeaponLast_f(g_entity_t *ent) {
 
 	g_client_t *cl = ent->client;
@@ -1507,10 +1411,6 @@ void G_ClientCommand(g_entity_t *ent) {
 		G_NoClip_f(ent);
 	} else if (g_strcmp0(cmd, "wave") == 0) {
 		G_Wave_f(ent);
-	} else if (g_strcmp0(cmd, "weapon_previous") == 0) {
-		G_WeaponPrevious_f(ent);
-	} else if (g_strcmp0(cmd, "weapon_next") == 0) {
-		G_WeaponNext_f(ent);
 	} else if (g_strcmp0(cmd, "weapon_last") == 0) {
 		G_WeaponLast_f(ent);
 	} else if (g_strcmp0(cmd, "kill") == 0) {
