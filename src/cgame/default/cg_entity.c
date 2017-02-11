@@ -286,28 +286,32 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	// copy the specified entity to all body segments
 	head = torso = legs = *e;
 
-	vec3_t right;
-	AngleVectors(legs.angles, NULL, right, NULL);
-
-	vec3_t move_dir;
-	VectorSubtract(ent->prev.origin, ent->current.origin, move_dir);
-	move_dir[2] = 0.0; // don't care about z, just x/y
-
 	vec_t leg_yaw_offset = 0.0;
 
-	if (ent->animation2.animation < ANIM_LEGS_SWIM) {
-		if (VectorLength(move_dir) > CLIENT_LEGS_SPEED_EPSILON) {
-			VectorNormalize(move_dir);
-			leg_yaw_offset = DotProduct(move_dir, right) * CLIENT_LEGS_YAW_MAX;
+	if ((ent->current.effects & EF_CORPSE) == 0) {
+		vec3_t right;
+		AngleVectors(legs.angles, NULL, right, NULL);
 
-			if (ent->animation2.animation == ANIM_LEGS_BACK ||
-				ent->animation2.reverse) {
-				leg_yaw_offset = -leg_yaw_offset;
+		vec3_t move_dir;
+		VectorSubtract(ent->prev.origin, ent->current.origin, move_dir);
+		move_dir[2] = 0.0; // don't care about z, just x/y
+
+		if (ent->animation2.animation < ANIM_LEGS_SWIM) {
+			if (VectorLength(move_dir) > CLIENT_LEGS_SPEED_EPSILON) {
+				VectorNormalize(move_dir);
+				leg_yaw_offset = DotProduct(move_dir, right) * CLIENT_LEGS_YAW_MAX;
+
+				if (ent->animation2.animation == ANIM_LEGS_BACK ||
+					ent->animation2.reverse) {
+					leg_yaw_offset = -leg_yaw_offset;
+				}
 			}
 		}
-	}
 
-	ent->legs_yaw = AngleLerp(ent->legs_yaw, leg_yaw_offset, CLIENT_LEGS_YAW_LERP_SPEED);
+		ent->legs_yaw = AngleLerp(ent->legs_yaw, leg_yaw_offset, CLIENT_LEGS_YAW_LERP_SPEED);
+	} else {
+		ent->legs_yaw = 0.0;
+	}
 
 	legs.model = ci->legs;
 	legs.angles[1] += ent->legs_yaw;
