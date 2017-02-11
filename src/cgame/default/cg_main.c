@@ -207,8 +207,6 @@ static void Cg_Init(void) {
 	cgi.Cmd("give", NULL, CMD_CGAME, NULL);
 	cgi.Cmd("god", NULL, CMD_CGAME, NULL);
 	cgi.Cmd("no_clip", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("weapon_next", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("weapon_previous", NULL, CMD_CGAME, NULL);
 	cgi.Cmd("weapon_last", NULL, CMD_CGAME, NULL);
 	cgi.Cmd("vote", NULL, CMD_CGAME, NULL);
 	cgi.Cmd("team", NULL, CMD_CGAME, NULL);
@@ -223,6 +221,8 @@ static void Cg_Init(void) {
 	cgi.Cmd("baselines", NULL, CMD_CGAME, NULL);
 
 	Cg_InitUi();
+
+	Cg_InitHud();
 
 	cgi.Print("  ^6Client game module initialized\n");
 }
@@ -316,6 +316,7 @@ static void Cg_ResolveTeamInfo(const char *s) {
 	const size_t info_count = g_strv_length(info);
 
 	if (info_count != lengthof(cg_team_info) * 2) {
+		g_strfreev(info);
 		cgi.Error("Invalid team data");
 	}
 
@@ -331,6 +332,8 @@ static void Cg_ResolveTeamInfo(const char *s) {
 			1.0
 		});
 	}
+
+	g_strfreev(info);
 }
 
 /**
@@ -350,6 +353,9 @@ static void Cg_UpdateConfigString(uint16_t i) {
 			return;
 		case CS_TEAM_INFO:
 			Cg_ResolveTeamInfo(s);
+			return;
+		case CS_WEAPONS:
+			Cg_ParseWeaponInfo(s);
 			return;
 		default:
 			break;

@@ -211,10 +211,10 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 	}
 
 	// split info into tokens
-	gchar **info = g_strsplit(s, "\\", MAX_CLIENT_INFO_ENTRIES);
+	gchar **info = g_strsplit(s, "\\", 0);
 	const size_t num_info = g_strv_length(info);
 
-	if (!num_info) { // invalid info
+	if (!num_info || num_info > MAX_CLIENT_INFO_ENTRIES) { // invalid info
 		Cg_LoadClient(ci, DEFAULT_CLIENT_INFO);
 	} else {
 

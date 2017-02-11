@@ -124,7 +124,8 @@ typedef enum {
 	STAT_VOTE,
 	STAT_WEAPON,
 	STAT_WEAPON_ICON,
-	STAT_WEAPON_TAG
+	STAT_WEAPON_TAG, // low 8 bits = current weapon, high 8 bits = switching
+	STAT_WEAPONS
 } g_stat_t;
 
 /**
@@ -133,7 +134,8 @@ typedef enum {
 #define STAT_TOGGLE_BIT		0x4000
 
 /**
- * @brief Weapon tags to inform the client game which weapon the player wields.
+ * @brief Weapon tags to inform the client game which weapon the player wields and
+ * the order of the weapon switcher.
  */
 typedef enum {
 	WEAPON_NONE,
@@ -142,8 +144,8 @@ typedef enum {
 	WEAPON_SHOTGUN,
 	WEAPON_SUPER_SHOTGUN,
 	WEAPON_MACHINEGUN,
-	WEAPON_GRENADE_LAUNCHER,
 	WEAPON_HAND_GRENADE,
+	WEAPON_GRENADE_LAUNCHER,
 	WEAPON_ROCKET_LAUNCHER,
 	WEAPON_HYPERBLASTER,
 	WEAPON_LIGHTNING,

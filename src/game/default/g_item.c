@@ -2140,6 +2140,26 @@ const g_item_t *G_ItemByIndex(uint16_t index) {
 }
 
 /**
+ * @brief Called to set up the special string for weapons usable by the player.
+ */
+static void G_InitWeapons(void) {
+	char weapon_info[MAX_STRING_CHARS] = { '\0' };
+
+	for (int32_t t = WEAPON_NONE + 1; t < WEAPON_TOTAL; t++) {
+
+		if (t != WEAPON_NONE + 1) {
+			strcat(weapon_info, "\\");
+		}
+
+		const g_item_t *weapon = g_media.items.weapons[t];
+		
+		strcat(weapon_info, va("%i\\%i", weapon->icon_index, weapon->index));
+	}
+
+	gi.SetConfigString(CS_WEAPONS, weapon_info);
+}
+
+/**
  * @brief Called to set up a specific item in the item list. This might be called
  * during item spawning (since bmodels have to spawn before any modelindex calls
  * can safely be made) but will be called for every other item once that is done.
@@ -2210,4 +2230,6 @@ void G_InitItems(void) {
 			G_PrecacheItem(item);
 		}
 	}
+
+	G_InitWeapons();
 }

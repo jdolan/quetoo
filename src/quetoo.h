@@ -421,17 +421,19 @@ typedef struct {
  * When a key event issues a button command (+forward, +attack, etc), it appends
  * its key number as a parameter to the command so it can be matched up with
  * the release.
- *
- * state bit 0 is the current state of the key
- * state bit 1 is edge triggered on the up to down transition
- * state bit 2 is edge triggered on the down to up transition
  */
+
+typedef enum {
+	BUTTON_STATE_HELD	= (1 << 0),
+	BUTTON_STATE_DOWN	= (1 << 1),
+	BUTTON_STATE_UP		= (1 << 2)
+} button_state_t;
 
 typedef struct {
 	uint32_t keys[2]; // keys holding it down
 	uint32_t down_time; // msec timestamp
 	uint32_t msec; // msec down this frame
-	byte state;
+	button_state_t state;
 } button_t;
 
 /**
@@ -476,7 +478,9 @@ typedef struct {
 #define CS_WEATHER			2 // the weather string
 #define CS_ZIP				3 // zip name for current level
 #define CS_BSP_SIZE			4 // for catching incompatible maps
-#define CS_MODELS			5 // bsp, bsp sub-models, and mesh models
+#define CS_WEAPONS			5 // weapon list, for the change weapon UI
+
+#define CS_MODELS			6 // bsp, bsp sub-models, and mesh models
 #define CS_SOUNDS			(CS_MODELS + MAX_MODELS)
 #define CS_MUSICS			(CS_SOUNDS + MAX_SOUNDS)
 #define CS_IMAGES			(CS_MUSICS + MAX_MUSICS)
@@ -641,7 +645,15 @@ typedef struct {
 	uint32_t bounds;
 } entity_state_t;
 
-#define MAX_STATS			32
+/**
+ * @brief The max number of generic stats the server can communicate to a client.
+ */
+#define MAX_STATS			48
+
+/**
+ * @brief The number of bits a stat can hold
+ */
+#define MAX_STAT_BITS		(sizeof(int16_t) * 8)
 
 /**
  * @brief Player state structures contain authoritative snapshots of the

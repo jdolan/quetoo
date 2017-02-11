@@ -295,6 +295,7 @@ void G_ClientStats(g_entity_t *ent) {
 
 	// weapon
 	const g_item_t *weapon = client->locals.weapon;
+
 	if (weapon) {
 		client->ps.stats[STAT_WEAPON] = client->locals.weapon->model_index;
 		client->ps.stats[STAT_WEAPON_ICON] = weapon->icon_index;
@@ -305,10 +306,29 @@ void G_ClientStats(g_entity_t *ent) {
 		client->ps.stats[STAT_WEAPON_TAG] = 0;
 	}
 
+	if (client->locals.next_weapon) {
+		client->ps.stats[STAT_WEAPON_TAG] |= (client->locals.next_weapon->tag << 8);
+	}
+
 	if (g_level.time <= client->locals.quad_damage_time) {
 		client->ps.stats[STAT_QUAD_TIME] = ceil((client->locals.quad_damage_time - g_level.time) / 1000.0);
 	} else {
 		client->ps.stats[STAT_QUAD_TIME] = 0;
+	}
+
+	// change-able weapons
+	client->ps.stats[STAT_WEAPONS] = 0;
+
+	if (!client->locals.persistent.spectator && !ent->locals.dead) {
+		for (int32_t i = WEAPON_NONE + 1; i < WEAPON_TOTAL; i++) {
+			const g_item_t *weapon = g_media.items.weapons[i];
+			const g_item_t *ammo = weapon->ammo_item;
+
+			if (client->locals.inventory[weapon->index] &&
+				(!ammo || client->locals.inventory[ammo->index] >= weapon->quantity)) {
+				client->ps.stats[STAT_WEAPONS] |= 1 << (i - 1);
+			}
+		}
 	}
 }
 
