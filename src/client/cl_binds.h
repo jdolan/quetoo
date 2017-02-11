@@ -54,8 +54,8 @@ static const char *DEFAULT_BINDS =
     "bind \"mouse 1\" +attack\n"
     "bind \"mouse 2\" +hook\n"
     "bind \"mouse 3\" +move_up\n"
-    "bind \"mouse wheel up\" weapon_next\n"
-    "bind \"mouse wheel down\" weapon_previous\n"
+    "bind \"mouse wheel up\" cg_weapon_previous\n"
+    "bind \"mouse wheel down\" cg_weapon_next\n"
 
     // demo playback rate
     "bind , slow_motion\n"

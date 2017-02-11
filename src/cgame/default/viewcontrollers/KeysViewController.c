@@ -104,8 +104,8 @@ static void loadView(ViewController *self) {
 
 			Cg_BindInput((View *) stackView, "Attack", "+attack");
 			Cg_BindInput((View *) stackView, "Grapple Hook", "+hook");
-			Cg_BindInput((View *) stackView, "Next weapon", "weapon_next");
-			Cg_BindInput((View *) stackView, "Previous weapon", "weapon_previous");
+			Cg_BindInput((View *) stackView, "Next weapon", "cg_weapon_next");
+			Cg_BindInput((View *) stackView, "Previous weapon", "cg_weapon_previous");
 			Cg_BindInput((View *) stackView, "Zoom", "+ZOOM");
 
 			Cg_BindInput((View *) stackView, "Blaster", "use blaster");

@@ -73,7 +73,7 @@ void Cl_KeyDown(button_t *b) {
 		return;
 	}
 
-	if (b->state & 1) {
+	if (b->state & BUTTON_STATE_HELD) {
 		return; // still down
 	}
 
@@ -81,7 +81,7 @@ void Cl_KeyDown(button_t *b) {
 	b->down_time = (uint32_t) strtoul(Cmd_Argv(2), NULL, 0) ? : cl.unclamped_time;
 
 	// and indicate that the key is down
-	b->state |= 1;
+	b->state |= (BUTTON_STATE_HELD | BUTTON_STATE_DOWN);
 }
 
 /**
@@ -108,7 +108,7 @@ void Cl_KeyUp(button_t *b) {
 		return; // some other key is still holding it down
 	}
 
-	if (!(b->state & 1)) {
+	if (!(b->state & BUTTON_STATE_HELD)) {
 		return; // still up (this should not happen)
 	}
 
@@ -121,7 +121,7 @@ void Cl_KeyUp(button_t *b) {
 		b->msec += 10;
 	}
 
-	b->state &= ~1; // now up
+	b->state &= ~(BUTTON_STATE_HELD | BUTTON_STATE_DOWN); // now up
 }
 
 static void Cl_Up_down_f(void) {

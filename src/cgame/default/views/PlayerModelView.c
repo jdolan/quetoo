@@ -274,6 +274,8 @@ static void animate(PlayerModelView *self) {
 	VectorClear(self->head.angles);
 	VectorClear(self->weapon.angles);
 
+	self->legs.scale = self->torso.scale = self->head.scale = self->weapon.scale = 1.0;
+
 	Matrix4x4_CreateFromEntity(&self->legs.matrix, self->legs.origin, self->legs.angles, self->legs.scale);
 	Matrix4x4_CreateFromEntity(&self->torso.matrix, self->torso.origin, self->torso.angles, self->torso.scale);
 	Matrix4x4_CreateFromEntity(&self->head.matrix, self->head.origin, self->head.angles, self->head.scale);

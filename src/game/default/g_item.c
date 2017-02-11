@@ -2153,7 +2153,7 @@ static void G_InitWeapons(void) {
 
 		const g_item_t *weapon = g_media.items.weapons[t];
 		
-		strcat(weapon_info, va("%i", weapon->icon_index));
+		strcat(weapon_info, va("%i\\%i", weapon->icon_index, weapon->index));
 	}
 
 	gi.SetConfigString(CS_WEAPONS, weapon_info);

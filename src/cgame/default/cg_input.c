@@ -22,11 +22,7 @@
 #include "cg_local.h"
 #include "game/default/bg_pmove.h"
 
-static button_t cg_buttons[4];
-#define in_speed cg_buttons[0]
-#define in_attack cg_buttons[1]
-#define in_hook cg_buttons[2]
-#define in_score cg_buttons[3]
+button_t cg_buttons[4];
 
 static cvar_t *cg_run;
 
@@ -113,7 +109,7 @@ static void Cg_WeaponKick(const pm_cmd_t *cmd) {
 
 		vec_t degrees, interval = 64.0;
 
-		switch (ps->stats[STAT_WEAPON_TAG]) {
+		switch (ps->stats[STAT_WEAPON_TAG] & 0xFF) {
 			case WEAPON_BLASTER:
 				degrees = 1.0;
 				break;
@@ -180,27 +176,28 @@ void Cg_Look(pm_cmd_t *cmd) {
  */
 void Cg_Move(pm_cmd_t *cmd) {
 
-	if (in_attack.state & 3) {
-		cmd->buttons |= BUTTON_ATTACK;
+	if (in_attack.state & (BUTTON_STATE_HELD | BUTTON_STATE_DOWN)) {
+		if (!((in_attack.state & BUTTON_STATE_DOWN) && Cg_AttemptWeaponSwitch(&cgi.client->frame.ps))) {
+			cmd->buttons |= BUTTON_ATTACK;
+		}
 	}
 
-	if (in_hook.state & 3) {
+	if (in_hook.state & (BUTTON_STATE_HELD | BUTTON_STATE_DOWN)) {
 		cmd->buttons |= BUTTON_HOOK;
 	}
 
-	if (in_score.state & 3) {
+	if (in_score.state & (BUTTON_STATE_HELD | BUTTON_STATE_DOWN)) {
 		cmd->buttons |= BUTTON_SCORE;
 	}
 
-	in_attack.state &= ~2;
-	in_hook.state &= ~2;
+	in_attack.state &= ~BUTTON_STATE_DOWN;
 
 	if (cg_run->value) {
-		if (in_speed.state & 1) {
+		if (in_speed.state & BUTTON_STATE_HELD) {
 			cmd->buttons |= BUTTON_WALK;
 		}
 	} else {
-		if (!(in_speed.state & 1)) {
+		if (!(in_speed.state & BUTTON_STATE_HELD)) {
 			cmd->buttons |= BUTTON_WALK;
 		}
 	}

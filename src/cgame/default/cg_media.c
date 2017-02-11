@@ -262,5 +262,7 @@ void Cg_UpdateMedia(void) {
 
 	Cg_LoadClients();
 
+	Cg_LoadHudMedia();
+
 	cgi.Debug("Complete\n");
 }
