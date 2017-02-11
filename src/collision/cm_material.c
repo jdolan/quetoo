@@ -43,6 +43,195 @@ void Cm_FreeMaterialList(cm_material_t **materials) {
 /**
  * @brief
  */
+static uint32_t Cm_ParseContents(const char *c) {
+	uint32_t contents = 0;
+
+	if (strstr(c, "window")) {
+		contents |= CONTENTS_WINDOW;
+	}
+
+	if (strstr(c, "lava")) {
+		contents |= CONTENTS_LAVA;
+	}
+
+	if (strstr(c, "slime")) {
+		contents |= CONTENTS_SLIME;
+	}
+
+	if (strstr(c, "water")) {
+		contents |= CONTENTS_WATER;
+	}
+
+	if (strstr(c, "mist")) {
+		contents |= CONTENTS_MIST;
+	}
+
+	if (strstr(c, "detail")) {
+		contents |= CONTENTS_DETAIL;
+	}
+
+	if (strstr(c, "ladder")) {
+		contents |= CONTENTS_LADDER;
+	}
+
+	return contents;
+}
+
+/**
+ * @brief
+ */
+static char *Cm_UnparseContents(uint32_t contents) {
+	static char s[MAX_STRING_CHARS] = "";
+
+	if (contents & CONTENTS_WINDOW) {
+		g_strlcat(s, "window ", sizeof(s));
+	}
+
+	if (contents & CONTENTS_LAVA) {
+		g_strlcat(s, "lava ", sizeof(s));
+	}
+
+	if (contents & CONTENTS_SLIME) {
+		g_strlcat(s, "slime ", sizeof(s));
+	}
+
+	if (contents & CONTENTS_WATER) {
+		g_strlcat(s, "water ", sizeof(s));
+	}
+
+	if (contents & CONTENTS_MIST) {
+		g_strlcat(s, "mist ", sizeof(s));
+	}
+
+	if (contents & CONTENTS_DETAIL) {
+		g_strlcat(s, "detail ", sizeof(s));
+	}
+
+	if (contents & CONTENTS_LADDER) {
+		g_strlcat(s, "ladder ", sizeof(s));
+	}
+
+	return g_strchomp(s);
+}
+
+/**
+ * @brief
+ */
+static uint32_t Cm_ParseSurface(const char *c) {
+
+	int surface = 0;
+
+	if (strstr(c, "light")) {
+		surface |= SURF_LIGHT;
+	}
+
+	if (strstr(c, "slick")) {
+		surface |= SURF_SLICK;
+	}
+
+	if (strstr(c, "sky")) {
+		surface |= SURF_SKY;
+	}
+
+	if (strstr(c, "warp")) {
+		surface |= SURF_WARP;
+	}
+
+	if (strstr(c, "blend_33")) {
+		surface |= SURF_BLEND_33;
+	}
+
+	if (strstr(c, "blend_66")) {
+		surface |= SURF_BLEND_66;
+	}
+
+	if (strstr(c, "no_draw")) {
+		surface |= SURF_NO_DRAW;
+	}
+
+	if (strstr(c, "hint")) {
+		surface |= SURF_HINT;
+	}
+
+	if (strstr(c, "skip")) {
+		surface |= SURF_SKIP;
+	}
+
+	if (strstr(c, "alpha_test")) {
+		surface |= SURF_ALPHA_TEST;
+	}
+
+	if (strstr(c, "phong")) {
+		surface |= SURF_PHONG;
+	}
+
+	if (strstr(c, "material")) {
+		surface |= SURF_MATERIAL;
+	}
+
+	return surface;
+}
+
+/**
+ * @brief
+ */
+static char *Cm_UnparseSurface(uint32_t surface) {
+	static char s[MAX_STRING_CHARS] = "";
+
+	if (surface & SURF_LIGHT) {
+		g_strlcat(s, "light ", sizeof(s));
+	}
+
+	if (surface & SURF_SLICK) {
+		g_strlcat(s, "slick ", sizeof(s));
+	}
+
+	if (surface & SURF_SKY) {
+		g_strlcat(s, "sky ", sizeof(s));
+	}
+
+	if (surface & SURF_WARP) {
+		g_strlcat(s, "warp ", sizeof(s));
+	}
+
+	if (surface & SURF_BLEND_33) {
+		g_strlcat(s, "blend_33 ", sizeof(s));
+	}
+
+	if (surface & SURF_BLEND_66) {
+		g_strlcat(s, "blend_66 ", sizeof(s));
+	}
+
+	if (surface & SURF_NO_DRAW) {
+		g_strlcat(s, "no_draw ", sizeof(s));
+	}
+
+	if (surface & SURF_HINT) {
+		g_strlcat(s, "hint ", sizeof(s));
+	}
+
+	if (surface & SURF_SKIP) {
+		g_strlcat(s, "skip ", sizeof(s));
+	}
+
+	if (surface & SURF_ALPHA_TEST) {
+		g_strlcat(s, "alpha_test ", sizeof(s));
+	}
+
+	if (surface & SURF_PHONG) {
+		g_strlcat(s, "phong ", sizeof(s));
+	}
+
+	if (surface & SURF_MATERIAL) {
+		g_strlcat(s, "material ", sizeof(s));
+	}
+
+	return g_strchomp(s);
+}
+
+/**
+ * @brief
+ */
 static inline GLenum Cm_BlendConstByName(const char *c) {
 
 	if (!g_strcmp0(c, "GL_ONE")) {
@@ -574,6 +763,16 @@ cm_material_t **Cm_LoadMaterials(const char *path, size_t *count) {
 			}
 		}
 
+		if (!g_strcmp0(c, "contents")) {
+			const char *contents = ParseToken(&buffer);
+			m->contents = Cm_ParseContents(contents);
+		}
+
+		if (!g_strcmp0(c, "surface")) {
+			const char *surface = ParseToken(&buffer);
+			m->surface = Cm_ParseSurface(surface);
+		}
+
 		if (!g_strcmp0(c, "footsteps")) {
 			const char *footsteps = ParseToken(&buffer);
 			g_strlcpy(m->footsteps, footsteps, sizeof(m->footsteps));
@@ -691,7 +890,7 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 /**
  * @brief Serialize the given material.
  */
-static void Cm_WriteMaterial_(const cm_material_t *material, file_t *file) {
+static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 	Fs_Print(file, "{\n");
 
 	// write the innards
@@ -717,6 +916,14 @@ static void Cm_WriteMaterial_(const cm_material_t *material, file_t *file) {
 		Fs_Print(file, "\tspecular %g\n", material->specular);
 	}
 
+	if (material->contents) {
+		Fs_Print(file, "\tcontents \"%s\"\n", Cm_UnparseContents(material->contents));
+	}
+
+	if (material->surface) {
+		Fs_Print(file, "\tsurface \"%s\"\n", Cm_UnparseSurface(material->surface));
+	}
+
 	// if not empty/default, write footsteps
 	if (*material->footsteps && g_strcmp0(material->footsteps, "default")) {
 		Fs_Print(file, "\tfootsteps %s\n", material->footsteps);
@@ -737,7 +944,7 @@ void Cm_WriteMaterials(const char *filename, const cm_material_t **materials, co
 	file_t *file = Fs_OpenWrite(filename);
 
 	for (size_t i = 0; i < num_materials; i++) {
-		Cm_WriteMaterial_(materials[i], file);
+		Cm_WriteMaterial(materials[i], file);
 	}
 
 	Fs_Close(file);

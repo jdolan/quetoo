@@ -154,6 +154,16 @@ typedef struct cm_material_s {
 	cm_material_flags_t flags;
 
 	/**
+	 * @brief Contents flags applied to brush sides referencing this material.
+	 */
+	uint32_t contents;
+
+	/**
+	 * @brief Surface flags applied to surfaces referencing this material.
+	 */
+	uint32_t surface;
+
+	/**
 	 * @brief The bump factor to use for the normal map.
 	 */
 	vec_t bump;
