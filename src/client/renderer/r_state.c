@@ -76,7 +76,7 @@ void R_GetError_(const char *function, const char *msg) {
 
 #ifndef _MSC_VER
 		if (r_get_error->integer >= 2) {
-			Sys_Backtrace();
+			Sys_Backtrace(msg);
 		}
 #endif
 	}

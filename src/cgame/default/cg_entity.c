@@ -148,6 +148,108 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 }
 
 /**
+ * @brief Applies transformation and rotation for the specified linked entity. The "matrix"
+ * component of the parent and child must be set up already. The child's matrix will be modified
+ * by this function and is used instead of origin/angles/scale.
+ */
+void Cg_ApplyMeshModelTag(r_entity_t *child, const r_entity_t *parent, const char *tag_name) {
+
+	if (!parent || !parent->model || parent->model->type != MOD_MD3) {
+		cgi.Warn("Invalid parent entity\n");
+		return;
+	}
+
+	if (!tag_name || !*tag_name) {
+		cgi.Warn("NULL tag_name\n");
+		return;
+	}
+
+	// interpolate the tag over the frames of the parent entity
+
+	const r_md3_tag_t *t1 = cgi.MeshModelTag(parent->model, tag_name, parent->old_frame);
+	const r_md3_tag_t *t2 = cgi.MeshModelTag(parent->model, tag_name, parent->frame);
+
+	if (!t1 || !t2) {
+		return;
+	}
+
+	matrix4x4_t local, world;
+
+	Matrix4x4_Interpolate(&local, &t2->matrix, &t1->matrix, parent->back_lerp);
+	Matrix4x4_Normalize(&local, &local);
+
+	// add local origins to the local offset
+	Matrix4x4_Concat(&local, &local, &child->matrix);
+
+	// move by parent matrix
+	Matrix4x4_Concat(&world, &parent->matrix, &local);
+
+	child->effects |= EF_LINKED;
+
+	// calculate final origin/angles
+	vec3_t forward;
+
+	Matrix4x4_ToVectors(&world, forward, NULL, NULL, child->origin);
+
+	VectorAngles(forward, child->angles);
+
+	child->scale = Matrix4x4_ScaleFromMatrix(&world);
+
+	// copy matrix over to child
+	Matrix4x4_Copy(&child->matrix, &world);
+}
+
+/**
+ * @brief Binds a linked model to its parent, and copies it into the view structure.
+ */
+r_entity_t *Cg_AddLinkedEntity(const r_entity_t *parent, const r_model_t *model,
+                                    const char *tag_name) {
+
+	if (!parent) {
+		cgi.Warn("NULL parent\n");
+		return NULL;
+	}
+
+	r_entity_t ent = *parent;
+
+	VectorClear(ent.origin);
+	VectorClear(ent.angles);
+
+	ent.model = model;
+
+	memset(ent.skins, 0, sizeof(ent.skins));
+	ent.num_skins = 0;
+
+	ent.frame = ent.old_frame = 0;
+
+	ent.lerp = 1.0;
+	ent.back_lerp = 0.0;
+
+	r_entity_t *r_ent = cgi.AddEntity(&ent);
+
+	Matrix4x4_CreateFromEntity(&r_ent->matrix, r_ent->origin, r_ent->angles, r_ent->scale);
+
+	Cg_ApplyMeshModelTag(r_ent, parent, tag_name);
+
+	return r_ent;
+}
+
+/**
+ * @brief The min velocity we should apply leg rotation on.
+ */
+#define CLIENT_LEGS_SPEED_EPSILON		0.5
+
+/**
+ * @brief The max yaw that we'll rotate the legs by when moving left/right.
+ */
+#define CLIENT_LEGS_YAW_MAX				65.0
+
+/**
+ * @brief The speed (0 to 1) that the legs will catch up to the current leg yaw.
+ */
+#define CLIENT_LEGS_YAW_LERP_SPEED		0.1
+
+/**
  * @brief Adds the numerous render entities which comprise a given client (player)
  * entity: head, torso, legs, weapon, flags, etc.
  */
@@ -184,28 +286,65 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	// copy the specified entity to all body segments
 	head = torso = legs = *e;
 
-	head.model = ci->head;
-	memcpy(head.skins, ci->head_skins, sizeof(head.skins));
+	vec_t leg_yaw_offset = 0.0;
 
-	torso.model = ci->torso;
-	memcpy(torso.skins, ci->torso_skins, sizeof(torso.skins));
+	if ((ent->current.effects & EF_CORPSE) == 0) {
+		vec3_t right;
+		AngleVectors(legs.angles, NULL, right, NULL);
+
+		vec3_t move_dir;
+		VectorSubtract(ent->prev.origin, ent->current.origin, move_dir);
+		move_dir[2] = 0.0; // don't care about z, just x/y
+
+		if (ent->animation2.animation < ANIM_LEGS_SWIM) {
+			if (VectorLength(move_dir) > CLIENT_LEGS_SPEED_EPSILON) {
+				VectorNormalize(move_dir);
+				leg_yaw_offset = DotProduct(move_dir, right) * CLIENT_LEGS_YAW_MAX;
+
+				if (ent->animation2.animation == ANIM_LEGS_BACK ||
+					ent->animation2.reverse) {
+					leg_yaw_offset = -leg_yaw_offset;
+				}
+			}
+		}
+
+		ent->legs_yaw = AngleLerp(ent->legs_yaw, leg_yaw_offset, CLIENT_LEGS_YAW_LERP_SPEED);
+	} else {
+		ent->legs_yaw = 0.0;
+	}
 
 	legs.model = ci->legs;
+	legs.angles[1] += ent->legs_yaw;
+	legs.angles[0] = legs.angles[2] = 0.0; // legs only use yaw
 	memcpy(legs.skins, ci->legs_skins, sizeof(legs.skins));
+
+	torso.model = ci->torso;
+	VectorClear(torso.origin);
+	torso.angles[1] = -ent->legs_yaw; // legs twisted already, we just need to pitch/roll
+	memcpy(torso.skins, ci->torso_skins, sizeof(torso.skins));
+
+	head.model = ci->head;
+	VectorClear(head.origin);
+	head.angles[1] = 0.0; // legs twisted already, we just need to pitch/roll
+	// this is applied twice so head pivots on chest as well
+	memcpy(head.skins, ci->head_skins, sizeof(head.skins));
 
 	Cg_AnimateClientEntity(ent, &torso, &legs);
 
-	torso.parent = cgi.AddEntity(&legs);
-	torso.tag_name = "tag_torso";
-
-	head.parent = cgi.AddEntity(&torso);
-	head.tag_name = "tag_head";
-
-	cgi.AddEntity(&head);
+	r_entity_t *r_legs = cgi.AddEntity(&legs);
+	r_entity_t *r_torso = cgi.AddEntity(&torso);
+	r_entity_t *r_head = cgi.AddEntity(&head);
+	
+	Matrix4x4_CreateFromEntity(&r_legs->matrix, r_legs->origin, r_legs->angles, r_legs->scale);
+	Matrix4x4_CreateFromEntity(&r_torso->matrix, r_torso->origin, r_torso->angles, r_torso->scale);
+	Matrix4x4_CreateFromEntity(&r_head->matrix, r_head->origin, r_head->angles, r_head->scale);
+	
+	Cg_ApplyMeshModelTag(r_torso, r_legs, "tag_torso");
+	Cg_ApplyMeshModelTag(r_head, r_torso, "tag_head");
 
 	if (s->model2) {
 		r_model_t *model = cgi.client->model_precache[s->model2];
-		r_entity_t *m2 = cgi.AddLinkedEntity(head.parent, model, "tag_weapon");
+		r_entity_t *m2 = Cg_AddLinkedEntity(r_torso, model, "tag_weapon");
 
 		if (self_draw) {
 			m2->effects |= EF_NO_DRAW;
@@ -214,7 +353,7 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 
 	if (s->model3) {
 		r_model_t *model = cgi.client->model_precache[s->model3];
-		r_entity_t *m3 = cgi.AddLinkedEntity(head.parent, model, "tag_head");
+		r_entity_t *m3 = Cg_AddLinkedEntity(r_torso, model, "tag_head");
 		m3->effects |= effects;
 
 		if (self_draw) {

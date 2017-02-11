@@ -51,6 +51,7 @@ typedef struct {
 	int32_t old_frame;
 	vec_t lerp;
 	vec_t fraction;
+	_Bool reverse;
 } cl_entity_animation_t;
 
 typedef struct {
@@ -79,6 +80,7 @@ typedef struct {
 	vec3_t angles; // and angles
 	vec3_t mins, maxs; // bounding box
 	vec3_t abs_mins, abs_maxs; // absolute bounding box
+	vec_t legs_yaw; // only used by player models, the leg angle we're currently at
 
 	cl_entity_step_t step; // the step the entity just traversed
 

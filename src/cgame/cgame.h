@@ -24,7 +24,7 @@
 
 #include "client/cl_types.h"
 
-#define CGAME_API_VERSION 14
+#define CGAME_API_VERSION 15
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -602,6 +602,15 @@ typedef struct cg_import_s {
 	 * @param e The entity.
 	 */
 	void (*SetMatrixForEntity)(r_entity_t *e);
+	
+	/**
+	 * @brief Returns the desired tag structure, or `NULL`.
+	 * @param mod The model to check for the specified tag.
+	 * @param name The name of the tag.
+	 * @param frame The frame to fetch the tag on.
+	 * @return The tag structure.
+	 */
+	const r_md3_tag_t *(*MeshModelTag)(const r_model_t *mod, const char *name, const int32_t frame);
 
 	/**
 	 * @brief Change the matrix identified by "id" with the values from "matrix".

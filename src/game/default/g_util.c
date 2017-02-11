@@ -877,7 +877,7 @@ _Bool G_IsAnimation(g_entity_t *ent, entity_animation_t anim) {
 		a = ent->s.animation2;
 	}
 
-	return (a & ~ANIM_TOGGLE_BIT) == anim;
+	return (a & ANIM_MASK_VALUE) == anim;
 }
 
 /**

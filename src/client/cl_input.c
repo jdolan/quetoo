@@ -78,7 +78,7 @@ void Cl_KeyDown(button_t *b) {
 	}
 
 	// save the down time so that we can calculate fractional time later
-	b->down_time = strtoul(Cmd_Argv(2), NULL, 0) ? : cl.unclamped_time;
+	b->down_time = (uint32_t) strtoul(Cmd_Argv(2), NULL, 0) ? : cl.unclamped_time;
 
 	// and indicate that the key is down
 	b->state |= 1;

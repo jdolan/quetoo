@@ -80,7 +80,7 @@ const g_item_t *G_ClientArmor(const g_entity_t *ent) {
 
 	if (ent->client) {
 
-		for (g_armor_t armor = ARMOR_BODY; armor >= ARMOR_JACKET; armor--) {
+		for (g_armor_t armor = ARMOR_BODY; armor > ARMOR_SHARD; armor--) {
 
 			if (ent->client->locals.inventory[g_media.items.armor[armor]->index]) {
 				return g_media.items.armor[armor];
@@ -2223,7 +2223,7 @@ void G_InitItems(void) {
 
 		array[item->tag] = item;
 
-	// precache all weapons/health/armor, even if the map doesn't contain them
+		// precache all weapons/health/armor, even if the map doesn't contain them
 		if (item->type == ITEM_WEAPON ||
 			item->type == ITEM_HEALTH ||
 			item->type == ITEM_ARMOR) {

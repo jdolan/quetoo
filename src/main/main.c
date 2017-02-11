@@ -178,7 +178,7 @@ static void Error(err_t err, const char *msg) {
 
 		case ERROR_FATAL:
 		default:
-			Sys_Backtrace();
+			Sys_Backtrace(msg);
 			Shutdown(msg);
 			exit(err);
 			break;

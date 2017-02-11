@@ -524,7 +524,22 @@ typedef enum {
 	ANIM_LEGS_IDLE,
 	ANIM_LEGS_IDLECR,
 
-	ANIM_LEGS_TURN
+	ANIM_LEGS_TURN,
+	
+	/**
+	 * @brief Masks out the bits and only keeps the animation value
+	 */
+	ANIM_MASK_VALUE = (1 << 6) - 1,
+	
+	/**
+	 * @brief Play the animation backwards.
+	 */
+	ANIM_REVERSE_BIT = (1 << 6),
+
+	/**
+	 * @brief Restarts the current animation sequence.
+	 */
+	ANIM_TOGGLE_BIT = (1 << 7)
 } entity_animation_t;
 
 /**
@@ -533,11 +548,6 @@ typedef enum {
  */
 #define LIGHTNING_NO_HIT		0
 #define LIGHTNING_SOLID_HIT		1
-
-/**
- * @brief Restarts the current animation sequence.
- */
-#define ANIM_TOGGLE_BIT 0x80
 
 /**
  * @brief Entity events are instantaneous, transpiring at an entity's origin
@@ -565,6 +575,7 @@ typedef enum {
  * @brief The 16 high bits of the effects mask are not transmitted by the
  * protocol. Rather, they are reserved for the renderer.
  */
+#define EF_LINKED			(1 << 23) // linked to another model
 #define EF_CLIENT			(1 << 24) // player model
 #define EF_WEAPON			(1 << 25) // view weapon
 #define EF_SHELL			(1 << 26) // environment map shell
