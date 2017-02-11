@@ -27,7 +27,7 @@ quetoo_t quetoo;
 
 char map_name[MAX_OS_PATH];
 char bsp_name[MAX_OS_PATH];
-char outbase[MAX_OS_PATH];
+char mat_name[MAX_OS_PATH];
 
 _Bool verbose = false;
 _Bool debug = false;
@@ -226,8 +226,6 @@ static void Check_BSP_Options(int32_t argc) {
 			block_yh = atoi(Com_Argv(i + 4));
 			Com_Verbose("blocks: %i,%i to %i,%i\n", block_xl, block_yl, block_xh, block_yh);
 			i += 4;
-		} else if (!g_strcmp0(Com_Argv(i), "-tmpout")) {
-			strcpy(outbase, "/tmp");
 		} else {
 			break;
 		}
@@ -500,6 +498,11 @@ int32_t main(int32_t argc, char **argv) {
 	g_strlcpy(bsp_name, map_name, sizeof(bsp_name));
 	g_strlcat(map_name, ".map", sizeof(map_name));
 	g_strlcat(bsp_name, ".bsp", sizeof(bsp_name));
+
+	gchar *basename = g_path_get_basename(filename);
+	StripExtension(basename, basename);
+	g_snprintf(mat_name, sizeof(mat_name), "materials/%s.mat", basename);
+	g_free(basename);
 
 	// start timer
 	const time_t start = time(NULL);

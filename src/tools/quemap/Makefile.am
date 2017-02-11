@@ -8,6 +8,7 @@ noinst_HEADERS = \
 	quemap.h \
 	qbsp.h \
 	qlight.h \
+	qmat.h \
 	qvis.h \
 	scriptlib.h
 

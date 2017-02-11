@@ -129,11 +129,6 @@ typedef struct cm_material_s {
 	char base[MAX_QPATH];
 
 	/**
-	 * @brief The full name of the material as it appears in the .mat file
-	 */
-	char name[MAX_QPATH];
-
-	/**
 	 * @brief The image to use for the diffuse map
 	 */
 	char diffuse[MAX_QPATH];

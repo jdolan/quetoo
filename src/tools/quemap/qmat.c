@@ -19,22 +19,56 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "qbsp.h"
+#include "qmat.h"
 
-static GList *materials;
+static GPtrArray *materials;
 
 /**
- * @brief
+ * @brief Loads all materials defined in the material file.
  */
-static void AddMaterial(const char *name) {
+void LoadMaterials(void) {
 
-	if (!name || !g_strcmp0(name, "NULL")) {
-		return;
+	size_t count;
+	cm_material_t **mats = Cm_LoadMaterials(mat_name, &count);
+	cm_material_t **material = mats;
+
+	materials = g_ptr_array_new_with_free_func((GDestroyNotify) Cm_FreeMaterial);
+	assert(materials);
+
+	for (size_t i = 0; i < count; i++, material++) {
+		g_ptr_array_add(materials, *material);
+	}
+}
+
+/**
+ * @brief Frees all loaded materials.
+ */
+void FreeMaterials(void) {
+	g_ptr_array_free(materials, true);
+	materials = NULL;
+}
+
+/**
+ * @brief Loads the material with the specified diffuse name.
+ */
+cm_material_t *LoadMaterial(const char *diffuse) {
+
+	Com_Print("Searching for material %s\n", diffuse);
+
+	for (guint i = 0; i < materials->len; i++) {
+		cm_material_t *material = g_ptr_array_index(materials, i);
+		if (!g_strcmp0(material->diffuse, diffuse)) {
+			Com_Print("Resolved material %s\n", material->diffuse);
+			return material;
+		}
 	}
 
-	if (!g_list_find_custom(materials, name, (GCompareFunc) g_ascii_strcasecmp)) {
-		materials = g_list_insert_sorted(materials, (gpointer) name, (GCompareFunc) g_ascii_strcasecmp);
-	}
+	cm_material_t *material = Cm_LoadMaterial(diffuse);
+	g_ptr_array_add(materials, material);
+
+	Com_Print("Created material %s\n", material->diffuse);
+
+	return material;
 }
 
 /**
@@ -42,51 +76,24 @@ static void AddMaterial(const char *name) {
  * and generates a "stub" materials file.
  */
 int32_t MAT_Main(void) {
-	char path[MAX_QPATH];
-	file_t *f;
-	int32_t i;
 
 	Com_Print("\n----- MAT -----\n\n");
 
 	const time_t start = time(NULL);
 
-	g_snprintf(path, sizeof(path), "materials/%s", Basename(bsp_name));
-	g_strlcpy(path + strlen(path) - 3, "mat", sizeof(path));
+	LoadMaterials();
 
-	if (Fs_Exists(path)) {
-		Com_Print("Materials file %s exists, skipping...\n", path);
-	} else { // do it
+	LoadBSPFile(bsp_name, (1 << BSP_LUMP_TEXINFO));
 
-		LoadBSPFile(bsp_name, (1 << BSP_LUMP_TEXINFO));
-
-		if (!(f = Fs_OpenWrite(path))) {
-			Com_Error(ERROR_FATAL, "Couldn't open %s for writing\n", path);
-		}
-
-		for (i = 0; i < bsp_file.num_texinfo; i++) { // resolve the materials
-			AddMaterial(bsp_file.texinfo[i].texture);
-		}
-
-		GList *material = materials;
-		while (material) { // write the .mat definition
-
-			Fs_Print(f, "{\n"
-			         "\tmaterial %s\n"
-			         "\tbump 1.0\n"
-			         "\thardness 1.0\n"
-			         "\tparallax 1.0\n"
-			         "\tspecular 1.0\n"
-			         "}\n", (char *) material->data);
-
-			material = material->next;
-		}
-
-		Fs_Close(f);
-
-		Com_Print("Generated %d materials\n", g_list_length(materials));
-
-		g_list_free(materials);
+	for (int32_t i = 0; i < bsp_file.num_texinfo; i++) {
+		LoadMaterial(bsp_file.texinfo[i].texture);
 	}
+
+	Cm_WriteMaterials(mat_name, (const cm_material_t **) materials->pdata, materials->len);
+
+	Com_Print("Generated %d materials\n", materials->len);
+
+	FreeMaterials();
 
 	const time_t end = time(NULL);
 	const time_t duration = end - start;

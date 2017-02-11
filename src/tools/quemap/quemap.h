@@ -25,6 +25,7 @@
 #include "filesystem.h"
 #include "monitor.h"
 #include "thread.h"
+#include "collision/cm_material.h"
 
 int32_t BSP_Main(void);
 int32_t VIS_Main(void);
@@ -35,7 +36,7 @@ int32_t ZIP_Main(void);
 
 extern char map_name[MAX_OS_PATH];
 extern char bsp_name[MAX_OS_PATH];
-extern char outbase[MAX_OS_PATH];
+extern char mat_name[MAX_OS_PATH];
 
 extern _Bool verbose;
 extern _Bool debug;

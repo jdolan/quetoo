@@ -130,7 +130,7 @@ void R_RegisterMedia(r_media_t *media) {
 		r_media_t *m;
 
 		if ((m = g_hash_table_lookup(r_media_state.media, media->name))) {
-			if (m != media) { // the old instance will eventually be freed
+			if (m != media) {
 				Com_Debug(DEBUG_RENDERER, "Replacing %s\n", media->name);
 				R_FreeMedia_(NULL, m, m);
 				g_hash_table_replace(r_media_state.media, media->name, media);

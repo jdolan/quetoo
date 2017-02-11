@@ -703,8 +703,6 @@ cm_material_t **Cm_LoadMaterials(const char *path, size_t *count) {
 				mat = Cm_LoadMaterial(va("textures/%s", c));
 			}
 
-			g_strlcpy(mat->name, c, sizeof(mat->name));
-
 			m = mat;
 
 			parsing_material = true;
@@ -830,7 +828,7 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 	} else if (stage->flags & STAGE_FLARE) {
 		Fs_Print(file, "\t\tflare %s\n", stage->image);
 	} else {
-		Com_Warn("Material %s has a stage with no texture?\n", material->name);
+		Com_Warn("Material %s has a stage with no texture?\n", material->diffuse);
 	}
 
 	if (stage->flags & STAGE_BLEND) {
@@ -895,7 +893,7 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 	Fs_Print(file, "{\n");
 
 	// write the innards
-	Fs_Print(file, "\tmaterial %s\n", material->name);
+	Fs_Print(file, "\tmaterial %s\n", material->diffuse);
 
 	if (*material->normalmap) {
 		Fs_Print(file, "\tnormalmap %s\n", material->normalmap);
@@ -904,18 +902,10 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 		Fs_Print(file, "\tspecularmap %s\n", material->specularmap);
 	}
 
-	if (material->bump != DEFAULT_BUMP) {
-		Fs_Print(file, "\tbump %g\n", material->bump);
-	}
-	if (material->parallax != DEFAULT_BUMP) {
-		Fs_Print(file, "\tparallax %g\n", material->parallax);
-	}
-	if (material->hardness != DEFAULT_BUMP) {
-		Fs_Print(file, "\thardness %g\n", material->hardness);
-	}
-	if (material->specular != DEFAULT_BUMP) {
-		Fs_Print(file, "\tspecular %g\n", material->specular);
-	}
+	Fs_Print(file, "\tbump %g\n", material->bump);
+	Fs_Print(file, "\tparallax %g\n", material->parallax);
+	Fs_Print(file, "\thardness %g\n", material->hardness);
+	Fs_Print(file, "\tspecular %g\n", material->specular);
 
 	if (material->contents) {
 		Fs_Print(file, "\tcontents \"%s\"\n", Cm_UnparseContents(material->contents));
