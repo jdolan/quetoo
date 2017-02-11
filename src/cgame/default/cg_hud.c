@@ -81,10 +81,13 @@ typedef struct {
 	int16_t select_weapon_id; // -1 is default
 	uint32_t select_weapon_time; // time until we go away
 	r_image_t *select_weapon_image;
+	int16_t last_change_weapon; // for showing it if we change weapons not via scrolling
 } cg_hud_locals_t;
 
 #define WEAPON_SELECT_OFF				-1
-#define WEAPON_CHOOSE_DEFAULT_TIME		500
+
+static cvar_t *cg_weaponbar_choose_time;
+static cvar_t *cg_weaponbar_wait_time;
 
 static cg_hud_locals_t cg_hud_locals;
 
@@ -942,7 +945,7 @@ static void Cg_ScrollWeapon(const int8_t dir) {
 		}
 		
 		if (ps->stats[STAT_WEAPONS] & (1 << cg_hud_locals.select_weapon_id)) {
-			cg_hud_locals.select_weapon_time = cgi.client->unclamped_time + WEAPON_CHOOSE_DEFAULT_TIME;
+			cg_hud_locals.select_weapon_time = cgi.client->unclamped_time + cg_weaponbar_choose_time->integer;
 			return;
 		}
 	}
@@ -963,6 +966,9 @@ _Bool Cg_AttemptWeaponSwitch(const player_state_t *ps) {
 		if (cg_hud_locals.select_weapon_id != Cg_ActiveWeapon(ps)) {
 			const char *name = cgi.client->config_strings[CS_ITEMS + cg_hud_locals.weapons[cg_hud_locals.select_weapon_id].item_index];
 			cgi.Cbuf(va("use %s\n", name));
+			
+			cg_hud_locals.select_weapon_time = cgi.client->unclamped_time + cg_weaponbar_wait_time->integer;
+			return true;
 		}
 
 		cg_hud_locals.select_weapon_id = -1;
@@ -976,17 +982,12 @@ _Bool Cg_AttemptWeaponSwitch(const player_state_t *ps) {
  * @brief
  */
 static void Cg_DrawWeaponSwitch(const player_state_t *ps) {
-	
-	// not changing or ran out of time
-	if (cg_hud_locals.select_weapon_time <= cgi.client->unclamped_time) {
-		Cg_AttemptWeaponSwitch(ps);
-		return;
-	}
 
 	// spectator/dead
 	if (!ps->stats[STAT_WEAPONS]) {
 		cg_hud_locals.select_weapon_id = -1;
 		cg_hud_locals.select_weapon_time = 0;
+		cg_hud_locals.last_change_weapon = 0;
 		return;
 	}
 
@@ -996,7 +997,32 @@ static void Cg_DrawWeaponSwitch(const player_state_t *ps) {
 	if (!num_weaps) {
 		cg_hud_locals.select_weapon_id = -1;
 		cg_hud_locals.select_weapon_time = 0;
+		cg_hud_locals.last_change_weapon = 0;
 		return;
+	}
+
+	int16_t switching = ((ps->stats[STAT_WEAPON_TAG] >> 8) & 0xFF);
+
+	if (cg_hud_locals.last_change_weapon != switching) {
+		cg_hud_locals.last_change_weapon = switching;
+
+		if (cg_hud_locals.last_change_weapon) {
+
+			// we changed weapons without using scrolly, show it for a bit
+			if (cg_hud_locals.select_weapon_time <= cgi.client->unclamped_time) {
+				cg_hud_locals.select_weapon_id = cg_hud_locals.last_change_weapon - 1;
+				cg_hud_locals.select_weapon_time = cgi.client->unclamped_time + cg_weaponbar_wait_time->integer;
+			}
+		}
+	}
+	
+	// not changing or ran out of time
+	if (cg_hud_locals.select_weapon_time <= cgi.client->unclamped_time) {
+		Cg_AttemptWeaponSwitch(ps);
+
+		if (cg_hud_locals.select_weapon_time <= cgi.client->unclamped_time) {
+			return;
+		}
 	}
 
 	// figure out select_weapon_id
@@ -1111,4 +1137,7 @@ void Cg_LoadHudMedia(void) {
 void Cg_InitHud(void) {
 	cgi.Cmd("cg_weapon_next", Cg_Weapon_Next_f, CMD_CGAME, NULL);
 	cgi.Cmd("cg_weapon_previous", Cg_Weapon_Prev_f, CMD_CGAME, NULL);
+	
+	cg_weaponbar_choose_time = cgi.Cvar("cg_weaponbar_choose_time", "250", CVAR_ARCHIVE, "The amount of time, in milliseconds, to wait between changing weapons in the scroll view. Clicking will override this value and switch immediately.");
+	cg_weaponbar_wait_time = cgi.Cvar("cg_weaponbar_wait_time", "750", CVAR_ARCHIVE, "The amount of time, in milliseconds, to show the weapon bar after changing weapons.");
 }
