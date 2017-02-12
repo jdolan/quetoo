@@ -220,9 +220,9 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 	pos = pos ? pos : target->s.origin;
 	normal = normal ? normal : vec3_origin;
 
-	if (target->client && G_HasTech(target, TECH_SHIELD)) {
-		damage *= TECH_SHIELD_DAMAGE_FACTOR;
-		knockback *= TECH_SHIELD_KNOCKBACK_FACTOR;
+	if (target->client && G_HasTech(target, TECH_RESIST)) {
+		damage *= TECH_RESIST_DAMAGE_FACTOR;
+		knockback *= TECH_RESIST__KNOCKBACK_FACTOR;
 	}
 
 	if (attacker->client) {

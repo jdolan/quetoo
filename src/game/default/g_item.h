@@ -46,10 +46,10 @@
 	#define TECH_HASTE_FACTOR 1.5
 	
 	/**
-	 * @brief Shield scaling factors
+	 * @brief Resist scaling factors
 	 */
-	#define TECH_SHIELD_DAMAGE_FACTOR 0.5
-	#define TECH_SHIELD_KNOCKBACK_FACTOR 0.75
+	#define TECH_RESIST_DAMAGE_FACTOR 0.5
+	#define TECH_RESIST_KNOCKBACK_FACTOR 0.75
 	
 	/**
 	 * @brief Strength scaling factor

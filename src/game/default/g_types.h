@@ -463,7 +463,7 @@ typedef enum {
 typedef enum {
 	TECH_HASTE,
 	TECH_REGEN,
-	TECH_SHIELD,
+	TECH_RESIST,
 	TECH_STRENGTH,
 	TECH_VAMPIRE,
 
