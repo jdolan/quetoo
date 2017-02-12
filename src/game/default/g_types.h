@@ -788,12 +788,13 @@ typedef struct {
 		uint16_t countdown[11];
 
 		uint16_t roar;
+
+		uint16_t techs[TECH_TOTAL];
 	} sounds;
 
 	struct g_media_images_t {
 		uint16_t health;
 	} images;
-
 } g_media_t;
 
 /**
@@ -1086,8 +1087,9 @@ typedef struct {
 
 	_Bool show_scores; // sets layout bit mask in player state
 	uint32_t scores_time; // eligible for scores when time > this
-
+	
 	uint32_t regen_time; // time for regeneration?
+	uint32_t tech_sound_time; // next time we can play sound
 } g_client_locals_t;
 
 /**

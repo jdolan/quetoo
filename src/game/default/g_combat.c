@@ -223,6 +223,8 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 	if (target->client && G_HasTech(target, TECH_RESIST)) {
 		damage *= TECH_RESIST_DAMAGE_FACTOR;
 		knockback *= TECH_RESIST_KNOCKBACK_FACTOR;
+
+		G_PlayTechSound(target);
 	}
 
 	if (attacker->client) {
@@ -234,6 +236,8 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 		if (G_HasTech(attacker, TECH_STRENGTH)) {
 			damage *= TECH_STRENGTH_DAMAGE_FACTOR;
 			knockback *= TECH_STRENGTH_KNOCKBACK_FACTOR;
+
+			G_PlayTechSound(attacker);
 		}
 
 		damage *= attacker->client->locals.persistent.handicap / 100.0;
@@ -331,8 +335,10 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 			G_SpawnDamage(TE_BLOOD, pos, normal, damage_health);
 		}
 
-		if (attacker->client && attacker != target && !G_OnSameTeam(target, attacker) && !target->locals.dead && G_HasTech(attacker, TECH_VAMPIRE)) {
+		if (attacker->client && attacker != target && !G_OnSameTeam(target, attacker) &&
+			!target->locals.dead && G_HasTech(attacker, TECH_VAMPIRE)) {
 			attacker->locals.health = Min(attacker->locals.health + (damage * TECH_VAMPIRE_DAMAGE_FACTOR), attacker->locals.max_health);
+			G_PlayTechSound(attacker);
 		}
 
 		target->locals.health -= damage_health;
