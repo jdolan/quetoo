@@ -930,8 +930,22 @@ static void Cg_ValidateSelectedWeapon(const player_state_t *ps) {
  * @brief
  */
 static void Cg_ScrollWeapon(const int8_t dir) {
-
 	const player_state_t *ps = &cgi.client->frame.ps;
+
+	if (ps->stats[STAT_SPECTATOR]) {
+
+		if (ps->stats[STAT_CHASE]) {
+
+			if (dir == 1) {
+				cgi.Cbuf("chase_next");
+			} else {
+				cgi.Cbuf("chase_previous");
+			}
+		}
+
+		return;
+	}
+
 	Cg_ValidateSelectedWeapon(ps);
 
 	for (int16_t i = 0; i < (int16_t) MAX_STAT_BITS; i++) {

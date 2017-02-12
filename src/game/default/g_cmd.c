@@ -1177,6 +1177,7 @@ static void G_Ready_f(g_entity_t *ent) {
 	if (g_level.teams || g_level.ctf) { // need at least 1 player per team
 
 		for (int32_t i = 0; i < g_level.num_teams; i++) {
+
 			if (!teams_ready[i]) {
 				return;
 			}
@@ -1244,8 +1245,9 @@ static void G_Spectate_f(g_entity_t *ent) {
 				G_AddClientToTeam(ent, G_SmallestTeam()->name);
 			} else { // or ask them to pick
 				gi.ClientPrint(ent, PRINT_HIGH, "Use team <team name> to join the game\n");
-				return;
 			}
+
+			return;
 		}
 	} else { // they wish to spectate
 
@@ -1417,6 +1419,10 @@ void G_ClientCommand(g_entity_t *ent) {
 		G_Kill_f(ent);
 	} else if (g_strcmp0(cmd, "player_list") == 0) {
 		G_PlayerList_f(ent);
+	} else if (g_strcmp0(cmd, "chase_previous") == 0) {
+		G_ClientChasePrevious(ent);
+	} else if (g_strcmp0(cmd, "chase_next") == 0) {
+		G_ClientChaseNext(ent);
 	}
 
 	else
