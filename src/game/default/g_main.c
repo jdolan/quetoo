@@ -364,6 +364,8 @@ static void G_RestartGame(_Bool teamz) {
 
 	G_ResetSpawnPoints();
 
+	G_InitNumTeams();
+
 	g_level.match_time = g_level.round_time = 0;
 
 	for (int32_t i = 0; i < MAX_TEAMS; i++) {
