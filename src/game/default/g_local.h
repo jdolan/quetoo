@@ -24,7 +24,9 @@
 #define __GAME_LOCAL_H__
 
 // this is the game name that we advertise to clients
-#define GAME_NAME "default"
+#ifndef GAME_NAME
+	#define GAME_NAME "default"
+#endif
 
 #define Debug(...) Debug_(DEBUG_GAME, __func__, __VA_ARGS__)
 #define PmDebug(...) PmDebug_(__func__, __VA_ARGS__)

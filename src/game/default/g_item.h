@@ -33,10 +33,46 @@
 	* @brief Item bounding box scaling.
 	*/
 	#define ITEM_SCALE 1.0
+	
+	/**
+	 * @brief Quad DAmage scaling factor
+	 */
+	#define QUAD_DAMAGE_FACTOR 2.5
+	#define QUAD_KNOCKBACK_FACTOR 2.0
+
+	/**
+	 * @brief Haste scaling factor
+	 */
+	#define TECH_HASTE_FACTOR 1.5
+	
+	/**
+	 * @brief Shield scaling factors
+	 */
+	#define TECH_SHIELD_DAMAGE_FACTOR 0.5
+	#define TECH_SHIELD_KNOCKBACK_FACTOR 0.75
+	
+	/**
+	 * @brief Strength scaling factor
+	 */
+	#define TECH_STRENGTH_DAMAGE_FACTOR 1.5
+	#define TECH_STRENGTH_KNOCKBACK_FACTOR 1.25
+
+	/**
+	 * @brief Regen constants
+	 */
+	#define TECH_REGEN_TICK_TIME 500
+	#define TECH_REGEN_HEALTH 5
+	
+	/**
+	 * @brief Vampire scaling factor
+	 */
+	#define TECH_VAMPIRE_DAMAGE_FACTOR 0.25
 
 	extern const vec3_t ITEM_MINS;
 	extern const vec3_t ITEM_MAXS;
 
+	const g_item_t *G_CarryingTech(const g_entity_t *ent);
+	_Bool G_HasTech(const g_entity_t *player, const g_tech_t tech);
 	_Bool G_AddAmmo(g_entity_t *ent, const g_item_t *item, int16_t count);
 	g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item);
 	const g_item_t *G_FindItem(const char *name);
@@ -46,11 +82,14 @@
 	const g_armor_info_t *G_ArmorInfo(const g_item_t *armor);
 	void G_PrecacheItem(const g_item_t *it);
 	void G_ResetDroppedFlag(g_entity_t *ent);
+	void G_ResetDroppedTech(g_entity_t *ent);
+	g_entity_t *G_SelectTechSpawnPoint(void);
 	void G_ResetItem(g_entity_t *ent);
 	void G_SetItemRespawn(g_entity_t *ent, uint32_t delay);
 	void G_SpawnItem(g_entity_t *ent, const g_item_t *item);
 	_Bool G_SetAmmo(g_entity_t *ent, const g_item_t *item, int16_t count);
 	g_entity_t *G_TossFlag(g_entity_t *self);
+	g_entity_t *G_TossTech(g_entity_t *self);
 	g_entity_t *G_TossQuadDamage(g_entity_t *self);
 	void G_TouchItem(g_entity_t *ent, g_entity_t *other, const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *surf);
 	void G_InitItems(void);

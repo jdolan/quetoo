@@ -34,6 +34,7 @@ typedef enum {
 	AI_ITEM_HEALTH			= (1 << 3), // will restore health
 	AI_ITEM_POWERUP			= (1 << 4), // is powerup
 	AI_ITEM_WEAPON			= (1 << 5), // is a weapon
+	AI_ITEM_TECH			= (1 << 6), // is a weapon
 
 	AI_WEAPON_PROJECTILE	= (1 << 16), // fires a projectile with "speed" speed
 	AI_WEAPON_HITSCAN		= (1 << 17), // fires hitscan shot(s)

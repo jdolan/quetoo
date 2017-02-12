@@ -177,9 +177,6 @@ static int16_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
 	return saved;
 }
 
-#define QUAD_DAMAGE_FACTOR 2.5
-#define QUAD_KNOCKBACK_FACTOR 2.0
-
 /**
  * @brief Damage routine. The inflictor imparts damage on the target on behalf
  * of the attacker.
@@ -223,10 +220,20 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 	pos = pos ? pos : target->s.origin;
 	normal = normal ? normal : vec3_origin;
 
+	if (target->client && G_HasTech(target, TECH_SHIELD)) {
+		damage *= TECH_SHIELD_DAMAGE_FACTOR;
+		knockback *= TECH_SHIELD_KNOCKBACK_FACTOR;
+	}
+
 	if (attacker->client) {
 		if (attacker->client->locals.inventory[g_media.items.powerups[POWERUP_QUAD]->index]) {
 			damage *= QUAD_DAMAGE_FACTOR;
 			knockback *= QUAD_KNOCKBACK_FACTOR;
+		}
+
+		if (G_HasTech(attacker, TECH_STRENGTH)) {
+			damage *= TECH_STRENGTH_DAMAGE_FACTOR;
+			knockback *= TECH_STRENGTH_KNOCKBACK_FACTOR;
 		}
 
 		damage *= attacker->client->locals.persistent.handicap / 100.0;
@@ -322,6 +329,10 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 			}
 		} else if (G_IsMeat(target)) { // bleed for everything else
 			G_SpawnDamage(TE_BLOOD, pos, normal, damage_health);
+		}
+
+		if (attacker->client && attacker != target && !G_OnSameTeam(target, attacker) && !target->locals.dead && G_HasTech(attacker, TECH_VAMPIRE)) {
+			attacker->locals.health = Min(attacker->locals.health + (damage * TECH_VAMPIRE_DAMAGE_FACTOR), attacker->locals.max_health);
 		}
 
 		target->locals.health -= damage_health;

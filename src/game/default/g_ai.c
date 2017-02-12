@@ -61,24 +61,6 @@ static uint8_t G_Ai_NumberOfBots(void) {
 }
 
 /**
- * @brief Calculate the number of real players.
- */
-static uint8_t G_Ai_NumberOfPlayers(void) {
-	uint8_t filled_slots = 0;
-
-	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-
-		g_entity_t *ent = &g_game.entities[i + 1];
-
-		if (ent->in_use && ent->client->connected && !ent->client->ai) {
-			filled_slots++;
-		}
-	}
-
-	return filled_slots;
-}
-
-/**
  * @brief Calculate the number of connected clients (bots and players alike).
  */
 static uint8_t G_Ai_NumberOfClients(void) {
@@ -106,7 +88,12 @@ static uint16_t G_Ai_ItemIndex(const g_item_t *item) {
 /**
  * @brief
  */
-static _Bool G_Ai_CanPickupItem(const g_entity_t *self, const g_item_t *item) {
+static _Bool G_Ai_CanPickupItem(const g_entity_t *self, const g_entity_t *other) {
+	const g_item_t *item = other->locals.item;
+
+	if (!item) {
+		return false;
+	}
 
 	if (item->type == ITEM_HEALTH) {
 		// stimpack/mega is always gettable
@@ -141,6 +128,24 @@ static _Bool G_Ai_CanPickupItem(const g_entity_t *self, const g_item_t *item) {
 		}
 
 		return true;
+	} else if (item->type == ITEM_TECH) {
+
+		if (G_CarryingTech(self)) {
+			return false;
+		}
+
+		return true;
+	} else if (item->type == ITEM_FLAG) {
+
+		g_team_t *team = G_TeamForFlag(other);
+
+		// if it's our flag, don't bother if we aren't bearing a flag or it's not dropped
+		if (team == self->client->locals.persistent.team) {
+			return (other->locals.spawn_flags & SF_ITEM_DROPPED) || G_IsFlagBearer(self);
+		}
+
+		// otherwise, only if we don't have a flag
+		return !G_IsFlagBearer(self);
 	}
 
 	return true;
@@ -451,6 +456,9 @@ static void G_Ai_RegisterItem(const g_item_t *item) {
 			break;
 		case ITEM_POWERUP:
 			ai_item.flags = AI_ITEM_POWERUP;
+			break;
+		case ITEM_TECH:
+			ai_item.flags = AI_ITEM_TECH;
 			break;
 	}
 

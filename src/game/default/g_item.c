@@ -618,6 +618,8 @@ static void G_DropItem_SetExpiration(g_entity_t *ent) {
 
 	if (ent->locals.item->type == ITEM_FLAG) { // flags go back to base
 		ent->locals.Think = G_ResetDroppedFlag;
+	} else if (ent->locals.item->type == ITEM_TECH) {
+		ent->locals.Think = G_ResetDroppedTech;
 	} else { // everything else just gets freed
 		ent->locals.Think = G_FreeEntity;
 	}
@@ -752,20 +754,26 @@ g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
 
 	tr = gi.Trace(ent->s.origin, it->s.origin, it->mins, it->maxs, ent, MASK_SOLID);
 
+	it->locals.item = item;
+
 	// we're in a bad spot, forget it
 	if (tr.start_solid) {
-		if (item->type == ITEM_FLAG) {
-			G_ResetDroppedFlag(it);
-		} else {
-			G_FreeEntity(it);
+		if (item->type == ITEM_TECH) {
+			G_ResetDroppedTech(it);
 		}
+		else {
+			if (item->type == ITEM_FLAG) {
+				G_ResetDroppedFlag(it);
+			} else {
+				G_FreeEntity(it);
+			}
 
-		return NULL;
+			return NULL;
+		}
 	}
 
 	VectorCopy(tr.end, it->s.origin);
 
-	it->locals.item = item;
 	it->locals.spawn_flags |= SF_ITEM_DROPPED;
 	it->locals.move_type = MOVE_TYPE_BOUNCE;
 	it->locals.Touch = G_TouchItem;
@@ -809,6 +817,160 @@ static void G_UseItem(g_entity_t *ent, g_entity_t *other, g_entity_t *activator)
 	}
 
 	gi.LinkEntity(ent);
+}
+
+/**
+ * @brief
+ */
+static g_entity_t *G_TechEntity(const g_tech_t tech) {
+	return G_FindPtr(NULL, LOFS(item), g_media.items.techs[tech]);
+}
+
+
+/**
+ * @brief Returns the distance to the nearest enemy from the given spot.
+ */
+static vec_t G_TechRangeFromSpot(const g_entity_t *spot) {
+	vec_t best_dist = FLT_MAX;
+	_Bool any = false;
+
+	for (g_tech_t i = TECH_HASTE; i < TECH_TOTAL; i++) {
+		vec3_t v;
+		g_entity_t *tech = G_TechEntity(i);
+
+		if (!tech) {
+			continue;
+		}
+
+		VectorSubtract(spot->s.origin, tech->s.origin, v);
+		const vec_t dist = VectorLength(v);
+
+		if (dist < best_dist) {
+			best_dist = dist;
+		}
+
+		any = true;
+	}
+
+	if (!any) {
+		return Randomf() * MAX_WORLD_DIST;
+	}
+
+	return best_dist;
+}
+
+/**
+ * @brief
+ */
+static void G_SelectFarthestTechSpawnPoint(const g_spawn_points_t *spawn_points, g_entity_t **point, vec_t *point_dist) {
+
+	for (size_t i = 0; i < spawn_points->count; i++) {
+		g_entity_t *spot = spawn_points->spots[i];
+		vec_t dist = G_TechRangeFromSpot(spot);
+
+		if (dist > *point_dist) {
+			*point = spot;
+			*point_dist = dist;
+		}
+	}
+}
+
+/**
+ * @brief
+ */
+g_entity_t *G_SelectTechSpawnPoint(void) {
+	vec_t point_dist = -FLT_MAX;
+	g_entity_t *point = NULL;
+
+	if (g_level.teams || g_level.ctf) {
+		for (g_team_id_t team = TEAM_RED; team < g_level.num_teams; team++) {
+			G_SelectFarthestTechSpawnPoint(&g_teamlist[team].spawn_points, &point, &point_dist);
+		}
+	} else {
+		G_SelectFarthestTechSpawnPoint(&g_level.spawn_points, &point, &point_dist);
+	}
+
+	if (!point) {
+		G_SelectFarthestTechSpawnPoint(&g_level.spawn_points, &point, &point_dist);
+	}
+
+	return point;
+}
+
+/**
+ * @brief
+ */
+void G_ResetDroppedTech(g_entity_t *ent) {
+	g_entity_t *point = G_SelectTechSpawnPoint();
+
+	VectorCopy(point->s.origin, ent->s.origin);
+	VectorSet(ent->locals.velocity, Randomc() * 250, Randomc() * 250, 200 + (Randomf() * 200));
+
+	G_DropItem_SetExpiration(ent);
+
+	gi.LinkEntity(ent);
+}
+
+/**
+ * @brief Check if a player has the specified tech.
+ */
+_Bool G_HasTech(const g_entity_t *player, const g_tech_t tech) {
+	return !!player->client->locals.inventory[g_media.items.techs[tech]->index];
+}
+
+/**
+ * @brief Pickup function for techs. Can only hold one tech at a time.
+ */
+static _Bool G_PickupTech(g_entity_t *ent, g_entity_t *other) {
+
+	for (g_tech_t tech = TECH_HASTE; tech < TECH_TOTAL; tech++) {
+
+		if (G_HasTech(other, tech)) {
+			return false;
+		}
+	}
+
+	// add the weapon to inventory
+	other->client->locals.inventory[ent->locals.item->index]++;
+
+	return true;
+}
+
+/**
+ * @brief
+ */
+const g_item_t *G_CarryingTech(const g_entity_t *ent) {
+	
+	for (g_tech_t i = TECH_HASTE; i < TECH_TOTAL; i++) {
+
+		if (G_HasTech(ent, i)) {
+			return g_media.items.techs[i];
+		}
+	}
+
+	return NULL;
+}
+
+/**
+ * @brief
+ */
+g_entity_t *G_TossTech(g_entity_t *ent) {
+	const g_item_t *tech = G_CarryingTech(ent);
+
+	if (!tech) {
+		return NULL;
+	}
+
+	ent->client->locals.inventory[tech->index] = 0;
+
+	return G_DropItem(ent, tech);
+}
+
+/**
+ * @brief Drop the tech.
+ */
+static g_entity_t *G_DropTech(g_entity_t *ent, const g_item_t *item) {
+	return G_TossTech(ent);
 }
 
 /**
@@ -2112,6 +2274,96 @@ static g_item_t g_items[] = {
 		.priority = 0.80,
 		.precaches = "quad/attack.wav quad/expire.wav"
 	},
+
+	{
+		.Pickup = G_PickupTech,
+		.Use = NULL,
+		.Drop = G_DropTech,
+		.Think = NULL,
+		.pickup_sound = "quad/pickup.wav",
+		.model = "models/techs/haste/tris.obj",
+		.effects = EF_BOB | EF_ROTATE,
+		.icon = "pics/i_quad",
+		.name = "Haste",
+		.quantity = 0,
+		.ammo = NULL,
+		.type = ITEM_TECH,
+		.tag = TECH_HASTE,
+		.priority = 0.80,
+		.precaches = ""
+	},
+
+	{
+		.Pickup = G_PickupTech,
+		.Use = NULL,
+		.Drop = G_DropTech,
+		.Think = NULL,
+		.pickup_sound = "quad/pickup.wav",
+		.model = "models/techs/regen/tris.obj",
+		.effects = EF_BOB | EF_ROTATE,
+		.icon = "pics/i_quad",
+		.name = "Regeneration",
+		.quantity = 0,
+		.ammo = NULL,
+		.type = ITEM_TECH,
+		.tag = TECH_REGEN,
+		.priority = 0.80,
+		.precaches = ""
+	},
+
+	{
+		.Pickup = G_PickupTech,
+		.Use = NULL,
+		.Drop = G_DropTech,
+		.Think = NULL,
+		.pickup_sound = "quad/pickup.wav",
+		.model = "models/techs/shield/tris.obj",
+		.effects = EF_BOB | EF_ROTATE,
+		.icon = "pics/i_quad",
+		.name = "Resist",
+		.quantity = 0,
+		.ammo = NULL,
+		.type = ITEM_TECH,
+		.tag = TECH_SHIELD,
+		.priority = 0.80,
+		.precaches = ""
+	},
+
+	{
+		.Pickup = G_PickupTech,
+		.Use = NULL,
+		.Drop = G_DropTech,
+		.Think = NULL,
+		.pickup_sound = "quad/pickup.wav",
+		.model = "models/techs/strength/tris.obj",
+		.effects = EF_BOB | EF_ROTATE,
+		.icon = "pics/i_quad",
+		.name = "Strength",
+		.quantity = 0,
+		.ammo = NULL,
+		.type = ITEM_TECH,
+		.tag = TECH_STRENGTH,
+		.priority = 0.80,
+		.precaches = ""
+	},
+
+	{
+		.Pickup = G_PickupTech,
+		.Use = NULL,
+		.Drop = G_DropTech,
+		.Think = NULL,
+		.pickup_sound = "quad/pickup.wav",
+		.model = "models/techs/vampire/tris.obj",
+		.effects = EF_BOB | EF_ROTATE,
+		.icon = "pics/i_quad",
+		.name = "Vampire",
+		.quantity = 0,
+		.ammo = NULL,
+		.type = ITEM_TECH,
+		.tag = TECH_VAMPIRE,
+		.priority = 0.80,
+		.precaches = ""
+	},
 };
 
 /**
@@ -2214,6 +2466,9 @@ void G_InitItems(void) {
 			break;
 		case ITEM_WEAPON:
 			array = g_media.items.weapons;
+			break;
+		case ITEM_TECH:
+			array = g_media.items.techs;
 			break;
 		}
 		

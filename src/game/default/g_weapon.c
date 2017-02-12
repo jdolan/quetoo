@@ -277,6 +277,10 @@ static void G_WeaponFired(g_entity_t *ent, uint32_t interval, uint32_t ammo_need
 	// set the attack animation
 	G_SetAnimation(ent, ANIM_TORSO_ATTACK1, true);
 
+	if (G_HasTech(ent, TECH_HASTE)) {
+		interval /= TECH_HASTE_FACTOR;
+	}
+
 	// push the next fire time out by the interval
 	ent->client->locals.weapon_fire_time = g_level.time + interval;
 	ent->client->locals.weapon_fired_time = g_level.time;

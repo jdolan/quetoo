@@ -258,6 +258,9 @@ static void G_Drop_f(g_entity_t *ent) {
 	if (!g_strcmp0(s, "flag")) {
 		G_TossFlag(ent);
 		return;
+	} else if (!g_strcmp0(s, "tech")) {
+		G_TossTech(ent);
+		return;
 	} else { // or just look up the item
 		it = G_FindItem(s);
 	}
@@ -618,6 +621,7 @@ static void G_PlayerList_f(g_entity_t *ent) {
 static const char *vote_cmds[] = {
 	"g_capture_limit",
 	"g_ctf",
+	"g_techs",
 	"g_frag_limit",
 	"g_friendly_fire",
 	"g_gameplay",
@@ -910,6 +914,7 @@ _Bool G_AddClientToTeam(g_entity_t *ent, const char *team_name) {
 	if (!ent->client->locals.persistent.spectator) { // changing teams
 		G_TossQuadDamage(ent);
 		G_TossFlag(ent);
+		G_TossTech(ent);
 		G_ClientHookDetach(ent);
 	}
 
@@ -1254,8 +1259,9 @@ static void G_Spectate_f(g_entity_t *ent) {
 		if (g_level.gameplay == GAME_DEATHMATCH || g_level.gameplay == GAME_DUEL) {
 			G_TossQuadDamage(ent);
 		}
-
+		
 		G_TossFlag(ent);
+		G_TossTech(ent);
 		G_ClientHookDetach(ent);
 	}
 

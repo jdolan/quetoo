@@ -752,7 +752,7 @@ static void G_InitSpawnPoints(void) {
 		g_level.spawn_points.count = g_slist_length(dm_spawns);
 
 		if (!g_level.spawn_points.count) {
-			gi.Error("Map has no spawn points! You need some info_player_deathmatch's (or info_player_team1/2/_any for teamplay maps).\n");
+			gi.Error("Map has no spawn points! You need some info_player_deathmatch's (or info_player_team1/2/3/4/_any for teamplay maps).\n");
 		}
 	}
 
@@ -792,6 +792,23 @@ static void G_InitSpawnPoints(void) {
 	g_slist_free(dm_spawns);
 
 	G_InitNumTeams();
+}
+
+/**
+ * @brief Spawn all of the techs
+ */
+void G_SpawnTechs(void) {
+
+	if (!g_level.techs) {
+		return;
+	}
+
+	for (g_tech_t i = 0; i < TECH_TOTAL; i++) {
+		g_entity_t *point = G_SelectTechSpawnPoint();
+		g_entity_t *tech_ent = G_DropItem(point, g_media.items.techs[i]);
+
+		VectorSet(tech_ent->locals.velocity, Randomc() * 250, Randomc() * 250, 200 + (Randomf() * 200));
+	}
 }
 
 /**
@@ -897,9 +914,9 @@ void G_SpawnEntities(const char *name, const char *entities) {
 
 	G_InitEntityTeams();
 
-	G_ResetItems();
-
 	G_CheckHook();
+
+	G_CheckTechs();
 
 	G_ResetTeams();
 
@@ -908,6 +925,8 @@ void G_SpawnEntities(const char *name, const char *entities) {
 	G_ResetSpawnPoints();
 
 	G_ResetVote();
+
+	G_ResetItems();
 }
 
 /**
@@ -1082,6 +1101,12 @@ static void G_worldspawn(g_entity_t *ent) {
 		g_level.hook_map = map->hook;
 	} else {
 		g_level.hook_map = -1;
+	}
+
+	if (map && map->techs > -1) {
+		g_level.techs_map = map->techs;
+	} else {
+		g_level.techs_map = -1;
 	}
 
 	if (g_level.teams && g_level.ctf) { // ctf overrides teams

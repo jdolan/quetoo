@@ -452,6 +452,10 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 		if (g_level.ctf) {
 			G_TossFlag(self);
 		}
+
+		if (g_level.techs) {
+			G_TossTech(self);
+		}
 	}
 
 	if (self->locals.health <= -CLIENT_CORPSE_HEALTH) {
@@ -1254,6 +1258,7 @@ void G_ClientDisconnect(g_entity_t *ent) {
 	}
 
 	G_TossFlag(ent);
+	G_TossTech(ent);
 	G_ClientHookDetach(ent);
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s bitched out\n", ent->client->locals.persistent.net_name);
@@ -1646,6 +1651,18 @@ void G_ClientBeginFrame(g_entity_t *ent) {
 			// all other respawns require a click from the player
 			if (cl->locals.latched_buttons & BUTTON_ATTACK) {
 				G_ClientRespawn(ent, false);
+			}
+		}
+	} else {
+
+		if (G_HasTech(ent, TECH_REGEN)) {
+
+			if (ent->client->locals.regen_time < g_level.time) {
+				ent->client->locals.regen_time = g_level.time + TECH_REGEN_TICK_TIME;
+
+				if (ent->locals.health < ent->locals.max_health) {
+					ent->locals.health = Min(ent->locals.health + TECH_REGEN_HEALTH, ent->locals.max_health);
+				}
 			}
 		}
 	}
