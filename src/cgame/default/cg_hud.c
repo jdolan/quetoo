@@ -1023,10 +1023,8 @@ static void Cg_DrawWeaponSwitch(const player_state_t *ps) {
 		if (cg_hud_locals.last_change_weapon) {
 
 			// we changed weapons without using scrolly, show it for a bit
-			if (cg_hud_locals.select_weapon_time <= cgi.client->unclamped_time) {
-				cg_hud_locals.select_weapon_id = cg_hud_locals.last_change_weapon - 1;
-				cg_hud_locals.select_weapon_time = cgi.client->unclamped_time + cg_weaponbar_wait_time->integer;
-			}
+			cg_hud_locals.select_weapon_id = cg_hud_locals.last_change_weapon - 1;
+			cg_hud_locals.select_weapon_time = cgi.client->unclamped_time + cg_weaponbar_wait_time->integer;
 		}
 	}
 	
