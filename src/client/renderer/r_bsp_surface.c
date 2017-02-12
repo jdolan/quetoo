@@ -53,7 +53,7 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 		if (r_draw_bsp_lightmaps->value == 2) {
 			R_BindLightmapTexture(surf->deluxemap->texnum);
 		} else {
-			if (r_stainmap->integer && surf->stainmap) {
+			if (r_stainmap->value && surf->stainmap) {
 				R_BindLightmapTexture(surf->stainmap->texnum);
 			} else {
 				R_BindLightmapTexture(surf->lightmap->texnum);
