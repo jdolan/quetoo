@@ -3,6 +3,7 @@ bin_PROGRAMS = \
 
 noinst_HEADERS = \
 	bspfile.h \
+	materials.h \
 	monitor.h \
 	polylib.h \
 	quemap.h \
@@ -22,6 +23,7 @@ quemap_SOURCES = \
 	lightmap.c \
 	main.c \
 	map.c \
+	materials.c \
 	monitor.c \
 	patches.c \
 	polylib.c \

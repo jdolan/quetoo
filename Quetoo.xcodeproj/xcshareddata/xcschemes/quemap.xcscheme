@@ -63,7 +63,11 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-bsp -vis -fast -light maps/dreams.map"
+            argument = "-mat maps/lighttest.map"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-bsp -vis -light maps/lighttest.map"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

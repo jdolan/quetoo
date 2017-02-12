@@ -121,6 +121,7 @@ typedef enum {
 #define DEFAULT_PARALLAX 1.0
 #define DEFAULT_HARDNESS 1.0
 #define DEFAULT_SPECULAR 1.0
+#define DEFAULT_LIGHT 300.0
 
 typedef struct cm_material_s {
 	/**
@@ -159,14 +160,14 @@ typedef struct cm_material_s {
 	uint32_t surface;
 
 	/**
+	 * @brief Light emission applied to surfaces referencing this material.
+	 */
+	vec_t light;
+
+	/**
 	 * @brief The bump factor to use for the normal map.
 	 */
 	vec_t bump;
-
-	/**
-	 * @brief The parallel factor to use for the normal map.
-	 */
-	vec_t parallax;
 
 	/**
 	 * @brief The hardness factor to use for the normal map.
@@ -177,6 +178,11 @@ typedef struct cm_material_s {
 	 * @brief The specular factor to use for the specular map.
 	 */
 	vec_t specular;
+
+	/**
+	 * @brief The parallel factor to use for the normal map.
+	 */
+	vec_t parallax;
 
 	/**
 	 * @brief The name for the footstep sounds to query on this surface
@@ -200,14 +206,14 @@ typedef struct cm_material_s {
 	uint16_t num_stages;
 } cm_material_t;
 
-cm_material_t *Cm_LoadMaterial(const char *diffuse);
+cm_material_t *Cm_AllocMaterial(const char *diffuse);
 void Cm_FreeMaterial(cm_material_t *material);
 void Cm_FreeMaterialList(cm_material_t **materials);
 
 cm_material_t **Cm_LoadMaterials(const char *path, size_t *count);
 void Cm_WriteMaterials(const char *filename, const cm_material_t **materials, const size_t num_materials);
 
-void Cm_MaterialName(const char *in, char *out, size_t len);
+void Cm_NormalizeMaterialName(const char *in, char *out, size_t len);
 
 #ifdef __CM_LOCAL_H__
 #endif /* __CM_LOCAL_H__ */

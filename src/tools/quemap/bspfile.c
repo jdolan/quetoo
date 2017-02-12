@@ -200,7 +200,7 @@ void UnparseEntities(void) {
 	for (i = 0; i < num_entities; i++) {
 		ep = entities[i].epairs;
 		if (!ep) {
-			continue;    // ent got removed
+			continue; // ent got removed
 		}
 
 		strcat(end, "{\n");
