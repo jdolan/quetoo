@@ -512,7 +512,7 @@ static void G_CheckRoundStart(void) {
 
 		clients++;
 
-		if (g_level.teams) {
+		if (g_level.teams && cl->locals.persistent.team) {
 			teams_ready[cl->locals.persistent.team->id]++;
 		}
 	}

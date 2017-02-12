@@ -930,8 +930,22 @@ static void Cg_ValidateSelectedWeapon(const player_state_t *ps) {
  * @brief
  */
 static void Cg_ScrollWeapon(const int8_t dir) {
-
 	const player_state_t *ps = &cgi.client->frame.ps;
+
+	if (ps->stats[STAT_SPECTATOR]) {
+
+		if (ps->stats[STAT_CHASE]) {
+
+			if (dir == 1) {
+				cgi.Cbuf("chase_next");
+			} else {
+				cgi.Cbuf("chase_previous");
+			}
+		}
+
+		return;
+	}
+
 	Cg_ValidateSelectedWeapon(ps);
 
 	for (int16_t i = 0; i < (int16_t) MAX_STAT_BITS; i++) {
@@ -1009,10 +1023,8 @@ static void Cg_DrawWeaponSwitch(const player_state_t *ps) {
 		if (cg_hud_locals.last_change_weapon) {
 
 			// we changed weapons without using scrolly, show it for a bit
-			if (cg_hud_locals.select_weapon_time <= cgi.client->unclamped_time) {
-				cg_hud_locals.select_weapon_id = cg_hud_locals.last_change_weapon - 1;
-				cg_hud_locals.select_weapon_time = cgi.client->unclamped_time + cg_weaponbar_wait_time->integer;
-			}
+			cg_hud_locals.select_weapon_id = cg_hud_locals.last_change_weapon - 1;
+			cg_hud_locals.select_weapon_time = cgi.client->unclamped_time + cg_weaponbar_wait_time->integer;
 		}
 	}
 	

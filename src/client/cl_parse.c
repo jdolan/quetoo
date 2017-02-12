@@ -275,7 +275,7 @@ static void Cl_ParseServerData(void) {
 
 	// ensure protocol major matches
 	if (major != PROTOCOL_MAJOR) {
-		Com_Error(ERROR_DROP, "Server is using protocol major %d\n", major);
+		Com_Error(ERROR_DROP, "Server is using protocol major %d, you have %d\n", major, PROTOCOL_MAJOR);
 	}
 
 	// determine if we're viewing a demo
@@ -293,7 +293,7 @@ static void Cl_ParseServerData(void) {
 
 	// ensure protocol minor matches
 	if (minor != cls.cgame->protocol) {
-		Com_Error(ERROR_DROP, "Server is using protocol minor %d\n", minor);
+		Com_Error(ERROR_DROP, "Server is using protocol minor %d, you have %d\n", minor, cls.cgame->protocol);
 	}
 
 	// parse client slot number, which is our entity number + 1

@@ -25,6 +25,78 @@
 cvar_t *g_ai_max_clients;
 
 /**
+ * @brief Calculate the number of empty client slots.
+ */
+static uint8_t G_Ai_EmptySlots(void) {
+	uint8_t empty_slots = 0;
+
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+
+		g_entity_t *ent = &g_game.entities[i + 1];
+
+		if (!ent->in_use && !ent->client->connected) {
+			empty_slots++;
+		}
+	}
+
+	return empty_slots;
+}
+
+/**
+ * @brief Calculate the number of bots.
+ */
+static uint8_t G_Ai_NumberOfBots(void) {
+	uint8_t filled_slots = 0;
+
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+
+		g_entity_t *ent = &g_game.entities[i + 1];
+
+		if (ent->in_use && ent->client->connected && ent->client->ai) {
+			filled_slots++;
+		}
+	}
+
+	return filled_slots;
+}
+
+/**
+ * @brief Calculate the number of real players.
+ */
+static uint8_t G_Ai_NumberOfPlayers(void) {
+	uint8_t filled_slots = 0;
+
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+
+		g_entity_t *ent = &g_game.entities[i + 1];
+
+		if (ent->in_use && ent->client->connected && !ent->client->ai) {
+			filled_slots++;
+		}
+	}
+
+	return filled_slots;
+}
+
+/**
+ * @brief Calculate the number of connected clients (bots and players alike).
+ */
+static uint8_t G_Ai_NumberOfClients(void) {
+	uint8_t filled_slots = 0;
+
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+
+		g_entity_t *ent = &g_game.entities[i + 1];
+
+		if (ent->in_use) {
+			filled_slots++;
+		}
+	}
+
+	return filled_slots;
+}
+
+/**
  * @brief MAYBE TEMPORARY
  */
 static uint16_t G_Ai_ItemIndex(const g_item_t *item) {
@@ -86,6 +158,57 @@ static void G_Ai_ClientThink(g_entity_t *self) {
 	aix->Think(self, &cmd);
 	G_ClientThink(self, &cmd);
 
+	// see if we're in a match and need to join
+	if (self->client->locals.persistent.spectator) {
+
+		if (g_level.match || g_level.rounds) {
+
+			// see if we can join
+			if (!(g_level.time - self->client->locals.respawn_time < 3000) &&
+				!(g_level.match_time) &&
+				!(g_level.round_time)) {
+
+				if (g_level.teams || g_level.ctf) {
+					G_AddClientToTeam(self, G_SmallestTeam()->name);
+				} else {
+					gi.TokenizeString("spectate");
+					G_ClientCommand(self);
+				}
+			}
+		} else {
+			gi.Print("AI was stuck in spectator\n");
+			G_ClientDisconnect(self);
+			return;
+		}
+	} else {
+
+		// ready up
+		if ((g_level.match || g_level.rounds) && !self->client->locals.persistent.ready) {
+
+			// only if all clients are ready
+			uint8_t num_players = 0;
+			uint8_t ready_slots = 0;
+
+			for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+
+				g_entity_t *ent = &g_game.entities[i + 1];
+
+				if (ent->in_use && ent->client->connected && !ent->client->ai && !ent->client->locals.persistent.spectator) {
+					num_players++;
+
+					if (ent->client->locals.persistent.ready) {
+						ready_slots++;
+					}
+				}
+			}
+
+			if (ready_slots == num_players) {
+				gi.TokenizeString("ready");
+				G_ClientCommand(self);
+			}
+		}
+	}
+
 	self->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 }
 
@@ -126,60 +249,6 @@ static void G_Ai_Spawn(g_entity_t *self, const uint32_t time_offset) {
 	}
 
 	g_game.ai_left_to_spawn--;
-}
-
-/**
- * @brief Calculate the number of empty client slots.
- */
-static uint8_t G_Ai_EmptySlots(void) {
-	uint8_t empty_slots = 0;
-
-	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-
-		g_entity_t *ent = &g_game.entities[i + 1];
-
-		if (!ent->in_use && !ent->client->connected) {
-			empty_slots++;
-		}
-	}
-
-	return empty_slots;
-}
-
-/**
- * @brief Calculate the number of bots.
- */
-static uint8_t G_Ai_NumberOfBots(void) {
-	uint8_t filled_slots = 0;
-
-	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-
-		g_entity_t *ent = &g_game.entities[i + 1];
-
-		if (ent->in_use && ent->client->connected && ent->client->ai) {
-			filled_slots++;
-		}
-	}
-
-	return filled_slots;
-}
-
-/**
- * @brief Calculate the number of connected clients (bots and players alike).
- */
-static uint8_t G_Ai_NumberOfClients(void) {
-	uint8_t filled_slots = 0;
-
-	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-
-		g_entity_t *ent = &g_game.entities[i + 1];
-
-		if (ent->in_use) {
-			filled_slots++;
-		}
-	}
-
-	return filled_slots;
 }
 
 static void G_Ai_AddBots(const int32_t count) {

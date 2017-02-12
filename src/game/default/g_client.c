@@ -1636,8 +1636,11 @@ void G_ClientBeginFrame(g_entity_t *ent) {
 
 		// rounds mode implies last-man-standing, force to spectator immediately if round underway
 		if (g_level.rounds && g_level.round_time && g_level.time >= g_level.round_time) {
-			cl->locals.persistent.spectator = true;
-			G_ClientRespawn(ent, false);
+
+			if (!cl->locals.persistent.spectator) {
+				cl->locals.persistent.spectator = true;
+				G_ClientRespawn(ent, false);
+			}
 		} else if (g_level.time > cl->locals.respawn_time) {
 
 			// all other respawns require a click from the player
