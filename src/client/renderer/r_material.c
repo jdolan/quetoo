@@ -706,9 +706,7 @@ static _Bool R_ConvertMaterial(cm_material_t *cm, r_material_t **mat) {
 		Com_Error(ERROR_DROP, "NULL diffuse name\n");
 	}
 
-	Cm_MaterialName(cm->base, key, sizeof(key));
-	g_strlcat(key, "_mat", sizeof(key));
-
+	g_snprintf(key, sizeof(key), "%s_mat", cm->base);
 	r_material_t *material = (r_material_t *) R_FindMedia(key);
 
 	if (material == NULL) {
@@ -764,13 +762,13 @@ r_material_t *R_LoadMaterial(const char *name) {
 	char key[MAX_QPATH];
 
 	StripExtension(name, key);
-	Cm_MaterialName(key, key, sizeof(key));
+	Cm_NormalizeMaterialName(key, key, sizeof(key));
 
 	g_strlcat(key, "_mat", sizeof(key));
 	r_material_t *mat = (r_material_t *) R_FindMedia(key);
 
 	if (mat == NULL) {
-		R_ConvertMaterial(Cm_LoadMaterial(name), &mat);
+		R_ConvertMaterial(Cm_AllocMaterial(name), &mat);
 	}
 
 	return mat;

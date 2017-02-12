@@ -311,12 +311,15 @@ static void PrintHelpMessage(void) {
 	Com_Print("-v -verbose\n");
 	Com_Print("-d -debug\n");
 	Com_Print("-l -legacy - compile a legacy Quake II map\n");
-	Com_Print("-t -threads <int>\n");
+	Com_Print("-t -threads <int> - Specify the number of worker threads (default auto)\n");
 	Com_Print("-p -path <game directory> - add the path to the search directory\n");
 	Com_Print("-w -wpath <game directory> - add the write path to the search directory\n");
 	Com_Print("-c -connect <host> - use GtkRadiant's BSP monitoring server\n");
-
 	Com_Print("\n");
+
+	Com_Print("-mat               MAT stage options:\n");
+	Com_Print("\n");
+
 	Com_Print("-bsp               BSP stage options:\n");
 	Com_Print(" -block <int> <int>\n");
 	Com_Print(" -blocks <int> <int> <int> <int>\n");
@@ -326,21 +329,23 @@ static void PrintHelpMessage(void) {
 	Com_Print(" -nocsg\n");
 	Com_Print(" -nodetail - skip detail brushes\n");
 	Com_Print(" -nomerge - skip node face merging\n");
-	Com_Print(" -noopt\n");
+	Com_Print(" -noopt - don't optimize by merging final faces\n");
 	Com_Print(" -noprune - don't prune (or cut) nodes\n");
 	Com_Print(" -noshare\n");
 	Com_Print(" -nosubdivide\n");
 	Com_Print(" -notjunc\n");
-	Com_Print(" -nowater - skip water brushes in compilation\n");
+	Com_Print(" -nowater - skip water brushes\n");
 	Com_Print(" -noweld\n");
 	Com_Print(" -onlyents - modify existing bsp file with entities from map file\n");
 	Com_Print(" -subdivide <int> - subdivide brushes for better light effects\n");
 	Com_Print(" -tmpout\n");
 	Com_Print("\n");
+
 	Com_Print("-vis               VIS stage options:\n");
 	Com_Print(" -fast\n");
 	Com_Print(" -nosort\n");
 	Com_Print("\n");
+
 	Com_Print("-light             LIGHT stage options:\n");
 	Com_Print(" -extra - extra light samples\n");
 	Com_Print(" -entity <float> - entity light scaling\n");
@@ -349,18 +354,19 @@ static void PrintHelpMessage(void) {
 	Com_Print(" -contrast <float> - contrast factor\n");
 	Com_Print(" -saturation <float> - saturation factor\n");
 	Com_Print("\n");
+
 	Com_Print("-aas               AAS stage options:\n");
 	Com_Print("\n");
-	Com_Print("-mat               MAT stage options:\n");
-	Com_Print("\n");
+
 	Com_Print("-zip               ZIP stage options:\n");
 	Com_Print("\n");
+
 	Com_Print("Examples:\n");
+	Com_Print("Materials file generation:\n quemap -mat maps/my.map\n");
 	Com_Print("Standard full compile:\n quemap -bsp -vis -light maps/my.map\n");
 	Com_Print("Fast vis, extra light, two threads:\n"
 	          " quemap -t 2 -bsp -vis -fast -light -extra maps/my.map\n");
 	Com_Print("Area awareness compile (for bots):\n quemap -aas maps/my.bsp\n");
-	Com_Print("Materials file generation:\n quemap -mat maps/my.map\n");
 	Com_Print("Zip file generation:\n quemap -zip maps/my.bsp\n");
 	Com_Print("\n");
 }
@@ -370,11 +376,11 @@ static void PrintHelpMessage(void) {
  */
 int32_t main(int32_t argc, char **argv) {
 	int32_t num_threads = 0;
+	_Bool do_mat = false;
 	_Bool do_bsp = false;
 	_Bool do_vis = false;
 	_Bool do_light = false;
 	_Bool do_aas = false;
-	_Bool do_mat = false;
 	_Bool do_zip = false;
 
 	printf("Quetoo Map %s %s %s\n", VERSION, BUILD_HOST, REVISION);
@@ -441,6 +447,11 @@ int32_t main(int32_t argc, char **argv) {
 	// read compiling options
 	for (int32_t i = 1; i < Com_Argc(); i++) {
 
+		if (!g_strcmp0(Com_Argv(i), "-mat")) {
+			do_mat = true;
+			Check_MAT_Options(i + 1);
+		}
+
 		if (!g_strcmp0(Com_Argv(i), "-bsp")) {
 			do_bsp = true;
 			Check_BSP_Options(i + 1);
@@ -459,11 +470,6 @@ int32_t main(int32_t argc, char **argv) {
 		if (!g_strcmp0(Com_Argv(i), "-aas")) {
 			do_aas = true;
 			Check_AAS_Options(i + 1);
-		}
-
-		if (!g_strcmp0(Com_Argv(i), "-mat")) {
-			do_mat = true;
-			Check_MAT_Options(i + 1);
 		}
 
 		if (!g_strcmp0(Com_Argv(i), "-zip")) {
@@ -507,6 +513,9 @@ int32_t main(int32_t argc, char **argv) {
 	// start timer
 	const time_t start = time(NULL);
 
+	if (do_mat) {
+		MAT_Main();
+	}
 	if (do_bsp) {
 		BSP_Main();
 	}
@@ -518,9 +527,6 @@ int32_t main(int32_t argc, char **argv) {
 	}
 	if (do_aas) {
 		AAS_Main();
-	}
-	if (do_mat) {
-		MAT_Main();
 	}
 	if (do_zip) {
 		ZIP_Main();

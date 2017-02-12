@@ -20,6 +20,7 @@
  */
 
 #include "qbsp.h"
+#include "qmat.h"
 #include "scriptlib.h"
 
 int32_t num_map_brushes;
@@ -468,29 +469,49 @@ static _Bool MakeBrushWindings(map_brush_t *ob) {
 /**
  * @brief
  */
-static void SetImpliedFlags(side_t *side, const char *tex) {
+static void SetMaterialFlags(side_t *side, map_brush_texture_t *td) {
 
-	if (!g_strcmp0(tex, "common/areaportal")) {
+	const cm_material_t *material = LoadMaterial(td->name);
+	if (material) {
+		if (material->contents) {
+			if (side->contents == 0) {
+				side->contents = material->contents;
+			}
+		}
+		if (material->surface) {
+			if (side->surf == 0) {
+				side->surf = td->flags = material->surface;
+			}
+		}
+		if (material->light) {
+			if (td->value == 0.0) {
+				td->value = material->light;
+			}
+		}
+	}
+
+	if (!g_strcmp0(td->name, "common/areaportal")) {
 		side->contents |= CONTENTS_AREA_PORTAL;
 		side->surf |= SURF_NO_DRAW;
-	} else if (!g_strcmp0(tex, "common/monsterclip") || !g_strcmp0(tex, "common/botclip")) {
+	} else if (!g_strcmp0(td->name, "common/monsterclip") ||
+			   !g_strcmp0(td->name, "common/botclip")) {
 		side->contents |= CONTENTS_MONSTER_CLIP;
-	} else if (!g_strcmp0(tex, "common/caulk")) {
+	} else if (!g_strcmp0(td->name, "common/caulk")) {
 		side->surf |= SURF_NO_DRAW;
-	} else if (!g_strcmp0(tex, "common/clip")) {
+	} else if (!g_strcmp0(td->name, "common/clip")) {
 		side->contents |= CONTENTS_PLAYER_CLIP;
-	} else if (!g_strcmp0(tex, "common/hint")) {
+	} else if (!g_strcmp0(td->name, "common/hint")) {
 		side->surf |= SURF_HINT;
-	} else if (!g_strcmp0(tex, "common/ladder")) {
+	} else if (!g_strcmp0(td->name, "common/ladder")) {
 		side->contents |= CONTENTS_LADDER | CONTENTS_DETAIL | CONTENTS_WINDOW;
 		side->surf |= SURF_NO_DRAW;
-	} else if (!g_strcmp0(tex, "common/origin")) {
+	} else if (!g_strcmp0(td->name, "common/origin")) {
 		side->contents |= CONTENTS_ORIGIN;
-	} else if (!g_strcmp0(tex, "common/skip")) {
+	} else if (!g_strcmp0(td->name, "common/skip")) {
 		side->surf |= SURF_SKIP;
-	} else if (!g_strcmp0(tex, "common/sky")) {
+	} else if (!g_strcmp0(td->name, "common/sky")) {
 		side->surf |= SURF_SKY;
-	} else if (!g_strcmp0(tex, "common/trigger")) {
+	} else if (!g_strcmp0(td->name, "common/trigger")) {
 		side->contents |= CONTENTS_DETAIL;
 		side->surf |= SURF_NO_DRAW;
 	}
@@ -579,13 +600,13 @@ static void ParseBrush(entity_t *mapent) {
 			GetToken(false);
 			td.value = atoi(token);
 		} else {
-			side->contents = CONTENTS_SOLID;
+			side->contents = 0;
 			side->surf = td.flags = 0;
 			td.value = 0;
 		}
 
-		// resolve implicit surface and contents flags
-		SetImpliedFlags(side, td.name);
+		// resolve material-based surface and contents flags
+		SetMaterialFlags(side, &td);
 
 		// translucent objects are automatically classified as detail
 		if (side->surf & (SURF_ALPHA_TEST | SURF_BLEND_33 | SURF_BLEND_66)) {
@@ -597,8 +618,7 @@ static void ParseBrush(entity_t *mapent) {
 		if (fulldetail) {
 			side->contents &= ~CONTENTS_DETAIL;
 		}
-		if (!(side->contents & ((LAST_VISIBLE_CONTENTS - 1) | CONTENTS_PLAYER_CLIP
-		                        | CONTENTS_MONSTER_CLIP | CONTENTS_MIST))) {
+		if (!(side->contents & ((LAST_VISIBLE_CONTENTS - 1) | CONTENTS_PLAYER_CLIP | CONTENTS_MONSTER_CLIP | CONTENTS_MIST))) {
 			side->contents |= CONTENTS_SOLID;
 		}
 
@@ -868,6 +888,8 @@ void LoadMapFile(const char *file_name) {
 
 	memset(map_planes, 0, sizeof(map_plane_t) * MAX_BSP_PLANES);
 	num_map_planes = 0;
+
+	memset(plane_hash, 0, sizeof(plane_hash));
 
 	num_entities = 0;
 	while (ParseMapEntity()) {

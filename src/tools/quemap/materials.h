@@ -18,9 +18,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
 #pragma once
 
-#include "qbsp.h"
-#include "materials.h"
-#include "scriptlib.h"
+#include "collision/cm_material.h"
+
+void LoadMaterials(void);
+void FreeMaterials(void);
+
+cm_material_t *LoadMaterial(const char *diffuse);
+
+void WriteMaterialsFile(const char *filename);

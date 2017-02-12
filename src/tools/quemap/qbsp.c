@@ -21,6 +21,7 @@
 
 #include "quemap.h"
 #include "qbsp.h"
+#include "materials.h"
 #include "scriptlib.h"
 
 vec_t microvolume = 0.125;
@@ -325,20 +326,13 @@ static void CreateBSPFile(void) {
  * @brief
  */
 int32_t BSP_Main(void) {
-	char base[MAX_OS_PATH];
 
 	Com_Print("\n----- BSP -----\n\n");
 
 	const time_t start = time(NULL);
 
-	StripExtension(map_name, base);
-
 	// clear the whole bsp structure
 	memset(&bsp_file, 0, sizeof(bsp_file));
-
-	// delete portal and line files
-	remove(va("%s.prt", base));
-	remove(va("%s.lin", base));
 
 	// if onlyents, just grab the entities and re-save
 	if (onlyents) {
@@ -354,12 +348,23 @@ int32_t BSP_Main(void) {
 		WriteBSPFile(bsp_name, version);
 	} else {
 
+		// delete portal and line files
+		char base[MAX_OS_PATH];
+		StripExtension(map_name, base);
+
+		remove(va("%s.prt", base));
+		remove(va("%s.lin", base));
+
+		LoadMaterials();
+
 		CreateBSPFile();
-		// start from scratch
+
 		LoadMapFile(map_name);
 		SetModelNumbers();
 
 		ProcessModels();
+
+		FreeMaterials();
 	}
 
 	UnloadScriptFiles();
