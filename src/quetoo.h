@@ -648,7 +648,7 @@ typedef struct {
 /**
  * @brief The max number of generic stats the server can communicate to a client.
  */
-#define MAX_STATS			48
+#define MAX_STATS			32
 
 /**
  * @brief The number of bits a stat can hold
