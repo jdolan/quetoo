@@ -126,7 +126,8 @@ typedef enum {
 	STAT_WEAPON,
 	STAT_WEAPON_ICON,
 	STAT_WEAPON_TAG, // low 8 bits = current weapon, high 8 bits = switching
-	STAT_WEAPONS
+	STAT_WEAPONS,
+	STAT_TECH_ICON
 } g_stat_t;
 
 /**
