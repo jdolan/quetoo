@@ -222,7 +222,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 
 	if (target->client && G_HasTech(target, TECH_RESIST)) {
 		damage *= TECH_RESIST_DAMAGE_FACTOR;
-		knockback *= TECH_RESIST__KNOCKBACK_FACTOR;
+		knockback *= TECH_RESIST_KNOCKBACK_FACTOR;
 	}
 
 	if (attacker->client) {
