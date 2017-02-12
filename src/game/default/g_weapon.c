@@ -278,7 +278,7 @@ static void G_WeaponFired(g_entity_t *ent, uint32_t interval, uint32_t ammo_need
 	G_SetAnimation(ent, ANIM_TORSO_ATTACK1, true);
 
 	if (G_HasTech(ent, TECH_HASTE)) {
-		interval /= TECH_HASTE_FACTOR;
+		interval *= TECH_HASTE_FACTOR;
 	}
 
 	// push the next fire time out by the interval

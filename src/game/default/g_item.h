@@ -43,7 +43,7 @@
 	/**
 	 * @brief Haste scaling factor
 	 */
-	#define TECH_HASTE_FACTOR 1.5
+	#define TECH_HASTE_FACTOR 0.75
 	
 	/**
 	 * @brief Resist scaling factors

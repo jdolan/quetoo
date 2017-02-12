@@ -826,7 +826,6 @@ static g_entity_t *G_TechEntity(const g_tech_t tech) {
 	return G_FindPtr(NULL, LOFS(item), g_media.items.techs[tech]);
 }
 
-
 /**
  * @brief Returns the distance to the nearest enemy from the given spot.
  */

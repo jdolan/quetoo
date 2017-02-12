@@ -139,7 +139,7 @@ static _Bool G_Ai_CanPickupItem(const g_entity_t *self, const g_entity_t *other)
 
 		g_team_t *team = G_TeamForFlag(other);
 
-		// if it's our flag, don't bother if we aren't bearing a flag or it's not dropped
+		// if it's our flag, recover it if dropped, or tag it if carrying enemy flag
 		if (team == self->client->locals.persistent.team) {
 			return (other->locals.spawn_flags & SF_ITEM_DROPPED) || G_IsFlagBearer(self);
 		}
