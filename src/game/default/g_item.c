@@ -137,7 +137,7 @@ static _Bool G_PickupAdrenaline(g_entity_t *ent, g_entity_t *other) {
 	}
 
 	if (!(ent->locals.spawn_flags & SF_ITEM_DROPPED)) {
-		G_SetItemRespawn(ent, 60000);
+		G_SetItemRespawn(ent, 40000);
 	}
 
 	return true;
@@ -323,9 +323,9 @@ static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
 		other->locals.health = h;
 
 		if (tag == HEALTH_MEGA) { // respawn the item
-			G_SetItemRespawn(ent, 90000);
-		} else if (tag == HEALTH_LARGE) {
 			G_SetItemRespawn(ent, 60000);
+		} else if (tag == HEALTH_LARGE) {
+			G_SetItemRespawn(ent, 30000);
 		} else {
 			G_SetItemRespawn(ent, 20000);
 		}
