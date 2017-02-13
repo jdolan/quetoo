@@ -272,10 +272,31 @@ static _Bool G_FireWeapon(g_entity_t *ent) {
 /**
  * @brief
  */
+void G_PlayTechSound(g_entity_t *ent) {
+	const g_item_t *tech = G_CarryingTech(ent);
+
+	if (!tech) {
+		return;
+	}
+
+	if (ent->client->locals.tech_sound_time < g_level.time) {
+		gi.Sound(ent, g_media.sounds.techs[tech->tag], ATTEN_NORM);
+		ent->client->locals.tech_sound_time = g_level.time + 1000;
+	}
+}
+
+/**
+ * @brief
+ */
 static void G_WeaponFired(g_entity_t *ent, uint32_t interval, uint32_t ammo_needed) {
 
 	// set the attack animation
 	G_SetAnimation(ent, ANIM_TORSO_ATTACK1, true);
+
+	if (G_HasTech(ent, TECH_HASTE)) {
+		interval *= TECH_HASTE_FACTOR;
+		G_PlayTechSound(ent);
+	}
 
 	// push the next fire time out by the interval
 	ent->client->locals.weapon_fire_time = g_level.time + interval;

@@ -263,6 +263,32 @@ static void Cg_DrawHeldFlag(const player_state_t *ps) {
 }
 
 /**
+ * @brief Draws the flag you are currently holding
+ */
+static void Cg_DrawHeldTech(const player_state_t *ps) {
+	r_pixel_t x, y;
+
+	if (!cg_draw_heldtech->integer) {
+		return;
+	}
+
+	vec4_t pulse = { 1.0, 1.0, 1.0, 1.0 };
+
+	x = cgi.view->viewport.x + 4;
+	y = cgi.view->viewport.y + ((cgi.view->viewport.h / 2) - (HUD_PIC_HEIGHT * 4));
+
+	int16_t tech = ps->stats[STAT_TECH_ICON];
+
+	if (tech != -1) {
+		cgi.Color(pulse);
+
+		Cg_DrawIcon(x, y, 1.0, tech);
+
+		cgi.Color(NULL);
+	}
+}
+
+/**
  * @brief
  */
 static void Cg_DrawPickup(const player_state_t *ps) {
@@ -516,7 +542,13 @@ static void Cg_DrawReady(const player_state_t *ps) {
 	cgi.BindFont("small", NULL, &ch);
 
 	x = cgi.view->viewport.x + cgi.view->viewport.w - cgi.StringWidth("Ready");
-	y = cgi.view->viewport.y + HUD_PIC_HEIGHT * 2 + 2 * ch;
+	y = cgi.view->viewport.y + 3 * (HUD_PIC_HEIGHT + ch);
+
+	if (atoi(cgi.ConfigString(CS_CTF)) > 0) {
+		y += HUD_PIC_HEIGHT + ch;
+	}
+
+	y += ch;
 
 	cgi.DrawString(x, y, "Ready", CON_COLOR_GREEN);
 
@@ -1095,6 +1127,8 @@ void Cg_DrawHud(const player_state_t *ps) {
 	Cg_DrawPowerups(ps);
 
 	Cg_DrawHeldFlag(ps);
+
+	Cg_DrawHeldTech(ps);
 
 	Cg_DrawPickup(ps);
 

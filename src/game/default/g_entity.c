@@ -151,13 +151,13 @@ static g_entity_spawn_t g_entity_spawns[] = { // entity class names -> spawn fun
 /**
  * @brief Finds the spawn function for the entity and calls it.
  */
-static void G_SpawnEntity(g_entity_t *ent) {
+static _Bool G_SpawnEntity(g_entity_t *ent) {
 	g_entity_spawn_t *s;
 	int32_t i;
 
 	if (!ent->class_name) {
 		gi.Debug("NULL classname\n");
-		return;
+		return false;
 	}
 
 	// check item spawn functions
@@ -171,7 +171,7 @@ static void G_SpawnEntity(g_entity_t *ent) {
 
 		if (!g_strcmp0(item->class_name, ent->class_name)) { // found it
 			G_SpawnItem(ent, item);
-			return;
+			return true;
 		}
 	}
 
@@ -179,11 +179,12 @@ static void G_SpawnEntity(g_entity_t *ent) {
 	for (s = g_entity_spawns; s->name; s++) {
 		if (!g_strcmp0(s->name, ent->class_name)) { // found it
 			s->Spawn(ent);
-			return;
+			return true;
 		}
 	}
 
 	gi.Warn("%s doesn't have a spawn function\n", ent->class_name);
+	return false;
 }
 
 /**
@@ -530,6 +531,12 @@ static void G_InitMedia(void) {
 
 	g_media.sounds.roar = gi.SoundIndex("world/ominous_bwah");
 
+	g_media.sounds.techs[TECH_HASTE] = gi.SoundIndex("tech/haste");
+	g_media.sounds.techs[TECH_REGEN] = gi.SoundIndex("tech/regen");
+	g_media.sounds.techs[TECH_RESIST] = gi.SoundIndex("tech/resist");
+	g_media.sounds.techs[TECH_STRENGTH] = gi.SoundIndex("tech/strength");
+	g_media.sounds.techs[TECH_VAMPIRE] = gi.SoundIndex("tech/vampire");
+
 	g_media.images.health = gi.ImageIndex("pics/i_health");
 }
 
@@ -752,7 +759,7 @@ static void G_InitSpawnPoints(void) {
 		g_level.spawn_points.count = g_slist_length(dm_spawns);
 
 		if (!g_level.spawn_points.count) {
-			gi.Error("Map has no spawn points! You need some info_player_deathmatch's (or info_player_team1/2/_any for teamplay maps).\n");
+			gi.Error("Map has no spawn points! You need some info_player_deathmatch's (or info_player_team1/2/3/4/_any for teamplay maps).\n");
 		}
 	}
 
@@ -792,6 +799,23 @@ static void G_InitSpawnPoints(void) {
 	g_slist_free(dm_spawns);
 
 	G_InitNumTeams();
+}
+
+/**
+ * @brief Spawn all of the techs
+ */
+void G_SpawnTechs(void) {
+
+	if (!g_level.techs) {
+		return;
+	}
+
+	for (g_tech_t i = 0; i < TECH_TOTAL; i++) {
+		g_entity_t *point = G_SelectTechSpawnPoint();
+		g_entity_t *tech_ent = G_DropItem(point, g_media.items.techs[i]);
+
+		VectorSet(tech_ent->locals.velocity, Randomc() * 250, Randomc() * 250, 200 + (Randomf() * 200));
+	}
 }
 
 /**
@@ -886,7 +910,10 @@ void G_SpawnEntities(const char *name, const char *entities) {
 			ent->locals.spawn_flags &= ~(SF_NOT_EASY | SF_NOT_MEDIUM | SF_NOT_HARD | SF_NOT_COOP);
 		}
 
-		G_SpawnEntity(ent);
+		if (!G_SpawnEntity(ent)) {
+			G_FreeEntity(ent);
+			inhibited++;
+		}
 	}
 
 	g_strfreev(inhibit);
@@ -897,9 +924,9 @@ void G_SpawnEntities(const char *name, const char *entities) {
 
 	G_InitEntityTeams();
 
-	G_ResetItems();
-
 	G_CheckHook();
+
+	G_CheckTechs();
 
 	G_ResetTeams();
 
@@ -908,6 +935,8 @@ void G_SpawnEntities(const char *name, const char *entities) {
 	G_ResetSpawnPoints();
 
 	G_ResetVote();
+
+	G_ResetItems();
 }
 
 /**
@@ -1082,6 +1111,12 @@ static void G_worldspawn(g_entity_t *ent) {
 		g_level.hook_map = map->hook;
 	} else {
 		g_level.hook_map = -1;
+	}
+
+	if (map && map->techs > -1) {
+		g_level.techs_map = map->techs;
+	} else {
+		g_level.techs_map = -1;
 	}
 
 	if (g_level.teams && g_level.ctf) { // ctf overrides teams

@@ -88,7 +88,12 @@ static uint16_t G_Ai_ItemIndex(const g_item_t *item) {
 /**
  * @brief
  */
-static _Bool G_Ai_CanPickupItem(const g_entity_t *self, const g_item_t *item) {
+static _Bool G_Ai_CanPickupItem(const g_entity_t *self, const g_entity_t *other) {
+	const g_item_t *item = other->locals.item;
+
+	if (!item) {
+		return false;
+	}
 
 	if (item->type == ITEM_HEALTH) {
 		// stimpack/mega is always gettable
@@ -123,6 +128,24 @@ static _Bool G_Ai_CanPickupItem(const g_entity_t *self, const g_item_t *item) {
 		}
 
 		return true;
+	} else if (item->type == ITEM_TECH) {
+
+		if (G_CarryingTech(self)) {
+			return false;
+		}
+
+		return true;
+	} else if (item->type == ITEM_FLAG) {
+
+		g_team_t *team = G_TeamForFlag(other);
+
+		// if it's our flag, recover it if dropped, or tag it if carrying enemy flag
+		if (team == self->client->locals.persistent.team) {
+			return (other->locals.spawn_flags & SF_ITEM_DROPPED) || G_IsFlagBearer(self);
+		}
+
+		// otherwise, only if we don't have a flag
+		return !G_IsFlagBearer(self);
 	}
 
 	return true;
@@ -433,6 +456,9 @@ static void G_Ai_RegisterItem(const g_item_t *item) {
 			break;
 		case ITEM_POWERUP:
 			ai_item.flags = AI_ITEM_POWERUP;
+			break;
+		case ITEM_TECH:
+			ai_item.flags = AI_ITEM_TECH;
 			break;
 	}
 
