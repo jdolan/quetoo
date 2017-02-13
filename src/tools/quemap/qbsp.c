@@ -334,6 +334,8 @@ int32_t BSP_Main(void) {
 	// clear the whole bsp structure
 	memset(&bsp_file, 0, sizeof(bsp_file));
 
+	LoadMaterials();
+
 	// if onlyents, just grab the entities and re-save
 	if (onlyents) {
 
@@ -355,17 +357,15 @@ int32_t BSP_Main(void) {
 		remove(va("%s.prt", base));
 		remove(va("%s.lin", base));
 
-		LoadMaterials();
-
 		CreateBSPFile();
 
 		LoadMapFile(map_name);
 		SetModelNumbers();
 
 		ProcessModels();
-
-		FreeMaterials();
 	}
+
+	FreeMaterials();
 
 	UnloadScriptFiles();
 
