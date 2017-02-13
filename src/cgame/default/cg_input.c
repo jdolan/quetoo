@@ -222,7 +222,7 @@ void Cg_Move(pm_cmd_t *cmd) {
  * @brief Clear button states.
  */
 void Cg_ClearInput(void) {
-
+	memset(&cg_kick, 0, sizeof(cg_kick));
 	memset(cg_buttons, 0, sizeof(cg_buttons));
 }
 
