@@ -151,13 +151,13 @@ static g_entity_spawn_t g_entity_spawns[] = { // entity class names -> spawn fun
 /**
  * @brief Finds the spawn function for the entity and calls it.
  */
-static void G_SpawnEntity(g_entity_t *ent) {
+static _Bool G_SpawnEntity(g_entity_t *ent) {
 	g_entity_spawn_t *s;
 	int32_t i;
 
 	if (!ent->class_name) {
 		gi.Debug("NULL classname\n");
-		return;
+		return false;
 	}
 
 	// check item spawn functions
@@ -171,7 +171,7 @@ static void G_SpawnEntity(g_entity_t *ent) {
 
 		if (!g_strcmp0(item->class_name, ent->class_name)) { // found it
 			G_SpawnItem(ent, item);
-			return;
+			return true;
 		}
 	}
 
@@ -179,11 +179,12 @@ static void G_SpawnEntity(g_entity_t *ent) {
 	for (s = g_entity_spawns; s->name; s++) {
 		if (!g_strcmp0(s->name, ent->class_name)) { // found it
 			s->Spawn(ent);
-			return;
+			return true;
 		}
 	}
 
 	gi.Warn("%s doesn't have a spawn function\n", ent->class_name);
+	return false;
 }
 
 /**
@@ -909,7 +910,10 @@ void G_SpawnEntities(const char *name, const char *entities) {
 			ent->locals.spawn_flags &= ~(SF_NOT_EASY | SF_NOT_MEDIUM | SF_NOT_HARD | SF_NOT_COOP);
 		}
 
-		G_SpawnEntity(ent);
+		if (!G_SpawnEntity(ent)) {
+			G_FreeEntity(ent);
+			inhibited++;
+		}
 	}
 
 	g_strfreev(inhibit);
