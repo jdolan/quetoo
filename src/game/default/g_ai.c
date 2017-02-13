@@ -61,24 +61,6 @@ static uint8_t G_Ai_NumberOfBots(void) {
 }
 
 /**
- * @brief Calculate the number of real players.
- */
-static uint8_t G_Ai_NumberOfPlayers(void) {
-	uint8_t filled_slots = 0;
-
-	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-
-		g_entity_t *ent = &g_game.entities[i + 1];
-
-		if (ent->in_use && ent->client->connected && !ent->client->ai) {
-			filled_slots++;
-		}
-	}
-
-	return filled_slots;
-}
-
-/**
  * @brief Calculate the number of connected clients (bots and players alike).
  */
 static uint8_t G_Ai_NumberOfClients(void) {
