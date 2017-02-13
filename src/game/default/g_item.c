@@ -429,7 +429,7 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 	if (taken && !(ent->locals.spawn_flags & SF_ITEM_DROPPED)) {
 		switch (new_armor->tag) {
 			case ARMOR_SHARD:
-				G_SetItemRespawn(ent, 10000);
+				G_SetItemRespawn(ent, 15000);
 				break;
 			case ARMOR_JACKET:
 				G_SetItemRespawn(ent, 20000);
