@@ -26,6 +26,28 @@ extern cl_client_t cl;
 
 static GHashTable *r_surfs_stained;
 
+static byte *r_stain_circle;
+static size_t r_stain_circle_size;
+
+#define STAIN_BYTE_FROM_XY(x, y) \
+	stain[((y) * stain_size) + (x)]
+
+static vec_t R_BilinearFilterStain(const byte *stain, const size_t stain_size, vec_t u, vec_t v) {
+	u = u * stain_size - 0.5;
+	v = v * stain_size - 0.5;
+
+	int32_t x = floor(u);
+	int32_t y = floor(v);
+
+	vec_t u_ratio = u - x;
+	vec_t v_ratio = v - y;
+	vec_t u_opposite = 1.0 - u_ratio;
+	vec_t v_opposite = 1.0 - v_ratio;
+
+	return (STAIN_BYTE_FROM_XY(x, y)   * u_opposite  + STAIN_BYTE_FROM_XY(x+1, y)   * u_ratio) * v_opposite + 
+		   (STAIN_BYTE_FROM_XY(x, y+1) * u_opposite  + STAIN_BYTE_FROM_XY(x+1, y+1) * u_ratio) * v_ratio;
+}
+
 /**
  * @brief Attempt to stain the surface. Returns true if any pixels were modified.
  */
@@ -68,27 +90,32 @@ static _Bool R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 	const vec_t radius = sqrt(stain->radius * stain->radius - dist * dist);
 
 	// transform the radius into lightmap space, accounting for unevenly scaled textures
-	const vec_t radius_st = (radius / tex->scale[0]) * r_model_state.world->bsp->lightmap_scale;
-
-	// square it, so we can avoid a sqrt per luxel
-	const vec_t radius_st_squared = radius_st * radius_st;
+	const int32_t radius_st = (int32_t) ceil((radius / tex->scale[0]) * r_model_state.world->bsp->lightmap_scale);
+	
+	point_st[0] -= radius_st / 2.0;
+	point_st[1] -= radius_st / 2.0;
+	
+	const int32_t point_st_round[2] = {
+		round(point_st[0]),
+		round(point_st[1])
+	};
 
 	byte *buffer = surf->stainmap_buffer;
 
 	// iterate the luxels and stain the ones that are within reach
 	for (uint16_t t = 0; t < surf->lightmap_size[1]; t++) {
 
-		const vec_t delta_t = round(fabs(point_st[1] - t));
-		const vec_t delta_t_squared = delta_t *delta_t;
-
 		for (uint16_t s = 0; s < surf->lightmap_size[0]; s++, buffer += 3) {
 
-			const vec_t delta_s = round(fabs(point_st[0] - s));
-			const vec_t delta_s_squared = delta_s * delta_s;
+			if (s < (point_st_round[0]) || t < (point_st_round[1]) || 
+				s >= (point_st_round[0] + radius_st) || t >= (point_st_round[1] + radius_st)) {
+				continue;
+			}
+			
+			const vec_t delta_s = (s - point_st[0]) / radius_st;
+			const vec_t delta_t = (t - point_st[1]) / radius_st;
 
-			const vec_t dist_st_squared = delta_t_squared + delta_s_squared;
-
-			const vec_t atten = (radius_st_squared - dist_st_squared) / radius_st_squared;
+			const vec_t atten = R_BilinearFilterStain(r_stain_circle, r_stain_circle_size, delta_s, delta_t) / 255.0;
 
 			if (atten <= 0.0) {
 				continue;
@@ -309,6 +336,26 @@ void R_ResetStainmap(void) {
 void R_InitStainmaps(void) {
 
 	r_surfs_stained = g_hash_table_new(g_direct_hash, g_direct_equal);
+
+	SDL_Surface *surf = NULL;
+
+	if (Img_LoadImage("particles/stain_burn", &surf)) {
+		r_stain_circle_size = surf->w;
+		r_stain_circle = Mem_TagMalloc(sizeof(byte) * surf->w * surf->h, MEM_TAG_RENDERER);
+
+		SDL_LockSurface(surf);
+
+		size_t p = 0;
+		byte *input = (byte *) surf->pixels;
+		byte *output = r_stain_circle;
+
+		for (int32_t i = 0; i < surf->w * surf->h; i++, input += 4, output++) {
+			*output = *(input + 3);
+		}
+
+		SDL_UnlockSurface(surf);
+		SDL_FreeSurface(surf);
+	}
 }
 
 /**
