@@ -477,7 +477,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
 		 .color = { c[0], c[1], c[2], 0.66 },
-		  .radius = 64.0 + (64.0 * Randomc() * 0.15)
+		  .radius = 256 + (256 * Randomc() * 0.15)
 	});
 
 	cgi.AddSample(&(const s_play_sample_t) {

@@ -33,8 +33,8 @@ static size_t r_stain_circle_size;
 	stain[((y) * stain_size) + (x)]
 
 static vec_t R_BilinearFilterStain(const byte *stain, const size_t stain_size, vec_t u, vec_t v) {
-	u = u * stain_size - 0.5;
-	v = v * stain_size - 0.5;
+	u = Clamp(u * stain_size - 0.5, 0.0, stain_size - 1);
+	v = Clamp(v * stain_size - 0.5, 0.0, stain_size - 1);
 
 	int32_t x = floor(u);
 	int32_t y = floor(v);
@@ -90,8 +90,8 @@ static _Bool R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 	const vec_t radius = sqrt(stain->radius * stain->radius - dist * dist);
 
 	// transform the radius into lightmap space, accounting for unevenly scaled textures
-	const int32_t radius_st = (int32_t) ceil((radius / tex->scale[0]) * r_model_state.world->bsp->lightmap_scale);
-	
+	const vec_t radius_st = (radius / tex->scale[0]) * r_model_state.world->bsp->lightmap_scale;
+		
 	point_st[0] -= radius_st / 2.0;
 	point_st[1] -= radius_st / 2.0;
 	
@@ -99,6 +99,8 @@ static _Bool R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 		round(point_st[0]),
 		round(point_st[1])
 	};
+
+	const int32_t radius_st_round = (int32_t) ceil(radius_st);
 
 	byte *buffer = surf->stainmap_buffer;
 
@@ -108,7 +110,7 @@ static _Bool R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 		for (uint16_t s = 0; s < surf->lightmap_size[0]; s++, buffer += 3) {
 
 			if (s < (point_st_round[0]) || t < (point_st_round[1]) || 
-				s >= (point_st_round[0] + radius_st) || t >= (point_st_round[1] + radius_st)) {
+				s >= (point_st_round[0] + radius_st_round) || t >= (point_st_round[1] + radius_st_round)) {
 				continue;
 			}
 			
@@ -339,13 +341,12 @@ void R_InitStainmaps(void) {
 
 	SDL_Surface *surf = NULL;
 
-	if (Img_LoadImage("particles/stain_burn", &surf)) {
+	if (Img_LoadImage("particles/spark", &surf)) {
 		r_stain_circle_size = surf->w;
 		r_stain_circle = Mem_TagMalloc(sizeof(byte) * surf->w * surf->h, MEM_TAG_RENDERER);
 
 		SDL_LockSurface(surf);
 
-		size_t p = 0;
 		byte *input = (byte *) surf->pixels;
 		byte *output = r_stain_circle;
 
