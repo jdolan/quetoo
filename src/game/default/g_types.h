@@ -68,6 +68,7 @@ typedef struct {
 	int32_t hook;
 	int32_t teams;
 	int32_t num_teams;
+	int32_t techs;
 	int32_t ctf;
 	int32_t match;
 	int32_t rounds;
@@ -125,7 +126,8 @@ typedef enum {
 	STAT_WEAPON,
 	STAT_WEAPON_ICON,
 	STAT_WEAPON_TAG, // low 8 bits = current weapon, high 8 bits = switching
-	STAT_WEAPONS
+	STAT_WEAPONS,
+	STAT_TECH_ICON
 } g_stat_t;
 
 /**
@@ -456,6 +458,19 @@ typedef enum {
 } g_powerup_t;
 
 /**
+ * @brief Tech types.
+ */
+typedef enum {
+	TECH_HASTE,
+	TECH_REGEN,
+	TECH_RESIST,
+	TECH_STRENGTH,
+	TECH_VAMPIRE,
+
+	TECH_TOTAL
+} g_tech_t;
+
+/**
  * @brief Move types govern the physics dispatch in G_RunEntity.
  */
 typedef enum {
@@ -485,6 +500,7 @@ typedef enum {
 	ITEM_HEALTH,
 	ITEM_POWERUP,
 	ITEM_WEAPON,
+	ITEM_TECH,
 
 	ITEM_TOTAL
 } g_item_type_t;
@@ -629,6 +645,7 @@ typedef struct {
 	char *hook;
 	char *teams;
 	char *num_teams;
+	char *techs;
 	char *ctf;
 	char *match;
 	char *rounds;
@@ -731,6 +748,7 @@ typedef struct {
 		const g_item_t *health[HEALTH_TOTAL];
 		const g_item_t *powerups[POWERUP_TOTAL];
 		const g_item_t *weapons[WEAPON_TOTAL];
+		const g_item_t *techs[TECH_TOTAL];
 	} items;
 
 	struct g_media_models_t {
@@ -770,12 +788,13 @@ typedef struct {
 		uint16_t countdown[11];
 
 		uint16_t roar;
+
+		uint16_t techs[TECH_TOTAL];
 	} sounds;
 
 	struct g_media_images_t {
 		uint16_t health;
 	} images;
-
 } g_media_t;
 
 /**
@@ -800,11 +819,13 @@ typedef struct {
 	g_gameplay_t gameplay;
 	_Bool teams;
 	_Bool ctf;
+	_Bool techs;
 	_Bool match;
 	_Bool rounds;
 	_Bool hook_allowed;
 	int32_t num_teams;
 	int32_t hook_map; // the map's hook allowance, for voting/restart/etc
+	int32_t techs_map;
 	int32_t frag_limit;
 	int32_t round_limit;
 	int32_t capture_limit;
@@ -1066,6 +1087,9 @@ typedef struct {
 
 	_Bool show_scores; // sets layout bit mask in player state
 	uint32_t scores_time; // eligible for scores when time > this
+	
+	uint32_t regen_time; // time for regeneration?
+	uint32_t tech_sound_time; // next time we can play sound
 } g_client_locals_t;
 
 /**

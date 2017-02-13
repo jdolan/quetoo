@@ -210,6 +210,14 @@ void G_ClientStats(g_entity_t *ent) {
 		client->ps.stats[STAT_ARMOR] = 0;
 	}
 
+	// tech
+	const g_item_t *tech = G_CarryingTech(ent);
+	if (tech) {
+		client->ps.stats[STAT_TECH_ICON] = tech->icon_index;
+	} else {
+		client->ps.stats[STAT_TECH_ICON] = -1;
+	}
+
 	// captures
 	client->ps.stats[STAT_CAPTURES] = client->locals.persistent.captures;
 

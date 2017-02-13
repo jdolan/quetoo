@@ -38,6 +38,7 @@ cvar_t *g_inhibit;
 cvar_t *g_capture_limit;
 cvar_t *g_cheats;
 cvar_t *g_ctf;
+cvar_t *g_techs;
 cvar_t *g_hook;
 cvar_t *g_hook_style;
 cvar_t *g_hook_speed;
@@ -69,6 +70,7 @@ cvar_t *g_timeout_time;
 cvar_t *g_voting;
 cvar_t *g_warmup_time;
 cvar_t *g_weapon_respawn_time;
+cvar_t *g_weapon_stay;
 
 cvar_t *sv_max_clients;
 cvar_t *sv_hostname;
@@ -182,8 +184,15 @@ void G_ResetItems(void) {
 			continue;
 		}
 
+		if (ent->locals.item->type == ITEM_TECH) { // free techs, we'll spawn them again
+			G_FreeEntity(ent);
+			continue;
+		}
+
 		G_ResetItem(ent);
 	}
+
+	G_SpawnTechs();
 
 	G_Ai_RegisterItems();
 }
@@ -206,6 +215,28 @@ void G_CheckHook(void) {
 			}
 		} else {
 			g_level.hook_allowed = g_level.ctf;
+		}
+	}
+}
+
+/**
+ * @brief Checks and sets up the tech states
+ */
+void G_CheckTechs(void) {
+
+	if (g_strcmp0(g_techs->string, "default")) { // check cvar first
+		g_level.techs = !!g_techs->integer;
+	} else if (g_level.techs_map != -1) { // check maps.lst
+		g_level.techs = (g_level.techs_map == -1) ? g_level.ctf : !!g_level.techs_map;
+	} else { // check worldspawn
+		if (g_game.spawn.techs && *g_game.spawn.techs) {
+			if (g_strcmp0(g_game.spawn.techs, "default")) {
+				g_level.techs = !!atoi(g_game.spawn.techs);
+			} else {
+				g_level.techs = g_level.ctf;
+			}
+		} else {
+			g_level.techs = g_level.ctf;
 		}
 	}
 }
@@ -328,9 +359,13 @@ static void G_RestartGame(_Bool teamz) {
 
 	G_CheckHook();
 
+	G_CheckTechs();
+
 	G_ResetItems();
 
 	G_ResetSpawnPoints();
+
+	G_InitNumTeams();
 
 	g_level.match_time = g_level.round_time = 0;
 
@@ -993,6 +1028,16 @@ static void G_CheckRules(void) {
 		restart = true;
 	}
 
+	if (g_techs->modified) {
+		g_techs->modified = false;
+
+		G_CheckTechs();
+
+		gi.BroadcastPrint(PRINT_HIGH, "Techs have been %s\n", g_level.techs ? "enabled" : "disabled");
+
+		restart = true;
+	}
+
 	if (g_match->modified) { // reset scores
 		g_match->modified = false;
 
@@ -1061,6 +1106,47 @@ static void G_CheckRules(void) {
 		g_level.time_limit = g_time_limit->value * 60 * 1000;
 
 		gi.BroadcastPrint(PRINT_HIGH, "Time limit has been changed to %3.1f\n", g_time_limit->value);
+	}
+
+	if (g_weapon_stay->modified) {
+		g_weapon_stay->modified = false;
+
+		gi.BroadcastPrint(PRINT_HIGH, "Weapon's Stay has been %s\n", g_weapon_stay->integer ? "enabled" : "disabled");
+
+		// respawn all the weapons sitting around
+		if (g_weapon_stay->integer) {
+			for (uint16_t i = 1; i < ge.num_entities; i++) {
+
+				g_entity_t *ent = &g_game.entities[i];
+
+				if (!ent->in_use) {
+					continue;
+				}
+
+				if (!ent->locals.item) {
+					continue;
+				}
+
+				if (ent->locals.spawn_flags & SF_ITEM_DROPPED) {
+					continue;
+				}
+
+				if (ent->locals.item->type != ITEM_WEAPON) {
+					continue;
+				}
+
+				if (!(ent->sv_flags & SVF_NO_CLIENT)) {
+					continue;
+				}
+
+				if (!ent->locals.Think) {
+					continue;
+				}
+
+				ent->locals.next_think = 0;
+				ent->locals.Think(ent); // force a respawn
+			}
+		}
 	}
 
 	if (restart) {
@@ -1189,10 +1275,6 @@ void G_InitNumTeams(void) {
 			g_level.num_teams++;
 		}
 
-		if (g_level.num_teams < 2) {
-			gi.Warn("Map only seems to have one available team?");
-		}
-
 		g_level.num_teams = Clamp(g_level.num_teams, 2, MAX_TEAMS);
 	}
 
@@ -1255,11 +1337,14 @@ void G_Init(void) {
 	g_spectator_chat = gi.Cvar("g_spectator_chat", "1", CVAR_SERVER_INFO,
 	                           "If enabled, spectators can only talk to other spectators");
 	g_teams = gi.Cvar("g_teams", "0", CVAR_SERVER_INFO, "Enables teams-based play");
+	g_techs = gi.Cvar("g_techs", "default", CVAR_SERVER_INFO,
+	                 "Whether to allow techs or not. \"default\" only allows techs in CTF; 1 is always allow, 0 is never allow.");
 	g_time_limit = gi.Cvar("g_time_limit", "20.0", CVAR_SERVER_INFO, "The time limit per level in minutes");
 	g_timeout_time = gi.Cvar("g_timeout_time", "120", CVAR_SERVER_INFO, "Length in seconds of a timeout, 0 = disabled");
 	g_voting = gi.Cvar("g_voting", "1", CVAR_SERVER_INFO, "Activates voting");
 	g_warmup_time = gi.Cvar("g_warmup_time", "15", CVAR_SERVER_INFO, "Match warmup countdown in seconds, up to 30");
 	g_weapon_respawn_time = gi.Cvar("g_weapon_respawn_time", "5.0", CVAR_SERVER_INFO, "Weapon respawn interval in seconds");
+	g_weapon_stay = gi.Cvar("g_weapon_stay", "0", CVAR_SERVER_INFO, "Controls whether weapons will respawn like normal or always stay");
 
 	sv_max_clients = gi.Cvar("sv_max_clients", "1", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 	sv_hostname = gi.Cvar("sv_hostname", "Quetoo", CVAR_SERVER_INFO, NULL);
@@ -1290,10 +1375,14 @@ void G_Init(void) {
 	// set these to false to avoid spurious game restarts and alerts on init
 	g_gameplay->modified =
 			g_ctf->modified =
+			g_teams->modified =
+			g_num_teams->modified =
+			g_techs->modified =
 			g_cheats->modified =
 			g_frag_limit->modified =
 			g_round_limit->modified =
 			g_capture_limit->modified =
+			g_weapon_stay->modified = 
 			g_time_limit->modified = false;
 
 	// add game-specific server console commands

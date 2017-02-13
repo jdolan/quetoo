@@ -143,6 +143,42 @@ g_entity_t *G_Find(g_entity_t *from, ptrdiff_t field, const char *match) {
 }
 
 /**
+ * @brief Searches all active entities for the next one that holds the matching pointer
+ * at field offset (use the ELOFS() macro) in the structure.
+ *
+ * Searches beginning at the entity after from, or the beginning if NULL
+ * NULL will be returned if the end of the list is reached.
+ *
+ * Example:
+ *   G_Find(NULL, LOFS(ptr), 0x1234);
+ *
+ */
+g_entity_t *G_FindPtr(g_entity_t *from, ptrdiff_t field, const void *match) {
+	void *s;
+
+	if (!from) {
+		from = g_game.entities;
+	} else {
+		from++;
+	}
+
+	for (; from < &g_game.entities[ge.num_entities]; from++) {
+		if (!from->in_use) {
+			continue;
+		}
+		s = *(void **) ((byte *) from + field);
+		if (!s) {
+			continue;
+		}
+		if (s == match) {
+			return from;
+		}
+	}
+
+	return NULL;
+}
+
+/**
  * @brief Returns entities that have origins within a spherical area
  *
  * G_FindRadius(origin, radius)
