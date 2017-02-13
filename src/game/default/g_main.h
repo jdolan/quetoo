@@ -78,6 +78,7 @@ extern cvar_t *g_timeout_time;
 extern cvar_t *g_voting;
 extern cvar_t *g_warmup_time;
 extern cvar_t *g_weapon_respawn_time;
+extern cvar_t *g_weapon_stay;
 
 extern cvar_t *sv_max_clients;
 extern cvar_t *sv_hostname;

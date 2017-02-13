@@ -70,6 +70,7 @@ cvar_t *g_timeout_time;
 cvar_t *g_voting;
 cvar_t *g_warmup_time;
 cvar_t *g_weapon_respawn_time;
+cvar_t *g_weapon_stay;
 
 cvar_t *sv_max_clients;
 cvar_t *sv_hostname;
@@ -1107,6 +1108,47 @@ static void G_CheckRules(void) {
 		gi.BroadcastPrint(PRINT_HIGH, "Time limit has been changed to %3.1f\n", g_time_limit->value);
 	}
 
+	if (g_weapon_stay->modified) {
+		g_weapon_stay->modified = false;
+
+		gi.BroadcastPrint(PRINT_HIGH, "Weapon's Stay has been %s\n", g_weapon_stay->integer ? "enabled" : "disabled");
+
+		// respawn all the weapons sitting around
+		if (g_weapon_stay->integer) {
+			for (uint16_t i = 1; i < ge.num_entities; i++) {
+
+				g_entity_t *ent = &g_game.entities[i];
+
+				if (!ent->in_use) {
+					continue;
+				}
+
+				if (!ent->locals.item) {
+					continue;
+				}
+
+				if (ent->locals.spawn_flags & SF_ITEM_DROPPED) {
+					continue;
+				}
+
+				if (ent->locals.item->type != ITEM_WEAPON) {
+					continue;
+				}
+
+				if (!(ent->sv_flags & SVF_NO_CLIENT)) {
+					continue;
+				}
+
+				if (!ent->locals.Think) {
+					continue;
+				}
+
+				ent->locals.next_think = 0;
+				ent->locals.Think(ent); // force a respawn
+			}
+		}
+	}
+
 	if (restart) {
 		G_RestartGame(true);	// reset all clients
 	}
@@ -1302,6 +1344,7 @@ void G_Init(void) {
 	g_voting = gi.Cvar("g_voting", "1", CVAR_SERVER_INFO, "Activates voting");
 	g_warmup_time = gi.Cvar("g_warmup_time", "15", CVAR_SERVER_INFO, "Match warmup countdown in seconds, up to 30");
 	g_weapon_respawn_time = gi.Cvar("g_weapon_respawn_time", "5.0", CVAR_SERVER_INFO, "Weapon respawn interval in seconds");
+	g_weapon_stay = gi.Cvar("g_weapon_stay", "0", CVAR_SERVER_INFO, "Controls whether weapons will respawn like normal or always stay");
 
 	sv_max_clients = gi.Cvar("sv_max_clients", "1", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 	sv_hostname = gi.Cvar("sv_hostname", "Quetoo", CVAR_SERVER_INFO, NULL);
@@ -1339,6 +1382,7 @@ void G_Init(void) {
 			g_frag_limit->modified =
 			g_round_limit->modified =
 			g_capture_limit->modified =
+			g_weapon_stay->modified = 
 			g_time_limit->modified = false;
 
 	// add game-specific server console commands

@@ -1010,6 +1010,12 @@ void G_ResetItem(g_entity_t *ent) {
 		ent->solid = SOLID_NOT;
 	}
 
+	// if we were mid-respawn, get us out of it
+	if (ent->locals.Think == G_ItemRespawn) {
+		ent->locals.next_think = 0;
+		ent->locals.Think = NULL;
+	}
+
 	gi.LinkEntity(ent);
 }
 

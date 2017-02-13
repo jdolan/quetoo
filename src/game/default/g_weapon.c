@@ -69,6 +69,10 @@ static void G_ChangeWeapon(g_entity_t *ent, const g_item_t *item) {
  */
 _Bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other) {
 
+	if (g_weapon_stay->integer && other->client->locals.inventory[ent->locals.item->index]) {
+		return false;
+	}
+
 	// add the weapon to inventory
 	other->client->locals.inventory[ent->locals.item->index]++;
 
@@ -84,7 +88,7 @@ _Bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other) {
 	}
 
 	// setup respawn if it's not a dropped item
-	if (!(ent->locals.spawn_flags & SF_ITEM_DROPPED)) {
+	if (!(ent->locals.spawn_flags & SF_ITEM_DROPPED) && !g_weapon_stay->integer) {
 		G_SetItemRespawn(ent, g_weapon_respawn_time->value * 1000);
 	}
 
