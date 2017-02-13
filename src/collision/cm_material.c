@@ -604,7 +604,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, const char **buffe
 /**
  * @brief Normalizes a material's input name and fills the buffer with the base name.
  */
-void Cm_MaterialName(const char *in, char *out, size_t len) {
+void Cm_NormalizeMaterialName(const char *in, char *out, size_t len) {
 
 	if (out != in) {
 		g_strlcpy(out, in, len);
@@ -635,9 +635,9 @@ static void Cm_AttachStage(cm_material_t *m, cm_stage_t *s) {
 }
 
 /**
- * @brief Loads the material and sets up the diffuse stage.
+ * @brief Allocates a material, setting up the diffuse stage.
  */
-cm_material_t *Cm_LoadMaterial(const char *diffuse) {
+cm_material_t *Cm_AllocMaterial(const char *diffuse) {
 
 	if (!diffuse || !diffuse[0]) {
 		Com_Error(ERROR_DROP, "NULL diffuse name\n");
@@ -646,7 +646,7 @@ cm_material_t *Cm_LoadMaterial(const char *diffuse) {
 	cm_material_t *mat = Mem_TagMalloc(sizeof(cm_material_t), MEM_TAG_MATERIAL);
 
 	StripExtension(diffuse, mat->diffuse);
-	Cm_MaterialName(mat->diffuse, mat->base, sizeof(mat->base));
+	Cm_NormalizeMaterialName(mat->diffuse, mat->base, sizeof(mat->base));
 
 	mat->bump = DEFAULT_BUMP;
 	mat->hardness = DEFAULT_HARDNESS;
@@ -698,9 +698,9 @@ cm_material_t **Cm_LoadMaterials(const char *path, size_t *count) {
 			cm_material_t *mat;
 
 			if (*c == '#') {
-				mat = Cm_LoadMaterial(c + 1);
+				mat = Cm_AllocMaterial(c + 1);
 			} else {
-				mat = Cm_LoadMaterial(va("textures/%s", c));
+				mat = Cm_AllocMaterial(va("textures/%s", c));
 			}
 
 			m = mat;
@@ -724,9 +724,7 @@ cm_material_t **Cm_LoadMaterials(const char *path, size_t *count) {
 		}
 
 		if (!g_strcmp0(c, "bump")) {
-
 			m->bump = strtod(ParseToken(&buffer), NULL);
-
 			if (m->bump < 0.0) {
 				Com_Warn("Invalid bump value for %s\n", m->diffuse);
 				m->bump = DEFAULT_BUMP;
@@ -734,9 +732,7 @@ cm_material_t **Cm_LoadMaterials(const char *path, size_t *count) {
 		}
 
 		if (!g_strcmp0(c, "parallax")) {
-
 			m->parallax = strtod(ParseToken(&buffer), NULL);
-
 			if (m->parallax < 0.0) {
 				Com_Warn("Invalid parallax value for %s\n", m->diffuse);
 				m->parallax = DEFAULT_PARALLAX;
@@ -744,9 +740,7 @@ cm_material_t **Cm_LoadMaterials(const char *path, size_t *count) {
 		}
 
 		if (!g_strcmp0(c, "hardness")) {
-
 			m->hardness = strtod(ParseToken(&buffer), NULL);
-
 			if (m->hardness < 0.0) {
 				Com_Warn("Invalid hardness value for %s\n", m->diffuse);
 				m->hardness = DEFAULT_HARDNESS;
@@ -755,7 +749,6 @@ cm_material_t **Cm_LoadMaterials(const char *path, size_t *count) {
 
 		if (!g_strcmp0(c, "specular")) {
 			m->specular = strtod(ParseToken(&buffer), NULL);
-
 			if (m->specular < 0.0) {
 				Com_Warn("Invalid specular value for %s\n", m->diffuse);
 				m->specular = DEFAULT_SPECULAR;
@@ -770,6 +763,14 @@ cm_material_t **Cm_LoadMaterials(const char *path, size_t *count) {
 		if (!g_strcmp0(c, "surface")) {
 			const char *surface = ParseToken(&buffer);
 			m->surface = Cm_ParseSurface(surface);
+		}
+
+		if (!g_strcmp0(c, "light")) {
+			m->light = strtod(ParseToken(&buffer), NULL);
+			if (m->light < 0.0) {
+				Com_Warn("Invalid light value for %s\n", m->diffuse);
+				m->light = DEFAULT_LIGHT;
+			}
 		}
 
 		if (!g_strcmp0(c, "footsteps")) {
@@ -887,13 +888,25 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 }
 
 /**
+ * @return The material name as it should appear in a materials file.
+ */
+static const char *Cm_MaterialName(const char *texture) {
+
+	if (g_str_has_prefix(texture, "textures/")) {
+		return texture + strlen("textures/");
+	} else {
+		return va("#%s", texture);
+	}
+}
+
+/**
  * @brief Serialize the given material.
  */
 static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 	Fs_Print(file, "{\n");
 
 	// write the innards
-	Fs_Print(file, "\tmaterial %s\n", material->diffuse);
+	Fs_Print(file, "\tmaterial %s\n", Cm_MaterialName(material->diffuse));
 
 	if (*material->normalmap) {
 		Fs_Print(file, "\tnormalmap %s\n", material->normalmap);
@@ -903,9 +916,9 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 	}
 
 	Fs_Print(file, "\tbump %g\n", material->bump);
-	Fs_Print(file, "\tparallax %g\n", material->parallax);
 	Fs_Print(file, "\thardness %g\n", material->hardness);
 	Fs_Print(file, "\tspecular %g\n", material->specular);
+	Fs_Print(file, "\tparallax %g\n", material->parallax);
 
 	if (material->contents) {
 		Fs_Print(file, "\tcontents \"%s\"\n", Cm_UnparseContents(material->contents));

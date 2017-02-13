@@ -21,59 +21,9 @@
 
 #include "qmat.h"
 
-static GPtrArray *materials;
-
 /**
- * @brief Loads all materials defined in the material file.
- */
-void LoadMaterials(void) {
-
-	size_t count;
-	cm_material_t **mats = Cm_LoadMaterials(mat_name, &count);
-	cm_material_t **material = mats;
-
-	materials = g_ptr_array_new_with_free_func((GDestroyNotify) Cm_FreeMaterial);
-	assert(materials);
-
-	for (size_t i = 0; i < count; i++, material++) {
-		g_ptr_array_add(materials, *material);
-	}
-}
-
-/**
- * @brief Frees all loaded materials.
- */
-void FreeMaterials(void) {
-	g_ptr_array_free(materials, true);
-	materials = NULL;
-}
-
-/**
- * @brief Loads the material with the specified diffuse name.
- */
-cm_material_t *LoadMaterial(const char *diffuse) {
-
-	Com_Print("Searching for material %s\n", diffuse);
-
-	for (guint i = 0; i < materials->len; i++) {
-		cm_material_t *material = g_ptr_array_index(materials, i);
-		if (!g_strcmp0(material->diffuse, diffuse)) {
-			Com_Print("Resolved material %s\n", material->diffuse);
-			return material;
-		}
-	}
-
-	cm_material_t *material = Cm_LoadMaterial(diffuse);
-	g_ptr_array_add(materials, material);
-
-	Com_Print("Created material %s\n", material->diffuse);
-
-	return material;
-}
-
-/**
- * @brief Loads the specified BSP file, resolves all materials referenced by it,
- * and generates a "stub" materials file.
+ * @brief Parses the materials and map files, merging all known materials, and 
+ * serializes them back to the materials file for the current map.
  */
 int32_t MAT_Main(void) {
 
@@ -81,17 +31,22 @@ int32_t MAT_Main(void) {
 
 	const time_t start = time(NULL);
 
+	// clear the whole bsp structure
+	memset(&bsp_file, 0, sizeof(bsp_file));
+
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_TEXINFO, MAX_BSP_TEXINFO);
+
 	LoadMaterials();
 
-	LoadBSPFile(bsp_name, (1 << BSP_LUMP_TEXINFO));
+	LoadMapFile(map_name);
 
 	for (int32_t i = 0; i < bsp_file.num_texinfo; i++) {
 		LoadMaterial(bsp_file.texinfo[i].texture);
 	}
 
-	Cm_WriteMaterials(mat_name, (const cm_material_t **) materials->pdata, materials->len);
+	UnloadScriptFiles();
 
-	Com_Print("Generated %d materials\n", materials->len);
+	WriteMaterialsFile(mat_name);
 
 	FreeMaterials();
 

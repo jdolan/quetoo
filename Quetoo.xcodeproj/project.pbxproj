@@ -293,6 +293,7 @@
 		CEA936671DBCD89000A12B79 /* r_program_corona.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA936631DBCD87400A12B79 /* r_program_corona.h */; };
 		CEB8D6271E00B73200043814 /* cg_input.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB8D6231E00B72100043814 /* cg_input.c */; };
 		CEC986941D3835420002B714 /* libmysqlclient.18.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEC986931D3835420002B714 /* libmysqlclient.18.dylib */; };
+		CECA8CB01E50B5F1005E97E8 /* materials.c in Sources */ = {isa = PBXBuildFile; fileRef = CECA8CAE1E50B5F1005E97E8 /* materials.c */; };
 		CED4381E1D9D33AF0052BAFA /* libpmove.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7B8A1D9D2E71000FA6B2 /* libpmove.dylib */; };
 		CED4381F1D9D33E80052BAFA /* PrimaryButton.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFC79421D9BE432000FA6B2 /* PrimaryButton.c */; };
 		CED438381D9D34450052BAFA /* r_array.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5B01C5C58C300CD0B13 /* r_array.c */; };
@@ -1383,6 +1384,9 @@
 		CEB8D6231E00B72100043814 /* cg_input.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_input.c; sourceTree = "<group>"; };
 		CEB8D6241E00B72100043814 /* cg_input.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_input.h; sourceTree = "<group>"; };
 		CEC986931D3835420002B714 /* libmysqlclient.18.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmysqlclient.18.dylib; path = ../../../../opt/local/lib/mysql56/mysql/libmysqlclient.18.dylib; sourceTree = "<group>"; };
+		CECA8CAD1E4EC027005E97E8 /* qmat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qmat.h; sourceTree = "<group>"; };
+		CECA8CAE1E50B5F1005E97E8 /* materials.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = materials.c; sourceTree = "<group>"; };
+		CECA8CAF1E50B5F1005E97E8 /* materials.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = materials.h; sourceTree = "<group>"; };
 		CED438AD1D9D34450052BAFA /* librenderer.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = librenderer.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		CED4393B1D9D344E0052BAFA /* libsound.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libsound.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = "../../Library/Developer/Xcode/DerivedData/Quetoo-eijmznjiunzbaafulkyjapfulhqz/Build/Products/Debug/libObjectivelyMVC.dylib"; sourceTree = "<group>"; };
@@ -2521,6 +2525,8 @@
 				CE12D6ED1C5C58C300CD0B13 /* lightmap.c */,
 				CE12D6EE1C5C58C300CD0B13 /* main.c */,
 				CE12D6F11C5C58C300CD0B13 /* map.c */,
+				CECA8CAE1E50B5F1005E97E8 /* materials.c */,
+				CECA8CAF1E50B5F1005E97E8 /* materials.h */,
 				CE12D6F21C5C58C300CD0B13 /* monitor.c */,
 				CE12D6F31C5C58C300CD0B13 /* monitor.h */,
 				CE12D6F41C5C58C300CD0B13 /* patches.c */,
@@ -2534,6 +2540,7 @@
 				CE12D6FC1C5C58C300CD0B13 /* qlight.c */,
 				CE12D6FD1C5C58C300CD0B13 /* qlight.h */,
 				CE12D6FE1C5C58C300CD0B13 /* qmat.c */,
+				CECA8CAD1E4EC027005E97E8 /* qmat.h */,
 				CE12D6FF1C5C58C300CD0B13 /* quemap.h */,
 				CE92B3A91D2FF72200E9153A /* quemap-icon.rc */,
 				CE92B3AA1D2FF77800E9153A /* quemap.ico */,
@@ -3965,6 +3972,7 @@
 			files = (
 				CE80FFE31C5E4D1800A21A51 /* brush.c in Sources */,
 				CE80FFE41C5E4D1800A21A51 /* bspfile.c in Sources */,
+				CECA8CB01E50B5F1005E97E8 /* materials.c in Sources */,
 				CE80FFE51C5E4D1800A21A51 /* csg.c in Sources */,
 				CE80FFE61C5E4D1800A21A51 /* faces.c in Sources */,
 				CE80FFE71C5E4D1800A21A51 /* flow.c in Sources */,

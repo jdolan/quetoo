@@ -137,7 +137,7 @@ static _Bool G_PickupAdrenaline(g_entity_t *ent, g_entity_t *other) {
 	}
 
 	if (!(ent->locals.spawn_flags & SF_ITEM_DROPPED)) {
-		G_SetItemRespawn(ent, 60000);
+		G_SetItemRespawn(ent, 40000);
 	}
 
 	return true;
@@ -158,7 +158,7 @@ static _Bool G_PickupQuadDamage(g_entity_t *ent, g_entity_t *other) {
 		other->client->locals.quad_damage_time = ent->locals.next_think;
 	} else {
 		other->client->locals.quad_damage_time = g_level.time + 20000;
-		G_SetItemRespawn(ent, 90000);
+		G_SetItemRespawn(ent, 60000);
 	}
 
 	other->s.effects |= EF_QUAD;
@@ -323,9 +323,9 @@ static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
 		other->locals.health = h;
 
 		if (tag == HEALTH_MEGA) { // respawn the item
-			G_SetItemRespawn(ent, 90000);
-		} else if (tag == HEALTH_LARGE) {
 			G_SetItemRespawn(ent, 60000);
+		} else if (tag == HEALTH_LARGE) {
+			G_SetItemRespawn(ent, 30000);
 		} else {
 			G_SetItemRespawn(ent, 20000);
 		}
@@ -429,14 +429,16 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 	if (taken && !(ent->locals.spawn_flags & SF_ITEM_DROPPED)) {
 		switch (new_armor->tag) {
 			case ARMOR_SHARD:
-				G_SetItemRespawn(ent, 20000);
+				G_SetItemRespawn(ent, 10000);
 				break;
 			case ARMOR_JACKET:
+				G_SetItemRespawn(ent, 20000);
+				break;
 			case ARMOR_COMBAT:
-				G_SetItemRespawn(ent, 60000);
+				G_SetItemRespawn(ent, 30000);
 				break;
 			case ARMOR_BODY:
-				G_SetItemRespawn(ent, 90000);
+				G_SetItemRespawn(ent, 40000);
 				break;
 			default:
 				gi.Debug("Invalid armor tag: %d\n", new_armor->tag);
