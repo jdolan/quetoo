@@ -1296,7 +1296,7 @@ _Bool ColorParseHex(const char *s, color_t *color) {
  * @brief Attempt to convert a color to a hexadecimal string representation.
  */
 _Bool ColorToHex(const color_t color, char *s, const size_t s_len) {
-	
+
 	_Bool is_short_form = COLOR_BYTES_ARE_SAME(color.r) &&
 						  COLOR_BYTES_ARE_SAME(color.g) &&
 						  COLOR_BYTES_ARE_SAME(color.b);
@@ -1304,7 +1304,7 @@ _Bool ColorToHex(const color_t color, char *s, const size_t s_len) {
 
 	if (is_32_bit) {
 		is_short_form = is_short_form && COLOR_BYTES_ARE_SAME(color.a);
-	
+
 		if (is_short_form) {
 			if (g_strlcat(s, va("%1x%1x%1x%1x", color.r & 15, color.g & 15, color.b & 15, color.a & 15), s_len) >= s_len) {
 				return false;

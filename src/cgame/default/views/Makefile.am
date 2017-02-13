@@ -5,10 +5,12 @@ noinst_HEADERS = \
 	CvarCheckbox.h \
 	CvarSelect.h \
 	CvarSlider.h \
+	HueSlider.h \
 	MapListCollectionItemView.h \
 	MapListCollectionView.h \
 	PlayerModelView.h \
 	PrimaryButton.h \
+	PrimaryIcon.h \
 	ServersTableView.h \
 	SkinSelect.h \
 	VideoModeSelect.h
@@ -23,10 +25,12 @@ libviews_la_SOURCES = \
 	CvarSelect.c \
 	CvarSlider.c \
 	CvarTextView.c \
+	HueSlider.c \
 	MapListCollectionItemView.c \
 	MapListCollectionView.c \
 	PlayerModelView.c \
 	PrimaryButton.c \
+	PrimaryIcon.c \
 	ServersTableView.c \
 	SkinSelect.c \
 	VideoModeSelect.c

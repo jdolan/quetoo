@@ -111,4 +111,3 @@ Class *_CvarSlider(void) {
 }
 
 #undef _Class
-

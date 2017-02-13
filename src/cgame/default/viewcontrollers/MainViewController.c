@@ -23,6 +23,7 @@
 
 #include "MainViewController.h"
 
+#include "CreateServerViewController.h"
 #include "KeysViewController.h"
 #include "MouseViewController.h"
 #include "MultiplayerViewController.h"
@@ -70,20 +71,22 @@ static void loadView(ViewController *self) {
 	panel->isDraggable = false;
 	panel->isResizable = false;
 
-	panel->stackView.view.alignment = ViewAlignmentTopCenter;
+	panel->stackView.view.alignment = ViewAlignmentTopLeft;
 
 	panel->contentView->axis = StackViewAxisHorizontal;
-	panel->contentView->distribution = StackViewDistributionFillEqually;
+	panel->contentView->distribution = StackViewDistributionDefault;
 	panel->contentView->view.autoresizingMask = ViewAutoresizingNone;
 
-	Cg_PrimaryButton((View *) panel->contentView, "MULTIPLAYER", action, self, _MultiplayerViewController());
-	Cg_PrimaryButton((View *) panel->contentView, "KEYS", action, self, _KeysViewController());
-	Cg_PrimaryButton((View *) panel->contentView, "MOUSE", action, self, _MouseViewController());
-	Cg_PrimaryButton((View *) panel->contentView, "PLAYER", action, self, _PlayerViewController());
-	Cg_PrimaryButton((View *) panel->contentView, "SYSTEM", action, self, _SystemViewController());
-	Cg_PrimaryButton((View *) panel->contentView, "QUIT", action, self, NULL);
+	Cg_PrimaryButton((View *) panel->contentView, "JOIN", ViewAlignmentTopLeft, Colors.SteelBlue, action, self, _MultiplayerViewController());
+	Cg_PrimaryButton((View *) panel->contentView, "CREATE", ViewAlignmentTopLeft, Colors.DefaultColor, action, self, _CreateServerViewController());
+//	Cg_PrimaryButton((View *) panel->contentView, "KEYS", action, self, _KeysViewController());
+//	Cg_PrimaryButton((View *) panel->contentView, "MOUSE", action, self, _MouseViewController());
+//	Cg_PrimaryButton((View *) panel->contentView, "PLAYER", action, self, _PlayerViewController());
+//	Cg_PrimaryButton((View *) panel->contentView, "SYSTEM", action, self, _SystemViewController());
+	Cg_PrimaryIcon((View *) panel->contentView, "pics/i_bodyarmor", ViewAlignmentTopRight, action, self, _PlayerViewController());
+	Cg_PrimaryIcon((View *) panel->contentView, "pics/i_quad", ViewAlignmentTopRight, action, self, NULL);
 
-	SDL_Size size = MakeSize(min(cgi.context->window_width, 1024), 36);
+	SDL_Size size = MakeSize(cgi.context->window_width, 36);
 	$((View *) panel->contentView, resize, &size);
 
 	$(self->view, addSubview, (View *) panel);
@@ -135,4 +138,3 @@ Class *_MainViewController(void) {
 }
 
 #undef _Class
-

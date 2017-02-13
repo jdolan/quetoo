@@ -80,4 +80,3 @@ struct PrimaryButtonInterface {
  * @memberof PrimaryButton
  */
 extern Class *_PrimaryButton(void);
-

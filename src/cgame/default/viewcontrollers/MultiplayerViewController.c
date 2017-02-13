@@ -107,20 +107,6 @@ static void quickjoinAction(Control *control, const SDL_Event *event, ident send
 }
 
 /**
- * @brief ActionFunction for the Create button.
- */
-static void createAction(Control *control, const SDL_Event *event, ident sender, ident data) {
-
-	MainViewController *mainViewController = $((MenuViewController *) sender, mainViewController);
-
-	ViewController *viewController = $((ViewController *) alloc(CreateServerViewController), init);
-
-	$((NavigationViewController *) mainViewController, pushViewController, viewController);
-
-	release(viewController);
-}
-
-/**
  * @brief ActionFunction for the Refresh button.
  */
 static void refreshAction(Control *control, const SDL_Event *event, ident sender, ident data) {
@@ -190,7 +176,6 @@ static void loadView(ViewController *self) {
 		this->panel->accessoryView->view.hidden = false;
 
 		Cg_Button((View *) this->panel->accessoryView, "Quick Join", quickjoinAction, self, NULL);
-		Cg_Button((View *) this->panel->accessoryView, "Create..", createAction, self, NULL);
 		Cg_Button((View *) this->panel->accessoryView, "Refresh", refreshAction, self, NULL);
 		Cg_Button((View *) this->panel->accessoryView, "Connect", connectAction, self, servers);
 	}

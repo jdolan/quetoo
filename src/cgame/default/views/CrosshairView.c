@@ -165,4 +165,3 @@ Class *_CrosshairView(void) {
 }
 
 #undef _Class
-

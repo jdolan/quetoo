@@ -24,6 +24,7 @@
 #include "PlayerViewController.h"
 
 #include "CvarSelect.h"
+#include "HueSlider.h"
 #include "SkinSelect.h"
 
 #define _Class _PlayerViewController
@@ -38,6 +39,20 @@ static void selectSkin(Control *control, const SDL_Event *event, ident sender, i
 	PlayerViewController *this = (PlayerViewController *) sender;
 
 	$((View *) this->playerModelView, updateBindings);
+}
+
+/**
+ * @brief ActionFunction for effect hue selection.
+ */
+static void selectEffectColor(Slider *this) {
+
+	if (this->value < 0) {
+		cgi.CvarSet(cg_color->name, "default");
+
+		return;
+	}
+
+	cgi.CvarSetValue(cg_color->name, (vec_t) floor(this->value));
 }
 
 #pragma mark - ViewController
@@ -66,7 +81,11 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
+			// player name
+
 			Cg_CvarTextView((View *) stackView, "Name", "name");
+
+			// player model
 
 			Control *skinSelect = (Control *) $(alloc(SkinSelect), initWithFrame, NULL, ControlStyleDefault);
 
@@ -75,28 +94,28 @@ static void loadView(ViewController *self) {
 			Cg_Input((View *) stackView, "Player skin", skinSelect);
 			release(skinSelect);
 
-			Select *colorSelect = (Select *) $(alloc(CvarSelect), initWithVariable, cg_color);
+			// effect color
 
-			$(colorSelect, addOption, "default", (ident) -1);
-			$(colorSelect, addOption, "red", (ident) 0);
-			$(colorSelect, addOption, "orange", (ident) 20);
-			$(colorSelect, addOption, "yellow", (ident) 60);
-			$(colorSelect, addOption, "green", (ident) 110);
-			$(colorSelect, addOption, "cyan", (ident) 180);
-			$(colorSelect, addOption, "blue", (ident) 240);
-			$(colorSelect, addOption, "purple", (ident) 260);
-			$(colorSelect, addOption, "pink", (ident) 340);
+			double hue = -1;
+			if (g_strcmp0(cg_color->string, "default")) {
+				hue = cg_color->integer;
+			}
 
-			$(colorSelect, selectOptionWithValue, (ident) (intptr_t) cg_color->integer);
+			Slider *hueSlider = (Slider *) $(alloc(HueSlider), initWithVariable, hue);
 
-			Cg_Input((View *) stackView, "Effect color", (Control *) colorSelect);
-			release(colorSelect);
+			hueSlider->delegate.didSetValue = selectEffectColor;
+
+			Cg_Input((View *) stackView, "Effect color", (Control *) hueSlider);
+
+			release(hueSlider);
+
+			// hook style
 
 			CvarSelect *hookSelect = (CvarSelect *) $(alloc(CvarSelect), initWithVariable, cg_hook_style);
 			hookSelect->expectsStringValue = true;
 
 			$((Select *) hookSelect, addOption, "pull", (ident) HOOK_PULL);
-			$((Select *)hookSelect, addOption, "swing", (ident) HOOK_SWING);
+			$((Select *) hookSelect, addOption, "swing", (ident) HOOK_SWING);
 
 			g_hook_style_t hook_style = HOOK_PULL;
 
@@ -107,9 +126,20 @@ static void loadView(ViewController *self) {
 			$((Select *) hookSelect, selectOptionWithValue, (ident) (intptr_t) hook_style);
 
 			Cg_Input((View *) stackView, "Hook style", (Control *) hookSelect);
+
 			release(hookSelect);
 
+			// handicap
+
 			Cg_CvarSliderInput((View *) stackView, "Handicap", cg_handicap->name, 50.0, 100.0, 5.0);
+
+			// field of view
+
+			Cg_CvarSliderInput((View *) stackView, "FOV", cg_fov->name, 80.0, 130.0, 5.0);
+
+			// zoomed field of view
+
+			Cg_CvarSliderInput((View *) stackView, "Zoom FOV", cg_fov_zoom->name, 20.0, 70.0, 5.0);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -173,4 +203,3 @@ Class *_PlayerViewController(void) {
 }
 
 #undef _Class
-

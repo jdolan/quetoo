@@ -29,4 +29,5 @@ extern void Cg_CvarCheckboxInput(View *view, const char *label, const char *name
 extern void Cg_CvarSliderInput(View *view, const char *label, const char *name, double min, double max, double step);
 extern void Cg_CvarTextView(View *view, const char *label, const char *name);
 extern void Cg_Input(View *view, const char *label, Control *control);
-extern void Cg_PrimaryButton(View *view, const char *label, ActionFunction action, ident sender, ident data);
+extern void Cg_PrimaryButton(View *view, const char *label, ViewAlignment align, SDL_Color color, ActionFunction action, ident sender, ident data);
+extern void Cg_PrimaryIcon(View *view, const char *icon, ViewAlignment align, ActionFunction action, ident sender, ident data);
