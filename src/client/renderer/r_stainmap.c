@@ -114,8 +114,8 @@ static _Bool R_StainSurface(const r_stain_t *stain, r_bsp_surface_t *surf) {
 				continue;
 			}
 			
-			const vec_t delta_s = (s - point_st[0]) / radius_st;
-			const vec_t delta_t = (t - point_st[1]) / radius_st;
+			const vec_t delta_s = fabs((s - point_st[0]) / radius_st);
+			const vec_t delta_t = fabs((t - point_st[1]) / radius_st);
 
 			const vec_t atten = R_BilinearFilterStain(r_stain_circle, r_stain_circle_size, delta_s, delta_t) / 255.0;
 
