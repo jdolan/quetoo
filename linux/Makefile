@@ -48,7 +48,7 @@ install-data:
 	aws s3 sync $(QUETOO_DATA_S3_BUCKET)/ $(DATADIR)
 
 release:
-	aws s3 sync $(INSTALL) $(QUETOO_S3_BUCKET)/$(HOST)
+	aws s3 sync --delete $(INSTALL) $(QUETOO_S3_BUCKET)/$(HOST)
 
 snapshot:
 	tar -czvf $(SNAPSHOT) -C $(TARGET) quetoo
