@@ -396,7 +396,10 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 			G_BulletImpact(origin, &tr.plane, tr.surface);
 		}
 
-		if (gi.PointContents(tr.end) & MASK_LIQUID) {
+		if (gi.PointContents(start) & MASK_LIQUID) {
+			G_Ripple(NULL, tr.end, start, 8.0, false);
+			G_BubbleTrail(start, &tr);
+		} else if (gi.PointContents(tr.end) & MASK_LIQUID) {
 			G_Ripple(NULL, start, tr.end, 8.0, true);
 			G_BubbleTrail(start, &tr);
 		}
