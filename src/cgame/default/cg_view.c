@@ -116,6 +116,8 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 		cgi.view->angles[ROLL]
 	};
 
+	const vec_t yaw = angles[YAW];
+
 	AngleVectors(angles, forward, right, up);
 
 	VectorMA(cgi.view->origin, 512.0, forward, point);
@@ -131,6 +133,7 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 
 	VectorSubtract(point, cgi.view->origin, point);
 	VectorAngles(point, cgi.view->angles);
+	cgi.view->angles[YAW] = yaw;
 
 	AngleVectors(cgi.view->angles, cgi.view->forward, cgi.view->right, cgi.view->up);
 }
