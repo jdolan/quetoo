@@ -1662,9 +1662,8 @@ void G_ClientBeginFrame(g_entity_t *ent) {
 
 				if (ent->locals.health < ent->locals.max_health) {
 					ent->locals.health = Min(ent->locals.health + TECH_REGEN_HEALTH, ent->locals.max_health);
+					G_PlayTechSound(ent);
 				}
-
-				G_PlayTechSound(ent);
 			}
 		}
 	}

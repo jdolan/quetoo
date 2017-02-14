@@ -1178,8 +1178,6 @@ static void G_Frame(void) {
 	g_level.frame_num++;
 	g_level.time = g_level.frame_num * QUETOO_TICK_MILLIS;
 
-	G_Ai_Frame();
-
 	// check for level change after running intermission
 	if (g_level.intermission_time) {
 		if (g_level.time > g_level.intermission_time + INTERMISSION) {
@@ -1202,14 +1200,12 @@ static void G_Frame(void) {
 
 			if (ent->client) {
 				G_ClientBeginFrame(ent);
-
-				if (ent->client->ai) {
-					G_RunThink(ent);
-				}
 			} else {
 				G_RunEntity(ent);
 			}
 		}
+
+		G_Ai_Frame();
 	}
 
 	// see if a vote has passed

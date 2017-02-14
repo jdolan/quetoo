@@ -247,8 +247,6 @@ static void G_Ai_Spawn(g_entity_t *self, const uint32_t time_offset) {
 	if (!time_offset) {
 		G_Ai_ClientBegin(self);
 	} else {
-		self->in_use = true;
-		self->locals.move_type = MOVE_TYPE_THINK;
 		self->locals.Think = G_Ai_ClientBegin;
 		self->locals.next_think = g_level.time + time_offset;
 	}
@@ -418,6 +416,19 @@ void G_Ai_Frame(void) {
 			gi.Print("Desync in ai_left_to_spawn?\n");
 			g_game.ai_left_to_spawn = 0;
 			break;
+		}
+	}
+
+	// run AI think functions
+	g_entity_t *ent = &g_game.entities[1];
+	for (uint16_t i = 1; i <= sv_max_clients->integer; i++, ent++) {
+
+		if (!ent->client->connected) {
+			continue;
+		}
+
+		if (ent->client->ai) {
+			G_RunThink(ent);
 		}
 	}
 
