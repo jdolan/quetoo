@@ -42,15 +42,16 @@ cvar_t *cg_draw_crosshair_color;
 cvar_t *cg_draw_crosshair_pulse;
 cvar_t *cg_draw_crosshair_scale;
 cvar_t *cg_draw_crosshair;
-cvar_t *cg_draw_heldflag;
-cvar_t *cg_draw_heldtech;
+cvar_t *cg_draw_held_flag;
+cvar_t *cg_draw_held_tech;
 cvar_t *cg_draw_frags;
 cvar_t *cg_draw_deaths;
 cvar_t *cg_draw_hud;
 cvar_t *cg_draw_pickup;
 cvar_t *cg_draw_powerups;
 cvar_t *cg_draw_time;
-cvar_t *cg_draw_teambar;
+cvar_t *cg_draw_target_name;
+cvar_t *cg_draw_team_banner;
 cvar_t *cg_draw_weapon;
 cvar_t *cg_draw_weapon_alpha;
 cvar_t *cg_draw_weapon_x;
@@ -124,14 +125,15 @@ static void Cg_Init(void) {
 	cg_draw_crosshair_scale = cgi.Cvar("cg_draw_crosshair_scale", "1.0", CVAR_ARCHIVE,
 	                                   "Controls the crosshair scale (size).");
 
-	cg_draw_heldflag = cgi.Cvar("cg_draw_heldflag", "1", CVAR_ARCHIVE, "Draw the currently held team flag");
-	cg_draw_heldtech = cgi.Cvar("cg_draw_heldtech", "1", CVAR_ARCHIVE, "Draw the currently held tech");
+	cg_draw_held_flag = cgi.Cvar("cg_draw_held_flag", "1", CVAR_ARCHIVE, "Draw the currently held team flag");
+	cg_draw_held_tech = cgi.Cvar("cg_draw_held_tech", "1", CVAR_ARCHIVE, "Draw the currently held tech");
 	cg_draw_frags = cgi.Cvar("cg_draw_frags", "1", CVAR_ARCHIVE, "Draw the number of frags");
 	cg_draw_deaths = cgi.Cvar("cg_draw_deaths", "1", CVAR_ARCHIVE, "Draw the number of deaths");
 	cg_draw_hud = cgi.Cvar("cg_draw_hud", "1", CVAR_ARCHIVE, "Render the Heads-Up-Display");
 	cg_draw_pickup = cgi.Cvar("cg_draw_pickup", "1", CVAR_ARCHIVE, "Draw the current pickup");
 	cg_draw_time = cgi.Cvar("cg_draw_time", "1", CVAR_ARCHIVE, "Draw the time remaning");
-	cg_draw_teambar = cgi.Cvar("cg_draw_teambar", "1", CVAR_ARCHIVE, "Draw the teambanner");
+	cg_draw_target_name = cgi.Cvar("cg_draw_target_name", "1", CVAR_ARCHIVE, "Draw the target's name");
+	cg_draw_team_banner = cgi.Cvar("cg_draw_team_banner", "1", CVAR_ARCHIVE, "Draw the team banner");
 	cg_draw_powerups = cgi.Cvar("cg_draw_powerups", "1", CVAR_ARCHIVE,
 	                            "Draw currently active powerups, such as Quad Damage and Adrenaline.");
 
