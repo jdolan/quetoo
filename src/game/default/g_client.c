@@ -916,7 +916,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		ent->locals.move_type = MOVE_TYPE_WALK;
 		ent->locals.mass = 200.0;
 		ent->locals.take_damage = true;
-		ent->locals.water_level = ent->locals.old_water_level = 0;
+		ent->locals.water_level = WATER_UNKNOWN;
 		ent->locals.water_type = 0;
 		ent->locals.ripple_size = 32.0;
 

@@ -395,6 +395,7 @@ void G_InitEntity(g_entity_t *ent, const char *class_name) {
 	ent->class_name = class_name;
 	ent->in_use = true;
 
+	ent->locals.water_level = WATER_UNKNOWN;
 	ent->locals.timestamp = g_level.time;
 	ent->s.number = ent - g_game.entities;
 	ent->spawn_id = (g_spawn_id++);

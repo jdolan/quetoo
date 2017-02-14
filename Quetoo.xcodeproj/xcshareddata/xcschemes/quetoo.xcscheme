@@ -67,12 +67,12 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_fullscreen 1 +map rage +give all +god"
-            isEnabled = "NO">
+            argument = "+set r_fullscreen 1 +map tokays +give all +god"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_fullscreen 1 +set sv_max_clients 24 +map aerowalk +set g_cheats 1 +give all +god"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>

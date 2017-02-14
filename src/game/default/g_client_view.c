@@ -71,15 +71,15 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 	}
 
 	const pm_water_level_t water_level = ent->locals.water_level;
-	const pm_water_level_t old_water_level = ent->locals.old_water_level;
+	const pm_water_level_t old_water_level = client->locals.old_water_level;
 
 	// if just entered a water volume, play a sound
-	if (!old_water_level && water_level) {
+	if (old_water_level <= WATER_NONE && water_level >= WATER_FEET) {
 		gi.Sound(ent, g_media.sounds.water_in, ATTEN_NORM);
 	}
 
 	// completely exited the water
-	if (old_water_level && !water_level) {
+	if (old_water_level >= WATER_FEET && water_level == WATER_NONE) {
 		gi.Sound(ent, g_media.sounds.water_out, ATTEN_NORM);
 	}
 
@@ -159,7 +159,7 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 		}
 	}
 
-	ent->locals.old_water_level = water_level;
+	client->locals.old_water_level = water_level;
 }
 
 /**
