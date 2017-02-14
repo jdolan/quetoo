@@ -360,8 +360,9 @@ typedef enum {
 /**
  * @brief Some constants for the hook movement
  */
-#define PM_HOOK_MIN_LENGTH	(32)
-#define PM_HOOK_MAX_LENGTH	(2048)
+#define PM_HOOK_MIN_DIST		(32.0)
+#define PM_HOOK_MAX_DIST		(MAX_WORLD_DIST)
+#define PM_HOOK_DEF_DIST		(2048.0)
 
 /**
  * @brief Water level

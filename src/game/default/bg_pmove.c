@@ -739,10 +739,10 @@ static void Pm_CheckHook(void) {
 
 		// chain physics
 		// grow/shrink chain based on input
-		if ((pm->cmd.up > 0 || !(pm->s.flags & PMF_HOOK_RELEASED)) && (pm->s.hook_length > PM_HOOK_MIN_LENGTH)) {
-			pm->s.hook_length = Max(pm->s.hook_length - hook_rate, PM_HOOK_MIN_LENGTH);
-		} else if ((pm->cmd.up < 0) && (pm->s.hook_length < PM_HOOK_MAX_LENGTH)) {
-			pm->s.hook_length = Min(pm->s.hook_length + hook_rate, PM_HOOK_MAX_LENGTH);
+		if ((pm->cmd.up > 0 || !(pm->s.flags & PMF_HOOK_RELEASED)) && (pm->s.hook_length > PM_HOOK_MIN_DIST)) {
+			pm->s.hook_length = Max(pm->s.hook_length - hook_rate, PM_HOOK_MIN_DIST);
+		} else if ((pm->cmd.up < 0) && (pm->s.hook_length < PM_HOOK_MAX_DIST)) {
+			pm->s.hook_length = Min(pm->s.hook_length + hook_rate, PM_HOOK_MAX_DIST);
 		}
 
 		vec3_t chain_vec;
