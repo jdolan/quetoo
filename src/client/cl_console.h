@@ -23,6 +23,8 @@
 
 #include "cl_types.h"
 
+const console_t *Cl_GetConsole(void);
+
 #ifdef __CL_LOCAL_H__
 extern console_t cl_console;
 extern console_t cl_chat_console;
