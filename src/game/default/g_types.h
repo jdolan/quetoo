@@ -1038,6 +1038,8 @@ typedef struct {
 	uint32_t weapon_fired_time; // weapon was last fired
 	uint32_t weapon_change_time; // time when weapon was changed
 
+	pm_water_level_t old_water_level; // previous water level
+
 	uint32_t hook_think_time; // time when the hook think was called
 	uint32_t hook_fire_time; // can fire hook when time > this
 	g_entity_t *hook_entity; // the hook that we're attached to
@@ -1172,7 +1174,6 @@ typedef struct {
 	int32_t ground_contents;
 
 	int32_t water_type;
-	pm_water_level_t old_water_level;
 	pm_water_level_t water_level;
 
 	int32_t area_portal; // the area portal to toggle

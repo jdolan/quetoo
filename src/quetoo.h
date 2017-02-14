@@ -367,6 +367,7 @@ typedef enum {
  * @brief Water level
  */
 typedef enum {
+	WATER_UNKNOWN = -1,
 	WATER_NONE,
 	WATER_FEET,
 	WATER_WAIST,

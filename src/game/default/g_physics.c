@@ -59,6 +59,9 @@ static void G_CheckGround(g_entity_t *ent) {
 	}
 }
 
+/**
+ * @brief
+ */
 static void G_CheckWater(g_entity_t *ent) {
 	vec3_t pos, mins, maxs;
 
@@ -86,9 +89,9 @@ static void G_CheckWater(g_entity_t *ent) {
 	const cm_trace_t tr = gi.Trace(pos, pos, mins, maxs, ent, MASK_LIQUID);
 
 	ent->locals.water_type = tr.contents;
-	ent->locals.water_level = ent->locals.water_type ? WATER_FEET : WATER_NONE;
+	ent->locals.water_level = ent->locals.water_type ? WATER_UNDER : WATER_NONE;
 
-	if (!old_water_level && ent->locals.water_level) {
+	if (old_water_level == WATER_NONE && ent->locals.water_level == WATER_UNDER) {
 
 		if (ent->locals.move_type == MOVE_TYPE_BOUNCE) {
 			VectorScale(ent->locals.velocity, 0.66, ent->locals.velocity);
@@ -102,13 +105,13 @@ static void G_CheckWater(g_entity_t *ent) {
 			}
 		}
 
-	} else if (old_water_level && !ent->locals.water_level) {
+	} else if (old_water_level == WATER_UNDER && ent->locals.water_level == WATER_NONE) {
 
 		if (!(ent->sv_flags & SVF_NO_CLIENT)) {
 			gi.PositionedSound(pos, ent, g_media.sounds.water_out, ATTEN_IDLE);
 
 			if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
-				G_Ripple(ent, NULL, NULL, 0.0, true);
+				G_Ripple(ent, NULL, NULL, 0.0, false);
 			}
 		}
 	}
