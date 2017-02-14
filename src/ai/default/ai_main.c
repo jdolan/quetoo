@@ -278,14 +278,6 @@ static vec_t Ai_ItemReachable(const g_entity_t *self, const g_entity_t *other) {
 /**
  * @brief
  */
-static _Bool Ai_ItemRequired(const g_entity_t *self, const g_item_t *item) {
-
-	return aim.CanPickupItem(self, item);
-}
-
-/**
- * @brief
- */
 static void Ai_ResetWander(const g_entity_t *self, const vec3_t where_to) {
 	ai_locals_t *ai = Ai_GetLocals(self);
 	vec3_t dir;
@@ -318,7 +310,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 		// check to see if the item has gone out of our line of sight
 		if (!Ai_GoalHasEntity(&ai->move_target, ai->move_target.ent) || // item picked up and changed into something else
 				!Ai_CanTarget(self, ai->move_target.ent) ||
-				!Ai_ItemRequired(self, ENTITY_DATA(ai->move_target.ent, item)) ||
+				!aim.CanPickupItem(self, ai->move_target.ent) ||
 		        Ai_ItemReachable(self, ai->move_target.ent) == AI_ITEM_UNREACHABLE) {
 
 			Ai_ResetWander(self, ai->move_target.ent->s.origin);
@@ -369,7 +361,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 		vec_t distance;
 
 		if (!Ai_CanTarget(self, ent) ||
-				!Ai_ItemRequired(self, ent_item) ||
+				!aim.CanPickupItem(self, ent) ||
 		        (distance = Ai_ItemReachable(self, ent)) == AI_ITEM_UNREACHABLE) {
 			continue;
 		}

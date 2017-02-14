@@ -63,7 +63,7 @@ post-install:
 	./set-icon.sh $(DATADIR)/quetoo-update.icns $(BINDIR)/quetoo-update
 
 release:
-	aws s3 sync --exclude 'Icon*' $(INSTALL) $(QUETOO_S3_BUCKET)/$(HOST)
+	aws s3 sync --exclude 'Icon*' --delete $(INSTALL) $(QUETOO_S3_BUCKET)/$(HOST)
 
 snapshot:
 	ln -f -s /Applications $(TARGET)/Applications

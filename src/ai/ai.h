@@ -21,7 +21,7 @@
 
 #pragma once
 
-#define AI_API_VERSION 3
+#define AI_API_VERSION 4
 
 /**
  * @brief Forward declaration of entity type, since
@@ -178,7 +178,7 @@ typedef struct {
 	const g_entity_t *entities;
 	size_t entity_size;
 	uint16_t (*ItemIndex)(const g_item_t *item);
-	_Bool (*CanPickupItem)(const g_entity_t *self, const g_item_t *item);
+	_Bool (*CanPickupItem)(const g_entity_t *self, const g_entity_t *other);
 } ai_import_t;
 
 /**

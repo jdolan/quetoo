@@ -24,6 +24,7 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
+void G_PlayTechSound(g_entity_t *ent);
 _Bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other);
 void G_UseBestWeapon(g_entity_t *ent);
 void G_UseWeapon(g_entity_t *ent, const g_item_t *item);

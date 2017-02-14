@@ -450,6 +450,23 @@ void Cmd_RemoveAll(uint32_t flags) {
 	}
 }
 
+/**
+ * @brief Prints a command to the console.
+ */
+static void Cmd_Print(const cmd_t *cmd) {
+
+	if (cmd->Execute) {
+		Com_Print("^1%s^7\n", cmd->name);
+
+		if (cmd->description) {
+			Com_Print("\t%s\n", cmd->description);
+		}
+	} else if (cmd->commands) {
+		Com_Print("^3%s^7\n", cmd->name);
+		Com_Print("\t%s\n", cmd->commands);
+	}
+}
+
 static const char *cmd_complete_pattern;
 
 /**
@@ -460,17 +477,7 @@ static void Cmd_CompleteCommand_enumerate(cmd_t *cmd, void *data) {
 
 	if (GlobMatch(cmd_complete_pattern, cmd->name, GLOB_CASE_INSENSITIVE)) {
 
-		if (cmd->Execute) {
-			Com_Print("^1%s^7\n", cmd->name);
-
-			if (cmd->description) {
-				Com_Print("\t%s\n", cmd->description);
-			}
-		} else if (cmd->commands) {
-			Com_Print("^3%s^7\n", cmd->name);
-			Com_Print("\t%s\n", cmd->commands);
-		}
-
+		Cmd_Print(cmd);
 		*matches = g_list_prepend(*matches, Mem_TagCopyString(cmd->name, MEM_TAG_CMD));
 	}
 }
@@ -575,13 +582,7 @@ static void Cmd_Alias_f(void) {
  */
 static void Cmd_List_f_enumerate(cmd_t *cmd, void *data) {
 
-	if (cmd->Execute) {
-		Com_Print("%s\n", cmd->name);
-
-		if (cmd->description) {
-			Com_Print("   ^2%s\n", cmd->description);
-		}
-	}
+	Cmd_Print(cmd);
 }
 
 /**

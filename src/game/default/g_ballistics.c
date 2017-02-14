@@ -129,7 +129,7 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, vec_t size,
 
 	if (ent) {
 
-		if (g_level.time - ent->locals.ripple_time < 100) {
+		if (g_level.time - ent->locals.ripple_time < 400) {
 			return;
 		}
 
@@ -192,6 +192,21 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, vec_t size,
 	gi.WriteByte((uint8_t) splash);
 
 	gi.Multicast(pos, MULTICAST_PVS, NULL);
+
+	if (!(tr.contents & CONTENTS_TRANSLUCENT)) {
+		VectorAdd(tr.end, vec3_down, pos);
+		VectorNegate(dir, dir);
+
+		gi.WriteByte(SV_CMD_TEMP_ENTITY);
+		gi.WriteByte(TE_RIPPLE);
+		gi.WritePosition(pos);
+		gi.WriteDir(dir);
+		gi.WriteByte((uint8_t) size);
+		gi.WriteByte((uint8_t) viscosity);
+		gi.WriteByte((uint8_t) false);
+
+		gi.Multicast(pos, MULTICAST_PVS, NULL);
+	}
 }
 
 /**
@@ -381,7 +396,10 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 			G_BulletImpact(origin, &tr.plane, tr.surface);
 		}
 
-		if (gi.PointContents(tr.end) & MASK_LIQUID) {
+		if (gi.PointContents(start) & MASK_LIQUID) {
+			G_Ripple(NULL, tr.end, start, 8.0, false);
+			G_BubbleTrail(start, &tr);
+		} else if (gi.PointContents(tr.end) & MASK_LIQUID) {
 			G_Ripple(NULL, start, tr.end, 8.0, true);
 			G_BubbleTrail(start, &tr);
 		}

@@ -124,7 +124,7 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 
 		if (tr.start_solid || tr.fraction < trace->trace.fraction) {
 			trace->trace = tr;
-			trace->trace.ent = (struct g_entity_s *) (intptr_t) s->number;
+			trace->trace.ent = (struct g_entity_s *) (ptrdiff_t) s->number;
 
 			if (tr.start_solid) {
 				return;

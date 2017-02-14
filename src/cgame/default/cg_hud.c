@@ -242,7 +242,7 @@ static void Cg_DrawPowerups(const player_state_t *ps) {
 static void Cg_DrawHeldFlag(const player_state_t *ps) {
 	r_pixel_t x, y;
 
-	if (!cg_draw_heldflag->integer) {
+	if (!cg_draw_held_flag->integer) {
 		return;
 	}
 
@@ -257,6 +257,32 @@ static void Cg_DrawHeldFlag(const player_state_t *ps) {
 		cgi.Color(pulse);
 
 		cgi.DrawImage(x, y, 1.0, cgi.LoadImage(va("pics/i_flag%d", flag), IT_PIC));
+
+		cgi.Color(NULL);
+	}
+}
+
+/**
+ * @brief Draws the flag you are currently holding
+ */
+static void Cg_DrawHeldTech(const player_state_t *ps) {
+	r_pixel_t x, y;
+
+	if (!cg_draw_held_tech->integer) {
+		return;
+	}
+
+	vec4_t pulse = { 1.0, 1.0, 1.0, 1.0 };
+
+	x = cgi.view->viewport.x + 4;
+	y = cgi.view->viewport.y + ((cgi.view->viewport.h / 2) - (HUD_PIC_HEIGHT * 4));
+
+	int16_t tech = ps->stats[STAT_TECH_ICON];
+
+	if (tech != -1) {
+		cgi.Color(pulse);
+
+		Cg_DrawIcon(x, y, 1.0, tech);
 
 		cgi.Color(NULL);
 	}
@@ -516,7 +542,13 @@ static void Cg_DrawReady(const player_state_t *ps) {
 	cgi.BindFont("small", NULL, &ch);
 
 	x = cgi.view->viewport.x + cgi.view->viewport.w - cgi.StringWidth("Ready");
-	y = cgi.view->viewport.y + HUD_PIC_HEIGHT * 2 + 2 * ch;
+	y = cgi.view->viewport.y + 3 * (HUD_PIC_HEIGHT + ch);
+
+	if (atoi(cgi.ConfigString(CS_CTF)) > 0) {
+		y += HUD_PIC_HEIGHT + ch;
+	}
+
+	y += ch;
 
 	cgi.DrawString(x, y, "Ready", CON_COLOR_GREEN);
 
@@ -526,7 +558,7 @@ static void Cg_DrawReady(const player_state_t *ps) {
 /**
  * @brief
  */
-static void Cg_DrawTeam(const player_state_t *ps) {
+static void Cg_DrawTeamBanner(const player_state_t *ps) {
 	const int16_t team = ps->stats[STAT_TEAM];
 	r_pixel_t x, y;
 
@@ -534,7 +566,7 @@ static void Cg_DrawTeam(const player_state_t *ps) {
 		return;
 	}
 
-	if (!cg_draw_teambar->integer) {
+	if (!cg_draw_team_banner->integer) {
 		return;
 	}
 
@@ -1066,6 +1098,41 @@ static void Cg_DrawWeaponSwitch(const player_state_t *ps) {
 /**
  * @brief
  */
+static void Cg_DrawTargetName(const player_state_t *ps) {
+
+	if (!cg_draw_target_name->integer) {
+		return;
+	}
+
+	vec3_t pos;
+	VectorMA(cgi.view->origin, MAX_WORLD_DIST, cgi.view->forward, pos);
+
+	const cm_trace_t tr = cgi.Trace(cgi.view->origin, pos, NULL, NULL, 0, MASK_MEAT);
+	if (tr.fraction < 1.0) {
+
+		const cl_entity_t *ent = &cgi.client->entities[(ptrdiff_t) tr.ent];
+		if (ent->current.model1 == MODEL_CLIENT) {
+
+			r_pixel_t ch;
+			cgi.BindFont("small", NULL, &ch);
+
+			const cl_client_info_t *client = &cgi.client->client_info[ent->current.number - 1];
+
+			const r_pixel_t w = cgi.StringWidth(client->name);
+			const r_pixel_t x = cgi.view->viewport.x + ((cgi.view->viewport.w / 2) - (w / 2));
+			r_pixel_t y = cgi.view->viewport.y + (cgi.view->viewport.h / 2) - (ch / 2);
+			if (cg_draw_crosshair->value) {
+				y -= crosshair.image->height;
+			}
+
+			cgi.DrawString(x, y, client->name, CON_COLOR_GREEN);
+		}
+	}
+}
+
+/**
+ * @brief
+ */
 static void Cg_Weapon_Next_f(void) {
 	Cg_ScrollWeapon(1);
 }
@@ -1096,9 +1163,11 @@ void Cg_DrawHud(const player_state_t *ps) {
 
 	Cg_DrawHeldFlag(ps);
 
+	Cg_DrawHeldTech(ps);
+
 	Cg_DrawPickup(ps);
 
-	Cg_DrawTeam(ps);
+	Cg_DrawTeamBanner(ps);
 
 	Cg_DrawFrags(ps);
 
@@ -1119,6 +1188,8 @@ void Cg_DrawHud(const player_state_t *ps) {
 	Cg_DrawCrosshair(ps);
 
 	Cg_DrawCenterPrint(ps);
+
+	Cg_DrawTargetName(ps);
 
 	Cg_DrawBlend(ps);
 

@@ -26,5 +26,6 @@
 #ifdef __SV_LOCAL_H__
 void Sv_DrawConsole(void);
 void Sv_InitConsole(void);
+void Sv_PrintFiles(const GList *matches);
 void Sv_ShutdownConsole(void);
 #endif /* __SV_LOCAL_H__ */

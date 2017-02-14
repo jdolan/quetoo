@@ -67,7 +67,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-bsp -vis -light maps/lighttest.map"
+            argument = "-mat -bsp -vis -light -zip maps/lighttest.map"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

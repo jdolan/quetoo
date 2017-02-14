@@ -327,6 +327,8 @@ static void G_trigger_hurt_Touch(g_entity_t *self, g_entity_t *other,
 		if (other->locals.item) {
 			if (other->locals.item->type == ITEM_FLAG) {
 				G_ResetDroppedFlag(other);
+			} else if (other->locals.item->type == ITEM_TECH) {
+				G_ResetDroppedTech(other);
 			} else {
 				G_FreeEntity(other);
 			}

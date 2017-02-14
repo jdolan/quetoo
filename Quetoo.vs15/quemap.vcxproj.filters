@@ -105,6 +105,9 @@
     <ClCompile Include="..\src\tools\quemap\scriptlib.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\tools\quemap\materials.c">
+      <Filter>src\tools\quemap</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\tools\quemap\bspfile.h">
@@ -135,6 +138,9 @@
       <Filter>deps\minizip</Filter>
     </ClInclude>
     <ClInclude Include="..\src\tools\quemap\scriptlib.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\materials.h">
       <Filter>src\tools\quemap</Filter>
     </ClInclude>
   </ItemGroup>

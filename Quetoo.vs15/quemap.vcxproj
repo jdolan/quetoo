@@ -30,6 +30,7 @@
     <ClCompile Include="..\src\tools\quemap\lightmap.c" />
     <ClCompile Include="..\src\tools\quemap\main.c" />
     <ClCompile Include="..\src\tools\quemap\map.c" />
+    <ClCompile Include="..\src\tools\quemap\materials.c" />
     <ClCompile Include="..\src\tools\quemap\monitor.c" />
     <ClCompile Include="..\src\tools\quemap\patches.c" />
     <ClCompile Include="..\src\tools\quemap\polylib.c" />
@@ -52,6 +53,7 @@
     <ClInclude Include="..\deps\minizip\ioapi.h" />
     <ClInclude Include="..\deps\minizip\zip.h" />
     <ClInclude Include="..\src\tools\quemap\bspfile.h" />
+    <ClInclude Include="..\src\tools\quemap\materials.h" />
     <ClInclude Include="..\src\tools\quemap\monitor.h" />
     <ClInclude Include="..\src\tools\quemap\polylib.h" />
     <ClInclude Include="..\src\tools\quemap\qbsp.h" />

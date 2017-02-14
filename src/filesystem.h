@@ -65,6 +65,7 @@ _Bool Fs_Rename(const char *source, const char *dest);
 _Bool Fs_Unlink(const char *filename);
 void Fs_Enumerate(const char *pattern, Fs_EnumerateFunc, void *data);
 void Fs_CompleteFile(const char *pattern, GList **matches);
+void Fs_PrintFiles(const GList *matches, const _Bool columns);
 void Fs_AddToSearchPath(const char *dir);
 void Fs_SetGame(const char *dir);
 void Fs_SetWriteDir(const char *dir);
