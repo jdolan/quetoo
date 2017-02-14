@@ -394,7 +394,7 @@ static void Fs_CompleteFile_enumerate(const char *path, void *data) {
 
 	if (!g_list_find_custom(*matches, match, (GCompareFunc) strcmp)) {
 		*matches = g_list_insert_sorted(*matches, Mem_CopyString(match),
-		                                (GCompareFunc) strcmp);
+		                                (GCompareFunc) g_ascii_strcasecmp);
 	}
 }
 

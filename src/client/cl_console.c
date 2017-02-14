@@ -36,13 +36,6 @@ static cvar_t *cl_notify_lines;
 static cvar_t *cl_notify_time;
 
 /**
- * @brief Fetch the client console instance.
- */
-const console_t *Cl_GetConsole() {
-	return &cl_console;
-}
-
-/**
  * @brief
  */
 static void Cl_DrawConsole_Background(void) {
