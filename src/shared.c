@@ -631,36 +631,6 @@ void ColorDecompose3(const vec3_t in, u8vec3_t out) {
 }
 
 /**
- * @brief Returns the longest common prefix the specified words share.
- */
-char *CommonPrefix(GList *words) {
-	static char common_prefix[MAX_TOKEN_CHARS];
-
-	memset(common_prefix, 0, sizeof(common_prefix));
-
-	if (!words) {
-		return common_prefix;
-	}
-
-	for (size_t i = 0; i < sizeof(common_prefix) - 1; i++) {
-		GList *e = words;
-		const char c = ((char *) e->data)[i];
-		while (e) {
-			const char *w = (char *) e->data;
-
-			if (!c || tolower(w[i]) != tolower(c)) { // prefix no longer common
-				return common_prefix;
-			}
-
-			e = e->next;
-		}
-		common_prefix[i] = c;
-	}
-
-	return common_prefix;
-}
-
-/**
  * @brief Handles wildcard suffixes for GlobMatch.
  */
 static _Bool GlobMatchStar(const char *pattern, const char *text, const glob_flags_t flags) {

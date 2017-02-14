@@ -439,14 +439,10 @@ static void Cl_Bind_Autocomplete_f(const uint32_t argi, GList **matches) {
 
 	for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_NUM_SCANCODES; k++) {
 		if (cl_key_names[k]) {
-
 			const char *keyName = cl_key_names[k];
 
-			//Com_Print("dbg: %s vs %s: %s\n", keyName, pattern, GlobMatch(pattern, keyName) ? "yes" : "no");
-
 			if (GlobMatch(pattern, keyName, GLOB_CASE_INSENSITIVE)) {
-				*matches = g_list_prepend(*matches, Mem_TagCopyString(keyName, MEM_TAG_CLIENT));
-				Com_Print("%s\n", keyName);
+				*matches = g_list_insert_sorted(*matches, Com_AllocMatch(keyName, NULL), Com_MatchCompare);
 			}
 		}
 	}

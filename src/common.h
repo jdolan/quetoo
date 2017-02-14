@@ -163,6 +163,24 @@ void Com_Warnv_(const char *func, const char *fmt, va_list args) __attribute__((
 #define Com_Warn(...) Com_Warn_(__func__, __VA_ARGS__)
 #define Com_Warnv(fmt, args) Com_Warnv_(__func__, fmt, args)
 
+/**
+ * @brief The structure used for autocomplete values.
+ */
+typedef struct {
+	/**
+	 * @brief The match itself
+	 */
+	char *name;
+
+	/**
+	 * @brief The value printed to the screen. If null, name isused.
+	 */
+	char *description;
+} com_autocomplete_match_t;
+
+com_autocomplete_match_t *Com_AllocMatch(const char *name, const char *description);
+int32_t Com_MatchCompare(const void *a, const void *b);
+
 void Com_Init(int32_t argc, char *argv[]);
 void Com_Shutdown(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 

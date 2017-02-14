@@ -115,6 +115,65 @@ const char *Cvar_GetString(const char *name) {
 }
 
 /**
+ * @brief Print a cvar to the console.
+ */
+static const char *Cvar_Stringify(const cvar_t *var) {
+	GList *modifiers = NULL;
+
+	if (var->flags & CVAR_ARCHIVE) {
+		modifiers = g_list_append(modifiers, "^2archived^7");
+	}
+
+	if (var->flags & CVAR_USER_INFO) {
+		modifiers = g_list_append(modifiers, "^4userinfo^7");
+	}
+
+	if (var->flags & CVAR_SERVER_INFO) {
+		modifiers = g_list_append(modifiers, "^5serverinfo");
+	}
+
+	if (var->flags & CVAR_LO_ONLY) {
+		modifiers = g_list_append(modifiers, "^1developer^7");
+	}
+
+	if (var->flags & CVAR_NO_SET) {
+		modifiers = g_list_append(modifiers, "^3readonly^7");
+	}
+
+	if (var->flags & CVAR_LATCH) {
+		modifiers = g_list_append(modifiers, "^6latched^7");
+	}
+
+	static char str[MAX_STRING_CHARS];
+	g_snprintf(str, sizeof(str), "%s \"^3%s^7\"", var->name, var->string);
+
+	if (modifiers) {
+		g_strlcat(str, " (", sizeof(str));
+
+		const guint len = g_list_length(modifiers);
+		for (guint i = 0; i < len; i++) {
+			if (i) {
+				g_strlcat(str, ", ", sizeof(str));
+			}
+			g_strlcat(str, (char *) g_list_nth_data(modifiers, i), sizeof(str));
+		}
+
+		g_strlcat(str, ")", sizeof(str));
+		g_list_free(modifiers);
+	}
+
+	if (g_strcmp0(var->string, var->default_value)) {
+		g_strlcat(str, va(" (default: \"^3%s^7\")", var->default_value), sizeof(str));
+	}
+
+	if (var->description) {
+		g_strlcat(str, va("\n\t^2%s^7", var->description), sizeof(str));
+	}
+
+	return str;
+}
+
+/**
  * @brief Enumerates all known variables with the given function.
  */
 void Cvar_Enumerate(CvarEnumerateFunc func, void *data) {
@@ -140,13 +199,7 @@ static void Cvar_CompleteVar_enumerate(cvar_t *var, void *data) {
 	GList **matches = (GList **) data;
 
 	if (GlobMatch(cvar_complete_pattern, var->name, GLOB_CASE_INSENSITIVE)) {
-		Com_Print("^2%s^7 is \"^3%s^7\" (default is \"^3%s^7\")\n", var->name, var->string, var->default_value);
-
-		if (var->description) {
-			Com_Print("\t^2%s^7\n", var->description);
-		}
-
-		*matches = g_list_prepend(*matches, Mem_CopyString(var->name));
+		*matches = g_list_insert_sorted(*matches, Com_AllocMatch(var->name, Cvar_Stringify(var)), Com_MatchCompare);
 	}
 }
 
@@ -528,7 +581,7 @@ _Bool Cvar_Command(void) {
 
 	// perform a variable print or set
 	if (Cmd_Argc() == 1) {
-		Com_Print("^2%s^7 is \"^3%s^7\" (default is \"^3%s^7\")\n", var->name, var->string, var->default_value);
+		Com_Print("%s\n", Cvar_Stringify(var));
 		return true;
 	}
 
@@ -580,55 +633,7 @@ static void Cvar_Toggle_f(void) {
  * @brief Enumeration helper for Cvar_List_f.
  */
 static void Cvar_List_f_enumerate(cvar_t *var, void *data) {
-	GList *modifiers = NULL;
-
-	if (var->flags & CVAR_ARCHIVE) {
-		modifiers = g_list_append(modifiers, "^2archived^7");
-	}
-
-	if (var->flags & CVAR_USER_INFO) {
-		modifiers = g_list_append(modifiers, "^4userinfo^7");
-	}
-
-	if (var->flags & CVAR_SERVER_INFO) {
-		modifiers = g_list_append(modifiers, "^5serverinfo");
-	}
-
-	if (var->flags & CVAR_LO_ONLY) {
-		modifiers = g_list_append(modifiers, "^1developer^7");
-	}
-
-	if (var->flags & CVAR_NO_SET) {
-		modifiers = g_list_append(modifiers, "^3readonly^7");
-	}
-
-	if (var->flags & CVAR_LATCH) {
-		modifiers = g_list_append(modifiers, "^6latched^7");
-	}
-
-	char str[MAX_STRING_CHARS];
-	g_snprintf(str, sizeof(str), "%s \"^3%s^7\"", var->name, var->string);
-
-	if (modifiers) {
-		g_strlcat(str, " (", sizeof(str));
-
-		const guint len = g_list_length(modifiers);
-		for (guint i = 0; i < len; i++) {
-			if (i) {
-				g_strlcat(str, ", ", sizeof(str));
-			}
-			g_strlcat(str, (char *) g_list_nth_data(modifiers, i), sizeof(str));
-		}
-
-		g_strlcat(str, ")", sizeof(str));
-		g_list_free(modifiers);
-	}
-
-	Com_Print("%s\n", str);
-
-	if (var->description) {
-		Com_Print("\t^2%s^7\n", var->description);
-	}
+	Com_Print("%s\n", Cvar_Stringify(var));
 }
 
 /**
