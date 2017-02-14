@@ -1201,7 +1201,7 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 			if (self->owner->client->locals.persistent.hook_style == HOOK_SWING) {
 
 				const vec_t distance = VectorDistance(self->owner->s.origin, self->s.origin);
-				self->owner->client->ps.pm_state.hook_length = Clamp(distance, PM_HOOK_MIN_LENGTH, PM_HOOK_MAX_LENGTH);
+				self->owner->client->ps.pm_state.hook_length = Clamp(distance, PM_HOOK_MIN_DIST, g_hook_distance->value);
 			}
 
 			gi.Sound(self, g_media.sounds.hook_hit, ATTEN_NORM);
@@ -1239,7 +1239,7 @@ static void G_HookTrail_Think(g_entity_t *ent) {
 	vec3_t distance;
 	VectorSubtract(org, hook->s.origin, distance);
 
-	if (VectorLength(distance) > PM_HOOK_MAX_LENGTH) {
+	if (VectorLength(distance) > g_hook_distance->value) {
 
 		G_ClientHookDetach(player);
 		return;

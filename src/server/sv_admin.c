@@ -128,7 +128,6 @@ static _Bool Sv_SetPlayer(void) {
 static void Sv_Demo_Autocomplete_f(const uint32_t argi, GList **matches) {
 	const char *pattern = va("demos/%s*.demo", Cmd_Argv(argi));
 	Fs_CompleteFile(pattern, matches);
-	Sv_PrintFiles(*matches);
 }
 
 /**
@@ -151,7 +150,6 @@ static void Sv_Demo_f(void) {
 static void Sv_Map_Autocomplete_f(const uint32_t argi, GList **matches) {
 	const char *pattern = va("maps/%s*.bsp", Cmd_Argv(argi));
 	Fs_CompleteFile(pattern, matches);
-	Sv_PrintFiles(*matches);
 }
 
 /**

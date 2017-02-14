@@ -23,7 +23,6 @@
 #include <signal.h>
 
 #include "sv_local.h"
-#include "client/cl_console.h"
 
 typedef struct {
 	WINDOW *window;
@@ -259,70 +258,6 @@ void Sv_DrawConsole(void) {
 		refresh();
 
 		sv_console_state.dirty = false;
-	}
-}
-
-/*
- * @brief Prints a list of files to the console, in neat columns.
- */
-void Sv_PrintFiles(const GList *matches) {
-
-	size_t widest = 0;
-	size_t per_row = 0;
-
-	// calculate width per column
-	for (const GList *m = matches; m; m = m->next) {
-		const char *str = (const char *) m->data;
-		const size_t str_len = strlen(str);
-
-		if (strchr(str, '\n') != NULL) {
-			widest = -1;
-			break;
-		}
-
-		if (str_len > widest) {
-			widest = str_len + 1;
-		}
-	}
-
-	// calculate # that can fit in a row
-	if (Com_WasInit(QUETOO_CGAME)) {
-		per_row = Max(Cl_GetConsole()->width / widest, 1u);
-	} else {
-		per_row = Max(sv_console.width / widest, 1u);
-	}
-
-	// simple path
-	if (per_row == 1) {
-		
-		for (const GList *m = matches; m; m = m->next) {
-			const char *str = (const char *) m->data;
-
-			Com_Print("%s\n", str);
-		}
-
-		return;
-	}
-
-	const GList *m = matches;
-	while (m) {
-		char line[per_row * widest + 1];
-		line[0] = '\0';
-
-		for (size_t i = 0; m && i < per_row; i++, m = m->next) {
-			const char *str = (const char *) m->data;
-			const size_t str_len = strlen(str);
-
-			g_strlcat(line, str, sizeof(line));
-
-			for (size_t x = 0; x < widest - str_len; x++) {
-				g_strlcat(line, " ", sizeof(line));
-			}
-		}
-
-		if (line[0]) {
-			Com_Print("%s\n", line);
-		}
 	}
 }
 

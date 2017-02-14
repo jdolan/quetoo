@@ -40,6 +40,7 @@ cvar_t *g_cheats;
 cvar_t *g_ctf;
 cvar_t *g_techs;
 cvar_t *g_hook;
+cvar_t *g_hook_distance;
 cvar_t *g_hook_style;
 cvar_t *g_hook_speed;
 cvar_t *g_hook_pull_speed;
@@ -216,6 +217,11 @@ void G_CheckHook(void) {
 		} else {
 			g_level.hook_allowed = g_level.ctf;
 		}
+	}
+
+	if (g_hook_distance->modified) {
+		g_hook_distance->value = Clamp(g_hook_distance->value, PM_HOOK_MIN_DIST, PM_HOOK_MAX_DIST);
+		g_hook_distance->modified = false;
 	}
 }
 
@@ -1303,6 +1309,8 @@ void G_Init(void) {
 	g_ctf = gi.Cvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay");
 	g_hook = gi.Cvar("g_hook", "default", CVAR_SERVER_INFO,
 	                 "Whether to allow the hook to be used or not. \"default\" only allows hook in CTF; 1 is always allow, 0 is never allow.");
+	g_hook_distance = gi.Cvar("g_hook_distance", va("%.1f", PM_HOOK_DEF_DIST), CVAR_SERVER_INFO,
+							  "The maximum distance the hook will travel");
 	g_hook_style = gi.Cvar("g_hook_style", "default", CVAR_SERVER_INFO,
 	                       "Whether to allow only \"pull\", \"swing\" or any (\"default\") hook swing style.");
 	g_hook_speed = gi.Cvar("g_hook_speed", "900", CVAR_SERVER_INFO, "The speed that the hook will fly at");
