@@ -1099,9 +1099,15 @@ static void Cg_DrawWeaponSwitch(const player_state_t *ps) {
  * @brief
  */
 static void Cg_DrawTargetName(const player_state_t *ps) {
+	static uint32_t time;
+	static char name[MAX_USER_INFO_VALUE];
 
 	if (!cg_draw_target_name->integer) {
 		return;
+	}
+
+	if (time > cgi.client->unclamped_time) {
+		time = 0;
 	}
 
 	vec3_t pos;
@@ -1113,20 +1119,26 @@ static void Cg_DrawTargetName(const player_state_t *ps) {
 		const cl_entity_t *ent = &cgi.client->entities[(ptrdiff_t) tr.ent];
 		if (ent->current.model1 == MODEL_CLIENT) {
 
-			r_pixel_t ch;
-			cgi.BindFont("small", NULL, &ch);
-
 			const cl_client_info_t *client = &cgi.client->client_info[ent->current.number - 1];
 
-			const r_pixel_t w = cgi.StringWidth(client->name);
-			const r_pixel_t x = cgi.view->viewport.x + ((cgi.view->viewport.w / 2) - (w / 2));
-			r_pixel_t y = cgi.view->viewport.y + (cgi.view->viewport.h / 2) - (ch / 2);
-			if (cg_draw_crosshair->value) {
-				y -= crosshair.image->height;
-			}
-
-			cgi.DrawString(x, y, client->name, CON_COLOR_GREEN);
+			g_strlcpy(name, client->name, sizeof(name));
+			time = cgi.client->unclamped_time;
 		}
+	}
+
+	if (cgi.client->unclamped_time - time > 3000) {
+		*name = '\0';
+	}
+
+	if (*name) {
+		r_pixel_t ch;
+		cgi.BindFont("medium", NULL, &ch);
+
+		const r_pixel_t w = cgi.StringWidth(name);
+		const r_pixel_t x = cgi.view->viewport.x + ((cgi.view->viewport.w / 2) - (w / 2));
+		const r_pixel_t y = cgi.view->viewport.y + cgi.view->viewport.h - 192 - ch;
+
+		cgi.DrawString(x, y, name, CON_COLOR_GREEN);
 	}
 }
 
