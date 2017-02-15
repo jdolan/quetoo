@@ -561,7 +561,9 @@ static void R_InitConfig(void) {
 	r_config.renderer = (const char *) glGetString(GL_RENDERER);
 	r_config.vendor = (const char *) glGetString(GL_VENDOR);
 	r_config.version = (const char *) glGetString(GL_VERSION);
-	r_config.extensions = (const char *) glGetString(GL_EXTENSIONS);
+
+	int32_t num_extensions;
+	glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
 
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &r_config.max_texunits);
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &r_config.max_texture_size);
@@ -572,22 +574,16 @@ static void R_InitConfig(void) {
 	Com_Verbose("  Tex Units:  ^2%i^7\n", r_config.max_texunits);
 	Com_Verbose("  Tex Size:   ^2%i^7\n", r_config.max_texture_size);
 
-	const char *e = r_config.extensions, *c = r_config.extensions;
-	while (*c) {
+	for (int32_t i = 0; i < num_extensions; i++) {
+		const char *c = (const char *) glGetStringi(GL_EXTENSIONS, i);
 
-		if (*c == ' ') {
-			char *ext = g_strndup(e, (ptrdiff_t) (c - e));
-			if (e == r_config.extensions) {
-				Com_Verbose("  Extensions: ^2%s^7\n", ext);
-			} else {
-				Com_Verbose("              ^2%s^7\n", ext);
-			}
-			g_free(ext);
-			e = c + 1;
+		if (i == 0) {
+			Com_Verbose("  Extensions: ^2%s^7\n", c);
+		} else {
+			Com_Verbose("              ^2%s^7\n", c);
 		}
-
-		c++;
 	}
+
 }
 
 /**
