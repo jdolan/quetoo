@@ -2,7 +2,7 @@
  * @brief Planar shadows fragment shader.
  */
 
-#version 130
+#version 330
 
 #define FRAGMENT_SHADER
 
@@ -14,6 +14,8 @@ in vec4 point;
 
 #define FOG_NO_UNIFORM
 #include "fog_inc.glsl"
+
+out vec4 fragColor;
 
 /**
  * @brief
@@ -28,7 +30,7 @@ void ShadowFragment(void) {
 		float s = (LIGHT.w - dist) / LIGHT.w;
 		float d = dot(PLANE.xyz, normalize(delta));
 		
-		gl_FragColor.a = min(s * d, GLOBAL_COLOR.a);
+		fragColor.a = min(s * d, GLOBAL_COLOR.a);
 	} else {
 		discard;
 	}
@@ -38,7 +40,7 @@ void ShadowFragment(void) {
  * @brief
  */
 void FogFragment(void) {
-    gl_FragColor.a = mix(gl_FragColor.a, 0.0, fog);
+    fragColor.a = mix(fragColor.a, 0.0, fog);
 }
 
 /**
@@ -46,7 +48,7 @@ void FogFragment(void) {
  */
 void main(void) {
 
-	gl_FragColor = GLOBAL_COLOR;
+	fragColor = GLOBAL_COLOR;
 
 	ShadowFragment();
     

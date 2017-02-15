@@ -2,7 +2,7 @@
  * @brief Warp fragment shader.
  */
 
-#version 130
+#version 330
 
 #define FRAGMENT_SHADER
 
@@ -16,11 +16,13 @@ uniform sampler2D SAMPLER5;
 
 in vec2 texcoord;
 
+out vec4 fragColor;
+
 /**
  * @brief
  */
 void FogFragment(void) {
-	gl_FragColor.rgb = mix(gl_FragColor.rgb, FOG.COLOR, fog);
+	fragColor.rgb = mix(fragColor.rgb, FOG.COLOR, fog);
 }
 
 /**
@@ -35,7 +37,7 @@ void main(void) {
 	vec2 coord = vec2(texcoord.x + warp.z, texcoord.y + warp.w);
 
 	// sample the diffuse texture, factoring in primary color as well
-	gl_FragColor = GLOBAL_COLOR * texture(SAMPLER0, coord);
+	fragColor = GLOBAL_COLOR * texture(SAMPLER0, coord);
 
 	FogFragment();  // add fog
 }

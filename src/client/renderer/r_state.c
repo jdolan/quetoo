@@ -984,6 +984,9 @@ void R_InitState(void) {
 
 	R_InitSupersample();
 
+	glGenVertexArrays(1, &r_state.vertex_array_object);
+	glBindVertexArray(r_state.vertex_array_object);
+
 	glEnable(GL_CULL_FACE);
 	glFrontFace(GL_CW);
 	glDepthFunc(GL_LEQUAL);

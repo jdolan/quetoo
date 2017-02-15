@@ -2,7 +2,7 @@
  * @brief Warp vertex shader.
  */
 
-#version 130
+#version 330
 
 #define VERTEX_SHADER
 

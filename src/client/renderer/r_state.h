@@ -87,6 +87,7 @@ typedef struct r_state_s {
 	const r_buffer_t *array_buffers[R_ARRAY_MAX_ATTRIBS];
 	GLsizei array_buffer_offsets[R_ARRAY_MAX_ATTRIBS];
 	r_attribute_mask_t array_buffers_dirty;
+	GLuint vertex_array_object;
 
 	GLenum blend_src, blend_dest; // blend function
 	_Bool blend_enabled;

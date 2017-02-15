@@ -2,7 +2,7 @@
  * @brief Shell fragment shader.
  */
 
-#version 130
+#version 330
 
 #define FRAGMENT_SHADER
 
@@ -12,10 +12,12 @@ uniform vec4 GLOBAL_COLOR;
 in vec4 color;
 in vec2 texcoord;
 
+out vec4 fragColor;
+
 /**
  * @brief Shader entry point.
  */
 void main(void) {
 
-	gl_FragColor = GLOBAL_COLOR * texture(SAMPLER0, texcoord);	
+	fragColor = GLOBAL_COLOR * texture(SAMPLER0, texcoord);	
 }

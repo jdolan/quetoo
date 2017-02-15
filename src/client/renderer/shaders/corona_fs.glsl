@@ -2,7 +2,7 @@
  * @brief Corona fragment shader.
  */
 
-#version 130
+#version 330
 
 #define FRAGMENT_SHADER
 
@@ -14,11 +14,13 @@ in vec2 texcoord;
 
 const vec2 center_point = vec2(0.5, 0.5);
 
+out vec4 fragColor;
+
 /**
  * @brief Apply fog to the fragment if enabled.
  */
 void FogFragment(void) {
-	gl_FragColor.rgb = mix(gl_FragColor.rgb, FOG.COLOR, fog);
+	fragColor.rgb = mix(fragColor.rgb, FOG.COLOR, fog);
 }
 
 /**
@@ -26,7 +28,7 @@ void FogFragment(void) {
  */
 void main(void) {
 
-	gl_FragColor = vec4(color.rgb, mix(color.a, 0, length(texcoord - center_point) * 2.0));
+	fragColor = vec4(color.rgb, mix(color.a, 0, length(texcoord - center_point) * 2.0));
 
 	FogFragment(); // and lastly add fog	
 }

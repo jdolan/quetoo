@@ -2,7 +2,7 @@
  * @brief Default fragment shader.
  */
 
-#version 130
+#version 330
 
 #define FRAGMENT_SHADER
 
@@ -76,6 +76,8 @@ const vec3 negHalf = vec3(-0.5);
 
 vec3 eye;
 
+out vec4 fragColor;
+
 /**
  * @brief Yield the parallax offset for the texture coordinate.
  */
@@ -138,10 +140,10 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 #endif
 
 	// now modulate the diffuse sample with the modified lightmap
-	gl_FragColor.rgb = diffuse.rgb * (lightmap + light);
+	fragColor.rgb = diffuse.rgb * (lightmap + light);
 
 	// lastly modulate the alpha channel by the color
-	gl_FragColor.a = diffuse.a * color.a;
+	fragColor.a = diffuse.a * color.a;
 }
 
 /**
@@ -152,7 +154,7 @@ void CausticFragment(in vec3 lightmap) {
 		float factor = noise3d((modelpoint * vec3(0.024, 0.024, 0.016)) + (TIME * 0.4));
 		factor = pow((1 - abs(factor)) + 0.03, 6);
 
-		gl_FragColor.rgb += clamp(CAUSTIC.COLOR * factor * clamp((lightmap * 1.6) - 0.5, 0.1, 1.0) * 0.17, 0.0, 1.0);
+		fragColor.rgb += clamp(CAUSTIC.COLOR * factor * clamp((lightmap * 1.6) - 0.5, 0.1, 1.0) * 0.17, 0.0, 1.0);
 	}
 }
 
@@ -160,7 +162,7 @@ void CausticFragment(in vec3 lightmap) {
  * @brief Apply fog to the fragment if enabled.
  */
 void FogFragment(void) {
-	gl_FragColor.rgb = mix(gl_FragColor.rgb, FOG.COLOR, fog);
+	fragColor.rgb = mix(fragColor.rgb, FOG.COLOR, fog);
 }
 
 /**

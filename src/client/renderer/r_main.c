@@ -583,7 +583,6 @@ static void R_InitConfig(void) {
 			Com_Verbose("              ^2%s^7\n", c);
 		}
 	}
-
 }
 
 /**
