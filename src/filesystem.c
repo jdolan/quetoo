@@ -22,7 +22,6 @@
 #include <physfs.h>
 
 #include "filesystem.h"
-#include "console.h"
 
 #define FS_FILE_BUFFER (1024 * 1024 * 2)
 
