@@ -40,11 +40,13 @@ const vec3_t vec3_forward = { 0.0, 1.0, 0.0 };
  */
 int32_t Random(void) {
 
-	static uint32_t state = 0;
-	static _Bool uninitalized = true;
+	static uint32_t seed;
+	static __thread uint32_t state = 0;
+	static __thread _Bool uninitalized = true;
 
 	if (uninitalized) {
-		state = (uint32_t) time(NULL);
+		seed += (uint32_t) time(NULL);
+		state = seed;
 		uninitalized = false;
 	}
 
