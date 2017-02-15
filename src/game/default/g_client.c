@@ -486,14 +486,14 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 
 		G_HandGrenadeProjectile(
 		    self,					// player
-		    self->client->locals.held_grenade,	// the grenade
+		    self->client->locals.held_grenade, // the grenade
 		    self->s.origin,			// starting point
 		    vec3_up,				// direction
 		    0,						// how fast it flies
 		    120,					// damage dealt
 		    120,					// knockback
 		    185.0,					// blast radius
-		    3000 - (g_level.time - nade_hold_time)	// time before explode (next think)
+		    3000 - (g_level.time - nade_hold_time) // time before explode (next think)
 		);
 	}
 
@@ -513,8 +513,7 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 	self->client->locals.show_scores = true;
 	self->client->locals.persistent.deaths++;
 
-	const vec3_t delta_angles = { 0.0, 0.0, 45.0 };
-	PackAngles(delta_angles, self->client->ps.pm_state.delta_angles);
+	G_ClientDamageKick(self, self->client->locals.right, 60.0);
 
 	gi.LinkEntity(self);
 }

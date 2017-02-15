@@ -308,7 +308,9 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
 
 	VectorAdd(cgi.view->angles, angles, cgi.view->angles);
 
-	if (ps1->pm_state.type == PM_FREEZE) {
+	if (ps1->pm_state.type == PM_DEAD) {
+		cgi.view->angles[PITCH] = 0.0;
+	} else if (ps1->pm_state.type == PM_FREEZE) {
 		VectorCopy(cgi.view->angles, cgi.client->angles);
 	}
 }

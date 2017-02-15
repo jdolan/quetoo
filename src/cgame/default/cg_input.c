@@ -98,6 +98,10 @@ static void Cg_ViewKick(const pm_cmd_t *cmd) {
 
 	} else if (!VectorCompare(cg_kick.kick, vec3_origin)) {
 
+		if (cgi.client->frame.ps.pm_state.type == PM_DEAD) {
+			return;
+		}
+
 		const vec_t len = VectorLength(cg_kick.kick);
 		if (len < 0.1) {
 			VectorSubtract(cgi.client->angles, cg_kick.kick, cgi.client->angles);
