@@ -402,6 +402,117 @@ void Con_AutocompleteInput_f(const uint32_t argi, GList **matches) {
 }
 
 /**
+ * @brief
+ */
+static void Con_PrintMatches(const console_t *console, GList *matches) {
+	const size_t num_matches = g_list_length(matches);
+
+	if (!num_matches) {
+		return;
+	}
+
+	size_t widest = 0;
+	_Bool all_simple = true;
+
+	// calculate width per column
+	for (const GList *m = matches; m; m = m->next) {
+		const com_autocomplete_match_t *match = (const com_autocomplete_match_t *) m->data;
+		const char *str = (match->description ?: match->name);
+		const size_t str_len = strlen(str);
+
+		if (match->description) {
+			all_simple = false;
+		}
+
+		if (strchr(str, '\n') != NULL) {
+			widest = -1;
+			break;
+		}
+
+		if (str_len > widest) {
+			widest = str_len + 1;
+		}
+	}
+
+	// calculate # that can fit in a row
+	const size_t per_row = Max(console->width / widest, 1u);
+	const size_t num_rows = Max(num_matches / per_row, 1u);
+
+	// simple path
+	if (per_row == 1 || (!all_simple && num_rows == 1)) {
+		
+		for (const GList *m = matches; m; m = m->next) {
+			const com_autocomplete_match_t *match = (const com_autocomplete_match_t *) m->data;
+			const char *str = (match->description ?: match->name);
+
+			Con_Append(PRINT_ECHO, va("%s\n", str));
+		}
+
+		return;
+	}
+
+	const GList *m = matches;
+	char line[per_row * widest + 1];
+
+	while (m) {
+		line[0] = '\0';
+
+		for (size_t i = 0; m && i < per_row; i++, m = m->next) {
+			const com_autocomplete_match_t *match = (const com_autocomplete_match_t *) m->data;
+			const char *str = (match->description ?: match->name);
+			const size_t str_len = strlen(str);
+
+			g_strlcat(line, str, sizeof(line));
+
+			for (size_t x = 0; x < widest - str_len; x++) {
+				g_strlcat(line, " ", sizeof(line));
+			}
+		}
+
+		if (line[0]) {
+			g_strlcat(line, "\n", sizeof(line));
+			Con_Append(PRINT_ECHO, line);
+		}
+	}
+}
+
+/**
+ * @brief Returns the longest common prefix the specified words share.
+ */
+static char *Con_CommonPrefix(GList *matches) {
+	static char common_prefix[MAX_TOKEN_CHARS];
+
+	memset(common_prefix, 0, sizeof(common_prefix));
+
+	if (!matches) {
+		return common_prefix;
+	}
+
+	for (size_t i = 0; i < sizeof(common_prefix) - 1; i++) {
+		GList *e = matches;
+		const com_autocomplete_match_t *m = (const com_autocomplete_match_t *) e->data;
+		const char c = m->name[i];
+
+		e = e->next;
+
+		while (e) {
+			m = (const com_autocomplete_match_t *) e->data;
+			const char *w = m->name;
+
+			if (!c || tolower(w[i]) != tolower(c)) { // prefix no longer common
+				return common_prefix;
+			}
+
+			e = e->next;
+		}
+
+		common_prefix[i] = c;
+	}
+
+	return common_prefix;
+}
+
+/**
  * @brief Tab completion. Query various subsystems for potential
  * matches, and append an appropriate string to the input buffer. If no
  * matches are found, do nothing. If only one match is found, simply
@@ -467,7 +578,7 @@ _Bool Con_CompleteInput(console_t *console) {
 	_Bool output_quotes = false;
 
 	if (g_list_length(matches) == 1) {
-		match = (char *) g_list_nth_data(matches, 0);
+		match = ((const com_autocomplete_match_t *) g_list_nth_data(matches, 0))->name;
 
 		if (strchr(match, ' ') != NULL) {
 			match = va("\"%s\" ", match);
@@ -476,7 +587,7 @@ _Bool Con_CompleteInput(console_t *console) {
 			match = va("%s ", match);
 		}
 	} else {
-		match = CommonPrefix(matches);
+		match = Con_CommonPrefix(matches);
 
 		if (strchr(match, ' ') != NULL) {
 			match = va("\"%s", match);
@@ -516,6 +627,9 @@ _Bool Con_CompleteInput(console_t *console) {
 	}
 
 	console->input.pos = strlen(console->input.buffer);
+
+	// print matches
+	Con_PrintMatches(console, matches);
 
 	g_list_free_full(matches, Mem_Free);
 

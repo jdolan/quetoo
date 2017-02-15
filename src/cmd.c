@@ -450,6 +450,28 @@ void Cmd_RemoveAll(uint32_t flags) {
 	}
 }
 
+/**
+ * @brief Stringify a command. This memory is temporary.
+ */
+static const char *Cmd_Stringify(const cmd_t *cmd) {
+	static char buffer[MAX_STRING_CHARS];
+	buffer[0] = '\0';
+
+	if (cmd->Execute) {
+		g_strlcat(buffer, va("^1%s^7", cmd->name), sizeof(buffer));
+
+		if (cmd->description) {
+			g_strlcat(buffer, va("\n\t%s", cmd->description), sizeof(buffer));
+		}
+	} else if (cmd->commands) {
+		g_strlcat(buffer, va("^3%s^7\n\t%s", cmd->name, cmd->commands), sizeof(buffer));
+	} else {
+		return NULL;
+	}
+
+	return buffer;
+}
+
 static const char *cmd_complete_pattern;
 
 /**
@@ -459,19 +481,7 @@ static void Cmd_CompleteCommand_enumerate(cmd_t *cmd, void *data) {
 	GList **matches = (GList **) data;
 
 	if (GlobMatch(cmd_complete_pattern, cmd->name, GLOB_CASE_INSENSITIVE)) {
-
-		if (cmd->Execute) {
-			Com_Print("^1%s^7\n", cmd->name);
-
-			if (cmd->description) {
-				Com_Print("\t%s\n", cmd->description);
-			}
-		} else if (cmd->commands) {
-			Com_Print("^3%s^7\n", cmd->name);
-			Com_Print("\t%s\n", cmd->commands);
-		}
-
-		*matches = g_list_prepend(*matches, Mem_TagCopyString(cmd->name, MEM_TAG_CMD));
+		*matches = g_list_insert_sorted(*matches, Com_AllocMatch(cmd->name, Cmd_Stringify(cmd)), Com_MatchCompare);
 	}
 }
 
@@ -574,14 +584,8 @@ static void Cmd_Alias_f(void) {
  * @brief Enumeration helper for Cmd_List_f.
  */
 static void Cmd_List_f_enumerate(cmd_t *cmd, void *data) {
-
-	if (cmd->Execute) {
-		Com_Print("%s\n", cmd->name);
-
-		if (cmd->description) {
-			Com_Print("   ^2%s\n", cmd->description);
-		}
-	}
+	
+	Com_Print("%s\n", Cmd_Stringify(cmd));
 }
 
 /**
