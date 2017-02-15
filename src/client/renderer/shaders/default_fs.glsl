@@ -2,7 +2,7 @@
  * @brief Default fragment shader.
  */
 
-#version 120
+#version 130
 
 #define FRAGMENT_SHADER
 
@@ -63,13 +63,13 @@ uniform float ALPHA_THRESHOLD;
 uniform float TIME_FRACTION;
 uniform float TIME;
 
-varying vec3 modelpoint;
-varying vec4 color;
-varying vec2 texcoords[2];
-varying vec3 point;
-varying vec3 normal;
-varying vec3 tangent;
-varying vec3 bitangent;
+in vec3 modelpoint;
+in vec4 color;
+in vec2 texcoords[2];
+in vec3 point;
+in vec3 normal;
+in vec3 tangent;
+in vec3 bitangent;
 
 const vec3 two = vec3(2.0);
 const vec3 negHalf = vec3(-0.5);
@@ -173,7 +173,7 @@ void main(void) {
 	vec3 deluxemap = vec3(0.0, 0.0, 1.0);
 
 	if (LIGHTMAP) {
-		lightmap = texture2D(SAMPLER1, texcoords[1]).rgb;
+		lightmap = texture(SAMPLER1, texcoords[1]).rgb;
 	}
 
 	// then resolve any bump mapping
@@ -184,11 +184,11 @@ void main(void) {
 	if (NORMALMAP) {
 
 		if (DELUXEMAP) {
-			deluxemap = texture2D(SAMPLER2, texcoords[1]).rgb;
+			deluxemap = texture(SAMPLER2, texcoords[1]).rgb;
 			deluxemap = normalize(two * (deluxemap + negHalf));
 		}
 
-		normalmap = texture2D(SAMPLER3, texcoords[0]);
+		normalmap = texture(SAMPLER3, texcoords[0]);
 
 		parallax = BumpTexcoord(normalmap.w);
 
@@ -198,7 +198,7 @@ void main(void) {
 		vec3 glossmap = vec3(1.0);
 
 		if (GLOSSMAP) {
-			glossmap = texture2D(SAMPLER4, texcoords[0]).rgb;
+			glossmap = texture(SAMPLER4, texcoords[0]).rgb;
 		}
 
 		// resolve the bumpmap modulation
@@ -215,7 +215,7 @@ void main(void) {
 	vec4 diffuse = vec4(1.0);
 
 	if (DIFFUSE) { // sample the diffuse texture, honoring the parallax offset
-		diffuse = texture2D(SAMPLER0, texcoords[0] + parallax);
+		diffuse = texture(SAMPLER0, texcoords[0] + parallax);
 
 		// see if diffuse can be discarded because of alpha test
 		if (diffuse.a < ALPHA_THRESHOLD)

@@ -2,7 +2,7 @@
  * @brief Planar shadows fragment shader.
  */
 
-#version 120
+#version 130
 
 #define FRAGMENT_SHADER
 
@@ -10,7 +10,7 @@ uniform vec4 LIGHT;
 uniform vec4 PLANE;
 uniform vec4 GLOBAL_COLOR;
 
-varying vec4 point;
+in vec4 point;
 
 #define FOG_NO_UNIFORM
 #include "fog_inc.glsl"

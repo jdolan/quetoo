@@ -2,19 +2,19 @@
  * @brief Corona vertex shader.
  */
 
-#version 120
+#version 130
 
 #define VERTEX_SHADER
 
 #include "matrix_inc.glsl"
 #include "fog_inc.glsl"
 
-varying vec4 color;
-varying vec2 texcoord;
+out vec4 color;
+out vec2 texcoord;
 
-attribute vec3 POSITION;
-attribute vec2 TEXCOORD;
-attribute vec4 COLOR;
+in vec3 POSITION;
+in vec2 TEXCOORD;
+in vec4 COLOR;
 
 /**
  * @brief Shader entry point.

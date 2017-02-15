@@ -2,15 +2,15 @@
  * @brief Corona fragment shader.
  */
 
-#version 120
+#version 130
 
 #define FRAGMENT_SHADER
 
 #include "matrix_inc.glsl"
 #include "fog_inc.glsl"
 
-varying vec4 color;
-varying vec2 texcoord;
+in vec4 color;
+in vec2 texcoord;
 
 const vec2 center_point = vec2(0.5, 0.5);
 

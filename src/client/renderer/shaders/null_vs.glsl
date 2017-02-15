@@ -2,7 +2,7 @@
  * @brief Null vertex shader.
  */
 
-#version 120
+#version 130
 
 #define VERTEX_SHADER
 
@@ -10,17 +10,15 @@
 #include "fog_inc.glsl"
 
 uniform vec4 GLOBAL_COLOR;
-
-varying vec4 color;
-varying vec2 texcoord;
-
-attribute vec3 POSITION;
-attribute vec2 TEXCOORD;
-attribute vec4 COLOR;
-
 uniform float TIME_FRACTION;
 
-attribute vec3 NEXT_POSITION;
+out vec4 color;
+out vec2 texcoord;
+
+in vec3 POSITION;
+in vec2 TEXCOORD;
+in vec4 COLOR;
+in vec3 NEXT_POSITION;
 
 /**
  * @brief Shader entry point.

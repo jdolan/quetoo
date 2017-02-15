@@ -842,20 +842,6 @@ static void R_InitSupersample(void) {
 		return;
 	}
 
-	if (!GLAD_GL_ARB_framebuffer_object) {
-
-		Com_Warn("r_supersample set but GL_ARB_framebuffer_object is unavailable.\n");
-		Cvar_Set("r_supersample", "0");
-		return;
-	}
-
-	if (!GLAD_GL_EXT_packed_depth_stencil) {
-
-		Com_Warn("r_supersample set but GL_EXT_packed_depth_stencil is unavailable.\n");
-		Cvar_Set("r_supersample", "0");
-		return;
-	}
-
 	r_context.render_width = (uint32_t) (r_context.width * r_supersample->value);
 	r_context.render_height = (uint32_t) (r_context.height * r_supersample->value);
 
@@ -892,7 +878,7 @@ static void R_InitSupersample(void) {
 
 	glGenRenderbuffers(1, &r_state.supersample_depth);
 	glBindRenderbuffer(GL_RENDERBUFFER, r_state.supersample_depth);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8_EXT, r_context.render_width, r_context.render_height);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, r_context.render_width, r_context.render_height);
 
 	// attempt to gracefully recover from errors
 	if (glGetError() != GL_NO_ERROR) {

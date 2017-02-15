@@ -2,7 +2,7 @@
  * @brief Null fragment shader.
  */
 
-#version 120
+#version 130
 
 #define FRAGMENT_SHADER
 
@@ -11,8 +11,8 @@
 
 uniform sampler2D SAMPLER0;
 
-varying vec4 color;
-varying vec2 texcoord;
+in vec4 color;
+in vec2 texcoord;
 
 /**
  * @brief Apply fog to the fragment if enabled.
@@ -26,7 +26,7 @@ void FogFragment(void) {
  */
 void main(void) {
 
-	gl_FragColor = color * texture2D(SAMPLER0, texcoord);
+	gl_FragColor = color * texture(SAMPLER0, texcoord);
 
 	FogFragment(); // and lastly add fog	
 }
