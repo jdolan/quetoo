@@ -77,7 +77,7 @@ static void Print(const char *msg) {
 			fputs(msg + 1, stdout);
 		} else {
 			fputs(msg, stdout);
-			Mon_SendMessage(ERROR_PRINT, msg);
+			Mon_SendMessage(MON_PRINT, msg);
 		}
 
 		fflush(stdout);
@@ -108,7 +108,7 @@ static void Warn(const char *msg) {
 			fprintf(stderr, "WARNING: %s", msg + 1);
 		} else {
 			fprintf(stderr, "WARNING: %s", msg);
-			Mon_SendMessage(ERROR_WARN, va("WARNING: %s", msg));
+			Mon_SendMessage(MON_WARN, va("WARNING: %s", msg));
 		}
 
 		fflush(stderr);
