@@ -30,7 +30,7 @@ static GPtrArray *materials;
 void LoadMaterials(void) {
 
 	size_t count;
-	cm_material_t **mats = Cm_LoadMaterials(mat_name, &count);
+	cm_material_t **mats = Cm_LoadMaterials(va("materials/%s.mat", map_base), &count);
 	cm_material_t **material = mats;
 
 	materials = g_ptr_array_new_with_free_func((GDestroyNotify) Cm_FreeMaterial);

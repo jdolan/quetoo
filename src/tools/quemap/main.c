@@ -25,9 +25,10 @@
 
 quetoo_t quetoo;
 
-char map_name[MAX_OS_PATH];
-char bsp_name[MAX_OS_PATH];
-char mat_name[MAX_OS_PATH];
+char map_base[MAX_QPATH]; // the base name (e.g. "edge")
+
+char map_name[MAX_OS_PATH]; // the input map name (e.g. "~/.quetoo/default/maps/edge.map")
+char bsp_name[MAX_OS_PATH]; // the input bsp name (e.g. "~/.quetoo/default/maps/edge.bsp")
 
 _Bool verbose = false;
 _Bool debug = false;
@@ -493,22 +494,20 @@ int32_t main(int32_t argc, char **argv) {
 			Fs_AddToSearchPath(dirname);
 			g_free(dirname);
 
-			gchar *basename = g_path_get_basename(filename);
-			StripExtension(basename, map_name);
-			g_free(basename);
+			filename += strlen(dirname) + 1;
 		}
-	} else {
-		StripExtension(filename, map_name);
 	}
 
-	g_strlcpy(bsp_name, map_name, sizeof(bsp_name));
-	g_strlcat(map_name, ".map", sizeof(map_name));
-	g_strlcat(bsp_name, ".bsp", sizeof(bsp_name));
-
+	// resolve the base name, used for all output files
 	gchar *basename = g_path_get_basename(filename);
-	StripExtension(basename, basename);
-	g_snprintf(mat_name, sizeof(mat_name), "materials/%s.mat", basename);
+	StripExtension(basename, map_base);
 	g_free(basename);
+
+	StripExtension(filename, map_name);
+	g_strlcat(map_name, ".map", sizeof(map_name));
+
+	StripExtension(filename, bsp_name);
+	g_strlcat(bsp_name, ".bsp", sizeof(bsp_name));
 
 	// start timer
 	const time_t start = time(NULL);

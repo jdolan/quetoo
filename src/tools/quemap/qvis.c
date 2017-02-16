@@ -444,7 +444,6 @@ static void CalcPHS(void) {
  * @brief
  */
 int32_t VIS_Main(void) {
-	char portal_file[MAX_OS_PATH];
 
 	Com_Print("\n----- VIS -----\n\n");
 
@@ -456,10 +455,7 @@ int32_t VIS_Main(void) {
 		Com_Error(ERROR_FATAL, "Empty map\n");
 	}
 
-	StripExtension(map_name, portal_file);
-	strcat(portal_file, ".prt");
-
-	LoadPortals(portal_file);
+	LoadPortals(va("maps/%s.prt", map_base));
 
 	CalcVis();
 
@@ -469,7 +465,7 @@ int32_t VIS_Main(void) {
 	Com_Print("VIS data: %d bytes (compressed from %u bytes)\n", bsp_file.vis_data_size,
 	          (uint32_t) (map_vis.uncompressed_size * 2));
 
-	WriteBSPFile(bsp_name, version);
+	WriteBSPFile(va("maps/%s.bsp", map_base), version);
 
 	const time_t end = time(NULL);
 	const time_t duration = end - start;

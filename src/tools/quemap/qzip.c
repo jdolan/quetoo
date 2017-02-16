@@ -295,22 +295,14 @@ static void AddModel(char *model) {
  * @brief
  */
 static void AddLocation(void) {
-	char loc[MAX_QPATH];
-
-	StripExtension(bsp_name, loc);
-	g_strlcat(loc, ".loc", sizeof(loc));
-
-	AddAsset(loc, false);
+	AddAsset(va("maps/%s.loc", map_base), false);
 }
 
 /**
  * @brief
  */
 static void AddDocumentation(void) {
-	char base[MAX_QPATH];
-
-	StripExtension(Basename(bsp_name), base);
-	AddAsset(va("docs/map-%s.txt", base), false);
+	AddAsset(va("docs/map-%s.txt", map_base), false);
 }
 
 /**
@@ -327,22 +319,16 @@ static void AddMapshots_enumerate(const char *path, void *data) {
  * @brief
  */
 static void AddMapshots(void) {
-	char base[MAX_QPATH];
-
-	StripExtension(Basename(bsp_name), base);
-	Fs_Enumerate(va("mapshots/%s/*", base), AddMapshots_enumerate, NULL);
+	Fs_Enumerate(va("mapshots/%s/*", map_base), AddMapshots_enumerate, NULL);
 }
 
 /**
  * @brief Returns a suitable .pk3 filename name for the current bsp name
  */
 static char *GetZipFilename(void) {
-	char base[MAX_OS_PATH];
 	static char zipfile[MAX_OS_PATH];
 
-	StripExtension(Basename(bsp_name), base);
-
-	g_snprintf(zipfile, sizeof(zipfile), "map-%s-%d.pk3", base, getpid());
+	g_snprintf(zipfile, sizeof(zipfile), "map-%s-%d.pk3", map_base, getpid());
 
 	return zipfile;
 }
@@ -399,7 +385,6 @@ static _Bool DeflateAsset(zipFile zip_file, const char *filename) {
  * but straightforward implementation.
  */
 int32_t ZIP_Main(void) {
-	char materials[MAX_QPATH];
 	char zip[MAX_QPATH];
 	int32_t i;
 	epair_t *e;
@@ -435,8 +420,7 @@ int32_t ZIP_Main(void) {
 	}
 
 	// and the materials
-	StripExtension(map_name, materials);
-	AddMaterials(va("materials/%s.mat", Basename(materials)));
+	AddMaterials(va("materials/%s.mat", map_base));
 
 	// and the sounds, models, sky, ..
 	ParseEntities();
@@ -463,8 +447,8 @@ int32_t ZIP_Main(void) {
 	AddMapshots();
 
 	// and of course the bsp and map
-	AddAsset(bsp_name, true);
-	AddAsset(map_name, false);
+	AddAsset(va("maps/%s.bsp", map_base), true);
+	AddAsset(va("maps/%s.map", map_base), false);
 
 	// prune the assets list, removing missing resources
 	GList *assets = g_hash_table_get_values(qzip.assets);
