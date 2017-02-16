@@ -72,6 +72,13 @@ _Bool Fs_Close(file_t *file) {
 }
 
 /**
+ * @brief Deletes the file from the configured write directory.
+ */
+_Bool Fs_Delete(const char *filename) {
+	return PHYSFS_delete(filename) == 0;
+}
+
+/**
  * @return True if the end of the file has been reached, false otherwise.
  */
 _Bool Fs_Eof(file_t *file) {
