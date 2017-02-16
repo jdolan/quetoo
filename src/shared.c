@@ -831,11 +831,17 @@ void Dirname(const char *in, char *out) {
  */
 void StripExtension(const char *in, char *out) {
 
-	while (*in && *in != '.') {
-		*out++ = *in++;
-	}
+	if (in) {
+		const size_t len = strlen(in);
+		memmove(out, in, len + 1);
 
-	*out = '\0';
+		char *ext = strrchr(out, '.');
+		if (ext) {
+			*ext = '\0';
+		}
+	} else {
+		*out = '\0';
+	}
 }
 
 /**

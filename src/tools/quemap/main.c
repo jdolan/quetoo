@@ -493,6 +493,8 @@ int32_t main(int32_t argc, char **argv) {
 		if (dirname) {
 			Fs_AddToSearchPath(dirname);
 			g_free(dirname);
+
+			filename += strlen(dirname) + 1;
 		}
 	}
 
