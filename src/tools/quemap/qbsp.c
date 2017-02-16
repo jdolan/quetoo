@@ -347,15 +347,12 @@ int32_t BSP_Main(void) {
 
 		UnparseEntities();
 
-		WriteBSPFile(bsp_name, version);
+		WriteBSPFile(va("maps/%s.bsp", map_base), version);
 	} else {
 
 		// delete portal and line files
-		char base[MAX_OS_PATH];
-		StripExtension(map_name, base);
-
-		remove(va("%s.prt", base));
-		remove(va("%s.lin", base));
+		Fs_Delete(va("maps/%s.prt", map_base));
+		Fs_Delete(va("maps/%s.lib", map_base));
 
 		CreateBSPFile();
 

@@ -153,14 +153,10 @@ static void WriteLump(file_t *f, d_bsp_lump_t *lump, void *data, size_t len) {
  * @brief
  */
 static void WriteAASFile(void) {
-	char path[MAX_QPATH];
-	file_t *f;
 
-	StripExtension(bsp_name, path);
-	g_strlcat(path, ".aas", sizeof(path));
-
-	if (!(f = Fs_OpenWrite(path))) {
-		Com_Error(ERROR_FATAL, "Couldn't open %s for writing\n", path);
+	file_t *file = Fs_OpenWrite(va("maps/%s.aas", map_base));
+	if (file == NULL) {
+		Com_Error(ERROR_FATAL, "Couldn't open maps/%s.aas for writing\n", map_base);
 	}
 
 	Com_Print("Writing %d AAS nodes..\n", d_aas.num_nodes);
@@ -173,21 +169,21 @@ static void WriteAASFile(void) {
 	header.ident = LittleLong(AAS_IDENT);
 	header.version = LittleLong(AAS_VERSION);
 
-	Fs_Write(f, &header, 1, sizeof(header));
+	Fs_Write(file, &header, 1, sizeof(header));
 
 	d_bsp_lump_t *lump = &header.lumps[AAS_LUMP_NODES];
-	WriteLump(f, lump, d_aas.nodes, sizeof(d_aas_node_t) * d_aas.num_nodes);
+	WriteLump(file, lump, d_aas.nodes, sizeof(d_aas_node_t) * d_aas.num_nodes);
 
 	// rewrite the header with the populated lumps
 
-	Fs_Seek(f, 0);
-	Fs_Write(f, &header, 1, sizeof(header));
+	Fs_Seek(file, 0);
+	Fs_Write(file, &header, 1, sizeof(header));
 
-	Fs_Close(f);
+	Fs_Close(file);
 }
 
 /**
- * @brief Generates ${bsp_name}.aas for AI navigation.
+ * @brief Generates .aas file for AI navigation.
  */
 int32_t AAS_Main(void) {
 

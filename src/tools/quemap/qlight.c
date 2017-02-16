@@ -170,7 +170,7 @@ int32_t LIGHT_Main(void) {
 
 	LightWorld();
 
-	WriteBSPFile(bsp_name, version);
+	WriteBSPFile(va("maps/%s.bsp", map_base), version);
 
 	const time_t end = time(NULL);
 	const time_t duration = end - start;
