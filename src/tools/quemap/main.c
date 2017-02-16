@@ -494,7 +494,7 @@ int32_t main(int32_t argc, char **argv) {
 			Fs_AddToSearchPath(dirname);
 			g_free(dirname);
 
-			filename += strlen(dirname) + 1;
+			filename += strlen(dirname);
 		}
 	}
 
@@ -506,8 +506,16 @@ int32_t main(int32_t argc, char **argv) {
 	StripExtension(filename, map_name);
 	g_strlcat(map_name, ".map", sizeof(map_name));
 
+	if (!Fs_Exists(map_name)) {
+		g_snprintf(map_name, sizeof(map_name), "maps/%s.map", map_base);
+	}
+
 	StripExtension(filename, bsp_name);
 	g_strlcat(bsp_name, ".bsp", sizeof(bsp_name));
+
+	if (!Fs_Exists(bsp_name)) {
+		g_snprintf(bsp_name, sizeof(bsp_name), "maps/%s.bsp", map_base);
+	}
 
 	// start timer
 	const time_t start = time(NULL);
