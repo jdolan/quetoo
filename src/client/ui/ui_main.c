@@ -24,9 +24,44 @@
 
 #include "renderers/RendererQuetoo.h"
 
+#include "viewcontrollers/EditorViewController.h"
+
 extern cl_static_t cls;
 
 static WindowController *windowController;
+
+static NavigationViewController *navigationViewController;
+
+static EditorViewController *editorViewController;
+
+/**
+ * @brief
+ */
+static void Ui_CheckEditor(void) {
+	if (cl_editor->modified) {
+		if (cl_editor->integer) {
+			if (editorViewController != NULL) {
+				Ui_PopToViewController((ViewController *) editorViewController);
+				Ui_PopViewController();
+
+				release(editorViewController);
+			}
+
+			editorViewController = $(alloc(EditorViewController), init);
+
+			Ui_PushViewController((ViewController *) editorViewController);
+		} else if (editorViewController != NULL) {
+			Ui_PopToViewController((ViewController *) editorViewController);
+			Ui_PopViewController();
+
+			release(editorViewController);
+
+			editorViewController = NULL;
+		}
+
+		cl_editor->modified = false;
+	}
+}
 
 /**
  * @brief Dispatch events to the user interface. Filter most common event types for
@@ -71,6 +106,8 @@ void Ui_Draw(void) {
 		return;
 	}
 
+	Ui_CheckEditor();
+
 	if (cls.key_state.dest != KEY_UI) {
 		return;
 	}
@@ -93,19 +130,33 @@ void Ui_Draw(void) {
 /**
  * @brief
  */
-void Ui_AddViewController(ViewController *viewController) {
+void Ui_PushViewController(ViewController *viewController) {
 	if (viewController) {
-		$(viewController, moveToParentViewController, windowController->viewController);
+		$(navigationViewController, pushViewController, viewController);
 	}
 }
 
 /**
  * @brief
  */
-void Ui_RemoveViewController(ViewController *viewController) {
+void Ui_PopToViewController(ViewController *viewController) {
 	if (viewController) {
-		$(viewController, moveToParentViewController, NULL);
+		$(navigationViewController, popToViewController, viewController);
 	}
+}
+
+/**
+ * @brief
+ */
+void Ui_PopViewController(void) {
+	$(navigationViewController, popViewController);
+}
+
+/**
+ * @brief
+ */
+void Ui_PopAllViewControllers(void) {
+	$(navigationViewController, popToRootViewController);
 }
 
 /**
@@ -123,25 +174,29 @@ void Ui_Init(void) {
 	}
 #endif
 
-	windowController = $(alloc(WindowController), initWithWindow, r_context.window);
+	// ui renderer
 
 	Renderer *renderer = (Renderer *) $(alloc(RendererQuetoo), init);
 
+	// main window
+
+	windowController = $(alloc(WindowController), initWithWindow, r_context.window);
+
 	$(windowController, setRenderer, renderer);
 
-	release(renderer);
+	navigationViewController = $(alloc(NavigationViewController), init);
 
-	ViewController *viewController = $(alloc(ViewController), init);
+	$(windowController, setViewController, (ViewController *) navigationViewController);
 
-	$(windowController, setViewController, viewController);
-
-	release(viewController);
+	editorViewController = NULL;
 }
 
 /**
  * @brief Shuts down the user interface.
  */
 void Ui_Shutdown(void) {
+
+	Ui_PopAllViewControllers();
 
 	release(windowController);
 

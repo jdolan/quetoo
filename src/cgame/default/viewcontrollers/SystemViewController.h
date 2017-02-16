@@ -69,4 +69,3 @@ struct SystemViewControllerInterface {
  * @memberof SystemViewController
  */
 extern Class *_SystemViewController(void);
-

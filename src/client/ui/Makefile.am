@@ -27,6 +27,6 @@ libui_la_LDFLAGS = \
 
 libui_la_LIBADD = \
 	renderers/librenderers.la \
+	viewcontrollers/libviewcontrollers.la \
 	$(top_builddir)/src/libcommon.la \
 	@OBJECTIVELYMVC_LIBS@
-

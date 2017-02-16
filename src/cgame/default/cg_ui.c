@@ -32,7 +32,7 @@ void Cg_InitUi(void) {
 
 	mainViewController = $(alloc(MainViewController), init);
 
-	cgi.AddViewController((ViewController *) mainViewController);
+	cgi.PushViewController((ViewController *) mainViewController);
 }
 
 /**
@@ -40,7 +40,8 @@ void Cg_InitUi(void) {
  */
 void Cg_ShutdownUi(void) {
 
-	cgi.RemoveViewController((ViewController *) mainViewController);
+	cgi.PopToViewController((ViewController *) mainViewController);
+	cgi.PopViewController();
 
 	release(mainViewController);
 }
