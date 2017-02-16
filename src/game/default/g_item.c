@@ -1088,8 +1088,6 @@ void G_PrecacheItem(const g_item_t *it) {
 		return;
 	}
 
-	gi.SetConfigString(CS_ITEMS + it->index, it->name);
-
 	if (it->pickup_sound) {
 		gi.SoundIndex(it->pickup_sound);
 	}
@@ -2438,6 +2436,8 @@ static void G_InitItem(g_item_t *item) {
 	item->icon_index = gi.ImageIndex(item->icon);
 	item->model_index = gi.ModelIndex(item->model);
 	item->pickup_sound_index = gi.SoundIndex(item->pickup_sound);
+
+	gi.SetConfigString(CS_ITEMS + item->index, item->name);
 }
 
 /**
