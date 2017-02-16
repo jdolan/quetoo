@@ -989,7 +989,7 @@ static void Cg_ScrollWeapon(const int8_t dir) {
 		} else if (cg_hud_locals.select_weapon_id >= (int16_t) MAX_STAT_BITS) {
 			cg_hud_locals.select_weapon_id = 0;
 		}
-		
+
 		if (ps->stats[STAT_WEAPONS] & (1 << cg_hud_locals.select_weapon_id)) {
 			cg_hud_locals.select_weapon_time = cgi.client->unclamped_time + cg_weaponbar_choose_time->integer;
 			return;
@@ -1012,7 +1012,7 @@ _Bool Cg_AttemptWeaponSwitch(const player_state_t *ps) {
 		if (cg_hud_locals.select_weapon_id != Cg_ActiveWeapon(ps)) {
 			const char *name = cgi.client->config_strings[CS_ITEMS + cg_hud_locals.weapons[cg_hud_locals.select_weapon_id].item_index];
 			cgi.Cbuf(va("use %s\n", name));
-			
+
 			cg_hud_locals.select_weapon_time = cgi.client->unclamped_time + cg_weaponbar_wait_time->integer;
 			return true;
 		}
@@ -1059,7 +1059,7 @@ static void Cg_DrawWeaponSwitch(const player_state_t *ps) {
 			cg_hud_locals.select_weapon_time = cgi.client->unclamped_time + cg_weaponbar_wait_time->integer;
 		}
 	}
-	
+
 	// not changing or ran out of time
 	if (cg_hud_locals.select_weapon_time <= cgi.client->unclamped_time) {
 		Cg_AttemptWeaponSwitch(ps);
@@ -1074,7 +1074,7 @@ static void Cg_DrawWeaponSwitch(const player_state_t *ps) {
 
 	r_pixel_t x = cgi.view->viewport.x + ((cgi.view->viewport.w / 2) - ((num_weaps * HUD_PIC_HEIGHT) / 2));
 	r_pixel_t y = cgi.view->viewport.y + cgi.view->viewport.h - (HUD_PIC_HEIGHT * 2.0) - 16;
-	
+
 	r_pixel_t ch;
 	cgi.BindFont("medium", NULL, &ch);
 
@@ -1084,13 +1084,14 @@ static void Cg_DrawWeaponSwitch(const player_state_t *ps) {
 			continue;
 		}
 
+		Cg_DrawIcon(x, y, 1.0, cg_hud_locals.weapons[i].icon_index);
+
 		if (i == cg_hud_locals.select_weapon_id) {
 			const char *name = cgi.client->config_strings[CS_ITEMS + cg_hud_locals.weapons[i].item_index];
 			cgi.DrawString(cgi.view->viewport.x + ((cgi.view->viewport.w / 2) - (cgi.StringWidth(name) / 2)), y - ch, name, HUD_COLOR_STAT);
 			cgi.DrawImage(x, y, 1.0, cg_hud_locals.select_weapon_image);
 		}
 
-		Cg_DrawIcon(x, y, 1.0, cg_hud_locals.weapons[i].icon_index);
 		x += HUD_PIC_HEIGHT + 4;
 	}
 }
@@ -1232,7 +1233,7 @@ void Cg_LoadHudMedia(void) {
 void Cg_InitHud(void) {
 	cgi.Cmd("cg_weapon_next", Cg_Weapon_Next_f, CMD_CGAME, "Open the weapon bar to the next weapon. In chasecam, switches to next target.");
 	cgi.Cmd("cg_weapon_previous", Cg_Weapon_Prev_f, CMD_CGAME, "Open the weapon bar to the previous weapon. In chasecam, switches to previous target.");
-	
+
 	cg_weaponbar_choose_time = cgi.Cvar("cg_weaponbar_choose_time", "250", CVAR_ARCHIVE, "The amount of time, in milliseconds, to wait between changing weapons in the scroll view. Clicking will override this value and switch immediately.");
 	cg_weaponbar_wait_time = cgi.Cvar("cg_weaponbar_wait_time", "750", CVAR_ARCHIVE, "The amount of time, in milliseconds, to show the weapon bar after changing weapons.");
 }
