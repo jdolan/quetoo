@@ -130,7 +130,7 @@ static void Init(void) {
 
 	Sem_Init();
 
-	Com_Print("Quetoo Map %s %s %s initialized\n", VERSION, __DATE__, BUILD_HOST);
+	Com_Print("Quetoo Map %s %s %s %s initialized\n", VERSION, __DATE__, BUILD_HOST, REVISION);
 }
 
 /**
