@@ -60,6 +60,9 @@ cvar_t *cg_draw_weapon_z;
 cvar_t *cg_draw_vitals;
 cvar_t *cg_draw_vitals_pulse;
 cvar_t *cg_draw_vote;
+cvar_t *cg_entity_bob;
+cvar_t *cg_entity_pulse;
+cvar_t *cg_entity_rotate;
 cvar_t *cg_fov;
 cvar_t *cg_fov_zoom;
 cvar_t *cg_fov_interpolate;
@@ -152,6 +155,10 @@ static void Cg_Init(void) {
 	cg_draw_vitals_pulse = cgi.Cvar("cg_draw_vitals_pulse", "1", CVAR_ARCHIVE,
 	                                "Pulse the vitals when low");
 	cg_draw_vote = cgi.Cvar("cg_draw_vote", "1", CVAR_ARCHIVE, "Draw the current vote on the hud");
+
+	cg_entity_bob = cgi.Cvar("cg_entity_bob", "1.0", CVAR_ARCHIVE, "Controls the bobbing of items");
+	cg_entity_pulse = cgi.Cvar("cg_entity_pulse", "1.0", CVAR_ARCHIVE, "Controls the pulsing of items");
+	cg_entity_rotate = cgi.Cvar("cg_entity_rotate", "1.0", CVAR_ARCHIVE, "Controls the rotation of items");
 
 	cg_fov = cgi.Cvar("cg_fov", "110.0", CVAR_ARCHIVE, "Horizontal field of view, in degrees");
 	cg_fov_zoom = cgi.Cvar("cg_fov_zoom", "55.0", CVAR_ARCHIVE, "Zoomed in field of view");
