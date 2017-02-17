@@ -250,8 +250,6 @@ void Cl_ClearState(void) {
 	// wipe the entire cl_client_t structure
 	memset(&cl, 0, sizeof(cl));
 
-	Com_QuitSubsystem(QUETOO_CLIENT);
-
 	Mem_ClearBuffer(&cls.net_chan.message);
 }
 
@@ -650,10 +648,12 @@ void Cl_Frame(const uint32_t msec) {
  */
 void Cl_Init(void) {
 
+	Com_Print("Client initialization...\n");
+
 	memset(&cls, 0, sizeof(cls));
 
 	if (dedicated->value) {
-		return;    // nothing running on the client
+		return; // nothing running on the client
 	}
 
 	cls.state = CL_DISCONNECTED;
@@ -683,6 +683,9 @@ void Cl_Init(void) {
 	Cl_InitCgame();
 
 	Cl_SetKeyDest(KEY_UI);
+
+	Com_Print("Client initialized\n");
+	Com_InitSubsystem(QUETOO_CLIENT);
 }
 
 /**
@@ -693,6 +696,8 @@ void Cl_Shutdown(void) {
 	if (dedicated->value) {
 		return;
 	}
+
+	Com_Print("Client shutdown...\n");
 
 	Cl_Disconnect();
 
@@ -717,4 +722,7 @@ void Cl_Shutdown(void) {
 	Cmd_RemoveAll(CMD_CLIENT);
 
 	Mem_FreeTag(MEM_TAG_CLIENT);
+
+	Com_Print("Client down\n");
+	Com_QuitSubsystem(QUETOO_CLIENT);
 }

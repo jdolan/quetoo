@@ -80,6 +80,7 @@
 		CE3BCDF01DB91B01002E6C6D /* RendererQuetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3BCDEC1DB91AF7002E6C6D /* RendererQuetoo.c */; };
 		CE3BCDF11DB91B0B002E6C6D /* RendererQuetoo.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3BCDED1DB91AF7002E6C6D /* RendererQuetoo.h */; };
 		CE4898D11D8B9DE100EEACA5 /* libnet.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.dylib */; };
+		CE55308A1E57BD710009A127 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CE5816EE1D904AD4002818F5 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CE5816EF1D904B0B002818F5 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CE5CDC241D9F51580034757D /* librenderer.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CED438AD1D9D34450052BAFA /* librenderer.dylib */; };
@@ -1728,6 +1729,7 @@
 			files = (
 				CED439561D9D3A830052BAFA /* libcommon.dylib in Frameworks */,
 				CED439551D9D3A7F0052BAFA /* libglib-2.0.0.dylib in Frameworks */,
+				CE55308A1E57BD710009A127 /* libSDL2-2.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
