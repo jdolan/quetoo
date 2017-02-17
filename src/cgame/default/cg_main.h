@@ -32,6 +32,8 @@ extern cvar_t *cg_add_particles;
 extern cvar_t *cg_add_weather;
 extern cvar_t *cg_bob;
 extern cvar_t *cg_color;
+extern cvar_t *cg_shirt;
+extern cvar_t *cg_pants;
 extern cvar_t *cg_draw_blend;
 extern cvar_t *cg_draw_captures;
 extern cvar_t *cg_draw_crosshair_color;

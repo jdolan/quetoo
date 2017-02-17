@@ -280,6 +280,15 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	} else {
 		Cg_BreathTrail(ent);
 	}
+	
+	// set shirt/pants
+	if (ci->shirt_color[3]) {
+		e->tints[TINT_SHIRT] = ci->shirt_color;
+	}
+
+	if (ci->pants_color[3]) {
+		e->tints[TINT_PANTS] = ci->pants_color;
+	}
 
 	r_entity_t head, torso, legs;
 

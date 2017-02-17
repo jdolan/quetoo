@@ -28,7 +28,13 @@ void R_BindAttributeBufferOffset(const r_attribute_id_t target, const r_buffer_t
 
 	assert(!buffer || ((buffer->type == R_BUFFER_DATA) == (target != R_ARRAY_ELEMENTS)));
 
-	if (target == R_ARRAY_ELEMENTS) {
+	if (target == R_ARRAY_ALL) {
+		for (r_attribute_id_t id = 0; id < R_ARRAY_MAX_ATTRIBS; id++) {
+			R_BindAttributeBufferOffset(id, buffer, offset);
+		}
+
+		R_BindAttributeBufferOffset(R_ARRAY_ELEMENTS, buffer, offset);
+	} else if (target == R_ARRAY_ELEMENTS) {
 		r_state.element_buffer = buffer;
 	} else {
 		r_state.array_buffers[target] = buffer;

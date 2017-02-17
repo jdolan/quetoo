@@ -1167,19 +1167,49 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 		}
 	}
 
+	// set pants/shirt colors
+	if ((g_level.teams || g_level.ctf) && cl->locals.persistent.team) { // players must use team_skin to change
+		g_strlcpy(cl->locals.persistent.shirt_color, cl->locals.persistent.team->shirt_color, sizeof(cl->locals.persistent.shirt_color));
+		g_strlcpy(cl->locals.persistent.pants_color, cl->locals.persistent.team->pants_color, sizeof(cl->locals.persistent.pants_color));
+	} else {
+		g_strlcpy(cl->locals.persistent.shirt_color, "default", sizeof(cl->locals.persistent.shirt_color));
+		g_strlcpy(cl->locals.persistent.pants_color, "default", sizeof(cl->locals.persistent.pants_color));
+		
+		s = GetUserInfo(user_info, "shirt");
+
+		if (strlen(s) && strcmp(s, "default")) { // not default
+			if (ColorParseHex(s, NULL)) {
+				g_strlcpy(cl->locals.persistent.shirt_color, s, sizeof(cl->locals.persistent.shirt_color));
+			}
+		}
+
+		s = GetUserInfo(user_info, "pants");
+
+		if (strlen(s) && strcmp(s, "default")) { // not default
+			if (ColorParseHex(s, NULL)) {
+				g_strlcpy(cl->locals.persistent.pants_color, s, sizeof(cl->locals.persistent.pants_color));
+			}
+		}
+	}
+
 	gchar client_info[MAX_USER_INFO_STRING] = { '\0' };
 
-	// build the userinfo string
+	// build the clientinfo string
 	g_strlcat(client_info, cl->locals.persistent.net_name, MAX_USER_INFO_STRING);
+
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
 	g_strlcat(client_info, cl->locals.persistent.skin, MAX_USER_INFO_STRING);
 
-	if (cl->locals.persistent.color != -1) {
-		g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-		g_strlcat(client_info, va("%i", cl->locals.persistent.color), MAX_USER_INFO_STRING);
-	}
+	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
+	g_strlcat(client_info, va("%i", cl->locals.persistent.color), MAX_USER_INFO_STRING);
 
-	// combine name and skin into a config_string
+	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
+	g_strlcat(client_info, cl->locals.persistent.shirt_color, MAX_USER_INFO_STRING);
+
+	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
+	g_strlcat(client_info, cl->locals.persistent.pants_color, MAX_USER_INFO_STRING);
+
+	// send it to clients
 	gi.SetConfigString(CS_CLIENTS + (cl - g_game.clients), client_info);
 
 	// set hand, if anything should go wrong, it defaults to 0 (centered)
