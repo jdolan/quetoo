@@ -131,6 +131,7 @@ static void Debug(const debug_t debug, const char *msg) {
 		case DEBUG_CLIENT:
 		case DEBUG_RENDERER:
 		case DEBUG_SOUND:
+		case DEBUG_UI:
 			color = CON_COLOR_MAGENTA;
 			break;
 		case DEBUG_COLLISION:

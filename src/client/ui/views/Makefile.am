@@ -4,7 +4,8 @@ noinst_HEADERS =
 noinst_LTLIBRARIES = \
 	libviews.la
 
-libviews_la_SOURCES =
+libviews_la_SOURCES = \
+	EditorView.c
 
 libviews_la_CFLAGS = \
 	-I$(top_srcdir)/src \

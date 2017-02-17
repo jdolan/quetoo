@@ -50,31 +50,6 @@ struct EditorViewController {
 	 * @private
 	 */
 	EditorViewControllerInterface *interface;
-
-	/**
-	 * @brief The material the player is looking at.
-	 */
-	r_material_t *material;
-
-	/**
-	 * @brief The bump slider.
-	 */
-	Slider *bumpSlider;
-
-	/**
-	 * @brief The hardness slider.
-	 */
-	Slider *hardnessSlider;
-
-	/**
-	 * @brief The specular slider.
-	 */
-	Slider *specularSlider;
-
-	/**
-	 * @brief The parallax slider.
-	 */
-	Slider *parallaxSlider;
 };
 
 
