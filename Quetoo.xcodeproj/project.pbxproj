@@ -283,6 +283,10 @@
 		CE80FFFF1C5E4D4400A21A51 /* libcommon.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.dylib */; };
 		CE8C734C1E0DE28000226317 /* r_stainmap.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8C734A1E0DE28000226317 /* r_stainmap.c */; };
 		CE8C734D1E0DE28000226317 /* r_stainmap.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8C734B1E0DE28000226317 /* r_stainmap.h */; };
+		CE95745E1E568F4900BBC4C0 /* EditorViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9574581E56860800BBC4C0 /* EditorViewController.c */; };
+		CE95745F1E568F4900BBC4C0 /* MenuViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9574561E56860800BBC4C0 /* MenuViewController.c */; };
+		CE9574601E568F6C00BBC4C0 /* EditorViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9574591E56860800BBC4C0 /* EditorViewController.h */; };
+		CE9574611E568F6C00BBC4C0 /* MenuViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9574571E56860800BBC4C0 /* MenuViewController.h */; };
 		CEA029C31C5E54C200341079 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEA029C41C5E54F600341079 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEA082371DC6EC50001207AA /* r_atlas.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA082331DC6EBB7001207AA /* r_atlas.c */; };
@@ -1372,6 +1376,10 @@
 		CE92B3AC1D2FF83A00E9153A /* quetoo-dedicated.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = "quetoo-dedicated.ico"; sourceTree = "<group>"; };
 		CE9305BC1D9A929100D62770 /* post-update.bat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; lineEnding = 2; path = "post-update.bat"; sourceTree = "<group>"; };
 		CE9305BD1D9A94F600D62770 /* post-update.bat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; lineEnding = 2; path = "post-update.bat"; sourceTree = "<group>"; };
+		CE9574561E56860800BBC4C0 /* MenuViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MenuViewController.c; sourceTree = "<group>"; };
+		CE9574571E56860800BBC4C0 /* MenuViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MenuViewController.h; sourceTree = "<group>"; };
+		CE9574581E56860800BBC4C0 /* EditorViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = EditorViewController.c; sourceTree = "<group>"; };
+		CE9574591E56860800BBC4C0 /* EditorViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditorViewController.h; sourceTree = "<group>"; };
 		CEA029F41C5E558100341079 /* quetoo-master */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-master"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEA082331DC6EBB7001207AA /* r_atlas.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_atlas.c; sourceTree = "<group>"; };
 		CEA082341DC6EBB7001207AA /* r_atlas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_atlas.h; sourceTree = "<group>"; };
@@ -2769,6 +2777,10 @@
 		CE5CDBB51D9F45090034757D /* viewcontrollers */ = {
 			isa = PBXGroup;
 			children = (
+				CE9574581E56860800BBC4C0 /* EditorViewController.c */,
+				CE9574591E56860800BBC4C0 /* EditorViewController.h */,
+				CE9574561E56860800BBC4C0 /* MenuViewController.c */,
+				CE9574571E56860800BBC4C0 /* MenuViewController.h */,
 				CE5CDBBC1D9F450A0034757D /* Makefile.am */,
 			);
 			path = viewcontrollers;
@@ -2951,11 +2963,13 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE9574601E568F6C00BBC4C0 /* EditorViewController.h in Headers */,
+				CE9574611E568F6C00BBC4C0 /* MenuViewController.h in Headers */,
+				CE3BCDF11DB91B0B002E6C6D /* RendererQuetoo.h in Headers */,
 				CE5CDC361D9F51A90034757D /* ui_local.h in Headers */,
 				CE5CDC371D9F51A90034757D /* ui_main.c in Headers */,
 				CE5CDC381D9F51A90034757D /* ui_main.h in Headers */,
 				CE5CDC391D9F51A90034757D /* ui_types.h in Headers */,
-				CE3BCDF11DB91B0B002E6C6D /* RendererQuetoo.h in Headers */,
 				CE5CDC3A1D9F51A90034757D /* ui.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3953,8 +3967,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE5CDC331D9F518B0034757D /* ui_main.c in Sources */,
+				CE95745E1E568F4900BBC4C0 /* EditorViewController.c in Sources */,
+				CE95745F1E568F4900BBC4C0 /* MenuViewController.c in Sources */,
 				CE3BCDF01DB91B01002E6C6D /* RendererQuetoo.c in Sources */,
+				CE5CDC331D9F518B0034757D /* ui_main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

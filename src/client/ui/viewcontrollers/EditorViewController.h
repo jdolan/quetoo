@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <ObjectivelyMVC/NavigationViewController.h>
+#include "MenuViewController.h"
 
 /**
  * @file
@@ -43,7 +43,7 @@ struct EditorViewController {
 	 * @brief The superclass.
 	 * @private
 	 */
-	NavigationViewController navigationViewController;
+	MenuViewController menuViewController;
 
 	/**
 	 * @brief The interface.

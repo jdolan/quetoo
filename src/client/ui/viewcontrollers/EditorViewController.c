@@ -253,7 +253,7 @@ Class *_EditorViewController(void) {
 
 	do_once(&once, {
 		clazz.name = "EditorViewController";
-		clazz.superclass = _NavigationViewController();
+		clazz.superclass = _MenuViewController();
 		clazz.instanceSize = sizeof(EditorViewController);
 		clazz.interfaceOffset = offsetof(EditorViewController, interface);
 		clazz.interfaceSize = sizeof(EditorViewControllerInterface);

@@ -1,14 +1,13 @@
-
 noinst_HEADERS = \
-	ClientMenuViewController.h \
-	EditorViewController.h
+	EditorViewController.h \
+	MenuViewController.h
 
 noinst_LTLIBRARIES = \
 	libviewcontrollers.la
 
 libviewcontrollers_la_SOURCES = \
-	ClientMenuViewController.c \
-	EditorViewController.c
+	EditorViewController.c \
+	MenuViewController.c
 
 libviewcontrollers_la_CFLAGS = \
 	-I$(top_srcdir)/src \
@@ -21,6 +20,3 @@ libviewcontrollers_la_CFLAGS = \
 
 libviewcontrollers_la_LDFLAGS = \
 	-shared
-
-#libviewcontrollers_la_LIBADD = \
-#	$(top_builddir)/src/client/views/libviews.la

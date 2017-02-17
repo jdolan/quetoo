@@ -21,25 +21,25 @@
 
 #pragma once
 
-#include "EditorViewController.h"
+#include <ObjectivelyMVC/ViewController.h>
 
 #include "ui_local.h"
 
 /**
  * @file
  *
- * @brief The ClientMenuViewController.
+ * @brief The MenuViewController.
  */
 
-typedef struct ClientMenuViewController ClientMenuViewController;
-typedef struct ClientMenuViewControllerInterface ClientMenuViewControllerInterface;
+typedef struct MenuViewController MenuViewController;
+typedef struct MenuViewControllerInterface MenuViewControllerInterface;
 
 /**
- * @brief The ClientMenuViewController type.
+ * @brief The MenuViewController type.
  * @extends ViewController
  * @ingroup ViewControllers
  */
-struct ClientMenuViewController {
+struct MenuViewController {
 
 	/**
 	 * @brief The superclass.
@@ -51,7 +51,7 @@ struct ClientMenuViewController {
 	 * @brief The interface.
 	 * @private
 	 */
-	ClientMenuViewControllerInterface *interface;
+	MenuViewControllerInterface *interface;
 
 	/**
 	 * @brief The Panel.
@@ -60,27 +60,20 @@ struct ClientMenuViewController {
 };
 
 /**
- * @brief The ClientMenuViewController interface.
+ * @brief The MenuViewController interface.
  */
-struct ClientMenuViewControllerInterface {
+struct MenuViewControllerInterface {
 
 	/**
 	 * @brief The superclass interface.
 	 */
 	ViewControllerInterface viewControllerInterface;
-
-	/**
-	 * @fn EditorViewController *ClientMenuViewController::editorViewController(const ClientMenuViewController *self)
-	 * @return The MainViewController.
-	 * @memberof ClientMenuViewController
-	 */
-	EditorViewController *(*editorViewController)(const ClientMenuViewController *self);
 };
 
 /**
- * @fn Class *ClientMenuViewController::_ClientMenuViewController(void)
- * @brief The ClientMenuViewController archetype.
- * @return The ClientMenuViewController Class.
- * @memberof ClientMenuViewController
+ * @fn Class *MenuViewController::_MenuViewController(void)
+ * @brief The MenuViewController archetype.
+ * @return The MenuViewController Class.
+ * @memberof MenuViewController
  */
-extern Class *_ClientMenuViewController(void);
+extern Class *_MenuViewController(void);

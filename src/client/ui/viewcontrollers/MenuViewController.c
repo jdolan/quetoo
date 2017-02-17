@@ -21,15 +21,15 @@
 
 #include "ui_local.h"
 
-#include "ClientMenuViewController.h"
+#include "MenuViewController.h"
 
-#define _Class _ClientMenuViewController
+#define _Class _MenuViewController
 
 #pragma mark - Object
 
 static void dealloc(Object *self) {
 
-	ClientMenuViewController *this = (ClientMenuViewController *) self;
+	MenuViewController *this = (MenuViewController *) self;
 
 	release(this->panel);
 
@@ -45,7 +45,7 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	ClientMenuViewController *this = (ClientMenuViewController *) self;
+	MenuViewController *this = (MenuViewController *) self;
 
 	this->panel = $(alloc(Panel), initWithFrame, NULL);
 	assert(this->panel);
@@ -56,16 +56,7 @@ static void loadView(ViewController *self) {
 	$(self->view, addSubview, (View *) this->panel);
 }
 
-#pragma mark - ClientMenuViewController
-
-/**
- * @fn EditorViewController *ClientMenuViewController::editorViewController(const ClientMenuViewController *self)
- *
- * @memberof ClientMenuViewController
- */
-static EditorViewController *editorViewController(const ClientMenuViewController *self) {
-	return (EditorViewController *) ((ViewController *) self)->parentViewController;
-}
+#pragma mark - MenuViewController
 
 #pragma mark - Class lifecycle
 
@@ -77,24 +68,22 @@ static void initialize(Class *clazz) {
 	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
 
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
-
-	((ClientMenuViewControllerInterface *) clazz->def->interface)->editorViewController = editorViewController;
 }
 
 /**
- * @fn Class *ClientMenuViewController::_ClientMenuViewController(void)
- * @memberof ClientMenuViewController
+ * @fn Class *MenuViewController::_MenuViewController(void)
+ * @memberof MenuViewController
  */
-Class *_ClientMenuViewController(void) {
+Class *_MenuViewController(void) {
 	static Class clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "ClientMenuViewController";
+		clazz.name = "MenuViewController";
 		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(ClientMenuViewController);
-		clazz.interfaceOffset = offsetof(ClientMenuViewController, interface);
-		clazz.interfaceSize = sizeof(ClientMenuViewControllerInterface);
+		clazz.instanceSize = sizeof(MenuViewController);
+		clazz.interfaceOffset = offsetof(MenuViewController, interface);
+		clazz.interfaceSize = sizeof(MenuViewControllerInterface);
 		clazz.initialize = initialize;
 	});
 

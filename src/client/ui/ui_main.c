@@ -38,26 +38,23 @@ static EditorViewController *editorViewController;
  * @brief
  */
 static void Ui_CheckEditor(void) {
-	if (cl_editor->modified) {
-		printf("Changed!\n");
 
+	if (cl_editor->modified) {
 		cl_editor->modified = false;
 
 		if (cl_editor->integer) {
+
 			if (cls.state != CL_ACTIVE) {
 				return;
 			}
 
-			if (editorViewController) {
-				Ui_PopToViewController((ViewController *) editorViewController);
-				Ui_PopViewController();
-
-				release(editorViewController);
+			if (editorViewController == NULL) {
+				editorViewController = $(alloc(EditorViewController), init);
 			}
 
-			editorViewController = $(alloc(EditorViewController), init);
+			Ui_PushViewController((ViewController *) editorViewController);
 
-			vec3_t end;
+			/*vec3_t end;
 
 			VectorMA(r_view.origin, MAX_WORLD_DIST, r_view.forward, end);
 
@@ -71,7 +68,7 @@ static void Ui_CheckEditor(void) {
 				}
 			} else {
 				editorViewController->material = NULL;
-			}
+			}*/
 
 			// editorViewController->bumpSlider and friends seg fault when accessing
 
@@ -83,15 +80,8 @@ static void Ui_CheckEditor(void) {
 				$(editorViewController->parallaxSlider, setValue, editorViewController->material->cm->parallax);
 			}
 			*/
-
-			Ui_PushViewController((ViewController *) editorViewController);
 		} else if (editorViewController) {
-			Ui_PopToViewController((ViewController *) editorViewController);
 			Ui_PopViewController();
-
-			release(editorViewController);
-
-			editorViewController = NULL;
 		}
 	}
 }
