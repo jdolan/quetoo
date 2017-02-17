@@ -33,6 +33,9 @@ uniform LightParameters LIGHTS;
 #define LIGHT_CLAMP_MAX 4.0
 #endif
 
+// RGB layer tints
+uniform vec4 TINTS[3];
+
 struct CausticParameters
 {
 	bool ENABLE;
@@ -46,6 +49,7 @@ uniform bool LIGHTMAP;
 uniform bool DELUXEMAP;
 uniform bool NORMALMAP;
 uniform bool GLOSSMAP;
+uniform bool TINTMAP;
 
 uniform float BUMP;
 uniform float PARALLAX;
@@ -57,6 +61,7 @@ uniform sampler2D SAMPLER1;
 uniform sampler2D SAMPLER2;
 uniform sampler2D SAMPLER3;
 uniform sampler2D SAMPLER4;
+uniform sampler2D SAMPLER6;
 
 uniform float ALPHA_THRESHOLD;
 
@@ -220,6 +225,16 @@ void main(void) {
 		// see if diffuse can be discarded because of alpha test
 		if (diffuse.a < ALPHA_THRESHOLD)
 			discard;
+
+		if (TINTMAP) {
+			vec4 tint = texture2D(SAMPLER6, texcoords[0] + parallax);
+
+			for (int i = 0; i < 3; i++) {
+				if (TINTS[i].a > 0 && tint[i] > 0) {
+					diffuse.rgb *= (TINTS[i].rgb * tint[i]);
+				}
+			}
+		}
 
 		// factor in bump mapping
 		diffuse.rgb *= bump;

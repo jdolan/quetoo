@@ -240,6 +240,11 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 	if (e->old_frame != e->frame) {
 		R_UseInterpolation(e->lerp);
 	}
+
+	// update tints
+	if (r_mesh_state.material->tintmap) {
+		R_UseTints();
+	}
 }
 
 /**
@@ -334,6 +339,8 @@ static void R_DrawMeshPartsMaterials_default(const r_entity_t *e, const r_md3_t 
  */
 void R_DrawMeshModel_default(const r_entity_t *e) {
 
+	r_view.current_entity = e;
+
 	R_SetMeshState_default(e);
 
 	if (e->model->type == MOD_MD3) {
@@ -362,6 +369,8 @@ void R_DrawMeshModelMaterials_default(const r_entity_t *e) {
 	if (r_draw_wireframe->value || !r_materials->value) {
 		return;
 	}
+
+	r_view.current_entity = e;
 
 	R_SetMeshState_default(e);
 
@@ -392,8 +401,6 @@ void R_DrawMeshModels_default(const r_entities_t *ents) {
 		if (e->effects & EF_NO_DRAW) {
 			continue;
 		}
-
-		r_view.current_entity = e;
 
 		R_DrawMeshModel_default(e);
 	}

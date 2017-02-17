@@ -1221,6 +1221,11 @@ void SetUserInfo(char *s, const char *key, const char *value) {
  */
 _Bool ColorParseHex(const char *s, color_t *color) {
 	const size_t s_len = strlen(s);
+	static color_t temp;
+	
+	if (!color) {
+		color = &temp;
+	}
 
 	if (s_len != 3 && s_len != 6 && // rgb or rrggbb format
 		s_len != 4 && s_len != 8) { // rgba or rrggbbaa format

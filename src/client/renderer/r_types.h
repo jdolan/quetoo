@@ -100,6 +100,7 @@ typedef enum {
 	IT_ATLAS_MAP = 14 + (IT_MASK_MIPMAP), // image is an r_atlas_t*
 	IT_ATLAS_IMAGE = 15, // image is an r_atlas_image_t*
 	IT_STAINMAP = 16 + (IT_MASK_FILTER),
+	IT_TINTMAP = 17 + (IT_MASK_MIPMAP)
 } r_image_type_t;
 
 /**
@@ -373,6 +374,7 @@ typedef struct r_material_s {
 	r_image_t *diffuse;
 	r_image_t *normalmap;
 	r_image_t *specularmap;
+	r_image_t *tintmap;
 
 	uint32_t time;
 	uint32_t flags; // these may differ from cm->flags
@@ -918,6 +920,8 @@ typedef struct r_entity_s {
 	vec3_t shell; // shell color
 
 	r_lighting_t *lighting; // static lighting information
+
+	const vec_t *tints[TINT_TOTAL]; // tint pointers - NULL means use default
 } r_entity_t;
 
 /**
@@ -1015,6 +1019,7 @@ typedef enum {
 	R_TEXUNIT_NORMALMAP,
 	R_TEXUNIT_SPECULARMAP,
 	R_TEXUNIT_WARP,
+	R_TEXUNIT_TINTMAP,
 
 	R_TEXUNIT_TOTAL
 } r_texunit_id_t;

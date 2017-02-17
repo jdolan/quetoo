@@ -723,6 +723,47 @@ cm_material_t **Cm_LoadMaterials(const char *path, size_t *count) {
 			g_strlcpy(m->specularmap, c, sizeof(m->specularmap));
 		}
 
+		if (!g_strcmp0(c, "tintmap")) {
+			c = ParseToken(&buffer);
+			g_strlcpy(m->tintmap, c, sizeof(m->tintmap));
+		}
+
+		if (!g_strcmp0(c, "tintmap.shirt_default")) {
+			vec_t *color = m->tintmap_defaults[TINT_SHIRT];
+			
+			for (int32_t i = 0; i < 3; i++) {
+
+				c = ParseToken(&buffer);
+				color[i] = strtod(c, NULL);
+
+				if (color[i] < 0.0 || color[i] > 1.0) {
+					Com_Warn("Failed to resolve tint default color: %s\n", c);
+					return -1;
+				}
+			}
+
+			color[3] = 1.0;
+			continue;
+		}
+		
+		if (!g_strcmp0(c, "tintmap.pants_default")) {
+			vec_t *color = m->tintmap_defaults[TINT_PANTS];
+			
+			for (int32_t i = 0; i < 3; i++) {
+
+				c = ParseToken(&buffer);
+				color[i] = strtod(c, NULL);
+
+				if (color[i] < 0.0 || color[i] > 1.0) {
+					Com_Warn("Failed to resolve tint default color: %s\n", c);
+					return -1;
+				}
+			}
+
+			color[3] = 1.0;
+			continue;
+		}
+
 		if (!g_strcmp0(c, "bump")) {
 			m->bump = strtod(ParseToken(&buffer), NULL);
 			if (m->bump < 0.0) {

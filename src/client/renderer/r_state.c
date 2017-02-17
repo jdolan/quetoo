@@ -643,6 +643,16 @@ void R_UseCaustic(void) {
 }
 
 /**
+ * @brief Uploads the tint values
+ */
+void R_UseTints(void) {
+
+	if (r_state.active_program->UseTints) {
+		r_state.active_program->UseTints();
+	}
+}
+
+/**
  * @brief Uploads the interpolation value to the currently loaded program.
  */
 void R_UseInterpolation(const vec_t lerp) {
@@ -899,7 +909,7 @@ static void R_InitSupersample(void) {
 
 		Com_Warn("Couldn't create supersample textures.\n");
 		Cvar_Set("r_supersample", "0");
-
+		
 		r_context.render_width = r_context.width;
 		r_context.render_height = r_context.height;
 
