@@ -294,9 +294,14 @@ static void SubdividePatch(patch_t *patch) {
  * @brief Iterate all of the head face patches, subdividing them as necessary.
  */
 void SubdividePatches(void) {
-	int32_t i;
 
-	for (i = 0; i < MAX_BSP_FACES; i++) {
+	// patch_size may come from worldspawn
+	const vec_t ps = FloatForKey(entities, "patch_size");
+	if (ps > 0.0 && (int32_t) patch_subdivide == (int32_t) PATCH_SUBDIVIDE) {
+		patch_subdivide = ps;
+	}
+
+	for (int32_t i = 0; i < MAX_BSP_FACES; i++) {
 
 		const bsp_face_t *f = &bsp_file.faces[i];
 		patch_t *p = face_patches[i];
