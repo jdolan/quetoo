@@ -22,7 +22,7 @@
 #include "ui_local.h"
 #include "client.h"
 
-#include "renderers/RendererQuetoo.h"
+#include "renderers/QuetooRenderer.h"
 
 #include "viewcontrollers/EditorViewController.h"
 
@@ -199,7 +199,7 @@ void Ui_Init(void) {
 
 	// ui renderer
 
-	Renderer *renderer = (Renderer *) $(alloc(RendererQuetoo), init);
+	Renderer *renderer = (Renderer *) $(alloc(QuetooRenderer), init);
 
 	// main window
 
