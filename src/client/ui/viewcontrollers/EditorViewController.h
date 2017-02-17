@@ -43,7 +43,7 @@ struct EditorViewController {
 	 * @brief The superclass.
 	 * @private
 	 */
-	MenuViewController menuViewController;
+	ViewController viewController;
 
 	/**
 	 * @brief The interface.
@@ -61,7 +61,7 @@ struct EditorViewControllerInterface {
 	/**
 	 * @brief The superclass interface.
 	 */
-	NavigationViewControllerInterface navigationViewControllerInterface;
+	ViewControllerInterface viewControllerInterface;
 
 	/**
 	 * @fn EditorViewController *EditorViewController::init(EditorViewController *self)

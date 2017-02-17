@@ -51,6 +51,11 @@ struct EditorView {
 	EditorViewInterface *interface;
 
 	/**
+	 * @brief The panel.
+	 */
+	Panel *panel;
+
+	/**
 	 * @brief The material the player is looking at.
 	 */
 	cm_material_t *material;

@@ -28,43 +28,6 @@
 
 #define _Class _EditorViewController
 
-#pragma mark - Actions & Delegates
-
-/**
- * @brief ActionFunction for the Save Button.
- */
-static void saveAction(Control *control, const SDL_Event *event, ident sender, ident data) {
-
-	printf("Save!\n");
-}
-
-/**
- * @brief SliderDelegate callback for changing bump.
- */
-static void didSetValue(Slider *slider) {
-
-	ViewController *this = (ViewController *) slider->delegate.self;
-	EditorView *view = (EditorView *) this->view;
-
-	if (!view->material) {
-		return;
-	}
-
-//	printf("Name: %s\n", view->material->base);
-
-	if (slider == view->bumpSlider) {
-		view->material->bump = view->bumpSlider->value;
-	} else if (slider == view->hardnessSlider) {
-		view->material->hardness = view->hardnessSlider->value;
-	} else if (slider == view->specularSlider) {
-		view->material->specular = view->specularSlider->value;
-	} else if (slider == view->parallaxSlider) {
-		view->material->parallax = view->parallaxSlider->value;
-	} else {
-		Com_Debug(DEBUG_UI, "Unknown Slider %p\n", slider);
-	}
-}
-
 #pragma mark - ViewController
 
 /**
@@ -74,35 +37,7 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	EditorViewController *this = (EditorViewController *) self;
-
-	((MenuViewController *) this)->panel->stackView.view.alignment = ViewAlignmentMiddleCenter;
-
-	EditorView *editorView = $(alloc(EditorView), initWithFrame, NULL);
-	assert(editorView);
-
-	editorView->bumpSlider->delegate.self = (ident *) this;
-	editorView->bumpSlider->delegate.didSetValue = didSetValue;
-
-	editorView->hardnessSlider->delegate.self = (ident *) this;
-	editorView->hardnessSlider->delegate.didSetValue = didSetValue;
-
-	editorView->specularSlider->delegate.self = (ident *) this;
-	editorView->specularSlider->delegate.didSetValue = didSetValue;
-
-	editorView->parallaxSlider->delegate.self = (ident *) this;
-	editorView->parallaxSlider->delegate.didSetValue = didSetValue;
-
-	$((View *) editorView, updateBindings);
-
-	$((View *) ((MenuViewController *) this)->panel->contentView, addSubview, (View *) editorView);
-
-	release(editorView);
-
-	((MenuViewController *) this)->panel->accessoryView->view.hidden = false;
-//	addButton((View *) ((MenuViewController *) this)->panel->accessoryView, "Save", saveAction, self, NULL);
-
-	$(self->view, addSubview, (View *) ((MenuViewController *) this)->panel);
+	((ViewController *) self)->view = (View *) $(alloc(EditorView), initWithFrame, NULL);
 }
 
 #pragma mark - EditorViewController
@@ -137,7 +72,7 @@ Class *_EditorViewController(void) {
 
 	do_once(&once, {
 		clazz.name = "EditorViewController";
-		clazz.superclass = _MenuViewController();
+		clazz.superclass = _ViewController();
 		clazz.instanceSize = sizeof(EditorViewController);
 		clazz.interfaceOffset = offsetof(EditorViewController, interface);
 		clazz.interfaceSize = sizeof(EditorViewControllerInterface);

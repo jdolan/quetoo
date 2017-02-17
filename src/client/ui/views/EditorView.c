@@ -41,7 +41,50 @@ static void dealloc(Object *self) {
 	release(this->specularSlider);
 	release(this->parallaxSlider);
 
+	release(this->panel);
+
 	super(Object, self, dealloc);
+}
+
+#pragma mark - Actions & Delegates
+
+/**
+ * @brief ActionFunction for the Save Button.
+ */
+static void saveAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+
+	EditorView *this = (EditorView *) sender;
+
+	printf("Save!\n");
+
+	printf("Material %s now has bump set to %f\n", this->material->base, this->material->bump);
+	printf("Material %s now has hardness set to %f\n", this->material->base, this->material->hardness);
+	printf("Material %s now has specular set to %f\n", this->material->base, this->material->specular);
+	printf("Material %s now has parallax set to %f\n", this->material->base, this->material->parallax);
+}
+
+/**
+ * @brief SliderDelegate callback for changing bump.
+ */
+static void didSetValue(Slider *slider) {
+
+	EditorView *view = (EditorView *) slider->delegate.self;
+
+	if (!view->material) {
+		return;
+	}
+
+	if (slider == view->bumpSlider) {
+		view->material->bump = view->bumpSlider->value;
+	} else if (slider == view->hardnessSlider) {
+		view->material->hardness = view->hardnessSlider->value;
+	} else if (slider == view->specularSlider) {
+		view->material->specular = view->specularSlider->value;
+	} else if (slider == view->parallaxSlider) {
+		view->material->parallax = view->parallaxSlider->value;
+	} else {
+		Com_Debug(DEBUG_UI, "Unknown Slider %p\n", slider);
+	}
 }
 
 #pragma mark - View
@@ -130,6 +173,16 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 	self = (EditorView *) super(View, self, initWithFrame, frame);
 	if (self) {
 
+		self->panel = $(alloc(Panel), initWithFrame, NULL);
+		assert(self->panel);
+
+		self->panel->stackView.view.alignment = ViewAlignmentMiddleCenter;
+		self->panel->stackView.view.needsLayout = true;
+
+		self->panel->accessoryView->view.hidden = false;
+
+		$((View *) self, addSubview, (View *) self->panel);
+
 		StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
 		columns->axis = StackViewAxisHorizontal;
@@ -149,6 +202,10 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 				// bump
 
 				self->bumpSlider = $(alloc(Slider), initWithFrame, NULL, ControlStyleDefault);
+
+				self->bumpSlider->delegate.self = (ident *) self;
+				self->bumpSlider->delegate.didSetValue = didSetValue;
+
 				self->bumpSlider->min = 0.0;
 				self->bumpSlider->max = 20.0;
 				self->bumpSlider->step = 0.125;
@@ -158,6 +215,9 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 				// hardness
 
 				self->hardnessSlider = $(alloc(Slider), initWithFrame, NULL, ControlStyleDefault);
+
+				self->hardnessSlider->delegate.self = (ident *) self;
+				self->hardnessSlider->delegate.didSetValue = didSetValue;
 
 				self->hardnessSlider->min = 0.0;
 				self->hardnessSlider->max = 20.0;
@@ -169,6 +229,9 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 
 				self->specularSlider = $(alloc(Slider), initWithFrame, NULL, ControlStyleDefault);
 
+				self->specularSlider->delegate.self = (ident *) self;
+				self->specularSlider->delegate.didSetValue = didSetValue;
+
 				self->specularSlider->min = 0.0;
 				self->specularSlider->max = 20.0;
 				self->specularSlider->step = 0.1;
@@ -178,6 +241,9 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 				// parallax
 
 				self->parallaxSlider = $(alloc(Slider), initWithFrame, NULL, ControlStyleDefault);
+
+				self->parallaxSlider->delegate.self = (ident *) self;
+				self->parallaxSlider->delegate.didSetValue = didSetValue;
 
 				self->parallaxSlider->min = 0.0;
 				self->parallaxSlider->max = 20.0;
@@ -196,9 +262,15 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 			release(column);
 		}
 
-		$((View *) self, addSubview, (View *) columns);
+		$((View *) self->panel, addSubview, (View *) columns);
 		release(columns);
 	}
+
+	addButton((View *) ((EditorView *) self)->panel->accessoryView, "Save", saveAction, self, NULL);
+
+	$((View *) self, updateBindings);
+
+	$((View *) self, addSubview, (View *) self->panel);
 
 	return self;
 }
