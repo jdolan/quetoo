@@ -738,7 +738,7 @@ cm_material_t **Cm_LoadMaterials(const char *path, size_t *count) {
 
 				if (color[i] < 0.0 || color[i] > 1.0) {
 					Com_Warn("Failed to resolve tint default color: %s\n", c);
-					return -1;
+					color[i] = 1.0;
 				}
 			}
 
@@ -756,7 +756,7 @@ cm_material_t **Cm_LoadMaterials(const char *path, size_t *count) {
 
 				if (color[i] < 0.0 || color[i] > 1.0) {
 					Com_Warn("Failed to resolve tint default color: %s\n", c);
-					return -1;
+					color[i] = 1.0;
 				}
 			}
 
