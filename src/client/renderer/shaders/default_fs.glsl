@@ -232,8 +232,8 @@ void main(void) {
 			if (tint.a > 0) {
 				for (int i = 0; i < 3; i++) {
 					if (TINTS[i].a > 0 && tint[i] > 0) {
-						diffuse.rgb = mix(diffuse.rgb, TINTS[i].rgb, tint[i]);
-						//diffuse.rgb *= TINTS[i].rgb * tint[i];
+						//diffuse.rgb = mix(diffuse.rgb, TINTS[i].rgb, tint[i]);
+						diffuse.rgb *= TINTS[i].rgb * tint[i];
 					}
 				}
 			}
