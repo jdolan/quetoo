@@ -24,67 +24,11 @@
 
 #include "renderers/QuetooRenderer.h"
 
-#include "viewcontrollers/EditorViewController.h"
-
 extern cl_static_t cls;
 
 static WindowController *windowController;
 
 static NavigationViewController *navigationViewController;
-
-static EditorViewController *editorViewController;
-
-/**
- * @brief
- */
-static void Ui_CheckEditor(void) {
-
-	if (cl_editor->modified) {
-		cl_editor->modified = false;
-
-		if (cl_editor->integer) {
-
-			if (cls.state != CL_ACTIVE) {
-				return;
-			}
-
-			if (editorViewController == NULL) {
-				editorViewController = $(alloc(EditorViewController), init);
-			}
-
-			Ui_PushViewController((ViewController *) editorViewController);
-
-			/*vec3_t end;
-
-			VectorMA(r_view.origin, MAX_WORLD_DIST, r_view.forward, end);
-
-			cm_trace_t tr = Cl_Trace(r_view.origin, end, NULL, NULL, 0, MASK_SOLID);
-
-			if (tr.fraction < 1.0) {
-				editorViewController->material = R_LoadMaterial(va("textures/%s", tr.surface->name));
-
-				if (!editorViewController->material) {
-					Com_Debug(DEBUG_CLIENT, "Failed to resolve %s\n", tr.surface->name);
-				}
-			} else {
-				editorViewController->material = NULL;
-			}*/
-
-			// editorViewController->bumpSlider and friends seg fault when accessing
-
-			/*
-			if (editorViewController->material) {
-				$(editorViewController->bumpSlider, setValue, editorViewController->material->cm->bump);
-				$(editorViewController->hardnessSlider, setValue, editorViewController->material->cm->hardness);
-				$(editorViewController->specularSlider, setValue, editorViewController->material->cm->specular);
-				$(editorViewController->parallaxSlider, setValue, editorViewController->material->cm->parallax);
-			}
-			*/
-		} else if (editorViewController) {
-			Ui_PopViewController();
-		}
-	}
-}
 
 /**
  * @brief Dispatch events to the user interface. Filter most common event types for
@@ -211,7 +155,7 @@ void Ui_Init(void) {
 
 	$(windowController, setViewController, (ViewController *) navigationViewController);
 
-	editorViewController = NULL;
+	Ui_InitEditor();
 }
 
 /**
@@ -219,11 +163,9 @@ void Ui_Init(void) {
  */
 void Ui_Shutdown(void) {
 
-	Ui_PopAllViewControllers();
+	Ui_ShutdownEditor();
 
-	if (editorViewController != NULL) {
-		release(editorViewController);
-	}
+	Ui_PopAllViewControllers();
 
 	release(windowController);
 

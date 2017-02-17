@@ -20,6 +20,7 @@
  */
 
 #include "ui_local.h"
+#include "client.h"
 
 #include "EditorViewController.h"
 
@@ -79,40 +80,97 @@ static void saveAction(Control *control, const SDL_Event *event, ident sender, i
 }
 
 /**
- * @brief SliderDelegate callback for changing this->bump.
+ * @brief SliderDelegate callback for changing bump.
  */
-static void didSetBump(Slider *this) {
+static void didSetBump(Slider *self) {
 
-//	((View *) this)->editor->material.cm.this->bump = (vec_t) this->value;
+	EditorViewController *this = (EditorViewController *) self;
 
-	printf("Bump: %0.3f\n", this->value);
+	if (!this->material) {
+		return;
+	}
+
+	this->material->cm->bump = (vec_t) this->bumpSlider->value;
 }
 
 /**
- * @brief SliderDelegate callback for changing this->hardness.
+ * @brief SliderDelegate callback for changing hardness.
  */
-static void didSetHardness(Slider *this) {
+static void didSetHardness(Slider *self) {
 
-	printf("Hardness: %0.3f\n", this->value);
+	EditorViewController *this = (EditorViewController *) self;
+
+	if (!this->material) {
+		return;
+	}
+
+	this->material->cm->hardness = (vec_t) this->hardnessSlider->value;
 }
 
 /**
- * @brief SliderDelegate callback for changing this->specular.
+ * @brief SliderDelegate callback for changing specular.
  */
-static void didSetSpecular(Slider *this) {
+static void didSetSpecular(Slider *self) {
 
-	printf("Specular: %0.3f\n", this->value);
+	EditorViewController *this = (EditorViewController *) self;
+
+	if (!this->material) {
+		return;
+	}
+
+	this->material->cm->specular = (vec_t) this->specularSlider->value;
 }
 
 /**
- * @brief SliderDelegate callback for changing this->parallax.
+ * @brief SliderDelegate callback for changing parallax.
  */
-static void didSetParallax(Slider *this) {
+static void didSetParallax(Slider *self) {
 
-	printf("Parallax: %0.3f\n", this->value);
+	EditorViewController *this = (EditorViewController *) self;
+
+	if (!this->material) {
+		return;
+	}
+
+	this->material->cm->parallax = (vec_t) this->parallaxSlider->value;
 }
 
 #pragma mark - ViewController
+
+/**
+ * @see View::updateBindings(View *)
+ */
+static void updateBindings(View *self) {
+
+	EditorViewController *this = (EditorViewController *) self;
+
+	if (!this->bumpSlider) { // we probably haven't run loadView yet
+		return;
+	}
+
+	vec3_t end;
+
+	VectorMA(r_view.origin, MAX_WORLD_DIST, r_view.forward, end);
+
+	cm_trace_t tr = Cl_Trace(r_view.origin, end, NULL, NULL, 0, MASK_SOLID);
+
+	if (tr.fraction < 1.0) {
+		this->material = R_LoadMaterial(va("textures/%s", tr.surface->name));
+
+		if (!this->material) {
+			Com_Debug(DEBUG_CLIENT, "Failed to resolve %s\n", tr.surface->name);
+		}
+	} else {
+		this->material = NULL;
+	}
+
+	if (this->material) {
+		$(this->bumpSlider, setValue, (double) this->material->cm->bump);
+		$(this->hardnessSlider, setValue, (double) this->material->cm->hardness);
+		$(this->specularSlider, setValue, (double) this->material->cm->specular);
+		$(this->parallaxSlider, setValue, (double) this->material->cm->parallax);
+	}
+}
 
 /**
  * @see ViewController::loadView(ViewController *)
@@ -123,9 +181,7 @@ static void loadView(ViewController *self) {
 
 	EditorViewController *this = (EditorViewController *) self;
 
-	Panel *panel = $(alloc(Panel), initWithFrame, NULL);
-
-	panel->stackView.view.alignment = ViewAlignmentMiddleCenter;
+	((MenuViewController *) this)->panel->stackView.view.alignment = ViewAlignmentMiddleCenter;
 
 	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
@@ -146,6 +202,7 @@ static void loadView(ViewController *self) {
 
 			this->bumpSlider = $(alloc(Slider), initWithFrame, NULL, ControlStyleDefault);
 
+			this->bumpSlider->delegate.self = (ident *) this;
 			this->bumpSlider->delegate.didSetValue = didSetBump;
 
 			this->bumpSlider->min = 0.0;
@@ -160,6 +217,7 @@ static void loadView(ViewController *self) {
 
 			this->hardnessSlider = $(alloc(Slider), initWithFrame, NULL, ControlStyleDefault);
 
+			this->hardnessSlider->delegate.self = (ident *) this;
 			this->hardnessSlider->delegate.didSetValue = didSetHardness;
 
 			this->hardnessSlider->min = 0.0;
@@ -174,6 +232,7 @@ static void loadView(ViewController *self) {
 
 			this->specularSlider = $(alloc(Slider), initWithFrame, NULL, ControlStyleDefault);
 
+			this->specularSlider->delegate.self = (ident *) this;
 			this->specularSlider->delegate.didSetValue = didSetSpecular;
 
 			this->specularSlider->min = 0.0;
@@ -188,6 +247,7 @@ static void loadView(ViewController *self) {
 
 			this->parallaxSlider = $(alloc(Slider), initWithFrame, NULL, ControlStyleDefault);
 
+			this->parallaxSlider->delegate.self = (ident *) this;
 			this->parallaxSlider->delegate.didSetValue = didSetParallax;
 
 			this->parallaxSlider->min = 0.0;
@@ -209,14 +269,15 @@ static void loadView(ViewController *self) {
 		release(column);
 	}
 
-	$((View *) panel->contentView, addSubview, (View *) columns);
+	$((View *) ((MenuViewController *) this)->panel->contentView, addSubview, (View *) columns);
 	release(columns);
 
-	panel->accessoryView->view.hidden = false;
-	addButton((View *) panel->accessoryView, "Save", saveAction, self, NULL);
+	((MenuViewController *) this)->panel->accessoryView->view.hidden = false;
+	addButton((View *) ((MenuViewController *) this)->panel->accessoryView, "Save", saveAction, self, NULL);
 
-	$(self->view, addSubview, (View *) panel);
-	release(panel);
+	$(self->view, addSubview, (View *) ((MenuViewController *) this)->panel);
+
+	$((View *) this, updateBindings);
 }
 
 #pragma mark - EditorViewController
@@ -239,6 +300,8 @@ static EditorViewController *init(EditorViewController *self) {
 static void initialize(Class *clazz) {
 
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+
+	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
 
 	((EditorViewControllerInterface *) clazz->def->interface)->init = init;
 }

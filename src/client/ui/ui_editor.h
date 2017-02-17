@@ -19,11 +19,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __UI_H__
-#define __UI_H__
+#pragma once
 
-#include "ui_editor.h"
-#include "ui_main.h"
 #include "ui_types.h"
 
-#endif /* __UI_H__ */
+void Ui_CheckEditor(void);
+void Ui_InitEditor(void);
+void Ui_ShutdownEditor(void);
+
+#ifdef __UI_LOCAL_H__
+#endif /* __UI_LOCAL_H__ */
