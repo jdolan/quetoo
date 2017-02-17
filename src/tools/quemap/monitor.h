@@ -23,15 +23,21 @@
 
 #include "common.h"
 
-void Mon_SendMessage(err_t err, const char *msg);
+typedef enum {
+	MON_PRINT = 1,
+	MON_WARN,
+	MON_ERROR
+} mon_level_t;
 
-void Mon_SendSelect_(const char *func, err_t err, uint16_t e, uint16_t b, const char *msg);
-void Mon_SendWinding_(const char *func, err_t err, const vec3_t p[], uint16_t n, const char *msg);
-void Mon_SendPoint_(const char *func, err_t err, const vec3_t p, const char *msg);
+void Mon_SendMessage(mon_level_t level, const char *msg);
 
-#define Mon_SendSelect(err, e, b, msg) Mon_SendSelect_(__func__, err, e, b, msg)
-#define Mon_SendWinding(err, p, n, msg) Mon_SendWinding_(__func__, err, p, n, msg)
-#define Mon_SendPoint(err, p, msg) Mon_SendPoint_(__func__, err, p, msg)
+void Mon_SendSelect_(const char *func, mon_level_t level, uint16_t e, uint16_t b, const char *msg);
+void Mon_SendWinding_(const char *func, mon_level_t level, const vec3_t p[], uint16_t n, const char *msg);
+void Mon_SendPoint_(const char *func, mon_level_t level, const vec3_t p, const char *msg);
+
+#define Mon_SendSelect(l, e, b, msg) Mon_SendSelect_(__func__, l, e, b, msg)
+#define Mon_SendWinding(l, p, n, msg) Mon_SendWinding_(__func__, l, p, n, msg)
+#define Mon_SendPoint(l, p, msg) Mon_SendPoint_(__func__, l, p, msg)
 
 _Bool Mon_Init(const char *host);
 void Mon_Shutdown(const char *msg);

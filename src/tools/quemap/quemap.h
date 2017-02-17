@@ -72,7 +72,6 @@ extern int32_t subdivide_size;
 extern vec_t microvolume;
 
 // LIGHT
-extern vec3_t face_offset[MAX_BSP_FACES];  // for rotating bmodels
 
 extern vec_t brightness;
 extern vec_t saturation;
@@ -84,6 +83,8 @@ extern vec_t entity_scale;
 extern vec3_t ambient;
 
 extern _Bool extra_samples;
+
+extern vec_t patch_subdivide;
 
 // threads.c
 typedef struct semaphores_s {

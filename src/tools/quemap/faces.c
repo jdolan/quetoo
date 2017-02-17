@@ -738,7 +738,7 @@ static void SubdivideFace(node_t *node, face_t *f) {
 
 			ClipWindingEpsilon(w, temp, dist, ON_EPSILON, &frontw, &backw);
 			if (!frontw || !backw) {
-				Mon_SendWinding(ERROR_FATAL, (const vec3_t *) w->points, w->num_points, "Failed to split polygon");
+				Mon_SendWinding(MON_ERROR, (const vec3_t *) w->points, w->num_points, "Failed to split polygon");
 			}
 
 			f->split[0] = NewFaceFromFace(f);
