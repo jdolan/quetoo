@@ -100,7 +100,7 @@ typedef enum {
 	IT_ATLAS_MAP = 14 + (IT_MASK_MIPMAP), // image is an r_atlas_t*
 	IT_ATLAS_IMAGE = 15, // image is an r_atlas_image_t*
 	IT_STAINMAP = 16 + (IT_MASK_FILTER),
-	IT_TINTMAP = 17 + (IT_MASK_MIPMAP)
+	IT_TINTMAP = 17 + (IT_MASK_MIPMAP | IT_MASK_FILTER)
 } r_image_type_t;
 
 /**
