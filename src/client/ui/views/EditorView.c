@@ -53,10 +53,6 @@ static void updateBindings(View *self) {
 
 	EditorView *this = (EditorView *) self;
 
-	if (!this->bumpSlider) { // we probably haven't run loadView yet
-		return;
-	}
-
 	vec3_t end;
 
 	VectorMA(r_view.origin, MAX_WORLD_DIST, r_view.forward, end);
@@ -64,7 +60,7 @@ static void updateBindings(View *self) {
 	cm_trace_t tr = Cl_Trace(r_view.origin, end, NULL, NULL, 0, MASK_SOLID);
 
 	if (tr.fraction < 1.0) {
-		this->material = R_LoadMaterial(va("textures/%s", tr.surface->name));
+		this->material = tr.surface->material;
 
 		if (!this->material) {
 			Com_Debug(DEBUG_UI, "Failed to resolve %s\n", tr.surface->name);
@@ -74,10 +70,10 @@ static void updateBindings(View *self) {
 	}
 
 	if (this->material) {
-		$(this->bumpSlider, setValue, (double) this->material->cm->bump);
-		$(this->hardnessSlider, setValue, (double) this->material->cm->hardness);
-		$(this->specularSlider, setValue, (double) this->material->cm->specular);
-		$(this->parallaxSlider, setValue, (double) this->material->cm->parallax);
+		$(this->bumpSlider, setValue, (double) this->material->bump);
+		$(this->hardnessSlider, setValue, (double) this->material->hardness);
+		$(this->specularSlider, setValue, (double) this->material->specular);
+		$(this->parallaxSlider, setValue, (double) this->material->parallax);
 	}
 }
 
@@ -201,6 +197,7 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 		}
 
 		$((View *) self, addSubview, (View *) columns);
+		release(columns);
 	}
 
 	return self;

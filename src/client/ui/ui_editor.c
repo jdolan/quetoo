@@ -45,8 +45,6 @@ void Ui_CheckEditor(void) {
 				editorViewController = $(alloc(EditorViewController), init);
 			}
 
-			$((View *) editorViewController, updateBindings);
-
 			Ui_PushViewController((ViewController *) editorViewController);
 		} else if (editorViewController) {
 			Ui_PopViewController();

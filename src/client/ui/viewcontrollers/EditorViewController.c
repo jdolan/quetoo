@@ -50,16 +50,16 @@ static void didSetValue(Slider *slider) {
 		return;
 	}
 
-	const vec_t value = (vec_t) view->bumpSlider->value;
+//	printf("Name: %s\n", view->material->base);
 
 	if (slider == view->bumpSlider) {
-		view->material->cm->bump = value;
+		view->material->bump = view->bumpSlider->value;
 	} else if (slider == view->hardnessSlider) {
-		view->material->cm->bump = value;
+		view->material->hardness = view->hardnessSlider->value;
 	} else if (slider == view->specularSlider) {
-		view->material->cm->specular = value;
+		view->material->specular = view->specularSlider->value;
 	} else if (slider == view->parallaxSlider) {
-		view->material->cm->parallax = value;
+		view->material->parallax = view->parallaxSlider->value;
 	} else {
 		Com_Debug(DEBUG_UI, "Unknown Slider %p\n", slider);
 	}
@@ -93,15 +93,16 @@ static void loadView(ViewController *self) {
 	editorView->parallaxSlider->delegate.self = (ident *) this;
 	editorView->parallaxSlider->delegate.didSetValue = didSetValue;
 
+	$((View *) editorView, updateBindings);
+
 	$((View *) ((MenuViewController *) this)->panel->contentView, addSubview, (View *) editorView);
+
 	release(editorView);
 
 	((MenuViewController *) this)->panel->accessoryView->view.hidden = false;
-	//addButton((View *) ((MenuViewController *) this)->panel->accessoryView, "Save", saveAction, self, NULL);
+//	addButton((View *) ((MenuViewController *) this)->panel->accessoryView, "Save", saveAction, self, NULL);
 
 	$(self->view, addSubview, (View *) ((MenuViewController *) this)->panel);
-
-	$((View *) this, updateBindings);
 }
 
 #pragma mark - EditorViewController

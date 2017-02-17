@@ -53,7 +53,7 @@ struct EditorView {
 	/**
 	 * @brief The material the player is looking at.
 	 */
-	r_material_t *material;
+	cm_material_t *material;
 
 	/**
 	 * @brief The bump slider.

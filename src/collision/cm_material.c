@@ -730,7 +730,7 @@ cm_material_t **Cm_LoadMaterials(const char *path, size_t *count) {
 
 		if (!g_strcmp0(c, "tintmap.shirt_default")) {
 			vec_t *color = m->tintmap_defaults[TINT_SHIRT];
-			
+
 			for (int32_t i = 0; i < 3; i++) {
 
 				c = ParseToken(&buffer);
@@ -745,10 +745,10 @@ cm_material_t **Cm_LoadMaterials(const char *path, size_t *count) {
 			color[3] = 1.0;
 			continue;
 		}
-		
+
 		if (!g_strcmp0(c, "tintmap.pants_default")) {
 			vec_t *color = m->tintmap_defaults[TINT_PANTS];
-			
+
 			for (int32_t i = 0; i < 3; i++) {
 
 				c = ParseToken(&buffer);
