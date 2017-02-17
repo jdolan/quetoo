@@ -77,7 +77,7 @@ static void Print(const char *msg) {
 			fputs(msg + 1, stdout);
 		} else {
 			fputs(msg, stdout);
-			Mon_SendMessage(ERROR_PRINT, msg);
+			Mon_SendMessage(MON_PRINT, msg);
 		}
 
 		fflush(stdout);
@@ -108,7 +108,7 @@ static void Warn(const char *msg) {
 			fprintf(stderr, "WARNING: %s", msg + 1);
 		} else {
 			fprintf(stderr, "WARNING: %s", msg);
-			Mon_SendMessage(ERROR_WARN, va("WARNING: %s", msg));
+			Mon_SendMessage(MON_WARN, va("WARNING: %s", msg));
 		}
 
 		fflush(stderr);
@@ -130,7 +130,7 @@ static void Init(void) {
 
 	Sem_Init();
 
-	Com_Print("Quetoo Map %s %s %s initialized\n", VERSION, __DATE__, BUILD_HOST);
+	Com_Print("Quetoo Map %s %s %s %s initialized\n", VERSION, __DATE__, BUILD_HOST, REVISION);
 }
 
 /**
@@ -280,6 +280,11 @@ static void Check_LIGHT_Options(int32_t argc) {
 			entity_scale *= atof(Com_Argv(i + 1));
 			Com_Verbose("entity light scale at %f\n", entity_scale);
 			i++;
+			
+		} else if (!g_strcmp0(Com_Argv(i), "-patch")) {
+			patch_subdivide = atof(Com_Argv(i + 1));
+			Com_Verbose("patch subdivide at %f\n", patch_subdivide);
+			i++;
 		} else {
 			break;
 		}
@@ -338,7 +343,7 @@ static void PrintHelpMessage(void) {
 	Com_Print(" -nowater - skip water brushes\n");
 	Com_Print(" -noweld\n");
 	Com_Print(" -onlyents - modify existing bsp file with entities from map file\n");
-	Com_Print(" -subdivide <int> - subdivide brushes for better light effects\n");
+	Com_Print(" -subdivide <int> - bsp subdivision grid size in world units\n");
 	Com_Print(" -tmpout\n");
 	Com_Print("\n");
 
@@ -354,6 +359,7 @@ static void PrintHelpMessage(void) {
 	Com_Print(" -brightness <float> - brightness factor\n");
 	Com_Print(" -contrast <float> - contrast factor\n");
 	Com_Print(" -saturation <float> - saturation factor\n");
+	Com_Print(" -patch <float> - surface light patch size (default 64)\n");
 	Com_Print("\n");
 
 	Com_Print("-aas               AAS stage options:\n");
@@ -494,7 +500,7 @@ int32_t main(int32_t argc, char **argv) {
 			Fs_AddToSearchPath(dirname);
 			g_free(dirname);
 
-			filename += strlen(dirname) + 1;
+			filename += strlen(dirname);
 		}
 	}
 
@@ -506,8 +512,16 @@ int32_t main(int32_t argc, char **argv) {
 	StripExtension(filename, map_name);
 	g_strlcat(map_name, ".map", sizeof(map_name));
 
+	if (!Fs_Exists(map_name)) {
+		g_snprintf(map_name, sizeof(map_name), "maps/%s.map", map_base);
+	}
+
 	StripExtension(filename, bsp_name);
 	g_strlcat(bsp_name, ".bsp", sizeof(bsp_name));
+
+	if (!Fs_Exists(bsp_name)) {
+		g_snprintf(bsp_name, sizeof(bsp_name), "maps/%s.bsp", map_base);
+	}
 
 	// start timer
 	const time_t start = time(NULL);

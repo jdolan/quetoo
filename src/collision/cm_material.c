@@ -951,13 +951,13 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 void Cm_WriteMaterials(const char *filename, const cm_material_t **materials, const size_t num_materials) {
 
 	file_t *file = Fs_OpenWrite(filename);
-	if (!file) {
-		Com_Error(ERROR_PRINT, "Failed to open %s for write\n", filename);
-	}
+	if (file) {
+		for (size_t i = 0; i < num_materials; i++) {
+			Cm_WriteMaterial(materials[i], file);
+		}
 
-	for (size_t i = 0; i < num_materials; i++) {
-		Cm_WriteMaterial(materials[i], file);
+		Fs_Close(file);
+	} else {
+		Com_Warn("Failed to open %s for write\n", filename);
 	}
-
-	Fs_Close(file);
 }

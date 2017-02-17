@@ -323,7 +323,7 @@ static int32_t TestBrushToPlanenum(brush_t *brush, int32_t plane_num, int32_t *n
 	for (i = 0; i < brush->num_sides; i++) {
 		num = brush->sides[i].plane_num;
 		if (num >= MAX_BSP_PLANES) {
-			Mon_SendSelect(ERROR_FATAL, brush->original->entity_num, brush->original->brush_num, "Bad plane");
+			Mon_SendSelect(MON_ERROR, brush->original->entity_num, brush->original->brush_num, "Bad plane");
 		}
 		if (num == plane_num) {
 			return SIDE_BACK | SIDE_FACING;
@@ -732,7 +732,7 @@ void SplitBrush(brush_t *brush, int32_t plane_num, brush_t **front, brush_t **ba
 	}
 
 	if (WindingIsHuge(w)) {
-		Mon_SendWinding(ERROR_WARN, (const vec3_t *) w->points, w->num_points, "Large winding");
+		Mon_SendWinding(MON_WARN, (const vec3_t *) w->points, w->num_points, "Large winding");
 	}
 
 	midwinding = w;
@@ -967,7 +967,7 @@ tree_t *BrushBSP(brush_t *brushlist, vec3_t mins, vec3_t maxs) {
 
 		volume = BrushVolume(b);
 		if (volume < microvolume) {
-			Mon_SendSelect(ERROR_WARN, b->original->entity_num, b->original->brush_num, "Microbrush");
+			Mon_SendSelect(MON_WARN, b->original->entity_num, b->original->brush_num, "Microbrush");
 		}
 
 		for (i = 0; i < b->num_sides; i++) {

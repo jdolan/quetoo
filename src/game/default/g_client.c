@@ -1076,8 +1076,8 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	}
 
 	// save off the user_info in case we want to check something later
-	g_strlcpy(ent->client->locals.persistent.user_info, user_info,
-	          sizeof(ent->client->locals.persistent.user_info));
+	const size_t len = strlen(user_info);
+	memmove(ent->client->locals.persistent.user_info, user_info, len + 1);
 
 	gi.Debug("%s\n", user_info);
 

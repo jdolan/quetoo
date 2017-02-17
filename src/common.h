@@ -123,8 +123,6 @@ typedef enum {
  * @brief Error categories.
  */
 typedef enum {
-	ERROR_PRINT = 1,
-	ERROR_WARN,
 	ERROR_DROP, // don't fully shit pants, but drop to console
 	ERROR_FATAL, // program must exit
 } err_t;
