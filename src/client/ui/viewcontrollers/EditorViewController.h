@@ -51,13 +51,10 @@ struct EditorViewController {
 	 */
 	EditorViewControllerInterface *interface;
 
-	struct {
-		/**
-		* @brief The interface.
-		*/
-		r_material_t *material;
-		uint32_t time;
-	} editor;
+	/**
+	 * @brief The material the player is looking at.
+	 */
+	r_material_t *material;
 
 	/**
 	 * @brief The bump slider.

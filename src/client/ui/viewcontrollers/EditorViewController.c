@@ -85,7 +85,7 @@ static void didSetBump(Slider *this) {
 
 //	((View *) this)->editor->material.cm.this->bump = (vec_t) this->value;
 
-	printf("Bump: %0.6f\n", this->value);
+	printf("Bump: %0.3f\n", this->value);
 }
 
 /**
@@ -93,7 +93,7 @@ static void didSetBump(Slider *this) {
  */
 static void didSetHardness(Slider *this) {
 
-	printf("Hardness: %0.6f\n", this->value);
+	printf("Hardness: %0.3f\n", this->value);
 }
 
 /**
@@ -101,7 +101,7 @@ static void didSetHardness(Slider *this) {
  */
 static void didSetSpecular(Slider *this) {
 
-	printf("Specular: %0.6f\n", this->value);
+	printf("Specular: %0.3f\n", this->value);
 }
 
 /**
@@ -109,7 +109,7 @@ static void didSetSpecular(Slider *this) {
  */
 static void didSetParallax(Slider *this) {
 
-	printf("Parallax: %0.6f\n", this->value);
+	printf("Parallax: %0.3f\n", this->value);
 }
 
 #pragma mark - ViewController

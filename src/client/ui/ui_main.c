@@ -39,8 +39,16 @@ static EditorViewController *editorViewController;
  */
 static void Ui_CheckEditor(void) {
 	if (cl_editor->modified) {
+		printf("Changed!\n");
+
+		cl_editor->modified = false;
+
 		if (cl_editor->integer) {
-			if (editorViewController != NULL) {
+			if (cls.state != CL_ACTIVE) {
+				return;
+			}
+
+			if (editorViewController) {
 				Ui_PopToViewController((ViewController *) editorViewController);
 				Ui_PopViewController();
 
@@ -49,8 +57,35 @@ static void Ui_CheckEditor(void) {
 
 			editorViewController = $(alloc(EditorViewController), init);
 
+			vec3_t end;
+
+			VectorMA(r_view.origin, MAX_WORLD_DIST, r_view.forward, end);
+
+			cm_trace_t tr = Cl_Trace(r_view.origin, end, NULL, NULL, 0, MASK_SOLID);
+
+			if (tr.fraction < 1.0) {
+				editorViewController->material = R_LoadMaterial(va("textures/%s", tr.surface->name));
+
+				if (!editorViewController->material) {
+					Com_Debug(DEBUG_CLIENT, "Failed to resolve %s\n", tr.surface->name);
+				}
+			} else {
+				editorViewController->material = NULL;
+			}
+
+			// editorViewController->bumpSlider and friends seg fault when accessing
+
+			/*
+			if (editorViewController->material) {
+				$(editorViewController->bumpSlider, setValue, editorViewController->material->cm->bump);
+				$(editorViewController->hardnessSlider, setValue, editorViewController->material->cm->hardness);
+				$(editorViewController->specularSlider, setValue, editorViewController->material->cm->specular);
+				$(editorViewController->parallaxSlider, setValue, editorViewController->material->cm->parallax);
+			}
+			*/
+
 			Ui_PushViewController((ViewController *) editorViewController);
-		} else if (editorViewController != NULL) {
+		} else if (editorViewController) {
 			Ui_PopToViewController((ViewController *) editorViewController);
 			Ui_PopViewController();
 
@@ -58,8 +93,6 @@ static void Ui_CheckEditor(void) {
 
 			editorViewController = NULL;
 		}
-
-		cl_editor->modified = false;
 	}
 }
 
