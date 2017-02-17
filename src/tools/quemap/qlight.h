@@ -25,6 +25,8 @@
 #include "polylib.h"
 #include "collision/cmodel.h"
 
+#define PATCH_SUBDIVIDE 64.0
+
 typedef enum {
 	LIGHT_POINT,
 	LIGHT_SPOT,
@@ -46,17 +48,6 @@ typedef struct patch_s {
 
 extern patch_t *face_patches[MAX_BSP_FACES];
 extern vec3_t face_offset[MAX_BSP_FACES];  // for rotating bmodels
-
-extern vec_t brightness;
-extern vec_t saturation;
-extern vec_t contrast;
-
-extern vec_t surface_scale;
-extern vec_t entity_scale;
-
-extern vec3_t ambient;
-
-extern _Bool extra_samples;
 
 // lightmap.c
 void BuildLights(void);

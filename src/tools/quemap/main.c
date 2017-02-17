@@ -280,6 +280,11 @@ static void Check_LIGHT_Options(int32_t argc) {
 			entity_scale *= atof(Com_Argv(i + 1));
 			Com_Verbose("entity light scale at %f\n", entity_scale);
 			i++;
+			
+		} else if (!g_strcmp0(Com_Argv(i), "-patch")) {
+			patch_subdivide = atof(Com_Argv(i + 1));
+			Com_Verbose("patch subdivide at %f\n", patch_subdivide);
+			i++;
 		} else {
 			break;
 		}
@@ -338,7 +343,7 @@ static void PrintHelpMessage(void) {
 	Com_Print(" -nowater - skip water brushes\n");
 	Com_Print(" -noweld\n");
 	Com_Print(" -onlyents - modify existing bsp file with entities from map file\n");
-	Com_Print(" -subdivide <int> - subdivide brushes for better light effects\n");
+	Com_Print(" -subdivide <int> - bsp subdivision grid size in world units\n");
 	Com_Print(" -tmpout\n");
 	Com_Print("\n");
 
@@ -354,6 +359,7 @@ static void PrintHelpMessage(void) {
 	Com_Print(" -brightness <float> - brightness factor\n");
 	Com_Print(" -contrast <float> - contrast factor\n");
 	Com_Print(" -saturation <float> - saturation factor\n");
+	Com_Print(" -patch <float> - surface light patch size (default 64)\n");
 	Com_Print("\n");
 
 	Com_Print("-aas               AAS stage options:\n");

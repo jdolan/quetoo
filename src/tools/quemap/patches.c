@@ -213,8 +213,6 @@ void BuildPatches(void) {
 	}
 }
 
-#define PATCH_SUBDIVIDE 64
-
 /**
  * @brief
  */
@@ -264,7 +262,7 @@ static void SubdividePatch(patch_t *patch) {
 	VectorClear(split);
 
 	for (i = 0; i < 3; i++) {
-		if (floor((mins[i] + 1) / PATCH_SUBDIVIDE) < floor((maxs[i] - 1) / PATCH_SUBDIVIDE)) {
+		if (floor((mins[i] + 1) / patch_subdivide) < floor((maxs[i] - 1) / patch_subdivide)) {
 			split[i] = 1.0;
 			break;
 		}
@@ -274,7 +272,7 @@ static void SubdividePatch(patch_t *patch) {
 		return;
 	}
 
-	dist = PATCH_SUBDIVIDE * (1 + floor((mins[i] + 1) / PATCH_SUBDIVIDE));
+	dist = patch_subdivide * (1 + floor((mins[i] + 1) / patch_subdivide));
 	ClipWindingEpsilon(w, split, dist, ON_EPSILON, &o1, &o2);
 
 	// create a new patch
