@@ -231,6 +231,10 @@ void Ui_Shutdown(void) {
 
 	Ui_PopAllViewControllers();
 
+	if (editorViewController != NULL) {
+		release(editorViewController);
+	}
+
 	release(windowController);
 
 	Mem_FreeTag(MEM_TAG_UI);
