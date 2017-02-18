@@ -21,6 +21,7 @@
 
 #include "console.h"
 #include "filesystem.h"
+#include "parse.h"
 
 typedef struct cmd_args_s {
 	int32_t argc;
@@ -200,7 +201,6 @@ const char *Cmd_Args(void) {
  * @brief Parses the given string into command line tokens.
  */
 void Cmd_TokenizeString(const char *text) {
-	char *c;
 
 	// clear the command state from the last string
 	memset(&cmd_state.args, 0, sizeof(cmd_state.args));
@@ -215,19 +215,14 @@ void Cmd_TokenizeString(const char *text) {
 		return;
 	}
 
+	parser_t parser;
+	Parse_Init(&parser, text, PARSER_DEFAULT);
+
 	while (true) {
 		// stop after we've exhausted our token buffer
 		if (cmd_state.args.argc == MAX_STRING_TOKENS) {
 			Com_Warn("MAX_STRING_TOKENS exceeded\n");
 			return;
-		}
-
-		// skip whitespace up to a \n
-		while (*text <= ' ') {
-			if (!*text || *text == '\n') {
-				return;
-			}
-			text++;
 		}
 
 		// set cmd_state.args to everything after the command name
@@ -236,25 +231,23 @@ void Cmd_TokenizeString(const char *text) {
 
 			// strip off any trailing whitespace
 			size_t l = strlen(cmd_state.args.args);
-			c = &cmd_state.args.args[l - 1];
+			char *c = &cmd_state.args.args[l - 1];
 
 			while (*c <= ' ') {
 				*c-- = '\0';
 			}
 		}
 
-		c = ParseToken(&text);
-
-		if (*c == '\0' && !text) { // we're done
+		if (!Parse_Token(&parser, PARSE_NO_WRAP, cmd_state.args.argv[cmd_state.args.argc], MAX_TOKEN_CHARS)) { // we're done
 			return;
 		}
 
 		// expand console variables
-		if (*c == '$' && g_strcmp0(cmd_state.args.argv[0], "alias")) {
-			c = (char *) Cvar_GetString(c + 1);
+		if (*cmd_state.args.argv[cmd_state.args.argc] == '$' && g_strcmp0(cmd_state.args.argv[0], "alias")) {
+			char *c = (char *) Cvar_GetString(cmd_state.args.argv[cmd_state.args.argc] + 1);
+			g_strlcpy(cmd_state.args.argv[cmd_state.args.argc], c, MAX_TOKEN_CHARS);
 		}
 
-		g_strlcpy(cmd_state.args.argv[cmd_state.args.argc], c, MAX_TOKEN_CHARS);
 		cmd_state.args.argc++;
 	}
 }
