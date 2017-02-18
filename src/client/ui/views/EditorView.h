@@ -61,6 +61,21 @@ struct EditorView {
 	cm_material_t *material;
 
 	/**
+	 * @brief The material name.
+	 */
+	Text *materialName;
+
+	/**
+	 * @brief The diffuse texture.
+	 */
+	Text *diffuseTexture;
+
+	/**
+	 * @brief The normalmap texture.
+	 */
+	Text *normalmapTexture;
+
+	/**
 	 * @brief The bump slider.
 	 */
 	Slider *bumpSlider;

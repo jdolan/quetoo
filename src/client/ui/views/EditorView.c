@@ -113,6 +113,10 @@ static void updateBindings(View *self) {
 	}
 
 	if (this->material) {
+		$(this->materialName, setText, this->material->base);
+		$(this->diffuseTexture, setText, this->material->diffuse);
+		$(this->normalmapTexture, setText, this->material->normalmap);
+
 		$(this->bumpSlider, setValue, (double) this->material->bump);
 		$(this->hardnessSlider, setValue, (double) this->material->hardness);
 		$(this->specularSlider, setValue, (double) this->material->specular);
@@ -176,10 +180,10 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 		self->panel = $(alloc(Panel), initWithFrame, NULL);
 		assert(self->panel);
 
+		((View *) self)->alignment = ViewAlignmentMiddleCenter;
+
 		self->panel->stackView.view.alignment = ViewAlignmentMiddleCenter;
 		self->panel->stackView.view.needsLayout = true;
-
-		self->panel->accessoryView->view.hidden = false;
 
 		$((View *) self, addSubview, (View *) self->panel);
 
@@ -198,6 +202,24 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 
 
 				StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+				// material name
+
+				self->materialName = $(alloc(Text), initWithText, "<name>", NULL);
+
+				addInput((View *) stackView, "Material name", (Control *) self->materialName);
+
+				// diffuse texture
+
+				self->diffuseTexture = $(alloc(Text), initWithText, "<diffuse>", NULL);
+
+				addInput((View *) stackView, "Diffuse texture", (Control *) self->diffuseTexture);
+
+				// normalmap texture
+
+				self->normalmapTexture = $(alloc(Text), initWithText, "<normalmap>", NULL);
+
+				addInput((View *) stackView, "Normalmap texture", (Control *) self->normalmapTexture);
 
 				// bump
 
@@ -262,15 +284,16 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 			release(column);
 		}
 
-		$((View *) self->panel, addSubview, (View *) columns);
+		$((View *) self->panel->contentView, addSubview, (View *) columns);
 		release(columns);
+
+		self->panel->accessoryView->view.hidden = false;
+		addButton((View *) ((EditorView *) self)->panel->accessoryView, "Save", saveAction, self, NULL);
+
+		$((View *) self, updateBindings);
+
+//		$((View *) self, addSubview, (View *) self->panel);
 	}
-
-	addButton((View *) ((EditorView *) self)->panel->accessoryView, "Save", saveAction, self, NULL);
-
-	$((View *) self, updateBindings);
-
-	$((View *) self, addSubview, (View *) self->panel);
 
 	return self;
 }
