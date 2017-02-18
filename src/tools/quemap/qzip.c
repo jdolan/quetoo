@@ -175,7 +175,7 @@ static void AddMaterials(const char *path) {
 		}
 
 		// texture references should all be added
-		if (!g_strcmp0(c, "texture")) {
+		if (!g_strcmp0(c, "texture") || !g_strcmp0(c, "diffuse")) {
 			c = ParseToken(&buf);
 			if (*c == '#') {
 				g_strlcpy(texture, ++c, sizeof(texture));

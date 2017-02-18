@@ -19,29 +19,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "cg_local.h"
+#pragma once
 
-#include "viewcontrollers/MainViewController.h"
+#include "ui_types.h"
 
-static MainViewController *mainViewController;
+void Ui_CheckEditor(void);
+void Ui_InitEditor(void);
+void Ui_ShutdownEditor(void);
 
-/**
- * @brief Initializes the user interface.
- */
-void Cg_InitUi(void) {
-
-	mainViewController = $(alloc(MainViewController), init);
-
-	cgi.PushViewController((ViewController *) mainViewController);
-}
-
-/**
- * @brief Shuts down the user interface.
- */
-void Cg_ShutdownUi(void) {
-
-	cgi.PopToViewController((ViewController *) mainViewController);
-	cgi.PopViewController();
-
-	release(mainViewController);
-}
+#ifdef __UI_LOCAL_H__
+#endif /* __UI_LOCAL_H__ */

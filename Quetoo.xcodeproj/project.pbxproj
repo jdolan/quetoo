@@ -77,10 +77,13 @@
 		CE3BCDC81DB6DD77002E6C6D /* r_glad_core.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3BCDB81DB6DCE0002E6C6D /* r_glad_core.h */; };
 		CE3BCDC91DB6DD81002E6C6D /* r_program_null.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3BCDB91DB6DCE0002E6C6D /* r_program_null.c */; };
 		CE3BCDCA1DB6DD87002E6C6D /* r_program_null.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3BCDBA1DB6DCE0002E6C6D /* r_program_null.h */; };
-		CE3BCDF01DB91B01002E6C6D /* RendererQuetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3BCDEC1DB91AF7002E6C6D /* RendererQuetoo.c */; };
-		CE3BCDF11DB91B0B002E6C6D /* RendererQuetoo.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3BCDED1DB91AF7002E6C6D /* RendererQuetoo.h */; };
+		CE3BCDF01DB91B01002E6C6D /* QuetooRenderer.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3BCDEC1DB91AF7002E6C6D /* QuetooRenderer.c */; };
+		CE3BCDF11DB91B0B002E6C6D /* QuetooRenderer.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3BCDED1DB91AF7002E6C6D /* QuetooRenderer.h */; };
+		CE3DA5071E575096009B26ED /* EditorView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3DA5051E575096009B26ED /* EditorView.c */; };
+		CE3DA5081E575096009B26ED /* EditorView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3DA5061E575096009B26ED /* EditorView.h */; };
 		CE4898D11D8B9DE100EEACA5 /* libnet.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.dylib */; };
-		CE55308A1E57BD710009A127 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
+		CE55308D1E57E3670009A127 /* ui_editor.c in Sources */ = {isa = PBXBuildFile; fileRef = CE55308B1E57E3670009A127 /* ui_editor.c */; };
+		CE55308E1E57E3670009A127 /* ui_editor.h in Headers */ = {isa = PBXBuildFile; fileRef = CE55308C1E57E3670009A127 /* ui_editor.h */; };
 		CE5816EE1D904AD4002818F5 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CE5816EF1D904B0B002818F5 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CE5CDC241D9F51580034757D /* librenderer.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CED438AD1D9D34450052BAFA /* librenderer.dylib */; };
@@ -284,6 +287,8 @@
 		CE80FFFF1C5E4D4400A21A51 /* libcommon.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.dylib */; };
 		CE8C734C1E0DE28000226317 /* r_stainmap.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8C734A1E0DE28000226317 /* r_stainmap.c */; };
 		CE8C734D1E0DE28000226317 /* r_stainmap.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8C734B1E0DE28000226317 /* r_stainmap.h */; };
+		CE95745E1E568F4900BBC4C0 /* EditorViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9574581E56860800BBC4C0 /* EditorViewController.c */; };
+		CE9574601E568F6C00BBC4C0 /* EditorViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9574591E56860800BBC4C0 /* EditorViewController.h */; };
 		CEA029C31C5E54C200341079 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEA029C41C5E54F600341079 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEA082371DC6EC50001207AA /* r_atlas.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA082331DC6EBB7001207AA /* r_atlas.c */; };
@@ -1318,9 +1323,13 @@
 		CE3BCDC21DB6DD05002E6C6D /* matrix_inc.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = matrix_inc.glsl; sourceTree = "<group>"; };
 		CE3BCDC31DB6DD05002E6C6D /* null_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = null_fs.glsl; sourceTree = "<group>"; };
 		CE3BCDC41DB6DD05002E6C6D /* null_vs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = null_vs.glsl; sourceTree = "<group>"; };
-		CE3BCDEC1DB91AF7002E6C6D /* RendererQuetoo.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = RendererQuetoo.c; sourceTree = "<group>"; };
-		CE3BCDED1DB91AF7002E6C6D /* RendererQuetoo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RendererQuetoo.h; sourceTree = "<group>"; };
+		CE3BCDEC1DB91AF7002E6C6D /* QuetooRenderer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = QuetooRenderer.c; sourceTree = "<group>"; };
+		CE3BCDED1DB91AF7002E6C6D /* QuetooRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QuetooRenderer.h; sourceTree = "<group>"; };
 		CE3BCDF21DB91B52002E6C6D /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CE3DA5051E575096009B26ED /* EditorView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = EditorView.c; sourceTree = "<group>"; };
+		CE3DA5061E575096009B26ED /* EditorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditorView.h; sourceTree = "<group>"; };
+		CE55308B1E57E3670009A127 /* ui_editor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_editor.c; sourceTree = "<group>"; };
+		CE55308C1E57E3670009A127 /* ui_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_editor.h; sourceTree = "<group>"; };
 		CE5BD59B1D3EE3B800C43B85 /* libObjectivelyMVC.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.0.dylib; path = ../../../../usr/local/lib/libObjectivelyMVC.0.dylib; sourceTree = "<group>"; };
 		CE5CDBAC1D9F45090034757D /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE5CDBAE1D9F45090034757D /* ui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui.h; sourceTree = "<group>"; };
@@ -1373,6 +1382,8 @@
 		CE92B3AC1D2FF83A00E9153A /* quetoo-dedicated.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = "quetoo-dedicated.ico"; sourceTree = "<group>"; };
 		CE9305BC1D9A929100D62770 /* post-update.bat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; lineEnding = 2; path = "post-update.bat"; sourceTree = "<group>"; };
 		CE9305BD1D9A94F600D62770 /* post-update.bat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; lineEnding = 2; path = "post-update.bat"; sourceTree = "<group>"; };
+		CE9574581E56860800BBC4C0 /* EditorViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = EditorViewController.c; sourceTree = "<group>"; };
+		CE9574591E56860800BBC4C0 /* EditorViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditorViewController.h; sourceTree = "<group>"; };
 		CEA029F41C5E558100341079 /* quetoo-master */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-master"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEA082331DC6EBB7001207AA /* r_atlas.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_atlas.c; sourceTree = "<group>"; };
 		CEA082341DC6EBB7001207AA /* r_atlas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_atlas.h; sourceTree = "<group>"; };
@@ -1729,7 +1740,6 @@
 			files = (
 				CED439561D9D3A830052BAFA /* libcommon.dylib in Frameworks */,
 				CED439551D9D3A7F0052BAFA /* libglib-2.0.0.dylib in Frameworks */,
-				CE55308A1E57BD710009A127 /* libSDL2-2.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2745,8 +2755,8 @@
 		CE3BCDEB1DB91AF7002E6C6D /* renderers */ = {
 			isa = PBXGroup;
 			children = (
-				CE3BCDEC1DB91AF7002E6C6D /* RendererQuetoo.c */,
-				CE3BCDED1DB91AF7002E6C6D /* RendererQuetoo.h */,
+				CE3BCDEC1DB91AF7002E6C6D /* QuetooRenderer.c */,
+				CE3BCDED1DB91AF7002E6C6D /* QuetooRenderer.h */,
 				CE3BCDF21DB91B52002E6C6D /* Makefile.am */,
 			);
 			path = renderers;
@@ -2755,6 +2765,8 @@
 		CE5CDB931D9F45090034757D /* ui */ = {
 			isa = PBXGroup;
 			children = (
+				CE55308B1E57E3670009A127 /* ui_editor.c */,
+				CE55308C1E57E3670009A127 /* ui_editor.h */,
 				CE3BCDEB1DB91AF7002E6C6D /* renderers */,
 				CE5CDBB51D9F45090034757D /* viewcontrollers */,
 				CE5CDBC71D9F450A0034757D /* views */,
@@ -2771,6 +2783,8 @@
 		CE5CDBB51D9F45090034757D /* viewcontrollers */ = {
 			isa = PBXGroup;
 			children = (
+				CE9574581E56860800BBC4C0 /* EditorViewController.c */,
+				CE9574591E56860800BBC4C0 /* EditorViewController.h */,
 				CE5CDBBC1D9F450A0034757D /* Makefile.am */,
 			);
 			path = viewcontrollers;
@@ -2779,6 +2793,8 @@
 		CE5CDBC71D9F450A0034757D /* views */ = {
 			isa = PBXGroup;
 			children = (
+				CE3DA5051E575096009B26ED /* EditorView.c */,
+				CE3DA5061E575096009B26ED /* EditorView.h */,
 				CE5CDBD41D9F450A0034757D /* Makefile.am */,
 			);
 			path = views;
@@ -2953,11 +2969,14 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE9574601E568F6C00BBC4C0 /* EditorViewController.h in Headers */,
+				CE3BCDF11DB91B0B002E6C6D /* QuetooRenderer.h in Headers */,
+				CE3DA5081E575096009B26ED /* EditorView.h in Headers */,
+				CE55308E1E57E3670009A127 /* ui_editor.h in Headers */,
 				CE5CDC361D9F51A90034757D /* ui_local.h in Headers */,
 				CE5CDC371D9F51A90034757D /* ui_main.c in Headers */,
 				CE5CDC381D9F51A90034757D /* ui_main.h in Headers */,
 				CE5CDC391D9F51A90034757D /* ui_types.h in Headers */,
-				CE3BCDF11DB91B0B002E6C6D /* RendererQuetoo.h in Headers */,
 				CE5CDC3A1D9F51A90034757D /* ui.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3955,8 +3974,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE3DA5071E575096009B26ED /* EditorView.c in Sources */,
+				CE95745E1E568F4900BBC4C0 /* EditorViewController.c in Sources */,
+				CE3BCDF01DB91B01002E6C6D /* QuetooRenderer.c in Sources */,
+				CE55308D1E57E3670009A127 /* ui_editor.c in Sources */,
 				CE5CDC331D9F518B0034757D /* ui_main.c in Sources */,
-				CE3BCDF01DB91B01002E6C6D /* RendererQuetoo.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

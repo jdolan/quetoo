@@ -1,11 +1,11 @@
 noinst_HEADERS = \
-	RendererQuetoo.h
+	QuetooRenderer.h
 
 noinst_LTLIBRARIES = \
 	librenderers.la
 
 librenderers_la_SOURCES = \
-	RendererQuetoo.c
+	QuetooRenderer.c
 
 librenderers_la_CFLAGS = \
 	-I$(top_srcdir)/src \
