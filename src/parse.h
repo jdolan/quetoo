@@ -85,6 +85,16 @@ typedef enum {
 	PARSE_NO_WRAP = 2,
 
 	/**
+	 * @brief If the parsed primitives are contained within quotes, ignore the quotes.
+	 */
+	PARSE_WITHIN_QUOTES = 4,
+
+	/**
+	 * @brief Retain quotes that are parsed as part of a string.
+	 */
+	PARSE_RETAIN_QUOTES = 8,
+
+	/**
 	 * @brief Default parser settings
 	 */
 	PARSE_DEFAULT = PARSE_COPY_QUOTED_LITERALS

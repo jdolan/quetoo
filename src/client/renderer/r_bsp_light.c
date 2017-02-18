@@ -20,6 +20,7 @@
  */
 
 #include "r_local.h"
+#include "parse.h"
 
 /*
  * Static light source loading.
@@ -219,26 +220,28 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 	radius = BSP_LIGHT_POINT_DEFAULT_RADIUS * s->brightness;
 	VectorSet(color, 1.0, 1.0, 1.0);
 
-	char class_name[MAX_QPATH];
 	_Bool entity = false, light = false;
+	char token[MAX_BSP_ENTITY_VALUE];
+	parser_t parser;
+
+	Parse_Init(&parser, ents, PARSER_DEFAULT);
 
 	while (true) {
 
-		const char *c = ParseToken(&ents);
-
-		if (!strlen(c)) {
+		if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
 			break;
 		}
 
-		if (*c == '{') {
+		if (*token == '{') {
 			entity = true;
+			continue;
 		}
 
 		if (!entity) { // skip any whitespace between ents
 			continue;
 		}
 
-		if (*c == '}') {
+		if (*token == '}') {
 			entity = false;
 
 			if (light) { // add it
@@ -251,30 +254,44 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 			}
 		}
 
-		if (!g_strcmp0(c, "classname")) {
+		if (!g_strcmp0(token, "classname")) {
 
-			c = ParseToken(&ents);
-			g_strlcpy(class_name, c, sizeof(class_name));
+			if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
+				break;
+			}
 
-			if (!strncmp(c, "light", 5)) { // light, light_spot, etc..
+			if (!strncmp(token, "light", 5)) { // light, light_spot, etc..
 				light = true;
 			}
 
 			continue;
 		}
 
-		if (!g_strcmp0(c, "origin")) {
-			sscanf(ParseToken(&ents), "%f %f %f", &origin[0], &origin[1], &origin[2]);
+		if (!g_strcmp0(token, "origin")) {
+
+			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_NO_WRAP | PARSE_WITHIN_QUOTES, PARSE_FLOAT, origin, 3) != 3) {
+				break;
+			}
+
 			continue;
 		}
 
-		if (!g_strcmp0(c, "light")) {
-			radius = atof(ParseToken(&ents)) * s->brightness;
+		if (!g_strcmp0(token, "light")) {
+
+			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_NO_WRAP | PARSE_WITHIN_QUOTES, PARSE_FLOAT, &radius, 1) != 1) {
+				break;
+			}
+
+			radius *= s->brightness;
 			continue;
 		}
 
-		if (!g_strcmp0(c, "_color")) {
-			sscanf(ParseToken(&ents), "%f %f %f", &color[0], &color[1], &color[2]);
+		if (!g_strcmp0(token, "_color")) {
+
+			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_NO_WRAP | PARSE_WITHIN_QUOTES, PARSE_FLOAT, color, 3) != 3) {
+				break;
+			}
+
 			ColorFilter(color, color, s->brightness, s->saturation, s->contrast);
 			continue;
 		}

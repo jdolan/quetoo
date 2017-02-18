@@ -244,6 +244,12 @@ static _Bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags
 		return false; // sanity check
 	}
 
+	if (flags & PARSE_RETAIN_QUOTES) {
+		if (!Parse_AppendOutputChar(parser, '"', output_position, output, output_len)) {
+			return false;
+		}
+	}
+
 	while (true) {
 		c = *(++parser->position);
 		Parse_NextColumn(parser, 1);
@@ -308,6 +314,12 @@ static _Bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags
 
 		// regular char, just append
 		if (!Parse_AppendOutputChar(parser, c, output_position, output, output_len)) {
+			return false;
+		}
+	}
+
+	if (flags & PARSE_RETAIN_QUOTES) {
+		if (!Parse_AppendOutputChar(parser, '"', output_position, output, output_len)) {
 			return false;
 		}
 	}
@@ -443,10 +455,29 @@ size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_
 		output = calloc(count, type_size);
 	}
 
+	const parse_flags_t prim_flags = (flags & PARSE_WITHIN_QUOTES) ? (flags | PARSE_RETAIN_QUOTES) : flags;
+
+	if (!Parse_Token(parser, prim_flags, parser->scratch, sizeof(parser->scratch))) {
+		return num_parsed;
+	}
+
+	// if we had quotes...
+	if (*parser->scratch == '"' && (flags & PARSE_WITHIN_QUOTES)) {
+		parser_t sub_parser;
+
+		// init sub-parser without quotes
+		parser->scratch[strlen(parser->scratch) - 1] = '\0';
+		Parse_Init(&sub_parser, parser->scratch + 1, parser->flags);
+
+		return Parse_Primitive(&sub_parser, flags & ~PARSE_WITHIN_QUOTES, type, output, count);
+	}
+
 	for (size_t i = 0; i < count; i++, output += type_size) {
 
-		if (!Parse_Token(parser, flags, parser->scratch, sizeof(parser->scratch))) {
-			break;
+		if (i != 0) { // 0 is parsed above for quote checking
+			if (!Parse_Token(parser, prim_flags, parser->scratch, sizeof(parser->scratch))) {
+				return num_parsed;
+			}
 		}
 
 		if (!Parse_TypeParse(type, parser->scratch, output)) {

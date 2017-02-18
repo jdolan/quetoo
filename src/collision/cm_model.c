@@ -486,7 +486,7 @@ const char *Cm_WorldspawnValue(const char *key) {
 		return NULL;
 	}
 
-	return v;
+	return value;
 }
 
 /**
