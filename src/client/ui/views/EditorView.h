@@ -59,17 +59,17 @@ struct EditorView {
 	/**
 	 * @brief The material name.
 	 */
-	Text *materialName;
+	TextView *materialName;
 
 	/**
 	 * @brief The diffuse texture.
 	 */
-	Text *diffuseTexture;
+	TextView *diffuseTexture;
 
 	/**
 	 * @brief The normalmap texture.
 	 */
-	Text *normalmapTexture;
+	TextView *normalmapTexture;
 
 	/**
 	 * @brief The bump slider.
