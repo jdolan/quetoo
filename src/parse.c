@@ -102,7 +102,7 @@ static _Bool Parse_SkipWhitespace(parser_t *parser, const parse_flags_t flags) {
  */
 static _Bool Parse_SkipCommentLine(parser_t *parser, const char *identifier) {
 
-	if (g_strcmp0(parser->position, identifier)) {
+	if (strncmp(parser->position, identifier, strlen(identifier))) {
 		return false;
 	}
 
@@ -131,6 +131,9 @@ static _Bool Parse_SkipCommentLine(parser_t *parser, const char *identifier) {
 			Parse_NextRow(parser, skipped);
 			return true;
 		}
+
+		parser->position++;
+		Parse_NextColumn(parser, 1);
 	}
 
 	return false;
@@ -142,7 +145,7 @@ static _Bool Parse_SkipCommentLine(parser_t *parser, const char *identifier) {
  */
 static _Bool Parse_SkipCommentBlock(parser_t *parser, const char *start, const char *end) {
 
-	if (g_strcmp0(parser->position, start)) {
+	if (strncmp(parser->position, start, strlen(start))) {
 		return false;
 	}
 
@@ -156,7 +159,7 @@ static _Bool Parse_SkipCommentBlock(parser_t *parser, const char *start, const c
 			return false;
 		}
 
-		if (!g_strcmp0(parser->position, end)) {
+		if (!strncmp(parser->position, end, strlen(end))) {
 			parser->position += strlen(end); // found it!
 			Parse_NextColumn(parser, strlen(end));
 			return true;
@@ -210,7 +213,7 @@ static _Bool Parse_SkipComments(parser_t *parser) {
 		}
 	}
 
-	return true;
+	return !Parse_IsEOF(parser);
 }
 
 /**
@@ -443,11 +446,11 @@ size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_
 	for (size_t i = 0; i < count; i++, output += type_size) {
 
 		if (!Parse_Token(parser, flags, parser->scratch, sizeof(parser->scratch))) {
-			return false;
+			break;
 		}
 
 		if (!Parse_TypeParse(type, parser->scratch, output)) {
-			return false;
+			break;
 		}
 
 		num_parsed++;

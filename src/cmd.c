@@ -227,7 +227,7 @@ void Cmd_TokenizeString(const char *text) {
 
 		// set cmd_state.args to everything after the command name
 		if (cmd_state.args.argc == 1) {
-			g_strlcpy(cmd_state.args.args, text, MAX_STRING_CHARS);
+			g_strlcpy(cmd_state.args.args, parser.position + 1, MAX_STRING_CHARS);
 
 			// strip off any trailing whitespace
 			size_t l = strlen(cmd_state.args.args);
@@ -238,7 +238,7 @@ void Cmd_TokenizeString(const char *text) {
 			}
 		}
 
-		if (!Parse_Token(&parser, PARSE_NO_WRAP, cmd_state.args.argv[cmd_state.args.argc], MAX_TOKEN_CHARS)) { // we're done
+		if (!Parse_Token(&parser, PARSE_NO_WRAP | PARSE_COPY_QUOTED_LITERALS, cmd_state.args.argv[cmd_state.args.argc], MAX_TOKEN_CHARS)) { // we're done
 			return;
 		}
 

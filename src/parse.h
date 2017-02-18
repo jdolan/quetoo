@@ -74,11 +74,6 @@ typedef struct {
  */
 typedef enum {
 	/**
-	 * @brief Default parser settings (which is none, to keep things simple)
-	 */
-	PARSE_DEFAULT = 0,
-
-	/**
 	 * @brief All characters in a quoted string are copied literally
 	 */
 	PARSE_COPY_QUOTED_LITERALS = 1,
@@ -87,7 +82,12 @@ typedef enum {
 	 * @brief Don't traverse line returns. This causes parses to return false and 
 	 * Parse_EndOfLine to return true if we're waiting for a regular parse to move forward.
 	 */
-	PARSE_NO_WRAP = 2
+	PARSE_NO_WRAP = 2,
+
+	/**
+	 * @brief Default parser settings
+	 */
+	PARSE_DEFAULT = PARSE_COPY_QUOTED_LITERALS
 } parse_flags_t;
 
 /**
