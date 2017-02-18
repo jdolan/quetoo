@@ -23,6 +23,7 @@
 
 #include "ui_types.h"
 
+#include <ObjectivelyMVC/Button.h>
 #include <ObjectivelyMVC/Slider.h>
 
 /**
@@ -51,14 +52,9 @@ struct EditorView {
 	EditorViewInterface *interface;
 
 	/**
-	 * @brief The panel.
-	 */
-	Panel *panel;
-
-	/**
 	 * @brief The material the player is looking at.
 	 */
-	cm_material_t *material;
+	r_material_t *material;
 
 	/**
 	 * @brief The material name.
@@ -94,6 +90,11 @@ struct EditorView {
 	 * @brief The parallax slider.
 	 */
 	Slider *parallaxSlider;
+
+	/**
+	 * @brief The save button.
+	 */
+	Button *saveButton;
 };
 
 /**

@@ -1005,6 +1005,8 @@ static void R_SaveMaterials_f(void) {
 	char path[MAX_QPATH];
 	g_snprintf(path, sizeof(path), "materials/%s.mat", Basename(mod->media.name));
 
+	// FIXME: Are these the right materials, or are they stale?
+	
 	Cm_WriteMaterials(path, (const cm_material_t **) mod->bsp->cm->materials, mod->bsp->cm->num_materials);
 }
 

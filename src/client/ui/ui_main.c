@@ -141,11 +141,7 @@ void Ui_Init(void) {
 	}
 #endif
 
-	// ui renderer
-
 	Renderer *renderer = (Renderer *) $(alloc(QuetooRenderer), init);
-
-	// main window
 
 	windowController = $(alloc(WindowController), initWithWindow, r_context.window);
 

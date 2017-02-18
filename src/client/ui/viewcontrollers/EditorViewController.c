@@ -25,8 +25,41 @@
 #include "EditorViewController.h"
 #include "EditorView.h"
 
-
 #define _Class _EditorViewController
+
+#pragma mark - Actions and delegate callbacks
+
+/**
+ * @brief ActionFunction for the Save Button.
+ */
+static void saveAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+	Cmd_ExecuteString("r_save_materials");
+}
+
+/**
+ * @brief SliderDelegate callback for changing bump.
+ */
+static void didSetValue(Slider *slider) {
+
+	EditorViewController *this = (EditorViewController *) slider->delegate.self;
+	EditorView *view = (EditorView *) this->viewController.view;
+
+	if (!view->material) {
+		return;
+	}
+
+	if (slider == view->bumpSlider) {
+		view->material->cm->bump = view->bumpSlider->value;
+	} else if (slider == view->hardnessSlider) {
+		view->material->cm->hardness = view->hardnessSlider->value;
+	} else if (slider == view->specularSlider) {
+		view->material->cm->specular = view->specularSlider->value;
+	} else if (slider == view->parallaxSlider) {
+		view->material->cm->parallax = view->parallaxSlider->value;
+	} else {
+		Com_Debug(DEBUG_UI, "Unknown Slider %p\n", slider);
+	}
+}
 
 #pragma mark - ViewController
 
@@ -36,8 +69,25 @@
 static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
+	release(self->view);
 
-	((ViewController *) self)->view = (View *) $(alloc(EditorView), initWithFrame, NULL);
+	EditorView *view = $(alloc(EditorView), initWithFrame, NULL);
+
+	view->bumpSlider->delegate.self = self;
+	view->bumpSlider->delegate.didSetValue = didSetValue;
+
+	view->hardnessSlider->delegate.self = self;
+	view->hardnessSlider->delegate.didSetValue = didSetValue;
+
+	view->specularSlider->delegate.self = self;
+	view->specularSlider->delegate.didSetValue = didSetValue;
+
+	view->parallaxSlider->delegate.self = self;
+	view->parallaxSlider->delegate.didSetValue = didSetValue;
+
+	$((Control *) view->saveButton, addActionForEventType, SDL_MOUSEBUTTONUP, saveAction, self, NULL);
+
+	self->view = (View *) view;
 }
 
 #pragma mark - EditorViewController
