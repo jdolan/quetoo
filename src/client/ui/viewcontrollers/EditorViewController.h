@@ -25,47 +25,57 @@
 
 /**
  * @file
- * @brief System ViewController.
+ *
+ * @brief The EditorViewController.
  */
 
-typedef struct SystemViewController SystemViewController;
-typedef struct SystemViewControllerInterface SystemViewControllerInterface;
+typedef struct EditorViewController EditorViewController;
+typedef struct EditorViewControllerInterface EditorViewControllerInterface;
 
 /**
- * @brief The SystemViewController type.
+ * @brief The EditorViewController type.
  * @extends MenuViewController
- * @ingroup
+ * @ingroup ViewControllers
  */
-struct SystemViewController {
+struct EditorViewController {
 
 	/**
 	 * @brief The superclass.
 	 * @private
 	 */
-	MenuViewController menuViewController;
+	ViewController viewController;
 
 	/**
 	 * @brief The interface.
 	 * @private
 	 */
-	SystemViewControllerInterface *interface;
+	EditorViewControllerInterface *interface;
 };
 
+
 /**
- * @brief The SystemViewController interface.
+ * @brief The EditorViewController interface.
  */
-struct SystemViewControllerInterface {
+struct EditorViewControllerInterface {
 
 	/**
 	 * @brief The superclass interface.
 	 */
-	MenuViewControllerInterface menuViewControllerInterface;
+	ViewControllerInterface viewControllerInterface;
+
+	/**
+	 * @fn EditorViewController *EditorViewController::init(EditorViewController *self)
+	 * @brief Initializes this ViewController.
+	 * @return The initialized EditorViewController, or `NULL` on error.
+	 * @memberof EditorViewController
+	 */
+	EditorViewController *(*init)(EditorViewController *self);
 };
 
 /**
- * @fn Class *SystemViewController::_SystemViewController(void)
- * @brief The SystemViewController archetype.
- * @return The SystemViewController Class.
- * @memberof SystemViewController
+ * @fn Class *EditorViewController::_EditorViewController(void)
+ * @brief The EditorViewController archetype.
+ * @return The EditorViewController Class.
+ * @memberof EditorViewController
  */
-extern Class *_SystemViewController(void);
+extern Class *_EditorViewController(void);

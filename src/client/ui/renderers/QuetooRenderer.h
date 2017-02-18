@@ -21,51 +21,61 @@
 
 #pragma once
 
-#include "MenuViewController.h"
+#include "src/client/renderer/renderer.h"
+
+#include <ObjectivelyMVC/Renderer.h>
 
 /**
  * @file
- * @brief System ViewController.
+ * @brief A Renderer implementation for Quetoo.
  */
 
-typedef struct SystemViewController SystemViewController;
-typedef struct SystemViewControllerInterface SystemViewControllerInterface;
+typedef struct QuetooRenderer QuetooRenderer;
+typedef struct QuetooRendererInterface QuetooRendererInterface;
 
 /**
- * @brief The SystemViewController type.
- * @extends MenuViewController
- * @ingroup
+ * @brief A Renderer implementation for Quetoo.
+ * @extends Renderer
  */
-struct SystemViewController {
+struct QuetooRenderer {
 
 	/**
 	 * @brief The superclass.
-	 * @private
 	 */
-	MenuViewController menuViewController;
+	Renderer renderer;
 
 	/**
 	 * @brief The interface.
-	 * @private
+	 * @protected
 	 */
-	SystemViewControllerInterface *interface;
+	QuetooRendererInterface *interface;
 };
 
 /**
- * @brief The SystemViewController interface.
+ * @brief The Renderer interface.
  */
-struct SystemViewControllerInterface {
+struct QuetooRendererInterface {
 
 	/**
 	 * @brief The superclass interface.
 	 */
-	MenuViewControllerInterface menuViewControllerInterface;
+	RendererInterface rendererInterface;
+
+	/**
+	 * @fn QuetooRenderer *QuetooRenderer::init(QuetooRenderer *self)
+	 * @brief Initializes this QuetooRenderer.
+	 * @param self The QuetooRenderer.
+	 * @return The initialized QuetooRenderer, or `NULL` on error.
+	 * @memberof QuetooRenderer
+	 */
+	QuetooRenderer *(*init)(QuetooRenderer *self);
 };
 
 /**
- * @fn Class *SystemViewController::_SystemViewController(void)
- * @brief The SystemViewController archetype.
- * @return The SystemViewController Class.
- * @memberof SystemViewController
+ * @fn Class *QuetooRenderer::_QuetooRenderer(void)
+ * @brief The QuetooRenderer archetype.
+ * @return The QuetooRenderer Class.
+ * @memberof QuetooRenderer
  */
-extern Class *_SystemViewController(void);
+extern Class *_QuetooRenderer(void);
+

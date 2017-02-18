@@ -21,61 +21,59 @@
 
 #pragma once
 
-#include "src/client/renderer/renderer.h"
+#include <ObjectivelyMVC/ViewController.h>
 
-#include <ObjectivelyMVC/Renderer.h>
+#include "ui_local.h"
 
 /**
  * @file
- * @brief A Renderer implementation for Quetoo.
+ *
+ * @brief The MenuViewController.
  */
 
-typedef struct RendererQuetoo RendererQuetoo;
-typedef struct RendererQuetooInterface RendererQuetooInterface;
+typedef struct MenuViewController MenuViewController;
+typedef struct MenuViewControllerInterface MenuViewControllerInterface;
 
 /**
- * @brief A Renderer implementation for Quetoo.
- * @extends Renderer
+ * @brief The MenuViewController type.
+ * @extends ViewController
+ * @ingroup ViewControllers
  */
-struct RendererQuetoo {
+struct MenuViewController {
 
 	/**
 	 * @brief The superclass.
+	 * @private
 	 */
-	Renderer renderer;
+	ViewController viewController;
 
 	/**
 	 * @brief The interface.
-	 * @protected
+	 * @private
 	 */
-	RendererQuetooInterface *interface;
+	MenuViewControllerInterface *interface;
+
+	/**
+	 * @brief The Panel.
+	 */
+	Panel *panel;
 };
 
 /**
- * @brief The Renderer interface.
+ * @brief The MenuViewController interface.
  */
-struct RendererQuetooInterface {
+struct MenuViewControllerInterface {
 
 	/**
 	 * @brief The superclass interface.
 	 */
-	RendererInterface rendererInterface;
-
-	/**
-	 * @fn RendererQuetoo *RendererQuetoo::init(RendererQuetoo *self)
-	 * @brief Initializes this RendererQuetoo.
-	 * @param self The RendererQuetoo.
-	 * @return The initialized RendererQuetoo, or `NULL` on error.
-	 * @memberof RendererQuetoo
-	 */
-	RendererQuetoo *(*init)(RendererQuetoo *self);
+	ViewControllerInterface viewControllerInterface;
 };
 
 /**
- * @fn Class *RendererQuetoo::_RendererQuetoo(void)
- * @brief The RendererQuetoo archetype.
- * @return The RendererQuetoo Class.
- * @memberof RendererQuetoo
+ * @fn Class *MenuViewController::_MenuViewController(void)
+ * @brief The MenuViewController archetype.
+ * @return The MenuViewController Class.
+ * @memberof MenuViewController
  */
-extern Class *_RendererQuetoo(void);
-
+extern Class *_MenuViewController(void);

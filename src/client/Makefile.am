@@ -57,7 +57,7 @@ libclient_la_CFLAGS = \
 
 libclient_la_LDFLAGS = \
 	-shared
-	
+
 libclient_la_LIBADD = \
 	renderer/librenderer.la \
 	sound/libsound.la \

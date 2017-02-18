@@ -19,29 +19,51 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "cg_local.h"
+#include "ui_local.h"
+#include "client.h"
 
-#include "viewcontrollers/MainViewController.h"
+#include "viewcontrollers/EditorViewController.h"
 
-static MainViewController *mainViewController;
+extern cl_static_t cls;
+
+static EditorViewController *editorViewController;
 
 /**
- * @brief Initializes the user interface.
+ * @brief
  */
-void Cg_InitUi(void) {
+void Ui_CheckEditor(void) {
 
-	mainViewController = $(alloc(MainViewController), init);
+	if (cl_editor->modified) {
+		cl_editor->modified = false;
 
-	cgi.PushViewController((ViewController *) mainViewController);
+		if (cl_editor->integer) {
+			if (cls.state != CL_ACTIVE) {
+				return;
+			}
+
+			if (editorViewController == NULL) {
+				editorViewController = $(alloc(EditorViewController), init);
+			}
+
+			Ui_PushViewController((ViewController *) editorViewController);
+		} else if (editorViewController) {
+			Ui_PopViewController();
+		}
+	}
 }
 
 /**
- * @brief Shuts down the user interface.
+ * @brief Initializes the editor.
  */
-void Cg_ShutdownUi(void) {
+void Ui_InitEditor(void) {
 
-	cgi.PopToViewController((ViewController *) mainViewController);
-	cgi.PopViewController();
+	editorViewController = NULL;
+}
 
-	release(mainViewController);
+/**
+ * @brief Shuts down the editor.
+ */
+void Ui_ShutdownEditor(void) {
+
+	release(editorViewController);
 }
