@@ -1,13 +1,11 @@
 noinst_HEADERS = \
-	EditorViewController.h \
-	MenuViewController.h
+	EditorViewController.h
 
 noinst_LTLIBRARIES = \
 	libviewcontrollers.la
 
 libviewcontrollers_la_SOURCES = \
-	EditorViewController.c \
-	MenuViewController.c
+	EditorViewController.c
 
 libviewcontrollers_la_CFLAGS = \
 	-I$(top_srcdir)/src \

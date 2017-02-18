@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "MenuViewController.h"
+#include <ObjectivelyMVC/ViewController.h>
 
 /**
  * @file
@@ -34,7 +34,7 @@ typedef struct EditorViewControllerInterface EditorViewControllerInterface;
 
 /**
  * @brief The EditorViewController type.
- * @extends MenuViewController
+ * @extends ViewController
  * @ingroup ViewControllers
  */
 struct EditorViewController {
@@ -51,7 +51,6 @@ struct EditorViewController {
 	 */
 	EditorViewControllerInterface *interface;
 };
-
 
 /**
  * @brief The EditorViewController interface.
