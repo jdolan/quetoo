@@ -57,7 +57,7 @@ static void didSetValue(Slider *slider) {
 	} else if (slider == view->parallaxSlider) {
 		view->material->cm->parallax = view->parallaxSlider->value;
 	} else {
-		Com_Debug(DEBUG_UI, "Unknown Slider %p\n", slider);
+		Com_Debug(DEBUG_UI, "Unknown Slider %p\n", (void *) slider);
 	}
 }
 

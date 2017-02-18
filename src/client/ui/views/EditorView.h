@@ -125,4 +125,4 @@ struct EditorViewInterface {
  * @return The EditorView Class.
  * @memberof EditorView
  */
-OBJECTIVELY_EXPORT Class *_EditorView(void);
+Class *_EditorView(void);

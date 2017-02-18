@@ -98,7 +98,7 @@ static void updateBindings(View *self) {
  * @brief Adds a new Label and the specified Control to the given View.
  * @remarks This function releases the Control for convenience.
  */
-void addInput(View *view, const char *label, Control *control) {
+static void addInput(View *view, const char *label, Control *control) {
 
 	assert(view);
 	assert(control);

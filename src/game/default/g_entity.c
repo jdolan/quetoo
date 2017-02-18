@@ -522,6 +522,9 @@ static void G_InitMedia(void) {
 
 	for (i = 0; i < NUM_GIB_MODELS; i++) {
 		g_media.models.gibs[i] = gi.ModelIndex(va("models/gibs/gib_%i/tris", i + 1));
+	}
+
+	for (i = 0; i < NUM_GIB_SOUNDS; i++) {
 		g_media.sounds.gib_hits[i] = gi.SoundIndex(va("gibs/gib_%i/hit", i + 1));
 	}
 

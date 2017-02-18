@@ -729,7 +729,8 @@ typedef struct {
 
 extern g_game_t g_game;
 
-#define NUM_GIB_MODELS 3
+#define NUM_GIB_MODELS 4
+#define NUM_GIB_SOUNDS 3
 
 // for match status bitmasking
 #define MSTAT_WARMUP		0
@@ -760,7 +761,7 @@ typedef struct {
 	} models;
 
 	struct g_media_sounds_t {
-		uint16_t gib_hits[NUM_GIB_MODELS];
+		uint16_t gib_hits[NUM_GIB_SOUNDS];
 
 		uint16_t bfg_hit;
 		uint16_t bfg_prime;
