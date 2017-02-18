@@ -49,6 +49,21 @@ _Bool Parse_IsEOL(const parser_t *parser) {
 }
 
 /**
+ * @brief Trigger a column increase
+ */
+static void Parse_NextColumn(parser_t *parser, const size_t len) {
+	parser->col += len;
+}
+
+/**
+ * @brief Trigger a row increase
+ */
+static void Parse_NextRow(parser_t *parser, const size_t len) {
+	parser->row += len;
+	parser->col = 0;
+}
+
+/**
  * @brief Attempt to skip whitespace and find the start of a new token. The cursor will either be positioned
  * at the start of a non-control character or at a newline if flags tell them not to traverse them.
  */
@@ -67,9 +82,14 @@ static _Bool Parse_SkipWhitespace(parser_t *parser, const parse_flags_t flags) {
 			if (flags & PARSE_NO_WRAP) {
 				return false;
 			}
+
+			if (c == '\n') {
+				Parse_NextRow(parser, 1);
+			}
 		}
 
 		parser->position++;
+		Parse_NextColumn(parser, 1);
 	}
 
 	// made it!
@@ -78,6 +98,7 @@ static _Bool Parse_SkipWhitespace(parser_t *parser, const parse_flags_t flags) {
 
 /**
  * @brief Attempt to parse and skip a line comment that begins with the specified identifier.
+ * Returns true if we found any comments.
  */
 static _Bool Parse_SkipCommentLine(parser_t *parser, const char *identifier) {
 
@@ -86,6 +107,7 @@ static _Bool Parse_SkipCommentLine(parser_t *parser, const char *identifier) {
 	}
 
 	parser->position += strlen(identifier);
+	Parse_NextColumn(parser, 2);
 
 	while (true) {
 		char c = *parser->position;
@@ -94,14 +116,19 @@ static _Bool Parse_SkipCommentLine(parser_t *parser, const char *identifier) {
 			return false;
 		}
 
-		_Bool skipped = false;
+		size_t skipped = 0;
 
 		while (c == '\r' || c == '\n') {
-			skipped = true; // reached one!
+
+			if (c == '\n') {
+				skipped++; // reached one!
+			}
+
 			c = *(++parser->position);
 		}
 
 		if (skipped) {
+			Parse_NextRow(parser, skipped);
 			return true;
 		}
 	}
@@ -111,6 +138,7 @@ static _Bool Parse_SkipCommentLine(parser_t *parser, const char *identifier) {
 
 /**
  * @brief Attempt to parse and skip a block comment that begins with the specified identifier.
+ * Returns true if we found any comments.
  */
 static _Bool Parse_SkipCommentBlock(parser_t *parser, const char *start, const char *end) {
 
@@ -119,6 +147,7 @@ static _Bool Parse_SkipCommentBlock(parser_t *parser, const char *start, const c
 	}
 
 	parser->position += strlen(start);
+	Parse_NextColumn(parser, strlen(start));
 
 	while (true) {
 		char c = *parser->position;
@@ -129,7 +158,16 @@ static _Bool Parse_SkipCommentBlock(parser_t *parser, const char *start, const c
 
 		if (!g_strcmp0(parser->position, end)) {
 			parser->position += strlen(end); // found it!
+			Parse_NextColumn(parser, strlen(end));
 			return true;
+		}
+
+		parser->position++;
+
+		if (c == '\n') {
+			Parse_NextRow(parser, 1);
+		} else {
+			Parse_NextColumn(parser, 1);
 		}
 	}
 
@@ -145,16 +183,25 @@ static _Bool Parse_SkipComments(parser_t *parser) {
 
 	while (true) {
 		char c = *parser->position;
+		_Bool parsed_comments = false;
 
 		if (c == '/') {
-			if (!Parse_SkipCommentLine(parser, "//") && !Parse_SkipCommentBlock(parser, "/*", "*/")) {
-				break;
+			
+			if (!parsed_comments && (parser->flags & PARSER_C_LINE_COMMENTS)) {
+				parsed_comments = Parse_SkipCommentLine(parser, "//") || parsed_comments;
+			}
+			
+			if (!parsed_comments && (parser->flags & PARSER_C_BLOCK_COMMENTS)) {
+				parsed_comments = Parse_SkipCommentBlock(parser, "/*", "*/") || parsed_comments;
 			}
 		} else if (c == '#') {
-			if (!Parse_SkipCommentLine(parser, "#")) {
-				break;
+
+			if (!parsed_comments && (parser->flags & PARSER_POUND_LINE_COMMENTS)) {
+				parsed_comments = Parse_SkipCommentLine(parser, "#") || parsed_comments;
 			}
-		} else {
+		}
+
+		if (!parsed_comments) {
 			break;
 		}
 
@@ -196,6 +243,7 @@ static _Bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags
 
 	while (true) {
 		c = *(++parser->position);
+		Parse_NextColumn(parser, 1);
 
 		if (c == '\0') {
 			return false;
@@ -233,6 +281,7 @@ static _Bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags
 					}
 
 					parser->position++; // skip the next one since we're valid and parsed it above
+					Parse_NextColumn(parser, 1);
 					continue; // go right from after this bit
 				}
 			}
@@ -243,11 +292,15 @@ static _Bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags
 				return false;
 			}
 
+			Parse_NextColumn(parser, 1);
 			continue; // go to next char
 		} else if (c == '"') {
 			// eat the char and we're done!
 			parser->position++;
+			Parse_NextColumn(parser, 1);
 			break;
+		} else if (c == '\n') {
+			Parse_NextRow(parser, 1);
 		}
 
 		// regular char, just append
@@ -306,6 +359,7 @@ _Bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, con
 			}
 
 			c = *(++parser->position);
+			Parse_NextColumn(parser, 1);
 		}
 	}
 

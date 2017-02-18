@@ -43,6 +43,11 @@ typedef enum {
 	PARSER_C_BLOCK_COMMENTS = 2,
 
 	/**
+	 * @brief Have pound line comments # act as a comment (ignored by parser)
+	 */
+	PARSER_POUND_LINE_COMMENTS = 4,
+
+	/**
 	 * @brief Default parser settings
 	 */
 	PARSER_DEFAULT = PARSER_C_LINE_COMMENTS,
@@ -61,6 +66,7 @@ typedef struct {
 	// dynamic members, change through parsing
 	const char *position;
 	char scratch[3 + DBL_MANT_DIG - DBL_MIN_EXP + 1]; // enough to hold one full double plus \0
+	uint32_t row, col;
 } parser_t;
 
 /**
