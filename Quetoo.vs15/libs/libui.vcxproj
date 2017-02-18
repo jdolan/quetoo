@@ -26,7 +26,6 @@
     <ClInclude Include="..\..\src\client\ui\ui_main.h" />
     <ClInclude Include="..\..\src\client\ui\ui_types.h" />
     <ClInclude Include="..\..\src\client\ui\viewcontrollers\EditorViewController.h" />
-    <ClInclude Include="..\..\src\client\ui\viewcontrollers\MenuViewController.h" />
     <ClInclude Include="..\..\src\client\ui\views\EditorView.h" />
   </ItemGroup>
   <ItemGroup>
@@ -34,7 +33,6 @@
     <ClCompile Include="..\..\src\client\ui\ui_editor.c" />
     <ClCompile Include="..\..\src\client\ui\ui_main.c" />
     <ClCompile Include="..\..\src\client\ui\viewcontrollers\EditorViewController.c" />
-    <ClCompile Include="..\..\src\client\ui\viewcontrollers\MenuViewController.c" />
     <ClCompile Include="..\..\src\client\ui\views\EditorView.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -30,9 +30,6 @@
     <ClInclude Include="..\..\src\client\ui\ui_editor.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\client\ui\viewcontrollers\MenuViewController.h">
-      <Filter>src\viewcontrollers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\client\ui\viewcontrollers\EditorViewController.h">
       <Filter>src\viewcontrollers</Filter>
     </ClInclude>
@@ -49,9 +46,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\client\ui\ui_editor.c">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\client\ui\viewcontrollers\MenuViewController.c">
-      <Filter>src\viewcontrollers</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\client\ui\viewcontrollers\EditorViewController.c">
       <Filter>src\viewcontrollers</Filter>
