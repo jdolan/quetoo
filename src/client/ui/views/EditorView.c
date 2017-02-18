@@ -60,7 +60,11 @@ static void updateBindings(View *self) {
 	const cm_trace_t tr = Cl_Trace(r_view.origin, end, NULL, NULL, 0, MASK_SOLID);
 
 	if (tr.fraction < 1.0) {
-		this->material = R_LoadMaterial(tr.surface->material->diffuse);
+		if (tr.surface->material) {
+			this->material = R_LoadMaterial(tr.surface->material->diffuse);
+		} else {
+			this->material = NULL;
+		}
 	} else {
 		this->material = NULL;
 	}
@@ -74,6 +78,15 @@ static void updateBindings(View *self) {
 		$(this->hardnessSlider, setValue, (double) this->material->cm->hardness);
 		$(this->specularSlider, setValue, (double) this->material->cm->specular);
 		$(this->parallaxSlider, setValue, (double) this->material->cm->parallax);
+	} else {
+		strcpy(this->materialName->defaultText, "none");
+		strcpy(this->diffuseTexture->defaultText, "none");
+		strcpy(this->normalmapTexture->defaultText, "none");
+
+		$(this->bumpSlider, setValue, DEFAULT_BUMP);
+		$(this->hardnessSlider, setValue, DEFAULT_HARDNESS);
+		$(this->specularSlider, setValue, DEFAULT_SPECULAR);
+		$(this->parallaxSlider, setValue, DEFAULT_PARALLAX);
 	}
 }
 
