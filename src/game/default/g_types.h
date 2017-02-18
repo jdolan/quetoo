@@ -27,7 +27,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1016
+#define PROTOCOL_MINOR 1017
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -196,6 +196,7 @@ typedef enum {
 	TE_BFG,
 	TE_GIB,
 	TE_RIPPLE,
+	TE_HOOK_IMPACT,
 } g_temp_entity_t;
 
 /**
@@ -1094,7 +1095,7 @@ typedef struct {
 
 	_Bool show_scores; // sets layout bit mask in player state
 	uint32_t scores_time; // eligible for scores when time > this
-	
+
 	uint32_t regen_time; // time for regeneration?
 	uint32_t tech_sound_time; // next time we can play sound
 } g_client_locals_t;

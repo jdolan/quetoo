@@ -1207,7 +1207,7 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 			gi.Sound(self, g_media.sounds.hook_hit, ATTEN_NORM);
 
 			gi.WriteByte(SV_CMD_TEMP_ENTITY);
-			gi.WriteByte(TE_SPARKS);
+			gi.WriteByte(TE_HOOK_IMPACT);
 			gi.WritePosition(self->s.origin);
 			gi.WriteDir(plane->normal);
 			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
