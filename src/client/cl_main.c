@@ -686,20 +686,20 @@ void Cl_Init(void) {
 
 
 	// TEMP
-	const char *parse_data = "hey there. eat my tokens. \"quoted string???? pls\" 4.0 5.0 1.0";
+	const char *parse_data = "hey there. eat my tokens. \"quoted string???? pls\" 4.0 5.0\n1.0";
 	parser_t parser;
 	char token[MAX_TOKEN_CHARS];
 
-	Parser_Init(&parser, parse_data, PARSER_DEFAULT);
-	Parser_ParseToken(&parser, PARSE_DEFAULT, token, sizeof(token));
-	Parser_ParseToken(&parser, PARSE_DEFAULT, token, sizeof(token));
-	Parser_ParseToken(&parser, PARSE_DEFAULT, token, sizeof(token));
-	Parser_ParseToken(&parser, PARSE_DEFAULT, token, sizeof(token));
-	Parser_ParseToken(&parser, PARSE_DEFAULT, token, sizeof(token));
-	Parser_ParseToken(&parser, PARSE_DEFAULT, token, sizeof(token));
+	Parse_Init(&parser, parse_data, PARSER_DEFAULT);
+	Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token));
+	Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token));
+	Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token));
+	Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token));
+	Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token));
+	Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token));
 
 	vec3_t vec;
-	Parser_ParseData(&parser, PARSE_FLOAT, 3, PARSE_DEFAULT, vec);
+	Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, vec, 3);
 }
 
 /**

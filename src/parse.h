@@ -81,7 +81,7 @@ typedef enum {
 	 * @brief Don't traverse line returns. This causes parses to return false and 
 	 * Parse_EndOfLine to return true if we're waiting for a regular parse to move forward.
 	 */
-	PARSE_NO_RETURNS = 2
+	PARSE_NO_WRAP = 2
 } parse_flags_t;
 
 /**
@@ -98,8 +98,8 @@ typedef enum {
 	PARSE_DOUBLE
 } parse_type_t;
 
-void Parser_Init(parser_t *parser, const char *data, const parser_flags_t flags);
-_Bool Parser_IsEOF(const parser_t *parser);
-_Bool Parser_IsEOL(const parser_t *parser);
-_Bool Parser_ParseToken(parser_t *parser, const parse_flags_t flags, char *output, const size_t output_len);
-_Bool Parser_ParseData(parser_t *parser, const parse_flags_t flags, const parse_type_t type, const size_t num_vecs, void *output);
+void Parse_Init(parser_t *parser, const char *data, const parser_flags_t flags);
+_Bool Parse_IsEOF(const parser_t *parser);
+_Bool Parse_IsEOL(const parser_t *parser);
+_Bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, const size_t output_len);
+size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_type_t type, void *output, const size_t count);
