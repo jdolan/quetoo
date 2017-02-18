@@ -683,23 +683,6 @@ void Cl_Init(void) {
 	Cl_InitCgame();
 
 	Cl_SetKeyDest(KEY_UI);
-
-
-	// TEMP
-	const char *parse_data = "hey there. eat my tokens. \"quoted string???? pls\" 4.0 5.0\n1.0";
-	parser_t parser;
-	char token[MAX_TOKEN_CHARS];
-
-	Parse_Init(&parser, parse_data, PARSER_DEFAULT);
-	Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token));
-	Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token));
-	Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token));
-	Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token));
-	Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token));
-	Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token));
-
-	vec3_t vec;
-	Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, vec, 3);
 }
 
 /**

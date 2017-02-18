@@ -20,6 +20,7 @@
  */
 
 #include "common.h"
+#include "parse.h"
 
 /**
  * @brief Sets up a log file that will be used for debugging issues
@@ -42,6 +43,9 @@ static void Com_LogString(const char *str) {
 	fprintf(quetoo.log_file, "%s", str);
 	fflush(quetoo.log_file);
 }
+
+// max len we'll try to parse for a category
+#define DEBUG_CATEGORY_MAX_LEN	32
 
 static const char *DEBUG_CATEGORIES[] = {
 	"ai",
@@ -88,24 +92,26 @@ const char *Com_GetDebug(void) {
  */
 void Com_SetDebug(const char *debug) {
 
-	const char *buf = debug;
+	static char token[DEBUG_CATEGORY_MAX_LEN];
+	static parser_t parser;
+
+	Parse_Init(&parser, debug, PARSER_NO_COMMENTS);
+
 	while (true) {
 
-		const char *c = ParseToken(&buf);
-
-		if (*c == '\0') {
+		if (!Parse_Token(&parser, PARSE_NO_WRAP, token, sizeof(token))) {
 			break;
 		}
 
-		if (!g_strcmp0(c, "none") || !g_strcmp0(c, "0")) {
+		if (!g_strcmp0(token, "none") || !g_strcmp0(token, "0")) {
 			quetoo.debug_mask = 0;
-		} else if (!g_strcmp0(c, "breakpoint") || !g_strcmp0(c, "bp")) {
+		} else if (!g_strcmp0(token, "breakpoint") || !g_strcmp0(token, "bp")) {
 			quetoo.debug_mask ^= DEBUG_BREAKPOINT;
-		} else if (!g_strcmp0(c, "any") || !g_strcmp0(c, "all")) {
+		} else if (!g_strcmp0(token, "any") || !g_strcmp0(token, "all")) {
 			quetoo.debug_mask ^= DEBUG_ALL;
 		} else {
 			for (size_t i = 0; i < lengthof(DEBUG_CATEGORIES); i++) {
-				if (!g_strcmp0(c, DEBUG_CATEGORIES[i])) {
+				if (!g_strcmp0(token, DEBUG_CATEGORIES[i])) {
 					quetoo.debug_mask ^= (1 << i);
 				}
 			}
