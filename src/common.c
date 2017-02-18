@@ -60,7 +60,8 @@ static const char *DEBUG_CATEGORIES[] = {
 	"pmove_server",
 	"renderer",
 	"server",
-	"sound"
+	"sound",
+	"ui"
 };
 
 /**
@@ -488,12 +489,12 @@ com_autocomplete_match_t *Com_AllocMatch(const char *name, const char *descripti
 
 	match->name = Mem_CopyString(name);
 	Mem_Link(match, match->name);
-	
+
 	if (description) {
 		match->description = Mem_CopyString(description);
 		Mem_Link(match, match->description);
 	}
-	
+
 	return match;
 }
 

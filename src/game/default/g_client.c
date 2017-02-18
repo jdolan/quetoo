@@ -300,23 +300,33 @@ static void G_ClientCorpse_Think(g_entity_t *self) {
 static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
                                uint32_t mod) {
 
-	const vec3_t mins[] = { { -3.0, -3.0, -3.0 }, { -6.0, -6.0, -6.0 }, { -9.0, -9.0, -9.0 } };
-	const vec3_t maxs[] = { { 3.0, 3.0, 3.0 }, { 6.0, 6.0, 6.0 }, { 9.0, 9.0, 9.0 } };
+	const vec3_t mins[] = { { -6.0, -6.0, -6.0 }, { -6.0, -6.0, -6.0 }, { -4.0, -4.0, -4.0 }, { -8.0, -8.0, -8.0 } };
+	const vec3_t maxs[] = { { 6.0, 6.0, 6.0 }, { 6.0, 6.0, 6.0 }, { 4.0, 4.0, 4.0 }, { 8.0, 8.0, 8.0 } };
 
-	uint16_t i, count = 3 + Random() % 3;
+	uint16_t i, count = 4 + Random() % 4;
 
 	for (i = 0; i < count; i++) {
+		int32_t gib_index;
+		
+		if (i == 0) { // 0 is always chest
+			gib_index = (NUM_GIB_MODELS - 1);
+		} else if (i == 1 && !self->client) { // if we're not client, drop a head
+			gib_index = 2;
+		} else { // pick forearm/femur
+			gib_index = (Random() % (NUM_GIB_MODELS - 2));
+		}
+
 		g_entity_t *ent = G_AllocEntity();
 
 		VectorCopy(self->s.origin, ent->s.origin);
 
-		VectorCopy(mins[i % NUM_GIB_MODELS], ent->mins);
-		VectorCopy(maxs[i % NUM_GIB_MODELS], ent->maxs);
+		VectorCopy(mins[gib_index], ent->mins);
+		VectorCopy(maxs[gib_index], ent->maxs);
 
 		ent->solid = SOLID_DEAD;
 
-		ent->s.model1 = g_media.models.gibs[i % NUM_GIB_MODELS];
-		ent->locals.noise_index = g_media.sounds.gib_hits[i % NUM_GIB_MODELS];
+		ent->s.model1 = g_media.models.gibs[gib_index];
+		ent->locals.noise_index = g_media.sounds.gib_hits[i % NUM_GIB_SOUNDS];
 
 		VectorCopy(self->locals.velocity, ent->locals.velocity);
 
@@ -333,7 +343,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 
 		ent->locals.clip_mask = MASK_CLIP_CORPSE;
 		ent->locals.dead = true;
-		ent->locals.mass = ((i % NUM_GIB_MODELS) + 1) * 20.0;
+		ent->locals.mass = (gib_index + 1) * 20.0;
 		ent->locals.move_type = MOVE_TYPE_BOUNCE;
 		ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 		ent->locals.take_damage = true;

@@ -114,6 +114,7 @@ typedef enum {
 	DEBUG_RENDERER		= 1 << 10,
 	DEBUG_SERVER		= 1 << 11,
 	DEBUG_SOUND			= 1 << 12,
+	DEBUG_UI			= 1 << 13,
 
 	DEBUG_BREAKPOINT	= (int32_t) (1u << 31),
 	DEBUG_ALL			= (int32_t) (0xFFFFFFFF & ~DEBUG_BREAKPOINT),
