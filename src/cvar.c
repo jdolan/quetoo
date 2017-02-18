@@ -132,7 +132,7 @@ static const char *Cvar_Stringify(const cvar_t *var) {
 		modifiers = g_list_append(modifiers, "^5serverinfo");
 	}
 
-	if (var->flags & CVAR_LO_ONLY) {
+	if (var->flags & CVAR_DEVELOPER) {
 		modifiers = g_list_append(modifiers, "^1developer^7");
 	}
 
@@ -309,10 +309,9 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 			}
 		}
 
-		// local-only variables can not be modified when in multiplayer mode
-		if (var->flags & CVAR_LO_ONLY) {
-			const int32_t clients = Cvar_GetValue("sv_max_clients");
-			if (clients > 1 || (Com_WasInit(QUETOO_CLIENT) && !Com_WasInit(QUETOO_SERVER))) {
+		// developer variables can not be modified when in multiplayer mode
+		if (var->flags & CVAR_DEVELOPER) {
+			if (!Com_WasInit(QUETOO_SERVER)) {
 				Com_Print("%s is only available offline.\n", name);
 				return var;
 			}
@@ -458,11 +457,11 @@ cvar_t *Cvar_Toggle(const char *name) {
 }
 
 /**
- * @brief Enumeration helper for Cvar_ResetLocal.
+ * @brief Enumeration helper for Car_ResetDeveloper.
  */
-static void Cvar_ResetLocal_enumerate(cvar_t *var, void *data) {
+static void Car_ResetDeveloper_enumerate(cvar_t *var, void *data) {
 
-	if (var->flags & CVAR_LO_ONLY) {
+	if (var->flags & CVAR_DEVELOPER) {
 		if (var->default_value) {
 			Cvar_FullSet(var->name, var->default_value, var->flags);
 		}
@@ -470,14 +469,12 @@ static void Cvar_ResetLocal_enumerate(cvar_t *var, void *data) {
 }
 
 /**
- * @brief Reset CVAR_LO_ONLY to their default values.
+ * @brief Reset CVAR_DEVELOPER to their default values.
  */
-void Cvar_ResetLocal(void) {
+void Car_ResetDeveloper(void) {
 
-	const int32_t clients = Cvar_GetValue("sv_max_clients");
-
-	if (clients > 1 || (Com_WasInit(QUETOO_CLIENT) && !Com_WasInit(QUETOO_SERVER))) {
-		Cvar_Enumerate(Cvar_ResetLocal_enumerate, NULL);
+	if (!Com_WasInit(QUETOO_SERVER)) {
+		Cvar_Enumerate(Car_ResetDeveloper_enumerate, NULL);
 	}
 }
 

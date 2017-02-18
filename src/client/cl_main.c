@@ -534,12 +534,12 @@ static void Cl_InitLocal(void) {
 	// register our variables
 	cl_chat_sound = Cvar_Add("cl_chat_sound", "misc/chat", 0, NULL);
 	cl_draw_counters = Cvar_Add("cl_draw_counters", "1", CVAR_ARCHIVE, NULL);
-	cl_draw_position = Cvar_Add("cl_draw_position", "0", CVAR_LO_ONLY, "Draw your current position to the screen");
+	cl_draw_position = Cvar_Add("cl_draw_position", "0", CVAR_DEVELOPER, "Draw your current position to the screen");
 	cl_draw_net_graph = Cvar_Add("cl_draw_net_graph", "1", CVAR_ARCHIVE, NULL);
-	cl_editor = Cvar_Add("cl_editor", "0", CVAR_LO_ONLY, "Activate the in-game editor");
+	cl_editor = Cvar_Add("cl_editor", "0", CVAR_DEVELOPER, "Activate the in-game editor");
 	cl_ignore = Cvar_Add("cl_ignore", "", 0, NULL);
 	cl_max_fps = Cvar_Add("cl_max_fps", "0", CVAR_ARCHIVE, NULL);
-	cl_no_lerp = Cvar_Add("cl_no_lerp", "0", CVAR_LO_ONLY, "Disable frame interpolation (developer tool)");
+	cl_no_lerp = Cvar_Add("cl_no_lerp", "0", CVAR_DEVELOPER, "Disable frame interpolation (developer tool)");
 	cl_team_chat_sound = Cvar_Add("cl_team_chat_sound", "misc/teamchat", 0, NULL);
 	cl_timeout = Cvar_Add("cl_timeout", "15.0", 0, NULL);
 
@@ -555,9 +555,9 @@ static void Cl_InitLocal(void) {
 	rcon_address = Cvar_Add("rcon_address", "", 0, NULL);
 	rcon_password = Cvar_Add("rcon_password", "", 0, NULL);
 
-	cl_show_net_messages = Cvar_Add("cl_show_net_messages", "0", CVAR_LO_ONLY, NULL);
-	cl_show_renderer_stats = Cvar_Add("cl_show_renderer_stats", "0", CVAR_LO_ONLY, NULL);
-	cl_show_sound_stats = Cvar_Add("cl_show_sound_stats", "0", CVAR_LO_ONLY, NULL);
+	cl_show_net_messages = Cvar_Add("cl_show_net_messages", "0", CVAR_DEVELOPER, NULL);
+	cl_show_renderer_stats = Cvar_Add("cl_show_renderer_stats", "0", CVAR_DEVELOPER, NULL);
+	cl_show_sound_stats = Cvar_Add("cl_show_sound_stats", "0", CVAR_DEVELOPER, NULL);
 
 	// register our commands
 	Cmd_Add("ping", Cl_Ping_f, CMD_CLIENT, NULL);

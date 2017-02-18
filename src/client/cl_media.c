@@ -56,8 +56,8 @@ void Cl_RequestNextDownload(void) {
 	}
 
 	// we're good to go, lock and load (literally)
-	
-	Cvar_ResetLocal();
+
+	Car_ResetDeveloper();
 
 	Cl_LoadMedia();
 
