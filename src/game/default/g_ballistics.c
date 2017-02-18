@@ -253,7 +253,7 @@ static void G_ProjectImpactPoint(const g_entity_t *projectile, const g_entity_t 
 
 			vec3_t delta;
 			VectorSubtract(rotate, translate, delta);
-			
+
 			VectorAdd(point, delta, point);
 		}
 	}
@@ -1205,6 +1205,12 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 			}
 
 			gi.Sound(self, g_media.sounds.hook_hit, ATTEN_NORM);
+
+			gi.WriteByte(SV_CMD_TEMP_ENTITY);
+			gi.WriteByte(TE_SPARKS);
+			gi.WritePosition(self->s.origin);
+			gi.WriteDir(plane->normal);
+			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
 		} else {
 
 			VectorNormalize(self->locals.velocity);
