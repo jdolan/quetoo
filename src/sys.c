@@ -191,7 +191,10 @@ void Sys_Backtrace(const char *msg) {
 
 	SDL_TriggerBreakpoint();
 
-#elif HAVE_EXECINFO
+#endif
+
+#if HAVE_EXECINFO
+
 	void *symbols[MAX_BACKTRACE_SYMBOLS];
 
 	const int32_t count = backtrace(symbols, MAX_BACKTRACE_SYMBOLS);
@@ -223,6 +226,7 @@ void Sys_Backtrace(const char *msg) {
 	};
 
 #endif
+
 	const SDL_MessageBoxData data = {
 		.flags = SDL_MESSAGEBOX_ERROR,
 		.window = NULL,
@@ -240,9 +244,11 @@ void Sys_Backtrace(const char *msg) {
 	}
 
 #if defined(_MSC_VER)
+
 	if (button == 1) {
 		RaiseException(EXCEPTION_NONCONTINUABLE_EXCEPTION, EXCEPTION_NONCONTINUABLE, 0, NULL);
 	}
+
 #endif
 }
 
