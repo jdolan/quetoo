@@ -890,7 +890,7 @@ static void Cg_SplashEffect(const vec3_t org, const vec3_t dir) {
 /**
  * @brief
  */
-void Cg_HookImpactEffect(const vec3_t org, const vec3_t dir) {
+static void Cg_HookImpactEffect(const vec3_t org, const vec3_t dir) {
 
 	for (int32_t i = 0; i < 32; i++) {
 		cg_particle_t *p;
