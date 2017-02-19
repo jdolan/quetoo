@@ -51,6 +51,11 @@ typedef enum {
 	 * @brief Default parser settings
 	 */
 	PARSER_DEFAULT = PARSER_C_LINE_COMMENTS,
+
+	/**
+	 * @brief Allow all comments
+	 */
+	PARSER_ALL_COMMENTS = PARSER_C_LINE_COMMENTS | PARSER_C_BLOCK_COMMENTS | PARSER_POUND_LINE_COMMENTS
 } parser_flags_t;
 
 /**
