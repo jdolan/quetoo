@@ -20,6 +20,7 @@
  */
 
 #include "cg_local.h"
+#include "parse.h"
 
 /**
  * @file Emits are client-sided entities for emitting lights, particles, coronas,
@@ -84,23 +85,27 @@ void Cg_LoadEmits(void) {
 
 	e = NULL;
 
+	char token[MAX_BSP_ENTITY_VALUE];
+	parser_t parser;
+
+	Parse_Init(&parser, ents, PARSER_DEFAULT);
+
 	while (true) {
 
-		const char *c = ParseToken(&ents);
-
-		if (*c == '\0') {
+		if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
 			break;
 		}
 
-		if (*c == '{') {
+		if (*token == '{') {
 			entity = true;
+			continue;
 		}
 
 		if (!entity) { // skip any whitespace between ents
 			continue;
 		}
 
-		if (*c == '}') {
+		if (*token == '}') {
 			entity = false;
 
 			if (emit) {
@@ -239,90 +244,150 @@ void Cg_LoadEmits(void) {
 			}
 
 			emit = false;
+			continue;
 		}
 
-		if (!g_strcmp0(c, "classname")) {
+		if (!g_strcmp0(token, "classname")) {
 
-			c = ParseToken(&ents);
-			g_strlcpy(class_name, c, sizeof(class_name));
+			if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
+				break;
+			}
 
-			if (!g_strcmp0(c, "misc_emit") || !g_strcmp0(c, "misc_model")) {
+			if (!g_strcmp0(token, "misc_emit") || !g_strcmp0(token, "misc_model")) {
 				emit = true;
 			}
+
+			continue;
 		}
 
 		e = &cg_emits[cg_num_emits];
 
-		if (!g_strcmp0(c, "flags") || !g_strcmp0(c, "spawnflags")) {
-			e->flags = atoi(ParseToken(&ents));
+		if (!g_strcmp0(token, "flags") || !g_strcmp0(token, "spawnflags")) {
+
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_INT32, &e->flags, 1)) {
+				break;
+			}
+
 			continue;
 		}
 
-		if (!g_strcmp0(c, "origin")) {
-			sscanf(ParseToken(&ents), "%f %f %f", &e->org[0], &e->org[1], &e->org[2]);
+		if (!g_strcmp0(token, "origin")) {
+
+			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES, PARSE_FLOAT, e->org, 3) != 3) {
+				break;
+			}
+
 			continue;
 		}
 
-		if (!g_strcmp0(c, "angles")) { // resolve angles and directional vector
-			sscanf(ParseToken(&ents), "%f %f %f", &e->angles[0], &e->angles[1], &e->angles[2]);
+		if (!g_strcmp0(token, "angles")) { // resolve angles and directional vector
+
+			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES, PARSE_FLOAT, e->angles, 3) != 3) {
+				break;
+			}
+
 			AngleVectors(e->angles, e->dir, NULL, NULL);
 			continue;
 		}
 
-		if (!g_strcmp0(c, "color")) { // resolve color as vector
-			sscanf(ParseToken(&ents), "%f %f %f", &e->color[0], &e->color[1], &e->color[2]);
+		if (!g_strcmp0(token, "color")) { // resolve color as vector
+
+			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES, PARSE_FLOAT, e->color, 3) != 3) {
+				break;
+			}
+
 			continue;
 		}
 
-		if (!g_strcmp0(c, "hz")) {
-			e->hz = atof(ParseToken(&ents));
+		if (!g_strcmp0(token, "hz")) {
+
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, &e->hz, 1)) {
+				break;
+			}
+
 			continue;
 		}
 
-		if (!g_strcmp0(c, "drift")) {
-			e->drift = atof(ParseToken(&ents));
+		if (!g_strcmp0(token, "drift")) {
+
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, &e->drift, 1)) {
+				break;
+			}
+
 			continue;
 		}
 
-		if (!g_strcmp0(c, "radius")) {
-			e->radius = atof(ParseToken(&ents));
+		if (!g_strcmp0(token, "radius")) {
+
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, &e->radius, 1)) {
+				break;
+			}
+
 			continue;
 		}
 
-		if (!g_strcmp0(c, "flicker")) {
-			e->flicker = atof(ParseToken(&ents));
+		if (!g_strcmp0(token, "flicker")) {
+
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, &e->flicker, 1)) {
+				break;
+			}
+
 			continue;
 		}
 
-		if (!g_strcmp0(c, "scale")) {
-			sscanf(ParseToken(&ents), "%f", &e->scale);
+		if (!g_strcmp0(token, "scale")) {
+
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, &e->scale, 1)) {
+				break;
+			}
+
 			continue;
 		}
 
-		if (!g_strcmp0(c, "count")) {
-			e->count = atoi(ParseToken(&ents));
+		if (!g_strcmp0(token, "count")) {
+
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_INT32, &e->count, 1)) {
+				break;
+			}
+
 			continue;
 		}
 
-		if (!g_strcmp0(c, "sound")) {
-			g_snprintf(e->sound, sizeof(e->sound), "%s", ParseToken(&ents));
+		if (!g_strcmp0(token, "sound")) {
+
+			if (!Parse_Token(&parser, PARSE_DEFAULT, e->sound, sizeof(e->sound))) {
+				break;
+			}
+
 			e->sample = cgi.LoadSample(e->sound);
 			continue;
 		}
 
-		if (!g_strcmp0(c, "attenuation") || !g_strcmp0(c, "atten")) {
-			e->atten = atoi(ParseToken(&ents));
+		if (!g_strcmp0(token, "attenuation") || !g_strcmp0(token, "atten")) {
+
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_INT32, &e->atten, 1)) {
+				break;
+			}
+
 			continue;
 		}
 
-		if (!g_strcmp0(c, "model")) {
-			g_strlcpy(e->model, ParseToken(&ents), sizeof(e->model));
+		if (!g_strcmp0(token, "model")) {
+
+			if (!Parse_Token(&parser, PARSE_DEFAULT, e->model, sizeof(e->model))) {
+				break;
+			}
+
 			e->mod = cgi.LoadModel(e->model);
 			continue;
 		}
 
-		if (!g_strcmp0(c, "velocity")) {
-			sscanf(ParseToken(&ents), "%f %f %f", &e->vel[0], &e->vel[1], &e->vel[2]);
+		if (!g_strcmp0(token, "velocity")) {
+
+			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES, PARSE_FLOAT, e->vel, 3) != 3) {
+				break;
+			}
+
 			continue;
 		}
 	}
