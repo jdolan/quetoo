@@ -333,7 +333,7 @@ static _Bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags
  * @returns false if the token cannot fit in the specified buffer, true if the parsing has succeeded.
  */
 _Bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, const size_t output_len) {
-	static __thread parser_position_t old_position;
+	parser_position_t old_position;
 
 	if (flags & PARSE_PEEK) {
 		old_position = parser->position;
@@ -457,8 +457,7 @@ static _Bool Parse_TypeParse(const parse_type_t type, const char *input, void *o
  * @returns false if the specified data type cannot be parsed from the specified position in the parser.
  */
 size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_type_t type, void *output, const size_t count) {
-	static __thread parser_position_t old_position;
-	static __thread char scratch[3 + DBL_MANT_DIG - DBL_MIN_EXP + 1]; // enough to hold one full double plus \0
+	parser_position_t old_position;
 	const size_t type_size = Parse_TypeSize(type);
 	size_t num_parsed = 0;
 
@@ -472,29 +471,29 @@ size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_
 
 	const parse_flags_t prim_flags = ((flags & PARSE_WITHIN_QUOTES) ? (flags | PARSE_RETAIN_QUOTES) : flags) & ~PARSE_PEEK;
 
-	if (!Parse_Token(parser, prim_flags, scratch, sizeof(scratch))) {
+	if (!Parse_Token(parser, prim_flags, parser->scratch, sizeof(parser->scratch))) {
 		return num_parsed;
 	}
 
 	// if we had quotes...
-	if (*scratch == '"' && (flags & PARSE_WITHIN_QUOTES)) {
+	if (*parser->scratch == '"' && (flags & PARSE_WITHIN_QUOTES)) {
 		parser_t sub_parser;
 
 		// init sub-parser without quotes
-		scratch[strlen(scratch) - 1] = '\0';
-		Parse_Init(&sub_parser, scratch + 1, parser->flags);
+		parser->scratch[strlen(parser->scratch) - 1] = '\0';
+		Parse_Init(&sub_parser, parser->scratch + 1, parser->flags);
 
 		num_parsed = Parse_Primitive(&sub_parser, flags & ~(PARSE_WITHIN_QUOTES | PARSE_PEEK), type, output, count);
 	} else {
 		for (size_t i = 0; i < count; i++, output += type_size) {
 
 			if (i != 0) { // 0 is parsed above for quote checking
-				if (!Parse_Token(parser, prim_flags, scratch, sizeof(scratch))) {
+				if (!Parse_Token(parser, prim_flags, parser->scratch, sizeof(parser->scratch))) {
 					return num_parsed;
 				}
 			}
 
-			if (!Parse_TypeParse(type, scratch, output)) {
+			if (!Parse_TypeParse(type, parser->scratch, output)) {
 				break;
 			}
 

@@ -72,6 +72,7 @@ typedef struct {
 	const char *start;
 
 	// dynamic members, change through parsing
+	char scratch[3 + DBL_MANT_DIG - DBL_MIN_EXP + 1]; // enough to hold one full double plus \0
 	parser_position_t position;
 } parser_t;
 

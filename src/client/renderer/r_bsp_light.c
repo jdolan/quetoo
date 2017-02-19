@@ -224,7 +224,7 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 	char token[MAX_BSP_ENTITY_VALUE];
 	parser_t parser;
 
-	Parse_Init(&parser, ents, PARSER_DEFAULT);
+	Parse_Init(&parser, ents, PARSER_NO_COMMENTS);
 
 	while (true) {
 
