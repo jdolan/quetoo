@@ -56,7 +56,7 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 
 	md3->animations = Mem_LinkMalloc(sizeof(r_md3_animation_t) * MD3_MAX_ANIMATIONS, mod->mesh);
 
-	Parse_Init(&parser, (char *) buf, PARSER_DEFAULT);
+	Parse_Init(&parser, (const char *) buf, PARSER_DEFAULT);
 
 	while (true) {
 
@@ -137,46 +137,55 @@ static void R_LoadMd3Animations(r_model_t *mod) {
  * @brief Loads the specified r_mesh_config_t from the file at path.
  */
 static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
-	const char *buffer, *c;
 	void *buf;
+	parser_t parser;
+	char token[MAX_STRING_CHARS];
 
 	if (Fs_Load(path, &buf) == -1) {
 		return;
 	}
 
-	buffer = (char *) buf;
+	Parse_Init(&parser, (const char *) buf, PARSER_DEFAULT);
 
 	while (true) {
 
-		c = ParseToken(&buffer);
-
-		if (*c == '\0') {
+		if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
 			break;
 		}
 
-		if (!g_strcmp0(c, "translate")) {
-			sscanf(ParseToken(&buffer), "%f %f %f", &config->translate[0], &config->translate[1],
-			       &config->translate[2]);
+		if (!g_strcmp0(token, "translate")) {
+			
+			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, config->translate, 3) != 3) {
+				break;
+			}
+
 			continue;
 		}
 
-		if (!g_strcmp0(c, "rotate")) {
-			sscanf(ParseToken(&buffer), "%f %f %f", &config->rotate[0], &config->rotate[1],
-			       &config->rotate[2]);
+		if (!g_strcmp0(token, "rotate")) {
+
+			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, config->rotate, 3) != 3) {
+				break;
+			}
+
 			continue;
 		}
 
-		if (!g_strcmp0(c, "scale")) {
-			sscanf(ParseToken(&buffer), "%f", &config->scale);
+		if (!g_strcmp0(token, "scale")) {
+
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, &config->scale, 1)) {
+				break;
+			}
+
 			continue;
 		}
 
-		if (!g_strcmp0(c, "alpha_test")) {
+		if (!g_strcmp0(token, "alpha_test")) {
 			config->flags |= EF_ALPHATEST;
 			continue;
 		}
 
-		if (!g_strcmp0(c, "blend")) {
+		if (!g_strcmp0(token, "blend")) {
 			config->flags |= EF_BLEND;
 			continue;
 		}

@@ -227,7 +227,7 @@ void Cmd_TokenizeString(const char *text) {
 
 		// set cmd_state.args to everything after the command name
 		if (cmd_state.args.argc == 1) {
-			g_strlcpy(cmd_state.args.args, parser.position + 1, MAX_STRING_CHARS);
+			g_strlcpy(cmd_state.args.args, parser.position.ptr + 1, MAX_STRING_CHARS);
 
 			// strip off any trailing whitespace
 			size_t l = strlen(cmd_state.args.args);
