@@ -293,7 +293,7 @@ static inline const char *Cm_BlendNameByConst(const GLenum c) {
  * @brief
  */
 static void Cm_MaterialWarn(const char *path, const parser_t *parser, const char *message) {
-	Com_Warn("%s: Syntax error (Ln %u Col %u)\n", path, parser->row + 1, parser->col);
+	Com_Warn("%s: Syntax error (Ln %u Col %u)\n", path, parser->position.row + 1, parser->position.col);
 
 	if (message) {
 		Com_Warn("  %s\n", message);

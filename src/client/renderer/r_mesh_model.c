@@ -20,6 +20,7 @@
  */
 
 #include "r_local.h"
+#include "parse.h"
 
 /**
  * @brief Resolves the skin for the specified model. By default, we simply load
@@ -38,13 +39,12 @@ static void R_LoadMeshMaterial(r_model_t *mod) {
  * @brief Parses animation.cfg, loading the frame specifications for the given model.
  */
 static void R_LoadMd3Animations(r_model_t *mod) {
-	r_md3_t *md3;
+	r_md3_t *md3 = (r_md3_t *) mod->mesh->data;
 	char path[MAX_QPATH];
-	const char *buffer, *c;
 	void *buf;
-	uint16_t skip;
-
-	md3 = (r_md3_t *) mod->mesh->data;
+	uint16_t skip = 0;
+	char token[MAX_TOKEN_CHARS];
+	parser_t parser;
 
 	Dirname(mod->media.name, path);
 	strcat(path, "animation.cfg");
@@ -56,44 +56,50 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 
 	md3->animations = Mem_LinkMalloc(sizeof(r_md3_animation_t) * MD3_MAX_ANIMATIONS, mod->mesh);
 
-	buffer = (char *) buf;
-	skip = 0;
+	Parse_Init(&parser, (char *) buf, PARSER_DEFAULT);
 
 	while (true) {
 
-		c = ParseToken(&buffer);
-
-		if (*c == '\0') {
+		if (!Parse_PeekToken(&parser, PARSE_DEFAULT, token, sizeof(token))) {
 			break;
 		}
 
-		if (!g_strcmp0(c, "footsteps")) {
-			ParseToken(&buffer);
+		if (!g_strcmp0(token, "footsteps")) {
+			Parse_SkipToken(&parser, PARSE_DEFAULT);
+			Parse_SkipToken(&parser, PARSE_DEFAULT | PARSE_NO_WRAP);
 			continue;
 		}
 
-		if (!g_strcmp0(c, "headoffset")) {
-			ParseToken(&buffer);
-			ParseToken(&buffer);
-			ParseToken(&buffer);
+		if (!g_strcmp0(token, "headoffset")) {
+			Parse_SkipToken(&parser, PARSE_DEFAULT);
+			Parse_SkipPrimitive(&parser, PARSE_DEFAULT | PARSE_NO_WRAP, PARSE_FLOAT, 3);
 			continue;
 		}
 
-		if (!g_strcmp0(c, "sex")) {
-			ParseToken(&buffer);
+		if (!g_strcmp0(token, "sex")) {
+			Parse_SkipToken(&parser, PARSE_DEFAULT);
+			Parse_SkipToken(&parser, PARSE_DEFAULT | PARSE_NO_WRAP);
 			continue;
 		}
 
-		if (*c >= '0' && *c <= '9') {
+		if (*token >= '0' && *token <= '9') {
 			r_md3_animation_t *a = &md3->animations[md3->num_animations];
 
-			a->first_frame = (uint16_t) strtoul(c, NULL, 0);
-			c = ParseToken(&buffer);
-			a->num_frames = (uint16_t) strtoul(c, NULL, 0);
-			c = ParseToken(&buffer);
-			a->looped_frames = (uint16_t) strtoul(c, NULL, 0);
-			c = ParseToken(&buffer);
-			a->hz = (uint16_t) strtoul(c, NULL, 0);
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_UINT16, &a->first_frame, 1)) {
+				break;
+			}
+
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_NO_WRAP, PARSE_UINT16, &a->num_frames, 1)) {
+				break;
+			}
+
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_NO_WRAP, PARSE_UINT16, &a->looped_frames, 1)) {
+				break;
+			}
+
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_NO_WRAP, PARSE_UINT16, &a->hz, 1)) {
+				break;
+			}
 
 			if (md3->num_animations == ANIM_LEGS_WALKCR) {
 				skip = a->first_frame - md3->animations[ANIM_TORSO_GESTURE].first_frame;

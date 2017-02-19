@@ -54,6 +54,14 @@ typedef enum {
 } parser_flags_t;
 
 /**
+ * @brief State used to determine parser positioning
+ */
+typedef struct {
+	const char *ptr;
+	uint32_t row, col;
+} parser_position_t;
+
+/**
  * @brief A parser struct to be kept alive for the parsing procedure. Stores state required
  * by the parser routines to function properly.
  * @note Never modify this struct directly!
@@ -64,9 +72,7 @@ typedef struct {
 	const char *start;
 
 	// dynamic members, change through parsing
-	const char *position;
-	char scratch[3 + DBL_MANT_DIG - DBL_MIN_EXP + 1]; // enough to hold one full double plus \0
-	uint32_t row, col;
+	parser_position_t position;
 } parser_t;
 
 /**
@@ -95,6 +101,11 @@ typedef enum {
 	PARSE_RETAIN_QUOTES = 8,
 
 	/**
+	 * @brief Don't change our actual position
+	 */
+	PARSE_PEEK = 16,
+
+	/**
 	 * @brief Default parser settings
 	 */
 	PARSE_DEFAULT = PARSE_COPY_QUOTED_LITERALS
@@ -119,3 +130,15 @@ _Bool Parse_IsEOF(const parser_t *parser);
 _Bool Parse_IsEOL(const parser_t *parser);
 _Bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, const size_t output_len);
 size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_type_t type, void *output, const size_t count);
+
+#define Parse_SkipToken(parser, flags) \
+		Parse_Token(parser, flags, NULL, 0)
+
+#define Parse_SkipPrimitive(parser, flags, type, count) \
+		Parse_Primitive(parser, flags, type, NULL, count)
+
+#define Parse_PeekToken(parser, flags, output, output_len) \
+		Parse_Token(parser, flags | PARSE_PEEK, output, output_len)
+
+#define Parse_PeekPrimitive(parser, flags, type, output, count) \
+		Parse_Primitive(parser, flags | PARSE_PEEK, type, output, count)
