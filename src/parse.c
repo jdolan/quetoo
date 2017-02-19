@@ -333,7 +333,7 @@ static _Bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags
  * @returns false if the token cannot fit in the specified buffer, true if the parsing has succeeded.
  */
 _Bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, const size_t output_len) {
-	parser_position_t old_position;
+	parser_position_t old_position = { NULL, 0, 0 };
 
 	if (flags & PARSE_PEEK) {
 		old_position = parser->position;
@@ -457,7 +457,7 @@ static _Bool Parse_TypeParse(const parse_type_t type, const char *input, void *o
  * @returns false if the specified data type cannot be parsed from the specified position in the parser.
  */
 size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_type_t type, void *output, const size_t count) {
-	parser_position_t old_position;
+	parser_position_t old_position = { NULL, 0, 0 };
 	const size_t type_size = Parse_TypeSize(type);
 	size_t num_parsed = 0;
 
