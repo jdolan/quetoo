@@ -411,6 +411,9 @@ static void Con_PrintMatches(const console_t *console, GList *matches) {
 		return;
 	}
 
+	// print empty line to separate old autocompletes
+	Con_Append(PRINT_ECHO, "\n");
+
 	size_t widest = 0;
 	_Bool all_simple = true;
 

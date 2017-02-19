@@ -190,7 +190,7 @@ void Cvar_Enumerate(CvarEnumerateFunc func, void *data) {
 	}
 }
 
-static const char *cvar_complete_pattern;
+static char cvar_complete_pattern[MAX_STRING_CHARS];
 
 /**
  * @brief Enumeration helper for Cvar_CompleteVar.
@@ -207,7 +207,7 @@ static void Cvar_CompleteVar_enumerate(cvar_t *var, void *data) {
  * @brief Console completion for console variables.
  */
 void Cvar_CompleteVar(const char *pattern, GList **matches) {
-	cvar_complete_pattern = pattern;
+	g_strlcpy(cvar_complete_pattern, pattern, sizeof(cvar_complete_pattern));
 	Cvar_Enumerate(Cvar_CompleteVar_enumerate, (void *) matches);
 }
 

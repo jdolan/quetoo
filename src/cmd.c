@@ -472,7 +472,7 @@ static const char *Cmd_Stringify(const cmd_t *cmd) {
 	return buffer;
 }
 
-static const char *cmd_complete_pattern;
+static char cmd_complete_pattern[MAX_STRING_CHARS];
 
 /**
  * @brief Enumeration helper for Cmd_CompleteCommand.
@@ -489,7 +489,7 @@ static void Cmd_CompleteCommand_enumerate(cmd_t *cmd, void *data) {
  * @brief Console completion for commands and aliases.
  */
 void Cmd_CompleteCommand(const char *pattern, GList **matches) {
-	cmd_complete_pattern = pattern;
+	g_strlcpy(cmd_complete_pattern, pattern, sizeof(cmd_complete_pattern));
 	Cmd_Enumerate(Cmd_CompleteCommand_enumerate, (void *) matches);
 }
 
