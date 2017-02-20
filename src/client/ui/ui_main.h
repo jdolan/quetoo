@@ -25,8 +25,10 @@
 
 void Ui_HandleEvent(const SDL_Event *event);
 void Ui_UpdateBindings(void);
-void Ui_AddViewController(ViewController *viewController);
-void Ui_RemoveViewController(ViewController *viewController);
+void Ui_PushViewController(ViewController *viewController);
+void Ui_PopToViewController(ViewController *viewController);
+void Ui_PopViewController(void);
+void Ui_PopAllViewControllers(void);
 void Ui_Draw(void);
 void Ui_Init(void);
 void Ui_Shutdown(void);

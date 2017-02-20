@@ -30,14 +30,14 @@
  * @brief A Renderer implementation for Quetoo.
  */
 
-typedef struct RendererQuetoo RendererQuetoo;
-typedef struct RendererQuetooInterface RendererQuetooInterface;
+typedef struct QuetooRenderer QuetooRenderer;
+typedef struct QuetooRendererInterface QuetooRendererInterface;
 
 /**
  * @brief A Renderer implementation for Quetoo.
  * @extends Renderer
  */
-struct RendererQuetoo {
+struct QuetooRenderer {
 
 	/**
 	 * @brief The superclass.
@@ -48,13 +48,13 @@ struct RendererQuetoo {
 	 * @brief The interface.
 	 * @protected
 	 */
-	RendererQuetooInterface *interface;
+	QuetooRendererInterface *interface;
 };
 
 /**
  * @brief The Renderer interface.
  */
-struct RendererQuetooInterface {
+struct QuetooRendererInterface {
 
 	/**
 	 * @brief The superclass interface.
@@ -62,20 +62,20 @@ struct RendererQuetooInterface {
 	RendererInterface rendererInterface;
 
 	/**
-	 * @fn RendererQuetoo *RendererQuetoo::init(RendererQuetoo *self)
-	 * @brief Initializes this RendererQuetoo.
-	 * @param self The RendererQuetoo.
-	 * @return The initialized RendererQuetoo, or `NULL` on error.
-	 * @memberof RendererQuetoo
+	 * @fn QuetooRenderer *QuetooRenderer::init(QuetooRenderer *self)
+	 * @brief Initializes this QuetooRenderer.
+	 * @param self The QuetooRenderer.
+	 * @return The initialized QuetooRenderer, or `NULL` on error.
+	 * @memberof QuetooRenderer
 	 */
-	RendererQuetoo *(*init)(RendererQuetoo *self);
+	QuetooRenderer *(*init)(QuetooRenderer *self);
 };
 
 /**
- * @fn Class *RendererQuetoo::_RendererQuetoo(void)
- * @brief The RendererQuetoo archetype.
- * @return The RendererQuetoo Class.
- * @memberof RendererQuetoo
+ * @fn Class *QuetooRenderer::_QuetooRenderer(void)
+ * @brief The QuetooRenderer archetype.
+ * @return The QuetooRenderer Class.
+ * @memberof QuetooRenderer
  */
-extern Class *_RendererQuetoo(void);
+extern Class *_QuetooRenderer(void);
 

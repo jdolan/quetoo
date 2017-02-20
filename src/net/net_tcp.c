@@ -60,6 +60,9 @@ int32_t Net_Connect(const char *host, struct timeval *timeout) {
 			if (error) {
 				Com_Error(ERROR_DROP, "%s\n", strerror(error));
 			}
+
+			Net_SetNonBlocking(sock, true);
+
 		} else {
 			Com_Error(ERROR_DROP, "%s\n", Net_GetErrorString());
 		}

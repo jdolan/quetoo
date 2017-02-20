@@ -204,8 +204,7 @@ void WritePortalFile(tree_t *tree) {
 	NumberLeafs_r(head_node);
 
 	// write the file
-	StripExtension(map_name, filename);
-	strcat(filename, ".prt");
+	g_snprintf(filename, sizeof(filename), "maps/%s.prt", map_base);
 
 	if (!(prtfile = Fs_OpenWrite(filename))) {
 		Com_Error(ERROR_FATAL, "Error opening %s\n", filename);

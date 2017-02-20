@@ -723,6 +723,47 @@ cm_material_t **Cm_LoadMaterials(const char *path, size_t *count) {
 			g_strlcpy(m->specularmap, c, sizeof(m->specularmap));
 		}
 
+		if (!g_strcmp0(c, "tintmap")) {
+			c = ParseToken(&buffer);
+			g_strlcpy(m->tintmap, c, sizeof(m->tintmap));
+		}
+
+		if (!g_strcmp0(c, "tintmap.shirt_default")) {
+			vec_t *color = m->tintmap_defaults[TINT_SHIRT];
+
+			for (int32_t i = 0; i < 3; i++) {
+
+				c = ParseToken(&buffer);
+				color[i] = strtod(c, NULL);
+
+				if (color[i] < 0.0 || color[i] > 1.0) {
+					Com_Warn("Failed to resolve tint default color: %s\n", c);
+					color[i] = 1.0;
+				}
+			}
+
+			color[3] = 1.0;
+			continue;
+		}
+
+		if (!g_strcmp0(c, "tintmap.pants_default")) {
+			vec_t *color = m->tintmap_defaults[TINT_PANTS];
+
+			for (int32_t i = 0; i < 3; i++) {
+
+				c = ParseToken(&buffer);
+				color[i] = strtod(c, NULL);
+
+				if (color[i] < 0.0 || color[i] > 1.0) {
+					Com_Warn("Failed to resolve tint default color: %s\n", c);
+					color[i] = 1.0;
+				}
+			}
+
+			color[3] = 1.0;
+			continue;
+		}
+
 		if (!g_strcmp0(c, "bump")) {
 			m->bump = strtod(ParseToken(&buffer), NULL);
 			if (m->bump < 0.0) {
@@ -928,6 +969,10 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 		Fs_Print(file, "\tsurface \"%s\"\n", Cm_UnparseSurface(material->surface));
 	}
 
+	if (material->light) {
+		Fs_Print(file, "\tlight %g\n", material->light);
+	}
+
 	// if not empty/default, write footsteps
 	if (*material->footsteps && g_strcmp0(material->footsteps, "default")) {
 		Fs_Print(file, "\tfootsteps %s\n", material->footsteps);
@@ -947,13 +992,13 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 void Cm_WriteMaterials(const char *filename, const cm_material_t **materials, const size_t num_materials) {
 
 	file_t *file = Fs_OpenWrite(filename);
-	if (!file) {
-		Com_Error(ERROR_PRINT, "Failed to open %s for write\n", filename);
-	}
+	if (file) {
+		for (size_t i = 0; i < num_materials; i++) {
+			Cm_WriteMaterial(materials[i], file);
+		}
 
-	for (size_t i = 0; i < num_materials; i++) {
-		Cm_WriteMaterial(materials[i], file);
+		Fs_Close(file);
+	} else {
+		Com_Warn("Failed to open %s for write\n", filename);
 	}
-
-	Fs_Close(file);
 }

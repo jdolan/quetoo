@@ -242,7 +242,7 @@ static void Cg_DrawPowerups(const player_state_t *ps) {
 static void Cg_DrawHeldFlag(const player_state_t *ps) {
 	r_pixel_t x, y;
 
-	if (!cg_draw_heldflag->integer) {
+	if (!cg_draw_held_flag->integer) {
 		return;
 	}
 
@@ -268,7 +268,7 @@ static void Cg_DrawHeldFlag(const player_state_t *ps) {
 static void Cg_DrawHeldTech(const player_state_t *ps) {
 	r_pixel_t x, y;
 
-	if (!cg_draw_heldtech->integer) {
+	if (!cg_draw_held_tech->integer) {
 		return;
 	}
 
@@ -558,7 +558,7 @@ static void Cg_DrawReady(const player_state_t *ps) {
 /**
  * @brief
  */
-static void Cg_DrawTeam(const player_state_t *ps) {
+static void Cg_DrawTeamBanner(const player_state_t *ps) {
 	const int16_t team = ps->stats[STAT_TEAM];
 	r_pixel_t x, y;
 
@@ -566,7 +566,7 @@ static void Cg_DrawTeam(const player_state_t *ps) {
 		return;
 	}
 
-	if (!cg_draw_teambar->integer) {
+	if (!cg_draw_team_banner->integer) {
 		return;
 	}
 
@@ -989,7 +989,7 @@ static void Cg_ScrollWeapon(const int8_t dir) {
 		} else if (cg_hud_locals.select_weapon_id >= (int16_t) MAX_STAT_BITS) {
 			cg_hud_locals.select_weapon_id = 0;
 		}
-		
+
 		if (ps->stats[STAT_WEAPONS] & (1 << cg_hud_locals.select_weapon_id)) {
 			cg_hud_locals.select_weapon_time = cgi.client->unclamped_time + cg_weaponbar_choose_time->integer;
 			return;
@@ -1012,7 +1012,7 @@ _Bool Cg_AttemptWeaponSwitch(const player_state_t *ps) {
 		if (cg_hud_locals.select_weapon_id != Cg_ActiveWeapon(ps)) {
 			const char *name = cgi.client->config_strings[CS_ITEMS + cg_hud_locals.weapons[cg_hud_locals.select_weapon_id].item_index];
 			cgi.Cbuf(va("use %s\n", name));
-			
+
 			cg_hud_locals.select_weapon_time = cgi.client->unclamped_time + cg_weaponbar_wait_time->integer;
 			return true;
 		}
@@ -1059,7 +1059,7 @@ static void Cg_DrawWeaponSwitch(const player_state_t *ps) {
 			cg_hud_locals.select_weapon_time = cgi.client->unclamped_time + cg_weaponbar_wait_time->integer;
 		}
 	}
-	
+
 	// not changing or ran out of time
 	if (cg_hud_locals.select_weapon_time <= cgi.client->unclamped_time) {
 		Cg_AttemptWeaponSwitch(ps);
@@ -1074,7 +1074,7 @@ static void Cg_DrawWeaponSwitch(const player_state_t *ps) {
 
 	r_pixel_t x = cgi.view->viewport.x + ((cgi.view->viewport.w / 2) - ((num_weaps * HUD_PIC_HEIGHT) / 2));
 	r_pixel_t y = cgi.view->viewport.y + cgi.view->viewport.h - (HUD_PIC_HEIGHT * 2.0) - 16;
-	
+
 	r_pixel_t ch;
 	cgi.BindFont("medium", NULL, &ch);
 
@@ -1084,14 +1084,62 @@ static void Cg_DrawWeaponSwitch(const player_state_t *ps) {
 			continue;
 		}
 
+		Cg_DrawIcon(x, y, 1.0, cg_hud_locals.weapons[i].icon_index);
+
 		if (i == cg_hud_locals.select_weapon_id) {
 			const char *name = cgi.client->config_strings[CS_ITEMS + cg_hud_locals.weapons[i].item_index];
 			cgi.DrawString(cgi.view->viewport.x + ((cgi.view->viewport.w / 2) - (cgi.StringWidth(name) / 2)), y - ch, name, HUD_COLOR_STAT);
 			cgi.DrawImage(x, y, 1.0, cg_hud_locals.select_weapon_image);
 		}
 
-		Cg_DrawIcon(x, y, 1.0, cg_hud_locals.weapons[i].icon_index);
 		x += HUD_PIC_HEIGHT + 4;
+	}
+}
+
+/**
+ * @brief
+ */
+static void Cg_DrawTargetName(const player_state_t *ps) {
+	static uint32_t time;
+	static char name[MAX_USER_INFO_VALUE];
+
+	if (!cg_draw_target_name->integer) {
+		return;
+	}
+
+	if (time > cgi.client->unclamped_time) {
+		time = 0;
+	}
+
+	vec3_t pos;
+	VectorMA(cgi.view->origin, MAX_WORLD_DIST, cgi.view->forward, pos);
+
+	const cm_trace_t tr = cgi.Trace(cgi.view->origin, pos, NULL, NULL, 0, MASK_MEAT);
+	if (tr.fraction < 1.0) {
+
+		const cl_entity_t *ent = &cgi.client->entities[(ptrdiff_t) tr.ent];
+		if (ent->current.model1 == MODEL_CLIENT) {
+
+			const cl_client_info_t *client = &cgi.client->client_info[ent->current.number - 1];
+
+			g_strlcpy(name, client->name, sizeof(name));
+			time = cgi.client->unclamped_time;
+		}
+	}
+
+	if (cgi.client->unclamped_time - time > 3000) {
+		*name = '\0';
+	}
+
+	if (*name) {
+		r_pixel_t ch;
+		cgi.BindFont("medium", NULL, &ch);
+
+		const r_pixel_t w = cgi.StringWidth(name);
+		const r_pixel_t x = cgi.view->viewport.x + ((cgi.view->viewport.w / 2) - (w / 2));
+		const r_pixel_t y = cgi.view->viewport.y + cgi.view->viewport.h - 192 - ch;
+
+		cgi.DrawString(x, y, name, CON_COLOR_GREEN);
 	}
 }
 
@@ -1132,7 +1180,7 @@ void Cg_DrawHud(const player_state_t *ps) {
 
 	Cg_DrawPickup(ps);
 
-	Cg_DrawTeam(ps);
+	Cg_DrawTeamBanner(ps);
 
 	Cg_DrawFrags(ps);
 
@@ -1153,6 +1201,8 @@ void Cg_DrawHud(const player_state_t *ps) {
 	Cg_DrawCrosshair(ps);
 
 	Cg_DrawCenterPrint(ps);
+
+	Cg_DrawTargetName(ps);
 
 	Cg_DrawBlend(ps);
 
@@ -1181,9 +1231,9 @@ void Cg_LoadHudMedia(void) {
  * @brief
  */
 void Cg_InitHud(void) {
-	cgi.Cmd("cg_weapon_next", Cg_Weapon_Next_f, CMD_CGAME, NULL);
-	cgi.Cmd("cg_weapon_previous", Cg_Weapon_Prev_f, CMD_CGAME, NULL);
-	
+	cgi.Cmd("cg_weapon_next", Cg_Weapon_Next_f, CMD_CGAME, "Open the weapon bar to the next weapon. In chasecam, switches to next target.");
+	cgi.Cmd("cg_weapon_previous", Cg_Weapon_Prev_f, CMD_CGAME, "Open the weapon bar to the previous weapon. In chasecam, switches to previous target.");
+
 	cg_weaponbar_choose_time = cgi.Cvar("cg_weaponbar_choose_time", "250", CVAR_ARCHIVE, "The amount of time, in milliseconds, to wait between changing weapons in the scroll view. Clicking will override this value and switch immediately.");
 	cg_weaponbar_wait_time = cgi.Cvar("cg_weaponbar_wait_time", "750", CVAR_ARCHIVE, "The amount of time, in milliseconds, to show the weapon bar after changing weapons.");
 }

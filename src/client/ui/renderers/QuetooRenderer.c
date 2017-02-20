@@ -23,17 +23,17 @@
 
 #include <assert.h>
 
-#include "RendererQuetoo.h"
+#include "QuetooRenderer.h"
 
 #include "ui_local.h"
 
-#define _Class _RendererQuetoo
+#define _Class _QuetooRenderer
 
-#pragma mark - RendererQuetoo
+#pragma mark - QuetooRenderer
 
 /**
  * @see Renderer::beginFrame(Renderer *self)
- * @memberof RendererQuetoo
+ * @memberof QuetooRenderer
  */
 static void beginFrame(Renderer *self) {
 
@@ -99,7 +99,7 @@ static void drawTexture(const Renderer *self, GLuint texture, const SDL_Rect *re
 }
 
 /**
- * @see Renderer::endFrame(RendererQuetoo *self)
+ * @see Renderer::endFrame(QuetooRenderer *self)
  */
 static void endFrame(Renderer *self) {
 
@@ -140,11 +140,11 @@ static void setClippingFrame(Renderer *self, const SDL_Rect *frame) {
 }
 
 /**
- * @fn RendererQuetoo *RendererQuetoo::init(RendererQuetoo *self)
- * @memberof RendererQuetoo
+ * @fn QuetooRenderer *QuetooRenderer::init(QuetooRenderer *self)
+ * @memberof QuetooRenderer
  */
-static RendererQuetoo *init(RendererQuetoo *self) {
-	return (RendererQuetoo *) super(Renderer, self, init);
+static QuetooRenderer *init(QuetooRenderer *self) {
+	return (QuetooRenderer *) super(Renderer, self, init);
 }
 
 #pragma mark - Class lifecycle
@@ -164,23 +164,23 @@ static void initialize(Class *clazz) {
 	((RendererInterface *) clazz->def->interface)->setDrawColor = setDrawColor;
 	((RendererInterface *) clazz->def->interface)->setClippingFrame = setClippingFrame;
 
-	((RendererQuetooInterface *) clazz->def->interface)->init = init;
+	((QuetooRendererInterface *) clazz->def->interface)->init = init;
 }
 
 /**
- * @fn Class *RendererQuetoo::_RendererQuetoo(void)
- * @memberof RendererQuetoo
+ * @fn Class *QuetooRenderer::_QuetooRenderer(void)
+ * @memberof QuetooRenderer
  */
-Class *_RendererQuetoo(void) {
+Class *_QuetooRenderer(void) {
 	static Class clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "RendererQuetoo";
+		clazz.name = "QuetooRenderer";
 		clazz.superclass = _Renderer();
-		clazz.instanceSize = sizeof(RendererQuetoo);
-		clazz.interfaceOffset = offsetof(RendererQuetoo, interface);
-		clazz.interfaceSize = sizeof(RendererQuetooInterface);
+		clazz.instanceSize = sizeof(QuetooRenderer);
+		clazz.interfaceOffset = offsetof(QuetooRenderer, interface);
+		clazz.interfaceSize = sizeof(QuetooRendererInterface);
 		clazz.initialize = initialize;
 	});
 

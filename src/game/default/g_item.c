@@ -429,7 +429,7 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 	if (taken && !(ent->locals.spawn_flags & SF_ITEM_DROPPED)) {
 		switch (new_armor->tag) {
 			case ARMOR_SHARD:
-				G_SetItemRespawn(ent, 10000);
+				G_SetItemRespawn(ent, 15000);
 				break;
 			case ARMOR_JACKET:
 				G_SetItemRespawn(ent, 20000);
@@ -884,8 +884,8 @@ g_entity_t *G_SelectTechSpawnPoint(void) {
 	g_entity_t *point = NULL;
 
 	if (g_level.teams || g_level.ctf) {
-		for (g_team_id_t team = TEAM_RED; team < g_level.num_teams; team++) {
-			G_SelectFarthestTechSpawnPoint(&g_teamlist[team].spawn_points, &point, &point_dist);
+		for (int32_t i = 0; i < g_level.num_teams; i++) {
+			G_SelectFarthestTechSpawnPoint(&g_teamlist[i].spawn_points, &point, &point_dist);
 		}
 	} else {
 		G_SelectFarthestTechSpawnPoint(&g_level.spawn_points, &point, &point_dist);
@@ -1010,6 +1010,12 @@ void G_ResetItem(g_entity_t *ent) {
 		ent->solid = SOLID_NOT;
 	}
 
+	// if we were mid-respawn, get us out of it
+	if (ent->locals.Think == G_ItemRespawn) {
+		ent->locals.next_think = 0;
+		ent->locals.Think = NULL;
+	}
+
 	gi.LinkEntity(ent);
 }
 
@@ -1081,8 +1087,6 @@ void G_PrecacheItem(const g_item_t *it) {
 	if (!it) {
 		return;
 	}
-
-	gi.SetConfigString(CS_ITEMS + it->index, it->name);
 
 	if (it->pickup_sound) {
 		gi.SoundIndex(it->pickup_sound);
@@ -2432,6 +2436,8 @@ static void G_InitItem(g_item_t *item) {
 	item->icon_index = gi.ImageIndex(item->icon);
 	item->model_index = gi.ModelIndex(item->model);
 	item->pickup_sound_index = gi.SoundIndex(item->pickup_sound);
+
+	gi.SetConfigString(CS_ITEMS + item->index, item->name);
 }
 
 /**

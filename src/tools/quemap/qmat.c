@@ -46,7 +46,7 @@ int32_t MAT_Main(void) {
 
 	UnloadScriptFiles();
 
-	WriteMaterialsFile(mat_name);
+	WriteMaterialsFile(va("materials/%s.mat", map_base));
 
 	FreeMaterials();
 

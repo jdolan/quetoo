@@ -336,27 +336,16 @@ static void R_SetStageState(const r_bsp_surface_t *surf, const r_stage_t *stage)
 	}
 
 	// for meshes, see if we want to use the mesh color
-	if (!surf && stage->cm->mesh_color) {
-		R_EnableColorArray(false);
-
-		VectorCopy(r_mesh_state.color, color);
-
-		// modulate the alpha value for pulses
-		if (stage->cm->flags & STAGE_PULSE) {
-			color[3] = stage->pulse.dhz;
-		} else {
-			color[3] = r_mesh_state.color[3];
-		}
-
-		R_Color(color);
-	} else if (stage->cm->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
+	if (stage->cm->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
 		// for terrain, enable the color array
 		R_EnableColorArray(true);
 	} else {
 		R_EnableColorArray(false);
 
 		// resolve the shade color
-		if (stage->cm->flags & STAGE_COLOR) { // explicit
+		if (stage->cm->mesh_color) { // explicit
+			VectorCopy(r_mesh_state.color, color);
+		} else if (stage->cm->flags & STAGE_COLOR) { // explicit
 			VectorCopy(stage->cm->color, color);
 		} else if (stage->cm->flags & STAGE_ENVMAP) { // implicit
 			VectorCopy(surf->texinfo->material->diffuse->color, color);
@@ -633,6 +622,7 @@ static void R_RegisterMaterial(r_media_t *self) {
 	R_RegisterDependency(self, (r_media_t *) mat->diffuse);
 	R_RegisterDependency(self, (r_media_t *) mat->normalmap);
 	R_RegisterDependency(self, (r_media_t *) mat->specularmap);
+	R_RegisterDependency(self, (r_media_t *) mat->tintmap);
 
 	r_stage_t *s = mat->stages;
 	while (s) {
@@ -694,6 +684,24 @@ static void R_LoadSpecularmap(r_material_t *mat, const char *base) {
 }
 
 /**
+ * @brief
+ */
+static void R_LoadTintmap(r_material_t *mat, const char *base) {
+	const char *suffix[] = { "_tint" };
+
+	for (size_t i = 0; i < lengthof(suffix); i++) {
+		mat->tintmap = R_LoadImage(va("%s%s", base, suffix[i]), IT_TINTMAP);
+		if (mat->tintmap->type == IT_TINTMAP) {
+			break;
+		}
+	}
+
+	if (mat->tintmap->type == IT_NULL) {
+		mat->tintmap = NULL;
+	}
+}
+
+/**
  * @brief Loads the r_material_t from the specified cm_material_t. If the material is
  * already loaded, the cm_material_t will be freed, so don't use it after this function!
  * Use the "cm" member of the renderer material.
@@ -726,6 +734,8 @@ static _Bool R_ConvertMaterial(cm_material_t *cm, r_material_t **mat) {
 			if (material->normalmap) {
 				R_LoadSpecularmap(material, cm->base);
 			}
+
+			R_LoadTintmap(material, cm->base);
 		}
 
 		R_RegisterMedia((r_media_t *) material);
@@ -944,6 +954,19 @@ void R_LoadMaterials(r_model_t *mod) {
 			}
 		}
 
+		if (*r_mat->cm->tintmap) {
+			if (*r_mat->cm->tintmap == '#') {
+				r_mat->tintmap = R_LoadImage(r_mat->cm->tintmap + 1, IT_TINTMAP);
+			} else {
+				r_mat->tintmap = R_LoadImage(va("textures/%s", r_mat->cm->tintmap), IT_TINTMAP);
+			}
+
+			if (r_mat->tintmap->type == IT_NULL) {
+				Com_Warn("Failed to resolve tintmap: %s\n", r_mat->cm->tintmap);
+				r_mat->tintmap = NULL;
+			}
+		}
+
 		for (cm_stage_t *cm_stage = r_mat->cm->stages; cm_stage; cm_stage = cm_stage->next) {
 			r_stage_t *r_stage = (r_stage_t *) Mem_LinkMalloc(sizeof(r_stage_t), r_mat);
 
@@ -977,12 +1000,33 @@ void R_LoadMaterials(r_model_t *mod) {
  * @brief
  */
 static void R_SaveMaterials_f(void) {
-	r_model_t *mod = r_model_state.world;
+
+	const r_model_t *mod = r_model_state.world;
+	if (!mod) {
+		Com_Print("No map loaded\n");
+		return;
+	}
 
 	char path[MAX_QPATH];
 	g_snprintf(path, sizeof(path), "materials/%s.mat", Basename(mod->media.name));
 
-	Cm_WriteMaterials(path, (const cm_material_t **) mod->bsp->cm->materials, mod->bsp->cm->num_materials);
+	cm_material_t **materials = Mem_Malloc(sizeof(cm_material_t *) * mod->bsp->cm->num_materials);
+
+	cm_material_t **c = mod->bsp->cm->materials;
+	for (size_t i = 0; i < mod->bsp->cm->num_materials; i++, c++) {
+
+		const r_material_t *mat = R_LoadMaterial((*c)->diffuse);
+		if (mat) {
+			materials[i] = mat->cm;
+		} else {
+			Com_Debug(DEBUG_RENDERER, "Failed to resolve renderer material %s\n", (*c)->diffuse);
+		}
+	}
+
+	Cm_WriteMaterials(path, (const cm_material_t **) materials, mod->bsp->cm->num_materials);
+	Com_Print("Saved %s\n", path);
+
+	Mem_Free(materials);
 }
 
 /**

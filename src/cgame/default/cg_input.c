@@ -53,6 +53,34 @@ void Cg_ParseViewKick(void) {
  */
 static void Cg_ViewKick(const pm_cmd_t *cmd) {
 
+	if (cgi.client->previous_frame) {
+
+		const player_state_t *ps0 = &cgi.client->previous_frame->ps;
+		const player_state_t *ps1 = &cgi.client->frame.ps;
+
+		vec3_t delta0, delta1;
+
+		UnpackAngles(ps0->pm_state.delta_angles, delta0);
+		UnpackAngles(ps1->pm_state.delta_angles, delta1);
+
+		if (!VectorCompare(delta0, delta1)) {
+			static int32_t frame;
+
+			if (cgi.client->frame.frame_num != frame) {
+				cgi.Debug("Delta kick %s\n", vtos(cg_kick.kick));
+
+				VectorCopy(cg_kick.kick, cg_kick.next);
+				VectorClear(cg_kick.kick);
+				VectorClear(cg_kick.prev);
+
+				cg_kick.timestamp = cgi.client->unclamped_time;
+				cg_kick.interval = 1;
+
+				frame = cgi.client->frame.frame_num;
+			}
+		}
+	}
+
 	if (cg_kick.timestamp > cgi.client->unclamped_time) {
 		memset(&cg_kick, 0, sizeof(cg_kick));
 	}
@@ -69,6 +97,10 @@ static void Cg_ViewKick(const pm_cmd_t *cmd) {
 		VectorAdd(cgi.client->angles, kick, cgi.client->angles);
 
 	} else if (!VectorCompare(cg_kick.kick, vec3_origin)) {
+
+		if (cgi.client->frame.ps.pm_state.type == PM_DEAD) {
+			return;
+		}
 
 		const vec_t len = VectorLength(cg_kick.kick);
 		if (len < 0.1) {
@@ -222,7 +254,7 @@ void Cg_Move(pm_cmd_t *cmd) {
  * @brief Clear button states.
  */
 void Cg_ClearInput(void) {
-
+	memset(&cg_kick, 0, sizeof(cg_kick));
 	memset(cg_buttons, 0, sizeof(cg_buttons));
 }
 

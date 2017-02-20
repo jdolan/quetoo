@@ -72,6 +72,13 @@ _Bool Fs_Close(file_t *file) {
 }
 
 /**
+ * @brief Deletes the file from the configured write directory.
+ */
+_Bool Fs_Delete(const char *filename) {
+	return PHYSFS_delete(filename) == 0;
+}
+
+/**
  * @return True if the end of the file has been reached, false otherwise.
  */
 _Bool Fs_Eof(file_t *file) {
@@ -384,6 +391,20 @@ void Fs_Enumerate(const char *pattern, Fs_EnumerateFunc func, void *data) {
 }
 
 /**
+ * @brief OS compare, wee.
+ */
+static int32_t Fs_CompleteFile_compare(const void *a, const void *b) {
+	const com_autocomplete_match_t *ma = (const com_autocomplete_match_t *) a;
+	const com_autocomplete_match_t *mb = (const com_autocomplete_match_t *) b;
+
+#if defined(WIN32)
+	return stricmp(ma->name, mb->name);
+#else
+	return g_strcmp0(ma->name, mb->name);
+#endif
+}
+
+/**
  * @brief GHFunc for Fs_CompleteFile.
  */
 static void Fs_CompleteFile_enumerate(const char *path, void *data) {
@@ -391,10 +412,13 @@ static void Fs_CompleteFile_enumerate(const char *path, void *data) {
 	char match[MAX_OS_PATH];
 
 	StripExtension(Basename(path), match);
+	com_autocomplete_match_t temp_match = {
+		.name = match,
+		.description = NULL
+	};
 
-	if (!g_list_find_custom(*matches, match, (GCompareFunc) strcmp)) {
-		*matches = g_list_insert_sorted(*matches, Mem_CopyString(match),
-		                                (GCompareFunc) g_ascii_strcasecmp);
+	if (!g_list_find_custom(*matches, &temp_match, Fs_CompleteFile_compare)) {
+		*matches = g_list_insert_sorted(*matches, Com_AllocMatch(match, NULL), Fs_CompleteFile_compare);
 	}
 }
 
@@ -404,12 +428,6 @@ static void Fs_CompleteFile_enumerate(const char *path, void *data) {
 void Fs_CompleteFile(const char *pattern, GList **matches) {
 
 	Fs_Enumerate(pattern, Fs_CompleteFile_enumerate, (void *) matches);
-
-	GList *m = *matches;
-	while (m) {
-		Com_Print("%s\n", (char *) m->data);
-		m = m->next;
-	}
 }
 
 static void Fs_AddToSearchPath_enumerate(const char *path, void *data);

@@ -151,7 +151,7 @@ void R_ProgramParameter3fv(r_uniform3fv_t *variable, const GLfloat *value) {
 void R_ProgramParameter4fv(r_uniform4fv_t *variable, const GLfloat *value) {
 
 	assert(variable && variable->location != -1);
-
+	
 	if (Vector4Compare(variable->value.vec4, value)) {
 		return;
 	}
@@ -713,6 +713,7 @@ void R_InitPrograms(void) {
 		program_default->MatricesChanged = R_MatricesChanged_default;
 		program_default->UseAlphaTest = R_UseAlphaTest_default;
 		program_default->UseInterpolation = R_UseInterpolation_default;
+		program_default->UseTints = R_UseTints_default;
 		program_default->arrays_mask = R_ARRAY_MASK_ALL;
 	}
 

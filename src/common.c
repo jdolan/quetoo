@@ -27,7 +27,7 @@
  */
 static void Com_InitLog(void) {
 
-	quetoo.log_file = fopen(va("quetoo_%" PRIuPTR ".log", time(NULL)), "w");
+	quetoo.log_file = fopen(va("quetoo_%" PRIiMAX ".log", (intmax_t) time(NULL)), "w");
 }
 
 /**
@@ -56,7 +56,8 @@ static const char *DEBUG_CATEGORIES[] = {
 	"pmove_server",
 	"renderer",
 	"server",
-	"sound"
+	"sound",
+	"ui"
 };
 
 /**
@@ -472,4 +473,31 @@ void Com_PrintInfo(const char *s) {
 		}
 		Com_Print("%s\n", value);
 	}
+}
+
+/**
+ * @brief Allocate a match for autocomplete "matches" list.
+ */
+com_autocomplete_match_t *Com_AllocMatch(const char *name, const char *description) {
+	com_autocomplete_match_t *match = Mem_Malloc(sizeof(com_autocomplete_match_t));
+
+	match->name = Mem_CopyString(name);
+	Mem_Link(match, match->name);
+
+	if (description) {
+		match->description = Mem_CopyString(description);
+		Mem_Link(match, match->description);
+	}
+
+	return match;
+}
+
+/**
+ * @brief Autocomplete match compare function
+ */
+int32_t Com_MatchCompare(const void *a, const void *b) {
+	const com_autocomplete_match_t *ma = (const com_autocomplete_match_t *) a;
+	const com_autocomplete_match_t *mb = (const com_autocomplete_match_t *) b;
+
+	return g_strcmp0(ma->description ?: ma->name, mb->description ?: mb->name);
 }

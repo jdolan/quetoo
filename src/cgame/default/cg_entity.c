@@ -265,7 +265,7 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	const uint32_t effects = e->effects;
 
 	e->effects |= EF_CLIENT;
-	e->effects &= EF_CTF_MASK;
+	e->effects &= ~EF_CTF_MASK;
 
 	const _Bool self_draw = (Cg_IsSelf(ent) && !cgi.client->third_person);
 
@@ -279,6 +279,15 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		e->origin[1] = cgi.view->origin[1];
 	} else {
 		Cg_BreathTrail(ent);
+	}
+	
+	// set shirt/pants
+	if (ci->shirt_color[3]) {
+		e->tints[TINT_SHIRT] = ci->shirt_color;
+	}
+
+	if (ci->pants_color[3]) {
+		e->tints[TINT_PANTS] = ci->pants_color;
 	}
 
 	r_entity_t head, torso, legs;

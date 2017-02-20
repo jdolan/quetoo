@@ -37,6 +37,7 @@ _Bool Net_StringToSockaddr(const char *s, struct sockaddr_in *saddr);
 _Bool Net_StringToNetaddr(const char *s, net_addr_t *a);
 
 int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port);
+void Net_SetNonBlocking(int32_t sock, _Bool non_blocking);
 void Net_CloseSocket(int32_t sock);
 
 void Net_Init(void);

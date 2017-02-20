@@ -163,7 +163,7 @@ typedef union {
 #define CVAR_ARCHIVE		0x2 // saved to quetoo.cfg
 #define CVAR_USER_INFO		0x4 // added to user_info when changed
 #define CVAR_SERVER_INFO	0x8 // added to server_info when changed
-#define CVAR_LO_ONLY		0x10 // don't allow change when connected
+#define CVAR_DEVELOPER		0x10 // don't allow change when connected
 #define CVAR_NO_SET			0x20 // don't allow change from console at all
 #define CVAR_LATCH			0x40 // save changes until server restart
 #define CVAR_R_CONTEXT		0x80 // affects OpenGL context
@@ -360,13 +360,15 @@ typedef enum {
 /**
  * @brief Some constants for the hook movement
  */
-#define PM_HOOK_MIN_LENGTH	(32)
-#define PM_HOOK_MAX_LENGTH	(2048)
+#define PM_HOOK_MIN_DIST		(32.0)
+#define PM_HOOK_MAX_DIST		(MAX_WORLD_DIST)
+#define PM_HOOK_DEF_DIST		(2048.0)
 
 /**
  * @brief Water level
  */
 typedef enum {
+	WATER_UNKNOWN = -1,
 	WATER_NONE,
 	WATER_FEET,
 	WATER_WAIST,

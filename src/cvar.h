@@ -39,7 +39,7 @@ vec_t Cvar_GetValue(const char *name);
 const char *Cvar_GetString(const char *name);
 void Cvar_Enumerate(CvarEnumerateFunc func, void *data);
 void Cvar_CompleteVar(const char *pattern, GList **matches);
-void Cvar_ResetLocal(void);
+void Car_ResetDeveloper(void);
 _Bool Cvar_PendingLatched(void);
 void Cvar_UpdateLatched(void);
 _Bool Cvar_Pending(uint32_t flags);

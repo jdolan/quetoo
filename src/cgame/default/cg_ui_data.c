@@ -144,5 +144,3 @@ void Cg_PrimaryButton(View *view, const char *name, ActionFunction action, ident
 	$(view, addSubview, (View *) button);
 	release(button);
 }
-
-

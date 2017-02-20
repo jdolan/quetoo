@@ -177,7 +177,6 @@ typedef enum {
 } glob_flags_t;
 
 _Bool GlobMatch(const char *pattern, const char *text, const glob_flags_t flags);
-char *CommonPrefix(GList *words);
 const char *Basename(const char *path);
 void Dirname(const char *in, char *out);
 void StripExtension(const char *in, char *out);

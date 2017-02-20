@@ -66,17 +66,20 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	e->effects = ent->current.effects;
 
 	if (e->effects & EF_ROTATE) {
-		e->angles[YAW] = cgi.client->unclamped_time / M_PI;
+		const vec_t rotate = cgi.client->unclamped_time;
+		e->angles[YAW] = cg_entity_rotate->value * rotate / M_PI;
 	}
 
 	if (e->effects & EF_BOB) {
 		VectorCopy(e->origin, e->termination);
-		e->origin[2] += 4.0 * sin(cgi.client->unclamped_time * 0.005 + ent->current.number);
+		const vec_t bob = sin(cgi.client->unclamped_time * 0.005 + ent->current.number);
+		e->origin[2] += cg_entity_bob->value * bob;
 	}
 
 	if (e->effects & EF_PULSE) {
-		const vec_t v = 0.4 + (cos(cgi.client->unclamped_time * 0.005 + ent->current.number) + 1.0) * 0.6;
-		VectorSet(e->color, v, v, v);
+		const vec_t pulse = (cos(cgi.client->unclamped_time * 0.0033 + ent->current.number) + 1.0);
+		const vec_t c = 1.0 - (cg_entity_pulse->value * 0.5 * pulse);
+		VectorSet(e->color, c, c, c);
 	} else {
 		VectorSet(e->color, 1.0, 1.0, 1.0);
 	}

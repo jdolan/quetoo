@@ -30,6 +30,7 @@ typedef struct {
 	r_uniform1i_t deluxemap;
 	r_uniform1i_t normalmap;
 	r_uniform1i_t glossmap;
+	r_uniform1i_t tintmap;
 
 	r_uniform1f_t bump;
 	r_uniform1f_t parallax;
@@ -44,6 +45,9 @@ typedef struct {
 	r_sampler2d_t sampler2;
 	r_sampler2d_t sampler3;
 	r_sampler2d_t sampler4;
+	r_sampler2d_t sampler6;
+
+	r_uniform4fv_t tints[TINT_TOTAL];
 
 	r_uniform_fog_t fog;
 	r_uniform_light_t *lights;
@@ -99,6 +103,7 @@ void R_InitProgram_default(r_program_t *program) {
 	R_ProgramVariable(&p->deluxemap, R_UNIFORM_INT, "DELUXEMAP", true);
 	R_ProgramVariable(&p->normalmap, R_UNIFORM_INT, "NORMALMAP", true);
 	R_ProgramVariable(&p->glossmap, R_UNIFORM_INT, "GLOSSMAP", true);
+	R_ProgramVariable(&p->tintmap, R_UNIFORM_INT, "TINTMAP", true);
 
 	R_ProgramVariable(&p->bump, R_UNIFORM_FLOAT, "BUMP", true);
 	R_ProgramVariable(&p->parallax, R_UNIFORM_FLOAT, "PARALLAX", true);
@@ -110,11 +115,16 @@ void R_InitProgram_default(r_program_t *program) {
 	R_ProgramVariable(&p->sampler2, R_SAMPLER_2D, "SAMPLER2", true);
 	R_ProgramVariable(&p->sampler3, R_SAMPLER_2D, "SAMPLER3", true);
 	R_ProgramVariable(&p->sampler4, R_SAMPLER_2D, "SAMPLER4", true);
+	R_ProgramVariable(&p->sampler6, R_SAMPLER_2D, "SAMPLER6", true);
 
 	R_ProgramVariable(&p->fog.start, R_UNIFORM_FLOAT, "FOG.START", true);
 	R_ProgramVariable(&p->fog.end, R_UNIFORM_FLOAT, "FOG.END", true);
 	R_ProgramVariable(&p->fog.color, R_UNIFORM_VEC3, "FOG.COLOR", true);
 	R_ProgramVariable(&p->fog.density, R_UNIFORM_FLOAT, "FOG.DENSITY", true);
+
+	for (int32_t i = 0; i < TINT_TOTAL; i++) {
+		R_ProgramVariable(&p->tints[i], R_UNIFORM_VEC4, va("TINTS[%i]", i), true);
+	}
 
 	if (r_state.max_active_lights) {
 		p->lights = Mem_TagMalloc(sizeof(r_uniform_light_t) * r_state.max_active_lights, MEM_TAG_RENDERER);
@@ -145,6 +155,7 @@ void R_InitProgram_default(r_program_t *program) {
 	R_ProgramParameter1i(&p->deluxemap, 0);
 	R_ProgramParameter1i(&p->normalmap, 0);
 	R_ProgramParameter1i(&p->glossmap, 0);
+	R_ProgramParameter1i(&p->tintmap, 0);
 
 	R_ProgramParameter1f(&p->bump, 1.0);
 	R_ProgramParameter1f(&p->parallax, 1.0);
@@ -156,6 +167,7 @@ void R_InitProgram_default(r_program_t *program) {
 	R_ProgramParameter1i(&p->sampler2, R_TEXUNIT_DELUXEMAP);
 	R_ProgramParameter1i(&p->sampler3, R_TEXUNIT_NORMALMAP);
 	R_ProgramParameter1i(&p->sampler4, R_TEXUNIT_SPECULARMAP);
+	R_ProgramParameter1i(&p->sampler6, R_TEXUNIT_TINTMAP);
 
 	R_ProgramParameter1f(&p->fog.density, 0.0);
 	R_ProgramParameter1f(&p->alpha_threshold, ALPHA_TEST_DISABLED_THRESHOLD);
@@ -182,7 +194,6 @@ void R_Shutdown_default(void) {
  * @brief
  */
 void R_UseProgram_default(void) {
-
 	r_default_program_t *p = &r_default_program;
 
 	R_ProgramParameter1i(&p->diffuse, texunit_diffuse->enabled);
@@ -194,7 +205,6 @@ void R_UseProgram_default(void) {
  * @brief
  */
 void R_UseMaterial_default(const r_material_t *material) {
-
 	r_default_program_t *p = &r_default_program;
 
 	if (!material || !material->normalmap ||
@@ -202,32 +212,37 @@ void R_UseMaterial_default(const r_material_t *material) {
 
 		R_DisableAttribute(R_ARRAY_TANGENT);
 		R_ProgramParameter1i(&p->normalmap, 0);
-		return;
-	}
-
-	R_EnableAttribute(R_ARRAY_TANGENT);
-
-	R_BindNormalmapTexture(material->normalmap->texnum);
-	R_ProgramParameter1i(&p->normalmap, 1);
-
-	if (material->specularmap) {
-		R_BindSpecularmapTexture(material->specularmap->texnum);
-		R_ProgramParameter1i(&p->glossmap, 1);
 	} else {
-		R_ProgramParameter1i(&p->glossmap, 0);
-	}
+		R_EnableAttribute(R_ARRAY_TANGENT);
 
-	R_ProgramParameter1f(&p->bump, material->cm->bump * r_bumpmap->value);
-	R_ProgramParameter1f(&p->parallax, material->cm->parallax * r_parallax->value);
-	R_ProgramParameter1f(&p->hardness, material->cm->hardness * r_hardness->value);
-	R_ProgramParameter1f(&p->specular, material->cm->specular * r_specular->value);
+		R_BindNormalmapTexture(material->normalmap->texnum);
+		R_ProgramParameter1i(&p->normalmap, 1);
+
+		if (material->specularmap) {
+			R_BindSpecularmapTexture(material->specularmap->texnum);
+			R_ProgramParameter1i(&p->glossmap, 1);
+		} else {
+			R_ProgramParameter1i(&p->glossmap, 0);
+		}
+
+		R_ProgramParameter1f(&p->bump, material->cm->bump * r_bumpmap->value);
+		R_ProgramParameter1f(&p->parallax, material->cm->parallax * r_parallax->value);
+		R_ProgramParameter1f(&p->hardness, material->cm->hardness * r_hardness->value);
+		R_ProgramParameter1f(&p->specular, material->cm->specular * r_specular->value);
+	}
+	
+	if (material && material->tintmap) {
+		R_BindTintTexture(material->tintmap->texnum);
+		R_ProgramParameter1i(&p->tintmap, 1);
+	} else {
+		R_ProgramParameter1i(&p->tintmap, 0);
+	}
 }
 
 /**
  * @brief
  */
 void R_UseFog_default(const r_fog_parameters_t *fog) {
-
 	r_default_program_t *p = &r_default_program;
 
 	if (fog && fog->density) {
@@ -244,7 +259,6 @@ void R_UseFog_default(const r_fog_parameters_t *fog) {
  * @brief
  */
 void R_UseLight_default(const uint16_t light_index, const r_light_t *light) {
-
 	r_default_program_t *p = &r_default_program;
 
 	if (light && light->radius) {
@@ -264,7 +278,6 @@ void R_UseLight_default(const uint16_t light_index, const r_light_t *light) {
  * @brief
  */
 void R_UseCaustic_default(const r_caustic_parameters_t *caustic) {
-
 	r_default_program_t *p = &r_default_program;
 
 	if (caustic && caustic->enable) {
@@ -282,7 +295,6 @@ void R_UseCaustic_default(const r_caustic_parameters_t *caustic) {
  * @brief
  */
 void R_MatricesChanged_default(void) {
-
 	r_default_program_t *p = &r_default_program;
 
 	if (r_state.active_program->matrix_dirty[R_MATRIX_MODELVIEW]) {
@@ -300,7 +312,6 @@ void R_MatricesChanged_default(void) {
  * @brief
  */
 void R_UseAlphaTest_default(const vec_t threshold) {
-
 	r_default_program_t *p = &r_default_program;
 
 	R_ProgramParameter1f(&p->alpha_threshold, threshold);
@@ -310,8 +321,22 @@ void R_UseAlphaTest_default(const vec_t threshold) {
  * @brief
  */
 void R_UseInterpolation_default(const vec_t time_fraction) {
-
 	r_default_program_t *p = &r_default_program;
 
 	R_ProgramParameter1f(&p->time_fraction, time_fraction);
+}
+
+/**
+ * @brief
+ */
+void R_UseTints_default(void) {
+	r_default_program_t *p = &r_default_program;
+
+	for (int32_t i = 0; i < TINT_TOTAL; i++) {
+		if (r_view.current_entity->tints[i]) {
+			R_ProgramParameter4fv(&p->tints[i], r_view.current_entity->tints[i]);
+		} else {
+			R_ProgramParameter4fv(&p->tints[i], r_state.active_material->cm->tintmap_defaults[i]);
+		}
+	}
 }

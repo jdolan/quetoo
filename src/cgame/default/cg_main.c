@@ -36,21 +36,24 @@ cvar_t *cg_add_particles;
 cvar_t *cg_add_weather;
 cvar_t *cg_bob;
 cvar_t *cg_color;
+cvar_t *cg_shirt;
+cvar_t *cg_pants;
 cvar_t *cg_draw_blend;
 cvar_t *cg_draw_captures;
 cvar_t *cg_draw_crosshair_color;
 cvar_t *cg_draw_crosshair_pulse;
 cvar_t *cg_draw_crosshair_scale;
 cvar_t *cg_draw_crosshair;
-cvar_t *cg_draw_heldflag;
-cvar_t *cg_draw_heldtech;
+cvar_t *cg_draw_held_flag;
+cvar_t *cg_draw_held_tech;
 cvar_t *cg_draw_frags;
 cvar_t *cg_draw_deaths;
 cvar_t *cg_draw_hud;
 cvar_t *cg_draw_pickup;
 cvar_t *cg_draw_powerups;
 cvar_t *cg_draw_time;
-cvar_t *cg_draw_teambar;
+cvar_t *cg_draw_target_name;
+cvar_t *cg_draw_team_banner;
 cvar_t *cg_draw_weapon;
 cvar_t *cg_draw_weapon_alpha;
 cvar_t *cg_draw_weapon_x;
@@ -59,6 +62,9 @@ cvar_t *cg_draw_weapon_z;
 cvar_t *cg_draw_vitals;
 cvar_t *cg_draw_vitals_pulse;
 cvar_t *cg_draw_vote;
+cvar_t *cg_entity_bob;
+cvar_t *cg_entity_pulse;
+cvar_t *cg_entity_rotate;
 cvar_t *cg_fov;
 cvar_t *cg_fov_zoom;
 cvar_t *cg_fov_interpolate;
@@ -112,6 +118,12 @@ static void Cg_Init(void) {
 	cg_color = cgi.Cvar("color", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                    "Specifies the effect color for your own weapon trails.");
 
+	cg_shirt = cgi.Cvar("shirt", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
+	                    "Specifies your shirt color, in the hexadecimal format \"rrggbb\". \"default\" uses the skin or team's defaults.");
+
+	cg_pants = cgi.Cvar("pants", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
+	                    "Specifies your pants color, in the hexadecimal format \"rrggbb\". \"default\" uses the skin or team's defaults.");
+
 	cg_draw_blend = cgi.Cvar("cg_draw_blend", "1.0", CVAR_ARCHIVE,
 	                         "Controls the intensity of screen alpha-blending");
 	cg_draw_captures = cgi.Cvar("cg_draw_captures", "1", CVAR_ARCHIVE,
@@ -124,14 +136,15 @@ static void Cg_Init(void) {
 	cg_draw_crosshair_scale = cgi.Cvar("cg_draw_crosshair_scale", "1.0", CVAR_ARCHIVE,
 	                                   "Controls the crosshair scale (size).");
 
-	cg_draw_heldflag = cgi.Cvar("cg_draw_heldflag", "1", CVAR_ARCHIVE, "Draw the currently held team flag");
-	cg_draw_heldtech = cgi.Cvar("cg_draw_heldtech", "1", CVAR_ARCHIVE, "Draw the currently held tech");
+	cg_draw_held_flag = cgi.Cvar("cg_draw_held_flag", "1", CVAR_ARCHIVE, "Draw the currently held team flag");
+	cg_draw_held_tech = cgi.Cvar("cg_draw_held_tech", "1", CVAR_ARCHIVE, "Draw the currently held tech");
 	cg_draw_frags = cgi.Cvar("cg_draw_frags", "1", CVAR_ARCHIVE, "Draw the number of frags");
 	cg_draw_deaths = cgi.Cvar("cg_draw_deaths", "1", CVAR_ARCHIVE, "Draw the number of deaths");
 	cg_draw_hud = cgi.Cvar("cg_draw_hud", "1", CVAR_ARCHIVE, "Render the Heads-Up-Display");
 	cg_draw_pickup = cgi.Cvar("cg_draw_pickup", "1", CVAR_ARCHIVE, "Draw the current pickup");
 	cg_draw_time = cgi.Cvar("cg_draw_time", "1", CVAR_ARCHIVE, "Draw the time remaning");
-	cg_draw_teambar = cgi.Cvar("cg_draw_teambar", "1", CVAR_ARCHIVE, "Draw the teambanner");
+	cg_draw_target_name = cgi.Cvar("cg_draw_target_name", "1", CVAR_ARCHIVE, "Draw the target's name");
+	cg_draw_team_banner = cgi.Cvar("cg_draw_team_banner", "1", CVAR_ARCHIVE, "Draw the team banner");
 	cg_draw_powerups = cgi.Cvar("cg_draw_powerups", "1", CVAR_ARCHIVE,
 	                            "Draw currently active powerups, such as Quad Damage and Adrenaline.");
 
@@ -150,6 +163,10 @@ static void Cg_Init(void) {
 	cg_draw_vitals_pulse = cgi.Cvar("cg_draw_vitals_pulse", "1", CVAR_ARCHIVE,
 	                                "Pulse the vitals when low");
 	cg_draw_vote = cgi.Cvar("cg_draw_vote", "1", CVAR_ARCHIVE, "Draw the current vote on the hud");
+
+	cg_entity_bob = cgi.Cvar("cg_entity_bob", "1.0", CVAR_ARCHIVE, "Controls the bobbing of items");
+	cg_entity_pulse = cgi.Cvar("cg_entity_pulse", "1.0", CVAR_ARCHIVE, "Controls the pulsing of items");
+	cg_entity_rotate = cgi.Cvar("cg_entity_rotate", "1.0", CVAR_ARCHIVE, "Controls the rotation of items");
 
 	cg_fov = cgi.Cvar("cg_fov", "110.0", CVAR_ARCHIVE, "Horizontal field of view, in degrees");
 	cg_fov_zoom = cgi.Cvar("cg_fov_zoom", "55.0", CVAR_ARCHIVE, "Zoomed in field of view");
@@ -173,7 +190,7 @@ static void Cg_Init(void) {
 	cg_skin = cgi.Cvar("skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                   "Your player model and skin.");
 
-	cg_third_person = cgi.Cvar("cg_third_person", "0.0", CVAR_ARCHIVE | CVAR_LO_ONLY,
+	cg_third_person = cgi.Cvar("cg_third_person", "0.0", CVAR_ARCHIVE | CVAR_DEVELOPER,
 	                           "Activate third person perspective.");
 	cg_third_person_chasecam = cgi.Cvar("cg_third_person_chasecam", "0", CVAR_ARCHIVE,
 	                                    "Activate third person chase camera perspective.");

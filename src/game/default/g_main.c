@@ -40,6 +40,7 @@ cvar_t *g_cheats;
 cvar_t *g_ctf;
 cvar_t *g_techs;
 cvar_t *g_hook;
+cvar_t *g_hook_distance;
 cvar_t *g_hook_style;
 cvar_t *g_hook_speed;
 cvar_t *g_hook_pull_speed;
@@ -70,6 +71,7 @@ cvar_t *g_timeout_time;
 cvar_t *g_voting;
 cvar_t *g_warmup_time;
 cvar_t *g_weapon_respawn_time;
+cvar_t *g_weapon_stay;
 
 cvar_t *sv_max_clients;
 cvar_t *sv_hostname;
@@ -81,13 +83,15 @@ static g_team_t g_teamlist_default[MAX_TEAMS];
 /**
  * @brief
  */
-static void G_InitTeam(const g_team_id_t id, const char *name, const char *skin, const int16_t color, const int16_t effect) {
+static void G_InitTeam(const g_team_id_t id, const char *name, const char *skin, const int16_t color, const char shirt_color[COLOR_MAX_LENGTH], const char pants_color[COLOR_MAX_LENGTH], const int16_t effect) {
 	g_team_t *team = &g_teamlist[id];
 
 	team->id = id;
 	g_strlcpy(team->name, name, sizeof(team->name));
 	g_strlcpy(team->skin, skin, sizeof(team->skin));
 	team->color = color;
+	g_strlcpy(team->shirt_color, shirt_color, sizeof(team->shirt_color));
+	g_strlcpy(team->pants_color, pants_color, sizeof(team->pants_color));
 	team->effect = effect;
 	g_strlcpy(team->flag, va("item_flag_team%i", id + 1), sizeof(team->flag));
 	g_strlcpy(team->spawn, va("info_player_team%i", id + 1), sizeof(team->spawn));
@@ -100,10 +104,10 @@ void G_ResetTeams(void) {
 
 	memset(g_teamlist, 0, sizeof(g_teamlist));
 	
-	G_InitTeam(TEAM_RED, "Red", "red", TEAM_COLOR_RED, EF_CTF_RED);
-	G_InitTeam(TEAM_BLUE, "Blue", "blue", TEAM_COLOR_BLUE, EF_CTF_BLUE);
-	G_InitTeam(TEAM_GREEN, "Green", "green", TEAM_COLOR_GREEN, EF_CTF_GREEN);
-	G_InitTeam(TEAM_ORANGE, "Orange", "orange", TEAM_COLOR_ORANGE, EF_CTF_ORANGE);
+	G_InitTeam(TEAM_RED, "Red", "red", TEAM_COLOR_RED, "ff0000", "ff0000", EF_CTF_RED);
+	G_InitTeam(TEAM_BLUE, "Blue", "blue", TEAM_COLOR_BLUE, "0000ff", "0000ff", EF_CTF_BLUE);
+	G_InitTeam(TEAM_GREEN, "Green", "green", TEAM_COLOR_GREEN, "00ff00", "00ff00", EF_CTF_GREEN);
+	G_InitTeam(TEAM_ORANGE, "Orange", "orange", TEAM_COLOR_ORANGE, "aa6600", "aa6600", EF_CTF_ORANGE);
 
 	memcpy(g_teamlist_default, g_teamlist, sizeof(g_teamlist));
 	
@@ -215,6 +219,11 @@ void G_CheckHook(void) {
 		} else {
 			g_level.hook_allowed = g_level.ctf;
 		}
+	}
+
+	if (g_hook_distance->modified) {
+		g_hook_distance->value = Clamp(g_hook_distance->value, PM_HOOK_MIN_DIST, PM_HOOK_MAX_DIST);
+		g_hook_distance->modified = false;
 	}
 }
 
@@ -1107,6 +1116,47 @@ static void G_CheckRules(void) {
 		gi.BroadcastPrint(PRINT_HIGH, "Time limit has been changed to %3.1f\n", g_time_limit->value);
 	}
 
+	if (g_weapon_stay->modified) {
+		g_weapon_stay->modified = false;
+
+		gi.BroadcastPrint(PRINT_HIGH, "Weapon's Stay has been %s\n", g_weapon_stay->integer ? "enabled" : "disabled");
+
+		// respawn all the weapons sitting around
+		if (g_weapon_stay->integer) {
+			for (uint16_t i = 1; i < ge.num_entities; i++) {
+
+				g_entity_t *ent = &g_game.entities[i];
+
+				if (!ent->in_use) {
+					continue;
+				}
+
+				if (!ent->locals.item) {
+					continue;
+				}
+
+				if (ent->locals.spawn_flags & SF_ITEM_DROPPED) {
+					continue;
+				}
+
+				if (ent->locals.item->type != ITEM_WEAPON) {
+					continue;
+				}
+
+				if (!(ent->sv_flags & SVF_NO_CLIENT)) {
+					continue;
+				}
+
+				if (!ent->locals.Think) {
+					continue;
+				}
+
+				ent->locals.next_think = 0;
+				ent->locals.Think(ent); // force a respawn
+			}
+		}
+	}
+
 	if (restart) {
 		G_RestartGame(true);	// reset all clients
 	}
@@ -1136,8 +1186,6 @@ static void G_Frame(void) {
 	g_level.frame_num++;
 	g_level.time = g_level.frame_num * QUETOO_TICK_MILLIS;
 
-	G_Ai_Frame();
-
 	// check for level change after running intermission
 	if (g_level.intermission_time) {
 		if (g_level.time > g_level.intermission_time + INTERMISSION) {
@@ -1160,14 +1208,12 @@ static void G_Frame(void) {
 
 			if (ent->client) {
 				G_ClientBeginFrame(ent);
-
-				if (ent->client->ai) {
-					G_RunThink(ent);
-				}
 			} else {
 				G_RunEntity(ent);
 			}
 		}
+
+		G_Ai_Frame();
 	}
 
 	// see if a vote has passed
@@ -1265,6 +1311,8 @@ void G_Init(void) {
 	g_ctf = gi.Cvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay");
 	g_hook = gi.Cvar("g_hook", "default", CVAR_SERVER_INFO,
 	                 "Whether to allow the hook to be used or not. \"default\" only allows hook in CTF; 1 is always allow, 0 is never allow.");
+	g_hook_distance = gi.Cvar("g_hook_distance", va("%.1f", PM_HOOK_DEF_DIST), CVAR_SERVER_INFO,
+							  "The maximum distance the hook will travel");
 	g_hook_style = gi.Cvar("g_hook_style", "default", CVAR_SERVER_INFO,
 	                       "Whether to allow only \"pull\", \"swing\" or any (\"default\") hook swing style.");
 	g_hook_speed = gi.Cvar("g_hook_speed", "900", CVAR_SERVER_INFO, "The speed that the hook will fly at");
@@ -1302,6 +1350,7 @@ void G_Init(void) {
 	g_voting = gi.Cvar("g_voting", "1", CVAR_SERVER_INFO, "Activates voting");
 	g_warmup_time = gi.Cvar("g_warmup_time", "15", CVAR_SERVER_INFO, "Match warmup countdown in seconds, up to 30");
 	g_weapon_respawn_time = gi.Cvar("g_weapon_respawn_time", "5.0", CVAR_SERVER_INFO, "Weapon respawn interval in seconds");
+	g_weapon_stay = gi.Cvar("g_weapon_stay", "0", CVAR_SERVER_INFO, "Controls whether weapons will respawn like normal or always stay");
 
 	sv_max_clients = gi.Cvar("sv_max_clients", "1", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 	sv_hostname = gi.Cvar("sv_hostname", "Quetoo", CVAR_SERVER_INFO, NULL);
@@ -1339,6 +1388,7 @@ void G_Init(void) {
 			g_frag_limit->modified =
 			g_round_limit->modified =
 			g_capture_limit->modified =
+			g_weapon_stay->modified = 
 			g_time_limit->modified = false;
 
 	// add game-specific server console commands

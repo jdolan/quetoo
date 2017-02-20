@@ -115,6 +115,65 @@ const char *Cvar_GetString(const char *name) {
 }
 
 /**
+ * @brief Print a cvar to the console.
+ */
+static const char *Cvar_Stringify(const cvar_t *var) {
+	GList *modifiers = NULL;
+
+	if (var->flags & CVAR_ARCHIVE) {
+		modifiers = g_list_append(modifiers, "^2archived^7");
+	}
+
+	if (var->flags & CVAR_USER_INFO) {
+		modifiers = g_list_append(modifiers, "^4userinfo^7");
+	}
+
+	if (var->flags & CVAR_SERVER_INFO) {
+		modifiers = g_list_append(modifiers, "^5serverinfo");
+	}
+
+	if (var->flags & CVAR_DEVELOPER) {
+		modifiers = g_list_append(modifiers, "^1developer^7");
+	}
+
+	if (var->flags & CVAR_NO_SET) {
+		modifiers = g_list_append(modifiers, "^3readonly^7");
+	}
+
+	if (var->flags & CVAR_LATCH) {
+		modifiers = g_list_append(modifiers, "^6latched^7");
+	}
+
+	static char str[MAX_STRING_CHARS];
+	g_snprintf(str, sizeof(str), "%s \"^3%s^7\"", var->name, var->string);
+
+	if (modifiers) {
+		g_strlcat(str, " (", sizeof(str));
+
+		const guint len = g_list_length(modifiers);
+		for (guint i = 0; i < len; i++) {
+			if (i) {
+				g_strlcat(str, ", ", sizeof(str));
+			}
+			g_strlcat(str, (char *) g_list_nth_data(modifiers, i), sizeof(str));
+		}
+
+		g_strlcat(str, ")", sizeof(str));
+		g_list_free(modifiers);
+	}
+
+	if (g_strcmp0(var->string, var->default_value)) {
+		g_strlcat(str, va(" (default: \"^3%s^7\")", var->default_value), sizeof(str));
+	}
+
+	if (var->description) {
+		g_strlcat(str, va("\n\t^2%s^7", var->description), sizeof(str));
+	}
+
+	return str;
+}
+
+/**
  * @brief Enumerates all known variables with the given function.
  */
 void Cvar_Enumerate(CvarEnumerateFunc func, void *data) {
@@ -131,7 +190,7 @@ void Cvar_Enumerate(CvarEnumerateFunc func, void *data) {
 	}
 }
 
-static const char *cvar_complete_pattern;
+static char cvar_complete_pattern[MAX_STRING_CHARS];
 
 /**
  * @brief Enumeration helper for Cvar_CompleteVar.
@@ -140,13 +199,7 @@ static void Cvar_CompleteVar_enumerate(cvar_t *var, void *data) {
 	GList **matches = (GList **) data;
 
 	if (GlobMatch(cvar_complete_pattern, var->name, GLOB_CASE_INSENSITIVE)) {
-		Com_Print("^2%s^7 is \"^3%s^7\" (default is \"^3%s^7\")\n", var->name, var->string, var->default_value);
-
-		if (var->description) {
-			Com_Print("\t^2%s^7\n", var->description);
-		}
-
-		*matches = g_list_prepend(*matches, Mem_CopyString(var->name));
+		*matches = g_list_insert_sorted(*matches, Com_AllocMatch(var->name, Cvar_Stringify(var)), Com_MatchCompare);
 	}
 }
 
@@ -154,7 +207,7 @@ static void Cvar_CompleteVar_enumerate(cvar_t *var, void *data) {
  * @brief Console completion for console variables.
  */
 void Cvar_CompleteVar(const char *pattern, GList **matches) {
-	cvar_complete_pattern = pattern;
+	g_strlcpy(cvar_complete_pattern, pattern, sizeof(cvar_complete_pattern));
 	Cvar_Enumerate(Cvar_CompleteVar_enumerate, (void *) matches);
 }
 
@@ -256,10 +309,9 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 			}
 		}
 
-		// local-only variables can not be modified when in multiplayer mode
-		if (var->flags & CVAR_LO_ONLY) {
-			const int32_t clients = Cvar_GetValue("sv_max_clients");
-			if (clients > 1 || (Com_WasInit(QUETOO_CLIENT) && !Com_WasInit(QUETOO_SERVER))) {
+		// developer variables can not be modified when in multiplayer mode
+		if (var->flags & CVAR_DEVELOPER) {
+			if (!Com_WasInit(QUETOO_SERVER)) {
 				Com_Print("%s is only available offline.\n", name);
 				return var;
 			}
@@ -405,11 +457,11 @@ cvar_t *Cvar_Toggle(const char *name) {
 }
 
 /**
- * @brief Enumeration helper for Cvar_ResetLocal.
+ * @brief Enumeration helper for Car_ResetDeveloper.
  */
-static void Cvar_ResetLocal_enumerate(cvar_t *var, void *data) {
+static void Car_ResetDeveloper_enumerate(cvar_t *var, void *data) {
 
-	if (var->flags & CVAR_LO_ONLY) {
+	if (var->flags & CVAR_DEVELOPER) {
 		if (var->default_value) {
 			Cvar_FullSet(var->name, var->default_value, var->flags);
 		}
@@ -417,14 +469,12 @@ static void Cvar_ResetLocal_enumerate(cvar_t *var, void *data) {
 }
 
 /**
- * @brief Reset CVAR_LO_ONLY to their default values.
+ * @brief Reset CVAR_DEVELOPER to their default values.
  */
-void Cvar_ResetLocal(void) {
+void Car_ResetDeveloper(void) {
 
-	const int32_t clients = Cvar_GetValue("sv_max_clients");
-
-	if (clients > 1 || (Com_WasInit(QUETOO_CLIENT) && !Com_WasInit(QUETOO_SERVER))) {
-		Cvar_Enumerate(Cvar_ResetLocal_enumerate, NULL);
+	if (!Com_WasInit(QUETOO_SERVER)) {
+		Cvar_Enumerate(Car_ResetDeveloper_enumerate, NULL);
 	}
 }
 
@@ -528,7 +578,7 @@ _Bool Cvar_Command(void) {
 
 	// perform a variable print or set
 	if (Cmd_Argc() == 1) {
-		Com_Print("^2%s^7 is \"^3%s^7\" (default is \"^3%s^7\")\n", var->name, var->string, var->default_value);
+		Com_Print("%s\n", Cvar_Stringify(var));
 		return true;
 	}
 
@@ -580,55 +630,7 @@ static void Cvar_Toggle_f(void) {
  * @brief Enumeration helper for Cvar_List_f.
  */
 static void Cvar_List_f_enumerate(cvar_t *var, void *data) {
-	GList *modifiers = NULL;
-
-	if (var->flags & CVAR_ARCHIVE) {
-		modifiers = g_list_append(modifiers, "^2archived^7");
-	}
-
-	if (var->flags & CVAR_USER_INFO) {
-		modifiers = g_list_append(modifiers, "^4userinfo^7");
-	}
-
-	if (var->flags & CVAR_SERVER_INFO) {
-		modifiers = g_list_append(modifiers, "^5serverinfo");
-	}
-
-	if (var->flags & CVAR_LO_ONLY) {
-		modifiers = g_list_append(modifiers, "^1developer^7");
-	}
-
-	if (var->flags & CVAR_NO_SET) {
-		modifiers = g_list_append(modifiers, "^3readonly^7");
-	}
-
-	if (var->flags & CVAR_LATCH) {
-		modifiers = g_list_append(modifiers, "^6latched^7");
-	}
-
-	char str[MAX_STRING_CHARS];
-	g_snprintf(str, sizeof(str), "%s \"^3%s^7\"", var->name, var->string);
-
-	if (modifiers) {
-		g_strlcat(str, " (", sizeof(str));
-
-		const guint len = g_list_length(modifiers);
-		for (guint i = 0; i < len; i++) {
-			if (i) {
-				g_strlcat(str, ", ", sizeof(str));
-			}
-			g_strlcat(str, (char *) g_list_nth_data(modifiers, i), sizeof(str));
-		}
-
-		g_strlcat(str, ")", sizeof(str));
-		g_list_free(modifiers);
-	}
-
-	Com_Print("%s\n", str);
-
-	if (var->description) {
-		Com_Print("\t^2%s^7\n", var->description);
-	}
+	Com_Print("%s\n", Cvar_Stringify(var));
 }
 
 /**

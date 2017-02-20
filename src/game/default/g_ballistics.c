@@ -129,7 +129,7 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, vec_t size,
 
 	if (ent) {
 
-		if (g_level.time - ent->locals.ripple_time < 100) {
+		if (g_level.time - ent->locals.ripple_time < 400) {
 			return;
 		}
 
@@ -192,6 +192,21 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, vec_t size,
 	gi.WriteByte((uint8_t) splash);
 
 	gi.Multicast(pos, MULTICAST_PVS, NULL);
+
+	if (!(tr.contents & CONTENTS_TRANSLUCENT)) {
+		VectorAdd(tr.end, vec3_down, pos);
+		VectorNegate(dir, dir);
+
+		gi.WriteByte(SV_CMD_TEMP_ENTITY);
+		gi.WriteByte(TE_RIPPLE);
+		gi.WritePosition(pos);
+		gi.WriteDir(dir);
+		gi.WriteByte((uint8_t) size);
+		gi.WriteByte((uint8_t) viscosity);
+		gi.WriteByte((uint8_t) false);
+
+		gi.Multicast(pos, MULTICAST_PVS, NULL);
+	}
 }
 
 /**
@@ -238,7 +253,7 @@ static void G_ProjectImpactPoint(const g_entity_t *projectile, const g_entity_t 
 
 			vec3_t delta;
 			VectorSubtract(rotate, translate, delta);
-			
+
 			VectorAdd(point, delta, point);
 		}
 	}
@@ -381,7 +396,10 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 			G_BulletImpact(origin, &tr.plane, tr.surface);
 		}
 
-		if (gi.PointContents(tr.end) & MASK_LIQUID) {
+		if (gi.PointContents(start) & MASK_LIQUID) {
+			G_Ripple(NULL, tr.end, start, 8.0, false);
+			G_BubbleTrail(start, &tr);
+		} else if (gi.PointContents(tr.end) & MASK_LIQUID) {
 			G_Ripple(NULL, start, tr.end, 8.0, true);
 			G_BubbleTrail(start, &tr);
 		}
@@ -1183,10 +1201,16 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 			if (self->owner->client->locals.persistent.hook_style == HOOK_SWING) {
 
 				const vec_t distance = VectorDistance(self->owner->s.origin, self->s.origin);
-				self->owner->client->ps.pm_state.hook_length = Clamp(distance, PM_HOOK_MIN_LENGTH, PM_HOOK_MAX_LENGTH);
+				self->owner->client->ps.pm_state.hook_length = Clamp(distance, PM_HOOK_MIN_DIST, g_hook_distance->value);
 			}
 
 			gi.Sound(self, g_media.sounds.hook_hit, ATTEN_NORM);
+
+			gi.WriteByte(SV_CMD_TEMP_ENTITY);
+			gi.WriteByte(TE_HOOK_IMPACT);
+			gi.WritePosition(self->s.origin);
+			gi.WriteDir(plane->normal);
+			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
 		} else {
 
 			VectorNormalize(self->locals.velocity);
@@ -1221,7 +1245,7 @@ static void G_HookTrail_Think(g_entity_t *ent) {
 	vec3_t distance;
 	VectorSubtract(org, hook->s.origin, distance);
 
-	if (VectorLength(distance) > PM_HOOK_MAX_LENGTH) {
+	if (VectorLength(distance) > g_hook_distance->value) {
 
 		G_ClientHookDetach(player);
 		return;

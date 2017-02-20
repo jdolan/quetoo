@@ -7,6 +7,12 @@
     <Filter Include="src\renderers">
       <UniqueIdentifier>{2e11bfdc-615a-46e3-bf60-c4179728a25c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\views">
+      <UniqueIdentifier>{d3952e71-a631-40a7-b36e-408eacf93353}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\viewcontrollers">
+      <UniqueIdentifier>{2d1836be-8318-4494-84d4-788530649ed7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\client\ui\ui.h">
@@ -21,7 +27,16 @@
     <ClInclude Include="..\..\src\client\ui\ui_types.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\client\ui\renderers\RendererQuetoo.h">
+    <ClInclude Include="..\..\src\client\ui\ui_editor.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\viewcontrollers\EditorViewController.h">
+      <Filter>src\viewcontrollers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\views\EditorView.h">
+      <Filter>src\views</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\renderers\QuetooRenderer.h">
       <Filter>src\renderers</Filter>
     </ClInclude>
   </ItemGroup>
@@ -29,7 +44,16 @@
     <ClCompile Include="..\..\src\client\ui\ui_main.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\client\ui\renderers\RendererQuetoo.c">
+    <ClCompile Include="..\..\src\client\ui\ui_editor.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\viewcontrollers\EditorViewController.c">
+      <Filter>src\viewcontrollers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\views\EditorView.c">
+      <Filter>src\views</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\renderers\QuetooRenderer.c">
       <Filter>src\renderers</Filter>
     </ClCompile>
   </ItemGroup>

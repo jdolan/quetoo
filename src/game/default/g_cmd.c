@@ -629,6 +629,7 @@ static const char *vote_cmds[] = {
 	"g_round_limit",
 	"g_rounds",
 	"g_spawn_farthest",
+	"g_weapon_stay",
 	"g_teams",
 	"g_num_teams",
 	"g_time_limit",

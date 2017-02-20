@@ -890,6 +890,53 @@ static void Cg_SplashEffect(const vec3_t org, const vec3_t dir) {
 /**
  * @brief
  */
+static void Cg_HookImpactEffect(const vec3_t org, const vec3_t dir) {
+
+	for (int32_t i = 0; i < 32; i++) {
+		cg_particle_t *p;
+
+		if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark))) {
+			break;
+		}
+
+		p->lifetime = 100 + (Randomf() * 150);
+
+		cgi.ColorFromPalette(221 + (Random() & 7), p->part.color);
+		p->part.color[3] = 0.7 + Randomf() * 0.3;
+
+		p->part.scale = 0.8 + Randomf() * 0.4;
+
+		VectorCopy(org, p->part.org);
+
+		VectorScale(dir, 9, p->vel);
+
+		for (int32_t j = 0; j < 3; j++) {
+			p->part.org[j] += Randomc() * 4.0;
+			p->vel[j] += Randomc() * 90.0;
+		}
+
+		p->accel[0] = Randomc() * 2.0;
+		p->accel[1] = Randomc() * 2.0;
+		p->accel[2] = -0.5 * PARTICLE_GRAVITY;
+		p->spark.length = 0.15;
+
+		VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
+	}
+
+	vec3_t v;
+	VectorAdd(org, dir, v);
+
+	cgi.AddSustainedLight(&(const r_sustained_light_t) {
+		.light.origin = { v[0], v[1], v[2] },
+		       .light.color = { 0.7, 0.5, 0.5 },
+		              .light.radius = 80.0,
+		                     .sustain = 850
+	});
+}
+
+/**
+ * @brief
+ */
 void Cg_ParseTempEntity(void) {
 	vec3_t pos, pos2, dir;
 	int32_t i, j;
@@ -985,6 +1032,12 @@ void Cg_ParseTempEntity(void) {
 			if (cgi.ReadByte()) {
 				Cg_SplashEffect(pos, dir);
 			}
+			break;
+
+		case TE_HOOK_IMPACT: // grapple hook impact
+			cgi.ReadPosition(pos);
+			cgi.ReadDir(dir);
+			Cg_HookImpactEffect(pos, dir);
 			break;
 
 		default:

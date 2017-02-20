@@ -710,10 +710,10 @@ static void Pm_CheckHook(void) {
 
 		// pull physics
 		VectorSubtract(pm->s.hook_position, pm->s.origin, pm->s.velocity);
-		vec_t chain_len = VectorNormalize(pm->s.velocity);
+		const vec_t dist = VectorNormalize(pm->s.velocity);
 
-		if (chain_len > 8.0 && !Pm_CheckHookJump()) {
-			VectorScale(pm->s.velocity, Max(chain_len, pm->hook_pull_speed), pm->s.velocity);
+		if (dist > 8.0 && !Pm_CheckHookJump()) {
+			VectorScale(pm->s.velocity, pm->hook_pull_speed, pm->s.velocity);
 		} else {
 			VectorClear(pm->s.velocity);
 		}
@@ -739,10 +739,10 @@ static void Pm_CheckHook(void) {
 
 		// chain physics
 		// grow/shrink chain based on input
-		if ((pm->cmd.up > 0 || !(pm->s.flags & PMF_HOOK_RELEASED)) && (pm->s.hook_length > PM_HOOK_MIN_LENGTH)) {
-			pm->s.hook_length = Max(pm->s.hook_length - hook_rate, PM_HOOK_MIN_LENGTH);
-		} else if ((pm->cmd.up < 0) && (pm->s.hook_length < PM_HOOK_MAX_LENGTH)) {
-			pm->s.hook_length = Min(pm->s.hook_length + hook_rate, PM_HOOK_MAX_LENGTH);
+		if ((pm->cmd.up > 0 || !(pm->s.flags & PMF_HOOK_RELEASED)) && (pm->s.hook_length > PM_HOOK_MIN_DIST)) {
+			pm->s.hook_length = Max(pm->s.hook_length - hook_rate, PM_HOOK_MIN_DIST);
+		} else if ((pm->cmd.up < 0) && (pm->s.hook_length < PM_HOOK_MAX_DIST)) {
+			pm->s.hook_length = Min(pm->s.hook_length + hook_rate, PM_HOOK_MAX_DIST);
 		}
 
 		vec3_t chain_vec;

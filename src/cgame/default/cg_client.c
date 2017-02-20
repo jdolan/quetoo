@@ -24,7 +24,7 @@
 
 #define DEFAULT_CLIENT_MODEL "qforcer"
 #define DEFAULT_CLIENT_SKIN "default"
-#define DEFAULT_CLIENT_INFO "newbie\\" DEFAULT_CLIENT_MODEL "/" DEFAULT_CLIENT_SKIN
+#define DEFAULT_CLIENT_INFO "newbie\\" DEFAULT_CLIENT_MODEL "/" DEFAULT_CLIENT_SKIN "\\-1\\default\\default"
 
 /**
  * @brief Parses a single line of a .skin definition file. Note that, unlike Quake3,
@@ -212,9 +212,8 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 
 	// split info into tokens
 	gchar **info = g_strsplit(s, "\\", 0);
-	const size_t num_info = g_strv_length(info);
 
-	if (!num_info || num_info > MAX_CLIENT_INFO_ENTRIES) { // invalid info
+	if (g_strv_length(info) != MAX_CLIENT_INFO_ENTRIES) { // invalid info
 		Cg_LoadClient(ci, DEFAULT_CLIENT_INFO);
 	} else {
 
@@ -236,15 +235,25 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 		ci->color = EFFECT_COLOR_DEFAULT;
 
 		// if we have effect color, parse it
-		if (num_info > 2) {
+		int32_t hue = atoi(info[2]);
 
-			int32_t hue = Clamp(atoi(info[2]), 0, 360);
+		if (hue != -1) {
+			hue = Clamp(atoi(info[2]), 0, 360);
+			ci->color = ColorFromHSV((const vec3_t) { hue, 1.0, 0.5 });
+		}
 
-			ci->color = ColorFromHSV((const vec3_t) {
-				hue,
-				1.0,
-				0.5
-			});
+		// load shirt/pant colors
+		color_t shirt, pants;
+		ci->shirt_color[3] = ci->pants_color[3] = 0.0;
+		
+		if (g_strcmp0(info[3], "default") && ColorParseHex(info[3], &shirt)) {
+			ColorToVec4(shirt, ci->shirt_color);
+			ci->shirt_color[3] = 1.0;
+		}
+
+		if (g_strcmp0(info[4], "default") && ColorParseHex(info[4], &pants)) {
+			ColorToVec4(pants, ci->pants_color);
+			ci->pants_color[3] = 1.0;
 		}
 		
 		// ensure we were able to load everything
