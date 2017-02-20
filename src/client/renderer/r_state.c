@@ -696,7 +696,7 @@ void R_Setup3D(void) {
 	}
 
 	const SDL_Rect *viewport = &r_view.viewport_3d;
-	R_SetViewport(viewport->x, viewport->y, viewport->w, viewport->h, !!r_state.supersample_fbo);
+	R_SetViewport(viewport->x, viewport->y, viewport->w, viewport->h, r_state.supersample_fb != FRAMEBUFFER_DEFAULT);
 
 	// copy projection matrix
 	R_SetMatrix(R_MATRIX_PROJECTION, &r_view.matrix_base_3d);
@@ -803,11 +803,11 @@ void R_EnableScissor(const SDL_Rect *bounds) {
  */
 void R_Setup2D(void) {
 
-	if (r_state.supersample_fbo) {
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	if (r_state.supersample_fb) {
+		R_BindFramebuffer(FRAMEBUFFER_DEFAULT);
 	}
 
-	R_SetViewport(0, 0, r_context.width, r_context.height, !!r_state.supersample_fbo);
+	R_SetViewport(0, 0, r_context.width, r_context.height, r_state.supersample_fb != FRAMEBUFFER_DEFAULT);
 
 	R_SetMatrix(R_MATRIX_PROJECTION, &r_view.matrix_base_2d);
 
@@ -826,20 +826,8 @@ void R_Setup2D(void) {
  */
 static void R_ShutdownSupersample(void) {
 
-	if (r_state.supersample_texture) {
-		glDeleteTextures(1, &r_state.supersample_texture);
-		r_state.supersample_texture = 0;
-	}
-
-	if (r_state.supersample_depth) {
-		glDeleteRenderbuffers(1, &r_state.supersample_depth);
-		r_state.supersample_depth = 0;
-	}
-
-	if (r_state.supersample_fbo) {
-		glDeleteFramebuffers(1, &r_state.supersample_fbo);
-		r_state.supersample_fbo = 0;
-	}
+	r_state.supersample_fb = NULL;
+	r_state.supersample_image = NULL; // we'll get freed later
 }
 
 /**
@@ -878,22 +866,25 @@ static void R_InitSupersample(void) {
 		return;
 	}
 
-	// try to create the FBO backing textures
-	glGenTextures(1, &r_state.supersample_texture);
-	glBindTexture(GL_TEXTURE_2D, r_state.supersample_texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, r_context.render_width, r_context.render_height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-	             NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	// try to create the FBO backing texture
+	r_state.supersample_image = (r_image_t *) R_AllocMedia("r_state.supersample_image", sizeof(r_image_t), MEDIA_IMAGE);
+	r_state.supersample_image->media.Retain = R_RetainImage;
+	r_state.supersample_image->media.Free = R_FreeImage;
 
-	glGenRenderbuffers(1, &r_state.supersample_depth);
-	glBindRenderbuffer(GL_RENDERBUFFER, r_state.supersample_depth);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, r_context.render_width, r_context.render_height);
+	r_state.supersample_image->width = r_context.render_width;
+	r_state.supersample_image->height = r_context.render_height;
+	r_state.supersample_image->type = IT_NULL;
 
+	R_UploadImage(r_state.supersample_image, GL_RGBA, NULL);
+
+	r_state.supersample_fb = R_CreateFramebuffer("r_state.supersample_fb");
+	R_AttachFramebufferImage(r_state.supersample_fb, r_state.supersample_image);
+	R_CreateFramebufferDepthStencilBuffers(r_state.supersample_fb);
+	
 	// attempt to gracefully recover from errors
-	if (glGetError() != GL_NO_ERROR) {
+	if (!R_FramebufferReady(r_state.supersample_fb)) {
 
-		Com_Warn("Couldn't create supersample textures.\n");
+		Com_Warn("Couldn't initialize supersample.\n");
 		Cvar_Set("r_supersample", "0");
 		
 		r_context.render_width = r_context.width;
@@ -903,31 +894,9 @@ static void R_InitSupersample(void) {
 		return;
 	}
 
-	glGenFramebuffers(1, &r_state.supersample_fbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, r_state.supersample_fbo);
+	R_BindFramebuffer(FRAMEBUFFER_DEFAULT);
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, r_state.supersample_texture, 0);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, r_state.supersample_depth);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, r_state.supersample_depth);
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-	// attempt to gracefully recover from errors
-	if (glGetError() != GL_NO_ERROR ||
-	        glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-
-		Com_Warn("Couldn't create supersample framebuffer.\n");
-		Cvar_Set("r_supersample", "0");
-
-		r_context.render_width = r_context.width;
-		r_context.render_height = r_context.height;
-
-		R_ShutdownSupersample();
-		return;
-	}
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	R_GetError(NULL);
 
 	Com_Print("  Supersampling @ %dx%d..\n", r_context.render_width, r_context.render_height);
 }

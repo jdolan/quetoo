@@ -199,11 +199,11 @@ void R_DrawImage(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image) 
  */
 void R_DrawSupersample(void) {
 
-	if (!r_state.supersample_fbo) {
+	if (!r_state.supersample_fb) {
 		return;
 	}
 
-	R_DrawImage_(0, 0, r_context.width, r_context.height, r_state.supersample_texture, &r_draw.supersample_buffer);
+	R_DrawImage_(0, 0, r_context.width, r_context.height, r_state.supersample_image->texnum, &r_draw.supersample_buffer);
 }
 
 /**

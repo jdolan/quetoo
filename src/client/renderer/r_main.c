@@ -303,11 +303,9 @@ void R_BeginFrame(void) {
 		r_render_plugin->modified = false;
 	}
 
-	if (r_state.supersample_fbo) {
-
+	if (r_state.supersample_fb) {
 		R_Clear();
-
-		glBindFramebuffer(GL_FRAMEBUFFER, r_state.supersample_fbo);
+		R_BindFramebuffer(r_state.supersample_fb);
 	}
 
 	R_Clear();
@@ -598,11 +596,13 @@ void R_Init(void) {
 
 	R_InitConfig();
 
+	R_InitMedia();
+
 	R_InitState();
 
-	R_InitPrograms();
+	R_GetError("NULL");
 
-	R_InitMedia();
+	R_InitPrograms();
 
 	R_InitImages();
 

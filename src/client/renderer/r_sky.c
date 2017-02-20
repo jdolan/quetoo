@@ -27,13 +27,13 @@
 #define SKY_ST_MAX	(UINT16_MAX - SKY_ST_MIN)
 
 typedef struct {
-	s16vec4_t position;
+	vec3_t position;
 	u16vec2_t texcoord;
 } r_sky_interleave_vertex_t;
 
 static r_buffer_layout_t r_sky_layout_buffer[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_SHORT, .count = 4, .size = sizeof(s16vec4_t) },
-	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = 8, .normalized = true },
+	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
+	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = offsetof(r_sky_interleave_vertex_t, texcoord), .normalized = true },
 	{ .attribute = -1 }
 };
 

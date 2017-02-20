@@ -117,9 +117,13 @@ void R_InitContext(void) {
 		Com_Error(ERROR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
 	}
 
+	const int32_t valid_attribs[] = { SDL_GL_RED_SIZE, SDL_GL_GREEN_SIZE, SDL_GL_BLUE_SIZE, SDL_GL_ALPHA_SIZE, SDL_GL_DEPTH_SIZE, SDL_GL_STENCIL_SIZE, SDL_GL_BUFFER_SIZE,
+									SDL_GL_DOUBLEBUFFER, SDL_GL_MULTISAMPLEBUFFERS, SDL_GL_MULTISAMPLESAMPLES, SDL_GL_CONTEXT_MAJOR_VERSION, SDL_GL_CONTEXT_MINOR_VERSION,
+									SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_PROFILE_MASK };
+
 	int32_t attr[SDL_GL_CONTEXT_RELEASE_BEHAVIOR];
-	for (int32_t i = 0; i < SDL_GL_CONTEXT_RELEASE_BEHAVIOR; i++) {
-		SDL_GL_GetAttribute(i, &attr[i]);
+	for (size_t i = 0; i < lengthof(valid_attribs); i++) {
+		SDL_GL_GetAttribute(valid_attribs[i], &attr[valid_attribs[i]]);
 	}
 
 	Com_Verbose("   Buffer Sizes: r %i g %i b %i a %i depth %i stencil %i framebuffer %i\n", attr[SDL_GL_RED_SIZE],

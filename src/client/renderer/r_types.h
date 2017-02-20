@@ -43,6 +43,7 @@ typedef enum {
 	MEDIA_BSP, //
 
 	MEDIA_MATERIAL, // r_material_t
+	MEDIA_FRAMEBUFFER, // r_framebuffer_t
 
 	MEDIA_TOTAL
 } r_media_type_t;
@@ -272,6 +273,24 @@ typedef struct {
 	GArray *images; // image list
 	GHashTable *hash; // hash of image -> image list ptr
 } r_atlas_t;
+
+/**
+ * @brief A framebuffer is a screen buffer that can be drawn to.
+ */
+typedef struct {
+	r_media_t media;
+	GLuint framebuffer;
+
+	r_image_t *color; // the texture color attachment
+	GLuint depth_stencil;
+
+	uint32_t width, height; // matches color attachment
+} r_framebuffer_t;
+
+/**
+ * @brief Special index to mean "use default buffer"
+ */
+#define FRAMEBUFFER_DEFAULT	NULL
 
 typedef enum {
 	PARTICLE_NORMAL,

@@ -129,16 +129,8 @@ typedef struct r_state_s {
 
 	SDL_Rect current_viewport;
 
-	/**
-	 * @brief Supersample texture buffer
-	 */
-	GLuint supersample_texture;
-	GLuint supersample_depth;
-
-	/**
-	 * @brief Supersample FBO
-	 */
-	GLuint supersample_fbo;
+	r_image_t *supersample_image;
+	r_framebuffer_t *supersample_fb;
 
 	uint16_t max_active_lights;
 
