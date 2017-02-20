@@ -78,7 +78,6 @@ case "$host" in
 		HOST_NAME="WINDOWS"
 		HOST_LIBS="-lws2_32 -lole32"
 		DEFAULT_PREFIX="/"
-		HOST_CFLAGS="-D__USE_MINGW_ANSI_STDIO=1"
 		AC_MSG_RESULT(windows)
 		AC_PATH_PROGS([WINDRES],
 			[windres $host-windres],
