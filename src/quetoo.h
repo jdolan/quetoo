@@ -163,7 +163,7 @@ typedef union {
 #define CVAR_ARCHIVE		0x2 // saved to quetoo.cfg
 #define CVAR_USER_INFO		0x4 // added to user_info when changed
 #define CVAR_SERVER_INFO	0x8 // added to server_info when changed
-#define CVAR_LO_ONLY		0x10 // don't allow change when connected
+#define CVAR_DEVELOPER		0x10 // don't allow change when connected
 #define CVAR_NO_SET			0x20 // don't allow change from console at all
 #define CVAR_LATCH			0x40 // save changes until server restart
 #define CVAR_R_CONTEXT		0x80 // affects OpenGL context

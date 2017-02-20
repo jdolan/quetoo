@@ -136,7 +136,8 @@ libsys_la_SOURCES = \
 	sys.c
 libsys_la_CFLAGS = \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@
+	@GLIB_CFLAGS@ \
+	@SDL2_CFLAGS@
 libsys_la_LDFLAGS = \
 	-shared
 libsys_la_LIBADD = \

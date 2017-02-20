@@ -450,23 +450,23 @@ static void R_InitLocal(void) {
 
 	// development tools
 	r_clear = Cvar_Add("r_clear", "0", 0, "Controls buffer clearing (developer tool)");
-	r_cull = Cvar_Add("r_cull", "1", CVAR_LO_ONLY,
+	r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER,
 	                  "Controls bounded box culling routines (developer tool)");
-	r_lock_vis = Cvar_Add("r_lock_vis", "0", CVAR_LO_ONLY,
+	r_lock_vis = Cvar_Add("r_lock_vis", "0", CVAR_DEVELOPER,
 	                      "Temporarily locks the PVS lookup for world surfaces (developer tool)");
-	r_no_vis = Cvar_Add("r_no_vis", "0", CVAR_LO_ONLY,
+	r_no_vis = Cvar_Add("r_no_vis", "0", CVAR_DEVELOPER,
 	                    "Disables PVS refresh and lookup for world surfaces (developer tool)");
-	r_draw_bsp_leafs = Cvar_Add("r_draw_bsp_leafs", "0", CVAR_LO_ONLY,
+	r_draw_bsp_leafs = Cvar_Add("r_draw_bsp_leafs", "0", CVAR_DEVELOPER,
 	                            "Controls the rendering of BSP leafs (developer tool)");
-	r_draw_bsp_lights = Cvar_Add("r_draw_bsp_lights", "0", CVAR_LO_ONLY,
+	r_draw_bsp_lights = Cvar_Add("r_draw_bsp_lights", "0", CVAR_DEVELOPER,
 	                             "Controls the rendering of static BSP light sources (developer tool)");
-	r_draw_bsp_lightmaps = Cvar_Add("r_draw_bsp_lightmaps", "0", CVAR_LO_ONLY,
+	r_draw_bsp_lightmaps = Cvar_Add("r_draw_bsp_lightmaps", "0", CVAR_DEVELOPER,
 	                                "Controls the rendering of BSP lightmap textures (developer tool)");
-	r_draw_bsp_normals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_LO_ONLY,
+	r_draw_bsp_normals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_DEVELOPER,
 	                              "Controls the rendering of BSP surface normals (developer tool)");
-	r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_LO_ONLY,
+	r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER,
 	                                "Controls the rendering of entity bounding boxes (developer tool)");
-	r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_LO_ONLY,
+	r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER,
 	                            "Controls the rendering of polygons as wireframe (developer tool)");
 
 	// settings and preferences
