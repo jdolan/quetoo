@@ -2,7 +2,7 @@
  * @brief Planar shadows vertex shader.
  */
 
-#version 120
+#version 330
 
 #define VERTEX_SHADER
 
@@ -11,14 +11,12 @@
 
 uniform mat4 SHADOW_MAT;
 uniform vec4 LIGHT;
-
-varying vec4 point;
-
-attribute vec3 POSITION;
-
 uniform float TIME_FRACTION;
 
-attribute vec3 NEXT_POSITION;
+out vec4 point;
+
+in vec3 POSITION;
+in vec3 NEXT_POSITION;
 
 /**
  * @brief

@@ -2,17 +2,17 @@
  * @brief Warp vertex shader.
  */
 
-#version 120
+#version 330
 
 #define VERTEX_SHADER
 
 #include "fog_inc.glsl"
 #include "matrix_inc.glsl"
 
-varying vec2 texcoord;
+out vec2 texcoord;
 
-attribute vec3 POSITION;
-attribute vec2 TEXCOORD;
+in vec3 POSITION;
+in vec2 TEXCOORD;
 
 /**
  * @brief Program entry point.
