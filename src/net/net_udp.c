@@ -239,12 +239,12 @@ void Net_Config(net_src_t source, _Bool up) {
 		}
 	}
 
-	net_loop_latency = Cvar_Add("net_loop_latency", "0", CVAR_LO_ONLY,
+	net_loop_latency = Cvar_Add("net_loop_latency", "0", CVAR_DEVELOPER,
 	                            "Simulate network latency, in milliseconds, on localhost (developer tool)");
 
-	net_loop_jitter = Cvar_Add("net_loop_jitter", "0", CVAR_LO_ONLY,
+	net_loop_jitter = Cvar_Add("net_loop_jitter", "0", CVAR_DEVELOPER,
 	                           "Simulate network jitter, in milliseconds, on localhost (developer tool)");
 
-	net_loop_loss = Cvar_Add("net_loop_loss", "0.0", CVAR_LO_ONLY,
+	net_loop_loss = Cvar_Add("net_loop_loss", "0.0", CVAR_DEVELOPER,
 	                         "Simulate network packet loss, as a fraction, on localhost (developer tool)");
 }

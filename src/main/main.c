@@ -325,8 +325,8 @@ static void Init(void) {
 	threads = Cvar_Add("threads", "0", CVAR_ARCHIVE, "Specifies the number of threads to create");
 	threads->modified = false;
 
-	time_demo = Cvar_Add("time_demo", "0", CVAR_LO_ONLY, "Benchmark and stress test");
-	time_scale = Cvar_Add("time_scale", "1.0", CVAR_LO_ONLY, "Controls time lapse");
+	time_demo = Cvar_Add("time_demo", "0", CVAR_DEVELOPER, "Benchmark and stress test");
+	time_scale = Cvar_Add("time_scale", "1.0", CVAR_DEVELOPER, "Controls time lapse");
 
 	quetoo.Debug = Debug;
 	quetoo.Error = Error;
