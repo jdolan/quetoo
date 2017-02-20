@@ -1234,7 +1234,7 @@ _Bool ColorParseHex(const char *s, color_t *color) {
 
 	switch (s_len) {
 	case 3:
-		if (sscanf(s, "%1hhx%1hhx%1hhx", &color->r, &color->g, &color->b) != 3) {
+		if (sscanf(s, "%1" SCNx8 "%1" SCNx8 "%1" SCNx8, &color->r, &color->g, &color->b) != 3) {
 			return false;
 		}
 
@@ -1245,7 +1245,7 @@ _Bool ColorParseHex(const char *s, color_t *color) {
 		color->a = 0xFF;
 		break;
 	case 6:
-		if (sscanf(s, "%2hhx%2hhx%2hhx", &color->r, &color->g, &color->b) != 3) {
+		if (sscanf(s, "%2" SCNx8 "%2" SCNx8 "%2" SCNx8, &color->r, &color->g, &color->b) != 3) {
 			return false;
 		}
 
@@ -1253,7 +1253,7 @@ _Bool ColorParseHex(const char *s, color_t *color) {
 		break;
 
 	case 4:
-		if (sscanf(s, "%1hhx%1hhx%1hhx%1hhx", &color->r, &color->g, &color->b, &color->a) != 4) {
+		if (sscanf(s, "%1" SCNx8 "%1" SCNx8 "%1" SCNx8 "%1" SCNx8, &color->r, &color->g, &color->b, &color->a) != 4) {
 			return false;
 		}
 
@@ -1262,7 +1262,7 @@ _Bool ColorParseHex(const char *s, color_t *color) {
 		}
 		break;
 	case 8:
-		if (sscanf(s, "%2hhx%2hhx%2hhx%2hhx", &color->r, &color->g, &color->b, &color->a) != 4) {
+		if (sscanf(s, "%2" SCNx8 "%2" SCNx8 "%2" SCNx8 "%2" SCNx8, &color->r, &color->g, &color->b, &color->a) != 4) {
 			return false;
 		}
 

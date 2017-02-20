@@ -32,7 +32,7 @@ void Sv_ClientPrint(const g_entity_t *ent, const int32_t level, const char *fmt,
 
 	n = NUM_FOR_ENTITY(ent);
 	if (n < 1 || n > sv_max_clients->integer) {
-		Com_Warn("Issued to non-client %zd\n", n);
+		Com_Warn("Issued to non-client %" PRIuPTR "\n", n);
 		return;
 	}
 
