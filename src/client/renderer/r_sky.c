@@ -27,13 +27,13 @@
 #define SKY_ST_MAX	(UINT16_MAX - SKY_ST_MIN)
 
 typedef struct {
-	s16vec3_t position;
+	s16vec4_t position;
 	u16vec2_t texcoord;
 } r_sky_interleave_vertex_t;
 
 static r_buffer_layout_t r_sky_layout_buffer[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_SHORT, .count = 3, .size = sizeof(s16vec3_t) },
-	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = 6, .normalized = true },
+	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_SHORT, .count = 4, .size = sizeof(s16vec4_t) },
+	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = 8, .normalized = true },
 	{ .attribute = -1 }
 };
 
@@ -41,6 +41,7 @@ static r_buffer_layout_t r_sky_layout_buffer[] = {
 typedef struct {
 	r_image_t *images[6];
 	r_buffer_t quick_vert_buffer;
+	r_buffer_t quick_elem_buffer;
 } r_sky_t;
 
 static r_sky_t r_sky;
@@ -52,8 +53,12 @@ void R_DrawSkyBox(void) {
 	matrix4x4_t modelview;
 
 	R_GetMatrix(R_MATRIX_MODELVIEW, &modelview);
+	
+	R_UnbindAttributeBuffers();
 
 	R_BindAttributeInterleaveBuffer(&r_sky.quick_vert_buffer, R_ARRAY_MASK_ALL);
+
+	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_sky.quick_elem_buffer);
 
 	R_PushMatrix(R_MATRIX_MODELVIEW);
 
@@ -67,22 +72,22 @@ void R_DrawSkyBox(void) {
 	r_state.active_program->UseFog(&r_state.active_fog_parameters);
 	
 	R_BindDiffuseTexture(r_sky.images[4]->texnum);
-	R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	R_DrawArrays(GL_TRIANGLES, 0, 6);
 
 	R_BindDiffuseTexture(r_sky.images[5]->texnum);
-	R_DrawArrays(GL_TRIANGLE_FAN, 4, 4);
+	R_DrawArrays(GL_TRIANGLES, 6, 6);
 
 	R_BindDiffuseTexture(r_sky.images[0]->texnum);
-	R_DrawArrays(GL_TRIANGLE_FAN, 8, 4);
+	R_DrawArrays(GL_TRIANGLES, 12, 6);
 
 	R_BindDiffuseTexture(r_sky.images[2]->texnum);
-	R_DrawArrays(GL_TRIANGLE_FAN, 12, 4);
+	R_DrawArrays(GL_TRIANGLES, 18, 6);
 
 	R_BindDiffuseTexture(r_sky.images[1]->texnum);
-	R_DrawArrays(GL_TRIANGLE_FAN, 16, 4);
+	R_DrawArrays(GL_TRIANGLES, 24, 6);
 
 	R_BindDiffuseTexture(r_sky.images[3]->texnum);
-	R_DrawArrays(GL_TRIANGLE_FAN, 20, 4);
+	R_DrawArrays(GL_TRIANGLES, 30, 6);
 
 	r_state.active_fog_parameters.end = FOG_END;
 	r_state.active_program->UseFog(&r_state.active_fog_parameters);
@@ -93,9 +98,6 @@ void R_DrawSkyBox(void) {
 
 	R_UnbindAttributeBuffers();
 }
-
-// 4 verts for 6 sides
-#define MAX_SKY_VERTS	4 * 6
 
 /**
  * @brief
@@ -164,17 +166,32 @@ void R_InitSky(void) {
 	};
 
 	R_CreateInterleaveBuffer(&r_sky.quick_vert_buffer, sizeof(r_sky_interleave_vertex_t), r_sky_layout_buffer, GL_STATIC_DRAW,
-	                         sizeof(r_sky_interleave_vertex_t) * MAX_SKY_VERTS, NULL);
-	
-	R_UploadToSubBuffer(&r_sky.quick_vert_buffer, 0, sizeof(quick_sky_verts), quick_sky_verts, false);
+	                         sizeof(quick_sky_verts), quick_sky_verts);
+
+#define TRIANGLE_ELEMENTS_FROM(start) \
+		start + 0, start + 1, start + 2, \
+		start + 0, start + 2, start + 3
+
+	const byte quick_sky_elements[] = {
+		TRIANGLE_ELEMENTS_FROM(0),
+		TRIANGLE_ELEMENTS_FROM(4),
+		TRIANGLE_ELEMENTS_FROM(8),
+		TRIANGLE_ELEMENTS_FROM(12),
+		TRIANGLE_ELEMENTS_FROM(16),
+		TRIANGLE_ELEMENTS_FROM(20)
+	};
+
+	R_CreateElementBuffer(&r_sky.quick_elem_buffer, R_ATTRIB_UNSIGNED_BYTE, GL_STATIC_DRAW, sizeof(quick_sky_elements), quick_sky_elements);
 }
 
 /**
  * @brief
  */
 void R_ShutdownSky(void) {
-
+	
 	R_DestroyBuffer(&r_sky.quick_vert_buffer);
+
+	R_DestroyBuffer(&r_sky.quick_elem_buffer);
 }
 
 /**
