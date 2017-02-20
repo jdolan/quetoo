@@ -46,12 +46,10 @@ Quetoo builds with GNU Autotools. To build it, run the following:
 
 ## Installing
 
-To have a working game, you must install the game data. You have two options: `git` or `rsync`. If you wish to work on or modify the game data, you should use `git`:
+To have a working game, you must install the game data using `git`:
 
     git clone https://github.com/jdolan/quetoo-data.git
     sudo ln -s quetoo-data/target /usr/local/share/quetoo
-    
-If you have no plans to modify the game data, you can simply run `sudo make rsync-data` from the source code working copy.
 
 More information on hacking on _Quetoo_ is available [on the project website](http://quetoo.org/books/documentation/developing-and-modding).
 
