@@ -393,7 +393,7 @@ size_t Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int32_t *list, size_
 	}
 
 	if (data.len == data.max_len) {
-		Com_Debug(DEBUG_COLLISION, "max_len (%" PRIuPTR ") reached\n", data.max_len);
+		Com_Debug(DEBUG_COLLISION, "max_len (%" PRIuMAX ") reached\n", data.max_len);
 	}
 
 	return data.len;

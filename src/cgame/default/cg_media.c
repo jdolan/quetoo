@@ -106,7 +106,7 @@ static void Cg_FootstepsTable_Load(const char *footsteps) {
 	for (size_t i = 0; i < count; i++) {
 
 		char name[MAX_QPATH];
-		g_snprintf(name, sizeof(name), "#players/common/step_%s_%" PRIuPTR, footsteps, i + 1);
+		g_snprintf(name, sizeof(name), "#players/common/step_%s_%" PRIuMAX, footsteps, i + 1);
 
 		s_sample_t *sample = cgi.LoadSample(name);
 		sounds = g_array_append_val(sounds, sample);
@@ -206,17 +206,17 @@ void Cg_UpdateMedia(void) {
 	cg_sample_gib = cgi.LoadSample("gibs/common/gib");
 
 	for (size_t i = 0; i < lengthof(cg_sample_hits); i++) {
-		g_snprintf(name, sizeof(name), "misc/hit_%" PRIuPTR, i + 1);
+		g_snprintf(name, sizeof(name), "misc/hit_%" PRIuMAX, i + 1);
 		cg_sample_hits[i] = cgi.LoadSample(name);
 	}
 
 	for (size_t i = 0; i < lengthof(cg_sample_machinegun_fire); i++) {
-		g_snprintf(name, sizeof(name), "weapons/machinegun/fire_%" PRIuPTR, i + 1);
+		g_snprintf(name, sizeof(name), "weapons/machinegun/fire_%" PRIuMAX, i + 1);
 		cg_sample_machinegun_fire[i] = cgi.LoadSample(name);
 	}
 
 	for (size_t i = 0; i < lengthof(cg_sample_machinegun_hit); i++) {
-		g_snprintf(name, sizeof(name), "weapons/machinegun/hit_%" PRIuPTR, i + 1);
+		g_snprintf(name, sizeof(name), "weapons/machinegun/hit_%" PRIuMAX, i + 1);
 		cg_sample_machinegun_hit[i] = cgi.LoadSample(name);
 	}
 
@@ -228,7 +228,7 @@ void Cg_UpdateMedia(void) {
 	cg_particles_explosion = Cg_AllocParticles(cgi.LoadImage("particles/explosion.tga", IT_EFFECT), true);
 
 	for (size_t i = 0; i < lengthof(cg_particles_debris); i++) {
-		g_snprintf(name, sizeof(name), "particles/debris_%" PRIuPTR, i);
+		g_snprintf(name, sizeof(name), "particles/debris_%" PRIuMAX, i);
 		cg_particles_debris[i] = Cg_AllocParticles(cgi.LoadImage(name, IT_EFFECT), true);
 	}
 
@@ -247,7 +247,7 @@ void Cg_UpdateMedia(void) {
 	cg_particles_inactive = Cg_AllocParticles(cgi.LoadImage("particles/inactive.tga", IT_EFFECT), true);
 
 	for (size_t i = 0; i < lengthof(cg_particles_ripple); i++) {
-		g_snprintf(name, sizeof(name), "particles/ripple_%" PRIuPTR, i);
+		g_snprintf(name, sizeof(name), "particles/ripple_%" PRIuMAX, i);
 		cg_particles_ripple[i] = Cg_AllocParticles(cgi.LoadImage(name, IT_EFFECT), true);
 	}
 
