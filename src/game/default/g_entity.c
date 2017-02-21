@@ -496,6 +496,7 @@ static void G_InitMedia(void) {
 	g_media.models.grenade = gi.ModelIndex("models/objects/grenade/tris");
 	g_media.models.rocket = gi.ModelIndex("models/objects/rocket/tris");
 	g_media.models.hook = gi.ModelIndex("models/objects/grapplehook/tris");
+	g_media.models.fireball = gi.ModelIndex("models/objects/fireball/tris");
 
 	g_media.sounds.bfg_hit = gi.SoundIndex("weapons/bfg/hit");
 	g_media.sounds.bfg_prime = gi.SoundIndex("weapons/bfg/prime");

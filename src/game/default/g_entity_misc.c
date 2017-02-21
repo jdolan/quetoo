@@ -203,7 +203,7 @@ static void G_misc_fireball_Fly(g_entity_t *self) {
 	ent->solid = SOLID_TRIGGER;
 	ent->locals.move_type = MOVE_TYPE_BOUNCE;
 
-	ent->s.model1 = g_media.models.gibs[0];
+	ent->s.model1 = g_media.models.fireball;
 	ent->locals.damage = self->locals.damage;
 
 	ent->locals.Touch = G_misc_fireball_Touch;
