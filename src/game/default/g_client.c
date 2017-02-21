@@ -952,13 +952,15 @@ void G_ClientRespawn(g_entity_t *ent, _Bool voluntary) {
 
 	G_ClientRespawn_(ent);
 
+	g_client_persistent_t *pers = &ent->client->locals.persistent;
+
 	// clear scores and match/round on voluntary changes
-	if (ent->client->locals.persistent.spectator && voluntary) {
-		ent->client->locals.persistent.score = ent->client->locals.persistent.captures = 0;
-		ent->client->locals.persistent.match_num = ent->client->locals.persistent.round_num = 0;
+	if (pers->spectator && voluntary) {
+		pers->score = pers->deaths = pers->captures = 0;
+		pers->match_num = pers->round_num = 0;
 	} else {
-		ent->client->locals.persistent.match_num = g_level.match_num;
-		ent->client->locals.persistent.round_num = g_level.round_num;
+		pers->match_num = g_level.match_num;
+		pers->round_num = g_level.round_num;
 	}
 
 	ent->client->locals.respawn_time = g_level.time;
@@ -972,14 +974,12 @@ void G_ClientRespawn(g_entity_t *ent, _Bool voluntary) {
 		return;
 	}
 
-	if (ent->client->locals.persistent.spectator)
-		gi.BroadcastPrint(PRINT_HIGH, "%s likes to watch\n",
-		                  ent->client->locals.persistent.net_name);
-	else if (ent->client->locals.persistent.team)
-		gi.BroadcastPrint(PRINT_HIGH, "%s has joined %s\n", ent->client->locals.persistent.net_name,
-		                  ent->client->locals.persistent.team->name);
-	else {
-		gi.BroadcastPrint(PRINT_HIGH, "%s wants some\n", ent->client->locals.persistent.net_name);
+	if (pers->spectator) {
+		gi.BroadcastPrint(PRINT_HIGH, "%s likes to watch\n", pers->net_name);
+	} else if (pers->team) {
+		gi.BroadcastPrint(PRINT_HIGH, "%s has joined %s\n", pers->net_name, pers->team->name);
+	} else {
+		gi.BroadcastPrint(PRINT_HIGH, "%s wants some\n", pers->net_name);
 	}
 }
 

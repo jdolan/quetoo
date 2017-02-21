@@ -553,7 +553,7 @@ static void G_Say_f(g_entity_t *ent) {
 			return;
 		}
 
-		cl->locals.chat_time = g_level.time + 1000;
+		cl->locals.chat_time = g_level.time + 250;
 	}
 
 	const int32_t color = team ? CON_COLOR_TEAMCHAT : CON_COLOR_CHAT;
@@ -1227,7 +1227,7 @@ static void G_Spectate_f(g_entity_t *ent) {
 	_Bool spectator;
 
 	// prevent spectator spamming
-	if (g_level.time - ent->client->locals.respawn_time < 3000) {
+	if (g_level.time - ent->client->locals.respawn_time < 1000) {
 		return;
 	}
 
