@@ -24,16 +24,6 @@
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
-typedef struct {
-	const r_framebuffer_t *current_framebuffer;
-} r_framebuffer_state_t;
-
-extern r_framebuffer_state_t r_framebuffer_state;
-
-r_framebuffer_t *R_CreateFramebuffer(const char *key);
-void R_BindFramebuffer(const r_framebuffer_t *fb);
-void R_AttachFramebufferImage(r_framebuffer_t *fb, r_image_t *image);
-void R_CreateFramebufferDepthStencilBuffers(r_framebuffer_t *fb);
-_Bool R_FramebufferReady(const r_framebuffer_t *fb);
-
-#endif
+void R_PreLink_stain(const r_program_t *program);
+void R_InitProgram_stain(r_program_t *program);
+#endif /* __R_LOCAL_H__ */

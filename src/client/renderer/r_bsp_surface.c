@@ -53,11 +53,11 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 		if (r_draw_bsp_lightmaps->value == 2) {
 			R_BindLightmapTexture(surf->deluxemap->texnum);
 		} else {
-			if (r_stainmap->value && surf->stainmap) {
-				R_BindLightmapTexture(surf->stainmap->texnum);
-			} else {
-				R_BindLightmapTexture(surf->lightmap->texnum);
-			}
+			R_BindLightmapTexture(surf->lightmap->texnum);
+		}
+
+		if (texunit_stainmap->enabled) {
+			R_BindStainmapTexture(surf->stainmap.image->texnum);
 		}
 	}
 
@@ -183,6 +183,10 @@ void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableTexture(texunit_lightmap, true);
 
+	if (r_stainmap->value) {
+		R_EnableTexture(texunit_stainmap, true);
+	}
+
 	R_EnableLighting(program_default, true);
 
 	if (r_shadows->value) {
@@ -198,6 +202,8 @@ void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 	R_EnableLighting(NULL, false);
 
 	R_EnableTexture(texunit_lightmap, false);
+
+	R_EnableTexture(texunit_stainmap, false);
 
 	if (r_draw_bsp_lightmaps->value) {
 		R_EnableTexture(texunit_diffuse, true);
@@ -261,6 +267,10 @@ void R_DrawAlphaTestBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableTexture(texunit_lightmap, true);
 
+	if (r_stainmap->value) {
+		R_EnableTexture(texunit_stainmap, true);
+	}
+
 	R_EnableLighting(program_default, true);
 
 	R_DrawBspSurfaces_default(surfs);
@@ -268,6 +278,8 @@ void R_DrawAlphaTestBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 	R_EnableLighting(NULL, false);
 
 	R_EnableTexture(texunit_lightmap, false);
+
+	R_EnableTexture(texunit_stainmap, false);
 
 	R_EnableAlphaTest(ALPHA_TEST_DISABLED_THRESHOLD);
 }
@@ -296,6 +308,10 @@ void R_DrawBlendBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableTexture(texunit_lightmap, true);
 
+	if (r_stainmap->value) {
+		R_EnableTexture(texunit_stainmap, true);
+	}
+
 	R_EnableLighting(program_default, true);
 
 	R_DrawBspSurfaces_default(surfs);
@@ -303,6 +319,8 @@ void R_DrawBlendBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 	R_EnableLighting(NULL, false);
 
 	R_EnableTexture(texunit_lightmap, false);
+
+	R_EnableTexture(texunit_stainmap, false);
 
 	if (r_draw_bsp_lightmaps->value) {
 		R_EnableTexture(texunit_diffuse, true);

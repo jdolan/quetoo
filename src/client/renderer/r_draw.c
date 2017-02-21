@@ -582,6 +582,8 @@ void R_Draw2D(void) {
 
 	R_BindDiffuseTexture(r_image_state.null->texnum);
 
+	R_AddStains();
+
 	R_DrawLines();
 
 	R_DrawFills();

@@ -752,5 +752,9 @@ void R_InitPrograms(void) {
 		program_corona->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_DIFFUSE | R_ARRAY_MASK_COLOR;
 	}
 
+	if (R_LoadProgram("stain", R_InitProgram_stain, R_PreLink_stain, program_stain)) {
+		program_stain->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_DIFFUSE | R_ARRAY_MASK_COLOR;
+	}
+
 	R_UseProgram(program_null);
 }

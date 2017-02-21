@@ -158,6 +158,7 @@ extern r_state_t r_state;
 #define texunit_specularmap		(&r_state.texunits[R_TEXUNIT_SPECULARMAP])
 #define texunit_warp			(&r_state.texunits[R_TEXUNIT_WARP])
 #define texunit_tint			(&r_state.texunits[R_TEXUNIT_TINTMAP])
+#define texunit_stainmap		(&r_state.texunits[R_TEXUNIT_STAINMAP])
 
 #define program_default			(&r_state.programs[R_PROGRAM_DEFAULT])
 #define program_shadow			(&r_state.programs[R_PROGRAM_SHADOW])
@@ -165,6 +166,7 @@ extern r_state_t r_state;
 #define program_warp			(&r_state.programs[R_PROGRAM_WARP])
 #define program_null			(&r_state.programs[R_PROGRAM_NULL])
 #define program_corona			(&r_state.programs[R_PROGRAM_CORONA])
+#define program_stain			(&r_state.programs[R_PROGRAM_STAIN])
 
 #define R_GetError(msg) R_GetError_(__func__, msg)
 void R_GetError_(const char *function, const char *msg);
@@ -179,6 +181,7 @@ void R_BindUnitTexture(r_texunit_t *texunit, GLuint texnum);
 #define R_BindSpecularmapTexture(texnum)	R_BindUnitTexture(texunit_specularmap, texnum)
 #define R_BindWarpTexture(texnum)			R_BindUnitTexture(texunit_warp, texnum)
 #define R_BindTintTexture(texnum)			R_BindUnitTexture(texunit_tint, texnum)
+#define R_BindStainmapTexture(texnum)		R_BindUnitTexture(texunit_stainmap, texnum)
 
 void R_EnableDepthMask(_Bool enable);
 

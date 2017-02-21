@@ -21,20 +21,18 @@
 
 #include "r_local.h"
 
-typedef struct {
-	const r_framebuffer_t *current_framebuffer;
-} r_framebuffer_state_t;
-
-static r_framebuffer_state_t r_framebuffer_state;
+r_framebuffer_state_t r_framebuffer_state;
 
 /**
  * @brief Retain event listener for framebuffers.
+ * FIXME: ideally I'd like to call fb->color->media.retain here, but the color texture will get
+ * freed before the FB will. Maybe we should only free dependencies inside the parent free func?
  */
 static _Bool R_RetainFramebuffer(r_media_t *self) {
 	r_framebuffer_t *fb = (r_framebuffer_t *) self;
 
-	if (fb->color) {
-		return fb->color->media.Retain(self);
+	if (fb->color_type == IT_NULL || fb->color_type == IT_PROGRAM || fb->color_type == IT_FONT || fb->color_type == IT_UI) {
+		return true;
 	}
 
 	return false;
@@ -110,6 +108,7 @@ void R_AttachFramebufferImage(r_framebuffer_t *fb, r_image_t *image) {
 	R_BindFramebuffer(fb);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, image->texnum, 0);
 	fb->color = image;
+	fb->color_type = image->type;
 
 	R_RegisterDependency((r_media_t *) fb, (r_media_t *) image);
 	R_GetError(NULL);

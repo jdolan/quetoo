@@ -164,8 +164,6 @@ void R_DrawView(void) {
 
 	R_AddFlares();
 
-	R_AddStains();
-
 	R_CullEntities();
 
 	R_MarkLights();

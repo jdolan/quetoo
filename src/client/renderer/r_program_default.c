@@ -31,6 +31,7 @@ typedef struct {
 	r_uniform1i_t normalmap;
 	r_uniform1i_t glossmap;
 	r_uniform1i_t tintmap;
+	r_uniform1i_t stainmap;
 
 	r_uniform1f_t bump;
 	r_uniform1f_t parallax;
@@ -46,6 +47,7 @@ typedef struct {
 	r_sampler2d_t sampler3;
 	r_sampler2d_t sampler4;
 	r_sampler2d_t sampler6;
+	r_sampler2d_t sampler8;
 
 	r_uniform4fv_t tints[TINT_TOTAL];
 
@@ -104,6 +106,7 @@ void R_InitProgram_default(r_program_t *program) {
 	R_ProgramVariable(&p->normalmap, R_UNIFORM_INT, "NORMALMAP", true);
 	R_ProgramVariable(&p->glossmap, R_UNIFORM_INT, "GLOSSMAP", true);
 	R_ProgramVariable(&p->tintmap, R_UNIFORM_INT, "TINTMAP", true);
+	R_ProgramVariable(&p->stainmap, R_UNIFORM_INT, "STAINMAP", true);
 
 	R_ProgramVariable(&p->bump, R_UNIFORM_FLOAT, "BUMP", true);
 	R_ProgramVariable(&p->parallax, R_UNIFORM_FLOAT, "PARALLAX", true);
@@ -116,6 +119,7 @@ void R_InitProgram_default(r_program_t *program) {
 	R_ProgramVariable(&p->sampler3, R_SAMPLER_2D, "SAMPLER3", true);
 	R_ProgramVariable(&p->sampler4, R_SAMPLER_2D, "SAMPLER4", true);
 	R_ProgramVariable(&p->sampler6, R_SAMPLER_2D, "SAMPLER6", true);
+	R_ProgramVariable(&p->sampler8, R_SAMPLER_2D, "SAMPLER8", true);
 
 	R_ProgramVariable(&p->fog.start, R_UNIFORM_FLOAT, "FOG.START", true);
 	R_ProgramVariable(&p->fog.end, R_UNIFORM_FLOAT, "FOG.END", true);
@@ -168,6 +172,7 @@ void R_InitProgram_default(r_program_t *program) {
 	R_ProgramParameter1i(&p->sampler3, R_TEXUNIT_NORMALMAP);
 	R_ProgramParameter1i(&p->sampler4, R_TEXUNIT_SPECULARMAP);
 	R_ProgramParameter1i(&p->sampler6, R_TEXUNIT_TINTMAP);
+	R_ProgramParameter1i(&p->sampler8, R_TEXUNIT_STAINMAP);
 
 	R_ProgramParameter1f(&p->fog.density, 0.0);
 	R_ProgramParameter1f(&p->alpha_threshold, ALPHA_TEST_DISABLED_THRESHOLD);
@@ -199,6 +204,7 @@ void R_UseProgram_default(void) {
 	R_ProgramParameter1i(&p->diffuse, texunit_diffuse->enabled);
 	R_ProgramParameter1i(&p->deluxemap, texunit_deluxemap->enabled);
 	R_ProgramParameter1i(&p->lightmap, texunit_lightmap->enabled);
+	R_ProgramParameter1i(&p->stainmap, texunit_stainmap->enabled);
 }
 
 /**

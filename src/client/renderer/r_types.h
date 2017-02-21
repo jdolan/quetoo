@@ -100,7 +100,7 @@ typedef enum {
 	IT_PIC = 13 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_ATLAS_MAP = 14 + (IT_MASK_MIPMAP), // image is an r_atlas_t*
 	IT_ATLAS_IMAGE = 15, // image is an r_atlas_image_t*
-	IT_STAINMAP = 16 + (IT_MASK_FILTER),
+	IT_STAINMAP = 16,
 	IT_TINTMAP = 17 + (IT_MASK_MIPMAP | IT_MASK_FILTER)
 } r_image_type_t;
 
@@ -282,6 +282,7 @@ typedef struct {
 	GLuint framebuffer;
 
 	r_image_t *color; // the texture color attachment
+	r_image_type_t color_type; // since color might be freed
 	GLuint depth_stencil;
 
 	uint32_t width, height; // matches color attachment
@@ -444,6 +445,13 @@ typedef struct {
 #define R_SURF_UNDERLIQUID	4
 
 typedef struct {
+	r_image_t *image;
+	r_framebuffer_t *fb;
+
+	matrix4x4_t projection; // projection for this stainmap
+} r_stainmap_t;
+
+typedef struct {
 	int16_t vis_frame; // PVS frame
 	int16_t frame; // renderer frame
 	int16_t back_frame; // back-facing renderer frame
@@ -482,9 +490,7 @@ typedef struct {
 	// pointer to lightmap data on bsp.
 	const byte *lightmap_input;
 
-	r_image_t *stainmap; // the stainmap image to use
-	byte *stainmap_buffer; // the stainmap buffer
-	_Bool stainmap_dirty; // whether this stainmap has been affected or not
+	r_stainmap_t stainmap; // the stainmap image to use
 } r_bsp_surface_t;
 
 /**
@@ -812,8 +818,9 @@ typedef struct r_model_s {
  */
 typedef struct {
 	vec3_t origin;
-	vec4_t color;
 	vec_t radius;
+	const r_image_t *image;
+	vec4_t color;
 } r_stain_t;
 
 #define MAX_STAINS			64
@@ -1017,6 +1024,7 @@ typedef enum {
 	R_PROGRAM_WARP,
 	R_PROGRAM_NULL,
 	R_PROGRAM_CORONA,
+	R_PROGRAM_STAIN,
 
 	R_PROGRAM_TOTAL
 } r_program_id_t;
@@ -1039,6 +1047,7 @@ typedef enum {
 	R_TEXUNIT_SPECULARMAP,
 	R_TEXUNIT_WARP,
 	R_TEXUNIT_TINTMAP,
+	R_TEXUNIT_STAINMAP,
 
 	R_TEXUNIT_TOTAL
 } r_texunit_id_t;

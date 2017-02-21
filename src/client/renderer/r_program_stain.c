@@ -19,21 +19,24 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+#include "r_local.h"
 
-#include "r_types.h"
+/**
+ * @brief
+ */
+void R_PreLink_stain(const r_program_t *program) {
 
-#ifdef __R_LOCAL_H__
-typedef struct {
-	const r_framebuffer_t *current_framebuffer;
-} r_framebuffer_state_t;
+	R_BindAttributeLocation(program, "POSITION", R_ARRAY_POSITION);
+	R_BindAttributeLocation(program, "COLOR", R_ARRAY_COLOR);
+	R_BindAttributeLocation(program, "TEXCOORD", R_ARRAY_DIFFUSE);
+}
 
-extern r_framebuffer_state_t r_framebuffer_state;
+/**
+ * @brief
+ */
+void R_InitProgram_stain(r_program_t *program) {
 
-r_framebuffer_t *R_CreateFramebuffer(const char *key);
-void R_BindFramebuffer(const r_framebuffer_t *fb);
-void R_AttachFramebufferImage(r_framebuffer_t *fb, r_image_t *image);
-void R_CreateFramebufferDepthStencilBuffers(r_framebuffer_t *fb);
-_Bool R_FramebufferReady(const r_framebuffer_t *fb);
-
-#endif
+	R_ProgramVariable(&program->attributes[R_ARRAY_POSITION], R_ATTRIBUTE, "POSITION", true);
+	R_ProgramVariable(&program->attributes[R_ARRAY_COLOR], R_ATTRIBUTE, "COLOR", true);
+	R_ProgramVariable(&program->attributes[R_ARRAY_DIFFUSE], R_ATTRIBUTE, "TEXCOORD", true);
+}
