@@ -395,7 +395,9 @@ void Con_WriteHistory(const console_t *console, file_t *file) {
  */
 void Con_AutocompleteInput_f(const uint32_t argi, GList **matches) {
 	const char *partial = Cmd_Argv(argi);
-	const char *pattern = va("%s*", partial);
+	char pattern[strlen(partial) + 2];
+	
+	g_snprintf(pattern, sizeof(pattern), "%s*", partial);
 
 	Cmd_CompleteCommand(pattern, matches);
 	Cvar_CompleteVar(pattern, matches);
