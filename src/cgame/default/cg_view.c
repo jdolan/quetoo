@@ -247,7 +247,6 @@ static void Cg_UpdateOrigin(const player_state_t *ps0, const player_state_t *ps1
 		cgi.view->origin[2] -= cgi.client->predicted_state.step.delta_height;
 
 	} else {
-
 		VectorLerp(ps0->pm_state.origin, ps1->pm_state.origin, cgi.client->lerp, cgi.view->origin);
 
 		vec3_t offset0, offset1, offset;

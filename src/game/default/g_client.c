@@ -1584,8 +1584,7 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 
 	if (cl->locals.chase_target) { // ensure chase is valid
 
-		if (!cl->locals.chase_target->in_use
-		        || cl->locals.chase_target->client->locals.persistent.spectator) {
+		if (!G_IsMeat(cl->locals.chase_target)) {
 
 			g_entity_t *other = cl->locals.chase_target;
 
@@ -1594,8 +1593,6 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 			if (cl->locals.chase_target == other) { // no one to chase
 				cl->locals.chase_target = NULL;
 			}
-
-			G_ClientChaseThink(ent);
 		}
 	}
 

@@ -331,6 +331,7 @@ static void Cl_UpdateLerp(void) {
 
 		VectorSubtract(cl.frame.ps.pm_state.origin, cl.previous_frame->ps.pm_state.origin, delta);
 		if (VectorLength(delta) > MAX_DELTA_ORIGIN) {
+			Com_Debug(DEBUG_CLIENT, "%d No lerp\n", cl.frame.frame_num);
 			no_lerp = true;
 		}
 	}
