@@ -897,9 +897,6 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		ent->client->locals.persistent.team = NULL;
 		ent->client->locals.persistent.ready = false;
 	} else { // spawn an active client
-		ent->client->locals.persistent.handicap = ent->client->locals.persistent.handicap_next;
-		uint16_t handicap = ent->client->locals.persistent.handicap;
-
 		ent->class_name = "client";
 
 		ent->solid = SOLID_BOX;
@@ -919,9 +916,11 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		ent->locals.dead = false;
 		ent->locals.Die = G_ClientDie;
 		ent->locals.ground_entity = NULL;
-		ent->locals.health = ent->locals.max_health = handicap;
+		ent->client->locals.persistent.handicap = ent->client->locals.persistent.handicap_next;
+		ent->locals.max_health = ent->client->locals.persistent.handicap;
+		ent->locals.health = ent->locals.max_health + 5;
 		ent->locals.max_armor = 200;
-		ent->client->locals.max_boost_health = handicap + 100;
+		ent->client->locals.max_boost_health = ent->locals.max_health + 100;
 		ent->locals.move_type = MOVE_TYPE_WALK;
 		ent->locals.mass = 200.0;
 		ent->locals.take_damage = true;
