@@ -480,7 +480,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
-		.radius = 64.0 + (64.0 * Randomc() * 0.15),
+		.radius = 256.0 + (64.0 * Randomc() * 0.15),
 		.image = cg_particles_normal->image,
 		.color = { c[0], c[1], c[2], 0.66 },
 	});

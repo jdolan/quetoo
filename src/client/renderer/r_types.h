@@ -252,6 +252,16 @@ typedef struct {
 } r_image_t;
 
 /**
+ * @brief An atlas is composed of multiple images stitched together to make
+ * a single image. It is a sub-type of r_image_t.
+ */
+typedef struct {
+	r_image_t image;
+	GArray *images; // image list
+	GHashTable *hash; // hash of image -> image list ptr
+} r_atlas_t;
+
+/**
  * @brief This is a proxy structure that allows an atlased piece of texture to be
  * used in places that expect r_image_t's.
  */
@@ -262,17 +272,8 @@ typedef struct {
 	u16vec2_t position; // position in pixels
 	vec4_t texcoords; // position in texcoords
 	color_t *scratch; // scratch space for image
+	r_atlas_t *atlas; // our owner atlas
 } r_atlas_image_t;
-
-/**
- * @brief An atlas is composed of multiple images stitched together to make
- * a single image. It is a sub-type of r_image_t.
- */
-typedef struct {
-	r_image_t image;
-	GArray *images; // image list
-	GHashTable *hash; // hash of image -> image list ptr
-} r_atlas_t;
 
 /**
  * @brief A framebuffer is a screen buffer that can be drawn to.

@@ -354,7 +354,7 @@ void R_AddStains(void) {
 			stain = &g_array_index(r_stainmap_state.surfs_stained, r_stained_surf_t, i);
 		}
 
-		if (elem_count && (i == r_stainmap_state.surfs_stained->len || r_framebuffer_state.current_framebuffer != stain->surf->stainmap.fb)) {
+		if (elem_count/* && (i == r_stainmap_state.surfs_stained->len || r_framebuffer_state.current_framebuffer != stain->surf->stainmap.fb)*/) {
 
 			R_UploadToSubBuffer(&r_stainmap_state.vertex_buffer, sizeof(r_stainmap_interleave_vertex_t) * vert_offset, sizeof(r_stainmap_interleave_vertex_t) * vert_count, r_stainmap_state.vertex_scratch->data, false);
 
@@ -372,7 +372,7 @@ void R_AddStains(void) {
 			break;
 		}
 
-		r_image_t *image = r_image_state.null;//stain->stain->image;
+		const r_image_t *image = stain->stain->image;
 
 		vec4_t texcoords;
 		R_Stain_ResolveTexcoords(image, texcoords);
@@ -385,12 +385,25 @@ void R_AddStains(void) {
 
 		R_BindDiffuseTexture(image->texnum);
 
+		vec4_t position = { stain->point[0], stain->point[1], stain->point[0] + stain->radius, stain->point[1] + stain->radius };
+		
+		// flip Y, because apparently we need this :)
+		position[1] = stain->surf->stainmap.image->height - position[1];
+		position[3] = stain->surf->stainmap.image->height - position[3];
+
 		r_stainmap_state.vertex_scratch = g_array_append_vals(r_stainmap_state.vertex_scratch, (const r_stainmap_interleave_vertex_t[4]) {
-			{ .position = { stain->point[0], (stain->surf->stainmap.image->height - (stain->point[1] + stain->radius)) }, .texcoord = { texcoords[0], texcoords[3] }, .color = { stain->color.r, stain->color.g, stain->color.b, stain->color.a } },
-			{ .position = { stain->point[0] + stain->radius, (stain->surf->stainmap.image->height - (stain->point[1] + stain->radius)) }, .texcoord = { texcoords[2], texcoords[3] }, .color = { stain->color.r, stain->color.g, stain->color.b, stain->color.a } },
-			{ .position = { stain->point[0] + stain->radius, (stain->surf->stainmap.image->height - stain->point[1]) }, .texcoord = { texcoords[2], texcoords[1] }, .color = { stain->color.r, stain->color.g, stain->color.b, stain->color.a } },
-			{ .position = { stain->point[0], (stain->surf->stainmap.image->height - stain->point[1]) }, .texcoord = { texcoords[0], texcoords[1] }, .color = { stain->color.r, stain->color.g, stain->color.b, stain->color.a } }
+			{ .position = { position[0], position[3] }, .texcoord = { texcoords[0], texcoords[3] }, .color = { stain->color.r, stain->color.g, stain->color.b, stain->color.a } },
+			{ .position = { position[2], position[3] }, .texcoord = { texcoords[2], texcoords[3] }, .color = { stain->color.r, stain->color.g, stain->color.b, stain->color.a } },
+			{ .position = { position[2], position[1] }, .texcoord = { texcoords[2], texcoords[1] }, .color = { stain->color.r, stain->color.g, stain->color.b, stain->color.a } },
+			{ .position = { position[0], position[1] }, .texcoord = { texcoords[0], texcoords[1] }, .color = { stain->color.r, stain->color.g, stain->color.b, stain->color.a } }
 		}, 4);
+
+		R_EnableScissor(&(const SDL_Rect) {
+			stain->surf->lightmap_s,
+			stain->surf->lightmap_t,
+			stain->surf->lightmap_size[0],
+			stain->surf->lightmap_size[1]
+		});
 
 		vert_count += 4;
 		elem_count += 6;
@@ -409,6 +422,8 @@ void R_AddStains(void) {
 	R_BindFramebuffer(old_framebuffer);
 
 	R_SetViewport(old_viewport.x, old_viewport.y, old_viewport.w, old_viewport.h, true);
+
+	R_EnableScissor(NULL);
 
 	R_UnbindAttributeBuffers();
 
