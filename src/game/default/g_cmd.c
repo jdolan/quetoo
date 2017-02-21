@@ -1212,7 +1212,7 @@ static void G_Ready_f(g_entity_t *ent) {
 /**
  * @brief
  */
-static void G_Toggleready_f(g_entity_t *ent) {
+static void G_ToggleReady_f(g_entity_t *ent) {
 	if (ent->client->locals.persistent.ready) {
 		G_Unready_f(ent);
 	} else {
@@ -1404,10 +1404,10 @@ void G_ClientCommand(g_entity_t *ent) {
 		G_Teamskin_f(ent);
 	} else if (g_strcmp0(cmd, "ready") == 0) {
 		G_Ready_f(ent);
-	} else if (g_strcmp0(cmd, "unready") == 0 || g_strcmp0(cmd, "notready") == 0) {
+	} else if (g_strcmp0(cmd, "unready") == 0 || g_strcmp0(cmd, "not_ready") == 0) {
 		G_Unready_f(ent);
-	} else if (g_strcmp0(cmd, "toggleready") == 0) {
-		G_Toggleready_f(ent);
+	} else if (g_strcmp0(cmd, "toggle_ready") == 0) {
+		G_ToggleReady_f(ent);
 	} else if (g_strcmp0(cmd, "use") == 0) {
 		G_Use_f(ent);
 	} else if (g_strcmp0(cmd, "drop") == 0) {

@@ -1657,8 +1657,8 @@ void G_ClientBeginFrame(g_entity_t *ent) {
 		return;
 	}
 
-	if (ent->locals.dead ||
-		((ent->client->locals.buttons | ent->client->locals.latched_buttons) & BUTTON_SCORE)) {
+	if ((G_IsMeat(ent) && ent->locals.dead) ||
+			((ent->client->locals.buttons | ent->client->locals.latched_buttons) & BUTTON_SCORE)) {
 		ent->client->locals.show_scores = true;
 	} else {
 		ent->client->locals.show_scores = false;
