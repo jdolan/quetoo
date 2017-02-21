@@ -58,7 +58,7 @@ static void G_Give_f(g_entity_t *ent) {
 		if (gi.Argc() == 3) {
 			ent->locals.health = quantity;
 		} else {
-			ent->locals.health = ent->locals.max_health;
+			ent->locals.health = ent->locals.max_health + 5;
 		}
 		if (!give_all) {
 			return;

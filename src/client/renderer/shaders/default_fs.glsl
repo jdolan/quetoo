@@ -229,7 +229,7 @@ void main(void) {
 			discard;
 
 		if (TINTMAP) {
-			vec4 tint = texture2D(SAMPLER6, texcoords[0] + parallax);
+			vec4 tint = texture(SAMPLER6, texcoords[0] + parallax);
 
 			if (tint.a > 0) {
 				for (int i = 0; i < 3; i++) {
