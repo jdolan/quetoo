@@ -130,6 +130,8 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 		}
 
 		// skip unknown directives until we reach newline
+		Parse_SkipToken(&parser, PARSE_DEFAULT);
+
 		while (true) { 
 			if (!Parse_SkipToken(&parser, PARSE_DEFAULT | PARSE_NO_WRAP)) {
 				break;
