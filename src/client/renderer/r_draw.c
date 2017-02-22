@@ -440,6 +440,8 @@ static void R_DrawFills(void) {
 		return;
 	}
 
+	R_BindDiffuseTexture(r_image_state.null->texnum);
+
 	// upload the changed data
 	R_UploadToBuffer(&r_draw.fill_arrays.vert_buffer, r_draw.fill_arrays.vert_index * sizeof(r_fill_interleave_vertex_t),
 	                 r_draw.fill_arrays.verts);
@@ -500,6 +502,8 @@ static void R_DrawLines(void) {
 	if (!r_draw.line_arrays.vert_index) {
 		return;
 	}
+
+	R_BindDiffuseTexture(r_image_state.null->texnum);
 
 	// upload the changed data
 	R_UploadToBuffer(&r_draw.line_arrays.vert_buffer, r_draw.line_arrays.vert_index * sizeof(r_fill_interleave_vertex_t),
@@ -579,8 +583,6 @@ void R_DrawLinesUI(const SDL_Point *points, const size_t count, const _Bool loop
  * @brief Draw all 2D geometry accumulated for the current frame.
  */
 void R_Draw2D(void) {
-
-	R_BindDiffuseTexture(r_image_state.null->texnum);
 
 	R_AddStains();
 

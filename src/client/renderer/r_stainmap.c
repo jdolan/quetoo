@@ -82,6 +82,13 @@ static void R_StainSurface(const r_stain_t *stain, const r_bsp_surface_t *surf) 
 		return;
 	}
 
+	// see if the stain position is visible to the surface place
+	cm_trace_t tr = Cl_Trace(stain->origin, point, vec3_origin, vec3_origin, 0, CONTENTS_SOLID | CONTENTS_WINDOW);
+
+	if (tr.fraction < 1.0) {
+		return;
+	}
+
 	const r_bsp_texinfo_t *tex = surf->texinfo;
 
 	// resolve the radius of the stain where it impacts the surface
@@ -297,7 +304,7 @@ void R_AddStains(void) {
 			R_StainNode(&stain, node);
 		}
 	}
-
+	
 	if (!r_stainmap_state.surfs_stained->len) {
 		return;
 	}
@@ -313,6 +320,8 @@ void R_AddStains(void) {
 	const GLenum old_blend_dest = r_state.blend_dest;
 	const GLenum old_blend_enabled = r_state.blend_enabled;
 
+	const _Bool color_array_enabled = r_state.color_array_enabled;
+
 	R_UseProgram(program_stain);
 	R_EnableBlend(true);
 	R_BlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -326,7 +335,6 @@ void R_AddStains(void) {
 	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_stainmap_state.index_buffer);
 
 	GLint vert_offset = 0, elem_offset = 0;
-	GLsizei vert_count = 0, elem_count = 0;
 
 	// adjust elements - we can do this all at once since they're constants
 	const uint16_t num_elements = (r_stainmap_state.surfs_stained->len * 6);
@@ -346,32 +354,11 @@ void R_AddStains(void) {
 		R_UploadToBuffer(&r_stainmap_state.vertex_buffer, sizeof(r_stainmap_interleave_vertex_t) * (r_stainmap_state.surfs_stained->len * 4), NULL);
 	}
 
+	const float angle = Randomf() * 360; // for random rotations
+
 	// adjust vertices
-	for (size_t i = 0; i < r_stainmap_state.surfs_stained->len + 1; i++) {
-		const r_stained_surf_t *stain = NULL;
-		
-		if (i < r_stainmap_state.surfs_stained->len) {
-			stain = &g_array_index(r_stainmap_state.surfs_stained, r_stained_surf_t, i);
-		}
-
-		if (elem_count/* && (i == r_stainmap_state.surfs_stained->len || r_framebuffer_state.current_framebuffer != stain->surf->stainmap.fb)*/) {
-
-			R_UploadToSubBuffer(&r_stainmap_state.vertex_buffer, sizeof(r_stainmap_interleave_vertex_t) * vert_offset, sizeof(r_stainmap_interleave_vertex_t) * vert_count, r_stainmap_state.vertex_scratch->data, false);
-
-			R_DrawArrays(GL_TRIANGLES, elem_offset, elem_count);
-
-			elem_offset += elem_count;
-			vert_offset += vert_count;
-			elem_count = vert_count = 0;
-
-			// reset scratch for next batch
-			g_array_set_size(r_stainmap_state.vertex_scratch, 0);
-		}
-
-		if (i == r_stainmap_state.surfs_stained->len) {
-			break;
-		}
-
+	for (size_t i = 0; i < r_stainmap_state.surfs_stained->len; i++) {
+		const r_stained_surf_t *stain = &g_array_index(r_stainmap_state.surfs_stained, r_stained_surf_t, i);
 		const r_image_t *image = stain->stain->image;
 
 		vec4_t texcoords;
@@ -391,11 +378,31 @@ void R_AddStains(void) {
 		position[1] = stain->surf->stainmap.image->height - position[1];
 		position[3] = stain->surf->stainmap.image->height - position[3];
 
+		matrix4x4_t m = matrix4x4_identity;
+		vec2_t center = {
+			(position[0] + position[2]) * 0.5,
+			(position[1] + position[3]) * 0.5
+		};
+		Matrix4x4_ConcatTranslate(&m, center[0], center[1], 0.0);
+		Matrix4x4_ConcatRotate(&m, angle, 0.0, 0.0, 1.0);
+		Matrix4x4_ConcatTranslate(&m, -center[0], -center[1], 0.0);
+
+		vec2_t vertexes[4] = {
+			{ position[0], position[3] },
+			{ position[2], position[3] },
+			{ position[2], position[1] },
+			{ position[0], position[1] },
+		};
+
+		for (int32_t p = 0; p < 4; p++) {
+			Matrix4x4_Transform2(&m, vertexes[p], vertexes[p]);
+		}
+
 		r_stainmap_state.vertex_scratch = g_array_append_vals(r_stainmap_state.vertex_scratch, (const r_stainmap_interleave_vertex_t[4]) {
-			{ .position = { position[0], position[3] }, .texcoord = { texcoords[0], texcoords[3] }, .color = { stain->color.r, stain->color.g, stain->color.b, stain->color.a } },
-			{ .position = { position[2], position[3] }, .texcoord = { texcoords[2], texcoords[3] }, .color = { stain->color.r, stain->color.g, stain->color.b, stain->color.a } },
-			{ .position = { position[2], position[1] }, .texcoord = { texcoords[2], texcoords[1] }, .color = { stain->color.r, stain->color.g, stain->color.b, stain->color.a } },
-			{ .position = { position[0], position[1] }, .texcoord = { texcoords[0], texcoords[1] }, .color = { stain->color.r, stain->color.g, stain->color.b, stain->color.a } }
+			{ .position = { vertexes[0][0], vertexes[0][1] }, .texcoord = { texcoords[0], texcoords[3] }, .color = { stain->color.r, stain->color.g, stain->color.b, stain->color.a } },
+			{ .position = { vertexes[1][0], vertexes[1][1] }, .texcoord = { texcoords[2], texcoords[3] }, .color = { stain->color.r, stain->color.g, stain->color.b, stain->color.a } },
+			{ .position = { vertexes[2][0], vertexes[2][1] }, .texcoord = { texcoords[2], texcoords[1] }, .color = { stain->color.r, stain->color.g, stain->color.b, stain->color.a } },
+			{ .position = { vertexes[3][0], vertexes[3][1] }, .texcoord = { texcoords[0], texcoords[1] }, .color = { stain->color.r, stain->color.g, stain->color.b, stain->color.a } }
 		}, 4);
 
 		R_EnableScissor(&(const SDL_Rect) {
@@ -405,13 +412,22 @@ void R_AddStains(void) {
 			stain->surf->lightmap_size[1]
 		});
 
-		vert_count += 4;
-		elem_count += 6;
+		R_UploadToSubBuffer(&r_stainmap_state.vertex_buffer, sizeof(r_stainmap_interleave_vertex_t) * vert_offset, sizeof(r_stainmap_interleave_vertex_t) * 4, r_stainmap_state.vertex_scratch->data, true);
+
+		R_DrawArrays(GL_TRIANGLES, elem_offset, 6);
+
+		elem_offset += 6;
+		vert_offset += 4;
 	}
+
+	// reset scratch for next batch
+	g_array_set_size(r_stainmap_state.vertex_scratch, 0);
 
 	R_EnableBlend(old_blend_enabled);
 
 	R_BlendFunc(old_blend_src, old_blend_dest);
+
+	R_EnableColorArray(color_array_enabled);
 
 	R_PopMatrix(R_MATRIX_PROJECTION);
 	

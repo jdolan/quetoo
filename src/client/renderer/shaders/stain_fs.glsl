@@ -19,6 +19,6 @@ out vec4 fragColor;
  * @brief Shader entry point.
  */
 void main(void) {
-
-	fragColor = texture(SAMPLER0, texcoord) * color;
+	vec4 stain_color = texture(SAMPLER0, texcoord);
+	fragColor = vec4(stain_color.rgb * stain_color.a, stain_color.a) * color;
 }
