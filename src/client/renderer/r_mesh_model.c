@@ -125,6 +125,15 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 				Com_Warn("MD3_MAX_ANIMATIONS reached: %s\n", mod->media.name);
 				break;
 			}
+
+			continue;
+		}
+
+		// skip unknown directives until we reach newline
+		while (true) { 
+			if (!Parse_SkipToken(&parser, PARSE_DEFAULT | PARSE_NO_WRAP)) {
+				break;
+			}
 		}
 	}
 
