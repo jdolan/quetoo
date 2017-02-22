@@ -185,7 +185,6 @@ size_t StrColorLen(const char *s);
 int32_t StrColorCmp(const char *s1, const char *s2);
 int32_t StrColor(const char *s);
 int32_t StrrColor(const char *s);
-char *ParseToken(const char **data_p);
 char *va(const char *format, ...) __attribute__((format(printf, 1, 2)));
 char *vtos(const vec3_t v);
 

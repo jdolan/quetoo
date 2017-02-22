@@ -20,6 +20,7 @@
  */
 
 #include "g_local.h"
+#include "parse.h"
 
 static GList *g_map_list_default;
 GList *g_map_list;
@@ -38,21 +39,21 @@ static GList *G_MapList_Parse(const char *filename) {
 		return list;
 	}
 
-	const char *buffer = (char *) buf;
+	parser_t parser;
+	char token[MAX_STRING_CHARS];
+	Parse_Init(&parser, (const char *) buf, PARSER_ALL_COMMENTS);
 
 	g_map_list_map_t *map = NULL;
 
 	while (true) {
 
-		const char *c = ParseToken(&buffer);
-
-		if (*c == '\0') {
+		if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
 			break;
 		}
 
-		if (*c == '{') {
+		if (*token == '{') {
 			if (map) {
-				gi.Error("Malformed maps.lst at \"%s\"\n", c);
+				gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
 			}
 
 			map = gi.Malloc(sizeof(g_map_list_map_t), MEM_TAG_GAME);
@@ -72,46 +73,59 @@ static GList *G_MapList_Parse(const char *filename) {
 			map->hook = -1;
 		}
 
-		if (map == NULL) { // skip any whitespace between maps
-			continue;
-		}
+		if (!g_strcmp0(token, "name")) {
+			if (!Parse_Token(&parser, PARSE_DEFAULT, map->name, sizeof(map->name))) {
+				gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
+			}
 
-		if (!g_strcmp0(c, "name")) {
-			g_strlcpy(map->name, ParseToken(&buffer), sizeof(map->name));
 			const g_map_list_map_t *defaults = G_MapList_Find(g_map_list_default, map->name);
+			
 			if (defaults) {
 				memcpy(map, defaults, sizeof(*map));
 			}
 			continue;
 		}
 
-		if (!g_strcmp0(c, "message")) {
-			g_strlcpy(map->message, ParseToken(&buffer), sizeof(map->message));
+		if (!g_strcmp0(token, "message")) {
+			if (!Parse_Token(&parser, PARSE_DEFAULT, map->message, sizeof(map->message))) {
+				gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
+			}
 			continue;
 		}
 
-		if (!g_strcmp0(c, "sky")) {
-			g_strlcpy(map->sky, ParseToken(&buffer), sizeof(map->sky));
+		if (!g_strcmp0(token, "sky")) {
+			if (!Parse_Token(&parser, PARSE_DEFAULT, map->sky, sizeof(map->sky))) {
+				gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
+			}
 			continue;
 		}
 
-		if (!g_strcmp0(c, "weather")) {
-			g_strlcpy(map->weather, ParseToken(&buffer), sizeof(map->weather));
+		if (!g_strcmp0(token, "weather")) {
+			if (!Parse_Token(&parser, PARSE_DEFAULT, map->weather, sizeof(map->weather))) {
+				gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
+			}
 			continue;
 		}
 
-		if (!g_strcmp0(c, "gravity")) {
-			map->gravity = atoi(ParseToken(&buffer));
+		if (!g_strcmp0(token, "gravity")) {
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, &map->gravity, 1)) {
+				gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
+			}
 			continue;
 		}
 
-		if (!g_strcmp0(c, "gameplay")) {
-			map->gameplay = G_GameplayByName(ParseToken(&buffer));
+		if (!g_strcmp0(token, "gameplay")) {
+			if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
+				gi.Error("Malformed maps.lst at %s: %u,%u\n", "gameplay", parser.position.row, parser.position.col);
+			}
+			map->gameplay = G_GameplayByName(token);
 			continue;
 		}
 
-		if (!g_strcmp0(c, "hook")) {
-			const char *token = ParseToken(&buffer);
+		if (!g_strcmp0(token, "hook")) {
+			if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
+				gi.Error("Malformed maps.lst at %s: %u,%u\n", "hook", parser.position.row, parser.position.col);
+			}
 
 			if (!g_strcmp0(token, "default")) {
 				map->hook = -1;
@@ -121,67 +135,91 @@ static GList *G_MapList_Parse(const char *filename) {
 			continue;
 		}
 
-		if (!g_strcmp0(c, "teams")) {
-			map->teams = (int32_t) strtol(ParseToken(&buffer), NULL, 0);
+		if (!g_strcmp0(token, "teams")) {
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_INT32, &map->teams, 1)) {
+				gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
+			}
 			continue;
 		}
 
-		if (!g_strcmp0(c, "num_teams")) {
-			map->num_teams = (int32_t) strtol(ParseToken(&buffer), NULL, 0);
+		if (!g_strcmp0(token, "num_teams")) {
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_INT32, &map->num_teams, 1)) {
+				gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
+			}
 			continue;
 		}
 
-		if (!g_strcmp0(c, "techs")) {
-			map->techs = (int32_t) strtol(ParseToken(&buffer), NULL, 0);
+		if (!g_strcmp0(token, "techs")) {
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_INT32, &map->techs, 1)) {
+				gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
+			}
 			continue;
 		}
 
-		if (!g_strcmp0(c, "ctf")) {
-			map->ctf = (int32_t) strtol(ParseToken(&buffer), NULL, 0);
+		if (!g_strcmp0(token, "ctf")) {
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_INT32, &map->ctf, 1)) {
+				gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
+			}
 			continue;
 		}
 
-		if (!g_strcmp0(c, "match")) {
-			map->match = (int32_t) strtol(ParseToken(&buffer), NULL, 0);
+		if (!g_strcmp0(token, "match")) {
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_INT32, &map->match, 1)) {
+				gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
+			}
 			continue;
 		}
 
-		if (!g_strcmp0(c, "rounds")) {
-			map->rounds = (int32_t) strtol(ParseToken(&buffer), NULL, 0);
+		if (!g_strcmp0(token, "rounds")) {
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_INT32, &map->rounds, 1)) {
+				gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
+			}
 			continue;
 		}
 
-		if (!g_strcmp0(c, "frag_limit")) {
-			map->frag_limit = (int32_t) strtol(ParseToken(&buffer), NULL, 0);
+		if (!g_strcmp0(token, "frag_limit")) {
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_INT32, &map->frag_limit, 1)) {
+				gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
+			}
 			continue;
 		}
 
-		if (!g_strcmp0(c, "round_limit")) {
-			map->round_limit = (int32_t) strtol(ParseToken(&buffer), NULL, 0);
+		if (!g_strcmp0(token, "round_limit")) {
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_INT32, &map->round_limit, 1)) {
+				gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
+			}
 			continue;
 		}
 
-		if (!g_strcmp0(c, "capture_limit")) {
-			map->capture_limit = (int32_t) strtol(ParseToken(&buffer), NULL, 0);
+		if (!g_strcmp0(token, "capture_limit")) {
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_INT32, &map->capture_limit, 1)) {
+				gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
+			}
 			continue;
 		}
 
-		if (!g_strcmp0(c, "time_limit")) {
-			map->time_limit = atof(ParseToken(&buffer));
+		if (!g_strcmp0(token, "time_limit")) {
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, &map->time_limit, 1)) {
+				gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
+			}
 			continue;
 		}
 
-		if (!g_strcmp0(c, "give")) {
-			g_strlcpy(map->give, ParseToken(&buffer), sizeof(map->give));
+		if (!g_strcmp0(token, "give")) {
+			if (!Parse_Token(&parser, PARSE_DEFAULT, map->give, sizeof(map->give))) {
+				gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
+			}
 			continue;
 		}
 
-		if (!g_strcmp0(c, "music")) {
-			g_strlcpy(map->music, ParseToken(&buffer), sizeof(map->music));
+		if (!g_strcmp0(token, "music")) {
+			if (!Parse_Token(&parser, PARSE_DEFAULT, map->music, sizeof(map->music))) {
+				gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
+			}
 			continue;
 		}
 
-		if (*c == '}') { // wrap it up, B
+		if (*token == '}') { // wrap it up, B
 
 			gi.Debug("Loaded map %s:\n"
 			         "message: %s\n"

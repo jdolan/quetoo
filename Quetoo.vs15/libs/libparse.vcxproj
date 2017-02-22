@@ -19,22 +19,17 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\client\cl_null.c" />
-    <ClCompile Include="..\src\main\main.c" />
-    <ClCompile Include="src\main\winmain.c" />
+    <ClInclude Include="..\..\src\parse.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\src\main\quetoo-dedicated.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="..\src\main\quetoo-dedicated-icon.rc" />
+    <ClCompile Include="..\..\src\parse.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{990F298C-0B12-4792-8175-90370FD9358A}</ProjectGuid>
-    <RootNamespace>quetoo-dedicated</RootNamespace>
+    <ProjectGuid>{FEF51ACC-31F2-41AC-B562-41F5C5988088}</ProjectGuid>
+    <RootNamespace>libparse</RootNamespace>
   </PropertyGroup>
   <ImportGroup Label="PropertySheets">
-    <Import Project="build_settings.props" />
+    <Import Project="..\build_settings.props" />
   </ImportGroup>
   <PropertyGroup>
     <OutDir>$(QuetooOutDir)</OutDir>
@@ -42,7 +37,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="PropertySheets">
@@ -52,14 +47,5 @@
     <IncludePath>$(QuetooFullIncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(QuetooFullLibraryPath);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
-  <ItemDefinitionGroup>
-    <Link>
-      <AdditionalDependencies>libparse.lib;libcmodel.lib;libcommon.lib;libconsole.lib;libfilesystem.lib;libmatrix.lib;libmem.lib;libnet.lib;libserver.lib;libshared.lib;libswap.lib;libsys.lib;libthread.lib;curses.lib;glib-2.0.lib;libcurl.lib;SDL2.lib;physfs.lib;ws2_32.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SubSystem>Windows</SubSystem>
-    </Link>
-    <PostBuildEvent>
-      <Command>COPY_DEPENDENCIES "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)" "$(Configuration)" &amp;&amp; COPY_QUETOO-DEDICATED "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)"</Command>
-    </PostBuildEvent>
-  </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
