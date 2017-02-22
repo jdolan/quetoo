@@ -299,20 +299,24 @@ static void Cl_MessageMode2_f(void) {
 }
 
 /**
- * @brief Crash the game. Wooooooo.
+ * @brief Crash the game.
  */
-static void Cl_Crash_f(void) {
-
-	Sys_Backtrace("lol");
+static void Cl_Backtrace_f(void) {
+	Sys_Backtrace(__func__);
 }
 
 /**
  * @brief
  */
 __attribute__((noreturn))
-static void Cl_Fatal_f(void) {
+static void Cl_Error_f(void) {
+	err_t err = ERROR_DROP;
 
-	Com_Error(ERROR_FATAL, "Nope!\n");
+	if (Cmd_Argc() > 1) {
+		err = (err_t) strtoul(Cmd_Argv(1), NULL, 10);
+	}
+
+	Com_Error(err, __func__);
 }
 
 /**
@@ -354,8 +358,8 @@ void Cl_InitConsole(void) {
 	Cmd_Add("cl_message_mode", Cl_MessageMode_f, CMD_CLIENT, "Activate chat");
 	Cmd_Add("cl_message_mode_2", Cl_MessageMode2_f, CMD_CLIENT, "Activate team chat");
 
-	Cmd_Add("crash", Cl_Crash_f, CMD_SYSTEM, "Do a crash");
-	Cmd_Add("fatal", Cl_Fatal_f, CMD_SYSTEM, "Do a fatal");
+	Cmd_Add("cl_backtrace", Cl_Backtrace_f, CMD_SYSTEM, "Generate a backtrace");
+	Cmd_Add("cl_error", Cl_Error_f, CMD_SYSTEM, "Generate an error");
 
 	Com_Print("Client console initialized\n");
 }

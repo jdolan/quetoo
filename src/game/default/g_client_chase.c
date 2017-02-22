@@ -97,11 +97,7 @@ void G_ClientChaseNext(g_entity_t *ent) {
 
 		e = g_game.entities + i;
 
-		if (!e->in_use || e->solid == SOLID_NOT) {
-			continue;
-		}
-
-		if (!e->client->locals.persistent.spectator) {
+		if (G_IsMeat(e)) {
 			break;
 		}
 
@@ -130,11 +126,7 @@ void G_ClientChasePrevious(g_entity_t *ent) {
 
 		e = g_game.entities + i;
 
-		if (!e->in_use || e->solid == SOLID_NOT) {
-			continue;
-		}
-
-		if (!e->client->locals.persistent.spectator) {
+		if (G_IsMeat(e)) {
 			break;
 		}
 
@@ -147,12 +139,10 @@ void G_ClientChasePrevious(g_entity_t *ent) {
  * @brief Finds the first available chase target and assigns it to the specified ent.
  */
 void G_ClientChaseTarget(g_entity_t *ent) {
-	int32_t i;
-	g_entity_t *other;
 
-	for (i = 1; i <= sv_max_clients->integer; i++) {
-		other = g_game.entities + i;
-		if (other->in_use && other->solid && !other->client->locals.persistent.spectator) {
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+		g_entity_t *other = g_game.entities + i + 1;
+		if (G_IsMeat(other)) {
 			ent->client->locals.chase_target = other;
 			return;
 		}

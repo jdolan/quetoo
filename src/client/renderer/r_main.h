@@ -78,7 +78,6 @@ typedef struct {
 	const char *renderer;
 	const char *vendor;
 	const char *version;
-	const char *extensions;
 
 	int32_t max_texunits;
 	int32_t max_texture_size;

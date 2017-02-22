@@ -10,7 +10,11 @@ struct FogParameters
 uniform FogParameters FOG;
 #endif
 
-varying float fog;
+#ifdef VERTEX_SHADER
+out float fog;
+#else
+in float fog;
+#endif
 
 #ifdef VERTEX_SHADER
 /**

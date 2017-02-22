@@ -548,14 +548,14 @@ _Bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_
 	const size_t lump_type_size = bsp_lump_meta[lump_id].type_size;
 
 	if (lump.file_len % lump_type_size) {
-		Com_Error(ERROR_DROP, "Lump (%i) size (%i) doesn't match expected data type (%" PRIuPTR ")\n", lump_id, lump.file_len,
+		Com_Error(ERROR_DROP, "Lump (%i) size (%i) doesn't match expected data type (%" PRIuMAX ")\n", lump_id, lump.file_len,
 		          lump_type_size);
 	}
 
 	*lump_count = lump.file_len / lump_type_size;
 
 	if (*lump_count >= (int32_t) bsp_lump_meta[lump_id].max_count) {
-		Com_Error(ERROR_DROP, "Lump (%i) count (%i) exceeds max (%" PRIuPTR ")\n", lump_id, *lump_count,
+		Com_Error(ERROR_DROP, "Lump (%i) count (%i) exceeds max (%" PRIuMAX ")\n", lump_id, *lump_count,
 		          bsp_lump_meta[lump_id].max_count);
 	}
 

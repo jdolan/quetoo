@@ -60,6 +60,40 @@ static void drawLines(const Renderer *self, const SDL_Point *points, size_t coun
 }
 
 /**
+ * @fn GLuint Renderer::createTexture(const Renderer *self, const SDL_Surface *surface)
+ * @memberof Renderer
+ */
+static GLuint createTexture(const Renderer *self, const SDL_Surface *surface) {
+
+	assert(surface);
+
+	GLenum format;
+	switch (surface->format->BytesPerPixel) {
+		case 3:
+			format = GL_RGB;
+			break;
+		case 4:
+			format = GL_RGBA;
+			break;
+		default:
+			MVC_LogError("Invalid surface format: %s\n", SDL_GetPixelFormatName(surface->format->format));
+			return 0;
+	}
+
+	GLuint texture;
+	glGenTextures(1, &texture);
+
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, format, surface->w, surface->h, 0, format, GL_UNSIGNED_BYTE, surface->pixels);
+
+	return texture;
+}
+
+/**
  * @see Renderer::drawRect(const Renderer *self, const SDL_Rect *rect)
  */
 static void drawRect(const Renderer *self, const SDL_Rect *rect) {
@@ -157,6 +191,7 @@ static void initialize(Class *clazz) {
 	((RendererInterface *) clazz->def->interface)->beginFrame = beginFrame;
 	((RendererInterface *) clazz->def->interface)->drawLine = drawLine;
 	((RendererInterface *) clazz->def->interface)->drawLines = drawLines;
+	((RendererInterface *) clazz->def->interface)->createTexture = createTexture;
 	((RendererInterface *) clazz->def->interface)->drawRect = drawRect;
 	((RendererInterface *) clazz->def->interface)->drawRectFilled = drawRectFilled;
 	((RendererInterface *) clazz->def->interface)->drawTexture = drawTexture;

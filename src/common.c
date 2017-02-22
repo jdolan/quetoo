@@ -28,7 +28,7 @@
  */
 static void Com_InitLog(void) {
 
-	quetoo.log_file = fopen(va("quetoo_%" PRIuPTR ".log", time(NULL)), "w");
+	quetoo.log_file = fopen(va("quetoo_%" PRIiMAX ".log", (intmax_t) time(NULL)), "w");
 }
 
 /**

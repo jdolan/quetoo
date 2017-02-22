@@ -190,7 +190,7 @@ static void Cg_Init(void) {
 	cg_skin = cgi.Cvar("skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                   "Your player model and skin.");
 
-	cg_third_person = cgi.Cvar("cg_third_person", "0.0", CVAR_ARCHIVE | CVAR_LO_ONLY,
+	cg_third_person = cgi.Cvar("cg_third_person", "0.0", CVAR_ARCHIVE | CVAR_DEVELOPER,
 	                           "Activate third person perspective.");
 	cg_third_person_chasecam = cgi.Cvar("cg_third_person_chasecam", "0", CVAR_ARCHIVE,
 	                                    "Activate third person chase camera perspective.");

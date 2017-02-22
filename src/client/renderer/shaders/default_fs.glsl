@@ -2,7 +2,7 @@
  * @brief Default fragment shader.
  */
 
-#version 120
+#version 330
 
 #define FRAGMENT_SHADER
 
@@ -68,18 +68,20 @@ uniform float ALPHA_THRESHOLD;
 uniform float TIME_FRACTION;
 uniform float TIME;
 
-varying vec3 modelpoint;
-varying vec4 color;
-varying vec2 texcoords[2];
-varying vec3 point;
-varying vec3 normal;
-varying vec3 tangent;
-varying vec3 bitangent;
+in vec3 modelpoint;
+in vec4 color;
+in vec2 texcoords[2];
+in vec3 point;
+in vec3 normal;
+in vec3 tangent;
+in vec3 bitangent;
 
 const vec3 two = vec3(2.0);
 const vec3 negHalf = vec3(-0.5);
 
 vec3 eye;
+
+out vec4 fragColor;
 
 /**
  * @brief Yield the parallax offset for the texture coordinate.
@@ -143,10 +145,10 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 #endif
 
 	// now modulate the diffuse sample with the modified lightmap
-	gl_FragColor.rgb = diffuse.rgb * (lightmap + light);
+	fragColor.rgb = diffuse.rgb * (lightmap + light);
 
 	// lastly modulate the alpha channel by the color
-	gl_FragColor.a = diffuse.a * color.a;
+	fragColor.a = diffuse.a * color.a;
 }
 
 /**
@@ -157,7 +159,7 @@ void CausticFragment(in vec3 lightmap) {
 		float factor = noise3d((modelpoint * vec3(0.024, 0.024, 0.016)) + (TIME * 0.4));
 		factor = pow((1 - abs(factor)) + 0.03, 6);
 
-		gl_FragColor.rgb += clamp(CAUSTIC.COLOR * factor * clamp((lightmap * 1.6) - 0.5, 0.1, 1.0) * 0.17, 0.0, 1.0);
+		fragColor.rgb += clamp(CAUSTIC.COLOR * factor * clamp((lightmap * 1.6) - 0.5, 0.1, 1.0) * 0.17, 0.0, 1.0);
 	}
 }
 
@@ -165,7 +167,7 @@ void CausticFragment(in vec3 lightmap) {
  * @brief Apply fog to the fragment if enabled.
  */
 void FogFragment(void) {
-	gl_FragColor.rgb = mix(gl_FragColor.rgb, FOG.COLOR, fog);
+	fragColor.rgb = mix(fragColor.rgb, FOG.COLOR, fog);
 }
 
 /**
@@ -178,7 +180,7 @@ void main(void) {
 	vec3 deluxemap = vec3(0.0, 0.0, 1.0);
 
 	if (LIGHTMAP) {
-		lightmap = texture2D(SAMPLER1, texcoords[1]).rgb;
+		lightmap = texture(SAMPLER1, texcoords[1]).rgb;
 	}
 
 	// then resolve any bump mapping
@@ -189,11 +191,11 @@ void main(void) {
 	if (NORMALMAP) {
 
 		if (DELUXEMAP) {
-			deluxemap = texture2D(SAMPLER2, texcoords[1]).rgb;
+			deluxemap = texture(SAMPLER2, texcoords[1]).rgb;
 			deluxemap = normalize(two * (deluxemap + negHalf));
 		}
 
-		normalmap = texture2D(SAMPLER3, texcoords[0]);
+		normalmap = texture(SAMPLER3, texcoords[0]);
 
 		parallax = BumpTexcoord(normalmap.w);
 
@@ -203,7 +205,7 @@ void main(void) {
 		vec3 glossmap = vec3(1.0);
 
 		if (GLOSSMAP) {
-			glossmap = texture2D(SAMPLER4, texcoords[0]).rgb;
+			glossmap = texture(SAMPLER4, texcoords[0]).rgb;
 		}
 
 		// resolve the bumpmap modulation
@@ -220,20 +222,19 @@ void main(void) {
 	vec4 diffuse = vec4(1.0);
 
 	if (DIFFUSE) { // sample the diffuse texture, honoring the parallax offset
-		diffuse = texture2D(SAMPLER0, texcoords[0] + parallax);
+		diffuse = texture(SAMPLER0, texcoords[0] + parallax);
 
 		// see if diffuse can be discarded because of alpha test
 		if (diffuse.a < ALPHA_THRESHOLD)
 			discard;
 
 		if (TINTMAP) {
-			vec4 tint = texture2D(SAMPLER6, texcoords[0] + parallax);
+			vec4 tint = texture(SAMPLER6, texcoords[0] + parallax);
 
 			if (tint.a > 0) {
 				for (int i = 0; i < 3; i++) {
 					if (TINTS[i].a > 0 && tint[i] > 0) {
-						//diffuse.rgb = mix(diffuse.rgb, TINTS[i].rgb, tint[i]);
-						diffuse.rgb *= TINTS[i].rgb * tint[i];
+						diffuse.rgb = mix(diffuse.rgb, TINTS[i].rgb * tint[i], tint.a);
 					}
 				}
 			}

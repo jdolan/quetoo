@@ -759,6 +759,8 @@ typedef struct {
 		uint16_t grenade;
 		uint16_t rocket;
 		uint16_t hook;
+
+		uint16_t fireball;
 	} models;
 
 	struct g_media_sounds_t {

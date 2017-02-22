@@ -1143,6 +1143,38 @@ void SetUserInfo(char *s, const char *key, const char *value) {
 	*s = '\0';
 }
 
+#define HEX_TO_DEC(l) \
+		(l >= 'a' && l <= 'f') ? (10 + (5 - ('f' - l))) : (9 - ('9' - l))
+
+/**
+ * @brief Damn you, MinGW.
+ */
+static _Bool ParseHexString(const char *input, color_t *output, const uint8_t num_digits, const uint8_t num_values) {
+	byte *c = output->bytes;
+	const char *id = input;
+
+	for (uint8_t i = 0; i < num_values; i++, c++) {
+
+		for (uint8_t d = 0, o = 0; d < num_digits; d++, id++, o += 4) {
+			const char l = tolower(*id);
+
+			if (!((l >= 'a' && l <= 'f') || (l >= '0' && l <= '9'))) {
+				return false;
+			}
+			
+			const uint8_t dec = HEX_TO_DEC(l);
+
+			if (d == 0) {
+				*c = dec << o;
+			} else {
+				*c |= dec << o;
+			}
+		}
+	}
+
+	return true;
+}
+
 /**
  * @brief Attempt to convert a hexadecimal value to its string representation.
  */
@@ -1161,7 +1193,7 @@ _Bool ColorParseHex(const char *s, color_t *color) {
 
 	switch (s_len) {
 	case 3:
-		if (sscanf(s, "%1hhx%1hhx%1hhx", &color->r, &color->g, &color->b) != 3) {
+		if (!ParseHexString(s, color, 1, 3)) {
 			return false;
 		}
 
@@ -1172,7 +1204,7 @@ _Bool ColorParseHex(const char *s, color_t *color) {
 		color->a = 0xFF;
 		break;
 	case 6:
-		if (sscanf(s, "%2hhx%2hhx%2hhx", &color->r, &color->g, &color->b) != 3) {
+		if (!ParseHexString(s, color, 2, 3)) {
 			return false;
 		}
 
@@ -1180,7 +1212,7 @@ _Bool ColorParseHex(const char *s, color_t *color) {
 		break;
 
 	case 4:
-		if (sscanf(s, "%1hhx%1hhx%1hhx%1hhx", &color->r, &color->g, &color->b, &color->a) != 4) {
+		if (!ParseHexString(s, color, 1, 4)) {
 			return false;
 		}
 
@@ -1189,7 +1221,7 @@ _Bool ColorParseHex(const char *s, color_t *color) {
 		}
 		break;
 	case 8:
-		if (sscanf(s, "%2hhx%2hhx%2hhx%2hhx", &color->r, &color->g, &color->b, &color->a) != 4) {
+		if (!ParseHexString(s, color, 2, 4)) {
 			return false;
 		}
 

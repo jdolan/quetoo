@@ -2,7 +2,7 @@
  * @brief Shell vertex shader.
  */
 
-#version 120
+#version 330
 
 #define VERTEX_SHADER
 
@@ -10,18 +10,16 @@
 
 uniform float OFFSET;
 uniform float SHELL_OFFSET;
-
-varying vec4 color;
-varying vec2 texcoord;
-
-attribute vec3 POSITION;
-attribute vec3 NORMAL;
-attribute vec2 TEXCOORD;
-
 uniform float TIME_FRACTION;
 
-attribute vec3 NEXT_POSITION;
-attribute vec3 NEXT_NORMAL;
+out vec4 color;
+out vec2 texcoord;
+
+in vec3 POSITION;
+in vec3 NORMAL;
+in vec2 TEXCOORD;
+in vec3 NEXT_POSITION;
+in vec3 NEXT_NORMAL;
 
 /**
  * @brief Shader entry point.

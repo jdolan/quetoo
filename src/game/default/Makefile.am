@@ -81,5 +81,6 @@ game_la_LDFLAGS = \
 
 game_la_LIBADD = \
 	libpmove.la \
+	$(top_srcdir)/src/libparse.la \
 	@MYSQL_LIBS@
 
