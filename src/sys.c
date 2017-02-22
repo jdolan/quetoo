@@ -216,6 +216,11 @@ void Sys_Backtrace(const char *msg) {
 
 	const SDL_MessageBoxButtonData buttons[] = {};
 
+#elif defined(__MINGW32__)
+
+	char *message = "Quetoo encountered a fatal error.";
+	const SDL_MessageBoxButtonData buttons[] = {};
+
 #elif defined(_MSC_VER)
 
 	char *message = va("%s\n\nGenerate crash dump?", msg);

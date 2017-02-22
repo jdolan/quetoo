@@ -339,6 +339,10 @@ void R_CreateBuffer(r_buffer_t *buffer, const r_attrib_type_t element_type, cons
 void R_CreateInterleaveBuffer_(r_buffer_t *buffer, const GLubyte struct_size, const r_buffer_layout_t *layout,
                                const GLenum hint, const size_t size, const void *data, const char *func) {
 
+	if ((struct_size % 4) != 0) {
+		Com_Warn("Buffer struct not aligned to 4, might be an error\n");
+	}
+
 	R_CreateBuffer(buffer, R_ATTRIB_TOTAL_TYPES, struct_size, false, hint, R_BUFFER_DATA | R_BUFFER_INTERLEAVE, size, data,
 	               func);
 

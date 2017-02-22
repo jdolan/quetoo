@@ -265,7 +265,7 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	const uint32_t effects = e->effects;
 
 	e->effects |= EF_CLIENT;
-	e->effects &= EF_CTF_MASK;
+	e->effects &= ~EF_CTF_MASK;
 
 	const _Bool self_draw = (Cg_IsSelf(ent) && !cgi.client->third_person);
 

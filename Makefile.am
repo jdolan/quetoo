@@ -4,13 +4,6 @@ SUBDIRS = \
 	deps \
 	src
 
-RSYNC_REPOSITORY = \
-	rsync://quetoo.org/quetoo
-
-rsync-data:
-	mkdir -p $(DESTDIR)@PKGDATADIR@
-	rsync -rzhP --delete $(RSYNC_REPOSITORY) $(DESTDIR)@PKGDATADIR@
-
 html:
 	doxygen
 

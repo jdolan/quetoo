@@ -821,7 +821,7 @@ void G_FireRailgun(g_entity_t *ent) {
 
 		G_MuzzleFlash(ent, MZ_RAILGUN);
 
-		G_WeaponFired(ent, 1800, ent->client->locals.weapon->quantity);
+		G_WeaponFired(ent, 1400, ent->client->locals.weapon->quantity);
 	}
 }
 

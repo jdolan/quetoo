@@ -513,5 +513,4 @@ Quetoo $VERSION: Automatic configuration OK.
     Data: .............. $PKGDATADIR
 
 Type 'make' to build Quetoo. Type 'make install' to install it.
-Type 'make rsync-data' to install or update the game data.
 ])

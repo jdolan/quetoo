@@ -944,12 +944,8 @@
 		CE12D51B1C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE12D51D1C5C58C300CD0B13 /* dllbundler.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = dllbundler.sh; sourceTree = "<group>"; };
 		CE12D51E1C5C58C300CD0B13 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
-		CE12D5211C5C58C300CD0B13 /* cygwin1.dll */ = {isa = PBXFileReference; lastKnownFileType = file; path = cygwin1.dll; sourceTree = "<group>"; };
-		CE12D5221C5C58C300CD0B13 /* rsync.exe */ = {isa = PBXFileReference; lastKnownFileType = file; path = rsync.exe; sourceTree = "<group>"; };
 		CE12D5251C5C58C300CD0B13 /* .turd */ = {isa = PBXFileReference; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
 		CE12D5291C5C58C300CD0B13 /* .turd */ = {isa = PBXFileReference; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
-		CE12D52D1C5C58C300CD0B13 /* cygwin1.dll */ = {isa = PBXFileReference; lastKnownFileType = file; path = cygwin1.dll; sourceTree = "<group>"; };
-		CE12D52E1C5C58C300CD0B13 /* rsync.exe */ = {isa = PBXFileReference; lastKnownFileType = file; path = rsync.exe; sourceTree = "<group>"; };
 		CE12D5311C5C58C300CD0B13 /* .turd */ = {isa = PBXFileReference; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
 		CE12D5351C5C58C300CD0B13 /* .turd */ = {isa = PBXFileReference; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
 		CE12D5371C5C58C300CD0B13 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -1404,8 +1400,6 @@
 		CE92B3AA1D2FF77800E9153A /* quemap.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = quemap.ico; sourceTree = "<group>"; };
 		CE92B3AB1D2FF7F600E9153A /* quetoo-dedicated-icon.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "quetoo-dedicated-icon.rc"; sourceTree = "<group>"; };
 		CE92B3AC1D2FF83A00E9153A /* quetoo-dedicated.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = "quetoo-dedicated.ico"; sourceTree = "<group>"; };
-		CE9305BC1D9A929100D62770 /* post-update.bat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; lineEnding = 2; path = "post-update.bat"; sourceTree = "<group>"; };
-		CE9305BD1D9A94F600D62770 /* post-update.bat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; lineEnding = 2; path = "post-update.bat"; sourceTree = "<group>"; };
 		CE9574581E56860800BBC4C0 /* EditorViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = EditorViewController.c; sourceTree = "<group>"; };
 		CE9574591E56860800BBC4C0 /* EditorViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditorViewController.h; sourceTree = "<group>"; };
 		CEA029F41C5E558100341079 /* quetoo-master */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-master"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1990,9 +1984,6 @@
 		CE12D5201C5C58C300CD0B13 /* bin */ = {
 			isa = PBXGroup;
 			children = (
-				CE12D5211C5C58C300CD0B13 /* cygwin1.dll */,
-				CE9305BC1D9A929100D62770 /* post-update.bat */,
-				CE12D5221C5C58C300CD0B13 /* rsync.exe */,
 			);
 			path = bin;
 			sourceTree = "<group>";
@@ -2043,9 +2034,6 @@
 		CE12D52C1C5C58C300CD0B13 /* bin */ = {
 			isa = PBXGroup;
 			children = (
-				CE12D52D1C5C58C300CD0B13 /* cygwin1.dll */,
-				CE9305BD1D9A94F600D62770 /* post-update.bat */,
-				CE12D52E1C5C58C300CD0B13 /* rsync.exe */,
 			);
 			path = bin;
 			sourceTree = "<group>";
