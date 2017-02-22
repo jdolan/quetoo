@@ -115,6 +115,7 @@
 		CE67EF971E350E16009C2819 /* libshared.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.dylib */; };
 		CE67EFAD1E351AA8009C2819 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE67EF991E351A7B009C2819 /* main.c */; };
 		CE67EFAE1E356962009C2819 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
+		CE68F9951E5DCD1900AC9AAE /* libparse.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5530991E5A939F0009A127 /* libparse.dylib */; };
 		CE6C2D111E24902900F55B0A /* cm_bsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6C2D0F1E24902900F55B0A /* cm_bsp.c */; };
 		CE6C2D121E24902900F55B0A /* cm_bsp.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6C2D101E24902900F55B0A /* cm_bsp.h */; };
 		CE8000001C5E4D4400A21A51 /* libminizip.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.dylib */; };
@@ -566,6 +567,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = CE12D7CC1C5C5D5C00CD0B13;
 			remoteInfo = game;
+		};
+		CE68F9961E5DCD2000AC9AAE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE5530901E5A939F0009A127;
+			remoteInfo = parse;
 		};
 		CE80FDF11C5E3E5C00A21A51 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1749,6 +1757,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CED4394E1D9D3A0A0052BAFA /* libfilesystem.dylib in Frameworks */,
+				CE68F9951E5DCD1900AC9AAE /* libparse.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3736,6 +3745,7 @@
 			);
 			dependencies = (
 				CEFC7A6F1D9CB54A000FA6B2 /* PBXTargetDependency */,
+				CE68F9971E5DCD2000AC9AAE /* PBXTargetDependency */,
 			);
 			name = console;
 			productName = game;
@@ -4385,6 +4395,11 @@
 			isa = PBXTargetDependency;
 			target = CE12D7CC1C5C5D5C00CD0B13 /* game */;
 			targetProxy = CE67EF751E3501C7009C2819 /* PBXContainerItemProxy */;
+		};
+		CE68F9971E5DCD2000AC9AAE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE5530901E5A939F0009A127 /* parse */;
+			targetProxy = CE68F9961E5DCD2000AC9AAE /* PBXContainerItemProxy */;
 		};
 		CE80FDF21C5E3E5C00A21A51 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
