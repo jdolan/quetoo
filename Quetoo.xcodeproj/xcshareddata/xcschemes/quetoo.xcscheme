@@ -63,7 +63,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "+set r_fullscreen 1 +map rage"
+            argument = "+set r_fullscreen 1 +map edge"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument

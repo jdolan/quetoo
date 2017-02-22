@@ -209,7 +209,7 @@ void Cg_Look(pm_cmd_t *cmd) {
 void Cg_Move(pm_cmd_t *cmd) {
 
 	if (in_attack.state & (BUTTON_STATE_HELD | BUTTON_STATE_DOWN)) {
-		if (!((in_attack.state & BUTTON_STATE_DOWN) && Cg_AttemptWeaponSwitch(&cgi.client->frame.ps))) {
+		if (!((in_attack.state & BUTTON_STATE_DOWN) && Cg_AttemptSelectWeapon(&cgi.client->frame.ps))) {
 			cmd->buttons |= BUTTON_ATTACK;
 		}
 	}
