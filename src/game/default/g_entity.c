@@ -20,6 +20,7 @@
  */
 
 #include "g_local.h"
+#include "parse.h"
 
 typedef struct {
 	char *name;
@@ -348,38 +349,34 @@ static void G_ParseField(const char *key, const char *value, g_entity_t *ent) {
 }
 
 /**
- * @brief Parses an entity out of the given string, returning the new position
- * in said string. The entity should be a properly initialized free entity.
+ * @brief Parses an entity out of the given string. 
+ * The entity should be a properly initialized free entity.
  */
-static const char *G_ParseEntity(const char *data, g_entity_t *ent) {
+static void G_ParseEntity(parser_t *parser, g_entity_t *ent) {
 	_Bool init;
-	char key[MAX_QPATH];
-	const char *tok;
+	char key[MAX_QPATH], value[MAX_QPATH];
 
 	init = false;
 	memset(&g_game.spawn, 0, sizeof(g_game.spawn));
 
 	// go through all the dictionary pairs
 	while (true) {
-		// parse key
-		tok = ParseToken(&data);
-		if (tok[0] == '}') {
-			break;
-		}
 
-		if (!data) {
+		// parse key
+		if (!Parse_Token(parser, PARSE_DEFAULT, key, sizeof(key))) {
 			gi.Error("EOF without closing brace\n");
 		}
 
-		g_strlcpy(key, tok, sizeof(key));
+		if (key[0] == '}') {
+			break;
+		}
 
 		// parse value
-		tok = ParseToken(&data);
-		if (!data) {
+		if (!Parse_Token(parser, PARSE_DEFAULT | PARSE_NO_WRAP, value, sizeof(value))) {
 			gi.Error("EOF in entity definition\n");
 		}
 
-		if (tok[0] == '}') {
+		if (value[0] == '}') {
 			gi.Error("No entity definition\n");
 		}
 
@@ -391,14 +388,12 @@ static const char *G_ParseEntity(const char *data, g_entity_t *ent) {
 			continue;
 		}
 
-		G_ParseField(key, tok, ent);
+		G_ParseField(key, value, ent);
 	}
 
 	if (!init) {
 		G_ClearEntity(ent);
 	}
-
-	return data;
 }
 
 /**
@@ -496,6 +491,7 @@ static void G_InitMedia(void) {
 	g_media.models.grenade = gi.ModelIndex("models/objects/grenade/tris");
 	g_media.models.rocket = gi.ModelIndex("models/objects/rocket/tris");
 	g_media.models.hook = gi.ModelIndex("models/objects/grapplehook/tris");
+	g_media.models.fireball = gi.ModelIndex("models/objects/fireball/tris");
 
 	g_media.sounds.bfg_hit = gi.SoundIndex("weapons/bfg/hit");
 	g_media.sounds.bfg_prime = gi.SoundIndex("weapons/bfg/prime");
@@ -869,13 +865,15 @@ void G_SpawnEntities(const char *name, const char *entities) {
 
 	gchar **inhibit = g_strsplit(g_inhibit->string, " ", -1);
 	int32_t inhibited = 0;
+	
+	parser_t parser;
+	char tok[MAX_QPATH];
+	Parse_Init(&parser, entities, PARSER_NO_COMMENTS);
 
 	// parse the entity definition string
 	while (true) {
 
-		const char *tok = ParseToken(&entities);
-
-		if (!entities) {
+		if (!Parse_Token(&parser, PARSE_DEFAULT, tok, sizeof(tok))) {
 			break;
 		}
 
@@ -889,7 +887,7 @@ void G_SpawnEntities(const char *name, const char *entities) {
 			ent = G_AllocEntity();
 		}
 
-		entities = G_ParseEntity(entities, ent);
+		G_ParseEntity(&parser, ent);
 
 		if (ent != g_game.entities) {
 

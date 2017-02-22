@@ -20,6 +20,7 @@
  */
 
 #include "cl_local.h"
+#include "parse.h"
 
 static char *sv_cmd_names[32] = {
 	"SV_CMD_BAD",
@@ -318,14 +319,14 @@ static void Cl_ParsePrint(void) {
 
 		// check to see if we should ignore the message
 		if (*cl_ignore->string) {
+			parser_t parser;
+			char pattern[MAX_STRING_CHARS];
 
-			char patterns[MAX_STRING_CHARS];
-			g_strlcpy(patterns, cl_ignore->string, sizeof(patterns));
+			Parse_Init(&parser, cl_ignore->string, PARSER_DEFAULT);
 
-			const char *p = patterns;
 			while (true) {
-				const char *pattern = ParseToken(&p);
-				if (pattern == NULL) {
+
+				if (!Parse_Token(&parser, PARSE_DEFAULT, pattern, sizeof(pattern))) {
 					break;
 				}
 

@@ -26,6 +26,8 @@
 #include "MapListCollectionView.h"
 #include "MapListCollectionItemView.h"
 
+#include "parse.h"
+
 #define _Class _MapListCollectionView
 
 #pragma mark CollectionViewDataSource
@@ -127,26 +129,31 @@ static void enumerateMaps(const char *path, void *data) {
 			g_strlcpy(info->mapname, path, sizeof(info->mapname));
 			g_strlcpy(info->message, path, sizeof(info->message));
 
-			char *entities = g_malloc(header.lumps[BSP_LUMP_ENTITIES].file_len);
+			gchar *entities = g_malloc(header.lumps[BSP_LUMP_ENTITIES].file_len);
 
 			cgi.SeekFile(file, header.lumps[BSP_LUMP_ENTITIES].file_ofs);
 			cgi.ReadFile(file, entities, 1, header.lumps[BSP_LUMP_ENTITIES].file_len);
 
-			const char *ents = entities;
+			parser_t parser;
+			char token[MAX_BSP_ENTITY_VALUE];
+
+			Parse_Init(&parser, entities, PARSER_NO_COMMENTS);
 
 			while (true) {
-				char *c = ParseToken(&ents);
-
-				if (*c == '\0') {
+				
+				if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
 					break;
 				}
 
-				if (g_strcmp0(c, "message") == 0) {
+				if (g_strcmp0(token, "message") == 0) {
+					
+					if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
+						break;
+					}
 
-					c = ParseToken(&ents);
-					StripColors(c, info->message);
+					StripColors(token, info->message);
 
-					c = strstr(info->message, "\\n");
+					char *c = strstr(info->message, "\\n");
 					if (c) {
 						*c = '\0';
 					}

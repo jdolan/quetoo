@@ -897,9 +897,6 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		ent->client->locals.persistent.team = NULL;
 		ent->client->locals.persistent.ready = false;
 	} else { // spawn an active client
-		ent->client->locals.persistent.handicap = ent->client->locals.persistent.handicap_next;
-		uint16_t handicap = ent->client->locals.persistent.handicap;
-
 		ent->class_name = "client";
 
 		ent->solid = SOLID_BOX;
@@ -919,9 +916,11 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		ent->locals.dead = false;
 		ent->locals.Die = G_ClientDie;
 		ent->locals.ground_entity = NULL;
-		ent->locals.health = ent->locals.max_health = handicap;
+		ent->client->locals.persistent.handicap = ent->client->locals.persistent.handicap_next;
+		ent->locals.max_health = ent->client->locals.persistent.handicap;
+		ent->locals.health = ent->locals.max_health + 5;
 		ent->locals.max_armor = 200;
-		ent->client->locals.max_boost_health = handicap + 100;
+		ent->client->locals.max_boost_health = ent->locals.max_health + 100;
 		ent->locals.move_type = MOVE_TYPE_WALK;
 		ent->locals.mass = 200.0;
 		ent->locals.take_damage = true;
@@ -953,13 +952,15 @@ void G_ClientRespawn(g_entity_t *ent, _Bool voluntary) {
 
 	G_ClientRespawn_(ent);
 
+	g_client_persistent_t *pers = &ent->client->locals.persistent;
+
 	// clear scores and match/round on voluntary changes
-	if (ent->client->locals.persistent.spectator && voluntary) {
-		ent->client->locals.persistent.score = ent->client->locals.persistent.captures = 0;
-		ent->client->locals.persistent.match_num = ent->client->locals.persistent.round_num = 0;
+	if (pers->spectator && voluntary) {
+		pers->score = pers->deaths = pers->captures = 0;
+		pers->match_num = pers->round_num = 0;
 	} else {
-		ent->client->locals.persistent.match_num = g_level.match_num;
-		ent->client->locals.persistent.round_num = g_level.round_num;
+		pers->match_num = g_level.match_num;
+		pers->round_num = g_level.round_num;
 	}
 
 	ent->client->locals.respawn_time = g_level.time;
@@ -973,14 +974,12 @@ void G_ClientRespawn(g_entity_t *ent, _Bool voluntary) {
 		return;
 	}
 
-	if (ent->client->locals.persistent.spectator)
-		gi.BroadcastPrint(PRINT_HIGH, "%s likes to watch\n",
-		                  ent->client->locals.persistent.net_name);
-	else if (ent->client->locals.persistent.team)
-		gi.BroadcastPrint(PRINT_HIGH, "%s has joined %s\n", ent->client->locals.persistent.net_name,
-		                  ent->client->locals.persistent.team->name);
-	else {
-		gi.BroadcastPrint(PRINT_HIGH, "%s wants some\n", ent->client->locals.persistent.net_name);
+	if (pers->spectator) {
+		gi.BroadcastPrint(PRINT_HIGH, "%s likes to watch\n", pers->net_name);
+	} else if (pers->team) {
+		gi.BroadcastPrint(PRINT_HIGH, "%s has joined %s\n", pers->net_name, pers->team->name);
+	} else {
+		gi.BroadcastPrint(PRINT_HIGH, "%s wants some\n", pers->net_name);
 	}
 }
 
@@ -1585,8 +1584,7 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 
 	if (cl->locals.chase_target) { // ensure chase is valid
 
-		if (!cl->locals.chase_target->in_use
-		        || cl->locals.chase_target->client->locals.persistent.spectator) {
+		if (!G_IsMeat(cl->locals.chase_target)) {
 
 			g_entity_t *other = cl->locals.chase_target;
 
@@ -1595,8 +1593,6 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 			if (cl->locals.chase_target == other) { // no one to chase
 				cl->locals.chase_target = NULL;
 			}
-
-			G_ClientChaseThink(ent);
 		}
 	}
 
@@ -1658,8 +1654,8 @@ void G_ClientBeginFrame(g_entity_t *ent) {
 		return;
 	}
 
-	if (ent->locals.dead ||
-		((ent->client->locals.buttons | ent->client->locals.latched_buttons) & BUTTON_SCORE)) {
+	if ((G_IsMeat(ent) && ent->locals.dead) ||
+			((ent->client->locals.buttons | ent->client->locals.latched_buttons) & BUTTON_SCORE)) {
 		ent->client->locals.show_scores = true;
 	} else {
 		ent->client->locals.show_scores = false;

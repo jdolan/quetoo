@@ -20,6 +20,7 @@
  */
 
 #include "cm_local.h"
+#include "parse.h"
 
 cm_bsp_t cm_bsp;
 
@@ -469,18 +470,23 @@ const cm_material_t **Cm_MapMaterials(size_t *num_materials) {
  * @brief Parses values from the worldspawn entity definition.
  */
 const char *Cm_WorldspawnValue(const char *key) {
-	const char *c, *v;
+	static char value[MAX_BSP_ENTITY_VALUE];
+	const char *c = strstr(Cm_EntityString(), va("\"%s\"", key));
 
-	c = strstr(Cm_EntityString(), va("\"%s\"", key));
-
-	if (c) {
-		ParseToken(&c); // parse the key itself
-		v = ParseToken(&c); // parse the value
-	} else {
-		v = NULL;
+	if (!c) {
+		return NULL;
 	}
 
-	return v;
+	c += strlen(key) + 3; // skip quotes and key
+
+	parser_t parser;
+	Parse_Init(&parser, c, PARSER_DEFAULT);
+		
+	if (!Parse_Token(&parser, PARSE_DEFAULT, value, sizeof(value))) {
+		return NULL;
+	}
+
+	return value;
 }
 
 /**
