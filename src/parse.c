@@ -69,7 +69,7 @@ static void Parse_NextRow(parser_t *parser, const size_t len) {
  */
 static _Bool Parse_SkipWhitespace(parser_t *parser, const parse_flags_t flags) {
 	char c;
-	
+
 	while ((c = *parser->position.ptr) <= ' ') {
 
 		// end of parse
@@ -189,11 +189,11 @@ static _Bool Parse_SkipComments(parser_t *parser) {
 		_Bool parsed_comments = false;
 
 		if (c == '/') {
-			
+
 			if (!parsed_comments && (parser->flags & PARSER_C_LINE_COMMENTS)) {
 				parsed_comments = Parse_SkipCommentLine(parser, "//") || parsed_comments;
 			}
-			
+
 			if (!parsed_comments && (parser->flags & PARSER_C_BLOCK_COMMENTS)) {
 				parsed_comments = Parse_SkipCommentBlock(parser, "/*", "*/") || parsed_comments;
 			}
@@ -283,7 +283,7 @@ static _Bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags
 				}
 
 				if (escaped != '\0') {
-				
+
 					// copy it in
 					if (!Parse_AppendOutputChar(parser, escaped, output_position, output, output_len)) {
 						return false;
@@ -365,7 +365,7 @@ _Bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, con
 	size_t i = 0;
 
 	if (c == '"') { // handle quotes with special function
-		
+
 		if (!Parse_ParseQuotedString(parser, flags, &i, output, output_len)) {
 			return false;
 		}
@@ -412,13 +412,16 @@ static size_t Parse_TypeSize(const parse_type_t type) {
 		return 4;
 	case PARSE_DOUBLE:
 		return 8;
+	default:
+		signal(SIGSEGV, NULL);
+		return 0;
 	}
 }
 /**
  * @brief Parse the specified data type.
  */
 static _Bool Parse_TypeParse(const parse_type_t type, const char *input, void *output) {
-	
+
 	int32_t result;
 
 	switch (type) {
@@ -446,6 +449,9 @@ static _Bool Parse_TypeParse(const parse_type_t type, const char *input, void *o
 	case PARSE_DOUBLE:
 		result = sscanf(input, "%lf", (dvec_t *) output);
 		break;
+	default:
+		result = 0;
+		signal(SIGSEGV, NULL);
 	}
 
 	return result == 1;
