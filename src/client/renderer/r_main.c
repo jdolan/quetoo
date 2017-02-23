@@ -604,6 +604,8 @@ void R_Init(void) {
 
 	R_InitImages();
 
+	R_InitSupersample();
+
 	R_InitDraw();
 
 	R_InitModels();

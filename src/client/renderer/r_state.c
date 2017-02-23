@@ -831,7 +831,7 @@ static void R_ShutdownSupersample(void) {
 /**
  * @brief Initialize supersample-related stuff
  */
-static void R_InitSupersample(void) {
+void R_InitSupersample(void) {
 
 	// set supersample size if available
 	if (!r_supersample->value) {
@@ -863,6 +863,8 @@ static void R_InitSupersample(void) {
 
 		return;
 	}
+
+	R_GetError(NULL);
 
 	// try to create the FBO backing texture
 	r_state.supersample_image = (r_image_t *) R_AllocMedia("r_state.supersample_image", sizeof(r_image_t), MEDIA_IMAGE);
@@ -958,8 +960,6 @@ void R_InitState(void) {
 	r_state.depth_far = 1.0;
 
 	r_state.array_buffers_dirty = R_ARRAY_MASK_ALL;
-
-	R_InitSupersample();
 
 	glGenVertexArrays(1, &r_state.vertex_array_object);
 	glBindVertexArray(r_state.vertex_array_object);

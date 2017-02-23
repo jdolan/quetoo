@@ -188,6 +188,8 @@ void R_EnableDepthMask(_Bool enable);
 #define ALPHA_TEST_DISABLED_THRESHOLD 0.0
 #define ALPHA_TEST_ENABLED_THRESHOLD 0.25
 
+void R_InitSupersample(void);
+
 void R_EnableAlphaTest(vec_t threshold);
 void R_EnableStencilTest(GLenum pass, _Bool enable);
 void R_StencilFunc(GLenum func, GLint ref, GLuint mask);
