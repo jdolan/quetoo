@@ -57,6 +57,7 @@ typedef struct {
 	r_buffer_t reset_buffer;
 
 	vec_t expire_seconds, expire_ticks;
+	uint32_t expire_check;
 } r_stainmap_state_t;
 
 static cvar_t *r_stainmap_expire_time;
@@ -378,17 +379,21 @@ void R_AddStains(void) {
 
 		if (r_stainmap_expire_time->modified) {
 			r_stainmap_expire_time->modified = false;
-			r_stainmap_state.expire_seconds = (255.0 / r_stainmap_expire_time->value) * 10.0;
-		}
+			r_stainmap_state.expire_seconds = (255.0 / r_stainmap_expire_time->value);
+			r_stainmap_state.expire_check = r_view.ticks;
+		} else {
+			uint32_t diff = r_view.ticks - r_stainmap_state.expire_check;
+			r_stainmap_state.expire_ticks += r_stainmap_state.expire_seconds * diff;
 
-		r_stainmap_state.expire_ticks += r_stainmap_state.expire_seconds;
+			if (r_stainmap_state.expire_ticks > 1) {
+				const uint8_t val = (uint8_t) r_stainmap_state.expire_ticks;
 
-		if (r_stainmap_state.expire_ticks > 1) {
-			const uint8_t val = (uint8_t) r_stainmap_state.expire_ticks;
+				R_ExpireStains(val);
 
-			R_ExpireStains(val);
+				r_stainmap_state.expire_ticks -= val;
+			}
 
-			r_stainmap_state.expire_ticks -= val;
+			r_stainmap_state.expire_check = r_view.ticks;
 		}
 	}
 
@@ -586,7 +591,6 @@ void R_InitStainmaps(void) {
 	R_CreateElementBuffer(&r_stainmap_state.index_buffer, R_ATTRIB_UNSIGNED_SHORT, GL_DYNAMIC_DRAW, sizeof(uint16_t) * MAX_STAINS * 6, NULL);
 
 	r_stainmap_expire_time = Cvar_Add("r_stainmap_expire_time", "0", CVAR_ARCHIVE, "The amount of time, in milliseconds, stains should take to fully disappear.");
-	r_stainmap_state.expire_seconds = (255.0 / r_stainmap_expire_time->value) / 10.0;
 }
 
 /**
