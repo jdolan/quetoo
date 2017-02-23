@@ -397,9 +397,9 @@ void R_AddStains(void) {
 
 		R_StainNode(s, r_model_state.world->bsp->nodes);
 
-		for (uint16_t i = 0; i < cl.frame.num_entities; i++) {
+		for (uint16_t e = 0; e < cl.frame.num_entities; e++) {
 
-			const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
+			const uint32_t snum = (cl.frame.entity_state + e) & ENTITY_STATE_MASK;
 			const entity_state_t *st = &cl.entity_states[snum];
 
 			if (st->solid != SOLID_BSP) {
