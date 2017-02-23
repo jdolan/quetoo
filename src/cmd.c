@@ -120,7 +120,7 @@ void Cbuf_InsertFromDefer(void) {
 void Cbuf_Execute(void) {
 	uint32_t i;
 	char *text;
-	char line[MAX_STRING_CHARS];
+	char line[MAX_STRING_CHARS] = { 0 };
 	int32_t quotes;
 
 	cmd_state.alias_loop_count = 0; // don't allow infinite alias loops
