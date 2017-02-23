@@ -387,6 +387,10 @@ void Cl_UpdateScreen(void) {
 		}
 	}
 
+	if (cls.state == CL_ACTIVE) {
+		R_AddStains();
+	}
+
 	R_Draw2D();
 
 	Ui_Draw();

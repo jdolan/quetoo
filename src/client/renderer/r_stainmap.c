@@ -55,8 +55,11 @@ typedef struct {
 	r_buffer_t index_buffer;
 
 	r_buffer_t reset_buffer;
+
+	vec_t expire_seconds, expire_ticks;
 } r_stainmap_state_t;
 
+static cvar_t *r_stainmap_expire_time;
 static r_stainmap_state_t r_stainmap_state;
 
 /**
@@ -271,9 +274,123 @@ static void R_Stain_ResolveTexcoords(const r_image_t *image, vec4_t out) {
 }
 
 /**
+ * @brief
+ */
+static void R_ExpireStains(const byte alpha) {
+	GSList *reset = NULL;
+
+	const r_program_t *old_program = r_state.active_program;
+
+	R_BindDiffuseTexture(r_image_state.null->texnum);
+
+	const SDL_Rect old_viewport = r_view.viewport;
+	
+	R_PushMatrix(R_MATRIX_PROJECTION);
+
+	R_UnbindAttributeBuffers();
+	R_BindAttributeInterleaveBuffer(&r_stainmap_state.reset_buffer, R_ARRAY_MASK_ALL);
+
+	const r_framebuffer_t *old_framebuffer = r_framebuffer_state.current_framebuffer;
+	
+	const GLenum old_blend_enabled = r_state.blend_enabled;
+
+	R_EnableDepthMask(false);
+
+	R_UseProgram(program_stain);
+
+	const _Bool old_color_enabled = r_state.color_array_enabled;
+	const GLenum old_blend_src = r_state.blend_src;
+	const GLenum old_blend_dest = r_state.blend_dest;
+
+	R_EnableColorArray(true);
+
+	R_Color(NULL);
+
+	glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+
+	R_EnableBlend(true);
+
+	R_BlendFunc(GL_ONE, GL_ONE);
+
+	for (uint32_t s = 0; s < r_model_state.world->bsp->num_surfaces; s++) {
+		r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces + s;
+
+		// skip if we don't have a stainmap or we weren't stained
+		if (!surf->stainmap.fb) {
+			continue;
+		}
+
+		if (g_slist_find(reset, surf->stainmap.fb)) {
+			continue;
+		}
+
+		reset = g_slist_prepend(reset, surf->stainmap.fb);
+
+		const r_stainmap_interleave_vertex_t stain_fill[4] = {
+			{ .position = { 0, 0 }, .texcoord = { 0, 0 }, .color = { alpha, alpha, alpha, alpha } },
+			{ .position = { surf->stainmap.image->width, 0 }, .texcoord = { 1, 0 }, .color = { alpha, alpha, alpha, alpha } },
+			{ .position = { surf->stainmap.image->width, surf->stainmap.image->height }, .texcoord = { 1, 1 }, .color = { alpha, alpha, alpha, alpha } },
+			{ .position = { 0, surf->stainmap.image->height }, .texcoord = { 0, 1 }, .color = { alpha, alpha, alpha, alpha } },
+		};
+
+		R_UploadToSubBuffer(&r_stainmap_state.reset_buffer, 0, sizeof(stain_fill), stain_fill, false);
+
+		R_BindFramebuffer(surf->stainmap.fb);
+
+		R_SetViewport(0, 0, surf->stainmap.image->width, surf->stainmap.image->height, true);
+
+		R_SetMatrix(R_MATRIX_PROJECTION, &surf->stainmap.projection);
+
+		R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	}
+
+	R_EnableColorArray(old_color_enabled);
+
+	R_EnableBlend(old_blend_enabled);
+
+	R_BlendFunc(old_blend_src, old_blend_dest);
+
+	glBlendEquation(GL_FUNC_ADD);
+	
+	R_EnableDepthMask(true);
+
+	R_PopMatrix(R_MATRIX_PROJECTION);
+
+	R_BindFramebuffer(old_framebuffer);
+
+	R_SetViewport(old_viewport.x, old_viewport.y, old_viewport.w, old_viewport.h, true);
+
+	R_UseProgram(old_program);
+
+	r_stainmap_state.surfs_stained = g_array_set_size(r_stainmap_state.surfs_stained, 0);
+}
+
+/**
  * @brief Adds new stains from the view each frame.
  */
 void R_AddStains(void) {
+
+	if (!r_model_state.world) {
+		return;
+	}
+
+	if (r_stainmap_expire_time->integer) {
+
+		if (r_stainmap_expire_time->modified) {
+			r_stainmap_expire_time->modified = false;
+			r_stainmap_state.expire_seconds = (255.0 / r_stainmap_expire_time->value) * 10.0;
+		}
+
+		r_stainmap_state.expire_ticks += r_stainmap_state.expire_seconds;
+
+		if (r_stainmap_state.expire_ticks > 1) {
+			const uint8_t val = (uint8_t) r_stainmap_state.expire_ticks;
+
+			R_ExpireStains(val);
+
+			r_stainmap_state.expire_ticks -= val;
+		}
+	}
 
 	const r_stain_t *s = r_view.stains;
 	for (int32_t i = 0; i < r_view.num_stains; i++, s++) {
@@ -451,89 +568,14 @@ void R_AddStains(void) {
  */
 void R_ResetStainmap(void) {
 
-	GSList *reset = NULL;
-
-	const r_program_t *old_program = r_state.active_program;
-
-	R_BindDiffuseTexture(r_image_state.null->texnum);
-
-	const SDL_Rect old_viewport = r_view.viewport;
-	
-	R_PushMatrix(R_MATRIX_PROJECTION);
-
-	R_UnbindAttributeBuffers();
-	R_BindAttributeInterleaveBuffer(&r_stainmap_state.reset_buffer, R_ARRAY_MASK_ALL);
-
-	const r_framebuffer_t *old_framebuffer = r_framebuffer_state.current_framebuffer;
-	
-	const GLenum old_blend_enabled = r_state.blend_enabled;
-
-	R_EnableDepthMask(false);
-
-	R_EnableBlend(false);
-
-	R_UseProgram(program_stain);
-
-	const _Bool old_color_enabled = r_state.color_array_enabled;
-
-	R_EnableColorArray(true);
-
-	R_Color(NULL);
-
-	for (uint32_t s = 0; s < r_model_state.world->bsp->num_surfaces; s++) {
-		r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces + s;
-
-		// skip if we don't have a stainmap or we weren't stained
-		if (!surf->stainmap.fb) {
-			continue;
-		}
-
-		if (g_slist_find(reset, surf->stainmap.fb)) {
-			continue;
-		}
-
-		reset = g_slist_prepend(reset, surf->stainmap.fb);
-
-		const r_stainmap_interleave_vertex_t stain_fill[4] = {
-			{ .position = { 0, 0 }, .texcoord = { 0, 0 }, .color = { 0, 0, 0, 0 } },
-			{ .position = { surf->stainmap.image->width, 0 }, .texcoord = { 1, 0 }, .color = { 0, 0, 0, 0 } },
-			{ .position = { surf->stainmap.image->width, surf->stainmap.image->height }, .texcoord = { 1, 1 }, .color = { 0, 0, 0, 0 } },
-			{ .position = { 0, surf->stainmap.image->height }, .texcoord = { 0, 1 }, .color = { 0, 0, 0, 0 } },
-		};
-
-		R_UploadToSubBuffer(&r_stainmap_state.reset_buffer, 0, sizeof(stain_fill), stain_fill, false);
-
-		R_BindFramebuffer(surf->stainmap.fb);
-
-		R_SetViewport(0, 0, surf->stainmap.image->width, surf->stainmap.image->height, true);
-
-		R_SetMatrix(R_MATRIX_PROJECTION, &surf->stainmap.projection);
-
-		R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	}
-
-	R_EnableColorArray(old_color_enabled);
-
-	R_EnableBlend(old_blend_enabled);
-	
-	R_EnableDepthMask(true);
-
-	R_PopMatrix(R_MATRIX_PROJECTION);
-
-	R_BindFramebuffer(old_framebuffer);
-
-	R_SetViewport(old_viewport.x, old_viewport.y, old_viewport.w, old_viewport.h, true);
-
-	R_UseProgram(old_program);
-
-	r_stainmap_state.surfs_stained = g_array_set_size(r_stainmap_state.surfs_stained, 0);
+	R_ExpireStains(255);
 }
 
 /**
  * @brief Initialize the stainmap subsystem.
  */
 void R_InitStainmaps(void) {
-	
+
 	r_stainmap_state.surfs_stained = g_array_sized_new(false, false, sizeof(r_stained_surf_t), MAX_STAINS);
 	r_stainmap_state.vertex_scratch = g_array_sized_new(false, false, sizeof(r_stainmap_interleave_vertex_t), MAX_STAINS * 4);
 	r_stainmap_state.index_scratch = g_array_sized_new(false, false, sizeof(uint16_t), MAX_STAINS * 6);
@@ -542,6 +584,9 @@ void R_InitStainmaps(void) {
 
 	R_CreateInterleaveBuffer(&r_stainmap_state.vertex_buffer, sizeof(r_stainmap_interleave_vertex_t), r_stainmap_buffer_layout, GL_DYNAMIC_DRAW, sizeof(r_stainmap_interleave_vertex_t) * MAX_STAINS * 4, NULL);
 	R_CreateElementBuffer(&r_stainmap_state.index_buffer, R_ATTRIB_UNSIGNED_SHORT, GL_DYNAMIC_DRAW, sizeof(uint16_t) * MAX_STAINS * 6, NULL);
+
+	r_stainmap_expire_time = Cvar_Add("r_stainmap_expire_time", "0", CVAR_ARCHIVE, "The amount of time, in milliseconds, stains should take to fully disappear.");
+	r_stainmap_state.expire_seconds = (255.0 / r_stainmap_expire_time->value) / 10.0;
 }
 
 /**

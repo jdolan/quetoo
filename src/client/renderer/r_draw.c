@@ -584,8 +584,6 @@ void R_DrawLinesUI(const SDL_Point *points, const size_t count, const _Bool loop
  */
 void R_Draw2D(void) {
 
-	R_AddStains();
-
 	R_DrawLines();
 
 	R_DrawFills();
