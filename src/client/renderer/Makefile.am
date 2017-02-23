@@ -14,6 +14,7 @@ noinst_HEADERS = \
 	r_element.h \
 	r_entity.h \
 	r_flare.h \
+	r_framebuffer.h \
 	r_glad_core.h \
 	r_image.h \
 	r_light.h \
@@ -35,6 +36,7 @@ noinst_HEADERS = \
 	r_program_null.h \
 	r_program_shadow.h \
 	r_program_shell.h \
+	r_program_stain.h \
 	r_program_warp.h \
 	r_sky.h \
 	r_stainmap.h \
@@ -57,6 +59,7 @@ librenderer_la_SOURCES = \
 	r_element.c \
 	r_entity.c \
 	r_flare.c \
+	r_framebuffer.c \
 	r_glad_core.c \
 	r_image.c \
 	r_light.c \
@@ -77,6 +80,7 @@ librenderer_la_SOURCES = \
 	r_program_null.c \
 	r_program_shadow.c \
 	r_program_shell.c \
+	r_program_stain.c \
 	r_program_warp.c \
 	r_sky.c \
 	r_stainmap.c \
