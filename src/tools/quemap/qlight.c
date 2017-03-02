@@ -33,6 +33,7 @@ vec3_t face_offset[MAX_BSP_FACES]; // for rotating bmodels
 
 vec_t patch_subdivide = PATCH_SUBDIVIDE;
 _Bool extra_samples = false;
+_Bool build_indirect = false;
 
 vec3_t ambient;
 
@@ -80,6 +81,48 @@ _Bool Light_PointPVS(const vec3_t org, byte *pvs) {
 	}
 
 	Bsp_DecompressVis(&bsp_file, bsp_file.vis_data.raw + bsp_file.vis_data.vis->bit_offsets[leaf->cluster][DVIS_PVS], pvs);
+	return true;
+}
+
+/**
+ * @brief Get the PVS at a position; assume a valid position inside a PVS is given
+ */
+byte Light_GetPVS(const vec3_t org) {
+	byte pvs[MAX_BSP_LEAFS >> 3];
+
+	const int32_t leaf = Cm_PointLeafnum(org, 0);
+	const int32_t cluster = Cm_LeafCluster(leaf);
+
+	Cm_ClusterPVS(cluster, pvs);
+
+	return *pvs;
+}
+
+/**
+ * @brief
+ */
+_Bool Light_InPVS(const vec3_t p1, const vec3_t p2) {
+	byte pvs[MAX_BSP_LEAFS >> 3];
+
+	const int32_t leaf1 = Cm_PointLeafnum(p1, 0);
+	const int32_t leaf2 = Cm_PointLeafnum(p2, 0);
+
+	const int32_t area1 = Cm_LeafArea(leaf1);
+	const int32_t area2 = Cm_LeafArea(leaf2);
+
+	if (!Cm_AreasConnected(area1, area2)) {
+		return false;    // a door blocks sight
+	}
+
+	const int32_t cluster1 = Cm_LeafCluster(leaf1);
+	const int32_t cluster2 = Cm_LeafCluster(leaf2);
+
+	Cm_ClusterPVS(cluster1, pvs);
+
+	if ((pvs[cluster2 >> 3] & (1 << (cluster2 & 7))) == 0) {
+		return false;
+	}
+
 	return true;
 }
 
@@ -142,6 +185,11 @@ static void LightWorld(void) {
 
 	// build initial facelights
 	RunThreadsOn(bsp_file.num_faces, true, BuildFacelights);
+
+	// build indirect lighting
+	if (build_indirect) {
+		RunThreadsOn(bsp_file.num_faces, true, BuildIndirect);
+	}
 
 	// finalize it and write it out
 	bsp_file.lightmap_data_size = 0;

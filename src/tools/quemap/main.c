@@ -260,6 +260,9 @@ static void Check_LIGHT_Options(int32_t argc) {
 		if (!g_strcmp0(Com_Argv(i), "-extra")) {
 			extra_samples = true;
 			Com_Verbose("extra samples = true\n");
+		} else if (!g_strcmp0(Com_Argv(i), "-indirect")) {
+			build_indirect = true;
+			Com_Verbose("indirect = true\n");
 		} else if (!g_strcmp0(Com_Argv(i), "-brightness")) {
 			brightness = atof(Com_Argv(i + 1));
 			Com_Verbose("brightness at %f\n", brightness);
@@ -280,7 +283,7 @@ static void Check_LIGHT_Options(int32_t argc) {
 			entity_scale *= atof(Com_Argv(i + 1));
 			Com_Verbose("entity light scale at %f\n", entity_scale);
 			i++;
-			
+
 		} else if (!g_strcmp0(Com_Argv(i), "-patch")) {
 			patch_subdivide = atof(Com_Argv(i + 1));
 			Com_Verbose("patch subdivide at %f\n", patch_subdivide);
@@ -353,6 +356,7 @@ static void PrintHelpMessage(void) {
 	Com_Print("\n");
 
 	Com_Print("-light             LIGHT stage options:\n");
+	Com_Print(" -indirect - calculate indirect lighting\n");
 	Com_Print(" -extra - extra light samples\n");
 	Com_Print(" -entity <float> - entity light scaling\n");
 	Com_Print(" -surface <float> - surface light scaling\n");
@@ -370,9 +374,9 @@ static void PrintHelpMessage(void) {
 
 	Com_Print("Examples:\n");
 	Com_Print("Materials file generation:\n quemap -mat maps/my.map\n");
-	Com_Print("Standard full compile:\n quemap -bsp -vis -light maps/my.map\n");
-	Com_Print("Fast vis, extra light, two threads:\n"
-	          " quemap -t 2 -bsp -vis -fast -light -extra maps/my.map\n");
+	Com_Print("Standard full compile:\n quemap -bsp -vis -light -indirect maps/my.map\n");
+	Com_Print("Fast vis, extra light:\n"
+	          " quemap -bsp -vis -fast -light -indirect -extra maps/my.map\n");
 	Com_Print("Area awareness compile (for bots):\n quemap -aas maps/my.bsp\n");
 	Com_Print("Zip file generation:\n quemap -zip maps/my.bsp\n");
 	Com_Print("\n");

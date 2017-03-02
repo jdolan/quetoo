@@ -70,11 +70,15 @@ static int32_t GetThreadWork(void) {
 	}
 
 	// update work fraction and output progress if desired
-	f = 10 * thread_work.index / thread_work.count;
+	f = 50 * thread_work.index / thread_work.count;
 	if (f != thread_work.fraction) {
 		thread_work.fraction = f;
 		if (thread_work.progress && !(verbose || debug)) {
-			Com_Print("%i...", f);
+			if (f % 5 == 0) {
+				Com_Print("%i", f / 5);
+			} else {
+				Com_Print(".");
+			}
 		}
 	}
 
@@ -183,4 +187,3 @@ void RunThreadsOn(int32_t work_count, _Bool progress, ThreadWorkFunc func) {
 		Com_Print(" (%i seconds)\n", (int32_t) (end - start));
 	}
 }
-
