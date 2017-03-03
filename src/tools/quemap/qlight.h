@@ -65,6 +65,7 @@ void FinalLightFace(int32_t facenum);
 // patches.c
 void CalcTextureReflectivity(void);
 void GetTextureReflectivity(const char *name, vec3_t color);
+void FreeColors(void);
 void BuildPatches(void);
 void SubdividePatches(void);
 void FreePatches(void);

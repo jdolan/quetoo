@@ -206,6 +206,8 @@ int32_t LIGHT_Main(void) {
 
 	LightWorld();
 
+	FreeColors();
+
 	WriteBSPFile(va("maps/%s.bsp", map_base), version);
 
 	const time_t end = time(NULL);

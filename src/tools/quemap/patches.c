@@ -22,12 +22,15 @@
 #include "qlight.h"
 #include "image.h"
 
+static GHashTable *color_table;
+
 static vec3_t texture_reflectivity[MAX_BSP_TEXINFO];
 
 /**
  * @brief
  */
 void CalcTextureReflectivity(void) {
+
 	char path[MAX_OS_PATH];
 	int32_t i, j, texels;
 	uint32_t color[3];
@@ -36,12 +39,18 @@ void CalcTextureReflectivity(void) {
 	// always set index 0 even if no textures
 	VectorSet(texture_reflectivity[0], 0.5, 0.5, 0.5);
 
+	// color hash table for name > color lookups
+	color_table = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Mem_Free);
+
 	for (i = 0; i < bsp_file.num_texinfo; i++) {
 
 		// see if an earlier texinfo already got the value
 		for (j = 0; j < i; j++) {
+
 			if (!g_strcmp0(bsp_file.texinfo[i].texture, bsp_file.texinfo[j].texture)) {
+
 				VectorCopy(texture_reflectivity[j], texture_reflectivity[i]);
+
 				break;
 			}
 		}
@@ -54,8 +63,10 @@ void CalcTextureReflectivity(void) {
 		g_snprintf(path, sizeof(path), "textures/%s", bsp_file.texinfo[i].texture);
 
 		if (!Img_LoadImage(path, &surf)) {
+
 			Com_Warn("Couldn't load %s\n", path);
 			VectorSet(texture_reflectivity[i], 0.5, 0.5, 0.5);
+
 			continue;
 		}
 
@@ -64,7 +75,9 @@ void CalcTextureReflectivity(void) {
 		color[0] = color[1] = color[2] = 0;
 
 		for (j = 0; j < texels; j++) {
+
 			const byte *pos = (byte *) surf->pixels + j * 4;
+
 			color[0] += *pos++; // r
 			color[1] += *pos++; // g
 			color[2] += *pos++; // b
@@ -75,9 +88,15 @@ void CalcTextureReflectivity(void) {
 		SDL_FreeSurface(surf);
 
 		for (j = 0; j < 3; j++) {
+
 			const vec_t r = color[j] / texels / 255.0;
+
 			texture_reflectivity[i][j] = r;
 		}
+
+		// insert texinfo index to a table keyed by the texture name
+
+		g_hash_table_insert(color_table, path, &texture_reflectivity[i]);
 	}
 }
 
@@ -86,26 +105,25 @@ void CalcTextureReflectivity(void) {
  */
 void GetTextureReflectivity(const char *name, vec3_t color) {
 
-	// TODO: use a hash table to lookup texinfo numbers from texture names
+	vec_t *data;
 
-	int32_t i;
+	if ((data = g_hash_table_lookup(color_table, name))) {
 
-	ThreadLock();
+		VectorCopy(data, color);
 
-	for (i = 0; i < bsp_file.num_texinfo; i++) {
-
-		if (!g_strcmp0(va("textures/%s", bsp_file.texinfo[i].texture), name)) {
-			VectorCopy(texture_reflectivity[i], color);
-
-			ThreadUnlock();
-
-			return;
-		}
+		return;
 	}
+//	printf("%p\n", data);
 
 	Com_Warn("Couldn't get texture color for %s\n", name);
+}
 
-	ThreadUnlock();
+/**
+ * @brief Free the color hash table
+ */
+void FreeColors(void) {
+
+	g_hash_table_destroy(color_table);
 }
 
 /**

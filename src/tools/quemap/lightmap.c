@@ -623,19 +623,17 @@ static _Bool NudgeSamplePosition(const vec3_t in, const vec3_t normal, const vec
 /**
  * @brief Trace a ray and gather indirect light from surfaces
  */
-static void GatherSampleBounceTrace(int8_t bounce, const vec3_t pos, const vec3_t normal, const vec_t dist, vec_t *sample) {
+static void GatherSampleBounceTrace(int8_t bounce, const vec3_t center, const vec3_t pos, const vec3_t normal, const vec_t dist, vec_t *sample) {
 
-	vec3_t delta, bounce_dir;
+	vec3_t delta;
+	vec_t dot, sqdist;
 	vec3_t color;
 	vec_t reflectiveness;
-	vec_t dot, sqdist;
+	vec3_t bounce_dir, bounce_pos;
+	vec_t bounce_dist;
 	cm_trace_t trace;
 
-	if (bounce >= indirect_bounces || bounce >= MAX_INDIRECT_BOUNCES) {
-		return;
-	}
-
-	bounce ++;
+	// get a trace
 
 	VectorScale(normal, dist, delta);
 
@@ -645,8 +643,12 @@ static void GatherSampleBounceTrace(int8_t bounce, const vec3_t pos, const vec3_
 		return; // no hit
 	}
 
+	// distance squared and trace hit normal dot product
+
 	sqdist = trace.fraction * trace.fraction;
 	dot = DotProduct(trace.plane.normal, normal);
+
+	// get surface color
 
 	if (trace.surface) {
 		reflectiveness = Clamp(trace.surface->material->hardness / 5.0, 0.0, 1.0); // 5:1
@@ -661,21 +663,44 @@ static void GatherSampleBounceTrace(int8_t bounce, const vec3_t pos, const vec3_
 	VectorScale(color, reflectiveness * sqdist, color);
 
 	if ((trace.fraction * dist) < AMBIENT_OCCLUSION_DIST) {
-		vec_t ao = (1.0 - reflectiveness) * (sqdist * (dist / AMBIENT_OCCLUSION_DIST)) * Max(0.001, dot);
+		vec_t ao = (1.0 - reflectiveness) * (trace.fraction * (dist / AMBIENT_OCCLUSION_DIST)) * Max(0.001, dot);
 
-		color[0] -= ao * 255.0;
+		color[0] -= ao;
 	}
+
+	// multiplicative color
 
 	sample[0] *= color[0];
 	sample[1] *= color[1];
 	sample[2] *= color[2];
 
+	bounce ++;
+
+	if (bounce >= indirect_bounces || bounce >= MAX_INDIRECT_BOUNCES) {
+		return; // don't bounce anymore
+	}
+
+	// direction of the next bounce
+
 	CrossProduct(normal, trace.plane.normal, bounce_dir);
 
-	GatherSampleBounceTrace(bounce, trace.end, bounce_dir,
-		Clamp(reflectiveness * sqdist * INDIRECT_BOUNCE_DIST,
-			INDIRECT_BOUNCE_MIN_DIST, dist),
-		sample); // repeat
+	// where the next bounce starts
+
+	VectorCopy(trace.end, bounce_pos);
+
+	VectorSubtract(bounce_dir, center, trace.plane.normal);
+	VectorNormalize(bounce_dir);
+
+	VectorMA(bounce_pos, SAMPLE_NUDGE, bounce_dir, bounce_pos);
+	VectorMA(bounce_pos, SAMPLE_NUDGE, trace.plane.normal, bounce_pos);
+
+	/// length of the next bounce
+
+	bounce_dist = Clamp(reflectiveness * sqdist * INDIRECT_BOUNCE_DIST, INDIRECT_BOUNCE_MIN_DIST, dist);
+
+	// bounce again
+
+	GatherSampleBounceTrace(bounce, center, bounce_pos, bounce_dir, bounce_dist, sample);
 }
 
 #define MAX_VERT_FACES 256
@@ -970,7 +995,7 @@ void BuildIndirect(int32_t face_num) {
 	bsp_texinfo_t *tex;
 	vec_t *center;
 	vec3_t pos, normal, dir;
-	vec3_t sample;
+	vec3_t sample, trace;
 	light_info_t l[MAX_SAMPLES];
 	face_light_t *fl;
 	int32_t num_samples;
@@ -995,7 +1020,8 @@ void BuildIndirect(int32_t face_num) {
 		num_samples = 1;
 	}
 
-	const vec_t scale = 1.0 / num_samples; // each sample contributes this much
+	const int32_t num_traces = 32;
+	const vec_t scale = (1.0 / num_samples) / num_traces; // each sample contributes this much to the lightmap
 
 	memset(l, 0, sizeof(l));
 
@@ -1030,8 +1056,6 @@ void BuildIndirect(int32_t face_num) {
 
 	for (i = 0; i < fl->num_samples; i++) { // calculate global illumination for each sample
 
-		VectorSet(sample, 255.0, 255.0, 255.0);
-
 		for (j = 0; j < num_samples; j++) { // with antialiasing
 
 			byte pvs[(MAX_BSP_LEAFS + 7) / 8];
@@ -1046,17 +1070,19 @@ void BuildIndirect(int32_t face_num) {
 				continue;    // not a valid point
 			}
 
-			for (k = 0; k < 1; k ++) {
+			for (k = 0; k < num_traces; k ++) {
+
+				VectorSet(sample, 255.0 * scale, 255.0 * scale, 255.0 * scale);
 
 				VectorCopy(normal, dir);
 
-				GatherSampleBounceTrace(0, pos, dir, INDIRECT_BOUNCE_DIST, sample);
+				GatherSampleBounceTrace(0, center, pos, dir, INDIRECT_BOUNCE_DIST, sample);
+
+				VectorAdd(sample, trace, sample);
+
+				VectorAdd((fl->samples + i * 3), sample, (fl->samples + i * 3));
 			}
-
-			VectorScale(sample, scale, sample);
 		}
-
-		VectorAdd((fl->samples + i * 3), sample, (fl->samples + i * 3));
 	}
 
 	// free the sample positions for the face
