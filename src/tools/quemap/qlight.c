@@ -34,6 +34,7 @@ vec3_t face_offset[MAX_BSP_FACES]; // for rotating bmodels
 vec_t patch_subdivide = PATCH_SUBDIVIDE;
 _Bool extra_samples = false;
 _Bool build_indirect = false;
+int32_t indirect_bounces = 4;
 
 vec3_t ambient;
 
@@ -82,20 +83,6 @@ _Bool Light_PointPVS(const vec3_t org, byte *pvs) {
 
 	Bsp_DecompressVis(&bsp_file, bsp_file.vis_data.raw + bsp_file.vis_data.vis->bit_offsets[leaf->cluster][DVIS_PVS], pvs);
 	return true;
-}
-
-/**
- * @brief Get the PVS at a position; assume a valid position inside a PVS is given
- */
-byte Light_GetPVS(const vec3_t org) {
-	byte pvs[MAX_BSP_LEAFS >> 3];
-
-	const int32_t leaf = Cm_PointLeafnum(org, 0);
-	const int32_t cluster = Cm_LeafCluster(leaf);
-
-	Cm_ClusterPVS(cluster, pvs);
-
-	return *pvs;
 }
 
 /**

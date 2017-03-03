@@ -25,8 +25,11 @@
 #include "polylib.h"
 #include "collision/cmodel.h"
 
-#define MAX_INDIRECT_DIST 1024.0
-#define MAX_INDIRECT_BOUNCES 8
+#define INDIRECT_BOUNCE_DIST 1024.0
+#define INDIRECT_BOUNCE_MIN_DIST 64.0 // minimum distance bounces take
+#define MAX_INDIRECT_BOUNCES 64 // really big limit, 4 should be enough for most purposes
+
+#define AMBIENT_OCCLUSION_DIST 64.0 // distance for ambient occlusion to have no effect
 
 #define PATCH_SUBDIVIDE 64.0
 
@@ -61,13 +64,14 @@ void FinalLightFace(int32_t facenum);
 
 // patches.c
 void CalcTextureReflectivity(void);
+void GetTextureReflectivity(const char *name, vec3_t color);
 void BuildPatches(void);
 void SubdividePatches(void);
 void FreePatches(void);
 
 // qlight.c
 _Bool Light_PointPVS(const vec3_t org, byte *pvs);
-byte Light_GetPVS(const vec3_t org);
 _Bool Light_InPVS(const vec3_t point1, const vec3_t point2);
 int32_t Light_PointLeafnum(const vec3_t point);
 void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask);
+vec3_t *Light_AverageTextureColor(const char *name);

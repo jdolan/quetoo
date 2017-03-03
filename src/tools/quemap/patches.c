@@ -84,6 +84,33 @@ void CalcTextureReflectivity(void) {
 /**
  * @brief
  */
+void GetTextureReflectivity(const char *name, vec3_t color) {
+
+	// TODO: use a hash table to lookup texinfo numbers from texture names
+
+	int32_t i;
+
+	ThreadLock();
+
+	for (i = 0; i < bsp_file.num_texinfo; i++) {
+
+		if (!g_strcmp0(va("textures/%s", bsp_file.texinfo[i].texture), name)) {
+			VectorCopy(texture_reflectivity[i], color);
+
+			ThreadUnlock();
+
+			return;
+		}
+	}
+
+	Com_Warn("Couldn't get texture color for %s\n", name);
+
+	ThreadUnlock();
+}
+
+/**
+ * @brief
+ */
 static inline _Bool HasLight(const bsp_face_t *f) {
 	const bsp_texinfo_t *tex;
 

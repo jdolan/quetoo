@@ -263,6 +263,10 @@ static void Check_LIGHT_Options(int32_t argc) {
 		} else if (!g_strcmp0(Com_Argv(i), "-indirect")) {
 			build_indirect = true;
 			Com_Verbose("indirect = true\n");
+		} else if (!g_strcmp0(Com_Argv(i), "-bounce")) {
+			indirect_bounces = atoi(Com_Argv(i + 1));
+			Com_Verbose("bounces at %d\n", indirect_bounces);
+			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "-brightness")) {
 			brightness = atof(Com_Argv(i + 1));
 			Com_Verbose("brightness at %f\n", brightness);
@@ -357,6 +361,7 @@ static void PrintHelpMessage(void) {
 
 	Com_Print("-light             LIGHT stage options:\n");
 	Com_Print(" -indirect - calculate indirect lighting\n");
+	Com_Print(" -bounce <int> - how many bounces to trace for indirect lighting\n");
 	Com_Print(" -extra - extra light samples\n");
 	Com_Print(" -entity <float> - entity light scaling\n");
 	Com_Print(" -surface <float> - surface light scaling\n");
@@ -376,7 +381,7 @@ static void PrintHelpMessage(void) {
 	Com_Print("Materials file generation:\n quemap -mat maps/my.map\n");
 	Com_Print("Standard full compile:\n quemap -bsp -vis -light -indirect maps/my.map\n");
 	Com_Print("Fast vis, extra light:\n"
-	          " quemap -bsp -vis -fast -light -indirect -extra maps/my.map\n");
+	          " quemap -bsp -vis -fast -light -extra -indirect -bounce 8 maps/my.map\n");
 	Com_Print("Area awareness compile (for bots):\n quemap -aas maps/my.bsp\n");
 	Com_Print("Zip file generation:\n quemap -zip maps/my.bsp\n");
 	Com_Print("\n");

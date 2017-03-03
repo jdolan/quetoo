@@ -623,43 +623,59 @@ static _Bool NudgeSamplePosition(const vec3_t in, const vec3_t normal, const vec
 /**
  * @brief Trace a ray and gather indirect light from surfaces
  */
-static void GatherSampleBounceTrace(int32_t bounce, const vec3_t center, const vec3_t pos, const vec3_t normal, vec_t *sample) {
+static void GatherSampleBounceTrace(int8_t bounce, const vec3_t pos, const vec3_t normal, const vec_t dist, vec_t *sample) {
 
-	vec3_t delta, trace_dir, nudge;
+	vec3_t delta, bounce_dir;
 	vec3_t color;
-	vec_t dot;
+	vec_t reflectiveness;
+	vec_t dot, sqdist;
 	cm_trace_t trace;
 
-	color[0] = 0.0;
-	color[1] = 0.0;
-	color[2] = 3.0;
-
-	if (bounce > MAX_INDIRECT_BOUNCES) {
+	if (bounce >= indirect_bounces || bounce >= MAX_INDIRECT_BOUNCES) {
 		return;
 	}
 
 	bounce ++;
 
-	VectorScale(normal, Min(256.0, MAX_INDIRECT_DIST), delta);
+	VectorScale(normal, dist, delta);
 
 	Light_Trace(&trace, delta, pos, CONTENTS_SOLID);
 
 	if (trace.fraction >= 1.0) {
-		return; // didn't hit anything, skip
+		return; // no hit
 	}
 
-	byte pvs = Light_GetPVS(pos);
-	NudgeSamplePosition(trace.end, trace.plane.normal, center, nudge, pvs);
+	sqdist = trace.fraction * trace.fraction;
+	dot = DotProduct(trace.plane.normal, normal);
 
-	if (!Light_InPVS(pos, nudge)) {
-		return;
+	if (trace.surface) {
+		reflectiveness = Clamp(trace.surface->material->hardness / 5.0, 0.0, 1.0); // 5:1
+
+		GetTextureReflectivity(trace.surface->material->base, color);
+	} else {
+		reflectiveness = 0.2;
+
+		VectorClear(color);
 	}
 
-	dot = DotProduct(trace.plane.normal, vec3_forward);
+	VectorScale(color, reflectiveness * sqdist, color);
 
-	VectorMA(sample, Max(0.0, dot), color, sample);
+	if ((trace.fraction * dist) < AMBIENT_OCCLUSION_DIST) {
+		vec_t ao = (1.0 - reflectiveness) * (sqdist * (dist / AMBIENT_OCCLUSION_DIST)) * Max(0.001, dot);
 
-	GatherSampleBounceTrace(bounce, center, pos, trace_dir, sample); // repeat
+		color[0] -= ao * 255.0;
+	}
+
+	sample[0] *= color[0];
+	sample[1] *= color[1];
+	sample[2] *= color[2];
+
+	CrossProduct(normal, trace.plane.normal, bounce_dir);
+
+	GatherSampleBounceTrace(bounce, trace.end, bounce_dir,
+		Clamp(reflectiveness * sqdist * INDIRECT_BOUNCE_DIST,
+			INDIRECT_BOUNCE_MIN_DIST, dist),
+		sample); // repeat
 }
 
 #define MAX_VERT_FACES 256
@@ -888,6 +904,7 @@ void BuildFacelights(int32_t face_num) {
 		vec_t *direction = fl->directions + i * 3; // accumulate direction here
 
 		for (j = 0; j < num_samples; j++) { // with antialiasing
+
 			byte pvs[(MAX_BSP_LEAFS + 7) / 8];
 
 			if (tex->flags & SURF_PHONG) { // interpolated normal
@@ -906,6 +923,7 @@ void BuildFacelights(int32_t face_num) {
 		if (!legacy) { // finalize the lighting direction for the sample
 
 			if (!VectorCompare(direction, vec3_origin)) {
+
 				vec3_t dir;
 
 				// normalize it
@@ -937,24 +955,26 @@ void BuildFacelights(int32_t face_num) {
 
 	// free the sample positions for the face
 	for (i = 0; i < num_samples; i++) {
+
 		Mem_Free(l[i].sample_points);
 	}
 }
 
 /**
- * @brief
+ * @brief Must be run after BuildLights is run because it needs face_lights initialized
  */
 void BuildIndirect(int32_t face_num) {
+
 	bsp_face_t *face;
 	bsp_plane_t *plane;
 	bsp_texinfo_t *tex;
 	vec_t *center;
-	vec_t scale;
-	vec3_t pos, normal;
+	vec3_t pos, normal, dir;
+	vec3_t sample;
 	light_info_t l[MAX_SAMPLES];
 	face_light_t *fl;
 	int32_t num_samples;
-	int32_t i, j;
+	int32_t i, j, k;
 
 	if (face_num >= MAX_BSP_FACES) {
 		Com_Verbose("MAX_BSP_FACES hit\n");
@@ -975,7 +995,7 @@ void BuildIndirect(int32_t face_num) {
 		num_samples = 1;
 	}
 
-	scale = 1.0 / num_samples; // each sample contributes this much
+	const vec_t scale = 1.0 / num_samples; // each sample contributes this much
 
 	memset(l, 0, sizeof(l));
 
@@ -1005,20 +1025,15 @@ void BuildIndirect(int32_t face_num) {
 	}
 
 	fl = &face_lights[face_num];
-	fl->num_samples = l[0].num_sample_points;
-
-	fl->origins = Mem_Malloc(fl->num_samples * sizeof(vec3_t));
-	memcpy(fl->origins, l[0].sample_points, fl->num_samples * sizeof(vec3_t));
-
-	fl->samples = Mem_Malloc(fl->num_samples * sizeof(vec3_t));
-	fl->directions = Mem_Malloc(fl->num_samples * sizeof(vec3_t));
 
 	center = face_extents[face_num].center; // center of the face
 
 	for (i = 0; i < fl->num_samples; i++) { // calculate global illumination for each sample
-		vec3_t sample = { 1.0, 1.0, 1.0 }; // accumulate lighting here
+
+		VectorSet(sample, 255.0, 255.0, 255.0);
 
 		for (j = 0; j < num_samples; j++) { // with antialiasing
+
 			byte pvs[(MAX_BSP_LEAFS + 7) / 8];
 
 			if (tex->flags & SURF_PHONG) { // interpolated normal
@@ -1031,16 +1046,22 @@ void BuildIndirect(int32_t face_num) {
 				continue;    // not a valid point
 			}
 
-			GatherSampleBounceTrace(0, center, pos, normal, sample);
+			for (k = 0; k < 1; k ++) {
 
-			VectorCopy(sample, (fl->samples + (i * 3)));
+				VectorCopy(normal, dir);
+
+				GatherSampleBounceTrace(0, pos, dir, INDIRECT_BOUNCE_DIST, sample);
+			}
 
 			VectorScale(sample, scale, sample);
 		}
+
+		VectorAdd((fl->samples + i * 3), sample, (fl->samples + i * 3));
 	}
 
 	// free the sample positions for the face
 	for (i = 0; i < num_samples; i++) {
+
 		Mem_Free(l[i].sample_points);
 	}
 }
