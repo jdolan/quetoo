@@ -40,7 +40,7 @@ typedef struct light_info_s {
 	vec2_t exact_mins, exact_maxs;
 
 	int32_t tex_mins[2], tex_size[2];
-	bsp_face_t *face;
+	const bsp_face_t *face;
 } light_info_t;
 
 // face extents
@@ -625,7 +625,7 @@ static _Bool NudgeSamplePosition(const vec3_t in, const vec3_t normal, const vec
  */
 static void GatherSampleBounceTrace(int8_t bounce, const vec3_t center, const vec3_t pos, const vec3_t normal, const vec_t dist, vec_t *sample) {
 
-	vec3_t delta;
+	vec3_t end;
 	vec_t dot, sqdist;
 	vec3_t color;
 	vec_t hardness;
@@ -635,11 +635,15 @@ static void GatherSampleBounceTrace(int8_t bounce, const vec3_t center, const ve
 
 	// get a trace
 
-	VectorScale(normal, dist, delta);
+	VectorScale(normal, dist, end);
 
-	Light_Trace(&trace, delta, pos, CONTENTS_SOLID);
+	Light_Trace(&trace, pos, end, CONTENTS_SOLID);
 
 	if (!trace.surface) {
+		return;
+	}
+
+	if (trace.start_solid) {
 		return;
 	}
 
@@ -681,17 +685,12 @@ static void GatherSampleBounceTrace(int8_t bounce, const vec3_t center, const ve
 
 	// direction of the next bounce
 
+	// FIXME: Is this right? Shouldn't we use a DotProduct here ala Pm_ClipVelocity?
 	CrossProduct(normal, trace.plane.normal, bounce_dir);
 
 	// where the next bounce starts
 
-	VectorCopy(trace.end, bounce_pos);
-
-	VectorSubtract(bounce_dir, center, trace.plane.normal);
-	VectorNormalize(bounce_dir);
-
-	VectorMA(bounce_pos, SAMPLE_NUDGE, bounce_dir, bounce_pos);
-	VectorMA(bounce_pos, SAMPLE_NUDGE, trace.plane.normal, bounce_pos);
+	VectorMA(trace.end, SAMPLE_NUDGE, bounce_dir, bounce_pos);
 
 	// length of the next bounce
 
@@ -988,31 +987,24 @@ void BuildFacelights(int32_t face_num) {
  * @brief Must be run after BuildLights is run because it needs face_lights initialized
  */
 void BuildIndirect(int32_t face_num) {
-
-	bsp_face_t *face;
-	bsp_plane_t *plane;
-	bsp_texinfo_t *tex;
-	vec_t *center;
 	vec3_t pos, normal, dir;
 	vec3_t sample, trace;
 	light_info_t l[MAX_SAMPLES];
-	face_light_t *fl;
-	int32_t num_samples;
-	int32_t i, j, k;
 
 	if (face_num >= MAX_BSP_FACES) {
 		Com_Verbose("MAX_BSP_FACES hit\n");
 		return;
 	}
 
-	face = &bsp_file.faces[face_num];
-	plane = &bsp_file.planes[face->plane_num];
-	tex = &bsp_file.texinfo[face->texinfo];
+	const bsp_face_t *face = &bsp_file.faces[face_num];
+	const bsp_plane_t *plane = &bsp_file.planes[face->plane_num];
+	const bsp_texinfo_t *tex = &bsp_file.texinfo[face->texinfo];
 
 	if (tex->flags & (SURF_SKY | SURF_WARP)) {
-		return;    // non-lit texture
+		return; // non-lit texture
 	}
 
+	int32_t num_samples;
 	if (extra_samples) { // -light -extra antialiasing
 		num_samples = MAX_SAMPLES;
 	} else {
@@ -1024,7 +1016,7 @@ void BuildIndirect(int32_t face_num) {
 
 	memset(l, 0, sizeof(l));
 
-	for (i = 0; i < num_samples; i++) { // assemble the light_info
+	for (int32_t i = 0; i < num_samples; i++) { // assemble the light_info
 
 		l[i].face = face;
 		l[i].face_dist = plane->dist;
@@ -1049,13 +1041,12 @@ void BuildIndirect(int32_t face_num) {
 		CalcPoints(&l[i], sampleofs[i][0], sampleofs[i][1]);
 	}
 
-	fl = &face_lights[face_num];
+	const vec_t *center = face_extents[face_num].center; // center of the face
 
-	center = face_extents[face_num].center; // center of the face
+	face_light_t *fl = &face_lights[face_num];
+	for (int32_t i = 0; i < fl->num_samples; i++) { // calculate global illumination for each sample
 
-	for (i = 0; i < fl->num_samples; i++) { // calculate global illumination for each sample
-
-		for (j = 0; j < num_samples; j++) { // with antialiasing
+		for (int32_t j = 0; j < num_samples; j++) { // with antialiasing
 
 			byte pvs[(MAX_BSP_LEAFS + 7) / 8];
 
@@ -1066,10 +1057,10 @@ void BuildIndirect(int32_t face_num) {
 			}
 
 			if (!NudgeSamplePosition(l[j].sample_points[i], normal, center, pos, pvs)) {
-				continue;    // not a valid point
+				continue; // not a valid point
 			}
 
-			for (k = 0; k < num_traces; k ++) {
+			for (int32_t k = 0; k < num_traces; k++) {
 
 				VectorSet(sample, 255.0 * scale, 255.0 * scale, 255.0 * scale);
 
@@ -1085,7 +1076,7 @@ void BuildIndirect(int32_t face_num) {
 	}
 
 	// free the sample positions for the face
-	for (i = 0; i < num_samples; i++) {
+	for (int32_t i = 0; i < num_samples; i++) {
 		Mem_Free(l[i].sample_points);
 	}
 }
