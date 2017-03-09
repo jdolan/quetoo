@@ -187,12 +187,6 @@ void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, 
  */
 void Sys_Backtrace(const char *msg) {
 
-#if defined(_DEBUG)
-
-	SDL_TriggerBreakpoint();
-
-#endif
-
 #if HAVE_EXECINFO
 
 	void *symbols[MAX_BACKTRACE_SYMBOLS];
@@ -235,7 +229,7 @@ void Sys_Backtrace(const char *msg) {
 	const SDL_MessageBoxData data = {
 		.flags = SDL_MESSAGEBOX_ERROR,
 		.window = NULL,
-		.title = "Fatal Error",
+		.title = msg ?: "Fatal Error",
 		.message = message,
 		.numbuttons = lengthof(buttons),
 		.buttons = buttons,
