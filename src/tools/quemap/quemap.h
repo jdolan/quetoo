@@ -73,6 +73,7 @@ extern vec_t microvolume;
 
 // LIGHT
 extern _Bool extra_samples;
+extern int32_t indirect_bounces;
 
 extern vec_t brightness;
 extern vec_t saturation;
@@ -84,10 +85,6 @@ extern vec_t entity_scale;
 extern vec3_t ambient;
 
 extern vec_t patch_subdivide;
-
-// INDIRECT
-extern _Bool build_indirect;
-extern int32_t indirect_bounces;
 
 // threads.c
 typedef struct semaphores_s {

@@ -628,7 +628,7 @@ static void GatherSampleBounceTrace(int8_t bounce, const vec3_t center, const ve
 	vec3_t delta;
 	vec_t dot, sqdist;
 	vec3_t color;
-	vec_t reflectiveness;
+	vec_t hardness;
 	vec3_t bounce_dir, bounce_pos;
 	vec_t bounce_dist;
 	cm_trace_t trace;
@@ -639,8 +639,8 @@ static void GatherSampleBounceTrace(int8_t bounce, const vec3_t center, const ve
 
 	Light_Trace(&trace, delta, pos, CONTENTS_SOLID);
 
-	if (trace.fraction >= 1.0) {
-		return; // no hit
+	if (!trace.surface) {
+		return;
 	}
 
 	// distance squared and trace hit normal dot product
@@ -650,21 +650,20 @@ static void GatherSampleBounceTrace(int8_t bounce, const vec3_t center, const ve
 
 	// get surface color
 
-	if (trace.surface) {
-		reflectiveness = Clamp(trace.surface->material->hardness / 5.0, 0.0, 1.0); // 5:1
-
-		GetTextureReflectivity(trace.surface->material->base, color);
+	const cm_material_t *mat = trace.surface->material;
+	if (mat) {
+		hardness = Clamp(mat->hardness, 0.0, 5.0);
+		GetTextureColor(mat->diffuse, color);
 	} else {
-		reflectiveness = 0.2;
-
-		VectorClear(color);
+		hardness = 1.0;
+		VectorSet(color, 1.0, 1.0, 1.0);
 	}
 
-	VectorScale(color, reflectiveness * sqdist, color);
+	const vec_t reflect = hardness / 5.0;
+	VectorScale(color, reflect * sqdist, color);
 
 	if ((trace.fraction * dist) < AMBIENT_OCCLUSION_DIST) {
-		vec_t ao = (1.0 - reflectiveness) * (trace.fraction * (dist / AMBIENT_OCCLUSION_DIST)) * Max(0.001, dot);
-
+		vec_t ao = (1.0 - reflect) * (trace.fraction * (dist / AMBIENT_OCCLUSION_DIST)) * Max(0.001, dot);
 		color[0] -= ao;
 	}
 
@@ -674,7 +673,7 @@ static void GatherSampleBounceTrace(int8_t bounce, const vec3_t center, const ve
 	sample[1] *= color[1];
 	sample[2] *= color[2];
 
-	bounce ++;
+	bounce++;
 
 	if (bounce >= indirect_bounces || bounce >= MAX_INDIRECT_BOUNCES) {
 		return; // don't bounce anymore
@@ -694,9 +693,9 @@ static void GatherSampleBounceTrace(int8_t bounce, const vec3_t center, const ve
 	VectorMA(bounce_pos, SAMPLE_NUDGE, bounce_dir, bounce_pos);
 	VectorMA(bounce_pos, SAMPLE_NUDGE, trace.plane.normal, bounce_pos);
 
-	/// length of the next bounce
+	// length of the next bounce
 
-	bounce_dist = Clamp(reflectiveness * sqdist * INDIRECT_BOUNCE_DIST, INDIRECT_BOUNCE_MIN_DIST, dist);
+	bounce_dist = Clamp(reflect * sqdist * INDIRECT_BOUNCE_DIST, INDIRECT_BOUNCE_MIN_DIST, dist);
 
 	// bounce again
 
@@ -1087,14 +1086,12 @@ void BuildIndirect(int32_t face_num) {
 
 	// free the sample positions for the face
 	for (i = 0; i < num_samples; i++) {
-
 		Mem_Free(l[i].sample_points);
 	}
 }
 
 /**
- * @brief Add the indirect lighting on top of the direct lighting and save into
- * final map format.
+ * @brief Finalize and write the lightmap data for the given face.
  */
 void FinalLightFace(int32_t face_num) {
 	bsp_face_t *f;
@@ -1108,7 +1105,7 @@ void FinalLightFace(int32_t face_num) {
 	fl = &face_lights[face_num];
 
 	if (bsp_file.texinfo[f->texinfo].flags & (SURF_WARP | SURF_SKY)) {
-		return;    // non-lit texture
+		return; // non-lit texture
 	}
 
 	f->unused[0] = 0; // pack the old lightstyles array for legacy games

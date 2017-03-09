@@ -259,38 +259,34 @@ static void Check_LIGHT_Options(int32_t argc) {
 	for (int32_t i = argc; i < Com_Argc(); i++) {
 		if (!g_strcmp0(Com_Argv(i), "-extra")) {
 			extra_samples = true;
-			Com_Verbose("extra samples = true\n");
-		} else if (!g_strcmp0(Com_Argv(i), "-indirect")) {
-			build_indirect = true;
-			Com_Verbose("indirect = true\n");
-		} else if (!g_strcmp0(Com_Argv(i), "-bounce")) {
+			Com_Verbose("extra samples: true\n");
+		} if (!g_strcmp0(Com_Argv(i), "-bounce")) {
 			indirect_bounces = atoi(Com_Argv(i + 1));
-			Com_Verbose("bounces at %d\n", indirect_bounces);
+			Com_Verbose("indirect bounces: %d\n", indirect_bounces);
 			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "-brightness")) {
 			brightness = atof(Com_Argv(i + 1));
-			Com_Verbose("brightness at %f\n", brightness);
+			Com_Verbose("brightness: %f\n", brightness);
 			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "-saturation")) {
 			saturation = atof(Com_Argv(i + 1));
-			Com_Verbose("saturation at %f\n", saturation);
+			Com_Verbose("saturation: %f\n", saturation);
 			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "-contrast")) {
 			contrast = atof(Com_Argv(i + 1));
-			Com_Verbose("contrast at %f\n", contrast);
+			Com_Verbose("contrast: %f\n", contrast);
 			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "-surface")) {
 			surface_scale *= atof(Com_Argv(i + 1));
-			Com_Verbose("surface light scale at %f\n", surface_scale);
+			Com_Verbose("surface light scale: %f\n", surface_scale);
 			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "-entity")) {
 			entity_scale *= atof(Com_Argv(i + 1));
-			Com_Verbose("entity light scale at %f\n", entity_scale);
+			Com_Verbose("entity light scale: %f\n", entity_scale);
 			i++;
-
 		} else if (!g_strcmp0(Com_Argv(i), "-patch")) {
 			patch_subdivide = atof(Com_Argv(i + 1));
-			Com_Verbose("patch subdivide at %f\n", patch_subdivide);
+			Com_Verbose("patch subdivide: %f\n", patch_subdivide);
 			i++;
 		} else {
 			break;

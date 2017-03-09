@@ -22,6 +22,7 @@
 #pragma once
 
 #include "bspfile.h"
+#include "materials.h"
 #include "polylib.h"
 #include "collision/cmodel.h"
 
@@ -58,14 +59,14 @@ extern vec3_t face_offset[MAX_BSP_FACES];  // for rotating bmodels
 // lightmap.c
 void BuildLights(void);
 void BuildVertexNormals(void);
-void BuildFacelights(int32_t facenum);
-void BuildIndirect(int32_t facenum);
-void FinalLightFace(int32_t facenum);
+void BuildFacelights(int32_t face_num);
+void BuildIndirect(int32_t face_num);
+void FinalLightFace(int32_t face_num);
 
 // patches.c
-void CalcTextureReflectivity(void);
-void GetTextureReflectivity(const char *name, vec3_t color);
-void FreeColors(void);
+void BuildTextureColors(void);
+void GetTextureColor(const char *name, vec3_t color);
+void FreeTextureColors(void);
 void BuildPatches(void);
 void SubdividePatches(void);
 void FreePatches(void);

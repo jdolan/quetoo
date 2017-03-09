@@ -33,7 +33,6 @@ vec3_t face_offset[MAX_BSP_FACES]; // for rotating bmodels
 
 vec_t patch_subdivide = PATCH_SUBDIVIDE;
 _Bool extra_samples = false;
-_Bool build_indirect = false;
 int32_t indirect_bounces = 4;
 
 vec3_t ambient;
@@ -174,7 +173,7 @@ static void LightWorld(void) {
 	RunThreadsOn(bsp_file.num_faces, true, BuildFacelights);
 
 	// build indirect lighting
-	if (build_indirect) {
+	if (indirect_bounces > 0) {
 		RunThreadsOn(bsp_file.num_faces, true, BuildIndirect);
 	}
 
@@ -202,11 +201,15 @@ int32_t LIGHT_Main(void) {
 
 	ParseEntities();
 
-	CalcTextureReflectivity();
+	LoadMaterials();
+
+	BuildTextureColors();
 
 	LightWorld();
 
-	FreeColors();
+	FreeTextureColors();
+
+	FreeMaterials();
 
 	WriteBSPFile(va("maps/%s.bsp", map_base), version);
 
