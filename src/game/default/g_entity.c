@@ -153,8 +153,6 @@ static g_entity_spawn_t g_entity_spawns[] = { // entity class names -> spawn fun
  * @brief Finds the spawn function for the entity and calls it.
  */
 static _Bool G_SpawnEntity(g_entity_t *ent) {
-	g_entity_spawn_t *s;
-	int32_t i;
 
 	if (!ent->class_name) {
 		gi.Debug("NULL classname\n");
@@ -162,7 +160,7 @@ static _Bool G_SpawnEntity(g_entity_t *ent) {
 	}
 
 	// check item spawn functions
-	for (i = 0; i < g_num_items; i++) {
+	for (int32_t i = 0; i < g_num_items; i++) {
 
 		const g_item_t *item = G_ItemByIndex(i);
 
@@ -177,7 +175,7 @@ static _Bool G_SpawnEntity(g_entity_t *ent) {
 	}
 
 	// check normal spawn functions
-	for (s = g_entity_spawns; s->name; s++) {
+	for (g_entity_spawn_t *s = g_entity_spawns; s->name; s++) {
 		if (!g_strcmp0(s->name, ent->class_name)) { // found it
 			s->Spawn(ent);
 			return true;
@@ -801,6 +799,17 @@ static void G_InitSpawnPoints(void) {
 }
 
 /**
+ * @brief
+ */
+void G_SpawnTech(const g_item_t *item) {
+
+	g_entity_t *spawn = G_SelectTechSpawnPoint();
+	g_entity_t *ent = G_DropItem(spawn, item);
+
+	VectorSet(ent->locals.velocity, Randomc() * 250, Randomc() * 250, 200 + (Randomf() * 200));
+}
+
+/**
  * @brief Spawn all of the techs
  */
 void G_SpawnTechs(void) {
@@ -810,10 +819,7 @@ void G_SpawnTechs(void) {
 	}
 
 	for (g_tech_t i = 0; i < TECH_TOTAL; i++) {
-		g_entity_t *point = G_SelectTechSpawnPoint();
-		g_entity_t *tech_ent = G_DropItem(point, g_media.items.techs[i]);
-
-		VectorSet(tech_ent->locals.velocity, Randomc() * 250, Randomc() * 250, 200 + (Randomf() * 200));
+		G_SpawnTech(g_media.items.techs[i]);
 	}
 }
 
