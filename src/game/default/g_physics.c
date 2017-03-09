@@ -259,7 +259,9 @@ static void G_Friction(g_entity_t *ent) {
 		friction = PM_FRICT_AIR;
 	}
 
-	friction += PM_FRICT_WATER * ent->locals.water_level;
+	if (ent->locals.water_type) {
+		friction += PM_FRICT_WATER;
+	}
 
 	vec_t scale = Max(0.0, speed - (friction * control * QUETOO_TICK_SECONDS)) / speed;
 
