@@ -442,10 +442,10 @@ static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 
 	switch (cg_hand->integer) {
 		case HAND_LEFT:
-			offset[1] -= 6.0;
+			offset[1] -= 5.0;
 			break;
 		case HAND_RIGHT:
-			offset[1] += 6.0;
+			offset[1] += 5.0;
 			break;
 		default:
 			break;
