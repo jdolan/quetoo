@@ -704,6 +704,8 @@ static void R_PrepareProgram() {
 	R_UseFog();
 
 	R_UseCaustic();
+
+	R_UseRim();
 }
 
 /**

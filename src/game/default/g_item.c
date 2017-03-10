@@ -547,7 +547,7 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 				return false;
 			}
-		}	
+		}
 
 		// touching our own flag for no particular reason
 		return false;
@@ -937,7 +937,7 @@ static _Bool G_PickupTech(g_entity_t *ent, g_entity_t *other) {
  * @brief
  */
 const g_item_t *G_CarryingTech(const g_entity_t *ent) {
-	
+
 	for (g_tech_t i = TECH_HASTE; i < TECH_TOTAL; i++) {
 
 		if (G_HasTech(ent, i)) {
@@ -1037,7 +1037,7 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 		// try thinner box
 		gi.Debug("%s in too small of a spot for large box, correcting..\n", etos(ent));
 		ent->maxs[2] /= 2.0;
-		
+
 		tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, MASK_SOLID);
 		if (tr.start_solid) {
 
@@ -1053,7 +1053,7 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 			if (tr.start_solid) {
 
 				gi.Debug("%s trying higher, last attempt..\n", etos(ent));
-				
+
 				ent->s.origin[2] += 8.0;
 
 				// make an effort to come up out of the floor (broken maps)
@@ -1097,7 +1097,7 @@ void G_PrecacheItem(const g_item_t *it) {
 	// parse everything for its ammo
 	if (it->ammo) {
 		const g_item_t *ammo = it->ammo_item;
-		
+
 		if (ammo != it) {
 			G_PrecacheItem(ammo);
 		}
@@ -1164,6 +1164,10 @@ void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
 	}
 
 	ent->s.effects = item->effects;
+
+	// rim lighting
+	ent->s.effects |= EF_RIM;
+	Vector4Set(ent->s.rim_color, 1.0, 1.0, 1.0, 0.5);
 
 	// weapons override the health field to store their ammo count
 	if (ent->locals.item->type == ITEM_WEAPON) {
@@ -2405,7 +2409,7 @@ static void G_InitWeapons(void) {
 		}
 
 		const g_item_t *weapon = g_media.items.weapons[t];
-		
+
 		strcat(weapon_info, va("%i\\%i", weapon->icon_index, weapon->index));
 	}
 
@@ -2448,7 +2452,7 @@ void G_InitItems(void) {
 
 		// set up media pointers
 		const g_item_t **array = NULL;
-		
+
 		switch (item->type) {
 		default:
 			gi.Error("Item %s has an invalid type\n", item->name);
@@ -2474,7 +2478,7 @@ void G_InitItems(void) {
 			array = g_media.items.techs;
 			break;
 		}
-		
+
 		if (array[item->tag]) {
 			gi.Error("Item %s has the same tag as %s\n", item->name, array[item->tag]->name);
 		}

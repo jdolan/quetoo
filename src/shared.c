@@ -23,6 +23,8 @@
 
 #include "shared.h"
 
+// vector constants
+
 const vec3_t vec3_origin = { 0.0, 0.0, 0.0 };
 
 const vec3_t vec3_up = { 0.0, 0.0, 1.0 };
@@ -30,6 +32,16 @@ const vec3_t vec3_up = { 0.0, 0.0, 1.0 };
 const vec3_t vec3_down = { 0.0, 0.0, -1.0 };
 
 const vec3_t vec3_forward = { 0.0, 1.0, 0.0 };
+
+// color constants
+
+const vec3_t color_rgb_one = { 1.0, 1.0, 1.0 };
+
+const vec3_t color_rgb_zero = { 0.0, 0.0, 0.0 };
+
+const vec4_t color_rgba_one = { 1.0, 1.0, 1.0, 1.0 };
+
+const vec4_t color_rgba_zero = { 0.0, 0.0, 0.0, 0.0 };
 
 /**
  * @brief Returns a pseudo-random positive integer.
@@ -1161,7 +1173,7 @@ static _Bool ParseHexString(const char *input, color_t *output, const uint8_t nu
 			if (!((l >= 'a' && l <= 'f') || (l >= '0' && l <= '9'))) {
 				return false;
 			}
-			
+
 			const uint8_t dec = HEX_TO_DEC(l);
 
 			if (d == 0) {
@@ -1181,7 +1193,7 @@ static _Bool ParseHexString(const char *input, color_t *output, const uint8_t nu
 _Bool ColorParseHex(const char *s, color_t *color) {
 	const size_t s_len = strlen(s);
 	static color_t temp;
-	
+
 	if (!color) {
 		color = &temp;
 	}
@@ -1238,7 +1250,7 @@ _Bool ColorParseHex(const char *s, color_t *color) {
  * @brief Attempt to convert a color to a hexadecimal string representation.
  */
 _Bool ColorToHex(const color_t color, char *s, const size_t s_len) {
-	
+
 	_Bool is_short_form = COLOR_BYTES_ARE_SAME(color.r) &&
 						  COLOR_BYTES_ARE_SAME(color.g) &&
 						  COLOR_BYTES_ARE_SAME(color.b);
@@ -1246,7 +1258,7 @@ _Bool ColorToHex(const color_t color, char *s, const size_t s_len) {
 
 	if (is_32_bit) {
 		is_short_form = is_short_form && COLOR_BYTES_ARE_SAME(color.a);
-	
+
 		if (is_short_form) {
 			if (g_strlcat(s, va("%1x%1x%1x%1x", color.r & 15, color.g & 15, color.b & 15, color.a & 15), s_len) >= s_len) {
 				return false;

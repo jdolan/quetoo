@@ -54,6 +54,8 @@ typedef struct {
 
 	r_uniform_caustic_t caustic;
 
+	r_uniform_rim_t rim;
+
 	r_uniform_matrix4fv_t normal_mat;
 
 	r_uniform1f_t alpha_threshold;
@@ -143,6 +145,9 @@ void R_InitProgram_default(r_program_t *program) {
 	R_ProgramVariable(&p->caustic.enable, R_UNIFORM_INT, "CAUSTIC.ENABLE", true);
 	R_ProgramVariable(&p->caustic.color, R_UNIFORM_VEC3, "CAUSTIC.COLOR", true);
 
+	R_ProgramVariable(&p->rim.enable, R_UNIFORM_INT, "RIM.ENABLE", true);
+	R_ProgramVariable(&p->rim.color, R_UNIFORM_VEC4, "RIM.COLOR", true);
+
 	R_ProgramVariable(&p->normal_mat, R_UNIFORM_MAT4, "NORMAL_MAT", true);
 
 	R_ProgramVariable(&p->alpha_threshold, R_UNIFORM_FLOAT, "ALPHA_THRESHOLD", true);
@@ -174,6 +179,8 @@ void R_InitProgram_default(r_program_t *program) {
 
 	R_ProgramParameter1i(&p->caustic.enable, 0);
 
+	R_ProgramParameter1i(&p->rim.enable, 0);
+
 	R_ProgramParameter1f(&p->time_fraction, 0.0f);
 	R_ProgramParameter1f(&p->time, 0.0f);
 }
@@ -199,6 +206,8 @@ void R_UseProgram_default(void) {
 	R_ProgramParameter1i(&p->diffuse, texunit_diffuse->enabled);
 	R_ProgramParameter1i(&p->deluxemap, texunit_deluxemap->enabled);
 	R_ProgramParameter1i(&p->lightmap, texunit_lightmap->enabled);
+
+	R_ProgramParameter1f(&p->time, r_view.ticks / 1000.0);
 }
 
 /**
@@ -230,7 +239,7 @@ void R_UseMaterial_default(const r_material_t *material) {
 		R_ProgramParameter1f(&p->hardness, material->cm->hardness * r_hardness->value);
 		R_ProgramParameter1f(&p->specular, material->cm->specular * r_specular->value);
 	}
-	
+
 	if (material && material->tintmap) {
 		R_BindTintTexture(material->tintmap->texnum);
 		R_ProgramParameter1i(&p->tintmap, 1);
@@ -284,10 +293,23 @@ void R_UseCaustic_default(const r_caustic_parameters_t *caustic) {
 		R_ProgramParameter1i(&p->caustic.enable, caustic->enable);
 
 		R_ProgramParameter3fv(&p->caustic.color, caustic->color);
-
-		R_ProgramParameter1f(&p->time, r_view.ticks / 1000.0);
 	} else {
 		R_ProgramParameter1i(&p->caustic.enable, 0);
+	}
+}
+
+/**
+ * @brief
+ */
+void R_UseRim_default(const r_rim_parameters_t *rim) {
+	r_default_program_t *p = &r_default_program;
+
+	if (rim && rim->enable) {
+		R_ProgramParameter1i(&p->rim.enable, rim->enable);
+
+		R_ProgramParameter4fv(&p->rim.color, rim->color);
+	} else {
+		R_ProgramParameter1i(&p->rim.enable, 0);
 	}
 }
 

@@ -719,7 +719,7 @@ static _Bool R_ConvertMaterial(cm_material_t *cm, r_material_t **mat) {
 
 	if (material == NULL) {
 		material = (r_material_t *) R_AllocMedia(key, sizeof(r_material_t), MEDIA_MATERIAL);
-		
+
 		*mat = material;
 		material->cm = cm;
 
@@ -741,7 +741,7 @@ static _Bool R_ConvertMaterial(cm_material_t *cm, r_material_t **mat) {
 		R_RegisterMedia((r_media_t *) material);
 		return true;
 	}
-	
+
 	*mat = material;
 	Cm_FreeMaterial(cm);
 	return false;
@@ -909,7 +909,7 @@ void R_LoadMaterials(r_model_t *mod) {
 
 	for (size_t i = 0; i < num_materials; i++) {
 		r_material_t *r_mat;
-		
+
 		if (!R_ConvertMaterial(materials[i], &r_mat)) {
 			Com_Debug(DEBUG_RENDERER, "Retained material %s with %d stages\n", r_mat->diffuse->media.name, r_mat->cm->num_stages);
 			continue;
@@ -982,7 +982,7 @@ void R_LoadMaterials(r_model_t *mod) {
 					continue;
 				}
 			}
-			
+
 			// attach stage
 			R_AttachStage(r_mat, r_stage);
 

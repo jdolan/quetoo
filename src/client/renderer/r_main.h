@@ -48,6 +48,7 @@ extern cvar_t *r_monochrome;
 extern cvar_t *r_multisample;
 extern cvar_t *r_parallax;
 extern cvar_t *r_render_plugin;
+extern cvar_t *r_rim;
 extern cvar_t *r_saturation;
 extern cvar_t *r_screenshot_format;
 extern cvar_t *r_shadows;

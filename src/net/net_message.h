@@ -54,18 +54,19 @@
  * written or read for delta compression from one snapshot to the next.
  */
 #define U_ORIGIN				(1 << 0) // origin
-#define U_TERMINATION			(1 << 1) // beams
+#define U_TERMINATION                           (1 << 1) // beams
 #define U_ANGLES				(1 << 2) // angles
-#define U_ANIMATIONS			(1 << 3) // animation frames
-#define U_EVENT					(1 << 4) // single-frame events
-#define U_EFFECTS				(1 << 5) // bit masked effects
-#define U_TRAIL					(1 << 6) // enumerated trails
-#define U_MODELS				(1 << 7) // models (primary and linked)
-#define U_CLIENT				(1 << 8) // offset into client skins array
-#define U_SOUND					(1 << 9) // looped sounds
-#define U_SOLID					(1 << 10) // solid type
-#define U_BOUNDS				(1 << 11) // encoded bounding box
-#define U_REMOVE				(1 << 12) // remove this entity, don't add it
+#define U_RIM_COLOR				(1 << 3) // rim color
+#define U_ANIMATIONS                            (1 << 4) // animation frames
+#define U_EVENT					(1 << 5) // single-frame events
+#define U_EFFECTS				(1 << 6) // bit masked effects
+#define U_TRAIL					(1 << 7) // enumerated trails
+#define U_MODELS				(1 << 8) // models (primary and linked)
+#define U_CLIENT				(1 << 9) // offset into client skins array
+#define U_SOUND					(1 << 10) // looped sounds
+#define U_SOLID					(1 << 11) // solid type
+#define U_BOUNDS				(1 << 12) // encoded bounding box
+#define U_REMOVE				(1 << 13) // remove this entity, don't add it
 
 /**
  * @brief These flags indicate which fields a given sound packet will contain.
@@ -87,6 +88,7 @@ void Net_WriteVector(mem_buf_t *msg, const vec_t f);
 void Net_WritePosition(mem_buf_t *msg, const vec3_t pos);
 void Net_WriteAngle(mem_buf_t *msg, const vec_t f);
 void Net_WriteAngles(mem_buf_t *msg, const vec3_t angles);
+void Net_WriteColor(mem_buf_t *msg, const vec4_t color);
 void Net_WriteDir(mem_buf_t *msg, const vec3_t dir);
 void Net_WriteDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, const pm_cmd_t *to);
 void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const player_state_t *to);
@@ -104,6 +106,7 @@ vec_t Net_ReadVector(mem_buf_t *msg);
 void Net_ReadPosition(mem_buf_t *msg, vec3_t pos);
 vec_t Net_ReadAngle(mem_buf_t *msg);
 void Net_ReadAngles(mem_buf_t *msg, vec3_t angles);
+void Net_ReadColor(mem_buf_t *msg, vec4_t color);
 void Net_ReadDir(mem_buf_t *msg, vec3_t vector);
 void Net_ReadDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, pm_cmd_t *to);
 void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player_state_t *to);

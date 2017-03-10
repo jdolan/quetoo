@@ -168,6 +168,8 @@ static void R_DrawBspInlineModel_(const r_entity_t *e) {
 
 	const r_sorted_bsp_surfaces_t *surfs = r_model_state.world->bsp->sorted_surfaces;
 
+	R_EnableRim(false, color_rgba_zero);
+
 	R_DrawOpaqueBspSurfaces(&surfs->opaque);
 
 	R_DrawOpaqueWarpBspSurfaces(&surfs->opaque_warp);

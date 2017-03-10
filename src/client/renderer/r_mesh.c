@@ -197,6 +197,7 @@ static void R_ApplyMeshModelLighting_default(const r_entity_t *e) {
 /**
  * @brief Sets renderer state for the specified entity.
  */
+
 static void R_SetMeshState_default(const r_entity_t *e) {
 
 	// setup VBO states
@@ -224,6 +225,11 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 
 			R_ApplyMeshModelLighting_default(e);
 		}
+
+		// rim effects
+		if (e->effects & EF_RIM) {
+			R_EnableRim(true, e->rim_color);
+		}
 	} else {
 		R_Color(NULL);
 
@@ -244,6 +250,10 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 	// update tints
 	if (r_mesh_state.material->tintmap) {
 		R_UseTints();
+	}
+
+	if (!(e->effects & EF_RIM)) {
+		R_EnableRim(false, color_rgba_zero);
 	}
 }
 
@@ -270,6 +280,8 @@ static void R_ResetMeshState_default(const r_entity_t *e) {
 	R_ResetArrayState();
 
 	R_UseInterpolation(0.0);
+
+	R_EnableRim(false, color_rgba_zero);
 }
 
 /**
@@ -302,7 +314,7 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 			offset += mesh->num_elements;
 			continue;
 		}
-		
+
 		R_DrawArrays(GL_TRIANGLES, offset, mesh->num_elements);
 
 		offset += mesh->num_elements;

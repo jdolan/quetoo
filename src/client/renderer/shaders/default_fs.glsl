@@ -36,6 +36,7 @@ uniform LightParameters LIGHTS;
 // RGB layer tints
 uniform vec4 TINTS[3];
 
+// what color caustics are
 struct CausticParameters
 {
 	bool ENABLE;
@@ -44,6 +45,16 @@ struct CausticParameters
 
 uniform CausticParameters CAUSTIC;
 
+// what rim lighting effects look like
+struct RimParameters
+{
+	bool ENABLE;
+	vec4 COLOR;
+};
+
+uniform RimParameters RIM;
+
+// light/color toggles
 uniform bool DIFFUSE;
 uniform bool LIGHTMAP;
 uniform bool DELUXEMAP;
@@ -51,6 +62,7 @@ uniform bool NORMALMAP;
 uniform bool GLOSSMAP;
 uniform bool TINTMAP;
 
+// surface properties
 uniform float BUMP;
 uniform float PARALLAX;
 uniform float HARDNESS;
@@ -65,7 +77,10 @@ uniform sampler2D SAMPLER6;
 
 uniform float ALPHA_THRESHOLD;
 
+// time from 0 to 1 each second
 uniform float TIME_FRACTION;
+
+// elapsed time since program start, in seconds
 uniform float TIME;
 
 in vec3 modelpoint;
@@ -164,6 +179,17 @@ void CausticFragment(in vec3 lightmap) {
 }
 
 /**
+ * @brief Render "glowing" rim lighting effects
+ */
+void RimFragment(void) {
+	if (RIM.ENABLE) {
+		float rim = 1.0 - dot(normal, -normalize(point));
+
+		fragColor.rgb = mix(fragColor.rgb, RIM.COLOR.rgb, (rim * rim) * RIM.COLOR.a);
+	}
+}
+
+/**
  * @brief Apply fog to the fragment if enabled.
  */
 void FogFragment(void) {
@@ -247,8 +273,12 @@ void main(void) {
 	// add any dynamic lighting to yield the final fragment color
 	LightFragment(diffuse, lightmap, normalmap.xyz);
 
-    // underliquid caustics
+	// underliquid caustics
 	CausticFragment(lightmap);
 
-	FogFragment(); // and lastly add fog
+	// add pulse effects
+	RimFragment();
+
+	// and lastly add fog
+	FogFragment();
 }

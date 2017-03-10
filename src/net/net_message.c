@@ -128,6 +128,16 @@ void Net_WriteAngles(mem_buf_t *msg, const vec3_t angles) {
 /**
  * @brief
  */
+void Net_WriteColor(mem_buf_t *msg, const vec4_t color) {
+	Net_WriteAngle(msg, color[0]);
+	Net_WriteAngle(msg, color[1]);
+	Net_WriteAngle(msg, color[2]);
+	Net_WriteAngle(msg, color[3]);
+}
+
+/**
+ * @brief
+ */
 void Net_WriteDir(mem_buf_t *msg, const vec3_t dir) {
 	int32_t i, best = 0;
 	vec_t best_d = 0.0;
@@ -352,6 +362,10 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 		bits |= U_ANGLES;
 	}
 
+	if (!Vector4Compare(to->rim_color, from->rim_color)) {
+		bits |= U_RIM_COLOR;
+	}
+
 	if (to->animation1 != from->animation1 || to->animation2 != from->animation2) {
 		bits |= U_ANIMATIONS;
 	}
@@ -408,6 +422,10 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 
 	if (bits & U_ANGLES) {
 		Net_WriteAngles(msg, to->angles);
+	}
+
+	if (bits & U_RIM_COLOR) {
+		Net_WriteColor(msg, to->rim_color);
 	}
 
 	if (bits & U_ANIMATIONS) {
@@ -617,6 +635,16 @@ void Net_ReadAngles(mem_buf_t *msg, vec3_t angles) {
 /**
  * @brief
  */
+void Net_ReadColor(mem_buf_t *msg, vec4_t color) {
+	color[0] = Net_ReadAngle(msg);
+	color[1] = Net_ReadAngle(msg);
+	color[2] = Net_ReadAngle(msg);
+	color[3] = Net_ReadAngle(msg);
+}
+
+/**
+ * @brief
+ */
 void Net_ReadDir(mem_buf_t *msg, vec3_t dir) {
 
 	const int32_t b = Net_ReadByte(msg);
@@ -752,6 +780,10 @@ void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_stat
 
 	if (bits & U_ANGLES) {
 		Net_ReadAngles(msg, to->angles);
+	}
+
+	if (bits & U_RIM_COLOR) {
+		Net_ReadColor(msg, to->rim_color);
 	}
 
 	if (bits & U_ANIMATIONS) {
