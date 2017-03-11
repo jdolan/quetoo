@@ -69,6 +69,7 @@ cvar_t *r_monochrome;
 cvar_t *r_multisample;
 cvar_t *r_parallax;
 cvar_t *r_render_plugin;
+cvar_t *r_rim;
 cvar_t *r_saturation;
 cvar_t *r_screenshot_format;
 cvar_t *r_shadows;
@@ -511,6 +512,7 @@ static void R_InitLocal(void) {
 	                         "Controls multisampling (anti-aliasing)");
 	r_parallax = Cvar_Add("r_parallax", "1.0", CVAR_ARCHIVE,
 	                      "Controls the intensity of parallax mapping effects");
+	r_rim = Cvar_Add("r_rim", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls rim lighting effects");
 	r_render_plugin = Cvar_Add("r_render_plugin", "default", CVAR_ARCHIVE,
 	                           "Specifies the active renderer plugin (default or pro)");
 	r_saturation = Cvar_Add("r_saturation", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,

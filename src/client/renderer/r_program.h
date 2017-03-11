@@ -92,7 +92,18 @@ typedef struct {
 	r_variable_t color;
 } r_uniform_caustic_t;
 
-#define MAX_PROGRAM_VARIABLES 32
+// rim lighting info
+typedef struct {
+	_Bool enable;
+	vec4_t color;
+} r_rim_parameters_t;
+
+typedef struct {
+	r_variable_t enable;
+	r_variable_t color;
+} r_uniform_rim_t;
+
+#define MAX_PROGRAM_VARIABLES 64
 
 // and glsl programs
 typedef struct {
@@ -115,6 +126,7 @@ typedef struct {
 	void (*UseFog)(const r_fog_parameters_t *fog);
 	void (*UseLight)(const uint16_t light_index, const r_light_t *light);
 	void (*UseCaustic)(const r_caustic_parameters_t *caustic);
+	void (*UseRim)(const r_rim_parameters_t *pulse);
 	void (*MatricesChanged)();
 	void (*UseAlphaTest)(const vec_t threshold);
 	void (*UseCurrentColor)(const vec4_t color);

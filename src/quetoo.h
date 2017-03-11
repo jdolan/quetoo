@@ -530,12 +530,12 @@ typedef enum {
 	ANIM_LEGS_IDLECR,
 
 	ANIM_LEGS_TURN,
-	
+
 	/**
 	 * @brief Masks out the bits and only keeps the animation value
 	 */
 	ANIM_MASK_VALUE = (1 << 6) - 1,
-	
+
 	/**
 	 * @brief Play the animation backwards.
 	 */
@@ -573,8 +573,9 @@ typedef enum {
 #define EF_ROTATE			(1 << 0) // rotate on z
 #define EF_BOB				(1 << 1) // bob on z
 #define EF_PULSE			(1 << 2) // pulsing light effect
-#define EF_INACTIVE			(1 << 3) // inactive icon for when input is not going to game
-#define EF_GAME				(1 << 4) // the game may extend from here
+#define EF_RIM				(1 << 3) // rim lighting effect
+#define EF_INACTIVE			(1 << 4) // inactive icon for when input is not going to game
+#define EF_GAME				(1 << 5) // the game may extend from here
 
 /**
  * @brief The 16 high bits of the effects mask are not transmitted by the
@@ -584,10 +585,10 @@ typedef enum {
 #define EF_CLIENT			(1 << 24) // player model
 #define EF_WEAPON			(1 << 25) // view weapon
 #define EF_SHELL			(1 << 26) // environment map shell
-#define EF_ALPHATEST		(1 << 27) // alpha test
+#define EF_ALPHATEST			(1 << 27) // alpha test
 #define EF_BLEND			(1 << 28) // alpha blend
-#define EF_NO_LIGHTING		(1 << 29) // no lighting (full bright)
-#define EF_NO_SHADOW		(1 << 30) // no shadow
+#define EF_NO_LIGHTING			(1 << 29) // no lighting (full bright)
+#define EF_NO_SHADOW			(1 << 30) // no shadow
 #define EF_NO_DRAW			(1u << 31) // no draw (but perhaps shadow)
 
 /**
@@ -632,6 +633,8 @@ typedef struct {
 	uint8_t model1, model2, model3, model4; // primary model, linked models
 	uint8_t client; // client info index
 	uint8_t sound; // looped sounds
+
+	vec4_t rim_color; //  color of rim lighting for EF_RIM
 
 	/**
 	 * @brief The solid type. All solid types are sent to the client, but the

@@ -97,7 +97,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 				msg = "%s had their intestines shredded by %s's grappling hook";
 				break;
 		}
-		
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
 		g_snprintf(buffer, sizeof(buffer), msg, self->client->locals.persistent.net_name,
@@ -164,7 +164,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 					break;
 			}
 		}
-		
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
 		g_snprintf(buffer, sizeof(buffer), msg, self->client->locals.persistent.net_name);
@@ -307,7 +307,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 
 	for (i = 0; i < count; i++) {
 		int32_t gib_index;
-		
+
 		if (i == 0) { // 0 is always chest
 			gib_index = (NUM_GIB_MODELS - 1);
 		} else if (i == 1 && !self->client) { // if we're not client, drop a head
@@ -792,7 +792,7 @@ static g_entity_t *G_SelectDeathmatchSpawnPoint(g_entity_t *ent) {
 	if (g_spawn_farthest->value) {
 		return G_SelectFarthestSpawnPoint(ent, &g_level.spawn_points);
 	}
-	
+
 	return G_SelectRandomSpawnPoint(&g_level.spawn_points);
 }
 
@@ -898,6 +898,10 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		ent->client->locals.persistent.ready = false;
 	} else { // spawn an active client
 		ent->class_name = "client";
+
+// testing rim lighting; i'll keep this for future reference
+//		ent->s.effects = EF_RIM;
+//		Vector4Set(ent->s.rim_color, 1.0, 0.0, 0.0, 1.0);
 
 		ent->solid = SOLID_BOX;
 		ent->sv_flags = 0;
@@ -1183,7 +1187,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	} else {
 		g_strlcpy(cl->locals.persistent.shirt_color, "default", sizeof(cl->locals.persistent.shirt_color));
 		g_strlcpy(cl->locals.persistent.pants_color, "default", sizeof(cl->locals.persistent.pants_color));
-		
+
 		s = GetUserInfo(user_info, "shirt");
 
 		if (strlen(s) && strcmp(s, "default")) { // not default

@@ -342,7 +342,7 @@ static void Cg_ResolveTeamInfo(const char *s) {
 	cg_team_info_t *team = cg_team_info;
 
 	for (size_t i = 0; i < info_count; i += 2, team++) {
-		
+
 		g_strlcpy(team->team_name, info[i], sizeof(team->team_name));
 		team->hue = (int16_t) atoi(info[i + 1]);
 		team->color = ColorFromHSV((const vec3_t) {

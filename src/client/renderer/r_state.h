@@ -92,7 +92,7 @@ typedef struct r_state_s {
 	GLenum blend_src, blend_dest; // blend function
 	_Bool blend_enabled;
 
-	float alpha_threshold;
+	vec_t alpha_threshold;
 	vec4_t current_color;
 
 	r_texunit_t texunits[R_TEXUNIT_TOTAL];
@@ -112,6 +112,9 @@ typedef struct r_state_s {
 
 	// caustic state
 	r_caustic_parameters_t active_caustic_parameters;
+
+	// rim state
+	r_rim_parameters_t active_rim_parameters;
 
 	// stencil state
 	GLenum stencil_op_pass;
@@ -205,6 +208,7 @@ void R_EnableWarp(const r_program_t *program, _Bool enable);
 void R_EnableShell(const r_program_t *program, _Bool enable);
 void R_EnableFog(_Bool enable);
 void R_EnableCaustic(_Bool enable);
+void R_EnableRim(_Bool enable, const vec4_t color);
 void R_UseMaterial(const r_material_t *material);
 void R_UseMatrices(void);
 void R_UseInterpolation(const vec_t lerp);
@@ -212,6 +216,7 @@ void R_UseAlphaTest(void);
 void R_UseCurrentColor(void);
 void R_UseFog(void);
 void R_UseCaustic(void);
+void R_UseRim(void);
 void R_UseTints(void);
 void R_InitState(void);
 void R_ShutdownState(void);

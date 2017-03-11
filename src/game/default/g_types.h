@@ -27,7 +27,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1017
+#define PROTOCOL_MINOR 1018
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -1147,8 +1147,11 @@ typedef struct {
 
 	uint32_t touch_time;
 	uint32_t push_time;
+
 	uint32_t ripple_time;
 	vec_t ripple_size;
+
+	vec4_t rim_color;
 
 	int16_t health;
 	int16_t max_health;

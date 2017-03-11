@@ -79,9 +79,14 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	if (e->effects & EF_PULSE) {
 		const vec_t pulse = (cos(cgi.client->unclamped_time * 0.0033 + ent->current.number) + 1.0);
 		const vec_t c = 1.0 - (cg_entity_pulse->value * 0.5 * pulse);
+
 		VectorSet(e->color, c, c, c);
 	} else {
 		VectorSet(e->color, 1.0, 1.0, 1.0);
+	}
+
+	if (e->effects & EF_RIM) {
+		Vector4Copy(ent->current.rim_color, e->rim_color);
 	}
 
 	if (e->effects & EF_INACTIVE) {

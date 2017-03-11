@@ -44,6 +44,26 @@ extern const vec3_t vec3_down;
 extern const vec3_t vec3_forward;
 
 /**
+ * @brief RGB full one color (1, 1, 1).
+ */
+extern const vec3_t color_rgb_one;
+
+/**
+ * @brief RGB full zero color (0, 0, 0).
+ */
+extern const vec3_t color_rgb_zero;
+
+/**
+ * @brief RGBA full one color (1, 1, 1).
+ */
+extern const vec4_t color_rgba_one;
+
+/**
+ * @brief RGBA full zero color (0, 0, 0, 0).
+ */
+extern const vec4_t color_rgba_zero;
+
+/**
  * @brief Math library.
  */
 /**

@@ -476,18 +476,49 @@ void R_EnableCaustic(_Bool enable) {
 		return;
 	}
 
-	if (!r_caustics->value || r_state.active_caustic_parameters.enable == enable) {
+	if (!r_caustics->value) {
+		r_state.active_caustic_parameters.enable = false;
+
 		return;
 	}
 
-	r_state.active_caustic_parameters.enable = false;
+	if (r_state.active_caustic_parameters.enable == enable) {
+		return; // need color compare if color is a parameter later on
+	}
+
+	r_state.active_caustic_parameters.enable = enable;
 
 	if (enable) {
-		r_state.active_caustic_parameters.enable = true;
-
 		const vec3_t c = { 1.0, 1.0, 1.0 }; // debugging
 
 		VectorCopy(c, r_state.active_caustic_parameters.color);
+	}
+}
+
+/**
+ * @brief
+ */
+void R_EnableRim(_Bool enable, const vec4_t color) {
+
+	if (!r_state.active_program) {
+		return;
+	}
+
+	if (!r_rim->integer) {
+		r_state.active_rim_parameters.enable = false;
+
+		return;
+	}
+
+	if (r_state.active_rim_parameters.enable == enable &&
+		Vector4Compare(color, r_state.active_rim_parameters.color)) {
+		return;
+	}
+
+	r_state.active_rim_parameters.enable = enable;
+
+	if (enable) {
+		Vector4Copy(color, r_state.active_rim_parameters.color);
 	}
 }
 
@@ -637,6 +668,16 @@ void R_UseCaustic(void) {
 
 	if (r_state.active_program->UseCaustic) {
 		r_state.active_program->UseCaustic(&r_state.active_caustic_parameters);
+	}
+}
+
+/**
+ * @brief Uploads the current rim effect to the currently loaded program.
+ */
+void R_UseRim(void) {
+
+	if (r_state.active_program->UseRim) {
+		r_state.active_program->UseRim(&r_state.active_rim_parameters);
 	}
 }
 
@@ -893,7 +934,7 @@ static void R_InitSupersample(void) {
 
 		Com_Warn("Couldn't create supersample textures.\n");
 		Cvar_Set("r_supersample", "0");
-		
+
 		r_context.render_width = r_context.width;
 		r_context.render_height = r_context.height;
 

@@ -137,7 +137,7 @@ static _Bool Cg_ValidateSkin(cl_client_info_t *ci) {
  * has "default" specified.
  */
 color_t Cg_ClientEffectColor(const cl_client_info_t *cl, const color_t default_color) {
-	
+
 	if (cl->color.a) {
 		return cl->color;
 	}
@@ -226,8 +226,15 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 
 			// load the models
 			if (!Cg_LoadClientModel(ci, info[1], v + 1)) {
-				if (!Cg_LoadClientModel(ci, DEFAULT_CLIENT_MODEL, DEFAULT_CLIENT_SKIN)) {
-					cgi.Error("Failed to load default client model\n");
+				cgi.Warn("Failed to load client skin %s/%s\n",
+					info[1], v + 1);
+				if (!Cg_LoadClientModel(ci, info[1], DEFAULT_CLIENT_SKIN)) {
+					cgi.Warn("Failed to load client model %s/%s\n",
+						info[1], DEFAULT_CLIENT_SKIN);
+					if (!Cg_LoadClientModel(ci, DEFAULT_CLIENT_MODEL, DEFAULT_CLIENT_SKIN)) {
+						cgi.Error("Failed to load default client skin %s/%s\n",
+							DEFAULT_CLIENT_MODEL, DEFAULT_CLIENT_SKIN);
+					}
 				}
 			}
 		}
@@ -245,7 +252,7 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 		// load shirt/pant colors
 		color_t shirt, pants;
 		ci->shirt_color[3] = ci->pants_color[3] = 0.0;
-		
+
 		if (g_strcmp0(info[3], "default") && ColorParseHex(info[3], &shirt)) {
 			ColorToVec4(shirt, ci->shirt_color);
 			ci->shirt_color[3] = 1.0;
@@ -255,10 +262,10 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 			ColorToVec4(pants, ci->pants_color);
 			ci->pants_color[3] = 1.0;
 		}
-		
+
 		// ensure we were able to load everything
 		if (!Cg_ValidateSkin(ci)) {
-			
+
 			if (!g_strcmp0(s, DEFAULT_CLIENT_INFO)) {
 				cgi.Error("Failed to load default client info\n");
 			}
