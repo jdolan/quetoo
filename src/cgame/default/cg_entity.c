@@ -280,14 +280,14 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	} else {
 		Cg_BreathTrail(ent);
 	}
-	
-	// set shirt/pants
-	if (ci->shirt_color[3]) {
-		e->tints[TINT_SHIRT] = ci->shirt_color;
+
+	// set red/green tints
+	if (ci->tint_r[3]) { // shirt
+		e->tints[TINT_R] = ci->tint_r;
 	}
 
-	if (ci->pants_color[3]) {
-		e->tints[TINT_PANTS] = ci->pants_color;
+	if (ci->tint_g[3]) { // pants
+		e->tints[TINT_G] = ci->tint_g;
 	}
 
 	r_entity_t head, torso, legs;
@@ -343,11 +343,11 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	r_entity_t *r_legs = cgi.AddEntity(&legs);
 	r_entity_t *r_torso = cgi.AddEntity(&torso);
 	r_entity_t *r_head = cgi.AddEntity(&head);
-	
+
 	Matrix4x4_CreateFromEntity(&r_legs->matrix, r_legs->origin, r_legs->angles, r_legs->scale);
 	Matrix4x4_CreateFromEntity(&r_torso->matrix, r_torso->origin, r_torso->angles, r_torso->scale);
 	Matrix4x4_CreateFromEntity(&r_head->matrix, r_head->origin, r_head->angles, r_head->scale);
-	
+
 	Cg_ApplyMeshModelTag(r_torso, r_legs, "tag_torso");
 	Cg_ApplyMeshModelTag(r_head, r_torso, "tag_head");
 

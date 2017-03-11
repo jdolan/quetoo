@@ -64,9 +64,9 @@ typedef struct {
 } cm_stage_anim_t;
 
 typedef enum {
-	TINT_SHIRT,
-	TINT_PANTS,
-	TINT_HEAD,
+	TINT_R,
+	TINT_G,
+	TINT_B,
 
 	TINT_TOTAL // cannot be increased past 3
 } cm_stage_tint_src_t;
@@ -206,7 +206,7 @@ typedef struct cm_material_s {
 	 * @brief Whether only stages should be rendered or the diffuse should too
 	 */
 	_Bool only_stages;
-	
+
 	/**
 	 * @brief Default tint colors
 	 */

@@ -36,8 +36,8 @@ cvar_t *cg_add_particles;
 cvar_t *cg_add_weather;
 cvar_t *cg_bob;
 cvar_t *cg_color;
-cvar_t *cg_shirt;
-cvar_t *cg_pants;
+cvar_t *cg_tint_r; // shirt
+cvar_t *cg_tint_g; // pants
 cvar_t *cg_draw_blend;
 cvar_t *cg_draw_captures;
 cvar_t *cg_draw_crosshair_color;
@@ -118,10 +118,10 @@ static void Cg_Init(void) {
 	cg_color = cgi.Cvar("color", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                    "Specifies the effect color for your own weapon trails.");
 
-	cg_shirt = cgi.Cvar("shirt", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
+	cg_tint_r = cgi.Cvar("shirt", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                    "Specifies your shirt color, in the hexadecimal format \"rrggbb\". \"default\" uses the skin or team's defaults.");
 
-	cg_pants = cgi.Cvar("pants", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
+	cg_tint_g = cgi.Cvar("pants", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                    "Specifies your pants color, in the hexadecimal format \"rrggbb\". \"default\" uses the skin or team's defaults.");
 
 	cg_draw_blend = cgi.Cvar("cg_draw_blend", "1.0", CVAR_ARCHIVE,
@@ -342,7 +342,7 @@ static void Cg_ResolveTeamInfo(const char *s) {
 	cg_team_info_t *team = cg_team_info;
 
 	for (size_t i = 0; i < info_count; i += 2, team++) {
-		
+
 		g_strlcpy(team->team_name, info[i], sizeof(team->team_name));
 		team->hue = (int16_t) atoi(info[i + 1]);
 		team->color = ColorFromHSV((const vec3_t) {

@@ -97,7 +97,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 				msg = "%s had their intestines shredded by %s's grappling hook";
 				break;
 		}
-		
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
 		g_snprintf(buffer, sizeof(buffer), msg, self->client->locals.persistent.net_name,
@@ -164,7 +164,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 					break;
 			}
 		}
-		
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
 		g_snprintf(buffer, sizeof(buffer), msg, self->client->locals.persistent.net_name);
@@ -307,7 +307,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 
 	for (i = 0; i < count; i++) {
 		int32_t gib_index;
-		
+
 		if (i == 0) { // 0 is always chest
 			gib_index = (NUM_GIB_MODELS - 1);
 		} else if (i == 1 && !self->client) { // if we're not client, drop a head
@@ -792,7 +792,7 @@ static g_entity_t *G_SelectDeathmatchSpawnPoint(g_entity_t *ent) {
 	if (g_spawn_farthest->value) {
 		return G_SelectFarthestSpawnPoint(ent, &g_level.spawn_points);
 	}
-	
+
 	return G_SelectRandomSpawnPoint(&g_level.spawn_points);
 }
 
@@ -1176,28 +1176,24 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 		}
 	}
 
-	// set pants/shirt colors
+	// set red/green tint colors
 	if ((g_level.teams || g_level.ctf) && cl->locals.persistent.team) { // players must use team_skin to change
-		g_strlcpy(cl->locals.persistent.shirt_color, cl->locals.persistent.team->shirt_color, sizeof(cl->locals.persistent.shirt_color));
-		g_strlcpy(cl->locals.persistent.pants_color, cl->locals.persistent.team->pants_color, sizeof(cl->locals.persistent.pants_color));
+		g_strlcpy(cl->locals.persistent.tint_r, cl->locals.persistent.team->tint_r, sizeof(cl->locals.persistent.tint_r));
+		g_strlcpy(cl->locals.persistent.tint_g, cl->locals.persistent.team->tint_g, sizeof(cl->locals.persistent.tint_g));
 	} else {
-		g_strlcpy(cl->locals.persistent.shirt_color, "default", sizeof(cl->locals.persistent.shirt_color));
-		g_strlcpy(cl->locals.persistent.pants_color, "default", sizeof(cl->locals.persistent.pants_color));
-		
-		s = GetUserInfo(user_info, "shirt");
+		g_strlcpy(cl->locals.persistent.tint_r, "default", sizeof(cl->locals.persistent.tint_r));
+		g_strlcpy(cl->locals.persistent.tint_g, "default", sizeof(cl->locals.persistent.tint_g));
 
-		if (strlen(s) && strcmp(s, "default")) { // not default
-			if (ColorParseHex(s, NULL)) {
-				g_strlcpy(cl->locals.persistent.shirt_color, s, sizeof(cl->locals.persistent.shirt_color));
-			}
+		s = GetUserInfo(user_info, "tint_r"); // shirt
+
+		if (strlen(s) && strcmp(s, "default") && ColorParseHex(s, NULL)) { // not default
+			g_strlcpy(cl->locals.persistent.tint_r, s, sizeof(cl->locals.persistent.tint_r));
 		}
 
-		s = GetUserInfo(user_info, "pants");
+		s = GetUserInfo(user_info, "tint_g"); // pants
 
-		if (strlen(s) && strcmp(s, "default")) { // not default
-			if (ColorParseHex(s, NULL)) {
-				g_strlcpy(cl->locals.persistent.pants_color, s, sizeof(cl->locals.persistent.pants_color));
-			}
+		if (strlen(s) && strcmp(s, "default") && ColorParseHex(s, NULL)) { // not default
+			g_strlcpy(cl->locals.persistent.tint_g, s, sizeof(cl->locals.persistent.tint_g));
 		}
 	}
 
@@ -1213,10 +1209,10 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	g_strlcat(client_info, va("%i", cl->locals.persistent.color), MAX_USER_INFO_STRING);
 
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-	g_strlcat(client_info, cl->locals.persistent.shirt_color, MAX_USER_INFO_STRING);
+	g_strlcat(client_info, cl->locals.persistent.tint_r, MAX_USER_INFO_STRING); // shirt
 
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-	g_strlcat(client_info, cl->locals.persistent.pants_color, MAX_USER_INFO_STRING);
+	g_strlcat(client_info, cl->locals.persistent.tint_g, MAX_USER_INFO_STRING); // pants
 
 	// send it to clients
 	gi.SetConfigString(CS_CLIENTS + (cl - g_game.clients), client_info);
