@@ -83,6 +83,7 @@ typedef struct {
 		uint32_t damage_time;
 		int16_t pickup;
 	} blend;
+cvar_t *cg_tint_b; // helmet
 
 	struct {
 		int16_t tag, used_tag;
@@ -827,7 +828,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	// start with base blend based on view origin conents
 	const int32_t contents = cgi.view->contents;
 
-	if (contents & MASK_LIQUID) {
+	if ((contents & MASK_LIQUID) && cg_draw_blend_liquid->value) {
 		uint8_t color;
 		if (contents & CONTENTS_LAVA) {
 			color = 71;
@@ -848,7 +849,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 
 	cg_hud_locals.blend.pickup = p;
 
-	if (cg_hud_locals.blend.pickup_time) {
+	if (cg_hud_locals.blend.pickup_time && cg_draw_blend_pickup->value) {
 		Cg_AddBlendPalette(blend, 215, Cg_CalculateBlendAlpha(cg_hud_locals.blend.pickup_time, CG_PICKUP_BLEND_TIME,
 		                   CG_PICKUP_BLEND_ALPHA));
 	}
@@ -859,7 +860,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 		cg_hud_locals.blend.damage_time = cgi.client->unclamped_time;
 	}
 
-	if (cg_hud_locals.blend.damage_time) {
+	if (cg_hud_locals.blend.damage_time && cg_draw_blend_damage->value) {
 		Cg_AddBlendPalette(blend, 240, Cg_CalculateBlendAlpha(cg_hud_locals.blend.damage_time, CG_DAMAGE_BLEND_TIME,
 		                   CG_DAMAGE_BLEND_ALPHA));
 	}

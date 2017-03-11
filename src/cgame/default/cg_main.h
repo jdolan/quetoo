@@ -35,6 +35,9 @@ extern cvar_t *cg_color;
 extern cvar_t *cg_tint_r; // shirt
 extern cvar_t *cg_tint_g; // pants
 extern cvar_t *cg_draw_blend;
+extern cvar_t *cg_draw_blend_damage;
+extern cvar_t *cg_draw_blend_liquid;
+extern cvar_t *cg_draw_blend_pickup;
 extern cvar_t *cg_draw_captures;
 extern cvar_t *cg_draw_crosshair_color;
 extern cvar_t *cg_draw_crosshair_pulse;

@@ -39,6 +39,9 @@ cvar_t *cg_color;
 cvar_t *cg_tint_r; // shirt
 cvar_t *cg_tint_g; // pants
 cvar_t *cg_draw_blend;
+cvar_t *cg_draw_blend_damage;
+cvar_t *cg_draw_blend_liquid;
+cvar_t *cg_draw_blend_pickup;
 cvar_t *cg_draw_captures;
 cvar_t *cg_draw_crosshair_color;
 cvar_t *cg_draw_crosshair_pulse;
@@ -125,16 +128,23 @@ static void Cg_Init(void) {
 	                    "Specifies your pants color, in the hexadecimal format \"rrggbb\". \"default\" uses the skin or team's defaults.");
 
 	cg_draw_blend = cgi.Cvar("cg_draw_blend", "1.0", CVAR_ARCHIVE,
-	                         "Controls the intensity of screen alpha-blending");
+                                 "Controls the intensity of screen alpha-blending");
+	cg_draw_blend_damage = cgi.Cvar("cg_draw_blend_damage", "1", CVAR_ARCHIVE,
+                                        "Controls if damage has blend flash effect");
+	cg_draw_blend_liquid = cgi.Cvar("cg_draw_blend_liquid", "1", CVAR_ARCHIVE,
+                                        "Controls if being in a liquid has blend flash effect");
+	cg_draw_blend_pickup = cgi.Cvar("cg_draw_blend_pickup", "1", CVAR_ARCHIVE,
+                                        "Controls if picking up items has blend flash effect");
 	cg_draw_captures = cgi.Cvar("cg_draw_captures", "1", CVAR_ARCHIVE,
 	                            "Draw the number of captures");
-	cg_draw_crosshair = cgi.Cvar("cg_draw_crosshair", "1", CVAR_ARCHIVE, NULL);
+	cg_draw_crosshair = cgi.Cvar("cg_draw_crosshair", "1", CVAR_ARCHIVE,
+                                     "Which crosshair image to use, 0 disables (Default is 1)");
 	cg_draw_crosshair_color = cgi.Cvar("cg_draw_crosshair_color", "", CVAR_ARCHIVE,
-	                                   "Specifies the crosshair color (red|green|yellow|default).");
+	                                   "Specifies the crosshair color (red|green|yellow|default)");
 	cg_draw_crosshair_pulse = cgi.Cvar("cg_draw_crosshair_pulse", "1.0", CVAR_ARCHIVE,
 	                                   "Pulse the crosshair when picking up items");
 	cg_draw_crosshair_scale = cgi.Cvar("cg_draw_crosshair_scale", "1.0", CVAR_ARCHIVE,
-	                                   "Controls the crosshair scale (size).");
+	                                   "Controls the crosshair scale (size)");
 
 	cg_draw_held_flag = cgi.Cvar("cg_draw_held_flag", "1", CVAR_ARCHIVE, "Draw the currently held team flag");
 	cg_draw_held_tech = cgi.Cvar("cg_draw_held_tech", "1", CVAR_ARCHIVE, "Draw the currently held tech");
