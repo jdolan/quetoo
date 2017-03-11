@@ -1184,13 +1184,13 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 		g_strlcpy(cl->locals.persistent.tint_r, "default", sizeof(cl->locals.persistent.tint_r));
 		g_strlcpy(cl->locals.persistent.tint_g, "default", sizeof(cl->locals.persistent.tint_g));
 
-		s = GetUserInfo(user_info, "tint_r"); // shirt
+		s = GetUserInfo(user_info, "shirt"); // shirt
 
 		if (strlen(s) && strcmp(s, "default") && ColorParseHex(s, NULL)) { // not default
 			g_strlcpy(cl->locals.persistent.tint_r, s, sizeof(cl->locals.persistent.tint_r));
 		}
 
-		s = GetUserInfo(user_info, "tint_g"); // pants
+		s = GetUserInfo(user_info, "pants"); // pants
 
 		if (strlen(s) && strcmp(s, "default") && ColorParseHex(s, NULL)) { // not default
 			g_strlcpy(cl->locals.persistent.tint_g, s, sizeof(cl->locals.persistent.tint_g));
