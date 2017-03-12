@@ -185,7 +185,7 @@ void RimFragment(void) {
 	if (RIM.ENABLE) {
 		float rim = 1.0 - dot(normal, -normalize(point));
 
-		fragColor.rgb = mix(fragColor.rgb, RIM.COLOR.rgb, (rim * rim) * RIM.COLOR.a);
+		fragColor.rgb = mix(fragColor.rgb, RIM.COLOR.rgb, (rim * rim * rim) * RIM.COLOR.a);
 	}
 }
 
