@@ -290,6 +290,10 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		e->tints[TINT_G] = ci->tint_g;
 	}
 
+	if (ci->tint_b[3]) { // helmmet
+		e->tints[TINT_B] = ci->tint_b;
+	}
+
 	r_entity_t head, torso, legs;
 
 	// copy the specified entity to all body segments

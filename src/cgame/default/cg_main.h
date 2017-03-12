@@ -34,6 +34,7 @@ extern cvar_t *cg_bob;
 extern cvar_t *cg_color;
 extern cvar_t *cg_tint_r; // shirt
 extern cvar_t *cg_tint_g; // pants
+extern cvar_t *cg_tint_b; // helmet
 extern cvar_t *cg_draw_blend;
 extern cvar_t *cg_draw_blend_damage;
 extern cvar_t *cg_draw_blend_liquid;

@@ -38,6 +38,7 @@ cvar_t *cg_bob;
 cvar_t *cg_color;
 cvar_t *cg_tint_r; // shirt
 cvar_t *cg_tint_g; // pants
+cvar_t *cg_tint_b; // helmet
 cvar_t *cg_draw_blend;
 cvar_t *cg_draw_blend_damage;
 cvar_t *cg_draw_blend_liquid;
@@ -126,6 +127,9 @@ static void Cg_Init(void) {
 
 	cg_tint_g = cgi.Cvar("pants", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                    "Specifies your pants color, in the hexadecimal format \"rrggbb\". \"default\" uses the skin or team's defaults.");
+
+	cg_tint_b = cgi.Cvar("helmet", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
+	                    "Specifies your helmet color, in the hexadecimal format \"rrggbb\". \"default\" uses the skin or team's defaults.");
 
 	cg_draw_blend = cgi.Cvar("cg_draw_blend", "1.0", CVAR_ARCHIVE,
                                  "Controls the intensity of screen alpha-blending");

@@ -27,7 +27,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1017
+#define PROTOCOL_MINOR 1018
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -941,8 +941,9 @@ typedef struct {
 	char skin[32];
 	char flag[32]; // flag classname
 	char spawn[32]; // spawn classname
-	char tint_r[COLOR_MAX_LENGTH];
-	char tint_g[COLOR_MAX_LENGTH];
+	char tint_r[COLOR_MAX_LENGTH]; // shirt
+	char tint_g[COLOR_MAX_LENGTH]; // pants
+	char tint_b[COLOR_MAX_LENGTH]; // helmet
 	int16_t color;
 	int16_t effect;
 
@@ -1000,8 +1001,9 @@ typedef struct {
 
 	g_team_t *team; // current team
 	int16_t color; // weapon effect colors
-	char tint_r[COLOR_MAX_LENGTH];
-	char tint_g[COLOR_MAX_LENGTH];
+	char tint_r[COLOR_MAX_LENGTH]; // shirt
+	char tint_g[COLOR_MAX_LENGTH]; // pants
+	char tint_b[COLOR_MAX_LENGTH]; // helmet
 
 	int16_t score;
 	int16_t captures;

@@ -1081,6 +1081,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 
 	// check for malformed or illegal info strings
 	if (!ValidateUserInfo(user_info)) {
+		printf("invalid\n");
 		user_info = DEFAULT_USER_INFO;
 	}
 
@@ -1176,13 +1177,15 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 		}
 	}
 
-	// set red/green tint colors
+	// set red/green/blue tint colors
 	if ((g_level.teams || g_level.ctf) && cl->locals.persistent.team) { // players must use team_skin to change
 		g_strlcpy(cl->locals.persistent.tint_r, cl->locals.persistent.team->tint_r, sizeof(cl->locals.persistent.tint_r));
 		g_strlcpy(cl->locals.persistent.tint_g, cl->locals.persistent.team->tint_g, sizeof(cl->locals.persistent.tint_g));
+		g_strlcpy(cl->locals.persistent.tint_b, cl->locals.persistent.team->tint_b, sizeof(cl->locals.persistent.tint_b));
 	} else {
 		g_strlcpy(cl->locals.persistent.tint_r, "default", sizeof(cl->locals.persistent.tint_r));
 		g_strlcpy(cl->locals.persistent.tint_g, "default", sizeof(cl->locals.persistent.tint_g));
+		g_strlcpy(cl->locals.persistent.tint_b, "default", sizeof(cl->locals.persistent.tint_b));
 
 		s = GetUserInfo(user_info, "shirt"); // shirt
 
@@ -1194,6 +1197,12 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 
 		if (strlen(s) && strcmp(s, "default") && ColorParseHex(s, NULL)) { // not default
 			g_strlcpy(cl->locals.persistent.tint_g, s, sizeof(cl->locals.persistent.tint_g));
+		}
+
+		s = GetUserInfo(user_info, "helmet"); // helmet
+
+		if (strlen(s) && strcmp(s, "default") && ColorParseHex(s, NULL)) { // not default
+			g_strlcpy(cl->locals.persistent.tint_b, s, sizeof(cl->locals.persistent.tint_b));
 		}
 	}
 
@@ -1213,6 +1222,9 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
 	g_strlcat(client_info, cl->locals.persistent.tint_g, MAX_USER_INFO_STRING); // pants
+
+	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
+	g_strlcat(client_info, cl->locals.persistent.tint_b, MAX_USER_INFO_STRING); // helmet
 
 	// send it to clients
 	gi.SetConfigString(CS_CLIENTS + (cl - g_game.clients), client_info);

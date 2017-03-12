@@ -91,7 +91,7 @@ typedef struct {
 } cl_entity_t;
 
 // the total number of tokens info can contain
-#define MAX_CLIENT_INFO_ENTRIES		5
+#define MAX_CLIENT_INFO_ENTRIES		6
 
 typedef struct {
 	char info[MAX_STRING_CHARS]; // the full info string, e.g. newbie\qforcer/blue
@@ -101,6 +101,7 @@ typedef struct {
 	color_t color; // the effect color, parsed from info as a hue value
 	vec4_t tint_r; // red tint (shirt) colors. Alpha > 0 means it's not default.
 	vec4_t tint_g; // green tint (pants) colors. Alpha > 0 means it's not default.
+	vec4_t tint_b; // blue tint (helmet) colors. Alpha > 0 means it's not default.
 
 	r_model_t *head;
 	r_material_t *head_skins[MD3_MAX_MESHES];
