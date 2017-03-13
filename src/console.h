@@ -191,7 +191,6 @@ typedef struct {
 	 * @brief An optional print callback.
 	 */
 	void (*Append)(const console_string_t *str);
-
 } console_t;
 
 void Con_Append(int32_t level, const char *string);

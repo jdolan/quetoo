@@ -5,6 +5,7 @@ SUBDIRS = \
 
 noinst_HEADERS = \
 	ui.h \
+	ui_editor.h \
 	ui_local.h \
 	ui_main.h
 
@@ -12,6 +13,7 @@ noinst_LTLIBRARIES = \
 	libui.la
 
 libui_la_SOURCES = \
+	ui_editor.c \
 	ui_main.c
 
 libui_la_CFLAGS = \
@@ -27,6 +29,6 @@ libui_la_LDFLAGS = \
 
 libui_la_LIBADD = \
 	renderers/librenderers.la \
+	viewcontrollers/libviewcontrollers.la \
 	$(top_builddir)/src/libcommon.la \
 	@OBJECTIVELYMVC_LIBS@
-

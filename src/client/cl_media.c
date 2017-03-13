@@ -57,8 +57,7 @@ void Cl_RequestNextDownload(void) {
 
 	// we're good to go, lock and load (literally)
 
-	Com_InitSubsystem(QUETOO_CLIENT);
-	Cvar_ResetLocal();
+	Car_ResetDeveloper();
 
 	Cl_LoadMedia();
 

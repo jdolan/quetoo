@@ -34,6 +34,7 @@ noinst_LTLIBRARIES = \
 	libimage.la \
 	libmatrix.la \
 	libmem.la \
+	libparse.la \
 	libshared.la \
 	libswap.la \
 	libsys.la \
@@ -112,6 +113,17 @@ libmem_la_LIBADD = \
 	@GLIB_LIBS@ \
 	@SDL2_LIBS@
 
+libparse_la_SOURCES = \
+	parse.c
+libparse_la_CFLAGS = \
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@
+libparse_la_LDFLAGS = \
+	-shared
+libparse_la_LIBADD = \
+	@BASE_LIBS@ \
+	@GLIB_LIBS@
+
 libshared_la_SOURCES = \
 	shared.c \
 	shared-anorms.c
@@ -136,7 +148,8 @@ libsys_la_SOURCES = \
 	sys.c
 libsys_la_CFLAGS = \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@
+	@GLIB_CFLAGS@ \
+	@SDL2_CFLAGS@
 libsys_la_LDFLAGS = \
 	-shared
 libsys_la_LIBADD = \

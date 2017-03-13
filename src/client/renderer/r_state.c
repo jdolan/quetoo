@@ -74,11 +74,9 @@ void R_GetError_(const char *function, const char *msg) {
 
 		Com_Warn("%s threw %s: %s.\n", function, s, msg);
 
-#ifndef _MSC_VER
 		if (r_get_error->integer >= 2) {
-			Sys_Backtrace(msg);
+			SDL_TriggerBreakpoint();
 		}
-#endif
 	}
 }
 
@@ -643,6 +641,16 @@ void R_UseCaustic(void) {
 }
 
 /**
+ * @brief Uploads the tint values
+ */
+void R_UseTints(void) {
+
+	if (r_state.active_program->UseTints) {
+		r_state.active_program->UseTints();
+	}
+}
+
+/**
  * @brief Uploads the interpolation value to the currently loaded program.
  */
 void R_UseInterpolation(const vec_t lerp) {
@@ -842,20 +850,6 @@ static void R_InitSupersample(void) {
 		return;
 	}
 
-	if (!GLAD_GL_ARB_framebuffer_object) {
-
-		Com_Warn("r_supersample set but GL_ARB_framebuffer_object is unavailable.\n");
-		Cvar_Set("r_supersample", "0");
-		return;
-	}
-
-	if (!GLAD_GL_EXT_packed_depth_stencil) {
-
-		Com_Warn("r_supersample set but GL_EXT_packed_depth_stencil is unavailable.\n");
-		Cvar_Set("r_supersample", "0");
-		return;
-	}
-
 	r_context.render_width = (uint32_t) (r_context.width * r_supersample->value);
 	r_context.render_height = (uint32_t) (r_context.height * r_supersample->value);
 
@@ -892,14 +886,14 @@ static void R_InitSupersample(void) {
 
 	glGenRenderbuffers(1, &r_state.supersample_depth);
 	glBindRenderbuffer(GL_RENDERBUFFER, r_state.supersample_depth);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8_EXT, r_context.render_width, r_context.render_height);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, r_context.render_width, r_context.render_height);
 
 	// attempt to gracefully recover from errors
 	if (glGetError() != GL_NO_ERROR) {
 
 		Com_Warn("Couldn't create supersample textures.\n");
 		Cvar_Set("r_supersample", "0");
-
+		
 		r_context.render_width = r_context.width;
 		r_context.render_height = r_context.height;
 
@@ -998,6 +992,9 @@ void R_InitState(void) {
 
 	R_InitSupersample();
 
+	glGenVertexArrays(1, &r_state.vertex_array_object);
+	glBindVertexArray(r_state.vertex_array_object);
+
 	glEnable(GL_CULL_FACE);
 	glFrontFace(GL_CW);
 	glDepthFunc(GL_LEQUAL);
@@ -1011,7 +1008,7 @@ static void R_ShutdownState_PrintBuffers(gpointer       key,
 
 	const r_buffer_t *buffer = (r_buffer_t *) value;
 
-	Com_Warn("Buffer not freed (%u type, %zd bytes), allocated from %s\n",
+	Com_Warn("Buffer not freed (%u type, %" PRIuMAX " bytes), allocated from %s\n",
 	         buffer->type, buffer->size, buffer->func);
 }
 

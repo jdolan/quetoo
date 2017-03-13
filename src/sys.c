@@ -19,35 +19,34 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+
 #include "sys.h"
 #include "filesystem.h"
 
 #include <signal.h>
 
-#if !defined(_MSC_VER)
-	#include <sys/time.h>
-#else
+#if defined(_MSC_VER)
 	#include <DbgHelp.h>
-	#include <SDL.h>
+#else
+	#include <sys/time.h>
 #endif
 
 #if defined(_WIN32)
-#include <shlobj.h>
-#define dlopen(file_name, mode) LoadLibrary(file_name)
+	#include <shlobj.h>
+	#define dlopen(file_name, mode) LoadLibrary(file_name)
 
-static const char *dlerror() {
-	char num_buffer[32];
-	const DWORD err = GetLastError();
+	static const char *dlerror() {
+		char num_buffer[32];
+		const DWORD err = GetLastError();
 
-	itoa(err, num_buffer, 10);
-	return va("Error loading library: %lu", err);
-}
+		itoa(err, num_buffer, 10);
+		return va("Error loading library: %lu", err);
+	}
 
-#define dlsym(handle, symbol) GetProcAddress(handle, symbol)
-#define dlclose(handle) FreeLibrary(handle)
-
+	#define dlsym(handle, symbol) GetProcAddress(handle, symbol)
+	#define dlclose(handle) FreeLibrary(handle)
 #else
-#include <dlfcn.h>
+	#include <dlfcn.h>
 #endif
 
 #if defined(__APPLE__)
@@ -58,6 +57,8 @@ static const char *dlerror() {
 	#include <execinfo.h>
 	#define MAX_BACKTRACE_SYMBOLS 50
 #endif
+
+#include <SDL2/SDL.h>
 
 /**
  * @return The current executable path (argv[0]).
@@ -185,43 +186,68 @@ void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, 
  * @brief On platforms supporting it, print a backtrace.
  */
 void Sys_Backtrace(const char *msg) {
+
 #if HAVE_EXECINFO
+
 	void *symbols[MAX_BACKTRACE_SYMBOLS];
 
-	const int32_t i = backtrace(symbols, MAX_BACKTRACE_SYMBOLS);
-	backtrace_symbols_fd(symbols, i, STDERR_FILENO);
+	const int32_t count = backtrace(symbols, MAX_BACKTRACE_SYMBOLS);
 
-	fflush(stderr);
+	if (!Com_WasInit(QUETOO_CLIENT)) {
+		backtrace_symbols_fd(symbols, count, STDERR_FILENO);
+		return;
+	}
+
+	char **strings = backtrace_symbols(symbols, count);
+
+	char message[MAX_STRING_CHARS] = "";
+	for (int32_t i = 0; i < count; i++) {
+		g_strlcat(message, strings[i], sizeof(message));
+		g_strlcat(message, "\n", sizeof(message));
+	}
+
+	free(strings);
+
+	const SDL_MessageBoxButtonData buttons[] = {};
+
+#elif defined(__MINGW32__)
+
+	char *message = "Quetoo encountered a fatal error.";
+	const SDL_MessageBoxButtonData buttons[] = {};
+
 #elif defined(_MSC_VER)
-#if defined(_DEBUG)
-	assert(0);
-#else
+
+	char *message = va("%s\n\nGenerate crash dump?", msg);
+
 	const SDL_MessageBoxButtonData buttons[] = {
 		{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 0, "No" },
 		{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, "Yes" }
 	};
 
-	const SDL_MessageBoxData messageboxdata = {
-		SDL_MESSAGEBOX_ERROR, /* .flags */
-		NULL, /* .window */
-		"Fatal Error", /* .title */
-		va("%s\n\nGenerate crash dump?", msg), /* .message */
-		lengthof(buttons), /* .numbuttons */
-		buttons, /* .buttons */
-		NULL /* .colorScheme */
+#endif
+
+	const SDL_MessageBoxData data = {
+		.flags = SDL_MESSAGEBOX_ERROR,
+		.window = NULL,
+		.title = msg ?: "Fatal Error",
+		.message = message,
+		.numbuttons = lengthof(buttons),
+		.buttons = buttons,
+		.colorScheme = NULL
 	};
 
-	int buttonid;
-
-	if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
-		SDL_Log("error displaying message box");
+	int32_t button;
+	if (SDL_ShowMessageBox(&data, &button) < 0) {
+		SDL_Log("Error displaying message box");
 		return;
 	}
 
-	if (buttonid == 1) {
+#if defined(_MSC_VER)
+
+	if (button == 1) {
 		RaiseException(EXCEPTION_NONCONTINUABLE_EXCEPTION, EXCEPTION_NONCONTINUABLE, 0, NULL);
 	}
-#endif
+
 #endif
 }
 

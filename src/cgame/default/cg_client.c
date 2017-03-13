@@ -24,7 +24,7 @@
 
 #define DEFAULT_CLIENT_MODEL "qforcer"
 #define DEFAULT_CLIENT_SKIN "default"
-#define DEFAULT_CLIENT_INFO "newbie\\" DEFAULT_CLIENT_MODEL "/" DEFAULT_CLIENT_SKIN
+#define DEFAULT_CLIENT_INFO "newbie\\" DEFAULT_CLIENT_MODEL "/" DEFAULT_CLIENT_SKIN "\\-1\\default\\default"
 
 /**
  * @brief Parses a single line of a .skin definition file. Note that, unlike Quake3,
@@ -137,7 +137,7 @@ static _Bool Cg_ValidateSkin(cl_client_info_t *ci) {
  * has "default" specified.
  */
 color_t Cg_ClientEffectColor(const cl_client_info_t *cl, const color_t default_color) {
-	
+
 	if (cl->color.a) {
 		return cl->color;
 	}
@@ -177,6 +177,8 @@ static _Bool Cg_LoadClientModel(cl_client_info_t *ci, const char *model, const c
 		}
 	}
 
+	cgi.Debug("Could not load client model %s/%s\n", model, skin);
+
 	// if we reach here, something up above didn't load
 	return false;
 }
@@ -212,9 +214,8 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 
 	// split info into tokens
 	gchar **info = g_strsplit(s, "\\", 0);
-	const size_t num_info = g_strv_length(info);
 
-	if (!num_info || num_info > MAX_CLIENT_INFO_ENTRIES) { // invalid info
+	if (g_strv_length(info) != MAX_CLIENT_INFO_ENTRIES) { // invalid info
 		Cg_LoadClient(ci, DEFAULT_CLIENT_INFO);
 	} else {
 
@@ -227,8 +228,11 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 
 			// load the models
 			if (!Cg_LoadClientModel(ci, info[1], v + 1)) {
-				if (!Cg_LoadClientModel(ci, DEFAULT_CLIENT_MODEL, DEFAULT_CLIENT_SKIN)) {
-					cgi.Error("Failed to load default client model\n");
+				if (!Cg_LoadClientModel(ci, info[1], DEFAULT_CLIENT_SKIN)) {
+					if (!Cg_LoadClientModel(ci, DEFAULT_CLIENT_MODEL, DEFAULT_CLIENT_SKIN)) {
+						cgi.Error("Failed to load default client skin %s/%s\n",
+							DEFAULT_CLIENT_MODEL, DEFAULT_CLIENT_SKIN);
+					}
 				}
 			}
 		}
@@ -236,20 +240,35 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 		ci->color = EFFECT_COLOR_DEFAULT;
 
 		// if we have effect color, parse it
-		if (num_info > 2) {
+		int32_t hue = atoi(info[2]);
 
-			int32_t hue = Clamp(atoi(info[2]), 0, 360);
-
-			ci->color = ColorFromHSV((const vec3_t) {
-				hue,
-				1.0,
-				0.5
-			});
+		if (hue != -1) {
+			hue = Clamp(atoi(info[2]), 0, 360);
+			ci->color = ColorFromHSV((const vec3_t) { hue, 1.0, 0.5 });
 		}
-		
+
+		// load red/green/blue tint colors
+		color_t tint_r, tint_g, tint_b;
+		ci->tint_r[3] = ci->tint_g[3] = ci->tint_b[3] = 0.0;
+
+		if (g_strcmp0(info[3], "default") && ColorParseHex(info[3], &tint_r)) { // shirt
+			ColorToVec4(tint_r, ci->tint_r);
+			ci->tint_r[3] = 1.0;
+		}
+
+		if (g_strcmp0(info[4], "default") && ColorParseHex(info[4], &tint_g)) { // pants
+			ColorToVec4(tint_g, ci->tint_g);
+			ci->tint_g[3] = 1.0;
+		}
+
+		if (g_strcmp0(info[5], "default") && ColorParseHex(info[5], &tint_b)) { // helmet
+			ColorToVec4(tint_b, ci->tint_b);
+			ci->tint_b[3] = 1.0;
+		}
+
 		// ensure we were able to load everything
 		if (!Cg_ValidateSkin(ci)) {
-			
+
 			if (!g_strcmp0(s, DEFAULT_CLIENT_INFO)) {
 				cgi.Error("Failed to load default client info\n");
 			}

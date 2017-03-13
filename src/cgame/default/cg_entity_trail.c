@@ -894,14 +894,17 @@ void Cg_EntityTrail(cl_entity_t *ent) {
 	vec3_t start, end;
 	VectorCopy(ent->previous_origin, start);
 
-	// beams have two origins, most entities have just one
+// beams have two origins, most entities have just one
 	if (s->effects & EF_BEAM) {
+
+		VectorCopy(ent->termination, end);
 
 		// client is overridden to specify owner of the beam
 		if (ent->current.client == cgi.client->client_num && !cgi.client->third_person) {
 
 			// we own this beam (lightning, grapple, etc..)
-			// project start position below the view origin
+			// project start & end points based on our current view origin
+			vec_t dist = VectorDistance(start, end);
 
 			VectorMA(cgi.view->origin, 8.0, cgi.view->forward, start);
 
@@ -919,9 +922,12 @@ void Cg_EntityTrail(cl_entity_t *ent) {
 			}
 
 			VectorMA(start, -8.0, cgi.view->up, start);
-		}
 
-		VectorCopy(ent->termination, end);
+			// lightning always uses predicted end points
+			if (s->trail == TRAIL_LIGHTNING) {
+				VectorMA(start, dist, cgi.view->forward, end);
+			}
+		}
 	} else {
 		VectorCopy(ent->origin, end);
 	}

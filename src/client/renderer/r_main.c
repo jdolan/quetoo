@@ -450,23 +450,23 @@ static void R_InitLocal(void) {
 
 	// development tools
 	r_clear = Cvar_Add("r_clear", "0", 0, "Controls buffer clearing (developer tool)");
-	r_cull = Cvar_Add("r_cull", "1", CVAR_LO_ONLY,
+	r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER,
 	                  "Controls bounded box culling routines (developer tool)");
-	r_lock_vis = Cvar_Add("r_lock_vis", "0", CVAR_LO_ONLY,
+	r_lock_vis = Cvar_Add("r_lock_vis", "0", CVAR_DEVELOPER,
 	                      "Temporarily locks the PVS lookup for world surfaces (developer tool)");
-	r_no_vis = Cvar_Add("r_no_vis", "0", CVAR_LO_ONLY,
+	r_no_vis = Cvar_Add("r_no_vis", "0", CVAR_DEVELOPER,
 	                    "Disables PVS refresh and lookup for world surfaces (developer tool)");
-	r_draw_bsp_leafs = Cvar_Add("r_draw_bsp_leafs", "0", CVAR_LO_ONLY,
+	r_draw_bsp_leafs = Cvar_Add("r_draw_bsp_leafs", "0", CVAR_DEVELOPER,
 	                            "Controls the rendering of BSP leafs (developer tool)");
-	r_draw_bsp_lights = Cvar_Add("r_draw_bsp_lights", "0", CVAR_LO_ONLY,
+	r_draw_bsp_lights = Cvar_Add("r_draw_bsp_lights", "0", CVAR_DEVELOPER,
 	                             "Controls the rendering of static BSP light sources (developer tool)");
-	r_draw_bsp_lightmaps = Cvar_Add("r_draw_bsp_lightmaps", "0", CVAR_LO_ONLY,
+	r_draw_bsp_lightmaps = Cvar_Add("r_draw_bsp_lightmaps", "0", CVAR_DEVELOPER,
 	                                "Controls the rendering of BSP lightmap textures (developer tool)");
-	r_draw_bsp_normals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_LO_ONLY,
+	r_draw_bsp_normals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_DEVELOPER,
 	                              "Controls the rendering of BSP surface normals (developer tool)");
-	r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_LO_ONLY,
+	r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER,
 	                                "Controls the rendering of entity bounding boxes (developer tool)");
-	r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_LO_ONLY,
+	r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER,
 	                            "Controls the rendering of polygons as wireframe (developer tool)");
 
 	// settings and preferences
@@ -561,7 +561,9 @@ static void R_InitConfig(void) {
 	r_config.renderer = (const char *) glGetString(GL_RENDERER);
 	r_config.vendor = (const char *) glGetString(GL_VENDOR);
 	r_config.version = (const char *) glGetString(GL_VERSION);
-	r_config.extensions = (const char *) glGetString(GL_EXTENSIONS);
+
+	int32_t num_extensions;
+	glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
 
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &r_config.max_texunits);
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &r_config.max_texture_size);
@@ -572,21 +574,14 @@ static void R_InitConfig(void) {
 	Com_Verbose("  Tex Units:  ^2%i^7\n", r_config.max_texunits);
 	Com_Verbose("  Tex Size:   ^2%i^7\n", r_config.max_texture_size);
 
-	const char *e = r_config.extensions, *c = r_config.extensions;
-	while (*c) {
+	for (int32_t i = 0; i < num_extensions; i++) {
+		const char *c = (const char *) glGetStringi(GL_EXTENSIONS, i);
 
-		if (*c == ' ') {
-			char *ext = g_strndup(e, (ptrdiff_t) (c - e));
-			if (e == r_config.extensions) {
-				Com_Verbose("  Extensions: ^2%s^7\n", ext);
-			} else {
-				Com_Verbose("              ^2%s^7\n", ext);
-			}
-			g_free(ext);
-			e = c + 1;
+		if (i == 0) {
+			Com_Verbose("  Extensions: ^2%s^7\n", c);
+		} else {
+			Com_Verbose("              ^2%s^7\n", c);
 		}
-
-		c++;
 	}
 }
 

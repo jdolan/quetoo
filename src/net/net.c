@@ -180,6 +180,8 @@ int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port) {
 			if (setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (const void *) &i, sizeof(i)) == -1) {
 				Com_Error(ERROR_DROP, "setsockopt: %s\n", Net_GetErrorString());
 			}
+
+			Net_SetNonBlocking(sock, true);
 			break;
 
 		case NA_STREAM:
@@ -194,11 +196,6 @@ int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port) {
 
 		default:
 			Com_Error(ERROR_DROP, "Invalid socket type: %d", type);
-	}
-
-	// make all sockets non-blocking
-	if (ioctl(sock, FIONBIO, (void *) &i) == -1) {
-		Com_Error(ERROR_DROP, "ioctl: %s\n", Net_GetErrorString());
 	}
 
 	struct sockaddr_in addr;
@@ -218,6 +215,17 @@ int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port) {
 	}
 
 	return sock;
+}
+
+/**
+ * @brief Make the specified socket non-blocking.
+ */
+void Net_SetNonBlocking(int32_t sock, _Bool non_blocking) {
+	int32_t i = non_blocking;
+
+	if (ioctl(sock, FIONBIO, (void *) &i) == -1) {
+		Com_Error(ERROR_DROP, "ioctl: %s\n", Net_GetErrorString());
+	}
 }
 
 /**

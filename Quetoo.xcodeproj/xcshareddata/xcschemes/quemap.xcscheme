@@ -67,7 +67,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-mat -bsp -vis -light -zip maps/lighttest.map"
+            argument = "-bsp -vis -light /Users/jdolan/.quetoo/default/maps/sandbox.map"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

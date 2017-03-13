@@ -820,7 +820,7 @@ static void Sv_InitLocal(void) {
 	                       "The server hostname, visible in the server browser");
 	sv_max_clients = Cvar_Add("sv_max_clients", "1", CVAR_SERVER_INFO | CVAR_LATCH,
 	                          "The maximum number of clients the server will allow");
-	sv_no_areas = Cvar_Add("sv_no_areas", "0", CVAR_LATCH | CVAR_LO_ONLY,
+	sv_no_areas = Cvar_Add("sv_no_areas", "0", CVAR_LATCH | CVAR_DEVELOPER,
 	                       "Disable server-side area management (developer tool)");
 	sv_public = Cvar_Add("sv_public", "0", 0,
 	                     "Set to 1 to to advertise this server via the master server");

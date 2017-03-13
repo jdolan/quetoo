@@ -710,10 +710,10 @@ static void Pm_CheckHook(void) {
 
 		// pull physics
 		VectorSubtract(pm->s.hook_position, pm->s.origin, pm->s.velocity);
-		vec_t chain_len = VectorNormalize(pm->s.velocity);
+		const vec_t dist = VectorNormalize(pm->s.velocity);
 
-		if (chain_len > 8.0 && !Pm_CheckHookJump()) {
-			VectorScale(pm->s.velocity, Max(chain_len, pm->hook_pull_speed), pm->s.velocity);
+		if (dist > 8.0 && !Pm_CheckHookJump()) {
+			VectorScale(pm->s.velocity, pm->hook_pull_speed, pm->s.velocity);
 		} else {
 			VectorClear(pm->s.velocity);
 		}

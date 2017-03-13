@@ -417,4 +417,19 @@ void G_EndClientFrames(void) {
 
 		G_ClientEndFrame(ent);
 	}
+
+	// now loop through again, and for chase camera users, copy the final player state
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+
+		g_entity_t *ent = g_game.entities + 1 + i;
+
+		if (!ent->in_use || !ent->client) {
+			continue;
+		}
+
+		if (ent->client->locals.chase_target) {
+			G_ClientChaseThink(ent);
+			G_ClientSpectatorStats(ent);
+		}
+	}
 }

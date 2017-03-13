@@ -21,6 +21,7 @@
 
 #include "console.h"
 #include "filesystem.h"
+#include "parse.h"
 
 typedef struct cmd_args_s {
 	int32_t argc;
@@ -200,7 +201,6 @@ const char *Cmd_Args(void) {
  * @brief Parses the given string into command line tokens.
  */
 void Cmd_TokenizeString(const char *text) {
-	char *c;
 
 	// clear the command state from the last string
 	memset(&cmd_state.args, 0, sizeof(cmd_state.args));
@@ -215,6 +215,9 @@ void Cmd_TokenizeString(const char *text) {
 		return;
 	}
 
+	parser_t parser;
+	Parse_Init(&parser, text, PARSER_DEFAULT);
+
 	while (true) {
 		// stop after we've exhausted our token buffer
 		if (cmd_state.args.argc == MAX_STRING_TOKENS) {
@@ -222,39 +225,29 @@ void Cmd_TokenizeString(const char *text) {
 			return;
 		}
 
-		// skip whitespace up to a \n
-		while (*text <= ' ') {
-			if (!*text || *text == '\n') {
-				return;
-			}
-			text++;
-		}
-
 		// set cmd_state.args to everything after the command name
 		if (cmd_state.args.argc == 1) {
-			g_strlcpy(cmd_state.args.args, text, MAX_STRING_CHARS);
+			g_strlcpy(cmd_state.args.args, parser.position.ptr + 1, MAX_STRING_CHARS);
 
 			// strip off any trailing whitespace
 			size_t l = strlen(cmd_state.args.args);
-			c = &cmd_state.args.args[l - 1];
+			char *c = &cmd_state.args.args[l - 1];
 
 			while (*c <= ' ') {
 				*c-- = '\0';
 			}
 		}
 
-		c = ParseToken(&text);
-
-		if (*c == '\0' && !text) { // we're done
+		if (!Parse_Token(&parser, PARSE_NO_WRAP | PARSE_COPY_QUOTED_LITERALS, cmd_state.args.argv[cmd_state.args.argc], MAX_TOKEN_CHARS)) { // we're done
 			return;
 		}
 
 		// expand console variables
-		if (*c == '$' && g_strcmp0(cmd_state.args.argv[0], "alias")) {
-			c = (char *) Cvar_GetString(c + 1);
+		if (*cmd_state.args.argv[cmd_state.args.argc] == '$' && g_strcmp0(cmd_state.args.argv[0], "alias")) {
+			char *c = (char *) Cvar_GetString(cmd_state.args.argv[cmd_state.args.argc] + 1);
+			g_strlcpy(cmd_state.args.argv[cmd_state.args.argc], c, MAX_TOKEN_CHARS);
 		}
 
-		g_strlcpy(cmd_state.args.argv[cmd_state.args.argc], c, MAX_TOKEN_CHARS);
 		cmd_state.args.argc++;
 	}
 }
@@ -450,7 +443,29 @@ void Cmd_RemoveAll(uint32_t flags) {
 	}
 }
 
-static const char *cmd_complete_pattern;
+/**
+ * @brief Stringify a command. This memory is temporary.
+ */
+static const char *Cmd_Stringify(const cmd_t *cmd) {
+	static char buffer[MAX_STRING_CHARS];
+	buffer[0] = '\0';
+
+	if (cmd->Execute) {
+		g_strlcat(buffer, va("^1%s^7", cmd->name), sizeof(buffer));
+
+		if (cmd->description) {
+			g_strlcat(buffer, va("\n\t%s", cmd->description), sizeof(buffer));
+		}
+	} else if (cmd->commands) {
+		g_strlcat(buffer, va("^3%s^7\n\t%s", cmd->name, cmd->commands), sizeof(buffer));
+	} else {
+		return NULL;
+	}
+
+	return buffer;
+}
+
+static char cmd_complete_pattern[MAX_STRING_CHARS];
 
 /**
  * @brief Enumeration helper for Cmd_CompleteCommand.
@@ -459,19 +474,7 @@ static void Cmd_CompleteCommand_enumerate(cmd_t *cmd, void *data) {
 	GList **matches = (GList **) data;
 
 	if (GlobMatch(cmd_complete_pattern, cmd->name, GLOB_CASE_INSENSITIVE)) {
-
-		if (cmd->Execute) {
-			Com_Print("^1%s^7\n", cmd->name);
-
-			if (cmd->description) {
-				Com_Print("\t%s\n", cmd->description);
-			}
-		} else if (cmd->commands) {
-			Com_Print("^3%s^7\n", cmd->name);
-			Com_Print("\t%s\n", cmd->commands);
-		}
-
-		*matches = g_list_prepend(*matches, Mem_TagCopyString(cmd->name, MEM_TAG_CMD));
+		*matches = g_list_insert_sorted(*matches, Com_AllocMatch(cmd->name, Cmd_Stringify(cmd)), Com_MatchCompare);
 	}
 }
 
@@ -479,7 +482,7 @@ static void Cmd_CompleteCommand_enumerate(cmd_t *cmd, void *data) {
  * @brief Console completion for commands and aliases.
  */
 void Cmd_CompleteCommand(const char *pattern, GList **matches) {
-	cmd_complete_pattern = pattern;
+	g_strlcpy(cmd_complete_pattern, pattern, sizeof(cmd_complete_pattern));
 	Cmd_Enumerate(Cmd_CompleteCommand_enumerate, (void *) matches);
 }
 
@@ -574,14 +577,8 @@ static void Cmd_Alias_f(void) {
  * @brief Enumeration helper for Cmd_List_f.
  */
 static void Cmd_List_f_enumerate(cmd_t *cmd, void *data) {
-
-	if (cmd->Execute) {
-		Com_Print("%s\n", cmd->name);
-
-		if (cmd->description) {
-			Com_Print("   ^2%s\n", cmd->description);
-		}
-	}
+	
+	Com_Print("%s\n", Cmd_Stringify(cmd));
 }
 
 /**

@@ -20,8 +20,8 @@
  */
 
 #include "cl_local.h"
-
 #include "server/server.h"
+#include "parse.h"
 
 cvar_t *cl_chat_sound;
 cvar_t *cl_draw_counters;
@@ -249,8 +249,6 @@ void Cl_ClearState(void) {
 
 	// wipe the entire cl_client_t structure
 	memset(&cl, 0, sizeof(cl));
-
-	Com_QuitSubsystem(QUETOO_CLIENT);
 
 	Mem_ClearBuffer(&cls.net_chan.message);
 }
@@ -534,32 +532,32 @@ static void Cl_WriteConfiguration(void) {
 static void Cl_InitLocal(void) {
 
 	// register our variables
-	cl_chat_sound = Cvar_Add("cl_chat_sound", "misc/chat", 0, NULL);
-	cl_draw_counters = Cvar_Add("cl_draw_counters", "1", CVAR_ARCHIVE, NULL);
-	cl_draw_position = Cvar_Add("cl_draw_position", "0", CVAR_LO_ONLY, "Draw your current position to the screen");
-	cl_draw_net_graph = Cvar_Add("cl_draw_net_graph", "1", CVAR_ARCHIVE, NULL);
-	cl_editor = Cvar_Add("cl_editor", "0", CVAR_LO_ONLY, "Activate the in-game editor");
-	cl_ignore = Cvar_Add("cl_ignore", "", 0, NULL);
-	cl_max_fps = Cvar_Add("cl_max_fps", "0", CVAR_ARCHIVE, NULL);
-	cl_no_lerp = Cvar_Add("cl_no_lerp", "0", CVAR_LO_ONLY, "Disable frame interpolation (developer tool)");
-	cl_team_chat_sound = Cvar_Add("cl_team_chat_sound", "misc/teamchat", 0, NULL);
-	cl_timeout = Cvar_Add("cl_timeout", "15.0", 0, NULL);
+	cl_chat_sound = Cvar_Add("cl_chat_sound", "misc/chat", CVAR_ARCHIVE, "Path to the sound that is made when a chat message is received");
+	cl_draw_counters = Cvar_Add("cl_draw_counters", "1", CVAR_ARCHIVE, "Draw the speed, fps and pps counters at the bottom-right");
+	cl_draw_position = Cvar_Add("cl_draw_position", "0", CVAR_DEVELOPER, "Draw your current position to the screen");
+	cl_draw_net_graph = Cvar_Add("cl_draw_net_graph", "1", CVAR_ARCHIVE, "Draw the net graph at the bottom-right");
+	cl_editor = Cvar_Add("cl_editor", "0", CVAR_DEVELOPER, "Activate the in-game editor");
+	cl_ignore = Cvar_Add("cl_ignore", "", 0, "A list of patterns that will be matched against incoming messages and ignored by your client");
+	cl_max_fps = Cvar_Add("cl_max_fps", "0", CVAR_ARCHIVE, "The max FPS that your client will attempt to run at");
+	cl_no_lerp = Cvar_Add("cl_no_lerp", "0", CVAR_DEVELOPER, "Disable frame interpolation");
+	cl_team_chat_sound = Cvar_Add("cl_team_chat_sound", "misc/teamchat", CVAR_ARCHIVE, "Path to the sound that is made when a team chat message is received");
+	cl_timeout = Cvar_Add("cl_timeout", "15.0", CVAR_ARCHIVE, "Time, in seconds, that you'll remain connected to a potentially dead server");
 
 	// user info
 
 	name = Cvar_Add("name", Cl_Username(), CVAR_USER_INFO | CVAR_ARCHIVE, "Your player name");
-	message_level = Cvar_Add("message_level", "0", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
-	password = Cvar_Add("password", "", CVAR_USER_INFO, NULL);
-	rate = Cvar_Add("rate", "0", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
+	message_level = Cvar_Add("message_level", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "The lowest message level you'll receive");
+	password = Cvar_Add("password", "", CVAR_USER_INFO, "Password to the server you want to connect to");
+	rate = Cvar_Add("rate", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "Your bandwidth throttle, or 0 for none");
 
 	qport = Cvar_Add("qport", va("%d", Random() & 0xff), 0, NULL);
 
 	rcon_address = Cvar_Add("rcon_address", "", 0, NULL);
 	rcon_password = Cvar_Add("rcon_password", "", 0, NULL);
 
-	cl_show_net_messages = Cvar_Add("cl_show_net_messages", "0", CVAR_LO_ONLY, NULL);
-	cl_show_renderer_stats = Cvar_Add("cl_show_renderer_stats", "0", CVAR_LO_ONLY, NULL);
-	cl_show_sound_stats = Cvar_Add("cl_show_sound_stats", "0", CVAR_LO_ONLY, NULL);
+	cl_show_net_messages = Cvar_Add("cl_show_net_messages", "0", CVAR_DEVELOPER, NULL);
+	cl_show_renderer_stats = Cvar_Add("cl_show_renderer_stats", "0", CVAR_DEVELOPER, NULL);
+	cl_show_sound_stats = Cvar_Add("cl_show_sound_stats", "0", CVAR_DEVELOPER, NULL);
 
 	// register our commands
 	Cmd_Add("ping", Cl_Ping_f, CMD_CLIENT, NULL);
@@ -650,10 +648,12 @@ void Cl_Frame(const uint32_t msec) {
  */
 void Cl_Init(void) {
 
+	Com_Print("Client initialization...\n");
+
 	memset(&cls, 0, sizeof(cls));
 
 	if (dedicated->value) {
-		return;    // nothing running on the client
+		return; // nothing running on the client
 	}
 
 	cls.state = CL_DISCONNECTED;
@@ -683,6 +683,9 @@ void Cl_Init(void) {
 	Cl_InitCgame();
 
 	Cl_SetKeyDest(KEY_UI);
+
+	Com_Print("Client initialized\n");
+	Com_InitSubsystem(QUETOO_CLIENT);
 }
 
 /**
@@ -693,6 +696,8 @@ void Cl_Shutdown(void) {
 	if (dedicated->value) {
 		return;
 	}
+
+	Com_Print("Client shutdown...\n");
 
 	Cl_Disconnect();
 
@@ -717,4 +722,7 @@ void Cl_Shutdown(void) {
 	Cmd_RemoveAll(CMD_CLIENT);
 
 	Mem_FreeTag(MEM_TAG_CLIENT);
+
+	Com_Print("Client down\n");
+	Com_QuitSubsystem(QUETOO_CLIENT);
 }

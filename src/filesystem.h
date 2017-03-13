@@ -45,6 +45,7 @@ typedef void (*Fs_EnumerateFunc)(const char *path, void *data);
 
 const char *Fs_BaseDir(void);
 _Bool Fs_Close(file_t *file);
+_Bool Fs_Delete(const char *filename);
 _Bool Fs_Eof(file_t *file);
 _Bool Fs_Exists(const char *filename);
 _Bool Fs_Flush(file_t *file);

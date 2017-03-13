@@ -24,7 +24,7 @@
 
 #include "client/cl_types.h"
 
-#define CGAME_API_VERSION 15
+#define CGAME_API_VERSION 16
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -270,14 +270,24 @@ typedef struct cg_import_s {
 	 */
 
 	/**
-	 * @brief Adds the specified ViewController to the user interface.
+	 * @brief Pushes the specified ViewController to the user interface.
 	 */
-	void (*AddViewController)(ViewController *viewController);
+	void (*PushViewController)(ViewController *viewController);
 
 	/**
-	 * @brief Removes the specified ViewController from the user interface.
+	 * @brief Pops all higher ViewControllers from the user interface to make the selected one visible.
 	 */
-	void (*RemoveViewController)(ViewController *viewController);
+	void (*PopToViewController)(ViewController *viewController);
+
+	/**
+	 * @brief Pops the top ViewController from the user interface.
+	 */
+	void (*PopViewController)(void);
+
+	/**
+	 * @brief Pops all ViewControllers from the user interface.
+	 */
+	void (*PopAllViewControllers)(void);
 
 	/**
 	 * @brief Resolves the next key after `from` that references `bind`.
@@ -602,7 +612,7 @@ typedef struct cg_import_s {
 	 * @param e The entity.
 	 */
 	void (*SetMatrixForEntity)(r_entity_t *e);
-	
+
 	/**
 	 * @brief Returns the desired tag structure, or `NULL`.
 	 * @param mod The model to check for the specified tag.

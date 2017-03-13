@@ -20,6 +20,7 @@
  */
 
 #include "g_local.h"
+#include "parse.h"
 
 typedef struct {
 	char *name;
@@ -152,8 +153,6 @@ static g_entity_spawn_t g_entity_spawns[] = { // entity class names -> spawn fun
  * @brief Finds the spawn function for the entity and calls it.
  */
 static _Bool G_SpawnEntity(g_entity_t *ent) {
-	g_entity_spawn_t *s;
-	int32_t i;
 
 	if (!ent->class_name) {
 		gi.Debug("NULL classname\n");
@@ -161,7 +160,7 @@ static _Bool G_SpawnEntity(g_entity_t *ent) {
 	}
 
 	// check item spawn functions
-	for (i = 0; i < g_num_items; i++) {
+	for (int32_t i = 0; i < g_num_items; i++) {
 
 		const g_item_t *item = G_ItemByIndex(i);
 
@@ -176,7 +175,7 @@ static _Bool G_SpawnEntity(g_entity_t *ent) {
 	}
 
 	// check normal spawn functions
-	for (s = g_entity_spawns; s->name; s++) {
+	for (g_entity_spawn_t *s = g_entity_spawns; s->name; s++) {
 		if (!g_strcmp0(s->name, ent->class_name)) { // found it
 			s->Spawn(ent);
 			return true;
@@ -348,38 +347,34 @@ static void G_ParseField(const char *key, const char *value, g_entity_t *ent) {
 }
 
 /**
- * @brief Parses an entity out of the given string, returning the new position
- * in said string. The entity should be a properly initialized free entity.
+ * @brief Parses an entity out of the given string. 
+ * The entity should be a properly initialized free entity.
  */
-static const char *G_ParseEntity(const char *data, g_entity_t *ent) {
+static void G_ParseEntity(parser_t *parser, g_entity_t *ent) {
 	_Bool init;
-	char key[MAX_QPATH];
-	const char *tok;
+	char key[MAX_QPATH], value[MAX_QPATH];
 
 	init = false;
 	memset(&g_game.spawn, 0, sizeof(g_game.spawn));
 
 	// go through all the dictionary pairs
 	while (true) {
-		// parse key
-		tok = ParseToken(&data);
-		if (tok[0] == '}') {
-			break;
-		}
 
-		if (!data) {
+		// parse key
+		if (!Parse_Token(parser, PARSE_DEFAULT, key, sizeof(key))) {
 			gi.Error("EOF without closing brace\n");
 		}
 
-		g_strlcpy(key, tok, sizeof(key));
+		if (key[0] == '}') {
+			break;
+		}
 
 		// parse value
-		tok = ParseToken(&data);
-		if (!data) {
+		if (!Parse_Token(parser, PARSE_DEFAULT | PARSE_NO_WRAP, value, sizeof(value))) {
 			gi.Error("EOF in entity definition\n");
 		}
 
-		if (tok[0] == '}') {
+		if (value[0] == '}') {
 			gi.Error("No entity definition\n");
 		}
 
@@ -391,14 +386,12 @@ static const char *G_ParseEntity(const char *data, g_entity_t *ent) {
 			continue;
 		}
 
-		G_ParseField(key, tok, ent);
+		G_ParseField(key, value, ent);
 	}
 
 	if (!init) {
 		G_ClearEntity(ent);
 	}
-
-	return data;
 }
 
 /**
@@ -496,6 +489,7 @@ static void G_InitMedia(void) {
 	g_media.models.grenade = gi.ModelIndex("models/objects/grenade/tris");
 	g_media.models.rocket = gi.ModelIndex("models/objects/rocket/tris");
 	g_media.models.hook = gi.ModelIndex("models/objects/grapplehook/tris");
+	g_media.models.fireball = gi.ModelIndex("models/objects/fireball/tris");
 
 	g_media.sounds.bfg_hit = gi.SoundIndex("weapons/bfg/hit");
 	g_media.sounds.bfg_prime = gi.SoundIndex("weapons/bfg/prime");
@@ -522,6 +516,9 @@ static void G_InitMedia(void) {
 
 	for (i = 0; i < NUM_GIB_MODELS; i++) {
 		g_media.models.gibs[i] = gi.ModelIndex(va("models/gibs/gib_%i/tris", i + 1));
+	}
+
+	for (i = 0; i < NUM_GIB_SOUNDS; i++) {
 		g_media.sounds.gib_hits[i] = gi.SoundIndex(va("gibs/gib_%i/hit", i + 1));
 	}
 
@@ -802,6 +799,17 @@ static void G_InitSpawnPoints(void) {
 }
 
 /**
+ * @brief
+ */
+void G_SpawnTech(const g_item_t *item) {
+
+	g_entity_t *spawn = G_SelectTechSpawnPoint();
+	g_entity_t *ent = G_DropItem(spawn, item);
+
+	VectorSet(ent->locals.velocity, Randomc() * 250, Randomc() * 250, 200 + (Randomf() * 200));
+}
+
+/**
  * @brief Spawn all of the techs
  */
 void G_SpawnTechs(void) {
@@ -811,10 +819,7 @@ void G_SpawnTechs(void) {
 	}
 
 	for (g_tech_t i = 0; i < TECH_TOTAL; i++) {
-		g_entity_t *point = G_SelectTechSpawnPoint();
-		g_entity_t *tech_ent = G_DropItem(point, g_media.items.techs[i]);
-
-		VectorSet(tech_ent->locals.velocity, Randomc() * 250, Randomc() * 250, 200 + (Randomf() * 200));
+		G_SpawnTech(g_media.items.techs[i]);
 	}
 }
 
@@ -866,13 +871,15 @@ void G_SpawnEntities(const char *name, const char *entities) {
 
 	gchar **inhibit = g_strsplit(g_inhibit->string, " ", -1);
 	int32_t inhibited = 0;
+	
+	parser_t parser;
+	char tok[MAX_QPATH];
+	Parse_Init(&parser, entities, PARSER_NO_COMMENTS);
 
 	// parse the entity definition string
 	while (true) {
 
-		const char *tok = ParseToken(&entities);
-
-		if (!entities) {
+		if (!Parse_Token(&parser, PARSE_DEFAULT, tok, sizeof(tok))) {
 			break;
 		}
 
@@ -886,7 +893,7 @@ void G_SpawnEntities(const char *name, const char *entities) {
 			ent = G_AllocEntity();
 		}
 
-		entities = G_ParseEntity(entities, ent);
+		G_ParseEntity(&parser, ent);
 
 		if (ent != g_game.entities) {
 
@@ -989,6 +996,7 @@ static void G_WorldspawnMusic(void) {
  brightness : Global light scale, a single positive scalar value (e.g. 1.125).
  saturation : Global light saturation, a single positive scalar value (e.g. 0.9).
  contrast : Global light contrast, a single positive scalar value (e.g. 1.17).
+ patch_size : Surface light patch size (default 64).
  weather : Weather effects, one of "none, rain, snow" followed optionally by "fog r g b."
  gravity : Gravity for the level (default 800).
  gameplay : The gameplay mode, one of "deathmatch, instagib, arena."

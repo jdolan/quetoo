@@ -40,11 +40,13 @@ const vec3_t vec3_forward = { 0.0, 1.0, 0.0 };
  */
 int32_t Random(void) {
 
-	static uint32_t state = 0;
-	static _Bool uninitalized = true;
+	static uint32_t seed;
+	static __thread uint32_t state = 0;
+	static __thread _Bool uninitalized = true;
 
 	if (uninitalized) {
-		state = (uint32_t) time(NULL);
+		seed += (uint32_t) time(NULL);
+		state = seed;
 		uninitalized = false;
 	}
 
@@ -631,36 +633,6 @@ void ColorDecompose3(const vec3_t in, u8vec3_t out) {
 }
 
 /**
- * @brief Returns the longest common prefix the specified words share.
- */
-char *CommonPrefix(GList *words) {
-	static char common_prefix[MAX_TOKEN_CHARS];
-
-	memset(common_prefix, 0, sizeof(common_prefix));
-
-	if (!words) {
-		return common_prefix;
-	}
-
-	for (size_t i = 0; i < sizeof(common_prefix) - 1; i++) {
-		GList *e = words;
-		const char c = ((char *) e->data)[i];
-		while (e) {
-			const char *w = (char *) e->data;
-
-			if (!c || tolower(w[i]) != tolower(c)) { // prefix no longer common
-				return common_prefix;
-			}
-
-			e = e->next;
-		}
-		common_prefix[i] = c;
-	}
-
-	return common_prefix;
-}
-
-/**
  * @brief Handles wildcard suffixes for GlobMatch.
  */
 static _Bool GlobMatchStar(const char *pattern, const char *text, const glob_flags_t flags) {
@@ -859,11 +831,17 @@ void Dirname(const char *in, char *out) {
  */
 void StripExtension(const char *in, char *out) {
 
-	while (*in && *in != '.') {
-		*out++ = *in++;
-	}
+	if (in) {
+		const size_t len = strlen(in);
+		memmove(out, in, len + 1);
 
-	*out = '\0';
+		char *ext = strrchr(out, '.');
+		if (ext) {
+			*ext = '\0';
+		}
+	} else {
+		*out = '\0';
+	}
 }
 
 /**
@@ -997,79 +975,6 @@ char *vtos(const vec3_t v) {
 	}
 
 	return s;
-}
-
-/**
- * @brief Parse a token out of a string. Tokens are delimited by white space, and
- * may be grouped by quotation marks.
- *
- * @return The next token in the stream, or the empty string (`""`) if EOF.
- */
-char *ParseToken(const char **in) {
-	static char token[MAX_TOKEN_CHARS];
-
-	if (!*in) {
-		return "";
-	}
-
-	memset(&token, 0, sizeof(token));
-
-	const char *s = *in;
-	size_t len = 0;
-	char c;
-
-	// skip whitespace
-skipwhite:
-	while ((c = *s) <= ' ') {
-		if (c == '\0') {
-			*in = NULL;
-			return "";
-		}
-		s++;
-	}
-
-	// skip // comments
-	if (c == '/' && s[1] == '/') {
-		while (*s && *s != '\n') {
-			s++;
-		}
-		goto skipwhite;
-	}
-
-	// handle quoted strings specially
-	if (c == '\"') {
-		s++;
-		while (true) {
-			c = *s++;
-			if (c == '\"' || !c) {
-				token[len] = '\0';
-				*in = s;
-				return token;
-			}
-			if (len < MAX_TOKEN_CHARS) {
-				token[len] = c;
-				len++;
-			}
-		}
-	}
-
-	// parse a regular word
-	do {
-		if (len < MAX_TOKEN_CHARS) {
-			token[len] = c;
-			len++;
-		}
-		s++;
-		c = *s;
-	} while (c > 32);
-
-	if (len == MAX_TOKEN_CHARS) {
-		len = 0;
-	}
-	token[len] = '\0';
-
-	*in = s;
-	return token;
 }
 
 /**
@@ -1238,11 +1143,48 @@ void SetUserInfo(char *s, const char *key, const char *value) {
 	*s = '\0';
 }
 
+#define HEX_TO_DEC(l) \
+		(l >= 'a' && l <= 'f') ? (10 + (5 - ('f' - l))) : (9 - ('9' - l))
+
+/**
+ * @brief Damn you, MinGW.
+ */
+static _Bool ParseHexString(const char *input, color_t *output, const uint8_t num_digits, const uint8_t num_values) {
+	byte *c = output->bytes;
+	const char *id = input;
+
+	for (uint8_t i = 0; i < num_values; i++, c++) {
+
+		for (uint8_t d = 0, o = 0; d < num_digits; d++, id++, o += 4) {
+			const char l = tolower(*id);
+
+			if (!((l >= 'a' && l <= 'f') || (l >= '0' && l <= '9'))) {
+				return false;
+			}
+			
+			const uint8_t dec = HEX_TO_DEC(l);
+
+			if (d == 0) {
+				*c = dec << o;
+			} else {
+				*c |= dec << o;
+			}
+		}
+	}
+
+	return true;
+}
+
 /**
  * @brief Attempt to convert a hexadecimal value to its string representation.
  */
 _Bool ColorParseHex(const char *s, color_t *color) {
 	const size_t s_len = strlen(s);
+	static color_t temp;
+	
+	if (!color) {
+		color = &temp;
+	}
 
 	if (s_len != 3 && s_len != 6 && // rgb or rrggbb format
 		s_len != 4 && s_len != 8) { // rgba or rrggbbaa format
@@ -1251,7 +1193,7 @@ _Bool ColorParseHex(const char *s, color_t *color) {
 
 	switch (s_len) {
 	case 3:
-		if (sscanf(s, "%1hhx%1hhx%1hhx", &color->r, &color->g, &color->b) != 3) {
+		if (!ParseHexString(s, color, 1, 3)) {
 			return false;
 		}
 
@@ -1262,7 +1204,7 @@ _Bool ColorParseHex(const char *s, color_t *color) {
 		color->a = 0xFF;
 		break;
 	case 6:
-		if (sscanf(s, "%2hhx%2hhx%2hhx", &color->r, &color->g, &color->b) != 3) {
+		if (!ParseHexString(s, color, 2, 3)) {
 			return false;
 		}
 
@@ -1270,7 +1212,7 @@ _Bool ColorParseHex(const char *s, color_t *color) {
 		break;
 
 	case 4:
-		if (sscanf(s, "%1hhx%1hhx%1hhx%1hhx", &color->r, &color->g, &color->b, &color->a) != 4) {
+		if (!ParseHexString(s, color, 1, 4)) {
 			return false;
 		}
 
@@ -1279,7 +1221,7 @@ _Bool ColorParseHex(const char *s, color_t *color) {
 		}
 		break;
 	case 8:
-		if (sscanf(s, "%2hhx%2hhx%2hhx%2hhx", &color->r, &color->g, &color->b, &color->a) != 4) {
+		if (!ParseHexString(s, color, 2, 4)) {
 			return false;
 		}
 

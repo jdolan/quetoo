@@ -114,6 +114,7 @@ typedef enum {
 	DEBUG_RENDERER		= 1 << 10,
 	DEBUG_SERVER		= 1 << 11,
 	DEBUG_SOUND			= 1 << 12,
+	DEBUG_UI			= 1 << 13,
 
 	DEBUG_BREAKPOINT	= (int32_t) (1u << 31),
 	DEBUG_ALL			= (int32_t) (0xFFFFFFFF & ~DEBUG_BREAKPOINT),
@@ -123,8 +124,6 @@ typedef enum {
  * @brief Error categories.
  */
 typedef enum {
-	ERROR_PRINT = 1,
-	ERROR_WARN,
 	ERROR_DROP, // don't fully shit pants, but drop to console
 	ERROR_FATAL, // program must exit
 } err_t;
@@ -162,6 +161,24 @@ void Com_Warnv_(const char *func, const char *fmt, va_list args) __attribute__((
 
 #define Com_Warn(...) Com_Warn_(__func__, __VA_ARGS__)
 #define Com_Warnv(fmt, args) Com_Warnv_(__func__, fmt, args)
+
+/**
+ * @brief The structure used for autocomplete values.
+ */
+typedef struct {
+	/**
+	 * @brief The match itself
+	 */
+	char *name;
+
+	/**
+	 * @brief The value printed to the screen. If null, name isused.
+	 */
+	char *description;
+} com_autocomplete_match_t;
+
+com_autocomplete_match_t *Com_AllocMatch(const char *name, const char *description);
+int32_t Com_MatchCompare(const void *a, const void *b);
 
 void Com_Init(int32_t argc, char *argv[]);
 void Com_Shutdown(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));

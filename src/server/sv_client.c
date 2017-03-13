@@ -484,7 +484,7 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 				Sv_UserStringCommand(Net_ReadString(&net_message));
 
 				if (cl->state == SV_CLIENT_FREE) {
-					return;    // disconnect command
+					return; // disconnect command
 				}
 
 				break;

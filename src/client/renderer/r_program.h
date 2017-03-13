@@ -120,6 +120,7 @@ typedef struct {
 	void (*UseCurrentColor)(const vec4_t color);
 	void (*UseAttributes)(void);
 	void (*UseInterpolation)(const vec_t time_fraction);
+	void (*UseTints)(void);
 } r_program_t;
 
 // attribute state

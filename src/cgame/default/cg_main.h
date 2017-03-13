@@ -32,7 +32,13 @@ extern cvar_t *cg_add_particles;
 extern cvar_t *cg_add_weather;
 extern cvar_t *cg_bob;
 extern cvar_t *cg_color;
+extern cvar_t *cg_tint_r; // shirt
+extern cvar_t *cg_tint_g; // pants
+extern cvar_t *cg_tint_b; // helmet
 extern cvar_t *cg_draw_blend;
+extern cvar_t *cg_draw_blend_damage;
+extern cvar_t *cg_draw_blend_liquid;
+extern cvar_t *cg_draw_blend_pickup;
 extern cvar_t *cg_draw_captures;
 extern cvar_t *cg_draw_crosshair_color;
 extern cvar_t *cg_draw_crosshair_pulse;
@@ -56,6 +62,9 @@ extern cvar_t *cg_draw_weapon_z;
 extern cvar_t *cg_draw_vitals;
 extern cvar_t *cg_draw_vitals_pulse;
 extern cvar_t *cg_draw_vote;
+extern cvar_t *cg_entity_bob;
+extern cvar_t *cg_entity_pulse;
+extern cvar_t *cg_entity_rotate;
 extern cvar_t *cg_fov;
 extern cvar_t *cg_fov_zoom;
 extern cvar_t *cg_fov_interpolate;

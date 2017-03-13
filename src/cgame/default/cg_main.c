@@ -36,7 +36,13 @@ cvar_t *cg_add_particles;
 cvar_t *cg_add_weather;
 cvar_t *cg_bob;
 cvar_t *cg_color;
+cvar_t *cg_tint_r; // shirt
+cvar_t *cg_tint_g; // pants
+cvar_t *cg_tint_b; // helmet
 cvar_t *cg_draw_blend;
+cvar_t *cg_draw_blend_damage;
+cvar_t *cg_draw_blend_liquid;
+cvar_t *cg_draw_blend_pickup;
 cvar_t *cg_draw_captures;
 cvar_t *cg_draw_crosshair_color;
 cvar_t *cg_draw_crosshair_pulse;
@@ -60,6 +66,9 @@ cvar_t *cg_draw_weapon_z;
 cvar_t *cg_draw_vitals;
 cvar_t *cg_draw_vitals_pulse;
 cvar_t *cg_draw_vote;
+cvar_t *cg_entity_bob;
+cvar_t *cg_entity_pulse;
+cvar_t *cg_entity_rotate;
 cvar_t *cg_fov;
 cvar_t *cg_fov_zoom;
 cvar_t *cg_fov_interpolate;
@@ -113,17 +122,33 @@ static void Cg_Init(void) {
 	cg_color = cgi.Cvar("color", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                    "Specifies the effect color for your own weapon trails.");
 
+	cg_tint_r = cgi.Cvar("shirt", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
+	                    "Specifies your shirt color, in the hexadecimal format \"rrggbb\". \"default\" uses the skin or team's defaults.");
+
+	cg_tint_g = cgi.Cvar("pants", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
+	                    "Specifies your pants color, in the hexadecimal format \"rrggbb\". \"default\" uses the skin or team's defaults.");
+
+	cg_tint_b = cgi.Cvar("helmet", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
+	                    "Specifies your helmet color, in the hexadecimal format \"rrggbb\". \"default\" uses the skin or team's defaults.");
+
 	cg_draw_blend = cgi.Cvar("cg_draw_blend", "1.0", CVAR_ARCHIVE,
-	                         "Controls the intensity of screen alpha-blending");
+                                 "Controls the intensity of screen alpha-blending");
+	cg_draw_blend_damage = cgi.Cvar("cg_draw_blend_damage", "1", CVAR_ARCHIVE,
+                                        "Controls if damage has blend flash effect");
+	cg_draw_blend_liquid = cgi.Cvar("cg_draw_blend_liquid", "1", CVAR_ARCHIVE,
+                                        "Controls if being in a liquid has blend flash effect");
+	cg_draw_blend_pickup = cgi.Cvar("cg_draw_blend_pickup", "1", CVAR_ARCHIVE,
+                                        "Controls if picking up items has blend flash effect");
 	cg_draw_captures = cgi.Cvar("cg_draw_captures", "1", CVAR_ARCHIVE,
 	                            "Draw the number of captures");
-	cg_draw_crosshair = cgi.Cvar("cg_draw_crosshair", "1", CVAR_ARCHIVE, NULL);
+	cg_draw_crosshair = cgi.Cvar("cg_draw_crosshair", "1", CVAR_ARCHIVE,
+                                     "Which crosshair image to use, 0 disables (Default is 1)");
 	cg_draw_crosshair_color = cgi.Cvar("cg_draw_crosshair_color", "", CVAR_ARCHIVE,
-	                                   "Specifies the crosshair color (red|green|yellow|default).");
+	                                   "Specifies the crosshair color (red|green|yellow|default)");
 	cg_draw_crosshair_pulse = cgi.Cvar("cg_draw_crosshair_pulse", "1.0", CVAR_ARCHIVE,
 	                                   "Pulse the crosshair when picking up items");
 	cg_draw_crosshair_scale = cgi.Cvar("cg_draw_crosshair_scale", "1.0", CVAR_ARCHIVE,
-	                                   "Controls the crosshair scale (size).");
+	                                   "Controls the crosshair scale (size)");
 
 	cg_draw_held_flag = cgi.Cvar("cg_draw_held_flag", "1", CVAR_ARCHIVE, "Draw the currently held team flag");
 	cg_draw_held_tech = cgi.Cvar("cg_draw_held_tech", "1", CVAR_ARCHIVE, "Draw the currently held tech");
@@ -153,6 +178,10 @@ static void Cg_Init(void) {
 	                                "Pulse the vitals when low");
 	cg_draw_vote = cgi.Cvar("cg_draw_vote", "1", CVAR_ARCHIVE, "Draw the current vote on the hud");
 
+	cg_entity_bob = cgi.Cvar("cg_entity_bob", "1.0", CVAR_ARCHIVE, "Controls the bobbing of items");
+	cg_entity_pulse = cgi.Cvar("cg_entity_pulse", "1.0", CVAR_ARCHIVE, "Controls the pulsing of items");
+	cg_entity_rotate = cgi.Cvar("cg_entity_rotate", "1.0", CVAR_ARCHIVE, "Controls the rotation of items");
+
 	cg_fov = cgi.Cvar("cg_fov", "110.0", CVAR_ARCHIVE, "Horizontal field of view, in degrees");
 	cg_fov_zoom = cgi.Cvar("cg_fov_zoom", "55.0", CVAR_ARCHIVE, "Zoomed in field of view");
 	cg_fov_interpolate = cgi.Cvar("cg_fov_interpolate", "1.0", CVAR_ARCHIVE,
@@ -175,7 +204,7 @@ static void Cg_Init(void) {
 	cg_skin = cgi.Cvar("skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                   "Your player model and skin.");
 
-	cg_third_person = cgi.Cvar("cg_third_person", "0.0", CVAR_ARCHIVE | CVAR_LO_ONLY,
+	cg_third_person = cgi.Cvar("cg_third_person", "0.0", CVAR_ARCHIVE | CVAR_DEVELOPER,
 	                           "Activate third person perspective.");
 	cg_third_person_chasecam = cgi.Cvar("cg_third_person_chasecam", "0", CVAR_ARCHIVE,
 	                                    "Activate third person chase camera perspective.");
@@ -327,7 +356,7 @@ static void Cg_ResolveTeamInfo(const char *s) {
 	cg_team_info_t *team = cg_team_info;
 
 	for (size_t i = 0; i < info_count; i += 2, team++) {
-		
+
 		g_strlcpy(team->team_name, info[i], sizeof(team->team_name));
 		team->hue = (int16_t) atoi(info[i + 1]);
 		team->color = ColorFromHSV((const vec3_t) {

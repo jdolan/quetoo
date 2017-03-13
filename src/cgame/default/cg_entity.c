@@ -265,7 +265,7 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	const uint32_t effects = e->effects;
 
 	e->effects |= EF_CLIENT;
-	e->effects &= EF_CTF_MASK;
+	e->effects &= ~EF_CTF_MASK;
 
 	const _Bool self_draw = (Cg_IsSelf(ent) && !cgi.client->third_person);
 
@@ -279,6 +279,19 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		e->origin[1] = cgi.view->origin[1];
 	} else {
 		Cg_BreathTrail(ent);
+	}
+
+	// set red/green tints
+	if (ci->tint_r[3]) { // shirt
+		e->tints[TINT_R] = ci->tint_r;
+	}
+
+	if (ci->tint_g[3]) { // pants
+		e->tints[TINT_G] = ci->tint_g;
+	}
+
+	if (ci->tint_b[3]) { // helmmet
+		e->tints[TINT_B] = ci->tint_b;
 	}
 
 	r_entity_t head, torso, legs;
@@ -334,11 +347,11 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	r_entity_t *r_legs = cgi.AddEntity(&legs);
 	r_entity_t *r_torso = cgi.AddEntity(&torso);
 	r_entity_t *r_head = cgi.AddEntity(&head);
-	
+
 	Matrix4x4_CreateFromEntity(&r_legs->matrix, r_legs->origin, r_legs->angles, r_legs->scale);
 	Matrix4x4_CreateFromEntity(&r_torso->matrix, r_torso->origin, r_torso->angles, r_torso->scale);
 	Matrix4x4_CreateFromEntity(&r_head->matrix, r_head->origin, r_head->angles, r_head->scale);
-	
+
 	Cg_ApplyMeshModelTag(r_torso, r_legs, "tag_torso");
 	Cg_ApplyMeshModelTag(r_head, r_torso, "tag_head");
 
@@ -433,10 +446,10 @@ static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 
 	switch (cg_hand->integer) {
 		case HAND_LEFT:
-			offset[1] -= 6.0;
+			offset[1] -= 5.0;
 			break;
 		case HAND_RIGHT:
-			offset[1] += 6.0;
+			offset[1] += 5.0;
 			break;
 		default:
 			break;

@@ -177,7 +177,6 @@ typedef enum {
 } glob_flags_t;
 
 _Bool GlobMatch(const char *pattern, const char *text, const glob_flags_t flags);
-char *CommonPrefix(GList *words);
 const char *Basename(const char *path);
 void Dirname(const char *in, char *out);
 void StripExtension(const char *in, char *out);
@@ -186,7 +185,6 @@ size_t StrColorLen(const char *s);
 int32_t StrColorCmp(const char *s1, const char *s2);
 int32_t StrColor(const char *s);
 int32_t StrrColor(const char *s);
-char *ParseToken(const char **data_p);
 char *va(const char *format, ...) __attribute__((format(printf, 1, 2)));
 char *vtos(const vec3_t v);
 

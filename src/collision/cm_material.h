@@ -63,6 +63,14 @@ typedef struct {
 	vec_t fps;
 } cm_stage_anim_t;
 
+typedef enum {
+	TINT_R,
+	TINT_G,
+	TINT_B,
+
+	TINT_TOTAL // cannot be increased past 3
+} cm_stage_tint_src_t;
+
 typedef struct cm_stage_s {
 	uint32_t flags;
 	char image[MAX_QPATH];
@@ -145,6 +153,11 @@ typedef struct cm_material_s {
 	char specularmap[MAX_QPATH];
 
 	/**
+	 * @brief The image to use for the tint map
+	 */
+	char tintmap[MAX_QPATH];
+
+	/**
 	 * @brief Flags for the material.
 	 */
 	cm_material_flags_t flags;
@@ -193,6 +206,11 @@ typedef struct cm_material_s {
 	 * @brief Whether only stages should be rendered or the diffuse should too
 	 */
 	_Bool only_stages;
+
+	/**
+	 * @brief Default tint colors
+	 */
+	vec4_t tintmap_defaults[TINT_TOTAL];
 
 	/**
 	 * @brief Pointer to the first stage in the stage list. NOT an array;

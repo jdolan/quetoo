@@ -58,7 +58,7 @@ static void G_Give_f(g_entity_t *ent) {
 		if (gi.Argc() == 3) {
 			ent->locals.health = quantity;
 		} else {
-			ent->locals.health = ent->locals.max_health;
+			ent->locals.health = ent->locals.max_health + 5;
 		}
 		if (!give_all) {
 			return;
@@ -553,7 +553,7 @@ static void G_Say_f(g_entity_t *ent) {
 			return;
 		}
 
-		cl->locals.chat_time = g_level.time + 1000;
+		cl->locals.chat_time = g_level.time + 250;
 	}
 
 	const int32_t color = team ? CON_COLOR_TEAMCHAT : CON_COLOR_CHAT;
@@ -1212,7 +1212,7 @@ static void G_Ready_f(g_entity_t *ent) {
 /**
  * @brief
  */
-static void G_Toggleready_f(g_entity_t *ent) {
+static void G_ToggleReady_f(g_entity_t *ent) {
 	if (ent->client->locals.persistent.ready) {
 		G_Unready_f(ent);
 	} else {
@@ -1227,7 +1227,7 @@ static void G_Spectate_f(g_entity_t *ent) {
 	_Bool spectator;
 
 	// prevent spectator spamming
-	if (g_level.time - ent->client->locals.respawn_time < 3000) {
+	if (g_level.time - ent->client->locals.respawn_time < 1000) {
 		return;
 	}
 
@@ -1404,10 +1404,10 @@ void G_ClientCommand(g_entity_t *ent) {
 		G_Teamskin_f(ent);
 	} else if (g_strcmp0(cmd, "ready") == 0) {
 		G_Ready_f(ent);
-	} else if (g_strcmp0(cmd, "unready") == 0 || g_strcmp0(cmd, "notready") == 0) {
+	} else if (g_strcmp0(cmd, "unready") == 0 || g_strcmp0(cmd, "not_ready") == 0) {
 		G_Unready_f(ent);
-	} else if (g_strcmp0(cmd, "toggleready") == 0) {
-		G_Toggleready_f(ent);
+	} else if (g_strcmp0(cmd, "toggle_ready") == 0) {
+		G_ToggleReady_f(ent);
 	} else if (g_strcmp0(cmd, "use") == 0) {
 		G_Use_f(ent);
 	} else if (g_strcmp0(cmd, "drop") == 0) {

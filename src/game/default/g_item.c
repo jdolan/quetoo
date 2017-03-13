@@ -902,14 +902,10 @@ g_entity_t *G_SelectTechSpawnPoint(void) {
  * @brief
  */
 void G_ResetDroppedTech(g_entity_t *ent) {
-	g_entity_t *point = G_SelectTechSpawnPoint();
 
-	VectorCopy(point->s.origin, ent->s.origin);
-	VectorSet(ent->locals.velocity, Randomc() * 250, Randomc() * 250, 200 + (Randomf() * 200));
+	G_SpawnTech(ent->locals.item);
 
-	G_DropItem_SetExpiration(ent);
-
-	gi.LinkEntity(ent);
+	G_FreeEntity(ent);
 }
 
 /**
@@ -1087,8 +1083,6 @@ void G_PrecacheItem(const g_item_t *it) {
 	if (!it) {
 		return;
 	}
-
-	gi.SetConfigString(CS_ITEMS + it->index, it->name);
 
 	if (it->pickup_sound) {
 		gi.SoundIndex(it->pickup_sound);
@@ -2438,6 +2432,8 @@ static void G_InitItem(g_item_t *item) {
 	item->icon_index = gi.ImageIndex(item->icon);
 	item->model_index = gi.ModelIndex(item->model);
 	item->pickup_sound_index = gi.SoundIndex(item->pickup_sound);
+
+	gi.SetConfigString(CS_ITEMS + item->index, item->name);
 }
 
 /**

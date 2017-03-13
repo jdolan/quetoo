@@ -403,9 +403,8 @@ void EndBSPFile(void) {
 	// now that the verts have been resolved, align the normals count
 	bsp_file.num_normals = bsp_file.num_vertexes;
 
-	// write the map
-	Com_Verbose("Writing %s\n", bsp_name);
-	WriteBSPFile(bsp_name, legacy ? BSP_VERSION : BSP_VERSION_QUETOO);
+	const int32_t version = legacy ? BSP_VERSION : BSP_VERSION_QUETOO;
+	WriteBSPFile(va("maps/%s.bsp", map_base), version);
 }
 
 /**

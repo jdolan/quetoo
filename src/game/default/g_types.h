@@ -27,7 +27,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1015
+#define PROTOCOL_MINOR 1018
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -196,6 +196,7 @@ typedef enum {
 	TE_BFG,
 	TE_GIB,
 	TE_RIPPLE,
+	TE_HOOK_IMPACT,
 } g_temp_entity_t;
 
 /**
@@ -729,7 +730,8 @@ typedef struct {
 
 extern g_game_t g_game;
 
-#define NUM_GIB_MODELS 3
+#define NUM_GIB_MODELS 4
+#define NUM_GIB_SOUNDS 3
 
 // for match status bitmasking
 #define MSTAT_WARMUP		0
@@ -757,10 +759,12 @@ typedef struct {
 		uint16_t grenade;
 		uint16_t rocket;
 		uint16_t hook;
+
+		uint16_t fireball;
 	} models;
 
 	struct g_media_sounds_t {
-		uint16_t gib_hits[NUM_GIB_MODELS];
+		uint16_t gib_hits[NUM_GIB_SOUNDS];
 
 		uint16_t bfg_hit;
 		uint16_t bfg_prime;
@@ -937,6 +941,9 @@ typedef struct {
 	char skin[32];
 	char flag[32]; // flag classname
 	char spawn[32]; // spawn classname
+	char tint_r[COLOR_MAX_LENGTH]; // shirt
+	char tint_g[COLOR_MAX_LENGTH]; // pants
+	char tint_b[COLOR_MAX_LENGTH]; // helmet
 	int16_t color;
 	int16_t effect;
 
@@ -994,6 +1001,9 @@ typedef struct {
 
 	g_team_t *team; // current team
 	int16_t color; // weapon effect colors
+	char tint_r[COLOR_MAX_LENGTH]; // shirt
+	char tint_g[COLOR_MAX_LENGTH]; // pants
+	char tint_b[COLOR_MAX_LENGTH]; // helmet
 
 	int16_t score;
 	int16_t captures;
@@ -1089,7 +1099,7 @@ typedef struct {
 
 	_Bool show_scores; // sets layout bit mask in player state
 	uint32_t scores_time; // eligible for scores when time > this
-	
+
 	uint32_t regen_time; // time for regeneration?
 	uint32_t tech_sound_time; // next time we can play sound
 } g_client_locals_t;

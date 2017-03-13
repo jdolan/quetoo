@@ -34,9 +34,10 @@ int32_t AAS_Main(void);
 int32_t MAT_Main(void);
 int32_t ZIP_Main(void);
 
+extern char map_base[MAX_QPATH];
+
 extern char map_name[MAX_OS_PATH];
 extern char bsp_name[MAX_OS_PATH];
-extern char mat_name[MAX_OS_PATH];
 
 extern _Bool verbose;
 extern _Bool debug;
@@ -71,7 +72,6 @@ extern int32_t subdivide_size;
 extern vec_t microvolume;
 
 // LIGHT
-extern vec3_t face_offset[MAX_BSP_FACES];  // for rotating bmodels
 
 extern vec_t brightness;
 extern vec_t saturation;
@@ -83,6 +83,8 @@ extern vec_t entity_scale;
 extern vec3_t ambient;
 
 extern _Bool extra_samples;
+
+extern vec_t patch_subdivide;
 
 // threads.c
 typedef struct semaphores_s {

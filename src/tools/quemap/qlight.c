@@ -31,6 +31,7 @@ patch_t *face_patches[MAX_BSP_FACES];
 
 vec3_t face_offset[MAX_BSP_FACES]; // for rotating bmodels
 
+vec_t patch_subdivide = PATCH_SUBDIVIDE;
 _Bool extra_samples = false;
 
 vec3_t ambient;
@@ -170,7 +171,7 @@ int32_t LIGHT_Main(void) {
 
 	LightWorld();
 
-	WriteBSPFile(bsp_name, version);
+	WriteBSPFile(va("maps/%s.bsp", map_base), version);
 
 	const time_t end = time(NULL);
 	const time_t duration = end - start;

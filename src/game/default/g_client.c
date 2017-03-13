@@ -97,7 +97,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 				msg = "%s had their intestines shredded by %s's grappling hook";
 				break;
 		}
-		
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
 		g_snprintf(buffer, sizeof(buffer), msg, self->client->locals.persistent.net_name,
@@ -164,7 +164,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 					break;
 			}
 		}
-		
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
 		g_snprintf(buffer, sizeof(buffer), msg, self->client->locals.persistent.net_name);
@@ -300,23 +300,33 @@ static void G_ClientCorpse_Think(g_entity_t *self) {
 static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
                                uint32_t mod) {
 
-	const vec3_t mins[] = { { -3.0, -3.0, -3.0 }, { -6.0, -6.0, -6.0 }, { -9.0, -9.0, -9.0 } };
-	const vec3_t maxs[] = { { 3.0, 3.0, 3.0 }, { 6.0, 6.0, 6.0 }, { 9.0, 9.0, 9.0 } };
+	const vec3_t mins[] = { { -6.0, -6.0, -6.0 }, { -6.0, -6.0, -6.0 }, { -4.0, -4.0, -4.0 }, { -8.0, -8.0, -8.0 } };
+	const vec3_t maxs[] = { { 6.0, 6.0, 6.0 }, { 6.0, 6.0, 6.0 }, { 4.0, 4.0, 4.0 }, { 8.0, 8.0, 8.0 } };
 
-	uint16_t i, count = 3 + Random() % 3;
+	uint16_t i, count = 4 + Random() % 4;
 
 	for (i = 0; i < count; i++) {
+		int32_t gib_index;
+
+		if (i == 0) { // 0 is always chest
+			gib_index = (NUM_GIB_MODELS - 1);
+		} else if (i == 1 && !self->client) { // if we're not client, drop a head
+			gib_index = 2;
+		} else { // pick forearm/femur
+			gib_index = (Random() % (NUM_GIB_MODELS - 2));
+		}
+
 		g_entity_t *ent = G_AllocEntity();
 
 		VectorCopy(self->s.origin, ent->s.origin);
 
-		VectorCopy(mins[i % NUM_GIB_MODELS], ent->mins);
-		VectorCopy(maxs[i % NUM_GIB_MODELS], ent->maxs);
+		VectorCopy(mins[gib_index], ent->mins);
+		VectorCopy(maxs[gib_index], ent->maxs);
 
 		ent->solid = SOLID_DEAD;
 
-		ent->s.model1 = g_media.models.gibs[i % NUM_GIB_MODELS];
-		ent->locals.noise_index = g_media.sounds.gib_hits[i % NUM_GIB_MODELS];
+		ent->s.model1 = g_media.models.gibs[gib_index];
+		ent->locals.noise_index = g_media.sounds.gib_hits[i % NUM_GIB_SOUNDS];
 
 		VectorCopy(self->locals.velocity, ent->locals.velocity);
 
@@ -333,7 +343,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 
 		ent->locals.clip_mask = MASK_CLIP_CORPSE;
 		ent->locals.dead = true;
-		ent->locals.mass = ((i % NUM_GIB_MODELS) + 1) * 20.0;
+		ent->locals.mass = (gib_index + 1) * 20.0;
 		ent->locals.move_type = MOVE_TYPE_BOUNCE;
 		ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 		ent->locals.take_damage = true;
@@ -486,14 +496,14 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 
 		G_HandGrenadeProjectile(
 		    self,					// player
-		    self->client->locals.held_grenade,	// the grenade
+		    self->client->locals.held_grenade, // the grenade
 		    self->s.origin,			// starting point
 		    vec3_up,				// direction
 		    0,						// how fast it flies
 		    120,					// damage dealt
 		    120,					// knockback
 		    185.0,					// blast radius
-		    3000 - (g_level.time - nade_hold_time)	// time before explode (next think)
+		    3000 - (g_level.time - nade_hold_time) // time before explode (next think)
 		);
 	}
 
@@ -513,8 +523,7 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 	self->client->locals.show_scores = true;
 	self->client->locals.persistent.deaths++;
 
-	const vec3_t delta_angles = { 0.0, 0.0, 45.0 };
-	PackAngles(delta_angles, self->client->ps.pm_state.delta_angles);
+	G_ClientDamageKick(self, self->client->locals.right, 60.0);
 
 	gi.LinkEntity(self);
 }
@@ -783,7 +792,7 @@ static g_entity_t *G_SelectDeathmatchSpawnPoint(g_entity_t *ent) {
 	if (g_spawn_farthest->value) {
 		return G_SelectFarthestSpawnPoint(ent, &g_level.spawn_points);
 	}
-	
+
 	return G_SelectRandomSpawnPoint(&g_level.spawn_points);
 }
 
@@ -888,9 +897,6 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		ent->client->locals.persistent.team = NULL;
 		ent->client->locals.persistent.ready = false;
 	} else { // spawn an active client
-		ent->client->locals.persistent.handicap = ent->client->locals.persistent.handicap_next;
-		uint16_t handicap = ent->client->locals.persistent.handicap;
-
 		ent->class_name = "client";
 
 		ent->solid = SOLID_BOX;
@@ -910,9 +916,11 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		ent->locals.dead = false;
 		ent->locals.Die = G_ClientDie;
 		ent->locals.ground_entity = NULL;
-		ent->locals.health = ent->locals.max_health = handicap;
+		ent->client->locals.persistent.handicap = ent->client->locals.persistent.handicap_next;
+		ent->locals.max_health = ent->client->locals.persistent.handicap;
+		ent->locals.health = ent->locals.max_health + 5;
 		ent->locals.max_armor = 200;
-		ent->client->locals.max_boost_health = handicap + 100;
+		ent->client->locals.max_boost_health = ent->locals.max_health + 100;
 		ent->locals.move_type = MOVE_TYPE_WALK;
 		ent->locals.mass = 200.0;
 		ent->locals.take_damage = true;
@@ -944,13 +952,15 @@ void G_ClientRespawn(g_entity_t *ent, _Bool voluntary) {
 
 	G_ClientRespawn_(ent);
 
+	g_client_persistent_t *pers = &ent->client->locals.persistent;
+
 	// clear scores and match/round on voluntary changes
-	if (ent->client->locals.persistent.spectator && voluntary) {
-		ent->client->locals.persistent.score = ent->client->locals.persistent.captures = 0;
-		ent->client->locals.persistent.match_num = ent->client->locals.persistent.round_num = 0;
+	if (pers->spectator && voluntary) {
+		pers->score = pers->deaths = pers->captures = 0;
+		pers->match_num = pers->round_num = 0;
 	} else {
-		ent->client->locals.persistent.match_num = g_level.match_num;
-		ent->client->locals.persistent.round_num = g_level.round_num;
+		pers->match_num = g_level.match_num;
+		pers->round_num = g_level.round_num;
 	}
 
 	ent->client->locals.respawn_time = g_level.time;
@@ -964,14 +974,12 @@ void G_ClientRespawn(g_entity_t *ent, _Bool voluntary) {
 		return;
 	}
 
-	if (ent->client->locals.persistent.spectator)
-		gi.BroadcastPrint(PRINT_HIGH, "%s likes to watch\n",
-		                  ent->client->locals.persistent.net_name);
-	else if (ent->client->locals.persistent.team)
-		gi.BroadcastPrint(PRINT_HIGH, "%s has joined %s\n", ent->client->locals.persistent.net_name,
-		                  ent->client->locals.persistent.team->name);
-	else {
-		gi.BroadcastPrint(PRINT_HIGH, "%s wants some\n", ent->client->locals.persistent.net_name);
+	if (pers->spectator) {
+		gi.BroadcastPrint(PRINT_HIGH, "%s likes to watch\n", pers->net_name);
+	} else if (pers->team) {
+		gi.BroadcastPrint(PRINT_HIGH, "%s has joined %s\n", pers->net_name, pers->team->name);
+	} else {
+		gi.BroadcastPrint(PRINT_HIGH, "%s wants some\n", pers->net_name);
 	}
 }
 
@@ -1073,12 +1081,13 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 
 	// check for malformed or illegal info strings
 	if (!ValidateUserInfo(user_info)) {
+		printf("invalid\n");
 		user_info = DEFAULT_USER_INFO;
 	}
 
 	// save off the user_info in case we want to check something later
-	g_strlcpy(ent->client->locals.persistent.user_info, user_info,
-	          sizeof(ent->client->locals.persistent.user_info));
+	const size_t len = strlen(user_info);
+	memmove(ent->client->locals.persistent.user_info, user_info, len + 1);
 
 	gi.Debug("%s\n", user_info);
 
@@ -1168,19 +1177,56 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 		}
 	}
 
+	// set red/green/blue tint colors
+	if ((g_level.teams || g_level.ctf) && cl->locals.persistent.team) { // players must use team_skin to change
+		g_strlcpy(cl->locals.persistent.tint_r, cl->locals.persistent.team->tint_r, sizeof(cl->locals.persistent.tint_r));
+		g_strlcpy(cl->locals.persistent.tint_g, cl->locals.persistent.team->tint_g, sizeof(cl->locals.persistent.tint_g));
+		g_strlcpy(cl->locals.persistent.tint_b, cl->locals.persistent.team->tint_b, sizeof(cl->locals.persistent.tint_b));
+	} else {
+		g_strlcpy(cl->locals.persistent.tint_r, "default", sizeof(cl->locals.persistent.tint_r));
+		g_strlcpy(cl->locals.persistent.tint_g, "default", sizeof(cl->locals.persistent.tint_g));
+		g_strlcpy(cl->locals.persistent.tint_b, "default", sizeof(cl->locals.persistent.tint_b));
+
+		s = GetUserInfo(user_info, "shirt"); // shirt
+
+		if (strlen(s) && strcmp(s, "default") && ColorParseHex(s, NULL)) { // not default
+			g_strlcpy(cl->locals.persistent.tint_r, s, sizeof(cl->locals.persistent.tint_r));
+		}
+
+		s = GetUserInfo(user_info, "pants"); // pants
+
+		if (strlen(s) && strcmp(s, "default") && ColorParseHex(s, NULL)) { // not default
+			g_strlcpy(cl->locals.persistent.tint_g, s, sizeof(cl->locals.persistent.tint_g));
+		}
+
+		s = GetUserInfo(user_info, "helmet"); // helmet
+
+		if (strlen(s) && strcmp(s, "default") && ColorParseHex(s, NULL)) { // not default
+			g_strlcpy(cl->locals.persistent.tint_b, s, sizeof(cl->locals.persistent.tint_b));
+		}
+	}
+
 	gchar client_info[MAX_USER_INFO_STRING] = { '\0' };
 
-	// build the userinfo string
+	// build the clientinfo string
 	g_strlcat(client_info, cl->locals.persistent.net_name, MAX_USER_INFO_STRING);
+
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
 	g_strlcat(client_info, cl->locals.persistent.skin, MAX_USER_INFO_STRING);
 
-	if (cl->locals.persistent.color != -1) {
-		g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-		g_strlcat(client_info, va("%i", cl->locals.persistent.color), MAX_USER_INFO_STRING);
-	}
+	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
+	g_strlcat(client_info, va("%i", cl->locals.persistent.color), MAX_USER_INFO_STRING);
 
-	// combine name and skin into a config_string
+	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
+	g_strlcat(client_info, cl->locals.persistent.tint_r, MAX_USER_INFO_STRING); // shirt
+
+	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
+	g_strlcat(client_info, cl->locals.persistent.tint_g, MAX_USER_INFO_STRING); // pants
+
+	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
+	g_strlcat(client_info, cl->locals.persistent.tint_b, MAX_USER_INFO_STRING); // helmet
+
+	// send it to clients
 	gi.SetConfigString(CS_CLIENTS + (cl - g_game.clients), client_info);
 
 	// set hand, if anything should go wrong, it defaults to 0 (centered)
@@ -1546,8 +1592,7 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 
 	if (cl->locals.chase_target) { // ensure chase is valid
 
-		if (!cl->locals.chase_target->in_use
-		        || cl->locals.chase_target->client->locals.persistent.spectator) {
+		if (!G_IsMeat(cl->locals.chase_target)) {
 
 			g_entity_t *other = cl->locals.chase_target;
 
@@ -1556,8 +1601,6 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 			if (cl->locals.chase_target == other) { // no one to chase
 				cl->locals.chase_target = NULL;
 			}
-
-			G_ClientChaseThink(ent);
 		}
 	}
 
@@ -1619,8 +1662,8 @@ void G_ClientBeginFrame(g_entity_t *ent) {
 		return;
 	}
 
-	if (ent->locals.dead ||
-		((ent->client->locals.buttons | ent->client->locals.latched_buttons) & BUTTON_SCORE)) {
+	if ((G_IsMeat(ent) && ent->locals.dead) ||
+			((ent->client->locals.buttons | ent->client->locals.latched_buttons) & BUTTON_SCORE)) {
 		ent->client->locals.show_scores = true;
 	} else {
 		ent->client->locals.show_scores = false;

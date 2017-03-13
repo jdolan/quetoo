@@ -20,6 +20,7 @@
  */
 
 #include "common.h"
+#include "parse.h"
 
 /**
  * @brief Sets up a log file that will be used for debugging issues
@@ -27,7 +28,7 @@
  */
 static void Com_InitLog(void) {
 
-	quetoo.log_file = fopen(va("quetoo_%" PRIuPTR ".log", time(NULL)), "w");
+	quetoo.log_file = fopen(va("quetoo_%" PRIiMAX ".log", (intmax_t) time(NULL)), "w");
 }
 
 /**
@@ -43,6 +44,9 @@ static void Com_LogString(const char *str) {
 	fflush(quetoo.log_file);
 }
 
+// max len we'll try to parse for a category
+#define DEBUG_CATEGORY_MAX_LEN	32
+
 static const char *DEBUG_CATEGORIES[] = {
 	"ai",
 	"cgame",
@@ -56,7 +60,8 @@ static const char *DEBUG_CATEGORIES[] = {
 	"pmove_server",
 	"renderer",
 	"server",
-	"sound"
+	"sound",
+	"ui"
 };
 
 /**
@@ -88,24 +93,26 @@ const char *Com_GetDebug(void) {
  */
 void Com_SetDebug(const char *debug) {
 
-	const char *buf = debug;
+	static char token[DEBUG_CATEGORY_MAX_LEN];
+	static parser_t parser;
+
+	Parse_Init(&parser, debug, PARSER_NO_COMMENTS);
+
 	while (true) {
 
-		const char *c = ParseToken(&buf);
-
-		if (*c == '\0') {
+		if (!Parse_Token(&parser, PARSE_NO_WRAP, token, sizeof(token))) {
 			break;
 		}
 
-		if (!g_strcmp0(c, "none") || !g_strcmp0(c, "0")) {
+		if (!g_strcmp0(token, "none") || !g_strcmp0(token, "0")) {
 			quetoo.debug_mask = 0;
-		} else if (!g_strcmp0(c, "breakpoint") || !g_strcmp0(c, "bp")) {
+		} else if (!g_strcmp0(token, "breakpoint") || !g_strcmp0(token, "bp")) {
 			quetoo.debug_mask ^= DEBUG_BREAKPOINT;
-		} else if (!g_strcmp0(c, "any") || !g_strcmp0(c, "all")) {
+		} else if (!g_strcmp0(token, "any") || !g_strcmp0(token, "all")) {
 			quetoo.debug_mask ^= DEBUG_ALL;
 		} else {
 			for (size_t i = 0; i < lengthof(DEBUG_CATEGORIES); i++) {
-				if (!g_strcmp0(c, DEBUG_CATEGORIES[i])) {
+				if (!g_strcmp0(token, DEBUG_CATEGORIES[i])) {
 					quetoo.debug_mask ^= (1 << i);
 				}
 			}
@@ -472,4 +479,31 @@ void Com_PrintInfo(const char *s) {
 		}
 		Com_Print("%s\n", value);
 	}
+}
+
+/**
+ * @brief Allocate a match for autocomplete "matches" list.
+ */
+com_autocomplete_match_t *Com_AllocMatch(const char *name, const char *description) {
+	com_autocomplete_match_t *match = Mem_Malloc(sizeof(com_autocomplete_match_t));
+
+	match->name = Mem_CopyString(name);
+	Mem_Link(match, match->name);
+
+	if (description) {
+		match->description = Mem_CopyString(description);
+		Mem_Link(match, match->description);
+	}
+
+	return match;
+}
+
+/**
+ * @brief Autocomplete match compare function
+ */
+int32_t Com_MatchCompare(const void *a, const void *b) {
+	const com_autocomplete_match_t *ma = (const com_autocomplete_match_t *) a;
+	const com_autocomplete_match_t *mb = (const com_autocomplete_match_t *) b;
+
+	return g_strcmp0(ma->description ?: ma->name, mb->description ?: mb->name);
 }

@@ -20,6 +20,7 @@
  */
 
 #include "bspfile.h"
+#include "parse.h"
 #include "deps/minizip/zip.h"
 
 #define MISSING "__missing__"
@@ -147,8 +148,7 @@ static void AddAnimation(char *name, int32_t count) {
  */
 static void AddMaterials(const char *path) {
 	char *buffer;
-	const char *buf;
-	const char *c;
+	char token[MAX_STRING_CHARS];
 	char texture[MAX_QPATH];
 	int32_t num_frames;
 	int64_t i;
@@ -161,91 +161,117 @@ static void AddMaterials(const char *path) {
 
 	AddAsset(path, true); // add the materials file itself
 
-	buf = buffer;
+	parser_t parser;
+	Parse_Init(&parser, buffer, PARSER_DEFAULT);
 
 	num_frames = 0;
 	memset(texture, 0, sizeof(texture));
 
 	while (true) {
 
-		c = ParseToken(&buf);
-
-		if (*c == '\0') {
+		if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
 			break;
 		}
 
 		// texture references should all be added
-		if (!g_strcmp0(c, "texture")) {
-			c = ParseToken(&buf);
-			if (*c == '#') {
-				g_strlcpy(texture, ++c, sizeof(texture));
-			} else {
-				g_snprintf(texture, sizeof(texture), "textures/%s", c);
+		if (!g_strcmp0(token, "texture") || !g_strcmp0(token, "diffuse")) {
+
+			if (!Parse_Token(&parser, PARSE_DEFAULT | PARSE_NO_WRAP, token, sizeof(token))) {
+				return;
 			}
+
+			if (*token == '#') {
+				g_strlcpy(texture, token + 1, sizeof(texture));
+			} else {
+				g_snprintf(texture, sizeof(texture), "textures/%s", token);
+			}
+
 			AddImage(texture, true);
 			continue;
 		}
 
 		// as should normalmaps
-		if (!g_strcmp0(c, "normalmap")) {
-			c = ParseToken(&buf);
-			if (*c == '#') {
-				g_strlcpy(texture, ++c, sizeof(texture));
-			} else {
-				g_snprintf(texture, sizeof(texture), "textures/%s", c);
+		if (!g_strcmp0(token, "normalmap")) {
+			
+			if (!Parse_Token(&parser, PARSE_DEFAULT | PARSE_NO_WRAP, token, sizeof(token))) {
+				return;
 			}
+
+			if (*token == '#') {
+				g_strlcpy(texture, token + 1, sizeof(texture));
+			} else {
+				g_snprintf(texture, sizeof(texture), "textures/%s", token);
+			}
+
 			AddImage(texture, true);
 			continue;
 		}
 
-		if (!g_strcmp0(c, "glossmap")) {
-			c = ParseToken(&buf);
-			if (*c == '#') {
-				g_strlcpy(texture, ++c, sizeof(texture));
-			} else {
-				g_snprintf(texture, sizeof(texture), "textures/%s", c);
+		if (!g_strcmp0(token, "glossmap")) {
+			
+			if (!Parse_Token(&parser, PARSE_DEFAULT | PARSE_NO_WRAP, token, sizeof(token))) {
+				return;
 			}
+
+			if (*token == '#') {
+				g_strlcpy(texture, token + 1, sizeof(texture));
+			} else {
+				g_snprintf(texture, sizeof(texture), "textures/%s", token);
+			}
+
 			AddImage(texture, true);
 			continue;
 		}
 
 		// and custom envmaps
-		if (!g_strcmp0(c, "envmap")) {
-
-			c = ParseToken(&buf);
-			i = atoi(c);
-
-			if (*c == '#') {
-				g_strlcpy(texture, ++c, sizeof(texture));
-			} else if (i == 0 && g_strcmp0(c, "0")) {
-				g_snprintf(texture, sizeof(texture), "envmaps/%s", c);
+		if (!g_strcmp0(token, "envmap")) {
+			
+			if (!Parse_Token(&parser, PARSE_DEFAULT | PARSE_NO_WRAP, token, sizeof(token))) {
+				return;
 			}
+
+			i = atoi(token);
+
+			if (*token == '#') {
+				g_strlcpy(texture, token + 1, sizeof(texture));
+			} else if (i == 0 && g_strcmp0(token, "0")) {
+				g_snprintf(texture, sizeof(texture), "envmaps/%s", token);
+			}
+
 			AddImage(texture, true);
 			continue;
 		}
 
 		// and custom flares
-		if (!g_strcmp0(c, "flare")) {
-
-			c = ParseToken(&buf);
-			i = atoi(c);
-
-			if (*c == '#') {
-				g_strlcpy(texture, ++c, sizeof(texture));
-			} else if (i == 0 && g_strcmp0(c, "0")) {
-				g_snprintf(texture, sizeof(texture), "flares/%s", c);
+		if (!g_strcmp0(token, "flare")) {
+			
+			if (!Parse_Token(&parser, PARSE_DEFAULT | PARSE_NO_WRAP, token, sizeof(token))) {
+				return;
 			}
+
+			i = atoi(token);
+
+			if (*token == '#') {
+				g_strlcpy(texture, token + 1, sizeof(texture));
+			} else if (i == 0 && g_strcmp0(token, "0")) {
+				g_snprintf(texture, sizeof(texture), "flares/%s", token);
+			}
+
 			AddImage(texture, true);
 			continue;
 		}
 
-		if (!g_strcmp0(c, "anim")) {
-			num_frames = atoi(ParseToken(&buf));
-			ParseToken(&buf); // read fps
+		if (!g_strcmp0(token, "anim")) {
+			
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_NO_WRAP, PARSE_INT32, &num_frames, 1)) {
+				return;
+			}
+
+			Parse_SkipToken(&parser, PARSE_DEFAULT | PARSE_NO_WRAP);
 			continue;
 		}
 
-		if (*c == '}') {
+		if (*token == '}') {
 
 			if (num_frames) { // add animation frames
 				AddAnimation(texture, num_frames);
@@ -295,22 +321,14 @@ static void AddModel(char *model) {
  * @brief
  */
 static void AddLocation(void) {
-	char loc[MAX_QPATH];
-
-	StripExtension(bsp_name, loc);
-	g_strlcat(loc, ".loc", sizeof(loc));
-
-	AddAsset(loc, false);
+	AddAsset(va("maps/%s.loc", map_base), false);
 }
 
 /**
  * @brief
  */
 static void AddDocumentation(void) {
-	char base[MAX_QPATH];
-
-	StripExtension(Basename(bsp_name), base);
-	AddAsset(va("docs/map-%s.txt", base), false);
+	AddAsset(va("docs/map-%s.txt", map_base), false);
 }
 
 /**
@@ -327,22 +345,16 @@ static void AddMapshots_enumerate(const char *path, void *data) {
  * @brief
  */
 static void AddMapshots(void) {
-	char base[MAX_QPATH];
-
-	StripExtension(Basename(bsp_name), base);
-	Fs_Enumerate(va("mapshots/%s/*", base), AddMapshots_enumerate, NULL);
+	Fs_Enumerate(va("mapshots/%s/*", map_base), AddMapshots_enumerate, NULL);
 }
 
 /**
  * @brief Returns a suitable .pk3 filename name for the current bsp name
  */
 static char *GetZipFilename(void) {
-	char base[MAX_OS_PATH];
 	static char zipfile[MAX_OS_PATH];
 
-	StripExtension(Basename(bsp_name), base);
-
-	g_snprintf(zipfile, sizeof(zipfile), "map-%s-%d.pk3", base, getpid());
+	g_snprintf(zipfile, sizeof(zipfile), "map-%s-%d.pk3", map_base, getpid());
 
 	return zipfile;
 }
@@ -399,7 +411,6 @@ static _Bool DeflateAsset(zipFile zip_file, const char *filename) {
  * but straightforward implementation.
  */
 int32_t ZIP_Main(void) {
-	char materials[MAX_QPATH];
 	char zip[MAX_QPATH];
 	int32_t i;
 	epair_t *e;
@@ -435,8 +446,7 @@ int32_t ZIP_Main(void) {
 	}
 
 	// and the materials
-	StripExtension(map_name, materials);
-	AddMaterials(va("materials/%s.mat", Basename(materials)));
+	AddMaterials(va("materials/%s.mat", map_base));
 
 	// and the sounds, models, sky, ..
 	ParseEntities();
@@ -463,8 +473,8 @@ int32_t ZIP_Main(void) {
 	AddMapshots();
 
 	// and of course the bsp and map
-	AddAsset(bsp_name, true);
-	AddAsset(map_name, false);
+	AddAsset(va("maps/%s.bsp", map_base), true);
+	AddAsset(va("maps/%s.map", map_base), false);
 
 	// prune the assets list, removing missing resources
 	GList *assets = g_hash_table_get_values(qzip.assets);
