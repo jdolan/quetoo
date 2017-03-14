@@ -6,8 +6,8 @@
 
 #define VERTEX_SHADER
 
-#include "matrix_inc.glsl"
-#include "fog_inc.glsl"
+#include "include/matrix.glsl"
+#include "include/fog.glsl"
 
 out vec4 color;
 out vec2 texcoord;
@@ -21,12 +21,10 @@ in vec4 COLOR;
  */
 void main(void) {
 
-	// mvp transform into clip space
 	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * vec4(POSITION, 1.0);
 
 	texcoord = TEXCOORD;
 
-	// pass the color through as well
 	color = COLOR;
 
 	FogVertex();

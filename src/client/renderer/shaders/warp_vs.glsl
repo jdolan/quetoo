@@ -6,8 +6,8 @@
 
 #define VERTEX_SHADER
 
-#include "fog_inc.glsl"
-#include "matrix_inc.glsl"
+#include "include/fog.glsl"
+#include "include/matrix.glsl"
 
 out vec2 texcoord;
 
