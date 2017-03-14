@@ -34,7 +34,6 @@ static EditorViewController *editorViewController;
 void Ui_CheckEditor(void) {
 
 	if (cl_editor->modified) {
-		cl_editor->modified = false;
 
 		if (cl_editor->integer) {
 			if (cls.state != CL_ACTIVE) {
@@ -49,6 +48,8 @@ void Ui_CheckEditor(void) {
 		} else if (editorViewController) {
 			Ui_PopViewController();
 		}
+
+		cl_editor->modified = false;
 	}
 }
 
