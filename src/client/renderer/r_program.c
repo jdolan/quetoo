@@ -390,7 +390,7 @@ static gboolean R_PreprocessShader_eval(const GMatchInfo *match_info, GString *r
 	g_snprintf(path, sizeof(path), "shaders/%s", name);
 
 	if ((len = Fs_Load(path, &buf)) == -1) {
-		Com_Warn("Failed to load %s\n", name);
+		Com_Warn("Failed to load %s\n", path);
 		g_free(name);
 		return true;
 	}
@@ -739,7 +739,7 @@ void R_InitPrograms(void) {
 	// this only needs to be done once
 	if (!shader_preprocess_regex) {
 		GError *error = NULL;
-		shader_preprocess_regex = g_regex_new("#include [\"\']([a-z0-9_]+\\.glsl)[\"\']",
+		shader_preprocess_regex = g_regex_new("#include [\"\']([a-z0-9_/]+\\.glsl)[\"\']",
 		                                      G_REGEX_CASELESS | G_REGEX_MULTILINE | G_REGEX_DOTALL, 0, &error);
 
 		if (error) {

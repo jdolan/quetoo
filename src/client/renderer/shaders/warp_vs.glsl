@@ -6,15 +6,15 @@
 
 #define VERTEX_SHADER
 
-#include "fog_inc.glsl"
-#include "matrix_inc.glsl"
+#include "include/fog.glsl"
+#include "include/matrix.glsl"
 
 in vec3 POSITION;
 in vec2 TEXCOORD;
 
 out VertexData {
 	vec2 texcoord;
-	FOG_VARIABLE;
+	float fog;
 };
 
 /**

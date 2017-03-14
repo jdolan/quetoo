@@ -6,17 +6,16 @@
 
 #define FRAGMENT_SHADER
 
-#include "matrix_inc.glsl"
-#include "fog_inc.glsl"
-#include "noise3d_inc.glsl"
-#include "tint_inc.glsl"
+#include "include/matrix.glsl"
+#include "include/fog.glsl"
+#include "include/noise3d.glsl"
+#include "include/tint.glsl"
 
 #define MAX_LIGHTS $r_max_lights
 #define LIGHT_SCALE $r_lightscale
 
 #if MAX_LIGHTS
-struct LightParameters
-{
+struct LightParameters {
 	vec3 ORIGIN[MAX_LIGHTS];
 	vec3 COLOR[MAX_LIGHTS];
 	float RADIUS[MAX_LIGHTS];
@@ -35,8 +34,7 @@ uniform LightParameters LIGHTS;
 #define LIGHT_CLAMP_MAX 4.0
 #endif
 
-struct CausticParameters
-{
+struct CausticParameters {
 	bool ENABLE;
 	vec3 COLOR;
 };
@@ -76,7 +74,7 @@ in VertexData {
 	vec3 tangent;
 	vec3 bitangent;
 	vec3 eye;
-	FOG_VARIABLE;
+	float fog;
 };
 
 const vec3 two = vec3(2.0);
@@ -115,7 +113,7 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 #if MAX_LIGHTS
 	/*
 	 * Iterate the hardware light sources, accumulating dynamic lighting for
-	 * this fragment.  An attenuation of 0.0 means break.
+	 * this fragment. A light radius of 0.0 means break.
 	 */
 	for (int i = 0; i < MAX_LIGHTS; i++) {
 
@@ -175,13 +173,6 @@ void CausticFragment(in vec3 lightmap) {
 		// add it up
 		fragColor.rgb = clamp(fragColor.rgb + caustic_out, 0.0, 1.0);
 	}
-}
-
-/**
- * @brief Apply fog to the fragment if enabled.
- */
-void FogFragment(void) {
-	fragColor.rgb = mix(fragColor.rgb, FOG.COLOR, fog);
 }
 
 /**
@@ -267,5 +258,6 @@ void main(void) {
     // underliquid caustics
 	CausticFragment(lightmap);
 
-	FogFragment(); // and lastly add fog
+	// and fog
+	FogFragment(fragColor, fog);
 }

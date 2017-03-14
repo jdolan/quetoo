@@ -1,9 +1,5 @@
 #version 330
 
-#define FOG_NO_UNIFORM
-#include "fog_inc.glsl"
-#include "matrix_inc.glsl"
-
 layout (points) in;
 layout (triangle_strip, max_vertices = 4) out;
 
@@ -25,13 +21,13 @@ in VertexData {
 	float roll;
 	vec3 end;
 	int type;
-	FOG_VARIABLE;
+	float fog;
 } in_data[];
 
 out VertexData {
 	vec4 color;
 	vec2 texcoord;
-	FOG_VARIABLE;
+	float fog;
 } out_data;
 
 void CopyCommon(void) {
@@ -48,6 +44,9 @@ void CopyCommon(void) {
 
 #define Radians(d) 					((d) * 0.01745329251) // * M_PI / 180.0
 #define Degrees(r)					((r) * 57.2957795131) // * 180.0 / M_PI
+
+#include "include/fog.glsl"
+#include "include/matrix.glsl"
 
 /**
  * @brief Produces the forward, right and up directional vectors for the given angles.

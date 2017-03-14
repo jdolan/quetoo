@@ -6,7 +6,7 @@
 
 #define VERTEX_SHADER
 
-#include "matrix_inc.glsl"
+#include "include/matrix.glsl"
 
 uniform float OFFSET;
 uniform float SHELL_OFFSET;
@@ -28,7 +28,8 @@ out VertexData {
  */
 void main(void) {
 
-	vec4 position = vec4(mix(POSITION, NEXT_POSITION, TIME_FRACTION) + mix(NORMAL, NEXT_NORMAL, TIME_FRACTION) * SHELL_OFFSET, 1.0);
+	vec4 position = vec4(mix(POSITION, NEXT_POSITION, TIME_FRACTION) +
+						 mix(NORMAL, NEXT_NORMAL, TIME_FRACTION) * SHELL_OFFSET, 1.0);
 
 	// mvp transform into clip space
 	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * position;

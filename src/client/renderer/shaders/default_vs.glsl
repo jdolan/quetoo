@@ -6,8 +6,8 @@
 
 #define VERTEX_SHADER
 
-#include "matrix_inc.glsl"
-#include "fog_inc.glsl"
+#include "include/matrix.glsl"
+#include "include/fog.glsl"
 
 uniform bool DIFFUSE;
 uniform bool LIGHTMAP;
@@ -34,7 +34,7 @@ out VertexData {
 	vec3 tangent;
 	vec3 bitangent;
 	vec3 eye;
-	FOG_VARIABLE;
+	float fog;
 };
 
 /**

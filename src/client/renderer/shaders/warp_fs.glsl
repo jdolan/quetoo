@@ -6,7 +6,7 @@
 
 #define FRAGMENT_SHADER
 
-#include "fog_inc.glsl"
+#include "include/fog.glsl"
 
 uniform float OFFSET;
 uniform vec4 GLOBAL_COLOR;
@@ -16,17 +16,10 @@ uniform sampler2D SAMPLER5;
 
 in VertexData {
 	vec2 texcoord;
-	FOG_VARIABLE;
+	float fog;
 };
 
 out vec4 fragColor;
-
-/**
- * @brief
- */
-void FogFragment(void) {
-	fragColor.rgb = mix(fragColor.rgb, FOG.COLOR, fog);
-}
 
 /**
  * @brief Program entry point.
@@ -42,5 +35,6 @@ void main(void) {
 	// sample the diffuse texture, factoring in primary color as well
 	fragColor = GLOBAL_COLOR * texture(SAMPLER0, coord);
 
-	FogFragment();  // add fog
+	// and add fog
+	FogFragment(fragColor, fog);
 }

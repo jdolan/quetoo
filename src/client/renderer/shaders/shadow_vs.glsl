@@ -6,8 +6,8 @@
 
 #define VERTEX_SHADER
 
-#include "fog_inc.glsl"
-#include "matrix_inc.glsl"
+#include "include/fog.glsl"
+#include "include/matrix.glsl"
 
 uniform mat4 SHADOW_MAT;
 uniform vec4 LIGHT;
@@ -18,7 +18,7 @@ in vec3 NEXT_POSITION;
 
 out VertexData {
 	vec4 point;
-	FOG_VARIABLE;
+	float fog;
 };
 
 /**
