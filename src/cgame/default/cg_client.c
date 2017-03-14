@@ -24,7 +24,7 @@
 
 #define DEFAULT_CLIENT_MODEL "qforcer"
 #define DEFAULT_CLIENT_SKIN "default"
-#define DEFAULT_CLIENT_INFO "newbie\\" DEFAULT_CLIENT_MODEL "/" DEFAULT_CLIENT_SKIN "\\-1\\default\\default"
+#define DEFAULT_CLIENT_INFO "newbie\\" DEFAULT_CLIENT_MODEL "/" DEFAULT_CLIENT_SKIN "\\-1\\default\\default\\default"
 
 /**
  * @brief Parses a single line of a .skin definition file. Note that, unlike Quake3,
