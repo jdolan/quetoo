@@ -161,25 +161,25 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 				self->normalmapTexture->isEditable = false;
 				addInput((View *) stackView, "Normalmap texture", (Control *) self->normalmapTexture);
 
-				self->bumpSlider = $(alloc(Slider), initWithFrame, NULL, ControlStyleDefault);
+				self->bumpSlider = $(alloc(Slider), initWithFrame, &frame, ControlStyleDefault);
 				self->bumpSlider->min = 0.0;
 				self->bumpSlider->max = 20.0;
 				self->bumpSlider->step = 0.125;
 				addInput((View *) stackView, "Bump", (Control *) self->bumpSlider);
 
-				self->hardnessSlider = $(alloc(Slider), initWithFrame, NULL, ControlStyleDefault);
+				self->hardnessSlider = $(alloc(Slider), initWithFrame, &frame, ControlStyleDefault);
 				self->hardnessSlider->min = 0.0;
 				self->hardnessSlider->max = 20.0;
 				self->hardnessSlider->step = 0.1;
 				addInput((View *) stackView, "Hardness", (Control *) self->hardnessSlider);
 
-				self->specularSlider = $(alloc(Slider), initWithFrame, NULL, ControlStyleDefault);
+				self->specularSlider = $(alloc(Slider), initWithFrame, &frame, ControlStyleDefault);
 				self->specularSlider->min = 0.0;
 				self->specularSlider->max = 20.0;
 				self->specularSlider->step = 0.1;
 				addInput((View *) stackView, "Specular", (Control *) self->specularSlider);
 
-				self->parallaxSlider = $(alloc(Slider), initWithFrame, NULL, ControlStyleDefault);
+				self->parallaxSlider = $(alloc(Slider), initWithFrame, &frame, ControlStyleDefault);
 				self->parallaxSlider->min = 0.0;
 				self->parallaxSlider->max = 20.0;
 				self->parallaxSlider->step = 0.1;
