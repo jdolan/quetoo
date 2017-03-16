@@ -288,9 +288,7 @@ void R_UseCaustic_default(const r_caustic_parameters_t *caustic) {
 
 	if (caustic && caustic->enable) {
 		R_ProgramParameter1i(&p->caustic.enable, caustic->enable);
-
 		R_ProgramParameter3fv(&p->caustic.color, caustic->color);
-
 		R_ProgramParameter1f(&p->time, r_view.ticks / 1000.0);
 	} else {
 		R_ProgramParameter1i(&p->caustic.enable, 0);
