@@ -160,7 +160,7 @@ static void updateBindings(View *self) {
 	this->animation1.frame = this->animation2.frame = -1;
 
 	char string[MAX_STRING_CHARS];
-	g_snprintf(string, sizeof(string), "newbie\\%s\\-1\\default\\default", cg_skin->string);
+	g_snprintf(string, sizeof(string), "newbie\\%s\\-1\\default\\default\\default", cg_skin->string);
 
 	Cg_LoadClient(&this->client, string);
 
@@ -246,8 +246,11 @@ static void animate_(const r_md3_t *md3, cl_entity_animation_t *a, r_entity_t *e
 	e->back_lerp = 1.0 - a->lerp;
 }
 
-static vec3_t tint_r = { 1.0, 0.0, 0.0 };
-static vec3_t tint_g = { 0.0, 0.0, 1.0 };
+static vec3_t player_tints[] = {
+	{ 1.0, 0.0, 0.0 },
+	{ 0.0, 1.0, 0.0 },
+	{ 0.0, 0.0, 1.0 }
+};
 
 /**
  * @fn void PlayerModelView::animate(PlayerModelView *self)
@@ -279,10 +282,11 @@ static void animate(PlayerModelView *self) {
 
 	self->legs.scale = self->torso.scale = self->head.scale = self->weapon.scale = 1.0;
 
-	self->legs.tints[TINT_R] = tint_r;
-	self->legs.tints[TINT_G] = tint_g;
-	self->torso.tints[TINT_R] = tint_r;
-	self->torso.tints[TINT_G] = tint_g;
+	for (int32_t i = 0; i < 3; i++) {
+		self->legs.tints[i] = player_tints[i];
+		self->torso.tints[i] = player_tints[i];
+		self->head.tints[i] = player_tints[i];
+	}
 
 	Matrix4x4_CreateFromEntity(&self->legs.matrix, self->legs.origin, self->legs.angles, self->legs.scale);
 	Matrix4x4_CreateFromEntity(&self->torso.matrix, self->torso.origin, self->torso.angles, self->torso.scale);
