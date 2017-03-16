@@ -183,9 +183,14 @@ void main(void) {
 			deluxemap = normalize(two * (deluxemap + negHalf));
 		}
 
+		// resolve the initial normalmap sample
 		normalmap = texture(SAMPLER3, texcoords[0]);
 
+		// resolve the parallax offset from the heightmap
 		parallax = BumpTexcoord(normalmap.w);
+
+		// resample the normalmap at the parallax offset
+		normalmap = texture(SAMPLER3, texcoords[0] + parallax);
 
 		normalmap.xyz = normalize(two * (normalmap.xyz + negHalf));
 		normalmap.xyz = normalize(vec3(normalmap.x * BUMP, normalmap.y * BUMP, normalmap.z));
