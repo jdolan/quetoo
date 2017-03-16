@@ -549,13 +549,13 @@ g_gameplay_t G_GameplayByName(const char *c) {
 		return gameplay;
 	}
 
-	char *lower = g_ascii_strdown(c, -1);
+	char *lower = g_strchug(g_ascii_strdown(c, -1));
 
-	if (g_str_has_prefix(g_strchug(lower), "insta")) {
+	if (g_str_has_prefix(lower, "insta")) {
 		gameplay = GAME_INSTAGIB;
-	} else if (g_str_has_prefix(g_strchug(lower), "arena")) {
+	} else if (g_str_has_prefix(lower, "arena")) {
 		gameplay = GAME_ARENA;
-	} else if (g_str_has_prefix(g_strchug(lower), "duel")) {
+	} else if (g_str_has_prefix(lower, "duel")) {
 		gameplay = GAME_DUEL;
 	}
 
