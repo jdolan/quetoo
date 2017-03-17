@@ -92,21 +92,21 @@ vec2 BumpTexcoord(in float height) {
 }
 
 /**
- * @brief Yield the diffuse modulation from bump-mapping.
+ * @brief Yield the diffuse modulation and specular highlight from bump-mapping.
  */
-vec3 BumpFragment(in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap) {
+vec3 BumpFragment(inout vec3 lightmap, in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap) {
 
-	float diffuse = max(dot(deluxemap, normalmap), 1.0);
+	lightmap *= max(dot(deluxemap, normalmap), 1.0);
 
-	float specular = HARDNESS * pow(max(-dot(eyeDir, reflect(deluxemap, normalmap)), 0.0), 8.0 * SPECULAR);
+	vec3 lightDir = reflect(deluxemap, normalmap);
 
-	return diffuse + specular * glossmap;
+	return HARDNESS * pow(max(-dot(eyeDir, lightDir), 0.0), SPECULAR) * glossmap;
 }
 
 /**
- * @brief Yield the final sample color after factoring in dynamic light sources.
+ * @brief Yield diffuse lighting from dynamic light sources.
  */
-void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
+vec3 LightFragment(in vec3 normalmap) {
 
 	vec3 light = vec3(0.0);
 
@@ -137,11 +137,7 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 	light = clamp(light, LIGHT_CLAMP_MIN, LIGHT_CLAMP_MAX);
 #endif
 
-	// now modulate the diffuse sample with the modified lightmap
-	fragColor.rgb = diffuse.rgb * (lightmap + light);
-
-	// lastly modulate the alpha channel by the color
-	fragColor.a = diffuse.a * color.a;
+	return light;
 }
 
 /**
@@ -172,7 +168,7 @@ void main(void) {
 	// then resolve any bump mapping
 	vec4 normalmap = vec4(normal, 1.0);
 	vec2 parallax = vec2(0.0);
-	vec3 bump = vec3(1.0);
+	vec3 specular = vec3(0.0);
 
 	if (NORMALMAP) {
 
@@ -202,7 +198,7 @@ void main(void) {
 		}
 
 		// resolve the bumpmap modulation
-		bump = BumpFragment(deluxemap, normalmap.xyz, glossmap);
+		specular = BumpFragment(lightmap, deluxemap, normalmap.xyz, glossmap);
 
 		// and then transform the normalmap to model space for lighting
 		normalmap.xyz = normalize(
@@ -232,13 +228,16 @@ void main(void) {
 				}
 			}
 		}
-
-		// factor in bump mapping
-		diffuse.rgb *= bump;
 	}
 
 	// add any dynamic lighting to yield the final fragment color
-	LightFragment(diffuse, lightmap, normalmap.xyz);
+	vec3 dynamic = LightFragment(normalmap.xyz);
+
+	// now modulate the diffuse sample with all gathered light
+	fragColor.rgb = diffuse.rgb * (lightmap + dynamic) * specular;
+
+	// lastly modulate the alpha channel by the color
+	fragColor.a = diffuse.a * color.a;
 
     // underliquid caustics
 	CausticFragment(lightmap);
