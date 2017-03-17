@@ -64,7 +64,7 @@ static void updateBindings(View *self) {
 	vec3_t end;
 	VectorMA(r_view.origin, MAX_WORLD_DIST, r_view.forward, end);
 
-	const cm_trace_t tr = Cl_Trace(r_view.origin, end, NULL, NULL, 0, MASK_SOLID);
+	const cm_trace_t tr = Cl_Trace(r_view.origin, end, NULL, NULL, 0, MASK_ALL);
 	if (tr.fraction < 1.0 && tr.surface->material) {
 		this->material = R_LoadMaterial(tr.surface->name, ASSET_CONTEXT_TEXTURES);
 	}
