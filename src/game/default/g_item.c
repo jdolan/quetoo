@@ -902,14 +902,10 @@ g_entity_t *G_SelectTechSpawnPoint(void) {
  * @brief
  */
 void G_ResetDroppedTech(g_entity_t *ent) {
-	g_entity_t *point = G_SelectTechSpawnPoint();
 
-	VectorCopy(point->s.origin, ent->s.origin);
-	VectorSet(ent->locals.velocity, Randomc() * 250, Randomc() * 250, 200 + (Randomf() * 200));
+	G_SpawnTech(ent->locals.item);
 
-	G_DropItem_SetExpiration(ent);
-
-	gi.LinkEntity(ent);
+	G_FreeEntity(ent);
 }
 
 /**

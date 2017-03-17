@@ -902,7 +902,6 @@ static int32_t R_ParseStage(r_stage_t *s, const cm_stage_t *cm) {
  * materials/${model_name}.mat for BSP models.
  */
 void R_LoadMaterials(r_model_t *mod) {
-
 	cm_material_t **materials;
 	size_t num_materials;
 
@@ -1000,9 +999,10 @@ void R_LoadMaterials(r_model_t *mod) {
 			continue;
 		}
 
+		R_RegisterDependency((r_media_t *) mod, (r_media_t *) r_mat);
 		Com_Debug(DEBUG_RENDERER, "Parsed material %s with %d stages\n", r_mat->diffuse->media.name, r_mat->cm->num_stages);
 	}
-
+	
 	Cm_FreeMaterialList(materials);
 }
 
@@ -1010,8 +1010,8 @@ void R_LoadMaterials(r_model_t *mod) {
  * @brief
  */
 static void R_SaveMaterials_f(void) {
-
 	const r_model_t *mod = r_model_state.world;
+
 	if (!mod) {
 		Com_Print("No map loaded\n");
 		return;

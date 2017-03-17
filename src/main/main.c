@@ -359,6 +359,11 @@ static void Init(void) {
 	Cbuf_InsertFromDefer();
 	Cbuf_Execute();
 
+	// if we don't have console fonts, the user should run the updater
+	if (!Fs_Exists("fonts/small.tga")) {
+		Com_Error(ERROR_FATAL, "Please run quetoo-update.\n");
+	}
+
 	// dedicated server, nothing specified, use Edge
 	if (dedicated->value && !Com_WasInit(QUETOO_SERVER)) {
 		Cbuf_AddText("map edge\n");

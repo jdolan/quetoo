@@ -53,36 +53,40 @@ void Cg_ParseViewKick(void) {
  */
 static void Cg_ViewKick(const pm_cmd_t *cmd) {
 
-	if (cgi.client->previous_frame) {
+	if (cg_kick.timestamp > cgi.client->unclamped_time) {
+		memset(&cg_kick, 0, sizeof(cg_kick));
+	}
 
+	if (cgi.client->previous_frame) {
 		const player_state_t *ps0 = &cgi.client->previous_frame->ps;
 		const player_state_t *ps1 = &cgi.client->frame.ps;
 
-		vec3_t delta0, delta1;
+		if (ps0->pm_state.type == PM_DEAD && ps1->pm_state.type != PM_DEAD) {
+			cgi.Debug("Respawned, clearing kick %s\n", vtos(cg_kick.kick));
+			memset(&cg_kick, 0, sizeof(cg_kick));
+		} else {
+			vec3_t delta0, delta1;
 
-		UnpackAngles(ps0->pm_state.delta_angles, delta0);
-		UnpackAngles(ps1->pm_state.delta_angles, delta1);
+			UnpackAngles(ps0->pm_state.delta_angles, delta0);
+			UnpackAngles(ps1->pm_state.delta_angles, delta1);
 
-		if (!VectorCompare(delta0, delta1)) {
-			static int32_t frame;
+			if (!VectorCompare(delta0, delta1)) {
+				static int32_t frame;
 
-			if (cgi.client->frame.frame_num != frame) {
-				cgi.Debug("Delta kick %s\n", vtos(cg_kick.kick));
+				if (cgi.client->frame.frame_num != frame) {
+					cgi.Debug("Delta kick %s\n", vtos(cg_kick.kick));
 
-				VectorCopy(cg_kick.kick, cg_kick.next);
-				VectorClear(cg_kick.kick);
-				VectorClear(cg_kick.prev);
+					VectorCopy(cg_kick.kick, cg_kick.next);
+					VectorClear(cg_kick.kick);
+					VectorClear(cg_kick.prev);
 
-				cg_kick.timestamp = cgi.client->unclamped_time;
-				cg_kick.interval = 1;
+					cg_kick.timestamp = cgi.client->unclamped_time;
+					cg_kick.interval = 1;
 
-				frame = cgi.client->frame.frame_num;
+					frame = cgi.client->frame.frame_num;
+				}
 			}
 		}
-	}
-
-	if (cg_kick.timestamp > cgi.client->unclamped_time) {
-		memset(&cg_kick, 0, sizeof(cg_kick));
 	}
 
 	const uint32_t delta = cgi.client->unclamped_time - cg_kick.timestamp;
@@ -105,7 +109,7 @@ static void Cg_ViewKick(const pm_cmd_t *cmd) {
 		const vec_t len = VectorLength(cg_kick.kick);
 		if (len < 0.1) {
 			VectorSubtract(cgi.client->angles, cg_kick.kick, cgi.client->angles);
-			VectorClear(cg_kick.kick);
+			memset(&cg_kick, 0, sizeof(cg_kick));
 		} else {
 
 			VectorCopy(cg_kick.kick, cg_kick.prev);

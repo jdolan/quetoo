@@ -313,7 +313,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 		}
 
 		if (!g_strcmp0(token, "texture") || !g_strcmp0(token, "diffuse")) {
-			
+
 			if (!Parse_Token(parser, PARSE_NO_WRAP, s->image, sizeof(s->image))) {
 				Cm_MaterialWarn(path, parser, "Missing path or too many characters");
 				continue;
@@ -363,7 +363,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 				Cm_MaterialWarn(path, parser, "Invalid blend dest");
 			}
 
-			if (s->blend.src != GL_INVALID_ENUM && 
+			if (s->blend.src != GL_INVALID_ENUM &&
 				s->blend.dest != GL_INVALID_ENUM) {
 				s->flags |= STAGE_BLEND;
 			}
@@ -792,13 +792,13 @@ cm_material_t **Cm_LoadMaterials(const char *path, size_t *count) {
 
 		if (!strncmp(token, "tintmap.", strlen("tintmap."))) {
 			vec_t *color = NULL;
-			
-			if (!g_strcmp0(token, "tintmap.shirt_default")) {
-				color = m->tintmap_defaults[TINT_SHIRT];
-			} else if (!g_strcmp0(token, "tintmap.pants_default")) {
-				color = m->tintmap_defaults[TINT_PANTS];
-			} else if (!g_strcmp0(token, "tintmap.head_default")) {
-				color = m->tintmap_defaults[TINT_HEAD];
+
+			if (!g_strcmp0(token, "tintmap.tint_r_default")) {
+				color = m->tintmap_defaults[TINT_R];
+			} else if (!g_strcmp0(token, "tintmap.tint_g_default")) {
+				color = m->tintmap_defaults[TINT_G];
+			} else if (!g_strcmp0(token, "tintmap.tint_b_default")) {
+				color = m->tintmap_defaults[TINT_B];
 			} else {
 				Cm_MaterialWarn(path, &parser, va("Invalid token \"%s\"", token));
 			}
@@ -823,7 +823,7 @@ cm_material_t **Cm_LoadMaterials(const char *path, size_t *count) {
 
 			continue;
 		}
-		
+
 		if (!g_strcmp0(token, "bump")) {
 
 			if (!Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->bump, 1)) {

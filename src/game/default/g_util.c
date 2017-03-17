@@ -479,7 +479,7 @@ void G_KillBox(g_entity_t *ent) {
 
 /**
  * @brief Kills the specified entity via explosion, potentially taking nearby
- * entities with it.
+ * entities with it. Certain pickup items are reset after exploding.
  */
 void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, vec_t radius, uint32_t mod) {
 
@@ -490,7 +490,22 @@ void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, vec_t radius,
 
 	G_RadiusDamage(ent, ent, NULL, damage, knockback, radius, mod ?: MOD_EXPLOSIVE);
 
-	G_FreeEntity(ent);
+	const g_item_t *item = ent->locals.item;
+	if (item) {
+		switch (item->type) {
+			case ITEM_TECH:
+				G_ResetDroppedTech(ent);
+				break;
+			case ITEM_FLAG:
+				G_ResetDroppedFlag(ent);
+				break;
+			default:
+				G_FreeEntity(ent);
+				break;
+		}
+	} else {
+		G_FreeEntity(ent);
+	}
 }
 
 /**
@@ -534,13 +549,13 @@ g_gameplay_t G_GameplayByName(const char *c) {
 		return gameplay;
 	}
 
-	char *lower = g_ascii_strdown(c, -1);
+	char *lower = g_strchug(g_ascii_strdown(c, -1));
 
-	if (g_str_has_prefix(g_strchug(lower), "insta")) {
+	if (g_str_has_prefix(lower, "insta")) {
 		gameplay = GAME_INSTAGIB;
-	} else if (g_str_has_prefix(g_strchug(lower), "arena")) {
+	} else if (g_str_has_prefix(lower, "arena")) {
 		gameplay = GAME_ARENA;
-	} else if (g_str_has_prefix(g_strchug(lower), "duel")) {
+	} else if (g_str_has_prefix(lower, "duel")) {
 		gameplay = GAME_DUEL;
 	}
 
