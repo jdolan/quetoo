@@ -274,5 +274,8 @@
     <None Include="..\..\src\client\renderer\shaders\corona_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
+    <None Include="..\..\src\client\renderer\shaders\tint_inc.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

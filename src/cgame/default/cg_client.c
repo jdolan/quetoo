@@ -249,21 +249,21 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 
 		// load red/green/blue tint colors
 		color_t tint_r, tint_g, tint_b;
-		ci->tint_r[3] = ci->tint_g[3] = ci->tint_b[3] = 0.0;
+		ci->tints[TINT_R][3] = ci->tints[TINT_G][3] = ci->tints[TINT_B][3] = 0.0;
 
 		if (g_strcmp0(info[3], "default") && ColorParseHex(info[3], &tint_r)) { // shirt
-			ColorToVec4(tint_r, ci->tint_r);
-			ci->tint_r[3] = 1.0;
+			ColorToVec4(tint_r, ci->tints[TINT_R]);
+			ci->tints[TINT_R][3] = 1.0;
 		}
 
 		if (g_strcmp0(info[4], "default") && ColorParseHex(info[4], &tint_g)) { // pants
-			ColorToVec4(tint_g, ci->tint_g);
-			ci->tint_g[3] = 1.0;
+			ColorToVec4(tint_g, ci->tints[TINT_G]);
+			ci->tints[TINT_G][3] = 1.0;
 		}
 
 		if (g_strcmp0(info[5], "default") && ColorParseHex(info[5], &tint_b)) { // helmet
-			ColorToVec4(tint_b, ci->tint_b);
-			ci->tint_b[3] = 1.0;
+			ColorToVec4(tint_b, ci->tints[TINT_B]);
+			ci->tints[TINT_B][3] = 1.0;
 		}
 
 		// ensure we were able to load everything

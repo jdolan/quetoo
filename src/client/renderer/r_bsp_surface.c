@@ -64,8 +64,6 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 	if (r_state.lighting_enabled) { // hardware lighting
 		R_BindDeluxemapTexture(surf->deluxemap->texnum);
 
-		R_UseMaterial(surf->texinfo->material);
-
 		if (surf->light_frame == r_locals.light_frame) { // dynamic light sources
 			R_EnableLights(surf->light_mask);
 		} else {
@@ -76,6 +74,8 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 	} else {
 		R_EnableCaustic(false);
 	}
+
+	R_UseMaterial(surf->texinfo->material);
 
 	if (r_state.stencil_test_enabled) { // write to stencil buffer to clip shadows
 		if (r_model_state.world->bsp->plane_shadows[surf->plane->num]) {
@@ -124,12 +124,12 @@ static void R_DrawBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 	// reset state
 	if (r_state.lighting_enabled) {
 
-		R_UseMaterial(NULL);
-
 		R_EnableLights(0);
 
 		R_EnableCaustic(false);
 	}
+
+	R_UseMaterial(NULL);
 
 	R_Color(NULL);
 }

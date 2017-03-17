@@ -743,6 +743,8 @@ void R_InitPrograms(void) {
 		program_null->UseFog = R_UseFog_null;
 		program_null->UseCurrentColor = R_UseCurrentColor_null;
 		program_null->UseInterpolation = R_UseInterpolation_null;
+		program_null->UseMaterial = R_UseMaterial_null;
+		program_null->UseTints = R_UseTints_null;
 		program_null->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_NEXT_POSITION | R_ARRAY_MASK_DIFFUSE |
 		                            R_ARRAY_MASK_COLOR;
 	}
