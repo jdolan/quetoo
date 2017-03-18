@@ -130,44 +130,6 @@ static void R_StainSurface(const r_stain_t *stain, const r_bsp_surface_t *surf) 
 		.point = { round(surf->lightmap_s + point_st[0]), round(surf->lightmap_t + point_st[1]) },
 		.color = ColorFromRGBA((byte) (stain->color[0] * 255.0), (byte) (stain->color[1] * 255.0), (byte) (stain->color[2] * 255.0), (byte) (stain->color[3] * 255.0))
 	}, 1);
-
-	/*byte *buffer = surf->stainmap_buffer;
-
-	// iterate the luxels and stain the ones that are within reach
-	for (uint16_t t = 0; t < surf->lightmap_size[1]; t++) {
-
-		for (uint16_t s = 0; s < surf->lightmap_size[0]; s++, buffer += 3) {
-
-			if (s < (point_st_round[0]) || t < (point_st_round[1]) || 
-				s >= (point_st_round[0] + radius_st_round) || t >= (point_st_round[1] + radius_st_round)) {
-				continue;
-			}
-			
-			const vec_t delta_s = fabs((s - point_st[0]) / radius_st);
-			const vec_t delta_t = fabs((t - point_st[1]) / radius_st);
-
-			const vec_t atten = R_BilinearFilterStain(r_stain_circle, r_stain_circle_size, delta_s, delta_t) / 255.0;
-
-			if (atten <= 0.0) {
-				continue;
-			}
-
-			const vec_t intensity = stain->color[3] * atten * r_stainmap->value;
-
-			const vec_t src_alpha = Clamp(intensity, 0.0, 1.0);
-			const vec_t dst_alpha = 1.0 - src_alpha;
-
-			for (uint32_t j = 0; j < 3; j++) {
-
-				const vec_t src = stain->color[j] * src_alpha;
-				const vec_t dst = (buffer[j] / 255.0) * dst_alpha;
-
-				buffer[j] = (uint8_t) (Clamp(src + dst, 0.0, 1.0) * 255.0);
-			}
-
-			surf_touched = true;
-		}
-	}*/
 }
 
 /**
