@@ -129,6 +129,8 @@ void R_BindUnitTexture(r_texunit_t *texunit, GLuint texnum) {
 	texunit->texnum = texnum;
 
 	r_view.num_binds[texunit - r_state.texunits]++;
+
+	R_SelectTexture(texunit_diffuse);
 }
 
 /**
@@ -498,10 +500,6 @@ void R_EnableCaustic(_Bool enable) {
 void R_UseMaterial(const r_material_t *material) {
 
 	if (!r_state.active_program) {
-		return;
-	}
-
-	if (r_state.active_material == material) {
 		return;
 	}
 

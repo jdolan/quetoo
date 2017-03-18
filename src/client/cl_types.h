@@ -99,9 +99,7 @@ typedef struct {
 	char model[MAX_USER_INFO_VALUE]; // the model name, e.g. qforcer
 	char skin[MAX_USER_INFO_VALUE]; // the skin name, e.g. blue
 	color_t color; // the effect color, parsed from info as a hue value
-	vec4_t tint_r; // red tint (shirt) colors. Alpha > 0 means it's not default.
-	vec4_t tint_g; // green tint (pants) colors. Alpha > 0 means it's not default.
-	vec4_t tint_b; // blue tint (helmet) colors. Alpha > 0 means it's not default.
+	vec4_t tints[TINT_TOTAL]; // tint colors. Alpha > 0 means it's not default.
 
 	r_model_t *head;
 	r_material_t *head_skins[MD3_MAX_MESHES];

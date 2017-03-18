@@ -108,6 +108,7 @@
     <None Include="..\..\src\client\renderer\shaders\shadow_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\shell_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\shell_vs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\tint_inc.glsl" />
     <None Include="..\..\src\client\renderer\shaders\warp_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\warp_vs.glsl" />
   </ItemGroup>

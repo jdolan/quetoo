@@ -208,7 +208,8 @@ void R_UseMaterial_default(const r_material_t *material) {
 	r_default_program_t *p = &r_default_program;
 
 	if (!material || !material->normalmap ||
-	        !r_bumpmap->value || r_draw_bsp_lightmaps->value) {
+	        !r_bumpmap->value || r_draw_bsp_lightmaps->value ||
+			!r_state.lighting_enabled) {
 
 		R_DisableAttribute(R_ARRAY_TANGENT);
 		R_ProgramParameter1i(&p->normalmap, 0);
@@ -329,6 +330,10 @@ void R_UseInterpolation_default(const vec_t time_fraction) {
  */
 void R_UseTints_default(void) {
 	r_default_program_t *p = &r_default_program;
+
+	if (!r_state.active_material->tintmap) {
+		return;
+	}
 
 	for (int32_t i = 0; i < TINT_TOTAL; i++) {
 		if (r_view.current_entity->tints[i]) {

@@ -23,8 +23,6 @@
 
 #include "SkinSelect.h"
 
-extern cvar_t *cg_skin;
-
 #define _Class _SkinSelect
 
 /**

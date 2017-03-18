@@ -83,18 +83,20 @@ static g_team_t g_teamlist_default[MAX_TEAMS];
 /**
  * @brief
  */
-static void G_InitTeam(const g_team_id_t id, const char *name, const char *skin, const int16_t color, const char tint_r[COLOR_MAX_LENGTH], const char tint_g[COLOR_MAX_LENGTH], const int16_t effect) {
+static void G_InitTeam(const g_team_id_t id, const char *name, const int16_t color, const char tint[COLOR_MAX_LENGTH], const int16_t effect) {
 	g_team_t *team = &g_teamlist[id];
 
 	team->id = id;
 
 	g_strlcpy(team->name, name, sizeof(team->name));
-	g_strlcpy(team->skin, skin, sizeof(team->skin));
 
 	team->color = color;
 
-	g_strlcpy(team->tint_r, tint_r, sizeof(team->tint_r)); // shirt
-	g_strlcpy(team->tint_g, tint_g, sizeof(team->tint_g)); // pants
+	g_strlcpy(team->tint_r, tint, sizeof(team->tint_r)); // shirt
+	g_strlcpy(team->tint_g, tint, sizeof(team->tint_g)); // pants
+	g_strlcpy(team->tint_b, tint, sizeof(team->tint_b)); // helmet
+
+	g_strlcpy(team->skin, DEFAULT_TEAM_SKIN, sizeof(team->skin));
 
 	team->effect = effect;
 
@@ -109,10 +111,10 @@ void G_ResetTeams(void) {
 
 	memset(g_teamlist, 0, sizeof(g_teamlist));
 
-	G_InitTeam(TEAM_RED, "Red", "red", TEAM_COLOR_RED, "ff0000", "ff0000", EF_CTF_RED);
-	G_InitTeam(TEAM_BLUE, "Blue", "blue", TEAM_COLOR_BLUE, "0000ff", "0000ff", EF_CTF_BLUE);
-	G_InitTeam(TEAM_GREEN, "Green", "green", TEAM_COLOR_GREEN, "00ff00", "00ff00", EF_CTF_GREEN);
-	G_InitTeam(TEAM_ORANGE, "Orange", "orange", TEAM_COLOR_ORANGE, "aa6600", "aa6600", EF_CTF_ORANGE);
+	G_InitTeam(TEAM_RED, "Red", TEAM_COLOR_RED, "ff0000", EF_CTF_RED);
+	G_InitTeam(TEAM_BLUE, "Blue", TEAM_COLOR_BLUE, "0000ff", EF_CTF_BLUE);
+	G_InitTeam(TEAM_GREEN, "Green", TEAM_COLOR_GREEN, "00ff00", EF_CTF_GREEN);
+	G_InitTeam(TEAM_ORANGE, "Orange", TEAM_COLOR_ORANGE, "aa6600", EF_CTF_ORANGE);
 
 	memcpy(g_teamlist_default, g_teamlist, sizeof(g_teamlist));
 
