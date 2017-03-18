@@ -598,8 +598,8 @@ void R_Init(void) {
 
 	R_InitState();
 
-	R_GetError("NULL");
-
+	R_GetError("Video initialization");
+	
 	R_InitPrograms();
 
 	R_InitImages();

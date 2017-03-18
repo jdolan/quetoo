@@ -375,6 +375,8 @@ void Cl_UpdateScreen(void) {
 				cls.cgame->UpdateScreen(&cl.frame);
 				break;
 		}
+
+		R_AddStains();
 	} else {
 		R_BeginFrame();
 
@@ -385,10 +387,6 @@ void Cl_UpdateScreen(void) {
 		} else if (cls.key_state.dest == KEY_CONSOLE) {
 			Cl_DrawConsole();
 		}
-	}
-
-	if (cls.state == CL_ACTIVE) {
-		R_AddStains();
 	}
 
 	R_Draw2D();
