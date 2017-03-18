@@ -1,3 +1,7 @@
+SUBDIRS = \
+	. \
+	include
+
 shadersdir = @PKGLIBDIR@/default/shaders
 
 shaders_DATA = \
@@ -5,9 +9,6 @@ shaders_DATA = \
 	corona_vs.glsl \
 	default_fs.glsl \
 	default_vs.glsl \
-	fog_inc.glsl \
-	matrix_inc.glsl \
-	noise3d_inc.glsl \
 	null_fs.glsl \
 	null_vs.glsl \
 	shadow_fs.glsl \

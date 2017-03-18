@@ -6,10 +6,10 @@
 
 #define FRAGMENT_SHADER
 
-#include "matrix_inc.glsl"
-#include "fog_inc.glsl"
-#include "noise3d_inc.glsl"
-#include "tint_inc.glsl"
+#include "include/matrix.glsl"
+#include "include/fog.glsl"
+#include "include/noise3d.glsl"
+#include "include/tint.glsl"
 
 #define MAX_LIGHTS $r_max_lights
 
@@ -71,11 +71,12 @@ in vec3 point;
 in vec3 normal;
 in vec3 tangent;
 in vec3 bitangent;
+in vec3 eye;
+
+vec3 eyeDir;
 
 const vec3 two = vec3(2.0);
 const vec3 negHalf = vec3(-0.5);
-
-vec3 eye;
 
 out vec4 fragColor;
 
@@ -83,40 +84,32 @@ out vec4 fragColor;
  * @brief Yield the parallax offset for the texture coordinate.
  */
 vec2 BumpTexcoord(in float height) {
-
-	// transform the eye vector into tangent space for bump-mapping
-	eye.x = dot(point, tangent);
-	eye.y = dot(point, bitangent);
-	eye.z = dot(point, normal);
-
-	eye = -normalize(eye);
-
-	return vec2(height * 0.04 - 0.02) * PARALLAX * eye.xy;
+	return vec2(height * 0.04 - 0.02) * PARALLAX * eyeDir.xy;
 }
 
 /**
- * @brief Yield the diffuse modulation from bump-mapping.
+ * @brief Yield the diffuse modulation and specular highlight from bump-mapping.
  */
-vec3 BumpFragment(in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap) {
+vec3 BumpFragment(inout vec3 lightmap, in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap) {
 
-	float diffuse = max(dot(deluxemap, normalmap), 1.0);
+	lightmap *= max(dot(deluxemap, normalmap), 1.0);
 
-	float specular = HARDNESS * pow(max(-dot(eye, reflect(deluxemap, normalmap)), 0.0), 8.0 * SPECULAR);
+	vec3 lightDir = reflect(deluxemap, normalmap);
 
-	return diffuse + specular * glossmap;
+	return HARDNESS * pow(max(-dot(eyeDir, lightDir), 0.0), SPECULAR) * glossmap;
 }
 
 /**
- * @brief Yield the final sample color after factoring in dynamic light sources.
+ * @brief Yield diffuse lighting from dynamic light sources.
  */
-void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
+vec3 LightFragment(in vec3 normalmap) {
 
 	vec3 light = vec3(0.0);
 
 #if MAX_LIGHTS
 	/*
 	 * Iterate the hardware light sources, accumulating dynamic lighting for
-	 * this fragment.  An attenuation of 0.0 means break.
+	 * this fragment. A light radius of 0.0 means break.
 	 */
 	for (int i = 0; i < MAX_LIGHTS; i++) {
 
@@ -140,11 +133,7 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 	light = clamp(light, LIGHT_CLAMP_MIN, LIGHT_CLAMP_MAX);
 #endif
 
-	// now modulate the diffuse sample with the modified lightmap
-	fragColor.rgb = diffuse.rgb * (lightmap + light);
-
-	// lastly modulate the alpha channel by the color
-	fragColor.a = diffuse.a * color.a;
+	return light;
 }
 
 /**
@@ -157,13 +146,6 @@ void CausticFragment(in vec3 lightmap) {
 
 		fragColor.rgb += clamp(CAUSTIC.COLOR * factor * clamp((lightmap * 1.6) - 0.5, 0.1, 1.0) * 0.17, 0.0, 1.0);
 	}
-}
-
-/**
- * @brief Apply fog to the fragment if enabled.
- */
-void FogFragment(void) {
-	fragColor.rgb = mix(fragColor.rgb, FOG.COLOR, fog);
 }
 
 /**
@@ -182,18 +164,25 @@ void main(void) {
 	// then resolve any bump mapping
 	vec4 normalmap = vec4(normal, 1.0);
 	vec2 parallax = vec2(0.0);
-	vec3 bump = vec3(1.0);
+	vec3 specular = vec3(0.0);
 
 	if (NORMALMAP) {
+
+		eyeDir = normalize(eye);
 
 		if (DELUXEMAP) {
 			deluxemap = texture(SAMPLER2, texcoords[1]).rgb;
 			deluxemap = normalize(two * (deluxemap + negHalf));
 		}
 
+		// resolve the initial normalmap sample
 		normalmap = texture(SAMPLER3, texcoords[0]);
 
+		// resolve the parallax offset from the heightmap
 		parallax = BumpTexcoord(normalmap.w);
+
+		// resample the normalmap at the parallax offset
+		normalmap = texture(SAMPLER3, texcoords[0] + parallax);
 
 		normalmap.xyz = normalize(two * (normalmap.xyz + negHalf));
 		normalmap.xyz = normalize(vec3(normalmap.x * BUMP, normalmap.y * BUMP, normalmap.z));
@@ -205,7 +194,7 @@ void main(void) {
 		}
 
 		// resolve the bumpmap modulation
-		bump = BumpFragment(deluxemap, normalmap.xyz, glossmap);
+		specular = BumpFragment(lightmap, deluxemap, normalmap.xyz, glossmap);
 
 		// and then transform the normalmap to model space for lighting
 		normalmap.xyz = normalize(
@@ -221,20 +210,25 @@ void main(void) {
 		diffuse = texture(SAMPLER0, texcoords[0] + parallax);
 
 		// see if diffuse can be discarded because of alpha test
-		if (diffuse.a < ALPHA_THRESHOLD)
+		if (diffuse.a < ALPHA_THRESHOLD) {
 			discard;
+		}
 
 		TintFragment(diffuse, texcoords[0] + parallax);
-
-		// factor in bump mapping
-		diffuse.rgb *= bump;
 	}
 
 	// add any dynamic lighting to yield the final fragment color
-	LightFragment(diffuse, lightmap, normalmap.xyz);
+	vec3 dynamic = LightFragment(normalmap.xyz);
+
+	// now modulate the diffuse sample with all gathered light
+	fragColor.rgb = diffuse.rgb * (lightmap + dynamic) * specular;
+
+	// lastly modulate the alpha channel by the color
+	fragColor.a = diffuse.a * color.a;
 
     // underliquid caustics
 	CausticFragment(lightmap);
 
-	FogFragment(); // and lastly add fog
+	// and fog
+	FogFragment(fragColor);
 }

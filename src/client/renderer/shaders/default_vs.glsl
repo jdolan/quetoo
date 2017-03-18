@@ -6,8 +6,8 @@
 
 #define VERTEX_SHADER
 
-#include "matrix_inc.glsl"
-#include "fog_inc.glsl"
+#include "include/matrix.glsl"
+#include "include/fog.glsl"
 
 uniform bool DIFFUSE;
 uniform bool LIGHTMAP;
@@ -22,6 +22,7 @@ out vec3 point;
 out vec3 normal;
 out vec3 tangent;
 out vec3 bitangent;
+out vec3 eye;
 
 in vec3 POSITION;
 in vec4 COLOR;
@@ -43,9 +44,13 @@ void LightVertex(void) {
 	normal = normalize(vec3(NORMAL_MAT * vec4(mix(NORMAL, NEXT_NORMAL, TIME_FRACTION), 1.0)));
 
 	if (NORMALMAP) {
-		vec4 temp_tangent = mix(TANGENT, NEXT_TANGENT, TIME_FRACTION);
-		tangent = normalize(vec3(NORMAL_MAT * temp_tangent));
-		bitangent = cross(normal, tangent) * temp_tangent.w;
+		vec4 tang = mix(TANGENT, NEXT_TANGENT, TIME_FRACTION);
+		tangent = normalize(vec3(NORMAL_MAT * tang));
+		bitangent = cross(normal, tangent) * tang.w;
+
+		eye.x = -dot(point, tangent);
+		eye.y = -dot(point, bitangent);
+		eye.z = -dot(point, normal);
 	}
 }
 

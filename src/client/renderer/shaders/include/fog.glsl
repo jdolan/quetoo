@@ -1,4 +1,3 @@
-#ifndef FOG_NO_UNIFORM
 struct FogParameters
 {
 	float START;
@@ -8,15 +7,11 @@ struct FogParameters
 };
 
 uniform FogParameters FOG;
-#endif
 
 #ifdef VERTEX_SHADER
+
 out float fog;
-#else
-in float fog;
-#endif
 
-#ifdef VERTEX_SHADER
 /**
  * @brief Calculate the fog mix factor.
  */
@@ -24,4 +19,16 @@ void FogVertex(void) {
 	fog = (gl_Position.z - FOG.START) / (FOG.END - FOG.START);
 	fog = clamp(fog * FOG.DENSITY, 0.0, 1.0);
 }
+
+#else
+
+in float fog;
+
+/**
+ * @brief Apply fog to the fragment if enabled.
+ */
+void FogFragment(inout vec4 fragColor) {
+	fragColor.rgb = mix(fragColor.rgb, FOG.COLOR, fog);
+}
+
 #endif

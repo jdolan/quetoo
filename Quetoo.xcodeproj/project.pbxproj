@@ -1344,8 +1344,6 @@
 		CE3BCDB81DB6DCE0002E6C6D /* r_glad_core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_glad_core.h; sourceTree = "<group>"; };
 		CE3BCDB91DB6DCE0002E6C6D /* r_program_null.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_program_null.c; sourceTree = "<group>"; };
 		CE3BCDBA1DB6DCE0002E6C6D /* r_program_null.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_program_null.h; sourceTree = "<group>"; };
-		CE3BCDC11DB6DD05002E6C6D /* fog_inc.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = fog_inc.glsl; sourceTree = "<group>"; };
-		CE3BCDC21DB6DD05002E6C6D /* matrix_inc.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = matrix_inc.glsl; sourceTree = "<group>"; };
 		CE3BCDC31DB6DD05002E6C6D /* null_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = null_fs.glsl; sourceTree = "<group>"; };
 		CE3BCDC41DB6DD05002E6C6D /* null_vs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = null_vs.glsl; sourceTree = "<group>"; };
 		CE3BCDEC1DB91AF7002E6C6D /* QuetooRenderer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = QuetooRenderer.c; sourceTree = "<group>"; };
@@ -1410,6 +1408,7 @@
 		CE92B3AC1D2FF83A00E9153A /* quetoo-dedicated.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = "quetoo-dedicated.ico"; sourceTree = "<group>"; };
 		CE9574581E56860800BBC4C0 /* EditorViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = EditorViewController.c; sourceTree = "<group>"; };
 		CE9574591E56860800BBC4C0 /* EditorViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditorViewController.h; sourceTree = "<group>"; };
+		CE9E00DE1E7D570C005F0536 /* tint.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = tint.glsl; sourceTree = "<group>"; };
 		CEA029F41C5E558100341079 /* quetoo-master */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-master"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEA082331DC6EBB7001207AA /* r_atlas.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_atlas.c; sourceTree = "<group>"; };
 		CEA082341DC6EBB7001207AA /* r_atlas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_atlas.h; sourceTree = "<group>"; };
@@ -1425,6 +1424,10 @@
 		CECA8CAD1E4EC027005E97E8 /* qmat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qmat.h; sourceTree = "<group>"; };
 		CECA8CAE1E50B5F1005E97E8 /* materials.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = materials.c; sourceTree = "<group>"; };
 		CECA8CAF1E50B5F1005E97E8 /* materials.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = materials.h; sourceTree = "<group>"; };
+		CECB421C1E784E9600D961B1 /* fog.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = fog.glsl; sourceTree = "<group>"; };
+		CECB421D1E784E9600D961B1 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CECB421E1E784E9600D961B1 /* matrix.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = matrix.glsl; sourceTree = "<group>"; };
+		CECB421F1E784E9600D961B1 /* noise3d.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = noise3d.glsl; sourceTree = "<group>"; };
 		CED438AD1D9D34450052BAFA /* librenderer.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = librenderer.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		CED4393B1D9D344E0052BAFA /* libsound.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libsound.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = "../../Library/Developer/Xcode/DerivedData/Quetoo-eijmznjiunzbaafulkyjapfulhqz/Build/Products/Debug/libObjectivelyMVC.dylib"; sourceTree = "<group>"; };
@@ -2331,12 +2334,11 @@
 		CE12D5F31C5C58C300CD0B13 /* shaders */ = {
 			isa = PBXGroup;
 			children = (
+				CECB421B1E784E9600D961B1 /* include */,
 				CEA936601DBCD85400A12B79 /* corona_fs.glsl */,
 				CEA936611DBCD85400A12B79 /* corona_vs.glsl */,
 				CE12D5F41C5C58C300CD0B13 /* default_fs.glsl */,
 				CE12D5F51C5C58C300CD0B13 /* default_vs.glsl */,
-				CE3BCDC11DB6DD05002E6C6D /* fog_inc.glsl */,
-				CE3BCDC21DB6DD05002E6C6D /* matrix_inc.glsl */,
 				CE3BCDC31DB6DD05002E6C6D /* null_fs.glsl */,
 				CE3BCDC41DB6DD05002E6C6D /* null_vs.glsl */,
 				CE12D5F81C5C58C300CD0B13 /* shadow_fs.glsl */,
@@ -2870,6 +2872,18 @@
 				CE67EF9A1E351A7B009C2819 /* Makefile.am */,
 			);
 			path = "quetoo-update";
+			sourceTree = "<group>";
+		};
+		CECB421B1E784E9600D961B1 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				CECB421C1E784E9600D961B1 /* fog.glsl */,
+				CECB421E1E784E9600D961B1 /* matrix.glsl */,
+				CECB421F1E784E9600D961B1 /* noise3d.glsl */,
+				CE9E00DE1E7D570C005F0536 /* tint.glsl */,
+				CECB421D1E784E9600D961B1 /* Makefile.am */,
+			);
+			path = include;
 			sourceTree = "<group>";
 		};
 		CEFC78991D9BE432000FA6B2 /* viewcontrollers */ = {
