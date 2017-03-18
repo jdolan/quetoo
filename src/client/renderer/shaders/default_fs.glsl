@@ -9,6 +9,7 @@
 #include "matrix_inc.glsl"
 #include "fog_inc.glsl"
 #include "noise3d_inc.glsl"
+#include "tint_inc.glsl"
 
 #define MAX_LIGHTS $r_max_lights
 
@@ -33,9 +34,6 @@ uniform LightParameters LIGHTS;
 #define LIGHT_CLAMP_MAX 4.0
 #endif
 
-// RGB layer tints
-uniform vec4 TINTS[3];
-
 struct CausticParameters
 {
 	bool ENABLE;
@@ -49,7 +47,6 @@ uniform bool LIGHTMAP;
 uniform bool DELUXEMAP;
 uniform bool NORMALMAP;
 uniform bool GLOSSMAP;
-uniform bool TINTMAP;
 uniform bool STAINMAP;
 
 uniform float BUMP;
@@ -62,7 +59,6 @@ uniform sampler2D SAMPLER1;
 uniform sampler2D SAMPLER2;
 uniform sampler2D SAMPLER3;
 uniform sampler2D SAMPLER4;
-uniform sampler2D SAMPLER6;
 uniform sampler2D SAMPLER8;
 
 uniform float ALPHA_THRESHOLD;
@@ -236,17 +232,7 @@ void main(void) {
 		if (diffuse.a < ALPHA_THRESHOLD)
 			discard;
 
-		if (TINTMAP) {
-			vec4 tint = texture(SAMPLER6, texcoords[0] + parallax);
-
-			if (tint.a > 0) {
-				for (int i = 0; i < 3; i++) {
-					if (TINTS[i].a > 0 && tint[i] > 0) {
-						diffuse.rgb = mix(diffuse.rgb, TINTS[i].rgb * tint[i], tint.a);
-					}
-				}
-			}
-		}
+		TintFragment(diffuse, texcoords[0] + parallax);
 
 		// factor in bump mapping
 		diffuse.rgb *= bump;
