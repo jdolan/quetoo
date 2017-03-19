@@ -184,8 +184,7 @@ void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t si
 
 	// Don't allow null ptrs since bufferSubData does not allow it.
 	if (!data) {
-		Com_Warn("Attempted to upload null to GPU\n");
-		return;
+		Com_Error(ERROR_DROP, "Fatal: attempted to upload null to GPU. bufferSubData does not allow this.\n");
 	}
 
 	// offset ptr if requested
