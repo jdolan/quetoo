@@ -66,6 +66,8 @@ cg_particles_t *cg_particles_spark;
 cg_particles_t *cg_particles_inactive;
 cg_particles_t *cg_particles_ripple[3];
 
+cg_particles_t *cg_particles_stain_burn;
+
 static GHashTable *cg_footstep_table;
 
 /**
@@ -250,6 +252,8 @@ void Cg_UpdateMedia(void) {
 		g_snprintf(name, sizeof(name), "particles/ripple_%" PRIuMAX, i);
 		cg_particles_ripple[i] = Cg_AllocParticles(cgi.LoadImage(name, IT_EFFECT), true);
 	}
+
+	cg_particles_stain_burn = Cg_AllocParticles(cgi.LoadImage("particles/stain_burn.tga", IT_EFFECT), true);
 
 	Cg_SetupParticleAtlas();
 

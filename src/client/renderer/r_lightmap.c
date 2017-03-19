@@ -76,9 +76,30 @@ static r_image_t *R_AllocLightmap_(r_image_type_t type, const uint32_t width, co
 	return image;
 }
 
+/**
+ * @brief Allocate handles for the stainmap
+ */
+static void R_AllocStainmap_(const uint32_t width, const uint32_t height, r_stainmap_t *out) {
+	out->image = R_AllocLightmap_(IT_STAINMAP, width, height);
+
+	R_UploadImage(out->image, GL_RGBA, NULL);
+
+	out->fb = R_CreateFramebuffer(va("%s_fb", out->image->media.name));
+	R_AttachFramebufferImage(out->fb, out->image);
+	
+	if (!R_FramebufferReady(out->fb)) {
+		Com_Warn("Unable to allocate a stainmap framebuffer");
+		memset(out, 0, sizeof(r_stainmap_t));
+	}
+
+	Matrix4x4_FromOrtho(&out->projection, 0.0, width, height, 0.0, -1.0, 1.0);
+
+	R_BindFramebuffer(FRAMEBUFFER_DEFAULT);
+}
+
 #define R_AllocLightmap(w, h) R_AllocLightmap_(IT_LIGHTMAP, w, h)
 #define R_AllocDeluxemap(w, h) R_AllocLightmap_(IT_DELUXEMAP, w, h)
-#define R_AllocStainmap(w, h) R_AllocLightmap_(IT_STAINMAP, w, h)
+#define R_AllocStainmap(w, h, o) R_AllocStainmap_(w, h, o)
 
 /**
  * @brief
@@ -128,10 +149,9 @@ static void R_FilterLightmap(uint32_t width, uint32_t height, byte *lightmap) {
  * @param in The beginning of the surface lightmap [and deluxemap] data.
  * @param sout The destination for processed lightmap data.
  * @param dout The destination for processed deluxemap data.
- * @param stout The destination for processed stainmap data. Might be NULL.
  */
 static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *surf, const byte *in,
-                            byte *lout, byte *dout, byte *stout, size_t stride) {
+                            byte *lout, byte *dout, size_t stride) {
 
 	const uint32_t smax = surf->lightmap_size[0];
 	const uint32_t tmax = surf->lightmap_size[1];
@@ -165,11 +185,6 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 
 	// apply modulate, contrast, saturation, etc..
 	R_FilterLightmap(smax, tmax, lightmap);
-
-	// copy to stainmap
-	if (stout) {
-		memcpy(stout, lightmap, size * 3);
-	}
 
 	// the lightmap is uploaded to the card via the strided block
 
@@ -233,10 +248,10 @@ static void R_UploadPackedLightmaps(uint32_t width, uint32_t height, r_bsp_model
 	// allocate the image
 	r_image_t *lightmap = R_AllocLightmap(width, height);
 	r_image_t *deluxemap = R_AllocDeluxemap(width, height);
-	r_image_t *stainmap = NULL;
+	r_stainmap_t stainmap = { .image = NULL, .fb = NULL };
 
 	if (r_stainmap->value) {
-		stainmap = R_AllocStainmap(width, height);
+		R_AllocStainmap(width, height, &stainmap);
 	}
 
 	// temp buffers
@@ -253,14 +268,11 @@ static void R_UploadPackedLightmaps(uint32_t width, uint32_t height, r_bsp_model
 		byte *dout = direction_buffer + lightmap_offset;
 
 		if (surf->lightmap_input) {
-			byte *stout = NULL;
-
-			if (r_stainmap->value) {
+			if (stainmap.fb) {
 				surf->stainmap = stainmap;
-				stout = surf->stainmap_buffer = Mem_LinkMalloc(surf->lightmap_size[0] * surf->lightmap_size[1] * 3, bsp);
 			}
 
-			R_BuildLightmap(bsp, surf, surf->lightmap_input, sout, dout, stout, stride);
+			R_BuildLightmap(bsp, surf, surf->lightmap_input, sout, dout, stride);
 		} else {
 			R_BuildDefaultLightmap(bsp, surf, sout, dout, stride);
 		}
@@ -274,11 +286,6 @@ static void R_UploadPackedLightmaps(uint32_t width, uint32_t height, r_bsp_model
 	// upload!
 	R_UploadImage(lightmap, GL_RGB, sample_buffer);
 	R_UploadImage(deluxemap, GL_RGB, direction_buffer);
-
-	// copy to the stainmap
-	if (r_stainmap->value) {
-		R_UploadImage(stainmap, GL_RGB, sample_buffer);
-	}
 
 	Mem_Free(sample_buffer);
 	Mem_Free(direction_buffer);

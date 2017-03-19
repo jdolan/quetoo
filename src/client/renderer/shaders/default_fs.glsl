@@ -47,6 +47,7 @@ uniform bool LIGHTMAP;
 uniform bool DELUXEMAP;
 uniform bool NORMALMAP;
 uniform bool GLOSSMAP;
+uniform bool STAINMAP;
 
 uniform float BUMP;
 uniform float PARALLAX;
@@ -58,6 +59,7 @@ uniform sampler2D SAMPLER1;
 uniform sampler2D SAMPLER2;
 uniform sampler2D SAMPLER3;
 uniform sampler2D SAMPLER4;
+uniform sampler2D SAMPLER8;
 
 uniform float ALPHA_THRESHOLD;
 
@@ -177,6 +179,12 @@ void main(void) {
 
 	if (LIGHTMAP) {
 		lightmap = texture(SAMPLER1, texcoords[1]).rgb;
+
+		if (STAINMAP) {
+			vec4 stain = texture(SAMPLER8, texcoords[1]);
+			lightmap = mix(lightmap.rgb, stain.rgb, stain.a).rgb;
+			//lightmap = texture(SAMPLER8, texcoords[1]).rgb;
+		}
 	}
 
 	// then resolve any bump mapping

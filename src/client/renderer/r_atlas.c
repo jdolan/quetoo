@@ -72,7 +72,8 @@ void R_AddImageToAtlas(r_atlas_t *atlas, const r_image_t *image) {
 
 	// add to array
 	g_array_append_vals(atlas->images, &(const r_atlas_image_t) {
-		.input_image = image
+		.input_image = image,
+		.atlas = atlas
 	}, 1);
 
 	// add blank entry to hash, it's filled in in upload stage

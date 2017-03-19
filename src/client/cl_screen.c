@@ -375,6 +375,8 @@ void Cl_UpdateScreen(void) {
 				cls.cgame->UpdateScreen(&cl.frame);
 				break;
 		}
+
+		R_AddStains();
 	} else {
 		R_BeginFrame();
 

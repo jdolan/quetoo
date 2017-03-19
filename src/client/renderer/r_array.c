@@ -154,10 +154,12 @@ void R_UploadToBuffer(r_buffer_t *buffer, const size_t size, const void *data) {
 		buffer->size = size;
 	} else {
 		// just update the range we specified
-		glBufferSubData(buffer->target, 0, size, data);
-		r_view.num_buffer_partial_uploads++;
+		if (data) {
+			glBufferSubData(buffer->target, 0, size, data);
+			r_view.num_buffer_partial_uploads++;
 
-		R_GetError("Updating existing buffer");
+			R_GetError("Updating existing buffer");
+		}
 	}
 
 	r_view.size_buffer_uploads += size;
@@ -178,6 +180,11 @@ void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t si
 	if (!size) {
 		Com_Warn("Attempted to upload 0 bytes to GPU\n");
 		return;
+	}
+
+	// Don't allow null ptrs since bufferSubData does not allow it.
+	if (!data) {
+		Com_Error(ERROR_DROP, "Fatal: attempted to upload null to GPU. bufferSubData does not allow this.\n");
 	}
 
 	// offset ptr if requested

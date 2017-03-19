@@ -164,8 +164,6 @@ void R_DrawView(void) {
 
 	R_AddFlares();
 
-	R_AddStains();
-
 	R_CullEntities();
 
 	R_MarkLights();
@@ -303,11 +301,9 @@ void R_BeginFrame(void) {
 		r_render_plugin->modified = false;
 	}
 
-	if (r_state.supersample_fbo) {
-
+	if (r_state.supersample_fb) {
 		R_Clear();
-
-		glBindFramebuffer(GL_FRAMEBUFFER, r_state.supersample_fbo);
+		R_BindFramebuffer(r_state.supersample_fb);
 	}
 
 	R_Clear();
@@ -598,13 +594,17 @@ void R_Init(void) {
 
 	R_InitConfig();
 
-	R_InitState();
-
-	R_InitPrograms();
-
 	R_InitMedia();
 
+	R_InitState();
+
+	R_GetError("Video initialization");
+	
+	R_InitPrograms();
+
 	R_InitImages();
+
+	R_InitSupersample();
 
 	R_InitDraw();
 

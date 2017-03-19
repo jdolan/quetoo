@@ -592,8 +592,9 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 		cgi.AddStain(&(const r_stain_t) {
 			.origin = { end[0], end[1], end[2] },
-			 .color = { 0.0, 0.0, 0.0, 0.33 },
-			  .radius = 2.0
+			.radius = 2.0,
+			.image = cg_particles_normal->image,
+			.color = { 0.0, 0.0, 0.0, 0.33 },
 		});
 
 		ent->timestamp = cgi.client->unclamped_time + 64;
