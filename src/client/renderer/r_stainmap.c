@@ -200,7 +200,9 @@ void R_AddStain(const r_stain_t *s) {
 		return;
 	}
 
-	r_view.stains[r_view.num_stains++] = *s;
+	r_view.stains[r_view.num_stains] = *s;
+	r_view.stains[r_view.num_stains].radius *= r_stainmap->value;
+	r_view.num_stains++;
 }
 
 /**

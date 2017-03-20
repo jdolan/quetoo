@@ -67,6 +67,7 @@ cg_particles_t *cg_particles_inactive;
 cg_particles_t *cg_particles_ripple[3];
 
 cg_particles_t *cg_particles_stain_burn;
+cg_particles_t *cg_particles_lightning_burn;
 
 static GHashTable *cg_footstep_table;
 
@@ -254,6 +255,7 @@ void Cg_UpdateMedia(void) {
 	}
 
 	cg_particles_stain_burn = Cg_AllocParticles(cgi.LoadImage("particles/stain_burn.tga", IT_EFFECT), true);
+	cg_particles_lightning_burn = Cg_AllocParticles(cgi.LoadImage("particles/lightning_burn.tga", IT_EFFECT), true);
 
 	Cg_SetupParticleAtlas();
 

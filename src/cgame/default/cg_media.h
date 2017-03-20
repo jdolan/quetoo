@@ -72,6 +72,7 @@ extern cg_particles_t *cg_particles_inactive;
 extern cg_particles_t *cg_particles_ripple[3];
 
 extern cg_particles_t *cg_particles_stain_burn;
+extern cg_particles_t *cg_particles_lightning_burn;
 
 void Cg_UpdateMedia(void);
 #endif /* __CG_LOCAL_H__ */
