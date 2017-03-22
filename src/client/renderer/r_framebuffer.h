@@ -23,28 +23,17 @@
 
 #include "r_types.h"
 
-r_image_t *R_LoadImage(const char *name, r_image_type_t type);
-
 #ifdef __R_LOCAL_H__
-
 typedef struct {
-	GLint filter_min;
-	GLint filter_mag;
-	GLfloat anisotropy;
+	const r_framebuffer_t *current_framebuffer;
+} r_framebuffer_state_t;
 
-	r_image_t *null;
-	r_image_t *warp;
-	r_image_t *shell;
-} r_image_state_t;
+extern r_framebuffer_state_t r_framebuffer_state;
 
-extern r_image_state_t r_image_state;
+r_framebuffer_t *R_CreateFramebuffer(const char *key);
+void R_BindFramebuffer(const r_framebuffer_t *fb);
+void R_AttachFramebufferImage(r_framebuffer_t *fb, r_image_t *image);
+void R_CreateFramebufferDepthStencilBuffers(r_framebuffer_t *fb);
+_Bool R_FramebufferReady(const r_framebuffer_t *fb);
 
-void R_FilterImage(r_image_t *image, GLenum format, byte *data);
-void R_UploadImage(r_image_t *image, GLenum format, byte *data);
-void R_Screenshot_f(void);
-void R_InitImages(void);
-
-void R_FreeImage(r_media_t *media);
-_Bool R_RetainImage(r_media_t *self);
-
-#endif /* __R_LOCAL_H__ */
+#endif

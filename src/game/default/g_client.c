@@ -1145,9 +1145,9 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 
 		if (strlen(s) && (p = strchr(s, '/'))) {
 			*p = 0;
-			s = va("%s/%s", s, cl->locals.persistent.team->skin);
+			s = va("%s/%s", s, DEFAULT_TEAM_SKIN);
 		} else {
-			s = va("%s/%s", DEFAULT_USER_MODEL, cl->locals.persistent.team->skin);
+			s = va("%s/%s", DEFAULT_USER_MODEL, DEFAULT_TEAM_SKIN);
 		}
 	} else {
 		s = GetUserInfo(user_info, "skin");

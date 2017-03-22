@@ -130,10 +130,12 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 
 		R_EnableTexture(texunit_lightmap, true);
 
-		if (r_stainmap->value && surf->stainmap) {
-			R_BindLightmapTexture(surf->stainmap->texnum);
-		} else {
-			R_BindLightmapTexture(surf->lightmap->texnum);
+		R_BindLightmapTexture(surf->lightmap->texnum);
+
+		if (surf->stainmap.fb) {
+			R_EnableTexture(texunit_stainmap, true);
+
+			R_BindStainmapTexture(surf->stainmap.image->texnum);
 		}
 
 		if (stage->cm->flags & STAGE_LIGHTING) { // hardware lighting
@@ -142,8 +144,6 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 
 			if (r_state.lighting_enabled) {
 				R_BindDeluxemapTexture(surf->deluxemap->texnum);
-
-				R_UseMaterial(stage->material);
 
 				if (surf->light_frame == r_locals.light_frame) { // dynamic light sources
 					R_EnableLights(surf->light_mask);
@@ -158,7 +158,11 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 		R_EnableLighting(NULL, false);
 
 		R_EnableTexture(texunit_lightmap, false);
+
+		R_EnableTexture(texunit_stainmap, false);
 	}
+
+	R_UseMaterial(stage->material);
 }
 
 /**
@@ -483,6 +487,10 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableTexture(texunit_lightmap, true);
 
+	if (r_stainmap->value) {
+		R_EnableTexture(texunit_stainmap, true);
+	}
+
 	R_EnableLighting(program_default, true);
 
 	R_EnableColorArray(true);
@@ -542,6 +550,8 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	R_EnableColorArray(false);
 
 	R_EnableTexture(texunit_lightmap, false);
+
+	R_EnableTexture(texunit_stainmap, false);
 
 	R_EnableLighting(program_default, true);
 
@@ -892,7 +902,6 @@ static int32_t R_ParseStage(r_stage_t *s, const cm_stage_t *cm) {
  * materials/${model_name}.mat for BSP models.
  */
 void R_LoadMaterials(r_model_t *mod) {
-
 	cm_material_t **materials;
 	size_t num_materials;
 
@@ -990,9 +999,10 @@ void R_LoadMaterials(r_model_t *mod) {
 			continue;
 		}
 
+		R_RegisterDependency((r_media_t *) mod, (r_media_t *) r_mat);
 		Com_Debug(DEBUG_RENDERER, "Parsed material %s with %d stages\n", r_mat->diffuse->media.name, r_mat->cm->num_stages);
 	}
-
+	
 	Cm_FreeMaterialList(materials);
 }
 
@@ -1000,8 +1010,8 @@ void R_LoadMaterials(r_model_t *mod) {
  * @brief
  */
 static void R_SaveMaterials_f(void) {
-
 	const r_model_t *mod = r_model_state.world;
+
 	if (!mod) {
 		Com_Print("No map loaded\n");
 		return;

@@ -220,13 +220,14 @@ static void Cg_UpdateParticleSpecial_Blood(cg_particle_t *p) {
 				p->part.org[1] + Randomc() * 8.0,
 				p->part.org[2] + Randomc() * 8.0
 			},
+			.radius = p->part.scale + Randomf(),
+			.image = cg_particles_normal->image,
 			.color = {
 				0.6 + Randomc() * 0.1,
 				0.0,
 				0.0,
 				0.25 + Randomf() * 0.125
 			},
-			.radius = p->part.scale * 0.125
 		});
 
 		p->blood.time = cgi.client->unclamped_time + 96 + (Randomf() * 96);

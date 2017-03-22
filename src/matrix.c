@@ -1795,12 +1795,15 @@ void Matrix4x4_Blend (matrix4x4_t *out, const matrix4x4_t *in1, const matrix4x4_
 }
 
 void Matrix4x4_Transform2 (const matrix4x4_t *in, const vec_t v[2], vec_t out[2]) {
+	const vec_t v0 = v[0];
+	const vec_t v1 = v[1];
+
 #if MATRIX4x4_OPENGLORIENTATION
-	out[0] = v[0] * in->m[0][0] + v[1] * in->m[1][0] + in->m[3][0];
-	out[1] = v[0] * in->m[0][1] + v[1] * in->m[1][1] + in->m[3][1];
+	out[0] = v0 * in->m[0][0] + v1 * in->m[1][0] + in->m[3][0];
+	out[1] = v0 * in->m[0][1] + v1 * in->m[1][1] + in->m[3][1];
 #else
-	out[0] = v[0] * in->m[0][0] + v[1] * in->m[0][1] + in->m[0][3];
-	out[1] = v[0] * in->m[1][0] + v[1] * in->m[1][1] + in->m[1][3];
+	out[0] = v0 * in->m[0][0] + v1 * in->m[0][1] + in->m[0][3];
+	out[1] = v0 * in->m[1][0] + v1 * in->m[1][1] + in->m[1][3];
 #endif
 }
 

@@ -116,6 +116,10 @@
 		CE67EFAD1E351AA8009C2819 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE67EF991E351A7B009C2819 /* main.c */; };
 		CE67EFAE1E356962009C2819 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE68F9951E5DCD1900AC9AAE /* libparse.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5530991E5A939F0009A127 /* libparse.dylib */; };
+		CE68F99E1E5E8D8000AC9AAE /* r_framebuffer.c in Sources */ = {isa = PBXBuildFile; fileRef = CE68F99C1E5E8D8000AC9AAE /* r_framebuffer.c */; };
+		CE68F99F1E5E8D8000AC9AAE /* r_framebuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = CE68F99D1E5E8D8000AC9AAE /* r_framebuffer.h */; };
+		CE68F9A51E5E8E8400AC9AAE /* r_program_stain.c in Sources */ = {isa = PBXBuildFile; fileRef = CE68F9A31E5E8E8400AC9AAE /* r_program_stain.c */; };
+		CE68F9A61E5E8E8400AC9AAE /* r_program_stain.h in Headers */ = {isa = PBXBuildFile; fileRef = CE68F9A41E5E8E8400AC9AAE /* r_program_stain.h */; };
 		CE6C2D111E24902900F55B0A /* cm_bsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6C2D0F1E24902900F55B0A /* cm_bsp.c */; };
 		CE6C2D121E24902900F55B0A /* cm_bsp.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6C2D101E24902900F55B0A /* cm_bsp.h */; };
 		CE8000001C5E4D4400A21A51 /* libminizip.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.dylib */; };
@@ -1385,6 +1389,13 @@
 		CE67EFAC1E351A95009C2819 /* quetoo-update */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-update"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE67EFAF1E356AF2009C2819 /* quetoo-update-icon.rc */ = {isa = PBXFileReference; lastKnownFileType = text; path = "quetoo-update-icon.rc"; sourceTree = "<group>"; };
 		CE67EFB01E356B6F009C2819 /* quetoo-update.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = "quetoo-update.ico"; sourceTree = "<group>"; };
+		CE68F99C1E5E8D8000AC9AAE /* r_framebuffer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_framebuffer.c; sourceTree = "<group>"; };
+		CE68F99D1E5E8D8000AC9AAE /* r_framebuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_framebuffer.h; sourceTree = "<group>"; };
+		CE68F9A01E5E8E5000AC9AAE /* noise3d_inc.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = noise3d_inc.glsl; sourceTree = "<group>"; };
+		CE68F9A11E5E8E5000AC9AAE /* stain_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = stain_fs.glsl; sourceTree = "<group>"; };
+		CE68F9A21E5E8E5000AC9AAE /* stain_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = stain_vs.glsl; sourceTree = "<group>"; };
+		CE68F9A31E5E8E8400AC9AAE /* r_program_stain.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_program_stain.c; sourceTree = "<group>"; };
+		CE68F9A41E5E8E8400AC9AAE /* r_program_stain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_program_stain.h; sourceTree = "<group>"; };
 		CE6C2D0F1E24902900F55B0A /* cm_bsp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_bsp.c; sourceTree = "<group>"; };
 		CE6C2D101E24902900F55B0A /* cm_bsp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_bsp.h; sourceTree = "<group>"; };
 		CE72D8A91D404ACA002129FC /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = ../ObjectivelyMVC/build/Debug/libObjectivelyMVC.dylib; sourceTree = "<group>"; };
@@ -2082,8 +2093,6 @@
 		CE12D5381C5C58C300CD0B13 /* src */ = {
 			isa = PBXGroup;
 			children = (
-				CE55309A1E5A93C60009A127 /* parse.c */,
-				CE55309B1E5A93C60009A127 /* parse.h */,
 				CE12D5511C5C58C300CD0B13 /* ai */,
 				CE12D55B1C5C58C300CD0B13 /* cgame */,
 				CE12D5841C5C58C300CD0B13 /* client */,
@@ -2113,6 +2122,8 @@
 				CE12D68A1C5C58C300CD0B13 /* mem.h */,
 				CE12D68B1C5C58C300CD0B13 /* mem_buf.c */,
 				CE12D68C1C5C58C300CD0B13 /* mem_buf.h */,
+				CE55309A1E5A93C60009A127 /* parse.c */,
+				CE55309B1E5A93C60009A127 /* parse.h */,
 				CE12D69C1C5C58C300CD0B13 /* quetoo.h */,
 				CE12D6B71C5C58C300CD0B13 /* shared-anorms.c */,
 				CE12D6B81C5C58C300CD0B13 /* shared.c */,
@@ -2268,6 +2279,8 @@
 				CE12D5BF1C5C58C300CD0B13 /* r_draw.h */,
 				CE12D5C01C5C58C300CD0B13 /* r_element.c */,
 				CE12D5C11C5C58C300CD0B13 /* r_element.h */,
+				CE68F99C1E5E8D8000AC9AAE /* r_framebuffer.c */,
+				CE68F99D1E5E8D8000AC9AAE /* r_framebuffer.h */,
 				CE12D5C21C5C58C300CD0B13 /* r_entity.c */,
 				CE12D5C31C5C58C300CD0B13 /* r_entity.h */,
 				CE12D5C41C5C58C300CD0B13 /* r_flare.c */,
@@ -2311,6 +2324,8 @@
 				CE12D5E81C5C58C300CD0B13 /* r_program_shadow.h */,
 				CE12D5E91C5C58C300CD0B13 /* r_program_shell.c */,
 				CE12D5EA1C5C58C300CD0B13 /* r_program_shell.h */,
+				CE68F9A31E5E8E8400AC9AAE /* r_program_stain.c */,
+				CE68F9A41E5E8E8400AC9AAE /* r_program_stain.h */,
 				CE12D5EB1C5C58C300CD0B13 /* r_program_warp.c */,
 				CE12D5EC1C5C58C300CD0B13 /* r_program_warp.h */,
 				CE12D5E31C5C58C300CD0B13 /* r_program.c */,
@@ -2337,12 +2352,15 @@
 				CE12D5F51C5C58C300CD0B13 /* default_vs.glsl */,
 				CE3BCDC11DB6DD05002E6C6D /* fog_inc.glsl */,
 				CE3BCDC21DB6DD05002E6C6D /* matrix_inc.glsl */,
+				CE68F9A01E5E8E5000AC9AAE /* noise3d_inc.glsl */,
 				CE3BCDC31DB6DD05002E6C6D /* null_fs.glsl */,
 				CE3BCDC41DB6DD05002E6C6D /* null_vs.glsl */,
 				CE12D5F81C5C58C300CD0B13 /* shadow_fs.glsl */,
 				CE12D5F91C5C58C300CD0B13 /* shadow_vs.glsl */,
 				CE12D5FA1C5C58C300CD0B13 /* shell_fs.glsl */,
 				CE12D5FB1C5C58C300CD0B13 /* shell_vs.glsl */,
+				CE68F9A11E5E8E5000AC9AAE /* stain_fs.glsl */,
+				CE68F9A21E5E8E5000AC9AAE /* stain_vs.glsl */,
 				CE12D5FC1C5C58C300CD0B13 /* warp_fs.glsl */,
 				CE12D5FD1C5C58C300CD0B13 /* warp_vs.glsl */,
 				CE12D5F61C5C58C300CD0B13 /* Makefile.am */,
@@ -3151,6 +3169,7 @@
 				CED438871D9D34450052BAFA /* r_element.h in Headers */,
 				CED438881D9D34450052BAFA /* r_entity.h in Headers */,
 				CED438891D9D34450052BAFA /* r_flare.h in Headers */,
+				CE68F99F1E5E8D8000AC9AAE /* r_framebuffer.h in Headers */,
 				CE3BCDC81DB6DD77002E6C6D /* r_glad_core.h in Headers */,
 				CED4388B1D9D34450052BAFA /* r_image.h in Headers */,
 				CED4388C1D9D34450052BAFA /* r_light.h in Headers */,
@@ -3173,6 +3192,7 @@
 				CE3BCDCA1DB6DD87002E6C6D /* r_program_null.h in Headers */,
 				CED4389B1D9D34450052BAFA /* r_program_shadow.h in Headers */,
 				CED4389C1D9D34450052BAFA /* r_program_shell.h in Headers */,
+				CE68F9A61E5E8E8400AC9AAE /* r_program_stain.h in Headers */,
 				CED4389D1D9D34450052BAFA /* r_program_warp.h in Headers */,
 				CED4389E1D9D34450052BAFA /* r_sky.h in Headers */,
 				CED4389F1D9D34450052BAFA /* r_state.h in Headers */,
@@ -4219,6 +4239,7 @@
 				CED438401D9D34450052BAFA /* r_element.c in Sources */,
 				CED438411D9D34450052BAFA /* r_entity.c in Sources */,
 				CED438421D9D34450052BAFA /* r_flare.c in Sources */,
+				CE68F99E1E5E8D8000AC9AAE /* r_framebuffer.c in Sources */,
 				CE3BCDC71DB6DD71002E6C6D /* r_glad_core.c in Sources */,
 				CED438441D9D34450052BAFA /* r_image.c in Sources */,
 				CED438451D9D34450052BAFA /* r_light.c in Sources */,
@@ -4240,6 +4261,7 @@
 				CE3BCDC91DB6DD81002E6C6D /* r_program_null.c in Sources */,
 				CED438531D9D34450052BAFA /* r_program_shadow.c in Sources */,
 				CED438541D9D34450052BAFA /* r_program_shell.c in Sources */,
+				CE68F9A51E5E8E8400AC9AAE /* r_program_stain.c in Sources */,
 				CED438551D9D34450052BAFA /* r_program_warp.c in Sources */,
 				CED438561D9D34450052BAFA /* r_sky.c in Sources */,
 				CED438571D9D34450052BAFA /* r_state.c in Sources */,

@@ -932,6 +932,11 @@ typedef enum {
 #define TEAM_CHANGE_TIME 5000
 
 /**
+ * @brief The name for the CTF skin used in team games.
+ */
+#define DEFAULT_TEAM_SKIN "ctf"
+
+/**
  * @brief There are two teams in the default game module.
  */
 typedef struct {

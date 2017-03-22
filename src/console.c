@@ -36,7 +36,7 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
 		return NULL;
 	}
 
-	const size_t string_len = strlen(string) + 3;
+	const size_t string_len = strlen(string) + 4;
 
 	str->level = level;
 	str->chars = g_new0(char, string_len);
@@ -48,7 +48,10 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
 		g_strlcat(str->chars, "^7", string_len);
 	}
 
-	g_strlcat(str->chars, "\n", string_len);
+	if (g_strlcat(str->chars, "\n", string_len) >= string_len) {
+		raise(SIGABRT);
+		return NULL;
+	}
 
 	if (str->chars == NULL) {
 		raise(SIGABRT);
