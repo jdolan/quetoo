@@ -86,13 +86,6 @@ static _Bool R_StainSurface(const r_stain_t *stain, const r_bsp_surface_t *surf)
 		return false;
 	}
 
-	// see if the stain position is visible to the surface place
-	cm_trace_t tr = Cl_Trace(stain->origin, point, vec3_origin, vec3_origin, 0, CONTENTS_SOLID | CONTENTS_WINDOW);
-
-	if (tr.fraction < 1.0) {
-		return false;
-	}
-
 	const r_bsp_texinfo_t *tex = surf->texinfo;
 
 	// resolve the radius of the stain where it impacts the surface
@@ -365,8 +358,13 @@ void R_AddStains(void) {
 		}
 	}
 
-	const r_stain_t *s = r_view.stains;
 	const uint16_t num_stains = r_view.num_stains;
+
+	if (!num_stains) {
+		return;
+	}
+
+	const r_stain_t *s = r_view.stains;
 
 	for (int32_t i = 0; i < num_stains; i++, s++) {
 
