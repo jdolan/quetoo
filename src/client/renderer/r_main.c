@@ -468,7 +468,7 @@ static void R_InitLocal(void) {
 	// settings and preferences
 	r_allow_high_dpi = Cvar_Add("r_allow_high_dpi", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT,
 	                            "Enables or disables support for High-DPI (Retina, 4K) display modes");
-	r_anisotropy = Cvar_Add("r_anisotropy", "1", CVAR_ARCHIVE | CVAR_R_MEDIA,
+	r_anisotropy = Cvar_Add("r_anisotropy", "4", CVAR_ARCHIVE | CVAR_R_MEDIA,
 	                        "Controls anisotropic texture filtering");
 	r_brightness = Cvar_Add("r_brightness", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 	                        "Controls texture brightness");
