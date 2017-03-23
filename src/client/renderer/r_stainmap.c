@@ -66,12 +66,12 @@ static r_stainmap_state_t r_stainmap_state;
 /**
  * @brief Push the stain to the stain list.
  */
-static void R_StainSurface(const r_stain_t *stain, const r_bsp_surface_t *surf) {
+static _Bool R_StainSurface(const r_stain_t *stain, const r_bsp_surface_t *surf) {
 	// determine if the surface is within range
 	const vec_t dist = R_DistanceToSurface(stain->origin, surf);
 
 	if (fabs(dist) > stain->radius) {
-		return;
+		return false;
 	}
 
 	// project the stain onto the plane, in world space
@@ -83,14 +83,14 @@ static void R_StainSurface(const r_stain_t *stain, const r_bsp_surface_t *surf) 
 	VectorSubtract(point, stain->origin, dir);
 
 	if (DotProduct(dir, surf->plane->normal) > 0.0) {
-		return;
+		return false;
 	}
 
 	// see if the stain position is visible to the surface place
 	cm_trace_t tr = Cl_Trace(stain->origin, point, vec3_origin, vec3_origin, 0, CONTENTS_SOLID | CONTENTS_WINDOW);
 
 	if (tr.fraction < 1.0) {
-		return;
+		return false;
 	}
 
 	const r_bsp_texinfo_t *tex = surf->texinfo;
@@ -120,7 +120,7 @@ static void R_StainSurface(const r_stain_t *stain, const r_bsp_surface_t *surf) 
 		(point_st[1] < 0 && (point_st[1] + radius_rounded) < 0) ||
 		point_st[0] >= surf->lightmap_size[0] ||
 		point_st[1] >= surf->lightmap_size[1]) {
-		return;
+		return false;
 	}
 
 	r_stainmap_state.surfs_stained = g_array_append_vals(r_stainmap_state.surfs_stained, &(const r_stained_surf_t) {
@@ -130,36 +130,37 @@ static void R_StainSurface(const r_stain_t *stain, const r_bsp_surface_t *surf) 
 		.point = { round(surf->lightmap_s + point_st[0]), round(surf->lightmap_t + point_st[1]) },
 		.color = ColorFromRGBA((byte) (stain->color[0] * 255.0), (byte) (stain->color[1] * 255.0), (byte) (stain->color[2] * 255.0), (byte) (stain->color[3] * 255.0))
 	}, 1);
+
+	return true;
 }
 
 /**
  * @brief
  */
-static void R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
+static _Bool R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 
 	if (node->contents != CONTENTS_NODE) {
-		return;
+		return false;
 	}
 
 	if (node->vis_frame != r_locals.vis_frame) {
 		if (!node->model) {
-			return;
+			return false;
 		}
 	}
 
 	const vec_t dist = Cm_DistanceToPlane(stain->origin, node->plane);
 
 	if (dist > stain->radius * 2.0) { // front only
-		R_StainNode(stain, node->children[0]);
-		return;
+		return R_StainNode(stain, node->children[0]);
 	}
 
 	if (dist < -stain->radius * 2.0) { // back only
-		R_StainNode(stain, node->children[1]);
-		return;
+		return R_StainNode(stain, node->children[1]);
 	}
 
 	r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces + node->first_surface;
+	_Bool stained = false;
 
 	for (uint32_t i = 0; i < node->num_surfaces; i++, surf++) {
 
@@ -177,13 +178,16 @@ static void R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 			}
 		}
 
-		R_StainSurface(stain, surf);
+		if (R_StainSurface(stain, surf)) {
+			stained = true;
+		}
 	}
 
 	// recurse down both sides
+	const _Bool left = R_StainNode(stain, node->children[0]);
+	const _Bool right = R_StainNode(stain, node->children[1]);
 
-	R_StainNode(stain, node->children[0]);
-	R_StainNode(stain, node->children[1]);
+	return stained || left || right;
 }
 
 /**
@@ -362,11 +366,13 @@ void R_AddStains(void) {
 	}
 
 	const r_stain_t *s = r_view.stains;
-	for (int32_t i = 0; i < r_view.num_stains; i++, s++) {
+	const uint16_t num_stains = r_view.num_stains;
+
+	for (int32_t i = 0; i < num_stains; i++, s++) {
 
 		R_StainNode(s, r_model_state.world->bsp->nodes);
 
-		for (uint16_t e = 0; e < cl.frame.num_entities; e++) {
+		for (uint16_t e = 0; e < cl.frame.num_entities && r_view.num_stains < MAX_STAINS; e++) {
 
 			const uint32_t snum = (cl.frame.entity_state + e) & ENTITY_STATE_MASK;
 			const entity_state_t *st = &cl.entity_states[snum];
@@ -384,10 +390,18 @@ void R_AddStains(void) {
 
 			r_bsp_node_t *node = &r_model_state.world->bsp->nodes[mod->head_node];
 
-			r_stain_t stain = *s;
-			Matrix4x4_Transform(&ent->inverse_matrix, s->origin, stain.origin);
+			// add a "new" stain for the transformed position
+			r_view.stains[r_view.num_stains] = *s;
+			Matrix4x4_Transform(&ent->inverse_matrix, s->origin, r_view.stains[r_view.num_stains].origin);
 
-			R_StainNode(&stain, node);
+			if (R_StainNode(&r_view.stains[r_view.num_stains], node)) {
+				r_view.num_stains++;
+
+				if (r_view.num_stains == MAX_STAINS) {
+					Com_Debug(DEBUG_RENDERER, "MAX_STAINS reached\n");
+					break;
+				}
+			}
 		}
 	}
 	
