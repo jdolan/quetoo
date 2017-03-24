@@ -25,19 +25,18 @@
 
 /**
  * @file
- *
- * @brief Controls ViewController.
+ * @brief System ViewController.
  */
 
-typedef struct KeysViewController KeysViewController;
-typedef struct KeysViewControllerInterface KeysViewControllerInterface;
+typedef struct VideoViewController VideoViewController;
+typedef struct VideoViewControllerInterface VideoViewControllerInterface;
 
 /**
- * @brief The KeysViewController type.
+ * @brief The VideoViewController type.
  * @extends MenuViewController
- * @ingroup ViewControllers
+ * @ingroup
  */
-struct KeysViewController {
+struct VideoViewController {
 
 	/**
 	 * @brief The superclass.
@@ -49,13 +48,13 @@ struct KeysViewController {
 	 * @brief The interface.
 	 * @private
 	 */
-	KeysViewControllerInterface *interface;
+	VideoViewControllerInterface *interface;
 };
 
 /**
- * @brief The KeysViewController interface.
+ * @brief The VideoViewController interface.
  */
-struct KeysViewControllerInterface {
+struct VideoViewControllerInterface {
 
 	/**
 	 * @brief The superclass interface.
@@ -64,10 +63,9 @@ struct KeysViewControllerInterface {
 };
 
 /**
- * @fn Class *KeysViewController::_KeysViewController(void)
- * @brief The KeysViewController archetype.
- * @return The KeysViewController Class.
- * @memberof KeysViewController
+ * @fn Class *VideoViewController::_VideoViewController(void)
+ * @brief The VideoViewController archetype.
+ * @return The VideoViewController Class.
+ * @memberof VideoViewController
  */
-extern Class *_KeysViewController(void);
-
+extern Class *_VideoViewController(void);

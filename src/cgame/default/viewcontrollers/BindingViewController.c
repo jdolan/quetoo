@@ -21,9 +21,12 @@
 
 #include "cg_local.h"
 
-#include "KeysViewController.h"
+#include "BindingViewController.h"
 
-#define _Class _KeysViewController
+#include "CvarSelect.h"
+#include "VideoModeSelect.h"
+
+#define _Class _BindingViewController
 
 #pragma mark - ViewController
 
@@ -44,7 +47,6 @@ static void loadView(ViewController *self) {
 	{
 		StackView *column = $(alloc(StackView), initWithFrame, NULL);
 		column->spacing = DEFAULT_PANEL_SPACING;
-
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
 			$(box->label, setText, "MOVEMENT");
@@ -57,9 +59,11 @@ static void loadView(ViewController *self) {
 			Cg_BindInput((View *) stackView, "Move right", "+move_right");
 			Cg_BindInput((View *) stackView, "Jump", "+move_up");
 			Cg_BindInput((View *) stackView, "Crouch", "+move_down");
+
 			Cg_BindInput((View *) stackView, "Turn left", "+left");
 			Cg_BindInput((View *) stackView, "Turn right", "+right");
 			Cg_BindInput((View *) stackView, "Center view", "center_view");
+
 			Cg_BindInput((View *) stackView, "Run / walk", "+speed");
 			Cg_CvarCheckboxInput((View *) stackView, "Always Run", "cg_run");
 
@@ -78,7 +82,9 @@ static void loadView(ViewController *self) {
 
 			Cg_BindInput((View *) stackView, "Say", "cl_message_mode");
 			Cg_BindInput((View *) stackView, "Say Team", "cl_message_mode_2");
+
 			Cg_BindInput((View *) stackView, "Show score", "+score");
+
 			Cg_BindInput((View *) stackView, "Take screenshot", "r_screenshot");
 
 			$((View *) box, addSubview, (View *) stackView);
@@ -91,11 +97,9 @@ static void loadView(ViewController *self) {
 		$((View *) columns, addSubview, (View *) column);
 		release(column);
 	}
-
 	{
 		StackView *column = $(alloc(StackView), initWithFrame, NULL);
 		column->spacing = DEFAULT_PANEL_SPACING;
-
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
 			$(box->label, setText, "COMBAT");
@@ -103,10 +107,13 @@ static void loadView(ViewController *self) {
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
 			Cg_BindInput((View *) stackView, "Attack", "+attack");
+
+			Cg_BindInput((View *) stackView, "Zoom", "+ZOOM");
+
 			Cg_BindInput((View *) stackView, "Grapple Hook", "+hook");
+
 			Cg_BindInput((View *) stackView, "Next weapon", "cg_weapon_next");
 			Cg_BindInput((View *) stackView, "Previous weapon", "cg_weapon_previous");
-			Cg_BindInput((View *) stackView, "Zoom", "+ZOOM");
 
 			Cg_BindInput((View *) stackView, "Blaster", "use blaster");
 			Cg_BindInput((View *) stackView, "Shotgun", "use shotgun");
@@ -126,7 +133,6 @@ static void loadView(ViewController *self) {
 			$((View *) column, addSubview, (View *) box);
 			release(box);
 		}
-
 		$((View *) columns, addSubview, (View *) column);
 		release(column);
 	}
@@ -146,19 +152,19 @@ static void initialize(Class *clazz) {
 }
 
 /**
- * @fn Class *KeysViewController::_KeysViewController(void)
- * @memberof KeysViewController
+ * @fn Class *BindingViewController::_BindingViewController(void)
+ * @memberof BindingViewController
  */
-Class *_KeysViewController(void) {
+Class *_BindingViewController(void) {
 	static Class clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "KeysViewController";
+		clazz.name = "BindingViewController";
 		clazz.superclass = _MenuViewController();
-		clazz.instanceSize = sizeof(KeysViewController);
-		clazz.interfaceOffset = offsetof(KeysViewController, interface);
-		clazz.interfaceSize = sizeof(KeysViewControllerInterface);
+		clazz.instanceSize = sizeof(BindingViewController);
+		clazz.interfaceOffset = offsetof(BindingViewController, interface);
+		clazz.interfaceSize = sizeof(BindingViewControllerInterface);
 		clazz.initialize = initialize;
 	});
 
@@ -166,4 +172,3 @@ Class *_KeysViewController(void) {
 }
 
 #undef _Class
-

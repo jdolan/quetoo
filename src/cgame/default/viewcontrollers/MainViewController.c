@@ -24,11 +24,9 @@
 #include "MainViewController.h"
 
 #include "CreateServerViewController.h"
-#include "KeysViewController.h"
-#include "MouseViewController.h"
 #include "MultiplayerViewController.h"
 #include "PlayerViewController.h"
-#include "SystemViewController.h"
+#include "SettingsViewController.h"
 
 #include "PrimaryButton.h"
 
@@ -68,23 +66,29 @@ static void loadView(ViewController *self) {
 
 	Panel *panel = $(alloc(Panel), initWithFrame, NULL);
 
+//	((View *) panel)->padding.top = 0;
+//	((View *) panel)->padding.right = 0;
+//	((View *) panel)->padding.bottom = 0;
+//	((View *) panel)->padding.left = 0;
+
 	panel->isDraggable = false;
 	panel->isResizable = false;
 
 	panel->stackView.view.alignment = ViewAlignmentTopLeft;
 
+//	panel->contentView->spacing = 0;
+
 	panel->contentView->axis = StackViewAxisHorizontal;
 	panel->contentView->distribution = StackViewDistributionDefault;
+
 	panel->contentView->view.autoresizingMask = ViewAutoresizingNone;
 
+	Cg_PrimaryButton((View *) panel->contentView, "[Dev] KaadmY", ViewAlignmentTopLeft, Colors.DefaultColor, action, self, _PlayerViewController());
 	Cg_PrimaryButton((View *) panel->contentView, "JOIN", ViewAlignmentTopLeft, Colors.SteelBlue, action, self, _MultiplayerViewController());
 	Cg_PrimaryButton((View *) panel->contentView, "CREATE", ViewAlignmentTopLeft, Colors.DefaultColor, action, self, _CreateServerViewController());
-//	Cg_PrimaryButton((View *) panel->contentView, "KEYS", action, self, _KeysViewController());
-//	Cg_PrimaryButton((View *) panel->contentView, "MOUSE", action, self, _MouseViewController());
-//	Cg_PrimaryButton((View *) panel->contentView, "PLAYER", action, self, _PlayerViewController());
-//	Cg_PrimaryButton((View *) panel->contentView, "SYSTEM", action, self, _SystemViewController());
-	Cg_PrimaryIcon((View *) panel->contentView, "pics/i_bodyarmor", ViewAlignmentTopRight, action, self, _PlayerViewController());
-	Cg_PrimaryIcon((View *) panel->contentView, "pics/i_quad", ViewAlignmentTopRight, action, self, NULL);
+
+	Cg_PrimaryIcon((View *) panel->contentView, "ui/pics/settings", ViewAlignmentTopRight, action, self, _SettingsViewController());
+	Cg_PrimaryIcon((View *) panel->contentView, "ui/pics/quit", ViewAlignmentTopRight, action, self, NULL);
 
 	SDL_Size size = MakeSize(cgi.context->window_width, 36);
 	$((View *) panel->contentView, resize, &size);

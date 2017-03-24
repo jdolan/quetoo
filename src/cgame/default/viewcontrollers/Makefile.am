@@ -1,26 +1,32 @@
 
 noinst_HEADERS = \
+	AudioViewController.h \
+	BindingViewController.h \
 	CreateServerViewController.h \
-	KeysViewController.h \
+	InputViewController.h \
 	MainViewController.h \
 	MenuViewController.h \
-	MouseViewController.h \
+	MiscViewController.h \
 	MultiplayerViewController.h \
 	PlayerViewController.h \
-	SystemViewController.h
+	SettingsViewController.h \
+	VideoViewController.h
 
 noinst_LTLIBRARIES = \
 	libviewcontrollers.la
 
 libviewcontrollers_la_SOURCES = \
+	AudioViewController.c \
+	BindingViewController.c \
 	CreateServerViewController.c \
-	KeysViewController.c \
+	InputViewController.c \
 	MainViewController.c \
 	MenuViewController.c \
-	MouseViewController.c \
+	MiscViewController.c \
 	MultiplayerViewController.c \
 	PlayerViewController.c \
-	SystemViewController.c
+	SettingsViewController.c \
+	VideoViewController.c
 
 libviewcontrollers_la_CFLAGS = \
 	-I$(top_srcdir)/src \

@@ -21,12 +21,12 @@
 
 #include "cg_local.h"
 
-#include "SystemViewController.h"
+#include "VideoViewController.h"
 
 #include "CvarSelect.h"
 #include "VideoModeSelect.h"
 
-#define _Class _SystemViewController
+#define _Class _VideoViewController
 
 #pragma mark - Actions & Delegates
 
@@ -159,22 +159,6 @@ static void loadView(ViewController *self) {
 			release(box);
 		}
 
-		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "SOUND");
-
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-
-			Cg_CvarSliderInput((View *) stackView, "Volume", "s_volume", 0.0, 1.0, 0.0);
-			Cg_CvarSliderInput((View *) stackView, "Music Volume", "s_music_volume", 0.0, 1.0, 0.0);
-
-			$((View *) box, addSubview, (View *) stackView);
-			release(stackView);
-
-			$((View *) column, addSubview, (View *) box);
-			release(box);
-		}
-
 		$((View *) columns, addSubview, (View *) column);
 		release(column);
 	}
@@ -197,19 +181,19 @@ static void initialize(Class *clazz) {
 }
 
 /**
- * @fn Class *SystemViewController::_SystemViewController(void)
- * @memberof SystemViewController
+ * @fn Class *VideoViewController::_VideoViewController(void)
+ * @memberof VideoViewController
  */
-Class *_SystemViewController(void) {
+Class *_VideoViewController(void) {
 	static Class clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "SystemViewController";
+		clazz.name = "VideoViewController";
 		clazz.superclass = _MenuViewController();
-		clazz.instanceSize = sizeof(SystemViewController);
-		clazz.interfaceOffset = offsetof(SystemViewController, interface);
-		clazz.interfaceSize = sizeof(SystemViewControllerInterface);
+		clazz.instanceSize = sizeof(VideoViewController);
+		clazz.interfaceOffset = offsetof(VideoViewController, interface);
+		clazz.interfaceSize = sizeof(VideoViewControllerInterface);
 		clazz.initialize = initialize;
 	});
 

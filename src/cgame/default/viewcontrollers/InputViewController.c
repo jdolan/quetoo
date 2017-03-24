@@ -21,13 +21,13 @@
 
 #include "cg_local.h"
 
-#include "MouseViewController.h"
+#include "InputViewController.h"
 
 #include "CrosshairView.h"
 #include "CvarSelect.h"
 #include "CvarSlider.h"
 
-#define _Class _MouseViewController
+#define _Class _InputViewController
 
 #pragma mark - Crosshair selection
 
@@ -50,7 +50,7 @@ static void enumerateCrosshairs(const char *path, void *data) {
  */
 static void modifyCrosshair(Control *control, const SDL_Event *event, ident sender, ident data) {
 
-	MouseViewController *this = (MouseViewController *) sender;
+	InputViewController *this = (InputViewController *) sender;
 
 	$((View *) this->crosshairView, updateBindings);
 }
@@ -64,7 +64,7 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	MouseViewController *this = (MouseViewController *) self;
+	InputViewController *this = (InputViewController *) self;
 
 	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
@@ -167,19 +167,19 @@ static void initialize(Class *clazz) {
 }
 
 /**
- * @fn Class *MouseViewController::_MouseViewController(void)
- * @memberof MouseViewController
+ * @fn Class *InputViewController::_InputViewController(void)
+ * @memberof InputViewController
  */
-Class *_MouseViewController(void) {
+Class *_InputViewController(void) {
 	static Class clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "MouseViewController";
+		clazz.name = "InputViewController";
 		clazz.superclass = _MenuViewController();
-		clazz.instanceSize = sizeof(MouseViewController);
-		clazz.interfaceOffset = offsetof(MouseViewController, interface);
-		clazz.interfaceSize = sizeof(MouseViewControllerInterface);
+		clazz.instanceSize = sizeof(InputViewController);
+		clazz.interfaceOffset = offsetof(InputViewController, interface);
+		clazz.interfaceSize = sizeof(InputViewControllerInterface);
 		clazz.initialize = initialize;
 	});
 
@@ -187,4 +187,3 @@ Class *_MouseViewController(void) {
 }
 
 #undef _Class
-

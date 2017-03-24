@@ -28,15 +28,15 @@
  * @brief System ViewController.
  */
 
-typedef struct SystemViewController SystemViewController;
-typedef struct SystemViewControllerInterface SystemViewControllerInterface;
+typedef struct AudioViewController AudioViewController;
+typedef struct AudioViewControllerInterface AudioViewControllerInterface;
 
 /**
- * @brief The SystemViewController type.
+ * @brief The AudioViewController type.
  * @extends MenuViewController
  * @ingroup
  */
-struct SystemViewController {
+struct AudioViewController {
 
 	/**
 	 * @brief The superclass.
@@ -48,13 +48,13 @@ struct SystemViewController {
 	 * @brief The interface.
 	 * @private
 	 */
-	SystemViewControllerInterface *interface;
+	AudioViewControllerInterface *interface;
 };
 
 /**
- * @brief The SystemViewController interface.
+ * @brief The AudioViewController interface.
  */
-struct SystemViewControllerInterface {
+struct AudioViewControllerInterface {
 
 	/**
 	 * @brief The superclass interface.
@@ -63,9 +63,9 @@ struct SystemViewControllerInterface {
 };
 
 /**
- * @fn Class *SystemViewController::_SystemViewController(void)
- * @brief The SystemViewController archetype.
- * @return The SystemViewController Class.
- * @memberof SystemViewController
+ * @fn Class *AudioViewController::_AudioViewController(void)
+ * @brief The AudioViewController archetype.
+ * @return The AudioViewController Class.
+ * @memberof AudioViewController
  */
-extern Class *_SystemViewController(void);
+extern Class *_AudioViewController(void);

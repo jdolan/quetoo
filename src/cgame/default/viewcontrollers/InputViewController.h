@@ -29,15 +29,15 @@
  * @brief Controls ViewController.
  */
 
-typedef struct MouseViewController MouseViewController;
-typedef struct MouseViewControllerInterface MouseViewControllerInterface;
+typedef struct InputViewController InputViewController;
+typedef struct InputViewControllerInterface InputViewControllerInterface;
 
 /**
- * @brief The MouseViewController type.
+ * @brief The InputViewController type.
  * @extends MenuViewController
  * @ingroup ViewControllers
  */
-struct MouseViewController {
+struct InputViewController {
 
 	/**
 	 * @brief The superclass.
@@ -49,7 +49,7 @@ struct MouseViewController {
 	 * @brief The interface.
 	 * @private
 	 */
-	MouseViewControllerInterface *interface;
+	InputViewControllerInterface *interface;
 
 	/**
 	 * @brief The CrosshairView.
@@ -58,9 +58,9 @@ struct MouseViewController {
 };
 
 /**
- * @brief The MouseViewController interface.
+ * @brief The InputViewController interface.
  */
-struct MouseViewControllerInterface {
+struct InputViewControllerInterface {
 
 	/**
 	 * @brief The superclass interface.
@@ -69,10 +69,9 @@ struct MouseViewControllerInterface {
 };
 
 /**
- * @fn Class *MouseViewController::_MouseViewController(void)
- * @brief The MouseViewController archetype.
- * @return The MouseViewController Class.
- * @memberof MouseViewController
+ * @fn Class *InputViewController::_InputViewController(void)
+ * @brief The InputViewController archetype.
+ * @return The InputViewController Class.
+ * @memberof InputViewController
  */
-extern Class *_MouseViewController(void);
-
+extern Class *_InputViewController(void);
