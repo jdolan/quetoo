@@ -398,9 +398,9 @@ void Con_WriteHistory(const console_t *console, file_t *file) {
  */
 void Con_AutocompleteInput_f(const uint32_t argi, GList **matches) {
 	const char *partial = Cmd_Argv(argi);
-	char pattern[strlen(partial) + 2];
+	char pattern[strlen(partial) + 3];
 	
-	g_snprintf(pattern, sizeof(pattern), "%s*", partial);
+	g_snprintf(pattern, sizeof(pattern), "*%s*", partial);
 
 	Cmd_CompleteCommand(pattern, matches);
 	Cvar_CompleteVar(pattern, matches);
@@ -597,7 +597,9 @@ _Bool Con_CompleteInput(console_t *console) {
 	} else {
 		match = Con_CommonPrefix(matches);
 
-		if (strchr(match, ' ') != NULL) {
+		if (!strlen(match)) {
+			match = partial;
+		} else if (strchr(match, ' ') != NULL) {
 			match = va("\"%s", match);
 			output_quotes = true;
 		}
