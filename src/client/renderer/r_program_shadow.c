@@ -27,8 +27,6 @@ typedef struct r_shadow_program_s {
 	r_uniform4fv_t plane;
 	r_uniform1f_t time_fraction;
 
-	r_uniform_fog_t fog;
-
 	r_uniform_matrix4fv_t shadow_mat;
 
 	r_uniform4fv_t current_color;
@@ -61,10 +59,6 @@ void R_InitProgram_shadow(r_program_t *program) {
 	R_ProgramVariable(&p->light, R_UNIFORM_VEC4, "LIGHT", true);
 	R_ProgramVariable(&p->plane, R_UNIFORM_VEC4, "PLANE", true);
 
-	R_ProgramVariable(&p->fog.start, R_UNIFORM_FLOAT, "FOG.START", true);
-	R_ProgramVariable(&p->fog.end, R_UNIFORM_FLOAT, "FOG.END", true);
-	R_ProgramVariable(&p->fog.density, R_UNIFORM_FLOAT, "FOG.DENSITY", true);
-
 	R_ProgramVariable(&p->current_color, R_UNIFORM_VEC4, "GLOBAL_COLOR", true);
 
 	R_ProgramVariable(&p->time_fraction, R_UNIFORM_FLOAT, "TIME_FRACTION", true);
@@ -73,29 +67,11 @@ void R_InitProgram_shadow(r_program_t *program) {
 	R_ProgramParameter4fv(&p->light, light);
 	R_ProgramParameter4fv(&p->plane, plane);
 
-	R_ProgramParameter1f(&p->fog.density, 0.0);
-
 	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
 
 	R_ProgramParameter4fv(&p->current_color, white);
 
 	R_ProgramParameter1f(&p->time_fraction, 0.0f);
-}
-
-/**
- * @brief
- */
-void R_UseFog_shadow(const r_fog_parameters_t *fog) {
-
-	r_shadow_program_t *p = &r_shadow_program;
-
-	if (fog && fog->density) {
-		R_ProgramParameter1f(&p->fog.density, fog->density);
-		R_ProgramParameter1f(&p->fog.start, fog->start);
-		R_ProgramParameter1f(&p->fog.end, fog->end);
-	} else {
-		R_ProgramParameter1f(&p->fog.density, 0.0);
-	}
 }
 
 /**
