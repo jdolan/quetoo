@@ -68,7 +68,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map edge"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_cheats 1 +give all +god"
