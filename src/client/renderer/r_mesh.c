@@ -199,7 +199,7 @@ static void R_ApplyMeshModelLighting_default(const r_entity_t *e) {
  */
 static void R_UpdateMeshTints(void) {
 
-	if (r_mesh_state.material->tintmap) {
+	if (r_mesh_state.material && r_mesh_state.material->tintmap) {
 		R_EnableTexture(texunit_tint, true);
 		R_UseTints();
 	} else {
@@ -243,7 +243,7 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 	}
 
 	R_UseMaterial(r_mesh_state.material);
-	
+
 	R_UpdateMeshTints();
 
 	if (e->effects & EF_WEAPON) {
@@ -317,7 +317,7 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 			offset += mesh->num_elements;
 			continue;
 		}
-		
+
 		R_DrawArrays(GL_TRIANGLES, offset, mesh->num_elements);
 
 		offset += mesh->num_elements;
