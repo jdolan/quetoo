@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "MenuViewController.h"
+#include "TabViewController.h"
 
 /**
  * @file
@@ -33,7 +33,7 @@ typedef struct VideoViewControllerInterface VideoViewControllerInterface;
 
 /**
  * @brief The VideoViewController type.
- * @extends MenuViewController
+ * @extends TabViewController
  * @ingroup
  */
 struct VideoViewController {
@@ -42,7 +42,7 @@ struct VideoViewController {
 	 * @brief The superclass.
 	 * @private
 	 */
-	MenuViewController menuViewController;
+	TabViewController menuViewController;
 
 	/**
 	 * @brief The interface.
@@ -59,7 +59,7 @@ struct VideoViewControllerInterface {
 	/**
 	 * @brief The superclass interface.
 	 */
-	MenuViewControllerInterface menuViewControllerInterface;
+	TabViewControllerInterface menuViewControllerInterface;
 };
 
 /**

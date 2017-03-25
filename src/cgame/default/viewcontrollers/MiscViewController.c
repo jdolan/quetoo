@@ -34,7 +34,7 @@
  * @brief ActionFunction for Apply Button.
  */
 static void applyAction(Control *control, const SDL_Event *event, ident sender, ident data) {
-	cgi.Cbuf("r_restart\n");
+	cgi.Cbuf("s_restart\n");
 }
 
 #pragma mark - ViewController
@@ -46,7 +46,7 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	MenuViewController *this = (MenuViewController *) self;
+	TabViewController *this = (TabViewController *) self;
 
 	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
@@ -103,7 +103,7 @@ Class *_MiscViewController(void) {
 
 	do_once(&once, {
 		clazz.name = "MiscViewController";
-		clazz.superclass = _MenuViewController();
+		clazz.superclass = _TabViewController();
 		clazz.instanceSize = sizeof(MiscViewController);
 		clazz.interfaceOffset = offsetof(MiscViewController, interface);
 		clazz.interfaceSize = sizeof(MiscViewControllerInterface);

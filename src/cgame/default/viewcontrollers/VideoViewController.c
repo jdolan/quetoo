@@ -46,7 +46,7 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	MenuViewController *this = (MenuViewController *) self;
+	TabViewController *this = (TabViewController *) self;
 
 	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
@@ -190,7 +190,7 @@ Class *_VideoViewController(void) {
 
 	do_once(&once, {
 		clazz.name = "VideoViewController";
-		clazz.superclass = _MenuViewController();
+		clazz.superclass = _TabViewController();
 		clazz.instanceSize = sizeof(VideoViewController);
 		clazz.interfaceOffset = offsetof(VideoViewController, interface);
 		clazz.interfaceSize = sizeof(VideoViewControllerInterface);

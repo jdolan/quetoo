@@ -46,7 +46,7 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	MenuViewController *this = (MenuViewController *) self;
+	TabViewController *this = (TabViewController *) self;
 
 	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
@@ -104,7 +104,7 @@ Class *_AudioViewController(void) {
 
 	do_once(&once, {
 		clazz.name = "AudioViewController";
-		clazz.superclass = _MenuViewController();
+		clazz.superclass = _TabViewController();
 		clazz.instanceSize = sizeof(AudioViewController);
 		clazz.interfaceOffset = offsetof(AudioViewController, interface);
 		clazz.interfaceSize = sizeof(AudioViewControllerInterface);

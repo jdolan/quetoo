@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "MenuViewController.h"
+#include "TabViewController.h"
 #include "CrosshairView.h"
 
 /**
@@ -34,7 +34,7 @@ typedef struct InputViewControllerInterface InputViewControllerInterface;
 
 /**
  * @brief The InputViewController type.
- * @extends MenuViewController
+ * @extends TabViewController
  * @ingroup ViewControllers
  */
 struct InputViewController {
@@ -43,7 +43,7 @@ struct InputViewController {
 	 * @brief The superclass.
 	 * @private
 	 */
-	MenuViewController menuViewController;
+	TabViewController menuViewController;
 
 	/**
 	 * @brief The interface.
@@ -65,7 +65,7 @@ struct InputViewControllerInterface {
 	/**
 	 * @brief The superclass interface.
 	 */
-	MenuViewControllerInterface menuViewControllerInterface;
+	TabViewControllerInterface menuViewControllerInterface;
 };
 
 /**

@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "MenuViewController.h"
+#include "TabViewController.h"
 
 /**
  * @file
@@ -33,7 +33,7 @@ typedef struct BindingViewControllerInterface BindingViewControllerInterface;
 
 /**
  * @brief The BindingViewController type.
- * @extends MenuViewController
+ * @extends TabViewController
  * @ingroup
  */
 struct BindingViewController {
@@ -42,7 +42,7 @@ struct BindingViewController {
 	 * @brief The superclass.
 	 * @private
 	 */
-	MenuViewController menuViewController;
+	TabViewController tabViewController;
 
 	/**
 	 * @brief The interface.
@@ -59,7 +59,7 @@ struct BindingViewControllerInterface {
 	/**
 	 * @brief The superclass interface.
 	 */
-	MenuViewControllerInterface menuViewControllerInterface;
+	TabViewControllerInterface tabViewControllerInterface;
 };
 
 /**

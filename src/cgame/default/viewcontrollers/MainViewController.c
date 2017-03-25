@@ -83,7 +83,10 @@ static void loadView(ViewController *self) {
 
 	panel->contentView->view.autoresizingMask = ViewAutoresizingNone;
 
-	Cg_PrimaryButton((View *) panel->contentView, "[Dev] KaadmY", ViewAlignmentTopLeft, Colors.DefaultColor, action, self, _PlayerViewController());
+	char name[MAX_STRING_CHARS];
+	StripColors(cgi.CvarGet("name")->string, name);
+
+	Cg_PrimaryButton((View *) panel->contentView, name, ViewAlignmentTopLeft, Colors.SteelBlue, action, self, _PlayerViewController());
 	Cg_PrimaryButton((View *) panel->contentView, "JOIN", ViewAlignmentTopLeft, Colors.SteelBlue, action, self, _MultiplayerViewController());
 	Cg_PrimaryButton((View *) panel->contentView, "CREATE", ViewAlignmentTopLeft, Colors.DefaultColor, action, self, _CreateServerViewController());
 

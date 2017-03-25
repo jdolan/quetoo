@@ -31,6 +31,17 @@
 
 #define _Class _SettingsViewController
 
+#pragma mark - Object
+
+static void dealloc(Object *self) {
+
+	SettingsViewController *this = (SettingsViewController *) self;
+
+	release(this->navigationViewController);
+
+	super(Object, self, dealloc);
+}
+
 #pragma mark - Actions
 
 /**
@@ -45,7 +56,7 @@ static void tabAction(Control *control, const SDL_Event *event, ident sender, id
 
 	ViewController *viewController = $((ViewController *) _alloc(clazz), init);
 
-	$(this, pushViewController, viewController); // seg faults
+	$(this, pushViewController, viewController);
 
 	release(viewController);
 }
@@ -61,7 +72,6 @@ static void loadView(ViewController *self) {
 
 	MenuViewController *this = (MenuViewController *) self;
 
-	// pretty sure this->navigationViewController is initialized incorrectly, ewverything using it seems to seg fault
 	((SettingsViewController *) this)->navigationViewController = $(alloc(NavigationViewController), init);
 	NavigationViewController *nvc = ((SettingsViewController *) this)->navigationViewController;
 
@@ -86,7 +96,7 @@ static void loadView(ViewController *self) {
 		release(column);
 	}
 
-	$((View *) columns, addSubview, (View *) nvc); // seg faults right now
+	$((ViewController *) nvc, moveToParentViewController, self);
 
 	$((View *) this->panel->contentView, addSubview, (View *) columns);
 	release(columns);
@@ -100,6 +110,8 @@ static void loadView(ViewController *self) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
+
+	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
 
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 }

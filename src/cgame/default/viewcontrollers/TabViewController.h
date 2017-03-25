@@ -21,51 +21,66 @@
 
 #pragma once
 
-#include "TabViewController.h"
+#include "MainViewController.h"
+
+#include "cg_local.h"
 
 /**
  * @file
- * @brief System ViewController.
+ *
+ * @brief The TabViewController.
  */
 
-typedef struct AudioViewController AudioViewController;
-typedef struct AudioViewControllerInterface AudioViewControllerInterface;
+typedef struct TabViewController TabViewController;
+typedef struct TabViewControllerInterface TabViewControllerInterface;
 
 /**
- * @brief The AudioViewController type.
- * @extends TabViewController
- * @ingroup
+ * @brief The TabViewController type.
+ * @extends ViewController
+ * @ingroup ViewControllers
  */
-struct AudioViewController {
+struct TabViewController {
 
 	/**
 	 * @brief The superclass.
 	 * @private
 	 */
-	TabViewController menuViewController;
+	ViewController viewController;
 
 	/**
 	 * @brief The interface.
 	 * @private
 	 */
-	AudioViewControllerInterface *interface;
+	TabViewControllerInterface *interface;
+
+	/**
+	 * @brief The Panel.
+	 */
+	Panel *panel;
 };
 
 /**
- * @brief The AudioViewController interface.
+ * @brief The TabViewController interface.
  */
-struct AudioViewControllerInterface {
+struct TabViewControllerInterface {
 
 	/**
 	 * @brief The superclass interface.
 	 */
-	TabViewControllerInterface menuViewControllerInterface;
+	ViewControllerInterface viewControllerInterface;
+
+	/**
+	 * @fn MainViewController *TabViewController::mainViewController(const TabViewController *self)
+	 * @return The MainViewController.
+	 * @memberof TabViewController
+	 */
+	MainViewController *(*mainViewController)(const TabViewController *self);
 };
 
 /**
- * @fn Class *AudioViewController::_AudioViewController(void)
- * @brief The AudioViewController archetype.
- * @return The AudioViewController Class.
- * @memberof AudioViewController
+ * @fn Class *TabViewController::_TabViewController(void)
+ * @brief The TabViewController archetype.
+ * @return The TabViewController Class.
+ * @memberof TabViewController
  */
-extern Class *_AudioViewController(void);
+extern Class *_TabViewController(void);

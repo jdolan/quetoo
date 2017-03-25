@@ -10,6 +10,7 @@ noinst_HEADERS = \
 	MultiplayerViewController.h \
 	PlayerViewController.h \
 	SettingsViewController.h \
+	TabViewController.h \
 	VideoViewController.h
 
 noinst_LTLIBRARIES = \
@@ -26,6 +27,7 @@ libviewcontrollers_la_SOURCES = \
 	MultiplayerViewController.c \
 	PlayerViewController.c \
 	SettingsViewController.c \
+	TabViewController.c \
 	VideoViewController.c
 
 libviewcontrollers_la_CFLAGS = \

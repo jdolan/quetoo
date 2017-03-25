@@ -176,7 +176,7 @@ Class *_InputViewController(void) {
 
 	do_once(&once, {
 		clazz.name = "InputViewController";
-		clazz.superclass = _MenuViewController();
+		clazz.superclass = _TabViewController();
 		clazz.instanceSize = sizeof(InputViewController);
 		clazz.interfaceOffset = offsetof(InputViewController, interface);
 		clazz.interfaceSize = sizeof(InputViewControllerInterface);

@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "MenuViewController.h"
+#include "TabViewController.h"
 
 /**
  * @file
@@ -33,7 +33,7 @@ typedef struct MiscViewControllerInterface MiscViewControllerInterface;
 
 /**
  * @brief The MiscViewController type.
- * @extends MenuViewController
+ * @extends TabViewController
  * @ingroup
  */
 struct MiscViewController {
@@ -42,7 +42,7 @@ struct MiscViewController {
 	 * @brief The superclass.
 	 * @private
 	 */
-	MenuViewController menuViewController;
+	TabViewController menuViewController;
 
 	/**
 	 * @brief The interface.
@@ -59,7 +59,7 @@ struct MiscViewControllerInterface {
 	/**
 	 * @brief The superclass interface.
 	 */
-	MenuViewControllerInterface menuViewControllerInterface;
+	TabViewControllerInterface menuViewControllerInterface;
 };
 
 /**
