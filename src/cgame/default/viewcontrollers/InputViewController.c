@@ -23,37 +23,9 @@
 
 #include "InputViewController.h"
 
-#include "CrosshairView.h"
-#include "CvarSelect.h"
 #include "CvarSlider.h"
 
 #define _Class _InputViewController
-
-#pragma mark - Crosshair selection
-
-/**
- * @brief Fs_EnumerateFunc for crosshair selection.
- */
-static void enumerateCrosshairs(const char *path, void *data) {
-	char name[MAX_QPATH];
-
-	StripExtension(Basename(path), name);
-
-	intptr_t value = strtol(name + strlen("ch"), NULL, 10);
-	assert(value);
-
-	$((Select *) data, addOption, name, (ident) value);
-}
-
-/**
- * @brief ActionFunction for crosshair modification.
- */
-static void modifyCrosshair(Control *control, const SDL_Event *event, ident sender, ident data) {
-
-	InputViewController *this = (InputViewController *) sender;
-
-	$((View *) this->crosshairView, updateBindings);
-}
 
 #pragma mark - ViewController
 
@@ -77,12 +49,12 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "MOUSE");
+			$(box->label, setText, "Mouse");
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Cg_CvarSliderInput((View *) stackView, "Sensitivity", "m_sensitivity", 0.1, 6.0, 0.1);
-			Cg_CvarSliderInput((View *) stackView, "Zoom Sensitivity", "m_sensitivity_zoom", 0.1, 6.0, 0.1);
+			Cg_CvarSliderInput((View *) stackView, "Sensitivity", "m_sensitivity", 0.1, 10.0, 0.1);
+			Cg_CvarSliderInput((View *) stackView, "Zoom sensitivity", "m_sensitivity_zoom", 0.1, 10.0, 0.1);
 			Cg_CvarCheckboxInput((View *) stackView, "Invert mouse", "m_invert");
 			Cg_CvarCheckboxInput((View *) stackView, "Smooth mouse", "m_interpolate");
 
@@ -97,62 +69,7 @@ static void loadView(ViewController *self) {
 		release(column);
 	}
 
-	{
-		StackView *column = $(alloc(StackView), initWithFrame, NULL);
-		column->spacing = DEFAULT_PANEL_SPACING;
-
-		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "CROSSHAIR");
-
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-
-			CvarSelect *crosshairSelect = $(alloc(CvarSelect), initWithVariable, cg_draw_crosshair);
-			$((Select *) crosshairSelect, addOption, "", NULL);
-			cgi.EnumerateFiles("pics/ch*", enumerateCrosshairs, crosshairSelect);
-
-			$((Control *) crosshairSelect, addActionForEventType, SDL_MOUSEBUTTONUP, modifyCrosshair, self, NULL);
-			Cg_Input((View *) stackView, "Crosshair", (Control *) crosshairSelect);
-
-			CvarSelect *colorSelect = (CvarSelect *) $(alloc(CvarSelect), initWithVariable, cg_draw_crosshair_color);
-			colorSelect->expectsStringValue = true;
-
-			$((Select *) colorSelect, addOption, "default", (ident) 0);
-			$((Select *) colorSelect, addOption, "red", (ident) 1);
-			$((Select *) colorSelect, addOption, "green", (ident) 2);
-			$((Select *) colorSelect, addOption, "yellow", (ident) 3);
-			$((Select *) colorSelect, addOption, "orange", (ident) 4);
-
-			$((Control *) colorSelect, addActionForEventType, SDL_MOUSEBUTTONUP, modifyCrosshair, self, NULL);
-			Cg_Input((View *) stackView, "Crosshair color", (Control *) colorSelect);
-
-			CvarSlider *scaleSlider = $(alloc(CvarSlider), initWithVariable, cg_draw_crosshair_scale, 0.1, 2.0, 0.1);
-
-			$((Control *) scaleSlider, addActionForEventType, SDL_MOUSEMOTION, modifyCrosshair, self, NULL);
-			Cg_Input((View *) stackView, "Crosshair scale", (Control *) scaleSlider);
-
-			Cg_CvarCheckboxInput((View *) stackView, "Pulse on pickup", cg_draw_crosshair_pulse->name);
-
-			const SDL_Rect frame = MakeRect(0, 0, 72, 72);
-
-			this->crosshairView = $(alloc(CrosshairView), initWithFrame, &frame);
-			this->crosshairView->view.alignment = ViewAlignmentMiddleCenter;
-
-			$((View *) stackView, addSubview, (View *) this->crosshairView);
-			release(this->crosshairView);
-
-			$((View *) box, addSubview, (View *) stackView);
-			release(stackView);
-
-			$((View *) column, addSubview, (View *) box);
-			release(box);
-		}
-
-		$((View *) columns, addSubview, (View *) column);
-		release(column);
-	}
-
-	$((View *) this->menuViewController.panel->contentView, addSubview, (View *) columns);
+	$((View *) ((TabViewController *) this)->panel->contentView, addSubview, (View *) columns);
 	release(columns);
 }
 

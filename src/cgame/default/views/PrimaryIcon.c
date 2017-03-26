@@ -66,8 +66,6 @@ static PrimaryIcon *initWithFrame(PrimaryIcon *self, const SDL_Rect *frame, cons
 
 		$((View *) self, addSubview, (View *) self->imageView);
 
-		self->button.control.view.backgroundColor = Colors.Clear;
-
 		self->button.control.bevel = ControlBevelTypeNone;
 
 		self->button.control.view.borderWidth = 1;

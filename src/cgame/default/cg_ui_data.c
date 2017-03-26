@@ -27,6 +27,7 @@
 #include "views/CvarTextView.h"
 #include "views/PrimaryButton.h"
 #include "views/PrimaryIcon.h"
+
 /**
  * @brief
  */
@@ -142,9 +143,7 @@ void Cg_PrimaryButton(View *view, const char *name, ViewAlignment align, SDL_Col
 	$(button->button.title, setText, name);
 
 	((Button *) button)->control.view.alignment = align;
-
 	((Button *) button)->control.view.autoresizingMask = ViewAutoresizingNone;
-
 	((Button *) button)->control.view.backgroundColor = color;
 
 	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, sender, data);
@@ -157,7 +156,7 @@ void Cg_PrimaryButton(View *view, const char *name, ViewAlignment align, SDL_Col
 /**
  * @brief
  */
-void Cg_PrimaryIcon(View *view, const char *icon, ViewAlignment align, ActionFunction action, ident sender, ident data) {
+void Cg_PrimaryIcon(View *view, const char *icon, ViewAlignment align, SDL_Color color, ActionFunction action, ident sender, ident data) {
 
 	assert(view);
 
@@ -167,8 +166,8 @@ void Cg_PrimaryIcon(View *view, const char *icon, ViewAlignment align, ActionFun
 	assert(button);
 
 	((Button *) button)->control.view.alignment = align;
-
 	((Button *) button)->control.view.autoresizingMask = ViewAutoresizingNone;
+	((Button *) button)->control.view.backgroundColor = color;
 
 	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, sender, data);
 

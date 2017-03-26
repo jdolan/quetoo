@@ -23,6 +23,7 @@ noinst_HEADERS = \
 	cg_temp_entity.h \
 	cg_types.h \
 	cg_ui.h \
+	cg_ui_colors.h \
 	cg_ui_data.h \
 	cg_view.h
 
@@ -47,6 +48,7 @@ cgame_la_SOURCES = \
 	cg_score.c \
 	cg_temp_entity.c \
 	cg_ui.c \
+	cg_ui_colors.c \
 	cg_ui_data.c \
 	cg_view.c
 

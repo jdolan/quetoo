@@ -46,7 +46,7 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	TabViewController *this = (TabViewController *) self;
+	AudioViewController *this = (AudioViewController *) self;
 
 	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
@@ -59,7 +59,7 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "SOUND");
+			$(box->label, setText, "Audio");
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
@@ -77,11 +77,11 @@ static void loadView(ViewController *self) {
 		release(column);
 	}
 
-	$((View *) this->panel->contentView, addSubview, (View *) columns);
+	$((View *) ((TabViewController *) this)->panel->contentView, addSubview, (View *) columns);
 	release(columns);
 
-	this->panel->accessoryView->view.hidden = false;
-	Cg_Button((View *) this->panel->accessoryView, "Apply", applyAction, self, NULL);
+	((TabViewController *) this)->panel->accessoryView->view.hidden = false;
+	Cg_Button((View *) ((TabViewController *) this)->panel->accessoryView, "Apply", applyAction, self, NULL);
 }
 
 #pragma mark - Class lifecycle

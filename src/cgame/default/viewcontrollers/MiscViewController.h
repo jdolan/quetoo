@@ -22,6 +22,7 @@
 #pragma once
 
 #include "TabViewController.h"
+#include "CrosshairView.h"
 
 /**
  * @file
@@ -49,6 +50,11 @@ struct MiscViewController {
 	 * @private
 	 */
 	MiscViewControllerInterface *interface;
+
+	/**
+	 * @brief The CrosshairView.
+	 */
+	CrosshairView *crosshairView;
 };
 
 /**

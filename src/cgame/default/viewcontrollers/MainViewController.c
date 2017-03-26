@@ -25,6 +25,7 @@
 
 #include "CreateServerViewController.h"
 #include "MultiplayerViewController.h"
+#include "PlayViewController.h"
 #include "PlayerViewController.h"
 #include "SettingsViewController.h"
 
@@ -66,35 +67,44 @@ static void loadView(ViewController *self) {
 
 	Panel *panel = $(alloc(Panel), initWithFrame, NULL);
 
-//	((View *) panel)->padding.top = 0;
-//	((View *) panel)->padding.right = 0;
-//	((View *) panel)->padding.bottom = 0;
-//	((View *) panel)->padding.left = 0;
+	((View *) panel)->backgroundColor = QColors.Main;
 
 	panel->isDraggable = false;
 	panel->isResizable = false;
 
+	panel->stackView.distribution = StackViewAxisHorizontal;
+
 	panel->stackView.view.alignment = ViewAlignmentTopLeft;
+	panel->stackView.view.autoresizingMask = ViewAutoresizingNone;
 
-//	panel->contentView->spacing = 0;
+	{
+		panel->contentView->axis = StackViewAxisHorizontal;
+		panel->contentView->distribution = StackViewDistributionDefault;
 
-	panel->contentView->axis = StackViewAxisHorizontal;
-	panel->contentView->distribution = StackViewDistributionDefault;
+		panel->contentView->view.alignment = ViewAlignmentTopLeft;
 
-	panel->contentView->view.autoresizingMask = ViewAutoresizingNone;
+		char name[MAX_STRING_CHARS];
+		StripColors(cgi.CvarGet("name")->string, name);
 
-	char name[MAX_STRING_CHARS];
-	StripColors(cgi.CvarGet("name")->string, name);
+		Cg_PrimaryButton((View *) panel->contentView, name, ViewAlignmentTopLeft, QColors.Theme, action, self, _PlayerViewController());
+	}
 
-	Cg_PrimaryButton((View *) panel->contentView, name, ViewAlignmentTopLeft, Colors.SteelBlue, action, self, _PlayerViewController());
-	Cg_PrimaryButton((View *) panel->contentView, "JOIN", ViewAlignmentTopLeft, Colors.SteelBlue, action, self, _MultiplayerViewController());
-	Cg_PrimaryButton((View *) panel->contentView, "CREATE", ViewAlignmentTopLeft, Colors.DefaultColor, action, self, _CreateServerViewController());
+	{
+		panel->accessoryView->axis = StackViewAxisHorizontal;
+		panel->accessoryView->distribution = StackViewDistributionDefault;
 
-	Cg_PrimaryIcon((View *) panel->contentView, "ui/pics/settings", ViewAlignmentTopRight, action, self, _SettingsViewController());
-	Cg_PrimaryIcon((View *) panel->contentView, "ui/pics/quit", ViewAlignmentTopRight, action, self, NULL);
+		panel->accessoryView->view.alignment = ViewAlignmentTopRight;
+
+		Cg_PrimaryButton((View *) panel->accessoryView, "PLAY", ViewAlignmentTopLeft, QColors.Theme, action, self, _PlayViewController());
+
+		Cg_PrimaryIcon((View *) panel->accessoryView, "ui/pics/settings", ViewAlignmentTopRight, QColors.Border, action, self, _SettingsViewController());
+		Cg_PrimaryIcon((View *) panel->accessoryView, "ui/pics/quit", ViewAlignmentTopRight,  QColors.Border,action, self, NULL);
+	}
 
 	SDL_Size size = MakeSize(cgi.context->window_width, 36);
-	$((View *) panel->contentView, resize, &size);
+	$((View *) (StackView *) panel, resize, &size);
+
+	panel->accessoryView->view.hidden = false;
 
 	$(self->view, addSubview, (View *) panel);
 	release(panel);

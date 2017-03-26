@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "MenuViewController.h"
+#include "TabViewController.h"
 #include "MapListCollectionView.h"
 
 /**
@@ -36,7 +36,7 @@ typedef struct CreateServerViewControllerInterface CreateServerViewControllerInt
 /**
  * @brief The CreateServerViewController type.
  *
- * @extends MenuViewController
+ * @extends TabViewController
  */
 struct CreateServerViewController {
 
@@ -44,7 +44,7 @@ struct CreateServerViewController {
 	 * @brief The superclass.
 	 * @private
 	 */
-	MenuViewController menuViewController;
+	TabViewController menuViewController;
 
 	/**
 	 * @brief The interface.
@@ -81,7 +81,7 @@ struct CreateServerViewControllerInterface {
 	/**
 	 * @brief The superclass interface.
 	 */
-	MenuViewControllerInterface menuViewControllerInterface;
+	TabViewControllerInterface menuViewControllerInterface;
 };
 
 /**

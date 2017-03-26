@@ -72,6 +72,9 @@ static void loadView(ViewController *self) {
 
 	MenuViewController *this = (MenuViewController *) self;
 
+	((StackView *) this->panel)->view.frame.w = 800;
+	((StackView *) this->panel)->view.frame.h = 500;
+
 	((SettingsViewController *) this)->navigationViewController = $(alloc(NavigationViewController), init);
 	NavigationViewController *nvc = ((SettingsViewController *) this)->navigationViewController;
 
@@ -85,11 +88,11 @@ static void loadView(ViewController *self) {
 		column->spacing = DEFAULT_PANEL_SPACING;
 
 		{
-			Cg_PrimaryButton((View *) column, "Bindings", ViewAlignmentTopLeft, Colors.DefaultColor, tabAction, nvc, _BindingViewController());
-			Cg_PrimaryButton((View *) column, "Input", ViewAlignmentTopLeft, Colors.DefaultColor, tabAction, nvc, _InputViewController());
-			Cg_PrimaryButton((View *) column, "Video", ViewAlignmentTopLeft, Colors.DefaultColor, tabAction, nvc, _VideoViewController());
-			Cg_PrimaryButton((View *) column, "Audio", ViewAlignmentTopLeft, Colors.DefaultColor, tabAction, nvc, _AudioViewController());
-			Cg_PrimaryButton((View *) column, "Misc", ViewAlignmentTopLeft, Colors.DefaultColor, tabAction, nvc, _MiscViewController());
+			Cg_PrimaryButton((View *) column, "Bindings", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _BindingViewController());
+			Cg_PrimaryButton((View *) column, "Input", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _InputViewController());
+			Cg_PrimaryButton((View *) column, "Video", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _VideoViewController());
+			Cg_PrimaryButton((View *) column, "Audio", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _AudioViewController());
+			Cg_PrimaryButton((View *) column, "Misc", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _MiscViewController());
 		}
 
 		$((View *) columns, addSubview, (View *) column);
@@ -100,8 +103,6 @@ static void loadView(ViewController *self) {
 
 	$((View *) this->panel->contentView, addSubview, (View *) columns);
 	release(columns);
-
-	this->panel->accessoryView->view.hidden = false;
 }
 
 #pragma mark - Class lifecycle

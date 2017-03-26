@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "MenuViewController.h"
+#include "TabViewController.h"
 
 /**
  * @file
@@ -33,7 +33,7 @@ typedef struct MultiplayerViewControllerInterface MultiplayerViewControllerInter
 
 /**
  * @brief The MultiplayerViewController type.
- * @extends MenuViewController
+ * @extends TabViewController
  * @ingroup
  */
 struct MultiplayerViewController {
@@ -42,7 +42,7 @@ struct MultiplayerViewController {
 	 * @brief The superclass.
 	 * @private
 	 */
-	MenuViewController menuViewController;
+	TabViewController menuViewController;
 
 	/**
 	 * @brief The interface.
@@ -59,7 +59,7 @@ struct MultiplayerViewControllerInterface {
 	/**
 	 * @brief The superclass interface.
 	 */
-	MenuViewControllerInterface menuViewControllerInterface;
+	TabViewControllerInterface menuViewControllerInterface;
 };
 
 /**

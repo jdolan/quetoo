@@ -23,9 +23,6 @@
 
 #include "BindingViewController.h"
 
-#include "CvarSelect.h"
-#include "VideoModeSelect.h"
-
 #define _Class _BindingViewController
 
 #pragma mark - ViewController
@@ -37,7 +34,7 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	TabViewController *this = (TabViewController *) self;
+	BindingViewController *this = (BindingViewController *) self;
 
 	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
@@ -49,23 +46,19 @@ static void loadView(ViewController *self) {
 		column->spacing = DEFAULT_PANEL_SPACING;
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "MOVEMENT");
+			$(box->label, setText, "Movement");
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
 			Cg_BindInput((View *) stackView, "Forward", "+forward");
 			Cg_BindInput((View *) stackView, "Back", "+back");
-			Cg_BindInput((View *) stackView, "Move left", "+move_left");
-			Cg_BindInput((View *) stackView, "Move right", "+move_right");
+			Cg_BindInput((View *) stackView, "Strafe left", "+move_left");
+			Cg_BindInput((View *) stackView, "Strafe right", "+move_right");
 			Cg_BindInput((View *) stackView, "Jump", "+move_up");
 			Cg_BindInput((View *) stackView, "Crouch", "+move_down");
 
-			Cg_BindInput((View *) stackView, "Turn left", "+left");
-			Cg_BindInput((View *) stackView, "Turn right", "+right");
-			Cg_BindInput((View *) stackView, "Center view", "center_view");
-
-			Cg_BindInput((View *) stackView, "Run / walk", "+speed");
-			Cg_CvarCheckboxInput((View *) stackView, "Always Run", "cg_run");
+			Cg_BindInput((View *) stackView, "Run/walk", "+speed");
+			Cg_CvarCheckboxInput((View *) stackView, "Always run", "cg_run");
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -76,16 +69,18 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "COMMUNICATIONS");
+			$(box->label, setText, "Multiplayer");
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Cg_BindInput((View *) stackView, "Say", "cl_message_mode");
-			Cg_BindInput((View *) stackView, "Say Team", "cl_message_mode_2");
+			Cg_BindInput((View *) stackView, "Chat", "cl_message_mode");
+			Cg_BindInput((View *) stackView, "Team chat", "cl_message_mode_2");
 
-			Cg_BindInput((View *) stackView, "Show score", "+score");
+			Cg_BindInput((View *) stackView, "Scoreboard", "+score");
 
-			Cg_BindInput((View *) stackView, "Take screenshot", "r_screenshot");
+			Cg_BindInput((View *) stackView, "Screenshot", "r_screenshot");
+
+			Cg_BindInput((View *) stackView, "Toggle console", "cl_toggle_console");
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -102,7 +97,7 @@ static void loadView(ViewController *self) {
 		column->spacing = DEFAULT_PANEL_SPACING;
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "COMBAT");
+			$(box->label, setText, "Combat");
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
@@ -110,7 +105,7 @@ static void loadView(ViewController *self) {
 
 			Cg_BindInput((View *) stackView, "Zoom", "+ZOOM");
 
-			Cg_BindInput((View *) stackView, "Grapple Hook", "+hook");
+			Cg_BindInput((View *) stackView, "Grapple", "+hook");
 
 			Cg_BindInput((View *) stackView, "Next weapon", "cg_weapon_next");
 			Cg_BindInput((View *) stackView, "Previous weapon", "cg_weapon_previous");
@@ -137,7 +132,7 @@ static void loadView(ViewController *self) {
 		release(column);
 	}
 
-	$((View *) this->panel->contentView, addSubview, (View *) columns);
+	$((View *) ((TabViewController *) this)->panel->contentView, addSubview, (View *) columns);
 	release(columns);
 }
 

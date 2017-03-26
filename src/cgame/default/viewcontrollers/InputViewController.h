@@ -22,7 +22,6 @@
 #pragma once
 
 #include "TabViewController.h"
-#include "CrosshairView.h"
 
 /**
  * @file
@@ -50,11 +49,6 @@ struct InputViewController {
 	 * @private
 	 */
 	InputViewControllerInterface *interface;
-
-	/**
-	 * @brief The CrosshairView.
-	 */
-	CrosshairView *crosshairView;
 };
 
 /**

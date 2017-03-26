@@ -46,7 +46,7 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	TabViewController *this = (TabViewController *) self;
+	VideoViewController *this = (VideoViewController *) self;
 
 	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
@@ -59,7 +59,7 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "VIDEO");
+			$(box->label, setText, "Video");
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
@@ -73,12 +73,12 @@ static void loadView(ViewController *self) {
 
 			$(fullscreenSelect, addOption, "Windowed", (ident) 0);
 			$(fullscreenSelect, addOption, "Fullscreen", (ident) 1);
-			$(fullscreenSelect, addOption, "Borderless Fullscreen", (ident) 2);
+			$(fullscreenSelect, addOption, "Borderless fullscreen", (ident) 2);
 
-			Cg_Input((View *) stackView, "Window Mode", (Control *) fullscreenSelect);
+			Cg_Input((View *) stackView, "Window mode", (Control *) fullscreenSelect);
 			release(fullscreenSelect);
 
-			Cg_CvarCheckboxInput((View *) stackView, "Vertical Sync", "r_swap_interval");
+			Cg_CvarCheckboxInput((View *) stackView, "Vertical sync", "r_swap_interval");
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -89,7 +89,7 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "OPTIONS");
+			$(box->label, setText, "Options");
 
 			box->view.autoresizingMask |= ViewAutoresizingWidth;
 
@@ -143,7 +143,7 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "PICTURE");
+			$(box->label, setText, "Picture");
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
@@ -163,11 +163,11 @@ static void loadView(ViewController *self) {
 		release(column);
 	}
 
-	$((View *) this->panel->contentView, addSubview, (View *) columns);
+	$((View *) ((TabViewController *) this)->panel->contentView, addSubview, (View *) columns);
 	release(columns);
 
-	this->panel->accessoryView->view.hidden = false;
-	Cg_Button((View *) this->panel->accessoryView, "Apply", applyAction, self, NULL);
+	((TabViewController *) this)->panel->accessoryView->view.hidden = false;
+	Cg_Button((View *) ((TabViewController *) this)->panel->accessoryView, "Apply", applyAction, self, NULL);
 }
 
 #pragma mark - Class lifecycle

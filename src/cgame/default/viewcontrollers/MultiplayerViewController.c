@@ -31,82 +31,6 @@
 #pragma mark - Actions
 
 /**
- * @brief ActionFunction for the Quickjoin button.
- * @description Selects a server based on minumum ping and maximum players with
- * a bit of lovely random thrown in. Any server that matches the criteria will
- * be weighted by how much "better" they are by how much lower their ping is and
- * how many more players there are.
- */
-static void quickjoinAction(Control *control, const SDL_Event *event, ident sender, ident data) {
-
-	const int16_t max_ping = Clamp(cg_quick_join_max_ping->integer, 0, 999);
-	const int16_t min_clients = Clamp(cg_quick_join_min_clients->integer, 0, MAX_CLIENTS);
-
-	uint32_t total_weight = 0;
-
-	const GList *list = cgi.Servers();
-
-	while (list != NULL) {
-		const cl_server_info_t *server = list->data;
-
-		int16_t weight = 1;
-
-		if (!(server->clients < min_clients || server->clients >= server->max_clients)) {
-			// more weight for more populated servers
-			weight += ((int16_t) (server->clients - min_clients)) * 5;
-
-			// more weight for lower ping servers
-			weight += ((int16_t) (max_ping - server->ping)) / 10;
-
-			if (server->ping > max_ping) { // one third weight for high ping servers
-				weight /= 3;
-			}
-		}
-
-		total_weight += max(weight, 1);
-
-		list = list->next;
-	}
-
-	if (total_weight == 0) {
-		return;
-	}
-
-	list = cgi.Servers();
-
-	uint32_t random_weight = Random() % total_weight;
-	uint32_t current_weight = 0;
-
-	while (list != NULL) {
-		const cl_server_info_t *server = list->data;
-
-		uint32_t weight = 1;
-
-		if (server->ping > max_ping ||
-			server->clients < min_clients ||
-			server->clients >= server->max_clients) {
-
-			weight = 0;
-		} else {
-			// more weight for more populated servers
-			weight += server->clients - min_clients;
-
-			// more weight for lower ping servers
-			weight += ((uint32_t) (max_ping - server->ping)) / 20;
-		}
-
-		current_weight += weight;
-
-		if (current_weight > random_weight) {
-			cgi.Connect(&server->addr);
-			break;
-		}
-
-		list = list->next;
-	}
-}
-
-/**
  * @brief ActionFunction for the Refresh button.
  */
 static void refreshAction(Control *control, const SDL_Event *event, ident sender, ident data) {
@@ -148,13 +72,13 @@ static void loadView(ViewController *self) {
 
 	cgi.GetServers();
 
-	MenuViewController *this = (MenuViewController *) self;
+	TabViewController *this = (TabViewController *) self;
 
 	ServersTableView *servers;
 
 	{
 		Box *box = $(alloc(Box), initWithFrame, NULL);
-		$(box->label, setText, "JOIN GAME");
+	$(box->label, setText, "Join game");
 
 		box->view.autoresizingMask |= ViewAutoresizingFill;
 
@@ -175,7 +99,6 @@ static void loadView(ViewController *self) {
 	{
 		this->panel->accessoryView->view.hidden = false;
 
-		Cg_Button((View *) this->panel->accessoryView, "Quick Join", quickjoinAction, self, NULL);
 		Cg_Button((View *) this->panel->accessoryView, "Refresh", refreshAction, self, NULL);
 		Cg_Button((View *) this->panel->accessoryView, "Connect", connectAction, self, servers);
 	}
@@ -201,7 +124,7 @@ Class *_MultiplayerViewController(void) {
 
 	do_once(&once, {
 		clazz.name = "MultiplayerViewController";
-		clazz.superclass = _MenuViewController();
+		clazz.superclass = _TabViewController();
 		clazz.instanceSize = sizeof(MultiplayerViewController);
 		clazz.interfaceOffset = offsetof(MultiplayerViewController, interface);
 		clazz.interfaceSize = sizeof(MultiplayerViewControllerInterface);

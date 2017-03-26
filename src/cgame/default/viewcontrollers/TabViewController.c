@@ -50,7 +50,11 @@ static void loadView(ViewController *self) {
 	this->panel = $(alloc(Panel), initWithFrame, NULL);
 	assert(this->panel);
 
+	this->panel->isDraggable = false;
+	this->panel->isResizable = false;
+
 	this->panel->stackView.view.alignment = ViewAlignmentTopLeft;
+	this->panel->stackView.view.autoresizingMask = ViewAutoresizingFill;
 	this->panel->stackView.view.needsLayout = true;
 
 	$(self->view, addSubview, (View *) this->panel);

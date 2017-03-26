@@ -292,7 +292,7 @@ Class *_CreateServerViewController(void) {
 
 	do_once(&once, {
 		clazz.name = "CreateServerViewController";
-		clazz.superclass = _MenuViewController();
+		clazz.superclass = _TabViewController();
 		clazz.instanceSize = sizeof(CreateServerViewController);
 		clazz.interfaceOffset = offsetof(CreateServerViewController, interface);
 		clazz.interfaceSize = sizeof(CreateServerViewControllerInterface);
