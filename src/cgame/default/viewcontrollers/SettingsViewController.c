@@ -99,7 +99,7 @@ static void loadView(ViewController *self) {
 		release(column);
 	}
 
-	$((ViewController *) nvc, moveToParentViewController, self); // This isn't working right now
+	$((ViewController *) nvc, moveToParentViewController, self); // This isn't working right now.
 
 	$((View *) this->panel->contentView, addSubview, (View *) columns);
 	release(columns);
