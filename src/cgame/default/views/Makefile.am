@@ -5,6 +5,7 @@ noinst_HEADERS = \
 	CvarCheckbox.h \
 	CvarSelect.h \
 	CvarSlider.h \
+	DialogView.h \
 	HueSlider.h \
 	MapListCollectionItemView.h \
 	MapListCollectionView.h \
@@ -25,6 +26,7 @@ libviews_la_SOURCES = \
 	CvarSelect.c \
 	CvarSlider.c \
 	CvarTextView.c \
+	DialogView.c \
 	HueSlider.c \
 	MapListCollectionItemView.c \
 	MapListCollectionView.c \

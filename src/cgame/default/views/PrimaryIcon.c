@@ -51,14 +51,13 @@ static PrimaryIcon *initWithFrame(PrimaryIcon *self, const SDL_Rect *frame, cons
 		self->imageView = $(alloc(ImageView), initWithFrame, frame);
 		assert(self->imageView);
 
-		$(self->imageView, setImage, NULL);
-
 		SDL_Surface *surface;
 
 		if (cgi.LoadSurface(icon, &surface)) {
-
 			$(self->imageView, setImageWithSurface, surface);
 			SDL_FreeSurface(surface);
+		} else {
+			$(self->imageView, setImage, NULL);
 		}
 
 		self->imageView->view.alignment = ViewAlignmentMiddleCenter;

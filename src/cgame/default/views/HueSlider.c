@@ -78,6 +78,8 @@ static HueSlider *initWithVariable(HueSlider *self, double hue) {
 		this->max = 360.0;
 		this->step = 1.0;
 
+		this->snapToStep = true;
+
 		$(this, setValue, hue);
 	}
 

@@ -72,6 +72,8 @@ static CvarSlider *initWithVariable(CvarSlider *self, cvar_t *var, double min, d
 		this->max = max;
 		this->step = step;
 
+		this->snapToStep = true;
+
 		$(this, setValue, var->value);
 	}
 

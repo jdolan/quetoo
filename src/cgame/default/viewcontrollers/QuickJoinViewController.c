@@ -131,8 +131,8 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Cg_CvarSliderInput((View *) stackView, "Maximum ping", "cg_quick_join_max_ping", 5, 500, 5);
-			Cg_CvarSliderInput((View *) stackView, "Minimum players", "cg_quick_join_min_clients", 0, MAX_CLIENTS, 1);
+			Cg_CvarSliderInput((View *) stackView, "Maximum ping", "cg_quick_join_max_ping", 5.0, 500.0, 5.0);
+			Cg_CvarSliderInput((View *) stackView, "Minimum players", "cg_quick_join_min_clients", 1.0, MAX_CLIENTS, 1.0);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);

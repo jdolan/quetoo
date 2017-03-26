@@ -23,6 +23,9 @@
 
 #include <ObjectivelyMVC/NavigationViewController.h>
 
+#include "views/DialogView.h"
+#include "views/PrimaryButton.h"
+
 /**
  * @file
  *
@@ -50,6 +53,21 @@ struct MainViewController {
 	 * @private
 	 */
 	MainViewControllerInterface *interface;
+
+	/*
+	 * @brief The menu background image.
+	 */
+	ImageView *backgroundImage;
+
+	/*
+	 * @brief The Quetoo logo.
+	 */
+	ImageView *logoImage;
+
+	/*
+	 * @brief The notification dialog.
+	 */
+	DialogView *dialog;
 };
 
 /**

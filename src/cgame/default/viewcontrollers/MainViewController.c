@@ -29,11 +29,34 @@
 #include "PlayerViewController.h"
 #include "SettingsViewController.h"
 
+#include "DialogView.h"
 #include "PrimaryButton.h"
 
 #define _Class _MainViewController
 
+#pragma mark - Object
+
+static void dealloc(Object *self) {
+
+	MainViewController *this = (MainViewController *) self;
+
+	release(this->backgroundImage);
+	release(this->logoImage);
+
+	release(this->dialog);
+
+	super(Object, self, dealloc);
+}
+
 #pragma mark - Actions
+
+/**
+ * @brief Quit the game.
+ */
+static void quitFunction(void) {
+
+	cgi.Cbuf("quit\n");
+}
 
 /**
  * @brief ActionFunction for main menu PrimaryButtons.
@@ -52,7 +75,7 @@ static void action(Control *control, const SDL_Event *event, ident sender, ident
 		release(viewController);
 
 	} else {
-		cgi.Cbuf("quit\n");
+		$(((MainViewController *) this)->dialog, showDialog, "Are you sure you're done pwning nubz?'", quitFunction);
 	}
 }
 
@@ -65,6 +88,48 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
+	MainViewController *this = (MainViewController *) self;
+
+	// Menu background
+
+	this->backgroundImage = $(alloc(ImageView), initWithFrame, NULL);
+	assert(this->backgroundImage);
+
+	SDL_Surface *surface;
+
+	if (cgi.LoadSurface("ui/background", &surface)) {
+		$(this->backgroundImage, setImageWithSurface, surface);
+		SDL_FreeSurface(surface);
+	} else {
+		$(this->backgroundImage, setImage, NULL);
+	}
+
+	this->backgroundImage->view.alignment = ViewAlignmentTopLeft;
+	this->backgroundImage->view.autoresizingMask = ViewAutoresizingFill;
+
+	$(self->view, addSubview, (View *) this->backgroundImage);
+
+	// Quetoo logo
+
+	const SDL_Rect frame = MakeRect(0, 0, 240, 110);
+
+	this->logoImage = $(alloc(ImageView), initWithFrame, &frame);
+	assert(this->logoImage);
+
+	if (cgi.LoadSurface("ui/logo", &surface)) {
+		$(this->logoImage, setImageWithSurface, surface);
+		SDL_FreeSurface(surface);
+	} else {
+		$(this->logoImage, setImage, NULL);
+	}
+
+	this->logoImage->view.alignment = ViewAlignmentBottomRight;
+	this->logoImage->view.autoresizingMask = ViewAutoresizingNone;
+
+	$(self->view, addSubview, (View *) this->logoImage);
+
+	// Menu bar
+
 	Panel *panel = $(alloc(Panel), initWithFrame, NULL);
 
 	((View *) panel)->backgroundColor = QColors.Main;
@@ -73,6 +138,7 @@ static void loadView(ViewController *self) {
 	panel->isResizable = false;
 
 	panel->stackView.distribution = StackViewAxisHorizontal;
+	panel->stackView.spacing = 0;
 
 	panel->stackView.view.alignment = ViewAlignmentTopLeft;
 	panel->stackView.view.autoresizingMask = ViewAutoresizingNone;
@@ -81,33 +147,24 @@ static void loadView(ViewController *self) {
 		panel->contentView->axis = StackViewAxisHorizontal;
 		panel->contentView->distribution = StackViewDistributionDefault;
 
-		panel->contentView->view.alignment = ViewAlignmentTopLeft;
+		Cg_PrimaryButton((View *) panel->contentView, "PROFILE", ViewAlignmentTopLeft, QColors.Theme, action, self, _PlayerViewController());
 
-		char name[MAX_STRING_CHARS];
-		StripColors(cgi.CvarGet("name")->string, name);
+		Cg_PrimaryButton((View *) panel->contentView, "PLAY", ViewAlignmentTopLeft, QColors.Theme, action, self, _PlayViewController());
 
-		Cg_PrimaryButton((View *) panel->contentView, name, ViewAlignmentTopLeft, QColors.Theme, action, self, _PlayerViewController());
-	}
-
-	{
-		panel->accessoryView->axis = StackViewAxisHorizontal;
-		panel->accessoryView->distribution = StackViewDistributionDefault;
-
-		panel->accessoryView->view.alignment = ViewAlignmentTopRight;
-
-		Cg_PrimaryButton((View *) panel->accessoryView, "PLAY", ViewAlignmentTopLeft, QColors.Theme, action, self, _PlayViewController());
-
-		Cg_PrimaryIcon((View *) panel->accessoryView, "ui/pics/settings", ViewAlignmentTopRight, QColors.Border, action, self, _SettingsViewController());
-		Cg_PrimaryIcon((View *) panel->accessoryView, "ui/pics/quit", ViewAlignmentTopRight,  QColors.Border,action, self, NULL);
+		Cg_PrimaryIcon((View *) panel->contentView, "ui/pics/settings", ViewAlignmentTopRight, QColors.Border, action, self, _SettingsViewController());
+		Cg_PrimaryIcon((View *) panel->contentView, "ui/pics/quit", ViewAlignmentTopRight,  QColors.Border,action, self, NULL);
 	}
 
 	SDL_Size size = MakeSize(cgi.context->window_width, 36);
 	$((View *) (StackView *) panel, resize, &size);
 
-	panel->accessoryView->view.hidden = false;
-
 	$(self->view, addSubview, (View *) panel);
 	release(panel);
+
+	// Dialog
+
+	this->dialog = $(alloc(DialogView), init);
+	$(self->view, addSubview, (View *) this->dialog);
 }
 
 #pragma mark - MainViewController
@@ -128,6 +185,8 @@ static MainViewController *init(MainViewController *self) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
+
+	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
 
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 
