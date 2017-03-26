@@ -822,7 +822,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 /**
  * @brief
  */
-static void Cg_RippleEffect(const vec3_t org, const vec_t size, const uint8_t viscosity) {
+void Cg_RippleEffect(const vec3_t org, const vec_t size, const uint8_t viscosity) {
 	cg_particle_t *p;
 
 	if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_ripple[Random() % 3]))) {

@@ -191,6 +191,15 @@ static _Bool Cg_UpdateParticle_Weather(cg_particle_t *p, const vec_t delta, cons
 
 	// free up weather particles that have hit the ground
 	if (p->part.org[2] <= p->weather.end_z) {
+
+		if ((cgi.view->weather & WEATHER_RAIN) && Randomf() < 0.3) {
+			Cg_RippleEffect((const vec3_t) {
+				p->part.org[0],
+				p->part.org[1],
+				p->weather.end_z + 1.0
+			}, 2.0, 2.5);
+		}
+
 		return true;
 	}
 
