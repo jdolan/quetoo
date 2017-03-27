@@ -161,7 +161,7 @@ static _Bool R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 			continue;
 		}
 
-		if (!surf->lightmap) {
+		if (!surf->stainmap.fb) {
 			continue;
 		}
 

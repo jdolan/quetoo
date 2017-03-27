@@ -57,7 +57,9 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 		}
 
 		if (texunit_stainmap->enabled) {
-			R_BindStainmapTexture(surf->stainmap.image->texnum);
+			if (surf->stainmap.image) {
+				R_BindStainmapTexture(surf->stainmap.image->texnum);
+			}
 		}
 	}
 
