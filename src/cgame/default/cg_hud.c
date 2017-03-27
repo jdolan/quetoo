@@ -90,7 +90,7 @@ cvar_t *cg_tint_b; // helmet
 		uint32_t time;
 		int16_t bits;
 		int16_t num;
-		_Bool has[WEAPON_TOTAL];
+		_Bool has[MAX_STAT_BITS];
 	} weapon;
 
 	int16_t chase_target;
@@ -1022,7 +1022,8 @@ _Bool Cg_AttemptSelectWeapon(const player_state_t *ps) {
 
 	cg_hud_locals.weapon.time = 0;
 
-	if (cg_hud_locals.weapon.tag != -1) {
+	if (!ps->stats[STAT_SPECTATOR] &&
+		cg_hud_locals.weapon.tag != -1) {
 
 		if (cg_hud_locals.weapon.tag != Cg_ActiveWeapon(ps)) {
 			const char *name = cgi.client->config_strings[CS_ITEMS + cg_hud_weapons[cg_hud_locals.weapon.tag].item_index];
@@ -1058,7 +1059,7 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 		cg_hud_locals.weapon.bits = ps->stats[STAT_WEAPONS];
 		cg_hud_locals.weapon.num = 0;
 
-		for (int32_t i = 0; i < WEAPON_TOTAL; i++) {
+		for (int32_t i = 0; i < (int32_t) MAX_STAT_BITS; i++) {
 			cg_hud_locals.weapon.has[i] = !!(cg_hud_locals.weapon.bits & (1 << i));
 
 			if (cg_hud_locals.weapon.has[i])
@@ -1078,7 +1079,7 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 	if (cg_hud_locals.weapon.used_tag != switching) {
 		cg_hud_locals.weapon.used_tag = switching;
 
-		if (cg_hud_locals.weapon.used_tag) {
+		if (cg_hud_locals.weapon.used_tag && !ps->stats[STAT_SPECTATOR]) {
 
 			// we changed weapons without using scrolly, show it for a bit
 			cg_hud_locals.weapon.tag = cg_hud_locals.weapon.used_tag - 1;
