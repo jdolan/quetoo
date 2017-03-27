@@ -80,7 +80,9 @@ static DialogView *init(DialogView *self) {
 		this->isDraggable = false;
 		this->isResizable = false;
 
-		this->stackView.view.hidden = true; // don't appear until opened
+		this->stackView.view.hidden = true; // Don't appear until opened
+
+		this->stackView.view.zIndex = 1000; // We is always on top suckas
 
 		this->stackView.view.backgroundColor = QColors.Dialog;
 
@@ -119,8 +121,6 @@ static DialogView *init(DialogView *self) {
 			self->cancelButton->control.view.autoresizingMask = ViewAutoresizingContain;
 			self->cancelButton->control.view.backgroundColor = QColors.Border;
 
-			self->cancelButton->title->view.alignment = ViewAlignmentMiddleCenter;
-
 			$((Control *) self->cancelButton, addActionForEventType, SDL_MOUSEBUTTONUP, cancelAction, self, NULL);
 
 			$((View *) this->accessoryView, addSubview, (View *) self->cancelButton);
@@ -134,8 +134,6 @@ static DialogView *init(DialogView *self) {
 			self->okButton->control.view.alignment = ViewAlignmentBottomCenter;
 			self->okButton->control.view.autoresizingMask = ViewAutoresizingContain;
 			self->okButton->control.view.backgroundColor = QColors.Theme;
-
-			self->okButton->title->view.alignment = ViewAlignmentMiddleCenter;
 
 			self->okFunction = NULL;
 
