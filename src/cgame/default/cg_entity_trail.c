@@ -831,7 +831,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 	VectorSubtract(end, start, move);
 
 	vec_t dist = VectorNormalize(move);
-	uint32_t added = 0;
+	static uint32_t added = 0;
 
 	while (dist > 0.0) {
 		cg_particle_t *p;
@@ -845,8 +845,13 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 		p->lifetime = 1000 + Randomf() * 500;
 		p->effects |= PARTICLE_EFFECT_COLOR;
 
-		if ((added++ % 6) == 0) {
-			p->special = PARTICLE_SPECIAL_BLOOD;
+		if ((added++ % 3) == 0) {
+			cgi.AddStain(&(const r_stain_t) {
+				.origin = { p->part.org[0], p->part.org[1], p->part.org[2] },
+				.radius = 5.0 + Randomc(),
+				.image = cg_particles_blood_burn->image,
+				.color = { 0.6 + 0.1 * Randomc(), 0.0, 0.0, 0.05 + Randomf() * 0.1 },
+			});
 		}
 
 		cgi.ColorFromPalette(232 + (Random() & 7), p->color_start);

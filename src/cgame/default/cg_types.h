@@ -40,9 +40,7 @@ typedef enum {
 } cg_particle_effects_t;
 
 typedef enum {
-	PARTICLE_SPECIAL_NONE,
-
-	PARTICLE_SPECIAL_BLOOD, // leave blood stains
+	PARTICLE_SPECIAL_NONE
 } cg_particle_special_t;
 
 typedef struct cg_particle_s {
