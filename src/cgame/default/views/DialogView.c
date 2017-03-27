@@ -81,18 +81,15 @@ static DialogView *init(DialogView *self) {
 		this->isResizable = false;
 
 		this->stackView.view.hidden = true; // Don't appear until opened
-
 		this->stackView.view.zIndex = 1000; // We is always on top suckas
 
 		this->stackView.view.backgroundColor = QColors.Dialog;
 
 		this->stackView.view.alignment = ViewAlignmentMiddleLeft;
-		this->stackView.view.autoresizingMask = ViewAutoresizingContain;
+		this->stackView.view.autoresizingMask = ViewAutoresizingWidth | ViewAutoresizingContain;
 
 		this->contentView->view.alignment = ViewAlignmentTopCenter;
-		this->contentView->view.autoresizingMask = ViewAutoresizingNone;
-		this->contentView->view.frame.w = cgi.context->window_width;
-		this->contentView->view.frame.h = 170;
+		this->contentView->view.autoresizingMask = ViewAutoresizingContain;
 
 		this->accessoryView->view.hidden = false;
 
@@ -154,10 +151,7 @@ static void showDialog(DialogView *self, const char *text, const char *cancelTex
 	self->okFunction = okFunction;
 
 	self->panel.stackView.view.hidden = false;
-//	self->panel.stackView.view.needsLayout = true;
-
-	self->panel.contentView->view.needsLayout = true;
-	self->panel.accessoryView->view.needsLayout = true;
+	self->panel.stackView.view.needsLayout = true;
 
 	$(self->label->text, setText, text);
 
