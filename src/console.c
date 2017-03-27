@@ -598,7 +598,7 @@ _Bool Con_CompleteInput(console_t *console) {
 		match = Con_CommonPrefix(matches);
 
 		if (!strlen(match)) {
-			match = partial;
+			match = Cmd_Argv(argi);
 		} else if (strchr(match, ' ') != NULL) {
 			match = va("\"%s", match);
 			output_quotes = true;

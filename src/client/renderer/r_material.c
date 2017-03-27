@@ -134,7 +134,6 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 
 		if (surf->stainmap.fb) {
 			R_EnableTexture(texunit_stainmap, true);
-
 			R_BindStainmapTexture(surf->stainmap.image->texnum);
 		}
 

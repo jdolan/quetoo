@@ -780,6 +780,7 @@ typedef struct {
 		uint16_t hook_pull;
 		uint16_t hook_fly;
 		uint16_t hook_detach;
+		uint16_t hook_gibhit;
 
 		uint16_t teleport;
 

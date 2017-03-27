@@ -1216,7 +1216,7 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 			VectorNormalize(self->locals.velocity);
 			G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, vec3_origin, 5, 0, 0, MOD_HOOK);
 
-			gi.Sound(self, g_media.sounds.gib_hits[Random() % 3], ATTEN_DEFAULT);
+			gi.Sound(self, g_media.sounds.hook_gibhit, ATTEN_DEFAULT);
 
 			G_ClientHookDetach(self->owner);
 		}

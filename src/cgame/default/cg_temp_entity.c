@@ -232,9 +232,9 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
-		.radius = count * 1.0,
-		.image = cg_particles_normal->image,
-		.color = { 0.6 + 0.1 * Randomc(), 0.0, 0.0, 0.8 + Randomf() * 0.1 },
+		.radius = count * 4.0,
+		.image = cg_particles_blood_burn->image,
+		.color = { 0.6 + 0.1 * Randomc(), 0.0, 0.0, 0.1 + Randomf() * 0.1 },
 	});
 }
 
@@ -822,7 +822,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 /**
  * @brief
  */
-static void Cg_RippleEffect(const vec3_t org, const vec_t size, const uint8_t viscosity) {
+void Cg_RippleEffect(const vec3_t org, const vec_t size, const uint8_t viscosity) {
 	cg_particle_t *p;
 
 	if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_ripple[Random() % 3]))) {

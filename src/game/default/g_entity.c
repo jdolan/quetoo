@@ -505,6 +505,7 @@ static void G_InitMedia(void) {
 	g_media.sounds.hook_hit = gi.SoundIndex("objects/hook/hit");
 	g_media.sounds.hook_pull = gi.SoundIndex("objects/hook/pull");
 	g_media.sounds.hook_detach = gi.SoundIndex("objects/hook/detach");
+	g_media.sounds.hook_gibhit = gi.SoundIndex("objects/hook/gibhit");
 
 	g_media.sounds.teleport = gi.SoundIndex("world/teleport");
 

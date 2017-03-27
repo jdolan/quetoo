@@ -1252,7 +1252,7 @@ static void G_Spectate_f(g_entity_t *ent) {
 			} else { // or ask them to pick
 				gi.ClientPrint(ent, PRINT_HIGH, "Use team <team name> to join the game\n");
 			}
-
+		} else {
 			return;
 		}
 	} else { // they wish to spectate
