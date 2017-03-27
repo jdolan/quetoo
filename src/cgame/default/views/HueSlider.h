@@ -50,6 +50,11 @@ struct HueSlider {
 	 * @private
 	 */
 	HueSliderInterface *interface;
+
+	/**
+	 * @brief The function that's called when the slider's value changes.
+	 */
+	void (*changeFunction)(double hue);
 };
 
 /**
@@ -66,10 +71,11 @@ struct HueSliderInterface {
 	 * @fn HueSlider *HueSlider::initWithVariable(HueSlider *self, double hue)
 	 * @brief Initializes this Slider with the given variable.
 	 * @param hue The hue.
+	 * @param changeFunction The function that's called when the hud slider's value changes
 	 * @return The initialized HueSlider, or `NULL` on error.
 	 * @memberof HueSlider
 	 */
-	HueSlider *(*initWithVariable)(HueSlider *self, double hue);
+	HueSlider *(*initWithVariable)(HueSlider *self, double hue, void (*changeFunction)(double hue));
 };
 
 /**

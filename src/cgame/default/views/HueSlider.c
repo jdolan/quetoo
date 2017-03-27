@@ -46,19 +46,28 @@ static void updateBindings(View *self) {
 /**
  * @brief SliderDelegate callback.
  */
-static void didSetValue(Slider *slider) {
+static void didSetValue(Slider *self) {
 
-	Slider *this = (Slider *) slider;
-
-	vec3_t hsv = {0.0, 1.0, 1.0};
-	hsv[0] = this->value;
+	vec3_t hsv = { 0.0, 1.0, 1.0 };
+	hsv[0] = Max(self->value, 0.0);
 
 	color_t rgb = ColorFromHSV(hsv);
 
-	((Slider *) this)->control.view.backgroundColor = (SDL_Color) {
-		.r = rgb.r,
-		.g = rgb.g,
-		.b = rgb.b};
+	if (self->value >= 0) {
+		self->handle->view.backgroundColor = (SDL_Color) {
+			.r = rgb.r,
+			.g = rgb.g,
+			.b = rgb.b,
+			.a = 255
+		};
+	} else {
+		self->handle->view.backgroundColor = QColors.Border;
+
+	}
+
+	if (((HueSlider *) self)->changeFunction) {
+		((HueSlider *) self)->changeFunction(self->value);
+	}
 }
 
 /**
@@ -66,17 +75,21 @@ static void didSetValue(Slider *slider) {
  *
  * @memberof HueSlider
  */
-static HueSlider *initWithVariable(HueSlider *self, double hue) {
+static HueSlider *initWithVariable(HueSlider *self, double hue, void (*changeFunction)(double hue)) {
 
 	self = (HueSlider *) super(Slider, self, initWithFrame, NULL, ControlStyleDefault);
 	if (self) {
+
+		self->changeFunction = changeFunction;
+		assert(self->changeFunction);
+
 		Slider *this = (Slider *) self;
 
 		this->delegate.didSetValue = didSetValue;
 
-		this->min = -1.0;
+		this->min = -5.0;
 		this->max = 360.0;
-		this->step = 1.0;
+		this->step = 5.0;
 
 		this->snapToStep = true;
 

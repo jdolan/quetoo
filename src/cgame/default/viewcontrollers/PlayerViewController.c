@@ -44,15 +44,15 @@ static void selectSkin(Control *control, const SDL_Event *event, ident sender, i
 /**
  * @brief ActionFunction for effect hue selection.
  */
-static void selectEffectColor(Slider *this) {
+static void selectEffectColor(double hue) {
 
-	if (this->value < 0) {
+	if (hue < 0.0) {
 		cgi.CvarSet(cg_color->name, "default");
 
 		return;
 	}
 
-	cgi.CvarSetValue(cg_color->name, (vec_t) floor(this->value));
+	cgi.CvarSetValue(cg_color->name, (vec_t) floor(hue));
 }
 
 #pragma mark - ViewController
@@ -101,9 +101,7 @@ static void loadView(ViewController *self) {
 				hue = cg_color->integer;
 			}
 
-			Slider *hueSlider = (Slider *) $(alloc(HueSlider), initWithVariable, hue);
-
-			hueSlider->delegate.didSetValue = selectEffectColor;
+			Slider *hueSlider = (Slider *) $(alloc(HueSlider), initWithVariable, hue, selectEffectColor);
 
 			Cg_Input((View *) stackView, "Effect color", (Control *) hueSlider);
 

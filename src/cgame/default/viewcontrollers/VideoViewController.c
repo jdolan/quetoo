@@ -73,7 +73,7 @@ static void loadView(ViewController *self) {
 
 			$(fullscreenSelect, addOption, "Windowed", (ident) 0);
 			$(fullscreenSelect, addOption, "Fullscreen", (ident) 1);
-			$(fullscreenSelect, addOption, "Borderless fullscreen", (ident) 2);
+			$(fullscreenSelect, addOption, "Borderless windowed", (ident) 2);
 
 			Cg_Input((View *) stackView, "Window mode", (Control *) fullscreenSelect);
 			release(fullscreenSelect);
@@ -99,7 +99,7 @@ static void loadView(ViewController *self) {
 
 			$(anisoSelect, addOption, "16x", (ident) 16);
 			$(anisoSelect, addOption, "8x", (ident) 8);
-			$(anisoSelect, addOption, "4x", (ident) 4);
+			$(anisoSelect, addOption, "4x", (ident) 4); // Why isn't 2x an option?
 			$(anisoSelect, addOption, "Off", (ident) 0);
 
 			Cg_Input((View *) stackView, "Anisotropy", (Control *) anisoSelect);
