@@ -31,5 +31,8 @@ const struct _QColors QColors = {
 	.Theme = { 12, 100, 100, 255},
 	.ThemeHighlight = { 27, 115, 115, 255},
 
+	.Dialog = { 130, 115, 80, 255},
+	.DialogHighlight = { 145, 130, 95, 255},
+
 	.Contrast = { 255, 255, 255, 255}
 };

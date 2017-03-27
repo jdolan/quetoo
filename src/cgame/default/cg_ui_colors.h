@@ -33,5 +33,8 @@ const struct _QColors {
 	SDL_Color Theme; // cyan
 	SDL_Color ThemeHighlight;
 
+	SDL_Color Dialog; // beige
+	SDL_Color DialogHighlight;
+
 	SDL_Color Contrast; // white
 } QColors;

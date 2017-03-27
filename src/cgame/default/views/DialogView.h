@@ -96,7 +96,7 @@ struct DialogViewInterface {
 	 * @param okFunction The function to call when the Ok button was clicked
 	 * @memberof DialogView
 	 */
-	void (*showDialog)(DialogView *self, const char *text, void (*okFunction)(void));
+	void (*showDialog)(DialogView *self, const char *text, const char *cancelText, const char *okText, void (*okFunction)(void));
 
 	/**
 	 * @fn DialogView *DialogView::hideView(CvarSlider *self)

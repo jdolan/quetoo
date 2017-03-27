@@ -32,6 +32,8 @@ static void dealloc(Object *self) {
 	DialogView *this = (DialogView *) self;
 
 	release(this->label);
+
+	release(this->cancelButton);
 	release(this->okButton);
 
 	super(Object, self, dealloc);
@@ -80,18 +82,20 @@ static DialogView *init(DialogView *self) {
 
 		this->stackView.view.hidden = true; // don't appear until opened
 
-		this->stackView.view.frame.h = 200;
-		this->stackView.view.frame.h = 200;
+		this->stackView.view.backgroundColor = QColors.Dialog;
 
 		this->stackView.view.alignment = ViewAlignmentMiddleLeft;
-		this->stackView.view.autoresizingMask = ViewAutoresizingWidth;
+		this->stackView.view.autoresizingMask = ViewAutoresizingContain;
 
 		this->contentView->view.alignment = ViewAlignmentTopCenter;
+		this->contentView->view.autoresizingMask = ViewAutoresizingNone;
+		this->contentView->view.frame.w = cgi.context->window_width;
+		this->contentView->view.frame.h = 170;
 
 		this->accessoryView->view.hidden = false;
 
 		this->accessoryView->view.alignment = ViewAlignmentBottomCenter;
-		this->accessoryView->view.needsLayout = true;
+		this->accessoryView->view.autoresizingMask = ViewAutoresizingContain;
 
 		{
 			// Label
@@ -112,8 +116,10 @@ static DialogView *init(DialogView *self) {
 			$(self->cancelButton->title, setText, "Cancel");
 
 			self->cancelButton->control.view.alignment = ViewAlignmentBottomCenter;
-			self->cancelButton->control.view.autoresizingMask = ViewAutoresizingNone;
+			self->cancelButton->control.view.autoresizingMask = ViewAutoresizingContain;
 			self->cancelButton->control.view.backgroundColor = QColors.Border;
+
+			self->cancelButton->title->view.alignment = ViewAlignmentMiddleCenter;
 
 			$((Control *) self->cancelButton, addActionForEventType, SDL_MOUSEBUTTONUP, cancelAction, self, NULL);
 
@@ -126,8 +132,10 @@ static DialogView *init(DialogView *self) {
 			$(self->okButton->title, setText, "Ok");
 
 			self->okButton->control.view.alignment = ViewAlignmentBottomCenter;
-			self->okButton->control.view.autoresizingMask = ViewAutoresizingNone;
+			self->okButton->control.view.autoresizingMask = ViewAutoresizingContain;
 			self->okButton->control.view.backgroundColor = QColors.Theme;
+
+			self->okButton->title->view.alignment = ViewAlignmentMiddleCenter;
 
 			self->okFunction = NULL;
 
@@ -143,14 +151,21 @@ static DialogView *init(DialogView *self) {
 /**
  * @see DialogView::showDialog(DialogView *self, const char *text, void (*okFunction)(void))
  */
-static void showDialog(DialogView *self, const char *text, void (*okFunction)(void)) {
+static void showDialog(DialogView *self, const char *text, const char *cancelText, const char *okText, void (*okFunction)(void)) {
 
 	self->okFunction = okFunction;
 
+	self->panel.stackView.view.hidden = false;
+//	self->panel.stackView.view.needsLayout = true;
+
+	self->panel.contentView->view.needsLayout = true;
+	self->panel.accessoryView->view.needsLayout = true;
+
 	$(self->label->text, setText, text);
 
-	self->panel.stackView.view.hidden = false;
-	self->panel.stackView.view.needsLayout = true;
+	$(self->cancelButton->title, setText, cancelText);
+
+	$(self->okButton->title, setText, okText);
 }
 
 /**
