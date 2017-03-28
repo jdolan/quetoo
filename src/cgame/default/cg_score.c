@@ -260,7 +260,7 @@ static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 
 	x = cgi.context->width / 2;
 	x -= SCORES_COL_WIDTH * (cg_score_state.teams / 2.0);
-	x -= SCORES_COL_WIDTH;
+	x -= SCORES_COL_WIDTH * 2.0;
 	y = start_y;
 
 	for (i = 0; i < cg_score_state.num_scores; i++) {
