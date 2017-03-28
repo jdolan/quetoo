@@ -54,6 +54,8 @@ cgame_la_SOURCES = \
 
 cgame_la_CFLAGS = \
 	-I$(top_srcdir)/src \
+	-I$(top_srcdir)/src/cgame/default/viewcontrollers \
+	-I$(top_srcdir)/src/cgame/default/views \
 	@SO_CFLAGS@ \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
