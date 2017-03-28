@@ -54,9 +54,9 @@ struct TabViewController {
 	TabViewControllerInterface *interface;
 
 	/**
-	 * @brief The Panel.
+	 * @brief The View.
 	 */
-	Panel *panel;
+	View *view;
 };
 
 /**

@@ -36,7 +36,7 @@
  */
 static void quickJoinAction(Control *control, const SDL_Event *event, ident sender, ident data) {
 
-	const int16_t max_ping = Clamp(cg_quick_join_max_ping->integer, 0, 999); 
+	const int16_t max_ping = Clamp(cg_quick_join_max_ping->integer, 0, 999);
 	const int16_t min_clients = Clamp(cg_quick_join_min_clients->integer, 0, MAX_CLIENTS);
 
 	uint32_t total_weight = 0;
@@ -116,42 +116,40 @@ static void loadView(ViewController *self) {
 
 	TabViewController *this = (TabViewController *) self;
 
-	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
-
-	columns->axis = StackViewAxisHorizontal;
-	columns->spacing = DEFAULT_PANEL_SPACING;
-
 	{
-		StackView *column = $(alloc(StackView), initWithFrame, NULL);
-		column->spacing = DEFAULT_PANEL_SPACING;
+		Box *box = $(alloc(Box), initWithFrame, NULL);
+		$(box->label, setText, "Actions");
 
-		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "Filters");
+		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+		stackView->axis = StackViewAxisHorizontal;
 
-			Cg_CvarSliderInput((View *) stackView, "Maximum ping", "cg_quick_join_max_ping", 5.0, 500.0, 5.0);
-			Cg_CvarSliderInput((View *) stackView, "Minimum players", "cg_quick_join_min_clients", 1.0, MAX_CLIENTS, 1.0);
+		Cg_Button((View *) stackView, "Join", quickJoinAction, self, NULL);
 
-			$((View *) box, addSubview, (View *) stackView);
-			release(stackView);
+		$((View *) box, addSubview, (View *) stackView);
+		release(stackView);
 
-			$((View *) column, addSubview, (View *) box);
-			release(box);
-		}
-
-		$((View *) columns, addSubview, (View *) column);
-		release(column);
+		$(this->view, addSubview, (View *) box);
+		release(box);
 	}
 
-	$((View *) ((TabViewController *) this)->panel->contentView, addSubview, (View *) columns);
-	release(columns);
+	{
+		Box *box = $(alloc(Box), initWithFrame, NULL);
+		$(box->label, setText, "Filters");
 
-	this->panel->accessoryView->view.hidden = false;
-	Cg_Button((View *) this->panel->accessoryView, "Play", quickJoinAction, self, NULL);
+		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+		Cg_CvarSliderInput((View *) stackView, "Maximum ping", "cg_quick_join_max_ping", 5.0, 500.0, 5.0);
+		Cg_CvarSliderInput((View *) stackView, "Minimum players", "cg_quick_join_min_clients", 1.0, MAX_CLIENTS, 1.0);
+
+		$((View *) box, addSubview, (View *) stackView);
+		release(stackView);
+
+		$(this->view, addSubview, (View *) box);
+		release(box);
+	}
+
 }
-
 #pragma mark - Class lifecycle
 
 /**

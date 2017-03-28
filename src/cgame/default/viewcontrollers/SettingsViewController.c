@@ -72,8 +72,13 @@ static void loadView(ViewController *self) {
 
 	MenuViewController *this = (MenuViewController *) self;
 
-	((StackView *) this->panel)->view.frame.w = 800;
-	((StackView *) this->panel)->view.frame.h = 500;
+	this->panel->stackView.view.frame.w = 900;
+	this->panel->stackView.view.frame.h = 550;
+
+	this->panel->stackView.view.needsLayout = false;
+	this->panel->stackView.view.clipsSubviews = true;
+
+	this->panel->stackView.view.autoresizingMask = ViewAutoresizingNone;
 
 	((SettingsViewController *) this)->navigationViewController = $(alloc(NavigationViewController), init);
 	NavigationViewController *nvc = ((SettingsViewController *) this)->navigationViewController;
@@ -87,6 +92,8 @@ static void loadView(ViewController *self) {
 		StackView *column = $(alloc(StackView), initWithFrame, NULL);
 		column->spacing = DEFAULT_PANEL_SPACING;
 
+		column->view.backgroundColor = QColors.MainHighlight;
+
 		{
 			Cg_PrimaryButton((View *) column, "Bindings", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _BindingViewController());
 			Cg_PrimaryButton((View *) column, "Input", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _InputViewController());
@@ -99,7 +106,19 @@ static void loadView(ViewController *self) {
 		release(column);
 	}
 
-	$((ViewController *) nvc, moveToParentViewController, self); // This isn't working right now.
+	$((ViewController *) nvc, moveToParentViewController, self);
+
+	{
+		StackView *column = $(alloc(StackView), initWithFrame, NULL);
+		column->spacing = DEFAULT_PANEL_SPACING;
+
+		column->view.backgroundColor = QColors.Main;
+
+		$((View *) column, addSubview, nvc->viewController.view);
+
+		$((View *) columns, addSubview, (View *) column);
+		release(column);
+	}
 
 	$((View *) this->panel->contentView, addSubview, (View *) columns);
 	release(columns);

@@ -46,128 +46,118 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	VideoViewController *this = (VideoViewController *) self;
-
-	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
-
-	columns->axis = StackViewAxisHorizontal;
-	columns->spacing = DEFAULT_PANEL_SPACING;
+	TabViewController *this = (TabViewController *) self;
 
 	{
-		StackView *column = $(alloc(StackView), initWithFrame, NULL);
-		column->spacing = DEFAULT_PANEL_SPACING;
+		Box *box = $(alloc(Box), initWithFrame, NULL);
+		$(box->label, setText, "Actions");
 
-		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "Video");
+		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+		stackView->axis = StackViewAxisHorizontal;
 
-			Control *videoModeSelect = (Control *) $(alloc(VideoModeSelect), initWithFrame, NULL, ControlStyleDefault);
+		Cg_Button((View *) stackView, "Apply", applyAction, self, NULL);
 
-			Cg_Input((View *) stackView, "Video mode", videoModeSelect);
-			release(videoModeSelect);
+		$((View *) box, addSubview, (View *) stackView);
+		release(stackView);
 
-			cvar_t *r_fullscreen = cgi.CvarGet("r_fullscreen");
-			Select *fullscreenSelect = (Select *) $(alloc(CvarSelect), initWithVariable, r_fullscreen);
-
-			$(fullscreenSelect, addOption, "Windowed", (ident) 0);
-			$(fullscreenSelect, addOption, "Fullscreen", (ident) 1);
-			$(fullscreenSelect, addOption, "Borderless windowed", (ident) 2);
-
-			Cg_Input((View *) stackView, "Window mode", (Control *) fullscreenSelect);
-			release(fullscreenSelect);
-
-			Cg_CvarCheckboxInput((View *) stackView, "Vertical sync", "r_swap_interval");
-
-			$((View *) box, addSubview, (View *) stackView);
-			release(stackView);
-
-			$((View *) column, addSubview, (View *) box);
-			release(box);
-		}
-
-		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "Options");
-
-			box->view.autoresizingMask |= ViewAutoresizingWidth;
-
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-
-			Select *anisoSelect = (Select *) $(alloc(CvarSelect), initWithVariableName, "r_anisotropy");
-
-			$(anisoSelect, addOption, "16x", (ident) 16);
-			$(anisoSelect, addOption, "8x", (ident) 8);
-			$(anisoSelect, addOption, "4x", (ident) 4); // Why isn't 2x an option?
-			$(anisoSelect, addOption, "Off", (ident) 0);
-
-			Cg_Input((View *) stackView, "Anisotropy", (Control *) anisoSelect);
-			release(anisoSelect);
-
-			Select *multisampleSelect = (Select *) $(alloc(CvarSelect), initWithVariableName, "r_multisample");
-
-			$(multisampleSelect, addOption, "8x", (ident) 4);
-			$(multisampleSelect, addOption, "4x", (ident) 2);
-			$(multisampleSelect, addOption, "2x", (ident) 1);
-			$(multisampleSelect, addOption, "Off", (ident) 0);
-
-			Cg_Input((View *) stackView, "Multisample", (Control *) multisampleSelect);
-			release(multisampleSelect);
-
-			cvar_t *r_shadows = cgi.CvarGet("r_shadows");
-			Select *shadowsSelect = (Select *) $(alloc(CvarSelect), initWithVariable, r_shadows);
-
-			$(shadowsSelect, addOption, "Highest", (ident) 3);
-			$(shadowsSelect, addOption, "High", (ident) 2);
-			$(shadowsSelect, addOption, "Low", (ident) 1);
-			$(shadowsSelect, addOption, "Off", (ident) 0);
-
-			Cg_Input((View *) stackView, "Shadows", (Control *) shadowsSelect);
-			release(shadowsSelect);
-
-			$((View *) box, addSubview, (View *) stackView);
-			release(stackView);
-
-			$((View *) column, addSubview, (View *) box);
-			release(box);
-		}
-
-		$((View *) columns, addSubview, (View *) column);
-		release(column);
+		$(this->view, addSubview, (View *) box);
+		release(box);
 	}
 
 	{
-		StackView *column = $(alloc(StackView), initWithFrame, NULL);
-		column->spacing = DEFAULT_PANEL_SPACING;
+		Box *box = $(alloc(Box), initWithFrame, NULL);
+		$(box->label, setText, "Video");
 
-		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "Picture");
+		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+		Control *videoModeSelect = (Control *) $(alloc(VideoModeSelect), initWithFrame, NULL, ControlStyleDefault);
 
-			Cg_CvarSliderInput((View *) stackView, "Brightness", "r_brightness", 0.1, 2.0, 0.1);
-			Cg_CvarSliderInput((View *) stackView, "Contrast", "r_contrast", 0.1, 2.0, 0.1);
-			Cg_CvarSliderInput((View *) stackView, "Gamma", "r_gamma", 0.1, 2.0, 0.1);
-			Cg_CvarSliderInput((View *) stackView, "Modulate", "r_modulate", 0.1, 5.0, 0.1);
+		Cg_Input((View *) stackView, "Video mode", videoModeSelect);
+		release(videoModeSelect);
 
-			$((View *) box, addSubview, (View *) stackView);
-			release(stackView);
+		cvar_t *r_fullscreen = cgi.CvarGet("r_fullscreen");
+		Select *fullscreenSelect = (Select *) $(alloc(CvarSelect), initWithVariable, r_fullscreen);
 
-			$((View *) column, addSubview, (View *) box);
-			release(box);
-		}
+		$(fullscreenSelect, addOption, "Windowed", (ident) 0);
+		$(fullscreenSelect, addOption, "Fullscreen", (ident) 1);
+		$(fullscreenSelect, addOption, "Borderless windowed", (ident) 2);
 
-		$((View *) columns, addSubview, (View *) column);
-		release(column);
+		Cg_Input((View *) stackView, "Window mode", (Control *) fullscreenSelect);
+		release(fullscreenSelect);
+
+		Cg_CvarCheckboxInput((View *) stackView, "Vertical sync", "r_swap_interval");
+
+		$((View *) box, addSubview, (View *) stackView);
+		release(stackView);
+
+		$(this->view, addSubview, (View *) box);
+		release(box);
 	}
 
-	$((View *) ((TabViewController *) this)->panel->contentView, addSubview, (View *) columns);
-	release(columns);
+	{
+		Box *box = $(alloc(Box), initWithFrame, NULL);
+		$(box->label, setText, "Options");
 
-	((TabViewController *) this)->panel->accessoryView->view.hidden = false;
-	Cg_Button((View *) ((TabViewController *) this)->panel->accessoryView, "Apply", applyAction, self, NULL);
+		box->view.autoresizingMask |= ViewAutoresizingWidth;
+
+		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+		Select *anisoSelect = (Select *) $(alloc(CvarSelect), initWithVariableName, "r_anisotropy");
+
+		$(anisoSelect, addOption, "16x", (ident) 16);
+		$(anisoSelect, addOption, "8x", (ident) 8);
+		$(anisoSelect, addOption, "4x", (ident) 4); // Why isn't 2x an option?
+		$(anisoSelect, addOption, "Off", (ident) 0);
+
+		Cg_Input((View *) stackView, "Anisotropy", (Control *) anisoSelect);
+		release(anisoSelect);
+
+		Select *multisampleSelect = (Select *) $(alloc(CvarSelect), initWithVariableName, "r_multisample");
+
+		$(multisampleSelect, addOption, "8x", (ident) 4);
+		$(multisampleSelect, addOption, "4x", (ident) 2);
+		$(multisampleSelect, addOption, "2x", (ident) 1);
+		$(multisampleSelect, addOption, "Off", (ident) 0);
+
+		Cg_Input((View *) stackView, "Multisample", (Control *) multisampleSelect);
+		release(multisampleSelect);
+
+		cvar_t *r_shadows = cgi.CvarGet("r_shadows");
+		Select *shadowsSelect = (Select *) $(alloc(CvarSelect), initWithVariable, r_shadows);
+
+		$(shadowsSelect, addOption, "Highest", (ident) 3);
+		$(shadowsSelect, addOption, "High", (ident) 2);
+		$(shadowsSelect, addOption, "Low", (ident) 1);
+		$(shadowsSelect, addOption, "Off", (ident) 0);
+
+		Cg_Input((View *) stackView, "Shadows", (Control *) shadowsSelect);
+		release(shadowsSelect);
+
+		$((View *) box, addSubview, (View *) stackView);
+		release(stackView);
+
+		$(this->view, addSubview, (View *) box);
+		release(box);
+	}
+
+	{
+		Box *box = $(alloc(Box), initWithFrame, NULL);
+		$(box->label, setText, "Picture");
+
+		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+		Cg_CvarSliderInput((View *) stackView, "Brightness", "r_brightness", 0.1, 2.0, 0.1);
+		Cg_CvarSliderInput((View *) stackView, "Contrast", "r_contrast", 0.1, 2.0, 0.1);
+		Cg_CvarSliderInput((View *) stackView, "Gamma", "r_gamma", 0.1, 2.0, 0.1);
+		Cg_CvarSliderInput((View *) stackView, "Modulate", "r_modulate", 0.1, 5.0, 0.1);
+
+		$((View *) box, addSubview, (View *) stackView);
+		release(stackView);
+
+		$(this->view, addSubview, (View *) box);
+		release(box);
+	}
 }
 
 #pragma mark - Class lifecycle

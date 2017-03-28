@@ -42,7 +42,7 @@ struct InputViewController {
 	 * @brief The superclass.
 	 * @private
 	 */
-	TabViewController menuViewController;
+	TabViewController tabViewController;
 
 	/**
 	 * @brief The interface.
@@ -59,7 +59,7 @@ struct InputViewControllerInterface {
 	/**
 	 * @brief The superclass interface.
 	 */
-	TabViewControllerInterface menuViewControllerInterface;
+	TabViewControllerInterface tabViewControllerInterface;
 };
 
 /**

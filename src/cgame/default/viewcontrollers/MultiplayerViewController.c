@@ -78,30 +78,41 @@ static void loadView(ViewController *self) {
 
 	{
 		Box *box = $(alloc(Box), initWithFrame, NULL);
-	$(box->label, setText, "Join game");
+		$(box->label, setText, "Actions");
+
+		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+		stackView->axis = StackViewAxisHorizontal;
+
+		Cg_Button((View *) stackView, "Refresh", refreshAction, self, NULL);
+		Cg_Button((View *) stackView, "Connect", connectAction, self, NULL);
+
+		$((View *) box, addSubview, (View *) stackView);
+		release(stackView);
+
+		$(this->view, addSubview, (View *) box);
+		release(box);
+	}
+
+	{
+		Box *box = $(alloc(Box), initWithFrame, NULL);
+		$(box->label, setText, "Join game");
 
 		box->view.autoresizingMask |= ViewAutoresizingFill;
 
-		const SDL_Rect frame = MakeRect(0, 0, 0, 320);
-		servers = $(alloc(ServersTableView), initWithFrame, &frame, ControlStyleDefault);
+		servers = $(alloc(ServersTableView), initWithFrame, NULL, ControlStyleDefault);
 
-		servers->tableView.control.view.autoresizingMask = ViewAutoresizingWidth;
+		servers->tableView.control.view.autoresizingMask = ViewAutoresizingFill;
 
 		$((Control *) servers, addActionForEventType, SDL_MOUSEBUTTONUP, connectAction, self, servers);
 
 		$((View *) box, addSubview, (View *) servers);
 		release(servers);
 
-		$((View *) this->panel->contentView, addSubview, (View *) box);
+		$(this->view, addSubview, (View *) box);
 		release(box);
 	}
 
-	{
-		this->panel->accessoryView->view.hidden = false;
-
-		Cg_Button((View *) this->panel->accessoryView, "Refresh", refreshAction, self, NULL);
-		Cg_Button((View *) this->panel->accessoryView, "Connect", connectAction, self, servers);
-	}
 }
 
 #pragma mark - Class lifecycle

@@ -43,7 +43,7 @@ struct MiscViewController {
 	 * @brief The superclass.
 	 * @private
 	 */
-	TabViewController menuViewController;
+	TabViewController tabViewController;
 
 	/**
 	 * @brief The interface.
@@ -65,7 +65,7 @@ struct MiscViewControllerInterface {
 	/**
 	 * @brief The superclass interface.
 	 */
-	TabViewControllerInterface menuViewControllerInterface;
+	TabViewControllerInterface tabViewControllerInterface;
 };
 
 /**

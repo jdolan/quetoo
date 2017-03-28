@@ -44,7 +44,7 @@ struct CreateServerViewController {
 	 * @brief The superclass.
 	 * @private
 	 */
-	TabViewController menuViewController;
+	TabViewController tabViewController;
 
 	/**
 	 * @brief The interface.
@@ -81,7 +81,7 @@ struct CreateServerViewControllerInterface {
 	/**
 	 * @brief The superclass interface.
 	 */
-	TabViewControllerInterface menuViewControllerInterface;
+	TabViewControllerInterface tabViewControllerInterface;
 };
 
 /**
@@ -91,4 +91,3 @@ struct CreateServerViewControllerInterface {
  * @memberof CreateServerViewController
  */
 extern Class *_CreateServerViewController(void);
-

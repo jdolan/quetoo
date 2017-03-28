@@ -34,106 +34,88 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	BindingViewController *this = (BindingViewController *) self;
+	TabViewController *this = (TabViewController *) self;
 
-	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
-
-	columns->axis = StackViewAxisHorizontal;
-	columns->spacing = DEFAULT_PANEL_SPACING;
+	this->view->backgroundColor = Colors.Red;
 
 	{
-		StackView *column = $(alloc(StackView), initWithFrame, NULL);
-		column->spacing = DEFAULT_PANEL_SPACING;
-		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "Movement");
+		Box *box = $(alloc(Box), initWithFrame, NULL);
+		$(box->label, setText, "Movement");
 
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Cg_BindInput((View *) stackView, "Forward", "+forward");
-			Cg_BindInput((View *) stackView, "Back", "+back");
-			Cg_BindInput((View *) stackView, "Strafe left", "+move_left");
-			Cg_BindInput((View *) stackView, "Strafe right", "+move_right");
-			Cg_BindInput((View *) stackView, "Jump", "+move_up");
-			Cg_BindInput((View *) stackView, "Crouch", "+move_down");
+		Cg_BindInput((View *) stackView, "Forward", "+forward");
+		Cg_BindInput((View *) stackView, "Back", "+back");
+		Cg_BindInput((View *) stackView, "Strafe left", "+move_left");
+		Cg_BindInput((View *) stackView, "Strafe right", "+move_right");
+		Cg_BindInput((View *) stackView, "Jump", "+move_up");
+		Cg_BindInput((View *) stackView, "Crouch", "+move_down");
 
-			Cg_BindInput((View *) stackView, "Run/walk", "+speed");
-			Cg_CvarCheckboxInput((View *) stackView, "Always run", "cg_run");
+		Cg_BindInput((View *) stackView, "Run/walk", "+speed");
+		Cg_CvarCheckboxInput((View *) stackView, "Always run", "cg_run");
 
-			$((View *) box, addSubview, (View *) stackView);
-			release(stackView);
+		$((View *) box, addSubview, (View *) stackView);
+		release(stackView);
 
-			$((View *) column, addSubview, (View *) box);
-			release(box);
-		}
-
-		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "Multiplayer");
-
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-
-			Cg_BindInput((View *) stackView, "Chat", "cl_message_mode");
-			Cg_BindInput((View *) stackView, "Team chat", "cl_message_mode_2");
-
-			Cg_BindInput((View *) stackView, "Scoreboard", "+score");
-
-			Cg_BindInput((View *) stackView, "Screenshot", "r_screenshot");
-
-			Cg_BindInput((View *) stackView, "Toggle console", "cl_toggle_console");
-
-			$((View *) box, addSubview, (View *) stackView);
-			release(stackView);
-
-			$((View *) column, addSubview, (View *) box);
-			release(box);
-		}
-
-		$((View *) columns, addSubview, (View *) column);
-		release(column);
+		$(this->view, addSubview, (View *) box);
+		release(box);
 	}
+
 	{
-		StackView *column = $(alloc(StackView), initWithFrame, NULL);
-		column->spacing = DEFAULT_PANEL_SPACING;
-		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "Combat");
+		Box *box = $(alloc(Box), initWithFrame, NULL);
+		$(box->label, setText, "Multiplayer");
 
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Cg_BindInput((View *) stackView, "Attack", "+attack");
+		Cg_BindInput((View *) stackView, "Chat", "cl_message_mode");
+		Cg_BindInput((View *) stackView, "Team chat", "cl_message_mode_2");
 
-			Cg_BindInput((View *) stackView, "Zoom", "+ZOOM");
+		Cg_BindInput((View *) stackView, "Scoreboard", "+score");
 
-			Cg_BindInput((View *) stackView, "Grapple", "+hook");
+		Cg_BindInput((View *) stackView, "Screenshot", "r_screenshot");
 
-			Cg_BindInput((View *) stackView, "Next weapon", "cg_weapon_next");
-			Cg_BindInput((View *) stackView, "Previous weapon", "cg_weapon_previous");
+		Cg_BindInput((View *) stackView, "Toggle console", "cl_toggle_console");
 
-			Cg_BindInput((View *) stackView, "Blaster", "use blaster");
-			Cg_BindInput((View *) stackView, "Shotgun", "use shotgun");
-			Cg_BindInput((View *) stackView, "Super shotgun", "use super shotgun");
-			Cg_BindInput((View *) stackView, "Machinegun", "use machinegun");
-			Cg_BindInput((View *) stackView, "Hand grenades", "use hand grenades");
-			Cg_BindInput((View *) stackView, "Grenade launcher", "use grenade launcher");
-			Cg_BindInput((View *) stackView, "Rocket launcher", "use rocket launcher");
-			Cg_BindInput((View *) stackView, "Hyperblaster", "use hyperblaster");
-			Cg_BindInput((View *) stackView, "Lightning", "use lightning gun");
-			Cg_BindInput((View *) stackView, "Railgun", "use railgun");
-			Cg_BindInput((View *) stackView, "BFG-10K", "use bfg10k");
+		$((View *) box, addSubview, (View *) stackView);
+		release(stackView);
 
-			$((View *) box, addSubview, (View *) stackView);
-			release(stackView);
-
-			$((View *) column, addSubview, (View *) box);
-			release(box);
-		}
-		$((View *) columns, addSubview, (View *) column);
-		release(column);
+		$(this->view, addSubview, (View *) box);
+		release(box);
 	}
 
-	$((View *) ((TabViewController *) this)->panel->contentView, addSubview, (View *) columns);
-	release(columns);
+	{
+		Box *box = $(alloc(Box), initWithFrame, NULL);
+		$(box->label, setText, "Combat");
+
+		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+		Cg_BindInput((View *) stackView, "Attack", "+attack");
+
+		Cg_BindInput((View *) stackView, "Zoom", "+ZOOM");
+
+		Cg_BindInput((View *) stackView, "Grapple", "+hook");
+
+		Cg_BindInput((View *) stackView, "Next weapon", "cg_weapon_next");
+		Cg_BindInput((View *) stackView, "Previous weapon", "cg_weapon_previous");
+
+		Cg_BindInput((View *) stackView, "Blaster", "use blaster");
+		Cg_BindInput((View *) stackView, "Shotgun", "use shotgun");
+		Cg_BindInput((View *) stackView, "Super shotgun", "use super shotgun");
+		Cg_BindInput((View *) stackView, "Machinegun", "use machinegun");
+		Cg_BindInput((View *) stackView, "Hand grenades", "use hand grenades");
+		Cg_BindInput((View *) stackView, "Grenade launcher", "use grenade launcher");
+		Cg_BindInput((View *) stackView, "Rocket launcher", "use rocket launcher");
+		Cg_BindInput((View *) stackView, "Hyperblaster", "use hyperblaster");
+		Cg_BindInput((View *) stackView, "Lightning", "use lightning gun");
+		Cg_BindInput((View *) stackView, "Railgun", "use railgun");
+		Cg_BindInput((View *) stackView, "BFG-10K", "use bfg10k");
+
+		$((View *) box, addSubview, (View *) stackView);
+		release(stackView);
+
+		$(this->view, addSubview, (View *) box);
+		release(box);
+	}
 }
 
 #pragma mark - Class lifecycle

@@ -42,7 +42,7 @@ struct VideoViewController {
 	 * @brief The superclass.
 	 * @private
 	 */
-	TabViewController menuViewController;
+	TabViewController tabViewController;
 
 	/**
 	 * @brief The interface.
@@ -59,7 +59,7 @@ struct VideoViewControllerInterface {
 	/**
 	 * @brief The superclass interface.
 	 */
-	TabViewControllerInterface menuViewControllerInterface;
+	TabViewControllerInterface tabViewControllerInterface;
 };
 
 /**

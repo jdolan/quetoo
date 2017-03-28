@@ -43,7 +43,7 @@ static void dealloc(Object *self) {
 #pragma mark - Actions
 
 /**
- * @brief ActionFunction for play option tabs.
+ * @brief ActionFunction for settings tabs.
  */
 static void tabAction(Control *control, const SDL_Event *event, ident sender, ident data) {
 
@@ -70,8 +70,13 @@ static void loadView(ViewController *self) {
 
 	MenuViewController *this = (MenuViewController *) self;
 
-	((StackView *) this->panel)->view.frame.w = 800;
-	((StackView *) this->panel)->view.frame.h = 500;
+	this->panel->stackView.view.frame.w = 900;
+	this->panel->stackView.view.frame.h = 550;
+
+	this->panel->stackView.view.needsLayout = false;
+	this->panel->stackView.view.clipsSubviews = true;
+
+	this->panel->stackView.view.autoresizingMask = ViewAutoresizingNone;
 
 	((PlayViewController *) this)->navigationViewController = $(alloc(NavigationViewController), init);
 	NavigationViewController *nvc = ((PlayViewController *) this)->navigationViewController;
@@ -85,6 +90,8 @@ static void loadView(ViewController *self) {
 		StackView *column = $(alloc(StackView), initWithFrame, NULL);
 		column->spacing = DEFAULT_PANEL_SPACING;
 
+		column->view.backgroundColor = QColors.MainHighlight;
+
 		{
 			Cg_PrimaryButton((View *) column, "Quick join", ViewAlignmentTopLeft, QColors.Theme, tabAction, nvc, _QuickJoinViewController());
 			Cg_PrimaryButton((View *) column, "Create server", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _CreateServerViewController());
@@ -96,6 +103,18 @@ static void loadView(ViewController *self) {
 	}
 
 	$((ViewController *) nvc, moveToParentViewController, self);
+
+	{
+		StackView *column = $(alloc(StackView), initWithFrame, NULL);
+		column->spacing = DEFAULT_PANEL_SPACING;
+
+		column->view.backgroundColor = QColors.Main;
+
+		$((View *) column, addSubview, nvc->viewController.view);
+
+		$((View *) columns, addSubview, (View *) column);
+		release(column);
+	}
 
 	$((View *) this->panel->contentView, addSubview, (View *) columns);
 	release(columns);

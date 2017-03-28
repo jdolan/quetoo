@@ -65,70 +65,54 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	MiscViewController *this = (MiscViewController *) self;
-
-	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
-
-	columns->axis = StackViewAxisHorizontal;
-	columns->spacing = DEFAULT_PANEL_SPACING;
+	TabViewController *this = (TabViewController *) self;
 
 	{
-		StackView *column = $(alloc(StackView), initWithFrame, NULL);
-		column->spacing = DEFAULT_PANEL_SPACING;
+		Box *box = $(alloc(Box), initWithFrame, NULL);
+		$(box->label, setText, "Crosshair");
 
-		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "Crosshair");
+		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+		CvarSelect *crosshairSelect = $(alloc(CvarSelect), initWithVariable, cg_draw_crosshair);
+		$((Select *) crosshairSelect, addOption, "", NULL);
+		cgi.EnumerateFiles("pics/ch*", enumerateCrosshairs, crosshairSelect);
 
-			CvarSelect *crosshairSelect = $(alloc(CvarSelect), initWithVariable, cg_draw_crosshair);
-			$((Select *) crosshairSelect, addOption, "", NULL);
-			cgi.EnumerateFiles("pics/ch*", enumerateCrosshairs, crosshairSelect);
+		$((Control *) crosshairSelect, addActionForEventType, SDL_MOUSEBUTTONUP, modifyCrosshair, self, NULL);
+		Cg_Input((View *) stackView, "Crosshair", (Control *) crosshairSelect);
 
-			$((Control *) crosshairSelect, addActionForEventType, SDL_MOUSEBUTTONUP, modifyCrosshair, self, NULL);
-			Cg_Input((View *) stackView, "Crosshair", (Control *) crosshairSelect);
+		CvarSelect *colorSelect = (CvarSelect *) $(alloc(CvarSelect), initWithVariable, cg_draw_crosshair_color);
+		colorSelect->expectsStringValue = true;
 
-			CvarSelect *colorSelect = (CvarSelect *) $(alloc(CvarSelect), initWithVariable, cg_draw_crosshair_color);
-			colorSelect->expectsStringValue = true;
+		$((Select *) colorSelect, addOption, "default", (ident) 0);
+		$((Select *) colorSelect, addOption, "red", (ident) 1);
+		$((Select *) colorSelect, addOption, "green", (ident) 2);
+		$((Select *) colorSelect, addOption, "yellow", (ident) 3);
+		$((Select *) colorSelect, addOption, "orange", (ident) 4);
 
-			$((Select *) colorSelect, addOption, "default", (ident) 0);
-			$((Select *) colorSelect, addOption, "red", (ident) 1);
-			$((Select *) colorSelect, addOption, "green", (ident) 2);
-			$((Select *) colorSelect, addOption, "yellow", (ident) 3);
-			$((Select *) colorSelect, addOption, "orange", (ident) 4);
+		$((Control *) colorSelect, addActionForEventType, SDL_MOUSEBUTTONUP, modifyCrosshair, self, NULL);
+		Cg_Input((View *) stackView, "Crosshair color", (Control *) colorSelect);
 
-			$((Control *) colorSelect, addActionForEventType, SDL_MOUSEBUTTONUP, modifyCrosshair, self, NULL);
-			Cg_Input((View *) stackView, "Crosshair color", (Control *) colorSelect);
+		CvarSlider *scaleSlider = $(alloc(CvarSlider), initWithVariable, cg_draw_crosshair_scale, 0.1, 2.0, 0.1);
 
-			CvarSlider *scaleSlider = $(alloc(CvarSlider), initWithVariable, cg_draw_crosshair_scale, 0.1, 2.0, 0.1);
+		$((Control *) scaleSlider, addActionForEventType, SDL_MOUSEMOTION, modifyCrosshair, self, NULL);
+		Cg_Input((View *) stackView, "Crosshair scale", (Control *) scaleSlider);
 
-			$((Control *) scaleSlider, addActionForEventType, SDL_MOUSEMOTION, modifyCrosshair, self, NULL);
-			Cg_Input((View *) stackView, "Crosshair scale", (Control *) scaleSlider);
+		Cg_CvarCheckboxInput((View *) stackView, "Pulse on pickup", cg_draw_crosshair_pulse->name);
 
-			Cg_CvarCheckboxInput((View *) stackView, "Pulse on pickup", cg_draw_crosshair_pulse->name);
+		const SDL_Rect frame = MakeRect(0, 0, 72, 72);
 
-			const SDL_Rect frame = MakeRect(0, 0, 72, 72);
+		((MiscViewController *) this)->crosshairView = $(alloc(CrosshairView), initWithFrame, &frame);
+		((MiscViewController *) this)->crosshairView->view.alignment = ViewAlignmentMiddleCenter;
 
-			this->crosshairView = $(alloc(CrosshairView), initWithFrame, &frame);
-			this->crosshairView->view.alignment = ViewAlignmentMiddleCenter;
+		$((View *) stackView, addSubview, (View *) ((MiscViewController *) this)->crosshairView);
+		release(((MiscViewController *) this)->crosshairView);
 
-			$((View *) stackView, addSubview, (View *) this->crosshairView);
-			release(this->crosshairView);
+		$((View *) box, addSubview, (View *) stackView);
+		release(stackView);
 
-			$((View *) box, addSubview, (View *) stackView);
-			release(stackView);
-
-			$((View *) column, addSubview, (View *) box);
-			release(box);
-		}
-
-		$((View *) columns, addSubview, (View *) column);
-		release(column);
+		$(this->view, addSubview, (View *) box);
+		release(box);
 	}
-
-	$((View *) ((TabViewController *) this)->panel->contentView, addSubview, (View *) columns);
-	release(columns);
 }
 
 #pragma mark - Class lifecycle
