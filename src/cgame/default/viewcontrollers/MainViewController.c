@@ -137,27 +137,41 @@ static void loadView(ViewController *self) {
 	panel->isDraggable = false;
 	panel->isResizable = false;
 
+	panel->stackView.view.frame.h = 36;
+
 	panel->stackView.spacing = 0;
 	panel->stackView.axis = StackViewAxisHorizontal;
-	panel->stackView.distribution = StackViewDistributionDefault;
+	panel->stackView.distribution = StackViewDistributionFillEqually;
 
-	panel->stackView.view.alignment = ViewAlignmentTopLeft;
-	panel->stackView.view.autoresizingMask = ViewAutoresizingNone;
+	panel->stackView.view.needsLayout = true;
+
+	panel->stackView.view.alignment = ViewAlignmentTopCenter;
+	panel->stackView.view.autoresizingMask = ViewAutoresizingWidth;
 
 	{
+		panel->contentView->view.alignment = ViewAlignmentTopLeft;
+		panel->contentView->view.autoresizingMask = ViewAutoresizingContain;
+
 		panel->contentView->axis = StackViewAxisHorizontal;
 		panel->contentView->distribution = StackViewDistributionDefault;
 
 		Cg_PrimaryButton((View *) panel->contentView, "PROFILE", ViewAlignmentTopLeft, QColors.Theme, action, self, _PlayerViewController());
+	{
 
-		Cg_PrimaryButton((View *) panel->contentView, "PLAY", ViewAlignmentTopLeft, QColors.Theme, action, self, _PlayViewController());
-
-		Cg_PrimaryIcon((View *) panel->contentView, "ui/pics/settings", ViewAlignmentTopRight, QColors.Border, action, self, _SettingsViewController());
-		Cg_PrimaryIcon((View *) panel->contentView, "ui/pics/quit", ViewAlignmentTopRight,  QColors.Border,action, self, NULL);
 	}
+		panel->accessoryView->view.hidden = false;
 
-	SDL_Size size = MakeSize(cgi.context->window_width, 36);
-	$((View *) (StackView *) panel, resize, &size);
+		panel->accessoryView->view.alignment = ViewAlignmentTopRight;
+		panel->accessoryView->view.autoresizingMask = ViewAutoresizingContain;
+
+		panel->accessoryView->axis = StackViewAxisHorizontal;
+		panel->accessoryView->distribution = StackViewDistributionDefault;
+
+		Cg_PrimaryButton((View *) panel->accessoryView, "PLAY", ViewAlignmentTopLeft, QColors.Theme, action, self, _PlayViewController());
+
+		Cg_PrimaryIcon((View *) panel->accessoryView, "ui/pics/settings", ViewAlignmentTopRight, QColors.Border, action, self, _SettingsViewController());
+		Cg_PrimaryIcon((View *) panel->accessoryView, "ui/pics/quit", ViewAlignmentTopRight,  QColors.Border,action, self, NULL);
+	}
 
 	$(self->view, addSubview, (View *) panel);
 	release(panel);
