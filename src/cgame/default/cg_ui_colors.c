@@ -21,7 +21,7 @@
 
 #include "cg_local.h"
 
-const struct _QColors QColors = {
+const _QColors QColors = {
 	.Main = { 125, 125, 125, 255},
 	.MainHighlight = { 110, 110, 110, 255},
 

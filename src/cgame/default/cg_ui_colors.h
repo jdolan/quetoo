@@ -23,7 +23,7 @@
 
 #include "cg_types.h"
 
-const struct _QColors {
+typedef struct {
 	SDL_Color Main; // dark gray
 	SDL_Color MainHighlight;
 
@@ -37,4 +37,6 @@ const struct _QColors {
 	SDL_Color DialogHighlight;
 
 	SDL_Color Contrast; // white
-} QColors;
+} _QColors;
+
+extern const _QColors QColors;
