@@ -77,6 +77,8 @@ static void loadView(ViewController *self) {
 
 	this->panel->stackView.axis = StackViewAxisVertical;
 
+	this->panel->stackView.view.autoresizingMask = ViewAutoresizingNone;
+
 //	this->panel->contentView->view.clipsSubviews = true;
 
 	// Setup the NavigationViewController
@@ -88,27 +90,31 @@ static void loadView(ViewController *self) {
 
 	// Tab buttons
 
-	this->panel->contentView->axis = StackViewAxisHorizontal;
-	this->panel->contentView->distribution = StackViewDistributionFillEqually;
-
-	this->panel->contentView->view.autoresizingMask = ViewAutoresizingWidth | ViewAutoresizingContain;
-
 	{
-		Cg_PrimaryButton((View *) this->panel->contentView, "Quick join", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _QuickJoinViewController());
+		this->panel->contentView->axis = StackViewAxisHorizontal;
+		this->panel->contentView->distribution = StackViewDistributionFillEqually;
+
+		this->panel->contentView->view.alignment = ViewAlignmentTopLeft;
+		this->panel->contentView->view.autoresizingMask |= ViewAutoresizingWidth;
+
+		Cg_PrimaryButton((View *) this->panel->contentView, "Quick join", ViewAlignmentTopLeft, QColors.Theme, tabAction, nvc, _QuickJoinViewController());
 		Cg_PrimaryButton((View *) this->panel->contentView, "Create server", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _CreateServerViewController());
 		Cg_PrimaryButton((View *) this->panel->contentView, "Server browser", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _MultiplayerViewController());
 	}
 
 	// Tab body
 
-	this->panel->accessoryView->view.hidden = false;
+	{
+		this->panel->accessoryView->view.hidden = false;
 
-	this->panel->accessoryView->view.backgroundColor = Colors.Green;
+		this->panel->accessoryView->view.backgroundColor = Colors.Green;
 
-	this->panel->accessoryView->view.alignment = ViewAlignmentTopLeft;
-	this->panel->accessoryView->view.autoresizingMask = ViewAutoresizingFill;
+		this->panel->accessoryView->view.alignment = ViewAlignmentBottomRight;
+		this->panel->accessoryView->view.autoresizingMask = ViewAutoresizingFill;
 
-	$((View *) this->panel->accessoryView, addSubview, nvc->viewController.view);}
+		$((View *) this->panel->accessoryView, addSubview, nvc->viewController.view);
+	}
+}
 
 #pragma mark - Class lifecycle
 
