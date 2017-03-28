@@ -137,8 +137,9 @@ static void loadView(ViewController *self) {
 	panel->isDraggable = false;
 	panel->isResizable = false;
 
-	panel->stackView.distribution = StackViewAxisHorizontal;
 	panel->stackView.spacing = 0;
+	panel->stackView.axis = StackViewAxisHorizontal;
+	panel->stackView.distribution = StackViewDistributionDefault;
 
 	panel->stackView.view.alignment = ViewAlignmentTopLeft;
 	panel->stackView.view.autoresizingMask = ViewAutoresizingNone;
