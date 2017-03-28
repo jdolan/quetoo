@@ -61,6 +61,8 @@ static void didSetValue(Slider *self) {
 			.a = 255
 		};
 	} else {
+		$(self->label, setText, "+");
+
 		self->handle->view.backgroundColor = QColors.Border;
 
 	}
@@ -86,6 +88,8 @@ static HueSlider *initWithVariable(HueSlider *self, double hue, void (*changeFun
 		Slider *this = (Slider *) self;
 
 		this->delegate.didSetValue = didSetValue;
+
+		this->handle->bevel = ControlBevelTypeNone;
 
 		this->min = -5.0;
 		this->max = 360.0;
