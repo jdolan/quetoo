@@ -245,7 +245,7 @@ static void R_ExpireStains(const byte alpha) {
 
 	R_BindDiffuseTexture(r_image_state.null->texnum);
 
-	const SDL_Rect old_viewport = r_view.viewport;
+	const SDL_Rect old_viewport = r_state.current_viewport;
 	
 	R_PushMatrix(R_MATRIX_PROJECTION);
 
@@ -410,7 +410,7 @@ void R_AddStains(void) {
 	// sort stains for optimal binding
 	g_array_sort(r_stainmap_state.surfs_stained, R_AddStains_Sort);
 
-	const SDL_Rect old_viewport = r_view.viewport;
+	const SDL_Rect old_viewport = r_state.current_viewport;
 	const r_framebuffer_t *old_framebuffer = r_framebuffer_state.current_framebuffer;
 	const r_program_t *old_program = r_state.active_program;
 
