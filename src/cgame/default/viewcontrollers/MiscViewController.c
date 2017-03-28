@@ -110,7 +110,7 @@ static void loadView(ViewController *self) {
 		$((View *) box, addSubview, (View *) stackView);
 		release(stackView);
 
-		$(this->view, addSubview, (View *) box);
+		$((View *) this->stackView, addSubview, (View *) box);
 		release(box);
 	}
 }

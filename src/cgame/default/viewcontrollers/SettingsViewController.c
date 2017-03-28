@@ -72,56 +72,47 @@ static void loadView(ViewController *self) {
 
 	MenuViewController *this = (MenuViewController *) self;
 
-	this->panel->stackView.view.frame.w = 900;
-	this->panel->stackView.view.frame.h = 550;
+	this->panel->isResizable = false;
 
-	this->panel->stackView.view.needsLayout = false;
-	this->panel->stackView.view.clipsSubviews = true;
+	this->panel->stackView.view.frame.w = Min(950, cgi.context->window_width);
+	this->panel->stackView.view.frame.h = Min(550, cgi.context->window_height);
 
-	this->panel->stackView.view.autoresizingMask = ViewAutoresizingNone;
+	this->panel->stackView.axis = StackViewAxisVertical;
+
+//	this->panel->contentView->view.clipsSubviews = true;
+
+	// Setup the NavigationViewController
 
 	((SettingsViewController *) this)->navigationViewController = $(alloc(NavigationViewController), init);
 	NavigationViewController *nvc = ((SettingsViewController *) this)->navigationViewController;
 
-	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
-
-	columns->axis = StackViewAxisHorizontal;
-	columns->spacing = DEFAULT_PANEL_SPACING;
-
-	{
-		StackView *column = $(alloc(StackView), initWithFrame, NULL);
-		column->spacing = DEFAULT_PANEL_SPACING;
-
-		column->view.backgroundColor = QColors.MainHighlight;
-
-		{
-			Cg_PrimaryButton((View *) column, "Bindings", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _BindingViewController());
-			Cg_PrimaryButton((View *) column, "Input", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _InputViewController());
-			Cg_PrimaryButton((View *) column, "Video", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _VideoViewController());
-			Cg_PrimaryButton((View *) column, "Audio", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _AudioViewController());
-			Cg_PrimaryButton((View *) column, "Misc", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _MiscViewController());
-		}
-
-		$((View *) columns, addSubview, (View *) column);
-		release(column);
-	}
-
 	$((ViewController *) nvc, moveToParentViewController, self);
 
+	// Tab buttons
+
+	this->panel->contentView->axis = StackViewAxisHorizontal;
+	this->panel->contentView->distribution = StackViewDistributionFillEqually;
+
+	this->panel->contentView->view.autoresizingMask = ViewAutoresizingWidth | ViewAutoresizingContain;
+
 	{
-		StackView *column = $(alloc(StackView), initWithFrame, NULL);
-		column->spacing = DEFAULT_PANEL_SPACING;
-
-		column->view.backgroundColor = QColors.Main;
-
-		$((View *) column, addSubview, nvc->viewController.view);
-
-		$((View *) columns, addSubview, (View *) column);
-		release(column);
+		Cg_PrimaryButton((View *) this->panel->contentView, "Bindings", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _BindingViewController());
+		Cg_PrimaryButton((View *) this->panel->contentView, "Input", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _InputViewController());
+		Cg_PrimaryButton((View *) this->panel->contentView, "Video", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _VideoViewController());
+		Cg_PrimaryButton((View *) this->panel->contentView, "Audio", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _AudioViewController());
+		Cg_PrimaryButton((View *) this->panel->contentView, "Misc", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _MiscViewController());
 	}
 
-	$((View *) this->panel->contentView, addSubview, (View *) columns);
-	release(columns);
+	// Tab body
+
+	this->panel->accessoryView->view.hidden = false;
+
+	this->panel->accessoryView->view.backgroundColor = Colors.Green;
+
+	this->panel->accessoryView->view.alignment = ViewAlignmentTopLeft;
+	this->panel->accessoryView->view.autoresizingMask = ViewAutoresizingFill;
+
+	$((View *) this->panel->accessoryView, addSubview, nvc->viewController.view);
 }
 
 #pragma mark - Class lifecycle

@@ -54,9 +54,9 @@ struct TabViewController {
 	TabViewControllerInterface *interface;
 
 	/**
-	 * @brief The View.
+	 * @brief The StackView.
 	 */
-	View *view;
+	StackView *stackView;
 };
 
 /**

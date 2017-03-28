@@ -52,22 +52,27 @@ static void loadView(ViewController *self) {
 		Box *box = $(alloc(Box), initWithFrame, NULL);
 		$(box->label, setText, "Actions");
 
+		box->view.autoresizingMask |= ViewAutoresizingWidth;
+
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
 		stackView->axis = StackViewAxisHorizontal;
+		stackView->spacing = DEFAULT_PANEL_SPACING;
 
 		Cg_Button((View *) stackView, "Apply", applyAction, self, NULL);
 
 		$((View *) box, addSubview, (View *) stackView);
 		release(stackView);
 
-		$(this->view, addSubview, (View *) box);
+		$((View *) this->stackView, addSubview, (View *) box);
 		release(box);
 	}
 
 	{
 		Box *box = $(alloc(Box), initWithFrame, NULL);
 		$(box->label, setText, "Video");
+
+		box->view.autoresizingMask |= ViewAutoresizingWidth;
 
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
@@ -91,7 +96,7 @@ static void loadView(ViewController *self) {
 		$((View *) box, addSubview, (View *) stackView);
 		release(stackView);
 
-		$(this->view, addSubview, (View *) box);
+		$((View *) this->stackView, addSubview, (View *) box);
 		release(box);
 	}
 
@@ -137,13 +142,15 @@ static void loadView(ViewController *self) {
 		$((View *) box, addSubview, (View *) stackView);
 		release(stackView);
 
-		$(this->view, addSubview, (View *) box);
+		$((View *) this->stackView, addSubview, (View *) box);
 		release(box);
 	}
 
 	{
 		Box *box = $(alloc(Box), initWithFrame, NULL);
 		$(box->label, setText, "Picture");
+
+		box->view.autoresizingMask |= ViewAutoresizingWidth;
 
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
@@ -155,7 +162,7 @@ static void loadView(ViewController *self) {
 		$((View *) box, addSubview, (View *) stackView);
 		release(stackView);
 
-		$(this->view, addSubview, (View *) box);
+		$((View *) this->stackView, addSubview, (View *) box);
 		release(box);
 	}
 }

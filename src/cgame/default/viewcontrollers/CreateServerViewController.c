@@ -157,13 +157,14 @@ static void loadView(ViewController *self) {
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
 		stackView->axis = StackViewAxisHorizontal;
+		stackView->spacing = DEFAULT_PANEL_SPACING;
 
 		Cg_Button((View *) stackView, "Create", createAction, self, NULL);
 
 		$((View *) box, addSubview, (View *) stackView);
 		release(stackView);
 
-		$(this->view, addSubview, (View *) box);
+		$((View *) this->stackView, addSubview, (View *) box);
 		release(box);
 	}
 
@@ -181,7 +182,7 @@ static void loadView(ViewController *self) {
 		$((View *) box, addSubview, (View *) stackView);
 		release(stackView);
 
-		$(this->view, addSubview, (View *) box);
+		$((View *) this->stackView, addSubview, (View *) box);
 		release(box);
 	}
 
@@ -192,7 +193,7 @@ static void loadView(ViewController *self) {
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 		stackView->spacing = DEFAULT_PANEL_SPACING;
 
-		const SDL_Rect frame = { .w = 250, .h = 400 };
+		const SDL_Rect frame = { .w = 262, .h = 400 };
 		csvc->mapList = $(alloc(MapListCollectionView), initWithFrame, &frame, ControlStyleDefault);
 
 		$((View *) stackView, addSubview, (View *) csvc->mapList);
@@ -200,7 +201,7 @@ static void loadView(ViewController *self) {
 		$((View *) box, addSubview, (View *) stackView);
 		release(stackView);
 
-		$(this->view, addSubview, (View *) box);
+		$((View *) this->stackView, addSubview, (View *) box);
 		release(box);
 	}
 
@@ -257,7 +258,7 @@ static void loadView(ViewController *self) {
 		$((View *) box, addSubview, (View *) stackView);
 		release(stackView);
 
-		$(this->view, addSubview, (View *) box);
+		$((View *) this->stackView, addSubview, (View *) box);
 		release(box);
 	}
 }

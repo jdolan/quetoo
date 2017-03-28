@@ -31,7 +31,7 @@ static void dealloc(Object *self) {
 
 	TabViewController *this = (TabViewController *) self;
 
-	release(this->view);
+	release(this->stackView);
 
 	super(Object, self, dealloc);
 }
@@ -47,15 +47,17 @@ static void loadView(ViewController *self) {
 
 	TabViewController *this = (TabViewController *) self;
 
-	this->view = $(alloc(View), initWithFrame, NULL);
-	assert(this->view);
+	this->stackView = $(alloc(StackView), initWithFrame, NULL);
+	assert(this->stackView);
 
-	this->view->needsLayout = true;
+	this->stackView->spacing = DEFAULT_PANEL_SPACING;
 
-	this->view->alignment = ViewAlignmentTopLeft;
-	this->view->autoresizingMask = ViewAutoresizingWidth;
+	this->stackView->view.needsLayout = true;
 
-	$(self->view, addSubview, (View *) this->view);
+	this->stackView->view.alignment = ViewAlignmentTopLeft;
+	this->stackView->view.autoresizingMask = ViewAutoresizingWidth | ViewAutoresizingContain;
+
+	$(self->view, addSubview, (View *) this->stackView);
 }
 
 #pragma mark - TabViewController

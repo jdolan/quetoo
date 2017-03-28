@@ -137,35 +137,35 @@ static void loadView(ViewController *self) {
 	panel->isDraggable = false;
 	panel->isResizable = false;
 
-	panel->stackView.view.frame.h = 36;
-
 	panel->stackView.spacing = 0;
 	panel->stackView.axis = StackViewAxisHorizontal;
 	panel->stackView.distribution = StackViewDistributionFillEqually;
 
 	panel->stackView.view.needsLayout = true;
 
+	panel->stackView.view.frame.h = 36;
+
 	panel->stackView.view.alignment = ViewAlignmentTopCenter;
 	panel->stackView.view.autoresizingMask = ViewAutoresizingWidth;
 
 	{
-		panel->contentView->view.alignment = ViewAlignmentTopLeft;
-		panel->contentView->view.autoresizingMask = ViewAutoresizingContain;
-
 		panel->contentView->axis = StackViewAxisHorizontal;
 		panel->contentView->distribution = StackViewDistributionDefault;
+
+		panel->contentView->view.alignment = ViewAlignmentTopLeft;
+		panel->contentView->view.autoresizingMask = ViewAutoresizingContain;
 
 		Cg_PrimaryButton((View *) panel->contentView, "PROFILE", ViewAlignmentTopLeft, QColors.Theme, action, self, _PlayerViewController());
 	{
 
 	}
+		panel->accessoryView->axis = StackViewAxisHorizontal;
+		panel->accessoryView->distribution = StackViewDistributionDefault;
+
 		panel->accessoryView->view.hidden = false;
 
 		panel->accessoryView->view.alignment = ViewAlignmentTopRight;
 		panel->accessoryView->view.autoresizingMask = ViewAutoresizingContain;
-
-		panel->accessoryView->axis = StackViewAxisHorizontal;
-		panel->accessoryView->distribution = StackViewDistributionDefault;
 
 		Cg_PrimaryButton((View *) panel->accessoryView, "PLAY", ViewAlignmentTopLeft, QColors.Theme, action, self, _PlayViewController());
 

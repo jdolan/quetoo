@@ -70,55 +70,45 @@ static void loadView(ViewController *self) {
 
 	MenuViewController *this = (MenuViewController *) self;
 
-	this->panel->stackView.view.frame.w = 900;
-	this->panel->stackView.view.frame.h = 550;
+	this->panel->isResizable = false;
 
-	this->panel->stackView.view.needsLayout = false;
-	this->panel->stackView.view.clipsSubviews = true;
+	this->panel->stackView.view.frame.w = Min(950, cgi.context->window_width);
+	this->panel->stackView.view.frame.h = Min(550, cgi.context->window_height);
 
-	this->panel->stackView.view.autoresizingMask = ViewAutoresizingNone;
+	this->panel->stackView.axis = StackViewAxisVertical;
+
+//	this->panel->contentView->view.clipsSubviews = true;
+
+	// Setup the NavigationViewController
 
 	((PlayViewController *) this)->navigationViewController = $(alloc(NavigationViewController), init);
 	NavigationViewController *nvc = ((PlayViewController *) this)->navigationViewController;
 
-	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
-
-	columns->axis = StackViewAxisHorizontal;
-	columns->spacing = DEFAULT_PANEL_SPACING;
-
-	{
-		StackView *column = $(alloc(StackView), initWithFrame, NULL);
-		column->spacing = DEFAULT_PANEL_SPACING;
-
-		column->view.backgroundColor = QColors.MainHighlight;
-
-		{
-			Cg_PrimaryButton((View *) column, "Quick join", ViewAlignmentTopLeft, QColors.Theme, tabAction, nvc, _QuickJoinViewController());
-			Cg_PrimaryButton((View *) column, "Create server", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _CreateServerViewController());
-			Cg_PrimaryButton((View *) column, "Server browser", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _MultiplayerViewController());
-		}
-
-		$((View *) columns, addSubview, (View *) column);
-		release(column);
-	}
-
 	$((ViewController *) nvc, moveToParentViewController, self);
 
+	// Tab buttons
+
+	this->panel->contentView->axis = StackViewAxisHorizontal;
+	this->panel->contentView->distribution = StackViewDistributionFillEqually;
+
+	this->panel->contentView->view.autoresizingMask = ViewAutoresizingWidth | ViewAutoresizingContain;
+
 	{
-		StackView *column = $(alloc(StackView), initWithFrame, NULL);
-		column->spacing = DEFAULT_PANEL_SPACING;
-
-		column->view.backgroundColor = QColors.Main;
-
-		$((View *) column, addSubview, nvc->viewController.view);
-
-		$((View *) columns, addSubview, (View *) column);
-		release(column);
+		Cg_PrimaryButton((View *) this->panel->contentView, "Quick join", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _QuickJoinViewController());
+		Cg_PrimaryButton((View *) this->panel->contentView, "Create server", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _CreateServerViewController());
+		Cg_PrimaryButton((View *) this->panel->contentView, "Server browser", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _MultiplayerViewController());
 	}
 
-	$((View *) this->panel->contentView, addSubview, (View *) columns);
-	release(columns);
-}
+	// Tab body
+
+	this->panel->accessoryView->view.hidden = false;
+
+	this->panel->accessoryView->view.backgroundColor = Colors.Green;
+
+	this->panel->accessoryView->view.alignment = ViewAlignmentTopLeft;
+	this->panel->accessoryView->view.autoresizingMask = ViewAutoresizingFill;
+
+	$((View *) this->panel->accessoryView, addSubview, nvc->viewController.view);}
 
 #pragma mark - Class lifecycle
 

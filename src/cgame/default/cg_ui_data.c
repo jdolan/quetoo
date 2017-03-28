@@ -120,8 +120,12 @@ void Cg_Input(View *view, const char *label, Control *control) {
 
 	$(input->label->text, setText, label);
 
-	input->label->view.autoresizingMask &= ~ViewAutoresizingContain;
 	input->label->view.frame.w = INPUT_LABEL_WIDTH;
+
+	input->label->view.autoresizingMask &= ~ViewAutoresizingContain;
+
+	input->control->view.alignment = ViewAlignmentMiddleRight;
+	input->control->view.autoresizingMask = ViewAutoresizingWidth;
 
 	$(view, addSubview, (View *) input);
 

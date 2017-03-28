@@ -36,8 +36,6 @@ static void loadView(ViewController *self) {
 
 	TabViewController *this = (TabViewController *) self;
 
-	this->view->backgroundColor = Colors.Red;
-
 	{
 		Box *box = $(alloc(Box), initWithFrame, NULL);
 		$(box->label, setText, "Movement");
@@ -57,7 +55,7 @@ static void loadView(ViewController *self) {
 		$((View *) box, addSubview, (View *) stackView);
 		release(stackView);
 
-		$(this->view, addSubview, (View *) box);
+		$((View *) this->stackView, addSubview, (View *) box);
 		release(box);
 	}
 
@@ -79,7 +77,7 @@ static void loadView(ViewController *self) {
 		$((View *) box, addSubview, (View *) stackView);
 		release(stackView);
 
-		$(this->view, addSubview, (View *) box);
+		$((View *) this->stackView, addSubview, (View *) box);
 		release(box);
 	}
 
@@ -113,7 +111,7 @@ static void loadView(ViewController *self) {
 		$((View *) box, addSubview, (View *) stackView);
 		release(stackView);
 
-		$(this->view, addSubview, (View *) box);
+		$((View *) this->stackView, addSubview, (View *) box);
 		release(box);
 	}
 }

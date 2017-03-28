@@ -83,6 +83,7 @@ static void loadView(ViewController *self) {
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
 		stackView->axis = StackViewAxisHorizontal;
+		stackView->spacing = DEFAULT_PANEL_SPACING;
 
 		Cg_Button((View *) stackView, "Refresh", refreshAction, self, NULL);
 		Cg_Button((View *) stackView, "Connect", connectAction, self, NULL);
@@ -90,29 +91,51 @@ static void loadView(ViewController *self) {
 		$((View *) box, addSubview, (View *) stackView);
 		release(stackView);
 
-		$(this->view, addSubview, (View *) box);
+		$((View *) this->stackView, addSubview, (View *) box);
 		release(box);
 	}
 
 	{
 		Box *box = $(alloc(Box), initWithFrame, NULL);
-		$(box->label, setText, "Join game");
+		$(box->label, setText, "Servers");
 
 		box->view.autoresizingMask |= ViewAutoresizingFill;
 
 		servers = $(alloc(ServersTableView), initWithFrame, NULL, ControlStyleDefault);
 
-		servers->tableView.control.view.autoresizingMask = ViewAutoresizingFill;
+		servers->tableView.control.view.frame.h = 200;
+
+		servers->tableView.control.view.autoresizingMask = ViewAutoresizingWidth;
 
 		$((Control *) servers, addActionForEventType, SDL_MOUSEBUTTONUP, connectAction, self, servers);
 
 		$((View *) box, addSubview, (View *) servers);
 		release(servers);
 
-		$(this->view, addSubview, (View *) box);
+		$((View *) this->stackView, addSubview, (View *) box);
 		release(box);
 	}
 
+	{
+		Box *box = $(alloc(Box), initWithFrame, NULL);
+		$(box->label, setText, "Server info");
+
+		box->view.autoresizingMask |= ViewAutoresizingFill;
+
+		servers = $(alloc(ServersTableView), initWithFrame, NULL, ControlStyleDefault);
+
+		servers->tableView.control.view.frame.h = 200;
+
+		servers->tableView.control.view.autoresizingMask = ViewAutoresizingWidth;
+
+		$((Control *) servers, addActionForEventType, SDL_MOUSEBUTTONUP, connectAction, self, servers);
+
+		$((View *) box, addSubview, (View *) servers);
+		release(servers);
+
+		$((View *) this->stackView, addSubview, (View *) box);
+		release(box);
+	}
 }
 
 #pragma mark - Class lifecycle

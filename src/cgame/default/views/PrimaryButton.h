@@ -28,7 +28,7 @@
  * @brief Primary Button.
  */
 
-#define DEFAULT_PRIMARY_BUTTON_WIDTH 200
+#define DEFAULT_PRIMARY_BUTTON_WIDTH 170
 
 typedef struct PrimaryButton PrimaryButton;
 typedef struct PrimaryButtonInterface PrimaryButtonInterface;
