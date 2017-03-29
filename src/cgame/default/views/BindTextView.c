@@ -107,7 +107,9 @@ static _Bool captureEvent(Control *self, const SDL_Event *event) {
 				cgi.BindKey(key, this->bind);
 			}
 
-			$((View *) self, updateBindings);
+			// Update the main panel so binds don't overlap
+			// Working, yes. Good practice, no.
+			$((View *) self->view.superview->superview->superview->superview, updateBindings);
 
 			self->state &= ~ControlStateFocused;
 			return true;
@@ -177,4 +179,3 @@ Class *_BindTextView(void) {
 }
 
 #undef _Class
-
