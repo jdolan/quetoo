@@ -37,6 +37,7 @@ typedef struct {
 	SDL_Color DialogHighlight;
 
 	SDL_Color Contrast; // white
+	SDL_Color Watermark; // light gray; translucent text isn't supported :(
 } _QColors;
 
 extern const _QColors QColors;

@@ -22,17 +22,18 @@
 #include "cg_local.h"
 
 const _QColors QColors = {
-	.Main = { 125, 125, 125, 255},
-	.MainHighlight = { 110, 110, 110, 255},
+	.Main = { 125, 125, 125, 255 },
+	.MainHighlight = { 110, 110, 110, 255 },
 
-	.Border = { 8, 21, 26, 255},
-	.BorderHighlight = { 23, 36, 41, 255},
+	.Border = { 8, 21, 26, 255 },
+	.BorderHighlight = { 23, 36, 41, 255 },
 
-	.Theme = { 12, 100, 100, 255},
-	.ThemeHighlight = { 27, 115, 115, 255},
+	.Theme = { 12, 100, 100, 255 },
+	.ThemeHighlight = { 27, 115, 115, 255 },
 
-	.Dialog = { 130, 115, 80, 255},
-	.DialogHighlight = { 145, 130, 95, 255},
+	.Dialog = { 130, 115, 80, 255 },
+	.DialogHighlight = { 145, 130, 95, 255 },
 
-	.Contrast = { 255, 255, 255, 255}
+	.Contrast = { 255, 255, 255, 255 },
+	.Watermark = { 200, 200, 200, 255 }
 };

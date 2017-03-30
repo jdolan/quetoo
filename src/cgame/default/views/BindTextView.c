@@ -107,9 +107,7 @@ static _Bool captureEvent(Control *self, const SDL_Event *event) {
 				cgi.BindKey(key, this->bind);
 			}
 
-			// Update the main panel so binds don't overlap
-			// Working, yes. Good practice, no.
-			$((View *) self->view.superview->superview->superview->superview, updateBindings);
+			$(((BindTextView *) self)->holder, updateBindings);
 
 			self->state &= ~ControlStateFocused;
 			return true;
@@ -126,7 +124,7 @@ static _Bool captureEvent(Control *self, const SDL_Event *event) {
  *
  * @memberof BindTextView
  */
-static BindTextView *initWithBind(BindTextView *self, const char *bind) {
+static BindTextView *initWithBind(BindTextView *self, View *holder, const char *bind) {
 
 	self = (BindTextView *) super(TextView, self, initWithFrame, NULL, ControlStyleDefault);
 	if (self) {
@@ -135,6 +133,8 @@ static BindTextView *initWithBind(BindTextView *self, const char *bind) {
 		assert(self->bind);
 
 		self->textView.control.view.frame.w = BIND_TEXTVIEW_WIDTH;
+
+		self->holder = holder;
 
 		$((View *) self, updateBindings);
 	}

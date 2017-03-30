@@ -24,6 +24,7 @@
 #include "MainViewController.h"
 
 #include "CreateServerViewController.h"
+#include "HomeViewController.h"
 #include "MultiplayerViewController.h"
 #include "PlayViewController.h"
 #include "PlayerViewController.h"
@@ -128,6 +129,19 @@ static void loadView(ViewController *self) {
 
 	$(self->view, addSubview, (View *) this->logoImage);
 
+	// Quetoo version watermark
+
+	Label *versionLabel = $(alloc(Label), initWithText, va("Quetoo %s", cgi.CvarGet("version")->string), NULL);
+	assert(versionLabel);
+
+	versionLabel->view.alignment = ViewAlignmentBottomLeft;
+	versionLabel->view.autoresizingMask = ViewAutoresizingContain;
+
+	versionLabel->text->color = QColors.Watermark;
+
+	$(self->view, addSubview, (View *) versionLabel);
+	release(versionLabel);
+
 	// Menu bar
 
 	Panel *panel = $(alloc(Panel), initWithFrame, NULL);
@@ -155,6 +169,8 @@ static void loadView(ViewController *self) {
 		panel->contentView->view.alignment = ViewAlignmentTopLeft;
 		panel->contentView->view.autoresizingMask = ViewAutoresizingContain;
 
+		Cg_PrimaryButton((View *) panel->contentView, "HOME", ViewAlignmentTopLeft, QColors.Border, action, self, _HomeViewController());
+
 		Cg_PrimaryButton((View *) panel->contentView, "PROFILE", ViewAlignmentTopLeft, QColors.Theme, action, self, _PlayerViewController());
 	{
 
@@ -175,6 +191,8 @@ static void loadView(ViewController *self) {
 
 	$(self->view, addSubview, (View *) panel);
 	release(panel);
+
+	action(NULL, NULL, self, _HomeViewController()); // Open home when the main menu is first opened
 
 	// Dialog
 

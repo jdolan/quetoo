@@ -55,6 +55,11 @@ struct BindTextView {
 	 * @brief The bind (e.g. `+forward`).
 	 */
 	char *bind;
+
+	/**
+	 * @brief The View holding other visible binds onscreen to refresh duplicate binds.
+	 */
+	View *holder;
 };
 
 /**
@@ -74,7 +79,7 @@ struct BindTextViewInterface {
 	 * @return The initialized BindTextView, or `NULL` on error.
 	 * @memberof BindTextView
 	 */
-	BindTextView *(*initWithBind)(BindTextView *self, const char *bind);
+	BindTextView *(*initWithBind)(BindTextView *self, View *view, const char *bind);
 };
 
 /**

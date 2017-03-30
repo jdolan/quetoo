@@ -38,23 +38,40 @@ static void loadView(ViewController *self) {
 
 	TabViewController *this = (TabViewController *) self;
 
+	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
+
+	columns->axis = StackViewAxisHorizontal;
+	columns->spacing = DEFAULT_PANEL_SPACING;
+
 	{
-		Box *box = $(alloc(Box), initWithFrame, NULL);
-		$(box->label, setText, "Mouse");
+		StackView *column = $(alloc(StackView), initWithFrame, NULL);
 
-		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+		columns->spacing = DEFAULT_PANEL_SPACING;
 
-		Cg_CvarSliderInput((View *) stackView, "Sensitivity", "m_sensitivity", 0.1, 10.0, 0.1);
-		Cg_CvarSliderInput((View *) stackView, "Zoom sensitivity", "m_sensitivity_zoom", 0.1, 10.0, 0.1);
-		Cg_CvarCheckboxInput((View *) stackView, "Invert mouse", "m_invert");
-		Cg_CvarCheckboxInput((View *) stackView, "Smooth mouse", "m_interpolate");
+		{
+			Box *box = $(alloc(Box), initWithFrame, NULL);
+			$(box->label, setText, "Mouse");
 
-		$((View *) box, addSubview, (View *) stackView);
-		release(stackView);
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-		$((View *) this->stackView, addSubview, (View *) box);
-		release(box);
+			Cg_CvarSliderInput((View *) stackView, "Sensitivity", "m_sensitivity", 0.1, 10.0, 0.1);
+			Cg_CvarSliderInput((View *) stackView, "Zoom sensitivity", "m_sensitivity_zoom", 0.1, 10.0, 0.1);
+			Cg_CvarCheckboxInput((View *) stackView, "Invert mouse", "m_invert");
+			Cg_CvarCheckboxInput((View *) stackView, "Smooth mouse", "m_interpolate");
+
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
+
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
+
+		$((View *) columns, addSubview, (View *) column);
+		release(column);
 	}
+
+	$((View *) this->panel->contentView, addSubview, (View *) columns);
+	release(columns);
 }
 
 #pragma mark - Class lifecycle

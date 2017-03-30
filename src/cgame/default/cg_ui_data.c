@@ -33,7 +33,7 @@
  */
 void Cg_BindInput(View *view, const char *name, const char *bind) {
 
-	BindTextView *textView = $(alloc(BindTextView), initWithBind, bind);
+	BindTextView *textView = $(alloc(BindTextView), initWithBind, view, bind);
 
 	Cg_Input(view, name, (Control *) textView);
 
@@ -130,6 +130,28 @@ void Cg_Input(View *view, const char *label, Control *control) {
 	$(view, addSubview, (View *) input);
 
 	release(input);
+}
+
+#define LABEL_HEIGHT 30
+
+/**
+ * @brief
+ */
+void Cg_Label(View *view, const char *text) {
+
+	Label *label = $(alloc(Label), initWithText, text, NULL);
+
+	label->view.frame.h = LABEL_HEIGHT;
+
+	label->view.autoresizingMask |= ViewAutoresizingWidth;
+
+	label->view.alignment = ViewAlignmentTopLeft;
+
+	label->text->view.alignment = ViewAlignmentMiddleCenter;
+
+	$(view, addSubview, (View *) label);
+
+	release(label);
 }
 
 /**

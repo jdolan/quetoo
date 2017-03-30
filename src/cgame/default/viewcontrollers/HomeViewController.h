@@ -21,25 +21,22 @@
 
 #pragma once
 
-#include "MainViewController.h"
-
-#include "cg_local.h"
+#include <ObjectivelyMVC/ViewController.h>
 
 /**
  * @file
- *
- * @brief The TabViewController.
+ * @brief Home ViewController.
  */
 
-typedef struct TabViewController TabViewController;
-typedef struct TabViewControllerInterface TabViewControllerInterface;
+typedef struct HomeViewController HomeViewController;
+typedef struct HomeViewControllerInterface HomeViewControllerInterface;
 
 /**
- * @brief The TabViewController type.
+ * @brief The HomeViewController type.
  * @extends ViewController
- * @ingroup ViewControllers
+ * @ingroup
  */
-struct TabViewController {
+struct HomeViewController {
 
 	/**
 	 * @brief The superclass.
@@ -51,36 +48,24 @@ struct TabViewController {
 	 * @brief The interface.
 	 * @private
 	 */
-	TabViewControllerInterface *interface;
-
-	/**
-	 * @brief The Panel.
-	 */
-	Panel *panel;
+	HomeViewControllerInterface *interface;
 };
 
 /**
- * @brief The TabViewController interface.
+ * @brief The HomeViewController interface.
  */
-struct TabViewControllerInterface {
+struct HomeViewControllerInterface {
 
 	/**
 	 * @brief The superclass interface.
 	 */
 	ViewControllerInterface viewControllerInterface;
-
-	/**
-	 * @fn MainViewController *TabViewController::mainViewController(const TabViewController *self)
-	 * @return The MainViewController.
-	 * @memberof TabViewController
-	 */
-	MainViewController *(*mainViewController)(const TabViewController *self);
 };
 
 /**
- * @fn Class *TabViewController::_TabViewController(void)
- * @brief The TabViewController archetype.
- * @return The TabViewController Class.
- * @memberof TabViewController
+ * @fn Class *HomeViewController::_HomeViewController(void)
+ * @brief The HomeViewController archetype.
+ * @return The HomeViewController Class.
+ * @memberof HomeViewController
  */
-extern Class *_TabViewController(void);
+extern Class *_HomeViewController(void);

@@ -38,9 +38,11 @@ static void loadView(ViewController *self) {
 
 	{
 		Box *box = $(alloc(Box), initWithFrame, NULL);
-		$(box->label, setText, "Movement");
+		$(box->label, setText, "Bindings");
 
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+		Cg_Label((View *) stackView, "Movement");
 
 		Cg_BindInput((View *) stackView, "Forward", "+forward");
 		Cg_BindInput((View *) stackView, "Back", "+back");
@@ -52,21 +54,12 @@ static void loadView(ViewController *self) {
 		Cg_BindInput((View *) stackView, "Run/walk", "+speed");
 		Cg_CvarCheckboxInput((View *) stackView, "Always run", "cg_run");
 
-		$((View *) box, addSubview, (View *) stackView);
-		release(stackView);
-
-		$((View *) this->stackView, addSubview, (View *) box);
-		release(box);
-	}
-
-	{
-		Box *box = $(alloc(Box), initWithFrame, NULL);
-		$(box->label, setText, "Multiplayer");
-
-		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+		Cg_Label((View *) stackView, "Communication");
 
 		Cg_BindInput((View *) stackView, "Chat", "cl_message_mode");
 		Cg_BindInput((View *) stackView, "Team chat", "cl_message_mode_2");
+
+		Cg_Label((View *) stackView, "Interface");
 
 		Cg_BindInput((View *) stackView, "Scoreboard", "+score");
 
@@ -74,24 +67,15 @@ static void loadView(ViewController *self) {
 
 		Cg_BindInput((View *) stackView, "Toggle console", "cl_toggle_console");
 
-		$((View *) box, addSubview, (View *) stackView);
-		release(stackView);
-
-		$((View *) this->stackView, addSubview, (View *) box);
-		release(box);
-	}
-
-	{
-		Box *box = $(alloc(Box), initWithFrame, NULL);
-		$(box->label, setText, "Combat");
-
-		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+		Cg_Label((View *) stackView, "Combat");
 
 		Cg_BindInput((View *) stackView, "Attack", "+attack");
 
 		Cg_BindInput((View *) stackView, "Zoom", "+ZOOM");
 
 		Cg_BindInput((View *) stackView, "Grapple", "+hook");
+
+		Cg_Label((View *) stackView, "Weapons");
 
 		Cg_BindInput((View *) stackView, "Next weapon", "cg_weapon_next");
 		Cg_BindInput((View *) stackView, "Previous weapon", "cg_weapon_previous");
@@ -111,7 +95,7 @@ static void loadView(ViewController *self) {
 		$((View *) box, addSubview, (View *) stackView);
 		release(stackView);
 
-		$((View *) this->stackView, addSubview, (View *) box);
+		$((View *) this->panel->contentView, addSubview, (View *) box);
 		release(box);
 	}
 }

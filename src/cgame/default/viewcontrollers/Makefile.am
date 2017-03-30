@@ -3,6 +3,7 @@ noinst_HEADERS = \
 	AudioViewController.h \
 	BindingViewController.h \
 	CreateServerViewController.h \
+	HomeViewController.h \
 	InputViewController.h \
 	MainViewController.h \
 	MenuViewController.h \
@@ -22,6 +23,7 @@ libviewcontrollers_la_SOURCES = \
 	AudioViewController.c \
 	BindingViewController.c \
 	CreateServerViewController.c \
+	HomeViewController.c \
 	InputViewController.c \
 	MainViewController.c \
 	MenuViewController.c \

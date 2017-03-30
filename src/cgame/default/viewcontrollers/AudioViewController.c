@@ -48,39 +48,56 @@ static void loadView(ViewController *self) {
 
 	TabViewController *this = (TabViewController *) self;
 
-	{
-		Box *box = $(alloc(Box), initWithFrame, NULL);
-		$(box->label, setText, "Actions");
+	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
-		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-
-		stackView->axis = StackViewAxisHorizontal;
-		stackView->spacing = DEFAULT_PANEL_SPACING;
-
-		Cg_Button((View *) stackView, "Apply", applyAction, self, NULL);
-
-		$((View *) box, addSubview, (View *) stackView);
-		release(stackView);
-
-		$((View *) this->stackView, addSubview, (View *) box);
-		release(box);
-	}
+	columns->axis = StackViewAxisHorizontal;
+	columns->spacing = DEFAULT_PANEL_SPACING;
 
 	{
-		Box *box = $(alloc(Box), initWithFrame, NULL);
-		$(box->label, setText, "Audio");
+		StackView *column = $(alloc(StackView), initWithFrame, NULL);
 
-		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+		columns->spacing = DEFAULT_PANEL_SPACING;
 
-		Cg_CvarSliderInput((View *) stackView, "Volume", "s_volume", 0.0, 1.0, 0.0);
-		Cg_CvarSliderInput((View *) stackView, "Music Volume", "s_music_volume", 0.0, 1.0, 0.0);
+		{
+			Box *box = $(alloc(Box), initWithFrame, NULL);
+			$(box->label, setText, "Actions");
 
-		$((View *) box, addSubview, (View *) stackView);
-		release(stackView);
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-		$((View *) this->stackView, addSubview, (View *) box);
-		release(box);
+			stackView->axis = StackViewAxisHorizontal;
+			stackView->spacing = DEFAULT_PANEL_SPACING;
+
+			Cg_Button((View *) stackView, "Apply", applyAction, self, NULL);
+
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
+
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
+
+		{
+			Box *box = $(alloc(Box), initWithFrame, NULL);
+			$(box->label, setText, "Audio");
+
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+			Cg_CvarSliderInput((View *) stackView, "Volume", "s_volume", 0.0, 1.0, 0.0);
+			Cg_CvarSliderInput((View *) stackView, "Music Volume", "s_music_volume", 0.0, 1.0, 0.0);
+
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
+
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
+
+		$((View *) columns, addSubview, (View *) column);
+		release(column);
 	}
+
+	$((View *) this->panel->contentView, addSubview, (View *) columns);
+	release(columns);
 }
 
 #pragma mark - Class lifecycle
