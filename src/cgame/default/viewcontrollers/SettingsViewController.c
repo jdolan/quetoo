@@ -24,9 +24,8 @@
 #include "SettingsViewController.h"
 
 #include "AudioViewController.h"
-#include "BindingViewController.h"
 #include "InputViewController.h"
-#include "MiscViewController.h"
+#include "InterfaceViewController.h"
 #include "VideoViewController.h"
 
 #define _Class _SettingsViewController
@@ -74,10 +73,11 @@ static void loadView(ViewController *self) {
 
 	this->panel->isResizable = false;
 
-	this->panel->stackView.view.frame.w = Min(950, cgi.context->window_width);
-	this->panel->stackView.view.frame.h = Min(550, cgi.context->window_height);
-
 	this->panel->stackView.axis = StackViewAxisVertical;
+
+	this->panel->stackView.view.zIndex = 100;
+
+	this->panel->stackView.view.autoresizingMask = ViewAutoresizingContain;
 
 //	this->panel->contentView->view.clipsSubviews = true;
 
@@ -96,16 +96,18 @@ static void loadView(ViewController *self) {
 	this->panel->contentView->view.autoresizingMask = ViewAutoresizingWidth | ViewAutoresizingContain;
 
 	{
-		Cg_PrimaryButton((View *) this->panel->contentView, "Bindings", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _BindingViewController());
-		Cg_PrimaryButton((View *) this->panel->contentView, "Input", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _InputViewController());
-		Cg_PrimaryButton((View *) this->panel->contentView, "Video", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _VideoViewController());
-		Cg_PrimaryButton((View *) this->panel->contentView, "Audio", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _AudioViewController());
-		Cg_PrimaryButton((View *) this->panel->contentView, "Misc", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _MiscViewController());
+		Cg_PrimaryButton((View *) this->panel->contentView, "Input", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _InputViewController());
+		Cg_PrimaryButton((View *) this->panel->contentView, "Video", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _VideoViewController());
+		Cg_PrimaryButton((View *) this->panel->contentView, "Audio", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _AudioViewController());
+		Cg_PrimaryButton((View *) this->panel->contentView, "Interface", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _InterfaceViewController());
 	}
 
 	// Tab body
 
 	this->panel->accessoryView->view.hidden = false;
+
+	this->panel->accessoryView->view.frame.w = Min(900, cgi.context->window_width);
+	this->panel->accessoryView->view.frame.h = Min(500, cgi.context->window_height);
 
 	this->panel->accessoryView->view.backgroundColor = Colors.Green;
 

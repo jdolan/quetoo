@@ -25,8 +25,8 @@ const _QColors QColors = {
 	.Main = { 125, 125, 125, 255 },
 	.MainHighlight = { 110, 110, 110, 255 },
 
-	.Border = { 8, 21, 26, 255 },
-	.BorderHighlight = { 23, 36, 41, 255 },
+	.Dark = { 8, 21, 26, 255 },
+	.DarkHighlight = { 23, 36, 41, 255 },
 
 	.Theme = { 12, 100, 100, 255 },
 	.ThemeHighlight = { 27, 115, 115, 255 },
@@ -35,5 +35,8 @@ const _QColors QColors = {
 	.DialogHighlight = { 145, 130, 95, 255 },
 
 	.Contrast = { 255, 255, 255, 255 },
-	.Watermark = { 200, 200, 200, 255 }
+	.Watermark = { 200, 200, 200, 255 },
+
+	.BorderLight = { 255, 255, 255, 0 },
+	.BorderDark = { 0, 0, 0, 0 }
 };

@@ -25,7 +25,7 @@
 
 /**
  * @file
- * @brief Controls ViewController.
+ * @brief System ViewController.
  */
 
 typedef struct InputViewController InputViewController;
@@ -34,7 +34,7 @@ typedef struct InputViewControllerInterface InputViewControllerInterface;
 /**
  * @brief The InputViewController type.
  * @extends TabViewController
- * @ingroup ViewControllers
+ * @ingroup
  */
 struct InputViewController {
 

@@ -1,13 +1,12 @@
 
 noinst_HEADERS = \
 	AudioViewController.h \
-	BindingViewController.h \
 	CreateServerViewController.h \
 	HomeViewController.h \
 	InputViewController.h \
+	InterfaceViewController.h \
 	MainViewController.h \
 	MenuViewController.h \
-	MiscViewController.h \
 	MultiplayerViewController.h \
 	PlayViewController.h \
 	PlayerViewController.h \
@@ -21,13 +20,12 @@ noinst_LTLIBRARIES = \
 
 libviewcontrollers_la_SOURCES = \
 	AudioViewController.c \
-	BindingViewController.c \
 	CreateServerViewController.c \
 	HomeViewController.c \
 	InputViewController.c \
+	InterfaceViewController.c \
 	MainViewController.c \
 	MenuViewController.c \
-	MiscViewController.c \
 	MultiplayerViewController.c \
 	PlayViewController.c \
 	PlayerViewController.c \

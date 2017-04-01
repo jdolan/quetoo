@@ -58,7 +58,14 @@ static void loadView(ViewController *self) {
 	this->panel->stackView.view.needsLayout = true;
 
 	this->panel->stackView.view.alignment = ViewAlignmentTopLeft;
-	this->panel->stackView.view.autoresizingMask = ViewAutoresizingWidth | ViewAutoresizingContain;
+	this->panel->stackView.view.autoresizingMask = ViewAutoresizingFill;
+
+	this->panel->stackView.distribution = StackViewDistributionFillEqually;
+
+	this->panel->contentView->view.autoresizingMask = ViewAutoresizingFill;
+
+	this->panel->accessoryView->view.alignment = ViewAlignmentBottomRight;
+	this->panel->accessoryView->view.autoresizingMask |= ViewAutoresizingWidth;
 
 	$(self->view, addSubview, (View *) this->panel);
 }

@@ -63,7 +63,7 @@ static void didSetValue(Slider *self) {
 	} else {
 		$(self->label, setText, "+");
 
-		self->handle->view.backgroundColor = QColors.Border;
+		self->handle->view.backgroundColor = QColors.Dark;
 
 	}
 

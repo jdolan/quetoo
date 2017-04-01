@@ -116,6 +116,9 @@ void Cg_Input(View *view, const char *label, Control *control) {
 	Input *input = $(alloc(Input), initWithFrame, NULL);
 	assert(input);
 
+	input->control->view.alignment = ViewAlignmentMiddleRight;
+	input->control->view.autoresizingMask |= ViewAutoresizingWidth;
+
 	$(input, setControl, control);
 
 	$(input->label->text, setText, label);
@@ -123,9 +126,6 @@ void Cg_Input(View *view, const char *label, Control *control) {
 	input->label->view.frame.w = INPUT_LABEL_WIDTH;
 
 	input->label->view.autoresizingMask &= ~ViewAutoresizingContain;
-
-	input->control->view.alignment = ViewAlignmentMiddleRight;
-	input->control->view.autoresizingMask = ViewAutoresizingWidth;
 
 	$(view, addSubview, (View *) input);
 
@@ -170,7 +170,9 @@ void Cg_PrimaryButton(View *view, const char *name, ViewAlignment align, SDL_Col
 
 	((Button *) button)->control.view.alignment = align;
 	((Button *) button)->control.view.autoresizingMask = ViewAutoresizingNone;
+
 	((Button *) button)->control.view.backgroundColor = color;
+	((Button *) button)->control.view.borderColor = QColors.BorderLight;
 
 	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, sender, data);
 
@@ -193,7 +195,9 @@ void Cg_PrimaryIcon(View *view, const char *icon, ViewAlignment align, SDL_Color
 
 	((Button *) button)->control.view.alignment = align;
 	((Button *) button)->control.view.autoresizingMask = ViewAutoresizingNone;
+
 	((Button *) button)->control.view.backgroundColor = color;
+	((Button *) button)->control.view.borderColor = QColors.BorderLight;
 
 	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, sender, data);
 

@@ -23,8 +23,6 @@
 
 #include "InputViewController.h"
 
-#include "CvarSlider.h"
-
 #define _Class _InputViewController
 
 #pragma mark - ViewController
@@ -40,8 +38,75 @@ static void loadView(ViewController *self) {
 
 	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
-	columns->axis = StackViewAxisHorizontal;
 	columns->spacing = DEFAULT_PANEL_SPACING;
+
+	columns->axis = StackViewAxisHorizontal;
+	columns->distribution = StackViewDistributionFillEqually;
+
+	columns->view.autoresizingMask = ViewAutoresizingFill;
+
+	{
+		Box *box = $(alloc(Box), initWithFrame, NULL);
+		$(box->label, setText, "Controls");
+
+		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+		Cg_Label((View *) stackView, "Movement");
+
+		Cg_BindInput((View *) stackView, "Forward", "+forward");
+		Cg_BindInput((View *) stackView, "Back", "+back");
+		Cg_BindInput((View *) stackView, "Strafe left", "+move_left");
+		Cg_BindInput((View *) stackView, "Strafe right", "+move_right");
+		Cg_BindInput((View *) stackView, "Jump", "+move_up");
+		Cg_BindInput((View *) stackView, "Crouch", "+move_down");
+
+		Cg_BindInput((View *) stackView, "Run/walk", "+speed");
+		Cg_CvarCheckboxInput((View *) stackView, "Always run", "cg_run");
+
+		Cg_Label((View *) stackView, "Communication");
+
+		Cg_BindInput((View *) stackView, "Chat", "cl_message_mode");
+		Cg_BindInput((View *) stackView, "Team chat", "cl_message_mode_2");
+
+		Cg_Label((View *) stackView, "Interface");
+
+		Cg_BindInput((View *) stackView, "Scoreboard", "+score");
+
+		Cg_BindInput((View *) stackView, "Screenshot", "r_screenshot");
+
+		Cg_BindInput((View *) stackView, "Toggle console", "cl_toggle_console");
+
+		Cg_Label((View *) stackView, "Combat");
+
+		Cg_BindInput((View *) stackView, "Attack", "+attack");
+
+		Cg_BindInput((View *) stackView, "Zoom", "+ZOOM");
+
+		Cg_BindInput((View *) stackView, "Grapple", "+hook");
+
+		Cg_Label((View *) stackView, "Weapons");
+
+		Cg_BindInput((View *) stackView, "Next weapon", "cg_weapon_next");
+		Cg_BindInput((View *) stackView, "Previous weapon", "cg_weapon_previous");
+
+		Cg_BindInput((View *) stackView, "Blaster", "use blaster");
+		Cg_BindInput((View *) stackView, "Shotgun", "use shotgun");
+		Cg_BindInput((View *) stackView, "Super shotgun", "use super shotgun");
+		Cg_BindInput((View *) stackView, "Machinegun", "use machinegun");
+		Cg_BindInput((View *) stackView, "Hand grenades", "use hand grenades");
+		Cg_BindInput((View *) stackView, "Grenade launcher", "use grenade launcher");
+		Cg_BindInput((View *) stackView, "Rocket launcher", "use rocket launcher");
+		Cg_BindInput((View *) stackView, "Hyperblaster", "use hyperblaster");
+		Cg_BindInput((View *) stackView, "Lightning", "use lightning gun");
+		Cg_BindInput((View *) stackView, "Railgun", "use railgun");
+		Cg_BindInput((View *) stackView, "BFG-10K", "use bfg10k");
+
+		$((View *) box, addSubview, (View *) stackView);
+		release(stackView);
+
+		$((View *) columns, addSubview, (View *) box);
+		release(box);
+	}
 
 	{
 		StackView *column = $(alloc(StackView), initWithFrame, NULL);
@@ -54,8 +119,10 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Cg_CvarSliderInput((View *) stackView, "Sensitivity", "m_sensitivity", 0.1, 10.0, 0.1);
+			Cg_CvarSliderInput((View *) stackView, "Mouse sensitivity", "m_sensitivity", 0.1, 10.0, 0.1);
+
 			Cg_CvarSliderInput((View *) stackView, "Zoom sensitivity", "m_sensitivity_zoom", 0.1, 10.0, 0.1);
+
 			Cg_CvarCheckboxInput((View *) stackView, "Invert mouse", "m_invert");
 			Cg_CvarCheckboxInput((View *) stackView, "Smooth mouse", "m_interpolate");
 

@@ -22,21 +22,22 @@
 #pragma once
 
 #include "TabViewController.h"
+#include "CrosshairView.h"
 
 /**
  * @file
  * @brief System ViewController.
  */
 
-typedef struct BindingViewController BindingViewController;
-typedef struct BindingViewControllerInterface BindingViewControllerInterface;
+typedef struct InterfaceViewController InterfaceViewController;
+typedef struct InterfaceViewControllerInterface InterfaceViewControllerInterface;
 
 /**
- * @brief The BindingViewController type.
+ * @brief The InterfaceViewController type.
  * @extends TabViewController
  * @ingroup
  */
-struct BindingViewController {
+struct InterfaceViewController {
 
 	/**
 	 * @brief The superclass.
@@ -48,13 +49,18 @@ struct BindingViewController {
 	 * @brief The interface.
 	 * @private
 	 */
-	BindingViewControllerInterface *interface;
+	InterfaceViewControllerInterface *interface;
+
+	/**
+	 * @brief The CrosshairView.
+	 */
+	CrosshairView *crosshairView;
 };
 
 /**
- * @brief The BindingViewController interface.
+ * @brief The InterfaceViewController interface.
  */
-struct BindingViewControllerInterface {
+struct InterfaceViewControllerInterface {
 
 	/**
 	 * @brief The superclass interface.
@@ -63,9 +69,9 @@ struct BindingViewControllerInterface {
 };
 
 /**
- * @fn Class *BindingViewController::_BindingViewController(void)
- * @brief The BindingViewController archetype.
- * @return The BindingViewController Class.
- * @memberof BindingViewController
+ * @fn Class *InterfaceViewController::_InterfaceViewController(void)
+ * @brief The InterfaceViewController archetype.
+ * @return The InterfaceViewController Class.
+ * @memberof InterfaceViewController
  */
-extern Class *_BindingViewController(void);
+extern Class *_InterfaceViewController(void);

@@ -84,6 +84,7 @@ static DialogView *init(DialogView *self) {
 		this->stackView.view.zIndex = 1000; // We is always on top suckas
 
 		this->stackView.view.backgroundColor = QColors.Dialog;
+		this->stackView.view.borderColor = QColors.BorderLight;
 
 		this->stackView.view.alignment = ViewAlignmentMiddleLeft;
 		this->stackView.view.autoresizingMask = ViewAutoresizingWidth | ViewAutoresizingContain;
@@ -116,7 +117,7 @@ static DialogView *init(DialogView *self) {
 
 			self->cancelButton->control.view.alignment = ViewAlignmentBottomCenter;
 			self->cancelButton->control.view.autoresizingMask = ViewAutoresizingContain;
-			self->cancelButton->control.view.backgroundColor = QColors.Border;
+			self->cancelButton->control.view.backgroundColor = QColors.Dark;
 
 			$((Control *) self->cancelButton, addActionForEventType, SDL_MOUSEBUTTONUP, cancelAction, self, NULL);
 

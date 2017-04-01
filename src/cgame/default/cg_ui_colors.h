@@ -27,8 +27,8 @@ typedef struct {
 	SDL_Color Main; // dark gray
 	SDL_Color MainHighlight;
 
-	SDL_Color Border; // almost black
-	SDL_Color BorderHighlight;
+	SDL_Color Dark; // almost black
+	SDL_Color DarkHighlight;
 
 	SDL_Color Theme; // cyan
 	SDL_Color ThemeHighlight;
@@ -38,6 +38,9 @@ typedef struct {
 
 	SDL_Color Contrast; // white
 	SDL_Color Watermark; // light gray; translucent text isn't supported :(
+
+	SDL_Color BorderLight; // lighter border edge
+	SDL_Color BorderDark; // darker border edge
 } _QColors;
 
 extern const _QColors QColors;

@@ -97,9 +97,9 @@ static void loadView(ViewController *self) {
 		this->panel->contentView->view.alignment = ViewAlignmentTopLeft;
 		this->panel->contentView->view.autoresizingMask |= ViewAutoresizingWidth;
 
-		Cg_PrimaryButton((View *) this->panel->contentView, "Quick join", ViewAlignmentTopLeft, QColors.Theme, tabAction, nvc, _QuickJoinViewController());
-		Cg_PrimaryButton((View *) this->panel->contentView, "Create server", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _CreateServerViewController());
-		Cg_PrimaryButton((View *) this->panel->contentView, "Server browser", ViewAlignmentTopLeft, QColors.Border, tabAction, nvc, _MultiplayerViewController());
+		Cg_PrimaryButton((View *) this->panel->contentView, "Quick join", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _QuickJoinViewController());
+		Cg_PrimaryButton((View *) this->panel->contentView, "Create server", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _CreateServerViewController());
+		Cg_PrimaryButton((View *) this->panel->contentView, "Server browser", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _MultiplayerViewController());
 	}
 
 	// Tab body
