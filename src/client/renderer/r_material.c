@@ -131,6 +131,10 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 		R_EnableTexture(texunit_lightmap, true);
 
 		R_BindLightmapTexture(surf->lightmap->texnum);
+		
+		if (r_deluxemap->integer) {
+			R_EnableTexture(texunit_deluxemap, true);
+		}
 
 		if (surf->stainmap.fb) {
 			R_EnableTexture(texunit_stainmap, true);
@@ -142,6 +146,7 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 			R_EnableLighting(program_default, true);
 
 			if (r_state.lighting_enabled) {
+
 				R_BindDeluxemapTexture(surf->deluxemap->texnum);
 
 				if (surf->light_frame == r_locals.light_frame) { // dynamic light sources
@@ -157,7 +162,7 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 		R_EnableLighting(NULL, false);
 
 		R_EnableTexture(texunit_lightmap, false);
-
+		R_EnableTexture(texunit_deluxemap, false);
 		R_EnableTexture(texunit_stainmap, false);
 	}
 
@@ -486,7 +491,11 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableTexture(texunit_lightmap, true);
 
-	if (r_stainmap->value) {
+	if (r_deluxemap->integer) {
+		R_EnableTexture(texunit_deluxemap, true);
+	}
+
+	if (r_stainmap->integer) {
 		R_EnableTexture(texunit_stainmap, true);
 	}
 
@@ -503,6 +512,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	R_EnableLighting(NULL, false);
 
 	R_EnableTexture(texunit_lightmap, false);
+	R_EnableTexture(texunit_deluxemap, false);
 
 	R_EnablePolygonOffset(true);
 
@@ -549,7 +559,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	R_EnableColorArray(false);
 
 	R_EnableTexture(texunit_lightmap, false);
-
+	R_EnableTexture(texunit_deluxemap, false);
 	R_EnableTexture(texunit_stainmap, false);
 
 	R_EnableLighting(program_default, true);
