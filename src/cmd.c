@@ -118,37 +118,35 @@ void Cbuf_InsertFromDefer(void) {
  * @brief Executes the pending command buffer.
  */
 void Cbuf_Execute(void) {
-	uint32_t i;
-	char *text;
-	char line[MAX_STRING_CHARS] = { 0 };
-	int32_t quotes;
 
 	cmd_state.alias_loop_count = 0; // don't allow infinite alias loops
 
 	while (cmd_state.buf.size) {
-		// find a \n or; line break
-		text = (char *) cmd_state.buf.data;
 
-		quotes = 0;
+		// read a single command line from the buffer
+		char line[sizeof(cmd_state.args.args)] = "";
+
+		// find a \n or; line break
+		char *text = (char *) cmd_state.buf.data;
+
+		uint32_t i, quotes = 0;
 		for (i = 0; i < cmd_state.buf.size; i++) {
 			if (text[i] == '"') {
 				quotes++;
 			}
 			if (!(quotes & 1) && text[i] == ';') {
-				break;    // don't break if inside a quoted string
+				break; // don't break if inside a quoted string
 			}
 			if (text[i] == '\n') {
 				break;
 			}
 		}
 
-		if (i > MAX_STRING_CHARS) { // length check each command
-			Com_Warn("Command exceeded %i chars, discarded\n", MAX_STRING_CHARS);
-			return;
+		if (i == sizeof(line)) {
+			Com_Warn("Command exceeded %zd chars, discarded\n", sizeof(line));
+		} else {
+			g_strlcpy(line, text, i + 1);
 		}
-
-		memcpy(line, text, i);
-		line[i] = 0;
 
 		// delete the text from the command buffer and move remaining commands down
 		// this is necessary because commands (exec, alias) can insert data at the
@@ -158,15 +156,17 @@ void Cbuf_Execute(void) {
 			cmd_state.buf.size = 0;
 		} else {
 			i++;
-			cmd_state.buf.size -= i;
+
+			cmd_state.buf.size = cmd_state.buf.size - i;
 			memmove(text, text + i, cmd_state.buf.size);
 		}
 
-		// execute the command line
+		// execute the command linequit
+
 		Cmd_ExecuteString(line);
 
+		// skip out while text still remains in buffer, leaving it for next frame
 		if (cmd_state.wait) {
-			// skip out while text still remains in buffer, leaving it for next frame
 			cmd_state.wait = false;
 			break;
 		}
