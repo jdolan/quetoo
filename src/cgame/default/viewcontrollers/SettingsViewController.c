@@ -88,33 +88,61 @@ static void loadView(ViewController *self) {
 
 	$((ViewController *) nvc, moveToParentViewController, self);
 
-	// Tab buttons
+	// Rows
 
-	this->panel->contentView->axis = StackViewAxisHorizontal;
-	this->panel->contentView->distribution = StackViewDistributionFillEqually;
+	StackView *rows = $(alloc(StackView), initWithFrame, NULL);
 
-	this->panel->contentView->view.autoresizingMask = ViewAutoresizingWidth | ViewAutoresizingContain;
+	rows->spacing = DEFAULT_PANEL_SPACING;
 
 	{
-		Cg_PrimaryButton((View *) this->panel->contentView, "Input", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _InputViewController());
-		Cg_PrimaryButton((View *) this->panel->contentView, "Video", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _VideoViewController());
-		Cg_PrimaryButton((View *) this->panel->contentView, "Audio", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _AudioViewController());
-		Cg_PrimaryButton((View *) this->panel->contentView, "Interface", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _InterfaceViewController());
+		StackView *row = $(alloc(StackView), initWithFrame, NULL);
+
+		row->spacing = DEFAULT_PANEL_SPACING;
+
+		row->axis = StackViewAxisHorizontal;
+		row->distribution = StackViewDistributionFillEqually;
+
+		row->view.autoresizingMask |= ViewAutoresizingWidth;
+
+		{
+			// Tab buttons
+
+			{
+				Cg_PrimaryButton((View *) row, "Input", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _InputViewController());
+				Cg_PrimaryButton((View *) row, "Video", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _VideoViewController());
+				Cg_PrimaryButton((View *) row, "Audio", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _AudioViewController());
+				Cg_PrimaryButton((View *) row, "Interface", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _InterfaceViewController());
+			}
+		}
+
+		$((View *) rows, addSubview, (View *) row);
+		release(row);
 	}
 
-	// Tab body
+	{
+		StackView *row = $(alloc(StackView), initWithFrame, NULL);
 
-	this->panel->accessoryView->view.hidden = false;
+		row->spacing = DEFAULT_PANEL_SPACING;
 
-	this->panel->accessoryView->view.frame.w = Min(900, cgi.context->window_width);
-	this->panel->accessoryView->view.frame.h = Min(500, cgi.context->window_height);
+		row->view.backgroundColor = Colors.Clear;
 
-	this->panel->accessoryView->view.backgroundColor = Colors.Green;
+		row->view.autoresizingMask = ViewAutoresizingNone;
 
-	this->panel->accessoryView->view.alignment = ViewAlignmentTopLeft;
-	this->panel->accessoryView->view.autoresizingMask = ViewAutoresizingFill;
+		row->view.frame.w = Min(900, cgi.context->window_width - 30);
+		row->view.frame.h = Min(500, cgi.context->window_height - 80);
 
-	$((View *) this->panel->accessoryView, addSubview, nvc->viewController.view);
+		{
+			// Tab body
+
+			$((View *) row, addSubview, nvc->viewController.view);
+		}
+
+		$((View *) rows, addSubview, (View *) row);
+		release(row);
+	}
+
+	$((View *) this->panel->contentView, addSubview, (View *) rows);
+	release(rows);
 }
 
 #pragma mark - Class lifecycle

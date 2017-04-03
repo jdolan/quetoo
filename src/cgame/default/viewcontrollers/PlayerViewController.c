@@ -77,7 +77,7 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "PLAYER SETUP");
+			$(box->label, setText, "Profile");
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 

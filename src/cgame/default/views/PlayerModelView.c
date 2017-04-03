@@ -93,7 +93,7 @@ static void render(View *self, Renderer *renderer) {
 		// create projection matrix
 		const vec_t aspect = (vec_t) viewport.w / (vec_t) viewport.h;
 
-		const vec_t ymax = NEAR_Z * tan(Radians(35));
+		const vec_t ymax = NEAR_Z * tan(Radians(45)); // Field of view
 		const vec_t ymin = -ymax;
 
 		const vec_t xmin = ymin * aspect;
@@ -110,9 +110,10 @@ static void render(View *self, Renderer *renderer) {
 		// Quake is retarded: rotate so that Z is up
 		Matrix4x4_ConcatRotate(&mat, -90.0, 1.0, 0.0, 0.0);
 		Matrix4x4_ConcatRotate(&mat,  90.0, 0.0, 0.0, 1.0);
-		Matrix4x4_ConcatTranslate(&mat, 64.0, 0.0, -8.0);
+		Matrix4x4_ConcatTranslate(&mat, 64.0, 0.0, 0.0);
 
-		Matrix4x4_ConcatRotate(&mat, cgi.client->unclamped_time * 0.04, 0.0, 0.0, 1.0);
+		Matrix4x4_ConcatRotate(&mat, -20.0, 0.0, 1.0, 0.0);
+		Matrix4x4_ConcatRotate(&mat, 150 + (sin(Radians(cgi.client->unclamped_time * 0.03)) * 6.0), 0.0, 0.0, 1.0);
 
 		cgi.SetMatrix(R_MATRIX_MODELVIEW, &mat);
 
@@ -123,11 +124,13 @@ static void render(View *self, Renderer *renderer) {
 		renderMeshEntity(&this->torso);
 		renderMeshEntity(&this->head);
 		renderMeshEntity(&this->weapon);
+		renderMeshEntity(&this->cleanroom);
 
 		renderMeshMaterialsEntity(&this->legs);
 		renderMeshMaterialsEntity(&this->torso);
 		renderMeshMaterialsEntity(&this->head);
 		renderMeshMaterialsEntity(&this->weapon);
+		renderMeshMaterialsEntity(&this->cleanroom);
 
 		cgi.DepthRange(0.0, 1.0);
 		cgi.EnableDepthTest(false);
@@ -184,6 +187,11 @@ static void updateBindings(View *self) {
 	this->weapon.effects = EF_NO_LIGHTING;
 	Vector4Set(this->weapon.color, 1.0, 1.0, 1.0, 1.0);
 
+	this->cleanroom.model = cgi.LoadModel("models/weapons/bfg/tris"); // Cleanroom model not done
+	this->cleanroom.scale = 0.0; // No model lalala
+	this->cleanroom.effects = EF_NO_LIGHTING;
+	Vector4Set(this->cleanroom.color, 1.0, 1.0, 1.0, 1.0);
+
 	memcpy(this->legs.skins, this->client.legs_skins, sizeof(this->legs.skins));
 	memcpy(this->torso.skins, this->client.torso_skins, sizeof(this->torso.skins));
 	memcpy(this->head.skins, this->client.head_skins, sizeof(this->head.skins));
@@ -210,14 +218,6 @@ static void animate_(const r_md3_t *md3, cl_entity_animation_t *a, r_entity_t *e
 	uint16_t frame = elapsedTime / frameTime;
 
 	if (elapsedTime >= animationTime) {
-
-		if (a->animation == ANIM_TORSO_STAND2) {
-			a->animation = ANIM_TORSO_GESTURE;
-		} else if (a->animation == ANIM_LEGS_IDLECR) {
-			a->animation = ANIM_LEGS_WALKCR;
-		} else {
-			a->animation++;
-		}
 
 		a->time = cgi.client->unclamped_time;
 
@@ -303,7 +303,7 @@ static PlayerModelView *initWithFrame(PlayerModelView *self, const SDL_Rect *fra
 		self->view.backgroundColor.a = 64;
 
 		self->animation1.animation = ANIM_TORSO_STAND1;
-		self->animation2.animation = ANIM_LEGS_RUN;
+		self->animation2.animation = ANIM_LEGS_IDLE;
 
 		const SDL_Rect iconFrame = MakeRect(0, 0, 64, 64);
 

@@ -157,8 +157,11 @@ static void loadView(ViewController *self) {
 
 	panel->stackView.view.frame.h = 36;
 
+	panel->stackView.view.padding.top = 0;
+	panel->stackView.view.padding.bottom = 0;
+
 	panel->stackView.view.backgroundColor = QColors.Main;
-	panel->stackView.view.zIndex = 100;
+	panel->stackView.view.zIndex = 50; // Just below dialogs and panels
 
 	panel->stackView.view.alignment = ViewAlignmentTopCenter;
 	panel->stackView.view.autoresizingMask = ViewAutoresizingWidth;

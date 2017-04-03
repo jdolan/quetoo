@@ -60,7 +60,7 @@ struct PlayerModelView {
 	/**
 	 * @brief The entity stubs.
 	 */
-	r_entity_t head, torso, legs, weapon;
+	r_entity_t head, torso, legs, weapon, cleanroom;
 
 	/**
 	 * @brief The entity animations.
@@ -104,4 +104,3 @@ struct PlayerModelViewInterface {
  * @memberof PlayerModelView
  */
 extern Class *_PlayerModelView(void);
-
