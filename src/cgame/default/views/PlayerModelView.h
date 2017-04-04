@@ -22,13 +22,13 @@
 #pragma once
 
 #include <ObjectivelyMVC/ImageView.h>
-#include <ObjectivelyMVC/View.h>
+#include <ObjectivelyMVC/Control.h>
 
 #include "cg_types.h"
 
 /**
  * @file
- * @brief A View capable of rendering an r_mesh_model_t.
+ * @brief A Control capable of rendering an r_mesh_model_t.
  */
 
 typedef struct PlayerModelView PlayerModelView;
@@ -36,7 +36,7 @@ typedef struct PlayerModelViewInterface PlayerModelViewInterface;
 
 /**
  * @brief The PlayerModelView type.
- * @extends View
+ * @extends Control
  */
 struct PlayerModelView {
 
@@ -44,7 +44,7 @@ struct PlayerModelView {
 	 * @brief The superclass.
 	 * @private
 	 */
-	View view;
+	Control control;
 
 	/**
 	 * @brief The interface.
@@ -78,7 +78,7 @@ struct PlayerModelViewInterface {
 	/**
 	 * @brief The superclass interface.
 	 */
-	ViewInterface viewInterface;
+	ControlInterface controlInterface;
 
 	/**
 	 * @fn void PlayerModelView::animate(PlayerModelView *self)

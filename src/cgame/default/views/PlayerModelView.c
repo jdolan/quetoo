@@ -25,6 +25,21 @@
 
 #define _Class _PlayerModelView
 
+#pragma mark - Actions
+
+/**
+ * @brief ActionFunction for clicking the model's 3D view
+ */
+static void clickAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+
+	PlayerModelView *this = (PlayerModelView *) sender;
+
+	cgi.Print("Clicky clicky clicky\n");
+
+	this->animation1.animation = ANIM_TORSO_RAISE;
+	this->animation2.animation = ANIM_LEGS_JUMP1;
+}
+
 #pragma mark - Object
 
 /**
@@ -113,7 +128,7 @@ static void render(View *self, Renderer *renderer) {
 		Matrix4x4_ConcatTranslate(&mat, 64.0, 0.0, 0.0);
 
 		Matrix4x4_ConcatRotate(&mat, -20.0, 0.0, 1.0, 0.0);
-		Matrix4x4_ConcatRotate(&mat, 150 + (sin(Radians(cgi.client->unclamped_time * 0.03)) * 6.0), 0.0, 0.0, 1.0);
+		Matrix4x4_ConcatRotate(&mat, 150 + (sin(Radians(cgi.client->unclamped_time * 0.05)) * 6.0), 0.0, 0.0, 1.0);
 
 		cgi.SetMatrix(R_MATRIX_MODELVIEW, &mat);
 
@@ -219,6 +234,14 @@ static void animate_(const r_md3_t *md3, cl_entity_animation_t *a, r_entity_t *e
 
 	if (elapsedTime >= animationTime) {
 
+		if (a->animation == ANIM_TORSO_RAISE) {
+			a->animation = ANIM_TORSO_STAND1;
+		} else if (a->animation == ANIM_LEGS_JUMP1) {
+			a->animation = ANIM_LEGS_LAND1;
+		} else if (a->animation == ANIM_LEGS_LAND1) {
+			a->animation = ANIM_LEGS_IDLE;
+		}
+
 		a->time = cgi.client->unclamped_time;
 
 		animate_(md3, a, e);
@@ -297,11 +320,8 @@ static void animate(PlayerModelView *self) {
  */
 static PlayerModelView *initWithFrame(PlayerModelView *self, const SDL_Rect *frame) {
 
-	self = (PlayerModelView *) super(View, self, initWithFrame, frame);
+	self = (PlayerModelView *) super(Control, self, initWithFrame, frame, ControlStyleCustom);
 	if (self) {
-		self->view.backgroundColor = Colors.Charcoal;
-		self->view.backgroundColor.a = 64;
-
 		self->animation1.animation = ANIM_TORSO_STAND1;
 		self->animation2.animation = ANIM_LEGS_IDLE;
 
@@ -314,10 +334,12 @@ static PlayerModelView *initWithFrame(PlayerModelView *self, const SDL_Rect *fra
 
 		$((View *) self, addSubview, (View *) self->iconView);
 
-		self->view.padding.top = 4;
-		self->view.padding.right = 4;
-		self->view.padding.bottom = 4;
-		self->view.padding.left = 4;
+		self->control.view.padding.top = 4;
+		self->control.view.padding.right = 4;
+		self->control.view.padding.bottom = 4;
+		self->control.view.padding.left = 4;
+
+		$((Control *) self, addActionForEventType, SDL_MOUSEBUTTONDOWN, clickAction, self, NULL);
 	}
 
 	return self;
@@ -350,7 +372,7 @@ Class *_PlayerModelView(void) {
 
 	do_once(&once, {
 		clazz.name = "PlayerModelView";
-		clazz.superclass = _View();
+		clazz.superclass = _Control();
 		clazz.instanceSize = sizeof(PlayerModelView);
 		clazz.interfaceOffset = offsetof(PlayerModelView, interface);
 		clazz.interfaceSize = sizeof(PlayerModelViewInterface);
