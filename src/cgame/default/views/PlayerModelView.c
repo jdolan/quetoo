@@ -34,10 +34,8 @@ static void clickAction(Control *control, const SDL_Event *event, ident sender, 
 
 	PlayerModelView *this = (PlayerModelView *) sender;
 
-	cgi.Print("Clicky clicky clicky\n");
-
-	this->animation1.animation = ANIM_TORSO_RAISE;
-	this->animation2.animation = ANIM_LEGS_JUMP1;
+	this->animation1.animation = ANIM_TORSO_GESTURE;
+	this->animation2.animation = ANIM_LEGS_IDLECR;
 }
 
 #pragma mark - Object
@@ -128,7 +126,7 @@ static void render(View *self, Renderer *renderer) {
 		Matrix4x4_ConcatTranslate(&mat, 64.0, 0.0, 0.0);
 
 		Matrix4x4_ConcatRotate(&mat, -20.0, 0.0, 1.0, 0.0);
-		Matrix4x4_ConcatRotate(&mat, 150 + (sin(Radians(cgi.client->unclamped_time * 0.05)) * 6.0), 0.0, 0.0, 1.0);
+		Matrix4x4_ConcatRotate(&mat, this->yaw + (sin(Radians(cgi.client->unclamped_time * 0.05)) * 6.0), 0.0, 0.0, 1.0);
 
 		cgi.SetMatrix(R_MATRIX_MODELVIEW, &mat);
 
@@ -214,6 +212,23 @@ static void updateBindings(View *self) {
 	this->iconView->texture = this->client.icon->texnum;
 }
 
+#pragma mark - Control
+
+/**
+ * @see Control::captureEvent(Control *, const SDL_Event *)
+ */
+static _Bool captureEvent(Control *self, const SDL_Event *event) {
+
+	if (event->type == SDL_MOUSEBUTTONDOWN) {
+
+		if ($((View *) self, didReceiveEvent, event)) {
+			return true;
+		}
+	}
+
+	return super(Control, self, captureEvent, event);
+}
+
 #pragma mark - PlayerModelView
 
 /**
@@ -234,11 +249,9 @@ static void animate_(const r_md3_t *md3, cl_entity_animation_t *a, r_entity_t *e
 
 	if (elapsedTime >= animationTime) {
 
-		if (a->animation == ANIM_TORSO_RAISE) {
+		if (a->animation == ANIM_TORSO_GESTURE) {
 			a->animation = ANIM_TORSO_STAND1;
-		} else if (a->animation == ANIM_LEGS_JUMP1) {
-			a->animation = ANIM_LEGS_LAND1;
-		} else if (a->animation == ANIM_LEGS_LAND1) {
+		} else if (a->animation == ANIM_LEGS_IDLECR) {
 			a->animation = ANIM_LEGS_IDLE;
 		}
 
@@ -318,10 +331,12 @@ static void animate(PlayerModelView *self) {
  *
  * @memberof PlayerModelView
  */
-static PlayerModelView *initWithFrame(PlayerModelView *self, const SDL_Rect *frame) {
+static PlayerModelView *initWithFrame(PlayerModelView *self, const SDL_Rect *frame, ControlStyle style) {
 
-	self = (PlayerModelView *) super(Control, self, initWithFrame, frame, ControlStyleCustom);
+	self = (PlayerModelView *) super(Control, self, initWithFrame, frame, style);
 	if (self) {
+		self->yaw = 150;
+
 		self->animation1.animation = ANIM_TORSO_STAND1;
 		self->animation2.animation = ANIM_LEGS_IDLE;
 
@@ -357,6 +372,8 @@ static void initialize(Class *clazz) {
 	((ViewInterface *) clazz->def->interface)->render = render;
 	((ViewInterface *) clazz->def->interface)->renderDeviceDidReset = renderDeviceDidReset;
 	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
+
+	((ControlInterface *) clazz->def->interface)->captureEvent = captureEvent;
 
 	((PlayerModelViewInterface *) clazz->def->interface)->animate = animate;
 	((PlayerModelViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;

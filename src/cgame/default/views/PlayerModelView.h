@@ -67,7 +67,15 @@ struct PlayerModelView {
 	 */
 	cl_entity_animation_t animation1, animation2;
 
+	/**
+	 * @brief The ImageView for the model icon.
+	 */
 	ImageView *iconView;
+
+	/**
+	 * @brief The camera yaw.
+	 */
+	vec_t yaw;
 };
 
 /**
@@ -91,10 +99,11 @@ struct PlayerModelViewInterface {
 	 * @fn PlayerModelView *PlayerModelView::initWithFrame(PlayerModelView *self)
 	 * @brief Initializes this PlayerModelView.
 	 * @param frame The frame.
+	 * @param style The ControlStyle to use.
 	 * @return The initialized PlayerModelView, or `NULL` on error.
 	 * @memberof PlayerModelView
 	 */
-	PlayerModelView *(*initWithFrame)(PlayerModelView *self, const SDL_Rect *frame);
+	PlayerModelView *(*initWithFrame)(PlayerModelView *self, const SDL_Rect *frame, ControlStyle style);
 };
 
 /**

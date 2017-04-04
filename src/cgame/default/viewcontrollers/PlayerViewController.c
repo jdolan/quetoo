@@ -156,7 +156,7 @@ static void loadView(ViewController *self) {
 
 		{
 			const SDL_Rect frame = { .w = 400, .h = 500 };
-			this->playerModelView = $(alloc(PlayerModelView), initWithFrame, &frame);
+			this->playerModelView = $(alloc(PlayerModelView), initWithFrame, &frame, ControlStyleCustom);
 
 			$((View *) column, addSubview, (View *) this->playerModelView);
 			release(this->playerModelView);
