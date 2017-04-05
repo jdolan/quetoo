@@ -19,7 +19,7 @@ all: clean install-lib install-update snapshot
 all-data: clean install-lib install-update install-data snapshot
 
 configure:
-	cd .. ; autoreconf -i; ./configure --host=$(HOST) --prefix=/ --disable-silent-rules
+	cd .. ; autoreconf -i; ./configure --host=$(HOST) --prefix=/
 	
 compile: configure
 	make -C .. all
