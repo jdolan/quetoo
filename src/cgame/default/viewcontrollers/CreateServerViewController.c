@@ -162,24 +162,6 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "Actions");
-
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-
-			stackView->axis = StackViewAxisHorizontal;
-			stackView->spacing = DEFAULT_PANEL_SPACING;
-
-			Cg_Button((View *) stackView, "Create", createAction, self, NULL);
-
-			$((View *) box, addSubview, (View *) stackView);
-			release(stackView);
-
-			$((View *) column, addSubview, (View *) box);
-			release(box);
-		}
-
-		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
 			$(box->label, setText, "Host options");
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
@@ -287,6 +269,10 @@ static void loadView(ViewController *self) {
 
 	$((View *) this->panel->contentView, addSubview, (View *) columns);
 	release(columns);
+
+	this->panel->accessoryView->view.hidden = false;
+
+	Cg_Button((View *) this->panel->accessoryView, "Create", createAction, self, NULL);
 }
 
 #pragma mark - MapListCollectionView

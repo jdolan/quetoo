@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include <ObjectivelyMVC/ViewController.h>
+#include "MenuViewController.h"
 
 /**
  * @file
- * @brief Home ViewController.
+ * @brief Home MenuViewController.
  */
 
 typedef struct HomeViewController HomeViewController;
@@ -33,7 +33,7 @@ typedef struct HomeViewControllerInterface HomeViewControllerInterface;
 
 /**
  * @brief The HomeViewController type.
- * @extends ViewController
+ * @extends HomeViewController
  * @ingroup
  */
 struct HomeViewController {
@@ -42,7 +42,7 @@ struct HomeViewController {
 	 * @brief The superclass.
 	 * @private
 	 */
-	ViewController viewController;
+	MenuViewController menuViewController;
 
 	/**
 	 * @brief The interface.
@@ -59,7 +59,7 @@ struct HomeViewControllerInterface {
 	/**
 	 * @brief The superclass interface.
 	 */
-	ViewControllerInterface viewControllerInterface;
+	MenuViewControllerInterface menuViewControllerInterface;
 };
 
 /**

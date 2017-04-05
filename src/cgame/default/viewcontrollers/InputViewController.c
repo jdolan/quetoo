@@ -49,6 +49,12 @@ static void loadView(ViewController *self) {
 		Box *box = $(alloc(Box), initWithFrame, NULL);
 		$(box->label, setText, "Controls");
 
+		box->view.autoresizingMask = ViewAutoresizingFill;
+
+		ScrollView *scrollView = $(alloc(ScrollView), initWithFrame, NULL, ControlStyleCustom);
+
+		scrollView->control.view.autoresizingMask = ViewAutoresizingFill;
+
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
 		Cg_Label((View *) stackView, "Movement");
@@ -101,8 +107,12 @@ static void loadView(ViewController *self) {
 		Cg_BindInput((View *) stackView, "Railgun", "use railgun");
 		Cg_BindInput((View *) stackView, "BFG-10K", "use bfg10k");
 
-		$((View *) box, addSubview, (View *) stackView);
+		$(scrollView, setContentView, (View *) stackView);
+		$((View *) scrollView, addSubview, (View *) stackView);
 		release(stackView);
+
+		$((View *) box, addSubview, (View *) scrollView);
+		release(scrollView);
 
 		$((View *) columns, addSubview, (View *) box);
 		release(box);
@@ -119,9 +129,9 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Cg_CvarSliderInput((View *) stackView, "Mouse sensitivity", "m_sensitivity", 0.1, 10.0, 0.1);
+			Cg_CvarSliderInput((View *) stackView, "Mouse sensitivity", "m_sensitivity", 0.1, 8.0, 0.1);
 
-			Cg_CvarSliderInput((View *) stackView, "Zoom sensitivity", "m_sensitivity_zoom", 0.1, 10.0, 0.1);
+			Cg_CvarSliderInput((View *) stackView, "Zoom sensitivity", "m_sensitivity_zoom", 0.1, 8.0, 0.1);
 
 			Cg_CvarCheckboxInput((View *) stackView, "Invert mouse", "m_invert");
 			Cg_CvarCheckboxInput((View *) stackView, "Smooth mouse", "m_interpolate");

@@ -71,15 +71,19 @@ static void loadView(ViewController *self) {
 
 	MenuViewController *this = (MenuViewController *) self;
 
+	this->panel->isDraggable = false;
 	this->panel->isResizable = false;
-
-	this->panel->stackView.axis = StackViewAxisVertical;
 
 	this->panel->stackView.view.zIndex = 100;
 
 	this->panel->stackView.view.autoresizingMask = ViewAutoresizingContain;
 
-//	this->panel->contentView->view.clipsSubviews = true;
+	this->panel->stackView.view.padding.top = 0;
+	this->panel->stackView.view.padding.right = 0;
+	this->panel->stackView.view.padding.bottom = 0;
+	this->panel->stackView.view.padding.left = 0;
+
+	this->panel->contentView->view.clipsSubviews = true;
 
 	// Setup the NavigationViewController
 
@@ -92,8 +96,6 @@ static void loadView(ViewController *self) {
 
 	StackView *rows = $(alloc(StackView), initWithFrame, NULL);
 
-	rows->spacing = DEFAULT_PANEL_SPACING;
-
 	{
 		StackView *row = $(alloc(StackView), initWithFrame, NULL);
 
@@ -102,7 +104,14 @@ static void loadView(ViewController *self) {
 		row->axis = StackViewAxisHorizontal;
 		row->distribution = StackViewDistributionFillEqually;
 
+		row->view.backgroundColor = QColors.MainHighlight;
+
 		row->view.autoresizingMask |= ViewAutoresizingWidth;
+
+		row->view.padding.top = DEFAULT_PANEL_SPACING;
+		row->view.padding.right = DEFAULT_PANEL_SPACING;
+		row->view.padding.bottom = DEFAULT_PANEL_SPACING;
+		row->view.padding.left = DEFAULT_PANEL_SPACING;
 
 		{
 			// Tab buttons
@@ -120,24 +129,22 @@ static void loadView(ViewController *self) {
 	}
 
 	{
-		StackView *row = $(alloc(StackView), initWithFrame, NULL);
+		View *row = $(alloc(View), initWithFrame, NULL);
 
-		row->spacing = DEFAULT_PANEL_SPACING;
+		row->autoresizingMask = ViewAutoresizingNone;
 
-		row->view.backgroundColor = Colors.Clear;
+		row->frame.w = Min(900, cgi.context->window_width - 30);
+		row->frame.h = Min(500, cgi.context->window_height - 80);
 
-		row->view.autoresizingMask = ViewAutoresizingNone;
+		// NavigationViewController's tab view
 
-		row->view.frame.w = Min(900, cgi.context->window_width - 30);
-		row->view.frame.h = Min(500, cgi.context->window_height - 80);
+		$(row, addSubview, nvc->viewController.view);
 
-		{
-			// Tab body
+		// Shadow
 
-			$((View *) row, addSubview, nvc->viewController.view);
-		}
+		Cg_Picture(row, "shadow_s", ViewAlignmentTopLeft, ViewAutoresizingWidth);
 
-		$((View *) rows, addSubview, (View *) row);
+		$((View *) rows, addSubview, row);
 		release(row);
 	}
 

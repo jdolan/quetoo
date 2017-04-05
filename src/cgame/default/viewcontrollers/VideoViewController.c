@@ -90,7 +90,7 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "Options");
+			$(box->label, setText, "Rendering");
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
@@ -114,17 +114,6 @@ static void loadView(ViewController *self) {
 			Cg_Input((View *) stackView, "Multisample", (Control *) multisampleSelect);
 			release(multisampleSelect);
 
-			cvar_t *r_shadows = cgi.CvarGet("r_shadows");
-			Select *shadowsSelect = (Select *) $(alloc(CvarSelect), initWithVariable, r_shadows);
-
-			$(shadowsSelect, addOption, "Highest", (ident) 3);
-			$(shadowsSelect, addOption, "High", (ident) 2);
-			$(shadowsSelect, addOption, "Low", (ident) 1);
-			$(shadowsSelect, addOption, "Off", (ident) 0);
-
-			Cg_Input((View *) stackView, "Shadows", (Control *) shadowsSelect);
-			release(shadowsSelect);
-
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
 
@@ -142,6 +131,39 @@ static void loadView(ViewController *self) {
 			Cg_CvarSliderInput((View *) stackView, "Contrast", "r_contrast", 0.1, 2.0, 0.1);
 			Cg_CvarSliderInput((View *) stackView, "Gamma", "r_gamma", 0.1, 2.0, 0.1);
 			Cg_CvarSliderInput((View *) stackView, "Modulate", "r_modulate", 0.1, 5.0, 0.1);
+
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
+
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
+
+		$((View *) columns, addSubview, (View *) column);
+		release(column);
+	}
+
+	{
+		StackView *column = $(alloc(StackView), initWithFrame, NULL);
+
+		columns->spacing = DEFAULT_PANEL_SPACING;
+
+		{
+			Box *box = $(alloc(Box), initWithFrame, NULL);
+			$(box->label, setText, "Options");
+
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+			cvar_t *r_shadows = cgi.CvarGet("r_shadows");
+			Select *shadowsSelect = (Select *) $(alloc(CvarSelect), initWithVariable, r_shadows);
+
+			$(shadowsSelect, addOption, "Highest", (ident) 3);
+			$(shadowsSelect, addOption, "High", (ident) 2);
+			$(shadowsSelect, addOption, "Low", (ident) 1);
+			$(shadowsSelect, addOption, "Off", (ident) 0);
+
+			Cg_Input((View *) stackView, "Shadows", (Control *) shadowsSelect);
+			release(shadowsSelect);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);

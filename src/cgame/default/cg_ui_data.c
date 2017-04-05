@@ -157,6 +157,38 @@ void Cg_Label(View *view, const char *text) {
 /**
  * @brief
  */
+void Cg_Picture(View *view, const char *pic, ViewAlignment align, ViewAutoresizing resize) {
+
+	assert(view);
+
+	ImageView *shadow = $(alloc(ImageView), initWithFrame, NULL);
+	assert(shadow);
+
+	SDL_Surface *surface;
+
+	if (cgi.LoadSurface(va("ui/pics/%s", pic), &surface)) {
+		$(shadow, setImageWithSurface, surface);
+
+		shadow->view.frame.w = surface->w;
+		shadow->view.frame.h = surface->h;
+
+		SDL_FreeSurface(surface);
+	} else {
+		$(shadow, setImage, NULL);
+	}
+
+	shadow->view.zIndex = 3; // Above other elements in the same View
+
+	shadow->view.alignment = align;
+	shadow->view.autoresizingMask = resize;
+
+	$(view, addSubview, (View *) shadow);
+	release(shadow);
+}
+
+/**
+ * @brief
+ */
 void Cg_PrimaryButton(View *view, const char *name, ViewAlignment align, SDL_Color color, ActionFunction action, ident sender, ident data) {
 
 	assert(view);

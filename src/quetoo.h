@@ -530,12 +530,12 @@ typedef enum {
 	ANIM_LEGS_IDLECR,
 
 	ANIM_LEGS_TURN,
-	
+
 	/**
 	 * @brief Masks out the bits and only keeps the animation value
 	 */
 	ANIM_MASK_VALUE = (1 << 6) - 1,
-	
+
 	/**
 	 * @brief Play the animation backwards.
 	 */

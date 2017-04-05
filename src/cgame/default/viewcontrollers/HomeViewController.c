@@ -34,7 +34,10 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	HomeViewController *this = (HomeViewController *) self;
+	MenuViewController *this = (MenuViewController *) self;
+
+	this->panel->isDraggable = false;
+	this->panel->isResizable = false;
 }
 
 #pragma mark - Class lifecycle
@@ -57,7 +60,7 @@ Class *_HomeViewController(void) {
 
 	do_once(&once, {
 		clazz.name = "HomeViewController";
-		clazz.superclass = _ViewController();
+		clazz.superclass = _MenuViewController();
 		clazz.instanceSize = sizeof(HomeViewController);
 		clazz.interfaceOffset = offsetof(HomeViewController, interface);
 		clazz.interfaceSize = sizeof(HomeViewControllerInterface);
