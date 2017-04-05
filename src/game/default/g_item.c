@@ -2277,6 +2277,7 @@ static g_item_t g_items[] = {
 	},
 
 	{
+		.class_name = "item_tech_haste",
 		.Pickup = G_PickupTech,
 		.Use = NULL,
 		.Drop = G_DropTech,
@@ -2295,6 +2296,7 @@ static g_item_t g_items[] = {
 	},
 
 	{
+		.class_name = "item_tech_regen",
 		.Pickup = G_PickupTech,
 		.Use = NULL,
 		.Drop = G_DropTech,
@@ -2313,6 +2315,7 @@ static g_item_t g_items[] = {
 	},
 
 	{
+		.class_name = "item_tech_resist",
 		.Pickup = G_PickupTech,
 		.Use = NULL,
 		.Drop = G_DropTech,
@@ -2331,6 +2334,7 @@ static g_item_t g_items[] = {
 	},
 
 	{
+		.class_name = "item_tech_strength",
 		.Pickup = G_PickupTech,
 		.Use = NULL,
 		.Drop = G_DropTech,
@@ -2349,6 +2353,7 @@ static g_item_t g_items[] = {
 	},
 
 	{
+		.class_name = "item_tech_vampire",
 		.Pickup = G_PickupTech,
 		.Use = NULL,
 		.Drop = G_DropTech,
