@@ -124,6 +124,27 @@ static void loadView(ViewController *self) {
 			release(box);
 		}
 
+		{
+			Box *box = $(alloc(Box), initWithFrame, NULL);
+			$(box->label, setText, "Camera");
+
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+			// Field of view
+
+			Cg_CvarSliderInput((View *) stackView, "FOV", cg_fov->name, 80.0, 130.0, 5.0);
+
+			// Zoomed field of view
+
+			Cg_CvarSliderInput((View *) stackView, "Zoom FOV", cg_fov_zoom->name, 20.0, 70.0, 5.0);
+
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
+
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
+
 		$((View *) columns, addSubview, (View *) column);
 		release(column);
 	}

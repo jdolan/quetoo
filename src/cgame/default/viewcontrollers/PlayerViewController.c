@@ -131,14 +131,6 @@ static void loadView(ViewController *self) {
 
 			Cg_CvarSliderInput((View *) stackView, "Handicap", cg_handicap->name, 50.0, 100.0, 5.0);
 
-			// field of view
-
-			Cg_CvarSliderInput((View *) stackView, "FOV", cg_fov->name, 80.0, 130.0, 5.0);
-
-			// zoomed field of view
-
-			Cg_CvarSliderInput((View *) stackView, "Zoom FOV", cg_fov_zoom->name, 20.0, 70.0, 5.0);
-
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
 
