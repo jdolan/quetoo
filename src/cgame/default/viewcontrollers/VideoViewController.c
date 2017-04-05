@@ -170,9 +170,9 @@ static void loadView(ViewController *self) {
 
 			Cg_CvarCheckboxInput((View *) stackView, "Weather effects", "cg_add_weather");
 
-			Cg_CvarCheckboxInput((View *) stackView, "Parallax mapping", "r_parallax");
 			Cg_CvarCheckboxInput((View *) stackView, "Bump mapping", "r_bumpmap");
-//			Cg_CvarCheckboxInput((View *) stackView, "Deluxe mapping", "r_deluxemap");
+			Cg_CvarCheckboxInput((View *) stackView, "Parallax mapping", "r_parallax");
+			Cg_CvarCheckboxInput((View *) stackView, "Deluxe mapping", "r_deluxemap");
 
 			Cg_CvarCheckboxInput((View *) stackView, "Stainmaps", "r_stainmap");
 
