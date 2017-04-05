@@ -301,6 +301,8 @@ static void ProcessModels(void) {
  */
 static void CreateBSPFile(void) {
 
+	memset(&bsp_file, 0, sizeof(bsp_file));
+
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_PLANES, MAX_BSP_PLANES);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_VERTEXES, MAX_BSP_VERTS);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_NODES, MAX_BSP_NODES);
@@ -330,9 +332,6 @@ int32_t BSP_Main(void) {
 	Com_Print("\n----- BSP -----\n\n");
 
 	const time_t start = time(NULL);
-
-	// clear the whole bsp structure
-	memset(&bsp_file, 0, sizeof(bsp_file));
 
 	LoadMaterials();
 

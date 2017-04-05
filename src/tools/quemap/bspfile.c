@@ -274,6 +274,8 @@ void VectorForKey(const entity_t *ent, const char *key, vec3_t vec) {
 
 int32_t LoadBSPFile(const char *filename, const bsp_lump_id_t lumps) {
 
+	memset(&bsp_file, 0, sizeof(bsp_file));
+
 	bsp_header_t *file;
 
 	if (Fs_Load(filename, (void **) &file) == -1) {
