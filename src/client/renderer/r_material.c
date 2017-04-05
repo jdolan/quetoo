@@ -131,6 +131,10 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 		R_EnableTexture(texunit_lightmap, true);
 
 		R_BindLightmapTexture(surf->lightmap->texnum);
+		
+		if (r_deluxemap->integer) {
+			R_EnableTexture(texunit_deluxemap, true);
+		}
 
 		if (surf->stainmap.fb) {
 			R_EnableTexture(texunit_stainmap, true);
@@ -142,6 +146,7 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 			R_EnableLighting(program_default, true);
 
 			if (r_state.lighting_enabled) {
+
 				R_BindDeluxemapTexture(surf->deluxemap->texnum);
 
 				if (surf->light_frame == r_locals.light_frame) { // dynamic light sources
@@ -157,7 +162,7 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 		R_EnableLighting(NULL, false);
 
 		R_EnableTexture(texunit_lightmap, false);
-
+		R_EnableTexture(texunit_deluxemap, false);
 		R_EnableTexture(texunit_stainmap, false);
 	}
 
@@ -486,7 +491,11 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableTexture(texunit_lightmap, true);
 
-	if (r_stainmap->value) {
+	if (r_deluxemap->integer) {
+		R_EnableTexture(texunit_deluxemap, true);
+	}
+
+	if (r_stainmap->integer) {
 		R_EnableTexture(texunit_stainmap, true);
 	}
 
@@ -503,6 +512,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	R_EnableLighting(NULL, false);
 
 	R_EnableTexture(texunit_lightmap, false);
+	R_EnableTexture(texunit_deluxemap, false);
 
 	R_EnablePolygonOffset(true);
 
@@ -549,7 +559,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	R_EnableColorArray(false);
 
 	R_EnableTexture(texunit_lightmap, false);
-
+	R_EnableTexture(texunit_deluxemap, false);
 	R_EnableTexture(texunit_stainmap, false);
 
 	R_EnableLighting(program_default, true);
@@ -659,13 +669,18 @@ static void R_FreeMaterial(r_media_t *self) {
 /**
  * @brief
  */
-static void R_LoadNormalmap(r_material_t *mat, const char *base) {
-	const char *suffix[] = { "_nm", "_norm", "_local", "_bump" };
+static void R_LoadNormalmap(r_material_t *mat) {
 
-	for (size_t i = 0; i < lengthof(suffix); i++) {
-		mat->normalmap = R_LoadImage(va("%s%s", base, suffix[i]), IT_NORMALMAP);
-		if (mat->normalmap->type == IT_NORMALMAP) {
-			break;
+	if (strlen(mat->cm->normalmap)) {
+		mat->normalmap = R_LoadImage(mat->cm->normalmap, IT_NORMALMAP);
+	} else {
+		const char *suffix[] = { "_nm", "_norm", "_local", "_bump" };
+
+		for (size_t i = 0; i < lengthof(suffix); i++) {
+			mat->normalmap = R_LoadImage(va("%s%s", mat->cm->base, suffix[i]), IT_NORMALMAP);
+			if (mat->normalmap->type == IT_NORMALMAP) {
+				break;
+			}
 		}
 	}
 
@@ -677,13 +692,18 @@ static void R_LoadNormalmap(r_material_t *mat, const char *base) {
 /**
  * @brief
  */
-static void R_LoadSpecularmap(r_material_t *mat, const char *base) {
-	const char *suffix[] = { "_s", "_gloss", "_spec" };
+static void R_LoadSpecularmap(r_material_t *mat) {
 
-	for (size_t i = 0; i < lengthof(suffix); i++) {
-		mat->specularmap = R_LoadImage(va("%s%s", base, suffix[i]), IT_SPECULARMAP);
-		if (mat->specularmap->type == IT_SPECULARMAP) {
-			break;
+	if (strlen(mat->cm->specularmap)) {
+		mat->specularmap = R_LoadImage(mat->cm->specularmap, IT_SPECULARMAP);
+	} else {
+		const char *suffix[] = { "_s", "_gloss", "_spec" };
+
+		for (size_t i = 0; i < lengthof(suffix); i++) {
+			mat->specularmap = R_LoadImage(va("%s%s", mat->cm->base, suffix[i]), IT_SPECULARMAP);
+			if (mat->specularmap->type == IT_SPECULARMAP) {
+				break;
+			}
 		}
 	}
 
@@ -695,13 +715,18 @@ static void R_LoadSpecularmap(r_material_t *mat, const char *base) {
 /**
  * @brief
  */
-static void R_LoadTintmap(r_material_t *mat, const char *base) {
-	const char *suffix[] = { "_tint" };
+static void R_LoadTintmap(r_material_t *mat) {
 
-	for (size_t i = 0; i < lengthof(suffix); i++) {
-		mat->tintmap = R_LoadImage(va("%s%s", base, suffix[i]), IT_TINTMAP);
-		if (mat->tintmap->type == IT_TINTMAP) {
-			break;
+	if (strlen(mat->cm->tintmap)) {
+		mat->tintmap = R_LoadImage(mat->cm->tintmap, IT_TINTMAP);
+	} else {
+		const char *suffix[] = { "_tint" };
+
+		for (size_t i = 0; i < lengthof(suffix); i++) {
+			mat->tintmap = R_LoadImage(va("%s%s", mat->cm->base, suffix[i]), IT_TINTMAP);
+			if (mat->tintmap->type == IT_TINTMAP) {
+				break;
+			}
 		}
 	}
 
@@ -738,13 +763,15 @@ static _Bool R_ConvertMaterial(cm_material_t *cm, r_material_t **mat) {
 		material->diffuse = R_LoadImage(cm->diffuse, IT_DIFFUSE);
 
 		if (material->diffuse->type == IT_DIFFUSE) {
-			R_LoadNormalmap(material, cm->base);
+			R_LoadNormalmap(material);
 
 			if (material->normalmap) {
-				R_LoadSpecularmap(material, cm->base);
+				R_LoadSpecularmap(material);
 			}
 
-			R_LoadTintmap(material, cm->base);
+			if (!g_str_has_prefix(material->cm->base, "textures/")) {
+				R_LoadTintmap(material);
+			}
 		}
 
 		R_RegisterMedia((r_media_t *) material);

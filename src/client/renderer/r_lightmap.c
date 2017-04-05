@@ -268,10 +268,6 @@ static void R_UploadPackedLightmaps(uint32_t width, uint32_t height, r_bsp_model
 		byte *dout = direction_buffer + lightmap_offset;
 
 		if (surf->lightmap_input) {
-			if (stainmap.fb) {
-				surf->stainmap = stainmap;
-			}
-
 			R_BuildLightmap(bsp, surf, surf->lightmap_input, sout, dout, stride);
 		} else {
 			R_BuildDefaultLightmap(bsp, surf, sout, dout, stride);
@@ -279,6 +275,10 @@ static void R_UploadPackedLightmaps(uint32_t width, uint32_t height, r_bsp_model
 
 		surf->lightmap = lightmap;
 		surf->deluxemap = deluxemap;
+
+		if (stainmap.fb) {
+			surf->stainmap = stainmap;
+		}
 
 		start = start->next;
 	} while (start != end);

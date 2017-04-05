@@ -64,6 +64,7 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 	}
 
 	if (r_state.lighting_enabled) { // hardware lighting
+
 		R_BindDeluxemapTexture(surf->deluxemap->texnum);
 
 		if (surf->light_frame == r_locals.light_frame) { // dynamic light sources
@@ -185,6 +186,10 @@ void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableTexture(texunit_lightmap, true);
 
+	if (r_deluxemap->value) {
+		R_EnableTexture(texunit_deluxemap, true);
+	}
+
 	if (r_stainmap->value) {
 		R_EnableTexture(texunit_stainmap, true);
 	}
@@ -204,7 +209,7 @@ void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 	R_EnableLighting(NULL, false);
 
 	R_EnableTexture(texunit_lightmap, false);
-
+	R_EnableTexture(texunit_deluxemap, false);
 	R_EnableTexture(texunit_stainmap, false);
 
 	if (r_draw_bsp_lightmaps->value) {
@@ -269,6 +274,10 @@ void R_DrawAlphaTestBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableTexture(texunit_lightmap, true);
 
+	if (r_deluxemap->value) {
+		R_EnableTexture(texunit_deluxemap, true);
+	}
+
 	if (r_stainmap->value) {
 		R_EnableTexture(texunit_stainmap, true);
 	}
@@ -280,7 +289,7 @@ void R_DrawAlphaTestBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 	R_EnableLighting(NULL, false);
 
 	R_EnableTexture(texunit_lightmap, false);
-
+	R_EnableTexture(texunit_deluxemap, false);
 	R_EnableTexture(texunit_stainmap, false);
 
 	R_EnableAlphaTest(ALPHA_TEST_DISABLED_THRESHOLD);
@@ -310,6 +319,10 @@ void R_DrawBlendBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableTexture(texunit_lightmap, true);
 
+	if (r_deluxemap->value) {
+		R_EnableTexture(texunit_deluxemap, true);
+	}
+
 	if (r_stainmap->value) {
 		R_EnableTexture(texunit_stainmap, true);
 	}
@@ -321,7 +334,7 @@ void R_DrawBlendBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 	R_EnableLighting(NULL, false);
 
 	R_EnableTexture(texunit_lightmap, false);
-
+	R_EnableTexture(texunit_deluxemap, false);
 	R_EnableTexture(texunit_stainmap, false);
 
 	if (r_draw_bsp_lightmaps->value) {
