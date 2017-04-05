@@ -68,4 +68,7 @@ if WINDOWS
 quemap_SOURCES += \
 	quemap-icon.rc
 
+quemap_LDFLAGS = \
+	-mconsole
+
 endif

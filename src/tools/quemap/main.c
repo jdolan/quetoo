@@ -21,6 +21,10 @@
 
 #include "quemap.h"
 
+#if defined(__MINGW32__)
+ #define SDL_MAIN_HANDLED
+#endif
+
 #include <SDL2/SDL.h>
 
 quetoo_t quetoo;
