@@ -162,7 +162,7 @@ int32_t CountBrushList(brush_t *brushes) {
 tree_t *AllocTree(void) {
 	tree_t *tree;
 
-	tree = Mem_Malloc(sizeof(*tree));
+	tree = Mem_TagMalloc(sizeof(*tree), MEM_TAG_TREE);
 	ClearBounds(tree->mins, tree->maxs);
 
 	return tree;
@@ -177,7 +177,7 @@ node_t *AllocNode(void) {
 		SDL_SemPost(semaphores.active_nodes);
 	}
 
-	return Mem_Malloc(sizeof(node_t));
+	return Mem_TagMalloc(sizeof(node_t), MEM_TAG_NODE);
 }
 
 /**
@@ -203,7 +203,7 @@ brush_t *AllocBrush(int32_t num_sides) {
 		SDL_SemPost(semaphores.active_brushes);
 	}
 
-	return Mem_Malloc(size);
+	return Mem_TagMalloc(size, MEM_TAG_BRUSH);
 }
 
 /**
