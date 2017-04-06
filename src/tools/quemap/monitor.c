@@ -195,6 +195,8 @@ _Bool Mon_Init(const char *host) {
 
 	memset(&mon_state, 0, sizeof(mon_state));
 
+	xmlInitParser();
+
 	if ((mon_state.socket = Net_Connect(host, NULL))) {
 		Mem_InitBuffer(&mon_state.message, mon_state.buffer, sizeof(mon_state.buffer));
 
@@ -262,6 +264,8 @@ void Mon_Shutdown(const char *msg) {
 	}
 
 	mon_backlog = NULL;
+
+	xmlCleanupParser();
 
 	Net_Shutdown();
 }
