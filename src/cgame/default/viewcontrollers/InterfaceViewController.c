@@ -69,13 +69,14 @@ static void loadView(ViewController *self) {
 
 	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
-	columns->axis = StackViewAxisHorizontal;
 	columns->spacing = DEFAULT_PANEL_SPACING;
+
+	columns->axis = StackViewAxisHorizontal;
 
 	{
 		StackView *column = $(alloc(StackView), initWithFrame, NULL);
 
-		columns->spacing = DEFAULT_PANEL_SPACING;
+		column->spacing = DEFAULT_PANEL_SPACING;
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);

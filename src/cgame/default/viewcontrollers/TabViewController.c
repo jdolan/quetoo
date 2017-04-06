@@ -57,6 +57,7 @@ static void loadView(ViewController *self) {
 
 	this->panel->stackView.view.needsLayout = true;
 
+	this->panel->stackView.view.backgroundColor = Colors.Clear;
 	this->panel->stackView.view.borderColor = QColors.BorderLight;
 
 	this->panel->stackView.view.alignment = ViewAlignmentTopLeft;

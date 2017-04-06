@@ -116,9 +116,6 @@ void Cg_Input(View *view, const char *label, Control *control) {
 	Input *input = $(alloc(Input), initWithFrame, NULL);
 	assert(input);
 
-	input->control->view.alignment = ViewAlignmentMiddleRight;
-	input->control->view.autoresizingMask |= ViewAutoresizingWidth;
-
 	$(input, setControl, control);
 
 	$(input->label->text, setText, label);

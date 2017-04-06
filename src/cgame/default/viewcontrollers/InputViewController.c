@@ -108,6 +108,7 @@ static void loadView(ViewController *self) {
 		Cg_BindInput((View *) stackView, "BFG-10K", "use bfg10k");
 
 		$(scrollView, setContentView, (View *) stackView);
+
 		$((View *) scrollView, addSubview, (View *) stackView);
 		release(stackView);
 
@@ -121,7 +122,7 @@ static void loadView(ViewController *self) {
 	{
 		StackView *column = $(alloc(StackView), initWithFrame, NULL);
 
-		columns->spacing = DEFAULT_PANEL_SPACING;
+		column->spacing = DEFAULT_PANEL_SPACING;
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
