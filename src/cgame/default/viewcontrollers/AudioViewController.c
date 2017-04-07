@@ -53,6 +53,9 @@ static void loadView(ViewController *self) {
 	columns->spacing = DEFAULT_PANEL_SPACING;
 
 	columns->axis = StackViewAxisHorizontal;
+	columns->distribution = StackViewDistributionFillEqually;
+
+	columns->view.autoresizingMask = ViewAutoresizingFill;
 
 	{
 		StackView *column = $(alloc(StackView), initWithFrame, NULL);
@@ -61,12 +64,42 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "Audio");
+			$(box->label, setText, "Volumes");
+
+			box->view.autoresizingMask |= ViewAutoresizingWidth;
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Cg_CvarSliderInput((View *) stackView, "Volume", "s_volume", 0.0, 1.0, 0.1);
-			Cg_CvarSliderInput((View *) stackView, "Music Volume", "s_music_volume", 0.0, 1.0, 0.1);
+			Cg_CvarSliderInput((View *) stackView, "Effect volume", "s_volume", 0.0, 1.0, 0.1);
+			Cg_CvarSliderInput((View *) stackView, "Music volume", "s_music_volume", 0.0, 1.0, 0.1);
+
+			Cg_CvarCheckboxInput((View *) stackView, "Ambient sound", "s_ambient");
+
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
+
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
+
+		$((View *) columns, addSubview, (View *) column);
+		release(column);
+	}
+
+	{
+		StackView *column = $(alloc(StackView), initWithFrame, NULL);
+
+		column->spacing = DEFAULT_PANEL_SPACING;
+
+		{
+			Box *box = $(alloc(Box), initWithFrame, NULL);
+			$(box->label, setText, "Options");
+
+			box->view.autoresizingMask |= ViewAutoresizingWidth;
+
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+			Cg_CvarCheckboxInput((View *) stackView, "Swap stereo", "s_reverse");
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);

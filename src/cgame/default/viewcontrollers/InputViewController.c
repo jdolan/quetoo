@@ -57,6 +57,8 @@ static void loadView(ViewController *self) {
 
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
+		stackView->view.autoresizingMask |= ViewAutoresizingHeight;
+
 		Cg_Label((View *) stackView, "Movement");
 
 		Cg_BindInput((View *) stackView, "Forward", "+forward");
@@ -127,6 +129,8 @@ static void loadView(ViewController *self) {
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
 			$(box->label, setText, "Mouse");
+
+			box->view.autoresizingMask |= ViewAutoresizingWidth;
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 

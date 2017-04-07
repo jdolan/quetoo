@@ -178,8 +178,8 @@ static void S_Restart_f(void) {
  */
 static void S_InitLocal(void) {
 
-	s_ambient = Cvar_Add("s_ambient", "1", CVAR_ARCHIVE, "Controls playback of ambient sounds.");
-	s_music_volume = Cvar_Add("s_music_volume", "0.15", CVAR_ARCHIVE, "Music volume level.");
+	s_ambient = Cvar_Add("s_ambient", "1", CVAR_ARCHIVE, "If ambient sound is played. 0 disables, 1 enables, 2 plays only ambient sound.");
+	s_music_volume = Cvar_Add("s_music_volume", "0.2", CVAR_ARCHIVE, "Music volume level.");
 	s_rate = Cvar_Add("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE, "Sound sample rate in Hz.");
 	s_reverse = Cvar_Add("s_reverse", "0", CVAR_ARCHIVE, "Reverse left and right channels.");
 	s_volume = Cvar_Add("s_volume", "1.0", CVAR_ARCHIVE, "Global sound volume level.");

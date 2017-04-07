@@ -72,6 +72,9 @@ static void loadView(ViewController *self) {
 	columns->spacing = DEFAULT_PANEL_SPACING;
 
 	columns->axis = StackViewAxisHorizontal;
+	columns->distribution = StackViewDistributionFillEqually;
+
+	columns->view.autoresizingMask = ViewAutoresizingFill;
 
 	{
 		StackView *column = $(alloc(StackView), initWithFrame, NULL);
@@ -81,6 +84,8 @@ static void loadView(ViewController *self) {
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
 			$(box->label, setText, "Crosshair");
+
+			box->view.autoresizingMask |= ViewAutoresizingWidth;
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
@@ -125,9 +130,20 @@ static void loadView(ViewController *self) {
 			release(box);
 		}
 
+		$((View *) columns, addSubview, (View *) column);
+		release(column);
+	}
+
+	{
+		StackView *column = $(alloc(StackView), initWithFrame, NULL);
+
+		column->spacing = DEFAULT_PANEL_SPACING;
+
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "Camera");
+			$(box->label, setText, "View");
+
+			box->view.autoresizingMask |= ViewAutoresizingWidth;
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
@@ -138,6 +154,51 @@ static void loadView(ViewController *self) {
 			// Zoomed field of view
 
 			Cg_CvarSliderInput((View *) stackView, "Zoom FOV", cg_fov_zoom->name, 20.0, 70.0, 5.0);
+
+			// Zoom easing speed
+
+			Cg_CvarSliderInput((View *) stackView, "Zoom interpolate", cg_fov_interpolate->name, 0.0, 2.0, 0.1);
+
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
+
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
+
+		{
+			Box *box = $(alloc(Box), initWithFrame, NULL);
+			$(box->label, setText, "Screen");
+
+			box->view.autoresizingMask |= ViewAutoresizingWidth;
+
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+			// Blending
+
+			Cg_CvarCheckboxInput((View *) stackView, "Screen blending", cg_draw_blend->name);
+			Cg_CvarCheckboxInput((View *) stackView, "Liquid blend", cg_draw_blend_liquid->name);
+			Cg_CvarCheckboxInput((View *) stackView, "Pickup blend", cg_draw_blend_pickup->name);
+
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
+
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
+
+		{
+			Box *box = $(alloc(Box), initWithFrame, NULL);
+			$(box->label, setText, "Weapon");
+
+			box->view.autoresizingMask |= ViewAutoresizingWidth;
+
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+			// Weapon options
+
+			Cg_CvarCheckboxInput((View *) stackView, "Draw weapon", cg_draw_weapon->name);
+			Cg_CvarSliderInput((View *) stackView, "Weapon alpha", cg_draw_weapon_alpha->name, 0.1, 1.0, 0.1);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);

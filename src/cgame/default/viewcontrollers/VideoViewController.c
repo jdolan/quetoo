@@ -53,6 +53,9 @@ static void loadView(ViewController *self) {
 	columns->spacing = DEFAULT_PANEL_SPACING;
 
 	columns->axis = StackViewAxisHorizontal;
+	columns->distribution = StackViewDistributionFillEqually;
+
+	columns->view.autoresizingMask = ViewAutoresizingFill;
 
 	{
 		StackView *column = $(alloc(StackView), initWithFrame, NULL);
@@ -62,6 +65,8 @@ static void loadView(ViewController *self) {
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
 			$(box->label, setText, "Video");
+
+			box->view.autoresizingMask |= ViewAutoresizingWidth;
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
@@ -92,6 +97,8 @@ static void loadView(ViewController *self) {
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
 			$(box->label, setText, "Rendering");
+
+			box->view.autoresizingMask |= ViewAutoresizingWidth;
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
@@ -126,6 +133,8 @@ static void loadView(ViewController *self) {
 			Box *box = $(alloc(Box), initWithFrame, NULL);
 			$(box->label, setText, "Picture");
 
+			box->view.autoresizingMask |= ViewAutoresizingWidth;
+
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
 			Cg_CvarSliderInput((View *) stackView, "Brightness", "r_brightness", 0.1, 2.0, 0.1);
@@ -152,6 +161,8 @@ static void loadView(ViewController *self) {
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
 			$(box->label, setText, "Effects");
+
+			box->view.autoresizingMask |= ViewAutoresizingWidth;
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
