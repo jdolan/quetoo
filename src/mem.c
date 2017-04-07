@@ -334,6 +334,14 @@ void *Mem_Realloc(void *p, size_t size) {
 		g_hash_table_add(mem_state.blocks, new_b);
 	}
 
+	// change our childrens' parent pointers
+	if (new_b->children) {
+		for (GSList *children = new_b->children; children; children = children->next) {
+			mem_block_t *child = (mem_block_t *) children->data;
+			child->parent = new_b;
+		}
+	}
+
 	mem_state.size -= old_size;
 	mem_state.size += size;
 	
