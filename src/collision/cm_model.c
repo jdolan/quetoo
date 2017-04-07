@@ -85,8 +85,8 @@ static void Cm_LoadBspSurfaces(void) {
 		out->flags = in->flags;
 		out->value = in->value;
 
-		for (size_t i = 0; i < cm_bsp.num_materials; i++) {
-			cm_material_t *material = cm_bsp.materials[i];
+		for (size_t i = 0; i < cm_bsp.materials.count; i++) {
+			cm_material_t *material = cm_bsp.materials.materials[i];
 
 			if (!g_strcmp0(out->name, material->name)) {
 				out->material = material;
@@ -282,12 +282,12 @@ static void Cm_LoadBspAreaPortals(void) {
 /**
  * @brief
  */
-static cm_material_t **Cm_LoadBspMaterials(const char *name, size_t *count) {
+static size_t Cm_LoadBspMaterials(const char *name) {
 
 	char base[MAX_QPATH];
 	StripExtension(Basename(name), base);
 
-	return Cm_LoadMaterials(va("materials/%s.mat", base), count);
+	return Cm_LoadMaterials(va("materials/%s.mat", base), &cm_bsp.materials);
 }
 
 /**
@@ -295,12 +295,7 @@ static cm_material_t **Cm_LoadBspMaterials(const char *name, size_t *count) {
  */
 static void Cm_UnloadBspMaterials(void) {
 
-	for (size_t i = 0; i < cm_bsp.num_materials; i++) {
-		Cm_FreeMaterial(cm_bsp.materials[i]);
-	}
-
-	Cm_FreeMaterialList(cm_bsp.materials);
-	cm_bsp.materials = NULL;
+	Cm_FreeMaterialList(&cm_bsp.materials, true);
 }
 
 /**
@@ -392,7 +387,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 
 	Fs_Free(file);
 
-	cm_bsp.materials = Cm_LoadBspMaterials(name, &cm_bsp.num_materials);
+	Cm_LoadBspMaterials(name);
 
 	Cm_LoadBspPlanes();
 	Cm_LoadBspNodes();
@@ -458,8 +453,8 @@ const char *Cm_EntityString(void) {
  * @brief
  */
 const cm_material_t **Cm_MapMaterials(size_t *num_materials) {
-	*num_materials = cm_bsp.num_materials;
-	return (const cm_material_t **) cm_bsp.materials;
+	*num_materials = cm_bsp.materials.count;
+	return (const cm_material_t **) cm_bsp.materials.materials;
 }
 
 /**

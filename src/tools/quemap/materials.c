@@ -29,14 +29,14 @@ static GPtrArray *materials;
  */
 void LoadMaterials(void) {
 
-	size_t count;
-	cm_material_t **mats = Cm_LoadMaterials(va("materials/%s.mat", map_base), &count);
-	cm_material_t **material = mats;
-
 	materials = g_ptr_array_new_with_free_func((GDestroyNotify) Cm_FreeMaterial);
 	assert(materials);
 
-	for (size_t i = 0; i < count; i++, material++) {
+	cm_material_list_t mats;
+	Cm_LoadMaterials(va("materials/%s.mat", map_base), &mats);
+
+	cm_material_t **material = mats.materials;
+	for (size_t i = 0; i < mats.count; i++, material++) {
 		g_ptr_array_add(materials, *material);
 	}
 }
@@ -74,7 +74,12 @@ cm_material_t *LoadMaterial(const char *name) {
  */
 void WriteMaterialsFile(const char *filename) {
 
-	Cm_WriteMaterials(filename, (const cm_material_t **) materials->pdata, materials->len);
+	const cm_material_list_t mats = {
+		.materials = (cm_material_t **) materials->pdata,
+		.count = materials->len
+	};
 
-	Com_Print("Generated %d materials\n", materials->len);
+	Cm_WriteMaterials(filename, &mats);
+
+	Com_Print("Generated %zd materials\n", mats.count);
 }

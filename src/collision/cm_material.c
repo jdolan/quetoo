@@ -32,12 +32,18 @@ void Cm_FreeMaterial(cm_material_t *material) {
 }
 
 /**
- * @brief Frees the material list allocated by LoadMaterials. This doesn't
- * free the actual materials, so be sure they're safe!
+ * @brief Frees the materials list, and optionally the backing materials.
  */
-void Cm_FreeMaterialList(cm_material_t **materials) {
+void Cm_FreeMaterialList(cm_material_list_t *materials, _Bool full) {
 
-	g_free(materials);
+	if (full) {
+		for (size_t i = 0; i < materials->count; i++) {
+			Cm_FreeMaterial(materials->materials[i]);
+		}
+	}
+
+	g_free(materials->materials);
+	materials->count = 0;
 }
 
 /**
@@ -708,23 +714,22 @@ cm_material_t *Cm_AllocMaterial(const char *name) {
 }
 
 /**
- * @brief Loads all of the materials for the specified .mat file. This must be
- * a full, absolute path to a .mat file with extension. Returns a pointer to the
- * start of the list of materials loaded by this function.
+ * @brief Loads the materials defined in the specified file.
+ * @param path The Quake path of the materials file.
+ * @param materials The materials list to populate.
+ * @return The length of the populated materials list.
  */
-cm_material_t **Cm_LoadMaterials(const char *path, size_t *count) {
+size_t Cm_LoadMaterials(const char *path, cm_material_list_t *materials) {
 	void *buf;
 
-	if (count) {
-		*count = 0;
-	}
+	memset(materials, 0, sizeof(*materials));
 
 	if (Fs_Load(path, &buf) == -1) {
 		Com_Debug(DEBUG_COLLISION, "Couldn't load %s\n", path);
-		return NULL;
+		return 0;
 	}
 
-	GArray *materials = g_array_new(false, false, sizeof(cm_material_t *));
+	GArray *array = g_array_new(false, false, sizeof(cm_material_t *));
 	cm_material_t *m = NULL;
 
 	_Bool in_material = false, parsing_material = false;
@@ -915,23 +920,20 @@ cm_material_t **Cm_LoadMaterials(const char *path, size_t *count) {
 		}
 
 		if (*token == '}' && in_material) {
-			g_array_append_val(materials, m);
-
-			Com_Debug(DEBUG_COLLISION, "Parsed material %s with %d stages\n",
-					  m->diffuse.name, m->num_stages);
+			g_array_append_val(array, m);
 			in_material = false;
 			parsing_material = false;
+			materials->count++;
 
-			if (count) {
-				(*count)++;
-			}
+			Com_Debug(DEBUG_COLLISION, "Parsed material %s with %d stages\n", m->name, m->num_stages);
 		}
 	}
 
 	Fs_Free(buf);
-	return (cm_material_t **) g_array_free(materials, false);
-}
 
+	materials->materials = (cm_material_t **) g_array_free(array, false);
+	return materials->count;
+}
 
 /**
  * @brief Resolves the path of the specified asset by name within the given context.
@@ -1233,12 +1235,12 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 /**
  * @brief Serialize the material(s) into the specified file.
  */
-void Cm_WriteMaterials(const char *path, const cm_material_t **materials, const size_t num_materials) {
+void Cm_WriteMaterials(const char *path, const cm_material_list_t *materials) {
 
 	file_t *file = Fs_OpenWrite(path);
 	if (file) {
-		for (size_t i = 0; i < num_materials; i++) {
-			Cm_WriteMaterial(materials[i], file);
+		for (size_t i = 0; i < materials->count; i++) {
+			Cm_WriteMaterial(materials->materials[i], file);
 		}
 
 		Fs_Close(file);

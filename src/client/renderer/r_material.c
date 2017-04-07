@@ -845,12 +845,12 @@ void R_LoadMaterials(r_model_t *mod) {
 		context = ASSET_CONTEXT_MODELS;
 	}
 
-	size_t num_materials;
-	cm_material_t **materials = Cm_LoadMaterials(path, &num_materials);
+	cm_material_list_t materials;
+	const size_t num_materials = Cm_LoadMaterials(path, &materials);
 
 	for (size_t i = 0; i < num_materials; i++) {
 
-		r_material_t *mat = R_ResolveMaterial(materials[i], context);
+		r_material_t *mat = R_ResolveMaterial(materials.materials[i], context);
 
 		if (mat->diffuse->type == IT_NULL) {
 			Com_Warn("Failed to resolve %s\n", mat->cm->name);
@@ -861,7 +861,7 @@ void R_LoadMaterials(r_model_t *mod) {
 		Com_Debug(DEBUG_RENDERER, "Parsed material %s with %d stages\n", mat->cm->name, mat->cm->num_stages);
 	}
 
-	Cm_FreeMaterialList(materials);
+	Cm_FreeMaterialList(&materials, false);
 }
 
 /**
@@ -870,7 +870,7 @@ void R_LoadMaterials(r_model_t *mod) {
 static void R_SaveMaterials_f(void) {
 	const r_model_t *mod = r_model_state.world;
 
-	if (!mod) {
+	/*if (!mod) {
 		Com_Print("No map loaded\n");
 		return;
 	}
@@ -878,23 +878,26 @@ static void R_SaveMaterials_f(void) {
 	char path[MAX_QPATH];
 	g_snprintf(path, sizeof(path), "materials/%s.mat", Basename(mod->media.name));
 
-	cm_material_t **materials = Mem_Malloc(sizeof(cm_material_t *) * mod->bsp->cm->num_materials);
+	cm_material_list_t materials = {
+		.materials = Mem_Malloc(sizeof(cm_material_t *) * mod->bsp->cm->materials.count),
+		.count = mod->bsp->cm->materials.count
+	};
 
-	cm_material_t **c = mod->bsp->cm->materials;
-	for (size_t i = 0; i < mod->bsp->cm->num_materials; i++, c++) {
+	cm_material_t **c = mod->bsp->cm->materials.materials;
+	for (size_t i = 0; i < mod->bsp->cm->materials.count; i++, c++) {
 		const char *name = (*c)->diffuse.name;
-		const r_material_t *mat = R_LoadMaterial(name, ASSET_CONTEXT_TEXTURES);
+		const r_material_t *mat = R_LoadMaterial((*c)->name, ASSET_CONTEXT_TEXTURES);
 		if (mat) {
-			materials[i] = mat->cm;
+			materials.materials[i] = mat->cm;
 		} else {
 			Com_Debug(DEBUG_RENDERER, "Failed to resolve renderer material %s\n", name);
 		}
 	}
 
-	Cm_WriteMaterials(path, (const cm_material_t **) materials, mod->bsp->cm->num_materials);
+	Cm_WriteMaterials(path, materials, mod->bsp->cm->num_materials);
 	Com_Print("Saved %s\n", path);
 
-	Mem_Free(materials);
+	Mem_Free(materials.materials);*/
 }
 
 /**

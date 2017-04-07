@@ -55,8 +55,7 @@ typedef struct {
 	_Bool *portal_open;
 	int32_t flood_valid;
 
-	cm_material_t **materials;
-	size_t num_materials;
+	cm_material_list_t materials;
 } cm_bsp_t;
 
 cm_bsp_t *Cm_Bsp(void);
