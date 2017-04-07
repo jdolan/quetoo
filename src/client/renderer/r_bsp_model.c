@@ -127,7 +127,7 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
 		out->flags = in->flags;
 		out->value = in->value;
 
-		out->material = R_LoadMaterial(va("textures/%s", out->name));
+		out->material = R_LoadMaterial(out->name, ASSET_CONTEXT_TEXTURES);
 
 		// hack to down-scale high-res textures for legacy levels
 		if (bsp->version == BSP_VERSION) {
@@ -156,8 +156,8 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
  * @brief Convenience for resolving r_bsp_vertex_t from surface edges.
  */
 #define R_BSP_VERTEX(b, e) ((e) >= 0 ? \
-                            (&r_unique_vertices.vertexes[b->file->edges[(e)].v[0]]) : (&r_unique_vertices.vertexes[b->file->edges[-(e)].v[1]]) \
-                           )
+	(&r_unique_vertices.vertexes[b->file->edges[(e)].v[0]]) : (&r_unique_vertices.vertexes[b->file->edges[-(e)].v[1]]) \
+)
 
 /**
  * @brief Unwinds the surface, iterating all non-collinear vertices.

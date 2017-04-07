@@ -32,7 +32,7 @@ static void R_LoadMeshMaterial(r_model_t *mod) {
 	Dirname(mod->media.name, skin);
 	strcat(skin, "skin");
 
-	mod->mesh->material = R_LoadMaterial(skin);
+	mod->mesh->material = R_LoadMaterial(skin, ASSET_CONTEXT_MODELS);
 }
 
 /**

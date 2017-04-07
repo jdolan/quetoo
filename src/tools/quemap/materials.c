@@ -54,19 +54,17 @@ void FreeMaterials(void) {
  */
 cm_material_t *LoadMaterial(const char *name) {
 
-	const char *diffuse = va("textures/%s", name);
-
 	for (guint i = 0; i < materials->len; i++) {
 		cm_material_t *material = g_ptr_array_index(materials, i);
-		if (!g_strcmp0(material->diffuse, diffuse)) {
+		if (!g_strcmp0(material->name, name)) {
 			return material;
 		}
 	}
 
-	cm_material_t *material = Cm_AllocMaterial(diffuse);
+	cm_material_t *material = Cm_AllocMaterial(name);
 	g_ptr_array_add(materials, material);
 
-	Com_Debug(DEBUG_ALL, "Loaded material %s\n", diffuse);
+	Com_Debug(DEBUG_ALL, "Loaded material %s\n", name);
 
 	return material;
 }

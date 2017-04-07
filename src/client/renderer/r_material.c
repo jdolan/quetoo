@@ -647,8 +647,7 @@ static void R_RegisterMaterial(r_media_t *self) {
 	while (s) {
 		R_RegisterDependency(self, (r_media_t *) s->image);
 
-		uint16_t i;
-		for (i = 0; i < s->cm->anim.num_frames; i++) {
+		for (uint16_t i = 0; i < s->cm->anim.num_frames; i++) {
 			R_RegisterDependency(self, (r_media_t *) s->anim.frames[i]);
 		}
 
@@ -667,259 +666,165 @@ static void R_FreeMaterial(r_media_t *self) {
 }
 
 /**
- * @brief
+ * @return The number of frames resolved, or -1 on error.
  */
-static void R_LoadNormalmap(r_material_t *mat) {
+static int32_t R_ResolveStageAnimation(r_stage_t *stage, cm_asset_context_t context) {
 
-	if (strlen(mat->cm->normalmap)) {
-		mat->normalmap = R_LoadImage(mat->cm->normalmap, IT_NORMALMAP);
-	} else {
-		const char *suffix[] = { "_nm", "_norm", "_local", "_bump" };
+	const size_t size = sizeof(r_image_t *) * stage->cm->anim.num_frames;
+	stage->anim.frames = Mem_LinkMalloc(size, stage);
 
-		for (size_t i = 0; i < lengthof(suffix); i++) {
-			mat->normalmap = R_LoadImage(va("%s%s", mat->cm->base, suffix[i]), IT_NORMALMAP);
-			if (mat->normalmap->type == IT_NORMALMAP) {
+	uint16_t i;
+	for (i = 0; i < stage->cm->anim.num_frames; i++) {
+
+		cm_asset_t *frame = &stage->cm->anim.frames[i];
+		if (*frame->path) {
+			stage->anim.frames[i] = R_LoadImage(frame->path, IT_DIFFUSE);
+			if (stage->anim.frames[i]->type == IT_NULL) {
 				break;
 			}
+		} else {
+			break;
 		}
 	}
 
-	if (mat->normalmap->type == IT_NULL) {
-		mat->normalmap = NULL;
+	if (i < stage->cm->anim.num_frames) {
+		Com_Warn("Failed to resolve frame: %d: %s\n", i, stage->cm->asset.name);
+		return -1;
 	}
+
+	return i;
 }
 
 /**
- * @brief
+ * @brief Resolves assets for the specified stage, within the given context.
  */
-static void R_LoadSpecularmap(r_material_t *mat) {
+static int32_t R_ResolveStage(r_stage_t *stage, cm_asset_context_t context) {
 
-	if (strlen(mat->cm->specularmap)) {
-		mat->specularmap = R_LoadImage(mat->cm->specularmap, IT_SPECULARMAP);
-	} else {
-		const char *suffix[] = { "_s", "_gloss", "_spec" };
+	if (*stage->cm->asset.path) {
 
-		for (size_t i = 0; i < lengthof(suffix); i++) {
-			mat->specularmap = R_LoadImage(va("%s%s", mat->cm->base, suffix[i]), IT_SPECULARMAP);
-			if (mat->specularmap->type == IT_SPECULARMAP) {
-				break;
-			}
-		}
-	}
-
-	if (mat->specularmap->type == IT_NULL) {
-		mat->specularmap = NULL;
-	}
-}
-
-/**
- * @brief
- */
-static void R_LoadTintmap(r_material_t *mat) {
-
-	if (strlen(mat->cm->tintmap)) {
-		mat->tintmap = R_LoadImage(mat->cm->tintmap, IT_TINTMAP);
-	} else {
-		const char *suffix[] = { "_tint" };
-
-		for (size_t i = 0; i < lengthof(suffix); i++) {
-			mat->tintmap = R_LoadImage(va("%s%s", mat->cm->base, suffix[i]), IT_TINTMAP);
-			if (mat->tintmap->type == IT_TINTMAP) {
-				break;
-			}
-		}
-	}
-
-	if (mat->tintmap->type == IT_NULL) {
-		mat->tintmap = NULL;
-	}
-}
-
-/**
- * @brief Loads the r_material_t from the specified cm_material_t. If the material is
- * already loaded, the cm_material_t will be freed, so don't use it after this function!
- * Use the "cm" member of the renderer material.
- * @returns False if the material is already loaded and shouldn't be re-parsed.
- */
-static _Bool R_ConvertMaterial(cm_material_t *cm, r_material_t **mat) {
-	char key[MAX_QPATH];
-
-	if (!cm || !cm->diffuse[0]) {
-		Com_Error(ERROR_DROP, "NULL diffuse name\n");
-	}
-
-	g_snprintf(key, sizeof(key), "%s_mat", cm->base);
-	r_material_t *material = (r_material_t *) R_FindMedia(key);
-
-	if (material == NULL) {
-		material = (r_material_t *) R_AllocMedia(key, sizeof(r_material_t), MEDIA_MATERIAL);
-		
-		*mat = material;
-		material->cm = cm;
-
-		material->media.Register = R_RegisterMaterial;
-		material->media.Free = R_FreeMaterial;
-
-		material->diffuse = R_LoadImage(cm->diffuse, IT_DIFFUSE);
-
-		if (material->diffuse->type == IT_DIFFUSE) {
-			R_LoadNormalmap(material);
-
-			if (material->normalmap) {
-				R_LoadSpecularmap(material);
-			}
-
-			if (!g_str_has_prefix(material->cm->base, "textures/")) {
-				R_LoadTintmap(material);
-			}
+		if (stage->cm->flags & STAGE_TEXTURE) {
+			stage->image = R_LoadImage(stage->cm->asset.path, IT_DIFFUSE);
+		} else if (stage->cm->flags & STAGE_ENVMAP) {
+			stage->image = R_LoadImage(stage->cm->asset.path, IT_ENVMAP);
+		} else if (stage->cm->flags & STAGE_FLARE) {
+			stage->image = R_LoadImage(stage->cm->asset.path, IT_FLARE);
 		}
 
-		R_RegisterMedia((r_media_t *) material);
-		return true;
+		if (stage->image->type == IT_NULL) {
+			Com_Warn("Failed to resolve stage: %s\n", stage->cm->asset.name);
+			return -1;
+		}
+
+		if (stage->cm->flags & STAGE_LIGHTING) {
+			stage->material = R_LoadMaterial(stage->cm->asset.name, context);
+		}
+
+		if (stage->cm->flags & STAGE_ANIM) {
+			return R_ResolveStageAnimation(stage, context);
+		}
 	}
 	
-	*mat = material;
-	Cm_FreeMaterial(cm);
-	return false;
+	return 0;
 }
 
 /**
  * @brief
  */
-static void R_AttachStage(r_material_t *m, r_stage_t *s) {
+static void R_AppendStage(r_material_t *m, r_stage_t *s) {
 
-	// append the stage to the chain
-	if (!m->stages) {
+	if (m->stages == NULL) {
 		m->stages = s;
-		return;
+	} else {
+		r_stage_t *stages = m->stages;
+		while (stages->next) {
+			stages = stages->next;
+		}
+		stages->next = s;
+	}
+}
+
+/**
+ * @brief Resolves all asset references in the specified collision material, yielding a usable
+ * renderer material.
+ */
+static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t context) {
+	char key[MAX_QPATH];
+
+	StripExtension(cm->name, key);
+	Cm_MaterialBasename(key, key, sizeof(key));
+
+	g_strlcat(key, "_mat", sizeof(key));
+
+	r_material_t *material = (r_material_t *) R_AllocMedia(key, sizeof(r_material_t), MEDIA_MATERIAL);
+	material->cm = cm;
+
+	material->media.Register = R_RegisterMaterial;
+	material->media.Free = R_FreeMaterial;
+
+	Cm_ResolveMaterial(cm, context);
+
+	material->diffuse = R_LoadImage(cm->diffuse.path, IT_DIFFUSE);
+
+	if (material->diffuse->type == IT_DIFFUSE) {
+
+		if (*cm->normalmap.path) {
+			material->normalmap = R_LoadImage(cm->normalmap.path, IT_NORMALMAP);
+			if (material->normalmap->type == IT_NULL) {
+				material->normalmap = NULL;
+			}
+		}
+
+		if (*cm->specularmap.path) {
+			material->specularmap = R_LoadImage(cm->specularmap.path, IT_SPECULARMAP);
+			if (material->specularmap->type == IT_NULL) {
+				material->specularmap = NULL;
+			}
+		}
+
+		if (*cm->tintmap.path) {
+			material->tintmap = R_LoadImage(cm->tintmap.path, IT_TINTMAP);
+			if (material->tintmap->type == IT_NULL) {
+				material->tintmap = NULL;
+			}
+		}
+
+		for (cm_stage_t *s = cm->stages; s; s = s->next) {
+			r_stage_t *stage = (r_stage_t *) Mem_LinkMalloc(sizeof(r_stage_t), material);
+			stage->cm = s;
+
+			if (R_ResolveStage(stage, context) == -1) {
+				Mem_Free(stage);
+			} else {
+				R_AppendStage(material, stage);
+			}
+		}
 	}
 
-	r_stage_t *ss = m->stages;
-	while (ss->next) {
-		ss = ss->next;
-	}
-	ss->next = s;
+	R_RegisterMedia((r_media_t *) material);
+
+	return material;
 }
 
 /**
  * @brief Loads the r_material_t from the specified texture.
  */
-r_material_t *R_LoadMaterial(const char *name) {
+r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
 	char key[MAX_QPATH];
 
 	StripExtension(name, key);
-	Cm_NormalizeMaterialName(key, key, sizeof(key));
+	Cm_MaterialBasename(key, key, sizeof(key));
 
 	g_strlcat(key, "_mat", sizeof(key));
 	r_material_t *mat = (r_material_t *) R_FindMedia(key);
 
 	if (mat == NULL) {
-		R_ConvertMaterial(Cm_AllocMaterial(name), &mat);
+
+		cm_material_t *cm = Cm_AllocMaterial(name);
+
+		mat = R_ResolveMaterial(cm, context);
 	}
 
 	return mat;
-}
-
-/**
- * @brief
- */
-static int32_t R_LoadStageFrames(r_stage_t *s) {
-	char name[MAX_QPATH];
-	int32_t i, j;
-
-	if (!s->image) {
-		Com_Warn("Texture not defined in anim stage\n");
-		return -1;
-	}
-
-	g_strlcpy(name, s->image->media.name, sizeof(name));
-	const size_t len = strlen(name);
-
-	if ((i = (int32_t) strtol(&name[len - 1], NULL, 0)) < 0) {
-		Com_Warn("Texture name does not end in numeric: %s\n", name);
-		return -1;
-	}
-
-	// the first image was already loaded by the stage parse, so just copy
-	// the pointer into the array
-
-	s->anim.frames = Mem_LinkMalloc(s->cm->anim.num_frames * sizeof(r_image_t *), s);
-	s->anim.frames[0] = s->image;
-
-	// now load the rest
-	name[len - 1] = '\0';
-	for (j = 1, i = i + 1; j < s->cm->anim.num_frames; j++, i++) {
-		char frame[MAX_QPATH];
-
-		g_snprintf(frame, sizeof(frame), "%s%d", name, i);
-		s->anim.frames[j] = R_LoadImage(frame, IT_DIFFUSE);
-
-		if (s->anim.frames[j]->type == IT_NULL) {
-			Com_Warn("Failed to resolve frame: %d: %s\n", j, frame);
-			return -1;
-		}
-	}
-
-	return 0;
-}
-
-/**
- * @brief
- */
-static int32_t R_ParseStage(r_stage_t *s, const cm_stage_t *cm) {
-
-	s->cm = cm;
-
-	if (*cm->image) {
-
-		if (cm->flags & STAGE_TEXTURE) {
-			if (*cm->image == '#') {
-				s->image = R_LoadImage(cm->image + 1, IT_DIFFUSE);
-			} else {
-				s->image = R_LoadImage(va("textures/%s", cm->image), IT_DIFFUSE);
-			}
-
-			if (s->image->type == IT_NULL) {
-				Com_Warn("Failed to resolve texture: %s\n", cm->image);
-				return -1;
-			}
-		} else if (cm->flags & STAGE_ENVMAP) {
-			if (*cm->image == '#') {
-				s->image = R_LoadImage(cm->image + 1, IT_ENVMAP);
-			} else if (*cm->image == '0' || cm->image_index > 0) {
-				s->image = R_LoadImage(va("envmaps/envmap_%d", cm->image_index), IT_ENVMAP);
-			} else {
-				s->image = R_LoadImage(va("envmaps/%s", cm->image), IT_ENVMAP);
-			}
-
-			if (s->image->type == IT_NULL) {
-				Com_Warn("Failed to resolve envmap: %s\n", cm->image);
-				return -1;
-			}
-		} else if (cm->flags & STAGE_FLARE) {
-			s->image = R_LoadImage(cm->image, IT_FLARE);
-
-			if (*cm->image == '#') {
-				s->image = R_LoadImage(cm->image + 1, IT_FLARE);
-			} else if (*cm->image == '0' || cm->image_index > 0) {
-				s->image = R_LoadImage(va("flares/flare_%d", cm->image_index), IT_FLARE);
-			} else {
-				s->image = R_LoadImage(va("flares/%s", cm->image), IT_FLARE);
-			}
-
-			if (s->image->type == IT_NULL) {
-				Com_Warn("Failed to resolve flare: %s\n", cm->image);
-				return -1;
-			}
-		}
-	}
-
-	// load material if lighting
-	if (cm->flags & STAGE_LIGHTING) {
-		s->material = R_LoadMaterial(cm->image);
-	}
-
-	return 0;
 }
 
 /**
@@ -928,107 +833,34 @@ static int32_t R_ParseStage(r_stage_t *s, const cm_stage_t *cm) {
  * materials/${model_name}.mat for BSP models.
  */
 void R_LoadMaterials(r_model_t *mod) {
-	cm_material_t **materials;
-	size_t num_materials;
 
-	// load the materials file for parsing
+	const char *path;
+	cm_asset_context_t context;
+
 	if (mod->type == MOD_BSP) {
-		materials = Cm_LoadMaterials(va("materials/%s.mat", Basename(mod->media.name)), &num_materials);
+		path = va("materials/%s.mat", Basename(mod->media.name));
+		context = ASSET_CONTEXT_TEXTURES;
 	} else {
-		materials = Cm_LoadMaterials(va("%s.mat", mod->media.name), &num_materials);
+		path = va("%s.mat", mod->media.name);
+		context = ASSET_CONTEXT_MODELS;
 	}
 
-	if (!num_materials) {
-		return;
-	}
+	size_t num_materials;
+	cm_material_t **materials = Cm_LoadMaterials(path, &num_materials);
 
 	for (size_t i = 0; i < num_materials; i++) {
-		r_material_t *r_mat;
-		
-		if (!R_ConvertMaterial(materials[i], &r_mat)) {
-			Com_Debug(DEBUG_RENDERER, "Retained material %s with %d stages\n", r_mat->diffuse->media.name, r_mat->cm->num_stages);
+
+		r_material_t *mat = R_ResolveMaterial(materials[i], context);
+
+		if (mat->diffuse->type == IT_NULL) {
+			Com_Warn("Failed to resolve %s\n", mat->cm->name);
 			continue;
 		}
 
-		if (!r_mat) {
-			Com_Warn("Failed to convert %s\n", r_mat->cm->diffuse);
-			continue;
-		}
-
-		if (r_mat->diffuse->type == IT_NULL) {
-			Com_Warn("Failed to resolve %s\n", r_mat->cm->diffuse);
-			continue;
-		}
-
-		if (r_bumpmap->value) { // if per-pixel lighting is enabled, resolve normal and specular
-
-			if (*r_mat->cm->normalmap) {
-				if (*r_mat->cm->normalmap == '#') {
-					r_mat->normalmap = R_LoadImage(r_mat->cm->normalmap + 1, IT_NORMALMAP);
-				} else {
-					r_mat->normalmap = R_LoadImage(va("textures/%s", r_mat->cm->normalmap), IT_NORMALMAP);
-				}
-
-				if (r_mat->normalmap->type == IT_NULL) {
-					Com_Warn("Failed to resolve normalmap: %s\n", r_mat->cm->normalmap);
-					r_mat->normalmap = NULL;
-				}
-			}
-
-			if (*r_mat->cm->specularmap) {
-				if (*r_mat->cm->specularmap == '#') {
-					r_mat->specularmap = R_LoadImage(r_mat->cm->specularmap + 1, IT_SPECULARMAP);
-				} else {
-					r_mat->specularmap = R_LoadImage(va("textures/%s", r_mat->cm->specularmap), IT_SPECULARMAP);
-				}
-
-				if (r_mat->specularmap->type == IT_NULL) {
-					Com_Warn("Failed to resolve specularmap: %s\n", r_mat->cm->specularmap);
-					r_mat->specularmap = NULL;
-				}
-			}
-		}
-
-		if (*r_mat->cm->tintmap) {
-			if (*r_mat->cm->tintmap == '#') {
-				r_mat->tintmap = R_LoadImage(r_mat->cm->tintmap + 1, IT_TINTMAP);
-			} else {
-				r_mat->tintmap = R_LoadImage(va("textures/%s", r_mat->cm->tintmap), IT_TINTMAP);
-			}
-
-			if (r_mat->tintmap->type == IT_NULL) {
-				Com_Warn("Failed to resolve tintmap: %s\n", r_mat->cm->tintmap);
-				r_mat->tintmap = NULL;
-			}
-		}
-
-		for (cm_stage_t *cm_stage = r_mat->cm->stages; cm_stage; cm_stage = cm_stage->next) {
-			r_stage_t *r_stage = (r_stage_t *) Mem_LinkMalloc(sizeof(r_stage_t), r_mat);
-
-			if (R_ParseStage(r_stage, cm_stage) == -1) {
-				Mem_Free(r_stage);
-				continue;
-			}
-
-			// load animation frame images
-			if (cm_stage->flags & STAGE_ANIM) {
-				if (R_LoadStageFrames(r_stage) == -1) {
-					Mem_Free(r_stage);
-					continue;
-				}
-			}
-			
-			// attach stage
-			R_AttachStage(r_mat, r_stage);
-
-			r_mat->flags |= cm_stage->flags;
-			continue;
-		}
-
-		R_RegisterDependency((r_media_t *) mod, (r_media_t *) r_mat);
-		Com_Debug(DEBUG_RENDERER, "Parsed material %s with %d stages\n", r_mat->diffuse->media.name, r_mat->cm->num_stages);
+		R_RegisterDependency((r_media_t *) mod, (r_media_t *) mat);
+		Com_Debug(DEBUG_RENDERER, "Parsed material %s with %d stages\n", mat->cm->name, mat->cm->num_stages);
 	}
-	
+
 	Cm_FreeMaterialList(materials);
 }
 
@@ -1050,12 +882,12 @@ static void R_SaveMaterials_f(void) {
 
 	cm_material_t **c = mod->bsp->cm->materials;
 	for (size_t i = 0; i < mod->bsp->cm->num_materials; i++, c++) {
-
-		const r_material_t *mat = R_LoadMaterial((*c)->diffuse);
+		const char *name = (*c)->diffuse.name;
+		const r_material_t *mat = R_LoadMaterial(name, ASSET_CONTEXT_TEXTURES);
 		if (mat) {
 			materials[i] = mat->cm;
 		} else {
-			Com_Debug(DEBUG_RENDERER, "Failed to resolve renderer material %s\n", (*c)->diffuse);
+			Com_Debug(DEBUG_RENDERER, "Failed to resolve renderer material %s\n", name);
 		}
 	}
 

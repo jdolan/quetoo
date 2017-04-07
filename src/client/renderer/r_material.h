@@ -23,7 +23,7 @@
 
 #include "r_types.h"
 
-r_material_t *R_LoadMaterial(const char *name);
+r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context);
 
 #ifdef __R_LOCAL_H__
 #define R_OFFSET_UNITS -1.0

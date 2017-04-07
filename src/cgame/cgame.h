@@ -573,11 +573,12 @@ typedef struct cg_import_s {
 	void (*CompileAtlas)(r_atlas_t *atlas);
 
 	/**
-	 * @brief Loads the material with the given diffuse texture name.
-	 * @param name The diffuse texture name, e.g. `"models/objects/rocket/skin"`.
+	 * @brief Loads the material with the given name.
+	 * @param name The material name, e.g. `"objects/rocket/skin"`.
+	 * @param context The asset context, e.g. `ASSET_CONTEXT_PLAYERS`.
 	 * @return The material.
 	 */
-	r_material_t *(*LoadMaterial)(const char *diffuse);
+	r_material_t *(*LoadMaterial)(const char *name, cm_asset_context_t context);
 
 	/**
 	 * @brief Loads the model with the given name.

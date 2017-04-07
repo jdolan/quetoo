@@ -389,7 +389,6 @@ typedef struct r_material_s {
 	r_media_t media;
 
 	struct cm_material_s *cm; // the parsed material
-	r_model_type_t mod_type;
 
 	// renderer-local stuff parsed from cm
 	r_image_t *diffuse;
