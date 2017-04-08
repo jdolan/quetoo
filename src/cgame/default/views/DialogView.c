@@ -100,7 +100,7 @@ static DialogView *init(DialogView *self) {
 		{
 			// Label
 
-			self->label = $(alloc(Label), initWithText, "(placeholder)", $$(Font, defaultFont, FontCategoryPrimaryResponder));
+			self->label = $(alloc(Label), initWithText, "No description given", $$(Font, defaultFont, FontCategoryPrimaryResponder));
 
 			self->label->view.alignment = ViewAlignmentTopCenter;
 			self->label->view.autoresizingMask = ViewAutoresizingContain;
@@ -154,11 +154,23 @@ static void showDialog(DialogView *self, const char *text, const char *cancelTex
 	self->panel.stackView.view.hidden = false;
 	self->panel.stackView.view.needsLayout = true;
 
-	$(self->label->text, setText, text);
+	if (text) {
+		$(self->label->text, setText, text);
+	} else {
+		$(self->label->text, setText, "No description given");
+	}
 
-	$(self->cancelButton->title, setText, cancelText);
+	if (cancelText) {
+		$(self->cancelButton->title, setText, cancelText);
+	} else {
+		$(self->cancelButton->title, setText, "Cancel");
+	}
 
-	$(self->okButton->title, setText, okText);
+	if (okText) {
+		$(self->okButton->title, setText, okText);
+	} else {
+		$(self->okButton->title, setText, "Ok");
+	}
 }
 
 /**

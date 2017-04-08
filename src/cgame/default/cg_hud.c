@@ -25,12 +25,6 @@
 #define HUD_COLOR_STAT_MED		CON_COLOR_YELLOW
 #define HUD_COLOR_STAT_LOW		CON_COLOR_RED
 
-#define CROSSHAIR_COLOR_RED		242
-#define CROSSHAIR_COLOR_GREEN	209
-#define CROSSHAIR_COLOR_YELLOW	219
-#define CROSSHAIR_COLOR_ORANGE  225
-#define CROSSHAIR_COLOR_DEFAULT	15
-
 #define HUD_PIC_HEIGHT			64
 
 #define HUD_HEALTH_MED			75
@@ -602,7 +596,6 @@ static void Cg_DrawTeamBanner(const player_state_t *ps) {
  */
 static void Cg_DrawCrosshair(const player_state_t *ps) {
 	r_pixel_t x, y;
-	int32_t color;
 
 	if (!cg_draw_crosshair->value) {
 		return;
@@ -649,19 +642,15 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		cg_draw_crosshair_color->modified = false;
 
 		const char *c = cg_draw_crosshair_color->string;
-		if (!g_ascii_strcasecmp(c, "red")) {
-			color = CROSSHAIR_COLOR_RED;
-		} else if (!g_ascii_strcasecmp(c, "green")) {
-			color = CROSSHAIR_COLOR_GREEN;
-		} else if (!g_ascii_strcasecmp(c, "yellow")) {
-			color = CROSSHAIR_COLOR_YELLOW;
-		} else if (!g_ascii_strcasecmp(c, "orange")) {
-			color = CROSSHAIR_COLOR_ORANGE;
+		color_t color;
+
+		if (!g_ascii_strcasecmp(c, "default")) {
+			color.r = color.g = color.b = color.a = 255;
 		} else {
-			color = CROSSHAIR_COLOR_DEFAULT;
+			ColorParseHex(c, &color);
 		}
 
-		cgi.ColorFromPalette(color, crosshair.color);
+		ColorToVec4(color, crosshair.color);
 	}
 
 	vec_t scale = cg_draw_crosshair_scale->value * (cgi.context->high_dpi ? 2.0 : 1.0);

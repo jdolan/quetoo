@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include <ObjectivelyMVC/ColorSelect.h>
+
 #include "TabViewController.h"
 #include "CrosshairView.h"
 
@@ -55,6 +57,11 @@ struct InterfaceViewController {
 	 * @brief The CrosshairView.
 	 */
 	CrosshairView *crosshairView;
+
+	/**
+	 * @brief The ColorSelect for the crosshair.
+	 */
+	ColorSelect *crosshairColorSelect;
 };
 
 /**

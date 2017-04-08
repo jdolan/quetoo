@@ -51,7 +51,7 @@ static void loadView(ViewController *self) {
 
 		box->view.autoresizingMask = ViewAutoresizingFill;
 
-		ScrollView *scrollView = $(alloc(ScrollView), initWithFrame, NULL, ControlStyleCustom);
+		ScrollView *scrollView = $(alloc(ScrollView), initWithFrame, NULL, ControlStyleDefault);
 
 		scrollView->control.view.autoresizingMask = ViewAutoresizingFill;
 

@@ -1161,7 +1161,7 @@ static _Bool ParseHexString(const char *input, color_t *output, const uint8_t nu
 			if (!((l >= 'a' && l <= 'f') || (l >= '0' && l <= '9'))) {
 				return false;
 			}
-			
+
 			const uint8_t dec = HEX_TO_DEC(l);
 
 			if (d == 0) {
@@ -1181,7 +1181,7 @@ static _Bool ParseHexString(const char *input, color_t *output, const uint8_t nu
 _Bool ColorParseHex(const char *s, color_t *color) {
 	const size_t s_len = strlen(s);
 	static color_t temp;
-	
+
 	if (!color) {
 		color = &temp;
 	}
@@ -1248,22 +1248,22 @@ _Bool ColorToHex(const color_t color, char *s, const size_t s_len) {
 		is_short_form = is_short_form && COLOR_BYTES_ARE_SAME(color.a);
 
 		if (is_short_form) {
-			if (g_strlcat(s, va("%1x%1x%1x%1x", color.r & 15, color.g & 15, color.b & 15, color.a & 15), s_len) >= s_len) {
+			if (g_snprintf(s, s_len, "%1x%1x%1x%1x", color.r & 15, color.g & 15, color.b & 15, color.a & 15)) {
 				return false;
 			}
 		} else {
-			if (g_strlcat(s, va("%02x%02x%02x%02x", color.r, color.g, color.b, color.a), s_len) >= s_len) {
+			if (g_snprintf(s, s_len, "%02x%02x%02x%02x", color.r, color.g, color.b, color.a)) {
 				return false;
 			}
 		}
 	} else {
 
 		if (is_short_form) {
-			if (g_strlcat(s, va("%1x%1x%1x", color.r & 15, color.g & 15, color.b & 15), s_len) >= s_len) {
+			if (g_snprintf(s, s_len, "%1x%1x%1x", color.r & 15, color.g & 15, color.b & 15)) {
 				return false;
 			}
 		} else {
-			if (g_strlcat(s, va("%02x%02x%02x", color.r, color.g, color.b), s_len) >= s_len) {
+			if (g_snprintf(s, s_len, "%02x%02x%02x", color.r, color.g, color.b)) {
 				return false;
 			}
 		}

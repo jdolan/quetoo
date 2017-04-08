@@ -81,20 +81,19 @@ static void updateBindings(View *self) {
 			$(this->imageView, setImageWithSurface, surface);
 			SDL_FreeSurface(surface);
 
-			SDL_Color color = Colors.White;
+			const char *c = cg_draw_crosshair_color->string;
+			color_t color;
 
-			const char *s = cgi.CvarString("cg_draw_crosshair_color");
-			if (!strcmp(s, "red")) {
-				color = Colors.Red;
-			} else if (!strcmp(s, "green")) {
-				color = Colors.Lime;
-			} else if (!strcmp(s, "yellow")) {
-				color = Colors.Yellow;
-			} else if (!strcmp(s, "orange")) {
-				color = Colors.Orange;
+			if (!g_ascii_strcasecmp(c, "default")) {
+				color.r = color.g = color.b = color.a = 255;
+			} else {
+				ColorParseHex(c, &color);
 			}
 
-			this->imageView->color = color;
+			this->imageView->color.r = color.r;
+			this->imageView->color.g = color.g;
+			this->imageView->color.b = color.b;
+			this->imageView->color.a = color.a;
 		}
 	}
 

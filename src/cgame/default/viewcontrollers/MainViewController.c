@@ -76,7 +76,7 @@ static void action(Control *control, const SDL_Event *event, ident sender, ident
 		release(viewController);
 
 	} else {
-		$(((MainViewController *) this)->dialog, showDialog, "Are you sure you're done pwning nubz?", "No", "Yes", quitFunction);
+		$(((MainViewController *) this)->dialog, showDialog, "Are you sure you want to quit?", "No", "Yes", quitFunction);
 	}
 }
 

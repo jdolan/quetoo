@@ -56,6 +56,26 @@ static void modifyCrosshair(Control *control, const SDL_Event *event, ident send
 	$((View *) this->crosshairView, updateBindings);
 }
 
+#pragma mark - Actions & delegates
+
+/**
+ * @brief ActionFunction for crosshair modification.
+ */
+static void didSetColor(ColorSelect *self) {
+
+	InterfaceViewController *this = (InterfaceViewController *) self;
+	ColorSelect *colorSelect = (ColorSelect *) this->crosshairColorSelect;
+
+	color_t color = ColorFromRGBA(colorSelect->color.r, colorSelect->color.g, colorSelect->color.b, colorSelect->color.a);
+	char hexColor[COLOR_MAX_LENGTH];
+
+	ColorToHex(color, hexColor, sizeof(hexColor));
+
+	cgi.CvarSet(cg_draw_crosshair_color->name, hexColor);
+
+	$((View *) this->crosshairView, updateBindings); // This isn't working
+}
+
 #pragma mark - ViewController
 
 /**
@@ -66,6 +86,7 @@ static void loadView(ViewController *self) {
 	super(ViewController, self, loadView);
 
 	TabViewController *this = (TabViewController *) self;
+	InterfaceViewController *ivc = (InterfaceViewController *) self;
 
 	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
@@ -89,31 +110,51 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
+			// Crosshair image
+
 			CvarSelect *crosshairSelect = $(alloc(CvarSelect), initWithVariable, cg_draw_crosshair);
-			$((Select *) crosshairSelect, addOption, "", NULL);
+
+			$((Select *) crosshairSelect, addOption, "", NULL); // Disable crosshair
+
 			cgi.EnumerateFiles("pics/ch*", enumerateCrosshairs, crosshairSelect);
 
 			$((Control *) crosshairSelect, addActionForEventType, SDL_MOUSEBUTTONUP, modifyCrosshair, self, NULL);
-			Cg_Input((View *) stackView, "Crosshair", (Control *) crosshairSelect);
+			Cg_Input((View *) stackView, "Image", (Control *) crosshairSelect);
 
-			CvarSelect *colorSelect = (CvarSelect *) $(alloc(CvarSelect), initWithVariable, cg_draw_crosshair_color);
-			colorSelect->expectsStringValue = true;
+			// Crosshair color
 
-			$((Select *) colorSelect, addOption, "default", (ident) 0);
-			$((Select *) colorSelect, addOption, "red", (ident) 1);
-			$((Select *) colorSelect, addOption, "green", (ident) 2);
-			$((Select *) colorSelect, addOption, "yellow", (ident) 3);
-			$((Select *) colorSelect, addOption, "orange", (ident) 4);
+			const SDL_Rect colorFrame = MakeRect(0, 0, 200, 128);
+			ivc->crosshairColorSelect = (ColorSelect *) $(alloc(ColorSelect), initWithFrame, &colorFrame, true);
 
-			$((Control *) colorSelect, addActionForEventType, SDL_MOUSEBUTTONUP, modifyCrosshair, self, NULL);
-			Cg_Input((View *) stackView, "Crosshair color", (Control *) colorSelect);
+			ivc->crosshairColorSelect->delegate.self = self;
+			ivc->crosshairColorSelect->delegate.didSetColor = didSetColor;
+
+			const char *c = cg_draw_crosshair_color->string;
+			color_t color;
+
+			if (!g_ascii_strcasecmp(c, "default")) {
+				color.r = color.g = color.b = color.a = 255;
+			} else {
+				ColorParseHex(c, &color);
+			}
+
+			$(ivc->crosshairColorSelect, setColor, (SDL_Color) { .r = color.r, .g = color.g, .b = color.b, .a = color.a });
+
+			retain(ivc->crosshairColorSelect);
+			Cg_Input((View *) stackView, "Color", (Control *) ivc->crosshairColorSelect);
+
+			// Crosshair scale
 
 			CvarSlider *scaleSlider = $(alloc(CvarSlider), initWithVariable, cg_draw_crosshair_scale, 0.1, 2.0, 0.1);
 
 			$((Control *) scaleSlider, addActionForEventType, SDL_MOUSEMOTION, modifyCrosshair, self, NULL);
-			Cg_Input((View *) stackView, "Crosshair scale", (Control *) scaleSlider);
+			Cg_Input((View *) stackView, "Scale", (Control *) scaleSlider);
+
+			// Misc options
 
 			Cg_CvarCheckboxInput((View *) stackView, "Pulse on pickup", cg_draw_crosshair_pulse->name);
+
+			// Crosshair preview
 
 			const SDL_Rect frame = MakeRect(0, 0, 72, 72);
 

@@ -30,12 +30,11 @@
 /**
  * @brief ActionFunction for clicking the model's 3D view
  */
-static void clickAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+static void rotateAction(Control *control, const SDL_Event *event, ident sender, ident data) {
 
 	PlayerModelView *this = (PlayerModelView *) sender;
 
-	this->animation1.animation = ANIM_TORSO_GESTURE;
-	this->animation2.animation = ANIM_LEGS_IDLECR;
+	this->yaw += event->motion.xrel;
 }
 
 #pragma mark - Object
@@ -219,7 +218,7 @@ static void updateBindings(View *self) {
  */
 static _Bool captureEvent(Control *self, const SDL_Event *event) {
 
-	if (event->type == SDL_MOUSEBUTTONDOWN) {
+	if (event->type == SDL_MOUSEMOTION && event->motion.state & SDL_BUTTON_LMASK) {
 
 		if ($((View *) self, didReceiveEvent, event)) {
 			return true;
@@ -248,12 +247,6 @@ static void animate_(const r_md3_t *md3, cl_entity_animation_t *a, r_entity_t *e
 	uint16_t frame = elapsedTime / frameTime;
 
 	if (elapsedTime >= animationTime) {
-
-		if (a->animation == ANIM_TORSO_GESTURE) {
-			a->animation = ANIM_TORSO_STAND1;
-		} else if (a->animation == ANIM_LEGS_IDLECR) {
-			a->animation = ANIM_LEGS_IDLE;
-		}
 
 		a->time = cgi.client->unclamped_time;
 
@@ -354,7 +347,7 @@ static PlayerModelView *initWithFrame(PlayerModelView *self, const SDL_Rect *fra
 		self->control.view.padding.bottom = 4;
 		self->control.view.padding.left = 4;
 
-		$((Control *) self, addActionForEventType, SDL_MOUSEBUTTONDOWN, clickAction, self, NULL);
+		$((Control *) self, addActionForEventType, SDL_MOUSEMOTION, rotateAction, self, NULL);
 	}
 
 	return self;
