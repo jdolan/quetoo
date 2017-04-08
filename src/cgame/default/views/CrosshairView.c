@@ -87,12 +87,8 @@ static void updateBindings(View *self) {
 			if (!g_ascii_strcasecmp(c, "default")) {
 				color.r = color.g = color.b = color.a = 255;
 			} else {
-				if (!ColorParseHex(c, &color)) {
-					cgi.Warn("Invalid crosshair color");
-				}
+				ColorParseHex(c, &color);
 			}
-
-			printf("%s %d %d %d %d\n", c, color.r, color.g, color.b, color.a);
 
 			this->imageView->color.r = color.r;
 			this->imageView->color.g = color.g;

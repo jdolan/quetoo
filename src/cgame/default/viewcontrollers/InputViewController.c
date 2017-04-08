@@ -69,7 +69,6 @@ static void loadView(ViewController *self) {
 		Cg_BindInput((View *) stackView, "Crouch", "+move_down");
 
 		Cg_BindInput((View *) stackView, "Run/walk", "+speed");
-		Cg_CvarCheckboxInput((View *) stackView, "Always run", "cg_run");
 
 		Cg_Label((View *) stackView, "Communication");
 
@@ -140,6 +139,23 @@ static void loadView(ViewController *self) {
 
 			Cg_CvarCheckboxInput((View *) stackView, "Invert mouse", "m_invert");
 			Cg_CvarCheckboxInput((View *) stackView, "Smooth mouse", "m_interpolate");
+
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
+
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
+
+		{
+			Box *box = $(alloc(Box), initWithFrame, NULL);
+			$(box->label, setText, "Misc");
+
+			box->view.autoresizingMask |= ViewAutoresizingWidth;
+
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+			Cg_CvarCheckboxInput((View *) stackView, "Always run", "cg_run");
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
