@@ -55,6 +55,16 @@ struct PlayerViewController {
 	 * @brief The PlayerModelView.
 	 */
 	PlayerModelView *playerModelView;
+
+	/**
+	 * @brief The ColorSelect for the shirt color.
+	 */
+	ColorSelect *tintRColorSelect;
+
+	/**
+	 * @brief The ColorSelect for the pants color.
+	 */
+	ColorSelect *tintGColorSelect;
 };
 
 /**
@@ -75,4 +85,3 @@ struct PlayerViewControllerInterface {
  * @memberof PlayerViewController
  */
 extern Class *_PlayerViewController(void);
-

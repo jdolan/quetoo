@@ -157,7 +157,6 @@ static void loadView(ViewController *self) {
 
 			$(ivc->crosshairColorSelect, setColor, (SDL_Color) { .r = color.r, .g = color.g, .b = color.b, .a = color.a });
 
-			retain(ivc->crosshairColorSelect);
 			Cg_Input((View *) stackView, "Color", (Control *) ivc->crosshairColorSelect);
 
 			// Crosshair scale
@@ -200,7 +199,7 @@ static void loadView(ViewController *self) {
 			// Stats
 
 			Cg_CvarCheckboxInput((View *) stackView, "Show stats", "cl_draw_counters");
-			Cg_CvarCheckboxInput((View *) stackView, "Show netrgaph", "cl_draw_net_graph");
+			Cg_CvarCheckboxInput((View *) stackView, "Show netgraph", "cl_draw_net_graph");
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);

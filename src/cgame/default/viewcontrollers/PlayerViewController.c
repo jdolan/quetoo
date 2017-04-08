@@ -55,6 +55,72 @@ static void selectEffectColor(double hue) {
 	cgi.CvarSetValue(cg_color->name, (vec_t) floor(hue));
 }
 
+#pragma mark - Actions & delegates
+
+/**
+ * @brief ActionFunction for changing the shirt color.
+ */
+static void didSetTintR(ColorSelect *self) {
+
+	PlayerViewController *this = (PlayerViewController *) self;
+
+	ColorSelect *colorSelect = (ColorSelect *) this->tintRColorSelect;
+
+	color_t color = ColorFromRGB(colorSelect->color.r, colorSelect->color.g, colorSelect->color.b);
+	char hexColor[COLOR_MAX_LENGTH];
+
+	if (color.r == 0 && color.g == 0 && color.b == 0) {
+		cgi.CvarSet(cg_tint_r->name, "default");
+	} else {
+		ColorToHex(color, hexColor, sizeof(hexColor));
+
+		cgi.CvarSet(cg_tint_r->name, hexColor);
+	}
+
+	if (this->playerModelView) {
+		$((View *) this->playerModelView, updateBindings);
+	}
+}
+
+/**
+ * @brief ActionFunction for changing the pants color.
+ */
+static void didSetTintG(ColorSelect *self) {
+
+	PlayerViewController *this = (PlayerViewController *) self;
+
+	ColorSelect *colorSelect = (ColorSelect *) this->tintGColorSelect;
+
+	color_t color = ColorFromRGB(colorSelect->color.r, colorSelect->color.g, colorSelect->color.b);
+	char hexColor[COLOR_MAX_LENGTH];
+
+	if (color.r == 0 && color.g == 0 && color.b == 0) {
+		cgi.CvarSet(cg_tint_g->name, "default");
+	} else {
+		ColorToHex(color, hexColor, sizeof(hexColor));
+
+		cgi.CvarSet(cg_tint_g->name, hexColor);
+	}
+
+	if (this->playerModelView) {
+		$((View *) this->playerModelView, updateBindings);
+	}
+}
+
+#pragma mark - Object
+
+/**
+ * @see Object::dealloc(Object *)
+ */
+static void dealloc(Object *self) {
+
+	PlayerViewController *this = (PlayerViewController *) self;
+
+	release(this->tintRColorSelect);
+	release(this->tintGColorSelect);
+
+	super(Object, self, dealloc);
+}
 #pragma mark - ViewController
 
 /**
@@ -81,11 +147,11 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			// player name
+			// Player name
 
 			Cg_CvarTextView((View *) stackView, "Name", "name");
 
-			// player model
+			// Player model
 
 			Control *skinSelect = (Control *) $(alloc(SkinSelect), initWithFrame, NULL, ControlStyleDefault);
 
@@ -94,7 +160,7 @@ static void loadView(ViewController *self) {
 			Cg_Input((View *) stackView, "Player skin", skinSelect);
 			release(skinSelect);
 
-			// effect color
+			// Effect color
 
 			double hue = -1;
 			if (g_strcmp0(cg_color->string, "default")) {
@@ -107,7 +173,7 @@ static void loadView(ViewController *self) {
 
 			release(hueSlider);
 
-			// hook style
+			// Hook style
 
 			CvarSelect *hookSelect = (CvarSelect *) $(alloc(CvarSelect), initWithVariable, cg_hook_style);
 			hookSelect->expectsStringValue = true;
@@ -127,9 +193,74 @@ static void loadView(ViewController *self) {
 
 			release(hookSelect);
 
-			// handicap
+			// Handicap
 
 			Cg_CvarSliderInput((View *) stackView, "Handicap", cg_handicap->name, 50.0, 100.0, 5.0);
+
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
+
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
+
+		{
+			Box *box = $(alloc(Box), initWithFrame, NULL);
+			$(box->label, setText, "Colors");
+
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+			// Effect color
+
+			double hue = -1;
+			if (g_strcmp0(cg_color->string, "default")) {
+				hue = cg_color->integer;
+			}
+
+			Slider *hueSlider = (Slider *) $(alloc(HueSlider), initWithVariable, hue, selectEffectColor);
+
+			Cg_Input((View *) stackView, "Effects", (Control *) hueSlider);
+
+			// Shirt color
+
+			const SDL_Rect colorFrame = MakeRect(0, 0, 200, 96); // Used for both shirt and pants
+			color_t color;
+
+			this->tintRColorSelect = (ColorSelect *) $(alloc(ColorSelect), initWithFrame, &colorFrame, false);
+
+			this->tintRColorSelect->delegate.self = self;
+			this->tintRColorSelect->delegate.didSetColor = didSetTintR;
+
+			const char *tintR = cg_tint_r->string;
+
+			if (!g_ascii_strcasecmp(tintR, "default")) {
+				color.r = color.g = color.b = 0;
+			} else {
+				ColorParseHex(tintR, &color);
+			}
+
+			$(this->tintRColorSelect, setColor, (SDL_Color) { .r = color.r, .g = color.g, .b = color.b });
+
+			Cg_Input((View *) stackView, "Shirt", (Control *) this->tintRColorSelect);
+
+			// Pants color
+
+			this->tintGColorSelect = (ColorSelect *) $(alloc(ColorSelect), initWithFrame, &colorFrame, false);
+
+			this->tintGColorSelect->delegate.self = self;
+			this->tintGColorSelect->delegate.didSetColor = didSetTintG;
+
+			const char *tintG = cg_tint_g->string;
+
+			if (!g_ascii_strcasecmp(tintG, "default")) {
+				color.r = color.g = color.b = 0;
+			} else {
+				ColorParseHex(tintG, &color);
+			}
+
+			$(this->tintGColorSelect, setColor, (SDL_Color) { .r = color.r, .g = color.g, .b = color.b });
+
+			Cg_Input((View *) stackView, "Pants", (Control *) this->tintGColorSelect);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -168,6 +299,8 @@ static void loadView(ViewController *self) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
+
+	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
 
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 }
