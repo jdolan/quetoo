@@ -73,7 +73,24 @@ static void didSetColor(ColorSelect *self) {
 
 	cgi.CvarSet(cg_draw_crosshair_color->name, hexColor);
 
-	$((View *) this->crosshairView, updateBindings); // This isn't working
+	if (this->crosshairView) {
+		$((View *) this->crosshairView, updateBindings);
+	}
+}
+
+#pragma mark - Object
+
+/**
+ * @see Object::dealloc(Object *)
+ */
+static void dealloc(Object *self) {
+
+	InterfaceViewController *this = (InterfaceViewController *) self;
+
+	release(this->crosshairColorSelect);
+	release(this->crosshairView);
+
+	super(Object, self, dealloc);
 }
 
 #pragma mark - ViewController
@@ -158,11 +175,32 @@ static void loadView(ViewController *self) {
 
 			const SDL_Rect frame = MakeRect(0, 0, 72, 72);
 
-			((InterfaceViewController *) this)->crosshairView = $(alloc(CrosshairView), initWithFrame, &frame);
-			((InterfaceViewController *) this)->crosshairView->view.alignment = ViewAlignmentMiddleCenter;
+			ivc->crosshairView = $(alloc(CrosshairView), initWithFrame, &frame);
+			ivc->crosshairView->view.alignment = ViewAlignmentMiddleCenter;
 
-			$((View *) stackView, addSubview, (View *) ((InterfaceViewController *) this)->crosshairView);
-			release(((InterfaceViewController *) this)->crosshairView);
+			$((View *) ivc->crosshairView, updateBindings);
+
+			$((View *) stackView, addSubview, (View *) ivc->crosshairView);
+
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
+
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
+
+		{
+			Box *box = $(alloc(Box), initWithFrame, NULL);
+			$(box->label, setText, "HUD");
+
+			box->view.autoresizingMask |= ViewAutoresizingWidth;
+
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+			// Stats
+
+			Cg_CvarCheckboxInput((View *) stackView, "Show stats", "cl_draw_counters");
+			Cg_CvarCheckboxInput((View *) stackView, "Show netrgaph", "cl_draw_net_graph");
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -191,14 +229,15 @@ static void loadView(ViewController *self) {
 			// Field of view
 
 			Cg_CvarSliderInput((View *) stackView, "FOV", cg_fov->name, 80.0, 130.0, 5.0);
-
-			// Zoomed field of view
-
 			Cg_CvarSliderInput((View *) stackView, "Zoom FOV", cg_fov_zoom->name, 20.0, 70.0, 5.0);
 
 			// Zoom easing speed
 
 			Cg_CvarSliderInput((View *) stackView, "Zoom interpolate", cg_fov_interpolate->name, 0.0, 2.0, 0.1);
+
+			// Bobbing
+
+//			Cg_CvarCheckboxInput((View *) stackView, "View bobbing", cg_view_bob->name);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -240,6 +279,7 @@ static void loadView(ViewController *self) {
 
 			Cg_CvarCheckboxInput((View *) stackView, "Draw weapon", cg_draw_weapon->name);
 			Cg_CvarSliderInput((View *) stackView, "Weapon alpha", cg_draw_weapon_alpha->name, 0.1, 1.0, 0.1);
+			Cg_CvarCheckboxInput((View *) stackView, "Weapon bobbing", cg_bob->name);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -262,6 +302,8 @@ static void loadView(ViewController *self) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
+
+	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
 
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 }

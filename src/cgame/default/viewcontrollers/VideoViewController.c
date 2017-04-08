@@ -87,6 +87,8 @@ static void loadView(ViewController *self) {
 
 			Cg_CvarCheckboxInput((View *) stackView, "Vertical sync", "r_swap_interval");
 
+			Cg_CvarSliderInput((View *) stackView, "Maximum FPS", "cl_max_fps", 30.0, 200.0, 5.0);
+
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
 
