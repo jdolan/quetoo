@@ -1165,9 +1165,9 @@ static _Bool ParseHexString(const char *input, color_t *output, const uint8_t nu
 			const uint8_t dec = HEX_TO_DEC(l);
 
 			if (d == 0) {
-				*c = dec << o;
+				*c = dec << (((num_digits - 1) * 4) - o);
 			} else {
-				*c |= dec << o;
+				*c |= dec << (((num_digits - 1) * 4) - o);
 			}
 		}
 	}
