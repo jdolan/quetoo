@@ -28,7 +28,7 @@
 
 #define _Class _AudioViewController
 
-#pragma mark - Actions & Delegates
+#pragma mark - Actions
 
 /**
  * @brief ActionFunction for Apply Button.

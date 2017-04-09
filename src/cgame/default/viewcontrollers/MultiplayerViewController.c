@@ -76,15 +76,20 @@ static void loadView(ViewController *self) {
 
 	ServersTableView *servers;
 
-	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
+	StackView *rows = $(alloc(StackView), initWithFrame, NULL);
 
-	columns->axis = StackViewAxisHorizontal;
-	columns->spacing = DEFAULT_PANEL_SPACING;
+	rows->spacing = DEFAULT_PANEL_SPACING;
+
+	rows->distribution = StackViewDistributionFillEqually;
+
+	rows->view.autoresizingMask = ViewAutoresizingFill;
 
 	{
-		StackView *column = $(alloc(StackView), initWithFrame, NULL);
+		StackView *row = $(alloc(StackView), initWithFrame, NULL);
 
-		columns->spacing = DEFAULT_PANEL_SPACING;
+		row->spacing = DEFAULT_PANEL_SPACING;
+
+		row->view.autoresizingMask = ViewAutoresizingWidth;
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
@@ -94,46 +99,23 @@ static void loadView(ViewController *self) {
 
 			servers = $(alloc(ServersTableView), initWithFrame, NULL, ControlStyleDefault);
 
-			servers->tableView.control.view.frame.h = 200;
-
-			servers->tableView.control.view.autoresizingMask = ViewAutoresizingWidth;
+			servers->tableView.control.view.autoresizingMask = ViewAutoresizingFill;
 
 			$((Control *) servers, addActionForEventType, SDL_MOUSEBUTTONUP, connectAction, self, servers);
 
 			$((View *) box, addSubview, (View *) servers);
 			release(servers);
 
-			$((View *) column, addSubview, (View *) box);
+			$((View *) row, addSubview, (View *) box);
 			release(box);
 		}
 
-		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "Server info");
-
-			box->view.autoresizingMask |= ViewAutoresizingFill;
-
-			servers = $(alloc(ServersTableView), initWithFrame, NULL, ControlStyleDefault);
-
-			servers->tableView.control.view.frame.h = 200;
-
-			servers->tableView.control.view.autoresizingMask = ViewAutoresizingWidth;
-
-			$((Control *) servers, addActionForEventType, SDL_MOUSEBUTTONUP, connectAction, self, servers);
-
-			$((View *) box, addSubview, (View *) servers);
-			release(servers);
-
-			$((View *) column, addSubview, (View *) box);
-			release(box);
-		}
-
-		$((View *) columns, addSubview, (View *) column);
-		release(column);
+		$((View *) rows, addSubview, (View *) row);
+		release(row);
 	}
 
-	$((View *) this->panel->contentView, addSubview, (View *) columns);
-	release(columns);
+	$((View *) this->panel->contentView, addSubview, (View *) rows);
+	release(rows);
 
 	this->panel->accessoryView->view.hidden = false;
 
