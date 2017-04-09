@@ -27,10 +27,12 @@
  * "skin.tga" in the model's directory.
  */
 static void R_LoadMeshMaterial(r_model_t *mod) {
-	char skin[MAX_QPATH];
 
+	R_LoadModelMaterials(mod);
+
+	char skin[MAX_QPATH];
 	Dirname(mod->media.name, skin);
-	strcat(skin, "skin");
+	g_strlcat(skin, "skin", sizeof(skin));
 
 	mod->mesh->material = R_LoadMaterial(skin, ASSET_CONTEXT_MODELS);
 }

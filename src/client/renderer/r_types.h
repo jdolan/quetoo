@@ -800,6 +800,9 @@ typedef struct r_model_s {
 	r_bsp_inline_model_t *bsp_inline;
 	r_mesh_model_t *mesh;
 
+	r_material_t **materials;
+	size_t num_materials;
+
 	vec3_t mins, maxs;
 	vec_t radius;
 

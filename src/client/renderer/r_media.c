@@ -122,7 +122,7 @@ void R_DumpImages_f(void) {
  * @brief Establishes a dependency from the specified dependent to the given
  * dependency. Dependencies in use by registered media are never freed.
  */
-void R_RegisterDependency(r_media_t *dependent, r_media_t *dependency) {
+r_media_t *R_RegisterDependency(r_media_t *dependent, r_media_t *dependency) {
 
 	if (dependent) {
 		if (dependency) {
@@ -138,6 +138,8 @@ void R_RegisterDependency(r_media_t *dependent, r_media_t *dependency) {
 	} else {
 		Com_Warn("Invalid dependent\n");
 	}
+
+	return dependency;
 }
 
 /**
@@ -153,7 +155,7 @@ static gboolean R_FreeMedia_(gpointer key, gpointer value, gpointer data);
  * @brief Inserts the specified media into the shared table, re-registering all
  * of its dependencies as well.
  */
-void R_RegisterMedia(r_media_t *media) {
+r_media_t *R_RegisterMedia(r_media_t *media) {
 
 	// check to see if we're already seeded
 	if (media->seed != r_media_state.seed) {
@@ -190,6 +192,8 @@ void R_RegisterMedia(r_media_t *media) {
 		R_RegisterMedia((r_media_t *) d->data);
 		d = d->next;
 	}
+
+	return media;
 }
 
 /**

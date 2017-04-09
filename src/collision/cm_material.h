@@ -250,21 +250,12 @@ typedef struct cm_material_s {
 	uint16_t num_stages;
 } cm_material_t;
 
-/**
- * @brief An immutable array of material references.
- */
-typedef struct {
-	cm_material_t **materials;
-	size_t count;
-} cm_material_list_t;
-
 cm_material_t *Cm_AllocMaterial(const char *name);
-void Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context);
 void Cm_FreeMaterial(cm_material_t *material);
-void Cm_FreeMaterialList(cm_material_list_t *materials, _Bool full);
-
-size_t Cm_LoadMaterials(const char *path, cm_material_list_t *materials);
-void Cm_WriteMaterials(const char *path, const cm_material_list_t *materials);
+void Cm_FreeMaterials(GList *materials, _Bool full);
+ssize_t Cm_LoadMaterials(const char *path, GList **materials);
+void Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context);
+ssize_t Cm_WriteMaterials(const char *path, const GList *materials);
 
 void Cm_MaterialBasename(const char *in, char *out, size_t len);
 

@@ -412,11 +412,6 @@ typedef struct cg_import_s {
 	const char *(*EntityString)(void);
 
 	/**
-	 * @return The materials for the currently loaded level.
-	 */
-	const cm_material_t **(*MapMaterials)(size_t *num_materials);
-
-	/**
 	 * @defgroup collision Collision model
 	 * @{
 	 */

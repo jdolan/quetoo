@@ -160,17 +160,12 @@ static void Cg_InitFootsteps(void) {
 	}, 4);
 
 	g_hash_table_insert(cg_footstep_table, "default", default_samples);
-	
-	size_t num_materials = 0;
-	const cm_material_t **materials = cgi.MapMaterials(&num_materials);
 
-	if (num_materials) {
-		for (size_t i = 0; i < num_materials; i++) {
-			const cm_material_t *material = materials[i];
+	r_material_t **material = cgi.WorldModel()->materials;
+	for (size_t i = 0; i < cgi.WorldModel()->num_materials; i++, material++) {
 
-			if (*material->footsteps) {
-				Cg_FootstepsTable_Load(material->footsteps);
-			}
+		if (strlen((*material)->cm->footsteps)) {
+			Cg_FootstepsTable_Load((*material)->cm->footsteps);
 		}
 	}
 }

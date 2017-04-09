@@ -32,21 +32,6 @@ void Cm_FreeMaterial(cm_material_t *material) {
 }
 
 /**
- * @brief Frees the materials list, and optionally the backing materials.
- */
-void Cm_FreeMaterialList(cm_material_list_t *materials, _Bool full) {
-
-	if (full) {
-		for (size_t i = 0; i < materials->count; i++) {
-			Cm_FreeMaterial(materials->materials[i]);
-		}
-	}
-
-	g_free(materials->materials);
-	materials->count = 0;
-}
-
-/**
  * @brief
  */
 static uint32_t Cm_ParseContents(const char *c) {
@@ -716,26 +701,23 @@ cm_material_t *Cm_AllocMaterial(const char *name) {
 /**
  * @brief Loads the materials defined in the specified file.
  * @param path The Quake path of the materials file.
- * @param materials The materials list to populate.
- * @return The length of the populated materials list.
+ * @Param materials The list to append to.
+ * @return The number of materials parsed, or -1 on error.
  */
-size_t Cm_LoadMaterials(const char *path, cm_material_list_t *materials) {
+ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 	void *buf;
-
-	memset(materials, 0, sizeof(*materials));
+	ssize_t count = 0;
 
 	if (Fs_Load(path, &buf) == -1) {
 		Com_Debug(DEBUG_COLLISION, "Couldn't load %s\n", path);
-		return 0;
+		return -1;
 	}
-
-	GArray *array = g_array_new(false, false, sizeof(cm_material_t *));
-	cm_material_t *m = NULL;
-
-	_Bool in_material = false, parsing_material = false;
 
 	parser_t parser;
 	Parse_Init(&parser, (const char *) buf, PARSER_C_LINE_COMMENTS | PARSER_C_BLOCK_COMMENTS);
+
+	cm_material_t *m = NULL;
+	_Bool in_material = false;
 
 	while (true) {
 		char token[MAX_TOKEN_CHARS];
@@ -757,11 +739,10 @@ size_t Cm_LoadMaterials(const char *path, cm_material_list_t *materials) {
 			}
 
 			m = Cm_AllocMaterial(token);
-			parsing_material = true;
 			continue;
 		}
 
-		if (!m && !parsing_material) {
+		if (!m) {
 			continue;
 		}
 
@@ -920,19 +901,19 @@ size_t Cm_LoadMaterials(const char *path, cm_material_list_t *materials) {
 		}
 
 		if (*token == '}' && in_material) {
-			g_array_append_val(array, m);
+			*materials = g_list_prepend(*materials, m);
 			in_material = false;
-			parsing_material = false;
-			materials->count++;
+			count++;
 
 			Com_Debug(DEBUG_COLLISION, "Parsed material %s with %d stages\n", m->name, m->num_stages);
+
+			m = NULL;
 		}
 	}
 
 	Fs_Free(buf);
 
-	materials->materials = (cm_material_t **) g_array_free(array, false);
-	return materials->count;
+	return count;
 }
 
 /**
@@ -1235,16 +1216,21 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 /**
  * @brief Serialize the material(s) into the specified file.
  */
-void Cm_WriteMaterials(const char *path, const cm_material_list_t *materials) {
+ssize_t Cm_WriteMaterials(const char *path, const GList *materials) {
 
+	ssize_t count = -1;
 	file_t *file = Fs_OpenWrite(path);
 	if (file) {
-		for (size_t i = 0; i < materials->count; i++) {
-			Cm_WriteMaterial(materials->materials[i], file);
+		count = 0;
+		for (const GList *list = materials; list; list = list->next, count++) {
+			Cm_WriteMaterial((cm_material_t *) list->data, file);
 		}
 
 		Fs_Close(file);
+		Com_Print("Wrote %zd materials to %s\n", count, path);
 	} else {
 		Com_Warn("Failed to open %s for write\n", path);
 	}
+
+	return count;
 }

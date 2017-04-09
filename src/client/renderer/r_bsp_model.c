@@ -20,10 +20,10 @@
  */
 
 #include "r_local.h"
-#include "client.h" // load in a few Cl_ functions
+#include "client.h"
 
-/*
- * Structures used for intermediate representation of data
+/**
+ * @brief Structures used for intermediate representation of data
  * to compile unique vertex list and element array
  */
 typedef struct {
@@ -994,6 +994,9 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	}
 
 	mod->bsp->version = version;
+
+	Cl_LoadingProgress(2, "materials");
+	R_LoadModelMaterials(mod);
 
 	Cl_LoadingProgress(4, "vertices");
 	R_LoadBspVertexes(mod->bsp);

@@ -38,13 +38,52 @@ typedef struct {
 } r_material_interleave_vertex_t;
 
 static r_buffer_layout_t r_material_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
-	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 12, .normalized = true },
-	{ .attribute = R_ARRAY_NORMAL, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t), .offset = 16 },
-	{ .attribute = R_ARRAY_TANGENT, .type = R_ATTRIB_FLOAT, .count = 4, .size = sizeof(vec4_t), .offset = 28 },
-	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_FLOAT, .count = 2, .size = sizeof(vec2_t), .offset = 44 },
-	{ .attribute = R_ARRAY_LIGHTMAP, .type = R_ATTRIB_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = 52, .normalized = true },
-	{ .attribute = -1 }
+	{
+		.attribute = R_ARRAY_POSITION,
+		.type = R_ATTRIB_FLOAT,
+		.count = 3,
+		.size = sizeof(vec3_t)
+	},
+	{
+		.attribute = R_ARRAY_COLOR,
+		.type = R_ATTRIB_UNSIGNED_BYTE,
+		.count = 4,
+		.size = sizeof(u8vec4_t),
+		.offset = 12,
+		.normalized = true
+	},
+	{
+		.attribute = R_ARRAY_NORMAL,
+		.type = R_ATTRIB_FLOAT,
+		.count = 3,
+		.size = sizeof(vec3_t),
+		.offset = 16
+	},
+	{
+		.attribute = R_ARRAY_TANGENT,
+		.type = R_ATTRIB_FLOAT,
+		.count = 4,
+		.size = sizeof(vec4_t),
+		.offset = 28
+	},
+	{
+		.attribute = R_ARRAY_DIFFUSE,
+		.type = R_ATTRIB_FLOAT,
+		.count = 2,
+		.size = sizeof(vec2_t),
+		.offset = 44
+	},
+	{
+		.attribute = R_ARRAY_LIGHTMAP,
+		.type = R_ATTRIB_UNSIGNED_SHORT,
+		.count = 2,
+		.size = sizeof(u16vec2_t),
+		.offset = 52,
+		.normalized = true
+	},
+	{
+		.attribute = -1
+	}
 };
 
 typedef struct {
@@ -660,9 +699,8 @@ static void R_RegisterMaterial(r_media_t *self) {
  * @brief Free event listener for materials.
  */
 static void R_FreeMaterial(r_media_t *self) {
-	r_material_t *mat = (r_material_t *) self;
 
-	Cm_FreeMaterial(mat->cm);
+	Cm_FreeMaterial(((r_material_t *) self)->cm);
 }
 
 /**
@@ -818,86 +856,136 @@ r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
 	r_material_t *mat = (r_material_t *) R_FindMedia(key);
 
 	if (mat == NULL) {
-
-		cm_material_t *cm = Cm_AllocMaterial(name);
-
-		mat = R_ResolveMaterial(cm, context);
+		mat = R_ResolveMaterial(Cm_AllocMaterial(name), context);
 	}
 
 	return mat;
 }
 
 /**
- * @brief Loads all materials for the specified model. This is accomplished by
- * parsing the material definitions in ${model_name}.mat for mesh models, and
- * materials/${model_name}.mat for BSP models.
+ * @brief
  */
-void R_LoadMaterials(r_model_t *mod) {
+ssize_t R_LoadMaterials(const char *path, cm_asset_context_t context, GList **materials) {
 
-	const char *path;
-	cm_asset_context_t context;
+	GList *source = NULL;
+	const ssize_t count = Cm_LoadMaterials(path, &source);
+	if (count > 0) {
 
-	if (mod->type == MOD_BSP) {
-		path = va("materials/%s.mat", Basename(mod->media.name));
-		context = ASSET_CONTEXT_TEXTURES;
-	} else {
-		path = va("%s.mat", mod->media.name);
-		context = ASSET_CONTEXT_MODELS;
-	}
+		for (GList *list = source; list; list = list->next) {
+			cm_material_t *cm = (cm_material_t *) list->data;
 
-	cm_material_list_t materials;
-	const size_t num_materials = Cm_LoadMaterials(path, &materials);
+			r_material_t *material = R_ResolveMaterial(cm, context);
+			if (material->diffuse->type == IT_NULL) {
+				Com_Warn("Failed to resolve %s\n", cm->name);
+			} else {
+				Com_Debug(DEBUG_RENDERER, "Parsed material %s with %d stages\n", cm->name, cm->num_stages);
+			}
 
-	for (size_t i = 0; i < num_materials; i++) {
-
-		r_material_t *mat = R_ResolveMaterial(materials.materials[i], context);
-
-		if (mat->diffuse->type == IT_NULL) {
-			Com_Warn("Failed to resolve %s\n", mat->cm->name);
-			continue;
+			if (materials) {
+				*materials = g_list_prepend(*materials, material);
+			}
 		}
-
-		R_RegisterDependency((r_media_t *) mod, (r_media_t *) mat);
-		Com_Debug(DEBUG_RENDERER, "Parsed material %s with %d stages\n", mat->cm->name, mat->cm->num_stages);
 	}
 
-	Cm_FreeMaterialList(&materials, false);
+	g_list_free(source);
+	return count;
+}
+
+/**
+ * @brief Loads all r_material_t for the specified BSP model.
+ */
+static void R_LoadBspMaterials(r_model_t *mod, GList **materials) {
+
+	char path[MAX_QPATH];
+	g_snprintf(path, sizeof(path), "materials/%s.mat", Basename(mod->media.name));
+
+	R_LoadMaterials(path, ASSET_CONTEXT_TEXTURES, materials);
+
+	const bsp_texinfo_t *in = mod->bsp->file->texinfo;
+	for (int32_t i = 0; i < mod->bsp->file->num_texinfo; i++, in++) {
+
+		r_material_t *material = R_LoadMaterial(in->texture, ASSET_CONTEXT_TEXTURES);
+
+		if (g_list_find(*materials, material) == NULL) {
+			*materials = g_list_prepend(*materials, material);
+		}
+	}
+}
+
+/**
+ * @brief Loads all r_material_t for the specified mesh model.
+ */
+static void R_LoadMeshMaterials(r_model_t *mod, GList **materials) {
+
+	char path[MAX_QPATH];
+	g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
+
+	R_LoadMaterials(path, ASSET_CONTEXT_TEXTURES, materials);
+}
+
+/**
+ * @brief Loads all r_material_t for the specified model, populating `mod->materials`.
+ */
+void R_LoadModelMaterials(r_model_t *mod) {
+
+	GList *materials = NULL;
+
+	switch (mod->type) {
+		case MOD_BSP:
+			R_LoadBspMaterials(mod, &materials);
+			break;
+		case MOD_OBJ:
+		case MOD_MD3:
+			R_LoadMeshMaterials(mod, &materials);
+			break;
+		default:
+			Com_Debug(DEBUG_RENDERER, "Unsupported model: %s\n", mod->media.name);
+			break;
+	}
+
+	mod->num_materials = g_list_length(materials);
+	mod->materials = Mem_LinkMalloc(sizeof(r_material_t *) * mod->num_materials, mod);
+
+	r_material_t **out = mod->materials;
+	for (const GList *list = materials; list; list = list->next, out++) {
+		*out = (r_material_t *) R_RegisterDependency((r_media_t *) mod, (r_media_t *) list->data);
+	}
+
+	Com_Debug(DEBUG_RENDERER, "Loaded %zd materials for %s\n", mod->num_materials, mod->media.name);
+
+	g_list_free(materials);
+}
+
+/**
+ * @brief Writes all r_material_t for the specified BSP model to disk.
+ */
+static ssize_t R_SaveBspMaterials(const r_model_t *mod) {
+
+	char path[MAX_QPATH];
+	g_snprintf(path, sizeof(path), "materials/%s.mat", Basename(mod->media.name));
+
+	GList *materials = NULL;
+	for (size_t i = 0; i < mod->num_materials; i++) {
+		materials = g_list_prepend(materials, mod->materials[i]);
+	}
+
+	const ssize_t count = Cm_WriteMaterials(path, materials);
+
+	g_list_free(materials);
+	return count;
 }
 
 /**
  * @brief
  */
 static void R_SaveMaterials_f(void) {
-	const r_model_t *mod = r_model_state.world;
 
-	/*if (!mod) {
+	if (!r_model_state.world) {
 		Com_Print("No map loaded\n");
 		return;
 	}
 
-	char path[MAX_QPATH];
-	g_snprintf(path, sizeof(path), "materials/%s.mat", Basename(mod->media.name));
-
-	cm_material_list_t materials = {
-		.materials = Mem_Malloc(sizeof(cm_material_t *) * mod->bsp->cm->materials.count),
-		.count = mod->bsp->cm->materials.count
-	};
-
-	cm_material_t **c = mod->bsp->cm->materials.materials;
-	for (size_t i = 0; i < mod->bsp->cm->materials.count; i++, c++) {
-		const char *name = (*c)->diffuse.name;
-		const r_material_t *mat = R_LoadMaterial((*c)->name, ASSET_CONTEXT_TEXTURES);
-		if (mat) {
-			materials.materials[i] = mat->cm;
-		} else {
-			Com_Debug(DEBUG_RENDERER, "Failed to resolve renderer material %s\n", name);
-		}
-	}
-
-	Cm_WriteMaterials(path, materials, mod->bsp->cm->num_materials);
-	Com_Print("Saved %s\n", path);
-
-	Mem_Free(materials.materials);*/
+	R_SaveBspMaterials(r_model_state.world);
 }
 
 /**
