@@ -160,19 +160,6 @@ static void loadView(ViewController *self) {
 			Cg_Input((View *) stackView, "Player skin", skinSelect);
 			release(skinSelect);
 
-			// Effect color
-
-			double hue = -1;
-			if (g_strcmp0(cg_color->string, "default")) {
-				hue = cg_color->integer;
-			}
-
-			Slider *hueSlider = (Slider *) $(alloc(HueSlider), initWithVariable, hue, selectEffectColor);
-
-			Cg_Input((View *) stackView, "Effect color", (Control *) hueSlider);
-
-			release(hueSlider);
-
 			// Hook style
 
 			CvarSelect *hookSelect = (CvarSelect *) $(alloc(CvarSelect), initWithVariable, cg_hook_style);

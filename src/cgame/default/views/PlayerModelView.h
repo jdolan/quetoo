@@ -61,7 +61,7 @@ struct PlayerModelView {
 	/**
 	 * @brief The entity stubs.
 	 */
-	r_entity_t head, torso, legs, weapon, cleanroom;
+	r_entity_t head, torso, legs, weapon, platformBase, platformCenter;
 
 	/**
 	 * @brief The entity animations.
@@ -74,9 +74,9 @@ struct PlayerModelView {
 	ImageView *iconView;
 
 	/**
-	 * @brief The camera yaw.
+	 * @brief The camera yaw and zoom.
 	 */
-	vec_t yaw;
+	vec_t yaw, zoom;
 };
 
 /**

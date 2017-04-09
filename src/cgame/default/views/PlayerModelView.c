@@ -35,6 +35,23 @@ static void rotateAction(Control *control, const SDL_Event *event, ident sender,
 	PlayerModelView *this = (PlayerModelView *) sender;
 
 	this->yaw += event->motion.xrel;
+
+	if (this->yaw < 0) {
+		this->yaw = 360;
+	} else if (this->yaw > 360) {
+		this->yaw = 0;
+	}
+}
+
+/**
+ * @brief ActionFunction for zooming the model's 3D view
+ */
+static void zoomAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+
+	PlayerModelView *this = (PlayerModelView *) sender;
+
+	this->zoom += event->wheel.y * 0.2;
+	this->zoom = Clamp(this->zoom, 0.0, 1.0);
 }
 
 #pragma mark - Object
@@ -105,7 +122,7 @@ static void render(View *self, Renderer *renderer) {
 		// create projection matrix
 		const vec_t aspect = (vec_t) viewport.w / (vec_t) viewport.h;
 
-		const vec_t ymax = NEAR_Z * tan(Radians(45)); // Field of view
+		const vec_t ymax = NEAR_Z * tan(Radians(40)); // Field of view
 		const vec_t ymin = -ymax;
 
 		const vec_t xmin = ymin * aspect;
@@ -122,27 +139,39 @@ static void render(View *self, Renderer *renderer) {
 		// Quake is retarded: rotate so that Z is up
 		Matrix4x4_ConcatRotate(&mat, -90.0, 1.0, 0.0, 0.0);
 		Matrix4x4_ConcatRotate(&mat,  90.0, 0.0, 0.0, 1.0);
-		Matrix4x4_ConcatTranslate(&mat, 64.0, 0.0, 0.0);
+		Matrix4x4_ConcatTranslate(&mat, 90.0 - (this->zoom * 30.0), 0.0, 20.0 - (this->zoom * 25.0));
 
-		Matrix4x4_ConcatRotate(&mat, -20.0, 0.0, 1.0, 0.0);
-		Matrix4x4_ConcatRotate(&mat, this->yaw + (sin(Radians(cgi.client->unclamped_time * 0.05)) * 6.0), 0.0, 0.0, 1.0);
+		Matrix4x4_ConcatRotate(&mat, -25.0 - (this->zoom * -10.0), 0.0, 1.0, 0.0);
 
-		cgi.SetMatrix(R_MATRIX_MODELVIEW, &mat);
+		Matrix4x4_ConcatRotate(&mat, sin(Radians(cgi.client->unclamped_time * 0.05)) * 10.0, 0.0, 0.0, 1.0);
 
 		cgi.EnableDepthTest(true);
 		cgi.DepthRange(0.0, 0.1);
+
+		// Platform base; doesn't rotate
+
+		cgi.SetMatrix(R_MATRIX_MODELVIEW, &mat);
+
+		renderMeshEntity(&this->platformBase);
+		renderMeshMaterialsEntity(&this->platformBase);
+
+		// Rotating stuff
+
+		Matrix4x4_ConcatRotate(&mat, this->yaw, 0.0, 0.0, 1.0);
+
+		cgi.SetMatrix(R_MATRIX_MODELVIEW, &mat);
 
 		renderMeshEntity(&this->legs);
 		renderMeshEntity(&this->torso);
 		renderMeshEntity(&this->head);
 		renderMeshEntity(&this->weapon);
-		renderMeshEntity(&this->cleanroom);
+		renderMeshEntity(&this->platformCenter);
 
 		renderMeshMaterialsEntity(&this->legs);
 		renderMeshMaterialsEntity(&this->torso);
 		renderMeshMaterialsEntity(&this->head);
 		renderMeshMaterialsEntity(&this->weapon);
-		renderMeshMaterialsEntity(&this->cleanroom);
+		renderMeshMaterialsEntity(&this->platformCenter);
 
 		cgi.DepthRange(0.0, 1.0);
 		cgi.EnableDepthTest(false);
@@ -199,10 +228,15 @@ static void updateBindings(View *self) {
 	this->weapon.effects = EF_NO_LIGHTING;
 	Vector4Set(this->weapon.color, 1.0, 1.0, 1.0, 1.0);
 
-	this->cleanroom.model = cgi.LoadModel("models/weapons/bfg/tris"); // Cleanroom model not done
-	this->cleanroom.scale = 0.0; // No model lalala
-	this->cleanroom.effects = EF_NO_LIGHTING;
-	Vector4Set(this->cleanroom.color, 1.0, 1.0, 1.0, 1.0);
+	this->platformBase.model = cgi.LoadModel("models/objects/platform/base/tris");
+	this->platformBase.scale = 1.0;
+	this->platformBase.effects = EF_NO_LIGHTING;
+	Vector4Set(this->platformBase.color, 1.0, 1.0, 1.0, 1.0);
+
+	this->platformCenter.model = cgi.LoadModel("models/objects/platform/center/tris");
+	this->platformCenter.scale = 1.0;
+	this->platformCenter.effects = EF_NO_LIGHTING;
+	Vector4Set(this->platformCenter.color, 1.0, 1.0, 1.0, 1.0);
 
 	memcpy(this->legs.skins, this->client.legs_skins, sizeof(this->legs.skins));
 	memcpy(this->torso.skins, this->client.torso_skins, sizeof(this->torso.skins));
@@ -219,6 +253,11 @@ static void updateBindings(View *self) {
 static _Bool captureEvent(Control *self, const SDL_Event *event) {
 
 	if (event->type == SDL_MOUSEMOTION && event->motion.state & SDL_BUTTON_LMASK) {
+
+		if ($((View *) self, didReceiveEvent, event)) {
+			return true;
+		}
+	} else if (event->type == SDL_MOUSEWHEEL) {
 
 		if ($((View *) self, didReceiveEvent, event)) {
 			return true;
@@ -297,13 +336,19 @@ static void animate(PlayerModelView *self) {
 	VectorClear(self->torso.origin);
 	VectorClear(self->head.origin);
 	VectorClear(self->weapon.origin);
+	VectorClear(self->platformBase.origin);
+	VectorClear(self->platformCenter.origin);
 
 	VectorClear(self->legs.angles);
 	VectorClear(self->torso.angles);
 	VectorClear(self->head.angles);
 	VectorClear(self->weapon.angles);
+	VectorClear(self->platformBase.angles);
+	VectorClear(self->platformCenter.angles);
 
-	self->legs.scale = self->torso.scale = self->head.scale = self->weapon.scale = 1.0;
+	self->legs.scale = self->torso.scale = self->head.scale = 1.0;
+	self->weapon.scale = 1.0;
+	self->platformBase.scale = self->platformCenter.scale = 1.0;
 
 	for (int32_t i = 0; i < 3; i++) {
 		self->torso.tints[i] = self->legs.tints[i] = self->head.tints[i] = self->client.tints[i][3] ? self->client.tints[i] : NULL;
@@ -313,6 +358,8 @@ static void animate(PlayerModelView *self) {
 	Matrix4x4_CreateFromEntity(&self->torso.matrix, self->torso.origin, self->torso.angles, self->torso.scale);
 	Matrix4x4_CreateFromEntity(&self->head.matrix, self->head.origin, self->head.angles, self->head.scale);
 	Matrix4x4_CreateFromEntity(&self->weapon.matrix, self->weapon.origin, self->weapon.angles, self->weapon.scale);
+	Matrix4x4_CreateFromEntity(&self->platformBase.matrix, self->platformBase.origin, self->platformBase.angles, self->platformBase.scale);
+	Matrix4x4_CreateFromEntity(&self->platformCenter.matrix, self->platformCenter.origin, self->platformCenter.angles, self->platformCenter.scale);
 
 	Cg_ApplyMeshModelTag(&self->torso, &self->legs, "tag_torso");
 	Cg_ApplyMeshModelTag(&self->head, &self->torso, "tag_head");
@@ -328,7 +375,8 @@ static PlayerModelView *initWithFrame(PlayerModelView *self, const SDL_Rect *fra
 
 	self = (PlayerModelView *) super(Control, self, initWithFrame, frame, style);
 	if (self) {
-		self->yaw = 150;
+		self->yaw = 150.0;
+		self->zoom = 0.4;
 
 		self->animation1.animation = ANIM_TORSO_STAND1;
 		self->animation2.animation = ANIM_LEGS_IDLE;
@@ -348,6 +396,7 @@ static PlayerModelView *initWithFrame(PlayerModelView *self, const SDL_Rect *fra
 		self->control.view.padding.left = 4;
 
 		$((Control *) self, addActionForEventType, SDL_MOUSEMOTION, rotateAction, self, NULL);
+		$((Control *) self, addActionForEventType, SDL_MOUSEWHEEL, zoomAction, self, NULL);
 	}
 
 	return self;
