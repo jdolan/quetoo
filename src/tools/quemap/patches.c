@@ -121,7 +121,7 @@ static void BuildPatch(int32_t fn, winding_t *w) {
 	patch_t *patch;
 	bsp_plane_t *plane;
 
-	patch = (patch_t *) Mem_Malloc(sizeof(*patch));
+	patch = (patch_t *) Mem_TagMalloc(sizeof(*patch), MEM_TAG_PATCH);
 
 	face_patches[fn] = patch;
 
@@ -276,7 +276,7 @@ static void SubdividePatch(patch_t *patch) {
 	ClipWindingEpsilon(w, split, dist, ON_EPSILON, &o1, &o2);
 
 	// create a new patch
-	newp = (patch_t *) Mem_Malloc(sizeof(*newp));
+	newp = (patch_t *) Mem_TagMalloc(sizeof(*newp), MEM_TAG_PATCH);
 
 	newp->next = patch->next;
 	patch->next = newp;

@@ -134,6 +134,8 @@ static void Init(void) {
 
 	Sem_Init();
 
+	xmlInitParser();
+
 	Com_Print("Quetoo Map %s %s %s %s initialized\n", VERSION, __DATE__, BUILD_HOST, REVISION);
 }
 

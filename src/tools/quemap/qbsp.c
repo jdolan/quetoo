@@ -341,6 +341,8 @@ int32_t BSP_Main(void) {
 		const int32_t version = LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
 		num_entities = 0;
 
+		CreateBSPFile();
+
 		LoadMapFile(map_name);
 		SetModelNumbers();
 

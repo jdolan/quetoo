@@ -263,5 +263,7 @@ void Mon_Shutdown(const char *msg) {
 
 	mon_backlog = NULL;
 
+	xmlCleanupParser();
+
 	Net_Shutdown();
 }

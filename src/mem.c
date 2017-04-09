@@ -24,6 +24,14 @@
 
 #include "mem.h"
 
+#if defined(SUPER_MEMORY_CHECKS)
+  #define MAX_MEMORY_STACK 32
+
+  #if defined(WIN32)
+    #include <DbgHelp.h>
+  #endif
+#endif
+
 #define MEM_MAGIC 0x69696969
 typedef uint32_t mem_magic_t;
 
@@ -31,8 +39,11 @@ typedef struct mem_block_s {
 	mem_magic_t magic;
 	mem_tag_t tag; // for group free
 	struct mem_block_s *parent;
-	GList *children;
+	GSList *children;
 	size_t size;
+#if defined(SUPER_MEMORY_CHECKS)
+	void *stack[MAX_MEMORY_STACK];
+#endif
 } mem_block_t;
 
 typedef struct {
@@ -46,6 +57,42 @@ typedef struct {
 } mem_state_t;
 
 static mem_state_t mem_state;
+
+#if defined(SUPER_MEMORY_CHECKS)
+/**
+ * @brief
+ */
+static void Mem_SetStack(mem_block_t *block) {
+#if defined(WIN32)
+	CaptureStackBackTrace(0, MAX_MEMORY_STACK, block->stack, NULL);
+#elif HAVE_EXECINFO
+	backtrace(block->stack, MAX_MEMORY_STACK);
+#endif
+}
+
+/**
+ * @brief
+ */
+static void Mem_Print(const mem_block_t *block, const char *why) {
+#if defined(WIN32) && defined(SUPER_MEMORY_PRINTS)
+	static char str[MAX_STRING_CHARS];
+	
+	g_snprintf(str, sizeof(str), "%s block 0x%" PRIXPTR " tag %i\n", why, (ULONG64) (block + 1), block->tag);
+	OutputDebugString(str);
+
+	for (int32_t i = 3; i < 5; i++) {
+		
+		if (!block->stack[i]) {
+			break;
+		}
+
+		g_snprintf(str, sizeof(str), "  [0x%" PRIXPTR "]\n",  (ULONG64) (block->stack[i]));
+		OutputDebugString(str);
+	}
+#else
+#endif
+}
+#endif
 
 /**
  * @brief Throws a fatal error if the specified memory block is non-NULL but
@@ -78,9 +125,13 @@ static mem_block_t *Mem_CheckMagic(void *p) {
  */
 static void Mem_Free_(mem_block_t *b) {
 
+#if defined(SUPER_MEMORY_CHECKS)
+	Mem_Print(b, "Freeing");
+#endif
+
 	// recurse down the tree, freeing children
 	if (b->children) {
-		g_list_free_full(b->children, (GDestroyNotify) Mem_Free_);
+		g_slist_free_full(b->children, (GDestroyNotify) Mem_Free_);
 	}
 
 	// decrement the pool size and free the memory
@@ -100,7 +151,7 @@ void Mem_Free(void *p) {
 		SDL_mutexP(mem_state.lock);
 
 		if (b->parent) {
-			b->parent->children = g_list_remove(b->parent->children, b);
+			b->parent->children = g_slist_remove(b->parent->children, b);
 		} else {
 			g_hash_table_remove(mem_state.blocks, (gconstpointer) b);
 		}
@@ -178,12 +229,16 @@ static void *Mem_Malloc_(size_t size, mem_tag_t tag, void *parent) {
 	SDL_mutexP(mem_state.lock);
 
 	if (b->parent) {
-		b->parent->children = g_list_prepend(b->parent->children, b);
+		b->parent->children = g_slist_prepend(b->parent->children, b);
 	} else {
 		g_hash_table_add(mem_state.blocks, b);
 	}
 
 	mem_state.size += size;
+	
+#if defined(SUPER_MEMORY_CHECKS)
+	Mem_SetStack(b);
+#endif
 
 	SDL_mutexV(mem_state.lock);
 
@@ -242,11 +297,20 @@ void *Mem_Realloc(void *p, size_t size) {
 
 	mem_block_t *b = Mem_CheckMagic(p), *new_b;
 
+	// no change to size
+	if (b->size == size) {
+		return (void *) (b + 1);
+	}
+
 	// allocate the block plus the desired size
 	const size_t old_size = b->size;
 	const size_t s = Mem_BlockSize(size);
 
 	b->size = size;
+
+#if defined(SUPER_MEMORY_PRINTS)
+	Mem_Print(b, "Reallocating");
+#endif
 
 	if (!(new_b = realloc(b, s))) {
 		fprintf(stderr, "Failed to re-allocate %u bytes\n", (uint32_t) s);
@@ -263,15 +327,31 @@ void *Mem_Realloc(void *p, size_t size) {
 
 	// re-seat us in our parent or in global hash list
 	if (new_b->parent) {
-		new_b->parent->children = g_list_remove(new_b->parent->children, b);
-		new_b->parent->children = g_list_prepend(new_b->parent->children, new_b);
+		new_b->parent->children = g_slist_remove(new_b->parent->children, b);
+		new_b->parent->children = g_slist_prepend(new_b->parent->children, new_b);
 	} else {
 		g_hash_table_remove(mem_state.blocks, b);
 		g_hash_table_add(mem_state.blocks, new_b);
 	}
 
+	// change our childrens' parent pointers
+	if (new_b->children) {
+		for (GSList *children = new_b->children; children; children = children->next) {
+			mem_block_t *child = (mem_block_t *) children->data;
+			child->parent = new_b;
+		}
+	}
+
 	mem_state.size -= old_size;
 	mem_state.size += size;
+	
+#if defined(SUPER_MEMORY_CHECKS)
+	Mem_SetStack(new_b);
+
+#if defined(SUPER_MEMORY_PRINTS)
+	Mem_Print(new_b, "Reallocated");
+#endif
+#endif
 
 	SDL_mutexV(mem_state.lock);
 
@@ -294,13 +374,13 @@ void *Mem_Link(void *child, void *parent) {
 	SDL_mutexP(mem_state.lock);
 
 	if (c->parent) {
-		c->parent->children = g_list_remove(c->parent->children, c);
+		c->parent->children = g_slist_remove(c->parent->children, c);
 	} else {
 		g_hash_table_remove(mem_state.blocks, c);
 	}
 
 	c->parent = p;
-	p->children = g_list_prepend(p->children, c);
+	p->children = g_slist_prepend(p->children, c);
 
 	SDL_mutexV(mem_state.lock);
 
@@ -348,7 +428,7 @@ static size_t Mem_CalculateBlockSize(const mem_block_t *b) {
 
 	size_t size = b->size;
 
-	for (GList *child = b->children; child; child = child->next) {
+	for (GSList *child = b->children; child; child = child->next) {
 		size += Mem_CalculateBlockSize((const mem_block_t *) child->data);
 	}
 

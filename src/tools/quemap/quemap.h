@@ -116,3 +116,20 @@ typedef void (*ThreadWorkFunc)(int32_t);
 void ThreadLock(void);
 void ThreadUnlock(void);
 void RunThreadsOn(int32_t workcount, _Bool progress, ThreadWorkFunc func);
+
+enum {
+	MEM_TAG_QUEMAP	= 1000,
+	MEM_TAG_TREE,
+	MEM_TAG_NODE,
+	MEM_TAG_BRUSH,
+	MEM_TAG_EPAIR,
+	MEM_TAG_FACE,
+	MEM_TAG_VIS,
+	MEM_TAG_SAMPLES,
+	MEM_TAG_LIGHT,
+	MEM_TAG_FACELIGHT,
+	MEM_TAG_PATCH,
+	MEM_TAG_WINDING,
+	MEM_TAG_PORTAL,
+	MEM_TAG_ASSET
+};

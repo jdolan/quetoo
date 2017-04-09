@@ -39,7 +39,7 @@ static portal_t *AllocPortal(void) {
 		}
 	}
 
-	return Mem_Malloc(sizeof(portal_t));
+	return Mem_TagMalloc(sizeof(portal_t), MEM_TAG_PORTAL);
 }
 
 void FreePortal(portal_t *p) {

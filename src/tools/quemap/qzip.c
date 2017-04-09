@@ -379,7 +379,7 @@ static _Bool DeflateAsset(zipFile zip_file, const char *filename) {
 		return false;
 	}
 
-	void *buffer = Mem_Malloc(ZIP_BUFFER_SIZE);
+	void *buffer = Mem_TagMalloc(ZIP_BUFFER_SIZE, MEM_TAG_ASSET);
 	_Bool success = true;
 
 	while (!Fs_Eof(file)) {

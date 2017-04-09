@@ -746,7 +746,7 @@ static void MoveBrushesToWorld(entity_t *ent) {
 	new_brushes = ent->num_brushes;
 	world_brushes = entities[0].num_brushes;
 
-	temp = Mem_Malloc(new_brushes * sizeof(map_brush_t));
+	temp = Mem_TagMalloc(new_brushes * sizeof(map_brush_t), MEM_TAG_BRUSH);
 	memcpy(temp, map_brushes + ent->first_brush,
 	       new_brushes * sizeof(map_brush_t));
 
