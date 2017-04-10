@@ -616,18 +616,18 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 			          "  texture: %s\n"
 			          "   -> material: %s\n"
 			          "  blend: %d %d\n"
-			          "  color: %3f %3f %3f\n"
-			          "  pulse: %3f\n"
-			          "  stretch: %3f %3f\n"
-			          "  rotate: %3f\n"
-			          "  scroll.s: %3f\n"
-			          "  scroll.t: %3f\n"
-			          "  scale.s: %3f\n"
-			          "  scale.t: %3f\n"
-			          "  terrain.floor: %5f\n"
-			          "  terrain.ceil: %5f\n"
+			          "  color: %.1f %.1f %.1f\n"
+			          "  pulse: %.1f\n"
+			          "  stretch: %.1f %.1f\n"
+			          "  rotate: %.1f\n"
+			          "  scroll.s: %.1f\n"
+			          "  scroll.t: %.1f\n"
+			          "  scale.s: %.1f\n"
+			          "  scale.t: %.1f\n"
+			          "  terrain.floor: %.1f\n"
+			          "  terrain.ceil: %.1f\n"
 			          "  anim.num_frames: %d\n"
-			          "  anim.fps: %3f\n", s->flags, (*s->asset.name ? s->asset.name : "NULL"),
+			          "  anim.fps: %.1f\n", s->flags, (*s->asset.name ? s->asset.name : "NULL"),
 			          ((s->flags & STAGE_LIGHTING) ? "true" : "false"), s->blend.src,
 			          s->blend.dest, s->color[0], s->color[1], s->color[2], s->pulse.hz,
 			          s->stretch.amp, s->stretch.hz, s->rotate.hz, s->scroll.s, s->scroll.t,
@@ -1049,9 +1049,9 @@ static _Bool Cm_ResolveMaterialAsset(cm_material_t *material, cm_asset_t *asset,
 	} else if (asset == &material->heightmap) {
 		suffix = (const char *[]) { "_h", "_height", NULL };
 	} else if (asset == &material->specularmap) {
-		suffix = (const char *[]) { "s", "gloss", "spec", NULL };
+		suffix = (const char *[]) { "_s", "_gloss", "_spec", NULL };
 	} else if (asset == &material->tintmap) {
-		suffix = (const char *[]) { "tint", NULL };
+		suffix = (const char *[]) { "_tint", NULL };
 	} else {
 		assert(false);
 	}
@@ -1059,11 +1059,12 @@ static _Bool Cm_ResolveMaterialAsset(cm_material_t *material, cm_asset_t *asset,
 	for (const char **s = suffix; *s; s++) {
 		g_snprintf(asset->name, sizeof(asset->name), "%s%s", material->basename, *s);
 		if (Cm_ResolveAsset(asset, context)) {
+			Com_Debug(DEBUG_COLLISION, "Resolved %s for %s\n", asset->path, material->name);
 			return true;
 		}
 	}
 
-	Com_Debug(DEBUG_COLLISION, "Failed to resolve asset for %s\n", material->name);
+	Com_Debug(DEBUG_COLLISION, "Failed to resolve asset %s for %s\n", *suffix, material->name);
 
 	*asset->name = '\0';
 	return false;

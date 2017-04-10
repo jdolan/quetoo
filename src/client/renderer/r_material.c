@@ -782,16 +782,51 @@ static void R_AppendStage(r_material_t *m, r_stage_t *s) {
 }
 
 /**
+ * @brief Normalizes material names to their context, returning the unique media key for subsequent
+ * material lookups.
+ */
+static void R_MaterialKey(const char *name, char *key, size_t len, cm_asset_context_t context) {
+
+	*key = '\0';
+
+	if (*name) {
+		if (*name == '#') {
+			name++;
+		} else {
+			switch (context) {
+				case ASSET_CONTEXT_NONE:
+					break;
+				case ASSET_CONTEXT_TEXTURES:
+					g_strlcat(key, "textures/", len);
+					break;
+				case ASSET_CONTEXT_MODELS:
+					g_strlcat(key, "models/", len);
+					break;
+				case ASSET_CONTEXT_PLAYERS:
+					g_strlcat(key, "players/", len);
+					break;
+				case ASSET_CONTEXT_ENVMAPS:
+					g_strlcat(key, "envmaps/", len);
+					break;
+				case ASSET_CONTEXT_FLARES:
+					g_strlcat(key, "flares/", len);
+					break;
+			}
+		}
+
+		g_strlcat(key, name, len);
+		g_strlcat(key, "_mat", len);
+	}
+}
+
+/**
  * @brief Resolves all asset references in the specified collision material, yielding a usable
  * renderer material.
  */
 static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t context) {
 	char key[MAX_QPATH];
 
-	StripExtension(cm->name, key);
-	Cm_MaterialBasename(key, key, sizeof(key));
-
-	g_strlcat(key, "_mat", sizeof(key));
+	R_MaterialKey(cm->name, key, sizeof(key), context);
 
 	r_material_t *material = (r_material_t *) R_AllocMedia(key, sizeof(r_material_t), MEDIA_MATERIAL);
 	material->cm = cm;
@@ -847,19 +882,20 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
  * @brief Loads the r_material_t from the specified texture.
  */
 r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
+
+	cm_material_t *mat = Cm_AllocMaterial(name);
+
 	char key[MAX_QPATH];
+	R_MaterialKey(mat->name, key, sizeof(key), context);
 
-	StripExtension(name, key);
-	Cm_MaterialBasename(key, key, sizeof(key));
-
-	g_strlcat(key, "_mat", sizeof(key));
-	r_material_t *mat = (r_material_t *) R_FindMedia(key);
-
-	if (mat == NULL) {
-		mat = R_ResolveMaterial(Cm_AllocMaterial(name), context);
+	r_material_t *material = (r_material_t *) R_FindMedia(key);
+	if (material == NULL) {
+		material = R_ResolveMaterial(mat, context);
+	} else {
+		Cm_FreeMaterial(mat);
 	}
 
-	return mat;
+	return material;
 }
 
 /**
@@ -920,7 +956,19 @@ static void R_LoadMeshMaterials(r_model_t *mod, GList **materials) {
 	char path[MAX_QPATH];
 	g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
 
-	R_LoadMaterials(path, ASSET_CONTEXT_TEXTURES, materials);
+	if (R_LoadMaterials(path, ASSET_CONTEXT_MODELS, materials) < 1) {
+
+		Dirname(mod->media.name, path);
+		g_strlcat(path, "skin", sizeof(path));
+
+		*materials = g_list_prepend(*materials, R_LoadMaterial(path, ASSET_CONTEXT_MODELS));
+	}
+
+	assert(materials);
+
+	r_material_t *material = (r_material_t *) (*materials)->data;
+
+	mod->mesh->material = material;
 }
 
 /**
