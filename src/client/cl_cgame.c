@@ -247,6 +247,7 @@ void Cl_InitCgame(void) {
 	import.GetAtlasImageFromAtlas = R_GetAtlasImageFromAtlas;
 	import.CompileAtlas = R_CompileAtlas;
 	import.LoadMaterial = R_LoadMaterial;
+	import.LoadMaterials = R_LoadMaterials;
 	import.LoadModel = R_LoadModel;
 	import.WorldModel = R_WorldModel;
 

@@ -863,7 +863,7 @@ r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
 }
 
 /**
- * @brief
+ * @brief Loads all materials defined in the given file.
  */
 ssize_t R_LoadMaterials(const char *path, cm_asset_context_t context, GList **materials) {
 
