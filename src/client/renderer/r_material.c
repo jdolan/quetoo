@@ -730,7 +730,7 @@ static int32_t R_ResolveStageAnimation(r_stage_t *stage, cm_asset_context_t cont
 		return -1;
 	}
 
-	return i;
+	return stage->cm->anim.num_frames;
 }
 
 /**

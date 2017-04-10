@@ -986,16 +986,20 @@ static void Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t type)
 		stage->anim.frames = Mem_LinkMalloc(size, stage);
 
 		char base[MAX_QPATH];
-
 		g_strlcpy(base, stage->asset.name, sizeof(base));
-		if (g_str_has_suffix(base, "0")) {
-			base[strlen(base) - 1] = '\0';
+
+		char *c = base + strlen(base) - 1;
+		while (isdigit(*c)) {
+			c--;
 		}
+
+		int32_t start = (int32_t) strtol(c, NULL, 10);
+		*(c + 1) = '\0';
 
 		for (uint16_t i = 0; i < stage->anim.num_frames; i++) {
 
 			cm_asset_t *frame = &stage->anim.frames[i];
-			g_snprintf(frame->name, sizeof(frame->name), "%s%d", base, i);
+			g_snprintf(frame->name, sizeof(frame->name), "%s%d", base, start + i);
 
 			if (!Cm_ResolveAsset(frame, type)) {
 				Com_Warn("Failed to resolve frame: %d: %s\n", i, stage->asset.name);
