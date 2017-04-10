@@ -21,12 +21,12 @@
 
 #include "cg_local.h"
 
-#include "MultiplayerViewController.h"
+#include "ServerBrowserViewController.h"
 
 #include "CreateServerViewController.h"
 #include "ServersTableView.h"
 
-#define _Class _MultiplayerViewController
+#define _Class _ServerBrowserViewController
 
 #pragma mark - Actions
 
@@ -134,19 +134,19 @@ static void initialize(Class *clazz) {
 }
 
 /**
- * @fn Class *MultiplayerViewController::_MultiplayerViewController(void)
- * @memberof MultiplayerViewController
+ * @fn Class *ServerBrowserViewController::_ServerBrowserViewController(void)
+ * @memberof ServerBrowserViewController
  */
-Class *_MultiplayerViewController(void) {
+Class *_ServerBrowserViewController(void) {
 	static Class clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "MultiplayerViewController";
+		clazz.name = "ServerBrowserViewController";
 		clazz.superclass = _TabViewController();
-		clazz.instanceSize = sizeof(MultiplayerViewController);
-		clazz.interfaceOffset = offsetof(MultiplayerViewController, interface);
-		clazz.interfaceSize = sizeof(MultiplayerViewControllerInterface);
+		clazz.instanceSize = sizeof(ServerBrowserViewController);
+		clazz.interfaceOffset = offsetof(ServerBrowserViewController, interface);
+		clazz.interfaceSize = sizeof(ServerBrowserViewControllerInterface);
 		clazz.initialize = initialize;
 	});
 

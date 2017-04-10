@@ -33,3 +33,4 @@ extern void Cg_Label(View *view, const char *text);
 extern void Cg_Picture(View *view, const char *pic, ViewAlignment align, ViewAutoresizing resize);
 extern void Cg_PrimaryButton(View *view, const char *label, ViewAlignment align, SDL_Color color, ActionFunction action, ident sender, ident data);
 extern void Cg_PrimaryIcon(View *view, const char *icon, ViewAlignment align, SDL_Color color, ActionFunction action, ident sender, ident data);
+extern void Cg_TabButton(View *view, const char *label, ViewAlignment align, SDL_Color color, ActionFunction action, ident sender, ident data);

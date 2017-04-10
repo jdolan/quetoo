@@ -27,6 +27,7 @@
 #include "views/CvarTextView.h"
 #include "views/PrimaryButton.h"
 #include "views/PrimaryIcon.h"
+#include "views/TabButton.h"
 
 /**
  * @brief
@@ -221,6 +222,33 @@ void Cg_PrimaryIcon(View *view, const char *icon, ViewAlignment align, SDL_Color
 
 	PrimaryIcon *button = $(alloc(PrimaryIcon), initWithFrame, &frame, icon);
 	assert(button);
+
+	((Button *) button)->control.view.alignment = align;
+	((Button *) button)->control.view.autoresizingMask = ViewAutoresizingNone;
+
+	((Button *) button)->control.view.backgroundColor = color;
+	((Button *) button)->control.view.borderColor = QColors.BorderLight;
+
+	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, sender, data);
+
+	$(view, addSubview, (View *) button);
+
+	release(button);
+}
+
+/**
+ * @brief
+ */
+void Cg_TabButton(View *view, const char *name, ViewAlignment align, SDL_Color color, ActionFunction action, ident sender, ident data) {
+
+	assert(view);
+
+	const SDL_Rect frame = MakeRect(0, 0, DEFAULT_PRIMARY_BUTTON_WIDTH, 36);
+
+	TabButton *button = $(alloc(TabButton), initWithFrame, &frame, ControlStyleDefault);
+	assert(button);
+
+	$(button->button.title, setText, name);
 
 	((Button *) button)->control.view.alignment = align;
 	((Button *) button)->control.view.autoresizingMask = ViewAutoresizingNone;

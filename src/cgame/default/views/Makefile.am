@@ -14,6 +14,7 @@ noinst_HEADERS = \
 	PrimaryIcon.h \
 	ServersTableView.h \
 	SkinSelect.h \
+	TabButton.h \
 	VideoModeSelect.h
 
 noinst_LTLIBRARIES = \
@@ -35,6 +36,7 @@ libviews_la_SOURCES = \
 	PrimaryIcon.c \
 	ServersTableView.c \
 	SkinSelect.c \
+	TabButton.c \
 	VideoModeSelect.c
 
 libviews_la_CFLAGS = \

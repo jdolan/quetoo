@@ -25,48 +25,47 @@
 
 /**
  * @file
- * @brief Multiplayer ViewController.
+ * @brief ServerBrowser ViewController.
  */
 
-typedef struct MultiplayerViewController MultiplayerViewController;
-typedef struct MultiplayerViewControllerInterface MultiplayerViewControllerInterface;
+typedef struct ServerBrowserViewController ServerBrowserViewController;
+typedef struct ServerBrowserViewControllerInterface ServerBrowserViewControllerInterface;
 
 /**
- * @brief The MultiplayerViewController type.
+ * @brief The ServerBrowserViewController type.
  * @extends TabViewController
  * @ingroup
  */
-struct MultiplayerViewController {
+struct ServerBrowserViewController {
 
 	/**
 	 * @brief The superclass.
 	 * @private
 	 */
-	TabViewController menuViewController;
+	TabViewController tabViewController;
 
 	/**
 	 * @brief The interface.
 	 * @private
 	 */
-	MultiplayerViewControllerInterface *interface;
+	ServerBrowserViewControllerInterface *interface;
 };
 
 /**
- * @brief The MultiplayerViewController interface.
+ * @brief The ServerBrowserViewController interface.
  */
-struct MultiplayerViewControllerInterface {
+struct ServerBrowserViewControllerInterface {
 
 	/**
 	 * @brief The superclass interface.
 	 */
-	TabViewControllerInterface menuViewControllerInterface;
+	TabViewControllerInterface tabViewControllerInterface;
 };
 
 /**
- * @fn Class *MultiplayerViewController::_MultiplayerViewController(void)
- * @brief The MultiplayerViewController archetype.
- * @return The MultiplayerViewController Class.
- * @memberof MultiplayerViewController
+ * @fn Class *ServerBrowserViewController::_ServerBrowserViewController(void)
+ * @brief The ServerBrowserViewController archetype.
+ * @return The ServerBrowserViewController Class.
+ * @memberof ServerBrowserViewController
  */
-extern Class *_MultiplayerViewController(void);
-
+extern Class *_ServerBrowserViewController(void);

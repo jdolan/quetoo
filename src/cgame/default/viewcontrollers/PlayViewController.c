@@ -24,8 +24,8 @@
 #include "PlayViewController.h"
 
 #include "CreateServerViewController.h"
-#include "MultiplayerViewController.h"
 #include "QuickJoinViewController.h"
+#include "ServerBrowserViewController.h"
 
 #define _Class _PlayViewController
 
@@ -116,9 +116,9 @@ static void loadView(ViewController *self) {
 			// Tab buttons
 
 			{
-				Cg_PrimaryButton((View *) row, "Quick join", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _QuickJoinViewController());
-				Cg_PrimaryButton((View *) row, "Create server", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _CreateServerViewController());
-				Cg_PrimaryButton((View *) row, "Server browser", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _MultiplayerViewController());
+				Cg_TabButton((View *) row, "Quick join", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _QuickJoinViewController());
+				Cg_TabButton((View *) row, "Create server", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _CreateServerViewController());
+				Cg_TabButton((View *) row, "Server browser", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _ServerBrowserViewController());
 			}
 		}
 

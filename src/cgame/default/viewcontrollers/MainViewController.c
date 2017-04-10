@@ -21,17 +21,17 @@
 
 #include "cg_local.h"
 
+#include <ObjectivelyMVC/View.h>
+
 #include "MainViewController.h"
 
 #include "CreateServerViewController.h"
 #include "HomeViewController.h"
-#include "MultiplayerViewController.h"
 #include "PlayViewController.h"
 #include "PlayerViewController.h"
 #include "SettingsViewController.h"
 
 #include "DialogView.h"
-#include "PrimaryButton.h"
 
 #define _Class _MainViewController
 
@@ -144,60 +144,64 @@ static void loadView(ViewController *self) {
 
 	// Menu bar
 
-	Panel *panel = $(alloc(Panel), initWithFrame, NULL);
+	View *view = $(alloc(View), initWithFrame, NULL);
 
-	panel->isDraggable = false;
-	panel->isResizable = false;
+	view->alignment = ViewAlignmentTopCenter;
+	view->autoresizingMask = ViewAutoresizingWidth;
 
-	panel->stackView.spacing = 0;
-	panel->stackView.axis = StackViewAxisHorizontal;
-	panel->stackView.distribution = StackViewDistributionFillEqually;
+	view->backgroundColor = QColors.Main;
+	view->borderColor = QColors.BorderLight;
 
-	panel->stackView.view.needsLayout = true;
+	view->frame.h = 30;
 
-	panel->stackView.view.frame.h = 36;
+	view->padding.right = DEFAULT_PANEL_SPACING;
+	view->padding.left = DEFAULT_PANEL_SPACING;
 
-	panel->stackView.view.padding.top = 0;
-	panel->stackView.view.padding.bottom = 0;
-
-	panel->stackView.view.backgroundColor = QColors.Main;
-	panel->stackView.view.zIndex = 50; // Just below dialogs and panels
-
-	panel->stackView.view.alignment = ViewAlignmentTopCenter;
-	panel->stackView.view.autoresizingMask = ViewAutoresizingWidth;
-
-	panel->stackView.view.backgroundColor = QColors.Main;
-	panel->stackView.view.borderColor = Colors.Clear;
+	view->zIndex = 50; // Just below dialogs and panels
 
 	{
-		panel->contentView->axis = StackViewAxisHorizontal;
-		panel->contentView->distribution = StackViewDistributionDefault;
+		StackView *row = $(alloc(StackView), initWithFrame, NULL);
 
-		panel->contentView->view.alignment = ViewAlignmentTopLeft;
-		panel->contentView->view.autoresizingMask = ViewAutoresizingContain;
+		row->spacing = DEFAULT_PANEL_SPACING;
 
-		Cg_PrimaryButton((View *) panel->contentView, "HOME", ViewAlignmentTopLeft, QColors.Dark, action, self, _HomeViewController());
+		row->axis = StackViewAxisHorizontal;
+		row->distribution = StackViewDistributionDefault;
 
-		Cg_PrimaryButton((View *) panel->contentView, "PROFILE", ViewAlignmentTopLeft, QColors.Dark, action, self, _PlayerViewController());
+		row->view.alignment = ViewAlignmentTopLeft;
+		row->view.autoresizingMask = ViewAutoresizingContain;
 
-		Cg_PrimaryButton((View *) panel->contentView, "PLAY", ViewAlignmentTopLeft, QColors.Theme, action, self, _PlayViewController());
+		{
+			Cg_PrimaryButton((View *) row, "HOME", ViewAlignmentTopLeft, QColors.Dark, action, self, _HomeViewController());
+			Cg_PrimaryButton((View *) row, "PROFILE", ViewAlignmentTopLeft, QColors.Dark, action, self, _PlayerViewController());
+			Cg_PrimaryButton((View *) row, "PLAY", ViewAlignmentTopLeft, QColors.Theme, action, self, _PlayViewController());
+		}
+
+		$(view, addSubview, (View *) row);
+		release(row);
+	}
+
 	{
+		StackView *row = $(alloc(StackView), initWithFrame, NULL);
 
+		row->spacing = DEFAULT_PANEL_SPACING;
+
+		row->axis = StackViewAxisHorizontal;
+		row->distribution = StackViewDistributionDefault;
+
+		row->view.alignment = ViewAlignmentTopRight;
+		row->view.autoresizingMask = ViewAutoresizingContain;
+
+		{
+			Cg_PrimaryIcon((View *) row, "ui/pics/settings", ViewAlignmentTopRight, QColors.Dark, action, self, _SettingsViewController());
+			Cg_PrimaryIcon((View *) row, "ui/pics/quit", ViewAlignmentTopRight,  QColors.Dark,action, self, NULL);
+		}
+
+		$(view, addSubview, (View *) row);
+		release(row);
 	}
-		panel->accessoryView->axis = StackViewAxisHorizontal;
-		panel->accessoryView->distribution = StackViewDistributionDefault;
 
-		panel->accessoryView->view.hidden = false;
-
-		panel->accessoryView->view.alignment = ViewAlignmentTopRight;
-		panel->accessoryView->view.autoresizingMask = ViewAutoresizingContain;
-
-		Cg_PrimaryIcon((View *) panel->accessoryView, "ui/pics/settings", ViewAlignmentTopRight, QColors.Dark, action, self, _SettingsViewController());
-		Cg_PrimaryIcon((View *) panel->accessoryView, "ui/pics/quit", ViewAlignmentTopRight,  QColors.Dark,action, self, NULL);
-	}
-
-	$(self->view, addSubview, (View *) panel);
-	release(panel);
+	$(self->view, addSubview, (View *) view);
+	release(view);
 
 	action(NULL, NULL, self, _HomeViewController()); // Open home when the main menu is first opened
 

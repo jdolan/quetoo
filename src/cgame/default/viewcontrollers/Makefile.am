@@ -7,10 +7,10 @@ noinst_HEADERS = \
 	InterfaceViewController.h \
 	MainViewController.h \
 	MenuViewController.h \
-	MultiplayerViewController.h \
 	PlayViewController.h \
 	PlayerViewController.h \
 	QuickJoinViewController.h \
+	ServerBrowserViewController.h \
 	SettingsViewController.h \
 	TabViewController.h \
 	VideoViewController.h
@@ -26,10 +26,10 @@ libviewcontrollers_la_SOURCES = \
 	InterfaceViewController.c \
 	MainViewController.c \
 	MenuViewController.c \
-	MultiplayerViewController.c \
 	PlayViewController.c \
 	PlayerViewController.c \
 	QuickJoinViewController.c \
+	ServerBrowserViewController.c \
 	SettingsViewController.c \
 	TabViewController.c \
 	VideoViewController.c
