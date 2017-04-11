@@ -105,7 +105,6 @@ static void loadView(ViewController *self) {
 		$(this->backgroundImage, setImage, NULL);
 	}
 
-	this->backgroundImage->view.alignment = ViewAlignmentTopLeft;
 	this->backgroundImage->view.autoresizingMask = ViewAutoresizingFill;
 
 	$(self->view, addSubview, (View *) this->backgroundImage);

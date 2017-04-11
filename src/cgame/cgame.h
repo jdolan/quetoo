@@ -24,7 +24,7 @@
 
 #include "client/cl_types.h"
 
-#define CGAME_API_VERSION 16
+#define CGAME_API_VERSION 17
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -114,6 +114,11 @@ typedef struct cg_import_s {
 	 * @param data User data.
 	 */
 	thread_t *(*Thread)(const char *name, ThreadRunFunc run, void *data);
+
+	/**
+	 * @brief Get the client's current state
+	 */
+	cl_state_t (*GetClientState)(void);
 
 	/**
 	 * @}
