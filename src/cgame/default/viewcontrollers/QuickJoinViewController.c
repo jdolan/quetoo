@@ -118,17 +118,23 @@ static void loadView(ViewController *self) {
 
 	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
-	columns->axis = StackViewAxisHorizontal;
 	columns->spacing = DEFAULT_PANEL_SPACING;
+
+	columns->axis = StackViewAxisHorizontal;
+	columns->distribution = StackViewDistributionFillEqually;
+
+	columns->view.autoresizingMask = ViewAutoresizingFill;
 
 	{
 		StackView *column = $(alloc(StackView), initWithFrame, NULL);
 
-		columns->spacing = DEFAULT_PANEL_SPACING;
+		column->spacing = DEFAULT_PANEL_SPACING;
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
 			$(box->label, setText, "Filters");
+
+			box->view.autoresizingMask |= ViewAutoresizingWidth;
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 

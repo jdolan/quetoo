@@ -25,10 +25,10 @@
 
 /**
  * @file
- * @brief Primary Button.
+ * @brief Tab Button.
  */
 
-#define DEFAULT_PRIMARY_BUTTON_WIDTH 200
+#define DEFAULT_TAB_BUTTON_WIDTH 100
 
 typedef struct TabButton TabButton;
 typedef struct TabButtonInterface TabButtonInterface;
@@ -81,6 +81,13 @@ struct TabButtonInterface {
 	 * @memberof TabButton
 	 */
 	TabButton *(*initWithFrame)(TabButton *self, const SDL_Rect *frame, ControlStyle style);
+
+	/**
+	 * @fn void TabButton::initWithFrame(TabButton *self)
+	 * @brief Selects this tab and hides all other tabs in the same container
+	 * @memberof TabButton
+	 */
+	void (*selectTab)(TabButton *self);
 };
 
 /**

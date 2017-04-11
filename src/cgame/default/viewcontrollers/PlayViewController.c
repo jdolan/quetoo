@@ -27,6 +27,8 @@
 #include "QuickJoinViewController.h"
 #include "ServerBrowserViewController.h"
 
+#include "TabButton.h"
+
 #define _Class _PlayViewController
 
 #pragma mark - Object
@@ -57,6 +59,10 @@ static void tabAction(Control *control, const SDL_Event *event, ident sender, id
 	$(this, pushViewController, viewController);
 
 	release(viewController);
+
+	// Tab selection highlight
+
+	$((TabButton *) control, selectTab);
 }
 
 #pragma mark - ViewController
@@ -116,9 +122,9 @@ static void loadView(ViewController *self) {
 			// Tab buttons
 
 			{
-				Cg_TabButton((View *) row, "Quick join", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _QuickJoinViewController());
-				Cg_TabButton((View *) row, "Create server", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _CreateServerViewController());
-				Cg_TabButton((View *) row, "Server browser", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _ServerBrowserViewController());
+				Cg_TabButton((View *) row, "Quick join", QColors.Dark, tabAction, nvc, _QuickJoinViewController(), true);
+				Cg_TabButton((View *) row, "Create server", QColors.Dark, tabAction, nvc, _CreateServerViewController(), false);
+				Cg_TabButton((View *) row, "Server browser", QColors.Dark, tabAction, nvc, _ServerBrowserViewController(), false);
 			}
 		}
 

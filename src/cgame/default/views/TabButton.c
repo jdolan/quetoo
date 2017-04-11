@@ -25,6 +25,26 @@
 
 #define _Class _TabButton
 
+#pragma mark - Tab enumeration
+
+/**
+ * @brief Disable selection on a single TabButton if applicable
+ */
+void enumerateTabs(const Array *array, ident obj, ident data) {
+
+	TabButton *self = (TabButton *) obj;
+
+	if ($((Object *) self, isKindOfClass, _TabButton())) {
+		if (data == obj) {
+			self->isSelected = true;
+		} else {
+			self->isSelected = false;
+		}
+
+		$((View *) self, updateBindings);
+	}
+}
+
 #pragma mark - View
 
 /**
@@ -46,17 +66,11 @@ static void updateBindings(View *self) {
 
 	TabButton *this = (TabButton *) self;
 
-	SDL_Surface *surface;
-
-	if (this->selected && cgi.LoadSurface("ui/pics/select_highlight", &surface)) {
-		$(this->selectionImage, setImageWithSurface, surface);
-		SDL_FreeSurface(surface);
-	} else {
-		$(this->selectionImage, setImage, NULL);
-	}
+	this->selectionImage->view.hidden = !this->isSelected;
 
 	self->needsLayout = true;
 }
+
 #pragma mark - TabButton
 
 /**
@@ -69,11 +83,18 @@ static TabButton *initWithFrame(TabButton *self, const SDL_Rect *frame, ControlS
 	self = (TabButton *) super(Button, self, initWithFrame, frame, style);
 	if (self) {
 
+		// Button
+
 		$(self->button.title, setFont, $$(Font, defaultFont, FontCategoryPrimaryResponder));
 
 		self->button.control.bevel = ControlBevelTypeNone;
 
 		self->button.control.view.borderWidth = 1;
+
+		self->button.control.view.padding.top = 0;
+		self->button.control.view.padding.right = 0;
+		self->button.control.view.padding.bottom = 0;
+		self->button.control.view.padding.left = 0;
 
 		// Selection
 
@@ -84,12 +105,34 @@ static TabButton *initWithFrame(TabButton *self, const SDL_Rect *frame, ControlS
 
 		self->selectionImage->view.autoresizingMask = ViewAutoresizingFill;
 
-		$((View *) self, addSubview, (View *) self->imageView);
+		$((View *) self, addSubview, (View *) self->selectionImage);
+
+		SDL_Surface *surface;
+
+		if (cgi.LoadSurface("ui/pics/select_highlight", &surface)) {
+			$(self->selectionImage, setImageWithSurface, surface);
+			SDL_FreeSurface(surface);
+		}
 
 		$((View *) self, updateBindings);
 	}
 
 	return self;
+}
+
+/**
+ * @fn void TabButton::selectTab(TabButton *self)
+ *
+ * @memberof TabButton
+ */
+static void selectTab(TabButton *self) {
+
+	assert(self);
+	assert(((View *) self)->superview);
+
+	const Array *array = (Array *) (((View *) self)->superview->subviews);
+
+	$(array, enumerateObjects, enumerateTabs, self);
 }
 
 #pragma mark - Class lifecycle
@@ -100,9 +143,10 @@ static TabButton *initWithFrame(TabButton *self, const SDL_Rect *frame, ControlS
 static void initialize(Class *clazz) {
 
 	((ViewInterface *) clazz->def->interface)->respondToEvent = respondToEvent;
-	((ViewInterface *) clazz->def->interface)->updateBindigns = updateBindings;
+	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
 
 	((TabButtonInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
+	((TabButtonInterface *) clazz->def->interface)->selectTab = selectTab;
 }
 
 /**

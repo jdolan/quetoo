@@ -187,7 +187,7 @@ void Cg_Picture(View *view, const char *pic, ViewAlignment align, ViewAutoresizi
 /**
  * @brief
  */
-void Cg_PrimaryButton(View *view, const char *name, ViewAlignment align, SDL_Color color, ActionFunction action, ident sender, ident data) {
+void Cg_PrimaryButton(View *view, const char *name, SDL_Color color, ActionFunction action, ident sender, ident data) {
 
 	assert(view);
 
@@ -198,7 +198,6 @@ void Cg_PrimaryButton(View *view, const char *name, ViewAlignment align, SDL_Col
 
 	$(button->button.title, setText, name);
 
-	((Button *) button)->control.view.alignment = align;
 	((Button *) button)->control.view.autoresizingMask = ViewAutoresizingNone;
 
 	((Button *) button)->control.view.backgroundColor = color;
@@ -214,7 +213,7 @@ void Cg_PrimaryButton(View *view, const char *name, ViewAlignment align, SDL_Col
 /**
  * @brief
  */
-void Cg_PrimaryIcon(View *view, const char *icon, ViewAlignment align, SDL_Color color, ActionFunction action, ident sender, ident data) {
+void Cg_PrimaryIcon(View *view, const char *icon, SDL_Color color, ActionFunction action, ident sender, ident data) {
 
 	assert(view);
 
@@ -223,7 +222,6 @@ void Cg_PrimaryIcon(View *view, const char *icon, ViewAlignment align, SDL_Color
 	PrimaryIcon *button = $(alloc(PrimaryIcon), initWithFrame, &frame, icon);
 	assert(button);
 
-	((Button *) button)->control.view.alignment = align;
 	((Button *) button)->control.view.autoresizingMask = ViewAutoresizingNone;
 
 	((Button *) button)->control.view.backgroundColor = color;
@@ -239,18 +237,17 @@ void Cg_PrimaryIcon(View *view, const char *icon, ViewAlignment align, SDL_Color
 /**
  * @brief
  */
-void Cg_TabButton(View *view, const char *name, ViewAlignment align, SDL_Color color, ActionFunction action, ident sender, ident data) {
+void Cg_TabButton(View *view, const char *name, SDL_Color color, ActionFunction action, ident sender, ident data, _Bool isSelected) {
 
 	assert(view);
 
-	const SDL_Rect frame = MakeRect(0, 0, DEFAULT_PRIMARY_BUTTON_WIDTH, 36);
+	const SDL_Rect frame = MakeRect(0, 0, DEFAULT_TAB_BUTTON_WIDTH, 30);
 
 	TabButton *button = $(alloc(TabButton), initWithFrame, &frame, ControlStyleDefault);
 	assert(button);
 
 	$(button->button.title, setText, name);
 
-	((Button *) button)->control.view.alignment = align;
 	((Button *) button)->control.view.autoresizingMask = ViewAutoresizingNone;
 
 	((Button *) button)->control.view.backgroundColor = color;
@@ -259,6 +256,12 @@ void Cg_TabButton(View *view, const char *name, ViewAlignment align, SDL_Color c
 	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, sender, data);
 
 	$(view, addSubview, (View *) button);
+
+	if (isSelected) {
+		$(button, selectTab);
+
+		action((Control *) button, NULL, sender, data);
+	}
 
 	release(button);
 }

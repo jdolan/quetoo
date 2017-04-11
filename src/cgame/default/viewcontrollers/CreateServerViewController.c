@@ -152,17 +152,23 @@ static void loadView(ViewController *self) {
 
 	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
-	columns->axis = StackViewAxisHorizontal;
 	columns->spacing = DEFAULT_PANEL_SPACING;
+
+	columns->axis = StackViewAxisHorizontal;
+	columns->distribution = StackViewDistributionFillEqually;
+
+	columns->view.autoresizingMask = ViewAutoresizingFill;
 
 	{
 		StackView *column = $(alloc(StackView), initWithFrame, NULL);
 
-		columns->spacing = DEFAULT_PANEL_SPACING;
+		column->spacing = DEFAULT_PANEL_SPACING;
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
 			$(box->label, setText, "Host options");
+
+			box->view.autoresizingMask |= ViewAutoresizingWidth;
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
@@ -181,6 +187,8 @@ static void loadView(ViewController *self) {
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
 			$(box->label, setText, "Options");
+
+			box->view.autoresizingMask |= ViewAutoresizingWidth;
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
@@ -242,11 +250,13 @@ static void loadView(ViewController *self) {
 	{
 		StackView *column = $(alloc(StackView), initWithFrame, NULL);
 
-		columns->spacing = DEFAULT_PANEL_SPACING;
+		column->spacing = DEFAULT_PANEL_SPACING;
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
 			$(box->label, setText, "Choose map");
+
+			box->view.autoresizingMask |= ViewAutoresizingWidth;
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 			stackView->spacing = DEFAULT_PANEL_SPACING;

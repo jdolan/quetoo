@@ -98,7 +98,7 @@ static void loadView(ViewController *self) {
 
 	SDL_Surface *surface;
 
-	if (cgi.LoadSurface("ui/background", &surface)) {
+	if (cgi.LoadSurface(va("ui/backgrounds/%d", Random() % 6), &surface)) {
 		$(this->backgroundImage, setImageWithSurface, surface);
 		SDL_FreeSurface(surface);
 	} else {
@@ -171,9 +171,9 @@ static void loadView(ViewController *self) {
 		row->view.autoresizingMask = ViewAutoresizingContain;
 
 		{
-			Cg_PrimaryButton((View *) row, "HOME", ViewAlignmentTopLeft, QColors.Dark, action, self, _HomeViewController());
-			Cg_PrimaryButton((View *) row, "PROFILE", ViewAlignmentTopLeft, QColors.Dark, action, self, _PlayerViewController());
-			Cg_PrimaryButton((View *) row, "PLAY", ViewAlignmentTopLeft, QColors.Theme, action, self, _PlayViewController());
+			Cg_PrimaryButton((View *) row, "HOME", QColors.Dark, action, self, _HomeViewController());
+			Cg_PrimaryButton((View *) row, "PROFILE", QColors.Dark, action, self, _PlayerViewController());
+			Cg_PrimaryButton((View *) row, "PLAY", QColors.Theme, action, self, _PlayViewController());
 		}
 
 		$(view, addSubview, (View *) row);
@@ -192,8 +192,8 @@ static void loadView(ViewController *self) {
 		row->view.autoresizingMask = ViewAutoresizingContain;
 
 		{
-			Cg_PrimaryIcon((View *) row, "ui/pics/settings", ViewAlignmentTopRight, QColors.Dark, action, self, _SettingsViewController());
-			Cg_PrimaryIcon((View *) row, "ui/pics/quit", ViewAlignmentTopRight,  QColors.Dark,action, self, NULL);
+			Cg_PrimaryIcon((View *) row, "ui/pics/settings", QColors.Dark, action, self, _SettingsViewController());
+			Cg_PrimaryIcon((View *) row, "ui/pics/quit",  QColors.Dark,action, self, NULL);
 		}
 
 		$(view, addSubview, (View *) row);

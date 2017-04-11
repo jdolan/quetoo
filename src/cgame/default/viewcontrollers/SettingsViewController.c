@@ -28,6 +28,8 @@
 #include "InterfaceViewController.h"
 #include "VideoViewController.h"
 
+#include "TabButton.h"
+
 #define _Class _SettingsViewController
 
 #pragma mark - Object
@@ -58,6 +60,10 @@ static void tabAction(Control *control, const SDL_Event *event, ident sender, id
 	$(this, pushViewController, viewController);
 
 	release(viewController);
+
+	// Tab selection highlight
+
+	$((TabButton *) control, selectTab);
 }
 
 #pragma mark - ViewController
@@ -117,10 +123,10 @@ static void loadView(ViewController *self) {
 			// Tab buttons
 
 			{
-				Cg_TabButton((View *) row, "Input", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _InputViewController());
-				Cg_TabButton((View *) row, "Video", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _VideoViewController());
-				Cg_TabButton((View *) row, "Audio", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _AudioViewController());
-				Cg_TabButton((View *) row, "Interface", ViewAlignmentTopLeft, QColors.Dark, tabAction, nvc, _InterfaceViewController());
+				Cg_TabButton((View *) row, "Input", QColors.Dark, tabAction, nvc, _InputViewController(), true);
+				Cg_TabButton((View *) row, "Video", QColors.Dark, tabAction, nvc, _VideoViewController(), false);
+				Cg_TabButton((View *) row, "Audio", QColors.Dark, tabAction, nvc, _AudioViewController(), false);
+				Cg_TabButton((View *) row, "Interface", QColors.Dark, tabAction, nvc, _InterfaceViewController(), false);
 			}
 		}
 
