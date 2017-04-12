@@ -285,11 +285,11 @@ static void Cm_LoadBspAreaPortals(void) {
  */
 static void Cm_LoadBspMaterials(const char *name) {
 
-	char base[MAX_QPATH];
-	StripExtension(Basename(name), base);
+	char path[MAX_QPATH];
+	g_snprintf(path, sizeof(path), "materials/%s.mat", Basename(name));
 
 	GList *materials = NULL;
-	Cm_LoadMaterials(va("materials/%s.mat", base), &materials);
+	Cm_LoadMaterials(path, &materials);
 
 	const bsp_texinfo_t *in = cm_bsp.bsp.texinfo;
 	for (int32_t i = 0; i < cm_bsp.bsp.num_texinfo; i++, in++) {

@@ -29,8 +29,11 @@ static GList *materials;
  */
 void LoadMaterials(void) {
 
+	char path[MAX_QPATH];
+	g_snprintf(path, sizeof(path), "materials/%s.mat", map_base);
+
 	materials = NULL;
-	Cm_LoadMaterials(va("materials/%s.mat", map_base), &materials);
+	Cm_LoadMaterials(path, &materials);
 }
 
 /**
