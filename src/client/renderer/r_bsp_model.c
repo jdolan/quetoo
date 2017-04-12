@@ -888,11 +888,11 @@ static void R_LoadBspSurfacesArrays(r_model_t *mod) {
 			}
 		}
 
-		if (surf->texinfo->material->flags & STAGE_DIFFUSE) {
+		if (surf->texinfo->material->cm->flags & STAGE_DIFFUSE) {
 			sorted->material.count++;
 		}
 
-		if (surf->texinfo->material->flags & STAGE_FLARE) {
+		if (surf->texinfo->material->cm->flags & STAGE_FLARE) {
 			sorted->flare.count++;
 		}
 
@@ -938,11 +938,11 @@ static void R_LoadBspSurfacesArrays(r_model_t *mod) {
 			}
 		}
 
-		if (surf->texinfo->material->flags & STAGE_DIFFUSE) {
+		if (surf->texinfo->material->cm->flags & STAGE_DIFFUSE) {
 			R_SURFACE_TO_SURFACES(&sorted->material, surf);
 		}
 
-		if (surf->texinfo->material->flags & STAGE_FLARE) {
+		if (surf->texinfo->material->cm->flags & STAGE_FLARE) {
 			R_SURFACE_TO_SURFACES(&sorted->flare, surf);
 		}
 

@@ -397,7 +397,6 @@ typedef struct r_material_s {
 	r_image_t *tintmap;
 
 	uint32_t time;
-	uint32_t flags; // these may differ from cm->flags
 
 	r_stage_t *stages;
 } r_material_t;

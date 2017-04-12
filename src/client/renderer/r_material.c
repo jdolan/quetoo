@@ -623,7 +623,7 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 		return;
 	}
 
-	if (!(m->flags & STAGE_DIFFUSE)) {
+	if (!(m->cm->flags & STAGE_DIFFUSE)) {
 		return;
 	}
 
