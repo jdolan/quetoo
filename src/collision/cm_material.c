@@ -993,8 +993,10 @@ static void Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t type)
 			c--;
 		}
 
+		c++;
+
 		int32_t start = (int32_t) strtol(c, NULL, 10);
-		*(c + 1) = '\0';
+		*c = '\0';
 
 		for (uint16_t i = 0; i < stage->anim.num_frames; i++) {
 
