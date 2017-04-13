@@ -18,11 +18,10 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
+
 #pragma once
 
-#include "collision/cm_material.h"
+#include "deps/minizip/zip.h"
 
-ssize_t LoadMaterials(const char *path, cm_asset_context_t context, GList **materials);
-cm_material_t *LoadMaterial(const char *diffuse, cm_asset_context_t context);
-ssize_t WriteMaterialsFile(const char *filename);
-void FreeMaterials(void);
+#include "qbsp.h"
+#include "materials.h"

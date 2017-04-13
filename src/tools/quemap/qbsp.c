@@ -333,7 +333,7 @@ int32_t BSP_Main(void) {
 
 	const time_t start = time(NULL);
 
-	LoadMaterials();
+	LoadMaterials(va("materials/%s.mat", map_base), ASSET_CONTEXT_TEXTURES, NULL);
 
 	// if onlyents, just grab the entities and re-save
 	if (onlyents) {

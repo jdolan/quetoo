@@ -471,7 +471,7 @@ static _Bool MakeBrushWindings(map_brush_t *ob) {
  */
 static void SetMaterialFlags(side_t *side, map_brush_texture_t *td) {
 
-	const cm_material_t *material = LoadMaterial(td->name);
+	const cm_material_t *material = LoadMaterial(td->name, ASSET_CONTEXT_TEXTURES);
 	if (material) {
 		if (material->contents) {
 			if (side->contents == 0) {

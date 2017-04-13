@@ -27,13 +27,44 @@ static GList *materials;
 /**
  * @brief Loads all materials defined in the material file.
  */
-void LoadMaterials(void) {
+ssize_t LoadMaterials(const char *path, cm_asset_context_t context, GList **result) {
 
-	char path[MAX_QPATH];
-	g_snprintf(path, sizeof(path), "materials/%s.mat", map_base);
+	const ssize_t count = Cm_LoadMaterials(path, &materials);
 
-	materials = NULL;
-	Cm_LoadMaterials(path, &materials);
+	GList *e = materials;
+	for (ssize_t i = 0; i < count; i++, e = e->next) {
+		Cm_ResolveMaterial((cm_material_t *) e->data, context);
+	}
+
+	if (result) {
+		GList *e = materials;
+		for (ssize_t i = 0; i < count; i++, e = e->next) {
+			*result = g_list_append(*result, e->data);
+		}
+	}
+
+	return count;
+}
+
+/**
+ * @brief Loads the material with the specified name.
+ */
+cm_material_t *LoadMaterial(const char *name, cm_asset_context_t context) {
+
+	for (GList *list = materials; list; list = list->next) {
+		if (!g_strcmp0(((cm_material_t *) list->data)->name, name)) {
+			return list->data;
+		}
+	}
+
+	cm_material_t *material = Cm_AllocMaterial(name);
+	Cm_ResolveMaterial(material, context);
+
+	materials = g_list_prepend(materials, material);
+
+	Com_Debug(DEBUG_ALL, "Loaded material %s\n", name);
+
+	return material;
 }
 
 /**
@@ -46,28 +77,9 @@ void FreeMaterials(void) {
 }
 
 /**
- * @brief Loads the material with the specified name.
- */
-cm_material_t *LoadMaterial(const char *name) {
-
-	for (GList *list = materials; list; list = list->next) {
-		if (!g_strcmp0(((cm_material_t *) list->data)->name, name)) {
-			return list->data;
-		}
-	}
-
-	cm_material_t *material = Cm_AllocMaterial(name);
-	materials = g_list_prepend(materials, material);
-
-	Com_Debug(DEBUG_ALL, "Loaded material %s\n", name);
-
-	return material;
-}
-
-/**
  * @brief Writes the materials to the specified file.
  */
-void WriteMaterialsFile(const char *filename) {
-
-	Cm_WriteMaterials(filename, materials);
+ssize_t WriteMaterialsFile(const char *filename) {
+	
+	return Cm_WriteMaterials(filename, materials);
 }
