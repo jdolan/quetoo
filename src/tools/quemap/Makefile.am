@@ -11,6 +11,7 @@ noinst_HEADERS = \
 	qlight.h \
 	qmat.h \
 	qvis.h \
+	qzip.h \
 	scriptlib.h
 
 quemap_SOURCES = \
