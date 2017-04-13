@@ -1221,17 +1221,29 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 }
 
 /**
+ * @brief GCompareFunc for Cm_WriteMaterials.
+ */
+gint Cm_WriteMaterials_compare(gconstpointer a, gconstpointer b) {
+	return g_strcmp0(((const cm_material_t *) a)->name, ((const cm_material_t *) b)->name);
+}
+
+/**
  * @brief Serialize the material(s) into the specified file.
  */
-ssize_t Cm_WriteMaterials(const char *path, const GList *materials) {
+ssize_t Cm_WriteMaterials(const char *path, GList *materials) {
 
 	ssize_t count = -1;
 	file_t *file = Fs_OpenWrite(path);
 	if (file) {
 		count = 0;
-		for (const GList *list = materials; list; list = list->next, count++) {
+
+		GList *sorted = g_list_sort(g_list_copy(materials), Cm_WriteMaterials_compare);
+
+		for (const GList *list = sorted; list; list = list->next, count++) {
 			Cm_WriteMaterial((cm_material_t *) list->data, file);
 		}
+
+		g_list_free(sorted);
 
 		Fs_Close(file);
 		Com_Print("Wrote %zd materials to %s\n", count, path);
