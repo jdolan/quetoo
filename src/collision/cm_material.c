@@ -921,43 +921,43 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
  */
 static _Bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context) {
 	const char *extensions[] = { "tga", "png", "jpg", "pcx", "wal" };
-	const char *name;
+	char name[MAX_QPATH];
 
 	if (asset->name[0] == '#') {
-		name = asset->name + 1;
+		g_strlcpy(name, asset->name + 1, sizeof(name));
 	} else {
-		name = asset->name;
+		g_strlcpy(name, asset->name, sizeof(name));
 
 		switch (context) {
 			case ASSET_CONTEXT_NONE:
 				break;
 			case ASSET_CONTEXT_TEXTURES:
 				if (!g_str_has_prefix(asset->name, "textures/")) {
-					name = va("textures/%s", asset->name);
+					g_snprintf(name, sizeof(name), "textures/%s", asset->name);
 				}
 				break;
 			case ASSET_CONTEXT_MODELS:
 				if (!g_str_has_prefix(asset->name, "models/")) {
-					name = va("models/%s", asset->name);
+					g_snprintf(name, sizeof(name), "models/%s", asset->name);
 				}
 				break;
 			case ASSET_CONTEXT_PLAYERS:
 				if (!g_str_has_prefix(asset->name, "players/")) {
-					name = va("players/%s", asset->name);
+					g_snprintf(name, sizeof(name), "players/%s", asset->name);
 				}
 				break;
 			case ASSET_CONTEXT_ENVMAPS:
 				if (asset->index > -1) {
-					name = va("envmaps/envmap_%s", asset->name);
+					g_snprintf(name, sizeof(name), "envmaps/envmap_%s", asset->name);
 				} else if (!g_str_has_prefix(asset->name, "envmaps/")) {
-					name = va("envmaps/%s", asset->name);
+					g_snprintf(name, sizeof(name), "envmaps/%s", asset->name);
 				}
 				break;
 			case ASSET_CONTEXT_FLARES:
 				if (asset->index > -1) {
-					name = va("flares/flare_%s", asset->name);
+					g_snprintf(name, sizeof(name), "flares/flare_%s", asset->name);
 				} else if (!g_str_has_prefix(asset->name, "flares/")) {
-					name = va("flares/%s", asset->name);
+					g_snprintf(name, sizeof(name), "flares/%s", asset->name);
 				}
 				break;
 		}
