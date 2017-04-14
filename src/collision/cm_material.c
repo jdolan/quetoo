@@ -978,59 +978,65 @@ static _Bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context) {
 /**
  * @brief
  */
-static void Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t type) {
+static _Bool Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t type) {
 
-	if (stage->flags & STAGE_ANIM) {
+	const size_t size = sizeof(cm_asset_t) * stage->anim.num_frames;
+	stage->anim.frames = Mem_LinkMalloc(size, stage);
 
-		const size_t size = sizeof(cm_asset_t) * stage->anim.num_frames;
-		stage->anim.frames = Mem_LinkMalloc(size, stage);
+	char base[MAX_QPATH];
+	g_strlcpy(base, stage->asset.name, sizeof(base));
 
-		char base[MAX_QPATH];
-		g_strlcpy(base, stage->asset.name, sizeof(base));
+	char *c = base + strlen(base) - 1;
+	while (isdigit(*c)) {
+		c--;
+	}
 
-		char *c = base + strlen(base) - 1;
-		while (isdigit(*c)) {
-			c--;
-		}
+	c++;
 
-		c++;
+	int32_t start = (int32_t) strtol(c, NULL, 10);
+	*c = '\0';
 
-		int32_t start = (int32_t) strtol(c, NULL, 10);
-		*c = '\0';
+	for (uint16_t i = 0; i < stage->anim.num_frames; i++) {
 
-		for (uint16_t i = 0; i < stage->anim.num_frames; i++) {
+		cm_asset_t *frame = &stage->anim.frames[i];
+		g_snprintf(frame->name, sizeof(frame->name), "%s%d", base, start + i);
 
-			cm_asset_t *frame = &stage->anim.frames[i];
-			g_snprintf(frame->name, sizeof(frame->name), "%s%d", base, start + i);
-
-			if (!Cm_ResolveAsset(frame, type)) {
-				Com_Warn("Failed to resolve frame: %d: %s\n", i, stage->asset.name);
-				break;
-			}
+		if (!Cm_ResolveAsset(frame, type)) {
+			Com_Warn("Failed to resolve frame: %d: %s\n", i, stage->asset.name);
+			return false;
 		}
 	}
+
+	return true;
 }
 
 /**
  * @brief
  */
-static void Cm_ResolveStage(cm_stage_t *stage, cm_asset_context_t context) {
+static _Bool Cm_ResolveStage(cm_stage_t *stage, cm_asset_context_t context) {
 
 	if (*stage->asset.name) {
-		if (stage->flags & STAGE_TEXTURE) {
-			Cm_ResolveAsset(&stage->asset, context);
-		} else if (stage->flags & STAGE_ENVMAP) {
-			Cm_ResolveAsset(&stage->asset, ASSET_CONTEXT_ENVMAPS);
+
+		if (stage->flags & STAGE_ENVMAP) {
+			context = ASSET_CONTEXT_ENVMAPS;
 		} else if (stage->flags & STAGE_FLARE) {
-			Cm_ResolveAsset(&stage->asset, ASSET_CONTEXT_FLARES);
+			context = ASSET_CONTEXT_FLARES;
 		}
 
-		if (stage->flags & STAGE_ANIM) {
-			Cm_ResolveStageAnimation(stage, context);
+		if (Cm_ResolveAsset(&stage->asset, context)) {
+			if (stage->flags & STAGE_ANIM) {
+				return Cm_ResolveStageAnimation(stage, context);
+			} else {
+				return true;
+			}
+		} else {
+			Com_Warn("Failed to resolve asset %s for stage\n", stage->asset.name);
 		}
 	} else {
 		Com_Warn("Stage does not specify an asset\n");
 	}
+
+	return false;
 }
 
 /**
@@ -1062,34 +1068,40 @@ static _Bool Cm_ResolveMaterialAsset(cm_material_t *material, cm_asset_t *asset,
 		g_snprintf(asset->name, sizeof(asset->name), "%s%s", material->basename, *s);
 		if (Cm_ResolveAsset(asset, context)) {
 			Com_Debug(DEBUG_COLLISION, "Resolved %s for %s\n", asset->path, material->name);
-			return true;
+			break;
 		}
 	}
 
-	Com_Debug(DEBUG_COLLISION, "Failed to resolve asset %s for %s\n", *suffix, material->name);
-
 	*asset->name = '\0';
-	return false;
+	return *asset->path != '\0';
 }
 
 /**
  * @brief Resolves all asset references within the specified material.
  */
-void Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context) {
+_Bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context) {
 
 	assert(material);
 
-	Cm_ResolveMaterialAsset(material, &material->diffuse, context);
-	Cm_ResolveMaterialAsset(material, &material->normalmap, context);
-	Cm_ResolveMaterialAsset(material, &material->heightmap, context);
-	Cm_ResolveMaterialAsset(material, &material->specularmap, context);
-	Cm_ResolveMaterialAsset(material, &material->tintmap, context);
+	if (Cm_ResolveMaterialAsset(material, &material->diffuse, context)) {
+		Cm_ResolveMaterialAsset(material, &material->normalmap, context);
+		Cm_ResolveMaterialAsset(material, &material->heightmap, context);
+		Cm_ResolveMaterialAsset(material, &material->specularmap, context);
+		Cm_ResolveMaterialAsset(material, &material->tintmap, context);
+	} else {
+		return false;
+	}
 
 	cm_stage_t *stage = material->stages;
 	while (stage) {
-		Cm_ResolveStage(stage, context);
-		stage = stage->next;
+		if (Cm_ResolveStage(stage, context)) {
+			stage = stage->next;
+		} else {
+			return false;
+		}
 	}
+
+	return true;
 }
 
 /**
