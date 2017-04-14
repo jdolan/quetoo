@@ -130,9 +130,7 @@ static void selectTab(TabButton *self) {
 	assert(self);
 	assert(((View *) self)->superview);
 
-	const Array *array = (Array *) (((View *) self)->superview->subviews);
-
-	$(array, enumerateObjects, enumerateTabs, self);
+	$((Array *) (((View *) self)->superview->subviews), enumerateObjects, enumerateTabs, self);
 }
 
 #pragma mark - Class lifecycle
