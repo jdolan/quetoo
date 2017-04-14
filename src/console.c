@@ -36,7 +36,7 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
 		return NULL;
 	}
 
-	const size_t string_len = strlen(string) + 3;
+	const size_t string_len = strlen(string) + 4;
 
 	str->level = level;
 	str->chars = g_new0(char, string_len);
@@ -48,7 +48,10 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
 		g_strlcat(str->chars, "^7", string_len);
 	}
 
-	g_strlcat(str->chars, "\n", string_len);
+	if (g_strlcat(str->chars, "\n", string_len) >= string_len) {
+		raise(SIGABRT);
+		return NULL;
+	}
 
 	if (str->chars == NULL) {
 		raise(SIGABRT);
@@ -395,9 +398,9 @@ void Con_WriteHistory(const console_t *console, file_t *file) {
  */
 void Con_AutocompleteInput_f(const uint32_t argi, GList **matches) {
 	const char *partial = Cmd_Argv(argi);
-	char pattern[strlen(partial) + 2];
+	char pattern[strlen(partial) + 3];
 	
-	g_snprintf(pattern, sizeof(pattern), "%s*", partial);
+	g_snprintf(pattern, sizeof(pattern), "*%s*", partial);
 
 	Cmd_CompleteCommand(pattern, matches);
 	Cvar_CompleteVar(pattern, matches);
@@ -594,7 +597,9 @@ _Bool Con_CompleteInput(console_t *console) {
 	} else {
 		match = Con_CommonPrefix(matches);
 
-		if (strchr(match, ' ') != NULL) {
+		if (!strlen(match)) {
+			match = Cmd_Argv(argi);
+		} else if (strchr(match, ' ') != NULL) {
 			match = va("\"%s", match);
 			output_quotes = true;
 		}

@@ -14,5 +14,8 @@ shaders_DATA = \
 	shadow_vs.glsl \
 	shell_fs.glsl \
 	shell_vs.glsl \
+	stain_fs.glsl \
+	stain_vs.glsl \
+	tint_inc.glsl \
 	warp_fs.glsl \
 	warp_vs.glsl

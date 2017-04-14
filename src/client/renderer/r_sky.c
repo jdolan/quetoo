@@ -66,6 +66,8 @@ void R_DrawSkyBox(void) {
 
 	R_SetMatrix(R_MATRIX_MODELVIEW, &modelview);
 
+	R_UseProgram(program_null);
+
 	R_EnableFog(true);
 
 	r_state.active_fog_parameters.end = FOG_END * 8.0;

@@ -301,6 +301,8 @@ static void ProcessModels(void) {
  */
 static void CreateBSPFile(void) {
 
+	memset(&bsp_file, 0, sizeof(bsp_file));
+
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_PLANES, MAX_BSP_PLANES);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_VERTEXES, MAX_BSP_VERTS);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_NODES, MAX_BSP_NODES);
@@ -331,16 +333,15 @@ int32_t BSP_Main(void) {
 
 	const time_t start = time(NULL);
 
-	// clear the whole bsp structure
-	memset(&bsp_file, 0, sizeof(bsp_file));
-
-	LoadMaterials();
+	LoadMaterials(va("materials/%s.mat", map_base), ASSET_CONTEXT_TEXTURES, NULL);
 
 	// if onlyents, just grab the entities and re-save
 	if (onlyents) {
 
 		const int32_t version = LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
 		num_entities = 0;
+
+		CreateBSPFile();
 
 		LoadMapFile(map_name);
 		SetModelNumbers();

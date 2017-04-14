@@ -22,9 +22,7 @@
 
 #include "collision/cm_material.h"
 
-void LoadMaterials(void);
+ssize_t LoadMaterials(const char *path, cm_asset_context_t context, GList **materials);
+cm_material_t *LoadMaterial(const char *diffuse, cm_asset_context_t context);
+ssize_t WriteMaterialsFile(const char *filename);
 void FreeMaterials(void);
-
-cm_material_t *LoadMaterial(const char *diffuse);
-
-void WriteMaterialsFile(const char *filename);

@@ -51,6 +51,7 @@ cvar_t *r_brightness;
 cvar_t *r_bumpmap;
 cvar_t *r_caustics;
 cvar_t *r_contrast;
+cvar_t *r_deluxemap;
 cvar_t *r_draw_buffer;
 cvar_t *r_flares;
 cvar_t *r_fog;
@@ -163,8 +164,6 @@ void R_DrawView(void) {
 	R_AddSustainedLights();
 
 	R_AddFlares();
-
-	R_AddStains();
 
 	R_CullEntities();
 
@@ -303,11 +302,9 @@ void R_BeginFrame(void) {
 		r_render_plugin->modified = false;
 	}
 
-	if (r_state.supersample_fbo) {
-
+	if (r_state.supersample_fb) {
 		R_Clear();
-
-		glBindFramebuffer(GL_FRAMEBUFFER, r_state.supersample_fbo);
+		R_BindFramebuffer(r_state.supersample_fb);
 	}
 
 	R_Clear();
@@ -472,7 +469,7 @@ static void R_InitLocal(void) {
 	// settings and preferences
 	r_allow_high_dpi = Cvar_Add("r_allow_high_dpi", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT,
 	                            "Enables or disables support for High-DPI (Retina, 4K) display modes");
-	r_anisotropy = Cvar_Add("r_anisotropy", "1", CVAR_ARCHIVE | CVAR_R_MEDIA,
+	r_anisotropy = Cvar_Add("r_anisotropy", "4", CVAR_ARCHIVE | CVAR_R_MEDIA,
 	                        "Controls anisotropic texture filtering");
 	r_brightness = Cvar_Add("r_brightness", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 	                        "Controls texture brightness");
@@ -482,6 +479,8 @@ static void R_InitLocal(void) {
 	                      "Enable or disable liquid caustic effects");
 	r_contrast = Cvar_Add("r_contrast", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 	                      "Controls texture contrast");
+	r_deluxemap = Cvar_Add("r_deluxemap", "1", CVAR_ARCHIVE,
+						  "Controls deluxemap rendering");
 	r_draw_buffer = Cvar_Add("r_draw_buffer", "GL_BACK", CVAR_ARCHIVE, NULL);
 	r_flares = Cvar_Add("r_flares", "1.0", CVAR_ARCHIVE,
 	                    "Controls the rendering of light source flares");
@@ -598,13 +597,17 @@ void R_Init(void) {
 
 	R_InitConfig();
 
-	R_InitState();
-
-	R_InitPrograms();
-
 	R_InitMedia();
 
+	R_InitState();
+
+	R_GetError("Video initialization");
+	
+	R_InitPrograms();
+
 	R_InitImages();
+
+	R_InitSupersample();
 
 	R_InitDraw();
 

@@ -91,7 +91,7 @@ typedef enum {
 	PARSE_COPY_QUOTED_LITERALS = 1,
 
 	/**
-	 * @brief Don't traverse line returns. This causes parses to return false and 
+	 * @brief Don't traverse line returns. This causes parses to return false and
 	 * Parse_EndOfLine to return true if we're waiting for a regular parse to move forward.
 	 */
 	PARSE_NO_WRAP = 2,

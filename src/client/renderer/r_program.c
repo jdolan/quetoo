@@ -743,6 +743,8 @@ void R_InitPrograms(void) {
 		program_null->UseFog = R_UseFog_null;
 		program_null->UseCurrentColor = R_UseCurrentColor_null;
 		program_null->UseInterpolation = R_UseInterpolation_null;
+		program_null->UseMaterial = R_UseMaterial_null;
+		program_null->UseTints = R_UseTints_null;
 		program_null->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_NEXT_POSITION | R_ARRAY_MASK_DIFFUSE |
 		                            R_ARRAY_MASK_COLOR;
 	}
@@ -750,6 +752,10 @@ void R_InitPrograms(void) {
 	if (R_LoadProgram("corona", R_InitProgram_corona, R_PreLink_corona, program_corona)) {
 		program_corona->UseFog = R_UseFog_corona;
 		program_corona->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_DIFFUSE | R_ARRAY_MASK_COLOR;
+	}
+
+	if (R_LoadProgram("stain", R_InitProgram_stain, R_PreLink_stain, program_stain)) {
+		program_stain->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_DIFFUSE | R_ARRAY_MASK_COLOR;
 	}
 
 	R_UseProgram(program_null);

@@ -46,14 +46,17 @@ void R_ListMedia_f(void) {
 	}
 }
 
+#define RMASK 0x000000ff
+#define GMASK 0x0000ff00
+#define BMASK 0x00ff0000
+#define AMASK 0xff000000
+
 /**
  * @brief
  */
 void R_DumpImages_f(void) {
 
 	Com_Print("Dumping media... ");
-
-	char path[MAX_OS_PATH];
 
 	Fs_Mkdir("imgdmp");
 
@@ -62,23 +65,50 @@ void R_DumpImages_f(void) {
 		const r_media_t *media = g_hash_table_lookup(r_media_state.media, key->data);
 
 		if (media) {
+			r_pixel_t width = 0, height = 0;
+			GLuint texnum = 0;
+
 			if (media->type == MEDIA_IMAGE ||
 			        media->type == MEDIA_ATLAS) {
-
 				const r_image_t *image = (const r_image_t *) media;
-				GLubyte *pixels = Mem_Malloc(image->width * image->height * 4);
+				width = image->width;
+				height = image->height;
+				texnum = image->texnum;
+			} else if (media->type == MEDIA_FRAMEBUFFER) {
+				const r_framebuffer_t *fb = (const r_framebuffer_t *) media;
 
-				g_snprintf(path, sizeof(path), "imgdmp/%s.%u.%u.data", image->media.name, image->width, image->height);
+				if (fb->color) {
+					width = fb->color->width;
+					height = fb->color->height;
+					texnum = fb->color->texnum;
+				}
+			}
 
-				R_BindDiffuseTexture(image->texnum);
+			if (texnum) {
+				char path[MAX_OS_PATH];
+				g_snprintf(path, sizeof(path), "imgdmp/%s.png", media->name);
+				const char *real_path = Fs_RealPath(path);
+				char real_dir[MAX_QPATH];
+				Dirname(path, real_dir);
+				Fs_Mkdir(real_dir);
+				SDL_RWops *f;
 
+				if (!(f = SDL_RWFromFile(real_path, "wb"))) {
+					key = key->next;
+					continue;
+				}
+
+				GLubyte *pixels = Mem_Malloc(width * height * 4);
+	
+				R_BindDiffuseTexture(texnum);
 				glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
-				file_t *file = Fs_OpenWrite(path);
-				Fs_Write(file, pixels, 4, image->width * image->height);
-				Fs_Close(file);
+				SDL_Surface *ss = SDL_CreateRGBSurfaceFrom(pixels, width, height, 32, width * 4, RMASK, GMASK, BMASK, AMASK);
+				IMG_SavePNG_RW(ss, f, 0);
+				SDL_FreeSurface(ss);
 
 				Mem_Free(pixels);
+				SDL_RWclose(f);
 			}
 		}
 
@@ -92,7 +122,7 @@ void R_DumpImages_f(void) {
  * @brief Establishes a dependency from the specified dependent to the given
  * dependency. Dependencies in use by registered media are never freed.
  */
-void R_RegisterDependency(r_media_t *dependent, r_media_t *dependency) {
+r_media_t *R_RegisterDependency(r_media_t *dependent, r_media_t *dependency) {
 
 	if (dependent) {
 		if (dependency) {
@@ -108,6 +138,8 @@ void R_RegisterDependency(r_media_t *dependent, r_media_t *dependency) {
 	} else {
 		Com_Warn("Invalid dependent\n");
 	}
+
+	return dependency;
 }
 
 /**
@@ -123,7 +155,7 @@ static gboolean R_FreeMedia_(gpointer key, gpointer value, gpointer data);
  * @brief Inserts the specified media into the shared table, re-registering all
  * of its dependencies as well.
  */
-void R_RegisterMedia(r_media_t *media) {
+r_media_t *R_RegisterMedia(r_media_t *media) {
 
 	// check to see if we're already seeded
 	if (media->seed != r_media_state.seed) {
@@ -160,6 +192,8 @@ void R_RegisterMedia(r_media_t *media) {
 		R_RegisterMedia((r_media_t *) d->data);
 		d = d->next;
 	}
+
+	return media;
 }
 
 /**

@@ -43,6 +43,7 @@ typedef enum {
 	MEDIA_BSP, //
 
 	MEDIA_MATERIAL, // r_material_t
+	MEDIA_FRAMEBUFFER, // r_framebuffer_t
 
 	MEDIA_TOTAL
 } r_media_type_t;
@@ -99,7 +100,7 @@ typedef enum {
 	IT_PIC = 13 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_ATLAS_MAP = 14 + (IT_MASK_MIPMAP), // image is an r_atlas_t*
 	IT_ATLAS_IMAGE = 15, // image is an r_atlas_image_t*
-	IT_STAINMAP = 16 + (IT_MASK_FILTER),
+	IT_STAINMAP = 16,
 	IT_TINTMAP = 17 + (IT_MASK_MIPMAP | IT_MASK_FILTER)
 } r_image_type_t;
 
@@ -251,6 +252,16 @@ typedef struct {
 } r_image_t;
 
 /**
+ * @brief An atlas is composed of multiple images stitched together to make
+ * a single image. It is a sub-type of r_image_t.
+ */
+typedef struct {
+	r_image_t image;
+	GArray *images; // image list
+	GHashTable *hash; // hash of image -> image list ptr
+} r_atlas_t;
+
+/**
  * @brief This is a proxy structure that allows an atlased piece of texture to be
  * used in places that expect r_image_t's.
  */
@@ -261,17 +272,27 @@ typedef struct {
 	u16vec2_t position; // position in pixels
 	vec4_t texcoords; // position in texcoords
 	color_t *scratch; // scratch space for image
+	r_atlas_t *atlas; // our owner atlas
 } r_atlas_image_t;
 
 /**
- * @brief An atlas is composed of multiple images stitched together to make
- * a single image. It is a sub-type of r_image_t.
+ * @brief A framebuffer is a screen buffer that can be drawn to.
  */
 typedef struct {
-	r_image_t image;
-	GArray *images; // image list
-	GHashTable *hash; // hash of image -> image list ptr
-} r_atlas_t;
+	r_media_t media;
+	GLuint framebuffer;
+
+	r_image_t *color; // the texture color attachment
+	r_image_type_t color_type; // since color might be freed
+	GLuint depth_stencil;
+
+	uint32_t width, height; // matches color attachment
+} r_framebuffer_t;
+
+/**
+ * @brief Special index to mean "use default buffer"
+ */
+#define FRAMEBUFFER_DEFAULT	NULL
 
 typedef enum {
 	PARTICLE_NORMAL,
@@ -368,7 +389,6 @@ typedef struct r_material_s {
 	r_media_t media;
 
 	struct cm_material_s *cm; // the parsed material
-	r_model_type_t mod_type;
 
 	// renderer-local stuff parsed from cm
 	r_image_t *diffuse;
@@ -377,7 +397,6 @@ typedef struct r_material_s {
 	r_image_t *tintmap;
 
 	uint32_t time;
-	uint32_t flags; // these may differ from cm->flags
 
 	r_stage_t *stages;
 } r_material_t;
@@ -425,6 +444,13 @@ typedef struct {
 #define R_SURF_UNDERLIQUID	4
 
 typedef struct {
+	r_image_t *image;
+	r_framebuffer_t *fb;
+
+	matrix4x4_t projection; // projection for this stainmap
+} r_stainmap_t;
+
+typedef struct {
 	int16_t vis_frame; // PVS frame
 	int16_t frame; // renderer frame
 	int16_t back_frame; // back-facing renderer frame
@@ -463,9 +489,7 @@ typedef struct {
 	// pointer to lightmap data on bsp.
 	const byte *lightmap_input;
 
-	r_image_t *stainmap; // the stainmap image to use
-	byte *stainmap_buffer; // the stainmap buffer
-	_Bool stainmap_dirty; // whether this stainmap has been affected or not
+	r_stainmap_t stainmap; // the stainmap image to use
 } r_bsp_surface_t;
 
 /**
@@ -775,6 +799,9 @@ typedef struct r_model_s {
 	r_bsp_inline_model_t *bsp_inline;
 	r_mesh_model_t *mesh;
 
+	r_material_t **materials;
+	size_t num_materials;
+
 	vec3_t mins, maxs;
 	vec_t radius;
 
@@ -793,8 +820,9 @@ typedef struct r_model_s {
  */
 typedef struct {
 	vec3_t origin;
-	vec4_t color;
 	vec_t radius;
+	const r_image_t *image;
+	vec4_t color;
 } r_stain_t;
 
 #define MAX_STAINS			64
@@ -998,6 +1026,7 @@ typedef enum {
 	R_PROGRAM_WARP,
 	R_PROGRAM_NULL,
 	R_PROGRAM_CORONA,
+	R_PROGRAM_STAIN,
 
 	R_PROGRAM_TOTAL
 } r_program_id_t;
@@ -1020,6 +1049,7 @@ typedef enum {
 	R_TEXUNIT_SPECULARMAP,
 	R_TEXUNIT_WARP,
 	R_TEXUNIT_TINTMAP,
+	R_TEXUNIT_STAINMAP,
 
 	R_TEXUNIT_TOTAL
 } r_texunit_id_t;

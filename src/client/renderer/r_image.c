@@ -125,12 +125,10 @@ void R_Screenshot_f(void) {
 
 	s->buffer = Mem_LinkMalloc(s->width * s->height * 3, s);
 
-	if (r_state.supersample_fbo) {
-
-		R_BindDiffuseTexture(r_state.supersample_texture);
+	if (r_state.supersample_fb) {
+		R_BindDiffuseTexture(r_state.supersample_image->texnum);
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, s->buffer);
 	} else {
-
 		glReadPixels(0, 0, s->width, s->height, GL_BGR, GL_UNSIGNED_BYTE, s->buffer);
 	}
 
@@ -152,7 +150,7 @@ void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
 		VectorClear(color);
 	}
 
-	if (image->type == IT_LIGHTMAP || image->type == IT_STAINMAP) {
+	if (image->type == IT_LIGHTMAP) {
 		brightness = r_modulate->value;
 		mask = 2;
 	} else {
@@ -224,8 +222,8 @@ void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
  */
 void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 
-	if (!image || !data) {
-		Com_Error(ERROR_DROP, "NULL image or data\n");
+	if (!image) {
+		Com_Error(ERROR_DROP, "NULL image\n");
 	}
 
 	if (!image->texnum) {
@@ -262,7 +260,7 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 /**
  * @brief Retain event listener for images.
  */
-static _Bool R_RetainImage(r_media_t *self) {
+_Bool R_RetainImage(r_media_t *self) {
 	const r_image_type_t type = ((r_image_t *) self)->type;
 
 	if (type == IT_NULL || type == IT_PROGRAM || type == IT_FONT || type == IT_UI) {
@@ -275,7 +273,7 @@ static _Bool R_RetainImage(r_media_t *self) {
 /**
  * @brief Free event listener for images.
  */
-static void R_FreeImage(r_media_t *media) {
+void R_FreeImage(r_media_t *media) {
 	glDeleteTextures(1, &((r_image_t *) media)->texnum);
 }
 
@@ -295,6 +293,11 @@ static void R_LoadHeightmap(const char *name, const SDL_Surface *surf) {
 	if (c) {
 		*c = '\0';
 	}
+
+	// FIXME:
+	// This should use the material's heightmap asset, which might be resolved
+	// from multiple potential suffixes. This is a total hack and is incorrect.
+	// Solving this without completely refactoring R_LoadImage is hard.
 
 	SDL_Surface *hsurf;
 	if (Img_LoadImage(va("%s_h", heightmap), &hsurf)) {

@@ -85,18 +85,15 @@ static void Cm_LoadBspSurfaces(void) {
 		out->flags = in->flags;
 		out->value = in->value;
 
-		char material_name[MAX_QPATH];
-		g_snprintf(material_name, sizeof(material_name), "textures/%s", out->name);
-		Cm_NormalizeMaterialName(material_name, material_name, sizeof(material_name));
-
 		for (size_t i = 0; i < cm_bsp.num_materials; i++) {
 			cm_material_t *material = cm_bsp.materials[i];
-
-			if (!g_strcmp0(material->base, material_name)) {
+			if (!g_strcmp0(out->name, material->name)) {
 				out->material = material;
 				break;
 			}
 		}
+
+		assert(out->material);
 	}
 }
 
@@ -286,25 +283,42 @@ static void Cm_LoadBspAreaPortals(void) {
 /**
  * @brief
  */
-static cm_material_t **Cm_LoadBspMaterials(const char *name, size_t *count) {
+static void Cm_LoadBspMaterials(const char *name) {
 
-	char base[MAX_QPATH];
-	StripExtension(Basename(name), base);
+	char path[MAX_QPATH];
+	g_snprintf(path, sizeof(path), "materials/%s.mat", Basename(name));
 
-	return Cm_LoadMaterials(va("materials/%s.mat", base), count);
-}
+	GList *materials = NULL;
+	Cm_LoadMaterials(path, &materials);
 
-/**
- * @brief
- */
-static void Cm_UnloadBspMaterials(void) {
+	const bsp_texinfo_t *in = cm_bsp.bsp.texinfo;
+	for (int32_t i = 0; i < cm_bsp.bsp.num_texinfo; i++, in++) {
 
-	for (size_t i = 0; i < cm_bsp.num_materials; i++) {
-		Cm_FreeMaterial(cm_bsp.materials[i]);
+		cm_material_t *material = NULL;
+
+		for (GList *list = materials; list; list = list->next) {
+			if (!g_strcmp0(((cm_material_t *) list->data)->name, in->texture)) {
+				material = list->data;
+				break;
+			}
+		}
+
+		if (material == NULL) {
+			material = Cm_AllocMaterial(in->texture);
+			materials = g_list_prepend(materials, material);
+		}
 	}
 
-	Cm_FreeMaterialList(cm_bsp.materials);
-	cm_bsp.materials = NULL;
+	// flatten the list into the array
+	// linking them so that they are freed as well
+
+	cm_bsp.num_materials = g_list_length(materials);
+	cm_bsp.materials = Mem_TagMalloc(sizeof(cm_material_t *) * cm_bsp.num_materials, MEM_TAG_CMODEL);
+
+	cm_material_t **out = cm_bsp.materials;
+	for (const GList *list = materials; list; list = list->next, out++) {
+		*out = Mem_Link(list->data, cm_bsp.materials);
+	}
 }
 
 /**
@@ -341,11 +355,10 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 		return &cm_bsp.models[0];
 	}
 
-	Cm_UnloadBspMaterials();
-
 	Bsp_UnloadLumps(&cm_bsp.bsp, BSP_LUMPS_ALL);
 
 	// free dynamic memory
+	Mem_Free(cm_bsp.materials);
 	Mem_Free(cm_bsp.planes);
 	Mem_Free(cm_bsp.nodes);
 	Mem_Free(cm_bsp.texinfos);
@@ -396,7 +409,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 
 	Fs_Free(file);
 
-	cm_bsp.materials = Cm_LoadBspMaterials(name, &cm_bsp.num_materials);
+	Cm_LoadBspMaterials(name);
 
 	Cm_LoadBspPlanes();
 	Cm_LoadBspNodes();
@@ -456,14 +469,6 @@ int32_t Cm_NumModels(void) {
  */
 const char *Cm_EntityString(void) {
 	return cm_bsp.bsp.entity_string;
-}
-
-/**
- * @brief
- */
-const cm_material_t **Cm_MapMaterials(size_t *num_materials) {
-	*num_materials = cm_bsp.num_materials;
-	return (const cm_material_t **) cm_bsp.materials;
 }
 
 /**

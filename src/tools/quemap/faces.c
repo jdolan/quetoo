@@ -146,7 +146,7 @@ static int32_t c_faces;
 static face_t *AllocFace(void) {
 	face_t *f;
 
-	f = Mem_Malloc(sizeof(*f));
+	f = Mem_TagMalloc(sizeof(*f), MEM_TAG_FACE);
 	c_faces++;
 
 	return f;

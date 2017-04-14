@@ -54,7 +54,7 @@ static winding_t *NewWinding(uint16_t points) {
 	}
 
 	size = (size_t) ((winding_t *) 0)->points[points];
-	w = Mem_Malloc(size);
+	w = Mem_TagMalloc(size, MEM_TAG_WINDING);
 
 	return w;
 }
@@ -276,13 +276,13 @@ static void LoadPortals(const char *filename) {
 	map_vis.portal_bytes = ((map_vis.num_portals * 2 + 63) & ~63) >> 3;
 
 	// each file portal is split into two memory portals
-	map_vis.portals = Mem_Malloc(2 * map_vis.num_portals * sizeof(portal_t));
+	map_vis.portals = Mem_TagMalloc(2 * map_vis.num_portals * sizeof(portal_t), MEM_TAG_PORTAL);
 
 	// allocate the leafs
-	map_vis.leafs = Mem_Malloc(map_vis.portal_clusters * sizeof(leaf_t));
+	map_vis.leafs = Mem_TagMalloc(map_vis.portal_clusters * sizeof(leaf_t), MEM_TAG_PORTAL);
 
 	map_vis.uncompressed_size = map_vis.portal_clusters * map_vis.leaf_bytes;
-	map_vis.uncompressed = Mem_Malloc(map_vis.uncompressed_size);
+	map_vis.uncompressed = Mem_TagMalloc(map_vis.uncompressed_size, MEM_TAG_PORTAL);
 
 	// allocate vis data
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_VISIBILITY, MAX_BSP_VISIBILITY);

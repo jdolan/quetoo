@@ -32,7 +32,7 @@ void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 
 	const r_material_t *m = surf->texinfo->material;
 
-	if (!(m->flags & STAGE_FLARE)) { // surface is not flared
+	if (!(m->cm->flags & STAGE_FLARE)) { // surface is not flared
 		return;
 	}
 

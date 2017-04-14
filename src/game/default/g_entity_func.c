@@ -875,10 +875,10 @@ void G_func_button(g_entity_t *ent) {
 }
 
 #define DOOR_START_OPEN		0x1
-#define DOOR_TOGGLE			0x2
-#define DOOR_REVERSE		0x4
-#define DOOR_X_AXIS			0x8
-#define DOOR_Y_AXIS			0x10
+#define DOOR_REVERSE		0x2
+#define DOOR_TOGGLE			0x20
+#define DOOR_X_AXIS			0x40
+#define DOOR_Y_AXIS			0x80
 
 /**
  * @brief
@@ -1198,7 +1198,7 @@ static void G_func_door_Touch(g_entity_t *self, g_entity_t *other,
 	gi.Sound(other, gi.SoundIndex("misc/chat"), ATTEN_NORM);
 }
 
-/*QUAKED func_door (0 .5 .8) ? start_open toggle
+/*QUAKED func_door (0 .5 .8) ? start_open reverse x x x toggle
  A sliding door. By default, doors open when a player walks close to them.
 
  -------- Keys --------
@@ -1311,7 +1311,7 @@ void G_func_door(g_entity_t *ent) {
 	}
 }
 
-/*QUAKED func_door_rotating (0 .5 .8) ? start_open toggle reverse x_axis y_axis
+/*QUAKED func_door_rotating (0 .5 .8) ? start_open reverse x x x toggle x_axis y_axis
  A door which rotates about an origin on its Z axis. By default, doors open when a player walks close to them.
 
  -------- Keys --------

@@ -23,28 +23,7 @@
 
 #include "r_types.h"
 
-r_image_t *R_LoadImage(const char *name, r_image_type_t type);
-
 #ifdef __R_LOCAL_H__
-
-typedef struct {
-	GLint filter_min;
-	GLint filter_mag;
-	GLfloat anisotropy;
-
-	r_image_t *null;
-	r_image_t *warp;
-	r_image_t *shell;
-} r_image_state_t;
-
-extern r_image_state_t r_image_state;
-
-void R_FilterImage(r_image_t *image, GLenum format, byte *data);
-void R_UploadImage(r_image_t *image, GLenum format, byte *data);
-void R_Screenshot_f(void);
-void R_InitImages(void);
-
-void R_FreeImage(r_media_t *media);
-_Bool R_RetainImage(r_media_t *self);
-
+void R_PreLink_stain(const r_program_t *program);
+void R_InitProgram_stain(r_program_t *program);
 #endif /* __R_LOCAL_H__ */

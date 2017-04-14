@@ -195,6 +195,19 @@ static void R_ApplyMeshModelLighting_default(const r_entity_t *e) {
 }
 
 /**
+ * @brief Sets up the texture for tinting. Do this before UseMaterial.
+ */
+static void R_UpdateMeshTints(void) {
+
+	if (r_mesh_state.material && r_mesh_state.material->tintmap) {
+		R_EnableTexture(texunit_tint, true);
+		R_UseTints();
+	} else {
+		R_EnableTexture(texunit_tint, false);
+	}
+}
+
+/**
  * @brief Sets renderer state for the specified entity.
  */
 static void R_SetMeshState_default(const r_entity_t *e) {
@@ -220,15 +233,18 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 		}
 
 		if ((e->effects & EF_NO_LIGHTING) == 0 && r_state.lighting_enabled) {
-			R_UseMaterial(r_mesh_state.material);
 
 			R_ApplyMeshModelLighting_default(e);
 		}
 	} else {
 		R_Color(NULL);
 
-		R_UseMaterial(NULL);
+		r_mesh_state.material = NULL;
 	}
+
+	R_UseMaterial(r_mesh_state.material);
+
+	R_UpdateMeshTints();
 
 	if (e->effects & EF_WEAPON) {
 		R_DepthRange(0.0, 0.3);
@@ -239,11 +255,6 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 	// setup lerp for animating models
 	if (e->old_frame != e->frame) {
 		R_UseInterpolation(e->lerp);
-	}
-
-	// update tints
-	if (r_mesh_state.material->tintmap) {
-		R_UseTints();
 	}
 }
 
@@ -270,6 +281,8 @@ static void R_ResetMeshState_default(const r_entity_t *e) {
 	R_ResetArrayState();
 
 	R_UseInterpolation(0.0);
+
+	R_EnableTexture(texunit_tint, false);
 }
 
 /**
@@ -295,6 +308,8 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 				R_BindDiffuseTexture(r_mesh_state.material->diffuse->texnum);
 
 				R_UseMaterial(r_mesh_state.material);
+
+				R_UpdateMeshTints();
 			}
 		}
 
@@ -302,7 +317,7 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 			offset += mesh->num_elements;
 			continue;
 		}
-		
+
 		R_DrawArrays(GL_TRIANGLES, offset, mesh->num_elements);
 
 		offset += mesh->num_elements;
@@ -325,6 +340,8 @@ static void R_DrawMeshPartsMaterials_default(const r_entity_t *e, const r_md3_t 
 				R_BindDiffuseTexture(r_mesh_state.material->diffuse->texnum);
 
 				R_UseMaterial(r_mesh_state.material);
+
+				R_UpdateMeshTints();
 			}
 		}
 

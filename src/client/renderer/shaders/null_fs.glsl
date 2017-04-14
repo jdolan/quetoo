@@ -8,6 +8,7 @@
 
 #include "matrix_inc.glsl"
 #include "fog_inc.glsl"
+#include "tint_inc.glsl"
 
 uniform sampler2D SAMPLER0;
 
@@ -29,6 +30,8 @@ void FogFragment(void) {
 void main(void) {
 
 	fragColor = color * texture(SAMPLER0, texcoord);
+
+	TintFragment(fragColor, texcoord);
 
 	FogFragment(); // and lastly add fog	
 }

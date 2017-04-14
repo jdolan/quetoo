@@ -83,10 +83,14 @@ typedef struct {
 		uint32_t damage_time;
 		int16_t pickup;
 	} blend;
+cvar_t *cg_tint_b; // helmet
 
 	struct {
 		int16_t tag, used_tag;
 		uint32_t time;
+		int16_t bits;
+		int16_t num;
+		_Bool has[MAX_STAT_BITS];
 	} weapon;
 
 	int16_t chase_target;
@@ -827,7 +831,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	// start with base blend based on view origin conents
 	const int32_t contents = cgi.view->contents;
 
-	if (contents & MASK_LIQUID) {
+	if ((contents & MASK_LIQUID) && cg_draw_blend_liquid->value) {
 		uint8_t color;
 		if (contents & CONTENTS_LAVA) {
 			color = 71;
@@ -848,7 +852,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 
 	cg_hud_locals.blend.pickup = p;
 
-	if (cg_hud_locals.blend.pickup_time) {
+	if (cg_hud_locals.blend.pickup_time && cg_draw_blend_pickup->value) {
 		Cg_AddBlendPalette(blend, 215, Cg_CalculateBlendAlpha(cg_hud_locals.blend.pickup_time, CG_PICKUP_BLEND_TIME,
 		                   CG_PICKUP_BLEND_ALPHA));
 	}
@@ -859,7 +863,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 		cg_hud_locals.blend.damage_time = cgi.client->unclamped_time;
 	}
 
-	if (cg_hud_locals.blend.damage_time) {
+	if (cg_hud_locals.blend.damage_time && cg_draw_blend_damage->value) {
 		Cg_AddBlendPalette(blend, 240, Cg_CalculateBlendAlpha(cg_hud_locals.blend.damage_time, CG_DAMAGE_BLEND_TIME,
 		                   CG_DAMAGE_BLEND_ALPHA));
 	}
@@ -946,7 +950,7 @@ static void Cg_ValidateSelectedWeapon(const player_state_t *ps) {
 	}
 
 	// see if we have this weapon
-	if (ps->stats[STAT_WEAPONS] & (1 << cg_hud_locals.weapon.tag)) {
+	if (cg_hud_locals.weapon.has[cg_hud_locals.weapon.tag]) {
 		return; // got it
 	}
 
@@ -959,7 +963,7 @@ static void Cg_ValidateSelectedWeapon(const player_state_t *ps) {
 			continue;
 		}
 
-		if (ps->stats[STAT_WEAPONS] & (1 << id)) {
+		if (cg_hud_locals.weapon.has[id]) {
 			cg_hud_locals.weapon.tag = id;
 			return;
 		}
@@ -1001,7 +1005,7 @@ static void Cg_SelectWeapon(const int8_t dir) {
 			cg_hud_locals.weapon.tag = 0;
 		}
 
-		if (ps->stats[STAT_WEAPONS] & (1 << cg_hud_locals.weapon.tag)) {
+		if (cg_hud_locals.weapon.has[cg_hud_locals.weapon.tag]) {
 			cg_hud_locals.weapon.time = cgi.client->unclamped_time + cg_select_weapon_delay->integer;
 			return;
 		}
@@ -1018,7 +1022,8 @@ _Bool Cg_AttemptSelectWeapon(const player_state_t *ps) {
 
 	cg_hud_locals.weapon.time = 0;
 
-	if (cg_hud_locals.weapon.tag != -1) {
+	if (!ps->stats[STAT_SPECTATOR] &&
+		cg_hud_locals.weapon.tag != -1) {
 
 		if (cg_hud_locals.weapon.tag != Cg_ActiveWeapon(ps)) {
 			const char *name = cgi.client->config_strings[CS_ITEMS + cg_hud_weapons[cg_hud_locals.weapon.tag].item_index];
@@ -1049,9 +1054,20 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 	}
 
 	// see if we have any weapons at all
-	int32_t num_weaps = __builtin_popcount(ps->stats[STAT_WEAPONS]);
+	if (cg_hud_locals.weapon.bits != ps->stats[STAT_WEAPONS])
+	{
+		cg_hud_locals.weapon.bits = ps->stats[STAT_WEAPONS];
+		cg_hud_locals.weapon.num = 0;
 
-	if (!num_weaps) {
+		for (int32_t i = 0; i < (int32_t) MAX_STAT_BITS; i++) {
+			cg_hud_locals.weapon.has[i] = !!(cg_hud_locals.weapon.bits & (1 << i));
+
+			if (cg_hud_locals.weapon.has[i])
+				cg_hud_locals.weapon.num++;
+		}
+	}
+
+	if (!cg_hud_locals.weapon.num) {
 		cg_hud_locals.weapon.tag = -1;
 		cg_hud_locals.weapon.time = 0;
 		cg_hud_locals.weapon.used_tag = 0;
@@ -1063,7 +1079,7 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 	if (cg_hud_locals.weapon.used_tag != switching) {
 		cg_hud_locals.weapon.used_tag = switching;
 
-		if (cg_hud_locals.weapon.used_tag) {
+		if (cg_hud_locals.weapon.used_tag && !ps->stats[STAT_SPECTATOR]) {
 
 			// we changed weapons without using scrolly, show it for a bit
 			cg_hud_locals.weapon.tag = cg_hud_locals.weapon.used_tag - 1;
@@ -1083,7 +1099,7 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 	// figure out weapon.tag
 	Cg_ValidateSelectedWeapon(ps);
 
-	r_pixel_t x = cgi.view->viewport.x + ((cgi.view->viewport.w / 2) - ((num_weaps * HUD_PIC_HEIGHT) / 2));
+	r_pixel_t x = cgi.view->viewport.x + ((cgi.view->viewport.w / 2) - ((cg_hud_locals.weapon.num * HUD_PIC_HEIGHT) / 2));
 	r_pixel_t y = cgi.view->viewport.y + cgi.view->viewport.h - (HUD_PIC_HEIGHT * 2.0) - 16;
 
 	r_pixel_t ch;
@@ -1091,7 +1107,7 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 
 	for (int16_t i = 0; i < (int16_t) MAX_STAT_BITS; i++) {
 
-		if (!(ps->stats[STAT_WEAPONS] & (1 << i))) {
+		if (!cg_hud_locals.weapon.has[i]) {
 			continue;
 		}
 

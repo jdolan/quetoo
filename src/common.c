@@ -216,7 +216,7 @@ void Com_Errorv_(err_t err, const char *func, const char *fmt, va_list args) {
 	if (quetoo.recursive_error) {
 
 		if (quetoo.Error) {
-			quetoo.Error(err, "Recursive error\n");
+			quetoo.Error(ERROR_FATAL, "Recursive error\n");
 		} else {
 			fputs("Recursive error\n", stderr);
 			fflush(stderr);

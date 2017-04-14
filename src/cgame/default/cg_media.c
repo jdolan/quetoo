@@ -66,6 +66,10 @@ cg_particles_t *cg_particles_spark;
 cg_particles_t *cg_particles_inactive;
 cg_particles_t *cg_particles_ripple[3];
 
+cg_particles_t *cg_particles_stain_burn;
+cg_particles_t *cg_particles_lightning_burn;
+cg_particles_t *cg_particles_blood_burn;
+
 static GHashTable *cg_footstep_table;
 
 /**
@@ -103,10 +107,10 @@ static void Cg_FootstepsTable_Load(const char *footsteps) {
 
 	sounds = g_array_new(false, false, sizeof(s_sample_t *));
 
-	for (size_t i = 0; i < count; i++) {
+	for (uint32_t i = 0; i < count; i++) {
 
 		char name[MAX_QPATH];
-		g_snprintf(name, sizeof(name), "#players/common/step_%s_%" PRIuMAX, footsteps, i + 1);
+		g_snprintf(name, sizeof(name), "#players/common/step_%s_%" PRIu32, footsteps, i + 1);
 
 		s_sample_t *sample = cgi.LoadSample(name);
 		sounds = g_array_append_val(sounds, sample);
@@ -150,23 +154,18 @@ static void Cg_InitFootsteps(void) {
 
 	default_samples = g_array_append_vals(default_samples, (const s_sample_t *[]) {
 		cgi.LoadSample("#players/common/step_1"),
-		               cgi.LoadSample("#players/common/step_2"),
-		               cgi.LoadSample("#players/common/step_3"),
-		               cgi.LoadSample("#players/common/step_4")
+		cgi.LoadSample("#players/common/step_2"),
+		cgi.LoadSample("#players/common/step_3"),
+		cgi.LoadSample("#players/common/step_4")
 	}, 4);
 
 	g_hash_table_insert(cg_footstep_table, "default", default_samples);
-	
-	size_t num_materials = 0;
-	const cm_material_t **materials = cgi.MapMaterials(&num_materials);
 
-	if (num_materials) {
-		for (size_t i = 0; i < num_materials; i++) {
-			const cm_material_t *material = materials[i];
+	r_material_t **material = cgi.WorldModel()->materials;
+	for (size_t i = 0; i < cgi.WorldModel()->num_materials; i++, material++) {
 
-			if (*material->footsteps) {
-				Cg_FootstepsTable_Load(material->footsteps);
-			}
+		if (strlen((*material)->cm->footsteps)) {
+			Cg_FootstepsTable_Load((*material)->cm->footsteps);
 		}
 	}
 }
@@ -205,18 +204,18 @@ void Cg_UpdateMedia(void) {
 	cg_sample_underwater = cgi.LoadSample("world/underwater");
 	cg_sample_gib = cgi.LoadSample("gibs/common/gib");
 
-	for (size_t i = 0; i < lengthof(cg_sample_hits); i++) {
-		g_snprintf(name, sizeof(name), "misc/hit_%" PRIuMAX, i + 1);
+	for (uint32_t i = 0; i < lengthof(cg_sample_hits); i++) {
+		g_snprintf(name, sizeof(name), "misc/hit_%" PRIu32, i + 1);
 		cg_sample_hits[i] = cgi.LoadSample(name);
 	}
 
-	for (size_t i = 0; i < lengthof(cg_sample_machinegun_fire); i++) {
-		g_snprintf(name, sizeof(name), "weapons/machinegun/fire_%" PRIuMAX, i + 1);
+	for (uint32_t i = 0; i < lengthof(cg_sample_machinegun_fire); i++) {
+		g_snprintf(name, sizeof(name), "weapons/machinegun/fire_%" PRIu32, i + 1);
 		cg_sample_machinegun_fire[i] = cgi.LoadSample(name);
 	}
 
-	for (size_t i = 0; i < lengthof(cg_sample_machinegun_hit); i++) {
-		g_snprintf(name, sizeof(name), "weapons/machinegun/hit_%" PRIuMAX, i + 1);
+	for (uint32_t i = 0; i < lengthof(cg_sample_machinegun_hit); i++) {
+		g_snprintf(name, sizeof(name), "weapons/machinegun/hit_%" PRIu32, i + 1);
 		cg_sample_machinegun_hit[i] = cgi.LoadSample(name);
 	}
 
@@ -227,8 +226,8 @@ void Cg_UpdateMedia(void) {
 	cg_particles_normal = Cg_AllocParticles(cgi.LoadImage("particles/particle.tga", IT_EFFECT), true);
 	cg_particles_explosion = Cg_AllocParticles(cgi.LoadImage("particles/explosion.tga", IT_EFFECT), true);
 
-	for (size_t i = 0; i < lengthof(cg_particles_debris); i++) {
-		g_snprintf(name, sizeof(name), "particles/debris_%" PRIuMAX, i);
+	for (uint32_t i = 0; i < lengthof(cg_particles_debris); i++) {
+		g_snprintf(name, sizeof(name), "particles/debris_%" PRIu32, i);
 		cg_particles_debris[i] = Cg_AllocParticles(cgi.LoadImage(name, IT_EFFECT), true);
 	}
 
@@ -246,10 +245,14 @@ void Cg_UpdateMedia(void) {
 	cg_particles_spark = Cg_AllocParticles(cgi.LoadImage("particles/spark.tga", IT_EFFECT), true);
 	cg_particles_inactive = Cg_AllocParticles(cgi.LoadImage("particles/inactive.tga", IT_EFFECT), true);
 
-	for (size_t i = 0; i < lengthof(cg_particles_ripple); i++) {
-		g_snprintf(name, sizeof(name), "particles/ripple_%" PRIuMAX, i);
+	for (uint32_t i = 0; i < lengthof(cg_particles_ripple); i++) {
+		g_snprintf(name, sizeof(name), "particles/ripple_%" PRIu32, i);
 		cg_particles_ripple[i] = Cg_AllocParticles(cgi.LoadImage(name, IT_EFFECT), true);
 	}
+
+	cg_particles_stain_burn = Cg_AllocParticles(cgi.LoadImage("particles/stain_burn.tga", IT_EFFECT), true);
+	cg_particles_lightning_burn = Cg_AllocParticles(cgi.LoadImage("particles/lightning_burn.tga", IT_EFFECT), true);
+	cg_particles_blood_burn = Cg_AllocParticles(cgi.LoadImage("particles/stain_blood.tga", IT_EFFECT), true);
 
 	Cg_SetupParticleAtlas();
 

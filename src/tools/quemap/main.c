@@ -21,6 +21,10 @@
 
 #include "quemap.h"
 
+#if defined(__MINGW32__)
+ #define SDL_MAIN_HANDLED
+#endif
+
 #include <SDL2/SDL.h>
 
 quetoo_t quetoo;
@@ -125,6 +129,8 @@ static void Init(void) {
 	Com_InitSubsystem(QUETOO_MAPTOOL);
 
 	Mem_Init();
+
+	Mon_Init();
 
 	Fs_Init(FS_AUTO_LOAD_ARCHIVES);
 
@@ -451,7 +457,7 @@ int32_t main(int32_t argc, char **argv) {
 		}
 
 		if (!g_strcmp0(Com_Argv(i), "-c") || !g_strcmp0(Com_Argv(i), "-connect")) {
-			is_monitor = Mon_Init(Com_Argv(i + 1));
+			is_monitor = Mon_Connect(Com_Argv(i + 1));
 			continue;
 		}
 	}

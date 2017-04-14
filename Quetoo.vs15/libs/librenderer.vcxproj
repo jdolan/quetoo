@@ -30,6 +30,7 @@
     <ClCompile Include="..\..\src\client\renderer\r_element.c" />
     <ClCompile Include="..\..\src\client\renderer\r_entity.c" />
     <ClCompile Include="..\..\src\client\renderer\r_flare.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_framebuffer.c" />
     <ClCompile Include="..\..\src\client\renderer\r_glad_core.c" />
     <ClCompile Include="..\..\src\client\renderer\r_image.c" />
     <ClCompile Include="..\..\src\client\renderer\r_light.c" />
@@ -50,6 +51,7 @@
     <ClCompile Include="..\..\src\client\renderer\r_program_null.c" />
     <ClCompile Include="..\..\src\client\renderer\r_program_shadow.c" />
     <ClCompile Include="..\..\src\client\renderer\r_program_shell.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_program_stain.c" />
     <ClCompile Include="..\..\src\client\renderer\r_program_warp.c" />
     <ClCompile Include="..\..\src\client\renderer\r_sky.c" />
     <ClCompile Include="..\..\src\client\renderer\r_stainmap.c" />
@@ -68,6 +70,7 @@
     <ClInclude Include="..\..\src\client\renderer\r_element.h" />
     <ClInclude Include="..\..\src\client\renderer\r_entity.h" />
     <ClInclude Include="..\..\src\client\renderer\r_flare.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_framebuffer.h" />
     <ClInclude Include="..\..\src\client\renderer\r_glad_core.h" />
     <ClInclude Include="..\..\src\client\renderer\r_image.h" />
     <ClInclude Include="..\..\src\client\renderer\r_light.h" />
@@ -89,6 +92,7 @@
     <ClInclude Include="..\..\src\client\renderer\r_program_null.h" />
     <ClInclude Include="..\..\src\client\renderer\r_program_shadow.h" />
     <ClInclude Include="..\..\src\client\renderer\r_program_shell.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_program_stain.h" />
     <ClInclude Include="..\..\src\client\renderer\r_program_warp.h" />
     <ClInclude Include="..\..\src\client\renderer\r_sky.h" />
     <ClInclude Include="..\..\src\client\renderer\r_stainmap.h" />
@@ -108,6 +112,9 @@
     <None Include="..\..\src\client\renderer\shaders\shadow_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\shell_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\shell_vs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\tint_inc.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\stain_fs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\stain_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\warp_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\warp_vs.glsl" />
   </ItemGroup>

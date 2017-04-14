@@ -57,8 +57,9 @@ static void R_RegisterModel(r_media_t *self) {
 			R_RegisterDependency(self, (r_media_t *) s->lightmap);
 			R_RegisterDependency(self, (r_media_t *) s->deluxemap);
 
-			if (s->stainmap) {
-				R_RegisterDependency(self, (r_media_t *) s->stainmap);
+			if (s->stainmap.fb) {
+				R_RegisterDependency(self, (r_media_t *) s->stainmap.fb);
+				R_RegisterDependency(self, (r_media_t *) s->stainmap.image);
 			}
 		}
 
@@ -149,9 +150,6 @@ r_model_t *R_LoadModel(const char *name) {
 		mod->media.Free = R_FreeModel;
 
 		mod->type = format->type;
-
-		// load the materials first, so that we can resolve surfaces lists
-		R_LoadMaterials(mod);
 
 		void *buf = NULL;
 

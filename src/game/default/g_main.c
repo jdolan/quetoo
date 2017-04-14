@@ -83,16 +83,23 @@ static g_team_t g_teamlist_default[MAX_TEAMS];
 /**
  * @brief
  */
-static void G_InitTeam(const g_team_id_t id, const char *name, const char *skin, const int16_t color, const char shirt_color[COLOR_MAX_LENGTH], const char pants_color[COLOR_MAX_LENGTH], const int16_t effect) {
+static void G_InitTeam(const g_team_id_t id, const char *name, const int16_t color, const char tint[COLOR_MAX_LENGTH], const int16_t effect) {
 	g_team_t *team = &g_teamlist[id];
 
 	team->id = id;
+
 	g_strlcpy(team->name, name, sizeof(team->name));
-	g_strlcpy(team->skin, skin, sizeof(team->skin));
+
 	team->color = color;
-	g_strlcpy(team->shirt_color, shirt_color, sizeof(team->shirt_color));
-	g_strlcpy(team->pants_color, pants_color, sizeof(team->pants_color));
+
+	g_strlcpy(team->tint_r, tint, sizeof(team->tint_r)); // shirt
+	g_strlcpy(team->tint_g, tint, sizeof(team->tint_g)); // pants
+	g_strlcpy(team->tint_b, tint, sizeof(team->tint_b)); // helmet
+
+	g_strlcpy(team->skin, DEFAULT_TEAM_SKIN, sizeof(team->skin));
+
 	team->effect = effect;
+
 	g_strlcpy(team->flag, va("item_flag_team%i", id + 1), sizeof(team->flag));
 	g_strlcpy(team->spawn, va("info_player_team%i", id + 1), sizeof(team->spawn));
 }
@@ -103,14 +110,14 @@ static void G_InitTeam(const g_team_id_t id, const char *name, const char *skin,
 void G_ResetTeams(void) {
 
 	memset(g_teamlist, 0, sizeof(g_teamlist));
-	
-	G_InitTeam(TEAM_RED, "Red", "red", TEAM_COLOR_RED, "ff0000", "ff0000", EF_CTF_RED);
-	G_InitTeam(TEAM_BLUE, "Blue", "blue", TEAM_COLOR_BLUE, "0000ff", "0000ff", EF_CTF_BLUE);
-	G_InitTeam(TEAM_GREEN, "Green", "green", TEAM_COLOR_GREEN, "00ff00", "00ff00", EF_CTF_GREEN);
-	G_InitTeam(TEAM_ORANGE, "Orange", "orange", TEAM_COLOR_ORANGE, "aa6600", "aa6600", EF_CTF_ORANGE);
+
+	G_InitTeam(TEAM_RED, "Red", TEAM_COLOR_RED, "ff0000", EF_CTF_RED);
+	G_InitTeam(TEAM_BLUE, "Blue", TEAM_COLOR_BLUE, "0000ff", EF_CTF_BLUE);
+	G_InitTeam(TEAM_GREEN, "Green", TEAM_COLOR_GREEN, "00ff00", EF_CTF_GREEN);
+	G_InitTeam(TEAM_ORANGE, "Orange", TEAM_COLOR_ORANGE, "aa6600", EF_CTF_ORANGE);
 
 	memcpy(g_teamlist_default, g_teamlist, sizeof(g_teamlist));
-	
+
 	G_SetTeamNames();
 }
 
@@ -125,7 +132,7 @@ void G_SetTeamNames(void) {
 		if (t != TEAM_RED) {
 			strcat(team_info, "\\");
 		}
-		
+
 		strcat(team_info, g_teamlist[t].name);
 		strcat(team_info, "\\");
 		strcat(team_info, va("%i", g_teamlist[t].color));
@@ -266,7 +273,7 @@ static void G_ResetTeamSpawnPoints(g_spawn_points_t *points, const g_entity_trai
 			}
 			ent->s.trail = trail;
 			ent->sv_flags = 0;
-		
+
 			gi.LinkEntity(ent);
 		} else {
 
@@ -282,7 +289,7 @@ static void G_ResetTeamSpawnPoints(g_spawn_points_t *points, const g_entity_trai
  * @brief Setup the effects for spawn points
  */
 void G_ResetSpawnPoints(void) {
-	
+
 	// reset trails to 0 first
 	for (int32_t t = 0; t < MAX_TEAMS; t++) {
 		G_ResetTeamSpawnPoints(&g_teamlist[t].spawn_points, 0, 0);
@@ -1388,7 +1395,7 @@ void G_Init(void) {
 			g_frag_limit->modified =
 			g_round_limit->modified =
 			g_capture_limit->modified =
-			g_weapon_stay->modified = 
+			g_weapon_stay->modified =
 			g_time_limit->modified = false;
 
 	// add game-specific server console commands
@@ -1526,7 +1533,7 @@ void G_RunTimers(void) {
 				} else {
 					G_CallTimeIn();
 				}
-				
+
 				for (int32_t i = 0; i < g_level.num_teams; i++) {
 					G_TeamCenterPrint(&g_teamlist[i], "%s\n", (!j) ? "Fight!" : va("%d", j));
 				}

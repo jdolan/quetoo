@@ -538,7 +538,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	cgi.AddLight(&l);
 
 	VectorSubtract(start, end, dir);
-	dist = VectorNormalize(dir);
+	const vec_t dist_total = dist = VectorNormalize(dir);
 
 	VectorScale(dir, -48.0, delta);
 	VectorCopy(start, pos);
@@ -590,11 +590,21 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 	if (ent->timestamp < cgi.client->unclamped_time) {
 
-		cgi.AddStain(&(const r_stain_t) {
-			.origin = { end[0], end[1], end[2] },
-			 .color = { 0.0, 0.0, 0.0, 0.33 },
-			  .radius = 2.0
-		});
+		vec3_t real_end;
+		VectorMA(start, -(dist_total + 32.0), dir, real_end);
+		cm_trace_t tr = cgi.Trace(start, real_end, NULL, NULL, 0, CONTENTS_SOLID);
+	
+		if (tr.surface) {
+
+			VectorMA(tr.end, 1.0, tr.plane.normal, tr.end);
+
+			cgi.AddStain(&(const r_stain_t) {
+				.origin = { tr.end[0], tr.end[1], tr.end[2] },
+				.radius = 8.0 + Randomf() * 4.0,
+				.image = cg_particles_lightning_burn->image,
+				.color = { 0.0, 0.0, 0.0, 0.33 },
+			});
+		}
 
 		ent->timestamp = cgi.client->unclamped_time + 64;
 	}
@@ -821,7 +831,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 	VectorSubtract(end, start, move);
 
 	vec_t dist = VectorNormalize(move);
-	uint32_t added = 0;
+	static uint32_t added = 0;
 
 	while (dist > 0.0) {
 		cg_particle_t *p;
@@ -835,8 +845,13 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 		p->lifetime = 1000 + Randomf() * 500;
 		p->effects |= PARTICLE_EFFECT_COLOR;
 
-		if ((added++ % 6) == 0) {
-			p->special = PARTICLE_SPECIAL_BLOOD;
+		if ((added++ % 3) == 0) {
+			cgi.AddStain(&(const r_stain_t) {
+				.origin = { p->part.org[0], p->part.org[1], p->part.org[2] },
+				.radius = 5.0 + Randomc(),
+				.image = cg_particles_blood_burn->image,
+				.color = { 0.6 + 0.1 * Randomc(), 0.0, 0.0, 0.05 + Randomf() * 0.1 },
+			});
 		}
 
 		cgi.ColorFromPalette(232 + (Random() & 7), p->color_start);

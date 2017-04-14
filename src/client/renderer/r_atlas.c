@@ -72,7 +72,8 @@ void R_AddImageToAtlas(r_atlas_t *atlas, const r_image_t *image) {
 
 	// add to array
 	g_array_append_vals(atlas->images, &(const r_atlas_image_t) {
-		.input_image = image
+		.input_image = image,
+		.atlas = atlas
 	}, 1);
 
 	// add blank entry to hash, it's filled in in upload stage
@@ -317,6 +318,8 @@ typedef struct {
 	uint16_t num_mips;
 } r_atlas_params_t;
 
+#define NearestPowerOfTwo(x) ({ int32_t power = 1; while (power < x) { power *= 2; } power; })
+
 /**
  * @brief Stitches the atlas, returning atlas parameters.
  */
@@ -358,6 +361,9 @@ static void R_StitchAtlas(r_atlas_t *atlas, r_atlas_params_t *params) {
 		// replace with new atlas image ptr
 		g_hash_table_replace(atlas->hash, (gpointer) image->input_image, (gpointer) image);
 	}
+	
+	params->width = NearestPowerOfTwo(params->width);
+	params->height = NearestPowerOfTwo(params->height);
 
 	// free packer
 	R_AtlasPacker_FreePacker(&packer);

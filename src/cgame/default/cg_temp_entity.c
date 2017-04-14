@@ -70,8 +70,9 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
-		 .color = { c[0], c[1], c[2], 0.33 },
-		  .radius = 4.0
+		.radius = 4.0,
+		.image = cg_particles_normal->image,
+		.color = { c[0], c[1], c[2], 0.33 }
 	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
@@ -176,8 +177,9 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
-		 .color = { 0.0, 0.0, 0.0, 0.33 },
-		  .radius = 2.0
+		.radius = 2.0,
+		.image = cg_particles_normal->image,
+		.color = { 0.0, 0.0, 0.0, 0.33 },
 	});
 
 	if (cgi.client->unclamped_time < last_ric_time) {
@@ -230,8 +232,9 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
-		 .color = { 0.6 + 0.1 * Randomc(), 0.0, 0.0, 0.8 + Randomf() * 0.1 },
-		  .radius = count * 1.0
+		.radius = count * 4.0,
+		.image = cg_particles_blood_burn->image,
+		.color = { 0.6 + 0.1 * Randomc(), 0.0, 0.0, 0.1 + Randomf() * 0.1 },
 	});
 }
 
@@ -298,8 +301,9 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
-		 .color = { 0.6 + 0.1 * Randomc(), 0.0, 0.0, 0.9 + Randomf() * 0.1 },
-		  .radius = count * 4.0
+		.radius = count * 4.0,
+		.image = cg_particles_normal->image,
+		.color = { 0.6 + 0.1 * Randomc(), 0.0, 0.0, 0.9 + Randomf() * 0.1 },
 	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
@@ -472,12 +476,13 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 	});
 
 	vec3_t c;
-	cgi.ColorFromPalette(rand() & 7, c);
+	cgi.ColorFromPalette(rand() & 1, c);
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
-		 .color = { c[0], c[1], c[2], 0.66 },
-		  .radius = 64.0 + (64.0 * Randomc() * 0.15)
+		.radius = 88.0 + (64.0 * Randomc() * 0.15),
+		.image = cg_particles_stain_burn->image,
+		.color = { c[0], c[1], c[2], 0.66 },
 	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
@@ -527,8 +532,9 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
-		 .color = { color[0], color[1], color[2], 0.33 },
-		  .radius = 16.0
+		.radius = 16.0,
+		.image = cg_particles_normal->image,
+		.color = { color[0], color[1], color[2], 0.33 },
 	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
@@ -700,8 +706,9 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { end[0], end[1], end[2] },
-		 .color = { s.light.color[0], s.light.color[1], s.light.color[2], 0.66 },
-		  .radius = 8.0
+		.radius = 8.0,
+		.image = cg_particles_normal->image,
+		.color = { s.light.color[0], s.light.color[1], s.light.color[2], 0.66 },
 	});
 }
 
@@ -799,8 +806,9 @@ static void Cg_BfgEffect(const vec3_t org) {
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
-		 .color = { c[0], c[1], c[2], 0.75 },
-		  .radius = 96.0
+		.radius = 96.0,
+		.image = cg_particles_normal->image,
+		.color = { c[0], c[1], c[2], 0.75 },
 	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
@@ -814,7 +822,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 /**
  * @brief
  */
-static void Cg_RippleEffect(const vec3_t org, const vec_t size, const uint8_t viscosity) {
+void Cg_RippleEffect(const vec3_t org, const vec_t size, const uint8_t viscosity) {
 	cg_particle_t *p;
 
 	if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_ripple[Random() % 3]))) {

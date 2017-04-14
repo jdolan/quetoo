@@ -218,7 +218,6 @@ void Cl_InitCgame(void) {
 	import.ReadAngles = Cl_ReadAngles;
 
 	import.EntityString = Cm_EntityString;
-	import.MapMaterials = Cm_MapMaterials;
 
 	import.PointContents = Cl_PointContents;
 	import.Trace = Cl_Trace;
@@ -248,6 +247,7 @@ void Cl_InitCgame(void) {
 	import.GetAtlasImageFromAtlas = R_GetAtlasImageFromAtlas;
 	import.CompileAtlas = R_CompileAtlas;
 	import.LoadMaterial = R_LoadMaterial;
+	import.LoadMaterials = R_LoadMaterials;
 	import.LoadModel = R_LoadModel;
 	import.WorldModel = R_WorldModel;
 

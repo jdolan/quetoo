@@ -11,6 +11,7 @@ noinst_HEADERS = \
 	qlight.h \
 	qmat.h \
 	qvis.h \
+	qzip.h \
 	scriptlib.h
 
 quemap_SOURCES = \
@@ -67,5 +68,8 @@ if WINDOWS
 
 quemap_SOURCES += \
 	quemap-icon.rc
+
+quemap_LDFLAGS = \
+	-mconsole
 
 endif
