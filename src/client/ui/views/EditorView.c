@@ -54,21 +54,26 @@ static void updateBindings(View *self) {
 
 	EditorView *this = (EditorView *) self;
 
+	free(this->materialName->defaultText);
+	free(this->diffuseTexture->defaultText);
+	free(this->normalmapTexture->defaultText);
+	free(this->specularmapTexture->defaultText);
+
+	this->material = NULL;
+
 	vec3_t end;
 	VectorMA(r_view.origin, MAX_WORLD_DIST, r_view.forward, end);
 
 	const cm_trace_t tr = Cl_Trace(r_view.origin, end, NULL, NULL, 0, MASK_SOLID);
-
 	if (tr.fraction < 1.0 && tr.surface->material) {
-		this->material = R_LoadMaterial(tr.surface->material->diffuse);
-	} else {
-		this->material = NULL;
+		this->material = R_LoadMaterial(tr.surface->name, ASSET_CONTEXT_TEXTURES);
 	}
 
 	if (this->material) {
-		this->materialName->defaultText = this->material->cm->base;
-		this->diffuseTexture->defaultText = this->material->cm->diffuse;
-		this->normalmapTexture->defaultText = this->material->cm->normalmap;
+		this->materialName->defaultText = strdup(this->material->cm->basename);
+		this->diffuseTexture->defaultText = strdup(this->material->cm->diffuse.name);
+		this->normalmapTexture->defaultText = strdup(this->material->cm->normalmap.name);
+		this->specularmapTexture->defaultText = strdup(this->material->cm->specularmap.name);
 
 		$(this->bumpSlider, setValue, (double) this->material->cm->bump);
 		$(this->hardnessSlider, setValue, (double) this->material->cm->hardness);
@@ -160,6 +165,10 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 				self->normalmapTexture = $(alloc(TextView), initWithFrame, &frame, ControlStyleDefault);
 				self->normalmapTexture->isEditable = false;
 				addInput((View *) stackView, "Normalmap texture", (Control *) self->normalmapTexture);
+
+				self->specularmapTexture = $(alloc(TextView), initWithFrame, &frame, ControlStyleDefault);
+				self->specularmapTexture->isEditable = false;
+				addInput((View *) stackView, "Specularmap texture", (Control *) self->specularmapTexture);
 
 				self->bumpSlider = $(alloc(Slider), initWithFrame, NULL, ControlStyleDefault);
 				self->bumpSlider->min = 0.0;

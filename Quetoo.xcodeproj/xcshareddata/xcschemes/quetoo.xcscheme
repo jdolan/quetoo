@@ -67,7 +67,11 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map edge"
+            argument = "+debug collision"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+map fragpipe"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -76,10 +80,6 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set net_loop_latency 300 +set net_loop_jitter 150"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+debug cgame"
             isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>

@@ -187,13 +187,11 @@ void Mon_SendWinding_(const char *func, mon_level_t level, const vec3_t p[], uin
 }
 
 /**
- * @brief Initialize BSP monitoring facilities (XML over TCP).
+ * @brief Connects to the specified host for XML process monitoring.
  */
-_Bool Mon_Init(const char *host) {
+_Bool Mon_Connect(const char *host) {
 
 	Net_Init();
-
-	memset(&mon_state, 0, sizeof(mon_state));
 
 	if ((mon_state.socket = Net_Connect(host, NULL))) {
 		Mem_InitBuffer(&mon_state.message, mon_state.buffer, sizeof(mon_state.buffer));
@@ -225,6 +223,16 @@ _Bool Mon_Init(const char *host) {
 	}
 
 	return false;
+}
+
+/**
+ * @brief Initialize BSP monitoring facilities (XML over TCP).
+ */
+void Mon_Init(void) {
+
+	memset(&mon_state, 0, sizeof(mon_state));
+
+	xmlInitParser();
 }
 
 /**

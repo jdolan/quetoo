@@ -23,19 +23,6 @@
 #include "parse.h"
 
 /**
- * @brief Resolves the skin for the specified model. By default, we simply load
- * "skin.tga" in the model's directory.
- */
-static void R_LoadMeshMaterial(r_model_t *mod) {
-	char skin[MAX_QPATH];
-
-	Dirname(mod->media.name, skin);
-	strcat(skin, "skin");
-
-	mod->mesh->material = R_LoadMaterial(skin);
-}
-
-/**
  * @brief Parses animation.cfg, loading the frame specifications for the given model.
  */
 static void R_LoadMd3Animations(r_model_t *mod) {
@@ -608,12 +595,13 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 		in_mesh = (d_md3_mesh_t *) ((byte *) in_mesh + in_mesh->size);
 	}
 
-	// load the skin for objects, and the animations for players
+	// load materials
 	if (!strstr(mod->media.name, "players/")) {
-		R_LoadMeshMaterial(mod);
+		R_LoadModelMaterials(mod);
 	}
 
-	else if (strstr(mod->media.name, "/upper")) {
+	// and animations for player models
+	if (strstr(mod->media.name, "/upper")) {
 		R_LoadMd3Animations(mod);
 	}
 
@@ -1081,7 +1069,7 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 	R_LoadObjTangents(mod, obj);
 
 	// load the material
-	R_LoadMeshMaterial(mod);
+	R_LoadModelMaterials(mod);
 
 	// and configs
 	R_LoadMeshConfigs(mod);

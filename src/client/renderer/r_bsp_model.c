@@ -20,10 +20,10 @@
  */
 
 #include "r_local.h"
-#include "client.h" // load in a few Cl_ functions
+#include "client.h"
 
-/*
- * Structures used for intermediate representation of data
+/**
+ * @brief Structures used for intermediate representation of data
  * to compile unique vertex list and element array
  */
 typedef struct {
@@ -127,7 +127,7 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
 		out->flags = in->flags;
 		out->value = in->value;
 
-		out->material = R_LoadMaterial(va("textures/%s", out->name));
+		out->material = R_LoadMaterial(out->name, ASSET_CONTEXT_TEXTURES);
 
 		// hack to down-scale high-res textures for legacy levels
 		if (bsp->version == BSP_VERSION) {
@@ -156,8 +156,8 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
  * @brief Convenience for resolving r_bsp_vertex_t from surface edges.
  */
 #define R_BSP_VERTEX(b, e) ((e) >= 0 ? \
-                            (&r_unique_vertices.vertexes[b->file->edges[(e)].v[0]]) : (&r_unique_vertices.vertexes[b->file->edges[-(e)].v[1]]) \
-                           )
+	(&r_unique_vertices.vertexes[b->file->edges[(e)].v[0]]) : (&r_unique_vertices.vertexes[b->file->edges[-(e)].v[1]]) \
+)
 
 /**
  * @brief Unwinds the surface, iterating all non-collinear vertices.
@@ -888,11 +888,11 @@ static void R_LoadBspSurfacesArrays(r_model_t *mod) {
 			}
 		}
 
-		if (surf->texinfo->material->flags & STAGE_DIFFUSE) {
+		if (surf->texinfo->material->cm->flags & STAGE_DIFFUSE) {
 			sorted->material.count++;
 		}
 
-		if (surf->texinfo->material->flags & STAGE_FLARE) {
+		if (surf->texinfo->material->cm->flags & STAGE_FLARE) {
 			sorted->flare.count++;
 		}
 
@@ -938,11 +938,11 @@ static void R_LoadBspSurfacesArrays(r_model_t *mod) {
 			}
 		}
 
-		if (surf->texinfo->material->flags & STAGE_DIFFUSE) {
+		if (surf->texinfo->material->cm->flags & STAGE_DIFFUSE) {
 			R_SURFACE_TO_SURFACES(&sorted->material, surf);
 		}
 
-		if (surf->texinfo->material->flags & STAGE_FLARE) {
+		if (surf->texinfo->material->cm->flags & STAGE_FLARE) {
 			R_SURFACE_TO_SURFACES(&sorted->flare, surf);
 		}
 
@@ -994,6 +994,9 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	}
 
 	mod->bsp->version = version;
+
+	Cl_LoadingProgress(2, "materials");
+	R_LoadModelMaterials(mod);
 
 	Cl_LoadingProgress(4, "vertices");
 	R_LoadBspVertexes(mod->bsp);

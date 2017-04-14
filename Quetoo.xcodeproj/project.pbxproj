@@ -1398,6 +1398,7 @@
 		CE68F9A41E5E8E8400AC9AAE /* r_program_stain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_program_stain.h; sourceTree = "<group>"; };
 		CE6C2D0F1E24902900F55B0A /* cm_bsp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_bsp.c; sourceTree = "<group>"; };
 		CE6C2D101E24902900F55B0A /* cm_bsp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_bsp.h; sourceTree = "<group>"; };
+		CE6FF29C1E9E6FBA00F3C160 /* qzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qzip.h; sourceTree = "<group>"; };
 		CE72D8A91D404ACA002129FC /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = ../ObjectivelyMVC/build/Debug/libObjectivelyMVC.dylib; sourceTree = "<group>"; };
 		CE8000051C5E4F0500A21A51 /* libxml2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.dylib; path = /opt/local/lib/libxml2.2.dylib; sourceTree = "<absolute>"; };
 		CE8000071C5E52A200A21A51 /* libz.1.2.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.8.dylib; path = /opt/local/lib/libz.1.2.8.dylib; sourceTree = "<absolute>"; };
@@ -2612,6 +2613,7 @@
 				CE12D7001C5C58C300CD0B13 /* qvis.c */,
 				CE12D7011C5C58C300CD0B13 /* qvis.h */,
 				CE12D7021C5C58C300CD0B13 /* qzip.c */,
+				CE6FF29C1E9E6FBA00F3C160 /* qzip.h */,
 				CE12D7031C5C58C300CD0B13 /* scriptlib.c */,
 				CE12D7041C5C58C300CD0B13 /* scriptlib.h */,
 				CE12D7051C5C58C300CD0B13 /* textures.c */,
