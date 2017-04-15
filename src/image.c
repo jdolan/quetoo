@@ -131,9 +131,12 @@ static _Bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface 
  */
 _Bool Img_LoadImage(const char *name, SDL_Surface **surf) {
 
+	char basename[MAX_QPATH];
+	StripExtension(name, basename);
+
 	int32_t i = 0;
 	while (img_formats[i]) {
-		if (Img_LoadTypedImage(name, img_formats[i++], surf)) {
+		if (Img_LoadTypedImage(basename, img_formats[i++], surf)) {
 			return true;
 		}
 	}
