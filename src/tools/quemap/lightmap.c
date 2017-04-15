@@ -526,31 +526,26 @@ static void GatherSampleSunlight(const vec3_t pos, const vec3_t normal, vec_t *s
 static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs, vec_t *sample,
                               vec_t *direction, vec_t scale) {
 
-	light_t *l;
-	vec3_t delta;
-	vec_t dot, dot2;
-	vec_t dist;
-	cm_trace_t trace;
-	int32_t i;
-
 	// iterate over lights, which are in buckets by cluster
-	for (i = 0; i < bsp_file.vis_data.vis->num_clusters; i++) {
+	for (int32_t i = 0; i < bsp_file.vis_data.vis->num_clusters; i++) {
 
 		if (!(pvs[i >> 3] & (1 << (i & 7)))) {
 			continue;
 		}
 
-		for (l = lights[i]; l; l = l->next) {
+		for (light_t *l = lights[i]; l; l = l->next) {
 
-			vec_t light = 0.0;
-
+			vec3_t delta;
 			VectorSubtract(l->origin, pos, delta);
-			dist = VectorNormalize(delta);
 
-			dot = DotProduct(delta, normal);
+			const vec_t dist = VectorNormalize(delta);
+
+			const vec_t dot = DotProduct(delta, normal);
 			if (dot <= 0.001) {
 				continue;    // behind sample surface
 			}
+
+			vec_t light = 0.0;
 
 			switch (l->type) {
 				case LIGHT_POINT: // linear falloff
@@ -561,14 +556,15 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs, vec_t *sampl
 					light = (l->intensity / (dist * dist)) * dot;
 					break;
 
-				case LIGHT_SPOT: // linear falloff with cone
-					dot2 = -DotProduct(delta, l->normal);
+				case LIGHT_SPOT: { // linear falloff with cone
+					const vec_t dot2 = -DotProduct(delta, l->normal);
 					if (dot2 > l->stopdot) { // inside the cone
 						light = (l->intensity - dist) * dot;
 					} else { // outside the cone
 						const vec_t decay = 1.0 + l->stopdot - dot2;
 						light = (l->intensity - decay * decay * dist) * dot;
 					}
+				}
 					break;
 				default:
 					Mon_SendPoint(MON_WARN, l->origin, "Light with bad type");
@@ -579,10 +575,11 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs, vec_t *sampl
 				continue;
 			}
 
+			cm_trace_t trace;
 			Light_Trace(&trace, l->origin, pos, CONTENTS_SOLID);
 
 			if (trace.fraction < 1.0) {
-				continue;    // occluded
+				continue; // occluded
 			}
 
 			// add some light to it
