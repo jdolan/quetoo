@@ -120,16 +120,12 @@ static cm_bsp_model_t *cmodels[MAX_BSP_MODELS];
  * @brief
  */
 void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask) {
-	vec_t frac;
-	int32_t i;
 
-	frac = 9999.0;
+	vec_t frac = 999.0;
 
-	// and any BSP submodels, too
-	for (i = 0; i < num_cmodels; i++) {
-		const cm_trace_t tr = Cm_BoxTrace(start, end, vec3_origin, vec3_origin,
-		                                  cmodels[i]->head_node, mask);
+	for (int32_t i = 0; i < num_cmodels; i++) {
 
+		const cm_trace_t tr = Cm_BoxTrace(start, end, vec3_origin, vec3_origin, cmodels[i]->head_node, mask);
 		if (tr.fraction < frac) {
 			frac = tr.fraction;
 			*trace = tr;
