@@ -657,7 +657,7 @@ static void GatherSampleBounceTrace(int8_t bounce, const vec3_t center, const ve
 	const cm_material_t *mat = trace.surface->material;
 	if (mat) {
 		hardness = Clamp(mat->hardness, 0.0, 5.0);
-		GetTextureColor(mat->diffuse, color);
+		GetTextureColor(mat->name, color);
 	} else {
 		hardness = 1.0;
 		VectorSet(color, 1.0, 1.0, 1.0);

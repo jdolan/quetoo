@@ -39,15 +39,14 @@ void BuildTextureColors(void) {
 			continue;
 		}
 
-		char path[MAX_OS_PATH];
-		g_snprintf(path, sizeof(path), "textures/%s", bsp_file.texinfo[i].texture);
+		const cm_material_t *material = LoadMaterial(tex->texture, ASSET_CONTEXT_TEXTURES);
 
 		vec_t *color = Mem_Malloc(sizeof(vec3_t));
 		VectorSet(color, 1.0, 1.0, 1.0);
 
 		SDL_Surface *surf;
-		if (Img_LoadImage(path, &surf)) {
-			Com_Verbose("Loaded %s (%dx%d)\n", tex->texture, surf->w, surf->h);
+		if (Img_LoadImage(material->diffuse.path, &surf)) {
+			Com_Debug(DEBUG_ALL, "Loaded %s (%dx%d)\n", tex->texture, surf->w, surf->h);
 
 			const int32_t texels = surf->w * surf->h;
 			uint32_t c[3] = { 0, 0, 0 };
@@ -66,9 +65,8 @@ void BuildTextureColors(void) {
 			for (int32_t j = 0; j < 3; j++) {
 				color[j] = (c[j] / texels) / 255.0;
 			}
-
 		} else {
-			Com_Warn("Couldn't load %s\n", path);
+			Com_Warn("Couldn't load %s\n", material->name);
 		}
 
 		g_hash_table_insert(texture_colors, (gpointer) tex->texture, color);

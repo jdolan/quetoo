@@ -201,7 +201,7 @@ int32_t LIGHT_Main(void) {
 
 	ParseEntities();
 
-	LoadMaterials();
+	LoadMaterials(va("materials/%s.mat", map_base), ASSET_CONTEXT_TEXTURES, NULL);
 
 	BuildTextureColors();
 
