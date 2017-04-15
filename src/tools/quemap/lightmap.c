@@ -847,7 +847,7 @@ void BuildFacelights(int32_t face_num) {
 	bsp_plane_t *plane;
 	bsp_texinfo_t *tex;
 	vec_t *center;
-	vec_t *sdir, *tdir, scale;
+	vec_t *sdir, *tdir, dist, scale;
 	vec3_t pos;
 	vec3_t normal, bitangent;
 	vec4_t tangent;
@@ -872,6 +872,16 @@ void BuildFacelights(int32_t face_num) {
 	sdir = tex->vecs[0];
 	tdir = tex->vecs[1];
 
+	if (face->side) {
+		VectorNegate(plane->normal, normal);
+		dist = -plane->dist;
+	} else {
+		VectorCopy(plane->normal, normal);
+		dist = plane->dist;
+	}
+
+	TangentVectors(normal, sdir, tdir, tangent, bitangent);
+
 	if (extra_samples) { // -light -extra antialiasing
 		num_samples = MAX_SAMPLES;
 	} else {
@@ -885,14 +895,8 @@ void BuildFacelights(int32_t face_num) {
 	for (i = 0; i < num_samples; i++) { // assemble the light_info
 
 		l[i].face = face;
-		l[i].face_dist = plane->dist;
-
-		VectorCopy(plane->normal, l[i].face_normal);
-
-		if (face->side) { // negate the normal and dist
-			VectorNegate(l[i].face_normal, l[i].face_normal);
-			l[i].face_dist = -l[i].face_dist;
-		}
+		VectorCopy(normal, l[i].face_normal);
+		l[i].face_dist = dist;
 
 		// get the origin offset for rotating bmodels
 		VectorCopy(face_offset[face_num], l[i].model_org);
@@ -926,18 +930,19 @@ void BuildFacelights(int32_t face_num) {
 		for (j = 0; j < num_samples; j++) { // with antialiasing
 
 			byte pvs[(MAX_BSP_LEAFS + 7) / 8];
+			vec3_t norm;
 
 			if (tex->flags & SURF_PHONG) { // interpolated normal
-				SampleNormal(&l[0], l[j].sample_points[i], normal);
+				SampleNormal(&l[0], l[j].sample_points[i], norm);
 			} else { // or just plane normal
-				VectorCopy(l[0].face_normal, normal);
+				VectorCopy(normal, norm);
 			}
 
-			if (!NudgeSamplePosition(l[j].sample_points[i], normal, center, pos, pvs)) {
-				continue;    // not a valid point
+			if (!NudgeSamplePosition(l[j].sample_points[i], norm, center, pos, pvs)) {
+				continue; // not a valid point
 			}
 
-			GatherSampleLight(pos, normal, pvs, sample, direction, scale);
+			GatherSampleLight(pos, norm, pvs, sample, direction, scale);
 		}
 
 		if (!legacy) { // finalize the lighting direction for the sample
@@ -950,7 +955,6 @@ void BuildFacelights(int32_t face_num) {
 				VectorNormalize(direction);
 
 				// transform it into tangent space
-				TangentVectors(normal, sdir, tdir, tangent, bitangent);
 
 				dir[0] = DotProduct(direction, tangent);
 				dir[1] = DotProduct(direction, bitangent);
