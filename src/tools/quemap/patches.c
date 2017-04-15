@@ -66,7 +66,7 @@ void BuildTextureColors(void) {
 				color[j] = (c[j] / texels) / 255.0;
 			}
 		} else {
-			Com_Warn("Couldn't load %s\n", material->name);
+			Com_Warn("Couldn't load %s\n", material->diffuse.path);
 		}
 
 		g_hash_table_insert(texture_colors, (gpointer) tex->texture, color);
