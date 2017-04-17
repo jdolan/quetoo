@@ -53,7 +53,7 @@ static void Cg_LoadClientSkin(r_material_t **skins, const r_md3_t *md3, char *li
 	for (i = 0; i < md3->num_meshes; i++, mesh++) {
 
 		if (!g_ascii_strcasecmp(mesh_name, mesh->name)) {
-			skins[i] = cgi.LoadMaterial(skin_name);
+			skins[i] = cgi.LoadMaterial(skin_name, ASSET_CONTEXT_PLAYERS);
 			break;
 		}
 	}
@@ -92,7 +92,7 @@ static _Bool Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, cons
 
 		if (c == '\n' || c == '\r' || i == len) {
 
-			Cg_LoadClientSkin(skins, md3, line);
+			Cg_LoadClientSkin(skins, md3, g_strstrip(line));
 
 			j = 0;
 			memset(line, 0, sizeof(line));

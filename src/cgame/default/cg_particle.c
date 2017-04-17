@@ -197,7 +197,7 @@ static _Bool Cg_UpdateParticle_Weather(cg_particle_t *p, const vec_t delta, cons
 				p->part.org[0],
 				p->part.org[1],
 				p->weather.end_z + 1.0
-			}, 2.0, 2.5);
+			}, 2.0, 2);
 		}
 
 		return true;

@@ -39,5 +39,6 @@ void Mon_SendPoint_(const char *func, mon_level_t level, const vec3_t p, const c
 #define Mon_SendWinding(l, p, n, msg) Mon_SendWinding_(__func__, l, p, n, msg)
 #define Mon_SendPoint(l, p, msg) Mon_SendPoint_(__func__, l, p, msg)
 
-_Bool Mon_Init(const char *host);
+void Mon_Init(void);
+_Bool Mon_Connect(const char *host);
 void Mon_Shutdown(const char *msg);

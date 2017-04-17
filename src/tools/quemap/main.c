@@ -130,6 +130,8 @@ static void Init(void) {
 
 	Mem_Init();
 
+	Mon_Init();
+
 	Fs_Init(FS_AUTO_LOAD_ARCHIVES);
 
 	Sem_Init();
@@ -450,7 +452,7 @@ int32_t main(int32_t argc, char **argv) {
 		}
 
 		if (!g_strcmp0(Com_Argv(i), "-c") || !g_strcmp0(Com_Argv(i), "-connect")) {
-			is_monitor = Mon_Init(Com_Argv(i + 1));
+			is_monitor = Mon_Connect(Com_Argv(i + 1));
 			continue;
 		}
 	}

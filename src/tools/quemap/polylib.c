@@ -42,7 +42,7 @@ winding_t *AllocWinding(int32_t points) {
 		}
 	}
 
-	return Mem_Malloc(sizeof(int32_t) + sizeof(vec3_t) * points);
+	return Mem_TagMalloc(sizeof(int32_t) + sizeof(vec3_t) * points, MEM_TAG_WINDING);
 }
 
 /**

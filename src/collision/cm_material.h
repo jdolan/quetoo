@@ -23,6 +23,21 @@
 
 #include "cm_types.h"
 
+typedef enum {
+	ASSET_CONTEXT_NONE,
+	ASSET_CONTEXT_TEXTURES,
+	ASSET_CONTEXT_MODELS,
+	ASSET_CONTEXT_PLAYERS,
+	ASSET_CONTEXT_ENVMAPS,
+	ASSET_CONTEXT_FLARES,
+} cm_asset_context_t;
+
+typedef struct {
+	char name[MAX_QPATH];
+	char path[MAX_QPATH];
+	int32_t index;
+} cm_asset_t;
+
 typedef struct {
 	uint32_t src, dest;
 } cm_stage_blend_t;
@@ -60,6 +75,7 @@ typedef struct {
 // frame based material animation, lerp between consecutive images
 typedef struct {
 	uint16_t num_frames;
+	cm_asset_t *frames;
 	vec_t fps;
 } cm_stage_anim_t;
 
@@ -73,8 +89,7 @@ typedef enum {
 
 typedef struct cm_stage_s {
 	uint32_t flags;
-	char image[MAX_QPATH];
-	int32_t image_index;
+	cm_asset_t asset;
 	cm_stage_blend_t blend;
 	vec3_t color;
 
@@ -132,30 +147,41 @@ typedef enum {
 #define DEFAULT_LIGHT 300.0
 
 typedef struct cm_material_s {
-	/**
-	 * @brief The base name of this material without suffixes
-	 */
-	char base[MAX_QPATH];
 
 	/**
-	 * @brief The image to use for the diffuse map
+	 * @brief The material name, as it appears in the materials file.
 	 */
-	char diffuse[MAX_QPATH];
+	char name[MAX_QPATH];
 
 	/**
-	 * @brief The image to use for the normal map
+	 * @brief The base name of this material without any diffuse suffix.
 	 */
-	char normalmap[MAX_QPATH];
+	char basename[MAX_QPATH];
 
 	/**
-	 * @brief The image to use for the specular/shiny map
+	 * @brief The diffuse asset.
 	 */
-	char specularmap[MAX_QPATH];
+	cm_asset_t diffuse;
 
 	/**
-	 * @brief The image to use for the tint map
+	 * @brief The normalmap asset.
 	 */
-	char tintmap[MAX_QPATH];
+	cm_asset_t normalmap;
+
+	/**
+	 * @brief The heightmap asset.
+	 */
+	cm_asset_t heightmap;
+
+	/**
+	 * @brief The specularmap asset.
+	 */
+	cm_asset_t specularmap;
+
+	/**
+	 * @brief The tintmap asset.
+	 */
+	cm_asset_t tintmap;
 
 	/**
 	 * @brief Flags for the material.
@@ -224,14 +250,14 @@ typedef struct cm_material_s {
 	uint16_t num_stages;
 } cm_material_t;
 
-cm_material_t *Cm_AllocMaterial(const char *diffuse);
+cm_material_t *Cm_AllocMaterial(const char *name);
 void Cm_FreeMaterial(cm_material_t *material);
-void Cm_FreeMaterialList(cm_material_t **materials);
+void Cm_FreeMaterials(GList *materials, _Bool full);
+ssize_t Cm_LoadMaterials(const char *path, GList **materials);
+_Bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context);
+ssize_t Cm_WriteMaterials(const char *path, GList *materials);
 
-cm_material_t **Cm_LoadMaterials(const char *path, size_t *count);
-void Cm_WriteMaterials(const char *filename, const cm_material_t **materials, const size_t num_materials);
-
-void Cm_NormalizeMaterialName(const char *in, char *out, size_t len);
+void Cm_MaterialBasename(const char *in, char *out, size_t len);
 
 #ifdef __CM_LOCAL_H__
 #endif /* __CM_LOCAL_H__ */

@@ -210,7 +210,7 @@ static void CalcLightinfoVectors(light_info_t *l) {
 
 	// total sample count
 	l->num_sample_points = (l->tex_size[0] + 1) * (l->tex_size[1] + 1);
-	l->sample_points = Mem_Malloc(l->num_sample_points * sizeof(vec3_t));
+	l->sample_points = Mem_TagMalloc(l->num_sample_points * sizeof(vec3_t), MEM_TAG_SAMPLES);
 }
 
 /**
@@ -322,7 +322,7 @@ void BuildLights(void) {
 			}
 
 			num_lights++;
-			l = Mem_Malloc(sizeof(*l));
+			l = Mem_TagMalloc(sizeof(*l), MEM_TAG_LIGHT);
 
 			VectorCopy(p->origin, l->origin);
 
@@ -350,7 +350,7 @@ void BuildLights(void) {
 		}
 
 		num_lights++;
-		l = Mem_Malloc(sizeof(*l));
+		l = Mem_TagMalloc(sizeof(*l), MEM_TAG_LIGHT);
 
 		VectorForKey(e, "origin", l->origin);
 
@@ -832,11 +832,11 @@ void BuildFacelights(int32_t face_num) {
 	fl = &face_lights[face_num];
 	fl->num_samples = l[0].num_sample_points;
 
-	fl->origins = Mem_Malloc(fl->num_samples * sizeof(vec3_t));
+	fl->origins = Mem_TagMalloc(fl->num_samples * sizeof(vec3_t), MEM_TAG_FACELIGHT);
 	memcpy(fl->origins, l[0].sample_points, fl->num_samples * sizeof(vec3_t));
 
-	fl->samples = Mem_Malloc(fl->num_samples * sizeof(vec3_t));
-	fl->directions = Mem_Malloc(fl->num_samples * sizeof(vec3_t));
+	fl->samples = Mem_TagMalloc(fl->num_samples * sizeof(vec3_t), MEM_TAG_FACELIGHT);
+	fl->directions = Mem_TagMalloc(fl->num_samples * sizeof(vec3_t), MEM_TAG_FACELIGHT);
 
 	center = face_extents[face_num].center; // center of the face
 

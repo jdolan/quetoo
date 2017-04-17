@@ -22,61 +22,64 @@
 #include "quemap.h"
 #include "materials.h"
 
-static GPtrArray *materials;
+static GList *materials;
 
 /**
  * @brief Loads all materials defined in the material file.
  */
-void LoadMaterials(void) {
+ssize_t LoadMaterials(const char *path, cm_asset_context_t context, GList **result) {
 
-	size_t count;
-	cm_material_t **mats = Cm_LoadMaterials(va("materials/%s.mat", map_base), &count);
-	cm_material_t **material = mats;
+	const ssize_t count = Cm_LoadMaterials(path, &materials);
 
-	materials = g_ptr_array_new_with_free_func((GDestroyNotify) Cm_FreeMaterial);
-	assert(materials);
-
-	for (size_t i = 0; i < count; i++, material++) {
-		g_ptr_array_add(materials, *material);
+	GList *e = materials;
+	for (ssize_t i = 0; i < count; i++, e = e->next) {
+		Cm_ResolveMaterial((cm_material_t *) e->data, context);
 	}
+
+	if (result) {
+		GList *e = materials;
+		for (ssize_t i = 0; i < count; i++, e = e->next) {
+			*result = g_list_append(*result, e->data);
+		}
+	}
+
+	return count;
+}
+
+/**
+ * @brief Loads the material with the specified name.
+ */
+cm_material_t *LoadMaterial(const char *name, cm_asset_context_t context) {
+
+	for (GList *list = materials; list; list = list->next) {
+		if (!g_strcmp0(((cm_material_t *) list->data)->name, name)) {
+			return list->data;
+		}
+	}
+
+	cm_material_t *material = Cm_AllocMaterial(name);
+	Cm_ResolveMaterial(material, context);
+
+	materials = g_list_prepend(materials, material);
+
+	Com_Debug(DEBUG_ALL, "Loaded material %s\n", name);
+
+	return material;
 }
 
 /**
  * @brief Frees all loaded materials.
  */
 void FreeMaterials(void) {
-	g_ptr_array_free(materials, true);
+
+	g_list_free_full(materials, (GDestroyNotify) Cm_FreeMaterial);
 	materials = NULL;
-}
-
-/**
- * @brief Loads the material with the specified name.
- */
-cm_material_t *LoadMaterial(const char *name) {
-
-	const char *diffuse = va("textures/%s", name);
-
-	for (guint i = 0; i < materials->len; i++) {
-		cm_material_t *material = g_ptr_array_index(materials, i);
-		if (!g_strcmp0(material->diffuse, diffuse)) {
-			return material;
-		}
-	}
-
-	cm_material_t *material = Cm_AllocMaterial(diffuse);
-	g_ptr_array_add(materials, material);
-
-	Com_Debug(DEBUG_ALL, "Loaded material %s\n", diffuse);
-
-	return material;
 }
 
 /**
  * @brief Writes the materials to the specified file.
  */
-void WriteMaterialsFile(const char *filename) {
-
-	Cm_WriteMaterials(filename, (const cm_material_t **) materials->pdata, materials->len);
-
-	Com_Print("Generated %d materials\n", materials->len);
+ssize_t WriteMaterialsFile(const char *filename) {
+	
+	return Cm_WriteMaterials(filename, materials);
 }

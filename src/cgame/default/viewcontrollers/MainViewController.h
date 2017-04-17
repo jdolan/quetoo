@@ -23,8 +23,8 @@
 
 #include <ObjectivelyMVC/NavigationViewController.h>
 
-#include "views/DialogView.h"
-#include "views/PrimaryButton.h"
+#include "DialogView.h"
+#include "PrimaryButton.h"
 
 /**
  * @file

@@ -30,7 +30,6 @@ int32_t Cm_NumClusters(void);
 int32_t Cm_NumModels(void);
 
 const char *Cm_EntityString(void);
-const cm_material_t **Cm_MapMaterials(size_t *num_materials);
 const char *Cm_WorldspawnValue(const char *key);
 
 int32_t Cm_LeafContents(const int32_t leaf_num);

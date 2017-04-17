@@ -36,17 +36,20 @@ int32_t MAT_Main(void) {
 
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_TEXINFO, MAX_BSP_TEXINFO);
 
-	LoadMaterials();
+	char path[MAX_QPATH];
+	g_snprintf(path, sizeof(path), "materials/%s.mat", map_base);
+
+	LoadMaterials(path, ASSET_CONTEXT_TEXTURES, NULL);
 
 	LoadMapFile(map_name);
 
 	for (int32_t i = 0; i < bsp_file.num_texinfo; i++) {
-		LoadMaterial(bsp_file.texinfo[i].texture);
+		LoadMaterial(bsp_file.texinfo[i].texture, ASSET_CONTEXT_TEXTURES);
 	}
 
 	UnloadScriptFiles();
 
-	WriteMaterialsFile(va("materials/%s.mat", map_base));
+	WriteMaterialsFile(path);
 
 	FreeMaterials();
 

@@ -389,7 +389,6 @@ typedef struct r_material_s {
 	r_media_t media;
 
 	struct cm_material_s *cm; // the parsed material
-	r_model_type_t mod_type;
 
 	// renderer-local stuff parsed from cm
 	r_image_t *diffuse;
@@ -398,7 +397,6 @@ typedef struct r_material_s {
 	r_image_t *tintmap;
 
 	uint32_t time;
-	uint32_t flags; // these may differ from cm->flags
 
 	r_stage_t *stages;
 } r_material_t;
@@ -800,6 +798,9 @@ typedef struct r_model_s {
 	r_bsp_model_t *bsp;
 	r_bsp_inline_model_t *bsp_inline;
 	r_mesh_model_t *mesh;
+
+	r_material_t **materials;
+	size_t num_materials;
 
 	vec3_t mins, maxs;
 	vec_t radius;

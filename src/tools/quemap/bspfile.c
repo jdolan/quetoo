@@ -106,7 +106,7 @@ static void StripTrailing(char *e) {
 epair_t *ParseEpair(void) {
 	epair_t *e;
 
-	e = Mem_Malloc(sizeof(*e));
+	e = Mem_TagMalloc(sizeof(*e), MEM_TAG_EPAIR);
 
 	if (strlen(token) >= MAX_BSP_ENTITY_KEY - 1) {
 		Com_Error(ERROR_FATAL, "Token too long\n");
@@ -238,7 +238,7 @@ void SetKeyValue(entity_t *ent, const char *key, const char *value) {
 		}
 	}
 
-	ep = Mem_Malloc(sizeof(*ep));
+	ep = Mem_TagMalloc(sizeof(*ep), MEM_TAG_EPAIR);
 	ep->next = ent->epairs;
 	ent->epairs = ep;
 	ep->key = Mem_CopyString(key);
