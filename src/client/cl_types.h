@@ -309,7 +309,6 @@ typedef struct {
 typedef struct {
 	uint16_t percent;
 	const char *status;
-	r_image_t *background;
 } cl_loading_t;
 
 /**

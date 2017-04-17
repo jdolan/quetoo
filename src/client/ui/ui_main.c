@@ -69,13 +69,9 @@ void Ui_UpdateBindings(void) {
  */
 void Ui_Draw(void) {
 
-	if (cls.state == CL_LOADING) {
-		return;
-	}
-
 	Ui_CheckEditor();
 
-	if (cls.key_state.dest != KEY_UI) {
+	if (cls.state != CL_LOADING && cls.key_state.dest != KEY_UI) {
 		return;
 	}
 

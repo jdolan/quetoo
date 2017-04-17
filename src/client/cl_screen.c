@@ -375,7 +375,7 @@ void Cl_UpdateScreen(void) {
 				break;
 		}
 
-		cls.cgame->UpdateScreen(&cl.frame, cls.state);
+		cls.cgame->UpdateScreen(&cl.frame, cls.state, cls.loading);
 
 		R_AddStains();
 	} else {
@@ -383,11 +383,9 @@ void Cl_UpdateScreen(void) {
 
 		R_Setup2D();
 
-		cls.cgame->UpdateScreen(&cl.frame, cls.state);
+		cls.cgame->UpdateScreen(&cl.frame, cls.state, cls.loading);
 
-		if (cls.state == CL_LOADING) {
-			Cl_DrawLoading();
-		} else if (cls.key_state.dest == KEY_CONSOLE) {
+		if (cls.state != CL_LOADING && cls.key_state.dest == KEY_CONSOLE) {
 			Cl_DrawConsole();
 		}
 	}

@@ -5,6 +5,7 @@ noinst_HEADERS = \
 	HomeViewController.h \
 	InputViewController.h \
 	InterfaceViewController.h \
+	LoadingViewController.h \
 	MainViewController.h \
 	MenuViewController.h \
 	PlayViewController.h \
@@ -24,6 +25,7 @@ libviewcontrollers_la_SOURCES = \
 	HomeViewController.c \
 	InputViewController.c \
 	InterfaceViewController.c \
+	LoadingViewController.c \
 	MainViewController.c \
 	MenuViewController.c \
 	PlayViewController.c \

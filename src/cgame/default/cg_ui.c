@@ -22,13 +22,17 @@
 #include "cg_local.h"
 
 #include "viewcontrollers/MainViewController.h"
+#include "viewcontrollers/LoadingViewController.h"
 
+static LoadingViewController *loadingViewController;
 static MainViewController *mainViewController;
 
 /**
  * @brief Initializes the user interface.
  */
 void Cg_InitUi(void) {
+
+	loadingViewController = $(alloc(LoadingViewController), init);
 
 	mainViewController = $(alloc(MainViewController), init);
 
@@ -40,6 +44,7 @@ void Cg_InitUi(void) {
  */
 void Cg_ShutdownUi(void) {
 
+	cgi.PopToViewController((ViewController *) loadingViewController);
 	cgi.PopToViewController((ViewController *) mainViewController);
 	cgi.PopViewController();
 
@@ -49,7 +54,17 @@ void Cg_ShutdownUi(void) {
 /**
  * @brief Updates the menu depending on client state.
  */
-void Cg_UpdateUi(const cl_state_t state) {
+void Cg_UpdateUi(const cl_state_t state, const cl_loading_t loading) {
 
-	mainViewController->backgroundImage->view.hidden = state == CL_ACTIVE;
+	if (state == CL_LOADING) {
+		if (loading.percent == 0) {
+			cgi.PushViewController((ViewController *) loadingViewController);
+		} else if (loading.percent == 100) {
+			cgi.PopToViewController((ViewController *) mainViewController);
+		} else {
+			$(loadingViewController, setProgress, loading.percent, loading.status);
+		}
+	} else {
+		mainViewController->backgroundImage->view.hidden = (state == CL_ACTIVE);
+	}
 }
