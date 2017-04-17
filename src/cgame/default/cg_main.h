@@ -70,6 +70,7 @@ extern cvar_t *cg_fov_zoom;
 extern cvar_t *cg_fov_interpolate;
 extern cvar_t *cg_hand;
 extern cvar_t *cg_handicap;
+extern cvar_t *cg_hit_sound;
 extern cvar_t *cg_hook_style;
 extern cvar_t *cg_predict;
 extern cvar_t *cg_quick_join_max_ping;

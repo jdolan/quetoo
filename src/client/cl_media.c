@@ -122,6 +122,19 @@ void Cl_LoadMedia(void) {
 
 	cls.state = CL_LOADING;
 
+	// Mapshot
+
+	GList *mapshots = Cl_Mapshots(cl.config_strings[CS_MODELS]);
+	const size_t len = g_list_length(mapshots);
+
+	if (len > 0) {
+		strcpy(g_list_nth_data(mapshots, rand() % len), cls.loading.mapshot);
+	} else {
+		cls.loading.mapshot[0] = '\0';
+	}
+
+	g_list_free_full(mapshots, g_free);
+
 	Cl_UpdatePrediction();
 
 	R_LoadMedia();

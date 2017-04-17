@@ -52,6 +52,11 @@ struct LoadingViewController {
 	LoadingViewControllerInterface *interface;
 
 	/*
+	 * @brief The mapshot of the map being loaded.
+	 */
+	ImageView *mapshotImage;
+
+	/*
 	 * @brief The Quetoo logo.
 	 */
 	ImageView *logoImage;
@@ -81,13 +86,13 @@ struct LoadingViewControllerInterface {
 	LoadingViewController *(*init)(LoadingViewController *self);
 
 	/**
-	 * @fn void LoadingViewController::setProgress(LoadingViewController *self, uint16_t percent, const char *status)
+	 * @fn void LoadingViewController::setProgress(LoadingViewController *self, const cl_loading_t loading)
 	 * @brief Sets the visual progress of the loading screen.
 	 * @param percent The percent loaded.
 	 * @param status The currently loading media item.
 	 * @memberof LoadingViewController
 	 */
-	void (*setProgress)(LoadingViewController *self, uint16_t percent, const char *status);
+	void (*setProgress)(LoadingViewController *self, const cl_loading_t loading);
 };
 
 /**

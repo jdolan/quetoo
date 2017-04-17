@@ -74,6 +74,7 @@ cvar_t *cg_fov_zoom;
 cvar_t *cg_fov_interpolate;
 cvar_t *cg_hand;
 cvar_t *cg_handicap;
+cvar_t *cg_hit_sound;
 cvar_t *cg_hook_style;
 cvar_t *cg_predict;
 cvar_t *cg_quick_join_max_ping;
@@ -191,6 +192,10 @@ static void Cg_Init(void) {
 	                   "Controls weapon handedness (center: 0, right: 1, left: 2).");
 	cg_handicap = cgi.Cvar("handicap", "100", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                       "Your handicap, or disadvantage.");
+
+	cg_hit_sound = cgi.Cvar("cg_hit_sound", "1", CVAR_ARCHIVE,
+	                       "If a hit sound is played when damaging an enemy.");
+
 	cg_hook_style = cgi.Cvar("hook_style", "pull", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                         "Your preferred hook style. Can be either \"pull\" or \"swing\".");
 

@@ -108,6 +108,23 @@ static void loadView(ViewController *self) {
 			release(box);
 		}
 
+		{
+			Box *box = $(alloc(Box), initWithFrame, NULL);
+			$(box->label, setText, "Sounds");
+
+			box->view.autoresizingMask |= ViewAutoresizingWidth;
+
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+			Cg_CvarCheckboxInput((View *) stackView, "Hit sound", cg_hit_sound->name);
+
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
+
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
+
 		$((View *) columns, addSubview, (View *) column);
 		release(column);
 	}

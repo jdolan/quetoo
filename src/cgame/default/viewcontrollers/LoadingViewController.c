@@ -31,6 +31,7 @@ static void dealloc(Object *self) {
 
 	LoadingViewController *this = (LoadingViewController *) self;
 
+	release(this->mapshotImage);
 	release(this->logoImage);
 
 	release(this->progressLabel);
@@ -48,6 +49,15 @@ static void loadView(ViewController *self) {
 	super(ViewController, self, loadView);
 
 	LoadingViewController *this = (LoadingViewController *) self;
+
+	// Mapshot
+
+	this->mapshotImage = $(alloc(ImageView), initWithFrame, NULL);
+	assert(this->mapshotImage);
+
+	this->mapshotImage->view.autoresizingMask = ViewAutoresizingFill;
+
+	$(self->view, addSubview, (View *) this->mapshotImage);
 
 	// Quetoo logo
 
@@ -93,13 +103,26 @@ static LoadingViewController *init(LoadingViewController *self) {
 }
 
 /**
- * @fn void LoadingViewController::setProgress(LoadingViewController *self, uint16_t percent, const char *status)
+ * @fn void LoadingViewController::setProgress(LoadingViewController *self, const cl_loading_t loading)
  *
  * @memberof LoadingViewController
  */
-static void setProgress(LoadingViewController *self, uint16_t percent, const char *status) {
+static void setProgress(LoadingViewController *self, const cl_loading_t loading) {
 
-	$(self->progressLabel->text, setText, va("%d%% (%s)", percent, status));
+	$(self->progressLabel->text, setText, va("%d%% (%s)", loading.percent, loading.status));
+
+	// Update mapshot if applicable
+
+	if (loading.percent == 0) {
+		SDL_Surface *surface;
+
+		if (cgi.LoadSurface(loading.mapshot, &surface)) {
+			$(self->mapshotImage, setImageWithSurface, surface);
+			SDL_FreeSurface(surface);
+		} else {
+			$(self->mapshotImage, setImage, NULL);
+		}
+	}
 }
 
 #pragma mark - Class lifecycle

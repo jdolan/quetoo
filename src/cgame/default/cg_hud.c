@@ -875,6 +875,10 @@ static void Cg_DrawBlend(const player_state_t *ps) {
  */
 static void Cg_DrawDamageInflicted(const player_state_t *ps) {
 
+	if (!cg_hit_sound->integer) {
+		return;
+	}
+
 	const int16_t dmg = ps->stats[STAT_DAMAGE_INFLICT];
 	if (dmg) {
 
