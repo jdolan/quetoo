@@ -116,11 +116,6 @@ typedef struct cg_import_s {
 	thread_t *(*Thread)(const char *name, ThreadRunFunc run, void *data);
 
 	/**
-	 * @brief Get the client's current state
-	 */
-	cl_state_t (*GetClientState)(void);
-
-	/**
 	 * @}
 	 *
 	 * @defgroup filesystem Filesystem
@@ -775,7 +770,7 @@ typedef struct cg_export_s {
 	_Bool (*UsePrediction)(void);
 	void (*PredictMovement)(const GList *cmds);
 	void (*UpdateView)(const cl_frame_t *frame);
-	void (*UpdateScreen)(const cl_frame_t *frame);
+	void (*UpdateScreen)(const cl_frame_t *frame, const cl_state_t cl_state);
 
 } cg_export_t;
 

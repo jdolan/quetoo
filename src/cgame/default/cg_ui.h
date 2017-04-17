@@ -26,4 +26,5 @@
 #ifdef __CG_LOCAL_H__
 void Cg_InitUi(void);
 void Cg_ShutdownUi(void);
+void Cg_UpdateUi(const cl_state_t state);
 #endif /* __CG_LOCAL_H__ */

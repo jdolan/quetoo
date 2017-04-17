@@ -45,3 +45,11 @@ void Cg_ShutdownUi(void) {
 
 	release(mainViewController);
 }
+
+/**
+ * @brief Updates the menu depending on client state.
+ */
+void Cg_UpdateUi(const cl_state_t state) {
+
+	mainViewController->backgroundImage->view.hidden = state == CL_ACTIVE;
+}

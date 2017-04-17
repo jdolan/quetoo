@@ -309,11 +309,15 @@ static _Bool Cg_ParseMessage(int32_t cmd) {
 /**
  * @brief
  */
-static void Cg_UpdateScreen(const cl_frame_t *frame) {
+static void Cg_UpdateScreen(const cl_frame_t *frame, const cl_state_t state) {
 
-	Cg_DrawHud(&frame->ps);
+	if (state == CL_ACTIVE) {
+		Cg_DrawHud(&frame->ps);
 
-	Cg_DrawScores(&frame->ps);
+		Cg_DrawScores(&frame->ps);
+	}
+
+	Cg_UpdateUi(state);
 }
 
 /**

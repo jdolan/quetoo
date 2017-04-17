@@ -66,13 +66,6 @@ static void Cl_CgameError(const char *func, const char *fmt, ...) {
 }
 
 /**
- * @brief Client state access
- */
-static cl_state_t Cl_GetClientState(void) {
-	return cls.state;
-}
-
-/**
  * @brief Message parsing facilities.
  */
 
@@ -172,8 +165,6 @@ void Cl_InitCgame(void) {
 	import.FreeTag = Mem_FreeTag;
 
 	import.Thread = Thread_Create_;
-
-	import.GetClientState = Cl_GetClientState;
 
 	import.BaseDir = Fs_BaseDir;
 	import.OpenFile = Fs_OpenRead;

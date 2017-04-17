@@ -372,15 +372,18 @@ void Cl_UpdateScreen(void) {
 				Cl_DrawCounters();
 				Cl_DrawRendererStats();
 				Cl_DrawSoundStats();
-				cls.cgame->UpdateScreen(&cl.frame);
 				break;
 		}
+
+		cls.cgame->UpdateScreen(&cl.frame, cls.state);
 
 		R_AddStains();
 	} else {
 		R_BeginFrame();
 
 		R_Setup2D();
+
+		cls.cgame->UpdateScreen(&cl.frame, cls.state);
 
 		if (cls.state == CL_LOADING) {
 			Cl_DrawLoading();
