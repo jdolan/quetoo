@@ -128,7 +128,7 @@ void Cl_LoadMedia(void) {
 	const size_t len = g_list_length(mapshots);
 
 	if (len > 0) {
-		strcpy(g_list_nth_data(mapshots, rand() % len), cls.loading.mapshot);
+		strcpy(cls.loading.mapshot, g_list_nth_data(mapshots, rand() % len));
 	} else {
 		cls.loading.mapshot[0] = '\0';
 	}

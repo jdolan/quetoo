@@ -113,7 +113,7 @@ static void setProgress(LoadingViewController *self, const cl_loading_t loading)
 
 	// Update mapshot if applicable
 
-	if (loading.percent == 0) {
+	if (loading.percent == 0 && loading.mapshot[0] != '\0') {
 		SDL_Surface *surface;
 
 		if (cgi.LoadSurface(loading.mapshot, &surface)) {
