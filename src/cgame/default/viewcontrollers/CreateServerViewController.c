@@ -173,7 +173,7 @@ static void loadView(ViewController *self) {
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
 			Cg_CvarTextView((View *) stackView, "Hostname", "sv_hostname");
-			Cg_CvarTextView((View *) stackView, "Clients", "sv_max_clients");
+			Cg_CvarSliderInput((View *) stackView, "Max players", "sv_max_clients", 1.0, 32.0, 1.0);
 			Cg_CvarCheckboxInput((View *) stackView, "Public", "sv_public");
 			Cg_CvarTextView((View *) stackView, "Password", "password");
 
@@ -186,7 +186,7 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "Options");
+			$(box->label, setText, "Game options");
 
 			box->view.autoresizingMask |= ViewAutoresizingWidth;
 
@@ -220,8 +220,8 @@ static void loadView(ViewController *self) {
 			csvc->teamsplay = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
 
 			$(csvc->teamsplay, addOption, "Free for All", (ident) 0);
-			$(csvc->teamsplay, addOption, "Team Deathmatch", (ident) 1);
-			$(csvc->teamsplay, addOption, "Capture the Flag", (ident) 2);
+			$(csvc->teamsplay, addOption, "Team deathmatch", (ident) 1);
+			$(csvc->teamsplay, addOption, "Capture the flag", (ident) 2);
 
 			csvc->teamsplay->control.view.frame.w = DEFAULT_TEXTVIEW_WIDTH;
 			csvc->teamsplay->delegate.didSelectOption = selectTeamsplay;
@@ -235,6 +235,8 @@ static void loadView(ViewController *self) {
 			Cg_Input((View *) stackView, "Teams play", (Control *) csvc->teamsplay);
 
 			Cg_CvarCheckboxInput((View *) stackView, "Match mode", "g_match");
+
+			Cg_CvarSliderInput((View *) stackView, "Minimum players", "g_ai_max_clients", -1.0, 16.0, 1.0);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);

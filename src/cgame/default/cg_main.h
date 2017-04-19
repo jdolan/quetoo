@@ -88,6 +88,7 @@ extern cvar_t *g_gameplay;
 extern cvar_t *g_teams;
 extern cvar_t *g_ctf;
 extern cvar_t *g_match;
+extern cvar_t *g_ai_max_clients;
 
 extern cg_import_t cgi;
 

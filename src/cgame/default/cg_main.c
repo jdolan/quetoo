@@ -92,6 +92,7 @@ cvar_t *g_gameplay;
 cvar_t *g_teams;
 cvar_t *g_ctf;
 cvar_t *g_match;
+cvar_t *g_ai_max_clients;
 
 cg_import_t cgi;
 
@@ -232,6 +233,8 @@ static void Cg_Init(void) {
 	                 "Enables capture the flag gameplay");
 	g_match = cgi.Cvar("g_match", "0", CVAR_SERVER_INFO,
 	                   "Enables match play requiring players to ready");
+	g_ai_max_clients = cgi.Cvar("g_ai_max_clients", "0", CVAR_SERVER_INFO,
+	                           "The minimum amount player slots that will always be filled. Specify -1 to fill all available slots.");
 
 	// add forward to server commands for tab completion
 
