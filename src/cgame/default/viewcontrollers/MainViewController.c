@@ -193,7 +193,7 @@ static void loadView(ViewController *self) {
 
 		{
 			Cg_PrimaryIcon((View *) row, "ui/pics/settings", QColors.Dark, action, self, _SettingsViewController());
-			Cg_PrimaryIcon((View *) row, "ui/pics/settings", QColors.Dark, action, self, _InfoViewController());
+			Cg_PrimaryIcon((View *) row, "ui/pics/info", QColors.Dark, action, self, _InfoViewController());
 			Cg_PrimaryIcon((View *) row, "ui/pics/quit",  QColors.Dark,action, self, NULL);
 		}
 
