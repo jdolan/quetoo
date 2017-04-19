@@ -27,6 +27,7 @@
 
 #include "CreateServerViewController.h"
 #include "HomeViewController.h"
+#include "InfoViewController.h"
 #include "PlayViewController.h"
 #include "PlayerViewController.h"
 #include "SettingsViewController.h"
@@ -192,6 +193,7 @@ static void loadView(ViewController *self) {
 
 		{
 			Cg_PrimaryIcon((View *) row, "ui/pics/settings", QColors.Dark, action, self, _SettingsViewController());
+			Cg_PrimaryIcon((View *) row, "ui/pics/settings", QColors.Dark, action, self, _InfoViewController());
 			Cg_PrimaryIcon((View *) row, "ui/pics/quit",  QColors.Dark,action, self, NULL);
 		}
 

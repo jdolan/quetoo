@@ -2,7 +2,9 @@
 noinst_HEADERS = \
 	AudioViewController.h \
 	CreateServerViewController.h \
+	CreditsViewController.h \
 	HomeViewController.h \
+	InfoViewController.h \
 	InputViewController.h \
 	InterfaceViewController.h \
 	LoadingViewController.h \
@@ -22,7 +24,9 @@ noinst_LTLIBRARIES = \
 libviewcontrollers_la_SOURCES = \
 	AudioViewController.c \
 	CreateServerViewController.c \
+	CreditsViewController.c \
 	HomeViewController.c \
+	InfoViewController.c \
 	InputViewController.c \
 	InterfaceViewController.c \
 	LoadingViewController.c \
