@@ -113,7 +113,7 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 		$(cell->text, setText, va("%3d", server->ping));
 	}
 
-return cell;
+	return cell;
 }
 
 #pragma mark - View

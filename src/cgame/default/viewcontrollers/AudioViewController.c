@@ -23,9 +23,6 @@
 
 #include "AudioViewController.h"
 
-#include "CvarSelect.h"
-#include "VideoModeSelect.h"
-
 #define _Class _AudioViewController
 
 #pragma mark - Actions
