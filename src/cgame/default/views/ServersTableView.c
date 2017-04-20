@@ -136,7 +136,7 @@ static ServersTableView *initWithFrame(ServersTableView *self, const SDL_Rect *f
 			assert(column);
 
 			column->comparator = (Comparator) g_ascii_strcasecmp;
-			column->width = 60;
+			column->width = 300;
 
 			$((TableView *) self, addColumn, column);
 			release(column);
@@ -147,7 +147,7 @@ static ServersTableView *initWithFrame(ServersTableView *self, const SDL_Rect *f
 			assert(column);
 
 			column->comparator = (Comparator) g_ascii_strcasecmp;
-			column->width = 15;
+			column->width = 100;
 
 			$((TableView *) self, addColumn, column);
 			release(column);
@@ -158,7 +158,7 @@ static ServersTableView *initWithFrame(ServersTableView *self, const SDL_Rect *f
 			assert(column);
 
 			column->comparator = (Comparator) g_ascii_strcasecmp;
-			column->width = 15;
+			column->width = 100;
 
 			$((TableView *) self, addColumn, column);
 			release(column);
@@ -169,7 +169,7 @@ static ServersTableView *initWithFrame(ServersTableView *self, const SDL_Rect *f
 			assert(column);
 
 			column->comparator = intcmp;
-			column->width = 10;
+			column->width = 60;
 
 			$((TableView *) self, addColumn, column);
 			release(column);
@@ -180,7 +180,7 @@ static ServersTableView *initWithFrame(ServersTableView *self, const SDL_Rect *f
 			assert(column);
 
 			column->comparator = intcmp;
-			column->width = 10;
+			column->width = 40;
 
 			$((TableView *) self, addColumn, column);
 			release(column);

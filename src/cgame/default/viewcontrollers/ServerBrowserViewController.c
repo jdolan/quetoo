@@ -116,6 +116,7 @@ static void loadView(ViewController *self) {
 		release(column);
 	}
 
+/*
 	{
 		StackView *column = $(alloc(StackView), initWithFrame, NULL);
 
@@ -143,6 +144,7 @@ static void loadView(ViewController *self) {
 		$((View *) columns, addSubview, (View *) column);
 		release(column);
 	}
+*/
 
 	$((View *) this->panel->contentView, addSubview, (View *) columns);
 	release(columns);
