@@ -74,12 +74,7 @@ static void loadView(ViewController *self) {
 
 	MenuViewController *this = (MenuViewController *) self;
 
-	this->panel->isDraggable = false;
-	this->panel->isResizable = false;
-
 	this->panel->stackView.view.zIndex = 100;
-
-	this->panel->stackView.view.autoresizingMask = ViewAutoresizingContain;
 
 	this->panel->stackView.view.padding.top = 0;
 	this->panel->stackView.view.padding.right = 0;
@@ -87,6 +82,7 @@ static void loadView(ViewController *self) {
 	this->panel->stackView.view.padding.left = 0;
 
 	this->panel->contentView->view.clipsSubviews = true;
+
 
 	// Setup the NavigationViewController
 

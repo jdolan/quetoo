@@ -51,6 +51,7 @@ static void loadView(ViewController *self) {
 	assert(this->panel);
 
 	this->panel->isDraggable = false;
+	this->panel->isResizable = false;
 
 	this->panel->stackView.view.needsLayout = true;
 
