@@ -139,7 +139,7 @@ static void render(View *self, Renderer *renderer) {
 		// Quake is retarded: rotate so that Z is up
 		Matrix4x4_ConcatRotate(&mat, -90.0, 1.0, 0.0, 0.0);
 		Matrix4x4_ConcatRotate(&mat,  90.0, 0.0, 0.0, 1.0);
-		Matrix4x4_ConcatTranslate(&mat, 90.0 - (this->zoom * 30.0), 0.0, 20.0 - (this->zoom * 25.0));
+		Matrix4x4_ConcatTranslate(&mat, 90.0 - (this->zoom * 45.0), 0.0, 20.0 - (this->zoom * 35.0));
 
 		Matrix4x4_ConcatRotate(&mat, -25.0 - (this->zoom * -10.0), 0.0, 1.0, 0.0);
 
