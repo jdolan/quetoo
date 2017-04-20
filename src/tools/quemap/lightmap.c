@@ -701,14 +701,13 @@ void BuildVertexNormals(void) {
  * @brief For Phong-shaded samples, calculate the interpolated normal vector using
  * linear interpolation between the nearest and farthest vertexes.
  */
-static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal) {
+static void SampleNormal(const bsp_face_t *face, const vec3_t pos, vec3_t normal) {
 	vec_t total_dist = 0.0;
 	vec_t dist[MAX_VERT_FACES];
-	int32_t i;
 
 	// calculate the distance to each vertex
-	for (i = 0; i < l->face->num_edges; i++) {
-		const int32_t e = bsp_file.face_edges[l->face->first_edge + i];
+	for (int32_t i = 0; i < face->num_edges; i++) {
+		const int32_t e = bsp_file.face_edges[face->first_edge + i];
 		uint16_t v;
 
 		if (e >= 0) {
@@ -725,11 +724,11 @@ static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal)
 	}
 
 	VectorSet(normal, 0.0, 0.0, 0.0);
-	const vec_t max_dist = 2.0 * total_dist / l->face->num_edges;
+	const vec_t max_dist = 2.0 * total_dist / face->num_edges;
 
 	// add in weighted components from the vertex normals
-	for (i = 0; i < l->face->num_edges; i++) {
-		const int32_t e = bsp_file.face_edges[l->face->first_edge + i];
+	for (int32_t i = 0; i < face->num_edges; i++) {
+		const int32_t e = bsp_file.face_edges[face->first_edge + i];
 		uint16_t v;
 
 		if (e >= 0) {
@@ -841,7 +840,7 @@ void DirectLighting(int32_t face_num) {
 			const vec_t *point = light.sample_points + (j * light.num_sample_points + i) * 3;
 
 			if (light.texinfo->flags & SURF_PHONG) { // interpolated normal
-				SampleNormal(&light, point, norm);
+				SampleNormal(light.face, point, norm);
 			} else { // or just plane normal
 				VectorCopy(light.normal, norm);
 			}
@@ -911,19 +910,6 @@ void FinalizeLighting(int32_t face_num) {
 	// write it out
 	byte *dest = &bsp_file.lightmap_data[f->light_ofs];
 
-	vec3_t normal;
-	vec4_t tangent;
-	vec3_t bitangent;
-
-	if (f->side) {
-		VectorNegate(bsp_file.planes[f->plane_num].normal, normal);
-	} else {
-		VectorCopy(bsp_file.planes[f->plane_num].normal, normal);
-	}
-
-	// calculate the tangent vectors for directional samples
-	TangentVectors(normal, tex->vecs[0], tex->vecs[1], tangent, bitangent);
-
 	for (int32_t i = 0; i < fl->num_samples; i++) {
 		vec3_t lightmap;
 
@@ -952,6 +938,23 @@ void FinalizeLighting(int32_t face_num) {
 
 			// if the sample was lit, it will have a directional vector in world space
 			if (!VectorCompare(direction, vec3_origin)) {
+
+				vec3_t normal;
+
+				if (tex->flags & SURF_PHONG) {
+					SampleNormal(f, fl->origins + i * 3, normal);
+				} else {
+					if (f->side) {
+						VectorNegate(bsp_file.planes[f->plane_num].normal, normal);
+					} else {
+						VectorCopy(bsp_file.planes[f->plane_num].normal, normal);
+					}
+				}
+
+				vec4_t tangent;
+				vec3_t bitangent;
+
+				TangentVectors(normal, tex->vecs[0], tex->vecs[1], tangent, bitangent);
 
 				// normalize it
 				VectorNormalize(direction);
