@@ -108,6 +108,8 @@ void Cl_LoadingProgress(uint16_t percent, const char *status) {
 
 	Cl_SendCommands();
 
+	cls.cgame->UpdateLoading(cls.loading);
+
 	Cl_UpdateScreen();
 
 	quetoo.ticks = SDL_GetTicks();

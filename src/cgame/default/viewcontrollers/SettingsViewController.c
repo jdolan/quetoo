@@ -123,10 +123,10 @@ static void loadView(ViewController *self) {
 			// Tab buttons
 
 			{
-				Cg_TabButton((View *) row, "Input", QColors.Dark, tabAction, nvc, _InputViewController(), true);
-				Cg_TabButton((View *) row, "Video", QColors.Dark, tabAction, nvc, _VideoViewController(), false);
-				Cg_TabButton((View *) row, "Audio", QColors.Dark, tabAction, nvc, _AudioViewController(), false);
-				Cg_TabButton((View *) row, "Interface", QColors.Dark, tabAction, nvc, _InterfaceViewController(), false);
+				Cgui_TabButton((View *) row, "Input", QColors.Dark, tabAction, nvc, _InputViewController(), true);
+				Cgui_TabButton((View *) row, "Video", QColors.Dark, tabAction, nvc, _VideoViewController(), false);
+				Cgui_TabButton((View *) row, "Audio", QColors.Dark, tabAction, nvc, _AudioViewController(), false);
+				Cgui_TabButton((View *) row, "Interface", QColors.Dark, tabAction, nvc, _InterfaceViewController(), false);
 			}
 		}
 
@@ -148,7 +148,7 @@ static void loadView(ViewController *self) {
 
 		// Shadow
 
-		Cg_Picture(row, "shadow_s", ViewAlignmentTopLeft, ViewAutoresizingWidth);
+		Cgui_Picture(row, "shadow_s", ViewAlignmentTopLeft, ViewAutoresizingWidth);
 
 		$((View *) rows, addSubview, row);
 		release(row);

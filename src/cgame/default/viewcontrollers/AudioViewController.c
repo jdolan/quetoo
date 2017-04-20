@@ -67,10 +67,10 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Cg_CvarSliderInput((View *) stackView, "Effect volume", "s_volume", 0.0, 1.0, 0.1);
-			Cg_CvarSliderInput((View *) stackView, "Music volume", "s_music_volume", 0.0, 1.0, 0.1);
+			Cgui_CvarSliderInput((View *) stackView, "Effect volume", "s_volume", 0.0, 1.0, 0.1);
+			Cgui_CvarSliderInput((View *) stackView, "Music volume", "s_music_volume", 0.0, 1.0, 0.1);
 
-			Cg_CvarCheckboxInput((View *) stackView, "Ambient sound", "s_ambient");
+			Cgui_CvarCheckboxInput((View *) stackView, "Ambient sound", "s_ambient");
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -96,7 +96,7 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Cg_CvarCheckboxInput((View *) stackView, "Swap stereo", "s_reverse");
+			Cgui_CvarCheckboxInput((View *) stackView, "Swap stereo", "s_reverse");
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -113,7 +113,7 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Cg_CvarCheckboxInput((View *) stackView, "Hit sound", cg_hit_sound->name);
+			Cgui_CvarCheckboxInput((View *) stackView, "Hit sound", cg_hit_sound->name);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -131,7 +131,7 @@ static void loadView(ViewController *self) {
 
 	this->panel->accessoryView->view.hidden = false;
 
-	Cg_Button((View *) this->panel->accessoryView, "Apply", applyAction, self, NULL);
+	Cgui_Button((View *) this->panel->accessoryView, "Apply", applyAction, self, NULL);
 }
 
 #pragma mark - Class lifecycle

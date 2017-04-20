@@ -32,11 +32,11 @@
 /**
  * @brief
  */
-void Cg_BindInput(View *view, const char *name, const char *bind) {
+void Cgui_BindInput(View *view, const char *name, const char *bind) {
 
 	BindTextView *textView = $(alloc(BindTextView), initWithBind, view, bind);
 
-	Cg_Input(view, name, (Control *) textView);
+	Cgui_Input(view, name, (Control *) textView);
 
 	release(textView);
 }
@@ -44,7 +44,7 @@ void Cg_BindInput(View *view, const char *name, const char *bind) {
 /**
  * @brief
  */
-void Cg_Button(View *view, const char *title, ActionFunction function, ident sender, ident data) {
+void Cgui_Button(View *view, const char *title, ActionFunction function, ident sender, ident data) {
 
 	Button *button = $(alloc(Button), initWithFrame, NULL, ControlStyleDefault);
 
@@ -60,14 +60,14 @@ void Cg_Button(View *view, const char *title, ActionFunction function, ident sen
 /**
  * @brief
  */
-void Cg_CvarCheckboxInput(View *view, const char *label, const char *name) {
+void Cgui_CvarCheckboxInput(View *view, const char *label, const char *name) {
 
 	cvar_t *var = cgi.CvarGet(name);
 	assert(var);
 
 	CvarCheckbox *checkbox = $(alloc(CvarCheckbox), initWithVariable, var);
 
-	Cg_Input(view, label, (Control *) checkbox);
+	Cgui_Input(view, label, (Control *) checkbox);
 
 	release(checkbox);
 }
@@ -75,14 +75,14 @@ void Cg_CvarCheckboxInput(View *view, const char *label, const char *name) {
 /**
  * @brief
  */
-void Cg_CvarSliderInput(View *view, const char *label, const char *name, double min, double max, double step) {
+void Cgui_CvarSliderInput(View *view, const char *label, const char *name, double min, double max, double step) {
 
 	cvar_t *var = cgi.CvarGet(name);
 	assert(var);
 
 	CvarSlider *slider = $(alloc(CvarSlider), initWithVariable, var, min, max, step);
 
-	Cg_Input(view, label, (Control *) slider);
+	Cgui_Input(view, label, (Control *) slider);
 
 	release(slider);
 }
@@ -90,14 +90,14 @@ void Cg_CvarSliderInput(View *view, const char *label, const char *name, double 
 /**
  * @brief
  */
-void Cg_CvarTextView(View *view, const char *label, const char *name) {
+void Cgui_CvarTextView(View *view, const char *label, const char *name) {
 
 	cvar_t *var = cgi.CvarGet(name);
 	assert(var);
 
 	CvarTextView *textView = $(alloc(CvarTextView), initWithVariable, var);
 
-	Cg_Input(view, label, (Control *) textView);
+	Cgui_Input(view, label, (Control *) textView);
 
 	release(textView);
 }
@@ -109,7 +109,7 @@ void Cg_CvarTextView(View *view, const char *label, const char *name) {
  *
  * @remarks This function releases the Control for convenience.
  */
-void Cg_Input(View *view, const char *label, Control *control) {
+void Cgui_Input(View *view, const char *label, Control *control) {
 
 	assert(view);
 	assert(control);
@@ -135,7 +135,7 @@ void Cg_Input(View *view, const char *label, Control *control) {
 /**
  * @brief
  */
-void Cg_Label(View *view, const char *text) {
+void Cgui_Label(View *view, const char *text) {
 
 	Label *label = $(alloc(Label), initWithText, text, NULL);
 
@@ -155,7 +155,7 @@ void Cg_Label(View *view, const char *text) {
 /**
  * @brief
  */
-void Cg_Picture(View *view, const char *pic, ViewAlignment align, ViewAutoresizing resize) {
+void Cgui_Picture(View *view, const char *pic, ViewAlignment align, ViewAutoresizing resize) {
 
 	assert(view);
 
@@ -187,7 +187,7 @@ void Cg_Picture(View *view, const char *pic, ViewAlignment align, ViewAutoresizi
 /**
  * @brief
  */
-void Cg_PrimaryButton(View *view, const char *name, SDL_Color color, ActionFunction action, ident sender, ident data) {
+void Cgui_PrimaryButton(View *view, const char *name, SDL_Color color, ActionFunction action, ident sender, ident data) {
 
 	assert(view);
 
@@ -213,7 +213,7 @@ void Cg_PrimaryButton(View *view, const char *name, SDL_Color color, ActionFunct
 /**
  * @brief
  */
-void Cg_PrimaryIcon(View *view, const char *icon, SDL_Color color, ActionFunction action, ident sender, ident data) {
+void Cgui_PrimaryIcon(View *view, const char *icon, SDL_Color color, ActionFunction action, ident sender, ident data) {
 
 	assert(view);
 
@@ -237,7 +237,7 @@ void Cg_PrimaryIcon(View *view, const char *icon, SDL_Color color, ActionFunctio
 /**
  * @brief
  */
-void Cg_TabButton(View *view, const char *name, SDL_Color color, ActionFunction action, ident sender, ident data, _Bool isSelected) {
+void Cgui_TabButton(View *view, const char *name, SDL_Color color, ActionFunction action, ident sender, ident data, _Bool isSelected) {
 
 	assert(view);
 

@@ -155,7 +155,7 @@ static void loadView(ViewController *self) {
 	columns->spacing = DEFAULT_PANEL_SPACING;
 
 	columns->axis = StackViewAxisHorizontal;
-	columns->distribution = StackViewDistributionFillEqually;
+	columns->distribution = StackViewDistributionFill;
 
 	columns->view.autoresizingMask = ViewAutoresizingFill;
 
@@ -172,10 +172,10 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Cg_CvarTextView((View *) stackView, "Hostname", "sv_hostname");
-			Cg_CvarSliderInput((View *) stackView, "Max players", "sv_max_clients", 1.0, 32.0, 1.0);
-			Cg_CvarCheckboxInput((View *) stackView, "Public", "sv_public");
-			Cg_CvarTextView((View *) stackView, "Password", "password");
+			Cgui_CvarTextView((View *) stackView, "Hostname", "sv_hostname");
+			Cgui_CvarSliderInput((View *) stackView, "Max players", "sv_max_clients", 1.0, 32.0, 1.0);
+			Cgui_CvarCheckboxInput((View *) stackView, "Public", "sv_public");
+			Cgui_CvarTextView((View *) stackView, "Password", "password");
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -215,7 +215,7 @@ static void loadView(ViewController *self) {
 				$(csvc->gameplay, selectOptionWithValue, (ident) 4);
 			}
 
-			Cg_Input((View *) stackView, "Gameplay", (Control *) csvc->gameplay);
+			Cgui_Input((View *) stackView, "Gameplay", (Control *) csvc->gameplay);
 
 			csvc->teamsplay = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
 
@@ -232,11 +232,11 @@ static void loadView(ViewController *self) {
 				$(csvc->teamsplay, selectOptionWithValue, (ident) (ptrdiff_t) g_teams->integer);
 			}
 
-			Cg_Input((View *) stackView, "Teams play", (Control *) csvc->teamsplay);
+			Cgui_Input((View *) stackView, "Teams play", (Control *) csvc->teamsplay);
 
-			Cg_CvarCheckboxInput((View *) stackView, "Match mode", "g_match");
+			Cgui_CvarCheckboxInput((View *) stackView, "Match mode", "g_match");
 
-			Cg_CvarSliderInput((View *) stackView, "Minimum players", "g_ai_max_clients", -1.0, 16.0, 1.0);
+			Cgui_CvarSliderInput((View *) stackView, "Minimum players", "g_ai_max_clients", -1.0, 16.0, 1.0);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -254,17 +254,24 @@ static void loadView(ViewController *self) {
 
 		column->spacing = DEFAULT_PANEL_SPACING;
 
+		column->view.autoresizingMask |= ViewAutoresizingHeight;
+
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
 			$(box->label, setText, "Choose map");
 
-			box->view.autoresizingMask |= ViewAutoresizingWidth;
+			box->view.autoresizingMask |= ViewAutoresizingHeight;
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
 			stackView->spacing = DEFAULT_PANEL_SPACING;
 
-			const SDL_Rect frame = { .w = 262, .h = 400 };
+			stackView->view.autoresizingMask |= ViewAutoresizingHeight;
+
+			const SDL_Rect frame = { .w = 510, .h = 0 };
 			csvc->mapList = $(alloc(MapListCollectionView), initWithFrame, &frame, ControlStyleDefault);
+
+			csvc->mapList->collectionView.control.view.autoresizingMask |= ViewAutoresizingHeight;
 
 			$((View *) stackView, addSubview, (View *) csvc->mapList);
 
@@ -284,7 +291,7 @@ static void loadView(ViewController *self) {
 
 	this->panel->accessoryView->view.hidden = false;
 
-	Cg_Button((View *) this->panel->accessoryView, "Create", createAction, self, NULL);
+	Cgui_Button((View *) this->panel->accessoryView, "Create", createAction, self, NULL);
 }
 
 #pragma mark - MapListCollectionView

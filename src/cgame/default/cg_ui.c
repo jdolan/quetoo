@@ -30,7 +30,7 @@ static MainViewController *mainViewController;
 /**
  * @brief Initializes the user interface.
  */
-void Cg_InitUi(void) {
+void Cgui_Init(void) {
 
 	loadingViewController = $(alloc(LoadingViewController), init);
 
@@ -42,7 +42,7 @@ void Cg_InitUi(void) {
 /**
  * @brief Shuts down the user interface.
  */
-void Cg_ShutdownUi(void) {
+void Cgui_Shutdown(void) {
 
 	cgi.PopToViewController((ViewController *) loadingViewController);
 	cgi.PopToViewController((ViewController *) mainViewController);
@@ -52,20 +52,24 @@ void Cg_ShutdownUi(void) {
 }
 
 /**
- * @brief Updates the menu depending on client state.
+ * @brief Updates the entire UI structure
  */
-void Cg_UpdateUi(const cl_state_t state, const cl_loading_t loading) {
+void Cgui_Update(const cl_state_t state) {
 
-	if (state == CL_LOADING) {
-		if (loading.percent == 0) {
-			cgi.PushViewController((ViewController *) loadingViewController);
-			$(loadingViewController, setProgress, loading);
-		} else if (loading.percent == 100) {
-			cgi.PopToViewController((ViewController *) mainViewController);
-		} else {
-			$(loadingViewController, setProgress, loading);
-		}
+	mainViewController->backgroundImage->view.hidden = (state == CL_ACTIVE);
+}
+
+/**
+ * @brief Updates the loading screen
+ */
+void Cgui_UpdateLoading(const cl_loading_t loading) {
+
+	if (loading.percent == 0) {
+		cgi.PushViewController((ViewController *) loadingViewController);
+		$(loadingViewController, setProgress, loading);
+	} else if (loading.percent == 100) {
+		cgi.PopToViewController((ViewController *) mainViewController);
 	} else {
-		mainViewController->backgroundImage->view.hidden = (state == CL_ACTIVE);
+		$(loadingViewController, setProgress, loading);
 	}
 }

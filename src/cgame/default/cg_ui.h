@@ -24,7 +24,8 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
-void Cg_InitUi(void);
-void Cg_ShutdownUi(void);
-void Cg_UpdateUi(const cl_state_t state, const cl_loading_t loading);
+void Cgui_Init(void);
+void Cgui_Shutdown(void);
+void Cgui_Update(const cl_state_t state);
+void Cgui_UpdateLoading(const cl_loading_t loading);
 #endif /* __CG_LOCAL_H__ */

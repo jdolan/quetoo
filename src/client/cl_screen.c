@@ -148,7 +148,8 @@ static const char *r_texnum_names[] = {
 	"normalmap",
 	"specularmap",
 	"warp",
-	"tint"
+	"tintmap",
+	"stainmap"
 };
 
 /**
@@ -344,9 +345,9 @@ static void Cl_DrawCounters(void) {
  */
 void Cl_UpdateScreen(void) {
 
-	if (cls.state == CL_ACTIVE) {
+	R_BeginFrame();
 
-		R_BeginFrame();
+	if (cls.state == CL_ACTIVE) {
 
 		R_Setup3D();
 
@@ -360,37 +361,29 @@ void Cl_UpdateScreen(void) {
 
 		R_EnableBlend(true);
 
-		switch (cls.key_state.dest) {
-			case KEY_CONSOLE:
-				Cl_DrawConsole();
-				break;
-			default:
-
-				Cl_DrawChat();
-				Cl_DrawNotify();
-				Cl_DrawNetGraph();
-				Cl_DrawCounters();
-				Cl_DrawRendererStats();
-				Cl_DrawSoundStats();
-				break;
-		}
-
-		cls.cgame->UpdateScreen(&cl.frame, cls.state, cls.loading);
+		Cl_DrawChat();
+		Cl_DrawNotify();
+		Cl_DrawNetGraph();
+		Cl_DrawCounters();
+		Cl_DrawRendererStats();
+		Cl_DrawSoundStats();
 
 		R_AddStains();
 	} else {
-		R_BeginFrame();
-
 		R_Setup2D();
-
-		cls.cgame->UpdateScreen(&cl.frame, cls.state, cls.loading);
-
-		if (cls.state != CL_LOADING && cls.key_state.dest == KEY_CONSOLE) {
-			Cl_DrawConsole();
-		}
 	}
 
+	if (cls.state != CL_LOADING && cls.key_state.dest == KEY_CONSOLE) {
+		Cl_DrawConsole();
+	}
+
+	// This seems to have a leak state somewhere; calling
+	// Cl_DrawConsole after this appears to have some depth sorting issues
 	R_Draw2D();
+
+	if (cls.key_state.dest != KEY_CONSOLE) {
+		cls.cgame->UpdateScreen(&cl.frame, cls.state);
+	}
 
 	Ui_Draw();
 

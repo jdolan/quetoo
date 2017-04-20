@@ -23,14 +23,14 @@
 
 #include "cg_types.h"
 
-extern void Cg_BindInput(View *view, const char *label, const char *bind);
-extern void Cg_Button(View *view, const char *title, ActionFunction function, ident sender, ident data);
-extern void Cg_CvarCheckboxInput(View *view, const char *label, const char *name);
-extern void Cg_CvarSliderInput(View *view, const char *label, const char *name, double min, double max, double step);
-extern void Cg_CvarTextView(View *view, const char *label, const char *name);
-extern void Cg_Input(View *view, const char *label, Control *control);
-extern void Cg_Label(View *view, const char *text);
-extern void Cg_Picture(View *view, const char *pic, ViewAlignment align, ViewAutoresizing resize);
-extern void Cg_PrimaryButton(View *view, const char *label, SDL_Color color, ActionFunction action, ident sender, ident data);
-extern void Cg_PrimaryIcon(View *view, const char *icon, SDL_Color color, ActionFunction action, ident sender, ident data);
-extern void Cg_TabButton(View *view, const char *label, SDL_Color color, ActionFunction action, ident sender, ident data, _Bool isSelected);
+extern void Cgui_BindInput(View *view, const char *label, const char *bind);
+extern void Cgui_Button(View *view, const char *title, ActionFunction function, ident sender, ident data);
+extern void Cgui_CvarCheckboxInput(View *view, const char *label, const char *name);
+extern void Cgui_CvarSliderInput(View *view, const char *label, const char *name, double min, double max, double step);
+extern void Cgui_CvarTextView(View *view, const char *label, const char *name);
+extern void Cgui_Input(View *view, const char *label, Control *control);
+extern void Cgui_Label(View *view, const char *text);
+extern void Cgui_Picture(View *view, const char *pic, ViewAlignment align, ViewAutoresizing resize);
+extern void Cgui_PrimaryButton(View *view, const char *label, SDL_Color color, ActionFunction action, ident sender, ident data);
+extern void Cgui_PrimaryIcon(View *view, const char *icon, SDL_Color color, ActionFunction action, ident sender, ident data);
+extern void Cgui_TabButton(View *view, const char *label, SDL_Color color, ActionFunction action, ident sender, ident data, _Bool isSelected);

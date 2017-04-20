@@ -171,9 +171,9 @@ static void loadView(ViewController *self) {
 		row->view.autoresizingMask = ViewAutoresizingContain;
 
 		{
-			Cg_PrimaryButton((View *) row, "HOME", QColors.Dark, action, self, _HomeViewController());
-			Cg_PrimaryButton((View *) row, "PROFILE", QColors.Dark, action, self, _PlayerViewController());
-			Cg_PrimaryButton((View *) row, "PLAY", QColors.Theme, action, self, _PlayViewController());
+			Cgui_PrimaryButton((View *) row, "HOME", QColors.Dark, action, self, _HomeViewController());
+			Cgui_PrimaryButton((View *) row, "PROFILE", QColors.Dark, action, self, _PlayerViewController());
+			Cgui_PrimaryButton((View *) row, "PLAY", QColors.Theme, action, self, _PlayViewController());
 		}
 
 		$(view, addSubview, (View *) row);
@@ -192,9 +192,9 @@ static void loadView(ViewController *self) {
 		row->view.autoresizingMask = ViewAutoresizingContain;
 
 		{
-			Cg_PrimaryIcon((View *) row, "ui/pics/settings", QColors.Dark, action, self, _SettingsViewController());
-			Cg_PrimaryIcon((View *) row, "ui/pics/info", QColors.Dark, action, self, _InfoViewController());
-			Cg_PrimaryIcon((View *) row, "ui/pics/quit",  QColors.Dark,action, self, NULL);
+			Cgui_PrimaryIcon((View *) row, "ui/pics/settings", QColors.Dark, action, self, _SettingsViewController());
+			Cgui_PrimaryIcon((View *) row, "ui/pics/info", QColors.Dark, action, self, _InfoViewController());
+			Cgui_PrimaryIcon((View *) row, "ui/pics/quit",  QColors.Dark,action, self, NULL);
 		}
 
 		$(view, addSubview, (View *) row);

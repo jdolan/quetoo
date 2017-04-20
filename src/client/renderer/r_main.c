@@ -418,6 +418,9 @@ static void R_Restart_f(void) {
 		cls.state = CL_LOADING;
 	}
 
+	cls.loading.percent = 0;
+	cls.cgame->UpdateLoading(cls.loading);
+
 	R_LoadMedia();
 
 	cls.state = state;
@@ -602,7 +605,7 @@ void R_Init(void) {
 	R_InitState();
 
 	R_GetError("Video initialization");
-	
+
 	R_InitPrograms();
 
 	R_InitImages();

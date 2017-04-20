@@ -769,8 +769,9 @@ typedef struct cg_export_s {
 	void (*Interpolate)(const cl_frame_t *frame);
 	_Bool (*UsePrediction)(void);
 	void (*PredictMovement)(const GList *cmds);
+	void (*UpdateLoading)(const cl_loading_t loading);
 	void (*UpdateView)(const cl_frame_t *frame);
-	void (*UpdateScreen)(const cl_frame_t *frame, const cl_state_t state, const cl_loading_t loading);
+	void (*UpdateScreen)(const cl_frame_t *frame, const cl_state_t state);
 
 } cg_export_t;
 

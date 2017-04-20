@@ -122,9 +122,9 @@ static void loadView(ViewController *self) {
 			// Tab buttons
 
 			{
-				Cg_TabButton((View *) row, "Quick join", QColors.Dark, tabAction, nvc, _QuickJoinViewController(), true);
-				Cg_TabButton((View *) row, "Create server", QColors.Dark, tabAction, nvc, _CreateServerViewController(), false);
-				Cg_TabButton((View *) row, "Server browser", QColors.Dark, tabAction, nvc, _ServerBrowserViewController(), false);
+				Cgui_TabButton((View *) row, "Quick join", QColors.Dark, tabAction, nvc, _QuickJoinViewController(), true);
+				Cgui_TabButton((View *) row, "Create server", QColors.Dark, tabAction, nvc, _CreateServerViewController(), false);
+				Cgui_TabButton((View *) row, "Server browser", QColors.Dark, tabAction, nvc, _ServerBrowserViewController(), false);
 			}
 		}
 
@@ -146,7 +146,7 @@ static void loadView(ViewController *self) {
 
 		// Shadow
 
-		Cg_Picture(row, "shadow_s", ViewAlignmentTopLeft, ViewAutoresizingWidth);
+		Cgui_Picture(row, "shadow_s", ViewAlignmentTopLeft, ViewAutoresizingWidth);
 
 		$((View *) rows, addSubview, row);
 		release(row);

@@ -72,7 +72,7 @@ static void loadView(ViewController *self) {
 
 			Control *videoModeSelect = (Control *) $(alloc(VideoModeSelect), initWithFrame, NULL, ControlStyleDefault);
 
-			Cg_Input((View *) stackView, "Video mode", videoModeSelect);
+			Cgui_Input((View *) stackView, "Video mode", videoModeSelect);
 			release(videoModeSelect);
 
 			cvar_t *r_fullscreen = cgi.CvarGet("r_fullscreen");
@@ -82,12 +82,12 @@ static void loadView(ViewController *self) {
 			$(fullscreenSelect, addOption, "Fullscreen", (ident) 1);
 			$(fullscreenSelect, addOption, "Borderless windowed", (ident) 2);
 
-			Cg_Input((View *) stackView, "Window mode", (Control *) fullscreenSelect);
+			Cgui_Input((View *) stackView, "Window mode", (Control *) fullscreenSelect);
 			release(fullscreenSelect);
 
-			Cg_CvarCheckboxInput((View *) stackView, "Vertical sync", "r_swap_interval");
+			Cgui_CvarCheckboxInput((View *) stackView, "Vertical sync", "r_swap_interval");
 
-			Cg_CvarSliderInput((View *) stackView, "Maximum FPS", "cl_max_fps", 30.0, 200.0, 5.0);
+			Cgui_CvarSliderInput((View *) stackView, "Maximum FPS", "cl_max_fps", 30.0, 200.0, 5.0);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -111,7 +111,7 @@ static void loadView(ViewController *self) {
 			$(anisoSelect, addOption, "4x", (ident) 4); // Why isn't 2x an option?
 			$(anisoSelect, addOption, "Off", (ident) 0);
 
-			Cg_Input((View *) stackView, "Anisotropy", (Control *) anisoSelect);
+			Cgui_Input((View *) stackView, "Anisotropy", (Control *) anisoSelect);
 			release(anisoSelect);
 
 			Select *multisampleSelect = (Select *) $(alloc(CvarSelect), initWithVariableName, "r_multisample");
@@ -121,7 +121,7 @@ static void loadView(ViewController *self) {
 			$(multisampleSelect, addOption, "2x", (ident) 1);
 			$(multisampleSelect, addOption, "Off", (ident) 0);
 
-			Cg_Input((View *) stackView, "Multisample", (Control *) multisampleSelect);
+			Cgui_Input((View *) stackView, "Multisample", (Control *) multisampleSelect);
 			release(multisampleSelect);
 
 			$((View *) box, addSubview, (View *) stackView);
@@ -139,10 +139,10 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Cg_CvarSliderInput((View *) stackView, "Brightness", "r_brightness", 0.1, 2.0, 0.1);
-			Cg_CvarSliderInput((View *) stackView, "Contrast", "r_contrast", 0.1, 2.0, 0.1);
-			Cg_CvarSliderInput((View *) stackView, "Gamma", "r_gamma", 0.1, 2.0, 0.1);
-			Cg_CvarSliderInput((View *) stackView, "Modulate", "r_modulate", 0.1, 5.0, 0.1);
+			Cgui_CvarSliderInput((View *) stackView, "Brightness", "r_brightness", 0.1, 2.0, 0.1);
+			Cgui_CvarSliderInput((View *) stackView, "Contrast", "r_contrast", 0.1, 2.0, 0.1);
+			Cgui_CvarSliderInput((View *) stackView, "Gamma", "r_gamma", 0.1, 2.0, 0.1);
+			Cgui_CvarSliderInput((View *) stackView, "Modulate", "r_modulate", 0.1, 5.0, 0.1);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -176,19 +176,19 @@ static void loadView(ViewController *self) {
 			$(shadowsSelect, addOption, "Low", (ident) 1);
 			$(shadowsSelect, addOption, "Off", (ident) 0);
 
-			Cg_Input((View *) stackView, "Shadows", (Control *) shadowsSelect);
+			Cgui_Input((View *) stackView, "Shadows", (Control *) shadowsSelect);
 			release(shadowsSelect);
 
-			Cg_CvarCheckboxInput((View *) stackView, "Caustics", "r_caustics");
-			Cg_CvarCheckboxInput((View *) stackView, "Warp", "r_warp");
+			Cgui_CvarCheckboxInput((View *) stackView, "Caustics", "r_caustics");
+			Cgui_CvarCheckboxInput((View *) stackView, "Warp", "r_warp");
 
-			Cg_CvarCheckboxInput((View *) stackView, "Weather effects", "cg_add_weather");
+			Cgui_CvarCheckboxInput((View *) stackView, "Weather effects", "cg_add_weather");
 
-			Cg_CvarCheckboxInput((View *) stackView, "Bump mapping", "r_bumpmap");
-			Cg_CvarCheckboxInput((View *) stackView, "Parallax mapping", "r_parallax");
-			Cg_CvarCheckboxInput((View *) stackView, "Deluxe mapping", "r_deluxemap");
+			Cgui_CvarCheckboxInput((View *) stackView, "Bump mapping", "r_bumpmap");
+			Cgui_CvarCheckboxInput((View *) stackView, "Parallax mapping", "r_parallax");
+			Cgui_CvarCheckboxInput((View *) stackView, "Deluxe mapping", "r_deluxemap");
 
-			Cg_CvarCheckboxInput((View *) stackView, "Stainmaps", "r_stainmap");
+			Cgui_CvarCheckboxInput((View *) stackView, "Stainmaps", "r_stainmap");
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -206,7 +206,7 @@ static void loadView(ViewController *self) {
 
 	this->panel->accessoryView->view.hidden = false;
 
-	Cg_Button((View *) this->panel->accessoryView, "Apply", applyAction, self, NULL);
+	Cgui_Button((View *) this->panel->accessoryView, "Apply", applyAction, self, NULL);
 }
 
 #pragma mark - Class lifecycle

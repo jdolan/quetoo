@@ -24,8 +24,7 @@
 #include "ServersTableView.h"
 
 static const char *_hostname = "Hostname";
-static const char *_source = "Source";
-static const char *_name = "Map";
+static const char *_mapname = "Map";
 static const char *_gameplay = "Gameplay";
 static const char *_players = "Players";
 static const char *_ping = "Ping";
@@ -62,9 +61,7 @@ static ident valueForColumnAndRow(const TableView *tableView, const TableColumn 
 
 	if (g_strcmp0(column->identifier, _hostname) == 0) {
 		return server->hostname;
-	} else if (g_strcmp0(column->identifier, _source) == 0) {
-		return &server->source;
-	} else if (g_strcmp0(column->identifier, _name) == 0) {
+	} else if (g_strcmp0(column->identifier, _mapname) == 0) {
 		return server->name;
 	} else if (g_strcmp0(column->identifier, _gameplay) == 0) {
 		return server->gameplay;
@@ -91,19 +88,7 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 
 	if (g_strcmp0(column->identifier, _hostname) == 0) {
 		$(cell->text, setText, server->hostname);
-	} else if (g_strcmp0(column->identifier, _source) == 0) {
-		switch (server->source) {
-			case SERVER_SOURCE_INTERNET:
-				$(cell->text, setText, "Internet");
-				break;
-			case SERVER_SOURCE_USER:
-				$(cell->text, setText, "User");
-				break;
-			case SERVER_SOURCE_BCAST:
-				$(cell->text, setText, "LAN");
-				break;
-		}
-	} else if (g_strcmp0(column->identifier, _name) == 0) {
+	} else if (g_strcmp0(column->identifier, _mapname) == 0) {
 		$(cell->text, setText, server->name);
 	} else if (g_strcmp0(column->identifier, _gameplay) == 0) {
 		$(cell->text, setText, server->gameplay);
@@ -158,18 +143,7 @@ static ServersTableView *initWithFrame(ServersTableView *self, const SDL_Rect *f
 		}
 
 		{
-			TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _source);
-			assert(column);
-
-			column->comparator = intcmp;
-			column->width = 15;
-
-			$((TableView *) self, addColumn, column);
-			release(column);
-		}
-
-		{
-			TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _name);
+			TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _mapname);
 			assert(column);
 
 			column->comparator = (Comparator) g_ascii_strcasecmp;

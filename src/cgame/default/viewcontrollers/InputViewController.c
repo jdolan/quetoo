@@ -59,54 +59,54 @@ static void loadView(ViewController *self) {
 
 		stackView->view.autoresizingMask |= ViewAutoresizingHeight;
 
-		Cg_Label((View *) stackView, "Movement");
+		Cgui_Label((View *) stackView, "Movement");
 
-		Cg_BindInput((View *) stackView, "Forward", "+forward");
-		Cg_BindInput((View *) stackView, "Back", "+back");
-		Cg_BindInput((View *) stackView, "Strafe left", "+move_left");
-		Cg_BindInput((View *) stackView, "Strafe right", "+move_right");
-		Cg_BindInput((View *) stackView, "Jump", "+move_up");
-		Cg_BindInput((View *) stackView, "Crouch", "+move_down");
+		Cgui_BindInput((View *) stackView, "Forward", "+forward");
+		Cgui_BindInput((View *) stackView, "Back", "+back");
+		Cgui_BindInput((View *) stackView, "Strafe left", "+move_left");
+		Cgui_BindInput((View *) stackView, "Strafe right", "+move_right");
+		Cgui_BindInput((View *) stackView, "Jump", "+move_up");
+		Cgui_BindInput((View *) stackView, "Crouch", "+move_down");
 
-		Cg_BindInput((View *) stackView, "Run/walk", "+speed");
+		Cgui_BindInput((View *) stackView, "Run/walk", "+speed");
 
-		Cg_Label((View *) stackView, "Communication");
+		Cgui_Label((View *) stackView, "Communication");
 
-		Cg_BindInput((View *) stackView, "Chat", "cl_message_mode");
-		Cg_BindInput((View *) stackView, "Team chat", "cl_message_mode_2");
+		Cgui_BindInput((View *) stackView, "Chat", "cl_message_mode");
+		Cgui_BindInput((View *) stackView, "Team chat", "cl_message_mode_2");
 
-		Cg_Label((View *) stackView, "Interface");
+		Cgui_Label((View *) stackView, "Interface");
 
-		Cg_BindInput((View *) stackView, "Scoreboard", "+score");
+		Cgui_BindInput((View *) stackView, "Scoreboard", "+score");
 
-		Cg_BindInput((View *) stackView, "Screenshot", "r_screenshot");
+		Cgui_BindInput((View *) stackView, "Screenshot", "r_screenshot");
 
-		Cg_BindInput((View *) stackView, "Toggle console", "cl_toggle_console");
+		Cgui_BindInput((View *) stackView, "Toggle console", "cl_toggle_console");
 
-		Cg_Label((View *) stackView, "Combat");
+		Cgui_Label((View *) stackView, "Combat");
 
-		Cg_BindInput((View *) stackView, "Attack", "+attack");
+		Cgui_BindInput((View *) stackView, "Attack", "+attack");
 
-		Cg_BindInput((View *) stackView, "Zoom", "+ZOOM");
+		Cgui_BindInput((View *) stackView, "Zoom", "+ZOOM");
 
-		Cg_BindInput((View *) stackView, "Grapple", "+hook");
+		Cgui_BindInput((View *) stackView, "Grapple", "+hook");
 
-		Cg_Label((View *) stackView, "Weapons");
+		Cgui_Label((View *) stackView, "Weapons");
 
-		Cg_BindInput((View *) stackView, "Next weapon", "cg_weapon_next");
-		Cg_BindInput((View *) stackView, "Previous weapon", "cg_weapon_previous");
+		Cgui_BindInput((View *) stackView, "Next weapon", "cg_weapon_next");
+		Cgui_BindInput((View *) stackView, "Previous weapon", "cg_weapon_previous");
 
-		Cg_BindInput((View *) stackView, "Blaster", "use blaster");
-		Cg_BindInput((View *) stackView, "Shotgun", "use shotgun");
-		Cg_BindInput((View *) stackView, "Super shotgun", "use super shotgun");
-		Cg_BindInput((View *) stackView, "Machinegun", "use machinegun");
-		Cg_BindInput((View *) stackView, "Hand grenades", "use hand grenades");
-		Cg_BindInput((View *) stackView, "Grenade launcher", "use grenade launcher");
-		Cg_BindInput((View *) stackView, "Rocket launcher", "use rocket launcher");
-		Cg_BindInput((View *) stackView, "Hyperblaster", "use hyperblaster");
-		Cg_BindInput((View *) stackView, "Lightning", "use lightning gun");
-		Cg_BindInput((View *) stackView, "Railgun", "use railgun");
-		Cg_BindInput((View *) stackView, "BFG-10K", "use bfg10k");
+		Cgui_BindInput((View *) stackView, "Blaster", "use blaster");
+		Cgui_BindInput((View *) stackView, "Shotgun", "use shotgun");
+		Cgui_BindInput((View *) stackView, "Super shotgun", "use super shotgun");
+		Cgui_BindInput((View *) stackView, "Machinegun", "use machinegun");
+		Cgui_BindInput((View *) stackView, "Hand grenades", "use hand grenades");
+		Cgui_BindInput((View *) stackView, "Grenade launcher", "use grenade launcher");
+		Cgui_BindInput((View *) stackView, "Rocket launcher", "use rocket launcher");
+		Cgui_BindInput((View *) stackView, "Hyperblaster", "use hyperblaster");
+		Cgui_BindInput((View *) stackView, "Lightning", "use lightning gun");
+		Cgui_BindInput((View *) stackView, "Railgun", "use railgun");
+		Cgui_BindInput((View *) stackView, "BFG-10K", "use bfg10k");
 
 		$(scrollView, setContentView, (View *) stackView);
 
@@ -133,12 +133,12 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Cg_CvarSliderInput((View *) stackView, "Mouse sensitivity", "m_sensitivity", 0.1, 8.0, 0.1);
+			Cgui_CvarSliderInput((View *) stackView, "Mouse sensitivity", "m_sensitivity", 0.1, 8.0, 0.1);
 
-			Cg_CvarSliderInput((View *) stackView, "Zoom sensitivity", "m_sensitivity_zoom", 0.1, 8.0, 0.1);
+			Cgui_CvarSliderInput((View *) stackView, "Zoom sensitivity", "m_sensitivity_zoom", 0.1, 8.0, 0.1);
 
-			Cg_CvarCheckboxInput((View *) stackView, "Invert mouse", "m_invert");
-			Cg_CvarCheckboxInput((View *) stackView, "Smooth mouse", "m_interpolate");
+			Cgui_CvarCheckboxInput((View *) stackView, "Invert mouse", "m_invert");
+			Cgui_CvarCheckboxInput((View *) stackView, "Smooth mouse", "m_interpolate");
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -155,7 +155,7 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Cg_CvarCheckboxInput((View *) stackView, "Always run", "cg_run");
+			Cgui_CvarCheckboxInput((View *) stackView, "Always run", "cg_run");
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);

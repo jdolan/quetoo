@@ -168,6 +168,9 @@ static void S_Restart_f(void) {
 		cls.state = CL_LOADING;
 	}
 
+	cls.loading.percent = 0;
+	cls.cgame->UpdateLoading(cls.loading);
+
 	S_LoadMedia();
 
 	cls.state = state;

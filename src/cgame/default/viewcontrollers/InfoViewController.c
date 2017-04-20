@@ -120,7 +120,7 @@ static void loadView(ViewController *self) {
 			// Tab buttons
 
 			{
-				Cg_TabButton((View *) row, "Credits", QColors.Dark, tabAction, nvc, _CreditsViewController(), true);
+				Cgui_TabButton((View *) row, "Credits", QColors.Dark, tabAction, nvc, _CreditsViewController(), true);
 			}
 		}
 
@@ -142,7 +142,7 @@ static void loadView(ViewController *self) {
 
 		// Shadow
 
-		Cg_Picture(row, "shadow_s", ViewAlignmentTopLeft, ViewAutoresizingWidth);
+		Cgui_Picture(row, "shadow_s", ViewAlignmentTopLeft, ViewAutoresizingWidth);
 
 		$((View *) rows, addSubview, row);
 		release(row);

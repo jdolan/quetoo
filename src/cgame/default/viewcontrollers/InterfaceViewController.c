@@ -136,7 +136,7 @@ static void loadView(ViewController *self) {
 			cgi.EnumerateFiles("pics/ch*", enumerateCrosshairs, crosshairSelect);
 
 			$((Control *) crosshairSelect, addActionForEventType, SDL_MOUSEBUTTONUP, modifyCrosshair, self, NULL);
-			Cg_Input((View *) stackView, "Image", (Control *) crosshairSelect);
+			Cgui_Input((View *) stackView, "Image", (Control *) crosshairSelect);
 
 			// Crosshair color
 
@@ -157,18 +157,18 @@ static void loadView(ViewController *self) {
 
 			$(ivc->crosshairColorSelect, setColor, (SDL_Color) { .r = color.r, .g = color.g, .b = color.b, .a = color.a });
 
-			Cg_Input((View *) stackView, "Color", (Control *) ivc->crosshairColorSelect);
+			Cgui_Input((View *) stackView, "Color", (Control *) ivc->crosshairColorSelect);
 
 			// Crosshair scale
 
 			CvarSlider *scaleSlider = $(alloc(CvarSlider), initWithVariable, cg_draw_crosshair_scale, 0.1, 2.0, 0.1);
 
 			$((Control *) scaleSlider, addActionForEventType, SDL_MOUSEMOTION, modifyCrosshair, self, NULL);
-			Cg_Input((View *) stackView, "Scale", (Control *) scaleSlider);
+			Cgui_Input((View *) stackView, "Scale", (Control *) scaleSlider);
 
 			// Misc options
 
-			Cg_CvarCheckboxInput((View *) stackView, "Pulse on pickup", cg_draw_crosshair_pulse->name);
+			Cgui_CvarCheckboxInput((View *) stackView, "Pulse on pickup", cg_draw_crosshair_pulse->name);
 
 			// Crosshair preview
 
@@ -198,8 +198,8 @@ static void loadView(ViewController *self) {
 
 			// Stats
 
-			Cg_CvarCheckboxInput((View *) stackView, "Show stats", "cl_draw_counters");
-			Cg_CvarCheckboxInput((View *) stackView, "Show netgraph", "cl_draw_net_graph");
+			Cgui_CvarCheckboxInput((View *) stackView, "Show stats", "cl_draw_counters");
+			Cgui_CvarCheckboxInput((View *) stackView, "Show netgraph", "cl_draw_net_graph");
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -227,16 +227,16 @@ static void loadView(ViewController *self) {
 
 			// Field of view
 
-			Cg_CvarSliderInput((View *) stackView, "FOV", cg_fov->name, 80.0, 130.0, 5.0);
-			Cg_CvarSliderInput((View *) stackView, "Zoom FOV", cg_fov_zoom->name, 20.0, 70.0, 5.0);
+			Cgui_CvarSliderInput((View *) stackView, "FOV", cg_fov->name, 80.0, 130.0, 5.0);
+			Cgui_CvarSliderInput((View *) stackView, "Zoom FOV", cg_fov_zoom->name, 20.0, 70.0, 5.0);
 
 			// Zoom easing speed
 
-			Cg_CvarSliderInput((View *) stackView, "Zoom interpolate", cg_fov_interpolate->name, 0.0, 2.0, 0.1);
+			Cgui_CvarSliderInput((View *) stackView, "Zoom interpolate", cg_fov_interpolate->name, 0.0, 2.0, 0.1);
 
 			// Bobbing
 
-//			Cg_CvarCheckboxInput((View *) stackView, "View bobbing", cg_view_bob->name);
+//			Cgui_CvarCheckboxInput((View *) stackView, "View bobbing", cg_view_bob->name);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -255,9 +255,9 @@ static void loadView(ViewController *self) {
 
 			// Blending
 
-			Cg_CvarCheckboxInput((View *) stackView, "Screen blending", cg_draw_blend->name);
-			Cg_CvarCheckboxInput((View *) stackView, "Liquid blend", cg_draw_blend_liquid->name);
-			Cg_CvarCheckboxInput((View *) stackView, "Pickup blend", cg_draw_blend_pickup->name);
+			Cgui_CvarCheckboxInput((View *) stackView, "Screen blending", cg_draw_blend->name);
+			Cgui_CvarCheckboxInput((View *) stackView, "Liquid blend", cg_draw_blend_liquid->name);
+			Cgui_CvarCheckboxInput((View *) stackView, "Pickup blend", cg_draw_blend_pickup->name);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -276,9 +276,9 @@ static void loadView(ViewController *self) {
 
 			// Weapon options
 
-			Cg_CvarCheckboxInput((View *) stackView, "Draw weapon", cg_draw_weapon->name);
-			Cg_CvarSliderInput((View *) stackView, "Weapon alpha", cg_draw_weapon_alpha->name, 0.1, 1.0, 0.1);
-			Cg_CvarCheckboxInput((View *) stackView, "Weapon bobbing", cg_bob->name);
+			Cgui_CvarCheckboxInput((View *) stackView, "Draw weapon", cg_draw_weapon->name);
+			Cgui_CvarSliderInput((View *) stackView, "Weapon alpha", cg_draw_weapon_alpha->name, 0.1, 1.0, 0.1);
+			Cgui_CvarCheckboxInput((View *) stackView, "Weapon bobbing", cg_bob->name);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);

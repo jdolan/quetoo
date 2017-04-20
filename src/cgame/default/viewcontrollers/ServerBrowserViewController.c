@@ -76,51 +76,81 @@ static void loadView(ViewController *self) {
 
 	ServersTableView *servers;
 
-	StackView *rows = $(alloc(StackView), initWithFrame, NULL);
+	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
-	rows->spacing = DEFAULT_PANEL_SPACING;
+	columns->spacing = DEFAULT_PANEL_SPACING;
 
-	rows->distribution = StackViewDistributionFillEqually;
+	columns->axis = StackViewAxisHorizontal;
+	columns->distribution = StackViewDistributionFill;
 
-	rows->view.autoresizingMask = ViewAutoresizingFill;
+	columns->view.autoresizingMask = ViewAutoresizingFill;
 
 	{
-		StackView *row = $(alloc(StackView), initWithFrame, NULL);
+		StackView *column = $(alloc(StackView), initWithFrame, NULL);
 
-		row->spacing = DEFAULT_PANEL_SPACING;
+		column->spacing = DEFAULT_PANEL_SPACING;
 
-		row->view.autoresizingMask = ViewAutoresizingWidth;
+		column->view.autoresizingMask |= ViewAutoresizingHeight;
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
 			$(box->label, setText, "Servers");
 
-			box->view.autoresizingMask |= ViewAutoresizingFill;
+			box->view.autoresizingMask |= ViewAutoresizingHeight;
 
-			servers = $(alloc(ServersTableView), initWithFrame, NULL, ControlStyleDefault);
+			const SDL_Rect frame = MakeRect(0, 0, 600, 0);
+			servers = $(alloc(ServersTableView), initWithFrame, &frame, ControlStyleDefault);
 
-			servers->tableView.control.view.autoresizingMask = ViewAutoresizingFill;
+			servers->tableView.control.view.autoresizingMask = ViewAutoresizingHeight;
 
 			$((Control *) servers, addActionForEventType, SDL_MOUSEBUTTONUP, connectAction, self, servers);
 
 			$((View *) box, addSubview, (View *) servers);
 			release(servers);
 
-			$((View *) row, addSubview, (View *) box);
+			$((View *) column, addSubview, (View *) box);
 			release(box);
 		}
 
-		$((View *) rows, addSubview, (View *) row);
-		release(row);
+		$((View *) columns, addSubview, (View *) column);
+		release(column);
 	}
 
-	$((View *) this->panel->contentView, addSubview, (View *) rows);
-	release(rows);
+	{
+		StackView *column = $(alloc(StackView), initWithFrame, NULL);
+
+		column->spacing = DEFAULT_PANEL_SPACING;
+
+		column->view.autoresizingMask |= ViewAutoresizingHeight;
+
+		{
+			Box *box = $(alloc(Box), initWithFrame, NULL);
+			$(box->label, setText, "Filters");
+
+			box->view.autoresizingMask |= ViewAutoresizingHeight;
+
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+			Cgui_CvarCheckboxInput((View *) stackView, "Toggle things", "s_ambient");
+
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
+
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
+
+		$((View *) columns, addSubview, (View *) column);
+		release(column);
+	}
+
+	$((View *) this->panel->contentView, addSubview, (View *) columns);
+	release(columns);
 
 	this->panel->accessoryView->view.hidden = false;
 
-	Cg_Button((View *) this->panel->accessoryView, "Refresh", refreshAction, self, NULL);
-	Cg_Button((View *) this->panel->accessoryView, "Connect", connectAction, self, NULL);
+	Cgui_Button((View *) this->panel->accessoryView, "Refresh", refreshAction, self, NULL);
+	Cgui_Button((View *) this->panel->accessoryView, "Connect", connectAction, self, NULL);
 }
 
 #pragma mark - Class lifecycle

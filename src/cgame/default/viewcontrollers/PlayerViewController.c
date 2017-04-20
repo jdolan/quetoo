@@ -149,7 +149,7 @@ static void loadView(ViewController *self) {
 
 			// Player name
 
-			Cg_CvarTextView((View *) stackView, "Name", "name");
+			Cgui_CvarTextView((View *) stackView, "Name", "name");
 
 			// Player model
 
@@ -157,7 +157,7 @@ static void loadView(ViewController *self) {
 
 			$(skinSelect, addActionForEventType, SDL_MOUSEBUTTONUP, selectSkin, self, NULL);
 
-			Cg_Input((View *) stackView, "Player skin", skinSelect);
+			Cgui_Input((View *) stackView, "Player skin", skinSelect);
 			release(skinSelect);
 
 			// Hook style
@@ -176,13 +176,13 @@ static void loadView(ViewController *self) {
 
 			$((Select *) hookSelect, selectOptionWithValue, (ident) (intptr_t) hook_style);
 
-			Cg_Input((View *) stackView, "Hook style", (Control *) hookSelect);
+			Cgui_Input((View *) stackView, "Hook style", (Control *) hookSelect);
 
 			release(hookSelect);
 
 			// Handicap
 
-			Cg_CvarSliderInput((View *) stackView, "Handicap", cg_handicap->name, 50.0, 100.0, 5.0);
+			Cgui_CvarSliderInput((View *) stackView, "Handicap", cg_handicap->name, 50.0, 100.0, 5.0);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -206,7 +206,7 @@ static void loadView(ViewController *self) {
 
 			Slider *hueSlider = (Slider *) $(alloc(HueSlider), initWithVariable, hue, selectEffectColor);
 
-			Cg_Input((View *) stackView, "Effects", (Control *) hueSlider);
+			Cgui_Input((View *) stackView, "Effects", (Control *) hueSlider);
 
 			// Shirt color
 
@@ -228,7 +228,7 @@ static void loadView(ViewController *self) {
 
 			$(this->tintRColorSelect, setColor, (SDL_Color) { .r = color.r, .g = color.g, .b = color.b });
 
-			Cg_Input((View *) stackView, "Shirt", (Control *) this->tintRColorSelect);
+			Cgui_Input((View *) stackView, "Shirt", (Control *) this->tintRColorSelect);
 
 			// Pants color
 
@@ -247,7 +247,7 @@ static void loadView(ViewController *self) {
 
 			$(this->tintGColorSelect, setColor, (SDL_Color) { .r = color.r, .g = color.g, .b = color.b });
 
-			Cg_Input((View *) stackView, "Pants", (Control *) this->tintGColorSelect);
+			Cgui_Input((View *) stackView, "Pants", (Control *) this->tintGColorSelect);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
