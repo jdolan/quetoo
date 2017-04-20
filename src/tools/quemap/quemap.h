@@ -73,7 +73,7 @@ extern vec_t microvolume;
 
 // LIGHT
 extern _Bool extra_samples;
-extern int32_t indirect_bounces;
+extern _Bool indirect;
 
 extern vec_t brightness;
 extern vec_t saturation;
@@ -105,7 +105,7 @@ void Sem_Shutdown(void);
 typedef struct thread_work_s {
 	int32_t index; // current work cycle
 	int32_t count; // total work cycles
-	int32_t fraction; // last fraction of work completed (tenths)
+	int32_t fraction; // last fraction of work completed
 	_Bool progress; // are we reporting progress
 } thread_work_t;
 

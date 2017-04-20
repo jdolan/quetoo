@@ -26,12 +26,6 @@
 #include "polylib.h"
 #include "collision/cmodel.h"
 
-#define INDIRECT_BOUNCE_DIST 1024.0
-#define INDIRECT_BOUNCE_MIN_DIST 64.0 // minimum distance bounces take
-#define MAX_INDIRECT_BOUNCES 64 // really big limit, 4 should be enough for most purposes
-
-#define AMBIENT_OCCLUSION_DIST 64.0 // distance for ambient occlusion to have no effect
-
 #define PATCH_SUBDIVIDE 64.0
 
 typedef enum {
@@ -48,20 +42,20 @@ typedef struct patch_s {
 	vec3_t normal;
 
 	vec_t area;
-	vec3_t light;  // emissive surface light
+	vec3_t light; // emissive surface light
 
 	struct patch_s *next;  // next in face
 } patch_t;
 
 extern patch_t *face_patches[MAX_BSP_FACES];
-extern vec3_t face_offset[MAX_BSP_FACES];  // for rotating bmodels
+extern vec3_t face_offset[MAX_BSP_FACES]; // for rotating bmodels
 
 // lightmap.c
 void BuildLights(void);
 void BuildVertexNormals(void);
-void BuildFacelights(int32_t face_num);
-void BuildIndirect(int32_t face_num);
-void FinalLightFace(int32_t face_num);
+void DirectLighting(int32_t face_num);
+void IndirectLighting(int32_t face_num);
+void FinalizeLighting(int32_t face_num);
 
 // patches.c
 void BuildTextureColors(void);

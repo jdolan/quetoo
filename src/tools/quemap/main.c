@@ -266,10 +266,9 @@ static void Check_LIGHT_Options(int32_t argc) {
 		if (!g_strcmp0(Com_Argv(i), "-extra")) {
 			extra_samples = true;
 			Com_Verbose("extra samples: true\n");
-		} if (!g_strcmp0(Com_Argv(i), "-bounce")) {
-			indirect_bounces = atoi(Com_Argv(i + 1));
-			Com_Verbose("indirect bounces: %d\n", indirect_bounces);
-			i++;
+		} if (!g_strcmp0(Com_Argv(i), "-indirect")) {
+			indirect = true;
+			Com_Verbose("indirect lighting: true\n");
 		} else if (!g_strcmp0(Com_Argv(i), "-brightness")) {
 			brightness = atof(Com_Argv(i + 1));
 			Com_Verbose("brightness: %f\n", brightness);

@@ -33,7 +33,7 @@ vec3_t face_offset[MAX_BSP_FACES]; // for rotating bmodels
 
 vec_t patch_subdivide = PATCH_SUBDIVIDE;
 _Bool extra_samples = false;
-int32_t indirect_bounces = 4;
+_Bool indirect = false;
 
 vec3_t ambient;
 
@@ -166,18 +166,17 @@ static void LightWorld(void) {
 	BuildVertexNormals();
 
 	// build initial facelights
-	RunThreadsOn(bsp_file.num_faces, true, BuildFacelights);
+	RunThreadsOn(bsp_file.num_faces, true, DirectLighting);
 
-	// build indirect lighting
-	if (indirect_bounces > 0) {
-		RunThreadsOn(bsp_file.num_faces, true, BuildIndirect);
+	if (indirect) { // build indirect lighting
+		RunThreadsOn(bsp_file.num_faces, true, IndirectLighting);
 	}
 
 	// finalize it and write it out
 	bsp_file.lightmap_data_size = 0;
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTMAPS, MAX_BSP_LIGHTING);
 
-	RunThreadsOn(bsp_file.num_faces, true, FinalLightFace);
+	RunThreadsOn(bsp_file.num_faces, true, FinalizeLighting);
 }
 
 /**
