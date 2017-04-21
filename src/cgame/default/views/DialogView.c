@@ -149,28 +149,31 @@ static DialogView *init(DialogView *self) {
  */
 static void showDialog(DialogView *self, const char *text, const char *cancelText, const char *okText, void (*okFunction)(void)) {
 
+	// Description and the Ok text need to exist, the Cancel button can be disabled by passing NULL for the text
+
+	assert(text);
+	assert(okText);
+
 	self->okFunction = okFunction;
 
 	self->panel.stackView.view.hidden = false;
 	self->panel.stackView.view.needsLayout = true;
 
-	if (text) {
-		$(self->label->text, setText, text);
-	} else {
-		$(self->label->text, setText, "No description given");
-	}
+	self->cancelButton->control.view.needsLayout = true;
+	self->okButton->control.view.needsLayout = true;
+
+	char new_text[MAX_STRING_CHARS];
+	StripNewline(text, new_text);
+
+	$(self->label->text, setText, new_text);
 
 	if (cancelText) {
 		$(self->cancelButton->title, setText, cancelText);
 	} else {
-		$(self->cancelButton->title, setText, "Cancel");
+		self->cancelButton->control.view.hidden = true;
 	}
 
-	if (okText) {
-		$(self->okButton->title, setText, okText);
-	} else {
-		$(self->okButton->title, setText, "Ok");
-	}
+	$(self->okButton->title, setText, okText);
 }
 
 /**

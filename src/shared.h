@@ -179,6 +179,7 @@ typedef enum {
 _Bool GlobMatch(const char *pattern, const char *text, const glob_flags_t flags);
 const char *Basename(const char *path);
 void Dirname(const char *in, char *out);
+void StripNewline(const char *in, char *out);
 void StripExtension(const char *in, char *out);
 void StripColors(const char *in, char *out);
 size_t StrColorLen(const char *s);

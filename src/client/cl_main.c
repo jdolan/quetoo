@@ -106,6 +106,8 @@ static void Cl_AttemptConnect(void) {
 	net_addr_t addr;
 
 	if (!Net_StringToNetaddr(cls.server_name, &addr)) {
+		printf("address: %s\n", cls.server_name);
+
 		Com_Print("Bad server address\n");
 		cls.state = CL_DISCONNECTED;
 		return;
@@ -139,6 +141,8 @@ void Cl_Connect(const net_addr_t *addr) {
 	Cl_Disconnect();
 
 	g_strlcpy(cls.server_name, Net_NetaddrToString(addr), sizeof(cls.server_name));
+
+	memset(cls.last_server, 0, sizeof(cls.last_server));
 
 	cls.state = CL_CONNECTING;
 	cls.connect_time = 0;
@@ -317,9 +321,11 @@ void Cl_Disconnect(void) {
 		cls.download.file = NULL;
 	}
 
+	g_strlcpy(cls.last_server, cls.server_name, sizeof(cls.last_server));
+
 	memset(cls.server_name, 0, sizeof(cls.server_name));
 
-	Cl_SetKeyDest(KEY_CONSOLE);
+	Cl_SetKeyDest(KEY_UI);
 }
 
 /**
@@ -343,16 +349,20 @@ void Cl_Reconnect_f(void) {
 		return;
 	}
 
-	if (cls.server_name[0] != '\0') {
+	if (cls.server_name[0] != '\0') { // already connected
 
 		if (cls.state >= CL_CONNECTING) {
-			char server_name[MAX_OS_PATH];
-
-			g_strlcpy(server_name, cls.server_name, sizeof(server_name));
-
 			Cl_Disconnect();
 
-			g_strlcpy(cls.server_name, server_name, sizeof(cls.server_name));
+			g_strlcpy(cls.server_name, cls.last_server, sizeof(cls.server_name));
+		}
+
+		cls.connect_time = 0; // fire immediately
+		cls.state = CL_CONNECTING;
+	} else if (cls.last_server[0] != '\0') { // connecting to a previous server
+
+		if (cls.state < CL_CONNECTING) {
+			g_strlcpy(cls.server_name, cls.last_server, sizeof(cls.server_name));
 		}
 
 		cls.connect_time = 0; // fire immediately
@@ -360,6 +370,13 @@ void Cl_Reconnect_f(void) {
 	} else {
 		Com_Print("No server to reconnect to\n");
 	}
+}
+
+/**
+ * @brief Tells the cgame to show the last ERROR_DROP message.
+ */
+void Cl_Drop(const char *text) {
+	cls.cgame->DialogQuestion(text, "Ok", "Reconnect", Cl_Reconnect_f);
 }
 
 /**

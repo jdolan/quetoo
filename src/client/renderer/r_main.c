@@ -423,6 +423,9 @@ static void R_Restart_f(void) {
 
 	R_LoadMedia();
 
+	cls.loading.percent = 100;
+	cls.cgame->UpdateLoading(cls.loading);
+
 	cls.state = state;
 }
 

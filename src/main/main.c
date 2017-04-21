@@ -175,6 +175,7 @@ static void Error(err_t err, const char *msg) {
 		case ERROR_DROP:
 			Sv_ShutdownServer(msg);
 			Cl_Disconnect();
+			Cl_Drop(msg);
 			quetoo.recursive_error = false;
 			longjmp(env, err);
 			break;

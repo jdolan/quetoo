@@ -827,6 +827,25 @@ void Dirname(const char *in, char *out) {
 }
 
 /**
+ * @brief Removes the first newline and everything following it
+ * from the specified input string.
+ */
+void StripNewline(const char *in, char *out) {
+
+	if (in) {
+		const size_t len = strlen(in);
+		memmove(out, in, len + 1);
+
+		char *ext = strrchr(out, '\n');
+		if (ext) {
+			*ext = '\0';
+		}
+	} else {
+		*out = '\0';
+	}
+}
+
+/**
  * @brief Removes any file extension(s) from the specified input string.
  */
 void StripExtension(const char *in, char *out) {

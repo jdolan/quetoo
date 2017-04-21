@@ -33,6 +33,13 @@ void Cl_Disconnect(void) {
 /**
  * @brief
  */
+void Cl_Drop(const char *text) {
+
+}
+
+/**
+ * @brief
+ */
 void Cl_Frame(const uint32_t msec) {
 
 }

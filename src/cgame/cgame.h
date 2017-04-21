@@ -772,6 +772,7 @@ typedef struct cg_export_s {
 	void (*UpdateLoading)(const cl_loading_t loading);
 	void (*UpdateView)(const cl_frame_t *frame);
 	void (*UpdateScreen)(const cl_frame_t *frame, const cl_state_t state);
+	void (*DialogQuestion)(const char *text, const char *cancelText, const char *okText, void (*okFunction)(void));
 
 } cg_export_t;
 

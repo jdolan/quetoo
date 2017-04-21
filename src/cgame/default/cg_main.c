@@ -443,6 +443,7 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.UpdateLoading = Cgui_UpdateLoading;
 	cge.UpdateView = Cg_UpdateView;
 	cge.UpdateScreen = Cg_UpdateScreen;
+	cge.DialogQuestion = Cgui_DialogQuestion;
 
 	return &cge;
 }
