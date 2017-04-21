@@ -118,10 +118,10 @@ static void loadView(ViewController *self) {
 			// Tab buttons
 
 			{
-				Cgui_TabButton((View *) row, "Input", QColors.Dark, tabAction, nvc, _InputViewController(), true);
-				Cgui_TabButton((View *) row, "Video", QColors.Dark, tabAction, nvc, _VideoViewController(), false);
-				Cgui_TabButton((View *) row, "Audio", QColors.Dark, tabAction, nvc, _AudioViewController(), false);
+				Cgui_TabButton((View *) row, "Video", QColors.Dark, tabAction, nvc, _VideoViewController(), true);
+				Cgui_TabButton((View *) row, "Input", QColors.Dark, tabAction, nvc, _InputViewController(), false);
 				Cgui_TabButton((View *) row, "Interface", QColors.Dark, tabAction, nvc, _InterfaceViewController(), false);
+				Cgui_TabButton((View *) row, "Audio", QColors.Dark, tabAction, nvc, _AudioViewController(), false);
 			}
 		}
 

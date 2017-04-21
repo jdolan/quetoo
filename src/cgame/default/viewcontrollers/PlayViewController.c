@@ -118,8 +118,8 @@ static void loadView(ViewController *self) {
 
 			{
 				Cgui_TabButton((View *) row, "Quick join", QColors.Dark, tabAction, nvc, _QuickJoinViewController(), true);
-				Cgui_TabButton((View *) row, "Create server", QColors.Dark, tabAction, nvc, _CreateServerViewController(), false);
 				Cgui_TabButton((View *) row, "Server browser", QColors.Dark, tabAction, nvc, _ServerBrowserViewController(), false);
+				Cgui_TabButton((View *) row, "Create server", QColors.Dark, tabAction, nvc, _CreateServerViewController(), false);
 			}
 		}
 

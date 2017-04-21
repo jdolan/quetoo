@@ -49,6 +49,16 @@ struct CreditsViewController {
 	 * @private
 	 */
 	CreditsViewControllerInterface *interface;
+
+	/*
+	 * @brief The list of credits, loaded from a file.
+	 */
+	GSList *credits;
+
+	/*
+	 * @brief The credits TableView.
+	 */
+	TableView *tableView;
 };
 
 /**
@@ -60,6 +70,13 @@ struct CreditsViewControllerInterface {
 	 * @brief The superclass interface.
 	 */
 	TabViewControllerInterface tabViewControllerInterface;
+
+	/**
+	 * @fn void CreditsViewController::loadCredits(CreditsViewController *self, const char *path)
+	 * @brief Loads the credits from a file
+	 * @memberof CreditsViewController
+	 */
+	void (*loadCredits)(CreditsViewController *self, const char *path);
 };
 
 /**

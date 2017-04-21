@@ -21,34 +21,35 @@
 
 #include "cg_local.h"
 
+#include "parse.h"
+
 #include "CreditsViewController.h"
 
 static const char *_name = "Name";
 static const char *_role = "Role";
 
 typedef struct {
-	const char *name;
-	const char *role;
+	char name[MAX_STRING_CHARS];
+	char role[MAX_STRING_CHARS];
 } credit_t;
 
-#define MAX_CREDITS 3
-
-static credit_t credits[MAX_CREDITS] = {
-	{
-		.name = "First \"Bob\" Last",
-		.role = "Project lead"
-	},
-	{
-		.name = "First \"Jimmy\" Last",
-		.role = "Maintainer"
-	},
-	{
-		.name = "First \"Joe\" Last",
-		.role = "Developer"
-	}
-};
-
 #define _Class _CreditsViewController
+
+#pragma mark - Object
+
+/**
+ * @see Object::dealloc(Object *)
+ */
+static void dealloc(Object *self) {
+
+	CreditsViewController *this = (CreditsViewController *) self;
+
+	g_slist_free_full(this->credits, cgi.Free);
+
+	release(this->tableView);
+
+	super(Object, self, dealloc);
+}
 
 #pragma mark - TableViewDataSource
 
@@ -56,7 +57,7 @@ static credit_t credits[MAX_CREDITS] = {
  * @see TableViewDataSource::numberOfRows
  */
 static size_t numberOfRows(const TableView *tableView) {
-	return MAX_CREDITS;
+	return g_slist_length(((CreditsViewController *) tableView->dataSource.self)->credits);
 }
 
 /**
@@ -64,12 +65,13 @@ static size_t numberOfRows(const TableView *tableView) {
  */
 static ident valueForColumnAndRow(const TableView *tableView, const TableColumn *column, size_t row) {
 
-	assert(row < MAX_CREDITS);
+	credit_t *credit = g_slist_nth_data(((CreditsViewController *) tableView->dataSource.self)->credits, (guint) row);
+	assert(credit);
 
 	if (g_strcmp0(column->identifier, _name) == 0) {
-		return &credits[row].name;
+		return &credit->name;
 	} else if (g_strcmp0(column->identifier, _role) == 0) {
-		return &credits[row].role;
+		return &credit->role;
 	}
 
 	return NULL;
@@ -82,14 +84,15 @@ static ident valueForColumnAndRow(const TableView *tableView, const TableColumn 
  */
 static TableCellView *cellForColumnAndRow(const TableView *tableView, const TableColumn *column, size_t row) {
 
-	assert(row < MAX_CREDITS);
+	credit_t *credit = g_slist_nth_data(((CreditsViewController *) tableView->dataSource.self)->credits, (guint) row);
+	assert(credit);
 
 	TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
 
 	if (g_strcmp0(column->identifier, _name) == 0) {
-		$(cell->text, setText, credits[row].name);
+		$(cell->text, setText, credit->name);
 	} else if (g_strcmp0(column->identifier, _role) == 0) {
-		$(cell->text, setText, credits[row].role);
+		$(cell->text, setText, credit->role);
 	}
 
 	return cell;
@@ -104,6 +107,8 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
+	CreditsViewController *this = (CreditsViewController *) self;
+
 	self->view->padding.top = DEFAULT_PANEL_SPACING;
 	self->view->padding.right = DEFAULT_PANEL_SPACING;
 	self->view->padding.bottom = DEFAULT_PANEL_SPACING;
@@ -115,16 +120,17 @@ static void loadView(ViewController *self) {
 
 		box->view.autoresizingMask = ViewAutoresizingFill;
 
-		TableView *tableView = $(alloc(TableView), initWithFrame, NULL, ControlStyleDefault);
+		this->tableView = $(alloc(TableView), initWithFrame, NULL, ControlStyleDefault);
 
-		tableView->control.selection = ControlSelectionNone;
+		this->tableView->control.selection = ControlSelectionNone;
 
-		tableView->control.view.autoresizingMask = ViewAutoresizingFill;
+		this->tableView->control.view.autoresizingMask = ViewAutoresizingFill;
 
-		tableView->dataSource.numberOfRows = numberOfRows;
-		tableView->dataSource.valueForColumnAndRow = valueForColumnAndRow;
+		this->tableView->dataSource.self = (ident) self;
+		this->tableView->dataSource.numberOfRows = numberOfRows;
+		this->tableView->dataSource.valueForColumnAndRow = valueForColumnAndRow;
 
-		tableView->delegate.cellForColumnAndRow = cellForColumnAndRow;
+		this->tableView->delegate.cellForColumnAndRow = cellForColumnAndRow;
 
 		{
 			TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _name);
@@ -133,7 +139,7 @@ static void loadView(ViewController *self) {
 			column->comparator = (Comparator) g_ascii_strcasecmp;
 			column->width = 30;
 
-			$(tableView, addColumn, column);
+			$(this->tableView, addColumn, column);
 			release(column);
 		}
 
@@ -144,18 +150,64 @@ static void loadView(ViewController *self) {
 			column->comparator = (Comparator) g_ascii_strcasecmp;
 			column->width = 70;
 
-			$(tableView, addColumn, column);
+			$(this->tableView, addColumn, column);
 			release(column);
 		}
 
-		$(tableView, reloadData);
-
-		$((View *) box, addSubview, (View *) tableView);
-		release(tableView);
+		$((View *) box, addSubview, (View *) this->tableView);
 
 		$(self->view, addSubview, (View *) box);
 		release(box);
 	}
+
+	$(this, loadCredits, "docs/credits.txt");
+}
+
+#pragma mark - CreditsViewController
+
+/**
+ * @brief Loads the credits file from the data dir
+ */
+static void loadCredits(CreditsViewController *self, const char *path) {
+	void *buf;
+	parser_t parser;
+	char token_name[MAX_STRING_CHARS];
+	char token_role[MAX_STRING_CHARS];
+
+	if (self->credits != NULL) {
+		g_slist_free_full(self->credits, cgi.Free);
+		self->credits = NULL;
+	}
+
+	if (cgi.LoadFile(path, &buf) == -1) {
+		return;
+	}
+
+	Parse_Init(&parser, (const char *) buf, PARSER_DEFAULT);
+
+	while (true) {
+
+		if (!Parse_Token(&parser, 0, token_name, sizeof(token_name))) {
+			break;
+		}
+
+		if (!Parse_Token(&parser, 0, token_role, sizeof(token_role))) {
+			break;
+		}
+
+		credit_t *c;
+
+ 		c = (credit_t *) cgi.Malloc(sizeof(*c), MEM_TAG_UI);
+
+		g_strlcpy(c->name, token_name, sizeof(token_name));
+		g_strlcpy(c->role, token_role, sizeof(token_role));
+
+		self->credits = g_slist_append(self->credits, c);
+	}
+
+	cgi.FreeFile(buf);
+
+	$(self->tableView, reloadData);
 }
 
 #pragma mark - Class lifecycle
@@ -165,7 +217,11 @@ static void loadView(ViewController *self) {
  */
 static void initialize(Class *clazz) {
 
+	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+
+	((CreditsViewControllerInterface *) clazz->def->interface)->loadCredits = loadCredits;
 }
 
 /**
