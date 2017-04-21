@@ -236,8 +236,9 @@ static void CalcSamplePoints(const light_info_t *l, vec_t sofs, vec_t tofs, vec_
 typedef struct {
 	int32_t num_samples;
 	vec_t *origins;
-	vec_t *samples;
+	vec_t *direct;
 	vec_t *directions;
+	vec_t *indirect;
 } face_lighting_t;
 
 static face_lighting_t face_lighting[MAX_BSP_FACES];
@@ -806,14 +807,15 @@ void DirectLighting(int32_t face_num) {
 	fl->origins = Mem_TagMalloc(fl->num_samples * sizeof(vec3_t), MEM_TAG_FACE_LIGHTING);
 	memcpy(fl->origins, light.sample_points, fl->num_samples * sizeof(vec3_t));
 
-	fl->samples = Mem_TagMalloc(fl->num_samples * sizeof(vec3_t), MEM_TAG_FACE_LIGHTING);
+	fl->direct = Mem_TagMalloc(fl->num_samples * sizeof(vec3_t), MEM_TAG_FACE_LIGHTING);
 	fl->directions = Mem_TagMalloc(fl->num_samples * sizeof(vec3_t), MEM_TAG_FACE_LIGHTING);
+	fl->indirect = Mem_TagMalloc(fl->num_samples * sizeof(vec3_t), MEM_TAG_FACE_LIGHTING);
 
 	const vec_t *center = face_extents[face_num].center; // center of the face
 
 	for (int32_t i = 0; i < fl->num_samples; i++) { // calculate light for each sample
 
-		vec_t *sample = fl->samples + i * 3; // accumulate lighting here
+		vec_t *sample = fl->direct + i * 3; // accumulate lighting here
 		vec_t *direction = fl->directions + i * 3; // accumulate direction here
 
 		for (int32_t j = 0; j < num_samples; j++) { // with antialiasing
@@ -884,7 +886,7 @@ void IndirectLightingImpact(const cm_trace_t *trace, const vec3_t color) {
 
 				const vec_t dist = VectorLengthSquared(delta);
 				if (dist < best_dist) {
-					sample = lighting->samples + j * 3;
+					sample = lighting->indirect + j * 3;
 					best_dist = dist;
 				}
 			}
@@ -931,7 +933,7 @@ void IndirectLighting(int32_t face_num) {
 	for (int32_t i = 0; i < source_lighting->num_samples; i++) {
 
 		const vec_t *org = source_lighting->origins + i * 3;
-		const vec_t *sample = source_lighting->samples + i * 3;
+		const vec_t *sample = source_lighting->direct + i * 3;
 		const vec_t *direction = source_lighting->directions + i * 3;
 
 		vec3_t color;
@@ -997,8 +999,11 @@ void FinalizeLighting(int32_t face_num) {
 	for (int32_t i = 0; i < fl->num_samples; i++) {
 		vec3_t lightmap;
 
+		const vec_t *direct = fl->direct + i * 3;
+		const vec_t *indirect = fl->indirect + i * 3;
+
 		// start with raw sample data
-		VectorCopy((fl->samples + i * 3), lightmap);
+		VectorAdd(direct, indirect, lightmap);
 
 		// convert to float
 		VectorScale(lightmap, 1.0 / 255.0, lightmap);
@@ -1056,8 +1061,4 @@ void FinalizeLighting(int32_t face_num) {
 			}
 		}
 	}
-
-	Mem_Free(fl->origins);
-	Mem_Free(fl->samples);
-	Mem_Free(fl->directions);
 }
