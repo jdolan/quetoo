@@ -29,11 +29,8 @@ typedef struct light_info_s {
 	const bsp_plane_t *plane;
 	const bsp_texinfo_t *texinfo;
 
-	vec_t dist; // the plane distance, negated if back facing plane
-
 	vec3_t normal; // the plane normal, negated if back facing plane
-//	vec4_t tangent;
-//	vec3_t bitangent;
+	vec_t dist; // the plane distance, negated if back facing plane
 
 	int32_t num_sample_points;
 	vec_t *sample_points; // num_sample_points * num_samples
@@ -41,7 +38,6 @@ typedef struct light_info_s {
 	vec3_t model_org; // for bsp submodels
 
 	vec3_t tex_org;
-	vec3_t world_to_tex[2]; // s = (world - tex_org) . world_to_tex[0]
 	vec3_t tex_to_world[2]; // world = tex_org + s * tex_to_world[0]
 
 	vec2_t exact_mins, exact_maxs;
@@ -123,7 +119,7 @@ static void BuildFaceExtents(void) {
 }
 
 /**
- * @brief Fills in l->texmins[] and l->texsize[], l->exactmins[] and l->exactmaxs[]
+ * @brief Fills in l->tex_mins[] and l->tex_size[], l->exact_mins[] and l->exact_maxs[]
  */
 static void CalcLightInfoExtents(light_info_t *l) {
 	vec2_t lm_mins, lm_maxs;
@@ -159,11 +155,6 @@ static void CalcLightInfoVectors(light_info_t *l) {
 
 	const bsp_texinfo_t *tex = l->texinfo;
 
-	// convert from vec_t to double
-	for (int32_t i = 0; i < 2; i++) {
-		VectorCopy(tex->vecs[i], l->world_to_tex[i]);
-	}
-
 	// calculate a normal to the texture axis. points can be moved along this
 	// without changing their S/T
 	vec3_t tex_normal;
@@ -188,9 +179,9 @@ static void CalcLightInfoVectors(light_info_t *l) {
 	dist_scale = 1.0 / dist_scale;
 
 	for (int32_t i = 0; i < 2; i++) {
-		const vec_t len = VectorLength(l->world_to_tex[i]);
-		const vec_t distance = DotProduct(l->world_to_tex[i], l->normal) * dist_scale;
-		VectorMA(l->world_to_tex[i], -distance, tex_normal, l->tex_to_world[i]);
+		const vec_t len = VectorLength(tex->vecs[i]);
+		const vec_t distance = DotProduct(tex->vecs[i], l->normal) * dist_scale;
+		VectorMA(tex->vecs[i], -distance, tex_normal, l->tex_to_world[i]);
 		VectorScale(l->tex_to_world[i], (1 / len) * (1 / len), l->tex_to_world[i]);
 	}
 
@@ -217,7 +208,7 @@ static void CalcLightInfoVectors(light_info_t *l) {
  * @brief For each texture aligned grid point, back project onto the plane
  * to get the world xyz value of the sample point
  */
-static void CalcPoints(const light_info_t *l, vec_t sofs, vec_t tofs, vec_t *out) {
+static void CalcSamplePoints(const light_info_t *l, vec_t sofs, vec_t tofs, vec_t *out) {
 
 	const int32_t h = l->tex_size[1] + 1;
 	const int32_t w = l->tex_size[0] + 1;
@@ -250,6 +241,7 @@ typedef struct {
 } face_lighting_t;
 
 static face_lighting_t face_lighting[MAX_BSP_FACES];
+
 
 typedef struct light_s { // a light source
 	struct light_s *next;
@@ -484,32 +476,30 @@ void BuildLights(void) {
 static void GatherSampleSunlight(const vec3_t pos, const vec3_t normal, vec_t *sample,
                                  vec_t *direction, vec_t scale) {
 
-	vec3_t delta;
-	vec_t dot, light;
-	cm_trace_t trace;
-
 	if (!sun.light) {
 		return;
 	}
 
-	dot = DotProduct(sun.dir, normal);
+	const vec_t dot = DotProduct(sun.dir, normal);
 
 	if (dot <= 0.001) {
-		return;    // wrong direction
+		return; // wrong direction
 	}
 
+	vec3_t delta;
 	VectorMA(pos, MAX_WORLD_DIST, sun.dir, delta);
 
+	cm_trace_t trace;
 	Light_Trace(&trace, pos, delta, CONTENTS_SOLID);
 
 	if (trace.fraction < 1.0 && !(trace.surface->flags & SURF_SKY)) {
-		return;    // occluded
+		return; // occluded
 	}
 
-	light = sun.light * dot * scale;
+	const vec_t light = sun.light * dot;
 
 	// add some light to it
-	VectorMA(sample, light, sun.color, sample);
+	VectorMA(sample, light * scale, sun.color, sample);
 
 	// and accumulate the direction
 	VectorMix(normal, sun.dir, light / sun.light, delta);
@@ -520,8 +510,7 @@ static void GatherSampleSunlight(const vec3_t pos, const vec3_t normal, vec_t *s
  * @brief Iterate over all light sources for the sample position's PVS, accumulating
  * light and directional information to the specified pointers.
  */
-static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs, vec_t *sample,
-                              vec_t *direction, vec_t scale) {
+static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs, vec_t *sample, vec_t *direction, vec_t scale) {
 
 	// iterate over lights, which are in buckets by cluster
 	for (int32_t i = 0; i < bsp_file.vis_data.vis->num_clusters; i++) {
@@ -794,17 +783,12 @@ void DirectLighting(int32_t face_num) {
 	// and the lightmap texture vectors
 	CalcLightInfoVectors(&light);
 
-	// determine the number of sample passes (-extra)
-	int32_t num_samples;
-	if (extra_samples) {
-		num_samples = MAX_SAMPLES;
-	} else {
-		num_samples = 1;
-	}
+	// determine the number of sample passes (-antialias)
+	const int32_t num_samples = antialias ? MAX_SAMPLES : 1;
 
 	// now allocate all of the sample points
 	const size_t size = light.num_sample_points * num_samples * sizeof(vec3_t);
-	light.sample_points = Mem_TagMalloc(size, MEM_TAG_SAMPLES);
+	light.sample_points = Mem_Malloc(size);
 
 	for (int32_t i = 0; i < num_samples; i++) { // and calculate them in world space
 
@@ -813,17 +797,17 @@ void DirectLighting(int32_t face_num) {
 
 		vec_t *out = light.sample_points + (i * light.num_sample_points * 3);
 
-		CalcPoints(&light, sofs, tofs, out);
+		CalcSamplePoints(&light, sofs, tofs, out);
 	}
 
 	face_lighting_t *fl = &face_lighting[face_num];
 	fl->num_samples = light.num_sample_points;
 
-	fl->origins = Mem_TagMalloc(fl->num_samples * sizeof(vec3_t), MEM_TAG_FACELIGHT);
+	fl->origins = Mem_TagMalloc(fl->num_samples * sizeof(vec3_t), MEM_TAG_FACE_LIGHTING);
 	memcpy(fl->origins, light.sample_points, fl->num_samples * sizeof(vec3_t));
 
-	fl->samples = Mem_TagMalloc(fl->num_samples * sizeof(vec3_t), MEM_TAG_FACELIGHT);
-	fl->directions = Mem_TagMalloc(fl->num_samples * sizeof(vec3_t), MEM_TAG_FACELIGHT);
+	fl->samples = Mem_TagMalloc(fl->num_samples * sizeof(vec3_t), MEM_TAG_FACE_LIGHTING);
+	fl->directions = Mem_TagMalloc(fl->num_samples * sizeof(vec3_t), MEM_TAG_FACE_LIGHTING);
 
 	const vec_t *center = face_extents[face_num].center; // center of the face
 
@@ -851,28 +835,128 @@ void DirectLighting(int32_t face_num) {
 				continue; // not a valid point
 			}
 
+			// query all light sources within range for their contribution
 			GatherSampleLight(pos, norm, pvs, sample, direction, 1.0 / num_samples);
 		}
 	}
 
-	// free the sample positions
+	// free the sample points
 	Mem_Free(light.sample_points);
 }
 
 /**
- * @brief Must be run after BuildLights is run because it needs face_lights initialized
+ * @brief Tests surfaces in the impacted leaf, modulating the lighting sample closest to
+ * the impact point.
+ */
+void IndirectLightingImpact(const cm_trace_t *trace, const vec3_t color) {
+
+	const int32_t leaf_num = Light_PointLeafnum(trace->end);
+	if (leaf_num != -1) {
+		const bsp_leaf_t *leaf = &bsp_file.leafs[leaf_num];
+
+		const uint16_t *leaf_face = bsp_file.leaf_faces + leaf->first_leaf_face;
+		for (int16_t i = 0; i < leaf->num_leaf_faces; i++, leaf_face++) {
+
+			const bsp_face_t *face = &bsp_file.faces[*leaf_face];
+			const bsp_texinfo_t *texinfo = &bsp_file.texinfo[face->texinfo];
+
+			if (texinfo->flags & (SURF_SKY | SURF_WARP)) {
+				continue;
+			}
+
+			const bsp_plane_t *plane = &bsp_file.planes[face->plane_num];
+			const vec_t dist = DotProduct(trace->end, plane->normal) - plane->dist;
+
+			if (fabs(dist) > 1.0 / lightmap_scale) {
+				continue;
+			}
+
+			face_lighting_t *lighting = &face_lighting[face - bsp_file.faces];
+
+			vec_t best_dist = MAX_WORLD_DIST;
+			vec_t *sample = NULL;
+
+			for (int32_t j = 0; j < lighting->num_samples; j++) {
+				const vec_t *org = lighting->origins + j * 3;
+
+				vec3_t delta;
+				VectorSubtract(org, trace->end, delta);
+
+				const vec_t dist = VectorLengthSquared(delta);
+				if (dist < best_dist) {
+					sample = lighting->samples + j * 3;
+					best_dist = dist;
+				}
+			}
+
+			if (sample) {
+				VectorMA(sample, 1.0 - trace->fraction, color, sample);
+			}
+
+			break; // once we've hit a surface, we can skip the rest of the leaf
+		}
+	} else {
+		Com_Debug(DEBUG_ALL, "Invalid leaf @ %s: %s\n", vtos(trace->end), trace->surface->name);
+	}
+}
+
+/**
+ * @brief Calculates indirect lighting via photon bouncing.
+ * @details Direct lighting results are reflected outwards. Hits on neighboring surfaces are
+ * traced to their lightmap sample, much like stain mapping.
+ * @remarks TODO: Ensure this is thread safe for impacted faces.
  */
 void IndirectLighting(int32_t face_num) {
 
-	face_lighting_t *fl = &face_lighting[face_num];
+	const bsp_face_t *face = &bsp_file.faces[face_num];
+	const bsp_texinfo_t *texinfo = &bsp_file.texinfo[face->texinfo];
 
-
-	for (int32_t i = 0; i < fl->num_samples; i++) {
-
-		const vec_t *org = fl->origins + i * 3;
-
+	if (texinfo->flags & (SURF_SKY | SURF_WARP)) {
+		return; // we have no light to reflect
 	}
-	
+
+	const cm_material_t *material = LoadMaterial(texinfo->texture, ASSET_CONTEXT_TEXTURES);
+	const bsp_plane_t *plane = &bsp_file.planes[face->plane_num];
+
+	vec3_t normal;
+
+	if (face->side) {
+		VectorNegate(plane->normal, normal);
+	} else {
+		VectorCopy(plane->normal, normal);
+	}
+
+	const face_lighting_t *source_lighting = &face_lighting[face_num];
+
+	for (int32_t i = 0; i < source_lighting->num_samples; i++) {
+
+		const vec_t *org = source_lighting->origins + i * 3;
+		const vec_t *sample = source_lighting->samples + i * 3;
+		const vec_t *direction = source_lighting->directions + i * 3;
+
+		vec3_t color;
+		VectorCopy(sample, color);
+
+		const vec_t light = VectorLength(color) * material->hardness;
+		ColorNormalize(color, color);
+
+		vec3_t reflect;
+		Reflect(direction, normal, reflect);
+
+		vec3_t end;
+		VectorMA(org, light, reflect, end);
+
+		cm_trace_t trace;
+		Light_Trace(&trace, org, end, CONTENTS_SOLID);
+
+		if (trace.all_solid || trace.fraction == 1.0) {
+			continue;
+		}
+
+		assert(trace.surface);
+
+		IndirectLightingImpact(&trace, color);
+	}
 }
 
 /**
@@ -938,10 +1022,9 @@ void FinalizeLighting(int32_t face_num) {
 
 			// if the sample was lit, it will have a directional vector in world space
 			if (!VectorCompare(direction, vec3_origin)) {
-
 				vec3_t normal;
 
-				if (tex->flags & SURF_PHONG) {
+				if (tex->flags & SURF_PHONG) { // interpolated normal
 					SampleNormal(f, fl->origins + i * 3, normal);
 				} else {
 					if (f->side) {

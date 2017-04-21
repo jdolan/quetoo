@@ -72,7 +72,7 @@ extern int32_t subdivide_size;
 extern vec_t microvolume;
 
 // LIGHT
-extern _Bool extra_samples;
+extern _Bool antialias;
 extern _Bool indirect;
 
 extern vec_t brightness;
@@ -125,9 +125,8 @@ enum {
 	MEM_TAG_EPAIR,
 	MEM_TAG_FACE,
 	MEM_TAG_VIS,
-	MEM_TAG_SAMPLES,
 	MEM_TAG_LIGHT,
-	MEM_TAG_FACELIGHT,
+	MEM_TAG_FACE_LIGHTING,
 	MEM_TAG_PATCH,
 	MEM_TAG_WINDING,
 	MEM_TAG_PORTAL,

@@ -263,9 +263,9 @@ static void Check_VIS_Options(int32_t argc) {
 static void Check_LIGHT_Options(int32_t argc) {
 
 	for (int32_t i = argc; i < Com_Argc(); i++) {
-		if (!g_strcmp0(Com_Argv(i), "-extra")) {
-			extra_samples = true;
-			Com_Verbose("extra samples: true\n");
+		if (!g_strcmp0(Com_Argv(i), "-antialias") || !g_strcmp0(Com_Argv(i), "-extra")) {
+			antialias = true;
+			Com_Verbose("antialias: true\n");
 		} if (!g_strcmp0(Com_Argv(i), "-indirect")) {
 			indirect = true;
 			Com_Verbose("indirect lighting: true\n");
@@ -361,9 +361,8 @@ static void PrintHelpMessage(void) {
 	Com_Print("\n");
 
 	Com_Print("-light             LIGHT stage options:\n");
+	Com_Print(" -antialias - calculate extra lighting samples and average them\n");
 	Com_Print(" -indirect - calculate indirect lighting\n");
-	Com_Print(" -bounce <int> - how many bounces to trace for indirect lighting\n");
-	Com_Print(" -extra - extra light samples\n");
 	Com_Print(" -entity <float> - entity light scaling\n");
 	Com_Print(" -surface <float> - surface light scaling\n");
 	Com_Print(" -brightness <float> - brightness factor\n");
@@ -379,12 +378,16 @@ static void PrintHelpMessage(void) {
 	Com_Print("\n");
 
 	Com_Print("Examples:\n");
-	Com_Print("Materials file generation:\n quemap -mat maps/my.map\n");
-	Com_Print("Standard full compile:\n quemap -bsp -vis -light -indirect maps/my.map\n");
-	Com_Print("Fast vis, extra light:\n"
-	          " quemap -bsp -vis -fast -light -extra -indirect -bounce 8 maps/my.map\n");
-	Com_Print("Area awareness compile (for bots):\n quemap -aas maps/my.bsp\n");
-	Com_Print("Zip file generation:\n quemap -zip maps/my.bsp\n");
+	Com_Print("Materials file generation:\n"
+			  " quemap -mat maps/my.map\n");
+	Com_Print("Fast compile rough lighting:\n"
+			  " quemap -bsp -vis -fast -light maps/my.map\n");
+	Com_Print("Final compile with expensive lighting:\n"
+	          " quemap -bsp -vis -light -antialias -indirect maps/my.map\n");
+	Com_Print("Area awareness compile for artificial intelligence routing:\n"
+			  " quemap -aas maps/my.bsp\n");
+	Com_Print("Zip file generation:\n"
+			  " quemap -zip maps/my.bsp\n");
 	Com_Print("\n");
 }
 

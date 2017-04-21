@@ -121,8 +121,12 @@ static _Bool R_StainSurface(const r_stain_t *stain, const r_bsp_surface_t *surf)
 		.stain = stain,
 		.radius = radius_rounded,
 		.point = { round(surf->lightmap_s + point_st[0]), round(surf->lightmap_t + point_st[1]) },
-		.color = ColorFromRGBA((byte) (stain->color[0] * 255.0), (byte) (stain->color[1] * 255.0), (byte) (stain->color[2] * 255.0), (byte) (stain->color[3] * 255.0))
-	}, 1);
+		.color = ColorFromRGBA(
+			(byte) (stain->color[0] * 255.0),
+			(byte) (stain->color[1] * 255.0),
+			(byte) (stain->color[2] * 255.0),
+			(byte) (stain->color[3] * 255.0)
+		)}, 1);
 
 	return true;
 }

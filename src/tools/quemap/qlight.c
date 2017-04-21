@@ -32,7 +32,7 @@ patch_t *face_patches[MAX_BSP_FACES];
 vec3_t face_offset[MAX_BSP_FACES]; // for rotating bmodels
 
 vec_t patch_subdivide = PATCH_SUBDIVIDE;
-_Bool extra_samples = false;
+_Bool antialias = false;
 _Bool indirect = false;
 
 vec3_t ambient;
@@ -97,7 +97,7 @@ _Bool Light_InPVS(const vec3_t p1, const vec3_t p2) {
 	const int32_t area2 = Cm_LeafArea(leaf2);
 
 	if (!Cm_AreasConnected(area1, area2)) {
-		return false;    // a door blocks sight
+		return false; // a door blocks sight
 	}
 
 	const int32_t cluster1 = Cm_LeafCluster(leaf1);
@@ -165,10 +165,13 @@ static void LightWorld(void) {
 	// build per-vertex normals for phong shading
 	BuildVertexNormals();
 
-	// build initial facelights
+	// calculate direct lighting
 	RunThreadsOn(bsp_file.num_faces, true, DirectLighting);
 
-	if (indirect) { // build indirect lighting
+	// free the direct light sources
+	Mem_FreeTag(MEM_TAG_LIGHT);
+
+	if (indirect) { // calculate indirect lighting
 		RunThreadsOn(bsp_file.num_faces, true, IndirectLighting);
 	}
 
@@ -176,7 +179,11 @@ static void LightWorld(void) {
 	bsp_file.lightmap_data_size = 0;
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTMAPS, MAX_BSP_LIGHTING);
 
+	// merge direct and indirect lighting, normalize all samples
 	RunThreadsOn(bsp_file.num_faces, true, FinalizeLighting);
+
+	// free the face lighting structs
+	Mem_FreeTag(MEM_TAG_FACE_LIGHTING);
 }
 
 /**
