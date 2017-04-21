@@ -137,7 +137,7 @@ static void loadView(ViewController *self) {
 			assert(column);
 
 			column->comparator = (Comparator) g_ascii_strcasecmp;
-			column->width = 30;
+			column->width = 50;
 
 			$(this->tableView, addColumn, column);
 			release(column);
@@ -148,7 +148,7 @@ static void loadView(ViewController *self) {
 			assert(column);
 
 			column->comparator = (Comparator) g_ascii_strcasecmp;
-			column->width = 70;
+			column->width = 50;
 
 			$(this->tableView, addColumn, column);
 			release(column);
