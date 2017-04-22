@@ -43,7 +43,6 @@ static void dealloc(Object *self) {
 	MainViewController *this = (MainViewController *) self;
 
 	release(this->backgroundImage);
-	release(this->logoImage);
 
 	release(this->dialog);
 
@@ -114,20 +113,21 @@ static void loadView(ViewController *self) {
 
 	const SDL_Rect frame = MakeRect(0, 0, 240, 110);
 
-	this->logoImage = $(alloc(ImageView), initWithFrame, &frame);
-	assert(this->logoImage);
+	ImageView *logoImage = $(alloc(ImageView), initWithFrame, &frame);
+	assert(logoImage);
 
 	if (cgi.LoadSurface("ui/logo", &surface)) {
-		$(this->logoImage, setImageWithSurface, surface);
+		$(logoImage, setImageWithSurface, surface);
 		SDL_FreeSurface(surface);
 	} else {
-		$(this->logoImage, setImage, NULL);
+		$(logoImage, setImage, NULL);
 	}
 
-	this->logoImage->view.alignment = ViewAlignmentBottomRight;
-	this->logoImage->view.autoresizingMask = ViewAutoresizingNone;
+	logoImage->view.alignment = ViewAlignmentBottomRight;
+	logoImage->view.autoresizingMask = ViewAutoresizingNone;
 
-	$(self->view, addSubview, (View *) this->logoImage);
+	$(self->view, addSubview, (View *) logoImage);
+	release(logoImage);
 
 	// Quetoo version watermark
 
@@ -149,7 +149,7 @@ static void loadView(ViewController *self) {
 	view->alignment = ViewAlignmentTopCenter;
 	view->autoresizingMask = ViewAutoresizingWidth;
 
-	view->backgroundColor = QColors.Main;
+	view->backgroundColor = QColors.MainHighlight;
 	view->borderColor = QColors.BorderLight;
 
 	view->frame.h = 30;

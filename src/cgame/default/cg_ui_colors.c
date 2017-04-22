@@ -22,8 +22,8 @@
 #include "cg_local.h"
 
 const _QColors QColors = {
-	.Main = { 125, 125, 125, 245 },
-	.MainHighlight = { 110, 110, 110, 245 },
+	.Main = { 125, 125, 125, 240 },
+	.MainHighlight = { 110, 110, 110, 255 },
 
 	.Dark = { 8, 21, 26, 255 },
 	.DarkHighlight = { 23, 36, 41, 255 },
