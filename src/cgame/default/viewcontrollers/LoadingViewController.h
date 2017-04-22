@@ -57,9 +57,9 @@ struct LoadingViewController {
 	ImageView *mapshotImage;
 
 	/*
-	 * @brief The Quetoo logo.
+	 * @brief The progress bar.
 	 */
-	ImageView *logoImage;
+	ImageView *progressBar;
 
 	/*
 	 * @brief The progress label.

@@ -32,8 +32,8 @@ static void dealloc(Object *self) {
 	LoadingViewController *this = (LoadingViewController *) self;
 
 	release(this->mapshotImage);
-	release(this->logoImage);
 
+	release(this->progressBar);
 	release(this->progressLabel);
 
 	super(Object, self, dealloc);
@@ -61,24 +61,44 @@ static void loadView(ViewController *self) {
 
 	// Quetoo logo
 
-	const SDL_Rect frame = MakeRect(0, 0, 480, 220);
+	const SDL_Rect frame = MakeRect(0, 0, 480, 360);
 
-	this->logoImage = $(alloc(ImageView), initWithFrame, &frame);
-	assert(this->logoImage);
+	ImageView *logoImage = $(alloc(ImageView), initWithFrame, &frame);
+	assert(logoImage);
 
 	SDL_Surface *surface;
 
-	if (cgi.LoadSurface("ui/logo", &surface)) {
-		$(this->logoImage, setImageWithSurface, surface);
+	if (cgi.LoadSurface("ui/loading", &surface)) {
+		$(logoImage, setImageWithSurface, surface);
 		SDL_FreeSurface(surface);
 	} else {
-		$(this->logoImage, setImage, NULL);
+		$(logoImage, setImage, NULL);
 	}
 
-	this->logoImage->view.alignment = ViewAlignmentMiddleCenter;
-	this->logoImage->view.autoresizingMask = ViewAutoresizingNone;
+	logoImage->view.alignment = ViewAlignmentMiddleCenter;
+	logoImage->view.autoresizingMask = ViewAutoresizingNone;
 
-	$(self->view, addSubview, (View *) this->logoImage);
+	$(self->view, addSubview, (View *) logoImage);
+	release(logoImage);
+
+	// Progress bar
+
+	const SDL_Rect barFrame = MakeRect(0, 0, 0, 16);
+
+	this->progressBar = $(alloc(ImageView), initWithFrame, &barFrame);
+	assert(this->progressBar);
+
+	if (cgi.LoadSurface("ui/loading_bar", &surface)) {
+		$(this->progressBar, setImageWithSurface, surface);
+		SDL_FreeSurface(surface);
+	} else {
+		$(this->progressBar, setImage, NULL);
+	}
+
+	this->progressBar->view.alignment = ViewAlignmentBottomLeft;
+	this->progressBar->view.autoresizingMask = ViewAutoresizingNone;
+
+	$(self->view, addSubview, (View *) this->progressBar);
 
 	// Progress label
 
@@ -108,6 +128,8 @@ static LoadingViewController *init(LoadingViewController *self) {
  * @memberof LoadingViewController
  */
 static void setProgress(LoadingViewController *self, const cl_loading_t loading) {
+
+	self->progressBar->view.frame.w = (cgi.context->window_width * (loading.percent / 100.0));
 
 	$(self->progressLabel->text, setText, va("%d%% (%s)", loading.percent, loading.status));
 
