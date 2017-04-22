@@ -82,6 +82,10 @@ void Cgui_CvarSliderInput(View *view, const char *label, const char *name, doubl
 
 	CvarSlider *slider = $(alloc(CvarSlider), initWithVariable, var, min, max, step);
 
+	if ((step - floor(step)) == 0.0) { // Integer step; also visualize label as integer
+		$((Slider *) slider, setLabelFormat, "%0.0f");
+	}
+
 	Cgui_Input(view, label, (Control *) slider);
 
 	release(slider);

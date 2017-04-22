@@ -95,6 +95,8 @@ static HueSlider *initWithVariable(HueSlider *self, double hue, void (*changeFun
 		this->max = 360.0;
 		this->step = 5.0;
 
+		$(this, setLabelFormat, "%0.0f");
+
 		this->snapToStep = true;
 
 		$(this, setValue, hue);
