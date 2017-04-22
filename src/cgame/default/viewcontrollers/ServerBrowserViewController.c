@@ -64,7 +64,7 @@ static void connectAction(Control *control, const SDL_Event *event, ident sender
 #pragma mark - ViewController
 
 /**
- * @see ViewController::loadView(ViewController *)
+ * @see ViewController::loadView(ViewController *)2
  */
 static void loadView(ViewController *self) {
 
@@ -152,7 +152,7 @@ static void loadView(ViewController *self) {
 	this->panel->accessoryView->view.hidden = false;
 
 	Cgui_Button((View *) this->panel->accessoryView, "Refresh", refreshAction, self, NULL);
-	Cgui_Button((View *) this->panel->accessoryView, "Connect", connectAction, self, NULL);
+	Cgui_Button((View *) this->panel->accessoryView, "Connect", connectAction, self, servers);
 }
 
 #pragma mark - Class lifecycle
