@@ -36,8 +36,43 @@ static void loadView(ViewController *self) {
 
 	MenuViewController *this = (MenuViewController *) self;
 
-	this->panel->isDraggable = false;
-	this->panel->isResizable = false;
+	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
+
+	columns->spacing = DEFAULT_PANEL_SPACING;
+
+	columns->axis = StackViewAxisHorizontal;
+	columns->distribution = StackViewDistributionFill;
+
+	{
+		StackView *column = $(alloc(StackView), initWithFrame, NULL);
+
+		column->spacing = DEFAULT_PANEL_SPACING;
+
+		{
+			const SDL_Rect frame = MakeRect(0, 0, 700, 400);
+
+			Box *box = $(alloc(Box), initWithFrame, &frame);
+			$(box->label, setText, "News");
+
+			box->view.autoresizingMask = ViewAutoresizingNone;
+
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+			Cgui_Label((View *) stackView, "Good news everybody! There's now a news feed that is completely hardcoded...");
+
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
+
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
+
+		$((View *) columns, addSubview, (View *) column);
+		release(column);
+	}
+
+	$((View *) this->panel->contentView, addSubview, (View *) columns);
+	release(columns);
 }
 
 #pragma mark - Class lifecycle
