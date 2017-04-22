@@ -471,7 +471,7 @@ static _Bool MakeBrushWindings(map_brush_t *ob) {
  */
 static void SetMaterialFlags(side_t *side, map_brush_texture_t *td) {
 
-	const cm_material_t *material = LoadMaterial(td->name);
+	const cm_material_t *material = LoadMaterial(td->name, ASSET_CONTEXT_TEXTURES);
 	if (material) {
 		if (material->contents) {
 			if (side->contents == 0) {
@@ -746,7 +746,7 @@ static void MoveBrushesToWorld(entity_t *ent) {
 	new_brushes = ent->num_brushes;
 	world_brushes = entities[0].num_brushes;
 
-	temp = Mem_Malloc(new_brushes * sizeof(map_brush_t));
+	temp = Mem_TagMalloc(new_brushes * sizeof(map_brush_t), MEM_TAG_BRUSH);
 	memcpy(temp, map_brushes + ent->first_brush,
 	       new_brushes * sizeof(map_brush_t));
 

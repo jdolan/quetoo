@@ -294,6 +294,11 @@ static void R_LoadHeightmap(const char *name, const SDL_Surface *surf) {
 		*c = '\0';
 	}
 
+	// FIXME:
+	// This should use the material's heightmap asset, which might be resolved
+	// from multiple potential suffixes. This is a total hack and is incorrect.
+	// Solving this without completely refactoring R_LoadImage is hard.
+
 	SDL_Surface *hsurf;
 	if (Img_LoadImage(va("%s_h", heightmap), &hsurf)) {
 

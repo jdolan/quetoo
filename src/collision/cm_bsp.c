@@ -559,7 +559,7 @@ _Bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_
 		          bsp_lump_meta[lump_id].max_count);
 	}
 
-	*lump_data = Mem_TagMalloc(lump.file_len, MEM_TAG_BSP);
+	*lump_data = Mem_TagMalloc(lump.file_len, MEM_TAG_BSP | (lump_id << 16));
 
 	// blit the data into memory
 	if (lump.file_ofs && lump.file_len) {

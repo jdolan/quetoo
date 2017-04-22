@@ -151,9 +151,6 @@ r_model_t *R_LoadModel(const char *name) {
 
 		mod->type = format->type;
 
-		// load the materials first, so that we can resolve surfaces lists
-		R_LoadMaterials(mod);
-
 		void *buf = NULL;
 
 		Fs_Load(file_name, &buf);

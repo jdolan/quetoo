@@ -412,11 +412,6 @@ typedef struct cg_import_s {
 	const char *(*EntityString)(void);
 
 	/**
-	 * @return The materials for the currently loaded level.
-	 */
-	const cm_material_t **(*MapMaterials)(size_t *num_materials);
-
-	/**
 	 * @defgroup collision Collision model
 	 * @{
 	 */
@@ -573,11 +568,21 @@ typedef struct cg_import_s {
 	void (*CompileAtlas)(r_atlas_t *atlas);
 
 	/**
-	 * @brief Loads the material with the given diffuse texture name.
-	 * @param name The diffuse texture name, e.g. `"models/objects/rocket/skin"`.
+	 * @brief Loads the material with the given name.
+	 * @param name The material name, e.g. `"objects/rocket/skin"`.
+	 * @param context The asset context, e.g. `ASSET_CONTEXT_PLAYERS`.
 	 * @return The material.
 	 */
-	r_material_t *(*LoadMaterial)(const char *diffuse);
+	r_material_t *(*LoadMaterial)(const char *name, cm_asset_context_t context);
+
+	/**
+	 * @brief Loads all materials defined in the given file.
+	 * @param path The materials file path, e.g. `"materials/torn.mat"`.
+	 * @param context The asset context, e.g. `ASSET_CONTEXT_TEXTURES`.
+	 * @param materials The list of materials to prepend.
+	 * @return The number of materials loaded.
+	 */
+	ssize_t (*LoadMaterials)(const char *path, cm_asset_context_t context, GList **materials);
 
 	/**
 	 * @brief Loads the model with the given name.
