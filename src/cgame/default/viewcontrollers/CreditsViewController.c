@@ -27,10 +27,12 @@
 
 static const char *_name = "Name";
 static const char *_role = "Role";
+static const char *_link = "Link";
 
 typedef struct {
 	char name[MAX_STRING_CHARS];
 	char role[MAX_STRING_CHARS];
+	char link[MAX_STRING_CHARS];
 } credit_t;
 
 #define _Class _CreditsViewController
@@ -72,6 +74,8 @@ static ident valueForColumnAndRow(const TableView *tableView, const TableColumn 
 		return &credit->name;
 	} else if (g_strcmp0(column->identifier, _role) == 0) {
 		return &credit->role;
+	} else if (g_strcmp0(column->identifier, _link) == 0) {
+		return &credit->link;
 	}
 
 	return NULL;
@@ -93,6 +97,8 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 		$(cell->text, setText, credit->name);
 	} else if (g_strcmp0(column->identifier, _role) == 0) {
 		$(cell->text, setText, credit->role);
+	} else if (g_strcmp0(column->identifier, _link) == 0) {
+		$(cell->text, setText, credit->link);
 	}
 
 	return cell;
@@ -137,7 +143,7 @@ static void loadView(ViewController *self) {
 			assert(column);
 
 			column->comparator = (Comparator) g_ascii_strcasecmp;
-			column->width = 50;
+			column->width = 30;
 
 			$(this->tableView, addColumn, column);
 			release(column);
@@ -148,7 +154,18 @@ static void loadView(ViewController *self) {
 			assert(column);
 
 			column->comparator = (Comparator) g_ascii_strcasecmp;
-			column->width = 50;
+			column->width = 40;
+
+			$(this->tableView, addColumn, column);
+			release(column);
+		}
+
+		{
+			TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _link);
+			assert(column);
+
+			column->comparator = (Comparator) g_ascii_strcasecmp;
+			column->width = 30;
 
 			$(this->tableView, addColumn, column);
 			release(column);
@@ -173,6 +190,7 @@ static void loadCredits(CreditsViewController *self, const char *path) {
 	parser_t parser;
 	char token_name[MAX_STRING_CHARS];
 	char token_role[MAX_STRING_CHARS];
+	char token_link[MAX_STRING_CHARS];
 
 	if (self->credits != NULL) {
 		g_slist_free_full(self->credits, cgi.Free);
@@ -195,12 +213,17 @@ static void loadCredits(CreditsViewController *self, const char *path) {
 			break;
 		}
 
+		if (!Parse_Token(&parser, 0, token_link, sizeof(token_link))) {
+			break;
+		}
+
 		credit_t *c;
 
  		c = (credit_t *) cgi.Malloc(sizeof(*c), MEM_TAG_UI);
 
 		g_strlcpy(c->name, token_name, sizeof(token_name));
 		g_strlcpy(c->role, token_role, sizeof(token_role));
+		g_strlcpy(c->link, token_link, sizeof(token_link));
 
 		self->credits = g_slist_append(self->credits, c);
 	}
