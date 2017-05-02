@@ -21,7 +21,9 @@
 
 #pragma once
 
-#include <SDL2/SDL_mixer.h>
+#include <AL/al.h>
+#include <AL/alc.h>
+#include <SDL2/SDL_sound.h>
 
 #include "common.h"
 #include "sys.h"
@@ -45,7 +47,7 @@ typedef struct s_media_s {
 
 typedef struct s_sample_s {
 	s_media_t media;
-	Mix_Chunk *chunk;
+	ALuint buffer;
 } s_sample_t;
 
 #define S_PLAY_POSITIONED   0x1 // position the sound at a fixed origin
@@ -67,8 +69,8 @@ typedef struct s_channel_s {
 	const s_sample_t *sample;
 	uint32_t start_time;
 	int32_t frame;
-	int16_t angle;
-	uint8_t dist;
+	vec3_t position;
+	vec_t gain;
 	_Bool free;
 } s_channel_t;
 
@@ -78,16 +80,19 @@ typedef struct s_music_s {
 	s_media_t media;
 	void *buffer;
 	SDL_RWops *rw;
-	Mix_Music *music;
+	//Mix_Music *music;
 } s_music_t;
 
 // the sound environment
 typedef struct s_env_s {
 	s_channel_t channels[MAX_CHANNELS];
+	ALuint sources[MAX_CHANNELS];
 
 	_Bool initialized; // is the sound subsystem initialized
 	_Bool update; // inform the client of state changes
 
+	ALCdevice *device;
+	ALCcontext *context;
 	uint16_t num_active_channels;
 } s_env_t;
 

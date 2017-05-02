@@ -43,6 +43,8 @@ static int32_t S_AllocChannel(void) {
  * @brief
  */
 void S_FreeChannel(int32_t c) {
+
+	alSourceStop(s_env.sources[c]);
 	s_env.channels[c].free = true;
 }
 
@@ -65,10 +67,15 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 			VectorLerp(mod->mins, mod->maxs, 0.5, center);
 			VectorAdd(center, ent->origin, org);
 		} else {
-			VectorCopy(ent->origin, org);
+			if (ent == cl.entity) {
+				VectorCopy(r_view.origin, org);
+			} else {
+				VectorCopy(ent->origin, org);
+			}
 		}
 	}
 
+	VectorCopy(org, ch->position);
 	VectorSubtract(org, r_view.origin, delta);
 
 	vec_t attenuation;
@@ -90,12 +97,7 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 	const vec_t dist = VectorNormalize(delta) * attenuation;
 	const vec_t frac = dist / SOUND_MAX_DISTANCE;
 
-	ch->dist = (uint8_t) (Clamp(frac * 255.0, 0.0, 255.0));
-
-	const vec_t dot = DotProduct(r_view.right, delta);
-	const vec_t angle = acos(dot) * 180.0 / M_PI - 90.0;
-
-	ch->angle = (int16_t) (360.0 - angle) % 360;
+	ch->gain = 1.0 - frac;
 
 	return frac <= 1.0;
 }
@@ -105,10 +107,20 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
  */
 void S_MixChannels(void) {
 
-	Mix_Volume(-1, Clamp(s_volume->value, 0.0, 1.0) * MIX_MAX_VOLUME);
+	alListenerf(AL_GAIN, Clamp(s_volume->value, 0.0, 1.0));
+
+	const vec3_t orientation[] = {
+		{ r_view.forward[0], r_view.forward[1], r_view.forward[2] },
+		{ r_view.up[0], r_view.up[1], r_view.up[2] }
+	};
+
+	alDistanceModel(AL_NONE);
+	alListenerfv(AL_POSITION, r_view.origin);
+	alListenerfv(AL_ORIENTATION, &orientation[0][0]);
 
 	s_channel_t *ch = s_env.channels;
 	for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
+
 		if (ch->free) {
 			memset(ch, 0, sizeof(*ch));
 		}
@@ -124,33 +136,38 @@ void S_MixChannels(void) {
 			if (ch->start_time) {
 				if (ch->play.flags & S_PLAY_FRAME) {
 					if (ch->frame != cl.frame.frame_num) {
-						Mix_FadeOutChannel(i, 250);
+						// TODO
+						//Mix_FadeOutChannel(i, 250);
 						continue;
 					}
 				}
 			}
 
 			if (S_SpatializeChannel(ch)) {
-				Mix_SetPosition(i, ch->angle, ch->dist);
+				
+				alSourcefv(s_env.sources[i], AL_POSITION, ch->position);
+				alSourcef(s_env.sources[i], AL_GAIN, ch->gain);
 
 				if (!ch->start_time) {
 					ch->start_time = quetoo.ticks;
 
-					if (ch->play.flags & S_PLAY_LOOP) {
-						Mix_PlayChannel(i, ch->sample->chunk, -1);
-					} else {
-						Mix_PlayChannel(i, ch->sample->chunk, 0);
+					alSourcei(s_env.sources[i], AL_BUFFER, ch->sample->buffer);
+					alSourcei(s_env.sources[i], AL_LOOPING, (ch->play.flags & S_PLAY_LOOP));
+					alSourcePlay(s_env.sources[i]);
+				} else {
+					ALenum state;
+					alGetSourcei(s_env.sources[i], AL_SOURCE_STATE, &state);
+					
+					if (state != AL_PLAYING) {
+						S_FreeChannel(i);
+						continue;
 					}
 				}
 
 				s_env.num_active_channels++;
 			} else {
 
-				if (ch->start_time) {
-					Mix_HaltChannel(i);
-				} else {
-					S_FreeChannel(i);
-				}
+				S_FreeChannel(i);
 			}
 		}
 	}

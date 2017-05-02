@@ -39,9 +39,9 @@ extern cl_static_t cls;
  */
 static void S_Stop(void) {
 
-	Mix_HaltChannel(-1);
-
 	memset(s_env.channels, 0, sizeof(s_env.channels));
+
+	alSourceStopv(MAX_CHANNELS, s_env.sources);
 }
 
 /**
@@ -49,9 +49,7 @@ static void S_Stop(void) {
  */
 void S_StopAllSounds(void) {
 
-	if (Mix_Playing(-1) > 0) {
-		S_Stop();
-	}
+	S_Stop();
 }
 
 /**
@@ -77,7 +75,8 @@ void S_Frame(void) {
 	}
 
 	if (s_reverse->modified) {
-		Mix_SetReverseStereo(MIX_CHANNEL_POST, s_reverse->integer);
+		// TODO
+		//Mix_SetReverseStereo(MIX_CHANNEL_POST, s_reverse->integer);
 		s_reverse->modified = false;
 	}
 
@@ -197,9 +196,6 @@ static void S_InitLocal(void) {
  * @brief Initializes the sound subsystem.
  */
 void S_Init(void) {
-	int32_t freq, channels;
-	uint16_t format;
-
 	memset(&s_env, 0, sizeof(s_env));
 
 	if (Cvar_GetValue("s_disable")) {
@@ -211,31 +207,38 @@ void S_Init(void) {
 
 	S_InitLocal();
 
-	if (SDL_WasInit(SDL_INIT_AUDIO) == 0) {
-		if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0) {
-			Com_Warn("%s\n", SDL_GetError());
-			return;
-		}
-	}
-
-	if (Mix_OpenAudio(s_rate->integer, MIX_DEFAULT_FORMAT, 2, 1024) == -1) {
-		Com_Warn("%s\n", Mix_GetError());
+	if (!Sound_Init()) {
+		Com_Warn("%s\n", Sound_GetError());
 		return;
 	}
 
-	if (Mix_QuerySpec(&freq, &format, &channels) == 0) {
-		Com_Warn("%s\n", Mix_GetError());
+	s_env.device = alcOpenDevice(NULL);
+
+	if (!s_env.device) {
+		Com_Warn("%s\n", alcGetString(NULL, alcGetError(NULL)));
 		return;
 	}
 
-	if (Mix_AllocateChannels(MAX_CHANNELS) != MAX_CHANNELS) {
-		Com_Warn("%s\n", Mix_GetError());
+	s_env.context = alcCreateContext(s_env.device, NULL);
+
+	if (!s_env.context || !alcMakeContextCurrent(s_env.context)) {
+		Com_Warn("%s\n", alcGetString(NULL, alcGetError(NULL)));
 		return;
 	}
 
-	Mix_ChannelFinished(S_FreeChannel);
+	alGenSources(MAX_CHANNELS, s_env.sources);
 
-	Com_Print("Sound initialized %dKHz %d channels\n", freq, channels);
+	ALenum error = alGetError();
+
+	if (error) {
+		Com_Warn("Couldn't allocate channels: %s\n", alGetString(error));
+		return;
+	}
+
+	// FIXME
+	//Mix_ChannelFinished(S_FreeChannel);
+
+	Com_Print("Sound initialized (OpenAL, %dhz)\n", s_rate->integer);
 
 	s_env.initialized = true;
 
@@ -255,13 +258,23 @@ void S_Shutdown(void) {
 
 	S_Stop();
 
-	Mix_AllocateChannels(0);
+	if (s_env.sources[0]) {
+		alDeleteSources(MAX_CHANNELS, s_env.sources);
+	}
 
 	S_ShutdownMusic();
 
 	S_ShutdownMedia();
+	
+	if (s_env.context) {
+		alcDestroyContext(s_env.context);
+	}
 
-	Mix_CloseAudio();
+	if (s_env.device) {
+		alcCloseDevice(s_env.device);
+	}
+
+	Sound_Quit();
 
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 

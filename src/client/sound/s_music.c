@@ -45,9 +45,9 @@ static _Bool S_RetainMusic(s_media_t *self) {
 static void S_FreeMusic(s_media_t *self) {
 	s_music_t *music = (s_music_t *) self;
 
-	if (music->music) {
-		Mix_FreeMusic(music->music);
-	}
+	//if (music->music) {
+	//	Mix_FreeMusic(music->music);
+	//}
 	if (music->rw) {
 		SDL_FreeRW(music->rw);
 	}
@@ -59,7 +59,7 @@ static void S_FreeMusic(s_media_t *self) {
 /**
  * @brief Handles the actual loading of .ogg music files.
  */
-static _Bool S_LoadMusicFile(const char *name, void **buffer, SDL_RWops **rw, Mix_Music **music) {
+/*static _Bool S_LoadMusicFile(const char *name, void **buffer, SDL_RWops **rw, Mix_Music **music) {
 	char path[MAX_QPATH];
 
 	*music = NULL;
@@ -87,7 +87,7 @@ static _Bool S_LoadMusicFile(const char *name, void **buffer, SDL_RWops **rw, Mi
 	}
 
 	return *music != NULL;
-}
+}*/
 
 /**
  * @brief Clears the musics playlist so that it may be rebuilt.
@@ -104,11 +104,11 @@ void S_ClearPlaylist(void) {
  */
 s_music_t *S_LoadMusic(const char *name) {
 	char key[MAX_QPATH];
-	s_music_t *music;
+	s_music_t *music = NULL;
 
 	StripExtension(name, key);
 
-	if (!(music = (s_music_t *) S_FindMedia(key))) {
+/*	if (!(music = (s_music_t *) S_FindMedia(key))) {
 
 		void *buffer;
 		SDL_RWops *rw;
@@ -131,7 +131,7 @@ s_music_t *S_LoadMusic(const char *name) {
 			Com_Debug(DEBUG_SOUND, "S_LoadMusic: Couldn't load %s\n", key);
 			music = NULL;
 		}
-	}
+	}*/
 
 	if (music) {
 		s_music_state.playlist = g_list_append(s_music_state.playlist, music);
@@ -145,7 +145,7 @@ s_music_t *S_LoadMusic(const char *name) {
  */
 static void S_StopMusic(void) {
 
-	Mix_HaltMusic();
+	//Mix_HaltMusic();
 
 	s_music_state.current_music = NULL;
 }
@@ -155,7 +155,7 @@ static void S_StopMusic(void) {
  */
 static void S_PlayMusic(s_music_t *music) {
 
-	Mix_PlayMusic(music->music, 1);
+	//Mix_PlayMusic(music->music, 1);
 
 	s_music_state.current_music = music;
 }
@@ -198,19 +198,19 @@ void S_FrameMusic(void) {
 	last_state = cls.state;
 
 	if (s_music_volume->modified) {
-		const int32_t volume = Clamp(s_music_volume->value, 0.0, 1.0) * MIX_MAX_VOLUME;
+		/*const int32_t volume = Clamp(s_music_volume->value, 0.0, 1.0) * MIX_MAX_VOLUME;
 
 		if (volume) {
 			Mix_VolumeMusic(volume);
 		} else {
 			S_StopMusic();
-		}
+		}*/
 	}
 
 	// if music is enabled but not playing, play that funky music
-	if (s_music_volume->value && !Mix_PlayingMusic()) {
-		S_NextTrack_f();
-	}
+	//if (s_music_volume->value && !Mix_PlayingMusic()) {
+	//	S_NextTrack_f();
+	//}
 }
 
 /**

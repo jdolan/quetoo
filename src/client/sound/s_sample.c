@@ -34,41 +34,55 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 
 	void *buf;
 	int32_t i;
-	SDL_RWops *rw;
 
 	buf = NULL;
-	rw = NULL;
 
 	i = 0;
 	while (SAMPLE_TYPES[i]) {
 
 		StripExtension(path, path);
-		g_strlcat(path, SAMPLE_TYPES[i++], pathlen);
+		g_strlcat(path, SAMPLE_TYPES[i], pathlen);
+
+		const char *ext = SAMPLE_TYPES[i] + 1;
+
+		i++;
 
 		int64_t len;
 		if ((len = Fs_Load(path, &buf)) == -1) {
 			continue;
 		}
 
-		if (!(rw = SDL_RWFromMem(buf, (int32_t) len))) {
-			Fs_Free(buf);
-			continue;
-		}
+		Sound_AudioInfo desired = {
+			.format = AUDIO_S16,
+			.channels = 1,
+			.rate = s_rate->integer
+		};
 
-		if (!(sample->chunk = Mix_LoadWAV_RW(rw, false))) {
-			Com_Warn("%s\n", Mix_GetError());
+		Sound_Sample *snd = Sound_NewSampleFromMem(buf, (Uint32) len, ext, &desired, 2048);
+		
+		if (!snd) {
+			Com_Warn("%s\n", Sound_GetError());
+		} else {
+			Uint32 snd_length = Sound_DecodeAll(snd);
+		
+			if (snd->flags & SOUND_SAMPLEFLAG_ERROR) {
+				Com_Warn("%s\n", Sound_GetError());
+			} else {
+				alGenBuffers(1, &sample->buffer);
+				alBufferData(sample->buffer, AL_FORMAT_MONO16, snd->buffer, snd_length, s_rate->integer);
+			}
+
+			Sound_FreeSample(snd);
 		}
 
 		Fs_Free(buf);
 
-		SDL_FreeRW(rw);
-
-		if (sample->chunk) { // success
+		if (sample->buffer) { // success
 			break;
 		}
 	}
 
-	return !!sample->chunk;
+	return !!sample->buffer;
 }
 
 /**
@@ -118,8 +132,8 @@ static void S_LoadSampleChunk(s_sample_t *sample) {
 static void S_FreeSample(s_media_t *self) {
 	s_sample_t *sample = (s_sample_t *) self;
 
-	if (sample->chunk) {
-		Mix_FreeChunk(sample->chunk);
+	if (sample->buffer) {
+		alDeleteBuffers(1, &sample->buffer);
 	}
 }
 
@@ -165,7 +179,7 @@ static s_sample_t *S_AliasSample(s_sample_t *sample, const char *alias) {
 
 	sample->media.type = S_MEDIA_SAMPLE;
 
-	s->chunk = sample->chunk;
+	s->buffer = sample->buffer;
 
 	S_RegisterMedia((s_media_t *) s);
 
@@ -205,7 +219,7 @@ s_sample_t *S_LoadModelSample(const char *model, const char *name) {
 
 		sample = S_LoadSample(alias);
 
-		if (sample->chunk) {
+		if (sample->buffer) {
 			return sample;
 		}
 
@@ -217,7 +231,7 @@ s_sample_t *S_LoadModelSample(const char *model, const char *name) {
 	g_snprintf(path, sizeof(path), "#players/common/%s", name + 1);
 	sample = S_LoadSample(path);
 
-	if (sample->chunk) {
+	if (sample->buffer) {
 		return S_AliasSample(sample, alias);
 	}
 
