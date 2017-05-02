@@ -35,7 +35,7 @@ static void G_worldspawn(g_entity_t *ent);
 static void G_weapon_chaingun_Think(g_entity_t *ent) {
 
 	g_entity_t *cg = NULL;
-	
+
 	while ((cg = G_Find(cg, EOFS(class_name), "weapon_chaingun"))) {
 
 		// spawn a lightning gun where we are
@@ -77,7 +77,7 @@ static void G_weapon_chaingun(g_entity_t *ent) {
 
 	// see if we already have one ready, this is just to keep this BS self-contained
 	g_entity_t *cg = NULL;
-	
+
 	while ((cg = G_Find(cg, EOFS(class_name), "weapon_chaingun"))) {
 		if (cg->locals.Think) {
 			return; // think will destroy us later
@@ -347,7 +347,7 @@ static void G_ParseField(const char *key, const char *value, g_entity_t *ent) {
 }
 
 /**
- * @brief Parses an entity out of the given string. 
+ * @brief Parses an entity out of the given string.
  * The entity should be a properly initialized free entity.
  */
 static void G_ParseEntity(parser_t *parser, g_entity_t *ent) {
@@ -544,7 +544,7 @@ static void G_InitMedia(void) {
 static int32_t G_CreateTeamSpawnPoints_CompareFunc(gconstpointer a, gconstpointer b, gpointer user_data) {
 
 	g_entity_t *flag = (g_entity_t *) user_data;
-	
+
 	const g_entity_t *ap = (const g_entity_t *) a;
 	const g_entity_t *bp = (const g_entity_t *) b;
 
@@ -560,7 +560,7 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
 	// find our flags
 	g_entity_t *red_flag, *blue_flag;
 	g_entity_t *reused_spawns[2] = { NULL, NULL };
-	
+
 	red_flag = G_FlagForTeam(g_team_red);
 	blue_flag = G_FlagForTeam(g_team_blue);
 
@@ -581,7 +581,7 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
 				if (pa == pb) {
 					continue;
 				}
-				
+
 				g_entity_t *pae = (g_entity_t *) pa->data;
 				g_entity_t *pab = (g_entity_t *) pb->data;
 
@@ -608,7 +608,7 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
 		if (!reused_spawns[0] || !reused_spawns[1] || !furthest_dist) {
 			return; // error in finding furthest points
 		}
-		
+
 		red_flag = G_AllocEntity_(g_team_red->flag);
 		blue_flag = G_AllocEntity_(g_team_blue->flag);
 
@@ -616,10 +616,10 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
 
 		VectorCopy(reused_spawns[r]->s.origin, red_flag->s.origin);
 		VectorCopy(reused_spawns[r ^ 1]->s.origin, blue_flag->s.origin);
-		
+
 		G_SpawnItem(red_flag, g_media.items.flags[TEAM_RED]);
 		G_SpawnItem(blue_flag, g_media.items.flags[TEAM_BLUE]);
-		
+
 		g_teamlist[TEAM_RED].flag_entity = red_flag;
 		g_teamlist[TEAM_BLUE].flag_entity = blue_flag;
 	}
@@ -645,11 +645,11 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
 	if (g_slist_length(*team_red_spawns) == g_slist_length(*team_blue_spawns)) {
 		return; // best case scenario
 	}
-	
+
 	// unmatched spawns, we need to move some
 	*team_red_spawns = g_slist_sort_with_data(*team_red_spawns, G_CreateTeamSpawnPoints_CompareFunc, red_flag);
 	*team_blue_spawns = g_slist_sort_with_data(*team_blue_spawns, G_CreateTeamSpawnPoints_CompareFunc, blue_flag);
-		
+
 	int32_t num_red_spawns = (int32_t) g_slist_length(*team_red_spawns);
 	int32_t num_blue_spawns = (int32_t) g_slist_length(*team_blue_spawns);
 	int32_t diff = abs(num_red_spawns - num_blue_spawns);
@@ -672,7 +672,7 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
 	}
 
 	int32_t num_move = diff - 1;
-	
+
 	// move spawns to the other team
 	while (num_move) {
 
@@ -693,7 +693,7 @@ static void G_InitSpawnPoints(void) {
 	// first, set up all of the deathmatch points
 	GSList *dm_spawns = NULL;
 	g_entity_t *spot = NULL;
-	
+
 	while ((spot = G_Find(spot, EOFS(class_name), "info_player_deathmatch")) != NULL) {
 		dm_spawns = g_slist_prepend(dm_spawns, spot);
 	}
@@ -707,7 +707,7 @@ static void G_InitSpawnPoints(void) {
 			dm_spawns = g_slist_prepend(dm_spawns, spot);
 		}
 	}
-	
+
 	// find the team points, if we have any explicit ones in the map.
 	// start by finding the flags
 	for (int32_t t = 0; t < MAX_TEAMS; t++) {
@@ -753,7 +753,7 @@ static void G_InitSpawnPoints(void) {
 				dm_spawns = g_slist_prepend(dm_spawns, (g_entity_t *) point->data);
 			}
 		}
-		
+
 		g_level.spawn_points.count = g_slist_length(dm_spawns);
 
 		if (!g_level.spawn_points.count) {
@@ -780,14 +780,14 @@ static void G_InitSpawnPoints(void) {
 
 	for (int32_t t = 0; t < MAX_TEAMS; t++) {
 		g_teamlist[t].spawn_points.spots = gi.Malloc(sizeof(g_entity_t *) * g_teamlist[t].spawn_points.count, MEM_TAG_GAME_LEVEL);
-	
+
 		for (i = 0, point = team_spawns[t]; point; point = point->next, i++) {
 			g_teamlist[t].spawn_points.spots[i] = (g_entity_t *) point->data;
 		}
-	
+
 		g_slist_free(team_spawns[t]);
 	}
-	
+
 	g_level.spawn_points.spots = gi.Malloc(sizeof(g_entity_t *) * g_level.spawn_points.count, MEM_TAG_GAME_LEVEL);
 
 	for (i = 0, point = dm_spawns; point; point = point->next, i++) {
@@ -858,7 +858,7 @@ void G_SpawnEntities(const char *name, const char *entities) {
 			}
 		}
 	}
-	
+
 	memset(g_game.entities, 0, g_max_entities->value * sizeof(g_entity_t));
 	memset(g_game.clients, 0, sv_max_clients->value * sizeof(g_client_t));
 
@@ -872,7 +872,7 @@ void G_SpawnEntities(const char *name, const char *entities) {
 
 	gchar **inhibit = g_strsplit(g_inhibit->string, " ", -1);
 	int32_t inhibited = 0;
-	
+
 	parser_t parser;
 	char tok[MAX_QPATH];
 	Parse_Init(&parser, entities, PARSER_NO_COMMENTS);
@@ -1134,6 +1134,9 @@ static void G_worldspawn(g_entity_t *ent) {
 
 	gi.SetConfigString(CS_CTF, va("%d", g_level.ctf));
 	gi.SetConfigString(CS_HOOK_PULL_SPEED, g_hook_pull_speed->string);
+	gi.SetConfigString(CS_CROUCH_SLIDE, g_crouch_slide->string);
+	gi.SetConfigString(CS_CROUCH_SLIDE_BOOST, g_crouch_slide_boost->string);
+	gi.SetConfigString(CS_CROUCH_SLIDE_FRICTION, g_crouch_slide_friction->string);
 
 	if (map && map->match > -1) { // prefer maps.lst match
 		g_level.match = map->match;
@@ -1228,4 +1231,3 @@ static void G_worldspawn(g_entity_t *ent) {
 
 	gi.SetConfigString(CS_VOTE, "");
 }
-

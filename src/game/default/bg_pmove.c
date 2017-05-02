@@ -469,6 +469,10 @@ static void Pm_Friction(void) {
 					} else {
 						friction = PM_FRICT_GROUND;
 					}
+
+					if (pm->s.flags & PMF_CROUCH_SLIDE) { // Crouch sliding
+						friction *= pm->crouch_slide_friction;
+					}
 				} else {
 					friction = PM_FRICT_AIR;
 				}
@@ -498,6 +502,10 @@ static void Pm_Accelerate(vec3_t dir, vec_t speed, vec_t accel) {
 
 	if (accel_speed > add_speed) {
 		accel_speed = add_speed;
+	}
+
+	if (pm->s.flags & PMF_CROUCH_SLIDE) {
+		accel_speed *= 0.5;
 	}
 
 	VectorMA(pm->s.velocity, accel_speed, dir, pm->s.velocity);
@@ -1122,6 +1130,35 @@ static _Bool Pm_CheckWaterJump(void) {
 }
 
 /**
+ * @brief Checks if the player can crouch slide currently and set flags accordingly
+ */
+static void Pm_CheckCrouchSlide(void) {
+
+	if (pm->crouch_slide) {
+		if (pm->s.type != PM_SPECTATOR) {
+			if ((pm->s.flags & PMF_ON_GROUND) && (pm->s.flags & PMF_DUCKED)) {
+				vec3_t speed;
+
+				VectorCopy(pm->s.velocity, speed);
+
+				if (VectorLength(speed) > PM_SPEED_RUN + 30.0) {
+					if (!(pm->s.flags & PMF_CROUCH_SLIDE)) { // speed boost if you just started sliding
+						pm->s.velocity[0] *= pm->crouch_slide_boost;
+						pm->s.velocity[1] *= pm->crouch_slide_boost;
+					}
+
+					pm->s.flags |= PMF_CROUCH_SLIDE;
+
+					return;
+				}
+			}
+		}
+	}
+
+	pm->s.flags &= ~PMF_CROUCH_SLIDE;
+}
+
+/**
  * @brief
  */
 static void Pm_LadderMove(void) {
@@ -1579,6 +1616,9 @@ void Pm_Move(pm_move_t *pm_move) {
 	// check for ground
 	Pm_CheckGround();
 
+	// check for crouch sliding
+	Pm_CheckCrouchSlide();
+
 	if (pm->s.flags & PMF_TIME_TELEPORT) {
 		// pause in place briefly
 	} else if (pm->s.flags & PMF_TIME_WATER_JUMP) {
@@ -1605,4 +1645,3 @@ void Pm_Move(pm_move_t *pm_move) {
 	// check for water level, water type at new spot
 	Pm_CheckWater();
 }
-

@@ -159,6 +159,7 @@ extern const vec3_t PM_MAXS;
 #define PMF_TIME_TELEPORT		(PMF_GAME << 11) // time frozen in place
 #define PMF_GIBLET				(PMF_GAME << 12) // player is a giblet
 #define PMF_HOOK_RELEASED		(PMF_GAME << 13) // player's hook key was released
+#define PMF_CROUCH_SLIDE		(PMF_GAME << 14) // player is crouch sliding
 
 /**
  * @brief The mask of pm_state_t.flags affecting pm_state_t.time.
@@ -186,6 +187,10 @@ typedef struct {
 	pm_state_t s; // movement state (in / out)
 
 	vec_t hook_pull_speed; // hook pull speed (in)
+
+        _Bool crouch_slide;
+        vec_t crouch_slide_boost;
+        vec_t crouch_slide_friction;
 
 	struct g_entity_s *touch_ents[PM_MAX_TOUCH_ENTS]; // entities touched (out)
 	uint16_t num_touch_ents;

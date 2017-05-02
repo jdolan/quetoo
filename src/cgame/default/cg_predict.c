@@ -70,6 +70,10 @@ void Cg_PredictMovement(const GList *cmds) {
 	pm.ground_entity = pr->ground_entity;
 	pm.hook_pull_speed = Cg_GetHookPullSpeed();
 
+	pm.crouch_slide = Cg_GetCrouchSlideEnabled();
+	pm.crouch_slide_boost = Cg_GetCrouchSlideBoost();
+	pm.crouch_slide_friction = Cg_GetCrouchSlideFriction();
+
 	pm.PointContents = cgi.PointContents;
 	pm.Trace = Cg_PredictMovement_Trace;
 

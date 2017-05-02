@@ -51,6 +51,8 @@ extern s_sample_t *cg_sample_underwater;
 extern s_sample_t *cg_sample_hits[2];
 extern s_sample_t *cg_sample_gib;
 
+extern s_sample_t *cg_sample_slide;
+
 s_sample_t *Cg_GetFootstepSample(const char *footsteps);
 
 extern cg_particles_t *cg_particles_normal;
