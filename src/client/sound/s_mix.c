@@ -60,8 +60,17 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 
 	if (ch->play.flags & S_PLAY_POSITIONED) {
 		VectorCopy(ch->play.origin, org);
+		VectorClear(ch->velocity);
 	} else if (ch->play.flags & S_PLAY_ENTITY) {
 		const cl_entity_t *ent = &cl.entities[ch->play.entity];
+		
+		if (ent == cl.entity) {
+			VectorCopy(cl.frame.ps.pm_state.velocity, ch->velocity);
+		}
+		else {
+			VectorSubtract(ent->current.origin, ent->prev.origin, ch->velocity);
+		}
+
 		if (ent->current.solid == SOLID_BSP) {
 			const r_model_t *mod = cl.model_precache[ent->current.model1];
 			VectorLerp(mod->mins, mod->maxs, 0.5, center);
@@ -117,6 +126,8 @@ void S_MixChannels(void) {
 	alDistanceModel(AL_NONE);
 	alListenerfv(AL_POSITION, r_view.origin);
 	alListenerfv(AL_ORIENTATION, &orientation[0][0]);
+	//alDopplerFactor(0.05);
+	//alListenerfv(AL_VELOCITY, cl.frame.ps.pm_state.velocity);
 
 	s_channel_t *ch = s_env.channels;
 	for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
@@ -147,6 +158,7 @@ void S_MixChannels(void) {
 				
 				alSourcefv(s_env.sources[i], AL_POSITION, ch->position);
 				alSourcef(s_env.sources[i], AL_GAIN, ch->gain);
+				//alSourcefv(s_env.sources[i], AL_VELOCITY, ch->velocity);
 
 				if (!ch->start_time) {
 					ch->start_time = quetoo.ticks;

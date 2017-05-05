@@ -70,6 +70,7 @@ typedef struct s_channel_s {
 	uint32_t start_time;
 	int32_t frame;
 	vec3_t position;
+	vec3_t velocity;
 	vec_t gain;
 	_Bool free;
 } s_channel_t;
