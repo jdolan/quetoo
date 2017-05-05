@@ -151,7 +151,7 @@ static void S_Stop_f(void) {
 /**
  * @brief
  */
-static void S_Restart_f(void) {
+void S_Restart_f(void) {
 
 	if (cls.state == CL_LOADING) {
 		return;

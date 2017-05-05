@@ -79,9 +79,7 @@ typedef struct s_channel_s {
 
 typedef struct s_music_s {
 	s_media_t media;
-	void *buffer;
-	SDL_RWops *rw;
-	//Mix_Music *music;
+	Sound_Sample *sample;
 } s_music_t;
 
 // the sound environment

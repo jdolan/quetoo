@@ -28,4 +28,5 @@ void S_Shutdown(void);
 void S_StopAllSounds(void);
 
 #ifdef __S_LOCAL_H__
+void S_Restart_f(void);
 #endif /* __S_LOCAL_H__ */

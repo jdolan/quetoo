@@ -22,7 +22,13 @@
 #include "s_local.h"
 #include "client.h"
 
+static cvar_t *s_music_buffer_count;
+static cvar_t *s_music_buffer_size;
+
 typedef struct s_music_state_s {
+	ALuint source;
+	ALuint *music_buffers;
+	uint32_t next_buffer;
 	s_music_t *default_music;
 	s_music_t *current_music;
 	GList *playlist;
@@ -45,49 +51,58 @@ static _Bool S_RetainMusic(s_media_t *self) {
 static void S_FreeMusic(s_media_t *self) {
 	s_music_t *music = (s_music_t *) self;
 
-	//if (music->music) {
-	//	Mix_FreeMusic(music->music);
-	//}
-	if (music->rw) {
-		SDL_FreeRW(music->rw);
-	}
-	if (music->buffer) {
-		Fs_Free(music->buffer);
+	if (music->sample) {
+		Sound_FreeSample(music->sample);
+		music->sample = NULL;
 	}
 }
 
 /**
  * @brief Handles the actual loading of .ogg music files.
  */
-/*static _Bool S_LoadMusicFile(const char *name, void **buffer, SDL_RWops **rw, Mix_Music **music) {
+static _Bool S_LoadMusicFile(const char *name, Sound_Sample **sample) {
 	char path[MAX_QPATH];
+	void *buffer;
 
-	*music = NULL;
+	*sample = NULL;
 
 	StripExtension(name, path);
 	g_snprintf(path, sizeof(path), "music/%s.ogg", name);
 
 	int64_t len;
-	if ((len = Fs_Load(path, buffer)) != -1) {
+	if ((len = Fs_Load(path, &buffer)) != -1) {
 
-		if ((*rw = SDL_RWFromMem(*buffer, (int32_t) len))) {
+		Sound_AudioInfo desired = {
+			.format = AUDIO_S16,
+			.channels = 2,
+			.rate = s_rate->integer
+		};
 
-			if ((*music = Mix_LoadMUS_RW(*rw, false))) {
-				Com_Debug(DEBUG_SOUND, "Loaded %s\n", name);
-			} else {
-				Com_Warn("Failed to load %s: %s\n", name, Mix_GetError());
-				SDL_FreeRW(*rw);
-			}
+		Sound_Sample *music = Sound_NewSampleFromMem((const Uint8 *) buffer, (Uint32) len, "ogg", &desired, s_music_buffer_size->value);
+
+		if (!music) {
+			Com_Warn("%s\n", Sound_GetError());
 		} else {
-			Com_Warn("Failed to create SDL_RWops for %s\n", name);
-			Fs_Free(*buffer);
+
+			if (music->flags & SOUND_SAMPLEFLAG_ERROR) {
+				Com_Warn("%s\n", Sound_GetError());
+			} else if (!(music->flags & SOUND_SAMPLEFLAG_CANSEEK)) {
+				Com_Warn("Music format for %s does not appear to be seekable\n", name);
+			} else {
+				*sample = music;
+			}
+
+			if (!*sample) {
+				Sound_FreeSample(music);
+			}
 		}
+
 	} else {
 		Com_Debug(DEBUG_SOUND, "Failed to load %s\n", name);
 	}
 
-	return *music != NULL;
-}*/
+	return !!*sample;
+}
 
 /**
  * @brief Clears the musics playlist so that it may be rebuilt.
@@ -108,12 +123,11 @@ s_music_t *S_LoadMusic(const char *name) {
 
 	StripExtension(name, key);
 
-/*	if (!(music = (s_music_t *) S_FindMedia(key))) {
+	if (!(music = (s_music_t *) S_FindMedia(key))) {
 
-		void *buffer;
-		SDL_RWops *rw;
-		Mix_Music *mus;
-		if (S_LoadMusicFile(key, &buffer, &rw, &mus)) {
+		Sound_Sample *sample;
+
+		if (S_LoadMusicFile(key, &sample)) {
 
 			music = (s_music_t *) S_AllocMedia(key, sizeof(s_music_t));
 
@@ -122,16 +136,14 @@ s_music_t *S_LoadMusic(const char *name) {
 			music->media.Retain = S_RetainMusic;
 			music->media.Free = S_FreeMusic;
 
-			music->buffer = buffer;
-			music->rw = rw;
-			music->music = mus;
+			music->sample = sample;
 
 			S_RegisterMedia((s_media_t *) music);
 		} else {
 			Com_Debug(DEBUG_SOUND, "S_LoadMusic: Couldn't load %s\n", key);
 			music = NULL;
 		}
-	}*/
+	}
 
 	if (music) {
 		s_music_state.playlist = g_list_append(s_music_state.playlist, music);
@@ -145,17 +157,83 @@ s_music_t *S_LoadMusic(const char *name) {
  */
 static void S_StopMusic(void) {
 
-	//Mix_HaltMusic();
+	alSourceStop(s_music_state.source);
 
 	s_music_state.current_music = NULL;
+}
+
+/**
+ * @brief Handles music buffering for the specified music
+ * @param setup_buffers If the buffers should be pulled directly from the buffer list instead of
+ * from the consumed buffer list. Use this on first call of Play only.
+ */
+static void S_BufferMusic(s_music_t *music, _Bool setup_buffers) {
+
+	if (!music->sample) {
+		return; // ???
+	}
+
+	// if we're EOF, we can quit here and just let the source expire buffers
+	if (music->sample->flags & SOUND_SAMPLEFLAG_EOF) {
+		return;
+	}
+
+	int32_t buffers_processed = s_music_buffer_count->integer;
+
+	if (!setup_buffers) {
+		alGetSourcei(s_music_state.source, AL_BUFFERS_PROCESSED, &buffers_processed);
+	}
+
+	if (!buffers_processed) {
+		return;
+	}
+
+	int32_t i;
+
+	// go through the buffers we have left to add and start decoding
+	for (i = 0; i < buffers_processed; i++) {
+
+		const uint32_t size_decoded = Sound_Decode(music->sample);
+
+		if (!size_decoded || size_decoded != music->sample->buffer_size) {
+
+			if (music->sample->flags & SOUND_SAMPLEFLAG_ERROR) {
+				Com_Warn("Error during music decoding: %s\n", Sound_GetError());
+				break;
+			}
+		}
+
+		ALuint buffer;
+
+		if (setup_buffers) {
+			buffer = s_music_state.music_buffers[s_music_state.next_buffer];
+			s_music_state.next_buffer = (s_music_state.next_buffer + 1) % s_music_buffer_count->integer;
+		} else {
+			alSourceUnqueueBuffers(s_music_state.source, 1, &buffer);
+		}
+
+		alBufferData(buffer, AL_FORMAT_STEREO16, music->sample->buffer, size_decoded, s_rate->integer);
+		alSourceQueueBuffers(s_music_state.source, 1, &buffer);
+	}
+
+	Com_Debug(DEBUG_SOUND, "%i music chunks processed\n", i);
 }
 
 /**
  * @brief Begins playback of the specified s_music_t.
  */
 static void S_PlayMusic(s_music_t *music) {
+	
+	int32_t buffers_queued;
+	alGetSourcei(s_music_state.source, AL_BUFFERS_QUEUED, &buffers_queued);
 
-	//Mix_PlayMusic(music->music, 1);
+	ALuint buffers_list[buffers_queued];
+	alSourceUnqueueBuffers(s_music_state.source, buffers_queued, buffers_list);
+
+	s_music_state.next_buffer = 0;
+
+	S_BufferMusic(music, true);
+	alSourcePlay(s_music_state.source);
 
 	s_music_state.current_music = music;
 }
@@ -189,6 +267,14 @@ void S_FrameMusic(void) {
 	extern cl_static_t cls;
 	static cl_state_t last_state = CL_UNINITIALIZED;
 
+	if (s_music_buffer_count->modified ||
+		s_music_buffer_size->modified) {
+		S_Restart_f();
+
+		s_music_buffer_size->modified = s_music_buffer_count->modified = false;
+		return;
+	}
+
 	// revert to the default music when the client disconnects
 	if (last_state == CL_ACTIVE && cls.state != CL_ACTIVE) {
 		S_ClearPlaylist();
@@ -198,19 +284,26 @@ void S_FrameMusic(void) {
 	last_state = cls.state;
 
 	if (s_music_volume->modified) {
-		/*const int32_t volume = Clamp(s_music_volume->value, 0.0, 1.0) * MIX_MAX_VOLUME;
+		const vec_t volume = Clamp(s_music_volume->value, 0.0, 1.0);
 
 		if (volume) {
-			Mix_VolumeMusic(volume);
+			alSourcef(s_music_state.source, AL_GAIN, volume);
 		} else {
 			S_StopMusic();
-		}*/
+		}
+
+		s_music_volume->modified = false;
 	}
 
 	// if music is enabled but not playing, play that funky music
-	//if (s_music_volume->value && !Mix_PlayingMusic()) {
-	//	S_NextTrack_f();
-	//}
+	ALenum state;
+	alGetSourcei(s_music_state.source, AL_SOURCE_STATE, &state);
+
+	if (s_music_volume->value && state != AL_PLAYING) {
+		S_NextTrack_f();
+	} else {
+		S_BufferMusic(s_music_state.current_music, false);
+	}
 }
 
 /**
@@ -237,6 +330,26 @@ void S_NextTrack_f(void) {
 void S_InitMusic(void) {
 
 	memset(&s_music_state, 0, sizeof(s_music_state));
+	
+	s_music_buffer_count = Cvar_Add("s_music_buffer_count", "8", CVAR_S_MEDIA, "The number of buffers to store for music streaming.");
+	s_music_buffer_size = Cvar_Add("s_music_buffer_size", "16384", CVAR_S_MEDIA, "The size of each buffer for music streaming.");
+
+	s_music_buffer_count->modified = s_music_buffer_size->modified = false;
+
+	alGenSources(1, &s_music_state.source);
+	
+	if (!s_music_state.source) {
+		Com_Warn("Couldn't allocate source: %s\n", alGetString(alGetError()));
+		return;
+	}
+
+	s_music_state.music_buffers = Mem_TagMalloc(sizeof(ALuint) * s_music_buffer_count->integer, MEM_TAG_SOUND);
+	alGenBuffers(s_music_buffer_count->integer, s_music_state.music_buffers);
+
+	if (!*s_music_state.music_buffers) {
+		Com_Warn("Couldn't allocate buffers: %s\n", alGetString(alGetError()));
+		return;
+	}
 
 	s_music_state.default_music = S_LoadMusic("track3");
 }
@@ -247,4 +360,10 @@ void S_InitMusic(void) {
 void S_ShutdownMusic(void) {
 
 	S_StopMusic();
+
+	if (s_music_state.source) {
+		alDeleteSources(1, &s_music_state.source);
+		alDeleteBuffers(s_music_buffer_count->integer, s_music_state.music_buffers);
+		Mem_Free(s_music_state.music_buffers);
+	}
 }

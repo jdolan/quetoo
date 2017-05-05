@@ -108,6 +108,22 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 
 	ch->gain = 1.0 - frac;
 
+	// fade out frame sounds if they are no longer in the frame
+	if (ch->start_time) {
+		if (ch->play.flags & S_PLAY_FRAME) {
+			if (ch->frame != cl.frame.frame_num) {
+				const int32_t frame_diff = cl.frame.frame_num - ch->frame;
+				const uint32_t ms_diff = frame_diff * QUETOO_TICK_MILLIS;
+
+				if (ms_diff > 250) {
+					return false; // faded out
+				}
+
+				ch->gain *= 1.0 - (ms_diff / 250.0);
+			}
+		}
+	}
+
 	return frac <= 1.0;
 }
 
@@ -115,8 +131,6 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
  * @brief Updates all active channels for the current frame.
  */
 void S_MixChannels(void) {
-
-	alListenerf(AL_GAIN, Clamp(s_volume->value, 0.0, 1.0));
 
 	const vec3_t orientation[] = {
 		{ r_view.forward[0], r_view.forward[1], r_view.forward[2] },
@@ -143,21 +157,11 @@ void S_MixChannels(void) {
 	for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
 
 		if (ch->sample) {
-
-			if (ch->start_time) {
-				if (ch->play.flags & S_PLAY_FRAME) {
-					if (ch->frame != cl.frame.frame_num) {
-						// TODO
-						//Mix_FadeOutChannel(i, 250);
-						continue;
-					}
-				}
-			}
-
+			
 			if (S_SpatializeChannel(ch)) {
 				
 				alSourcefv(s_env.sources[i], AL_POSITION, ch->position);
-				alSourcef(s_env.sources[i], AL_GAIN, ch->gain);
+				alSourcef(s_env.sources[i], AL_GAIN, ch->gain * s_volume->value);
 				//alSourcefv(s_env.sources[i], AL_VELOCITY, ch->velocity);
 
 				if (!ch->start_time) {
