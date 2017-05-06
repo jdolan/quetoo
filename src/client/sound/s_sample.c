@@ -52,13 +52,15 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 			continue;
 		}
 
+		SDL_RWops *rw = SDL_RWFromConstMem(buf, (int32_t) len);
+
 		Sound_AudioInfo desired = {
 			.format = AUDIO_S16,
 			.channels = 1,
 			.rate = s_rate->integer
 		};
 
-		Sound_Sample *snd = Sound_NewSampleFromMem(buf, (Uint32) len, ext, &desired, 2048);
+		Sound_Sample *snd = Sound_NewSample(rw, ext, &desired, 2048);
 		
 		if (!snd) {
 			Com_Warn("%s\n", Sound_GetError());
@@ -74,6 +76,8 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 
 			Sound_FreeSample(snd);
 		}
+
+		SDL_FreeRW(rw);
 
 		Fs_Free(buf);
 

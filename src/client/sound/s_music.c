@@ -89,14 +89,15 @@ static _Bool S_LoadMusicFile(const char *name, Sound_Sample **sample) {
 	int64_t len;
 	if ((len = Fs_Load(path, &buffer)) != -1) {
 
+		SDL_RWops *rw = SDL_RWFromConstMem(buffer, (int32_t) len);
+
 		Sound_AudioInfo desired = {
 			.format = AUDIO_S16,
 			.channels = 2,
 			.rate = s_rate->integer
 		};
 
-		Sound_Sample *music = Sound_NewSampleFromMem((const Uint8 *) buffer, (Uint32) len, "ogg", &desired, s_music_buffer_size->value);
-
+		Sound_Sample *music = Sound_NewSample(rw, "ogg", &desired, s_music_buffer_size->value);
 		if (!music) {
 			Com_Warn("%s\n", Sound_GetError());
 		} else {
@@ -113,6 +114,8 @@ static _Bool S_LoadMusicFile(const char *name, Sound_Sample **sample) {
 				Sound_FreeSample(music);
 			}
 		}
+
+		SDL_FreeRW(rw);
 
 	} else {
 		Com_Debug(DEBUG_SOUND, "Failed to load %s\n", name);
