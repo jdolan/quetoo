@@ -299,6 +299,36 @@ static s_music_t *S_NextMusic(void) {
 }
 
 /**
+ * @brief Single music thread tick.
+ */
+static void S_MusicThreadTick(void) {
+
+	if (s_music_state.current_music) {
+		S_BufferMusic(s_music_state.current_music, false);
+	}
+}
+
+/**
+ * @brief Music thread loop.
+ */
+static void S_MusicThread(void *data) {
+
+	while (true) {
+		
+		SDL_mutexP(s_music_state.mutex);
+	
+		if (s_music_state.shutdown) {
+			SDL_mutexV(s_music_state.mutex);
+			return;
+		}
+
+		S_MusicThreadTick();
+
+		SDL_mutexV(s_music_state.mutex);
+	}
+}
+
+/**
  * @brief Ensures music playback continues by selecting a new track when one
  * completes.
  */
@@ -347,26 +377,9 @@ void S_FrameMusic(void) {
 	if (s_music_volume->value && state != AL_PLAYING) {
 		S_NextTrack_f();
 	}
-}
 
-/**
- * @brief Music thread loop.
- */
-static void S_MusicThread(void *data) {
-
-	while (true) {
-		SDL_mutexP(s_music_state.mutex);
-	
-		if (s_music_state.shutdown) {
-			SDL_mutexV(s_music_state.mutex);
-			return;
-		}
-
-		if (s_music_state.current_music) {
-			S_BufferMusic(s_music_state.current_music, false);
-		}
-
-		SDL_mutexV(s_music_state.mutex);
+	if (!s_music_state.thread) {
+		S_MusicThreadTick();
 	}
 }
 
@@ -425,7 +438,10 @@ void S_InitMusic(void) {
 	s_music_state.default_music = S_LoadMusic("track3");
 
 	s_music_state.mutex = SDL_CreateMutex();
-	s_music_state.thread = Thread_Create(S_MusicThread, NULL);
+
+	if (Thread_Count()) {
+		s_music_state.thread = Thread_Create(S_MusicThread, NULL);
+	}
 }
 
 /**
