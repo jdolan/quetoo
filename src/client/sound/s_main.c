@@ -26,7 +26,6 @@
 s_env_t s_env;
 
 cvar_t *s_ambient;
-cvar_t *s_music_volume;
 cvar_t *s_reverse;
 cvar_t *s_rate;
 cvar_t *s_volume;
@@ -178,7 +177,6 @@ void S_Restart_f(void) {
 static void S_InitLocal(void) {
 
 	s_ambient = Cvar_Add("s_ambient", "1", CVAR_ARCHIVE, "Controls playback of ambient sounds.");
-	s_music_volume = Cvar_Add("s_music_volume", "0.15", CVAR_ARCHIVE, "Music volume level.");
 	s_rate = Cvar_Add("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE, "Sound sample rate in Hz.");
 	s_reverse = Cvar_Add("s_reverse", "0", CVAR_ARCHIVE, "Reverse left and right channels.");
 	s_volume = Cvar_Add("s_volume", "1.0", CVAR_ARCHIVE, "Global sound volume level.");
@@ -186,7 +184,6 @@ static void S_InitLocal(void) {
 	Cvar_ClearAll(CVAR_S_MASK);
 
 	Cmd_Add("s_list_media", S_ListMedia_f, CMD_SOUND, "List all currently loaded media");
-	Cmd_Add("s_next_track", S_NextTrack_f, CMD_SOUND, "Play the next music track.");
 	Cmd_Add("s_play", S_Play_f, CMD_SOUND, NULL);
 	Cmd_Add("s_restart", S_Restart_f, CMD_SOUND, "Restart the sound subsystem");
 	Cmd_Add("s_stop", S_Stop_f, CMD_SOUND, NULL);
@@ -234,9 +231,6 @@ void S_Init(void) {
 		Com_Warn("Couldn't allocate channels: %s\n", alGetString(error));
 		return;
 	}
-
-	// FIXME
-	//Mix_ChannelFinished(S_FreeChannel);
 
 	Com_Print("Sound initialized (OpenAL, %dhz)\n", s_rate->integer);
 

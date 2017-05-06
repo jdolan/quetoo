@@ -87,12 +87,12 @@ typedef struct s_env_s {
 	s_channel_t channels[MAX_CHANNELS];
 	ALuint sources[MAX_CHANNELS];
 
-	_Bool initialized; // is the sound subsystem initialized
-	_Bool update; // inform the client of state changes
-
 	ALCdevice *device;
 	ALCcontext *context;
 	uint16_t num_active_channels;
+
+	_Bool initialized; // is the sound subsystem initialized
+	_Bool update; // inform the client of state changes
 } s_env_t;
 
 #ifdef __S_LOCAL_H__

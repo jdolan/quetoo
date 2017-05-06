@@ -25,6 +25,8 @@
 static cvar_t *s_music_buffer_count;
 static cvar_t *s_music_buffer_size;
 
+cvar_t *s_music_volume;
+
 typedef struct s_music_state_s {
 	ALuint source;
 	ALuint *music_buffers;
@@ -32,9 +34,24 @@ typedef struct s_music_state_s {
 	s_music_t *default_music;
 	s_music_t *current_music;
 	GList *playlist;
+
+	thread_t *thread; // thread sound system runs on
+	SDL_mutex *mutex; // mutex for music state
+	_Bool shutdown;
 } s_music_state_t;
 
 static s_music_state_t s_music_state;
+
+static void S_CheckALError() {
+
+	const ALenum v = alGetError();
+
+	if (v == AL_NO_ERROR) {
+		return;
+	}
+
+	Com_Debug(DEBUG_BREAKPOINT | DEBUG_SOUND, "AL error: %s\n", alGetString(v));
+}
 
 /**
  * @brief Retain event listener for s_music_t.
@@ -160,6 +177,8 @@ static void S_StopMusic(void) {
 	alSourceStop(s_music_state.source);
 
 	s_music_state.current_music = NULL;
+
+	S_CheckALError();
 }
 
 /**
@@ -178,10 +197,15 @@ static void S_BufferMusic(s_music_t *music, _Bool setup_buffers) {
 		return;
 	}
 
+	S_CheckALError();
+
 	int32_t buffers_processed = s_music_buffer_count->integer;
 
 	if (!setup_buffers) {
 		alGetSourcei(s_music_state.source, AL_BUFFERS_PROCESSED, &buffers_processed);
+		S_CheckALError();
+	} else {
+		Sound_Seek(music->sample, 0);
 	}
 
 	if (!buffers_processed) {
@@ -214,6 +238,8 @@ static void S_BufferMusic(s_music_t *music, _Bool setup_buffers) {
 
 		alBufferData(buffer, AL_FORMAT_STEREO16, music->sample->buffer, size_decoded, s_rate->integer);
 		alSourceQueueBuffers(s_music_state.source, 1, &buffer);
+
+		S_CheckALError();
 	}
 
 	Com_Debug(DEBUG_SOUND, "%i music chunks processed\n", i);
@@ -224,18 +250,31 @@ static void S_BufferMusic(s_music_t *music, _Bool setup_buffers) {
  */
 static void S_PlayMusic(s_music_t *music) {
 	
-	int32_t buffers_queued;
-	alGetSourcei(s_music_state.source, AL_BUFFERS_QUEUED, &buffers_queued);
+	SDL_mutexP(s_music_state.mutex);
 
-	ALuint buffers_list[buffers_queued];
-	alSourceUnqueueBuffers(s_music_state.source, buffers_queued, buffers_list);
+	S_StopMusic();
+
+	int32_t buffers_processed;
+	alGetSourcei(s_music_state.source, AL_BUFFERS_PROCESSED, &buffers_processed);
+
+	if (buffers_processed) {
+		ALuint buffers_list[buffers_processed];
+		alSourceUnqueueBuffers(s_music_state.source, buffers_processed, buffers_list);
+	}
+
+	S_CheckALError();
 
 	s_music_state.next_buffer = 0;
 
+	s_music_state.current_music = music;
+
 	S_BufferMusic(music, true);
+
 	alSourcePlay(s_music_state.source);
 
-	s_music_state.current_music = music;
+	S_CheckALError();
+
+	SDL_mutexV(s_music_state.mutex);
 }
 
 /**
@@ -274,6 +313,8 @@ void S_FrameMusic(void) {
 		s_music_buffer_size->modified = s_music_buffer_count->modified = false;
 		return;
 	}
+	
+	SDL_mutexP(s_music_state.mutex);
 
 	// revert to the default music when the client disconnects
 	if (last_state == CL_ACTIVE && cls.state != CL_ACTIVE) {
@@ -299,10 +340,33 @@ void S_FrameMusic(void) {
 	ALenum state;
 	alGetSourcei(s_music_state.source, AL_SOURCE_STATE, &state);
 
+	S_CheckALError();
+
+	SDL_mutexV(s_music_state.mutex);
+
 	if (s_music_volume->value && state != AL_PLAYING) {
 		S_NextTrack_f();
-	} else {
-		S_BufferMusic(s_music_state.current_music, false);
+	}
+}
+
+/**
+ * @brief Music thread loop.
+ */
+static void S_MusicThread(void *data) {
+
+	while (true) {
+		SDL_mutexP(s_music_state.mutex);
+	
+		if (s_music_state.shutdown) {
+			SDL_mutexV(s_music_state.mutex);
+			return;
+		}
+
+		if (s_music_state.current_music) {
+			S_BufferMusic(s_music_state.current_music, false);
+		}
+
+		SDL_mutexV(s_music_state.mutex);
 	}
 }
 
@@ -333,8 +397,13 @@ void S_InitMusic(void) {
 	
 	s_music_buffer_count = Cvar_Add("s_music_buffer_count", "8", CVAR_S_MEDIA, "The number of buffers to store for music streaming.");
 	s_music_buffer_size = Cvar_Add("s_music_buffer_size", "16384", CVAR_S_MEDIA, "The size of each buffer for music streaming.");
+	
+	s_music_volume = Cvar_Add("s_music_volume", "0.15", CVAR_ARCHIVE, "Music volume level.");
+	Cmd_Add("s_next_track", S_NextTrack_f, CMD_SOUND, "Play the next music track.");
 
-	s_music_buffer_count->modified = s_music_buffer_size->modified = false;
+	s_music_buffer_count->modified = 
+		s_music_buffer_size->modified = 
+		s_music_volume->modified = false;
 
 	alGenSources(1, &s_music_state.source);
 	
@@ -342,6 +411,8 @@ void S_InitMusic(void) {
 		Com_Warn("Couldn't allocate source: %s\n", alGetString(alGetError()));
 		return;
 	}
+
+	alSourcef(s_music_state.source, AL_GAIN, s_music_volume->value);
 
 	s_music_state.music_buffers = Mem_TagMalloc(sizeof(ALuint) * s_music_buffer_count->integer, MEM_TAG_SOUND);
 	alGenBuffers(s_music_buffer_count->integer, s_music_state.music_buffers);
@@ -352,13 +423,17 @@ void S_InitMusic(void) {
 	}
 
 	s_music_state.default_music = S_LoadMusic("track3");
+
+	s_music_state.mutex = SDL_CreateMutex();
+	s_music_state.thread = Thread_Create(S_MusicThread, NULL);
 }
 
 /**
  * @brief Shuts down music playback.
  */
 void S_ShutdownMusic(void) {
-
+	
+	SDL_mutexP(s_music_state.mutex);
 	S_StopMusic();
 
 	if (s_music_state.source) {
@@ -366,4 +441,16 @@ void S_ShutdownMusic(void) {
 		alDeleteBuffers(s_music_buffer_count->integer, s_music_state.music_buffers);
 		Mem_Free(s_music_state.music_buffers);
 	}
+
+	if (s_music_state.thread) {
+		s_music_state.shutdown = true;
+	
+		SDL_mutexV(s_music_state.mutex);
+		Thread_Wait(s_music_state.thread); // wait for thread to end
+	} else {
+		SDL_mutexV(s_music_state.mutex);
+	}
+
+	// kill mutex
+	SDL_DestroyMutex(s_music_state.mutex);
 }
