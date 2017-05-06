@@ -35,7 +35,7 @@ typedef struct s_music_state_s {
 	s_music_t *current_music;
 	GList *playlist;
 
-	thread_t *thread; // thread sound system runs on
+	SDL_Thread *thread; // thread sound system runs on
 	SDL_mutex *mutex; // mutex for music state
 	_Bool shutdown;
 } s_music_state_t;
@@ -311,7 +311,7 @@ static void S_MusicThreadTick(void) {
 /**
  * @brief Music thread loop.
  */
-static void S_MusicThread(void *data) {
+static int S_MusicThread(void *data) {
 
 	while (true) {
 		
@@ -319,13 +319,18 @@ static void S_MusicThread(void *data) {
 	
 		if (s_music_state.shutdown) {
 			SDL_mutexV(s_music_state.mutex);
-			return;
+			return 1;
 		}
 
 		S_MusicThreadTick();
 
 		SDL_mutexV(s_music_state.mutex);
+
+		// sleep a bit, so music thread doesn't eat cycles
+		usleep(QUETOO_TICK_MILLIS * 1000);
 	}
+
+	return 0;
 }
 
 /**
@@ -440,7 +445,7 @@ void S_InitMusic(void) {
 	s_music_state.mutex = SDL_CreateMutex();
 
 	if (Thread_Count()) {
-		s_music_state.thread = Thread_Create(S_MusicThread, NULL);
+		s_music_state.thread = SDL_CreateThread(S_MusicThread, __func__, NULL);
 	}
 }
 
@@ -462,7 +467,7 @@ void S_ShutdownMusic(void) {
 		s_music_state.shutdown = true;
 	
 		SDL_mutexV(s_music_state.mutex);
-		Thread_Wait(s_music_state.thread); // wait for thread to end
+		SDL_WaitThread(s_music_state.thread, NULL); // wait for thread to end
 	} else {
 		SDL_mutexV(s_music_state.mutex);
 	}
