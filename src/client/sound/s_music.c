@@ -117,6 +117,8 @@ static _Bool S_LoadMusicFile(const char *name, Sound_Sample **sample) {
 
 		SDL_FreeRW(rw);
 
+		Fs_Free(buffer);
+
 	} else {
 		Com_Debug(DEBUG_SOUND, "Failed to load %s\n", name);
 	}
