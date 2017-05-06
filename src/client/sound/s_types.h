@@ -21,9 +21,15 @@
 
 #pragma once
 
+#if defined (__APPLE__)
+#include <OpenAL/OpenAL.h>
+#else
 #include <AL/al.h>
 #include <AL/alc.h>
-#include <SDL2/SDL_sound.h>
+#endif
+
+#include <SDL2/SDL.h>
+#include <SDL/SDL_sound.h>
 
 #include "common.h"
 #include "sys.h"

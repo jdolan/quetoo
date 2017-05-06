@@ -52,6 +52,7 @@ libclient_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@CURL_CFLAGS@ \
 	@GLIB_CFLAGS@ \
+	@OPENAL_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
 	@SDL2_CFLAGS@
 
@@ -76,6 +77,7 @@ libclient_null_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@CURL_CFLAGS@ \
 	@GLIB_CFLAGS@ \
+	@OPENAL_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
 	@SDL2_CFLAGS@
 
