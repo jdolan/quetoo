@@ -96,20 +96,23 @@ static _Bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **file, SD
 	int64_t len;
 	if ((len = Fs_Load(path, buffer)) != -1) {
 
-		SDL_RWops *rw = SDL_RWFromConstMem(*buffer, (int32_t) len);
+		*rw = SDL_RWFromConstMem(*buffer, (int32_t) len);
 	
-		memset(info, 0, sizeof(info));
+		memset(info, 0, sizeof(*info));
 
-		*file = sf_open_virtual(&s_rwops_io, SFM_READ, info, rw);
+		*file = sf_open_virtual(&s_rwops_io, SFM_READ, info, *rw);
 
 		if (!*file || sf_error(*file)) {
 			Com_Warn("%s\n", sf_strerror(*file));
+
 			sf_close(*file);
+
+			SDL_FreeRW(*rw);
+
+			Fs_Free(*buffer);
+
 			*file = NULL;
 		}
-		SDL_FreeRW(rw);
-
-		Fs_Free(buffer);
 
 	} else {
 		Com_Debug(DEBUG_SOUND, "Failed to load %s\n", name);
@@ -236,7 +239,7 @@ static void S_BufferMusic(s_music_t *music, _Bool setup_buffers) {
 			alSourceUnqueueBuffers(s_music_state.source, 1, &buffer);
 		}
 
-		alBufferData(buffer, AL_FORMAT_STEREO16, s_music_state.frame_buffer, num_decoded * sizeof(int16_t) * music->info.channels, s_rate->integer);
+		alBufferData(buffer, AL_FORMAT_STEREO16, s_music_state.frame_buffer, num_decoded * sizeof(int16_t) * music->info.channels, music->info.samplerate);
 		alSourceQueueBuffers(s_music_state.source, 1, &buffer);
 
 		S_CheckALError();
@@ -416,7 +419,7 @@ void S_InitMusic(void) {
 	s_music_buffer_count = Cvar_Add("s_music_buffer_count", "8", CVAR_S_MEDIA, "The number of buffers to store for music streaming.");
 	s_music_buffer_size = Cvar_Add("s_music_buffer_size", "16384", CVAR_S_MEDIA, "The size of each buffer for music streaming.");
 
-	s_music_state.frame_buffer = Mem_TagMalloc(sizeof(int16_t) * s_music_buffer_size->value * 2);
+	s_music_state.frame_buffer = Mem_TagMalloc(sizeof(int16_t) * s_music_buffer_size->value * 2, MEM_TAG_SOUND);
 	
 	s_music_volume = Cvar_Add("s_music_volume", "0.15", CVAR_ARCHIVE, "Music volume level.");
 	Cmd_Add("s_next_track", S_NextTrack_f, CMD_SOUND, "Play the next music track.");
