@@ -110,7 +110,7 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 			alGenBuffers(1, &sample->buffer);
 			S_CheckALError();
 			
-			alBufferData(sample->buffer, AL_FORMAT_MONO16, buffer, num_read * sizeof(int16_t), s_rate->integer);
+			alBufferData(sample->buffer, info.channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16, buffer, num_read * sizeof(int16_t), s_rate->integer);
 			S_CheckALError();
 
 			Mem_Free(buffer);
