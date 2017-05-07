@@ -50,9 +50,9 @@ size_t S_Resample(const int32_t inrate, const int32_t outrate, const size_t inco
 }
 
 /**
- * @brief Convert from stereo to mono. It is safe for outdata == indata in this case.
+ * @brief Convert from stereo to mono.
  */
-static size_t S_Monoize(const size_t incount, const int16_t *indata, int16_t **outdata) {
+/*static size_t S_Monoize(const size_t incount, const int16_t *indata, int16_t **outdata) {
 	const size_t outcount = incount / 2;
 
 	*outdata = Mem_Malloc(outcount * sizeof(int16_t));
@@ -62,7 +62,7 @@ static size_t S_Monoize(const size_t incount, const int16_t *indata, int16_t **o
 	}
 
 	return outcount;
-}
+}*/
 
 /**
  * @brief
