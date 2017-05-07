@@ -50,6 +50,21 @@ size_t S_Resample(const int32_t inrate, const int32_t outrate, const size_t inco
 }
 
 /**
+ * @brief Convert from stereo to mono. It is safe for outdata == indata in this case.
+ */
+static size_t S_Monoize(const size_t incount, const int16_t *indata, int16_t **outdata) {
+	const size_t outcount = incount / 2;
+
+	*outdata = Mem_Malloc(outcount * sizeof(int16_t));
+
+	for (size_t i = 0, x = 0; x < outcount; i += 2, x++) {
+		(*outdata)[x] = (((int32_t) indata[i]) + ((int32_t) indata[i + 1])) / 2;
+	}
+
+	return outcount;
+}
+
+/**
  * @brief
  */
 static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const size_t pathlen) {
@@ -79,18 +94,11 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 
 		SNDFILE *snd = sf_open_virtual(&s_rwops_io, SFM_READ, &info, rw);
 
-		if (info.channels != 1) {
-			Com_Warn("%s is not a mono sound sample\n", path);
-			SDL_RWclose(rw);
-			Fs_Free(buf);
-			continue;
-		}
-		 
 		if (!snd || sf_error(snd)) {
 			Com_Warn("%s\n", sf_strerror(snd));
 		} else {
-			int16_t *buffer = Mem_Malloc(sizeof(int16_t) * info.frames);
-			sf_count_t num_read = sf_readf_short(snd, buffer, info.frames);
+			int16_t *buffer = Mem_Malloc(sizeof(int16_t) * info.frames * info.channels);
+			sf_count_t num_read = sf_readf_short(snd, buffer, info.frames) * info.channels;
 
 			if (info.samplerate != s_rate->integer) {
 				int16_t *resampled;

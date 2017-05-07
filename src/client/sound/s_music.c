@@ -224,7 +224,7 @@ static void S_BufferMusic(s_music_t *music, _Bool setup_buffers) {
 	// go through the buffers we have left to add and start decoding
 	for (i = 0; i < buffers_processed; i++) {
 
-		const sf_count_t num_decoded = sf_readf_short(music->snd, s_music_state.frame_buffer, s_music_buffer_size->value);
+		const sf_count_t num_decoded = sf_readf_short(music->snd, s_music_state.frame_buffer, s_music_buffer_size->value / 2 / music->info.channels);
 
 		if (!num_decoded) {
 			break;
