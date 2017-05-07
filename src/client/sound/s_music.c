@@ -43,17 +43,6 @@ typedef struct s_music_state_s {
 
 static s_music_state_t s_music_state;
 
-static void S_CheckALError() {
-
-	const ALenum v = alGetError();
-
-	if (v == AL_NO_ERROR) {
-		return;
-	}
-
-	Com_Debug(DEBUG_BREAKPOINT | DEBUG_SOUND, "AL error: %s\n", alGetString(v));
-}
-
 /**
  * @brief Retain event listener for s_music_t.
  */
@@ -181,10 +170,9 @@ s_music_t *S_LoadMusic(const char *name) {
 static void S_StopMusic(void) {
 
 	alSourceStop(s_music_state.source);
+	S_CheckALError();
 
 	s_music_state.current_music = NULL;
-
-	S_CheckALError();
 }
 
 /**
@@ -237,11 +225,13 @@ static void S_BufferMusic(s_music_t *music, _Bool setup_buffers) {
 			s_music_state.next_buffer = (s_music_state.next_buffer + 1) % s_music_buffer_count->integer;
 		} else {
 			alSourceUnqueueBuffers(s_music_state.source, 1, &buffer);
+			S_CheckALError();
 		}
 
 		alBufferData(buffer, AL_FORMAT_STEREO16, s_music_state.frame_buffer, num_decoded * sizeof(int16_t) * music->info.channels, music->info.samplerate);
-		alSourceQueueBuffers(s_music_state.source, 1, &buffer);
+		S_CheckALError();
 
+		alSourceQueueBuffers(s_music_state.source, 1, &buffer);
 		S_CheckALError();
 	}
 
@@ -259,10 +249,12 @@ static void S_PlayMusic(s_music_t *music) {
 
 	int32_t buffers_processed;
 	alGetSourcei(s_music_state.source, AL_BUFFERS_PROCESSED, &buffers_processed);
+	S_CheckALError();
 
 	if (buffers_processed) {
 		ALuint buffers_list[buffers_processed];
 		alSourceUnqueueBuffers(s_music_state.source, buffers_processed, buffers_list);
+		S_CheckALError();
 	}
 
 	S_CheckALError();
@@ -274,7 +266,6 @@ static void S_PlayMusic(s_music_t *music) {
 	S_BufferMusic(music, true);
 
 	alSourcePlay(s_music_state.source);
-
 	S_CheckALError();
 
 	SDL_mutexV(s_music_state.mutex);
@@ -377,7 +368,6 @@ void S_FrameMusic(void) {
 	// if music is enabled but not playing, play that funky music
 	ALenum state;
 	alGetSourcei(s_music_state.source, AL_SOURCE_STATE, &state);
-
 	S_CheckALError();
 
 	SDL_mutexV(s_music_state.mutex);
@@ -436,6 +426,7 @@ void S_InitMusic(void) {
 	}
 
 	alSourcef(s_music_state.source, AL_GAIN, s_music_volume->value);
+	S_CheckALError();
 
 	s_music_state.music_buffers = Mem_TagMalloc(sizeof(ALuint) * s_music_buffer_count->integer, MEM_TAG_SOUND);
 	alGenBuffers(s_music_buffer_count->integer, s_music_state.music_buffers);
@@ -464,7 +455,11 @@ void S_ShutdownMusic(void) {
 
 	if (s_music_state.source) {
 		alDeleteSources(1, &s_music_state.source);
+		S_CheckALError();
+
 		alDeleteBuffers(s_music_buffer_count->integer, s_music_state.music_buffers);
+		S_CheckALError();
+
 		Mem_Free(s_music_state.music_buffers);
 	}
 

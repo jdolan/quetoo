@@ -108,7 +108,11 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 			}
 
 			alGenBuffers(1, &sample->buffer);
+			S_CheckALError();
+			
 			alBufferData(sample->buffer, AL_FORMAT_MONO16, buffer, num_read * sizeof(int16_t), s_rate->integer);
+			S_CheckALError();
+
 			Mem_Free(buffer);
 		}
 
@@ -175,6 +179,7 @@ static void S_FreeSample(s_media_t *self) {
 
 	if (sample->buffer) {
 		alDeleteBuffers(1, &sample->buffer);
+		S_CheckALError();
 	}
 }
 

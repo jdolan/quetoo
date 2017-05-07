@@ -138,8 +138,14 @@ void S_MixChannels(void) {
 	};
 
 	alDistanceModel(AL_NONE);
+	S_CheckALError();
+
 	alListenerfv(AL_POSITION, r_view.origin);
+	S_CheckALError();
+
 	alListenerfv(AL_ORIENTATION, &orientation[0][0]);
+	S_CheckALError();
+
 	//alDopplerFactor(0.05);
 	//alListenerfv(AL_VELOCITY, cl.frame.ps.pm_state.velocity);
 
@@ -161,18 +167,29 @@ void S_MixChannels(void) {
 			if (S_SpatializeChannel(ch)) {
 				
 				alSourcefv(s_env.sources[i], AL_POSITION, ch->position);
+				S_CheckALError();
+
 				alSourcef(s_env.sources[i], AL_GAIN, ch->gain * s_volume->value);
+				S_CheckALError();
+
 				//alSourcefv(s_env.sources[i], AL_VELOCITY, ch->velocity);
 
 				if (!ch->start_time) {
 					ch->start_time = quetoo.ticks;
 
 					alSourcei(s_env.sources[i], AL_BUFFER, ch->sample->buffer);
-					alSourcei(s_env.sources[i], AL_LOOPING, (ch->play.flags & S_PLAY_LOOP));
+					S_CheckALError();
+
+					alSourcei(s_env.sources[i], AL_LOOPING, !!(ch->play.flags & S_PLAY_LOOP));
+					S_CheckALError();
+
 					alSourcePlay(s_env.sources[i]);
+					S_CheckALError();
+
 				} else {
 					ALenum state;
 					alGetSourcei(s_env.sources[i], AL_SOURCE_STATE, &state);
+					S_CheckALError();
 					
 					if (state != AL_PLAYING) {
 						S_FreeChannel(i);

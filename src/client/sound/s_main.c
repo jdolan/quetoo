@@ -34,6 +34,19 @@ extern cl_client_t cl;
 extern cl_static_t cls;
 
 /**
+ * @brief Check and report OpenAL errors.
+ */
+void S_CheckALError(void) {
+	const ALenum v = alGetError();
+
+	if (v == AL_NO_ERROR) {
+		return;
+	}
+
+	Com_Debug(DEBUG_BREAKPOINT | DEBUG_SOUND, "AL error: %s\n", alGetString(v));
+}
+
+/**
  * @brief
  */
 static sf_count_t S_RWops_get_filelen(void *user_data) {
@@ -92,6 +105,7 @@ static void S_Stop(void) {
 	memset(s_env.channels, 0, sizeof(s_env.channels));
 
 	alSourceStopv(MAX_CHANNELS, s_env.sources);
+	S_CheckALError();
 }
 
 /**
@@ -278,7 +292,7 @@ void S_Init(void) {
 		return;
 	}
 
-	Com_Print("Sound initialized (OpenAL, %dhz)\n", s_rate->integer);
+	Com_Print("Sound initialized (OpenAL, resample @ %dhz)\n", s_rate->integer);
 
 	s_env.initialized = true;
 
@@ -300,6 +314,7 @@ void S_Shutdown(void) {
 
 	if (s_env.sources[0]) {
 		alDeleteSources(MAX_CHANNELS, s_env.sources);
+		S_CheckALError();
 	}
 
 	S_ShutdownMusic();
