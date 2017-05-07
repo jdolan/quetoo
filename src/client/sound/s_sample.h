@@ -24,6 +24,7 @@
 s_sample_t *S_LoadSample(const char *name);
 
 #ifdef __S_LOCAL_H__
+size_t S_Resample(const int32_t inrate, const int32_t outrate, const size_t incount, const int16_t *indata, int16_t **outdata);
 s_sample_t *S_LoadModelSample(const char *model, const char *name);
 s_sample_t *S_LoadEntitySample(const entity_state_t *ent, const char *name);
 #endif /* __S_LOCAL_H__ */

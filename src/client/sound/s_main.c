@@ -36,6 +36,57 @@ extern cl_static_t cls;
 /**
  * @brief
  */
+static sf_count_t S_RWops_get_filelen(void *user_data) {
+	SDL_RWops *rwops = (SDL_RWops *) user_data;
+	return rwops->size(rwops);
+}
+
+/**
+ * @brief
+ */
+static sf_count_t S_RWops_seek(sf_count_t offset, int whence, void *user_data) {
+	SDL_RWops *rwops = (SDL_RWops *) user_data;
+	return rwops->seek(rwops, offset, whence);
+}
+
+/**
+ * @brief
+ */
+static sf_count_t S_RWops_read(void *ptr, sf_count_t count, void *user_data) {
+	SDL_RWops *rwops = (SDL_RWops *) user_data;
+	return rwops->read(rwops, ptr, 1, count);
+}
+
+/**
+ * @brief
+ */
+static sf_count_t S_RWops_write(const void *ptr, sf_count_t count, void *user_data) {
+	SDL_RWops *rwops = (SDL_RWops *) user_data;
+	return rwops->write(rwops, ptr, 1, count);
+}
+
+/**
+ * @brief
+ */
+static sf_count_t S_RWops_tell(void *user_data) {
+	SDL_RWops *rwops = (SDL_RWops *) user_data;
+	return rwops->seek(rwops, 0, SEEK_CUR);
+}
+
+/**
+ * @brief An interface to SDL_RWops for libsndfile
+ */
+SF_VIRTUAL_IO s_rwops_io = {
+	.get_filelen = S_RWops_get_filelen,
+	.seek = S_RWops_seek,
+	.read = S_RWops_read,
+	.write = S_RWops_write,
+	.tell = S_RWops_tell
+};
+
+/**
+ * @brief
+ */
 static void S_Stop(void) {
 
 	memset(s_env.channels, 0, sizeof(s_env.channels));
@@ -204,11 +255,6 @@ void S_Init(void) {
 
 	S_InitLocal();
 
-	if (!Sound_Init()) {
-		Com_Warn("%s\n", Sound_GetError());
-		return;
-	}
-
 	s_env.device = alcOpenDevice(NULL);
 
 	if (!s_env.device) {
@@ -267,8 +313,6 @@ void S_Shutdown(void) {
 	if (s_env.device) {
 		alcCloseDevice(s_env.device);
 	}
-
-	Sound_Quit();
 
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 

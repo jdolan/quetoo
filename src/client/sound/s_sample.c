@@ -28,6 +28,28 @@ static const char *SAMPLE_TYPES[] = { ".ogg", ".wav", NULL };
 static const char *SOUND_PATHS[] = { "sounds/", "sound/", NULL };
 
 /**
+ * @brief Resample audio.
+ */
+size_t S_Resample(const int32_t inrate, const int32_t outrate, const size_t incount, const int16_t *indata, int16_t **outdata) {
+	const vec_t stepscale = (vec_t) inrate / (vec_t) outrate;
+	const size_t outcount = incount / stepscale;
+
+	*outdata = Mem_Malloc(outcount * sizeof(int16_t));
+
+	int32_t samplefrac = 0;
+	const vec_t fracstep = stepscale * 256.0;
+
+	for (size_t i = 0; i < outcount; i++) {
+		const int32_t srcsample = samplefrac >> 8;
+
+		samplefrac += fracstep;
+		(*outdata)[i] = LittleShort(indata[srcsample]);
+	}
+
+	return outcount;
+}
+
+/**
  * @brief
  */
 static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const size_t pathlen) {
@@ -43,8 +65,6 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 		StripExtension(path, path);
 		g_strlcat(path, SAMPLE_TYPES[i], pathlen);
 
-		const char *ext = SAMPLE_TYPES[i] + 1;
-
 		i++;
 
 		int64_t len;
@@ -52,28 +72,41 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 			continue;
 		}
 
-		Sound_AudioInfo desired = {
-			.format = AUDIO_S16,
-			.channels = 1,
-			.rate = s_rate->integer
-		};
+		SDL_RWops *rw = SDL_RWFromConstMem(buf, len);
+	
+		SF_INFO info;
+		memset(&info, 0, sizeof(info));
 
-		Sound_Sample *snd = Sound_NewSampleFromMem(buf, (Uint32) len, ext, &desired, 2048);
-		
-		if (!snd) {
-			Com_Warn("%s\n", Sound_GetError());
+		SNDFILE *snd = sf_open_virtual(&s_rwops_io, SFM_READ, &info, rw);
+
+		if (info.channels != 1) {
+			Com_Warn("%s is not a mono sound sample\n", path);
+			SDL_RWclose(rw);
+			Fs_Free(buf);
+			continue;
+		}
+		 
+		if (!snd || sf_error(snd)) {
+			Com_Warn("%s\n", sf_strerror(snd));
 		} else {
-			Uint32 snd_length = Sound_DecodeAll(snd);
-		
-			if (snd->flags & SOUND_SAMPLEFLAG_ERROR) {
-				Com_Warn("%s\n", Sound_GetError());
-			} else {
-				alGenBuffers(1, &sample->buffer);
-				alBufferData(sample->buffer, AL_FORMAT_MONO16, snd->buffer, snd_length, s_rate->integer);
+			int16_t *buffer = Mem_Malloc(sizeof(int16_t) * info.frames);
+			sf_count_t num_read = sf_readf_short(snd, buffer, info.frames);
+
+			if (info.samplerate != s_rate->integer) {
+				int16_t *resampled;
+				num_read = S_Resample(info.samplerate, s_rate->integer, num_read, buffer, &resampled);
+				Mem_Free(buffer);
+				buffer = resampled;
 			}
 
-			Sound_FreeSample(snd);
+			alGenBuffers(1, &sample->buffer);
+			alBufferData(sample->buffer, AL_FORMAT_MONO16, buffer, num_read * sizeof(int16_t), s_rate->integer);
+			Mem_Free(buffer);
 		}
+
+		sf_close(snd);
+
+		SDL_RWclose(rw);
 
 		Fs_Free(buf);
 

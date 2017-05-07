@@ -23,7 +23,7 @@
 
 #include <AL/al.h>
 #include <AL/alc.h>
-#include <SDL2/SDL_sound.h>
+#include <sndfile.h>
 
 #include "common.h"
 #include "sys.h"
@@ -79,7 +79,11 @@ typedef struct s_channel_s {
 
 typedef struct s_music_s {
 	s_media_t media;
-	Sound_Sample *sample;
+	SF_INFO info;
+	SNDFILE *snd;
+	SDL_RWops *rw;
+	void *buffer;
+	_Bool eof;
 } s_music_t;
 
 // the sound environment
@@ -96,4 +100,5 @@ typedef struct s_env_s {
 } s_env_t;
 
 #ifdef __S_LOCAL_H__
+extern SF_VIRTUAL_IO s_rwops_io;
 #endif /* __S_LOCAL_H__ */
