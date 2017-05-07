@@ -28,7 +28,8 @@
 #include <AL/alc.h>
 #endif
 
-#include <SDL2/SDL.h>
+#include <SDL2/SDL_rwops.h>
+
 #include <sndfile.h>
 
 #include "common.h"
