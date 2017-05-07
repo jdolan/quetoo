@@ -154,21 +154,11 @@ dnl --------------------------------------
 
 PKG_CHECK_MODULES([SDL2], [sdl2 >= 2.0.0 SDL2_image SDL2_mixer])
 
-dnl ---------------------------------------
-dnl Check for SDL_sound, which requires SDL
-dnl ---------------------------------------
+dnl --------------------
+dnl Check for libsndfile
+dnl --------------------
 
-PKG_CHECK_MODULES([SDL], [sdl])
-
-save_CFLAGS="$CFLAGS"
-CFLAGS="$save_CFLAGS $SDL_CFLAGS"
-
-AC_CHECK_HEADER(SDL_sound.h,
-	SDL2_LIBS="$SDL2_LIBS -lSDL_sound",
-	[AC_MSG_ERROR([Could not find SDL_sound.h, please install SDL_sound])]
-)
-
-CFLAGS="$save_CFLAGS"
+PKG_CHECK_MODULES([SNDFILE], [sndfile])
 
 dnl ------------------------
 dnl Check for ObjectivelyMVC
