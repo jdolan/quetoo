@@ -98,19 +98,22 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 			Com_Warn("%s\n", sf_strerror(snd));
 		} else {
 			int16_t *buffer = Mem_Malloc(sizeof(int16_t) * info.frames * info.channels);
-			sf_count_t num_read = sf_readf_short(snd, buffer, info.frames) * info.channels;
+			sf_count_t count = sf_readf_short(snd, buffer, info.frames) * info.channels;
 
 			if (info.samplerate != s_rate->integer) {
 				int16_t *resampled;
-				num_read = S_Resample(info.samplerate, s_rate->integer, num_read, buffer, &resampled);
+				count = S_Resample(info.samplerate, s_rate->integer, count, buffer, &resampled);
 				Mem_Free(buffer);
 				buffer = resampled;
 			}
 
 			alGenBuffers(1, &sample->buffer);
 			S_CheckALError();
+
+			const ALenum format = info.channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
+			const ALsizei size = (ALsizei) count * sizeof(int16_t);
 			
-			alBufferData(sample->buffer, info.channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16, buffer, num_read * sizeof(int16_t), s_rate->integer);
+			alBufferData(sample->buffer, format, buffer, size, s_rate->integer);
 			S_CheckALError();
 
 			Mem_Free(buffer);

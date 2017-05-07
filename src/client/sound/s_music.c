@@ -212,9 +212,10 @@ static void S_BufferMusic(s_music_t *music, _Bool setup_buffers) {
 	// go through the buffers we have left to add and start decoding
 	for (i = 0; i < buffers_processed; i++) {
 
-		const sf_count_t num_decoded = sf_readf_short(music->snd, s_music_state.frame_buffer, s_music_buffer_size->value / 2 / music->info.channels);
+		const sf_count_t frames = (s_music_buffer_size->integer >> 1) / music->info.channels;
+		const sf_count_t samples = sf_readf_short(music->snd, s_music_state.frame_buffer, frames);
 
-		if (!num_decoded) {
+		if (!samples) {
 			break;
 		}
 
@@ -228,7 +229,8 @@ static void S_BufferMusic(s_music_t *music, _Bool setup_buffers) {
 			S_CheckALError();
 		}
 
-		alBufferData(buffer, AL_FORMAT_STEREO16, s_music_state.frame_buffer, num_decoded * sizeof(int16_t) * music->info.channels, music->info.samplerate);
+		const ALsizei size = (ALsizei) frames * sizeof(int16_t) * music->info.channels;
+		alBufferData(buffer, AL_FORMAT_STEREO16, s_music_state.frame_buffer, size, music->info.samplerate);
 		S_CheckALError();
 
 		alSourceQueueBuffers(s_music_state.source, 1, &buffer);
