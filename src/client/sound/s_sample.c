@@ -72,7 +72,7 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 			continue;
 		}
 
-		SDL_RWops *rw = SDL_RWFromConstMem(buf, len);
+		SDL_RWops *rw = SDL_RWFromConstMem(buf, (int32_t) len);
 	
 		SF_INFO info;
 		memset(&info, 0, sizeof(info));

@@ -96,7 +96,7 @@ static _Bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **file, SD
 	int64_t len;
 	if ((len = Fs_Load(path, buffer)) != -1) {
 
-		SDL_RWops *rw = SDL_RWFromConstMem(*buffer, len);
+		SDL_RWops *rw = SDL_RWFromConstMem(*buffer, (int32_t) len);
 	
 		memset(info, 0, sizeof(info));
 
@@ -107,6 +107,10 @@ static _Bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **file, SD
 			sf_close(*file);
 			*file = NULL;
 		}
+		SDL_FreeRW(rw);
+
+		Fs_Free(buffer);
+
 	} else {
 		Com_Debug(DEBUG_SOUND, "Failed to load %s\n", name);
 	}

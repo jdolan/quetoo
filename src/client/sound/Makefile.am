@@ -23,6 +23,7 @@ libsound_la_CFLAGS = \
 	-I$(top_srcdir)/src/client \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
+	@OPENAL_CFLAGS@ \
 	@SDL2_CFLAGS@
 
 libsound_la_LDFLAGS = \
@@ -30,4 +31,5 @@ libsound_la_LDFLAGS = \
 
 libsound_la_LIBADD = \
 	$(top_builddir)/src/libshared.la \
+	@OPENAL_LIBS@ \
 	@SDL2_LIBS@
