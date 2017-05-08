@@ -211,7 +211,7 @@ void S_MixChannels(void) {
  */
 void S_AddSample(const s_play_sample_t *play) {
 
-	if (!s_env.initialized) {
+	if (!s_env.context) {
 		return;
 	}
 

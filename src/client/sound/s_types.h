@@ -94,17 +94,32 @@ typedef struct s_music_s {
 	_Bool eof;
 } s_music_t;
 
-// the sound environment
+/**
+ * @brief The sound environment.
+ */
 typedef struct s_env_s {
 	s_channel_t channels[MAX_CHANNELS];
-	ALuint sources[MAX_CHANNELS];
-
-	ALCdevice *device;
-	ALCcontext *context;
 	uint16_t num_active_channels;
 
-	_Bool initialized; // is the sound subsystem initialized
-	_Bool update; // inform the client of state changes
+	/**
+	 * @brief The OpenAL playback device.
+	 */
+	ALCdevice *device;
+
+	/**
+	 * @brief The OpenAL playback context.
+	 */
+	ALCcontext *context;
+
+	/**
+	 * @brief The OpenAL sound sources.
+	 */
+	ALuint sources[MAX_CHANNELS];
+
+	/**
+	 * @brief True when media has been reloaded, and the client should update its media references.
+	 */
+	_Bool update;
 } s_env_t;
 
 #ifdef __S_LOCAL_H__

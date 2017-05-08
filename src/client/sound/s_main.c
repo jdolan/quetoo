@@ -122,7 +122,7 @@ void S_StopAllSounds(void) {
  */
 void S_Frame(void) {
 
-	if (!s_env.initialized) {
+	if (!s_env.context) {
 		return;
 	}
 
@@ -153,8 +153,8 @@ void S_Frame(void) {
 void S_LoadMedia(void) {
 	extern cl_client_t cl;
 
-	if (!s_env.initialized) {
-		return;    // sound disabled
+	if (!s_env.context) {
+		return;
 	}
 
 	if (!cl.config_strings[CS_MODELS][0]) {
@@ -294,8 +294,6 @@ void S_Init(void) {
 
 	Com_Print("Sound initialized (OpenAL, resample @ %dhz)\n", s_rate->integer);
 
-	s_env.initialized = true;
-
 	S_InitMedia();
 
 	S_InitMusic();
@@ -306,7 +304,7 @@ void S_Init(void) {
  */
 void S_Shutdown(void) {
 
-	if (!s_env.initialized) {
+	if (!s_env.context) {
 		return;
 	}
 
@@ -332,7 +330,7 @@ void S_Shutdown(void) {
 
 	Cmd_RemoveAll(CMD_SOUND);
 
-	s_env.initialized = false;
-
 	Mem_FreeTag(MEM_TAG_SOUND);
+
+	memset(&s_env, 0, sizeof(s_env));
 }

@@ -252,7 +252,7 @@ s_sample_t *S_LoadSample(const char *name) {
 	char key[MAX_QPATH];
 	s_sample_t *sample;
 
-	if (!s_env.initialized) {
+	if (!s_env.context) {
 		return NULL;
 	}
 
@@ -305,7 +305,7 @@ s_sample_t *S_LoadModelSample(const char *model, const char *name) {
 	char alias[MAX_QPATH];
 	s_sample_t *sample;
 
-	if (!s_env.initialized) {
+	if (!s_env.context) {
 		return NULL;
 	}
 
@@ -353,7 +353,7 @@ s_sample_t *S_LoadModelSample(const char *model, const char *name) {
 s_sample_t *S_LoadEntitySample(const entity_state_t *ent, const char *name) {
 	char model[MAX_QPATH];
 
-	if (!s_env.initialized) {
+	if (!s_env.context) {
 		return NULL;
 	}
 
