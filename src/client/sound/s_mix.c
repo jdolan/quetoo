@@ -278,6 +278,14 @@ void S_AddSample(const s_play_sample_t *play) {
 		}
 	}
 
+	// warn on spatialized stereo samples
+	if (play->sample->stereo) {
+		if (play->attenuation == ATTEN_NONE || 
+			(play->entity != -1 && &cl.entities[play->entity] != cl.entity)) {
+			Com_Warn("%s is a stereo sound sample and is being spatialized\n", play->sample->media.name);
+		}
+	}
+
 	const int32_t i = S_AllocChannel();
 	if (i != -1) {
 		s_env.channels[i].play = *play;

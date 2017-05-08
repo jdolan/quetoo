@@ -164,6 +164,8 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 				buffer = resampled;
 			}
 
+			sample->stereo = info.channels != 1;
+
 			alGenBuffers(1, &sample->buffer);
 			S_CheckALError();
 

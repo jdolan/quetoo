@@ -55,6 +55,7 @@ typedef struct s_media_s {
 typedef struct s_sample_s {
 	s_media_t media;
 	ALuint buffer;
+	_Bool stereo; // whether this is stereo sample or not; they can't be spatialized
 } s_sample_t;
 
 #define S_PLAY_POSITIONED   0x1 // position the sound at a fixed origin
