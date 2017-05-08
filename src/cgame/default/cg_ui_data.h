@@ -33,4 +33,3 @@ extern void Cgui_Label(View *view, const char *text);
 extern void Cgui_Picture(View *view, const char *pic, ViewAlignment align, ViewAutoresizing resize);
 extern void Cgui_PrimaryButton(View *view, const char *label, SDL_Color color, ActionFunction action, ident sender, ident data);
 extern void Cgui_PrimaryIcon(View *view, const char *icon, SDL_Color color, ActionFunction action, ident sender, ident data);
-extern void Cgui_TabButton(View *view, const char *label, SDL_Color color, ActionFunction action, ident sender, ident data, _Bool isSelected);

@@ -21,9 +21,9 @@
 
 #include "cg_local.h"
 
-#include "QuickJoinViewController.h"
+#include "QuickJoinView.h"
 
-#define _Class _QuickJoinViewController
+#define _Class _QuickJoinView
 
 #pragma mark - Actions
 
@@ -105,59 +105,59 @@ static void quickJoinAction(Control *control, const SDL_Event *event, ident send
 	}
 }
 
-#pragma mark - ViewController
+#pragma mark - QuickJoinView
 
 /**
- * @see ViewController::loadView(ViewController *)
+ * @fn QuickJoinView *QuickJoinView::initWithFrame(QuickJoinView *self, const SDL_Rect *frame)
+ *
+ * @memberof QuickJoinView
  */
-static void loadView(ViewController *self) {
+ static QuickJoinView *initWithFrame(QuickJoinView *self, const SDL_Rect *frame) {
 
-	super(ViewController, self, loadView);
+	self = (QuickJoinView *) super(View, self, initWithFrame, frame);
+	if (self) {
 
-	TabViewController *this = (TabViewController *) self;
+		StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
-	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
+		columns->spacing = DEFAULT_PANEL_SPACING;
 
-	columns->spacing = DEFAULT_PANEL_SPACING;
+		columns->axis = StackViewAxisHorizontal;
+		columns->distribution = StackViewDistributionFillEqually;
 
-	columns->axis = StackViewAxisHorizontal;
-	columns->distribution = StackViewDistributionFillEqually;
-
-	columns->view.autoresizingMask = ViewAutoresizingFill;
-
-	{
-		StackView *column = $(alloc(StackView), initWithFrame, NULL);
-
-		column->spacing = DEFAULT_PANEL_SPACING;
+		columns->view.autoresizingMask = ViewAutoresizingFill;
 
 		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "Filters");
+			StackView *column = $(alloc(StackView), initWithFrame, NULL);
 
-			box->view.autoresizingMask |= ViewAutoresizingWidth;
+			column->spacing = DEFAULT_PANEL_SPACING;
 
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+			{
+				Box *box = $(alloc(Box), initWithFrame, NULL);
+				$(box->label, setText, "Filters");
 
-			Cgui_CvarSliderInput((View *) stackView, "Maximum ping", "cg_quick_join_max_ping", 5.0, 500.0, 5.0);
-			Cgui_CvarSliderInput((View *) stackView, "Minimum players", "cg_quick_join_min_clients", 1.0, MAX_CLIENTS, 1.0);
+				box->view.autoresizingMask |= ViewAutoresizingWidth;
 
-			$((View *) box, addSubview, (View *) stackView);
-			release(stackView);
+				StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			$((View *) column, addSubview, (View *) box);
-			release(box);
+				Cgui_CvarSliderInput((View *) stackView, "Maximum ping", "cg_quick_join_max_ping", 5.0, 500.0, 5.0);
+				Cgui_CvarSliderInput((View *) stackView, "Minimum players", "cg_quick_join_min_clients", 1.0, MAX_CLIENTS, 1.0);
+
+				$((View *) box, addSubview, (View *) stackView);
+				release(stackView);
+
+				$((View *) column, addSubview, (View *) box);
+				release(box);
+			}
+
+			$((View *) columns, addSubview, (View *) column);
+			release(column);
 		}
 
-		$((View *) columns, addSubview, (View *) column);
-		release(column);
+		$((View *) self, addSubview, (View *) columns);
+		release(columns);
 	}
 
-	$((View *) this->panel->contentView, addSubview, (View *) columns);
-	release(columns);
-
-	this->panel->accessoryView->view.hidden = false;
-
-	Cgui_Button((View *) this->panel->accessoryView, "Join", quickJoinAction, self, NULL);
+	return self;
 }
 
 #pragma mark - Class lifecycle
@@ -167,23 +167,23 @@ static void loadView(ViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+	((QuickJoinViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 }
 
 /**
- * @fn Class *QuickJoinViewController::_QuickJoinViewController(void)
- * @memberof QuickJoinViewController
+ * @fn Class *QuickJoinView::_QuickJoinView(void)
+ * @memberof QuickJoinView
  */
-Class *_QuickJoinViewController(void) {
+Class *_QuickJoinView(void) {
 	static Class clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "QuickJoinViewController";
-		clazz.superclass = _TabViewController();
-		clazz.instanceSize = sizeof(QuickJoinViewController);
-		clazz.interfaceOffset = offsetof(QuickJoinViewController, interface);
-		clazz.interfaceSize = sizeof(QuickJoinViewControllerInterface);
+		clazz.name = "QuickJoinView";
+		clazz.superclass = _View();
+		clazz.instanceSize = sizeof(QuickJoinView);
+		clazz.interfaceOffset = offsetof(QuickJoinView, interface);
+		clazz.interfaceSize = sizeof(QuickJoinViewInterface);
 		clazz.initialize = initialize;
 	});
 

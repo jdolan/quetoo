@@ -51,9 +51,9 @@ struct InfoViewController {
 	InfoViewControllerInterface *interface;
 
 	/**
-	 * @brief NavigationViewController to contain the individual settings panels.
+	 * @brief TabView to contain tabs.
 	 */
-	NavigationViewController *navigationViewController;
+	TabView *tabView;
 };
 
 /**

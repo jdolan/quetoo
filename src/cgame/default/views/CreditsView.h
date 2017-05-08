@@ -21,34 +21,32 @@
 
 #pragma once
 
-#include "TabViewController.h"
-
 /**
  * @file
- * @brief System ViewController.
+ * @brief Credits View
  */
 
-typedef struct CreditsViewController CreditsViewController;
-typedef struct CreditsViewControllerInterface CreditsViewControllerInterface;
+typedef struct CreditsView CreditsView;
+typedef struct CreditsViewInterface CreditsViewInterface;
 
 /**
- * @brief The CreditsViewController type.
- * @extends TabViewController
+ * @brief The CreditsView type.
+ * @extends View
  * @ingroup
  */
-struct CreditsViewController {
+struct CreditsView {
 
 	/**
 	 * @brief The superclass.
 	 * @private
 	 */
-	TabViewController tabViewController;
+	View view;
 
 	/**
 	 * @brief The interface.
 	 * @private
 	 */
-	CreditsViewControllerInterface *interface;
+	CreditsViewInterface *interface;
 
 	/*
 	 * @brief The list of credits, loaded from a file.
@@ -62,27 +60,36 @@ struct CreditsViewController {
 };
 
 /**
- * @brief The CreditsViewController interface.
+ * @brief The CreditsView interface.
  */
-struct CreditsViewControllerInterface {
+struct CreditsViewInterface {
 
 	/**
 	 * @brief The superclass interface.
 	 */
-	TabViewControllerInterface tabViewControllerInterface;
+	ViewInterface viewInterface;
 
 	/**
-	 * @fn void CreditsViewController::loadCredits(CreditsViewController *self, const char *path)
-	 * @brief Loads the credits from a file
-	 * @memberof CreditsViewController
+	 * @fn CreditsView *CreditsView::initWithFrame(CreditsView *self, const SDL_Rect *frame)
+	 * @brief Initializes this CreditsView with the specified frame.
+	 * @param frame The frame.
+	 * @return The initialized CreditsView, or `NULL` on error.
+	 * @memberof CreditsView
 	 */
-	void (*loadCredits)(CreditsViewController *self, const char *path);
+	CreditsView *(*initWithFrame)(CreditsView *self, const SDL_Rect *frame);
+
+	/**
+	 * @fn void CreditsView::loadCredits(CreditsView *self, const char *path)
+	 * @brief Loads the credits from a file
+	 * @memberof CreditsView
+	 */
+	void (*loadCredits)(CreditsView *self, const char *path);
 };
 
 /**
- * @fn Class *CreditsViewController::_CreditsViewController(void)
- * @brief The CreditsViewController archetype.
- * @return The CreditsViewController Class.
- * @memberof CreditsViewController
+ * @fn Class *CreditsView::_CreditsView(void)
+ * @brief The CreditsView archetype.
+ * @return The CreditsView Class.
+ * @memberof CreditsView
  */
-extern Class *_CreditsViewController(void);
+extern Class *_CreditsView(void);

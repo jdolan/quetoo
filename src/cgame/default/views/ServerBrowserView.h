@@ -21,52 +21,58 @@
 
 #pragma once
 
-#include "TabViewController.h"
-
 /**
  * @file
- * @brief Quick join ViewController.
+ * @brief Server browser View.
  */
 
-typedef struct QuickJoinViewController QuickJoinViewController;
-typedef struct QuickJoinViewControllerInterface QuickJoinViewControllerInterface;
+typedef struct ServerBrowserView ServerBrowserView;
+typedef struct ServerBrowserViewInterface ServerBrowserViewInterface;
 
 /**
- * @brief The QuickJoinViewController type.
- * @extends TabViewController
+ * @brief The ServerBrowserView type.
+ * @extends View
  * @ingroup
  */
-struct QuickJoinViewController {
+struct ServerBrowserView {
 
 	/**
 	 * @brief The superclass.
 	 * @private
 	 */
-	TabViewController menuViewController;
+	View view;
 
 	/**
 	 * @brief The interface.
 	 * @private
 	 */
-	QuickJoinViewControllerInterface *interface;
+	ServerBrowserViewInterface *interface;
 };
 
 /**
- * @brief The QuickJoinViewController interface.
+ * @brief The ServerBrowserView interface.
  */
-struct QuickJoinViewControllerInterface {
+struct ServerBrowserViewInterface {
 
 	/**
 	 * @brief The superclass interface.
 	 */
-	TabViewControllerInterface menuViewControllerInterface;
+	ViewInterface viewInterface;
+
+	/**
+	 * @fn ServerBrowserView *ServerBrowserView::initWithFrame(ServerBrowserView *self, const SDL_Rect *frame)
+	 * @brief Initializes this ServerBrowserView with the specified frame.
+	 * @param frame The frame.
+	 * @return The initialized ServerBrowserView, or `NULL` on error.
+	 * @memberof ServerBrowserView
+	 */
+	ServerBrowserView *(*initWithFrame)(ServerBrowserView *self, const SDL_Rect *frame);
 };
 
 /**
- * @fn Class *QuickJoinViewController::_QuickJoinViewController(void)
- * @brief The QuickJoinViewController archetype.
- * @return The QuickJoinViewController Class.
- * @memberof QuickJoinViewController
+ * @fn Class *ServerBrowserView::_ServerBrowserView(void)
+ * @brief The ServerBrowserView archetype.
+ * @return The ServerBrowserView Class.
+ * @memberof ServerBrowserView
  */
-extern Class *_QuickJoinViewController(void);
-
+extern Class *_ServerBrowserView(void);

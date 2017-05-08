@@ -27,7 +27,6 @@
 #include "views/CvarTextView.h"
 #include "views/PrimaryButton.h"
 #include "views/PrimaryIcon.h"
-#include "views/TabButton.h"
 
 /**
  * @brief
@@ -234,38 +233,6 @@ void Cgui_PrimaryIcon(View *view, const char *icon, SDL_Color color, ActionFunct
 	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, sender, data);
 
 	$(view, addSubview, (View *) button);
-
-	release(button);
-}
-
-/**
- * @brief
- */
-void Cgui_TabButton(View *view, const char *name, SDL_Color color, ActionFunction action, ident sender, ident data, _Bool isSelected) {
-
-	assert(view);
-
-	const SDL_Rect frame = MakeRect(0, 0, DEFAULT_TAB_BUTTON_WIDTH, 30);
-
-	TabButton *button = $(alloc(TabButton), initWithFrame, &frame, ControlStyleDefault);
-	assert(button);
-
-	$(button->button.title, setText, name);
-
-	((Button *) button)->control.view.autoresizingMask = ViewAutoresizingNone;
-
-	((Button *) button)->control.view.backgroundColor = color;
-	((Button *) button)->control.view.borderColor = QColors.BorderLight;
-
-	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, sender, data);
-
-	$(view, addSubview, (View *) button);
-
-	if (isSelected) {
-		$(button, selectTab);
-
-		action((Control *) button, NULL, sender, data);
-	}
 
 	release(button);
 }

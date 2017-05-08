@@ -21,51 +21,58 @@
 
 #pragma once
 
-#include "TabViewController.h"
-
 /**
  * @file
  * @brief System ViewController.
  */
 
-typedef struct InputViewController InputViewController;
-typedef struct InputViewControllerInterface InputViewControllerInterface;
+typedef struct VideoView VideoView;
+typedef struct VideoViewInterface VideoViewInterface;
 
 /**
- * @brief The InputViewController type.
- * @extends TabViewController
+ * @brief The VideoView type.
+ * @extends View
  * @ingroup
  */
-struct InputViewController {
+struct VideoView {
 
 	/**
 	 * @brief The superclass.
 	 * @private
 	 */
-	TabViewController tabViewController;
+	View view;
 
 	/**
 	 * @brief The interface.
 	 * @private
 	 */
-	InputViewControllerInterface *interface;
+	VideoViewInterface *interface;
 };
 
 /**
- * @brief The InputViewController interface.
+ * @brief The VideoView interface.
  */
-struct InputViewControllerInterface {
+struct VideoViewInterface {
 
 	/**
 	 * @brief The superclass interface.
 	 */
-	TabViewControllerInterface tabViewControllerInterface;
+	ViewInterface viewInterface;
+
+	/**
+	 * @fn VideoView *VideoView::initWithFrame(VideoView *self, const SDL_Rect *frame)
+	 * @brief Initializes this VideoView with the specified frame.
+	 * @param frame The frame.
+	 * @return The initialized VideoView, or `NULL` on error.
+	 * @memberof VideoView
+	 */
+	VideoView *(*initWithFrame)(VideoView *self, const SDL_Rect *frame);
 };
 
 /**
- * @fn Class *InputViewController::_InputViewController(void)
- * @brief The InputViewController archetype.
- * @return The InputViewController Class.
- * @memberof InputViewController
+ * @fn Class *VideoView::_VideoView(void)
+ * @brief The VideoView archetype.
+ * @return The VideoView Class.
+ * @memberof VideoView
  */
-extern Class *_InputViewController(void);
+extern Class *_VideoView(void);

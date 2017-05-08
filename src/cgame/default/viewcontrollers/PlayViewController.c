@@ -23,11 +23,9 @@
 
 #include "PlayViewController.h"
 
-#include "CreateServerViewController.h"
-#include "QuickJoinViewController.h"
-#include "ServerBrowserViewController.h"
-
-#include "TabButton.h"
+#include "CreateServerView.h"
+#include "QuickJoinView.h"
+#include "ServerBrowserView.h"
 
 #define _Class _PlayViewController
 
@@ -37,32 +35,9 @@ static void dealloc(Object *self) {
 
 	PlayViewController *this = (PlayViewController *) self;
 
-	release(this->navigationViewController);
+	release(this->tabView);
 
 	super(Object, self, dealloc);
-}
-
-#pragma mark - Actions
-
-/**
- * @brief ActionFunction for settings tabs.
- */
-static void tabAction(Control *control, const SDL_Event *event, ident sender, ident data) {
-
-	NavigationViewController *this = (NavigationViewController *) sender;
-	Class *clazz = (Class *) data;
-
-	$(this, popToRootViewController);
-
-	ViewController *viewController = $((ViewController *) _alloc(clazz), init);
-
-	$(this, pushViewController, viewController);
-
-	release(viewController);
-
-	// Tab selection highlight
-
-	$((TabButton *) control, selectTab);
 }
 
 #pragma mark - ViewController
@@ -85,12 +60,10 @@ static void loadView(ViewController *self) {
 
 	this->panel->contentView->view.clipsSubviews = true;
 
-	// Setup the NavigationViewController
+	// Setup the TabView
 
-	((PlayViewController *) this)->navigationViewController = $(alloc(NavigationViewController), init);
-	NavigationViewController *nvc = ((PlayViewController *) this)->navigationViewController;
-
-	$((ViewController *) nvc, moveToParentViewController, self);
+	((PlayViewController *) this)->tabView = $(alloc(TabView), initWithFrame, NULL);
+	TabView *tabView = ((PlayViewController *) this)->tabView;
 
 	// Rows
 
@@ -117,9 +90,39 @@ static void loadView(ViewController *self) {
 			// Tab buttons
 
 			{
-				Cgui_TabButton((View *) row, "Quick join", QColors.Dark, tabAction, nvc, _QuickJoinViewController(), true);
-				Cgui_TabButton((View *) row, "Server browser", QColors.Dark, tabAction, nvc, _ServerBrowserViewController(), false);
-				Cgui_TabButton((View *) row, "Create server", QColors.Dark, tabAction, nvc, _CreateServerViewController(), false);
+				QuickJoinView *tabData = $(alloc(QuickJoinView), initWithFrame, NULL);
+
+				tabData->view.identifier = "quick_join";
+
+				TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
+
+				$(tab->label->text, setText, "Quick Join");
+
+				$(tabView, addTab, tab);
+			}
+
+			{
+				ServerBrowserView *tabData = $(alloc(ServerBrowserView), initWithFrame, NULL);
+
+				tabData->view.identifier = "server_browser";
+
+				TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
+
+				$(tab->label->text, setText, "Server Browser");
+
+				$(tabView, addTab, tab);
+			}
+
+			{
+				CreateServerView *tabData = $(alloc(CreateServerView), initWithFrame, NULL);
+
+				tabData->view.identifier = "create_server";
+
+				TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
+
+				$(tab->label->text, setText, "Create Server");
+
+				$(tabView, addTab, tab);
 			}
 		}
 
@@ -135,9 +138,9 @@ static void loadView(ViewController *self) {
 		row->frame.w = Min(900, cgi.context->window_width - 30);
 		row->frame.h = Min(500, cgi.context->window_height - 80);
 
-		// NavigationViewController's tab view
+		// Add the TabView
 
-		$(row, addSubview, nvc->viewController.view);
+		$(row, addSubview, (View *) tabView);
 
 		// Shadow
 

@@ -23,35 +23,34 @@
 
 #include <ObjectivelyMVC/ColorSelect.h>
 
-#include "TabViewController.h"
 #include "CrosshairView.h"
 
 /**
  * @file
- * @brief System ViewController.
+ * @brief Interface View.
  */
 
-typedef struct InterfaceViewController InterfaceViewController;
-typedef struct InterfaceViewControllerInterface InterfaceViewControllerInterface;
+typedef struct InterfaceView InterfaceView;
+typedef struct InterfaceViewInterface InterfaceViewInterface;
 
 /**
- * @brief The InterfaceViewController type.
- * @extends TabViewController
+ * @brief The InterfaceView type.
+ * @extends View
  * @ingroup
  */
-struct InterfaceViewController {
+struct InterfaceView {
 
 	/**
 	 * @brief The superclass.
 	 * @private
 	 */
-	TabViewController tabViewController;
+	View view;
 
 	/**
 	 * @brief The interface.
 	 * @private
 	 */
-	InterfaceViewControllerInterface *interface;
+	InterfaceViewInterface *interface;
 
 	/**
 	 * @brief The CrosshairView.
@@ -65,20 +64,29 @@ struct InterfaceViewController {
 };
 
 /**
- * @brief The InterfaceViewController interface.
+ * @brief The InterfaceView interface.
  */
-struct InterfaceViewControllerInterface {
+struct InterfaceViewInterface {
 
 	/**
 	 * @brief The superclass interface.
 	 */
-	TabViewControllerInterface tabViewControllerInterface;
+	ViewInterface viewInterface;
+
+	/**
+	 * @fn InterfaceView *InterfaceView::initWithFrame(InterfaceView *self, const SDL_Rect *frame)
+	 * @brief Initializes this InterfaceView with the specified frame.
+	 * @param frame The frame.
+	 * @return The initialized InterfaceView, or `NULL` on error.
+	 * @memberof InterfaceView
+	 */
+	InterfaceView *(*initWithFrame)(InterfaceView *self, const SDL_Rect *frame);
 };
 
 /**
- * @fn Class *InterfaceViewController::_InterfaceViewController(void)
- * @brief The InterfaceViewController archetype.
- * @return The InterfaceViewController Class.
- * @memberof InterfaceViewController
+ * @fn Class *InterfaceView::_InterfaceView(void)
+ * @brief The InterfaceView archetype.
+ * @return The InterfaceView Class.
+ * @memberof InterfaceView
  */
-extern Class *_InterfaceViewController(void);
+extern Class *_InterfaceView(void);

@@ -25,7 +25,7 @@
 
 /**
  * @file
- * @brief System ViewController.
+ * @brief Play ViewController.
  */
 
 typedef struct PlayViewController PlayViewController;
@@ -51,9 +51,9 @@ struct PlayViewController {
 	PlayViewControllerInterface *interface;
 
 	/**
-	 * @brief NavigationViewController to contain the individual settings panels.
+	 * @brief TabView to contain tabs.
 	 */
-	NavigationViewController *navigationViewController;
+	TabView *tabView;
 };
 
 /**

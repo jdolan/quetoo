@@ -23,9 +23,7 @@
 
 #include "InfoViewController.h"
 
-#include "CreditsViewController.h"
-
-#include "TabButton.h"
+#include "CreditsView.h"
 
 #define _Class _InfoViewController
 
@@ -35,32 +33,9 @@ static void dealloc(Object *self) {
 
 	InfoViewController *this = (InfoViewController *) self;
 
-	release(this->navigationViewController);
+	release(this->tabView);
 
 	super(Object, self, dealloc);
-}
-
-#pragma mark - Actions
-
-/**
- * @brief ActionFunction for settings tabs.
- */
-static void tabAction(Control *control, const SDL_Event *event, ident sender, ident data) {
-
-	NavigationViewController *this = (NavigationViewController *) sender;
-	Class *clazz = (Class *) data;
-
-	$(this, popToRootViewController);
-
-	ViewController *viewController = $((ViewController *) _alloc(clazz), init);
-
-	$(this, pushViewController, viewController);
-
-	release(viewController);
-
-	// Tab selection highlight
-
-	$((TabButton *) control, selectTab);
 }
 
 #pragma mark - ViewController
@@ -84,44 +59,25 @@ static void loadView(ViewController *self) {
 	this->panel->contentView->view.clipsSubviews = true;
 
 
-	// Setup the NavigationViewController
+	// Setup the TabView
 
-	((InfoViewController *) this)->navigationViewController = $(alloc(NavigationViewController), init);
-	NavigationViewController *nvc = ((InfoViewController *) this)->navigationViewController;
+	((InfoViewController *) this)->tabView = $(alloc(TabView), initWithFrame, NULL);
+	TabView *tabView = ((InfoViewController *) this)->tabView;
 
-	$((ViewController *) nvc, moveToParentViewController, self);
-
-	// Rows
-
-	StackView *rows = $(alloc(StackView), initWithFrame, NULL);
+	// Tab buttons
 
 	{
-		StackView *row = $(alloc(StackView), initWithFrame, NULL);
-
-		row->spacing = DEFAULT_PANEL_SPACING;
-
-		row->axis = StackViewAxisHorizontal;
-		row->distribution = StackViewDistributionFillEqually;
-
-		row->view.backgroundColor = QColors.MainHighlight;
-
-		row->view.autoresizingMask |= ViewAutoresizingWidth;
-
-		row->view.padding.top = DEFAULT_PANEL_SPACING;
-		row->view.padding.right = DEFAULT_PANEL_SPACING;
-		row->view.padding.bottom = DEFAULT_PANEL_SPACING;
-		row->view.padding.left = DEFAULT_PANEL_SPACING;
-
 		{
-			// Tab buttons
+			CreditsView *tabData = $(alloc(CreditsView), initWithFrame, NULL);
 
-			{
-				Cgui_TabButton((View *) row, "Credits", QColors.Dark, tabAction, nvc, _CreditsViewController(), true);
-			}
+			tabData->view.identifier = "credits";
+
+			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
+
+			$(tab->label->text, setText, "Credits");
+
+			$(tabView, addTab, tab);
 		}
-
-		$((View *) rows, addSubview, (View *) row);
-		release(row);
 	}
 
 	{
@@ -132,20 +88,13 @@ static void loadView(ViewController *self) {
 		row->frame.w = Min(900, cgi.context->window_width - 30);
 		row->frame.h = Min(500, cgi.context->window_height - 80);
 
-		// NavigationViewController's tab view
+		// Add the TabView
 
-		$(row, addSubview, nvc->viewController.view);
+		$(row, addSubview, (View *) tabView);
 
-		// Shadow
-
-		Cgui_Picture(row, "shadow_s", ViewAlignmentTopLeft, ViewAutoresizingWidth);
-
-		$((View *) rows, addSubview, row);
+		$((View *) this->panel->contentView, addSubview, (View *) row);
 		release(row);
 	}
-
-	$((View *) this->panel->contentView, addSubview, (View *) rows);
-	release(rows);
 }
 
 #pragma mark - Class lifecycle

@@ -25,7 +25,6 @@
 
 #include "MainViewController.h"
 
-#include "CreateServerViewController.h"
 #include "HomeViewController.h"
 #include "InfoViewController.h"
 #include "PlayViewController.h"

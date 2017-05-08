@@ -21,51 +21,58 @@
 
 #pragma once
 
-#include "TabViewController.h"
-
 /**
  * @file
- * @brief System ViewController.
+ * @brief Audio View
  */
 
-typedef struct AudioViewController AudioViewController;
-typedef struct AudioViewControllerInterface AudioViewControllerInterface;
+typedef struct AudioView AudioView;
+typedef struct AudioViewInterface AudioViewInterface;
 
 /**
- * @brief The AudioViewController type.
- * @extends TabViewController
+ * @brief The AudioView type.
+ * @extends View
  * @ingroup
  */
-struct AudioViewController {
+struct AudioView {
 
 	/**
 	 * @brief The superclass.
 	 * @private
 	 */
-	TabViewController tabViewController;
+	View view;
 
 	/**
 	 * @brief The interface.
 	 * @private
 	 */
-	AudioViewControllerInterface *interface;
+	AudioViewInterface *interface;
 };
 
 /**
- * @brief The AudioViewController interface.
+ * @brief The AudioView interface.
  */
-struct AudioViewControllerInterface {
+struct AudioViewInterface {
 
 	/**
 	 * @brief The superclass interface.
 	 */
-	TabViewControllerInterface tabViewControllerInterface;
+	ViewInterface viewInterface;
+
+	/**
+	 * @fn AudioView *AudioView::initWithFrame(AudioView *self, const SDL_Rect *frame)
+	 * @brief Initializes this AudioView with the specified frame.
+	 * @param frame The frame.
+	 * @return The initialized AudioView, or `NULL` on error.
+	 * @memberof AudioView
+	 */
+	AudioView *(*initWithFrame)(AudioView *self, const SDL_Rect *frame);
 };
 
 /**
- * @fn Class *AudioViewController::_AudioViewController(void)
- * @brief The AudioViewController archetype.
- * @return The AudioViewController Class.
- * @memberof AudioViewController
+ * @fn Class *AudioView::_AudioView(void)
+ * @brief The AudioView archetype.
+ * @return The AudioView Class.
+ * @memberof AudioView
  */
-extern Class *_AudioViewController(void);
+extern Class *_AudioView(void);

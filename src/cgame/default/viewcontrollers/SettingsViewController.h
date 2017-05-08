@@ -25,7 +25,7 @@
 
 /**
  * @file
- * @brief System ViewController.
+ * @brief Settings MenuViewController.
  */
 
 typedef struct SettingsViewController SettingsViewController;
@@ -34,7 +34,6 @@ typedef struct SettingsViewControllerInterface SettingsViewControllerInterface;
 /**
  * @brief The SettingsViewController type.
  * @extends MenuViewController
- * @ingroup
  */
 struct SettingsViewController {
 
@@ -51,9 +50,9 @@ struct SettingsViewController {
 	SettingsViewControllerInterface *interface;
 
 	/**
-	 * @brief NavigationViewController to contain the individual settings panels.
+	 * @brief TabView to contain tabs.
 	 */
-	NavigationViewController *navigationViewController;
+	TabView *tabView;
 };
 
 /**

@@ -21,66 +21,58 @@
 
 #pragma once
 
-#include "MainViewController.h"
-
-#include "cg_local.h"
-
 /**
  * @file
- *
- * @brief The TabViewController.
+ * @brief Quick join View.
  */
 
-typedef struct TabViewController TabViewController;
-typedef struct TabViewControllerInterface TabViewControllerInterface;
+typedef struct QuickJoinView QuickJoinView;
+typedef struct QuickJoinViewInterface QuickJoinViewInterface;
 
 /**
- * @brief The TabViewController type.
- * @extends ViewController
- * @ingroup ViewControllers
+ * @brief The QuickJoinView type.
+ * @extends View
+ * @ingroup
  */
-struct TabViewController {
+struct QuickJoinView {
 
 	/**
 	 * @brief The superclass.
 	 * @private
 	 */
-	ViewController viewController;
+	View view;
 
 	/**
 	 * @brief The interface.
 	 * @private
 	 */
-	TabViewControllerInterface *interface;
-
-	/**
-	 * @brief The Panel.
-	 */
-	Panel *panel;
+	QuickJoinViewInterface *interface;
 };
 
 /**
- * @brief The TabViewController interface.
+ * @brief The QuickJoinView interface.
  */
-struct TabViewControllerInterface {
+struct QuickJoinViewInterface {
 
 	/**
 	 * @brief The superclass interface.
 	 */
-	ViewControllerInterface viewControllerInterface;
+	ViewInterface viewInterface;
 
 	/**
-	 * @fn MainViewController *TabViewController::mainViewController(const TabViewController *self)
-	 * @return The MainViewController.
-	 * @memberof TabViewController
+	 * @fn QuickJoinView *QuickJoinView::initWithFrame(QuickJoinView *self, const SDL_Rect *frame)
+	 * @brief Initializes this QuickJoinView with the specified frame.
+	 * @param frame The frame.
+	 * @return The initialized QuickJoinView, or `NULL` on error.
+	 * @memberof QuickJoinView
 	 */
-	MainViewController *(*mainViewController)(const TabViewController *self);
+	QuickJoinView *(*initWithFrame)(QuickJoinView *self, const SDL_Rect *frame);
 };
 
 /**
- * @fn Class *TabViewController::_TabViewController(void)
- * @brief The TabViewController archetype.
- * @return The TabViewController Class.
- * @memberof TabViewController
+ * @fn Class *QuickJoinView::_QuickJoinView(void)
+ * @brief The QuickJoinView archetype.
+ * @return The QuickJoinView Class.
+ * @memberof QuickJoinView
  */
-extern Class *_TabViewController(void);
+extern Class *_QuickJoinView(void);
