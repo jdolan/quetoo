@@ -65,69 +65,44 @@ static void loadView(ViewController *self) {
 	((PlayViewController *) this)->tabView = $(alloc(TabView), initWithFrame, NULL);
 	TabView *tabView = ((PlayViewController *) this)->tabView;
 
-	// Rows
-
-	StackView *rows = $(alloc(StackView), initWithFrame, NULL);
+	// Tab buttons
 
 	{
-		StackView *row = $(alloc(StackView), initWithFrame, NULL);
-
-		row->spacing = DEFAULT_PANEL_SPACING;
-
-		row->axis = StackViewAxisHorizontal;
-		row->distribution = StackViewDistributionFillEqually;
-
-		row->view.backgroundColor = QColors.MainHighlight;
-
-		row->view.autoresizingMask |= ViewAutoresizingWidth;
-
-		row->view.padding.top = DEFAULT_PANEL_SPACING;
-		row->view.padding.right = DEFAULT_PANEL_SPACING;
-		row->view.padding.bottom = DEFAULT_PANEL_SPACING;
-		row->view.padding.left = DEFAULT_PANEL_SPACING;
-
 		{
-			// Tab buttons
+			QuickJoinView *tabData = $(alloc(QuickJoinView), initWithFrame, NULL);
 
-			{
-				QuickJoinView *tabData = $(alloc(QuickJoinView), initWithFrame, NULL);
+			tabData->view.identifier = "quick_join";
 
-				tabData->view.identifier = "quick_join";
+			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
 
-				TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
+			$(tab->label->text, setText, "Quick Join");
 
-				$(tab->label->text, setText, "Quick Join");
-
-				$(tabView, addTab, tab);
-			}
-
-			{
-				ServerBrowserView *tabData = $(alloc(ServerBrowserView), initWithFrame, NULL);
-
-				tabData->view.identifier = "server_browser";
-
-				TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
-
-				$(tab->label->text, setText, "Server Browser");
-
-				$(tabView, addTab, tab);
-			}
-
-			{
-				CreateServerView *tabData = $(alloc(CreateServerView), initWithFrame, NULL);
-
-				tabData->view.identifier = "create_server";
-
-				TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
-
-				$(tab->label->text, setText, "Create Server");
-
-				$(tabView, addTab, tab);
-			}
+			$(tabView, addTab, tab);
 		}
 
-		$((View *) rows, addSubview, (View *) row);
-		release(row);
+		{
+			ServerBrowserView *tabData = $(alloc(ServerBrowserView), initWithFrame, NULL);
+
+			tabData->view.identifier = "server_browser";
+
+			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
+
+			$(tab->label->text, setText, "Server Browser");
+
+			$(tabView, addTab, tab);
+		}
+
+		{
+			CreateServerView *tabData = $(alloc(CreateServerView), initWithFrame, NULL);
+
+			tabData->view.identifier = "create_server";
+
+			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
+
+			$(tab->label->text, setText, "Create Server");
+
+			$(tabView, addTab, tab);
+		}
 	}
 
 	{
@@ -142,17 +117,9 @@ static void loadView(ViewController *self) {
 
 		$(row, addSubview, (View *) tabView);
 
-		// Shadow
-
-		Cgui_Picture(row, "shadow_s", ViewAlignmentTopLeft, ViewAutoresizingWidth);
-
-		$((View *) rows, addSubview, row);
+		$((View *) this->panel->contentView, addSubview, (View *) row);
 		release(row);
 	}
-
-
-	$((View *) this->panel->contentView, addSubview, (View *) rows);
-	release(rows);
 }
 
 #pragma mark - Class lifecycle
