@@ -312,22 +312,21 @@ void S_Shutdown(void) {
 
 	S_Stop();
 
-	if (s_env.sources[0]) {
-		alDeleteSources(MAX_CHANNELS, s_env.sources);
-		S_CheckALError();
-	}
+	alDeleteSources(MAX_CHANNELS, s_env.sources);
+	S_CheckALError();
 
 	S_ShutdownMusic();
 
 	S_ShutdownMedia();
-	
-	if (s_env.context) {
-		alcDestroyContext(s_env.context);
-	}
 
-	if (s_env.device) {
-		alcCloseDevice(s_env.device);
-	}
+	alcMakeContextCurrent(NULL);
+	S_CheckALError();
+
+	alcDestroyContext(s_env.context);
+	S_CheckALError();
+
+	alcCloseDevice(s_env.device);
+	S_CheckALError();
 
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
