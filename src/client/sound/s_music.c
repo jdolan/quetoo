@@ -31,6 +31,7 @@ typedef struct s_music_state_s {
 	ALuint source;
 	ALuint *music_buffers;
 	int16_t *frame_buffer;
+	int16_t *resample_frame_buffer;
 	uint32_t next_buffer;
 	s_music_t *default_music;
 	s_music_t *current_music;
@@ -212,11 +213,18 @@ static void S_BufferMusic(s_music_t *music, _Bool setup_buffers) {
 	// go through the buffers we have left to add and start decoding
 	for (i = 0; i < buffers_processed; i++) {
 
-		const sf_count_t frames = (s_music_buffer_size->integer >> 1) / music->info.channels;
-		const sf_count_t samples = sf_readf_short(music->snd, s_music_state.frame_buffer, frames);
+		const sf_count_t wanted_frames = (s_music_buffer_size->integer / sizeof(*s_music_state.frame_buffer)) / music->info.channels;
+		sf_count_t frames = sf_readf_short(music->snd, s_music_state.frame_buffer, wanted_frames) * music->info.channels;
 
-		if (!samples) {
+		if (!frames) {
 			break;
+		}
+
+		const int16_t *frame_buffer = s_music_state.frame_buffer;
+
+		if (music->info.samplerate != s_rate->integer) {
+			frames = S_Resample(music->info.channels, music->info.samplerate, s_rate->integer, frames, s_music_state.frame_buffer, &s_music_state.resample_frame_buffer);
+			frame_buffer = s_music_state.resample_frame_buffer;
 		}
 
 		ALuint buffer;
@@ -229,8 +237,8 @@ static void S_BufferMusic(s_music_t *music, _Bool setup_buffers) {
 			S_CheckALError();
 		}
 
-		const ALsizei size = (ALsizei) frames * sizeof(int16_t) * music->info.channels;
-		alBufferData(buffer, AL_FORMAT_STEREO16, s_music_state.frame_buffer, size, music->info.samplerate);
+		const ALsizei size = (ALsizei) frames * sizeof(int16_t);
+		alBufferData(buffer, AL_FORMAT_STEREO16, frame_buffer, size, s_rate->integer);
 		S_CheckALError();
 
 		alSourceQueueBuffers(s_music_state.source, 1, &buffer);
@@ -411,7 +419,8 @@ void S_InitMusic(void) {
 	s_music_buffer_count = Cvar_Add("s_music_buffer_count", "8", CVAR_S_MEDIA, "The number of buffers to store for music streaming.");
 	s_music_buffer_size = Cvar_Add("s_music_buffer_size", "16384", CVAR_S_MEDIA, "The size of each buffer for music streaming.");
 
-	s_music_state.frame_buffer = Mem_TagMalloc(sizeof(int16_t) * s_music_buffer_size->value * 2, MEM_TAG_SOUND);
+	s_music_state.frame_buffer = Mem_TagMalloc(sizeof(int16_t) * s_music_buffer_size->value, MEM_TAG_SOUND);
+	s_music_state.resample_frame_buffer = NULL;
 	
 	s_music_volume = Cvar_Add("s_music_volume", "0.15", CVAR_ARCHIVE, "Music volume level.");
 	Cmd_Add("s_next_track", S_NextTrack_f, CMD_SOUND, "Play the next music track.");
@@ -478,4 +487,8 @@ void S_ShutdownMusic(void) {
 	SDL_DestroyMutex(s_music_state.mutex);
 
 	Mem_Free(s_music_state.frame_buffer);
+
+	if (s_music_state.resample_frame_buffer) {
+		Mem_Free(s_music_state.resample_frame_buffer);
+	}
 }

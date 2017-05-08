@@ -121,6 +121,13 @@ static mem_block_t *Mem_CheckMagic(void *p) {
 }
 
 /**
+ * @brief
+ */
+void Mem_Check(void *p) {
+	Mem_CheckMagic(p);
+}
+
+/**
  * @brief Recursively frees linked managed memory.
  */
 static void Mem_Free_(mem_block_t *b) {

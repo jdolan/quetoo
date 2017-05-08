@@ -28,13 +28,70 @@ static const char *SAMPLE_TYPES[] = { ".ogg", ".wav", NULL };
 static const char *SOUND_PATHS[] = { "sounds/", "sound/", NULL };
 
 /**
- * @brief Resample audio.
+ * @brief Split interleaved data stream into two distinct streams.
  */
-size_t S_Resample(const int32_t inrate, const int32_t outrate, const size_t incount, const int16_t *indata, int16_t **outdata) {
+static size_t S_SplitStereo(const int16_t *indata, const size_t incount, int16_t **left, int16_t **right) {
+	const size_t outcount = incount / 2;
+	
+	*left = Mem_Malloc(outcount * sizeof(int16_t));
+	*right = Mem_Malloc(outcount * sizeof(int16_t));
+
+	for (size_t i = 0, x = 0; i < incount; i += 2, x++) {
+		(*left)[x] = indata[i];
+		(*right)[x] = indata[i + 1];
+	}
+
+	return outcount;
+}
+
+/**
+ * @brief Combine two distinct streams into one interleaved data stream.
+ */
+static size_t S_CombineStereo(const int16_t *left, const int16_t *right, const size_t incount, int16_t **outdata) {
+	const size_t outcount = incount * 2;
+
+	*outdata = Mem_Malloc(outcount * sizeof(int16_t));
+
+	for (size_t i = 0, x = 0; i < incount; i++, x += 2) {
+		(*outdata)[x] = left[i];
+		(*outdata)[x + 1] = right[i];
+	}
+
+	return outcount;
+}
+
+/**
+ * @brief Resample audio. outdata will be realloc'd to the size required to handle this operation, so be sure to initialize to
+ * NULL before calling if it's first time!
+ */
+size_t S_Resample(const int32_t channels, const int32_t inrate, const int32_t outrate, const size_t incount, const int16_t *indata, int16_t **outdata) {
+
+	// Hacky ugly code for stereo resampling.
+	if (channels == 2) {
+
+		int16_t *left, *right;
+		const size_t channel_len = S_SplitStereo(indata, incount, &left, &right);
+
+		int16_t *left_resampled = NULL, *right_resampled = NULL;
+
+		const size_t channel_resampled = S_Resample(1, inrate, outrate, channel_len, left, &left_resampled);
+		Mem_Free(left);
+
+		S_Resample(1, inrate, outrate, channel_len, right, &right_resampled);
+		Mem_Free(right);
+
+		const size_t combined_resampled = S_CombineStereo(left_resampled, right_resampled, channel_resampled, outdata);
+		
+		Mem_Free(left_resampled);
+		Mem_Free(right_resampled);
+
+		return combined_resampled;
+	}
+
 	const vec_t stepscale = (vec_t) inrate / (vec_t) outrate;
 	const size_t outcount = incount / stepscale;
 
-	*outdata = Mem_Malloc(outcount * sizeof(int16_t));
+	*outdata = Mem_Realloc(*outdata, outcount * sizeof(int16_t));
 
 	int32_t samplefrac = 0;
 	const vec_t fracstep = stepscale * 256.0;
@@ -101,8 +158,8 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 			sf_count_t count = sf_readf_short(snd, buffer, info.frames) * info.channels;
 
 			if (info.samplerate != s_rate->integer) {
-				int16_t *resampled;
-				count = S_Resample(info.samplerate, s_rate->integer, count, buffer, &resampled);
+				int16_t *resampled = NULL;
+				count = S_Resample(info.channels, info.samplerate, s_rate->integer, count, buffer, &resampled);
 				Mem_Free(buffer);
 				buffer = resampled;
 			}
