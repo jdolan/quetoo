@@ -56,6 +56,7 @@ extern cvar_t *cg_draw_target_name;
 extern cvar_t *cg_draw_team_banner;
 extern cvar_t *cg_draw_weapon;
 extern cvar_t *cg_draw_weapon_alpha;
+extern cvar_t *cg_draw_weapon_bob;
 extern cvar_t *cg_draw_weapon_x;
 extern cvar_t *cg_draw_weapon_y;
 extern cvar_t *cg_draw_weapon_z;
