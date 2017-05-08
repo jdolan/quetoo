@@ -148,7 +148,8 @@ static const char *r_texnum_names[] = {
 	"normalmap",
 	"specularmap",
 	"warp",
-	"tint"
+	"tintmap",
+	"stainmap"
 };
 
 /**
