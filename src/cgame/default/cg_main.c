@@ -60,6 +60,7 @@ cvar_t *cg_draw_target_name;
 cvar_t *cg_draw_team_banner;
 cvar_t *cg_draw_weapon;
 cvar_t *cg_draw_weapon_alpha;
+cvar_t *cg_draw_weapon_bob;
 cvar_t *cg_draw_weapon_x;
 cvar_t *cg_draw_weapon_y;
 cvar_t *cg_draw_weapon_z;
@@ -165,7 +166,9 @@ static void Cg_Init(void) {
 	cg_draw_weapon = cgi.Cvar("cg_draw_weapon", "1", CVAR_ARCHIVE,
 	                          "Toggle drawing of the weapon model.");
 	cg_draw_weapon_alpha = cgi.Cvar("cg_draw_weapon_alpha", "1.0", CVAR_ARCHIVE,
-	                                "The alpha transparency for drawing the weapon model");
+	                                "The alpha transparency for drawing the weapon model.");
+	cg_draw_weapon_bob = cgi.Cvar("cg_draw_weapon_bob", "1.0", CVAR_ARCHIVE,
+	                                "If the weapon model bobs while moving.");
 	cg_draw_weapon_x = cgi.Cvar("cg_draw_weapon_x", "0.0", CVAR_ARCHIVE,
 	                            "The x offset for drawing the weapon model.");
 	cg_draw_weapon_y = cgi.Cvar("cg_draw_weapon_y", "0.0", CVAR_ARCHIVE,
