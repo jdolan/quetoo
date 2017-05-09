@@ -124,6 +124,12 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 		}
 	}
 
+	if (r_view.contents & CONTENTS_WATER) {
+		ch->pitch = 0.5;
+	} else {
+		ch->pitch = 1.0;
+	}
+
 	return frac <= 1.0;
 }
 
@@ -170,6 +176,9 @@ void S_MixChannels(void) {
 				S_CheckALError();
 
 				alSourcef(s_env.sources[i], AL_GAIN, ch->gain * s_volume->value);
+				S_CheckALError();
+
+				alSourcef(s_env.sources[i], AL_PITCH, ch->pitch);
 				S_CheckALError();
 
 				//alSourcefv(s_env.sources[i], AL_VELOCITY, ch->velocity);

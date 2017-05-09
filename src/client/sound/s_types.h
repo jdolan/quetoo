@@ -80,6 +80,7 @@ typedef struct s_channel_s {
 	vec3_t position;
 	vec3_t velocity;
 	vec_t gain;
+	vec_t pitch;
 	_Bool free;
 } s_channel_t;
 
