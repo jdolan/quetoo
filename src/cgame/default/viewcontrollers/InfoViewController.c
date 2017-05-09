@@ -64,15 +64,15 @@ static void loadView(ViewController *self) {
 
 	$((ViewController *) this->tabViewController, moveToParentViewController, self);
 
-	// Tab buttons
+	// Tabs
 
 	{
 		{
-			CreditsViewController *viewController = $((CreditsViewController *) _alloc(_CreditsViewController()), init);
+			CreditsViewController *tabContent = $((CreditsViewController *) _alloc(_CreditsViewController()), init);
 
-			$((ViewController *) this->tabViewController, addChildViewController, (ViewController *) viewController);
+			$((ViewController *) this->tabViewController, addChildViewController, (ViewController *) tabContent);
 
-			release(viewController);
+			release(tabContent);
 		}
 	}
 }

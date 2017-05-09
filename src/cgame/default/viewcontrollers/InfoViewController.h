@@ -65,6 +65,7 @@ struct InfoViewControllerInterface {
 	 * @brief The superclass interface.
 	 */
 	MenuViewControllerInterface menuViewControllerInterface;
+
 };
 
 /**
