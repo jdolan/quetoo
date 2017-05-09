@@ -73,6 +73,10 @@
 		CE12D8F81C5CF97E00CD0B13 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8191C5C614B00CD0B13 /* AppKit.framework */; };
 		CE1CCD9A1D9D41DA00891F05 /* libncurses.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */; };
 		CE1CCD9D1D9D49C700891F05 /* libswap.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC79D01D9CB22E000FA6B2 /* libswap.dylib */; };
+		CE3208501EBDFFB600A92FF3 /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE32084F1EBDFFB600A92FF3 /* OpenAL.framework */; };
+		CE3208531EBF51C800A92FF3 /* libsndfile.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE3208511EBF518D00A92FF3 /* libsndfile.1.dylib */; };
+		CE3208541EBF51D200A92FF3 /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE32084F1EBDFFB600A92FF3 /* OpenAL.framework */; };
+		CE3208551EBF520400A92FF3 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */; };
 		CE3BCDC71DB6DD71002E6C6D /* r_glad_core.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3BCDB71DB6DCE0002E6C6D /* r_glad_core.c */; };
 		CE3BCDC81DB6DD77002E6C6D /* r_glad_core.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3BCDB81DB6DCE0002E6C6D /* r_glad_core.h */; };
 		CE3BCDC91DB6DD81002E6C6D /* r_program_null.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3BCDB91DB6DCE0002E6C6D /* r_program_null.c */; };
@@ -122,14 +126,8 @@
 		CE68F9A61E5E8E8400AC9AAE /* r_program_stain.h in Headers */ = {isa = PBXBuildFile; fileRef = CE68F9A41E5E8E8400AC9AAE /* r_program_stain.h */; };
 		CE6C2D111E24902900F55B0A /* cm_bsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6C2D0F1E24902900F55B0A /* cm_bsp.c */; };
 		CE6C2D121E24902900F55B0A /* cm_bsp.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6C2D101E24902900F55B0A /* cm_bsp.h */; };
-		CE72DFA11E85DDA5007467AE /* AudioViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE72DF951E85DDA5007467AE /* AudioViewController.c */; };
-		CE72DFA21E85DDA5007467AE /* AudioViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE72DF961E85DDA5007467AE /* AudioViewController.h */; };
-		CE72DFA51E85DDA5007467AE /* InputViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE72DF991E85DDA5007467AE /* InputViewController.c */; };
-		CE72DFA61E85DDA5007467AE /* InputViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE72DF9A1E85DDA5007467AE /* InputViewController.h */; };
 		CE72DFA91E85DDA5007467AE /* SettingsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE72DF9D1E85DDA5007467AE /* SettingsViewController.c */; };
 		CE72DFAA1E85DDA5007467AE /* SettingsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE72DF9E1E85DDA5007467AE /* SettingsViewController.h */; };
-		CE72DFAB1E85DDA5007467AE /* VideoViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE72DF9F1E85DDA5007467AE /* VideoViewController.c */; };
-		CE72DFAC1E85DDA5007467AE /* VideoViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE72DFA01E85DDA5007467AE /* VideoViewController.h */; };
 		CE72DFAF1E85DDCD007467AE /* HueSlider.c in Sources */ = {isa = PBXBuildFile; fileRef = CE72DFAD1E85DDCD007467AE /* HueSlider.c */; };
 		CE72DFB01E85DDCD007467AE /* HueSlider.h in Headers */ = {isa = PBXBuildFile; fileRef = CE72DFAE1E85DDCD007467AE /* HueSlider.h */; };
 		CE72DFB31E85DDEF007467AE /* PrimaryIcon.c in Sources */ = {isa = PBXBuildFile; fileRef = CE72DFB11E85DDEF007467AE /* PrimaryIcon.c */; };
@@ -313,26 +311,34 @@
 		CE8C734D1E0DE28000226317 /* r_stainmap.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8C734B1E0DE28000226317 /* r_stainmap.h */; };
 		CE9186B21EA5116E00C68925 /* HomeViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9186A41EA5116E00C68925 /* HomeViewController.c */; };
 		CE9186B31EA5116E00C68925 /* HomeViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9186A51EA5116E00C68925 /* HomeViewController.h */; };
-		CE9186B41EA5116E00C68925 /* InterfaceViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9186A61EA5116E00C68925 /* InterfaceViewController.c */; };
-		CE9186B51EA5116E00C68925 /* InterfaceViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9186A71EA5116E00C68925 /* InterfaceViewController.h */; };
 		CE9186B61EA5116E00C68925 /* LoadingViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9186A81EA5116E00C68925 /* LoadingViewController.c */; };
 		CE9186B71EA5116E00C68925 /* LoadingViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9186A91EA5116E00C68925 /* LoadingViewController.h */; };
 		CE9186B81EA5116E00C68925 /* PlayViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9186AA1EA5116E00C68925 /* PlayViewController.c */; };
 		CE9186B91EA5116E00C68925 /* PlayViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9186AB1EA5116E00C68925 /* PlayViewController.h */; };
-		CE9186BA1EA5116E00C68925 /* QuickJoinViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9186AC1EA5116E00C68925 /* QuickJoinViewController.c */; };
-		CE9186BB1EA5116E00C68925 /* QuickJoinViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9186AD1EA5116E00C68925 /* QuickJoinViewController.h */; };
-		CE9186BC1EA5116E00C68925 /* ServerBrowserViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9186AE1EA5116E00C68925 /* ServerBrowserViewController.c */; };
-		CE9186BD1EA5116E00C68925 /* ServerBrowserViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9186AF1EA5116E00C68925 /* ServerBrowserViewController.h */; };
-		CE9186BE1EA5116E00C68925 /* TabViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9186B01EA5116E00C68925 /* TabViewController.c */; };
-		CE9186BF1EA5116E00C68925 /* TabViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9186B11EA5116E00C68925 /* TabViewController.h */; };
-		CE9186C21EA5119700C68925 /* TabButton.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9186C01EA5119700C68925 /* TabButton.c */; };
-		CE9186C31EA5119700C68925 /* TabButton.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9186C11EA5119700C68925 /* TabButton.h */; };
 		CE95745E1E568F4900BBC4C0 /* EditorViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9574581E56860800BBC4C0 /* EditorViewController.c */; };
 		CE9574601E568F6C00BBC4C0 /* EditorViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9574591E56860800BBC4C0 /* EditorViewController.h */; };
 		CEA029C31C5E54C200341079 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEA029C41C5E54F600341079 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEA082371DC6EC50001207AA /* r_atlas.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA082331DC6EBB7001207AA /* r_atlas.c */; };
 		CEA082381DC6EC59001207AA /* r_atlas.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA082341DC6EBB7001207AA /* r_atlas.h */; };
+		CEA2EBDB1EC1EE290032E863 /* InfoViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA2EBD91EC1EE290032E863 /* InfoViewController.c */; };
+		CEA2EBDC1EC1EE290032E863 /* InfoViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA2EBDA1EC1EE290032E863 /* InfoViewController.h */; };
+		CEA2EBED1EC1EE690032E863 /* AudioView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA2EBDD1EC1EE690032E863 /* AudioView.c */; };
+		CEA2EBEE1EC1EE690032E863 /* AudioView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA2EBDE1EC1EE690032E863 /* AudioView.h */; };
+		CEA2EBEF1EC1EE690032E863 /* CreateServerView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA2EBDF1EC1EE690032E863 /* CreateServerView.c */; };
+		CEA2EBF01EC1EE690032E863 /* CreateServerView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA2EBE01EC1EE690032E863 /* CreateServerView.h */; };
+		CEA2EBF11EC1EE690032E863 /* CreditsView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA2EBE11EC1EE690032E863 /* CreditsView.c */; };
+		CEA2EBF21EC1EE690032E863 /* CreditsView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA2EBE21EC1EE690032E863 /* CreditsView.h */; };
+		CEA2EBF31EC1EE690032E863 /* InputView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA2EBE31EC1EE690032E863 /* InputView.c */; };
+		CEA2EBF41EC1EE690032E863 /* InputView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA2EBE41EC1EE690032E863 /* InputView.h */; };
+		CEA2EBF51EC1EE690032E863 /* InterfaceView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA2EBE51EC1EE690032E863 /* InterfaceView.c */; };
+		CEA2EBF61EC1EE690032E863 /* InterfaceView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA2EBE61EC1EE690032E863 /* InterfaceView.h */; };
+		CEA2EBF71EC1EE690032E863 /* QuickJoinView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA2EBE71EC1EE690032E863 /* QuickJoinView.c */; };
+		CEA2EBF81EC1EE690032E863 /* QuickJoinView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA2EBE81EC1EE690032E863 /* QuickJoinView.h */; };
+		CEA2EBF91EC1EE690032E863 /* ServerBrowserView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA2EBE91EC1EE690032E863 /* ServerBrowserView.c */; };
+		CEA2EBFA1EC1EE690032E863 /* ServerBrowserView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA2EBEA1EC1EE690032E863 /* ServerBrowserView.h */; };
+		CEA2EBFB1EC1EE690032E863 /* VideoView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA2EBEB1EC1EE690032E863 /* VideoView.c */; };
+		CEA2EBFC1EC1EE690032E863 /* VideoView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA2EBEC1EC1EE690032E863 /* VideoView.h */; };
 		CEA3B48D1E0576E3004A6CF3 /* cm_material.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA3B4851E057569004A6CF3 /* cm_material.c */; };
 		CEA3B48E1E0576E7004A6CF3 /* cm_material.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA3B4861E057569004A6CF3 /* cm_material.h */; };
 		CEA936661DBCD88D00A12B79 /* r_program_corona.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA936621DBCD87400A12B79 /* r_program_corona.c */; };
@@ -442,7 +448,6 @@
 		CED439621D9D3B450052BAFA /* libimage.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7A6B1D9CB512000FA6B2 /* libimage.dylib */; };
 		CED439631D9D3B450052BAFA /* libthread.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC79EE1D9CB2D2000FA6B2 /* libthread.dylib */; };
 		CED439641D9D3B4F0052BAFA /* librenderer.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CED438AD1D9D34450052BAFA /* librenderer.dylib */; };
-		CED439651D9D3B620052BAFA /* libSDL2_mixer-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8321C5C6F0100CD0B13 /* libSDL2_mixer-2.0.0.dylib */; };
 		CED439671D9D3B860052BAFA /* librenderer.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CED438AD1D9D34450052BAFA /* librenderer.dylib */; };
 		CED439681D9D3B860052BAFA /* libsound.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CED4393B1D9D344E0052BAFA /* libsound.dylib */; };
 		CED439691D9D3B970052BAFA /* libcommon.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.dylib */; };
@@ -546,9 +551,7 @@
 		CEFC7AF61D9D2CDE000FA6B2 /* VideoModeSelect.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFC79491D9BE432000FA6B2 /* VideoModeSelect.h */; };
 		CEFC7B1D1D9D2DBA000FA6B2 /* MainViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFC78D01D9BE432000FA6B2 /* MainViewController.c */; };
 		CEFC7B1F1D9D2DBA000FA6B2 /* MenuViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFC78D51D9BE432000FA6B2 /* MenuViewController.c */; };
-		CEFC7B201D9D2DBA000FA6B2 /* CreateServerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFC78BB1D9BE432000FA6B2 /* CreateServerViewController.c */; };
 		CEFC7B271D9D2DBA000FA6B2 /* PlayerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFC78DB1D9BE432000FA6B2 /* PlayerViewController.c */; };
-		CEFC7B451D9D2DBA000FA6B2 /* CreateServerViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFC78BC1D9BE432000FA6B2 /* CreateServerViewController.h */; };
 		CEFC7B4C1D9D2DBA000FA6B2 /* MainViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFC78D11D9BE432000FA6B2 /* MainViewController.h */; };
 		CEFC7B4F1D9D2DBA000FA6B2 /* MenuViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFC78D61D9BE432000FA6B2 /* MenuViewController.h */; };
 		CEFC7B531D9D2DBA000FA6B2 /* PlayerViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFC78DC1D9BE432000FA6B2 /* PlayerViewController.h */; };
@@ -1368,6 +1371,8 @@
 		CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSDL2-2.0.0.dylib"; path = "/opt/local/lib/libSDL2-2.0.0.dylib"; sourceTree = "<absolute>"; };
 		CE12D8F41C5CF86600CD0B13 /* quetoo-dedicated */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-dedicated"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE27BE561D9167C700F87B2C /* libObjectively.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectively.dylib; path = "../../Library/Developer/Xcode/DerivedData/Quetoo-eijmznjiunzbaafulkyjapfulhqz/Build/Products/Debug/libObjectively.dylib"; sourceTree = "<group>"; };
+		CE32084F1EBDFFB600A92FF3 /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
+		CE3208511EBF518D00A92FF3 /* libsndfile.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsndfile.1.dylib; path = ../../../../opt/local/lib/libsndfile.1.dylib; sourceTree = "<group>"; };
 		CE3BCDB71DB6DCE0002E6C6D /* r_glad_core.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_glad_core.c; sourceTree = "<group>"; };
 		CE3BCDB81DB6DCE0002E6C6D /* r_glad_core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_glad_core.h; sourceTree = "<group>"; };
 		CE3BCDB91DB6DCE0002E6C6D /* r_program_null.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_program_null.c; sourceTree = "<group>"; };
@@ -1424,14 +1429,8 @@
 		CE6C2D101E24902900F55B0A /* cm_bsp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_bsp.h; sourceTree = "<group>"; };
 		CE6FF29C1E9E6FBA00F3C160 /* qzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qzip.h; sourceTree = "<group>"; };
 		CE72D8A91D404ACA002129FC /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = ../ObjectivelyMVC/build/Debug/libObjectivelyMVC.dylib; sourceTree = "<group>"; };
-		CE72DF951E85DDA5007467AE /* AudioViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = AudioViewController.c; sourceTree = "<group>"; };
-		CE72DF961E85DDA5007467AE /* AudioViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioViewController.h; sourceTree = "<group>"; };
-		CE72DF991E85DDA5007467AE /* InputViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = InputViewController.c; sourceTree = "<group>"; };
-		CE72DF9A1E85DDA5007467AE /* InputViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InputViewController.h; sourceTree = "<group>"; };
 		CE72DF9D1E85DDA5007467AE /* SettingsViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SettingsViewController.c; sourceTree = "<group>"; };
 		CE72DF9E1E85DDA5007467AE /* SettingsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SettingsViewController.h; sourceTree = "<group>"; };
-		CE72DF9F1E85DDA5007467AE /* VideoViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = VideoViewController.c; sourceTree = "<group>"; };
-		CE72DFA01E85DDA5007467AE /* VideoViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoViewController.h; sourceTree = "<group>"; };
 		CE72DFAD1E85DDCD007467AE /* HueSlider.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = HueSlider.c; sourceTree = "<group>"; };
 		CE72DFAE1E85DDCD007467AE /* HueSlider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HueSlider.h; sourceTree = "<group>"; };
 		CE72DFB11E85DDEF007467AE /* PrimaryIcon.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PrimaryIcon.c; sourceTree = "<group>"; };
@@ -1454,20 +1453,10 @@
 		CE8C734B1E0DE28000226317 /* r_stainmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_stainmap.h; sourceTree = "<group>"; };
 		CE9186A41EA5116E00C68925 /* HomeViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = HomeViewController.c; sourceTree = "<group>"; };
 		CE9186A51EA5116E00C68925 /* HomeViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HomeViewController.h; sourceTree = "<group>"; };
-		CE9186A61EA5116E00C68925 /* InterfaceViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = InterfaceViewController.c; sourceTree = "<group>"; };
-		CE9186A71EA5116E00C68925 /* InterfaceViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InterfaceViewController.h; sourceTree = "<group>"; };
 		CE9186A81EA5116E00C68925 /* LoadingViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = LoadingViewController.c; sourceTree = "<group>"; };
 		CE9186A91EA5116E00C68925 /* LoadingViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LoadingViewController.h; sourceTree = "<group>"; };
 		CE9186AA1EA5116E00C68925 /* PlayViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PlayViewController.c; sourceTree = "<group>"; };
 		CE9186AB1EA5116E00C68925 /* PlayViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayViewController.h; sourceTree = "<group>"; };
-		CE9186AC1EA5116E00C68925 /* QuickJoinViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = QuickJoinViewController.c; sourceTree = "<group>"; };
-		CE9186AD1EA5116E00C68925 /* QuickJoinViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QuickJoinViewController.h; sourceTree = "<group>"; };
-		CE9186AE1EA5116E00C68925 /* ServerBrowserViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ServerBrowserViewController.c; sourceTree = "<group>"; };
-		CE9186AF1EA5116E00C68925 /* ServerBrowserViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ServerBrowserViewController.h; sourceTree = "<group>"; };
-		CE9186B01EA5116E00C68925 /* TabViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TabViewController.c; sourceTree = "<group>"; };
-		CE9186B11EA5116E00C68925 /* TabViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TabViewController.h; sourceTree = "<group>"; };
-		CE9186C01EA5119700C68925 /* TabButton.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TabButton.c; sourceTree = "<group>"; };
-		CE9186C11EA5119700C68925 /* TabButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TabButton.h; sourceTree = "<group>"; };
 		CE92B3A91D2FF72200E9153A /* quemap-icon.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "quemap-icon.rc"; sourceTree = "<group>"; };
 		CE92B3AA1D2FF77800E9153A /* quemap.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = quemap.ico; sourceTree = "<group>"; };
 		CE92B3AB1D2FF7F600E9153A /* quetoo-dedicated-icon.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "quetoo-dedicated-icon.rc"; sourceTree = "<group>"; };
@@ -1477,6 +1466,24 @@
 		CEA029F41C5E558100341079 /* quetoo-master */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-master"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEA082331DC6EBB7001207AA /* r_atlas.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_atlas.c; sourceTree = "<group>"; };
 		CEA082341DC6EBB7001207AA /* r_atlas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_atlas.h; sourceTree = "<group>"; };
+		CEA2EBD91EC1EE290032E863 /* InfoViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = InfoViewController.c; sourceTree = "<group>"; };
+		CEA2EBDA1EC1EE290032E863 /* InfoViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InfoViewController.h; sourceTree = "<group>"; };
+		CEA2EBDD1EC1EE690032E863 /* AudioView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = AudioView.c; sourceTree = "<group>"; };
+		CEA2EBDE1EC1EE690032E863 /* AudioView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioView.h; sourceTree = "<group>"; };
+		CEA2EBDF1EC1EE690032E863 /* CreateServerView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CreateServerView.c; sourceTree = "<group>"; };
+		CEA2EBE01EC1EE690032E863 /* CreateServerView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CreateServerView.h; sourceTree = "<group>"; };
+		CEA2EBE11EC1EE690032E863 /* CreditsView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CreditsView.c; sourceTree = "<group>"; };
+		CEA2EBE21EC1EE690032E863 /* CreditsView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CreditsView.h; sourceTree = "<group>"; };
+		CEA2EBE31EC1EE690032E863 /* InputView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = InputView.c; sourceTree = "<group>"; };
+		CEA2EBE41EC1EE690032E863 /* InputView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InputView.h; sourceTree = "<group>"; };
+		CEA2EBE51EC1EE690032E863 /* InterfaceView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = InterfaceView.c; sourceTree = "<group>"; };
+		CEA2EBE61EC1EE690032E863 /* InterfaceView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InterfaceView.h; sourceTree = "<group>"; };
+		CEA2EBE71EC1EE690032E863 /* QuickJoinView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = QuickJoinView.c; sourceTree = "<group>"; };
+		CEA2EBE81EC1EE690032E863 /* QuickJoinView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QuickJoinView.h; sourceTree = "<group>"; };
+		CEA2EBE91EC1EE690032E863 /* ServerBrowserView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ServerBrowserView.c; sourceTree = "<group>"; };
+		CEA2EBEA1EC1EE690032E863 /* ServerBrowserView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ServerBrowserView.h; sourceTree = "<group>"; };
+		CEA2EBEB1EC1EE690032E863 /* VideoView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = VideoView.c; sourceTree = "<group>"; };
+		CEA2EBEC1EC1EE690032E863 /* VideoView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoView.h; sourceTree = "<group>"; };
 		CEA3B4851E057569004A6CF3 /* cm_material.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_material.c; sourceTree = "<group>"; };
 		CEA3B4861E057569004A6CF3 /* cm_material.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_material.h; sourceTree = "<group>"; };
 		CEA936601DBCD85400A12B79 /* corona_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = corona_fs.glsl; sourceTree = "<group>"; };
@@ -1500,8 +1507,6 @@
 		CEFC78921D9BE23A000FA6B2 /* cg_ui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_ui.h; sourceTree = "<group>"; };
 		CEFC78951D9BE3F1000FA6B2 /* cg_ui_data.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = cg_ui_data.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		CEFC78961D9BE3F1000FA6B2 /* cg_ui_data.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = cg_ui_data.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
-		CEFC78BB1D9BE432000FA6B2 /* CreateServerViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = CreateServerViewController.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
-		CEFC78BC1D9BE432000FA6B2 /* CreateServerViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CreateServerViewController.h; sourceTree = "<group>"; };
 		CEFC78D01D9BE432000FA6B2 /* MainViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MainViewController.c; sourceTree = "<group>"; };
 		CEFC78D11D9BE432000FA6B2 /* MainViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainViewController.h; sourceTree = "<group>"; };
 		CEFC78D31D9BE432000FA6B2 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -1569,6 +1574,7 @@
 				CED439781D9D3E400052BAFA /* libthread.dylib in Frameworks */,
 				CE12D8F81C5CF97E00CD0B13 /* AppKit.framework in Frameworks */,
 				CE12D82E1C5C6EAD00CD0B13 /* OpenGL.framework in Frameworks */,
+				CE3208501EBDFFB600A92FF3 /* OpenAL.framework in Frameworks */,
 				CEA029C41C5E54F600341079 /* libglib-2.0.0.dylib in Frameworks */,
 				CE5816EF1D904B0B002818F5 /* libSDL2-2.0.0.dylib in Frameworks */,
 			);
@@ -1776,6 +1782,7 @@
 				CED439611D9D3B450052BAFA /* libcollision.dylib in Frameworks */,
 				CED439621D9D3B450052BAFA /* libimage.dylib in Frameworks */,
 				CED439631D9D3B450052BAFA /* libthread.dylib in Frameworks */,
+				CE3208551EBF520400A92FF3 /* OpenGL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1784,7 +1791,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				CED439641D9D3B4F0052BAFA /* librenderer.dylib in Frameworks */,
-				CED439651D9D3B620052BAFA /* libSDL2_mixer-2.0.0.dylib in Frameworks */,
+				CE3208541EBF51D200A92FF3 /* OpenAL.framework in Frameworks */,
+				CE3208531EBF51C800A92FF3 /* libsndfile.1.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2845,6 +2853,8 @@
 		CE12D8391C5C6F4900CD0B13 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CE3208511EBF518D00A92FF3 /* libsndfile.1.dylib */,
+				CE32084F1EBDFFB600A92FF3 /* OpenAL.framework */,
 				CE5CDC341D9F51990034757D /* libObjectivelyMVC.dylib */,
 				CE27BE561D9167C700F87B2C /* libObjectively.dylib */,
 				CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */,
@@ -2945,16 +2955,10 @@
 		CEFC78991D9BE432000FA6B2 /* viewcontrollers */ = {
 			isa = PBXGroup;
 			children = (
-				CE72DF951E85DDA5007467AE /* AudioViewController.c */,
-				CE72DF961E85DDA5007467AE /* AudioViewController.h */,
-				CEFC78BB1D9BE432000FA6B2 /* CreateServerViewController.c */,
-				CEFC78BC1D9BE432000FA6B2 /* CreateServerViewController.h */,
 				CE9186A41EA5116E00C68925 /* HomeViewController.c */,
 				CE9186A51EA5116E00C68925 /* HomeViewController.h */,
-				CE72DF991E85DDA5007467AE /* InputViewController.c */,
-				CE72DF9A1E85DDA5007467AE /* InputViewController.h */,
-				CE9186A61EA5116E00C68925 /* InterfaceViewController.c */,
-				CE9186A71EA5116E00C68925 /* InterfaceViewController.h */,
+				CEA2EBD91EC1EE290032E863 /* InfoViewController.c */,
+				CEA2EBDA1EC1EE290032E863 /* InfoViewController.h */,
 				CE9186A81EA5116E00C68925 /* LoadingViewController.c */,
 				CE9186A91EA5116E00C68925 /* LoadingViewController.h */,
 				CEFC78D01D9BE432000FA6B2 /* MainViewController.c */,
@@ -2965,16 +2969,8 @@
 				CEFC78DC1D9BE432000FA6B2 /* PlayerViewController.h */,
 				CE9186AA1EA5116E00C68925 /* PlayViewController.c */,
 				CE9186AB1EA5116E00C68925 /* PlayViewController.h */,
-				CE9186AC1EA5116E00C68925 /* QuickJoinViewController.c */,
-				CE9186AD1EA5116E00C68925 /* QuickJoinViewController.h */,
-				CE9186AE1EA5116E00C68925 /* ServerBrowserViewController.c */,
-				CE9186AF1EA5116E00C68925 /* ServerBrowserViewController.h */,
 				CE72DF9D1E85DDA5007467AE /* SettingsViewController.c */,
 				CE72DF9E1E85DDA5007467AE /* SettingsViewController.h */,
-				CE9186B01EA5116E00C68925 /* TabViewController.c */,
-				CE9186B11EA5116E00C68925 /* TabViewController.h */,
-				CE72DF9F1E85DDA5007467AE /* VideoViewController.c */,
-				CE72DFA01E85DDA5007467AE /* VideoViewController.h */,
 				CEFC78D31D9BE432000FA6B2 /* Makefile.am */,
 			);
 			path = viewcontrollers;
@@ -2983,8 +2979,14 @@
 		CEFC78DF1D9BE432000FA6B2 /* views */ = {
 			isa = PBXGroup;
 			children = (
+				CEA2EBDD1EC1EE690032E863 /* AudioView.c */,
+				CEA2EBDE1EC1EE690032E863 /* AudioView.h */,
 				CEFC79121D9BE432000FA6B2 /* BindTextView.c */,
 				CEFC79131D9BE432000FA6B2 /* BindTextView.h */,
+				CEA2EBDF1EC1EE690032E863 /* CreateServerView.c */,
+				CEA2EBE01EC1EE690032E863 /* CreateServerView.h */,
+				CEA2EBE11EC1EE690032E863 /* CreditsView.c */,
+				CEA2EBE21EC1EE690032E863 /* CreditsView.h */,
 				CEFC79141D9BE432000FA6B2 /* CrosshairView.c */,
 				CEFC79151D9BE432000FA6B2 /* CrosshairView.h */,
 				CEFC79161D9BE432000FA6B2 /* CvarCheckbox.c */,
@@ -2999,6 +3001,10 @@
 				CEEBC1F41E89F9C000C20F4D /* DialogView.h */,
 				CE72DFAD1E85DDCD007467AE /* HueSlider.c */,
 				CE72DFAE1E85DDCD007467AE /* HueSlider.h */,
+				CEA2EBE31EC1EE690032E863 /* InputView.c */,
+				CEA2EBE41EC1EE690032E863 /* InputView.h */,
+				CEA2EBE51EC1EE690032E863 /* InterfaceView.c */,
+				CEA2EBE61EC1EE690032E863 /* InterfaceView.h */,
 				CEFC793C1D9BE432000FA6B2 /* MapListCollectionItemView.c */,
 				CEFC793D1D9BE432000FA6B2 /* MapListCollectionItemView.h */,
 				CEFC793E1D9BE432000FA6B2 /* MapListCollectionView.c */,
@@ -3009,14 +3015,18 @@
 				CEFC79431D9BE432000FA6B2 /* PrimaryButton.h */,
 				CE72DFB11E85DDEF007467AE /* PrimaryIcon.c */,
 				CE72DFB21E85DDEF007467AE /* PrimaryIcon.h */,
+				CEA2EBE71EC1EE690032E863 /* QuickJoinView.c */,
+				CEA2EBE81EC1EE690032E863 /* QuickJoinView.h */,
+				CEA2EBE91EC1EE690032E863 /* ServerBrowserView.c */,
+				CEA2EBEA1EC1EE690032E863 /* ServerBrowserView.h */,
 				CEFC79441D9BE432000FA6B2 /* ServersTableView.c */,
 				CEFC79451D9BE432000FA6B2 /* ServersTableView.h */,
 				CEFC79461D9BE432000FA6B2 /* SkinSelect.c */,
 				CEFC79471D9BE432000FA6B2 /* SkinSelect.h */,
-				CE9186C01EA5119700C68925 /* TabButton.c */,
-				CE9186C11EA5119700C68925 /* TabButton.h */,
 				CEFC79481D9BE432000FA6B2 /* VideoModeSelect.c */,
 				CEFC79491D9BE432000FA6B2 /* VideoModeSelect.h */,
+				CEA2EBEB1EC1EE690032E863 /* VideoView.c */,
+				CEA2EBEC1EC1EE690032E863 /* VideoView.h */,
 				CEFC793A1D9BE432000FA6B2 /* Makefile.am */,
 			);
 			path = views;
@@ -3366,19 +3376,26 @@
 				CEFC7AE21D9D2CDE000FA6B2 /* BindTextView.h in Headers */,
 				CEFC7AE41D9D2CDE000FA6B2 /* CrosshairView.h in Headers */,
 				CEFC7AE51D9D2CDE000FA6B2 /* CvarCheckbox.h in Headers */,
-				CE9186C31EA5119700C68925 /* TabButton.h in Headers */,
+				CEA2EBF21EC1EE690032E863 /* CreditsView.h in Headers */,
+				CEA2EBF61EC1EE690032E863 /* InterfaceView.h in Headers */,
+				CEA2EBEE1EC1EE690032E863 /* AudioView.h in Headers */,
 				CEFC7AE61D9D2CDE000FA6B2 /* CvarSelect.h in Headers */,
 				CEFC7AE71D9D2CDE000FA6B2 /* CvarSlider.h in Headers */,
 				CEFC7AE81D9D2CDE000FA6B2 /* CvarTextView.h in Headers */,
 				CE72DFB41E85DDEF007467AE /* PrimaryIcon.h in Headers */,
 				CEFC7AEB1D9D2CDE000FA6B2 /* MapListCollectionItemView.h in Headers */,
 				CEFC7AEC1D9D2CDE000FA6B2 /* MapListCollectionView.h in Headers */,
+				CEA2EBF81EC1EE690032E863 /* QuickJoinView.h in Headers */,
+				CEA2EBF41EC1EE690032E863 /* InputView.h in Headers */,
 				CEFC7AF01D9D2CDE000FA6B2 /* PlayerModelView.h in Headers */,
+				CEA2EBF01EC1EE690032E863 /* CreateServerView.h in Headers */,
 				CEFC7AF21D9D2CDE000FA6B2 /* PrimaryButton.h in Headers */,
 				CEFC7AF31D9D2CDE000FA6B2 /* ServersTableView.h in Headers */,
+				CEA2EBFC1EC1EE690032E863 /* VideoView.h in Headers */,
 				CEEBC1F81E89F9CF00C20F4D /* DialogView.h in Headers */,
 				CEFC7AF41D9D2CDE000FA6B2 /* SkinSelect.h in Headers */,
 				CEFC7AF61D9D2CDE000FA6B2 /* VideoModeSelect.h in Headers */,
+				CEA2EBFA1EC1EE690032E863 /* ServerBrowserView.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3386,21 +3403,14 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEFC7B451D9D2DBA000FA6B2 /* CreateServerViewController.h in Headers */,
 				CEFC7B4C1D9D2DBA000FA6B2 /* MainViewController.h in Headers */,
-				CE9186B51EA5116E00C68925 /* InterfaceViewController.h in Headers */,
 				CE9186B91EA5116E00C68925 /* PlayViewController.h in Headers */,
 				CE72DFAA1E85DDA5007467AE /* SettingsViewController.h in Headers */,
-				CE72DFA61E85DDA5007467AE /* InputViewController.h in Headers */,
-				CE72DFA21E85DDA5007467AE /* AudioViewController.h in Headers */,
 				CE9186B71EA5116E00C68925 /* LoadingViewController.h in Headers */,
 				CEFC7B4F1D9D2DBA000FA6B2 /* MenuViewController.h in Headers */,
-				CE9186BB1EA5116E00C68925 /* QuickJoinViewController.h in Headers */,
-				CE72DFAC1E85DDA5007467AE /* VideoViewController.h in Headers */,
+				CEA2EBDC1EC1EE290032E863 /* InfoViewController.h in Headers */,
 				CE9186B31EA5116E00C68925 /* HomeViewController.h in Headers */,
-				CE9186BF1EA5116E00C68925 /* TabViewController.h in Headers */,
 				CEFC7B531D9D2DBA000FA6B2 /* PlayerViewController.h in Headers */,
-				CE9186BD1EA5116E00C68925 /* ServerBrowserViewController.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4438,22 +4448,29 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEA2EBED1EC1EE690032E863 /* AudioView.c in Sources */,
 				CEFC7AB21D9D2CDE000FA6B2 /* BindTextView.c in Sources */,
+				CEA2EBEF1EC1EE690032E863 /* CreateServerView.c in Sources */,
+				CEA2EBF11EC1EE690032E863 /* CreditsView.c in Sources */,
 				CEFC7AB81D9D2CDE000FA6B2 /* CrosshairView.c in Sources */,
 				CEFC7AB71D9D2CDE000FA6B2 /* CvarCheckbox.c in Sources */,
-				CE72DFAF1E85DDCD007467AE /* HueSlider.c in Sources */,
 				CEFC7AC31D9D2CDE000FA6B2 /* CvarSelect.c in Sources */,
 				CEFC7AB61D9D2CDE000FA6B2 /* CvarSlider.c in Sources */,
 				CEFC7ABC1D9D2CDE000FA6B2 /* CvarTextView.c in Sources */,
-				CE72DFB31E85DDEF007467AE /* PrimaryIcon.c in Sources */,
 				CEEBC1F71E89F9CF00C20F4D /* DialogView.c in Sources */,
+				CE72DFAF1E85DDCD007467AE /* HueSlider.c in Sources */,
+				CEA2EBF31EC1EE690032E863 /* InputView.c in Sources */,
+				CEA2EBF51EC1EE690032E863 /* InterfaceView.c in Sources */,
 				CEFC7AC11D9D2CDE000FA6B2 /* MapListCollectionItemView.c in Sources */,
-				CE9186C21EA5119700C68925 /* TabButton.c in Sources */,
 				CEFC7AC21D9D2CDE000FA6B2 /* MapListCollectionView.c in Sources */,
 				CEFC7AB31D9D2CDE000FA6B2 /* PlayerModelView.c in Sources */,
 				CED4381F1D9D33E80052BAFA /* PrimaryButton.c in Sources */,
+				CE72DFB31E85DDEF007467AE /* PrimaryIcon.c in Sources */,
+				CEA2EBF71EC1EE690032E863 /* QuickJoinView.c in Sources */,
+				CEA2EBF91EC1EE690032E863 /* ServerBrowserView.c in Sources */,
 				CEFC7AC41D9D2CDE000FA6B2 /* ServersTableView.c in Sources */,
 				CEFC7AB91D9D2CDE000FA6B2 /* SkinSelect.c in Sources */,
+				CEA2EBFB1EC1EE690032E863 /* VideoView.c in Sources */,
 				CEFC7AB51D9D2CDE000FA6B2 /* VideoModeSelect.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -4462,21 +4479,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE9186BE1EA5116E00C68925 /* TabViewController.c in Sources */,
-				CE9186B41EA5116E00C68925 /* InterfaceViewController.c in Sources */,
-				CEFC7B201D9D2DBA000FA6B2 /* CreateServerViewController.c in Sources */,
-				CE9186BC1EA5116E00C68925 /* ServerBrowserViewController.c in Sources */,
+				CE9186B21EA5116E00C68925 /* HomeViewController.c in Sources */,
+				CEA2EBDB1EC1EE290032E863 /* InfoViewController.c in Sources */,
+				CE9186B61EA5116E00C68925 /* LoadingViewController.c in Sources */,
 				CEFC7B1D1D9D2DBA000FA6B2 /* MainViewController.c in Sources */,
 				CEFC7B1F1D9D2DBA000FA6B2 /* MenuViewController.c in Sources */,
-				CE9186BA1EA5116E00C68925 /* QuickJoinViewController.c in Sources */,
-				CE72DFAB1E85DDA5007467AE /* VideoViewController.c in Sources */,
-				CE9186B81EA5116E00C68925 /* PlayViewController.c in Sources */,
-				CE72DFA51E85DDA5007467AE /* InputViewController.c in Sources */,
-				CE9186B61EA5116E00C68925 /* LoadingViewController.c in Sources */,
-				CE72DFA91E85DDA5007467AE /* SettingsViewController.c in Sources */,
-				CE9186B21EA5116E00C68925 /* HomeViewController.c in Sources */,
 				CEFC7B271D9D2DBA000FA6B2 /* PlayerViewController.c in Sources */,
-				CE72DFA11E85DDA5007467AE /* AudioViewController.c in Sources */,
+				CE9186B81EA5116E00C68925 /* PlayViewController.c in Sources */,
+				CE72DFA91E85DDA5007467AE /* SettingsViewController.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

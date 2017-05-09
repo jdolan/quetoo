@@ -67,8 +67,12 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map edge"
+            argument = "+debug collision"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+map edge"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_cheats 1 +give all +god"
@@ -76,10 +80,6 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set net_loop_latency 300 +set net_loop_jitter 150"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+debug cgame"
             isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>

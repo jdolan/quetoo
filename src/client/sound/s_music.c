@@ -22,10 +22,24 @@
 #include "s_local.h"
 #include "client.h"
 
+static cvar_t *s_music_buffer_count;
+static cvar_t *s_music_buffer_size;
+
+cvar_t *s_music_volume;
+
 typedef struct s_music_state_s {
+	ALuint source;
+	ALuint *music_buffers;
+	int16_t *frame_buffer;
+	int16_t *resample_frame_buffer;
+	uint32_t next_buffer;
 	s_music_t *default_music;
 	s_music_t *current_music;
 	GList *playlist;
+
+	SDL_Thread *thread; // thread sound system runs on
+	SDL_mutex *mutex; // mutex for music state
+	_Bool shutdown;
 } s_music_state_t;
 
 static s_music_state_t s_music_state;
@@ -45,12 +59,14 @@ static _Bool S_RetainMusic(s_media_t *self) {
 static void S_FreeMusic(s_media_t *self) {
 	s_music_t *music = (s_music_t *) self;
 
-	if (music->music) {
-		Mix_FreeMusic(music->music);
+	if (music->snd) {
+		sf_close(music->snd);
 	}
+
 	if (music->rw) {
-		SDL_FreeRW(music->rw);
+		SDL_RWclose(music->rw);
 	}
+
 	if (music->buffer) {
 		Fs_Free(music->buffer);
 	}
@@ -59,10 +75,10 @@ static void S_FreeMusic(s_media_t *self) {
 /**
  * @brief Handles the actual loading of .ogg music files.
  */
-static _Bool S_LoadMusicFile(const char *name, void **buffer, SDL_RWops **rw, Mix_Music **music) {
+static _Bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **file, SDL_RWops **rw, void **buffer) {
 	char path[MAX_QPATH];
 
-	*music = NULL;
+	*file = NULL;
 
 	StripExtension(name, path);
 	g_snprintf(path, sizeof(path), "music/%s.ogg", name);
@@ -70,23 +86,31 @@ static _Bool S_LoadMusicFile(const char *name, void **buffer, SDL_RWops **rw, Mi
 	int64_t len;
 	if ((len = Fs_Load(path, buffer)) != -1) {
 
-		if ((*rw = SDL_RWFromMem(*buffer, (int32_t) len))) {
+		*rw = SDL_RWFromConstMem(*buffer, (int32_t) len);
+	
+		memset(info, 0, sizeof(*info));
 
-			if ((*music = Mix_LoadMUS_RW(*rw, false))) {
-				Com_Debug(DEBUG_SOUND, "Loaded %s\n", name);
-			} else {
-				Com_Warn("Failed to load %s: %s\n", name, Mix_GetError());
-				SDL_FreeRW(*rw);
-			}
-		} else {
-			Com_Warn("Failed to create SDL_RWops for %s\n", name);
+		*file = sf_open_virtual(&s_rwops_io, SFM_READ, info, *rw);
+
+		if (!*file || sf_error(*file)) {
+			Com_Warn("%s\n", sf_strerror(*file));
+
+			sf_close(*file);
+
+			SDL_FreeRW(*rw);
+
 			Fs_Free(*buffer);
+
+			*file = NULL;
+		} else {
+			sf_command(*file, SFC_SET_SCALE_FLOAT_INT_READ, NULL, SF_TRUE);
 		}
+
 	} else {
 		Com_Debug(DEBUG_SOUND, "Failed to load %s\n", name);
 	}
 
-	return *music != NULL;
+	return !!*file;
 }
 
 /**
@@ -104,16 +128,18 @@ void S_ClearPlaylist(void) {
  */
 s_music_t *S_LoadMusic(const char *name) {
 	char key[MAX_QPATH];
-	s_music_t *music;
+	s_music_t *music = NULL;
 
 	StripExtension(name, key);
 
 	if (!(music = (s_music_t *) S_FindMedia(key))) {
 
-		void *buffer;
+		SF_INFO info;
+		SNDFILE *snd;
 		SDL_RWops *rw;
-		Mix_Music *mus;
-		if (S_LoadMusicFile(key, &buffer, &rw, &mus)) {
+		void *buffer;
+
+		if (S_LoadMusicFile(key, &info, &snd, &rw, &buffer)) {
 
 			music = (s_music_t *) S_AllocMedia(key, sizeof(s_music_t));
 
@@ -121,10 +147,11 @@ s_music_t *S_LoadMusic(const char *name) {
 
 			music->media.Retain = S_RetainMusic;
 			music->media.Free = S_FreeMusic;
-
-			music->buffer = buffer;
+			
+			music->info = info;
+			music->snd = snd;
 			music->rw = rw;
-			music->music = mus;
+			music->buffer = buffer;
 
 			S_RegisterMedia((s_media_t *) music);
 		} else {
@@ -145,19 +172,115 @@ s_music_t *S_LoadMusic(const char *name) {
  */
 static void S_StopMusic(void) {
 
-	Mix_HaltMusic();
+	alSourceStop(s_music_state.source);
+	S_CheckALError();
 
 	s_music_state.current_music = NULL;
+}
+
+/**
+ * @brief Handles music buffering for the specified music
+ * @param setup_buffers If the buffers should be pulled directly from the buffer list instead of
+ * from the consumed buffer list. Use this on first call of Play only.
+ */
+static void S_BufferMusic(s_music_t *music, _Bool setup_buffers) {
+
+	if (!music->snd) {
+		return; // ???
+	}
+
+	S_CheckALError();
+
+	int32_t buffers_processed = s_music_buffer_count->integer;
+
+	if (!setup_buffers) {
+		// if we're EOF, we can quit here and just let the source expire buffers
+		if (music->eof) {
+			return;
+		}
+
+		alGetSourcei(s_music_state.source, AL_BUFFERS_PROCESSED, &buffers_processed);
+		S_CheckALError();
+	} else {
+		music->eof = false;
+		sf_seek(music->snd, 0, SEEK_SET);
+	}
+
+	if (!buffers_processed) {
+		return;
+	}
+
+	int32_t i;
+
+	// go through the buffers we have left to add and start decoding
+	for (i = 0; i < buffers_processed; i++) {
+
+		const sf_count_t wanted_frames = (s_music_buffer_size->integer / sizeof(*s_music_state.frame_buffer)) / music->info.channels;
+		sf_count_t frames = sf_readf_short(music->snd, s_music_state.frame_buffer, wanted_frames) * music->info.channels;
+
+		if (!frames) {
+			break;
+		}
+
+		const int16_t *frame_buffer = s_music_state.frame_buffer;
+
+		if (music->info.samplerate != s_rate->integer) {
+			frames = S_Resample(music->info.channels, music->info.samplerate, s_rate->integer, frames, s_music_state.frame_buffer, &s_music_state.resample_frame_buffer);
+			frame_buffer = s_music_state.resample_frame_buffer;
+		}
+
+		ALuint buffer;
+
+		if (setup_buffers) {
+			buffer = s_music_state.music_buffers[s_music_state.next_buffer];
+			s_music_state.next_buffer = (s_music_state.next_buffer + 1) % s_music_buffer_count->integer;
+		} else {
+			alSourceUnqueueBuffers(s_music_state.source, 1, &buffer);
+			S_CheckALError();
+		}
+
+		const ALsizei size = (ALsizei) frames * sizeof(int16_t);
+		alBufferData(buffer, AL_FORMAT_STEREO16, frame_buffer, size, s_rate->integer);
+		S_CheckALError();
+
+		alSourceQueueBuffers(s_music_state.source, 1, &buffer);
+		S_CheckALError();
+	}
+
+	Com_Debug(DEBUG_SOUND, "%i music chunks processed\n", i);
 }
 
 /**
  * @brief Begins playback of the specified s_music_t.
  */
 static void S_PlayMusic(s_music_t *music) {
+	
+	SDL_mutexP(s_music_state.mutex);
 
-	Mix_PlayMusic(music->music, 1);
+	S_StopMusic();
+
+	int32_t buffers_processed;
+	alGetSourcei(s_music_state.source, AL_BUFFERS_PROCESSED, &buffers_processed);
+	S_CheckALError();
+
+	if (buffers_processed) {
+		ALuint buffers_list[buffers_processed];
+		alSourceUnqueueBuffers(s_music_state.source, buffers_processed, buffers_list);
+		S_CheckALError();
+	}
+
+	S_CheckALError();
+
+	s_music_state.next_buffer = 0;
 
 	s_music_state.current_music = music;
+
+	S_BufferMusic(music, true);
+
+	alSourcePlay(s_music_state.source);
+	S_CheckALError();
+
+	SDL_mutexV(s_music_state.mutex);
 }
 
 /**
@@ -182,12 +305,57 @@ static s_music_t *S_NextMusic(void) {
 }
 
 /**
+ * @brief Single music thread tick.
+ */
+static void S_MusicThreadTick(void) {
+
+	if (s_music_state.current_music) {
+		S_BufferMusic(s_music_state.current_music, false);
+	}
+}
+
+/**
+ * @brief Music thread loop.
+ */
+static int S_MusicThread(void *data) {
+
+	while (true) {
+		
+		SDL_mutexP(s_music_state.mutex);
+	
+		if (s_music_state.shutdown) {
+			SDL_mutexV(s_music_state.mutex);
+			return 1;
+		}
+
+		S_MusicThreadTick();
+
+		SDL_mutexV(s_music_state.mutex);
+
+		// sleep a bit, so music thread doesn't eat cycles
+		usleep(QUETOO_TICK_MILLIS * 1000);
+	}
+
+	return 0;
+}
+
+/**
  * @brief Ensures music playback continues by selecting a new track when one
  * completes.
  */
 void S_FrameMusic(void) {
 	extern cl_static_t cls;
 	static cl_state_t last_state = CL_UNINITIALIZED;
+
+	if (s_music_buffer_count->modified ||
+		s_music_buffer_size->modified) {
+		S_Restart_f();
+
+		s_music_buffer_size->modified = s_music_buffer_count->modified = false;
+		return;
+	}
+	
+	SDL_mutexP(s_music_state.mutex);
 
 	// revert to the default music when the client disconnects
 	if (last_state == CL_ACTIVE && cls.state != CL_ACTIVE) {
@@ -198,18 +366,30 @@ void S_FrameMusic(void) {
 	last_state = cls.state;
 
 	if (s_music_volume->modified) {
-		const int32_t volume = Clamp(s_music_volume->value, 0.0, 1.0) * MIX_MAX_VOLUME;
+		const vec_t volume = Clamp(s_music_volume->value, 0.0, 1.0);
 
 		if (volume) {
-			Mix_VolumeMusic(volume);
+			alSourcef(s_music_state.source, AL_GAIN, volume);
 		} else {
 			S_StopMusic();
 		}
+
+		s_music_volume->modified = false;
 	}
 
 	// if music is enabled but not playing, play that funky music
-	if (s_music_volume->value && !Mix_PlayingMusic()) {
+	ALenum state;
+	alGetSourcei(s_music_state.source, AL_SOURCE_STATE, &state);
+	S_CheckALError();
+
+	SDL_mutexV(s_music_state.mutex);
+
+	if (s_music_volume->value && state != AL_PLAYING) {
 		S_NextTrack_f();
+	}
+
+	if (!s_music_state.thread) {
+		S_MusicThreadTick();
 	}
 }
 
@@ -237,14 +417,80 @@ void S_NextTrack_f(void) {
 void S_InitMusic(void) {
 
 	memset(&s_music_state, 0, sizeof(s_music_state));
+	
+	s_music_buffer_count = Cvar_Add("s_music_buffer_count", "8", CVAR_S_MEDIA, "The number of buffers to store for music streaming.");
+	s_music_buffer_size = Cvar_Add("s_music_buffer_size", "16384", CVAR_S_MEDIA, "The size of each buffer for music streaming.");
+
+	s_music_state.frame_buffer = Mem_TagMalloc(sizeof(int16_t) * s_music_buffer_size->value, MEM_TAG_SOUND);
+	s_music_state.resample_frame_buffer = NULL;
+	
+	s_music_volume = Cvar_Add("s_music_volume", "0.15", CVAR_ARCHIVE, "Music volume level.");
+	Cmd_Add("s_next_track", S_NextTrack_f, CMD_SOUND, "Play the next music track.");
+
+	s_music_buffer_count->modified = 
+		s_music_buffer_size->modified = 
+		s_music_volume->modified = false;
+
+	alGenSources(1, &s_music_state.source);
+	
+	if (!s_music_state.source) {
+		Com_Warn("Couldn't allocate source: %s\n", alGetString(alGetError()));
+		return;
+	}
+
+	alSourcef(s_music_state.source, AL_GAIN, s_music_volume->value);
+	S_CheckALError();
+
+	s_music_state.music_buffers = Mem_TagMalloc(sizeof(ALuint) * s_music_buffer_count->integer, MEM_TAG_SOUND);
+	alGenBuffers(s_music_buffer_count->integer, s_music_state.music_buffers);
+
+	if (!*s_music_state.music_buffers) {
+		Com_Warn("Couldn't allocate buffers: %s\n", alGetString(alGetError()));
+		return;
+	}
 
 	s_music_state.default_music = S_LoadMusic("track3");
+
+	s_music_state.mutex = SDL_CreateMutex();
+
+	if (Thread_Count()) {
+		s_music_state.thread = SDL_CreateThread(S_MusicThread, __func__, NULL);
+	}
 }
 
 /**
  * @brief Shuts down music playback.
  */
 void S_ShutdownMusic(void) {
-
+	
+	SDL_mutexP(s_music_state.mutex);
 	S_StopMusic();
+
+	if (s_music_state.source) {
+		alDeleteSources(1, &s_music_state.source);
+		S_CheckALError();
+
+		alDeleteBuffers(s_music_buffer_count->integer, s_music_state.music_buffers);
+		S_CheckALError();
+
+		Mem_Free(s_music_state.music_buffers);
+	}
+
+	if (s_music_state.thread) {
+		s_music_state.shutdown = true;
+	
+		SDL_mutexV(s_music_state.mutex);
+		SDL_WaitThread(s_music_state.thread, NULL); // wait for thread to end
+	} else {
+		SDL_mutexV(s_music_state.mutex);
+	}
+
+	// kill mutex
+	SDL_DestroyMutex(s_music_state.mutex);
+
+	Mem_Free(s_music_state.frame_buffer);
+
+	if (s_music_state.resample_frame_buffer) {
+		Mem_Free(s_music_state.resample_frame_buffer);
+	}
 }

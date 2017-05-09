@@ -21,6 +21,8 @@
 
 #pragma once
 
+extern cvar_t *s_music_volume;
+
 #ifdef __S_LOCAL_H__
 
 void S_ClearPlaylist(void);

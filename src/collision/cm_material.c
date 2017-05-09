@@ -1235,7 +1235,7 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 /**
  * @brief GCompareFunc for Cm_WriteMaterials.
  */
-gint Cm_WriteMaterials_compare(gconstpointer a, gconstpointer b) {
+static gint Cm_WriteMaterials_compare(gconstpointer a, gconstpointer b) {
 	return g_strcmp0(((const cm_material_t *) a)->name, ((const cm_material_t *) b)->name);
 }
 
