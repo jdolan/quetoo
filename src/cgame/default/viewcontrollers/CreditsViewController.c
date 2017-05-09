@@ -23,7 +23,7 @@
 
 #include "parse.h"
 
-#include "CreditsView.h"
+#include "CreditsViewController.h"
 
 static const char *_name = "Name";
 static const char *_role = "Role";
@@ -35,7 +35,7 @@ typedef struct {
 	char link[MAX_STRING_CHARS];
 } credit_t;
 
-#define _Class _CreditsView
+#define _Class _CreditsViewController
 
 #pragma mark - Object
 
@@ -44,7 +44,7 @@ typedef struct {
  */
 static void dealloc(Object *self) {
 
-	CreditsView *this = (CreditsView *) self;
+	CreditsViewController *this = (CreditsViewController *) self;
 
 	g_slist_free_full(this->credits, cgi.Free);
 
@@ -59,7 +59,7 @@ static void dealloc(Object *self) {
  * @see TableViewDataSource::numberOfRows
  */
 static size_t numberOfRows(const TableView *tableView) {
-	return g_slist_length(((CreditsView *) tableView->dataSource.self)->credits);
+	return g_slist_length(((CreditsViewController *) tableView->dataSource.self)->credits);
 }
 
 /**
@@ -67,7 +67,7 @@ static size_t numberOfRows(const TableView *tableView) {
  */
 static ident valueForColumnAndRow(const TableView *tableView, const TableColumn *column, size_t row) {
 
-	credit_t *credit = g_slist_nth_data(((CreditsView *) tableView->dataSource.self)->credits, (guint) row);
+	credit_t *credit = g_slist_nth_data(((CreditsViewController *) tableView->dataSource.self)->credits, (guint) row);
 	assert(credit);
 
 	if (g_strcmp0(column->identifier, _name) == 0) {
@@ -88,7 +88,7 @@ static ident valueForColumnAndRow(const TableView *tableView, const TableColumn 
  */
 static TableCellView *cellForColumnAndRow(const TableView *tableView, const TableColumn *column, size_t row) {
 
-	credit_t *credit = g_slist_nth_data(((CreditsView *) tableView->dataSource.self)->credits, (guint) row);
+	credit_t *credit = g_slist_nth_data(((CreditsViewController *) tableView->dataSource.self)->credits, (guint) row);
 	assert(credit);
 
 	TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
@@ -104,94 +104,96 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 	return cell;
 }
 
-#pragma mark - CreditsView
+#pragma mark - ViewController
 
 /**
- * @fn CreditsView *CreditsView::initWithFrame(CreditsView *self, const SDL_Rect *frame)
- *
- * @memberof CreditsView
+ * @see ViewController::loadView()
  */
- static CreditsView *initWithFrame(CreditsView *self, const SDL_Rect *frame) {
+ static loadView(ViewController *self) {
 
-	self = (CreditsView *) super(View, self, initWithFrame, frame);
-	if (self) {
+	super(ViewController, self, loadView);
 
-		/*
-		self->view.padding.top = DEFAULT_PANEL_SPACING;
-		self->view.padding.right = DEFAULT_PANEL_SPACING;
-		self->view.padding.bottom = DEFAULT_PANEL_SPACING;
-		self->view.padding.left = DEFAULT_PANEL_SPACING;
-		*/
+	CreditsViewController *this = (CreditsViewController *) self;
+
+	{
+		Box *box = $(alloc(Box), initWithFrame, NULL);
+		$(box->label, setText, "Credits");
+
+		box->view.autoresizingMask = ViewAutoresizingFill;
+
+		this->tableView = $(alloc(TableView), initWithFrame, NULL, ControlStyleDefault);
+
+		this->tableView->control.selection = ControlSelectionNone;
+
+		this->tableView->control.view.autoresizingMask = ViewAutoresizingFill;
+
+		this->tableView->dataSource.self = (ident) self;
+		this->tableView->dataSource.numberOfRows = numberOfRows;
+		this->tableView->dataSource.valueForColumnAndRow = valueForColumnAndRow;
+
+		this->tableView->delegate.cellForColumnAndRow = cellForColumnAndRow;
 
 		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "Credits");
+			TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _name);
+			assert(column);
 
-			box->view.autoresizingMask = ViewAutoresizingFill;
+			column->comparator = (Comparator) g_ascii_strcasecmp;
+			column->width = 30;
 
-			self->tableView = $(alloc(TableView), initWithFrame, NULL, ControlStyleDefault);
-
-			self->tableView->control.selection = ControlSelectionNone;
-
-			self->tableView->control.view.autoresizingMask = ViewAutoresizingFill;
-
-			self->tableView->dataSource.self = (ident) self;
-			self->tableView->dataSource.numberOfRows = numberOfRows;
-			self->tableView->dataSource.valueForColumnAndRow = valueForColumnAndRow;
-
-			self->tableView->delegate.cellForColumnAndRow = cellForColumnAndRow;
-
-			{
-				TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _name);
-				assert(column);
-
-				column->comparator = (Comparator) g_ascii_strcasecmp;
-				column->width = 30;
-
-				$(self->tableView, addColumn, column);
-				release(column);
-			}
-
-			{
-				TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _role);
-				assert(column);
-
-				column->comparator = (Comparator) g_ascii_strcasecmp;
-				column->width = 40;
-
-				$(self->tableView, addColumn, column);
-				release(column);
-			}
-
-			{
-				TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _link);
-				assert(column);
-
-				column->comparator = (Comparator) g_ascii_strcasecmp;
-				column->width = 30;
-
-				$(self->tableView, addColumn, column);
-				release(column);
-			}
-
-			$((View *) box, addSubview, (View *) self->tableView);
-
-			$((View *) self, addSubview, (View *) box);
-			release(box);
+			$(this->tableView, addColumn, column);
+			release(column);
 		}
 
-		$(self, loadCredits, "docs/credits.txt");
+		{
+			TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _role);
+			assert(column);
+
+			column->comparator = (Comparator) g_ascii_strcasecmp;
+			column->width = 40;
+
+			$(this->tableView, addColumn, column);
+			release(column);
+		}
+
+		{
+			TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _link);
+			assert(column);
+
+			column->comparator = (Comparator) g_ascii_strcasecmp;
+			column->width = 30;
+
+			$(this->tableView, addColumn, column);
+			release(column);
+		}
+
+		$((View *) box, addSubview, (View *) this->tableView);
+
+		$((View *) self, addSubview, (View *) box);
+		release(box);
 	}
 
-	return self;
+	$(this, loadCredits, "docs/credits.txt");
+}
+
+#pragma mark - CreditsViewController
+
+/**
+ * @fn CreditsViewController *CreditsViewController::init(CreditsViewController *self)
+ *
+ * @memberof CreditsViewController
+ */
+static CreditsViewController *init(CreditsViewController *self) {
+
+	return (CreditsViewController *) super(ViewController, self, init);
 }
 
 /**
  * @brief Loads the credits file from the data dir
  */
-static void loadCredits(CreditsView *self, const char *path) {
+static void loadCredits(CreditsViewController *self, const char *path) {
 	void *buf;
 	parser_t parser;
+
 	char token_name[MAX_STRING_CHARS];
 	char token_role[MAX_STRING_CHARS];
 	char token_link[MAX_STRING_CHARS];
@@ -246,24 +248,26 @@ static void initialize(Class *clazz) {
 
 	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
 
-	((CreditsViewInterface *) clazz->def->interface)->loadCredits = loadCredits;
-	((CreditsViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
+	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+
+	((CreditsViewControllerInterface *) clazz->def->interface)->init = init;
+	((CreditsViewControllerInterface *) clazz->def->interface)->loadCredits = loadCredits;
 }
 
 /**
- * @fn Class *CreditsView::_CreditsView(void)
- * @memberof CreditsView
+ * @fn Class *CreditsViewController::_CreditsViewController(void)
+ * @memberof CreditsViewController
  */
-Class *_CreditsView(void) {
+Class *_CreditsViewController(void) {
 	static Class clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "CreditsView";
-		clazz.superclass = _View();
-		clazz.instanceSize = sizeof(CreditsView);
-		clazz.interfaceOffset = offsetof(CreditsView, interface);
-		clazz.interfaceSize = sizeof(CreditsViewInterface);
+		clazz.name = "CreditsViewController";
+		clazz.superclass = _ViewController();
+		clazz.instanceSize = sizeof(CreditsViewController);
+		clazz.interfaceOffset = offsetof(CreditsViewController, interface);
+		clazz.interfaceSize = sizeof(CreditsViewControllerInterface);
 		clazz.initialize = initialize;
 	});
 

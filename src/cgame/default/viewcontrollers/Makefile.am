@@ -1,5 +1,6 @@
 
 noinst_HEADERS = \
+	CreditsViewController.h \
 	HomeViewController.h \
 	InfoViewController.h \
 	LoadingViewController.h \
@@ -13,6 +14,7 @@ noinst_LTLIBRARIES = \
 	libviewcontrollers.la
 
 libviewcontrollers_la_SOURCES = \
+	CreditsViewController.c \
 	HomeViewController.c \
 	InfoViewController.c \
 	LoadingViewController.c \

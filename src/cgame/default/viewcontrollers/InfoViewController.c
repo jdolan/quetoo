@@ -23,7 +23,7 @@
 
 #include "InfoViewController.h"
 
-#include "CreditsView.h"
+#include "CreditsViewController.h"
 
 #define _Class _InfoViewController
 
@@ -33,7 +33,7 @@ static void dealloc(Object *self) {
 
 	InfoViewController *this = (InfoViewController *) self;
 
-	release(this->tabView);
+	release(this->tabViewController);
 
 	super(Object, self, dealloc);
 }
@@ -47,58 +47,34 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	MenuViewController *this = (MenuViewController *) self;
+	InfoViewController *this = (InfoViewController *) self;
 
-	this->panel->stackView.view.padding.top = 0;
-	this->panel->stackView.view.padding.right = 0;
-	this->panel->stackView.view.padding.bottom = 0;
-	this->panel->stackView.view.padding.left = 0;
+	this->menuViewController.panel->stackView.view.padding.top = 0;
+	this->menuViewController.panel->stackView.view.padding.right = 0;
+	this->menuViewController.panel->stackView.view.padding.bottom = 0;
+	this->menuViewController.panel->stackView.view.padding.left = 0;
 
-	this->panel->stackView.view.zIndex = 100;
+	this->menuViewController.panel->stackView.view.zIndex = 100;
 
-	this->panel->contentView->view.clipsSubviews = true;
+	this->menuViewController.panel->contentView->view.clipsSubviews = true;
 
-	// Setup the TabView
+	// Setup the TabViewController
 
-	const SDL_Rect frame = MakeRect(0, 0, 900, 500);
-
-	((InfoViewController *) this)->tabView = $(alloc(TabView), initWithFrame, &frame);
-	TabView *tabView = ((InfoViewController *) this)->tabView;
-
-	tabView->tabPageView->view.autoresizingMask = ViewAutoresizingFill;
+	this->tabViewController = $(alloc(TabViewController), init);
 
 	// Tab buttons
 
 	{
 		{
-			CreditsView *tabData = $(alloc(CreditsView), initWithFrame, NULL);
+			CreditsViewController *viewController = $((CreditsViewController *) _alloc(_CreditsViewController()), init);
 
-			tabData->view.autoresizingMask = ViewAutoresizingFill;
-			tabData->view.identifier = strdup("credits");
+			$((ViewController *) this->tabViewController, addChildViewController, (ViewController *) viewController);
 
-			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
-
-			$(tab->label->text, setText, "Credits");
-
-			$(tabView, addTab, tab);
+			release(viewController);
 		}
 	}
 
-	{
-		View *row = $(alloc(View), initWithFrame, NULL);
-
-		row->autoresizingMask = ViewAutoresizingNone;
-
-		row->frame.w = Min(900, cgi.context->window_width - 30);
-		row->frame.h = Min(500, cgi.context->window_height - 80);
-
-		// Add the TabView
-
-		$(row, addSubview, (View *) tabView);
-
-		$((View *) this->panel->contentView, addSubview, (View *) row);
-		release(row);
-	}
+	$((ViewController *) this->tabViewController, moveToParentViewController, self);
 }
 
 #pragma mark - Class lifecycle

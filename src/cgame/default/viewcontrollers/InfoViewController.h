@@ -25,7 +25,7 @@
 
 /**
  * @file
- * @brief System ViewController.
+ * @brief Info MenuViewController.
  */
 
 typedef struct InfoViewController InfoViewController;
@@ -51,9 +51,9 @@ struct InfoViewController {
 	InfoViewControllerInterface *interface;
 
 	/**
-	 * @brief TabView to contain tabs.
+	 * @brief TabViewController to contain tabs.
 	 */
-	TabView *tabView;
+	TabViewController *tabViewController;
 };
 
 /**

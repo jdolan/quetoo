@@ -3,7 +3,6 @@ noinst_HEADERS = \
 	AudioView.h \
 	BindTextView.h \
 	CreateServerView.h \
-	CreditsView.h \
 	CrosshairView.h \
 	CvarCheckbox.h \
 	CvarSelect.h \
@@ -31,7 +30,6 @@ libviews_la_SOURCES = \
 	AudioView.c \
 	BindTextView.c \
 	CreateServerView.c \
-	CreditsView.c \
 	CrosshairView.c \
 	CvarCheckbox.c \
 	CvarSelect.c \
