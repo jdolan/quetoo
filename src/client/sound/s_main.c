@@ -27,7 +27,6 @@ s_env_t s_env;
 
 cvar_t *s_ambient;
 cvar_t *s_music_volume;
-cvar_t *s_reverse;
 cvar_t *s_rate;
 cvar_t *s_volume;
 
@@ -74,11 +73,6 @@ void S_Frame(void) {
 	if (s_env.update) {
 		s_env.update = false;
 		S_FreeMedia();
-	}
-
-	if (s_reverse->modified) {
-		Mix_SetReverseStereo(MIX_CHANNEL_POST, s_reverse->integer);
-		s_reverse->modified = false;
 	}
 
 	S_MixChannels();
@@ -181,7 +175,6 @@ static void S_InitLocal(void) {
 	s_ambient = Cvar_Add("s_ambient", "1", CVAR_ARCHIVE, "Controls playback of ambient sounds.");
 	s_music_volume = Cvar_Add("s_music_volume", "0.15", CVAR_ARCHIVE, "Music volume level.");
 	s_rate = Cvar_Add("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE, "Sound sample rate in Hz.");
-	s_reverse = Cvar_Add("s_reverse", "0", CVAR_ARCHIVE, "Reverse left and right channels.");
 	s_volume = Cvar_Add("s_volume", "1.0", CVAR_ARCHIVE, "Global sound volume level.");
 
 	Cvar_ClearAll(CVAR_S_MASK);
