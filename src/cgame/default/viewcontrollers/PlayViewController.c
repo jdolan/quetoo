@@ -67,12 +67,15 @@ static void loadView(ViewController *self) {
 	((PlayViewController *) this)->tabView = $(alloc(TabView), initWithFrame, &frame);
 	TabView *tabView = ((PlayViewController *) this)->tabView;
 
+	tabView->tabPageView->view.autoresizingMask = ViewAutoresizingFill;
+
 	// Tab buttons
 
 	{
 		{
 			QuickJoinView *tabData = $(alloc(QuickJoinView), initWithFrame, NULL);
 
+			tabData->view.autoresizingMask = ViewAutoresizingFill;
 			tabData->view.identifier = "quick_join";
 
 			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
@@ -85,6 +88,7 @@ static void loadView(ViewController *self) {
 		{
 			ServerBrowserView *tabData = $(alloc(ServerBrowserView), initWithFrame, NULL);
 
+			tabData->view.autoresizingMask = ViewAutoresizingFill;
 			tabData->view.identifier = "server_browser";
 
 			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);

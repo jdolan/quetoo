@@ -68,6 +68,8 @@ static void loadView(ViewController *self) {
 	((SettingsViewController *) this)->tabView = $(alloc(TabView), initWithFrame, &frame);
 	TabView *tabView = ((SettingsViewController *) this)->tabView;
 
+	tabView->tabPageView->view.autoresizingMask = ViewAutoresizingFill;
+
 	// Tab buttons
 
 	{
@@ -75,6 +77,7 @@ static void loadView(ViewController *self) {
 		{
 			VideoView *tabData = $(alloc(VideoView), initWithFrame, NULL);
 
+			tabData->view.autoresizingMask = ViewAutoresizingFill;
 			tabData->view.identifier = "video";
 
 			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
@@ -87,6 +90,7 @@ static void loadView(ViewController *self) {
 		{
 			InputView *tabData = $(alloc(InputView), initWithFrame, NULL);
 
+			tabData->view.autoresizingMask = ViewAutoresizingFill;
 			tabData->view.identifier = "input";
 
 			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
@@ -99,6 +103,7 @@ static void loadView(ViewController *self) {
 		{
 			InterfaceView *tabData = $(alloc(InterfaceView), initWithFrame, NULL);
 
+			tabData->view.autoresizingMask = ViewAutoresizingFill;
 			tabData->view.identifier = "interface";
 
 			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
@@ -111,6 +116,7 @@ static void loadView(ViewController *self) {
 		{
 			AudioView *tabData = $(alloc(AudioView), initWithFrame, NULL);
 
+			tabData->view.autoresizingMask = ViewAutoresizingFill;
 			tabData->view.identifier = "audio";
 
 			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);

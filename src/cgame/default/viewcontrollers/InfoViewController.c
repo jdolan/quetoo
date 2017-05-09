@@ -65,12 +65,15 @@ static void loadView(ViewController *self) {
 	((InfoViewController *) this)->tabView = $(alloc(TabView), initWithFrame, &frame);
 	TabView *tabView = ((InfoViewController *) this)->tabView;
 
+	tabView->tabPageView->view.autoresizingMask = ViewAutoresizingFill;
+
 	// Tab buttons
 
 	{
 		{
 			CreditsView *tabData = $(alloc(CreditsView), initWithFrame, NULL);
 
+			tabData->view.autoresizingMask = ViewAutoresizingFill;
 			tabData->view.identifier = "credits";
 
 			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
