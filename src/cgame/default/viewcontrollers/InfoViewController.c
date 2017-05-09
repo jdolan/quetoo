@@ -62,6 +62,8 @@ static void loadView(ViewController *self) {
 
 	this->tabViewController = $(alloc(TabViewController), init);
 
+	$((ViewController *) this->tabViewController, moveToParentViewController, self);
+
 	// Tab buttons
 
 	{
@@ -73,8 +75,6 @@ static void loadView(ViewController *self) {
 			release(viewController);
 		}
 	}
-
-	$((ViewController *) this->tabViewController, moveToParentViewController, self);
 }
 
 #pragma mark - Class lifecycle

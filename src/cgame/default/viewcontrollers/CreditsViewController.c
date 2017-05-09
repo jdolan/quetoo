@@ -109,7 +109,7 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 /**
  * @see ViewController::loadView()
  */
- static loadView(ViewController *self) {
+ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
