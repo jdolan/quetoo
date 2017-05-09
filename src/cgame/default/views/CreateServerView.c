@@ -266,7 +266,7 @@ static void dealloc(Object *self) {
 
 				stackView->view.autoresizingMask |= ViewAutoresizingHeight;
 
-				const SDL_Rect frame = { .w = 510, .h = 0 };
+				const SDL_Rect frame = MakeRect(0, 0, 510, 0);
 				self->mapList = $(alloc(MapListCollectionView), initWithFrame, &frame, ControlStyleDefault);
 
 				self->mapList->collectionView.control.view.autoresizingMask |= ViewAutoresizingHeight;

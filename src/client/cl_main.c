@@ -325,6 +325,9 @@ void Cl_Disconnect(void) {
 
 	memset(cls.server_name, 0, sizeof(cls.server_name));
 
+	cls.loading.percent = 100;
+	cls.cgame->UpdateLoading(cls.loading);
+
 	Cl_SetKeyDest(KEY_UI);
 }
 

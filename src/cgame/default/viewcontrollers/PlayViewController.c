@@ -101,6 +101,7 @@ static void loadView(ViewController *self) {
 		{
 			CreateServerView *tabData = $(alloc(CreateServerView), initWithFrame, NULL);
 
+			tabData->view.autoresizingMask = ViewAutoresizingFill;
 			tabData->view.identifier = "create_server";
 
 			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
