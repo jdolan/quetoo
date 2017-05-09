@@ -15,7 +15,6 @@ robocopy "../../ObjectivelyMVC/ObjectivelyMVC.vs15/bin/%build_platform%%build_co
 
 robocopy "libs/gettext/%build_platform%/bin/" "%quetoo_folder%/bin/" *.dll /E /NJH /NJS /FP /NP /V | findstr /v "*EXTRA File"
 robocopy "libs/glib/%build_platform%/bin/" "%quetoo_folder%/bin/" *.dll /E /NJH /NJS /FP /NP /V | findstr /v "*EXTRA File"
-robocopy "libs/sdl_mixer/lib/%build_platform%/" "%quetoo_folder%/bin/" *.dll /E /NJH /NJS /FP /NP /V | findstr /v "*EXTRA File"
 
 robocopy "../../ObjectivelyMVC/ObjectivelyMVC.vs15/libs/sdl/lib/%build_platform%/" "%quetoo_folder%/bin/" *.dll /E /NJH /NJS /FP /NP /V | findstr /v "*EXTRA File"
 robocopy "../../ObjectivelyMVC/ObjectivelyMVC.vs15/libs/sdl_image/lib/%build_platform%/" "%quetoo_folder%/bin/" *.dll /E /NJH /NJS /FP /NP /V | findstr /v "*EXTRA File"

@@ -31,7 +31,6 @@
 extern s_env_t s_env;
 
 extern cvar_t *s_ambient;
-extern cvar_t *s_music_volume;
 extern cvar_t *s_rate;
 extern cvar_t *s_volume;
 

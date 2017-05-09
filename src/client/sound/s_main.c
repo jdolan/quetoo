@@ -26,7 +26,6 @@
 s_env_t s_env;
 
 cvar_t *s_ambient;
-cvar_t *s_music_volume;
 cvar_t *s_rate;
 cvar_t *s_volume;
 
@@ -34,13 +33,78 @@ extern cl_client_t cl;
 extern cl_static_t cls;
 
 /**
+ * @brief Check and report OpenAL errors.
+ */
+void S_CheckALError(void) {
+	const ALenum v = alGetError();
+
+	if (v == AL_NO_ERROR) {
+		return;
+	}
+
+	Com_Debug(DEBUG_BREAKPOINT | DEBUG_SOUND, "AL error: %s\n", alGetString(v));
+}
+
+/**
+ * @brief
+ */
+static sf_count_t S_RWops_get_filelen(void *user_data) {
+	SDL_RWops *rwops = (SDL_RWops *) user_data;
+	return rwops->size(rwops);
+}
+
+/**
+ * @brief
+ */
+static sf_count_t S_RWops_seek(sf_count_t offset, int whence, void *user_data) {
+	SDL_RWops *rwops = (SDL_RWops *) user_data;
+	return rwops->seek(rwops, offset, whence);
+}
+
+/**
+ * @brief
+ */
+static sf_count_t S_RWops_read(void *ptr, sf_count_t count, void *user_data) {
+	SDL_RWops *rwops = (SDL_RWops *) user_data;
+	return rwops->read(rwops, ptr, 1, count);
+}
+
+/**
+ * @brief
+ */
+static sf_count_t S_RWops_write(const void *ptr, sf_count_t count, void *user_data) {
+	SDL_RWops *rwops = (SDL_RWops *) user_data;
+	return rwops->write(rwops, ptr, 1, count);
+}
+
+/**
+ * @brief
+ */
+static sf_count_t S_RWops_tell(void *user_data) {
+	SDL_RWops *rwops = (SDL_RWops *) user_data;
+	return rwops->seek(rwops, 0, SEEK_CUR);
+}
+
+/**
+ * @brief An interface to SDL_RWops for libsndfile
+ */
+SF_VIRTUAL_IO s_rwops_io = {
+	.get_filelen = S_RWops_get_filelen,
+	.seek = S_RWops_seek,
+	.read = S_RWops_read,
+	.write = S_RWops_write,
+	.tell = S_RWops_tell
+};
+
+/**
  * @brief
  */
 static void S_Stop(void) {
 
-	Mix_HaltChannel(-1);
-
 	memset(s_env.channels, 0, sizeof(s_env.channels));
+
+	alSourceStopv(MAX_CHANNELS, s_env.sources);
+	S_CheckALError();
 }
 
 /**
@@ -48,9 +112,7 @@ static void S_Stop(void) {
  */
 void S_StopAllSounds(void) {
 
-	if (Mix_Playing(-1) > 0) {
-		S_Stop();
-	}
+	S_Stop();
 }
 
 /**
@@ -59,7 +121,7 @@ void S_StopAllSounds(void) {
  */
 void S_Frame(void) {
 
-	if (!s_env.initialized) {
+	if (!s_env.context) {
 		return;
 	}
 
@@ -84,8 +146,8 @@ void S_Frame(void) {
 void S_LoadMedia(void) {
 	extern cl_client_t cl;
 
-	if (!s_env.initialized) {
-		return;    // sound disabled
+	if (!s_env.context) {
+		return;
 	}
 
 	if (!cl.config_strings[CS_MODELS][0]) {
@@ -146,7 +208,7 @@ static void S_Stop_f(void) {
 /**
  * @brief
  */
-static void S_Restart_f(void) {
+void S_Restart_f(void) {
 
 	if (cls.state == CL_LOADING) {
 		return;
@@ -173,14 +235,12 @@ static void S_Restart_f(void) {
 static void S_InitLocal(void) {
 
 	s_ambient = Cvar_Add("s_ambient", "1", CVAR_ARCHIVE, "Controls playback of ambient sounds.");
-	s_music_volume = Cvar_Add("s_music_volume", "0.15", CVAR_ARCHIVE, "Music volume level.");
 	s_rate = Cvar_Add("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE, "Sound sample rate in Hz.");
 	s_volume = Cvar_Add("s_volume", "1.0", CVAR_ARCHIVE, "Global sound volume level.");
 
 	Cvar_ClearAll(CVAR_S_MASK);
 
 	Cmd_Add("s_list_media", S_ListMedia_f, CMD_SOUND, "List all currently loaded media");
-	Cmd_Add("s_next_track", S_NextTrack_f, CMD_SOUND, "Play the next music track.");
 	Cmd_Add("s_play", S_Play_f, CMD_SOUND, NULL);
 	Cmd_Add("s_restart", S_Restart_f, CMD_SOUND, "Restart the sound subsystem");
 	Cmd_Add("s_stop", S_Stop_f, CMD_SOUND, NULL);
@@ -190,9 +250,6 @@ static void S_InitLocal(void) {
  * @brief Initializes the sound subsystem.
  */
 void S_Init(void) {
-	int32_t freq, channels;
-	uint16_t format;
-
 	memset(&s_env, 0, sizeof(s_env));
 
 	if (Cvar_GetValue("s_disable")) {
@@ -204,37 +261,36 @@ void S_Init(void) {
 
 	S_InitLocal();
 
-	if (SDL_WasInit(SDL_INIT_AUDIO) == 0) {
-		if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0) {
-			Com_Warn("%s\n", SDL_GetError());
-			return;
-		}
-	}
+	s_env.device = alcOpenDevice(NULL);
 
-	if (Mix_OpenAudio(s_rate->integer, MIX_DEFAULT_FORMAT, 2, 1024) == -1) {
-		Com_Warn("%s\n", Mix_GetError());
+	if (!s_env.device) {
+		Com_Warn("%s\n", alcGetString(NULL, alcGetError(NULL)));
 		return;
 	}
 
-	if (Mix_QuerySpec(&freq, &format, &channels) == 0) {
-		Com_Warn("%s\n", Mix_GetError());
+	s_env.context = alcCreateContext(s_env.device, NULL);
+
+	if (!s_env.context || !alcMakeContextCurrent(s_env.context)) {
+		Com_Warn("%s\n", alcGetString(NULL, alcGetError(NULL)));
 		return;
 	}
 
-	if (Mix_AllocateChannels(MAX_CHANNELS) != MAX_CHANNELS) {
-		Com_Warn("%s\n", Mix_GetError());
+	alGenSources(MAX_CHANNELS, s_env.sources);
+
+	ALenum error = alGetError();
+
+	if (error) {
+		Com_Warn("Couldn't allocate channels: %s\n", alGetString(error));
 		return;
 	}
 
-	Mix_ChannelFinished(S_FreeChannel);
-
-	Com_Print("Sound initialized %dKHz %d channels\n", freq, channels);
-
-	s_env.initialized = true;
+	Com_Print("Sound initialized (OpenAL, resample @ %dhz)\n", s_rate->integer);
 
 	S_InitMedia();
 
 	S_InitMusic();
+
+	s_env.resample_buffer = Mem_TagMalloc(sizeof(int16_t) * 2048, MEM_TAG_SOUND);
 }
 
 /**
@@ -242,25 +298,35 @@ void S_Init(void) {
  */
 void S_Shutdown(void) {
 
-	if (!s_env.initialized) {
+	if (!s_env.context) {
 		return;
 	}
 
 	S_Stop();
 
-	Mix_AllocateChannels(0);
+	alDeleteSources(MAX_CHANNELS, s_env.sources);
+	S_CheckALError();
 
 	S_ShutdownMusic();
 
 	S_ShutdownMedia();
 
-	Mix_CloseAudio();
+	alcMakeContextCurrent(NULL);
+	S_CheckALError();
+
+	alcDestroyContext(s_env.context);
+	S_CheckALError();
+
+	alcCloseDevice(s_env.device);
+	S_CheckALError();
 
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
 	Cmd_RemoveAll(CMD_SOUND);
 
-	s_env.initialized = false;
+	Mem_Free(s_env.resample_buffer);
 
 	Mem_FreeTag(MEM_TAG_SOUND);
+
+	memset(&s_env, 0, sizeof(s_env));
 }

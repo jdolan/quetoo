@@ -21,7 +21,16 @@
 
 #pragma once
 
-#include <SDL2/SDL_mixer.h>
+#if defined (__APPLE__)
+#include <OpenAL/OpenAL.h>
+#else
+#include <AL/al.h>
+#include <AL/alc.h>
+#endif
+
+#include <SDL2/SDL_rwops.h>
+
+#include <sndfile.h>
 
 #include "common.h"
 #include "sys.h"
@@ -45,7 +54,8 @@ typedef struct s_media_s {
 
 typedef struct s_sample_s {
 	s_media_t media;
-	Mix_Chunk *chunk;
+	ALuint buffer;
+	_Bool stereo; // whether this is stereo sample or not; they can't be spatialized
 } s_sample_t;
 
 #define S_PLAY_POSITIONED   0x1 // position the sound at a fixed origin
@@ -67,8 +77,10 @@ typedef struct s_channel_s {
 	const s_sample_t *sample;
 	uint32_t start_time;
 	int32_t frame;
-	int16_t angle;
-	uint8_t dist;
+	vec3_t position;
+	vec3_t velocity;
+	vec_t gain;
+	vec_t pitch;
 	_Bool free;
 } s_channel_t;
 
@@ -76,20 +88,42 @@ typedef struct s_channel_s {
 
 typedef struct s_music_s {
 	s_media_t media;
-	void *buffer;
+	SF_INFO info;
+	SNDFILE *snd;
 	SDL_RWops *rw;
-	Mix_Music *music;
+	void *buffer;
+	_Bool eof;
 } s_music_t;
 
-// the sound environment
+/**
+ * @brief The sound environment.
+ */
 typedef struct s_env_s {
 	s_channel_t channels[MAX_CHANNELS];
-
-	_Bool initialized; // is the sound subsystem initialized
-	_Bool update; // inform the client of state changes
-
 	uint16_t num_active_channels;
+
+	/**
+	 * @brief The OpenAL playback device.
+	 */
+	ALCdevice *device;
+
+	/**
+	 * @brief The OpenAL playback context.
+	 */
+	ALCcontext *context;
+	int16_t *resample_buffer; // temp space used for resampling
+
+	/**
+	 * @brief The OpenAL sound sources.
+	 */
+	ALuint sources[MAX_CHANNELS];
+
+	/**
+	 * @brief True when media has been reloaded, and the client should update its media references.
+	 */
+	_Bool update;
 } s_env_t;
 
 #ifdef __S_LOCAL_H__
+extern SF_VIRTUAL_IO s_rwops_io;
 #endif /* __S_LOCAL_H__ */

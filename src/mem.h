@@ -33,6 +33,7 @@ void *Mem_Link(void *parent, void *child);
 size_t Mem_Size(void);
 char *Mem_TagCopyString(const char *in, mem_tag_t tag);
 char *Mem_CopyString(const char *in);
+void Mem_Check(void *p);
 
 /**
  * @brief Struct used for return values of Mem_Stats

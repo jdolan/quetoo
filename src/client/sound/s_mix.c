@@ -43,6 +43,8 @@ static int32_t S_AllocChannel(void) {
  * @brief
  */
 void S_FreeChannel(int32_t c) {
+
+	alSourceStop(s_env.sources[c]);
 	s_env.channels[c].free = true;
 }
 
@@ -58,17 +60,31 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 
 	if (ch->play.flags & S_PLAY_POSITIONED) {
 		VectorCopy(ch->play.origin, org);
+		VectorClear(ch->velocity);
 	} else if (ch->play.flags & S_PLAY_ENTITY) {
 		const cl_entity_t *ent = &cl.entities[ch->play.entity];
+		
+		if (ent == cl.entity) {
+			VectorCopy(cl.frame.ps.pm_state.velocity, ch->velocity);
+		}
+		else {
+			VectorSubtract(ent->current.origin, ent->prev.origin, ch->velocity);
+		}
+
 		if (ent->current.solid == SOLID_BSP) {
 			const r_model_t *mod = cl.model_precache[ent->current.model1];
 			VectorLerp(mod->mins, mod->maxs, 0.5, center);
 			VectorAdd(center, ent->origin, org);
 		} else {
-			VectorCopy(ent->origin, org);
+			if (ent == cl.entity) {
+				VectorCopy(r_view.origin, org);
+			} else {
+				VectorCopy(ent->origin, org);
+			}
 		}
 	}
 
+	VectorCopy(org, ch->position);
 	VectorSubtract(org, r_view.origin, delta);
 
 	vec_t attenuation;
@@ -90,12 +106,29 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 	const vec_t dist = VectorNormalize(delta) * attenuation;
 	const vec_t frac = dist / SOUND_MAX_DISTANCE;
 
-	ch->dist = (uint8_t) (Clamp(frac * 255.0, 0.0, 255.0));
+	ch->gain = 1.0 - frac;
 
-	const vec_t dot = DotProduct(r_view.right, delta);
-	const vec_t angle = acos(dot) * 180.0 / M_PI - 90.0;
+	// fade out frame sounds if they are no longer in the frame
+	if (ch->start_time) {
+		if (ch->play.flags & S_PLAY_FRAME) {
+			if (ch->frame != cl.frame.frame_num) {
+				const int32_t frame_diff = cl.frame.frame_num - ch->frame;
+				const uint32_t ms_diff = frame_diff * QUETOO_TICK_MILLIS;
 
-	ch->angle = (int16_t) (360.0 - angle) % 360;
+				if (ms_diff > 250) {
+					return false; // faded out
+				}
+
+				ch->gain *= 1.0 - (ms_diff / 250.0);
+			}
+		}
+	}
+
+	if (r_view.contents & CONTENTS_WATER) {
+		ch->pitch = 0.5;
+	} else {
+		ch->pitch = 1.0;
+	}
 
 	return frac <= 1.0;
 }
@@ -105,10 +138,26 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
  */
 void S_MixChannels(void) {
 
-	Mix_Volume(-1, Clamp(s_volume->value, 0.0, 1.0) * MIX_MAX_VOLUME);
+	const vec3_t orientation[] = {
+		{ r_view.forward[0], r_view.forward[1], r_view.forward[2] },
+		{ r_view.up[0], r_view.up[1], r_view.up[2] }
+	};
+
+	alDistanceModel(AL_NONE);
+	S_CheckALError();
+
+	alListenerfv(AL_POSITION, r_view.origin);
+	S_CheckALError();
+
+	alListenerfv(AL_ORIENTATION, &orientation[0][0]);
+	S_CheckALError();
+
+	//alDopplerFactor(0.05);
+	//alListenerfv(AL_VELOCITY, cl.frame.ps.pm_state.velocity);
 
 	s_channel_t *ch = s_env.channels;
 	for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
+
 		if (ch->free) {
 			memset(ch, 0, sizeof(*ch));
 		}
@@ -120,37 +169,47 @@ void S_MixChannels(void) {
 	for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
 
 		if (ch->sample) {
-
-			if (ch->start_time) {
-				if (ch->play.flags & S_PLAY_FRAME) {
-					if (ch->frame != cl.frame.frame_num) {
-						Mix_FadeOutChannel(i, 250);
-						continue;
-					}
-				}
-			}
-
+			
 			if (S_SpatializeChannel(ch)) {
-				Mix_SetPosition(i, ch->angle, ch->dist);
+				
+				alSourcefv(s_env.sources[i], AL_POSITION, ch->position);
+				S_CheckALError();
+
+				alSourcef(s_env.sources[i], AL_GAIN, ch->gain * s_volume->value);
+				S_CheckALError();
+
+				alSourcef(s_env.sources[i], AL_PITCH, ch->pitch);
+				S_CheckALError();
+
+				//alSourcefv(s_env.sources[i], AL_VELOCITY, ch->velocity);
 
 				if (!ch->start_time) {
 					ch->start_time = quetoo.ticks;
 
-					if (ch->play.flags & S_PLAY_LOOP) {
-						Mix_PlayChannel(i, ch->sample->chunk, -1);
-					} else {
-						Mix_PlayChannel(i, ch->sample->chunk, 0);
+					alSourcei(s_env.sources[i], AL_BUFFER, ch->sample->buffer);
+					S_CheckALError();
+
+					alSourcei(s_env.sources[i], AL_LOOPING, !!(ch->play.flags & S_PLAY_LOOP));
+					S_CheckALError();
+
+					alSourcePlay(s_env.sources[i]);
+					S_CheckALError();
+
+				} else {
+					ALenum state;
+					alGetSourcei(s_env.sources[i], AL_SOURCE_STATE, &state);
+					S_CheckALError();
+					
+					if (state != AL_PLAYING) {
+						S_FreeChannel(i);
+						continue;
 					}
 				}
 
 				s_env.num_active_channels++;
 			} else {
 
-				if (ch->start_time) {
-					Mix_HaltChannel(i);
-				} else {
-					S_FreeChannel(i);
-				}
+				S_FreeChannel(i);
 			}
 		}
 	}
@@ -161,7 +220,7 @@ void S_MixChannels(void) {
  */
 void S_AddSample(const s_play_sample_t *play) {
 
-	if (!s_env.initialized) {
+	if (!s_env.context) {
 		return;
 	}
 
@@ -225,6 +284,14 @@ void S_AddSample(const s_play_sample_t *play) {
 					return;
 				}
 			}
+		}
+	}
+
+	// warn on spatialized stereo samples
+	if (play->sample->stereo) {
+		if (play->attenuation == ATTEN_NONE || 
+			(play->entity != -1 && &cl.entities[play->entity] != cl.entity)) {
+			Com_Warn("%s is a stereo sound sample and is being spatialized\n", play->sample->media.name);
 		}
 	}
 

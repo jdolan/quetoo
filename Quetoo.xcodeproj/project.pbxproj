@@ -73,6 +73,10 @@
 		CE12D8F81C5CF97E00CD0B13 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8191C5C614B00CD0B13 /* AppKit.framework */; };
 		CE1CCD9A1D9D41DA00891F05 /* libncurses.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */; };
 		CE1CCD9D1D9D49C700891F05 /* libswap.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC79D01D9CB22E000FA6B2 /* libswap.dylib */; };
+		CE3208501EBDFFB600A92FF3 /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE32084F1EBDFFB600A92FF3 /* OpenAL.framework */; };
+		CE3208531EBF51C800A92FF3 /* libsndfile.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE3208511EBF518D00A92FF3 /* libsndfile.1.dylib */; };
+		CE3208541EBF51D200A92FF3 /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE32084F1EBDFFB600A92FF3 /* OpenAL.framework */; };
+		CE3208551EBF520400A92FF3 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */; };
 		CE3BCDC71DB6DD71002E6C6D /* r_glad_core.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3BCDB71DB6DCE0002E6C6D /* r_glad_core.c */; };
 		CE3BCDC81DB6DD77002E6C6D /* r_glad_core.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3BCDB81DB6DCE0002E6C6D /* r_glad_core.h */; };
 		CE3BCDC91DB6DD81002E6C6D /* r_program_null.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3BCDB91DB6DCE0002E6C6D /* r_program_null.c */; };
@@ -414,7 +418,6 @@
 		CED439621D9D3B450052BAFA /* libimage.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7A6B1D9CB512000FA6B2 /* libimage.dylib */; };
 		CED439631D9D3B450052BAFA /* libthread.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC79EE1D9CB2D2000FA6B2 /* libthread.dylib */; };
 		CED439641D9D3B4F0052BAFA /* librenderer.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CED438AD1D9D34450052BAFA /* librenderer.dylib */; };
-		CED439651D9D3B620052BAFA /* libSDL2_mixer-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8321C5C6F0100CD0B13 /* libSDL2_mixer-2.0.0.dylib */; };
 		CED439671D9D3B860052BAFA /* librenderer.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CED438AD1D9D34450052BAFA /* librenderer.dylib */; };
 		CED439681D9D3B860052BAFA /* libsound.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CED4393B1D9D344E0052BAFA /* libsound.dylib */; };
 		CED439691D9D3B970052BAFA /* libcommon.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.dylib */; };
@@ -1344,6 +1347,8 @@
 		CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSDL2-2.0.0.dylib"; path = "/opt/local/lib/libSDL2-2.0.0.dylib"; sourceTree = "<absolute>"; };
 		CE12D8F41C5CF86600CD0B13 /* quetoo-dedicated */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-dedicated"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE27BE561D9167C700F87B2C /* libObjectively.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectively.dylib; path = "../../Library/Developer/Xcode/DerivedData/Quetoo-eijmznjiunzbaafulkyjapfulhqz/Build/Products/Debug/libObjectively.dylib"; sourceTree = "<group>"; };
+		CE32084F1EBDFFB600A92FF3 /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
+		CE3208511EBF518D00A92FF3 /* libsndfile.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsndfile.1.dylib; path = ../../../../opt/local/lib/libsndfile.1.dylib; sourceTree = "<group>"; };
 		CE3BCDB71DB6DCE0002E6C6D /* r_glad_core.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_glad_core.c; sourceTree = "<group>"; };
 		CE3BCDB81DB6DCE0002E6C6D /* r_glad_core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_glad_core.h; sourceTree = "<group>"; };
 		CE3BCDB91DB6DCE0002E6C6D /* r_program_null.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_program_null.c; sourceTree = "<group>"; };
@@ -1521,6 +1526,7 @@
 				CED439781D9D3E400052BAFA /* libthread.dylib in Frameworks */,
 				CE12D8F81C5CF97E00CD0B13 /* AppKit.framework in Frameworks */,
 				CE12D82E1C5C6EAD00CD0B13 /* OpenGL.framework in Frameworks */,
+				CE3208501EBDFFB600A92FF3 /* OpenAL.framework in Frameworks */,
 				CEA029C41C5E54F600341079 /* libglib-2.0.0.dylib in Frameworks */,
 				CE5816EF1D904B0B002818F5 /* libSDL2-2.0.0.dylib in Frameworks */,
 			);
@@ -1728,6 +1734,7 @@
 				CED439611D9D3B450052BAFA /* libcollision.dylib in Frameworks */,
 				CED439621D9D3B450052BAFA /* libimage.dylib in Frameworks */,
 				CED439631D9D3B450052BAFA /* libthread.dylib in Frameworks */,
+				CE3208551EBF520400A92FF3 /* OpenGL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1736,7 +1743,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				CED439641D9D3B4F0052BAFA /* librenderer.dylib in Frameworks */,
-				CED439651D9D3B620052BAFA /* libSDL2_mixer-2.0.0.dylib in Frameworks */,
+				CE3208541EBF51D200A92FF3 /* OpenAL.framework in Frameworks */,
+				CE3208531EBF51C800A92FF3 /* libsndfile.1.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2795,6 +2803,8 @@
 		CE12D8391C5C6F4900CD0B13 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CE3208511EBF518D00A92FF3 /* libsndfile.1.dylib */,
+				CE32084F1EBDFFB600A92FF3 /* OpenAL.framework */,
 				CE5CDC341D9F51990034757D /* libObjectivelyMVC.dylib */,
 				CE27BE561D9167C700F87B2C /* libObjectively.dylib */,
 				CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */,
