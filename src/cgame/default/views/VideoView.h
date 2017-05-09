@@ -23,7 +23,7 @@
 
 /**
  * @file
- * @brief System ViewController.
+ * @brief Video View
  */
 
 typedef struct VideoView VideoView;
