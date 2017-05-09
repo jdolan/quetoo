@@ -85,9 +85,17 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 		if (!snd || sf_error(snd)) {
 			Com_Warn("%s\n", sf_strerror(snd));
 		} else {
+			sf_command(snd, SFC_SET_SCALE_FLOAT_INT_READ, NULL, SF_TRUE);
+	
 			int16_t *raw_buffer = Mem_TagMalloc(sizeof(int16_t) * info.frames * info.channels, MEM_TAG_SOUND);
 			sf_count_t count = sf_readf_short(snd, raw_buffer, info.frames) * info.channels;
 			const int16_t *buffer = raw_buffer;
+
+			if (strstr(path, "hyperblaster")) {
+				file_t *f = Fs_OpenWrite("hyperb.dat");
+				Fs_Write(f, raw_buffer, count, sizeof(int16_t));
+				Fs_Close(f);
+			}
 
 			if (info.samplerate != s_rate->integer) {
 				count = S_Resample(info.channels, info.samplerate, s_rate->integer, count, raw_buffer, &s_env.resample_buffer);

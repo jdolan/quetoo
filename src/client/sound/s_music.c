@@ -102,6 +102,8 @@ static _Bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **file, SD
 			Fs_Free(*buffer);
 
 			*file = NULL;
+		} else {
+			sf_command(*file, SFC_SET_SCALE_FLOAT_INT_READ, NULL, SF_TRUE);
 		}
 
 	} else {
