@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "75FA426E7357F5420A1968D4819CBC4A891D08B0",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "75FA426E7357F5420A1968D4819CBC4A891D08B0" : 9223372036854775807,
+    "91A6C33B74D20865B0FECADDFE4FBF591F531705" : 9223372036854775807
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "982EA7C5-F5DB-4A6E-9A62-701CC866657C",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "75FA426E7357F5420A1968D4819CBC4A891D08B0" : "quetoo\/",
+    "91A6C33B74D20865B0FECADDFE4FBF591F531705" : "ObjectivelyMVC\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "Quetoo",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "Quetoo.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/jdolan\/quetoo.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "75FA426E7357F5420A1968D4819CBC4A891D08B0"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "github.com:jdolan\/ObjectivelyMVC.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "91A6C33B74D20865B0FECADDFE4FBF591F531705"
+    }
+  ]
+}
