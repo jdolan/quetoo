@@ -421,40 +421,38 @@ static size_t Parse_TypeSize(const parse_type_t type) {
  * @brief Parse the specified data type.
  */
 static _Bool Parse_TypeParse(const parse_type_t type, const char *input, void *output) {
-
 	int32_t result;
+	static byte scan_buffer[sizeof(dvec_t)];
+	const size_t type_size = Parse_TypeSize(type);
 
 	switch (type) {
 	case PARSE_UINT8:
-		result = sscanf(input, "%" SCNu8, (uint8_t *) output);
+	case PARSE_UINT16:
+	case PARSE_UINT32:
+		result = sscanf(input, "%" SCNu32, (uint32_t *) scan_buffer);
 		break;
 	case PARSE_INT8:
-		result = sscanf(input, "%" SCNd8, (int8_t *) output);
-		break;
-	case PARSE_UINT16:
-		result = sscanf(input, "%" SCNu16, (uint16_t *) output);
-		break;
 	case PARSE_INT16:
-		result = sscanf(input, "%" SCNd16, (int16_t *) output);
-		break;
-	case PARSE_UINT32:
-		result = sscanf(input, "%" SCNu32, (uint32_t *) output);
-		break;
 	case PARSE_INT32:
-		result = sscanf(input, "%" SCNd32, (int32_t *) output);
+		result = sscanf(input, "%" SCNi32, (int32_t *) scan_buffer);
 		break;
 	case PARSE_FLOAT:
-		result = sscanf(input, "%f", (vec_t *) output);
+		result = sscanf(input, "%f", (vec_t *) scan_buffer);
 		break;
 	case PARSE_DOUBLE:
-		result = sscanf(input, "%lf", (dvec_t *) output);
+		result = sscanf(input, "%lf", (dvec_t *) scan_buffer);
 		break;
 	default:
 		result = 0;
 		signal(SIGSEGV, NULL);
 	}
 
-	return result == 1;
+	if (result == 1) {
+		memcpy(output, scan_buffer, type_size);
+		return true;
+	}
+
+	return false;
 }
 
 /**
