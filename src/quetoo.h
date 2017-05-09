@@ -59,19 +59,6 @@
 		#undef SCNxPTR
 
 		#if defined(__MINGW64__)
-			#define PRIdPTR PRId32
-			#define PRIiPTR PRIi32
-			#define PRIoPTR PRIo32
-			#define PRIuPTR PRIu32
-			#define PRIxPTR PRIx32
-			#define PRIXPTR PRIX32
-
-			#define SCNdPTR SCNd32
-			#define SCNiPTR SCNi32
-			#define SCNoPTR SCNo32
-			#define SCNuPTR SCNu32
-			#define SCNxPTR SCNx32
-		#else
 			#define PRIdPTR PRId64
 			#define PRIiPTR PRIi64
 			#define PRIoPTR PRIo64
@@ -84,6 +71,19 @@
 			#define SCNoPTR SCNo64
 			#define SCNuPTR SCNu64
 			#define SCNxPTR SCNx64
+		#else
+			#define PRIdPTR PRId32
+			#define PRIiPTR PRIi32
+			#define PRIoPTR PRIo32
+			#define PRIuPTR PRIu32
+			#define PRIxPTR PRIx32
+			#define PRIXPTR PRIX32
+
+			#define SCNdPTR SCNd32
+			#define SCNiPTR SCNi32
+			#define SCNoPTR SCNo32
+			#define SCNuPTR SCNu32
+			#define SCNxPTR SCNx32
 		#endif
 #endif
 #endif
