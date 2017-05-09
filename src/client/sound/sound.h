@@ -32,7 +32,6 @@ extern s_env_t s_env;
 
 extern cvar_t *s_ambient;
 extern cvar_t *s_rate;
-extern cvar_t *s_reverse;
 extern cvar_t *s_volume;
 
 #endif /* __SOUND_H__ */
