@@ -51,18 +51,20 @@ static void loadView(ViewController *self) {
 
 	MenuViewController *this = (MenuViewController *) self;
 
-	this->panel->stackView.view.zIndex = 100;
-
 	this->panel->stackView.view.padding.top = 0;
 	this->panel->stackView.view.padding.right = 0;
 	this->panel->stackView.view.padding.bottom = 0;
 	this->panel->stackView.view.padding.left = 0;
 
+	this->panel->stackView.view.zIndex = 100;
+
 	this->panel->contentView->view.clipsSubviews = true;
 
 	// Setup the TabView
 
-	((PlayViewController *) this)->tabView = $(alloc(TabView), initWithFrame, NULL);
+	const SDL_Rect frame = MakeRect(0, 0, 900, 500);
+
+	((PlayViewController *) this)->tabView = $(alloc(TabView), initWithFrame, &frame);
 	TabView *tabView = ((PlayViewController *) this)->tabView;
 
 	// Tab buttons

@@ -52,18 +52,20 @@ static void loadView(ViewController *self) {
 
 	MenuViewController *this = (MenuViewController *) self;
 
-	this->panel->stackView.view.zIndex = 100;
-
 	this->panel->stackView.view.padding.top = 0;
 	this->panel->stackView.view.padding.right = 0;
 	this->panel->stackView.view.padding.bottom = 0;
 	this->panel->stackView.view.padding.left = 0;
 
+	this->panel->stackView.view.zIndex = 100;
+
 	this->panel->contentView->view.clipsSubviews = true;
 
 	// Setup the TabView
 
-	((SettingsViewController *) this)->tabView = $(alloc(TabView), initWithFrame, NULL);
+	const SDL_Rect frame = MakeRect(0, 0, 900, 500);
+
+	((SettingsViewController *) this)->tabView = $(alloc(TabView), initWithFrame, &frame);
 	TabView *tabView = ((SettingsViewController *) this)->tabView;
 
 	// Tab buttons
@@ -119,21 +121,7 @@ static void loadView(ViewController *self) {
 		}
 	}
 
-	{
-		View *row = $(alloc(View), initWithFrame, NULL);
-
-		row->autoresizingMask = ViewAutoresizingNone;
-
-		row->frame.w = Min(900, cgi.context->window_width - 30);
-		row->frame.h = Min(500, cgi.context->window_height - 80);
-
-		// Add the TabView
-
-		$(row, addSubview, (View *) tabView);
-
-		$((View *) this->panel->contentView, addSubview, (View *) row);
-		release(row);
-	}
+	$((View *) this->panel->contentView, addSubview, (View *) tabView);
 }
 
 #pragma mark - Class lifecycle
