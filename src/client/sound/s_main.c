@@ -297,6 +297,8 @@ void S_Init(void) {
 	S_InitMedia();
 
 	S_InitMusic();
+
+	s_env.resample_buffer = Mem_TagMalloc(sizeof(int16_t) * 2048, MEM_TAG_SOUND);
 }
 
 /**
@@ -329,6 +331,8 @@ void S_Shutdown(void) {
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
 	Cmd_RemoveAll(CMD_SOUND);
+
+	Mem_Free(s_env.resample_buffer);
 
 	Mem_FreeTag(MEM_TAG_SOUND);
 

@@ -28,98 +28,29 @@ static const char *SAMPLE_TYPES[] = { ".ogg", ".wav", NULL };
 static const char *SOUND_PATHS[] = { "sounds/", "sound/", NULL };
 
 /**
- * @brief Split interleaved data stream into two distinct streams.
- */
-static size_t S_SplitStereo(const int16_t *indata, const size_t incount, int16_t **left, int16_t **right) {
-	const size_t outcount = incount / 2;
-	
-	*left = Mem_Malloc(outcount * sizeof(int16_t));
-	*right = Mem_Malloc(outcount * sizeof(int16_t));
-
-	for (size_t i = 0, x = 0; i < incount; i += 2, x++) {
-		(*left)[x] = indata[i];
-		(*right)[x] = indata[i + 1];
-	}
-
-	return outcount;
-}
-
-/**
- * @brief Combine two distinct streams into one interleaved data stream.
- */
-static size_t S_CombineStereo(const int16_t *left, const int16_t *right, const size_t incount, int16_t **outdata) {
-	const size_t outcount = incount * 2;
-
-	*outdata = Mem_Malloc(outcount * sizeof(int16_t));
-
-	for (size_t i = 0, x = 0; i < incount; i++, x += 2) {
-		(*outdata)[x] = left[i];
-		(*outdata)[x + 1] = right[i];
-	}
-
-	return outcount;
-}
-
-/**
  * @brief Resample audio. outdata will be realloc'd to the size required to handle this operation, so be sure to initialize to
  * NULL before calling if it's first time!
  */
-size_t S_Resample(const int32_t channels, const int32_t inrate, const int32_t outrate, const size_t incount, const int16_t *indata, int16_t **outdata) {
+size_t S_Resample(const int32_t channels, const int32_t source_rate, const int32_t dest_rate, const size_t num_frames, const int16_t *in_frames, int16_t **out_frames) {
+	const vec_t stepscale = (vec_t) source_rate / (vec_t) dest_rate;
+	const size_t outcount = NearestMultiple((size_t) (num_frames / stepscale), channels);
 
-	// Hacky ugly code for stereo resampling.
-	if (channels == 2) {
-
-		int16_t *left, *right;
-		const size_t channel_len = S_SplitStereo(indata, incount, &left, &right);
-
-		int16_t *left_resampled = NULL, *right_resampled = NULL;
-
-		const size_t channel_resampled = S_Resample(1, inrate, outrate, channel_len, left, &left_resampled);
-		Mem_Free(left);
-
-		S_Resample(1, inrate, outrate, channel_len, right, &right_resampled);
-		Mem_Free(right);
-
-		const size_t combined_resampled = S_CombineStereo(left_resampled, right_resampled, channel_resampled, outdata);
-		
-		Mem_Free(left_resampled);
-		Mem_Free(right_resampled);
-
-		return combined_resampled;
-	}
-
-	const vec_t stepscale = (vec_t) inrate / (vec_t) outrate;
-	const size_t outcount = incount / stepscale;
-
-	*outdata = Mem_Realloc(*outdata, outcount * sizeof(int16_t));
+	*out_frames = Mem_Realloc(*out_frames, outcount * sizeof(int16_t));
 
 	int32_t samplefrac = 0;
 	const vec_t fracstep = stepscale * 256.0;
 
-	for (size_t i = 0; i < outcount; i++) {
-		const int32_t srcsample = samplefrac >> 8;
+	for (size_t i = 0; i < outcount; ) {
+		for (int32_t c = 0; c < channels; c++, i++) {
+			const int32_t srcsample = NearestMultiple(samplefrac >> 8, channels) + c;
 
-		samplefrac += fracstep;
-		(*outdata)[i] = LittleShort(indata[srcsample]);
+			samplefrac += fracstep;
+			(*out_frames)[i] = LittleShort(in_frames[srcsample]);
+		}
 	}
 
 	return outcount;
 }
-
-/**
- * @brief Convert from stereo to mono.
- */
-/*static size_t S_Monoize(const size_t incount, const int16_t *indata, int16_t **outdata) {
-	const size_t outcount = incount / 2;
-
-	*outdata = Mem_Malloc(outcount * sizeof(int16_t));
-
-	for (size_t i = 0, x = 0; x < outcount; i += 2, x++) {
-		(*outdata)[x] = (((int32_t) indata[i]) + ((int32_t) indata[i + 1])) / 2;
-	}
-
-	return outcount;
-}*/
 
 /**
  * @brief
@@ -154,14 +85,13 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 		if (!snd || sf_error(snd)) {
 			Com_Warn("%s\n", sf_strerror(snd));
 		} else {
-			int16_t *buffer = Mem_Malloc(sizeof(int16_t) * info.frames * info.channels);
-			sf_count_t count = sf_readf_short(snd, buffer, info.frames) * info.channels;
+			int16_t *raw_buffer = Mem_TagMalloc(sizeof(int16_t) * info.frames * info.channels, MEM_TAG_SOUND);
+			sf_count_t count = sf_readf_short(snd, raw_buffer, info.frames) * info.channels;
+			const int16_t *buffer = raw_buffer;
 
 			if (info.samplerate != s_rate->integer) {
-				int16_t *resampled = NULL;
-				count = S_Resample(info.channels, info.samplerate, s_rate->integer, count, buffer, &resampled);
-				Mem_Free(buffer);
-				buffer = resampled;
+				count = S_Resample(info.channels, info.samplerate, s_rate->integer, count, raw_buffer, &s_env.resample_buffer);
+				buffer = s_env.resample_buffer;
 			}
 
 			sample->stereo = info.channels != 1;
@@ -175,7 +105,7 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 			alBufferData(sample->buffer, format, buffer, size, s_rate->integer);
 			S_CheckALError();
 
-			Mem_Free(buffer);
+			Mem_Free(raw_buffer);
 		}
 
 		sf_close(snd);

@@ -110,6 +110,7 @@ typedef struct s_env_s {
 	 * @brief The OpenAL playback context.
 	 */
 	ALCcontext *context;
+	int16_t *resample_buffer; // temp space used for resampling
 
 	/**
 	 * @brief The OpenAL sound sources.
