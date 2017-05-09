@@ -74,7 +74,7 @@ static void loadView(ViewController *self) {
 			CreditsView *tabData = $(alloc(CreditsView), initWithFrame, NULL);
 
 			tabData->view.autoresizingMask = ViewAutoresizingFill;
-			tabData->view.identifier = "credits";
+			tabData->view.identifier = strdup("credits");
 
 			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
 

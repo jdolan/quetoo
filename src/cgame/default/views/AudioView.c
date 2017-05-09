@@ -91,23 +91,6 @@ static void applyAction(Control *control, const SDL_Event *event, ident sender, 
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "Options");
-
-				box->view.autoresizingMask |= ViewAutoresizingWidth;
-
-				StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-
-				Cgui_CvarCheckboxInput((View *) stackView, "Swap stereo", "s_reverse");
-
-				$((View *) box, addSubview, (View *) stackView);
-				release(stackView);
-
-				$((View *) column, addSubview, (View *) box);
-				release(box);
-			}
-
-			{
-				Box *box = $(alloc(Box), initWithFrame, NULL);
 				$(box->label, setText, "Sounds");
 
 				box->view.autoresizingMask |= ViewAutoresizingWidth;

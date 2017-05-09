@@ -78,7 +78,7 @@ static void loadView(ViewController *self) {
 			VideoView *tabData = $(alloc(VideoView), initWithFrame, NULL);
 
 			tabData->view.autoresizingMask = ViewAutoresizingFill;
-			tabData->view.identifier = "video";
+			tabData->view.identifier = strdup("video");
 
 			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
 
@@ -91,7 +91,7 @@ static void loadView(ViewController *self) {
 			InputView *tabData = $(alloc(InputView), initWithFrame, NULL);
 
 			tabData->view.autoresizingMask = ViewAutoresizingFill;
-			tabData->view.identifier = "input";
+			tabData->view.identifier = strdup("input");
 
 			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
 
@@ -104,7 +104,7 @@ static void loadView(ViewController *self) {
 			InterfaceView *tabData = $(alloc(InterfaceView), initWithFrame, NULL);
 
 			tabData->view.autoresizingMask = ViewAutoresizingFill;
-			tabData->view.identifier = "interface";
+			tabData->view.identifier = strdup("interface");
 
 			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
 

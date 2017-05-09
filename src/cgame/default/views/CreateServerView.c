@@ -234,7 +234,7 @@ static void dealloc(Object *self) {
 
 				Cgui_CvarCheckboxInput((View *) stackView, "Match mode", "g_match");
 
-				Cgui_CvarSliderInput((View *) stackView, "Minimum players", "g_ai_max_clients", -1.0, 16.0, 1.0);
+				Cgui_CvarSliderInput((View *) stackView, "Bots", "g_ai_max_clients", -1.0, 16.0, 1.0);
 
 				$((View *) box, addSubview, (View *) stackView);
 				release(stackView);

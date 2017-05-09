@@ -76,7 +76,7 @@ static void loadView(ViewController *self) {
 			QuickJoinView *tabData = $(alloc(QuickJoinView), initWithFrame, NULL);
 
 			tabData->view.autoresizingMask = ViewAutoresizingFill;
-			tabData->view.identifier = "quick_join";
+			tabData->view.identifier = strdup("quick_join");
 
 			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
 
@@ -89,7 +89,7 @@ static void loadView(ViewController *self) {
 			ServerBrowserView *tabData = $(alloc(ServerBrowserView), initWithFrame, NULL);
 
 			tabData->view.autoresizingMask = ViewAutoresizingFill;
-			tabData->view.identifier = "server_browser";
+			tabData->view.identifier = strdup("server_browser");
 
 			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
 
@@ -102,7 +102,7 @@ static void loadView(ViewController *self) {
 			CreateServerView *tabData = $(alloc(CreateServerView), initWithFrame, NULL);
 
 			tabData->view.autoresizingMask = ViewAutoresizingFill;
-			tabData->view.identifier = "create_server";
+			tabData->view.identifier = strdup("create_server");
 
 			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
 
