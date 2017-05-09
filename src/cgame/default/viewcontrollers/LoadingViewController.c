@@ -81,14 +81,32 @@ static void loadView(ViewController *self) {
 	$(self->view, addSubview, (View *) logoImage);
 	release(logoImage);
 
-	// Progress bar
+	// Progress bar background
 
-	const SDL_Rect barFrame = MakeRect(0, 0, 0, 16);
+	const SDL_Rect barFrame = MakeRect(0, 0, 0, 32);
+
+	ImageView *progressBarBg = $(alloc(ImageView), initWithFrame, &barFrame);
+	assert(progressBarBg);
+
+	if (cgi.LoadSurface("ui/pics/progress_bar_bg", &surface)) {
+		$(progressBarBg, setImageWithSurface, surface);
+		SDL_FreeSurface(surface);
+	} else {
+		$(progressBarBg, setImage, NULL);
+	}
+
+	progressBarBg->view.alignment = ViewAlignmentBottomLeft;
+	progressBarBg->view.autoresizingMask = ViewAutoresizingWidth;
+
+	$(self->view, addSubview, (View *) progressBarBg);
+	release(progressBarBg);
+
+	// Progress bar
 
 	this->progressBar = $(alloc(ImageView), initWithFrame, &barFrame);
 	assert(this->progressBar);
 
-	if (cgi.LoadSurface("ui/loading_bar", &surface)) {
+	if (cgi.LoadSurface("ui/pics/progress_bar", &surface)) {
 		$(this->progressBar, setImageWithSurface, surface);
 		SDL_FreeSurface(surface);
 	} else {
