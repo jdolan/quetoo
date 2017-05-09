@@ -215,6 +215,9 @@ case "$host" in
 	*-apple-*)
 		HOST_OPENAL_LIBS="-framework OpenAL"
 		;;
+	*-mingw*)
+		HOST_OPENAL_LIBS="-lOpenAL32"
+		;;
 	*)
 		HOST_OPENAL_LIBS="-lopenal"
 		;;
