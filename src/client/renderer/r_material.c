@@ -999,7 +999,7 @@ void R_LoadModelMaterials(r_model_t *mod) {
 		*out = (r_material_t *) R_RegisterDependency((r_media_t *) mod, (r_media_t *) list->data);
 	}
 
-	Com_Debug(DEBUG_RENDERER, "Loaded %zd materials for %s\n", mod->num_materials, mod->media.name);
+	Com_Debug(DEBUG_RENDERER, "Loaded %" PRIuPTR " materials for %s\n", mod->num_materials, mod->media.name);
 
 	g_list_free(materials);
 }
