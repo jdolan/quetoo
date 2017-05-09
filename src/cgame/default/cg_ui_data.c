@@ -162,29 +162,27 @@ void Cgui_Picture(View *view, const char *pic, ViewAlignment align, ViewAutoresi
 
 	assert(view);
 
-	ImageView *shadow = $(alloc(ImageView), initWithFrame, NULL);
-	assert(shadow);
+	ImageView *imageView = $(alloc(ImageView), initWithFrame, NULL);
+	assert(imageView);
 
 	SDL_Surface *surface;
 
 	if (cgi.LoadSurface(va("ui/pics/%s", pic), &surface)) {
-		$(shadow, setImageWithSurface, surface);
+		$(imageView, setImageWithSurface, surface);
 
-		shadow->view.frame.w = surface->w;
-		shadow->view.frame.h = surface->h;
+		imageView->view.frame.w = surface->w;
+		imageView->view.frame.h = surface->h;
 
 		SDL_FreeSurface(surface);
 	} else {
-		$(shadow, setImage, NULL);
+		$(imageView, setImage, NULL);
 	}
 
-	shadow->view.zIndex = 3; // Above other elements in the same View
+	imageView->view.alignment = align;
+	imageView->view.autoresizingMask = resize;
 
-	shadow->view.alignment = align;
-	shadow->view.autoresizingMask = resize;
-
-	$(view, addSubview, (View *) shadow);
-	release(shadow);
+	$(view, addSubview, (View *) imageView);
+	release(imageView);
 }
 
 /**
