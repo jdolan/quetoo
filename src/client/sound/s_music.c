@@ -102,8 +102,6 @@ static _Bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **file, SD
 			Fs_Free(*buffer);
 
 			*file = NULL;
-		} else {
-			sf_command(*file, SFC_SET_SCALE_FLOAT_INT_READ, NULL, SF_TRUE);
 		}
 
 	} else {
@@ -258,6 +256,11 @@ static void S_PlayMusic(s_music_t *music) {
 	SDL_mutexP(s_music_state.mutex);
 
 	S_StopMusic();
+
+	if (!music->scale_calculated) {
+		sf_command(music->snd, SFC_SET_SCALE_FLOAT_INT_READ, NULL, SF_TRUE);
+		music->scale_calculated = true;
+	}
 
 	int32_t buffers_processed;
 	alGetSourcei(s_music_state.source, AL_BUFFERS_PROCESSED, &buffers_processed);

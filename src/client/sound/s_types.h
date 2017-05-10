@@ -92,7 +92,8 @@ typedef struct s_music_s {
 	SNDFILE *snd;
 	SDL_RWops *rw;
 	void *buffer;
-	_Bool eof;
+	_Bool eof; // whether we're out of samples or not
+	_Bool scale_calculated; // whether we've calculated the max signal ratio (so it can be done on music thread)
 } s_music_t;
 
 /**
