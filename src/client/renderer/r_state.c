@@ -975,7 +975,7 @@ static void R_ShutdownState_PrintBuffers(gpointer       key,
 
 	const r_buffer_t *buffer = (r_buffer_t *) value;
 
-	Com_Warn("Buffer not freed (%u type, %" PRIuMAX " bytes), allocated from %s\n",
+	Com_Warn("Buffer not freed (%u type, %" PRIuPTR " bytes), allocated from %s\n",
 	         buffer->type, buffer->size, buffer->func);
 }
 

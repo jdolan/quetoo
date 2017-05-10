@@ -143,7 +143,7 @@ void Cbuf_Execute(void) {
 		}
 
 		if (i == sizeof(line)) {
-			Com_Warn("Command exceeded %zd chars, discarded\n", sizeof(line));
+			Com_Warn("Command exceeded %" PRIuPTR " chars, discarded\n", sizeof(line));
 		} else {
 			g_strlcpy(line, text, i + 1);
 		}

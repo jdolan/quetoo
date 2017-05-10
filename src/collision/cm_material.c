@@ -1258,7 +1258,7 @@ ssize_t Cm_WriteMaterials(const char *path, GList *materials) {
 		g_list_free(sorted);
 
 		Fs_Close(file);
-		Com_Print("Wrote %zd materials to %s\n", count, path);
+		Com_Print("Wrote %" PRIuPTR " materials to %s\n", count, path);
 	} else {
 		Com_Warn("Failed to open %s for write\n", path);
 	}

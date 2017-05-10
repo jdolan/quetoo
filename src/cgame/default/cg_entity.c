@@ -459,7 +459,7 @@ static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 	static r_entity_t w;
 	static r_lighting_t lighting;
 	vec3_t offset, angles;
-	vec3_t velocity, tilt;
+	vec3_t velocity;
 
 	const player_state_t *ps = &cgi.client->frame.ps;
 

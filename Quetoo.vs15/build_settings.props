@@ -104,8 +104,9 @@
     <QuetoolibsndfileIncludePath>$(QuetoolibsndfilePath)\include</QuetoolibsndfileIncludePath>
     <QuetoolibsndfileLibraryPath>$(QuetoolibsndfilePath)$(Platform)\</QuetoolibsndfileLibraryPath>
 
-    <OpenALIncludePath>$(OPENAL_HOME)\include\</OpenALIncludePath>
-    <OpenALLibraryPath>$(OPENAL_HOME)\libs\$(Platform)\</OpenALLibraryPath>
+    <OpenALPath>$(QuetooLibsPath)openal</OpenALPath>
+    <OpenALIncludePath>$(OpenALPath)\</OpenALIncludePath>
+    <OpenALLibraryPath>$(OpenALPath)\libs\$(Platform)\</OpenALLibraryPath>
 
     <QuetooFullIncludePath>$(OpenALIncludePath);$(QuetooIncludePath);$(QuetooPath)src\client\;$(QuetooPath)src\client\ui\;$(QuetooPath)src\client\ui\views\;$(QuetooPath)src\client\ui\viewcontrollers\;$(QuetooPath)src\cgame\default\;$(QuetooPath)src\cgame\default\views\;$(QuetooObjectivelyIncludePath);$(QuetooObjectivelyMVCIncludePath);$(QuetooPthreadIncludePath);$(QuetooIconvIncludePath);$(QuetooCURLIncludePath);$(QuetooGlibIncludePath);$(QuetooLibXMLIncludePath);$(QuetooPhysFSIncludePath);$(QuetooZlibIncludePath);$(QuetooCursesIncludePath);$(QuetooFontConfigIncludePath);$(QuetooFreeTypeIncludePath);$(QuetooSDLIncludePath);$(QuetooSDLTTFIncludePath);$(QuetooSDLImageIncludePath);$(QuetoolibsndfileIncludePath)</QuetooFullIncludePath>
     <QuetooFullLibraryPath>$(OpenALLibraryPath);$(QuetooLibraryPath);$(QuetooObjectivelyLibraryPath);$(QuetooObjectivelyMVCLibraryPath);$(QuetooPthreadLibraryPath);$(QuetooIconvLibraryPath);$(QuetooCURLLibraryPath);$(QuetooGlibLibraryPath);$(QuetooLibXMLLibraryPath);$(QuetooPhysFSLibraryPath);$(QuetooCursesLibraryPath);$(QuetooFontConfigLibraryPath);$(QuetooFreeTypeLibraryPath);$(QuetooSDLLibraryPath);$(QuetooSDLTTFLibraryPath);$(QuetooSDLImageLibraryPath);$(QuetoolibsndfileLibraryPath)</QuetooFullLibraryPath>

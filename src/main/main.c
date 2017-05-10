@@ -268,7 +268,7 @@ static void MemStats_f(void) {
 		const char *tag_name;
 
 		if (stat_i->tag == -1) {
-			Com_Print("total: %" PRIuMAX " bytes\n", stat_i->size);
+			Com_Print("total: %" PRIuPTR " bytes\n", stat_i->size);
 			reported_total = stat_i->size;
 			continue;
 		} else if (stat_i->tag < MEM_TAG_TOTAL) {
@@ -277,15 +277,15 @@ static void MemStats_f(void) {
 			tag_name = va("#%d", stat_i->tag);
 		}
 
-		Com_Print(" [%s] %" PRIuMAX " bytes - %" PRIuMAX " blocks\n", tag_name, stat_i->size, stat_i->count);
+		Com_Print(" [%s] %" PRIuPTR " bytes - %" PRIuPTR " blocks\n", tag_name, stat_i->size, stat_i->count);
 		sum += stat_i->size;
 	}
 
 	if (sum != reported_total) {
-		Com_Print("WARNING: %" PRIuMAX " bytes summed vs %" PRIuMAX " bytes reported!\n", sum, reported_total);
+		Com_Print("WARNING: %" PRIuPTR " bytes summed vs %" PRIuPTR " bytes reported!\n", sum, reported_total);
 	}
 
-	Com_Print(" [console] approx. %" PRIuMAX " bytes - approx. %" PRIu32 " blocks\n", console_state.size, console_state.strings.length);
+	Com_Print(" [console] approx. %" PRIuPTR " bytes - approx. %" PRIu32 " blocks\n", console_state.size, console_state.strings.length);
 
 	g_array_free(stats, true);
 }
