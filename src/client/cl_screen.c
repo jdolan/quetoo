@@ -362,11 +362,15 @@ void Cl_UpdateScreen(void) {
 		R_EnableBlend(true);
 
 		Cl_DrawChat();
-		Cl_DrawNotify();
+
 		Cl_DrawNetGraph();
 		Cl_DrawCounters();
-		Cl_DrawRendererStats();
-		Cl_DrawSoundStats();
+
+		if (cls.key_state.dest != KEY_CONSOLE) {
+			Cl_DrawNotify();
+			Cl_DrawRendererStats();
+			Cl_DrawSoundStats();
+		}
 
 		R_AddStains();
 	} else {
