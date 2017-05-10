@@ -323,7 +323,9 @@ void S_Shutdown(void) {
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
 	Cmd_RemoveAll(CMD_SOUND);
-
+	
+	Mem_Free(s_env.raw_sample_buffer);
+	Mem_Free(s_env.converted_sample_buffer);
 	Mem_Free(s_env.resample_buffer);
 
 	Mem_FreeTag(MEM_TAG_SOUND);
