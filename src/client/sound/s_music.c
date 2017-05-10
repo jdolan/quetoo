@@ -30,7 +30,9 @@ cvar_t *s_music_volume;
 typedef struct s_music_state_s {
 	ALuint source;
 	ALuint *music_buffers;
+	vec_t *raw_frame_buffer;
 	int16_t *frame_buffer;
+	size_t resample_frame_buffer_size;
 	int16_t *resample_frame_buffer;
 	uint32_t next_buffer;
 	s_music_t *default_music;
@@ -102,8 +104,6 @@ static _Bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **file, SD
 			Fs_Free(*buffer);
 
 			*file = NULL;
-		} else {
-			sf_command(*file, SFC_SET_SCALE_FLOAT_INT_READ, NULL, SF_TRUE);
 		}
 
 	} else {
@@ -216,16 +216,18 @@ static void S_BufferMusic(s_music_t *music, _Bool setup_buffers) {
 	for (i = 0; i < buffers_processed; i++) {
 
 		const sf_count_t wanted_frames = (s_music_buffer_size->integer / sizeof(*s_music_state.frame_buffer)) / music->info.channels;
-		sf_count_t frames = sf_readf_short(music->snd, s_music_state.frame_buffer, wanted_frames) * music->info.channels;
+		sf_count_t frames = sf_readf_float(music->snd, s_music_state.raw_frame_buffer, wanted_frames) * music->info.channels;
 
 		if (!frames) {
 			break;
 		}
+		
+		S_ConvertSamples(s_music_state.raw_frame_buffer, frames, &s_music_state.frame_buffer, NULL);
 
 		const int16_t *frame_buffer = s_music_state.frame_buffer;
 
 		if (music->info.samplerate != s_rate->integer) {
-			frames = S_Resample(music->info.channels, music->info.samplerate, s_rate->integer, frames, s_music_state.frame_buffer, &s_music_state.resample_frame_buffer);
+			frames = S_Resample(music->info.channels, music->info.samplerate, s_rate->integer, frames, s_music_state.frame_buffer, &s_music_state.resample_frame_buffer, &s_music_state.resample_frame_buffer_size);
 			frame_buffer = s_music_state.resample_frame_buffer;
 		}
 
@@ -421,6 +423,7 @@ void S_InitMusic(void) {
 	s_music_buffer_count = Cvar_Add("s_music_buffer_count", "8", CVAR_S_MEDIA, "The number of buffers to store for music streaming.");
 	s_music_buffer_size = Cvar_Add("s_music_buffer_size", "16384", CVAR_S_MEDIA, "The size of each buffer for music streaming.");
 
+	s_music_state.raw_frame_buffer = Mem_TagMalloc(sizeof(vec_t) * s_music_buffer_size->value, MEM_TAG_SOUND);
 	s_music_state.frame_buffer = Mem_TagMalloc(sizeof(int16_t) * s_music_buffer_size->value, MEM_TAG_SOUND);
 	s_music_state.resample_frame_buffer = NULL;
 	
@@ -487,7 +490,8 @@ void S_ShutdownMusic(void) {
 
 	// kill mutex
 	SDL_DestroyMutex(s_music_state.mutex);
-
+	
+	Mem_Free(s_music_state.raw_frame_buffer);
 	Mem_Free(s_music_state.frame_buffer);
 
 	if (s_music_state.resample_frame_buffer) {

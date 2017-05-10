@@ -92,7 +92,7 @@ typedef struct s_music_s {
 	SNDFILE *snd;
 	SDL_RWops *rw;
 	void *buffer;
-	_Bool eof;
+	_Bool eof; // whether we're out of samples or not
 } s_music_t;
 
 /**
@@ -111,6 +111,14 @@ typedef struct s_env_s {
 	 * @brief The OpenAL playback context.
 	 */
 	ALCcontext *context;
+
+	size_t raw_sample_buffer_size;
+	vec_t *raw_sample_buffer;
+	
+	size_t converted_sample_buffer_size;
+	int16_t *converted_sample_buffer; // converted raw_samples
+	
+	size_t resample_buffer_size;
 	int16_t *resample_buffer; // temp space used for resampling
 
 	/**

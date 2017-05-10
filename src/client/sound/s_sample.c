@@ -31,11 +31,15 @@ static const char *SOUND_PATHS[] = { "sounds/", "sound/", NULL };
  * @brief Resample audio. outdata will be realloc'd to the size required to handle this operation, so be sure to initialize to
  * NULL before calling if it's first time!
  */
-size_t S_Resample(const int32_t channels, const int32_t source_rate, const int32_t dest_rate, const size_t num_frames, const int16_t *in_frames, int16_t **out_frames) {
+size_t S_Resample(const int32_t channels, const int32_t source_rate, const int32_t dest_rate, const size_t num_frames, const int16_t *in_frames, int16_t **out_frames, size_t *out_size) {
 	const vec_t stepscale = (vec_t) source_rate / (vec_t) dest_rate;
 	const size_t outcount = NearestMultiple((size_t) (num_frames / stepscale), channels);
+	const size_t size = outcount * sizeof(int16_t);
 
-	*out_frames = Mem_Realloc(*out_frames, outcount * sizeof(int16_t));
+	if (out_size && *out_size < size) {
+		*out_frames = Mem_Realloc(*out_frames, size);
+		*out_size = size;
+	}
 
 	int32_t samplefrac = 0;
 	const vec_t fracstep = stepscale * 256.0;
@@ -50,6 +54,22 @@ size_t S_Resample(const int32_t channels, const int32_t source_rate, const int32
 	}
 
 	return outcount;
+}
+
+/**
+ * @brief
+ */
+void S_ConvertSamples(const vec_t *input_samples, const sf_count_t num_samples, int16_t **out_samples, size_t *out_size) {
+	const size_t size = sizeof(int16_t) * num_samples;
+
+	if (out_size && *out_size < size) {
+		*out_samples = Mem_Realloc(*out_samples, size);
+		*out_size = size;
+	}
+
+	for (sf_count_t i = 0; i < num_samples; i++) {
+		(*out_samples)[i] = (int16_t) Clamp(input_samples[i] * 32768.0, SHRT_MIN, SHRT_MAX);
+	}
 }
 
 /**
@@ -85,20 +105,21 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 		if (!snd || sf_error(snd)) {
 			Com_Warn("%s\n", sf_strerror(snd));
 		} else {
-			sf_command(snd, SFC_SET_SCALE_FLOAT_INT_READ, NULL, SF_TRUE);
-	
-			int16_t *raw_buffer = Mem_TagMalloc(sizeof(int16_t) * info.frames * info.channels, MEM_TAG_SOUND);
-			sf_count_t count = sf_readf_short(snd, raw_buffer, info.frames) * info.channels;
-			const int16_t *buffer = raw_buffer;
+			const size_t raw_size = sizeof(vec_t) * info.frames * info.channels;
 
-			if (strstr(path, "hyperblaster")) {
-				file_t *f = Fs_OpenWrite("hyperb.dat");
-				Fs_Write(f, raw_buffer, count, sizeof(int16_t));
-				Fs_Close(f);
+			if (s_env.raw_sample_buffer_size < raw_size) {
+				s_env.raw_sample_buffer = Mem_Realloc(s_env.raw_sample_buffer, raw_size);
+				s_env.raw_sample_buffer_size = raw_size;
 			}
 
+			sf_count_t count = sf_readf_float(snd, s_env.raw_sample_buffer, info.frames) * info.channels;
+
+			S_ConvertSamples(s_env.raw_sample_buffer, count, &s_env.converted_sample_buffer, &s_env.converted_sample_buffer_size);
+
+			const int16_t *buffer = s_env.converted_sample_buffer;
+
 			if (info.samplerate != s_rate->integer) {
-				count = S_Resample(info.channels, info.samplerate, s_rate->integer, count, raw_buffer, &s_env.resample_buffer);
+				count = S_Resample(info.channels, info.samplerate, s_rate->integer, count, buffer, &s_env.resample_buffer, &s_env.resample_buffer_size);
 				buffer = s_env.resample_buffer;
 			}
 
@@ -112,8 +133,6 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 			
 			alBufferData(sample->buffer, format, buffer, size, s_rate->integer);
 			S_CheckALError();
-
-			Mem_Free(raw_buffer);
 		}
 
 		sf_close(snd);
