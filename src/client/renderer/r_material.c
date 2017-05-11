@@ -978,25 +978,32 @@ static void R_LoadBspMaterials(r_model_t *mod, GList **materials) {
 
 /**
  * @brief Loads all r_material_t for the specified mesh model.
+ * @remarks Player models may optionally define materials, but are not required to.
+ * @remarks Other mesh models must resolve at least one material. If no materials file is found,
+ * we attempt to load ${model_dir}/skin.tga as the default material.
  */
 static void R_LoadMeshMaterials(r_model_t *mod, GList **materials) {
 	char path[MAX_QPATH];
 
 	g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
 
-	if (R_LoadMaterials(path, ASSET_CONTEXT_MODELS, materials) < 1) {
+	if (g_str_has_prefix(mod->media.name, "players/")) {
+		R_LoadMaterials(path, ASSET_CONTEXT_PLAYERS, materials);
+	} else {
+		if (R_LoadMaterials(path, ASSET_CONTEXT_MODELS, materials) < 1) {
 
-		Dirname(mod->media.name, path);
-		g_strlcat(path, "skin", sizeof(path));
+			Dirname(mod->media.name, path);
+			g_strlcat(path, "skin", sizeof(path));
 
-		*materials = g_list_prepend(*materials, R_LoadMaterial(path, ASSET_CONTEXT_MODELS));
+			*materials = g_list_prepend(*materials, R_LoadMaterial(path, ASSET_CONTEXT_MODELS));
+		}
+
+		assert(materials);
 	}
 
-	assert(materials);
-
-	r_material_t *material = (r_material_t *) (*materials)->data;
-
-	mod->mesh->material = material;
+	if (*materials) {
+		mod->mesh->material = (r_material_t *) (*materials)->data;
+	}
 }
 
 /**

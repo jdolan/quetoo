@@ -596,9 +596,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 	}
 
 	// load materials
-	if (!strstr(mod->media.name, "players/")) {
-		R_LoadModelMaterials(mod);
-	}
+	R_LoadModelMaterials(mod);
 
 	// and animations for player models
 	if (strstr(mod->media.name, "/upper")) {
