@@ -828,7 +828,14 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
 	R_MaterialKey(cm->name, key, sizeof(key), context);
 
-	r_material_t *material = (r_material_t *) R_AllocMedia(key, sizeof(r_material_t), MEDIA_MATERIAL);
+	r_material_t *material = (r_material_t *) R_FindMedia(key);
+	
+	if (material) {
+		Cm_FreeMaterial(cm);
+		return material;
+	}
+
+	material = (r_material_t *) R_AllocMedia(key, sizeof(r_material_t), MEDIA_MATERIAL);
 	material->cm = cm;
 
 	material->media.Register = R_RegisterMaterial;
@@ -860,8 +867,21 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 				material->tintmap = NULL;
 			}
 		}
+	}
 
-		for (cm_stage_t *s = cm->stages; s; s = s->next) {
+	return material;
+}
+
+/**
+ * @brief Resolves all asset references in the specified render material's stages
+ */
+static void R_ResolveMaterialStages(r_material_t *material, cm_asset_context_t context) {
+
+	if (material->diffuse->type == IT_DIFFUSE) {
+
+		const cm_material_t *cm = material->cm;
+
+		for (const cm_stage_t *s = cm->stages; s; s = s->next) {
 			r_stage_t *stage = (r_stage_t *) Mem_LinkMalloc(sizeof(r_stage_t), material);
 			stage->cm = s;
 
@@ -872,28 +892,27 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 			}
 		}
 	}
-
-	R_RegisterMedia((r_media_t *) material);
-
-	return material;
 }
 
 /**
  * @brief Loads the r_material_t from the specified texture.
  */
 r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
-
 	cm_material_t *mat = Cm_AllocMaterial(name);
 
 	char key[MAX_QPATH];
 	R_MaterialKey(mat->name, key, sizeof(key), context);
 
 	r_material_t *material = (r_material_t *) R_FindMedia(key);
+
 	if (material == NULL) {
 		material = R_ResolveMaterial(mat, context);
+		R_ResolveMaterialStages(material, context);
 	} else {
 		Cm_FreeMaterial(mat);
 	}
+
+	R_RegisterMedia((r_media_t *) material);
 
 	return material;
 }
@@ -902,24 +921,33 @@ r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
  * @brief Loads all materials defined in the given file.
  */
 ssize_t R_LoadMaterials(const char *path, cm_asset_context_t context, GList **materials) {
-
 	GList *source = NULL;
 	const ssize_t count = Cm_LoadMaterials(path, &source);
+
 	if (count > 0) {
 
 		for (GList *list = source; list; list = list->next) {
 			cm_material_t *cm = (cm_material_t *) list->data;
 
 			r_material_t *material = R_ResolveMaterial(cm, context);
+
 			if (material->diffuse->type == IT_NULL) {
 				Com_Warn("Failed to resolve %s\n", cm->name);
-			} else {
-				Com_Debug(DEBUG_RENDERER, "Parsed material %s with %d stages\n", cm->name, cm->num_stages);
 			}
 
-			if (materials) {
-				*materials = g_list_prepend(*materials, material);
+			*materials = g_list_prepend(*materials, material);
+		}
+
+		for (GList *list = *materials; list; list = list->next) {
+			r_material_t *material = (r_material_t *) list->data;
+
+			R_ResolveMaterialStages(material, context);
+
+			if (material->diffuse->type != IT_NULL) {
+				Com_Debug(DEBUG_RENDERER, "Parsed material %s with %d stages\n", material->cm->name, material->cm->num_stages);
 			}
+
+			R_RegisterMedia((r_media_t *) material);
 		}
 	}
 
@@ -931,8 +959,8 @@ ssize_t R_LoadMaterials(const char *path, cm_asset_context_t context, GList **ma
  * @brief Loads all r_material_t for the specified BSP model.
  */
 static void R_LoadBspMaterials(r_model_t *mod, GList **materials) {
-
 	char path[MAX_QPATH];
+
 	g_snprintf(path, sizeof(path), "materials/%s.mat", Basename(mod->media.name));
 
 	R_LoadMaterials(path, ASSET_CONTEXT_TEXTURES, materials);
@@ -952,8 +980,8 @@ static void R_LoadBspMaterials(r_model_t *mod, GList **materials) {
  * @brief Loads all r_material_t for the specified mesh model.
  */
 static void R_LoadMeshMaterials(r_model_t *mod, GList **materials) {
-
 	char path[MAX_QPATH];
+
 	g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
 
 	if (R_LoadMaterials(path, ASSET_CONTEXT_MODELS, materials) < 1) {
@@ -975,7 +1003,6 @@ static void R_LoadMeshMaterials(r_model_t *mod, GList **materials) {
  * @brief Loads all r_material_t for the specified model, populating `mod->materials`.
  */
 void R_LoadModelMaterials(r_model_t *mod) {
-
 	GList *materials = NULL;
 
 	switch (mod->type) {
@@ -1008,8 +1035,8 @@ void R_LoadModelMaterials(r_model_t *mod) {
  * @brief Writes all r_material_t for the specified BSP model to disk.
  */
 static ssize_t R_SaveBspMaterials(const r_model_t *mod) {
-
 	char path[MAX_QPATH];
+
 	g_snprintf(path, sizeof(path), "materials/%s.mat", Basename(mod->media.name));
 
 	GList *materials = NULL;
