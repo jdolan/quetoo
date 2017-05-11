@@ -43,6 +43,7 @@ cvar_t *cg_draw_blend;
 cvar_t *cg_draw_blend_damage;
 cvar_t *cg_draw_blend_liquid;
 cvar_t *cg_draw_blend_pickup;
+cvar_t *cg_draw_blend_powerup;
 cvar_t *cg_draw_captures;
 cvar_t *cg_draw_crosshair_color;
 cvar_t *cg_draw_crosshair_pulse;
@@ -142,6 +143,8 @@ static void Cg_Init(void) {
                                         "Controls if being in a liquid has blend flash effect");
 	cg_draw_blend_pickup = cgi.Cvar("cg_draw_blend_pickup", "1", CVAR_ARCHIVE,
                                         "Controls if picking up items has blend flash effect");
+	cg_draw_blend_powerup = cgi.Cvar("cg_draw_blend_powerup", "1", CVAR_ARCHIVE,
+                                         "Controls if holding a powerup has blend flash effect");
 	cg_draw_captures = cgi.Cvar("cg_draw_captures", "1", CVAR_ARCHIVE,
 	                            "Draw the number of captures");
 	cg_draw_crosshair = cgi.Cvar("cg_draw_crosshair", "1", CVAR_ARCHIVE,

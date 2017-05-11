@@ -801,10 +801,24 @@ static vec_t Cg_CalculateBlendAlpha(const uint32_t blend_start_time, const uint3
 	return 0.0;
 }
 
-#define CG_DAMAGE_BLEND_TIME 500
-#define CG_DAMAGE_BLEND_ALPHA 0.3
-#define CG_PICKUP_BLEND_TIME 500
-#define CG_PICKUP_BLEND_ALPHA 0.3
+/**
+ * @brief Draw a blend flash image with a specified alpha.
+ * @param icon The picture to use
+ * @param alpha The alpha of the blend
+ */
+static void Cg_DrawBlendFlashImage(const r_image_t *image, const vec_t alpha) {
+
+	const vec4_t color = {1.0, 1.0, 1.0, alpha};
+
+	cgi.Color(color);
+	cgi.DrawImageResized(0, 0, cgi.context->window_width, cgi.context->window_height, image);
+	cgi.Color(NULL);
+}
+
+#define CG_DAMAGE_BLEND_TIME 1500
+#define CG_DAMAGE_BLEND_ALPHA 0.7
+#define CG_PICKUP_BLEND_TIME 800
+#define CG_PICKUP_BLEND_ALPHA 0.7
 
 /**
  * @brief Draw a full-screen blend effect based on world interaction.
@@ -818,6 +832,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	vec4_t blend = { 0.0, 0.0, 0.0, 0.0 };
 
 	// start with base blend based on view origin conents
+
 	const int32_t contents = cgi.view->contents;
 
 	if ((contents & MASK_LIQUID) && cg_draw_blend_liquid->value) {
@@ -834,7 +849,9 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	}
 
 	// pickups
+
 	const int16_t p = ps->stats[STAT_PICKUP_ICON] & ~STAT_TOGGLE_BIT;
+
 	if (p > -1 && (p != cg_hud_locals.blend.pickup)) { // don't flash on same item
 		cg_hud_locals.blend.pickup_time = cgi.client->unclamped_time;
 	}
@@ -842,22 +859,32 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	cg_hud_locals.blend.pickup = p;
 
 	if (cg_hud_locals.blend.pickup_time && cg_draw_blend_pickup->value) {
-		Cg_AddBlendPalette(blend, 215, Cg_CalculateBlendAlpha(cg_hud_locals.blend.pickup_time, CG_PICKUP_BLEND_TIME,
-		                   CG_PICKUP_BLEND_ALPHA));
+		Cg_DrawBlendFlashImage(cgi.LoadImage("pics/bf_pickup", IT_PIC),
+			Cg_CalculateBlendAlpha(cg_hud_locals.blend.pickup_time, CG_PICKUP_BLEND_TIME, CG_PICKUP_BLEND_ALPHA));
+	}
+
+	// quad damage powerup
+
+	if (ps->stats[STAT_QUAD_TIME] > 0 && cg_draw_blend_powerup->value) {
+		Cg_DrawBlendFlashImage(cgi.LoadImage("pics/bf_powerup_quad", IT_PIC),
+			fabs(sin(Radians(cgi.client->unclamped_time * 0.2))));
 	}
 
 	// taken damage
+
 	const int16_t d = ps->stats[STAT_DAMAGE_ARMOR] + ps->stats[STAT_DAMAGE_HEALTH];
+
 	if (d) {
 		cg_hud_locals.blend.damage_time = cgi.client->unclamped_time;
 	}
 
 	if (cg_hud_locals.blend.damage_time && cg_draw_blend_damage->value) {
-		Cg_AddBlendPalette(blend, 240, Cg_CalculateBlendAlpha(cg_hud_locals.blend.damage_time, CG_DAMAGE_BLEND_TIME,
-		                   CG_DAMAGE_BLEND_ALPHA));
+		Cg_DrawBlendFlashImage(cgi.LoadImage("pics/bf_damage", IT_PIC),
+			Cg_CalculateBlendAlpha(cg_hud_locals.blend.damage_time, CG_DAMAGE_BLEND_TIME, CG_DAMAGE_BLEND_ALPHA));
 	}
 
 	// if we have a blend, draw it
+
 	if (blend[3] > 0.0) {
 		color_t final_color;
 

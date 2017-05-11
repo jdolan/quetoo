@@ -259,6 +259,7 @@ static void dealloc(Object *self) {
 				Cgui_CvarCheckboxInput((View *) stackView, "Screen blending", cg_draw_blend->name);
 				Cgui_CvarCheckboxInput((View *) stackView, "Liquid blend", cg_draw_blend_liquid->name);
 				Cgui_CvarCheckboxInput((View *) stackView, "Pickup blend", cg_draw_blend_pickup->name);
+				Cgui_CvarCheckboxInput((View *) stackView, "Powerup blend", cg_draw_blend_powerup->name);
 
 				$((View *) box, addSubview, (View *) stackView);
 				release(stackView);

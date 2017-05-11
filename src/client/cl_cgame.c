@@ -270,6 +270,7 @@ void Cl_InitCgame(void) {
 	import.AddStain = R_AddStain;
 
 	import.DrawImage = R_DrawImage;
+	import.DrawImageResized = R_DrawImageResized;
 	import.DrawFill = R_DrawFill;
 
 	import.BindFont = R_BindFont;

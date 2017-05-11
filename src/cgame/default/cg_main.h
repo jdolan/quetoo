@@ -39,6 +39,7 @@ extern cvar_t *cg_draw_blend;
 extern cvar_t *cg_draw_blend_damage;
 extern cvar_t *cg_draw_blend_liquid;
 extern cvar_t *cg_draw_blend_pickup;
+extern cvar_t *cg_draw_blend_powerup;
 extern cvar_t *cg_draw_captures;
 extern cvar_t *cg_draw_crosshair_color;
 extern cvar_t *cg_draw_crosshair_pulse;
