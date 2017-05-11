@@ -797,19 +797,29 @@ static void R_MaterialKey(const char *name, char *key, size_t len, cm_asset_cont
 				case ASSET_CONTEXT_NONE:
 					break;
 				case ASSET_CONTEXT_TEXTURES:
-					g_strlcat(key, "textures/", len);
+					if (!g_str_has_prefix(name, "textures/")) {
+						g_strlcat(key, "textures/", len);
+					}
 					break;
 				case ASSET_CONTEXT_MODELS:
-					g_strlcat(key, "models/", len);
+					if (!g_str_has_prefix(name, "models/")) {
+						g_strlcat(key, "models/", len);
+					}
 					break;
 				case ASSET_CONTEXT_PLAYERS:
-					g_strlcat(key, "players/", len);
+					if (!g_str_has_prefix(name, "players/")) {
+						g_strlcat(key, "players/", len);
+					}
 					break;
 				case ASSET_CONTEXT_ENVMAPS:
-					g_strlcat(key, "envmaps/", len);
+					if (!g_str_has_prefix(name, "envmaps/")) {
+						g_strlcat(key, "envmaps/", len);
+					}
 					break;
 				case ASSET_CONTEXT_FLARES:
-					g_strlcat(key, "flares/", len);
+					if (!g_str_has_prefix(name, "flares/")) {
+						g_strlcat(key, "flares/", len);
+					}
 					break;
 			}
 		}
