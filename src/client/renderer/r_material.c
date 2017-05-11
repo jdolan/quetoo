@@ -828,7 +828,14 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
 	R_MaterialKey(cm->name, key, sizeof(key), context);
 
-	r_material_t *material = (r_material_t *) R_AllocMedia(key, sizeof(r_material_t), MEDIA_MATERIAL);
+	r_material_t *material = (r_material_t *) R_FindMedia(key);
+	
+	if (material) {
+		Cm_FreeMaterial(cm);
+		return material;
+	}
+
+	material = (r_material_t *) R_AllocMedia(key, sizeof(r_material_t), MEDIA_MATERIAL);
 	material->cm = cm;
 
 	material->media.Register = R_RegisterMaterial;
@@ -860,8 +867,21 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 				material->tintmap = NULL;
 			}
 		}
+	}
 
-		for (cm_stage_t *s = cm->stages; s; s = s->next) {
+	return material;
+}
+
+/**
+ * @brief Resolves all asset references in the specified render material's stages
+ */
+static void R_ResolveMaterialStages(r_material_t *material, cm_asset_context_t context) {
+
+	if (material->diffuse->type == IT_DIFFUSE) {
+
+		const cm_material_t *cm = material->cm;
+
+		for (const cm_stage_t *s = cm->stages; s; s = s->next) {
 			r_stage_t *stage = (r_stage_t *) Mem_LinkMalloc(sizeof(r_stage_t), material);
 			stage->cm = s;
 
@@ -872,10 +892,6 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 			}
 		}
 	}
-
-	R_RegisterMedia((r_media_t *) material);
-
-	return material;
 }
 
 /**
@@ -889,11 +905,15 @@ r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
 	R_MaterialKey(mat->name, key, sizeof(key), context);
 
 	r_material_t *material = (r_material_t *) R_FindMedia(key);
+
 	if (material == NULL) {
 		material = R_ResolveMaterial(mat, context);
+		R_ResolveMaterialStages(material, context);
 	} else {
 		Cm_FreeMaterial(mat);
 	}
+
+	R_RegisterMedia((r_media_t *) material);
 
 	return material;
 }
@@ -905,21 +925,28 @@ ssize_t R_LoadMaterials(const char *path, cm_asset_context_t context, GList **ma
 
 	GList *source = NULL;
 	const ssize_t count = Cm_LoadMaterials(path, &source);
+
 	if (count > 0) {
 
 		for (GList *list = source; list; list = list->next) {
 			cm_material_t *cm = (cm_material_t *) list->data;
 
 			r_material_t *material = R_ResolveMaterial(cm, context);
+
 			if (material->diffuse->type == IT_NULL) {
 				Com_Warn("Failed to resolve %s\n", cm->name);
 			} else {
 				Com_Debug(DEBUG_RENDERER, "Parsed material %s with %d stages\n", cm->name, cm->num_stages);
 			}
 
-			if (materials) {
-				*materials = g_list_prepend(*materials, material);
-			}
+			*materials = g_list_prepend(*materials, material);
+		}
+
+		for (GList *list = *materials; list; list = list->next) {
+			r_material_t *material = (r_material_t *) list->data;
+
+			R_ResolveMaterialStages(material, context);
+			R_RegisterMedia((r_media_t *) material);
 		}
 	}
 
