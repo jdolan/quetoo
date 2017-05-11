@@ -53,7 +53,7 @@ static void Cg_LoadClientSkin(r_material_t **skins, const r_md3_t *md3, char *li
 	for (i = 0; i < md3->num_meshes; i++, mesh++) {
 
 		if (!g_ascii_strcasecmp(mesh_name, mesh->name)) {
-			skins[i] = cgi.LoadMaterial(skin_name, ASSET_CONTEXT_PLAYERS);
+			skins[i] = cgi.LoadMaterial(skin_name + strlen("players/"), ASSET_CONTEXT_PLAYERS);
 			break;
 		}
 	}
