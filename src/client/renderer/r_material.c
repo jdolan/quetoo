@@ -797,19 +797,29 @@ static void R_MaterialKey(const char *name, char *key, size_t len, cm_asset_cont
 				case ASSET_CONTEXT_NONE:
 					break;
 				case ASSET_CONTEXT_TEXTURES:
-					g_strlcat(key, "textures/", len);
+					if (!g_str_has_prefix(name, "textures/")) {
+						g_strlcat(key, "textures/", len);
+					}
 					break;
 				case ASSET_CONTEXT_MODELS:
-					g_strlcat(key, "models/", len);
+					if (!g_str_has_prefix(name, "models/")) {
+						g_strlcat(key, "models/", len);
+					}
 					break;
 				case ASSET_CONTEXT_PLAYERS:
-					g_strlcat(key, "players/", len);
+					if (!g_str_has_prefix(name, "players/")) {
+						g_strlcat(key, "players/", len);
+					}
 					break;
 				case ASSET_CONTEXT_ENVMAPS:
-					g_strlcat(key, "envmaps/", len);
+					if (!g_str_has_prefix(name, "envmaps/")) {
+						g_strlcat(key, "envmaps/", len);
+					}
 					break;
 				case ASSET_CONTEXT_FLARES:
-					g_strlcat(key, "flares/", len);
+					if (!g_str_has_prefix(name, "flares/")) {
+						g_strlcat(key, "flares/", len);
+					}
 					break;
 			}
 		}
@@ -843,30 +853,35 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
 	Cm_ResolveMaterial(cm, context);
 
-	material->diffuse = R_LoadImage(cm->diffuse.path, IT_DIFFUSE);
+	if (*cm->diffuse.path) {
 
-	if (material->diffuse->type == IT_DIFFUSE) {
+		material->diffuse = R_LoadImage(cm->diffuse.path, IT_DIFFUSE);
+		if (material->diffuse->type == IT_DIFFUSE) {
 
-		if (*cm->normalmap.path) {
-			material->normalmap = R_LoadImage(cm->normalmap.path, IT_NORMALMAP);
-			if (material->normalmap->type == IT_NULL) {
-				material->normalmap = NULL;
+			if (*cm->normalmap.path) {
+				material->normalmap = R_LoadImage(cm->normalmap.path, IT_NORMALMAP);
+				if (material->normalmap->type == IT_NULL) {
+					material->normalmap = NULL;
+				}
+			}
+
+			if (*cm->specularmap.path) {
+				material->specularmap = R_LoadImage(cm->specularmap.path, IT_SPECULARMAP);
+				if (material->specularmap->type == IT_NULL) {
+					material->specularmap = NULL;
+				}
+			}
+
+			if (*cm->tintmap.path) {
+				material->tintmap = R_LoadImage(cm->tintmap.path, IT_TINTMAP);
+				if (material->tintmap->type == IT_NULL) {
+					material->tintmap = NULL;
+				}
 			}
 		}
-
-		if (*cm->specularmap.path) {
-			material->specularmap = R_LoadImage(cm->specularmap.path, IT_SPECULARMAP);
-			if (material->specularmap->type == IT_NULL) {
-				material->specularmap = NULL;
-			}
-		}
-
-		if (*cm->tintmap.path) {
-			material->tintmap = R_LoadImage(cm->tintmap.path, IT_TINTMAP);
-			if (material->tintmap->type == IT_NULL) {
-				material->tintmap = NULL;
-			}
-		}
+	} else {
+		material->diffuse = r_image_state.null;
+		Com_Warn("Failed to resolve %s\n", cm->name);
 	}
 
 	return material;
@@ -978,25 +993,32 @@ static void R_LoadBspMaterials(r_model_t *mod, GList **materials) {
 
 /**
  * @brief Loads all r_material_t for the specified mesh model.
+ * @remarks Player models may optionally define materials, but are not required to.
+ * @remarks Other mesh models must resolve at least one material. If no materials file is found,
+ * we attempt to load ${model_dir}/skin.tga as the default material.
  */
 static void R_LoadMeshMaterials(r_model_t *mod, GList **materials) {
 	char path[MAX_QPATH];
 
 	g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
 
-	if (R_LoadMaterials(path, ASSET_CONTEXT_MODELS, materials) < 1) {
+	if (g_str_has_prefix(mod->media.name, "players/")) {
+		R_LoadMaterials(path, ASSET_CONTEXT_PLAYERS, materials);
+	} else {
+		if (R_LoadMaterials(path, ASSET_CONTEXT_MODELS, materials) < 1) {
 
-		Dirname(mod->media.name, path);
-		g_strlcat(path, "skin", sizeof(path));
+			Dirname(mod->media.name, path);
+			g_strlcat(path, "skin", sizeof(path));
 
-		*materials = g_list_prepend(*materials, R_LoadMaterial(path, ASSET_CONTEXT_MODELS));
+			*materials = g_list_prepend(*materials, R_LoadMaterial(path, ASSET_CONTEXT_MODELS));
+		}
+
+		assert(materials);
 	}
 
-	assert(materials);
-
-	r_material_t *material = (r_material_t *) (*materials)->data;
-
-	mod->mesh->material = material;
+	if (*materials) {
+		mod->mesh->material = (r_material_t *) (*materials)->data;
+	}
 }
 
 /**
