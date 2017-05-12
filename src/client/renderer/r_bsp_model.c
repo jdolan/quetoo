@@ -115,6 +115,8 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
 	bsp->num_texinfo = bsp->file->num_texinfo;
 	bsp->texinfo = out = Mem_LinkMalloc(bsp->num_texinfo * sizeof(*out), bsp);
 
+	GHashTable *wal_files = NULL;
+
 	for (uint16_t i = 0; i < bsp->num_texinfo; i++, in++, out++) {
 		g_strlcpy(out->name, in->texture, sizeof(out->name));
 
@@ -131,16 +133,25 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
 
 		// hack to down-scale high-res textures for legacy levels
 		if (bsp->version == BSP_VERSION) {
-			void *buffer;
 
-			int64_t len = Fs_Load(va("textures/%s.wal", out->name), &buffer);
-			if (len != -1) {
-				d_wal_t *wal = (d_wal_t *) buffer;
+			if (!wal_files) {
+				wal_files = g_hash_table_new(g_direct_hash, g_direct_equal);
+			}
 
-				out->material->diffuse->width = LittleLong(wal->width);
-				out->material->diffuse->height = LittleLong(wal->height);
+			if (!g_hash_table_contains(wal_files, out->material)) {
+				g_hash_table_add(wal_files, out->material);
 
-				Fs_Free(buffer);
+				void *buffer;
+
+				int64_t len = Fs_Load(va("textures/%s.wal", out->name), &buffer);
+				if (len != -1) {
+					d_wal_t *wal = (d_wal_t *) buffer;
+
+					out->material->diffuse->width = LittleLong(wal->width);
+					out->material->diffuse->height = LittleLong(wal->height);
+
+					Fs_Free(buffer);
+				}
 			}
 		}
 
@@ -149,6 +160,10 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
 			VectorScale(out->material->diffuse->color, out->value, out->emissive);
 			out->light = ColorNormalize(out->emissive, out->emissive);
 		}
+	}
+
+	if (wal_files) {
+		g_hash_table_destroy(wal_files);
 	}
 }
 

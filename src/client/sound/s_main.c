@@ -97,22 +97,19 @@ SF_VIRTUAL_IO s_rwops_io = {
 };
 
 /**
- * @brief
+ * @brief Stop sounds that are playing, if any.
  */
-static void S_Stop(void) {
+void S_Stop(void) {
 
 	memset(s_env.channels, 0, sizeof(s_env.channels));
 
 	alSourceStopv(MAX_CHANNELS, s_env.sources);
+
+	for (size_t i = 0; i < MAX_CHANNELS; i++) {
+		alSourcei(s_env.sources, AL_BUFFER, 0);
+	}
+
 	S_CheckALError();
-}
-
-/**
- * @brief Stop sounds that are playing, if any.
- */
-void S_StopAllSounds(void) {
-
-	S_Stop();
 }
 
 /**
@@ -128,7 +125,7 @@ void S_Frame(void) {
 	S_FrameMusic();
 
 	if (cls.state != CL_ACTIVE) {
-		S_StopAllSounds();
+		S_Stop();
 		return;
 	}
 

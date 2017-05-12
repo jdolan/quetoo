@@ -45,6 +45,7 @@ static int32_t S_AllocChannel(void) {
 void S_FreeChannel(int32_t c) {
 
 	alSourceStop(s_env.sources[c]);
+	alSourcei(s_env.sources[c], AL_BUFFER, 0);
 	s_env.channels[c].free = true;
 }
 
