@@ -919,7 +919,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 /**
  * @brief Resolves the path of the specified asset by name within the given context.
  */
-static _Bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context) {
+static _Bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context, _Bool required) {
 	const char *extensions[] = { "tga", "png", "jpg", "pcx", "wal" };
 	char name[MAX_QPATH];
 
@@ -970,8 +970,12 @@ static _Bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context) {
 			return true;
 		}
 	}
+	
+	if (required) {
+		Com_Warn("Couldn't resolve asset %s\n", name);
+	}
 
-	*asset->path = '\0';
+	g_snprintf(asset->path, sizeof(asset->path), "%s", name);
 	return false;
 }
 
@@ -1001,7 +1005,7 @@ static _Bool Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t type
 		cm_asset_t *frame = &stage->anim.frames[i];
 		g_snprintf(frame->name, sizeof(frame->name), "%s%d", base, start + i);
 
-		if (!Cm_ResolveAsset(frame, type)) {
+		if (!Cm_ResolveAsset(frame, type, true)) {
 			Com_Warn("Failed to resolve frame: %d: %s\n", i, stage->asset.name);
 			return false;
 		}
@@ -1023,7 +1027,7 @@ static _Bool Cm_ResolveStage(cm_stage_t *stage, cm_asset_context_t context) {
 			context = ASSET_CONTEXT_FLARES;
 		}
 
-		if (Cm_ResolveAsset(&stage->asset, context)) {
+		if (Cm_ResolveAsset(&stage->asset, context, true)) {
 			if (stage->flags & STAGE_ANIM) {
 				return Cm_ResolveStageAnimation(stage, context);
 			} else {
@@ -1042,10 +1046,10 @@ static _Bool Cm_ResolveStage(cm_stage_t *stage, cm_asset_context_t context) {
 /**
  * @brief Resolves the asset for the given material.
  */
-static _Bool Cm_ResolveMaterialAsset(cm_material_t *material, cm_asset_t *asset, cm_asset_context_t context) {
+static _Bool Cm_ResolveMaterialAsset(cm_material_t *material, cm_asset_t *asset, cm_asset_context_t context, _Bool required) {
 
 	if (*asset->name) {
-		return Cm_ResolveAsset(asset, context);
+		return Cm_ResolveAsset(asset, context, required);
 	}
 
 	const char **suffix = NULL;
@@ -1066,14 +1070,20 @@ static _Bool Cm_ResolveMaterialAsset(cm_material_t *material, cm_asset_t *asset,
 
 	for (const char **s = suffix; *s; s++) {
 		g_snprintf(asset->name, sizeof(asset->name), "%s%s", material->basename, *s);
-		if (Cm_ResolveAsset(asset, context)) {
+
+		if (Cm_ResolveAsset(asset, context, false)) {
 			Com_Debug(DEBUG_COLLISION, "Resolved %s for %s\n", asset->path, material->name);
-			break;
+			*asset->name = '\0';
+			return true;
 		}
 	}
 
-	*asset->name = '\0';
-	return *asset->path != '\0';
+	if (required) {
+		Com_Warn("Couldn't resolve asset for %s\n", material->basename);
+	}
+	
+	g_snprintf(asset->name, sizeof(asset->name), "%s", material->basename);
+	return false;
 }
 
 /**
@@ -1083,11 +1093,11 @@ _Bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context) {
 
 	assert(material);
 
-	if (Cm_ResolveMaterialAsset(material, &material->diffuse, context)) {
-		Cm_ResolveMaterialAsset(material, &material->normalmap, context);
-		Cm_ResolveMaterialAsset(material, &material->heightmap, context);
-		Cm_ResolveMaterialAsset(material, &material->specularmap, context);
-		Cm_ResolveMaterialAsset(material, &material->tintmap, context);
+	if (Cm_ResolveMaterialAsset(material, &material->diffuse, context, true)) {
+		Cm_ResolveMaterialAsset(material, &material->normalmap, context, false);
+		Cm_ResolveMaterialAsset(material, &material->heightmap, context, false);
+		Cm_ResolveMaterialAsset(material, &material->specularmap, context, false);
+		Cm_ResolveMaterialAsset(material, &material->tintmap, context, false);
 	} else {
 		return false;
 	}
