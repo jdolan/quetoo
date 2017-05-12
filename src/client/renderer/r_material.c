@@ -853,30 +853,35 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
 	Cm_ResolveMaterial(cm, context);
 
-	material->diffuse = R_LoadImage(cm->diffuse.path, IT_DIFFUSE);
+	if (*cm->diffuse.path) {
 
-	if (material->diffuse->type == IT_DIFFUSE) {
+		material->diffuse = R_LoadImage(cm->diffuse.path, IT_DIFFUSE);
+		if (material->diffuse->type == IT_DIFFUSE) {
 
-		if (*cm->normalmap.path) {
-			material->normalmap = R_LoadImage(cm->normalmap.path, IT_NORMALMAP);
-			if (material->normalmap->type == IT_NULL) {
-				material->normalmap = NULL;
+			if (*cm->normalmap.path) {
+				material->normalmap = R_LoadImage(cm->normalmap.path, IT_NORMALMAP);
+				if (material->normalmap->type == IT_NULL) {
+					material->normalmap = NULL;
+				}
+			}
+
+			if (*cm->specularmap.path) {
+				material->specularmap = R_LoadImage(cm->specularmap.path, IT_SPECULARMAP);
+				if (material->specularmap->type == IT_NULL) {
+					material->specularmap = NULL;
+				}
+			}
+
+			if (*cm->tintmap.path) {
+				material->tintmap = R_LoadImage(cm->tintmap.path, IT_TINTMAP);
+				if (material->tintmap->type == IT_NULL) {
+					material->tintmap = NULL;
+				}
 			}
 		}
-
-		if (*cm->specularmap.path) {
-			material->specularmap = R_LoadImage(cm->specularmap.path, IT_SPECULARMAP);
-			if (material->specularmap->type == IT_NULL) {
-				material->specularmap = NULL;
-			}
-		}
-
-		if (*cm->tintmap.path) {
-			material->tintmap = R_LoadImage(cm->tintmap.path, IT_TINTMAP);
-			if (material->tintmap->type == IT_NULL) {
-				material->tintmap = NULL;
-			}
-		}
+	} else {
+		material->diffuse = r_image_state.null;
+		Com_Warn("Failed to resolve %s\n", cm->name);
 	}
 
 	return material;
