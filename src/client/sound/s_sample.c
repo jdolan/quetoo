@@ -198,6 +198,7 @@ static void S_FreeSample(s_media_t *self) {
 
 	if (sample->buffer) {
 		alDeleteBuffers(1, &sample->buffer);
+		sample->buffer = 0;
 		S_CheckALError();
 	}
 }
