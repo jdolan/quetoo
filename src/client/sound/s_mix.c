@@ -130,9 +130,9 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 	ch->filter = AL_NONE;
 
 	if (s_env.effects.loaded) {
-		if (r_view.contents & CONTENTS_WATER) {
+		if (r_view.contents & MASK_LIQUID) {
 			ch->pitch = 0.5;
-		} else if (Cm_PointContents(ch->position, 0) & CONTENTS_WATER) {
+		} else if (Cm_PointContents(ch->position, 0) & MASK_LIQUID) {
 			ch->filter = s_env.effects.underwater;
 		}
 	}
