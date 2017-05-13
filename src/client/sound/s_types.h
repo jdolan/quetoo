@@ -26,6 +26,7 @@
 #else
 #include <AL/al.h>
 #include <AL/alc.h>
+#include <AL/efx.h>
 #endif
 
 #include <SDL2/SDL_rwops.h>
@@ -81,6 +82,7 @@ typedef struct s_channel_s {
 	vec3_t velocity;
 	vec_t gain;
 	vec_t pitch;
+	ALuint filter;
 	_Bool free;
 } s_channel_t;
 
@@ -94,6 +96,15 @@ typedef struct s_music_s {
 	void *buffer;
 	_Bool eof; // whether we're out of samples or not
 } s_music_t;
+
+/**
+ * @brief Filters used by the sound system if s_effects is enabled & supported.
+ */
+typedef struct {
+	ALuint underwater;
+
+	_Bool loaded; // whether the above are currently loaded.
+} s_effects_t;
 
 /**
  * @brief The sound environment.
@@ -127,6 +138,11 @@ typedef struct s_env_s {
 	ALuint sources[MAX_CHANNELS];
 
 	/**
+	 * @brief Effect IDs.
+	 */
+	s_effects_t effects;
+
+	/**
 	 * @brief True when media has been reloaded, and the client should update its media references.
 	 */
 	_Bool update;
@@ -134,4 +150,20 @@ typedef struct s_env_s {
 
 #ifdef __S_LOCAL_H__
 extern SF_VIRTUAL_IO s_rwops_io;
+
+extern cvar_t *s_doppler;
+extern cvar_t *s_effects;
+
+extern LPALGENFILTERS alGenFilters;
+extern LPALDELETEFILTERS alDeleteFilters;
+extern LPALFILTERI alFilteri;
+extern LPALFILTERF alFilterf;
+extern LPALGENEFFECTS alGenEffects;
+extern LPALDELETEEFFECTS alDeleteEffects;
+extern LPALEFFECTI alEffecti;
+extern LPALEFFECTF alEffectf;
+extern LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots;
+extern LPALDELETEAUXILIARYEFFECTSLOTS alDeleteAuxiliaryEffectSlots;
+extern LPALAUXILIARYEFFECTSLOTI alAuxiliaryEffectSloti;
+extern LPALAUXILIARYEFFECTSLOTF alAuxiliaryEffectSlotf;
 #endif /* __S_LOCAL_H__ */

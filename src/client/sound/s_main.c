@@ -22,6 +22,22 @@
 #include "s_local.h"
 #include "client.h"
 
+cvar_t *s_doppler;
+cvar_t *s_effects;
+
+LPALGENFILTERS alGenFilters;
+LPALDELETEFILTERS alDeleteFilters;
+LPALFILTERI alFilteri;
+LPALFILTERF alFilterf;
+LPALGENEFFECTS alGenEffects;
+LPALDELETEEFFECTS alDeleteEffects;
+LPALEFFECTI alEffecti;
+LPALEFFECTF alEffectf;
+LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots;
+LPALDELETEAUXILIARYEFFECTSLOTS alDeleteAuxiliaryEffectSlots;
+LPALAUXILIARYEFFECTSLOTI alAuxiliaryEffectSloti;
+LPALAUXILIARYEFFECTSLOTF alAuxiliaryEffectSlotf;
+
 // the sound environment
 s_env_t s_env;
 
@@ -106,7 +122,7 @@ void S_Stop(void) {
 	alSourceStopv(MAX_CHANNELS, s_env.sources);
 
 	for (size_t i = 0; i < MAX_CHANNELS; i++) {
-		alSourcei(s_env.sources, AL_BUFFER, 0);
+		alSourcei(s_env.sources[i], AL_BUFFER, 0);
 	}
 
 	S_CheckALError();
@@ -254,6 +270,9 @@ void S_Init(void) {
 		return;
 	}
 
+	s_doppler = Cvar_Add("s_doppler", "0", CVAR_ARCHIVE, "The scale for the doppler effect. 0 is disabled, 1 is default, anything inbetween is scale.");
+	s_effects = Cvar_Add("s_effects", "0", CVAR_ARCHIVE | CVAR_S_MEDIA, "Whether sound filtering is enabled for systems that support it.");
+
 	Com_Print("Sound initialization...\n");
 
 	S_InitLocal();
@@ -270,6 +289,44 @@ void S_Init(void) {
 	if (!s_env.context || !alcMakeContextCurrent(s_env.context)) {
 		Com_Warn("%s\n", alcGetString(NULL, alcGetError(NULL)));
 		return;
+	}
+
+	if (s_effects->integer) {
+		alGenFilters = (LPALGENFILTERS)alGetProcAddress("alGenFilters");
+		alDeleteFilters = (LPALDELETEFILTERS)alGetProcAddress("alDeleteFilters");
+		alFilteri = (LPALFILTERI)alGetProcAddress("alFilteri");
+		alFilterf = (LPALFILTERF)alGetProcAddress("alFilterf");
+		alGenEffects = (LPALGENEFFECTS)alGetProcAddress("alGenEffects");
+		alDeleteEffects = (LPALDELETEEFFECTS)alGetProcAddress("alDeleteEffects");
+		alEffecti = (LPALEFFECTI)alGetProcAddress("alEffecti");
+		alEffectf = (LPALEFFECTF)alGetProcAddress("alEffectf");
+		alGenAuxiliaryEffectSlots = (LPALGENAUXILIARYEFFECTSLOTS)alGetProcAddress("alGenAuxiliaryEffectSlots");
+		alDeleteAuxiliaryEffectSlots = (LPALDELETEAUXILIARYEFFECTSLOTS)alGetProcAddress("alDeleteAuxiliaryEffectSlots");
+		alAuxiliaryEffectSloti = (LPALAUXILIARYEFFECTSLOTI)alGetProcAddress("alAuxiliaryEffectSloti");
+		alAuxiliaryEffectSlotf = (LPALAUXILIARYEFFECTSLOTF)alGetProcAddress("alAuxiliaryEffectSlotf");
+		S_CheckALError();
+
+		if (!alGenFilters || !alGenEffects || !alGenAuxiliaryEffectSlots) {
+			Com_Warn("s_effects is enabled but OpenAL driver does not support them.");
+			Cvar_ForceSet("s_effects", "0");
+			s_env.effects.loaded = false;
+		} else {
+			alGenFilters(1, &s_env.effects.underwater);
+			S_CheckALError();
+
+			alFilteri(s_env.effects.underwater, AL_FILTER_TYPE, AL_FILTER_LOWPASS);
+			S_CheckALError();
+
+			alFilterf(s_env.effects.underwater, AL_LOWPASS_GAIN, 0.8);
+			S_CheckALError();
+
+			alFilterf(s_env.effects.underwater, AL_LOWPASS_GAINHF, 0.3);
+			S_CheckALError();
+
+			s_env.effects.loaded = true;
+		}
+	} else {
+		s_env.effects.loaded = false;
 	}
 
 	alGenSources(MAX_CHANNELS, s_env.sources);
@@ -303,6 +360,13 @@ void S_Shutdown(void) {
 
 	alDeleteSources(MAX_CHANNELS, s_env.sources);
 	S_CheckALError();
+
+	if (s_env.effects.loaded) {
+		alDeleteFilters(1, &s_env.effects.underwater);
+		S_CheckALError();
+
+		s_env.effects.loaded = false;
+	}
 
 	S_ShutdownMusic();
 
