@@ -45,6 +45,7 @@ static int32_t S_AllocChannel(void) {
 void S_FreeChannel(int32_t c) {
 
 	alSourceStop(s_env.sources[c]);
+	alSourcei(s_env.sources[c], AL_BUFFER, 0);
 	s_env.channels[c].free = true;
 }
 
@@ -64,11 +65,12 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 	} else if (ch->play.flags & S_PLAY_ENTITY) {
 		const cl_entity_t *ent = &cl.entities[ch->play.entity];
 		
-		if (ent == cl.entity) {
-			VectorCopy(cl.frame.ps.pm_state.velocity, ch->velocity);
-		}
-		else {
-			VectorSubtract(ent->current.origin, ent->prev.origin, ch->velocity);
+		if (s_doppler->value) {
+			if (ent == cl.entity) {
+				VectorCopy(cl.frame.ps.pm_state.velocity, ch->velocity);
+			} else {
+				VectorSubtract(ent->current.origin, ent->prev.origin, ch->velocity);
+			}
 		}
 
 		if (ent->current.solid == SOLID_BSP) {
@@ -124,10 +126,15 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 		}
 	}
 
-	if (r_view.contents & CONTENTS_WATER) {
-		ch->pitch = 0.5;
-	} else {
-		ch->pitch = 1.0;
+	ch->pitch = 1.0;
+	ch->filter = AL_NONE;
+
+	if (s_env.effects.loaded) {
+		if (r_view.contents & MASK_LIQUID) {
+			ch->pitch = 0.5;
+		} else if (Cm_PointContents(ch->position, 0) & MASK_LIQUID) {
+			ch->filter = s_env.effects.underwater;
+		}
 	}
 
 	return frac <= 1.0;
@@ -137,6 +144,13 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
  * @brief Updates all active channels for the current frame.
  */
 void S_MixChannels(void) {
+
+	if (s_effects->modified) {
+		S_Restart_f();
+
+		s_effects->modified = false;
+		return;
+	}
 
 	const vec3_t orientation[] = {
 		{ r_view.forward[0], r_view.forward[1], r_view.forward[2] },
@@ -152,8 +166,10 @@ void S_MixChannels(void) {
 	alListenerfv(AL_ORIENTATION, &orientation[0][0]);
 	S_CheckALError();
 
-	//alDopplerFactor(0.05);
-	//alListenerfv(AL_VELOCITY, cl.frame.ps.pm_state.velocity);
+	if (s_doppler->value) {
+		alDopplerFactor(0.05 * s_doppler->value);
+		alListenerfv(AL_VELOCITY, cl.frame.ps.pm_state.velocity);
+	}
 
 	s_channel_t *ch = s_env.channels;
 	for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
@@ -181,7 +197,14 @@ void S_MixChannels(void) {
 				alSourcef(s_env.sources[i], AL_PITCH, ch->pitch);
 				S_CheckALError();
 
-				//alSourcefv(s_env.sources[i], AL_VELOCITY, ch->velocity);
+				if (s_env.effects.loaded) {
+					alSourcei(s_env.sources[i], AL_DIRECT_FILTER, ch->filter);
+					S_CheckALError();
+				}
+
+				if (s_doppler->value) {
+					alSourcefv(s_env.sources[i], AL_VELOCITY, ch->velocity);
+				}
 
 				if (!ch->start_time) {
 					ch->start_time = quetoo.ticks;

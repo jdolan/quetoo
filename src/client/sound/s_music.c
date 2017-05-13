@@ -420,14 +420,14 @@ void S_InitMusic(void) {
 
 	memset(&s_music_state, 0, sizeof(s_music_state));
 	
-	s_music_buffer_count = Cvar_Add("s_music_buffer_count", "8", CVAR_S_MEDIA, "The number of buffers to store for music streaming.");
-	s_music_buffer_size = Cvar_Add("s_music_buffer_size", "16384", CVAR_S_MEDIA, "The size of each buffer for music streaming.");
+	s_music_buffer_count = Cvar_Add("s_music_buffer_count", "8", CVAR_ARCHIVE | CVAR_S_MEDIA, "The number of buffers to store for music streaming.");
+	s_music_buffer_size = Cvar_Add("s_music_buffer_size", "16384", CVAR_ARCHIVE | CVAR_S_MEDIA, "The size of each buffer for music streaming.");	
+	s_music_volume = Cvar_Add("s_music_volume", "0.15", CVAR_ARCHIVE, "Music volume level.");
 
 	s_music_state.raw_frame_buffer = Mem_TagMalloc(sizeof(vec_t) * s_music_buffer_size->value, MEM_TAG_SOUND);
 	s_music_state.frame_buffer = Mem_TagMalloc(sizeof(int16_t) * s_music_buffer_size->value, MEM_TAG_SOUND);
 	s_music_state.resample_frame_buffer = NULL;
-	
-	s_music_volume = Cvar_Add("s_music_volume", "0.15", CVAR_ARCHIVE, "Music volume level.");
+
 	Cmd_Add("s_next_track", S_NextTrack_f, CMD_SOUND, "Play the next music track.");
 
 	s_music_buffer_count->modified = 
