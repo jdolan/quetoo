@@ -152,6 +152,10 @@ void S_MixChannels(void) {
 		return;
 	}
 
+	if (s_doppler->modified) {
+		alDopplerFactor(0.05 * s_doppler->value);
+	}
+
 	const vec3_t orientation[] = {
 		{ r_view.forward[0], r_view.forward[1], r_view.forward[2] },
 		{ r_view.up[0], r_view.up[1], r_view.up[2] }
@@ -167,8 +171,9 @@ void S_MixChannels(void) {
 	S_CheckALError();
 
 	if (s_doppler->value) {
-		alDopplerFactor(0.05 * s_doppler->value);
 		alListenerfv(AL_VELOCITY, cl.frame.ps.pm_state.velocity);
+	} else {
+		alListenerfv(AL_VELOCITY, vec3_origin);
 	}
 
 	s_channel_t *ch = s_env.channels;
@@ -204,6 +209,8 @@ void S_MixChannels(void) {
 
 				if (s_doppler->value) {
 					alSourcefv(s_env.sources[i], AL_VELOCITY, ch->velocity);
+				} else {
+					alSourcefv(s_env.sources[i], AL_VELOCITY, vec3_origin);
 				}
 
 				if (!ch->start_time) {

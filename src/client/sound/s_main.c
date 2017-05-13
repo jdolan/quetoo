@@ -273,6 +273,8 @@ void S_Init(void) {
 	s_doppler = Cvar_Add("s_doppler", "0", CVAR_ARCHIVE, "The scale for the doppler effect. 0 is disabled, 1 is default, anything inbetween is scale.");
 	s_effects = Cvar_Add("s_effects", "0", CVAR_ARCHIVE | CVAR_S_MEDIA, "Whether sound filtering is enabled for systems that support it.");
 
+	s_effects->modified = false;
+
 	Com_Print("Sound initialization...\n");
 
 	S_InitLocal();
@@ -309,6 +311,7 @@ void S_Init(void) {
 		if (!alGenFilters || !alGenEffects || !alGenAuxiliaryEffectSlots) {
 			Com_Warn("s_effects is enabled but OpenAL driver does not support them.");
 			Cvar_ForceSet("s_effects", "0");
+			s_effects->modified = false;
 			s_env.effects.loaded = false;
 		} else {
 			alGenFilters(1, &s_env.effects.underwater);
