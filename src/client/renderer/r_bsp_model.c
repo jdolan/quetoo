@@ -281,7 +281,7 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 		const vec_t size = surf->st_maxs[i] - surf->st_mins[i];
 		surf->lightmap_size[i] = (r_pixel_t) ((size * bsp->lightmap_scale) + 1.0);
 
-		Fs_Print(tmp, "%i\n", (int32_t) surf->lightmap_size[i]);
+		Fs_Print(tmp, "%i %f\n", (int32_t) surf->lightmap_size[i], (size * bsp->lightmap_scale) + 1.0);
 	}
 
 	Fs_Close(tmp);
