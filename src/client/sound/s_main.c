@@ -22,9 +22,6 @@
 #include "s_local.h"
 #include "client.h"
 
-cvar_t *s_doppler;
-cvar_t *s_effects;
-
 LPALGENFILTERS alGenFilters;
 LPALDELETEFILTERS alDeleteFilters;
 LPALFILTERI alFilteri;
@@ -42,6 +39,8 @@ LPALAUXILIARYEFFECTSLOTF alAuxiliaryEffectSlotf;
 s_env_t s_env;
 
 cvar_t *s_ambient;
+cvar_t *s_doppler;
+cvar_t *s_effects;
 cvar_t *s_rate;
 cvar_t *s_volume;
 
@@ -248,6 +247,8 @@ void S_Restart_f(void) {
 static void S_InitLocal(void) {
 
 	s_ambient = Cvar_Add("s_ambient", "1", CVAR_ARCHIVE, "Controls playback of ambient sounds.");
+	s_doppler = Cvar_Add("s_doppler", "0", CVAR_ARCHIVE, "The scale for the doppler effect. 0 is disabled, 1 is default, anything inbetween is scale.");
+	s_effects = Cvar_Add("s_effects", "0", CVAR_ARCHIVE | CVAR_S_MEDIA, "Whether sound filtering is enabled for systems that support it.");
 	s_rate = Cvar_Add("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE, "Sound sample rate in Hz.");
 	s_volume = Cvar_Add("s_volume", "1.0", CVAR_ARCHIVE, "Global sound volume level.");
 
@@ -269,11 +270,6 @@ void S_Init(void) {
 		Com_Warn("Sound disabled\n");
 		return;
 	}
-
-	s_doppler = Cvar_Add("s_doppler", "0", CVAR_ARCHIVE, "The scale for the doppler effect. 0 is disabled, 1 is default, anything inbetween is scale.");
-	s_effects = Cvar_Add("s_effects", "0", CVAR_ARCHIVE | CVAR_S_MEDIA, "Whether sound filtering is enabled for systems that support it.");
-
-	s_effects->modified = false;
 
 	Com_Print("Sound initialization...\n");
 

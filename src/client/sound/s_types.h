@@ -56,6 +56,7 @@ typedef struct s_media_s {
 typedef struct s_sample_s {
 	s_media_t media;
 	ALuint buffer;
+	sf_count_t num_samples; // number of samples total
 	_Bool stereo; // whether this is stereo sample or not; they can't be spatialized
 } s_sample_t;
 

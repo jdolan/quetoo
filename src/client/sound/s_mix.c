@@ -114,14 +114,13 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 	if (ch->start_time) {
 		if (ch->play.flags & S_PLAY_FRAME) {
 			if (ch->frame != cl.frame.frame_num) {
-				const int32_t frame_diff = cl.frame.frame_num - ch->frame;
-				const uint32_t ms_diff = frame_diff * QUETOO_TICK_MILLIS;
+				const uint32_t delta = (cl.frame.frame_num - ch->frame) * QUETOO_TICK_MILLIS;
 
-				if (ms_diff > 250) {
+				if (delta > 250) {
 					return false; // faded out
 				}
 
-				ch->gain *= 1.0 - (ms_diff / 250.0);
+				ch->gain *= 1.0 - (delta / 250.0);
 			}
 		}
 	}
@@ -221,6 +220,11 @@ void S_MixChannels(void) {
 
 					alSourcei(s_env.sources[i], AL_LOOPING, !!(ch->play.flags & S_PLAY_LOOP));
 					S_CheckALError();
+				
+					if (ch->play.flags & S_PLAY_AMBIENT) {
+						alSourcei(s_env.sources[i], AL_SAMPLE_OFFSET, (ALint) (Randomf() * ch->sample->num_samples));
+						S_CheckALError();
+					}
 
 					alSourcePlay(s_env.sources[i]);
 					S_CheckALError();

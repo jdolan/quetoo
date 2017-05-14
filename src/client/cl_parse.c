@@ -401,7 +401,7 @@ static void Cl_ParseSound(void) {
  * @brief
  */
 static void Cl_ShowNet(const char *s) {
-	if (cl_show_net_messages->integer >= 2) {
+	if (cl_draw_net_messages->integer >= 2) {
 		Com_Print("%3u: %s\n", (uint32_t) (net_message.read - 1), s);
 	}
 }
@@ -412,9 +412,9 @@ static void Cl_ShowNet(const char *s) {
 void Cl_ParseServerMessage(void) {
 	int32_t cmd, old_cmd;
 
-	if (cl_show_net_messages->integer == 1) {
+	if (cl_draw_net_messages->integer == 1) {
 		Com_Print("%u ", (uint32_t) net_message.size);
-	} else if (cl_show_net_messages->integer >= 2) {
+	} else if (cl_draw_net_messages->integer >= 2) {
 		Com_Print("------------------\n");
 	}
 
@@ -436,7 +436,7 @@ void Cl_ParseServerMessage(void) {
 			break;
 		}
 
-		if (cl_show_net_messages->integer >= 2 && sv_cmd_names[cmd]) {
+		if (cl_draw_net_messages->integer >= 2 && sv_cmd_names[cmd]) {
 			Cl_ShowNet(sv_cmd_names[cmd]);
 		}
 
