@@ -1031,8 +1031,7 @@ void R_LoadModelMaterials(r_model_t *mod) {
 		case MOD_BSP:
 			R_LoadBspMaterials(mod, &materials);
 			break;
-		case MOD_OBJ:
-		case MOD_MD3:
+		case MOD_MESH:
 			R_LoadMeshMaterials(mod, &materials);
 			break;
 		default:

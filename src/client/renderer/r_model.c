@@ -31,8 +31,8 @@ typedef struct {
 } r_model_format_t;
 
 static const r_model_format_t r_model_formats[] = { // supported model formats
-	{ ".obj", MOD_OBJ, R_LoadObjModel, MEDIA_OBJ },
-	{ ".md3", MOD_MD3, R_LoadMd3Model, MEDIA_MD3 },
+	{ ".obj", MOD_MESH, R_LoadObjModel, MEDIA_OBJ },
+	{ ".md3", MOD_MESH, R_LoadMd3Model, MEDIA_MD3 },
 	{ ".bsp", MOD_BSP, R_LoadBspModel, MEDIA_BSP }
 };
 

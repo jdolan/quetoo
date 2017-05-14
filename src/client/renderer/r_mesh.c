@@ -33,11 +33,11 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
 
 	const r_mesh_config_t *c;
 	if (e->effects & EF_WEAPON) {
-		c = e->model->mesh->view_config;
+		c = &e->model->mesh->view_config;
 	} else if (e->effects & EF_LINKED) {
-		c = e->model->mesh->link_config;
+		c = &e->model->mesh->link_config;
 	} else {
-		c = e->model->mesh->world_config;
+		c = &e->model->mesh->world_config;
 	}
 
 	Matrix4x4_ConcatTranslate(&e->matrix, c->translate[0], c->translate[1], c->translate[2]);
@@ -63,17 +63,17 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
  * @param name The name of the tag.
  * @return The tag structure.
 */
-const r_md3_tag_t *R_MeshModelTag(const r_model_t *mod, const char *name, const int32_t frame) {
+const r_model_tag_t *R_MeshModelTag(const r_model_t *mod, const char *name, const int32_t frame) {
 
 	if (frame > mod->mesh->num_frames) {
 		Com_Warn("%s: Invalid frame: %d\n", mod->media.name, frame);
 		return NULL;
 	}
 
-	const r_md3_t *md3 = (r_md3_t *) mod->mesh->data;
-	const r_md3_tag_t *tag = &md3->tags[frame * md3->num_tags];
+	const r_mesh_model_t *model = mod->mesh;
+	const r_model_tag_t *tag = &model->tags[frame * model->num_tags];
 
-	for (int32_t i = 0; i < md3->num_tags; i++, tag++) {
+	for (int32_t i = 0; i < model->num_tags; i++, tag++) {
 		if (!g_strcmp0(name, tag->name)) {
 			return tag;
 		}
@@ -295,11 +295,11 @@ static _Bool R_DrawMeshDiffuse_default(void) {
 /**
  * @brief Draw the diffuse pass of each mesh segment for the specified model.
  */
-static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
+static void R_DrawMeshParts_default(const r_entity_t *e, const r_mesh_model_t *model) {
 	uint32_t offset = 0;
 
-	const r_md3_mesh_t *mesh = md3->meshes;
-	for (uint16_t i = 0; i < md3->num_meshes; i++, mesh++) {
+	const r_model_mesh_t *mesh = model->meshes;
+	for (uint16_t i = 0; i < model->num_meshes; i++, mesh++) {
 
 		if (!r_draw_wireframe->value) {
 			if (i > 0) { // update the diffuse state for the current mesh
@@ -327,11 +327,11 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 /**
  * @brief Draw the material passes of each mesh segment for the specified model.
  */
-static void R_DrawMeshPartsMaterials_default(const r_entity_t *e, const r_md3_t *md3) {
+static void R_DrawMeshPartsMaterials_default(const r_entity_t *e, const r_mesh_model_t *model) {
 	uint32_t offset = 0;
 
-	const r_md3_mesh_t *mesh = md3->meshes;
-	for (uint16_t i = 0; i < md3->num_meshes; i++, mesh++) {
+	const r_model_mesh_t *mesh = model->meshes;
+	for (uint16_t i = 0; i < model->num_meshes; i++, mesh++) {
 
 		if (!r_draw_wireframe->value) {
 			if (i > 0) { // update the diffuse state for the current mesh
@@ -360,17 +360,7 @@ void R_DrawMeshModel_default(const r_entity_t *e) {
 
 	R_SetMeshState_default(e);
 
-	if (e->model->type == MOD_MD3) {
-		R_DrawMeshParts_default(e, (const r_md3_t *) e->model->mesh->data);
-	} else {
-
-		if (!R_DrawMeshDiffuse_default()) {
-			R_ResetMeshState_default(e); // reset state
-			return;
-		}
-
-		R_DrawArrays(GL_TRIANGLES, 0, e->model->num_elements);
-	}
+	R_DrawMeshParts_default(e, e->model->mesh);
 
 	r_view.num_mesh_tris += e->model->num_tris;
 	r_view.num_mesh_models++;
@@ -391,11 +381,7 @@ void R_DrawMeshModelMaterials_default(const r_entity_t *e) {
 
 	R_SetMeshState_default(e);
 
-	if (e->model->type == MOD_MD3) {
-		R_DrawMeshPartsMaterials_default(e, (const r_md3_t *) e->model->mesh->data);
-	} else {
-		R_DrawMeshMaterial(r_mesh_state.material, 0, e->model->num_elements);
-	}
+	R_DrawMeshPartsMaterials_default(e, e->model->mesh);
 
 	R_ResetMeshState_default(e); // reset state
 }

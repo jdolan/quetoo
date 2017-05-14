@@ -65,8 +65,7 @@ typedef enum {
 	MOD_BAD,
 	MOD_BSP,
 	MOD_BSP_INLINE,
-	MOD_MD3,
-	MOD_OBJ
+	MOD_MESH
 } r_model_type_t;
 
 // high bits OR'ed with image types
@@ -612,95 +611,34 @@ typedef struct {
 
 } r_bsp_light_t;
 
-// md3 model memory representation
+// mesh model, used for objects
 typedef struct {
 	vec3_t point;
 	vec3_t normal;
 	vec4_t tangent;
-} r_md3_vertex_t;
+} r_model_vertex_t;
 
 typedef struct {
 	char name[MD3_MAX_PATH];
 	matrix4x4_t matrix;
-} r_md3_tag_t;
+} r_model_tag_t;
 
 typedef struct {
-	char id[4];
-
 	char name[MD3_MAX_PATH];
 
-	int32_t flags;
-
-	uint16_t num_skins;
-
 	uint16_t num_verts;
-	r_md3_vertex_t *verts;
-	d_md3_texcoord_t *coords;
-
 	uint16_t num_tris;
-	uint32_t *tris;
-
 	uint32_t num_elements;
-} r_md3_mesh_t;
+} r_model_mesh_t;
 
 typedef struct {
 	uint16_t first_frame;
 	uint16_t num_frames;
 	uint16_t looped_frames;
 	uint16_t hz;
-} r_md3_animation_t;
+} r_model_animation_t;
 
-/**
- * @brief Quake3 (MD3) model in-memory representation.
- */
-typedef struct {
-	int32_t id;
-	int32_t version;
-
-	char file_name[MD3_MAX_PATH];
-
-	int32_t flags;
-
-	uint16_t num_frames;
-	d_md3_frame_t *frames;
-
-	uint16_t num_tags;
-	r_md3_tag_t *tags;
-
-	uint16_t num_meshes;
-	r_md3_mesh_t *meshes;
-
-	uint16_t num_animations;
-	r_md3_animation_t *animations;
-} r_md3_t;
-
-typedef struct {
-	uint32_t position;
-	uint16_t indices[3];
-	vec_t *point;
-	vec_t *texcoords;
-	vec_t *normal;
-	vec_t *tangent;
-} r_obj_vertex_t;
-
-typedef struct {
-	r_obj_vertex_t *verts[3];
-} r_obj_triangle_t;
-
-/*
- * brief Object (OBJ) model in-memory representation.
- */
-typedef struct {
-	GList *points;
-	GList *texcoords;
-	GList *normals;
-
-	GList *verts;
-	GList *tris;
-
-	GList *tangents;
-} r_obj_t;
-
+// BSP model, used for maps
 typedef struct {
 	int32_t version;
 
@@ -766,14 +704,22 @@ typedef struct {
 } r_mesh_config_t;
 
 typedef struct {
-	uint16_t num_frames;
 	uint32_t flags;
+
+	uint16_t num_frames;
+	uint16_t num_tags;
+	uint16_t num_meshes;
+	uint16_t num_animations;
+
+	r_model_tag_t *tags;
+	r_model_mesh_t *meshes;
+	r_model_animation_t *animations;
 
 	r_material_t *material;
 
-	r_mesh_config_t *world_config;
-	r_mesh_config_t *view_config;
-	r_mesh_config_t *link_config;
+	r_mesh_config_t world_config;
+	r_mesh_config_t view_config;
+	r_mesh_config_t link_config;
 
 	// buffer data
 	r_buffer_t vertex_buffer;
@@ -784,20 +730,20 @@ typedef struct {
 
 	r_buffer_t shell_vertex_buffer;
 	r_buffer_t shell_element_buffer;
-
-	void *data; // raw model data (r_md3_t, r_obj_t, ..)
 } r_mesh_model_t;
 
 /**
- * @brief Models represent a subset of the BSP or an OBJ / MD3 mesh.
+ * @brief Models represent a subset of the BSP or a mesh.
  */
 typedef struct r_model_s {
 	r_media_t media;
 	r_model_type_t type;
 
-	r_bsp_model_t *bsp;
-	r_bsp_inline_model_t *bsp_inline;
-	r_mesh_model_t *mesh;
+	union {
+		r_bsp_model_t *bsp;
+		r_bsp_inline_model_t *bsp_inline;
+		r_mesh_model_t *mesh;
+	};
 
 	r_material_t **materials;
 	size_t num_materials;
@@ -810,9 +756,9 @@ typedef struct r_model_s {
 	GLsizei num_tris; // cached num_tris amount
 } r_model_t;
 
-#define IS_BSP_MODEL(m) (m && m->bsp)
-#define IS_MESH_MODEL(m) (m && m->mesh)
-#define IS_BSP_INLINE_MODEL(m) (m && m->bsp_inline)
+#define IS_BSP_MODEL(m) (m && m->type == MOD_BSP)
+#define IS_BSP_INLINE_MODEL(m) (m && m->type == MOD_BSP_INLINE)
+#define IS_MESH_MODEL(m) (m && m->type == MOD_MESH)
 
 /**
  * @brief Stains are low-resolution color effects added to the map's lightmap
@@ -895,9 +841,9 @@ typedef enum {
  * These are populated by tracing from the illumination position through the lighting origin and
  * bounds. A shadow is cast for each unique plane hit.
  */
-#define MAX_ILLUMINATIONS_PER_SHADOW (MAX_ILLUMINATIONS / 2)
-#define MAX_PLANES_PER_SHADOW 3
-#define MAX_SHADOWS (MAX_ILLUMINATIONS_PER_SHADOW * MAX_PLANES_PER_SHADOW)
+#define MAX_ILLUMINATIONS_PER_SHADOW	(MAX_ILLUMINATIONS / 2)
+#define MAX_PLANES_PER_SHADOW			3
+#define MAX_SHADOWS						(MAX_ILLUMINATIONS_PER_SHADOW * MAX_PLANES_PER_SHADOW)
 
 /**
  * @brief Provides lighting information for mesh entities. Illuminations and
@@ -1192,4 +1138,50 @@ typedef struct {
 } r_context_t;
 
 #ifdef __R_LOCAL_H__
+
+typedef struct {
+	uint32_t *tris;
+	r_model_vertex_t *verts;
+	d_md3_texcoord_t *coords;
+} r_md3_mesh_t;
+
+/**
+ * @brief Quake3 (MD3) model in-memory representation.
+ */
+typedef struct {
+	uint16_t num_verts;
+	uint16_t num_tris;
+
+	d_md3_frame_t *frames;
+	r_md3_mesh_t *meshes;
+} r_md3_t;
+
+typedef struct {
+	uint32_t position;
+	uint16_t indices[3];
+} r_obj_vertex_t;
+
+typedef struct {
+	uint32_t verts[3];
+} r_obj_triangle_t;
+
+typedef struct {
+	const char *name;
+
+	uint32_t num_tris;
+} r_obj_group_t;
+
+/*
+ * @brief Object (OBJ) model in-memory representation.
+ */
+typedef struct {
+	GArray *points;
+	GArray *texcoords;
+	GArray *normals;
+	GArray *verts;
+	GArray *tris;
+	GArray *tangents;
+	GArray *groups;
+} r_obj_t;
+
 #endif /* __R_LOCAL_H__ */

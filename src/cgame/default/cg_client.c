@@ -30,7 +30,7 @@
  * @brief Parses a single line of a .skin definition file. Note that, unlike Quake3,
  * our skin paths start with players/, not models/players/.
  */
-static void Cg_LoadClientSkin(r_material_t **skins, const r_md3_t *md3, char *line) {
+static void Cg_LoadClientSkin(r_material_t **skins, const r_mesh_model_t *model, char *line) {
 	int32_t i;
 
 	if (strstr(line, "tag_")) {
@@ -49,8 +49,8 @@ static void Cg_LoadClientSkin(r_material_t **skins, const r_md3_t *md3, char *li
 		return;
 	}
 
-	const r_md3_mesh_t *mesh = md3->meshes;
-	for (i = 0; i < md3->num_meshes; i++, mesh++) {
+	const r_model_mesh_t *mesh = model->meshes;
+	for (i = 0; i < model->num_meshes; i++, mesh++) {
 
 		if (!g_ascii_strcasecmp(mesh_name, mesh->name)) {
 			skins[i] = cgi.LoadMaterial(skin_name, ASSET_CONTEXT_PLAYERS);
@@ -80,7 +80,7 @@ static _Bool Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, cons
 		return false;
 	}
 
-	const r_md3_t *md3 = (r_md3_t *) mod->mesh->data;
+	const r_mesh_model_t *model = mod->mesh;
 
 	i = j = 0;
 	memset(line, 0, sizeof(line));
@@ -92,7 +92,7 @@ static _Bool Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, cons
 
 		if (c == '\n' || c == '\r' || i == len) {
 
-			Cg_LoadClientSkin(skins, md3, g_strstrip(line));
+			Cg_LoadClientSkin(skins, model, g_strstrip(line));
 
 			j = 0;
 			memset(line, 0, sizeof(line));
@@ -101,8 +101,8 @@ static _Bool Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, cons
 
 	// ensure that a skin was resolved for each mesh, nullifying if not
 
-	const r_md3_mesh_t *mesh = md3->meshes;
-	for (i = 0; i < md3->num_meshes; i++, mesh++) {
+	const r_model_mesh_t *mesh = model->meshes;
+	for (i = 0; i < model->num_meshes; i++, mesh++) {
 
 		if (!skins[i]) {
 			cgi.Debug("%s: %s has no skin\n", path, mesh->name);
@@ -337,17 +337,17 @@ static entity_animation_t Cg_NextAnimation(const entity_animation_t a) {
  * and entity. If a non-looping animation has completed, proceed to the next
  * animation in the sequence.
  */
-static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a) {
+static void Cg_AnimateClientEntity_(const r_media_t *media, const r_mesh_model_t *model, cl_entity_animation_t *a) {
 
-	if (a->animation > md3->num_animations) {
-		cgi.Warn("Invalid animation: %s: %d\n", md3->file_name, a->animation);
+	if (a->animation > model->num_animations) {
+		cgi.Warn("Invalid animation: %s: %d\n", media->name, a->animation);
 		return;
 	}
 
-	const r_md3_animation_t *anim = &md3->animations[a->animation];
+	const r_model_animation_t *anim = &model->animations[a->animation];
 
 	if (!anim->num_frames || !anim->hz) {
-		cgi.Warn("Bad animation sequence: %s: %d\n", md3->file_name, a->animation);
+		cgi.Warn("Bad animation sequence: %s: %d\n", media->name, a->animation);
 		return;
 	}
 
@@ -370,7 +370,7 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 			a->animation = next; // or move into the next animation
 			a->time = cgi.client->unclamped_time;
 
-			Cg_AnimateClientEntity_(md3, a);
+			Cg_AnimateClientEntity_(media, model, a);
 			return;
 		}
 
@@ -404,9 +404,9 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 void Cg_AnimateClientEntity(cl_entity_t *ent, r_entity_t *torso, r_entity_t *legs) {
 
 	const cl_client_info_t *ci = &cgi.client->client_info[ent->current.client];
-	const r_md3_t *md3 = (r_md3_t *) ci->torso->mesh->data;
+	const r_mesh_model_t *model = ci->torso->mesh;
 
-	Cg_AnimateClientEntity_(md3, &ent->animation1);
+	Cg_AnimateClientEntity_((r_media_t *) ci->torso, model, &ent->animation1);
 
 	if (torso) {
 		torso->frame = ent->animation1.frame;
@@ -415,7 +415,7 @@ void Cg_AnimateClientEntity(cl_entity_t *ent, r_entity_t *torso, r_entity_t *leg
 		torso->back_lerp = 1.0 - ent->animation1.lerp;
 	}
 
-	Cg_AnimateClientEntity_(md3, &ent->animation2);
+	Cg_AnimateClientEntity_((r_media_t *) ci->torso, model, &ent->animation2);
 
 	if (legs) {
 		legs->frame = ent->animation2.frame;
