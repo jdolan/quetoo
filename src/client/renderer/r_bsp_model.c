@@ -267,11 +267,15 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 
 	file_t *tmp = Fs_OpenAppend("surf.txt");
 
+	Fs_Print(tmp, "mins: %f %f maxs: %f %f scale: %f\n", st_mins[0], st_mins[1], st_maxs[0], st_maxs[1], bsp->lightmap_scale);
+
 	// bump the texture coordinate vectors to ensure we don't split samples
 	for (int32_t i = 0; i < 2; i++) {
 
 		const int32_t bmins = floor(st_mins[i] * bsp->lightmap_scale);
 		const int32_t bmaxs = ceil(st_maxs[i] * bsp->lightmap_scale);
+
+		Fs_Print(tmp, "bmins: %i bmaxs: %i\n", bmins, bmaxs);
 
 		surf->st_mins[i] = bmins / bsp->lightmap_scale;
 		surf->st_maxs[i] = bmaxs / bsp->lightmap_scale;
@@ -279,10 +283,13 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 		surf->st_center[i] = (surf->st_maxs[i] + surf->st_mins[i]) / 2.0;
 
 		const vec_t size = surf->st_maxs[i] - surf->st_mins[i];
-		surf->lightmap_size[i] = (r_pixel_t) ((size * bsp->lightmap_scale) + 1.0);
 
-		Fs_Print(tmp, "%i %f\n", (int32_t) surf->lightmap_size[i], (size * bsp->lightmap_scale) + 1.0);
+		Fs_Print(tmp, "size: %f scaled: %f coerced: %i\n", size, ((size * bsp->lightmap_scale) + 1.0), (r_pixel_t) ((size * bsp->lightmap_scale) + 1.0));
+
+		surf->lightmap_size[i] = (r_pixel_t) ((size * bsp->lightmap_scale) + 1.0);
 	}
+
+	Fs_Print(tmp, "new mins: %f %f new maxs: %f %f center: %f %f\n\n", surf->st_mins[0], surf->st_mins[1], surf->st_maxs[0], surf->st_maxs[1], surf->st_center[0], surf->st_center[1]);
 
 	Fs_Close(tmp);
 }
