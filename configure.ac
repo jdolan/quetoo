@@ -76,6 +76,7 @@ case "$host" in
 		;;
 	*-*-mingw*)
 		HOST_NAME="WINDOWS"
+		HOST_CFLAGS="-mfpmath=sse -msse2"
 		HOST_LIBS="-lws2_32 -lole32"
 		DEFAULT_PREFIX="/"
 		AC_MSG_RESULT(windows)
