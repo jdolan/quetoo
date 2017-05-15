@@ -348,7 +348,7 @@ static void Cg_AnimateClientEntity_(const r_model_t *model, cl_entity_animation_
 	const r_model_animation_t *anim = &mesh->animations[a->animation];
 
 	if (!anim->num_frames || !anim->hz) {
-		cgi.Warn("Bad animation sequence: %s: %d\n", media->name, a->animation);
+		cgi.Warn("Bad animation sequence: %s: %d\n", model->media.name, a->animation);
 		return;
 	}
 
