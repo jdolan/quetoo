@@ -337,14 +337,15 @@ static entity_animation_t Cg_NextAnimation(const entity_animation_t a) {
  * and entity. If a non-looping animation has completed, proceed to the next
  * animation in the sequence.
  */
-static void Cg_AnimateClientEntity_(const r_media_t *media, const r_mesh_model_t *model, cl_entity_animation_t *a) {
+static void Cg_AnimateClientEntity_(const r_model_t *model, cl_entity_animation_t *a) {
+	const r_mesh_model_t *mesh = model->mesh;
 
-	if (a->animation > model->num_animations) {
-		cgi.Warn("Invalid animation: %s: %d\n", media->name, a->animation);
+	if (a->animation > mesh->num_animations) {
+		cgi.Warn("Invalid animation: %s: %d\n", model->media.name, a->animation);
 		return;
 	}
 
-	const r_model_animation_t *anim = &model->animations[a->animation];
+	const r_model_animation_t *anim = &mesh->animations[a->animation];
 
 	if (!anim->num_frames || !anim->hz) {
 		cgi.Warn("Bad animation sequence: %s: %d\n", media->name, a->animation);
@@ -370,7 +371,7 @@ static void Cg_AnimateClientEntity_(const r_media_t *media, const r_mesh_model_t
 			a->animation = next; // or move into the next animation
 			a->time = cgi.client->unclamped_time;
 
-			Cg_AnimateClientEntity_(media, model, a);
+			Cg_AnimateClientEntity_(model, a);
 			return;
 		}
 
@@ -404,9 +405,8 @@ static void Cg_AnimateClientEntity_(const r_media_t *media, const r_mesh_model_t
 void Cg_AnimateClientEntity(cl_entity_t *ent, r_entity_t *torso, r_entity_t *legs) {
 
 	const cl_client_info_t *ci = &cgi.client->client_info[ent->current.client];
-	const r_mesh_model_t *model = ci->torso->mesh;
 
-	Cg_AnimateClientEntity_((r_media_t *) ci->torso, model, &ent->animation1);
+	Cg_AnimateClientEntity_(ci->torso, &ent->animation1);
 
 	if (torso) {
 		torso->frame = ent->animation1.frame;
@@ -415,7 +415,7 @@ void Cg_AnimateClientEntity(cl_entity_t *ent, r_entity_t *torso, r_entity_t *leg
 		torso->back_lerp = 1.0 - ent->animation1.lerp;
 	}
 
-	Cg_AnimateClientEntity_((r_media_t *) ci->torso, model, &ent->animation2);
+	Cg_AnimateClientEntity_(ci->torso, &ent->animation2);
 
 	if (legs) {
 		legs->frame = ent->animation2.frame;
