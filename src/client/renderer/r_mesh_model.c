@@ -684,7 +684,7 @@ static void R_LoadObjGroups(r_model_t *mod, r_obj_t *obj) {
 		out_mesh->num_elements = in_mesh->num_tris * 3;
 
 		for (size_t t = 0; t < in_mesh->num_tris; t++) {
-			const r_obj_triangle_t *tri = &g_array_index(obj->tris, r_obj_triangle_t, tri_offset + t);
+			r_obj_triangle_t *tri = &g_array_index(obj->tris, r_obj_triangle_t, tri_offset + t);
 			
 			g_hash_table_add(unique_hash, &tri->verts[0]);
 			g_hash_table_add(unique_hash, &tri->verts[1]);

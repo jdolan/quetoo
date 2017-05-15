@@ -26,8 +26,9 @@
 #else
 #include <AL/al.h>
 #include <AL/alc.h>
-#include <AL/efx.h>
 #endif
+
+#include "al_efx.h"
 
 #include <SDL2/SDL_rwops.h>
 
