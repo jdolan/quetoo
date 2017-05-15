@@ -1,4 +1,5 @@
 noinst_HEADERS = \
+	al_efx.h \
 	s_local.h \
 	s_main.h \
 	s_media.h \

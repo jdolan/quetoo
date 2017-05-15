@@ -83,6 +83,7 @@
 		CE3BCDCA1DB6DD87002E6C6D /* r_program_null.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3BCDBA1DB6DCE0002E6C6D /* r_program_null.h */; };
 		CE3BCDF01DB91B01002E6C6D /* QuetooRenderer.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3BCDEC1DB91AF7002E6C6D /* QuetooRenderer.c */; };
 		CE3BCDF11DB91B0B002E6C6D /* QuetooRenderer.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3BCDED1DB91AF7002E6C6D /* QuetooRenderer.h */; };
+		CE3D24FE1EC9C73900F67E69 /* al_efx.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3D24FD1EC9C73900F67E69 /* al_efx.h */; };
 		CE3DA5071E575096009B26ED /* EditorView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3DA5051E575096009B26ED /* EditorView.c */; };
 		CE3DA5081E575096009B26ED /* EditorView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3DA5061E575096009B26ED /* EditorView.h */; };
 		CE4898D11D8B9DE100EEACA5 /* libnet.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.dylib */; };
@@ -1360,6 +1361,7 @@
 		CE3BCDEC1DB91AF7002E6C6D /* QuetooRenderer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = QuetooRenderer.c; sourceTree = "<group>"; };
 		CE3BCDED1DB91AF7002E6C6D /* QuetooRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QuetooRenderer.h; sourceTree = "<group>"; };
 		CE3BCDF21DB91B52002E6C6D /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CE3D24FD1EC9C73900F67E69 /* al_efx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = al_efx.h; sourceTree = "<group>"; };
 		CE3DA5051E575096009B26ED /* EditorView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = EditorView.c; sourceTree = "<group>"; };
 		CE3DA5061E575096009B26ED /* EditorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditorView.h; sourceTree = "<group>"; };
 		CE55308B1E57E3670009A127 /* ui_editor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_editor.c; sourceTree = "<group>"; };
@@ -2380,6 +2382,7 @@
 		CE12D5FE1C5C58C300CD0B13 /* sound */ = {
 			isa = PBXGroup;
 			children = (
+				CE3D24FD1EC9C73900F67E69 /* al_efx.h */,
 				CE12D6011C5C58C300CD0B13 /* s_local.h */,
 				CE12D6021C5C58C300CD0B13 /* s_main.c */,
 				CE12D6031C5C58C300CD0B13 /* s_main.h */,
@@ -3026,6 +3029,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE3D24FE1EC9C73900F67E69 /* al_efx.h in Headers */,
 				CE80FE7A1C5E43AC00A21A51 /* zip.h in Headers */,
 				CE80FE791C5E43AC00A21A51 /* ioapi.h in Headers */,
 			);
