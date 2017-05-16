@@ -176,26 +176,25 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
  * @brief Populates hardware light sources with illumination information.
  */
 static void R_ApplyMeshModelLighting_default(const r_entity_t *e) {
-
 	uint16_t i;
-	for (i = 0; i < r_state.max_active_lights; i++) {
 
+	for (i = 0; i < r_state.max_active_lights; i++) {
 		const r_illumination_t *il = &e->lighting->illuminations[i];
 
 		if (il->diffuse == 0.0) {
 			break;
 		}
 
-		r_state.active_program->UseLight(i, &il->light);
+		r_state.active_program->UseLight(i, &r_mesh_state.world_view, &il->light);
 	}
 
 	if (i < r_state.max_active_lights) { // disable the next light as a stop
-		r_state.active_program->UseLight(i, NULL);
+		r_state.active_program->UseLight(i, &r_mesh_state.world_view, NULL);
 	}
 }
 
 /**
- * @brief Sets up the texture for tinting. Do this before UseMaterial.
+ * @brief Sets up the texture for tinting. Do this after UseMaterial.
  */
 static void R_UpdateMeshTints(void) {
 
@@ -210,16 +209,35 @@ static void R_UpdateMeshTints(void) {
 /**
  * @brief Sets renderer state for the specified entity.
  */
-static void R_SetMeshState_default(const r_entity_t *e) {
+static void R_SetModelState_default(const r_entity_t *e) {
 
 	// setup VBO states
 	R_SetArrayState(e->model);
+	
+	if (e->effects & EF_WEAPON) {
+		R_DepthRange(0.0, 0.3);
+	}
+
+	R_RotateForEntity(e);
+
+	// setup lerp for animating models
+	if (e->old_frame != e->frame) {
+		R_UseInterpolation(e->lerp);
+	}
+}
+
+/**
+ * @brief Sets renderer state for the specified mesh.
+ */
+static void R_SetMeshState_default(const r_entity_t *e, const uint16_t mesh_index, const r_model_mesh_t *mesh) {
+
+	r_material_t *material = (r_draw_wireframe->value) ? NULL : ((mesh_index < 32 && e->skins[mesh_index]) ? e->skins[mesh_index] : mesh->material);
+
+	r_mesh_state.material = material;
 
 	if (!r_draw_wireframe->value) {
 
-		r_mesh_state.material = e->skins[0] ? e->skins[0] : e->model->mesh->material;
-
-		R_BindDiffuseTexture(r_mesh_state.material->diffuse->texnum);
+		R_BindDiffuseTexture(material->diffuse->texnum);
 
 		R_SetMeshColor_default(e);
 
@@ -238,30 +256,17 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 		}
 	} else {
 		R_Color(NULL);
-
-		r_mesh_state.material = NULL;
 	}
 
 	R_UseMaterial(r_mesh_state.material);
 
 	R_UpdateMeshTints();
-
-	if (e->effects & EF_WEAPON) {
-		R_DepthRange(0.0, 0.3);
-	}
-
-	R_RotateForEntity(e);
-
-	// setup lerp for animating models
-	if (e->old_frame != e->frame) {
-		R_UseInterpolation(e->lerp);
-	}
 }
 
 /**
  * @brief Restores renderer state for the given entity.
  */
-static void R_ResetMeshState_default(const r_entity_t *e) {
+static void R_ResetModelState_default(const r_entity_t *e) {
 
 	R_RotateForEntity(NULL);
 
@@ -301,17 +306,7 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_mesh_model_t *m
 	const r_model_mesh_t *mesh = model->meshes;
 	for (uint16_t i = 0; i < model->num_meshes; i++, mesh++) {
 
-		if (!r_draw_wireframe->value) {
-			if (i > 0) { // update the diffuse state for the current mesh
-				r_mesh_state.material = e->skins[i] ? e->skins[i] : e->model->mesh->material;
-
-				R_BindDiffuseTexture(r_mesh_state.material->diffuse->texnum);
-
-				R_UseMaterial(r_mesh_state.material);
-
-				R_UpdateMeshTints();
-			}
-		}
+		R_SetMeshState_default(e, i, mesh);
 
 		if (!R_DrawMeshDiffuse_default()) {
 			offset += mesh->num_elements;
@@ -333,17 +328,7 @@ static void R_DrawMeshPartsMaterials_default(const r_entity_t *e, const r_mesh_m
 	const r_model_mesh_t *mesh = model->meshes;
 	for (uint16_t i = 0; i < model->num_meshes; i++, mesh++) {
 
-		if (!r_draw_wireframe->value) {
-			if (i > 0) { // update the diffuse state for the current mesh
-				r_mesh_state.material = e->skins[i] ? e->skins[i] : e->model->mesh->material;
-
-				R_BindDiffuseTexture(r_mesh_state.material->diffuse->texnum);
-
-				R_UseMaterial(r_mesh_state.material);
-
-				R_UpdateMeshTints();
-			}
-		}
+		R_SetMeshState_default(e, i, mesh);
 
 		R_DrawMeshMaterial(r_mesh_state.material, offset, mesh->num_elements);
 
@@ -356,16 +341,20 @@ static void R_DrawMeshPartsMaterials_default(const r_entity_t *e, const r_mesh_m
  */
 void R_DrawMeshModel_default(const r_entity_t *e) {
 
+	if (strstr(e->model->media.name, "hyperblaster")) {
+		Com_Debug(DEBUG_RENDERER, "");
+	}
+
 	r_view.current_entity = e;
 
-	R_SetMeshState_default(e);
+	R_SetModelState_default(e);
 
 	R_DrawMeshParts_default(e, e->model->mesh);
 
 	r_view.num_mesh_tris += e->model->num_tris;
 	r_view.num_mesh_models++;
 
-	R_ResetMeshState_default(e); // reset state
+	R_ResetModelState_default(e); // reset state
 }
 
 /**
@@ -377,13 +366,17 @@ void R_DrawMeshModelMaterials_default(const r_entity_t *e) {
 		return;
 	}
 
+	if (strstr(e->model->media.name, "hyperblaster")) {
+		Com_Debug(DEBUG_RENDERER, "");
+	}
+
 	r_view.current_entity = e;
 
-	R_SetMeshState_default(e);
-
+	R_SetModelState_default(e);
+	
 	R_DrawMeshPartsMaterials_default(e, e->model->mesh);
 
-	R_ResetMeshState_default(e); // reset state
+	R_ResetModelState_default(e); // reset state
 }
 
 /**
@@ -392,6 +385,8 @@ void R_DrawMeshModelMaterials_default(const r_entity_t *e) {
 void R_DrawMeshModels_default(const r_entities_t *ents) {
 
 	R_EnableLighting(program_default, true);
+
+	R_GetMatrix(R_MATRIX_MODELVIEW, &r_mesh_state.world_view);
 
 	if (r_draw_wireframe->value) {
 		R_BindDiffuseTexture(r_image_state.null->texnum);

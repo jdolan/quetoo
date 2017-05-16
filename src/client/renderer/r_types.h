@@ -629,6 +629,8 @@ typedef struct {
 	uint16_t num_verts;
 	uint16_t num_tris;
 	uint32_t num_elements;
+
+	r_material_t *material;
 } r_model_mesh_t;
 
 typedef struct {
@@ -714,8 +716,6 @@ typedef struct {
 	r_model_tag_t *tags;
 	r_model_mesh_t *meshes;
 	r_model_animation_t *animations;
-
-	r_material_t *material;
 
 	r_mesh_config_t world_config;
 	r_mesh_config_t view_config;
@@ -1166,7 +1166,8 @@ typedef struct {
 } r_obj_triangle_t;
 
 typedef struct {
-	const char *name;
+	char name[MAX_QPATH];
+	char material[MAX_QPATH];
 
 	uint32_t num_tris;
 } r_obj_group_t;

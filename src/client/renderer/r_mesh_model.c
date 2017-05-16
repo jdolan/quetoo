@@ -23,6 +23,49 @@
 #include "parse.h"
 
 /**
+ * @brief Resolves a material for the specified mesh model.
+ * @remarks First, it will attempt to use the material explicitly designated on the mesh, if
+ * one exists. If that material is not found, it will attempt to load a material based on the mesh's name.
+ * Finally, if that fails, it will fall back to using model path + "skin".
+ */
+static r_material_t *R_ResolveModelMaterial(const r_model_t *mod, const r_model_mesh_t *mesh, const char *mesh_material) {
+	char path[MAX_QPATH];
+	r_material_t *material;
+	
+	// try explicit material
+	if (mesh_material != NULL && mesh_material[0]) {
+		material = R_FindMaterial(mesh_material, ASSET_CONTEXT_MODELS);
+		
+		if (material) {
+			return material;
+		}
+
+		Com_Debug(DEBUG_RENDERER, "Couldn't resolve explicit material \"%s\"\n", mesh_material);
+	}
+
+	// try implicit mesh name
+	if (mesh->name[0]) {
+		Dirname(mod->media.name, path);
+		g_strlcat(path, mesh->name, sizeof(path));
+
+		material = R_FindMaterial(path, ASSET_CONTEXT_MODELS);
+
+		if (material) {
+			return material;
+		}
+
+		Com_Debug(DEBUG_RENDERER, "Couldn't resolve implicit mesh material \"%s\"\n", mesh->name);
+	}
+
+	// fall back to "skin", which will have been force-loaded by
+	// R_LoadModelMaterials
+	Dirname(mod->media.name, path);
+	g_strlcat(path, "skin", sizeof(path));
+
+	return R_FindMaterial(path, ASSET_CONTEXT_MODELS);
+}
+
+/**
  * @brief Parses animation.cfg, loading the frame specifications for the given model.
  */
 static void R_LoadMd3Animations(r_model_t *mod, r_md3_t *md3) {
@@ -451,6 +494,9 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 		Com_Error(ERROR_DROP, "%s has too many meshes\n", mod->media.name);
 	}
 
+	// load materials first, so meshes can resolve them
+	R_LoadModelMaterials(mod);
+
 	// load the frames
 	in_frame = (d_md3_frame_t *) ((byte *) in_md3 + in_md3->ofs_frames);
 	size = mod->mesh->num_frames * sizeof(d_md3_frame_t);
@@ -515,8 +561,13 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 		in_mesh->ofs_verts = LittleLong(in_mesh->ofs_verts);
 		in_mesh->size = LittleLong(in_mesh->size);
 
+		in_mesh->num_skins = LittleLong(in_mesh->num_skins);
 		out_mesh->num_tris = LittleLong(in_mesh->num_tris);
 		out_mesh->num_verts = LittleLong(in_mesh->num_verts);
+
+		if (in_mesh->num_skins > MD3_MAX_SHADERS) {
+			Com_Error(ERROR_DROP, "%s: %s has too many shaders", mod->media.name, out_mesh->name);
+		}
 
 		if (out_mesh->num_tris > MD3_MAX_TRIANGLES) {
 			Com_Error(ERROR_DROP, "%s: %s has too many triangles\n", mod->media.name, out_mesh->name);
@@ -525,6 +576,16 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 		if (out_mesh->num_verts > MD3_MAX_VERTS) {
 			Com_Error(ERROR_DROP, "%s: %s has too many vertexes\n", mod->media.name, out_mesh->name);
 		}
+
+		// load the first shader, if it exists
+		const char *shader_name = NULL;
+
+		if (in_mesh->num_skins) {
+			d_md3_skin_t *skin = (d_md3_skin_t *) ((byte *) in_mesh + in_mesh->ofs_skins);
+			shader_name = skin->name;
+		}
+
+		out_mesh->material = R_ResolveModelMaterial(mod, out_mesh, shader_name);
 
 		// load the triangle indexes
 		inindex = (uint32_t *) ((byte *) in_mesh + in_mesh->ofs_tris);
@@ -581,9 +642,6 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 		in_mesh = (d_md3_mesh_t *) ((byte *) in_mesh + in_mesh->size);
 	}
 
-	// load materials
-	R_LoadModelMaterials(mod);
-
 	// and animations for player models
 	if (strstr(mod->media.name, "/upper")) {
 		R_LoadMd3Animations(mod, out_md3);
@@ -636,14 +694,15 @@ static void R_BeginObjGroup(r_obj_t *obj, const char *name) {
 	r_obj_group_t *current = &g_array_index(obj->groups, r_obj_group_t, obj->groups->len - 1);
 
 	if (!current->num_tris) {
-		current->name = name;
+		g_strlcpy(current->name, name, sizeof(current->name));
 		return;
 	}
 
-	obj->groups = g_array_append_vals(obj->groups, &(const r_obj_group_t) {
-		.name = name,
-		.num_tris = 0
-	}, 1);
+	r_obj_group_t group;
+	memset(&group, 0, sizeof(group));
+	g_strlcpy(group.name, name, sizeof(group.name));
+
+	obj->groups = g_array_append_val(obj->groups, group);
 }
 
 /**
@@ -693,6 +752,8 @@ static void R_LoadObjGroups(r_model_t *mod, r_obj_t *obj) {
 
 		out_mesh->num_verts = g_hash_table_size(unique_hash);
 		tri_offset += in_mesh->num_tris;
+
+		out_mesh->material = R_ResolveModelMaterial(mod, out_mesh, in_mesh->material);
 	}
 
 	g_hash_table_destroy(unique_hash);
@@ -703,9 +764,15 @@ static void R_LoadObjGroups(r_model_t *mod, r_obj_t *obj) {
  */
 static void R_LoadObjPrimitive(r_model_t *mod, r_obj_t *obj, const char *line) {
 
-	if (g_str_has_prefix(line, "g ")) { // vertex
+	r_obj_group_t *current = &g_array_index(obj->groups, r_obj_group_t, obj->groups->len - 1);
 
-		R_BeginObjGroup(obj, line + 2);
+	if (g_str_has_prefix(line, "g ")) { // group
+
+		R_BeginObjGroup(obj, line + strlen("g "));
+
+	} else if (g_str_has_prefix(line, "usemtl ")) { // material
+
+		g_strlcpy(current->material, line + strlen("usemtl "), sizeof(current->material));
 
 	} else if (g_str_has_prefix(line, "v ")) { // vertex
 
@@ -746,7 +813,6 @@ static void R_LoadObjPrimitive(r_model_t *mod, r_obj_t *obj, const char *line) {
 	} else if (g_str_has_prefix(line, "f ")) { // face
 
 		static GArray *verts = NULL;
-		r_obj_group_t *current = &g_array_index(obj->groups, r_obj_group_t, obj->groups->len - 1);
 
 		if (verts == NULL)
 			verts = g_array_sized_new(false, false, sizeof(uint32_t), 3);
@@ -1091,6 +1157,9 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
  * @brief
  */
 void R_LoadObjModel(r_model_t *mod, void *buffer) {
+
+	// load materials first, so meshes can resolve them
+	R_LoadModelMaterials(mod);
 	
 	mod->mesh = Mem_LinkMalloc(sizeof(r_mesh_model_t), mod);
 
@@ -1110,6 +1179,7 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 
 	obj->groups = g_array_append_vals(obj->groups, &(const r_obj_group_t) {
 		.name = "",
+		.material = "",
 		.num_tris = 0
 	}, 1);
 
@@ -1125,9 +1195,6 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 
 	// calculate tangents
 	R_LoadObjTangents(mod, obj);
-
-	// load the material
-	R_LoadModelMaterials(mod);
 
 	// and configs
 	R_LoadMeshConfigs(mod);

@@ -67,7 +67,10 @@ static void R_RegisterModel(r_media_t *self) {
 		r_model_state.world = mod;
 
 	} else if (IS_MESH_MODEL(mod)) {
-		R_RegisterDependency(self, (r_media_t *) mod->mesh->material);
+
+		for (uint16_t i = 0; i < mod->mesh->num_meshes; i++) {
+			R_RegisterDependency(self, (r_media_t *) mod->mesh->meshes[i].material);
+		}
 	}
 }
 
