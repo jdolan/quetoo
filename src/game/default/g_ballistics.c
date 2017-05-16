@@ -953,6 +953,7 @@ void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir
 	projectile->locals.damage = damage;
 	projectile->locals.next_think = g_level.time + 1;
 	projectile->locals.timestamp = g_level.time;
+	projectile->locals.water_level = WATER_NONE;
 }
 
 /**
