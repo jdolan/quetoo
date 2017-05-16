@@ -30,6 +30,7 @@ const r_model_tag_t *R_MeshModelTag(const r_model_t *mod, const char *name, cons
 #ifdef __R_LOCAL_H__
 typedef struct {
 	r_material_t *material;
+	matrix4x4_t world_view; // the modelview matrix pre-entity rotation
 	vec4_t color; // the last color we bound
 } r_mesh_state_t;
 

@@ -113,7 +113,7 @@ typedef struct {
 	void (*UseEntity)(const r_entity_t *e);
 	void (*UseShadow)(const r_shadow_t *s);
 	void (*UseFog)(const r_fog_parameters_t *fog);
-	void (*UseLight)(const uint16_t light_index, const r_light_t *light);
+	void (*UseLight)(const uint16_t light_index, const matrix4x4_t *world_view, const r_light_t *light);
 	void (*UseCaustic)(const r_caustic_parameters_t *caustic);
 	void (*MatricesChanged)();
 	void (*UseAlphaTest)(const vec_t threshold);

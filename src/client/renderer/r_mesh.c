@@ -302,8 +302,8 @@ static _Bool R_DrawMeshDiffuse_default(void) {
  */
 static void R_DrawMeshParts_default(const r_entity_t *e, const r_mesh_model_t *model) {
 	uint32_t offset = 0;
-
 	const r_model_mesh_t *mesh = model->meshes;
+
 	for (uint16_t i = 0; i < model->num_meshes; i++, mesh++) {
 
 		R_SetMeshState_default(e, i, mesh);
@@ -324,8 +324,8 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_mesh_model_t *m
  */
 static void R_DrawMeshPartsMaterials_default(const r_entity_t *e, const r_mesh_model_t *model) {
 	uint32_t offset = 0;
-
 	const r_model_mesh_t *mesh = model->meshes;
+
 	for (uint16_t i = 0; i < model->num_meshes; i++, mesh++) {
 
 		R_SetMeshState_default(e, i, mesh);
@@ -340,10 +340,6 @@ static void R_DrawMeshPartsMaterials_default(const r_entity_t *e, const r_mesh_m
  * @brief Draws the mesh model for the given entity. This only draws the base model.
  */
 void R_DrawMeshModel_default(const r_entity_t *e) {
-
-	if (strstr(e->model->media.name, "hyperblaster")) {
-		Com_Debug(DEBUG_RENDERER, "");
-	}
 
 	r_view.current_entity = e;
 
@@ -364,10 +360,6 @@ void R_DrawMeshModelMaterials_default(const r_entity_t *e) {
 
 	if (r_draw_wireframe->value || !r_materials->value) {
 		return;
-	}
-
-	if (strstr(e->model->media.name, "hyperblaster")) {
-		Com_Debug(DEBUG_RENDERER, "");
 	}
 
 	r_view.current_entity = e;
