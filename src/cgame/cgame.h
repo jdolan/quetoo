@@ -625,7 +625,7 @@ typedef struct cg_import_s {
 	 * @param frame The frame to fetch the tag on.
 	 * @return The tag structure.
 	 */
-	const r_md3_tag_t *(*MeshModelTag)(const r_model_t *mod, const char *name, const int32_t frame);
+	const r_model_tag_t *(*MeshModelTag)(const r_model_t *mod, const char *name, const int32_t frame);
 
 	/**
 	 * @brief Change the matrix identified by "id" with the values from "matrix".

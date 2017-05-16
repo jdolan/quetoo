@@ -31,8 +31,8 @@ typedef struct {
 } r_model_format_t;
 
 static const r_model_format_t r_model_formats[] = { // supported model formats
-	{ ".obj", MOD_OBJ, R_LoadObjModel, MEDIA_OBJ },
-	{ ".md3", MOD_MD3, R_LoadMd3Model, MEDIA_MD3 },
+	{ ".obj", MOD_MESH, R_LoadObjModel, MEDIA_OBJ },
+	{ ".md3", MOD_MESH, R_LoadMd3Model, MEDIA_MD3 },
 	{ ".bsp", MOD_BSP, R_LoadBspModel, MEDIA_BSP }
 };
 
@@ -67,7 +67,10 @@ static void R_RegisterModel(r_media_t *self) {
 		r_model_state.world = mod;
 
 	} else if (IS_MESH_MODEL(mod)) {
-		R_RegisterDependency(self, (r_media_t *) mod->mesh->material);
+
+		for (uint16_t i = 0; i < mod->mesh->num_meshes; i++) {
+			R_RegisterDependency(self, (r_media_t *) mod->mesh->meshes[i].material);
+		}
 	}
 }
 

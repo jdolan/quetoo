@@ -181,6 +181,7 @@ void R_EnableLights(uint64_t mask) {
 
 	r_locals.light_mask = mask;
 	uint16_t j = 0;
+	const matrix4x4_t *world_view = R_GetMatrixPtr(R_MATRIX_MODELVIEW);
 
 	if (mask) { // enable up to MAX_ACTIVE_LIGHT sources
 		const r_light_t *l = r_view.lights;
@@ -193,13 +194,13 @@ void R_EnableLights(uint64_t mask) {
 
 			const uint64_t bit = ((uint64_t ) 1 << i);
 			if (mask & bit) {
-				r_state.active_program->UseLight(j, l);
+				r_state.active_program->UseLight(j, world_view, l);
 				j++;
 			}
 		}
 	}
 
 	if (j < r_state.max_active_lights) { // disable the next light as a stop
-		r_state.active_program->UseLight(j, NULL);
+		r_state.active_program->UseLight(j, world_view, NULL);
 	}
 }

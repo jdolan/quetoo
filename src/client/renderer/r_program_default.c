@@ -265,13 +265,12 @@ void R_UseFog_default(const r_fog_parameters_t *fog) {
 /**
  * @brief
  */
-void R_UseLight_default(const uint16_t light_index, const r_light_t *light) {
+void R_UseLight_default(const uint16_t light_index, const matrix4x4_t *world_view, const r_light_t *light) {
 	r_default_program_t *p = &r_default_program;
 
 	if (light && light->radius) {
 		vec3_t origin;
-		const matrix4x4_t *modelview = R_GetMatrixPtr(R_MATRIX_MODELVIEW);
-		Matrix4x4_Transform(modelview, light->origin, origin);
+		Matrix4x4_Transform(world_view, light->origin, origin);
 
 		R_ProgramParameter3fv(&p->lights[light_index].origin, origin);
 		R_ProgramParameter3fv(&p->lights[light_index].color, light->color);

@@ -910,24 +910,40 @@ static void R_ResolveMaterialStages(r_material_t *material, cm_asset_context_t c
 }
 
 /**
- * @brief Loads the r_material_t from the specified texture.
+ * @brief Finds an existing r_material_t from the specified texture, and registers it again if it exists.
  */
-r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
-	cm_material_t *mat = Cm_AllocMaterial(name);
-
+r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context) {
 	char key[MAX_QPATH];
-	R_MaterialKey(mat->name, key, sizeof(key), context);
+	char mat_name[MAX_QPATH];
+	
+	StripExtension(name, mat_name);
+
+	R_MaterialKey(mat_name, key, sizeof(key), context);
 
 	r_material_t *material = (r_material_t *) R_FindMedia(key);
 
-	if (material == NULL) {
-		material = R_ResolveMaterial(mat, context);
-		R_ResolveMaterialStages(material, context);
-	} else {
-		Cm_FreeMaterial(mat);
+	if (material != NULL) {
+		R_RegisterMedia((r_media_t *) material);
 	}
 
-	R_RegisterMedia((r_media_t *) material);
+	return material;
+}
+
+/**
+ * @brief Loads the r_material_t from the specified texture.
+ */
+r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
+	r_material_t *material = R_FindMaterial(name, context);
+
+	if (material == NULL) {
+		cm_material_t *mat = Cm_AllocMaterial(name);
+
+		material = R_ResolveMaterial(mat, context);
+
+		R_ResolveMaterialStages(material, context);
+
+		R_RegisterMedia((r_media_t *) material);
+	}
 
 	return material;
 }
@@ -1015,10 +1031,6 @@ static void R_LoadMeshMaterials(r_model_t *mod, GList **materials) {
 
 		assert(materials);
 	}
-
-	if (*materials) {
-		mod->mesh->material = (r_material_t *) (*materials)->data;
-	}
 }
 
 /**
@@ -1031,8 +1043,7 @@ void R_LoadModelMaterials(r_model_t *mod) {
 		case MOD_BSP:
 			R_LoadBspMaterials(mod, &materials);
 			break;
-		case MOD_OBJ:
-		case MOD_MD3:
+		case MOD_MESH:
 			R_LoadMeshMaterials(mod, &materials);
 			break;
 		default:

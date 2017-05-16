@@ -154,7 +154,7 @@ void Cg_Interpolate(const cl_frame_t *frame) {
  */
 void Cg_ApplyMeshModelTag(r_entity_t *child, const r_entity_t *parent, const char *tag_name) {
 
-	if (!parent || !parent->model || parent->model->type != MOD_MD3) {
+	if (!parent || !parent->model || parent->model->type != MOD_MESH) {
 		cgi.Warn("Invalid parent entity\n");
 		return;
 	}
@@ -166,8 +166,8 @@ void Cg_ApplyMeshModelTag(r_entity_t *child, const r_entity_t *parent, const cha
 
 	// interpolate the tag over the frames of the parent entity
 
-	const r_md3_tag_t *t1 = cgi.MeshModelTag(parent->model, tag_name, parent->old_frame);
-	const r_md3_tag_t *t2 = cgi.MeshModelTag(parent->model, tag_name, parent->frame);
+	const r_model_tag_t *t1 = cgi.MeshModelTag(parent->model, tag_name, parent->old_frame);
+	const r_model_tag_t *t2 = cgi.MeshModelTag(parent->model, tag_name, parent->frame);
 
 	if (!t1 || !t2) {
 		return;

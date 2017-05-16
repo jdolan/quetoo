@@ -196,13 +196,13 @@ static void updateBindings(View *self) {
 /**
  * @brief Runs the animation, proceeding to the next in the sequence upon completion.
  */
-static void animate_(const r_md3_t *md3, cl_entity_animation_t *a, r_entity_t *e) {
+static void animate_(const r_mesh_model_t *model, cl_entity_animation_t *a, r_entity_t *e) {
 
 	e->frame = e->old_frame = 0;
 	e->lerp = 1.0;
 	e->back_lerp = 0.0;
 
-	const r_md3_animation_t *anim = &md3->animations[a->animation];
+	const r_model_animation_t *anim = &model->animations[a->animation];
 
 	const uint32_t frameTime = 1500 / anim->hz;
 	const uint32_t animationTime = anim->num_frames * frameTime;
@@ -221,7 +221,7 @@ static void animate_(const r_md3_t *md3, cl_entity_animation_t *a, r_entity_t *e
 
 		a->time = cgi.client->unclamped_time;
 
-		animate_(md3, a, e);
+		animate_(model, a, e);
 		return;
 	}
 
@@ -253,10 +253,10 @@ static void animate_(const r_md3_t *md3, cl_entity_animation_t *a, r_entity_t *e
  */
 static void animate(PlayerModelView *self) {
 
-	const r_md3_t *md3 = (r_md3_t *) self->torso.model->mesh->data;
+	const r_mesh_model_t *model = self->torso.model->mesh;
 
-	animate_(md3, &self->animation1, &self->torso);
-	animate_(md3, &self->animation2, &self->legs);
+	animate_(model, &self->animation1, &self->torso);
+	animate_(model, &self->animation2, &self->legs);
 
 	self->head.frame = 0;
 	self->head.lerp = 1.0;
