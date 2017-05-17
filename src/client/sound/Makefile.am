@@ -1,5 +1,5 @@
 noinst_HEADERS = \
-	al_efx.h \
+	s_al_ext.h \
 	s_local.h \
 	s_main.h \
 	s_media.h \
@@ -13,6 +13,7 @@ noinst_LTLIBRARIES = \
 	libsound.la
 
 libsound_la_SOURCES = \
+	s_al_ext.c \
 	s_main.c \
 	s_media.c \
 	s_mix.c \
