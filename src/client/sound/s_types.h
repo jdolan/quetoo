@@ -28,13 +28,14 @@
 #include <AL/alc.h>
 #endif
 
-#include "al_efx.h"
+#include "s_al_ext.h"
 
 #include <SDL2/SDL_rwops.h>
 
 #include <sndfile.h>
 
 #include "common.h"
+#include "filesystem.h"
 #include "sys.h"
 
 typedef enum {
@@ -94,8 +95,7 @@ typedef struct s_music_s {
 	s_media_t media;
 	SF_INFO info;
 	SNDFILE *snd;
-	SDL_RWops *rw;
-	void *buffer;
+	file_t *file;
 	_Bool eof; // whether we're out of samples or not
 } s_music_t;
 
@@ -125,6 +125,10 @@ typedef struct s_env_s {
 	 */
 	ALCcontext *context;
 
+	const char *renderer;
+	const char *vendor;
+	const char *version;
+
 	size_t raw_sample_buffer_size;
 	vec_t *raw_sample_buffer;
 	
@@ -152,20 +156,8 @@ typedef struct s_env_s {
 
 #ifdef __S_LOCAL_H__
 extern SF_VIRTUAL_IO s_rwops_io;
+extern SF_VIRTUAL_IO s_physfs_io;
 
 extern cvar_t *s_doppler;
 extern cvar_t *s_effects;
-
-extern LPALGENFILTERS alGenFilters;
-extern LPALDELETEFILTERS alDeleteFilters;
-extern LPALFILTERI alFilteri;
-extern LPALFILTERF alFilterf;
-extern LPALGENEFFECTS alGenEffects;
-extern LPALDELETEEFFECTS alDeleteEffects;
-extern LPALEFFECTI alEffecti;
-extern LPALEFFECTF alEffectf;
-extern LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots;
-extern LPALDELETEAUXILIARYEFFECTSLOTS alDeleteAuxiliaryEffectSlots;
-extern LPALAUXILIARYEFFECTSLOTI alAuxiliaryEffectSloti;
-extern LPALAUXILIARYEFFECTSLOTF alAuxiliaryEffectSlotf;
 #endif /* __S_LOCAL_H__ */
