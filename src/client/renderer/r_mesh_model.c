@@ -31,11 +31,11 @@
 static r_material_t *R_ResolveModelMaterial(const r_model_t *mod, const r_model_mesh_t *mesh, const char *mesh_material) {
 	char path[MAX_QPATH];
 	r_material_t *material;
-	
+
 	// try explicit material
 	if (mesh_material != NULL && mesh_material[0]) {
 		material = R_FindMaterial(mesh_material, ASSET_CONTEXT_MODELS);
-		
+
 		if (material) {
 			return material;
 		}
@@ -162,7 +162,7 @@ static void R_LoadMd3Animations(r_model_t *mod, r_md3_t *md3) {
 		// skip unknown directives until we reach newline
 		Parse_SkipToken(&parser, PARSE_DEFAULT);
 
-		while (true) { 
+		while (true) {
 			if (!Parse_SkipToken(&parser, PARSE_DEFAULT | PARSE_NO_WRAP)) {
 				break;
 			}
@@ -195,7 +195,7 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 		}
 
 		if (!g_strcmp0(token, "translate")) {
-			
+
 			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, config->translate, 3) != 3) {
 				break;
 			}
@@ -370,7 +370,7 @@ static void R_LoadMd3VertexArrays(r_model_t *mod, r_md3_t *md3) {
 	const size_t vert_size = mod->num_verts * sizeof(r_md3_interleave_vertex_t);
 	const size_t texcoord_size = mod->num_verts * sizeof(vec2_t);
 	const size_t elem_size = mod->num_elements * sizeof(uint32_t);
-	
+
 	r_md3_interleave_vertex_t *vertexes = Mem_Malloc(vert_size);
 	u16vec_t *texcoords = Mem_Malloc(texcoord_size);
 	uint32_t *tris = Mem_Malloc(elem_size);
@@ -474,7 +474,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 	in_md3->ofs_tags = LittleLong(in_md3->ofs_tags);
 	in_md3->ofs_meshes = LittleLong(in_md3->ofs_meshes);
 
-	mod->mesh->num_frames = mod->mesh->num_frames = LittleLong(in_md3->num_frames);
+	mod->mesh->num_frames = LittleLong(in_md3->num_frames);
 	mod->mesh->num_tags = LittleLong(in_md3->num_tags);
 	mod->mesh->num_meshes = LittleLong(in_md3->num_meshes);
 
@@ -681,7 +681,7 @@ static size_t R_ObjVertexForIndices(r_model_t *mod, r_obj_t *obj, const uint16_t
 	memcpy(v.indices, indices, sizeof(v.indices));
 
 	v.position = obj->verts->len;
-	
+
 	obj->verts = g_array_append_val(obj->verts, v);
 
 	return v.position;
@@ -710,7 +710,7 @@ static void R_BeginObjGroup(r_obj_t *obj, const char *name) {
  */
 static void R_EndObjGroup(r_obj_t *obj) {
 	r_obj_group_t *current = &g_array_index(obj->groups, r_obj_group_t, obj->groups->len - 1);
-	
+
 	if (!current->num_tris) {
 		obj->groups = g_array_set_size(obj->groups, obj->groups->len - 1);
 	}
@@ -724,7 +724,7 @@ static void R_LoadObjGroups(r_model_t *mod, r_obj_t *obj) {
 	R_EndObjGroup(obj);
 
 	mod->mesh->num_meshes = obj->groups->len;
-	
+
 	const size_t size = mod->mesh->num_meshes * sizeof(r_model_mesh_t);
 
 	mod->mesh->meshes = Mem_LinkMalloc(size, mod->mesh);
@@ -744,7 +744,7 @@ static void R_LoadObjGroups(r_model_t *mod, r_obj_t *obj) {
 
 		for (size_t t = 0; t < in_mesh->num_tris; t++) {
 			r_obj_triangle_t *tri = &g_array_index(obj->tris, r_obj_triangle_t, tri_offset + t);
-			
+
 			g_hash_table_add(unique_hash, &tri->verts[0]);
 			g_hash_table_add(unique_hash, &tri->verts[1]);
 			g_hash_table_add(unique_hash, &tri->verts[2]);
@@ -913,11 +913,11 @@ static void R_LoadObjTangents(r_model_t *mod, r_obj_t *obj) {
 		const r_obj_vertex_t *rv0 = &g_array_index(obj->verts, r_obj_vertex_t, tri->verts[0]);
 		const r_obj_vertex_t *rv1 = &g_array_index(obj->verts, r_obj_vertex_t, tri->verts[1]);
 		const r_obj_vertex_t *rv2 = &g_array_index(obj->verts, r_obj_vertex_t, tri->verts[2]);
-		
+
 		const vec_t *v0 = g_array_index(obj->points, vec3_t, rv0->indices[0] - 1);
 		const vec_t *v1 = g_array_index(obj->points, vec3_t, rv1->indices[0] - 1);
 		const vec_t *v2 = g_array_index(obj->points, vec3_t, rv2->indices[0] - 1);
-		
+
 		const vec_t *st0 = g_array_index(obj->texcoords, vec2_t, rv0->indices[1] - 1);
 		const vec_t *st1 = g_array_index(obj->texcoords, vec2_t, rv1->indices[1] - 1);
 		const vec_t *st2 = g_array_index(obj->texcoords, vec2_t, rv2->indices[1] - 1);
@@ -1109,7 +1109,7 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 
 	r_obj_interleave_vertex_t *vout = verts;
 	GLuint *eout = elements;
-	
+
 	for (uint32_t i = 0; i < obj->verts->len; i++) {
 		const r_obj_vertex_t *ve = &g_array_index(obj->verts, r_obj_vertex_t, i);
 
@@ -1128,7 +1128,7 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 
 		vout++;
 	}
-	
+
 	for (uint32_t i = 0; i < obj->tris->len; i++) {
 		const r_obj_triangle_t *te = &g_array_index(obj->tris, r_obj_triangle_t, i);
 
@@ -1160,7 +1160,7 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 
 	// load materials first, so meshes can resolve them
 	R_LoadModelMaterials(mod);
-	
+
 	mod->mesh = Mem_LinkMalloc(sizeof(r_mesh_model_t), mod);
 
 	r_obj_t *obj = Mem_LinkMalloc(sizeof(r_obj_t), mod->mesh);
@@ -1168,7 +1168,7 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 	mod->mesh->num_frames = 1;
 
 	ClearBounds(mod->mins, mod->maxs);
-	
+
 	obj->verts = g_array_new(false, false, sizeof(r_obj_vertex_t));
 	obj->points = g_array_new(false, false, sizeof(vec3_t));
 	obj->texcoords = g_array_new(false, false, sizeof(vec2_t));
@@ -1201,7 +1201,7 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 
 	// and finally the arrays
 	R_LoadObjVertexArrays(mod, obj);
-	
+
 	g_array_free(obj->verts, true);
 	g_array_free(obj->points, true);
 	g_array_free(obj->texcoords, true);
@@ -1212,4 +1212,3 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 
 	Mem_Free(obj);
 }
-
