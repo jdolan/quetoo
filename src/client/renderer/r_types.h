@@ -1138,16 +1138,15 @@ typedef struct {
 } r_context_t;
 
 #ifdef __R_LOCAL_H__
-
+/**
+ * @brief Quake3 (MD3) model in-memory representation.
+ */
 typedef struct {
 	uint32_t *tris;
 	r_model_vertex_t *verts;
 	d_md3_texcoord_t *coords;
 } r_md3_mesh_t;
 
-/**
- * @brief Quake3 (MD3) model in-memory representation.
- */
 typedef struct {
 	uint16_t num_verts;
 	uint16_t num_tris;
@@ -1156,14 +1155,20 @@ typedef struct {
 	r_md3_mesh_t *meshes;
 } r_md3_t;
 
+/*
+ * @brief Object (OBJ) model in-memory representation.
+ */
 typedef struct {
 	uint32_t position;
 	uint16_t indices[3];
+
+	vec_t *point;
+	vec_t *texcoords;
+	vec_t *normal;
+	vec4_t tangent;
 } r_obj_vertex_t;
 
-typedef struct {
-	uint32_t verts[3];
-} r_obj_triangle_t;
+typedef uint32_t r_obj_triangle_t[3];
 
 typedef struct {
 	char name[MAX_QPATH];
@@ -1172,17 +1177,25 @@ typedef struct {
 	uint32_t num_tris;
 } r_obj_group_t;
 
-/*
- * @brief Object (OBJ) model in-memory representation.
- */
 typedef struct {
-	GArray *points;
-	GArray *texcoords;
-	GArray *normals;
+	uint32_t num_points;
+	uint32_t num_texcoords;
+	uint32_t num_normals;
+	uint32_t num_tris;
+	uint32_t num_groups;
+
+	vec3_t *points;
+	uint32_t cur_point;
+	vec2_t *texcoords;
+	uint32_t cur_texcoord;
+	vec3_t *normals;
+	uint32_t cur_normal;
+	r_obj_group_t *groups;
+	uint32_t cur_group;
+	r_obj_triangle_t *tris;
+	uint32_t cur_tris;
+	
 	GArray *verts;
-	GArray *tris;
-	GArray *tangents;
-	GArray *groups;
 } r_obj_t;
 
 #endif /* __R_LOCAL_H__ */

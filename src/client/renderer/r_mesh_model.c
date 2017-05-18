@@ -681,6 +681,9 @@ static size_t R_ObjVertexForIndices(r_model_t *mod, r_obj_t *obj, const uint16_t
 	memcpy(v.indices, indices, sizeof(v.indices));
 
 	v.position = obj->verts->len;
+	v.point = (vec_t *) &obj->points[indices[0] - 1];
+	v.texcoords = (vec_t *) &obj->texcoords[indices[1] - 1];
+	v.normal = (vec_t *) &obj->normals[indices[2] - 1];
 
 	obj->verts = g_array_append_val(obj->verts, v);
 
@@ -691,29 +694,16 @@ static size_t R_ObjVertexForIndices(r_model_t *mod, r_obj_t *obj, const uint16_t
  * @brief
  */
 static void R_BeginObjGroup(r_obj_t *obj, const char *name) {
-	r_obj_group_t *current = &g_array_index(obj->groups, r_obj_group_t, obj->groups->len - 1);
-
+	r_obj_group_t *current = &obj->groups[obj->cur_group];
+	
 	if (!current->num_tris) {
 		g_strlcpy(current->name, name, sizeof(current->name));
 		return;
 	}
 
-	r_obj_group_t group;
-	memset(&group, 0, sizeof(group));
-	g_strlcpy(group.name, name, sizeof(group.name));
-
-	obj->groups = g_array_append_val(obj->groups, group);
-}
-
-/**
- * @brief
- */
-static void R_EndObjGroup(r_obj_t *obj) {
-	r_obj_group_t *current = &g_array_index(obj->groups, r_obj_group_t, obj->groups->len - 1);
-
-	if (!current->num_tris) {
-		obj->groups = g_array_set_size(obj->groups, obj->groups->len - 1);
-	}
+	current++;
+	g_strlcpy(current->name, name, sizeof(current->name));
+	obj->cur_group++;
 }
 
 /**
@@ -721,9 +711,7 @@ static void R_EndObjGroup(r_obj_t *obj) {
  */
 static void R_LoadObjGroups(r_model_t *mod, r_obj_t *obj) {
 
-	R_EndObjGroup(obj);
-
-	mod->mesh->num_meshes = obj->groups->len;
+	mod->mesh->num_meshes = obj->num_groups;
 
 	const size_t size = mod->mesh->num_meshes * sizeof(r_model_mesh_t);
 
@@ -734,7 +722,7 @@ static void R_LoadObjGroups(r_model_t *mod, r_obj_t *obj) {
 	size_t tri_offset = 0;
 
 	for (size_t i = 0; i < mod->mesh->num_meshes; i++) {
-		const r_obj_group_t *in_mesh = &g_array_index(obj->groups, r_obj_group_t, i);
+		const r_obj_group_t *in_mesh = &obj->groups[i];
 		r_model_mesh_t *out_mesh = &mod->mesh->meshes[i];
 
 		g_snprintf(out_mesh->name, sizeof(out_mesh->name), "%s", in_mesh->name);
@@ -743,11 +731,11 @@ static void R_LoadObjGroups(r_model_t *mod, r_obj_t *obj) {
 		out_mesh->num_elements = in_mesh->num_tris * 3;
 
 		for (size_t t = 0; t < in_mesh->num_tris; t++) {
-			r_obj_triangle_t *tri = &g_array_index(obj->tris, r_obj_triangle_t, tri_offset + t);
+			uint32_t *tri = (uint32_t *) &obj->tris[tri_offset + t];
 
-			g_hash_table_add(unique_hash, &tri->verts[0]);
-			g_hash_table_add(unique_hash, &tri->verts[1]);
-			g_hash_table_add(unique_hash, &tri->verts[2]);
+			g_hash_table_add(unique_hash, &tri[0]);
+			g_hash_table_add(unique_hash, &tri[1]);
+			g_hash_table_add(unique_hash, &tri[2]);
 		}
 
 		out_mesh->num_verts = g_hash_table_size(unique_hash);
@@ -764,7 +752,7 @@ static void R_LoadObjGroups(r_model_t *mod, r_obj_t *obj) {
  */
 static void R_LoadObjPrimitive(r_model_t *mod, r_obj_t *obj, const char *line) {
 
-	r_obj_group_t *current = &g_array_index(obj->groups, r_obj_group_t, obj->groups->len - 1);
+	r_obj_group_t *current = &obj->groups[obj->cur_group];
 
 	if (g_str_has_prefix(line, "g ")) { // group
 
@@ -784,7 +772,8 @@ static void R_LoadObjPrimitive(r_model_t *mod, r_obj_t *obj, const char *line) {
 
 		AddPointToBounds(v, mod->mins, mod->maxs);
 
-		obj->points = g_array_append_vals(obj->points, v, 1);
+		memcpy(&obj->points[obj->cur_point], v, sizeof(v));
+		obj->cur_point++;
 
 	} else if (g_str_has_prefix(line, "vt ")) { // texcoord
 
@@ -796,7 +785,8 @@ static void R_LoadObjPrimitive(r_model_t *mod, r_obj_t *obj, const char *line) {
 
 		vt[1] = -vt[1];
 
-		obj->texcoords = g_array_append_vals(obj->texcoords, vt, 1);
+		memcpy(&obj->texcoords[obj->cur_texcoord], vt, sizeof(vt));
+		obj->cur_texcoord++;
 
 	} else if (g_str_has_prefix(line, "vn ")) { // normal
 
@@ -808,7 +798,8 @@ static void R_LoadObjPrimitive(r_model_t *mod, r_obj_t *obj, const char *line) {
 
 		VectorNormalize(vn);
 
-		obj->normals = g_array_append_vals(obj->normals, vn, 1);
+		memcpy(&obj->normals[obj->cur_normal], vn, sizeof(vn));
+		obj->cur_normal++;
 
 	} else if (g_str_has_prefix(line, "f ")) { // face
 
@@ -842,11 +833,12 @@ static void R_LoadObjPrimitive(r_model_t *mod, r_obj_t *obj, const char *line) {
 		for (size_t i = 1; i < len - 1; i++) {
 			r_obj_triangle_t tri;
 
-			tri.verts[0] = g_array_index(verts, uint32_t, 0);
-			tri.verts[1] = g_array_index(verts, uint32_t, i);
-			tri.verts[2] = g_array_index(verts, uint32_t, i + 1);
+			tri[0] = g_array_index(verts, uint32_t, 0);
+			tri[1] = g_array_index(verts, uint32_t, i);
+			tri[2] = g_array_index(verts, uint32_t, i + 1);
 
-			obj->tris = g_array_append_val(obj->tris, tri);
+			memcpy(&obj->tris[obj->cur_tris], &tri, sizeof(tri));
+			obj->cur_tris++;
 			current->num_tris++;
 		}
 
@@ -854,6 +846,94 @@ static void R_LoadObjPrimitive(r_model_t *mod, r_obj_t *obj, const char *line) {
 	}
 
 	// else we just ignore it
+}
+
+/**
+ * @brief Parses a line of an Object file, counting primitive accordingly.
+ */
+static void R_CountObjPrimitive(r_model_t *mod, r_obj_t *obj, const char *line) {
+
+	if (g_str_has_prefix(line, "g ")) { // group
+
+		obj->num_groups++;
+	} else if (g_str_has_prefix(line, "v ")) { // vertex
+
+		obj->num_points++;
+	} else if (g_str_has_prefix(line, "vt ")) { // texcoord
+
+		obj->num_texcoords++;
+	} else if (g_str_has_prefix(line, "vn ")) { // normal
+
+		obj->num_normals++;
+	} else if (g_str_has_prefix(line, "f ")) { // face
+
+		int32_t num_verts = 0;
+
+		const char *c = line + 2;
+		while (*c) {
+			uint16_t indices[3];
+			int32_t n;
+
+			if (sscanf(c, "%hu/%hu/%hu%n", &indices[0], &indices[1], &indices[2], &n) != 3) {
+				Com_Error(ERROR_DROP, "Malformed face for %s: %s\n", mod->media.name, line);
+			}
+
+			num_verts++;
+			c += n;
+		}
+
+		// iterate the face, converting polygons into triangles
+
+		if (num_verts < 3) {
+			Com_Error(ERROR_DROP, "Malformed face for %s: %s\n", mod->media.name, line);
+		}
+
+		obj->num_tris += num_verts - 2;
+	}
+
+	// else we just ignore it
+}
+
+/**
+ * @brief Parses the file and counts the number of primitives used; this is to make loading much easier to deal with.
+ */
+static void R_CountObjPrimitives(r_model_t *mod, r_obj_t *obj, const void *buffer) {
+	char line[MAX_STRING_CHARS];
+	char *l = line;
+	const char *c = buffer;
+
+	memset(line, 0, sizeof(line));
+
+	while (true) {
+		switch (*c) {
+
+			case '\r':
+			case '\n':
+			case '\0':
+				l = g_strstrip(line);
+				R_CountObjPrimitive(mod, obj, l);
+
+				if (*c == '\0') {
+					goto done;
+				}
+
+				memset(line, 0, sizeof(line));
+				l = line;
+
+				c++;
+				break;
+
+			default:
+				*l++ = *c++;
+				break;
+		}
+	}
+
+done:
+	if (obj->num_groups == 0)
+		obj->num_groups = 1;
+
+	Com_Debug(DEBUG_RENDERER, "%s: %u tris in %u groups\n", mod->media.name, obj->num_tris, obj->num_groups);
 }
 
 /**
@@ -892,7 +972,7 @@ static void R_LoadObjPrimitives(r_model_t *mod, r_obj_t *obj, const void *buffer
 	}
 
 done:
-	Com_Debug(DEBUG_RENDERER, "%s: %u tris\n", mod->media.name, obj->tris->len);
+	;
 }
 
 /**
@@ -901,44 +981,46 @@ done:
  * http://www.terathon.com/code/tangent.html
  */
 static void R_LoadObjTangents(r_model_t *mod, r_obj_t *obj) {
+	vec3_t *tan1 = (vec3_t *) Mem_Malloc(obj->verts->len * sizeof(vec3_t));
+	vec3_t *tan2 = (vec3_t *) Mem_Malloc(obj->verts->len * sizeof(vec3_t));
 
-	const size_t num_verts = obj->verts->len;
+	uint32_t *tri = (uint32_t *) obj->tris;
 
-	vec3_t *sdirs = Mem_Malloc(num_verts * sizeof(vec3_t));
-	vec3_t *tdirs = Mem_Malloc(num_verts * sizeof(vec3_t));
+	// resolve the texture directional vectors
 
-	for (size_t i = 0; i < obj->tris->len; i++) {
-		const r_obj_triangle_t *tri = &g_array_index(obj->tris, r_obj_triangle_t, i);
+	for (uint32_t i = 0; i < obj->num_tris; i++, tri += 3) {
+		vec3_t sdir, tdir;
 
-		const r_obj_vertex_t *rv0 = &g_array_index(obj->verts, r_obj_vertex_t, tri->verts[0]);
-		const r_obj_vertex_t *rv1 = &g_array_index(obj->verts, r_obj_vertex_t, tri->verts[1]);
-		const r_obj_vertex_t *rv2 = &g_array_index(obj->verts, r_obj_vertex_t, tri->verts[2]);
+		const uint32_t i1 = tri[0];
+		const uint32_t i2 = tri[1];
+		const uint32_t i3 = tri[2];
+		
+		const r_obj_vertex_t *vert1 = &g_array_index(obj->verts, r_obj_vertex_t, i1);
+		const r_obj_vertex_t *vert2 = &g_array_index(obj->verts, r_obj_vertex_t, i2);
+		const r_obj_vertex_t *vert3 = &g_array_index(obj->verts, r_obj_vertex_t, i3);
 
-		const vec_t *v0 = g_array_index(obj->points, vec3_t, rv0->indices[0] - 1);
-		const vec_t *v1 = g_array_index(obj->points, vec3_t, rv1->indices[0] - 1);
-		const vec_t *v2 = g_array_index(obj->points, vec3_t, rv2->indices[0] - 1);
+		const vec_t *v1 = vert1->point;
+		const vec_t *v2 = vert2->point;
+		const vec_t *v3 = vert3->point;
 
-		const vec_t *st0 = g_array_index(obj->texcoords, vec2_t, rv0->indices[1] - 1);
-		const vec_t *st1 = g_array_index(obj->texcoords, vec2_t, rv1->indices[1] - 1);
-		const vec_t *st2 = g_array_index(obj->texcoords, vec2_t, rv2->indices[1] - 1);
+		const vec_t *w1 = vert1->texcoords;
+		const vec_t *w2 = vert2->texcoords;
+		const vec_t *w3 = vert3->texcoords;
 
-		// accumulate the tangent vectors
+		vec_t x1 = v2[0] - v1[0];
+		vec_t x2 = v3[0] - v1[0];
+		vec_t y1 = v2[1] - v1[1];
+		vec_t y2 = v3[1] - v1[1];
+		vec_t z1 = v2[2] - v1[2];
+		vec_t z2 = v3[2] - v1[2];
 
-		const vec_t x1 = v1[0] - v0[0];
-		const vec_t x2 = v2[0] - v0[0];
-		const vec_t y1 = v1[1] - v0[1];
-		const vec_t y2 = v2[1] - v0[1];
-		const vec_t z1 = v1[2] - v0[2];
-		const vec_t z2 = v2[2] - v0[2];
+		vec_t s1 = w2[0] - w1[0];
+		vec_t s2 = w3[0] - w1[0];
+		vec_t t1 = w2[1] - w1[1];
+		vec_t t2 = w3[1] - w1[1];
 
-		const vec_t s1 = st1[0] - st0[0];
-		const vec_t s2 = st2[0] - st0[0];
-		const vec_t t1 = st1[1] - st0[1];
-		const vec_t t2 = st2[1] - st0[1];
+		vec_t r = 1.0 / (s1 * t2 - s2 * t1);
 
-		const vec_t r = 1.0 / (s1 * t2 - s2 * t1);
-
-		vec3_t sdir;
 		VectorSet(sdir,
 		          (t2 * x1 - t1 * x2),
 		          (t2 * y1 - t1 * y2),
@@ -947,7 +1029,6 @@ static void R_LoadObjTangents(r_model_t *mod, r_obj_t *obj) {
 
 		VectorScale(sdir, r, sdir);
 
-		vec3_t tdir;
 		VectorSet(tdir,
 		          (s1 * x2 - s2 * x1),
 		          (s1 * y2 - s2 * y1),
@@ -956,38 +1037,26 @@ static void R_LoadObjTangents(r_model_t *mod, r_obj_t *obj) {
 
 		VectorScale(tdir, r, tdir);
 
-		// the tangents are coindexed with the vertices
+		VectorAdd(tan1[i1], sdir, tan1[i1]);
+		VectorAdd(tan1[i2], sdir, tan1[i2]);
+		VectorAdd(tan1[i3], sdir, tan1[i3]);
 
-		const uint16_t i0 = rv0->indices[0] - 1;
-		const uint16_t i1 = rv1->indices[0] - 1;
-		const uint16_t i2 = rv2->indices[0] - 1;
-
-		VectorAdd(sdirs[i0], sdir, sdirs[i0]);
-		VectorAdd(sdirs[i1], sdir, sdirs[i1]);
-		VectorAdd(sdirs[i2], sdir, sdirs[i2]);
-
-		VectorAdd(tdirs[i0], tdir, tdirs[i0]);
-		VectorAdd(tdirs[i1], tdir, tdirs[i1]);
-		VectorAdd(tdirs[i2], tdir, tdirs[i2]);
+		VectorAdd(tan2[i1], tdir, tan2[i1]);
+		VectorAdd(tan2[i2], tdir, tan2[i2]);
+		VectorAdd(tan2[i3], tdir, tan2[i3]);
 	}
 
-	for (size_t i = 0; i < obj->verts->len; i++) {
-		static vec3_t bitangent;
-		vec4_t tangent;
+	// calculate the tangents
+
+	for (uint32_t i = 0; i < obj->verts->len; i++) {
+		vec3_t bitangent;
 		r_obj_vertex_t *v = &g_array_index(obj->verts, r_obj_vertex_t, i);
-		const vec_t *sdir = sdirs[v->indices[0] - 1];
-		const vec_t *tdir = tdirs[v->indices[0] - 1];
-		const vec_t *normal = g_array_index(obj->normals, vec3_t, v->indices[2] - 1);
-
-		TangentVectors(normal, sdir, tdir, tangent, bitangent);
-
-		obj->tangents = g_array_append_vals(obj->tangents, tangent, 1);
+		const vec_t *normal = v->normal;
+		TangentVectors(normal, tan1[i], tan2[i], v->tangent, bitangent);
 	}
 
-	Mem_Free(sdirs);
-	Mem_Free(tdirs);
-
-	Com_Debug(DEBUG_RENDERER, "%s: %u tangents\n", mod->media.name, obj->tangents->len);
+	Mem_Free(tan1);
+	Mem_Free(tan2);
 }
 
 typedef struct {
@@ -1019,16 +1088,15 @@ static void R_LoadObjShellVertexArrays(r_model_t *mod, r_obj_t *obj, GLuint *ele
 	// compile list of unique vertices in the model
 	for (uint32_t vi = 0; vi < obj->verts->len; vi++) {
 		const r_obj_vertex_t *ve = &g_array_index(obj->verts, r_obj_vertex_t, vi);
-		const vec_t *point = g_array_index(obj->points, vec3_t, ve->indices[0] - 1);
-		const vec_t *texcoord = g_array_index(obj->texcoords, vec2_t, ve->indices[1] - 1);
-		const vec_t *normal = g_array_index(obj->normals, vec3_t, ve->indices[2] - 1);
 		uint32_t i;
 
 		for (i = 0; i < unique_vertex_list->len; i++) {
 			r_obj_shell_interleave_vertex_t *v = &g_array_index(unique_vertex_list, r_obj_shell_interleave_vertex_t, i);
 
-			if (VectorCompare(point, v->vertex)) {
-				VectorAdd(v->normal, normal, v->normal);
+			if (VectorCompare(ve->point, v->vertex)) {
+				for (int32_t n = 0; n < 3; ++n) {
+					v->normal[n] += ve->normal[n];
+				}
 				break;
 			}
 		}
@@ -1036,9 +1104,9 @@ static void R_LoadObjShellVertexArrays(r_model_t *mod, r_obj_t *obj, GLuint *ele
 		if (i == unique_vertex_list->len) {
 
 			unique_vertex_list = g_array_append_vals(unique_vertex_list, &(const r_obj_shell_interleave_vertex_t) {
-				.vertex = { point[0], point[1], point[2] },
-				 .normal = { normal[0], normal[1], normal[2] },
-				  .diffuse = { PackTexcoord(texcoord[0]), PackTexcoord(texcoord[1]) }
+				.vertex = { ve->point[0], ve->point[1], ve->point[2] },
+				 .normal = { ve->normal[0], ve->normal[1], ve->normal[2] },
+				  .diffuse = { PackTexcoord(ve->texcoords[0]), PackTexcoord(ve->texcoords[1]) }
 			}, 1);
 		}
 
@@ -1098,8 +1166,8 @@ static r_buffer_layout_t r_obj_buffer_layout[] = {
 static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 
 	mod->num_verts = obj->verts->len;
-	mod->num_tris = obj->tris->len;
-	mod->num_elements = mod->num_tris * 3;
+	mod->num_tris = obj->num_tris;
+	mod->num_elements = obj->num_tris * 3;
 
 	const GLsizei v = mod->num_verts * sizeof(r_obj_interleave_vertex_t);
 	const GLsizei e = mod->num_elements * sizeof(GLuint);
@@ -1113,27 +1181,22 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 	for (uint32_t i = 0; i < obj->verts->len; i++) {
 		const r_obj_vertex_t *ve = &g_array_index(obj->verts, r_obj_vertex_t, i);
 
-		const vec_t *point = g_array_index(obj->points, vec3_t, ve->indices[0] - 1);
-		const vec_t *texcoord = g_array_index(obj->texcoords, vec2_t, ve->indices[1] - 1);
-		const vec_t *normal = g_array_index(obj->normals, vec3_t, ve->indices[2] - 1);
-		const vec_t *tangent = g_array_index(obj->tangents, vec4_t, ve->indices[0] - 1);
+		VectorCopy(ve->point, vout->vertex);
 
-		VectorCopy(point, vout->vertex);
+		PackTexcoords(ve->texcoords, vout->diffuse);
 
-		PackTexcoords(texcoord, vout->diffuse);
+		VectorCopy(ve->normal, vout->normal);
 
-		VectorCopy(normal, vout->normal);
-
-		Vector4Copy(tangent, vout->tangent);
+		Vector4Copy(ve->tangent, vout->tangent);
 
 		vout++;
 	}
 
-	for (uint32_t i = 0; i < obj->tris->len; i++) {
-		const r_obj_triangle_t *te = &g_array_index(obj->tris, r_obj_triangle_t, i);
+	for (uint32_t i = 0; i < obj->num_tris; i++) {
+		const uint32_t *te = (const uint32_t *) &obj->tris[i];
 
 		for (int32_t i = 0; i < 3; ++i) {
-			const r_obj_vertex_t *ve = &g_array_index(obj->verts, r_obj_vertex_t, te->verts[i]);
+			const r_obj_vertex_t *ve = &g_array_index(obj->verts, r_obj_vertex_t, te[i]);
 
 			*eout++ = ve->position;
 		}
@@ -1169,24 +1232,19 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 
 	ClearBounds(mod->mins, mod->maxs);
 
-	obj->verts = g_array_new(false, false, sizeof(r_obj_vertex_t));
-	obj->points = g_array_new(false, false, sizeof(vec3_t));
-	obj->texcoords = g_array_new(false, false, sizeof(vec2_t));
-	obj->normals = g_array_new(false, false, sizeof(vec3_t));
-	obj->tris = g_array_new(false, false, sizeof(r_obj_triangle_t));
-	obj->tangents = g_array_new(false, false, sizeof(vec4_t));
-	obj->groups = g_array_sized_new(false, false, sizeof(r_obj_group_t), 1);
-
-	obj->groups = g_array_append_vals(obj->groups, &(const r_obj_group_t) {
-		.name = "",
-		.material = "",
-		.num_tris = 0
-	}, 1);
-
 	// parse the file, loading primitives
+	R_CountObjPrimitives(mod, obj, buffer);
+
+	obj->verts = g_array_new(false, false, sizeof(r_obj_vertex_t));
+	obj->points = Mem_LinkMalloc(sizeof(vec3_t) * obj->num_points, obj);
+	obj->texcoords = Mem_LinkMalloc(sizeof(vec2_t) * obj->num_texcoords, obj);
+	obj->normals = Mem_LinkMalloc(sizeof(vec3_t) * obj->num_normals, obj);
+	obj->tris = Mem_LinkMalloc(sizeof(r_obj_triangle_t) * obj->num_tris, obj);
+	obj->groups = Mem_LinkMalloc(sizeof(r_obj_group_t) * obj->num_groups, obj);
+
 	R_LoadObjPrimitives(mod, obj, buffer);
 
-	if (obj->tris->len == 0) {
+	if (obj->num_tris == 0) {
 		Com_Error(ERROR_DROP, "Failed to load .obj: %s\n", mod->media.name);
 	}
 
@@ -1203,12 +1261,6 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 	R_LoadObjVertexArrays(mod, obj);
 
 	g_array_free(obj->verts, true);
-	g_array_free(obj->points, true);
-	g_array_free(obj->texcoords, true);
-	g_array_free(obj->normals, true);
-	g_array_free(obj->tris, true);
-	g_array_free(obj->tangents, true);
-	g_array_free(obj->groups, true);
 
 	Mem_Free(obj);
 }
