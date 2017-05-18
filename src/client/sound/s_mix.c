@@ -46,7 +46,7 @@ void S_FreeChannel(int32_t c) {
 
 	alSourceStop(s_env.sources[c]);
 	alSourcei(s_env.sources[c], AL_BUFFER, 0);
-	s_env.channels[c].free = true;
+	memset(&s_env.channels[c], 0, sizeof(s_env.channels[c]));
 }
 
 #define SOUND_MAX_DISTANCE 2048.0
@@ -64,11 +64,13 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 		VectorClear(ch->velocity);
 	} else if (ch->play.flags & S_PLAY_ENTITY) {
 		const cl_entity_t *ent = &cl.entities[ch->play.entity];
+
+		if (ent == cl.entity) {
+			ch->relative = true;
+		}
 		
 		if (s_doppler->value) {
-			if (ent == cl.entity) {
-				VectorCopy(cl.frame.ps.pm_state.velocity, ch->velocity);
-			} else {
+			if (!ch->relative) {
 				VectorSubtract(ent->current.origin, ent->prev.origin, ch->velocity);
 			}
 		}
@@ -78,9 +80,7 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 			VectorLerp(mod->mins, mod->maxs, 0.5, center);
 			VectorAdd(center, ent->origin, org);
 		} else {
-			if (ent == cl.entity) {
-				VectorCopy(r_view.origin, org);
-			} else {
+			if (!ch->relative) {
 				VectorCopy(ent->origin, org);
 			}
 		}
@@ -136,7 +136,6 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 	// offset pitch by sound-requested offset
 	if (ch->play.pitch) {
 		const vec_t octaves = (vec_t)pow(2, 0.69314718 * ((vec_t)ch->play.pitch / TONES_PER_OCTAVE));
-
 		ch->pitch *= octaves;
 	}
 
@@ -170,9 +169,6 @@ void S_MixChannels(void) {
 		{ r_view.up[0], r_view.up[1], r_view.up[2] }
 	};
 
-	alDistanceModel(AL_NONE);
-	S_CheckALError();
-
 	alListenerfv(AL_POSITION, r_view.origin);
 	S_CheckALError();
 
@@ -185,25 +181,28 @@ void S_MixChannels(void) {
 		alListenerfv(AL_VELOCITY, vec3_origin);
 	}
 
-	s_channel_t *ch = s_env.channels;
-	for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
-
-		if (ch->free) {
-			memset(ch, 0, sizeof(*ch));
-		}
-	}
-
 	s_env.num_active_channels = 0;
 
-	ch = s_env.channels;
+	s_channel_t *ch = s_env.channels;
 	for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
 
 		if (ch->sample) {
 			
 			if (S_SpatializeChannel(ch)) {
-				
-				alSourcefv(s_env.sources[i], AL_POSITION, ch->position);
-				S_CheckALError();
+
+				if (ch->relative) {
+					alSourcefv(s_env.sources[i], AL_POSITION, vec3_origin);
+					S_CheckALError();
+				} else {
+					alSourcefv(s_env.sources[i], AL_POSITION, ch->position);
+					S_CheckALError();
+
+					if (s_doppler->value) {
+						alSourcefv(s_env.sources[i], AL_VELOCITY, ch->velocity);
+					} else {
+						alSourcefv(s_env.sources[i], AL_VELOCITY, vec3_origin);
+					}
+				}
 
 				alSourcef(s_env.sources[i], AL_GAIN, ch->gain * s_volume->value);
 				S_CheckALError();
@@ -216,14 +215,11 @@ void S_MixChannels(void) {
 					S_CheckALError();
 				}
 
-				if (s_doppler->value) {
-					alSourcefv(s_env.sources[i], AL_VELOCITY, ch->velocity);
-				} else {
-					alSourcefv(s_env.sources[i], AL_VELOCITY, vec3_origin);
-				}
-
 				if (!ch->start_time) {
 					ch->start_time = quetoo.ticks;
+
+					alSourcei(s_env.sources[i], AL_SOURCE_RELATIVE, ch->relative ? 1 : 0); 
+					S_CheckALError();
 
 					alSourcei(s_env.sources[i], AL_BUFFER, ch->sample->buffer);
 					S_CheckALError();

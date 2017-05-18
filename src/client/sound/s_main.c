@@ -398,14 +398,11 @@ void S_Init(void) {
 		s_env.effects.loaded = false;
 	}
 
+	alDistanceModel(AL_NONE);
+	S_CheckALError();
+
 	alGenSources(MAX_CHANNELS, s_env.sources);
-
-	ALenum error = alGetError();
-
-	if (error) {
-		Com_Warn("Couldn't allocate channels: %s\n", alGetString(error));
-		return;
-	}
+	S_CheckALError();
 
 	Com_Print("Sound initialized (OpenAL, resample @ %dhz)\n", s_rate->integer);
 
