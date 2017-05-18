@@ -68,12 +68,15 @@ typedef struct s_sample_s {
 #define S_PLAY_LOOP         0x8 // loop the sound continuously
 #define S_PLAY_FRAME        0x10 // cull the sound if it is not added at each frame
 
+#define TONES_PER_OCTAVE	48
+
 typedef struct s_play_sample_s {
 	const s_sample_t *sample;
 	vec3_t origin;
 	int32_t entity;
 	int32_t attenuation;
-	int32_t flags;
+	int16_t flags;
+	int16_t pitch; // pitch offset; 0 is no adjustment, TONES_PER_OCTAVE is +1 octave, -TONES_PER_OCTAVE is -1 octave, etc.
 } s_play_sample_t;
 
 typedef struct s_channel_s {

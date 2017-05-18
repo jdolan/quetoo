@@ -149,12 +149,14 @@ void Cg_ParseMuzzleFlash(void) {
 	const uint8_t flash = cgi.ReadByte();
 
 	const s_sample_t *sample;
+	int16_t pitch = 0;
 
 	switch (flash) {
 		case MZ_BLASTER:
 			c = cgi.ReadByte();
 			sample = cg_sample_blaster_fire;
 			Cg_EnergyFlash(ent, Cg_ResolveEffectColor(c ? c - 1 : 0, EFFECT_COLOR_ORANGE));
+			pitch = (int16_t) (Randomc() * 5.0);
 			break;
 		case MZ_SHOTGUN:
 			sample = cg_sample_shotgun_fire;
@@ -169,6 +171,7 @@ void Cg_ParseMuzzleFlash(void) {
 			if (Random() & 1) {
 				Cg_SmokeFlash(ent);
 			}
+			pitch = (int16_t) (Randomc() * 5.0);
 			break;
 		case MZ_ROCKET_LAUNCHER:
 			sample = cg_sample_rocketlauncher_fire;
@@ -181,6 +184,7 @@ void Cg_ParseMuzzleFlash(void) {
 		case MZ_HYPERBLASTER:
 			sample = cg_sample_hyperblaster_fire;
 			Cg_EnergyFlash(ent, ColorFromRGB(191, 123, 111));
+			pitch = (int16_t) (Randomc() * 5.0);
 			break;
 		case MZ_LIGHTNING:
 			sample = cg_sample_lightning_fire;
@@ -205,7 +209,8 @@ void Cg_ParseMuzzleFlash(void) {
 		.sample = sample,
 		 .entity = ent_num,
 		  .attenuation = ATTEN_NORM,
-		   .flags = S_PLAY_ENTITY
+		   .flags = S_PLAY_ENTITY,
+			.pitch = pitch
 	});
 }
 

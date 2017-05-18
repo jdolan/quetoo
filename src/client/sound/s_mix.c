@@ -128,10 +128,20 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 	ch->pitch = 1.0;
 	ch->filter = AL_NONE;
 
+	// adjust pitch in liquids
+	if (r_view.contents & MASK_LIQUID) {
+		ch->pitch = 0.5;
+	}
+	
+	// offset pitch by sound-requested offset
+	if (ch->play.pitch) {
+		const vec_t octaves = (vec_t)pow(2, 0.69314718 * ((vec_t)ch->play.pitch / TONES_PER_OCTAVE));
+
+		ch->pitch *= octaves;
+	}
+
 	if (s_env.effects.loaded) {
-		if (r_view.contents & MASK_LIQUID) {
-			ch->pitch = 0.5;
-		} else if (Cm_PointContents(ch->position, 0) & MASK_LIQUID) {
+		 if (Cm_PointContents(ch->position, 0) & MASK_LIQUID) {
 			ch->filter = s_env.effects.underwater;
 		}
 	}

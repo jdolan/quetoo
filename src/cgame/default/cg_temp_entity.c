@@ -193,7 +193,8 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 			.sample = cg_sample_machinegun_hit[Random() % 3],
 			 .origin = { org[0], org[1], org[2] },
 			  .attenuation = ATTEN_NORM,
-			   .flags = S_PLAY_POSITIONED
+			   .flags = S_PLAY_POSITIONED,
+				.pitch = (int16_t) (Randomc() * 8)
 		});
 	}
 }
