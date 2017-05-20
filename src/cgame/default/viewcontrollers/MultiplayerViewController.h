@@ -70,6 +70,14 @@ struct MultiplayerViewControllerInterface {
 	 * @brief The superclass interface.
 	 */
 	MenuViewControllerInterface menuViewControllerInterface;
+
+	/**
+	 * @fn void MultiplayerViewController::reloadServers(MultiplayerViewController *self)
+	 * @brief Reloads the list of known servers.
+	 * @param self The MultiplayerViewController.
+	 * @memberof MultiplayerViewController
+	 */
+	void (*reloadServers)(MultiplayerViewController *self);
 };
 
 /**

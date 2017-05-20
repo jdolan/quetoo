@@ -243,55 +243,10 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 }
 
 /**
- * @brief GCompareDataFunc for server sorting.
- */
-static gint comparator(gconstpointer a, gconstpointer b, gpointer data) {
-
-	MultiplayerViewController *this = (MultiplayerViewController *) data;
-
-	if (this->serversTableView->sortColumn) {
-		const cl_server_info_t *s0, *s1;
-
-		switch (this->serversTableView->sortColumn->order) {
-			case OrderAscending:
-				s0 = a, s1 = b;
-				break;
-			case OrderDescending:
-				s0 = b, s1 = a;
-				break;
-			default:
-				return 0;
-		}
-
-		if (g_strcmp0(this->serversTableView->sortColumn->identifier, _hostname) == 0) {
-			return g_strcmp0(s0->hostname, s1->hostname);
-		} else if (g_strcmp0(this->serversTableView->sortColumn->identifier, _source) == 0) {
-			return s0->source - s1->source;
-		} else if (g_strcmp0(this->serversTableView->sortColumn->identifier, _name) == 0) {
-			return g_strcmp0(s0->name, s1->name);
-		} else if (g_strcmp0(this->serversTableView->sortColumn->identifier, _gameplay) == 0) {
-			return g_strcmp0(s0->gameplay, s1->gameplay);
-		} else if (g_strcmp0(this->serversTableView->sortColumn->identifier, _players) == 0) {
-			return s0->clients - s1->clients;
-		} else if (g_strcmp0(this->serversTableView->sortColumn->identifier, _ping) == 0) {
-			return s0->ping - s1->ping;
-		}
-	}
-
-	assert(false);
-	return 0;
-}
-
-/**
  * @see TableViewDelegate::didSetSortColumn(TableView *)
  */
 static void didSetSortColumn(TableView *tableView) {
-
-	MultiplayerViewController *this = (MultiplayerViewController *) tableView->delegate.self;
-
-	this->servers = g_list_sort_with_data(this->servers, comparator, this);
-
-	$(this->serversTableView, reloadData);
+	$((MultiplayerViewController *) tableView->delegate.self, reloadServers);
 }
 
 #pragma mark - Object
@@ -394,18 +349,84 @@ static void loadView(ViewController *self) {
 }
 
 /**
+ * @see ViewController::respondToEvent(ViewController *, const SDL_Event *)
+ */
+void respondToEvent(ViewController *self, const SDL_Event *event) {
+
+	if (event->type == SDL_USEREVENT) {
+		if (event->user.code == EVENT_SERVER_PARSED) {
+			$((MultiplayerViewController *) self, reloadServers);
+		}
+	}
+
+	super(ViewController, self, respondToEvent, event);
+}
+
+/**
  * @see ViewController::viewWillAppear(ViewController *)
  */
 void viewWillAppear(ViewController *self) {
 
-	MultiplayerViewController *this = (MultiplayerViewController *) self;
-
-	g_list_free(this->servers);
-	this->servers = g_list_sort_with_data(g_list_copy(cgi.Servers()), comparator, this);
-
-	$(this->serversTableView, reloadData);
+	$((MultiplayerViewController *) self, reloadServers);
 
 	super(ViewController, self, viewWillAppear);
+}
+
+#pragma mark - MultiplayerViewController
+
+/**
+ * @brief GCompareDataFunc for server sorting.
+ */
+static gint comparator(gconstpointer a, gconstpointer b, gpointer data) {
+
+	MultiplayerViewController *this = (MultiplayerViewController *) data;
+
+	if (this->serversTableView->sortColumn) {
+		const cl_server_info_t *s0, *s1;
+
+		switch (this->serversTableView->sortColumn->order) {
+			case OrderAscending:
+				s0 = a, s1 = b;
+				break;
+			case OrderDescending:
+				s0 = b, s1 = a;
+				break;
+			default:
+				return 0;
+		}
+
+		if (g_strcmp0(this->serversTableView->sortColumn->identifier, _hostname) == 0) {
+			return g_strcmp0(s0->hostname, s1->hostname);
+		} else if (g_strcmp0(this->serversTableView->sortColumn->identifier, _source) == 0) {
+			return s0->source - s1->source;
+		} else if (g_strcmp0(this->serversTableView->sortColumn->identifier, _name) == 0) {
+			return g_strcmp0(s0->name, s1->name);
+		} else if (g_strcmp0(this->serversTableView->sortColumn->identifier, _gameplay) == 0) {
+			return g_strcmp0(s0->gameplay, s1->gameplay);
+		} else if (g_strcmp0(this->serversTableView->sortColumn->identifier, _players) == 0) {
+			return s0->clients - s1->clients;
+		} else if (g_strcmp0(this->serversTableView->sortColumn->identifier, _ping) == 0) {
+			return s0->ping - s1->ping;
+		}
+
+		assert(false);
+	}
+
+	return 0;
+}
+
+/**
+ * @fn void MultiplayerViewController::reloadServers(MultiplayerViewController *self)
+ * @memberof MultiplayerViewController
+ */
+static void reloadServers(MultiplayerViewController *self) {
+
+	g_list_free(self->servers);
+
+	self->servers = g_list_copy(cgi.Servers());
+	self->servers = g_list_sort_with_data(self->servers, comparator, self);
+
+	$(self->serversTableView, reloadData);
 }
 
 #pragma mark - Class lifecycle
@@ -419,6 +440,9 @@ static void initialize(Class *clazz) {
 
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 	((ViewControllerInterface *) clazz->def->interface)->viewWillAppear = viewWillAppear;
+	((ViewControllerInterface *) clazz->def->interface)->respondToEvent = respondToEvent;
+
+	((MultiplayerViewControllerInterface *) clazz->def->interface)->reloadServers = reloadServers;
 }
 
 /**
