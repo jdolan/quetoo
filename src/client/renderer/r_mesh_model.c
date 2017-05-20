@@ -526,7 +526,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
 		for (i = 0; i < mod->mesh->num_frames; i++) {
 			for (l = 0; l < mod->mesh->num_tags; l++, in_tag++, out_tag++) {
-				memcpy(out_tag->name, in_tag->name, MD3_MAX_PATH);
+				g_strlcpy(out_tag->name, in_tag->name, MD3_MAX_PATH);
 
 				for (j = 0; j < 3; j++) {
 					orient.origin[j] = LittleFloat(in_tag->orient.origin[j]);
@@ -553,7 +553,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 	for (i = 0; i < mod->mesh->num_meshes; i++, out_mesh++) {
 		r_md3_mesh_t *md3_mesh = &out_md3->meshes[i];
 
-		memcpy(out_mesh->name, in_mesh->name, MD3_MAX_PATH);
+		g_strlcpy(out_mesh->name, in_mesh->name, MD3_MAX_PATH);
 
 		in_mesh->ofs_tris = LittleLong(in_mesh->ofs_tris);
 		in_mesh->ofs_skins = LittleLong(in_mesh->ofs_skins);
@@ -578,11 +578,11 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 		}
 
 		// load the first shader, if it exists
-		const char *shader_name = NULL;
+		char shader_name[MD3_MAX_PATH] = { '\0' };
 
 		if (in_mesh->num_skins) {
 			d_md3_skin_t *skin = (d_md3_skin_t *) ((byte *) in_mesh + in_mesh->ofs_skins);
-			shader_name = skin->name;
+			g_strlcpy(shader_name, skin->name, MD3_MAX_PATH);
 		}
 
 		out_mesh->material = R_ResolveModelMaterial(mod, out_mesh, shader_name);
