@@ -43,7 +43,7 @@ static void action(Control *control, const SDL_Event *event, ident sender, ident
 	NavigationViewController *this = (NavigationViewController *) sender;
 	Class *clazz = (Class *) data;
 	if (clazz) {
-		$(this, popToRootViewController);
+		//$(this, popToRootViewController); FIXME See #482
 
 		ViewController *viewController = $((ViewController *) _alloc(clazz), init);
 
