@@ -435,9 +435,9 @@ static void Cg_SpeedModulus(const player_state_t *ps, vec3_t offset) {
 	} else {
 		VectorCopy(new_speed, old_speed);
 
-		new_speed[0] = Clamp(ps->pm_state.velocity[0] / 200.0, -1.0, 1.0);
-		new_speed[1] = Clamp(ps->pm_state.velocity[1] / 200.0, -1.0, 1.0);
-		new_speed[2] = Clamp(ps->pm_state.velocity[2] / 200.0, -1.0, 1.0);
+		new_speed[0] = -Clamp(ps->pm_state.velocity[0] / 200.0, -1.0, 1.0);
+		new_speed[1] = -Clamp(ps->pm_state.velocity[1] / 200.0, -1.0, 1.0);
+		new_speed[2] = -Clamp(ps->pm_state.velocity[2] / 200.0, -0.3, 1.0);
 
 		VectorCopy(old_speed, speed);
 
