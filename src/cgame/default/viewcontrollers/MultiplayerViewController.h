@@ -49,6 +49,16 @@ struct MultiplayerViewController {
 	 * @private
 	 */
 	MultiplayerViewControllerInterface *interface;
+
+	/**
+	 * @brief A copy of the client's servers list, for sorting, etc.
+	 */
+	GList *servers;
+
+	/**
+	 * @brief The servers TableView.
+	 */
+	TableView *serversTableView;
 };
 
 /**

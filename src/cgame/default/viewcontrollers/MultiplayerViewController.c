@@ -24,7 +24,13 @@
 #include "MultiplayerViewController.h"
 
 #include "CreateServerViewController.h"
-#include "ServersTableView.h"
+
+static const char *_hostname = "Hostname";
+static const char *_source = "Source";
+static const char *_name = "Map";
+static const char *_gameplay = "Gameplay";
+static const char *_players = "Players";
+static const char *_ping = "Ping";
 
 #define _Class _MultiplayerViewController
 
@@ -39,12 +45,14 @@
  */
 static void quickjoinAction(Control *control, const SDL_Event *event, ident sender, ident data) {
 
+	MultiplayerViewController *this = (MultiplayerViewController *) sender;
+
 	const int16_t max_ping = Clamp(cg_quick_join_max_ping->integer, 0, 999);
 	const int16_t min_clients = Clamp(cg_quick_join_min_clients->integer, 0, MAX_CLIENTS);
 
 	uint32_t total_weight = 0;
 
-	const GList *list = cgi.Servers();
+	const GList *list = this->servers;
 
 	while (list != NULL) {
 		const cl_server_info_t *server = list->data;
@@ -72,9 +80,9 @@ static void quickjoinAction(Control *control, const SDL_Event *event, ident send
 		return;
 	}
 
-	list = cgi.Servers();
+	list = this->servers;
 
-	uint32_t random_weight = Random() % total_weight;
+	const uint32_t random_weight = Random() % total_weight;
 	uint32_t current_weight = 0;
 
 	while (list != NULL) {
@@ -132,23 +140,175 @@ static void refreshAction(Control *control, const SDL_Event *event, ident sender
  */
 static void connectAction(Control *control, const SDL_Event *event, ident sender, ident data) {
 
-	if ($((Object *) control, isKindOfClass, _TableView())) {
+	MultiplayerViewController *this = (MultiplayerViewController *) sender;
+
+	if (control == (Control *) this->serversTableView) {
 		if (event->button.clicks < 2) {
 			return;
 		}
 	}
 
-	const TableView *servers = (TableView *) data;
-	IndexSet *selectedRowIndexes = $(servers, selectedRowIndexes);
+	IndexSet *selectedRowIndexes = $((TableView *) this->serversTableView, selectedRowIndexes);
 	if (selectedRowIndexes->count) {
+
 		const guint index = (guint) selectedRowIndexes->indexes[0];
-		const cl_server_info_t *server = g_list_nth_data(cgi.Servers(), index);
+		const cl_server_info_t *server = g_list_nth_data(this->servers, index);
+
 		if (server) {
 			cgi.Connect(&server->addr);
 		}
 	}
 
 	release(selectedRowIndexes);
+}
+
+#pragma mark - TableViewDataSource
+
+/**
+ * @see TableViewDataSource::numberOfRows
+ */
+static size_t numberOfRows(const TableView *tableView) {
+
+	MultiplayerViewController *this = tableView->dataSource.self;
+
+	return g_list_length(this->servers);
+}
+
+/**
+ * @see TableViewDataSource::valueForColumnAndRow
+ */
+static ident valueForColumnAndRow(const TableView *tableView, const TableColumn *column, size_t row) {
+
+	MultiplayerViewController *this = tableView->dataSource.self;
+
+	cl_server_info_t *server = g_list_nth_data(this->servers, (guint) row);
+	assert(server);
+
+	if (g_strcmp0(column->identifier, _hostname) == 0) {
+		return server->hostname;
+	} else if (g_strcmp0(column->identifier, _source) == 0) {
+		return &server->source;
+	} else if (g_strcmp0(column->identifier, _name) == 0) {
+		return server->name;
+	} else if (g_strcmp0(column->identifier, _gameplay) == 0) {
+		return server->gameplay;
+	} else if (g_strcmp0(column->identifier, _players) == 0) {
+		return &server->clients;
+	} else if (g_strcmp0(column->identifier, _ping) == 0) {
+		return &server->ping;
+	}
+
+	return NULL;
+}
+
+#pragma mark - TableViewDelegate
+
+/**
+ * @see TableViewDelegate::cellForColumnAndRow
+ */
+static TableCellView *cellForColumnAndRow(const TableView *tableView, const TableColumn *column, size_t row) {
+
+	MultiplayerViewController *this = tableView->dataSource.self;
+
+	cl_server_info_t *server = g_list_nth_data(this->servers, (guint) row);
+	assert(server);
+
+	TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
+
+	if (g_strcmp0(column->identifier, _hostname) == 0) {
+		$(cell->text, setText, server->hostname);
+	} else if (g_strcmp0(column->identifier, _source) == 0) {
+		switch (server->source) {
+			case SERVER_SOURCE_INTERNET:
+				$(cell->text, setText, "Internet");
+				break;
+			case SERVER_SOURCE_USER:
+				$(cell->text, setText, "User");
+				break;
+			case SERVER_SOURCE_BCAST:
+				$(cell->text, setText, "LAN");
+				break;
+		}
+	} else if (g_strcmp0(column->identifier, _name) == 0) {
+		$(cell->text, setText, server->name);
+	} else if (g_strcmp0(column->identifier, _gameplay) == 0) {
+		$(cell->text, setText, server->gameplay);
+	} else if (g_strcmp0(column->identifier, _players) == 0) {
+		$(cell->text, setText, va("%d/%d", server->clients, server->max_clients));
+	} else if (g_strcmp0(column->identifier, _ping) == 0) {
+		$(cell->text, setText, va("%3d", server->ping));
+	}
+
+	return cell;
+}
+
+/**
+ * @brief GCompareDataFunc for server sorting.
+ */
+static gint comparator(gconstpointer a, gconstpointer b, gpointer data) {
+
+	MultiplayerViewController *this = (MultiplayerViewController *) data;
+
+	if (this->serversTableView->sortColumn) {
+		const cl_server_info_t *s0, *s1;
+
+		switch (this->serversTableView->sortColumn->order) {
+			case OrderAscending:
+				s0 = a, s1 = b;
+				break;
+			case OrderDescending:
+				s0 = b, s1 = a;
+				break;
+			default:
+				return 0;
+		}
+
+		if (g_strcmp0(this->serversTableView->sortColumn->identifier, _hostname) == 0) {
+			return g_strcmp0(s0->hostname, s1->hostname);
+		} else if (g_strcmp0(this->serversTableView->sortColumn->identifier, _source) == 0) {
+			return s0->source - s1->source;
+		} else if (g_strcmp0(this->serversTableView->sortColumn->identifier, _name) == 0) {
+			return g_strcmp0(s0->name, s1->name);
+		} else if (g_strcmp0(this->serversTableView->sortColumn->identifier, _gameplay) == 0) {
+			return g_strcmp0(s0->gameplay, s1->gameplay);
+		} else if (g_strcmp0(this->serversTableView->sortColumn->identifier, _players) == 0) {
+			return s0->clients - s1->clients;
+		} else if (g_strcmp0(this->serversTableView->sortColumn->identifier, _ping) == 0) {
+			return s0->ping - s1->ping;
+		}
+
+	}
+
+	assert(false);
+	return 0;
+}
+
+/**
+ * @see TableViewDelegate::didSetSortColumn(TableView *)
+ */
+static void didSetSortColumn(TableView *tableView) {
+
+	MultiplayerViewController *this = (MultiplayerViewController *) tableView->delegate.self;
+
+	this->servers = g_list_sort_with_data(this->servers, comparator, this);
+
+	$(this->serversTableView, reloadData);
+}
+
+#pragma mark - Object
+
+/**
+ * @see Object::dealloc(Object *)
+ */
+static void dealloc(Object *self) {
+
+	MultiplayerViewController *this = (MultiplayerViewController *) self;
+
+	g_list_free(this->servers);
+
+	release(this->serversTableView);
+
+	super(Object, self, dealloc);
 }
 
 #pragma mark - ViewController
@@ -162,9 +322,9 @@ static void loadView(ViewController *self) {
 
 	cgi.GetServers();
 
-	MenuViewController *this = (MenuViewController *) self;
+	MultiplayerViewController *this = (MultiplayerViewController *) self;
 
-	ServersTableView *servers;
+	MenuViewController *menu = (MenuViewController *) self;
 
 	{
 		Box *box = $(alloc(Box), initWithFrame, NULL);
@@ -173,27 +333,81 @@ static void loadView(ViewController *self) {
 		box->view.autoresizingMask |= ViewAutoresizingFill;
 
 		const SDL_Rect frame = MakeRect(0, 0, 0, 320);
-		servers = $(alloc(ServersTableView), initWithFrame, &frame, ControlStyleDefault);
+		this->serversTableView = $(alloc(TableView), initWithFrame, &frame, ControlStyleDefault);
 
-		servers->tableView.control.view.autoresizingMask = ViewAutoresizingWidth;
+		TableColumn *hostname = $(alloc(TableColumn), initWithIdentifier, _hostname);
+		hostname->width = 360;
+		$(this->serversTableView, addColumn, hostname);
+		release(hostname);
 
-		$((Control *) servers, addActionForEventType, SDL_MOUSEBUTTONUP, connectAction, self, servers);
+		TableColumn *source = $(alloc(TableColumn), initWithIdentifier, _source);
+		source->width = 100;
+		$(this->serversTableView, addColumn, source);
+		release(source);
 
-		$((View *) box, addSubview, (View *) servers);
-		release(servers);
+		TableColumn *name = $(alloc(TableColumn), initWithIdentifier, _name);
+		name->width = 120;
+		$(this->serversTableView, addColumn, name);
+		release(name);
 
-		$((View *) this->panel->contentView, addSubview, (View *) box);
+		TableColumn *gameplay = $(alloc(TableColumn), initWithIdentifier, _gameplay);
+		gameplay->width = 100;
+		$(this->serversTableView, addColumn, gameplay);
+		release(gameplay);
+
+		TableColumn *players = $(alloc(TableColumn), initWithIdentifier, _players);
+		players->width = 80;
+		$(this->serversTableView, addColumn, players);
+		release(players);
+
+		TableColumn *ping = $(alloc(TableColumn), initWithIdentifier, _ping);
+		ping->width = 80;
+		$(this->serversTableView, addColumn, ping);
+		release(ping);
+
+		this->serversTableView->control.view.autoresizingMask = ViewAutoresizingWidth;
+		this->serversTableView->control.selection = ControlSelectionSingle;
+
+		this->serversTableView->dataSource.numberOfRows = numberOfRows;
+		this->serversTableView->dataSource.valueForColumnAndRow = valueForColumnAndRow;
+		this->serversTableView->dataSource.self = this;
+
+		this->serversTableView->delegate.cellForColumnAndRow = cellForColumnAndRow;
+		this->serversTableView->delegate.didSetSortColumn = didSetSortColumn;
+		this->serversTableView->delegate.self = this;
+
+		$(this->serversTableView, reloadData);
+
+		$((Control *) this->serversTableView, addActionForEventType, SDL_MOUSEBUTTONUP, connectAction, this, NULL);
+
+		$((View *) box, addSubview, (View *) this->serversTableView);
+
+		$((View *) menu->panel->contentView, addSubview, (View *) box);
 		release(box);
 	}
 
 	{
-		this->panel->accessoryView->view.hidden = false;
+		this->menuViewController.panel->accessoryView->view.hidden = false;
 
-		Cg_Button((View *) this->panel->accessoryView, "Quick Join", quickjoinAction, self, NULL);
-		Cg_Button((View *) this->panel->accessoryView, "Create..", createAction, self, NULL);
-		Cg_Button((View *) this->panel->accessoryView, "Refresh", refreshAction, self, NULL);
-		Cg_Button((View *) this->panel->accessoryView, "Connect", connectAction, self, servers);
+		Cg_Button((View *) menu->panel->accessoryView, "Quick Join", quickjoinAction, self, NULL);
+		Cg_Button((View *) menu->panel->accessoryView, "Create..", createAction, self, NULL);
+		Cg_Button((View *) menu->panel->accessoryView, "Refresh", refreshAction, self, NULL);
+		Cg_Button((View *) menu->panel->accessoryView, "Connect", connectAction, self, NULL);
 	}
+}
+
+/**
+ * @see ViewController::respondToEvent(ViewController *, const SDL_Event *)
+ */
+void respondToEvent(ViewController *self, const SDL_Event *event) {
+
+	MultiplayerViewController *this = (MultiplayerViewController *) self;
+
+	if (event->type == QUETOO_EVENT_SERVER_INFO) {
+		$(this->serversTableView, reloadData);
+	}
+
+	super(ViewController, self, respondToEvent, event);
 }
 
 #pragma mark - Class lifecycle
@@ -203,7 +417,10 @@ static void loadView(ViewController *self) {
  */
 static void initialize(Class *clazz) {
 
+	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->def->interface)->respondToEvent = respondToEvent;
 }
 
 /**

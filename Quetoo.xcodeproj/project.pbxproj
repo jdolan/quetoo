@@ -502,7 +502,6 @@
 		CEFC7AC11D9D2CDE000FA6B2 /* MapListCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFC793C1D9BE432000FA6B2 /* MapListCollectionItemView.c */; };
 		CEFC7AC21D9D2CDE000FA6B2 /* MapListCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFC793E1D9BE432000FA6B2 /* MapListCollectionView.c */; };
 		CEFC7AC31D9D2CDE000FA6B2 /* CvarSelect.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFC79181D9BE432000FA6B2 /* CvarSelect.c */; };
-		CEFC7AC41D9D2CDE000FA6B2 /* ServersTableView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFC79441D9BE432000FA6B2 /* ServersTableView.c */; };
 		CEFC7AE21D9D2CDE000FA6B2 /* BindTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFC79131D9BE432000FA6B2 /* BindTextView.h */; };
 		CEFC7AE41D9D2CDE000FA6B2 /* CrosshairView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFC79151D9BE432000FA6B2 /* CrosshairView.h */; };
 		CEFC7AE51D9D2CDE000FA6B2 /* CvarCheckbox.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFC79171D9BE432000FA6B2 /* CvarCheckbox.h */; };
@@ -513,7 +512,6 @@
 		CEFC7AEC1D9D2CDE000FA6B2 /* MapListCollectionView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFC793F1D9BE432000FA6B2 /* MapListCollectionView.h */; };
 		CEFC7AF01D9D2CDE000FA6B2 /* PlayerModelView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFC79411D9BE432000FA6B2 /* PlayerModelView.h */; };
 		CEFC7AF21D9D2CDE000FA6B2 /* PrimaryButton.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFC79431D9BE432000FA6B2 /* PrimaryButton.h */; };
-		CEFC7AF31D9D2CDE000FA6B2 /* ServersTableView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFC79451D9BE432000FA6B2 /* ServersTableView.h */; };
 		CEFC7AF41D9D2CDE000FA6B2 /* SkinSelect.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFC79471D9BE432000FA6B2 /* SkinSelect.h */; };
 		CEFC7AF61D9D2CDE000FA6B2 /* VideoModeSelect.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFC79491D9BE432000FA6B2 /* VideoModeSelect.h */; };
 		CEFC7B161D9D2DBA000FA6B2 /* MouseViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFC78D71D9BE432000FA6B2 /* MouseViewController.c */; };
@@ -1489,8 +1487,6 @@
 		CEFC79411D9BE432000FA6B2 /* PlayerModelView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerModelView.h; sourceTree = "<group>"; };
 		CEFC79421D9BE432000FA6B2 /* PrimaryButton.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PrimaryButton.c; sourceTree = "<group>"; };
 		CEFC79431D9BE432000FA6B2 /* PrimaryButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PrimaryButton.h; sourceTree = "<group>"; };
-		CEFC79441D9BE432000FA6B2 /* ServersTableView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ServersTableView.c; sourceTree = "<group>"; };
-		CEFC79451D9BE432000FA6B2 /* ServersTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ServersTableView.h; sourceTree = "<group>"; };
 		CEFC79461D9BE432000FA6B2 /* SkinSelect.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SkinSelect.c; sourceTree = "<group>"; };
 		CEFC79471D9BE432000FA6B2 /* SkinSelect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SkinSelect.h; sourceTree = "<group>"; };
 		CEFC79481D9BE432000FA6B2 /* VideoModeSelect.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = VideoModeSelect.c; sourceTree = "<group>"; };
@@ -2834,11 +2830,11 @@
 		CE5CDB931D9F45090034757D /* ui */ = {
 			isa = PBXGroup;
 			children = (
-				CE55308B1E57E3670009A127 /* ui_editor.c */,
-				CE55308C1E57E3670009A127 /* ui_editor.h */,
 				CE3BCDEB1DB91AF7002E6C6D /* renderers */,
 				CE5CDBB51D9F45090034757D /* viewcontrollers */,
 				CE5CDBC71D9F450A0034757D /* views */,
+				CE55308B1E57E3670009A127 /* ui_editor.c */,
+				CE55308C1E57E3670009A127 /* ui_editor.h */,
 				CE5CDBB11D9F45090034757D /* ui_local.h */,
 				CE5CDBB21D9F45090034757D /* ui_main.c */,
 				CE5CDBB31D9F45090034757D /* ui_main.h */,
@@ -2952,8 +2948,6 @@
 				CEFC79411D9BE432000FA6B2 /* PlayerModelView.h */,
 				CEFC79421D9BE432000FA6B2 /* PrimaryButton.c */,
 				CEFC79431D9BE432000FA6B2 /* PrimaryButton.h */,
-				CEFC79441D9BE432000FA6B2 /* ServersTableView.c */,
-				CEFC79451D9BE432000FA6B2 /* ServersTableView.h */,
 				CEFC79461D9BE432000FA6B2 /* SkinSelect.c */,
 				CEFC79471D9BE432000FA6B2 /* SkinSelect.h */,
 				CEFC79481D9BE432000FA6B2 /* VideoModeSelect.c */,
@@ -3313,7 +3307,6 @@
 				CEFC7AEC1D9D2CDE000FA6B2 /* MapListCollectionView.h in Headers */,
 				CEFC7AF01D9D2CDE000FA6B2 /* PlayerModelView.h in Headers */,
 				CEFC7AF21D9D2CDE000FA6B2 /* PrimaryButton.h in Headers */,
-				CEFC7AF31D9D2CDE000FA6B2 /* ServersTableView.h in Headers */,
 				CEFC7AF41D9D2CDE000FA6B2 /* SkinSelect.h in Headers */,
 				CEFC7AF61D9D2CDE000FA6B2 /* VideoModeSelect.h in Headers */,
 			);
@@ -4377,7 +4370,6 @@
 				CEFC7AC21D9D2CDE000FA6B2 /* MapListCollectionView.c in Sources */,
 				CEFC7AB31D9D2CDE000FA6B2 /* PlayerModelView.c in Sources */,
 				CED4381F1D9D33E80052BAFA /* PrimaryButton.c in Sources */,
-				CEFC7AC41D9D2CDE000FA6B2 /* ServersTableView.c in Sources */,
 				CEFC7AB91D9D2CDE000FA6B2 /* SkinSelect.c in Sources */,
 				CEFC7AB51D9D2CDE000FA6B2 /* VideoModeSelect.c in Sources */,
 			);

@@ -9,7 +9,6 @@ noinst_HEADERS = \
 	MapListCollectionView.h \
 	PlayerModelView.h \
 	PrimaryButton.h \
-	ServersTableView.h \
 	SkinSelect.h \
 	VideoModeSelect.h
 
@@ -27,7 +26,6 @@ libviews_la_SOURCES = \
 	MapListCollectionView.c \
 	PlayerModelView.c \
 	PrimaryButton.c \
-	ServersTableView.c \
 	SkinSelect.c \
 	VideoModeSelect.c
 
