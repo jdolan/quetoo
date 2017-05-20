@@ -276,7 +276,6 @@ static gint comparator(gconstpointer a, gconstpointer b, gpointer data) {
 		} else if (g_strcmp0(this->serversTableView->sortColumn->identifier, _ping) == 0) {
 			return s0->ping - s1->ping;
 		}
-
 	}
 
 	assert(false);
@@ -376,8 +375,6 @@ static void loadView(ViewController *self) {
 		this->serversTableView->delegate.didSetSortColumn = didSetSortColumn;
 		this->serversTableView->delegate.self = this;
 
-		$(this->serversTableView, reloadData);
-
 		$((Control *) this->serversTableView, addActionForEventType, SDL_MOUSEBUTTONUP, connectAction, this, NULL);
 
 		$((View *) box, addSubview, (View *) this->serversTableView);
@@ -397,17 +394,18 @@ static void loadView(ViewController *self) {
 }
 
 /**
- * @see ViewController::respondToEvent(ViewController *, const SDL_Event *)
+ * @see ViewController::viewWillAppear(ViewController *)
  */
-void respondToEvent(ViewController *self, const SDL_Event *event) {
+void viewWillAppear(ViewController *self) {
 
 	MultiplayerViewController *this = (MultiplayerViewController *) self;
 
-	if (event->type == QUETOO_EVENT_SERVER_INFO) {
-		$(this->serversTableView, reloadData);
-	}
+	g_list_free(this->servers);
+	this->servers = g_list_sort_with_data(g_list_copy(cgi.Servers()), comparator, this);
 
-	super(ViewController, self, respondToEvent, event);
+	$(this->serversTableView, reloadData);
+
+	super(ViewController, self, viewWillAppear);
 }
 
 #pragma mark - Class lifecycle
@@ -420,7 +418,7 @@ static void initialize(Class *clazz) {
 	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
 
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
-	((ViewControllerInterface *) clazz->def->interface)->respondToEvent = respondToEvent;
+	((ViewControllerInterface *) clazz->def->interface)->viewWillAppear = viewWillAppear;
 }
 
 /**
