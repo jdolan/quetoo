@@ -89,7 +89,7 @@ typedef struct s_channel_s {
 	vec_t gain;
 	vec_t pitch;
 	ALuint filter;
-	_Bool free;
+	_Bool relative; // sound is relative to listener
 } s_channel_t;
 
 #define MAX_CHANNELS 128
