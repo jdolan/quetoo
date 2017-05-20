@@ -455,7 +455,7 @@ static void G_BeginIntermission(const char *map) {
 	}
 
 	// play a dramatic sound effect
-	gi.PositionedSound(g_level.intermission_origin, NULL, g_media.sounds.roar, ATTEN_NORM);
+	gi.PositionedSound(g_level.intermission_origin, NULL, g_media.sounds.roar, ATTEN_NONE);
 
 	// stay on same level if not provided
 	g_level.next_map = map ? : g_level.name;
