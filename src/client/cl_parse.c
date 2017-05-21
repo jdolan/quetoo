@@ -367,7 +367,8 @@ static void Cl_ParseSound(void) {
 	uint16_t index;
 
 	s_play_sample_t play = {
-		.flags = 0
+		.flags = 0,
+		.attenuation = ATTEN_DEFAULT
 	};
 
 	const byte flags = Net_ReadByte(&net_message);
@@ -380,8 +381,6 @@ static void Cl_ParseSound(void) {
 
 	if (flags & S_ATTEN) {
 		play.attenuation = Net_ReadByte(&net_message);
-	} else {
-		play.attenuation = ATTEN_DEFAULT;
 	}
 
 	if (flags & S_ENTITY) { // entity relative
@@ -392,6 +391,10 @@ static void Cl_ParseSound(void) {
 	if (flags & S_ORIGIN) { // positioned in space
 		Net_ReadPosition(&net_message, play.origin);
 		play.flags |= S_PLAY_POSITIONED;
+	}
+
+	if (flags & S_PITCH) {
+		play.pitch = Net_ReadChar(&net_message) * 2;
 	}
 
 	S_AddSample(&play);

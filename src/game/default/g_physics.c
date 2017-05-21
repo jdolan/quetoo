@@ -98,7 +98,7 @@ static void G_CheckWater(g_entity_t *ent) {
 		}
 
 		if (!(ent->sv_flags & SVF_NO_CLIENT)) {
-			gi.PositionedSound(pos, ent, g_media.sounds.water_in, ATTEN_IDLE);
+			gi.PositionedSound(pos, ent, g_media.sounds.water_in, ATTEN_IDLE, 0);
 
 			if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
 				G_Ripple(ent, NULL, NULL, 0.0, true);
@@ -108,7 +108,7 @@ static void G_CheckWater(g_entity_t *ent) {
 	} else if (old_water_level == WATER_UNDER && ent->locals.water_level == WATER_NONE) {
 
 		if (!(ent->sv_flags & SVF_NO_CLIENT)) {
-			gi.PositionedSound(pos, ent, g_media.sounds.water_out, ATTEN_IDLE);
+			gi.PositionedSound(pos, ent, g_media.sounds.water_out, ATTEN_IDLE, 0);
 
 			if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
 				G_Ripple(ent, NULL, NULL, 0.0, false);

@@ -389,7 +389,7 @@ static void G_RestartGame(_Bool teamz) {
 	}
 
 	gi.BroadcastPrint(PRINT_HIGH, "Game restarted\n");
-	gi.Sound(&g_game.entities[0], g_media.sounds.teleport, ATTEN_NONE);
+	gi.Sound(&g_game.entities[0], g_media.sounds.teleport, ATTEN_NONE, 0);
 }
 
 /**
@@ -455,7 +455,7 @@ static void G_BeginIntermission(const char *map) {
 	}
 
 	// play a dramatic sound effect
-	gi.PositionedSound(g_level.intermission_origin, NULL, g_media.sounds.roar, ATTEN_NONE);
+	gi.PositionedSound(g_level.intermission_origin, NULL, g_media.sounds.roar, ATTEN_NONE, 0);
 
 	// stay on same level if not provided
 	g_level.next_map = map ? : g_level.name;
@@ -854,7 +854,7 @@ static void G_CheckRules(void) {
 			G_ClientRespawn(&g_game.entities[i + 1], false);
 		}
 
-		gi.Sound(&g_game.entities[0], g_media.sounds.teleport, ATTEN_NONE);
+		gi.Sound(&g_game.entities[0], g_media.sounds.teleport, ATTEN_NONE, 0);
 		gi.BroadcastPrint(PRINT_HIGH, "Match has started\n");
 	}
 
@@ -870,7 +870,7 @@ static void G_CheckRules(void) {
 			G_ClientRespawn(&g_game.entities[i + 1], false);
 		}
 
-		gi.Sound(&g_game.entities[0], g_media.sounds.teleport, ATTEN_NONE);
+		gi.Sound(&g_game.entities[0], g_media.sounds.teleport, ATTEN_NONE, 0);
 		gi.BroadcastPrint(PRINT_HIGH, "Round has started\n");
 	}
 
@@ -1510,7 +1510,7 @@ void G_RunTimers(void) {
 			if (j <= 5) {
 
 				if (j > 0) {
-					gi.Sound(&g_game.entities[0], g_media.sounds.countdown[j], ATTEN_NONE);
+					gi.Sound(&g_game.entities[0], g_media.sounds.countdown[j], ATTEN_NONE, 0);
 				}
 
 				for (int32_t i = 0; i < g_level.num_teams; i++) {
@@ -1529,7 +1529,7 @@ void G_RunTimers(void) {
 			if (j <= 10) {
 
 				if (j > 0) {
-					gi.Sound(&g_game.entities[0], g_media.sounds.countdown[j], ATTEN_NONE);
+					gi.Sound(&g_game.entities[0], g_media.sounds.countdown[j], ATTEN_NONE, 0);
 				} else {
 					G_CallTimeIn();
 				}

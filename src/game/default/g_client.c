@@ -230,7 +230,7 @@ static void G_ClientGiblet_Touch(g_entity_t *self, g_entity_t *other,
 		if (speed > 40.0 && G_IsStructural(other, surf)) {
 
 			if (g_level.time - self->locals.touch_time > 200) {
-				gi.Sound(self, self->locals.noise_index, ATTEN_IDLE);
+				gi.Sound(self, self->locals.noise_index, ATTEN_IDLE, 0);
 				self->locals.touch_time = g_level.time;
 			}
 		}
@@ -471,7 +471,7 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 	if (self->locals.health <= -CLIENT_CORPSE_HEALTH) {
 		G_ClientCorpse_Die(self, attacker, mod);
 	} else {
-		gi.Sound(self, gi.SoundIndex("*death_1"), ATTEN_NORM);
+		gi.Sound(self, gi.SoundIndex("*death_1"), ATTEN_NORM, 0);
 
 		const vec_t r = Randomf();
 		if (r < 0.33) {
@@ -1551,7 +1551,7 @@ static void G_ClientInventoryThink(g_entity_t *ent) {
 			ent->client->locals.quad_damage_time = 0.0;
 			ent->client->locals.inventory[g_media.items.powerups[POWERUP_QUAD]->index] = 0;
 
-			gi.Sound(ent, g_media.sounds.quad_expire, ATTEN_NORM);
+			gi.Sound(ent, g_media.sounds.quad_expire, ATTEN_NORM, 0);
 
 			ent->s.effects &= ~EF_QUAD;
 		}

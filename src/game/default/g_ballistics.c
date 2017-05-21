@@ -488,7 +488,7 @@ void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
 		if (G_IsStructural(other, surf)) {
 			if (g_level.time - self->locals.touch_time > 200) {
 				if (VectorLength(self->locals.velocity) > 40.0) {
-					gi.Sound(self, g_media.sounds.grenade_hit, ATTEN_NORM);
+					gi.Sound(self, g_media.sounds.grenade_hit, ATTEN_NORM, 0);
 					self->locals.touch_time = g_level.time;
 				}
 			}
@@ -868,7 +868,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		VectorCopy(tr.end, water_start);
 
 		if (!self->locals.water_level) {
-			gi.PositionedSound(water_start, NULL, g_media.sounds.water_in, ATTEN_NORM);
+			gi.PositionedSound(water_start, NULL, g_media.sounds.water_in, ATTEN_NORM, 0);
 			self->locals.water_level = WATER_FEET;
 		}
 
@@ -878,7 +878,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		G_Ripple(NULL, start, end, 16.0, true);
 	} else {
 		if (self->locals.water_level) { // exited water, play sound, no trail
-			gi.PositionedSound(water_start, NULL, g_media.sounds.water_out, ATTEN_NORM);
+			gi.PositionedSound(water_start, NULL, g_media.sounds.water_out, ATTEN_NORM, 0);
 			self->locals.water_level = WATER_NONE;
 		}
 	}
@@ -1000,7 +1000,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 			content_mask &= ~MASK_LIQUID;
 			liquid = true;
 
-			gi.PositionedSound(water_pos, NULL, g_media.sounds.water_in, ATTEN_NORM);
+			gi.PositionedSound(water_pos, NULL, g_media.sounds.water_in, ATTEN_NORM, 0);
 
 			ignore = ent;
 			continue;
@@ -1205,7 +1205,7 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 				self->owner->client->ps.pm_state.hook_length = Clamp(distance, PM_HOOK_MIN_DIST, g_hook_distance->value);
 			}
 
-			gi.Sound(self, g_media.sounds.hook_hit, ATTEN_NORM);
+			gi.Sound(self, g_media.sounds.hook_hit, ATTEN_NORM, (int8_t) (Randomc() * 4.0));
 
 			gi.WriteByte(SV_CMD_TEMP_ENTITY);
 			gi.WriteByte(TE_HOOK_IMPACT);
@@ -1217,7 +1217,7 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 			VectorNormalize(self->locals.velocity);
 			G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, vec3_origin, 5, 0, 0, MOD_HOOK);
 
-			gi.Sound(self, g_media.sounds.hook_gibhit, ATTEN_DEFAULT);
+			gi.Sound(self, g_media.sounds.hook_gibhit, ATTEN_DEFAULT, (int8_t) (Randomc() * 4.0));
 
 			G_ClientHookDetach(self->owner);
 		}

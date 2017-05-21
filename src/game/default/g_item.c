@@ -470,7 +470,7 @@ void G_ResetDroppedFlag(g_entity_t *ent) {
 
 	gi.LinkEntity(f);
 
-	gi.Sound(ent, gi.SoundIndex("ctf/return"), ATTEN_NONE);
+	gi.Sound(ent, gi.SoundIndex("ctf/return"), ATTEN_NONE, 0);
 
 	gi.BroadcastPrint(PRINT_HIGH, "The %s flag has been returned\n", t->name);
 
@@ -511,7 +511,7 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 			f->s.event = EV_ITEM_RESPAWN;
 
-			gi.Sound(other, gi.SoundIndex("ctf/return"), ATTEN_NONE);
+			gi.Sound(other, gi.SoundIndex("ctf/return"), ATTEN_NONE, 0);
 
 			gi.BroadcastPrint(PRINT_HIGH, "%s returned the %s flag\n",
 			                  other->client->locals.persistent.net_name, t->name);
@@ -537,7 +537,7 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 				of->s.event = EV_ITEM_RESPAWN;
 
-				gi.Sound(other, gi.SoundIndex("ctf/capture"), ATTEN_NONE);
+				gi.Sound(other, gi.SoundIndex("ctf/capture"), ATTEN_NONE, 0);
 
 				gi.BroadcastPrint(PRINT_HIGH, "%s captured the %s flag\n",
 								  other->client->locals.persistent.net_name, ot->name);
@@ -569,7 +569,7 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 	// link the flag model to the player
 	other->s.model3 = f->locals.item->model_index;
 
-	gi.Sound(other, gi.SoundIndex("ctf/steal"), ATTEN_NONE);
+	gi.Sound(other, gi.SoundIndex("ctf/steal"), ATTEN_NONE, 0);
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag\n",
 	                  other->client->locals.persistent.net_name, t->name);
@@ -707,7 +707,7 @@ void G_TouchItem(g_entity_t *ent, g_entity_t *other,
 		other->client->locals.pickup_msg_time = g_level.time + 3000;
 
 		if (ent->locals.item->pickup_sound) { // play pickup sound
-			gi.Sound(other, ent->locals.item->pickup_sound_index, ATTEN_NORM);
+			gi.Sound(other, ent->locals.item->pickup_sound_index, ATTEN_NORM, 0);
 		}
 
 		other->s.event = EV_ITEM_PICKUP;
