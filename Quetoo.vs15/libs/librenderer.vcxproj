@@ -49,6 +49,8 @@
     <ClCompile Include="..\..\src\client\renderer\r_program_corona.c" />
     <ClCompile Include="..\..\src\client\renderer\r_program_default.c" />
     <ClCompile Include="..\..\src\client\renderer\r_program_null.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_program_particle.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_program_particle_corona.c" />
     <ClCompile Include="..\..\src\client\renderer\r_program_shadow.c" />
     <ClCompile Include="..\..\src\client\renderer\r_program_shell.c" />
     <ClCompile Include="..\..\src\client\renderer\r_program_stain.c" />
@@ -90,6 +92,8 @@
     <ClInclude Include="..\..\src\client\renderer\r_program_corona.h" />
     <ClInclude Include="..\..\src\client\renderer\r_program_default.h" />
     <ClInclude Include="..\..\src\client\renderer\r_program_null.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_program_particle.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_program_particle_corona.h" />
     <ClInclude Include="..\..\src\client\renderer\r_program_shadow.h" />
     <ClInclude Include="..\..\src\client\renderer\r_program_shell.h" />
     <ClInclude Include="..\..\src\client\renderer\r_program_stain.h" />

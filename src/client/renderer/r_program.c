@@ -279,8 +279,13 @@ static void R_AttributePointer(const r_attribute_id_t attribute) {
 
 		R_BindBuffer(buffer);
 
-		glVertexAttribPointer(attribute, type->count, gl_type, type->normalized, stride,
-		                      (const GLvoid *) offset);
+		if (type->integer) {
+			glVertexAttribIPointer(attribute, type->count, gl_type, stride, (const GLvoid *) offset);
+		} else {
+			glVertexAttribPointer(attribute, type->count, gl_type, type->normalized, stride,
+								  (const GLvoid *) offset);
+		}
+
 		r_view.num_state_changes[R_STATE_PROGRAM_ATTRIB_POINTER]++;
 
 		attrib->value.buffer = buffer;
@@ -481,15 +486,13 @@ static void R_LoadShader(GLenum type, const char *name, r_shader_t *out_shader) 
 	glCompileShader(out_shader->id);
 
 	glGetShaderiv(out_shader->id, GL_COMPILE_STATUS, &e);
+
 	if (!e) {
 		glGetShaderInfoLog(out_shader->id, sizeof(log) - 1, NULL, log);
 		Com_Warn("%s: %s\n", out_shader->name, log);
 
 		glDeleteShader(out_shader->id);
 		memset(out_shader, 0, sizeof(*out_shader));
-
-		Fs_Free(buf);
-		return;
 	}
 
 	Fs_Free(buf);
@@ -514,43 +517,49 @@ static void R_InitProgramMatrixUniforms(r_program_t *program) {
 	}
 }
 
+// some temporary storage, since only one program can be made at a time
+static GLuint shaders_attached[32];
+static size_t cur_shader = 0;
+
 /**
  * @brief
  */
-static _Bool R_LoadProgram(const char *name, void (*Init)(r_program_t *program),
-                           void (*PreLink)(const r_program_t *program),
-                           r_program_t *out_program) {
-
-	char log[MAX_STRING_CHARS];
-	int32_t e;
-
+static void R_CreateProgram(const char *name, r_program_t *out_program) {
 	g_strlcpy(out_program->name, name, sizeof(out_program->name));
 
 	memset(out_program->attributes, -1, sizeof(out_program->attributes));
 
 	out_program->id = glCreateProgram();
+	out_program->program_id = (r_program_id_t) (ptrdiff_t) (out_program - r_state.programs);
+}
 
-	static r_shader_t v, f;
+/**
+ * @brief
+ */
+static void R_AttachShader(r_program_t *out_program, const GLenum type, const char *name) {
+	static r_shader_t shader;
+	shader.id = 0;
 
-	v.id = f.id = 0;
+	R_LoadShader(type, va("%s_%ss.glsl", name, type == GL_VERTEX_SHADER ? "v" : type == GL_FRAGMENT_SHADER ? "f" : "g"), &shader);
 
-	R_LoadShader(GL_VERTEX_SHADER, va("%s_vs.glsl", name), &v);
-	R_LoadShader(GL_FRAGMENT_SHADER, va("%s_fs.glsl", name), &f);
-
-	if (v.id) {
-		glAttachShader(out_program->id, v.id);
+	if (shader.id) {
+		glAttachShader(out_program->id, shader.id);
+	
+		shaders_attached[cur_shader++] = shader.id;
 	}
-	if (f.id) {
-		glAttachShader(out_program->id, f.id);
-	}
+}
 
-	if (PreLink) {
-		PreLink(out_program);
-	}
+/**
+ * @brief
+ */
+static _Bool R_LinkProgram(r_program_t *out_program, void (*Init)(r_program_t *program)) {
+	char log[MAX_STRING_CHARS];
+	int32_t e;
 
 	glLinkProgram(out_program->id);
 
 	glGetProgramiv(out_program->id, GL_LINK_STATUS, &e);
+
 	if (!e) {
 		glGetProgramInfoLog(out_program->id, sizeof(log) - 1, NULL, log);
 		Com_Warn("%s: %s\n", out_program->name, log);
@@ -558,7 +567,7 @@ static _Bool R_LoadProgram(const char *name, void (*Init)(r_program_t *program),
 		R_ShutdownProgram(out_program);
 		return false;
 	}
-
+	
 	if (Init) { // invoke initialization function
 		R_UseProgram(out_program);
 
@@ -567,14 +576,11 @@ static _Bool R_LoadProgram(const char *name, void (*Init)(r_program_t *program),
 		R_UseProgram(NULL);
 	}
 
-	if (v.id) {
-		glDeleteShader(v.id);
-	}
-	if (f.id) {
-		glDeleteShader(f.id);
+	for (size_t i = 0; i < cur_shader; i++) {
+		glDeleteShader(shaders_attached[i]);
 	}
 
-	out_program->program_id = (r_program_id_t) (ptrdiff_t) (out_program - r_state.programs);
+	cur_shader = 0;
 
 	R_UseProgram(out_program);
 
@@ -683,6 +689,56 @@ void R_SetupAttributes(void) {
 			R_DisableAttribute(R_ARRAY_NEXT_TANGENT);
 		}
 	}
+
+	if (p->arrays_mask & R_ARRAY_MASK_SCALE) {
+
+		if (mask & R_ARRAY_MASK_SCALE) {
+			R_AttributePointer(R_ARRAY_SCALE);
+		} else {
+			R_DisableAttribute(R_ARRAY_SCALE);
+		}
+	}
+
+	if (p->arrays_mask & R_ARRAY_MASK_ROLL) {
+
+		if (mask & R_ARRAY_MASK_ROLL) {
+			R_AttributePointer(R_ARRAY_ROLL);
+		} else {
+			R_DisableAttribute(R_ARRAY_ROLL);
+		}
+	}
+
+	if (p->arrays_mask & R_ARRAY_MASK_END) {
+
+		if (mask & R_ARRAY_MASK_END) {
+			R_AttributePointer(R_ARRAY_END);
+		} else {
+			R_DisableAttribute(R_ARRAY_END);
+		}
+	}
+
+	if (p->arrays_mask & R_ARRAY_MASK_TYPE) {
+
+		if (mask & R_ARRAY_MASK_TYPE) {
+			R_AttributePointer(R_ARRAY_TYPE);
+		} else {
+			R_DisableAttribute(R_ARRAY_TYPE);
+		}
+	}
+}
+
+/**
+ * @brief
+ */
+static _Bool R_LoadSimpleProgram(const char *name, void (*Init)(r_program_t *program),
+                           void (*PreLink)(const r_program_t *program),
+                           r_program_t *out_program) {
+
+	R_CreateProgram(name, out_program);
+	R_AttachShader(out_program, GL_VERTEX_SHADER, name);
+	R_AttachShader(out_program, GL_FRAGMENT_SHADER, name);
+	PreLink(out_program);
+	return R_LinkProgram(out_program, Init);
 }
 
 /**
@@ -703,7 +759,7 @@ void R_InitPrograms(void) {
 
 	memset(r_state.programs, 0, sizeof(r_state.programs));
 
-	if (R_LoadProgram("default", R_InitProgram_default, R_PreLink_default, program_default)) {
+	if (R_LoadSimpleProgram("default", R_InitProgram_default, R_PreLink_default, program_default)) {
 		program_default->Shutdown = R_Shutdown_default;
 		program_default->Use = R_UseProgram_default;
 		program_default->UseMaterial = R_UseMaterial_default;
@@ -714,17 +770,17 @@ void R_InitPrograms(void) {
 		program_default->UseAlphaTest = R_UseAlphaTest_default;
 		program_default->UseInterpolation = R_UseInterpolation_default;
 		program_default->UseTints = R_UseTints_default;
-		program_default->arrays_mask = R_ARRAY_MASK_ALL;
+		program_default->arrays_mask = R_ARRAY_MASK_ALL & ~R_ARRAY_GEOMETRY_MASK;
 	}
 
-	if (R_LoadProgram("shadow", R_InitProgram_shadow, R_PreLink_shadow, program_shadow)) {
+	if (R_LoadSimpleProgram("shadow", R_InitProgram_shadow, R_PreLink_shadow, program_shadow)) {
 		program_shadow->UseFog = R_UseFog_shadow;
 		program_shadow->UseCurrentColor = R_UseCurrentColor_shadow;
 		program_shadow->UseInterpolation = R_UseInterpolation_shadow;
 		program_shadow->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_NEXT_POSITION;
 	}
 
-	if (R_LoadProgram("shell", R_InitProgram_shell, R_PreLink_shell, program_shell)) {
+	if (R_LoadSimpleProgram("shell", R_InitProgram_shell, R_PreLink_shell, program_shell)) {
 		program_shell->Use = R_UseProgram_shell;
 		program_shell->UseCurrentColor = R_UseCurrentColor_shell;
 		program_shell->UseInterpolation = R_UseInterpolation_shell;
@@ -732,14 +788,14 @@ void R_InitPrograms(void) {
 		                             R_ARRAY_MASK_NORMAL | R_ARRAY_MASK_NEXT_NORMAL;
 	}
 
-	if (R_LoadProgram("warp", R_InitProgram_warp, R_PreLink_warp, program_warp)) {
+	if (R_LoadSimpleProgram("warp", R_InitProgram_warp, R_PreLink_warp, program_warp)) {
 		program_warp->Use = R_UseProgram_warp;
 		program_warp->UseFog = R_UseFog_warp;
 		program_warp->UseCurrentColor = R_UseCurrentColor_warp;
 		program_warp->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_DIFFUSE;
 	}
 
-	if (R_LoadProgram("null", R_InitProgram_null, R_PreLink_null, program_null)) {
+	if (R_LoadSimpleProgram("null", R_InitProgram_null, R_PreLink_null, program_null)) {
 		program_null->UseFog = R_UseFog_null;
 		program_null->UseCurrentColor = R_UseCurrentColor_null;
 		program_null->UseInterpolation = R_UseInterpolation_null;
@@ -749,13 +805,47 @@ void R_InitPrograms(void) {
 		                            R_ARRAY_MASK_COLOR;
 	}
 
-	if (R_LoadProgram("corona", R_InitProgram_corona, R_PreLink_corona, program_corona)) {
+	if (R_LoadSimpleProgram("corona", R_InitProgram_corona, R_PreLink_corona, program_corona)) {
 		program_corona->UseFog = R_UseFog_corona;
 		program_corona->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_DIFFUSE | R_ARRAY_MASK_COLOR;
 	}
 
-	if (R_LoadProgram("stain", R_InitProgram_stain, R_PreLink_stain, program_stain)) {
+	if (R_LoadSimpleProgram("stain", R_InitProgram_stain, R_PreLink_stain, program_stain)) {
 		program_stain->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_DIFFUSE | R_ARRAY_MASK_COLOR;
+	}
+
+	R_CreateProgram("particle", program_particle);
+	R_AttachShader(program_particle, GL_VERTEX_SHADER, "particle");
+	R_AttachShader(program_particle, GL_GEOMETRY_SHADER, "particle");
+	R_AttachShader(program_particle, GL_FRAGMENT_SHADER, "particle");
+	R_PreLink_particle(program_particle);
+
+	if (R_LinkProgram(program_particle, R_InitProgram_particle)) {
+		program_particle->UseFog = R_UseFog_particle;
+		program_particle->UseCurrentColor = R_UseCurrentColor_particle;
+		program_particle->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_DIFFUSE |
+										R_ARRAY_MASK_COLOR | R_ARRAY_MASK_LIGHTMAP | R_ARRAY_MASK_SCALE |
+										R_ARRAY_MASK_ROLL | R_ARRAY_MASK_END | R_ARRAY_MASK_TYPE;
+	
+		r_state.particle_program = program_particle;
+	} else {
+		r_state.particle_program = program_null;
+	}
+
+	R_CreateProgram("particle_corona", program_particle_corona);
+	R_AttachShader(program_particle_corona, GL_VERTEX_SHADER, "particle_corona");
+	R_AttachShader(program_particle_corona, GL_GEOMETRY_SHADER, "particle");
+	R_AttachShader(program_particle_corona, GL_FRAGMENT_SHADER, "corona");
+	R_PreLink_particle(program_particle_corona);
+
+	if (R_LinkProgram(program_particle_corona, R_InitProgram_particle_corona)) {
+		program_particle_corona->UseFog = R_UseFog_particle_corona;
+		program_particle_corona->arrays_mask =	R_ARRAY_MASK_POSITION |
+												R_ARRAY_MASK_COLOR | R_ARRAY_MASK_SCALE;
+	
+		r_state.corona_program = program_particle_corona;
+	} else {
+		r_state.corona_program = program_corona;
 	}
 
 	R_UseProgram(program_null);

@@ -34,8 +34,8 @@ typedef struct {
 
 static r_buffer_layout_t r_char_buffer_layout[] = {
 	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_SHORT, .count = 2, .size = sizeof(s16vec2_t) },
-	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = 4, .normalized = true },
-	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 8, .normalized = true },
+	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .normalized = true },
+	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .normalized = true },
 	{ .attribute = -1 }
 };
 
@@ -64,7 +64,7 @@ typedef struct {
 
 static r_buffer_layout_t r_fill_buffer_layout[] = {
 	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 2, .size = sizeof(vec2_t) },
-	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 8, .normalized = true },
+	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .normalized = true },
 	{ .attribute = -1 }
 };
 
@@ -116,7 +116,7 @@ typedef struct {
 
 static r_buffer_layout_t r_image_buffer_layout[] = {
 	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_SHORT, .count = 2, .size = sizeof(s16vec2_t) },
-	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = 4 },
+	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t) },
 	{ .attribute = -1 }
 };
 
@@ -666,9 +666,9 @@ void R_InitDraw(void) {
 	                         NULL);
 
 	// fill buffer only needs 4 verts
-	R_CreateDataBuffer(&r_draw.fill_arrays.ui_vert_buffer, R_ATTRIB_FLOAT, 2, false, GL_DYNAMIC_DRAW, sizeof(vec2_t) * 4,
+	R_CreateDataBuffer(&r_draw.fill_arrays.ui_vert_buffer, R_ATTRIB_FLOAT, 2, false, false, GL_DYNAMIC_DRAW, sizeof(vec2_t) * 4,
 	                   NULL);
-	R_CreateDataBuffer(&r_draw.line_arrays.ui_vert_buffer, R_ATTRIB_FLOAT, 2, false, GL_DYNAMIC_DRAW,
+	R_CreateDataBuffer(&r_draw.line_arrays.ui_vert_buffer, R_ATTRIB_FLOAT, 2, false, false, GL_DYNAMIC_DRAW,
 	                   sizeof(vec2_t) * MAX_LINE_VERTS,
 	                   NULL);
 

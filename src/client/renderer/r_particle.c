@@ -50,8 +50,31 @@ typedef struct {
 
 static r_buffer_layout_t r_particle_buffer_layout[] = {
 	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
-	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_FLOAT, .count = 2, .size = sizeof(vec2_t), .offset = 12 },
-	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 20, .normalized = true },
+	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_FLOAT, .count = 2, .size = sizeof(vec2_t) },
+	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .normalized = true },
+	{ .attribute = -1 }
+};
+
+typedef struct {
+	vec3_t start;
+	vec2_t texcoord0;
+	vec2_t texcoord1;
+	u8vec4_t color;
+	vec_t scale;
+	vec_t roll;
+	vec3_t end;
+	int32_t type;
+} r_geometry_particle_interleave_vertex_t;
+
+static r_buffer_layout_t r_geometry_particle_buffer_layout[] = {
+	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
+	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_FLOAT, .count = 2, .size = sizeof(vec2_t) },
+	{ .attribute = R_ARRAY_LIGHTMAP, .type = R_ATTRIB_FLOAT, .count = 2, .size = sizeof(vec2_t) },
+	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .normalized = true },
+	{ .attribute = R_ARRAY_SCALE, .type = R_ATTRIB_FLOAT, .count = 1, .size = sizeof(vec_t) },
+	{ .attribute = R_ARRAY_ROLL, .type = R_ATTRIB_FLOAT, .count = 1, .size = sizeof(vec_t) },
+	{ .attribute = R_ARRAY_END, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
+	{ .attribute = R_ARRAY_TYPE, .type = R_ATTRIB_INT, .count = 1, .size = sizeof(int32_t), .integral = true },
 	{ .attribute = -1 }
 };
 
@@ -68,8 +91,11 @@ typedef struct {
 	r_particle_interleave_vertex_t verts[MAX_PARTICLES * 4];
 	r_buffer_t verts_buffer;
 
-	uint16_t elements[MAX_PARTICLES * 6];
-	uint16_t num_particles;
+	r_geometry_particle_interleave_vertex_t geometry_verts[MAX_PARTICLES];
+	r_buffer_t geometry_verts_buffer;
+
+	uint32_t elements[MAX_PARTICLES * 6];
+	uint32_t num_particles;
 
 	r_buffer_t element_buffer;
 } r_particle_state_t;
@@ -84,8 +110,11 @@ void R_InitParticles(void) {
 	R_CreateInterleaveBuffer(&r_particle_state.verts_buffer, sizeof(r_particle_interleave_vertex_t),
 	                         r_particle_buffer_layout, GL_DYNAMIC_DRAW, sizeof(r_particle_state.verts), NULL);
 
-	R_CreateElementBuffer(&r_particle_state.element_buffer, R_ATTRIB_UNSIGNED_SHORT, GL_DYNAMIC_DRAW,
+	R_CreateElementBuffer(&r_particle_state.element_buffer, R_ATTRIB_UNSIGNED_INT, GL_DYNAMIC_DRAW,
 	                      sizeof(r_particle_state.elements), NULL);
+
+	R_CreateInterleaveBuffer(&r_particle_state.geometry_verts_buffer, sizeof(r_geometry_particle_interleave_vertex_t),
+	                         r_geometry_particle_buffer_layout, GL_DYNAMIC_DRAW, sizeof(r_particle_state.geometry_verts), NULL);
 }
 
 /**
@@ -95,6 +124,8 @@ void R_ShutdownParticles(void) {
 
 	R_DestroyBuffer(&r_particle_state.verts_buffer);
 	R_DestroyBuffer(&r_particle_state.element_buffer);
+
+	R_DestroyBuffer(&r_particle_state.geometry_verts_buffer);
 }
 
 /**
@@ -180,7 +211,7 @@ static void R_ParticleTexcoords(const r_particle_t *p, r_particle_interleave_ver
 	// atlas needs a different pipeline
 	if (is_atlas) {
 		const r_atlas_image_t *atlas_image = (const r_atlas_image_t *) p->image;
-
+	
 		Vector2Set(verts[0].texcoord, atlas_image->texcoords[0], atlas_image->texcoords[1]);
 		Vector2Set(verts[1].texcoord, atlas_image->texcoords[2], atlas_image->texcoords[1]);
 		Vector2Set(verts[2].texcoord, atlas_image->texcoords[2], atlas_image->texcoords[3]);
@@ -219,6 +250,78 @@ static void R_ParticleColor(const r_particle_t *p, r_particle_interleave_vertex_
 }
 
 /**
+ * @brief Generates the vertex coordinates for the specified particle.
+ */
+static void R_ParticleGeometryVerts(const r_particle_t *p, r_geometry_particle_interleave_vertex_t *verts) {
+
+	verts->scale = p->scale;
+	VectorCopy(p->org, verts->start);
+	verts->type = p->type;
+	verts->roll = p->roll;
+
+	if (p->type == PARTICLE_BEAM || p->type == PARTICLE_SPARK) { // beams are lines with starts and ends
+		VectorCopy(p->end, verts->end);
+	}
+
+	// all other particles are aligned with the client's view
+}
+
+/**
+ * @brief Generates texture coordinates for the specified particle.
+ */
+static void R_ParticleGeometryTexcoords(const r_particle_t *p, r_geometry_particle_interleave_vertex_t *vert) {
+	vec_t s, t;
+	_Bool is_atlas = p->image && p->image->type == IT_ATLAS_IMAGE;
+
+	if (!p->image ||
+	        (!p->scroll_s && !p->scroll_t &&!is_atlas && !(p->flags & PARTICLE_FLAG_REPEAT)) ||
+	        p->type == PARTICLE_CORONA) {
+
+		VectorCopy(default_texcoords[0], vert->texcoord0);
+		VectorCopy(default_texcoords[2], vert->texcoord1);
+
+		return;
+	}
+
+	// atlas needs a different pipeline
+	if (is_atlas) {
+		const r_atlas_image_t *atlas_image = (const r_atlas_image_t *) p->image;
+
+		for (int32_t i = 0; i < 2; i++) {
+			vert->texcoord0[i] = atlas_image->texcoords[i];
+			vert->texcoord1[i] = atlas_image->texcoords[2 + i];
+		}
+	} else {
+		s = p->scroll_s * r_view.ticks / 1000.0;
+		t = p->scroll_t * r_view.ticks / 1000.0;
+
+		vec_t x_offset = 1.0;
+
+		// scale the texcoords to repeat if we asked for it
+		if (p->flags & PARTICLE_FLAG_REPEAT) {
+
+			vec3_t distance;
+			VectorSubtract(p->org, p->end, distance);
+			const vec_t length = VectorLength(distance);
+
+			x_offset = (length / p->scale) * p->repeat_scale;
+		}
+
+		Vector2Set(vert->texcoord0, s, t);
+		Vector2Set(vert->texcoord1, x_offset + s, 1.0 + t);
+	}
+}
+
+/**
+ * @brief Generates vertex colors for the specified particle.
+ */
+static void R_ParticleGeometryColor(const r_particle_t *p, r_geometry_particle_interleave_vertex_t *vert) {
+
+	ColorDecompose(p->color, vert->color);
+}
+
+
+/**
  * @brief Updates the shared angular vectors required for particle generation.
  */
 void R_UpdateParticleState(void) {
@@ -247,16 +350,25 @@ void R_UpdateParticles(r_element_t *e, const size_t count) {
 
 	for (i = 0; i < count; i++, e++) {
 
-		if (e->type == ELEMENT_PARTICLE) {
-			r_particle_t *p = (r_particle_t *) e->element;
+		if (e->type != ELEMENT_PARTICLE) {
+			continue;
+		}
+		
+		r_particle_t *p = (r_particle_t *) e->element;
+		
+		if (r_state.particle_program == program_particle) {
 
-			const uint16_t vertex_start = r_particle_state.num_particles * 4;
+			R_ParticleGeometryVerts(p, &r_particle_state.geometry_verts[r_particle_state.num_particles]);
+			R_ParticleGeometryTexcoords(p, &r_particle_state.geometry_verts[r_particle_state.num_particles]);
+			R_ParticleGeometryColor(p, &r_particle_state.geometry_verts[r_particle_state.num_particles]);
+		} else {
+			const uint32_t vertex_start = r_particle_state.num_particles * 4;
 
 			R_ParticleVerts(p, &r_particle_state.verts[vertex_start]);
 			R_ParticleTexcoords(p, &r_particle_state.verts[vertex_start]);
 			R_ParticleColor(p, &r_particle_state.verts[vertex_start]);
 
-			const uint16_t index_start = r_particle_state.num_particles * 6;
+			const uint32_t index_start = r_particle_state.num_particles * 6;
 
 			r_particle_state.elements[index_start + 0] = vertex_start + 0;
 			r_particle_state.elements[index_start + 1] = vertex_start + 1;
@@ -265,9 +377,9 @@ void R_UpdateParticles(r_element_t *e, const size_t count) {
 			r_particle_state.elements[index_start + 3] = vertex_start + 0;
 			r_particle_state.elements[index_start + 4] = vertex_start + 2;
 			r_particle_state.elements[index_start + 5] = vertex_start + 3;
-
-			e->data = (void *) (uintptr_t) r_particle_state.num_particles++;
 		}
+
+		e->data = (void *) (uintptr_t) r_particle_state.num_particles++;
 	}
 }
 
@@ -280,10 +392,13 @@ void R_UploadParticles(void) {
 	if (!p->num_particles) {
 		return;
 	}
-
-	R_UploadToBuffer(&p->verts_buffer, p->num_particles * sizeof(r_particle_interleave_vertex_t) * 4, p->verts);
-
-	R_UploadToBuffer(&p->element_buffer, p->num_particles * sizeof(uint16_t) * 6, p->elements);
+	
+	if (r_state.particle_program == program_particle) {
+		R_UploadToBuffer(&p->geometry_verts_buffer, p->num_particles * sizeof(r_geometry_particle_interleave_vertex_t), p->geometry_verts);
+	} else {
+		R_UploadToBuffer(&p->verts_buffer, p->num_particles * sizeof(r_particle_interleave_vertex_t) * 4, p->verts);
+		R_UploadToBuffer(&p->element_buffer, p->num_particles * sizeof(uint32_t) * 6, p->elements);
+	}
 
 	p->num_particles = 0;
 }
@@ -301,15 +416,25 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	R_ResetArrayState();
 
 	// alter the array pointers
-	R_BindAttributeInterleaveBuffer(&r_particle_state.verts_buffer, R_ARRAY_MASK_ALL);
-	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_particle_state.element_buffer);
+	if (r_state.particle_program == program_particle) {
+		R_UseProgram(program_particle);
+		R_UseParticleData_particle(r_particle_state.weather_right, r_particle_state.weather_up, r_particle_state.splash_right, r_particle_state.splash_up);
+
+		R_UseProgram(program_particle_corona);
+		R_UseParticleData_particle_corona(r_particle_state.weather_right, r_particle_state.weather_up, r_particle_state.splash_right, r_particle_state.splash_up);
+
+		R_BindAttributeInterleaveBuffer(&r_particle_state.geometry_verts_buffer, R_ARRAY_MASK_ALL);
+		R_EnableTexture(texunit_lightmap, true);
+	} else {
+		R_BindAttributeInterleaveBuffer(&r_particle_state.verts_buffer, R_ARRAY_MASK_ALL);
+		R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_particle_state.element_buffer);
+	}
 
 	const GLint base = (GLint) (intptr_t) e->data;
 
 	// these are set to -1 to immediately trigger a change.
 	r_particle_type_t last_type = -1;
 	GLenum last_blend = -1;
-
 	GLuint last_texnum = texunit_diffuse->texnum;
 
 	for (i = j = 0; i < (GLsizei) count; i++, e++) {
@@ -326,7 +451,11 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 
 		// draw pending particles
 		if ((texnum != last_texnum || p->type != last_type || p->blend != last_blend) && i > j) {
-			R_DrawArrays(GL_TRIANGLES, (base + j) * 6, (i - j) * 6);
+			if (r_state.particle_program == program_particle) {
+				R_DrawArrays(GL_POINTS, base + j, i - j);
+			} else {
+				R_DrawArrays(GL_TRIANGLES, (base + j) * 6, (i - j) * 6);
+			}
 			j = i;
 		}
 
@@ -337,7 +466,7 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 			} else {
 				R_DepthRange(0.0, 1.0);
 			}
-
+		
 			if (p->type == PARTICLE_FLARE) {
 				R_EnableDepthTest(false);
 			} else {
@@ -345,9 +474,9 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 			}
 
 			if (p->type == PARTICLE_CORONA) {
-				R_UseProgram(program_corona);
+				R_UseProgram(r_state.corona_program);
 			} else {
-				R_UseProgram(program_null);
+				R_UseProgram(r_state.particle_program);
 			}
 
 			last_type = p->type;
@@ -365,15 +494,15 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	}
 
 	if (i > j) { // draw any remaining particles
-		R_DrawArrays(GL_TRIANGLES, (base + j) * 6, (i - j) * 6);
+		if (r_state.particle_program == program_particle) {
+			R_DrawArrays(GL_POINTS, base + j, i - j);
+		} else {
+			R_DrawArrays(GL_TRIANGLES, (base + j) * 6, (i - j) * 6);
+		}
 	}
 
 	// restore array pointers
-	R_UnbindAttributeBuffer(R_ARRAY_POSITION);
-	R_UnbindAttributeBuffer(R_ARRAY_DIFFUSE);
-	R_UnbindAttributeBuffer(R_ARRAY_COLOR);
-
-	R_UnbindAttributeBuffer(R_ARRAY_ELEMENTS);
+	R_UnbindAttributeBuffers();
 
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -382,6 +511,8 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	R_EnableColorArray(false);
 
 	R_EnableDepthTest(true);
+
+	R_EnableTexture(texunit_lightmap, false);
 
 	R_UseProgram(program_null);
 }

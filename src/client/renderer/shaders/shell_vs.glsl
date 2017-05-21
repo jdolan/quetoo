@@ -12,14 +12,16 @@ uniform float OFFSET;
 uniform float SHELL_OFFSET;
 uniform float TIME_FRACTION;
 
-out vec4 color;
-out vec2 texcoord;
-
 in vec3 POSITION;
 in vec3 NORMAL;
 in vec2 TEXCOORD;
 in vec3 NEXT_POSITION;
 in vec3 NEXT_NORMAL;
+
+out VertexData {
+	vec4 color;
+	vec2 texcoord;
+};
 
 /**
  * @brief Shader entry point.

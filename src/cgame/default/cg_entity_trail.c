@@ -191,7 +191,7 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_flame))) {
+	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_flame))) {
 		return;
 	}
 
@@ -212,6 +212,7 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	}
 
 	p->accel[2] = 15.0;
+	p->part.roll = Randomc() * 100.0;
 
 	// make static flames rise
 	if (ent) {
@@ -836,7 +837,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 	while (dist > 0.0) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_blood))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_blood))) {
 			break;
 		}
 
@@ -859,13 +860,12 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 		p->color_end[3] = 0.0;
 
 		p->part.scale = 3.0;
+		p->part.roll = Randomc() * 100.0;
 
 		VectorScale(move, 20.0, p->vel);
 
 		p->accel[0] = p->accel[1] = 0.0;
 		p->accel[2] = -PARTICLE_GRAVITY / 2.0;
-
-		p->part.roll = Randomc() * 240.0;
 
 		dist -= 1.5;
 	}

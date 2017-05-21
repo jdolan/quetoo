@@ -297,7 +297,7 @@ uint32_t R_GetNumAllocatedBufferBytes(void) {
  * Optionally upload the data immediately too.
  */
 void R_CreateBuffer(r_buffer_t *buffer, const r_attrib_type_t element_type, const GLubyte element_count,
-                    const _Bool element_normalized, const GLenum hint,
+                    const _Bool element_normalized, const _Bool element_integer, const GLenum hint,
                     const r_buffer_type_t type, const size_t size,
                     const void *data, const char *func) {
 
@@ -323,6 +323,7 @@ void R_CreateBuffer(r_buffer_t *buffer, const r_attrib_type_t element_type, cons
 		buffer->element_type.stride = R_GetElementSize(buffer->element_type.type);
 		buffer->element_gl_type = R_GetGLTypeFromAttribType(buffer->element_type.type);
 		buffer->element_type.normalized = element_normalized;
+		buffer->element_type.integer = element_integer;
 	} else {
 		buffer->element_type.stride = element_count;
 	}
@@ -350,10 +351,10 @@ void R_CreateInterleaveBuffer_(r_buffer_t *buffer, const GLubyte struct_size, co
 		Com_Warn("Buffer struct not aligned to 4, might be an error\n");
 	}
 
-	R_CreateBuffer(buffer, R_ATTRIB_TOTAL_TYPES, struct_size, false, hint, R_BUFFER_DATA | R_BUFFER_INTERLEAVE, size, data,
+	R_CreateBuffer(buffer, R_ATTRIB_TOTAL_TYPES, struct_size, false, false, hint, R_BUFFER_DATA | R_BUFFER_INTERLEAVE, size, data,
 	               func);
 
-	GLsizei stride = 0;
+	GLsizei stride = 0, offset = 0;
 
 	for (; layout->attribute != -1; layout++) {
 		stride += layout->size;
@@ -366,10 +367,13 @@ void R_CreateInterleaveBuffer_(r_buffer_t *buffer, const GLubyte struct_size, co
 
 			temp->_type_state.type = layout->type;
 			temp->_type_state.stride = buffer->element_type.stride;
-			temp->_type_state.offset = layout->offset;
+			temp->_type_state.offset = offset;
 			temp->_type_state.count = layout->count;
 			temp->_type_state.normalized = layout->normalized;
+			temp->_type_state.integer = layout->integral;
 			temp->gl_type = R_GetGLTypeFromAttribType(layout->type);
+
+			offset += layout->size;
 		}
 	}
 
@@ -482,6 +486,8 @@ r_attribute_mask_t R_ArraysMask(void) {
 	if (texunit_lightmap->enabled) {
 		mask |= R_ARRAY_MASK_LIGHTMAP;
 	}
+
+	mask |= R_ARRAY_GEOMETRY_MASK;
 
 	return mask;
 }

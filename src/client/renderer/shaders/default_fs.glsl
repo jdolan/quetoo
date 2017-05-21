@@ -66,13 +66,16 @@ uniform float ALPHA_THRESHOLD;
 uniform float TIME_FRACTION;
 uniform float TIME;
 
-in vec3 modelpoint;
-in vec4 color;
-in vec2 texcoords[2];
-in vec3 point;
-in vec3 normal;
-in vec3 tangent;
-in vec3 bitangent;
+in VertexData {
+	vec3 modelpoint;
+	vec4 color;
+	vec2 texcoords[2];
+	vec3 point;
+	vec3 normal;
+	vec3 tangent;
+	vec3 bitangent;
+	FOG_VARIABLE;
+};
 
 const vec3 two = vec3(2.0);
 const vec3 negHalf = vec3(-0.5);

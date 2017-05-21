@@ -12,8 +12,11 @@
 
 uniform sampler2D SAMPLER0;
 
-in vec4 color;
-in vec2 texcoord;
+in VertexData {
+	vec4 color;
+	vec2 texcoord;
+	FOG_VARIABLE;
+};
 
 out vec4 fragColor;
 

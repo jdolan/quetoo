@@ -101,6 +101,8 @@ typedef struct r_state_s {
 	r_matrix_stack_t matrix_stacks[R_MATRIX_TOTAL];
 
 	r_program_t programs[R_PROGRAM_TOTAL];
+	r_program_t *particle_program;
+	r_program_t *corona_program;
 
 	r_attrib_state_t attributes[R_ARRAY_MAX_ATTRIBS];
 
@@ -151,22 +153,24 @@ typedef struct r_state_s {
 extern r_state_t r_state;
 
 // these are defined for convenience
-#define texunit_diffuse			(&r_state.texunits[R_TEXUNIT_DIFFUSE])
-#define texunit_lightmap		(&r_state.texunits[R_TEXUNIT_LIGHTMAP])
-#define texunit_deluxemap		(&r_state.texunits[R_TEXUNIT_DELUXEMAP])
-#define texunit_normalmap		(&r_state.texunits[R_TEXUNIT_NORMALMAP])
-#define texunit_specularmap		(&r_state.texunits[R_TEXUNIT_SPECULARMAP])
-#define texunit_warp			(&r_state.texunits[R_TEXUNIT_WARP])
-#define texunit_tint			(&r_state.texunits[R_TEXUNIT_TINTMAP])
-#define texunit_stainmap		(&r_state.texunits[R_TEXUNIT_STAINMAP])
+#define texunit_diffuse				(&r_state.texunits[R_TEXUNIT_DIFFUSE])
+#define texunit_lightmap			(&r_state.texunits[R_TEXUNIT_LIGHTMAP])
+#define texunit_deluxemap			(&r_state.texunits[R_TEXUNIT_DELUXEMAP])
+#define texunit_normalmap			(&r_state.texunits[R_TEXUNIT_NORMALMAP])
+#define texunit_specularmap			(&r_state.texunits[R_TEXUNIT_SPECULARMAP])
+#define texunit_warp				(&r_state.texunits[R_TEXUNIT_WARP])
+#define texunit_tint				(&r_state.texunits[R_TEXUNIT_TINTMAP])
+#define texunit_stainmap			(&r_state.texunits[R_TEXUNIT_STAINMAP])
 
-#define program_default			(&r_state.programs[R_PROGRAM_DEFAULT])
-#define program_shadow			(&r_state.programs[R_PROGRAM_SHADOW])
-#define program_shell			(&r_state.programs[R_PROGRAM_SHELL])
-#define program_warp			(&r_state.programs[R_PROGRAM_WARP])
-#define program_null			(&r_state.programs[R_PROGRAM_NULL])
-#define program_corona			(&r_state.programs[R_PROGRAM_CORONA])
-#define program_stain			(&r_state.programs[R_PROGRAM_STAIN])
+#define program_default				(&r_state.programs[R_PROGRAM_DEFAULT])
+#define program_shadow				(&r_state.programs[R_PROGRAM_SHADOW])
+#define program_shell				(&r_state.programs[R_PROGRAM_SHELL])
+#define program_warp				(&r_state.programs[R_PROGRAM_WARP])
+#define program_null				(&r_state.programs[R_PROGRAM_NULL])
+#define program_corona				(&r_state.programs[R_PROGRAM_CORONA])
+#define program_stain				(&r_state.programs[R_PROGRAM_STAIN])
+#define program_particle			(&r_state.programs[R_PROGRAM_PARTICLE])
+#define program_particle_corona		(&r_state.programs[R_PROGRAM_PARTICLE_CORONA])
 
 #define R_GetError(msg) R_GetError_(__func__, msg)
 void R_GetError_(const char *function, const char *msg);

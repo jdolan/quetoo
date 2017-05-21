@@ -54,6 +54,7 @@ typedef struct {
 typedef r_variable_t r_attribute_t;
 typedef r_variable_t r_uniform1i_t;
 typedef r_variable_t r_uniform1f_t;
+typedef r_variable_t r_uniform3f_t;
 typedef r_variable_t r_uniform3fv_t;
 typedef r_variable_t r_uniform4fv_t;
 typedef r_variable_t r_uniform_matrix4fv_t;

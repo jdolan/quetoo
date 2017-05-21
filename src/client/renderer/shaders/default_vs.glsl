@@ -15,14 +15,6 @@ uniform bool NORMALMAP;
 
 uniform float TIME_FRACTION;
 
-out vec3 modelpoint;
-out vec4 color;
-out vec2 texcoords[2];
-out vec3 point;
-out vec3 normal;
-out vec3 tangent;
-out vec3 bitangent;
-
 in vec3 POSITION;
 in vec4 COLOR;
 in vec2 TEXCOORD0;
@@ -32,6 +24,17 @@ in vec4 TANGENT;
 in vec3 NEXT_POSITION;
 in vec3 NEXT_NORMAL;
 in vec4 NEXT_TANGENT;
+
+out VertexData {
+	vec3 modelpoint;
+	vec4 color;
+	vec2 texcoords[2];
+	vec3 point;
+	vec3 normal;
+	vec3 tangent;
+	vec3 bitangent;
+	FOG_VARIABLE;
+};
 
 /**
  * @brief Transform the point, normal and tangent vectors, passing them through
@@ -72,5 +75,5 @@ void main(void) {
 	// pass the color through as well
 	color = COLOR;
 
-	FogVertex();
+	fog = FogVertex();
 }

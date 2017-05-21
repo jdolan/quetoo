@@ -137,6 +137,14 @@ typedef enum {
 	R_ARRAY_NEXT_NORMAL,
 	R_ARRAY_NEXT_TANGENT,
 
+	/**
+	 * @brief Geometry shader parameters
+	 */
+	R_ARRAY_SCALE,
+	R_ARRAY_ROLL,
+	R_ARRAY_END,
+	R_ARRAY_TYPE,
+
 	R_ARRAY_MAX_ATTRIBS,
 	R_ARRAY_ALL = R_ARRAY_MAX_ATTRIBS,
 
@@ -163,8 +171,14 @@ typedef enum {
 	R_ARRAY_MASK_NEXT_POSITION	= (1 << R_ARRAY_NEXT_POSITION),
 	R_ARRAY_MASK_NEXT_NORMAL	= (1 << R_ARRAY_NEXT_NORMAL),
 	R_ARRAY_MASK_NEXT_TANGENT	= (1 << R_ARRAY_NEXT_TANGENT),
+	
+	R_ARRAY_MASK_SCALE			= (1 << R_ARRAY_SCALE),
+	R_ARRAY_MASK_ROLL			= (1 << R_ARRAY_ROLL),
+	R_ARRAY_MASK_END			= (1 << R_ARRAY_END),
+	R_ARRAY_MASK_TYPE			= (1 << R_ARRAY_TYPE),
 
-	R_ARRAY_MASK_ALL			= (1 << R_ARRAY_MAX_ATTRIBS) - 1
+	R_ARRAY_MASK_ALL			= (1 << R_ARRAY_MAX_ATTRIBS) - 1,
+	R_ARRAY_GEOMETRY_MASK		= R_ARRAY_MASK_SCALE | R_ARRAY_MASK_ROLL | R_ARRAY_MASK_END | R_ARRAY_MASK_TYPE
 } r_attribute_mask_t;
 
 /**
@@ -196,8 +210,9 @@ typedef union {
 		uint32_t type : 3;
 		uint32_t count : 3;
 		uint32_t offset : 6;
-		uint32_t normalized : 2;
 		uint32_t stride : 6;
+		uint32_t normalized : 2;
+		uint32_t integer : 2;
 	};
 } r_attrib_type_state_t;
 
@@ -212,9 +227,9 @@ typedef struct {
 	r_attrib_type_t type;
 	GLenum gl_type;
 	uint8_t count;
-	uint8_t offset;
 	uint8_t size;
 	_Bool normalized;
+	_Bool integral;
 
 	// internal, no touch
 	r_attrib_type_state_t _type_state;
@@ -973,6 +988,10 @@ typedef enum {
 	R_PROGRAM_NULL,
 	R_PROGRAM_CORONA,
 	R_PROGRAM_STAIN,
+
+	// geometry-enabled programs
+	R_PROGRAM_PARTICLE,
+	R_PROGRAM_PARTICLE_CORONA,
 
 	R_PROGRAM_TOTAL
 } r_program_id_t;

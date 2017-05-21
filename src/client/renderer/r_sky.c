@@ -33,7 +33,7 @@ typedef struct {
 
 static r_buffer_layout_t r_sky_layout_buffer[] = {
 	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
-	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = offsetof(r_sky_interleave_vertex_t, texcoord), .normalized = true },
+	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .normalized = true },
 	{ .attribute = -1 }
 };
 
