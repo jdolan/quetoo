@@ -271,6 +271,7 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 			break;
 		case EV_CLIENT_FOOTSTEP:
 			play.sample = Cg_Footstep(ent);
+			play.pitch = (int16_t) (Randomc() * 12.0);
 			break;
 		case EV_CLIENT_GURP:
 			Cg_GurpEffect(ent);
