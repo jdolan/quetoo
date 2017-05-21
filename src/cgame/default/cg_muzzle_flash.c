@@ -161,10 +161,12 @@ void Cg_ParseMuzzleFlash(void) {
 		case MZ_SHOTGUN:
 			sample = cg_sample_shotgun_fire;
 			Cg_SmokeFlash(ent);
+			pitch = (int16_t) (Randomc() * 3.0);
 			break;
 		case MZ_SUPER_SHOTGUN:
 			sample = cg_sample_supershotgun_fire;
 			Cg_SmokeFlash(ent);
+			pitch = (int16_t) (Randomc() * 3.0);
 			break;
 		case MZ_MACHINEGUN:
 			sample = cg_sample_machinegun_fire[Randomr(0, 4)];
@@ -176,10 +178,12 @@ void Cg_ParseMuzzleFlash(void) {
 		case MZ_ROCKET_LAUNCHER:
 			sample = cg_sample_rocketlauncher_fire;
 			Cg_SmokeFlash(ent);
+			pitch = (int16_t) (Randomc() * 3.0);
 			break;
 		case MZ_GRENADE_LAUNCHER:
 			sample = cg_sample_grenadelauncher_fire;
 			Cg_SmokeFlash(ent);
+			pitch = (int16_t) (Randomc() * 3.0);
 			break;
 		case MZ_HYPERBLASTER:
 			sample = cg_sample_hyperblaster_fire;
@@ -188,17 +192,21 @@ void Cg_ParseMuzzleFlash(void) {
 			break;
 		case MZ_LIGHTNING:
 			sample = cg_sample_lightning_fire;
+			pitch = (int16_t) (Randomc() * 3.0);
 			break;
 		case MZ_RAILGUN:
 			sample = cg_sample_railgun_fire;
+			pitch = (int16_t) (Randomc() * 2.0);
 			break;
 		case MZ_BFG10K:
 			sample = cg_sample_bfg_fire;
 			Cg_EnergyFlash(ent, ColorFromRGB(75, 91, 39));
+			pitch = (int16_t) (Randomc() * 2.0);
 			break;
 		case MZ_LOGOUT:
 			sample = cg_sample_teleport;
 			Cg_LogoutFlash(ent);
+			pitch = (int16_t) (Randomc() * 4.0);
 			break;
 		default:
 			sample = NULL;
