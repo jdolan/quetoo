@@ -82,7 +82,7 @@ static void quickjoinAction(Control *control, const SDL_Event *event, ident send
 
 	list = this->servers;
 
-	const uint32_t random_weight = Random() % total_weight;
+	const uint32_t random_weight = Randomr(0, total_weight);
 	uint32_t current_weight = 0;
 
 	while (list != NULL) {
@@ -351,7 +351,7 @@ static void loadView(ViewController *self) {
 /**
  * @see ViewController::respondToEvent(ViewController *, const SDL_Event *)
  */
-void respondToEvent(ViewController *self, const SDL_Event *event) {
+static void respondToEvent(ViewController *self, const SDL_Event *event) {
 
 	if (event->type == SDL_USEREVENT) {
 		if (event->user.code == EVENT_SERVER_PARSED) {
@@ -365,7 +365,7 @@ void respondToEvent(ViewController *self, const SDL_Event *event) {
 /**
  * @see ViewController::viewWillAppear(ViewController *)
  */
-void viewWillAppear(ViewController *self) {
+static void viewWillAppear(ViewController *self) {
 
 	$((MultiplayerViewController *) self, reloadServers);
 

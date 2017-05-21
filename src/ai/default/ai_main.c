@@ -141,9 +141,9 @@ static uint32_t ai_name_suffix;
  */
 static void Ai_GetUserInfo(const g_entity_t *self, char *userinfo) {
 	g_strlcpy(userinfo, DEFAULT_BOT_INFO, MAX_USER_INFO_STRING);
-	SetUserInfo(userinfo, "skin", g_array_index(ai_skins, ai_skin_t, Random() % ai_skins->len));
-	SetUserInfo(userinfo, "color", va("%i", Random() % 360));
-	SetUserInfo(userinfo, "hand", va("%i", Random() % 3));
+	SetUserInfo(userinfo, "skin", g_array_index(ai_skins, ai_skin_t, Randomr(0, ai_skins->len)));
+	SetUserInfo(userinfo, "color", va("%i", Randomr(0, 360)));
+	SetUserInfo(userinfo, "hand", va("%i", Randomr(0, 3)));
 
 	if (ai_name_suffix == 0) {
 		SetUserInfo(userinfo, "name", ai_names[ai_name_index]);
@@ -682,16 +682,16 @@ static uint32_t Ai_FuncGoal_Acrobatics(g_entity_t *self, pm_cmd_t *cmd) {
 
 		if (self->client->ps.pm_state.flags & PMF_DUCKED) {
 
-			if ((Random() % 32) == 0) { // uncrouch eventually
+			if ((Randomr(0, 32)) == 0) { // uncrouch eventually
 				cmd->up = 0;
 			} else {
 				cmd->up = -PM_SPEED_JUMP;
 			}
 		} else {
 
-			if ((Random() % 32) == 0) { // randomly crouch
+			if ((Randomr(0, 32)) == 0) { // randomly crouch
 				cmd->up = -PM_SPEED_JUMP;
-			} else if ((Random() % 86) == 0) { // randomly pop, to confuse our enemies
+			} else if ((Randomr(0, 86)) == 0) { // randomly pop, to confuse our enemies
 				cmd->up = PM_SPEED_JUMP;
 			}
 		}

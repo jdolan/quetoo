@@ -135,7 +135,16 @@ s_sample_t *Cg_GetFootstepSample(const char *footsteps) {
 		return Cg_GetFootstepSample("default"); // this should never recurse
 	}
 
-	return g_array_index(sounds, s_sample_t *, Random() % sounds->len);
+	static int32_t last_index = -1;
+	int32_t index = Randomr(0, sounds->len);
+
+	if (last_index == index) {
+		index ^= 1;
+	}
+
+	last_index = index;
+
+	return g_array_index(sounds, s_sample_t *, index);
 }
 
 /**

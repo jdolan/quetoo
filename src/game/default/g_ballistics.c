@@ -488,7 +488,7 @@ void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
 		if (G_IsStructural(other, surf)) {
 			if (g_level.time - self->locals.touch_time > 200) {
 				if (VectorLength(self->locals.velocity) > 40.0) {
-					gi.Sound(self, g_media.sounds.grenade_hit, ATTEN_NORM, 0);
+					gi.Sound(self, g_media.sounds.grenade_hit, ATTEN_NORM, (int8_t) (Randomf() * 5.0));
 					self->locals.touch_time = g_level.time;
 				}
 			}

@@ -303,7 +303,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 	const vec3_t mins[] = { { -6.0, -6.0, -6.0 }, { -6.0, -6.0, -6.0 }, { -4.0, -4.0, -4.0 }, { -8.0, -8.0, -8.0 } };
 	const vec3_t maxs[] = { { 6.0, 6.0, 6.0 }, { 6.0, 6.0, 6.0 }, { 4.0, 4.0, 4.0 }, { 8.0, 8.0, 8.0 } };
 
-	uint16_t i, count = 4 + Random() % 4;
+	uint16_t i, count = Randomr(4, 8);
 
 	for (i = 0; i < count; i++) {
 		int32_t gib_index;
@@ -313,7 +313,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 		} else if (i == 1 && !self->client) { // if we're not client, drop a head
 			gib_index = 2;
 		} else { // pick forearm/femur
-			gib_index = (Random() % (NUM_GIB_MODELS - 2));
+			gib_index = Randomr(0, NUM_GIB_MODELS - 2);
 		}
 
 		g_entity_t *ent = G_AllocEntity();
@@ -750,10 +750,10 @@ static g_entity_t *G_SelectRandomSpawnPoint(const g_spawn_points_t *spawn_points
 			return G_SelectRandomSpawnPoint(&g_level.spawn_points);
 		}
 
-		return spawn_points->spots[Random() % spawn_points->count];
+		return spawn_points->spots[Randomr(0, spawn_points->count)];
 	}
 
-	return spawn_points->spots[empty_spawns[Random() % num_empty_spawns]];
+	return spawn_points->spots[empty_spawns[Randomr(0, num_empty_spawns)]];
 }
 
 /**

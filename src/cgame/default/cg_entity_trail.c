@@ -63,7 +63,7 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 			p->lifetime = 1000 - (Randomf() * 100);
 			p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-			cgi.ColorFromPalette(6 + (Random() & 3), p->color_start);
+			cgi.ColorFromPalette(6 + (Randomr(0, 4)), p->color_start);
 			p->color_start[3] = 1.0;
 
 			Vector4Copy(p->color_start, p->color_end);
@@ -93,7 +93,7 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 		p->lifetime = 4000 - (Randomf() * 100);
 		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-		cgi.ColorFromPalette(6 + (Random() & 7), p->color_start);
+		cgi.ColorFromPalette(6 + (Randomr(0, 8)), p->color_start);
 		p->color_start[3] = 0.7;
 
 		Vector4Copy(p->color_start, p->color_end);
@@ -198,7 +198,7 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	p->lifetime = 1500;
 	p->effects |= PARTICLE_EFFECT_COLOR;
 
-	cgi.ColorFromPalette(220 + (Random() & 7), p->color_start);
+	cgi.ColorFromPalette(220 + (Randomr(0, 8)), p->color_start);
 	p->color_start[3] = 0.75;
 
 	VectorCopy(p->color_start, p->color_end);
@@ -244,7 +244,7 @@ void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
 	p->lifetime = 4500 / (5.0 + Randomf() * 0.5);
 	p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-	cgi.ColorFromPalette(6 + (Random() & 7), p->color_start);
+	cgi.ColorFromPalette(6 + (Randomr(0, 8)), p->color_start);
 	p->color_start[3] = 0.3;
 
 	VectorCopy(p->color_start, p->color_end);
@@ -293,7 +293,7 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, vec_t density) {
 		p->lifetime = 1000 - (Randomf() * 100);
 		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-		cgi.ColorFromPalette(6 + (Random() & 3), p->color_start);
+		cgi.ColorFromPalette(6 + (Randomr(0, 4)), p->color_start);
 
 		Vector4Copy(p->color_start, p->color_end);
 		p->color_end[3] = 0;
@@ -555,7 +555,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 		p->lifetime = PARTICLE_IMMEDIATE;
 
-		cgi.ColorFromPalette(12 + (Random() & 3), p->part.color);
+		cgi.ColorFromPalette(12 + (Randomr(0, 4)), p->part.color);
 
 		p->part.scale = 8.0;
 		p->part.scroll_s = -8.0;
@@ -660,7 +660,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 			p->lifetime = PARTICLE_IMMEDIATE;
 
-			cgi.ColorFromPalette(12 + (Random() & 3), p->part.color);
+			cgi.ColorFromPalette(12 + (Randomr(0, 4)), p->part.color);
 
 			p->part.scale = 2.0;
 			p->part.scroll_s = -2.0;
@@ -854,7 +854,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 			});
 		}
 
-		cgi.ColorFromPalette(232 + (Random() & 7), p->color_start);
+		cgi.ColorFromPalette(232 + (Randomr(0, 8)), p->color_start);
 		VectorCopy(p->color_start, p->color_end);
 		p->color_end[3] = 0.0;
 

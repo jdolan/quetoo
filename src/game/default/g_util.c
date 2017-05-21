@@ -255,7 +255,7 @@ g_entity_t *G_PickTarget(char *target_name) {
 		return NULL;
 	}
 
-	return choice[Random() % num_choices];
+	return choice[Randomr(0, num_choices)];
 }
 
 /**

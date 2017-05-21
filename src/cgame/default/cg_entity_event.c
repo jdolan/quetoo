@@ -277,7 +277,7 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 			Cg_GurpEffect(ent);
 			break;
 		case EV_CLIENT_JUMP:
-			play.sample = cgi.LoadSample(va("*jump_%d", Random() % 5 + 1));
+			play.sample = cgi.LoadSample(va("*jump_%d", Randomr(0, 6)));
 			break;
 		case EV_CLIENT_LAND:
 			play.sample = cgi.LoadSample("*land_1");

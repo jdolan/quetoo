@@ -103,7 +103,7 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 	p->lifetime = 500;
 	p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-	cgi.ColorFromPalette(Random() & 7, p->color_start);
+	cgi.ColorFromPalette(Randomr(0, 8), p->color_start);
 	p->color_start[3] = 0.8;
 
 	VectorCopy(p->color_start, p->color_end);
@@ -167,8 +167,8 @@ void Cg_ParseMuzzleFlash(void) {
 			Cg_SmokeFlash(ent);
 			break;
 		case MZ_MACHINEGUN:
-			sample = cg_sample_machinegun_fire[Random() % 4];
-			if (Random() & 1) {
+			sample = cg_sample_machinegun_fire[Randomr(0, 4)];
+			if (Randomr(0, 2)) {
 				Cg_SmokeFlash(ent);
 			}
 			pitch = (int16_t) (Randomc() * 5.0);
