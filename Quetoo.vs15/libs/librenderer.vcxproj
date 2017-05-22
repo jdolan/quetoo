@@ -110,6 +110,7 @@
     <None Include="..\..\src\client\renderer\shaders\default_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\fog_inc.glsl" />
     <None Include="..\..\src\client\renderer\shaders\matrix_inc.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\noise3d_inc.glsl" />
     <None Include="..\..\src\client\renderer\shaders\null_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\null_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\shadow_fs.glsl" />

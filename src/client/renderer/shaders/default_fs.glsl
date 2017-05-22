@@ -157,10 +157,29 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
  */
 void CausticFragment(in vec3 lightmap) {
 	if (CAUSTIC.ENABLE) {
-		float factor = noise3d((modelpoint * vec3(0.024, 0.024, 0.016)) + (TIME * 0.4));
-		factor = pow((1 - abs(factor)) + 0.03, 6);
+		vec3 model_scale = vec3(0.024, 0.024, 0.016);
+		float time_scale = 0.6;
+		float caustic_thickness = 0.02;
+		float caustic_glow = 8.0;
+		float caustic_intensity = 0.7;
 
-		fragColor.rgb = clamp(fragColor.rgb + (CAUSTIC.COLOR * factor * clamp((lightmap * 1.6) - 0.5, 0.1, 1.0) * 0.17), 0.0, 1.0);
+		// grab raw 3d noise
+		float factor = noise3d((modelpoint * model_scale) + (TIME * time_scale));
+
+		// scale to make very close to -1.0 to 1.0 based on observational data
+		factor = factor * (0.3515 * 2.0);
+
+		// make the inner edges stronger, clamp to 0-1
+		factor = clamp(pow((1 - abs(factor)) + caustic_thickness, caustic_glow), 0, 1);
+
+		// start off with simple color * 0-1
+		vec3 caustic_out = CAUSTIC.COLOR * factor * caustic_intensity;
+
+		// multiply caustic color by lightmap, clamping so it doesn't go pure black
+		caustic_out *= clamp((lightmap * 1.6) - 0.5, 0.1, 1.0);
+
+		// add it up
+		fragColor.rgb = clamp(fragColor.rgb + caustic_out, 0.0, 1.0);
 	}
 }
 

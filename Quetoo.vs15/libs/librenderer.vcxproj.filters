@@ -307,5 +307,8 @@
     <None Include="..\..\src\client\renderer\shaders\stain_fs.glsl">
       <Filter>src\shaders</Filter>
     </None>
+    <None Include="..\..\src\client\renderer\shaders\noise3d_inc.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
