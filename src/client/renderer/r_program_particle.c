@@ -150,8 +150,8 @@ void R_UseParticleData_particle(vec3_t weather_right, vec3_t weather_up, vec3_t 
 	R_ProgramParameter3fv(&p->weather_up, weather_up);
 
 	for (int32_t i = 0; i < 2; i++) {
-		R_ProgramParameter3fv(&p->splash_right[0], splash_right[0]);
-		R_ProgramParameter3fv(&p->splash_up[1], splash_up[1]);
+		R_ProgramParameter3fv(&p->splash_right[i], splash_right[i]);
+		R_ProgramParameter3fv(&p->splash_up[i], splash_up[i]);
 	}
 
 	R_ProgramParameter1f(&p->ticks, r_view.ticks / 1000.0);

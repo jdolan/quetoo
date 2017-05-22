@@ -90,7 +90,7 @@ void main(void) {
 
 	if (in_data[0].type == PARTICLE_BEAM || in_data[0].type == PARTICLE_SPARK) { // beams are lines with starts and ends
 		vec3 up = normalize(org - in_data[0].end);
-		vec3 right = normalize(cross(up, VIEW_ORIGIN - in_data[0].end)) * in_data[0].scale);
+		vec3 right = normalize(cross(up, VIEW_ORIGIN - in_data[0].end)) * in_data[0].scale;
 
 		// vertex 0
 		gl_Position = MVP * vec4(org + right, 1.0);
