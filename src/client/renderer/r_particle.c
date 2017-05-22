@@ -49,9 +49,9 @@ typedef struct {
 } r_particle_interleave_vertex_t;
 
 static r_buffer_layout_t r_particle_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
-	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_FLOAT, .count = 2, .size = sizeof(vec2_t) },
-	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .normalized = true },
+	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3 },
+	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_FLOAT, .count = 2 },
+	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .normalized = true },
 	{ .attribute = -1 }
 };
 
@@ -67,14 +67,14 @@ typedef struct {
 } r_geometry_particle_interleave_vertex_t;
 
 static r_buffer_layout_t r_geometry_particle_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
-	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_FLOAT, .count = 2, .size = sizeof(vec2_t) },
-	{ .attribute = R_ARRAY_LIGHTMAP, .type = R_ATTRIB_FLOAT, .count = 2, .size = sizeof(vec2_t) },
-	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .normalized = true },
-	{ .attribute = R_ARRAY_SCALE, .type = R_ATTRIB_FLOAT, .count = 1, .size = sizeof(vec_t) },
-	{ .attribute = R_ARRAY_ROLL, .type = R_ATTRIB_FLOAT, .count = 1, .size = sizeof(vec_t) },
-	{ .attribute = R_ARRAY_END, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
-	{ .attribute = R_ARRAY_TYPE, .type = R_ATTRIB_INT, .count = 1, .size = sizeof(int32_t), .integral = true },
+	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3 },
+	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_FLOAT, .count = 2 },
+	{ .attribute = R_ARRAY_LIGHTMAP, .type = R_ATTRIB_FLOAT, .count = 2 },
+	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .normalized = true },
+	{ .attribute = R_ARRAY_SCALE, .type = R_ATTRIB_FLOAT, .count = 1 },
+	{ .attribute = R_ARRAY_ROLL, .type = R_ATTRIB_FLOAT, .count = 1 },
+	{ .attribute = R_ARRAY_END, .type = R_ATTRIB_FLOAT, .count = 3 },
+	{ .attribute = R_ARRAY_TYPE, .type = R_ATTRIB_INT, .count = 1, .integral = true },
 	{ .attribute = -1 }
 };
 

@@ -227,7 +227,6 @@ typedef struct {
 	r_attrib_type_t type;
 	GLenum gl_type;
 	uint8_t count;
-	uint8_t size;
 	_Bool normalized;
 	_Bool integral;
 

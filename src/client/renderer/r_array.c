@@ -274,7 +274,37 @@ static GLenum R_GetGLTypeFromAttribType(const r_attrib_type_t type) {
 			return GL_UNSIGNED_INT;
 		default:
 			Com_Error(ERROR_FATAL, "Invalid R_ATTRIB_* type\n");
-			return GL_INVALID_ENUM;
+	}
+}
+
+/*
+	R_ATTRIB_FLOAT,
+	R_ATTRIB_BYTE,
+	R_ATTRIB_UNSIGNED_BYTE,
+	R_ATTRIB_SHORT,
+	R_ATTRIB_UNSIGNED_SHORT,
+	R_ATTRIB_INT,
+	R_ATTRIB_UNSIGNED_INT,
+*/
+
+/**
+ * @brief Get the size of an attribute from a type and count
+ */
+static size_t R_GetSizeFromTypeAndCount(const r_attrib_type_t type, const uint8_t count) {
+
+	switch (type) {
+	case R_ATTRIB_FLOAT:
+	case R_ATTRIB_INT:
+	case R_ATTRIB_UNSIGNED_INT:
+		return 4u * count;
+	case R_ATTRIB_SHORT:
+	case R_ATTRIB_UNSIGNED_SHORT:
+		return 2u * count;
+	case R_ATTRIB_BYTE:
+	case R_ATTRIB_UNSIGNED_BYTE:
+		return 1u * count;
+	default:
+		Com_Error(ERROR_FATAL, "Invalid R_ATTRIB_* type\n");
 	}
 }
 
@@ -357,7 +387,8 @@ void R_CreateInterleaveBuffer_(r_buffer_t *buffer, const GLubyte struct_size, co
 	GLsizei stride = 0, offset = 0;
 
 	for (; layout->attribute != -1; layout++) {
-		stride += layout->size;
+		const size_t attrib_size = R_GetSizeFromTypeAndCount(layout->type, layout->count);
+		stride += attrib_size;
 		buffer->interleave_attribs[layout->attribute] = layout;
 		buffer->attrib_mask |= 1 << layout->attribute;
 
@@ -373,7 +404,7 @@ void R_CreateInterleaveBuffer_(r_buffer_t *buffer, const GLubyte struct_size, co
 			temp->_type_state.integer = layout->integral;
 			temp->gl_type = R_GetGLTypeFromAttribType(layout->type);
 
-			offset += layout->size;
+			offset += attrib_size;
 		}
 	}
 

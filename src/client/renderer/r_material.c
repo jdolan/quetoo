@@ -41,39 +41,33 @@ static r_buffer_layout_t r_material_buffer_layout[] = {
 	{
 		.attribute = R_ARRAY_POSITION,
 		.type = R_ATTRIB_FLOAT,
-		.count = 3,
-		.size = sizeof(vec3_t)
+		.count = 3
 	},
 	{
 		.attribute = R_ARRAY_COLOR,
 		.type = R_ATTRIB_UNSIGNED_BYTE,
 		.count = 4,
-		.size = sizeof(u8vec4_t),
 		.normalized = true
 	},
 	{
 		.attribute = R_ARRAY_NORMAL,
 		.type = R_ATTRIB_FLOAT,
-		.count = 3,
-		.size = sizeof(vec3_t)
+		.count = 3
 	},
 	{
 		.attribute = R_ARRAY_TANGENT,
 		.type = R_ATTRIB_FLOAT,
-		.count = 4,
-		.size = sizeof(vec4_t)
+		.count = 4
 	},
 	{
 		.attribute = R_ARRAY_DIFFUSE,
 		.type = R_ATTRIB_FLOAT,
-		.count = 2,
-		.size = sizeof(vec2_t)
+		.count = 2
 	},
 	{
 		.attribute = R_ARRAY_LIGHTMAP,
 		.type = R_ATTRIB_UNSIGNED_SHORT,
 		.count = 2,
-		.size = sizeof(u16vec2_t),
 		.normalized = true
 	},
 	{

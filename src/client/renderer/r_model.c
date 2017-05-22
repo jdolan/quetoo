@@ -184,8 +184,8 @@ r_model_t *R_WorldModel(void) {
 }
 
 static r_buffer_layout_t r_bound_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
-	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .normalized = true },
+	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3 },
+	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .normalized = true },
 	{ .attribute = -1 }
 };
 

@@ -517,6 +517,9 @@ void R_MarkBspSurfaces(void) {
 		r_locals.frame = 0;
 	}
 
+	// clear the bounds of the sky box
+	R_ClearSkyBox();
+
 	// flag all visible world surfaces
 	R_MarkBspSurfaces_(r_model_state.world->bsp->nodes);
 }
