@@ -565,14 +565,9 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 		if (dist <= 48.0) {
 			VectorScale(dir, -dist, delta);
-			offset = 0.0;
-		} else {
-			offset = fabs(2.0 * sin(dist));
 		}
 
 		VectorAdd(pos, delta, pos);
-		pos[2] += (++i & 1) ? offset : -offset;
-
 		VectorCopy(pos, p->part.end);
 		VectorCopy(vel, p->vel);
 

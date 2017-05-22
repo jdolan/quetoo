@@ -89,14 +89,8 @@ void main(void) {
 	vec2 st2 = vec2(in_data[0].texcoord0[0], in_data[0].texcoord1[1]);
 
 	if (in_data[0].type == PARTICLE_BEAM || in_data[0].type == PARTICLE_SPARK) { // beams are lines with starts and ends
-		vec3 v = org - in_data[0].end;
-		v = normalize(v);
-		vec3 up = v;
-
-		v = VIEW_ORIGIN - in_data[0].end;
-		vec3 right = cross(up, v);
-		right = normalize(right);
-		right = right * in_data[0].scale;
+		vec3 up = normalize(org - in_data[0].end);
+		vec3 right = normalize(cross(up, VIEW_ORIGIN - in_data[0].end)) * in_data[0].scale);
 
 		// vertex 0
 		gl_Position = MVP * vec4(org + right, 1.0);
@@ -142,11 +136,8 @@ void main(void) {
 			up = SPLASH_UP[1] * in_data[0].scale;
 		}
 	} else if (in_data[0].type == PARTICLE_ROLL || in_data[0].type == PARTICLE_EXPLOSION) { // roll it
-		vec3 dir = VIEW_ANGLES;
-		dir.z = in_data[0].roll * TICKS;
-
+		vec3 dir = vec3(VIEW_ANGLES.xy, in_data[0].roll * TICKS);
 		vec3 fwd;
-
 		AngleVectors(dir, fwd, right, up);
 
 		right *= in_data[0].scale;

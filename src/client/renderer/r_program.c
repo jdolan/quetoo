@@ -21,6 +21,8 @@
 
 #include "r_local.h"
 
+cvar_t *r_geometry_shaders;
+
 // glsl vertex and fragment shaders
 typedef struct {
 	GLenum type;
@@ -759,6 +761,8 @@ void R_InitPrograms(void) {
 
 	memset(r_state.programs, 0, sizeof(r_state.programs));
 
+	r_geometry_shaders = Cvar_Add("r_geometry_shaders", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Whether geometry shaders are enabled or not, if supported.");
+
 	if (R_LoadSimpleProgram("default", R_InitProgram_default, R_PreLink_default, program_default)) {
 		program_default->Shutdown = R_Shutdown_default;
 		program_default->Use = R_UseProgram_default;
@@ -814,37 +818,44 @@ void R_InitPrograms(void) {
 		program_stain->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_DIFFUSE | R_ARRAY_MASK_COLOR;
 	}
 
-	R_CreateProgram("particle", program_particle);
-	R_AttachShader(program_particle, GL_VERTEX_SHADER, "particle");
-	R_AttachShader(program_particle, GL_GEOMETRY_SHADER, "particle");
-	R_AttachShader(program_particle, GL_FRAGMENT_SHADER, "particle");
-	R_PreLink_particle(program_particle);
+	if (r_geometry_shaders->integer) {
+		R_CreateProgram("particle", program_particle);
+		R_AttachShader(program_particle, GL_VERTEX_SHADER, "particle");
+		R_AttachShader(program_particle, GL_GEOMETRY_SHADER, "particle");
+		R_AttachShader(program_particle, GL_FRAGMENT_SHADER, "particle");
+		R_PreLink_particle(program_particle);
 
-	if (R_LinkProgram(program_particle, R_InitProgram_particle)) {
-		program_particle->UseFog = R_UseFog_particle;
-		program_particle->UseCurrentColor = R_UseCurrentColor_particle;
-		program_particle->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_DIFFUSE |
-										R_ARRAY_MASK_COLOR | R_ARRAY_MASK_LIGHTMAP | R_ARRAY_MASK_SCALE |
-										R_ARRAY_MASK_ROLL | R_ARRAY_MASK_END | R_ARRAY_MASK_TYPE;
+		if (R_LinkProgram(program_particle, R_InitProgram_particle)) {
+			program_particle->UseFog = R_UseFog_particle;
+			program_particle->UseCurrentColor = R_UseCurrentColor_particle;
+			program_particle->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_DIFFUSE |
+											R_ARRAY_MASK_COLOR | R_ARRAY_MASK_LIGHTMAP | R_ARRAY_MASK_SCALE |
+											R_ARRAY_MASK_ROLL | R_ARRAY_MASK_END | R_ARRAY_MASK_TYPE;
 	
-		r_state.particle_program = program_particle;
+			r_state.particle_program = program_particle;
+		} else {
+			r_state.particle_program = program_null;
+			Cvar_ForceSet("r_geometry_shaders", "0");
+		}
+
+		R_CreateProgram("particle_corona", program_particle_corona);
+		R_AttachShader(program_particle_corona, GL_VERTEX_SHADER, "particle_corona");
+		R_AttachShader(program_particle_corona, GL_GEOMETRY_SHADER, "particle");
+		R_AttachShader(program_particle_corona, GL_FRAGMENT_SHADER, "corona");
+		R_PreLink_particle(program_particle_corona);
+
+		if (R_LinkProgram(program_particle_corona, R_InitProgram_particle_corona)) {
+			program_particle_corona->UseFog = R_UseFog_particle_corona;
+			program_particle_corona->arrays_mask =	R_ARRAY_MASK_POSITION |
+													R_ARRAY_MASK_COLOR | R_ARRAY_MASK_SCALE;
+	
+			r_state.corona_program = program_particle_corona;
+		} else {
+			r_state.corona_program = program_corona;
+			Cvar_ForceSet("r_geometry_shaders", "0");
+		}
 	} else {
 		r_state.particle_program = program_null;
-	}
-
-	R_CreateProgram("particle_corona", program_particle_corona);
-	R_AttachShader(program_particle_corona, GL_VERTEX_SHADER, "particle_corona");
-	R_AttachShader(program_particle_corona, GL_GEOMETRY_SHADER, "particle");
-	R_AttachShader(program_particle_corona, GL_FRAGMENT_SHADER, "corona");
-	R_PreLink_particle(program_particle_corona);
-
-	if (R_LinkProgram(program_particle_corona, R_InitProgram_particle_corona)) {
-		program_particle_corona->UseFog = R_UseFog_particle_corona;
-		program_particle_corona->arrays_mask =	R_ARRAY_MASK_POSITION |
-												R_ARRAY_MASK_COLOR | R_ARRAY_MASK_SCALE;
-	
-		r_state.corona_program = program_particle_corona;
-	} else {
 		r_state.corona_program = program_corona;
 	}
 
