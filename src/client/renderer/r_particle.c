@@ -277,8 +277,8 @@ static void R_ParticleGeometryTexcoords(const r_particle_t *p, r_geometry_partic
 	        (!p->scroll_s && !p->scroll_t &&!is_atlas && !(p->flags & PARTICLE_FLAG_REPEAT)) ||
 	        p->type == PARTICLE_CORONA) {
 
-		VectorCopy(default_texcoords[0], vert->texcoord0);
-		VectorCopy(default_texcoords[2], vert->texcoord1);
+		Vector2Copy(default_texcoords[0], vert->texcoord0);
+		Vector2Copy(default_texcoords[2], vert->texcoord1);
 
 		return;
 	}

@@ -530,7 +530,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent) {
 static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	r_light_t l;
 	vec3_t dir, delta, pos, vel;
-	vec_t dist, offset;
+	vec_t dist;
 	int32_t i;
 
 	VectorCopy(start, l.origin);
