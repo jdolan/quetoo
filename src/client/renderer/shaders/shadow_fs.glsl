@@ -10,11 +10,8 @@ uniform vec4 LIGHT;
 uniform vec4 PLANE;
 uniform vec4 GLOBAL_COLOR;
 
-#include "include/fog.glsl"
-
 in VertexData {
 	vec4 point;
-	float fog;
 };
 
 out vec4 fragColor;

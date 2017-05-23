@@ -766,7 +766,6 @@ void R_InitPrograms(void) {
 	}
 
 	if (R_LoadSimpleProgram("shadow", R_InitProgram_shadow, R_PreLink_shadow, program_shadow)) {
-		program_shadow->UseFog = R_UseFog_shadow;
 		program_shadow->UseCurrentColor = R_UseCurrentColor_shadow;
 		program_shadow->UseInterpolation = R_UseInterpolation_shadow;
 		program_shadow->arrays_mask = R_ATTRIB_MASK_POSITION | R_ATTRIB_MASK_NEXT_POSITION;
