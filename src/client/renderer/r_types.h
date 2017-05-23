@@ -122,29 +122,36 @@ typedef enum {
  * every program that uses them, and are also used for buffer storage.
  */
 typedef enum {
-	R_ARRAY_POSITION,
-	R_ARRAY_COLOR,
-	R_ARRAY_NORMAL,
-	R_ARRAY_TANGENT,
-	R_ARRAY_DIFFUSE,
-	R_ARRAY_LIGHTMAP,
+	R_ATTRIB_POSITION,
+	R_ATTRIB_COLOR,
+	R_ATTRIB_NORMAL,
+	R_ATTRIB_TANGENT,
+	R_ATTRIB_DIFFUSE,
+	R_ATTRIB_LIGHTMAP,
 
 	/**
 	 * @brief These three are only used for shader-based lerp.
 	 * They are only enabled if the ones that match up to it are enabled as well.
 	 */
-	R_ARRAY_NEXT_POSITION,
-	R_ARRAY_NEXT_NORMAL,
-	R_ARRAY_NEXT_TANGENT,
+	R_ATTRIB_NEXT_POSITION,
+	R_ATTRIB_NEXT_NORMAL,
+	R_ATTRIB_NEXT_TANGENT,
 
-	R_ARRAY_MAX_ATTRIBS,
-	R_ARRAY_ALL = R_ARRAY_MAX_ATTRIBS,
+	/**
+	 * @brief Geometry shader parameters
+	 */
+	R_ATTRIB_SCALE,
+	R_ATTRIB_ROLL,
+	R_ATTRIB_END,
+	R_ATTRIB_TYPE,
+
+	R_ATTRIB_ALL,
 
 	/**
 	 * @brief This is a special entry so that R_BindAttributeBuffer can be
 	 * used for binding element buffers as well.
 	 */
-	R_ARRAY_ELEMENTS = -1
+	R_ATTRIB_ELEMENTS = -1
 } r_attribute_id_t;
 
 /**
@@ -153,33 +160,39 @@ typedef enum {
  * up with the ones above to make things simple.
  */
 typedef enum {
-	R_ARRAY_MASK_POSITION		= (1 << R_ARRAY_POSITION),
-	R_ARRAY_MASK_COLOR			= (1 << R_ARRAY_COLOR),
-	R_ARRAY_MASK_NORMAL			= (1 << R_ARRAY_NORMAL),
-	R_ARRAY_MASK_TANGENT		= (1 << R_ARRAY_TANGENT),
-	R_ARRAY_MASK_DIFFUSE		= (1 << R_ARRAY_DIFFUSE),
-	R_ARRAY_MASK_LIGHTMAP		= (1 << R_ARRAY_LIGHTMAP),
+	R_ATTRIB_MASK_POSITION		= (1 << R_ATTRIB_POSITION),
+	R_ATTRIB_MASK_COLOR			= (1 << R_ATTRIB_COLOR),
+	R_ATTRIB_MASK_NORMAL		= (1 << R_ATTRIB_NORMAL),
+	R_ATTRIB_MASK_TANGENT		= (1 << R_ATTRIB_TANGENT),
+	R_ATTRIB_MASK_DIFFUSE		= (1 << R_ATTRIB_DIFFUSE),
+	R_ATTRIB_MASK_LIGHTMAP		= (1 << R_ATTRIB_LIGHTMAP),
 
-	R_ARRAY_MASK_NEXT_POSITION	= (1 << R_ARRAY_NEXT_POSITION),
-	R_ARRAY_MASK_NEXT_NORMAL	= (1 << R_ARRAY_NEXT_NORMAL),
-	R_ARRAY_MASK_NEXT_TANGENT	= (1 << R_ARRAY_NEXT_TANGENT),
+	R_ATTRIB_MASK_NEXT_POSITION	= (1 << R_ATTRIB_NEXT_POSITION),
+	R_ATTRIB_MASK_NEXT_NORMAL	= (1 << R_ATTRIB_NEXT_NORMAL),
+	R_ATTRIB_MASK_NEXT_TANGENT	= (1 << R_ATTRIB_NEXT_TANGENT),
+	
+	R_ATTRIB_MASK_SCALE			= (1 << R_ATTRIB_SCALE),
+	R_ATTRIB_MASK_ROLL			= (1 << R_ATTRIB_ROLL),
+	R_ATTRIB_MASK_END			= (1 << R_ATTRIB_END),
+	R_ATTRIB_MASK_TYPE			= (1 << R_ATTRIB_TYPE),
 
-	R_ARRAY_MASK_ALL			= (1 << R_ARRAY_MAX_ATTRIBS) - 1
+	R_ATTRIB_MASK_ALL			= (1 << R_ATTRIB_ALL) - 1,
+	R_ATTRIB_GEOMETRY_MASK		= R_ATTRIB_MASK_SCALE | R_ATTRIB_MASK_ROLL | R_ATTRIB_MASK_END | R_ATTRIB_MASK_TYPE
 } r_attribute_mask_t;
 
 /**
  * @brief Types that can be used in buffers for attributes.
  */
 typedef enum {
-	R_ATTRIB_FLOAT,
-	R_ATTRIB_BYTE,
-	R_ATTRIB_UNSIGNED_BYTE,
-	R_ATTRIB_SHORT,
-	R_ATTRIB_UNSIGNED_SHORT,
-	R_ATTRIB_INT,
-	R_ATTRIB_UNSIGNED_INT,
+	R_TYPE_FLOAT,
+	R_TYPE_BYTE,
+	R_TYPE_UNSIGNED_BYTE,
+	R_TYPE_SHORT,
+	R_TYPE_UNSIGNED_SHORT,
+	R_TYPE_INT,
+	R_TYPE_UNSIGNED_INT,
 
-	R_ATTRIB_TOTAL_TYPES
+	R_TYPE_INTERLEAVE // special value to denote interleave buffers
 } r_attrib_type_t;
 
 /**
@@ -196,8 +209,9 @@ typedef union {
 		uint32_t type : 3;
 		uint32_t count : 3;
 		uint32_t offset : 6;
-		uint32_t normalized : 2;
 		uint32_t stride : 6;
+		uint32_t normalized : 2;
+		uint32_t integer : 2;
 	};
 } r_attrib_type_state_t;
 
@@ -207,18 +221,50 @@ typedef union {
  * The last entry should have an 'attribute' of -1.
  */
 typedef struct {
+	r_attrib_type_t type;
+	uint8_t count;
+	_Bool normalized;
+	_Bool integer;
+
+	// only required for interleave buffers
 	r_attribute_id_t attribute;
 
-	r_attrib_type_t type;
-	GLenum gl_type;
-	uint8_t count;
-	uint8_t offset;
-	uint8_t size;
-	_Bool normalized;
-
 	// internal, no touch
+	GLenum gl_type;
 	r_attrib_type_state_t _type_state;
 } r_buffer_layout_t;
+
+/**
+ * @brief Structure that holds construction arguments for buffers
+ */
+typedef struct {
+	r_buffer_layout_t element;
+	GLenum hint;
+	r_buffer_type_t type;
+	size_t size;
+	const void *data;
+} r_create_buffer_t;
+
+/**
+ * @brief Structure that holds construction arguments for element buffers
+ */
+typedef struct {
+	r_attrib_type_t type;
+	GLenum hint;
+	size_t size;
+	const void *data;
+} r_create_element_t;
+
+/**
+ * @brief Structure that holds construction arguments for interleave buffers
+ */
+typedef struct {
+	GLubyte struct_size;
+	r_buffer_layout_t *layout;
+	GLenum hint;
+	size_t size;
+	const void *data;
+} r_create_interleave_t;
 
 /**
  * @brief Buffers are used to hold data for the renderer.
@@ -229,13 +275,12 @@ typedef struct r_buffer_s {
 	GLenum target; // GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER; mapped from above var
 	GLuint bufnum; // e.g. 123
 	size_t size; // last size of buffer, for resize operations
-	const char *func; // location of allocation
 
 	// attribute crap
 	r_attrib_type_state_t element_type;
 	GLenum element_gl_type;
 	r_attribute_mask_t attrib_mask;
-	const r_buffer_layout_t *interleave_attribs[R_ARRAY_MAX_ATTRIBS];
+	const r_buffer_layout_t *interleave_attribs[R_ATTRIB_ALL];
 	_Bool interleave; // whether this buffer is an interleave buffer. Only valid for R_BUFFER_DATA.
 } r_buffer_t;
 
@@ -973,6 +1018,10 @@ typedef enum {
 	R_PROGRAM_NULL,
 	R_PROGRAM_CORONA,
 	R_PROGRAM_STAIN,
+
+	// geometry-enabled programs
+	R_PROGRAM_PARTICLE,
+	R_PROGRAM_PARTICLE_CORONA,
 
 	R_PROGRAM_TOTAL
 } r_program_id_t;

@@ -10,16 +10,24 @@
 #include "fog_inc.glsl"
 
 uniform vec4 GLOBAL_COLOR;
-uniform float TIME_FRACTION;
 
 in vec3 POSITION;
-in vec2 TEXCOORD;
+in vec2 TEXCOORD0;
+in vec2 TEXCOORD1;
 in vec4 COLOR;
-in vec3 NEXT_POSITION;
+in float SCALE;
+in float ROLL;
+in vec3 END;
+in int TYPE;
 
 out VertexData {
 	vec4 color;
-	vec2 texcoord;
+	vec2 texcoord0;
+	vec2 texcoord1;
+	float scale;
+	float roll;
+	vec3 end;
+	int type;
 	FOG_VARIABLE;
 };
 
@@ -29,9 +37,14 @@ out VertexData {
 void main(void) {
 
 	// mvp transform into clip space
-	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * vec4(mix(POSITION, NEXT_POSITION, TIME_FRACTION), 1.0);
+	gl_Position = vec4(POSITION, 1.0);
 
-	texcoord = TEXCOORD;
+	texcoord0 = TEXCOORD0;
+	texcoord1 = TEXCOORD1;
+	scale = SCALE;
+	roll = ROLL;
+	end = END;
+	type = TYPE;
 
 	// pass the color through as well
 	color = COLOR * GLOBAL_COLOR;

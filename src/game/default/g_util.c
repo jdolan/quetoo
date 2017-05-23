@@ -227,7 +227,7 @@ g_entity_t *G_FindRadius(g_entity_t *from, vec3_t org, vec_t rad) {
  */
 g_entity_t *G_PickTarget(char *target_name) {
 	g_entity_t *choice[MAX_TARGETS];
-	size_t num_choices = 0;
+	uint32_t num_choices = 0;
 
 	if (!target_name) {
 		gi.Debug("NULL target_name\n");

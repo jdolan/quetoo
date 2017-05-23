@@ -318,9 +318,9 @@ void R_DrawBspNormals(void) {
 
 	R_ResetArrayState(); // default arrays
 
-	R_BindAttributeInterleaveBuffer(&r_model_state.bound_vertice_buffer, R_ARRAY_MASK_ALL);
+	R_BindAttributeInterleaveBuffer(&r_model_state.bound_vertice_buffer, R_ATTRIB_MASK_ALL);
 
-	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_model_state.bound_element_buffer);
+	R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &r_model_state.bound_element_buffer);
 
 	const r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces;
 
@@ -516,6 +516,9 @@ void R_MarkBspSurfaces(void) {
 	if (++r_locals.frame == INT16_MAX) { // avoid overflows, negatives are reserved
 		r_locals.frame = 0;
 	}
+
+	// clear the bounds of the sky box
+	R_ClearSkyBox();
 
 	// flag all visible world surfaces
 	R_MarkBspSurfaces_(r_model_state.world->bsp->nodes);

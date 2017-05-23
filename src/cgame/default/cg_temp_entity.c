@@ -207,7 +207,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 	for (int32_t i = 0; i < count; i++) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_blood))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_blood))) {
 			break;
 		}
 
@@ -219,6 +219,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 		p->color_end[3] = 0.0;
 
 		p->part.scale = 6.0;
+		p->part.roll = Randomc() * 100.0;
 
 		const vec_t d = Randomr(0, 32);
 		for (int32_t j = 0; j < 3; j++) {
@@ -274,7 +275,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 
 		for (int32_t j = 1; j < GIB_STREAM_COUNT; j++) {
 
-			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_blood))) {
+			if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_blood))) {
 				break;
 			}
 
@@ -287,6 +288,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 
 			p->scale_start = 6.0 + Randomf();
 			p->scale_end = 0.5 + (Randomc() * 0.5);
+			p->part.roll = Randomc() * 50.0;
 
 			VectorCopy(o, p->part.org);
 
@@ -443,7 +445,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	for (int32_t i = 0; i < 32; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_debris[Randomr(0, 4)]))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_debris[Randomr(0, 4)]))) {
 			break;
 		}
 
@@ -455,6 +457,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 		p->color_end[3] = 0.0;
 
 		p->part.scale = 4.0;
+		p->part.roll = Randomc() * 50.0;
 
 		p->part.org[0] = org[0] + Randomfr(-16.0, 16.0);
 		p->part.org[1] = org[1] + Randomfr(-16.0, 16.0);

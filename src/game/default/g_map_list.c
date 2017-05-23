@@ -275,7 +275,7 @@ const g_map_list_map_t *G_MapList_Next(void) {
 
 	GList *list = NULL;
 
-	const size_t len = g_list_length(g_map_list);
+	const guint len = g_list_length(g_map_list);
 	if (len) {
 		if (g_random_map->value) {
 			list = g_list_nth(g_map_list, Randomr(0, len));

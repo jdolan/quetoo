@@ -9,12 +9,15 @@
 #include "matrix_inc.glsl"
 #include "fog_inc.glsl"
 
-out vec4 color;
-out vec2 texcoord;
-
 in vec3 POSITION;
 in vec2 TEXCOORD;
 in vec4 COLOR;
+
+out VertexData {
+	vec4 color;
+	vec2 texcoord;
+	FOG_VARIABLE;
+};
 
 /**
  * @brief Shader entry point.
@@ -29,5 +32,5 @@ void main(void) {
 	// pass the color through as well
 	color = COLOR;
 
-	FogVertex();
+	fog = FogVertex();
 }

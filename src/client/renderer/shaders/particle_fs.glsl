@@ -1,5 +1,5 @@
 /**
- * @brief Corona fragment shader.
+ * @brief Null fragment shader.
  */
 
 #version 330
@@ -9,13 +9,13 @@
 #include "matrix_inc.glsl"
 #include "fog_inc.glsl"
 
+uniform sampler2D SAMPLER0;
+
 in VertexData {
 	vec4 color;
 	vec2 texcoord;
 	FOG_VARIABLE;
 };
-
-const vec2 center_point = vec2(0.5, 0.5);
 
 out vec4 fragColor;
 
@@ -31,7 +31,7 @@ void FogFragment(void) {
  */
 void main(void) {
 
-	fragColor = vec4(color.rgb, mix(color.a, 0, length(texcoord - center_point) * 2.0));
+	fragColor = color * texture(SAMPLER0, texcoord);
 
-	FogFragment(); // and lastly add fog
+	FogFragment(); // and lastly add fog	
 }
