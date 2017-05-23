@@ -33,6 +33,7 @@ out VertexData {
 	vec3 normal;
 	vec3 tangent;
 	vec3 bitangent;
+	vec3 eye;
 	FOG_VARIABLE;
 };
 
@@ -46,9 +47,13 @@ void LightVertex(void) {
 	normal = normalize(vec3(NORMAL_MAT * vec4(mix(NORMAL, NEXT_NORMAL, TIME_FRACTION), 1.0)));
 
 	if (NORMALMAP) {
-		vec4 temp_tangent = mix(TANGENT, NEXT_TANGENT, TIME_FRACTION);
-		tangent = normalize(vec3(NORMAL_MAT * temp_tangent));
-		bitangent = cross(normal, tangent) * temp_tangent.w;
+		vec4 tang = mix(TANGENT, NEXT_TANGENT, TIME_FRACTION);
+		tangent = normalize(vec3(NORMAL_MAT * tang));
+		bitangent = cross(normal, tangent) * tang.w;
+
+		eye.x = -dot(point, tangent);
+		eye.y = -dot(point, bitangent);
+		eye.z = -dot(point, normal);
 	}
 }
 

@@ -98,8 +98,6 @@ void R_ProgramVariable(r_variable_t *variable, const GLenum type, const char *na
  */
 void R_ProgramParameter1i(r_uniform1i_t *variable, const GLint value) {
 
-	assert(variable && variable->location != -1);
-
 	if (variable->value.i == value) {
 		return;
 	}
@@ -115,8 +113,6 @@ void R_ProgramParameter1i(r_uniform1i_t *variable, const GLint value) {
  * @brief
  */
 void R_ProgramParameter1f(r_uniform1f_t *variable, const GLfloat value) {
-
-	assert(variable && variable->location != -1);
 
 	if (variable->value.f == value) {
 		return;
@@ -134,8 +130,6 @@ void R_ProgramParameter1f(r_uniform1f_t *variable, const GLfloat value) {
  */
 void R_ProgramParameter3fv(r_uniform3fv_t *variable, const GLfloat *value) {
 
-	assert(variable && variable->location != -1);
-
 	if (VectorCompare(variable->value.vec3, value)) {
 		return;
 	}
@@ -151,8 +145,6 @@ void R_ProgramParameter3fv(r_uniform3fv_t *variable, const GLfloat *value) {
  * @brief
  */
 void R_ProgramParameter4fv(r_uniform4fv_t *variable, const GLfloat *value) {
-
-	assert(variable && variable->location != -1);
 	
 	if (Vector4Compare(variable->value.vec4, value)) {
 		return;
@@ -169,8 +161,6 @@ void R_ProgramParameter4fv(r_uniform4fv_t *variable, const GLfloat *value) {
  * @brief
  */
 void R_ProgramParameter4ubv(r_uniform4fv_t *variable, const GLubyte *value) {
-
-	assert(variable && variable->location != -1);
 
 	if (Vector4Compare(variable->value.u8vec4, value)) {
 		return;
@@ -190,8 +180,6 @@ void R_ProgramParameter4ubv(r_uniform4fv_t *variable, const GLubyte *value) {
  * @brief
  */
 _Bool R_ProgramParameterMatrix4fv(r_uniform_matrix4fv_t *variable, const GLfloat *value) {
-
-	assert(variable && variable->location != -1);
 
 	if (memcmp(&variable->value.mat4, value, sizeof(variable->value.mat4)) == 0) {
 		return false;

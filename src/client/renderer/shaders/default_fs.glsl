@@ -75,13 +75,14 @@ in VertexData {
 	vec3 normal;
 	vec3 tangent;
 	vec3 bitangent;
+	vec3 eye;
 	FOG_VARIABLE;
 };
 
 const vec3 two = vec3(2.0);
 const vec3 negHalf = vec3(-0.5);
 
-vec3 eye;
+vec3 eyeDir;
 
 out vec4 fragColor;
 
@@ -89,15 +90,7 @@ out vec4 fragColor;
  * @brief Yield the parallax offset for the texture coordinate.
  */
 vec2 BumpTexcoord(in float height) {
-
-	// transform the eye vector into tangent space for bump-mapping
-	eye.x = dot(point, tangent);
-	eye.y = dot(point, bitangent);
-	eye.z = dot(point, normal);
-
-	eye = -normalize(eye);
-
-	return vec2(height * 0.04 - 0.02) * PARALLAX * eye.xy;
+	return vec2(height * 0.04 - 0.02) * PARALLAX * eyeDir.xy;
 }
 
 /**
@@ -107,7 +100,7 @@ vec3 BumpFragment(in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap) {
 
 	float diffuse = max(dot(deluxemap, normalmap), 1.0);
 
-	float specular = HARDNESS * pow(max(-dot(eye, reflect(deluxemap, normalmap)), 0.0), 8.0 * SPECULAR);
+	float specular = HARDNESS * pow(max(-dot(eyeDir, reflect(deluxemap, normalmap)), 0.0), 8.0 * SPECULAR);
 
 	return diffuse + specular * glossmap;
 }
@@ -217,14 +210,21 @@ void main(void) {
 
 	if (NORMALMAP) {
 
+		eyeDir = normalize(eye);
+
 		if (DELUXEMAP) {
 			deluxemap = texture(SAMPLER2, texcoords[1]).rgb;
 			deluxemap = normalize(two * (deluxemap + negHalf));
 		}
 
+		// resolve the initial normalmap sample
 		normalmap = texture(SAMPLER3, texcoords[0]);
 
+		// resolve the parallax offset from the heightmap
 		parallax = BumpTexcoord(normalmap.w);
+
+		// resample the normalmap at the parallax offset
+		normalmap = texture(SAMPLER3, texcoords[0] + parallax);
 
 		normalmap.xyz = normalize(two * (normalmap.xyz + negHalf));
 		normalmap.xyz = normalize(vec3(normalmap.x * BUMP, normalmap.y * BUMP, normalmap.z));
