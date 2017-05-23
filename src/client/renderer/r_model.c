@@ -184,8 +184,8 @@ r_model_t *R_WorldModel(void) {
 }
 
 static r_buffer_layout_t r_bound_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3 },
-	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .normalized = true },
+	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 3 },
+	{ .attribute = R_ATTRIB_COLOR, .type = R_TYPE_UNSIGNED_BYTE, .count = 4, .normalized = true },
 	{ .attribute = -1 }
 };
 
@@ -218,11 +218,22 @@ void R_InitModels(void) {
 
 	r_model_state.null_elements_count = lengthof(null_elements);
 
-	R_CreateDataBuffer(&r_model_state.null_vertices, R_ATTRIB_FLOAT, 3, false, false, GL_STATIC_DRAW, sizeof(null_vertices),
-	                   null_vertices);
+	R_CreateDataBuffer(&r_model_state.null_vertices, &(const r_create_buffer_t) {
+		.element = {
+			.type = R_TYPE_FLOAT,
+			.count = 3
+		},
+		.hint = GL_STATIC_DRAW,
+		.size = sizeof(null_vertices),
+		.data = null_vertices
+	});
 
-	R_CreateElementBuffer(&r_model_state.null_elements, R_ATTRIB_UNSIGNED_INT, GL_STATIC_DRAW, sizeof(null_elements),
-	                      null_elements);
+	R_CreateElementBuffer(&r_model_state.null_elements, &(const r_create_element_t) {
+		.type = R_TYPE_UNSIGNED_INT,
+		.hint = GL_STATIC_DRAW,
+		.size = sizeof(null_elements),
+		.data = null_elements
+	});
 
 	const GLubyte bound_elements[] = {
 		// bottom
@@ -251,9 +262,12 @@ void R_InitModels(void) {
 
 	r_model_state.bound_element_count = lengthof(bound_elements);
 
-	R_CreateElementBuffer(&r_model_state.bound_element_buffer, R_ATTRIB_UNSIGNED_BYTE, GL_STATIC_DRAW,
-	                      sizeof(bound_elements),
-	                      bound_elements);
+	R_CreateElementBuffer(&r_model_state.bound_element_buffer, &(const r_create_element_t) {
+		.type = R_TYPE_UNSIGNED_BYTE,
+		.hint = GL_STATIC_DRAW,
+		.size = sizeof(bound_elements),
+		.data = bound_elements
+	});
 
 	Vector4Set(r_model_state.bound_vertices[8].color, 255, 0, 0, 255);
 	Vector4Set(r_model_state.bound_vertices[9].color, 255, 0, 0, 255);
@@ -269,8 +283,13 @@ void R_InitModels(void) {
 	VectorSet(r_model_state.bound_vertices[12].position, 0, 0, 0);
 	VectorSet(r_model_state.bound_vertices[13].position, 0, 0, 8);
 
-	R_CreateInterleaveBuffer(&r_model_state.bound_vertice_buffer, sizeof(r_bound_interleave_vertex_t),
-	                         r_bound_buffer_layout, GL_STATIC_DRAW, sizeof(r_model_state.bound_vertices), r_model_state.bound_vertices);
+	R_CreateInterleaveBuffer(&r_model_state.bound_vertice_buffer, &(const r_create_interleave_t) {
+		.struct_size = sizeof(r_bound_interleave_vertex_t),
+		.layout = r_bound_buffer_layout,
+		.hint = GL_STATIC_DRAW,
+		.size = sizeof(r_model_state.bound_vertices),
+		.data = r_model_state.bound_vertices
+	});
 }
 
 /**

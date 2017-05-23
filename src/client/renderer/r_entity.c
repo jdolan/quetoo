@@ -152,8 +152,8 @@ static void R_DrawNullModels(const r_entities_t *ents) {
 		return;
 	}
 
-	R_BindAttributeBuffer(R_ARRAY_POSITION, &r_model_state.null_vertices);
-	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_model_state.null_elements);
+	R_BindAttributeBuffer(R_ATTRIB_POSITION, &r_model_state.null_vertices);
+	R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &r_model_state.null_elements);
 
 	for (size_t i = 0; i < ents->count; i++) {
 		const r_entity_t *e = ents->entities[i];
@@ -167,8 +167,8 @@ static void R_DrawNullModels(const r_entities_t *ents) {
 		R_DrawNullModel(e);
 	}
 
-	R_UnbindAttributeBuffer(R_ARRAY_POSITION);
-	R_UnbindAttributeBuffer(R_ARRAY_ELEMENTS);
+	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
+	R_UnbindAttributeBuffer(R_ATTRIB_ELEMENTS);
 
 	r_view.current_entity = NULL;
 }
@@ -190,8 +190,8 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 
 	R_EnableColorArray(true);
 
-	R_BindAttributeInterleaveBuffer(&r_model_state.bound_vertice_buffer, R_ARRAY_MASK_ALL);
-	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_model_state.bound_element_buffer);
+	R_BindAttributeInterleaveBuffer(&r_model_state.bound_vertice_buffer, R_ATTRIB_MASK_ALL);
+	R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &r_model_state.bound_element_buffer);
 
 	u8vec4_t bc;
 	ColorDecompose(color, bc);
@@ -253,7 +253,7 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 
 	R_SetMatrix(R_MATRIX_MODELVIEW, &modelview);
 
-	R_UnbindAttributeBuffer(R_ARRAY_ELEMENTS);
+	R_UnbindAttributeBuffer(R_ATTRIB_ELEMENTS);
 
 	R_EnableColorArray(false);
 

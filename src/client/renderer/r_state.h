@@ -84,8 +84,8 @@ typedef struct r_state_s {
 
 	// the buffers that will be passed to the
 	// programs to be used in attributes.
-	const r_buffer_t *array_buffers[R_ARRAY_MAX_ATTRIBS];
-	GLsizei array_buffer_offsets[R_ARRAY_MAX_ATTRIBS];
+	const r_buffer_t *array_buffers[R_ATTRIB_ALL];
+	GLsizei array_buffer_offsets[R_ATTRIB_ALL];
 	r_attribute_mask_t array_buffers_dirty;
 	GLuint vertex_array_object;
 
@@ -104,7 +104,7 @@ typedef struct r_state_s {
 	r_program_t *particle_program;
 	r_program_t *corona_program;
 
-	r_attrib_state_t attributes[R_ARRAY_MAX_ATTRIBS];
+	r_attrib_state_t attributes[R_ATTRIB_ALL];
 
 	const r_program_t *active_program;
 	const r_material_t *active_material;

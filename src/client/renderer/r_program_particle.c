@@ -47,14 +47,14 @@ static r_particle_program_t r_particle_program;
  */
 void R_PreLink_particle(const r_program_t *program) {
 
-	R_BindAttributeLocation(program, "POSITION", R_ARRAY_POSITION);
-	R_BindAttributeLocation(program, "COLOR", R_ARRAY_COLOR);
-	R_BindAttributeLocation(program, "TEXCOORD0", R_ARRAY_DIFFUSE);
-	R_BindAttributeLocation(program, "TEXCOORD1", R_ARRAY_LIGHTMAP);
-	R_BindAttributeLocation(program, "SCALE", R_ARRAY_SCALE);
-	R_BindAttributeLocation(program, "ROLL", R_ARRAY_ROLL);
-	R_BindAttributeLocation(program, "END", R_ARRAY_END);
-	R_BindAttributeLocation(program, "TYPE", R_ARRAY_TYPE);
+	R_BindAttributeLocation(program, "POSITION", R_ATTRIB_POSITION);
+	R_BindAttributeLocation(program, "COLOR", R_ATTRIB_COLOR);
+	R_BindAttributeLocation(program, "TEXCOORD0", R_ATTRIB_DIFFUSE);
+	R_BindAttributeLocation(program, "TEXCOORD1", R_ATTRIB_LIGHTMAP);
+	R_BindAttributeLocation(program, "SCALE", R_ATTRIB_SCALE);
+	R_BindAttributeLocation(program, "ROLL", R_ATTRIB_ROLL);
+	R_BindAttributeLocation(program, "END", R_ATTRIB_END);
+	R_BindAttributeLocation(program, "TYPE", R_ATTRIB_TYPE);
 }
 
 /**
@@ -64,14 +64,14 @@ void R_InitProgram_particle(r_program_t *program) {
 
 	r_particle_program_t *p = &r_particle_program;
 
-	R_ProgramVariable(&program->attributes[R_ARRAY_POSITION], R_ATTRIBUTE, "POSITION", true);
-	R_ProgramVariable(&program->attributes[R_ARRAY_COLOR], R_ATTRIBUTE, "COLOR", true);
-	R_ProgramVariable(&program->attributes[R_ARRAY_DIFFUSE], R_ATTRIBUTE, "TEXCOORD0", true);
-	R_ProgramVariable(&program->attributes[R_ARRAY_LIGHTMAP], R_ATTRIBUTE, "TEXCOORD1", true);
-	R_ProgramVariable(&program->attributes[R_ARRAY_SCALE], R_ATTRIBUTE, "SCALE", true);
-	R_ProgramVariable(&program->attributes[R_ARRAY_ROLL], R_ATTRIBUTE, "ROLL", true);
-	R_ProgramVariable(&program->attributes[R_ARRAY_END], R_ATTRIBUTE, "END", true);
-	R_ProgramVariable(&program->attributes[R_ARRAY_TYPE], R_ATTRIBUTE, "TYPE", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_POSITION], R_ATTRIBUTE, "POSITION", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_COLOR], R_ATTRIBUTE, "COLOR", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_DIFFUSE], R_ATTRIBUTE, "TEXCOORD0", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_LIGHTMAP], R_ATTRIBUTE, "TEXCOORD1", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_SCALE], R_ATTRIBUTE, "SCALE", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_ROLL], R_ATTRIBUTE, "ROLL", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_END], R_ATTRIBUTE, "END", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_TYPE], R_ATTRIBUTE, "TYPE", true);
 	
 	R_ProgramVariable(&p->sampler0, R_SAMPLER_2D, "SAMPLER0", true);
 

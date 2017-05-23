@@ -41,8 +41,8 @@ static r_shadow_program_t r_shadow_program;
  */
 void R_PreLink_shadow(const r_program_t *program) {
 
-	R_BindAttributeLocation(program, "POSITION", R_ARRAY_POSITION);
-	R_BindAttributeLocation(program, "NEXT_POSITION", R_ARRAY_NEXT_POSITION);
+	R_BindAttributeLocation(program, "POSITION", R_ATTRIB_POSITION);
+	R_BindAttributeLocation(program, "NEXT_POSITION", R_ATTRIB_NEXT_POSITION);
 }
 
 /**
@@ -51,8 +51,8 @@ void R_PreLink_shadow(const r_program_t *program) {
 void R_InitProgram_shadow(r_program_t *program) {
 	r_shadow_program_t *p = &r_shadow_program;
 
-	R_ProgramVariable(&program->attributes[R_ARRAY_POSITION], R_ATTRIBUTE, "POSITION", true);
-	R_ProgramVariable(&program->attributes[R_ARRAY_NEXT_POSITION], R_ATTRIBUTE, "NEXT_POSITION", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_POSITION], R_ATTRIBUTE, "POSITION", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_NEXT_POSITION], R_ATTRIBUTE, "NEXT_POSITION", true);
 
 	const vec4_t light = { 0.0, 0.0, 0.0, 1.0 };
 	const vec4_t plane = { 0.0, 0.0, 1.0, 0.0 };

@@ -65,8 +65,8 @@ typedef struct {
 } r_sky_interleave_vertex_t;
 
 static r_buffer_layout_t r_sky_layout_buffer[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3 },
-	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_UNSIGNED_SHORT, .count = 2, .normalized = true },
+	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 3 },
+	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_UNSIGNED_SHORT, .count = 2, .normalized = true },
 	{ .attribute = -1 }
 };
 
@@ -349,7 +349,7 @@ void R_DrawSkyBox(void) {
 
 	R_GetMatrix(R_MATRIX_MODELVIEW, &modelview);
 
-	R_BindAttributeInterleaveBuffer(&r_sky.vert_buffer, R_ARRAY_MASK_ALL);
+	R_BindAttributeInterleaveBuffer(&r_sky.vert_buffer, R_ATTRIB_MASK_ALL);
 
 	R_PushMatrix(R_MATRIX_MODELVIEW);
 
@@ -397,8 +397,12 @@ void R_DrawSkyBox(void) {
  */
 void R_InitSky(void) {
 
-	R_CreateInterleaveBuffer(&r_sky.vert_buffer, sizeof(r_sky_interleave_vertex_t), r_sky_layout_buffer, GL_DYNAMIC_DRAW,
-	                         sizeof(r_sky_interleave_vertex_t) * MAX_CLIP_VERTS, NULL);
+	R_CreateInterleaveBuffer(&r_sky.vert_buffer, &(const r_create_interleave_t) {
+		.struct_size = sizeof(r_sky_interleave_vertex_t),
+		.layout = r_sky_layout_buffer,
+		.hint = GL_DYNAMIC_DRAW,
+		.size = sizeof(r_sky_interleave_vertex_t) * MAX_CLIP_VERTS
+	});
 }
 
 /**

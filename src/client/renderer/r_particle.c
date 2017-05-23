@@ -49,9 +49,9 @@ typedef struct {
 } r_particle_interleave_vertex_t;
 
 static r_buffer_layout_t r_particle_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3 },
-	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_FLOAT, .count = 2 },
-	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .normalized = true },
+	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 3 },
+	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_FLOAT, .count = 2 },
+	{ .attribute = R_ATTRIB_COLOR, .type = R_TYPE_UNSIGNED_BYTE, .count = 4, .normalized = true },
 	{ .attribute = -1 }
 };
 
@@ -67,14 +67,14 @@ typedef struct {
 } r_geometry_particle_interleave_vertex_t;
 
 static r_buffer_layout_t r_geometry_particle_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3 },
-	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_FLOAT, .count = 2 },
-	{ .attribute = R_ARRAY_LIGHTMAP, .type = R_ATTRIB_FLOAT, .count = 2 },
-	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .normalized = true },
-	{ .attribute = R_ARRAY_SCALE, .type = R_ATTRIB_FLOAT, .count = 1 },
-	{ .attribute = R_ARRAY_ROLL, .type = R_ATTRIB_FLOAT, .count = 1 },
-	{ .attribute = R_ARRAY_END, .type = R_ATTRIB_FLOAT, .count = 3 },
-	{ .attribute = R_ARRAY_TYPE, .type = R_ATTRIB_INT, .count = 1, .integral = true },
+	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 3 },
+	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_FLOAT, .count = 2 },
+	{ .attribute = R_ATTRIB_LIGHTMAP, .type = R_TYPE_FLOAT, .count = 2 },
+	{ .attribute = R_ATTRIB_COLOR, .type = R_TYPE_UNSIGNED_BYTE, .count = 4, .normalized = true },
+	{ .attribute = R_ATTRIB_SCALE, .type = R_TYPE_FLOAT },
+	{ .attribute = R_ATTRIB_ROLL, .type = R_TYPE_FLOAT },
+	{ .attribute = R_ATTRIB_END, .type = R_TYPE_FLOAT, .count = 3 },
+	{ .attribute = R_ATTRIB_TYPE, .type = R_TYPE_INT, .integer = true },
 	{ .attribute = -1 }
 };
 
@@ -107,14 +107,25 @@ static r_particle_state_t r_particle_state;
  */
 void R_InitParticles(void) {
 
-	R_CreateInterleaveBuffer(&r_particle_state.verts_buffer, sizeof(r_particle_interleave_vertex_t),
-	                         r_particle_buffer_layout, GL_DYNAMIC_DRAW, sizeof(r_particle_state.verts), NULL);
+	R_CreateInterleaveBuffer(&r_particle_state.verts_buffer, &(const r_create_interleave_t) {
+		.struct_size = sizeof(r_particle_interleave_vertex_t),
+		.layout = r_particle_buffer_layout,
+		.hint = GL_DYNAMIC_DRAW,
+		.size = sizeof(r_particle_state.verts)
+	});
 
-	R_CreateElementBuffer(&r_particle_state.element_buffer, R_ATTRIB_UNSIGNED_INT, GL_DYNAMIC_DRAW,
-	                      sizeof(r_particle_state.elements), NULL);
+	R_CreateElementBuffer(&r_particle_state.element_buffer, &(const r_create_element_t) {
+		.type = R_TYPE_UNSIGNED_INT,
+		.hint = GL_STATIC_DRAW,
+		.size = sizeof(r_particle_state.elements)
+	});
 
-	R_CreateInterleaveBuffer(&r_particle_state.geometry_verts_buffer, sizeof(r_geometry_particle_interleave_vertex_t),
-	                         r_geometry_particle_buffer_layout, GL_DYNAMIC_DRAW, sizeof(r_particle_state.geometry_verts), NULL);
+	R_CreateInterleaveBuffer(&r_particle_state.geometry_verts_buffer, &(const r_create_interleave_t) {
+		.struct_size = sizeof(r_geometry_particle_interleave_vertex_t),
+		.layout = r_geometry_particle_buffer_layout,
+		.hint = GL_DYNAMIC_DRAW,
+		.size = sizeof(r_particle_state.geometry_verts)
+	});
 }
 
 /**
@@ -423,11 +434,11 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 		R_UseProgram(program_particle_corona);
 		R_UseParticleData_particle_corona(r_particle_state.weather_right, r_particle_state.weather_up, r_particle_state.splash_right, r_particle_state.splash_up);
 
-		R_BindAttributeInterleaveBuffer(&r_particle_state.geometry_verts_buffer, R_ARRAY_MASK_ALL);
+		R_BindAttributeInterleaveBuffer(&r_particle_state.geometry_verts_buffer, R_ATTRIB_MASK_ALL);
 		R_EnableTexture(texunit_lightmap, true);
 	} else {
-		R_BindAttributeInterleaveBuffer(&r_particle_state.verts_buffer, R_ARRAY_MASK_ALL);
-		R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_particle_state.element_buffer);
+		R_BindAttributeInterleaveBuffer(&r_particle_state.verts_buffer, R_ATTRIB_MASK_ALL);
+		R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &r_particle_state.element_buffer);
 	}
 
 	const GLint base = (GLint) (intptr_t) e->data;

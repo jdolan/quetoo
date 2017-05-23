@@ -68,16 +68,16 @@ static r_default_program_t r_default_program;
  */
 void R_PreLink_default(const r_program_t *program) {
 
-	R_BindAttributeLocation(program, "POSITION", R_ARRAY_POSITION);
-	R_BindAttributeLocation(program, "COLOR", R_ARRAY_COLOR);
-	R_BindAttributeLocation(program, "TEXCOORD0", R_ARRAY_DIFFUSE);
-	R_BindAttributeLocation(program, "TEXCOORD1", R_ARRAY_LIGHTMAP);
-	R_BindAttributeLocation(program, "NORMAL", R_ARRAY_NORMAL);
-	R_BindAttributeLocation(program, "TANGENT", R_ARRAY_TANGENT);
+	R_BindAttributeLocation(program, "POSITION", R_ATTRIB_POSITION);
+	R_BindAttributeLocation(program, "COLOR", R_ATTRIB_COLOR);
+	R_BindAttributeLocation(program, "TEXCOORD0", R_ATTRIB_DIFFUSE);
+	R_BindAttributeLocation(program, "TEXCOORD1", R_ATTRIB_LIGHTMAP);
+	R_BindAttributeLocation(program, "NORMAL", R_ATTRIB_NORMAL);
+	R_BindAttributeLocation(program, "TANGENT", R_ATTRIB_TANGENT);
 
-	R_BindAttributeLocation(program, "NEXT_POSITION", R_ARRAY_NEXT_POSITION);
-	R_BindAttributeLocation(program, "NEXT_NORMAL", R_ARRAY_NEXT_NORMAL);
-	R_BindAttributeLocation(program, "NEXT_TANGENT", R_ARRAY_NEXT_TANGENT);
+	R_BindAttributeLocation(program, "NEXT_POSITION", R_ATTRIB_NEXT_POSITION);
+	R_BindAttributeLocation(program, "NEXT_NORMAL", R_ATTRIB_NEXT_NORMAL);
+	R_BindAttributeLocation(program, "NEXT_TANGENT", R_ATTRIB_NEXT_TANGENT);
 }
 
 /**
@@ -89,16 +89,16 @@ void R_InitProgram_default(r_program_t *program) {
 
 	p->program = program;
 
-	R_ProgramVariable(&program->attributes[R_ARRAY_POSITION], R_ATTRIBUTE, "POSITION", true);
-	R_ProgramVariable(&program->attributes[R_ARRAY_COLOR], R_ATTRIBUTE, "COLOR", true);
-	R_ProgramVariable(&program->attributes[R_ARRAY_DIFFUSE], R_ATTRIBUTE, "TEXCOORD0", true);
-	R_ProgramVariable(&program->attributes[R_ARRAY_LIGHTMAP], R_ATTRIBUTE, "TEXCOORD1", true);
-	R_ProgramVariable(&program->attributes[R_ARRAY_NORMAL], R_ATTRIBUTE, "NORMAL", true);
-	R_ProgramVariable(&program->attributes[R_ARRAY_TANGENT], R_ATTRIBUTE, "TANGENT", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_POSITION], R_ATTRIBUTE, "POSITION", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_COLOR], R_ATTRIBUTE, "COLOR", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_DIFFUSE], R_ATTRIBUTE, "TEXCOORD0", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_LIGHTMAP], R_ATTRIBUTE, "TEXCOORD1", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_NORMAL], R_ATTRIBUTE, "NORMAL", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_TANGENT], R_ATTRIBUTE, "TANGENT", true);
 
-	R_ProgramVariable(&program->attributes[R_ARRAY_NEXT_POSITION], R_ATTRIBUTE, "NEXT_POSITION", true);
-	R_ProgramVariable(&program->attributes[R_ARRAY_NEXT_NORMAL], R_ATTRIBUTE, "NEXT_NORMAL", true);
-	R_ProgramVariable(&program->attributes[R_ARRAY_NEXT_TANGENT], R_ATTRIBUTE, "NEXT_TANGENT", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_NEXT_POSITION], R_ATTRIBUTE, "NEXT_POSITION", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_NEXT_NORMAL], R_ATTRIBUTE, "NEXT_NORMAL", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_NEXT_TANGENT], R_ATTRIBUTE, "NEXT_TANGENT", true);
 
 	R_ProgramVariable(&p->diffuse, R_UNIFORM_INT, "DIFFUSE", true);
 	R_ProgramVariable(&p->lightmap, R_UNIFORM_INT, "LIGHTMAP", true);
@@ -217,10 +217,10 @@ void R_UseMaterial_default(const r_material_t *material) {
 	        !r_bumpmap->value || r_draw_bsp_lightmaps->value ||
 			!r_state.lighting_enabled) {
 
-		R_DisableAttribute(R_ARRAY_TANGENT);
+		R_DisableAttribute(R_ATTRIB_TANGENT);
 		R_ProgramParameter1i(&p->normalmap, 0);
 	} else {
-		R_EnableAttribute(R_ARRAY_TANGENT);
+		R_EnableAttribute(R_ATTRIB_TANGENT);
 
 		R_BindNormalmapTexture(material->normalmap->texnum);
 		R_ProgramParameter1i(&p->normalmap, 1);

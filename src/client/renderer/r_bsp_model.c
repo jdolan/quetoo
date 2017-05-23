@@ -729,11 +729,11 @@ typedef struct {
 } r_bsp_interleave_vertex_t;
 
 static r_buffer_layout_t r_bsp_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3 },
-	{ .attribute = R_ARRAY_NORMAL, .type = R_ATTRIB_FLOAT, .count = 3 },
-	{ .attribute = R_ARRAY_TANGENT, .type = R_ATTRIB_FLOAT, .count = 4 },
-	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_FLOAT, .count = 2 },
-	{ .attribute = R_ARRAY_LIGHTMAP, .type = R_ATTRIB_FLOAT, .count = 2 },
+	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 3 },
+	{ .attribute = R_ATTRIB_NORMAL, .type = R_TYPE_FLOAT, .count = 3 },
+	{ .attribute = R_ATTRIB_TANGENT, .type = R_TYPE_FLOAT, .count = 4 },
+	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_FLOAT, .count = 2 },
+	{ .attribute = R_ATTRIB_LIGHTMAP, .type = R_TYPE_FLOAT, .count = 2 },
 	{ .attribute = -1 }
 };
 
@@ -818,7 +818,12 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 		}
 	}
 
-	R_CreateElementBuffer(&mod->bsp->element_buffer, R_ATTRIB_UNSIGNED_INT, GL_STATIC_DRAW, e, elements);
+	R_CreateElementBuffer(&mod->bsp->element_buffer, &(const r_create_element_t) {
+		.type = R_TYPE_UNSIGNED_INT,
+		.hint = GL_STATIC_DRAW,
+		.size = e,
+		.data = elements
+	});
 
 	Mem_Free(elements);
 
@@ -833,9 +838,13 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 		Vector2Copy(mod->bsp->lightmap_texcoords[i], interleaved[i].lightmap);
 	}
 
-	R_CreateInterleaveBuffer(&mod->bsp->vertex_buffer, sizeof(r_bsp_interleave_vertex_t), r_bsp_buffer_layout,
-	                         GL_STATIC_DRAW,
-	                         mod->num_verts * sizeof(r_bsp_interleave_vertex_t), interleaved);
+	R_CreateInterleaveBuffer(&mod->bsp->vertex_buffer, &(const r_create_interleave_t) {
+		.struct_size = sizeof(r_bsp_interleave_vertex_t),
+		.layout = r_bsp_buffer_layout,
+		.hint = GL_STATIC_DRAW,
+		.size = mod->num_verts * sizeof(r_bsp_interleave_vertex_t),
+		.data = interleaved
+	});
 
 	Mem_Free(interleaved);
 

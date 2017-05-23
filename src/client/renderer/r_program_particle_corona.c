@@ -36,9 +36,9 @@ static r_particle_corona_program_t r_particle_corona_program;
  */
 void R_PreLink_particle_corona(const r_program_t *program) {
 
-	R_BindAttributeLocation(program, "POSITION", R_ARRAY_POSITION);
-	R_BindAttributeLocation(program, "COLOR", R_ARRAY_COLOR);
-	R_BindAttributeLocation(program, "SCALE", R_ARRAY_SCALE);
+	R_BindAttributeLocation(program, "POSITION", R_ATTRIB_POSITION);
+	R_BindAttributeLocation(program, "COLOR", R_ATTRIB_COLOR);
+	R_BindAttributeLocation(program, "SCALE", R_ATTRIB_SCALE);
 }
 
 /**
@@ -48,9 +48,9 @@ void R_InitProgram_particle_corona(r_program_t *program) {
 
 	r_particle_corona_program_t *p = &r_particle_corona_program;
 
-	R_ProgramVariable(&program->attributes[R_ARRAY_POSITION], R_ATTRIBUTE, "POSITION", true);
-	R_ProgramVariable(&program->attributes[R_ARRAY_COLOR], R_ATTRIBUTE, "COLOR", true);
-	R_ProgramVariable(&program->attributes[R_ARRAY_SCALE], R_ATTRIBUTE, "SCALE", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_POSITION], R_ATTRIBUTE, "POSITION", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_COLOR], R_ATTRIBUTE, "COLOR", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_SCALE], R_ATTRIBUTE, "SCALE", true);
 
 	R_ProgramVariable(&p->fog.start, R_UNIFORM_FLOAT, "FOG.START", true);
 	R_ProgramVariable(&p->fog.end, R_UNIFORM_FLOAT, "FOG.END", true);

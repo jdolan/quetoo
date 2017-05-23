@@ -714,7 +714,7 @@ void R_Setup3D(void) {
 	Matrix4x4_Invert_Simple(&r_view.inverse_matrix, &r_view.matrix);
 
 	// bind default vertex array
-	R_UnbindAttributeBuffer(R_ARRAY_POSITION);
+	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
 
 	R_EnableBlend(false);
 
@@ -810,7 +810,7 @@ void R_Setup2D(void) {
 	R_SetMatrix(R_MATRIX_MODELVIEW, &matrix4x4_identity);
 
 	// bind default vertex array
-	R_UnbindAttributeBuffer(R_ARRAY_POSITION);
+	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
 
 	R_EnableBlend(true);
 
@@ -957,7 +957,7 @@ void R_InitState(void) {
 	r_state.depth_near = 0.0;
 	r_state.depth_far = 1.0;
 
-	r_state.array_buffers_dirty = R_ARRAY_MASK_ALL;
+	r_state.array_buffers_dirty = R_ATTRIB_MASK_ALL;
 
 	glGenVertexArrays(1, &r_state.vertex_array_object);
 	glBindVertexArray(r_state.vertex_array_object);
@@ -975,8 +975,8 @@ static void R_ShutdownState_PrintBuffers(gpointer       key,
 
 	const r_buffer_t *buffer = (r_buffer_t *) value;
 
-	Com_Warn("Buffer not freed (%u type, %" PRIuPTR " bytes), allocated from %s\n",
-	         buffer->type, buffer->size, buffer->func);
+	Com_Warn("Buffer not freed (%u type, %" PRIuPTR " bytes)\n",
+	         buffer->type, buffer->size);
 }
 
 /**

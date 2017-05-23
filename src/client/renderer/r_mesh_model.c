@@ -344,9 +344,9 @@ typedef struct {
 } r_md3_interleave_vertex_t;
 
 static r_buffer_layout_t r_md3_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3 },
-	{ .attribute = R_ARRAY_NORMAL, .type = R_ATTRIB_FLOAT, .count = 3 },
-	{ .attribute = R_ARRAY_TANGENT, .type = R_ATTRIB_FLOAT, .count = 4 },
+	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 3 },
+	{ .attribute = R_ATTRIB_NORMAL, .type = R_TYPE_FLOAT, .count = 3 },
+	{ .attribute = R_ATTRIB_TANGENT, .type = R_TYPE_FLOAT, .count = 4 },
 	{ .attribute = -1 }
 };
 
@@ -376,9 +376,12 @@ static void R_LoadMd3VertexArrays(r_model_t *mod, r_md3_t *md3) {
 	uint32_t *tris = Mem_Malloc(elem_size);
 
 	// upload initial data
-	R_CreateInterleaveBuffer(&mod->mesh->vertex_buffer, sizeof(r_md3_interleave_vertex_t), r_md3_buffer_layout,
-	                         GL_STATIC_DRAW,
-	                         vert_size * mod->mesh->num_frames, NULL);
+	R_CreateInterleaveBuffer(&mod->mesh->vertex_buffer, &(const r_create_interleave_t) {
+		.struct_size = sizeof(r_md3_interleave_vertex_t),
+		.layout = r_md3_buffer_layout,
+		.hint = GL_STATIC_DRAW,
+		.size = vert_size * mod->mesh->num_frames
+	});
 
 	uint32_t *out_tri = tris;
 	u16vec_t *out_texcoord = texcoords;
@@ -425,10 +428,24 @@ static void R_LoadMd3VertexArrays(r_model_t *mod, r_md3_t *md3) {
 	}
 
 	// upload texcoords
-	R_CreateDataBuffer(&mod->mesh->texcoord_buffer, R_ATTRIB_UNSIGNED_SHORT, 2, true, false, GL_STATIC_DRAW, texcoord_size, texcoords);
+	R_CreateDataBuffer(&mod->mesh->texcoord_buffer, &(const r_create_buffer_t) {
+		.element = {
+			.type = R_TYPE_UNSIGNED_SHORT,
+			.count = 2,
+			.normalized = true
+		},
+		.hint = GL_STATIC_DRAW,
+		.size = texcoord_size,
+		.data = texcoords
+	});
 
 	// upload elements
-	R_CreateElementBuffer(&mod->mesh->element_buffer, R_ATTRIB_UNSIGNED_INT, GL_STATIC_DRAW, elem_size, tris);
+	R_CreateElementBuffer(&mod->mesh->element_buffer, &(const r_create_element_t) {
+		.type = R_TYPE_UNSIGNED_INT,
+		.hint = GL_STATIC_DRAW,
+		.size = elem_size,
+		.data = tris
+	});
 
 	// get rid of these, we don't need them any more
 	Mem_Free(texcoords);
@@ -1066,9 +1083,9 @@ typedef struct {
 } r_obj_shell_interleave_vertex_t;
 
 static r_buffer_layout_t r_obj_shell_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3 },
-	{ .attribute = R_ARRAY_NORMAL, .type = R_ATTRIB_FLOAT, .count = 3 },
-	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_UNSIGNED_SHORT, .count = 2, .normalized = true },
+	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 3 },
+	{ .attribute = R_ATTRIB_NORMAL, .type = R_TYPE_FLOAT, .count = 3 },
+	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_UNSIGNED_SHORT, .count = 2, .normalized = true },
 	{ .attribute = -1 }
 };
 
@@ -1123,9 +1140,13 @@ static void R_LoadObjShellVertexArrays(r_model_t *mod, r_obj_t *obj, GLuint *ele
 	}
 
 	// upload data
-	R_CreateInterleaveBuffer(&mod->mesh->shell_vertex_buffer, sizeof(r_obj_shell_interleave_vertex_t),
-	                         r_obj_shell_buffer_layout, GL_STATIC_DRAW, sizeof(r_obj_shell_interleave_vertex_t) * unique_vertex_list->len,
-	                         unique_vertex_list->data);
+	R_CreateInterleaveBuffer(&mod->mesh->shell_vertex_buffer, &(const r_create_interleave_t) {
+		.struct_size = sizeof(r_obj_shell_interleave_vertex_t),
+		.layout = r_obj_shell_buffer_layout,
+		.hint = GL_STATIC_DRAW,
+		.size = sizeof(r_obj_shell_interleave_vertex_t) * unique_vertex_list->len,
+		.data = unique_vertex_list->data
+	});
 
 	g_array_free(unique_vertex_list, true);
 
@@ -1140,7 +1161,12 @@ static void R_LoadObjShellVertexArrays(r_model_t *mod, r_obj_t *obj, GLuint *ele
 		}
 	}
 
-	R_CreateElementBuffer(&mod->mesh->shell_element_buffer, R_ATTRIB_UNSIGNED_INT, GL_STATIC_DRAW, e, elements);
+	R_CreateElementBuffer(&mod->mesh->shell_element_buffer, &(const r_create_element_t) {
+		.type = R_TYPE_UNSIGNED_INT,
+		.hint = GL_STATIC_DRAW,
+		.size = e,
+		.data = elements
+	});
 
 	g_hash_table_destroy(index_remap_table);
 }
@@ -1153,10 +1179,10 @@ typedef struct {
 } r_obj_interleave_vertex_t;
 
 static r_buffer_layout_t r_obj_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3 },
-	{ .attribute = R_ARRAY_NORMAL, .type = R_ATTRIB_FLOAT, .count = 3 },
-	{ .attribute = R_ARRAY_TANGENT, .type = R_ATTRIB_FLOAT, .count = 4 },
-	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_UNSIGNED_SHORT, .count = 2, .normalized = true },
+	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 3 },
+	{ .attribute = R_ATTRIB_NORMAL, .type = R_TYPE_FLOAT, .count = 3 },
+	{ .attribute = R_ATTRIB_TANGENT, .type = R_TYPE_FLOAT, .count = 4 },
+	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_UNSIGNED_SHORT, .count = 2, .normalized = true },
 	{ .attribute = -1 }
 };
 
@@ -1203,9 +1229,20 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 	}
 
 	// load the vertex buffer objects
-	R_CreateInterleaveBuffer(&mod->mesh->vertex_buffer, sizeof(*verts), r_obj_buffer_layout, GL_STATIC_DRAW, v, verts);
+	R_CreateInterleaveBuffer(&mod->mesh->vertex_buffer, &(const r_create_interleave_t) {
+		.struct_size = sizeof(r_obj_interleave_vertex_t),
+		.layout = r_obj_buffer_layout,
+		.hint = GL_STATIC_DRAW,
+		.size = v,
+		.data = verts
+	});
 
-	R_CreateElementBuffer(&mod->mesh->element_buffer, R_ATTRIB_UNSIGNED_INT, GL_STATIC_DRAW, e, elements);
+	R_CreateElementBuffer(&mod->mesh->element_buffer, &(const r_create_element_t) {
+		.type = R_TYPE_UNSIGNED_INT,
+		.hint = GL_STATIC_DRAW,
+		.size = e,
+		.data = elements
+	});
 
 	R_LoadObjShellVertexArrays(mod, obj, elements, e);
 

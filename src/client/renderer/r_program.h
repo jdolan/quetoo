@@ -102,7 +102,7 @@ typedef struct {
 	char name[MAX_QPATH];
 
 	r_attribute_mask_t arrays_mask;
-	r_attribute_t attributes[R_ARRAY_MAX_ATTRIBS];
+	r_attribute_t attributes[R_ATTRIB_ALL];
 
 	r_uniform_matrix4fv_t matrix_uniforms[R_MATRIX_TOTAL];
 	_Bool matrix_dirty[R_MATRIX_TOTAL];
