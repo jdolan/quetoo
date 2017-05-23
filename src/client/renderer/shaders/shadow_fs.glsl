@@ -10,10 +10,13 @@ uniform vec4 LIGHT;
 uniform vec4 PLANE;
 uniform vec4 GLOBAL_COLOR;
 
-in vec4 point;
-
 #define FOG_NO_UNIFORM
 #include "fog_inc.glsl"
+
+in VertexData {
+	vec4 point;
+	FOG_VARIABLE;
+};
 
 out vec4 fragColor;
 

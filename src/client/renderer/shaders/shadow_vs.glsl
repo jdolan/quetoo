@@ -13,10 +13,13 @@ uniform mat4 SHADOW_MAT;
 uniform vec4 LIGHT;
 uniform float TIME_FRACTION;
 
-out vec4 point;
-
 in vec3 POSITION;
 in vec3 NEXT_POSITION;
+
+out VertexData {
+	vec4 point;
+	FOG_VARIABLE;
+};
 
 /**
  * @brief

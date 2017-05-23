@@ -19,24 +19,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "r_local.h"
+#pragma once
 
-/**
- * @brief
- */
-void R_PreLink_stain(const r_program_t *program) {
+#include "r_types.h"
 
-	R_BindAttributeLocation(program, "POSITION", R_ATTRIB_POSITION);
-	R_BindAttributeLocation(program, "COLOR", R_ATTRIB_COLOR);
-	R_BindAttributeLocation(program, "TEXCOORD", R_ATTRIB_DIFFUSE);
-}
-
-/**
- * @brief
- */
-void R_InitProgram_stain(r_program_t *program) {
-
-	R_ProgramVariable(&program->attributes[R_ATTRIB_POSITION], R_ATTRIBUTE, "POSITION", true);
-	R_ProgramVariable(&program->attributes[R_ATTRIB_COLOR], R_ATTRIBUTE, "COLOR", true);
-	R_ProgramVariable(&program->attributes[R_ATTRIB_DIFFUSE], R_ATTRIBUTE, "TEXCOORD", true);
-}
+#ifdef __R_LOCAL_H__
+void R_PreLink_particle_corona(const r_program_t *program);
+void R_InitProgram_particle_corona(r_program_t *program);
+void R_UseFog_particle_corona(const r_fog_parameters_t *value);
+void R_UseParticleData_particle_corona(vec3_t weather_right, vec3_t weather_up, vec3_t splash_right[2], vec3_t splash_up[2]);
+#endif /* __R_LOCAL_H__ */

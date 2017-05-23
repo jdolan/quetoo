@@ -73,6 +73,10 @@
 		CE12D8F81C5CF97E00CD0B13 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8191C5C614B00CD0B13 /* AppKit.framework */; };
 		CE15E8C11ED0CAE900A9FB7A /* s_al_ext.c in Sources */ = {isa = PBXBuildFile; fileRef = CE15E8BF1ED0CAE900A9FB7A /* s_al_ext.c */; };
 		CE15E8C21ED0CAE900A9FB7A /* s_al_ext.h in Headers */ = {isa = PBXBuildFile; fileRef = CE15E8C01ED0CAE900A9FB7A /* s_al_ext.h */; };
+		CE15E8CC1ED306DB00A9FB7A /* r_program_particle_corona.c in Sources */ = {isa = PBXBuildFile; fileRef = CE15E8C81ED306DB00A9FB7A /* r_program_particle_corona.c */; };
+		CE15E8CD1ED306DB00A9FB7A /* r_program_particle_corona.h in Headers */ = {isa = PBXBuildFile; fileRef = CE15E8C91ED306DB00A9FB7A /* r_program_particle_corona.h */; };
+		CE15E8CE1ED306DB00A9FB7A /* r_program_particle.c in Sources */ = {isa = PBXBuildFile; fileRef = CE15E8CA1ED306DB00A9FB7A /* r_program_particle.c */; };
+		CE15E8CF1ED306DB00A9FB7A /* r_program_particle.h in Headers */ = {isa = PBXBuildFile; fileRef = CE15E8CB1ED306DB00A9FB7A /* r_program_particle.h */; };
 		CE1CCD9A1D9D41DA00891F05 /* libncurses.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */; };
 		CE1CCD9D1D9D49C700891F05 /* libswap.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC79D01D9CB22E000FA6B2 /* libswap.dylib */; };
 		CE3208501EBDFFB600A92FF3 /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE32084F1EBDFFB600A92FF3 /* OpenAL.framework */; };
@@ -1348,6 +1352,15 @@
 		CE12D8F41C5CF86600CD0B13 /* quetoo-dedicated */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-dedicated"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE15E8BF1ED0CAE900A9FB7A /* s_al_ext.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = s_al_ext.c; sourceTree = "<group>"; };
 		CE15E8C01ED0CAE900A9FB7A /* s_al_ext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = s_al_ext.h; sourceTree = "<group>"; };
+		CE15E8C31ED3066500A9FB7A /* particle_corona_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = particle_corona_vs.glsl; sourceTree = "<group>"; };
+		CE15E8C41ED3066500A9FB7A /* particle_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = particle_fs.glsl; sourceTree = "<group>"; };
+		CE15E8C51ED3066500A9FB7A /* particle_gs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = particle_gs.glsl; sourceTree = "<group>"; };
+		CE15E8C61ED3066500A9FB7A /* particle_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = particle_vs.glsl; sourceTree = "<group>"; };
+		CE15E8C71ED3066500A9FB7A /* tint_inc.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = tint_inc.glsl; sourceTree = "<group>"; };
+		CE15E8C81ED306DB00A9FB7A /* r_program_particle_corona.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_program_particle_corona.c; sourceTree = "<group>"; };
+		CE15E8C91ED306DB00A9FB7A /* r_program_particle_corona.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_program_particle_corona.h; sourceTree = "<group>"; };
+		CE15E8CA1ED306DB00A9FB7A /* r_program_particle.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_program_particle.c; sourceTree = "<group>"; };
+		CE15E8CB1ED306DB00A9FB7A /* r_program_particle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_program_particle.h; sourceTree = "<group>"; };
 		CE27BE561D9167C700F87B2C /* libObjectively.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectively.dylib; path = "../../Library/Developer/Xcode/DerivedData/Quetoo-eijmznjiunzbaafulkyjapfulhqz/Build/Products/Debug/libObjectively.dylib"; sourceTree = "<group>"; };
 		CE32084F1EBDFFB600A92FF3 /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
 		CE3208511EBF518D00A92FF3 /* libsndfile.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsndfile.1.dylib; path = ../../../../opt/local/lib/libsndfile.1.dylib; sourceTree = "<group>"; };
@@ -2329,6 +2342,10 @@
 				CE12D5E61C5C58C300CD0B13 /* r_program_default.h */,
 				CE3BCDB91DB6DCE0002E6C6D /* r_program_null.c */,
 				CE3BCDBA1DB6DCE0002E6C6D /* r_program_null.h */,
+				CE15E8C81ED306DB00A9FB7A /* r_program_particle_corona.c */,
+				CE15E8C91ED306DB00A9FB7A /* r_program_particle_corona.h */,
+				CE15E8CA1ED306DB00A9FB7A /* r_program_particle.c */,
+				CE15E8CB1ED306DB00A9FB7A /* r_program_particle.h */,
 				CE12D5E71C5C58C300CD0B13 /* r_program_shadow.c */,
 				CE12D5E81C5C58C300CD0B13 /* r_program_shadow.h */,
 				CE12D5E91C5C58C300CD0B13 /* r_program_shell.c */,
@@ -2364,12 +2381,17 @@
 				CE68F9A01E5E8E5000AC9AAE /* noise3d_inc.glsl */,
 				CE3BCDC31DB6DD05002E6C6D /* null_fs.glsl */,
 				CE3BCDC41DB6DD05002E6C6D /* null_vs.glsl */,
+				CE15E8C31ED3066500A9FB7A /* particle_corona_vs.glsl */,
+				CE15E8C41ED3066500A9FB7A /* particle_fs.glsl */,
+				CE15E8C51ED3066500A9FB7A /* particle_gs.glsl */,
+				CE15E8C61ED3066500A9FB7A /* particle_vs.glsl */,
 				CE12D5F81C5C58C300CD0B13 /* shadow_fs.glsl */,
 				CE12D5F91C5C58C300CD0B13 /* shadow_vs.glsl */,
 				CE12D5FA1C5C58C300CD0B13 /* shell_fs.glsl */,
 				CE12D5FB1C5C58C300CD0B13 /* shell_vs.glsl */,
 				CE68F9A11E5E8E5000AC9AAE /* stain_fs.glsl */,
 				CE68F9A21E5E8E5000AC9AAE /* stain_vs.glsl */,
+				CE15E8C71ED3066500A9FB7A /* tint_inc.glsl */,
 				CE12D5FC1C5C58C300CD0B13 /* warp_fs.glsl */,
 				CE12D5FD1C5C58C300CD0B13 /* warp_vs.glsl */,
 				CE12D5F61C5C58C300CD0B13 /* Makefile.am */,
@@ -3202,6 +3224,8 @@
 				CEA936671DBCD89000A12B79 /* r_program_corona.h in Headers */,
 				CED4389A1D9D34450052BAFA /* r_program_default.h in Headers */,
 				CE3BCDCA1DB6DD87002E6C6D /* r_program_null.h in Headers */,
+				CE15E8CD1ED306DB00A9FB7A /* r_program_particle_corona.h in Headers */,
+				CE15E8CF1ED306DB00A9FB7A /* r_program_particle.h in Headers */,
 				CED4389B1D9D34450052BAFA /* r_program_shadow.h in Headers */,
 				CED4389C1D9D34450052BAFA /* r_program_shell.h in Headers */,
 				CE68F9A61E5E8E8400AC9AAE /* r_program_stain.h in Headers */,
@@ -4269,12 +4293,14 @@
 				CED438511D9D34450052BAFA /* r_program.c in Sources */,
 				CEA936661DBCD88D00A12B79 /* r_program_corona.c in Sources */,
 				CED438521D9D34450052BAFA /* r_program_default.c in Sources */,
-				CE8C734C1E0DE28000226317 /* r_stainmap.c in Sources */,
 				CE3BCDC91DB6DD81002E6C6D /* r_program_null.c in Sources */,
+				CE15E8CC1ED306DB00A9FB7A /* r_program_particle_corona.c in Sources */,
+				CE15E8CE1ED306DB00A9FB7A /* r_program_particle.c in Sources */,
 				CED438531D9D34450052BAFA /* r_program_shadow.c in Sources */,
 				CED438541D9D34450052BAFA /* r_program_shell.c in Sources */,
 				CE68F9A51E5E8E8400AC9AAE /* r_program_stain.c in Sources */,
 				CED438551D9D34450052BAFA /* r_program_warp.c in Sources */,
+				CE8C734C1E0DE28000226317 /* r_stainmap.c in Sources */,
 				CED438561D9D34450052BAFA /* r_sky.c in Sources */,
 				CED438571D9D34450052BAFA /* r_state.c in Sources */,
 			);

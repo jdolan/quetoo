@@ -10,6 +10,10 @@ shaders_DATA = \
 	noise3d_inc.glsl \
 	null_fs.glsl \
 	null_vs.glsl \
+	particle_corona_vs.glsl \
+	particle_fs.glsl \
+	particle_gs.glsl \
+	particle_vs.glsl \
 	shadow_fs.glsl \
 	shadow_vs.glsl \
 	shell_fs.glsl \

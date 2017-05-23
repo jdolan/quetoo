@@ -10,18 +10,13 @@ struct FogParameters
 uniform FogParameters FOG;
 #endif
 
-#ifdef VERTEX_SHADER
-out float fog;
-#else
-in float fog;
-#endif
+#define FOG_VARIABLE float fog
 
 #ifdef VERTEX_SHADER
 /**
  * @brief Calculate the fog mix factor.
  */
-void FogVertex(void) {
-	fog = (gl_Position.z - FOG.START) / (FOG.END - FOG.START);
-	fog = clamp(fog * FOG.DENSITY, 0.0, 1.0);
+float FogVertex(void) {
+	return clamp((gl_Position.z - FOG.START) / (FOG.END - FOG.START) * FOG.DENSITY, 0.0, 1.0);
 }
 #endif
