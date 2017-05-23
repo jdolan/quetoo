@@ -12,6 +12,7 @@
 #include "tint_inc.glsl"
 
 #define MAX_LIGHTS $r_max_lights
+#define LIGHT_SCALE $r_lightscale
 
 #if MAX_LIGHTS
 struct LightParameters
@@ -146,7 +147,7 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 #endif
 
 	// now modulate the diffuse sample with the modified lightmap
-	fragColor.rgb = diffuse.rgb * (lightmap + light);
+	fragColor.rgb = diffuse.rgb * (lightmap + light) * LIGHT_SCALE;
 
 	// lastly modulate the alpha channel by the color
 	fragColor.a = diffuse.a * color.a;
