@@ -153,7 +153,7 @@ void CausticFragment(in vec3 lightmap) {
 		float time_scale = 0.6;
 		float caustic_thickness = 0.02;
 		float caustic_glow = 8.0;
-		float caustic_intensity = 0.7;
+		float caustic_intensity = 0.3;
 
 		// grab raw 3d noise
 		float factor = noise3d((modelpoint * model_scale) + (TIME * time_scale));

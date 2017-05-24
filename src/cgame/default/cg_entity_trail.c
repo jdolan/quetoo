@@ -412,23 +412,25 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 	vec_t d = 0.0;
 	while (d < dist) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_flame))) {
+		// make larger outer orange flame
+		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_flame))) {
 			break;
 		}
 
-		p->lifetime = 250 + Randomf() * 200;
+		p->lifetime = 75 + Randomf() * 75;
 		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
 		// TODO: color modulation
-		//cgi.ColorFromPalette(EFFECT_COLOR_ORANGE + (Random() & 5), p->color_start);
+		//cgi.ColorFromPalette(EFFECT_COLOR_BLUE + (Random() & 5), p->color_start);
 		ColorToVec4(EFFECT_COLOR_ORANGE, p->color_start);
 		VectorCopy(p->color_start, p->color_end);
 		p->color_end[3] = 0.0;
 
-		p->scale_start = 4.0;
-		p->scale_end = 1.0;
+		p->scale_start = 3.0;
+		p->scale_end = 0.3;
+		p->part.roll = Randomc() * 100.0;
 
-		const vec_t vel_scale = 50 - Randomf() * 200;
+		vec_t vel_scale = -150 + Randomf() * 50;
 
 		VectorMA(start, d, delta, p->part.org);
 		VectorScale(delta, vel_scale, p->vel);
@@ -437,7 +439,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 	}
 
 	if ((p = Cg_AllocParticle(PARTICLE_CORONA, NULL))) {
-		VectorSet(p->part.color, 0.8, 0.4, 0.2);
+		VectorSet(p->part.color, 0.1, 0.15, 0.8);
 		VectorCopy(end, p->part.org);
 
 		p->lifetime = PARTICLE_IMMEDIATE;
