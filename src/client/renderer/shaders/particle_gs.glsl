@@ -14,9 +14,9 @@ uniform vec3 SPLASH_UP[2];
 uniform float TICKS;
 
 in VertexData {
-	vec4 color;
 	vec2 texcoord0;
 	vec2 texcoord1;
+	vec4 color;
 	float scale;
 	float roll;
 	vec3 end;

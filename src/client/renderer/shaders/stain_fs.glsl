@@ -11,8 +11,8 @@
 uniform sampler2D SAMPLER0;
 
 in VertexData {
-	vec4 color;
 	vec2 texcoord;
+	vec4 color;
 };
 
 out vec4 fragColor;

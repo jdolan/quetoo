@@ -10,8 +10,8 @@
 #include "include/fog.glsl"
 
 in VertexData {
-	vec4 color;
 	vec2 texcoord;
+	vec4 color;
 	float fog;
 };
 

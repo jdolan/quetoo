@@ -67,8 +67,8 @@ uniform float TIME;
 
 in VertexData {
 	vec3 modelpoint;
-	vec4 color;
 	vec2 texcoords[2];
+	vec4 color;
 	vec3 point;
 	vec3 normal;
 	vec3 tangent;

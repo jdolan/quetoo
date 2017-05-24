@@ -13,8 +13,8 @@ in vec2 TEXCOORD;
 in vec4 COLOR;
 
 out VertexData {
-	vec4 color;
 	vec2 texcoord;
+	vec4 color;
 };
 
 /**
