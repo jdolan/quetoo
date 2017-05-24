@@ -723,7 +723,8 @@ void R_InitDraw(void) {
 		.struct_size = sizeof(r_image_interleave_vertex_t),
 		.layout = r_image_buffer_layout,
 		.hint = GL_STATIC_DRAW,
-		.size = sizeof(supersample_vertices)
+		.size = sizeof(supersample_vertices),
+		.data = supersample_vertices
 	});
 }
 
