@@ -5,7 +5,7 @@ IF [%2] == [""] GOTO INVALID
 
 set quetoo_folder=%~1
 set build_platform=%~2
-set build_configuration=%3~
+set build_configuration=%~3
 
 ROBO "../mingw-cross/Quetoo-i686/etc/fonts/" "%quetoo_folder%/etc/fonts/" *
 ROBO "../src/client/renderer/shaders/" "%quetoo_folder%/lib/default/shaders/" *
