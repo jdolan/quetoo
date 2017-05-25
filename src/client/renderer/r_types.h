@@ -348,7 +348,8 @@ typedef enum {
 	PARTICLE_WEATHER,
 	PARTICLE_SPLASH,
 	PARTICLE_CORONA,
-	PARTICLE_FLARE
+	PARTICLE_FLARE,
+	PARTICLE_WIRE
 } r_particle_type_t;
 
 typedef enum {
