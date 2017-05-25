@@ -58,7 +58,12 @@ static void R_TextureMode(void) {
 	r_image_state.filter_mag = r_texture_modes[i].maximize;
 
 	if (r_anisotropy->value) {
-		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &r_image_state.anisotropy);
+		if (GLAD_GL_EXT_texture_filter_anisotropic) {
+			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &r_image_state.anisotropy);
+		} else {
+			Com_Warn("Anisotropy is enabled but not supported by your GPU.\n");
+			Cvar_ForceSet("r_anisotropy", "0");
+		}
 	} else {
 		r_image_state.anisotropy = 1.0;
 	}
@@ -409,10 +414,10 @@ static void R_InitWarpImage(void) {
 
 	for (i = 0; i < WARP_SIZE; i++) {
 		for (j = 0; j < WARP_SIZE; j++) {
-			data[i][j][0] = Random() % 255;
-			data[i][j][1] = Random() % 255;
-			data[i][j][2] = Random() % 48;
-			data[i][j][3] = Random() % 48;
+			data[i][j][0] = Randomr(0, 256);
+			data[i][j][1] = Randomr(0, 256);
+			data[i][j][2] = Randomr(0, 48);
+			data[i][j][3] = Randomr(0, 48);
 		}
 	}
 

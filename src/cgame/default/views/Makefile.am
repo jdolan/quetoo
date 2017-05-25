@@ -18,7 +18,6 @@ noinst_HEADERS = \
 	PrimaryIcon.h \
 	QuickJoinView.h \
 	ServerBrowserView.h \
-	ServersTableView.h \
 	SkinSelect.h \
 	VideoModeSelect.h \
 	VideoView.h
@@ -46,7 +45,6 @@ libviews_la_SOURCES = \
 	PrimaryIcon.c \
 	QuickJoinView.c \
 	ServerBrowserView.c \
-	ServersTableView.c \
 	SkinSelect.c \
 	VideoModeSelect.c \
 	VideoView.c

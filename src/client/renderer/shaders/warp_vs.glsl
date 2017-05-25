@@ -6,13 +6,16 @@
 
 #define VERTEX_SHADER
 
-#include "fog_inc.glsl"
-#include "matrix_inc.glsl"
-
-out vec2 texcoord;
+#include "include/fog.glsl"
+#include "include/matrix.glsl"
 
 in vec3 POSITION;
 in vec2 TEXCOORD;
+
+out VertexData {
+	vec2 texcoord;
+	float fog;
+};
 
 /**
  * @brief Program entry point.
@@ -25,5 +28,5 @@ void main(void) {
 	// pass texcoords through
 	texcoord = TEXCOORD;
 
-	FogVertex();
+	fog = FogVertex();
 }

@@ -6,23 +6,19 @@
 
 #define FRAGMENT_SHADER
 
-#include "matrix_inc.glsl"
-#include "fog_inc.glsl"
-#include "tint_inc.glsl"
+#include "include/matrix.glsl"
+#include "include/fog.glsl"
+#include "include/tint.glsl"
 
 uniform sampler2D SAMPLER0;
 
-in vec4 color;
-in vec2 texcoord;
+in VertexData {
+	vec2 texcoord;
+	vec4 color;
+	float fog;
+};
 
 out vec4 fragColor;
-
-/**
- * @brief Apply fog to the fragment if enabled.
- */
-void FogFragment(void) {
-	fragColor.rgb = mix(fragColor.rgb, FOG.COLOR, fog);
-}
 
 /**
  * @brief Shader entry point.
@@ -33,5 +29,5 @@ void main(void) {
 
 	TintFragment(fragColor, texcoord);
 
-	FogFragment(); // and lastly add fog	
+	FogFragment(fragColor, fog);
 }

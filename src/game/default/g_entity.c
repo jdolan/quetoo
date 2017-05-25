@@ -612,7 +612,7 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
 		red_flag = G_AllocEntity_(g_team_red->flag);
 		blue_flag = G_AllocEntity_(g_team_blue->flag);
 
-		uint8_t r = Random() & 1;
+		const uint8_t r = Randomr(0, 2);
 
 		VectorCopy(reused_spawns[r]->s.origin, red_flag->s.origin);
 		VectorCopy(reused_spawns[r ^ 1]->s.origin, blue_flag->s.origin);

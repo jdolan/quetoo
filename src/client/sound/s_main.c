@@ -22,26 +22,12 @@
 #include "s_local.h"
 #include "client.h"
 
-cvar_t *s_doppler;
-cvar_t *s_effects;
-
-LPALGENFILTERS alGenFilters;
-LPALDELETEFILTERS alDeleteFilters;
-LPALFILTERI alFilteri;
-LPALFILTERF alFilterf;
-LPALGENEFFECTS alGenEffects;
-LPALDELETEEFFECTS alDeleteEffects;
-LPALEFFECTI alEffecti;
-LPALEFFECTF alEffectf;
-LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots;
-LPALDELETEAUXILIARYEFFECTSLOTS alDeleteAuxiliaryEffectSlots;
-LPALAUXILIARYEFFECTSLOTI alAuxiliaryEffectSloti;
-LPALAUXILIARYEFFECTSLOTF alAuxiliaryEffectSlotf;
-
 // the sound environment
 s_env_t s_env;
 
 cvar_t *s_ambient;
+cvar_t *s_doppler;
+cvar_t *s_effects;
 cvar_t *s_rate;
 cvar_t *s_volume;
 
@@ -110,6 +96,70 @@ SF_VIRTUAL_IO s_rwops_io = {
 	.read = S_RWops_read,
 	.write = S_RWops_write,
 	.tell = S_RWops_tell
+};
+
+/**
+ * @brief
+ */
+static sf_count_t S_PhysFS_get_filelen(void *user_data) {
+	file_t *file = (file_t *) user_data;
+	return Fs_FileLength(file);
+}
+
+/**
+ * @brief
+ */
+static sf_count_t S_PhysFS_seek(sf_count_t offset, int whence, void *user_data) {
+	file_t *file = (file_t *) user_data;
+
+	switch (whence) {
+	case SEEK_SET:
+		Fs_Seek(file, offset);
+		break;
+	case SEEK_CUR:
+		Fs_Seek(file, Fs_Tell(file) + offset);
+		break;
+	case SEEK_END:
+		Fs_Seek(file, Fs_FileLength(file) - offset);
+		break;
+	}
+
+	return Fs_Tell(file);
+}
+
+/**
+ * @brief
+ */
+static sf_count_t S_PhysFS_read(void *ptr, sf_count_t count, void *user_data) {
+	file_t *file = (file_t *) user_data;
+	return Fs_Read(file, ptr, 1, count);
+}
+
+/**
+ * @brief
+ */
+static sf_count_t S_PhysFS_write(const void *ptr, sf_count_t count, void *user_data) {
+	file_t *file = (file_t *) user_data;
+	return Fs_Write(file, ptr, 1, count);
+}
+
+/**
+ * @brief
+ */
+static sf_count_t S_PhysFS_tell(void *user_data) {
+	file_t *file = (file_t *) user_data;
+	return Fs_Tell(file);
+}
+
+/**
+ * @brief An interface to PhysFS for libsndfile
+ */
+SF_VIRTUAL_IO s_physfs_io = {
+	.get_filelen = S_PhysFS_get_filelen,
+	.seek = S_PhysFS_seek,
+	.read = S_PhysFS_read,
+	.write = S_PhysFS_write,
+	.tell = S_PhysFS_tell
 };
 
 /**
@@ -254,6 +304,8 @@ void S_Restart_f(void) {
 static void S_InitLocal(void) {
 
 	s_ambient = Cvar_Add("s_ambient", "1", CVAR_ARCHIVE, "Controls playback of ambient sounds.");
+	s_doppler = Cvar_Add("s_doppler", "0", CVAR_ARCHIVE, "The scale for the doppler effect. 0 is disabled, 1 is default, anything inbetween is scale.");
+	s_effects = Cvar_Add("s_effects", "0", CVAR_ARCHIVE | CVAR_S_MEDIA, "Whether sound filtering is enabled for systems that support it.");
 	s_rate = Cvar_Add("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE, "Sound sample rate in Hz.");
 	s_volume = Cvar_Add("s_volume", "1.0", CVAR_ARCHIVE, "Global sound volume level.");
 
@@ -276,9 +328,6 @@ void S_Init(void) {
 		return;
 	}
 
-	s_doppler = Cvar_Add("s_doppler", "0", CVAR_ARCHIVE, "The scale for the doppler effect. 0 is disabled, 1 is default, anything inbetween is scale.");
-	s_effects = Cvar_Add("s_effects", "0", CVAR_ARCHIVE | CVAR_S_MEDIA, "Whether sound filtering is enabled for systems that support it.");
-
 	Com_Print("Sound initialization...\n");
 
 	S_InitLocal();
@@ -297,24 +346,44 @@ void S_Init(void) {
 		return;
 	}
 
-	if (s_effects->integer) {
-		alGenFilters = (LPALGENFILTERS)alGetProcAddress("alGenFilters");
-		alDeleteFilters = (LPALDELETEFILTERS)alGetProcAddress("alDeleteFilters");
-		alFilteri = (LPALFILTERI)alGetProcAddress("alFilteri");
-		alFilterf = (LPALFILTERF)alGetProcAddress("alFilterf");
-		alGenEffects = (LPALGENEFFECTS)alGetProcAddress("alGenEffects");
-		alDeleteEffects = (LPALDELETEEFFECTS)alGetProcAddress("alDeleteEffects");
-		alEffecti = (LPALEFFECTI)alGetProcAddress("alEffecti");
-		alEffectf = (LPALEFFECTF)alGetProcAddress("alEffectf");
-		alGenAuxiliaryEffectSlots = (LPALGENAUXILIARYEFFECTSLOTS)alGetProcAddress("alGenAuxiliaryEffectSlots");
-		alDeleteAuxiliaryEffectSlots = (LPALDELETEAUXILIARYEFFECTSLOTS)alGetProcAddress("alDeleteAuxiliaryEffectSlots");
-		alAuxiliaryEffectSloti = (LPALAUXILIARYEFFECTSLOTI)alGetProcAddress("alAuxiliaryEffectSloti");
-		alAuxiliaryEffectSlotf = (LPALAUXILIARYEFFECTSLOTF)alGetProcAddress("alAuxiliaryEffectSlotf");
-		S_CheckALError();
+	aladLoadAL();
 
-		if (!alGenFilters || !alGenEffects || !alGenAuxiliaryEffectSlots) {
+	s_env.renderer = (const char *) alGetString(AL_RENDERER);
+	s_env.vendor = (const char *) alGetString(AL_VENDOR);
+	s_env.version = (const char *) alGetString(AL_VERSION);
+
+	Com_Print("  Renderer:   ^2%s^7\n", s_env.renderer);
+	Com_Print("  Vendor:     ^2%s^7\n", s_env.vendor);
+	Com_Print("  Version:    ^2%s^7\n", s_env.version);
+
+	gchar **strings = g_strsplit(alGetString(AL_EXTENSIONS), " ", 0);
+
+	for (guint i = 0; i < g_strv_length(strings); i++) {
+		const char *c = (const char *) strings[i];
+
+		if (i == 0) {
+			Com_Verbose("  Extensions: ^2%s^7\n", c);
+		} else {
+			Com_Verbose("              ^2%s^7\n", c);
+		}
+	}
+
+	g_strfreev(strings);
+
+	strings = g_strsplit(alcGetString(s_env.device, ALC_EXTENSIONS), " ", 0);
+
+	for (guint i = 0; i < g_strv_length(strings); i++) {
+		const char *c = (const char *) strings[i];
+		Com_Verbose("              ^2%s^7\n", c);
+	}
+
+	g_strfreev(strings);
+
+	if (s_effects->integer) {
+		if (!ALAD_ALC_EXT_EFX) {
 			Com_Warn("s_effects is enabled but OpenAL driver does not support them.");
 			Cvar_ForceSet("s_effects", "0");
+			s_effects->modified = false;
 			s_env.effects.loaded = false;
 		} else {
 			alGenFilters(1, &s_env.effects.underwater);
@@ -335,14 +404,11 @@ void S_Init(void) {
 		s_env.effects.loaded = false;
 	}
 
+	alDistanceModel(AL_NONE);
+	S_CheckALError();
+
 	alGenSources(MAX_CHANNELS, s_env.sources);
-
-	ALenum error = alGetError();
-
-	if (error) {
-		Com_Warn("Couldn't allocate channels: %s\n", alGetString(error));
-		return;
-	}
+	S_CheckALError();
 
 	Com_Print("Sound initialized (OpenAL, resample @ %dhz)\n", s_rate->integer);
 

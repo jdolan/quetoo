@@ -6,12 +6,14 @@
 
 #define FRAGMENT_SHADER
 
-#include "matrix_inc.glsl"
+#include "include/matrix.glsl"
 
 uniform sampler2D SAMPLER0;
 
-in vec4 color;
-in vec2 texcoord;
+in VertexData {
+	vec2 texcoord;
+	vec4 color;
+};
 
 out vec4 fragColor;
 

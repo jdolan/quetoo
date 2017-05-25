@@ -29,9 +29,9 @@ typedef struct {
 } r_stainmap_interleave_vertex_t;
 
 static r_buffer_layout_t r_stainmap_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 2, .size = sizeof(vec2_t) },
-	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_FLOAT, .count = 2, .size = sizeof(vec2_t), .offset = 8 },
-	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 16, .normalized = true },
+	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 2 },
+	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_FLOAT, .count = 2 },
+	{ .attribute = R_ATTRIB_COLOR, .type = R_TYPE_UNSIGNED_BYTE, .count = 4, .normalized = true },
 	{ .attribute = -1 }
 };
 
@@ -250,7 +250,7 @@ static void R_ExpireStains(const byte alpha) {
 	R_PushMatrix(R_MATRIX_PROJECTION);
 
 	R_UnbindAttributeBuffers();
-	R_BindAttributeInterleaveBuffer(&r_stainmap_state.reset_buffer, R_ARRAY_MASK_ALL);
+	R_BindAttributeInterleaveBuffer(&r_stainmap_state.reset_buffer, R_ATTRIB_MASK_ALL);
 
 	const r_framebuffer_t *old_framebuffer = r_framebuffer_state.current_framebuffer;
 	
@@ -429,8 +429,8 @@ void R_AddStains(void) {
 
 	R_PushMatrix(R_MATRIX_PROJECTION);
 
-	R_BindAttributeInterleaveBuffer(&r_stainmap_state.vertex_buffer, R_ARRAY_MASK_ALL);
-	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_stainmap_state.index_buffer);
+	R_BindAttributeInterleaveBuffer(&r_stainmap_state.vertex_buffer, R_ATTRIB_MASK_ALL);
+	R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &r_stainmap_state.index_buffer);
 
 	GLint vert_offset = 0, elem_offset = 0;
 
@@ -561,10 +561,25 @@ void R_InitStainmaps(void) {
 	r_stainmap_state.vertex_scratch = g_array_sized_new(false, false, sizeof(r_stainmap_interleave_vertex_t), MAX_STAINS * 4);
 	r_stainmap_state.index_scratch = g_array_sized_new(false, false, sizeof(uint16_t), MAX_STAINS * 6);
 
-	R_CreateInterleaveBuffer(&r_stainmap_state.reset_buffer, sizeof(r_stainmap_interleave_vertex_t), r_stainmap_buffer_layout, GL_STATIC_DRAW, sizeof(r_stainmap_interleave_vertex_t) * 4, NULL);
+	R_CreateInterleaveBuffer(&r_stainmap_state.reset_buffer, &(const r_create_interleave_t) {
+		.struct_size = sizeof(r_stainmap_interleave_vertex_t),
+		.layout = r_stainmap_buffer_layout,
+		.hint = GL_STATIC_DRAW,
+		.size = sizeof(r_stainmap_interleave_vertex_t) * 4
+	});
 
-	R_CreateInterleaveBuffer(&r_stainmap_state.vertex_buffer, sizeof(r_stainmap_interleave_vertex_t), r_stainmap_buffer_layout, GL_DYNAMIC_DRAW, sizeof(r_stainmap_interleave_vertex_t) * MAX_STAINS * 4, NULL);
-	R_CreateElementBuffer(&r_stainmap_state.index_buffer, R_ATTRIB_UNSIGNED_SHORT, GL_DYNAMIC_DRAW, sizeof(uint16_t) * MAX_STAINS * 6, NULL);
+	R_CreateInterleaveBuffer(&r_stainmap_state.vertex_buffer, &(const r_create_interleave_t) {
+		.struct_size = sizeof(r_stainmap_interleave_vertex_t),
+		.layout = r_stainmap_buffer_layout,
+		.hint = GL_DYNAMIC_DRAW,
+		.size = sizeof(r_stainmap_interleave_vertex_t) * MAX_STAINS * 4
+	});
+
+	R_CreateElementBuffer(&r_stainmap_state.index_buffer, &(const r_create_element_t) {
+		.type = R_TYPE_UNSIGNED_SHORT,
+		.hint = GL_DYNAMIC_DRAW,
+		.size = sizeof(uint16_t) * MAX_STAINS * 6
+	});
 
 	r_stainmap_expire_time = Cvar_Add("r_stainmap_expire_time", "0", CVAR_ARCHIVE, "The amount of time, in milliseconds, stains should take to fully disappear.");
 }

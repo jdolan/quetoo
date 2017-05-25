@@ -137,7 +137,6 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 			TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _name);
 			assert(column);
 
-			column->comparator = (Comparator) g_ascii_strcasecmp;
 			column->width = 30;
 
 			$(this->tableView, addColumn, column);
@@ -148,7 +147,6 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 			TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _role);
 			assert(column);
 
-			column->comparator = (Comparator) g_ascii_strcasecmp;
 			column->width = 40;
 
 			$(this->tableView, addColumn, column);
@@ -159,7 +157,6 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 			TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _link);
 			assert(column);
 
-			column->comparator = (Comparator) g_ascii_strcasecmp;
 			column->width = 30;
 
 			$(this->tableView, addColumn, column);

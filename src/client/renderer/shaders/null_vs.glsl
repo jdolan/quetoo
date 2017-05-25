@@ -6,19 +6,22 @@
 
 #define VERTEX_SHADER
 
-#include "matrix_inc.glsl"
-#include "fog_inc.glsl"
+#include "include/matrix.glsl"
+#include "include/fog.glsl"
 
 uniform vec4 GLOBAL_COLOR;
 uniform float TIME_FRACTION;
-
-out vec4 color;
-out vec2 texcoord;
 
 in vec3 POSITION;
 in vec2 TEXCOORD;
 in vec4 COLOR;
 in vec3 NEXT_POSITION;
+
+out VertexData {
+	vec2 texcoord;
+	vec4 color;
+	float fog;
+};
 
 /**
  * @brief Shader entry point.
@@ -33,5 +36,5 @@ void main(void) {
 	// pass the color through as well
 	color = COLOR * GLOBAL_COLOR;
 
-	FogVertex();
+	fog = FogVertex();
 }

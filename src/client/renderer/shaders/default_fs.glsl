@@ -6,16 +6,16 @@
 
 #define FRAGMENT_SHADER
 
-#include "matrix_inc.glsl"
-#include "fog_inc.glsl"
-#include "noise3d_inc.glsl"
-#include "tint_inc.glsl"
+#include "include/matrix.glsl"
+#include "include/fog.glsl"
+#include "include/noise3d.glsl"
+#include "include/tint.glsl"
 
 #define MAX_LIGHTS $r_max_lights
+#define LIGHT_SCALE $r_lightscale
 
 #if MAX_LIGHTS
-struct LightParameters
-{
+struct LightParameters {
 	vec3 ORIGIN[MAX_LIGHTS];
 	vec3 COLOR[MAX_LIGHTS];
 	float RADIUS[MAX_LIGHTS];
@@ -34,8 +34,7 @@ uniform LightParameters LIGHTS;
 #define LIGHT_CLAMP_MAX 4.0
 #endif
 
-struct CausticParameters
-{
+struct CausticParameters {
 	bool ENABLE;
 	vec3 COLOR;
 };
@@ -66,18 +65,22 @@ uniform float ALPHA_THRESHOLD;
 uniform float TIME_FRACTION;
 uniform float TIME;
 
-in vec3 modelpoint;
-in vec4 color;
-in vec2 texcoords[2];
-in vec3 point;
-in vec3 normal;
-in vec3 tangent;
-in vec3 bitangent;
+in VertexData {
+	vec3 modelpoint;
+	vec2 texcoords[2];
+	vec4 color;
+	vec3 point;
+	vec3 normal;
+	vec3 tangent;
+	vec3 bitangent;
+	vec3 eye;
+	float fog;
+};
 
 const vec3 two = vec3(2.0);
 const vec3 negHalf = vec3(-0.5);
 
-vec3 eye;
+vec3 eyeDir;
 
 out vec4 fragColor;
 
@@ -85,15 +88,7 @@ out vec4 fragColor;
  * @brief Yield the parallax offset for the texture coordinate.
  */
 vec2 BumpTexcoord(in float height) {
-
-	// transform the eye vector into tangent space for bump-mapping
-	eye.x = dot(point, tangent);
-	eye.y = dot(point, bitangent);
-	eye.z = dot(point, normal);
-
-	eye = -normalize(eye);
-
-	return vec2(height * 0.04 - 0.02) * PARALLAX * eye.xy;
+	return vec2(height * 0.04 - 0.02) * PARALLAX * eyeDir.xy;
 }
 
 /**
@@ -103,7 +98,7 @@ vec3 BumpFragment(in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap) {
 
 	float diffuse = max(dot(deluxemap, normalmap), 1.0);
 
-	float specular = HARDNESS * pow(max(-dot(eye, reflect(deluxemap, normalmap)), 0.0), 8.0 * SPECULAR);
+	float specular = HARDNESS * pow(max(-dot(eyeDir, reflect(deluxemap, normalmap)), 0.0), 8.0 * SPECULAR);
 
 	return diffuse + specular * glossmap;
 }
@@ -118,7 +113,7 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 #if MAX_LIGHTS
 	/*
 	 * Iterate the hardware light sources, accumulating dynamic lighting for
-	 * this fragment.  An attenuation of 0.0 means break.
+	 * this fragment. A light radius of 0.0 means break.
 	 */
 	for (int i = 0; i < MAX_LIGHTS; i++) {
 
@@ -143,7 +138,7 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 #endif
 
 	// now modulate the diffuse sample with the modified lightmap
-	fragColor.rgb = diffuse.rgb * (lightmap + light);
+	fragColor.rgb = diffuse.rgb * (lightmap + light) * LIGHT_SCALE;
 
 	// lastly modulate the alpha channel by the color
 	fragColor.a = diffuse.a * color.a;
@@ -154,18 +149,30 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
  */
 void CausticFragment(in vec3 lightmap) {
 	if (CAUSTIC.ENABLE) {
-		float factor = noise3d((modelpoint * vec3(0.024, 0.024, 0.016)) + (TIME * 0.4));
-		factor = pow((1 - abs(factor)) + 0.03, 6);
+		vec3 model_scale = vec3(0.024, 0.024, 0.016);
+		float time_scale = 0.6;
+		float caustic_thickness = 0.02;
+		float caustic_glow = 8.0;
+		float caustic_intensity = 0.3;
 
-		fragColor.rgb += clamp(CAUSTIC.COLOR * factor * clamp((lightmap * 1.6) - 0.5, 0.1, 1.0) * 0.17, 0.0, 1.0);
+		// grab raw 3d noise
+		float factor = noise3d((modelpoint * model_scale) + (TIME * time_scale));
+
+		// scale to make very close to -1.0 to 1.0 based on observational data
+		factor = factor * (0.3515 * 2.0);
+
+		// make the inner edges stronger, clamp to 0-1
+		factor = clamp(pow((1 - abs(factor)) + caustic_thickness, caustic_glow), 0, 1);
+
+		// start off with simple color * 0-1
+		vec3 caustic_out = CAUSTIC.COLOR * factor * caustic_intensity;
+
+		// multiply caustic color by lightmap, clamping so it doesn't go pure black
+		caustic_out *= clamp((lightmap * 1.6) - 0.5, 0.1, 1.0);
+
+		// add it up
+		fragColor.rgb = clamp(fragColor.rgb + caustic_out, 0.0, 1.0);
 	}
-}
-
-/**
- * @brief Apply fog to the fragment if enabled.
- */
-void FogFragment(void) {
-	fragColor.rgb = mix(fragColor.rgb, FOG.COLOR, fog);
 }
 
 /**
@@ -194,14 +201,21 @@ void main(void) {
 
 	if (NORMALMAP) {
 
+		eyeDir = normalize(eye);
+
 		if (DELUXEMAP) {
 			deluxemap = texture(SAMPLER2, texcoords[1]).rgb;
 			deluxemap = normalize(two * (deluxemap + negHalf));
 		}
 
+		// resolve the initial normalmap sample
 		normalmap = texture(SAMPLER3, texcoords[0]);
 
+		// resolve the parallax offset from the heightmap
 		parallax = BumpTexcoord(normalmap.w);
+
+		// resample the normalmap at the parallax offset
+		normalmap = texture(SAMPLER3, texcoords[0] + parallax);
 
 		normalmap.xyz = normalize(two * (normalmap.xyz + negHalf));
 		normalmap.xyz = normalize(vec3(normalmap.x * BUMP, normalmap.y * BUMP, normalmap.z));
@@ -244,5 +258,6 @@ void main(void) {
     // underliquid caustics
 	CausticFragment(lightmap);
 
-	FogFragment(); // and lastly add fog
+	// and fog
+	FogFragment(fragColor, fog);
 }

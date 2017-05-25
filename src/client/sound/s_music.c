@@ -65,52 +65,42 @@ static void S_FreeMusic(s_media_t *self) {
 		sf_close(music->snd);
 	}
 
-	if (music->rw) {
-		SDL_RWclose(music->rw);
-	}
-
-	if (music->buffer) {
-		Fs_Free(music->buffer);
+	if (music->file) {
+		Fs_Close(music->file);
 	}
 }
 
 /**
  * @brief Handles the actual loading of .ogg music files.
  */
-static _Bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **file, SDL_RWops **rw, void **buffer) {
+static _Bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **snd, file_t **file) {
 	char path[MAX_QPATH];
 
-	*file = NULL;
+	*snd = NULL;
 
 	StripExtension(name, path);
 	g_snprintf(path, sizeof(path), "music/%s.ogg", name);
 
-	int64_t len;
-	if ((len = Fs_Load(path, buffer)) != -1) {
-
-		*rw = SDL_RWFromConstMem(*buffer, (int32_t) len);
+	if ((*file = Fs_OpenRead(path)) != NULL) {
 	
 		memset(info, 0, sizeof(*info));
 
-		*file = sf_open_virtual(&s_rwops_io, SFM_READ, info, *rw);
+		*snd = sf_open_virtual(&s_physfs_io, SFM_READ, info, *file);
 
-		if (!*file || sf_error(*file)) {
-			Com_Warn("%s\n", sf_strerror(*file));
+		if (!*snd || sf_error(*snd)) {
+			Com_Warn("%s\n", sf_strerror(*snd));
 
-			sf_close(*file);
+			sf_close(*snd);
 
-			SDL_FreeRW(*rw);
+			Fs_Close(*file);
 
-			Fs_Free(*buffer);
-
-			*file = NULL;
+			*snd = NULL;
 		}
-
 	} else {
 		Com_Debug(DEBUG_SOUND, "Failed to load %s\n", name);
 	}
 
-	return !!*file;
+	return !!*snd;
 }
 
 /**
@@ -133,13 +123,11 @@ s_music_t *S_LoadMusic(const char *name) {
 	StripExtension(name, key);
 
 	if (!(music = (s_music_t *) S_FindMedia(key))) {
-
 		SF_INFO info;
 		SNDFILE *snd;
-		SDL_RWops *rw;
-		void *buffer;
+		file_t *file;
 
-		if (S_LoadMusicFile(key, &info, &snd, &rw, &buffer)) {
+		if (S_LoadMusicFile(key, &info, &snd, &file)) {
 
 			music = (s_music_t *) S_AllocMedia(key, sizeof(s_music_t));
 
@@ -150,8 +138,7 @@ s_music_t *S_LoadMusic(const char *name) {
 			
 			music->info = info;
 			music->snd = snd;
-			music->rw = rw;
-			music->buffer = buffer;
+			music->file = file;
 
 			S_RegisterMedia((s_media_t *) music);
 		} else {
