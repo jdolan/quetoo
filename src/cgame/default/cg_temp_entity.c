@@ -211,30 +211,33 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 			break;
 		}
 
-		p->lifetime = 800 + Randomf() * 200;
+		p->lifetime = 100 + Randomf() * 500;
 		p->effects = PARTICLE_EFFECT_COLOR;
 
-		cgi.ColorFromPalette(232 + (Randomr(0, 8)), p->color_start);
+		Vector4Set(p->color_start, Randomfr(0.85, 0.95), Randomfr(0.15, 0.25), 0.1, 0.5);
 		VectorCopy(p->color_start, p->color_end);
 		p->color_end[3] = 0.0;
 
-		p->part.scale = 6.0;
+		p->part.scale = Randomfr(5.0, 8.0);
 		p->part.roll = Randomc() * 100.0;
 
 		const vec_t d = Randomr(0, 32);
 		for (int32_t j = 0; j < 3; j++) {
-			p->part.org[j] = org[j] + Randomfr(-4.0, 4.0) + d * dir[j];
-			p->vel[j] = Randomc() * 20.0;
+			p->part.org[j] = org[j] + Randomfr(-10.0, 10.0) + d * dir[j];
+			p->vel[j] = Randomc() * 30.0;
 		}
-		p->part.org[2] += 16.0 * PM_SCALE;
+
+//		p->part.org[2] += 16.0 * PM_SCALE;
 
 		p->accel[0] = p->accel[1] = 0.0;
-		p->accel[2] = -PARTICLE_GRAVITY / 4.0;
+		p->accel[2] = -PARTICLE_GRAVITY / 2.0;
+
+		p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
 	}
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
-		.radius = count * 4.0,
+		.radius = count * 6.0,
 		.image = cg_particles_blood_burn->image,
 		.color = { 0.6 + 0.1 * Randomc(), 0.0, 0.0, 0.1 + Randomf() * 0.1 },
 	});

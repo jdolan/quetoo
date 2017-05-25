@@ -591,7 +591,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 		vec3_t real_end;
 		VectorMA(start, -(dist_total + 32.0), dir, real_end);
 		cm_trace_t tr = cgi.Trace(start, real_end, NULL, NULL, 0, CONTENTS_SOLID);
-	
+
 		if (tr.surface) {
 
 			VectorMA(tr.end, 1.0, tr.plane.normal, tr.end);
@@ -852,17 +852,19 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 			});
 		}
 
-		cgi.ColorFromPalette(232 + (Randomr(0, 8)), p->color_start);
+		Vector4Set(p->color_start, Randomfr(0.85, 0.95), Randomfr(0.15, 0.25), 0.1, 0.5);
 		VectorCopy(p->color_start, p->color_end);
 		p->color_end[3] = 0.0;
 
-		p->part.scale = 3.0;
+		p->part.scale = Randomfr(3.0, 7.0);
 		p->part.roll = Randomc() * 100.0;
 
 		VectorScale(move, 20.0, p->vel);
 
 		p->accel[0] = p->accel[1] = 0.0;
 		p->accel[2] = -PARTICLE_GRAVITY / 2.0;
+
+		p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
 
 		dist -= 1.5;
 	}
