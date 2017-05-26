@@ -567,7 +567,7 @@ static void Cg_LightningDischargeEffect(const vec3_t org) {
  * @brief
  */
 static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir, int32_t flags, const color_t color) {
-	vec3_t vec, right, up, point;
+	vec3_t vec, point, up, right;
 	cg_particle_t *p;
 	r_sustained_light_t s;
 
@@ -580,23 +580,52 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 	// draw the core with a beam
 
-	if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_beam))) {
+	if (!(p = Cg_AllocParticle(PARTICLE_WIRE, cg_particles_rail_core))) {
+		return;
+	}
+
+	p->lifetime = 1200;
+	p->effects = PARTICLE_EFFECT_COLOR;
+
+	ColorToVec4(color, p->color_start);
+	VectorCopy(p->color_start, p->color_end);
+	p->color_end[3] = 0.0;
+
+	p->part.scale = 1.7;
+
+	p->part.scroll_t = -0.2;
+
+	p->part.flags |= PARTICLE_FLAG_REPEAT;
+	p->part.repeat_scale = 0.08;
+
+	VectorCopy(start, p->part.org);
+	VectorCopy(end, p->part.end);
+
+	// draw the rail wake
+
+	if (!(p = Cg_AllocParticle(PARTICLE_WIRE, cg_particles_rail_wake))) {
 		return;
 	}
 
 	p->lifetime = 700;
 	p->effects = PARTICLE_EFFECT_COLOR;
 
-	ColorToVec4(color, p->color_start);
-	VectorCopy(p->color_start, p->color_end)
+	Vector4Set(p->color_start, 1.0, 1.0, 1.0, 0.3);
+	VectorCopy(p->color_start, p->color_end);
 	p->color_end[3] = 0.0;
 
 	p->part.scale = 4.0;
 
+	p->part.scroll_s = -0.7;
+
+	p->part.flags |= PARTICLE_FLAG_REPEAT;
+	p->part.repeat_scale = 0.08;
+
 	VectorCopy(start, p->part.org);
 	VectorCopy(end, p->part.end);
 
-	// and the spiral with normal parts
+	// lights and bubbles
+
 	VectorCopy(start, point);
 
 	VectorSubtract(end, start, vec);
@@ -605,35 +634,9 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 	VectorSet(right, vec[2], -vec[0], vec[1]);
 	CrossProduct(vec, right, up);
 
-	for (int32_t i = 0; i < len && i < 2048; i+=16) {
-
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL))) {
-			return;
-		}
-
-		p->lifetime = 1400;
-		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
-
-		Vector4Set(p->color_start, 1.0, 1.0, 1.0, 1.0)
-		VectorCopy(p->color_start, p->color_end);
-		p->color_end[3] = 0.0;
-
-		p->scale_start = 1.5 + Randomc() * 0.2;
-		p->scale_end = p->scale_start + 1.0 + Randomc() * 0.2;
+	for (int32_t i = 0; i < len && i < 2048; i++) {
 
 		VectorAdd(point, vec, point);
-		VectorCopy(point, p->part.org);
-
-		VectorScale(vec, 2.0, p->vel);
-
-		const vec_t cosi = cos(i * 0.1);
-		const vec_t sini = sin(i * 0.1);
-
-		VectorMA(p->part.org, cosi * 2.0, right, p->part.org);
-		VectorMA(p->part.org, sini * 2.0, up, p->part.org);
-
-		VectorMA(p->vel, cosi * 8.0, right, p->vel);
-		VectorMA(p->vel, sini * 8.0, up, p->vel);
 
 		// check for bubble trail
 		if (i % 24 == 0 && (cgi.PointContents(point) & MASK_LIQUID)) {
@@ -643,12 +646,13 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		// add sustained lights
 		if (i > 0 && i < len - 64.0 && i % 64 == 0) {
 			VectorCopy(point, s.light.origin);
-			s.sustain += 25;
+			s.sustain = 200;
 			cgi.AddSustainedLight(&s);
 		}
 	}
 
 	// check for explosion effect on solids
+
 	if (flags & SURF_SKY) {
 		return;
 	}

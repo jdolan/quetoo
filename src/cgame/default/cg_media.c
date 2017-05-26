@@ -61,6 +61,8 @@ cg_particles_t *cg_particles_beam;
 cg_particles_t *cg_particles_blood;
 cg_particles_t *cg_particles_lightning;
 cg_particles_t *cg_particles_rope;
+cg_particles_t *cg_particles_rail_core;
+cg_particles_t *cg_particles_rail_wake;
 cg_particles_t *cg_particles_flame;
 cg_particles_t *cg_particles_spark;
 cg_particles_t *cg_particles_inactive;
@@ -247,6 +249,8 @@ void Cg_UpdateMedia(void) {
 	cg_particles_rain = Cg_AllocParticles(cgi.LoadImage("particles/rain.tga", IT_EFFECT), true);
 	cg_particles_snow = Cg_AllocParticles(cgi.LoadImage("particles/snow.tga", IT_EFFECT), true);
 	cg_particles_beam = Cg_AllocParticles(cgi.LoadImage("particles/beam.tga", IT_EFFECT), false);
+	cg_particles_rail_core = Cg_AllocParticles(cgi.LoadImage("particles/rail_core.tga", IT_EFFECT), false);
+	cg_particles_rail_wake = Cg_AllocParticles(cgi.LoadImage("particles/rail_wake.tga", IT_EFFECT), false);
 	cg_particles_blood = Cg_AllocParticles(cgi.LoadImage("particles/blood.tga", IT_EFFECT), true);
 	cg_particles_lightning = Cg_AllocParticles(cgi.LoadImage("particles/lightning.tga", IT_EFFECT), false);
 	cg_particles_rope = Cg_AllocParticles(cgi.LoadImage("particles/rope.tga", IT_EFFECT), false);
