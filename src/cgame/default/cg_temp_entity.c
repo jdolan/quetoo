@@ -151,20 +151,22 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 		if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke))) {
 
 			p->part.roll = Randomc() * 50.0;
-			p->lifetime = 750;
+			p->lifetime = 750 + Randomf() * 250;
 			p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-			cgi.ColorFromPalette(7 + (Randomr(0, 8)), p->color_start);
+			Vector4Set(p->color_start, 0.1, 0.1, 0.1, 0.8)
 			VectorCopy(p->color_start, p->color_end);
 			p->color_end[3] = 0.0;
 
-			p->scale_start = 2.0;
-			p->scale_end = 5.0 + Randomf() * 3.0;
+			p->scale_start = 4.0;
+			p->scale_end = 7.0 + Randomf() * 3.0;
 
 			VectorCopy(org, p->part.org);
 			VectorScale(dir, 50.0 + (Randomc() * 15.0), p->vel);
 			VectorScale(dir, -75.0, p->accel);
 			VectorMA(p->accel, 15.5, vec3_up, p->accel);
+
+			p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
 		}
 	}
 
