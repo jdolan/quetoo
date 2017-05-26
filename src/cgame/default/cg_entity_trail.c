@@ -848,13 +848,13 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 		if ((added++ % 3) == 0) {
 			cgi.AddStain(&(const r_stain_t) {
 				.origin = { p->part.org[0], p->part.org[1], p->part.org[2] },
-				.radius = 5.0 + Randomc(),
+				.radius = 12.0 * Randomf() * 3.0,
 				.image = cg_particles_blood_burn->image,
-				.color = { 0.6 + 0.1 * Randomc(), 0.0, 0.0, 0.05 + Randomf() * 0.1 },
+				.color = { 0.5 + (Randomf() * 0.3), 0.0, 0.0, 0.15 + Randomf() * 0.2 },
 			});
 		}
 
-		Vector4Set(p->color_start, Randomfr(0.85, 0.95), Randomfr(0.15, 0.25), 0.1, 0.5);
+		Vector4Set(p->color_start, Randomfr(0.5, 0.8), 0.0, 0.0, 0.5);
 		VectorCopy(p->color_start, p->color_end);
 		p->color_end[3] = 0.0;
 
