@@ -465,20 +465,20 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 		VectorCopy(p->color_start, p->color_end);
 		p->color_end[3] = 0.0;
 
-		p->part.scale = 4.0;
-		p->part.roll = Randomc() * 50.0;
+		p->part.scale = 6.0;
+		p->part.roll = Randomc() * 30.0;
 
 		p->part.org[0] = org[0] + Randomfr(-16.0, 16.0);
 		p->part.org[1] = org[1] + Randomfr(-16.0, 16.0);
 		p->part.org[2] = org[2] + Randomfr(-16.0, 16.0);
 
-		p->vel[0] = Randomc() * 200.0;
-		p->vel[1] = Randomc() * 200.0;
-		p->vel[2] = Randomc() * 200.0;
+		p->vel[0] = Randomc() * 80.0;
+		p->vel[1] = Randomc() * 80.0;
+		p->vel[2] = Randomc() * 80.0;
 
 		p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
 
-		VectorSet(p->accel, 0.0, 0.0, -PARTICLE_GRAVITY * 2.0);
+		p->accel[2] = -PARTICLE_GRAVITY * 2.0;
 	}
 
 	cgi.AddSustainedLight(&(const r_sustained_light_t) {
