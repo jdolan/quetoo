@@ -395,27 +395,27 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	if (!(cgi.PointContents(org) & MASK_LIQUID)) {
 
-		for (int32_t i = 0; i < 8; i++) {
+		for (int32_t i = 0; i < 16; i++) {
 
 			if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke))) {
 
-				p->lifetime = 1200 + (Randomc() * 400);
+				p->lifetime = 1300 + (Randomc() * 400);
 				p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-				const vec_t smoke_color = Randomfr(0.3, 0.8);
+				const vec_t smoke_color = Randomfr(0.1, 0.4);
 
-				Vector4Set(p->color_start, smoke_color, smoke_color, smoke_color, 0.8);
+				Vector4Set(p->color_start, smoke_color, smoke_color, smoke_color, 1.0);
 				VectorCopy(p->color_start, p->color_end);
 				p->color_end[3] = 0.0;
 
-				p->scale_start = 20.0;
-				p->scale_end = 48.0;
+				p->scale_start = 24.0;
+				p->scale_end = 56.0;
 
 				p->part.roll = Randomc() * 100.0;
 
-				p->part.org[0] = org[0] + Randomr(-28, 28);
-				p->part.org[1] = org[1] + Randomr(-28, 28);
-				p->part.org[2] = org[2] + Randomr(-20, 20);
+				p->part.org[0] = org[0] + Randomr(-26, 26);
+				p->part.org[1] = org[1] + Randomr(-26, 26);
+				p->part.org[2] = org[2] + Randomr(-26, 26);
 
 				VectorSet(p->vel, Randomc() * 3.0, Randomc() * 3.0, Randomc() * 3.0);
 
@@ -426,59 +426,33 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 		}
 	}
 
-	for (int32_t i = 0; i < 128; i++) {
-
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL))) {
-			break;
-		}
-
-		p->lifetime = 250 + Randomf() * 250;
-		p->effects = PARTICLE_EFFECT_COLOR;
-
-		cgi.ColorFromPalette(0xe0 + (Randomr(0, 8)), p->color_start);
-		VectorCopy(p->color_start, p->color_end);
-		p->color_end[3] = 0.0;
-
-		p->part.scale = 2.0;
-
-		p->part.org[0] = org[0] + Randomfr(-16.0, 16.0);
-		p->part.org[1] = org[1] + Randomfr(-16.0, 16.0);
-		p->part.org[2] = org[2] + Randomfr(-16.0, 16.0);
-
-		p->vel[0] = Randomc() * 800.0;
-		p->vel[1] = Randomc() * 800.0;
-		p->vel[2] = Randomc() * 800.0;
-
-		VectorSet(p->accel, 0.0, 0.0, -PARTICLE_GRAVITY);
-	}
-
-	for (int32_t i = 0; i < 32; i++) {
+	for (int32_t i = 0; i < 24; i++) {
 
 		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_debris[Randomr(0, 4)]))) {
 			break;
 		}
 
-		p->lifetime = 700;
+		p->lifetime = 400 + Randomf() * 300;
 		p->effects = PARTICLE_EFFECT_COLOR;
 
 		VectorSet(p->color_start, 1.0, 1.0, 1.0);
 		VectorCopy(p->color_start, p->color_end);
-		p->color_end[3] = 0.0;
+		p->color_end[3] = 0.3;
 
-		p->part.scale = 6.0;
+		p->part.scale = 5.0;
 		p->part.roll = Randomc() * 30.0;
 
 		p->part.org[0] = org[0] + Randomfr(-16.0, 16.0);
 		p->part.org[1] = org[1] + Randomfr(-16.0, 16.0);
 		p->part.org[2] = org[2] + Randomfr(-16.0, 16.0);
 
-		p->vel[0] = Randomc() * 80.0;
-		p->vel[1] = Randomc() * 80.0;
-		p->vel[2] = Randomc() * 80.0;
+		p->vel[0] = Randomc() * 160.0;
+		p->vel[1] = Randomc() * 160.0;
+		p->vel[2] = Randomc() * 160.0;
 
 		p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
 
-		p->accel[2] = -PARTICLE_GRAVITY * 2.0;
+		p->accel[2] = -PARTICLE_GRAVITY * 2;
 	}
 
 	cgi.AddSustainedLight(&(const r_sustained_light_t) {
