@@ -584,29 +584,14 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		return;
 	}
 
-	// white cores for some colors, shifted for others
-	// FIXME: what to do here for 24-bit colors?
-	ColorToVec4(ColorFromRGB(235, 235, 235), p->color_start);
-	/*switch (color) {
-		case EFFECT_COLOR_RED:
-			cgi.ColorFromPalette(229, p->color_start);
-			break;
-		case EFFECT_COLOR_BLUE:
-		case EFFECT_COLOR_GREEN:
-		case EFFECT_COLOR_PURPLE:
-			cgi.ColorFromPalette(216, p->color_start);
-			break;
-		default:
-			cgi.ColorFromPalette(color + 6, p->color_start);
-			break;
-	}*/
-
-	p->lifetime = 1000;
+	p->lifetime = 700;
 	p->effects = PARTICLE_EFFECT_COLOR;
 
-	Vector4Set(p->color_end, 1.0, 1.0, 1.0, 0.0);
+	ColorToVec4(color, p->color_start);
+	VectorCopy(p->color_start, p->color_end)
+	p->color_end[3] = 0.0;
 
-	p->part.scale = 3.0;
+	p->part.scale = 4.0;
 
 	VectorCopy(start, p->part.org);
 	VectorCopy(end, p->part.end);
@@ -620,16 +605,16 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 	VectorSet(right, vec[2], -vec[0], vec[1]);
 	CrossProduct(vec, right, up);
 
-	for (int32_t i = 0; i < len && i < 2048; i++) {
+	for (int32_t i = 0; i < len && i < 2048; i+=16) {
 
 		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL))) {
 			return;
 		}
 
-		p->lifetime = 500 + ((i / len) * 500.0);
+		p->lifetime = 1400;
 		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-		ColorToVec4(color, p->color_start);
+		Vector4Set(p->color_start, 1.0, 1.0, 1.0, 1.0)
 		VectorCopy(p->color_start, p->color_end);
 		p->color_end[3] = 0.0;
 
