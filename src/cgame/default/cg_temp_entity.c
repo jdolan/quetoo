@@ -119,28 +119,26 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	static uint32_t last_ric_time;
 	cg_particle_t *p;
-	int32_t k = 1 + (Randomr(0, 5));
+	int32_t k = Randomr(1, 5);
 
 	while (k--) {
 		if ((p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_beam))) {
 
-			p->lifetime = 50 + Randomf() * 150;
+			p->lifetime = 100 + Randomf() * 350;
 
 			cgi.ColorFromPalette(221 + (Randomr(0, 8)), p->part.color);
 			p->part.color[3] = 0.7 + Randomf() * 0.3;
 
-			p->part.scale = 0.6 + Randomf() * 0.2;
+			p->part.scale = 0.6 + Randomf() * 0.4;
 
 			VectorCopy(org, p->part.org);
 
-			VectorScale(dir, 290.0 + Randomf() * 50.0, p->vel);
+			VectorScale(dir, 140.0 + Randomf() * 80.0, p->vel);
 
-			for (int32_t j = 0; j < 3; j++) {
-				p->vel[j] += Randomc() * 40.0;
-			}
-
-			p->accel[2] = -0.75 * PARTICLE_GRAVITY;
-			p->spark.length = 0.025 + Randomf() * 0.01;
+			p->accel[0] = Randomc() * 40.0;
+			p->accel[1] = Randomc() * 40.0;
+			p->accel[2] = -(PARTICLE_GRAVITY + (Randomf() * 60.0));
+			p->spark.length = 0.04 + Randomf() * 0.02;
 
 			VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 		}
@@ -150,21 +148,21 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 
 		if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke))) {
 
-			p->part.roll = Randomc() * 50.0;
-			p->lifetime = 750 + Randomf() * 250;
+			p->lifetime = 300 + Randomf() * 700;
 			p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-			Vector4Set(p->color_start, 0.1, 0.1, 0.1, 0.8)
+			Vector4Set(p->color_start, 0.0, 0.0, 0.0, 0.8);
 			VectorCopy(p->color_start, p->color_end);
 			p->color_end[3] = 0.0;
 
-			p->scale_start = 4.0;
-			p->scale_end = 7.0 + Randomf() * 3.0;
+			p->scale_start = 6.0 + Randomf() * 3.0;
+			p->scale_end = 16.0 + Randomf() * 8.0;
+			p->part.roll = Randomc() * 50.0;
 
 			VectorCopy(org, p->part.org);
-			VectorScale(dir, 50.0 + (Randomc() * 15.0), p->vel);
-			VectorScale(dir, -75.0, p->accel);
-			VectorMA(p->accel, 15.5, vec3_up, p->accel);
+			VectorScale(dir, 40.0 + (Randomc() * 35.0), p->vel);
+			VectorScale(dir, -90.0, p->accel);
+			VectorMA(p->accel, 20.0, vec3_up, p->accel);
 
 			p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
 		}
