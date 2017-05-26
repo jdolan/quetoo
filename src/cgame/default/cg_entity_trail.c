@@ -850,7 +850,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 				.origin = { p->part.org[0], p->part.org[1], p->part.org[2] },
 				.radius = 12.0 * Randomf() * 3.0,
 				.image = cg_particles_blood_burn->image,
-				.color = { 0.5 + (Randomf() * 0.3), 0.0, 0.0, 0.15 + Randomf() * 0.2 },
+				.color = { 0.5 + (Randomf() * 0.3), 0.0, 0.0, 0.1 + Randomf() * 0.2 },
 			});
 		}
 
