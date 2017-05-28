@@ -116,7 +116,7 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 	}
 }
 
-#define SMOKE_DENSITY 8.0
+#define SMOKE_DENSITY 4.0
 
 /**
  * @brief
@@ -154,16 +154,16 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 			return;
 		}
 
-		const vec_t c = Randomfr(0.5, 0.7);
-
-		p->lifetime = 900 + Randomf() * 200;
+		p->lifetime = 500 + Randomf() * 700;
 		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
+
+		const vec_t c = Randomfr(0.6, 1.0);
 
 		Vector4Set(p->color_start, c, c, c, 0.4);
 		Vector4Set(p->color_end, c, c, c, 0.0);
 
-		p->scale_start = 3.0;
-		p->scale_end = 6.0 + (Randomf() * 5.0);
+		p->scale_start = 4.0;
+		p->scale_end = 3.0 + (Randomf() * 7.0);
 
 		p->part.roll = Randomc() * 240.0;
 
@@ -175,7 +175,7 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 		}
 
 		VectorScale(vec, -len, p->accel);
-		p->accel[2] += 10.0 + (Randomc() * 2.0);
+		p->accel[2] += 9.0 + (Randomc() * 6.0);
 
 		p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
 	}
