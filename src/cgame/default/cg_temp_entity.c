@@ -664,11 +664,11 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		p->lifetime = 600 + ((i / len) * 600.0);
 		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-		Vector4Set(p->color_start, 1.0, 1.0, 1.0, 0.125);
+		Vector4Set(p->color_start, 1.0, 1.0, 1.0, 0.5);
 		VectorCopy(p->color_start, p->color_end);
 		p->color_end[3] = 0.0;
 
-		p->scale_start = 2.0;
+		p->scale_start = 3.0;
 		p->scale_end = 1.0;
 
 		p->part.roll = -(100.0 + ((1.0 - (i / len)) * 700.0));
@@ -911,7 +911,7 @@ static void Cg_SplashEffect(const vec3_t org, const vec3_t dir) {
 			break;
 		}
 
-		p->lifetime = 200 + Randomc() * 50;
+		p->lifetime = 250 + Randomc() * 150;
 
 		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
@@ -934,7 +934,7 @@ static void Cg_SplashEffect(const vec3_t org, const vec3_t dir) {
 
 	if ((p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_beam))) {
 
-		p->lifetime = 400 + Randomf() * 200;
+		p->lifetime = 120 + Randomf() * 80;
 		p->effects = PARTICLE_EFFECT_COLOR;
 
 		Vector4Set(p->color_start, 0.8, 0.8, 0.8, 0.45);
@@ -944,15 +944,15 @@ static void Cg_SplashEffect(const vec3_t org, const vec3_t dir) {
 
 		VectorCopy(org, p->part.org);
 
-		VectorScale(dir, 40.0 + Randomf() * 90.0, p->vel);
-		p->vel[0] += Randomc() * 20.0;
-		p->vel[1] += Randomc() * 20.0;
+		VectorScale(dir, 70.0 + Randomf() * 30.0, p->vel);
+		p->vel[0] += Randomc() * 8.0;
+		p->vel[1] += Randomc() * 8.0;
 
 		p->spark.length = 0.3 + Randomf() * 0.03;
 
 		VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 
-		VectorSet(p->accel, 0.0, 0.0, -PARTICLE_GRAVITY);
+		VectorSet(p->accel, 0.0, 0.0, -PARTICLE_GRAVITY / 2.0);
 	}
 }
 
