@@ -616,11 +616,11 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		p->lifetime = 600 + ((i / len) * 600.0);
 		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-		Vector4Set(p->color_start, 1.0, 1.0, 1.0, 0.5);
+		Vector4Set(p->color_start, 1.0, 1.0, 1.0, 0.125);
 		VectorCopy(p->color_start, p->color_end);
 		p->color_end[3] = 0.0;
 
-		p->scale_start = 3.0;
+		p->scale_start = 2.0;
 		p->scale_end = 1.0;
 
 		p->part.roll = -(100.0 + ((1.0 - (i / len)) * 700.0));
