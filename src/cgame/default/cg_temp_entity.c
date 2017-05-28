@@ -98,7 +98,7 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 
 	Vector4Set(p->part.color, 1.0, 0.6, 0.2, 1.0);
 
-	p->scale_start = 2.0;
+	p->scale_start = 1.6;
 	p->scale_end = 0.0;
 
 	VectorCopy(start, p->part.org);
@@ -109,6 +109,8 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 	p->spark.length = 0.02 + Randomf() * 0.09;
 
 	VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
+
+	p->accel[2] = -PARTICLE_GRAVITY * 3.0;
 }
 
 /**
