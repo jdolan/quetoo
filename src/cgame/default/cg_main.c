@@ -76,6 +76,7 @@ cvar_t *cg_fov_interpolate;
 cvar_t *cg_hand;
 cvar_t *cg_handicap;
 cvar_t *cg_hook_style;
+cvar_t *cg_particle_quality;
 cvar_t *cg_predict;
 cvar_t *cg_quick_join_max_ping;
 cvar_t *cg_quick_join_min_clients;
@@ -196,6 +197,8 @@ static void Cg_Init(void) {
 	                       "Your handicap, or disadvantage.");
 	cg_hook_style = cgi.Cvar("hook_style", "pull", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                         "Your preferred hook style. Can be either \"pull\" or \"swing\".");
+
+	cg_particle_quality = cgi.Cvar("cg_particle_quality", "0", CVAR_ARCHIVE, "Particle quality. 0 disables most eyecandy particles, 1 enables all.");
 
 	cg_predict = cgi.Cvar("cg_predict", "1", 0, "Use client side movement prediction");
 

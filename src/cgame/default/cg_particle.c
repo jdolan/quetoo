@@ -69,7 +69,11 @@ static void Cg_PopParticle(cg_particle_t *p, cg_particle_t **list) {
  */
 cg_particle_t *Cg_AllocParticle(const r_particle_type_t type, cg_particles_t *particles, const _Bool force) {
 
-	if ((!cg_add_particles->integer) && !force) {
+	if (!cg_add_particles->integer) {
+		return NULL;
+	}
+
+	if (cg_particle_quality->integer == 0 && !force) {
 		return NULL;
 	}
 
@@ -221,6 +225,10 @@ static _Bool Cg_UpdateParticle_Spark(cg_particle_t *p, const vec_t delta, const 
  */
 void Cg_AddParticles(void) {
 	static uint32_t ticks;
+
+	if (!cg_add_particles->integer) {
+		return;
+	}
 
 	if (ticks > cgi.client->unclamped_time) {
 		ticks = 0;
