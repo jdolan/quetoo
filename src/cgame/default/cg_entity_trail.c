@@ -618,59 +618,34 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 		VectorCopy(end, p->part.org);
 
 		p->lifetime = PARTICLE_IMMEDIATE;
-		p->part.scale = CORONA_SCALE(24.0, 0.25);
+		p->part.scale = CORONA_SCALE(32.0, 0.6);
 	}
 
-	// lightning zaps!
-	for (i = 2 + Randomf() * 3; i >= 0; i--) {
+	// Impact sparks
 
-		vec3_t forward, right, up;
-		vec3_t zap_start, zap_end;
-		const int32_t num_zaps = 3 + Randomf() * 3;
-
-		AngleVectors(ent->angles, forward, right, up);
-
-		VectorCopy(end, zap_start);
-		VectorMA(zap_start, Randomc() * 8.0, forward, zap_start);
-		VectorMA(zap_start, Randomc() * 8.0, right, zap_start);
-
-		for (int32_t k = 0; k < num_zaps; k++) {
-
-			VectorMA(zap_start, 1.0 + Randomf() * 1.0, forward, zap_end);
-
-			vec_t angle_change;
-
-			if (k == 0) {
-				angle_change = 10.0;
-			} else {
-				angle_change = 6.0;
+	if ((cgi.PointContents(end) & MASK_LIQUID) == 0) {
+		for (i = 0; i < 12; i++) {
+			if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark))) {
+				break;
 			}
 
-			VectorMA(zap_end, Randomc() * angle_change, right, zap_end);
-			VectorMA(zap_end, Randomc() * angle_change, up, zap_end);
+			p->lifetime = 170 + Randomf() * 300;
 
-			// zap!
-			if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_lightning))) {
-				return;
-			}
+			Vector4Set(p->part.color, 0.6, 0.6, 1.0, 1.0);
 
-			p->lifetime = PARTICLE_IMMEDIATE;
+			p->part.scale = 1.3 + Randomf() * 0.6;
 
-			cgi.ColorFromPalette(12 + (Randomr(0, 4)), p->part.color);
+			VectorCopy(end, p->part.org);
 
-			p->part.scale = 2.0;
-			p->part.scroll_s = -2.0;
+			p->vel[0] = Randomc() * 130.0;
+			p->vel[1] = Randomc() * 130.0;
+			p->vel[2] = Randomc() * 130.0;
 
-			VectorCopy(zap_start, p->part.org);
-			VectorCopy(zap_end, p->part.end);
+			p->accel[2] = -PARTICLE_GRAVITY * 2.0;
 
-			vec3_t zap_dir;
-			VectorSubtract(zap_end, zap_start, zap_dir);
-			VectorNormalize(zap_dir);
-			VectorAngles(zap_dir, zap_dir);
-			AngleVectors(zap_dir, forward, right, up);
+			p->spark.length = 0.07 + Randomf() * 0.05;
 
-			VectorCopy(zap_end, zap_start);
+			VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 		}
 	}
 }
