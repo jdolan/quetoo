@@ -534,28 +534,30 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 		VectorAdd(org, dir, p->part.org);
 	}
 
-	for (int32_t i = 0; i < 6; i++) {
-		if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark))) {
-			break;
+	if ((cgi.PointContents(org) & MASK_LIQUID) == 0) {
+		for (int32_t i = 0; i < 6; i++) {
+			if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark))) {
+				break;
+			}
+
+			p->lifetime = 200 + Randomf() * 500;
+
+			Vector4Set(p->part.color, 0.4, 0.7, 1.0, 1.0);
+
+			p->part.scale = 1.5 + Randomf() * 0.7;
+
+			VectorCopy(org, p->part.org);
+
+			p->vel[0] = Randomc() * 140.0;
+			p->vel[1] = Randomc() * 140.0;
+			p->vel[2] = Randomc() * 140.0;
+
+			p->accel[2] = -PARTICLE_GRAVITY * 2.0;
+
+			p->spark.length = 0.03 + Randomf() * 0.04;
+
+			VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 		}
-
-		p->lifetime = 200 + Randomf() * 500;
-
-		Vector4Set(p->part.color, 0.4, 0.7, 1.0, 1.0);
-
-		p->part.scale = 1.5 + Randomf() * 0.7;
-
-		VectorCopy(org, p->part.org);
-
-		p->vel[0] = Randomc() * 140.0;
-		p->vel[1] = Randomc() * 140.0;
-		p->vel[2] = Randomc() * 140.0;
-
-		p->accel[2] = -PARTICLE_GRAVITY * 2.0;
-
-		p->spark.length = 0.03 + Randomf() * 0.04;
-
-		VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 	}
 
 	cgi.AddSustainedLight(&(const r_sustained_light_t) {
@@ -727,30 +729,32 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 	// Rail impact sparks
 
-	for (int32_t i = 0; i < 24; i++) {
-		if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark))) {
-			break;
+	if ((cgi.PointContents(end) & MASK_LIQUID) == 0) {
+		for (int32_t i = 0; i < 24; i++) {
+			if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark))) {
+				break;
+			}
+
+			p->lifetime = 50 + Randomf() * 100;
+
+			ColorToVec4(color, p->part.color);
+
+			p->part.scale = 1.6 + Randomf() * 0.6;
+
+			VectorCopy(end, p->part.org);
+
+			VectorScale(dir, 400.0 + Randomf() * 200, p->vel);
+
+			p->vel[0] += Randomc() * 100;
+			p->vel[1] += Randomc() * 100;
+			p->vel[2] += Randomc() * 100;
+
+			p->accel[2] = -PARTICLE_GRAVITY * 2.0;
+
+			p->spark.length = 0.04 + Randomf() * 0.07;
+
+			VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 		}
-
-		p->lifetime = 50 + Randomf() * 100;
-
-		ColorToVec4(color, p->part.color);
-
-		p->part.scale = 1.6 + Randomf() * 0.6;
-
-		VectorCopy(end, p->part.org);
-
-		VectorScale(dir, 400.0 + Randomf() * 200, p->vel);
-
-		p->vel[0] += Randomc() * 100;
-		p->vel[1] += Randomc() * 100;
-		p->vel[2] += Randomc() * 100;
-
-		p->accel[2] = -PARTICLE_GRAVITY * 2.0;
-
-		p->spark.length = 0.04 + Randomf() * 0.07;
-
-		VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 	}
 
 	// Impact light
