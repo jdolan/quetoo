@@ -89,28 +89,26 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 	cg_particle_t *p;
 
-	if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_beam))) {
+	if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_tracer))) {
 		return;
 	}
 
-	p->lifetime = 250;
-	p->effects |= PARTICLE_EFFECT_COLOR;
+	p->lifetime = 200;
+	p->effects |= PARTICLE_EFFECT_SCALE;
 
-	cgi.ColorFromPalette(14, p->color_start);
-	VectorCopy(p->color_start, p->color_end);
-	p->color_start[3] = 0.2;
-	p->color_end[3] = 0.0;
+	Vector4Set(p->part.color, 1.0, 0.6, 0.2, 1.0);
 
-	p->part.scale = 1.0;
+	p->scale_start = 2.0;
+	p->scale_end = 0.0;
 
 	VectorCopy(start, p->part.org);
-	VectorCopy(end, p->part.end);
 
 	VectorSubtract(end, start, p->vel);
-	VectorScale(p->vel, 2.0, p->vel);
+	VectorMA(p->vel, 4.0, p->vel, p->vel); // Ghetto indeed
 
-	const vec_t v = VectorNormalize(p->vel);
-	VectorScale(p->vel, v < 1000.0 ? v : 1000.0, p->vel);
+	p->spark.length = 0.02 + Randomf() * 0.09;
+
+	VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 }
 
 /**
