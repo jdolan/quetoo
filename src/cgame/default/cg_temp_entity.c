@@ -395,14 +395,14 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	if (!(cgi.PointContents(org) & MASK_LIQUID)) {
 
-		for (int32_t i = 0; i < 12; i++) {
+		for (int32_t i = 0; i < 4; i++) {
 
 			if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke))) {
 
-				p->lifetime = 1300 + (Randomc() * 400);
+				p->lifetime = 1200 + (Randomc() * 800);
 				p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-				const vec_t smoke_color = Randomfr(0.4, 0.7);
+				const vec_t smoke_color = Randomfr(0.4, 0.8);
 
 				Vector4Set(p->color_start, smoke_color, smoke_color, smoke_color, 1.0);
 				VectorCopy(p->color_start, p->color_end);
