@@ -67,9 +67,9 @@ static void Cg_PopParticle(cg_particle_t *p, cg_particle_t **list) {
 /**
  * @brief Allocates a free particle with the specified type and image.
  */
-cg_particle_t *Cg_AllocParticle(const r_particle_type_t type, cg_particles_t *particles) {
+cg_particle_t *Cg_AllocParticle(const r_particle_type_t type, cg_particles_t *particles, const _Bool force) {
 
-	if (!cg_add_particles->integer) {
+	if ((!cg_add_particles->integer) && !force) {
 		return NULL;
 	}
 
@@ -221,10 +221,6 @@ static _Bool Cg_UpdateParticle_Spark(cg_particle_t *p, const vec_t delta, const 
  */
 void Cg_AddParticles(void) {
 	static uint32_t ticks;
-
-	if (!cg_add_particles->value) {
-		return;
-	}
 
 	if (ticks > cgi.client->unclamped_time) {
 		ticks = 0;

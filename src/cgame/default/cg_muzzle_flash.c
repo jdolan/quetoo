@@ -96,7 +96,7 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke))) {
+	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke, false))) {
 		return;
 	}
 
@@ -221,4 +221,3 @@ void Cg_ParseMuzzleFlash(void) {
 			.pitch = pitch
 	});
 }
-
