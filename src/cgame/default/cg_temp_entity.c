@@ -93,7 +93,7 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 		return;
 	}
 
-	p->lifetime = 200;
+	p->lifetime = 0.3 * VectorDistance(start, end); // 0.3ms per unit in distance
 	p->effects |= PARTICLE_EFFECT_SCALE;
 
 	Vector4Set(p->part.color, 1.0, 0.6, 0.2, 1.0);

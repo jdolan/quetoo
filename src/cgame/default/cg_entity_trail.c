@@ -624,7 +624,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	// Impact sparks
 
 	if ((cgi.PointContents(end) & MASK_LIQUID) == 0) {
-		for (i = 0; i < 10; i++) {
+		for (i = 0; i < 6; i++) {
 			if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark))) {
 				break;
 			}
