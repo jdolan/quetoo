@@ -624,14 +624,18 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	// Impact sparks
 
 	if ((cgi.PointContents(end) & MASK_LIQUID) == 0) {
-		for (i = 0; i < 12; i++) {
+		for (i = 0; i < 10; i++) {
 			if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark))) {
 				break;
 			}
 
 			p->lifetime = 170 + Randomf() * 300;
 
-			Vector4Set(p->part.color, 0.6, 0.6, 1.0, 1.0);
+			if (i % 3 == 0) { // 30% chance of white instead of blue
+				Vector4Set(p->part.color, 1.0, 1.0, 1.0, 1.0);
+			} else {
+				Vector4Set(p->part.color, 0.6, 0.6, 1.0, 1.0);
+			}
 
 			p->part.scale = 1.3 + Randomf() * 0.6;
 
