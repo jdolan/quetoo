@@ -858,21 +858,25 @@ static void Cg_SplashEffect(const vec3_t org, const vec3_t dir) {
 
 	if ((p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_beam))) {
 
-		p->lifetime = 150 + Randomf() * 150;
+		p->lifetime = 400 + Randomf() * 200;
 		p->effects = PARTICLE_EFFECT_COLOR;
 
 		Vector4Set(p->color_start, 0.8, 0.8, 0.8, 0.45);
 		Vector4Set(p->color_end, 0.8, 0.8, 0.8, 0.0);
 
-		p->part.scale = 1.2 + Randomf() * 0.6;
+		p->part.scale = 1.4 + Randomf() * 0.7;
 
 		VectorCopy(org, p->part.org);
 
-		VectorScale(dir, 24.0 + Randomf() * 25.0, p->vel);
+		VectorScale(dir, 40.0 + Randomf() * 90.0, p->vel);
+		p->vel[0] += Randomc() * 20.0;
+		p->vel[1] += Randomc() * 20.0;
 
-		p->spark.length = 0.7 + Randomf() * 0.01;
+		p->spark.length = 0.3 + Randomf() * 0.03;
 
 		VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
+
+		VectorSet(p->accel, 0.0, 0.0, -PARTICLE_GRAVITY);
 	}
 }
 
