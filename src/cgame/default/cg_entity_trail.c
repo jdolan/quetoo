@@ -116,7 +116,7 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 	}
 }
 
-#define SMOKE_DENSITY 4.0
+#define SMOKE_DENSITY 12.0
 
 /**
  * @brief
@@ -154,28 +154,26 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 			return;
 		}
 
-		const vec_t c = 0.3 - Randomf() * 0.2;
-
-		p->lifetime = 900 + Randomf() * 200;
+		p->lifetime = 1000 + Randomf() * 800;
 		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-		Vector4Set(p->color_start, c, c, c, 0.2);
+		const vec_t c = Randomfr(0.8, 1.0);
+
+		Vector4Set(p->color_start, c, c, c, 0.1);
 		Vector4Set(p->color_end, c, c, c, 0.0);
 
-		p->scale_start = 2.0;
-		p->scale_end = 5.0 + (Randomf() * 5.0);
+		p->scale_start = 1.0;
+		p->scale_end = 16.0 + (Randomf() * 16.0);
 
-		p->part.roll = Randomc() * 240.0;
+		p->part.roll = Randomc() * 480.0;
 
+		VectorCopy(move, p->part.org);
 		VectorScale(vec, len, p->vel);
 
-		for (int32_t j = 0; j < 3; j++) {
-			p->part.org[j] = move[j];
-			p->vel[j] += Randomc();
-		}
-
 		VectorScale(vec, -len, p->accel);
-		p->accel[2] += 10.0 + (Randomc() * 2.0);
+		p->accel[2] += 9.0 + (Randomc() * 6.0);
+
+		p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
 	}
 }
 
@@ -591,7 +589,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 		vec3_t real_end;
 		VectorMA(start, -(dist_total + 32.0), dir, real_end);
 		cm_trace_t tr = cgi.Trace(start, real_end, NULL, NULL, 0, CONTENTS_SOLID);
-	
+
 		if (tr.surface) {
 
 			VectorMA(tr.end, 1.0, tr.plane.normal, tr.end);
@@ -620,59 +618,38 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 		VectorCopy(end, p->part.org);
 
 		p->lifetime = PARTICLE_IMMEDIATE;
-		p->part.scale = CORONA_SCALE(24.0, 0.25);
+		p->part.scale = CORONA_SCALE(32.0, 0.6);
 	}
 
-	// lightning zaps!
-	for (i = 2 + Randomf() * 3; i >= 0; i--) {
+	// Impact sparks
 
-		vec3_t forward, right, up;
-		vec3_t zap_start, zap_end;
-		const int32_t num_zaps = 3 + Randomf() * 3;
+	if ((cgi.PointContents(end) & MASK_LIQUID) == 0) {
+		for (i = 0; i < 6; i++) {
+			if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark))) {
+				break;
+			}
 
-		AngleVectors(ent->angles, forward, right, up);
+			p->lifetime = 170 + Randomf() * 300;
 
-		VectorCopy(end, zap_start);
-		VectorMA(zap_start, Randomc() * 8.0, forward, zap_start);
-		VectorMA(zap_start, Randomc() * 8.0, right, zap_start);
-
-		for (int32_t k = 0; k < num_zaps; k++) {
-
-			VectorMA(zap_start, 1.0 + Randomf() * 1.0, forward, zap_end);
-
-			vec_t angle_change;
-
-			if (k == 0) {
-				angle_change = 10.0;
+			if (i % 3 == 0) { // 30% chance of white instead of blue
+				Vector4Set(p->part.color, 1.0, 1.0, 1.0, 1.0);
 			} else {
-				angle_change = 6.0;
+				Vector4Set(p->part.color, 0.6, 0.6, 1.0, 1.0);
 			}
 
-			VectorMA(zap_end, Randomc() * angle_change, right, zap_end);
-			VectorMA(zap_end, Randomc() * angle_change, up, zap_end);
+			p->part.scale = 1.3 + Randomf() * 0.6;
 
-			// zap!
-			if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_lightning))) {
-				return;
-			}
+			VectorCopy(end, p->part.org);
 
-			p->lifetime = PARTICLE_IMMEDIATE;
+			p->vel[0] = Randomc() * 130.0;
+			p->vel[1] = Randomc() * 130.0;
+			p->vel[2] = Randomc() * 130.0;
 
-			cgi.ColorFromPalette(12 + (Randomr(0, 4)), p->part.color);
+			p->accel[2] = -PARTICLE_GRAVITY * 2.0;
 
-			p->part.scale = 2.0;
-			p->part.scroll_s = -2.0;
+			p->spark.length = 0.07 + Randomf() * 0.05;
 
-			VectorCopy(zap_start, p->part.org);
-			VectorCopy(zap_end, p->part.end);
-
-			vec3_t zap_dir;
-			VectorSubtract(zap_end, zap_start, zap_dir);
-			VectorNormalize(zap_dir);
-			VectorAngles(zap_dir, zap_dir);
-			AngleVectors(zap_dir, forward, right, up);
-
-			VectorCopy(zap_end, zap_start);
+			VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 		}
 	}
 }
@@ -846,23 +823,25 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 		if ((added++ % 3) == 0) {
 			cgi.AddStain(&(const r_stain_t) {
 				.origin = { p->part.org[0], p->part.org[1], p->part.org[2] },
-				.radius = 5.0 + Randomc(),
+				.radius = 12.0 * Randomf() * 3.0,
 				.image = cg_particles_blood_burn->image,
-				.color = { 0.6 + 0.1 * Randomc(), 0.0, 0.0, 0.05 + Randomf() * 0.1 },
+				.color = { 0.5 + (Randomf() * 0.3), 0.0, 0.0, 0.1 + Randomf() * 0.2 },
 			});
 		}
 
-		cgi.ColorFromPalette(232 + (Randomr(0, 8)), p->color_start);
+		Vector4Set(p->color_start, Randomfr(0.5, 0.8), 0.0, 0.0, 0.5);
 		VectorCopy(p->color_start, p->color_end);
 		p->color_end[3] = 0.0;
 
-		p->part.scale = 3.0;
+		p->part.scale = Randomfr(3.0, 7.0);
 		p->part.roll = Randomc() * 100.0;
 
 		VectorScale(move, 20.0, p->vel);
 
 		p->accel[0] = p->accel[1] = 0.0;
 		p->accel[2] = -PARTICLE_GRAVITY / 2.0;
+
+		p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
 
 		dist -= 1.5;
 	}
