@@ -386,6 +386,8 @@ static void Cl_ParseSound(void) {
 	if (flags & S_ENTITY) { // entity relative
 		play.entity = Net_ReadShort(&net_message);
 		play.flags |= S_PLAY_ENTITY;
+	} else {
+		play.entity = -1;
 	}
 
 	if (flags & S_ORIGIN) { // positioned in space
