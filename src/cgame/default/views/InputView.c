@@ -54,13 +54,15 @@
 
 			ScrollView *scrollView = $(alloc(ScrollView), initWithFrame, NULL, ControlStyleDefault);
 
-			scrollView->control.view.autoresizingMask = ViewAutoresizingFill;
+			scrollView->control.view.autoresizingMask = ViewAutoresizingFill; // Works except it snaps back to the top randomly
+			scrollView->control.view.backgroundColor = Colors.Red;
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			stackView->view.autoresizingMask |= ViewAutoresizingHeight;
+			stackView->view.autoresizingMask |= ViewAutoresizingWidth;
+			stackView->view.backgroundColor = Colors.Green;
 
-			Cgui_Label((View *) stackView, "Movement");
+                        Cgui_Label((View *) stackView, "Movement");
 
 			Cgui_BindInput((View *) stackView, "Forward", "+forward");
 			Cgui_BindInput((View *) stackView, "Back", "+back");
