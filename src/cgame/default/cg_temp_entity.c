@@ -90,20 +90,20 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 	cg_particle_t *p;
 
 	if ((p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_tracer, false))) {
-		p->lifetime = 0.3 * VectorDistance(start, end); // 0.3ms per unit in distance
+		p->lifetime = 0.1 * VectorDistance(start, end); // 0.1ms per unit in distance
 		p->effects |= PARTICLE_EFFECT_SCALE;
 
-		Vector4Set(p->part.color, 1.0, 0.6, 0.2, 1.0);
+		Vector4Set(p->part.color, 1.0, 0.7, 0.3, 1.0);
 
-		p->scale_start = 1.6;
-		p->scale_end = 0.0;
+		p->scale_start = 1.5;
+		p->scale_end = 0.5;
 
 		VectorCopy(start, p->part.org);
 
 		VectorSubtract(end, start, p->vel);
 		VectorMA(p->vel, 4.0, p->vel, p->vel); // Ghetto indeed
 
-		p->spark.length = 0.02 + Randomf() * 0.09;
+		p->spark.length = 0.02 + Randomf() * 0.05;
 
 		VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 
@@ -156,8 +156,8 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 			VectorCopy(p->color_start, p->color_end);
 			p->color_end[3] = 0.0;
 
-			p->scale_start = 4.0 + Randomf() * 3.0;
-			p->scale_end = 24.0 + Randomf() * 8.0;
+			p->scale_start = 2.0 + Randomf() * 2.0;
+			p->scale_end = 18.0 + Randomf() * 8.0;
 			p->part.roll = Randomc() * 50.0;
 
 			VectorCopy(org, p->part.org);
@@ -418,7 +418,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 			VectorCopy(org, p->part.org);
 
-			VectorSet(p->vel, Randomc() * 70.0, Randomc() * 70.0, Randomc() * 70.0);
+			VectorSet(p->vel, Randomc() * 80.0, Randomc() * 30.0, Randomc() * 70.0);
 			VectorSet(p->accel, -p->vel[0] * 1.2, -p->vel[1] * 1.2, -p->vel[2] * 1.2);
 
 			p->accel[2] += PARTICLE_GRAVITY / Randomfr(5.0, 9.0);

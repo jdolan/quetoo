@@ -1,5 +1,5 @@
 /**
- * @brief Null fragment shader.
+ * @brief Particle fragment shader.
  */
 
 #version 330
