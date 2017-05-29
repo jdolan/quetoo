@@ -379,9 +379,8 @@ static void Cl_ParseSound(void) {
 
 	play.sample = cl.sound_precache[index];
 
-	if (flags & S_ATTEN) {
-		play.attenuation = Net_ReadByte(&net_message);
-	}
+	// Always use this since it also holds Z offset information
+	play.attenuation = Net_ReadByte(&net_message);
 
 	if (flags & S_ENTITY) { // entity relative
 		play.entity = Net_ReadShort(&net_message);

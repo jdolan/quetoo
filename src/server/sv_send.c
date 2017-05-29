@@ -291,13 +291,9 @@ void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, const uint16
 	uint32_t flags = 0;
 
 	uint16_t at = atten;
-	if (at > ATTEN_STATIC) {
-		Com_Warn("Bad attenuation %d\n", at);
-		at = ATTEN_DEFAULT;
-	}
-
-	if (at != ATTEN_DEFAULT) {
-		flags |= S_ATTEN;
+	if ((at & 0x0f) > ATTEN_STATIC) {
+		Com_Warn("Bad attenuation %d\n", at & 0x0f);
+		at = ((at & 0xf0) | ATTEN_DEFAULT);
 	}
 
 	if (origin) {
@@ -321,9 +317,7 @@ void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, const uint16
 	Net_WriteByte(&sv.multicast, flags);
 	Net_WriteByte(&sv.multicast, index);
 
-	if (flags & S_ATTEN) {
-		Net_WriteByte(&sv.multicast, at);
-	}
+	Net_WriteByte(&sv.multicast, at);
 
 	if (flags & S_ENTITY) {
 		Net_WriteShort(&sv.multicast, (int32_t) NUM_FOR_ENTITY(ent));
@@ -348,7 +342,7 @@ void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, const uint16
 		}
 	}
 
-	if (atten != ATTEN_NONE) {
+	if ((atten & 0x0f) != ATTEN_NONE) {
 		Sv_Multicast(broadcast_origin, MULTICAST_PHS, NULL);
 	} else {
 		Sv_Multicast(broadcast_origin, MULTICAST_ALL, NULL);
@@ -580,4 +574,3 @@ void Sv_SendClientPackets(void) {
 		}
 	}
 }
-

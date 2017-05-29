@@ -216,7 +216,7 @@ void Cg_ParseMuzzleFlash(void) {
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = sample,
 		 .entity = ent_num,
-		  .attenuation = ATTEN_NORM,
+		  .attenuation = ATTEN_NORM,// | S_SET_Z_ORIGIN_OFFSET(7),
 		   .flags = S_PLAY_ENTITY,
 			.pitch = pitch
 	});
