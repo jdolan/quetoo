@@ -68,12 +68,12 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 		if (ent == cl.entity) {
 			ch->relative = true;
 		}
-		
+
 		if (s_doppler->value) {
 			if (!ch->relative) {
 				VectorSubtract(ent->current.origin, ent->prev.origin, ch->velocity);
 			}
-		}
+	}
 
 		if (ent->current.solid == SOLID_BSP) {
 			const r_model_t *mod = cl.model_precache[ent->current.model1];
@@ -87,10 +87,12 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 	}
 
 	VectorCopy(org, ch->position);
+	VectorMA(ch->position, S_GET_Z_ORIGIN_OFFSET(ch->play.attenuation) * 4.0, vec3_up, ch->position);
+
 	VectorSubtract(org, r_view.origin, delta);
 
 	vec_t attenuation;
-	switch (ch->play.attenuation) {
+	switch (ch->play.attenuation & 0x0f) {
 		case ATTEN_NORM:
 			attenuation = 1.0;
 			break;
@@ -117,7 +119,7 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 				const uint32_t delta = (cl.frame.frame_num - ch->frame) * QUETOO_TICK_MILLIS;
 
 				if (delta > 250) {
-					return false; // faded out
+					return false; //x faded out
 				}
 
 				ch->gain *= 1.0 - (delta / 250.0);
@@ -132,7 +134,7 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 	if (r_view.contents & MASK_LIQUID) {
 		ch->pitch = 0.5;
 	}
-	
+
 	// offset pitch by sound-requested offset
 	if (ch->play.pitch) {
 		const vec_t octaves = (vec_t)pow(2, 0.69314718 * ((vec_t)ch->play.pitch / TONES_PER_OCTAVE));
@@ -187,7 +189,7 @@ void S_MixChannels(void) {
 	for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
 
 		if (ch->sample) {
-			
+
 			if (S_SpatializeChannel(ch)) {
 
 				if (ch->relative) {
@@ -218,7 +220,7 @@ void S_MixChannels(void) {
 				if (!ch->start_time) {
 					ch->start_time = quetoo.ticks;
 
-					alSourcei(s_env.sources[i], AL_SOURCE_RELATIVE, ch->relative ? 1 : 0); 
+					alSourcei(s_env.sources[i], AL_SOURCE_RELATIVE, ch->relative ? 1 : 0);
 					S_CheckALError();
 
 					alSourcei(s_env.sources[i], AL_BUFFER, ch->sample->buffer);
@@ -226,7 +228,7 @@ void S_MixChannels(void) {
 
 					alSourcei(s_env.sources[i], AL_LOOPING, !!(ch->play.flags & S_PLAY_LOOP));
 					S_CheckALError();
-				
+
 					if (ch->play.flags & S_PLAY_AMBIENT) {
 						alSourcei(s_env.sources[i], AL_SAMPLE_OFFSET, (ALint) (Randomf() * ch->sample->num_samples));
 						S_CheckALError();
@@ -239,7 +241,7 @@ void S_MixChannels(void) {
 					ALenum state;
 					alGetSourcei(s_env.sources[i], AL_SOURCE_STATE, &state);
 					S_CheckALError();
-					
+
 					if (state != AL_PLAYING) {
 						S_FreeChannel(i);
 						continue;
@@ -281,12 +283,12 @@ void S_AddSample(const s_play_sample_t *play) {
 	}
 
 	switch (s_ambient->integer) {
-		case 0:
+		case 0: // Disable ambient sounds
 			if (play->flags & S_PLAY_AMBIENT) {
 				return;
 			}
 			break;
-		case 2:
+		case 2: // Only ambient sounds
 			if (!(play->flags & S_PLAY_AMBIENT)) {
 				return;
 			}
@@ -328,8 +330,9 @@ void S_AddSample(const s_play_sample_t *play) {
 	}
 
 	// warn on spatialized stereo samples
+
 	if (play->sample->stereo) {
-		if (play->attenuation != ATTEN_NONE || 
+		if ((play->attenuation & 0x0f) != ATTEN_NONE ||
 			(play->entity != -1 && &cl.entities[play->entity] != cl.entity)) {
 			Com_Warn("%s is a stereo sound sample and is being spatialized\n", play->sample->media.name);
 		}

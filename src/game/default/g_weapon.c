@@ -61,7 +61,7 @@ static void G_ChangeWeapon(g_entity_t *ent, const g_item_t *item) {
 
 	G_SetAnimation(ent, ANIM_TORSO_DROP, true);
 
-	gi.Sound(ent, g_media.sounds.weapon_switch, ATTEN_NORM, 0);
+	gi.Sound(ent, g_media.sounds.weapon_switch, ATTEN_NORM | S_SET_Z_ORIGIN_OFFSET(3), 0);
 }
 
 /**
@@ -261,7 +261,7 @@ static _Bool G_FireWeapon(g_entity_t *ent) {
 	if (ent->client->locals.ammo_index && ammo < ammo_needed) {
 
 		if (g_level.time >= ent->client->locals.pain_time) { // play a click sound
-			gi.Sound(ent, g_media.sounds.weapon_no_ammo, ATTEN_NORM, 0);
+			gi.Sound(ent, g_media.sounds.weapon_no_ammo, ATTEN_NORM | S_SET_Z_ORIGIN_OFFSET(3), 0);
 			ent->client->locals.pain_time = g_level.time + 1000;
 		}
 
@@ -284,7 +284,7 @@ void G_PlayTechSound(g_entity_t *ent) {
 	}
 
 	if (ent->client->locals.tech_sound_time < g_level.time) {
-		gi.Sound(ent, g_media.sounds.techs[tech->tag], ATTEN_NORM, 0);
+		gi.Sound(ent, g_media.sounds.techs[tech->tag], ATTEN_NORM | S_SET_Z_ORIGIN_OFFSET(3), 0);
 		ent->client->locals.tech_sound_time = g_level.time + 1000;
 	}
 }
@@ -318,7 +318,7 @@ static void G_WeaponFired(g_entity_t *ent, uint32_t interval, uint32_t ammo_need
 	if (ent->client->locals.inventory[g_media.items.powerups[POWERUP_QUAD]->index]) {
 
 		if (ent->client->locals.quad_attack_time < g_level.time) {
-			gi.Sound(ent, g_media.sounds.quad_attack, ATTEN_NORM, 0);
+			gi.Sound(ent, g_media.sounds.quad_attack, ATTEN_NORM | S_SET_Z_ORIGIN_OFFSET(3), 0);
 			ent->client->locals.quad_attack_time = g_level.time + 500;
 		}
 	}
@@ -468,7 +468,7 @@ static void G_ClientHookCheckFire(g_entity_t *ent) {
 	ent->client->locals.hook_pull = false;
 	ent->client->locals.hook_entity = G_HookProjectile(ent, org, forward);
 
-	gi.Sound(ent, g_media.sounds.hook_fire, ATTEN_NORM, (int8_t) (Randomc() * 4.0));
+	gi.Sound(ent, g_media.sounds.hook_fire, ATTEN_NORM | S_SET_Z_ORIGIN_OFFSET(3), (int8_t) (Randomc() * 4.0));
 	ent->client->locals.hook_think_time = g_level.time;
 }
 
@@ -684,7 +684,7 @@ void G_FireHandGrenade(g_entity_t *ent) {
 
 		// play the timer sound if we're holding once every second
 		if ((g_level.frame_num - ent->client->locals.grenade_hold_frame) % QUETOO_TICK_RATE == 0) {
-			gi.Sound(ent, gi.SoundIndex("weapons/handgrenades/hg_clang.ogg"), ATTEN_NORM, 0);
+			gi.Sound(ent, gi.SoundIndex("weapons/handgrenades/hg_clang.ogg"), ATTEN_NORM | S_SET_Z_ORIGIN_OFFSET(3), 0);
 		}
 		return;
 	}
@@ -714,7 +714,7 @@ void G_FireHandGrenade(g_entity_t *ent) {
 	);
 
 	// play the sound if we throw it
-	gi.Sound(ent, g_media.sounds.grenade_throw, ATTEN_NORM, 0);
+	gi.Sound(ent, g_media.sounds.grenade_throw, ATTEN_NORM | S_SET_Z_ORIGIN_OFFSET(3), 0);
 
 	// push the next fire time out by the interval (2 secs)
 	G_WeaponFired(ent, 2000, ammo_needed);
@@ -863,6 +863,6 @@ void G_FireBfg(g_entity_t *ent) {
 		timer->locals.Think = G_FireBfg_;
 		timer->locals.next_think = g_level.time + 1000 - QUETOO_TICK_MILLIS;
 
-		gi.Sound(ent, g_media.sounds.bfg_prime, ATTEN_NORM, 0);
+		gi.Sound(ent, g_media.sounds.bfg_prime, ATTEN_NORM | S_SET_Z_ORIGIN_OFFSET(3), 0);
 	}
 }

@@ -43,7 +43,7 @@ static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_inactive))) {
+	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_inactive, true))) {
 		return;
 	}
 

@@ -145,7 +145,7 @@ void R_ShutdownParticles(void) {
 static void R_ParticleVerts(const r_particle_t *p, r_particle_interleave_vertex_t *verts) {
 	vec3_t v, up, right, up_right, down_right;
 
-	if (p->type == PARTICLE_BEAM || p->type == PARTICLE_SPARK) { // beams are lines with starts and ends
+	if (p->type == PARTICLE_BEAM || p->type == PARTICLE_SPARK || p->type == PARTICLE_WIRE) { // beams are lines with starts and ends
 		VectorSubtract(p->org, p->end, v);
 		VectorNormalize(v);
 		VectorCopy(v, up);
@@ -215,7 +215,7 @@ static void R_ParticleTexcoords(const r_particle_t *p, r_particle_interleave_ver
 		for (int32_t i = 0; i < 4; ++i) {
 			Vector2Copy(default_texcoords[i], verts[i].texcoord);
 		}
-
+		
 		return;
 	}
 
@@ -270,7 +270,7 @@ static void R_ParticleGeometryVerts(const r_particle_t *p, r_geometry_particle_i
 	verts->type = p->type;
 	verts->roll = p->roll;
 
-	if (p->type == PARTICLE_BEAM || p->type == PARTICLE_SPARK) { // beams are lines with starts and ends
+	if (p->type == PARTICLE_BEAM || p->type == PARTICLE_SPARK || p->type == PARTICLE_WIRE) { // beams are lines with starts and ends
 		VectorCopy(p->end, verts->end);
 	}
 

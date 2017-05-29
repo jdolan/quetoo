@@ -70,7 +70,7 @@
 /**
  * @brief These flags indicate which fields a given sound packet will contain. Maximum 8 flags.
  */
-#define S_ATTEN					(1 << 0)
+#define S_ATTEN					(1 << 0) // Flag is unused now; kept for net protocol compatibility
 #define S_ORIGIN				(1 << 1)
 #define S_ENTITY				(1 << 2)
 #define S_PITCH					(1 << 3)

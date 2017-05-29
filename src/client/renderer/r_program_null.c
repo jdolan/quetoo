@@ -27,7 +27,7 @@ typedef struct {
 	r_sampler2d_t sampler6;
 
 	r_uniform1i_t tintmap;
-
+	
 	r_uniform_fog_t fog;
 
 	r_uniform4fv_t current_color;
@@ -43,7 +43,7 @@ static r_null_program_t r_null_program;
  * @brief
  */
 void R_PreLink_null(const r_program_t *program) {
-
+	
 	R_BindAttributeLocation(program, "POSITION", R_ATTRIB_POSITION);
 	R_BindAttributeLocation(program, "COLOR", R_ATTRIB_COLOR);
 	R_BindAttributeLocation(program, "TEXCOORD", R_ATTRIB_DIFFUSE);

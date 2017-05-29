@@ -94,9 +94,9 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 		if ((len = Fs_Load(path, &buf)) == -1) {
 			continue;
 		}
-		
+
 		SDL_RWops *rw = SDL_RWFromConstMem(buf, (int32_t) len);
-	
+
 		SF_INFO info;
 		memset(&info, 0, sizeof(info));
 
@@ -344,4 +344,3 @@ s_sample_t *S_LoadEntitySample(const entity_state_t *ent, const char *name) {
 
 	return S_LoadModelSample(model, name);
 }
-

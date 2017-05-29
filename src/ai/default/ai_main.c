@@ -147,9 +147,10 @@ static void Ai_GetUserInfo(const g_entity_t *self, char *userinfo) {
 	SetUserInfo(userinfo, "hand", va("%i", Randomr(0, 3)));
 
 	if (ai_name_suffix == 0) {
-		SetUserInfo(userinfo, "name", va("%s%s", ai_name_prefix->string, ai_names[ai_name_index]));
-	} else {
 		SetUserInfo(userinfo, "name", va("%s%s %i", ai_name_prefix->string, ai_names[ai_name_index], ai_name_suffix + 1));
+	} else {
+		SetUserInfo(userinfo, "name", va("%s%s %i",
+			ai_name_prefix->string, ai_names[ai_name_index], ai_name_suffix + 1));
 	}
 
 	ai_name_index++;
@@ -1058,8 +1059,7 @@ static void Ai_Init(void) {
 	sv_max_clients = aim.Cvar("sv_max_clients", 0, 0, "");
 
 	ai_passive = aim.Cvar("ai_passive", "0", 0, "Whether the bots will attack or not.");
-	ai_name_prefix = aim.Cvar("ai_name_prefix", "^3[Bot]^7 ", 0, "Prefix on bot names.");
-
+	ai_name_prefix = aim.Cvar("ai_name_prefix", "^0[^1BOT^0] ^7", 0, NULL);
 	ai_locals = (ai_locals_t *) aim.Malloc(sizeof(ai_locals_t) * sv_max_clients->integer, MEM_TAG_AI);
 
 	Ai_InitSkins();
