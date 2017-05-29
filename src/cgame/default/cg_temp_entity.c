@@ -396,32 +396,34 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	if ((cgi.PointContents(org) & MASK_LIQUID) == 0) {
 
-		for (int32_t i = 0; i < 4; i++) {
+		for (int32_t i = 0; i < 10; i++) {
 
 			if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke, false))) {
 				break;
 			}
 
-			p->lifetime = 1200 + (Randomc() * 800);
+			p->lifetime = 1500 + (Randomc() * 500);
 			p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-			const vec_t smoke_color = Randomfr(0.4, 0.8);
+			const vec_t smoke_color = Randomfr(0.4, 0.7);
 
-			Vector4Set(p->color_start, smoke_color, smoke_color, smoke_color, 1.0);
+			Vector4Set(p->color_start, smoke_color, smoke_color, smoke_color, 0.7);
 			VectorCopy(p->color_start, p->color_end);
 			p->color_end[3] = 0.0;
 
-			p->scale_start = 22.0;
-			p->scale_end = 48.0;
+			p->scale_start = 40.0;
+			p->scale_end = 16.0;
 
-			p->part.roll = Randomc() * 70.0;
+			p->part.roll = Randomc() * 60.0;
 
-			VectorCopy(org, p->part.org);
+			p->part.org[0] = org[0] + Randomc() * 16.0;
+			p->part.org[1] = org[1] + Randomc() * 16.0;
+			p->part.org[2] = org[2] + Randomc() * 16.0;
 
-			VectorSet(p->vel, Randomc() * 70.0, Randomc() * 70.0, Randomc() * 70.0);
-			VectorSet(p->accel, -p->vel[0] * 1.2, -p->vel[1] * 1.2, -p->vel[2] * 1.2);
+			VectorSet(p->vel, Randomc() * 50.0, Randomc() * 50.0, Randomc() * 50.0);
+			VectorSet(p->accel, -p->vel[0], -p->vel[1], -p->vel[2]);
 
-			p->accel[2] += PARTICLE_GRAVITY / Randomfr(5.0, 9.0);
+			p->accel[2] += PARTICLE_GRAVITY / Randomfr(6.0, 9.0);
 
 			p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
 		}
