@@ -101,6 +101,13 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 	return cell;
 }
 
+/**
+ * @see TableViewDelegate::didSetSortColumn(TableView *)
+ */
+static void didSetSortColumn(TableView *tableView) {
+	$((ServersTableView *) tableView->delegate.self, reloadServers);
+}
+
 #pragma mark - View
 
 /**

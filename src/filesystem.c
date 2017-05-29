@@ -225,6 +225,13 @@ _Bool Fs_Seek(file_t *file, size_t offset) {
 }
 
 /**
+ * @brief Get the length of a file in bytes
+ */
+int64_t Fs_FileLength(file_t *file) {
+	return PHYSFS_fileLength((PHYSFS_File *) file);
+}
+
+/**
  * @return The current file offset.
  */
 int64_t Fs_Tell(file_t *file) {
@@ -257,49 +264,73 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 
 	file_t *file;
 	if ((file = Fs_OpenRead(filename))) {
-		GList *list = NULL;
-		len = 0;
 
 		if (!PHYSFS_setBuffer((PHYSFS_File *) file, FS_FILE_BUFFER)) {
 			Com_Warn("%s: %s\n", filename, Fs_LastError());
 		}
 
-		while (!Fs_Eof(file)) {
-			fs_block_t *b = Mem_TagMalloc(sizeof(fs_block_t), MEM_TAG_FS);
+		const int64_t buffer_length = Fs_FileLength(file);
 
-			b->data = Mem_LinkMalloc(FS_FILE_BUFFER, b);
-			b->len = Fs_Read(file, b->data, 1, FS_FILE_BUFFER);
+		// if we can calculate the length, we can pull it easily
+		if (buffer_length != -1) {
+			len = buffer_length;
 
-			if (b->len == -1) {
-				Com_Error(ERROR_DROP, "%s: %s\n", filename, Fs_LastError());
+			if (buffer) {
+				if (len > 0) {
+					byte *buf = *buffer = Mem_TagMalloc(len + 1, MEM_TAG_FS);
+					const int64_t read = Fs_Read(file, buf, 1, len);
+
+					if (read != len) {
+						Com_Error(ERROR_DROP, "%s: %s\n", filename, Fs_LastError());
+					}
+
+					g_hash_table_insert(fs_state.loaded_files, *buffer,
+										(gpointer) Mem_CopyString(filename));
+				} else {
+					*buffer = NULL;
+				}
 			}
+		} else {
+			GList *list = NULL;
+			len = 0;
 
-			list = g_list_append(list, b);
-			len += b->len;
-		}
+			while (!Fs_Eof(file)) {
+				fs_block_t *b = Mem_TagMalloc(sizeof(fs_block_t), MEM_TAG_FS);
 
-		if (buffer) {
-			if (len > 0) {
-				byte *buf = *buffer = Mem_TagMalloc(len + 1, MEM_TAG_FS);
+				b->data = Mem_LinkMalloc(FS_FILE_BUFFER, b);
+				b->len = Fs_Read(file, b->data, 1, FS_FILE_BUFFER);
 
-				GList *e = list;
-				while (e) {
-					fs_block_t *b = (fs_block_t *) e->data;
-
-					memcpy(buf, b->data, b->len);
-					buf += (ptrdiff_t) b->len;
-
-					e = e->next;
+				if (b->len == -1) {
+					Com_Error(ERROR_DROP, "%s: %s\n", filename, Fs_LastError());
 				}
 
-				g_hash_table_insert(fs_state.loaded_files, *buffer,
-				                    (gpointer) Mem_CopyString(filename));
-			} else {
-				*buffer = NULL;
+				list = g_list_append(list, b);
+				len += b->len;
 			}
-		}
 
-		g_list_free_full(list, Mem_Free);
+			if (buffer) {
+				if (len > 0) {
+					byte *buf = *buffer = Mem_TagMalloc(len + 1, MEM_TAG_FS);
+
+					GList *e = list;
+					while (e) {
+						fs_block_t *b = (fs_block_t *) e->data;
+
+						memcpy(buf, b->data, b->len);
+						buf += (ptrdiff_t) b->len;
+
+						e = e->next;
+					}
+
+					g_hash_table_insert(fs_state.loaded_files, *buffer,
+										(gpointer) Mem_CopyString(filename));
+				} else {
+					*buffer = NULL;
+				}
+			}
+
+			g_list_free_full(list, Mem_Free);
+		}
 		Fs_Close(file);
 	} else {
 		len = -1;

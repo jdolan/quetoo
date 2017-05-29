@@ -65,52 +65,42 @@ static void S_FreeMusic(s_media_t *self) {
 		sf_close(music->snd);
 	}
 
-	if (music->rw) {
-		SDL_RWclose(music->rw);
-	}
-
-	if (music->buffer) {
-		Fs_Free(music->buffer);
+	if (music->file) {
+		Fs_Close(music->file);
 	}
 }
 
 /**
  * @brief Handles the actual loading of .ogg music files.
  */
-static _Bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **file, SDL_RWops **rw, void **buffer) {
+static _Bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **snd, file_t **file) {
 	char path[MAX_QPATH];
 
-	*file = NULL;
+	*snd = NULL;
 
 	StripExtension(name, path);
 	g_snprintf(path, sizeof(path), "music/%s.ogg", name);
 
-	int64_t len;
-	if ((len = Fs_Load(path, buffer)) != -1) {
-
-		*rw = SDL_RWFromConstMem(*buffer, (int32_t) len);
+	if ((*file = Fs_OpenRead(path)) != NULL) {
 	
 		memset(info, 0, sizeof(*info));
 
-		*file = sf_open_virtual(&s_rwops_io, SFM_READ, info, *rw);
+		*snd = sf_open_virtual(&s_physfs_io, SFM_READ, info, *file);
 
-		if (!*file || sf_error(*file)) {
-			Com_Warn("%s\n", sf_strerror(*file));
+		if (!*snd || sf_error(*snd)) {
+			Com_Warn("%s\n", sf_strerror(*snd));
 
-			sf_close(*file);
+			sf_close(*snd);
 
-			SDL_FreeRW(*rw);
+			Fs_Close(*file);
 
-			Fs_Free(*buffer);
-
-			*file = NULL;
+			*snd = NULL;
 		}
-
 	} else {
 		Com_Debug(DEBUG_SOUND, "Failed to load %s\n", name);
 	}
 
-	return !!*file;
+	return !!*snd;
 }
 
 /**
@@ -133,13 +123,11 @@ s_music_t *S_LoadMusic(const char *name) {
 	StripExtension(name, key);
 
 	if (!(music = (s_music_t *) S_FindMedia(key))) {
-
 		SF_INFO info;
 		SNDFILE *snd;
-		SDL_RWops *rw;
-		void *buffer;
+		file_t *file;
 
-		if (S_LoadMusicFile(key, &info, &snd, &rw, &buffer)) {
+		if (S_LoadMusicFile(key, &info, &snd, &file)) {
 
 			music = (s_music_t *) S_AllocMedia(key, sizeof(s_music_t));
 
@@ -150,8 +138,7 @@ s_music_t *S_LoadMusic(const char *name) {
 			
 			music->info = info;
 			music->snd = snd;
-			music->rw = rw;
-			music->buffer = buffer;
+			music->file = file;
 
 			S_RegisterMedia((s_media_t *) music);
 		} else {
@@ -420,14 +407,14 @@ void S_InitMusic(void) {
 
 	memset(&s_music_state, 0, sizeof(s_music_state));
 	
-	s_music_buffer_count = Cvar_Add("s_music_buffer_count", "8", CVAR_S_MEDIA, "The number of buffers to store for music streaming.");
-	s_music_buffer_size = Cvar_Add("s_music_buffer_size", "16384", CVAR_S_MEDIA, "The size of each buffer for music streaming.");
+	s_music_buffer_count = Cvar_Add("s_music_buffer_count", "8", CVAR_ARCHIVE | CVAR_S_MEDIA, "The number of buffers to store for music streaming.");
+	s_music_buffer_size = Cvar_Add("s_music_buffer_size", "16384", CVAR_ARCHIVE | CVAR_S_MEDIA, "The size of each buffer for music streaming.");	
+	s_music_volume = Cvar_Add("s_music_volume", "0.15", CVAR_ARCHIVE, "Music volume level.");
 
 	s_music_state.raw_frame_buffer = Mem_TagMalloc(sizeof(vec_t) * s_music_buffer_size->value, MEM_TAG_SOUND);
 	s_music_state.frame_buffer = Mem_TagMalloc(sizeof(int16_t) * s_music_buffer_size->value, MEM_TAG_SOUND);
 	s_music_state.resample_frame_buffer = NULL;
-	
-	s_music_volume = Cvar_Add("s_music_volume", "0.15", CVAR_ARCHIVE, "Music volume level.");
+
 	Cmd_Add("s_next_track", S_NextTrack_f, CMD_SOUND, "Play the next music track.");
 
 	s_music_buffer_count->modified = 

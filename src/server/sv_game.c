@@ -238,13 +238,13 @@ static _Bool Sv_InPHS(const vec3_t p1, const vec3_t p2) {
 /**
  * @brief
  */
-static void Sv_Sound(const g_entity_t *ent, const uint16_t index, const uint16_t atten) {
+static void Sv_Sound(const g_entity_t *ent, const uint16_t index, const uint16_t atten, const int8_t pitch) {
 
 	if (!ent) {
 		return;
 	}
 
-	Sv_PositionedSound(NULL, ent, index, atten);
+	Sv_PositionedSound(NULL, ent, index, atten, pitch);
 }
 
 static void *ai_handle;

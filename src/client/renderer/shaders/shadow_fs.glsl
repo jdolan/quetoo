@@ -10,10 +10,9 @@ uniform vec4 LIGHT;
 uniform vec4 PLANE;
 uniform vec4 GLOBAL_COLOR;
 
-in vec4 point;
-
-#define FOG_NO_UNIFORM
-#include "fog_inc.glsl"
+in VertexData {
+	vec4 point;
+};
 
 out vec4 fragColor;
 
@@ -37,13 +36,6 @@ void ShadowFragment(void) {
 }
 
 /**
- * @brief
- */
-void FogFragment(void) {
-    fragColor.a = mix(fragColor.a, 0.0, fog);
-}
-
-/**
  * @brief Program entry point.
  */
 void main(void) {
@@ -51,7 +43,4 @@ void main(void) {
 	fragColor = GLOBAL_COLOR;
 
 	ShadowFragment();
-    
-    FogFragment();
 }
-

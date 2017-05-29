@@ -144,7 +144,7 @@ static void G_target_speaker_Use(g_entity_t *ent, g_entity_t *other, g_entity_t 
 			ent->s.sound = ent->locals.noise_index;
 		}
 	} else { // intermittent sound
-		gi.PositionedSound(ent->s.origin, ent, ent->locals.noise_index, ent->locals.attenuation);
+		gi.PositionedSound(ent->s.origin, ent, ent->locals.noise_index, ent->locals.attenuation, 0);
 	}
 }
 

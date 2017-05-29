@@ -47,6 +47,16 @@ struct ServerBrowserView {
 	 * @private
 	 */
 	ServerBrowserViewInterface *interface;
+
+	/**
+	 * @brief A copy of the client's servers list, for sorting, etc.
+	 */
+	GList *servers;
+
+	/**
+	 * @brief The TableView.
+	 */
+	TableView *serversTableView;
 };
 
 /**
@@ -67,6 +77,14 @@ struct ServerBrowserViewInterface {
 	 * @memberof ServerBrowserView
 	 */
 	ServerBrowserView *(*initWithFrame)(ServerBrowserView *self, const SDL_Rect *frame);
+
+	/**
+	 * @fn void ServerBrowserView::reloadServers(ServerBrowserView *self)
+	 * @brief Reloads the list of known servers.
+	 * @param self The ServerBrowserView.
+	 * @memberof ServerBrowserView
+	 */
+	void (*reloadServers)(ServerBrowserView *self);
 };
 
 /**

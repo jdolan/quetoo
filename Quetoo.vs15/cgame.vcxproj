@@ -70,7 +70,6 @@
     <ClInclude Include="..\src\cgame\default\views\PlayerModelView.h" />
     <ClInclude Include="..\src\cgame\default\views\PrimaryButton.h" />
     <ClInclude Include="..\src\cgame\default\views\PrimaryIcon.h" />
-    <ClInclude Include="..\src\cgame\default\views\ServersTableView.h" />
     <ClInclude Include="..\src\cgame\default\views\SkinSelect.h" />
     <ClInclude Include="..\src\cgame\default\views\VideoModeSelect.h" />
   </ItemGroup>
@@ -123,7 +122,6 @@
     <ClCompile Include="..\src\cgame\default\views\PlayerModelView.c" />
     <ClCompile Include="..\src\cgame\default\views\PrimaryButton.c" />
     <ClCompile Include="..\src\cgame\default\views\PrimaryIcon.c" />
-    <ClCompile Include="..\src\cgame\default\views\ServersTableView.c" />
     <ClCompile Include="..\src\cgame\default\views\SkinSelect.c" />
     <ClCompile Include="..\src\cgame\default\views\VideoModeSelect.c" />
   </ItemGroup>

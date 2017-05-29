@@ -3,10 +3,10 @@ IF [%2] == [] GOTO INVALID
 IF [%1] == [""] GOTO INVALID
 IF [%2] == [""] GOTO INVALID
 
-set quetoo_folder=%1
-set build_name=%2
+set quetoo_folder=%~1
+set build_name=%~2
 
-robocopy "bin/%build_name%/" "%quetoo_folder%/bin/" quemap* /E /NJH /NJS /FP /NP /V | findstr /v "*EXTRA File"
+call ROBO "bin/%build_name%/" "%quetoo_folder%/bin/" quemap*
 
 GOTO DONE
 

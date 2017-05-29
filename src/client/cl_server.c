@@ -107,7 +107,11 @@ void Cl_ParseServerInfo(void) {
 
 	server->ping = Clamp(quetoo.ticks - server->ping_time, 1u, 999u);
 
-	Ui_UpdateBindings();
+	SDL_PushEvent(&(SDL_Event) {
+		.user.type = SDL_USEREVENT,
+		.user.code = EVENT_SERVER_PARSED,
+		.user.data1 = server
+	});
 }
 
 /**
@@ -264,7 +268,10 @@ void Cl_ParseServers(void) {
 
 	// and inform the user interface
 
-	Ui_UpdateBindings();
+	SDL_PushEvent(&(SDL_Event) {
+		.user.type = SDL_USEREVENT,
+		.user.code = EVENT_SERVER_PARSED,
+	});
 }
 
 /**

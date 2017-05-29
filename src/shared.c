@@ -69,6 +69,20 @@ vec_t Randomc(void) {
 }
 
 /**
+ * @brief Returns a pseudo-random vec_t between min and max.
+ */
+vec_t Randomfr(const vec_t min, const vec_t max) {
+	return (Randomf() * (max - min)) + min;
+}
+
+/**
+ * @brief Returns a pseudo-random int32_t between min and max.
+ */
+int32_t Randomr(const int32_t min, const int32_t max) {
+	return (int32_t) Randomfr(min, max);
+}
+
+/**
  * @brief
  */
 void RotatePointAroundVector(const vec3_t point, const vec3_t dir, const vec_t degrees, vec3_t out) {

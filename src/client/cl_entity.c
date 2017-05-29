@@ -146,7 +146,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 		// before dealing with new entities, copy unchanged entities into the frame
 		while (from_number < number) {
 
-			if (cl_show_net_messages->integer == 3) {
+			if (cl_draw_net_messages->integer == 3) {
 				Com_Print("   unchanged: %i\n", from_number);
 			}
 
@@ -167,7 +167,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 
 		if (bits & U_REMOVE) { // remove it, no delta
 
-			if (cl_show_net_messages->integer == 3) {
+			if (cl_draw_net_messages->integer == 3) {
 				Com_Print("   remove: %i\n", number);
 			}
 
@@ -189,7 +189,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 
 		if (from_number == number) { // delta from previous state
 
-			if (cl_show_net_messages->integer == 3) {
+			if (cl_draw_net_messages->integer == 3) {
 				Com_Print("   delta: %i\n", number);
 			}
 
@@ -209,7 +209,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 
 		if (from_number > number) { // delta from baseline
 
-			if (cl_show_net_messages->integer == 3) {
+			if (cl_draw_net_messages->integer == 3) {
 				Com_Print("   baseline: %i\n", number);
 			}
 
@@ -222,7 +222,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 	// any remaining entities in the old frame are copied over
 	while (from_number != UINT16_MAX) { // one or more entities from the old packet are unchanged
 
-		if (cl_show_net_messages->integer == 3) {
+		if (cl_draw_net_messages->integer == 3) {
 			Com_Print("   unchanged: %i\n", from_number);
 		}
 
@@ -257,7 +257,7 @@ void Cl_ParseFrame(void) {
 
 	cl.suppress_count += Net_ReadByte(&net_message);
 
-	if (cl_show_net_messages->integer == 3) {
+	if (cl_draw_net_messages->integer == 3) {
 		Com_Print("   frame:%i  delta:%i\n", cl.frame.frame_num, cl.frame.delta_frame_num);
 	}
 

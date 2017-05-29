@@ -120,6 +120,12 @@
     <ClCompile Include="..\..\src\client\renderer\r_program_stain.c">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\client\renderer\r_program_particle.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\renderer\r_program_particle_corona.c">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\client\renderer\r_array.h">
@@ -242,6 +248,12 @@
     <ClInclude Include="..\..\src\client\renderer\r_program_stain.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\client\renderer\r_program_particle.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\renderer\r_program_particle_corona.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\client\renderer\shaders\default_fs.glsl">
@@ -293,6 +305,9 @@
       <Filter>src\shaders</Filter>
     </None>
     <None Include="..\..\src\client\renderer\shaders\stain_fs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\noise3d_inc.glsl">
       <Filter>src\shaders</Filter>
     </None>
   </ItemGroup>

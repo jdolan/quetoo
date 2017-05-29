@@ -103,6 +103,8 @@ extern const vec3_t vec3_forward;
 int32_t Random(void); // 0 to (2^32)-1
 vec_t Randomf(void); // 0.0 to 1.0
 vec_t Randomc(void); // -1.0 to 1.0
+vec_t Randomfr(const vec_t min, const vec_t max); // min to max
+int32_t Randomr(const int32_t min, const int32_t max); // min to max
 
 void ClearBounds(vec3_t mins, vec3_t maxs);
 void AddPointToBounds(const vec3_t v, vec3_t mins, vec3_t maxs);

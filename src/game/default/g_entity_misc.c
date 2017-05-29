@@ -214,7 +214,7 @@ static void G_misc_fireball_Fly(g_entity_t *self) {
 	gi.LinkEntity(ent);
 
 	if (Randomf() < 0.33) {
-		gi.Sound(ent, gi.SoundIndex(va("world/lava_%d", (count++ % 3) + 1)), ATTEN_IDLE);
+		gi.Sound(ent, gi.SoundIndex(va("world/lava_%d", (count++ % 3) + 1)), ATTEN_IDLE, 0);
 	}
 
 	self->locals.next_think = g_level.time + (self->locals.wait * 1000.0) + (self->locals.random * Randomc() * 1000);

@@ -124,13 +124,14 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 			}
 
 			sample->stereo = info.channels != 1;
+			sample->num_samples = count;
 
 			alGenBuffers(1, &sample->buffer);
 			S_CheckALError();
 
 			const ALenum format = info.channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
 			const ALsizei size = (ALsizei) count * sizeof(int16_t);
-			
+
 			alBufferData(sample->buffer, format, buffer, size, s_rate->integer);
 			S_CheckALError();
 		}

@@ -76,6 +76,7 @@ case "$host" in
 		;;
 	*-*-mingw*)
 		HOST_NAME="WINDOWS"
+		HOST_CFLAGS="-mfpmath=sse -msse2"
 		HOST_LIBS="-lws2_32 -lole32"
 		DEFAULT_PREFIX="/"
 		AC_MSG_RESULT(windows)
@@ -503,6 +504,7 @@ AC_CONFIG_FILES([
 	src/client/Makefile
 	src/client/renderer/Makefile
 	src/client/renderer/shaders/Makefile
+	src/client/renderer/shaders/include/Makefile
 	src/client/sound/Makefile
 	src/client/ui/Makefile
 	src/client/ui/renderers/Makefile

@@ -230,7 +230,7 @@ static void G_ClientGiblet_Touch(g_entity_t *self, g_entity_t *other,
 		if (speed > 40.0 && G_IsStructural(other, surf)) {
 
 			if (g_level.time - self->locals.touch_time > 200) {
-				gi.Sound(self, self->locals.noise_index, ATTEN_IDLE);
+				gi.Sound(self, self->locals.noise_index, ATTEN_IDLE, 0);
 				self->locals.touch_time = g_level.time;
 			}
 		}
@@ -303,7 +303,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 	const vec3_t mins[] = { { -6.0, -6.0, -6.0 }, { -6.0, -6.0, -6.0 }, { -4.0, -4.0, -4.0 }, { -8.0, -8.0, -8.0 } };
 	const vec3_t maxs[] = { { 6.0, 6.0, 6.0 }, { 6.0, 6.0, 6.0 }, { 4.0, 4.0, 4.0 }, { 8.0, 8.0, 8.0 } };
 
-	uint16_t i, count = 4 + Random() % 4;
+	uint16_t i, count = Randomr(4, 8);
 
 	for (i = 0; i < count; i++) {
 		int32_t gib_index;
@@ -313,7 +313,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 		} else if (i == 1 && !self->client) { // if we're not client, drop a head
 			gib_index = 2;
 		} else { // pick forearm/femur
-			gib_index = (Random() % (NUM_GIB_MODELS - 2));
+			gib_index = Randomr(0, NUM_GIB_MODELS - 2);
 		}
 
 		g_entity_t *ent = G_AllocEntity();
@@ -471,7 +471,7 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 	if (self->locals.health <= -CLIENT_CORPSE_HEALTH) {
 		G_ClientCorpse_Die(self, attacker, mod);
 	} else {
-		gi.Sound(self, gi.SoundIndex("*death_1"), ATTEN_NORM);
+		gi.Sound(self, gi.SoundIndex("*death_1"), ATTEN_NORM, 0);
 
 		const vec_t r = Randomf();
 		if (r < 0.33) {
@@ -750,10 +750,10 @@ static g_entity_t *G_SelectRandomSpawnPoint(const g_spawn_points_t *spawn_points
 			return G_SelectRandomSpawnPoint(&g_level.spawn_points);
 		}
 
-		return spawn_points->spots[Random() % spawn_points->count];
+		return spawn_points->spots[Randomr(0, spawn_points->count)];
 	}
 
-	return spawn_points->spots[empty_spawns[Random() % num_empty_spawns]];
+	return spawn_points->spots[empty_spawns[Randomr(0, num_empty_spawns)]];
 }
 
 /**
@@ -1551,7 +1551,7 @@ static void G_ClientInventoryThink(g_entity_t *ent) {
 			ent->client->locals.quad_damage_time = 0.0;
 			ent->client->locals.inventory[g_media.items.powerups[POWERUP_QUAD]->index] = 0;
 
-			gi.Sound(ent, g_media.sounds.quad_expire, ATTEN_NORM);
+			gi.Sound(ent, g_media.sounds.quad_expire, ATTEN_NORM, 0);
 
 			ent->s.effects &= ~EF_QUAD;
 		}

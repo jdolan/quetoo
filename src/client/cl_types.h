@@ -313,6 +313,14 @@ typedef struct {
 } cl_loading_t;
 
 /**
+ * Custom event codes for `SDL_USEREVENT`.
+ */
+typedef enum {
+	EVENT_NONE,
+	EVENT_SERVER_PARSED
+} cl_event_t;
+
+/**
  * @brief The cl_static_t structure is persistent for the execution of the
  * game. It is only cleared when Cl_Init is called. It is not exposed to the
  * client game module, but is (rarely) visible to other subsystems (renderer).

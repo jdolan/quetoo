@@ -39,46 +39,35 @@ typedef struct {
 
 static r_buffer_layout_t r_material_buffer_layout[] = {
 	{
-		.attribute = R_ARRAY_POSITION,
-		.type = R_ATTRIB_FLOAT,
-		.count = 3,
-		.size = sizeof(vec3_t)
+		.attribute = R_ATTRIB_POSITION,
+		.type = R_TYPE_FLOAT,
+		.count = 3
 	},
 	{
-		.attribute = R_ARRAY_COLOR,
-		.type = R_ATTRIB_UNSIGNED_BYTE,
+		.attribute = R_ATTRIB_COLOR,
+		.type = R_TYPE_UNSIGNED_BYTE,
 		.count = 4,
-		.size = sizeof(u8vec4_t),
-		.offset = 12,
 		.normalized = true
 	},
 	{
-		.attribute = R_ARRAY_NORMAL,
-		.type = R_ATTRIB_FLOAT,
-		.count = 3,
-		.size = sizeof(vec3_t),
-		.offset = 16
+		.attribute = R_ATTRIB_NORMAL,
+		.type = R_TYPE_FLOAT,
+		.count = 3
 	},
 	{
-		.attribute = R_ARRAY_TANGENT,
-		.type = R_ATTRIB_FLOAT,
-		.count = 4,
-		.size = sizeof(vec4_t),
-		.offset = 28
+		.attribute = R_ATTRIB_TANGENT,
+		.type = R_TYPE_FLOAT,
+		.count = 4
 	},
 	{
-		.attribute = R_ARRAY_DIFFUSE,
-		.type = R_ATTRIB_FLOAT,
+		.attribute = R_ATTRIB_DIFFUSE,
+		.type = R_TYPE_FLOAT,
+		.count = 2
+	},
+	{
+		.attribute = R_ATTRIB_LIGHTMAP,
+		.type = R_TYPE_UNSIGNED_SHORT,
 		.count = 2,
-		.size = sizeof(vec2_t),
-		.offset = 44
-	},
-	{
-		.attribute = R_ARRAY_LIGHTMAP,
-		.type = R_ATTRIB_UNSIGNED_SHORT,
-		.count = 2,
-		.size = sizeof(u16vec2_t),
-		.offset = 52,
 		.normalized = true
 	},
 	{
@@ -544,7 +533,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_ResetArrayState();
 
-	R_BindAttributeInterleaveBuffer(&r_material_state.vertex_buffer, R_ARRAY_MASK_ALL);
+	R_BindAttributeInterleaveBuffer(&r_material_state.vertex_buffer, R_ATTRIB_MASK_ALL);
 
 	R_EnableColorArray(false);
 
@@ -910,24 +899,40 @@ static void R_ResolveMaterialStages(r_material_t *material, cm_asset_context_t c
 }
 
 /**
- * @brief Loads the r_material_t from the specified texture.
+ * @brief Finds an existing r_material_t from the specified texture, and registers it again if it exists.
  */
-r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
-	cm_material_t *mat = Cm_AllocMaterial(name);
-
+r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context) {
 	char key[MAX_QPATH];
-	R_MaterialKey(mat->name, key, sizeof(key), context);
+	char mat_name[MAX_QPATH];
+	
+	StripExtension(name, mat_name);
+
+	R_MaterialKey(mat_name, key, sizeof(key), context);
 
 	r_material_t *material = (r_material_t *) R_FindMedia(key);
 
-	if (material == NULL) {
-		material = R_ResolveMaterial(mat, context);
-		R_ResolveMaterialStages(material, context);
-	} else {
-		Cm_FreeMaterial(mat);
+	if (material != NULL) {
+		R_RegisterMedia((r_media_t *) material);
 	}
 
-	R_RegisterMedia((r_media_t *) material);
+	return material;
+}
+
+/**
+ * @brief Loads the r_material_t from the specified texture.
+ */
+r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
+	r_material_t *material = R_FindMaterial(name, context);
+
+	if (material == NULL) {
+		cm_material_t *mat = Cm_AllocMaterial(name);
+
+		material = R_ResolveMaterial(mat, context);
+
+		R_ResolveMaterialStages(material, context);
+
+		R_RegisterMedia((r_media_t *) material);
+	}
 
 	return material;
 }
@@ -1015,10 +1020,6 @@ static void R_LoadMeshMaterials(r_model_t *mod, GList **materials) {
 
 		assert(materials);
 	}
-
-	if (*materials) {
-		mod->mesh->material = (r_material_t *) (*materials)->data;
-	}
 }
 
 /**
@@ -1031,8 +1032,7 @@ void R_LoadModelMaterials(r_model_t *mod) {
 		case MOD_BSP:
 			R_LoadBspMaterials(mod, &materials);
 			break;
-		case MOD_OBJ:
-		case MOD_MD3:
+		case MOD_MESH:
 			R_LoadMeshMaterials(mod, &materials);
 			break;
 		default:
@@ -1097,8 +1097,13 @@ void R_InitMaterials(void) {
 
 	r_material_state.vertex_array = g_array_sized_new(false, true, sizeof(r_material_interleave_vertex_t),
 	                                r_material_state.vertex_len);
-	R_CreateInterleaveBuffer(&r_material_state.vertex_buffer, sizeof(r_material_interleave_vertex_t),
-	                         r_material_buffer_layout, GL_DYNAMIC_DRAW, sizeof(r_material_interleave_vertex_t) * r_material_state.vertex_len, NULL);
+
+	R_CreateInterleaveBuffer(&r_material_state.vertex_buffer, &(const r_create_interleave_t) {
+		.struct_size = sizeof(r_material_interleave_vertex_t),
+		.layout = r_material_buffer_layout,
+		.hint = GL_DYNAMIC_DRAW,
+		.size = sizeof(r_material_interleave_vertex_t) * r_material_state.vertex_len
+	});
 
 	r_material_state.element_array = g_array_sized_new(false, false, sizeof(u16vec_t), r_material_state.element_len);
 
