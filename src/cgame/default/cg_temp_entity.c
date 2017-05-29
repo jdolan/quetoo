@@ -412,13 +412,13 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 			p->color_end[3] = 0.0;
 
 			p->scale_start = 22.0;
-			p->scale_end = 40.0;
+			p->scale_end = 48.0;
 
 			p->part.roll = Randomc() * 70.0;
 
 			VectorCopy(org, p->part.org);
 
-			VectorSet(p->vel, Randomc() * 80.0, Randomc() * 30.0, Randomc() * 70.0);
+			VectorSet(p->vel, Randomc() * 70.0, Randomc() * 70.0, Randomc() * 70.0);
 			VectorSet(p->accel, -p->vel[0] * 1.2, -p->vel[1] * 1.2, -p->vel[2] * 1.2);
 
 			p->accel[2] += PARTICLE_GRAVITY / Randomfr(5.0, 9.0);
