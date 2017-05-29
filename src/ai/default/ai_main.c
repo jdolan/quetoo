@@ -1059,7 +1059,7 @@ static void Ai_Init(void) {
 	sv_max_clients = aim.Cvar("sv_max_clients", 0, 0, "");
 
 	ai_passive = aim.Cvar("ai_passive", "0", 0, "Whether the bots will attack or not");
-	ai_name_prefix = aim.Cvar("ai_name_prefix", "^0[^1BOT^0] ^", 0, NULL);
+	ai_name_prefix = aim.Cvar("ai_name_prefix", "^0[^1BOT^0] ^7", 0, NULL);
 	ai_locals = (ai_locals_t *) aim.Malloc(sizeof(ai_locals_t) * sv_max_clients->integer, MEM_TAG_AI);
 
 	Ai_InitSkins();
