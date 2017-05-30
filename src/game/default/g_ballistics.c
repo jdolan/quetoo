@@ -819,7 +819,7 @@ static void G_LightningProjectile_Discharge(g_entity_t *self) {
  */
 static _Bool G_LightningProjectile_Expire(g_entity_t *self) {
 
-	if (self->locals.timestamp < g_level.time - 51) {
+	if (self->locals.timestamp < g_level.time - (g_balance_lightning_refire->integer + 1)) {
 		return true;
 	}
 

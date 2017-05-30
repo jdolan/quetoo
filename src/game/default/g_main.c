@@ -34,7 +34,18 @@ g_media_t g_media;
 cvar_t *g_admin_password;
 cvar_t *g_ammo_respawn_time;
 cvar_t *g_auto_join;
-cvar_t *g_inhibit;
+cvar_t *g_balance_bfg_prefire;
+cvar_t *g_balance_bfg_refire;
+cvar_t *g_balance_blaster_refire;
+cvar_t *g_balance_handgrenade_refire;
+cvar_t *g_balance_hyperblaster_refire;
+cvar_t *g_balance_lightning_refire;
+cvar_t *g_balance_machinegun_refire;
+cvar_t *g_balance_grenadelauncher_refire;
+cvar_t *g_balance_railgun_refire;
+cvar_t *g_balance_rocketlauncher_refire;
+cvar_t *g_balance_shotgun_refire;
+cvar_t *g_balance_supershotgun_refire;
 cvar_t *g_capture_limit;
 cvar_t *g_cheats;
 cvar_t *g_ctf;
@@ -1315,6 +1326,30 @@ void G_Init(void) {
 	g_ammo_respawn_time = gi.Cvar("g_ammo_respawn_time", "20.0", CVAR_SERVER_INFO, "Ammo respawn interval in seconds");
 	g_auto_join = gi.Cvar("g_auto_join", "1", CVAR_SERVER_INFO,
 	                      "Automatically assigns players to teams , ignored for duel mode");
+	g_balance_bfg_refire = gi.Cvar("g_balance_bfg_refire", "2000", CVAR_SERVER_INFO,
+				       "The refire delay on the BFG10K (in milliseconds).");
+	g_balance_bfg_prefire = gi.Cvar("g_balance_bfg_prefire", "1000", CVAR_SERVER_INFO,
+					"The prefire delay on the BFG10K (in milliseconds).");
+	g_balance_blaster_refire = gi.Cvar("g_balance_blaster_refire", "450", CVAR_SERVER_INFO,
+					   "The refire delay on the Blaster (in milliseconds).");
+	g_balance_handgrenade_refire = gi.Cvar("g_balance_handgrenade_refire", "2000", CVAR_SERVER_INFO,
+					       "The refire delay on the Hand Grenade (in milliseconds).");
+	g_balance_hyperblaster_refire = gi.Cvar("g_balance_hyperblaster_refire", "100", CVAR_SERVER_INFO,
+						"The refire delay on the Hyperblaster (in milliseconds).");
+	g_balance_lightning_refire = gi.Cvar("g_balance_lightning_refire", "50", CVAR_SERVER_INFO,
+					     "The refire delay on the Lightning Gun (in milliseconds).");
+	g_balance_machinegun_refire = gi.Cvar("g_balance_machinegun_refire", "100", CVAR_SERVER_INFO,
+					      "The refire delay on the Machinegun (in milliseconds).");
+	g_balance_grenadelauncher_refire = gi.Cvar("g_balance_grenadelauncher_refire", "1000", CVAR_SERVER_INFO,
+						   "The refire delay on the Grenadelauncher (in milliseconds).");
+	g_balance_railgun_refire = gi.Cvar("g_balance_railgun_refire", "1400", CVAR_SERVER_INFO,
+					   "The refire delay on the Railgun (in milliseconds).");
+	g_balance_rocketlauncher_refire = gi.Cvar("g_balance_rocketlauncher_refire", "1000", CVAR_SERVER_INFO,
+						  "The refire delay on the Rocket Launcher (in milliseconds).");
+	g_balance_shotgun_refire = gi.Cvar("g_balance_shotgun_refire", "750", CVAR_SERVER_INFO,
+					   "The refire delay on the Shotgun (in milliseconds).");
+	g_balance_supershotgun_refire = gi.Cvar("g_balance_supershotgun_refire", "850", CVAR_SERVER_INFO,
+						"The refire delay on the Super Shotgun (in milliseconds).");
 	g_capture_limit = gi.Cvar("g_capture_limit", "8", CVAR_SERVER_INFO, "The capture limit per level");
 	g_cheats = gi.Cvar("g_cheats", "0", CVAR_SERVER_INFO, NULL);
 	g_ctf = gi.Cvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay");
