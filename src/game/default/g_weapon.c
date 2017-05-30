@@ -799,7 +799,7 @@ void G_FireLightning(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_LightningProjectile(ent, org, forward, 12, 6);
+		G_LightningProjectile(ent, org, forward, 8, 7);
 
 		G_WeaponFired(ent, 100, ent->client->locals.weapon->quantity);
 	}
