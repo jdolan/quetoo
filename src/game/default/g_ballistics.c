@@ -819,7 +819,7 @@ static void G_LightningProjectile_Discharge(g_entity_t *self) {
  */
 static _Bool G_LightningProjectile_Expire(g_entity_t *self) {
 
-	if (self->locals.timestamp < g_level.time - 101) {
+	if (self->locals.timestamp < g_level.time - 51) {
 		return true;
 	}
 
@@ -829,6 +829,8 @@ static _Bool G_LightningProjectile_Expire(g_entity_t *self) {
 
 	return false;
 }
+
+#define LIGHTNING_LENGTH 600
 
 /**
  * @brief
@@ -858,7 +860,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		return;
 	}
 
-	VectorMA(start, 768.0, forward, end); // resolve end
+	VectorMA(start, LIGHTNING_LENGTH, forward, end); // resolve end
 	VectorMA(end, 2.0 * sin(g_level.time / 4.0), up, end);
 	VectorMA(end, 2.0 * Randomc(), right, end);
 
@@ -933,7 +935,7 @@ void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir
 			VectorCopy(ent->s.origin, projectile->s.origin);
 		}
 
-		VectorMA(start, 768.0, dir, projectile->s.termination);
+		VectorMA(start, LIGHTNING_LENGTH, dir, projectile->s.termination);
 
 		projectile->owner = ent;
 		projectile->solid = SOLID_NOT;
