@@ -1216,17 +1216,29 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
 		} else {
 
-			VectorNormalize(self->locals.velocity);
-			G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, vec3_origin, 5, 0, 0, MOD_HOOK);
-
 			gi.Sound(self, g_media.sounds.hook_gibhit, ATTEN_DEFAULT, (int8_t) (Randomc() * 4.0));
+
+			if (g_hook_auto_refire->integer) {
+
+				G_ClientHookThink(self->owner, true);
+			} else {
+
+				VectorNormalize(self->locals.velocity);
+
+				G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, vec3_origin, 5, 0, 0, MOD_HOOK);
+
+				G_ClientHookDetach(self->owner);
+			}
+		}
+	} else {
+
+		if (g_hook_auto_refire->integer) {
+
+			G_ClientHookThink(self->owner, true);
+		} else {
 
 			G_ClientHookDetach(self->owner);
 		}
-
-	} else {
-
-		G_ClientHookDetach(self->owner);
 	}
 }
 
@@ -1312,7 +1324,6 @@ static void G_HookProjectile_Think(g_entity_t *ent) {
  * @brief
  */
 g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir) {
-
 	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;
 

@@ -42,6 +42,6 @@ void G_FireLightning(g_entity_t *ent);
 void G_FireRailgun(g_entity_t *ent);
 void G_FireBfg(g_entity_t *ent);
 void G_ClientWeaponThink(g_entity_t *ent);
-void G_ClientHookThink(g_entity_t *ent);
 void G_ClientHookDetach(g_entity_t *ent);
+void G_ClientHookThink(g_entity_t *ent, const _Bool refire);
 #endif /* __GAME_LOCAL_H__ */

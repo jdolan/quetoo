@@ -421,7 +421,7 @@ void G_ClientHookDetach(g_entity_t *ent) {
 
 	// prevent hook spam
 	if (!ent->client->locals.hook_pull) {
-		ent->client->locals.hook_fire_time = g_level.time + 250;
+		ent->client->locals.hook_fire_time = g_level.time + g_hook_refire->integer;
 	} else {
 		// don't get hurt from sweet-ass hooking
 		ent->client->locals.land_time = g_level.time;
@@ -447,19 +447,25 @@ void G_ClientHookDetach(g_entity_t *ent) {
 /**
  * @brief Handles the firing of the hook.
  */
-static void G_ClientHookCheckFire(g_entity_t *ent) {
+static void G_ClientHookCheckFire(g_entity_t *ent, const _Bool refire) {
 
 	// hook can fire, see if we should
-	if (!(ent->client->locals.latched_buttons & BUTTON_HOOK)) {
+	if (!refire && !(ent->client->locals.latched_buttons & BUTTON_HOOK)) {
 		return;
 	}
 
-	// use small epsilon for low server frame rates
-	if (ent->client->locals.hook_fire_time > g_level.time + 1) {
-		return;
-	}
+	if (!refire) {
 
-	ent->client->locals.latched_buttons &= ~BUTTON_HOOK;
+		// use small epsilon for low server frame rates
+		if (ent->client->locals.hook_fire_time > g_level.time + 1) {
+			return;
+		}
+
+		ent->client->locals.latched_buttons &= ~BUTTON_HOOK;
+	} else {
+
+		G_ClientHookDetach(ent);
+	}
 
 	// fire away!
 	vec3_t forward, right, up, org;
@@ -475,7 +481,7 @@ static void G_ClientHookCheckFire(g_entity_t *ent) {
 /**
  * @brief Handles management of the hook for a given player.
  */
-void G_ClientHookThink(g_entity_t *ent) {
+void G_ClientHookThink(g_entity_t *ent, const _Bool refire) {
 
 	// sanity checks
 	if (!g_level.hook_allowed) {
@@ -491,6 +497,14 @@ void G_ClientHookThink(g_entity_t *ent) {
 	}
 
 	// send off to the proper sub-function
+
+	if (refire) {
+
+		G_ClientHookCheckFire(ent, true);
+
+		return;
+	}
+
 	if (ent->client->locals.hook_entity) {
 
 		if ((ent->client->locals.persistent.hook_style == HOOK_PULL && !(ent->client->locals.buttons & BUTTON_HOOK)) ||
@@ -502,7 +516,7 @@ void G_ClientHookThink(g_entity_t *ent) {
 		}
 	} else {
 
-		G_ClientHookCheckFire(ent);
+		G_ClientHookCheckFire(ent, false);
 	}
 }
 

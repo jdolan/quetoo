@@ -1613,7 +1613,7 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 
 		// process hook buttons
 		if (cl->locals.hook_think_time < g_level.time) {
-			G_ClientHookThink(ent);
+			G_ClientHookThink(ent, false);
 		}
 
 		G_ClientMove(ent, cmd);
@@ -1677,7 +1677,7 @@ void G_ClientBeginFrame(g_entity_t *ent) {
 	}
 
 	if (cl->locals.hook_think_time < g_level.time) {
-		G_ClientHookThink(ent);
+		G_ClientHookThink(ent, false);
 	}
 
 	if (ent->locals.dead) {
