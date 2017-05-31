@@ -250,6 +250,9 @@ typedef enum {
 #define QUETOO_TICK_SECONDS	(1.0 / QUETOO_TICK_RATE)
 #define QUETOO_TICK_MILLIS	(1000 / QUETOO_TICK_RATE)
 
+#define QUETOO_TO_MILLIS(t)	(t * 1000)
+#define QUETOO_TO_SECONDS(t)	(t / 1000)
+
 /**
  * @brief Autocomplete function definition. You must fill "matches"
  * with any results that match the state of the current input buffer.
@@ -574,12 +577,12 @@ typedef enum {
 	ANIM_LEGS_IDLECR,
 
 	ANIM_LEGS_TURN,
-	
+
 	/**
 	 * @brief Masks out the bits and only keeps the animation value
 	 */
 	ANIM_MASK_VALUE = (1 << 6) - 1,
-	
+
 	/**
 	 * @brief Play the animation backwards.
 	 */
