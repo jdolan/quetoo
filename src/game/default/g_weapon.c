@@ -560,7 +560,7 @@ void G_FireShotgun(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_ShotgunProjectiles(ent, org, forward, 7, 2, 800, 400, 10, MOD_SHOTGUN);
+		G_ShotgunProjectiles(ent, org, forward, 5, 2, 700, 700, 13, MOD_SHOTGUN);
 
 		G_MuzzleFlash(ent, MZ_SHOTGUN);
 
@@ -580,13 +580,13 @@ void G_FireSuperShotgun(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_ShotgunProjectiles(ent, org, forward, 5, 2, 1600, 800, 12, MOD_SUPER_SHOTGUN);
+		G_ShotgunProjectiles(ent, org, forward, 5, 2, 2000, 1200, 13, MOD_SUPER_SHOTGUN);
 
 		ent->client->locals.angles[YAW] += 8.0;
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_ShotgunProjectiles(ent, org, forward, 5, 2, 1600, 800, 12, MOD_SUPER_SHOTGUN);
+		G_ShotgunProjectiles(ent, org, forward, 5, 2, 2000, 1200, 13, MOD_SUPER_SHOTGUN);
 
 		ent->client->locals.angles[YAW] -= 4.0;
 
@@ -606,7 +606,7 @@ void G_FireMachinegun(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_BulletProjectile(ent, org, forward, 8, 4, 550, 200, MOD_MACHINEGUN);
+		G_BulletProjectile(ent, org, forward, 7, 3, 550, 200, MOD_MACHINEGUN);
 
 		G_MuzzleFlash(ent, MZ_MACHINEGUN);
 
@@ -795,7 +795,7 @@ void G_FireHyperblaster(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_HyperblasterProjectile(ent, org, forward, 1800, 16, 4);
+		G_HyperblasterProjectile(ent, org, forward, 1800, 14, 4);
 
 		G_MuzzleFlash(ent, MZ_HYPERBLASTER);
 
