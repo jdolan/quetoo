@@ -1246,9 +1246,12 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 		handicap = 100;
 	}
 
-	handicap = Clamp(handicap, 50, 100);
+	cl->locals.persistent.handicap_next = Clamp(handicap, 50, 100);
 
-	cl->locals.persistent.handicap_next = handicap;
+	// autoswitch
+	uint16_t autoswitch = strtoul(GetUserInfo(user_info, "autoswitch"), NULL, 10);
+
+	cl->locals.persistent.autoswitch = autoswitch;
 
 	// hook style
 	G_SetClientHookStyle(ent);

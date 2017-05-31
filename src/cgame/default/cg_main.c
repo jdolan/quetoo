@@ -34,6 +34,7 @@ cvar_t *cg_add_emits;
 cvar_t *cg_add_entities;
 cvar_t *cg_add_particles;
 cvar_t *cg_add_weather;
+cvar_t *cg_autoswitch;
 cvar_t *cg_bob;
 cvar_t *cg_color;
 cvar_t *cg_tint_r; // shirt
@@ -118,6 +119,9 @@ static void Cg_Init(void) {
 	                            "Toggles adding particles to the scene.");
 	cg_add_weather = cgi.Cvar("cg_add_weather", "1", CVAR_ARCHIVE,
 	                          "Control the intensity of atmospheric effects.");
+
+	cg_autoswitch = cgi.Cvar("autoswitch", "1", CVAR_USER_INFO | CVAR_ARCHIVE,
+				 "The weapon pickup autoswitch method. 0 disables, 1 autoswitches from Blaster only, 2 always switches.");
 
 	cg_bob = cgi.Cvar("cg_bob", "1.0", CVAR_ARCHIVE, "Controls weapon bobbing effect.");
 

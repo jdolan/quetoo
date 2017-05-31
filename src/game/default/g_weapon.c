@@ -92,8 +92,14 @@ _Bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other) {
 		G_SetItemRespawn(ent, g_weapon_respawn_time->value * 1000);
 	}
 
-	// auto-change if it's the first weapon we pick up
-	if (other->client->locals.weapon == g_media.items.weapons[WEAPON_BLASTER]) {
+	// auto-switch the weapon if applicable
+	const uint16_t autoswitch = other->client->locals.persistent.autoswitch;
+
+	if (autoswitch == 1) { // switch from blaster
+		if (other->client->locals.weapon == g_media.items.weapons[WEAPON_BLASTER]) {
+			G_ChangeWeapon(other, ent->locals.item);
+		}
+	} else if (autoswitch == 2) { // switch to all
 		G_ChangeWeapon(other, ent->locals.item);
 	}
 
