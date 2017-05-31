@@ -41,7 +41,7 @@ static void saveAction(Control *control, const SDL_Event *event, ident sender, i
  */
 static void didSetValue(Slider *slider) {
 
-	EditorViewController *this = (EditorViewController *) slider;
+	EditorViewController *this = (EditorViewController *) slider->delegate.self;
 	EditorView *view = (EditorView *) this->viewController.view;
 
 	if (!view->material) {
