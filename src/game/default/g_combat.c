@@ -251,6 +251,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 				mod |= MOD_FRIENDLY_FIRE;
 			} else { // while everything else can
 				if (g_friendly_fire->value) {
+					damage *= g_friendly_fire->value;
 					mod |= MOD_FRIENDLY_FIRE;
 				} else {
 					damage = 0;
@@ -267,6 +268,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 				damage = 0;
 				break;
 			default:
+				damage *= g_self_damage->value;
 				break;
 		}
 	}

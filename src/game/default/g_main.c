@@ -75,9 +75,10 @@ cvar_t *g_random_map;
 cvar_t *g_respawn_protection;
 cvar_t *g_round_limit;
 cvar_t *g_rounds;
+cvar_t *g_self_damage;
+cvar_t *g_show_attacker_stats;
 cvar_t *g_spawn_farthest;
 cvar_t *g_spectator_chat;
-cvar_t *g_show_attacker_stats;
 cvar_t *g_teams;
 cvar_t *g_time_limit;
 cvar_t *g_timeout_time;
@@ -971,8 +972,19 @@ static void G_CheckRules(void) {
 	if (g_friendly_fire->modified) {
 		g_friendly_fire->modified = false;
 
-		gi.BroadcastPrint(PRINT_HIGH, "Friendly fire has been changed to %i\n",
-		                  g_friendly_fire->integer);
+		gi.CvarSetValue(g_friendly_fire->name, Clamp(g_friendly_fire->value, 0.0, 2.0));
+
+		gi.BroadcastPrint(PRINT_HIGH, "Friendly fire has been changed to %f\n",
+		                  g_friendly_fire->value);
+	}
+
+	if (g_self_damage->modified) {
+		g_self_damage->modified = false;
+
+		gi.CvarSetValue(g_self_damage->name, Clamp(g_self_damage->value, 0.0, 2.0));
+
+		gi.BroadcastPrint(PRINT_HIGH, "Self damage has been changed to %f\n",
+		                  g_self_damage->value);
 	}
 
 	if (g_hook_pull_speed->modified) {
@@ -1355,7 +1367,7 @@ void G_Init(void) {
 	g_hook_pull_speed = gi.Cvar("g_hook_pull_speed", "800", CVAR_SERVER_INFO,
 	                            "The speed that you get pulled towards the hook.");
 	g_frag_limit = gi.Cvar("g_frag_limit", "30", CVAR_SERVER_INFO, "The frag limit per level");
-	g_friendly_fire = gi.Cvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Enables friendly fire");
+	g_friendly_fire = gi.Cvar("g_friendly_fire", "1.0", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to teammates.");
 	g_force_demo = gi.Cvar("g_force_demo", "0", CVAR_SERVER_INFO, "Force all players to record a demo");
 	g_force_screenshot = gi.Cvar("g_force_screenshot", "0", CVAR_SERVER_INFO, "Force all players to take a screenshot");
 	g_gameplay = gi.Cvar("g_gameplay", "default", CVAR_SERVER_INFO, "Selects deathmatch, duel, arena, or instagib combat");
@@ -1374,6 +1386,7 @@ void G_Init(void) {
 	g_respawn_protection = gi.Cvar("g_respawn_protection", "0.0", 0, "Respawn protection in seconds");
 	g_round_limit = gi.Cvar("g_round_limit", "30", CVAR_SERVER_INFO, "The number of rounds to run per level");
 	g_rounds = gi.Cvar("g_rounds", "0", CVAR_SERVER_INFO, "Enables rounds-based play, where last player standing wins");
+	g_self_damage = gi.Cvar("g_self_damage", "1.0", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to yourself.");
 	g_show_attacker_stats = gi.Cvar("g_show_attacker_stats", "1", CVAR_SERVER_INFO, NULL);
 	g_spawn_farthest = gi.Cvar("g_spawn_farthest", "0", CVAR_SERVER_INFO, NULL);
 	g_spectator_chat = gi.Cvar("g_spectator_chat", "1", CVAR_SERVER_INFO,
