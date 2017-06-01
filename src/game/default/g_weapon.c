@@ -795,7 +795,7 @@ void G_FireHyperblaster(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_HyperblasterProjectile(ent, org, forward, 1800, 14, 4);
+		G_HyperblasterProjectile(ent, org, forward, 1800, 14, 7);
 
 		G_MuzzleFlash(ent, MZ_HYPERBLASTER);
 

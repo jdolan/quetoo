@@ -718,9 +718,9 @@ static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 				vec3_t v;
 				VectorSubtract(self->s.origin, self->owner->s.origin, v);
 
-				if (VectorLength(v) < 32.0) { // hyperblaster climb
+				if (VectorLength(v) < 32.0) { // hyperblaster climbing
 					G_Damage(self->owner, self, self->owner, NULL, self->s.origin, plane->normal,
-					         3, 0, DMG_ENERGY, MOD_HYPERBLASTER);
+					        3, 0, DMG_ENERGY, MOD_HYPERBLASTER_CLIMB);
 
 					self->owner->locals.velocity[2] += 68.0;
 				}
@@ -766,9 +766,10 @@ void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t 
 	projectile->locals.clip_mask = MASK_CLIP_PROJECTILE;
 	projectile->locals.damage = damage;
 	projectile->locals.knockback = knockback;
+	projectile->locals.ripple_size = 22.0;
 	projectile->locals.move_type = MOVE_TYPE_FLY;
-	projectile->locals.Think = G_FreeEntity;
 	projectile->locals.next_think = g_level.time + 6000;
+	projectile->locals.Think = G_FreeEntity;
 	projectile->locals.Touch = G_HyperblasterProjectile_Touch;
 	projectile->s.trail = TRAIL_HYPERBLASTER;
 

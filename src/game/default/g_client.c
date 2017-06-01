@@ -156,6 +156,9 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 				case MOD_ROCKET_SPLASH:
 					msg = "%s blew up";
 					break;
+				case MOD_HYPERBLASTER_CLIMB:
+					msg = "%s forgot how to climb";
+					break;
 				case MOD_LIGHTNING_DISCHARGE:
 					msg = "%s took a toaster bath";
 					break;
