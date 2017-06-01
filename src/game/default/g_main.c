@@ -1387,19 +1387,20 @@ void G_Init(void) {
 	g_round_limit = gi.Cvar("g_round_limit", "30", CVAR_SERVER_INFO, "The number of rounds to run per level");
 	g_rounds = gi.Cvar("g_rounds", "0", CVAR_SERVER_INFO, "Enables rounds-based play, where last player standing wins");
 	g_self_damage = gi.Cvar("g_self_damage", "1.0", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to yourself.");
-	g_show_attacker_stats = gi.Cvar("g_show_attacker_stats", "1", CVAR_SERVER_INFO, NULL);
+	g_show_attacker_stats = gi.Cvar("g_show_attacker_stats", "0", CVAR_SERVER_INFO,
+					"If players can see their attackers' health and armor when they die.");
 	g_spawn_farthest = gi.Cvar("g_spawn_farthest", "0", CVAR_SERVER_INFO, NULL);
 	g_spectator_chat = gi.Cvar("g_spectator_chat", "1", CVAR_SERVER_INFO,
-	                           "If enabled, spectators can only talk to other spectators");
-	g_teams = gi.Cvar("g_teams", "0", CVAR_SERVER_INFO, "Enables teams-based play");
+	                           "If enabled, spectators can only talk to other spectators.");
+	g_teams = gi.Cvar("g_teams", "0", CVAR_SERVER_INFO, "Enables teams-based play.");
 	g_techs = gi.Cvar("g_techs", "default", CVAR_SERVER_INFO,
 	                 "Whether to allow techs or not. \"default\" only allows techs in CTF; 1 is always allow, 0 is never allow.");
-	g_time_limit = gi.Cvar("g_time_limit", "20.0", CVAR_SERVER_INFO, "The time limit per level in minutes");
-	g_timeout_time = gi.Cvar("g_timeout_time", "120", CVAR_SERVER_INFO, "Length in seconds of a timeout, 0 = disabled");
-	g_voting = gi.Cvar("g_voting", "1", CVAR_SERVER_INFO, "Activates voting");
-	g_warmup_time = gi.Cvar("g_warmup_time", "15", CVAR_SERVER_INFO, "Match warmup countdown in seconds, up to 30");
-	g_weapon_respawn_time = gi.Cvar("g_weapon_respawn_time", "5.0", CVAR_SERVER_INFO, "Weapon respawn interval in seconds");
-	g_weapon_stay = gi.Cvar("g_weapon_stay", "0", CVAR_SERVER_INFO, "Controls whether weapons will respawn like normal or always stay");
+	g_time_limit = gi.Cvar("g_time_limit", "20.0", CVAR_SERVER_INFO, "The time limit per level in minutes.");
+	g_timeout_time = gi.Cvar("g_timeout_time", "120", CVAR_SERVER_INFO, "Length in seconds of a timeout, 0 = disabled.");
+	g_voting = gi.Cvar("g_voting", "1", CVAR_SERVER_INFO, "Enables voting.");
+	g_warmup_time = gi.Cvar("g_warmup_time", "15", CVAR_SERVER_INFO, "Match warmup countdown in seconds, up to 30.");
+	g_weapon_respawn_time = gi.Cvar("g_weapon_respawn_time", "5.0", CVAR_SERVER_INFO, "Weapon respawn interval in seconds.");
+	g_weapon_stay = gi.Cvar("g_weapon_stay", "0", CVAR_SERVER_INFO, "Controls whether weapons will respawn like normal or always stay.");
 
 	sv_max_clients = gi.Cvar("sv_max_clients", "1", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 	sv_hostname = gi.Cvar("sv_hostname", "Quetoo", CVAR_SERVER_INFO, NULL);
