@@ -187,10 +187,11 @@ void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, 
  */
 void Sys_Backtrace(const char *msg) {
 
+	char message[MAX_STRING_CHARS] = "";
+
 #if HAVE_EXECINFO
 
 	void *symbols[MAX_BACKTRACE_SYMBOLS];
-
 	const int32_t count = backtrace(symbols, MAX_BACKTRACE_SYMBOLS);
 
 	if (!Com_WasInit(QUETOO_CLIENT)) {
@@ -200,7 +201,6 @@ void Sys_Backtrace(const char *msg) {
 
 	char **strings = backtrace_symbols(symbols, count);
 
-	char message[MAX_STRING_CHARS] = "";
 	for (int32_t i = 0; i < count; i++) {
 		g_strlcat(message, strings[i], sizeof(message));
 		g_strlcat(message, "\n", sizeof(message));
@@ -208,45 +208,26 @@ void Sys_Backtrace(const char *msg) {
 
 	free(strings);
 
-	const SDL_MessageBoxButtonData buttons[] = {};
+#else
 
-#elif defined(__MINGW32__)
-
-	char *message = "Quetoo encountered a fatal error.";
-	const SDL_MessageBoxButtonData buttons[] = {};
-
-#elif defined(_MSC_VER)
-
-	char *message = va("%s\n\nGenerate crash dump?", msg);
-
-	const SDL_MessageBoxButtonData buttons[] = {
-		{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 0, "No" },
-		{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, "Yes" }
-	};
+	if (!Com_WasInit(QUETOO_CLIENT)) {
+		return;
+	}
 
 #endif
 
 	const SDL_MessageBoxData data = {
 		.flags = SDL_MESSAGEBOX_ERROR,
-		.window = NULL,
 		.title = msg ?: "Fatal Error",
 		.message = message,
-		.numbuttons = lengthof(buttons),
-		.buttons = buttons,
-		.colorScheme = NULL
 	};
 
 	int32_t button;
-	if (SDL_ShowMessageBox(&data, &button) < 0) {
-		SDL_Log("Error displaying message box");
-		return;
-	}
+	SDL_ShowMessageBox(&data, &button);
 
 #if defined(_MSC_VER)
 
-	if (button == 1) {
-		RaiseException(EXCEPTION_NONCONTINUABLE_EXCEPTION, EXCEPTION_NONCONTINUABLE, 0, NULL);
-	}
+	RaiseException(EXCEPTION_NONCONTINUABLE_EXCEPTION, EXCEPTION_NONCONTINUABLE, 0, NULL);
 
 #endif
 }

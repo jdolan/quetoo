@@ -147,7 +147,7 @@ static void Ai_GetUserInfo(const g_entity_t *self, char *userinfo) {
 	SetUserInfo(userinfo, "hand", va("%i", Randomr(0, 3)));
 
 	if (ai_name_suffix == 0) {
-		SetUserInfo(userinfo, "name", va("%s%s %i", ai_name_prefix->string, ai_names[ai_name_index], ai_name_suffix + 1));
+		SetUserInfo(userinfo, "name", va("%s%s", ai_name_prefix->string, ai_names[ai_name_index]));
 	} else {
 		SetUserInfo(userinfo, "name", va("%s%s %i",
 			ai_name_prefix->string, ai_names[ai_name_index], ai_name_suffix + 1));

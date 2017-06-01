@@ -1,4 +1,10 @@
+/**
+ * @brief Particle geometry shader.
+ */
+
 #version 330
+
+#define GEOMETRY_SHADER
 
 // the number of vertices for both ends of a wire.
 #define CYLINDER_VERT_COUNT 16
@@ -133,7 +139,7 @@ void main(void) {
 			vec3 dir = ((right * -c) + (up * s)) * in_data[0].scale;
 			float st_l = st0.y + st_step;
 			float st_r = st0.y + (st_step + st_stepsize);
-			
+
 			// end point
 			gl_Position = MVP * vec4(in_data[0].end + dir, 1.0);
 			out_data.texcoord = st3;

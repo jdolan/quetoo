@@ -86,7 +86,7 @@ static void applyAction(Control *control, const SDL_Event *event, ident sender, 
 				Cgui_Input((View *) stackView, "Window mode", (Control *) fullscreenSelect);
 				release(fullscreenSelect);
 
-				Cgui_CvarCheckboxInput((View *) stackView, "Vertical sync", "r_swap_interval");
+				Cgui_CvarCheckboxInput((View *) stackView, "Vertical sync", "r_vsync");
 
 				Cgui_CvarSliderInput((View *) stackView, "Maximum FPS", "cl_max_fps", 0.0, 200.0, 10.0);
 

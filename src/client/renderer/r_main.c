@@ -77,8 +77,8 @@ cvar_t *r_shell;
 cvar_t *r_specular;
 cvar_t *r_stainmap;
 cvar_t *r_supersample;
-cvar_t *r_swap_interval;
 cvar_t *r_texture_mode;
+cvar_t *r_vsync;
 cvar_t *r_warp;
 cvar_t *r_width;
 cvar_t *r_windowed_height;
@@ -532,8 +532,8 @@ static void R_InitLocal(void) {
 	                      "Controls the specularity of bump-mapping effects");
 	r_stainmap = Cvar_Add("r_stainmap", "1.0", CVAR_ARCHIVE,
 	                      "Controls the stain mapping effects.");
-	r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT,
-	                           "Controls vertical refresh synchronization (v-sync)");
+	r_vsync = Cvar_Add("r_vsync", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT,
+	                           "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
 	r_texture_mode = Cvar_Add("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR",
 	                          CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies the active texture filtering mode");
 	r_warp = Cvar_Add("r_warp", "1", CVAR_ARCHIVE, "Controls warping surface effects (e.g. water)");
