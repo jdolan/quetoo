@@ -55,9 +55,9 @@ struct MainViewController {
 	MainViewControllerInterface *interface;
 
 	/*
-	 * @brief The menu background image.
+	 * @brief The menu background images; logo and wallpaper
 	 */
-	ImageView *backgroundImage;
+	View *decorationView;
 
 	/*
 	 * @brief The Quetoo logo.
@@ -68,6 +68,16 @@ struct MainViewController {
 	 * @brief The notification dialog.
 	 */
 	DialogView *dialog;
+
+	/*
+	 * @brief The bottom button bar.
+	 */
+	View *bottomBar;
+
+	/*
+	 * @brief The client's state.
+	 */
+	cl_state_t state;
 };
 
 /**
