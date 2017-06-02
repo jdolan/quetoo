@@ -326,15 +326,11 @@ static _Bool Cg_ParseMessage(int32_t cmd) {
 /**
  * @brief
  */
-static void Cg_UpdateScreen(const cl_frame_t *frame, const cl_state_t state) {
+static void Cg_UpdateScreen(const cl_frame_t *frame) {
 
-	if (state == CL_ACTIVE) {
-		Cg_DrawHud(&frame->ps);
+	Cg_DrawHud(&frame->ps);
 
-		Cg_DrawScores(&frame->ps);
-	}
-
-	Cgui_Update(state);
+	Cg_DrawScores(&frame->ps);
 }
 
 /**
@@ -452,6 +448,7 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.UpdateLoading = Cgui_UpdateLoading;
 	cge.UpdateView = Cg_UpdateView;
 	cge.UpdateScreen = Cg_UpdateScreen;
+	cge.UpdateUi = Cgui_Update;
 	cge.DialogQuestion = Cgui_DialogQuestion;
 
 	return &cge;

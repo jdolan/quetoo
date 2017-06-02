@@ -58,7 +58,7 @@ void Cgui_Update(const cl_state_t state) {
 
 	mainViewController->state = state;
 
-	$((ViewController *) mainViewController, viewWillAppear); // FIXME: this could be a method of MainViewController?
+	$((ViewController *) mainViewController, viewWillAppear); // FIXME: should this be a method of MainViewController?
 }
 
 /**

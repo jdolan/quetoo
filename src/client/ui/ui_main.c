@@ -71,10 +71,6 @@ void Ui_Draw(void) {
 
 	Ui_CheckEditor();
 
-	if (cls.state != CL_LOADING && cls.key_state.dest != KEY_UI) {
-		return;
-	}
-
 	// backup all of the matrices
 	for (r_matrix_id_t matrix = R_MATRIX_PROJECTION; matrix < R_MATRIX_TOTAL; ++matrix) {
 		R_PushMatrix(matrix);
