@@ -87,7 +87,7 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 	}
 
 	VectorCopy(org, ch->position);
-	VectorMA(ch->position, S_GET_Z_ORIGIN_OFFSET(ch->play.attenuation) * 4.0, vec3_up, ch->position);
+//  	VectorMA(ch->position, S_GET_Z_ORIGIN_OFFSET(ch->play.attenuation) * 4.0, vec3_up, ch->position);
 
 	VectorSubtract(org, r_view.origin, delta);
 
