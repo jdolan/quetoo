@@ -45,7 +45,7 @@ static void Cl_DrawConsole_Background(void) {
 
 		const vec_t x_scale = r_context.width / (vec_t) image->width;
 		const vec_t y_scale = r_context.height / (vec_t) image->height;
-		
+
 		const vec_t scale = Max(x_scale, y_scale);
 		r_pixel_t ch;
 
@@ -195,12 +195,16 @@ void Cl_DrawChat(void) {
 	r_pixel_t x = 1, y = r_view.viewport.y + r_view.viewport.h * 0.66;
 
 	cl_chat_console.width = r_context.width / cw / 3;
-	cl_chat_console.height = Clamp(cl_chat_lines->integer, 0, 8);
+	cl_chat_console.height = Clamp(cl_chat_lines->integer, 0, 16);
 
 	if (cl_draw_chat->value && cl_chat_console.height) {
 
 		if (quetoo.ticks > cl_chat_time->value * 1000) {
 			cl_chat_console.whence = quetoo.ticks - cl_chat_time->value * 1000;
+		}
+
+		if (cls.key_state.dest == KEY_CHAT) { // Show chat history while typing
+			cl_chat_console.whence = 0;
 		}
 
 		char *lines[cl_chat_console.height];
