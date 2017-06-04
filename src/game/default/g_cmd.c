@@ -1258,7 +1258,7 @@ static void G_Spectate_f(g_entity_t *ent) {
 		if (g_level.gameplay == GAME_DEATHMATCH || g_level.gameplay == GAME_DUEL) {
 			G_TossQuadDamage(ent);
 		}
-		
+
 		G_TossFlag(ent);
 		G_TossTech(ent);
 		G_ClientHookDetach(ent);
