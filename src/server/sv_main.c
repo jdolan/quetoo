@@ -614,7 +614,7 @@ static void Sv_CheckTimeouts(void) {
 		}
 
 		if (cl->last_message < whence) {
-			Sv_BroadcastPrint(PRINT_MEDIUM, "%s timed out\n", cl->name);
+			Sv_BroadcastPrint(PRINT_CHAT, "^7%s ^4timed out\n", cl->name);
 			Sv_DropClient(cl);
 		}
 	}

@@ -399,7 +399,7 @@ void Con_WriteHistory(const console_t *console, file_t *file) {
 void Con_AutocompleteInput_f(const uint32_t argi, GList **matches) {
 	const char *partial = Cmd_Argv(argi);
 	char pattern[strlen(partial) + 3];
-	
+
 	g_snprintf(pattern, sizeof(pattern), "*%s*", partial);
 
 	Cmd_CompleteCommand(pattern, matches);
@@ -448,7 +448,7 @@ static void Con_PrintMatches(const console_t *console, GList *matches) {
 
 	// simple path
 	if (per_row == 1 || (!all_simple && num_rows == 1)) {
-		
+
 		for (const GList *m = matches; m; m = m->next) {
 			const com_autocomplete_match_t *match = (const com_autocomplete_match_t *) m->data;
 			const char *str = (match->description ?: match->name);

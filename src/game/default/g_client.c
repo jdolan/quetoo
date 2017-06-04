@@ -975,11 +975,11 @@ void G_ClientRespawn(g_entity_t *ent, _Bool voluntary) {
 	}
 
 	if (pers->spectator) {
-		gi.BroadcastPrint(PRINT_HIGH, "%s likes to watch\n", pers->net_name);
+		gi.BroadcastPrint(PRINT_CHAT, "^7%s ^4likes to watch\n", pers->net_name);
 	} else if (pers->team) {
-		gi.BroadcastPrint(PRINT_HIGH, "%s has joined %s\n", pers->net_name, pers->team->name);
+		gi.BroadcastPrint(PRINT_CHAT, "^7%s ^4has joined %s\n", pers->net_name, pers->team->name);
 	} else {
-		gi.BroadcastPrint(PRINT_HIGH, "%s wants some\n", pers->net_name);
+		gi.BroadcastPrint(PRINT_CHAT, "^7%s ^4joined the game\n", pers->net_name);
 	}
 }
 
@@ -1130,7 +1130,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	if (strncmp(cl->locals.persistent.net_name, name, sizeof(cl->locals.persistent.net_name))) {
 
 		if (*cl->locals.persistent.net_name != '\0') {
-			gi.BroadcastPrint(PRINT_MEDIUM, "%s changed name to %s\n", cl->locals.persistent.net_name,
+			gi.BroadcastPrint(PRINT_CHAT, "^7%s ^4changed name to ^7%s\n", cl->locals.persistent.net_name,
 			                  name);
 		}
 
@@ -1279,7 +1279,7 @@ _Bool G_ClientConnect(g_entity_t *ent, char *user_info) {
 	G_ClientUserInfoChanged(ent, user_info);
 
 	if (sv_max_clients->integer > 1) {
-		gi.BroadcastPrint(PRINT_HIGH, "%s connected\n", ent->client->locals.persistent.net_name);
+		gi.BroadcastPrint(PRINT_CHAT, "^7%s ^4connected\n", ent->client->locals.persistent.net_name);
 	}
 
 	ent->sv_flags = 0; // make sure we start with known default
@@ -1307,7 +1307,7 @@ void G_ClientDisconnect(g_entity_t *ent) {
 	G_TossTech(ent);
 	G_ClientHookDetach(ent);
 
-	gi.BroadcastPrint(PRINT_HIGH, "%s bitched out\n", ent->client->locals.persistent.net_name);
+	gi.BroadcastPrint(PRINT_CHAT, "^7%s ^4disconnected\n", ent->client->locals.persistent.net_name);
 
 	// send effect
 	if (G_IsMeat(ent)) {
