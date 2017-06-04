@@ -104,6 +104,32 @@ static void loadView(ViewController *self) {
 			InterfaceView *tabData = $(alloc(InterfaceView), initWithFrame, NULL);
 
 			tabData->view.autoresizingMask = ViewAutoresizingFill;
+			tabData->view.identifier = strdup("game");
+
+			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
+
+			$(tab->label->text, setText, "Game");
+
+			$(tabView, addTab, tab);
+		}
+
+		{
+			InterfaceView *tabData = $(alloc(InterfaceView), initWithFrame, NULL);
+
+			tabData->view.autoresizingMask = ViewAutoresizingFill;
+			tabData->view.identifier = strdup("view");
+
+			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
+
+			$(tab->label->text, setText, "View");
+
+			$(tabView, addTab, tab);
+		}
+
+		{
+			InterfaceView *tabData = $(alloc(InterfaceView), initWithFrame, NULL);
+
+			tabData->view.autoresizingMask = ViewAutoresizingFill;
 			tabData->view.identifier = strdup("interface");
 
 			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);

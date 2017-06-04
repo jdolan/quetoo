@@ -80,7 +80,7 @@ static void loadView(ViewController *self) {
 
 			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
 
-			$(tab->label->text, setText, "Quick Join");
+			$(tab->label->text, setText, "Quick join");
 
 			$(tabView, addTab, tab);
 		}
@@ -93,7 +93,7 @@ static void loadView(ViewController *self) {
 
 			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
 
-			$(tab->label->text, setText, "Server Browser");
+			$(tab->label->text, setText, "Server browser");
 
 			$(tabView, addTab, tab);
 		}
@@ -106,7 +106,7 @@ static void loadView(ViewController *self) {
 
 			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
 
-			$(tab->label->text, setText, "Create Server");
+			$(tab->label->text, setText, "Create server");
 
 			$(tabView, addTab, tab);
 		}
