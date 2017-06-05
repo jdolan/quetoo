@@ -329,8 +329,8 @@ static void Cg_DrawPickup(const player_state_t *ps) {
 
 		const char *string = cgi.ConfigString(pickup);
 
-		x = cgi.view->viewport.x + cgi.view->viewport.w - HUD_PIC_HEIGHT - cgi.StringWidth(string);
-		y = cgi.view->viewport.y;
+		x = (((cgi.view->viewport.x + cgi.view->viewport.w) - HUD_PIC_HEIGHT) - cgi.StringWidth(string)) - 50;
+		y = (cgi.view->viewport.y + cgi.view->viewport.h) - HUD_PIC_HEIGHT;
 
 		Cg_DrawIcon(x, y, 1.0, icon);
 
