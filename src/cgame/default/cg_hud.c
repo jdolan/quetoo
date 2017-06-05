@@ -131,9 +131,9 @@ static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const vec_t scale,
 /**
  * @brief Draws the vital numeric and icon, flashing on low quantities.
  */
-static void Cg_DrawVital(r_pixel_t x, const int16_t value, const int16_t icon, int16_t med,
+static void Cg_DrawVital(r_pixel_t x, const _Bool mirror, const int16_t value, const int16_t icon, int16_t med,
                          int16_t low) {
-	r_pixel_t y = cgi.view->viewport.y + cgi.view->viewport.h - HUD_PIC_HEIGHT + 4;
+	r_pixel_t y;
 
 	vec4_t pulse = { 1.0, 1.0, 1.0, 1.0 };
 	int32_t color = HUD_COLOR_STAT;
@@ -150,37 +150,53 @@ static void Cg_DrawVital(r_pixel_t x, const int16_t value, const int16_t icon, i
 	const char *string = va("%3d", value);
 
 	x += cgi.view->viewport.x;
-	cgi.DrawString(x, y, string, color);
 
-	x += cgi.StringWidth(string);
-	y = cgi.view->viewport.y + cgi.view->viewport.h - HUD_PIC_HEIGHT;
+	if (mirror) {
+		x -= HUD_PIC_HEIGHT;
+		y = cgi.view->viewport.y + cgi.view->viewport.h - HUD_PIC_HEIGHT;
 
-	cgi.Color(pulse);
-	Cg_DrawIcon(x, y, 1.0, icon);
-	cgi.Color(NULL);
+		cgi.Color(pulse);
+		Cg_DrawIcon(x, y, 1.0, icon);
+		cgi.Color(NULL);
+
+		x -= cgi.StringWidth(string);
+		y = cgi.view->viewport.y + cgi.view->viewport.h - HUD_PIC_HEIGHT + 4;
+
+		cgi.DrawString(x, y, string, color);
+
+	} else {
+		y = cgi.view->viewport.y + cgi.view->viewport.h - HUD_PIC_HEIGHT;
+
+		cgi.Color(pulse);
+		Cg_DrawIcon(x, y, 1.0, icon);
+		cgi.Color(NULL);
+
+		x += HUD_PIC_HEIGHT;
+		y = cgi.view->viewport.y + cgi.view->viewport.h - HUD_PIC_HEIGHT + 4;
+
+		cgi.DrawString(x, y, string, color);
+	}
 }
 
 /**
  * @brief Draws health, ammo and armor numerics and icons.
  */
 static void Cg_DrawVitals(const player_state_t *ps) {
-	r_pixel_t x, cw, x_offset;
+	r_pixel_t x;
 
 	if (!cg_draw_vitals->integer) {
 		return;
 	}
 
-	cgi.BindFont("large", &cw, NULL);
-
-	x_offset = 3 * cw;
+	cgi.BindFont("large", NULL, NULL);
 
 	if (ps->stats[STAT_HEALTH] > 0) {
 		const int16_t health = ps->stats[STAT_HEALTH];
 		const int16_t health_icon = ps->stats[STAT_HEALTH_ICON];
 
-		x = cgi.view->viewport.w * 0.25 - x_offset;
+		x = (cgi.view->viewport.w / 2.0) - 4;
 
-		Cg_DrawVital(x, health, health_icon, HUD_HEALTH_MED, HUD_HEALTH_LOW);
+		Cg_DrawVital(x, true, health, health_icon, HUD_HEALTH_MED, HUD_HEALTH_LOW);
 	}
 
 	if (atoi(cgi.ConfigString(CS_GAMEPLAY)) != GAME_INSTAGIB) {
@@ -190,18 +206,18 @@ static void Cg_DrawVitals(const player_state_t *ps) {
 			const int16_t ammo_low = ps->stats[STAT_AMMO_LOW];
 			const int16_t ammo_icon = ps->stats[STAT_AMMO_ICON];
 
-			x = cgi.view->viewport.w * 0.5 - x_offset;
+			x = cgi.view->viewport.w * 0.2;
 
-			Cg_DrawVital(x, ammo, ammo_icon, -1, ammo_low);
+			Cg_DrawVital(x, true, ammo, ammo_icon, -1, ammo_low);
 		}
 
 		if (ps->stats[STAT_ARMOR] > 0) {
 			const int16_t armor = ps->stats[STAT_ARMOR];
 			const int16_t armor_icon = ps->stats[STAT_ARMOR_ICON];
 
-			x = cgi.view->viewport.w * 0.75 - x_offset;
+			x = (cgi.view->viewport.w / 2.0) + 4;
 
-			Cg_DrawVital(x, armor, armor_icon, HUD_ARMOR_MED, HUD_ARMOR_LOW);
+			Cg_DrawVital(x, false, armor, armor_icon, HUD_ARMOR_MED, HUD_ARMOR_LOW);
 		}
 	}
 
