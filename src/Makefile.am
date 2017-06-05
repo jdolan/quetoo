@@ -50,7 +50,7 @@ libcommon_la_LDFLAGS = \
 	-shared
 libcommon_la_LIBADD = \
 	libshared.la
-	
+
 libconsole_la_SOURCES = \
 	cmd.c \
 	console.c \
@@ -63,7 +63,7 @@ libconsole_la_LDFLAGS = \
 libconsole_la_LIBADD = \
 	libfilesystem.la \
 	@CURSES_LIBS@
-	
+
 libfilesystem_la_SOURCES = \
 	filesystem.c
 libfilesystem_la_CFLAGS = \
@@ -135,7 +135,7 @@ libshared_la_LDFLAGS = \
 libshared_la_LIBADD = \
 	@BASE_LIBS@ \
 	@GLIB_LIBS@
-	
+
 libswap_la_SOURCES = \
 	swap.c
 libswap_la_CFLAGS = \

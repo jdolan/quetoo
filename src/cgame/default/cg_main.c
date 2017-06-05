@@ -273,6 +273,8 @@ static void Cg_Shutdown(void) {
 
 	cgi.Print("  ^6Client game module shutdown...\n");
 
+	Cg_ShutdownHud();
+
 	Cg_ShutdownUi();
 
 	cgi.FreeTag(MEM_TAG_CGAME_LEVEL);
@@ -285,8 +287,12 @@ static void Cg_Shutdown(void) {
 static _Bool Cg_ParseMessage(int32_t cmd) {
 
 	switch (cmd) {
-		case SV_CMD_TEMP_ENTITY:
-			Cg_ParseTempEntity();
+		case SV_CMD_FEED:
+			Cg_ParseFeed();
+			return true;
+
+		case SV_CMD_CENTER_PRINT:
+			Cg_ParseCenterPrint();
 			return true;
 
 		case SV_CMD_MUZZLE_FLASH:
@@ -297,8 +303,8 @@ static _Bool Cg_ParseMessage(int32_t cmd) {
 			Cg_ParseScores();
 			return true;
 
-		case SV_CMD_CENTER_PRINT:
-			Cg_ParseCenterPrint();
+		case SV_CMD_TEMP_ENTITY:
+			Cg_ParseTempEntity();
 			return true;
 
 		case SV_CMD_VIEW_KICK:

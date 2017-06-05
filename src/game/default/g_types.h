@@ -27,14 +27,15 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1018
+#define PROTOCOL_MINOR 1019
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
  * the client game module.
  */
 typedef enum {
-	SV_CMD_CENTER_PRINT = SV_CMD_CGAME,
+	SV_CMD_FEED = SV_CMD_CGAME,
+	SV_CMD_CENTER_PRINT,
 	SV_CMD_MUZZLE_FLASH,
 	SV_CMD_SCORES,
 	SV_CMD_TEMP_ENTITY,
@@ -93,6 +94,36 @@ typedef struct {
 #define CS_ROUND			(CS_GENERAL + 7)  // round number
 #define CS_VOTE				(CS_GENERAL + 8)  // vote string\yes count\no count
 #define CS_HOOK_PULL_SPEED	(CS_GENERAL + 9) // hook speed
+
+/**
+ * @brief Information feed types
+ */
+typedef enum {
+	FEED_TYPE_OBITUARY, // Player killed a player (MOD + CID + CID)
+	FEED_TYPE_OBITUARY_PIC, // Player killed a player (PIC + CID + CID)
+	FEED_TYPE_FINISH, // Race times, capture times (PIC + CID + MILLIS)
+} g_feed_type_t;
+
+/**
+ * @brief Information feed
+ */
+typedef struct g_feed_item_s {
+	g_feed_type_t type;
+
+	char string_1[MAX_STRING_CHARS]; // STRING
+	char string_2[MAX_STRING_CHARS]; // STRING
+
+	uint16_t client_id_1; // CID
+	uint16_t client_id_2; // CID
+
+	char pic[MAX_QPATH]; // PIC
+
+	uint32_t mod; // MOD. FIXME: make this a g_mod_t
+
+	uint32_t millis; // MILLIS
+
+	uint32_t when; // The time this feed item appeared at (used in cgame)
+} g_feed_item_t;
 
 /**
  * @brief Player state statistics (inventory, score, etc).
@@ -904,7 +935,7 @@ typedef struct {
 #define MOD_FIREBALL				28
 #define MOD_HOOK					29
 #define MOD_ACT_OF_GOD				30
-#define MOD_FRIENDLY_FIRE			0x8000000
+#define MOD_FRIENDLY_FIRE			0x80
 
 /**
  * @brief Damage flags. These can be and often are combined.

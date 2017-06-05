@@ -41,6 +41,8 @@
 
 #define HUD_POWERUP_LOW			5
 
+#define FEED_PIC_HEIGHT			32
+
 typedef struct cg_crosshair_s {
 	char name[16];
 	r_image_t *image;
@@ -48,6 +50,14 @@ typedef struct cg_crosshair_s {
 } cg_crosshair_t;
 
 static cg_crosshair_t crosshair;
+
+#define FEED_LINES 4
+typedef struct cg_feed_s {
+	GSList *items;
+	uint16_t num_lines;
+} cg_feed_t;
+
+static cg_feed_t feed;
 
 #define CENTER_PRINT_LINES 8
 typedef struct cg_center_print_s {
@@ -1173,6 +1183,135 @@ static void Cg_DrawTargetName(const player_state_t *ps) {
 /**
  * @brief
  */
+static void Cg_FreeFeedItem(gpointer data) {
+	cgi.Free(data);
+}
+
+/**
+ * @brief
+ */
+void Cg_ParseFeed(void) {
+	g_feed_item_t *item = cgi.Malloc(sizeof(g_feed_item_t), MEM_TAG_CGAME);
+
+	item->type = cgi.ReadByte();
+
+	item->when = cgi.client->unclamped_time;
+
+	switch(item->type) {
+		case FEED_TYPE_OBITUARY:
+			item->mod = cgi.ReadByte();
+			item->client_id_1 = cgi.ReadByte();
+			item->client_id_2 = cgi.ReadByte();
+			break;
+		case FEED_TYPE_OBITUARY_PIC: {
+			const char *s = cgi.ReadString();
+			strcpy(item->pic, s);
+			item->client_id_1 = cgi.ReadByte();
+			item->client_id_2 = cgi.ReadByte();
+		}
+			break;
+		case FEED_TYPE_FINISH: {
+			const char *s = cgi.ReadString();
+			strcpy(item->pic, s);
+			item->client_id_1 = cgi.ReadByte();
+			item->millis = cgi.ReadLong();
+		}
+			break;
+		default:
+			cgi.Warn("Invalid feed type %d\n", item->type);
+			break;
+	}
+
+	feed.items = g_slist_prepend(feed.items, item);
+
+	feed.num_lines = g_slist_length(feed.items);
+}
+
+/**
+ * @brief
+ */
+static void Cg_DrawFeed(const player_state_t *ps) {
+	r_pixel_t cw, ch, x, y;
+
+	cgi.BindFont("small", &cw, &ch);
+
+	y = cgi.context->height - (feed.num_lines * FEED_PIC_HEIGHT);
+
+	GSList *list;
+	g_feed_item_t *item;
+
+	for (int32_t i = 0; i < feed.num_lines; i++) {
+		list = g_slist_nth(feed.items, i);
+
+		if (list == NULL) {
+			continue;
+		}
+
+		item = (g_feed_item_t *) list->data;
+
+		if (cgi.client->unclamped_time > item->when + 5000) {
+			feed.items = g_slist_remove_link(feed.items, list);
+			Cg_FreeFeedItem(list->data);
+			g_slist_free_1(list);
+
+			feed.num_lines = g_slist_length(feed.items);
+
+			i--;
+
+			continue;
+		}
+
+		x = cgi.context->width - 100;
+
+		switch (item->type) {
+			case FEED_TYPE_OBITUARY: {
+				char *name = cgi.client->client_info[item->client_id_1].name;
+
+				x -= cgi.StringWidth(name);
+
+				cgi.DrawString(x, y, name, CON_COLOR_DEFAULT);
+
+				x -= FEED_PIC_HEIGHT; // FIXME: MOD icon goes here
+
+				name = cgi.client->client_info[item->client_id_2].name;
+
+				x -= cgi.StringWidth(name);
+
+				cgi.DrawString(x, y, name, CON_COLOR_DEFAULT);
+			}
+				break;
+			case FEED_TYPE_OBITUARY_PIC: {
+				char *name = cgi.client->client_info[item->client_id_1].name;
+
+				x -= cgi.StringWidth(name);
+
+				cgi.DrawString(x, y, name, CON_COLOR_DEFAULT);
+
+				x -= FEED_PIC_HEIGHT; // FIXME: MOD icon goes here
+
+				cgi.DrawImage(x, y, ((vec_t) FEED_PIC_HEIGHT) / HUD_PIC_HEIGHT, cgi.LoadImage(item->pic, IT_PIC));
+
+				name = cgi.client->client_info[item->client_id_2].name;
+
+				x -= cgi.StringWidth(name);
+
+				cgi.DrawString(x, y, name, CON_COLOR_DEFAULT);
+			}
+				break;
+			default:
+				break;
+
+		}
+
+		y += FEED_PIC_HEIGHT;
+	}
+
+	cgi.BindFont(NULL, NULL, NULL);
+}
+
+/**
+ * @brief
+ */
 static void Cg_Weapon_Next_f(void) {
 	Cg_SelectWeapon(1);
 }
@@ -1236,6 +1375,8 @@ void Cg_DrawHud(const player_state_t *ps) {
 	Cg_DrawDamageInflicted(ps);
 
 	Cg_DrawSelectWeapon(ps);
+
+	Cg_DrawFeed(ps);
 }
 
 /**
@@ -1263,4 +1404,11 @@ void Cg_InitHud(void) {
 
 	cg_select_weapon_delay = cgi.Cvar("cg_select_weapon_delay", "250", CVAR_ARCHIVE, "The amount of time, in milliseconds, to wait between changing weapons in the scroll view. Clicking will override this value and switch immediately.");
 	cg_select_weapon_interval = cgi.Cvar("cg_select_weapon_interval", "750", CVAR_ARCHIVE, "The amount of time, in milliseconds, to show the weapon bar after changing weapons.");
+}
+
+/**
+ * @brief
+ */
+void Cg_ShutdownHud(void) {
+	g_slist_free_full(feed.items, Cg_FreeFeedItem);
 }

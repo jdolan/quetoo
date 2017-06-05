@@ -23,6 +23,36 @@
 #include "bg_pmove.h"
 
 /**
+ * @brief Sends a feed item to all active clients over their unreliable channels.
+ */
+void G_BroadcastFeed(const g_feed_item_t item) {
+
+	gi.WriteByte(SV_CMD_FEED);
+
+	gi.WriteByte(item.type);
+
+	switch (item.type) {
+		case FEED_TYPE_OBITUARY:
+			gi.WriteByte(item.mod);
+			gi.WriteByte(item.client_id_1);
+			gi.WriteByte(item.client_id_2);
+			break;
+		case FEED_TYPE_OBITUARY_PIC:
+			gi.WriteString(item.pic);
+			gi.WriteByte(item.client_id_1);
+			gi.WriteByte(item.client_id_2);
+			break;
+		case FEED_TYPE_FINISH:
+			gi.WriteString(item.pic);
+			gi.WriteByte(item.client_id_1);
+			gi.WriteLong(item.millis);
+			break;
+	}
+
+	gi.Multicast(NULL, MULTICAST_ALL_R, NULL);
+}
+
+/**
  * @brief Make a tasteless death announcement, insert a row into MySQL, and record scores. Side
  * effects are the best!
  */
@@ -33,6 +63,15 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 
 	const _Bool friendy_fire = (mod & MOD_FRIENDLY_FIRE) == MOD_FRIENDLY_FIRE;
 	mod &= ~MOD_FRIENDLY_FIRE;
+
+	g_feed_item_t feed_item = {
+		.type = FEED_TYPE_OBITUARY_PIC,
+		.client_id_1 = attacker->s.number,
+		.client_id_2 = self->s.number,
+		.pic = "pics/i_bodyarmor"
+	};
+
+	G_BroadcastFeed(feed_item);
 
 	if (frag) { // killed by another player
 
