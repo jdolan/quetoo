@@ -33,6 +33,8 @@
 
 #define HUD_PIC_HEIGHT			64
 
+#define HUD_VITAL_PADDING		6
+
 #define HUD_HEALTH_MED			75
 #define HUD_HEALTH_LOW			25
 
@@ -147,7 +149,7 @@ static void Cg_DrawVital(r_pixel_t x, const _Bool mirror, const int16_t value, c
 		color = HUD_COLOR_STAT_MED;
 	}
 
-	const char *string = va("%3d", value);
+	const char *string = va("%d", value);
 
 	x += cgi.view->viewport.x;
 
@@ -159,7 +161,7 @@ static void Cg_DrawVital(r_pixel_t x, const _Bool mirror, const int16_t value, c
 		Cg_DrawIcon(x, y, 1.0, icon);
 		cgi.Color(NULL);
 
-		x -= cgi.StringWidth(string);
+		x -= cgi.StringWidth(string) + HUD_VITAL_PADDING;
 		y = cgi.view->viewport.y + cgi.view->viewport.h - HUD_PIC_HEIGHT + 4;
 
 		cgi.DrawString(x, y, string, color);
@@ -171,7 +173,7 @@ static void Cg_DrawVital(r_pixel_t x, const _Bool mirror, const int16_t value, c
 		Cg_DrawIcon(x, y, 1.0, icon);
 		cgi.Color(NULL);
 
-		x += HUD_PIC_HEIGHT;
+		x += HUD_PIC_HEIGHT + HUD_VITAL_PADDING;
 		y = cgi.view->viewport.y + cgi.view->viewport.h - HUD_PIC_HEIGHT + 4;
 
 		cgi.DrawString(x, y, string, color);
@@ -194,7 +196,7 @@ static void Cg_DrawVitals(const player_state_t *ps) {
 		const int16_t health = ps->stats[STAT_HEALTH];
 		const int16_t health_icon = ps->stats[STAT_HEALTH_ICON];
 
-		x = (cgi.view->viewport.w / 2.0) - 4;
+		x = (cgi.view->viewport.w / 2.0) - HUD_VITAL_PADDING;
 
 		Cg_DrawVital(x, true, health, health_icon, HUD_HEALTH_MED, HUD_HEALTH_LOW);
 	}
@@ -215,7 +217,7 @@ static void Cg_DrawVitals(const player_state_t *ps) {
 			const int16_t armor = ps->stats[STAT_ARMOR];
 			const int16_t armor_icon = ps->stats[STAT_ARMOR_ICON];
 
-			x = (cgi.view->viewport.w / 2.0) + 4;
+			x = (cgi.view->viewport.w / 2.0) + HUD_VITAL_PADDING;
 
 			Cg_DrawVital(x, false, armor, armor_icon, HUD_ARMOR_MED, HUD_ARMOR_LOW);
 		}
