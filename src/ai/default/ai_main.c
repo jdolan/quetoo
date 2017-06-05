@@ -35,7 +35,7 @@ ai_client_data_t ai_client_data;
 ai_level_t ai_level;
 static cvar_t *sv_max_clients;
 cvar_t *ai_passive;
-cvar_t *ai_name_prefix;
+static cvar_t *ai_name_prefix;
 
 /**
  * @brief AI imports.
@@ -145,6 +145,32 @@ static void Ai_GetUserInfo(const g_entity_t *self, char *userinfo) {
 	SetUserInfo(userinfo, "skin", g_array_index(ai_skins, ai_skin_t, Randomr(0, ai_skins->len)));
 	SetUserInfo(userinfo, "color", va("%i", Randomr(0, 360)));
 	SetUserInfo(userinfo, "hand", va("%i", Randomr(0, 3)));
+
+	char color_temp[COLOR_MAX_LENGTH];
+
+	ColorToHex((const color_t) {
+		.r = (uint8_t) Randomr(0, 255),
+		.g = (uint8_t) Randomr(0, 255),
+		.b = (uint8_t) Randomr(0, 255),
+		.a = 255u
+	}, color_temp, sizeof(color_temp));
+	SetUserInfo(userinfo, "helmet", color_temp);
+
+	ColorToHex((const color_t) {
+		.r = (uint8_t) Randomr(0, 255),
+		.g = (uint8_t) Randomr(0, 255),
+		.b = (uint8_t) Randomr(0, 255),
+		.a = 255u
+	}, color_temp, sizeof(color_temp));
+	SetUserInfo(userinfo, "shirt", color_temp);
+
+	ColorToHex((const color_t) {
+		.r = (uint8_t) Randomr(0, 255),
+		.g = (uint8_t) Randomr(0, 255),
+		.b = (uint8_t) Randomr(0, 255),
+		.a = 255u
+	}, color_temp, sizeof(color_temp));
+	SetUserInfo(userinfo, "pants", color_temp);
 
 	if (ai_name_suffix == 0) {
 		SetUserInfo(userinfo, "name", va("%s%s", ai_name_prefix->string, ai_names[ai_name_index]));
