@@ -25,24 +25,24 @@
 /**
  * @brief Sends a feed item to all active clients over their unreliable channels.
  */
-void G_BroadcastFeed(const g_feed_item_t item) {
+void G_BroadcastNotification(const g_notification_item_t item) {
 
-	gi.WriteByte(SV_CMD_FEED);
+	gi.WriteByte(SV_CMD_NOTIFICATION);
 
 	gi.WriteByte(item.type);
 
 	switch (item.type) {
-		case FEED_TYPE_OBITUARY:
+		case NOTIFICATION_TYPE_OBITUARY:
 			gi.WriteByte(item.mod);
 			gi.WriteByte(item.client_id_1);
 			gi.WriteByte(item.client_id_2);
 			break;
-		case FEED_TYPE_OBITUARY_PIC:
+		case NOTIFICATION_TYPE_OBITUARY_PIC:
 			gi.WriteString(item.pic);
 			gi.WriteByte(item.client_id_1);
 			gi.WriteByte(item.client_id_2);
 			break;
-		case FEED_TYPE_FINISH:
+		case NOTIFICATION_TYPE_FINISH:
 			gi.WriteString(item.pic);
 			gi.WriteByte(item.client_id_1);
 			gi.WriteLong(item.millis);
@@ -64,14 +64,14 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 	const _Bool friendy_fire = (mod & MOD_FRIENDLY_FIRE) == MOD_FRIENDLY_FIRE;
 	mod &= ~MOD_FRIENDLY_FIRE;
 
-	g_feed_item_t feed_item = {
-		.type = FEED_TYPE_OBITUARY_PIC,
-		.client_id_1 = attacker->s.number,
-		.client_id_2 = self->s.number,
+	g_notification_item_t notification_item = {
+		.type = NOTIFICATION_TYPE_OBITUARY_PIC,
+		.client_id_1 = attacker->s.number - 1,
+		.client_id_2 = self->s.number - 1,
 		.pic = "pics/i_bodyarmor"
 	};
 
-	G_BroadcastFeed(feed_item);
+	G_BroadcastNotification(notification_item);
 
 	if (frag) { // killed by another player
 

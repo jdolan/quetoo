@@ -34,9 +34,9 @@
  * the client game module.
  */
 typedef enum {
-	SV_CMD_FEED = SV_CMD_CGAME,
-	SV_CMD_CENTER_PRINT,
+	SV_CMD_CENTER_PRINT = SV_CMD_CGAME,
 	SV_CMD_MUZZLE_FLASH,
+	SV_CMD_NOTIFICATION,
 	SV_CMD_SCORES,
 	SV_CMD_TEMP_ENTITY,
 	SV_CMD_VIEW_KICK,
@@ -96,19 +96,19 @@ typedef struct {
 #define CS_HOOK_PULL_SPEED	(CS_GENERAL + 9) // hook speed
 
 /**
- * @brief Information feed types
+ * @brief Notification feed types
  */
 typedef enum {
-	FEED_TYPE_OBITUARY, // Player killed a player (MOD + CID + CID)
-	FEED_TYPE_OBITUARY_PIC, // Player killed a player (PIC + CID + CID)
-	FEED_TYPE_FINISH, // Race times, capture times (PIC + CID + MILLIS)
-} g_feed_type_t;
+	NOTIFICATION_TYPE_OBITUARY, // Player killed a player (MOD + CID + CID)
+	NOTIFICATION_TYPE_OBITUARY_PIC, // Player killed a player (PIC + CID + CID)
+	NOTIFICATION_TYPE_FINISH, // Race times, capture times (PIC + CID + MILLIS)
+} g_notification_type_t;
 
 /**
- * @brief Information feed
+ * @brief Notification feed
  */
-typedef struct g_feed_item_s {
-	g_feed_type_t type;
+typedef struct g_notification_item_s {
+	g_notification_type_t type;
 
 	char string_1[MAX_STRING_CHARS]; // STRING
 	char string_2[MAX_STRING_CHARS]; // STRING
@@ -123,7 +123,7 @@ typedef struct g_feed_item_s {
 	uint32_t millis; // MILLIS
 
 	uint32_t when; // The time this feed item appeared at (used in cgame)
-} g_feed_item_t;
+} g_notification_item_t;
 
 /**
  * @brief Player state statistics (inventory, score, etc).

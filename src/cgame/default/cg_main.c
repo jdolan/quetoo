@@ -287,16 +287,16 @@ static void Cg_Shutdown(void) {
 static _Bool Cg_ParseMessage(int32_t cmd) {
 
 	switch (cmd) {
-		case SV_CMD_FEED:
-			Cg_ParseFeed();
-			return true;
-
 		case SV_CMD_CENTER_PRINT:
 			Cg_ParseCenterPrint();
 			return true;
 
 		case SV_CMD_MUZZLE_FLASH:
 			Cg_ParseMuzzleFlash();
+			return true;
+
+		case SV_CMD_NOTIFICATION:
+			Cg_ParseNotification();
 			return true;
 
 		case SV_CMD_SCORES:

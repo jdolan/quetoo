@@ -26,7 +26,7 @@
 #ifdef __CG_LOCAL_H__
 void Cg_ParseCenterPrint(void);
 void Cg_ParseWeaponInfo(const char *s);
-void Cg_ParseFeed(void);
+void Cg_ParseNotification(void);
 _Bool Cg_AttemptSelectWeapon(const player_state_t *ps);
 void Cg_DrawHud(const player_state_t *ps);
 void Cg_ClearHud(void);

@@ -41,7 +41,8 @@
 
 #define HUD_POWERUP_LOW			5
 
-#define FEED_PIC_HEIGHT			32
+#define NOTIFICATION_PIC_HEIGHT			32
+#define NOTIFICATION_PADDING_X			5
 
 typedef struct cg_crosshair_s {
 	char name[16];
@@ -51,13 +52,13 @@ typedef struct cg_crosshair_s {
 
 static cg_crosshair_t crosshair;
 
-#define FEED_LINES 4
-typedef struct cg_feed_s {
+#define NOTIFICATION_LINES 4
+typedef struct cg_notifications_s {
 	GSList *items;
 	uint16_t num_lines;
-} cg_feed_t;
+} cg_notifications_t;
 
-static cg_feed_t feed;
+static cg_notifications_t notifications;
 
 #define CENTER_PRINT_LINES 8
 typedef struct cg_center_print_s {
@@ -1183,34 +1184,27 @@ static void Cg_DrawTargetName(const player_state_t *ps) {
 /**
  * @brief
  */
-static void Cg_FreeFeedItem(gpointer data) {
-	cgi.Free(data);
-}
-
-/**
- * @brief
- */
-void Cg_ParseFeed(void) {
-	g_feed_item_t *item = cgi.Malloc(sizeof(g_feed_item_t), MEM_TAG_CGAME);
+void Cg_ParseNotification(void) {
+	g_notification_item_t *item = g_malloc0(sizeof(g_notification_item_t));
 
 	item->type = cgi.ReadByte();
 
-	item->when = cgi.client->unclamped_time;
+	item->when = cgi.client->unclamped_time + 6000;
 
 	switch(item->type) {
-		case FEED_TYPE_OBITUARY:
+		case NOTIFICATION_TYPE_OBITUARY:
 			item->mod = cgi.ReadByte();
 			item->client_id_1 = cgi.ReadByte();
 			item->client_id_2 = cgi.ReadByte();
 			break;
-		case FEED_TYPE_OBITUARY_PIC: {
+		case NOTIFICATION_TYPE_OBITUARY_PIC: {
 			const char *s = cgi.ReadString();
 			strcpy(item->pic, s);
 			item->client_id_1 = cgi.ReadByte();
 			item->client_id_2 = cgi.ReadByte();
 		}
 			break;
-		case FEED_TYPE_FINISH: {
+		case NOTIFICATION_TYPE_FINISH: {
 			const char *s = cgi.ReadString();
 			strcpy(item->pic, s);
 			item->client_id_1 = cgi.ReadByte();
@@ -1218,84 +1212,88 @@ void Cg_ParseFeed(void) {
 		}
 			break;
 		default:
-			cgi.Warn("Invalid feed type %d\n", item->type);
+			cgi.Warn("Invalid notification type %d\n", item->type);
 			break;
 	}
 
-	feed.items = g_slist_prepend(feed.items, item);
+	notifications.items = g_slist_prepend(notifications.items, item);
 
-	feed.num_lines = g_slist_length(feed.items);
+	notifications.num_lines = g_slist_length(notifications.items);
 }
 
 /**
  * @brief
  */
-static void Cg_DrawFeed(const player_state_t *ps) {
+static void Cg_DrawNotification(const player_state_t *ps) {
 	r_pixel_t cw, ch, x, y;
 
 	cgi.BindFont("small", &cw, &ch);
 
-	y = cgi.context->height - (feed.num_lines * FEED_PIC_HEIGHT);
+	y = (Min(notifications.num_lines - 1, NOTIFICATION_LINES) * NOTIFICATION_PIC_HEIGHT) + 10;
 
 	GSList *list;
-	g_feed_item_t *item;
+	g_notification_item_t *item;
 
-	for (int32_t i = 0; i < feed.num_lines; i++) {
-		list = g_slist_nth(feed.items, i);
+	for (int32_t i = 0; i < notifications.num_lines; i++) {
+		list = g_slist_nth(notifications.items, i);
 
-		if (list == NULL) {
-			continue;
-		}
+		if (list && cgi.client->unclamped_time > ((g_notification_item_t *) list->data)->when) {
+			notifications.items = g_slist_delete_link(notifications.items, list);
 
-		item = (g_feed_item_t *) list->data;
-
-		if (cgi.client->unclamped_time > item->when + 5000) {
-			feed.items = g_slist_remove_link(feed.items, list);
-			Cg_FreeFeedItem(list->data);
-			g_slist_free_1(list);
-
-			feed.num_lines = g_slist_length(feed.items);
+			notifications.num_lines = g_slist_length(notifications.items);
 
 			i--;
 
 			continue;
 		}
+	}
 
-		x = cgi.context->width - 100;
+	for (int32_t i = 0; i < Min(notifications.num_lines, NOTIFICATION_LINES); i++) {
+		list = g_slist_nth(notifications.items, i);
+
+		if (list == NULL) {
+			continue;
+		}
+
+		item = (g_notification_item_t *) list->data;
+
+		x = cgi.context->width - 10;
 
 		switch (item->type) {
-			case FEED_TYPE_OBITUARY: {
-				char *name = cgi.client->client_info[item->client_id_1].name;
+			case NOTIFICATION_TYPE_OBITUARY: {
+				char *name = cgi.client->client_info[item->client_id_2].name;
 
-				x -= cgi.StringWidth(name);
+				x -= cgi.StringWidth(name) + NOTIFICATION_PADDING_X;
 
-				cgi.DrawString(x, y, name, CON_COLOR_DEFAULT);
+				cgi.DrawString(x, y + 6, name, CON_COLOR_DEFAULT);
 
-				x -= FEED_PIC_HEIGHT; // FIXME: MOD icon goes here
+				x -= NOTIFICATION_PIC_HEIGHT + NOTIFICATION_PADDING_X;
 
-				name = cgi.client->client_info[item->client_id_2].name;
+				// FIXME: draw MOD icon here
 
-				x -= cgi.StringWidth(name);
+				name = cgi.client->client_info[item->client_id_1].name;
 
-				cgi.DrawString(x, y, name, CON_COLOR_DEFAULT);
+				x -= cgi.StringWidth(name) + NOTIFICATION_PADDING_X;
+
+				cgi.DrawString(x, y + 6, name, CON_COLOR_DEFAULT);
 			}
 				break;
-			case FEED_TYPE_OBITUARY_PIC: {
-				char *name = cgi.client->client_info[item->client_id_1].name;
+			case NOTIFICATION_TYPE_OBITUARY_PIC: {
+				char *name = cgi.client->client_info[item->client_id_2].name;
 
-				x -= cgi.StringWidth(name);
+				x -= cgi.StringWidth(name) + NOTIFICATION_PADDING_X;
 
-				cgi.DrawString(x, y, name, CON_COLOR_DEFAULT);
+				cgi.DrawString(x, y + 6, name, CON_COLOR_DEFAULT);
 
-				x -= FEED_PIC_HEIGHT; // FIXME: MOD icon goes here
+				x -= NOTIFICATION_PIC_HEIGHT + NOTIFICATION_PADDING_X;
 
-				cgi.DrawImage(x, y, ((vec_t) FEED_PIC_HEIGHT) / HUD_PIC_HEIGHT, cgi.LoadImage(item->pic, IT_PIC));
+				cgi.DrawImage(x, y, ((vec_t) NOTIFICATION_PIC_HEIGHT) / HUD_PIC_HEIGHT, cgi.LoadImage(item->pic, IT_PIC));
 
-				name = cgi.client->client_info[item->client_id_2].name;
+				name = cgi.client->client_info[item->client_id_1].name;
 
-				x -= cgi.StringWidth(name);
+				x -= cgi.StringWidth(name) + NOTIFICATION_PADDING_X;
 
-				cgi.DrawString(x, y, name, CON_COLOR_DEFAULT);
+				cgi.DrawString(x, y + 6, name, CON_COLOR_DEFAULT);
 			}
 				break;
 			default:
@@ -1303,7 +1301,7 @@ static void Cg_DrawFeed(const player_state_t *ps) {
 
 		}
 
-		y += FEED_PIC_HEIGHT;
+		y -= NOTIFICATION_PIC_HEIGHT;
 	}
 
 	cgi.BindFont(NULL, NULL, NULL);
@@ -1376,7 +1374,7 @@ void Cg_DrawHud(const player_state_t *ps) {
 
 	Cg_DrawSelectWeapon(ps);
 
-	Cg_DrawFeed(ps);
+	Cg_DrawNotification(ps);
 }
 
 /**
@@ -1386,6 +1384,8 @@ void Cg_ClearHud(void) {
 	memset(&cg_hud_locals, 0, sizeof(cg_hud_locals));
 
 	cg_hud_locals.weapon.tag = WEAPON_SELECT_OFF;
+
+	g_slist_free(notifications.items);
 }
 
 /**
@@ -1410,5 +1410,5 @@ void Cg_InitHud(void) {
  * @brief
  */
 void Cg_ShutdownHud(void) {
-	g_slist_free_full(feed.items, Cg_FreeFeedItem);
+	g_slist_free(notifications.items);
 }
