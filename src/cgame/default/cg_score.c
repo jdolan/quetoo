@@ -25,6 +25,8 @@
 #define SCORES_ROW_HEIGHT 48
 #define SCORES_ICON_WIDTH 48
 
+#define SPECTATOR_ROW_HEIGHT 24
+
 typedef struct {
 	g_score_t scores[MAX_CLIENTS + MAX_TEAMS];
 	uint16_t num_scores;
@@ -51,7 +53,7 @@ static int32_t Cg_ParseScores_Compare(const void *a, const void *b) {
 
 /**
  * @brief Parses score data from the server. The scores are sent as binary.
- * If teams play or CTF is enabled, the last two scores in the packet will
+ * If teams play or CTF is enabled, the last few scores in the packet will
  * contain the team scores.
  */
 void Cg_ParseScores(void) {

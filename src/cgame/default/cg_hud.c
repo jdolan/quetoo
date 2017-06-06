@@ -1170,7 +1170,7 @@ static void Cg_DrawTargetName(const player_state_t *ps) {
 	vec3_t pos;
 	VectorMA(cgi.view->origin, MAX_WORLD_DIST, cgi.view->forward, pos);
 
-	const cm_trace_t tr = cgi.Trace(cgi.view->origin, pos, NULL, NULL, 0, MASK_MEAT);
+	const cm_trace_t tr = cgi.Trace(cgi.view->origin, pos, NULL, NULL, 0, MASK_MEAT | MASK_SOLID);
 	if (tr.fraction < 1.0) {
 
 		const cl_entity_t *ent = &cgi.client->entities[(ptrdiff_t) tr.ent];
