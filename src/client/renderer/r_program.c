@@ -620,8 +620,11 @@ void R_SetupAttributes(void) {
 
 		if (mask & R_ATTRIB_MASK_COLOR) {
 			R_AttributePointer(R_ATTRIB_COLOR);
-		} else {
+		} else if (r_state.color_array_enabled) {
 			R_AttributeConstant4fv(R_ATTRIB_COLOR, r_state.uniforms.global_color);
+		} else {
+			const vec_t white[] = { 1.0, 1.0, 1.0, 1.0 };
+			R_AttributeConstant4fv(R_ATTRIB_COLOR, white);
 		}
 	}
 
