@@ -100,7 +100,7 @@ cvar_t *cg_tint_b; // helmet
 
 	struct {
 		int16_t tag, used_tag;
-		uint32_t time;
+		uint32_t time, bar_time;
 		int16_t bits;
 		int16_t num;
 		_Bool has[MAX_STAT_BITS];
@@ -111,7 +111,9 @@ cvar_t *cg_tint_b; // helmet
 
 static r_image_t *cg_select_weapon_image;
 
+static cvar_t *cg_select_weapon_alpha;
 static cvar_t *cg_select_weapon_delay;
+static cvar_t *cg_select_weapon_fade;
 static cvar_t *cg_select_weapon_interval;
 
 static cg_hud_locals_t cg_hud_locals;
@@ -1038,6 +1040,7 @@ static void Cg_SelectWeapon(const int8_t dir) {
 
 		if (cg_hud_locals.weapon.has[cg_hud_locals.weapon.tag]) {
 			cg_hud_locals.weapon.time = cgi.client->unclamped_time + cg_select_weapon_delay->integer;
+			cg_hud_locals.weapon.bar_time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
 			return;
 		}
 	}
@@ -1061,6 +1064,7 @@ _Bool Cg_AttemptSelectWeapon(const player_state_t *ps) {
 			cgi.Cbuf(va("use %s\n", name));
 
 			cg_hud_locals.weapon.time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
+			cg_hud_locals.weapon.bar_time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
 			return true;
 		}
 
@@ -1080,7 +1084,9 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 	if (!ps->stats[STAT_WEAPONS]) {
 		cg_hud_locals.weapon.tag = -1;
 		cg_hud_locals.weapon.time = 0;
+		cg_hud_locals.weapon.bar_time = 0;
 		cg_hud_locals.weapon.used_tag = 0;
+
 		return;
 	}
 
@@ -1101,6 +1107,7 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 	if (!cg_hud_locals.weapon.num) {
 		cg_hud_locals.weapon.tag = -1;
 		cg_hud_locals.weapon.time = 0;
+		cg_hud_locals.weapon.bar_time = 0;
 		cg_hud_locals.weapon.used_tag = 0;
 		return;
 	}
@@ -1115,6 +1122,7 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 			// we changed weapons without using scrolly, show it for a bit
 			cg_hud_locals.weapon.tag = cg_hud_locals.weapon.used_tag - 1;
 			cg_hud_locals.weapon.time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
+			cg_hud_locals.weapon.bar_time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
 		}
 	}
 
@@ -1136,10 +1144,27 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 	r_pixel_t ch;
 	cgi.BindFont("medium", NULL, &ch);
 
+	if (cg_select_weapon_fade->modified || cg_select_weapon_interval->modified) {
+		cg_select_weapon_fade->modified = false;
+
+		cg_select_weapon_fade->value = Clamp(cg_select_weapon_fade->value, 0.0, cg_select_weapon_interval->value);
+	}
+
+	const int32_t time_left = cg_hud_locals.weapon.bar_time - cgi.client->unclamped_time;
+
+	const vec4_t color_select = {1.0, 1.0, 1.0, Min(time_left / (vec_t) cg_select_weapon_fade->integer, 1.0)};
+	const vec4_t color = {1.0, 1.0, 1.0, Min(time_left / (vec_t) cg_select_weapon_fade->integer, 1.0) * cg_select_weapon_alpha->value};
+
 	for (int16_t i = 0; i < (int16_t) MAX_STAT_BITS; i++) {
 
 		if (!cg_hud_locals.weapon.has[i]) {
 			continue;
+		}
+
+		if (i == cg_hud_locals.weapon.tag) {
+			cgi.Color(color_select);
+		} else {
+			cgi.Color(color);
 		}
 
 		Cg_DrawIcon(x, y, 1.0, cg_hud_weapons[i].icon_index);
@@ -1152,6 +1177,10 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 
 		x += HUD_PIC_HEIGHT + 4;
 	}
+
+	cgi.Color(NULL);
+
+	cgi.BindFont(NULL, NULL, NULL);
 }
 
 /**
@@ -1523,8 +1552,14 @@ void Cg_InitHud(void) {
 	cgi.Cmd("cg_weapon_next", Cg_Weapon_Next_f, CMD_CGAME, "Open the weapon bar to the next weapon. In chasecam, switches to next target.");
 	cgi.Cmd("cg_weapon_previous", Cg_Weapon_Prev_f, CMD_CGAME, "Open the weapon bar to the previous weapon. In chasecam, switches to previous target.");
 
-	cg_select_weapon_delay = cgi.Cvar("cg_select_weapon_delay", "250", CVAR_ARCHIVE, "The amount of time, in milliseconds, to wait between changing weapons in the scroll view. Clicking will override this value and switch immediately.");
-	cg_select_weapon_interval = cgi.Cvar("cg_select_weapon_interval", "750", CVAR_ARCHIVE, "The amount of time, in milliseconds, to show the weapon bar after changing weapons.");
+	cg_select_weapon_alpha = cgi.Cvar("cg_select_weapon_alpha", "0.5", CVAR_ARCHIVE,
+					  "The opacity of unselected weapons in the weapon bar.");
+	cg_select_weapon_delay = cgi.Cvar("cg_select_weapon_delay", "250", CVAR_ARCHIVE,
+					  "The amount of time, in milliseconds, to wait between changing weapons in the scroll view. Clicking will override this value and switch immediately.");
+	cg_select_weapon_fade = cgi.Cvar("cg_select_weapon_fade", "800", CVAR_ARCHIVE,
+					 "The amount of time, in milliseconds, for the weapon bar to fade out in.");
+	cg_select_weapon_interval = cgi.Cvar("cg_select_weapon_interval", "1600", CVAR_ARCHIVE,
+					     "The amount of time, in milliseconds, to show the weapon bar after changing weapons.");
 }
 
 /**
