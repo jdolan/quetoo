@@ -6,14 +6,13 @@
 
 #define VERTEX_SHADER
 
-#include "include/matrix.glsl"
+#include "include/uniforms.glsl"
 #include "include/fog.glsl"
 
 uniform bool DIFFUSE;
 uniform bool LIGHTMAP;
 uniform bool NORMALMAP;
-
-uniform float TIME_FRACTION;
+uniform mat4 NORMAL_MAT;
 
 in vec3 POSITION;
 in vec4 COLOR;
@@ -34,7 +33,6 @@ out VertexData {
 	vec3 tangent;
 	vec3 bitangent;
 	vec3 eye;
-	float fog;
 };
 
 /**
@@ -79,6 +77,4 @@ void main(void) {
 
 	// pass the color through as well
 	color = COLOR;
-
-	fog = FogVertex();
 }

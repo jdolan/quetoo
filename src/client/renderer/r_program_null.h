@@ -27,8 +27,6 @@
 void R_PreLink_null(const r_program_t *program);
 void R_InitProgram_null(r_program_t *program);
 void R_UseFog_null(const r_fog_parameters_t *value);
-void R_UseCurrentColor_null(const vec4_t color);
-void R_UseInterpolation_null(const vec_t time_fraction);
 void R_UseMaterial_null(const r_material_t *material);
 void R_UseTints_null(void);
 #endif /* __R_LOCAL_H__ */

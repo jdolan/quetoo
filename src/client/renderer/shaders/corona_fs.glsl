@@ -6,13 +6,12 @@
 
 #define FRAGMENT_SHADER
 
-#include "include/matrix.glsl"
+#include "include/uniforms.glsl"
 #include "include/fog.glsl"
 
 in VertexData {
-	vec2 texcoord;
 	vec4 color;
-	float fog;
+	vec2 texcoord;
 };
 
 const vec2 center_point = vec2(0.5, 0.5);
@@ -26,5 +25,5 @@ void main(void) {
 
 	fragColor = vec4(color.rgb, mix(color.a, 0, length(texcoord - center_point) * 2.0));
 
-	FogFragment(fragColor, fog);
+	FogFragment(fragColor);
 }

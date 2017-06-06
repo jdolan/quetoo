@@ -27,6 +27,5 @@
 void R_PreLink_particle(const r_program_t *program);
 void R_InitProgram_particle(r_program_t *program);
 void R_UseFog_particle(const r_fog_parameters_t *value);
-void R_UseCurrentColor_particle(const vec4_t color);
 void R_UseParticleData_particle(vec3_t weather_right, vec3_t weather_up, vec3_t splash_right[2], vec3_t splash_up[2]);
 #endif /* __R_LOCAL_H__ */
