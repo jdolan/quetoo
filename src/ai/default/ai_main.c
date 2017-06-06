@@ -35,7 +35,7 @@ ai_client_data_t ai_client_data;
 ai_level_t ai_level;
 static cvar_t *sv_max_clients;
 cvar_t *ai_passive;
-cvar_t *ai_name_prefix;
+static cvar_t *ai_name_prefix;
 
 /**
  * @brief AI imports.
