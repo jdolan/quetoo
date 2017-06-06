@@ -6,10 +6,8 @@
 
 #define VERTEX_SHADER
 
-#include "include/matrix.glsl"
+#include "include/uniforms.glsl"
 #include "include/fog.glsl"
-
-uniform vec4 GLOBAL_COLOR;
 
 in vec3 POSITION;
 in vec2 TEXCOORD0;

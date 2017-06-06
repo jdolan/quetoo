@@ -34,6 +34,5 @@ void R_UseLight_default(const uint16_t light_index, const matrix4x4_t *world_vie
 void R_UseCaustic_default(const r_caustic_parameters_t *value);
 void R_MatricesChanged_default(void);
 void R_UseAlphaTest_default(const vec_t threshold);
-void R_UseInterpolation_default(const vec_t time_fraction);
 void R_UseTints_default(void);
 #endif /* __R_LOCAL_H__ */
