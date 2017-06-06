@@ -1281,13 +1281,9 @@ void Cg_ParseNotification(void) {
  */
 static void Cg_DrawNotification(const player_state_t *ps) {
 	r_pixel_t cw, ch, x, y;
-
-	cgi.BindFont("small", &cw, &ch);
-
-	y = (Min(notifications.num_lines - 1, cg_draw_notifications_lines->integer - 1) * NOTIFICATION_PIC_HEIGHT) + 10;
+	bg_notification_item_t *item;
 
 	GSList *list;
-	bg_notification_item_t *item;
 
 	for (int32_t i = 0; i < notifications.num_lines; i++) {
 		list = g_slist_nth(notifications.items, i);
@@ -1306,6 +1302,10 @@ static void Cg_DrawNotification(const player_state_t *ps) {
 	if (!cg_draw_notifications->value) {
 		return;
 	}
+
+	cgi.BindFont("small", &cw, &ch);
+
+	y = (Min(notifications.num_lines - 1, cg_draw_notifications_lines->integer - 1) * NOTIFICATION_PIC_HEIGHT) + 10;
 
 	for (int32_t i = 0; i < Min(notifications.num_lines, cg_draw_notifications_lines->integer); i++) {
 		list = g_slist_nth(notifications.items, i);
