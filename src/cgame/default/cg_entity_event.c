@@ -34,7 +34,7 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
 	for (int32_t i = 0; i < 64; i++) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL ))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL, false))) {
 			break;
 		}
 
@@ -80,7 +80,7 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
 	for (int32_t i = 0; i < 32; i++) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL ))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL, false))) {
 			break;
 		}
 
@@ -126,7 +126,7 @@ static void Cg_TeleporterEffect(const vec3_t org) {
 	for (int32_t i = 0; i < 64; i++) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL ))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL, false))) {
 			break;
 		}
 
@@ -271,12 +271,13 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 			break;
 		case EV_CLIENT_FOOTSTEP:
 			play.sample = Cg_Footstep(ent);
+			play.pitch = (int16_t) (Randomc() * 12.0);
 			break;
 		case EV_CLIENT_GURP:
 			Cg_GurpEffect(ent);
 			break;
 		case EV_CLIENT_JUMP:
-			play.sample = cgi.LoadSample(va("*jump_%d", Random() % 5 + 1));
+			play.sample = cgi.LoadSample(va("*jump_%d", Randomr(1, 5)));
 			break;
 		case EV_CLIENT_LAND:
 			play.sample = cgi.LoadSample("*land_1");

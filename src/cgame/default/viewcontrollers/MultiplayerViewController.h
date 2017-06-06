@@ -49,6 +49,16 @@ struct MultiplayerViewController {
 	 * @private
 	 */
 	MultiplayerViewControllerInterface *interface;
+
+	/**
+	 * @brief A copy of the client's servers list, for sorting, etc.
+	 */
+	GList *servers;
+
+	/**
+	 * @brief The servers TableView.
+	 */
+	TableView *serversTableView;
 };
 
 /**
@@ -60,6 +70,14 @@ struct MultiplayerViewControllerInterface {
 	 * @brief The superclass interface.
 	 */
 	MenuViewControllerInterface menuViewControllerInterface;
+
+	/**
+	 * @fn void MultiplayerViewController::reloadServers(MultiplayerViewController *self)
+	 * @brief Reloads the list of known servers.
+	 * @param self The MultiplayerViewController.
+	 * @memberof MultiplayerViewController
+	 */
+	void (*reloadServers)(MultiplayerViewController *self);
 };
 
 /**

@@ -38,9 +38,6 @@ typedef struct {
 	r_uniform1f_t hardness;
 	r_uniform1f_t specular;
 
-	r_uniform1f_t time_fraction;
-	r_uniform1f_t time;
-
 	r_sampler2d_t sampler0;
 	r_sampler2d_t sampler1;
 	r_sampler2d_t sampler2;
@@ -68,16 +65,16 @@ static r_default_program_t r_default_program;
  */
 void R_PreLink_default(const r_program_t *program) {
 
-	R_BindAttributeLocation(program, "POSITION", R_ARRAY_POSITION);
-	R_BindAttributeLocation(program, "COLOR", R_ARRAY_COLOR);
-	R_BindAttributeLocation(program, "TEXCOORD0", R_ARRAY_DIFFUSE);
-	R_BindAttributeLocation(program, "TEXCOORD1", R_ARRAY_LIGHTMAP);
-	R_BindAttributeLocation(program, "NORMAL", R_ARRAY_NORMAL);
-	R_BindAttributeLocation(program, "TANGENT", R_ARRAY_TANGENT);
+	R_BindAttributeLocation(program, "POSITION", R_ATTRIB_POSITION);
+	R_BindAttributeLocation(program, "COLOR", R_ATTRIB_COLOR);
+	R_BindAttributeLocation(program, "TEXCOORD0", R_ATTRIB_DIFFUSE);
+	R_BindAttributeLocation(program, "TEXCOORD1", R_ATTRIB_LIGHTMAP);
+	R_BindAttributeLocation(program, "NORMAL", R_ATTRIB_NORMAL);
+	R_BindAttributeLocation(program, "TANGENT", R_ATTRIB_TANGENT);
 
-	R_BindAttributeLocation(program, "NEXT_POSITION", R_ARRAY_NEXT_POSITION);
-	R_BindAttributeLocation(program, "NEXT_NORMAL", R_ARRAY_NEXT_NORMAL);
-	R_BindAttributeLocation(program, "NEXT_TANGENT", R_ARRAY_NEXT_TANGENT);
+	R_BindAttributeLocation(program, "NEXT_POSITION", R_ATTRIB_NEXT_POSITION);
+	R_BindAttributeLocation(program, "NEXT_NORMAL", R_ATTRIB_NEXT_NORMAL);
+	R_BindAttributeLocation(program, "NEXT_TANGENT", R_ATTRIB_NEXT_TANGENT);
 }
 
 /**
@@ -89,16 +86,16 @@ void R_InitProgram_default(r_program_t *program) {
 
 	p->program = program;
 
-	R_ProgramVariable(&program->attributes[R_ARRAY_POSITION], R_ATTRIBUTE, "POSITION", true);
-	R_ProgramVariable(&program->attributes[R_ARRAY_COLOR], R_ATTRIBUTE, "COLOR", true);
-	R_ProgramVariable(&program->attributes[R_ARRAY_DIFFUSE], R_ATTRIBUTE, "TEXCOORD0", true);
-	R_ProgramVariable(&program->attributes[R_ARRAY_LIGHTMAP], R_ATTRIBUTE, "TEXCOORD1", true);
-	R_ProgramVariable(&program->attributes[R_ARRAY_NORMAL], R_ATTRIBUTE, "NORMAL", true);
-	R_ProgramVariable(&program->attributes[R_ARRAY_TANGENT], R_ATTRIBUTE, "TANGENT", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_POSITION], R_ATTRIBUTE, "POSITION", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_COLOR], R_ATTRIBUTE, "COLOR", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_DIFFUSE], R_ATTRIBUTE, "TEXCOORD0", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_LIGHTMAP], R_ATTRIBUTE, "TEXCOORD1", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_NORMAL], R_ATTRIBUTE, "NORMAL", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_TANGENT], R_ATTRIBUTE, "TANGENT", true);
 
-	R_ProgramVariable(&program->attributes[R_ARRAY_NEXT_POSITION], R_ATTRIBUTE, "NEXT_POSITION", true);
-	R_ProgramVariable(&program->attributes[R_ARRAY_NEXT_NORMAL], R_ATTRIBUTE, "NEXT_NORMAL", true);
-	R_ProgramVariable(&program->attributes[R_ARRAY_NEXT_TANGENT], R_ATTRIBUTE, "NEXT_TANGENT", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_NEXT_POSITION], R_ATTRIBUTE, "NEXT_POSITION", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_NEXT_NORMAL], R_ATTRIBUTE, "NEXT_NORMAL", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_NEXT_TANGENT], R_ATTRIBUTE, "NEXT_TANGENT", true);
 
 	R_ProgramVariable(&p->diffuse, R_UNIFORM_INT, "DIFFUSE", true);
 	R_ProgramVariable(&p->lightmap, R_UNIFORM_INT, "LIGHTMAP", true);
@@ -151,9 +148,6 @@ void R_InitProgram_default(r_program_t *program) {
 
 	R_ProgramVariable(&p->alpha_threshold, R_UNIFORM_FLOAT, "ALPHA_THRESHOLD", true);
 
-	R_ProgramVariable(&p->time_fraction, R_UNIFORM_FLOAT, "TIME_FRACTION", true);
-	R_ProgramVariable(&p->time, R_UNIFORM_FLOAT, "TIME", true);
-
 	R_ProgramParameter1i(&p->diffuse, 0);
 	R_ProgramParameter1i(&p->lightmap, 0);
 	R_ProgramParameter1i(&p->deluxemap, 0);
@@ -178,9 +172,6 @@ void R_InitProgram_default(r_program_t *program) {
 	R_ProgramParameter1f(&p->alpha_threshold, ALPHA_TEST_DISABLED_THRESHOLD);
 
 	R_ProgramParameter1i(&p->caustic.enable, 0);
-
-	R_ProgramParameter1f(&p->time_fraction, 0.0f);
-	R_ProgramParameter1f(&p->time, 0.0f);
 }
 
 /**
@@ -217,10 +208,10 @@ void R_UseMaterial_default(const r_material_t *material) {
 	        !r_bumpmap->value || r_draw_bsp_lightmaps->value ||
 			!r_state.lighting_enabled) {
 
-		R_DisableAttribute(R_ARRAY_TANGENT);
+		R_DisableAttribute(R_ATTRIB_TANGENT);
 		R_ProgramParameter1i(&p->normalmap, 0);
 	} else {
-		R_EnableAttribute(R_ARRAY_TANGENT);
+		R_EnableAttribute(R_ATTRIB_TANGENT);
 
 		R_BindNormalmapTexture(material->normalmap->texnum);
 		R_ProgramParameter1i(&p->normalmap, 1);
@@ -265,13 +256,12 @@ void R_UseFog_default(const r_fog_parameters_t *fog) {
 /**
  * @brief
  */
-void R_UseLight_default(const uint16_t light_index, const r_light_t *light) {
+void R_UseLight_default(const uint16_t light_index, const matrix4x4_t *world_view, const r_light_t *light) {
 	r_default_program_t *p = &r_default_program;
 
 	if (light && light->radius) {
 		vec3_t origin;
-		const matrix4x4_t *modelview = R_GetMatrixPtr(R_MATRIX_MODELVIEW);
-		Matrix4x4_Transform(modelview, light->origin, origin);
+		Matrix4x4_Transform(world_view, light->origin, origin);
 
 		R_ProgramParameter3fv(&p->lights[light_index].origin, origin);
 		R_ProgramParameter3fv(&p->lights[light_index].color, light->color);
@@ -289,10 +279,7 @@ void R_UseCaustic_default(const r_caustic_parameters_t *caustic) {
 
 	if (caustic && caustic->enable) {
 		R_ProgramParameter1i(&p->caustic.enable, caustic->enable);
-
 		R_ProgramParameter3fv(&p->caustic.color, caustic->color);
-
-		R_ProgramParameter1f(&p->time, r_view.ticks / 1000.0);
 	} else {
 		R_ProgramParameter1i(&p->caustic.enable, 0);
 	}
@@ -322,15 +309,6 @@ void R_UseAlphaTest_default(const vec_t threshold) {
 	r_default_program_t *p = &r_default_program;
 
 	R_ProgramParameter1f(&p->alpha_threshold, threshold);
-}
-
-/**
- * @brief
- */
-void R_UseInterpolation_default(const vec_t time_fraction) {
-	r_default_program_t *p = &r_default_program;
-
-	R_ProgramParameter1f(&p->time_fraction, time_fraction);
 }
 
 /**

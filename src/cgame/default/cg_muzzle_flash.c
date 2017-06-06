@@ -96,14 +96,14 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke))) {
+	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke, false))) {
 		return;
 	}
 
 	p->lifetime = 500;
 	p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-	cgi.ColorFromPalette(Random() & 7, p->color_start);
+	cgi.ColorFromPalette(Randomr(0, 8), p->color_start);
 	p->color_start[3] = 0.8;
 
 	VectorCopy(p->color_start, p->color_end);
@@ -149,52 +149,64 @@ void Cg_ParseMuzzleFlash(void) {
 	const uint8_t flash = cgi.ReadByte();
 
 	const s_sample_t *sample;
+	int16_t pitch = 0;
 
 	switch (flash) {
 		case MZ_BLASTER:
 			c = cgi.ReadByte();
 			sample = cg_sample_blaster_fire;
 			Cg_EnergyFlash(ent, Cg_ResolveEffectColor(c ? c - 1 : 0, EFFECT_COLOR_ORANGE));
+			pitch = (int16_t) (Randomc() * 5.0);
 			break;
 		case MZ_SHOTGUN:
 			sample = cg_sample_shotgun_fire;
 			Cg_SmokeFlash(ent);
+			pitch = (int16_t) (Randomc() * 3.0);
 			break;
 		case MZ_SUPER_SHOTGUN:
 			sample = cg_sample_supershotgun_fire;
 			Cg_SmokeFlash(ent);
+			pitch = (int16_t) (Randomc() * 3.0);
 			break;
 		case MZ_MACHINEGUN:
-			sample = cg_sample_machinegun_fire[Random() % 4];
-			if (Random() & 1) {
+			sample = cg_sample_machinegun_fire[Randomr(0, 4)];
+			if (Randomr(0, 2)) {
 				Cg_SmokeFlash(ent);
 			}
+			pitch = (int16_t) (Randomc() * 5.0);
 			break;
 		case MZ_ROCKET_LAUNCHER:
 			sample = cg_sample_rocketlauncher_fire;
 			Cg_SmokeFlash(ent);
+			pitch = (int16_t) (Randomc() * 3.0);
 			break;
 		case MZ_GRENADE_LAUNCHER:
 			sample = cg_sample_grenadelauncher_fire;
 			Cg_SmokeFlash(ent);
+			pitch = (int16_t) (Randomc() * 3.0);
 			break;
 		case MZ_HYPERBLASTER:
 			sample = cg_sample_hyperblaster_fire;
 			Cg_EnergyFlash(ent, ColorFromRGB(191, 123, 111));
+			pitch = (int16_t) (Randomc() * 5.0);
 			break;
 		case MZ_LIGHTNING:
 			sample = cg_sample_lightning_fire;
+			pitch = (int16_t) (Randomc() * 3.0);
 			break;
 		case MZ_RAILGUN:
 			sample = cg_sample_railgun_fire;
+			pitch = (int16_t) (Randomc() * 2.0);
 			break;
 		case MZ_BFG10K:
 			sample = cg_sample_bfg_fire;
 			Cg_EnergyFlash(ent, ColorFromRGB(75, 91, 39));
+			pitch = (int16_t) (Randomc() * 2.0);
 			break;
 		case MZ_LOGOUT:
 			sample = cg_sample_teleport;
 			Cg_LogoutFlash(ent);
+			pitch = (int16_t) (Randomc() * 4.0);
 			break;
 		default:
 			sample = NULL;
@@ -204,8 +216,8 @@ void Cg_ParseMuzzleFlash(void) {
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = sample,
 		 .entity = ent_num,
-		  .attenuation = ATTEN_NORM,
-		   .flags = S_PLAY_ENTITY
+		  .attenuation = ATTEN_NORM,// | S_SET_Z_ORIGIN_OFFSET(7),
+		   .flags = S_PLAY_ENTITY,
+			.pitch = pitch
 	});
 }
-

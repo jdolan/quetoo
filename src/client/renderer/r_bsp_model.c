@@ -64,7 +64,6 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
  * Quake2 levels.
  */
 static void R_LoadBspNormals(r_bsp_model_t *bsp) {
-
 	const bsp_normal_t *in = bsp->file->normals;
 
 	if (bsp->file->num_normals != r_unique_vertices.num_vertexes) { // ensure sane normals count
@@ -115,6 +114,8 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
 	bsp->num_texinfo = bsp->file->num_texinfo;
 	bsp->texinfo = out = Mem_LinkMalloc(bsp->num_texinfo * sizeof(*out), bsp);
 
+	GHashTable *wal_files = NULL;
+
 	for (uint16_t i = 0; i < bsp->num_texinfo; i++, in++, out++) {
 		g_strlcpy(out->name, in->texture, sizeof(out->name));
 
@@ -131,16 +132,25 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
 
 		// hack to down-scale high-res textures for legacy levels
 		if (bsp->version == BSP_VERSION) {
-			void *buffer;
 
-			int64_t len = Fs_Load(va("textures/%s.wal", out->name), &buffer);
-			if (len != -1) {
-				d_wal_t *wal = (d_wal_t *) buffer;
+			if (!wal_files) {
+				wal_files = g_hash_table_new(g_direct_hash, g_direct_equal);
+			}
 
-				out->material->diffuse->width = LittleLong(wal->width);
-				out->material->diffuse->height = LittleLong(wal->height);
+			if (!g_hash_table_contains(wal_files, out->material)) {
+				g_hash_table_add(wal_files, out->material);
 
-				Fs_Free(buffer);
+				void *buffer;
+
+				int64_t len = Fs_Load(va("textures/%s.wal", out->name), &buffer);
+				if (len != -1) {
+					d_wal_t *wal = (d_wal_t *) buffer;
+
+					out->material->diffuse->width = LittleLong(wal->width);
+					out->material->diffuse->height = LittleLong(wal->height);
+
+					Fs_Free(buffer);
+				}
 			}
 		}
 
@@ -149,6 +159,10 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
 			VectorScale(out->material->diffuse->color, out->value, out->emissive);
 			out->light = ColorNormalize(out->emissive, out->emissive);
 		}
+	}
+
+	if (wal_files) {
+		g_hash_table_destroy(wal_files);
 	}
 }
 
@@ -262,6 +276,7 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 		surf->st_center[i] = (surf->st_maxs[i] + surf->st_mins[i]) / 2.0;
 
 		const vec_t size = surf->st_maxs[i] - surf->st_mins[i];
+
 		surf->lightmap_size[i] = (r_pixel_t) ((size * bsp->lightmap_scale) + 1.0);
 	}
 }
@@ -713,11 +728,11 @@ typedef struct {
 } r_bsp_interleave_vertex_t;
 
 static r_buffer_layout_t r_bsp_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
-	{ .attribute = R_ARRAY_NORMAL, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t), .offset = 12 },
-	{ .attribute = R_ARRAY_TANGENT, .type = R_ATTRIB_FLOAT, .count = 4, .size = sizeof(vec4_t), .offset = 24 },
-	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_FLOAT, .count = 2, .size = sizeof(vec2_t), .offset = 40 },
-	{ .attribute = R_ARRAY_LIGHTMAP, .type = R_ATTRIB_FLOAT, .count = 2, .size = sizeof(vec2_t), .offset = 48 },
+	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 3 },
+	{ .attribute = R_ATTRIB_NORMAL, .type = R_TYPE_FLOAT, .count = 3 },
+	{ .attribute = R_ATTRIB_TANGENT, .type = R_TYPE_FLOAT, .count = 4 },
+	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_FLOAT, .count = 2 },
+	{ .attribute = R_ATTRIB_LIGHTMAP, .type = R_TYPE_FLOAT, .count = 2 },
 	{ .attribute = -1 }
 };
 
@@ -802,7 +817,12 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 		}
 	}
 
-	R_CreateElementBuffer(&mod->bsp->element_buffer, R_ATTRIB_UNSIGNED_INT, GL_STATIC_DRAW, e, elements);
+	R_CreateElementBuffer(&mod->bsp->element_buffer, &(const r_create_element_t) {
+		.type = R_TYPE_UNSIGNED_INT,
+		.hint = GL_STATIC_DRAW,
+		.size = e,
+		.data = elements
+	});
 
 	Mem_Free(elements);
 
@@ -817,9 +837,13 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 		Vector2Copy(mod->bsp->lightmap_texcoords[i], interleaved[i].lightmap);
 	}
 
-	R_CreateInterleaveBuffer(&mod->bsp->vertex_buffer, sizeof(r_bsp_interleave_vertex_t), r_bsp_buffer_layout,
-	                         GL_STATIC_DRAW,
-	                         mod->num_verts * sizeof(r_bsp_interleave_vertex_t), interleaved);
+	R_CreateInterleaveBuffer(&mod->bsp->vertex_buffer, &(const r_create_interleave_t) {
+		.struct_size = sizeof(r_bsp_interleave_vertex_t),
+		.layout = r_bsp_buffer_layout,
+		.hint = GL_STATIC_DRAW,
+		.size = mod->num_verts * sizeof(r_bsp_interleave_vertex_t),
+		.data = interleaved
+	});
 
 	Mem_Free(interleaved);
 

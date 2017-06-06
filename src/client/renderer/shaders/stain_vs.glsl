@@ -6,14 +6,16 @@
 
 #define VERTEX_SHADER
 
-#include "matrix_inc.glsl"
-
-out vec4 color;
-out vec2 texcoord;
+#include "include/uniforms.glsl"
 
 in vec3 POSITION;
 in vec2 TEXCOORD;
 in vec4 COLOR;
+
+out VertexData {
+	vec2 texcoord;
+	vec4 color;
+};
 
 /**
  * @brief Shader entry point.

@@ -39,46 +39,35 @@ typedef struct {
 
 static r_buffer_layout_t r_material_buffer_layout[] = {
 	{
-		.attribute = R_ARRAY_POSITION,
-		.type = R_ATTRIB_FLOAT,
-		.count = 3,
-		.size = sizeof(vec3_t)
+		.attribute = R_ATTRIB_POSITION,
+		.type = R_TYPE_FLOAT,
+		.count = 3
 	},
 	{
-		.attribute = R_ARRAY_COLOR,
-		.type = R_ATTRIB_UNSIGNED_BYTE,
+		.attribute = R_ATTRIB_COLOR,
+		.type = R_TYPE_UNSIGNED_BYTE,
 		.count = 4,
-		.size = sizeof(u8vec4_t),
-		.offset = 12,
 		.normalized = true
 	},
 	{
-		.attribute = R_ARRAY_NORMAL,
-		.type = R_ATTRIB_FLOAT,
-		.count = 3,
-		.size = sizeof(vec3_t),
-		.offset = 16
+		.attribute = R_ATTRIB_NORMAL,
+		.type = R_TYPE_FLOAT,
+		.count = 3
 	},
 	{
-		.attribute = R_ARRAY_TANGENT,
-		.type = R_ATTRIB_FLOAT,
-		.count = 4,
-		.size = sizeof(vec4_t),
-		.offset = 28
+		.attribute = R_ATTRIB_TANGENT,
+		.type = R_TYPE_FLOAT,
+		.count = 4
 	},
 	{
-		.attribute = R_ARRAY_DIFFUSE,
-		.type = R_ATTRIB_FLOAT,
+		.attribute = R_ATTRIB_DIFFUSE,
+		.type = R_TYPE_FLOAT,
+		.count = 2
+	},
+	{
+		.attribute = R_ATTRIB_LIGHTMAP,
+		.type = R_TYPE_UNSIGNED_SHORT,
 		.count = 2,
-		.size = sizeof(vec2_t),
-		.offset = 44
-	},
-	{
-		.attribute = R_ARRAY_LIGHTMAP,
-		.type = R_ATTRIB_UNSIGNED_SHORT,
-		.count = 2,
-		.size = sizeof(u16vec2_t),
-		.offset = 52,
 		.normalized = true
 	},
 	{
@@ -544,7 +533,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_ResetArrayState();
 
-	R_BindAttributeInterleaveBuffer(&r_material_state.vertex_buffer, R_ARRAY_MASK_ALL);
+	R_BindAttributeInterleaveBuffer(&r_material_state.vertex_buffer, R_ATTRIB_MASK_ALL);
 
 	R_EnableColorArray(false);
 
@@ -797,19 +786,29 @@ static void R_MaterialKey(const char *name, char *key, size_t len, cm_asset_cont
 				case ASSET_CONTEXT_NONE:
 					break;
 				case ASSET_CONTEXT_TEXTURES:
-					g_strlcat(key, "textures/", len);
+					if (!g_str_has_prefix(name, "textures/")) {
+						g_strlcat(key, "textures/", len);
+					}
 					break;
 				case ASSET_CONTEXT_MODELS:
-					g_strlcat(key, "models/", len);
+					if (!g_str_has_prefix(name, "models/")) {
+						g_strlcat(key, "models/", len);
+					}
 					break;
 				case ASSET_CONTEXT_PLAYERS:
-					g_strlcat(key, "players/", len);
+					if (!g_str_has_prefix(name, "players/")) {
+						g_strlcat(key, "players/", len);
+					}
 					break;
 				case ASSET_CONTEXT_ENVMAPS:
-					g_strlcat(key, "envmaps/", len);
+					if (!g_str_has_prefix(name, "envmaps/")) {
+						g_strlcat(key, "envmaps/", len);
+					}
 					break;
 				case ASSET_CONTEXT_FLARES:
-					g_strlcat(key, "flares/", len);
+					if (!g_str_has_prefix(name, "flares/")) {
+						g_strlcat(key, "flares/", len);
+					}
 					break;
 			}
 		}
@@ -828,7 +827,14 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
 	R_MaterialKey(cm->name, key, sizeof(key), context);
 
-	r_material_t *material = (r_material_t *) R_AllocMedia(key, sizeof(r_material_t), MEDIA_MATERIAL);
+	r_material_t *material = (r_material_t *) R_FindMedia(key);
+	
+	if (material) {
+		Cm_FreeMaterial(cm);
+		return material;
+	}
+
+	material = (r_material_t *) R_AllocMedia(key, sizeof(r_material_t), MEDIA_MATERIAL);
 	material->cm = cm;
 
 	material->media.Register = R_RegisterMaterial;
@@ -836,32 +842,50 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
 	Cm_ResolveMaterial(cm, context);
 
-	material->diffuse = R_LoadImage(cm->diffuse.path, IT_DIFFUSE);
+	if (*cm->diffuse.path) {
+
+		material->diffuse = R_LoadImage(cm->diffuse.path, IT_DIFFUSE);
+		if (material->diffuse->type == IT_DIFFUSE) {
+
+			if (*cm->normalmap.path) {
+				material->normalmap = R_LoadImage(cm->normalmap.path, IT_NORMALMAP);
+				if (material->normalmap->type == IT_NULL) {
+					material->normalmap = NULL;
+				}
+			}
+
+			if (*cm->specularmap.path) {
+				material->specularmap = R_LoadImage(cm->specularmap.path, IT_SPECULARMAP);
+				if (material->specularmap->type == IT_NULL) {
+					material->specularmap = NULL;
+				}
+			}
+
+			if (*cm->tintmap.path) {
+				material->tintmap = R_LoadImage(cm->tintmap.path, IT_TINTMAP);
+				if (material->tintmap->type == IT_NULL) {
+					material->tintmap = NULL;
+				}
+			}
+		}
+	} else {
+		material->diffuse = r_image_state.null;
+		Com_Warn("Failed to resolve %s\n", cm->name);
+	}
+
+	return material;
+}
+
+/**
+ * @brief Resolves all asset references in the specified render material's stages
+ */
+static void R_ResolveMaterialStages(r_material_t *material, cm_asset_context_t context) {
 
 	if (material->diffuse->type == IT_DIFFUSE) {
 
-		if (*cm->normalmap.path) {
-			material->normalmap = R_LoadImage(cm->normalmap.path, IT_NORMALMAP);
-			if (material->normalmap->type == IT_NULL) {
-				material->normalmap = NULL;
-			}
-		}
+		const cm_material_t *cm = material->cm;
 
-		if (*cm->specularmap.path) {
-			material->specularmap = R_LoadImage(cm->specularmap.path, IT_SPECULARMAP);
-			if (material->specularmap->type == IT_NULL) {
-				material->specularmap = NULL;
-			}
-		}
-
-		if (*cm->tintmap.path) {
-			material->tintmap = R_LoadImage(cm->tintmap.path, IT_TINTMAP);
-			if (material->tintmap->type == IT_NULL) {
-				material->tintmap = NULL;
-			}
-		}
-
-		for (cm_stage_t *s = cm->stages; s; s = s->next) {
+		for (const cm_stage_t *s = cm->stages; s; s = s->next) {
 			r_stage_t *stage = (r_stage_t *) Mem_LinkMalloc(sizeof(r_stage_t), material);
 			stage->cm = s;
 
@@ -872,8 +896,24 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 			}
 		}
 	}
+}
 
-	R_RegisterMedia((r_media_t *) material);
+/**
+ * @brief Finds an existing r_material_t from the specified texture, and registers it again if it exists.
+ */
+r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context) {
+	char key[MAX_QPATH];
+	char mat_name[MAX_QPATH];
+	
+	StripExtension(name, mat_name);
+
+	R_MaterialKey(mat_name, key, sizeof(key), context);
+
+	r_material_t *material = (r_material_t *) R_FindMedia(key);
+
+	if (material != NULL) {
+		R_RegisterMedia((r_media_t *) material);
+	}
 
 	return material;
 }
@@ -882,17 +922,16 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
  * @brief Loads the r_material_t from the specified texture.
  */
 r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
+	r_material_t *material = R_FindMaterial(name, context);
 
-	cm_material_t *mat = Cm_AllocMaterial(name);
-
-	char key[MAX_QPATH];
-	R_MaterialKey(mat->name, key, sizeof(key), context);
-
-	r_material_t *material = (r_material_t *) R_FindMedia(key);
 	if (material == NULL) {
+		cm_material_t *mat = Cm_AllocMaterial(name);
+
 		material = R_ResolveMaterial(mat, context);
-	} else {
-		Cm_FreeMaterial(mat);
+
+		R_ResolveMaterialStages(material, context);
+
+		R_RegisterMedia((r_media_t *) material);
 	}
 
 	return material;
@@ -902,24 +941,33 @@ r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
  * @brief Loads all materials defined in the given file.
  */
 ssize_t R_LoadMaterials(const char *path, cm_asset_context_t context, GList **materials) {
-
 	GList *source = NULL;
 	const ssize_t count = Cm_LoadMaterials(path, &source);
+
 	if (count > 0) {
 
 		for (GList *list = source; list; list = list->next) {
 			cm_material_t *cm = (cm_material_t *) list->data;
 
 			r_material_t *material = R_ResolveMaterial(cm, context);
+
 			if (material->diffuse->type == IT_NULL) {
 				Com_Warn("Failed to resolve %s\n", cm->name);
-			} else {
-				Com_Debug(DEBUG_RENDERER, "Parsed material %s with %d stages\n", cm->name, cm->num_stages);
 			}
 
-			if (materials) {
-				*materials = g_list_prepend(*materials, material);
+			*materials = g_list_prepend(*materials, material);
+		}
+
+		for (GList *list = *materials; list; list = list->next) {
+			r_material_t *material = (r_material_t *) list->data;
+
+			R_ResolveMaterialStages(material, context);
+
+			if (material->diffuse->type != IT_NULL) {
+				Com_Debug(DEBUG_RENDERER, "Parsed material %s with %d stages\n", material->cm->name, material->cm->num_stages);
 			}
+
+			R_RegisterMedia((r_media_t *) material);
 		}
 	}
 
@@ -931,8 +979,8 @@ ssize_t R_LoadMaterials(const char *path, cm_asset_context_t context, GList **ma
  * @brief Loads all r_material_t for the specified BSP model.
  */
 static void R_LoadBspMaterials(r_model_t *mod, GList **materials) {
-
 	char path[MAX_QPATH];
+
 	g_snprintf(path, sizeof(path), "materials/%s.mat", Basename(mod->media.name));
 
 	R_LoadMaterials(path, ASSET_CONTEXT_TEXTURES, materials);
@@ -950,40 +998,41 @@ static void R_LoadBspMaterials(r_model_t *mod, GList **materials) {
 
 /**
  * @brief Loads all r_material_t for the specified mesh model.
+ * @remarks Player models may optionally define materials, but are not required to.
+ * @remarks Other mesh models must resolve at least one material. If no materials file is found,
+ * we attempt to load ${model_dir}/skin.tga as the default material.
  */
 static void R_LoadMeshMaterials(r_model_t *mod, GList **materials) {
-
 	char path[MAX_QPATH];
+
 	g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
 
-	if (R_LoadMaterials(path, ASSET_CONTEXT_MODELS, materials) < 1) {
+	if (g_str_has_prefix(mod->media.name, "players/")) {
+		R_LoadMaterials(path, ASSET_CONTEXT_PLAYERS, materials);
+	} else {
+		if (R_LoadMaterials(path, ASSET_CONTEXT_MODELS, materials) < 1) {
 
-		Dirname(mod->media.name, path);
-		g_strlcat(path, "skin", sizeof(path));
+			Dirname(mod->media.name, path);
+			g_strlcat(path, "skin", sizeof(path));
 
-		*materials = g_list_prepend(*materials, R_LoadMaterial(path, ASSET_CONTEXT_MODELS));
+			*materials = g_list_prepend(*materials, R_LoadMaterial(path, ASSET_CONTEXT_MODELS));
+		}
+
+		assert(materials);
 	}
-
-	assert(materials);
-
-	r_material_t *material = (r_material_t *) (*materials)->data;
-
-	mod->mesh->material = material;
 }
 
 /**
  * @brief Loads all r_material_t for the specified model, populating `mod->materials`.
  */
 void R_LoadModelMaterials(r_model_t *mod) {
-
 	GList *materials = NULL;
 
 	switch (mod->type) {
 		case MOD_BSP:
 			R_LoadBspMaterials(mod, &materials);
 			break;
-		case MOD_OBJ:
-		case MOD_MD3:
+		case MOD_MESH:
 			R_LoadMeshMaterials(mod, &materials);
 			break;
 		default:
@@ -999,7 +1048,7 @@ void R_LoadModelMaterials(r_model_t *mod) {
 		*out = (r_material_t *) R_RegisterDependency((r_media_t *) mod, (r_media_t *) list->data);
 	}
 
-	Com_Debug(DEBUG_RENDERER, "Loaded %zd materials for %s\n", mod->num_materials, mod->media.name);
+	Com_Debug(DEBUG_RENDERER, "Loaded %" PRIuPTR " materials for %s\n", mod->num_materials, mod->media.name);
 
 	g_list_free(materials);
 }
@@ -1008,8 +1057,8 @@ void R_LoadModelMaterials(r_model_t *mod) {
  * @brief Writes all r_material_t for the specified BSP model to disk.
  */
 static ssize_t R_SaveBspMaterials(const r_model_t *mod) {
-
 	char path[MAX_QPATH];
+
 	g_snprintf(path, sizeof(path), "materials/%s.mat", Basename(mod->media.name));
 
 	GList *materials = NULL;
@@ -1048,8 +1097,13 @@ void R_InitMaterials(void) {
 
 	r_material_state.vertex_array = g_array_sized_new(false, true, sizeof(r_material_interleave_vertex_t),
 	                                r_material_state.vertex_len);
-	R_CreateInterleaveBuffer(&r_material_state.vertex_buffer, sizeof(r_material_interleave_vertex_t),
-	                         r_material_buffer_layout, GL_DYNAMIC_DRAW, sizeof(r_material_interleave_vertex_t) * r_material_state.vertex_len, NULL);
+
+	R_CreateInterleaveBuffer(&r_material_state.vertex_buffer, &(const r_create_interleave_t) {
+		.struct_size = sizeof(r_material_interleave_vertex_t),
+		.layout = r_material_buffer_layout,
+		.hint = GL_DYNAMIC_DRAW,
+		.size = sizeof(r_material_interleave_vertex_t) * r_material_state.vertex_len
+	});
 
 	r_material_state.element_array = g_array_sized_new(false, false, sizeof(u16vec_t), r_material_state.element_len);
 

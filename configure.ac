@@ -76,6 +76,7 @@ case "$host" in
 		;;
 	*-*-mingw*)
 		HOST_NAME="WINDOWS"
+		HOST_CFLAGS="-mfpmath=sse -msse2"
 		HOST_LIBS="-lws2_32 -lole32"
 		DEFAULT_PREFIX="/"
 		AC_MSG_RESULT(windows)
@@ -154,6 +155,12 @@ dnl --------------------------------------
 
 PKG_CHECK_MODULES([SDL2], [sdl2 >= 2.0.0 SDL2_image SDL2_mixer])
 
+dnl --------------------
+dnl Check for libsndfile
+dnl --------------------
+
+PKG_CHECK_MODULES([SNDFILE], [sndfile])
+
 dnl ------------------------
 dnl Check for ObjectivelyMVC
 dnl ------------------------
@@ -171,7 +178,7 @@ AC_CHECK_HEADER(physfs.h,
 AC_SUBST(PHYSFS_LIBS)
 
 dnl -----------------------------------
-dnl Sort out OpenGL an flags and libraries
+dnl Sort out OpenGL flags and libraries
 dnl -----------------------------------
 
 HOST_OPENGL_CFLAGS=""
@@ -197,6 +204,34 @@ AC_SUBST(OPENGL_CFLAGS)
 
 OPENGL_LIBS="$OPENGL_LIBS $HOST_OPENGL_LIBS"
 AC_SUBST(OPENGL_LIBS)
+
+dnl -----------------------------------
+dnl Sort out OpenAL flags and libraries
+dnl -----------------------------------
+
+HOST_OPENAL_CFLAGS=""
+HOST_OPENAL_LIBS=""
+
+case "$host" in
+	*-apple-*)
+		HOST_OPENAL_LIBS="-framework OpenAL"
+		;;
+	*-mingw*)
+		HOST_OPENAL_LIBS="-lOpenAL32"
+		;;
+	*)
+		HOST_OPENAL_LIBS="-lopenal"
+		;;
+esac
+
+AC_SUBST(HOST_OPENAL_CFLAGS)
+AC_SUBST(HOST_OPENAL_LIBS)
+
+OPENAL_CFLAGS="$OPENAL_CFLAGS $HOST_OPENAL_CFLAGS"
+AC_SUBST(OPENAL_CFLAGS)
+
+OPENAL_LIBS="$OPENAL_LIBS $HOST_OPENAL_LIBS"
+AC_SUBST(OPENAL_LIBS)
 
 dnl -------------------------------
 dnl Check for execinfo.h (optional)
@@ -225,8 +260,8 @@ AC_PATH_PROGS(MYSQL_CONFIG, mysql_config mysql_config5)
 if test "x${with_mysql}" != xno -a "x${MYSQL_CONFIG}" != x; then
 	MYSQL_CFLAGS=`$MYSQL_CONFIG --cflags`
 
-	save_CPPFLAGS="$CPPFLAGS"
-	CPPFLAGS="$CPPFLAGS $MYSQL_CFLAGS"
+	save_CFLAGS="$CFLAGS"
+	CFLAGS="$CFLAGS $MYSQL_CFLAGS"
 
 	AC_CHECK_HEADER(mysql.h,
 		HAVE_MYSQL=yes
@@ -237,7 +272,7 @@ if test "x${with_mysql}" != xno -a "x${MYSQL_CONFIG}" != x; then
 		HAVE_MYSQL=no
 	)
 
-	CPPFLAGS="$save_CPPFLAGS"
+	CFLAGS="$save_CFLAGS"
 fi
 AC_SUBST(MYSQL_CFLAGS)
 AC_SUBST(MYSQL_LIBS)
@@ -469,6 +504,7 @@ AC_CONFIG_FILES([
 	src/client/Makefile
 	src/client/renderer/Makefile
 	src/client/renderer/shaders/Makefile
+	src/client/renderer/shaders/include/Makefile
 	src/client/sound/Makefile
 	src/client/ui/Makefile
 	src/client/ui/renderers/Makefile

@@ -32,7 +32,7 @@ void Sv_ClientPrint(const g_entity_t *ent, const int32_t level, const char *fmt,
 
 	n = NUM_FOR_ENTITY(ent);
 	if (n < 1 || n > sv_max_clients->integer) {
-		Com_Warn("Issued to non-client %" PRIuMAX "\n", n);
+		Com_Warn("Issued to non-client %" PRIuPTR "\n", n);
 		return;
 	}
 
@@ -284,20 +284,16 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
  * If origin is NULL, the origin is determined from the entity origin
  * or the midpoint of the entity box for BSP sub-models.
  */
-void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, const uint16_t index, const uint16_t atten) {
+void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, const uint16_t index, const uint16_t atten, const int8_t pitch) {
 
 	assert(origin || ent);
 
 	uint32_t flags = 0;
 
 	uint16_t at = atten;
-	if (at > ATTEN_STATIC) {
-		Com_Warn("Bad attenuation %d\n", at);
-		at = ATTEN_DEFAULT;
-	}
-
-	if (at != ATTEN_DEFAULT) {
-		flags |= S_ATTEN;
+	if ((at & 0x0f) > ATTEN_STATIC) {
+		Com_Warn("Bad attenuation %d\n", at & 0x0f);
+		at = ((at & 0xf0) | ATTEN_DEFAULT);
 	}
 
 	if (origin) {
@@ -313,13 +309,15 @@ void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, const uint16
 		}
 	}
 
+	if (pitch) {
+		flags |= S_PITCH;
+	}
+
 	Net_WriteByte(&sv.multicast, SV_CMD_SOUND);
 	Net_WriteByte(&sv.multicast, flags);
 	Net_WriteByte(&sv.multicast, index);
 
-	if (flags & S_ATTEN) {
-		Net_WriteByte(&sv.multicast, at);
-	}
+	Net_WriteByte(&sv.multicast, at);
 
 	if (flags & S_ENTITY) {
 		Net_WriteShort(&sv.multicast, (int32_t) NUM_FOR_ENTITY(ent));
@@ -327,6 +325,10 @@ void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, const uint16
 
 	if (flags & S_ORIGIN) {
 		Net_WritePosition(&sv.multicast, origin);
+	}
+
+	if (flags & S_PITCH) {
+		Net_WriteByte(&sv.multicast, pitch);
 	}
 
 	vec3_t broadcast_origin;
@@ -340,7 +342,7 @@ void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, const uint16
 		}
 	}
 
-	if (atten != ATTEN_NONE) {
+	if ((atten & 0x0f) != ATTEN_NONE) {
 		Sv_Multicast(broadcast_origin, MULTICAST_PHS, NULL);
 	} else {
 		Sv_Multicast(broadcast_origin, MULTICAST_ALL, NULL);
@@ -572,4 +574,3 @@ void Sv_SendClientPackets(void) {
 		}
 	}
 }
-

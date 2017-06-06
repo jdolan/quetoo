@@ -16,7 +16,7 @@ Push-Location "libs\physfs\"
 Pop-Location
 [Environment]::CurrentDirectory = $PWD
 
-Push-Location "libs\sdl_mixer\SDL2\"
+Push-Location "libs\openal\"
 [Environment]::CurrentDirectory = $PWD
 .\PREPARE.ps1
 Pop-Location

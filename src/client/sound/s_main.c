@@ -26,8 +26,8 @@
 s_env_t s_env;
 
 cvar_t *s_ambient;
-cvar_t *s_music_volume;
-cvar_t *s_reverse;
+cvar_t *s_doppler;
+cvar_t *s_effects;
 cvar_t *s_rate;
 cvar_t *s_volume;
 
@@ -35,23 +35,147 @@ extern cl_client_t cl;
 extern cl_static_t cls;
 
 /**
+ * @brief Check and report OpenAL errors.
+ */
+void S_CheckALError(void) {
+	const ALenum v = alGetError();
+
+	if (v == AL_NO_ERROR) {
+		return;
+	}
+
+	Com_Debug(DEBUG_BREAKPOINT | DEBUG_SOUND, "AL error: %s\n", alGetString(v));
+}
+
+/**
  * @brief
  */
-static void S_Stop(void) {
-
-	Mix_HaltChannel(-1);
-
-	memset(s_env.channels, 0, sizeof(s_env.channels));
+static sf_count_t S_RWops_get_filelen(void *user_data) {
+	SDL_RWops *rwops = (SDL_RWops *) user_data;
+	return rwops->size(rwops);
 }
+
+/**
+ * @brief
+ */
+static sf_count_t S_RWops_seek(sf_count_t offset, int whence, void *user_data) {
+	SDL_RWops *rwops = (SDL_RWops *) user_data;
+	return rwops->seek(rwops, offset, whence);
+}
+
+/**
+ * @brief
+ */
+static sf_count_t S_RWops_read(void *ptr, sf_count_t count, void *user_data) {
+	SDL_RWops *rwops = (SDL_RWops *) user_data;
+	return rwops->read(rwops, ptr, 1, count);
+}
+
+/**
+ * @brief
+ */
+static sf_count_t S_RWops_write(const void *ptr, sf_count_t count, void *user_data) {
+	SDL_RWops *rwops = (SDL_RWops *) user_data;
+	return rwops->write(rwops, ptr, 1, count);
+}
+
+/**
+ * @brief
+ */
+static sf_count_t S_RWops_tell(void *user_data) {
+	SDL_RWops *rwops = (SDL_RWops *) user_data;
+	return rwops->seek(rwops, 0, SEEK_CUR);
+}
+
+/**
+ * @brief An interface to SDL_RWops for libsndfile
+ */
+SF_VIRTUAL_IO s_rwops_io = {
+	.get_filelen = S_RWops_get_filelen,
+	.seek = S_RWops_seek,
+	.read = S_RWops_read,
+	.write = S_RWops_write,
+	.tell = S_RWops_tell
+};
+
+/**
+ * @brief
+ */
+static sf_count_t S_PhysFS_get_filelen(void *user_data) {
+	file_t *file = (file_t *) user_data;
+	return Fs_FileLength(file);
+}
+
+/**
+ * @brief
+ */
+static sf_count_t S_PhysFS_seek(sf_count_t offset, int whence, void *user_data) {
+	file_t *file = (file_t *) user_data;
+
+	switch (whence) {
+	case SEEK_SET:
+		Fs_Seek(file, offset);
+		break;
+	case SEEK_CUR:
+		Fs_Seek(file, Fs_Tell(file) + offset);
+		break;
+	case SEEK_END:
+		Fs_Seek(file, Fs_FileLength(file) - offset);
+		break;
+	}
+
+	return Fs_Tell(file);
+}
+
+/**
+ * @brief
+ */
+static sf_count_t S_PhysFS_read(void *ptr, sf_count_t count, void *user_data) {
+	file_t *file = (file_t *) user_data;
+	return Fs_Read(file, ptr, 1, count);
+}
+
+/**
+ * @brief
+ */
+static sf_count_t S_PhysFS_write(const void *ptr, sf_count_t count, void *user_data) {
+	file_t *file = (file_t *) user_data;
+	return Fs_Write(file, ptr, 1, count);
+}
+
+/**
+ * @brief
+ */
+static sf_count_t S_PhysFS_tell(void *user_data) {
+	file_t *file = (file_t *) user_data;
+	return Fs_Tell(file);
+}
+
+/**
+ * @brief An interface to PhysFS for libsndfile
+ */
+SF_VIRTUAL_IO s_physfs_io = {
+	.get_filelen = S_PhysFS_get_filelen,
+	.seek = S_PhysFS_seek,
+	.read = S_PhysFS_read,
+	.write = S_PhysFS_write,
+	.tell = S_PhysFS_tell
+};
 
 /**
  * @brief Stop sounds that are playing, if any.
  */
-void S_StopAllSounds(void) {
+void S_Stop(void) {
 
-	if (Mix_Playing(-1) > 0) {
-		S_Stop();
+	memset(s_env.channels, 0, sizeof(s_env.channels));
+
+	alSourceStopv(MAX_CHANNELS, s_env.sources);
+
+	for (size_t i = 0; i < MAX_CHANNELS; i++) {
+		alSourcei(s_env.sources[i], AL_BUFFER, 0);
 	}
+
+	S_CheckALError();
 }
 
 /**
@@ -60,25 +184,20 @@ void S_StopAllSounds(void) {
  */
 void S_Frame(void) {
 
-	if (!s_env.initialized) {
+	if (!s_env.context) {
 		return;
 	}
 
 	S_FrameMusic();
 
 	if (cls.state != CL_ACTIVE) {
-		S_StopAllSounds();
+		S_Stop();
 		return;
 	}
 
 	if (s_env.update) {
 		s_env.update = false;
 		S_FreeMedia();
-	}
-
-	if (s_reverse->modified) {
-		Mix_SetReverseStereo(MIX_CHANNEL_POST, s_reverse->integer);
-		s_reverse->modified = false;
 	}
 
 	S_MixChannels();
@@ -90,8 +209,8 @@ void S_Frame(void) {
 void S_LoadMedia(void) {
 	extern cl_client_t cl;
 
-	if (!s_env.initialized) {
-		return;    // sound disabled
+	if (!s_env.context) {
+		return;
 	}
 
 	if (!cl.config_strings[CS_MODELS][0]) {
@@ -103,6 +222,14 @@ void S_LoadMedia(void) {
 	S_BeginLoading();
 
 	Cl_LoadingProgress(80, "sounds");
+
+	if (*cl_chat_sound->string) {
+		S_LoadSample(cl_chat_sound->string);
+	}
+
+	if (*cl_team_chat_sound->string) {
+		S_LoadSample(cl_team_chat_sound->string);
+	}
 
 	for (uint32_t i = 0; i < MAX_SOUNDS; i++) {
 
@@ -152,7 +279,7 @@ static void S_Stop_f(void) {
 /**
  * @brief
  */
-static void S_Restart_f(void) {
+void S_Restart_f(void) {
 
 	if (cls.state == CL_LOADING) {
 		return;
@@ -178,16 +305,15 @@ static void S_Restart_f(void) {
  */
 static void S_InitLocal(void) {
 
-	s_ambient = Cvar_Add("s_ambient", "1", CVAR_ARCHIVE, "Controls playback of ambient sounds.");
-	s_music_volume = Cvar_Add("s_music_volume", "0.15", CVAR_ARCHIVE, "Music volume level.");
+	s_ambient = Cvar_Add("s_ambient", "1", CVAR_ARCHIVE, "Controls playback of ambient sounds. 0 disables, 1 enables, 2 enables ambient ONLY.");
+	s_doppler = Cvar_Add("s_doppler", "0", CVAR_ARCHIVE, "The scale for the doppler effect. 0 is disabled, 1 is default, anything inbetween is scale.");
+	s_effects = Cvar_Add("s_effects", "0", CVAR_ARCHIVE | CVAR_S_MEDIA, "Whether sound filtering is enabled for systems that support it.");
 	s_rate = Cvar_Add("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE, "Sound sample rate in Hz.");
-	s_reverse = Cvar_Add("s_reverse", "0", CVAR_ARCHIVE, "Reverse left and right channels.");
 	s_volume = Cvar_Add("s_volume", "1.0", CVAR_ARCHIVE, "Global sound volume level.");
 
 	Cvar_ClearAll(CVAR_S_MASK);
 
 	Cmd_Add("s_list_media", S_ListMedia_f, CMD_SOUND, "List all currently loaded media");
-	Cmd_Add("s_next_track", S_NextTrack_f, CMD_SOUND, "Play the next music track.");
 	Cmd_Add("s_play", S_Play_f, CMD_SOUND, NULL);
 	Cmd_Add("s_restart", S_Restart_f, CMD_SOUND, "Restart the sound subsystem");
 	Cmd_Add("s_stop", S_Stop_f, CMD_SOUND, NULL);
@@ -197,9 +323,6 @@ static void S_InitLocal(void) {
  * @brief Initializes the sound subsystem.
  */
 void S_Init(void) {
-	int32_t freq, channels;
-	uint16_t format;
-
 	memset(&s_env, 0, sizeof(s_env));
 
 	if (Cvar_GetValue("s_disable")) {
@@ -211,37 +334,91 @@ void S_Init(void) {
 
 	S_InitLocal();
 
-	if (SDL_WasInit(SDL_INIT_AUDIO) == 0) {
-		if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0) {
-			Com_Warn("%s\n", SDL_GetError());
-			return;
+	s_env.device = alcOpenDevice(NULL);
+
+	if (!s_env.device) {
+		Com_Warn("%s\n", alcGetString(NULL, alcGetError(NULL)));
+		return;
+	}
+
+	s_env.context = alcCreateContext(s_env.device, NULL);
+
+	if (!s_env.context || !alcMakeContextCurrent(s_env.context)) {
+		Com_Warn("%s\n", alcGetString(NULL, alcGetError(NULL)));
+		return;
+	}
+
+	aladLoadAL();
+
+	s_env.renderer = (const char *) alGetString(AL_RENDERER);
+	s_env.vendor = (const char *) alGetString(AL_VENDOR);
+	s_env.version = (const char *) alGetString(AL_VERSION);
+
+	Com_Print("  Renderer:   ^2%s^7\n", s_env.renderer);
+	Com_Print("  Vendor:     ^2%s^7\n", s_env.vendor);
+	Com_Print("  Version:    ^2%s^7\n", s_env.version);
+
+	gchar **strings = g_strsplit(alGetString(AL_EXTENSIONS), " ", 0);
+
+	for (guint i = 0; i < g_strv_length(strings); i++) {
+		const char *c = (const char *) strings[i];
+
+		if (i == 0) {
+			Com_Verbose("  Extensions: ^2%s^7\n", c);
+		} else {
+			Com_Verbose("              ^2%s^7\n", c);
 		}
 	}
 
-	if (Mix_OpenAudio(s_rate->integer, MIX_DEFAULT_FORMAT, 2, 1024) == -1) {
-		Com_Warn("%s\n", Mix_GetError());
-		return;
+	g_strfreev(strings);
+
+	strings = g_strsplit(alcGetString(s_env.device, ALC_EXTENSIONS), " ", 0);
+
+	for (guint i = 0; i < g_strv_length(strings); i++) {
+		const char *c = (const char *) strings[i];
+		Com_Verbose("              ^2%s^7\n", c);
 	}
 
-	if (Mix_QuerySpec(&freq, &format, &channels) == 0) {
-		Com_Warn("%s\n", Mix_GetError());
-		return;
+	g_strfreev(strings);
+
+	if (s_effects->integer) {
+		if (!ALAD_ALC_EXT_EFX) {
+			Com_Warn("s_effects is enabled but OpenAL driver does not support them.");
+			Cvar_ForceSet("s_effects", "0");
+			s_effects->modified = false;
+			s_env.effects.loaded = false;
+		} else {
+			alGenFilters(1, &s_env.effects.underwater);
+			S_CheckALError();
+
+			alFilteri(s_env.effects.underwater, AL_FILTER_TYPE, AL_FILTER_LOWPASS);
+			S_CheckALError();
+
+			alFilterf(s_env.effects.underwater, AL_LOWPASS_GAIN, 0.8);
+			S_CheckALError();
+
+			alFilterf(s_env.effects.underwater, AL_LOWPASS_GAINHF, 0.3);
+			S_CheckALError();
+
+			s_env.effects.loaded = true;
+		}
+	} else {
+		s_env.effects.loaded = false;
 	}
 
-	if (Mix_AllocateChannels(MAX_CHANNELS) != MAX_CHANNELS) {
-		Com_Warn("%s\n", Mix_GetError());
-		return;
-	}
+	alDistanceModel(AL_NONE);
+	S_CheckALError();
 
-	Mix_ChannelFinished(S_FreeChannel);
+	alGenSources(MAX_CHANNELS, s_env.sources);
+	S_CheckALError();
 
-	Com_Print("Sound initialized %dKHz %d channels\n", freq, channels);
-
-	s_env.initialized = true;
+	Com_Print("Sound initialized (OpenAL, resample @ %dhz)\n", s_rate->integer);
 
 	S_InitMedia();
 
 	S_InitMusic();
+
+	s_env.resample_buffer = Mem_TagMalloc(sizeof(int16_t) * 2048, MEM_TAG_SOUND);
 }
 
 /**
@@ -249,25 +426,44 @@ void S_Init(void) {
  */
 void S_Shutdown(void) {
 
-	if (!s_env.initialized) {
+	if (!s_env.context) {
 		return;
 	}
 
 	S_Stop();
 
-	Mix_AllocateChannels(0);
+	alDeleteSources(MAX_CHANNELS, s_env.sources);
+	S_CheckALError();
+
+	if (s_env.effects.loaded) {
+		alDeleteFilters(1, &s_env.effects.underwater);
+		S_CheckALError();
+
+		s_env.effects.loaded = false;
+	}
 
 	S_ShutdownMusic();
 
 	S_ShutdownMedia();
 
-	Mix_CloseAudio();
+	alcMakeContextCurrent(NULL);
+	S_CheckALError();
+
+	alcDestroyContext(s_env.context);
+	S_CheckALError();
+
+	alcCloseDevice(s_env.device);
+	S_CheckALError();
 
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
 	Cmd_RemoveAll(CMD_SOUND);
 
-	s_env.initialized = false;
+	Mem_Free(s_env.raw_sample_buffer);
+	Mem_Free(s_env.converted_sample_buffer);
+	Mem_Free(s_env.resample_buffer);
 
 	Mem_FreeTag(MEM_TAG_SOUND);
+
+	memset(&s_env, 0, sizeof(s_env));
 }

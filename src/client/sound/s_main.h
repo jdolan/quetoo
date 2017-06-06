@@ -25,7 +25,9 @@ void S_Frame(void);
 void S_LoadMedia(void);
 void S_Init(void);
 void S_Shutdown(void);
-void S_StopAllSounds(void);
+void S_Stop(void);
+void S_CheckALError(void);
 
 #ifdef __S_LOCAL_H__
+void S_Restart_f(void);
 #endif /* __S_LOCAL_H__ */

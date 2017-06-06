@@ -63,10 +63,27 @@ typedef struct r_texunit_s {
 // matrix stack
 #define MAX_MATRIX_STACK		16
 
-typedef struct r_matrix_stack_s {
+typedef struct {
 	matrix4x4_t matrices[MAX_MATRIX_STACK];
 	uint8_t depth;
 } r_matrix_stack_t;
+
+// SEE uniforms.glsl BEFORE TOUCHING THIS STRUCTURE!!!
+typedef struct {
+	matrix4x4_t matrices[R_MATRIX_TOTAL];
+	vec4_t global_color;
+	vec_t time;
+	vec_t time_fraction;
+} r_program_uniforms_t;
+
+typedef struct {
+	size_t begin, end;
+} r_update_bounds_t;
+
+void R_ExpandUpdateBounds(r_update_bounds_t *bounds, const size_t offset, const size_t size);
+
+#define R_EXPAND_BOUNDS(bounds, member) \
+	R_ExpandUpdateBounds(&bounds, offsetof(r_program_uniforms_t, member), sizeof(r_state.uniforms.member));
 
 // opengl state management
 typedef struct r_state_s {
@@ -84,8 +101,8 @@ typedef struct r_state_s {
 
 	// the buffers that will be passed to the
 	// programs to be used in attributes.
-	const r_buffer_t *array_buffers[R_ARRAY_MAX_ATTRIBS];
-	GLsizei array_buffer_offsets[R_ARRAY_MAX_ATTRIBS];
+	const r_buffer_t *array_buffers[R_ATTRIB_ALL];
+	GLsizei array_buffer_offsets[R_ATTRIB_ALL];
 	r_attribute_mask_t array_buffers_dirty;
 	GLuint vertex_array_object;
 
@@ -93,16 +110,20 @@ typedef struct r_state_s {
 	_Bool blend_enabled;
 
 	float alpha_threshold;
-	vec4_t current_color;
 
 	r_texunit_t texunits[R_TEXUNIT_TOTAL];
 	r_texunit_t *active_texunit;
 
+	r_program_uniforms_t uniforms;
+	r_buffer_t uniforms_buffer;
+	r_update_bounds_t uniforms_dirty;
 	r_matrix_stack_t matrix_stacks[R_MATRIX_TOTAL];
 
 	r_program_t programs[R_PROGRAM_TOTAL];
+	r_program_t *particle_program;
+	r_program_t *corona_program;
 
-	r_attrib_state_t attributes[R_ARRAY_MAX_ATTRIBS];
+	r_attrib_state_t attributes[R_ATTRIB_ALL];
 
 	const r_program_t *active_program;
 	const r_material_t *active_material;
@@ -151,22 +172,24 @@ typedef struct r_state_s {
 extern r_state_t r_state;
 
 // these are defined for convenience
-#define texunit_diffuse			(&r_state.texunits[R_TEXUNIT_DIFFUSE])
-#define texunit_lightmap		(&r_state.texunits[R_TEXUNIT_LIGHTMAP])
-#define texunit_deluxemap		(&r_state.texunits[R_TEXUNIT_DELUXEMAP])
-#define texunit_normalmap		(&r_state.texunits[R_TEXUNIT_NORMALMAP])
-#define texunit_specularmap		(&r_state.texunits[R_TEXUNIT_SPECULARMAP])
-#define texunit_warp			(&r_state.texunits[R_TEXUNIT_WARP])
-#define texunit_tint			(&r_state.texunits[R_TEXUNIT_TINTMAP])
-#define texunit_stainmap		(&r_state.texunits[R_TEXUNIT_STAINMAP])
+#define texunit_diffuse				(&r_state.texunits[R_TEXUNIT_DIFFUSE])
+#define texunit_lightmap			(&r_state.texunits[R_TEXUNIT_LIGHTMAP])
+#define texunit_deluxemap			(&r_state.texunits[R_TEXUNIT_DELUXEMAP])
+#define texunit_normalmap			(&r_state.texunits[R_TEXUNIT_NORMALMAP])
+#define texunit_specularmap			(&r_state.texunits[R_TEXUNIT_SPECULARMAP])
+#define texunit_warp				(&r_state.texunits[R_TEXUNIT_WARP])
+#define texunit_tint				(&r_state.texunits[R_TEXUNIT_TINTMAP])
+#define texunit_stainmap			(&r_state.texunits[R_TEXUNIT_STAINMAP])
 
-#define program_default			(&r_state.programs[R_PROGRAM_DEFAULT])
-#define program_shadow			(&r_state.programs[R_PROGRAM_SHADOW])
-#define program_shell			(&r_state.programs[R_PROGRAM_SHELL])
-#define program_warp			(&r_state.programs[R_PROGRAM_WARP])
-#define program_null			(&r_state.programs[R_PROGRAM_NULL])
-#define program_corona			(&r_state.programs[R_PROGRAM_CORONA])
-#define program_stain			(&r_state.programs[R_PROGRAM_STAIN])
+#define program_default				(&r_state.programs[R_PROGRAM_DEFAULT])
+#define program_shadow				(&r_state.programs[R_PROGRAM_SHADOW])
+#define program_shell				(&r_state.programs[R_PROGRAM_SHELL])
+#define program_warp				(&r_state.programs[R_PROGRAM_WARP])
+#define program_null				(&r_state.programs[R_PROGRAM_NULL])
+#define program_corona				(&r_state.programs[R_PROGRAM_CORONA])
+#define program_stain				(&r_state.programs[R_PROGRAM_STAIN])
+#define program_particle			(&r_state.programs[R_PROGRAM_PARTICLE])
+#define program_particle_corona		(&r_state.programs[R_PROGRAM_PARTICLE_CORONA])
 
 #define R_GetError(msg) R_GetError_(__func__, msg)
 void R_GetError_(const char *function, const char *msg);
@@ -206,7 +229,6 @@ void R_UseMaterial(const r_material_t *material);
 void R_UseMatrices(void);
 void R_UseInterpolation(const vec_t lerp);
 void R_UseAlphaTest(void);
-void R_UseCurrentColor(void);
 void R_UseFog(void);
 void R_UseCaustic(void);
 void R_UseTints(void);

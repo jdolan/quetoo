@@ -148,7 +148,8 @@ static const char *r_texnum_names[] = {
 	"normalmap",
 	"specularmap",
 	"warp",
-	"tint"
+	"tintmap",
+	"stainmap"
 };
 
 /**
@@ -157,7 +158,7 @@ static const char *r_texnum_names[] = {
 static void Cl_DrawRendererStats(void) {
 	r_pixel_t ch, y = 64;
 
-	if (!cl_show_renderer_stats->value) {
+	if (!cl_draw_renderer_stats->value) {
 		return;
 	}
 
@@ -243,9 +244,19 @@ static void Cl_DrawRendererStats(void) {
 	}
 
 	y += ch;
-	R_DrawString(0, y, va("%d buffer uploads (%d partial, %d full; %d bytes)",
-	                      r_view.num_buffer_full_uploads + r_view.num_buffer_partial_uploads, r_view.num_buffer_full_uploads,
-	                      r_view.num_buffer_partial_uploads, r_view.size_buffer_uploads), CON_COLOR_WHITE);
+	R_DrawString(0, y, va("Data Buffers: %u bound, %u partial, %u full; %" PRIuPTR " bytes",
+	                      r_view.buffer_stats[R_BUFFER_DATA].bound, r_view.buffer_stats[R_BUFFER_DATA].num_partial_uploads,
+						  r_view.buffer_stats[R_BUFFER_DATA].num_full_uploads, r_view.buffer_stats[R_BUFFER_DATA].size_uploaded), CON_COLOR_GREEN);
+	
+	y += ch;
+	R_DrawString(0, y, va("Element Buffers: %u bound, %u partial, %u full; %" PRIuPTR " bytes",
+	                      r_view.buffer_stats[R_BUFFER_ELEMENT].bound, r_view.buffer_stats[R_BUFFER_ELEMENT].num_partial_uploads,
+						  r_view.buffer_stats[R_BUFFER_ELEMENT].num_full_uploads, r_view.buffer_stats[R_BUFFER_ELEMENT].size_uploaded), CON_COLOR_GREEN);
+	
+	y += ch;
+	R_DrawString(0, y, va("Uniform Buffers: %u partial, %u full; %" PRIuPTR " bytes",
+	                      r_view.buffer_stats[R_BUFFER_UNIFORM].num_partial_uploads,
+						  r_view.buffer_stats[R_BUFFER_UNIFORM].num_full_uploads, r_view.buffer_stats[R_BUFFER_UNIFORM].size_uploaded), CON_COLOR_GREEN);
 	y += ch;
 
 	R_DrawString(0, y, va("%d total buffers created (%d bytes)", R_GetNumAllocatedBuffers(),
@@ -261,9 +272,9 @@ static void Cl_DrawRendererStats(void) {
  * @brief Draws counters and performance information about the sound subsystem.
  */
 static void Cl_DrawSoundStats(void) {
-	r_pixel_t ch, y = cl_show_renderer_stats->value ? 400 : 64;
+	r_pixel_t ch, y = cl_draw_renderer_stats->value ? 400 : 64;
 
-	if (!cl_show_sound_stats->value) {
+	if (!cl_draw_sound_stats->value) {
 		return;
 	}
 
@@ -277,6 +288,24 @@ static void Cl_DrawSoundStats(void) {
 	y += ch;
 
 	R_DrawString(0, y, va("%d channels", s_env.num_active_channels), CON_COLOR_MAGENTA);
+	y += ch;
+
+	for (int32_t i = 0; i < MAX_CHANNELS; i++) {
+		const s_channel_t *channel = &s_env.channels[i];
+
+		if (!channel->sample)
+			continue;
+
+		ALenum state;
+		alGetSourcei(s_env.sources[i], AL_SOURCE_STATE, &state);
+		S_CheckALError();
+
+		if (state != AL_PLAYING)
+			continue;
+
+		R_DrawString(ch, y, va("%i: %s", i, channel->sample->media.name), CON_COLOR_MAGENTA);
+		y += ch;
+	}
 
 	R_BindFont(NULL, NULL, NULL);
 }
@@ -337,6 +366,10 @@ static void Cl_DrawCounters(void) {
 
 	R_BindFont(NULL, NULL, NULL);
 }
+
+/**
+ * @brief
+ */
 
 /**
  * @brief This is called every frame, and can also be called explicitly to flush

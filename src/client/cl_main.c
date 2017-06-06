@@ -44,9 +44,9 @@ cvar_t *qport;
 cvar_t *rcon_address;
 cvar_t *rcon_password;
 
-cvar_t *cl_show_net_messages;
-cvar_t *cl_show_renderer_stats;
-cvar_t *cl_show_sound_stats;
+cvar_t *cl_draw_net_messages;
+cvar_t *cl_draw_renderer_stats;
+cvar_t *cl_draw_sound_stats;
 
 cl_static_t cls;
 cl_client_t cl;
@@ -245,7 +245,7 @@ void Cl_ClearState(void) {
 
 	Cl_ClearInput();
 
-	S_StopAllSounds();
+	S_Stop();
 
 	// wipe the entire cl_client_t structure
 	memset(&cl, 0, sizeof(cl));
@@ -555,9 +555,9 @@ static void Cl_InitLocal(void) {
 	rcon_address = Cvar_Add("rcon_address", "", 0, NULL);
 	rcon_password = Cvar_Add("rcon_password", "", 0, NULL);
 
-	cl_show_net_messages = Cvar_Add("cl_show_net_messages", "0", CVAR_DEVELOPER, NULL);
-	cl_show_renderer_stats = Cvar_Add("cl_show_renderer_stats", "0", CVAR_DEVELOPER, NULL);
-	cl_show_sound_stats = Cvar_Add("cl_show_sound_stats", "0", CVAR_DEVELOPER, NULL);
+	cl_draw_net_messages = Cvar_Add("cl_draw_net_messages", "0", CVAR_DEVELOPER, NULL);
+	cl_draw_renderer_stats = Cvar_Add("cl_draw_renderer_stats", "0", CVAR_DEVELOPER, NULL);
+	cl_draw_sound_stats = Cvar_Add("cl_draw_sound_stats", "0", CVAR_DEVELOPER, NULL);
 
 	// register our commands
 	Cmd_Add("ping", Cl_Ping_f, CMD_CLIENT, NULL);

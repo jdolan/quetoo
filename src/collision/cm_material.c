@@ -1235,7 +1235,7 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 /**
  * @brief GCompareFunc for Cm_WriteMaterials.
  */
-gint Cm_WriteMaterials_compare(gconstpointer a, gconstpointer b) {
+static gint Cm_WriteMaterials_compare(gconstpointer a, gconstpointer b) {
 	return g_strcmp0(((const cm_material_t *) a)->name, ((const cm_material_t *) b)->name);
 }
 
@@ -1258,7 +1258,7 @@ ssize_t Cm_WriteMaterials(const char *path, GList *materials) {
 		g_list_free(sorted);
 
 		Fs_Close(file);
-		Com_Print("Wrote %zd materials to %s\n", count, path);
+		Com_Print("Wrote %" PRIuPTR " materials to %s\n", count, path);
 	} else {
 		Com_Warn("Failed to open %s for write\n", path);
 	}

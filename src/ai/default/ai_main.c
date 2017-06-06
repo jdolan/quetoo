@@ -35,6 +35,7 @@ ai_client_data_t ai_client_data;
 ai_level_t ai_level;
 static cvar_t *sv_max_clients;
 cvar_t *ai_passive;
+static cvar_t *ai_name_prefix;
 
 /**
  * @brief AI imports.
@@ -141,14 +142,41 @@ static uint32_t ai_name_suffix;
  */
 static void Ai_GetUserInfo(const g_entity_t *self, char *userinfo) {
 	g_strlcpy(userinfo, DEFAULT_BOT_INFO, MAX_USER_INFO_STRING);
-	SetUserInfo(userinfo, "skin", g_array_index(ai_skins, ai_skin_t, Random() % ai_skins->len));
-	SetUserInfo(userinfo, "color", va("%i", Random() % 360));
-	SetUserInfo(userinfo, "hand", va("%i", Random() % 3));
+	SetUserInfo(userinfo, "skin", g_array_index(ai_skins, ai_skin_t, Randomr(0, ai_skins->len)));
+	SetUserInfo(userinfo, "color", va("%i", Randomr(0, 360)));
+	SetUserInfo(userinfo, "hand", va("%i", Randomr(0, 3)));
+
+	char color_temp[COLOR_MAX_LENGTH];
+
+	ColorToHex((const color_t) {
+		.r = (uint8_t) Randomr(0, 255),
+		.g = (uint8_t) Randomr(0, 255),
+		.b = (uint8_t) Randomr(0, 255),
+		.a = 255u
+	}, color_temp, sizeof(color_temp));
+	SetUserInfo(userinfo, "helmet", color_temp);
+
+	ColorToHex((const color_t) {
+		.r = (uint8_t) Randomr(0, 255),
+		.g = (uint8_t) Randomr(0, 255),
+		.b = (uint8_t) Randomr(0, 255),
+		.a = 255u
+	}, color_temp, sizeof(color_temp));
+	SetUserInfo(userinfo, "shirt", color_temp);
+
+	ColorToHex((const color_t) {
+		.r = (uint8_t) Randomr(0, 255),
+		.g = (uint8_t) Randomr(0, 255),
+		.b = (uint8_t) Randomr(0, 255),
+		.a = 255u
+	}, color_temp, sizeof(color_temp));
+	SetUserInfo(userinfo, "pants", color_temp);
 
 	if (ai_name_suffix == 0) {
-		SetUserInfo(userinfo, "name", ai_names[ai_name_index]);
+		SetUserInfo(userinfo, "name", va("%s%s", ai_name_prefix->string, ai_names[ai_name_index]));
 	} else {
-		SetUserInfo(userinfo, "name", va("%s %i", ai_names[ai_name_index], ai_name_suffix + 1));
+		SetUserInfo(userinfo, "name", va("%s%s %i",
+			ai_name_prefix->string, ai_names[ai_name_index], ai_name_suffix + 1));
 	}
 
 	ai_name_index++;
@@ -260,7 +288,7 @@ static vec_t Ai_ItemReachable(const g_entity_t *self, const g_entity_t *other) {
 		vec3_t fall_start;
 		VectorAdd(self->s.origin, other->s.origin, fall_start);
 		VectorScale(fall_start, 0.5, fall_start);
-		
+
 		vec3_t fall_end;
 		VectorCopy(fall_start, fall_end);
 		fall_end[2] -= PM_STEP_HEIGHT * 2.0;
@@ -682,16 +710,16 @@ static uint32_t Ai_FuncGoal_Acrobatics(g_entity_t *self, pm_cmd_t *cmd) {
 
 		if (self->client->ps.pm_state.flags & PMF_DUCKED) {
 
-			if ((Random() % 32) == 0) { // uncrouch eventually
+			if ((Randomr(0, 32)) == 0) { // uncrouch eventually
 				cmd->up = 0;
 			} else {
 				cmd->up = -PM_SPEED_JUMP;
 			}
 		} else {
 
-			if ((Random() % 32) == 0) { // randomly crouch
+			if ((Randomr(0, 32)) == 0) { // randomly crouch
 				cmd->up = -PM_SPEED_JUMP;
-			} else if ((Random() % 86) == 0) { // randomly pop, to confuse our enemies
+			} else if ((Randomr(0, 86)) == 0) { // randomly pop, to confuse our enemies
 				cmd->up = PM_SPEED_JUMP;
 			}
 		}
@@ -1057,6 +1085,7 @@ static void Ai_Init(void) {
 	sv_max_clients = aim.Cvar("sv_max_clients", 0, 0, "");
 
 	ai_passive = aim.Cvar("ai_passive", "0", 0, "Whether the bots will attack or not");
+	ai_name_prefix = aim.Cvar("ai_name_prefix", "^0[^1BOT^0] ^7", 0, NULL);
 	ai_locals = (ai_locals_t *) aim.Malloc(sizeof(ai_locals_t) * sv_max_clients->integer, MEM_TAG_AI);
 
 	Ai_InitSkins();

@@ -34,6 +34,8 @@ noinst_HEADERS = \
 	r_program_corona.h \
 	r_program_default.h \
 	r_program_null.h \
+	r_program_particle_corona.h \
+	r_program_particle.h \
 	r_program_shadow.h \
 	r_program_shell.h \
 	r_program_stain.h \
@@ -78,6 +80,8 @@ librenderer_la_SOURCES = \
 	r_program_corona.c \
 	r_program_default.c \
 	r_program_null.c \
+	r_program_particle_corona.c \
+	r_program_particle.c \
 	r_program_shadow.c \
 	r_program_shell.c \
 	r_program_stain.c \

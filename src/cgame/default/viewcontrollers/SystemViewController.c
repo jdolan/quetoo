@@ -78,7 +78,7 @@ static void loadView(ViewController *self) {
 			Cg_Input((View *) stackView, "Window Mode", (Control *) fullscreenSelect);
 			release(fullscreenSelect);
 
-			Cg_CvarCheckboxInput((View *) stackView, "Vertical Sync", "r_swap_interval");
+			Cg_CvarCheckboxInput((View *) stackView, "Vertical Sync", "r_vsync");
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);

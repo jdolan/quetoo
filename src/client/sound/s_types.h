@@ -21,9 +21,21 @@
 
 #pragma once
 
-#include <SDL2/SDL_mixer.h>
+#if defined (__APPLE__)
+#include <OpenAL/OpenAL.h>
+#else
+#include <AL/al.h>
+#include <AL/alc.h>
+#endif
+
+#include "s_al_ext.h"
+
+#include <SDL2/SDL_rwops.h>
+
+#include <sndfile.h>
 
 #include "common.h"
+#include "filesystem.h"
 #include "sys.h"
 
 typedef enum {
@@ -45,7 +57,9 @@ typedef struct s_media_s {
 
 typedef struct s_sample_s {
 	s_media_t media;
-	Mix_Chunk *chunk;
+	ALuint buffer;
+	sf_count_t num_samples; // number of samples total
+	_Bool stereo; // whether this is stereo sample or not; they can't be spatialized
 } s_sample_t;
 
 #define S_PLAY_POSITIONED   0x1 // position the sound at a fixed origin
@@ -54,12 +68,15 @@ typedef struct s_sample_s {
 #define S_PLAY_LOOP         0x8 // loop the sound continuously
 #define S_PLAY_FRAME        0x10 // cull the sound if it is not added at each frame
 
+#define TONES_PER_OCTAVE	48
+
 typedef struct s_play_sample_s {
 	const s_sample_t *sample;
 	vec3_t origin;
 	int32_t entity;
 	int32_t attenuation;
-	int32_t flags;
+	int16_t flags;
+	int16_t pitch; // pitch offset; 0 is no adjustment, TONES_PER_OCTAVE is +1 octave, -TONES_PER_OCTAVE is -1 octave, etc.
 } s_play_sample_t;
 
 typedef struct s_channel_s {
@@ -67,29 +84,83 @@ typedef struct s_channel_s {
 	const s_sample_t *sample;
 	uint32_t start_time;
 	int32_t frame;
-	int16_t angle;
-	uint8_t dist;
-	_Bool free;
+	vec3_t position;
+	vec3_t velocity;
+	vec_t gain;
+	vec_t pitch;
+	ALuint filter;
+	_Bool relative; // sound is relative to listener
 } s_channel_t;
 
 #define MAX_CHANNELS 128
 
 typedef struct s_music_s {
 	s_media_t media;
-	void *buffer;
-	SDL_RWops *rw;
-	Mix_Music *music;
+	SF_INFO info;
+	SNDFILE *snd;
+	file_t *file;
+	_Bool eof; // whether we're out of samples or not
 } s_music_t;
 
-// the sound environment
+/**
+ * @brief Filters used by the sound system if s_effects is enabled & supported.
+ */
+typedef struct {
+	ALuint underwater;
+
+	_Bool loaded; // whether the above are currently loaded.
+} s_effects_t;
+
+/**
+ * @brief The sound environment.
+ */
 typedef struct s_env_s {
 	s_channel_t channels[MAX_CHANNELS];
-
-	_Bool initialized; // is the sound subsystem initialized
-	_Bool update; // inform the client of state changes
-
 	uint16_t num_active_channels;
+
+	/**
+	 * @brief The OpenAL playback device.
+	 */
+	ALCdevice *device;
+
+	/**
+	 * @brief The OpenAL playback context.
+	 */
+	ALCcontext *context;
+
+	const char *renderer;
+	const char *vendor;
+	const char *version;
+
+	size_t raw_sample_buffer_size;
+	vec_t *raw_sample_buffer;
+
+	size_t converted_sample_buffer_size;
+	int16_t *converted_sample_buffer; // converted raw_samples
+
+	size_t resample_buffer_size;
+	int16_t *resample_buffer; // temp space used for resampling
+
+	/**
+	 * @brief The OpenAL sound sources.
+	 */
+	ALuint sources[MAX_CHANNELS];
+
+	/**
+	 * @brief Effect IDs.
+	 */
+	s_effects_t effects;
+
+	/**
+	 * @brief True when media has been reloaded, and the client should update its media references.
+	 */
+	_Bool update;
 } s_env_t;
 
 #ifdef __S_LOCAL_H__
+extern SF_VIRTUAL_IO s_rwops_io;
+extern SF_VIRTUAL_IO s_physfs_io;
+
+extern cvar_t *s_doppler;
+extern cvar_t *s_effects;
 #endif /* __S_LOCAL_H__ */

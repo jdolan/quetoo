@@ -6,11 +6,14 @@
 
 #define FRAGMENT_SHADER
 
-uniform sampler2D SAMPLER0;
-uniform vec4 GLOBAL_COLOR;
+#include "include/uniforms.glsl"
 
-in vec4 color;
-in vec2 texcoord;
+uniform sampler2D SAMPLER0;
+
+in VertexData {
+	vec4 color;
+	vec2 texcoord;
+};
 
 out vec4 fragColor;
 

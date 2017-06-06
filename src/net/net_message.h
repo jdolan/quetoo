@@ -68,11 +68,12 @@
 #define U_REMOVE				(1 << 12) // remove this entity, don't add it
 
 /**
- * @brief These flags indicate which fields a given sound packet will contain.
+ * @brief These flags indicate which fields a given sound packet will contain. Maximum 8 flags.
  */
-#define S_ATTEN					0x1
-#define S_ORIGIN				0x2
-#define S_ENTITY				0x4
+#define S_ATTEN					(1 << 0) // Flag is unused now; kept for net protocol compatibility
+#define S_ORIGIN				(1 << 1)
+#define S_ENTITY				(1 << 2)
+#define S_PITCH					(1 << 3)
 
 /**
  * @brief Message writing and reading facilities.

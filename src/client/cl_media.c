@@ -103,9 +103,9 @@ static r_image_t *Cl_LoadingBackground() {
 
 	GList *list = Cl_Mapshots(cl.config_strings[CS_MODELS]);
 
-	const size_t len = g_list_length(list);
+	const guint len = g_list_length(list);
 	if (len > 0) {
-		const char *path = g_list_nth_data(list, rand() % len);
+		const char *path = g_list_nth_data(list, Randomr(0, len));
 
 		image = R_LoadImage(path, IT_PIC);
 

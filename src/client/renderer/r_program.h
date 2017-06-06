@@ -54,6 +54,7 @@ typedef struct {
 typedef r_variable_t r_attribute_t;
 typedef r_variable_t r_uniform1i_t;
 typedef r_variable_t r_uniform1f_t;
+typedef r_variable_t r_uniform3f_t;
 typedef r_variable_t r_uniform3fv_t;
 typedef r_variable_t r_uniform4fv_t;
 typedef r_variable_t r_uniform_matrix4fv_t;
@@ -101,9 +102,8 @@ typedef struct {
 	char name[MAX_QPATH];
 
 	r_attribute_mask_t arrays_mask;
-	r_attribute_t attributes[R_ARRAY_MAX_ATTRIBS];
+	r_attribute_t attributes[R_ATTRIB_ALL];
 
-	r_uniform_matrix4fv_t matrix_uniforms[R_MATRIX_TOTAL];
 	_Bool matrix_dirty[R_MATRIX_TOTAL];
 
 	void (*Init)(void);
@@ -113,13 +113,11 @@ typedef struct {
 	void (*UseEntity)(const r_entity_t *e);
 	void (*UseShadow)(const r_shadow_t *s);
 	void (*UseFog)(const r_fog_parameters_t *fog);
-	void (*UseLight)(const uint16_t light_index, const r_light_t *light);
+	void (*UseLight)(const uint16_t light_index, const matrix4x4_t *world_view, const r_light_t *light);
 	void (*UseCaustic)(const r_caustic_parameters_t *caustic);
 	void (*MatricesChanged)();
 	void (*UseAlphaTest)(const vec_t threshold);
-	void (*UseCurrentColor)(const vec4_t color);
 	void (*UseAttributes)(void);
-	void (*UseInterpolation)(const vec_t time_fraction);
 	void (*UseTints)(void);
 } r_program_t;
 
@@ -143,7 +141,10 @@ void R_BindAttributeLocation(const r_program_t *prog, const char *name, const GL
 void R_EnableAttribute(const r_attribute_id_t attribute);
 void R_DisableAttribute(const r_attribute_id_t attribute);
 void R_SetupAttributes(void);
+void R_SetupUniforms(void);
 void R_ShutdownPrograms(void);
 void R_InitPrograms(void);
+
+extern cvar_t *r_geometry_shaders;
 
 #endif /* __R_LOCAL_H__ */

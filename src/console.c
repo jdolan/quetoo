@@ -410,7 +410,7 @@ void Con_AutocompleteInput_f(const uint32_t argi, GList **matches) {
  * @brief
  */
 static void Con_PrintMatches(const console_t *console, GList *matches) {
-	const size_t num_matches = g_list_length(matches);
+	const guint num_matches = g_list_length(matches);
 
 	if (!num_matches) {
 		return;

@@ -286,7 +286,9 @@ static void Cm_LoadBspAreaPortals(void) {
 static void Cm_LoadBspMaterials(const char *name) {
 
 	char path[MAX_QPATH];
-	g_snprintf(path, sizeof(path), "materials/%s.mat", Basename(name));
+	StripExtension(Basename(name), path);
+
+	g_snprintf(path, sizeof(path), "materials/%s.mat", path);
 
 	GList *materials = NULL;
 	Cm_LoadMaterials(path, &materials);

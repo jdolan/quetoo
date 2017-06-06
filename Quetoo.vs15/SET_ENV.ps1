@@ -1,4 +1,4 @@
-Write-Output ("Current QUETOO_PATH: {0}" -f [Environment]::GetEnvironmentVariable('QUETOO_HOME', 'User'))
+Write-Output ("Current QUETOO_HOME: {0}" -f [Environment]::GetEnvironmentVariable('QUETOO_HOME', 'User'))
 $Quetoo_Path = Read-Host -Prompt "Input path to Quetoo (the folder that has bin, share, etc) or leave empty to unset`n"
 
 if ($Quetoo_Path.length -gt 1) {

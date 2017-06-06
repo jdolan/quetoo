@@ -65,8 +65,7 @@ typedef enum {
 	MOD_BAD,
 	MOD_BSP,
 	MOD_BSP_INLINE,
-	MOD_MD3,
-	MOD_OBJ
+	MOD_MESH
 } r_model_type_t;
 
 // high bits OR'ed with image types
@@ -110,6 +109,7 @@ typedef enum {
 typedef enum {
 	R_BUFFER_DATA,
 	R_BUFFER_ELEMENT,
+	R_BUFFER_UNIFORM,
 
 	R_NUM_BUFFERS,
 
@@ -123,29 +123,36 @@ typedef enum {
  * every program that uses them, and are also used for buffer storage.
  */
 typedef enum {
-	R_ARRAY_POSITION,
-	R_ARRAY_COLOR,
-	R_ARRAY_NORMAL,
-	R_ARRAY_TANGENT,
-	R_ARRAY_DIFFUSE,
-	R_ARRAY_LIGHTMAP,
+	R_ATTRIB_POSITION,
+	R_ATTRIB_COLOR,
+	R_ATTRIB_NORMAL,
+	R_ATTRIB_TANGENT,
+	R_ATTRIB_DIFFUSE,
+	R_ATTRIB_LIGHTMAP,
 
 	/**
 	 * @brief These three are only used for shader-based lerp.
 	 * They are only enabled if the ones that match up to it are enabled as well.
 	 */
-	R_ARRAY_NEXT_POSITION,
-	R_ARRAY_NEXT_NORMAL,
-	R_ARRAY_NEXT_TANGENT,
+	R_ATTRIB_NEXT_POSITION,
+	R_ATTRIB_NEXT_NORMAL,
+	R_ATTRIB_NEXT_TANGENT,
 
-	R_ARRAY_MAX_ATTRIBS,
-	R_ARRAY_ALL = R_ARRAY_MAX_ATTRIBS,
+	/**
+	 * @brief Geometry shader parameters
+	 */
+	R_ATTRIB_SCALE,
+	R_ATTRIB_ROLL,
+	R_ATTRIB_END,
+	R_ATTRIB_TYPE,
+
+	R_ATTRIB_ALL,
 
 	/**
 	 * @brief This is a special entry so that R_BindAttributeBuffer can be
 	 * used for binding element buffers as well.
 	 */
-	R_ARRAY_ELEMENTS = -1
+	R_ATTRIB_ELEMENTS = -1
 } r_attribute_id_t;
 
 /**
@@ -154,33 +161,39 @@ typedef enum {
  * up with the ones above to make things simple.
  */
 typedef enum {
-	R_ARRAY_MASK_POSITION		= (1 << R_ARRAY_POSITION),
-	R_ARRAY_MASK_COLOR			= (1 << R_ARRAY_COLOR),
-	R_ARRAY_MASK_NORMAL			= (1 << R_ARRAY_NORMAL),
-	R_ARRAY_MASK_TANGENT		= (1 << R_ARRAY_TANGENT),
-	R_ARRAY_MASK_DIFFUSE		= (1 << R_ARRAY_DIFFUSE),
-	R_ARRAY_MASK_LIGHTMAP		= (1 << R_ARRAY_LIGHTMAP),
+	R_ATTRIB_MASK_POSITION		= (1 << R_ATTRIB_POSITION),
+	R_ATTRIB_MASK_COLOR			= (1 << R_ATTRIB_COLOR),
+	R_ATTRIB_MASK_NORMAL		= (1 << R_ATTRIB_NORMAL),
+	R_ATTRIB_MASK_TANGENT		= (1 << R_ATTRIB_TANGENT),
+	R_ATTRIB_MASK_DIFFUSE		= (1 << R_ATTRIB_DIFFUSE),
+	R_ATTRIB_MASK_LIGHTMAP		= (1 << R_ATTRIB_LIGHTMAP),
 
-	R_ARRAY_MASK_NEXT_POSITION	= (1 << R_ARRAY_NEXT_POSITION),
-	R_ARRAY_MASK_NEXT_NORMAL	= (1 << R_ARRAY_NEXT_NORMAL),
-	R_ARRAY_MASK_NEXT_TANGENT	= (1 << R_ARRAY_NEXT_TANGENT),
+	R_ATTRIB_MASK_NEXT_POSITION	= (1 << R_ATTRIB_NEXT_POSITION),
+	R_ATTRIB_MASK_NEXT_NORMAL	= (1 << R_ATTRIB_NEXT_NORMAL),
+	R_ATTRIB_MASK_NEXT_TANGENT	= (1 << R_ATTRIB_NEXT_TANGENT),
+	
+	R_ATTRIB_MASK_SCALE			= (1 << R_ATTRIB_SCALE),
+	R_ATTRIB_MASK_ROLL			= (1 << R_ATTRIB_ROLL),
+	R_ATTRIB_MASK_END			= (1 << R_ATTRIB_END),
+	R_ATTRIB_MASK_TYPE			= (1 << R_ATTRIB_TYPE),
 
-	R_ARRAY_MASK_ALL			= (1 << R_ARRAY_MAX_ATTRIBS) - 1
+	R_ATTRIB_MASK_ALL			= (1 << R_ATTRIB_ALL) - 1,
+	R_ATTRIB_GEOMETRY_MASK		= R_ATTRIB_MASK_SCALE | R_ATTRIB_MASK_ROLL | R_ATTRIB_MASK_END | R_ATTRIB_MASK_TYPE
 } r_attribute_mask_t;
 
 /**
  * @brief Types that can be used in buffers for attributes.
  */
 typedef enum {
-	R_ATTRIB_FLOAT,
-	R_ATTRIB_BYTE,
-	R_ATTRIB_UNSIGNED_BYTE,
-	R_ATTRIB_SHORT,
-	R_ATTRIB_UNSIGNED_SHORT,
-	R_ATTRIB_INT,
-	R_ATTRIB_UNSIGNED_INT,
+	R_TYPE_FLOAT,
+	R_TYPE_BYTE,
+	R_TYPE_UNSIGNED_BYTE,
+	R_TYPE_SHORT,
+	R_TYPE_UNSIGNED_SHORT,
+	R_TYPE_INT,
+	R_TYPE_UNSIGNED_INT,
 
-	R_ATTRIB_TOTAL_TYPES
+	R_TYPE_INTERLEAVE // special value to denote interleave buffers
 } r_attrib_type_t;
 
 /**
@@ -197,8 +210,9 @@ typedef union {
 		uint32_t type : 3;
 		uint32_t count : 3;
 		uint32_t offset : 6;
-		uint32_t normalized : 2;
 		uint32_t stride : 6;
+		uint32_t normalized : 2;
+		uint32_t integer : 2;
 	};
 } r_attrib_type_state_t;
 
@@ -208,35 +222,66 @@ typedef union {
  * The last entry should have an 'attribute' of -1.
  */
 typedef struct {
+	r_attrib_type_t type;
+	uint8_t count;
+	_Bool normalized;
+	_Bool integer;
+
+	// only required for interleave buffers
 	r_attribute_id_t attribute;
 
-	r_attrib_type_t type;
-	GLenum gl_type;
-	uint8_t count;
-	uint8_t offset;
-	uint8_t size;
-	_Bool normalized;
-
 	// internal, no touch
+	GLenum gl_type;
 	r_attrib_type_state_t _type_state;
 } r_buffer_layout_t;
+
+/**
+ * @brief Structure that holds construction arguments for buffers
+ */
+typedef struct {
+	r_buffer_type_t type;
+	GLenum hint;
+	r_buffer_layout_t element;
+	size_t size;
+	const void *data;
+} r_create_buffer_t;
+
+/**
+ * @brief Structure that holds construction arguments for element buffers
+ */
+typedef struct {
+	r_attrib_type_t type;
+	GLenum hint;
+	size_t size;
+	const void *data;
+} r_create_element_t;
+
+/**
+ * @brief Structure that holds construction arguments for interleave buffers
+ */
+typedef struct {
+	GLubyte struct_size;
+	r_buffer_layout_t *layout;
+	GLenum hint;
+	size_t size;
+	const void *data;
+} r_create_interleave_t;
 
 /**
  * @brief Buffers are used to hold data for the renderer.
  */
 typedef struct r_buffer_s {
-	r_buffer_type_t type; // R_BUFFER_DATA or R_BUFFER_ELEMENT
+	r_buffer_type_t type; // R_BUFFER_DATA, R_BUFFER_ELEMENT, R_BUFFER_UNIFORM
 	GLenum hint; // GL_x_y, where x is STATIC or DYNAMIC, and where y is DRAW, READ or COPY
 	GLenum target; // GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER; mapped from above var
 	GLuint bufnum; // e.g. 123
 	size_t size; // last size of buffer, for resize operations
-	const char *func; // location of allocation
 
 	// attribute crap
 	r_attrib_type_state_t element_type;
 	GLenum element_gl_type;
 	r_attribute_mask_t attrib_mask;
-	const r_buffer_layout_t *interleave_attribs[R_ARRAY_MAX_ATTRIBS];
+	const r_buffer_layout_t *interleave_attribs[R_ATTRIB_ALL];
 	_Bool interleave; // whether this buffer is an interleave buffer. Only valid for R_BUFFER_DATA.
 } r_buffer_t;
 
@@ -304,7 +349,8 @@ typedef enum {
 	PARTICLE_WEATHER,
 	PARTICLE_SPLASH,
 	PARTICLE_CORONA,
-	PARTICLE_FLARE
+	PARTICLE_FLARE,
+	PARTICLE_WIRE
 } r_particle_type_t;
 
 typedef enum {
@@ -612,95 +658,36 @@ typedef struct {
 
 } r_bsp_light_t;
 
-// md3 model memory representation
+// mesh model, used for objects
 typedef struct {
 	vec3_t point;
 	vec3_t normal;
 	vec4_t tangent;
-} r_md3_vertex_t;
+} r_model_vertex_t;
 
 typedef struct {
 	char name[MD3_MAX_PATH];
 	matrix4x4_t matrix;
-} r_md3_tag_t;
+} r_model_tag_t;
 
 typedef struct {
-	char id[4];
-
 	char name[MD3_MAX_PATH];
 
-	int32_t flags;
-
-	uint16_t num_skins;
-
 	uint16_t num_verts;
-	r_md3_vertex_t *verts;
-	d_md3_texcoord_t *coords;
-
 	uint16_t num_tris;
-	uint32_t *tris;
-
 	uint32_t num_elements;
-} r_md3_mesh_t;
+
+	r_material_t *material;
+} r_model_mesh_t;
 
 typedef struct {
 	uint16_t first_frame;
 	uint16_t num_frames;
 	uint16_t looped_frames;
 	uint16_t hz;
-} r_md3_animation_t;
+} r_model_animation_t;
 
-/**
- * @brief Quake3 (MD3) model in-memory representation.
- */
-typedef struct {
-	int32_t id;
-	int32_t version;
-
-	char file_name[MD3_MAX_PATH];
-
-	int32_t flags;
-
-	uint16_t num_frames;
-	d_md3_frame_t *frames;
-
-	uint16_t num_tags;
-	r_md3_tag_t *tags;
-
-	uint16_t num_meshes;
-	r_md3_mesh_t *meshes;
-
-	uint16_t num_animations;
-	r_md3_animation_t *animations;
-} r_md3_t;
-
-typedef struct {
-	uint32_t position;
-	uint16_t indices[3];
-	vec_t *point;
-	vec_t *texcoords;
-	vec_t *normal;
-	vec_t *tangent;
-} r_obj_vertex_t;
-
-typedef struct {
-	r_obj_vertex_t *verts[3];
-} r_obj_triangle_t;
-
-/*
- * brief Object (OBJ) model in-memory representation.
- */
-typedef struct {
-	GList *points;
-	GList *texcoords;
-	GList *normals;
-
-	GList *verts;
-	GList *tris;
-
-	GList *tangents;
-} r_obj_t;
-
+// BSP model, used for maps
 typedef struct {
 	int32_t version;
 
@@ -766,14 +753,20 @@ typedef struct {
 } r_mesh_config_t;
 
 typedef struct {
-	uint16_t num_frames;
 	uint32_t flags;
 
-	r_material_t *material;
+	uint16_t num_frames;
+	uint16_t num_tags;
+	uint16_t num_meshes;
+	uint16_t num_animations;
 
-	r_mesh_config_t *world_config;
-	r_mesh_config_t *view_config;
-	r_mesh_config_t *link_config;
+	r_model_tag_t *tags;
+	r_model_mesh_t *meshes;
+	r_model_animation_t *animations;
+
+	r_mesh_config_t world_config;
+	r_mesh_config_t view_config;
+	r_mesh_config_t link_config;
 
 	// buffer data
 	r_buffer_t vertex_buffer;
@@ -784,20 +777,20 @@ typedef struct {
 
 	r_buffer_t shell_vertex_buffer;
 	r_buffer_t shell_element_buffer;
-
-	void *data; // raw model data (r_md3_t, r_obj_t, ..)
 } r_mesh_model_t;
 
 /**
- * @brief Models represent a subset of the BSP or an OBJ / MD3 mesh.
+ * @brief Models represent a subset of the BSP or a mesh.
  */
 typedef struct r_model_s {
 	r_media_t media;
 	r_model_type_t type;
 
-	r_bsp_model_t *bsp;
-	r_bsp_inline_model_t *bsp_inline;
-	r_mesh_model_t *mesh;
+	union {
+		r_bsp_model_t *bsp;
+		r_bsp_inline_model_t *bsp_inline;
+		r_mesh_model_t *mesh;
+	};
 
 	r_material_t **materials;
 	size_t num_materials;
@@ -810,9 +803,9 @@ typedef struct r_model_s {
 	GLsizei num_tris; // cached num_tris amount
 } r_model_t;
 
-#define IS_BSP_MODEL(m) (m && m->bsp)
-#define IS_MESH_MODEL(m) (m && m->mesh)
-#define IS_BSP_INLINE_MODEL(m) (m && m->bsp_inline)
+#define IS_BSP_MODEL(m) (m && m->type == MOD_BSP)
+#define IS_BSP_INLINE_MODEL(m) (m && m->type == MOD_BSP_INLINE)
+#define IS_MESH_MODEL(m) (m && m->type == MOD_MESH)
 
 /**
  * @brief Stains are low-resolution color effects added to the map's lightmap
@@ -895,9 +888,9 @@ typedef enum {
  * These are populated by tracing from the illumination position through the lighting origin and
  * bounds. A shadow is cast for each unique plane hit.
  */
-#define MAX_ILLUMINATIONS_PER_SHADOW (MAX_ILLUMINATIONS / 2)
-#define MAX_PLANES_PER_SHADOW 3
-#define MAX_SHADOWS (MAX_ILLUMINATIONS_PER_SHADOW * MAX_PLANES_PER_SHADOW)
+#define MAX_ILLUMINATIONS_PER_SHADOW	(MAX_ILLUMINATIONS / 2)
+#define MAX_PLANES_PER_SHADOW			3
+#define MAX_SHADOWS						(MAX_ILLUMINATIONS_PER_SHADOW * MAX_PLANES_PER_SHADOW)
 
 /**
  * @brief Provides lighting information for mesh entities. Illuminations and
@@ -1028,6 +1021,10 @@ typedef enum {
 	R_PROGRAM_CORONA,
 	R_PROGRAM_STAIN,
 
+	// geometry-enabled programs
+	R_PROGRAM_PARTICLE,
+	R_PROGRAM_PARTICLE_CORONA,
+
 	R_PROGRAM_TOTAL
 } r_program_id_t;
 
@@ -1079,6 +1076,16 @@ typedef enum {
 
 	R_STATE_TOTAL
 } r_state_id_t;
+
+/**
+ * @brief
+ */
+typedef struct {
+	uint32_t bound;
+	uint32_t num_full_uploads;
+	uint32_t num_partial_uploads;
+	size_t size_uploaded;
+} r_buffer_stats_t;
 
 /**
  * @brief Provides read-write visibility and scene management to the client.
@@ -1143,7 +1150,7 @@ typedef struct {
 
 	uint32_t num_state_changes[R_STATE_TOTAL];
 	uint32_t num_binds[R_TEXUNIT_TOTAL];
-	uint32_t num_buffer_full_uploads, num_buffer_partial_uploads, size_buffer_uploads;
+	r_buffer_stats_t buffer_stats[R_NUM_BUFFERS];
 
 	uint32_t num_draw_elements, num_draw_element_count;
 	uint32_t num_draw_arrays, num_draw_array_count;
@@ -1192,4 +1199,64 @@ typedef struct {
 } r_context_t;
 
 #ifdef __R_LOCAL_H__
+/**
+ * @brief Quake3 (MD3) model in-memory representation.
+ */
+typedef struct {
+	uint32_t *tris;
+	r_model_vertex_t *verts;
+	d_md3_texcoord_t *coords;
+} r_md3_mesh_t;
+
+typedef struct {
+	uint16_t num_verts;
+	uint16_t num_tris;
+
+	d_md3_frame_t *frames;
+	r_md3_mesh_t *meshes;
+} r_md3_t;
+
+/*
+ * @brief Object (OBJ) model in-memory representation.
+ */
+typedef struct {
+	uint32_t position;
+	uint16_t indices[3];
+
+	vec_t *point;
+	vec_t *texcoords;
+	vec_t *normal;
+	vec4_t tangent;
+} r_obj_vertex_t;
+
+typedef uint32_t r_obj_triangle_t[3];
+
+typedef struct {
+	char name[MAX_QPATH];
+	char material[MAX_QPATH];
+
+	uint32_t num_tris;
+} r_obj_group_t;
+
+typedef struct {
+	uint32_t num_points;
+	uint32_t num_texcoords;
+	uint32_t num_normals;
+	uint32_t num_tris;
+	uint32_t num_groups;
+
+	vec3_t *points;
+	uint32_t cur_point;
+	vec2_t *texcoords;
+	uint32_t cur_texcoord;
+	vec3_t *normals;
+	uint32_t cur_normal;
+	r_obj_group_t *groups;
+	uint32_t cur_group;
+	r_obj_triangle_t *tris;
+	uint32_t cur_tris;
+	
+	GArray *verts;
+} r_obj_t;
+
 #endif /* __R_LOCAL_H__ */

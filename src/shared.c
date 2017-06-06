@@ -69,6 +69,20 @@ vec_t Randomc(void) {
 }
 
 /**
+ * @brief Returns a pseudo-random vec_t between min and max.
+ */
+vec_t Randomfr(const vec_t min, const vec_t max) {
+	return (Randomf() * (max - min)) + min;
+}
+
+/**
+ * @brief Returns a pseudo-random int32_t between min and max.
+ */
+int32_t Randomr(const int32_t min, const int32_t max) {
+	return (int32_t) Randomfr(min, max);
+}
+
+/**
  * @brief
  */
 void RotatePointAroundVector(const vec3_t point, const vec3_t dir, const vec_t degrees, vec3_t out) {
@@ -1251,6 +1265,8 @@ _Bool ColorToHex(const color_t color, char *s, const size_t s_len) {
 						  COLOR_BYTES_ARE_SAME(color.g) &&
 						  COLOR_BYTES_ARE_SAME(color.b);
 	_Bool is_32_bit = color.a != 0xFF;
+
+	*s = 0;
 
 	if (is_32_bit) {
 		is_short_form = is_short_form && COLOR_BYTES_ARE_SAME(color.a);

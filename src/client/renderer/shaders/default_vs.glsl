@@ -6,22 +6,13 @@
 
 #define VERTEX_SHADER
 
-#include "matrix_inc.glsl"
-#include "fog_inc.glsl"
+#include "include/uniforms.glsl"
+#include "include/fog.glsl"
 
 uniform bool DIFFUSE;
 uniform bool LIGHTMAP;
 uniform bool NORMALMAP;
-
-uniform float TIME_FRACTION;
-
-out vec3 modelpoint;
-out vec4 color;
-out vec2 texcoords[2];
-out vec3 point;
-out vec3 normal;
-out vec3 tangent;
-out vec3 bitangent;
+uniform mat4 NORMAL_MAT;
 
 in vec3 POSITION;
 in vec4 COLOR;
@@ -33,6 +24,17 @@ in vec3 NEXT_POSITION;
 in vec3 NEXT_NORMAL;
 in vec4 NEXT_TANGENT;
 
+out VertexData {
+	vec3 modelpoint;
+	vec2 texcoords[2];
+	vec4 color;
+	vec3 point;
+	vec3 normal;
+	vec3 tangent;
+	vec3 bitangent;
+	vec3 eye;
+};
+
 /**
  * @brief Transform the point, normal and tangent vectors, passing them through
  * to the fragment shader for per-pixel lighting.
@@ -43,9 +45,13 @@ void LightVertex(void) {
 	normal = normalize(vec3(NORMAL_MAT * vec4(mix(NORMAL, NEXT_NORMAL, TIME_FRACTION), 1.0)));
 
 	if (NORMALMAP) {
-		vec4 temp_tangent = mix(TANGENT, NEXT_TANGENT, TIME_FRACTION);
-		tangent = normalize(vec3(NORMAL_MAT * temp_tangent));
-		bitangent = cross(normal, tangent) * temp_tangent.w;
+		vec4 tang = mix(TANGENT, NEXT_TANGENT, TIME_FRACTION);
+		tangent = normalize(vec3(NORMAL_MAT * tang));
+		bitangent = cross(normal, tangent) * tang.w;
+
+		eye.x = -dot(point, tangent);
+		eye.y = -dot(point, bitangent);
+		eye.z = -dot(point, normal);
 	}
 }
 
@@ -71,6 +77,4 @@ void main(void) {
 
 	// pass the color through as well
 	color = COLOR;
-
-	FogVertex();
 }

@@ -227,7 +227,7 @@ g_entity_t *G_FindRadius(g_entity_t *from, vec3_t org, vec_t rad) {
  */
 g_entity_t *G_PickTarget(char *target_name) {
 	g_entity_t *choice[MAX_TARGETS];
-	size_t num_choices = 0;
+	uint32_t num_choices = 0;
 
 	if (!target_name) {
 		gi.Debug("NULL target_name\n");
@@ -255,7 +255,7 @@ g_entity_t *G_PickTarget(char *target_name) {
 		return NULL;
 	}
 
-	return choice[Random() % num_choices];
+	return choice[Randomr(0, num_choices)];
 }
 
 /**
@@ -297,9 +297,9 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 		gi.Unicast(activator, true);
 
 		if (ent->locals.noise_index) {
-			gi.Sound(activator, ent->locals.noise_index, ATTEN_NORM);
+			gi.Sound(activator, ent->locals.noise_index, ATTEN_NORM, 0);
 		} else {
-			gi.Sound(activator, gi.SoundIndex("misc/chat"), ATTEN_NORM);
+			gi.Sound(activator, gi.SoundIndex("misc/chat"), ATTEN_NORM, 0);
 		}
 	}
 

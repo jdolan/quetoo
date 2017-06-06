@@ -64,9 +64,10 @@ static void updateBindings(View *self) {
 	vec3_t end;
 	VectorMA(r_view.origin, MAX_WORLD_DIST, r_view.forward, end);
 
-	const cm_trace_t tr = Cl_Trace(r_view.origin, end, NULL, NULL, 0, MASK_SOLID);
+	const cm_trace_t tr = Cl_Trace(r_view.origin, end, NULL, NULL, 0, MASK_ALL);
 	if (tr.fraction < 1.0 && tr.surface->material) {
 		this->material = R_LoadMaterial(tr.surface->name, ASSET_CONTEXT_TEXTURES);
+		assert(this->material);
 	}
 
 	if (this->material) {
@@ -83,6 +84,7 @@ static void updateBindings(View *self) {
 		this->materialName->defaultText = NULL;
 		this->diffuseTexture->defaultText = NULL;
 		this->normalmapTexture->defaultText = NULL;
+		this->specularmapTexture->defaultText = NULL;
 
 		$(this->bumpSlider, setValue, DEFAULT_BUMP);
 		$(this->hardnessSlider, setValue, DEFAULT_HARDNESS);
@@ -170,25 +172,25 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 				self->specularmapTexture->isEditable = false;
 				addInput((View *) stackView, "Specularmap texture", (Control *) self->specularmapTexture);
 
-				self->bumpSlider = $(alloc(Slider), initWithFrame, NULL, ControlStyleDefault);
+				self->bumpSlider = $(alloc(Slider), initWithFrame, &frame, ControlStyleDefault);
 				self->bumpSlider->min = 0.0;
 				self->bumpSlider->max = 20.0;
 				self->bumpSlider->step = 0.125;
 				addInput((View *) stackView, "Bump", (Control *) self->bumpSlider);
 
-				self->hardnessSlider = $(alloc(Slider), initWithFrame, NULL, ControlStyleDefault);
+				self->hardnessSlider = $(alloc(Slider), initWithFrame, &frame, ControlStyleDefault);
 				self->hardnessSlider->min = 0.0;
 				self->hardnessSlider->max = 20.0;
 				self->hardnessSlider->step = 0.1;
 				addInput((View *) stackView, "Hardness", (Control *) self->hardnessSlider);
 
-				self->specularSlider = $(alloc(Slider), initWithFrame, NULL, ControlStyleDefault);
+				self->specularSlider = $(alloc(Slider), initWithFrame, &frame, ControlStyleDefault);
 				self->specularSlider->min = 0.0;
 				self->specularSlider->max = 20.0;
 				self->specularSlider->step = 0.1;
 				addInput((View *) stackView, "Specular", (Control *) self->specularSlider);
 
-				self->parallaxSlider = $(alloc(Slider), initWithFrame, NULL, ControlStyleDefault);
+				self->parallaxSlider = $(alloc(Slider), initWithFrame, &frame, ControlStyleDefault);
 				self->parallaxSlider->min = 0.0;
 				self->parallaxSlider->max = 20.0;
 				self->parallaxSlider->step = 0.1;

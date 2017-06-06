@@ -95,7 +95,14 @@ extern const vec3_t vec3_forward;
 #define Radians(d) 					((d) * 0.01745329251) // * M_PI / 180.0
 #define Degrees(r)					((r) * 57.2957795131) // * 180.0 / M_PI
 
-#define NearestMultiple(n, align)	((n) - 1 - ((n) - 1) % (align) + (align))
+#define NearestMultiple(n, align)	((n) == 0 ? 0 : ((n) - 1 - ((n) - 1) % (align) + (align)))
+
+/*
+ * @brief Z origin offset for sounds; has a 4x multiplier at sound spatialization time
+ *  Uses the upper 4 bits of the attenuation byte
+ */
+#define S_GET_Z_ORIGIN_OFFSET(atten) (((atten & 0xf0) >> 4) - 8)
+#define S_SET_Z_ORIGIN_OFFSET(offset) ((offset + 8) << 4)
 
 /**
  * @brief Math and trigonometry functions.
@@ -103,6 +110,8 @@ extern const vec3_t vec3_forward;
 int32_t Random(void); // 0 to (2^32)-1
 vec_t Randomf(void); // 0.0 to 1.0
 vec_t Randomc(void); // -1.0 to 1.0
+vec_t Randomfr(const vec_t min, const vec_t max); // min to max
+int32_t Randomr(const int32_t min, const int32_t max); // min to max
 
 void ClearBounds(vec3_t mins, vec3_t maxs);
 void AddPointToBounds(const vec3_t v, vec3_t mins, vec3_t maxs);

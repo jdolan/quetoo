@@ -29,9 +29,9 @@ typedef struct {
 } r_stainmap_interleave_vertex_t;
 
 static r_buffer_layout_t r_stainmap_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 2, .size = sizeof(vec2_t) },
-	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_FLOAT, .count = 2, .size = sizeof(vec2_t), .offset = 8 },
-	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 16, .normalized = true },
+	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 2 },
+	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_FLOAT, .count = 2 },
+	{ .attribute = R_ATTRIB_COLOR, .type = R_TYPE_UNSIGNED_BYTE, .count = 4, .normalized = true },
 	{ .attribute = -1 }
 };
 
@@ -50,7 +50,7 @@ typedef struct {
 
 	GArray *vertex_scratch;
 	GArray *index_scratch;
-	
+
 	r_buffer_t vertex_buffer;
 	r_buffer_t index_buffer;
 
@@ -93,7 +93,7 @@ static _Bool R_StainSurface(const r_stain_t *stain, const r_bsp_surface_t *surf)
 
 	// transform the radius into lightmap space, accounting for unevenly scaled textures
 	const vec_t radius_st = (radius / tex->scale[0]) * r_model_state.world->bsp->lightmap_scale;
-		
+
 	// transform the impact point into texture space
 	vec2_t point_st = {
 		DotProduct(point, tex->vecs[0]) + tex->vecs[0][3] - surf->st_mins[0],
@@ -106,7 +106,7 @@ static _Bool R_StainSurface(const r_stain_t *stain, const r_bsp_surface_t *surf)
 
 	point_st[0] -= radius_st / 2.0;
 	point_st[1] -= radius_st / 2.0;
-	
+
 	const vec_t radius_rounded = ceil(radius_st);
 
 	if ((point_st[0] < 0 && (point_st[0] + radius_rounded) < 0) ||
@@ -235,7 +235,7 @@ static void R_Stain_ResolveTexcoords(const r_image_t *image, vec4_t out) {
 		Vector4Copy(atlas_image->texcoords, out);
 		return;
 	}
-	
+
 	Vector4Set(out, 0, 0, 1, 1);
 }
 
@@ -250,14 +250,14 @@ static void R_ExpireStains(const byte alpha) {
 	R_BindDiffuseTexture(r_image_state.null->texnum);
 
 	const SDL_Rect old_viewport = r_state.current_viewport;
-	
+
 	R_PushMatrix(R_MATRIX_PROJECTION);
 
 	R_UnbindAttributeBuffers();
-	R_BindAttributeInterleaveBuffer(&r_stainmap_state.reset_buffer, R_ARRAY_MASK_ALL);
+	R_BindAttributeInterleaveBuffer(&r_stainmap_state.reset_buffer, R_ATTRIB_MASK_ALL);
 
 	const r_framebuffer_t *old_framebuffer = r_framebuffer_state.current_framebuffer;
-	
+
 	const GLenum old_blend_enabled = r_state.blend_enabled;
 
 	R_EnableDepthMask(false);
@@ -317,7 +317,7 @@ static void R_ExpireStains(const byte alpha) {
 	R_BlendFunc(old_blend_src, old_blend_dest);
 
 	glBlendEquation(GL_FUNC_ADD);
-	
+
 	R_EnableDepthMask(true);
 
 	R_PopMatrix(R_MATRIX_PROJECTION);
@@ -406,7 +406,7 @@ void R_AddStains(void) {
 			}
 		}
 	}
-	
+
 	if (!r_stainmap_state.surfs_stained->len) {
 		return;
 	}
@@ -433,8 +433,8 @@ void R_AddStains(void) {
 
 	R_PushMatrix(R_MATRIX_PROJECTION);
 
-	R_BindAttributeInterleaveBuffer(&r_stainmap_state.vertex_buffer, R_ARRAY_MASK_ALL);
-	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_stainmap_state.index_buffer);
+	R_BindAttributeInterleaveBuffer(&r_stainmap_state.vertex_buffer, R_ATTRIB_MASK_ALL);
+	R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &r_stainmap_state.index_buffer);
 
 	GLint vert_offset = 0, elem_offset = 0;
 
@@ -475,7 +475,7 @@ void R_AddStains(void) {
 		R_BindDiffuseTexture(image->texnum);
 
 		vec4_t position = { stain->point[0], stain->point[1], stain->point[0] + stain->radius, stain->point[1] + stain->radius };
-		
+
 		// flip Y, because apparently we need this :)
 		position[1] = stain->surf->stainmap.image->height - position[1];
 		position[3] = stain->surf->stainmap.image->height - position[3];
@@ -532,7 +532,7 @@ void R_AddStains(void) {
 	R_EnableColorArray(color_array_enabled);
 
 	R_PopMatrix(R_MATRIX_PROJECTION);
-	
+
 	R_EnableDepthMask(true);
 
 	R_UseProgram(old_program);
@@ -565,12 +565,27 @@ void R_InitStainmaps(void) {
 	r_stainmap_state.vertex_scratch = g_array_sized_new(false, false, sizeof(r_stainmap_interleave_vertex_t), MAX_STAINS * 4);
 	r_stainmap_state.index_scratch = g_array_sized_new(false, false, sizeof(uint16_t), MAX_STAINS * 6);
 
-	R_CreateInterleaveBuffer(&r_stainmap_state.reset_buffer, sizeof(r_stainmap_interleave_vertex_t), r_stainmap_buffer_layout, GL_STATIC_DRAW, sizeof(r_stainmap_interleave_vertex_t) * 4, NULL);
+	R_CreateInterleaveBuffer(&r_stainmap_state.reset_buffer, &(const r_create_interleave_t) {
+		.struct_size = sizeof(r_stainmap_interleave_vertex_t),
+		.layout = r_stainmap_buffer_layout,
+		.hint = GL_STATIC_DRAW,
+		.size = sizeof(r_stainmap_interleave_vertex_t) * 4
+	});
 
-	R_CreateInterleaveBuffer(&r_stainmap_state.vertex_buffer, sizeof(r_stainmap_interleave_vertex_t), r_stainmap_buffer_layout, GL_DYNAMIC_DRAW, sizeof(r_stainmap_interleave_vertex_t) * MAX_STAINS * 4, NULL);
-	R_CreateElementBuffer(&r_stainmap_state.index_buffer, R_ATTRIB_UNSIGNED_SHORT, GL_DYNAMIC_DRAW, sizeof(uint16_t) * MAX_STAINS * 6, NULL);
+	R_CreateInterleaveBuffer(&r_stainmap_state.vertex_buffer, &(const r_create_interleave_t) {
+		.struct_size = sizeof(r_stainmap_interleave_vertex_t),
+		.layout = r_stainmap_buffer_layout,
+		.hint = GL_DYNAMIC_DRAW,
+		.size = sizeof(r_stainmap_interleave_vertex_t) * MAX_STAINS * 4
+	});
 
-	r_stainmap_expire_time = Cvar_Add("r_stainmap_expire_time", "0", CVAR_ARCHIVE, "The amount of time, in milliseconds, stains should take to fully disappear.");
+	R_CreateElementBuffer(&r_stainmap_state.index_buffer, &(const r_create_element_t) {
+		.type = R_TYPE_UNSIGNED_SHORT,
+		.hint = GL_DYNAMIC_DRAW,
+		.size = sizeof(uint16_t) * MAX_STAINS * 6
+	});
+
+	r_stainmap_expire_time = Cvar_Add("r_stainmap_expire_time", "8000", CVAR_ARCHIVE, "The amount of time, in milliseconds, stains should take to fully disappear.");
 }
 
 /**

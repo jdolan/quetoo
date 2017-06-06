@@ -28,47 +28,126 @@ static const char *SAMPLE_TYPES[] = { ".ogg", ".wav", NULL };
 static const char *SOUND_PATHS[] = { "sounds/", "sound/", NULL };
 
 /**
+ * @brief Resample audio. outdata will be realloc'd to the size required to handle this operation, so be sure to initialize to
+ * NULL before calling if it's first time!
+ */
+size_t S_Resample(const int32_t channels, const int32_t source_rate, const int32_t dest_rate, const size_t num_frames, const int16_t *in_frames, int16_t **out_frames, size_t *out_size) {
+	const vec_t stepscale = (vec_t) source_rate / (vec_t) dest_rate;
+	const size_t outcount = NearestMultiple((size_t) (num_frames / stepscale), channels);
+	const size_t size = outcount * sizeof(int16_t);
+
+	if (out_size && *out_size < size) {
+		*out_frames = Mem_Realloc(*out_frames, size);
+		*out_size = size;
+	}
+
+	int32_t samplefrac = 0;
+	const vec_t fracstep = stepscale * 256.0;
+
+	for (size_t i = 0; i < outcount; ) {
+		for (int32_t c = 0; c < channels; c++, i++) {
+			const int32_t srcsample = NearestMultiple(samplefrac >> 8, channels) + c;
+
+			samplefrac += fracstep;
+			(*out_frames)[i] = LittleShort(in_frames[srcsample]);
+		}
+	}
+
+	return outcount;
+}
+
+/**
+ * @brief
+ */
+void S_ConvertSamples(const vec_t *input_samples, const sf_count_t num_samples, int16_t **out_samples, size_t *out_size) {
+	const size_t size = sizeof(int16_t) * num_samples;
+
+	if (out_size && *out_size < size) {
+		*out_samples = Mem_Realloc(*out_samples, size);
+		*out_size = size;
+	}
+
+	for (sf_count_t i = 0; i < num_samples; i++) {
+		(*out_samples)[i] = (int16_t) Clamp(input_samples[i] * 32768.0, SHRT_MIN, SHRT_MAX);
+	}
+}
+
+/**
  * @brief
  */
 static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const size_t pathlen) {
 
 	void *buf;
 	int32_t i;
-	SDL_RWops *rw;
 
 	buf = NULL;
-	rw = NULL;
 
 	i = 0;
 	while (SAMPLE_TYPES[i]) {
 
 		StripExtension(path, path);
-		g_strlcat(path, SAMPLE_TYPES[i++], pathlen);
+		g_strlcat(path, SAMPLE_TYPES[i], pathlen);
+
+		i++;
 
 		int64_t len;
 		if ((len = Fs_Load(path, &buf)) == -1) {
 			continue;
 		}
 
-		if (!(rw = SDL_RWFromMem(buf, (int32_t) len))) {
-			Fs_Free(buf);
-			continue;
+		SDL_RWops *rw = SDL_RWFromConstMem(buf, (int32_t) len);
+
+		SF_INFO info;
+		memset(&info, 0, sizeof(info));
+
+		SNDFILE *snd = sf_open_virtual(&s_rwops_io, SFM_READ, &info, rw);
+
+		if (!snd || sf_error(snd)) {
+			Com_Warn("%s\n", sf_strerror(snd));
+		} else {
+			const size_t raw_size = sizeof(vec_t) * info.frames * info.channels;
+
+			if (s_env.raw_sample_buffer_size < raw_size) {
+				s_env.raw_sample_buffer = Mem_Realloc(s_env.raw_sample_buffer, raw_size);
+				s_env.raw_sample_buffer_size = raw_size;
+			}
+
+			sf_count_t count = sf_readf_float(snd, s_env.raw_sample_buffer, info.frames) * info.channels;
+
+			S_ConvertSamples(s_env.raw_sample_buffer, count, &s_env.converted_sample_buffer, &s_env.converted_sample_buffer_size);
+
+			const int16_t *buffer = s_env.converted_sample_buffer;
+
+			if (info.samplerate != s_rate->integer) {
+				count = S_Resample(info.channels, info.samplerate, s_rate->integer, count, buffer, &s_env.resample_buffer, &s_env.resample_buffer_size);
+				buffer = s_env.resample_buffer;
+			}
+
+			sample->stereo = info.channels != 1;
+			sample->num_samples = count;
+
+			alGenBuffers(1, &sample->buffer);
+			S_CheckALError();
+
+			const ALenum format = info.channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
+			const ALsizei size = (ALsizei) count * sizeof(int16_t);
+
+			alBufferData(sample->buffer, format, buffer, size, s_rate->integer);
+			S_CheckALError();
 		}
 
-		if (!(sample->chunk = Mix_LoadWAV_RW(rw, false))) {
-			Com_Warn("%s\n", Mix_GetError());
-		}
+		sf_close(snd);
+
+		SDL_RWclose(rw);
 
 		Fs_Free(buf);
 
-		SDL_FreeRW(rw);
-
-		if (sample->chunk) { // success
+		if (sample->buffer) { // success
 			break;
 		}
 	}
 
-	return !!sample->chunk;
+	return !!sample->buffer;
 }
 
 /**
@@ -118,8 +197,10 @@ static void S_LoadSampleChunk(s_sample_t *sample) {
 static void S_FreeSample(s_media_t *self) {
 	s_sample_t *sample = (s_sample_t *) self;
 
-	if (sample->chunk) {
-		Mix_FreeChunk(sample->chunk);
+	if (sample->buffer) {
+		alDeleteBuffers(1, &sample->buffer);
+		sample->buffer = 0;
+		S_CheckALError();
 	}
 }
 
@@ -130,7 +211,7 @@ s_sample_t *S_LoadSample(const char *name) {
 	char key[MAX_QPATH];
 	s_sample_t *sample;
 
-	if (!s_env.initialized) {
+	if (!s_env.context) {
 		return NULL;
 	}
 
@@ -165,7 +246,7 @@ static s_sample_t *S_AliasSample(s_sample_t *sample, const char *alias) {
 
 	sample->media.type = S_MEDIA_SAMPLE;
 
-	s->chunk = sample->chunk;
+	s->buffer = sample->buffer;
 
 	S_RegisterMedia((s_media_t *) s);
 
@@ -183,7 +264,7 @@ s_sample_t *S_LoadModelSample(const char *model, const char *name) {
 	char alias[MAX_QPATH];
 	s_sample_t *sample;
 
-	if (!s_env.initialized) {
+	if (!s_env.context) {
 		return NULL;
 	}
 
@@ -205,7 +286,7 @@ s_sample_t *S_LoadModelSample(const char *model, const char *name) {
 
 		sample = S_LoadSample(alias);
 
-		if (sample->chunk) {
+		if (sample->buffer) {
 			return sample;
 		}
 
@@ -217,7 +298,7 @@ s_sample_t *S_LoadModelSample(const char *model, const char *name) {
 	g_snprintf(path, sizeof(path), "#players/common/%s", name + 1);
 	sample = S_LoadSample(path);
 
-	if (sample->chunk) {
+	if (sample->buffer) {
 		return S_AliasSample(sample, alias);
 	}
 
@@ -231,7 +312,7 @@ s_sample_t *S_LoadModelSample(const char *model, const char *name) {
 s_sample_t *S_LoadEntitySample(const entity_state_t *ent, const char *name) {
 	char model[MAX_QPATH];
 
-	if (!s_env.initialized) {
+	if (!s_env.context) {
 		return NULL;
 	}
 
@@ -263,4 +344,3 @@ s_sample_t *S_LoadEntitySample(const entity_state_t *ent, const char *name) {
 
 	return S_LoadModelSample(model, name);
 }
-

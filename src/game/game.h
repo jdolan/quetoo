@@ -25,7 +25,7 @@
 #include "filesystem.h"
 #include "ai/ai.h"
 
-#define GAME_API_VERSION 7
+#define GAME_API_VERSION 8
 
 /**
  * @brief Server flags for g_entity_t.
@@ -265,8 +265,9 @@ typedef struct {
 	 * @param ent The entity originating the sound.
 	 * @param index The configuration string index of the sound to be played.
 	 * @param atten The sound attenuation constant (e.g. ATTEN_IDLE).
+	 * @param pitch Pitch change, in tones x 2; 24 = +1 octave, 48 = +2 octave, etc.
 	 */
-	void (*Sound)(const g_entity_t *ent, const uint16_t index, const uint16_t atten);
+	void (*Sound)(const g_entity_t *ent, const uint16_t index, const uint16_t atten, const int8_t pitch);
 
 	/**
 	 * @brief Sound sample playback dispatch for server-local entities, or
@@ -276,9 +277,10 @@ typedef struct {
 	 * @param ent The entity originating the sound.
 	 * @param index The configuration string index of the sound to be played.
 	 * @param atten The sound attenuation constant (e.g. ATTEN_IDLE).
+	 * @param pitch Pitch change, in tones x 2; 24 = +1 octave, 48 = +2 octave, etc.
 	 */
 	void (*PositionedSound)(const vec3_t origin, const g_entity_t *ent, const uint16_t index,
-	                        const uint16_t atten);
+	                        const uint16_t atten, const int8_t pitch);
 
 	/**
 	 * @return The contents mask at the specific point. The point is tested

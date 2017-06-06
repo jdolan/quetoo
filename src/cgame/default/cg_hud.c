@@ -905,11 +905,13 @@ static void Cg_DrawDamageInflicted(const player_state_t *ps) {
  */
 void Cg_ParseWeaponInfo(const char *s) {
 
+	cgi.Debug("Received weapon info from server: %s\n", s);
+
 	gchar **info = g_strsplit(s, "\\", 0);
 	const size_t num_info = g_strv_length(info);
 
 	if ((num_info / 2) > MAX_STAT_BITS || num_info & 1) {
-		g_strv_length(info);
+		g_strfreev(info);
 		cgi.Error("Invalid weapon info");
 	}
 
@@ -920,7 +922,7 @@ void Cg_ParseWeaponInfo(const char *s) {
 		weapon->item_index = atoi(info[i + 1]);
 	}
 
-	g_strv_length(info);
+	g_strfreev(info);
 }
 
 /**

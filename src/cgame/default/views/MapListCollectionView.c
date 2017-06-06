@@ -176,9 +176,9 @@ static void enumerateMaps(const char *path, void *data) {
 
 			GList *mapshots = cgi.Mapshots(path);
 
-			const size_t len = g_list_length(mapshots);
+			const guint len = g_list_length(mapshots);
 			if (len) {
-				const char *mapshot = g_list_nth_data(mapshots, rand() % len);
+				const char *mapshot = g_list_nth_data(mapshots, Randomr(0, len));
 
 				SDL_Surface *surf;
 				if (cgi.LoadSurface(mapshot, &surf)) {

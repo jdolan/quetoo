@@ -154,7 +154,7 @@ void Cg_Interpolate(const cl_frame_t *frame) {
  */
 void Cg_ApplyMeshModelTag(r_entity_t *child, const r_entity_t *parent, const char *tag_name) {
 
-	if (!parent || !parent->model || parent->model->type != MOD_MD3) {
+	if (!parent || !parent->model || parent->model->type != MOD_MESH) {
 		cgi.Warn("Invalid parent entity\n");
 		return;
 	}
@@ -166,8 +166,8 @@ void Cg_ApplyMeshModelTag(r_entity_t *child, const r_entity_t *parent, const cha
 
 	// interpolate the tag over the frames of the parent entity
 
-	const r_md3_tag_t *t1 = cgi.MeshModelTag(parent->model, tag_name, parent->old_frame);
-	const r_md3_tag_t *t2 = cgi.MeshModelTag(parent->model, tag_name, parent->frame);
+	const r_model_tag_t *t1 = cgi.MeshModelTag(parent->model, tag_name, parent->old_frame);
+	const r_model_tag_t *t2 = cgi.MeshModelTag(parent->model, tag_name, parent->frame);
 
 	if (!t1 || !t2) {
 		return;
@@ -409,12 +409,57 @@ static void Cg_WeaponOffset(cl_entity_t *ent, vec3_t offset, vec3_t angles) {
 }
 
 /**
+ * @brief Periodically calculates the player's velocity, and interpolates it
+ * over a small interval to smooth out rapid changes.
+ */
+static void Cg_SpeedModulus(const player_state_t *ps, vec3_t offset) {
+	static vec3_t old_speed, new_speed;
+	static uint32_t time;
+
+	if (cgi.client->unclamped_time < time) {
+		time = 0;
+
+		VectorClear(old_speed);
+		VectorClear(new_speed);
+	}
+
+	vec3_t speed;
+
+	const uint32_t delta = cgi.client->unclamped_time - time;
+	if (delta < 100) {
+		const vec_t lerp = delta / 100.0;
+
+		speed[0] = old_speed[0] + lerp * (new_speed[0] - old_speed[0]);
+		speed[1] = old_speed[1] + lerp * (new_speed[1] - old_speed[1]);
+		speed[2] = old_speed[2] + lerp * (new_speed[2] - old_speed[2]);
+	} else {
+		VectorCopy(new_speed, old_speed);
+
+		new_speed[0] = -Clamp(ps->pm_state.velocity[0] / 200.0, -1.0, 1.0);
+		new_speed[1] = -Clamp(ps->pm_state.velocity[1] / 200.0, -1.0, 1.0);
+		new_speed[2] = -Clamp(ps->pm_state.velocity[2] / 200.0, -0.3, 1.0);
+
+		VectorCopy(old_speed, speed);
+
+		time = cgi.client->unclamped_time;
+	}
+
+	if (cg_draw_weapon_bob->modified) {
+		cg_draw_weapon_bob->value = Clamp(cg_draw_weapon_bob->value, 0.0, 2.0);
+		cg_draw_weapon_bob->modified = false;
+	}
+
+	VectorScale(speed, cg_draw_weapon_bob->value, offset);
+}
+
+/**
  * @brief Adds the first-person weapon model to the view.
  */
 static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 	static r_entity_t w;
 	static r_lighting_t lighting;
 	vec3_t offset, angles;
+	vec3_t velocity;
 
 	const player_state_t *ps = &cgi.client->frame.ps;
 
@@ -440,9 +485,19 @@ static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 
 	memset(&w, 0, sizeof(w));
 
+	// Weapon view offset
+
 	Cg_WeaponOffset(ent, offset, angles);
 
 	VectorCopy(cgi.view->origin, w.origin);
+
+	// Velocity swaying
+
+	Cg_SpeedModulus(ps, velocity);
+
+	VectorAdd(w.origin, velocity, w.origin);
+
+	// Hand
 
 	switch (cg_hand->integer) {
 		case HAND_LEFT:
@@ -460,6 +515,8 @@ static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 	VectorMA(w.origin, offset[0], cgi.view->forward, w.origin);
 
 	VectorAdd(cgi.view->angles, angles, w.angles);
+
+	// Copy state over to render entity
 
 	w.effects = EF_WEAPON | EF_NO_SHADOW;
 

@@ -7,6 +7,9 @@
     <Filter Include="src\shaders">
       <UniqueIdentifier>{e3fb06cc-1d00-4dfc-9a2c-937fc80a05ff}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\shaders\include">
+      <UniqueIdentifier>{8024ea4b-3931-45ab-adb8-2e5f653246a0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\client\renderer\r_array.c">
@@ -118,6 +121,12 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\client\renderer\r_program_stain.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\renderer\r_program_particle.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\renderer\r_program_particle_corona.c">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
@@ -242,12 +251,42 @@
     <ClInclude Include="..\..\src\client\renderer\r_program_stain.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\client\renderer\r_program_particle.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\renderer\r_program_particle_corona.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\src\client\renderer\shaders\corona_fs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\corona_vs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
     <None Include="..\..\src\client\renderer\shaders\default_fs.glsl">
       <Filter>src\shaders</Filter>
     </None>
     <None Include="..\..\src\client\renderer\shaders\default_vs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\null_fs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\null_vs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\particle_corona_vs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\particle_fs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\particle_gs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\particle_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
     <None Include="..\..\src\client\renderer\shaders\shadow_fs.glsl">
@@ -262,38 +301,29 @@
     <None Include="..\..\src\client\renderer\shaders\shell_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
+    <None Include="..\..\src\client\renderer\shaders\stain_fs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\stain_vs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
     <None Include="..\..\src\client\renderer\shaders\warp_fs.glsl">
       <Filter>src\shaders</Filter>
     </None>
     <None Include="..\..\src\client\renderer\shaders\warp_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\null_fs.glsl">
-      <Filter>src\shaders</Filter>
+    <None Include="..\..\src\client\renderer\shaders\include\fog.glsl">
+      <Filter>src\shaders\include</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\null_vs.glsl">
-      <Filter>src\shaders</Filter>
+    <None Include="..\..\src\client\renderer\shaders\include\noise3d.glsl">
+      <Filter>src\shaders\include</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\fog_inc.glsl">
-      <Filter>src\shaders</Filter>
+    <None Include="..\..\src\client\renderer\shaders\include\tint.glsl">
+      <Filter>src\shaders\include</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\matrix_inc.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\corona_fs.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\corona_vs.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\tint_inc.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\stain_vs.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\stain_fs.glsl">
-      <Filter>src\shaders</Filter>
+    <None Include="..\..\src\client\renderer\shaders\include\uniforms.glsl">
+      <Filter>src\shaders\include</Filter>
     </None>
   </ItemGroup>
 </Project>

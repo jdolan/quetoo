@@ -367,7 +367,8 @@ static void Cl_ParseSound(void) {
 	uint16_t index;
 
 	s_play_sample_t play = {
-		.flags = 0
+		.flags = 0,
+		.attenuation = ATTEN_DEFAULT
 	};
 
 	const byte flags = Net_ReadByte(&net_message);
@@ -378,20 +379,23 @@ static void Cl_ParseSound(void) {
 
 	play.sample = cl.sound_precache[index];
 
-	if (flags & S_ATTEN) {
-		play.attenuation = Net_ReadByte(&net_message);
-	} else {
-		play.attenuation = ATTEN_DEFAULT;
-	}
+	// Always use this since it also holds Z offset information
+	play.attenuation = Net_ReadByte(&net_message);
 
 	if (flags & S_ENTITY) { // entity relative
 		play.entity = Net_ReadShort(&net_message);
 		play.flags |= S_PLAY_ENTITY;
+	} else {
+		play.entity = -1;
 	}
 
 	if (flags & S_ORIGIN) { // positioned in space
 		Net_ReadPosition(&net_message, play.origin);
 		play.flags |= S_PLAY_POSITIONED;
+	}
+
+	if (flags & S_PITCH) {
+		play.pitch = Net_ReadChar(&net_message) * 2;
 	}
 
 	S_AddSample(&play);
@@ -401,7 +405,7 @@ static void Cl_ParseSound(void) {
  * @brief
  */
 static void Cl_ShowNet(const char *s) {
-	if (cl_show_net_messages->integer >= 2) {
+	if (cl_draw_net_messages->integer >= 2) {
 		Com_Print("%3u: %s\n", (uint32_t) (net_message.read - 1), s);
 	}
 }
@@ -412,9 +416,9 @@ static void Cl_ShowNet(const char *s) {
 void Cl_ParseServerMessage(void) {
 	int32_t cmd, old_cmd;
 
-	if (cl_show_net_messages->integer == 1) {
+	if (cl_draw_net_messages->integer == 1) {
 		Com_Print("%u ", (uint32_t) net_message.size);
-	} else if (cl_show_net_messages->integer >= 2) {
+	} else if (cl_draw_net_messages->integer >= 2) {
 		Com_Print("------------------\n");
 	}
 
@@ -436,7 +440,7 @@ void Cl_ParseServerMessage(void) {
 			break;
 		}
 
-		if (cl_show_net_messages->integer >= 2 && sv_cmd_names[cmd]) {
+		if (cl_draw_net_messages->integer >= 2 && sv_cmd_names[cmd]) {
 			Cl_ShowNet(sv_cmd_names[cmd]);
 		}
 
