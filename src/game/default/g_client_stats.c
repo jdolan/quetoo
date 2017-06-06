@@ -270,6 +270,12 @@ void G_ClientStats(g_entity_t *ent) {
 		client->ps.stats[STAT_READY] = client->locals.persistent.ready;
 	}
 
+	// respawn time
+	client->ps.stats[STAT_RESPAWN] = 0;
+	if (g_level.time < client->locals.respawn_time) {
+		client->ps.stats[STAT_RESPAWN] = client->locals.respawn_time - g_level.time;
+	}
+
 	// rounds
 	if (g_level.rounds) {
 		client->ps.stats[STAT_ROUND] = g_level.round_num + 1;

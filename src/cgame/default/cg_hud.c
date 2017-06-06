@@ -1401,6 +1401,34 @@ static void Cg_DrawNotification(const player_state_t *ps) {
 /**
  * @brief
  */
+static void Cg_DrawRespawn(const player_state_t *ps) {
+	r_pixel_t x, y;
+
+	if (ps->stats[STAT_HEALTH] > 0) {
+		return;
+	}
+
+	const char *string;
+
+	if (ps->stats[STAT_RESPAWN]) {
+		string = va("Respawn in ^3%0.1f", ps->stats[STAT_RESPAWN] / 1000.0);
+	} else {
+		string = va("^2Ready to respawn");
+	}
+
+	cgi.BindFont("small", NULL, NULL);
+
+	x = cgi.view->viewport.x + ((cgi.view->viewport.w - cgi.StringWidth(string)) / 2);
+	y = cgi.view->viewport.y + (cgi.view->viewport.h * 0.7);
+
+	cgi.DrawString(x, y, string, CON_COLOR_DEFAULT);
+
+	cgi.BindFont(NULL, NULL, NULL);
+}
+
+/**
+ * @brief
+ */
 static void Cg_Weapon_Next_f(void) {
 	Cg_SelectWeapon(1);
 }
@@ -1466,6 +1494,8 @@ void Cg_DrawHud(const player_state_t *ps) {
 	Cg_DrawSelectWeapon(ps);
 
 	Cg_DrawNotification(ps);
+
+	Cg_DrawRespawn(ps);
 }
 
 /**

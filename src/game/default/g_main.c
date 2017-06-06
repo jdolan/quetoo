@@ -60,6 +60,7 @@ cvar_t *g_password;
 cvar_t *g_player_projectile;
 cvar_t *g_random_map;
 cvar_t *g_respawn_protection;
+cvar_t *g_respawn_time;
 cvar_t *g_round_limit;
 cvar_t *g_rounds;
 cvar_t *g_spawn_farthest;
@@ -1342,9 +1343,10 @@ void G_Init(void) {
 	g_password = gi.Cvar("g_password", "", CVAR_USER_INFO, "The server password");
 	g_player_projectile = gi.Cvar("g_player_projectile", "1.0", CVAR_SERVER_INFO, "Scales player velocity to projectiles");
 	g_random_map = gi.Cvar("g_random_map", "0", 0, "Enables map shuffling");
-	g_respawn_protection = gi.Cvar("g_respawn_protection", "0.0", 0, "Respawn protection in seconds");
-	g_round_limit = gi.Cvar("g_round_limit", "30", CVAR_SERVER_INFO, "The number of rounds to run per level");
-	g_rounds = gi.Cvar("g_rounds", "0", CVAR_SERVER_INFO, "Enables rounds-based play, where last player standing wins");
+	g_respawn_protection = gi.Cvar("g_respawn_protection", "0.0", 0, "Respawn protection in seconds.");
+	g_respawn_time = gi.Cvar("g_respawn_time", "1.8", 0, "Respawn delay in seconds.");
+	g_round_limit = gi.Cvar("g_round_limit", "30", CVAR_SERVER_INFO, "The number of rounds to run per level.");
+	g_rounds = gi.Cvar("g_rounds", "0", CVAR_SERVER_INFO, "Enables rounds-based play, where last player standing wins.");
 	g_show_attacker_stats = gi.Cvar("g_show_attacker_stats", "1", CVAR_SERVER_INFO, NULL);
 	g_spawn_farthest = gi.Cvar("g_spawn_farthest", "0", CVAR_SERVER_INFO, NULL);
 	g_spectator_chat = gi.Cvar("g_spectator_chat", "1", CVAR_SERVER_INFO,
