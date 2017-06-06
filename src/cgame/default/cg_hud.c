@@ -1433,7 +1433,7 @@ static void Cg_DrawNotification(const player_state_t *ps) {
 static void Cg_DrawRespawn(const player_state_t *ps) {
 	r_pixel_t x, y;
 
-	if (ps->stats[STAT_HEALTH] > 0) {
+	if (ps->stats[STAT_HEALTH] > 0 || (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE])) {
 		return;
 	}
 
