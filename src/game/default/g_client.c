@@ -47,10 +47,10 @@ static void G_BroadcastNotification(const bg_notification_item_t item) {
 			gi.WriteByte(item.client_id_1);
 			gi.WriteByte(item.client_id_2);
 			break;
-		case NOTIFICATION_TYPE_FINISH:
+		case NOTIFICATION_TYPE_PLAYER_ACTION:
 			gi.WriteString(item.pic);
 			gi.WriteByte(item.client_id_1);
-			gi.WriteLong(item.millis);
+			gi.WriteString(item.string_1);
 			break;
 	}
 

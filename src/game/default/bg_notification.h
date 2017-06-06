@@ -30,7 +30,7 @@ typedef enum {
 	NOTIFICATION_TYPE_OBITUARY, // Player killed a player (MOD + CID + CID)
 	NOTIFICATION_TYPE_OBITUARY_SELF, // Player killed itself (MOD + CID)
 	NOTIFICATION_TYPE_OBITUARY_PIC, // Player killed a player (PIC + CID + CID)
-	NOTIFICATION_TYPE_FINISH, // Race times, capture times (PIC + CID + MILLIS)
+	NOTIFICATION_TYPE_PLAYER_ACTION, // Race times, capture times (PIC + CID + STRING)
 } bg_notification_type_t;
 
 /**

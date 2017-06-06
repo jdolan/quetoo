@@ -53,6 +53,10 @@ cvar_t *cg_draw_held_tech;
 cvar_t *cg_draw_frags;
 cvar_t *cg_draw_deaths;
 cvar_t *cg_draw_hud;
+cvar_t *cg_draw_notifications;
+cvar_t *cg_draw_notifications_disable_print;
+cvar_t *cg_draw_notifications_lines;
+cvar_t *cg_draw_notifications_time;
 cvar_t *cg_draw_pickup;
 cvar_t *cg_draw_powerups;
 cvar_t *cg_draw_time;
@@ -157,6 +161,13 @@ static void Cg_Init(void) {
 	cg_draw_frags = cgi.Cvar("cg_draw_frags", "1", CVAR_ARCHIVE, "Draw the number of frags");
 	cg_draw_deaths = cgi.Cvar("cg_draw_deaths", "1", CVAR_ARCHIVE, "Draw the number of deaths");
 	cg_draw_hud = cgi.Cvar("cg_draw_hud", "1", CVAR_ARCHIVE, "Render the Heads-Up-Display");
+	cg_draw_notifications = cgi.Cvar("cg_draw_notifications", "1", CVAR_ARCHIVE, "Draw the notification feed on the HUD.");
+	cg_draw_notifications_disable_print = cgi.Cvar("cg_draw_notifications_disable_print", "1", CVAR_ARCHIVE,
+						       "Disable notifications being printed to the console.");
+	cg_draw_notifications_lines = cgi.Cvar("cg_draw_notifications_lines", "6", CVAR_ARCHIVE,
+					       "How many lines, at most, to display in the notification feed.");
+	cg_draw_notifications_time = cgi.Cvar("cg_draw_notifications_time", "1.0", CVAR_ARCHIVE,
+					      "The time multiplier for a notification item to disappear.");
 	cg_draw_pickup = cgi.Cvar("cg_draw_pickup", "1", CVAR_ARCHIVE, "Draw the current pickup");
 	cg_draw_time = cgi.Cvar("cg_draw_time", "1", CVAR_ARCHIVE, "Draw the time remaning");
 	cg_draw_target_name = cgi.Cvar("cg_draw_target_name", "1", CVAR_ARCHIVE, "Draw the target's name");

@@ -55,7 +55,6 @@ typedef struct cg_crosshair_s {
 
 static cg_crosshair_t crosshair;
 
-#define NOTIFICATION_LINES 4
 typedef struct cg_notifications_s {
 	GSList *items;
 	uint16_t num_lines;
@@ -1208,45 +1207,69 @@ void Cg_ParseNotification(void) {
 
 	item->type = cgi.ReadByte();
 
-	item->when = cgi.client->unclamped_time + 6000;
-
 	switch(item->type) {
 		case NOTIFICATION_TYPE_OBITUARY:
 			item->mod = cgi.ReadByte();
 			item->client_id_1 = cgi.ReadByte();
 			item->client_id_2 = cgi.ReadByte();
 
-			cgi.Print("^7%s ^1%s ^7%s\n", cgi.client->client_info[item->client_id_1].name,
-				Bg_GetModString(item->mod, item->mod & MOD_FRIENDLY_FIRE),
-				cgi.client->client_info[item->client_id_2].name);
+			item->when = 6000;
+
+			if (!cg_draw_notifications_disable_print->value) {
+				cgi.Print("^7%s ^1%s ^7%s\n", cgi.client->client_info[item->client_id_1].name,
+					Bg_GetModString(item->mod, item->mod & MOD_FRIENDLY_FIRE),
+					cgi.client->client_info[item->client_id_2].name);
+			}
 
 			break;
 		case NOTIFICATION_TYPE_OBITUARY_SELF:
 			item->mod = cgi.ReadByte();
 			item->client_id_1 = cgi.ReadByte();
 
-			cgi.Print("^1%s ^7%s\n", Bg_GetModString(item->mod, false),
-				cgi.client->client_info[item->client_id_1].name);
+			item->when = 6000;
+
+			if (!cg_draw_notifications_disable_print->value) {
+				cgi.Print("^1%s ^7%s\n", Bg_GetModString(item->mod, false),
+					cgi.client->client_info[item->client_id_1].name);
+			}
 
 			break;
 		case NOTIFICATION_TYPE_OBITUARY_PIC: {
-			const char *s = cgi.ReadString();
-			strcpy(item->pic, s);
+			const char *p = cgi.ReadString();
+			strcpy(item->pic, p);
 			item->client_id_1 = cgi.ReadByte();
 			item->client_id_2 = cgi.ReadByte();
+
+			item->when = 6000;
+
+			if (!cg_draw_notifications_disable_print->value) {
+				cgi.Print("^7%s ^1[%s] ^7%s\n", cgi.client->client_info[item->client_id_1].name,
+					item->pic,
+					cgi.client->client_info[item->client_id_2].name);
+			}
 		}
 			break;
-		case NOTIFICATION_TYPE_FINISH: {
-			const char *s = cgi.ReadString();
-			strcpy(item->pic, s);
+		case NOTIFICATION_TYPE_PLAYER_ACTION: {
+			const char *p = cgi.ReadString();
+			strcpy(item->pic, p);
 			item->client_id_1 = cgi.ReadByte();
-			item->millis = cgi.ReadLong();
+			const char *s = cgi.ReadString();
+			strcpy(item->string_1, s);
+
+			item->when = 8000;
+
+			if (!cg_draw_notifications_disable_print->value) {
+				cgi.Print("^7%s ^7%s\n", cgi.client->client_info[item->client_id_1].name,
+					item->string_1);
+			}
 		}
 			break;
 		default:
 			cgi.Warn("Invalid notification type %d\n", item->type);
 			break;
 	}
+
+	item->when = cgi.client->unclamped_time + (item->when * cg_draw_notifications_time->value);
 
 	notifications.items = g_slist_prepend(notifications.items, item);
 
@@ -1261,7 +1284,7 @@ static void Cg_DrawNotification(const player_state_t *ps) {
 
 	cgi.BindFont("small", &cw, &ch);
 
-	y = (Min(notifications.num_lines - 1, NOTIFICATION_LINES) * NOTIFICATION_PIC_HEIGHT) + 10;
+	y = (Min(notifications.num_lines - 1, cg_draw_notifications_lines->integer - 1) * NOTIFICATION_PIC_HEIGHT) + 10;
 
 	GSList *list;
 	bg_notification_item_t *item;
@@ -1280,7 +1303,11 @@ static void Cg_DrawNotification(const player_state_t *ps) {
 		}
 	}
 
-	for (int32_t i = 0; i < Min(notifications.num_lines, NOTIFICATION_LINES); i++) {
+	if (!cg_draw_notifications->value) {
+		return;
+	}
+
+	for (int32_t i = 0; i < Min(notifications.num_lines, cg_draw_notifications_lines->integer); i++) {
 		list = g_slist_nth(notifications.items, i);
 
 		if (list == NULL) {
@@ -1336,6 +1363,22 @@ static void Cg_DrawNotification(const player_state_t *ps) {
 				cgi.DrawImage(x, y, ((vec_t) NOTIFICATION_PIC_HEIGHT) / HUD_PIC_HEIGHT, cgi.LoadImage(item->pic, IT_PIC));
 
 				name = cgi.client->client_info[item->client_id_1].name;
+
+				x -= cgi.StringWidth(name) + NOTIFICATION_PADDING_X;
+
+				cgi.DrawString(x, y + 6, name, CON_COLOR_DEFAULT);
+			}
+				break;
+			case NOTIFICATION_TYPE_PLAYER_ACTION: {
+				x -= cgi.StringWidth(item->string_1) + NOTIFICATION_PADDING_X;
+
+				cgi.DrawString(x, y + 6, item->string_1, CON_COLOR_DEFAULT);
+
+				x -= NOTIFICATION_PIC_HEIGHT + NOTIFICATION_PADDING_X;
+
+				cgi.DrawImage(x, y, ((vec_t) NOTIFICATION_PIC_HEIGHT) / HUD_PIC_HEIGHT, cgi.LoadImage(item->pic, IT_PIC));
+
+				char *name = cgi.client->client_info[item->client_id_1].name;
 
 				x -= cgi.StringWidth(name) + NOTIFICATION_PADDING_X;
 
