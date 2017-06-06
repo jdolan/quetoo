@@ -12,7 +12,6 @@
 in VertexData {
 	vec4 color;
 	vec2 texcoord;
-	float fog;
 };
 
 const vec2 center_point = vec2(0.5, 0.5);
@@ -26,5 +25,5 @@ void main(void) {
 
 	fragColor = vec4(color.rgb, mix(color.a, 0, length(texcoord - center_point) * 2.0));
 
-	FogFragment(fragColor, fog);
+	FogFragment(fragColor);
 }

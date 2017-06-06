@@ -34,7 +34,6 @@ out VertexData {
 	vec3 tangent;
 	vec3 bitangent;
 	vec3 eye;
-	float fog;
 };
 
 /**
@@ -79,6 +78,4 @@ void main(void) {
 
 	// pass the color through as well
 	color = COLOR;
-
-	fog = FogVertex();
 }

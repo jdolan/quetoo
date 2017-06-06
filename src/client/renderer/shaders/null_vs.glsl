@@ -20,7 +20,6 @@ in vec3 NEXT_POSITION;
 out VertexData {
 	vec2 texcoord;
 	vec4 color;
-	float fog;
 };
 
 /**
@@ -35,6 +34,4 @@ void main(void) {
 
 	// pass the color through as well
 	color = COLOR * GLOBAL_COLOR;
-
-	fog = FogVertex();
 }

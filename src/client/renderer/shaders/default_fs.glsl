@@ -74,7 +74,6 @@ in VertexData {
 	vec3 tangent;
 	vec3 bitangent;
 	vec3 eye;
-	float fog;
 };
 
 const vec3 two = vec3(2.0);
@@ -259,5 +258,5 @@ void main(void) {
 	CausticFragment(lightmap);
 
 	// and fog
-	FogFragment(fragColor, fog);
+	FogFragment(fragColor);
 }

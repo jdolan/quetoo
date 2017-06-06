@@ -16,7 +16,6 @@ uniform sampler2D SAMPLER5;
 
 in VertexData {
 	vec2 texcoord;
-	float fog;
 };
 
 out vec4 fragColor;
@@ -36,5 +35,5 @@ void main(void) {
 	fragColor = GLOBAL_COLOR * texture(SAMPLER0, coord);
 
 	// and add fog
-	FogFragment(fragColor, fog);
+	FogFragment(fragColor);
 }

@@ -15,7 +15,6 @@ uniform sampler2D SAMPLER0;
 in VertexData {
 	vec2 texcoord;
 	vec4 color;
-	float fog;
 };
 
 out vec4 fragColor;
@@ -29,5 +28,5 @@ void main(void) {
 
 	TintFragment(fragColor, texcoord);
 
-	FogFragment(fragColor, fog);
+	FogFragment(fragColor);
 }

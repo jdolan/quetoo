@@ -16,7 +16,6 @@ in vec4 COLOR;
 out VertexData {
 	vec2 texcoord;
 	vec4 color;
-	float fog;
 };
 
 /**
@@ -29,6 +28,4 @@ void main(void) {
 	texcoord = TEXCOORD;
 
 	color = COLOR;
-
-	fog = FogVertex();
 }

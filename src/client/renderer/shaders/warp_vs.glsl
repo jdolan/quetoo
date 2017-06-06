@@ -14,7 +14,6 @@ in vec2 TEXCOORD;
 
 out VertexData {
 	vec2 texcoord;
-	float fog;
 };
 
 /**
@@ -27,6 +26,4 @@ void main(void) {
 
 	// pass texcoords through
 	texcoord = TEXCOORD;
-
-	fog = FogVertex();
 }
