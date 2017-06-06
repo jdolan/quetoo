@@ -66,7 +66,7 @@ cgame_la_LDFLAGS = \
 
 cgame_la_LIBADD = \
 	viewcontrollers/libviewcontrollers.la \
-	$(top_builddir)/src/game/default/libpmove.la \
+	$(top_builddir)/src/game/default/libbgame.la \
 	$(top_builddir)/src/libswap.la \
 	$(top_builddir)/src/libmatrix.la \
 	$(top_srcdir)/src/libparse.la

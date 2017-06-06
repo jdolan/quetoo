@@ -96,36 +96,6 @@ typedef struct {
 #define CS_HOOK_PULL_SPEED	(CS_GENERAL + 9) // hook speed
 
 /**
- * @brief Notification feed types
- */
-typedef enum {
-	NOTIFICATION_TYPE_OBITUARY, // Player killed a player (MOD + CID + CID)
-	NOTIFICATION_TYPE_OBITUARY_PIC, // Player killed a player (PIC + CID + CID)
-	NOTIFICATION_TYPE_FINISH, // Race times, capture times (PIC + CID + MILLIS)
-} g_notification_type_t;
-
-/**
- * @brief Notification feed
- */
-typedef struct g_notification_item_s {
-	g_notification_type_t type;
-
-	char string_1[MAX_STRING_CHARS]; // STRING
-	char string_2[MAX_STRING_CHARS]; // STRING
-
-	uint16_t client_id_1; // CID
-	uint16_t client_id_2; // CID
-
-	char pic[MAX_QPATH]; // PIC
-
-	uint32_t mod; // MOD. FIXME: make this a g_mod_t
-
-	uint32_t millis; // MILLIS
-
-	uint32_t when; // The time this feed item appeared at (used in cgame)
-} g_notification_item_t;
-
-/**
  * @brief Player state statistics (inventory, score, etc).
  */
 typedef enum {
@@ -385,6 +355,42 @@ typedef enum {
 	HOOK_PULL, // lithium-style pull hook
 	HOOK_SWING // hookmod-style swing hook
 } g_hook_style_t;
+
+/**
+ * @brief Means of death.
+ */
+#define MOD_UNKNOWN					0
+#define MOD_BLASTER					1
+#define MOD_SHOTGUN					2
+#define MOD_SUPER_SHOTGUN			3
+#define MOD_MACHINEGUN				4
+#define MOD_GRENADE					5
+#define MOD_GRENADE_SPLASH			6
+#define MOD_ROCKET					7
+#define MOD_ROCKET_SPLASH			8
+#define MOD_HYPERBLASTER			9
+#define MOD_LIGHTNING				10
+#define MOD_LIGHTNING_DISCHARGE		11
+#define MOD_RAILGUN					12
+#define MOD_BFG_LASER				13
+#define MOD_BFG_BLAST				14
+#define MOD_WATER					15
+#define MOD_SLIME					16
+#define MOD_LAVA					17
+#define MOD_CRUSH					18
+#define MOD_TELEFRAG				19
+#define MOD_FALLING					20
+#define MOD_SUICIDE					21
+#define MOD_EXPLOSIVE				22
+#define MOD_TRIGGER_HURT			23
+#define MOD_HANDGRENADE				24
+#define MOD_HANDGRENADE_SPLASH		25
+#define MOD_HANDGRENADE_SUICIDE		26
+#define MOD_HANDGRENADE_KAMIKAZE	27
+#define MOD_FIREBALL				28
+#define MOD_HOOK					29
+#define MOD_ACT_OF_GOD				30
+#define MOD_FRIENDLY_FIRE			0x80
 
 #ifdef __GAME_LOCAL_H__
 
@@ -900,42 +906,6 @@ typedef struct {
 
 	g_spawn_points_t spawn_points;
 } g_level_t;
-
-/**
- * @brief Means of death.
- */
-#define MOD_UNKNOWN					0
-#define MOD_BLASTER					1
-#define MOD_SHOTGUN					2
-#define MOD_SUPER_SHOTGUN			3
-#define MOD_MACHINEGUN				4
-#define MOD_GRENADE					5
-#define MOD_GRENADE_SPLASH			6
-#define MOD_ROCKET					7
-#define MOD_ROCKET_SPLASH			8
-#define MOD_HYPERBLASTER			9
-#define MOD_LIGHTNING				10
-#define MOD_LIGHTNING_DISCHARGE		11
-#define MOD_RAILGUN					12
-#define MOD_BFG_LASER				13
-#define MOD_BFG_BLAST				14
-#define MOD_WATER					15
-#define MOD_SLIME					16
-#define MOD_LAVA					17
-#define MOD_CRUSH					18
-#define MOD_TELEFRAG				19
-#define MOD_FALLING					20
-#define MOD_SUICIDE					21
-#define MOD_EXPLOSIVE				22
-#define MOD_TRIGGER_HURT			23
-#define MOD_HANDGRENADE				24
-#define MOD_HANDGRENADE_SPLASH		25
-#define MOD_HANDGRENADE_SUICIDE		26
-#define MOD_HANDGRENADE_KAMIKAZE	27
-#define MOD_FIREBALL				28
-#define MOD_HOOK					29
-#define MOD_ACT_OF_GOD				30
-#define MOD_FRIENDLY_FIRE			0x80
 
 /**
  * @brief Damage flags. These can be and often are combined.

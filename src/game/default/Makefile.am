@@ -1,4 +1,5 @@
 noinst_HEADERS = \
+	bg_notification.h \
 	bg_pmove.h \
 	g_ai.h \
 	g_ballistics.h \
@@ -25,17 +26,18 @@ noinst_HEADERS = \
 	g_weapon.h
 
 noinst_LTLIBRARIES = \
-	libpmove.la
+	libbgame.la
 
-libpmove_la_SOURCES = \
+libbgame_la_SOURCES = \
+	bg_notification.c \
 	bg_pmove.c
-libpmove_la_CFLAGS = \
+libbgame_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
-libpmove_la_LDFLAGS = \
+libbgame_la_LDFLAGS = \
 	-shared
-libpmove_la_LIBADD = \
+libbgame_la_LIBADD = \
 	$(top_builddir)/src/libshared.la
 
 gamelibdir = @PKGLIBDIR@/default
@@ -80,7 +82,6 @@ game_la_LDFLAGS = \
 	-shared
 
 game_la_LIBADD = \
-	libpmove.la \
+	libbgame.la \
 	$(top_srcdir)/src/libparse.la \
 	@MYSQL_LIBS@
-

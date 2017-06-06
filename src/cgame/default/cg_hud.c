@@ -20,6 +20,7 @@
  */
 
 #include "cg_local.h"
+#include "game/default/bg_notification.h"
 
 #define HUD_COLOR_STAT			CON_COLOR_DEFAULT
 #define HUD_COLOR_STAT_MED		CON_COLOR_YELLOW
@@ -1203,7 +1204,7 @@ static void Cg_DrawTargetName(const player_state_t *ps) {
  * @brief
  */
 void Cg_ParseNotification(void) {
-	g_notification_item_t *item = g_malloc0(sizeof(g_notification_item_t));
+	bg_notification_item_t *item = g_malloc0(sizeof(bg_notification_item_t));
 
 	item->type = cgi.ReadByte();
 
@@ -1214,6 +1215,19 @@ void Cg_ParseNotification(void) {
 			item->mod = cgi.ReadByte();
 			item->client_id_1 = cgi.ReadByte();
 			item->client_id_2 = cgi.ReadByte();
+
+			cgi.Print("^7%s ^1%s ^7%s\n", cgi.client->client_info[item->client_id_1].name,
+				Bg_GetModString(item->mod, item->mod & MOD_FRIENDLY_FIRE),
+				cgi.client->client_info[item->client_id_2].name);
+
+			break;
+		case NOTIFICATION_TYPE_OBITUARY_SELF:
+			item->mod = cgi.ReadByte();
+			item->client_id_1 = cgi.ReadByte();
+
+			cgi.Print("^1%s ^7%s\n", Bg_GetModString(item->mod, false),
+				cgi.client->client_info[item->client_id_1].name);
+
 			break;
 		case NOTIFICATION_TYPE_OBITUARY_PIC: {
 			const char *s = cgi.ReadString();
@@ -1250,12 +1264,12 @@ static void Cg_DrawNotification(const player_state_t *ps) {
 	y = (Min(notifications.num_lines - 1, NOTIFICATION_LINES) * NOTIFICATION_PIC_HEIGHT) + 10;
 
 	GSList *list;
-	g_notification_item_t *item;
+	bg_notification_item_t *item;
 
 	for (int32_t i = 0; i < notifications.num_lines; i++) {
 		list = g_slist_nth(notifications.items, i);
 
-		if (list && cgi.client->unclamped_time > ((g_notification_item_t *) list->data)->when) {
+		if (list && cgi.client->unclamped_time > ((bg_notification_item_t *) list->data)->when) {
 			notifications.items = g_slist_delete_link(notifications.items, list);
 
 			notifications.num_lines = g_slist_length(notifications.items);
@@ -1273,7 +1287,7 @@ static void Cg_DrawNotification(const player_state_t *ps) {
 			continue;
 		}
 
-		item = (g_notification_item_t *) list->data;
+		item = (bg_notification_item_t *) list->data;
 
 		x = cgi.context->width - 10;
 
@@ -1287,13 +1301,27 @@ static void Cg_DrawNotification(const player_state_t *ps) {
 
 				x -= NOTIFICATION_PIC_HEIGHT + NOTIFICATION_PADDING_X;
 
-				// FIXME: draw MOD icon here
+				cgi.DrawImage(x, y, ((vec_t) NOTIFICATION_PIC_HEIGHT) / HUD_PIC_HEIGHT,
+					cgi.LoadImage(Bg_GetModIcon(item->mod, item->mod & MOD_FRIENDLY_FIRE), IT_PIC));
 
 				name = cgi.client->client_info[item->client_id_1].name;
 
 				x -= cgi.StringWidth(name) + NOTIFICATION_PADDING_X;
 
 				cgi.DrawString(x, y + 6, name, CON_COLOR_DEFAULT);
+			}
+				break;
+			case NOTIFICATION_TYPE_OBITUARY_SELF: {
+				char *name = cgi.client->client_info[item->client_id_1].name;
+
+				x -= cgi.StringWidth(name) + NOTIFICATION_PADDING_X;
+
+				cgi.DrawString(x, y + 6, name, CON_COLOR_DEFAULT);
+
+				x -= NOTIFICATION_PIC_HEIGHT + NOTIFICATION_PADDING_X;
+
+				cgi.DrawImage(x, y, ((vec_t) NOTIFICATION_PIC_HEIGHT) / HUD_PIC_HEIGHT,
+					cgi.LoadImage(Bg_GetModIcon(item->mod, item->mod & MOD_FRIENDLY_FIRE), IT_PIC));
 			}
 				break;
 			case NOTIFICATION_TYPE_OBITUARY_PIC: {

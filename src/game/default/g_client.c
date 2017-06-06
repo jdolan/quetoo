@@ -21,11 +21,12 @@
 
 #include "g_local.h"
 #include "bg_pmove.h"
+#include "bg_notification.h"
 
 /**
  * @brief Sends a feed item to all active clients over their unreliable channels.
  */
-void G_BroadcastNotification(const g_notification_item_t item) {
+static void G_BroadcastNotification(const bg_notification_item_t item) {
 
 	gi.WriteByte(SV_CMD_NOTIFICATION);
 
@@ -36,6 +37,10 @@ void G_BroadcastNotification(const g_notification_item_t item) {
 			gi.WriteByte(item.mod);
 			gi.WriteByte(item.client_id_1);
 			gi.WriteByte(item.client_id_2);
+			break;
+		case NOTIFICATION_TYPE_OBITUARY_SELF:
+			gi.WriteByte(item.mod);
+			gi.WriteByte(item.client_id_1);
 			break;
 		case NOTIFICATION_TYPE_OBITUARY_PIC:
 			gi.WriteString(item.pic);
@@ -57,160 +62,38 @@ void G_BroadcastNotification(const g_notification_item_t item) {
  * effects are the best!
  */
 static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
-	char buffer[MAX_PRINT_MSG];
 
 	const _Bool frag = attacker && (attacker != self) && attacker->client;
 
-	const _Bool friendy_fire = (mod & MOD_FRIENDLY_FIRE) == MOD_FRIENDLY_FIRE;
-	mod &= ~MOD_FRIENDLY_FIRE;
+	const _Bool friendly_fire = mod & MOD_FRIENDLY_FIRE;
 
-	g_notification_item_t notification_item = {
-		.type = NOTIFICATION_TYPE_OBITUARY_PIC,
-		.client_id_1 = attacker->s.number - 1,
-		.client_id_2 = self->s.number - 1,
-		.pic = "pics/i_bodyarmor"
+	bg_notification_item_t notification_item = {
+		.type = NOTIFICATION_TYPE_OBITUARY,
+		.mod = mod
 	};
+
+	if (frag) {
+		notification_item.client_id_1 = attacker->s.number - 1;
+		notification_item.client_id_2 = self->s.number - 1;
+
+		if (dedicated->value) {
+			gi.Print("^7%s ^1%s ^7%s\n", attacker->client->locals.persistent.net_name,
+			Bg_GetModString(mod, friendly_fire),
+			self->client->locals.persistent.net_name);
+		}
+	} else {
+		notification_item.type = NOTIFICATION_TYPE_OBITUARY_SELF;
+		notification_item.client_id_1 = self->s.number - 1;
+
+		if (dedicated->value) {
+			gi.Print("^1%s ^7%s\n", Bg_GetModString(mod, false),
+			self->client->locals.persistent.net_name);
+		}
+	}
 
 	G_BroadcastNotification(notification_item);
 
-	if (frag) { // killed by another player
-
-		const char *msg = "%s was killed by %s";
-
-		switch (mod) {
-			case MOD_BLASTER:
-				msg = "%s was humiliated by %s's blaster";
-				break;
-			case MOD_SHOTGUN:
-				msg = "%s was gunned down by %s's shotgun";
-				break;
-			case MOD_SUPER_SHOTGUN:
-				msg = "%s was blown away by %s's super shotgun";
-				break;
-			case MOD_MACHINEGUN:
-				msg = "%s was perforated by %s's machinegun";
-				break;
-			case MOD_GRENADE:
-				msg = "%s was popped by %s's grenade";
-				break;
-			case MOD_GRENADE_SPLASH:
-				msg = "%s was shredded by %s's shrapnel";
-				break;
-			case MOD_HANDGRENADE:
-				msg = "%s caught %s's handgrenade";
-				break;
-			case MOD_HANDGRENADE_SPLASH:
-				msg = "%s felt the burn from %s's handgrenade";
-				break;
-			case MOD_HANDGRENADE_KAMIKAZE:
-				msg = "%s felt %s's pain";
-				break;
-			case MOD_ROCKET:
-				msg = "%s ate %s's rocket";
-				break;
-			case MOD_ROCKET_SPLASH:
-				msg = "%s almost dodged %s's rocket";
-				break;
-			case MOD_HYPERBLASTER:
-				msg = "%s was melted by %s's hyperblaster";
-				break;
-			case MOD_LIGHTNING:
-				msg = "%s got a charge out of %s's lightning";
-				break;
-			case MOD_LIGHTNING_DISCHARGE:
-				msg = "%s was shocked by %s's discharge";
-				break;
-			case MOD_RAILGUN:
-				msg = "%s was railed by %s";
-				break;
-			case MOD_BFG_LASER:
-				msg = "%s saw the pretty lights from %s's BFG";
-				break;
-			case MOD_BFG_BLAST:
-				msg = "%s was disintegrated by %s's BFG blast";
-				break;
-			case MOD_TELEFRAG:
-				msg = "%s tried to invade %s's personal space";
-				break;
-			case MOD_HOOK:
-				msg = "%s had their intestines shredded by %s's grappling hook";
-				break;
-		}
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wformat-nonliteral"
-		g_snprintf(buffer, sizeof(buffer), msg, self->client->locals.persistent.net_name,
-		           attacker->client->locals.persistent.net_name);
-#pragma clang diagnostic pop
-
-		if (friendy_fire) {
-			g_strlcat(buffer, " (^1TEAMKILL^7)", sizeof(buffer));
-		}
-
-	} else { // killed by self or world
-
-		const char *msg = "%s sucks at life";
-
-		switch (mod) {
-			case MOD_SUICIDE:
-				msg = "%s suicides";
-				break;
-			case MOD_FALLING:
-				msg = "%s cratered";
-				break;
-			case MOD_CRUSH:
-				msg = "%s was squished";
-				break;
-			case MOD_WATER:
-				msg = "%s sleeps with the fishes";
-				break;
-			case MOD_SLIME:
-				msg = "%s melted";
-				break;
-			case MOD_LAVA:
-				msg = "%s did a back flip into the lava";
-				break;
-			case MOD_FIREBALL:
-				msg = "%s tasted the lava rainbow";
-				break;
-			case MOD_TRIGGER_HURT:
-				msg = "%s was in the wrong place";
-				break;
-			case MOD_ACT_OF_GOD:
-				msg = "%s was killed by an act of god";
-				break;
-		}
-
-		if (attacker == self) {
-			switch (mod) {
-				case MOD_GRENADE_SPLASH:
-					msg = "%s went pop";
-					break;
-				case MOD_HANDGRENADE_KAMIKAZE:
-					msg = "%s tried to put the pin back in";
-					break;
-				case MOD_HANDGRENADE_SPLASH:
-					msg = "%s has no hair left";
-					break;
-				case MOD_ROCKET_SPLASH:
-					msg = "%s blew up";
-					break;
-				case MOD_LIGHTNING_DISCHARGE:
-					msg = "%s took a toaster bath";
-					break;
-				case MOD_BFG_BLAST:
-					msg = "%s should have used a smaller gun";
-					break;
-			}
-		}
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wformat-nonliteral"
-		g_snprintf(buffer, sizeof(buffer), msg, self->client->locals.persistent.net_name);
-#pragma clang diagnostic pop
-	}
-
-	gi.BroadcastPrint(PRINT_HIGH, "%s\n", buffer);
+	mod &= ~MOD_FRIENDLY_FIRE; // Reset this AFTER broadcasting it in the notification
 
 	if (frag) {
 
@@ -228,7 +111,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 	if (!g_level.warmup) {
 
 		if (frag) {
-			if (friendy_fire) {
+			if (friendly_fire) {
 				attacker->client->locals.persistent.score--;
 			} else {
 				attacker->client->locals.persistent.score++;
@@ -238,7 +121,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 			        self->client->locals.persistent.team &&
 			        attacker->client->locals.persistent.team) {
 
-				if (friendy_fire) {
+				if (friendly_fire) {
 					attacker->client->locals.persistent.team->score--;
 				} else {
 					attacker->client->locals.persistent.team->score++;
