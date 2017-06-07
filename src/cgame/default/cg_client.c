@@ -244,7 +244,7 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 
 		if (hue != -1) {
 			hue = Clamp(atoi(info[2]), 0, 360);
-			ci->color = ColorFromHSV((const vec3_t) { hue, 1.0, 0.5 });
+			ci->color = ColorFromHSV((const vec3_t) { hue, 1.0, 1.0 });
 		}
 
 		// load red/green/blue tint colors

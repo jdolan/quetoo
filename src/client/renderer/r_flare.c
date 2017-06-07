@@ -133,6 +133,10 @@ void R_AddFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 		alpha = f->alpha * alpha;
 
+		if (alpha <= FLT_EPSILON) {
+			continue;
+		}
+
 		// scale according to distance
 		f->particle.scale = f->radius + (f->radius * dist * .0005);
 		f->particle.color[3] = alpha;

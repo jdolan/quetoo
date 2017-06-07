@@ -22,8 +22,9 @@ out vec4 fragColor;
  * @brief Shader entry point.
  */
 void main(void) {
+	float alpha = mix(color.a, 0, length(texcoord - center_point) * 2.0);
 
-	fragColor = vec4(color.rgb, mix(color.a, 0, length(texcoord - center_point) * 2.0));
+	fragColor = vec4(color.rgb * alpha, alpha);
 
 	FogFragment(fragColor);
 }
