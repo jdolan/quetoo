@@ -455,7 +455,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 /**
  * @brief
  */
-static void Cg_EnergyTrail(cl_entity_t *ent, vec_t radius, int32_t color) {
+static void Cg_EnergyTrail(cl_entity_t *ent, vec_t radius, const vec3_t color) {
 
 	const vec_t ltime = (vec_t) (cgi.client->unclamped_time + ent->current.number) / 300.0;
 
@@ -492,7 +492,11 @@ static void Cg_EnergyTrail(cl_entity_t *ent, vec_t radius, int32_t color) {
 		VectorSubtract(p->part.org, ent->origin, delta);
 		dist = VectorLength(delta) / (3.0 * radius);
 
-		cgi.ColorFromPalette(color + dist * 7.0, p->part.color);
+		VectorCopy(color, p->part.color);
+
+		for (int32_t j = 0; j < 3; j++) {
+			p->part.color[j] += Randomc() * dist / 5.0;
+		}
 
 		VectorScale(delta, 100.0, p->accel);
 	}
@@ -509,7 +513,11 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent) {
 	r_light_t l;
 	cg_particle_t *p;
 
-	Cg_EnergyTrail(ent, 6.0, 107);
+	Cg_EnergyTrail(ent, 6.0, (const vec3_t) {
+		0.8,
+		0.8,
+		0.9
+	});
 
 	if ((p = Cg_AllocParticle(PARTICLE_CORONA, NULL, true))) {
 		VectorSet(p->part.color, 0.4, 0.7, 1.0);
@@ -689,17 +697,21 @@ static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
  */
 static void Cg_BfgTrail(cl_entity_t *ent) {
 
-	Cg_EnergyTrail(ent, 48.0, 206);
+	Cg_EnergyTrail(ent, 48.0, (const vec3_t) {
+		0.3,
+		Randomfr(0.65, 0.8),
+		0.3
+	});
 
 	const vec_t mod = sin(cgi.client->unclamped_time >> 5);
 
 	cg_particle_t *p;
 	if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_explosion, true))) {
 
-		cgi.ColorFromPalette(206, p->color_start);
-
+		Vector4Set(p->color_start, 0.0, Randomfr(0.7, 0.9), 0.0, 0.6);
+	
 		p->effects |= PARTICLE_EFFECT_COLOR;
-		p->lifetime = 100;
+		p->lifetime = PARTICLE_IMMEDIATE;
 
 		VectorCopy(p->color_start, p->color_end);
 		p->color_end[3] = 0.0;

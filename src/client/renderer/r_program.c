@@ -843,7 +843,6 @@ void R_InitPrograms(void) {
 			r_state.particle_program = program_particle;
 		} else {
 			r_state.particle_program = program_null;
-			Cvar_ForceSet("r_geometry_shaders", "0");
 		}
 
 		R_CreateProgram("particle_corona", program_particle_corona);
@@ -860,7 +859,6 @@ void R_InitPrograms(void) {
 			r_state.corona_program = program_particle_corona;
 		} else {
 			r_state.corona_program = program_corona;
-			Cvar_ForceSet("r_geometry_shaders", "0");
 		}
 	} else {
 		r_state.particle_program = program_null;
