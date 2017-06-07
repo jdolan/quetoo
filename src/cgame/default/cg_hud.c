@@ -1039,8 +1039,8 @@ static void Cg_SelectWeapon(const int8_t dir) {
 		}
 
 		if (cg_hud_locals.weapon.has[cg_hud_locals.weapon.tag]) {
-			cg_hud_locals.weapon.time = cgi.client->unclamped_time + cg_select_weapon_delay->integer;
-			cg_hud_locals.weapon.bar_time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
+			cg_hud_locals.weapon.time = cgi.client->unclamped_time + (cg_select_weapon_delay->value * 1000);
+			cg_hud_locals.weapon.bar_time = cgi.client->unclamped_time + (cg_select_weapon_interval->value * 1000);
 			return;
 		}
 	}
@@ -1063,8 +1063,8 @@ _Bool Cg_AttemptSelectWeapon(const player_state_t *ps) {
 			const char *name = cgi.client->config_strings[CS_ITEMS + cg_hud_weapons[cg_hud_locals.weapon.tag].item_index];
 			cgi.Cbuf(va("use %s\n", name));
 
-			cg_hud_locals.weapon.time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
-			cg_hud_locals.weapon.bar_time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
+			cg_hud_locals.weapon.time = cgi.client->unclamped_time + (cg_select_weapon_interval->value * 1000);
+			cg_hud_locals.weapon.bar_time = cgi.client->unclamped_time + (cg_select_weapon_interval->value * 1000);
 			return true;
 		}
 
@@ -1121,8 +1121,8 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 
 			// we changed weapons without using scrolly, show it for a bit
 			cg_hud_locals.weapon.tag = cg_hud_locals.weapon.used_tag - 1;
-			cg_hud_locals.weapon.time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
-			cg_hud_locals.weapon.bar_time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
+			cg_hud_locals.weapon.time = cgi.client->unclamped_time + (cg_select_weapon_interval->value * 1000);
+			cg_hud_locals.weapon.bar_time = cgi.client->unclamped_time + (cg_select_weapon_interval->value * 1000);
 		}
 	}
 
@@ -1150,10 +1150,10 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 		cg_select_weapon_fade->value = Clamp(cg_select_weapon_fade->value, 0.0, cg_select_weapon_interval->value);
 	}
 
-	const int32_t time_left = cg_hud_locals.weapon.bar_time - cgi.client->unclamped_time;
+	const vec_t alpha = Min((cg_hud_locals.weapon.bar_time - cgi.client->unclamped_time) / (cg_select_weapon_fade->value * 1000), 1.0);
 
-	const vec4_t color_select = {1.0, 1.0, 1.0, Min(time_left / (vec_t) cg_select_weapon_fade->integer, 1.0)};
-	const vec4_t color = {1.0, 1.0, 1.0, Min(time_left / (vec_t) cg_select_weapon_fade->integer, 1.0) * cg_select_weapon_alpha->value};
+	const vec4_t color_select = {1.0, 1.0, 1.0, alpha};
+	const vec4_t color = {1.0, 1.0, 1.0, alpha * cg_select_weapon_alpha->value};
 
 	for (int16_t i = 0; i < (int16_t) MAX_STAT_BITS; i++) {
 
@@ -1554,12 +1554,12 @@ void Cg_InitHud(void) {
 
 	cg_select_weapon_alpha = cgi.Cvar("cg_select_weapon_alpha", "0.5", CVAR_ARCHIVE,
 					  "The opacity of unselected weapons in the weapon bar.");
-	cg_select_weapon_delay = cgi.Cvar("cg_select_weapon_delay", "250", CVAR_ARCHIVE,
-					  "The amount of time, in milliseconds, to wait between changing weapons in the scroll view. Clicking will override this value and switch immediately.");
-	cg_select_weapon_fade = cgi.Cvar("cg_select_weapon_fade", "800", CVAR_ARCHIVE,
-					 "The amount of time, in milliseconds, for the weapon bar to fade out in.");
-	cg_select_weapon_interval = cgi.Cvar("cg_select_weapon_interval", "1600", CVAR_ARCHIVE,
-					     "The amount of time, in milliseconds, to show the weapon bar after changing weapons.");
+	cg_select_weapon_delay = cgi.Cvar("cg_select_weapon_delay", "0.25", CVAR_ARCHIVE,
+					  "The amount of time in seconds to wait between changing weapons in the scroll view. Clicking will override this value and switch immediately.");
+	cg_select_weapon_fade = cgi.Cvar("cg_select_weapon_fade", "0.2", CVAR_ARCHIVE,
+					 "The amount of time in seconds for the weapon bar to fade out in.");
+	cg_select_weapon_interval = cgi.Cvar("cg_select_weapon_interval", "1.0", CVAR_ARCHIVE,
+					     "The amount of time in seconds to show the weapon bar after changing weapons.");
 }
 
 /**
