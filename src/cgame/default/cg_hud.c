@@ -1440,7 +1440,7 @@ static void Cg_DrawRespawn(const player_state_t *ps) {
 	const char *string;
 
 	if (ps->stats[STAT_RESPAWN]) {
-		string = va("Respawn in ^3%0.1f", ps->stats[STAT_RESPAWN] / 1000.0);
+		string = va("Respawn in ^3%0.1f", (ps->stats[STAT_RESPAWN] - cgi.client->time) / 1000.0);
 	} else {
 		string = va("^2Ready to respawn");
 	}
