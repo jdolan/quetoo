@@ -570,6 +570,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 		p->part.scale = 8.0;
 		p->part.scroll_s = -8.0;
+		p->part.blend = GL_ONE;
 
 		VectorCopy(pos, p->part.org);
 
@@ -624,7 +625,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	if ((p = Cg_AllocParticle(PARTICLE_CORONA, NULL, false))) {
 		// TODO: color modulation
 		//cgi.ColorFromPalette(EFFECT_COLOR_BLUE + (Random() & 3), p->part.color);
-		ColorToVec4(EFFECT_COLOR_BLUE, p->part.color);
+		VectorSet(p->part.color, 0.8, 0.8, 1.0);
 		VectorCopy(end, p->part.org);
 
 		p->lifetime = PARTICLE_IMMEDIATE;

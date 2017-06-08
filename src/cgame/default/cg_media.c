@@ -246,7 +246,7 @@ void Cg_UpdateMedia(void) {
 	cg_particles_smoke = Cg_AllocParticles(cgi.LoadImage("particles/smoke.tga", IT_EFFECT | IT_MASK_PREMULTIPLY), true);
 	cg_particles_steam = Cg_AllocParticles(cgi.LoadImage("particles/steam.tga", IT_EFFECT | IT_MASK_PREMULTIPLY), true);
 	cg_particles_bubble = Cg_AllocParticles(cgi.LoadImage("particles/bubble.tga", IT_EFFECT | IT_MASK_PREMULTIPLY), true);
-	cg_particles_rain = Cg_AllocParticles(cgi.LoadImage("particles/rain.tga", IT_EFFECT), true);
+	cg_particles_rain = Cg_AllocParticles(cgi.LoadImage("particles/rain.tga", IT_EFFECT | IT_MASK_PREMULTIPLY), true);
 	cg_particles_snow = Cg_AllocParticles(cgi.LoadImage("particles/snow.tga", IT_EFFECT | IT_MASK_PREMULTIPLY), true);
 	cg_particles_beam = Cg_AllocParticles(cgi.LoadImage("particles/beam.tga", IT_EFFECT | IT_MASK_PREMULTIPLY), false);
 	cg_particles_rail_wake = Cg_AllocParticles(cgi.LoadImage("particles/rail_wake.tga", IT_EFFECT | IT_MASK_PREMULTIPLY), false);
