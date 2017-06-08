@@ -292,7 +292,7 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, vec_t density) {
 		p->lifetime = 1000 - (Randomf() * 100);
 		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-		cgi.ColorFromPalette(6 + (Randomr(0, 4)), p->color_start);
+		VectorSet(p->color_start, 1.0, 1.0, 1.0);
 
 		Vector4Copy(p->color_start, p->color_end);
 		p->color_end[3] = 0;
