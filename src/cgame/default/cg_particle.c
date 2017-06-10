@@ -95,7 +95,7 @@ cg_particle_t *Cg_AllocParticle(const r_particle_type_t type, cg_particles_t *pa
 
 	p->color_end[3] = p->color_start[3] = 1.0;
 
-	p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
+	p->part.blend = GL_ONE;
 	Vector4Set(p->part.color, 1.0, 1.0, 1.0, 1.0);
 	p->part.scale = 1.0;
 
