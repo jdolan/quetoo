@@ -1381,7 +1381,6 @@
 		CE55309B1E5A93C60009A127 /* parse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = parse.h; sourceTree = "<group>"; };
 		CE585BD61ED459E2009B7C14 /* fog.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = fog.glsl; sourceTree = "<group>"; };
 		CE585BD81ED459E2009B7C14 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
-		CE585BDA1ED459E2009B7C14 /* matrix.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = matrix.glsl; sourceTree = "<group>"; };
 		CE585BDB1ED459E2009B7C14 /* noise3d.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = noise3d.glsl; sourceTree = "<group>"; };
 		CE585BDD1ED45A94009B7C14 /* tint.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = tint.glsl; sourceTree = "<group>"; };
 		CE5BD59B1D3EE3B800C43B85 /* libObjectivelyMVC.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.0.dylib; path = ../../../../usr/local/lib/libObjectivelyMVC.0.dylib; sourceTree = "<group>"; };
@@ -1518,6 +1517,7 @@
 		CEFC7B0F1D9D2CDE000FA6B2 /* libcgame-views.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "libcgame-views.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEFC7B711D9D2DBA000FA6B2 /* libcgame-viewcontrollers.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "libcgame-viewcontrollers.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEFC7B8A1D9D2E71000FA6B2 /* libpmove.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libpmove.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		CEFFF2261EEED2420028832B /* uniforms.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = uniforms.glsl; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2854,9 +2854,9 @@
 			isa = PBXGroup;
 			children = (
 				CE585BD61ED459E2009B7C14 /* fog.glsl */,
-				CE585BDA1ED459E2009B7C14 /* matrix.glsl */,
 				CE585BDB1ED459E2009B7C14 /* noise3d.glsl */,
 				CE585BDD1ED45A94009B7C14 /* tint.glsl */,
+				CEFFF2261EEED2420028832B /* uniforms.glsl */,
 				CE585BD81ED459E2009B7C14 /* Makefile.am */,
 			);
 			path = include;
