@@ -31,6 +31,7 @@ typedef enum {
 	NOTIFICATION_TYPE_OBITUARY_SELF, // Player killed itself (MOD + CID)
 	NOTIFICATION_TYPE_OBITUARY_PIC, // Player killed a player (PIC + CID + CID)
 	NOTIFICATION_TYPE_PLAYER_ACTION, // Race times, capture times (PIC + CID + STRING)
+	NOTIFICATION_TYPE_ACTION // Flag auto returned, objetives (PIC + STRING)
 } bg_notification_type_t;
 
 /**
@@ -45,7 +46,7 @@ typedef struct bg_notification_item_s {
 	uint16_t client_id_1; // CID
 	uint16_t client_id_2; // CID
 
-	char pic[MAX_QPATH]; // PIC
+	uint16_t pic; // PIC
 
 	uint32_t mod; // MOD. FIXME: make this a g_mod_t
 
@@ -55,4 +56,4 @@ typedef struct bg_notification_item_s {
 } bg_notification_item_t;
 
 const char *Bg_GetModString(const uint32_t mod, const _Bool friendly_fire);
-const char *Bg_GetModIcon(const uint32_t mod, const _Bool friendly_fire);
+const char *Bg_GetModIconString(const uint32_t mod, const _Bool friendly_fire);

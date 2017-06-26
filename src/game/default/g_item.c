@@ -43,13 +43,17 @@ void G_BroadcastNotification(const bg_notification_item_t item) {
 			gi.WriteByte(item.client_id_1);
 			break;
 		case NOTIFICATION_TYPE_OBITUARY_PIC:
-			gi.WriteString(item.pic);
+			gi.WriteShort(item.pic);
 			gi.WriteByte(item.client_id_1);
 			gi.WriteByte(item.client_id_2);
 			break;
 		case NOTIFICATION_TYPE_PLAYER_ACTION:
-			gi.WriteString(item.pic);
+			gi.WriteShort(item.pic);
 			gi.WriteByte(item.client_id_1);
+			gi.WriteString(item.string_1);
+			break;
+		case NOTIFICATION_TYPE_ACTION:
+			gi.WriteShort(item.pic);
 			gi.WriteString(item.string_1);
 			break;
 	}
@@ -507,7 +511,14 @@ void G_ResetDroppedFlag(g_entity_t *ent) {
 
 	gi.Sound(ent, gi.SoundIndex("ctf/return"), ATTEN_NONE, 0);
 
-	gi.BroadcastPrint(PRINT_HIGH, "The %s flag has been returned\n", t->name);
+	bg_notification_item_t notification_item = {
+		.type = NOTIFICATION_TYPE_ACTION,
+		.pic = gi.ImageIndex("pics/n_flag1_return")
+	};
+
+	strncpy(notification_item.string_1, va("%s flag returned", t->name), MAX_STRING_CHARS);
+
+	G_BroadcastNotification(notification_item);
 
 	G_FreeEntity(ent);
 }
@@ -548,8 +559,15 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 			gi.Sound(other, gi.SoundIndex("ctf/return"), ATTEN_NONE, 0);
 
-			gi.BroadcastPrint(PRINT_HIGH, "%s returned the %s flag\n",
-			                  other->client->locals.persistent.net_name, t->name);
+			bg_notification_item_t notification_item = {
+				.type = NOTIFICATION_TYPE_PLAYER_ACTION,
+				.pic = gi.ImageIndex("pics/n_flag1_return"),
+				.client_id_1 = other->s.number - 1
+			};
+
+			strncpy(notification_item.string_1, va("%s flag returned", t->name), MAX_STRING_CHARS);
+
+			G_BroadcastNotification(notification_item);
 
 			return true;
 		}
@@ -574,8 +592,15 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 				gi.Sound(other, gi.SoundIndex("ctf/capture"), ATTEN_NONE, 0);
 
-				gi.BroadcastPrint(PRINT_HIGH, "%s captured the %s flag\n",
-								  other->client->locals.persistent.net_name, ot->name);
+				bg_notification_item_t notification_item = {
+					.type = NOTIFICATION_TYPE_PLAYER_ACTION,
+					.pic = gi.ImageIndex("pics/n_flag1_capture"),
+					.client_id_1 = other->s.number - 1
+				};
+
+				strncpy(notification_item.string_1, va("%s flag captured", t->name), MAX_STRING_CHARS);
+
+				G_BroadcastNotification(notification_item);
 
 				t->captures++;
 				other->client->locals.persistent.captures++;
@@ -606,8 +631,15 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 	gi.Sound(other, gi.SoundIndex("ctf/steal"), ATTEN_NONE, 0);
 
-	gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag\n",
-	                  other->client->locals.persistent.net_name, t->name);
+	bg_notification_item_t notification_item = {
+		.type = NOTIFICATION_TYPE_PLAYER_ACTION,
+		.pic = gi.ImageIndex("pics/n_flag1_steal"),
+		.client_id_1 = other->s.number - 1
+	};
+
+	strncpy(notification_item.string_1, va("%s flag stolen", t->name), MAX_STRING_CHARS);
+
+	G_BroadcastNotification(notification_item);
 
 	other->s.effects |= G_EffectForTeam(t);
 	return true;
@@ -635,8 +667,15 @@ g_entity_t *G_TossFlag(g_entity_t *ent) {
 	ent->s.model3 = 0;
 	ent->s.effects &= ~EF_CTF_MASK;
 
-	gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag\n",
-	                  ent->client->locals.persistent.net_name, ot->name);
+	bg_notification_item_t notification_item = {
+		.type = NOTIFICATION_TYPE_PLAYER_ACTION,
+		.pic = gi.ImageIndex("pics/n_flag1_drop"),
+		.client_id_1 = ent->s.number - 1
+	};
+
+	strncpy(notification_item.string_1, va("%s flag dropped", ot->name), MAX_STRING_CHARS);
+
+	G_BroadcastNotification(notification_item);
 
 	return G_DropItem(ent, ofi);
 }

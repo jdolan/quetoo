@@ -113,7 +113,7 @@ const char *Bg_GetModString(const uint32_t mod, const _Bool friendly_fire) {
 /**
  * @brief Returns the MOD's icon name representation
  */
-const char *Bg_GetModIcon(const uint32_t mod, const _Bool friendly_fire) {
+const char *Bg_GetModIconString(const uint32_t mod, const _Bool friendly_fire) {
 	if (friendly_fire) {
 		return "pics/i_bodyarmor"; // FIXME: put actual dummy image here
 	}

@@ -1266,23 +1266,21 @@ void Cg_ParseNotification(void) {
 
 			break;
 		case NOTIFICATION_TYPE_OBITUARY_PIC: {
-			const char *p = cgi.ReadString();
-			strcpy(item->pic, p);
+			item->pic = cgi.ReadShort();
 			item->client_id_1 = cgi.ReadByte();
 			item->client_id_2 = cgi.ReadByte();
 
 			item->when = 4000;
 
 			if (!cg_draw_notifications_disable_print->value) {
-				cgi.Print("^7%s ^1[%s] ^7%s\n", cgi.client->client_info[item->client_id_1].name,
+				cgi.Print("^7%s ^1[%d] ^7%s\n", cgi.client->client_info[item->client_id_1].name,
 					item->pic,
 					cgi.client->client_info[item->client_id_2].name);
 			}
 		}
 			break;
 		case NOTIFICATION_TYPE_PLAYER_ACTION: {
-			const char *p = cgi.ReadString();
-			strcpy(item->pic, p);
+			item->pic = cgi.ReadShort();
 			item->client_id_1 = cgi.ReadByte();
 			const char *s = cgi.ReadString();
 			strcpy(item->string_1, s);
@@ -1292,6 +1290,18 @@ void Cg_ParseNotification(void) {
 			if (!cg_draw_notifications_disable_print->value) {
 				cgi.Print("^7%s ^7%s\n", cgi.client->client_info[item->client_id_1].name,
 					item->string_1);
+			}
+		}
+			break;
+		case NOTIFICATION_TYPE_ACTION: {
+			item->pic = cgi.ReadShort();
+			const char *s = cgi.ReadString();
+			strcpy(item->string_1, s);
+
+			item->when = 6000;
+
+			if (!cg_draw_notifications_disable_print->value) {
+				cgi.Print("^7%s\n", item->string_1);
 			}
 		}
 			break;
@@ -1360,7 +1370,7 @@ static void Cg_DrawNotification(const player_state_t *ps) {
 				x -= NOTIFICATION_PIC_HEIGHT + NOTIFICATION_PADDING_X;
 
 				cgi.DrawImage(x, y, ((vec_t) NOTIFICATION_PIC_HEIGHT) / HUD_PIC_HEIGHT,
-					cgi.LoadImage(Bg_GetModIcon(item->mod, item->mod & MOD_FRIENDLY_FIRE), IT_PIC));
+					cgi.LoadImage(Bg_GetModIconString(item->mod, item->mod & MOD_FRIENDLY_FIRE), IT_PIC));
 
 				name = cgi.client->client_info[item->client_id_1].name;
 
@@ -1379,7 +1389,7 @@ static void Cg_DrawNotification(const player_state_t *ps) {
 				x -= NOTIFICATION_PIC_HEIGHT + NOTIFICATION_PADDING_X;
 
 				cgi.DrawImage(x, y, ((vec_t) NOTIFICATION_PIC_HEIGHT) / HUD_PIC_HEIGHT,
-					cgi.LoadImage(Bg_GetModIcon(item->mod, item->mod & MOD_FRIENDLY_FIRE), IT_PIC));
+					cgi.LoadImage(Bg_GetModIconString(item->mod, item->mod & MOD_FRIENDLY_FIRE), IT_PIC));
 			}
 				break;
 			case NOTIFICATION_TYPE_OBITUARY_PIC: {
@@ -1391,7 +1401,7 @@ static void Cg_DrawNotification(const player_state_t *ps) {
 
 				x -= NOTIFICATION_PIC_HEIGHT + NOTIFICATION_PADDING_X;
 
-				cgi.DrawImage(x, y, ((vec_t) NOTIFICATION_PIC_HEIGHT) / HUD_PIC_HEIGHT, cgi.LoadImage(item->pic, IT_PIC));
+				Cg_DrawIcon(x, y, ((vec_t) NOTIFICATION_PIC_HEIGHT) / HUD_PIC_HEIGHT, item->pic);
 
 				name = cgi.client->client_info[item->client_id_1].name;
 
@@ -1407,13 +1417,23 @@ static void Cg_DrawNotification(const player_state_t *ps) {
 
 				x -= NOTIFICATION_PIC_HEIGHT + NOTIFICATION_PADDING_X;
 
-				cgi.DrawImage(x, y, ((vec_t) NOTIFICATION_PIC_HEIGHT) / HUD_PIC_HEIGHT, cgi.LoadImage(item->pic, IT_PIC));
+				Cg_DrawIcon(x, y, ((vec_t) NOTIFICATION_PIC_HEIGHT) / HUD_PIC_HEIGHT, item->pic);
 
 				char *name = cgi.client->client_info[item->client_id_1].name;
 
 				x -= cgi.StringWidth(name) + NOTIFICATION_PADDING_X;
 
 				cgi.DrawString(x, y + 6, name, CON_COLOR_DEFAULT);
+			}
+				break;
+			case NOTIFICATION_TYPE_ACTION: {
+				x -= cgi.StringWidth(item->string_1) + NOTIFICATION_PADDING_X;
+
+				cgi.DrawString(x, y + 6, item->string_1, CON_COLOR_DEFAULT);
+
+				x -= NOTIFICATION_PIC_HEIGHT + NOTIFICATION_PADDING_X;
+
+				Cg_DrawIcon(x, y, ((vec_t) NOTIFICATION_PIC_HEIGHT) / HUD_PIC_HEIGHT, item->pic);
 			}
 				break;
 			default:
