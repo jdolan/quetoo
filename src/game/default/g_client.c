@@ -54,7 +54,7 @@ static void G_BroadcastNotification(const bg_notification_item_t item) {
 			break;
 	}
 
-	gi.Multicast(NULL, MULTICAST_ALL_R, NULL);
+	gi.Multicast(NULL, MULTICAST_ALL, NULL);
 }
 
 /**
