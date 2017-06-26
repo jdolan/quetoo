@@ -22,18 +22,19 @@
 #pragma once
 
 #include "g_types.h"
+#include "bg_notification.h"
 
 #ifdef __GAME_LOCAL_H__
 
 	extern const uint16_t g_num_items;
-	
+
 	const g_item_t *G_ItemList(void);
 
 	/**
 	* @brief Item bounding box scaling.
 	*/
 	#define ITEM_SCALE 1.0
-	
+
 	/**
 	 * @brief Quad DAmage scaling factor
 	 */
@@ -44,13 +45,13 @@
 	 * @brief Haste scaling factor
 	 */
 	#define TECH_HASTE_FACTOR 0.75
-	
+
 	/**
 	 * @brief Resist scaling factors
 	 */
 	#define TECH_RESIST_DAMAGE_FACTOR 0.5
 	#define TECH_RESIST_KNOCKBACK_FACTOR 0.75
-	
+
 	/**
 	 * @brief Strength scaling factor
 	 */
@@ -62,7 +63,7 @@
 	 */
 	#define TECH_REGEN_TICK_TIME 750
 	#define TECH_REGEN_HEALTH 2
-	
+
 	/**
 	 * @brief Vampire scaling factor
 	 */
@@ -71,6 +72,7 @@
 	extern const vec3_t ITEM_MINS;
 	extern const vec3_t ITEM_MAXS;
 
+	void G_BroadcastNotification(const bg_notification_item_t item);
 	const g_item_t *G_CarryingTech(const g_entity_t *ent);
 	_Bool G_HasTech(const g_entity_t *player, const g_tech_t tech);
 	_Bool G_AddAmmo(g_entity_t *ent, const g_item_t *item, int16_t count);

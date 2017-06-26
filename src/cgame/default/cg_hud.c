@@ -1244,7 +1244,7 @@ void Cg_ParseNotification(void) {
 			item->client_id_1 = cgi.ReadByte();
 			item->client_id_2 = cgi.ReadByte();
 
-			item->when = 6000;
+			item->when = 4000;
 
 			if (!cg_draw_notifications_disable_print->value) {
 				cgi.Print("^7%s ^1%s ^7%s\n", cgi.client->client_info[item->client_id_1].name,
@@ -1257,7 +1257,7 @@ void Cg_ParseNotification(void) {
 			item->mod = cgi.ReadByte();
 			item->client_id_1 = cgi.ReadByte();
 
-			item->when = 6000;
+			item->when = 4000;
 
 			if (!cg_draw_notifications_disable_print->value) {
 				cgi.Print("^1%s ^7%s\n", Bg_GetModString(item->mod, false),
@@ -1271,7 +1271,7 @@ void Cg_ParseNotification(void) {
 			item->client_id_1 = cgi.ReadByte();
 			item->client_id_2 = cgi.ReadByte();
 
-			item->when = 6000;
+			item->when = 4000;
 
 			if (!cg_draw_notifications_disable_print->value) {
 				cgi.Print("^7%s ^1[%s] ^7%s\n", cgi.client->client_info[item->client_id_1].name,
@@ -1287,7 +1287,7 @@ void Cg_ParseNotification(void) {
 			const char *s = cgi.ReadString();
 			strcpy(item->string_1, s);
 
-			item->when = 8000;
+			item->when = 6000;
 
 			if (!cg_draw_notifications_disable_print->value) {
 				cgi.Print("^7%s ^7%s\n", cgi.client->client_info[item->client_id_1].name,

@@ -21,41 +21,6 @@
 
 #include "g_local.h"
 #include "bg_pmove.h"
-#include "bg_notification.h"
-
-/**
- * @brief Sends a feed item to all active clients over their unreliable channels.
- */
-static void G_BroadcastNotification(const bg_notification_item_t item) {
-
-	gi.WriteByte(SV_CMD_NOTIFICATION);
-
-	gi.WriteByte(item.type);
-
-	switch (item.type) {
-		case NOTIFICATION_TYPE_OBITUARY:
-			gi.WriteByte(item.mod);
-			gi.WriteByte(item.client_id_1);
-			gi.WriteByte(item.client_id_2);
-			break;
-		case NOTIFICATION_TYPE_OBITUARY_SELF:
-			gi.WriteByte(item.mod);
-			gi.WriteByte(item.client_id_1);
-			break;
-		case NOTIFICATION_TYPE_OBITUARY_PIC:
-			gi.WriteString(item.pic);
-			gi.WriteByte(item.client_id_1);
-			gi.WriteByte(item.client_id_2);
-			break;
-		case NOTIFICATION_TYPE_PLAYER_ACTION:
-			gi.WriteString(item.pic);
-			gi.WriteByte(item.client_id_1);
-			gi.WriteString(item.string_1);
-			break;
-	}
-
-	gi.Multicast(NULL, MULTICAST_ALL, NULL);
-}
 
 /**
  * @brief Make a tasteless death announcement, insert a row into MySQL, and record scores. Side

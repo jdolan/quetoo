@@ -21,6 +21,41 @@
 
 #include "g_local.h"
 #include "bg_pmove.h"
+#include "bg_notification.h"
+
+/**
+ * @brief Sends a feed item to all active clients over their unreliable channels.
+ */
+void G_BroadcastNotification(const bg_notification_item_t item) {
+
+	gi.WriteByte(SV_CMD_NOTIFICATION);
+
+	gi.WriteByte(item.type);
+
+	switch (item.type) {
+		case NOTIFICATION_TYPE_OBITUARY:
+			gi.WriteByte(item.mod);
+			gi.WriteByte(item.client_id_1);
+			gi.WriteByte(item.client_id_2);
+			break;
+		case NOTIFICATION_TYPE_OBITUARY_SELF:
+			gi.WriteByte(item.mod);
+			gi.WriteByte(item.client_id_1);
+			break;
+		case NOTIFICATION_TYPE_OBITUARY_PIC:
+			gi.WriteString(item.pic);
+			gi.WriteByte(item.client_id_1);
+			gi.WriteByte(item.client_id_2);
+			break;
+		case NOTIFICATION_TYPE_PLAYER_ACTION:
+			gi.WriteString(item.pic);
+			gi.WriteByte(item.client_id_1);
+			gi.WriteString(item.string_1);
+			break;
+	}
+
+	gi.Multicast(NULL, MULTICAST_ALL, NULL);
+}
 
 const vec3_t ITEM_MINS = { -16.0, -16.0, -16.0 };
 const vec3_t ITEM_MAXS = { 16.0, 16.0, 32.0 };
@@ -547,7 +582,7 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 				return false;
 			}
-		}	
+		}
 
 		// touching our own flag for no particular reason
 		return false;
@@ -938,7 +973,7 @@ static _Bool G_PickupTech(g_entity_t *ent, g_entity_t *other) {
  * @brief
  */
 const g_item_t *G_CarryingTech(const g_entity_t *ent) {
-	
+
 	for (g_tech_t i = TECH_HASTE; i < TECH_TOTAL; i++) {
 
 		if (G_HasTech(ent, i)) {
@@ -1038,7 +1073,7 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 		// try thinner box
 		gi.Debug("%s in too small of a spot for large box, correcting..\n", etos(ent));
 		ent->maxs[2] /= 2.0;
-		
+
 		tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, MASK_SOLID);
 		if (tr.start_solid) {
 
@@ -1054,7 +1089,7 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 			if (tr.start_solid) {
 
 				gi.Debug("%s trying higher, last attempt..\n", etos(ent));
-				
+
 				ent->s.origin[2] += 8.0;
 
 				// make an effort to come up out of the floor (broken maps)
@@ -1098,7 +1133,7 @@ void G_PrecacheItem(const g_item_t *it) {
 	// parse everything for its ammo
 	if (it->ammo) {
 		const g_item_t *ammo = it->ammo_item;
-		
+
 		if (ammo != it) {
 			G_PrecacheItem(ammo);
 		}
@@ -2411,7 +2446,7 @@ static void G_InitWeapons(void) {
 		}
 
 		const g_item_t *weapon = g_media.items.weapons[t];
-		
+
 		strcat(weapon_info, va("%i\\%i", weapon->icon_index, weapon->index));
 	}
 
@@ -2454,7 +2489,7 @@ void G_InitItems(void) {
 
 		// set up media pointers
 		const g_item_t **array = NULL;
-		
+
 		switch (item->type) {
 		default:
 			gi.Error("Item %s has an invalid type\n", item->name);
@@ -2480,7 +2515,7 @@ void G_InitItems(void) {
 			array = g_media.items.techs;
 			break;
 		}
-		
+
 		if (array[item->tag]) {
 			gi.Error("Item %s has the same tag as %s\n", item->name, array[item->tag]->name);
 		}
