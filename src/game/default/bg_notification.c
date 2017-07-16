@@ -62,37 +62,37 @@ static const char *mod_strings[] = {
  * @brief List of MOD icon names
  */
 static const char *mod_icons[] = {
-	"pics/i_jacketarmor",
-	"pics/w_blaster",
-	"pics/w_shotgun",
-	"pics/w_sshotgun",
-	"pics/w_machinegun",
-	"pics/w_glauncher",
-	"pics/w_glauncher",
-	"pics/w_rlauncher",
-	"pics/w_rlauncher",
-	"pics/w_hyperblaster",
-	"pics/w_lightning",
-	"pics/w_lightning",
-	"pics/w_railgun",
-	"pics/w_bfg",
-	"pics/w_bfg",
-	"pics/i_jacketarmor",
-	"pics/i_jacketarmor",
-	"pics/i_jacketarmor",
-	"pics/i_jacketarmor",
-	"pics/i_jacketarmor",
-	"pics/i_jacketarmor",
-	"pics/i_jacketarmor",
-	"pics/i_jacketarmor",
-	"pics/i_jacketarmor",
-	"pics/a_grenades",
-	"pics/a_grenades",
-	"pics/a_grenades",
-	"pics/a_grenades",
-	"pics/i_jacketarmor",
-	"pics/i_jacketarmor",
-	"pics/i_jacketarmor"
+	"pics/notifications/i_death",
+	"pics/notifications/w_blaster",
+	"pics/notifications/w_shotgun",
+	"pics/notifications/w_sshotgun",
+	"pics/notifications/w_machinegun",
+	"pics/notifications/w_glauncher",
+	"pics/notifications/w_glauncher",
+	"pics/notifications/w_rlauncher",
+	"pics/notifications/w_rlauncher",
+	"pics/notifications/w_hyperblaster",
+	"pics/notifications/w_lightninggun",
+	"pics/notifications/w_lightning",
+	"pics/notifications/w_railgun",
+	"pics/notifications/w_bfg10k",
+	"pics/notifications/w_bfg10k",
+	"pics/notifications/i_drown",
+	"pics/notifications/i_slime",
+	"pics/notifications/i_lava",
+	"pics/notifications/i_death",
+	"pics/notifications/i_telefrag",
+	"pics/notifications/i_death",
+	"pics/notifications/i_suicide",
+	"pics/notifications/i_death",
+	"pics/notifications/i_death",
+	"pics/notifications/w_handgrenade",
+	"pics/notifications/w_handgrenade",
+	"pics/notifications/w_handgrenade",
+	"pics/notifications/w_handgrenade",
+	"pics/notifications/i_lava",
+	"pics/notifications/w_hook",
+	"pics/notifications/i_death"
 };
 
 /**
@@ -115,11 +115,11 @@ const char *Bg_GetModString(const uint32_t mod, const _Bool friendly_fire) {
  */
 const char *Bg_GetModIconString(const uint32_t mod, const _Bool friendly_fire) {
 	if (friendly_fire) {
-		return "pics/i_bodyarmor"; // FIXME: put actual dummy image here
+		return "pics/notifications/i_teamkill";
 	}
 
 	if (mod >= lengthof(mod_icons)) {
-		return "pics/i_jacketarmor"; // FIXME: put actual dummy image here
+		return "pics/notifications/i_death";
 	}
 
 	return mod_icons[mod];

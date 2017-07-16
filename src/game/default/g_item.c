@@ -513,7 +513,7 @@ void G_ResetDroppedFlag(g_entity_t *ent) {
 
 	bg_notification_item_t notification_item = {
 		.type = NOTIFICATION_TYPE_ACTION,
-		.pic = gi.ImageIndex("pics/n_flag1_return")
+		.pic = gi.ImageIndex(va("pics/notifications/i_flag%d_return", t->id + 1)),
 	};
 
 	strncpy(notification_item.string_1, va("%s flag returned", t->name), MAX_STRING_CHARS);
@@ -561,7 +561,7 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 			bg_notification_item_t notification_item = {
 				.type = NOTIFICATION_TYPE_PLAYER_ACTION,
-				.pic = gi.ImageIndex("pics/n_flag1_return"),
+				.pic = gi.ImageIndex(va("pics/notifications/i_flag%d_return", t->id + 1)),
 				.client_id_1 = other->s.number - 1
 			};
 
@@ -594,7 +594,7 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 				bg_notification_item_t notification_item = {
 					.type = NOTIFICATION_TYPE_PLAYER_ACTION,
-					.pic = gi.ImageIndex("pics/n_flag1_capture"),
+					.pic = gi.ImageIndex(va("pics/notifications/team%d_flag%d_captured", ot->id + 1, t->id + 1)),
 					.client_id_1 = other->s.number - 1
 				};
 
@@ -633,7 +633,7 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 	bg_notification_item_t notification_item = {
 		.type = NOTIFICATION_TYPE_PLAYER_ACTION,
-		.pic = gi.ImageIndex("pics/n_flag1_steal"),
+		.pic = gi.ImageIndex(va("pics/notifications/i_flag%d_steal", t->id + 1)),
 		.client_id_1 = other->s.number - 1
 	};
 
@@ -669,7 +669,7 @@ g_entity_t *G_TossFlag(g_entity_t *ent) {
 
 	bg_notification_item_t notification_item = {
 		.type = NOTIFICATION_TYPE_PLAYER_ACTION,
-		.pic = gi.ImageIndex("pics/n_flag1_drop"),
+		.pic = gi.ImageIndex(va("pics/notifications/i_flag%d_dropped", ot->id + 1)),
 		.client_id_1 = ent->s.number - 1
 	};
 
