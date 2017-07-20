@@ -1,5 +1,5 @@
 /**
- * @brief Null vertex shader.
+ * @brief Particle vertex shader.
  */
 
 #version 330

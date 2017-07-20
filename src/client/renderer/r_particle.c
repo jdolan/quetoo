@@ -145,7 +145,7 @@ void R_ShutdownParticles(void) {
 static void R_ParticleVerts(const r_particle_t *p, r_particle_interleave_vertex_t *verts) {
 	vec3_t v, up, right, up_right, down_right;
 
-	if (p->type == PARTICLE_BEAM || p->type == PARTICLE_SPARK) { // beams are lines with starts and ends
+	if (p->type == PARTICLE_BEAM || p->type == PARTICLE_SPARK || p->type == PARTICLE_WIRE) { // beams are lines with starts and ends
 		VectorSubtract(p->org, p->end, v);
 		VectorNormalize(v);
 		VectorCopy(v, up);
@@ -209,7 +209,7 @@ static void R_ParticleTexcoords(const r_particle_t *p, r_particle_interleave_ver
 	_Bool is_atlas = p->image && p->image->type == IT_ATLAS_IMAGE;
 
 	if (!p->image ||
-	        (!p->scroll_s && !p->scroll_t &&!is_atlas && !(p->flags & PARTICLE_FLAG_REPEAT)) ||
+	        (!p->scroll_s && !p->scroll_t &&! is_atlas && !(p->flags & PARTICLE_FLAG_REPEAT)) ||
 	        p->type == PARTICLE_CORONA) {
 
 		for (int32_t i = 0; i < 4; ++i) {
@@ -222,7 +222,7 @@ static void R_ParticleTexcoords(const r_particle_t *p, r_particle_interleave_ver
 	// atlas needs a different pipeline
 	if (is_atlas) {
 		const r_atlas_image_t *atlas_image = (const r_atlas_image_t *) p->image;
-	
+
 		Vector2Set(verts[0].texcoord, atlas_image->texcoords[0], atlas_image->texcoords[1]);
 		Vector2Set(verts[1].texcoord, atlas_image->texcoords[2], atlas_image->texcoords[1]);
 		Vector2Set(verts[2].texcoord, atlas_image->texcoords[2], atlas_image->texcoords[3]);
@@ -270,7 +270,7 @@ static void R_ParticleGeometryVerts(const r_particle_t *p, r_geometry_particle_i
 	verts->type = p->type;
 	verts->roll = p->roll;
 
-	if (p->type == PARTICLE_BEAM || p->type == PARTICLE_SPARK) { // beams are lines with starts and ends
+	if (p->type == PARTICLE_BEAM || p->type == PARTICLE_SPARK || p->type == PARTICLE_WIRE) { // beams are lines with starts and ends
 		VectorCopy(p->end, verts->end);
 	}
 
@@ -364,9 +364,9 @@ void R_UpdateParticles(r_element_t *e, const size_t count) {
 		if (e->type != ELEMENT_PARTICLE) {
 			continue;
 		}
-		
+
 		r_particle_t *p = (r_particle_t *) e->element;
-		
+
 		if (r_state.particle_program == program_particle) {
 
 			R_ParticleGeometryVerts(p, &r_particle_state.geometry_verts[r_particle_state.num_particles]);
@@ -403,7 +403,7 @@ void R_UploadParticles(void) {
 	if (!p->num_particles) {
 		return;
 	}
-	
+
 	if (r_state.particle_program == program_particle) {
 		R_UploadToBuffer(&p->geometry_verts_buffer, p->num_particles * sizeof(r_geometry_particle_interleave_vertex_t), p->geometry_verts);
 	} else {
@@ -477,7 +477,7 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 			} else {
 				R_DepthRange(0.0, 1.0);
 			}
-		
+
 			if (p->type == PARTICLE_FLARE) {
 				R_EnableDepthTest(false);
 			} else {
@@ -527,4 +527,3 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 
 	R_UseProgram(program_null);
 }
-

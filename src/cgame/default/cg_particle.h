@@ -28,7 +28,7 @@
 #define CORONA_SCALE(radius, flicker) \
 	((radius) + ((radius) * (flicker) * sin(0.09 * cgi.client->unclamped_time)))
 
-cg_particle_t *Cg_AllocParticle(const r_particle_type_t type, cg_particles_t *particles);
+cg_particle_t *Cg_AllocParticle(const r_particle_type_t type, cg_particles_t *particles, const _Bool force);
 cg_particles_t *Cg_AllocParticles(const r_image_t *image, const _Bool use_atlas);
 void Cg_InitParticles(void);
 void Cg_SetupParticleAtlas(void);

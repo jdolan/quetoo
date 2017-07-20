@@ -67,6 +67,7 @@ static void updateBindings(View *self) {
 	const cm_trace_t tr = Cl_Trace(r_view.origin, end, NULL, NULL, 0, MASK_ALL);
 	if (tr.fraction < 1.0 && tr.surface->material) {
 		this->material = R_LoadMaterial(tr.surface->name, ASSET_CONTEXT_TEXTURES);
+		assert(this->material);
 	}
 
 	if (this->material) {
@@ -83,6 +84,7 @@ static void updateBindings(View *self) {
 		this->materialName->defaultText = NULL;
 		this->diffuseTexture->defaultText = NULL;
 		this->normalmapTexture->defaultText = NULL;
+		this->specularmapTexture->defaultText = NULL;
 
 		$(this->bumpSlider, setValue, DEFAULT_BUMP);
 		$(this->hardnessSlider, setValue, DEFAULT_HARDNESS);

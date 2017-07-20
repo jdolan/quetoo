@@ -24,7 +24,7 @@
 
 #include "client/cl_types.h"
 
-#define CGAME_API_VERSION 17
+#define CGAME_API_VERSION 18
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -786,7 +786,8 @@ typedef struct cg_export_s {
 	void (*PredictMovement)(const GList *cmds);
 	void (*UpdateLoading)(const cl_loading_t loading);
 	void (*UpdateView)(const cl_frame_t *frame);
-	void (*UpdateScreen)(const cl_frame_t *frame, const cl_state_t state);
+	void (*UpdateScreen)(const cl_frame_t *frame);
+	void (*UpdateUi)(const cl_state_t state);
 	void (*DialogQuestion)(const char *text, const char *cancelText, const char *okText, void (*okFunction)(void));
 
 } cg_export_t;

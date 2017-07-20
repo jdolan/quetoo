@@ -67,9 +67,13 @@ static void Cg_PopParticle(cg_particle_t *p, cg_particle_t **list) {
 /**
  * @brief Allocates a free particle with the specified type and image.
  */
-cg_particle_t *Cg_AllocParticle(const r_particle_type_t type, cg_particles_t *particles) {
+cg_particle_t *Cg_AllocParticle(const r_particle_type_t type, cg_particles_t *particles, const _Bool force) {
 
 	if (!cg_add_particles->integer) {
+		return NULL;
+	}
+
+	if (cg_particle_quality->integer == 0 && !force) {
 		return NULL;
 	}
 
@@ -222,7 +226,7 @@ static _Bool Cg_UpdateParticle_Spark(cg_particle_t *p, const vec_t delta, const 
 void Cg_AddParticles(void) {
 	static uint32_t ticks;
 
-	if (!cg_add_particles->value) {
+	if (!cg_add_particles->integer) {
 		return;
 	}
 
@@ -317,7 +321,7 @@ void Cg_AddParticles(void) {
 			}
 
 			// add the particle if it's visible on our screen
-			if (p->part.type == PARTICLE_BEAM || p->part.type == PARTICLE_SPARK) {
+			if (p->part.type == PARTICLE_BEAM || p->part.type == PARTICLE_SPARK || p->part.type == PARTICLE_WIRE) {
 				vec3_t distance, center;
 
 				VectorSubtract(p->part.end, p->part.org, distance);

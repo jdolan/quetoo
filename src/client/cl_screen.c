@@ -388,10 +388,12 @@ void Cl_UpdateScreen(void) {
 		Cl_DrawNetGraph();
 		Cl_DrawCounters();
 
-		if (cls.key_state.dest != KEY_CONSOLE) {
+		if (cls.key_state.dest != KEY_CONSOLE && cls.key_state.dest != KEY_UI) {
 			Cl_DrawNotify();
 			Cl_DrawRendererStats();
 			Cl_DrawSoundStats();
+
+			cls.cgame->UpdateScreen(&cl.frame);
 		}
 
 		R_AddStains();
@@ -403,15 +405,15 @@ void Cl_UpdateScreen(void) {
 		Cl_DrawConsole();
 	}
 
-	// This seems to have a leak state somewhere; calling
-	// Cl_DrawConsole after this appears to have some depth sorting issues
+	// FIXME: This seems to have a leak state somewhere; calling
+	// Cl_DrawConsole after this appears to cause depth sorting issues
 	R_Draw2D();
 
-	if (cls.key_state.dest != KEY_CONSOLE) {
-		cls.cgame->UpdateScreen(&cl.frame, cls.state);
-	}
+	if (cls.key_state.dest == KEY_UI || cls.state == CL_LOADING) {
+		cls.cgame->UpdateUi(cls.state);
 
-	Ui_Draw();
+		Ui_Draw();
+	}
 
 	R_EndFrame();
 

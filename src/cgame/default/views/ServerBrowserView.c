@@ -173,10 +173,20 @@ static void respondToEvent(View *self, const SDL_Event *event) {
 }
 
 /**
- * @see View::viewWillAppear(View *)
+ * @see View::updateBindings(View *)
+ */
+static void updateBindings(View *self) {
+
+	$((ServerBrowserView *) self, reloadServers);
+
+	super(View, self, updateBindings);
+}
+
+/**
+ * @see ViewController::viewWillAppear(ViewController *)
  */
 /*
-static void viewWillAppear(View *self) {
+static void viewWillAppear(ViewController *self) {
 
 	$((ServerBrowserView *) self, reloadServers);
 
@@ -371,7 +381,9 @@ static void initialize(Class *clazz) {
 	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
 
 	((ViewInterface *) clazz->def->interface)->respondToEvent = respondToEvent;
-//	((ViewInterface *) clazz->def->interface)->viewWillAppear = viewWillAppear;
+	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
+
+//	((ViewControllerInterface *) clazz->def->interface)->viewWillAppear = viewWillAppear;
 
 	((ServerBrowserViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 	((ServerBrowserViewInterface *) clazz->def->interface)->reloadServers = reloadServers;

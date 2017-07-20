@@ -56,7 +56,9 @@ void Cgui_Shutdown(void) {
  */
 void Cgui_Update(const cl_state_t state) {
 
-	mainViewController->backgroundImage->view.hidden = (state == CL_ACTIVE);
+	mainViewController->state = state;
+
+	$((ViewController *) mainViewController, viewWillAppear); // FIXME: should this be a method of MainViewController?
 }
 
 /**

@@ -41,7 +41,7 @@ static void dealloc(Object *self) {
 
 	MainViewController *this = (MainViewController *) self;
 
-	release(this->backgroundImage);
+	release(this->decorationView);
 
 	release(this->dialog);
 
@@ -59,12 +59,24 @@ static void quitFunction(void) {
 }
 
 /**
+ * @brief Disconnect from the current game.
+ */
+static void disconnectFunction(void) {
+
+	cgi.Cbuf("disconnect\n");
+}
+
+/**
  * @brief ActionFunction for main menu PrimaryButtons.
  */
 static void action(Control *control, const SDL_Event *event, ident sender, ident data) {
 
+	MainViewController *self = (MainViewController *) sender;
+
 	NavigationViewController *this = (NavigationViewController *) sender;
+
 	Class *clazz = (Class *) data;
+
 	if (clazz) {
 		//$(this, popToRootViewController); FIXME See #482
 
@@ -75,7 +87,13 @@ static void action(Control *control, const SDL_Event *event, ident sender, ident
 		release(viewController);
 
 	} else {
-		$(((MainViewController *) this)->dialog, showDialog, "Are you sure you want to quit?", "No", "Yes", quitFunction);
+		if (self->state == CL_ACTIVE) {
+			$(((MainViewController *) this)->dialog, showDialog,
+				"Are you sure you want to disconnect?", "No", "Yes", disconnectFunction);
+		} else {
+			$(((MainViewController *) this)->dialog, showDialog,
+				"Are you sure you want to quit?", "No", "Yes", quitFunction);
+		}
 	}
 }
 
@@ -90,73 +108,90 @@ static void loadView(ViewController *self) {
 
 	MainViewController *this = (MainViewController *) self;
 
+	// Menu decorations
+
+	this->decorationView = $(alloc(View), initWithFrame, NULL);
+
+	this->decorationView->autoresizingMask = ViewAutoresizingFill;
+
 	// Menu background
 
-	this->backgroundImage = $(alloc(ImageView), initWithFrame, NULL);
-	assert(this->backgroundImage);
+	{
+		ImageView *backgroundImage = $(alloc(ImageView), initWithFrame, NULL);
+		assert(backgroundImage);
 
-	SDL_Surface *surface;
+		SDL_Surface *surface;
 
-	if (cgi.LoadSurface(va("ui/backgrounds/%d", Random() % 6), &surface)) {
-		$(this->backgroundImage, setImageWithSurface, surface);
-		SDL_FreeSurface(surface);
-	} else {
-		$(this->backgroundImage, setImage, NULL);
+		if (cgi.LoadSurface(va("ui/backgrounds/%d", Random() % 6), &surface)) {
+			$(backgroundImage, setImageWithSurface, surface);
+			SDL_FreeSurface(surface);
+		} else {
+			$(backgroundImage, setImage, NULL);
+		}
+
+		backgroundImage->view.autoresizingMask = ViewAutoresizingFill;
+
+		$(this->decorationView, addSubview, (View *) backgroundImage);
+		release(backgroundImage);
 	}
-
-	this->backgroundImage->view.autoresizingMask = ViewAutoresizingFill;
-
-	$(self->view, addSubview, (View *) this->backgroundImage);
 
 	// Quetoo logo
 
-	const SDL_Rect frame = MakeRect(0, 0, 240, 110);
+	{
+		const SDL_Rect frame = MakeRect(0, 0, 240, 110);
 
-	ImageView *logoImage = $(alloc(ImageView), initWithFrame, &frame);
-	assert(logoImage);
+		ImageView *logoImage = $(alloc(ImageView), initWithFrame, &frame);
+		assert(logoImage);
 
-	if (cgi.LoadSurface("ui/logo", &surface)) {
-		$(logoImage, setImageWithSurface, surface);
-		SDL_FreeSurface(surface);
-	} else {
-		$(logoImage, setImage, NULL);
+		SDL_Surface *surface;
+
+		if (cgi.LoadSurface("ui/logo", &surface)) {
+			$(logoImage, setImageWithSurface, surface);
+			SDL_FreeSurface(surface);
+		} else {
+			$(logoImage, setImage, NULL);
+		}
+
+		logoImage->view.alignment = ViewAlignmentBottomRight;
+		logoImage->view.autoresizingMask = ViewAutoresizingNone;
+
+		$(this->decorationView, addSubview, (View *) logoImage);
+		release(logoImage);
 	}
-
-	logoImage->view.alignment = ViewAlignmentBottomRight;
-	logoImage->view.autoresizingMask = ViewAutoresizingNone;
-
-	$(self->view, addSubview, (View *) logoImage);
-	release(logoImage);
 
 	// Quetoo version watermark
 
-	Label *versionLabel = $(alloc(Label), initWithText, va("Quetoo %s", cgi.CvarGet("version")->string), NULL);
-	assert(versionLabel);
+	{
+		Label *versionLabel = $(alloc(Label), initWithText, va("Quetoo %s", cgi.CvarGet("version")->string), NULL);
+		assert(versionLabel);
 
-	versionLabel->view.alignment = ViewAlignmentBottomLeft;
-	versionLabel->view.autoresizingMask = ViewAutoresizingContain;
+		versionLabel->view.alignment = ViewAlignmentBottomLeft;
+		versionLabel->view.autoresizingMask = ViewAutoresizingContain;
 
-	versionLabel->text->color = QColors.Watermark;
+		versionLabel->text->color = QColors.Watermark;
 
-	$(self->view, addSubview, (View *) versionLabel);
-	release(versionLabel);
+		$(this->decorationView, addSubview, (View *) versionLabel);
+		release(versionLabel);
+	}
 
-	// Menu bar
+	$(self->view, addSubview, this->decorationView);
 
-	View *view = $(alloc(View), initWithFrame, NULL);
+	// Top menu bar
 
-	view->alignment = ViewAlignmentTopCenter;
-	view->autoresizingMask = ViewAutoresizingWidth;
+	View *topBar = $(alloc(View), initWithFrame, NULL);
 
-	view->backgroundColor = QColors.MainHighlight;
-	view->borderColor = QColors.BorderLight;
+	topBar->alignment = ViewAlignmentTopCenter;
+	topBar->autoresizingMask = ViewAutoresizingWidth;
 
-	view->frame.h = 30;
+	topBar->backgroundColor = QColors.MainHighlight;
+	topBar->borderColor = QColors.BorderLight;
 
-	view->padding.right = DEFAULT_PANEL_SPACING;
-	view->padding.left = DEFAULT_PANEL_SPACING;
+	topBar->frame.h = 30;
 
-	view->zIndex = 50; // Just below dialogs and panels
+	topBar->padding.right = DEFAULT_PANEL_SPACING;
+	topBar->padding.left = DEFAULT_PANEL_SPACING;
+
+	topBar->zIndex = 50; // Just below dialogs and panels
 
 	{
 		StackView *row = $(alloc(StackView), initWithFrame, NULL);
@@ -175,7 +210,7 @@ static void loadView(ViewController *self) {
 			Cgui_PrimaryButton((View *) row, "PLAY", QColors.Theme, action, self, _PlayViewController());
 		}
 
-		$(view, addSubview, (View *) row);
+		$(topBar, addSubview, (View *) row);
 		release(row);
 	}
 
@@ -193,15 +228,53 @@ static void loadView(ViewController *self) {
 		{
 			Cgui_PrimaryIcon((View *) row, "ui/pics/settings", QColors.Dark, action, self, _SettingsViewController());
 			Cgui_PrimaryIcon((View *) row, "ui/pics/info", QColors.Dark, action, self, _InfoViewController());
-			Cgui_PrimaryIcon((View *) row, "ui/pics/quit",  QColors.Dark,action, self, NULL);
+			Cgui_PrimaryIcon((View *) row, "ui/pics/quit",  QColors.Dark, action, self, NULL);
 		}
 
-		$(view, addSubview, (View *) row);
+		$(topBar, addSubview, (View *) row);
 		release(row);
 	}
 
-	$(self->view, addSubview, (View *) view);
-	release(view);
+	$(self->view, addSubview, (View *) topBar);
+	release(topBar);
+
+	// Bottom menu bar
+
+	this->bottomBar = $(alloc(View), initWithFrame, NULL);
+
+	this->bottomBar->alignment = ViewAlignmentBottomCenter;
+	this->bottomBar->autoresizingMask = ViewAutoresizingContain;
+
+	this->bottomBar->backgroundColor = QColors.MainHighlight;
+	this->bottomBar->borderColor = QColors.BorderLight;
+
+	this->bottomBar->padding.top = -6; // HAAAAAAAAAX!!!!
+	this->bottomBar->padding.right = DEFAULT_PANEL_SPACING;
+	this->bottomBar->padding.left = DEFAULT_PANEL_SPACING;
+
+	this->bottomBar->zIndex = 50; // Just below dialogs and panels
+
+	{
+		StackView *row = $(alloc(StackView), initWithFrame, NULL);
+
+		row->spacing = DEFAULT_PANEL_SPACING;
+
+		row->axis = StackViewAxisHorizontal;
+		row->distribution = StackViewDistributionDefault;
+
+		row->view.alignment = ViewAlignmentBottomCenter;
+		row->view.autoresizingMask = ViewAutoresizingContain;
+
+		{
+			Cgui_PrimaryButton((View *) row, "JOIN", QColors.Dark, action, self, _PlayerViewController());
+			Cgui_PrimaryButton((View *) row, "VOTES", QColors.Dark, action, self, _PlayerViewController());
+		}
+
+		$(this->bottomBar, addSubview, (View *) row);
+		release(row);
+	}
+	$(self->view, addSubview, (View *) this->bottomBar);
+	release(this->bottomBar);
 
 	action(NULL, NULL, self, _HomeViewController()); // Open home when the main menu is first opened
 
@@ -209,6 +282,20 @@ static void loadView(ViewController *self) {
 
 	this->dialog = $(alloc(DialogView), init);
 	$(self->view, addSubview, (View *) this->dialog);
+}
+
+/**
+ * @see ViewController::viewWillAppear(ViewController *)
+ */
+static void viewWillAppear(ViewController *self) {
+
+	MainViewController *this = (MainViewController *) self;
+
+	const _Bool in_game = (this->state == CL_ACTIVE);
+
+	this->decorationView->hidden = in_game;
+
+	this->bottomBar->hidden = !in_game;
 }
 
 #pragma mark - MainViewController
@@ -233,6 +320,7 @@ static void initialize(Class *clazz) {
 	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
 
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->def->interface)->viewWillAppear = viewWillAppear;
 
 	((MainViewControllerInterface *) clazz->def->interface)->init = init;
 }
