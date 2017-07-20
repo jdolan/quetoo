@@ -1277,6 +1277,8 @@ _Bool ColorToHex(const color_t color, char *s, const size_t s_len) {
 						  COLOR_BYTES_ARE_SAME(color.b);
 	_Bool is_32_bit = color.a != 0xFF;
 
+	*s = 0;
+
 	if (is_32_bit) {
 		is_short_form = is_short_form && COLOR_BYTES_ARE_SAME(color.a);
 

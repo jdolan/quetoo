@@ -6,7 +6,7 @@
 
 #define VERTEX_SHADER
 
-#include "include/matrix.glsl"
+#include "include/uniforms.glsl"
 #include "include/fog.glsl"
 
 in vec3 POSITION;
@@ -21,7 +21,6 @@ out VertexData {
 	float roll;
 	vec3 end;
 	int type;
-	float fog;
 };
 
 /**
@@ -41,6 +40,4 @@ void main(void) {
 
 	// pass the color through as well
 	color = COLOR;
-
-	fog = FogVertex();
 }

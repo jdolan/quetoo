@@ -343,6 +343,12 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 
 		target->locals.health -= damage_health;
 
+		// for hitsound
+		if (!was_dead && attacker->client && attacker->client != client) {
+			attacker->client->locals.damage_inflicted += damage_health + damage_armor;
+		}
+
+		// kill target if he has *excessive blood loss*
 		if (target->locals.health <= 0) {
 			target->locals.dead = true;
 
@@ -351,6 +357,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 			} else {
 				gi.Debug("No die function for %s\n", target->class_name);
 			}
+
 			return;
 		}
 	}
@@ -365,7 +372,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 		target->locals.Pain(target, attacker, damage_health, knockback);
 	}
 
-	// add to the damage inflicted on a player this frame
+	// add view kick on a player this frame
 	if (client) {
 		client->locals.damage_armor += damage_armor;
 		client->locals.damage_health += damage_health;
@@ -377,10 +384,6 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 		}
 
 		G_ClientDamageKick(target, dir, kick * 10.0);
-
-		if (attacker->client && attacker->client != client) {
-			attacker->client->locals.damage_inflicted += damage_health + damage_armor;
-		}
 	}
 }
 

@@ -6,6 +6,8 @@
 
 #define GEOMETRY_SHADER
 
+#include "include/uniforms.glsl"
+
 // the number of vertices for both ends of a wire.
 #define CYLINDER_VERT_COUNT 16
 #define CYLINDER_SIDES (CYLINDER_VERT_COUNT / 2)
@@ -23,7 +25,6 @@ uniform vec3 WEATHER_RIGHT;
 uniform vec3 WEATHER_UP;
 uniform vec3 SPLASH_RIGHT[2];
 uniform vec3 SPLASH_UP[2];
-uniform float TICKS;
 
 in VertexData {
 	vec2 texcoord0;
@@ -33,18 +34,15 @@ in VertexData {
 	float roll;
 	vec3 end;
 	int type;
-	float fog;
 } in_data[];
 
 out VertexData {
 	vec4 color;
 	vec2 texcoord;
-	float fog;
 } out_data;
 
 void CopyCommon(void) {
 	out_data.color = in_data[0].color;
-	out_data.fog = in_data[0].fog;
 }
 
 #define PARTICLE_SPARK 1
@@ -60,8 +58,7 @@ void CopyCommon(void) {
 
 #define atan2 atan
 
-#include "include/fog.glsl"
-#include "include/matrix.glsl"
+#include "include/uniforms.glsl"
 
 /**
  * @brief Circular clamp Euler angles between 0.0 and 360.0.
@@ -209,7 +206,7 @@ void main(void) {
 			up = SPLASH_UP[1] * in_data[0].scale;
 		}
 	} else if (in_data[0].type == PARTICLE_ROLL || in_data[0].type == PARTICLE_EXPLOSION) { // roll it
-		vec3 dir = vec3(VIEW_ANGLES.xy, in_data[0].roll * TICKS);
+		vec3 dir = vec3(VIEW_ANGLES.xy, in_data[0].roll * (TIME / 1000.0));
 		vec3 fwd;
 		AngleVectors(dir, fwd, right, up);
 

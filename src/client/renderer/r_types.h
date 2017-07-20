@@ -69,15 +69,10 @@ typedef enum {
 } r_model_type_t;
 
 // high bits OR'ed with image types
-#define IT_MASK_MIPMAP	128
-#define IT_MASK_FILTER	256
-
-/**
- * @brief Don't return the null white picture if we can't find the image, return
- * null instead.
- */
-#define IT_MASK_FAIL	512
-
+#define IT_MASK_MIPMAP	0x100
+#define IT_MASK_FILTER	0x200
+#define IT_MASK_MULT	0x400
+#define IT_MASK_NULL	0x800
 #define IT_MASK_TYPE	0x7F
 #define IT_MASK_FLAGS	(-1 & ~IT_MASK_TYPE)
 
@@ -94,7 +89,7 @@ typedef enum {
 	IT_NORMALMAP = 8 + (IT_MASK_MIPMAP),
 	IT_SPECULARMAP = 9 + (IT_MASK_MIPMAP),
 	IT_ENVMAP = 10 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_FLARE = 11 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
+	IT_FLARE = 11 + (IT_MASK_MIPMAP | IT_MASK_FILTER | IT_MASK_MULT),
 	IT_SKY = 12 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_PIC = 13 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_ATLAS_MAP = 14 + (IT_MASK_MIPMAP), // image is an r_atlas_t*
@@ -109,6 +104,7 @@ typedef enum {
 typedef enum {
 	R_BUFFER_DATA,
 	R_BUFFER_ELEMENT,
+	R_BUFFER_UNIFORM,
 
 	R_NUM_BUFFERS,
 
@@ -238,9 +234,9 @@ typedef struct {
  * @brief Structure that holds construction arguments for buffers
  */
 typedef struct {
-	r_buffer_layout_t element;
-	GLenum hint;
 	r_buffer_type_t type;
+	GLenum hint;
+	r_buffer_layout_t element;
 	size_t size;
 	const void *data;
 } r_create_buffer_t;
@@ -270,7 +266,7 @@ typedef struct {
  * @brief Buffers are used to hold data for the renderer.
  */
 typedef struct r_buffer_s {
-	r_buffer_type_t type; // R_BUFFER_DATA or R_BUFFER_ELEMENT
+	r_buffer_type_t type; // R_BUFFER_DATA, R_BUFFER_ELEMENT, R_BUFFER_UNIFORM
 	GLenum hint; // GL_x_y, where x is STATIC or DYNAMIC, and where y is DRAW, READ or COPY
 	GLenum target; // GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER; mapped from above var
 	GLuint bufnum; // e.g. 123
@@ -1077,6 +1073,16 @@ typedef enum {
 } r_state_id_t;
 
 /**
+ * @brief
+ */
+typedef struct {
+	uint32_t bound;
+	uint32_t num_full_uploads;
+	uint32_t num_partial_uploads;
+	size_t size_uploaded;
+} r_buffer_stats_t;
+
+/**
  * @brief Provides read-write visibility and scene management to the client.
  */
 typedef struct {
@@ -1139,7 +1145,7 @@ typedef struct {
 
 	uint32_t num_state_changes[R_STATE_TOTAL];
 	uint32_t num_binds[R_TEXUNIT_TOTAL];
-	uint32_t num_buffer_full_uploads, num_buffer_partial_uploads, size_buffer_uploads;
+	r_buffer_stats_t buffer_stats[R_NUM_BUFFERS];
 
 	uint32_t num_draw_elements, num_draw_element_count;
 	uint32_t num_draw_arrays, num_draw_array_count;

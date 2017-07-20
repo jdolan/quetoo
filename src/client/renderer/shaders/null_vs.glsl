@@ -6,11 +6,8 @@
 
 #define VERTEX_SHADER
 
-#include "include/matrix.glsl"
+#include "include/uniforms.glsl"
 #include "include/fog.glsl"
-
-uniform vec4 GLOBAL_COLOR;
-uniform float TIME_FRACTION;
 
 in vec3 POSITION;
 in vec2 TEXCOORD;
@@ -20,7 +17,6 @@ in vec3 NEXT_POSITION;
 out VertexData {
 	vec2 texcoord;
 	vec4 color;
-	float fog;
 };
 
 /**
@@ -35,6 +31,4 @@ void main(void) {
 
 	// pass the color through as well
 	color = COLOR * GLOBAL_COLOR;
-
-	fog = FogVertex();
 }

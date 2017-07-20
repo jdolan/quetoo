@@ -291,7 +291,7 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, vec_t density) {
 
 		p->lifetime = 1000 - (Randomf() * 100);
 		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
-
+		
 		cgi.ColorFromPalette(6 + (Randomr(0, 4)), p->color_start);
 
 		Vector4Copy(p->color_start, p->color_end);
@@ -491,7 +491,7 @@ static void Cg_EnergyTrail(cl_entity_t *ent, vec_t radius, int32_t color) {
 		vec3_t delta;
 		VectorSubtract(p->part.org, ent->origin, delta);
 		dist = VectorLength(delta) / (3.0 * radius);
-
+		
 		cgi.ColorFromPalette(color + dist * 7.0, p->part.color);
 
 		VectorScale(delta, 100.0, p->accel);
@@ -562,6 +562,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 		p->part.scale = 8.0;
 		p->part.scroll_s = -8.0;
+		p->part.blend = GL_ONE;
 
 		VectorCopy(pos, p->part.org);
 
@@ -695,9 +696,9 @@ static void Cg_BfgTrail(cl_entity_t *ent) {
 
 	cg_particle_t *p;
 	if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_explosion, true))) {
-
+		
 		cgi.ColorFromPalette(206, p->color_start);
-
+	
 		p->effects |= PARTICLE_EFFECT_COLOR;
 		p->lifetime = 100;
 
@@ -773,7 +774,7 @@ static void Cg_SpawnPointTrail(cl_entity_t *ent, const color_t color) {
 
 	cg_particle_t *p;
 
-	if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_teleporter, false))) {
+	if ((p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_teleporter, false))) {
 		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 		p->lifetime = 450;
 

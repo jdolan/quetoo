@@ -223,6 +223,14 @@ void S_LoadMedia(void) {
 
 	Cl_LoadingProgress(80, "sounds");
 
+	if (*cl_chat_sound->string) {
+		S_LoadSample(cl_chat_sound->string);
+	}
+
+	if (*cl_team_chat_sound->string) {
+		S_LoadSample(cl_team_chat_sound->string);
+	}
+
 	for (uint32_t i = 0; i < MAX_SOUNDS; i++) {
 
 		if (!cl.config_strings[CS_SOUNDS + i][0]) {
@@ -303,7 +311,7 @@ void S_Restart_f(void) {
  */
 static void S_InitLocal(void) {
 
-	s_ambient = Cvar_Add("s_ambient", "1", CVAR_ARCHIVE, "Controls playback of ambient sounds.");
+	s_ambient = Cvar_Add("s_ambient", "1", CVAR_ARCHIVE, "Controls playback of ambient sounds. 0 disables, 1 enables, 2 enables ambient ONLY.");
 	s_doppler = Cvar_Add("s_doppler", "0", CVAR_ARCHIVE, "The scale for the doppler effect. 0 is disabled, 1 is default, anything inbetween is scale.");
 	s_effects = Cvar_Add("s_effects", "0", CVAR_ARCHIVE | CVAR_S_MEDIA, "Whether sound filtering is enabled for systems that support it.");
 	s_rate = Cvar_Add("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE, "Sound sample rate in Hz.");
@@ -456,7 +464,7 @@ void S_Shutdown(void) {
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
 	Cmd_RemoveAll(CMD_SOUND);
-	
+
 	Mem_Free(s_env.raw_sample_buffer);
 	Mem_Free(s_env.converted_sample_buffer);
 	Mem_Free(s_env.resample_buffer);

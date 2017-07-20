@@ -1,3 +1,6 @@
+#ifndef QUETOO_NOISE_GLSL
+#define QUETOO_NOISE_GLSL
+
 // https://www.shadertoy.com/view/4sc3z2
 
 #define MOD3 vec3(.1031,.11369,.13787)
@@ -31,3 +34,5 @@ float noise3d(vec3 p)
     
     return dot(vec4(31.316), n);
 }
+
+#endif //QUETOO_NOISE_GLSL

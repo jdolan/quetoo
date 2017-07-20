@@ -87,7 +87,7 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 	}
 
 	VectorCopy(org, ch->position);
-	VectorMA(ch->position, S_GET_Z_ORIGIN_OFFSET(ch->play.attenuation) * 4.0, vec3_up, ch->position);
+//  	VectorMA(ch->position, S_GET_Z_ORIGIN_OFFSET(ch->play.attenuation) * 4.0, vec3_up, ch->position);
 
 	VectorSubtract(org, r_view.origin, delta);
 
@@ -332,8 +332,8 @@ void S_AddSample(const s_play_sample_t *play) {
 	// warn on spatialized stereo samples
 
 	if (play->sample->stereo) {
-		if ((play->attenuation & 0x0f) != ATTEN_NONE ||
-			(play->entity != -1 && &cl.entities[play->entity] != cl.entity)) {
+		const _Bool has_atten = (play->attenuation & 0x0f) != ATTEN_NONE;
+		if (has_atten || (has_atten && play->entity != -1 && &cl.entities[play->entity] != cl.entity)) {
 			Com_Warn("%s is a stereo sound sample and is being spatialized\n", play->sample->media.name);
 		}
 	}

@@ -244,9 +244,19 @@ static void Cl_DrawRendererStats(void) {
 	}
 
 	y += ch;
-	R_DrawString(0, y, va("%d buffer uploads (%d partial, %d full; %d bytes)",
-	                      r_view.num_buffer_full_uploads + r_view.num_buffer_partial_uploads, r_view.num_buffer_full_uploads,
-	                      r_view.num_buffer_partial_uploads, r_view.size_buffer_uploads), CON_COLOR_WHITE);
+	R_DrawString(0, y, va("Data Buffers: %u bound, %u partial, %u full; %" PRIuPTR " bytes",
+	                      r_view.buffer_stats[R_BUFFER_DATA].bound, r_view.buffer_stats[R_BUFFER_DATA].num_partial_uploads,
+						  r_view.buffer_stats[R_BUFFER_DATA].num_full_uploads, r_view.buffer_stats[R_BUFFER_DATA].size_uploaded), CON_COLOR_GREEN);
+	
+	y += ch;
+	R_DrawString(0, y, va("Element Buffers: %u bound, %u partial, %u full; %" PRIuPTR " bytes",
+	                      r_view.buffer_stats[R_BUFFER_ELEMENT].bound, r_view.buffer_stats[R_BUFFER_ELEMENT].num_partial_uploads,
+						  r_view.buffer_stats[R_BUFFER_ELEMENT].num_full_uploads, r_view.buffer_stats[R_BUFFER_ELEMENT].size_uploaded), CON_COLOR_GREEN);
+	
+	y += ch;
+	R_DrawString(0, y, va("Uniform Buffers: %u partial, %u full; %" PRIuPTR " bytes",
+	                      r_view.buffer_stats[R_BUFFER_UNIFORM].num_partial_uploads,
+						  r_view.buffer_stats[R_BUFFER_UNIFORM].num_full_uploads, r_view.buffer_stats[R_BUFFER_UNIFORM].size_uploaded), CON_COLOR_GREEN);
 	y += ch;
 
 	R_DrawString(0, y, va("%d total buffers created (%d bytes)", R_GetNumAllocatedBuffers(),

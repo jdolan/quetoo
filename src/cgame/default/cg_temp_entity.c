@@ -34,8 +34,9 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 			break;
 		}
 
-		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
+		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE | PARTICLE_EFFECT_PHYSICAL;
 		p->lifetime = 450 + Randomf() * 450;
+		p->bounce = 1.15;
 
 		// TODO: color modulation
 		//cgi.ColorFromPalette(color + (Random() & 5), p->color_start);
@@ -127,6 +128,8 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 		while (k--) {
 			if ((p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_beam, true))) {
 
+				p->effects |= PARTICLE_EFFECT_PHYSICAL;
+				p->bounce = 1.5;
 				p->lifetime = 100 + Randomf() * 350;
 
 				cgi.ColorFromPalette(221 + (Randomr(0, 8)), p->part.color);
@@ -136,7 +139,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 
 				VectorCopy(org, p->part.org);
 
-				VectorScale(dir, 140.0 + Randomf() * 80.0, p->vel);
+				VectorScale(dir, 180.0 + Randomf() * 40.0, p->vel);
 
 				p->accel[0] = Randomc() * 40.0;
 				p->accel[1] = Randomc() * 40.0;
@@ -552,9 +555,9 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 
 			VectorCopy(org, p->part.org);
 
-			p->vel[0] = Randomc() * 140.0;
-			p->vel[1] = Randomc() * 140.0;
-			p->vel[2] = Randomc() * 140.0;
+			p->vel[0] = dir[0] * Randomfr(20.0, 140.0) + Randomc() * 16.0;
+			p->vel[1] = dir[1] * Randomfr(20.0, 140.0) + Randomc() * 16.0;
+			p->vel[2] = dir[2] * Randomfr(20.0, 140.0) + Randomc() * 16.0;
 
 			p->accel[2] = -PARTICLE_GRAVITY * 2.0;
 
