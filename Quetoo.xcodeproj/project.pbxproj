@@ -105,7 +105,6 @@
 		CE5816EF1D904B0B002818F5 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CE5CDC241D9F51580034757D /* librenderer.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CED438AD1D9D34450052BAFA /* librenderer.dylib */; };
 		CE5CDC331D9F518B0034757D /* ui_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5CDBB21D9F45090034757D /* ui_main.c */; };
-		CE5CDC351D9F51990034757D /* libObjectivelyMVC.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5CDC341D9F51990034757D /* libObjectivelyMVC.dylib */; };
 		CE5CDC361D9F51A90034757D /* ui_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5CDBB11D9F45090034757D /* ui_local.h */; };
 		CE5CDC371D9F51A90034757D /* ui_main.c in Headers */ = {isa = PBXBuildFile; fileRef = CE5CDBB21D9F45090034757D /* ui_main.c */; };
 		CE5CDC381D9F51A90034757D /* ui_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5CDBB31D9F45090034757D /* ui_main.h */; };
@@ -136,15 +135,12 @@
 		CE72DFAA1E85DDA5007467AE /* SettingsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE72DF9E1E85DDA5007467AE /* SettingsViewController.h */; };
 		CE72DFAF1E85DDCD007467AE /* HueSlider.c in Sources */ = {isa = PBXBuildFile; fileRef = CE72DFAD1E85DDCD007467AE /* HueSlider.c */; };
 		CE72DFB01E85DDCD007467AE /* HueSlider.h in Headers */ = {isa = PBXBuildFile; fileRef = CE72DFAE1E85DDCD007467AE /* HueSlider.h */; };
-		CE72DFB31E85DDEF007467AE /* PrimaryIcon.c in Sources */ = {isa = PBXBuildFile; fileRef = CE72DFB11E85DDEF007467AE /* PrimaryIcon.c */; };
 		CE72DFB41E85DDEF007467AE /* PrimaryIcon.h in Headers */ = {isa = PBXBuildFile; fileRef = CE72DFB21E85DDEF007467AE /* PrimaryIcon.h */; };
 		CE8000001C5E4D4400A21A51 /* libminizip.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.dylib */; };
 		CE8000021C5E4D4400A21A51 /* libshared.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.dylib */; };
 		CE8000031C5E4ED700A21A51 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE8000041C5E4EED00A21A51 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CE8000061C5E4F0500A21A51 /* libxml2.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE8000051C5E4F0500A21A51 /* libxml2.2.dylib */; };
-		CE8000081C5E52A200A21A51 /* libz.1.2.8.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE8000071C5E52A200A21A51 /* libz.1.2.8.dylib */; };
-		CE8000091C5E52CE00A21A51 /* libz.1.2.8.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE8000071C5E52A200A21A51 /* libz.1.2.8.dylib */; };
 		CE80FDB61C5E3D4E00A21A51 /* shared-anorms.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B71C5C58C300CD0B13 /* shared-anorms.c */; };
 		CE80FDB71C5E3D4E00A21A51 /* shared.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B81C5C58C300CD0B13 /* shared.c */; };
 		CE80FDD61C5E3D9700A21A51 /* libshared.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.dylib */; };
@@ -333,18 +329,13 @@
 		CEA2EBEE1EC1EE690032E863 /* AudioView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA2EBDE1EC1EE690032E863 /* AudioView.h */; };
 		CEA2EBEF1EC1EE690032E863 /* CreateServerView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA2EBDF1EC1EE690032E863 /* CreateServerView.c */; };
 		CEA2EBF01EC1EE690032E863 /* CreateServerView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA2EBE01EC1EE690032E863 /* CreateServerView.h */; };
-		CEA2EBF11EC1EE690032E863 /* CreditsView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA2EBE11EC1EE690032E863 /* CreditsView.c */; };
-		CEA2EBF21EC1EE690032E863 /* CreditsView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA2EBE21EC1EE690032E863 /* CreditsView.h */; };
 		CEA2EBF31EC1EE690032E863 /* InputView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA2EBE31EC1EE690032E863 /* InputView.c */; };
 		CEA2EBF41EC1EE690032E863 /* InputView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA2EBE41EC1EE690032E863 /* InputView.h */; };
 		CEA2EBF51EC1EE690032E863 /* InterfaceView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA2EBE51EC1EE690032E863 /* InterfaceView.c */; };
 		CEA2EBF61EC1EE690032E863 /* InterfaceView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA2EBE61EC1EE690032E863 /* InterfaceView.h */; };
-		CEA2EBF71EC1EE690032E863 /* QuickJoinView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA2EBE71EC1EE690032E863 /* QuickJoinView.c */; };
 		CEA2EBF81EC1EE690032E863 /* QuickJoinView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA2EBE81EC1EE690032E863 /* QuickJoinView.h */; };
-		CEA2EBF91EC1EE690032E863 /* ServerBrowserView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA2EBE91EC1EE690032E863 /* ServerBrowserView.c */; };
 		CEA2EBFA1EC1EE690032E863 /* ServerBrowserView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA2EBEA1EC1EE690032E863 /* ServerBrowserView.h */; };
 		CEA2EBFB1EC1EE690032E863 /* VideoView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA2EBEB1EC1EE690032E863 /* VideoView.c */; };
-		CEA2EBFC1EC1EE690032E863 /* VideoView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA2EBEC1EC1EE690032E863 /* VideoView.h */; };
 		CEA3B48D1E0576E3004A6CF3 /* cm_material.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA3B4851E057569004A6CF3 /* cm_material.c */; };
 		CEA3B48E1E0576E7004A6CF3 /* cm_material.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA3B4861E057569004A6CF3 /* cm_material.h */; };
 		CEA936661DBCD88D00A12B79 /* r_program_corona.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA936621DBCD87400A12B79 /* r_program_corona.c */; };
@@ -476,9 +467,11 @@
 		CED4397E1D9D3EBF0052BAFA /* libmatrix.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7A831D9CB5C9000FA6B2 /* libmatrix.dylib */; };
 		CED4397F1D9D3EBF0052BAFA /* libnet.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.dylib */; };
 		CED439801D9D3F0B0052BAFA /* libncurses.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */; };
+		CEE59C2E1F21257D0044F6F2 /* ServersTableView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEE59C2C1F21257D0044F6F2 /* ServersTableView.c */; };
+		CEE59C2F1F21257D0044F6F2 /* ServersTableView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEE59C2D1F21257D0044F6F2 /* ServersTableView.h */; };
+		CEE59C311F2125D70044F6F2 /* libz.1.2.11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEE59C301F2125D70044F6F2 /* libz.1.2.11.dylib */; };
 		CEE818951E280DFC003C66DD /* libai.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FEC61C5E44E800A21A51 /* libai.dylib */; };
 		CEEBC1F71E89F9CF00C20F4D /* DialogView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEEBC1F31E89F9C000C20F4D /* DialogView.c */; };
-		CEEBC1F81E89F9CF00C20F4D /* DialogView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEBC1F41E89F9C000C20F4D /* DialogView.h */; };
 		CEEBC1F91E89F9DB00C20F4D /* cg_ui_colors.c in Sources */ = {isa = PBXBuildFile; fileRef = CEEBC1EF1E89F93C00C20F4D /* cg_ui_colors.c */; };
 		CEEBC1FA1E89F9DB00C20F4D /* cg_ui_colors.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEBC1F01E89F93C00C20F4D /* cg_ui_colors.h */; };
 		CEFC78931D9BE23A000FA6B2 /* cg_ui.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFC78911D9BE23A000FA6B2 /* cg_ui.c */; };
@@ -1386,7 +1379,7 @@
 		CE15E8CB1ED306DB00A9FB7A /* r_program_particle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_program_particle.h; sourceTree = "<group>"; };
 		CE27BE561D9167C700F87B2C /* libObjectively.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectively.dylib; path = "../../Library/Developer/Xcode/DerivedData/Quetoo-eijmznjiunzbaafulkyjapfulhqz/Build/Products/Debug/libObjectively.dylib"; sourceTree = "<group>"; };
 		CE32084F1EBDFFB600A92FF3 /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
-		CE3208511EBF518D00A92FF3 /* libsndfile.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsndfile.1.dylib; path = ../../../../opt/local/lib/libsndfile.1.dylib; sourceTree = "<group>"; };
+		CE3208511EBF518D00A92FF3 /* libsndfile.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsndfile.1.dylib; path = /opt/local/lib/libsndfile.1.dylib; sourceTree = "<absolute>"; };
 		CE3BCDB71DB6DCE0002E6C6D /* r_glad_core.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_glad_core.c; sourceTree = "<group>"; };
 		CE3BCDB81DB6DCE0002E6C6D /* r_glad_core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_glad_core.h; sourceTree = "<group>"; };
 		CE3BCDB91DB6DCE0002E6C6D /* r_program_null.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_program_null.c; sourceTree = "<group>"; };
@@ -1408,7 +1401,6 @@
 		CE585BDA1ED459E2009B7C14 /* matrix.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = matrix.glsl; sourceTree = "<group>"; };
 		CE585BDB1ED459E2009B7C14 /* noise3d.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = noise3d.glsl; sourceTree = "<group>"; };
 		CE585BDD1ED45A94009B7C14 /* tint.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = tint.glsl; sourceTree = "<group>"; };
-		CE5BD59B1D3EE3B800C43B85 /* libObjectivelyMVC.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.0.dylib; path = ../../../../usr/local/lib/libObjectivelyMVC.0.dylib; sourceTree = "<group>"; };
 		CE5CDBAC1D9F45090034757D /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE5CDBAE1D9F45090034757D /* ui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui.h; sourceTree = "<group>"; };
 		CE5CDBB11D9F45090034757D /* ui_local.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_local.h; sourceTree = "<group>"; };
@@ -1418,7 +1410,6 @@
 		CE5CDBBC1D9F450A0034757D /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE5CDBD41D9F450A0034757D /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE5CDC321D9F51580034757D /* libui.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libui.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
-		CE5CDC341D9F51990034757D /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = ../ObjectivelyMVC/build/Debug/libObjectivelyMVC.dylib; sourceTree = "<group>"; };
 		CE67EF641E3500C0009C2819 /* ai_goal.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ai_goal.c; sourceTree = "<group>"; };
 		CE67EF651E3500C0009C2819 /* ai_goal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ai_goal.h; sourceTree = "<group>"; };
 		CE67EF661E3500C0009C2819 /* ai_item.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ai_item.c; sourceTree = "<group>"; };
@@ -1444,7 +1435,6 @@
 		CE6C2D0F1E24902900F55B0A /* cm_bsp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_bsp.c; sourceTree = "<group>"; };
 		CE6C2D101E24902900F55B0A /* cm_bsp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_bsp.h; sourceTree = "<group>"; };
 		CE6FF29C1E9E6FBA00F3C160 /* qzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qzip.h; sourceTree = "<group>"; };
-		CE72D8A91D404ACA002129FC /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = ../ObjectivelyMVC/build/Debug/libObjectivelyMVC.dylib; sourceTree = "<group>"; };
 		CE72DF9D1E85DDA5007467AE /* SettingsViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SettingsViewController.c; sourceTree = "<group>"; };
 		CE72DF9E1E85DDA5007467AE /* SettingsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SettingsViewController.h; sourceTree = "<group>"; };
 		CE72DFAD1E85DDCD007467AE /* HueSlider.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = HueSlider.c; sourceTree = "<group>"; };
@@ -1452,7 +1442,6 @@
 		CE72DFB11E85DDEF007467AE /* PrimaryIcon.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PrimaryIcon.c; sourceTree = "<group>"; };
 		CE72DFB21E85DDEF007467AE /* PrimaryIcon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PrimaryIcon.h; sourceTree = "<group>"; };
 		CE8000051C5E4F0500A21A51 /* libxml2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.dylib; path = /opt/local/lib/libxml2.2.dylib; sourceTree = "<absolute>"; };
-		CE8000071C5E52A200A21A51 /* libz.1.2.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.8.dylib; path = /opt/local/lib/libz.1.2.8.dylib; sourceTree = "<absolute>"; };
 		CE80FD871C5E3B6F00A21A51 /* quemap */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = quemap; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE80FDD51C5E3D4E00A21A51 /* libshared.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libshared.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE80FDE31C5E3E1100A21A51 /* libcommon.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libcommon.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1488,8 +1477,6 @@
 		CEA2EBDE1EC1EE690032E863 /* AudioView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioView.h; sourceTree = "<group>"; };
 		CEA2EBDF1EC1EE690032E863 /* CreateServerView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CreateServerView.c; sourceTree = "<group>"; };
 		CEA2EBE01EC1EE690032E863 /* CreateServerView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CreateServerView.h; sourceTree = "<group>"; };
-		CEA2EBE11EC1EE690032E863 /* CreditsView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CreditsView.c; sourceTree = "<group>"; };
-		CEA2EBE21EC1EE690032E863 /* CreditsView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CreditsView.h; sourceTree = "<group>"; };
 		CEA2EBE31EC1EE690032E863 /* InputView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = InputView.c; sourceTree = "<group>"; };
 		CEA2EBE41EC1EE690032E863 /* InputView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InputView.h; sourceTree = "<group>"; };
 		CEA2EBE51EC1EE690032E863 /* InterfaceView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = InterfaceView.c; sourceTree = "<group>"; };
@@ -1508,13 +1495,16 @@
 		CEA936631DBCD87400A12B79 /* r_program_corona.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_program_corona.h; sourceTree = "<group>"; };
 		CEB8D6231E00B72100043814 /* cg_input.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_input.c; sourceTree = "<group>"; };
 		CEB8D6241E00B72100043814 /* cg_input.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_input.h; sourceTree = "<group>"; };
-		CEC986931D3835420002B714 /* libmysqlclient.18.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmysqlclient.18.dylib; path = ../../../../opt/local/lib/mysql56/mysql/libmysqlclient.18.dylib; sourceTree = "<group>"; };
+		CEC986931D3835420002B714 /* libmysqlclient.18.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmysqlclient.18.dylib; path = /opt/local/lib/mysql56/mysql/libmysqlclient.18.dylib; sourceTree = "<absolute>"; };
 		CECA8CAD1E4EC027005E97E8 /* qmat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qmat.h; sourceTree = "<group>"; };
 		CECA8CAE1E50B5F1005E97E8 /* materials.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = materials.c; sourceTree = "<group>"; };
 		CECA8CAF1E50B5F1005E97E8 /* materials.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = materials.h; sourceTree = "<group>"; };
 		CED438AD1D9D34450052BAFA /* librenderer.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = librenderer.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		CED4393B1D9D344E0052BAFA /* libsound.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libsound.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = "../../Library/Developer/Xcode/DerivedData/Quetoo-eijmznjiunzbaafulkyjapfulhqz/Build/Products/Debug/libObjectivelyMVC.dylib"; sourceTree = "<group>"; };
+		CEE59C2C1F21257D0044F6F2 /* ServersTableView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ServersTableView.c; sourceTree = "<group>"; };
+		CEE59C2D1F21257D0044F6F2 /* ServersTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ServersTableView.h; sourceTree = "<group>"; };
+		CEE59C301F2125D70044F6F2 /* libz.1.2.11.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.11.dylib; path = /opt/local/lib/libz.1.2.11.dylib; sourceTree = "<absolute>"; };
 		CEEBC1EF1E89F93C00C20F4D /* cg_ui_colors.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_ui_colors.c; sourceTree = "<group>"; };
 		CEEBC1F01E89F93C00C20F4D /* cg_ui_colors.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_ui_colors.h; sourceTree = "<group>"; };
 		CEEBC1F31E89F9C000C20F4D /* DialogView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = DialogView.c; sourceTree = "<group>"; };
@@ -1630,7 +1620,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE8000081C5E52A200A21A51 /* libz.1.2.8.dylib in Frameworks */,
+				CEE59C311F2125D70044F6F2 /* libz.1.2.11.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1668,7 +1658,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE5CDC241D9F51580034757D /* librenderer.dylib in Frameworks */,
-				CE5CDC351D9F51990034757D /* libObjectivelyMVC.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1699,7 +1688,6 @@
 				CE8000031C5E4ED700A21A51 /* libglib-2.0.0.dylib in Frameworks */,
 				CE8000041C5E4EED00A21A51 /* libSDL2-2.0.0.dylib in Frameworks */,
 				CE8000061C5E4F0500A21A51 /* libxml2.2.dylib in Frameworks */,
-				CE8000091C5E52CE00A21A51 /* libz.1.2.8.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2861,13 +2849,17 @@
 				CE80FF561C5E485A00A21A51 /* libcurl.4.dylib */,
 				CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */,
 				CE80FDF51C5E3EEE00A21A51 /* libjpeg.9.dylib */,
+				CEC986931D3835420002B714 /* libmysqlclient.18.dylib */,
 				CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */,
+				CE27BE561D9167C700F87B2C /* libObjectively.dylib */,
+				CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */,
 				CE12D8301C5C6F0100CD0B13 /* libphysfs.2.0.3.dylib */,
 				CE12D8311C5C6F0100CD0B13 /* libSDL2_image-2.0.0.dylib */,
 				CE12D8321C5C6F0100CD0B13 /* libSDL2_mixer-2.0.0.dylib */,
 				CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */,
+				CE3208511EBF518D00A92FF3 /* libsndfile.1.dylib */,
 				CE8000051C5E4F0500A21A51 /* libxml2.2.dylib */,
-				CE8000071C5E52A200A21A51 /* libz.1.2.8.dylib */,
+				CEE59C301F2125D70044F6F2 /* libz.1.2.11.dylib */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -2875,16 +2867,9 @@
 		CE12D8391C5C6F4900CD0B13 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				CE3208511EBF518D00A92FF3 /* libsndfile.1.dylib */,
-				CE32084F1EBDFFB600A92FF3 /* OpenAL.framework */,
-				CE5CDC341D9F51990034757D /* libObjectivelyMVC.dylib */,
-				CE27BE561D9167C700F87B2C /* libObjectively.dylib */,
-				CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */,
-				CE72D8A91D404ACA002129FC /* libObjectivelyMVC.dylib */,
-				CE5BD59B1D3EE3B800C43B85 /* libObjectivelyMVC.0.dylib */,
-				CEC986931D3835420002B714 /* libmysqlclient.18.dylib */,
 				CE12D8191C5C614B00CD0B13 /* AppKit.framework */,
 				CE12D8171C5C614600CD0B13 /* GLUT.framework */,
+				CE32084F1EBDFFB600A92FF3 /* OpenAL.framework */,
 				CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */,
 			);
 			name = Frameworks;
@@ -3019,8 +3004,6 @@
 				CEFC79131D9BE432000FA6B2 /* BindTextView.h */,
 				CEA2EBDF1EC1EE690032E863 /* CreateServerView.c */,
 				CEA2EBE01EC1EE690032E863 /* CreateServerView.h */,
-				CEA2EBE11EC1EE690032E863 /* CreditsView.c */,
-				CEA2EBE21EC1EE690032E863 /* CreditsView.h */,
 				CEFC79141D9BE432000FA6B2 /* CrosshairView.c */,
 				CEFC79151D9BE432000FA6B2 /* CrosshairView.h */,
 				CEFC79161D9BE432000FA6B2 /* CvarCheckbox.c */,
@@ -3053,6 +3036,8 @@
 				CEA2EBE81EC1EE690032E863 /* QuickJoinView.h */,
 				CEA2EBE91EC1EE690032E863 /* ServerBrowserView.c */,
 				CEA2EBEA1EC1EE690032E863 /* ServerBrowserView.h */,
+				CEE59C2C1F21257D0044F6F2 /* ServersTableView.c */,
+				CEE59C2D1F21257D0044F6F2 /* ServersTableView.h */,
 				CEFC79461D9BE432000FA6B2 /* SkinSelect.c */,
 				CEFC79471D9BE432000FA6B2 /* SkinSelect.h */,
 				CEFC79481D9BE432000FA6B2 /* VideoModeSelect.c */,
@@ -3411,7 +3396,6 @@
 				CEFC7AE21D9D2CDE000FA6B2 /* BindTextView.h in Headers */,
 				CEFC7AE41D9D2CDE000FA6B2 /* CrosshairView.h in Headers */,
 				CEFC7AE51D9D2CDE000FA6B2 /* CvarCheckbox.h in Headers */,
-				CEA2EBF21EC1EE690032E863 /* CreditsView.h in Headers */,
 				CEA2EBF61EC1EE690032E863 /* InterfaceView.h in Headers */,
 				CEA2EBEE1EC1EE690032E863 /* AudioView.h in Headers */,
 				CEFC7AE61D9D2CDE000FA6B2 /* CvarSelect.h in Headers */,
@@ -3422,15 +3406,10 @@
 				CEFC7AEC1D9D2CDE000FA6B2 /* MapListCollectionView.h in Headers */,
 				CEA2EBF81EC1EE690032E863 /* QuickJoinView.h in Headers */,
 				CEA2EBF41EC1EE690032E863 /* InputView.h in Headers */,
+				CEE59C2F1F21257D0044F6F2 /* ServersTableView.h in Headers */,
 				CEFC7AF01D9D2CDE000FA6B2 /* PlayerModelView.h in Headers */,
 				CEA2EBF01EC1EE690032E863 /* CreateServerView.h in Headers */,
 				CEFC7AF21D9D2CDE000FA6B2 /* PrimaryButton.h in Headers */,
-<<<<<<< HEAD
-				CEFC7AF31D9D2CDE000FA6B2 /* ServersTableView.h in Headers */,
-				CEA2EBFC1EC1EE690032E863 /* VideoView.h in Headers */,
-				CEEBC1F81E89F9CF00C20F4D /* DialogView.h in Headers */,
-=======
->>>>>>> master
 				CEFC7AF41D9D2CDE000FA6B2 /* SkinSelect.h in Headers */,
 				CEFC7AF61D9D2CDE000FA6B2 /* VideoModeSelect.h in Headers */,
 				CEA2EBFA1EC1EE690032E863 /* ServerBrowserView.h in Headers */,
@@ -4489,10 +4468,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEE59C2E1F21257D0044F6F2 /* ServersTableView.c in Sources */,
 				CEA2EBED1EC1EE690032E863 /* AudioView.c in Sources */,
 				CEFC7AB21D9D2CDE000FA6B2 /* BindTextView.c in Sources */,
 				CEA2EBEF1EC1EE690032E863 /* CreateServerView.c in Sources */,
-				CEA2EBF11EC1EE690032E863 /* CreditsView.c in Sources */,
 				CEFC7AB81D9D2CDE000FA6B2 /* CrosshairView.c in Sources */,
 				CEFC7AB71D9D2CDE000FA6B2 /* CvarCheckbox.c in Sources */,
 				CEFC7AC31D9D2CDE000FA6B2 /* CvarSelect.c in Sources */,
@@ -4506,13 +4485,6 @@
 				CEFC7AC21D9D2CDE000FA6B2 /* MapListCollectionView.c in Sources */,
 				CEFC7AB31D9D2CDE000FA6B2 /* PlayerModelView.c in Sources */,
 				CED4381F1D9D33E80052BAFA /* PrimaryButton.c in Sources */,
-<<<<<<< HEAD
-				CE72DFB31E85DDEF007467AE /* PrimaryIcon.c in Sources */,
-				CEA2EBF71EC1EE690032E863 /* QuickJoinView.c in Sources */,
-				CEA2EBF91EC1EE690032E863 /* ServerBrowserView.c in Sources */,
-				CEFC7AC41D9D2CDE000FA6B2 /* ServersTableView.c in Sources */,
-=======
->>>>>>> master
 				CEFC7AB91D9D2CDE000FA6B2 /* SkinSelect.c in Sources */,
 				CEA2EBFB1EC1EE690032E863 /* VideoView.c in Sources */,
 				CEFC7AB51D9D2CDE000FA6B2 /* VideoModeSelect.c in Sources */,
