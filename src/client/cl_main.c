@@ -142,8 +142,6 @@ void Cl_Connect(const net_addr_t *addr) {
 
 	g_strlcpy(cls.server_name, Net_NetaddrToString(addr), sizeof(cls.server_name));
 
-	memset(cls.last_server, 0, sizeof(cls.last_server));
-
 	cls.state = CL_CONNECTING;
 	cls.connect_time = 0;
 }
@@ -304,8 +302,6 @@ void Cl_Disconnect(void) {
 	cls.connect_time = 0;
 	cls.state = CL_DISCONNECTED;
 
-	memset(cls.server_name, 0, sizeof(cls.server_name));
-
 	if (time_demo->value) {
 		const vec_t s = (quetoo.ticks - cl.time_demo_start) / 1000.0;
 		Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.time_demo_frames, s,
@@ -342,16 +338,6 @@ void Cl_Reconnect_f(void) {
 
 		if (cls.state >= CL_CONNECTING) {
 			Cl_Disconnect();
-
-			g_strlcpy(cls.server_name, cls.last_server, sizeof(cls.server_name));
-		}
-
-		cls.connect_time = 0; // fire immediately
-		cls.state = CL_CONNECTING;
-	} else if (cls.last_server[0] != '\0') { // connecting to a previous server
-
-		if (cls.state < CL_CONNECTING) {
-			g_strlcpy(cls.server_name, cls.last_server, sizeof(cls.server_name));
 		}
 
 		cls.connect_time = 0; // fire immediately

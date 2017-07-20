@@ -335,8 +335,7 @@ typedef struct {
 	cl_chat_state_t chat_state;
 
 	// connection information
-	char server_name[MAX_OS_PATH]; // name of server to connect to... MAX_OS_PATH... wat
-	char last_server[MAX_OS_PATH]; // last server the client was connected to
+	char server_name[MAX_OS_PATH]; // name of server to connect to
 	uint32_t connect_time; // for connection retransmits
 
 	net_chan_t net_chan; // network channel
