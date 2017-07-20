@@ -167,10 +167,10 @@ static _Bool Cg_LoadClientModel(cl_client_info_t *ci, const char *model, const c
 			if ((ci->legs = cgi.LoadModel(path)) &&
 				Cg_LoadClientSkins(ci->legs, ci->legs_skins, ci->skin)) {
 
-				g_snprintf(path, sizeof(path), "players/%s/%s_i", ci->model, ci->skin);
-				ci->icon = cgi.LoadImage(path, IT_PIC | IT_MASK_NULL);
+				g_snprintf(path, sizeof(path), "players/%s/%s_i.tga", ci->model, ci->skin);
+				ci->icon = cgi.LoadImage(path, IT_PIC);
 
-				if (ci->icon) {
+				if (ci->icon->type == IT_PIC) {
 					return true;
 				}
 			}
