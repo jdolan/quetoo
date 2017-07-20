@@ -106,9 +106,7 @@ static void Cl_AttemptConnect(void) {
 	net_addr_t addr;
 
 	if (!Net_StringToNetaddr(cls.server_name, &addr)) {
-		printf("address: %s\n", cls.server_name);
-
-		Com_Print("Bad server address\n");
+		Com_Warn("Bad server address: %s\n", cls.server_name);
 		cls.state = CL_DISCONNECTED;
 		return;
 	}
@@ -297,6 +295,8 @@ void Cl_Disconnect(void) {
 
 		memset(&cls.download, 0, sizeof(cls.download));
 	}
+
+	memset(cls.server_name, 0, sizeof(cls.server_name));
 
 	cls.broadcast_time = 0;
 	cls.connect_time = 0;
