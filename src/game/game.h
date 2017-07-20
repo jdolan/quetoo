@@ -65,12 +65,12 @@ typedef struct {
 
 struct g_client_s {
 	/**
-	 * @brief True if the client is AI-controlled.
+	 * @brief True if the client is a bot.
 	 */
 	_Bool ai;
 
 	/**
-	 * @brief True if the client's slot is taken.
+	 * @brief True if the client's is connected.
 	 */
 	_Bool connected;
 

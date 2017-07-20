@@ -179,6 +179,7 @@ void Cl_HttpThink(void) {
 		if (cl_http_state.status == 200) {
 			// disconnect while we download, this could take some time
 			Cl_SendDisconnect();
+			cls.state = CL_DISCONNECTED;
 		} else if (cl_http_state.status > 0) { // 404, 403, etc..
 			Cl_HttpDownload_Complete();
 			return;
