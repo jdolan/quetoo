@@ -371,14 +371,6 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 			SDL_FreeSurface(surf);
 		} else {
-<<<<<<< HEAD
-
-			if (type & IT_MASK_NULL) {
-				return NULL;
-			}
-
-=======
->>>>>>> master
 			Com_Debug(DEBUG_RENDERER, "Couldn't load %s\n", key);
 			image = r_image_state.null;
 		}
