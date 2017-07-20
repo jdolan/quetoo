@@ -29,6 +29,7 @@ static char *sv_cmd_names[32] = {
 	"SV_CMD_CONFIG_STRING",
 	"SV_CMD_DISCONNECT",
 	"SV_CMD_DOWNLOAD",
+	"SV_CMD_DROP",
 	"SV_CMD_FRAME",
 	"SV_CMD_PRINT",
 	"SV_CMD_RECONNECT",
@@ -459,11 +460,15 @@ void Cl_ParseServerMessage(void) {
 				break;
 
 			case SV_CMD_DISCONNECT:
-				Com_Error(ERROR_DROP, "Server disconnected\n");
+				Cl_Disconnect();
 				break;
 
 			case SV_CMD_DOWNLOAD:
 				Cl_ParseDownload();
+				break;
+
+			case SV_CMD_DROP:
+				Com_Error(ERROR_DROP, "Server dropped connection\n");
 				break;
 
 			case SV_CMD_FRAME:

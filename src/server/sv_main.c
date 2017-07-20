@@ -61,7 +61,7 @@ void Sv_DropClient(sv_client_t *cl) {
 			svs.game->ClientDisconnect(cl->entity);
 		}
 
-		Net_WriteByte(&cl->net_chan.message, SV_CMD_DISCONNECT);
+		Net_WriteByte(&cl->net_chan.message, SV_CMD_DROP);
 		Netchan_Transmit(&cl->net_chan, cl->net_chan.message.data, cl->net_chan.message.size);
 	}
 
