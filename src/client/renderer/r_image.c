@@ -145,7 +145,7 @@ void R_Screenshot_f(void) {
  * while optionally computing the average color. Also handles image inversion
  * and monochrome. This is all munged into one function for performance.
  */
-void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
+void R_FilterImage(r_image_t *image, GLenum format, byte *data, _Bool premultiply) {
 	vec_t brightness;
 	uint32_t color[3];
 	uint16_t mask;
@@ -195,6 +195,14 @@ void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
 			p[0] = 255 - p[0];
 			p[1] = 255 - p[1];
 			p[2] = 255 - p[2];
+		}
+
+		if (premultiply && image->type != IT_LIGHTMAP && format == GL_RGBA) {
+			const vec_t alpha = p[3] / 255.0;
+			
+			for (j = 0; j < 3; j++) {
+				p[j] *= alpha;
+			}
 		}
 	}
 
@@ -349,25 +357,20 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 			image->width = surf->w;
 			image->height = surf->h;
-			image->type = type & ~IT_MASK_FAIL;
+			image->type = type;
 
 			if (image->type == IT_NORMALMAP) {
 				R_LoadHeightmap(name, surf);
 			}
 
 			if (image->type & IT_MASK_FILTER) {
-				R_FilterImage(image, GL_RGBA, surf->pixels);
+				R_FilterImage(image, GL_RGBA, surf->pixels, (image->type & IT_MASK_MULTIPLY));
 			}
 
 			R_UploadImage(image, GL_RGBA, surf->pixels);
 
 			SDL_FreeSurface(surf);
 		} else {
-
-			if (type & IT_MASK_FAIL) {
-				return NULL;
-			}
-
 			Com_Debug(DEBUG_RENDERER, "Couldn't load %s\n", key);
 			image = r_image_state.null;
 		}

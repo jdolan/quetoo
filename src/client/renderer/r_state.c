@@ -990,14 +990,14 @@ void R_ShutdownState(void) {
 
 	R_ShutdownSupersample();
 
+	R_DestroyBuffer(&r_state.uniforms_buffer);
+
 	if (r_state.buffers_total) {
 		g_hash_table_foreach(r_state.buffers_list, R_ShutdownState_PrintBuffers, NULL);
 	}
 
 	g_hash_table_destroy(r_state.buffers_list);
 	r_state.buffers_list = NULL;
-
-	R_DestroyBuffer(&r_state.uniforms_buffer);
 
 	memset(&r_state, 0, sizeof(r_state));
 }

@@ -257,25 +257,12 @@ void Cl_ClearState(void) {
  * @brief Sends the disconnect command to the server.
  */
 void Cl_SendDisconnect(void) {
-	byte final[16];
+	byte cmd[16];
 
-	if (cls.state <= CL_DISCONNECTED) {
-		return;
-	}
+	cmd[0] = CL_CMD_STRING;
+	strcpy((char *) cmd + 1, "disconnect");
 
-	Com_Print("Disconnecting from %s...\n", cls.server_name);
-
-	// send a disconnect message to the server
-	final[0] = CL_CMD_STRING;
-	strcpy((char *) final + 1, "disconnect");
-
-	Netchan_Transmit(&cls.net_chan, final, strlen((char *) final));
-
-	Cl_ClearState();
-
-	cls.broadcast_time = 0;
-	cls.connect_time = 0;
-	cls.state = CL_DISCONNECTED;
+	Netchan_Transmit(&cls.net_chan, cmd, strlen((char *) cmd));
 }
 
 /**
@@ -288,36 +275,40 @@ void Cl_Disconnect(void) {
 		return;
 	}
 
-	if (time_demo->value) { // summarize time_demo results
+	Com_Print("Disconnecting from %s...\n", cls.server_name);
 
-		const vec_t s = (quetoo.ticks - cl.time_demo_start) / 1000.0;
+	Cl_SendDisconnect();
 
-		Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.time_demo_frames, s,
-		          cl.time_demo_frames / s);
+	Cl_ClearState();
 
-		cl.time_demo_frames = cl.time_demo_start = 0;
-	}
-
-	Cl_SendDisconnect(); // tell the server to deallocate us
-
-	if (cls.demo_file) { // stop demo recording
+	if (cls.demo_file) {
 		Cl_Stop_f();
 	}
 
-	if (cls.download.file) { // stop download
+	if (cls.download.file) {
 
-		if (cls.download.http) { // clean up http downloads
+		if (cls.download.http) {
 			Cl_HttpDownload_Complete();
-		} else
-			// or just stop legacy ones
-		{
+		} else {
 			Fs_Close(cls.download.file);
 		}
 
-		cls.download.file = NULL;
+		memset(&cls.download, 0, sizeof(cls.download));
 	}
 
+	cls.broadcast_time = 0;
+	cls.connect_time = 0;
+	cls.state = CL_DISCONNECTED;
+
 	memset(cls.server_name, 0, sizeof(cls.server_name));
+
+	if (time_demo->value) {
+		const vec_t s = (quetoo.ticks - cl.time_demo_start) / 1000.0;
+		Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.time_demo_frames, s,
+				  cl.time_demo_frames / s);
+
+		cl.time_demo_frames = cl.time_demo_start = 0;
+	}
 
 	Cl_SetKeyDest(KEY_CONSOLE);
 }

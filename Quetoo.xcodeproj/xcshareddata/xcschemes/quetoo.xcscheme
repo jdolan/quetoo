@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "0810"
+   LastUpgradeVersion = "0830"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -63,8 +63,8 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "+set sv_max_clients 24"
-            isEnabled = "NO">
+            argument = "+set sv_max_clients 1"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+debug collision"

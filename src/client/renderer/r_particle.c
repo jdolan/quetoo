@@ -257,6 +257,10 @@ static void R_ParticleColor(const r_particle_t *p, r_particle_interleave_vertex_
 
 	for (int32_t i = 0; i < 4; i++) {
 		ColorDecompose(p->color, verts[i].color);
+		
+		for (int32_t x = 0; x < 3; x++) {
+			verts[i].color[x] *= p->color[3];
+		}
 	}
 }
 
@@ -329,6 +333,10 @@ static void R_ParticleGeometryTexcoords(const r_particle_t *p, r_geometry_partic
 static void R_ParticleGeometryColor(const r_particle_t *p, r_geometry_particle_interleave_vertex_t *vert) {
 
 	ColorDecompose(p->color, vert->color);
+	
+	for (int32_t x = 0; x < 3; x++) {
+		vert->color[x] *= p->color[3];
+	}
 }
 
 
@@ -494,7 +502,7 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 		}
 
 		if (p->blend != last_blend) {
-			R_BlendFunc(GL_SRC_ALPHA, p->blend);
+			R_BlendFunc(GL_ONE, p->blend);
 			last_blend = p->blend;
 		}
 

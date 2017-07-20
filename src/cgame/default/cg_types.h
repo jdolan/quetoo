@@ -37,6 +37,7 @@ typedef enum {
 
 	PARTICLE_EFFECT_COLOR = 1 << 0, // use color lerp
 	PARTICLE_EFFECT_SCALE = 1 << 1, // use scale lerp
+	PARTICLE_EFFECT_PHYSICAL = 1 << 2, // bounce/touch walls
 } cg_particle_effects_t;
 
 typedef enum {
@@ -62,9 +63,12 @@ typedef struct cg_particle_s {
 	};
 
 	// effect flag specifics
-	cg_particle_effects_t effects; // flags for lerp effects
+	cg_particle_effects_t effects; // flags for effects
 	vec4_t color_start, color_end;
 	vec_t scale_start, scale_end;
+	vec_t bounce;
+	uint32_t next_collision_time;
+	vec3_t last_collision_origin;
 
 	// particle type specific
 	union {
