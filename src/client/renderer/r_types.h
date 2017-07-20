@@ -69,16 +69,9 @@ typedef enum {
 } r_model_type_t;
 
 // high bits OR'ed with image types
-#define IT_MASK_MIPMAP	128
-#define IT_MASK_FILTER	256
-#define IT_MASK_PREMULTIPLY 512
-
-/**
- * @brief Don't return the null white picture if we can't find the image, return
- * null instead.
- */
-#define IT_MASK_FAIL	1024
-
+#define IT_MASK_MIPMAP	0x100
+#define IT_MASK_FILTER	0x200
+#define IT_MASK_MULT	0x400
 #define IT_MASK_TYPE	0x7F
 #define IT_MASK_FLAGS	(-1 & ~IT_MASK_TYPE)
 
@@ -95,7 +88,7 @@ typedef enum {
 	IT_NORMALMAP = 8 + (IT_MASK_MIPMAP),
 	IT_SPECULARMAP = 9 + (IT_MASK_MIPMAP),
 	IT_ENVMAP = 10 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_FLARE = 11 + (IT_MASK_MIPMAP | IT_MASK_FILTER | IT_MASK_PREMULTIPLY),
+	IT_FLARE = 11 + (IT_MASK_MIPMAP | IT_MASK_FILTER | IT_MASK_MULT),
 	IT_SKY = 12 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_PIC = 13 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_ATLAS_MAP = 14 + (IT_MASK_MIPMAP), // image is an r_atlas_t*

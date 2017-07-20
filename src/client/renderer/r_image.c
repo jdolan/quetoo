@@ -357,25 +357,20 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 			image->width = surf->w;
 			image->height = surf->h;
-			image->type = type & ~IT_MASK_FAIL;
+			image->type = type;
 
 			if (image->type == IT_NORMALMAP) {
 				R_LoadHeightmap(name, surf);
 			}
 
 			if (image->type & IT_MASK_FILTER) {
-				R_FilterImage(image, GL_RGBA, surf->pixels, (image->type & IT_MASK_PREMULTIPLY));
+				R_FilterImage(image, GL_RGBA, surf->pixels, (image->type & IT_MASK_MULT));
 			}
 
 			R_UploadImage(image, GL_RGBA, surf->pixels);
 
 			SDL_FreeSurface(surf);
 		} else {
-
-			if (type & IT_MASK_FAIL) {
-				return NULL;
-			}
-
 			Com_Debug(DEBUG_RENDERER, "Couldn't load %s\n", key);
 			image = r_image_state.null;
 		}
