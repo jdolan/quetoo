@@ -850,10 +850,11 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 
 	// clear the client and restore the persistent state
 
+	const g_client_t cl = *ent->client;
 	memset(ent->client, 0, sizeof(*ent->client));
 	ent->client->locals.persistent = persistent;
-	ent->client->ai = persistent.ai;
-	ent->client->connected = persistent.connected;
+	ent->client->ai = cl.ai;
+	ent->client->connected = cl.connected;
 
 	// find a spawn point
 	const g_entity_t *spawn = G_SelectSpawnPoint(ent);
@@ -991,9 +992,6 @@ void G_ClientBegin(g_entity_t *ent) {
 	char welcome[MAX_STRING_CHARS];
 
 	G_InitEntity(ent, "client");
-
-	ent->client->locals.persistent.connected = ent->client->connected;
-	ent->client->locals.persistent.ai = ent->client->ai;
 
 	VectorClear(ent->client->locals.cmd_angles);
 	ent->client->locals.persistent.first_frame = g_level.frame_num;
