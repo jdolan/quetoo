@@ -34,18 +34,15 @@ in VertexData {
 	float roll;
 	vec3 end;
 	int type;
-	float fog;
 } in_data[];
 
 out VertexData {
 	vec4 color;
 	vec2 texcoord;
-	float fog;
 } out_data;
 
 void CopyCommon(void) {
 	out_data.color = in_data[0].color;
-	out_data.fog = in_data[0].fog;
 }
 
 #define PARTICLE_SPARK 1
@@ -61,7 +58,6 @@ void CopyCommon(void) {
 
 #define atan2 atan
 
-#include "include/fog.glsl"
 #include "include/uniforms.glsl"
 
 /**

@@ -518,7 +518,7 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 	cg_particle_t *p;
 
 	vec3_t color;
-	VectorSet(color, 0.8, 0.8, 0.95);
+	cgi.ColorFromPalette(113 + Randomr(0, 3), color);
 
 	for (int32_t i = 0; i < 2; i++) {
 

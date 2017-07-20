@@ -387,6 +387,9 @@ static void R_GenerateAtlasMips(r_atlas_t *atlas, r_atlas_params_t *params) {
 
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+	
+	const vec_t texel_w = 1.0 / params->width;
+	const vec_t texel_h = 1.0 / params->height;
 
 	for (uint16_t i = 0; i < params->num_mips; i++) {
 		const uint16_t mip_scale = 1 << i;
@@ -436,10 +439,10 @@ static void R_GenerateAtlasMips(r_atlas_t *atlas, r_atlas_params_t *params) {
 			// if we're setting up mip 0, set up texcoords
 			if (i == 0) {
 				Vector4Set(image->texcoords,
-				           image->position[0] / (vec_t) params->width,
-				           image->position[1] / (vec_t) params->height,
-				           (image->position[0] + image->input_image->width) / (vec_t) params->width,
-				           (image->position[1] + image->input_image->height) / (vec_t) params->height);
+				           (image->position[0] / (vec_t) params->width) + texel_w,
+				           (image->position[1] / (vec_t) params->height) + texel_h,
+				           ((image->position[0] + image->input_image->width) / (vec_t) params->width) - texel_w,
+				           ((image->position[1] + image->input_image->height) / (vec_t) params->height) - texel_h);
 			}
 
 			R_GetError(NULL);

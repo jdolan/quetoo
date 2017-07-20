@@ -739,6 +739,18 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			}
 
 			m = Cm_AllocMaterial(token);
+			assert(m);
+
+			for (const GList *list = *materials; list; list = list->next) {
+				const cm_material_t *mat = list->data;
+				if (!g_strcmp0(m->basename, mat->basename)) {
+					Cm_MaterialWarn(path, &parser, "Redefining material");
+					Cm_FreeMaterial(m);
+					m = NULL;
+					break;
+				}
+			}
+
 			continue;
 		}
 
