@@ -364,7 +364,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 			}
 
 			if (image->type & IT_MASK_FILTER) {
-				R_FilterImage(image, GL_RGBA, surf->pixels, (image->type & IT_MASK_MULT));
+				R_FilterImage(image, GL_RGBA, surf->pixels, (image->type & IT_MASK_MULTIPLY));
 			}
 
 			R_UploadImage(image, GL_RGBA, surf->pixels);
