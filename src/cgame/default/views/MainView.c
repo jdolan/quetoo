@@ -68,11 +68,11 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 			if (cgi.LoadSurface(va("ui/backgrounds/%d", Random() % 6), &surface)) {
 				$(self->background, setImageWithSurface, surface);
 				SDL_FreeSurface(surface);
-			} else {
-				$(self->background, setImage, NULL);
 			}
 
 			self->background->view.autoresizingMask = ViewAutoresizingFill;
+			self->background->view.zIndex = -1;
+
 			$(this, addSubview, (View *) self->background);
 		}
 
@@ -81,14 +81,13 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 			assert(self->logo);
 
 			SDL_Surface *surface;
-			if (cgi.LoadSurface("ui/logo/", &surface)) {
+			if (cgi.LoadSurface("ui/logo", &surface)) {
 				$(self->logo, setImageWithSurface, surface);
 				SDL_FreeSurface(surface);
-			} else {
-				$(self->logo, setImage, NULL);
 			}
 
-			self->background->view.alignment = ViewAlignmentBottomRight;
+			self->logo->view.alignment = ViewAlignmentBottomRight;
+			
 			$(this, addSubview, (View *) self->logo);
 		}
 
@@ -134,7 +133,7 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 
 		{
 			self->dialog = $(alloc(DialogView), init);
-			
+
 			$(this, addSubview, (View *) self->dialog);
 		}
 	}
