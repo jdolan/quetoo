@@ -57,8 +57,8 @@ static void loadView(ViewController *self) {
 
 	this->panel->stackView.view.alignment = ViewAlignmentMiddleCenter;
 
-	this->panel->stackView.view.backgroundColor = QColors.Main;
-	this->panel->stackView.view.borderColor = QColors.BorderLight;
+//	this->panel->stackView.view.backgroundColor = QColors.Main;
+//	this->panel->stackView.view.borderColor = QColors.BorderLight;
 
 	$(self->view, addSubview, (View *) this->panel);
 }
