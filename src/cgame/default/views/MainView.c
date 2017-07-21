@@ -87,7 +87,7 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 			}
 
 			self->logo->view.alignment = ViewAlignmentBottomRight;
-			
+
 			$(this, addSubview, (View *) self->logo);
 		}
 

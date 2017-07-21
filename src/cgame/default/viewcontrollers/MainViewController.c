@@ -126,7 +126,7 @@ static void loadView(ViewController *self) {
 
 	content->padding.top = 80;
 	content->padding.bottom = 80;
-	content->backgroundColor = Colors.AliceBlue;
+	content->zIndex = 1;
 
 	action(NULL, NULL, this, _HomeViewController());
 }
