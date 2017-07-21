@@ -2,7 +2,6 @@
 noinst_HEADERS = \
 	AudioView.h \
 	BindTextView.h \
-	CreateServerView.h \
 	CrosshairView.h \
 	CvarCheckbox.h \
 	CvarSelect.h \
@@ -11,13 +10,12 @@ noinst_HEADERS = \
 	HueSlider.h \
 	InputView.h \
 	InterfaceView.h \
+	MainView.h \
 	MapListCollectionItemView.h \
 	MapListCollectionView.h \
 	PlayerModelView.h \
 	PrimaryButton.h \
 	PrimaryIcon.h \
-	QuickJoinView.h \
-	ServerBrowserView.h \
 	SkinSelect.h \
 	VideoModeSelect.h \
 	VideoView.h
@@ -28,7 +26,6 @@ noinst_LTLIBRARIES = \
 libviews_la_SOURCES = \
 	AudioView.c \
 	BindTextView.c \
-	CreateServerView.c \
 	CrosshairView.c \
 	CvarCheckbox.c \
 	CvarSelect.c \
@@ -38,13 +35,12 @@ libviews_la_SOURCES = \
 	HueSlider.c \
 	InputView.c \
 	InterfaceView.c \
+	MainView.c \
 	MapListCollectionItemView.c \
 	MapListCollectionView.c \
 	PlayerModelView.c \
 	PrimaryButton.c \
 	PrimaryIcon.c \
-	QuickJoinView.c \
-	ServerBrowserView.c \
 	SkinSelect.c \
 	VideoModeSelect.c \
 	VideoView.c

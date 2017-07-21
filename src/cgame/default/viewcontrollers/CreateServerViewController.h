@@ -21,35 +21,36 @@
 
 #pragma once
 
+#include "MenuViewController.h"
 #include "MapListCollectionView.h"
 
 /**
  * @file
  *
- * @brief Create server View.
+ * @brief Create Server ViewController.
  */
 
-typedef struct CreateServerView CreateServerView;
-typedef struct CreateServerViewInterface CreateServerViewInterface;
+typedef struct CreateServerViewController CreateServerViewController;
+typedef struct CreateServerViewControllerInterface CreateServerViewControllerInterface;
 
 /**
- * @brief The CreateServerView type.
+ * @brief The CreateServerViewController type.
  *
- * @extends View
+ * @extends MenuViewController
  */
-struct CreateServerView {
+struct CreateServerViewController {
 
 	/**
 	 * @brief The superclass.
 	 * @private
 	 */
-	View view;
+	MenuViewController menuViewController;
 
 	/**
 	 * @brief The interface.
 	 * @private
 	 */
-	CreateServerViewInterface *interface;
+	CreateServerViewControllerInterface *interface;
 
 	/**
 	 * @brief The gameplay Select.
@@ -73,29 +74,21 @@ struct CreateServerView {
 };
 
 /**
- * @brief The CreateServerView interface.
+ * @brief The CreateServerViewController interface.
  */
-struct CreateServerViewInterface {
+struct CreateServerViewControllerInterface {
 
 	/**
 	 * @brief The superclass interface.
 	 */
-	ViewInterface viewInterface;
-
-	/**
-	 * @fn CreateServerView *CreateServerView::initWithFrame(CreateServerView *self, const SDL_Rect *frame)
-	 * @brief Initializes this CreateServerView with the specified frame.
-	 * @param frame The frame.
-	 * @return The initialized CreateServerView, or `NULL` on error.
-	 * @memberof CreateServerView
-	 */
-	CreateServerView *(*initWithFrame)(CreateServerView *self, const SDL_Rect *frame);
+	MenuViewControllerInterface menuViewControllerInterface;
 };
 
 /**
- * @fn Class *CreateServerView::_CreateServerView(void)
- * @brief The CreateServerView archetype.
- * @return The CreateServerView Class.
- * @memberof CreateServerView
+ * @fn Class *CreateServerViewController::_CreateServerViewController(void)
+ * @brief The CreateServerViewController archetype.
+ * @return The CreateServerViewController Class.
+ * @memberof CreateServerViewController
  */
-extern Class *_CreateServerView(void);
+extern Class *_CreateServerViewController(void);
+

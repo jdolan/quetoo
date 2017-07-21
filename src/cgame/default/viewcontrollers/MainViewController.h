@@ -21,10 +21,10 @@
 
 #pragma once
 
+#include <ObjectivelyMVC/ViewController.h>
 #include <ObjectivelyMVC/NavigationViewController.h>
 
-#include "DialogView.h"
-#include "PrimaryButton.h"
+#include "MainView.h"
 
 /**
  * @file
@@ -37,7 +37,7 @@ typedef struct MainViewControllerInterface MainViewControllerInterface;
 
 /**
  * @brief The MainViewController type.
- * @extends MenuViewController
+ * @extends ViewController
  * @ingroup ViewControllers
  */
 struct MainViewController {
@@ -46,7 +46,7 @@ struct MainViewController {
 	 * @brief The superclass.
 	 * @private
 	 */
-	NavigationViewController navigationViewController;
+	ViewController viewController;
 
 	/**
 	 * @brief The interface.
@@ -55,31 +55,19 @@ struct MainViewController {
 	MainViewControllerInterface *interface;
 
 	/**
-	 * @brief The menu background images; logo and wallpaper
+	 * @brief The main view.
 	 */
-	View *decorationView;
+	MainView *mainView;
 
 	/**
-	 * @brief The Quetoo logo.
+	 * @brief The NavigationViewController.
 	 */
-	ImageView *logoImage;
-
-	/**
-	 * @brief The notification dialog.
-	 */
-	DialogView *dialog;
-
-
-	/**
-	 * @brief The bottom menu bar.
-	 */
-	View *bottomBar;
+	NavigationViewController *navigationViewController;
 
 	/**
 	 * @brief The client's state.
 	 */
 	cl_state_t state;
-	
 };
 
 /**
@@ -90,7 +78,7 @@ struct MainViewControllerInterface {
 	/**
 	 * @brief The superclass interface.
 	 */
-	NavigationViewControllerInterface navigationViewControllerInterface;
+	ViewControllerInterface viewControllerInterface;
 
 	/**
 	 * @fn MainViewController *MainViewController::init(MainViewController *self)

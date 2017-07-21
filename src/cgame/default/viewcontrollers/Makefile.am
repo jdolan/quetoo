@@ -1,8 +1,10 @@
 
 noinst_HEADERS = \
+	CreateServerViewController.h \
 	CreditsViewController.h \
 	HomeViewController.h \
 	InfoViewController.h \
+	JoinServerViewController.h \
 	LoadingViewController.h \
 	MainViewController.h \
 	MenuViewController.h \
@@ -14,9 +16,11 @@ noinst_LTLIBRARIES = \
 	libviewcontrollers.la
 
 libviewcontrollers_la_SOURCES = \
+	CreateServerViewController.c \
 	CreditsViewController.c \
 	HomeViewController.c \
 	InfoViewController.c \
+	JoinServerViewController.c \
 	LoadingViewController.c \
 	MainViewController.c \
 	MenuViewController.c \

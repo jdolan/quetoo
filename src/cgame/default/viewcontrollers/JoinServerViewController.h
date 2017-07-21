@@ -21,32 +21,34 @@
 
 #pragma once
 
+#include "MenuViewController.h"
+
 /**
  * @file
- * @brief Server browser View.
+ * @brief Join server ViewController.
  */
 
-typedef struct ServerBrowserView ServerBrowserView;
-typedef struct ServerBrowserViewInterface ServerBrowserViewInterface;
+typedef struct JoinServerViewController JoinServerViewController;
+typedef struct JoinServerViewControllerInterface JoinServerViewControllerInterface;
 
 /**
- * @brief The ServerBrowserView type.
- * @extends View
+ * @brief The JoinServerViewController type.
+ * @extends MenuViewController
  * @ingroup
  */
-struct ServerBrowserView {
+struct JoinServerViewController {
 
 	/**
 	 * @brief The superclass.
 	 * @private
 	 */
-	View view;
+	MenuViewController menuViewController;
 
 	/**
 	 * @brief The interface.
 	 * @private
 	 */
-	ServerBrowserViewInterface *interface;
+	JoinServerViewControllerInterface *interface;
 
 	/**
 	 * @brief A copy of the client's servers list, for sorting, etc.
@@ -54,43 +56,35 @@ struct ServerBrowserView {
 	GList *servers;
 
 	/**
-	 * @brief The TableView.
+	 * @brief The servers TableView.
 	 */
 	TableView *serversTableView;
 };
 
 /**
- * @brief The ServerBrowserView interface.
+ * @brief The JoinServerViewController interface.
  */
-struct ServerBrowserViewInterface {
+struct JoinServerViewControllerInterface {
 
 	/**
 	 * @brief The superclass interface.
 	 */
-	ViewInterface viewInterface;
+	MenuViewControllerInterface menuViewControllerInterface;
 
 	/**
-	 * @fn ServerBrowserView *ServerBrowserView::initWithFrame(ServerBrowserView *self, const SDL_Rect *frame)
-	 * @brief Initializes this ServerBrowserView with the specified frame.
-	 * @param frame The frame.
-	 * @return The initialized ServerBrowserView, or `NULL` on error.
-	 * @memberof ServerBrowserView
-	 */
-	ServerBrowserView *(*initWithFrame)(ServerBrowserView *self, const SDL_Rect *frame);
-
-	/**
-	 * @fn void ServerBrowserView::reloadServers(ServerBrowserView *self)
+	 * @fn void JoinServerViewController::reloadServers(JoinServerViewController *self)
 	 * @brief Reloads the list of known servers.
-	 * @param self The ServerBrowserView.
-	 * @memberof ServerBrowserView
+	 * @param self The JoinServerViewController.
+	 * @memberof JoinServerViewController
 	 */
-	void (*reloadServers)(ServerBrowserView *self);
+	void (*reloadServers)(JoinServerViewController *self);
 };
 
 /**
- * @fn Class *ServerBrowserView::_ServerBrowserView(void)
- * @brief The ServerBrowserView archetype.
- * @return The ServerBrowserView Class.
- * @memberof ServerBrowserView
+ * @fn Class *JoinServerViewController::_JoinServerViewController(void)
+ * @brief The JoinServerViewController archetype.
+ * @return The JoinServerViewController Class.
+ * @memberof JoinServerViewController
  */
-extern Class *_ServerBrowserView(void);
+extern Class *_JoinServerViewController(void);
+

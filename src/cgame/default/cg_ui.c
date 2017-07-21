@@ -80,5 +80,5 @@ void Cgui_UpdateLoading(const cl_loading_t loading) {
  * @brief Shows a dialog with Cancel/Ok buttons for user input
  */
 void Cgui_DialogQuestion(const char *text, const char *cancelText, const char *okText, void (*okFunction)(void)) {
-	$(mainViewController->dialog, showDialog, text, cancelText, okText, okFunction);
+	$(mainViewController->mainView->dialog, showDialog, text, cancelText, okText, okFunction);
 }

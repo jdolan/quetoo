@@ -31,7 +31,7 @@
 #include "PlayerViewController.h"
 #include "SettingsViewController.h"
 
-#include "DialogView.h"
+#include "MainView.h"
 
 #define _Class _MainViewController
 
@@ -41,9 +41,7 @@ static void dealloc(Object *self) {
 
 	MainViewController *this = (MainViewController *) self;
 
-	release(this->decorationView);
-
-	release(this->dialog);
+	release(this->mainView);
 
 	super(Object, self, dealloc);
 }
@@ -53,16 +51,14 @@ static void dealloc(Object *self) {
 /**
  * @brief Quit the game.
  */
-static void quitFunction(void) {
-
+static void quit(void) {
 	cgi.Cbuf("quit\n");
 }
 
 /**
  * @brief Disconnect from the current game.
  */
-static void disconnectFunction(void) {
-
+static void disconnect(void) {
 	cgi.Cbuf("disconnect\n");
 }
 
@@ -73,27 +69,22 @@ static void action(Control *control, const SDL_Event *event, ident sender, ident
 
 	MainViewController *self = (MainViewController *) sender;
 
-	NavigationViewController *this = (NavigationViewController *) sender;
-
 	Class *clazz = (Class *) data;
 
 	if (clazz) {
-		$(this, popToRootViewController);
-		$(this, popViewController);
+		$(self->navigationViewController, popToRootViewController);
+		$(self->navigationViewController, popViewController);
 
 		ViewController *viewController = $((ViewController *) _alloc(clazz), init);
 
-		$(this, pushViewController, viewController);
+		$(self->navigationViewController, pushViewController, viewController);
 
 		release(viewController);
-
 	} else {
-		if (self->state == CL_ACTIVE) {
-			$(((MainViewController *) this)->dialog, showDialog,
-				"Are you sure you want to disconnect?", "No", "Yes", disconnectFunction);
+		if (self->state >= CL_CONNECTED) {
+			$(self->mainView->dialog, showDialog, "Are you sure you want to disconnect?", "No", "Yes", disconnect);
 		} else {
-			$(((MainViewController *) this)->dialog, showDialog,
-				"Are you sure you want to quit?", "No", "Yes", quitFunction);
+			$(self->mainView->dialog, showDialog, "Are you sure you want to quit?", "No", "Yes", quit);
 		}
 	}
 }
@@ -109,178 +100,35 @@ static void loadView(ViewController *self) {
 
 	MainViewController *this = (MainViewController *) self;
 
-	// Menu decorations
+	this->mainView = $(alloc(MainView), initWithFrame, NULL);
+	assert(self->view);
 
-	this->decorationView = $(alloc(View), initWithFrame, NULL);
+	View *topBar = (View *) this->mainView->topBar;
 
-	this->decorationView->autoresizingMask = ViewAutoresizingFill;
+	Cgui_PrimaryButton(topBar, "HOME", QColors.Dark, action, self, _HomeViewController());
+	Cgui_PrimaryButton(topBar, "PROFILE", QColors.Dark, action, self, _PlayerViewController());
+	Cgui_PrimaryButton(topBar, "PLAY", QColors.Theme, action, self, _PlayViewController());
 
-	// Menu background
+	Cgui_PrimaryIcon(topBar, "ui/pics/settings", QColors.Dark, action, self, _SettingsViewController());
+	Cgui_PrimaryIcon(topBar, "ui/pics/info", QColors.Dark, action, self, _InfoViewController());
+	Cgui_PrimaryIcon(topBar, "ui/pics/quit",  QColors.Dark, action, self, NULL);
 
-	{
-		ImageView *backgroundImage = $(alloc(ImageView), initWithFrame, NULL);
-		assert(backgroundImage);
+	View *bottomBar = (View *) this->mainView->bottomBar;
 
-		SDL_Surface *surface;
+	Cgui_PrimaryButton(bottomBar, "JOIN", QColors.Dark, action, self, _HomeViewController()); // TODO
+	Cgui_PrimaryButton(bottomBar, "VOTES", QColors.Dark, action, self, _HomeViewController()); // TODO
 
-		if (cgi.LoadSurface(va("ui/backgrounds/%d", Random() % 6), &surface)) {
-			$(backgroundImage, setImageWithSurface, surface);
-			SDL_FreeSurface(surface);
-		} else {
-			$(backgroundImage, setImage, NULL);
-		}
+	$(self->view, addSubview, (View *) this->mainView);
 
-		backgroundImage->view.autoresizingMask = ViewAutoresizingFill;
+	$(self, addChildViewController, (ViewController *) this->navigationViewController);
 
-		$(this->decorationView, addSubview, (View *) backgroundImage);
-		release(backgroundImage);
-	}
+	View *content = this->navigationViewController->viewController.view;
 
-	// Quetoo logo
+	content->padding.top = 80;
+	content->padding.bottom = 80;
+	content->backgroundColor = Colors.AliceBlue;
 
-	{
-		const SDL_Rect frame = MakeRect(0, 0, 240, 110);
-
-		ImageView *logoImage = $(alloc(ImageView), initWithFrame, &frame);
-		assert(logoImage);
-
-		SDL_Surface *surface;
-
-		if (cgi.LoadSurface("ui/logo", &surface)) {
-			$(logoImage, setImageWithSurface, surface);
-			SDL_FreeSurface(surface);
-		} else {
-			$(logoImage, setImage, NULL);
-		}
-
-		logoImage->view.alignment = ViewAlignmentBottomRight;
-		logoImage->view.autoresizingMask = ViewAutoresizingNone;
-
-		$(this->decorationView, addSubview, (View *) logoImage);
-		release(logoImage);
-	}
-
-	// Quetoo version watermark
-
-	{
-		Label *versionLabel = $(alloc(Label), initWithText, va("Quetoo %s", cgi.CvarGet("version")->string), NULL);
-		assert(versionLabel);
-
-		versionLabel->view.alignment = ViewAlignmentBottomLeft;
-		versionLabel->view.autoresizingMask = ViewAutoresizingContain;
-
-		versionLabel->text->color = QColors.Watermark;
-
-		$(this->decorationView, addSubview, (View *) versionLabel);
-		release(versionLabel);
-	}
-
-	$(self->view, addSubview, this->decorationView);
-
-	// Top menu bar
-
-	View *topBar = $(alloc(View), initWithFrame, NULL);
-
-	topBar->alignment = ViewAlignmentTopCenter;
-	topBar->autoresizingMask = ViewAutoresizingWidth | ViewAutoresizingContain;
-
-	topBar->backgroundColor = QColors.MainHighlight;
-	topBar->borderColor = QColors.BorderLight;
-
-	topBar->padding.right = DEFAULT_PANEL_SPACING;
-	topBar->padding.left = DEFAULT_PANEL_SPACING;
-
-	topBar->zIndex = 50; // Just below dialogs and panels
-
-	{
-		StackView *row = $(alloc(StackView), initWithFrame, NULL);
-
-		row->spacing = DEFAULT_PANEL_SPACING;
-
-		row->axis = StackViewAxisHorizontal;
-		row->distribution = StackViewDistributionDefault;
-
-		row->view.alignment = ViewAlignmentTopLeft;
-		row->view.autoresizingMask = ViewAutoresizingContain;
-
-		{
-			Cgui_PrimaryButton((View *) row, "HOME", QColors.Dark, action, self, _HomeViewController());
-			Cgui_PrimaryButton((View *) row, "PROFILE", QColors.Dark, action, self, _PlayerViewController());
-			Cgui_PrimaryButton((View *) row, "PLAY", QColors.Theme, action, self, _PlayViewController());
-		}
-
-		$(topBar, addSubview, (View *) row);
-		release(row);
-	}
-
-	{
-		StackView *row = $(alloc(StackView), initWithFrame, NULL);
-
-		row->spacing = DEFAULT_PANEL_SPACING;
-
-		row->axis = StackViewAxisHorizontal;
-		row->distribution = StackViewDistributionDefault;
-
-		row->view.alignment = ViewAlignmentTopRight;
-		row->view.autoresizingMask = ViewAutoresizingContain;
-
-		{
-			Cgui_PrimaryIcon((View *) row, "ui/pics/settings", QColors.Dark, action, self, _SettingsViewController());
-			Cgui_PrimaryIcon((View *) row, "ui/pics/info", QColors.Dark, action, self, _InfoViewController());
-			Cgui_PrimaryIcon((View *) row, "ui/pics/quit",  QColors.Dark, action, self, NULL);
-		}
-
-		$(topBar, addSubview, (View *) row);
-		release(row);
-	}
-
-	$(self->view, addSubview, (View *) topBar);
-	release(topBar);
-
-	// Bottom menu bar
-
-	this->bottomBar = $(alloc(View), initWithFrame, NULL);
-
-	this->bottomBar->alignment = ViewAlignmentBottomCenter;
-	this->bottomBar->autoresizingMask = ViewAutoresizingContain;
-
-	this->bottomBar->backgroundColor = QColors.MainHighlight;
-	this->bottomBar->borderColor = QColors.BorderLight;
-
-	this->bottomBar->padding.top = -6; // HAAAAAAAAAX!!!!
-	this->bottomBar->padding.right = DEFAULT_PANEL_SPACING;
-	this->bottomBar->padding.left = DEFAULT_PANEL_SPACING;
-
-	this->bottomBar->zIndex = 50; // Just below dialogs and panels
-
-	{
-		StackView *row = $(alloc(StackView), initWithFrame, NULL);
-
-		row->spacing = DEFAULT_PANEL_SPACING;
-
-		row->axis = StackViewAxisHorizontal;
-		row->distribution = StackViewDistributionDefault;
-
-		row->view.alignment = ViewAlignmentBottomCenter;
-		row->view.autoresizingMask = ViewAutoresizingContain;
-
-		{
-			Cgui_PrimaryButton((View *) row, "JOIN", QColors.Dark, action, self, _PlayerViewController());
-			Cgui_PrimaryButton((View *) row, "VOTES", QColors.Dark, action, self, _PlayerViewController());
-		}
-
-		$(this->bottomBar, addSubview, (View *) row);
-		release(row);
-	}
-	$(self->view, addSubview, (View *) this->bottomBar);
-	release(this->bottomBar);
-
-	action(NULL, NULL, self, _HomeViewController()); // Open home when the main menu is first opened
-
-	// Dialog
-
-	this->dialog = $(alloc(DialogView), init);
-	$(self->view, addSubview, (View *) this->dialog);
+	action(NULL, NULL, this, _HomeViewController());
 }
 
 /**
@@ -290,11 +138,11 @@ static void viewWillAppear(ViewController *self) {
 
 	MainViewController *this = (MainViewController *) self;
 
-	const _Bool in_game = (this->state == CL_ACTIVE);
+	this->mainView->background->view.hidden = this->state == CL_ACTIVE;
+	this->mainView->logo->view.hidden = this->state == CL_ACTIVE;
+	this->mainView->version->view.hidden = this->state == CL_ACTIVE;
 
-	this->decorationView->hidden = in_game;
-
-	this->bottomBar->hidden = !in_game;
+	this->mainView->bottomBar->view.hidden = this->state != CL_ACTIVE;
 }
 
 #pragma mark - MainViewController
@@ -306,7 +154,12 @@ static void viewWillAppear(ViewController *self) {
  */
 static MainViewController *init(MainViewController *self) {
 
-	return (MainViewController *) super(ViewController, self, init);
+	self = (MainViewController *) super(ViewController, self, init);
+	if (self) {
+		self->navigationViewController = $(alloc(NavigationViewController), init);
+		assert(self->navigationViewController);
+	}
+	return self;
 }
 
 #pragma mark - Class lifecycle
@@ -334,7 +187,7 @@ Class *_MainViewController(void) {
 
 	do_once(&once, {
 		clazz.name = "MainViewController";
-		clazz.superclass = _NavigationViewController();
+		clazz.superclass = _ViewController();
 		clazz.instanceSize = sizeof(MainViewController);
 		clazz.interfaceOffset = offsetof(MainViewController, interface);
 		clazz.interfaceSize = sizeof(MainViewControllerInterface);

@@ -23,9 +23,8 @@
 
 #include "PlayViewController.h"
 
-#include "CreateServerView.h"
-#include "QuickJoinView.h"
-#include "ServerBrowserView.h"
+#include "CreateServerViewController.h"
+#include "JoinServerViewController.h"
 
 #define _Class _PlayViewController
 
@@ -35,7 +34,7 @@ static void dealloc(Object *self) {
 
 	PlayViewController *this = (PlayViewController *) self;
 
-	release(this->tabView);
+	release(this->tabViewController);
 
 	super(Object, self, dealloc);
 }
@@ -49,84 +48,26 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	MenuViewController *this = (MenuViewController *) self;
+	self->view->autoresizingMask = ViewAutoresizingContain;
 
-	this->panel->stackView.view.padding.top = 0;
-	this->panel->stackView.view.padding.right = 0;
-	this->panel->stackView.view.padding.bottom = 0;
-	this->panel->stackView.view.padding.left = 0;
+	PlayViewController *this = (PlayViewController *) self;
 
-	this->panel->stackView.view.zIndex = 100;
+	this->tabViewController = $(alloc(TabViewController), init);
+	assert(this->tabViewController);
 
-	this->panel->contentView->view.clipsSubviews = true;
+	ViewController *joinServerViewController = $((ViewController *) alloc(JoinServerViewController), init);
+	assert(joinServerViewController);
 
-	// Setup the TabView
+	$((ViewController *) this->tabViewController, addChildViewController, joinServerViewController);
+	release(joinServerViewController);
 
-	const SDL_Rect frame = MakeRect(0, 0, 900, 500);
+	ViewController *createServerViewController = $((ViewController *) alloc(CreateServerViewController), init);
+	assert(createServerViewController);
 
-	((PlayViewController *) this)->tabView = $(alloc(TabView), initWithFrame, &frame);
-	TabView *tabView = ((PlayViewController *) this)->tabView;
+	$((ViewController *) this->tabViewController, addChildViewController, createServerViewController);
+	release(createServerViewController);
 
-	tabView->tabPageView->view.autoresizingMask = ViewAutoresizingFill;
-
-	// Tab buttons
-
-	{
-		{
-			QuickJoinView *tabData = $(alloc(QuickJoinView), initWithFrame, NULL);
-
-			tabData->view.autoresizingMask = ViewAutoresizingFill;
-			tabData->view.identifier = strdup("quick_join");
-
-			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
-
-			$(tab->label->text, setText, "Quick join");
-
-			$(tabView, addTab, tab);
-		}
-
-		{
-			ServerBrowserView *tabData = $(alloc(ServerBrowserView), initWithFrame, NULL);
-
-			tabData->view.autoresizingMask = ViewAutoresizingFill;
-			tabData->view.identifier = strdup("server_browser");
-
-			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
-
-			$(tab->label->text, setText, "Server browser");
-
-			$(tabView, addTab, tab);
-		}
-
-		{
-			CreateServerView *tabData = $(alloc(CreateServerView), initWithFrame, NULL);
-
-			tabData->view.autoresizingMask = ViewAutoresizingFill;
-			tabData->view.identifier = strdup("create_server");
-
-			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
-
-			$(tab->label->text, setText, "Create server");
-
-			$(tabView, addTab, tab);
-		}
-	}
-
-	{
-		View *row = $(alloc(View), initWithFrame, NULL);
-
-		row->autoresizingMask = ViewAutoresizingNone;
-
-		row->frame.w = Min(900, cgi.context->window_width - 30);
-		row->frame.h = Min(500, cgi.context->window_height - 80);
-
-		// Add the TabView
-
-		$(row, addSubview, (View *) tabView);
-
-		$((View *) this->panel->contentView, addSubview, (View *) row);
-		release(row);
-	}
+	$(self, addChildViewController, (ViewController *) this->tabViewController);
 }
 
 #pragma mark - Class lifecycle

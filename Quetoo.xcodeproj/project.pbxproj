@@ -327,14 +327,10 @@
 		CEA2EBDC1EC1EE290032E863 /* InfoViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA2EBDA1EC1EE290032E863 /* InfoViewController.h */; };
 		CEA2EBED1EC1EE690032E863 /* AudioView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA2EBDD1EC1EE690032E863 /* AudioView.c */; };
 		CEA2EBEE1EC1EE690032E863 /* AudioView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA2EBDE1EC1EE690032E863 /* AudioView.h */; };
-		CEA2EBEF1EC1EE690032E863 /* CreateServerView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA2EBDF1EC1EE690032E863 /* CreateServerView.c */; };
-		CEA2EBF01EC1EE690032E863 /* CreateServerView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA2EBE01EC1EE690032E863 /* CreateServerView.h */; };
 		CEA2EBF31EC1EE690032E863 /* InputView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA2EBE31EC1EE690032E863 /* InputView.c */; };
 		CEA2EBF41EC1EE690032E863 /* InputView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA2EBE41EC1EE690032E863 /* InputView.h */; };
 		CEA2EBF51EC1EE690032E863 /* InterfaceView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA2EBE51EC1EE690032E863 /* InterfaceView.c */; };
 		CEA2EBF61EC1EE690032E863 /* InterfaceView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA2EBE61EC1EE690032E863 /* InterfaceView.h */; };
-		CEA2EBF81EC1EE690032E863 /* QuickJoinView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA2EBE81EC1EE690032E863 /* QuickJoinView.h */; };
-		CEA2EBFA1EC1EE690032E863 /* ServerBrowserView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA2EBEA1EC1EE690032E863 /* ServerBrowserView.h */; };
 		CEA2EBFB1EC1EE690032E863 /* VideoView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA2EBEB1EC1EE690032E863 /* VideoView.c */; };
 		CEA3B48D1E0576E3004A6CF3 /* cm_material.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA3B4851E057569004A6CF3 /* cm_material.c */; };
 		CEA3B48E1E0576E7004A6CF3 /* cm_material.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA3B4861E057569004A6CF3 /* cm_material.h */; };
@@ -469,9 +465,15 @@
 		CED439801D9D3F0B0052BAFA /* libncurses.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */; };
 		CEE59C311F2125D70044F6F2 /* libz.1.2.11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEE59C301F2125D70044F6F2 /* libz.1.2.11.dylib */; };
 		CEE59C321F2128380044F6F2 /* PrimaryIcon.c in Sources */ = {isa = PBXBuildFile; fileRef = CE72DFB11E85DDEF007467AE /* PrimaryIcon.c */; };
-		CEE59C331F2128380044F6F2 /* QuickJoinView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA2EBE71EC1EE690032E863 /* QuickJoinView.c */; };
-		CEE59C341F2128380044F6F2 /* ServerBrowserView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA2EBE91EC1EE690032E863 /* ServerBrowserView.c */; };
 		CEE59C351F2128E80044F6F2 /* libObjectivelyMVC.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */; };
+		CEE59C3D1F2265250044F6F2 /* CreateServerViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEE59C371F2265250044F6F2 /* CreateServerViewController.h */; };
+		CEE59C3F1F2265250044F6F2 /* CreditsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEE59C391F2265250044F6F2 /* CreditsViewController.h */; };
+		CEE59C411F2265250044F6F2 /* JoinServerViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEE59C3B1F2265250044F6F2 /* JoinServerViewController.h */; };
+		CEE59C421F22654E0044F6F2 /* CreateServerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEE59C361F2265250044F6F2 /* CreateServerViewController.c */; };
+		CEE59C431F22654E0044F6F2 /* CreditsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEE59C381F2265250044F6F2 /* CreditsViewController.c */; };
+		CEE59C441F22654E0044F6F2 /* JoinServerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEE59C3A1F2265250044F6F2 /* JoinServerViewController.c */; };
+		CEE59C471F2271790044F6F2 /* MainView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEE59C451F2271790044F6F2 /* MainView.c */; };
+		CEE59C481F2271790044F6F2 /* MainView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEE59C461F2271790044F6F2 /* MainView.h */; };
 		CEE818951E280DFC003C66DD /* libai.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FEC61C5E44E800A21A51 /* libai.dylib */; };
 		CEEBC1F71E89F9CF00C20F4D /* DialogView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEEBC1F31E89F9C000C20F4D /* DialogView.c */; };
 		CEEBC1F91E89F9DB00C20F4D /* cg_ui_colors.c in Sources */ = {isa = PBXBuildFile; fileRef = CEEBC1EF1E89F93C00C20F4D /* cg_ui_colors.c */; };
@@ -1476,16 +1478,10 @@
 		CEA2EBDA1EC1EE290032E863 /* InfoViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InfoViewController.h; sourceTree = "<group>"; };
 		CEA2EBDD1EC1EE690032E863 /* AudioView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = AudioView.c; sourceTree = "<group>"; };
 		CEA2EBDE1EC1EE690032E863 /* AudioView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioView.h; sourceTree = "<group>"; };
-		CEA2EBDF1EC1EE690032E863 /* CreateServerView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CreateServerView.c; sourceTree = "<group>"; };
-		CEA2EBE01EC1EE690032E863 /* CreateServerView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CreateServerView.h; sourceTree = "<group>"; };
 		CEA2EBE31EC1EE690032E863 /* InputView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = InputView.c; sourceTree = "<group>"; };
 		CEA2EBE41EC1EE690032E863 /* InputView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InputView.h; sourceTree = "<group>"; };
 		CEA2EBE51EC1EE690032E863 /* InterfaceView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = InterfaceView.c; sourceTree = "<group>"; };
 		CEA2EBE61EC1EE690032E863 /* InterfaceView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InterfaceView.h; sourceTree = "<group>"; };
-		CEA2EBE71EC1EE690032E863 /* QuickJoinView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = QuickJoinView.c; sourceTree = "<group>"; };
-		CEA2EBE81EC1EE690032E863 /* QuickJoinView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QuickJoinView.h; sourceTree = "<group>"; };
-		CEA2EBE91EC1EE690032E863 /* ServerBrowserView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ServerBrowserView.c; sourceTree = "<group>"; };
-		CEA2EBEA1EC1EE690032E863 /* ServerBrowserView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ServerBrowserView.h; sourceTree = "<group>"; };
 		CEA2EBEB1EC1EE690032E863 /* VideoView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = VideoView.c; sourceTree = "<group>"; };
 		CEA2EBEC1EC1EE690032E863 /* VideoView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoView.h; sourceTree = "<group>"; };
 		CEA3B4851E057569004A6CF3 /* cm_material.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_material.c; sourceTree = "<group>"; };
@@ -1504,6 +1500,14 @@
 		CED4393B1D9D344E0052BAFA /* libsound.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libsound.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = "../../Library/Developer/Xcode/DerivedData/Quetoo-eijmznjiunzbaafulkyjapfulhqz/Build/Products/Debug/libObjectivelyMVC.dylib"; sourceTree = "<group>"; };
 		CEE59C301F2125D70044F6F2 /* libz.1.2.11.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.11.dylib; path = /opt/local/lib/libz.1.2.11.dylib; sourceTree = "<absolute>"; };
+		CEE59C361F2265250044F6F2 /* CreateServerViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CreateServerViewController.c; sourceTree = "<group>"; };
+		CEE59C371F2265250044F6F2 /* CreateServerViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CreateServerViewController.h; sourceTree = "<group>"; };
+		CEE59C381F2265250044F6F2 /* CreditsViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CreditsViewController.c; sourceTree = "<group>"; };
+		CEE59C391F2265250044F6F2 /* CreditsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CreditsViewController.h; sourceTree = "<group>"; };
+		CEE59C3A1F2265250044F6F2 /* JoinServerViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = JoinServerViewController.c; sourceTree = "<group>"; };
+		CEE59C3B1F2265250044F6F2 /* JoinServerViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JoinServerViewController.h; sourceTree = "<group>"; };
+		CEE59C451F2271790044F6F2 /* MainView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MainView.c; sourceTree = "<group>"; };
+		CEE59C461F2271790044F6F2 /* MainView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainView.h; sourceTree = "<group>"; };
 		CEEBC1EF1E89F93C00C20F4D /* cg_ui_colors.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_ui_colors.c; sourceTree = "<group>"; };
 		CEEBC1F01E89F93C00C20F4D /* cg_ui_colors.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_ui_colors.h; sourceTree = "<group>"; };
 		CEEBC1F31E89F9C000C20F4D /* DialogView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = DialogView.c; sourceTree = "<group>"; };
@@ -2975,10 +2979,16 @@
 		CEFC78991D9BE432000FA6B2 /* viewcontrollers */ = {
 			isa = PBXGroup;
 			children = (
+				CEE59C361F2265250044F6F2 /* CreateServerViewController.c */,
+				CEE59C371F2265250044F6F2 /* CreateServerViewController.h */,
+				CEE59C381F2265250044F6F2 /* CreditsViewController.c */,
+				CEE59C391F2265250044F6F2 /* CreditsViewController.h */,
 				CE9186A41EA5116E00C68925 /* HomeViewController.c */,
 				CE9186A51EA5116E00C68925 /* HomeViewController.h */,
 				CEA2EBD91EC1EE290032E863 /* InfoViewController.c */,
 				CEA2EBDA1EC1EE290032E863 /* InfoViewController.h */,
+				CEE59C3A1F2265250044F6F2 /* JoinServerViewController.c */,
+				CEE59C3B1F2265250044F6F2 /* JoinServerViewController.h */,
 				CE9186A81EA5116E00C68925 /* LoadingViewController.c */,
 				CE9186A91EA5116E00C68925 /* LoadingViewController.h */,
 				CEFC78D01D9BE432000FA6B2 /* MainViewController.c */,
@@ -3003,8 +3013,6 @@
 				CEA2EBDE1EC1EE690032E863 /* AudioView.h */,
 				CEFC79121D9BE432000FA6B2 /* BindTextView.c */,
 				CEFC79131D9BE432000FA6B2 /* BindTextView.h */,
-				CEA2EBDF1EC1EE690032E863 /* CreateServerView.c */,
-				CEA2EBE01EC1EE690032E863 /* CreateServerView.h */,
 				CEFC79141D9BE432000FA6B2 /* CrosshairView.c */,
 				CEFC79151D9BE432000FA6B2 /* CrosshairView.h */,
 				CEFC79161D9BE432000FA6B2 /* CvarCheckbox.c */,
@@ -3023,6 +3031,8 @@
 				CEA2EBE41EC1EE690032E863 /* InputView.h */,
 				CEA2EBE51EC1EE690032E863 /* InterfaceView.c */,
 				CEA2EBE61EC1EE690032E863 /* InterfaceView.h */,
+				CEE59C451F2271790044F6F2 /* MainView.c */,
+				CEE59C461F2271790044F6F2 /* MainView.h */,
 				CEFC793C1D9BE432000FA6B2 /* MapListCollectionItemView.c */,
 				CEFC793D1D9BE432000FA6B2 /* MapListCollectionItemView.h */,
 				CEFC793E1D9BE432000FA6B2 /* MapListCollectionView.c */,
@@ -3033,10 +3043,6 @@
 				CEFC79431D9BE432000FA6B2 /* PrimaryButton.h */,
 				CE72DFB11E85DDEF007467AE /* PrimaryIcon.c */,
 				CE72DFB21E85DDEF007467AE /* PrimaryIcon.h */,
-				CEA2EBE71EC1EE690032E863 /* QuickJoinView.c */,
-				CEA2EBE81EC1EE690032E863 /* QuickJoinView.h */,
-				CEA2EBE91EC1EE690032E863 /* ServerBrowserView.c */,
-				CEA2EBEA1EC1EE690032E863 /* ServerBrowserView.h */,
 				CEFC79461D9BE432000FA6B2 /* SkinSelect.c */,
 				CEFC79471D9BE432000FA6B2 /* SkinSelect.h */,
 				CEFC79481D9BE432000FA6B2 /* VideoModeSelect.c */,
@@ -3115,7 +3121,10 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEE59C3D1F2265250044F6F2 /* CreateServerViewController.h in Headers */,
 				CE80FE791C5E43AC00A21A51 /* ioapi.h in Headers */,
+				CEE59C411F2265250044F6F2 /* JoinServerViewController.h in Headers */,
+				CEE59C3F1F2265250044F6F2 /* CreditsViewController.h in Headers */,
 				CE80FE7A1C5E43AC00A21A51 /* zip.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3396,6 +3405,7 @@
 				CEFC7AE41D9D2CDE000FA6B2 /* CrosshairView.h in Headers */,
 				CEFC7AE51D9D2CDE000FA6B2 /* CvarCheckbox.h in Headers */,
 				CEA2EBF61EC1EE690032E863 /* InterfaceView.h in Headers */,
+				CEE59C481F2271790044F6F2 /* MainView.h in Headers */,
 				CEA2EBEE1EC1EE690032E863 /* AudioView.h in Headers */,
 				CEFC7AE61D9D2CDE000FA6B2 /* CvarSelect.h in Headers */,
 				CEFC7AE71D9D2CDE000FA6B2 /* CvarSlider.h in Headers */,
@@ -3403,14 +3413,11 @@
 				CE72DFB41E85DDEF007467AE /* PrimaryIcon.h in Headers */,
 				CEFC7AEB1D9D2CDE000FA6B2 /* MapListCollectionItemView.h in Headers */,
 				CEFC7AEC1D9D2CDE000FA6B2 /* MapListCollectionView.h in Headers */,
-				CEA2EBF81EC1EE690032E863 /* QuickJoinView.h in Headers */,
 				CEA2EBF41EC1EE690032E863 /* InputView.h in Headers */,
 				CEFC7AF01D9D2CDE000FA6B2 /* PlayerModelView.h in Headers */,
-				CEA2EBF01EC1EE690032E863 /* CreateServerView.h in Headers */,
 				CEFC7AF21D9D2CDE000FA6B2 /* PrimaryButton.h in Headers */,
 				CEFC7AF41D9D2CDE000FA6B2 /* SkinSelect.h in Headers */,
 				CEFC7AF61D9D2CDE000FA6B2 /* VideoModeSelect.h in Headers */,
-				CEA2EBFA1EC1EE690032E863 /* ServerBrowserView.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4466,9 +4473,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEE59C471F2271790044F6F2 /* MainView.c in Sources */,
 				CEA2EBED1EC1EE690032E863 /* AudioView.c in Sources */,
 				CEFC7AB21D9D2CDE000FA6B2 /* BindTextView.c in Sources */,
-				CEA2EBEF1EC1EE690032E863 /* CreateServerView.c in Sources */,
 				CEFC7AB81D9D2CDE000FA6B2 /* CrosshairView.c in Sources */,
 				CEFC7AB71D9D2CDE000FA6B2 /* CvarCheckbox.c in Sources */,
 				CEFC7AC31D9D2CDE000FA6B2 /* CvarSelect.c in Sources */,
@@ -4483,8 +4490,6 @@
 				CEFC7AB31D9D2CDE000FA6B2 /* PlayerModelView.c in Sources */,
 				CED4381F1D9D33E80052BAFA /* PrimaryButton.c in Sources */,
 				CEE59C321F2128380044F6F2 /* PrimaryIcon.c in Sources */,
-				CEE59C331F2128380044F6F2 /* QuickJoinView.c in Sources */,
-				CEE59C341F2128380044F6F2 /* ServerBrowserView.c in Sources */,
 				CEFC7AB91D9D2CDE000FA6B2 /* SkinSelect.c in Sources */,
 				CEA2EBFB1EC1EE690032E863 /* VideoView.c in Sources */,
 				CEFC7AB51D9D2CDE000FA6B2 /* VideoModeSelect.c in Sources */,
@@ -4495,6 +4500,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEE59C421F22654E0044F6F2 /* CreateServerViewController.c in Sources */,
+				CEE59C431F22654E0044F6F2 /* CreditsViewController.c in Sources */,
+				CEE59C441F22654E0044F6F2 /* JoinServerViewController.c in Sources */,
 				CE9186B21EA5116E00C68925 /* HomeViewController.c in Sources */,
 				CEA2EBDB1EC1EE290032E863 /* InfoViewController.c in Sources */,
 				CE9186B61EA5116E00C68925 /* LoadingViewController.c in Sources */,
