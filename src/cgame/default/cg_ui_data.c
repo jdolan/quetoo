@@ -199,12 +199,14 @@ void Cgui_PrimaryButton(View *view, const char *name, SDL_Color color, ActionFun
 
 	$(button->button.title, setText, name);
 
-	((Button *) button)->control.view.autoresizingMask = ViewAutoresizingNone;
+	Control *control = (Control *) button;
 
-	((Button *) button)->control.view.backgroundColor = color;
-	((Button *) button)->control.view.borderColor = QColors.BorderLight;
+	control->view.autoresizingMask = ViewAutoresizingNone;
 
-	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, sender, data);
+	control->view.backgroundColor = color;
+	control->view.borderColor = QColors.BorderLight;
+
+	$(control, addActionForEventType, SDL_MOUSEBUTTONUP, action, sender, data);
 
 	$(view, addSubview, (View *) button);
 
@@ -223,12 +225,14 @@ void Cgui_PrimaryIcon(View *view, const char *icon, SDL_Color color, ActionFunct
 	PrimaryIcon *button = $(alloc(PrimaryIcon), initWithFrame, &frame, icon);
 	assert(button);
 
-	((Button *) button)->control.view.autoresizingMask = ViewAutoresizingNone;
+	Control *control = (Control *) button;
 
-	((Button *) button)->control.view.backgroundColor = color;
-	((Button *) button)->control.view.borderColor = QColors.BorderLight;
+	control->view.autoresizingMask = ViewAutoresizingNone;
 
-	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, sender, data);
+	control->view.backgroundColor = color;
+	control->view.borderColor = QColors.BorderLight;
+
+	$(control, addActionForEventType, SDL_MOUSEBUTTONUP, action, sender, data);
 
 	$(view, addSubview, (View *) button);
 
