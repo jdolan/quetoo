@@ -182,12 +182,10 @@ static void loadView(ViewController *self) {
 	View *topBar = $(alloc(View), initWithFrame, NULL);
 
 	topBar->alignment = ViewAlignmentTopCenter;
-	topBar->autoresizingMask = ViewAutoresizingWidth;
+	topBar->autoresizingMask = ViewAutoresizingWidth | ViewAutoresizingContain;
 
 	topBar->backgroundColor = QColors.MainHighlight;
 	topBar->borderColor = QColors.BorderLight;
-
-	topBar->frame.h = 30;
 
 	topBar->padding.right = DEFAULT_PANEL_SPACING;
 	topBar->padding.left = DEFAULT_PANEL_SPACING;
