@@ -131,6 +131,12 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 
 			$(this, addSubview, (View *) self->bottomBar);
 		}
+
+		{
+			self->dialog = $(alloc(DialogView), init);
+			
+			$(this, addSubview, (View *) self->dialog);
+		}
 	}
 
 	return self;
