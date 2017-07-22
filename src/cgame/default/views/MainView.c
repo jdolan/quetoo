@@ -106,6 +106,7 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 			assert(self->topBar);
 
 			self->topBar->axis = StackViewAxisHorizontal;
+			self->topBar->spacing = DEFAULT_PANEL_SPACING;
 			self->topBar->view.alignment = ViewAlignmentTopCenter;
 			self->topBar->view.autoresizingMask |= ViewAutoresizingWidth;
 			self->topBar->view.backgroundColor = QColors.MainHighlight;
@@ -121,6 +122,7 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 			assert(self->bottomBar);
 
 			self->bottomBar->axis = StackViewAxisHorizontal;
+			self->bottomBar->spacing = DEFAULT_PANEL_SPACING;
 			self->bottomBar->view.alignment = ViewAlignmentBottomCenter;
 			self->bottomBar->view.autoresizingMask |= ViewAutoresizingWidth;
 			self->bottomBar->view.backgroundColor = QColors.MainHighlight;
