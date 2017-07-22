@@ -115,20 +115,6 @@ static void quickjoinAction(Control *control, const SDL_Event *event, ident send
 }
 
 /**
- * @brief ActionFunction for the Create button.
- */
-static void createAction(Control *control, const SDL_Event *event, ident sender, ident data) {
-
-	MainViewController *mainViewController = $((MenuViewController *) sender, mainViewController);
-
-	ViewController *viewController = $((ViewController *) alloc(CreateServerViewController), init);
-
-	$((NavigationViewController *) mainViewController, pushViewController, viewController);
-
-	release(viewController);
-}
-
-/**
  * @brief ActionFunction for the Refresh button.
  */
 static void refreshAction(Control *control, const SDL_Event *event, ident sender, ident data) {
@@ -272,21 +258,20 @@ static void dealloc(Object *self) {
  */
 static void loadView(ViewController *self) {
 
+	cgi.GetServers();
+
 	super(ViewController, self, loadView);
 
-	cgi.GetServers();
+	self->view->autoresizingMask = ViewAutoresizingContain;
+	self->view->identifier = strdup("Join Game");
 
 	JoinServerViewController *this = (JoinServerViewController *) self;
 
-	MenuViewController *menu = (MenuViewController *) self;
+	StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+	stackView->spacing = DEFAULT_PANEL_SPACING;
 
 	{
-		Box *box = $(alloc(Box), initWithFrame, NULL);
-		$(box->label, setText, "JOIN GAME");
-
-		box->view.autoresizingMask |= ViewAutoresizingFill;
-
-		const SDL_Rect frame = MakeRect(0, 0, 0, 320);
+		const SDL_Rect frame = { .w = 1200, .h = 600 };
 		this->serversTableView = $(alloc(TableView), initWithFrame, &frame, ControlStyleDefault);
 
 		TableColumn *hostname = $(alloc(TableColumn), initWithIdentifier, _hostname);
@@ -319,7 +304,6 @@ static void loadView(ViewController *self) {
 		$(this->serversTableView, addColumn, ping);
 		release(ping);
 
-		this->serversTableView->control.view.autoresizingMask = ViewAutoresizingWidth;
 		this->serversTableView->control.selection = ControlSelectionSingle;
 
 		this->serversTableView->dataSource.numberOfRows = numberOfRows;
@@ -332,20 +316,26 @@ static void loadView(ViewController *self) {
 
 		$((Control *) this->serversTableView, addActionForEventType, SDL_MOUSEBUTTONUP, connectAction, this, NULL);
 
-		$((View *) box, addSubview, (View *) this->serversTableView);
-
-		$((View *) menu->panel->contentView, addSubview, (View *) box);
-		release(box);
+		$((View *) stackView, addSubview, (View *) this->serversTableView);
 	}
 
 	{
-		this->menuViewController.panel->accessoryView->view.hidden = false;
+		StackView *accessories = $(alloc(StackView), initWithFrame, NULL);
 
-		Cgui_Button((View *) menu->panel->accessoryView, "Quick Join", quickjoinAction, self, NULL);
-		Cgui_Button((View *) menu->panel->accessoryView, "Create..", createAction, self, NULL);
-		Cgui_Button((View *) menu->panel->accessoryView, "Refresh", refreshAction, self, NULL);
-		Cgui_Button((View *) menu->panel->accessoryView, "Connect", connectAction, self, NULL);
+		accessories->axis = StackViewAxisHorizontal;
+		accessories->spacing = DEFAULT_PANEL_SPACING;
+		accessories->view.alignment = ViewAlignmentBottomRight;
+
+		Cgui_Button((View *) accessories, "Quick Join", quickjoinAction, self, NULL);
+		Cgui_Button((View *) accessories, "Refresh", refreshAction, self, NULL);
+		Cgui_Button((View *) accessories, "Connect", connectAction, self, NULL);
+
+		$((View *) stackView, addSubview, (View *) accessories);
+		release(accessories);
 	}
+
+	$(self->view, addSubview, (View *) stackView);
+	release(stackView);
 }
 
 /**
@@ -455,7 +445,7 @@ Class *_JoinServerViewController(void) {
 
 	do_once(&once, {
 		clazz.name = "JoinServerViewController";
-		clazz.superclass = _MenuViewController();
+		clazz.superclass = _ViewController();
 		clazz.instanceSize = sizeof(JoinServerViewController);
 		clazz.interfaceOffset = offsetof(JoinServerViewController, interface);
 		clazz.interfaceSize = sizeof(JoinServerViewControllerInterface);

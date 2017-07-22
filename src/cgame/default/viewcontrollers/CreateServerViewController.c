@@ -143,129 +143,149 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
+	self->view->autoresizingMask = ViewAutoresizingContain;
+	self->view->identifier = strdup("Create Server");
+
 	CreateServerViewController *this = (CreateServerViewController *) self;
 
-	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
-
-	columns->axis = StackViewAxisHorizontal;
-	columns->spacing = DEFAULT_PANEL_SPACING;
+	StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+	stackView->spacing = DEFAULT_PANEL_SPACING;
 
 	{
-		StackView *column = $(alloc(StackView), initWithFrame, NULL);
-		column->spacing = DEFAULT_PANEL_SPACING;
+		StackView *columns = $(alloc(StackView), initWithFrame, NULL);
+
+		columns->axis = StackViewAxisHorizontal;
+		columns->spacing = DEFAULT_PANEL_SPACING;
 
 		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "CREATE SERVER");
+			StackView *column = $(alloc(StackView), initWithFrame, NULL);
+			column->spacing = DEFAULT_PANEL_SPACING;
 
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+			{
+				Box *box = $(alloc(Box), initWithFrame, NULL);
+				$(box->label, setText, "CREATE SERVER");
 
-			Cgui_CvarTextView((View *) stackView, "Hostname", "sv_hostname");
-			Cgui_CvarTextView((View *) stackView, "Clients", "sv_max_clients");
-			Cgui_CvarCheckboxInput((View *) stackView, "Public", "sv_public");
-			Cgui_CvarTextView((View *) stackView, "Password", "password");
+				StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			$((View *) box, addSubview, (View *) stackView);
-			release(stackView);
+				Cgui_CvarTextView((View *) stackView, "Hostname", "sv_hostname");
+				Cgui_CvarTextView((View *) stackView, "Clients", "sv_max_clients");
+				Cgui_CvarCheckboxInput((View *) stackView, "Public", "sv_public");
+				Cgui_CvarTextView((View *) stackView, "Password", "password");
 
-			$((View *) column, addSubview, (View *) box);
-			release(box);
+				$((View *) box, addSubview, (View *) stackView);
+				release(stackView);
+
+				$((View *) column, addSubview, (View *) box);
+				release(box);
+			}
+
+			{
+				Box *box = $(alloc(Box), initWithFrame, NULL);
+				$(box->label, setText, "GAME");
+
+				StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+				this->gameplay = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
+
+				$(this->gameplay, addOption, "Default", (ident) 0);
+				$(this->gameplay, addOption, "Deathmatch", (ident) 1);
+				$(this->gameplay, addOption, "Instagib", (ident) 2);
+				$(this->gameplay, addOption, "Arena", (ident) 3);
+				$(this->gameplay, addOption, "Duel", (ident) 4);
+
+				this->gameplay->control.view.frame.w = DEFAULT_TEXTVIEW_WIDTH;
+				this->gameplay->delegate.didSelectOption = selectGameplay;
+
+				if (!g_strcmp0(g_gameplay->string, "default")) {
+					$(this->gameplay, selectOptionWithValue, (ident) 0);
+				} else if (!g_strcmp0(g_gameplay->string, "deathmatch")) {
+					$(this->gameplay, selectOptionWithValue, (ident) 1);
+				} else if (!g_strcmp0(g_gameplay->string, "instagib")) {
+					$(this->gameplay, selectOptionWithValue, (ident) 2);
+				} else if (!g_strcmp0(g_gameplay->string, "arena")) {
+					$(this->gameplay, selectOptionWithValue, (ident) 3);
+				} else if (!g_strcmp0(g_gameplay->string, "duel")) {
+					$(this->gameplay, selectOptionWithValue, (ident) 4);
+				}
+
+				Cgui_Input((View *) stackView, "Gameplay", (Control *) this->gameplay);
+
+				this->teamsplay = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
+
+				$(this->teamsplay, addOption, "Free for All", (ident) 0);
+				$(this->teamsplay, addOption, "Team Deathmatch", (ident) 1);
+				$(this->teamsplay, addOption, "Capture the Flag", (ident) 2);
+
+				this->teamsplay->control.view.frame.w = DEFAULT_TEXTVIEW_WIDTH;
+				this->teamsplay->delegate.didSelectOption = selectTeamsplay;
+
+				if (g_ctf->integer != 0) {
+					$(this->teamsplay, selectOptionWithValue, (ident) 2);
+				} else {
+					$(this->teamsplay, selectOptionWithValue, (ident) (ptrdiff_t) g_teams->integer);
+				}
+
+				Cgui_Input((View *) stackView, "Teams play", (Control *) this->teamsplay);
+
+				Cgui_CvarCheckboxInput((View *) stackView, "Match mode", "g_match");
+
+				$((View *) box, addSubview, (View *) stackView);
+				release(stackView);
+
+				$((View *) column, addSubview, (View *) box);
+				release(box);
+			}
+
+			$((View *) columns, addSubview, (View *) column);
+			release(column);
 		}
 
 		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "GAME");
+			StackView *column = $(alloc(StackView), initWithFrame, NULL);
+			column->spacing = DEFAULT_PANEL_SPACING;
 
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+			{
+				Box *box = $(alloc(Box), initWithFrame, NULL);
+				$(box->label, setText, "MAP LIST");
 
-			this->gameplay = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
+				StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+				stackView->spacing = DEFAULT_PANEL_SPACING;
 
-			$(this->gameplay, addOption, "Default", (ident) 0);
-			$(this->gameplay, addOption, "Deathmatch", (ident) 1);
-			$(this->gameplay, addOption, "Instagib", (ident) 2);
-			$(this->gameplay, addOption, "Arena", (ident) 3);
-			$(this->gameplay, addOption, "Duel", (ident) 4);
+				const SDL_Rect frame = { .w = 760, .h = 600 };
+				this->mapList = $(alloc(MapListCollectionView), initWithFrame, &frame, ControlStyleDefault);
 
-			this->gameplay->control.view.frame.w = DEFAULT_TEXTVIEW_WIDTH;
-			this->gameplay->delegate.didSelectOption = selectGameplay;
+				$((View *) stackView, addSubview, (View *) this->mapList);
 
-			if (!g_strcmp0(g_gameplay->string, "default")) {
-				$(this->gameplay, selectOptionWithValue, (ident) 0);
-			} else if (!g_strcmp0(g_gameplay->string, "deathmatch")) {
-				$(this->gameplay, selectOptionWithValue, (ident) 1);
-			} else if (!g_strcmp0(g_gameplay->string, "instagib")) {
-				$(this->gameplay, selectOptionWithValue, (ident) 2);
-			} else if (!g_strcmp0(g_gameplay->string, "arena")) {
-				$(this->gameplay, selectOptionWithValue, (ident) 3);
-			} else if (!g_strcmp0(g_gameplay->string, "duel")) {
-				$(this->gameplay, selectOptionWithValue, (ident) 4);
+				$((View *) box, addSubview, (View *) stackView);
+				release(stackView);
+
+				$((View *) column, addSubview, (View *) box);
+				release(box);
 			}
-
-			Cgui_Input((View *) stackView, "Gameplay", (Control *) this->gameplay);
-
-			this->teamsplay = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
-
-			$(this->teamsplay, addOption, "Free for All", (ident) 0);
-			$(this->teamsplay, addOption, "Team Deathmatch", (ident) 1);
-			$(this->teamsplay, addOption, "Capture the Flag", (ident) 2);
-
-			this->teamsplay->control.view.frame.w = DEFAULT_TEXTVIEW_WIDTH;
-			this->teamsplay->delegate.didSelectOption = selectTeamsplay;
-
-			if (g_ctf->integer != 0) {
-				$(this->teamsplay, selectOptionWithValue, (ident) 2);
-			} else {
-				$(this->teamsplay, selectOptionWithValue, (ident) (ptrdiff_t) g_teams->integer);
-			}
-
-			Cgui_Input((View *) stackView, "Teams play", (Control *) this->teamsplay);
-
-			Cgui_CvarCheckboxInput((View *) stackView, "Match mode", "g_match");
-
-			$((View *) box, addSubview, (View *) stackView);
-			release(stackView);
-
-			$((View *) column, addSubview, (View *) box);
-			release(box);
+			
+			$((View *) columns, addSubview, (View *) column);
+			release(column);
 		}
-
-		$((View *) columns, addSubview, (View *) column);
-		release(column);
+		
+		$((View *) stackView, addSubview, (View *) columns);
+		release(columns);
 	}
 
 	{
-		StackView *column = $(alloc(StackView), initWithFrame, NULL);
-		column->spacing = DEFAULT_PANEL_SPACING;
+		StackView *accessories = $(alloc(StackView), initWithFrame, NULL);
 
-		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "MAP LIST");
+		accessories->axis = StackViewAxisHorizontal;
+		accessories->spacing = DEFAULT_PANEL_SPACING;
+		accessories->view.alignment = ViewAlignmentBottomRight;
 
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-			stackView->spacing = DEFAULT_PANEL_SPACING;
+		Cgui_Button((View *) accessories, "Create", createAction, self, NULL);
 
-			const SDL_Rect frame = { .w = 760, .h = 600 };
-			this->mapList = $(alloc(MapListCollectionView), initWithFrame, &frame, ControlStyleDefault);
-
-			$((View *) stackView, addSubview, (View *) this->mapList);
-
-			$((View *) box, addSubview, (View *) stackView);
-			release(stackView);
-
-			$((View *) column, addSubview, (View *) box);
-			release(box);
-		}
-
-		$((View *) columns, addSubview, (View *) column);
-		release(column);
+		$((View *) stackView, addSubview, (View *) accessories);
+		release(accessories);
 	}
 
-	$((View *) this->menuViewController.panel->contentView, addSubview, (View *) columns);
-	release(columns);
-
-	this->menuViewController.panel->accessoryView->view.hidden = false;
-	Cgui_Button((View *) this->menuViewController.panel->accessoryView, "Create", createAction, self, NULL);
-
+	$(self->view, addSubview, (View *) stackView);
+	release(stackView);
 }
 
 #pragma mark - MapListCollectionView
@@ -292,7 +312,7 @@ Class *_CreateServerViewController(void) {
 
 	do_once(&once, {
 		clazz.name = "CreateServerViewController";
-		clazz.superclass = _MenuViewController();
+		clazz.superclass = _ViewController();
 		clazz.instanceSize = sizeof(CreateServerViewController);
 		clazz.interfaceOffset = offsetof(CreateServerViewController, interface);
 		clazz.interfaceSize = sizeof(CreateServerViewControllerInterface);

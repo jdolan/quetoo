@@ -48,26 +48,24 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	self->view->autoresizingMask = ViewAutoresizingContain;
-
 	PlayViewController *this = (PlayViewController *) self;
 
 	this->tabViewController = $(alloc(TabViewController), init);
 	assert(this->tabViewController);
 
-	ViewController *joinServerViewController = $((ViewController *) alloc(JoinServerViewController), init);
-	assert(joinServerViewController);
+	ViewController *tabViewController = (ViewController *) this->tabViewController;
 
-	$((ViewController *) this->tabViewController, addChildViewController, joinServerViewController);
+	ViewController *joinServerViewController = $((ViewController *) alloc(JoinServerViewController), init);
+	$(tabViewController, addChildViewController, joinServerViewController);
+
 	release(joinServerViewController);
 
 	ViewController *createServerViewController = $((ViewController *) alloc(CreateServerViewController), init);
-	assert(createServerViewController);
+	$(tabViewController, addChildViewController, createServerViewController);
 
-	$((ViewController *) this->tabViewController, addChildViewController, createServerViewController);
 	release(createServerViewController);
 
-	$(self, addChildViewController, (ViewController *) this->tabViewController);
+	$(self, addChildViewController, tabViewController);
 }
 
 #pragma mark - Class lifecycle

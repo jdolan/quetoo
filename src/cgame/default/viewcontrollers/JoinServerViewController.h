@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "MenuViewController.h"
+#include <ObjectivelyMVC/ViewController.h>
 
 /**
  * @file
@@ -33,7 +33,7 @@ typedef struct JoinServerViewControllerInterface JoinServerViewControllerInterfa
 
 /**
  * @brief The JoinServerViewController type.
- * @extends MenuViewController
+ * @extends ViewController
  * @ingroup
  */
 struct JoinServerViewController {
@@ -42,7 +42,7 @@ struct JoinServerViewController {
 	 * @brief The superclass.
 	 * @private
 	 */
-	MenuViewController menuViewController;
+	ViewController viewController;
 
 	/**
 	 * @brief The interface.
@@ -69,7 +69,7 @@ struct JoinServerViewControllerInterface {
 	/**
 	 * @brief The superclass interface.
 	 */
-	MenuViewControllerInterface menuViewControllerInterface;
+	ViewControllerInterface menuViewControllerInterface;
 
 	/**
 	 * @fn void JoinServerViewController::reloadServers(JoinServerViewController *self)
