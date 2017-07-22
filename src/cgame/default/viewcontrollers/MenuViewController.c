@@ -39,6 +39,18 @@ static void dealloc(Object *self) {
 #pragma mark - ViewController
 
 /**
+ * @see ViewController::addChildViewController(ViewController *, ViewController *)
+ */
+static void addChildViewController(ViewController *self, ViewController *childViewController) {
+
+	super(ViewController, self, addChildViewController, childViewController);
+
+	MenuViewController *this = (MenuViewController *) self;
+
+	$((View *) this->panel->contentView, addSubview, childViewController->view);
+}
+
+/**
  * @see ViewController::loadView(ViewController *)
  */
 static void loadView(ViewController *self) {
@@ -83,6 +95,7 @@ static void initialize(Class *clazz) {
 
 	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
 
+	((ViewControllerInterface *) clazz->def->interface)->addChildViewController = addChildViewController;
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 
 	((MenuViewControllerInterface *) clazz->def->interface)->mainViewController = mainViewController;
