@@ -203,7 +203,7 @@ static void enumerateMaps(const char *path, void *data) {
 
 			Value *value = $(alloc(Value), initWithValue, info);
 
-			WithLock(this->lock, {
+			synchronized(this->lock, {
 				$(this->maps, addObject, value);
 				$(this->maps, sort, sortMaps);
 			});
@@ -244,7 +244,7 @@ static void layoutIfNeeded(View *self) {
 
 	MapListCollectionView *this = (MapListCollectionView *) self;
 
-	WithLock(this->lock, {
+	synchronized(this->lock, {
 
 		const Array *maps = (Array *) this->maps;
 		const Array *items = (Array *) this->collectionView.items;
