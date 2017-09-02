@@ -840,9 +840,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 	material->media.Register = R_RegisterMaterial;
 	material->media.Free = R_FreeMaterial;
 
-	Cm_ResolveMaterial(cm, context);
-
-	if (*cm->diffuse.path) {
+	if (Cm_ResolveMaterial(cm, context)) {
 
 		material->diffuse = R_LoadImage(cm->diffuse.path, IT_DIFFUSE);
 		if (material->diffuse->type == IT_DIFFUSE) {
