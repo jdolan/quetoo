@@ -57,14 +57,14 @@ struct PlayerViewController {
 	PlayerModelView *playerModelView;
 
 	/**
-	 * @brief The ColorSelect for the shirt color.
+	 * @brief The ColorPicker for the shirt color.
 	 */
-	ColorSelect *tintRColorSelect;
+	ColorPicker *tintRColorPicker;
 
 	/**
-	 * @brief The ColorSelect for the pants color.
+	 * @brief The ColorPicker for the pants color.
 	 */
-	ColorSelect *tintGColorSelect;
+	ColorPicker *tintGColorPicker;
 };
 
 /**

@@ -21,55 +21,49 @@
 
 #pragma once
 
-#include "MenuViewController.h"
+#include <ObjectivelyMVC/ViewController.h>
 
 /**
  * @file
- * @brief Settings MenuViewController.
+ * @brief Audio ViewController.
  */
 
-typedef struct SettingsViewController SettingsViewController;
-typedef struct SettingsViewControllerInterface SettingsViewControllerInterface;
+typedef struct AudioViewController AudioViewController;
+typedef struct AudioViewControllerInterface AudioViewControllerInterface;
 
 /**
- * @brief The SettingsViewController type.
- * @extends MenuViewController
+ * @brief The AudioViewController type.
+ * @extends ViewController
  */
-struct SettingsViewController {
+struct AudioViewController {
 
 	/**
 	 * @brief The superclass.
-	 * @private
 	 */
-	MenuViewController menuViewController;
+	ViewController viewController;
 
 	/**
 	 * @brief The interface.
-	 * @private
+	 * @protected
 	 */
-	SettingsViewControllerInterface *interface;
-
-	/**
-	 * @brief TabView to contain tabs.
-	 */
-	TabViewController *tabViewController;
+	AudioViewControllerInterface *interface;
 };
 
 /**
- * @brief The SettingsViewController interface.
+ * @brief The AudioViewController interface.
  */
-struct SettingsViewControllerInterface {
+struct AudioViewControllerInterface {
 
 	/**
 	 * @brief The superclass interface.
 	 */
-	MenuViewControllerInterface menuViewControllerInterface;
+	ViewControllerInterface viewControllerInterface;
 };
 
 /**
- * @fn Class *SettingsViewController::_SettingsViewController(void)
- * @brief The SettingsViewController archetype.
- * @return The SettingsViewController Class.
- * @memberof SettingsViewController
+ * @fn Class *AudioViewController::_AudioViewController(void)
+ * @brief The AudioViewController archetype.
+ * @return The AudioViewController Class.
+ * @memberof AudioViewController
  */
-extern Class *_SettingsViewController(void);
+OBJECTIVELY_EXPORT Class *_AudioViewController(void);

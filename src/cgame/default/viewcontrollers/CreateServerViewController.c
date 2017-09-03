@@ -144,7 +144,7 @@ static void loadView(ViewController *self) {
 	super(ViewController, self, loadView);
 
 	self->view->autoresizingMask = ViewAutoresizingContain;
-	self->view->identifier = strdup("Create Server");
+	self->view->identifier = strdup("Create server");
 
 	CreateServerViewController *this = (CreateServerViewController *) self;
 
@@ -163,17 +163,12 @@ static void loadView(ViewController *self) {
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "CREATE SERVER");
+				$(box->label, setText, "Create server");
 
-				StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-
-				Cgui_CvarTextView((View *) stackView, "Hostname", "sv_hostname");
-				Cgui_CvarTextView((View *) stackView, "Clients", "sv_max_clients");
-				Cgui_CvarCheckboxInput((View *) stackView, "Public", "sv_public");
-				Cgui_CvarTextView((View *) stackView, "Password", "password");
-
-				$((View *) box, addSubview, (View *) stackView);
-				release(stackView);
+				Cgui_CvarTextView((View *) box->contentView, "Hostname", "sv_hostname");
+				Cgui_CvarTextView((View *) box->contentView, "Clients", "sv_max_clients");
+				Cgui_CvarCheckboxInput((View *) box->contentView, "Public", "sv_public");
+				Cgui_CvarTextView((View *) box->contentView, "Password", "password");
 
 				$((View *) column, addSubview, (View *) box);
 				release(box);
@@ -181,9 +176,7 @@ static void loadView(ViewController *self) {
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "GAME");
-
-				StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+				$(box->label, setText, "Game");
 
 				this->gameplay = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
 
@@ -208,7 +201,7 @@ static void loadView(ViewController *self) {
 					$(this->gameplay, selectOptionWithValue, (ident) 4);
 				}
 
-				Cgui_Input((View *) stackView, "Gameplay", (Control *) this->gameplay);
+				Cgui_Input((View *) box->contentView, "Gameplay", (Control *) this->gameplay);
 
 				this->teamsplay = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
 
@@ -225,12 +218,9 @@ static void loadView(ViewController *self) {
 					$(this->teamsplay, selectOptionWithValue, (ident) (ptrdiff_t) g_teams->integer);
 				}
 
-				Cgui_Input((View *) stackView, "Teams play", (Control *) this->teamsplay);
+				Cgui_Input((View *) box->contentView, "Teams play", (Control *) this->teamsplay);
 
-				Cgui_CvarCheckboxInput((View *) stackView, "Match mode", "g_match");
-
-				$((View *) box, addSubview, (View *) stackView);
-				release(stackView);
+				Cgui_CvarCheckboxInput((View *) box->contentView, "Match mode", "g_match");
 
 				$((View *) column, addSubview, (View *) box);
 				release(box);
@@ -246,18 +236,14 @@ static void loadView(ViewController *self) {
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "MAP LIST");
+				$(box->label, setText, "Map list");
 
-				StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-				stackView->spacing = DEFAULT_PANEL_SPACING;
+				box->contentView->spacing = DEFAULT_PANEL_SPACING;
 
 				const SDL_Rect frame = { .w = 760, .h = 600 };
 				this->mapList = $(alloc(MapListCollectionView), initWithFrame, &frame, ControlStyleDefault);
 
-				$((View *) stackView, addSubview, (View *) this->mapList);
-
-				$((View *) box, addSubview, (View *) stackView);
-				release(stackView);
+				$((View *) box->contentView, addSubview, (View *) this->mapList);
 
 				$((View *) column, addSubview, (View *) box);
 				release(box);
@@ -287,8 +273,6 @@ static void loadView(ViewController *self) {
 	$(self->view, addSubview, (View *) stackView);
 	release(stackView);
 }
-
-#pragma mark - MapListCollectionView
 
 #pragma mark - Class lifecycle
 

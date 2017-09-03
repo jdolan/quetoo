@@ -1,6 +1,5 @@
 
 noinst_HEADERS = \
-	AudioView.h \
 	BindTextView.h \
 	CrosshairView.h \
 	CvarCheckbox.h \
@@ -8,8 +7,6 @@ noinst_HEADERS = \
 	CvarSlider.h \
 	DialogView.h \
 	HueSlider.h \
-	InputView.h \
-	InterfaceView.h \
 	MainView.h \
 	MapListCollectionItemView.h \
 	MapListCollectionView.h \
@@ -17,14 +14,12 @@ noinst_HEADERS = \
 	PrimaryButton.h \
 	PrimaryIcon.h \
 	SkinSelect.h \
-	VideoModeSelect.h \
-	VideoView.h
+	VideoModeSelect.h
 
 noinst_LTLIBRARIES = \
 	libviews.la
 
 libviews_la_SOURCES = \
-	AudioView.c \
 	BindTextView.c \
 	CrosshairView.c \
 	CvarCheckbox.c \
@@ -33,8 +28,6 @@ libviews_la_SOURCES = \
 	CvarTextView.c \
 	DialogView.c \
 	HueSlider.c \
-	InputView.c \
-	InterfaceView.c \
 	MainView.c \
 	MapListCollectionItemView.c \
 	MapListCollectionView.c \
@@ -42,8 +35,7 @@ libviews_la_SOURCES = \
 	PrimaryButton.c \
 	PrimaryIcon.c \
 	SkinSelect.c \
-	VideoModeSelect.c \
-	VideoView.c
+	VideoModeSelect.c
 
 libviews_la_CFLAGS = \
 	-I$(top_srcdir)/src \

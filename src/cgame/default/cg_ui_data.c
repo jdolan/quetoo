@@ -105,7 +105,7 @@ void Cgui_CvarTextView(View *view, const char *label, const char *name) {
 	release(textView);
 }
 
-#define INPUT_LABEL_WIDTH 140
+#define INPUT_LABEL_WIDTH 160
 
 /**
  * @brief Adds a new Label and the specified Control to the given View.

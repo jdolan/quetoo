@@ -21,55 +21,49 @@
 
 #pragma once
 
-#include "MenuViewController.h"
+#include <ObjectivelyMVC/ViewController.h>
 
 /**
  * @file
- * @brief Settings MenuViewController.
+ * @brief Video ViewController.
  */
 
-typedef struct SettingsViewController SettingsViewController;
-typedef struct SettingsViewControllerInterface SettingsViewControllerInterface;
+typedef struct VideoViewController VideoViewController;
+typedef struct VideoViewControllerInterface VideoViewControllerInterface;
 
 /**
- * @brief The SettingsViewController type.
- * @extends MenuViewController
+ * @brief The VideoViewController type.
+ * @extends ViewController
  */
-struct SettingsViewController {
+struct VideoViewController {
 
 	/**
 	 * @brief The superclass.
-	 * @private
 	 */
-	MenuViewController menuViewController;
+	ViewController viewController;
 
 	/**
 	 * @brief The interface.
-	 * @private
+	 * @protected
 	 */
-	SettingsViewControllerInterface *interface;
-
-	/**
-	 * @brief TabView to contain tabs.
-	 */
-	TabViewController *tabViewController;
+	VideoViewControllerInterface *interface;
 };
 
 /**
- * @brief The SettingsViewController interface.
+ * @brief The VideoViewController interface.
  */
-struct SettingsViewControllerInterface {
+struct VideoViewControllerInterface {
 
 	/**
 	 * @brief The superclass interface.
 	 */
-	MenuViewControllerInterface menuViewControllerInterface;
+	ViewControllerInterface viewControllerInterface;
 };
 
 /**
- * @fn Class *SettingsViewController::_SettingsViewController(void)
- * @brief The SettingsViewController archetype.
- * @return The SettingsViewController Class.
- * @memberof SettingsViewController
+ * @fn Class *VideoViewController::_VideoViewController(void)
+ * @brief The VideoViewController archetype.
+ * @return The VideoViewController Class.
+ * @memberof VideoViewController
  */
-extern Class *_SettingsViewController(void);
+OBJECTIVELY_EXPORT Class *_VideoViewController(void);

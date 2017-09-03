@@ -21,60 +21,53 @@
 
 #include "cg_local.h"
 
-#include "AudioView.h"
+#include "AudioViewController.h"
 
-#define _Class _AudioView
+#define _Class _AudioViewController
 
-#pragma mark - Actions
+#pragma mark - Actions and delegate callbacks
 
 /**
  * @brief ActionFunction for Apply Button.
  */
 static void applyAction(Control *control, const SDL_Event *event, ident sender, ident data) {
-	cgi.Cbuf("s_restart\n");
+	cgi.Cbuf("s_restart");
 }
 
-#pragma mark - AudioView
+#pragma mark - ViewController
 
 /**
- * @fn AudioView *AudioView::initWithFrame(AudioView *self, const SDL_Rect *frame)
- *
- * @memberof AudioView
+ * @see ViewController::loadView(ViewController *)
  */
- static AudioView *initWithFrame(AudioView *self, const SDL_Rect *frame) {
+static void loadView(ViewController *self) {
 
-	self = (AudioView *) super(View, self, initWithFrame, frame);
-	if (self) {
+	super(ViewController, self, loadView);
 
+	self->view->autoresizingMask = ViewAutoresizingContain;
+	self->view->identifier = strdup("Audio");
+
+	StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+	stackView->spacing = DEFAULT_PANEL_SPACING;
+
+	{
 		StackView *columns = $(alloc(StackView), initWithFrame, NULL);
-
 		columns->spacing = DEFAULT_PANEL_SPACING;
 
 		columns->axis = StackViewAxisHorizontal;
 		columns->distribution = StackViewDistributionFillEqually;
 
-		columns->view.autoresizingMask = ViewAutoresizingFill;
-
 		{
 			StackView *column = $(alloc(StackView), initWithFrame, NULL);
-
 			column->spacing = DEFAULT_PANEL_SPACING;
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "Volumes");
+				$(box->label, setText, "Volume");
 
-				box->view.autoresizingMask |= ViewAutoresizingWidth;
+				Cgui_CvarSliderInput((View *) box->contentView, "Effects", "s_volume", 0.0, 1.0, 0.1);
+				Cgui_CvarSliderInput((View *) box->contentView, "Music", "s_music_volume", 0.0, 1.0, 0.1);
 
-				StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-
-				Cgui_CvarSliderInput((View *) stackView, "Effect volume", "s_volume", 0.0, 1.0, 0.1);
-				Cgui_CvarSliderInput((View *) stackView, "Music volume", "s_music_volume", 0.0, 1.0, 0.1);
-
-				Cgui_CvarCheckboxInput((View *) stackView, "Ambient sound", "s_ambient");
-
-				$((View *) box, addSubview, (View *) stackView);
-				release(stackView);
+				Cgui_CvarCheckboxInput((View *) box->contentView, "Ambient sounds", "s_ambient");
 
 				$((View *) column, addSubview, (View *) box);
 				release(box);
@@ -86,21 +79,13 @@ static void applyAction(Control *control, const SDL_Event *event, ident sender, 
 
 		{
 			StackView *column = $(alloc(StackView), initWithFrame, NULL);
-
 			column->spacing = DEFAULT_PANEL_SPACING;
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
 				$(box->label, setText, "Sounds");
 
-				box->view.autoresizingMask |= ViewAutoresizingWidth;
-
-				StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-
-				Cgui_CvarCheckboxInput((View *) stackView, "Hit sound", cg_hit_sound->name);
-
-				$((View *) box, addSubview, (View *) stackView);
-				release(stackView);
+				Cgui_CvarCheckboxInput((View *) box->contentView, "Hit sounds", cg_hit_sound->name);
 
 				$((View *) column, addSubview, (View *) box);
 				release(box);
@@ -109,12 +94,26 @@ static void applyAction(Control *control, const SDL_Event *event, ident sender, 
 			$((View *) columns, addSubview, (View *) column);
 			release(column);
 		}
-
-		$((View *) self, addSubview, (View *) columns);
+		
+		$((View *) stackView, addSubview, (View *) columns);
 		release(columns);
 	}
 
-	return self;
+	{
+		StackView *accessories = $(alloc(StackView), initWithFrame, NULL);
+
+		accessories->axis = StackViewAxisHorizontal;
+		accessories->spacing = DEFAULT_PANEL_SPACING;
+		accessories->view.alignment = ViewAlignmentBottomRight;
+
+		Cgui_Button((View *) accessories, "Apply", applyAction, self, NULL);
+
+		$((View *) stackView, addSubview, (View *) accessories);
+		release(accessories);
+	}
+
+	$(self->view, addSubview, (View *) stackView);
+	release(stackView);
 }
 
 #pragma mark - Class lifecycle
@@ -123,24 +122,23 @@ static void applyAction(Control *control, const SDL_Event *event, ident sender, 
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
-
-	((AudioViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
+	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 }
 
 /**
- * @fn Class *AudioView::_AudioView(void)
- * @memberof AudioView
+ * @fn Class *AudioViewController::_AudioViewController(void)
+ * @memberof AudioViewController
  */
-Class *_AudioView(void) {
+Class *_AudioViewController(void) {
 	static Class clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "AudioView";
-		clazz.superclass = _View();
-		clazz.instanceSize = sizeof(AudioView);
-		clazz.interfaceOffset = offsetof(AudioView, interface);
-		clazz.interfaceSize = sizeof(AudioViewInterface);
+		clazz.name = "AudioViewController";
+		clazz.superclass = _ViewController();
+		clazz.instanceSize = sizeof(AudioViewController);
+		clazz.interfaceOffset = offsetof(AudioViewController, interface);
+		clazz.interfaceSize = sizeof(AudioViewControllerInterface);
 		clazz.initialize = initialize;
 	});
 

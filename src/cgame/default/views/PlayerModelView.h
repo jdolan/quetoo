@@ -22,7 +22,7 @@
 #pragma once
 
 #include <ObjectivelyMVC/ImageView.h>
-#include <ObjectivelyMVC/ColorSelect.h>
+#include <ObjectivelyMVC/ColorPicker.h>
 #include <ObjectivelyMVC/Control.h>
 
 #include "cg_types.h"

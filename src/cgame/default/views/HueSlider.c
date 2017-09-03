@@ -64,7 +64,6 @@ static void didSetValue(Slider *self) {
 		$(self->label, setText, "+");
 
 		self->handle->view.backgroundColor = QColors.Dark;
-
 	}
 
 	if (((HueSlider *) self)->changeFunction) {

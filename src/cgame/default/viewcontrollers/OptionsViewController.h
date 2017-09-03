@@ -21,58 +21,49 @@
 
 #pragma once
 
+#include <ObjectivelyMVC/ViewController.h>
+
 /**
  * @file
- * @brief Video View
+ * @brief Interface ViewController.
  */
 
-typedef struct VideoView VideoView;
-typedef struct VideoViewInterface VideoViewInterface;
+typedef struct OptionsViewController OptionsViewController;
+typedef struct OptionsViewControllerInterface OptionsViewControllerInterface;
 
 /**
- * @brief The VideoView type.
- * @extends View
- * @ingroup
+ * @brief The OptionsViewController type.
+ * @extends ViewController
  */
-struct VideoView {
+struct OptionsViewController {
 
 	/**
 	 * @brief The superclass.
-	 * @private
 	 */
-	View view;
+	ViewController viewController;
 
 	/**
 	 * @brief The interface.
-	 * @private
+	 * @protected
 	 */
-	VideoViewInterface *interface;
+	OptionsViewControllerInterface *interface;
 };
 
 /**
- * @brief The VideoView interface.
+ * @brief The OptionsViewController interface.
  */
-struct VideoViewInterface {
+struct OptionsViewControllerInterface {
 
 	/**
 	 * @brief The superclass interface.
 	 */
-	ViewInterface viewInterface;
-
-	/**
-	 * @fn VideoView *VideoView::initWithFrame(VideoView *self, const SDL_Rect *frame)
-	 * @brief Initializes this VideoView with the specified frame.
-	 * @param frame The frame.
-	 * @return The initialized VideoView, or `NULL` on error.
-	 * @memberof VideoView
-	 */
-	VideoView *(*initWithFrame)(VideoView *self, const SDL_Rect *frame);
+	ViewControllerInterface viewControllerInterface;
 };
 
 /**
- * @fn Class *VideoView::_VideoView(void)
- * @brief The VideoView archetype.
- * @return The VideoView Class.
- * @memberof VideoView
+ * @fn Class *OptionsViewController::_OptionsViewController(void)
+ * @brief The OptionsViewController archetype.
+ * @return The OptionsViewController Class.
+ * @memberof OptionsViewController
  */
-extern Class *_VideoView(void);
+OBJECTIVELY_EXPORT Class *_OptionsViewController(void);

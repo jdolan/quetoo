@@ -135,8 +135,8 @@ void R_InitContext(void) {
 	Com_Verbose("   Version: %i.%i (%i flags, %i profile)\n", attr[SDL_GL_CONTEXT_MAJOR_VERSION],
 	            attr[SDL_GL_CONTEXT_MINOR_VERSION], attr[SDL_GL_CONTEXT_FLAGS], attr[SDL_GL_CONTEXT_PROFILE_MASK]);
 
-	if (SDL_GL_SetSwapInterval(r_vsync->integer) == -1) {
-		Com_Warn("Failed to set VSync %d: %s\n", r_vsync->integer, SDL_GetError());
+	if (SDL_GL_SetSwapInterval(r_swap_interval->integer) == -1) {
+		Com_Warn("Failed to set VSync %d: %s\n", r_swap_interval->integer, SDL_GetError());
 	}
 
 	if (SDL_SetWindowBrightness(r_context.window, r_gamma->value) == -1) {

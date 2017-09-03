@@ -21,58 +21,49 @@
 
 #pragma once
 
+#include <ObjectivelyMVC/ViewController.h>
+
 /**
  * @file
- * @brief Audio View
+ * @brief Input ViewController.
  */
 
-typedef struct AudioView AudioView;
-typedef struct AudioViewInterface AudioViewInterface;
+typedef struct InputViewController InputViewController;
+typedef struct InputViewControllerInterface InputViewControllerInterface;
 
 /**
- * @brief The AudioView type.
- * @extends View
- * @ingroup
+ * @brief The InputViewController type.
+ * @extends ViewController
  */
-struct AudioView {
+struct InputViewController {
 
 	/**
 	 * @brief The superclass.
-	 * @private
 	 */
-	View view;
+	ViewController viewController;
 
 	/**
 	 * @brief The interface.
-	 * @private
+	 * @protected
 	 */
-	AudioViewInterface *interface;
+	InputViewControllerInterface *interface;
 };
 
 /**
- * @brief The AudioView interface.
+ * @brief The InputViewController interface.
  */
-struct AudioViewInterface {
+struct InputViewControllerInterface {
 
 	/**
 	 * @brief The superclass interface.
 	 */
-	ViewInterface viewInterface;
-
-	/**
-	 * @fn AudioView *AudioView::initWithFrame(AudioView *self, const SDL_Rect *frame)
-	 * @brief Initializes this AudioView with the specified frame.
-	 * @param frame The frame.
-	 * @return The initialized AudioView, or `NULL` on error.
-	 * @memberof AudioView
-	 */
-	AudioView *(*initWithFrame)(AudioView *self, const SDL_Rect *frame);
+	ViewControllerInterface viewControllerInterface;
 };
 
 /**
- * @fn Class *AudioView::_AudioView(void)
- * @brief The AudioView archetype.
- * @return The AudioView Class.
- * @memberof AudioView
+ * @fn Class *InputViewController::_InputViewController(void)
+ * @brief The InputViewController archetype.
+ * @return The InputViewController Class.
+ * @memberof InputViewController
  */
-extern Class *_AudioView(void);
+OBJECTIVELY_EXPORT Class *_InputViewController(void);

@@ -23,8 +23,6 @@
 
 #include "JoinServerViewController.h"
 
-#include "CreateServerViewController.h"
-
 static const char *_hostname = "Hostname";
 static const char *_source = "Source";
 static const char *_name = "Map";
@@ -263,7 +261,7 @@ static void loadView(ViewController *self) {
 	super(ViewController, self, loadView);
 
 	self->view->autoresizingMask = ViewAutoresizingContain;
-	self->view->identifier = strdup("Join Game");
+	self->view->identifier = strdup("Join game");
 
 	JoinServerViewController *this = (JoinServerViewController *) self;
 
@@ -326,7 +324,7 @@ static void loadView(ViewController *self) {
 		accessories->spacing = DEFAULT_PANEL_SPACING;
 		accessories->view.alignment = ViewAlignmentBottomRight;
 
-		Cgui_Button((View *) accessories, "Quick Join", quickjoinAction, self, NULL);
+		Cgui_Button((View *) accessories, "Quick join", quickjoinAction, self, NULL);
 		Cgui_Button((View *) accessories, "Refresh", refreshAction, self, NULL);
 		Cgui_Button((View *) accessories, "Connect", connectAction, self, NULL);
 

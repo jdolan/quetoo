@@ -58,49 +58,32 @@ static void selectEffectColor(double hue) {
 #pragma mark - Actions & delegates
 
 /**
- * @brief ActionFunction for changing the shirt color.
+ * @brief ColorPickerDelegate callback for tint selection.
  */
-static void didSetTintR(ColorSelect *self) {
+static void didPickColor(ColorPicker *colorPicker, SDL_Color *color) {
 
-	PlayerViewController *this = (PlayerViewController *) self;
+	PlayerViewController *this = colorPicker->delegate.self;
 
-	ColorSelect *colorSelect = (ColorSelect *) this->tintRColorSelect;
+	if (colorPicker == this->tintGColorPicker) {
 
-	color_t color = ColorFromRGB(colorSelect->color.r, colorSelect->color.g, colorSelect->color.b);
-	char hexColor[COLOR_MAX_LENGTH];
+	} else if (colorPicker == this->tintRColorPicker) {
 
-	if (color.r == 0 && color.g == 0 && color.b == 0) {
-		cgi.CvarSet(cg_tint_r->name, "default");
 	} else {
-		ColorToHex(color, hexColor, sizeof(hexColor));
-
-		cgi.CvarSet(cg_tint_r->name, hexColor);
+		assert(false);
 	}
 
-	if (this->playerModelView) {
-		$((View *) this->playerModelView, updateBindings);
-	}
-}
-
-/**
- * @brief ActionFunction for changing the pants color.
- */
-static void didSetTintG(ColorSelect *self) {
-
-	PlayerViewController *this = (PlayerViewController *) self;
-
-	ColorSelect *colorSelect = (ColorSelect *) this->tintGColorSelect;
-
-	color_t color = ColorFromRGB(colorSelect->color.r, colorSelect->color.g, colorSelect->color.b);
-	char hexColor[COLOR_MAX_LENGTH];
-
-	if (color.r == 0 && color.g == 0 && color.b == 0) {
-		cgi.CvarSet(cg_tint_g->name, "default");
-	} else {
-		ColorToHex(color, hexColor, sizeof(hexColor));
-
-		cgi.CvarSet(cg_tint_g->name, hexColor);
-	}
+//	ColorPicker *colorSelect = (ColorPicker *) this->tintRColorPicker;
+//
+//	color_t color = ColorFromRGB(colorSelect->color.r, colorSelect->color.g, colorSelect->color.b);
+//	char hexColor[COLOR_MAX_LENGTH];
+//
+//	if (color.r == 0 && color.g == 0 && color.b == 0) {
+//		cgi.CvarSet(cg_tint_r->name, "default");
+//	} else {
+//		ColorToHex(color, hexColor, sizeof(hexColor));
+//
+//		cgi.CvarSet(cg_tint_r->name, hexColor);
+//	}
 
 	if (this->playerModelView) {
 		$((View *) this->playerModelView, updateBindings);
@@ -116,8 +99,8 @@ static void dealloc(Object *self) {
 
 	PlayerViewController *this = (PlayerViewController *) self;
 
-	release(this->tintRColorSelect);
-	release(this->tintGColorSelect);
+	release(this->tintRColorPicker);
+	release(this->tintGColorPicker);
 
 	super(Object, self, dealloc);
 }
@@ -219,10 +202,10 @@ static void loadView(ViewController *self) {
 			const SDL_Rect colorFrame = MakeRect(0, 0, 200, 96); // Used for both shirt and pants
 			color_t color;
 
-			this->tintRColorSelect = (ColorSelect *) $(alloc(ColorSelect), initWithFrame, &colorFrame, false);
+			this->tintRColorPicker = (ColorPicker *) $(alloc(ColorPicker), initWithFrame, &colorFrame);
 
-			this->tintRColorSelect->delegate.self = self;
-			this->tintRColorSelect->delegate.didSetColor = didSetTintR;
+			this->tintRColorPicker->delegate.self = self;
+			this->tintRColorPicker->delegate.didPickColor= didPickColor;
 
 			const char *tintR = cg_tint_r->string;
 
@@ -232,16 +215,16 @@ static void loadView(ViewController *self) {
 				ColorParseHex(tintR, &color);
 			}
 
-			$(this->tintRColorSelect, setColor, (SDL_Color) { .r = color.r, .g = color.g, .b = color.b });
+			$(this->tintRColorPicker, setColor, (SDL_Color) { .r = color.r, .g = color.g, .b = color.b });
 
-			Cgui_Input((View *) stackView, "Shirt", (Control *) this->tintRColorSelect);
+			Cgui_Input((View *) stackView, "Shirt", (Control *) this->tintRColorPicker);
 
 			// Pants color
 
-			this->tintGColorSelect = (ColorSelect *) $(alloc(ColorSelect), initWithFrame, &colorFrame, false);
+			this->tintGColorPicker = (ColorPicker *) $(alloc(ColorPicker), initWithFrame, &colorFrame);
 
-			this->tintGColorSelect->delegate.self = self;
-			this->tintGColorSelect->delegate.didSetColor = didSetTintG;
+			this->tintGColorPicker->delegate.self = self;
+			this->tintGColorPicker->delegate.didPickColor = didPickColor;
 
 			const char *tintG = cg_tint_g->string;
 
@@ -251,9 +234,9 @@ static void loadView(ViewController *self) {
 				ColorParseHex(tintG, &color);
 			}
 
-			$(this->tintGColorSelect, setColor, (SDL_Color) { .r = color.r, .g = color.g, .b = color.b });
+			$(this->tintGColorPicker, setColor, (SDL_Color) { .r = color.r, .g = color.g, .b = color.b });
 
-			Cgui_Input((View *) stackView, "Pants", (Control *) this->tintGColorSelect);
+			Cgui_Input((View *) stackView, "Pants", (Control *) this->tintGColorPicker);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);

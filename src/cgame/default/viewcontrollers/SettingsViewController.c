@@ -23,10 +23,10 @@
 
 #include "SettingsViewController.h"
 
-#include "AudioView.h"
-#include "InputView.h"
-#include "InterfaceView.h"
-#include "VideoView.h"
+#include "AudioViewController.h"
+#include "InputViewController.h"
+#include "OptionsViewController.h"
+#include "VideoViewController.h"
 
 #define _Class _SettingsViewController
 
@@ -36,7 +36,7 @@ static void dealloc(Object *self) {
 
 	SettingsViewController *this = (SettingsViewController *) self;
 
-	release(this->tabView);
+	release(this->tabViewController);
 
 	super(Object, self, dealloc);
 }
@@ -50,110 +50,30 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	MenuViewController *this = (MenuViewController *) self;
+	SettingsViewController *this = (SettingsViewController *) self;
 
-	this->panel->stackView.view.padding.top = 0;
-	this->panel->stackView.view.padding.right = 0;
-	this->panel->stackView.view.padding.bottom = 0;
-	this->panel->stackView.view.padding.left = 0;
+	this->tabViewController = $(alloc(TabViewController), init);
+	assert(this->tabViewController);
 
-	this->panel->stackView.view.zIndex = 100;
+	ViewController *viewController, *tabViewController = (ViewController *) this->tabViewController;
 
-	this->panel->contentView->view.clipsSubviews = true;
+	viewController = $((ViewController *) alloc(VideoViewController), init);
+	$(tabViewController, addChildViewController, viewController);
+	release(viewController);
 
-	// Setup the TabView
+	viewController = $((ViewController *) alloc(AudioViewController), init);
+	$(tabViewController, addChildViewController, viewController);
+	release(viewController);
 
-	const SDL_Rect frame = MakeRect(0, 0, 900, 500);
+	viewController = $((ViewController *) alloc(InputViewController), init);
+	$(tabViewController, addChildViewController, viewController);
+	release(viewController);
 
-	((SettingsViewController *) this)->tabView = $(alloc(TabView), initWithFrame, &frame);
-	TabView *tabView = ((SettingsViewController *) this)->tabView;
+	viewController = $((ViewController *) alloc(OptionsViewController), init);
+	$(tabViewController, addChildViewController, viewController);
+	release(viewController);
 
-	tabView->tabPageView->view.autoresizingMask = ViewAutoresizingFill;
-
-	// Tab buttons
-
-	{
-
-		{
-			VideoView *tabData = $(alloc(VideoView), initWithFrame, NULL);
-
-			tabData->view.autoresizingMask = ViewAutoresizingFill;
-			tabData->view.identifier = strdup("video");
-
-			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
-
-			$(tab->label->text, setText, "Video");
-
-			$(tabView, addTab, tab);
-		}
-
-		{
-			InputView *tabData = $(alloc(InputView), initWithFrame, NULL);
-
-			tabData->view.autoresizingMask = ViewAutoresizingFill;
-			tabData->view.identifier = strdup("input");
-
-			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
-
-			$(tab->label->text, setText, "Input");
-
-			$(tabView, addTab, tab);
-		}
-
-		{
-			InterfaceView *tabData = $(alloc(InterfaceView), initWithFrame, NULL);
-
-			tabData->view.autoresizingMask = ViewAutoresizingFill;
-			tabData->view.identifier = strdup("game");
-
-			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
-
-			$(tab->label->text, setText, "Game");
-
-			$(tabView, addTab, tab);
-		}
-
-		{
-			InterfaceView *tabData = $(alloc(InterfaceView), initWithFrame, NULL);
-
-			tabData->view.autoresizingMask = ViewAutoresizingFill;
-			tabData->view.identifier = strdup("view");
-
-			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
-
-			$(tab->label->text, setText, "View");
-
-			$(tabView, addTab, tab);
-		}
-
-		{
-			InterfaceView *tabData = $(alloc(InterfaceView), initWithFrame, NULL);
-
-			tabData->view.autoresizingMask = ViewAutoresizingFill;
-			tabData->view.identifier = strdup("interface");
-
-			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
-
-			$(tab->label->text, setText, "Interface");
-
-			$(tabView, addTab, tab);
-		}
-
-		{
-			AudioView *tabData = $(alloc(AudioView), initWithFrame, NULL);
-
-			tabData->view.autoresizingMask = ViewAutoresizingFill;
-			tabData->view.identifier = "audio";
-
-			TabViewItem *tab = $(alloc(TabViewItem), initWithView, (View *) tabData);
-
-			$(tab->label->text, setText, "Audio");
-
-			$(tabView, addTab, tab);
-		}
-	}
-
-	$((View *) this->panel->contentView, addSubview, (View *) tabView);
+	$(self, addChildViewController, tabViewController);
 }
 
 #pragma mark - Class lifecycle

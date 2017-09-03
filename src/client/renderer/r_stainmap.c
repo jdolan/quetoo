@@ -121,7 +121,10 @@ static _Bool R_StainSurface(const r_stain_t *stain, const r_bsp_surface_t *surf)
 		.stain = stain,
 		.radius = radius_rounded,
 		.point = { round(surf->lightmap_s + point_st[0]), round(surf->lightmap_t + point_st[1]) },
-		.color = ColorFromRGBA((byte) (stain->color[0] * 255.0), (byte) (stain->color[1] * 255.0), (byte) (stain->color[2] * 255.0), (byte) (stain->color[3] * 255.0))
+		.color = ColorFromRGBA((byte) (stain->color[0] * 255.0),
+							   (byte) (stain->color[1] * 255.0),
+							   (byte) (stain->color[2] * 255.0),
+							   (byte) (stain->color[3] * 255.0))
 	}, 1);
 
 	return true;
@@ -188,7 +191,7 @@ static _Bool R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
  */
 void R_AddStain(const r_stain_t *s) {
 
-	if (!r_stainmap->value) {
+	if (!r_stainmaps->value) {
 		return;
 	}
 
@@ -198,7 +201,7 @@ void R_AddStain(const r_stain_t *s) {
 	}
 
 	r_view.stains[r_view.num_stains] = *s;
-	r_view.stains[r_view.num_stains].radius *= r_stainmap->value;
+	r_view.stains[r_view.num_stains].radius *= r_stainmaps->value;
 	r_view.num_stains++;
 }
 
