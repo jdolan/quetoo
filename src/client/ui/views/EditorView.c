@@ -150,7 +150,7 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "MATERIAL");
+				$(box->label->text, setText, "MATERIAL");
 
 				StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
