@@ -77,7 +77,7 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "MOUSE");
+			$(box->label->text, setText, "MOUSE");
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
@@ -103,7 +103,7 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "CROSSHAIR");
+			$(box->label->text, setText, "CROSSHAIR");
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 

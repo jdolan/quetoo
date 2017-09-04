@@ -59,7 +59,7 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "VIDEO");
+			$(box->label->text, setText, "VIDEO");
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
@@ -89,7 +89,7 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "OPTIONS");
+			$(box->label->text, setText, "OPTIONS");
 
 			box->view.autoresizingMask |= ViewAutoresizingWidth;
 
@@ -143,7 +143,7 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "PICTURE");
+			$(box->label->text, setText, "PICTURE");
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
@@ -161,7 +161,7 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "SOUND");
+			$(box->label->text, setText, "SOUND");
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 

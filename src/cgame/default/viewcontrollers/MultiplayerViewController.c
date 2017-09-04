@@ -282,7 +282,7 @@ static void loadView(ViewController *self) {
 
 	{
 		Box *box = $(alloc(Box), initWithFrame, NULL);
-		$(box->label, setText, "JOIN GAME");
+		$(box->label->text, setText, "JOIN GAME");
 
 		box->view.autoresizingMask |= ViewAutoresizingFill;
 

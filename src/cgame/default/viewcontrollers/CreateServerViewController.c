@@ -156,7 +156,7 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "CREATE SERVER");
+			$(box->label->text, setText, "CREATE SERVER");
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
@@ -174,7 +174,7 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "GAME");
+			$(box->label->text, setText, "GAME");
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
@@ -239,7 +239,7 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "MAP LIST");
+			$(box->label->text, setText, "MAP LIST");
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 			stackView->spacing = DEFAULT_PANEL_SPACING;
