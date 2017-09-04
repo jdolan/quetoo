@@ -163,7 +163,7 @@ static void loadView(ViewController *self) {
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "Create server");
+				$(box->label->text, setText, "Create server");
 
 				Cgui_CvarTextView((View *) box->contentView, "Hostname", "sv_hostname");
 				Cgui_CvarTextView((View *) box->contentView, "Clients", "sv_max_clients");
@@ -176,7 +176,7 @@ static void loadView(ViewController *self) {
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "Game");
+				$(box->label->text, setText, "Game");
 
 				this->gameplay = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
 
@@ -236,7 +236,7 @@ static void loadView(ViewController *self) {
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "Map list");
+				$(box->label->text, setText, "Map list");
 
 				box->contentView->spacing = DEFAULT_PANEL_SPACING;
 

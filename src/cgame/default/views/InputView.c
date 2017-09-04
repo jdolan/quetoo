@@ -48,7 +48,7 @@
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "Controls");
+			$(box->label->text, setText, "Controls");
 
 			box->view.autoresizingMask = ViewAutoresizingFill;
 
@@ -130,7 +130,7 @@
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "Mouse");
+				$(box->label->text, setText, "Mouse");
 
 				box->view.autoresizingMask |= ViewAutoresizingWidth;
 
@@ -152,7 +152,7 @@
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "Misc");
+				$(box->label->text, setText, "Misc");
 
 				box->view.autoresizingMask |= ViewAutoresizingWidth;
 

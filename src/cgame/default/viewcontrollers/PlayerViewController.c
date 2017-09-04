@@ -128,7 +128,7 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "Profile");
+			$(box->label->text, setText, "Profile");
 
 			box->view.autoresizingMask |= ViewAutoresizingWidth;
 
@@ -180,7 +180,7 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "Colors");
+			$(box->label->text, setText, "Colors");
 
 			box->view.autoresizingMask |= ViewAutoresizingWidth;
 

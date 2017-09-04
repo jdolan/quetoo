@@ -98,7 +98,7 @@ static void loadView(ViewController *self) {
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "Crosshair");
+				$(box->label->text, setText, "Crosshair");
 
 				Select *crosshairSelect = (Select *) $(alloc(CvarSelect), initWithVariable, cg_draw_crosshair);
 
@@ -135,7 +135,7 @@ static void loadView(ViewController *self) {
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "HUD");
+				$(box->label->text, setText, "HUD");
 
 				// Stats
 
@@ -156,7 +156,7 @@ static void loadView(ViewController *self) {
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "View");
+				$(box->label->text, setText, "View");
 
 				// Field of view
 
@@ -178,7 +178,7 @@ static void loadView(ViewController *self) {
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "Screen");
+				$(box->label->text, setText, "Screen");
 
 				// Blending
 
@@ -193,7 +193,7 @@ static void loadView(ViewController *self) {
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "Weapon");
+				$(box->label->text, setText, "Weapon");
 
 				// Weapon options
 

@@ -150,54 +150,49 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label->text, setText, "MATERIAL");
-
-				StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+				$(box->label->text, setText, "Material");
 
 				const SDL_Rect frame = { .w = 300, .h = 0 };
 
 				self->materialName = $(alloc(TextView), initWithFrame, &frame, ControlStyleDefault);
 				self->materialName->isEditable = false;
-				addInput((View *) stackView, "Material name", (Control *) self->materialName);
+				addInput((View *) box->contentView, "Material name", (Control *) self->materialName);
 
 				self->diffuseTexture = $(alloc(TextView), initWithFrame, &frame, ControlStyleDefault);
 				self->diffuseTexture->isEditable = false;
-				addInput((View *) stackView, "Diffuse texture", (Control *) self->diffuseTexture);
+				addInput((View *) box->contentView, "Diffuse texture", (Control *) self->diffuseTexture);
 
 				self->normalmapTexture = $(alloc(TextView), initWithFrame, &frame, ControlStyleDefault);
 				self->normalmapTexture->isEditable = false;
-				addInput((View *) stackView, "Normalmap texture", (Control *) self->normalmapTexture);
+				addInput((View *) box->contentView, "Normalmap texture", (Control *) self->normalmapTexture);
 
 				self->specularmapTexture = $(alloc(TextView), initWithFrame, &frame, ControlStyleDefault);
 				self->specularmapTexture->isEditable = false;
-				addInput((View *) stackView, "Specularmap texture", (Control *) self->specularmapTexture);
+				addInput((View *) box->contentView, "Specularmap texture", (Control *) self->specularmapTexture);
 
 				self->bumpSlider = $(alloc(Slider), initWithFrame, &frame, ControlStyleDefault);
 				self->bumpSlider->min = 0.0;
 				self->bumpSlider->max = 20.0;
 				self->bumpSlider->step = 0.125;
-				addInput((View *) stackView, "Bump", (Control *) self->bumpSlider);
+				addInput((View *) box->contentView, "Bump", (Control *) self->bumpSlider);
 
 				self->hardnessSlider = $(alloc(Slider), initWithFrame, &frame, ControlStyleDefault);
 				self->hardnessSlider->min = 0.0;
 				self->hardnessSlider->max = 20.0;
 				self->hardnessSlider->step = 0.1;
-				addInput((View *) stackView, "Hardness", (Control *) self->hardnessSlider);
+				addInput((View *) box->contentView, "Hardness", (Control *) self->hardnessSlider);
 
 				self->specularSlider = $(alloc(Slider), initWithFrame, &frame, ControlStyleDefault);
 				self->specularSlider->min = 0.0;
 				self->specularSlider->max = 20.0;
 				self->specularSlider->step = 0.1;
-				addInput((View *) stackView, "Specular", (Control *) self->specularSlider);
+				addInput((View *) box->contentView, "Specular", (Control *) self->specularSlider);
 
 				self->parallaxSlider = $(alloc(Slider), initWithFrame, &frame, ControlStyleDefault);
 				self->parallaxSlider->min = 0.0;
 				self->parallaxSlider->max = 20.0;
 				self->parallaxSlider->step = 0.1;
-				addInput((View *) stackView, "Parallax", (Control *) self->parallaxSlider);
-
-				$((View *) box, addSubview, (View *) stackView);
-				release(stackView);
+				addInput((View *) box->contentView, "Parallax", (Control *) self->parallaxSlider);
 
 				$((View *) column, addSubview, (View *) box);
 				release(box);

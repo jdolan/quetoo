@@ -37,31 +37,24 @@ static void loadView(ViewController *self) {
 	MenuViewController *this = (MenuViewController *) self;
 
 	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
-
 	columns->spacing = DEFAULT_PANEL_SPACING;
-
+	
 	columns->axis = StackViewAxisHorizontal;
 	columns->distribution = StackViewDistributionFill;
 
 	{
 		StackView *column = $(alloc(StackView), initWithFrame, NULL);
-
 		column->spacing = DEFAULT_PANEL_SPACING;
 
 		{
 			const SDL_Rect frame = MakeRect(0, 0, 700, 400);
 
 			Box *box = $(alloc(Box), initWithFrame, &frame);
-			$(box->label, setText, "News");
+			$(box->label->text, setText, "News");
 
 			box->view.autoresizingMask = ViewAutoresizingNone;
 
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-
-			Cgui_Label((View *) stackView, "Good news everybody! There's now a news feed that is completely hardcoded...");
-
-			$((View *) box, addSubview, (View *) stackView);
-			release(stackView);
+			Cgui_Label((View *) box->contentView, "Good news everybody! There's now a news feed that is completely hardcoded...");
 
 			$((View *) column, addSubview, (View *) box);
 			release(box);

@@ -117,7 +117,7 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 
 	{
 		Box *box = $(alloc(Box), initWithFrame, NULL);
-		$(box->label, setText, "Credits");
+		$(box->label->text, setText, "Credits");
 
 		box->view.autoresizingMask = ViewAutoresizingFill;
 

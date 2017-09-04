@@ -54,7 +54,7 @@ static void loadView(ViewController *self) {
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "Movement");
+				$(box->label->text, setText, "Movement");
 
 				Cgui_BindInput((View *) box->contentView, "Forward", "+forward");
 				Cgui_BindInput((View *) box->contentView, "Back", "+back");
@@ -74,7 +74,7 @@ static void loadView(ViewController *self) {
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "Communication");
+				$(box->label->text, setText, "Communication");
 
 				Cgui_BindInput((View *) box->contentView, "Say", "cl_message_mode");
 				Cgui_BindInput((View *) box->contentView, "Say Team", "cl_message_mode_2");
@@ -95,7 +95,7 @@ static void loadView(ViewController *self) {
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "Combat");
+				$(box->label->text, setText, "Combat");
 
 				Cgui_BindInput((View *) box->contentView, "Attack", "+attack");
 				Cgui_BindInput((View *) box->contentView, "Grapple Hook", "+hook");

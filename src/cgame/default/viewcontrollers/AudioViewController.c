@@ -62,7 +62,7 @@ static void loadView(ViewController *self) {
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "Volume");
+				$(box->label->text, setText, "Volume");
 
 				Cgui_CvarSliderInput((View *) box->contentView, "Effects", "s_volume", 0.0, 1.0, 0.1);
 				Cgui_CvarSliderInput((View *) box->contentView, "Music", "s_music_volume", 0.0, 1.0, 0.1);
@@ -83,7 +83,7 @@ static void loadView(ViewController *self) {
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "Sounds");
+				$(box->label->text, setText, "Sounds");
 
 				Cgui_CvarCheckboxInput((View *) box->contentView, "Hit sounds", cg_hit_sound->name);
 

@@ -98,7 +98,7 @@ static void loadView(ViewController *self) {
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "Display");
+				$(box->label->text, setText, "Display");
 
 				Control *videoModeSelect = (Control *) $(alloc(VideoModeSelect), initWithFrame, NULL, ControlStyleDefault);
 
@@ -133,7 +133,7 @@ static void loadView(ViewController *self) {
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "Rendering");
+				$(box->label->text, setText, "Rendering");
 
 				Select *anisoSelect = (Select *) $(alloc(CvarSelect), initWithVariableName, "r_anisotropy");
 
@@ -162,7 +162,7 @@ static void loadView(ViewController *self) {
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "Picture");
+				$(box->label->text, setText, "Picture");
 
 				Cgui_CvarSliderInput((View *) box->contentView, "Brightness", "r_brightness", 0.1, 2.0, 0.1);
 				Cgui_CvarSliderInput((View *) box->contentView, "Contrast", "r_contrast", 0.1, 2.0, 0.1);
@@ -183,7 +183,7 @@ static void loadView(ViewController *self) {
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "Quality");
+				$(box->label->text, setText, "Quality");
 
 				Select *qualitySelect = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
 
@@ -203,7 +203,7 @@ static void loadView(ViewController *self) {
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
-				$(box->label, setText, "Effects");
+				$(box->label->text, setText, "Effects");
 
 				cvar_t *r_shadows = cgi.CvarGet("r_shadows");
 				Select *shadowsSelect = (Select *) $(alloc(CvarSelect), initWithVariable, r_shadows);
