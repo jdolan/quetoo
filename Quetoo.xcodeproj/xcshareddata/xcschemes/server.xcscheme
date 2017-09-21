@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "CE80FF6D1C5E49C400A21A51"
-               BuildableName = "libserver.dylib"
+               BuildableName = "libserver.a"
                BlueprintName = "server"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
@@ -46,7 +46,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE80FF6D1C5E49C400A21A51"
-            BuildableName = "libserver.dylib"
+            BuildableName = "libserver.a"
             BlueprintName = "server"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
@@ -64,7 +64,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE80FF6D1C5E49C400A21A51"
-            BuildableName = "libserver.dylib"
+            BuildableName = "libserver.a"
             BlueprintName = "server"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>

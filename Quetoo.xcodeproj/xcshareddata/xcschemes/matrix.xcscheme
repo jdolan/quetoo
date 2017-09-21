@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "CEFC7A761D9CB5C9000FA6B2"
-               BuildableName = "libmatrix.dylib"
+               BuildableName = "libmatrix.a"
                BlueprintName = "matrix"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
@@ -46,7 +46,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CEFC7A761D9CB5C9000FA6B2"
-            BuildableName = "libmatrix.dylib"
+            BuildableName = "libmatrix.a"
             BlueprintName = "matrix"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
@@ -64,7 +64,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CEFC7A761D9CB5C9000FA6B2"
-            BuildableName = "libmatrix.dylib"
+            BuildableName = "libmatrix.a"
             BlueprintName = "matrix"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>

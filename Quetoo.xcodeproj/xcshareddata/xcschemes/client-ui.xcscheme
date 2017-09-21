@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "CE5CDC1A1D9F51580034757D"
-               BuildableName = "libclient-ui.dylib"
+               BuildableName = "libclient-ui.a"
                BlueprintName = "client-ui"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
@@ -46,7 +46,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE5CDC1A1D9F51580034757D"
-            BuildableName = "libclient-ui.dylib"
+            BuildableName = "libclient-ui.a"
             BlueprintName = "client-ui"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
@@ -64,7 +64,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE5CDC1A1D9F51580034757D"
-            BuildableName = "libclient-ui.dylib"
+            BuildableName = "libclient-ui.a"
             BlueprintName = "client-ui"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>

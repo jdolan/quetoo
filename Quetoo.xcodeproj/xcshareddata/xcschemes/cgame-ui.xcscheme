@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "CE6EE3141F6BFAF600FBC830"
-               BuildableName = "libcgame-ui.dylib"
+               BuildableName = "libcgame-ui.a"
                BlueprintName = "cgame-ui"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
@@ -46,7 +46,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE6EE3141F6BFAF600FBC830"
-            BuildableName = "libcgame-ui.dylib"
+            BuildableName = "libcgame-ui.a"
             BlueprintName = "cgame-ui"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
@@ -64,7 +64,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE6EE3141F6BFAF600FBC830"
-            BuildableName = "libcgame-ui.dylib"
+            BuildableName = "libcgame-ui.a"
             BlueprintName = "cgame-ui"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>

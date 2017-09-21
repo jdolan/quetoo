@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "CEFC79E11D9CB2D2000FA6B2"
-               BuildableName = "libthread.dylib"
+               BuildableName = "libthread.a"
                BlueprintName = "thread"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
@@ -46,7 +46,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CEFC79E11D9CB2D2000FA6B2"
-            BuildableName = "libthread.dylib"
+            BuildableName = "libthread.a"
             BlueprintName = "thread"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
@@ -64,7 +64,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CEFC79E11D9CB2D2000FA6B2"
-            BuildableName = "libthread.dylib"
+            BuildableName = "libthread.a"
             BlueprintName = "thread"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>

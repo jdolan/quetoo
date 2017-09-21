@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "CEFC7A511D9CB4FC000FA6B2"
-               BuildableName = "libsys.dylib"
+               BuildableName = "libsys.a"
                BlueprintName = "sys"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
@@ -46,7 +46,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CEFC7A511D9CB4FC000FA6B2"
-            BuildableName = "libsys.dylib"
+            BuildableName = "libsys.a"
             BlueprintName = "sys"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
@@ -64,7 +64,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CEFC7A511D9CB4FC000FA6B2"
-            BuildableName = "libsys.dylib"
+            BuildableName = "libsys.a"
             BlueprintName = "sys"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
