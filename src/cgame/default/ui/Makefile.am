@@ -1,0 +1,95 @@
+
+noinst_HEADERS = \
+	common/CvarCheckbox.h \
+	common/CvarSelect.h \
+	common/CvarSlider.h \
+	common/CvarTextView.h \
+	common/MenuViewController.h \
+	common/Theme.h \
+	\
+	info/CreditsViewController.h \
+	info/InfoViewController.h \
+	\
+	main/DialogView.h \
+	main/HomeViewController.h \
+	main/LoadingViewController.h \
+	main/MainView.h \
+	main/MainViewController.h \
+	main/PrimaryButton.h \
+	main/PrimaryIcon.h \
+	\
+	play/CreateServerViewController.h \
+	play/JoinServerViewController.h \
+	play/MapListCollectionItemView.h \
+	play/MapListCollectionView.h \
+	play/PlayViewController.h \
+	\
+	settings/AudioViewController.h \
+	settings/BindTextView.h \
+	settings/CrosshairView.h \
+	settings/InputViewController.h \
+	settings/OptionsViewController.h \
+	settings/PlayerModelView.h \
+	settings/PlayerViewController.h \
+	settings/SettingsViewController.h \
+	settings/VideoModeSelect.h \
+	settings/VideoViewController.h
+
+noinst_LTLIBRARIES = \
+	libui.la
+
+libui_la_SOURCES = \
+	common/CvarCheckbox.c \
+	common/CvarSelect.c \
+	common/CvarSlider.c \
+	common/CvarTextView.c \
+	common/MenuViewController.c \
+	common/Theme.c \
+	\
+	info/CreditsViewController.c \
+	info/InfoViewController.c \
+	\
+	main/DialogView.c \
+	main/HomeViewController.c \
+	main/LoadingViewController.c \
+	main/MainView.c \
+	main/MainViewController.c \
+	main/PrimaryButton.c \
+	main/PrimaryIcon.c \
+	\
+	play/CreateServerViewController.c \
+	play/JoinServerViewController.c \
+	play/MapListCollectionItemView.c \
+	play/MapListCollectionView.c \
+	play/PlayViewController.c \
+	\
+	settings/AudioViewController.c \
+	settings/BindTextView.c \
+	settings/CrosshairView.c \
+	settings/InputViewController.c \
+	settings/OptionsViewController.c \
+	settings/PlayerModelView.c \
+	settings/PlayerViewController.c \
+	settings/SettingsViewController.c \
+	settings/VideoModeSelect.c \
+	settings/VideoViewController.c
+
+libui_la_CFLAGS = \
+	-I$(top_srcdir)/src \
+	-I$(top_srcdir)/src/cgame \
+	-I$(top_srcdir)/src/cgame/default \
+	-I$(top_srcdir)/src/cgame/default/ui \
+	-I$(top_srcdir)/src/cgame/default/ui/common \
+	-I$(top_srcdir)/src/cgame/default/ui/info \
+	-I$(top_srcdir)/src/cgame/default/ui/main \
+	-I$(top_srcdir)/src/cgame/default/ui/play \
+	-I$(top_srcdir)/src/cgame/default/ui/settings \
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@ \
+	@OBJECTIVELYMVC_CFLAGS@ \
+	@OPENGL_CFLAGS@
+
+libui_la_LIBADD = \
+	@OBJECTIVELYMVC_LIBS@ \
+	@OPENGL_LIBS@
+

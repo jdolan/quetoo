@@ -21,8 +21,8 @@
 
 #include "cg_local.h"
 
-#include "viewcontrollers/MainViewController.h"
-#include "viewcontrollers/LoadingViewController.h"
+#include "ui/main/MainViewController.h"
+#include "ui/main/LoadingViewController.h"
 
 static LoadingViewController *loadingViewController;
 static MainViewController *mainViewController;
@@ -30,11 +30,13 @@ static MainViewController *mainViewController;
 /**
  * @brief Initializes the user interface.
  */
-void Cgui_Init(void) {
+void Cg_InitUi(void) {
 
 	loadingViewController = $(alloc(LoadingViewController), init);
+	assert(loadingViewController);
 
 	mainViewController = $(alloc(MainViewController), init);
+	assert(mainViewController);
 
 	cgi.PushViewController((ViewController *) mainViewController);
 }
@@ -42,29 +44,31 @@ void Cgui_Init(void) {
 /**
  * @brief Shuts down the user interface.
  */
-void Cgui_Shutdown(void) {
+void Cg_ShutdownUi(void) {
 
-	cgi.PopToViewController((ViewController *) loadingViewController);
-	cgi.PopToViewController((ViewController *) mainViewController);
-	cgi.PopViewController();
+	cgi.PopAllViewControllers();
+
+	release(loadingViewController);
+	loadingViewController = NULL;
 
 	release(mainViewController);
+	mainViewController = NULL;
 }
 
 /**
  * @brief Updates the entire UI structure
  */
-void Cgui_Update(const cl_state_t state) {
+void Cg_UpdateUi(const cl_state_t state) {
 
-	mainViewController->state = state;
-
-	$((ViewController *) mainViewController, viewWillAppear); // FIXME: should this be a method of MainViewController?
+	if (mainViewController) {
+		mainViewController->state = state;
+	}
 }
 
 /**
  * @brief Updates the loading screen
  */
-void Cgui_UpdateLoading(const cl_loading_t loading) {
+void Cg_UpdateLoading(const cl_loading_t loading) {
 
 	if (loading.percent == 0) {
 		cgi.PushViewController((ViewController *) loadingViewController);
@@ -74,11 +78,4 @@ void Cgui_UpdateLoading(const cl_loading_t loading) {
 	} else {
 		$(loadingViewController, setProgress, loading);
 	}
-}
-
-/**
- * @brief Shows a dialog with Cancel/Ok buttons for user input
- */
-void Cgui_DialogQuestion(const char *text, const char *cancelText, const char *okText, void (*okFunction)(void)) {
-	$(mainViewController->mainView->dialog, showDialog, text, cancelText, okText, okFunction);
 }

@@ -351,7 +351,7 @@ void Cl_Reconnect_f(void) {
  * @brief Tells the cgame to show the last ERROR_DROP message.
  */
 void Cl_Drop(const char *text) {
-	cls.cgame->DialogQuestion(text, "Ok", "Reconnect", Cl_Reconnect_f);
+	//cls.cgame->Dialog(text, "Ok", "Reconnect", Cl_Reconnect_f);
 }
 
 /**

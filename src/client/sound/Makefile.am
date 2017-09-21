@@ -33,7 +33,7 @@ libsound_la_LDFLAGS = \
 	-shared
 
 libsound_la_LIBADD = \
-	$(top_builddir)/src/libshared.la \
+	$(top_builddir)/src/client/renderer/librenderer.la \
 	@OPENAL_LIBS@ \
 	@SDL2_LIBS@ \
 	@SNDFILE_LIBS@

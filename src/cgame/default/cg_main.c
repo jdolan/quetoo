@@ -270,7 +270,7 @@ static void Cg_Init(void) {
 	cgi.Cmd("config_strings", NULL, CMD_CGAME, NULL);
 	cgi.Cmd("baselines", NULL, CMD_CGAME, NULL);
 
-	Cgui_Init();
+	Cg_InitUi();
 
 	Cg_InitHud();
 
@@ -284,7 +284,7 @@ static void Cg_Shutdown(void) {
 
 	cgi.Print("  ^6Client game module shutdown...\n");
 
-	Cgui_Shutdown();
+	Cg_ShutdownUi();
 
 	cgi.FreeTag(MEM_TAG_CGAME_LEVEL);
 	cgi.FreeTag(MEM_TAG_CGAME);
@@ -445,11 +445,10 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.Interpolate = Cg_Interpolate;
 	cge.UsePrediction = Cg_UsePrediction;
 	cge.PredictMovement = Cg_PredictMovement;
-	cge.UpdateLoading = Cgui_UpdateLoading;
+	cge.UpdateLoading = Cg_UpdateLoading;
 	cge.UpdateView = Cg_UpdateView;
 	cge.UpdateScreen = Cg_UpdateScreen;
-	cge.UpdateUi = Cgui_Update;
-	cge.DialogQuestion = Cgui_DialogQuestion;
+	cge.UpdateUi = Cg_UpdateUi;
 
 	return &cge;
 }

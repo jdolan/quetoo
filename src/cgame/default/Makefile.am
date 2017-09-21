@@ -1,8 +1,6 @@
-cgamelibdir = @PKGLIBDIR@/default
 
 SUBDIRS = \
-	views \
-	viewcontrollers
+	ui
 
 noinst_HEADERS = \
 	cg_client.h \
@@ -23,9 +21,10 @@ noinst_HEADERS = \
 	cg_temp_entity.h \
 	cg_types.h \
 	cg_ui.h \
-	cg_ui_colors.h \
-	cg_ui_data.h \
 	cg_view.h
+
+cgamelibdir = \
+	@PKGLIBDIR@/default
 
 cgamelib_LTLIBRARIES = \
 	cgame.la
@@ -48,18 +47,13 @@ cgame_la_SOURCES = \
 	cg_score.c \
 	cg_temp_entity.c \
 	cg_ui.c \
-	cg_ui_colors.c \
-	cg_ui_data.c \
 	cg_view.c
 
 cgame_la_CFLAGS = \
 	-I$(top_srcdir)/src \
-	-I$(top_srcdir)/src/cgame/default/viewcontrollers \
-	-I$(top_srcdir)/src/cgame/default/views \
 	@SO_CFLAGS@ \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
-	@OBJECTIVELYMVC_CFLAGS@ \
 	@SDL2_CFLAGS@
 
 cgame_la_LDFLAGS = \
@@ -69,8 +63,8 @@ cgame_la_LDFLAGS = \
 	-shared
 
 cgame_la_LIBADD = \
-	viewcontrollers/libviewcontrollers.la \
+	ui/libui.la \
 	$(top_builddir)/src/game/default/libpmove.la \
 	$(top_builddir)/src/libswap.la \
 	$(top_builddir)/src/libmatrix.la \
-	$(top_srcdir)/src/libparse.la
+	$(top_builddir)/src/libparse.la
