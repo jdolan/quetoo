@@ -23,10 +23,9 @@
 
 #include "SettingsViewController.h"
 
-#include "AudioViewController.h"
 #include "InputViewController.h"
 #include "OptionsViewController.h"
-#include "VideoViewController.h"
+#include "SystemViewController.h"
 
 #include "Theme.h"
 
@@ -67,11 +66,7 @@ static void loadView(ViewController *self) {
 
 	ViewController *viewController, *tabViewController = (ViewController *) this->tabViewController;
 
-	viewController = $((ViewController *) alloc(VideoViewController), init);
-	$(tabViewController, addChildViewController, viewController);
-	release(viewController);
-
-	viewController = $((ViewController *) alloc(AudioViewController), init);
+	viewController = $((ViewController *) alloc(SystemViewController), init);
 	$(tabViewController, addChildViewController, viewController);
 	release(viewController);
 

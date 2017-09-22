@@ -23,19 +23,21 @@
 
 #include <ObjectivelyMVC/ViewController.h>
 
+#include "VideoModeSelect.h"
+
 /**
  * @file
- * @brief Audio ViewController.
+ * @brief System ViewController.
  */
 
-typedef struct AudioViewController AudioViewController;
-typedef struct AudioViewControllerInterface AudioViewControllerInterface;
+typedef struct SystemViewController SystemViewController;
+typedef struct SystemViewControllerInterface SystemViewControllerInterface;
 
 /**
- * @brief The AudioViewController type.
+ * @brief The SystemViewController type.
  * @extends ViewController
  */
-struct AudioViewController {
+struct SystemViewController {
 
 	/**
 	 * @brief The superclass.
@@ -46,13 +48,18 @@ struct AudioViewController {
 	 * @brief The interface.
 	 * @protected
 	 */
-	AudioViewControllerInterface *interface;
+	SystemViewControllerInterface *interface;
+
+	/**
+	 * @brief The VideoModeSelect.
+	 */
+	VideoModeSelect *videoModeSelect;
 };
 
 /**
- * @brief The AudioViewController interface.
+ * @brief The SystemViewController interface.
  */
-struct AudioViewControllerInterface {
+struct SystemViewControllerInterface {
 
 	/**
 	 * @brief The superclass interface.
@@ -61,9 +68,9 @@ struct AudioViewControllerInterface {
 };
 
 /**
- * @fn Class *AudioViewController::_AudioViewController(void)
- * @brief The AudioViewController archetype.
- * @return The AudioViewController Class.
- * @memberof AudioViewController
+ * @fn Class *SystemViewController::_SystemViewController(void)
+ * @brief The SystemViewController archetype.
+ * @return The SystemViewController Class.
+ * @memberof SystemViewController
  */
-OBJECTIVELY_EXPORT Class *_AudioViewController(void);
+OBJECTIVELY_EXPORT Class *_SystemViewController(void);

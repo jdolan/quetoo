@@ -22,7 +22,6 @@ noinst_HEADERS = \
 	play/MapListCollectionView.h \
 	play/PlayViewController.h \
 	\
-	settings/AudioViewController.h \
 	settings/BindTextView.h \
 	settings/CrosshairView.h \
 	settings/InputViewController.h \
@@ -30,8 +29,8 @@ noinst_HEADERS = \
 	settings/PlayerModelView.h \
 	settings/PlayerViewController.h \
 	settings/SettingsViewController.h \
+	settings/SystemViewController.h
 	settings/VideoModeSelect.h \
-	settings/VideoViewController.h
 
 noinst_LTLIBRARIES = \
 	libui.la
@@ -60,7 +59,6 @@ libui_la_SOURCES = \
 	play/MapListCollectionView.c \
 	play/PlayViewController.c \
 	\
-	settings/AudioViewController.c \
 	settings/BindTextView.c \
 	settings/CrosshairView.c \
 	settings/InputViewController.c \
@@ -68,8 +66,8 @@ libui_la_SOURCES = \
 	settings/PlayerModelView.c \
 	settings/PlayerViewController.c \
 	settings/SettingsViewController.c \
+	settings/SystemViewController.c
 	settings/VideoModeSelect.c \
-	settings/VideoViewController.c
 
 libui_la_CFLAGS = \
 	-I$(top_srcdir)/src \

@@ -174,7 +174,6 @@
 		CE6EE3E31F720D9A00FBC830 /* MapListCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870AE1F5CE99C004CAAB2 /* MapListCollectionItemView.c */; };
 		CE6EE3E41F720D9A00FBC830 /* MapListCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870B01F5CE99C004CAAB2 /* MapListCollectionView.c */; };
 		CE6EE3E51F720D9A00FBC830 /* PlayViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870831F5CDFE0004CAAB2 /* PlayViewController.c */; };
-		CE6EE3E61F720D9A00FBC830 /* AudioViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870871F5CDFE0004CAAB2 /* AudioViewController.c */; };
 		CE6EE3E71F720D9A00FBC830 /* BindTextView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870B21F5CE9AE004CAAB2 /* BindTextView.c */; };
 		CE6EE3E81F720D9A00FBC830 /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870B41F5CE9AE004CAAB2 /* CrosshairView.c */; };
 		CE6EE3E91F720D9A00FBC830 /* InputViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870891F5CDFE0004CAAB2 /* InputViewController.c */; };
@@ -183,7 +182,7 @@
 		CE6EE3EC1F720D9A00FBC830 /* PlayerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870911F5CE747004CAAB2 /* PlayerViewController.c */; };
 		CE6EE3ED1F720D9A00FBC830 /* SettingsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58708D1F5CDFE0004CAAB2 /* SettingsViewController.c */; };
 		CE6EE3EE1F720D9A00FBC830 /* VideoModeSelect.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870BC1F5CE9AE004CAAB2 /* VideoModeSelect.c */; };
-		CE6EE3EF1F720D9A00FBC830 /* VideoViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58708F1F5CDFE0004CAAB2 /* VideoViewController.c */; };
+		CE6EE3EF1F720D9A00FBC830 /* SystemViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58708F1F5CDFE0004CAAB2 /* SystemViewController.c */; };
 		CE6EE3F01F720DC300FBC830 /* CvarCheckbox.h in Headers */ = {isa = PBXBuildFile; fileRef = CE58709D1F5CE97C004CAAB2 /* CvarCheckbox.h */; };
 		CE6EE3F11F720DC300FBC830 /* CvarSelect.h in Headers */ = {isa = PBXBuildFile; fileRef = CE58709F1F5CE97C004CAAB2 /* CvarSelect.h */; };
 		CE6EE3F21F720DC300FBC830 /* CvarSlider.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870A11F5CE97C004CAAB2 /* CvarSlider.h */; };
@@ -203,7 +202,6 @@
 		CE6EE4011F720DC300FBC830 /* MapListCollectionItemView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870AF1F5CE99C004CAAB2 /* MapListCollectionItemView.h */; };
 		CE6EE4021F720DC300FBC830 /* MapListCollectionView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870B11F5CE99C004CAAB2 /* MapListCollectionView.h */; };
 		CE6EE4031F720DC300FBC830 /* PlayViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870841F5CDFE0004CAAB2 /* PlayViewController.h */; };
-		CE6EE4041F720DC300FBC830 /* AudioViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870881F5CDFE0004CAAB2 /* AudioViewController.h */; };
 		CE6EE4051F720DC300FBC830 /* BindTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870B31F5CE9AE004CAAB2 /* BindTextView.h */; };
 		CE6EE4061F720DC300FBC830 /* CrosshairView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870B51F5CE9AE004CAAB2 /* CrosshairView.h */; };
 		CE6EE4071F720DC300FBC830 /* InputViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE58708A1F5CDFE0004CAAB2 /* InputViewController.h */; };
@@ -212,7 +210,7 @@
 		CE6EE40A1F720DC300FBC830 /* PlayerViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870921F5CE747004CAAB2 /* PlayerViewController.h */; };
 		CE6EE40B1F720DC300FBC830 /* SettingsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE58708E1F5CDFE0004CAAB2 /* SettingsViewController.h */; };
 		CE6EE40C1F720DC300FBC830 /* VideoModeSelect.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870BD1F5CE9AE004CAAB2 /* VideoModeSelect.h */; };
-		CE6EE40D1F720DC300FBC830 /* VideoViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870901F5CDFE0004CAAB2 /* VideoViewController.h */; };
+		CE6EE40D1F720DC300FBC830 /* SystemViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870901F5CDFE0004CAAB2 /* SystemViewController.h */; };
 		CE6EE40E1F720F3A00FBC830 /* libcgame-ui.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE6EE3371F6BFAF600FBC830 /* libcgame-ui.a */; };
 		CE6EE4111F72919800FBC830 /* cg_ui.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6EE40F1F72919800FBC830 /* cg_ui.c */; };
 		CE6EE4121F72919800FBC830 /* cg_ui.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6EE4101F72919800FBC830 /* cg_ui.h */; };
@@ -1400,16 +1398,14 @@
 		CE5870821F5CDFE0004CAAB2 /* JoinServerViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JoinServerViewController.h; sourceTree = "<group>"; };
 		CE5870831F5CDFE0004CAAB2 /* PlayViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PlayViewController.c; sourceTree = "<group>"; };
 		CE5870841F5CDFE0004CAAB2 /* PlayViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PlayViewController.h; sourceTree = "<group>"; };
-		CE5870871F5CDFE0004CAAB2 /* AudioViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = AudioViewController.c; sourceTree = "<group>"; };
-		CE5870881F5CDFE0004CAAB2 /* AudioViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioViewController.h; sourceTree = "<group>"; };
 		CE5870891F5CDFE0004CAAB2 /* InputViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = InputViewController.c; sourceTree = "<group>"; };
 		CE58708A1F5CDFE0004CAAB2 /* InputViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InputViewController.h; sourceTree = "<group>"; };
 		CE58708B1F5CDFE0004CAAB2 /* OptionsViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = OptionsViewController.c; sourceTree = "<group>"; };
 		CE58708C1F5CDFE0004CAAB2 /* OptionsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OptionsViewController.h; sourceTree = "<group>"; };
 		CE58708D1F5CDFE0004CAAB2 /* SettingsViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SettingsViewController.c; sourceTree = "<group>"; };
 		CE58708E1F5CDFE0004CAAB2 /* SettingsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SettingsViewController.h; sourceTree = "<group>"; };
-		CE58708F1F5CDFE0004CAAB2 /* VideoViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = VideoViewController.c; sourceTree = "<group>"; };
-		CE5870901F5CDFE0004CAAB2 /* VideoViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VideoViewController.h; sourceTree = "<group>"; };
+		CE58708F1F5CDFE0004CAAB2 /* SystemViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SystemViewController.c; sourceTree = "<group>"; };
+		CE5870901F5CDFE0004CAAB2 /* SystemViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SystemViewController.h; sourceTree = "<group>"; };
 		CE5870911F5CE747004CAAB2 /* PlayerViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PlayerViewController.c; sourceTree = "<group>"; };
 		CE5870921F5CE747004CAAB2 /* PlayerViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PlayerViewController.h; sourceTree = "<group>"; };
 		CE5870941F5CE7D2004CAAB2 /* HomeViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = HomeViewController.c; sourceTree = "<group>"; };
@@ -2929,8 +2925,6 @@
 		CE5870861F5CDFE0004CAAB2 /* settings */ = {
 			isa = PBXGroup;
 			children = (
-				CE5870871F5CDFE0004CAAB2 /* AudioViewController.c */,
-				CE5870881F5CDFE0004CAAB2 /* AudioViewController.h */,
 				CE5870B21F5CE9AE004CAAB2 /* BindTextView.c */,
 				CE5870B31F5CE9AE004CAAB2 /* BindTextView.h */,
 				CE5870B41F5CE9AE004CAAB2 /* CrosshairView.c */,
@@ -2945,10 +2939,10 @@
 				CE5870921F5CE747004CAAB2 /* PlayerViewController.h */,
 				CE58708D1F5CDFE0004CAAB2 /* SettingsViewController.c */,
 				CE58708E1F5CDFE0004CAAB2 /* SettingsViewController.h */,
+				CE58708F1F5CDFE0004CAAB2 /* SystemViewController.c */,
+				CE5870901F5CDFE0004CAAB2 /* SystemViewController.h */,
 				CE5870BC1F5CE9AE004CAAB2 /* VideoModeSelect.c */,
 				CE5870BD1F5CE9AE004CAAB2 /* VideoModeSelect.h */,
-				CE58708F1F5CDFE0004CAAB2 /* VideoViewController.c */,
-				CE5870901F5CDFE0004CAAB2 /* VideoViewController.h */,
 			);
 			path = settings;
 			sourceTree = "<group>";
@@ -3165,7 +3159,6 @@
 				CE6EE4011F720DC300FBC830 /* MapListCollectionItemView.h in Headers */,
 				CE6EE4021F720DC300FBC830 /* MapListCollectionView.h in Headers */,
 				CE6EE4031F720DC300FBC830 /* PlayViewController.h in Headers */,
-				CE6EE4041F720DC300FBC830 /* AudioViewController.h in Headers */,
 				CE6EE4051F720DC300FBC830 /* BindTextView.h in Headers */,
 				CE6EE4061F720DC300FBC830 /* CrosshairView.h in Headers */,
 				CE6EE4071F720DC300FBC830 /* InputViewController.h in Headers */,
@@ -3174,7 +3167,7 @@
 				CE6EE40A1F720DC300FBC830 /* PlayerViewController.h in Headers */,
 				CE6EE40B1F720DC300FBC830 /* SettingsViewController.h in Headers */,
 				CE6EE40C1F720DC300FBC830 /* VideoModeSelect.h in Headers */,
-				CE6EE40D1F720DC300FBC830 /* VideoViewController.h in Headers */,
+				CE6EE40D1F720DC300FBC830 /* SystemViewController.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4187,7 +4180,6 @@
 				CE6EE3E31F720D9A00FBC830 /* MapListCollectionItemView.c in Sources */,
 				CE6EE3E41F720D9A00FBC830 /* MapListCollectionView.c in Sources */,
 				CE6EE3E51F720D9A00FBC830 /* PlayViewController.c in Sources */,
-				CE6EE3E61F720D9A00FBC830 /* AudioViewController.c in Sources */,
 				CE6EE3E71F720D9A00FBC830 /* BindTextView.c in Sources */,
 				CE6EE3E81F720D9A00FBC830 /* CrosshairView.c in Sources */,
 				CE6EE3E91F720D9A00FBC830 /* InputViewController.c in Sources */,
@@ -4196,7 +4188,7 @@
 				CE6EE3EC1F720D9A00FBC830 /* PlayerViewController.c in Sources */,
 				CE6EE3ED1F720D9A00FBC830 /* SettingsViewController.c in Sources */,
 				CE6EE3EE1F720D9A00FBC830 /* VideoModeSelect.c in Sources */,
-				CE6EE3EF1F720D9A00FBC830 /* VideoViewController.c in Sources */,
+				CE6EE3EF1F720D9A00FBC830 /* SystemViewController.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

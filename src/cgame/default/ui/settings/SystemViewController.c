@@ -21,12 +21,12 @@
 
 #include "cg_local.h"
 
-#include "VideoViewController.h"
+#include "SystemViewController.h"
 
 #include "CvarSelect.h"
 #include "Theme.h"
 
-#define _Class _VideoViewController
+#define _Class _SystemViewController
 
 #pragma mark - Actions and delegate callbacks
 
@@ -96,7 +96,7 @@ static void applyAction(Control *control, const SDL_Event *event, ident sender, 
  */
 static void dealloc(Object *self) {
 
-	VideoViewController *this = (VideoViewController *) self;
+	SystemViewController *this = (SystemViewController *) self;
 
 	release(this->videoModeSelect);
 
@@ -113,9 +113,9 @@ static void loadView(ViewController *self) {
 	super(ViewController, self, loadView);
 
 	self->view->autoresizingMask = ViewAutoresizingContain;
-	self->view->identifier = strdup("Video");
+	self->view->identifier = strdup("System");
 
-	VideoViewController *this = (VideoViewController *) self;
+	SystemViewController *this = (SystemViewController *) self;
 
 	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
 
@@ -142,6 +142,8 @@ static void loadView(ViewController *self) {
 		this->videoModeSelect->select.delegate.didSelectOption = didSelecVideoMode;
 
 		$(theme, control, "Video mode", this->videoModeSelect);
+
+		$(theme, checkbox, "High DPI (4K)", "r_allow_high_dpi");
 
 		Select *fullscreenSelect = (Select *) $(alloc(CvarSelect), initWithVariableName, "r_fullscreen");
 
@@ -217,6 +219,40 @@ static void loadView(ViewController *self) {
 	$(theme, targetSubview, columns, 1);
 
 	{
+		Box *box = $(theme, box, "Sound");
+
+		$(theme, attach, box);
+		$(theme, target, box->contentView);
+
+		$(theme, slider, "Master", "s_volume", 0.0, 1.0, 0.1);
+		$(theme, slider, "Effects", "s_effects_volume", 0.0, 1.0, 0.1);
+		$(theme, slider, "Ambient", "s_ambient_volume", 0.0, 1.0, 0.1);
+		$(theme, slider, "Music", "s_music_volume", 0.0, 1.0, 0.1);
+
+		release(box);
+	}
+
+	$(theme, targetSubview, columns, 1);
+
+	{
+		Box *box = $(theme, box, "Network");
+
+		$(theme, attach, box);
+		$(theme, target, box->contentView);
+
+		CvarSelect *rate = $(alloc(CvarSelect), initWithVariableName, "rate");
+
+		$((Select *) rate, addOption, "100Mbps", (ident) (intptr_t) 0);
+		$((Select *) rate, addOption, "50Mbps", (ident) (intptr_t) 50000);
+		$((Select *) rate, addOption, "20Mbps", (ident) (intptr_t) 20000);
+		$((Select *) rate, addOption, "10Mbps", (ident) (intptr_t) 10000);
+
+		$(theme, control, "Connection speed", rate);
+
+		release(box);
+	}
+
+	/*{
 		Box *box = $(theme, box, "Quality");
 
 		$(theme, attach, box);
@@ -265,7 +301,7 @@ static void loadView(ViewController *self) {
 		$(theme, checkbox, "Stainmaps", "r_stainmaps");
 		
 		release(box);
-	}
+	}*/
 
 	$(theme, target, container);
 
@@ -295,19 +331,19 @@ static void initialize(Class *clazz) {
 }
 
 /**
- * @fn Class *VideoViewController::_VideoViewController(void)
- * @memberof VideoViewController
+ * @fn Class *SystemViewController::_SystemViewController(void)
+ * @memberof SystemViewController
  */
-Class *_VideoViewController(void) {
+Class *_SystemViewController(void) {
 	static Class clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "VideoViewController";
+		clazz.name = "SystemViewController";
 		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(VideoViewController);
-		clazz.interfaceOffset = offsetof(VideoViewController, interface);
-		clazz.interfaceSize = sizeof(VideoViewControllerInterface);
+		clazz.instanceSize = sizeof(SystemViewController);
+		clazz.interfaceOffset = offsetof(SystemViewController, interface);
+		clazz.interfaceSize = sizeof(SystemViewControllerInterface);
 		clazz.initialize = initialize;
 	});
 
