@@ -33,6 +33,20 @@
 #pragma mark - Theme
 
 /**
+ * @fn StackView *Theme::accessories(const Theme *self)
+ * @memberof Theme
+ */
+static StackView *accessories(const Theme *self) {
+
+	StackView *accessories = $(self, container);
+
+	accessories->axis = StackViewAxisHorizontal;
+	accessories->view.alignment = ViewAlignmentBottomRight;
+
+	return accessories;
+}
+
+/**
  * @fn void Theme::attach(const Theme *self, ident view)
  * @memberof Theme
  */
@@ -196,25 +210,6 @@ static Panel *panel(const Theme *self) {
 	return panel;
 }
 
-static Theme *_sharedInstance;
-
-/**
- * @static
- * @fn Theme *Theme::sharedInstance(void)
- * @return The shared Theme instance.
- * @memberof Theme
- */
-static Theme *sharedInstance(void) {
-	static Once once;
-
-	do_once(&once, {
-		_sharedInstance = $(alloc(Theme), init);
-		assert(_sharedInstance);
-	});
-
-	return _sharedInstance;
-}
-
 /**
  * @fn void Theme::slider(const Theme *self, const char *label, const char *name, double min, double max, double step)
  * @memberof Theme
@@ -275,6 +270,7 @@ static void textView(const Theme *self, const char *label, const char *name) {
  */
 static void initialize(Class *clazz) {
 
+	((ThemeInterface *) clazz->def->interface)->accessories = accessories;
 	((ThemeInterface *) clazz->def->interface)->attach = attach;
 	((ThemeInterface *) clazz->def->interface)->box = box;
 	((ThemeInterface *) clazz->def->interface)->button = button;
@@ -285,18 +281,10 @@ static void initialize(Class *clazz) {
 	((ThemeInterface *) clazz->def->interface)->init = init;
 	((ThemeInterface *) clazz->def->interface)->initWithTarget = initWithTarget;
 	((ThemeInterface *) clazz->def->interface)->panel = panel;
-	((ThemeInterface *) clazz->def->interface)->sharedInstance = sharedInstance;
 	((ThemeInterface *) clazz->def->interface)->slider = slider;
 	((ThemeInterface *) clazz->def->interface)->target = target;
 	((ThemeInterface *) clazz->def->interface)->targetSubview = targetSubview;
 	((ThemeInterface *) clazz->def->interface)->textView = textView;
-}
-
-/**
- * @see Class::destroy(Class *)
- */
-static void destroy(Class *clazz) {
-	release(_sharedInstance);
 }
 
 /**
@@ -314,7 +302,6 @@ Class *_Theme(void) {
 		clazz.interfaceOffset = offsetof(Theme, interface);
 		clazz.interfaceSize = sizeof(ThemeInterface);
 		clazz.initialize = initialize;
-		clazz.destroy = destroy;
 	});
 
 	return &clazz;

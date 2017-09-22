@@ -70,8 +70,14 @@ static PrimaryIcon *initWithIcon(PrimaryIcon *self, const char *icon) {
 		$(this, addSubview, (View *) self->imageView);
 
 		this->autoresizingMask = ViewAutoresizingNone;
-		this->backgroundColor = $$(Theme, sharedInstance)->colors.dark;
-		this->borderColor = $$(Theme, sharedInstance)->colors.lightBorder;
+
+		Theme *theme = $(alloc(Theme), init);
+		assert(theme);
+
+		this->backgroundColor = theme->colors.dark;
+		this->borderColor = theme->colors.lightBorder;
+
+		release(theme);
 	}
 
 	return self;

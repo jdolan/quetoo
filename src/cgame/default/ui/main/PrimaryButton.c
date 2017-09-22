@@ -46,8 +46,14 @@ static PrimaryButton *initWithTitle(PrimaryButton *self, const char *title) {
 		View *this = (View *) self;
 
 		this->autoresizingMask = ViewAutoresizingNone;
-		this->backgroundColor = $$(Theme, sharedInstance)->colors.dark;
-		this->borderColor = $$(Theme, sharedInstance)->colors.lightBorder;
+
+		Theme *theme = $(alloc(Theme), init);
+		assert(theme);
+
+		this->backgroundColor = theme->colors.dark;
+		this->borderColor = theme->colors.lightBorder;
+
+		release(theme);
 	}
 
 	return self;

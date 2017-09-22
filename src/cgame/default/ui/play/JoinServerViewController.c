@@ -261,15 +261,19 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	Theme *theme = $$(Theme, sharedInstance);
+	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	assert(theme);
 
 	self->view->autoresizingMask = ViewAutoresizingContain;
 	self->view->identifier = strdup("Join game");
 
 	JoinServerViewController *this = (JoinServerViewController *) self;
 
-	StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-	stackView->spacing = DEFAULT_PANEL_SPACING;
+	StackView *container = $(theme, container);
+	assert(container);
+
+	$(theme, attach, container);
+	$(theme, target, container);
 
 	{
 		const SDL_Rect frame = { .w = 1200, .h = 600 };
@@ -317,27 +321,23 @@ static void loadView(ViewController *self) {
 
 		$((Control *) this->serversTableView, addActionForEventType, SDL_MOUSEBUTTONUP, connectAction, this, NULL);
 
-		$((View *) stackView, addSubview, (View *) this->serversTableView);
+		$(theme, attach, this->serversTableView);
 	}
 
-	{
-		StackView *accessories = $(alloc(StackView), initWithFrame, NULL);
+	$(theme, target, container);
 
-		accessories->axis = StackViewAxisHorizontal;
-		accessories->spacing = DEFAULT_PANEL_SPACING;
-		accessories->view.alignment = ViewAlignmentBottomRight;
+	StackView *accessories = $(theme, accessories);
 
-		$(theme, target, accessories);
-		$(theme, button, "Quick join", quickjoinAction, self, NULL);
-		$(theme, button, "Refresh", refreshAction, self, NULL);
-		$(theme, button, "Connect", connectAction, self, NULL);
+	$(theme, attach, accessories);
+	$(theme, target, accessories);
 
-		$((View *) stackView, addSubview, (View *) accessories);
-		release(accessories);
-	}
+	$(theme, button, "Quick join", quickjoinAction, self, NULL);
+	$(theme, button, "Refresh", refreshAction, self, NULL);
+	$(theme, button, "Connect", connectAction, self, NULL);
 
-	$(self->view, addSubview, (View *) stackView);
-	release(stackView);
+	release(accessories);
+	release(container);
+	release(theme);
 }
 
 /**

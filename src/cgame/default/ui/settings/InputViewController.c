@@ -23,7 +23,6 @@
 
 #include "InputViewController.h"
 #include "BindTextView.h"
-#include "Theme.h"
 
 #define _Class _InputViewController
 
@@ -51,10 +50,10 @@ static void loadView(ViewController *self) {
 	self->view->autoresizingMask = ViewAutoresizingContain;
 	self->view->identifier = strdup("Input");
 
-	Theme *theme = $$(Theme, sharedInstance);
-	$(theme, target, self->view);
-
 	InputViewController *this = (InputViewController *) self;
+
+	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	assert(theme);
 
 	StackView *container = $(theme, container);
 
@@ -72,16 +71,16 @@ static void loadView(ViewController *self) {
 		$(theme, attach, box);
 		$(theme, target, box->contentView);
 
-		$(this, bindTextView, "Forward", "+forward");
-		$(this, bindTextView, "Back", "+back");
-		$(this, bindTextView, "Move left", "+move_left");
-		$(this, bindTextView, "Move right", "+move_right");
-		$(this, bindTextView, "Jump", "+move_up");
-		$(this, bindTextView, "Crouch", "+move_down");
-		$(this, bindTextView, "Turn left", "+left");
-		$(this, bindTextView, "Turn right", "+right");
-		$(this, bindTextView, "Center view", "center_view");
-		$(this, bindTextView, "Run / walk", "+speed");
+		$(this, bindTextView, theme, "Forward", "+forward");
+		$(this, bindTextView, theme, "Back", "+back");
+		$(this, bindTextView, theme, "Move left", "+move_left");
+		$(this, bindTextView, theme, "Move right", "+move_right");
+		$(this, bindTextView, theme, "Jump", "+move_up");
+		$(this, bindTextView, theme, "Crouch", "+move_down");
+		$(this, bindTextView, theme, "Turn left", "+left");
+		$(this, bindTextView, theme, "Turn right", "+right");
+		$(this, bindTextView, theme, "Center view", "center_view");
+		$(this, bindTextView, theme, "Run / walk", "+speed");
 
 		$(theme, checkbox, "Always Run", "cg_run");
 
@@ -96,10 +95,10 @@ static void loadView(ViewController *self) {
 		$(theme, attach, box);
 		$(theme, target, box->contentView);
 
-		$(this, bindTextView, "Say", "cl_message_mode");
-		$(this, bindTextView, "Say Team", "cl_message_mode_2");
-		$(this, bindTextView, "Show score", "+score");
-		$(this, bindTextView, "Take screenshot", "r_screenshot");
+		$(this, bindTextView, theme, "Say", "cl_message_mode");
+		$(this, bindTextView, theme, "Say Team", "cl_message_mode_2");
+		$(this, bindTextView, theme, "Show score", "+score");
+		$(this, bindTextView, theme, "Take screenshot", "r_screenshot");
 
 		release(box);
 	}
@@ -112,23 +111,23 @@ static void loadView(ViewController *self) {
 		$(theme, attach, box);
 		$(theme, target, box->contentView);
 
-		$(this, bindTextView, "Attack", "+attack");
-		$(this, bindTextView, "Grapple Hook", "+hook");
-		$(this, bindTextView, "Next weapon", "cg_weapon_next");
-		$(this, bindTextView, "Previous weapon", "cg_weapon_previous");
-		$(this, bindTextView, "Zoom", "+ZOOM");
+		$(this, bindTextView, theme, "Attack", "+attack");
+		$(this, bindTextView, theme, "Grapple Hook", "+hook");
+		$(this, bindTextView, theme, "Next weapon", "cg_weapon_next");
+		$(this, bindTextView, theme, "Previous weapon", "cg_weapon_previous");
+		$(this, bindTextView, theme, "Zoom", "+ZOOM");
 
-		$(this, bindTextView, "Blaster", "use blaster");
-		$(this, bindTextView, "Shotgun", "use shotgun");
-		$(this, bindTextView, "Super shotgun", "use super shotgun");
-		$(this, bindTextView, "Machinegun", "use machinegun");
-		$(this, bindTextView, "Hand grenades", "use hand grenades");
-		$(this, bindTextView, "Grenade launcher", "use grenade launcher");
-		$(this, bindTextView, "Rocket launcher", "use rocket launcher");
-		$(this, bindTextView, "Hyperblaster", "use hyperblaster");
-		$(this, bindTextView, "Lightning", "use lightning gun");
-		$(this, bindTextView, "Railgun", "use railgun");
-		$(this, bindTextView, "BFG-10K", "use bfg10k");
+		$(this, bindTextView, theme, "Blaster", "use blaster");
+		$(this, bindTextView, theme, "Shotgun", "use shotgun");
+		$(this, bindTextView, theme, "Super shotgun", "use super shotgun");
+		$(this, bindTextView, theme, "Machinegun", "use machinegun");
+		$(this, bindTextView, theme, "Hand grenades", "use hand grenades");
+		$(this, bindTextView, theme, "Grenade launcher", "use grenade launcher");
+		$(this, bindTextView, theme, "Rocket launcher", "use rocket launcher");
+		$(this, bindTextView, theme, "Hyperblaster", "use hyperblaster");
+		$(this, bindTextView, theme, "Lightning", "use lightning gun");
+		$(this, bindTextView, theme, "Railgun", "use railgun");
+		$(this, bindTextView, theme, "BFG-10K", "use bfg10k");
 
 		release(box);
 	}
@@ -140,10 +139,10 @@ static void loadView(ViewController *self) {
 #pragma mark - InputViewController
 
 /**
- * @fn void InputViewController::bindTextView(InputViewController *self, const char *label, const char *bind)
+ * @fn void InputViewController::bindTextView(InputViewController *self, Theme *theme, const char *label, const char *bind)
  * @memberof InputViewController
  */
-static void bindTextView(InputViewController *self, const char *label, const char *bind) {
+static void bindTextView(InputViewController *self, Theme *theme, const char *label, const char *bind) {
 
 	TextView *textView = (TextView *) $(alloc(BindTextView), initWithBind, bind);
 	assert(textView);
@@ -151,7 +150,7 @@ static void bindTextView(InputViewController *self, const char *label, const cha
 	textView->delegate.self = self;
 	textView->delegate.didEndEditing = didBindKey;
 
-	$($$(Theme, sharedInstance), control, label, (Control *) textView);
+	$(theme, control, label, textView);
 }
 
 

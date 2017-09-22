@@ -93,6 +93,15 @@ struct ThemeInterface {
 	ObjectInterface objectInterface;
 
 	/**
+	 * @fn StackView *Theme::accessories(const Theme *self)
+	 * @brief Creates a StackView suitable for holding accessory buttons (_Apply_, _Cancel_).
+	 * @param self The Theme.
+	 * @return The StackView, or `NULL` on error.
+	 * @memberof Theme
+	 */
+	StackView *(*accessories)(const Theme *self);
+
+	/**
 	 * @fn void Theme::attach(const Theme *self, ident view)
 	 * @brief Attaches the given View to the target View.
 	 * @param self The Theme.
@@ -189,14 +198,6 @@ struct ThemeInterface {
 	 * @memberof Theme
 	 */
 	Panel *(*panel)(const Theme *self);
-
-	/**
-	 * @static
-	 * @fn Theme *Theme::sharedInstance(void)
-	 * @return The shared Theme instance.
-	 * @memberof Theme
-	 */
-	Theme *(*sharedInstance)(void);
 	
 	/**
 	 * @fn void Theme::slider(const Theme *self, const char *label, const char *name, double min, double max, double step)

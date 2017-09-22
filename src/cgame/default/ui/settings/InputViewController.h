@@ -21,7 +21,11 @@
 
 #pragma once
 
-#include <ObjectivelyMVC/ViewController.h>
+#include "cg_types.h"
+
+#include <ObjectivelyMVC.h>
+
+#include "Theme.h"
 
 /**
  * @file
@@ -63,11 +67,12 @@ struct InputViewControllerInterface {
 	 * @fn void InputViewController::bindTextView(InputViewController *self, const char *label, const char *bind)
 	 * @brief Attaches a BindTextView to the Theme target.
 	 * @param self The InputViewController.
+	 * @param theme The Theme.
 	 * @param label The label text.
 	 * @param bind The bind.
 	 * @memberof InputViewController
 	 */
-	void (*bindTextView)(InputViewController *self, const char *label, const char *bind);
+	void (*bindTextView)(InputViewController *self, Theme *theme, const char *label, const char *bind);
 };
 
 /**

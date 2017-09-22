@@ -88,10 +88,7 @@ static void loadView(ViewController *self) {
 
 	$(theme, target, container);
 
-	StackView *accessories = $(theme, container);
-
-	accessories->axis = StackViewAxisHorizontal;
-	accessories->view.alignment = ViewAlignmentBottomRight;
+	StackView *accessories = $(theme, accessories);
 
 	$(theme, attach, accessories);
 	$(theme, target, accessories);

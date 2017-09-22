@@ -84,10 +84,13 @@ static DialogView *init(DialogView *self) {
 		this->stackView.view.hidden = true; // Don't appear until opened
 		this->stackView.view.zIndex = 1000; // We is always on top suckas
 
-		const Theme *theme = $$(Theme, sharedInstance);
+		Theme *theme = $(alloc(Theme), init);
+		assert(theme);
 
 		this->stackView.view.backgroundColor = theme->colors.dialog;
 		this->stackView.view.borderColor = theme->colors.lightBorder;
+
+		release(theme);
 
 		this->stackView.view.alignment = ViewAlignmentMiddleLeft;
 		this->stackView.view.autoresizingMask = ViewAutoresizingWidth | ViewAutoresizingContain;
