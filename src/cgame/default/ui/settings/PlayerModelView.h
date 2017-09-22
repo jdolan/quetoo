@@ -21,11 +21,10 @@
 
 #pragma once
 
-#include <ObjectivelyMVC/ImageView.h>
-#include <ObjectivelyMVC/ColorPicker.h>
-#include <ObjectivelyMVC/Control.h>
-
 #include "cg_types.h"
+
+#include <ObjectivelyMVC/Control.h>
+#include <ObjectivelyMVC/ImageView.h>
 
 /**
  * @file
