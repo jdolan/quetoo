@@ -125,7 +125,7 @@ static void loadView(ViewController *self) {
 	$(this, primaryButton, mainView->bottomBar, "VOTES", _HomeViewController()); // TODO
 
 	$(self, addChildViewController, (ViewController *) this->navigationViewController);
-	//$(mainView->contentView, addSubview, this->navigationViewController->viewController.view);
+	$(mainView->contentView, addSubview, this->navigationViewController->viewController.view);
 
 	action(NULL, NULL, this, _HomeViewController());
 }
