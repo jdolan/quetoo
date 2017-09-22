@@ -409,7 +409,6 @@ void Cl_UpdateScreen(void) {
 				break;
 		}
 
-		R_AddStains();
 	} else {
 		R_BeginFrame();
 

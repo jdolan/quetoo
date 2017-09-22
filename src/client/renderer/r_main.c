@@ -153,6 +153,9 @@ static void R_DrawDeveloperTools(void) {
  */
 void R_DrawView(void) {
 
+	// add stains first, since world uses the stainmap
+	R_AddStains();
+
 	R_UpdateFrustum();
 
 	R_UpdateVis();
