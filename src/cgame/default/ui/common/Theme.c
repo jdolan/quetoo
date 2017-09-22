@@ -129,7 +129,7 @@ static StackView *container(const Theme *self) {
 	StackView *container = $(alloc(StackView), initWithFrame, NULL);
 	assert(container);
 
-	container->spacing = DEFAULT_PANEL_SPACING;
+	container->spacing = DEFAULT_PANEL_SPACING << 1;
 	return container;
 }
 
