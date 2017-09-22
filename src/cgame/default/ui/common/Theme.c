@@ -202,6 +202,7 @@ static Panel *panel(const Theme *self) {
 	Panel *panel = $(alloc(Panel), initWithFrame, NULL);
 	assert(panel);
 
+	panel->isDraggable = false;
 	panel->isResizable = false;
 	panel->stackView.view.alignment = ViewAlignmentMiddleCenter;
 	panel->stackView.view.backgroundColor = self->colors.main;
