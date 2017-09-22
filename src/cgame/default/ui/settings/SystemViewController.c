@@ -50,39 +50,6 @@ static void didSelecVideoMode(Select *select, Option *option) {
 }
 
 /**
- * @brief SelectDelegate callback for Quality.
- */
-static void didSelectQuality(Select *select, Option *option) {
-
-	switch ((intptr_t) option->value) {
-		case 3:
-			cgi.CvarSetValue("r_caustics", 1.0);
-			cgi.CvarSetValue("r_shadows", 3.0);
-			cgi.CvarSetValue("r_stainmaps", 1.0);
-			cgi.CvarSetValue("cg_add_weather", 1.0);
-			break;
-		case 2:
-			cgi.CvarSetValue("r_caustics", 1.0);
-			cgi.CvarSetValue("r_shadows", 2.0);
-			cgi.CvarSetValue("r_stainmaps", 1.0);
-			cgi.CvarSetValue("cg_add_weather", 1.0);
-			break;
-		case 1:
-			cgi.CvarSetValue("r_caustics", 0.0);
-			cgi.CvarSetValue("r_shadows", 0.0);
-			cgi.CvarSetValue("r_stainmaps", 1.0);
-			cgi.CvarSetValue("cg_add_weather", 1.0);
-			break;
-		case 0:
-			cgi.CvarSetValue("r_caustics", 0.0);
-			cgi.CvarSetValue("r_shadows", 0.0);
-			cgi.CvarSetValue("r_stainmaps", 0.0);
-			cgi.CvarSetValue("cg_add_weather", 0.0);
-			break;
-	}
-}
-
-/**
  * @brief ActionFunction for the Apply button.
  */
 static void applyAction(Control *control, const SDL_Event *event, ident sender, ident data) {
@@ -252,56 +219,6 @@ static void loadView(ViewController *self) {
 		release(box);
 	}
 
-	/*{
-		Box *box = $(theme, box, "Quality");
-
-		$(theme, attach, box);
-		$(theme, target, box->contentView);
-
-		Select *qualitySelect = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
-
-		$(qualitySelect, addOption, "Highest", (ident) 3);
-		$(qualitySelect, addOption, "High", (ident) 2);
-		$(qualitySelect, addOption, "Medium", (ident) 1);
-		$(qualitySelect, addOption, "Low", (ident) 0);
-
-		qualitySelect->delegate.self = this;
-		qualitySelect->delegate.didSelectOption = didSelectQuality;
-
-		$(theme, control, "Quality", qualitySelect);
-		release(qualitySelect);
-
-		release(box);
-	}
-
-	$(theme, targetSubview, columns, 1);
-
-	{
-		Box *box = $(theme, box, "Effects");
-
-		$(theme, attach, box);
-		$(theme, target, box->contentView);
-
-		Select *shadowsSelect = (Select *) $(alloc(CvarSelect), initWithVariableName, "r_shadows");
-
-		$(shadowsSelect, addOption, "Highest", (ident) 3);
-		$(shadowsSelect, addOption, "High", (ident) 2);
-		$(shadowsSelect, addOption, "Low", (ident) 1);
-		$(shadowsSelect, addOption, "Off", (ident) 0);
-
-		$(theme, control, "Shadows", shadowsSelect);
-		release(shadowsSelect);
-
-		$(theme, checkbox, "Caustics", "r_caustics");
-		$(theme, checkbox, "Weather effects", "cg_add_weather");
-
-		$(theme, checkbox, "Bump mapping", "r_bumpmap");
-		$(theme, checkbox, "Parallax mapping", "r_parallax");
-		$(theme, checkbox, "Deluxe mapping", "r_deluxemap");
-		$(theme, checkbox, "Stainmaps", "r_stainmaps");
-		
-		release(box);
-	}*/
 
 	$(theme, target, container);
 

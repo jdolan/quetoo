@@ -32,7 +32,6 @@
 #include "HomeViewController.h"
 #include "InfoViewController.h"
 #include "PlayViewController.h"
-#include "PlayerViewController.h"
 #include "SettingsViewController.h"
 
 #include "Theme.h"
@@ -113,16 +112,15 @@ static void loadView(ViewController *self) {
 	release(self->view);
 	self->view = (View *) mainView;
 
-	$(this, primaryButton, mainView->topBar, "HOME", _HomeViewController());
-	$(this, primaryButton, mainView->topBar, "PROFILE", _PlayerViewController());
-	$(this, primaryButton, mainView->topBar, "PLAY", _PlayViewController());
+	$(this, primaryButton, mainView->topBar, "Home", _HomeViewController());
+	$(this, primaryButton, mainView->topBar, "Play", _PlayViewController());
 
 	$(this, primaryIcon, mainView->topBar, "ui/pics/settings", _SettingsViewController());
 	$(this, primaryIcon, mainView->topBar, "ui/pics/info", _InfoViewController());
 	$(this, primaryIcon, mainView->topBar, "ui/pics/quit", NULL);
 
-	$(this, primaryButton, mainView->bottomBar, "JOIN", _HomeViewController()); // TODO
-	$(this, primaryButton, mainView->bottomBar, "VOTES", _HomeViewController()); // TODO
+	$(this, primaryButton, mainView->bottomBar, "Join", _HomeViewController()); // TODO
+	$(this, primaryButton, mainView->bottomBar, "Votes", _HomeViewController()); // TODO
 
 	$(self, addChildViewController, (ViewController *) this->navigationViewController);
 	$(mainView->contentView, addSubview, this->navigationViewController->viewController.view);

@@ -34,41 +34,36 @@
 #pragma mark - Actions and delegate callbacks
 
 /**
- * @brief Fs_EnumerateFunc for crosshair selection.
+ * @brief SelectDelegate callback for Quality.
  */
-static void enumerateCrosshairs(const char *path, void *data) {
-	char name[MAX_QPATH];
+static void didSelectQuality(Select *select, Option *option) {
 
-	StripExtension(Basename(path), name);
-
-	intptr_t value = strtol(name + strlen("ch"), NULL, 10);
-	assert(value);
-
-	$((Select *) data, addOption, name, (ident) value);
-}
-
-/**
- * @brief ActionFunction for crosshair modification.
- */
-static void updateCrosshair(Control *control, const SDL_Event *event, ident sender, ident data) {
-	$((View *) data, updateBindings);
-}
-
-/**
- * @brief HueColorPickerDelegate callback for crosshair color selection.
- */
-static void didPickColor(HueColorPicker *colorPicker, double hue, double saturation, double value) {
-
-//	color_t color = ColorFromRGBA(colorSelect->color.r, colorSelect->color.g, colorSelect->color.b, colorSelect->color.a);
-//	char hexColor[COLOR_MAX_LENGTH];
-//
-//	ColorToHex(color, hexColor, sizeof(hexColor));
-//
-//	cgi.CvarSet(cg_draw_crosshair_color->name, hexColor);
-//
-//	if (this->crosshairView) {
-//		$((View *) this->crosshairView, updateBindings);
-//	}
+	switch ((intptr_t) option->value) {
+		case 3:
+			cgi.CvarSetValue("r_caustics", 1.0);
+			cgi.CvarSetValue("r_shadows", 3.0);
+			cgi.CvarSetValue("r_stainmaps", 1.0);
+			cgi.CvarSetValue("cg_add_weather", 1.0);
+			break;
+		case 2:
+			cgi.CvarSetValue("r_caustics", 1.0);
+			cgi.CvarSetValue("r_shadows", 2.0);
+			cgi.CvarSetValue("r_stainmaps", 1.0);
+			cgi.CvarSetValue("cg_add_weather", 1.0);
+			break;
+		case 1:
+			cgi.CvarSetValue("r_caustics", 0.0);
+			cgi.CvarSetValue("r_shadows", 0.0);
+			cgi.CvarSetValue("r_stainmaps", 1.0);
+			cgi.CvarSetValue("cg_add_weather", 1.0);
+			break;
+		case 0:
+			cgi.CvarSetValue("r_caustics", 0.0);
+			cgi.CvarSetValue("r_shadows", 0.0);
+			cgi.CvarSetValue("r_stainmaps", 0.0);
+			cgi.CvarSetValue("cg_add_weather", 0.0);
+			break;
+	}
 }
 
 #pragma mark - ViewController
@@ -92,53 +87,9 @@ static void loadView(ViewController *self) {
 	$(theme, attach, container);
 	$(theme, target, container);
 
-	StackView *columns = $(theme, columns, 2);
+	StackView *columns = $(theme, columns, 3);
 
 	$(theme, attach, columns);
-	$(theme, targetSubview, columns, 0);
-
-	{
-		Box *box = $(theme, box, "Crosshair");
-
-		$(theme, attach, box);
-		$(theme, target, box->contentView);
-
-		Select *crosshair = (Select *) $(alloc(CvarSelect), initWithVariable, cg_draw_crosshair);
-
-		$(crosshair, addOption, "", NULL);
-		cgi.EnumerateFiles("pics/ch*", enumerateCrosshairs, crosshair);
-
-		$(theme, control, "Crosshair", crosshair);
-
-		this->crosshairColorPicker = $(alloc(HueColorPicker), initWithFrame, NULL, ControlStyleDefault);
-		assert(this->crosshairColorPicker);
-
-		this->crosshairColorPicker->delegate.self = this;
-		this->crosshairColorPicker->delegate.didPickColor = didPickColor;
-		
-		$(theme, control, "Color", this->crosshairColorPicker);
-
-		CvarSlider *crosshairScale = $(alloc(CvarSlider), initWithVariable, cg_draw_crosshair_scale, 0.1, 2.0, 0.1);
-
-		$(theme, control, "Scale", crosshairScale);
-		$(theme, checkbox, "Pulse on Pickup", cg_draw_crosshair_pulse->name);
-
-		const SDL_Rect frame = MakeRect(0, 0, 72, 72);
-		CrosshairView *crosshairView = $(alloc(CrosshairView), initWithFrame, &frame);
-		crosshairView->view.alignment = ViewAlignmentMiddleCenter;
-
-		$((Control *) crosshair, addActionForEventType, SDL_MOUSEBUTTONUP, updateCrosshair, self, crosshairView);
-		//$((Control *) crosshairColor, addActionForEventType, SDL_MOUSEBUTTONUP, updateCrosshair, self, crosshairView);
-		$((Control *) crosshairScale, addActionForEventType, SDL_MOUSEMOTION, updateCrosshair, self, crosshairView);
-
-		$((View *) crosshairView, updateBindings);
-
-		$(theme, attach, crosshairView);
-		release(crosshairView);
-
-		release(box);
-	}
-
 	$(theme, targetSubview, columns, 0);
 
 	{
@@ -187,6 +138,60 @@ static void loadView(ViewController *self) {
 
 		release(box);
 	}
+
+	$(theme, targetSubview, columns, 2);
+
+	{
+		Box *box = $(theme, box, "Quality");
+
+		$(theme, attach, box);
+		$(theme, target, box->contentView);
+
+		Select *qualitySelect = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
+
+		$(qualitySelect, addOption, "Highest", (ident) 3);
+		$(qualitySelect, addOption, "High", (ident) 2);
+		$(qualitySelect, addOption, "Medium", (ident) 1);
+		$(qualitySelect, addOption, "Low", (ident) 0);
+
+		qualitySelect->delegate.self = this;
+		qualitySelect->delegate.didSelectOption = didSelectQuality;
+
+		$(theme, control, "Quality", qualitySelect);
+		release(qualitySelect);
+
+		release(box);
+	 }
+
+	 $(theme, targetSubview, columns, 2);
+
+	 {
+		Box *box = $(theme, box, "Effects");
+
+		$(theme, attach, box);
+		$(theme, target, box->contentView);
+
+		Select *shadowsSelect = (Select *) $(alloc(CvarSelect), initWithVariableName, "r_shadows");
+
+		$(shadowsSelect, addOption, "Highest", (ident) 3);
+		$(shadowsSelect, addOption, "High", (ident) 2);
+		$(shadowsSelect, addOption, "Low", (ident) 1);
+		$(shadowsSelect, addOption, "Off", (ident) 0);
+
+		$(theme, control, "Shadows", shadowsSelect);
+		release(shadowsSelect);
+
+		$(theme, checkbox, "Caustics", "r_caustics");
+		$(theme, checkbox, "Weather effects", "cg_add_weather");
+
+		$(theme, checkbox, "Bump mapping", "r_bumpmap");
+		$(theme, checkbox, "Parallax mapping", "r_parallax");
+		$(theme, checkbox, "Deluxe mapping", "r_deluxemap");
+		$(theme, checkbox, "Stainmaps", "r_stainmaps");
+		
+		release(box);
+	 }
+
 
 	release(columns);
 	release(container);

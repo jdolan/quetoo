@@ -25,19 +25,21 @@
 
 #include <ObjectivelyMVC/ViewController.h>
 
+#include "Theme.h"
+
 /**
  * @file
- * @brief Interface ViewController.
+ * @brief Input ViewController.
  */
 
-typedef struct OptionsViewController OptionsViewController;
-typedef struct OptionsViewControllerInterface OptionsViewControllerInterface;
+typedef struct KeysViewController KeysViewController;
+typedef struct KeysViewControllerInterface KeysViewControllerInterface;
 
 /**
- * @brief The OptionsViewController type.
+ * @brief The KeysViewController type.
  * @extends ViewController
  */
-struct OptionsViewController {
+struct KeysViewController {
 
 	/**
 	 * @brief The superclass.
@@ -48,24 +50,35 @@ struct OptionsViewController {
 	 * @brief The interface.
 	 * @protected
 	 */
-	OptionsViewControllerInterface *interface;
+	KeysViewControllerInterface *interface;
 };
 
 /**
- * @brief The OptionsViewController interface.
+ * @brief The KeysViewController interface.
  */
-struct OptionsViewControllerInterface {
+struct KeysViewControllerInterface {
 
 	/**
 	 * @brief The superclass interface.
 	 */
 	ViewControllerInterface viewControllerInterface;
+
+	/**
+	 * @fn void KeysViewController::bindTextView(KeysViewController *self, const char *label, const char *bind)
+	 * @brief Attaches a BindTextView to the Theme target.
+	 * @param self The KeysViewController.
+	 * @param theme The Theme.
+	 * @param label The label text.
+	 * @param bind The bind.
+	 * @memberof KeysViewController
+	 */
+	void (*bindTextView)(KeysViewController *self, Theme *theme, const char *label, const char *bind);
 };
 
 /**
- * @fn Class *OptionsViewController::_OptionsViewController(void)
- * @brief The OptionsViewController archetype.
- * @return The OptionsViewController Class.
- * @memberof OptionsViewController
+ * @fn Class *KeysViewController::_KeysViewController(void)
+ * @brief The KeysViewController archetype.
+ * @return The KeysViewController Class.
+ * @memberof KeysViewController
  */
-OBJECTIVELY_EXPORT Class *_OptionsViewController(void);
+OBJECTIVELY_EXPORT Class *_KeysViewController(void);

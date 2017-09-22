@@ -23,62 +23,52 @@
 
 #include "cg_types.h"
 
-#include <ObjectivelyMVC.h>
-
-#include "Theme.h"
+#include <ObjectivelyMVC/ViewController.h>
 
 /**
  * @file
- * @brief Input ViewController.
+ * @brief Controls ViewController.
  */
 
-typedef struct InputViewController InputViewController;
-typedef struct InputViewControllerInterface InputViewControllerInterface;
+typedef struct MouseViewController MouseViewController;
+typedef struct MouseViewControllerInterface MouseViewControllerInterface;
 
 /**
- * @brief The InputViewController type.
+ * @brief The MouseViewController type.
  * @extends ViewController
+ * @ingroup ViewControllers
  */
-struct InputViewController {
+struct MouseViewController {
 
 	/**
 	 * @brief The superclass.
+	 * @private
 	 */
 	ViewController viewController;
 
 	/**
 	 * @brief The interface.
-	 * @protected
+	 * @private
 	 */
-	InputViewControllerInterface *interface;
+	MouseViewControllerInterface *interface;
 };
 
 /**
- * @brief The InputViewController interface.
+ * @brief The MouseViewController interface.
  */
-struct InputViewControllerInterface {
+struct MouseViewControllerInterface {
 
 	/**
 	 * @brief The superclass interface.
 	 */
 	ViewControllerInterface viewControllerInterface;
-
-	/**
-	 * @fn void InputViewController::bindTextView(InputViewController *self, const char *label, const char *bind)
-	 * @brief Attaches a BindTextView to the Theme target.
-	 * @param self The InputViewController.
-	 * @param theme The Theme.
-	 * @param label The label text.
-	 * @param bind The bind.
-	 * @memberof InputViewController
-	 */
-	void (*bindTextView)(InputViewController *self, Theme *theme, const char *label, const char *bind);
 };
 
 /**
- * @fn Class *InputViewController::_InputViewController(void)
- * @brief The InputViewController archetype.
- * @return The InputViewController Class.
- * @memberof InputViewController
+ * @fn Class *MouseViewController::_MouseViewController(void)
+ * @brief The MouseViewController archetype.
+ * @return The MouseViewController Class.
+ * @memberof MouseViewController
  */
-OBJECTIVELY_EXPORT Class *_InputViewController(void);
+extern Class *_MouseViewController(void);
+

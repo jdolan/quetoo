@@ -21,10 +21,12 @@
 
 #include "cg_local.h"
 
-#include "InputViewController.h"
-#include "BindTextView.h"
+#include "KeysViewController.h"
 
-#define _Class _InputViewController
+#include "BindTextView.h"
+#include "CvarSelect.h"
+
+#define _Class _KeysViewController
 
 #pragma mark - Actions and delegates
 
@@ -48,9 +50,9 @@ static void loadView(ViewController *self) {
 	super(ViewController, self, loadView);
 
 	self->view->autoresizingMask = ViewAutoresizingContain;
-	self->view->identifier = strdup("Input");
+	self->view->identifier = strdup("Keys");
 
-	InputViewController *this = (InputViewController *) self;
+	KeysViewController *this = (KeysViewController *) self;
 
 	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
 	assert(theme);
@@ -60,7 +62,7 @@ static void loadView(ViewController *self) {
 	$(theme, attach, container);
 	$(theme, target, container);
 
-	StackView *columns = $(theme, columns, 2);
+	StackView *columns = $(theme, columns, 3);
 
 	$(theme, attach, columns);
 	$(theme, targetSubview, columns, 0);
@@ -87,7 +89,7 @@ static void loadView(ViewController *self) {
 		release(box);
 	}
 
-	$(theme, targetSubview, columns, 0);
+	$(theme, targetSubview, columns, 1);
 
 	{
 		Box *box = $(theme, box, "Communication");
@@ -112,10 +114,30 @@ static void loadView(ViewController *self) {
 		$(theme, target, box->contentView);
 
 		$(this, bindTextView, theme, "Attack", "+attack");
-		$(this, bindTextView, theme, "Grapple Hook", "+hook");
 		$(this, bindTextView, theme, "Next weapon", "cg_weapon_next");
 		$(this, bindTextView, theme, "Previous weapon", "cg_weapon_previous");
+		//$(this, bindTextView, theme, "Best Weapon", "cg_weapon_best");
 		$(this, bindTextView, theme, "Zoom", "+ZOOM");
+		$(this, bindTextView, theme, "Hook", "+hook");
+
+		CvarSelect *hookStyle = $(alloc(CvarSelect), initWithVariableName, "hook_style");
+		assert(hookStyle);
+
+		hookStyle->expectsStringValue = true;
+
+		$((Select *) hookStyle, addOption, "pull", (ident) HOOK_PULL);
+		$((Select *) hookStyle, addOption, "swing", (ident) HOOK_SWING);
+
+		$(theme, control, "Hook style", hookStyle);
+	}
+
+	$(theme, targetSubview, columns, 2);
+
+	{
+		Box *box = $(theme, box, "Weapons");
+
+		$(theme, attach, box);
+		$(theme, target, box->contentView);
 
 		$(this, bindTextView, theme, "Blaster", "use blaster");
 		$(this, bindTextView, theme, "Shotgun", "use shotgun");
@@ -136,13 +158,13 @@ static void loadView(ViewController *self) {
 	release(container);
 }
 
-#pragma mark - InputViewController
+#pragma mark - KeysViewController
 
 /**
- * @fn void InputViewController::bindTextView(InputViewController *self, Theme *theme, const char *label, const char *bind)
- * @memberof InputViewController
+ * @fn void KeysViewController::bindTextView(KeysViewController *self, Theme *theme, const char *label, const char *bind)
+ * @memberof KeysViewController
  */
-static void bindTextView(InputViewController *self, Theme *theme, const char *label, const char *bind) {
+static void bindTextView(KeysViewController *self, Theme *theme, const char *label, const char *bind) {
 
 	TextView *textView = (TextView *) $(alloc(BindTextView), initWithBind, bind);
 	assert(textView);
@@ -163,23 +185,23 @@ static void initialize(Class *clazz) {
 
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 
-	((InputViewControllerInterface *) clazz->def->interface)->bindTextView = bindTextView;
+	((KeysViewControllerInterface *) clazz->def->interface)->bindTextView = bindTextView;
 }
 
 /**
- * @fn Class *InputViewController::_InputViewController(void)
- * @memberof InputViewController
+ * @fn Class *KeysViewController::_KeysViewController(void)
+ * @memberof KeysViewController
  */
-Class *_InputViewController(void) {
+Class *_KeysViewController(void) {
 	static Class clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "InputViewController";
+		clazz.name = "KeysViewController";
 		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(InputViewController);
-		clazz.interfaceOffset = offsetof(InputViewController, interface);
-		clazz.interfaceSize = sizeof(InputViewControllerInterface);
+		clazz.instanceSize = sizeof(KeysViewController);
+		clazz.interfaceOffset = offsetof(KeysViewController, interface);
+		clazz.interfaceSize = sizeof(KeysViewControllerInterface);
 		clazz.initialize = initialize;
 	});
 

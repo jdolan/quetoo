@@ -23,8 +23,10 @@
 
 #include "SettingsViewController.h"
 
-#include "InputViewController.h"
+#include "KeysViewController.h"
+#include "MouseViewController.h"
 #include "OptionsViewController.h"
+#include "PlayerViewController.h"
 #include "SystemViewController.h"
 
 #include "Theme.h"
@@ -70,7 +72,15 @@ static void loadView(ViewController *self) {
 	$(tabViewController, addChildViewController, viewController);
 	release(viewController);
 
-	viewController = $((ViewController *) alloc(InputViewController), init);
+	viewController = $((ViewController *) alloc(KeysViewController), init);
+	$(tabViewController, addChildViewController, viewController);
+	release(viewController);
+
+	viewController = $((ViewController *) alloc(MouseViewController), init);
+	$(tabViewController, addChildViewController, viewController);
+	release(viewController);
+
+	viewController = $((ViewController *) alloc(PlayerViewController), init);
 	$(tabViewController, addChildViewController, viewController);
 	release(viewController);
 

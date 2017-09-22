@@ -97,6 +97,8 @@
 		CE1A28241F748B8F005F62A9 /* libphysfs.2.0.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8301C5C6F0100CD0B13 /* libphysfs.2.0.3.dylib */; };
 		CE1A28251F748BA8005F62A9 /* libphysfs.2.0.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8301C5C6F0100CD0B13 /* libphysfs.2.0.3.dylib */; };
 		CE1A28261F748BBA005F62A9 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
+		CE1A282B1F75C598005F62A9 /* MouseViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28291F75C598005F62A9 /* MouseViewController.c */; };
+		CE1A282C1F75C598005F62A9 /* MouseViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1A282A1F75C598005F62A9 /* MouseViewController.h */; };
 		CE1CCD9A1D9D41DA00891F05 /* libncurses.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */; };
 		CE1CCD9D1D9D49C700891F05 /* libswap.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC79D01D9CB22E000FA6B2 /* libswap.a */; };
 		CE3208501EBDFFB600A92FF3 /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE32084F1EBDFFB600A92FF3 /* OpenAL.framework */; };
@@ -176,7 +178,7 @@
 		CE6EE3E51F720D9A00FBC830 /* PlayViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870831F5CDFE0004CAAB2 /* PlayViewController.c */; };
 		CE6EE3E71F720D9A00FBC830 /* BindTextView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870B21F5CE9AE004CAAB2 /* BindTextView.c */; };
 		CE6EE3E81F720D9A00FBC830 /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870B41F5CE9AE004CAAB2 /* CrosshairView.c */; };
-		CE6EE3E91F720D9A00FBC830 /* InputViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870891F5CDFE0004CAAB2 /* InputViewController.c */; };
+		CE6EE3E91F720D9A00FBC830 /* KeysViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870891F5CDFE0004CAAB2 /* KeysViewController.c */; };
 		CE6EE3EA1F720D9A00FBC830 /* OptionsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58708B1F5CDFE0004CAAB2 /* OptionsViewController.c */; };
 		CE6EE3EB1F720D9A00FBC830 /* PlayerModelView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870B81F5CE9AE004CAAB2 /* PlayerModelView.c */; };
 		CE6EE3EC1F720D9A00FBC830 /* PlayerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870911F5CE747004CAAB2 /* PlayerViewController.c */; };
@@ -204,7 +206,7 @@
 		CE6EE4031F720DC300FBC830 /* PlayViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870841F5CDFE0004CAAB2 /* PlayViewController.h */; };
 		CE6EE4051F720DC300FBC830 /* BindTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870B31F5CE9AE004CAAB2 /* BindTextView.h */; };
 		CE6EE4061F720DC300FBC830 /* CrosshairView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870B51F5CE9AE004CAAB2 /* CrosshairView.h */; };
-		CE6EE4071F720DC300FBC830 /* InputViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE58708A1F5CDFE0004CAAB2 /* InputViewController.h */; };
+		CE6EE4071F720DC300FBC830 /* KeysViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE58708A1F5CDFE0004CAAB2 /* KeysViewController.h */; };
 		CE6EE4081F720DC300FBC830 /* OptionsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE58708C1F5CDFE0004CAAB2 /* OptionsViewController.h */; };
 		CE6EE4091F720DC300FBC830 /* PlayerModelView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870B91F5CE9AE004CAAB2 /* PlayerModelView.h */; };
 		CE6EE40A1F720DC300FBC830 /* PlayerViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870921F5CE747004CAAB2 /* PlayerViewController.h */; };
@@ -1365,6 +1367,8 @@
 		CE15E8CB1ED306DB00A9FB7A /* r_program_particle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_program_particle.h; sourceTree = "<group>"; };
 		CE1A28161F740E2C005F62A9 /* libObjectively.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectively.dylib; path = ../Objectively/build/Debug/libObjectively.dylib; sourceTree = "<group>"; };
 		CE1A28171F740E2C005F62A9 /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = ../ObjectivelyMVC/build/Debug/libObjectivelyMVC.dylib; sourceTree = "<group>"; };
+		CE1A28291F75C598005F62A9 /* MouseViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MouseViewController.c; sourceTree = "<group>"; };
+		CE1A282A1F75C598005F62A9 /* MouseViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MouseViewController.h; sourceTree = "<group>"; };
 		CE27BE561D9167C700F87B2C /* libObjectively.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectively.dylib; path = "../../Library/Developer/Xcode/DerivedData/Quetoo-eijmznjiunzbaafulkyjapfulhqz/Build/Products/Debug/libObjectively.dylib"; sourceTree = "<group>"; };
 		CE32084F1EBDFFB600A92FF3 /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
 		CE3208511EBF518D00A92FF3 /* libsndfile.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsndfile.1.dylib; path = /opt/local/lib/libsndfile.1.dylib; sourceTree = "<absolute>"; };
@@ -1398,8 +1402,8 @@
 		CE5870821F5CDFE0004CAAB2 /* JoinServerViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JoinServerViewController.h; sourceTree = "<group>"; };
 		CE5870831F5CDFE0004CAAB2 /* PlayViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PlayViewController.c; sourceTree = "<group>"; };
 		CE5870841F5CDFE0004CAAB2 /* PlayViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PlayViewController.h; sourceTree = "<group>"; };
-		CE5870891F5CDFE0004CAAB2 /* InputViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = InputViewController.c; sourceTree = "<group>"; };
-		CE58708A1F5CDFE0004CAAB2 /* InputViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InputViewController.h; sourceTree = "<group>"; };
+		CE5870891F5CDFE0004CAAB2 /* KeysViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = KeysViewController.c; sourceTree = "<group>"; };
+		CE58708A1F5CDFE0004CAAB2 /* KeysViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KeysViewController.h; sourceTree = "<group>"; };
 		CE58708B1F5CDFE0004CAAB2 /* OptionsViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = OptionsViewController.c; sourceTree = "<group>"; };
 		CE58708C1F5CDFE0004CAAB2 /* OptionsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OptionsViewController.h; sourceTree = "<group>"; };
 		CE58708D1F5CDFE0004CAAB2 /* SettingsViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SettingsViewController.c; sourceTree = "<group>"; };
@@ -2929,8 +2933,10 @@
 				CE5870B31F5CE9AE004CAAB2 /* BindTextView.h */,
 				CE5870B41F5CE9AE004CAAB2 /* CrosshairView.c */,
 				CE5870B51F5CE9AE004CAAB2 /* CrosshairView.h */,
-				CE5870891F5CDFE0004CAAB2 /* InputViewController.c */,
-				CE58708A1F5CDFE0004CAAB2 /* InputViewController.h */,
+				CE5870891F5CDFE0004CAAB2 /* KeysViewController.c */,
+				CE58708A1F5CDFE0004CAAB2 /* KeysViewController.h */,
+				CE1A28291F75C598005F62A9 /* MouseViewController.c */,
+				CE1A282A1F75C598005F62A9 /* MouseViewController.h */,
 				CE58708B1F5CDFE0004CAAB2 /* OptionsViewController.c */,
 				CE58708C1F5CDFE0004CAAB2 /* OptionsViewController.h */,
 				CE5870B81F5CE9AE004CAAB2 /* PlayerModelView.c */,
@@ -3161,13 +3167,14 @@
 				CE6EE4031F720DC300FBC830 /* PlayViewController.h in Headers */,
 				CE6EE4051F720DC300FBC830 /* BindTextView.h in Headers */,
 				CE6EE4061F720DC300FBC830 /* CrosshairView.h in Headers */,
-				CE6EE4071F720DC300FBC830 /* InputViewController.h in Headers */,
+				CE1A282C1F75C598005F62A9 /* MouseViewController.h in Headers */,
+				CE6EE4071F720DC300FBC830 /* KeysViewController.h in Headers */,
 				CE6EE4081F720DC300FBC830 /* OptionsViewController.h in Headers */,
 				CE6EE4091F720DC300FBC830 /* PlayerModelView.h in Headers */,
 				CE6EE40A1F720DC300FBC830 /* PlayerViewController.h in Headers */,
 				CE6EE40B1F720DC300FBC830 /* SettingsViewController.h in Headers */,
-				CE6EE40C1F720DC300FBC830 /* VideoModeSelect.h in Headers */,
 				CE6EE40D1F720DC300FBC830 /* SystemViewController.h in Headers */,
+				CE6EE40C1F720DC300FBC830 /* VideoModeSelect.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4179,16 +4186,17 @@
 				CE6EE3E21F720D9A00FBC830 /* JoinServerViewController.c in Sources */,
 				CE6EE3E31F720D9A00FBC830 /* MapListCollectionItemView.c in Sources */,
 				CE6EE3E41F720D9A00FBC830 /* MapListCollectionView.c in Sources */,
+				CE1A282B1F75C598005F62A9 /* MouseViewController.c in Sources */,
 				CE6EE3E51F720D9A00FBC830 /* PlayViewController.c in Sources */,
 				CE6EE3E71F720D9A00FBC830 /* BindTextView.c in Sources */,
 				CE6EE3E81F720D9A00FBC830 /* CrosshairView.c in Sources */,
-				CE6EE3E91F720D9A00FBC830 /* InputViewController.c in Sources */,
+				CE6EE3E91F720D9A00FBC830 /* KeysViewController.c in Sources */,
 				CE6EE3EA1F720D9A00FBC830 /* OptionsViewController.c in Sources */,
 				CE6EE3EB1F720D9A00FBC830 /* PlayerModelView.c in Sources */,
 				CE6EE3EC1F720D9A00FBC830 /* PlayerViewController.c in Sources */,
 				CE6EE3ED1F720D9A00FBC830 /* SettingsViewController.c in Sources */,
-				CE6EE3EE1F720D9A00FBC830 /* VideoModeSelect.c in Sources */,
 				CE6EE3EF1F720D9A00FBC830 /* SystemViewController.c in Sources */,
+				CE6EE3EE1F720D9A00FBC830 /* VideoModeSelect.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -24,13 +24,14 @@ noinst_HEADERS = \
 	\
 	settings/BindTextView.h \
 	settings/CrosshairView.h \
-	settings/InputViewController.h \
+	settings/KeysViewController.h \
+	settings/MouseViewController.h \
 	settings/OptionsViewController.h \
 	settings/PlayerModelView.h \
 	settings/PlayerViewController.h \
 	settings/SettingsViewController.h \
 	settings/SystemViewController.h
-	settings/VideoModeSelect.h \
+	settings/VideoModeSelect.h
 
 noinst_LTLIBRARIES = \
 	libui.la
@@ -61,13 +62,14 @@ libui_la_SOURCES = \
 	\
 	settings/BindTextView.c \
 	settings/CrosshairView.c \
-	settings/InputViewController.c \
+	settings/KeysViewController.c \
+	settings/MouseViewController.c \
 	settings/OptionsViewController.c \
 	settings/PlayerModelView.c \
 	settings/PlayerViewController.c \
 	settings/SettingsViewController.c \
 	settings/SystemViewController.c
-	settings/VideoModeSelect.c \
+	settings/VideoModeSelect.c
 
 libui_la_CFLAGS = \
 	-I$(top_srcdir)/src \

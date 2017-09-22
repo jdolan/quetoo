@@ -146,7 +146,6 @@ static void dealloc(Object *self) {
 	PlayerViewController *this = (PlayerViewController *) self;
 
 	release(this->effectColorPicker);
-	release(this->hookStyleSelect);
 	release(this->pantsColorPicker);
 	release(this->shirtColorPicker);
 	release(this->skinSelect);
@@ -163,14 +162,18 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
+	self->view->autoresizingMask = ViewAutoresizingContain;
+	self->view->identifier = strdup("Player");
+
 	PlayerViewController *this = (PlayerViewController *) self;
 
 	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	assert(theme);
 
-	Panel *panel = $(theme, panel);
+	StackView *container = $(theme, container);
 
-	$(theme, attach, panel);
-	$(theme, target, panel->contentView);
+	$(theme, attach, container);
+	$(theme, target, container);
 
 	StackView *columns = $(theme, columns, 2);
 	$(theme, attach, columns);
@@ -179,7 +182,7 @@ static void loadView(ViewController *self) {
 		$(theme, targetSubview, columns, 0);
 
 		{
-			Box *box = $(theme, box, "Profile");
+			Box *box = $(theme, box, "Player");
 
 			$(theme, attach, box);
 			$(theme, target, box->contentView);
@@ -195,18 +198,6 @@ static void loadView(ViewController *self) {
 			cgi.EnumerateFiles("players/*", enumerateModels, this->skinSelect);
 
 			$(theme, control, "Player model", this->skinSelect);
-
-			this->hookStyleSelect = (Select *) $(alloc(CvarSelect), initWithVariable, cg_hook_style);
-			((CvarSelect *) this->hookStyleSelect)->expectsStringValue = true;
-
-			$(this->hookStyleSelect, addOption, "pull", (ident) HOOK_PULL);
-			$(this->hookStyleSelect, addOption, "swing", (ident) HOOK_SWING);
-
-			const g_hook_style_t style = g_strcmp0(cg_hook_style->string, "swing") ? HOOK_PULL : HOOK_SWING;
-
-			$(this->hookStyleSelect, selectOptionWithValue, (ident) (intptr_t) style);
-
-			$(theme, control, "Hook style", this->hookStyleSelect);
 
 			$(theme, slider, "Handicap", cg_handicap->name, 50.0, 100.0, 5.0);
 
@@ -259,19 +250,18 @@ static void loadView(ViewController *self) {
 		}
 	}
 
+
+	$(theme, targetSubview, columns, 1);
+
 	{
-		$(theme, targetSubview, columns, 1);
+		this->playerModelView = $(alloc(PlayerModelView), initWithFrame, &MakeRect(0, 0, 640, 480), ControlStyleDefault);
+		assert(this->playerModelView);
 
-		{
-			const SDL_Rect frame = { .w = 400, .h = 500 };
-			this->playerModelView = $(alloc(PlayerModelView), initWithFrame, &frame, ControlStyleCustom);
-
-			$(theme, attach, this->playerModelView);
-		}
+		$(theme, attach, this->playerModelView);
 	}
 
 	release(columns);
-	release(panel);
+	release(container);
 	release(theme);
 }
 

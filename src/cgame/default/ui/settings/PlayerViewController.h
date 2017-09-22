@@ -60,11 +60,6 @@ struct PlayerViewController {
 	HueColorPicker *effectColorPicker;
 
 	/**
-	 * @brief The hook style Select.
-	 */
-	Select *hookStyleSelect;
-
-	/**
 	 * @brief The pants HSVColorPicker.
 	 */
 	HSVColorPicker *pantsColorPicker;
