@@ -227,10 +227,11 @@ void Cl_ShutdownHttp(void) {
 
 	if (cl_http_state.curl) {
 		curl_easy_cleanup(cl_http_state.curl);
+		cl_http_state.curl = NULL;
 	}
 
 	if (cl_http_state.curlm) {
 		curl_multi_cleanup(cl_http_state.curlm);
+		cl_http_state.curlm = NULL;
 	}
-
 }
