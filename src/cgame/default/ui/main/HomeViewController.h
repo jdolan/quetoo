@@ -42,7 +42,7 @@ struct HomeViewController {
 	 * @brief The superclass.
 	 * @private
 	 */
-	ViewController menuViewController;
+	ViewController viewController;
 
 	/**
 	 * @brief The interface.
