@@ -24,7 +24,7 @@
 
 #include "client/cl_types.h"
 
-#define CGAME_API_VERSION 18
+#define CGAME_API_VERSION 19
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -37,9 +37,14 @@ typedef struct cg_import_s {
 	cl_client_t *client;
 
 	/**
+	 * @brief The client state.
+	 */
+	const cl_state_t *state;
+
+	/**
 	 * @brief The renderer context.
 	 */
-	r_context_t *context;
+	const r_context_t *context;
 
 	/**
 	 * @brief The renderer view scene.
@@ -787,7 +792,6 @@ typedef struct cg_export_s {
 	void (*UpdateLoading)(const cl_loading_t loading);
 	void (*UpdateView)(const cl_frame_t *frame);
 	void (*UpdateScreen)(const cl_frame_t *frame);
-	void (*UpdateUi)(const cl_state_t state);
 
 } cg_export_t;
 

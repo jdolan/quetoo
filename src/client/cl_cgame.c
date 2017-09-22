@@ -148,6 +148,7 @@ void Cl_InitCgame(void) {
 	memset(&import, 0, sizeof(import));
 
 	import.client = &cl;
+	import.state = &cls.state;
 
 	import.context = &r_context;
 

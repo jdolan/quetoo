@@ -418,8 +418,6 @@ void Cl_UpdateScreen(void) {
 	R_Draw2D();
 
 	if (cls.key_state.dest == KEY_UI || cls.state == CL_LOADING) {
-		cls.cgame->UpdateUi(cls.state);
-
 		Ui_Draw();
 	}
 

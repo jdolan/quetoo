@@ -69,14 +69,12 @@ static void action(Control *control, const SDL_Event *event, ident sender, ident
 		$(this->navigationViewController, popViewController);
 
 		ViewController *viewController = $((ViewController *) _alloc(clazz), init);
-
 		$(this->navigationViewController, pushViewController, viewController);
-
 		release(viewController);
 	} else {
 		MainView *mainView = (MainView *) ((ViewController *) this)->view;
 
-		if (this->state >= CL_CONNECTED) {
+		if (*cgi.state >= CL_CONNECTED) {
 			$(mainView->dialog, showDialog, "Are you sure you want to disconnect?", "No", "Yes", disconnect);
 		} else {
 			$(mainView->dialog, showDialog, "Are you sure you want to quit?", "No", "Yes", quit);
@@ -137,14 +135,12 @@ static void loadView(ViewController *self) {
  */
 static void viewWillAppear(ViewController *self) {
 
-	MainViewController *this = (MainViewController *) self;
 	MainView *mainView = (MainView *) self->view;
 
-	mainView->background->view.hidden = this->state == CL_ACTIVE;
-	mainView->logo->view.hidden = this->state == CL_ACTIVE;
-	mainView->version->view.hidden = this->state == CL_ACTIVE;
-
-	mainView->bottomBar->view.hidden = this->state != CL_ACTIVE;
+	mainView->background->view.hidden = *cgi.state == CL_ACTIVE;
+	mainView->logo->view.hidden = *cgi.state == CL_ACTIVE;
+	mainView->version->view.hidden = *cgi.state == CL_ACTIVE;
+	mainView->bottomBar->view.hidden = *cgi.state != CL_ACTIVE;
 }
 
 #pragma mark - MainViewController

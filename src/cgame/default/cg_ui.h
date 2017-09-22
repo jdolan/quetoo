@@ -25,7 +25,6 @@
 
 void Cg_InitUi(void);
 void Cg_ShutdownUi(void);
-void Cg_UpdateUi(const cl_state_t state);
 void Cg_UpdateLoading(const cl_loading_t loading);
 
 #ifdef __CG_UI_LOCAL_H__

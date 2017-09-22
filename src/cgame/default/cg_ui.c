@@ -56,16 +56,6 @@ void Cg_ShutdownUi(void) {
 }
 
 /**
- * @brief Updates the entire UI structure
- */
-void Cg_UpdateUi(const cl_state_t state) {
-
-	if (mainViewController) {
-		mainViewController->state = state;
-	}
-}
-
-/**
  * @brief Updates the loading screen
  */
 void Cg_UpdateLoading(const cl_loading_t loading) {

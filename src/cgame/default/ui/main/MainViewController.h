@@ -56,11 +56,6 @@ struct MainViewController {
 	 * @brief The NavigationViewController.
 	 */
 	NavigationViewController *navigationViewController;
-
-	/**
-	 * @brief The client's state.
-	 */
-	cl_state_t state;
 };
 
 /**
