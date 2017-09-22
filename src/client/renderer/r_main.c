@@ -202,6 +202,8 @@ void R_DrawView(void) {
 
 	R_DrawElements();
 
+	R_DrawStains();
+
 	R_DrawDeveloperTools();
 
 	R_EnableBlend(false);

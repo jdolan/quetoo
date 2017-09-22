@@ -405,8 +405,6 @@ void Cl_UpdateScreen(void) {
 
 			cls.cgame->UpdateScreen(&cl.frame);
 		}
-
-		R_AddStains();
 	} else {
 		R_Setup2D();
 	}

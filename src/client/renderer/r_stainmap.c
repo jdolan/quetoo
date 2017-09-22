@@ -331,9 +331,9 @@ static void R_ExpireStains(const byte alpha) {
 }
 
 /**
- * @brief Adds new stains from the view each frame.
+ * @brief Updates and then draws all stains.
  */
-void R_AddStains(void) {
+void R_DrawStains(void) {
 
 	if (!r_model_state.world) {
 		return;
@@ -500,10 +500,26 @@ void R_AddStains(void) {
 		}
 
 		r_stainmap_state.vertex_scratch = g_array_append_vals(r_stainmap_state.vertex_scratch, (const r_stainmap_interleave_vertex_t[4]) {
-			{ .position = { vertexes[0][0], vertexes[0][1] }, .texcoord = { texcoords[0], texcoords[3] }, .color = { stain->color.r, stain->color.g, stain->color.b, stain->color.a } },
-			{ .position = { vertexes[1][0], vertexes[1][1] }, .texcoord = { texcoords[2], texcoords[3] }, .color = { stain->color.r, stain->color.g, stain->color.b, stain->color.a } },
-			{ .position = { vertexes[2][0], vertexes[2][1] }, .texcoord = { texcoords[2], texcoords[1] }, .color = { stain->color.r, stain->color.g, stain->color.b, stain->color.a } },
-			{ .position = { vertexes[3][0], vertexes[3][1] }, .texcoord = { texcoords[0], texcoords[1] }, .color = { stain->color.r, stain->color.g, stain->color.b, stain->color.a } }
+			{
+				.position = { vertexes[0][0], vertexes[0][1] },
+				.texcoord = { texcoords[0], texcoords[3] },
+				.color = { stain->color.r, stain->color.g, stain->color.b, stain->color.a }
+			},
+			{
+				.position = { vertexes[1][0], vertexes[1][1] },
+				.texcoord = { texcoords[2], texcoords[3] },
+				.color = { stain->color.r, stain->color.g, stain->color.b, stain->color.a }
+			},
+			{
+				.position = { vertexes[2][0], vertexes[2][1] },
+				.texcoord = { texcoords[2], texcoords[1] },
+				.color = { stain->color.r, stain->color.g, stain->color.b, stain->color.a }
+			},
+			{
+				.position = { vertexes[3][0], vertexes[3][1] },
+				.texcoord = { texcoords[0], texcoords[1] },
+				.color = { stain->color.r, stain->color.g, stain->color.b, stain->color.a }
+			}
 		}, 4);
 
 		R_EnableScissor(&(const SDL_Rect) {
@@ -513,7 +529,11 @@ void R_AddStains(void) {
 			stain->surf->lightmap_size[1]
 		});
 
-		R_UploadToSubBuffer(&r_stainmap_state.vertex_buffer, sizeof(r_stainmap_interleave_vertex_t) * vert_offset, sizeof(r_stainmap_interleave_vertex_t) * 4, r_stainmap_state.vertex_scratch->data, true);
+		R_UploadToSubBuffer(&r_stainmap_state.vertex_buffer,
+							sizeof(r_stainmap_interleave_vertex_t) * vert_offset,
+							sizeof(r_stainmap_interleave_vertex_t) * 4,
+							r_stainmap_state.vertex_scratch->data,
+							true);
 
 		R_DrawArrays(GL_TRIANGLES, elem_offset, 6);
 
