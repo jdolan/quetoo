@@ -39,6 +39,7 @@ static PrimaryButton *initWithTitle(PrimaryButton *self, const char *title) {
 	if (self) {
 
 		$(self->button.title, setFont, $$(Font, defaultFont, FontCategoryPrimaryResponder));
+		$(self->button.title, setText, title);
 
 		View *this = (View *) self;
 
