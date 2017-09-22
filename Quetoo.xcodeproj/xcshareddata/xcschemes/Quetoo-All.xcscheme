@@ -29,6 +29,15 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
       </Testables>
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "CE12D7341C5C5B9300CD0B13"
+            BuildableName = "quetoo"
+            BlueprintName = "quetoo"
+            ReferencedContainer = "container:Quetoo.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </TestAction>
@@ -42,15 +51,22 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CEA029B31C5E545B00341079"
-            BuildableName = "Quetoo"
-            BlueprintName = "Quetoo"
+            BlueprintIdentifier = "CE12D7341C5C5B9300CD0B13"
+            BuildableName = "quetoo"
+            BlueprintName = "quetoo"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
+      <CommandLineArguments>
+         <CommandLineArgument
+            argument = "-p $BUILT_PRODUCTS_DIR"
+            isEnabled = "YES">
+         </CommandLineArgument>
+      </CommandLineArguments>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>

@@ -514,7 +514,7 @@
 		CED4397D1D9D3EBF0052BAFA /* libimage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7A6B1D9CB512000FA6B2 /* libimage.a */; };
 		CED4397E1D9D3EBF0052BAFA /* libmatrix.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7A831D9CB5C9000FA6B2 /* libmatrix.a */; };
 		CED4397F1D9D3EBF0052BAFA /* libnet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.a */; };
-		CEE818951E280DFC003C66DD /* libai.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FEC61C5E44E800A21A51 /* libai.dylib */; };
+		CEE818951E280DFC003C66DD /* ai.so in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FEC61C5E44E800A21A51 /* ai.so */; };
 		CEFC79A41D9CB1A6000FA6B2 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */; };
 		CEFC79A51D9CB1EE000FA6B2 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CEFC79B31D9CB22E000FA6B2 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6BA1C5C58C300CD0B13 /* swap.c */; };
@@ -1345,8 +1345,8 @@
 		CE12D72E1C5C58D800CD0B13 /* Update.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; path = Update.app; sourceTree = "<group>"; };
 		CE12D72F1C5C58D800CD0B13 /* set-icon.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "set-icon.sh"; sourceTree = "<group>"; };
 		CE12D7351C5C5B9300CD0B13 /* quetoo */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = quetoo; sourceTree = BUILT_PRODUCTS_DIR; };
-		CE12D7CD1C5C5D5C00CD0B13 /* libgame.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libgame.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
-		CE12D7EB1C5C5DF900CD0B13 /* libcgame.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libcgame.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE12D7CD1C5C5D5C00CD0B13 /* game.so */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = game.so; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE12D7EB1C5C5DF900CD0B13 /* cgame.so */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = cgame.so; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE12D8111C5C5EF000CD0B13 /* libminizip.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libminizip.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE12D8171C5C614600CD0B13 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
 		CE12D8191C5C614B00CD0B13 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -1496,7 +1496,7 @@
 		CE80FDF51C5E3EEE00A21A51 /* libjpeg.9.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libjpeg.9.dylib; path = /opt/local/lib/libjpeg.9.dylib; sourceTree = "<absolute>"; };
 		CE80FE381C5E421900A21A51 /* libcollision.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libcollision.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE80FE661C5E431000A21A51 /* libnet.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libnet.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		CE80FEC61C5E44E800A21A51 /* libai.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libai.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE80FEC61C5E44E800A21A51 /* ai.so */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = ai.so; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE80FEE41C5E45EC00A21A51 /* libclient.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libclient.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE80FF561C5E485A00A21A51 /* libcurl.4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcurl.4.dylib; path = /opt/local/lib/libcurl.4.dylib; sourceTree = "<absolute>"; };
 		CE80FF6A1C5E494E00A21A51 /* libclient-null.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libclient-null.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1580,7 +1580,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEE818951E280DFC003C66DD /* libai.dylib in Frameworks */,
+				CEE818951E280DFC003C66DD /* ai.so in Frameworks */,
 				CE5530A01E5A94170009A127 /* libparse.a in Frameworks */,
 				CED4381E1D9D33AF0052BAFA /* libgame-pmove.a in Frameworks */,
 				CE80FDD61C5E3D9700A21A51 /* libshared.a in Frameworks */,
@@ -2782,8 +2782,8 @@
 			isa = PBXGroup;
 			children = (
 				CE12D7351C5C5B9300CD0B13 /* quetoo */,
-				CE12D7CD1C5C5D5C00CD0B13 /* libgame.dylib */,
-				CE12D7EB1C5C5DF900CD0B13 /* libcgame.dylib */,
+				CE12D7CD1C5C5D5C00CD0B13 /* game.so */,
+				CE12D7EB1C5C5DF900CD0B13 /* cgame.so */,
 				CE12D8111C5C5EF000CD0B13 /* libminizip.a */,
 				CE12D8F41C5CF86600CD0B13 /* quetoo-dedicated */,
 				CE80FD871C5E3B6F00A21A51 /* quemap */,
@@ -2791,7 +2791,7 @@
 				CE80FDE31C5E3E1100A21A51 /* libcommon.a */,
 				CE80FE381C5E421900A21A51 /* libcollision.a */,
 				CE80FE661C5E431000A21A51 /* libnet.a */,
-				CE80FEC61C5E44E800A21A51 /* libai.dylib */,
+				CE80FEC61C5E44E800A21A51 /* ai.so */,
 				CE80FEE41C5E45EC00A21A51 /* libclient.a */,
 				CE80FF6A1C5E494E00A21A51 /* libclient-null.a */,
 				CE80FF7F1C5E49C400A21A51 /* libserver.a */,
@@ -3475,7 +3475,7 @@
 			);
 			name = game;
 			productName = game;
-			productReference = CE12D7CD1C5C5D5C00CD0B13 /* libgame.dylib */;
+			productReference = CE12D7CD1C5C5D5C00CD0B13 /* game.so */;
 			productType = "com.apple.product-type.library.dynamic";
 		};
 		CE12D7EA1C5C5DF900CD0B13 /* cgame */ = {
@@ -3494,7 +3494,7 @@
 			);
 			name = cgame;
 			productName = cgame;
-			productReference = CE12D7EB1C5C5DF900CD0B13 /* libcgame.dylib */;
+			productReference = CE12D7EB1C5C5DF900CD0B13 /* cgame.so */;
 			productType = "com.apple.product-type.library.dynamic";
 		};
 		CE12D8101C5C5EF000CD0B13 /* minizip */ = {
@@ -3711,7 +3711,7 @@
 			);
 			name = ai;
 			productName = game;
-			productReference = CE80FEC61C5E44E800A21A51 /* libai.dylib */;
+			productReference = CE80FEC61C5E44E800A21A51 /* ai.so */;
 			productType = "com.apple.product-type.library.dynamic";
 		};
 		CE80FED21C5E45EC00A21A51 /* client */ = {
@@ -4746,11 +4746,13 @@
 				HEADER_SEARCH_PATHS = (
 					/opt/local/include,
 					"/opt/local/include/glib-2.0",
+					/opt/local/include/mysql56/mysql,
 					"/opt/local/lib/glib-2.0/include",
 					/usr/local/include,
 				);
 				LIBRARY_SEARCH_PATHS = (
 					/opt/local/lib,
+					/opt/local/lib/mysql56/mysql,
 					/usr/local/lib,
 				);
 				ONLY_ACTIVE_ARCH = YES;
@@ -4778,11 +4780,13 @@
 				HEADER_SEARCH_PATHS = (
 					/opt/local/include,
 					"/opt/local/include/glib-2.0",
+					/opt/local/include/mysql56/mysql,
 					"/opt/local/lib/glib-2.0/include",
 					/usr/local/include,
 				);
 				LIBRARY_SEARCH_PATHS = (
 					/opt/local/lib,
+					/opt/local/lib/mysql56/mysql,
 					/usr/local/lib,
 				);
 				ONLY_ACTIVE_ARCH = YES;
@@ -4807,15 +4811,7 @@
 		CE12D7CF1C5C5D5C00CD0B13 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				EXECUTABLE_PREFIX = lib;
-				HEADER_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/local/include/mysql56/mysql,
-				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/local/lib/mysql56/mysql,
-				);
+				EXECUTABLE_EXTENSION = so;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4823,15 +4819,7 @@
 		CE12D7D01C5C5D5C00CD0B13 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				EXECUTABLE_PREFIX = lib;
-				HEADER_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/local/include/mysql56/mysql,
-				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/local/lib/mysql56/mysql,
-				);
+				EXECUTABLE_EXTENSION = so;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4839,7 +4827,7 @@
 		CE12D7ED1C5C5DF900CD0B13 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_EXTENSION = so;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4847,7 +4835,7 @@
 		CE12D7EE1C5C5DF900CD0B13 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_EXTENSION = so;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5041,7 +5029,7 @@
 		CE80FEC41C5E44E800A21A51 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_EXTENSION = so;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5049,7 +5037,7 @@
 		CE80FEC51C5E44E800A21A51 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_EXTENSION = so;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
