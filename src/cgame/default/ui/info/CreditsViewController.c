@@ -20,10 +20,11 @@
  */
 
 #include "cg_local.h"
-
 #include "parse.h"
 
 #include "CreditsViewController.h"
+
+#include "Theme.h"
 
 static const char *_name = "Name";
 static const char *_role = "Role";

@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "cg_types.h"
+
 #include <ObjectivelyMVC.h>
 
 /**
@@ -42,7 +44,7 @@ struct InfoViewController {
 	 * @brief The superclass.
 	 * @private
 	 */
-	ViewController menuViewController;
+	ViewController viewController;
 
 	/**
 	 * @brief The interface.

@@ -1,10 +1,8 @@
-
 noinst_HEADERS = \
 	common/CvarCheckbox.h \
 	common/CvarSelect.h \
 	common/CvarSlider.h \
 	common/CvarTextView.h \
-	common/MenuViewController.h \
 	common/Theme.h \
 	\
 	info/CreditsViewController.h \
@@ -43,7 +41,6 @@ libui_la_SOURCES = \
 	common/CvarSelect.c \
 	common/CvarSlider.c \
 	common/CvarTextView.c \
-	common/MenuViewController.c \
 	common/Theme.c \
 	\
 	info/CreditsViewController.c \
@@ -88,6 +85,9 @@ libui_la_CFLAGS = \
 	@GLIB_CFLAGS@ \
 	@OBJECTIVELYMVC_CFLAGS@ \
 	@OPENGL_CFLAGS@
+
+libui_la_LDFLAGS = \
+	-shared
 
 libui_la_LIBADD = \
 	@OBJECTIVELYMVC_LIBS@ \

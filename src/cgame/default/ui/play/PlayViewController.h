@@ -21,7 +21,9 @@
 
 #pragma once
 
-#include "MenuViewController.h"
+#include "cg_types.h"
+
+#include <ObjectivelyMVC.h>
 
 /**
  * @file
@@ -33,7 +35,7 @@ typedef struct PlayViewControllerInterface PlayViewControllerInterface;
 
 /**
  * @brief The PlayViewController type.
- * @extends MenuViewController
+ * @extends ViewController
  * @ingroup
  */
 struct PlayViewController {
@@ -42,7 +44,7 @@ struct PlayViewController {
 	 * @brief The superclass.
 	 * @private
 	 */
-	MenuViewController menuViewController;
+	ViewController viewController;
 
 	/**
 	 * @brief The interface.
@@ -64,7 +66,7 @@ struct PlayViewControllerInterface {
 	/**
 	 * @brief The superclass interface.
 	 */
-	MenuViewControllerInterface menuViewControllerInterface;
+	ViewControllerInterface viewControllerInterface;
 };
 
 /**

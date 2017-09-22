@@ -21,7 +21,9 @@
 
 #pragma once
 
-#include <ObjectivelyMVC/Panel.h>
+#include "cg_types.h"
+
+#include <ObjectivelyMVC.h>
 
 /**
  * @file

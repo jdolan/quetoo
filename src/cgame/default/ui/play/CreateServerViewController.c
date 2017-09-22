@@ -185,6 +185,7 @@ static void loadView(ViewController *self) {
 		$(theme, target, box->contentView);
 
 		this->gameplay = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
+		assert(this->gameplay);
 
 		$(this->gameplay, addOption, "Default", (ident) 0);
 		$(this->gameplay, addOption, "Deathmatch", (ident) 1);
@@ -210,6 +211,7 @@ static void loadView(ViewController *self) {
 		$(theme, control, "Gameplay", (Control *) this->gameplay);
 
 		this->teamsplay = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
+		assert(this->teamsplay);
 
 		$(this->teamsplay, addOption, "Free for All", (ident) 0);
 		$(this->teamsplay, addOption, "Team Deathmatch", (ident) 1);
@@ -240,6 +242,7 @@ static void loadView(ViewController *self) {
 
 		const SDL_Rect frame = { .w = 760, .h = 600 };
 		this->mapList = $(alloc(MapListCollectionView), initWithFrame, &frame, ControlStyleDefault);
+		assert(this->mapList);
 
 		$(theme, attach, this->mapList);
 

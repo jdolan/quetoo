@@ -159,7 +159,6 @@
 		CE6EE3D31F720D6700FBC830 /* CvarSelect.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58709E1F5CE97C004CAAB2 /* CvarSelect.c */; };
 		CE6EE3D41F720D6700FBC830 /* CvarSlider.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870A01F5CE97C004CAAB2 /* CvarSlider.c */; };
 		CE6EE3D51F720D6700FBC830 /* CvarTextView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870A21F5CE97C004CAAB2 /* CvarTextView.c */; };
-		CE6EE3D61F720D6700FBC830 /* MenuViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6EE3681F6CA4F200FBC830 /* MenuViewController.c */; };
 		CE6EE3D71F720D6700FBC830 /* Theme.c in Sources */ = {isa = PBXBuildFile; fileRef = CE107D7C1F6592860010A1DA /* Theme.c */; };
 		CE6EE3D81F720D7700FBC830 /* CreditsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58707A1F5CDFE0004CAAB2 /* CreditsViewController.c */; };
 		CE6EE3D91F720D7700FBC830 /* InfoViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58707C1F5CDFE0004CAAB2 /* InfoViewController.c */; };
@@ -189,7 +188,6 @@
 		CE6EE3F11F720DC300FBC830 /* CvarSelect.h in Headers */ = {isa = PBXBuildFile; fileRef = CE58709F1F5CE97C004CAAB2 /* CvarSelect.h */; };
 		CE6EE3F21F720DC300FBC830 /* CvarSlider.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870A11F5CE97C004CAAB2 /* CvarSlider.h */; };
 		CE6EE3F31F720DC300FBC830 /* CvarTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870A31F5CE97C004CAAB2 /* CvarTextView.h */; };
-		CE6EE3F41F720DC300FBC830 /* MenuViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6EE3691F6CA4F200FBC830 /* MenuViewController.h */; };
 		CE6EE3F51F720DC300FBC830 /* Theme.h in Headers */ = {isa = PBXBuildFile; fileRef = CE107D7D1F6592860010A1DA /* Theme.h */; };
 		CE6EE3F61F720DC300FBC830 /* CreditsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE58707B1F5CDFE0004CAAB2 /* CreditsViewController.h */; };
 		CE6EE3F71F720DC300FBC830 /* InfoViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE58707D1F5CDFE0004CAAB2 /* InfoViewController.h */; };
@@ -1482,8 +1480,6 @@
 		CE6EE2791F6BE8FE00FBC830 /* DialogView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DialogView.c; sourceTree = "<group>"; };
 		CE6EE27A1F6BE8FE00FBC830 /* DialogView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DialogView.h; sourceTree = "<group>"; };
 		CE6EE3371F6BFAF600FBC830 /* libcgame-ui.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libcgame-ui.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		CE6EE3681F6CA4F200FBC830 /* MenuViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MenuViewController.c; sourceTree = "<group>"; };
-		CE6EE3691F6CA4F200FBC830 /* MenuViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MenuViewController.h; sourceTree = "<group>"; };
 		CE6EE3BE1F71450C00FBC830 /* libObjectively.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectively.0.dylib; path = ../../../../usr/local/lib/libObjectively.0.dylib; sourceTree = "<group>"; };
 		CE6EE3CE1F72018C00FBC830 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE6EE40F1F72919800FBC830 /* cg_ui.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_ui.c; sourceTree = "<group>"; };
@@ -2896,8 +2892,6 @@
 				CE5870A11F5CE97C004CAAB2 /* CvarSlider.h */,
 				CE5870A21F5CE97C004CAAB2 /* CvarTextView.c */,
 				CE5870A31F5CE97C004CAAB2 /* CvarTextView.h */,
-				CE6EE3681F6CA4F200FBC830 /* MenuViewController.c */,
-				CE6EE3691F6CA4F200FBC830 /* MenuViewController.h */,
 				CE107D7C1F6592860010A1DA /* Theme.c */,
 				CE107D7D1F6592860010A1DA /* Theme.h */,
 			);
@@ -3156,7 +3150,6 @@
 				CE6EE3F11F720DC300FBC830 /* CvarSelect.h in Headers */,
 				CE6EE3F21F720DC300FBC830 /* CvarSlider.h in Headers */,
 				CE6EE3F31F720DC300FBC830 /* CvarTextView.h in Headers */,
-				CE6EE3F41F720DC300FBC830 /* MenuViewController.h in Headers */,
 				CE6EE3F51F720DC300FBC830 /* Theme.h in Headers */,
 				CE6EE3F61F720DC300FBC830 /* CreditsViewController.h in Headers */,
 				CE6EE3F71F720DC300FBC830 /* InfoViewController.h in Headers */,
@@ -4179,7 +4172,6 @@
 				CE6EE3D31F720D6700FBC830 /* CvarSelect.c in Sources */,
 				CE6EE3D41F720D6700FBC830 /* CvarSlider.c in Sources */,
 				CE6EE3D51F720D6700FBC830 /* CvarTextView.c in Sources */,
-				CE6EE3D61F720D6700FBC830 /* MenuViewController.c in Sources */,
 				CE6EE3D71F720D6700FBC830 /* Theme.c in Sources */,
 				CE6EE3D81F720D7700FBC830 /* CreditsViewController.c in Sources */,
 				CE6EE3D91F720D7700FBC830 /* InfoViewController.c in Sources */,

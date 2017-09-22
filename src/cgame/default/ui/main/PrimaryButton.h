@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "cg_types.h"
+
 #include <ObjectivelyMVC/Button.h>
 
 /**

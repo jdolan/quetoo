@@ -28,6 +28,8 @@
 #include "OptionsViewController.h"
 #include "VideoViewController.h"
 
+#include "Theme.h"
+
 #define _Class _SettingsViewController
 
 #pragma mark - Object
@@ -52,6 +54,14 @@ static void loadView(ViewController *self) {
 
 	SettingsViewController *this = (SettingsViewController *) self;
 
+	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	assert(theme);
+
+	Panel *panel = $(theme, panel);
+
+	$(theme, attach, panel);
+	$(theme, target, panel->contentView);
+
 	this->tabViewController = $(alloc(TabViewController), init);
 	assert(this->tabViewController);
 
@@ -74,6 +84,10 @@ static void loadView(ViewController *self) {
 	release(viewController);
 
 	$(self, addChildViewController, tabViewController);
+	$(theme, attach, tabViewController->view);
+
+	release(panel);
+	release(theme);
 }
 
 #pragma mark - Class lifecycle
@@ -98,7 +112,7 @@ Class *_SettingsViewController(void) {
 
 	do_once(&once, {
 		clazz.name = "SettingsViewController";
-		clazz.superclass = _MenuViewController();
+		clazz.superclass = _ViewController();
 		clazz.instanceSize = sizeof(SettingsViewController);
 		clazz.interfaceOffset = offsetof(SettingsViewController, interface);
 		clazz.interfaceSize = sizeof(SettingsViewControllerInterface);

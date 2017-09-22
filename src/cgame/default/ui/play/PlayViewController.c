@@ -26,6 +26,8 @@
 #include "CreateServerViewController.h"
 #include "JoinServerViewController.h"
 
+#include "Theme.h"
+
 #define _Class _PlayViewController
 
 #pragma mark - Object
@@ -50,6 +52,14 @@ static void loadView(ViewController *self) {
 
 	PlayViewController *this = (PlayViewController *) self;
 
+	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	assert(theme);
+
+	Panel *panel = $(theme, panel);
+
+	$(theme, attach, panel);
+	$(theme, target, panel->contentView);
+
 	this->tabViewController = $(alloc(TabViewController), init);
 	assert(this->tabViewController);
 
@@ -57,15 +67,17 @@ static void loadView(ViewController *self) {
 
 	ViewController *joinServerViewController = $((ViewController *) alloc(JoinServerViewController), init);
 	$(tabViewController, addChildViewController, joinServerViewController);
-
 	release(joinServerViewController);
 
 	ViewController *createServerViewController = $((ViewController *) alloc(CreateServerViewController), init);
 	$(tabViewController, addChildViewController, createServerViewController);
-
 	release(createServerViewController);
 
 	$(self, addChildViewController, tabViewController);
+	$(theme, attach, tabViewController->view);
+
+	release(panel);
+	release(theme);
 }
 
 #pragma mark - Class lifecycle
@@ -90,7 +102,7 @@ Class *_PlayViewController(void) {
 
 	do_once(&once, {
 		clazz.name = "PlayViewController";
-		clazz.superclass = _MenuViewController();
+		clazz.superclass = _ViewController();
 		clazz.instanceSize = sizeof(PlayViewController);
 		clazz.interfaceOffset = offsetof(PlayViewController, interface);
 		clazz.interfaceSize = sizeof(PlayViewControllerInterface);

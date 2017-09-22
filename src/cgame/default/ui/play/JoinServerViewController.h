@@ -21,7 +21,9 @@
 
 #pragma once
 
-#include <ObjectivelyMVC/ViewController.h>
+#include "cg_types.h"
+
+#include <ObjectivelyMVC.h>
 
 /**
  * @file
@@ -69,7 +71,7 @@ struct JoinServerViewControllerInterface {
 	/**
 	 * @brief The superclass interface.
 	 */
-	ViewControllerInterface menuViewControllerInterface;
+	ViewControllerInterface viewControllerInterface;
 
 	/**
 	 * @fn void JoinServerViewController::reloadServers(JoinServerViewController *self)

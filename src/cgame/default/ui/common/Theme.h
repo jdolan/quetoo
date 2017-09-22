@@ -21,11 +21,13 @@
 
 #pragma once
 
+#include "cg_types.h"
+
 #include <ObjectivelyMVC.h>
 
 /**
  * @file
- * @brief The Theme provides a high level API for managing user interface construction.
+ * @brief The Theme provides a high level API for user interface construction.
  */
 
 #define THEME_INPUT_LABEL_WIDTH 200

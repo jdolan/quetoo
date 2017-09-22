@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include <ObjectivelyMVC/Slider.h>
-
 #include "cg_types.h"
+
+#include <ObjectivelyMVC/Slider.h>
 
 /**
  * @file

@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include <ObjectivelyMVC/Checkbox.h>
-
 #include "cg_types.h"
+
+#include <ObjectivelyMVC/Checkbox.h>
 
 /**
  * @file

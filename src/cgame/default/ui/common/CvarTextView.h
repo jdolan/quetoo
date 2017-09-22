@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include <ObjectivelyMVC/TextView.h>
-
 #include "cg_types.h"
+
+#include <ObjectivelyMVC/TextView.h>
 
 /**
  * @file

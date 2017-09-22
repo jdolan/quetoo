@@ -165,10 +165,7 @@ static void showDialog(DialogView *self, const char *text, const char *cancelTex
 	self->cancelButton->control.view.needsLayout = true;
 	self->okButton->control.view.needsLayout = true;
 
-	char new_text[MAX_STRING_CHARS];
-	StripNewline(text, new_text);
-
-	$(self->label->text, setText, new_text);
+	$(self->label->text, setText, text);
 
 	if (cancelText) {
 		$(self->cancelButton->title, setText, cancelText);

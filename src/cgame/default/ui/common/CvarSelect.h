@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include <ObjectivelyMVC/Select.h>
-
 #include "cg_types.h"
+
+#include <ObjectivelyMVC/Select.h>
 
 /**
  * @file

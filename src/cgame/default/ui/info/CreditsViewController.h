@@ -21,6 +21,10 @@
 
 #pragma once
 
+#include "cg_types.h"
+
+#include <ObjectivelyMVC.h>
+
 /**
  * @file
  * @brief Credits ViewController

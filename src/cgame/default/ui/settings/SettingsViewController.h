@@ -21,11 +21,13 @@
 
 #pragma once
 
-#include "MenuViewController.h"
+#include "cg_types.h"
+
+#include <ObjectivelyMVC.h>
 
 /**
  * @file
- * @brief Settings MenuViewController.
+ * @brief Settings ViewController.
  */
 
 typedef struct SettingsViewController SettingsViewController;
@@ -33,7 +35,7 @@ typedef struct SettingsViewControllerInterface SettingsViewControllerInterface;
 
 /**
  * @brief The SettingsViewController type.
- * @extends MenuViewController
+ * @extends ViewController
  */
 struct SettingsViewController {
 
@@ -41,7 +43,7 @@ struct SettingsViewController {
 	 * @brief The superclass.
 	 * @private
 	 */
-	MenuViewController menuViewController;
+	ViewController viewController;
 
 	/**
 	 * @brief The interface.
@@ -63,7 +65,7 @@ struct SettingsViewControllerInterface {
 	/**
 	 * @brief The superclass interface.
 	 */
-	MenuViewControllerInterface menuViewControllerInterface;
+	ViewControllerInterface viewControllerInterface;
 };
 
 /**
