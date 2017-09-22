@@ -51,8 +51,8 @@ static void loadView(ViewController *self) {
 	self->view->autoresizingMask = ViewAutoresizingContain;
 	self->view->identifier = strdup("Input");
 
-	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
-	assert(theme);
+	Theme *theme = $$(Theme, sharedInstance);
+	$(theme, target, self->view);
 
 	InputViewController *this = (InputViewController *) self;
 
@@ -135,7 +135,6 @@ static void loadView(ViewController *self) {
 
 	release(columns);
 	release(container);
-	release(theme);
 }
 
 #pragma mark - InputViewController

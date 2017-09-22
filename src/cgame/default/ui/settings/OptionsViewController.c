@@ -110,7 +110,7 @@ static void loadView(ViewController *self) {
 
 		$(theme, control, "Crosshair", crosshair);
 
-		this->crosshairColorPicker = $(alloc(HueColorPicker), initWithFrame, NULL);
+		this->crosshairColorPicker = $(alloc(HueColorPicker), initWithFrame, NULL, ControlStyleDefault);
 		assert(this->crosshairColorPicker);
 
 		this->crosshairColorPicker->delegate.self = this;

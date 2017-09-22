@@ -34,7 +34,7 @@ typedef struct LoadingViewControllerInterface LoadingViewControllerInterface;
 
 /**
  * @brief The LoadingViewController type.
- * @extends MenuViewController
+ * @extends ViewController
  * @ingroup ViewControllers
  */
 struct LoadingViewController {

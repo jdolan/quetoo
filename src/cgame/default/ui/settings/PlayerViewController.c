@@ -95,15 +95,22 @@ static void didSelectSkin(Select *select, Option *option) {
 }
 
 /**
+ * @brief HueColorPickerDelegate callback for effect color selection.
+ */
+static void didPickEffectColor(HueColorPicker *hueColorPicker, double hue, double saturation, double value) {
+
+	// TODO: Data binding to color cvar
+
+}
+
+/**
  * @brief HSVColorPickerDelegate callback for tint selection.
  */
-static void didPickColor(HSVColorPicker *hsvColorPicker, double hue, double saturation, double value) {
+static void didPickPlayerColor(HSVColorPicker *hsvColorPicker, double hue, double saturation, double value) {
 
 	PlayerViewController *this = hsvColorPicker->delegate.self;
 
-	if (hsvColorPicker == this->effectColorPicker) {
-
-	} else if (hsvColorPicker == this->pantsColorPicker) {
+	if (hsvColorPicker == this->pantsColorPicker) {
 
 	} else if (hsvColorPicker == this->shirtColorPicker) {
 
@@ -214,36 +221,33 @@ static void loadView(ViewController *self) {
 			$(theme, attach, box);
 			$(theme, target, box->contentView);
 
-			this->effectColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL);
+			this->effectColorPicker = $(alloc(HueColorPicker), initWithFrame, NULL, ControlStyleDefault);
 			assert(this->effectColorPicker);
 
 			this->effectColorPicker->delegate.self = this;
-			this->effectColorPicker->delegate.didPickColor = didPickColor;
-
-			this->effectColorPicker->saturationInput->stackView.view.hidden = true;
-			this->effectColorPicker->valueInput->stackView.view.hidden = true;
+			this->effectColorPicker->delegate.didPickColor = didPickEffectColor;
 
 			$(theme, control, "Effects", this->effectColorPicker);
 
-			this->shirtColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL);
+			this->shirtColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL, ControlStyleDefault);
 			assert(this->shirtColorPicker);
 
 			this->shirtColorPicker->colorView->hidden = true;
 
 			this->shirtColorPicker->delegate.self = self;
-			this->shirtColorPicker->delegate.didPickColor = didPickColor;
+			this->shirtColorPicker->delegate.didPickColor = didPickPlayerColor;
 
 			this->shirtColorPicker->valueSlider->min = 0.5;
 
 			$(theme, control, "Shirt", this->shirtColorPicker);
 
-			this->pantsColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL);
+			this->pantsColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL, ControlStyleDefault);
 			assert(this->pantsColorPicker);
 
 			this->pantsColorPicker->colorView->hidden = true;
 
 			this->pantsColorPicker->delegate.self = self;
-			this->pantsColorPicker->delegate.didPickColor = didPickColor;
+			this->pantsColorPicker->delegate.didPickColor = didPickPlayerColor;
 
 			this->pantsColorPicker->valueSlider->min = 0.5;
 

@@ -44,7 +44,7 @@ struct PlayerViewController {
 	 * @brief The superclass.
 	 * @private
 	 */
-	ViewController menuViewController;
+	ViewController viewController;
 
 	/**
 	 * @brief The interface.
@@ -53,9 +53,9 @@ struct PlayerViewController {
 	PlayerViewControllerInterface *interface;
 
 	/**
-	 * @brief The effect HSVColorPicker.
+	 * @brief The effect HueColorPicker.
 	 */
-	HSVColorPicker *effectColorPicker;
+	HueColorPicker *effectColorPicker;
 
 	/**
 	 * @brief The hook style Select.
