@@ -48,6 +48,7 @@ static void loadView(ViewController *self) {
 	self->view->identifier = strdup("Audio");
 
 	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	assert(theme);
 
 	StackView *container = $(theme, container);
 
