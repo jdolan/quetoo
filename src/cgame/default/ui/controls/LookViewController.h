@@ -25,6 +25,8 @@
 
 #include <ObjectivelyMVC/ViewController.h>
 
+#include "CrosshairView.h"
+
 /**
  * @file
  * @brief Controls ViewController.
@@ -51,6 +53,11 @@ struct LookViewController {
 	 * @private
 	 */
 	LookViewControllerInterface *interface;
+
+	/**
+	 * @brief The CrosshairView.
+	 */
+	CrosshairView *crosshairView;
 };
 
 /**

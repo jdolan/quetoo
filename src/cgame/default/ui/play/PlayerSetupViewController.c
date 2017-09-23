@@ -69,7 +69,7 @@ static void enumerateSkins(const char *path, void *data) {
 			$(select, addOption, name, value);
 
 			if (g_strcmp0(cg_skin->string, name) == 0) {
-				$(select, selectOptionWithValue, value);
+				select->selectedOption = $(select, optionWithValue, value);
 			}
 		}
 	}
@@ -147,6 +147,7 @@ static void dealloc(Object *self) {
 
 	release(this->effectColorPicker);
 	release(this->pantsColorPicker);
+	release(this->playerModelView);
 	release(this->shirtColorPicker);
 	release(this->skinSelect);
 
@@ -198,7 +199,7 @@ static void loadView(ViewController *self) {
 
 		$(theme, control, "Player model", this->skinSelect);
 
-		$(theme, slider, "Handicap", cg_handicap->name, 50.0, 100.0, 5.0);
+		$(theme, slider, "Handicap", cg_handicap->name, 50.0, 100.0, 5.0, NULL);
 
 		release(box);
 	}

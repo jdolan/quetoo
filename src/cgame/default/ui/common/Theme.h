@@ -116,7 +116,7 @@ struct ThemeInterface {
 	 * @param self The Theme.
 	 * @param label The Label text.
 	 * @param bind The bind.
-	 * @param delegate An option TextViewDelegate.
+	 * @param delegate The TextViewDelegate.
 	 * @memberof Theme
 	 */
 	void (*bindTextView)(const Theme *self, const char *label, const char *bind, TextViewDelegate *delegate);
@@ -219,9 +219,11 @@ struct ThemeInterface {
 	 * @param min The min value.
 	 * @param max The max value.
 	 * @param step The step.
+	 * @param delegate The SliderDelegate.
 	 * @memberof Theme
 	 */
-	void (*slider)(const Theme *self, const char *label, const char *name, double min, double max, double step);
+	void (*slider)(const Theme *self, const char *label, const char *name,
+				   double min, double max, double step, SliderDelegate *delegate);
 
 	/**
 	 * @fn void Theme::target(Theme *self, ident target)

@@ -39,17 +39,21 @@ static void updateBindings(View *self) {
 	$((Slider *) this, setValue, this->var->value);
 }
 
-#pragma mark - CvarSlider
+#pragma mark - Slider
 
 /**
- * @brief SliderDelegate callback.
+ * @see Slider::setValue(Slider *, double)
  */
-static void didSetValue(Slider *slider) {
+static void setValue(Slider *self, double value) {
 
-	const CvarSlider *this = (CvarSlider *) slider;
+	super(Slider, self, setValue, value);
 
-	cgi.CvarSetValue(this->var->name, slider->value);
+	const CvarSlider *this = (CvarSlider *) self;
+
+	cgi.CvarSetValue(this->var->name, value);
 }
+
+#pragma mark - CvarSlider
 
 /**
  * @fn CvarSlider *CvarSlider::initWithVariable(CvarSlider *self, cvar_t *var, double min, double max, double step)
@@ -66,15 +70,13 @@ static CvarSlider *initWithVariable(CvarSlider *self, cvar_t *var, double min, d
 
 		Slider *this = (Slider *) self;
 
-		this->delegate.didSetValue = didSetValue;
-
 		this->min = min;
 		this->max = max;
 		this->step = step;
 		this->snapToStep = true;
 
 		if ((step - floor(step)) == 0.0) {
-			$((Slider *) self, setLabelFormat, "%0.0f");
+			$(this, setLabelFormat, "%0.0f");
 		}
 
 		$(this, setValue, var->value);
@@ -91,6 +93,8 @@ static CvarSlider *initWithVariable(CvarSlider *self, cvar_t *var, double min, d
 static void initialize(Class *clazz) {
 
 	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
+
+	((SliderInterface *) clazz->def->interface)->setValue = setValue;
 
 	((CvarSliderInterface *) clazz->def->interface)->initWithVariable = initWithVariable;
 }

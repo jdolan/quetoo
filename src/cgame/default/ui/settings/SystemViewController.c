@@ -130,7 +130,7 @@ static void loadView(ViewController *self) {
 		$(theme, control, "Vertical sync", swapIntervalSelect);
 		release(swapIntervalSelect);
 
-		$(theme, slider, "Framerate limiter", "cl_max_fps", 0.0, 240.0, 5.0);
+		$(theme, slider, "Framerate limiter", "cl_max_fps", 0.0, 240.0, 5.0, NULL);
 
 		release(box);
 	}
@@ -175,10 +175,10 @@ static void loadView(ViewController *self) {
 		$(theme, attach, box);
 		$(theme, target, box->contentView);
 
-		$(theme, slider, "Brightness", "r_brightness", 0.1, 2.0, 0.1);
-		$(theme, slider, "Contrast", "r_contrast", 0.1, 2.0, 0.1);
-		$(theme, slider, "Gamma", "r_gamma", 0.1, 2.0, 0.1);
-		$(theme, slider, "Modulate", "r_modulate", 0.1, 5.0, 0.1);
+		$(theme, slider, "Brightness", "r_brightness", 0.1, 2.0, 0.1, NULL);
+		$(theme, slider, "Contrast", "r_contrast", 0.1, 2.0, 0.1, NULL);
+		$(theme, slider, "Gamma", "r_gamma", 0.1, 2.0, 0.1, NULL);
+		$(theme, slider, "Modulate", "r_modulate", 0.1, 5.0, 0.1, NULL);
 
 		release(box);
 	}
@@ -191,10 +191,10 @@ static void loadView(ViewController *self) {
 		$(theme, attach, box);
 		$(theme, target, box->contentView);
 
-		$(theme, slider, "Master", "s_volume", 0.0, 1.0, 0.1);
-		$(theme, slider, "Effects", "s_effects_volume", 0.0, 1.0, 0.1);
-		$(theme, slider, "Ambient", "s_ambient_volume", 0.0, 1.0, 0.1);
-		$(theme, slider, "Music", "s_music_volume", 0.0, 1.0, 0.1);
+		$(theme, slider, "Master", "s_volume", 0.0, 1.0, 0.1, NULL);
+		$(theme, slider, "Effects", "s_effects_volume", 0.0, 1.0, 0.1, NULL);
+		$(theme, slider, "Ambient", "s_ambient_volume", 0.0, 1.0, 0.1, NULL);
+		$(theme, slider, "Music", "s_music_volume", 0.0, 1.0, 0.1, NULL);
 
 		release(box);
 	}

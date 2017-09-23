@@ -231,16 +231,20 @@ static Panel *panel(const Theme *self) {
 }
 
 /**
- * @fn void Theme::slider(const Theme *self, const char *label, const char *name, double min, double max, double step)
+ * @fn void Theme::slider(const Theme *self, const char *label, const char *name, double min, double max, double step, SliderDelegate *delegate)
  * @memberof Theme
  */
-static void slider(const Theme *self, const char *label, const char *name, double min, double max, double step) {
+static void slider(const Theme *self, const char *label, const char *name,
+				   double min, double max, double step, SliderDelegate *delegate) {
 
-	CvarSlider *slider = $(alloc(CvarSlider), initWithVariable, cgi.CvarGet(name), min, max, step);
+	Slider *slider = (Slider *) $(alloc(CvarSlider), initWithVariable, cgi.CvarGet(name), min, max, step);
 	assert(slider);
 
-	$(self, control, label, slider);
+	if (delegate) {
+		slider->delegate = *delegate;
+	}
 
+	$(self, control, label, slider);
 	release(slider);
 }
 

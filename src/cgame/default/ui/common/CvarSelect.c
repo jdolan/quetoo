@@ -62,21 +62,26 @@ static void addOption(Select *self, const char *title, ident value) {
 	$((View *) self, updateBindings);
 }
 
-#pragma mark - CvarSelect
-
 /**
- * @brief SelectDelegate callback.
+ * @see Select::selectOptionWithValue(Select *, ident)
  */
-static void didSelectOption(Select *Select, Option *option) {
+static void selectOptionWithValue(Select *self, ident value) {
 
-	const CvarSelect *this = (CvarSelect *) Select;
+	Option *option = $(self, optionWithValue, value);
+	if (option) {
+		const CvarSelect *this = (CvarSelect *) self;
 
-	if (this->expectsStringValue) {
-		cgi.CvarSet(this->var->name, option->title->text);
-	} else {
-		cgi.CvarSetValue(this->var->name, (int32_t) (intptr_t) option->value);
+		if (this->expectsStringValue) {
+			cgi.CvarSet(this->var->name, option->title->text);
+		} else {
+			cgi.CvarSetValue(this->var->name, (int32_t) (intptr_t) option->value);
+		}
 	}
+
+	super(Select, self, selectOptionWithValue, value);
 }
+
+#pragma mark - CvarSelect
 
 /**
  * @fn CvarSelect *CvarSelect::initWithVariable(CvarSelect *self, cvar_t *var)
@@ -90,10 +95,6 @@ static CvarSelect *initWithVariable(CvarSelect *self, cvar_t *var) {
 
 		self->var = var;
 		assert(self->var);
-
-		Select *this = (Select *) self;
-
-		this->delegate.didSelectOption = didSelectOption;
 	}
 
 	return self;
@@ -118,6 +119,7 @@ static void initialize(Class *clazz) {
 	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
 
 	((SelectInterface *) clazz->def->interface)->addOption = addOption;
+	((SelectInterface *) clazz->def->interface)->selectOptionWithValue = selectOptionWithValue;
 
 	((CvarSelectInterface *) clazz->def->interface)->initWithVariable = initWithVariable;
 	((CvarSelectInterface *) clazz->def->interface)->initWithVariableName = initWithVariableName;

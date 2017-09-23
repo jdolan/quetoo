@@ -47,17 +47,30 @@ static void enumerateCrosshairs(const char *path, void *data) {
 }
 
 /**
- * @brief ActionFunction for crosshair modification.
+ * @brief SelectDelegate callback for crosshair selection.
  */
-static void crosshairAction(Control *control, const SDL_Event *event, ident sender, ident data) {
-	$((View *) data, updateBindings);
+static void didSelectCrosshair(Select *select, Option *option) {
+
+	LookViewController *this = (LookViewController *) select->delegate.self;
+
+	$((View *) this->crosshairView, updateBindings);
 }
 
 /**
  * @brief HueColorPickerDelegate callback for crosshair color selection.
  */
-static void didPickColor(HueColorPicker *colorPicker, double hue, double saturation, double value) {
+static void didPickCrosshairColor(HueColorPicker *colorPicker, double hue, double saturation, double value) {
 
+}
+
+/**
+ * @brief SliderDelegate callback for crosshair scale.
+ */
+static void didSetCrosshairScale(Slider *slider) {
+
+	LookViewController *this = (LookViewController *) slider->delegate.self;
+
+	$((View *) this->crosshairView, updateBindings);
 }
 
 /**
@@ -68,6 +81,20 @@ static void didBindKey(TextView *textView) {
 	const ViewController *this = textView->delegate.self;
 
 	$(this->view, updateBindings);
+}
+
+#pragma mark - Object
+
+/**
+ * @see Object::dealloc(Object *)
+ */
+static void dealloc(Object *self) {
+
+	LookViewController *this = (LookViewController *) self;
+
+	release(this->crosshairView);
+
+	super(Object, self, dealloc);
 }
 
 #pragma mark - ViewController
@@ -108,8 +135,8 @@ static void loadView(ViewController *self) {
 		$(theme, attach, box);
 		$(theme, target, box->contentView);
 
-		$(theme, slider, "Sensitivity", "m_sensitivity", 0.1, 6.0, 0.1);
-		$(theme, slider, "Zoom Sensitivity", "m_sensitivity_zoom", 0.1, 6.0, 0.1);
+		$(theme, slider, "Sensitivity", "m_sensitivity", 0.1, 6.0, 0.1, NULL);
+		$(theme, slider, "Zoom Sensitivity", "m_sensitivity_zoom", 0.1, 6.0, 0.1, NULL);
 		$(theme, checkbox, "Invert mouse", "m_invert");
 		$(theme, checkbox, "Smooth mouse", "m_interpolate");
 
@@ -124,10 +151,10 @@ static void loadView(ViewController *self) {
 		$(theme, attach, box);
 		$(theme, target, box->contentView);
 
-		$(theme, slider, "FOV", cg_fov->name, 80.0, 130.0, 5.0);
-		$(theme, slider, "Zoom FOV", cg_fov_zoom->name, 20.0, 70.0, 5.0);
+		$(theme, slider, "FOV", cg_fov->name, 80.0, 130.0, 5.0, NULL);
+		$(theme, slider, "Zoom FOV", cg_fov_zoom->name, 20.0, 70.0, 5.0, NULL);
 		$(theme, bindTextView, "Zoom", "+ZOOM", &delegate);
-		$(theme, slider, "Zoom speed", cg_fov_interpolate->name, 0.0, 2.0, 0.1);
+		$(theme, slider, "Zoom speed", cg_fov_interpolate->name, 0.0, 2.0, 0.1, NULL);
 	}
 
 	$(theme, targetSubview, columns, 1);
@@ -139,37 +166,41 @@ static void loadView(ViewController *self) {
 		$(theme, target, box->contentView);
 
 		Select *crosshair = (Select *) $(alloc(CvarSelect), initWithVariable, cg_draw_crosshair);
+		assert(crosshair);
 
 		$(crosshair, addOption, "", NULL);
 		cgi.EnumerateFiles("pics/ch*", enumerateCrosshairs, crosshair);
 
+		crosshair->delegate.self = this;
+		crosshair->delegate.didSelectOption = didSelectCrosshair;
+
 		$(theme, control, "Crosshair", crosshair);
 
-		CrosshairView *crosshairView = $(alloc(CrosshairView), initWithFrame, &MakeRect(0, 0, 72, 72));
-		assert(crosshair);
+		this->crosshairView = $(alloc(CrosshairView), initWithFrame, &MakeRect(0, 0, 72, 72));
+		assert(this->crosshairView);
 
-		crosshairView->view.alignment = ViewAlignmentMiddleCenter;
+		this->crosshairView->view.alignment = ViewAlignmentMiddleCenter;
 
-		$((Control *) crosshair, addActionForEventType, SDL_MOUSEBUTTONUP, crosshairAction, self, crosshairView);
+		$((View *) this->crosshairView, updateBindings);
 
-		$((View *) crosshairView, updateBindings);
-
-		$(theme, attach, crosshairView);
-		release(crosshairView);
+		$(theme, attach, this->crosshairView);
 
 		HueColorPicker *crosshairColor = $(alloc(HueColorPicker), initWithFrame, NULL, ControlStyleDefault);
 		assert(crosshairColor);
 
+		crosshairColor->colorView->hidden = true;
+
 		crosshairColor->delegate.self = this;
-		crosshairColor->delegate.didPickColor = didPickColor;
+		crosshairColor->delegate.didPickColor = didPickCrosshairColor;
 
 		$(theme, control, "Color", crosshairColor);
 
-		CvarSlider *crosshairScale = $(alloc(CvarSlider), initWithVariable, cg_draw_crosshair_scale, 0.1, 2.0, 0.1);
+		SliderDelegate crosshairScaleDelegate = {
+			.self = this,
+			.didSetValue = didSetCrosshairScale
+		};
 
-		$(theme, control, "Scale", crosshairScale);
-
-		$((Control *) crosshairScale, addActionForEventType, SDL_MOUSEMOTION, crosshairAction, self, crosshairView);
+		$(theme, slider, "Scale", cg_draw_crosshair_scale->name, 0.1, 2.0, 0.1, &crosshairScaleDelegate);
 
 		$(theme, checkbox, "Pulse on Pickup", cg_draw_crosshair_pulse->name);
 
@@ -187,6 +218,8 @@ static void loadView(ViewController *self) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
+
+	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
 
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 }
