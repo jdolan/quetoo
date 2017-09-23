@@ -26,7 +26,6 @@
 #include "KeysViewController.h"
 #include "MouseViewController.h"
 #include "OptionsViewController.h"
-#include "PlayerViewController.h"
 #include "SystemViewController.h"
 
 #include "Theme.h"
@@ -77,10 +76,6 @@ static void loadView(ViewController *self) {
 	release(viewController);
 
 	viewController = $((ViewController *) alloc(MouseViewController), init);
-	$(tabViewController, addChildViewController, viewController);
-	release(viewController);
-
-	viewController = $((ViewController *) alloc(PlayerViewController), init);
 	$(tabViewController, addChildViewController, viewController);
 	release(viewController);
 

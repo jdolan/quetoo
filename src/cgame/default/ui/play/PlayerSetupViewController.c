@@ -21,12 +21,12 @@
 
 #include "cg_local.h"
 
-#include "PlayerViewController.h"
+#include "PlayerSetupViewController.h"
 
 #include "CvarSelect.h"
 #include "Theme.h"
 
-#define _Class _PlayerViewController
+#define _Class _PlayerSetupViewController
 
 #pragma mark - Actions & delegates
 
@@ -87,7 +87,7 @@ static void enumerateModels(const char *path, void *data) {
  */
 static void didSelectSkin(Select *select, Option *option) {
 
-	PlayerViewController *self = (PlayerViewController *) select->delegate.self;
+	PlayerSetupViewController *self = (PlayerSetupViewController *) select->delegate.self;
 
 	cgi.CvarSet(cg_skin->name, option->title->text);
 
@@ -108,7 +108,7 @@ static void didPickEffectColor(HueColorPicker *hueColorPicker, double hue, doubl
  */
 static void didPickPlayerColor(HSVColorPicker *hsvColorPicker, double hue, double saturation, double value) {
 
-	PlayerViewController *this = hsvColorPicker->delegate.self;
+	PlayerSetupViewController *this = hsvColorPicker->delegate.self;
 
 	if (hsvColorPicker == this->pantsColorPicker) {
 
@@ -143,7 +143,7 @@ static void didPickPlayerColor(HSVColorPicker *hsvColorPicker, double hue, doubl
  */
 static void dealloc(Object *self) {
 
-	PlayerViewController *this = (PlayerViewController *) self;
+	PlayerSetupViewController *this = (PlayerSetupViewController *) self;
 
 	release(this->effectColorPicker);
 	release(this->pantsColorPicker);
@@ -163,9 +163,9 @@ static void loadView(ViewController *self) {
 	super(ViewController, self, loadView);
 
 	self->view->autoresizingMask = ViewAutoresizingContain;
-	self->view->identifier = strdup("Player");
+	self->view->identifier = strdup("Player setup");
 
-	PlayerViewController *this = (PlayerViewController *) self;
+	PlayerSetupViewController *this = (PlayerSetupViewController *) self;
 
 	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
 	assert(theme);
@@ -278,19 +278,19 @@ static void initialize(Class *clazz) {
 }
 
 /**
- * @fn Class *PlayerViewController::_PlayerViewController(void)
- * @memberof PlayerViewController
+ * @fn Class *PlayerSetupViewController::_PlayerSetupViewController(void)
+ * @memberof PlayerSetupViewController
  */
-Class *_PlayerViewController(void) {
+Class *_PlayerSetupViewController(void) {
 	static Class clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "PlayerViewController";
+		clazz.name = "PlayerSetupViewController";
 		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(PlayerViewController);
-		clazz.interfaceOffset = offsetof(PlayerViewController, interface);
-		clazz.interfaceSize = sizeof(PlayerViewControllerInterface);
+		clazz.instanceSize = sizeof(PlayerSetupViewController);
+		clazz.interfaceOffset = offsetof(PlayerSetupViewController, interface);
+		clazz.interfaceSize = sizeof(PlayerSetupViewControllerInterface);
 		clazz.initialize = initialize;
 	});
 

@@ -25,6 +25,7 @@
 
 #include "CreateServerViewController.h"
 #include "JoinServerViewController.h"
+#include "PlayerSetupViewController.h"
 
 #include "Theme.h"
 
@@ -63,15 +64,19 @@ static void loadView(ViewController *self) {
 	this->tabViewController = $(alloc(TabViewController), init);
 	assert(this->tabViewController);
 
-	ViewController *tabViewController = (ViewController *) this->tabViewController;
+	ViewController *viewController, *tabViewController = (ViewController *) this->tabViewController;
 
-	ViewController *joinServerViewController = $((ViewController *) alloc(JoinServerViewController), init);
-	$(tabViewController, addChildViewController, joinServerViewController);
-	release(joinServerViewController);
+	viewController = $((ViewController *) alloc(JoinServerViewController), init);
+	$(tabViewController, addChildViewController, viewController);
+	release(viewController);
 
-	ViewController *createServerViewController = $((ViewController *) alloc(CreateServerViewController), init);
-	$(tabViewController, addChildViewController, createServerViewController);
-	release(createServerViewController);
+	viewController = $((ViewController *) alloc(CreateServerViewController), init);
+	$(tabViewController, addChildViewController, viewController);
+	release(viewController);
+
+	viewController = $((ViewController *) alloc(PlayerSetupViewController), init);
+	$(tabViewController, addChildViewController, viewController);
+	release(viewController);
 
 	$(self, addChildViewController, tabViewController);
 	$(theme, attach, tabViewController->view);

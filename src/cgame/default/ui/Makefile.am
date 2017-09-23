@@ -20,6 +20,8 @@ noinst_HEADERS = \
 	play/JoinServerViewController.h \
 	play/MapListCollectionItemView.h \
 	play/MapListCollectionView.h \
+	play/PlayerModelView.h \
+	play/PlayerSetupViewController.h \
 	play/PlayViewController.h \
 	\
 	settings/BindTextView.h \
@@ -27,8 +29,6 @@ noinst_HEADERS = \
 	settings/KeysViewController.h \
 	settings/MouseViewController.h \
 	settings/OptionsViewController.h \
-	settings/PlayerModelView.h \
-	settings/PlayerViewController.h \
 	settings/SettingsViewController.h \
 	settings/SystemViewController.h \
 	settings/VideoModeSelect.h
@@ -58,6 +58,8 @@ libui_la_SOURCES = \
 	play/JoinServerViewController.c \
 	play/MapListCollectionItemView.c \
 	play/MapListCollectionView.c \
+	play/PlayerModelView.c \
+	play/PlayerSetupViewController.c \
 	play/PlayViewController.c \
 	\
 	settings/BindTextView.c \
@@ -65,8 +67,6 @@ libui_la_SOURCES = \
 	settings/KeysViewController.c \
 	settings/MouseViewController.c \
 	settings/OptionsViewController.c \
-	settings/PlayerModelView.c \
-	settings/PlayerViewController.c \
 	settings/SettingsViewController.c \
 	settings/SystemViewController.c \
 	settings/VideoModeSelect.c

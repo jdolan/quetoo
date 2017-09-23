@@ -32,15 +32,15 @@
  * @brief PlayerSetup ViewController.
  */
 
-typedef struct PlayerViewController PlayerViewController;
-typedef struct PlayerViewControllerInterface PlayerViewControllerInterface;
+typedef struct PlayerSetupViewController PlayerSetupViewController;
+typedef struct PlayerSetupViewControllerInterface PlayerSetupViewControllerInterface;
 
 /**
- * @brief The PlayerViewController type.
+ * @brief The PlayerSetupViewController type.
  * @extends ViewController
  * @ingroup
  */
-struct PlayerViewController {
+struct PlayerSetupViewController {
 
 	/**
 	 * @brief The superclass.
@@ -52,7 +52,7 @@ struct PlayerViewController {
 	 * @brief The interface.
 	 * @private
 	 */
-	PlayerViewControllerInterface *interface;
+	PlayerSetupViewControllerInterface *interface;
 
 	/**
 	 * @brief The effect HueColorPicker.
@@ -81,9 +81,9 @@ struct PlayerViewController {
 };
 
 /**
- * @brief The PlayerViewController interface.
+ * @brief The PlayerSetupViewController interface.
  */
-struct PlayerViewControllerInterface {
+struct PlayerSetupViewControllerInterface {
 
 	/**
 	 * @brief The superclass interface.
@@ -92,9 +92,9 @@ struct PlayerViewControllerInterface {
 };
 
 /**
- * @fn Class *PlayerViewController::_PlayerViewController(void)
- * @brief The PlayerViewController archetype.
- * @return The PlayerViewController Class.
- * @memberof PlayerViewController
+ * @fn Class *PlayerSetupViewController::_PlayerSetupViewController(void)
+ * @brief The PlayerSetupViewController archetype.
+ * @return The PlayerSetupViewController Class.
+ * @memberof PlayerSetupViewController
  */
-extern Class *_PlayerViewController(void);
+extern Class *_PlayerSetupViewController(void);
