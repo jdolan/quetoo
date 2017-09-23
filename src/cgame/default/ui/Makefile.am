@@ -30,7 +30,7 @@ noinst_HEADERS = \
 	settings/PlayerModelView.h \
 	settings/PlayerViewController.h \
 	settings/SettingsViewController.h \
-	settings/SystemViewController.h
+	settings/SystemViewController.h \
 	settings/VideoModeSelect.h
 
 noinst_LTLIBRARIES = \
@@ -68,7 +68,7 @@ libui_la_SOURCES = \
 	settings/PlayerModelView.c \
 	settings/PlayerViewController.c \
 	settings/SettingsViewController.c \
-	settings/SystemViewController.c
+	settings/SystemViewController.c \
 	settings/VideoModeSelect.c
 
 libui_la_CFLAGS = \
