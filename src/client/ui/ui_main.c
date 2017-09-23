@@ -119,6 +119,31 @@ void Ui_PopAllViewControllers(void) {
 }
 
 /**
+ * @brief
+ */
+static void Ui_SetDefaultFont(FontCategory category, const char *path, int32_t size, int32_t index) {
+
+	void *buffer;
+	const int64_t length = Fs_Load(path, &buffer);
+	if (length != -1) {
+
+		void *mem = malloc(length);
+		assert(mem);
+
+		memcpy(mem, buffer, length);
+
+		SDL_RWops *rw = SDL_RWFromConstMem(mem, (int32_t) length);
+		Font *font = $(alloc(Font), initWithBuffer, rw, size, index);
+
+		$$(Font, setDefaultFont, category, font);
+
+		release(font);
+	}
+
+	Fs_Free(buffer);
+}
+
+/**
  * @brief Initializes the user interface.
  */
 void Ui_Init(void) {
@@ -132,6 +157,19 @@ void Ui_Init(void) {
 		setenv("FONTCONFIG_PATH", fonts, 0);
 	}
 #endif
+
+	const char *coda = "fonts/coda.regular.ttf";
+	const char *codaHeavy = "fonts/coda.heavy.ttf";
+
+	Ui_SetDefaultFont(FontCategoryDefault, coda, 16, 0);
+	Ui_SetDefaultFont(FontCategoryPrimaryLabel, coda, 16, 0);
+	Ui_SetDefaultFont(FontCategoryPrimaryControl, coda, 16, 0);
+
+	Ui_SetDefaultFont(FontCategorySecondaryLabel, coda, 14, 0);
+	Ui_SetDefaultFont(FontCategorySecondaryControl, coda, 14, 0);
+
+	Ui_SetDefaultFont(FontCategoryPrimaryResponder, codaHeavy, 18, 0);
+	Ui_SetDefaultFont(FontCategorySecondaryResponder, codaHeavy, 18, 0);
 
 	Renderer *renderer = (Renderer *) $(alloc(QuetooRenderer), init);
 
