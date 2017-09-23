@@ -178,87 +178,82 @@ static void loadView(ViewController *self) {
 	StackView *columns = $(theme, columns, 2);
 	$(theme, attach, columns);
 
+	$(theme, targetSubview, columns, 0);
+
 	{
-		$(theme, targetSubview, columns, 0);
+		Box *box = $(theme, box, "Player");
 
-		{
-			Box *box = $(theme, box, "Player");
+		$(theme, attach, box);
+		$(theme, target, box->contentView);
 
-			$(theme, attach, box);
-			$(theme, target, box->contentView);
+		$(theme, textView, "Name", "name");
 
-			$(theme, textView, "Name", "name");
+		this->skinSelect = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
 
-			this->skinSelect = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
+		this->skinSelect->comparator = sortSkins;
+		this->skinSelect->delegate.self = this;
+		this->skinSelect->delegate.didSelectOption = didSelectSkin;
 
-			this->skinSelect->comparator = sortSkins;
-			this->skinSelect->delegate.self = this;
-			this->skinSelect->delegate.didSelectOption = didSelectSkin;
+		cgi.EnumerateFiles("players/*", enumerateModels, this->skinSelect);
 
-			cgi.EnumerateFiles("players/*", enumerateModels, this->skinSelect);
+		$(theme, control, "Player model", this->skinSelect);
 
-			$(theme, control, "Player model", this->skinSelect);
+		$(theme, slider, "Handicap", cg_handicap->name, 50.0, 100.0, 5.0);
 
-			$(theme, slider, "Handicap", cg_handicap->name, 50.0, 100.0, 5.0);
-
-			release(box);
-		}
-
-		$(theme, targetSubview, columns, 0);
-
-		{
-			Box *box = $(theme, box, "Colors");
-
-			$(theme, attach, box);
-			$(theme, target, box->contentView);
-
-			this->effectColorPicker = $(alloc(HueColorPicker), initWithFrame, NULL, ControlStyleDefault);
-			assert(this->effectColorPicker);
-
-			this->effectColorPicker->delegate.self = this;
-			this->effectColorPicker->delegate.didPickColor = didPickEffectColor;
-
-			$(theme, control, "Effects", this->effectColorPicker);
-
-			this->shirtColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL, ControlStyleDefault);
-			assert(this->shirtColorPicker);
-
-			this->shirtColorPicker->colorView->hidden = true;
-
-			this->shirtColorPicker->delegate.self = self;
-			this->shirtColorPicker->delegate.didPickColor = didPickPlayerColor;
-
-			this->shirtColorPicker->valueSlider->min = 0.5;
-
-			$(theme, control, "Shirt", this->shirtColorPicker);
-
-			this->pantsColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL, ControlStyleDefault);
-			assert(this->pantsColorPicker);
-
-			this->pantsColorPicker->colorView->hidden = true;
-
-			this->pantsColorPicker->delegate.self = self;
-			this->pantsColorPicker->delegate.didPickColor = didPickPlayerColor;
-
-			this->pantsColorPicker->valueSlider->min = 0.5;
-
-			$(theme, control, "Pants", this->pantsColorPicker);
-
-			// TODO data binding color, cg_tint_r, cg_tint_b (TODO: rename these cvars)
-
-			release(box);
-		}
+		release(box);
 	}
 
+	$(theme, targetSubview, columns, 0);
+
+	{
+		Box *box = $(theme, box, "Colors");
+
+		$(theme, attach, box);
+		$(theme, target, box->contentView);
+
+		this->effectColorPicker = $(alloc(HueColorPicker), initWithFrame, NULL, ControlStyleDefault);
+		assert(this->effectColorPicker);
+
+		this->effectColorPicker->delegate.self = this;
+		this->effectColorPicker->delegate.didPickColor = didPickEffectColor;
+
+		$(theme, control, "Effects", this->effectColorPicker);
+
+		this->shirtColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL, ControlStyleDefault);
+		assert(this->shirtColorPicker);
+
+		this->shirtColorPicker->colorView->hidden = true;
+
+		this->shirtColorPicker->delegate.self = self;
+		this->shirtColorPicker->delegate.didPickColor = didPickPlayerColor;
+
+		this->shirtColorPicker->valueSlider->min = 0.5;
+
+		$(theme, control, "Shirt", this->shirtColorPicker);
+
+		this->pantsColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL, ControlStyleDefault);
+		assert(this->pantsColorPicker);
+
+		this->pantsColorPicker->colorView->hidden = true;
+
+		this->pantsColorPicker->delegate.self = self;
+		this->pantsColorPicker->delegate.didPickColor = didPickPlayerColor;
+
+		this->pantsColorPicker->valueSlider->min = 0.5;
+
+		$(theme, control, "Pants", this->pantsColorPicker);
+
+		// TODO data binding color, cg_tint_r, cg_tint_b (TODO: rename these cvars)
+
+		release(box);
+	}
 
 	$(theme, targetSubview, columns, 1);
 
-	{
-		this->playerModelView = $(alloc(PlayerModelView), initWithFrame, &MakeRect(0, 0, 640, 480), ControlStyleDefault);
-		assert(this->playerModelView);
+	this->playerModelView = $(alloc(PlayerModelView), initWithFrame, &MakeRect(0, 0, 640, 480), ControlStyleDefault);
+	assert(this->playerModelView);
 
-		$(theme, attach, this->playerModelView);
-	}
+	$(theme, attach, this->playerModelView);
 
 	release(columns);
 	release(container);

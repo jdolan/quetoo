@@ -1,11 +1,11 @@
 noinst_HEADERS = \
+	common/BindTextView.h \
 	common/CvarCheckbox.h \
 	common/CvarSelect.h \
 	common/CvarSlider.h \
 	common/CvarTextView.h \
 	common/Theme.h \
 	\
-	controls/BindTextView.h \
 	controls/ControlsViewController.h \
 	controls/CrosshairView.h \
 	controls/MiscViewController.h \
@@ -41,13 +41,13 @@ noinst_LTLIBRARIES = \
 	libui.la
 
 libui_la_SOURCES = \
+	common/BindTextView.c \
 	common/CvarCheckbox.c \
 	common/CvarSelect.c \
 	common/CvarSlider.c \
 	common/CvarTextView.c \
 	common/Theme.c \
 	\
-	controls/BindTextView.c \
 	controls/ControlsViewController.c \
 	controls/CrosshairView.c \
 	controls/MiscViewController.c \
@@ -85,6 +85,7 @@ libui_la_CFLAGS = \
 	-I$(top_srcdir)/src/cgame/default \
 	-I$(top_srcdir)/src/cgame/default/ui \
 	-I$(top_srcdir)/src/cgame/default/ui/common \
+	-I$(top_srcdir)/src/cgame/default/ui/controls \
 	-I$(top_srcdir)/src/cgame/default/ui/info \
 	-I$(top_srcdir)/src/cgame/default/ui/main \
 	-I$(top_srcdir)/src/cgame/default/ui/play \
