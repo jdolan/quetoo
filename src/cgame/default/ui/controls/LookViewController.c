@@ -61,6 +61,13 @@ static void didSelectCrosshair(Select *select, Option *option) {
  */
 static void didPickCrosshairColor(HueColorPicker *colorPicker, double hue, double saturation, double value) {
 
+	LookViewController *this = (LookViewController *) colorPicker->delegate.self;
+
+	const SDL_Color color = MVC_HSVToRGB(hue, saturation, value);
+
+	cgi.CvarSet(cg_draw_crosshair_color->name, va("%x%x%x", color.r, color.g, color.b));
+
+	$((View *) this->crosshairView, updateBindings);
 }
 
 /**
@@ -180,8 +187,6 @@ static void loadView(ViewController *self) {
 		assert(this->crosshairView);
 
 		this->crosshairView->view.alignment = ViewAlignmentMiddleCenter;
-
-		$((View *) this->crosshairView, updateBindings);
 
 		$(theme, attach, this->crosshairView);
 

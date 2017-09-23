@@ -84,8 +84,8 @@ static void updateBindings(View *self) {
 			const char *c = cg_draw_crosshair_color->string;
 			color_t color;
 
-			if (!g_ascii_strcasecmp(c, "default")) {
-				color.r = color.g = color.b = color.a = 255;
+			if (!strlen(c) || !g_ascii_strcasecmp(c, "default")) {
+				color.r = color.g = color.b = 255;
 			} else {
 				ColorParseHex(c, &color);
 			}
@@ -93,7 +93,6 @@ static void updateBindings(View *self) {
 			this->imageView->color.r = color.r;
 			this->imageView->color.g = color.g;
 			this->imageView->color.b = color.b;
-			this->imageView->color.a = color.a;
 		}
 	}
 
