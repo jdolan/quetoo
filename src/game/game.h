@@ -25,7 +25,7 @@
 #include "filesystem.h"
 #include "ai/ai.h"
 
-#define GAME_API_VERSION 8
+#define GAME_API_VERSION 9
 
 /**
  * @brief Server flags for g_entity_t.
@@ -215,8 +215,9 @@ typedef struct g_import_s {
 	 * @param pattern A Unix glob style pattern.
 	 * @param enumerator The enumerator function.
 	 * @param data User data.
+	 * @returns 1 on error, 0 on success.
 	 */
-	void (*EnumerateFiles)(const char *pattern, Fs_EnumerateFunc enumerator, void *data);
+	int32_t (*EnumerateFiles)(const char *pattern, Fs_EnumerateFunc enumerator, void *data);
 
 	/**
 	 * @brief Console variable and console command management.
