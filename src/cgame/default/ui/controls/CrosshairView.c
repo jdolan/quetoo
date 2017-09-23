@@ -97,8 +97,6 @@ static void updateBindings(View *self) {
 		}
 	}
 
-	printf("%d %1.1f\n", ch, cg_draw_crosshair_scale->value);
-
 	self->needsLayout = true;
 }
 
