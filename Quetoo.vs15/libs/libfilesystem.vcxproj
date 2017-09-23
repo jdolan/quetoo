@@ -19,9 +19,22 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\deps\physfs\physfs.c" />
+    <ClCompile Include="..\..\deps\physfs\physfs_archiver_dir.c" />
+    <ClCompile Include="..\..\deps\physfs\physfs_archiver_qpak.c" />
+    <ClCompile Include="..\..\deps\physfs\physfs_archiver_unpacked.c" />
+    <ClCompile Include="..\..\deps\physfs\physfs_archiver_zip.c" />
+    <ClCompile Include="..\..\deps\physfs\physfs_byteorder.c" />
+    <ClCompile Include="..\..\deps\physfs\physfs_platform_windows.c" />
+    <ClCompile Include="..\..\deps\physfs\physfs_unicode.c" />
     <ClCompile Include="..\..\src\filesystem.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\deps\physfs\physfs.h" />
+    <ClInclude Include="..\..\deps\physfs\physfs_casefolding.h" />
+    <ClInclude Include="..\..\deps\physfs\physfs_internal.h" />
+    <ClInclude Include="..\..\deps\physfs\physfs_miniz.h" />
+    <ClInclude Include="..\..\deps\physfs\physfs_platforms.h" />
     <ClInclude Include="..\..\src\filesystem.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

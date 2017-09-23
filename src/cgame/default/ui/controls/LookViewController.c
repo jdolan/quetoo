@@ -35,7 +35,7 @@
 /**
  * @brief Fs_EnumerateFunc for crosshair selection.
  */
-static void enumerateCrosshairs(const char *path, void *data) {
+static Fs_EnumerateResult enumerateCrosshairs(const char *path, void *data) {
 	char name[MAX_QPATH];
 
 	StripExtension(Basename(path), name);
@@ -44,6 +44,7 @@ static void enumerateCrosshairs(const char *path, void *data) {
 	assert(value);
 
 	$((Select *) data, addOption, name, (ident) value);
+	return FS_ENUM_CONTINUE;
 }
 
 /**

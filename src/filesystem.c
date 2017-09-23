@@ -103,7 +103,7 @@ _Bool Fs_Flush(file_t *file) {
  * @return The last error message resulting from filesystem operations.
  */
 const char *Fs_LastError(void) {
-	return PHYSFS_getLastError();
+	return PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode());
 }
 
 /**
@@ -188,7 +188,7 @@ int64_t Fs_Print(file_t *file, const char *fmt, ...) {
  * @return The number of objects read, or -1 on failure.
  */
 int64_t Fs_Read(file_t *file, void *buffer, size_t size, size_t count) {
-	return PHYSFS_read((PHYSFS_File *) file, buffer, (PHYSFS_uint32) size, (PHYSFS_uint32) count);
+	return PHYSFS_readBytes((PHYSFS_File *) file, buffer, (PHYSFS_uint64) size * (PHYSFS_uint64) count) / size;
 }
 
 /**
@@ -244,7 +244,7 @@ int64_t Fs_Tell(file_t *file) {
  * @return The number of objects read, or -1 on failure.
  */
 int64_t Fs_Write(file_t *file, const void *buffer, size_t size, size_t count) {
-	return PHYSFS_write((PHYSFS_File *) file, buffer, (PHYSFS_uint32) size, (PHYSFS_uint32) count);
+	return PHYSFS_writeBytes((PHYSFS_File *) file, buffer, (PHYSFS_uint64) size * (PHYSFS_uint64) count) / size;
 }
 
 /**
@@ -390,22 +390,23 @@ typedef struct {
 /**
  * @brief Enumeration helper for Fs_Enumerate.
  */
-static void Fs_Enumerate_(void *data, const char *dir, const char *filename) {
+static PHYSFS_EnumerateCallbackResult Fs_Enumerate_(void *data, const char *dir, const char *filename) {
 	char path[MAX_QPATH];
 	const fs_enumerate_t *en = data;
 
 	g_snprintf(path, sizeof(path), "%s%s", dir, filename);
 
 	if (GlobMatch(en->pattern, path, GLOB_FLAGS_NONE)) {
-		en->function(path, en->data);
+		return en->function(path, en->data);
 	}
+
+	return PHYSFS_ENUM_OK;
 }
 
 /**
  * @brief Enumerates files matching `pattern`, calling the given function.
  */
-void Fs_Enumerate(const char *pattern, Fs_EnumerateFunc func, void *data) {
-
+int32_t Fs_Enumerate(const char *pattern, Fs_EnumerateFunc func, void *data) {
 	fs_enumerate_t en = {
 		.pattern = pattern,
 		.function = func,
@@ -418,7 +419,7 @@ void Fs_Enumerate(const char *pattern, Fs_EnumerateFunc func, void *data) {
 		g_strlcpy(en.dir, "/", sizeof(en.dir));
 	}
 
-	PHYSFS_enumerateFilesCallback(en.dir, Fs_Enumerate_, &en);
+	return PHYSFS_enumerate(en.dir, Fs_Enumerate_, &en);
 }
 
 /**
@@ -438,7 +439,7 @@ static int32_t Fs_CompleteFile_compare(const void *a, const void *b) {
 /**
  * @brief GHFunc for Fs_CompleteFile.
  */
-static void Fs_CompleteFile_enumerate(const char *path, void *data) {
+static Fs_EnumerateResult Fs_CompleteFile_enumerate(const char *path, void *data) {
 	GList **matches = (GList **) data;
 	char match[MAX_OS_PATH];
 
@@ -451,6 +452,8 @@ static void Fs_CompleteFile_enumerate(const char *path, void *data) {
 	if (!g_list_find_custom(*matches, &temp_match, Fs_CompleteFile_compare)) {
 		*matches = g_list_insert_sorted(*matches, Com_AllocMatch(match, NULL), Fs_CompleteFile_compare);
 	}
+
+	return FS_ENUM_CONTINUE;
 }
 
 /**
@@ -461,7 +464,7 @@ void Fs_CompleteFile(const char *pattern, GList **matches) {
 	Fs_Enumerate(pattern, Fs_CompleteFile_enumerate, (void *) matches);
 }
 
-static void Fs_AddToSearchPath_enumerate(const char *path, void *data);
+static Fs_EnumerateResult Fs_AddToSearchPath_enumerate(const char *path, void *data);
 
 /**
  * @brief Adds the directory to the search path, conditionally loading all
@@ -475,7 +478,7 @@ void Fs_AddToSearchPath(const char *dir) {
 		const _Bool is_dir = g_file_test(dir, G_FILE_TEST_IS_DIR);
 
 		if (PHYSFS_mount(dir, NULL, !is_dir) == 0) {
-			Com_Warn("%s: %s\n", dir, PHYSFS_getLastError());
+			Com_Warn("%s: %s\n", dir, Fs_LastError());
 			return;
 		}
 
@@ -492,12 +495,14 @@ void Fs_AddToSearchPath(const char *dir) {
  * @brief Enumeration helper for Fs_AddToSearchPath. Adds all archive files for
  * the newly added filesystem mount point.
  */
-static void Fs_AddToSearchPath_enumerate(const char *path, void *data) {
+static Fs_EnumerateResult Fs_AddToSearchPath_enumerate(const char *path, void *data) {
 	const char *dir = (const char *) data;
 
 	if (!g_strcmp0(Fs_RealDir(path), dir)) {
 		Fs_AddToSearchPath(va("%s%s", dir, path));
 	}
+
+	return FS_ENUM_CONTINUE;
 }
 
 /**
@@ -549,7 +554,10 @@ void Fs_SetGame(const char *dir) {
 		}
 		if (!*p) {
 			Com_Debug(DEBUG_FILESYSTEM, "Removing %s\n", *path);
-			PHYSFS_removeFromSearchPath(*path);
+			if (PHYSFS_unmount(*path) == 0) {
+				Com_Warn("%s: %s\n", *path, Fs_LastError());
+				return;
+			}
 		}
 		path++;
 	}
@@ -632,7 +640,7 @@ void Fs_Init(const uint32_t flags) {
 	memset(&fs_state, 0, sizeof(fs_state_t));
 
 	if (PHYSFS_init(Com_Argv(0)) == 0) {
-		Com_Error(ERROR_FATAL, "%s\n", PHYSFS_getLastError());
+		Com_Error(ERROR_FATAL, "%s\n", Fs_LastError());
 	}
 
 	fs_state.flags = flags;

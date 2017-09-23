@@ -73,7 +73,7 @@ static GArray *ai_skins;
 /**
  * @brief Fs_EnumerateFunc for resolving available skins for a given model.
  */
-static void Ai_EnumerateSkins(const char *path, void *data) {
+static Fs_EnumerateResult Ai_EnumerateSkins(const char *path, void *data) {
 	char name[MAX_QPATH];
 	char *s = strstr(path, "players/");
 
@@ -86,21 +86,25 @@ static void Ai_EnumerateSkins(const char *path, void *data) {
 			for (size_t i = 0; i < ai_skins->len; i++) {
 
 				if (g_strcmp0(g_array_index(ai_skins, ai_skin_t, i), name) == 0) {
-					return;
+					return FS_ENUM_CONTINUE;
 				}
 			}
 
 			g_array_append_val(ai_skins, name);
 		}
 	}
+
+	return FS_ENUM_CONTINUE;
 }
 
 /**
  * @brief Fs_EnumerateFunc for resolving available models.
  */
-static void Ai_EnumerateModels(const char *path, void *data) {
+static Fs_EnumerateResult Ai_EnumerateModels(const char *path, void *data) {
 
 	aim.gi->EnumerateFiles(va("%s/*.tga", path), Ai_EnumerateSkins, NULL);
+
+	return FS_ENUM_CONTINUE;
 }
 
 /**
