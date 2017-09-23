@@ -5,6 +5,14 @@ noinst_HEADERS = \
 	common/CvarTextView.h \
 	common/Theme.h \
 	\
+	controls/BindTextView.h \
+	controls/ControlsViewController.h \
+	controls/CrosshairView.h \
+	controls/MiscViewController.h \
+	controls/MoveViewController.h \
+	controls/LookViewController.h \
+	controls/ShootViewController.h \
+	\
 	info/CreditsViewController.h \
 	info/InfoViewController.h \
 	\
@@ -24,10 +32,6 @@ noinst_HEADERS = \
 	play/PlayerSetupViewController.h \
 	play/PlayViewController.h \
 	\
-	settings/BindTextView.h \
-	settings/CrosshairView.h \
-	settings/KeysViewController.h \
-	settings/MouseViewController.h \
 	settings/OptionsViewController.h \
 	settings/SettingsViewController.h \
 	settings/SystemViewController.h \
@@ -42,6 +46,14 @@ libui_la_SOURCES = \
 	common/CvarSlider.c \
 	common/CvarTextView.c \
 	common/Theme.c \
+	\
+	controls/BindTextView.c \
+	controls/ControlsViewController.c \
+	controls/CrosshairView.c \
+	controls/MiscViewController.c \
+	controls/MoveViewController.c \
+	controls/LookViewController.c \
+	controls/ShootViewController.c \
 	\
 	info/CreditsViewController.c \
 	info/InfoViewController.c \
@@ -62,10 +74,6 @@ libui_la_SOURCES = \
 	play/PlayerSetupViewController.c \
 	play/PlayViewController.c \
 	\
-	settings/BindTextView.c \
-	settings/CrosshairView.c \
-	settings/KeysViewController.c \
-	settings/MouseViewController.c \
 	settings/OptionsViewController.c \
 	settings/SettingsViewController.c \
 	settings/SystemViewController.c \

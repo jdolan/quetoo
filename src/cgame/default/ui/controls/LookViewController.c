@@ -21,14 +21,14 @@
 
 #include "cg_local.h"
 
-#include "MouseViewController.h"
+#include "LookViewController.h"
 #include "CrosshairView.h"
 #include "CvarSelect.h"
 #include "CvarSlider.h"
 
 #include "Theme.h"
 
-#define _Class _MouseViewController
+#define _Class _LookViewController
 
 #pragma mark - Crosshair selection
 
@@ -60,6 +60,16 @@ static void didPickColor(HueColorPicker *colorPicker, double hue, double saturat
 
 }
 
+/**
+ * @brief TextViewDelegate callback for binding keys.
+ */
+static void didBindKey(TextView *textView) {
+
+	const ViewController *this = textView->delegate.self;
+
+	$(this->view, updateBindings);
+}
+
 #pragma mark - ViewController
 
 /**
@@ -70,9 +80,14 @@ static void loadView(ViewController *self) {
 	super(ViewController, self, loadView);
 
 	self->view->autoresizingMask = ViewAutoresizingContain;
-	self->view->identifier = strdup("Mouse");
+	self->view->identifier = strdup("Look");
 
-	MouseViewController *this = (MouseViewController *) self;
+	LookViewController *this = (LookViewController *) self;
+
+	TextViewDelegate delegate = {
+		.self = this,
+		.didEndEditing = didBindKey
+	};
 
 	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
 	assert(theme);
@@ -101,6 +116,20 @@ static void loadView(ViewController *self) {
 		release(box);
 	}
 
+	$(theme, targetSubview, columns, 0);
+
+	{
+		Box *box = $(theme, box, "Field of view");
+
+		$(theme, attach, box);
+		$(theme, target, box->contentView);
+
+		$(theme, slider, "FOV", cg_fov->name, 80.0, 130.0, 5.0);
+		$(theme, slider, "Zoom FOV", cg_fov_zoom->name, 20.0, 70.0, 5.0);
+		$(theme, bindTextView, "Zoom", "+ZOOM", &delegate);
+		$(theme, slider, "Zoom speed", cg_fov_interpolate->name, 0.0, 2.0, 0.1);
+	}
+
 	$(theme, targetSubview, columns, 1);
 
 	{
@@ -116,6 +145,18 @@ static void loadView(ViewController *self) {
 
 		$(theme, control, "Crosshair", crosshair);
 
+		CrosshairView *crosshairView = $(alloc(CrosshairView), initWithFrame, &MakeRect(0, 0, 72, 72));
+		assert(crosshair);
+
+		crosshairView->view.alignment = ViewAlignmentMiddleCenter;
+
+		$((Control *) crosshair, addActionForEventType, SDL_MOUSEBUTTONUP, crosshairAction, self, crosshairView);
+
+		$((View *) crosshairView, updateBindings);
+
+		$(theme, attach, crosshairView);
+		release(crosshairView);
+
 		HueColorPicker *crosshairColor = $(alloc(HueColorPicker), initWithFrame, NULL, ControlStyleDefault);
 		assert(crosshairColor);
 
@@ -127,21 +168,11 @@ static void loadView(ViewController *self) {
 		CvarSlider *crosshairScale = $(alloc(CvarSlider), initWithVariable, cg_draw_crosshair_scale, 0.1, 2.0, 0.1);
 
 		$(theme, control, "Scale", crosshairScale);
-		$(theme, checkbox, "Pulse on Pickup", cg_draw_crosshair_pulse->name);
 
-		CrosshairView *crosshairView = $(alloc(CrosshairView), initWithFrame, &MakeRect(0, 0, 72, 72));
-		assert(crosshair);
-
-		crosshairView->view.alignment = ViewAlignmentMiddleCenter;
-
-		$((Control *) crosshair, addActionForEventType, SDL_MOUSEBUTTONUP, crosshairAction, self, crosshairView);
 		$((Control *) crosshairScale, addActionForEventType, SDL_MOUSEMOTION, crosshairAction, self, crosshairView);
 
-		$((View *) crosshairView, updateBindings);
+		$(theme, checkbox, "Pulse on Pickup", cg_draw_crosshair_pulse->name);
 
-		$(theme, attach, crosshairView);
-		release(crosshairView);
-		
 		release(box);
 	}
 
@@ -161,19 +192,19 @@ static void initialize(Class *clazz) {
 }
 
 /**
- * @fn Class *MouseViewController::_MouseViewController(void)
- * @memberof MouseViewController
+ * @fn Class *LookViewController::_LookViewController(void)
+ * @memberof LookViewController
  */
-Class *_MouseViewController(void) {
+Class *_LookViewController(void) {
 	static Class clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "MouseViewController";
+		clazz.name = "LookViewController";
 		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(MouseViewController);
-		clazz.interfaceOffset = offsetof(MouseViewController, interface);
-		clazz.interfaceSize = sizeof(MouseViewControllerInterface);
+		clazz.instanceSize = sizeof(LookViewController);
+		clazz.interfaceOffset = offsetof(LookViewController, interface);
+		clazz.interfaceSize = sizeof(LookViewControllerInterface);
 		clazz.initialize = initialize;
 	});
 

@@ -21,22 +21,22 @@
 
 #include "cg_local.h"
 
-#include "SettingsViewController.h"
+#include "ControlsViewController.h"
 
-#include "MoveViewController.h"
 #include "LookViewController.h"
-#include "OptionsViewController.h"
-#include "SystemViewController.h"
+#include "MiscViewController.h"
+#include "MoveViewController.h"
+#include "ShootViewController.h"
 
 #include "Theme.h"
 
-#define _Class _SettingsViewController
+#define _Class _ControlsViewController
 
 #pragma mark - Object
 
 static void dealloc(Object *self) {
 
-	SettingsViewController *this = (SettingsViewController *) self;
+	ControlsViewController *this = (ControlsViewController *) self;
 
 	release(this->tabViewController);
 
@@ -52,7 +52,7 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	SettingsViewController *this = (SettingsViewController *) self;
+	ControlsViewController *this = (ControlsViewController *) self;
 
 	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
 	assert(theme);
@@ -67,11 +67,19 @@ static void loadView(ViewController *self) {
 
 	ViewController *viewController, *tabViewController = (ViewController *) this->tabViewController;
 
-	viewController = $((ViewController *) alloc(SystemViewController), init);
+	viewController = $((ViewController *) alloc(LookViewController), init);
 	$(tabViewController, addChildViewController, viewController);
 	release(viewController);
 
-	viewController = $((ViewController *) alloc(OptionsViewController), init);
+	viewController = $((ViewController *) alloc(MoveViewController), init);
+	$(tabViewController, addChildViewController, viewController);
+	release(viewController);
+
+	viewController = $((ViewController *) alloc(ShootViewController), init);
+	$(tabViewController, addChildViewController, viewController);
+	release(viewController);
+
+	viewController = $((ViewController *) alloc(MiscViewController), init);
 	$(tabViewController, addChildViewController, viewController);
 	release(viewController);
 
@@ -95,19 +103,19 @@ static void initialize(Class *clazz) {
 }
 
 /**
- * @fn Class *SettingsViewController::_SettingsViewController(void)
- * @memberof SettingsViewController
+ * @fn Class *ControlsViewController::_ControlsViewController(void)
+ * @memberof ControlsViewController
  */
-Class *_SettingsViewController(void) {
+Class *_ControlsViewController(void) {
 	static Class clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "SettingsViewController";
+		clazz.name = "ControlsViewController";
 		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(SettingsViewController);
-		clazz.interfaceOffset = offsetof(SettingsViewController, interface);
-		clazz.interfaceSize = sizeof(SettingsViewControllerInterface);
+		clazz.instanceSize = sizeof(ControlsViewController);
+		clazz.interfaceOffset = offsetof(ControlsViewController, interface);
+		clazz.interfaceSize = sizeof(ControlsViewControllerInterface);
 		clazz.initialize = initialize;
 	});
 

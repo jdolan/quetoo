@@ -111,6 +111,17 @@ struct ThemeInterface {
 	void (*attach)(const Theme *self, ident view);
 
 	/**
+	 * @fn void Theme::bindTextView(const Theme *self, const char *label, const char *bind, TextViewDelegate *delegate)
+	 * @brief Attaches a BindTextView with the given parameters to the target view.
+	 * @param self The Theme.
+	 * @param label The Label text.
+	 * @param bind The bind.
+	 * @param delegate An option TextViewDelegate.
+	 * @memberof Theme
+	 */
+	void (*bindTextView)(const Theme *self, const char *label, const char *bind, TextViewDelegate *delegate);
+
+	/**
 	 * @fn Box *Theme::box(const Theme *self, const char *label)
 	 * @brief Creates a Box with the specified label text.
 	 * @param self The Theme.

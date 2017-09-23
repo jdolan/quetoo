@@ -27,36 +27,34 @@
 
 /**
  * @file
- * @brief Controls ViewController.
+ * @brief Shoot ViewController.
  */
 
-typedef struct MouseViewController MouseViewController;
-typedef struct MouseViewControllerInterface MouseViewControllerInterface;
+typedef struct ShootViewController ShootViewController;
+typedef struct ShootViewControllerInterface ShootViewControllerInterface;
 
 /**
- * @brief The MouseViewController type.
+ * @brief The ShootViewController type.
  * @extends ViewController
- * @ingroup ViewControllers
  */
-struct MouseViewController {
+struct ShootViewController {
 
 	/**
 	 * @brief The superclass.
-	 * @private
 	 */
 	ViewController viewController;
 
 	/**
 	 * @brief The interface.
-	 * @private
+	 * @protected
 	 */
-	MouseViewControllerInterface *interface;
+	ShootViewControllerInterface *interface;
 };
 
 /**
- * @brief The MouseViewController interface.
+ * @brief The ShootViewController interface.
  */
-struct MouseViewControllerInterface {
+struct ShootViewControllerInterface {
 
 	/**
 	 * @brief The superclass interface.
@@ -65,10 +63,9 @@ struct MouseViewControllerInterface {
 };
 
 /**
- * @fn Class *MouseViewController::_MouseViewController(void)
- * @brief The MouseViewController archetype.
- * @return The MouseViewController Class.
- * @memberof MouseViewController
+ * @fn Class *ShootViewController::_ShootViewController(void)
+ * @brief The ShootViewController archetype.
+ * @return The ShootViewController Class.
+ * @memberof ShootViewController
  */
-extern Class *_MouseViewController(void);
-
+OBJECTIVELY_EXPORT Class *_ShootViewController(void);

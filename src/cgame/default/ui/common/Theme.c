@@ -23,6 +23,7 @@
 
 #include "Theme.h"
 
+#include "BindTextView.h"
 #include "CvarCheckbox.h"
 #include "CvarSelect.h"
 #include "CvarSlider.h"
@@ -56,6 +57,24 @@ static void attach(const Theme *self, ident view) {
 
 	$(self->target, addSubview, cast(View, view));
 }
+
+/**
+ * @fn void Theme::bindTextView(const Theme *self, const char *label, const char *bind, TextViewDelegate *delegate)
+ * @memberof Theme
+ */
+void bindTextView(const Theme *self, const char *label, const char *bind, TextViewDelegate *delegate) {
+
+	TextView *textView = (TextView *) $(alloc(BindTextView), initWithBind, bind);
+	assert(textView);
+
+	if (delegate) {
+		textView->delegate = *delegate;
+	}
+
+	$(self, control, label, textView);
+	release(textView);
+}
+
 
 /**
  * @fn Bpx *Theme::box(const Theme *self, const char *label)
@@ -273,6 +292,7 @@ static void initialize(Class *clazz) {
 
 	((ThemeInterface *) clazz->def->interface)->accessories = accessories;
 	((ThemeInterface *) clazz->def->interface)->attach = attach;
+	((ThemeInterface *) clazz->def->interface)->bindTextView = bindTextView;
 	((ThemeInterface *) clazz->def->interface)->box = box;
 	((ThemeInterface *) clazz->def->interface)->button = button;
 	((ThemeInterface *) clazz->def->interface)->checkbox = checkbox;

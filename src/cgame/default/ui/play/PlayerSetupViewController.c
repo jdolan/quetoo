@@ -104,7 +104,7 @@ static void didPickEffectColor(HueColorPicker *hueColorPicker, double hue, doubl
 }
 
 /**
- * @brief HSVColorPickerDelegate callback for tint selection.
+ * @brief HSVColorPickerDelegate callback for player color selection.
  */
 static void didPickPlayerColor(HSVColorPicker *hsvColorPicker, double hue, double saturation, double value) {
 

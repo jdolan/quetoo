@@ -23,62 +23,55 @@
 
 #include "cg_types.h"
 
-#include <ObjectivelyMVC/ViewController.h>
-
-#include "Theme.h"
+#include <ObjectivelyMVC.h>
 
 /**
  * @file
- * @brief Input ViewController.
+ * @brief Controls ViewController.
  */
 
-typedef struct KeysViewController KeysViewController;
-typedef struct KeysViewControllerInterface KeysViewControllerInterface;
+typedef struct ControlsViewController ControlsViewController;
+typedef struct ControlsViewControllerInterface ControlsViewControllerInterface;
 
 /**
- * @brief The KeysViewController type.
+ * @brief The ControlsViewController type.
  * @extends ViewController
  */
-struct KeysViewController {
+struct ControlsViewController {
 
 	/**
 	 * @brief The superclass.
+	 * @private
 	 */
 	ViewController viewController;
 
 	/**
 	 * @brief The interface.
-	 * @protected
+	 * @private
 	 */
-	KeysViewControllerInterface *interface;
+	ControlsViewControllerInterface *interface;
+
+	/**
+	 * @brief TabView to contain tabs.
+	 */
+	TabViewController *tabViewController;
 };
 
 /**
- * @brief The KeysViewController interface.
+ * @brief The ControlsViewController interface.
  */
-struct KeysViewControllerInterface {
+struct ControlsViewControllerInterface {
 
 	/**
 	 * @brief The superclass interface.
 	 */
 	ViewControllerInterface viewControllerInterface;
-
-	/**
-	 * @fn void KeysViewController::bindTextView(KeysViewController *self, const char *label, const char *bind)
-	 * @brief Attaches a BindTextView to the Theme target.
-	 * @param self The KeysViewController.
-	 * @param theme The Theme.
-	 * @param label The label text.
-	 * @param bind The bind.
-	 * @memberof KeysViewController
-	 */
-	void (*bindTextView)(KeysViewController *self, Theme *theme, const char *label, const char *bind);
 };
 
 /**
- * @fn Class *KeysViewController::_KeysViewController(void)
- * @brief The KeysViewController archetype.
- * @return The KeysViewController Class.
- * @memberof KeysViewController
+ * @fn Class *ControlsViewController::_ControlsViewController(void)
+ * @brief The ControlsViewController archetype.
+ * @return The ControlsViewController Class.
+ * @memberof ControlsViewController
  */
-OBJECTIVELY_EXPORT Class *_KeysViewController(void);
+extern Class *_ControlsViewController(void);

@@ -112,10 +112,6 @@ static void loadView(ViewController *self) {
 		$(theme, attach, box);
 		$(theme, target, box->contentView);
 
-		$(theme, slider, "FOV", cg_fov->name, 80.0, 130.0, 5.0);
-		$(theme, slider, "Zoom FOV", cg_fov_zoom->name, 20.0, 70.0, 5.0);
-		$(theme, slider, "Zoom speed", cg_fov_interpolate->name, 0.0, 2.0, 0.1);
-
 		$(theme, checkbox, "Draw weapon", cg_draw_weapon->name);
 		$(theme, checkbox, "Weapon sway", cg_draw_weapon_bob->name);
 		$(theme, checkbox, "Bob view", cg_bob->name);

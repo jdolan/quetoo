@@ -29,6 +29,7 @@
 #include "PrimaryButton.h"
 #include "PrimaryIcon.h"
 
+#include "ControlsViewController.h"
 #include "HomeViewController.h"
 #include "InfoViewController.h"
 #include "PlayViewController.h"
@@ -114,8 +115,10 @@ static void loadView(ViewController *self) {
 
 	$(this, primaryButton, mainView->topBar, "Home", _HomeViewController());
 	$(this, primaryButton, mainView->topBar, "Play", _PlayViewController());
+	$(this, primaryButton, mainView->topBar, "Controls", _ControlsViewController());
+	$(this, primaryButton, mainView->topBar, "Settings", _SettingsViewController());
 
-	$(this, primaryIcon, mainView->topBar, "ui/pics/settings", _SettingsViewController());
+//	$(this, primaryIcon, mainView->topBar, "ui/pics/settings", _SettingsViewController());
 	$(this, primaryIcon, mainView->topBar, "ui/pics/info", _InfoViewController());
 	$(this, primaryIcon, mainView->topBar, "ui/pics/quit", NULL);
 
