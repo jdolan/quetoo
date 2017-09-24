@@ -141,36 +141,15 @@ static uint32_t ai_name_suffix;
  * @brief Create the user info for the specified bot entity.
  */
 static void Ai_GetUserInfo(const g_entity_t *self, char *userinfo) {
+
 	g_strlcpy(userinfo, DEFAULT_BOT_INFO, MAX_USER_INFO_STRING);
+
 	SetUserInfo(userinfo, "skin", g_array_index(ai_skins, ai_skin_t, Randomr(0, ai_skins->len)));
 	SetUserInfo(userinfo, "color", va("%i", Randomr(0, 360)));
 	SetUserInfo(userinfo, "hand", va("%i", Randomr(0, 3)));
-
-	char color_temp[COLOR_MAX_LENGTH];
-
-	ColorToHex((const color_t) {
-		.r = (uint8_t) Randomr(0, 255),
-		.g = (uint8_t) Randomr(0, 255),
-		.b = (uint8_t) Randomr(0, 255),
-		.a = 255u
-	}, color_temp, sizeof(color_temp));
-	SetUserInfo(userinfo, "head", color_temp);
-
-	ColorToHex((const color_t) {
-		.r = (uint8_t) Randomr(0, 255),
-		.g = (uint8_t) Randomr(0, 255),
-		.b = (uint8_t) Randomr(0, 255),
-		.a = 255u
-	}, color_temp, sizeof(color_temp));
-	SetUserInfo(userinfo, "shirt", color_temp);
-
-	ColorToHex((const color_t) {
-		.r = (uint8_t) Randomr(0, 255),
-		.g = (uint8_t) Randomr(0, 255),
-		.b = (uint8_t) Randomr(0, 255),
-		.a = 255u
-	}, color_temp, sizeof(color_temp));
-	SetUserInfo(userinfo, "pants", color_temp);
+	SetUserInfo(userinfo, "head", va("%02x%02x%02x", Randomr(0, 255), Randomr(0, 255), Randomr(0, 255)));
+	SetUserInfo(userinfo, "shirt", va("%02x%02x%02x", Randomr(0, 255), Randomr(0, 255), Randomr(0, 255)));
+	SetUserInfo(userinfo, "pants", va("%02x%02x%02x", Randomr(0, 255), Randomr(0, 255), Randomr(0, 255)));
 
 	if (ai_name_suffix == 0) {
 		SetUserInfo(userinfo, "name", va("%s%s", ai_name_prefix->string, ai_names[ai_name_index]));

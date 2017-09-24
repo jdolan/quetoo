@@ -235,7 +235,6 @@ _Bool ValidateUserInfo(const char *s);
  * @brief Color manipulation functions
  */
 _Bool ColorParseHex(const char *s, color_t *color);
-_Bool ColorToHex(const color_t color, char *s, const size_t s_len);
 void ColorToVec3(const color_t color, vec3_t vec);
 void ColorToVec4(const color_t color, vec4_t vec);
 void ColorFromVec3(const vec3_t vec, color_t *color);
