@@ -75,7 +75,7 @@ static CvarSlider *initWithVariable(CvarSlider *self, cvar_t *var, double min, d
 		this->step = step;
 		this->snapToStep = true;
 
-		if ((step - floor(step)) == 0.0) {
+		if (this->step >= 1.0) {
 			$(this, setLabelFormat, "%0.0f");
 		}
 
