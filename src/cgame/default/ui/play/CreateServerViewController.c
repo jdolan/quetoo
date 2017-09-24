@@ -145,7 +145,7 @@ static void loadView(ViewController *self) {
 	super(ViewController, self, loadView);
 
 	self->view->autoresizingMask = ViewAutoresizingContain;
-	self->view->identifier = strdup("Create server");
+	self->view->identifier = strdup("Create");
 
 	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
 	assert(theme);
@@ -163,7 +163,7 @@ static void loadView(ViewController *self) {
 	$(theme, targetSubview, columns, 0);
 
 	{
-		Box *box = $(theme, box, "Create server");
+		Box *box = $(theme, box, "Server");
 
 		$(theme, attach, box);
 		$(theme, target, box->contentView);

@@ -45,7 +45,7 @@ static void loadView(ViewController *self) {
 	$(theme, target, panel->contentView);
 
 	{
-		Box *box = $(theme, box, "News");
+		Box *box = $(theme, box, "Home");
 
 		$(theme, attach, box);
 		$(theme, target, box->contentView);

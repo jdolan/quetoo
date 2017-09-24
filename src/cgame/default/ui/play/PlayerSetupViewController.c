@@ -174,7 +174,7 @@ static void loadView(ViewController *self) {
 	super(ViewController, self, loadView);
 
 	self->view->autoresizingMask = ViewAutoresizingContain;
-	self->view->identifier = strdup("Player setup");
+	self->view->identifier = strdup("Player");
 
 	PlayerSetupViewController *this = (PlayerSetupViewController *) self;
 

@@ -265,7 +265,7 @@ static void loadView(ViewController *self) {
 	assert(theme);
 
 	self->view->autoresizingMask = ViewAutoresizingContain;
-	self->view->identifier = strdup("Join game");
+	self->view->identifier = strdup("Join");
 
 	JoinServerViewController *this = (JoinServerViewController *) self;
 
