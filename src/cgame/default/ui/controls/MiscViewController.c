@@ -78,7 +78,7 @@ static void loadView(ViewController *self) {
 		$(theme, target, box->contentView);
 
 		$(theme, bindTextView, "Say", "cl_message_mode", &delegate);
-		$(theme, bindTextView, "Say Team", "cl_message_mode_2", &delegate);
+		$(theme, bindTextView, "Say team", "cl_message_mode_2", &delegate);
 		$(theme, bindTextView, "Show score", "+score", &delegate);
 		$(theme, bindTextView, "Take screenshot", "r_screenshot", &delegate);
 

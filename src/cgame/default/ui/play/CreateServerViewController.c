@@ -213,9 +213,9 @@ static void loadView(ViewController *self) {
 		this->teamsplay = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
 		assert(this->teamsplay);
 
-		$(this->teamsplay, addOption, "Free for All", (ident) 0);
-		$(this->teamsplay, addOption, "Team Deathmatch", (ident) 1);
-		$(this->teamsplay, addOption, "Capture the Flag", (ident) 2);
+		$(this->teamsplay, addOption, "Free for all", (ident) 0);
+		$(this->teamsplay, addOption, "Team deathmatch", (ident) 1);
+		$(this->teamsplay, addOption, "Capture the flag", (ident) 2);
 
 		this->teamsplay->control.view.frame.w = DEFAULT_TEXTVIEW_WIDTH;
 		this->teamsplay->delegate.didSelectOption = selectTeamsplay;
