@@ -127,13 +127,11 @@ static void Ui_SetDefaultFont(FontCategory category, const char *path, int32_t s
 	const int64_t length = Fs_Load(path, &buffer);
 	if (length != -1) {
 
-		void *mem = malloc(length);
-		assert(mem);
+		Data *data = $$(Data, dataWithBytes, buffer, length);
+		assert(data);
 
-		memcpy(mem, buffer, length);
-
-		SDL_RWops *rw = SDL_RWFromConstMem(mem, (int32_t) length);
-		Font *font = $(alloc(Font), initWithBuffer, rw, size, index);
+		Font *font = $(alloc(Font), initWithData, data, size, index);
+		assert(font);
 
 		$$(Font, setDefaultFont, category, font);
 
