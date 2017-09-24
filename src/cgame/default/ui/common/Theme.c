@@ -62,7 +62,7 @@ static void attach(const Theme *self, ident view) {
  * @fn void Theme::bindTextView(const Theme *self, const char *label, const char *bind, TextViewDelegate *delegate)
  * @memberof Theme
  */
-void bindTextView(const Theme *self, const char *label, const char *bind, TextViewDelegate *delegate) {
+static void bindTextView(const Theme *self, const char *label, const char *bind, TextViewDelegate *delegate) {
 
 	TextView *textView = (TextView *) $(alloc(BindTextView), initWithBind, bind);
 	assert(textView);

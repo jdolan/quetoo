@@ -258,4 +258,4 @@ struct ThemeInterface {
  * @return The Theme Class.
  * @memberof Theme
  */
-OBJECTIVELY_EXPORT Class *_Theme(void);
+Class *_Theme(void);

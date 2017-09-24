@@ -40,11 +40,18 @@
     <ClInclude Include="..\src\cgame\default\cg_types.h" />
     <ClInclude Include="..\src\cgame\default\cg_ui.h" />
     <ClInclude Include="..\src\cgame\default\cg_view.h" />
+    <ClInclude Include="..\src\cgame\default\ui\common\BindTextView.h" />
     <ClInclude Include="..\src\cgame\default\ui\common\CvarCheckbox.h" />
     <ClInclude Include="..\src\cgame\default\ui\common\CvarSelect.h" />
     <ClInclude Include="..\src\cgame\default\ui\common\CvarSlider.h" />
     <ClInclude Include="..\src\cgame\default\ui\common\CvarTextView.h" />
     <ClInclude Include="..\src\cgame\default\ui\common\Theme.h" />
+    <ClInclude Include="..\src\cgame\default\ui\controls\ControlsViewController.h" />
+    <ClInclude Include="..\src\cgame\default\ui\controls\CrosshairView.h" />
+    <ClInclude Include="..\src\cgame\default\ui\controls\LookViewController.h" />
+    <ClInclude Include="..\src\cgame\default\ui\controls\MiscViewController.h" />
+    <ClInclude Include="..\src\cgame\default\ui\controls\MoveViewController.h" />
+    <ClInclude Include="..\src\cgame\default\ui\controls\ShootViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\info\CreditsViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\info\InfoViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\main\DialogView.h" />
@@ -58,17 +65,13 @@
     <ClInclude Include="..\src\cgame\default\ui\play\JoinServerViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\play\MapListCollectionItemView.h" />
     <ClInclude Include="..\src\cgame\default\ui\play\MapListCollectionView.h" />
+    <ClInclude Include="..\src\cgame\default\ui\play\PlayerModelView.h" />
+    <ClInclude Include="..\src\cgame\default\ui\play\PlayerSetupViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\play\PlayViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\settings\AudioViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\settings\BindTextView.h" />
-    <ClInclude Include="..\src\cgame\default\ui\settings\CrosshairView.h" />
-    <ClInclude Include="..\src\cgame\default\ui\settings\InputViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\settings\OptionsViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\settings\PlayerModelView.h" />
-    <ClInclude Include="..\src\cgame\default\ui\settings\PlayerViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\settings\SettingsViewController.h" />
+    <ClInclude Include="..\src\cgame\default\ui\settings\SystemViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\settings\VideoModeSelect.h" />
-    <ClInclude Include="..\src\cgame\default\ui\settings\VideoViewController.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cgame.def" />
@@ -92,11 +95,18 @@
     <ClCompile Include="..\src\cgame\default\cg_temp_entity.c" />
     <ClCompile Include="..\src\cgame\default\cg_ui.c" />
     <ClCompile Include="..\src\cgame\default\cg_view.c" />
+    <ClCompile Include="..\src\cgame\default\ui\common\BindTextView.c" />
     <ClCompile Include="..\src\cgame\default\ui\common\CvarCheckbox.c" />
     <ClCompile Include="..\src\cgame\default\ui\common\CvarSelect.c" />
     <ClCompile Include="..\src\cgame\default\ui\common\CvarSlider.c" />
     <ClCompile Include="..\src\cgame\default\ui\common\CvarTextView.c" />
     <ClCompile Include="..\src\cgame\default\ui\common\Theme.c" />
+    <ClCompile Include="..\src\cgame\default\ui\controls\ControlsViewController.c" />
+    <ClCompile Include="..\src\cgame\default\ui\controls\CrosshairView.c" />
+    <ClCompile Include="..\src\cgame\default\ui\controls\LookViewController.c" />
+    <ClCompile Include="..\src\cgame\default\ui\controls\MiscViewController.c" />
+    <ClCompile Include="..\src\cgame\default\ui\controls\MoveViewController.c" />
+    <ClCompile Include="..\src\cgame\default\ui\controls\ShootViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\info\CreditsViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\info\InfoViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\main\DialogView.c" />
@@ -110,17 +120,13 @@
     <ClCompile Include="..\src\cgame\default\ui\play\JoinServerViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\play\MapListCollectionItemView.c" />
     <ClCompile Include="..\src\cgame\default\ui\play\MapListCollectionView.c" />
+    <ClCompile Include="..\src\cgame\default\ui\play\PlayerModelView.c" />
+    <ClCompile Include="..\src\cgame\default\ui\play\PlayerSetupViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\play\PlayViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\settings\AudioViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\settings\BindTextView.c" />
-    <ClCompile Include="..\src\cgame\default\ui\settings\CrosshairView.c" />
-    <ClCompile Include="..\src\cgame\default\ui\settings\InputViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\settings\OptionsViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\settings\PlayerModelView.c" />
-    <ClCompile Include="..\src\cgame\default\ui\settings\PlayerViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\settings\SettingsViewController.c" />
+    <ClCompile Include="..\src\cgame\default\ui\settings\SystemViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\settings\VideoModeSelect.c" />
-    <ClCompile Include="..\src\cgame\default\ui\settings\VideoViewController.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C8CF2939-7614-4820-9CF5-B433456764D3}</ProjectGuid>

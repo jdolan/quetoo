@@ -68,4 +68,4 @@ struct MiscViewControllerInterface {
  * @return The MiscViewController Class.
  * @memberof MiscViewController
  */
-OBJECTIVELY_EXPORT Class *_MiscViewController(void);
+Class *_MiscViewController(void);

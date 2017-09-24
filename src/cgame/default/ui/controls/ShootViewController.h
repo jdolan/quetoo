@@ -68,4 +68,4 @@ struct ShootViewControllerInterface {
  * @return The ShootViewController Class.
  * @memberof ShootViewController
  */
-OBJECTIVELY_EXPORT Class *_ShootViewController(void);
+Class *_ShootViewController(void);

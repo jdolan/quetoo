@@ -114,4 +114,4 @@ struct MainViewInterface {
  * @return The MainView Class.
  * @memberof MainView
  */
-OBJECTIVELY_EXPORT Class *_MainView(void);
+Class *_MainView(void);

@@ -73,4 +73,4 @@ struct SystemViewControllerInterface {
  * @return The SystemViewController Class.
  * @memberof SystemViewController
  */
-OBJECTIVELY_EXPORT Class *_SystemViewController(void);
+Class *_SystemViewController(void);

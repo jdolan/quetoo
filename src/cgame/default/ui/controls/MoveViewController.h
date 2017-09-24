@@ -68,4 +68,4 @@ struct MoveViewControllerInterface {
  * @return The MoveViewController Class.
  * @memberof MoveViewController
  */
-OBJECTIVELY_EXPORT Class *_MoveViewController(void);
+Class *_MoveViewController(void);

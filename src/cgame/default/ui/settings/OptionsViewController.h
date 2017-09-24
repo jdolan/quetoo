@@ -68,4 +68,4 @@ struct OptionsViewControllerInterface {
  * @return The OptionsViewController Class.
  * @memberof OptionsViewController
  */
-OBJECTIVELY_EXPORT Class *_OptionsViewController(void);
+Class *_OptionsViewController(void);

@@ -83,4 +83,4 @@ struct BindTextViewInterface {
  * @return The BindTextView Class.
  * @memberof BindTextView
  */
-extern Class *_BindTextView(void);
+Class *_BindTextView(void);

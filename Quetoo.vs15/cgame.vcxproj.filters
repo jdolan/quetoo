@@ -25,6 +25,9 @@
     <Filter Include="src\default\ui\settings">
       <UniqueIdentifier>{16f7507d-4f79-4d87-ac06-7addb6c2237d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\default\ui\controls">
+      <UniqueIdentifier>{9857244c-6a1e-474f-92fa-6d9acfb03cbb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\cgame\cgame.h">
@@ -132,34 +135,13 @@
     <ClInclude Include="..\src\cgame\default\ui\main\PrimaryIcon.h">
       <Filter>src\default\ui\main</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\settings\AudioViewController.h">
-      <Filter>src\default\ui\settings</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\settings\BindTextView.h">
-      <Filter>src\default\ui\settings</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\settings\CrosshairView.h">
-      <Filter>src\default\ui\settings</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\settings\InputViewController.h">
-      <Filter>src\default\ui\settings</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\cgame\default\ui\settings\OptionsViewController.h">
-      <Filter>src\default\ui\settings</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\settings\PlayerModelView.h">
-      <Filter>src\default\ui\settings</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\settings\PlayerViewController.h">
       <Filter>src\default\ui\settings</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\default\ui\settings\SettingsViewController.h">
       <Filter>src\default\ui\settings</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\default\ui\settings\VideoModeSelect.h">
-      <Filter>src\default\ui\settings</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\settings\VideoViewController.h">
       <Filter>src\default\ui\settings</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\default\ui\play\CreateServerViewController.h">
@@ -176,6 +158,36 @@
     </ClInclude>
     <ClInclude Include="..\src\cgame\default\ui\play\PlayViewController.h">
       <Filter>src\default\ui\play</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\default\ui\controls\ControlsViewController.h">
+      <Filter>src\default\ui\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\default\ui\controls\CrosshairView.h">
+      <Filter>src\default\ui\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\default\ui\controls\LookViewController.h">
+      <Filter>src\default\ui\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\default\ui\controls\MiscViewController.h">
+      <Filter>src\default\ui\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\default\ui\controls\MoveViewController.h">
+      <Filter>src\default\ui\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\default\ui\controls\ShootViewController.h">
+      <Filter>src\default\ui\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\default\ui\settings\SystemViewController.h">
+      <Filter>src\default\ui\settings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\default\ui\play\PlayerModelView.h">
+      <Filter>src\default\ui\play</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\default\ui\play\PlayerSetupViewController.h">
+      <Filter>src\default\ui\play</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\default\ui\common\BindTextView.h">
+      <Filter>src\default\ui\common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -278,34 +290,13 @@
     <ClCompile Include="..\src\cgame\default\ui\main\PrimaryIcon.c">
       <Filter>src\default\ui\main</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\settings\AudioViewController.c">
-      <Filter>src\default\ui\settings</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\settings\BindTextView.c">
-      <Filter>src\default\ui\settings</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\settings\CrosshairView.c">
-      <Filter>src\default\ui\settings</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\settings\InputViewController.c">
-      <Filter>src\default\ui\settings</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\settings\OptionsViewController.c">
-      <Filter>src\default\ui\settings</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\settings\PlayerModelView.c">
-      <Filter>src\default\ui\settings</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\settings\PlayerViewController.c">
       <Filter>src\default\ui\settings</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\settings\SettingsViewController.c">
       <Filter>src\default\ui\settings</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\settings\VideoModeSelect.c">
-      <Filter>src\default\ui\settings</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\settings\VideoViewController.c">
       <Filter>src\default\ui\settings</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\play\CreateServerViewController.c">
@@ -322,6 +313,36 @@
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\play\PlayViewController.c">
       <Filter>src\default\ui\play</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\ui\controls\ControlsViewController.c">
+      <Filter>src\default\ui\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\ui\controls\CrosshairView.c">
+      <Filter>src\default\ui\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\ui\controls\LookViewController.c">
+      <Filter>src\default\ui\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\ui\controls\MiscViewController.c">
+      <Filter>src\default\ui\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\ui\controls\MoveViewController.c">
+      <Filter>src\default\ui\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\ui\controls\ShootViewController.c">
+      <Filter>src\default\ui\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\ui\settings\SystemViewController.c">
+      <Filter>src\default\ui\settings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\ui\play\PlayerModelView.c">
+      <Filter>src\default\ui\play</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\ui\play\PlayerSetupViewController.c">
+      <Filter>src\default\ui\play</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\ui\common\BindTextView.c">
+      <Filter>src\default\ui\common</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
