@@ -24,7 +24,7 @@
 
 #include "client/cl_types.h"
 
-#define CGAME_API_VERSION 16
+#define CGAME_API_VERSION 19
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -37,9 +37,14 @@ typedef struct cg_import_s {
 	cl_client_t *client;
 
 	/**
+	 * @brief The client state.
+	 */
+	const cl_state_t *state;
+
+	/**
 	 * @brief The renderer context.
 	 */
-	r_context_t *context;
+	const r_context_t *context;
 
 	/**
 	 * @brief The renderer view scene.
@@ -716,6 +721,16 @@ typedef struct cg_import_s {
 	void (*DrawImage)(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image);
 
 	/**
+	 * @brief Draws an image with an arbitrary size on the screen.
+	 * @param x The x coordinate, in pixels.
+	 * @param y The y coordinate, in pixels.
+	 * @param x The width, in pixels.
+	 * @param y The height, in pixels.
+	 * @param image The image.
+	 */
+	void (*DrawImageResized)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image);
+
+	/**
 	 * @brief Draws a filled rectangle in orthographic projection on the screen.
 	 * @param x The x coordinate, in pixels.
 	 * @param y The y coordinate, in pixels.
@@ -774,6 +789,7 @@ typedef struct cg_export_s {
 	void (*Interpolate)(const cl_frame_t *frame);
 	_Bool (*UsePrediction)(void);
 	void (*PredictMovement)(const GList *cmds);
+	void (*UpdateLoading)(const cl_loading_t loading);
 	void (*UpdateView)(const cl_frame_t *frame);
 	void (*UpdateScreen)(const cl_frame_t *frame);
 

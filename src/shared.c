@@ -841,6 +841,25 @@ void Dirname(const char *in, char *out) {
 }
 
 /**
+ * @brief Removes the first newline and everything following it
+ * from the specified input string.
+ */
+void StripNewline(const char *in, char *out) {
+
+	if (in) {
+		const size_t len = strlen(in);
+		memmove(out, in, len + 1);
+
+		char *ext = strrchr(out, '\n');
+		if (ext) {
+			*ext = '\0';
+		}
+	} else {
+		*out = '\0';
+	}
+}
+
+/**
  * @brief Removes any file extension(s) from the specified input string.
  */
 void StripExtension(const char *in, char *out) {
@@ -1175,13 +1194,13 @@ static _Bool ParseHexString(const char *input, color_t *output, const uint8_t nu
 			if (!((l >= 'a' && l <= 'f') || (l >= '0' && l <= '9'))) {
 				return false;
 			}
-			
+
 			const uint8_t dec = HEX_TO_DEC(l);
 
 			if (d == 0) {
-				*c = dec << o;
+				*c = dec << ((num_digits - 1) * 4);
 			} else {
-				*c |= dec << o;
+				*c |= dec << (((num_digits - 1) * 4) - o);
 			}
 		}
 	}
@@ -1195,7 +1214,7 @@ static _Bool ParseHexString(const char *input, color_t *output, const uint8_t nu
 _Bool ColorParseHex(const char *s, color_t *color) {
 	const size_t s_len = strlen(s);
 	static color_t temp;
-	
+
 	if (!color) {
 		color = &temp;
 	}
@@ -1252,7 +1271,7 @@ _Bool ColorParseHex(const char *s, color_t *color) {
  * @brief Attempt to convert a color to a hexadecimal string representation.
  */
 _Bool ColorToHex(const color_t color, char *s, const size_t s_len) {
-	
+
 	_Bool is_short_form = COLOR_BYTES_ARE_SAME(color.r) &&
 						  COLOR_BYTES_ARE_SAME(color.g) &&
 						  COLOR_BYTES_ARE_SAME(color.b);
@@ -1262,24 +1281,24 @@ _Bool ColorToHex(const color_t color, char *s, const size_t s_len) {
 
 	if (is_32_bit) {
 		is_short_form = is_short_form && COLOR_BYTES_ARE_SAME(color.a);
-	
+
 		if (is_short_form) {
-			if (g_strlcat(s, va("%1x%1x%1x%1x", color.r & 15, color.g & 15, color.b & 15, color.a & 15), s_len) >= s_len) {
+			if (g_snprintf(s, s_len, "%1x%1x%1x%1x", color.r & 15, color.g & 15, color.b & 15, color.a & 15)) {
 				return false;
 			}
 		} else {
-			if (g_strlcat(s, va("%02x%02x%02x%02x", color.r, color.g, color.b, color.a), s_len) >= s_len) {
+			if (g_snprintf(s, s_len, "%02x%02x%02x%02x", color.r, color.g, color.b, color.a)) {
 				return false;
 			}
 		}
 	} else {
 
 		if (is_short_form) {
-			if (g_strlcat(s, va("%1x%1x%1x", color.r & 15, color.g & 15, color.b & 15), s_len) >= s_len) {
+			if (g_snprintf(s, s_len, "%1x%1x%1x", color.r & 15, color.g & 15, color.b & 15)) {
 				return false;
 			}
 		} else {
-			if (g_strlcat(s, va("%02x%02x%02x", color.r, color.g, color.b), s_len) >= s_len) {
+			if (g_snprintf(s, s_len, "%02x%02x%02x", color.r, color.g, color.b)) {
 				return false;
 			}
 		}

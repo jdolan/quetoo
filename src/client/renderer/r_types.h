@@ -1193,6 +1193,7 @@ typedef struct {
 } r_context_t;
 
 #ifdef __R_LOCAL_H__
+
 /**
  * @brief Quake3 (MD3) model in-memory representation.
  */

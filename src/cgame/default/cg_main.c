@@ -36,13 +36,11 @@ cvar_t *cg_add_particles;
 cvar_t *cg_add_weather;
 cvar_t *cg_bob;
 cvar_t *cg_color;
-cvar_t *cg_tint_r; // shirt
-cvar_t *cg_tint_g; // pants
-cvar_t *cg_tint_b; // helmet
 cvar_t *cg_draw_blend;
 cvar_t *cg_draw_blend_damage;
 cvar_t *cg_draw_blend_liquid;
 cvar_t *cg_draw_blend_pickup;
+cvar_t *cg_draw_blend_powerup;
 cvar_t *cg_draw_captures;
 cvar_t *cg_draw_crosshair_color;
 cvar_t *cg_draw_crosshair_pulse;
@@ -75,11 +73,15 @@ cvar_t *cg_fov_zoom;
 cvar_t *cg_fov_interpolate;
 cvar_t *cg_hand;
 cvar_t *cg_handicap;
+cvar_t *cg_head;
+cvar_t *cg_hit_sound;
 cvar_t *cg_hook_style;
+cvar_t *cg_pants;
 cvar_t *cg_particle_quality;
 cvar_t *cg_predict;
 cvar_t *cg_quick_join_max_ping;
 cvar_t *cg_quick_join_min_clients;
+cvar_t *cg_shirt;
 cvar_t *cg_skin;
 cvar_t *cg_third_person;
 cvar_t *cg_third_person_chasecam;
@@ -93,6 +95,7 @@ cvar_t *g_gameplay;
 cvar_t *g_teams;
 cvar_t *g_ctf;
 cvar_t *g_match;
+cvar_t *g_ai_max_clients;
 
 cg_import_t cgi;
 
@@ -124,14 +127,14 @@ static void Cg_Init(void) {
 	cg_color = cgi.Cvar("color", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                    "Specifies the effect color for your own weapon trails.");
 
-	cg_tint_r = cgi.Cvar("shirt", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
-	                    "Specifies your shirt color, in the hexadecimal format \"rrggbb\". \"default\" uses the skin or team's defaults.");
+	cg_shirt = cgi.Cvar("shirt", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
+	                    "Specifies your shirt color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
 
-	cg_tint_g = cgi.Cvar("pants", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
-	                    "Specifies your pants color, in the hexadecimal format \"rrggbb\". \"default\" uses the skin or team's defaults.");
+	cg_pants = cgi.Cvar("pants", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
+	                    "Specifies your pants color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
 
-	cg_tint_b = cgi.Cvar("helmet", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
-	                    "Specifies your helmet color, in the hexadecimal format \"rrggbb\". \"default\" uses the skin or team's defaults.");
+	cg_head = cgi.Cvar("head", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
+	                    "Specifies your head color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
 
 	cg_draw_blend = cgi.Cvar("cg_draw_blend", "1.0", CVAR_ARCHIVE,
                                  "Controls the intensity of screen alpha-blending");
@@ -141,6 +144,8 @@ static void Cg_Init(void) {
                                         "Controls if being in a liquid has blend flash effect");
 	cg_draw_blend_pickup = cgi.Cvar("cg_draw_blend_pickup", "1", CVAR_ARCHIVE,
                                         "Controls if picking up items has blend flash effect");
+	cg_draw_blend_powerup = cgi.Cvar("cg_draw_blend_powerup", "1", CVAR_ARCHIVE,
+                                         "Controls if holding a powerup has blend flash effect");
 	cg_draw_captures = cgi.Cvar("cg_draw_captures", "1", CVAR_ARCHIVE,
 	                            "Draw the number of captures");
 	cg_draw_crosshair = cgi.Cvar("cg_draw_crosshair", "1", CVAR_ARCHIVE,
@@ -195,6 +200,10 @@ static void Cg_Init(void) {
 	                   "Controls weapon handedness (center: 0, right: 1, left: 2).");
 	cg_handicap = cgi.Cvar("handicap", "100", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                       "Your handicap, or disadvantage.");
+
+	cg_hit_sound = cgi.Cvar("cg_hit_sound", "1", CVAR_ARCHIVE,
+	                       "If a hit sound is played when damaging an enemy.");
+
 	cg_hook_style = cgi.Cvar("hook_style", "pull", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                         "Your preferred hook style. Can be either \"pull\" or \"swing\".");
 
@@ -204,7 +213,7 @@ static void Cg_Init(void) {
 
 	cg_quick_join_max_ping = cgi.Cvar("cg_quick_join_max_ping", "200", CVAR_SERVER_INFO,
 									  "Maximum ping allowed for quick join");
-	cg_quick_join_min_clients = cgi.Cvar("cg_quick_join_min_clients", "0", CVAR_SERVER_INFO,
+	cg_quick_join_min_clients = cgi.Cvar("cg_quick_join_min_clients", "1", CVAR_SERVER_INFO,
 										 "Minimum clients allowed for quick join");
 
 	cg_skin = cgi.Cvar("skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE,
@@ -233,6 +242,8 @@ static void Cg_Init(void) {
 	                 "Enables capture the flag gameplay");
 	g_match = cgi.Cvar("g_match", "0", CVAR_SERVER_INFO,
 	                   "Enables match play requiring players to ready");
+	g_ai_max_clients = cgi.Cvar("g_ai_max_clients", "0", CVAR_SERVER_INFO,
+	                           "The minimum amount player slots that will always be filled. Specify -1 to fill all available slots.");
 
 	// add forward to server commands for tab completion
 
@@ -434,6 +445,7 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.Interpolate = Cg_Interpolate;
 	cge.UsePrediction = Cg_UsePrediction;
 	cge.PredictMovement = Cg_PredictMovement;
+	cge.UpdateLoading = Cg_UpdateLoading;
 	cge.UpdateView = Cg_UpdateView;
 	cge.UpdateScreen = Cg_UpdateScreen;
 

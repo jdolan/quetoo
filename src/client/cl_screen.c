@@ -377,9 +377,9 @@ static void Cl_DrawCounters(void) {
  */
 void Cl_UpdateScreen(void) {
 
-	if (cls.state == CL_ACTIVE) {
+	R_BeginFrame();
 
-		R_BeginFrame();
+	if (cls.state == CL_ACTIVE) {
 
 		R_Setup3D();
 
@@ -393,37 +393,34 @@ void Cl_UpdateScreen(void) {
 
 		R_EnableBlend(true);
 
-		switch (cls.key_state.dest) {
-			case KEY_CONSOLE:
-				Cl_DrawConsole();
-				break;
-			default:
+		Cl_DrawChat();
 
-				Cl_DrawChat();
-				Cl_DrawNotify();
-				Cl_DrawNetGraph();
-				Cl_DrawCounters();
-				Cl_DrawRendererStats();
-				Cl_DrawSoundStats();
-				cls.cgame->UpdateScreen(&cl.frame);
-				break;
+		Cl_DrawNetGraph();
+		Cl_DrawCounters();
+
+		if (cls.key_state.dest != KEY_CONSOLE && cls.key_state.dest != KEY_UI) {
+			Cl_DrawNotify();
+			Cl_DrawRendererStats();
+			Cl_DrawSoundStats();
+
+			cls.cgame->UpdateScreen(&cl.frame);
 		}
 
 	} else {
-		R_BeginFrame();
-
 		R_Setup2D();
-
-		if (cls.state == CL_LOADING) {
-			Cl_DrawLoading();
-		} else if (cls.key_state.dest == KEY_CONSOLE) {
-			Cl_DrawConsole();
-		}
 	}
 
+	if (cls.state != CL_LOADING && cls.key_state.dest == KEY_CONSOLE) {
+		Cl_DrawConsole();
+	}
+
+	// FIXME: This seems to have a leak state somewhere; calling
+	// Cl_DrawConsole after this appears to cause depth sorting issues
 	R_Draw2D();
 
-	Ui_Draw();
+	if (cls.key_state.dest == KEY_UI || cls.state == CL_LOADING) {
+		Ui_Draw();
+	}
 
 	R_EndFrame();
 

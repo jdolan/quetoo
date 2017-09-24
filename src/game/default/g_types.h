@@ -947,9 +947,9 @@ typedef struct {
 	char skin[32];
 	char flag[32]; // flag classname
 	char spawn[32]; // spawn classname
-	char tint_r[COLOR_MAX_LENGTH]; // shirt
-	char tint_g[COLOR_MAX_LENGTH]; // pants
-	char tint_b[COLOR_MAX_LENGTH]; // helmet
+	char shirt[COLOR_MAX_LENGTH];
+	char pants[COLOR_MAX_LENGTH];
+	char head[COLOR_MAX_LENGTH];
 	int16_t color;
 	int16_t effect;
 
@@ -1007,9 +1007,10 @@ typedef struct {
 
 	g_team_t *team; // current team
 	int16_t color; // weapon effect colors
-	char tint_r[COLOR_MAX_LENGTH]; // shirt
-	char tint_g[COLOR_MAX_LENGTH]; // pants
-	char tint_b[COLOR_MAX_LENGTH]; // helmet
+	
+	char shirt[COLOR_MAX_LENGTH];
+	char pants[COLOR_MAX_LENGTH];
+	char head[COLOR_MAX_LENGTH];
 
 	int16_t score;
 	int16_t captures;

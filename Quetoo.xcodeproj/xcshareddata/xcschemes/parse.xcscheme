@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "CE5530901E5A939F0009A127"
-               BuildableName = "libparse.dylib"
+               BuildableName = "libparse.a"
                BlueprintName = "parse"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
@@ -46,7 +46,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE5530901E5A939F0009A127"
-            BuildableName = "libparse.dylib"
+            BuildableName = "libparse.a"
             BlueprintName = "parse"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
@@ -64,7 +64,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE5530901E5A939F0009A127"
-            BuildableName = "libparse.dylib"
+            BuildableName = "libparse.a"
             BlueprintName = "parse"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>

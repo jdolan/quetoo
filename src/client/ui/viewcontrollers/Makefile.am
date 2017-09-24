@@ -20,4 +20,4 @@ libviewcontrollers_la_LDFLAGS = \
 	-shared
 
 libviewcontrollers_la_LIBADD = \
-	$(top_srcdir)/src/client/ui/views/libviews.la
+	$(top_builddir)/src/client/ui/views/libviews.la

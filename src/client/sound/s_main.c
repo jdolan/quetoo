@@ -25,9 +25,10 @@
 // the sound environment
 s_env_t s_env;
 
-cvar_t *s_ambient;
+cvar_t *s_ambient_volume;
 cvar_t *s_doppler;
 cvar_t *s_effects;
+cvar_t *s_effects_volume;
 cvar_t *s_rate;
 cvar_t *s_volume;
 
@@ -295,7 +296,13 @@ void S_Restart_f(void) {
 		cls.state = CL_LOADING;
 	}
 
+	cls.loading.percent = 0;
+	cls.cgame->UpdateLoading(cls.loading);
+
 	S_LoadMedia();
+
+	cls.loading.percent = 100;
+	cls.cgame->UpdateLoading(cls.loading);
 
 	cls.state = state;
 }
@@ -305,11 +312,12 @@ void S_Restart_f(void) {
  */
 static void S_InitLocal(void) {
 
-	s_ambient = Cvar_Add("s_ambient", "1", CVAR_ARCHIVE, "Controls playback of ambient sounds. 0 disables, 1 enables, 2 enables ambient ONLY.");
-	s_doppler = Cvar_Add("s_doppler", "0", CVAR_ARCHIVE, "The scale for the doppler effect. 0 is disabled, 1 is default, anything inbetween is scale.");
-	s_effects = Cvar_Add("s_effects", "0", CVAR_ARCHIVE | CVAR_S_MEDIA, "Whether sound filtering is enabled for systems that support it.");
+	s_ambient_volume = Cvar_Add("s_ambient_volume", "1.0", CVAR_ARCHIVE, "Ambient sound volume.");
+	s_doppler = Cvar_Add("s_doppler", "0.0", CVAR_ARCHIVE, "The scale for the doppler effect. 0 is disabled, 1 is default, anything inbetween is scale.");
+	s_effects = Cvar_Add("s_effects", "0", CVAR_ARCHIVE | CVAR_S_MEDIA, "Enables advanced sound effects.");
+	s_effects_volume = Cvar_Add("s_effects_volume", "1.0", CVAR_ARCHIVE, "Effects sound volume.");
 	s_rate = Cvar_Add("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE, "Sound sample rate in Hz.");
-	s_volume = Cvar_Add("s_volume", "1.0", CVAR_ARCHIVE, "Global sound volume level.");
+	s_volume = Cvar_Add("s_volume", "1.0", CVAR_ARCHIVE, "Master sound volume level.");
 
 	Cvar_ClearAll(CVAR_S_MASK);
 

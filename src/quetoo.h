@@ -126,28 +126,6 @@ DECLARE_VECTOR_TYPE(int16_t, s16vec);
 #undef VECTOR_TYPENAME
 
 /**
- * @brief A 32-bit RGBA color
- */
-typedef union {
-	struct {
-		byte r, g, b, a;
-	}; // as separate components
-
-	byte bytes[4]; // as four bytes, for loopage
-
-	uint32_t u32; // as a full uint32_t
-} color_t;
-
-#define ColorFromRGBA(rr, gg, bb, aa) \
-		({ color_t _c; _c.r = rr; _c.g = gg; _c.b = bb; _c.a = aa; _c; })
-
-#define ColorFromRGB(r, g, b) \
-		ColorFromRGBA(r, g, b, 255)
-
-#define ColorFromU32(v) \
-		({ color_t _c; _c.u32 = v; _c; })
-
-/**
  * @brief Indices for angle vectors.
  */
 #define PITCH				0 // up / down
@@ -575,12 +553,12 @@ typedef enum {
 	ANIM_LEGS_IDLECR,
 
 	ANIM_LEGS_TURN,
-	
+
 	/**
 	 * @brief Masks out the bits and only keeps the animation value
 	 */
 	ANIM_MASK_VALUE = (1 << 6) - 1,
-	
+
 	/**
 	 * @brief Play the animation backwards.
 	 */

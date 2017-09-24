@@ -206,7 +206,15 @@ void S_MixChannels(void) {
 					}
 				}
 
-				alSourcef(s_env.sources[i], AL_GAIN, ch->gain * s_volume->value);
+				vec_t volume;
+
+				if (ch->play.flags & S_PLAY_AMBIENT) {
+					volume = s_volume->value * s_ambient_volume->value;
+				} else {
+					volume = s_volume->value * s_effects_volume->value;
+				}
+
+				alSourcef(s_env.sources[i], AL_GAIN, ch->gain * volume);
 				S_CheckALError();
 
 				alSourcef(s_env.sources[i], AL_PITCH, ch->pitch);
@@ -282,22 +290,16 @@ void S_AddSample(const s_play_sample_t *play) {
 		return;
 	}
 
-	switch (s_ambient->integer) {
-		case 0: // Disable ambient sounds
-			if (play->flags & S_PLAY_AMBIENT) {
-				return;
-			}
-			break;
-		case 2: // Only ambient sounds
-			if (!(play->flags & S_PLAY_AMBIENT)) {
-				return;
-			}
-			break;
-		default:
-			break;
-
+	if (play->flags & S_PLAY_AMBIENT) {
+		if (!s_ambient_volume->value) {
+			return;
+		}
+	} else {
+		if (!s_effects_volume->value) {
+			return;
+		}
 	}
-
+	
 	const s_sample_t *sample = play->sample;
 
 	const char *name = sample->media.name;

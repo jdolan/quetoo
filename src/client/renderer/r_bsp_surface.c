@@ -190,7 +190,7 @@ void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 		R_EnableTexture(texunit_deluxemap, true);
 	}
 
-	if (r_stainmap->value) {
+	if (r_stainmaps->value) {
 		R_EnableTexture(texunit_stainmap, true);
 	}
 
@@ -278,7 +278,7 @@ void R_DrawAlphaTestBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 		R_EnableTexture(texunit_deluxemap, true);
 	}
 
-	if (r_stainmap->value) {
+	if (r_stainmaps->value) {
 		R_EnableTexture(texunit_stainmap, true);
 	}
 
@@ -323,7 +323,7 @@ void R_DrawBlendBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 		R_EnableTexture(texunit_deluxemap, true);
 	}
 
-	if (r_stainmap->value) {
+	if (r_stainmaps->value) {
 		R_EnableTexture(texunit_stainmap, true);
 	}
 

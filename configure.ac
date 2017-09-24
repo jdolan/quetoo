@@ -26,7 +26,7 @@ fi
 
 AC_DEFINE_UNQUOTED(REVISION, "$REVISION", [Git revision])
 
-AM_INIT_AUTOMAKE([foreign])
+AM_INIT_AUTOMAKE([foreign subdir-objects])
 AM_SILENT_RULES([yes])
 
 dnl ---------------
@@ -499,8 +499,7 @@ AC_CONFIG_FILES([
 	src/collision/Makefile
 	src/cgame/Makefile
 	src/cgame/default/Makefile
-	src/cgame/default/viewcontrollers/Makefile
-	src/cgame/default/views/Makefile
+	src/cgame/default/ui/Makefile
 	src/client/Makefile
 	src/client/renderer/Makefile
 	src/client/renderer/shaders/Makefile

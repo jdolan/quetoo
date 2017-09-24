@@ -154,7 +154,7 @@ static void Ai_GetUserInfo(const g_entity_t *self, char *userinfo) {
 		.b = (uint8_t) Randomr(0, 255),
 		.a = 255u
 	}, color_temp, sizeof(color_temp));
-	SetUserInfo(userinfo, "helmet", color_temp);
+	SetUserInfo(userinfo, "head", color_temp);
 
 	ColorToHex((const color_t) {
 		.r = (uint8_t) Randomr(0, 255),
@@ -1084,7 +1084,7 @@ static void Ai_Init(void) {
 
 	sv_max_clients = aim.Cvar("sv_max_clients", 0, 0, "");
 
-	ai_passive = aim.Cvar("ai_passive", "0", 0, "Whether the bots will attack or not");
+	ai_passive = aim.Cvar("ai_passive", "0", 0, "Whether the bots will attack or not.");
 	ai_name_prefix = aim.Cvar("ai_name_prefix", "^0[^1BOT^0] ^7", 0, NULL);
 	ai_locals = (ai_locals_t *) aim.Malloc(sizeof(ai_locals_t) * sv_max_clients->integer, MEM_TAG_AI);
 

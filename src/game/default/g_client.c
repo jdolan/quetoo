@@ -1157,7 +1157,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 		g_strlcpy(cl->locals.persistent.skin, DEFAULT_USER_MODEL "/" DEFAULT_USER_SKIN, sizeof(cl->locals.persistent.skin));
 	}
 
-	// set color
+	// set effect color
 	if ((g_level.teams || g_level.ctf) && cl->locals.persistent.team) { // players must use team_skin to change
 		cl->locals.persistent.color = cl->locals.persistent.team->color;
 	} else {
@@ -1175,32 +1175,32 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 		}
 	}
 
-	// set red/green/blue tint colors
-	if ((g_level.teams || g_level.ctf) && cl->locals.persistent.team) { // players must use team_skin to change
-		g_strlcpy(cl->locals.persistent.tint_r, cl->locals.persistent.team->tint_r, sizeof(cl->locals.persistent.tint_r));
-		g_strlcpy(cl->locals.persistent.tint_g, cl->locals.persistent.team->tint_g, sizeof(cl->locals.persistent.tint_g));
-		g_strlcpy(cl->locals.persistent.tint_b, cl->locals.persistent.team->tint_b, sizeof(cl->locals.persistent.tint_b));
+	// set shirt, pants and head colors
+	if ((g_level.teams || g_level.ctf) && cl->locals.persistent.team) {
+		g_strlcpy(cl->locals.persistent.shirt, cl->locals.persistent.team->shirt, sizeof(cl->locals.persistent.shirt));
+		g_strlcpy(cl->locals.persistent.pants, cl->locals.persistent.team->pants, sizeof(cl->locals.persistent.pants));
+		g_strlcpy(cl->locals.persistent.head, cl->locals.persistent.team->head, sizeof(cl->locals.persistent.head));
 	} else {
-		g_strlcpy(cl->locals.persistent.tint_r, "default", sizeof(cl->locals.persistent.tint_r));
-		g_strlcpy(cl->locals.persistent.tint_g, "default", sizeof(cl->locals.persistent.tint_g));
-		g_strlcpy(cl->locals.persistent.tint_b, "default", sizeof(cl->locals.persistent.tint_b));
+		g_strlcpy(cl->locals.persistent.shirt, "default", sizeof(cl->locals.persistent.shirt));
+		g_strlcpy(cl->locals.persistent.pants, "default", sizeof(cl->locals.persistent.pants));
+		g_strlcpy(cl->locals.persistent.head, "default", sizeof(cl->locals.persistent.head));
 
-		s = GetUserInfo(user_info, "shirt"); // shirt
+		s = GetUserInfo(user_info, "shirt");
 
-		if (strlen(s) && strcmp(s, "default") && ColorParseHex(s, NULL)) { // not default
-			g_strlcpy(cl->locals.persistent.tint_r, s, sizeof(cl->locals.persistent.tint_r));
+		if (strlen(s) && strcmp(s, "default") && ColorParseHex(s, NULL)) {
+			g_strlcpy(cl->locals.persistent.shirt, s, sizeof(cl->locals.persistent.shirt));
 		}
 
-		s = GetUserInfo(user_info, "pants"); // pants
+		s = GetUserInfo(user_info, "pants");
 
-		if (strlen(s) && strcmp(s, "default") && ColorParseHex(s, NULL)) { // not default
-			g_strlcpy(cl->locals.persistent.tint_g, s, sizeof(cl->locals.persistent.tint_g));
+		if (strlen(s) && strcmp(s, "default") && ColorParseHex(s, NULL)) {
+			g_strlcpy(cl->locals.persistent.pants, s, sizeof(cl->locals.persistent.pants));
 		}
 
-		s = GetUserInfo(user_info, "helmet"); // helmet
+		s = GetUserInfo(user_info, "head");
 
-		if (strlen(s) && strcmp(s, "default") && ColorParseHex(s, NULL)) { // not default
-			g_strlcpy(cl->locals.persistent.tint_b, s, sizeof(cl->locals.persistent.tint_b));
+		if (strlen(s) && strcmp(s, "default") && ColorParseHex(s, NULL)) {
+			g_strlcpy(cl->locals.persistent.head, s, sizeof(cl->locals.persistent.head));
 		}
 	}
 
@@ -1216,13 +1216,13 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	g_strlcat(client_info, va("%i", cl->locals.persistent.color), MAX_USER_INFO_STRING);
 
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-	g_strlcat(client_info, cl->locals.persistent.tint_r, MAX_USER_INFO_STRING); // shirt
+	g_strlcat(client_info, cl->locals.persistent.shirt, MAX_USER_INFO_STRING);
 
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-	g_strlcat(client_info, cl->locals.persistent.tint_g, MAX_USER_INFO_STRING); // pants
+	g_strlcat(client_info, cl->locals.persistent.pants, MAX_USER_INFO_STRING);
 
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-	g_strlcat(client_info, cl->locals.persistent.tint_b, MAX_USER_INFO_STRING); // helmet
+	g_strlcat(client_info, cl->locals.persistent.head, MAX_USER_INFO_STRING);
 
 	// send it to clients
 	gi.SetConfigString(CS_CLIENTS + (cl - g_game.clients), client_info);

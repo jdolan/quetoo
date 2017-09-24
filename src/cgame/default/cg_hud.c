@@ -25,12 +25,6 @@
 #define HUD_COLOR_STAT_MED		CON_COLOR_YELLOW
 #define HUD_COLOR_STAT_LOW		CON_COLOR_RED
 
-#define CROSSHAIR_COLOR_RED		242
-#define CROSSHAIR_COLOR_GREEN	209
-#define CROSSHAIR_COLOR_YELLOW	219
-#define CROSSHAIR_COLOR_ORANGE  225
-#define CROSSHAIR_COLOR_DEFAULT	15
-
 #define HUD_PIC_HEIGHT			64
 
 #define HUD_HEALTH_MED			75
@@ -83,7 +77,6 @@ typedef struct {
 		uint32_t damage_time;
 		int16_t pickup;
 	} blend;
-cvar_t *cg_tint_b; // helmet
 
 	struct {
 		int16_t tag, used_tag;
@@ -602,7 +595,6 @@ static void Cg_DrawTeamBanner(const player_state_t *ps) {
  */
 static void Cg_DrawCrosshair(const player_state_t *ps) {
 	r_pixel_t x, y;
-	int32_t color;
 
 	if (!cg_draw_crosshair->value) {
 		return;
@@ -649,19 +641,15 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		cg_draw_crosshair_color->modified = false;
 
 		const char *c = cg_draw_crosshair_color->string;
-		if (!g_ascii_strcasecmp(c, "red")) {
-			color = CROSSHAIR_COLOR_RED;
-		} else if (!g_ascii_strcasecmp(c, "green")) {
-			color = CROSSHAIR_COLOR_GREEN;
-		} else if (!g_ascii_strcasecmp(c, "yellow")) {
-			color = CROSSHAIR_COLOR_YELLOW;
-		} else if (!g_ascii_strcasecmp(c, "orange")) {
-			color = CROSSHAIR_COLOR_ORANGE;
+		color_t color;
+
+		if (!g_ascii_strcasecmp(c, "default")) {
+			color.r = color.g = color.b = color.a = 255;
 		} else {
-			color = CROSSHAIR_COLOR_DEFAULT;
+			ColorParseHex(c, &color);
 		}
 
-		cgi.ColorFromPalette(color, crosshair.color);
+		ColorToVec4(color, crosshair.color);
 	}
 
 	vec_t scale = cg_draw_crosshair_scale->value * (cgi.context->high_dpi ? 2.0 : 1.0);
@@ -812,10 +800,24 @@ static vec_t Cg_CalculateBlendAlpha(const uint32_t blend_start_time, const uint3
 	return 0.0;
 }
 
-#define CG_DAMAGE_BLEND_TIME 500
-#define CG_DAMAGE_BLEND_ALPHA 0.3
-#define CG_PICKUP_BLEND_TIME 500
-#define CG_PICKUP_BLEND_ALPHA 0.3
+/**
+ * @brief Draw a blend flash image with a specified alpha.
+ * @param icon The picture to use
+ * @param alpha The alpha of the blend
+ */
+static void Cg_DrawBlendFlashImage(const r_image_t *image, const vec_t alpha) {
+
+	const vec4_t color = {1.0, 1.0, 1.0, alpha};
+
+	cgi.Color(color);
+	cgi.DrawImageResized(0, 0, cgi.context->width, cgi.context->height, image);
+	cgi.Color(NULL);
+}
+
+#define CG_DAMAGE_BLEND_TIME 1500
+#define CG_DAMAGE_BLEND_ALPHA 0.7
+#define CG_PICKUP_BLEND_TIME 800
+#define CG_PICKUP_BLEND_ALPHA 0.7
 
 /**
  * @brief Draw a full-screen blend effect based on world interaction.
@@ -829,6 +831,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	vec4_t blend = { 0.0, 0.0, 0.0, 0.0 };
 
 	// start with base blend based on view origin conents
+
 	const int32_t contents = cgi.view->contents;
 
 	if ((contents & MASK_LIQUID) && cg_draw_blend_liquid->value) {
@@ -845,7 +848,9 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	}
 
 	// pickups
+
 	const int16_t p = ps->stats[STAT_PICKUP_ICON] & ~STAT_TOGGLE_BIT;
+
 	if (p > -1 && (p != cg_hud_locals.blend.pickup)) { // don't flash on same item
 		cg_hud_locals.blend.pickup_time = cgi.client->unclamped_time;
 	}
@@ -853,22 +858,32 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	cg_hud_locals.blend.pickup = p;
 
 	if (cg_hud_locals.blend.pickup_time && cg_draw_blend_pickup->value) {
-		Cg_AddBlendPalette(blend, 215, Cg_CalculateBlendAlpha(cg_hud_locals.blend.pickup_time, CG_PICKUP_BLEND_TIME,
-		                   CG_PICKUP_BLEND_ALPHA));
+		Cg_DrawBlendFlashImage(cgi.LoadImage("pics/bf_pickup", IT_PIC),
+			Cg_CalculateBlendAlpha(cg_hud_locals.blend.pickup_time, CG_PICKUP_BLEND_TIME, CG_PICKUP_BLEND_ALPHA));
+	}
+
+	// quad damage powerup
+
+	if (ps->stats[STAT_QUAD_TIME] > 0 && cg_draw_blend_powerup->value) {
+		Cg_DrawBlendFlashImage(cgi.LoadImage("pics/bf_powerup_quad", IT_PIC),
+			fabs(sin(Radians(cgi.client->unclamped_time * 0.2))));
 	}
 
 	// taken damage
+
 	const int16_t d = ps->stats[STAT_DAMAGE_ARMOR] + ps->stats[STAT_DAMAGE_HEALTH];
+
 	if (d) {
 		cg_hud_locals.blend.damage_time = cgi.client->unclamped_time;
 	}
 
 	if (cg_hud_locals.blend.damage_time && cg_draw_blend_damage->value) {
-		Cg_AddBlendPalette(blend, 240, Cg_CalculateBlendAlpha(cg_hud_locals.blend.damage_time, CG_DAMAGE_BLEND_TIME,
-		                   CG_DAMAGE_BLEND_ALPHA));
+		Cg_DrawBlendFlashImage(cgi.LoadImage("pics/bf_damage", IT_PIC),
+			Cg_CalculateBlendAlpha(cg_hud_locals.blend.damage_time, CG_DAMAGE_BLEND_TIME, CG_DAMAGE_BLEND_ALPHA));
 	}
 
 	// if we have a blend, draw it
+
 	if (blend[3] > 0.0) {
 		color_t final_color;
 
@@ -885,6 +900,10 @@ static void Cg_DrawBlend(const player_state_t *ps) {
  * @brief Plays the hit sound if the player inflicted damage this frame.
  */
 static void Cg_DrawDamageInflicted(const player_state_t *ps) {
+
+	if (!cg_hit_sound->integer) {
+		return;
+	}
 
 	const int16_t dmg = ps->stats[STAT_DAMAGE_INFLICT];
 	if (dmg) {

@@ -66,7 +66,7 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 			break;
 		case KEY_UI:
 			SDL_StopTextInput();
-			Ui_UpdateBindings();
+			Ui_ViewWillAppear();
 			break;
 		case KEY_GAME:
 			SDL_StopTextInput();

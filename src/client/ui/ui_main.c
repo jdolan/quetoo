@@ -57,10 +57,10 @@ void Ui_HandleEvent(const SDL_Event *event) {
 /**
  * @brief
  */
-void Ui_UpdateBindings(void) {
+void Ui_ViewWillAppear(void) {
 
 	if (windowController) {
-		$(windowController->viewController->view, updateBindings);
+		$(windowController->viewController, viewWillAppear);
 	}
 }
 
@@ -69,15 +69,7 @@ void Ui_UpdateBindings(void) {
  */
 void Ui_Draw(void) {
 
-	if (cls.state == CL_LOADING) {
-		return;
-	}
-
 	Ui_CheckEditor();
-
-	if (cls.key_state.dest != KEY_UI) {
-		return;
-	}
 
 	// backup all of the matrices
 	for (r_matrix_id_t matrix = R_MATRIX_PROJECTION; matrix < R_MATRIX_TOTAL; ++matrix) {
@@ -127,6 +119,29 @@ void Ui_PopAllViewControllers(void) {
 }
 
 /**
+ * @brief
+ */
+static void Ui_SetDefaultFont(FontCategory category, const char *path, int32_t size, int32_t index) {
+
+	void *buffer;
+	const int64_t length = Fs_Load(path, &buffer);
+	if (length != -1) {
+
+		Data *data = $$(Data, dataWithBytes, buffer, length);
+		assert(data);
+
+		Font *font = $(alloc(Font), initWithData, data, size, index);
+		assert(font);
+
+		$$(Font, setDefaultFont, category, font);
+
+		release(font);
+	}
+
+	Fs_Free(buffer);
+}
+
+/**
  * @brief Initializes the user interface.
  */
 void Ui_Init(void) {
@@ -140,6 +155,19 @@ void Ui_Init(void) {
 		setenv("FONTCONFIG_PATH", fonts, 0);
 	}
 #endif
+
+	const char *coda = "fonts/coda.regular.ttf";
+	const char *codaHeavy = "fonts/coda.heavy.ttf";
+
+	Ui_SetDefaultFont(FontCategoryDefault, coda, 16, 0);
+	Ui_SetDefaultFont(FontCategoryPrimaryLabel, coda, 16, 0);
+	Ui_SetDefaultFont(FontCategoryPrimaryControl, coda, 16, 0);
+
+	Ui_SetDefaultFont(FontCategorySecondaryLabel, coda, 14, 0);
+	Ui_SetDefaultFont(FontCategorySecondaryControl, coda, 14, 0);
+
+	Ui_SetDefaultFont(FontCategoryPrimaryResponder, codaHeavy, 18, 0);
+	Ui_SetDefaultFont(FontCategorySecondaryResponder, codaHeavy, 18, 0);
 
 	Renderer *renderer = (Renderer *) $(alloc(QuetooRenderer), init);
 

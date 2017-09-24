@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "CEFC79F71D9CB408000FA6B2"
-               BuildableName = "libconsole.dylib"
+               BuildableName = "libconsole.a"
                BlueprintName = "console"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
@@ -46,7 +46,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CEFC79F71D9CB408000FA6B2"
-            BuildableName = "libconsole.dylib"
+            BuildableName = "libconsole.a"
             BlueprintName = "console"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
@@ -64,7 +64,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CEFC79F71D9CB408000FA6B2"
-            BuildableName = "libconsole.dylib"
+            BuildableName = "libconsole.a"
             BlueprintName = "console"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>

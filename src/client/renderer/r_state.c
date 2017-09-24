@@ -870,13 +870,13 @@ void R_InitSupersample(void) {
 	r_state.supersample_fb = R_CreateFramebuffer("r_state.supersample_fb");
 	R_AttachFramebufferImage(r_state.supersample_fb, r_state.supersample_image);
 	R_CreateFramebufferDepthStencilBuffers(r_state.supersample_fb);
-	
+
 	// attempt to gracefully recover from errors
 	if (!R_FramebufferReady(r_state.supersample_fb)) {
 
 		Com_Warn("Couldn't initialize supersample.\n");
 		Cvar_Set("r_supersample", "0");
-		
+
 		r_context.render_width = r_context.width;
 		r_context.render_height = r_context.height;
 

@@ -294,7 +294,7 @@ static void G_Ai_RemoveBots(const int32_t count) {
  * @brief
  */
 static void G_Ai_Add_f(void) {
-	
+
 	if (g_game.ai_fill_slots) {
 		gi.Print("g_ai_max_clients is set - change that instead\n");
 		return;
@@ -313,7 +313,7 @@ static void G_Ai_Add_f(void) {
  * @brief
  */
 static void G_Ai_Remove_f(void) {
-	
+
 	if (g_game.ai_fill_slots) {
 		gi.Print("g_ai_max_clients is set - change that instead\n");
 		return;
@@ -567,7 +567,7 @@ void G_Ai_RegisterItems(void) {
 static void G_Ai_SetDataPointers(void) {
 	static ai_entity_data_t entity;
 	static ai_client_data_t client;
-	
+
 	ENTITY_PTR_OFFSET(ground_entity);
 	ENTITY_PTR_OFFSET(item);
 	ENTITY_PTR_OFFSET(velocity);
@@ -575,7 +575,7 @@ static void G_Ai_SetDataPointers(void) {
 	ENTITY_PTR_OFFSET(max_health);
 	ENTITY_PTR_OFFSET(max_armor);
 	ENTITY_PTR_OFFSET(water_level);
-	
+
 	CLIENT_PTR_OFFSET(angles);
 	CLIENT_PTR_OFFSET(inventory);
 	CLIENT_PTR_OFFSET(weapon);
@@ -633,7 +633,7 @@ void G_Ai_Init(void) {
 
 	import.OnSameTeam = G_OnSameTeam;
 	import.ClientCommand = G_ClientCommand;
-	
+
 	import.Multicast = gi.Multicast;
 	import.Unicast = gi.Unicast;
 	import.WriteData = gi.WriteData;
@@ -665,7 +665,7 @@ void G_Ai_Init(void) {
 	G_Ai_SetDataPointers();
 
 	g_ai_max_clients = gi.Cvar("g_ai_max_clients", "0", CVAR_SERVER_INFO,
-	                           "The number of bots to automatically fill in empty slots in the server. Specify -1 to fill all available slots.");
+	                           "The minimum amount player slots that will always be filled. Specify -1 to fill all available slots.");
 
 	gi.Cmd("g_ai_add", G_Ai_Add_f, CMD_GAME, "Add one or more AI to the game");
 	gi.Cmd("g_ai_remove", G_Ai_Remove_f, CMD_GAME, "Remove one or more AI from the game");

@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "CE80FE0E1C5E421900A21A51"
-               BuildableName = "libcollision.dylib"
+               BuildableName = "libcollision.a"
                BlueprintName = "collision"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
@@ -46,7 +46,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE80FE0E1C5E421900A21A51"
-            BuildableName = "libcollision.dylib"
+            BuildableName = "libcollision.a"
             BlueprintName = "collision"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
@@ -64,7 +64,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE80FE0E1C5E421900A21A51"
-            BuildableName = "libcollision.dylib"
+            BuildableName = "libcollision.a"
             BlueprintName = "collision"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>

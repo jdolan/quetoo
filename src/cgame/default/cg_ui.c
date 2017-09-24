@@ -21,8 +21,10 @@
 
 #include "cg_local.h"
 
-#include "viewcontrollers/MainViewController.h"
+#include "ui/main/MainViewController.h"
+#include "ui/main/LoadingViewController.h"
 
+static LoadingViewController *loadingViewController;
 static MainViewController *mainViewController;
 
 /**
@@ -30,7 +32,11 @@ static MainViewController *mainViewController;
  */
 void Cg_InitUi(void) {
 
+	loadingViewController = $(alloc(LoadingViewController), init);
+	assert(loadingViewController);
+
 	mainViewController = $(alloc(MainViewController), init);
+	assert(mainViewController);
 
 	cgi.PushViewController((ViewController *) mainViewController);
 }
@@ -40,8 +46,26 @@ void Cg_InitUi(void) {
  */
 void Cg_ShutdownUi(void) {
 
-	cgi.PopToViewController((ViewController *) mainViewController);
-	cgi.PopViewController();
+	cgi.PopAllViewControllers();
+
+	release(loadingViewController);
+	loadingViewController = NULL;
 
 	release(mainViewController);
+	mainViewController = NULL;
+}
+
+/**
+ * @brief Updates the loading screen
+ */
+void Cg_UpdateLoading(const cl_loading_t loading) {
+
+	if (loading.percent == 0) {
+		cgi.PushViewController((ViewController *) loadingViewController);
+		$(loadingViewController, setProgress, loading);
+	} else if (loading.percent == 100) {
+		cgi.PopToViewController((ViewController *) mainViewController);
+	} else {
+		$(loadingViewController, setProgress, loading);
+	}
 }

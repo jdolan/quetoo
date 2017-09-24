@@ -161,6 +161,4 @@ typedef struct s_env_s {
 extern SF_VIRTUAL_IO s_rwops_io;
 extern SF_VIRTUAL_IO s_physfs_io;
 
-extern cvar_t *s_doppler;
-extern cvar_t *s_effects;
 #endif /* __S_LOCAL_H__ */

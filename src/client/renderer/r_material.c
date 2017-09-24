@@ -523,7 +523,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		R_EnableTexture(texunit_deluxemap, true);
 	}
 
-	if (r_stainmap->integer) {
+	if (r_stainmaps->integer) {
 		R_EnableTexture(texunit_stainmap, true);
 	}
 

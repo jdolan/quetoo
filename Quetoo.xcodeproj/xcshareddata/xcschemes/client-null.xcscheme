@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "CE80FF581C5E494E00A21A51"
-               BuildableName = "libclient-null.dylib"
+               BuildableName = "libclient-null.a"
                BlueprintName = "client-null"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
@@ -46,7 +46,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE80FF581C5E494E00A21A51"
-            BuildableName = "libclient-null.dylib"
+            BuildableName = "libclient-null.a"
             BlueprintName = "client-null"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
@@ -64,7 +64,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE80FF581C5E494E00A21A51"
-            BuildableName = "libclient-null.dylib"
+            BuildableName = "libclient-null.a"
             BlueprintName = "client-null"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>

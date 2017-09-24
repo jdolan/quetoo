@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "CE80FDD91C5E3E1100A21A51"
-               BuildableName = "libcommon.dylib"
+               BuildableName = "libcommon.a"
                BlueprintName = "common"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
@@ -46,7 +46,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE80FDD91C5E3E1100A21A51"
-            BuildableName = "libcommon.dylib"
+            BuildableName = "libcommon.a"
             BlueprintName = "common"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
@@ -64,7 +64,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE80FDD91C5E3E1100A21A51"
-            BuildableName = "libcommon.dylib"
+            BuildableName = "libcommon.a"
             BlueprintName = "common"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
