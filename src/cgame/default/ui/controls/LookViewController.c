@@ -65,7 +65,7 @@ static void didPickCrosshairColor(HueColorPicker *hueColorPicker, double hue, do
 
 	const SDL_Color color = MVC_HSVToRGB(hue, saturation, value);
 
-	if (fabs(hue) < 1.0) {
+	if (hue < 1.0) {
 		cgi.CvarSet(cg_draw_crosshair_color->name, "default");
 
 		hueColorPicker->colorView->backgroundColor = Colors.Charcoal;
@@ -74,7 +74,6 @@ static void didPickCrosshairColor(HueColorPicker *hueColorPicker, double hue, do
 	} else {
 		cgi.CvarSet(cg_draw_crosshair_color->name, va("%02x%02x%02x", color.r, color.g, color.b));
 	}
-
 
 	$((View *) this->crosshairView, updateBindings);
 }
@@ -108,6 +107,7 @@ static void dealloc(Object *self) {
 
 	LookViewController *this = (LookViewController *) self;
 
+	release(this->crosshairColorPicker);
 	release(this->crosshairView);
 
 	super(Object, self, dealloc);
@@ -201,13 +201,13 @@ static void loadView(ViewController *self) {
 
 		$(theme, checkbox, "Pulse on pickup", cg_draw_crosshair_pulse->name);
 
-		HueColorPicker *crosshairColor = $(alloc(HueColorPicker), initWithFrame, NULL, ControlStyleDefault);
-		assert(crosshairColor);
+		this->crosshairColorPicker = $(alloc(HueColorPicker), initWithFrame, NULL, ControlStyleDefault);
+		assert(this->crosshairColorPicker);
 
-		crosshairColor->delegate.self = this;
-		crosshairColor->delegate.didPickColor = didPickCrosshairColor;
+		this->crosshairColorPicker->delegate.self = this;
+		this->crosshairColorPicker->delegate.didPickColor = didPickCrosshairColor;
 
-		$(theme, control, "Color", crosshairColor);
+		$(theme, control, "Color", this->crosshairColorPicker);
 
 		this->crosshairView = $(alloc(CrosshairView), initWithFrame, &MakeRect(0, 0, 100, 100));
 		assert(this->crosshairView);
@@ -222,6 +222,23 @@ static void loadView(ViewController *self) {
 	release(theme);
 }
 
+/**
+ * @see ViewController::viewWillAppear(ViewController *)
+ */
+static void viewWillAppear(ViewController *self) {
+
+	super(ViewController, self, viewWillAppear);
+
+	LookViewController *this = (LookViewController *) self;
+
+	const SDL_Color color = MVC_HexToRGBA(cg_draw_crosshair_color->string);
+	if (color.r || color.g || color.b) {
+		$(this->crosshairColorPicker, setRGBColor, &color);
+	} else {
+		$(this->crosshairColorPicker, setColor, 0.0, 1.0, 1.0);
+	}
+}
+
 #pragma mark - Class lifecycle
 
 /**
@@ -232,6 +249,7 @@ static void initialize(Class *clazz) {
 	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
 
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->def->interface)->viewWillAppear = viewWillAppear;
 }
 
 /**

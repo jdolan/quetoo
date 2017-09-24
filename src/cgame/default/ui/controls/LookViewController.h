@@ -23,6 +23,7 @@
 
 #include "cg_types.h"
 
+#include <ObjectivelyMVC/HueColorPicker.h>
 #include <ObjectivelyMVC/ViewController.h>
 
 #include "CrosshairView.h"
@@ -53,6 +54,11 @@ struct LookViewController {
 	 * @private
 	 */
 	LookViewControllerInterface *interface;
+
+	/**
+	 * @brief The crosshair HueColorPicker.
+	 */
+	HueColorPicker *crosshairColorPicker;
 
 	/**
 	 * @brief The CrosshairView.
