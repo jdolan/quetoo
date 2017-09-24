@@ -81,13 +81,12 @@ static void updateBindings(View *self) {
 			$(this->imageView, setImageWithSurface, surface);
 			SDL_FreeSurface(surface);
 
-			const char *c = cg_draw_crosshair_color->string;
-			color_t color;
-
-			if (!strlen(c) || !g_ascii_strcasecmp(c, "default")) {
-				color.r = color.g = color.b = 255;
-			} else {
-				ColorParseHex(c, &color);
+			SDL_Color color = Colors.White;
+			if (g_strcmp0(cg_draw_crosshair_color->string, "default")) {
+				color = MVC_HexToRGBA(cg_draw_crosshair_color->string);
+				if (color.r == 0 && color.g == 0 && color.b == 0) {
+					color = Colors.White;
+				}
 			}
 
 			this->imageView->color.r = color.r;
@@ -108,7 +107,7 @@ static void updateBindings(View *self) {
  */
 static CrosshairView *initWithFrame(CrosshairView *self, const SDL_Rect *frame) {
 
-	self = (CrosshairView *) super(View, self, initWithFrame, frame);
+	self = (CrosshairView *) super(Control, self, initWithFrame, frame, ControlStyleDefault);
 	if (self) {
 
 		self->imageView = $(alloc(ImageView), initWithFrame, NULL);
@@ -118,8 +117,8 @@ static CrosshairView *initWithFrame(CrosshairView *self, const SDL_Rect *frame) 
 
 		$((View *) self, addSubview, (View *) self->imageView);
 
-		self->view.backgroundColor = Colors.Black;
-		self->view.backgroundColor.a = 48;
+		self->control.view.backgroundColor = Colors.Black;
+		self->control.view.backgroundColor.a = 48;
 
 		$((View *) self, updateBindings);
 	}
@@ -152,7 +151,7 @@ Class *_CrosshairView(void) {
 
 	do_once(&once, {
 		clazz.name = "CrosshairView";
-		clazz.superclass = _View();
+		clazz.superclass = _Control();
 		clazz.instanceSize = sizeof(CrosshairView);
 		clazz.interfaceOffset = offsetof(CrosshairView, interface);
 		clazz.interfaceSize = sizeof(CrosshairViewInterface);

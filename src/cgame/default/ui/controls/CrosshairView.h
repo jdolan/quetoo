@@ -22,7 +22,7 @@
 #pragma once
 
 #include <ObjectivelyMVC/ImageView.h>
-#include <ObjectivelyMVC/View.h>
+#include <ObjectivelyMVC/Control.h>
 
 /**
  * @file
@@ -42,7 +42,7 @@ struct CrosshairView {
 	 * @brief The superclass.
 	 * @private
 	 */
-	View view;
+	Control control;
 
 	/**
 	 * @brief The interface.
@@ -64,7 +64,7 @@ struct CrosshairViewInterface {
 	/**
 	 * @brief The superclass interface.
 	 */
-	ImageViewInterface imageViewInterface;
+	ControlInterface controlInterface;
 
 	/**
 	 * @fn CrosshairView *CrosshairView::initWithFrame(CrosshairView *self, const SDL_Rect *frame)

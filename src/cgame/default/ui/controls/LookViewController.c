@@ -59,13 +59,22 @@ static void didSelectCrosshair(Select *select, Option *option) {
 /**
  * @brief HueColorPickerDelegate callback for crosshair color selection.
  */
-static void didPickCrosshairColor(HueColorPicker *colorPicker, double hue, double saturation, double value) {
+static void didPickCrosshairColor(HueColorPicker *hueColorPicker, double hue, double saturation, double value) {
 
-	LookViewController *this = (LookViewController *) colorPicker->delegate.self;
+	LookViewController *this = (LookViewController *) hueColorPicker->delegate.self;
 
 	const SDL_Color color = MVC_HSVToRGB(hue, saturation, value);
 
-	cgi.CvarSet(cg_draw_crosshair_color->name, va("%x%x%x", color.r, color.g, color.b));
+	if (fabs(hue) < 1.0) {
+		cgi.CvarSet(cg_draw_crosshair_color->name, "default");
+
+		hueColorPicker->colorView->backgroundColor = Colors.Charcoal;
+
+		$(hueColorPicker->hueSlider->label, setText, "");
+	} else {
+		cgi.CvarSet(cg_draw_crosshair_color->name, va("%02x%02x%02x", color.r, color.g, color.b));
+	}
+
 
 	$((View *) this->crosshairView, updateBindings);
 }
@@ -143,7 +152,7 @@ static void loadView(ViewController *self) {
 		$(theme, target, box->contentView);
 
 		$(theme, slider, "Sensitivity", "m_sensitivity", 0.1, 6.0, 0.1, NULL);
-		$(theme, slider, "Zoom Sensitivity", "m_sensitivity_zoom", 0.1, 6.0, 0.1, NULL);
+		$(theme, slider, "Zoom sensitivity", "m_sensitivity_zoom", 0.1, 6.0, 0.1, NULL);
 		$(theme, checkbox, "Invert mouse", "m_invert");
 		$(theme, checkbox, "Smooth mouse", "m_interpolate");
 
@@ -183,31 +192,27 @@ static void loadView(ViewController *self) {
 
 		$(theme, control, "Crosshair", crosshair);
 
-		this->crosshairView = $(alloc(CrosshairView), initWithFrame, &MakeRect(0, 0, 72, 72));
-		assert(this->crosshairView);
+		SliderDelegate crosshairScaleDelegate = {
+			.self = this,
+			.didSetValue = didSetCrosshairScale
+		};
 
-		this->crosshairView->view.alignment = ViewAlignmentMiddleCenter;
+		$(theme, slider, "Scale", cg_draw_crosshair_scale->name, 0.1, 3.0, 0.0, &crosshairScaleDelegate);
 
-		$(theme, attach, this->crosshairView);
+		$(theme, checkbox, "Pulse on pickup", cg_draw_crosshair_pulse->name);
 
 		HueColorPicker *crosshairColor = $(alloc(HueColorPicker), initWithFrame, NULL, ControlStyleDefault);
 		assert(crosshairColor);
-
-		crosshairColor->colorView->hidden = true;
 
 		crosshairColor->delegate.self = this;
 		crosshairColor->delegate.didPickColor = didPickCrosshairColor;
 
 		$(theme, control, "Color", crosshairColor);
 
-		SliderDelegate crosshairScaleDelegate = {
-			.self = this,
-			.didSetValue = didSetCrosshairScale
-		};
+		this->crosshairView = $(alloc(CrosshairView), initWithFrame, &MakeRect(0, 0, 100, 100));
+		assert(this->crosshairView);
 
-		$(theme, slider, "Scale", cg_draw_crosshair_scale->name, 0.1, 2.0, 0.1, &crosshairScaleDelegate);
-
-		$(theme, checkbox, "Pulse on Pickup", cg_draw_crosshair_pulse->name);
+		$(theme, control, "Preview", this->crosshairView);
 
 		release(box);
 	}
