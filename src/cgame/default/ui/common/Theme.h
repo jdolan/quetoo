@@ -69,9 +69,6 @@ struct Theme {
 		SDL_Color lightHighlight;
 		SDL_Color lightBorder;
 
-		SDL_Color dialog;
-		SDL_Color dialogHighlight;
-
 		SDL_Color contrast;
 		SDL_Color watermark;
 	} colors;

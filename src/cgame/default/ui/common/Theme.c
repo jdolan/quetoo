@@ -199,9 +199,6 @@ static Theme *initWithTarget(Theme *self, ident target) {
 			.lightHighlight = { 27, 115, 115, 255 },
 			.lightBorder = { 255, 255, 255, 0 },
 
-			.dialog = { 128, 128, 128, 224 },
-			.dialogHighlight = { 145, 145, 145, 240 },
-
 			.contrast = { 255, 255, 255, 255 },
 			.watermark = { 200, 200, 200, 255 }
 		 };

@@ -87,7 +87,6 @@ static DialogView *init(DialogView *self) {
 		Theme *theme = $(alloc(Theme), init);
 		assert(theme);
 
-		this->stackView.view.backgroundColor = theme->colors.dialog;
 		this->stackView.view.borderColor = theme->colors.lightBorder;
 
 		release(theme);
