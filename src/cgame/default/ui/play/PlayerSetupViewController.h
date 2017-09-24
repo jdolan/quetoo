@@ -55,6 +55,11 @@ struct PlayerSetupViewController {
 	PlayerSetupViewControllerInterface *interface;
 
 	/**
+	 * @brief The head HSVColorPicker.
+	 */
+	HSVColorPicker *headColorPicker;
+
+	/**
 	 * @brief The effect HueColorPicker.
 	 */
 	HueColorPicker *effectColorPicker;

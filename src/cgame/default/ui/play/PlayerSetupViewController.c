@@ -99,8 +99,17 @@ static void didSelectSkin(Select *select, Option *option) {
  */
 static void didPickEffectColor(HueColorPicker *hueColorPicker, double hue, double saturation, double value) {
 
-	// TODO: Data binding to color cvar
+	PlayerSetupViewController *this = hueColorPicker->delegate.self;
 
+	if (fabs(hue) < 1.0) {
+		cgi.CvarSet(cg_color->name, "default");
+
+		this->effectColorPicker->colorView->backgroundColor = Colors.Charcoal;
+
+		$(this->effectColorPicker->hueSlider->label, setText, "");
+	} else {
+		cgi.CvarSetValue(cg_color->name, hue);
+	}
 }
 
 /**
@@ -110,26 +119,26 @@ static void didPickPlayerColor(HSVColorPicker *hsvColorPicker, double hue, doubl
 
 	PlayerSetupViewController *this = hsvColorPicker->delegate.self;
 
-	if (hsvColorPicker == this->pantsColorPicker) {
-
+	cvar_t *var = NULL;
+	if (hsvColorPicker == this->headColorPicker) {
+		var = cg_head;
+	} else if (hsvColorPicker == this->pantsColorPicker) {
+		var = cg_pants;
 	} else if (hsvColorPicker == this->shirtColorPicker) {
-
-	} else {
-		assert(false);
+		var = cg_shirt;
 	}
+	assert(var);
 
-//	ColorPicker *colorSelect = (ColorPicker *) this->tintRColorPicker;
-//
-//	color_t color = ColorFromRGB(colorSelect->color.r, colorSelect->color.g, colorSelect->color.b);
-//	char hexColor[COLOR_MAX_LENGTH];
-//
-//	if (color.r == 0 && color.g == 0 && color.b == 0) {
-//		cgi.CvarSet(cg_tint_r->name, "default");
-//	} else {
-//		ColorToHex(color, hexColor, sizeof(hexColor));
-//
-//		cgi.CvarSet(cg_tint_r->name, hexColor);
-//	}
+	if (fabs(hue) < 1.0) {
+		cgi.CvarSet(var->name, "default");
+
+		hsvColorPicker->colorView->backgroundColor = Colors.Charcoal;
+
+		$(hsvColorPicker->hueSlider->label, setText, "");
+	} else {
+		const SDL_Color color = $(hsvColorPicker, rgbColor);
+		cgi.CvarSet(var->name, va("%02x%02x%02x", color.r, color.g, color.b));
+	}
 
 	if (this->playerModelView) {
 		$((View *) this->playerModelView, updateBindings);
@@ -146,6 +155,7 @@ static void dealloc(Object *self) {
 	PlayerSetupViewController *this = (PlayerSetupViewController *) self;
 
 	release(this->effectColorPicker);
+	release(this->headColorPicker);
 	release(this->pantsColorPicker);
 	release(this->playerModelView);
 	release(this->shirtColorPicker);
@@ -220,10 +230,18 @@ static void loadView(ViewController *self) {
 
 		$(theme, control, "Effects", this->effectColorPicker);
 
+		this->headColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL, ControlStyleDefault);
+		assert(this->headColorPicker);
+
+		this->headColorPicker->delegate.self = self;
+		this->headColorPicker->delegate.didPickColor = didPickPlayerColor;
+
+		this->headColorPicker->valueSlider->min = 0.5;
+
+		$(theme, control, "Head", this->headColorPicker);
+
 		this->shirtColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL, ControlStyleDefault);
 		assert(this->shirtColorPicker);
-
-		this->shirtColorPicker->colorView->hidden = true;
 
 		this->shirtColorPicker->delegate.self = self;
 		this->shirtColorPicker->delegate.didPickColor = didPickPlayerColor;
@@ -235,8 +253,6 @@ static void loadView(ViewController *self) {
 		this->pantsColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL, ControlStyleDefault);
 		assert(this->pantsColorPicker);
 
-		this->pantsColorPicker->colorView->hidden = true;
-
 		this->pantsColorPicker->delegate.self = self;
 		this->pantsColorPicker->delegate.didPickColor = didPickPlayerColor;
 
@@ -244,14 +260,12 @@ static void loadView(ViewController *self) {
 
 		$(theme, control, "Pants", this->pantsColorPicker);
 
-		// TODO data binding color, cg_tint_r, cg_tint_b (TODO: rename these cvars)
-
 		release(box);
 	}
 
 	$(theme, targetSubview, columns, 1);
 
-	this->playerModelView = $(alloc(PlayerModelView), initWithFrame, &MakeRect(0, 0, 640, 480), ControlStyleDefault);
+	this->playerModelView = $(alloc(PlayerModelView), initWithFrame, &MakeRect(0, 0, 800, 680), ControlStyleDefault);
 	assert(this->playerModelView);
 
 	$(theme, attach, this->playerModelView);
@@ -259,6 +273,39 @@ static void loadView(ViewController *self) {
 	release(columns);
 	release(container);
 	release(theme);
+}
+
+/**
+ * @see ViewController::viewWillAppear(ViewController *)
+ */
+static void viewWillAppear(ViewController *self) {
+
+	super(ViewController, self, viewWillAppear);
+
+	PlayerSetupViewController *this = (PlayerSetupViewController *) self;
+
+	$(this->effectColorPicker, setColor, cg_color->value, 1.0, 1.0);
+
+	const SDL_Color head = MVC_HexToRGBA(cg_head->string);
+	if (head.r || head.g || head.b) {
+		$(this->headColorPicker, setRGBColor, &head);
+	} else {
+		$(this->headColorPicker, setColor, 0.0, 1.0, 1.0);
+	}
+
+	const SDL_Color shirt = MVC_HexToRGBA(cg_shirt->string);
+	if (shirt.r || shirt.g || shirt.b) {
+		$(this->shirtColorPicker, setRGBColor, &shirt);
+	} else {
+		$(this->shirtColorPicker, setColor, 0.0, 1.0, 1.0);
+	}
+
+	const SDL_Color pants = MVC_HexToRGBA(cg_pants->string);
+	if (pants.r || pants.g || pants.b) {
+		$(this->pantsColorPicker, setRGBColor, &pants);
+	} else {
+		$(this->pantsColorPicker, setColor, 0.0, 1.0, 1.0);
+	}
 }
 
 #pragma mark - Class lifecycle
@@ -271,6 +318,7 @@ static void initialize(Class *clazz) {
 	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
 
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->def->interface)->viewWillAppear = viewWillAppear;
 }
 
 /**

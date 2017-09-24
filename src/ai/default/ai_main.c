@@ -154,7 +154,7 @@ static void Ai_GetUserInfo(const g_entity_t *self, char *userinfo) {
 		.b = (uint8_t) Randomr(0, 255),
 		.a = 255u
 	}, color_temp, sizeof(color_temp));
-	SetUserInfo(userinfo, "helmet", color_temp);
+	SetUserInfo(userinfo, "head", color_temp);
 
 	ColorToHex((const color_t) {
 		.r = (uint8_t) Randomr(0, 255),

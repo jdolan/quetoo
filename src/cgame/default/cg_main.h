@@ -32,9 +32,6 @@ extern cvar_t *cg_add_particles;
 extern cvar_t *cg_add_weather;
 extern cvar_t *cg_bob;
 extern cvar_t *cg_color;
-extern cvar_t *cg_tint_r; // shirt
-extern cvar_t *cg_tint_g; // pants
-extern cvar_t *cg_tint_b; // helmet
 extern cvar_t *cg_draw_blend;
 extern cvar_t *cg_draw_blend_damage;
 extern cvar_t *cg_draw_blend_liquid;
@@ -72,12 +69,15 @@ extern cvar_t *cg_fov_zoom;
 extern cvar_t *cg_fov_interpolate;
 extern cvar_t *cg_hand;
 extern cvar_t *cg_handicap;
+extern cvar_t *cg_head;
 extern cvar_t *cg_hit_sound;
 extern cvar_t *cg_hook_style;
+extern cvar_t *cg_pants;
 extern cvar_t *cg_particle_quality;
 extern cvar_t *cg_predict;
 extern cvar_t *cg_quick_join_max_ping;
 extern cvar_t *cg_quick_join_min_clients;
+extern cvar_t *cg_shirt;
 extern cvar_t *cg_skin;
 extern cvar_t *cg_third_person;
 extern cvar_t *cg_third_person_chasecam;

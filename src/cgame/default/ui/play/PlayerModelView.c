@@ -204,7 +204,7 @@ static void updateBindings(View *self) {
 	this->animation1.frame = this->animation2.frame = -1;
 
 	char string[MAX_STRING_CHARS];
-	g_snprintf(string, sizeof(string), "newbie\\%s\\-1\\%s\\%s\\%s", cg_skin->string, cg_tint_r->string, cg_tint_g->string, cg_tint_b->string);
+	g_snprintf(string, sizeof(string), "newbie\\%s\\-1\\%s\\%s\\%s", cg_skin->string, cg_shirt->string, cg_pants->string, cg_head->string);
 
 	Cg_LoadClient(&this->client, string);
 

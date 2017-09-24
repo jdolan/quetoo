@@ -57,10 +57,10 @@ void Ui_HandleEvent(const SDL_Event *event) {
 /**
  * @brief
  */
-void Ui_UpdateBindings(void) {
+void Ui_ViewWillAppear(void) {
 
 	if (windowController) {
-		$(windowController->viewController->view, updateBindings);
+		$(windowController->viewController, viewWillAppear);
 	}
 }
 

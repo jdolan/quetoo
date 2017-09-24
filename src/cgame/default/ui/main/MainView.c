@@ -45,6 +45,23 @@ static void dealloc(Object *self) {
 	super(Object, self, dealloc);
 }
 
+#pragma mark - View
+
+/**
+ * @see View::updateBindings(View *)
+ */
+static void updateBindings(View *self) {
+
+	MainView *this = (MainView *) self;
+
+	const _Bool isActive = *cgi.state == CL_ACTIVE;
+
+	this->background->view.hidden = isActive;
+	this->logo->view.hidden = isActive;
+	this->version->view.hidden = isActive;
+	this->bottomBar->view.hidden = !isActive;
+}
+
 #pragma mark - MainView
 
 /**
@@ -170,6 +187,8 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 static void initialize(Class *clazz) {
 
 	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+
+	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
 
 	((MainViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 }

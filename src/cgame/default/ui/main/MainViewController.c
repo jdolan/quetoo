@@ -131,19 +131,6 @@ static void loadView(ViewController *self) {
 	action(NULL, NULL, this, _HomeViewController());
 }
 
-/**
- * @see ViewController::viewWillAppear(ViewController *)
- */
-static void viewWillAppear(ViewController *self) {
-
-	MainView *mainView = (MainView *) self->view;
-
-	mainView->background->view.hidden = *cgi.state == CL_ACTIVE;
-	mainView->logo->view.hidden = *cgi.state == CL_ACTIVE;
-	mainView->version->view.hidden = *cgi.state == CL_ACTIVE;
-	mainView->bottomBar->view.hidden = *cgi.state != CL_ACTIVE;
-}
-
 #pragma mark - MainViewController
 
 /**
@@ -201,7 +188,6 @@ static void initialize(Class *clazz) {
 	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
 
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
-	((ViewControllerInterface *) clazz->def->interface)->viewWillAppear = viewWillAppear;
 
 	((MainViewControllerInterface *) clazz->def->interface)->init = init;
 	((MainViewControllerInterface *) clazz->def->interface)->primaryButton = primaryButton;

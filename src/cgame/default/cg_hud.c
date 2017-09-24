@@ -77,7 +77,6 @@ typedef struct {
 		uint32_t damage_time;
 		int16_t pickup;
 	} blend;
-cvar_t *cg_tint_b; // helmet
 
 	struct {
 		int16_t tag, used_tag;

@@ -92,9 +92,9 @@ static void G_InitTeam(const g_team_id_t id, const char *name, const int16_t col
 
 	team->color = color;
 
-	g_strlcpy(team->tint_r, tint, sizeof(team->tint_r)); // shirt
-	g_strlcpy(team->tint_g, tint, sizeof(team->tint_g)); // pants
-	g_strlcpy(team->tint_b, tint, sizeof(team->tint_b)); // helmet
+	g_strlcpy(team->shirt, tint, sizeof(team->shirt));
+	g_strlcpy(team->pants, tint, sizeof(team->pants));
+	g_strlcpy(team->head, tint, sizeof(team->head));
 
 	g_strlcpy(team->skin, DEFAULT_TEAM_SKIN, sizeof(team->skin));
 

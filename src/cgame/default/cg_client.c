@@ -248,21 +248,21 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 		}
 
 		// load red/green/blue tint colors
-		color_t tint_r, tint_g, tint_b;
+		color_t shirt, pants, head;
 		ci->tints[TINT_R][3] = ci->tints[TINT_G][3] = ci->tints[TINT_B][3] = 0.0;
 
-		if (g_strcmp0(info[3], "default") && ColorParseHex(info[3], &tint_r)) { // shirt
-			ColorToVec4(tint_r, ci->tints[TINT_R]);
+		if (g_strcmp0(info[3], "default") && ColorParseHex(info[3], &shirt)) {
+			ColorToVec4(shirt, ci->tints[TINT_R]);
 			ci->tints[TINT_R][3] = 1.0;
 		}
 
-		if (g_strcmp0(info[4], "default") && ColorParseHex(info[4], &tint_g)) { // pants
-			ColorToVec4(tint_g, ci->tints[TINT_G]);
+		if (g_strcmp0(info[4], "default") && ColorParseHex(info[4], &pants)) {
+			ColorToVec4(pants, ci->tints[TINT_G]);
 			ci->tints[TINT_G][3] = 1.0;
 		}
 
-		if (g_strcmp0(info[5], "default") && ColorParseHex(info[5], &tint_b)) { // helmet
-			ColorToVec4(tint_b, ci->tints[TINT_B]);
+		if (g_strcmp0(info[5], "default") && ColorParseHex(info[5], &head)) {
+			ColorToVec4(head, ci->tints[TINT_B]);
 			ci->tints[TINT_B][3] = 1.0;
 		}
 

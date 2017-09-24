@@ -290,7 +290,7 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		e->tints[TINT_G] = ci->tints[TINT_G];
 	}
 
-	if (ci->tints[TINT_B][3]) { // helmmet
+	if (ci->tints[TINT_B][3]) { // head
 		e->tints[TINT_B] = ci->tints[TINT_B];
 	}
 

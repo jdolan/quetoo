@@ -359,9 +359,9 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
  */
 static void viewWillAppear(ViewController *self) {
 
-	$((JoinServerViewController *) self, reloadServers);
-
 	super(ViewController, self, viewWillAppear);
+
+	$((JoinServerViewController *) self, reloadServers);
 }
 
 #pragma mark - JoinServerViewController

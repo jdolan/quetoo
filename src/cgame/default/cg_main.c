@@ -36,9 +36,6 @@ cvar_t *cg_add_particles;
 cvar_t *cg_add_weather;
 cvar_t *cg_bob;
 cvar_t *cg_color;
-cvar_t *cg_tint_r; // shirt
-cvar_t *cg_tint_g; // pants
-cvar_t *cg_tint_b; // helmet
 cvar_t *cg_draw_blend;
 cvar_t *cg_draw_blend_damage;
 cvar_t *cg_draw_blend_liquid;
@@ -76,12 +73,15 @@ cvar_t *cg_fov_zoom;
 cvar_t *cg_fov_interpolate;
 cvar_t *cg_hand;
 cvar_t *cg_handicap;
+cvar_t *cg_head;
 cvar_t *cg_hit_sound;
 cvar_t *cg_hook_style;
+cvar_t *cg_pants;
 cvar_t *cg_particle_quality;
 cvar_t *cg_predict;
 cvar_t *cg_quick_join_max_ping;
 cvar_t *cg_quick_join_min_clients;
+cvar_t *cg_shirt;
 cvar_t *cg_skin;
 cvar_t *cg_third_person;
 cvar_t *cg_third_person_chasecam;
@@ -127,14 +127,14 @@ static void Cg_Init(void) {
 	cg_color = cgi.Cvar("color", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                    "Specifies the effect color for your own weapon trails.");
 
-	cg_tint_r = cgi.Cvar("shirt", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
-	                    "Specifies your shirt color, in the hexadecimal format \"rrggbb\". \"default\" uses the skin or team's defaults.");
+	cg_shirt = cgi.Cvar("shirt", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
+	                    "Specifies your shirt color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
 
-	cg_tint_g = cgi.Cvar("pants", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
-	                    "Specifies your pants color, in the hexadecimal format \"rrggbb\". \"default\" uses the skin or team's defaults.");
+	cg_pants = cgi.Cvar("pants", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
+	                    "Specifies your pants color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
 
-	cg_tint_b = cgi.Cvar("helmet", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
-	                    "Specifies your helmet color, in the hexadecimal format \"rrggbb\". \"default\" uses the skin or team's defaults.");
+	cg_head = cgi.Cvar("head", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
+	                    "Specifies your head color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
 
 	cg_draw_blend = cgi.Cvar("cg_draw_blend", "1.0", CVAR_ARCHIVE,
                                  "Controls the intensity of screen alpha-blending");
