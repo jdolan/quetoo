@@ -67,7 +67,7 @@ static void loadView(ViewController *self) {
 	$(theme, attach, container);
 	$(theme, target, container);
 
-	StackView *columns = $(theme, columns, 1);
+	StackView *columns = $(theme, columns, 2);
 
 	$(theme, attach, columns);
 	$(theme, targetSubview, columns, 0);
@@ -87,6 +87,29 @@ static void loadView(ViewController *self) {
 	}
 
 	$(theme, targetSubview, columns, 0);
+
+	{
+		Box *box = $(theme, box, "Grapple hook");
+
+		$(theme, attach, box);
+		$(theme, target, box->contentView);
+
+		$(theme, bindTextView, "Hook", "+hook", &delegate);
+
+		CvarSelect *hookStyle = $(alloc(CvarSelect), initWithVariableName, "hook_style");
+		assert(hookStyle);
+
+		hookStyle->expectsStringValue = true;
+
+		$((Select *) hookStyle, addOption, "pull", (ident) HOOK_PULL);
+		$((Select *) hookStyle, addOption, "swing", (ident) HOOK_SWING);
+
+		$(theme, control, "Hook style", hookStyle);
+
+		release(box);
+	}
+
+	$(theme, targetSubview, columns, 1);
 
 	{
 		Box *box = $(theme, box, "Weapons");

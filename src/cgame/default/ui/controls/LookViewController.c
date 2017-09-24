@@ -151,8 +151,8 @@ static void loadView(ViewController *self) {
 		$(theme, attach, box);
 		$(theme, target, box->contentView);
 
-		$(theme, slider, "Sensitivity", "m_sensitivity", 0.1, 6.0, 0.1, NULL);
-		$(theme, slider, "Zoom sensitivity", "m_sensitivity_zoom", 0.1, 6.0, 0.1, NULL);
+		$(theme, slider, "Sensitivity", "m_sensitivity", 0.1, 6.0, 0.0, NULL);
+		$(theme, slider, "Zoom sensitivity", "m_sensitivity_zoom", 0.1, 6.0, 0.0, NULL);
 		$(theme, checkbox, "Invert mouse", "m_invert");
 		$(theme, checkbox, "Smooth mouse", "m_interpolate");
 
