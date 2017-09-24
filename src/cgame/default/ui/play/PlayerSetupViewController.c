@@ -101,7 +101,7 @@ static void didPickEffectColor(HueColorPicker *hueColorPicker, double hue, doubl
 
 	PlayerSetupViewController *this = hueColorPicker->delegate.self;
 
-	if (fabs(hue) < 1.0) {
+	if (hue < 1.0) {
 		cgi.CvarSet(cg_color->name, "default");
 
 		this->effectColorPicker->colorView->backgroundColor = Colors.Charcoal;
@@ -129,7 +129,7 @@ static void didPickPlayerColor(HSVColorPicker *hsvColorPicker, double hue, doubl
 	}
 	assert(var);
 
-	if (fabs(hue) < 1.0) {
+	if (hue < 1.0) {
 		cgi.CvarSet(var->name, "default");
 
 		hsvColorPicker->colorView->backgroundColor = Colors.Charcoal;
@@ -284,7 +284,11 @@ static void viewWillAppear(ViewController *self) {
 
 	PlayerSetupViewController *this = (PlayerSetupViewController *) self;
 
-	$(this->effectColorPicker, setColor, cg_color->value, 1.0, 1.0);
+	if (cg_color->integer) {
+		$(this->effectColorPicker, setColor, cg_color->value, 1.0, 1.0);
+	} else {
+		$(this->effectColorPicker, setColor, 0.0, 1.0, 1.0);
+	}
 
 	const SDL_Color head = MVC_HexToRGBA(cg_head->string);
 	if (head.r || head.g || head.b) {
