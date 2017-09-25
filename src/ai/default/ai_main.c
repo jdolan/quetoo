@@ -30,7 +30,7 @@ ai_client_data_t ai_client_data;
  * @brief Yields a pointer to the edict by the given number by negotiating the
  * edicts array based on the reported size of g_entity_t.
  */
-#define ENTITY_FOR_NUM(n) ( (g_entity_t *) ((byte *) aim.entities + aim.entity_size * (n)) )
+#define ENTITY_FOR_NUM(n) ( (g_entity_t *) ((byte *) aim.ge->entities + aim.ge->entity_size * (n)) )
 
 ai_level_t ai_level;
 static cvar_t *sv_max_clients;
@@ -100,7 +100,7 @@ static void Ai_EnumerateSkins(const char *path, void *data) {
  */
 static void Ai_EnumerateModels(const char *path, void *data) {
 
-	aim.EnumerateFiles(va("%s/*.tga", path), Ai_EnumerateSkins, NULL);
+	aim.gi->EnumerateFiles(va("%s/*.tga", path), Ai_EnumerateSkins, NULL);
 }
 
 /**
@@ -109,7 +109,7 @@ static void Ai_EnumerateModels(const char *path, void *data) {
 static void Ai_InitSkins(void) {
 
 	ai_skins = g_array_new(false, false, sizeof(ai_skin_t));
-	aim.EnumerateFiles("players/*", Ai_EnumerateModels, NULL);
+	aim.gi->EnumerateFiles("players/*", Ai_EnumerateModels, NULL);
 }
 
 /**
@@ -184,7 +184,7 @@ static _Bool Ai_CanSee(const g_entity_t *self, const g_entity_t *other) {
 		return false;
 	}
 
-	cm_trace_t tr = aim.Trace(ai->eye_origin, other->s.origin, vec3_origin, vec3_origin, self, MASK_CLIP_PROJECTILE);
+	cm_trace_t tr = aim.gi->Trace(ai->eye_origin, other->s.origin, vec3_origin, vec3_origin, self, MASK_CLIP_PROJECTILE);
 
 	if (!BoxIntersect(tr.end, tr.end, other->abs_mins, other->abs_maxs)) {
 		return false; // something was in the way of our trace
@@ -212,8 +212,8 @@ static _Bool Ai_CanTarget(const g_entity_t *self, const g_entity_t *other) {
  */
 static void Ai_Command(g_entity_t *self, const char *command) {
 
-	aim.TokenizeString(command);
-	aim.ClientCommand(self);
+	aim.gi->TokenizeString(command);
+	aim.ge->ClientCommand(self);
 }
 
 /**
@@ -272,7 +272,7 @@ static vec_t Ai_ItemReachable(const g_entity_t *self, const g_entity_t *other) {
 		VectorCopy(fall_start, fall_end);
 		fall_end[2] -= PM_STEP_HEIGHT * 2.0;
 
-		cm_trace_t tr = aim.Trace(fall_start, fall_end, vec3_origin, vec3_origin, NULL, CONTENTS_SOLID);
+		cm_trace_t tr = aim.gi->Trace(fall_start, fall_end, vec3_origin, vec3_origin, NULL, CONTENTS_SOLID);
 
 		if (tr.start_solid || tr.all_solid || tr.fraction == 1.0) {
 			return AI_ITEM_UNREACHABLE;
@@ -724,7 +724,7 @@ static void Ai_Wander(g_entity_t *self, pm_cmd_t *cmd) {
 	vec3_t end;
 	VectorMA(self->s.origin, (self->maxs[0] - self->mins[0]) * 2.0, forward, end);
 
-	cm_trace_t tr = aim.Trace(self->s.origin, end, vec3_origin, vec3_origin, self, MASK_CLIP_PLAYER);
+	cm_trace_t tr = aim.gi->Trace(self->s.origin, end, vec3_origin, vec3_origin, self, MASK_CLIP_PLAYER);
 
 	if (tr.fraction < 1.0) { // hit a wall
 		vec_t angle = 45 + Randomf() * 45;
@@ -767,9 +767,9 @@ static cm_trace_t Ai_ClientMove_Trace(const vec3_t start, const vec3_t end, cons
 	const g_entity_t *self = ai_current_entity;
 
 	if (self->solid == SOLID_DEAD) {
-		return aim.Trace(start, end, mins, maxs, self, MASK_CLIP_CORPSE);
+		return aim.gi->Trace(start, end, mins, maxs, self, MASK_CLIP_CORPSE);
 	} else {
-		return aim.Trace(start, end, mins, maxs, self, MASK_CLIP_PLAYER);
+		return aim.gi->Trace(start, end, mins, maxs, self, MASK_CLIP_PLAYER);
 	}
 }
 
@@ -847,10 +847,10 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	pm.ground_entity = ENTITY_DATA(self, ground_entity);
 	//pm.hook_pull_speed = g_hook_pull_speed->value;
 
-	pm.PointContents = aim.PointContents;
+	pm.PointContents = aim.gi->PointContents;
 	pm.Trace = Ai_ClientMove_Trace;
 
-	pm.Debug = aim.PmDebug_;
+	pm.Debug = aim.gi->PmDebug_;
 
 	// perform a move; predict a few frames ahead
 	for (int32_t i = 0; i < 8; ++i) {
@@ -1034,10 +1034,10 @@ static void Ai_Frame(void) {
  */
 static void Ai_GameStarted(void) {
 
-	ai_level.gameplay = atoi(aim.GetConfigString(CS_GAMEPLAY));
-	ai_level.match = atoi(aim.GetConfigString(CS_MATCH));
-	ai_level.ctf = atoi(aim.GetConfigString(CS_CTF));
-	ai_level.teams = atoi(aim.GetConfigString(CS_TEAMS));
+	ai_level.gameplay = atoi(aim.gi->GetConfigString(CS_GAMEPLAY));
+	ai_level.match = atoi(aim.gi->GetConfigString(CS_MATCH));
+	ai_level.ctf = atoi(aim.gi->GetConfigString(CS_CTF));
+	ai_level.teams = atoi(aim.gi->GetConfigString(CS_TEAMS));
 }
 
 /**
@@ -1054,22 +1054,22 @@ static void Ai_SetDataPointers(ai_entity_data_t *entity, ai_client_data_t *clien
  */
 static void Ai_Init(void) {
 
-	aim.Print("  ^5Ai module initialization...\n");
+	aim.gi->Print("  ^5Ai module initialization...\n");
 
 	const char *s = va("%s %s %s", VERSION, BUILD_HOST, REVISION);
-	cvar_t *ai_version = aim.Cvar("ai_version", s, CVAR_NO_SET, NULL);
+	cvar_t *ai_version = aim.gi->Cvar("ai_version", s, CVAR_NO_SET, NULL);
 
-	aim.Print("  ^5Version %s\n", ai_version->string);
+	aim.gi->Print("  ^5Version %s\n", ai_version->string);
 
-	sv_max_clients = aim.Cvar("sv_max_clients", 0, 0, "");
+	sv_max_clients = aim.gi->Cvar("sv_max_clients", 0, 0, "");
 
-	ai_passive = aim.Cvar("ai_passive", "0", 0, "Whether the bots will attack or not.");
-	ai_name_prefix = aim.Cvar("ai_name_prefix", "^0[^1BOT^0] ^7", 0, NULL);
-	ai_locals = (ai_locals_t *) aim.Malloc(sizeof(ai_locals_t) * sv_max_clients->integer, MEM_TAG_AI);
+	ai_passive = aim.gi->Cvar("ai_passive", "0", 0, "Whether the bots will attack or not.");
+	ai_name_prefix = aim.gi->Cvar("ai_name_prefix", "^0[^1BOT^0] ^7", 0, NULL);
+	ai_locals = (ai_locals_t *) aim.gi->Malloc(sizeof(ai_locals_t) * sv_max_clients->integer, MEM_TAG_AI);
 
 	Ai_InitSkins();
 
-	aim.Print("  ^5Ai module initialized\n");
+	aim.gi->Print("  ^5Ai module initialized\n");
 }
 
 /**
@@ -1077,12 +1077,12 @@ static void Ai_Init(void) {
  */
 static void Ai_Shutdown(void) {
 
-	aim.Print("  ^5Ai module shutdown...\n");
+	aim.gi->Print("  ^5Ai module shutdown...\n");
 
 	g_array_free(ai_skins, true);
 	ai_skins = NULL;
 
-	aim.FreeTag(MEM_TAG_AI);
+	aim.gi->FreeTag(MEM_TAG_AI);
 }
 
 /**

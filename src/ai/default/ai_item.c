@@ -28,7 +28,7 @@ uint16_t ai_num_weapons;
 void Ai_RegisterItem(const uint16_t index, const ai_item_t *item) {
 
 	if (index >= MAX_ITEMS) {
-		aim.Warn("Bad item ID for item\n");
+		aim.gi->Warn("Bad item ID for item\n");
 		return;
 	}
 

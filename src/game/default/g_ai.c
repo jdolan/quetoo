@@ -592,65 +592,12 @@ void G_Ai_Init(void) {
 
 	memset(&import, 0, sizeof(import));
 
-	g_strlcpy(import.write_dir, gi.write_dir, MAX_OS_PATH);
-
-	import.Print = gi.Print;
-	import.Debug_ = gi.Debug_;
-	import.PmDebug_ = gi.PmDebug_;
-	import.Warn_ = gi.Warn_;
-	import.Error_ = gi.Error_;
-
-	import.Malloc = gi.Malloc;
-	import.LinkMalloc = gi.LinkMalloc;
-	import.Free = gi.Free;
-	import.FreeTag = gi.FreeTag;
-
-	import.LoadFile = gi.LoadFile;
-	import.FreeFile = gi.FreeFile;
-	import.EnumerateFiles = gi.EnumerateFiles;
-
-	import.Cvar = gi.Cvar;
-	import.CvarString = gi.CvarString;
-	import.CvarValue = gi.CvarValue;
-	import.CvarGet = gi.CvarGet;
-	import.CvarSet = gi.CvarSet;
-	import.CvarSetValue = gi.CvarSetValue;
-	import.Cmd = gi.Cmd;
-	import.Argc = gi.Argc;
-	import.Argv = gi.Argv;
-	import.Args = gi.Args;
-	import.TokenizeString = gi.TokenizeString;
-
-	import.Trace = gi.Trace;
-	import.PointContents = gi.PointContents;
-	import.inPVS = gi.inPVS;
-	import.inPHS = gi.inPHS;
-	import.AreasConnected = gi.AreasConnected;
-
-	import.BoxEntities = gi.BoxEntities;
-
-	import.GetConfigString = gi.GetConfigString;
+	import.gi = &gi;
+	import.ge = &ge;
 
 	import.OnSameTeam = G_OnSameTeam;
-	import.ClientCommand = G_ClientCommand;
-
-	import.Multicast = gi.Multicast;
-	import.Unicast = gi.Unicast;
-	import.WriteData = gi.WriteData;
-	import.WriteChar = gi.WriteChar;
-	import.WriteByte = gi.WriteByte;
-	import.WriteShort = gi.WriteShort;
-	import.WriteLong = gi.WriteLong;
-	import.WriteString = gi.WriteString;
-	import.WriteVector = gi.WriteVector;
-	import.WritePosition = gi.WritePosition;
-	import.WriteDir = gi.WriteDir;
-	import.WriteAngle = gi.WriteAngle;
-	import.WriteAngles = gi.WriteAngles;
 
 	// SCRATCH
-	import.entities = ge.entities;
-	import.entity_size = ge.entity_size;
 	import.ItemIndex = G_Ai_ItemIndex;
 	import.CanPickupItem = G_Ai_CanPickupItem;
 
