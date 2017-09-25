@@ -61,6 +61,7 @@ void Ui_ViewWillAppear(void) {
 
 	if (windowController) {
 		$(windowController->viewController, viewWillAppear);
+		$(windowController->viewController->view, updateBindings);
 	}
 }
 
