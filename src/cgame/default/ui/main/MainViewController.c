@@ -113,14 +113,13 @@ static void loadView(ViewController *self) {
 	release(self->view);
 	self->view = (View *) mainView;
 
-	$(this, primaryButton, mainView->topBar, "Home", _HomeViewController());
-	$(this, primaryButton, mainView->topBar, "Play", _PlayViewController());
-	$(this, primaryButton, mainView->topBar, "Controls", _ControlsViewController());
-	$(this, primaryButton, mainView->topBar, "Settings", _SettingsViewController());
+	$(this, primaryButton, mainView->primaryButtons, "Home", _HomeViewController());
+	$(this, primaryButton, mainView->primaryButtons, "Play", _PlayViewController());
+	$(this, primaryButton, mainView->primaryButtons, "Controls", _ControlsViewController());
+	$(this, primaryButton, mainView->primaryButtons, "Settings", _SettingsViewController());
 
-//	$(this, primaryIcon, mainView->topBar, "ui/pics/settings", _SettingsViewController());
-	$(this, primaryIcon, mainView->topBar, "ui/pics/info", _InfoViewController());
-	$(this, primaryIcon, mainView->topBar, "ui/pics/quit", NULL);
+	$(this, primaryIcon, mainView->primaryIcons, "ui/pics/info", _InfoViewController());
+	$(this, primaryIcon, mainView->primaryIcons, "ui/pics/quit", NULL);
 
 	$(this, primaryButton, mainView->bottomBar, "Join", _HomeViewController()); // TODO
 	$(this, primaryButton, mainView->bottomBar, "Votes", _HomeViewController()); // TODO

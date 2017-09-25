@@ -37,6 +37,8 @@ static void dealloc(Object *self) {
 
 	release(this->background);
 	release(this->topBar);
+	release(this->primaryButtons);
+	release(this->primaryIcons);
 	release(this->bottomBar);
 	release(this->logo);
 	release(this->version);
@@ -127,14 +129,32 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 			assert(self->topBar);
 
 			self->topBar->axis = StackViewAxisHorizontal;
-			self->topBar->spacing = DEFAULT_PANEL_SPACING;
+			self->topBar->distribution = StackViewDistributionFill;
 			self->topBar->view.alignment = ViewAlignmentTopCenter;
 			self->topBar->view.autoresizingMask |= ViewAutoresizingWidth;
 			self->topBar->view.backgroundColor = theme->colors.mainHighlight;
 			self->topBar->view.borderColor = theme->colors.lightBorder;
 			self->topBar->view.padding.right = DEFAULT_PANEL_SPACING;
 			self->topBar->view.padding.left = DEFAULT_PANEL_SPACING;
-			self->topBar->view.zIndex = 1;
+			self->topBar->view.zIndex = 10;
+
+			self->primaryButtons = $(alloc(StackView), initWithFrame, NULL);
+			assert(self->primaryButtons);
+
+			self->primaryButtons->axis = StackViewAxisHorizontal;
+			self->primaryButtons->spacing = DEFAULT_PANEL_SPACING;
+			self->primaryButtons->view.alignment = ViewAlignmentMiddleLeft;
+
+			$((View *) self->topBar, addSubview, (View *) self->primaryButtons);
+
+			self->primaryIcons = $(alloc(StackView), initWithFrame, NULL);
+			assert(self->primaryIcons);
+
+			self->primaryIcons->axis = StackViewAxisHorizontal;
+			self->primaryIcons->spacing = DEFAULT_PANEL_SPACING;
+			self->primaryIcons->view.alignment = ViewAlignmentMiddleRight;
+
+			$((View *) self->topBar, addSubview, (View *) self->primaryIcons);
 
 			$(this, addSubview, (View *) self->topBar);
 		}
@@ -163,7 +183,7 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 			self->bottomBar->view.borderColor = theme->colors.lightBorder;
 			self->bottomBar->view.padding.right = DEFAULT_PANEL_SPACING;
 			self->bottomBar->view.padding.left = DEFAULT_PANEL_SPACING;
-			self->bottomBar->view.zIndex = 1;
+			self->bottomBar->view.zIndex = 10;
 
 			$(this, addSubview, (View *) self->bottomBar);
 		}

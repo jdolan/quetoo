@@ -72,6 +72,16 @@ struct MainView {
 	StackView *topBar;
 
 	/**
+	 * @brief The top menu bar's buttons container.
+	 */
+	StackView *primaryButtons;
+
+	/**
+	 * @brief The top menu bar's icons container.
+	 */
+	StackView *primaryIcons;
+
+	/**
 	 * @brief The content View.
 	 */
 	View *contentView;
