@@ -52,6 +52,8 @@ static void dealloc(Object *self) {
  */
 static void updateBindings(View *self) {
 
+	super(View, self, updateBindings);
+
 	MainView *this = (MainView *) self;
 
 	const _Bool isActive = *cgi.state == CL_ACTIVE;

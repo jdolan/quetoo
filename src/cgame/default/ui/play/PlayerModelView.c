@@ -197,6 +197,7 @@ static void renderDeviceDidReset(View *self) {
  * @see View::updateBindings(View *)
  */
 static void updateBindings(View *self) {
+	
 	super(View, self, updateBindings);
 
 	PlayerModelView *this = (PlayerModelView *) self;
@@ -204,7 +205,8 @@ static void updateBindings(View *self) {
 	this->animation1.frame = this->animation2.frame = -1;
 
 	char string[MAX_STRING_CHARS];
-	g_snprintf(string, sizeof(string), "newbie\\%s\\-1\\%s\\%s\\%s", cg_skin->string, cg_shirt->string, cg_pants->string, cg_head->string);
+	g_snprintf(string, sizeof(string), "newbie\\%s\\%s\\%s\\%s\\0",
+			   cg_skin->string, cg_shirt->string, cg_pants->string, cg_helmet->string);
 
 	Cg_LoadClient(&this->client, string);
 
@@ -350,8 +352,16 @@ static void animate(PlayerModelView *self) {
 	self->weapon.scale = 1.0;
 	self->platformBase.scale = self->platformCenter.scale = 1.0;
 
-	for (int32_t i = 0; i < 3; i++) {
-		self->torso.tints[i] = self->legs.tints[i] = self->head.tints[i] = self->client.tints[i][3] ? self->client.tints[i] : NULL;
+	if (self->client.shirt.a) {
+		ColorToVec4(self->client.shirt, self->torso.tints[0]);
+	}
+
+	if (self->client.pants.a) {
+		ColorToVec4(self->client.pants, self->legs.tints[1]);
+	}
+
+	if (self->client.helmet.a) {
+		ColorToVec4(self->client.helmet, self->head.tints[2]);
 	}
 
 	Matrix4x4_CreateFromEntity(&self->legs.matrix, self->legs.origin, self->legs.angles, self->legs.scale);

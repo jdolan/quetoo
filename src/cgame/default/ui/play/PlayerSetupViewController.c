@@ -104,11 +104,12 @@ static void didPickEffectColor(HueColorPicker *hueColorPicker, double hue, doubl
 	if (hue < 1.0) {
 		cgi.CvarSet(cg_color->name, "default");
 
-		this->effectColorPicker->colorView->backgroundColor = Colors.Charcoal;
+		this->effectsColorPicker->colorView->backgroundColor = Colors.Charcoal;
 
-		$(this->effectColorPicker->hueSlider->label, setText, "");
+		$(this->effectsColorPicker->hueSlider->label, setText, "");
 	} else {
-		cgi.CvarSetValue(cg_color->name, hue);
+		const SDL_Color color = $(hueColorPicker, rgbColor);
+		cgi.CvarSet(cg_color->name, MVC_RGBToHex(&color));
 	}
 }
 
@@ -120,8 +121,8 @@ static void didPickPlayerColor(HSVColorPicker *hsvColorPicker, double hue, doubl
 	PlayerSetupViewController *this = hsvColorPicker->delegate.self;
 
 	cvar_t *var = NULL;
-	if (hsvColorPicker == this->headColorPicker) {
-		var = cg_head;
+	if (hsvColorPicker == this->helmetColorPicker) {
+		var = cg_helmet;
 	} else if (hsvColorPicker == this->pantsColorPicker) {
 		var = cg_pants;
 	} else if (hsvColorPicker == this->shirtColorPicker) {
@@ -137,7 +138,7 @@ static void didPickPlayerColor(HSVColorPicker *hsvColorPicker, double hue, doubl
 		$(hsvColorPicker->hueSlider->label, setText, "");
 	} else {
 		const SDL_Color color = $(hsvColorPicker, rgbColor);
-		cgi.CvarSet(var->name, va("%02x%02x%02x", color.r, color.g, color.b));
+		cgi.CvarSet(var->name, MVC_RGBToHex(&color));
 	}
 
 	if (this->playerModelView) {
@@ -154,8 +155,8 @@ static void dealloc(Object *self) {
 
 	PlayerSetupViewController *this = (PlayerSetupViewController *) self;
 
-	release(this->effectColorPicker);
-	release(this->headColorPicker);
+	release(this->effectsColorPicker);
+	release(this->helmetColorPicker);
 	release(this->pantsColorPicker);
 	release(this->playerModelView);
 	release(this->shirtColorPicker);
@@ -222,23 +223,23 @@ static void loadView(ViewController *self) {
 		$(theme, attach, box);
 		$(theme, target, box->contentView);
 
-		this->effectColorPicker = $(alloc(HueColorPicker), initWithFrame, NULL, ControlStyleDefault);
-		assert(this->effectColorPicker);
+		this->effectsColorPicker = $(alloc(HueColorPicker), initWithFrame, NULL, ControlStyleDefault);
+		assert(this->effectsColorPicker);
 
-		this->effectColorPicker->delegate.self = this;
-		this->effectColorPicker->delegate.didPickColor = didPickEffectColor;
+		this->effectsColorPicker->delegate.self = this;
+		this->effectsColorPicker->delegate.didPickColor = didPickEffectColor;
 
-		$(theme, control, "Effects", this->effectColorPicker);
+		$(theme, control, "Effects", this->effectsColorPicker);
 
-		this->headColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL, ControlStyleDefault);
-		assert(this->headColorPicker);
+		this->helmetColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL, ControlStyleDefault);
+		assert(this->helmetColorPicker);
 
-		this->headColorPicker->delegate.self = self;
-		this->headColorPicker->delegate.didPickColor = didPickPlayerColor;
+		this->helmetColorPicker->delegate.self = self;
+		this->helmetColorPicker->delegate.didPickColor = didPickPlayerColor;
 
-		this->headColorPicker->valueSlider->min = 0.5;
+		this->helmetColorPicker->valueSlider->min = 0.5;
 
-		$(theme, control, "Head", this->headColorPicker);
+		$(theme, control, "Helmet", this->helmetColorPicker);
 
 		this->shirtColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL, ControlStyleDefault);
 		assert(this->shirtColorPicker);
@@ -284,17 +285,18 @@ static void viewWillAppear(ViewController *self) {
 
 	PlayerSetupViewController *this = (PlayerSetupViewController *) self;
 
-	if (cg_color->integer) {
-		$(this->effectColorPicker, setColor, cg_color->value, 1.0, 1.0);
+	const SDL_Color effects = MVC_HexToRGBA(cg_color->string);
+	if (effects.r || effects.g || effects.b) {
+		$(this->effectsColorPicker, setRGBColor, &effects);
 	} else {
-		$(this->effectColorPicker, setColor, 0.0, 1.0, 1.0);
+		$(this->effectsColorPicker, setColor, 0.0, 1.0, 1.0);
 	}
 
-	const SDL_Color head = MVC_HexToRGBA(cg_head->string);
-	if (head.r || head.g || head.b) {
-		$(this->headColorPicker, setRGBColor, &head);
+	const SDL_Color helmet = MVC_HexToRGBA(cg_helmet->string);
+	if (helmet.r || helmet.g || helmet.b) {
+		$(this->helmetColorPicker, setRGBColor, &helmet);
 	} else {
-		$(this->headColorPicker, setColor, 0.0, 1.0, 1.0);
+		$(this->helmetColorPicker, setColor, 0.0, 1.0, 1.0);
 	}
 
 	const SDL_Color shirt = MVC_HexToRGBA(cg_shirt->string);

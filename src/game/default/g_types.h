@@ -947,11 +947,11 @@ typedef struct {
 	char skin[32];
 	char flag[32]; // flag classname
 	char spawn[32]; // spawn classname
-	char shirt[COLOR_MAX_LENGTH];
-	char pants[COLOR_MAX_LENGTH];
-	char head[COLOR_MAX_LENGTH];
-	int16_t color;
-	int16_t effect;
+
+	color_t shirt, pants, helmet;
+
+	int16_t color; // scoreboard colors
+	int16_t effect; // weapon effect colors
 
 	// dynamic info, valid for all teams
 	int16_t score;
@@ -1006,11 +1006,9 @@ typedef struct {
 	g_hook_style_t hook_style; // the player's current hook style
 
 	g_team_t *team; // current team
-	int16_t color; // weapon effect colors
-	
-	char shirt[COLOR_MAX_LENGTH];
-	char pants[COLOR_MAX_LENGTH];
-	char head[COLOR_MAX_LENGTH];
+
+	int16_t color; // effect color
+	color_t shirt, pants, helmet; // player colors
 
 	int16_t score;
 	int16_t captures;

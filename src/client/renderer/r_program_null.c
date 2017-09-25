@@ -120,7 +120,7 @@ void R_UseTints_null(void) {
 	r_null_program_t *p = &r_null_program;
 
 	for (int32_t i = 0; i < TINT_TOTAL; i++) {
-		if (r_view.current_entity->tints[i]) {
+		if (r_view.current_entity->tints[i][3]) {
 			R_ProgramParameter4fv(&p->tints[i], r_view.current_entity->tints[i]);
 		} else {
 			R_ProgramParameter4fv(&p->tints[i], r_state.active_material->cm->tintmap_defaults[i]);

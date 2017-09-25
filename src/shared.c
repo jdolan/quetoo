@@ -1176,92 +1176,21 @@ void SetUserInfo(char *s, const char *key, const char *value) {
 	*s = '\0';
 }
 
-#define HEX_TO_DEC(l) \
-		(l >= 'a' && l <= 'f') ? (10 + (5 - ('f' - l))) : (9 - ('9' - l))
-
-/**
- * @brief Damn you, MinGW.
- */
-static _Bool ParseHexString(const char *input, color_t *output, const uint8_t num_digits, const uint8_t num_values) {
-	byte *c = output->bytes;
-	const char *id = input;
-
-	for (uint8_t i = 0; i < num_values; i++, c++) {
-
-		for (uint8_t d = 0, o = 0; d < num_digits; d++, id++, o += 4) {
-			const char l = tolower(*id);
-
-			if (!((l >= 'a' && l <= 'f') || (l >= '0' && l <= '9'))) {
-				return false;
-			}
-
-			const uint8_t dec = HEX_TO_DEC(l);
-
-			if (d == 0) {
-				*c = dec << ((num_digits - 1) * 4);
-			} else {
-				*c |= dec << (((num_digits - 1) * 4) - o);
-			}
-		}
-	}
-
-	return true;
-}
-
 /**
  * @brief Attempt to convert a hexadecimal value to its string representation.
  */
-_Bool ColorParseHex(const char *s, color_t *color) {
-	const size_t s_len = strlen(s);
-	static color_t temp;
+_Bool ColorFromHex(const char *s, color_t *color) {
 
-	if (!color) {
-		color = &temp;
-	}
+	color->a = 255;
 
-	if (s_len != 3 && s_len != 6 && // rgb or rrggbb format
-		s_len != 4 && s_len != 8) { // rgba or rrggbbaa format
-		return false;
-	}
+	return sscanf(s, "%02hhx%02hhx%02hhx%02hhx", &color->r, &color->g, &color->b, &color->a) > 2;
+}
 
-	switch (s_len) {
-	case 3:
-		if (!ParseHexString(s, color, 1, 3)) {
-			return false;
-		}
-
-		for (int32_t i = 0; i < 3; i++) {
-			color->bytes[i] |= color->bytes[i] << 4;
-		}
-
-		color->a = 0xFF;
-		break;
-	case 6:
-		if (!ParseHexString(s, color, 2, 3)) {
-			return false;
-		}
-
-		color->a = 0xFF;
-		break;
-
-	case 4:
-		if (!ParseHexString(s, color, 1, 4)) {
-			return false;
-		}
-
-		for (int32_t i = 0; i < 4; i++) {
-			color->bytes[i] |= color->bytes[i] << 4;
-		}
-		break;
-	case 8:
-		if (!ParseHexString(s, color, 2, 4)) {
-			return false;
-		}
-
-		break;
-	}
-
-	return color;
+/**
+ * @brief
+ */
+char *ColorToHex(const color_t *color) {
+	return va("%02x%02x%02x%02x", color->r, color->g, color->b, color->a);
 }
 
 /**
@@ -1304,65 +1233,6 @@ void ColorFromVec4(const vec4_t vec, color_t *color) {
 	for (int32_t i = 0; i < 4; i++) {
 		color->bytes[i] = (uint8_t) (Clamp(vec[i], 0.0, 1.0) * 255.0);
 	}
-}
-
-/**
- * @brief
- */
-color_t ColorFromHSV(const vec3_t hsv) {
-	color_t out = { .a = 0xFF };
-
-	if (hsv[1] <= 0.0) {
-		out.r = (uint8_t) (hsv[2] * 255.0);
-		out.g = out.r;
-		out.b = out.r;
-		return out;
-	}
-
-	const vec_t hh = Clamp(hsv[0], 0, 360.0) / 60.0;
-	const int32_t i = (int32_t) hh;
-	const vec_t ff = hh - i;
-	const vec_t p = hsv[2] * (1.0 - hsv[1]);
-	const vec_t q = hsv[2] * (1.0 - (hsv[1] * ff));
-	const vec_t t = hsv[2] * (1.0 - (hsv[1] * (1.0 - ff)));
-
-	vec3_t color_float;
-
-	switch(i) {
-	case 0:
-		color_float[0] = hsv[2];
-		color_float[1] = t;
-		color_float[2] = p;
-		break;
-	case 1:
-		color_float[0] = q;
-		color_float[1] = hsv[2];
-		color_float[2] = p;
-		break;
-	case 2:
-		color_float[0] = p;
-		color_float[1] = hsv[2];
-		color_float[2] = t;
-		break;
-	case 3:
-		color_float[0] = p;
-		color_float[1] = q;
-		color_float[2] = hsv[2];
-		break;
-	case 4:
-		color_float[0] = t;
-		color_float[1] = p;
-		color_float[2] = hsv[2];
-		break;
-	default:
-		color_float[0] = hsv[2];
-		color_float[1] = p;
-		color_float[2] = q;
-		break;
-	}
-
-	ColorFromVec3(color_float, &out);
-	return out;
 }
 
 /**

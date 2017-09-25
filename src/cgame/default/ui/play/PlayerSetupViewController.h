@@ -57,12 +57,12 @@ struct PlayerSetupViewController {
 	/**
 	 * @brief The head HSVColorPicker.
 	 */
-	HSVColorPicker *headColorPicker;
+	HSVColorPicker *helmetColorPicker;
 
 	/**
-	 * @brief The effect HueColorPicker.
+	 * @brief The effects HueColorPicker.
 	 */
-	HueColorPicker *effectColorPicker;
+	HueColorPicker *effectsColorPicker;
 
 	/**
 	 * @brief The pants HSVColorPicker.

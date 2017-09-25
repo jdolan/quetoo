@@ -101,7 +101,6 @@ typedef struct cg_particles_s {
  */
 typedef struct {
 	char team_name[MAX_USER_INFO_KEY];
-	int16_t hue;
 	color_t color;
 } cg_team_info_t;
 

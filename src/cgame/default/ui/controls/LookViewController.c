@@ -63,8 +63,6 @@ static void didPickCrosshairColor(HueColorPicker *hueColorPicker, double hue, do
 
 	LookViewController *this = (LookViewController *) hueColorPicker->delegate.self;
 
-	const SDL_Color color = MVC_HSVToRGB(hue, saturation, value);
-
 	if (hue < 1.0) {
 		cgi.CvarSet(cg_draw_crosshair_color->name, "default");
 
@@ -72,7 +70,8 @@ static void didPickCrosshairColor(HueColorPicker *hueColorPicker, double hue, do
 
 		$(hueColorPicker->hueSlider->label, setText, "");
 	} else {
-		cgi.CvarSet(cg_draw_crosshair_color->name, va("%02x%02x%02x", color.r, color.g, color.b));
+		const SDL_Color color = $(hueColorPicker, rgbColor);
+		cgi.CvarSet(cg_draw_crosshair_color->name, MVC_RGBToHex(&color));
 	}
 
 	$((View *) this->crosshairView, updateBindings);

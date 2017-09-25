@@ -83,7 +83,11 @@ static g_team_t g_teamlist_default[MAX_TEAMS];
 /**
  * @brief
  */
-static void G_InitTeam(const g_team_id_t id, const char *name, const int16_t color, const char tint[COLOR_MAX_LENGTH], const int16_t effect) {
+static void G_InitTeam(const g_team_id_t id, const char *name,
+					   const char *tint,
+					   const int16_t color,
+					   const int16_t effect) {
+	
 	g_team_t *team = &g_teamlist[id];
 
 	team->id = id;
@@ -92,9 +96,9 @@ static void G_InitTeam(const g_team_id_t id, const char *name, const int16_t col
 
 	team->color = color;
 
-	g_strlcpy(team->shirt, tint, sizeof(team->shirt));
-	g_strlcpy(team->pants, tint, sizeof(team->pants));
-	g_strlcpy(team->head, tint, sizeof(team->head));
+	ColorFromHex(tint, &team->shirt);
+	ColorFromHex(tint, &team->pants);
+	ColorFromHex(tint, &team->helmet);
 
 	g_strlcpy(team->skin, DEFAULT_TEAM_SKIN, sizeof(team->skin));
 
@@ -111,10 +115,10 @@ void G_ResetTeams(void) {
 
 	memset(g_teamlist, 0, sizeof(g_teamlist));
 
-	G_InitTeam(TEAM_RED, "Red", TEAM_COLOR_RED, "ff0000", EF_CTF_RED);
-	G_InitTeam(TEAM_BLUE, "Blue", TEAM_COLOR_BLUE, "0000ff", EF_CTF_BLUE);
-	G_InitTeam(TEAM_GREEN, "Green", TEAM_COLOR_GREEN, "00ff00", EF_CTF_GREEN);
-	G_InitTeam(TEAM_ORANGE, "Orange", TEAM_COLOR_ORANGE, "aa6600", EF_CTF_ORANGE);
+	G_InitTeam(TEAM_RED, "Red", "ff0000", TEAM_COLOR_RED, EF_CTF_RED);
+	G_InitTeam(TEAM_BLUE, "Blue", "0000ff", TEAM_COLOR_BLUE, EF_CTF_BLUE);
+	G_InitTeam(TEAM_GREEN, "Green", "00ff00", TEAM_COLOR_GREEN, EF_CTF_GREEN);
+	G_InitTeam(TEAM_ORANGE, "Orange", "aa6600", TEAM_COLOR_ORANGE, EF_CTF_ORANGE);
 
 	memcpy(g_teamlist_default, g_teamlist, sizeof(g_teamlist));
 
@@ -130,12 +134,12 @@ void G_SetTeamNames(void) {
 	for (int32_t t = 0; t < MAX_TEAMS; t++) {
 
 		if (t != TEAM_RED) {
-			strcat(team_info, "\\");
+			g_strlcat(team_info, "\\", sizeof(team_info));
 		}
 
-		strcat(team_info, g_teamlist[t].name);
-		strcat(team_info, "\\");
-		strcat(team_info, va("%i", g_teamlist[t].color));
+		g_strlcat(team_info, g_teamlist[t].name, sizeof(team_info));
+		g_strlcat(team_info, "\\", sizeof(team_info));
+		g_strlcat(team_info, va("%i", g_teamlist[t].color), sizeof(team_info));
 	}
 
 	gi.SetConfigString(CS_TEAM_INFO, team_info);

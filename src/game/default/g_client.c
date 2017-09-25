@@ -1140,7 +1140,6 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 		s = GetUserInfo(user_info, "skin");
 
 		char *p;
-
 		if (strlen(s) && (p = strchr(s, '/'))) {
 			*p = 0;
 			s = va("%s/%s", s, DEFAULT_TEAM_SKIN);
@@ -1163,66 +1162,65 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	} else {
 		s = GetUserInfo(user_info, "color");
 
-		cl->locals.persistent.color = -1;
+		cl->locals.persistent.color = 0;
 
 		if (strlen(s) && strcmp(s, "default")) { // not default
-
-			int32_t hue = atoi(s);
-
-			if (hue >= 0) {
+			const int32_t hue = atoi(s);
+			if (hue > 0) {
 				cl->locals.persistent.color = Min(hue, 360);
 			}
 		}
 	}
 
 	// set shirt, pants and head colors
+
+	cl->locals.persistent.shirt.u32 = 0;
+	cl->locals.persistent.pants.u32 = 0;
+	cl->locals.persistent.helmet.u32 = 0;
+
 	if ((g_level.teams || g_level.ctf) && cl->locals.persistent.team) {
-		g_strlcpy(cl->locals.persistent.shirt, cl->locals.persistent.team->shirt, sizeof(cl->locals.persistent.shirt));
-		g_strlcpy(cl->locals.persistent.pants, cl->locals.persistent.team->pants, sizeof(cl->locals.persistent.pants));
-		g_strlcpy(cl->locals.persistent.head, cl->locals.persistent.team->head, sizeof(cl->locals.persistent.head));
+
+		cl->locals.persistent.shirt = cl->locals.persistent.team->shirt;
+		cl->locals.persistent.pants = cl->locals.persistent.team->pants;
+		cl->locals.persistent.helmet = cl->locals.persistent.team->helmet;
+
 	} else {
-		g_strlcpy(cl->locals.persistent.shirt, "default", sizeof(cl->locals.persistent.shirt));
-		g_strlcpy(cl->locals.persistent.pants, "default", sizeof(cl->locals.persistent.pants));
-		g_strlcpy(cl->locals.persistent.head, "default", sizeof(cl->locals.persistent.head));
 
 		s = GetUserInfo(user_info, "shirt");
-
-		if (strlen(s) && strcmp(s, "default") && ColorParseHex(s, NULL)) {
-			g_strlcpy(cl->locals.persistent.shirt, s, sizeof(cl->locals.persistent.shirt));
+		if (!ColorFromHex(s, &cl->locals.persistent.shirt)) {
+			cl->locals.persistent.shirt.a = 0;
 		}
 
 		s = GetUserInfo(user_info, "pants");
-
-		if (strlen(s) && strcmp(s, "default") && ColorParseHex(s, NULL)) {
-			g_strlcpy(cl->locals.persistent.pants, s, sizeof(cl->locals.persistent.pants));
+		if (!ColorFromHex(s, &cl->locals.persistent.pants)) {
+			cl->locals.persistent.pants.a = 0;
 		}
 
-		s = GetUserInfo(user_info, "head");
-
-		if (strlen(s) && strcmp(s, "default") && ColorParseHex(s, NULL)) {
-			g_strlcpy(cl->locals.persistent.head, s, sizeof(cl->locals.persistent.head));
+		s = GetUserInfo(user_info, "helmet");
+		if (!ColorFromHex(s, &cl->locals.persistent.helmet)) {
+			cl->locals.persistent.helmet.a = 0;
 		}
 	}
 
 	gchar client_info[MAX_USER_INFO_STRING] = { '\0' };
 
-	// build the clientinfo string
+	// build the client info string
 	g_strlcat(client_info, cl->locals.persistent.net_name, MAX_USER_INFO_STRING);
 
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
 	g_strlcat(client_info, cl->locals.persistent.skin, MAX_USER_INFO_STRING);
 
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
+	g_strlcat(client_info, ColorToHex(&cl->locals.persistent.shirt), MAX_USER_INFO_STRING);
+
+	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
+	g_strlcat(client_info, ColorToHex(&cl->locals.persistent.pants), MAX_USER_INFO_STRING);
+
+	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
+	g_strlcat(client_info, ColorToHex(&cl->locals.persistent.helmet), MAX_USER_INFO_STRING);
+
+	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
 	g_strlcat(client_info, va("%i", cl->locals.persistent.color), MAX_USER_INFO_STRING);
-
-	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-	g_strlcat(client_info, cl->locals.persistent.shirt, MAX_USER_INFO_STRING);
-
-	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-	g_strlcat(client_info, cl->locals.persistent.pants, MAX_USER_INFO_STRING);
-
-	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-	g_strlcat(client_info, cl->locals.persistent.head, MAX_USER_INFO_STRING);
 
 	// send it to clients
 	gi.SetConfigString(CS_CLIENTS + (cl - g_game.clients), client_info);

@@ -73,7 +73,7 @@ cvar_t *cg_fov_zoom;
 cvar_t *cg_fov_interpolate;
 cvar_t *cg_hand;
 cvar_t *cg_handicap;
-cvar_t *cg_head;
+cvar_t *cg_helmet;
 cvar_t *cg_hit_sound;
 cvar_t *cg_hook_style;
 cvar_t *cg_pants;
@@ -133,8 +133,8 @@ static void Cg_Init(void) {
 	cg_pants = cgi.Cvar("pants", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                    "Specifies your pants color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
 
-	cg_head = cgi.Cvar("head", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
-	                    "Specifies your head color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
+	cg_helmet = cgi.Cvar("helmet", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
+	                    "Specifies your helmet color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
 
 	cg_draw_blend = cgi.Cvar("cg_draw_blend", "1.0", CVAR_ARCHIVE,
                                  "Controls the intensity of screen alpha-blending");
@@ -360,27 +360,25 @@ cg_team_info_t cg_team_info[MAX_TEAMS];
 /**
  * @brief Resolve team info from team configstring
  */
-static void Cg_ResolveTeamInfo(const char *s) {
+static void Cg_ParseTeamInfo(const char *s) {
 
 	gchar **info = g_strsplit(s, "\\", 0);
-	const size_t info_count = g_strv_length(info);
+	const size_t count = g_strv_length(info);
 
-	if (info_count != lengthof(cg_team_info) * 2) {
+	if (count != lengthof(cg_team_info) * 2) {
 		g_strfreev(info);
 		cgi.Error("Invalid team data");
 	}
 
 	cg_team_info_t *team = cg_team_info;
 
-	for (size_t i = 0; i < info_count; i += 2, team++) {
+	for (size_t i = 0; i < count; i += 2, team++) {
 
 		g_strlcpy(team->team_name, info[i], sizeof(team->team_name));
-		team->hue = (int16_t) atoi(info[i + 1]);
-		team->color = ColorFromHSV((const vec3_t) {
-			team->hue,
-			1.0,
-			1.0
-		});
+
+		const int16_t hue = atoi(info[i + 1]);
+		const SDL_Color color = MVC_HSVToRGB(hue, 1.0, 1.0);
+		team->color.u32 = *(int32_t *) &color;
 	}
 
 	g_strfreev(info);
@@ -402,7 +400,7 @@ static void Cg_UpdateConfigString(uint16_t i) {
 			cg_state.hook_pull_speed = strtof(s, NULL);
 			return;
 		case CS_TEAM_INFO:
-			Cg_ResolveTeamInfo(s);
+			Cg_ParseTeamInfo(s);
 			return;
 		case CS_WEAPONS:
 			Cg_ParseWeaponInfo(s);

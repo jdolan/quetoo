@@ -281,17 +281,17 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		Cg_BreathTrail(ent);
 	}
 
-	// set red/green tints
-	if (ci->tints[TINT_R][3]) { // shirt
-		e->tints[TINT_R] = ci->tints[TINT_R];
+	// set tints
+	if (ci->shirt.u32) {
+		ColorToVec4(ci->shirt, e->tints[0]);
 	}
 
-	if (ci->tints[TINT_G][3]) { // pants
-		e->tints[TINT_G] = ci->tints[TINT_G];
+	if (ci->pants.u32) {
+		ColorToVec4(ci->pants, e->tints[1]);
 	}
 
-	if (ci->tints[TINT_B][3]) { // head
-		e->tints[TINT_B] = ci->tints[TINT_B];
+	if (ci->helmet.u32) {
+		ColorToVec4(ci->helmet, e->tints[2]);
 	}
 
 	r_entity_t head, torso, legs;

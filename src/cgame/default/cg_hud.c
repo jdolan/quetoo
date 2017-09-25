@@ -640,20 +640,18 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 	if (cg_draw_crosshair_color->modified) { // crosshair color
 		cg_draw_crosshair_color->modified = false;
 
-		const char *c = cg_draw_crosshair_color->string;
 		color_t color;
-
-		if (!g_ascii_strcasecmp(c, "default")) {
-			color.r = color.g = color.b = color.a = 255;
+		if (!g_strcmp0(cg_draw_crosshair_color->string, "default")) {
+			color.r = color.g = color.b = 255;
 		} else {
-			ColorParseHex(c, &color);
+			sscanf(cg_draw_crosshair_color->string, "%02hhx%02hhx%02hhx", &color.r, &color.g, &color.b);
 		}
 
-		ColorToVec4(color, crosshair.color);
+		ColorToVec3(color, crosshair.color);
+		crosshair.color[3] = 1.0;
 	}
 
 	vec_t scale = cg_draw_crosshair_scale->value * (cgi.context->high_dpi ? 2.0 : 1.0);
-	crosshair.color[3] = 1.0;
 
 	// pulse the crosshair size and alpha based on pickups
 	if (cg_draw_crosshair_pulse->value) {

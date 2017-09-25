@@ -936,7 +936,7 @@ typedef struct r_entity_s {
 
 	r_lighting_t *lighting; // static lighting information
 
-	const vec_t *tints[TINT_TOTAL]; // tint pointers - NULL means use default
+	vec4_t tints[TINT_TOTAL]; // tint colors, non-zero alpha enables the tint
 } r_entity_t;
 
 /**

@@ -52,6 +52,8 @@ static void dealloc(Object *self) {
  */
 static void updateBindings(View *self) {
 
+	super(View, self, updateBindings);
+
 	EditorView *this = (EditorView *) self;
 
 	free(this->materialName->defaultText);
