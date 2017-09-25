@@ -25,6 +25,8 @@
 
 #include "CreditsViewController.h"
 
+#include "Theme.h"
+
 #define _Class _InfoViewController
 
 #pragma mark - Object
@@ -52,17 +54,28 @@ static void loadView(ViewController *self) {
 
 	InfoViewController *this = (InfoViewController *) self;
 
+	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	assert(theme);
+
+	Panel *panel = $(theme, panel);
+
+	$(theme, attach, panel);
+	$(theme, target, panel->contentView);
+
 	this->tabViewController = $(alloc(TabViewController), init);
 	assert(this->tabViewController);
 
-	ViewController *tabViewController = (ViewController *) this->tabViewController;
+	ViewController *viewController, *tabViewController = (ViewController *) this->tabViewController;
 
-	ViewController *creditsViewController = $((ViewController *) alloc(CreditsViewController), init);
-	$(tabViewController, addChildViewController, creditsViewController);
-
-	release(creditsViewController);
+	viewController = $((ViewController *) alloc(CreditsViewController), init);
+	$(tabViewController, addChildViewController, viewController);
+	release(viewController);
 
 	$(self, addChildViewController, tabViewController);
+	$(theme, attach, tabViewController->view);
+
+	release(panel);
+	release(theme);
 }
 
 #pragma mark - Class lifecycle
