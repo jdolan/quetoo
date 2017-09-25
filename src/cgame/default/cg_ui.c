@@ -60,11 +60,11 @@ void Cg_ShutdownUi(void) {
  */
 void Cg_UpdateLoading(const cl_loading_t loading) {
 
-	$(loadingViewController, setProgress, loading);
-
 	if (loading.percent == 0) {
 		cgi.PushViewController((ViewController *) loadingViewController);
 	} else if (loading.percent == 100) {
 		cgi.PopToViewController((ViewController *) mainViewController);
 	}
+
+	$(loadingViewController, setProgress, loading);
 }
