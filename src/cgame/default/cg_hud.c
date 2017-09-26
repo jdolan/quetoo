@@ -655,20 +655,20 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 
 	// pulse the crosshair size and alpha based on pickups
 	if (cg_draw_crosshair_pulse->value) {
-		// determine if we've picked up an item
-		const int16_t p = ps->stats[STAT_PICKUP_ICON];
 
+		const int16_t p = ps->stats[STAT_PICKUP_ICON];
 		if (p != -1 && (p != cg_hud_locals.pulse.pickup)) {
 			cg_hud_locals.pulse.time = cgi.client->unclamped_time;
 		}
 
 		cg_hud_locals.pulse.pickup = p;
 
-		const vec_t delta = 1.0 - ((cgi.client->unclamped_time - cg_hud_locals.pulse.time) / 500.0);
-
+		const vec_t delta = 1.0 - ((cgi.client->unclamped_time - cg_hud_locals.pulse.time) / 250.0);
 		if (delta > 0.0) {
 			scale += cg_draw_crosshair_pulse->value * 0.5 * delta;
-			crosshair.color[3] -= 0.5 * delta;
+			crosshair.color[3] = 1.0 - (delta * 0.5);
+		} else {
+			crosshair.color[3] = 1.0;
 		}
 	}
 
