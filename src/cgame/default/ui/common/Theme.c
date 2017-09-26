@@ -172,6 +172,26 @@ static void control(const Theme *self, const char *label, ident control) {
 }
 
 /**
+ * @fn ImageView *Theme::imageView(const Theme *self, const char *name, const SDL_Rect *frame)
+ * @memberof Theme
+ */
+static ImageView *image(const Theme *self, const char *name, const SDL_Rect *frame) {
+
+	ImageView *image = $(alloc(ImageView), initWithFrame, frame);
+	assert(image);
+
+	SDL_Surface *surface;
+	if (cgi.LoadSurface(name, &surface)) {
+		$(image, setImageWithSurface, surface);
+		SDL_FreeSurface(surface);
+	} else {
+		$(image, setImage, NULL);
+	}
+
+	return image;
+}
+
+/**
  * @fn Theme *Theme::init(Theme *self)
  * @memberof Theme
  */
@@ -300,6 +320,7 @@ static void initialize(Class *clazz) {
 	((ThemeInterface *) clazz->def->interface)->columns = columns;
 	((ThemeInterface *) clazz->def->interface)->container = container;
 	((ThemeInterface *) clazz->def->interface)->control = control;
+	((ThemeInterface *) clazz->def->interface)->image = image;
 	((ThemeInterface *) clazz->def->interface)->init = init;
 	((ThemeInterface *) clazz->def->interface)->initWithTarget = initWithTarget;
 	((ThemeInterface *) clazz->def->interface)->panel = panel;

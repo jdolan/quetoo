@@ -180,6 +180,17 @@ struct ThemeInterface {
 	void (*control)(const Theme *self, const char *label, ident control);
 
 	/**
+	 * @fn ImageView *Theme::imageView(const Theme *self, const char *name, const SDL_Rect *frame)
+	 * @brief Creates an ImageView with the specified image and frame.
+	 * @param self The Theme.
+	 * @param name The image name (e.g. `"ui/pics/progress_bar"`).
+	 * @param frame The frame.
+	 * @return The ImageView, or `NULL` on error.
+	 * @memberof Theme
+	 */
+	ImageView *(*image)(const Theme *self, const char *name, const SDL_Rect *frame);
+
+	/**
 	 * @fn Theme *Theme::init(Theme *self)
 	 * @brief Initializes this Theme.
 	 * @param self The Theme.
