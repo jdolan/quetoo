@@ -651,7 +651,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		crosshair.color[3] = 1.0;
 	}
 
-	vec_t scale = cg_draw_crosshair_scale->value * (cgi.context->high_dpi ? 2.0 : 1.0);
+	vec_t alpha = 1.0, scale = cg_draw_crosshair_scale->value * (cgi.context->high_dpi ? 2.0 : 1.0);
 
 	// pulse the crosshair size and alpha based on pickups
 	if (cg_draw_crosshair_pulse->value) {
@@ -663,13 +663,14 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 
 		cg_hud_locals.pulse.pickup = p;
 
-		const vec_t delta = 1.0 - ((cgi.client->unclamped_time - cg_hud_locals.pulse.time) / 250.0);
-		if (delta > 0.0) {
-			scale += cg_draw_crosshair_pulse->value * 0.5 * delta;
-			crosshair.color[3] = 1.0 - (delta * 0.5);
-		} else {
-			crosshair.color[3] = 1.0;
+		const uint32_t delta = cgi.client->unclamped_time - cg_hud_locals.pulse.time;
+		if (delta < 300) {
+			const vec_t frac = 1.0 - (delta / 300.0);
+			scale += cg_draw_crosshair_pulse->value * frac;
+			alpha += cg_draw_crosshair_pulse->value * frac;
 		}
+
+		crosshair.color[3] = alpha;
 	}
 
 	cgi.Color(crosshair.color);

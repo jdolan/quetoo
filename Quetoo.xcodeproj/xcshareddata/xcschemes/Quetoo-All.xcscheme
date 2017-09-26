@@ -66,6 +66,10 @@
             argument = "-p $BUILT_PRODUCTS_DIR"
             isEnabled = "YES">
          </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+map torn"
+            isEnabled = "YES">
+         </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
       </AdditionalOptions>
