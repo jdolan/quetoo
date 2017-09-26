@@ -22,6 +22,7 @@
 #include <ctype.h>
 
 #include "shared.h"
+#include "swap.h"
 
 const vec3_t vec3_origin = { 0.0, 0.0, 0.0 };
 
@@ -1180,21 +1181,22 @@ void SetUserInfo(char *s, const char *key, const char *value) {
  * @brief Attempt to convert a hexadecimal value to its string representation.
  */
 _Bool ColorFromHex(const char *s, color_t *color) {
-	static char buffer[9];
+	static char buffer[9]; // buffer to hold temp hex string
+	const size_t s_len = strlen(s);
 	static color_t temp;
 
 	if (!color) {
 		color = &temp;
 	}
 
-	const size_t length = strlen(s);
-	if (length != 6 && length != 8) {
+	// rrggbb or rrggbbaa
+	if (s_len < 6 || s_len > 8) {
 		return false;
 	}
 
-	g_strlcpy(buffer, s, sizeof(buffer));
+	g_snprintf(buffer, sizeof(buffer), "%s", s);
 
-	if (length == 6) {
+	if (s_len < 8) {
 		g_strlcat(buffer, "ff", sizeof(buffer));
 	}
 
@@ -1202,9 +1204,7 @@ _Bool ColorFromHex(const char *s, color_t *color) {
 		return false;
 	}
 
-#if G_BYTE_ORDER == G_LITTLE_ENDIAN
-	color->u32 = (((color->u32 & 0xff000000) >> 24) | ((color->u32 & 0x00ff0000) >> 8) | ((color->u32 & 0x0000ff00) << 8) | ((color->u32 & 0x000000ff) << 24));
-#endif
+	color->u32 = LittleLong(color->u32);
 
 	return color;
 }
