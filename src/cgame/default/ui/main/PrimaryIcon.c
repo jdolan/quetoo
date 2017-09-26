@@ -52,27 +52,20 @@ static PrimaryIcon *initWithIcon(PrimaryIcon *self, const char *icon) {
 
 	self = (PrimaryIcon *) super(Button, self, initWithFrame, &frame, ControlStyleCustom);
 	if (self) {
-		self->imageView = $(alloc(ImageView), initWithFrame, NULL);
+
+		View *this = (View *) self;
+
+		Theme *theme = $(alloc(Theme), initWithTarget, this);
+		assert(theme);
+
+		self->imageView = $(theme, image, icon, NULL);
 		assert(self->imageView);
 
 		self->imageView->view.autoresizingMask = ViewAutoresizingFill;
 
-		SDL_Surface *surface;
-		if (cgi.LoadSurface(icon, &surface)) {
-			$(self->imageView, setImageWithSurface, surface);
-			SDL_FreeSurface(surface);
-		} else {
-			$(self->imageView, setImage, NULL);
-		}
-
-		View *this = (View *) self;
-
-		$(this, addSubview, (View *) self->imageView);
+		$(theme, attach, self->imageView);
 
 		this->autoresizingMask = ViewAutoresizingNone;
-
-		Theme *theme = $(alloc(Theme), init);
-		assert(theme);
 
 		this->backgroundColor = theme->colors.dark;
 		this->borderColor = theme->colors.lightBorder;

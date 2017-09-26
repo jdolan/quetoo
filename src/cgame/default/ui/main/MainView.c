@@ -84,14 +84,8 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 		assert(theme);
 
 		{
-			self->background = $(alloc(ImageView), initWithFrame, NULL);
+			self->background = $(theme, image, va("ui/backgrounds/%d", Random() % 6), NULL);
 			assert(self->background);
-
-			SDL_Surface *surface;
-			if (cgi.LoadSurface(va("ui/backgrounds/%d", Random() % 6), &surface)) {
-				$(self->background, setImageWithSurface, surface);
-				SDL_FreeSurface(surface);
-			}
 
 			self->background->view.autoresizingMask = ViewAutoresizingFill;
 			self->background->view.zIndex = -1;
@@ -100,14 +94,8 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 		}
 
 		{
-			self->logo = $(alloc(ImageView), initWithFrame, NULL);
+			self->logo = $(theme, image, "ui/logo", NULL);
 			assert(self->logo);
-
-			SDL_Surface *surface;
-			if (cgi.LoadSurface("ui/logo", &surface)) {
-				$(self->logo, setImageWithSurface, surface);
-				SDL_FreeSurface(surface);
-			}
 
 			self->logo->view.alignment = ViewAlignmentBottomRight;
 
