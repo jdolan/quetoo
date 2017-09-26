@@ -54,19 +54,19 @@ struct LoadingViewController {
 	LoadingViewControllerInterface *interface;
 
 	/**
-	 * @brief The mapshot of the map being loaded.
+	 * @brief The map shot.
 	 */
-	ImageView *mapshotImage;
+	ImageView *mapShot;
+
+	/**
+	 * @brief The logo.
+	 */
+	ImageView *logo;
 
 	/**
 	 * @brief The progress bar.
 	 */
-	ImageView *progressBar;
-
-	/**
-	 * @brief The progress label.
-	 */
-	Label *progressLabel;
+	ProgressBar *progressBar;
 };
 
 /**

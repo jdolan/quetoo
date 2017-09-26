@@ -23,18 +23,22 @@
 
 #include "LoadingViewController.h"
 
+#include "Theme.h"
+
 #define _Class _LoadingViewController
 
 #pragma mark - Object
 
+/**
+ * @see Object::dealloc(Object *)
+ */
 static void dealloc(Object *self) {
 
 	LoadingViewController *this = (LoadingViewController *) self;
 
-	release(this->mapshotImage);
-
+	release(this->mapShot);
+	release(this->logo);
 	release(this->progressBar);
-	release(this->progressLabel);
 
 	super(Object, self, dealloc);
 }
@@ -50,118 +54,78 @@ static void loadView(ViewController *self) {
 
 	LoadingViewController *this = (LoadingViewController *) self;
 
-	// Mapshot
+	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	assert(theme);
 
-	this->mapshotImage = $(alloc(ImageView), initWithFrame, NULL);
-	assert(this->mapshotImage);
+	this->mapShot = $(alloc(ImageView), initWithFrame, NULL);
+	assert(this->mapShot);
 
-	this->mapshotImage->view.zIndex = -1;
-	this->mapshotImage->view.autoresizingMask = ViewAutoresizingFill;
+	this->mapShot->view.zIndex = -1;
+	this->mapShot->view.autoresizingMask = ViewAutoresizingFill;
 
-	$(self->view, addSubview, (View *) this->mapshotImage);
+	$(theme, attach, this->mapShot);
 
-	// Quetoo logo
+	this->logo = $(theme, image, "ui/loading", &MakeRect(0, 0, 480, 360));
+	this->logo->view.alignment = ViewAlignmentMiddleCenter;
 
-	const SDL_Rect frame = MakeRect(0, 0, 480, 360);
+	$(theme, attach, this->logo);
 
-	ImageView *logoImage = $(alloc(ImageView), initWithFrame, &frame);
-	assert(logoImage);
+	this->progressBar = $(alloc(ProgressBar), initWithFrame, &MakeRect(0, 0, 0, 32));
+	assert(this->progressBar);
+
+	this->progressBar->label->view.alignment = ViewAlignmentMiddleLeft;
+
+	this->progressBar->view.alignment = ViewAlignmentBottomCenter;
+	this->progressBar->view.autoresizingMask = ViewAutoresizingWidth;
 
 	SDL_Surface *surface;
 
-	if (cgi.LoadSurface("ui/loading", &surface)) {
-		$(logoImage, setImageWithSurface, surface);
-		SDL_FreeSurface(surface);
-	} else {
-		$(logoImage, setImage, NULL);
-	}
-
-	logoImage->view.alignment = ViewAlignmentMiddleCenter;
-	logoImage->view.autoresizingMask = ViewAutoresizingNone;
-
-	$(self->view, addSubview, (View *) logoImage);
-	release(logoImage);
-
-	// Progress bar background
-
-	const SDL_Rect barFrame = MakeRect(0, 0, 0, 32);
-
-	ImageView *progressBarBg = $(alloc(ImageView), initWithFrame, &barFrame);
-	assert(progressBarBg);
-
-	if (cgi.LoadSurface("ui/pics/progress_bar_bg", &surface)) {
-		$(progressBarBg, setImageWithSurface, surface);
-		SDL_FreeSurface(surface);
-	} else {
-		$(progressBarBg, setImage, NULL);
-	}
-
-	progressBarBg->view.alignment = ViewAlignmentBottomLeft;
-	progressBarBg->view.autoresizingMask = ViewAutoresizingWidth;
-
-	$(self->view, addSubview, (View *) progressBarBg);
-	release(progressBarBg);
-
-	// Progress bar
-
-	this->progressBar = $(alloc(ImageView), initWithFrame, &barFrame);
-	assert(this->progressBar);
+//	if (cgi.LoadSurface("ui/pics/progress_bar_bg", &surface)) {
+//		$(this->progressBar->background, setImageWithSurface, surface);
+//		SDL_FreeSurface(surface);
+//	} else {
+//		$(this->progressBar->background, setImage, NULL);
+//	}
 
 	if (cgi.LoadSurface("ui/pics/progress_bar", &surface)) {
-		$(this->progressBar, setImageWithSurface, surface);
+		$(this->progressBar->foreground, setImageWithSurface, surface);
 		SDL_FreeSurface(surface);
 	} else {
-		$(this->progressBar, setImage, NULL);
+		$(this->progressBar->foreground, setImage, NULL);
 	}
 
-	this->progressBar->view.alignment = ViewAlignmentBottomLeft;
-	this->progressBar->view.autoresizingMask = ViewAutoresizingNone;
+	$(theme, attach, this->progressBar);
 
-	$(self->view, addSubview, (View *) this->progressBar);
-
-	// Progress label
-
-	this->progressLabel = $(alloc(Label), initWithText, "NULL", NULL);
-	assert(this->progressLabel);
-
-	this->progressLabel->view.alignment = ViewAlignmentBottomLeft;
-
-	$(self->view, addSubview, (View *) this->progressLabel);
+	release(theme);
 }
 
 #pragma mark - LoadingViewController
 
 /**
  * @fn LoadingViewController *LoadingViewController::init(LoadingViewController *self)
- *
  * @memberof LoadingViewController
  */
 static LoadingViewController *init(LoadingViewController *self) {
-
 	return (LoadingViewController *) super(ViewController, self, init);
 }
 
 /**
  * @fn void LoadingViewController::setProgress(LoadingViewController *self, const cl_loading_t loading)
- *
  * @memberof LoadingViewController
  */
 static void setProgress(LoadingViewController *self, const cl_loading_t loading) {
 
-	self->progressBar->view.frame.w = (cgi.context->window_width * (loading.percent / 100.0));
-
-	$(self->progressLabel->text, setText, va("%d%% (%s)", loading.percent, loading.status));
-
-	// Update mapshot if applicable
+	$(self->progressBar, setLabelFormat, va("%%0.0lf%%%% (%s)", loading.status));
+	$(self->progressBar, setValue, loading.percent);
 
 	if (loading.percent == 0 && loading.mapshot[0] != '\0') {
-		SDL_Surface *surface;
 
+		SDL_Surface *surface;
 		if (cgi.LoadSurface(loading.mapshot, &surface)) {
-			$(self->mapshotImage, setImageWithSurface, surface);
+			$(self->mapShot, setImageWithSurface, surface);
 			SDL_FreeSurface(surface);
 		} else {
-			$(self->mapshotImage, setImage, NULL);
+			$(self->mapShot, setImage, NULL);
 		}
 	}
 }
