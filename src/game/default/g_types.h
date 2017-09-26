@@ -304,7 +304,7 @@ typedef enum {
 /**
  * @brief Scoreboard background color hues.
  */
-#define TEAM_COLOR_RED			0
+#define TEAM_COLOR_RED			360
 #define TEAM_COLOR_BLUE			240
 #define TEAM_COLOR_GREEN		120
 #define TEAM_COLOR_ORANGE		30

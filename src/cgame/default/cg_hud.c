@@ -644,11 +644,10 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		if (!g_strcmp0(cg_draw_crosshair_color->string, "default")) {
 			color.r = color.g = color.b = 255;
 		} else {
-			sscanf(cg_draw_crosshair_color->string, "%02hhx%02hhx%02hhx", &color.r, &color.g, &color.b);
+			ColorFromHex(cg_draw_crosshair_color->string, &color);
 		}
 
-		ColorToVec3(color, crosshair.color);
-		crosshair.color[3] = 1.0;
+		ColorToVec4(color, crosshair.color);
 	}
 
 	vec_t alpha = 1.0, scale = cg_draw_crosshair_scale->value * (cgi.context->high_dpi ? 2.0 : 1.0);
