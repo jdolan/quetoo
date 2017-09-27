@@ -124,7 +124,7 @@ static void Cg_Init(void) {
 
 	cg_bob = cgi.Cvar("cg_bob", "1.0", CVAR_ARCHIVE, "Controls weapon bobbing effect.");
 
-	cg_color = cgi.Cvar("color", "0", CVAR_USER_INFO | CVAR_ARCHIVE,
+	cg_color = cgi.Cvar("color", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                    "Specifies the effect color for your own weapon trails.");
 
 	cg_shirt = cgi.Cvar("shirt", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
@@ -150,7 +150,7 @@ static void Cg_Init(void) {
 	                            "Draw the number of captures");
 	cg_draw_crosshair = cgi.Cvar("cg_draw_crosshair", "1", CVAR_ARCHIVE,
                                      "Which crosshair image to use, 0 disables (Default is 1)");
-	cg_draw_crosshair_color = cgi.Cvar("cg_draw_crosshair_color", "", CVAR_ARCHIVE,
+	cg_draw_crosshair_color = cgi.Cvar("cg_draw_crosshair_color", "default", CVAR_ARCHIVE,
 	                                   "Specifies the crosshair color (red|green|yellow|default)");
 	cg_draw_crosshair_pulse = cgi.Cvar("cg_draw_crosshair_pulse", "1.0", CVAR_ARCHIVE,
 	                                   "Pulse the crosshair when picking up items");
