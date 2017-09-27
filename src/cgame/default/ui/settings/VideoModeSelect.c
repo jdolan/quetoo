@@ -55,7 +55,9 @@ static void updateBindings(View *self) {
 	$(select, addOption, "Custom", NULL);
 	$(select, selectOptionWithValue, NULL);
 
-	const int32_t display = SDL_GetWindowDisplayIndex($(self, window));
+	assert(self->window);
+
+	const int32_t display = SDL_GetWindowDisplayIndex(self->window);
 	const int32_t numDisplayModes = SDL_GetNumDisplayModes(display);
 
 	if (numDisplayModes) {
