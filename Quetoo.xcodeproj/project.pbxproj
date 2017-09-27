@@ -1213,7 +1213,6 @@
 		CE12D66F1C5C58C300CD0B13 /* g_weapon.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_weapon.c; sourceTree = "<group>"; };
 		CE12D6701C5C58C300CD0B13 /* g_weapon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_weapon.h; sourceTree = "<group>"; };
 		CE12D6711C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
-		CE12D6731C5C58C300CD0B13 /* README */ = {isa = PBXFileReference; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
 		CE12D6741C5C58C300CD0B13 /* game.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = game.h; sourceTree = "<group>"; };
 		CE12D6751C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE12D6771C5C58C300CD0B13 /* image.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = image.c; sourceTree = "<group>"; };
@@ -2522,7 +2521,6 @@
 				CE12D66F1C5C58C300CD0B13 /* g_weapon.c */,
 				CE12D6701C5C58C300CD0B13 /* g_weapon.h */,
 				CE12D6711C5C58C300CD0B13 /* Makefile.am */,
-				CE12D6731C5C58C300CD0B13 /* README */,
 			);
 			path = default;
 			sourceTree = "<group>";
