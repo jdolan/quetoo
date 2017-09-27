@@ -1194,7 +1194,7 @@ _Bool ColorFromHex(const char *s, color_t *color) {
 		return false;
 	}
 
-	g_snprintf(buffer, sizeof(buffer), "%s", s);
+	g_strlcpy(buffer, s, sizeof(buffer));
 
 	if (s_len < 8) {
 		g_strlcat(buffer, "ff", sizeof(buffer));
