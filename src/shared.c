@@ -1202,7 +1202,10 @@ _Bool ColorFromHex(const char *s, color_t *color) {
 		return false;
 	}
 
-	color->u32 = GUINT_TO_BE(color->u32);
+#if G_BYTE_ORDER == G_LITTLE_ENDIAN
+	color->u32 = (((color->u32 & 0xff000000) >> 24) | ((color->u32 & 0x00ff0000) >> 8) | ((color->u32 & 0x0000ff00) << 8) | ((color->u32 & 0x000000ff) << 24));
+#endif
+
 	return color;
 }
 
