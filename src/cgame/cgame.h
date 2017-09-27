@@ -200,7 +200,7 @@ typedef struct cg_import_s {
 	 * @param data User data.
 	 * @returns 1 on error, 0 on success.
 	 */
-	int32_t (*EnumerateFiles)(const char *pattern, Fs_EnumerateFunc enumerator, void *data);
+	_Bool (*EnumerateFiles)(const char *pattern, Fs_EnumerateFunc enumerator, void *data);
 
 	/**
 	 * @brief Check if a file exists or not.

@@ -71,7 +71,7 @@ int64_t Fs_Load(const char *filename, void **buffer);
 void Fs_Free(void *buffer);
 _Bool Fs_Rename(const char *source, const char *dest);
 _Bool Fs_Unlink(const char *filename);
-int32_t Fs_Enumerate(const char *pattern, Fs_EnumerateFunc, void *data);
+_Bool Fs_Enumerate(const char *pattern, Fs_EnumerateFunc, void *data);
 void Fs_CompleteFile(const char *pattern, GList **matches);
 void Fs_AddToSearchPath(const char *dir);
 void Fs_SetGame(const char *dir);
