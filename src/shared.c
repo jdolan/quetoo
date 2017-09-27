@@ -1011,6 +1011,16 @@ char *vtos(const vec3_t v) {
 }
 
 /**
+ * @brief Lowers an entire string.
+ */
+void StrLower(const char *in, char *out) {
+
+	while (*in) {
+		(*(out++)) = tolower(*(in++));
+	}
+}
+
+/**
  * @brief Searches the string for the given key and returns the associated value,
  * or an empty string.
  */

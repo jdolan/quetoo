@@ -287,7 +287,7 @@ void R_InitMedia(void) {
 
 	memset(&r_media_state, 0, sizeof(r_media_state));
 
-	r_media_state.media = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Mem_Free);
+	r_media_state.media = g_hash_table_new_full(g_stri_hash, g_stri_equal, NULL, Mem_Free);
 
 	R_BeginLoading();
 }
