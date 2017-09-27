@@ -1202,7 +1202,7 @@ _Bool ColorFromHex(const char *s, color_t *color) {
 		return false;
 	}
 
-	color->u32 = GINT_TO_LE(color->u32);
+	color->u32 = GUINT_TO_LE(color->u32);
 	return color;
 }
 
