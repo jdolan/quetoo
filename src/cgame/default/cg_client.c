@@ -257,7 +257,10 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 
 		ci->legs->radius = (ci->legs->maxs[2] - ci->legs->mins[2]) / 2.0;
 
-		cgi.LoadClientSamples(ci->model);
+		// load sound files if we're in-game
+		if (*cgi.state > CL_DISCONNECTED) {
+			cgi.LoadClientSamples(ci->model);
+		}
 	}
 
 	g_strfreev(info);
