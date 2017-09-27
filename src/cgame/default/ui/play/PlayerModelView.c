@@ -354,14 +354,20 @@ static void animate(PlayerModelView *self) {
 
 	if (self->client.shirt.a) {
 		ColorToVec4(self->client.shirt, self->torso.tints[0]);
+	} else {
+		Vector4Clear(self->torso.tints[0]);
 	}
 
 	if (self->client.pants.a) {
 		ColorToVec4(self->client.pants, self->legs.tints[1]);
+	} else {
+		Vector4Clear(self->legs.tints[1]);
 	}
 
 	if (self->client.helmet.a) {
 		ColorToVec4(self->client.helmet, self->head.tints[2]);
+	} else {
+		Vector4Clear(self->head.tints[2]);
 	}
 
 	Matrix4x4_CreateFromEntity(&self->legs.matrix, self->legs.origin, self->legs.angles, self->legs.scale);

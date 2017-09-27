@@ -1174,9 +1174,9 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 
 	// set shirt, pants and head colors
 
-	cl->locals.persistent.shirt.u32 = 0;
-	cl->locals.persistent.pants.u32 = 0;
-	cl->locals.persistent.helmet.u32 = 0;
+	cl->locals.persistent.shirt.a = 0;
+	cl->locals.persistent.pants.a = 0;
+	cl->locals.persistent.helmet.a = 0;
 
 	if ((g_level.teams || g_level.ctf) && cl->locals.persistent.team) {
 
@@ -1187,19 +1187,13 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	} else {
 
 		s = GetUserInfo(user_info, "shirt");
-		if (!ColorFromHex(s, &cl->locals.persistent.shirt)) {
-			cl->locals.persistent.shirt.a = 0;
-		}
+		ColorFromHex(s, &cl->locals.persistent.shirt);
 
 		s = GetUserInfo(user_info, "pants");
-		if (!ColorFromHex(s, &cl->locals.persistent.pants)) {
-			cl->locals.persistent.pants.a = 0;
-		}
+		ColorFromHex(s, &cl->locals.persistent.pants);
 
 		s = GetUserInfo(user_info, "helmet");
-		if (!ColorFromHex(s, &cl->locals.persistent.helmet)) {
-			cl->locals.persistent.helmet.a = 0;
-		}
+		ColorFromHex(s, &cl->locals.persistent.helmet);
 	}
 
 	gchar client_info[MAX_USER_INFO_STRING] = { '\0' };
