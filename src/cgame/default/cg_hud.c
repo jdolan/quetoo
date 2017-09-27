@@ -90,6 +90,9 @@ typedef struct {
 } cg_hud_locals_t;
 
 static r_image_t *cg_select_weapon_image;
+static r_image_t *cg_pickup_blend_image;
+static r_image_t *cg_quad_blend_image;
+static r_image_t *cg_damage_blend_image;
 
 static cvar_t *cg_select_weapon_delay;
 static cvar_t *cg_select_weapon_interval;
@@ -856,14 +859,14 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	cg_hud_locals.blend.pickup = p;
 
 	if (cg_hud_locals.blend.pickup_time && cg_draw_blend_pickup->value) {
-		Cg_DrawBlendFlashImage(cgi.LoadImage("pics/bf_pickup", IT_PIC),
+		Cg_DrawBlendFlashImage(cg_pickup_blend_image,
 			Cg_CalculateBlendAlpha(cg_hud_locals.blend.pickup_time, CG_PICKUP_BLEND_TIME, CG_PICKUP_BLEND_ALPHA));
 	}
 
 	// quad damage powerup
 
 	if (ps->stats[STAT_QUAD_TIME] > 0 && cg_draw_blend_powerup->value) {
-		Cg_DrawBlendFlashImage(cgi.LoadImage("pics/bf_powerup_quad", IT_PIC),
+		Cg_DrawBlendFlashImage(cg_quad_blend_image,
 			fabs(sin(Radians(cgi.client->unclamped_time * 0.2))));
 	}
 
@@ -876,7 +879,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	}
 
 	if (cg_hud_locals.blend.damage_time && cg_draw_blend_damage->value) {
-		Cg_DrawBlendFlashImage(cgi.LoadImage("pics/bf_damage", IT_PIC),
+		Cg_DrawBlendFlashImage(cg_damage_blend_image,
 			Cg_CalculateBlendAlpha(cg_hud_locals.blend.damage_time, CG_DAMAGE_BLEND_TIME, CG_DAMAGE_BLEND_ALPHA));
 	}
 
@@ -1271,6 +1274,9 @@ void Cg_ClearHud(void) {
  */
 void Cg_LoadHudMedia(void) {
 	cg_select_weapon_image = cgi.LoadImage("pics/w_select", IT_PIC);
+	cg_pickup_blend_image = cgi.LoadImage("pics/bf_pickup", IT_PIC);
+	cg_quad_blend_image = cgi.LoadImage("pics/bf_powerup_quad", IT_PIC);
+	cg_damage_blend_image = cgi.LoadImage("pics/bf_damage", IT_PIC);
 }
 
 /**
