@@ -406,7 +406,7 @@ static PHYSFS_EnumerateCallbackResult Fs_Enumerate_(void *data, const char *dir,
 /**
  * @brief Enumerates files matching `pattern`, calling the given function.
  */
-int32_t Fs_Enumerate(const char *pattern, Fs_EnumerateFunc func, void *data) {
+_Bool Fs_Enumerate(const char *pattern, Fs_EnumerateFunc func, void *data) {
 	fs_enumerate_t en = {
 		.pattern = pattern,
 		.function = func,
