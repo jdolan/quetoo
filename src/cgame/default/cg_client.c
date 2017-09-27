@@ -237,7 +237,7 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 		}
 
 		const int16_t hue = atoi(info[5]);
-		if (hue > 0) {
+		if (hue >= 0) {
 			const SDL_Color color = MVC_HSVToRGB(hue, 1.0, 1.0);
 			ci->color.u32 = *(int32_t *) &color;
 		} else {

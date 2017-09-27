@@ -101,7 +101,7 @@ static void didPickEffectColor(HueColorPicker *hueColorPicker, double hue, doubl
 
 	PlayerSetupViewController *this = hueColorPicker->delegate.self;
 
-	if (hue < 1.0) {
+	if (hue < 0.0) {
 		cgi.CvarSet(cg_color->name, "default");
 
 		this->effectsColorPicker->colorView->backgroundColor = Colors.Charcoal;
@@ -130,7 +130,7 @@ static void didPickPlayerColor(HSVColorPicker *hsvColorPicker, double hue, doubl
 	}
 	assert(var);
 
-	if (hue < 1.0) {
+	if (hue < 0.0) {
 		cgi.CvarSet(var->name, "default");
 
 		hsvColorPicker->colorView->backgroundColor = Colors.Charcoal;
@@ -228,36 +228,41 @@ static void loadView(ViewController *self) {
 
 		this->effectsColorPicker->delegate.self = this;
 		this->effectsColorPicker->delegate.didPickColor = didPickEffectColor;
+		
+		this->effectsColorPicker->hueSlider->min = -1;
 
 		$(theme, control, "Effects", this->effectsColorPicker);
 
 		this->helmetColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL, ControlStyleDefault);
 		assert(this->helmetColorPicker);
-
+		
 		this->helmetColorPicker->delegate.self = self;
 		this->helmetColorPicker->delegate.didPickColor = didPickPlayerColor;
-
-		this->helmetColorPicker->valueSlider->min = 0.5;
+		
+		this->helmetColorPicker->hueSlider->min = -1;
+		this->helmetColorPicker->valueSlider->min = 0.3;
 
 		$(theme, control, "Helmet", this->helmetColorPicker);
 
 		this->shirtColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL, ControlStyleDefault);
 		assert(this->shirtColorPicker);
-
+		
 		this->shirtColorPicker->delegate.self = self;
 		this->shirtColorPicker->delegate.didPickColor = didPickPlayerColor;
-
-		this->shirtColorPicker->valueSlider->min = 0.5;
+		
+		this->shirtColorPicker->hueSlider->min = -1;
+		this->shirtColorPicker->valueSlider->min = 0.3;
 
 		$(theme, control, "Shirt", this->shirtColorPicker);
 
 		this->pantsColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL, ControlStyleDefault);
 		assert(this->pantsColorPicker);
-
+		
 		this->pantsColorPicker->delegate.self = self;
 		this->pantsColorPicker->delegate.didPickColor = didPickPlayerColor;
-
-		this->pantsColorPicker->valueSlider->min = 0.5;
+		
+		this->pantsColorPicker->hueSlider->min = -1;
+		this->pantsColorPicker->valueSlider->min = 0.3;
 
 		$(theme, control, "Pants", this->pantsColorPicker);
 
@@ -285,32 +290,35 @@ static void viewWillAppear(ViewController *self) {
 
 	PlayerSetupViewController *this = (PlayerSetupViewController *) self;
 
-	const SDL_Color effects = MVC_HexToRGBA(cg_color->string);
-	if (effects.r || effects.g || effects.b) {
-		$(this->effectsColorPicker, setRGBColor, &effects);
+	if (g_strcmp0(cg_color->string, "default")) {
+		$(this->effectsColorPicker, setColor, cg_color->integer, 1.0, 1.0);
 	} else {
-		$(this->effectsColorPicker, setColor, 0.0, 1.0, 1.0);
+		$(this->effectsColorPicker, setColor, -1.0, 1.0, 1.0);
+		didPickEffectColor(this->effectsColorPicker, -1.0, 1.0, 1.0);
 	}
 
 	const SDL_Color helmet = MVC_HexToRGBA(cg_helmet->string);
 	if (helmet.r || helmet.g || helmet.b) {
 		$(this->helmetColorPicker, setRGBColor, &helmet);
 	} else {
-		$(this->helmetColorPicker, setColor, 0.0, 1.0, 1.0);
+		$(this->helmetColorPicker, setColor, -1.0, 1.0, 1.0);
+		didPickPlayerColor(this->helmetColorPicker, -1.0, 1.0, 1.0);
 	}
 
 	const SDL_Color shirt = MVC_HexToRGBA(cg_shirt->string);
 	if (shirt.r || shirt.g || shirt.b) {
 		$(this->shirtColorPicker, setRGBColor, &shirt);
 	} else {
-		$(this->shirtColorPicker, setColor, 0.0, 1.0, 1.0);
+		$(this->shirtColorPicker, setColor, -1.0, 1.0, 1.0);
+		didPickPlayerColor(this->shirtColorPicker, -1.0, 1.0, 1.0);
 	}
 
 	const SDL_Color pants = MVC_HexToRGBA(cg_pants->string);
 	if (pants.r || pants.g || pants.b) {
 		$(this->pantsColorPicker, setRGBColor, &pants);
 	} else {
-		$(this->pantsColorPicker, setColor, 0.0, 1.0, 1.0);
+		$(this->pantsColorPicker, setColor, -1.0, 1.0, 1.0);
+		didPickPlayerColor(this->pantsColorPicker, -1.0, 1.0, 1.0);
 	}
 }
 
