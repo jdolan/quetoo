@@ -4,60 +4,15 @@
     <Filter Include="src">
       <UniqueIdentifier>{3583a5f6-9733-4a0c-9019-f0da06fa5005}</UniqueIdentifier>
     </Filter>
-    <Filter Include="deps">
-      <UniqueIdentifier>{7a82e657-1f9e-4d2e-acf7-22830a684e6d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="deps\physfs">
-      <UniqueIdentifier>{41f3afd2-4158-4c3c-92cf-92ca634c249e}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\filesystem.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\deps\physfs\physfs.c">
-      <Filter>deps\physfs</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\physfs\physfs_archiver_dir.c">
-      <Filter>deps\physfs</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\physfs\physfs_archiver_qpak.c">
-      <Filter>deps\physfs</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\physfs\physfs_archiver_zip.c">
-      <Filter>deps\physfs</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\physfs\physfs_byteorder.c">
-      <Filter>deps\physfs</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\physfs\physfs_platform_windows.c">
-      <Filter>deps\physfs</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\physfs\physfs_unicode.c">
-      <Filter>deps\physfs</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\physfs\physfs_archiver_unpacked.c">
-      <Filter>deps\physfs</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\filesystem.h">
       <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\physfs\physfs.h">
-      <Filter>deps\physfs</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\physfs\physfs_casefolding.h">
-      <Filter>deps\physfs</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\physfs\physfs_internal.h">
-      <Filter>deps\physfs</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\physfs\physfs_miniz.h">
-      <Filter>deps\physfs</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\physfs\physfs_platforms.h">
-      <Filter>deps\physfs</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
