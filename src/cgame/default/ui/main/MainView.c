@@ -88,7 +88,6 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 			assert(self->background);
 
 			self->background->view.autoresizingMask = ViewAutoresizingFill;
-			self->background->view.zIndex = -1;
 
 			$(this, addSubview, (View *) self->background);
 		}

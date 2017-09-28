@@ -60,7 +60,6 @@ static void loadView(ViewController *self) {
 	this->mapShot = $(alloc(ImageView), initWithFrame, NULL);
 	assert(this->mapShot);
 
-	this->mapShot->view.zIndex = -1;
 	this->mapShot->view.autoresizingMask = ViewAutoresizingFill;
 
 	$(theme, attach, this->mapShot);
