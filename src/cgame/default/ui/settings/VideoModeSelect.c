@@ -48,6 +48,7 @@ static void updateBindings(View *self) {
 	VideoModeSelect *this = (VideoModeSelect *) self;
 
 	g_free(this->modes);
+	this->modes = NULL;
 
 	Select *select = (Select *) this;
 
@@ -55,9 +56,7 @@ static void updateBindings(View *self) {
 	$(select, addOption, "Custom", NULL);
 	$(select, selectOptionWithValue, NULL);
 
-	assert(self->window);
-
-	const int32_t display = SDL_GetWindowDisplayIndex(self->window);
+	const int32_t display = SDL_GetWindowDisplayIndex(SDL_GL_GetCurrentWindow());
 	const int32_t numDisplayModes = SDL_GetNumDisplayModes(display);
 
 	if (numDisplayModes) {
