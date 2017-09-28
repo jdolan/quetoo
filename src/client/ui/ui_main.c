@@ -147,6 +147,8 @@ static void Ui_SetDefaultFont(FontCategory category, const char *path, int32_t s
  */
 void Ui_Init(void) {
 
+	MVC_LogSetPriority(SDL_LOG_PRIORITY_DEBUG);
+
 #if defined(__APPLE__)
 	const char *path = Fs_BaseDir();
 	if (path) {
