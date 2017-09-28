@@ -108,8 +108,7 @@ static void didPickEffectColor(HueColorPicker *hueColorPicker, double hue, doubl
 
 		$(this->effectsColorPicker->hueSlider->label, setText, "");
 	} else {
-		const SDL_Color color = $(hueColorPicker, rgbColor);
-		cgi.CvarSet(cg_color->name, MVC_RGBToHex(&color));
+		cgi.CvarSetValue(cg_color->name, (vec_t) hueColorPicker->hue);
 	}
 }
 
