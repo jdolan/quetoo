@@ -26,7 +26,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <zlib.h>
+// QUETOO MODIFIED
+#include "miniz.h"
+// QUETOO MODIFIED
 
 #include "config.h"
 #include "zip.h"

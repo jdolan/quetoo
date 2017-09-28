@@ -61,8 +61,7 @@
     <QuetooPhysFSPath>$(QuetooLibsPath)physfs\</QuetooPhysFSPath>
     <QuetooPhysFSIncludePath>$(QuetooPhysFSPath)</QuetooPhysFSIncludePath>
     <QuetooPhysFSLibraryPath>$(QuetooPhysFSPath)bin\$(Platform)\</QuetooPhysFSLibraryPath>
-
-    <QuetooZlibIncludePath>$(QuetooPhysFSPath)zlib123\</QuetooZlibIncludePath>
+    <QuetooPhysFSDefs>PHYSFS_DECL=;alloca=_alloca;PHYSFS_SUPPORTS_ZIP=1;PHYSFS_SUPPORTS_7Z=0;PHYSFS_SUPPORTS_GRP=0;PHYSFS_SUPPORTS_HOG=0;PHYSFS_SUPPORTS_MVL=0;PHYSFS_SUPPORTS_WAD=0;PHYSFS_SUPPORTS_QPAK=1;PHYSFS_SUPPORTS_SLB=0;PHYSFS_SUPPORTS_ISO9660=0;PHYSFS_SUPPORTS_VDF=0</QuetooPhysFSDefs>
 
     <QuetooLibXMLPath>$(QuetooLibsPath)xml\</QuetooLibXMLPath>
     <QuetooLibXMLIncludePath>$(QuetooLibXMLPath)include\</QuetooLibXMLIncludePath>
@@ -115,7 +114,7 @@
     <ClCompile>
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>SDL_MAIN_HANDLED;NOCRYPT;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>$(QuetooPhysFSDefs);SDL_MAIN_HANDLED;NOCRYPT;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CLanguageStandard>gnu99</CLanguageStandard>
       <AdditionalOptions>%(AdditionalOptions) -ferror-limit=0 -Weverything -Wno-unreachable-code-return -Wno-unreachable-code-break -Wno-unused-parameter -Wno-reserved-id-macro -Wno-conversion -Wno-double-promotion -Wno-documentation -Wno-switch-enum -Wno-float-equal -Wno-undef -Wno-gnu-conditional-omitted-operand -Wno-cast-qual -Wno-vla -Wno-documentation-unknown-command -Wno-disabled-macro-expansion -Wno-gnu-statement-expression -Wno-dollar-in-identifier-extension -Wno-cast-align -Wno-language-extension-token -Wno-newline-eof -Wno-date-time -Wno-covered-switch-default -Wno-bad-function-cast -Wno-gnu-zero-variadic-macro-arguments -Wno-gcc-compat -Wno-pointer-arith -Wno-assign-enum -Wno-shadow</AdditionalOptions>
     </ClCompile>

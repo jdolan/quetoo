@@ -69,7 +69,7 @@ void Cl_RequestNextDownload(void) {
 /**
  * @brief Fs_Enumerate function for Cl_Mapshots.
  */
-static void Cl_Mapshots_enumerate(const char *path, void *data) {
+static Fs_EnumerateResult Cl_Mapshots_enumerate(const char *path, void *data) {
 	GList **list = (GList **) data;
 
 	if (g_str_has_suffix(path, ".jpg") || g_str_has_suffix(path, ".png")) {
@@ -79,6 +79,8 @@ static void Cl_Mapshots_enumerate(const char *path, void *data) {
 
 		*list = g_list_append(*list, g_strdup(name));
 	}
+
+	return FS_ENUM_CONTINUE;
 }
 
 /**
