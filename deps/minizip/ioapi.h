@@ -42,7 +42,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <zlib.h>
+// QUETOO MODIFIED
+#include "miniz.h"
+#ifndef OF
+  #define OF(args) args
+#endif
+// QUETOO MODIFIED
 
 #if defined(USE_FILE32API)
 #define fopen64 fopen

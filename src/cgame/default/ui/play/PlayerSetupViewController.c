@@ -44,7 +44,7 @@ static Order sortSkins(const ident a, const ident b) {
 /**
  * @brief Fs_EnumerateFunc for resolving available skins for a give model.
  */
-static void enumerateSkins(const char *path, void *data) {
+static Fs_EnumerateResult enumerateSkins(const char *path, void *data) {
 	char name[MAX_QPATH];
 
 	Select *select = (Select *) data;
@@ -61,7 +61,7 @@ static void enumerateSkins(const char *path, void *data) {
 
 				const Option *option = $(options, objectAtIndex, i);
 				if (g_strcmp0(option->title->text, name) == 0) {
-					return;
+					return FS_ENUM_CONTINUE;
 				}
 			}
 
@@ -73,13 +73,16 @@ static void enumerateSkins(const char *path, void *data) {
 			}
 		}
 	}
+
+	return FS_ENUM_CONTINUE;
 }
 
 /**
  * @brief Fs_EnumerateFunc for resolving available models.
  */
-static void enumerateModels(const char *path, void *data) {
+static Fs_EnumerateResult enumerateModels(const char *path, void *data) {
 	cgi.EnumerateFiles(va("%s/*.tga", path), enumerateSkins, data);
+	return FS_ENUM_CONTINUE;
 }
 
 /**

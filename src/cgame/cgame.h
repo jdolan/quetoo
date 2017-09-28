@@ -24,7 +24,7 @@
 
 #include "client/cl_types.h"
 
-#define CGAME_API_VERSION 19
+#define CGAME_API_VERSION 20
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -198,8 +198,9 @@ typedef struct cg_import_s {
 	 * @param pattern A Unix glob style pattern.
 	 * @param enumerator The enumerator function.
 	 * @param data User data.
+	 * @returns 1 on error, 0 on success.
 	 */
-	void (*EnumerateFiles)(const char *pattern, Fs_EnumerateFunc enumerator, void *data);
+	_Bool (*EnumerateFiles)(const char *pattern, Fs_EnumerateFunc enumerator, void *data);
 
 	/**
 	 * @brief Check if a file exists or not.

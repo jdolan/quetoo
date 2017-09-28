@@ -1,10 +1,9 @@
-If (!(Test-Path tmp.tar.bz2)) {
+If (!(Test-Path tmp3.tar.bz2)) {
     Write-Output "Downloading physfs..."
-    (New-Object System.Net.WebClient).DownloadFile("https://icculus.org/physfs/downloads/physfs-2.0.3.tar.bz2", "tmp.tar.bz2")
+    (New-Object System.Net.WebClient).DownloadFile("https://icculus.org/physfs/downloads/physfs-3.0.0.tar.bz2", "tmp3.tar.bz2")
 }
 
-Write-Output "Extracting physfs..."
-7z x tmp.tar.bz2
-7z e tmp.tar -aos "physfs-2.0.3\physfs.h"
-7z e tmp.tar -aos "physfs-2.0.3\zlib123\*.h" -ozlib123\
-Remove-Item "tmp.tar"
+Write-Output "Extracting physfs 3.0.0..."
+7z x tmp3.tar.bz2
+7z e tmp3.tar -aos "physfs-3.0.0\src\physfs.h" -o".\"
+Remove-Item "tmp3.tar"
