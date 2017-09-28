@@ -58,7 +58,7 @@
     <QuetooCursesIncludePath>$(QuetooCursesPath)</QuetooCursesIncludePath>
     <QuetooCursesLibraryPath>$(QuetooCursesPath)lib\$(Platform)\</QuetooCursesLibraryPath>
 
-    <QuetooPhysFSPath>$(QuetooPath)deps\physfs\</QuetooPhysFSPath>
+    <QuetooPhysFSPath>$(QuetooLibsPath)physfs\</QuetooPhysFSPath>
     <QuetooPhysFSIncludePath>$(QuetooPhysFSPath)</QuetooPhysFSIncludePath>
     <QuetooPhysFSDefs>PHYSFS_DECL=;alloca=_alloca;PHYSFS_SUPPORTS_ZIP=1;PHYSFS_SUPPORTS_7Z=0;PHYSFS_SUPPORTS_GRP=0;PHYSFS_SUPPORTS_HOG=0;PHYSFS_SUPPORTS_MVL=0;PHYSFS_SUPPORTS_WAD=0;PHYSFS_SUPPORTS_QPAK=1;PHYSFS_SUPPORTS_SLB=0;PHYSFS_SUPPORTS_ISO9660=0;PHYSFS_SUPPORTS_VDF=0</QuetooPhysFSDefs>
 
