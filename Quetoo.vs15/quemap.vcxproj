@@ -98,7 +98,7 @@
       <PreprocessorDefinitions>QUETOO_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SDL2.lib;SDL2_image.lib;glib-2.0.lib;libparse.lib;libswap.lib;libimage.lib;libmatrix.lib;libthread.lib;libcmodel.lib;libmem.lib;libfilesystem.lib;libshared.lib;libcommon.lib;libsys.lib;libnet.lib;dbghelp.lib;Wldap32.lib;libxml2.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2_image.lib;glib-2.0.lib;libparse.lib;libswap.lib;libimage.lib;libmatrix.lib;libthread.lib;libcmodel.lib;libmem.lib;libfilesystem.lib;libshared.lib;libcommon.lib;libsys.lib;libnet.lib;dbghelp.lib;Wldap32.lib;physfs.lib;libxml2.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
     <PostBuildEvent>
