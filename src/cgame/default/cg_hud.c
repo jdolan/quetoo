@@ -808,9 +808,11 @@ static vec_t Cg_CalculateBlendAlpha(const uint32_t blend_start_time, const uint3
  */
 static void Cg_DrawBlendFlashImage(const r_image_t *image, const vec_t alpha) {
 
-	const vec4_t color = {1.0, 1.0, 1.0, alpha};
+	if (alpha <= 0.0) {
+		return;
+	}
 
-	cgi.Color(color);
+	cgi.Color((const vec4_t) { 1.0, 1.0, 1.0, alpha });
 	cgi.DrawImageResized(0, 0, cgi.context->width, cgi.context->height, image);
 	cgi.Color(NULL);
 }
