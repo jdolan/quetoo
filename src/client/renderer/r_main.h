@@ -108,6 +108,7 @@ typedef struct {
 extern r_locals_t r_locals;
 
 // development tools
+extern cvar_t *r_blend;
 extern cvar_t *r_clear;
 extern cvar_t *r_cull;
 extern cvar_t *r_lock_vis;
