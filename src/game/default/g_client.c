@@ -1162,7 +1162,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	} else {
 		s = GetUserInfo(user_info, "color");
 
-		cl->locals.persistent.color = 0;
+		cl->locals.persistent.color = -1;
 
 		if (strlen(s) && strcmp(s, "default")) { // not default
 			const int32_t hue = atoi(s);
