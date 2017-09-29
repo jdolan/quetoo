@@ -257,8 +257,6 @@ static void dealloc(Object *self) {
  */
 static void loadView(ViewController *self) {
 
-	cgi.GetServers();
-
 	super(ViewController, self, loadView);
 
 	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
@@ -361,7 +359,13 @@ static void viewWillAppear(ViewController *self) {
 
 	super(ViewController, self, viewWillAppear);
 
-	$((JoinServerViewController *) self, reloadServers);
+	JoinServerViewController *this = (JoinServerViewController *) self;
+
+	if (this->servers == NULL) {
+		cgi.GetServers();
+	} else {
+		$(this, reloadServers);
+	}
 }
 
 #pragma mark - JoinServerViewController
