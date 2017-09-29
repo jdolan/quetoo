@@ -829,33 +829,6 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 		return;
 	}
 
-	// clamp cvars if nessecary
-
-	if (cg_draw_blend->modified) {
-		cg_draw_blend->value = Clamp(cg_draw_blend->value, 0.0, 1.0);
-		cg_draw_blend->modified = false;
-	}
-
-	if (cg_draw_blend_liquid->modified) {
-		cg_draw_blend_liquid->value = Clamp(cg_draw_blend_liquid->value, 0.0, 1.0);
-		cg_draw_blend_liquid->modified = false;
-	}
-
-	if (cg_draw_blend_pickup->modified) {
-		cg_draw_blend_pickup->value = Clamp(cg_draw_blend_pickup->value, 0.0, 1.0);
-		cg_draw_blend_pickup->modified = false;
-	}
-
-	if (cg_draw_blend_powerup->modified) {
-		cg_draw_blend_powerup->value = Clamp(cg_draw_blend_powerup->value, 0.0, 1.0);
-		cg_draw_blend_powerup->modified = false;
-	}
-
-	if (cg_draw_blend_damage->modified) {
-		cg_draw_blend_damage->value = Clamp(cg_draw_blend_damage->value, 0.0, 1.0);
-		cg_draw_blend_damage->modified = false;
-	}
-
 	vec4_t blend = { 0.0, 0.0, 0.0, 0.0 };
 
 	// start with base blend based on view origin conents
@@ -872,7 +845,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 			color = 114;
 		}
 
-		Cg_AddBlendPalette(blend, color, cg_draw_blend_liquid->value);
+		Cg_AddBlendPalette(blend, color, 0.4 * cg_draw_blend_liquid->value);
 	}
 
 	// pickups

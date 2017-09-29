@@ -138,13 +138,13 @@ static void Cg_Init(void) {
 
 	cg_draw_blend = cgi.Cvar("cg_draw_blend", "1.0", CVAR_ARCHIVE,
                                  "Controls the intensity of screen alpha-blending.");
-	cg_draw_blend_damage = cgi.Cvar("cg_draw_blend_damage", "0.6", CVAR_ARCHIVE,
+	cg_draw_blend_damage = cgi.Cvar("cg_draw_blend_damage", "1.0", CVAR_ARCHIVE,
                                         "Controls the intensity of the blend flash effect when taking damage.");
-	cg_draw_blend_liquid = cgi.Cvar("cg_draw_blend_liquid", "0.35", CVAR_ARCHIVE,
+	cg_draw_blend_liquid = cgi.Cvar("cg_draw_blend_liquid", "1.0", CVAR_ARCHIVE,
                                         "Controls the intensity of the blend effect while in a liquid.");
-	cg_draw_blend_pickup = cgi.Cvar("cg_draw_blend_pickup", "0.3", CVAR_ARCHIVE,
+	cg_draw_blend_pickup = cgi.Cvar("cg_draw_blend_pickup", "1.0", CVAR_ARCHIVE,
                                         "Controls the intensity of the blend flash effect when picking up items.");
-	cg_draw_blend_powerup = cgi.Cvar("cg_draw_blend_powerup", "0.5", CVAR_ARCHIVE,
+	cg_draw_blend_powerup = cgi.Cvar("cg_draw_blend_powerup", "1.0", CVAR_ARCHIVE,
                                          "Controls the intensity of the blend flash effect when holding a powerup.");
 	cg_draw_captures = cgi.Cvar("cg_draw_captures", "1", CVAR_ARCHIVE,
 	                            "Draw the number of captures");
