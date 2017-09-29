@@ -818,9 +818,7 @@ static void Cg_DrawBlendFlashImage(const r_image_t *image, const vec_t alpha) {
 }
 
 #define CG_DAMAGE_BLEND_TIME 1500
-#define CG_DAMAGE_BLEND_ALPHA 0.7
-#define CG_PICKUP_BLEND_TIME 800
-#define CG_PICKUP_BLEND_ALPHA 0.7
+#define CG_PICKUP_BLEND_TIME 600
 
 /**
  * @brief Draw a full-screen blend effect based on world interaction.
@@ -829,6 +827,33 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 
 	if (!cg_draw_blend->value) {
 		return;
+	}
+
+	// clamp cvars if nessecary
+
+	if (cg_draw_blend->modified) {
+		cg_draw_blend->value = Clamp(cg_draw_blend->value, 0.0, 1.0);
+		cg_draw_blend->modified = false;
+	}
+
+	if (cg_draw_blend_liquid->modified) {
+		cg_draw_blend_liquid->value = Clamp(cg_draw_blend_liquid->value, 0.0, 1.0);
+		cg_draw_blend_liquid->modified = false;
+	}
+
+	if (cg_draw_blend_pickup->modified) {
+		cg_draw_blend_pickup->value = Clamp(cg_draw_blend_pickup->value, 0.0, 1.0);
+		cg_draw_blend_pickup->modified = false;
+	}
+
+	if (cg_draw_blend_powerup->modified) {
+		cg_draw_blend_powerup->value = Clamp(cg_draw_blend_powerup->value, 0.0, 1.0);
+		cg_draw_blend_powerup->modified = false;
+	}
+
+	if (cg_draw_blend_damage->modified) {
+		cg_draw_blend_damage->value = Clamp(cg_draw_blend_damage->value, 0.0, 1.0);
+		cg_draw_blend_damage->modified = false;
 	}
 
 	vec4_t blend = { 0.0, 0.0, 0.0, 0.0 };
@@ -847,7 +872,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 			color = 114;
 		}
 
-		Cg_AddBlendPalette(blend, color, 0.3);
+		Cg_AddBlendPalette(blend, color, cg_draw_blend_liquid->value);
 	}
 
 	// pickups
@@ -862,14 +887,14 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 
 	if (cg_hud_locals.blend.pickup_time && cg_draw_blend_pickup->value) {
 		Cg_DrawBlendFlashImage(cg_pickup_blend_image,
-			Cg_CalculateBlendAlpha(cg_hud_locals.blend.pickup_time, CG_PICKUP_BLEND_TIME, CG_PICKUP_BLEND_ALPHA));
+			Cg_CalculateBlendAlpha(cg_hud_locals.blend.pickup_time, CG_PICKUP_BLEND_TIME, cg_draw_blend_pickup->value));
 	}
 
 	// quad damage powerup
 
 	if (ps->stats[STAT_QUAD_TIME] > 0 && cg_draw_blend_powerup->value) {
 		Cg_DrawBlendFlashImage(cg_quad_blend_image,
-			fabs(sin(Radians(cgi.client->unclamped_time * 0.2))));
+			fabs(sin(Radians(cgi.client->unclamped_time * 0.2))) * cg_draw_blend_powerup->value);
 	}
 
 	// taken damage
@@ -882,7 +907,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 
 	if (cg_hud_locals.blend.damage_time && cg_draw_blend_damage->value) {
 		Cg_DrawBlendFlashImage(cg_damage_blend_image,
-			Cg_CalculateBlendAlpha(cg_hud_locals.blend.damage_time, CG_DAMAGE_BLEND_TIME, CG_DAMAGE_BLEND_ALPHA));
+			Cg_CalculateBlendAlpha(cg_hud_locals.blend.damage_time, CG_DAMAGE_BLEND_TIME, cg_draw_blend_damage->value));
 	}
 
 	// if we have a blend, draw it
