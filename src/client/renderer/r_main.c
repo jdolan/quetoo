@@ -290,6 +290,14 @@ static void R_Clear(void) {
  */
 void R_BeginFrame(void) {
 
+	// disable blending at the beginning of the frame
+	if (r_blend->modified) {
+		if (!r_blend->value) {
+			R_EnableBlend(false);
+		}
+		r_blend->modified = false;
+	}
+
 	// draw buffer stuff
 	if (r_draw_buffer->modified) {
 		if (!g_ascii_strcasecmp(r_draw_buffer->string, "GL_FRONT")) {
