@@ -21,14 +21,14 @@
 
 #pragma once
 
-#include "r_glad_core.h"
-
 #include <SDL2/SDL_video.h>
 
 #include "files.h"
 #include "image.h"
 #include "matrix.h"
 #include "thread.h"
+
+#include "r_gl_types.h"
 
 /**
  * @brief Media identifier type

@@ -25,13 +25,16 @@
 
 #include <signal.h>
 
-#if defined(_MSC_VER)
-	#include <DbgHelp.h>
-#else
-	#include <sys/time.h>
-#endif
-
 #if defined(_WIN32)
+	#ifndef WIN32_LEAN_AND_MEAN
+		#define WIN32_LEAN_AND_MEAN 1
+	#endif
+	#include <Windows.h>
+
+	#if defined(_MSC_VER)
+		#include <DbgHelp.h>
+	#endif
+
 	#include <shlobj.h>
 	#define dlopen(file_name, mode) LoadLibrary(file_name)
 
@@ -46,6 +49,7 @@
 	#define dlsym(handle, symbol) GetProcAddress(handle, symbol)
 	#define dlclose(handle) FreeLibrary(handle)
 #else
+	#include <sys/time.h>
 	#include <dlfcn.h>
 #endif
 

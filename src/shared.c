@@ -572,13 +572,9 @@ void PackTexcoords(const vec2_t in, u16vec2_t out) {
 vec_t ColorNormalize(const vec3_t in, vec3_t out) {
 	vec_t max = 0.0;
 
-	VectorCopy(in, out);
-
 	for (int32_t i = 0; i < 3; i++) { // find the brightest component
 
-		if (out[i] < 0.0) { // enforcing positive values
-			out[i] = 0.0;
-		}
+		out[i] = Max(in[i], 0.0); // enforcing positive values
 
 		if (out[i] > max) {
 			max = out[i];

@@ -19,8 +19,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef _WIN32
-	#include <sys/select.h>
+#ifdef _WIN32
+	#include <winsock2.h>
+	#include <ws2tcpip.h>
 #endif
 
 #include "net_tcp.h"
@@ -35,7 +36,7 @@ int32_t Net_Connect(const char *host, struct timeval *timeout) {
 
 	int32_t sock = Net_Socket(NA_STREAM, NULL, 0);
 
-	struct sockaddr_in to;
+	net_sockaddr to;
 	Net_StringToSockaddr(host, &to);
 
 	if (connect(sock, (const struct sockaddr *) &to, sizeof(to)) == -1) {

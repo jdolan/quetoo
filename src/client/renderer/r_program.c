@@ -20,6 +20,7 @@
  */
 
 #include "r_local.h"
+#include "r_gl.h"
 
 cvar_t *r_geometry_shaders;
 

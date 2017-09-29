@@ -24,6 +24,7 @@
 #include <assert.h>
 
 #include "QuetooRenderer.h"
+#include "src/client/renderer/r_gl.h"
 
 #include "ui_local.h"
 
@@ -60,10 +61,10 @@ static void drawLines(const Renderer *self, const SDL_Point *points, size_t coun
 }
 
 /**
- * @fn GLuint Renderer::createTexture(const Renderer *self, const SDL_Surface *surface)
+ * @fn uint32_t Renderer::createTexture(const Renderer *self, const SDL_Surface *surface)
  * @memberof Renderer
  */
-static GLuint createTexture(const Renderer *self, const SDL_Surface *surface) {
+static uint32_t createTexture(const Renderer *self, const SDL_Surface *surface) {
 
 	assert(surface);
 
@@ -80,7 +81,7 @@ static GLuint createTexture(const Renderer *self, const SDL_Surface *surface) {
 			return 0;
 	}
 
-	GLuint texture;
+	uint32_t texture;
 	glGenTextures(1, &texture);
 
 	glBindTexture(GL_TEXTURE_2D, texture);
@@ -121,9 +122,9 @@ static void drawRectFilled(const Renderer *self, const SDL_Rect *rect) {
 }
 
 /**
- * @see Renderer::drawTexture(const Renderer *self, GLuint texture, const SDL_Rect *dest)
+ * @see Renderer::drawTexture(const Renderer *self, uint32_t texture, const SDL_Rect *dest)
  */
-static void drawTexture(const Renderer *self, GLuint texture, const SDL_Rect *rect) {
+static void drawTexture(const Renderer *self, uint32_t texture, const SDL_Rect *rect) {
 
 	assert(rect);
 

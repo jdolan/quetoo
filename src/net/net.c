@@ -22,6 +22,9 @@
 #include <errno.h>
 
 #if defined(_WIN32)
+	#include <winsock2.h>
+	#include <ws2tcpip.h>
+
 	#define ioctl ioctlsocket
 #else
 	#include <netdb.h>
@@ -65,7 +68,7 @@ const char *Net_GetErrorString(void) {
 /**
  * @brief Initializes the specified sockaddr_in according to the net_addr_t.
  */
-void Net_NetAddrToSockaddr(const net_addr_t *a, struct sockaddr_in *s) {
+void Net_NetAddrToSockaddr(const net_addr_t *a, net_sockaddr *s) {
 
 	memset(s, 0, sizeof(*s));
 	s->sin_family = AF_INET;
@@ -113,7 +116,7 @@ const char *Net_NetaddrToString(const net_addr_t *a) {
  * 192.246.40.70
  * 192.246.40.70:28000
  */
-_Bool Net_StringToSockaddr(const char *s, struct sockaddr_in *saddr) {
+_Bool Net_StringToSockaddr(const char *s, net_sockaddr *saddr) {
 
 	memset(saddr, 0, sizeof(*saddr));
 
@@ -144,7 +147,7 @@ _Bool Net_StringToSockaddr(const char *s, struct sockaddr_in *saddr) {
  * @brief Parses the hostname and port into the specified net_addr_t.
  */
 _Bool Net_StringToNetaddr(const char *s, net_addr_t *a) {
-	struct sockaddr_in saddr;
+	net_sockaddr saddr;
 
 	if (!Net_StringToSockaddr(s, &saddr)) {
 		return false;
@@ -197,7 +200,7 @@ int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port) {
 			Com_Error(ERROR_DROP, "Invalid socket type: %d", type);
 	}
 
-	struct sockaddr_in addr;
+	net_sockaddr addr;
 	memset(&addr, 0, sizeof(addr));
 
 	if (iface) {

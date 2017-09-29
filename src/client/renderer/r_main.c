@@ -27,6 +27,7 @@
 
 #include "r_local.h"
 #include "client.h"
+#include "r_gl.h"
 
 r_view_t r_view;
 

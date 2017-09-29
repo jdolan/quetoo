@@ -30,8 +30,10 @@
 #include <glib.h>
 
 #ifdef _WIN32
-	#define WIN32_LEAN_AND_MEAN
-	#include <windows.h>
+	#ifndef WIN32_LEAN_AND_MEAN
+		#define WIN32_LEAN_AND_MEAN 1
+	#endif
+	#include <Windows.h>
 	#include <shellapi.h>
 
 /**

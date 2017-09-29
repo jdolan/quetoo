@@ -20,6 +20,7 @@
  */
 
 #include "r_local.h"
+#include "r_gl.h"
 
 r_image_state_t r_image_state;
 

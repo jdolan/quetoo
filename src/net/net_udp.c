@@ -19,7 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#if !defined(_MSC_VER)
+#if defined(_WIN32)
+	#include <winsock2.h>
+	#include <ws2tcpip.h>
+#elif !defined(_MSC_VER)
 	#include <sys/time.h>
 #endif
 
@@ -114,7 +117,7 @@ _Bool Net_ReceiveDatagram(net_src_t source, net_addr_t *from, mem_buf_t *buf) {
 		return false;
 	}
 
-	struct sockaddr_in addr;
+	net_sockaddr addr;
 	socklen_t addr_len = sizeof(addr);
 
 	const ssize_t received = recvfrom(sock, (void *) buf->data, buf->max_size, 0,
@@ -181,7 +184,7 @@ _Bool Net_SendDatagram(net_src_t source, const net_addr_t *to, const void *data,
 		Com_Error(ERROR_DROP, "Bad address type\n");
 	}
 
-	struct sockaddr_in to_addr;
+	net_sockaddr to_addr;
 	Net_NetAddrToSockaddr(to, &to_addr);
 
 	ssize_t sent = sendto(sock, data, len, 0, (const struct sockaddr *) &to_addr, sizeof(to_addr));

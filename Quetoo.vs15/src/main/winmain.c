@@ -4,6 +4,11 @@
 #include "config.h"
 #include "shared.h"
 
+#ifndef WIN32_LEAN_AND_MEAN
+	#define WIN32_LEAN_AND_MEAN 1
+#endif
+#include <Windows.h>
+
 #if defined(_MSC_VER)
 #include <DbgHelp.h>
 
