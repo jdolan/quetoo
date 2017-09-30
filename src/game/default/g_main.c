@@ -37,6 +37,9 @@ cvar_t *g_auto_join;
 cvar_t *g_inhibit;
 cvar_t *g_capture_limit;
 cvar_t *g_cheats;
+cvar_t *g_crouch_slide;
+cvar_t *g_crouch_slide_boost;
+cvar_t *g_crouch_slide_friction;
 cvar_t *g_ctf;
 cvar_t *g_techs;
 cvar_t *g_hook;
@@ -235,6 +238,26 @@ void G_CheckHook(void) {
 	if (g_hook_distance->modified) {
 		g_hook_distance->value = Clamp(g_hook_distance->value, PM_HOOK_MIN_DIST, PM_HOOK_MAX_DIST);
 		g_hook_distance->modified = false;
+	}
+}
+
+/**
+ * @brief Checks and sets up crouch slide state
+ */
+void G_CheckCrouchSlide(void) {
+
+	if (g_crouch_slide->integer) { // check cvar
+		g_level.crouch_slide_allowed = !!g_crouch_slide->integer;
+	}
+
+	if (g_crouch_slide_boost->modified) {
+		g_crouch_slide_boost->value = Clamp(g_crouch_slide_boost->value, 0.1, 5.0);
+		g_crouch_slide_boost->modified = false;
+	}
+
+	if (g_crouch_slide_friction->modified) {
+		g_crouch_slide_friction->value = Clamp(g_crouch_slide_friction->value, 0.0, 1.0);
+		g_crouch_slide_friction->modified = false;
 	}
 }
 
@@ -987,6 +1010,35 @@ static void G_CheckRules(void) {
 		                  g_hook_style->string);
 	}
 
+	if (g_crouch_slide->modified) {
+		g_crouch_slide->modified = false;
+
+		G_CheckCrouchSlide();
+
+		gi.BroadcastPrint(PRINT_HIGH, "Crouch sliding has been %s\n",
+		                  g_level.crouch_slide_allowed ? "enabled" : "disabled");
+
+		gi.SetConfigString(CS_CROUCH_SLIDE, g_crouch_slide->string);
+	}
+
+	if (g_crouch_slide_boost->modified) {
+		g_crouch_slide_boost->modified = false;
+
+		gi.BroadcastPrint(PRINT_HIGH, "Crouch slide boost has been changed to %f\n",
+		                  g_crouch_slide_boost->value);
+
+		gi.SetConfigString(CS_CROUCH_SLIDE_BOOST, g_crouch_slide_boost->string);
+	}
+
+	if (g_crouch_slide_friction->modified) {
+		g_crouch_slide_friction->modified = false;
+
+		gi.BroadcastPrint(PRINT_HIGH, "Crouch slide friction has been changed to %f\n",
+		                  g_crouch_slide_friction->value);
+
+		gi.SetConfigString(CS_CROUCH_SLIDE_FRICTION, g_crouch_slide_friction->string);
+	}
+
 	if (g_gravity->modified) { // set gravity, G_ClientMove will read it
 		g_gravity->modified = false;
 
@@ -1319,6 +1371,9 @@ void G_Init(void) {
 	                      "Automatically assigns players to teams , ignored for duel mode");
 	g_capture_limit = gi.Cvar("g_capture_limit", "8", CVAR_SERVER_INFO, "The capture limit per level");
 	g_cheats = gi.Cvar("g_cheats", "0", CVAR_SERVER_INFO, NULL);
+	g_crouch_slide = gi.Cvar("g_crouch_slide", "0", CVAR_SERVER_INFO, NULL);
+	g_crouch_slide_boost = gi.Cvar("g_crouch_slide_boost", "1.3", CVAR_SERVER_INFO, "Speed boost as a multiplier when entering a crouch slide.");
+	g_crouch_slide_friction = gi.Cvar("g_crouch_slide_friction", "0.15", CVAR_SERVER_INFO, "Multiplier of ground friction while crouch sliding.");
 	g_ctf = gi.Cvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay");
 	g_hook = gi.Cvar("g_hook", "default", CVAR_SERVER_INFO,
 	                 "Whether to allow the hook to be used or not. \"default\" only allows hook in CTF; 1 is always allow, 0 is never allow.");

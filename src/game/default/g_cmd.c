@@ -624,6 +624,8 @@ static void G_PlayerList_f(g_entity_t *ent) {
 
 static const char *vote_cmds[] = {
 	"g_capture_limit",
+	"g_crouch_slide",
+	"g_crouch_slide_friction",
 	"g_ctf",
 	"g_techs",
 	"g_frag_limit",

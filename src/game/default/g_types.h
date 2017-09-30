@@ -27,7 +27,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1018
+#define PROTOCOL_MINOR 1019
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -92,7 +92,10 @@ typedef struct {
 #define CS_TIME				(CS_GENERAL + 6)  // level or match timer
 #define CS_ROUND			(CS_GENERAL + 7)  // round number
 #define CS_VOTE				(CS_GENERAL + 8)  // vote string\yes count\no count
-#define CS_HOOK_PULL_SPEED	(CS_GENERAL + 9) // hook speed
+#define CS_HOOK_PULL_SPEED		(CS_GENERAL + 9) // hook speed
+#define CS_CROUCH_SLIDE			(CS_GENERAL + 10) // if crouch slide is enabled
+#define CS_CROUCH_SLIDE_BOOST		(CS_GENERAL + 11) // crouch slide boost
+#define CS_CROUCH_SLIDE_FRICTION	(CS_GENERAL + 12) // crouch slide friction
 
 /**
  * @brief Player state statistics (inventory, score, etc).
@@ -235,6 +238,7 @@ typedef enum {
 	EV_CLIENT_LAND,
 	EV_CLIENT_STEP,
 	EV_CLIENT_SIZZLE,
+	EV_CLIENT_SLIDE,
 	EV_ITEM_RESPAWN,
 	EV_ITEM_PICKUP,
 } g_entity_event_t;
@@ -828,6 +832,7 @@ typedef struct {
 	_Bool match;
 	_Bool rounds;
 	_Bool hook_allowed;
+	_Bool crouch_slide_allowed;
 	int32_t num_teams;
 	int32_t hook_map; // the map's hook allowance, for voting/restart/etc
 	int32_t techs_map;

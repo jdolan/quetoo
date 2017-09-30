@@ -25,6 +25,9 @@
 
 #ifdef __CG_LOCAL_H__
 vec_t Cg_GetHookPullSpeed(void);
+vec_t Cg_GetCrouchSlideEnabled(void);
+vec_t Cg_GetCrouchSlideBoost(void);
+vec_t Cg_GetCrouchSlideFriction(void);
 
 extern cvar_t *cg_add_emits;
 extern cvar_t *cg_add_entities;

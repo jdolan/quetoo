@@ -26,6 +26,9 @@
  */
 typedef struct {
 	vec_t hook_pull_speed;
+	_Bool crouch_slide;
+	vec_t crouch_slide_boost;
+	vec_t crouch_slide_friction;
 } cg_state_t;
 
 static cg_state_t cg_state;
@@ -342,6 +345,30 @@ vec_t Cg_GetHookPullSpeed(void) {
 }
 
 /**
+ * @brief Fetch if the server has crouch slide enabled
+ */
+vec_t Cg_GetCrouchSlideEnabled(void) {
+
+	return cg_state.crouch_slide;
+}
+
+/**
+ * @brief Fetch the server's reported crouch slide boost
+ */
+vec_t Cg_GetCrouchSlideBoost(void) {
+
+	return cg_state.crouch_slide_boost;
+}
+
+/**
+ * @brief Fetch the server's reported crouch slide friction
+ */
+vec_t Cg_GetCrouchSlideFriction(void) {
+
+	return cg_state.crouch_slide_friction;
+}
+
+/**
  * @brief Clear any state that should not persist over multiple server connections.
  */
 static void Cg_ClearState(void) {
@@ -398,6 +425,15 @@ static void Cg_UpdateConfigString(uint16_t i) {
 			return;
 		case CS_HOOK_PULL_SPEED:
 			cg_state.hook_pull_speed = strtof(s, NULL);
+			return;
+		case CS_CROUCH_SLIDE:
+			cg_state.crouch_slide = !!floor(strtof(s, NULL));
+			return;
+		case CS_CROUCH_SLIDE_BOOST:
+			cg_state.crouch_slide_boost = strtof(s, NULL);
+			return;
+		case CS_CROUCH_SLIDE_FRICTION:
+			cg_state.crouch_slide_friction = strtof(s, NULL);
 			return;
 		case CS_TEAM_INFO:
 			Cg_ParseTeamInfo(s);

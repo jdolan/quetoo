@@ -221,6 +221,42 @@ static void Cg_DrownEffect(cl_entity_t *ent) {
 /**
  * @brief
  */
+static void Cg_SlideEffect(const vec3_t org) {
+
+	cg_particle_t *p;
+
+	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_smoke))) {
+		return;
+	}
+
+	p->lifetime = 1200;
+	p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
+
+	Vector4Set(p->color_start, 0.6, 0.4, 0.25, 0.7);
+
+	VectorCopy(p->color_start, p->color_end);
+	p->color_end[3] = 0.0;
+
+	p->scale_start = 8.0 + (Randomf() * 4.0);
+	p->scale_end = 20.0 + (Randomf() * 10.0);
+
+	p->part.org[0] = org[0] + Randomc() * 12.0;
+	p->part.org[1] = org[1] + Randomc() * 12.0;
+	p->part.org[2] = org[2] - 24.0;
+
+	p->vel[0] = Randomc() * 24.0;
+	p->vel[1] = Randomc() * 24.0;
+	p->vel[2] = 0.0;
+
+	p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
+
+	p->accel[0] = p->accel[1] = 0;
+	p->accel[2] = PARTICLE_GRAVITY * 0.2;
+}
+
+/**
+ * @brief
+ */
 static s_sample_t *Cg_Footstep(cl_entity_t *ent) {
 
 	const char *footsteps = "default";
@@ -289,6 +325,11 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 			break;
 		case EV_CLIENT_SIZZLE:
 			play.sample = cgi.LoadSample("*sizzle_1");
+			break;
+		case EV_CLIENT_SLIDE:
+			play.sample = cg_sample_slide;
+			play.flags |= S_PLAY_FRAME;
+			Cg_SlideEffect(s->origin);
 			break;
 		case EV_CLIENT_TELEPORT:
 			play.sample = cg_sample_teleport;

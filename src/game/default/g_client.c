@@ -1384,6 +1384,10 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	pm.ground_entity = ent->locals.ground_entity;
 	pm.hook_pull_speed = g_hook_pull_speed->value;
 
+	pm.crouch_slide = g_level.crouch_slide_allowed;
+	pm.crouch_slide_boost = g_crouch_slide_boost->value;
+	pm.crouch_slide_friction = g_crouch_slide_friction->value;
+
 	pm.PointContents = gi.PointContents;
 	pm.Trace = G_ClientMove_Trace;
 
@@ -1451,6 +1455,10 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 				ent->s.event = EV_CLIENT_JUMP;
 				cl->locals.jump_time = g_level.time;
 			}
+		} else if (pm.s.flags & PMF_CROUCH_SLIDE) {
+			G_SetAnimation(ent, ANIM_LEGS_IDLECR, true);
+
+			ent->s.event = EV_CLIENT_SLIDE;
 		} else if (pm.s.flags & PMF_TIME_LAND) {
 			if (g_level.time - 800 > cl->locals.land_time) {
 				g_entity_event_t event = EV_CLIENT_LAND;

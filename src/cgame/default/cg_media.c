@@ -48,6 +48,8 @@ s_sample_t *cg_sample_underwater;
 s_sample_t *cg_sample_hits[2];
 s_sample_t *cg_sample_gib;
 
+s_sample_t *cg_sample_slide;
+
 cg_particles_t *cg_particles_normal;
 cg_particles_t *cg_particles_explosion;
 cg_particles_t *cg_particles_debris[4];
@@ -214,6 +216,8 @@ void Cg_UpdateMedia(void) {
 	cg_sample_snow = cgi.LoadSample("world/snow");
 	cg_sample_underwater = cgi.LoadSample("world/underwater");
 	cg_sample_gib = cgi.LoadSample("gibs/common/gib");
+
+	cg_sample_slide = cgi.LoadSample("#players/common/slide");
 
 	for (uint32_t i = 0; i < lengthof(cg_sample_hits); i++) {
 		g_snprintf(name, sizeof(name), "misc/hit_%" PRIu32, i + 1);
