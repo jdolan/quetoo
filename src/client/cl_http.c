@@ -19,9 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#define timeval __real_timeval_
 #include <curl/curl.h>
-#undef timeval
 
 #include "cl_local.h"
 

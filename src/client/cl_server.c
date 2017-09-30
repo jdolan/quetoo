@@ -20,9 +20,7 @@
  */
 
 #if defined(_WIN32)
- #define timeval __real_timeval_
-  #include <WinSock2.h>
- #undef timeval
+ #include <WinSock2.h>
 #endif
 
 #include "cl_local.h"
