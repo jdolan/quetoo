@@ -206,6 +206,10 @@ static void G_Wave_f(g_entity_t *ent) {
 		return;
 	}
 
+	if (ent->locals.dead) {
+		return;
+	}	
+
 	G_SetAnimation(ent, ANIM_TORSO_GESTURE, true);
 }
 
