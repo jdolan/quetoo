@@ -20,8 +20,8 @@
  */
 
 #include "r_local.h"
-#include "client.h"
 #include "r_gl.h"
+#include "client.h"
 
 typedef struct {
 	vec2_t position;

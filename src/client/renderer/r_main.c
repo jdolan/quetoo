@@ -26,8 +26,8 @@
 #endif
 
 #include "r_local.h"
-#include "client.h"
 #include "r_gl.h"
+#include "client.h"
 
 r_view_t r_view;
 
