@@ -27,10 +27,7 @@
  * in console.c or something.
  */
 #if defined(_WIN32) && defined(_DEBUG) && defined(_MSC_VER)
-	#ifndef WIN32_LEAN_AND_MEAN
-		#define WIN32_LEAN_AND_MEAN 1
-	#endif
-	#include <Windows.h>
+ #include <Windows.h>
 #endif
 
 /**
