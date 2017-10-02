@@ -1296,8 +1296,9 @@ static void G_HookProjectile_Think(g_entity_t *ent) {
 			VectorCopy(ent->s.origin, ent->owner->client->ps.pm_state.hook_position);
 		}
 
-		if (VectorLengthSquared(ent->owner->locals.velocity) > 200.0) {
+		if (ent->locals.knockback != ent->owner->client->ps.pm_state.hook_length) {
 			ent->s.sound = g_media.sounds.hook_pull;
+			ent->locals.knockback = ent->owner->client->ps.pm_state.hook_length;
 		} else {
 			ent->s.sound = 0;
 		}
