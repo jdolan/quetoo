@@ -936,7 +936,7 @@ static void G_CheckRules(void) {
 				g_teams->modified = true;
 			}
 
-			if (g_strcmp0(g_num_teams->string, "default") || g_num_teams->integer != 2) {
+			if (g_strcmp0(g_num_teams->string, "default") && g_num_teams->integer != 2) {
 				gi.CvarSet(g_num_teams->name, "default");
 			}
 
