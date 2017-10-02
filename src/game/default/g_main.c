@@ -936,6 +936,10 @@ static void G_CheckRules(void) {
 				g_teams->modified = true;
 			}
 
+			if (g_strcmp0(g_num_teams->string, "default") || g_num_teams->integer != 2) {
+				gi.CvarSet(g_num_teams->name, "default");
+			}
+
 			if (g_match->integer == 0) {
 				g_match->integer = 1;
 				g_match->modified = true;
@@ -1007,7 +1011,7 @@ static void G_CheckRules(void) {
 		if (g_level.num_teams != num_teams) {
 			g_level.num_teams = num_teams;
 
-			if (g_teams->integer) {
+			if (g_teams->integer || g_ctf->integer) {
 				G_InitNumTeams();
 
 				gi.BroadcastPrint(PRINT_HIGH, "Number of teams set to %i\n",
