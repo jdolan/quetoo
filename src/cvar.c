@@ -630,14 +630,25 @@ static void Cvar_Toggle_f(void) {
  * @brief Enumeration helper for Cvar_List_f.
  */
 static void Cvar_List_f_enumerate(cvar_t *var, void *data) {
-	Com_Print("%s\n", Cvar_Stringify(var));
+	GSList **list = (GSList **) data;
+	const gchar *str = g_strdup(Cvar_Stringify(var));
+
+	*list = g_slist_insert_sorted(*list, (gpointer) str, (GCompareFunc) g_ascii_strcasecmp);
 }
 
 /**
  * @brief Lists all known console variables.
  */
 static void Cvar_List_f(void) {
-	Cvar_Enumerate(Cvar_List_f_enumerate, NULL);
+	GSList *list = NULL;
+
+	Cvar_Enumerate(Cvar_List_f_enumerate, &list);
+	
+	for (GSList *entry = list; entry; entry = entry->next) {
+		Com_Print("%s\n", (const gchar *) entry->data);
+	}
+
+	g_slist_free_full(list, g_free);
 }
 
 /**

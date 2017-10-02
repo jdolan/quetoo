@@ -267,8 +267,6 @@ static void Cg_Init(void) {
 	cgi.Cmd("ready", NULL, CMD_CGAME, NULL);
 	cgi.Cmd("unready", NULL, CMD_CGAME, NULL);
 	cgi.Cmd("player_list", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("config_strings", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("baselines", NULL, CMD_CGAME, NULL);
 
 	Cg_InitUi();
 
