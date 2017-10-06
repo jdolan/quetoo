@@ -1072,10 +1072,10 @@ GLAPI PFNGLDISABLEPROC glad_glDisable;
 typedef void (APIENTRYP PFNGLENABLEPROC)(GLenum cap);
 GLAPI PFNGLENABLEPROC glad_glEnable;
 #define glEnable glad_glEnable
-typedef void (APIENTRYP PFNGLFINISHPROC)();
+	typedef void (APIENTRYP PFNGLFINISHPROC)(void);
 GLAPI PFNGLFINISHPROC glad_glFinish;
 #define glFinish glad_glFinish
-typedef void (APIENTRYP PFNGLFLUSHPROC)();
+typedef void (APIENTRYP PFNGLFLUSHPROC)(void);
 GLAPI PFNGLFLUSHPROC glad_glFlush;
 #define glFlush glad_glFlush
 typedef void (APIENTRYP PFNGLBLENDFUNCPROC)(GLenum sfactor, GLenum dfactor);
@@ -1111,7 +1111,7 @@ GLAPI PFNGLGETBOOLEANVPROC glad_glGetBooleanv;
 typedef void (APIENTRYP PFNGLGETDOUBLEVPROC)(GLenum pname, GLdouble *data);
 GLAPI PFNGLGETDOUBLEVPROC glad_glGetDoublev;
 #define glGetDoublev glad_glGetDoublev
-typedef GLenum (APIENTRYP PFNGLGETERRORPROC)();
+typedef GLenum (APIENTRYP PFNGLGETERRORPROC)(void);
 GLAPI PFNGLGETERRORPROC glad_glGetError;
 #define glGetError glad_glGetError
 typedef void (APIENTRYP PFNGLGETFLOATVPROC)(GLenum pname, GLfloat *data);
@@ -1357,7 +1357,7 @@ GLAPI PFNGLBINDATTRIBLOCATIONPROC glad_glBindAttribLocation;
 typedef void (APIENTRYP PFNGLCOMPILESHADERPROC)(GLuint shader);
 GLAPI PFNGLCOMPILESHADERPROC glad_glCompileShader;
 #define glCompileShader glad_glCompileShader
-typedef GLuint (APIENTRYP PFNGLCREATEPROGRAMPROC)();
+typedef GLuint (APIENTRYP PFNGLCREATEPROGRAMPROC)(void);
 GLAPI PFNGLCREATEPROGRAMPROC glad_glCreateProgram;
 #define glCreateProgram glad_glCreateProgram
 typedef GLuint (APIENTRYP PFNGLCREATESHADERPROC)(GLenum type);
@@ -1659,7 +1659,7 @@ GLAPI PFNGLISENABLEDIPROC glad_glIsEnabledi;
 typedef void (APIENTRYP PFNGLBEGINTRANSFORMFEEDBACKPROC)(GLenum primitiveMode);
 GLAPI PFNGLBEGINTRANSFORMFEEDBACKPROC glad_glBeginTransformFeedback;
 #define glBeginTransformFeedback glad_glBeginTransformFeedback
-typedef void (APIENTRYP PFNGLENDTRANSFORMFEEDBACKPROC)();
+typedef void (APIENTRYP PFNGLENDTRANSFORMFEEDBACKPROC)(void);
 GLAPI PFNGLENDTRANSFORMFEEDBACKPROC glad_glEndTransformFeedback;
 #define glEndTransformFeedback glad_glEndTransformFeedback
 typedef void (APIENTRYP PFNGLBINDBUFFERRANGEPROC)(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
@@ -1680,7 +1680,7 @@ GLAPI PFNGLCLAMPCOLORPROC glad_glClampColor;
 typedef void (APIENTRYP PFNGLBEGINCONDITIONALRENDERPROC)(GLuint id, GLenum mode);
 GLAPI PFNGLBEGINCONDITIONALRENDERPROC glad_glBeginConditionalRender;
 #define glBeginConditionalRender glad_glBeginConditionalRender
-typedef void (APIENTRYP PFNGLENDCONDITIONALRENDERPROC)();
+typedef void (APIENTRYP PFNGLENDCONDITIONALRENDERPROC)(void);
 GLAPI PFNGLENDCONDITIONALRENDERPROC glad_glEndConditionalRender;
 #define glEndConditionalRender glad_glEndConditionalRender
 typedef void (APIENTRYP PFNGLVERTEXATTRIBIPOINTERPROC)(GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer);
