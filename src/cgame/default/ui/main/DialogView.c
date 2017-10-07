@@ -32,38 +32,11 @@ static void dealloc(Object *self) {
 
 	DialogView *this = (DialogView *) self;
 
-	release(this->label);
-
-	release(this->cancelButton);
+	release(this->message);
 	release(this->okButton);
+	release(this->cancelButton);
 
 	super(Object, self, dealloc);
-}
-
-#pragma mark - Actions
-
-/**
- * @brief ActionFunction for clicking Ok
- */
-static void okAction(Control *control, const SDL_Event *event, ident sender, ident data) {
-
-	DialogView *this = (DialogView *) sender;
-
-	if (this->okFunction) {
-		this->okFunction();
-	}
-
-	this->panel.stackView.view.hidden = true;
-}
-
-/**
- * @brief ActionFunction for clicking Cancel
- */
-static void cancelAction(Control *control, const SDL_Event *event, ident sender, ident data) {
-
-	DialogView *this = (DialogView *) sender;
-
-	this->panel.stackView.view.hidden = true;
 }
 
 #pragma mark - DialogView
@@ -73,117 +46,57 @@ static void cancelAction(Control *control, const SDL_Event *event, ident sender,
  */
 static DialogView *init(DialogView *self) {
 
-	self = (DialogView *) super(Panel, self, initWithFrame, NULL);
+	self = (DialogView *) super(Panel, self, initWithFrame, NULL, ControlStyleDefault);
 	if (self) {
 
-		Panel *this = (Panel *) self;
+		View *this = (View *) self;
 
-		this->isDraggable = false;
-		this->isResizable = false;
-
-		this->stackView.view.hidden = true; // Don't appear until opened
-		this->stackView.view.zIndex = 1000; // We is always on top suckas
+		self->panel.isDraggable = false;
+		self->panel.isResizable = false;
 
 		Theme *theme = $(alloc(Theme), init);
 		assert(theme);
 
-		this->stackView.view.borderColor = theme->colors.lightBorder;
+		this->alignment = ViewAlignmentMiddleCenter;
+		this->autoresizingMask |= ViewAutoresizingWidth;
+		this->borderColor = theme->colors.lightBorder;
+
+		self->panel.stackView->view.alignment = ViewAlignmentMiddleCenter;
+
+		self->panel.contentView->view.alignment = ViewAlignmentMiddleCenter;
+
+		self->message = $(alloc(Label), initWithText, NULL, $$(Font, defaultFont, FontCategoryPrimaryResponder));
+
+		self->message->view.alignment = ViewAlignmentMiddleCenter;
+		self->message->view.autoresizingMask = ViewAutoresizingContain;
+
+		$((View *) self->panel.contentView, addSubview, (View *) self->message);
+
+		self->panel.accessoryView->view.alignment = ViewAlignmentBottomCenter;
+		self->panel.accessoryView->view.hidden = false;
+		
+		self->cancelButton = $(alloc(Button), initWithFrame, NULL, ControlStyleDefault);
+		assert(self->cancelButton);
+
+		$(self->cancelButton->title, setText, "Cancel");
+
+		self->cancelButton->control.view.backgroundColor = theme->colors.dark;
+
+		$((View *) self->panel.accessoryView, addSubview, (View *) self->cancelButton);
+
+		self->okButton = $(alloc(Button), initWithFrame, NULL, ControlStyleDefault);
+		assert(self->okButton);
+
+		$(self->okButton->title, setText, "Ok");
+
+		self->okButton->control.view.backgroundColor = theme->colors.light;
+
+		$((View *) self->panel.accessoryView, addSubview, (View *) self->okButton);
 
 		release(theme);
-
-		this->stackView.view.alignment = ViewAlignmentMiddleLeft;
-		this->stackView.view.autoresizingMask = ViewAutoresizingWidth | ViewAutoresizingContain;
-
-		this->contentView->view.alignment = ViewAlignmentTopCenter;
-		this->contentView->view.autoresizingMask = ViewAutoresizingContain;
-
-		this->accessoryView->view.hidden = false;
-
-		this->accessoryView->view.alignment = ViewAlignmentBottomCenter;
-		this->accessoryView->view.autoresizingMask = ViewAutoresizingContain;
-
-		{
-			// Label
-
-			self->label = $(alloc(Label), initWithText, "No description given", $$(Font, defaultFont, FontCategoryPrimaryResponder));
-
-			self->label->view.alignment = ViewAlignmentTopCenter;
-			self->label->view.autoresizingMask = ViewAutoresizingContain;
-
-			$((View *) this->contentView, addSubview, (View *) self->label);
-		}
-
-		{
-			// Cancel button
-
-			self->cancelButton = $(alloc(Button), initWithFrame, NULL, ControlStyleDefault);
-
-			$(self->cancelButton->title, setText, "Cancel");
-
-			self->cancelButton->control.view.alignment = ViewAlignmentBottomCenter;
-			self->cancelButton->control.view.autoresizingMask = ViewAutoresizingContain;
-			self->cancelButton->control.view.backgroundColor = theme->colors.dark;
-
-			$((Control *) self->cancelButton, addActionForEventType, SDL_MOUSEBUTTONUP, cancelAction, self, NULL);
-
-			$((View *) this->accessoryView, addSubview, (View *) self->cancelButton);
-
-			// Ok button
-
-			self->okButton = $(alloc(Button), initWithFrame, NULL, ControlStyleDefault);
-
-			$(self->okButton->title, setText, "Ok");
-
-			self->okButton->control.view.alignment = ViewAlignmentBottomCenter;
-			self->okButton->control.view.autoresizingMask = ViewAutoresizingContain;
-			self->okButton->control.view.backgroundColor = theme->colors.light;
-
-			self->okFunction = NULL;
-
-			$((Control *) self->okButton, addActionForEventType, SDL_MOUSEBUTTONUP, okAction, self, NULL);
-
-			$((View *) this->accessoryView, addSubview, (View *) self->okButton);
-		}
 	}
 
 	return self;
-}
-
-/**
- * @see DialogView::showDialog(DialogView *self, const char *text, void (*okFunction)(void))
- */
-static void showDialog(DialogView *self, const char *text, const char *cancelText, const char *okText, void (*okFunction)(void)) {
-
-	// Description and the Ok text need to exist, the Cancel button can be disabled by passing NULL for the text
-
-	assert(text);
-	assert(okText);
-
-	self->okFunction = okFunction;
-
-	self->panel.stackView.view.hidden = false;
-	self->panel.stackView.view.needsLayout = true;
-
-	self->cancelButton->control.view.needsLayout = true;
-	self->okButton->control.view.needsLayout = true;
-
-	$(self->label->text, setText, text);
-
-	if (cancelText) {
-		$(self->cancelButton->title, setText, cancelText);
-	} else {
-		self->cancelButton->control.view.hidden = true;
-	}
-
-	$(self->okButton->title, setText, okText);
-}
-
-/**
- * @see DialogView::hideDialog(DialogView *self)
- */
-static void hideDialog(DialogView *self) {
-
-	self->panel.stackView.view.hidden = true;
 }
 
 #pragma mark - Class lifecycle
@@ -196,8 +109,6 @@ static void initialize(Class *clazz) {
 	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
 
 	((DialogViewInterface *) clazz->def->interface)->init = init;
-	((DialogViewInterface *) clazz->def->interface)->showDialog = showDialog;
-	((DialogViewInterface *) clazz->def->interface)->hideDialog = hideDialog;
 }
 
 /**

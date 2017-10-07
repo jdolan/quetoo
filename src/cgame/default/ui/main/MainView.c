@@ -42,7 +42,6 @@ static void dealloc(Object *self) {
 	release(this->bottomBar);
 	release(this->logo);
 	release(this->version);
-	release(this->dialog);
 
 	super(Object, self, dealloc);
 }
@@ -123,7 +122,6 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 			self->topBar->view.borderColor = theme->colors.lightBorder;
 			self->topBar->view.padding.right = DEFAULT_PANEL_SPACING;
 			self->topBar->view.padding.left = DEFAULT_PANEL_SPACING;
-			self->topBar->view.zIndex = 10;
 
 			self->primaryButtons = $(alloc(StackView), initWithFrame, NULL);
 			assert(self->primaryButtons);
@@ -151,9 +149,7 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 			assert(self->contentView);
 
 			self->contentView->alignment = ViewAlignmentMiddleCenter;
-			self->contentView->autoresizingMask = ViewAutoresizingFill;
-			self->contentView->padding.top = 80;
-			self->contentView->padding.bottom = 80;
+			self->contentView->autoresizingMask = ViewAutoresizingContain;
 
 			$(this, addSubview, (View *) self->contentView);
 		}
@@ -170,16 +166,8 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 			self->bottomBar->view.borderColor = theme->colors.lightBorder;
 			self->bottomBar->view.padding.right = DEFAULT_PANEL_SPACING;
 			self->bottomBar->view.padding.left = DEFAULT_PANEL_SPACING;
-			self->bottomBar->view.zIndex = 10;
 
 			$(this, addSubview, (View *) self->bottomBar);
-		}
-
-		{
-			self->dialog = $(alloc(DialogView), init);
-			assert(self->dialog);
-
-			$(this, addSubview, (View *) self->dialog);
 		}
 
 		release(theme);

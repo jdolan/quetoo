@@ -24,8 +24,6 @@
 #include <ObjectivelyMVC/StackView.h>
 #include <ObjectivelyMVC/ImageView.h>
 
-#include "DialogView.h"
-
 /**
  * @file
  * @brief The MainViewController's View.
@@ -90,11 +88,6 @@ struct MainView {
 	 * @brief The bottom menu bar.
 	 */
 	StackView *bottomBar;
-
-	/**
-	 * @brief The dialog.
-	 */
-	DialogView *dialog;
 };
 
 /**

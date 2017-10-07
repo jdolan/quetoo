@@ -395,6 +395,8 @@
 		CE80FFFB1C5E4D1800A21A51 /* writebsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7081C5C58C300CD0B13 /* writebsp.c */; };
 		CE80FFFE1C5E4D4400A21A51 /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		CE80FFFF1C5E4D4400A21A51 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
+		CE88195C1F882EBE000D5AB7 /* DialogViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8819581F882D9F000D5AB7 /* DialogViewController.c */; };
+		CE88195D1F882EC3000D5AB7 /* DialogViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8819591F882D9F000D5AB7 /* DialogViewController.h */; };
 		CE8C734C1E0DE28000226317 /* r_stainmap.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8C734A1E0DE28000226317 /* r_stainmap.c */; };
 		CE8C734D1E0DE28000226317 /* r_stainmap.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8C734B1E0DE28000226317 /* r_stainmap.h */; };
 		CE95745E1E568F4900BBC4C0 /* EditorViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9574581E56860800BBC4C0 /* EditorViewController.c */; };
@@ -1509,6 +1511,8 @@
 		CE80FF6A1C5E494E00A21A51 /* libclient-null.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libclient-null.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE80FF7F1C5E49C400A21A51 /* libserver.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libserver.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libncurses.6.dylib; path = /opt/local/lib/libncurses.6.dylib; sourceTree = "<absolute>"; };
+		CE8819581F882D9F000D5AB7 /* DialogViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DialogViewController.c; sourceTree = "<group>"; };
+		CE8819591F882D9F000D5AB7 /* DialogViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DialogViewController.h; sourceTree = "<group>"; };
 		CE8C734A1E0DE28000226317 /* r_stainmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_stainmap.c; sourceTree = "<group>"; };
 		CE8C734B1E0DE28000226317 /* r_stainmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_stainmap.h; sourceTree = "<group>"; };
 		CE92B3A91D2FF72200E9153A /* quemap-icon.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "quemap-icon.rc"; sourceTree = "<group>"; };
@@ -2982,6 +2986,8 @@
 			children = (
 				CE6EE2791F6BE8FE00FBC830 /* DialogView.c */,
 				CE6EE27A1F6BE8FE00FBC830 /* DialogView.h */,
+				CE8819581F882D9F000D5AB7 /* DialogViewController.c */,
+				CE8819591F882D9F000D5AB7 /* DialogViewController.h */,
 				CE5870941F5CE7D2004CAAB2 /* HomeViewController.c */,
 				CE5870951F5CE7D2004CAAB2 /* HomeViewController.h */,
 				CE5870961F5CE7D2004CAAB2 /* LoadingViewController.c */,
@@ -3185,6 +3191,7 @@
 				CE6EE3F61F720DC300FBC830 /* CreditsViewController.h in Headers */,
 				CE6EE3F71F720DC300FBC830 /* InfoViewController.h in Headers */,
 				CE6EE3F81F720DC300FBC830 /* DialogView.h in Headers */,
+				CE88195D1F882EC3000D5AB7 /* DialogViewController.h in Headers */,
 				CE6EE3F91F720DC300FBC830 /* HomeViewController.h in Headers */,
 				CE6EE3FA1F720DC300FBC830 /* LoadingViewController.h in Headers */,
 				CE6EE3FB1F720DC300FBC830 /* MainView.h in Headers */,
@@ -4210,6 +4217,7 @@
 				CE6EE3D81F720D7700FBC830 /* CreditsViewController.c in Sources */,
 				CE6EE3D91F720D7700FBC830 /* InfoViewController.c in Sources */,
 				CE6EE3DA1F720D8700FBC830 /* DialogView.c in Sources */,
+				CE88195C1F882EBE000D5AB7 /* DialogViewController.c in Sources */,
 				CE6EE3DB1F720D8700FBC830 /* HomeViewController.c in Sources */,
 				CE6EE3DC1F720D8700FBC830 /* LoadingViewController.c in Sources */,
 				CE6EE3DD1F720D8700FBC830 /* MainView.c in Sources */,
@@ -4787,6 +4795,7 @@
 					/opt/local/lib/mysql56/mysql,
 					/usr/local/lib,
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				ONLY_ACTIVE_ARCH = YES;
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/src $(SRCROOT)";
 			};
@@ -4830,6 +4839,7 @@
 					/opt/local/lib/mysql56/mysql,
 					/usr/local/lib,
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				ONLY_ACTIVE_ARCH = YES;
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/src $(SRCROOT)";
 			};
