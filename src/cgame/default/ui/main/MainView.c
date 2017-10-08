@@ -22,6 +22,7 @@
 #include "cg_local.h"
 
 #include "MainView.h"
+#include "PrimaryButton.h"
 #include "Theme.h"
 
 #define _Class _MainView
@@ -111,6 +112,18 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 		}
 
 		{
+			self->contentView = $(alloc(View), initWithFrame, NULL);
+			assert(self->contentView);
+
+			self->contentView->autoresizingMask = ViewAutoresizingFill;
+			self->contentView->clipsSubviews = true;
+			self->contentView->padding.top = DEFAULT_PRIMARY_BUTTON_HEIGHT;
+			self->contentView->padding.bottom = DEFAULT_PRIMARY_BUTTON_HEIGHT;
+
+			$(this, addSubview, (View *) self->contentView);
+		}
+
+		{
 			self->topBar = $(alloc(StackView), initWithFrame, NULL);
 			assert(self->topBar);
 
@@ -142,16 +155,6 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 			$((View *) self->topBar, addSubview, (View *) self->primaryIcons);
 
 			$(this, addSubview, (View *) self->topBar);
-		}
-
-		{
-			self->contentView = $(alloc(View), initWithFrame, NULL);
-			assert(self->contentView);
-
-			self->contentView->alignment = ViewAlignmentMiddleCenter;
-			self->contentView->autoresizingMask = ViewAutoresizingContain;
-
-			$(this, addSubview, (View *) self->contentView);
 		}
 
 		{
