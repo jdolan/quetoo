@@ -125,8 +125,7 @@ static void loadView(ViewController *self) {
 	MainView *mainView = $(alloc(MainView), initWithFrame, NULL);
 	assert(mainView);
 
-	release(self->view);
-	self->view = (View *) mainView;
+	$(self, setView, (View *) mainView);
 
 	$(this, primaryButton, mainView->primaryButtons, "Home", _HomeViewController());
 	$(this, primaryButton, mainView->primaryButtons, "Play", _PlayViewController());
