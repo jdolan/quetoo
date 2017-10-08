@@ -107,10 +107,9 @@ void Cl_ParseServerInfo(void) {
 
 	server->ping = Clamp(quetoo.ticks - server->ping_time, 1u, 999u);
 
-	SDL_PushEvent(&(SDL_Event) {
-		.user.type = SDL_USEREVENT,
-		.user.code = EVENT_SERVER_PARSED,
-		.user.data1 = server
+	MVC_PostNotification(&(const Notification) {
+		.name = NOTIFICATION_SERVER_PARSED,
+		.data = server
 	});
 }
 
@@ -268,9 +267,8 @@ void Cl_ParseServers(void) {
 
 	// and inform the user interface
 
-	SDL_PushEvent(&(SDL_Event) {
-		.user.type = SDL_USEREVENT,
-		.user.code = EVENT_SERVER_PARSED,
+	MVC_PostNotification(&(const Notification) {
+		.name = NOTIFICATION_SERVER_PARSED
 	});
 }
 
