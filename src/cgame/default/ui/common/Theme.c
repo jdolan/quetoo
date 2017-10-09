@@ -235,14 +235,15 @@ static Theme *initWithTarget(Theme *self, ident target) {
  */
 static Panel *panel(const Theme *self) {
 
-	Panel *panel = $(alloc(Panel), initWithFrame, NULL);
+	Panel *panel = $(alloc(Panel), initWithFrame, NULL, ControlStyleDefault);
 	assert(panel);
 
 	panel->isDraggable = false;
 	panel->isResizable = false;
-	panel->stackView.view.alignment = ViewAlignmentMiddleCenter;
-	panel->stackView.view.backgroundColor = self->colors.main;
-	panel->stackView.view.borderColor = self->colors.lightBorder;
+
+	panel->control.view.alignment = ViewAlignmentMiddleCenter;
+	panel->control.view.backgroundColor = self->colors.main;
+	panel->control.view.borderColor = self->colors.lightBorder;
 
 	return panel;
 }

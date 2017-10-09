@@ -313,12 +313,12 @@ typedef struct {
 } cl_loading_t;
 
 /**
- * Custom event codes for `SDL_USEREVENT`.
+ * Custom Notification names.
  */
 typedef enum {
-	EVENT_NONE,
-	EVENT_SERVER_PARSED
-} cl_event_t;
+	NOTIFICATION_NONE,
+	NOTIFICATION_SERVER_PARSED
+} cl_notification_t;
 
 /**
  * @brief The cl_static_t structure is persistent for the execution of the

@@ -17,6 +17,7 @@ noinst_HEADERS = \
 	info/InfoViewController.h \
 	\
 	main/DialogView.h \
+	main/DialogViewController.h \
 	main/HomeViewController.h \
 	main/LoadingViewController.h \
 	main/MainView.h \
@@ -59,6 +60,7 @@ libui_la_SOURCES = \
 	info/InfoViewController.c \
 	\
 	main/DialogView.c \
+	main/DialogViewController.c \
 	main/HomeViewController.c \
 	main/LoadingViewController.c \
 	main/MainView.c \
