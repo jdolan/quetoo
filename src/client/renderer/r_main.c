@@ -34,6 +34,7 @@ r_locals_t r_locals;
 
 r_config_t r_config;
 
+cvar_t *r_blend;
 cvar_t *r_clear;
 cvar_t *r_cull;
 cvar_t *r_lock_vis;
@@ -289,6 +290,14 @@ static void R_Clear(void) {
  */
 void R_BeginFrame(void) {
 
+	// disable blending at the beginning of the frame
+	if (r_blend->modified) {
+		if (!r_blend->value) {
+			R_EnableBlend(false);
+		}
+		r_blend->modified = false;
+	}
+
 	// draw buffer stuff
 	if (r_draw_buffer->modified) {
 		if (!g_ascii_strcasecmp(r_draw_buffer->string, "GL_FRONT")) {
@@ -455,7 +464,8 @@ static void R_ResetStainmap_f(void) {
 static void R_InitLocal(void) {
 
 	// development tools
-	r_clear = Cvar_Add("r_clear", "0", 0, "Controls buffer clearing (developer tool)");
+	r_blend = Cvar_Add("r_blend", "1", CVAR_DEVELOPER, "Controls alpha blending operations (developer tool)");
+	r_clear = Cvar_Add("r_clear", "0", CVAR_DEVELOPER, "Controls buffer clearing (developer tool)");
 	r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER, "Controls bounded box culling routines (developer tool)");
 	r_lock_vis = Cvar_Add("r_lock_vis", "0", CVAR_DEVELOPER, "Temporarily locks the PVS lookup for world surfaces (developer tool)");
 	r_no_vis = Cvar_Add("r_no_vis", "0", CVAR_DEVELOPER, "Disables PVS refresh and lookup for world surfaces (developer tool)");

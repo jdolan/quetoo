@@ -76,5 +76,5 @@ void main(void) {
 	}
 
 	// pass the color through as well
-	color = COLOR;
+	color = COLOR * GLOBAL_COLOR;
 }

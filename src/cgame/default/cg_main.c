@@ -137,15 +137,15 @@ static void Cg_Init(void) {
 	                    "Specifies your helmet color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
 
 	cg_draw_blend = cgi.Cvar("cg_draw_blend", "1.0", CVAR_ARCHIVE,
-                                 "Controls the intensity of screen alpha-blending");
-	cg_draw_blend_damage = cgi.Cvar("cg_draw_blend_damage", "1", CVAR_ARCHIVE,
-                                        "Controls if damage has blend flash effect");
-	cg_draw_blend_liquid = cgi.Cvar("cg_draw_blend_liquid", "1", CVAR_ARCHIVE,
-                                        "Controls if being in a liquid has blend flash effect");
-	cg_draw_blend_pickup = cgi.Cvar("cg_draw_blend_pickup", "1", CVAR_ARCHIVE,
-                                        "Controls if picking up items has blend flash effect");
-	cg_draw_blend_powerup = cgi.Cvar("cg_draw_blend_powerup", "1", CVAR_ARCHIVE,
-                                         "Controls if holding a powerup has blend flash effect");
+                                 "Controls the intensity of screen alpha-blending.");
+	cg_draw_blend_damage = cgi.Cvar("cg_draw_blend_damage", "1.0", CVAR_ARCHIVE,
+                                        "Controls the intensity of the blend flash effect when taking damage.");
+	cg_draw_blend_liquid = cgi.Cvar("cg_draw_blend_liquid", "1.0", CVAR_ARCHIVE,
+                                        "Controls the intensity of the blend effect while in a liquid.");
+	cg_draw_blend_pickup = cgi.Cvar("cg_draw_blend_pickup", "1.0", CVAR_ARCHIVE,
+                                        "Controls the intensity of the blend flash effect when picking up items.");
+	cg_draw_blend_powerup = cgi.Cvar("cg_draw_blend_powerup", "1.0", CVAR_ARCHIVE,
+                                         "Controls the intensity of the blend flash effect when holding a powerup.");
 	cg_draw_captures = cgi.Cvar("cg_draw_captures", "1", CVAR_ARCHIVE,
 	                            "Draw the number of captures");
 	cg_draw_crosshair = cgi.Cvar("cg_draw_crosshair", "1", CVAR_ARCHIVE,
@@ -267,8 +267,6 @@ static void Cg_Init(void) {
 	cgi.Cmd("ready", NULL, CMD_CGAME, NULL);
 	cgi.Cmd("unready", NULL, CMD_CGAME, NULL);
 	cgi.Cmd("player_list", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("config_strings", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("baselines", NULL, CMD_CGAME, NULL);
 
 	Cg_InitUi();
 

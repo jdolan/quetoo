@@ -35,6 +35,8 @@
 #include "PlayViewController.h"
 #include "SettingsViewController.h"
 
+#include "DialogViewController.h"
+
 #include "Theme.h"
 
 #define _Class _MainViewController
@@ -44,14 +46,14 @@
 /**
  * @brief Quit the game.
  */
-static void quit(void) {
+static void quit(ident data) {
 	cgi.Cbuf("quit\n");
 }
 
 /**
  * @brief Disconnect from the current game.
  */
-static void disconnect(void) {
+static void disconnect(ident data) {
 	cgi.Cbuf("disconnect\n");
 }
 
@@ -72,13 +74,26 @@ static void action(Control *control, const SDL_Event *event, ident sender, ident
 		$(this->navigationViewController, pushViewController, viewController);
 		release(viewController);
 	} else {
-		MainView *mainView = (MainView *) ((ViewController *) this)->view;
 
+		Dialog dialog;
 		if (*cgi.state >= CL_CONNECTED) {
-			$(mainView->dialog, showDialog, "Are you sure you want to disconnect?", "No", "Yes", disconnect);
+			dialog = (const Dialog) {
+				.message = "Are you sure you want to disconnect?",
+				.ok = "Yes",
+				.cancel = "No",
+				.okFunction = disconnect
+			};
 		} else {
-			$(mainView->dialog, showDialog, "Are you sure you want to quit?", "No", "Yes", quit);
+			dialog = (const Dialog) {
+				.message = "Are you sure you want to quit?",
+				.ok = "Yes",
+				.cancel = "No",
+				.okFunction = quit
+			};
 		}
+
+		ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, &dialog);
+		$((ViewController *) this, addChildViewController, viewController);
 	}
 }
 
@@ -110,8 +125,7 @@ static void loadView(ViewController *self) {
 	MainView *mainView = $(alloc(MainView), initWithFrame, NULL);
 	assert(mainView);
 
-	release(self->view);
-	self->view = (View *) mainView;
+	$(self, setView, (View *) mainView);
 
 	$(this, primaryButton, mainView->primaryButtons, "Home", _HomeViewController());
 	$(this, primaryButton, mainView->primaryButtons, "Play", _PlayViewController());

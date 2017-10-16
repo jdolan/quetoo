@@ -936,6 +936,10 @@ static void G_CheckRules(void) {
 				g_teams->modified = true;
 			}
 
+			if (g_strcmp0(g_num_teams->string, "default") && g_num_teams->integer != 2) {
+				gi.CvarSet(g_num_teams->name, "default");
+			}
+
 			if (g_match->integer == 0) {
 				g_match->integer = 1;
 				g_match->modified = true;
@@ -1007,7 +1011,7 @@ static void G_CheckRules(void) {
 		if (g_level.num_teams != num_teams) {
 			g_level.num_teams = num_teams;
 
-			if (g_teams->integer) {
+			if (g_teams->integer || g_ctf->integer) {
 				G_InitNumTeams();
 
 				gi.BroadcastPrint(PRINT_HIGH, "Number of teams set to %i\n",
@@ -1339,7 +1343,7 @@ void G_Init(void) {
 	                     "Allows usage of player handicap. 0 disallows handicap, 1 allows handicap, 2 allows handicap but disables damage reduction. (default 1)");
 	g_inhibit = gi.Cvar("g_inhibit", "", CVAR_SERVER_INFO,
 	                    "Prevents entities from spawning using a class name filter (e.g.: \"weapon_bfg ammo_nukes item_quad\")");
-	g_num_teams = gi.Cvar("g_num_teams", "default", CVAR_SERVER_INFO, "The number of teams allowed. By default, picks the valid amount for the map, or 2.");
+	g_num_teams = gi.Cvar("g_num_teams", "default", CVAR_SERVER_INFO, "The number of teams allowed. By default, picks the valid amount for the map, 2 for team games, or 1 for DM.");
 	g_match = gi.Cvar("g_match", "0", CVAR_SERVER_INFO, "Enables match play requiring players to ready");
 	g_max_entities = gi.Cvar("g_max_entities", "1024", CVAR_LATCH, NULL);
 	g_motd = gi.Cvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect");

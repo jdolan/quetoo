@@ -253,11 +253,21 @@ static void dealloc(Object *self) {
 #pragma mark - ViewController
 
 /**
+ * @see ViewController::handleNotification(ViewController *, const Notification *)
+ */
+static void handleNotification(ViewController *self, const Notification *notification) {
+
+	if (notification->name == NOTIFICATION_SERVER_PARSED) {
+		$((JoinServerViewController *) self, reloadServers);
+	}
+
+	super(ViewController, self, handleNotification, notification);
+}
+
+/**
  * @see ViewController::loadView(ViewController *)
  */
 static void loadView(ViewController *self) {
-
-	cgi.GetServers();
 
 	super(ViewController, self, loadView);
 
@@ -341,27 +351,19 @@ static void loadView(ViewController *self) {
 }
 
 /**
- * @see ViewController::respondToEvent(ViewController *, const SDL_Event *)
- */
-static void respondToEvent(ViewController *self, const SDL_Event *event) {
-
-	if (event->type == SDL_USEREVENT) {
-		if (event->user.code == EVENT_SERVER_PARSED) {
-			$((JoinServerViewController *) self, reloadServers);
-		}
-	}
-
-	super(ViewController, self, respondToEvent, event);
-}
-
-/**
  * @see ViewController::viewWillAppear(ViewController *)
  */
 static void viewWillAppear(ViewController *self) {
 
 	super(ViewController, self, viewWillAppear);
 
-	$((JoinServerViewController *) self, reloadServers);
+	JoinServerViewController *this = (JoinServerViewController *) self;
+
+	if (this->servers == NULL) {
+		cgi.GetServers();
+	} else {
+		$(this, reloadServers);
+	}
 }
 
 #pragma mark - JoinServerViewController
@@ -430,9 +432,9 @@ static void initialize(Class *clazz) {
 
 	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
 
+	((ViewControllerInterface *) clazz->def->interface)->handleNotification = handleNotification;
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 	((ViewControllerInterface *) clazz->def->interface)->viewWillAppear = viewWillAppear;
-	((ViewControllerInterface *) clazz->def->interface)->respondToEvent = respondToEvent;
 
 	((JoinServerViewControllerInterface *) clazz->def->interface)->reloadServers = reloadServers;
 }

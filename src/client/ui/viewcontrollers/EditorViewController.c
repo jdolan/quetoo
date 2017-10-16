@@ -69,7 +69,6 @@ static void didSetValue(Slider *slider) {
 static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
-	release(self->view);
 
 	EditorView *view = $(alloc(EditorView), initWithFrame, NULL);
 
@@ -87,7 +86,7 @@ static void loadView(ViewController *self) {
 
 	$((Control *) view->saveButton, addActionForEventType, SDL_MOUSEBUTTONUP, saveAction, self, NULL);
 
-	self->view = (View *) view;
+	$(self, setView, (View *) view);
 }
 
 #pragma mark - EditorViewController
