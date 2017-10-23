@@ -805,10 +805,6 @@ void R_ExportBSP_f(void) {
 		AddPointToBounds(vertex->vertex, mins, maxs);
 	}
 
-	vec3_t center;
-	VectorAdd(mins, maxs, center);
-	VectorScale(center, 0.5, center);
-
 	Com_Print("Writing vertices...\n");
 
 	Fs_Print(file, "# Wavefront OBJ exported by Quetoo\n\n");
@@ -817,7 +813,7 @@ void R_ExportBSP_f(void) {
 	vertex = vbuff;
 	for (size_t i = 0; i < num_vertices; i++, vertex++) {
 
-		Fs_Print(file, "v %f %f %f\nvt %f %f\nvn %f %f %f\n",	-(vertex->vertex[0] - center[0]), vertex->vertex[2] - center[2], vertex->vertex[1] - center[1],
+		Fs_Print(file, "v %f %f %f\nvt %f %f\nvn %f %f %f\n",	-vertex->vertex[0], vertex->vertex[2], vertex->vertex[1],
 																vertex->diffuse[0], vertex->diffuse[1],
 																-vertex->normal[0], vertex->normal[2], vertex->normal[1]);
 	}
