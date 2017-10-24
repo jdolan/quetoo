@@ -55,6 +55,7 @@
     <ClInclude Include="..\src\cgame\default\ui\info\CreditsViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\info\InfoViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\main\DialogView.h" />
+    <ClInclude Include="..\src\cgame\default\ui\main\DialogViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\main\HomeViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\main\LoadingViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\main\MainView.h" />
@@ -110,6 +111,7 @@
     <ClCompile Include="..\src\cgame\default\ui\info\CreditsViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\info\InfoViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\main\DialogView.c" />
+    <ClCompile Include="..\src\cgame\default\ui\main\DialogViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\main\HomeViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\main\LoadingViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\main\MainView.c" />

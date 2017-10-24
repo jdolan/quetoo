@@ -189,6 +189,9 @@
     <ClInclude Include="..\src\cgame\default\ui\common\BindTextView.h">
       <Filter>src\default\ui\common</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\default\ui\main\DialogViewController.h">
+      <Filter>src\default\ui\main</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="cgame.def" />
@@ -343,6 +346,9 @@
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\common\BindTextView.c">
       <Filter>src\default\ui\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\ui\main\DialogViewController.c">
+      <Filter>src\default\ui\main</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

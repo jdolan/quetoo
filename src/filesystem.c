@@ -686,9 +686,9 @@ void Fs_Init(const uint32_t flags) {
 	// if the base directory was not resolved, add the default search paths
 	if (strlen(fs_state.base_dir)) {
 		Com_Debug(DEBUG_FILESYSTEM, "Resolved base dir: %s\n", fs_state.base_dir);
-	} else {
-		Fs_AddToSearchPath(PKGLIBDIR G_DIR_SEPARATOR_S DEFAULT_GAME);
-		Fs_AddToSearchPath(PKGDATADIR G_DIR_SEPARATOR_S DEFAULT_GAME);
+	} else { // trailing slash is added to "fix" links on Linux, possibly causes issues on other platforms?
+		Fs_AddToSearchPath(PKGLIBDIR G_DIR_SEPARATOR_S DEFAULT_GAME G_DIR_SEPARATOR_S);
+		Fs_AddToSearchPath(PKGDATADIR G_DIR_SEPARATOR_S DEFAULT_GAME G_DIR_SEPARATOR_S);
 	}
 
 	// then add the game directory in the user's home directory

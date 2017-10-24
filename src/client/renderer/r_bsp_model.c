@@ -737,6 +737,142 @@ static r_buffer_layout_t r_bsp_buffer_layout[] = {
 };
 
 /**
+ * @brief Function for exporting a BSP to an OBJ.
+ */
+void R_ExportBSP_f(void) {
+	const r_model_t *world = R_WorldModel();
+
+	if (!world) {
+		return;
+	}
+	
+	Com_Print("Dumping BSP...\n");
+	
+	char modelname[MAX_QPATH];
+	g_snprintf(modelname, sizeof(modelname), "export/%s.obj", Basename(world->media.name));
+	
+	char mtlname[MAX_QPATH], mtlpath[MAX_QPATH];
+	g_snprintf(mtlname, sizeof(mtlname), "%s.mtl", Basename(world->media.name));
+	g_snprintf(mtlpath, sizeof(mtlpath), "export/%s.mtl", Basename(world->media.name));
+	
+	R_BindBuffer(&world->bsp->vertex_buffer);
+
+	file_t *file = Fs_OpenWrite(mtlpath);
+
+	GHashTable *materials = g_hash_table_new(g_direct_hash, g_direct_equal);
+	size_t num_materials = 0;
+
+	// write out unique materials
+	for (size_t i = 0; i < world->bsp->num_surfaces; i++) {
+		const r_bsp_surface_t *surf = &world->bsp->surfaces[i];
+		
+		if (!surf->num_edges || !surf->texinfo->material) {
+			continue;
+		}
+
+		if (g_hash_table_contains(materials, surf->texinfo->material)) {
+			continue;
+		}
+
+		const r_image_t *diffuse = surf->texinfo->material->diffuse;
+		
+		Fs_Print(file, "newmtl %s\n", diffuse->media.name);
+		Fs_Print(file, "map_Ka %s.png\n", diffuse->media.name);
+		Fs_Print(file, "map_Kd %s.png\n\n", diffuse->media.name);
+
+		char path[MAX_OS_PATH];
+		g_snprintf(path, sizeof(path), "export/%s.png", diffuse->media.name);
+
+		R_DumpImage(diffuse, path);
+
+		g_hash_table_insert(materials, surf->texinfo->material, (gpointer) num_materials);
+		num_materials++;
+	}
+	
+	Fs_Close(file);
+
+	file = Fs_OpenWrite(modelname);
+	
+	const r_bsp_interleave_vertex_t *vbuff = (const r_bsp_interleave_vertex_t *) glMapBufferRange(GL_ARRAY_BUFFER, 0, world->bsp->vertex_buffer.size, GL_MAP_READ_BIT);
+	const size_t num_vertices = world->bsp->vertex_buffer.size / sizeof(r_bsp_interleave_vertex_t);
+
+	Com_Print("Calculating extents...\n");
+	vec3_t mins, maxs;
+	ClearBounds(mins, maxs);
+
+	const r_bsp_interleave_vertex_t *vertex = vbuff;
+	for (size_t i = 0; i < num_vertices; i++, vertex++) {
+		AddPointToBounds(vertex->vertex, mins, maxs);
+	}
+
+	Com_Print("Writing vertices...\n");
+
+	Fs_Print(file, "# Wavefront OBJ exported by Quetoo\n\n");
+	Fs_Print(file, "mtllib %s\n\n", mtlname);
+
+	vertex = vbuff;
+	for (size_t i = 0; i < num_vertices; i++, vertex++) {
+
+		Fs_Print(file, "v %f %f %f\nvt %f %f\nvn %f %f %f\n",	-vertex->vertex[0], vertex->vertex[2], vertex->vertex[1],
+																vertex->diffuse[0], vertex->diffuse[1],
+																-vertex->normal[0], vertex->normal[2], vertex->normal[1]);
+	}
+	
+	Fs_Print(file, "# %" PRIdMAX " vertices\n\n", num_vertices);
+	
+	Com_Print("Writing elements...\n");
+
+	size_t num_surfs = 0;
+
+	GHashTableIter iter;
+	gpointer key;
+	g_hash_table_iter_init(&iter, materials);
+
+	while (g_hash_table_iter_next (&iter, &key, NULL)) {
+		const r_material_t *material = (const r_material_t *) key;
+		
+		Fs_Print(file, "g %s\n", material->diffuse->media.name);
+		Fs_Print(file, "usemtl %s\n", material->diffuse->media.name);
+
+		for (size_t i = 0; i < world->bsp->num_surfaces; i++) {
+			const r_bsp_surface_t *surf = &world->bsp->surfaces[i];
+
+			if (!surf->num_edges || !surf->texinfo->material) {
+				continue;
+			}
+
+			if (surf->texinfo->material != material) {
+				continue;
+			}
+
+			num_surfs++;
+
+			const uint32_t *element = surf->elements + surf->num_edges - 1;
+
+			Fs_Print(file, "f ");
+
+			for (size_t i = 0; i < surf->num_edges; i++, element--) {
+				const uint32_t e = (*element) + 1;
+				Fs_Print(file, "%u/%u/%u ", e, e, e);
+			}
+
+			Fs_Print(file, "\n");
+		}
+
+		Fs_Print(file, "\n");
+	}
+	
+	Fs_Print(file, "# %" PRIdMAX " surfaces\n\n", num_surfs);
+	Fs_Close(file);
+
+	g_hash_table_destroy(materials);
+
+	glUnmapBuffer(GL_ARRAY_BUFFER);
+
+	Com_Print("Done!\n");
+}
+
+/**
  * @brief Generates vertex primitives for the world model by iterating leafs.
  */
 static void R_LoadBspVertexArrays(r_model_t *mod) {
