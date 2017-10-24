@@ -156,7 +156,7 @@ void R_FilterImage(r_image_t *image, GLenum format, byte *data, _Bool premultipl
 	}
 
 	if (image->type == IT_LIGHTMAP) {
-		brightness = r_modulate->value;
+		brightness = 1.0;
 		mask = 2;
 	} else {
 		brightness = r_brightness->value;
