@@ -4,7 +4,7 @@ noinst_HEADERS = \
 	common/CvarSelect.h \
 	common/CvarSlider.h \
 	common/CvarTextView.h \
-	common/Theme.h \
+	common/QuetooTheme.h \
 	\
 	controls/ControlsViewController.h \
 	controls/CrosshairView.h \
@@ -47,7 +47,7 @@ libui_la_SOURCES = \
 	common/CvarSelect.c \
 	common/CvarSlider.c \
 	common/CvarTextView.c \
-	common/Theme.c \
+	common/QuetooTheme.c \
 	\
 	controls/ControlsViewController.c \
 	controls/CrosshairView.c \

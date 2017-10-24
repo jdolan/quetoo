@@ -177,7 +177,7 @@
 		CE6EE3D31F720D6700FBC830 /* CvarSelect.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58709E1F5CE97C004CAAB2 /* CvarSelect.c */; };
 		CE6EE3D41F720D6700FBC830 /* CvarSlider.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870A01F5CE97C004CAAB2 /* CvarSlider.c */; };
 		CE6EE3D51F720D6700FBC830 /* CvarTextView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870A21F5CE97C004CAAB2 /* CvarTextView.c */; };
-		CE6EE3D71F720D6700FBC830 /* Theme.c in Sources */ = {isa = PBXBuildFile; fileRef = CE107D7C1F6592860010A1DA /* Theme.c */; };
+		CE6EE3D71F720D6700FBC830 /* QuetooTheme.c in Sources */ = {isa = PBXBuildFile; fileRef = CE107D7C1F6592860010A1DA /* QuetooTheme.c */; };
 		CE6EE3D81F720D7700FBC830 /* CreditsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58707A1F5CDFE0004CAAB2 /* CreditsViewController.c */; };
 		CE6EE3D91F720D7700FBC830 /* InfoViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58707C1F5CDFE0004CAAB2 /* InfoViewController.c */; };
 		CE6EE3DA1F720D8700FBC830 /* DialogView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6EE2791F6BE8FE00FBC830 /* DialogView.c */; };
@@ -200,7 +200,7 @@
 		CE6EE3F11F720DC300FBC830 /* CvarSelect.h in Headers */ = {isa = PBXBuildFile; fileRef = CE58709F1F5CE97C004CAAB2 /* CvarSelect.h */; };
 		CE6EE3F21F720DC300FBC830 /* CvarSlider.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870A11F5CE97C004CAAB2 /* CvarSlider.h */; };
 		CE6EE3F31F720DC300FBC830 /* CvarTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870A31F5CE97C004CAAB2 /* CvarTextView.h */; };
-		CE6EE3F51F720DC300FBC830 /* Theme.h in Headers */ = {isa = PBXBuildFile; fileRef = CE107D7D1F6592860010A1DA /* Theme.h */; };
+		CE6EE3F51F720DC300FBC830 /* QuetooTheme.h in Headers */ = {isa = PBXBuildFile; fileRef = CE107D7D1F6592860010A1DA /* QuetooTheme.h */; };
 		CE6EE3F61F720DC300FBC830 /* CreditsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE58707B1F5CDFE0004CAAB2 /* CreditsViewController.h */; };
 		CE6EE3F71F720DC300FBC830 /* InfoViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE58707D1F5CDFE0004CAAB2 /* InfoViewController.h */; };
 		CE6EE3F81F720DC300FBC830 /* DialogView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6EE27A1F6BE8FE00FBC830 /* DialogView.h */; };
@@ -952,8 +952,8 @@
 		CE0B647C1D8979160011F974 /* fonts.conf */ = {isa = PBXFileReference; lastKnownFileType = text; path = fonts.conf; sourceTree = "<group>"; };
 		CE0B647E1D8979780011F974 /* fonts.conf */ = {isa = PBXFileReference; lastKnownFileType = text; path = fonts.conf; sourceTree = "<group>"; };
 		CE0B64811D89955B0011F974 /* .turd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
-		CE107D7C1F6592860010A1DA /* Theme.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Theme.c; sourceTree = "<group>"; };
-		CE107D7D1F6592860010A1DA /* Theme.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Theme.h; sourceTree = "<group>"; };
+		CE107D7C1F6592860010A1DA /* QuetooTheme.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = QuetooTheme.c; sourceTree = "<group>"; };
+		CE107D7D1F6592860010A1DA /* QuetooTheme.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QuetooTheme.h; sourceTree = "<group>"; };
 		CE12D4A71C5C58C300CD0B13 /* config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
 		CE12D4A81C5C58C300CD0B13 /* configure.ac */ = {isa = PBXFileReference; lastKnownFileType = text; path = configure.ac; sourceTree = "<group>"; };
 		CE12D4FF1C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -2928,8 +2928,8 @@
 				CE5870A11F5CE97C004CAAB2 /* CvarSlider.h */,
 				CE5870A21F5CE97C004CAAB2 /* CvarTextView.c */,
 				CE5870A31F5CE97C004CAAB2 /* CvarTextView.h */,
-				CE107D7C1F6592860010A1DA /* Theme.c */,
-				CE107D7D1F6592860010A1DA /* Theme.h */,
+				CE107D7C1F6592860010A1DA /* QuetooTheme.c */,
+				CE107D7D1F6592860010A1DA /* QuetooTheme.h */,
 			);
 			path = common;
 			sourceTree = "<group>";
@@ -3181,7 +3181,7 @@
 				CE6EE3F11F720DC300FBC830 /* CvarSelect.h in Headers */,
 				CE6EE3F21F720DC300FBC830 /* CvarSlider.h in Headers */,
 				CE6EE3F31F720DC300FBC830 /* CvarTextView.h in Headers */,
-				CE6EE3F51F720DC300FBC830 /* Theme.h in Headers */,
+				CE6EE3F51F720DC300FBC830 /* QuetooTheme.h in Headers */,
 				CE1A28411F75FEB1005F62A9 /* ControlsViewController.h in Headers */,
 				CE1A28491F7600AC005F62A9 /* CrosshairView.h in Headers */,
 				CE1A283D1F75FE70005F62A9 /* LookViewController.h in Headers */,
@@ -4207,7 +4207,7 @@
 				CE6EE3D31F720D6700FBC830 /* CvarSelect.c in Sources */,
 				CE6EE3D41F720D6700FBC830 /* CvarSlider.c in Sources */,
 				CE6EE3D51F720D6700FBC830 /* CvarTextView.c in Sources */,
-				CE6EE3D71F720D6700FBC830 /* Theme.c in Sources */,
+				CE6EE3D71F720D6700FBC830 /* QuetooTheme.c in Sources */,
 				CE1A28401F75FEB1005F62A9 /* ControlsViewController.c in Sources */,
 				CE1A28481F7600AC005F62A9 /* CrosshairView.c in Sources */,
 				CE1A283C1F75FE70005F62A9 /* LookViewController.c in Sources */,

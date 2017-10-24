@@ -24,7 +24,7 @@
 
 #include "CreditsViewController.h"
 
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 static const char *_name = "Name";
 static const char *_role = "Role";

@@ -125,7 +125,7 @@ static void initialize(Class *clazz) {
 }
 
 /**
- * @fn Class *DialogViewController::____FILEBASENAMEASIDENTIFIER___(void)
+ * @fn Class *DialogViewController::_DialogViewController(void)
  * @memberof DialogViewController
  */
 Class *_DialogViewController(void) {

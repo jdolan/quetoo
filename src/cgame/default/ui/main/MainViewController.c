@@ -37,7 +37,7 @@
 
 #include "DialogViewController.h"
 
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 #define _Class _MainViewController
 

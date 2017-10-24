@@ -25,7 +25,7 @@
 
 #include "CreditsViewController.h"
 
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 #define _Class _InfoViewController
 
@@ -54,7 +54,7 @@ static void loadView(ViewController *self) {
 
 	InfoViewController *this = (InfoViewController *) self;
 
-	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
 	assert(theme);
 
 	Panel *panel = $(theme, panel);

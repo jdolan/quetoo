@@ -21,7 +21,7 @@
 
 #include "cg_local.h"
 
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 #include "BindTextView.h"
 #include "CvarCheckbox.h"
@@ -29,15 +29,15 @@
 #include "CvarSlider.h"
 #include "CvarTextView.h"
 
-#define _Class _Theme
+#define _Class _QuetooTheme
 
-#pragma mark - Theme
+#pragma mark - QuetooTheme
 
 /**
- * @fn StackView *Theme::accessories(const Theme *self)
- * @memberof Theme
+ * @fn StackView *QuetooTheme::accessories(const QuetooTheme *self)
+ * @memberof QuetooTheme
  */
-static StackView *accessories(const Theme *self) {
+static StackView *accessories(const QuetooTheme *self) {
 
 	StackView *accessories = $(self, container);
 
@@ -48,10 +48,10 @@ static StackView *accessories(const Theme *self) {
 }
 
 /**
- * @fn void Theme::attach(const Theme *self, ident view)
- * @memberof Theme
+ * @fn void QuetooTheme::attach(const QuetooTheme *self, ident view)
+ * @memberof QuetooTheme
  */
-static void attach(const Theme *self, ident view) {
+static void attach(const QuetooTheme *self, ident view) {
 
 	assert(self->target);
 
@@ -59,10 +59,10 @@ static void attach(const Theme *self, ident view) {
 }
 
 /**
- * @fn void Theme::bindTextView(const Theme *self, const char *label, const char *bind, TextViewDelegate *delegate)
- * @memberof Theme
+ * @fn void QuetooTheme::bindTextView(const QuetooTheme *self, const char *label, const char *bind, TextViewDelegate *delegate)
+ * @memberof QuetooTheme
  */
-static void bindTextView(const Theme *self, const char *label, const char *bind, TextViewDelegate *delegate) {
+static void bindTextView(const QuetooTheme *self, const char *label, const char *bind, TextViewDelegate *delegate) {
 
 	TextView *textView = (TextView *) $(alloc(BindTextView), initWithBind, bind);
 	assert(textView);
@@ -77,10 +77,10 @@ static void bindTextView(const Theme *self, const char *label, const char *bind,
 
 
 /**
- * @fn Bpx *Theme::box(const Theme *self, const char *label)
- * @memberof Theme
+ * @fn Bpx *QuetooTheme::box(const QuetooTheme *self, const char *label)
+ * @memberof QuetooTheme
  */
-static Box *box(const Theme *self, const char *label) {
+static Box *box(const QuetooTheme *self, const char *label) {
 
 	Box *box = $(alloc(Box), initWithFrame, NULL);
 	assert(box);
@@ -92,10 +92,10 @@ static Box *box(const Theme *self, const char *label) {
 }
 
 /**
- * @fn void Theme::button(const Theme *self, const char *title, ActionFunction function, ident sender, ident data)
- * @memberof Theme
+ * @fn void QuetooTheme::button(const QuetooTheme *self, const char *title, ActionFunction function, ident sender, ident data)
+ * @memberof QuetooTheme
  */
-static void button(const Theme *self, const char *title, ActionFunction function, ident sender, ident data) {
+static void button(const QuetooTheme *self, const char *title, ActionFunction function, ident sender, ident data) {
 
 	Control *button = (Control *) $(alloc(Button), initWithTitle, title, ControlStyleDefault);
 	assert(button);
@@ -107,10 +107,10 @@ static void button(const Theme *self, const char *title, ActionFunction function
 }
 
 /**
- * @fn void Theme::checkbox(const Theme *self, const char *label, const char *name)
- * @memberof Theme
+ * @fn void QuetooTheme::checkbox(const QuetooTheme *self, const char *label, const char *name)
+ * @memberof QuetooTheme
  */
-static void checkbox(const Theme *self, const char *label, const char *name) {
+static void checkbox(const QuetooTheme *self, const char *label, const char *name) {
 
 	CvarCheckbox *checkbox = $(alloc(CvarCheckbox), initWithVariable, cgi.CvarGet(name));
 	assert(checkbox);
@@ -120,10 +120,10 @@ static void checkbox(const Theme *self, const char *label, const char *name) {
 }
 
 /**
- * @fn StackView *Theme::columns(const Theme *self, size_t count)
- * @memberof Theme
+ * @fn StackView *QuetooTheme::columns(const QuetooTheme *self, size_t count)
+ * @memberof QuetooTheme
  */
-static StackView *columns(const Theme *self, size_t count) {
+static StackView *columns(const QuetooTheme *self, size_t count) {
 
 	StackView *columns = $(self, container);
 
@@ -140,10 +140,10 @@ static StackView *columns(const Theme *self, size_t count) {
 }
 
 /**
- * @fn StackView *Theme::container(const Theme *self)
- * @memberof Theme
+ * @fn StackView *QuetooTheme::container(const QuetooTheme *self)
+ * @memberof QuetooTheme
  */
-static StackView *container(const Theme *self) {
+static StackView *container(const QuetooTheme *self) {
 
 	StackView *container = $(alloc(StackView), initWithFrame, NULL);
 	assert(container);
@@ -153,10 +153,10 @@ static StackView *container(const Theme *self) {
 }
 
 /**
- * @fn void Theme::control(const Theme *self, const char *label, ident control)
- * @memberof Theme
+ * @fn void QuetooTheme::control(const QuetooTheme *self, const char *label, ident control)
+ * @memberof QuetooTheme
  */
-static void control(const Theme *self, const char *label, ident control) {
+static void control(const QuetooTheme *self, const char *label, ident control) {
 
 	Input *input = $(alloc(Input), initWithFrame, NULL);
 	assert(input);
@@ -172,10 +172,10 @@ static void control(const Theme *self, const char *label, ident control) {
 }
 
 /**
- * @fn ImageView *Theme::imageView(const Theme *self, const char *name, const SDL_Rect *frame)
- * @memberof Theme
+ * @fn ImageView *QuetooTheme::imageView(const QuetooTheme *self, const char *name, const SDL_Rect *frame)
+ * @memberof QuetooTheme
  */
-static ImageView *image(const Theme *self, const char *name, const SDL_Rect *frame) {
+static ImageView *image(const QuetooTheme *self, const char *name, const SDL_Rect *frame) {
 
 	ImageView *image = $(alloc(ImageView), initWithFrame, frame);
 	assert(image);
@@ -192,22 +192,22 @@ static ImageView *image(const Theme *self, const char *name, const SDL_Rect *fra
 }
 
 /**
- * @fn Theme *Theme::init(Theme *self)
- * @memberof Theme
+ * @fn QuetooTheme *QuetooTheme::init(QuetooTheme *self)
+ * @memberof QuetooTheme
  */
-static Theme *init(Theme *self) {
+static QuetooTheme *init(QuetooTheme *self) {
 	return $(self, initWithTarget, NULL);
 }
 
 /**
- * @fn Theme *Theme::init(Theme *self)
- * @memberof Theme
+ * @fn QuetooTheme *QuetooTheme::init(QuetooTheme *self)
+ * @memberof QuetooTheme
  */
-static Theme *initWithTarget(Theme *self, ident target) {
+static QuetooTheme *initWithTarget(QuetooTheme *self, ident target) {
 
-	self = (Theme *) super(Object, self, init);
+	self = (QuetooTheme *) super(Object, self, init);
 	if (self) {
-		self->colors = (ThemeColors) {
+		self->colors = (QuetooThemeColors) {
 			.main = { 128, 128, 128, 224 },
 			.mainHighlight = { 80, 80, 80, 80 },
 
@@ -230,10 +230,10 @@ static Theme *initWithTarget(Theme *self, ident target) {
 }
 
 /**
- * @fn Panel *Theme::panel(const Theme *self)
- * @memberof Theme
+ * @fn Panel *QuetooTheme::panel(const QuetooTheme *self)
+ * @memberof QuetooTheme
  */
-static Panel *panel(const Theme *self) {
+static Panel *panel(const QuetooTheme *self) {
 
 	Panel *panel = $(alloc(Panel), initWithFrame, NULL, ControlStyleDefault);
 	assert(panel);
@@ -249,10 +249,10 @@ static Panel *panel(const Theme *self) {
 }
 
 /**
- * @fn void Theme::slider(const Theme *self, const char *label, const char *name, double min, double max, double step, SliderDelegate *delegate)
- * @memberof Theme
+ * @fn void QuetooTheme::slider(const QuetooTheme *self, const char *label, const char *name, double min, double max, double step, SliderDelegate *delegate)
+ * @memberof QuetooTheme
  */
-static void slider(const Theme *self, const char *label, const char *name,
+static void slider(const QuetooTheme *self, const char *label, const char *name,
 				   double min, double max, double step, SliderDelegate *delegate) {
 
 	Slider *slider = (Slider *) $(alloc(CvarSlider), initWithVariable, cgi.CvarGet(name), min, max, step);
@@ -267,10 +267,10 @@ static void slider(const Theme *self, const char *label, const char *name,
 }
 
 /**
- * @fn void Theme::target(Theme *self, ident target)
- * @memberof Theme
+ * @fn void QuetooTheme::target(QuetooTheme *self, ident target)
+ * @memberof QuetooTheme
  */
-static void target(Theme *self, ident target) {
+static void target(QuetooTheme *self, ident target) {
 
 	if (target) {
 		self->target = cast(View, target);
@@ -280,10 +280,10 @@ static void target(Theme *self, ident target) {
 }
 
 /**
- * @fn void Theme::target(Theme *self, ident target)
- * @memberof Theme
+ * @fn void QuetooTheme::target(QuetooTheme *self, ident target)
+ * @memberof QuetooTheme
  */
-static void targetSubview(Theme *self, ident view, int index) {
+static void targetSubview(QuetooTheme *self, ident view, int index) {
 
 	assert(view);
 
@@ -293,10 +293,10 @@ static void targetSubview(Theme *self, ident view, int index) {
 }
 
 /**
- * @fn void Theme::textView(const Theme *self, const char *label, const char *name)
- * @memberof Theme
+ * @fn void QuetooTheme::textView(const QuetooTheme *self, const char *label, const char *name)
+ * @memberof QuetooTheme
  */
-static void textView(const Theme *self, const char *label, const char *name) {
+static void textView(const QuetooTheme *self, const char *label, const char *name) {
 
 	CvarTextView *textView = $(alloc(CvarTextView), initWithVariable, cgi.CvarGet(name));
 	assert(textView);
@@ -312,39 +312,39 @@ static void textView(const Theme *self, const char *label, const char *name) {
  */
 static void initialize(Class *clazz) {
 
-	((ThemeInterface *) clazz->def->interface)->accessories = accessories;
-	((ThemeInterface *) clazz->def->interface)->attach = attach;
-	((ThemeInterface *) clazz->def->interface)->bindTextView = bindTextView;
-	((ThemeInterface *) clazz->def->interface)->box = box;
-	((ThemeInterface *) clazz->def->interface)->button = button;
-	((ThemeInterface *) clazz->def->interface)->checkbox = checkbox;
-	((ThemeInterface *) clazz->def->interface)->columns = columns;
-	((ThemeInterface *) clazz->def->interface)->container = container;
-	((ThemeInterface *) clazz->def->interface)->control = control;
-	((ThemeInterface *) clazz->def->interface)->image = image;
-	((ThemeInterface *) clazz->def->interface)->init = init;
-	((ThemeInterface *) clazz->def->interface)->initWithTarget = initWithTarget;
-	((ThemeInterface *) clazz->def->interface)->panel = panel;
-	((ThemeInterface *) clazz->def->interface)->slider = slider;
-	((ThemeInterface *) clazz->def->interface)->target = target;
-	((ThemeInterface *) clazz->def->interface)->targetSubview = targetSubview;
-	((ThemeInterface *) clazz->def->interface)->textView = textView;
+	((QuetooThemeInterface *) clazz->def->interface)->accessories = accessories;
+	((QuetooThemeInterface *) clazz->def->interface)->attach = attach;
+	((QuetooThemeInterface *) clazz->def->interface)->bindTextView = bindTextView;
+	((QuetooThemeInterface *) clazz->def->interface)->box = box;
+	((QuetooThemeInterface *) clazz->def->interface)->button = button;
+	((QuetooThemeInterface *) clazz->def->interface)->checkbox = checkbox;
+	((QuetooThemeInterface *) clazz->def->interface)->columns = columns;
+	((QuetooThemeInterface *) clazz->def->interface)->container = container;
+	((QuetooThemeInterface *) clazz->def->interface)->control = control;
+	((QuetooThemeInterface *) clazz->def->interface)->image = image;
+	((QuetooThemeInterface *) clazz->def->interface)->init = init;
+	((QuetooThemeInterface *) clazz->def->interface)->initWithTarget = initWithTarget;
+	((QuetooThemeInterface *) clazz->def->interface)->panel = panel;
+	((QuetooThemeInterface *) clazz->def->interface)->slider = slider;
+	((QuetooThemeInterface *) clazz->def->interface)->target = target;
+	((QuetooThemeInterface *) clazz->def->interface)->targetSubview = targetSubview;
+	((QuetooThemeInterface *) clazz->def->interface)->textView = textView;
 }
 
 /**
- * @fn Class *Theme::_Theme(void)
- * @memberof Theme
+ * @fn Class *QuetooTheme::_QuetooTheme(void)
+ * @memberof QuetooTheme
  */
-Class *_Theme(void) {
+Class *_QuetooTheme(void) {
 	static Class clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "Theme";
+		clazz.name = "QuetooTheme";
 		clazz.superclass = _Object();
-		clazz.instanceSize = sizeof(Theme);
-		clazz.interfaceOffset = offsetof(Theme, interface);
-		clazz.interfaceSize = sizeof(ThemeInterface);
+		clazz.instanceSize = sizeof(QuetooTheme);
+		clazz.interfaceOffset = offsetof(QuetooTheme, interface);
+		clazz.interfaceSize = sizeof(QuetooThemeInterface);
 		clazz.initialize = initialize;
 	});
 
