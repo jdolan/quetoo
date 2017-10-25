@@ -814,7 +814,7 @@ void R_ExportBSP_f(void) {
 	for (size_t i = 0; i < num_vertices; i++, vertex++) {
 
 		Fs_Print(file, "v %f %f %f\nvt %f %f\nvn %f %f %f\n",	-vertex->vertex[0], vertex->vertex[2], vertex->vertex[1],
-																vertex->diffuse[0], vertex->diffuse[1],
+																vertex->diffuse[0], -vertex->diffuse[1],
 																-vertex->normal[0], vertex->normal[2], vertex->normal[1]);
 	}
 	
