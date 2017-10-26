@@ -268,16 +268,10 @@ static void R_UploadPackedLightmaps(const uint32_t width, const uint32_t height,
 	// write to cache
 	if (r_lightmap_state.cache_file) {
 
-		const int32_t position = (end == NULL) ? g_slist_length(start) : g_slist_position(start, end);
-
-		if (position != num_surfs || !position) {
-			Com_Error(ERROR_DROP, "??");
-		}
-
 		Fs_Write(r_lightmap_state.cache_file, &(const r_lmcache_packer_header_t) {
 			.width = width,
 			.height = height,
-			.count = position
+			.count = (end == NULL) ? g_slist_length(start) : g_slist_position(start, end)
 		}, sizeof(r_lmcache_packer_header_t), 1);
 
 		// serialize packer
@@ -435,6 +429,9 @@ static _Bool R_LoadBspSurfaceLightmapCache(r_bsp_model_t *bsp) {
 
 	Fs_Close(file);
 
+	g_slist_free(r_lightmap_state.blocks);
+	r_lightmap_state.blocks = NULL;
+
 	return true;
 }
 
@@ -458,7 +455,7 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 	r_packer_t packer;
 	memset(&packer, 0, sizeof(packer));
 
-	R_AtlasPacker_InitPacker(&packer, r_config.max_texture_size, r_config.max_texture_size, surf->lightmap_size[0],
+	R_AtlasPacker_InitPacker(&packer, Min(r_config.max_texture_size, USHRT_MAX), Min(r_config.max_texture_size, USHRT_MAX), surf->lightmap_size[0],
 	                         surf->lightmap_size[1], bsp->num_surfaces / 2);
 
 	GSList *start = r_lightmap_state.blocks;
@@ -513,7 +510,7 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 				R_UploadPackedLightmaps(current_width, current_height, bsp, start, list, &packer, num_surfs);
 
 				// reinitialize packer
-				R_AtlasPacker_InitPacker(&packer, r_config.max_texture_size, r_config.max_texture_size,
+				R_AtlasPacker_InitPacker(&packer, Min(r_config.max_texture_size, USHRT_MAX), Min(r_config.max_texture_size, USHRT_MAX),
 				                         surf->lightmap_size[0], surf->lightmap_size[1], bsp->num_surfaces / 2);
 
 				num_packers++;

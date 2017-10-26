@@ -114,8 +114,8 @@ static void R_AtlasPacker_Reserve(r_packer_t *packer, const uint32_t new_nodes) 
  * @brief Initialize an r_packer_t structure. If the packer is already
  * created, clears the packer back to an initial state.
  */
-void R_AtlasPacker_InitPacker(r_packer_t *packer, const uint32_t max_width, const uint32_t max_height,
-                              const uint32_t root_width, const uint32_t root_height, const uint32_t initial_size) {
+void R_AtlasPacker_InitPacker(r_packer_t *packer, const uint16_t max_width, const uint16_t max_height,
+                              const uint16_t root_width, const uint16_t root_height, const uint32_t initial_size) {
 
 	packer->max_width = max_width;
 	packer->max_height = max_height;
@@ -152,8 +152,8 @@ void R_AtlasPacker_FreePacker(r_packer_t *packer) {
 /**
  * @brief Finds a free node that is big enough to hold us.
  */
-r_packer_node_t *R_AtlasPacker_FindNode(r_packer_t *packer, const uint32_t root, const uint32_t width,
-                                        const uint32_t height) {
+r_packer_node_t *R_AtlasPacker_FindNode(r_packer_t *packer, const uint32_t root, const uint16_t width,
+                                        const uint16_t height) {
 
 	uint32_t node_queue[packer->num_nodes];
 	uint32_t node_index = 1;
@@ -185,8 +185,8 @@ r_packer_node_t *R_AtlasPacker_FindNode(r_packer_t *packer, const uint32_t root,
 /**
  * @brief Split a packer node into two, assigning the first to the image.
  */
-r_packer_node_t *R_AtlasPacker_SplitNode(r_packer_t *packer, r_packer_node_t *node, const uint32_t width,
-        const uint32_t height) {
+r_packer_node_t *R_AtlasPacker_SplitNode(r_packer_t *packer, r_packer_node_t *node, const uint16_t width,
+        const uint16_t height) {
 	const uintptr_t index = (uintptr_t) (node - packer->nodes);
 
 	node->down = packer->num_nodes;
@@ -228,7 +228,7 @@ r_packer_node_t *R_AtlasPacker_SplitNode(r_packer_t *packer, r_packer_node_t *no
 /**
  * @brief Grow the packer in the specified direction.
  */
-static r_packer_node_t *R_AtlasPacker_Grow(r_packer_t *packer, const uint32_t width, const uint32_t height,
+static r_packer_node_t *R_AtlasPacker_Grow(r_packer_t *packer, const uint16_t width, const uint16_t height,
         const _Bool grow_direction) {
 	const uint32_t new_root_id = packer->num_nodes;
 	const uint32_t new_connect_id = packer->num_nodes + 1;
@@ -287,7 +287,7 @@ static r_packer_node_t *R_AtlasPacker_Grow(r_packer_t *packer, const uint32_t wi
 /**
  * @brief Checks to see where the packer should grow into next. This keeps the atlas square.
  */
-r_packer_node_t *R_AtlasPacker_GrowNode(r_packer_t *packer, const uint32_t width, const uint32_t height) {
+r_packer_node_t *R_AtlasPacker_GrowNode(r_packer_t *packer, const uint16_t width, const uint16_t height) {
 	const r_packer_node_t *root = &packer->nodes[packer->root];
 
 	const _Bool canGrowDown = (width <= root->width);
@@ -394,8 +394,8 @@ static void R_GenerateAtlasMips(r_atlas_t *atlas, r_atlas_params_t *params) {
 	for (uint16_t i = 0; i < params->num_mips; i++) {
 		const uint16_t mip_scale = 1 << i;
 
-		const uint32_t mip_width = params->width / mip_scale;
-		const uint32_t mip_height = params->height / mip_scale;
+		const uint16_t mip_width = params->width / mip_scale;
+		const uint16_t mip_height = params->height / mip_scale;
 
 		R_BindDiffuseTexture(atlas->image.texnum);
 
@@ -427,8 +427,8 @@ static void R_GenerateAtlasMips(r_atlas_t *atlas, r_atlas_params_t *params) {
 			// push them into the atlas
 			R_BindDiffuseTexture(atlas->image.texnum);
 
-			const uint32_t subimage_x = image->position[0] / mip_scale;
-			const uint32_t subimage_y = image->position[1] / mip_scale;
+			const uint16_t subimage_x = image->position[0] / mip_scale;
+			const uint16_t subimage_y = image->position[1] / mip_scale;
 
 			glTexSubImage2D(GL_TEXTURE_2D, i, subimage_x, subimage_y, image_mip_width, image_mip_height, GL_RGBA, GL_UNSIGNED_BYTE,
 			                subimage_pixels);
