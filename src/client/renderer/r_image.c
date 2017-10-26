@@ -151,7 +151,7 @@ void R_FilterImage(r_image_t *image, GLenum format, byte *data, _Bool premultipl
 	uint16_t mask;
 	size_t i, j;
 
-	if (image->type == IT_DIFFUSE) {// compute average color
+	if (image->type == IT_DIFFUSE) { // compute average color
 		VectorClear(color);
 	}
 
@@ -197,7 +197,7 @@ void R_FilterImage(r_image_t *image, GLenum format, byte *data, _Bool premultipl
 			p[2] = 255 - p[2];
 		}
 
-		if (premultiply && image->type != IT_LIGHTMAP && format == GL_RGBA) {
+		if (premultiply && format == GL_RGBA) {
 			const vec_t alpha = p[3] / 255.0;
 			
 			for (j = 0; j < 3; j++) {
