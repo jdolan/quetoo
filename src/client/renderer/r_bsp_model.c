@@ -993,8 +993,8 @@ static int R_SortBspSurfacesArrays_Compare(const void *s1, const void *s2) {
 
 	const r_bsp_texinfo_t *t1 = (*(r_bsp_surface_t **) s1)->texinfo;
 	const r_bsp_texinfo_t *t2 = (*(r_bsp_surface_t **) s2)->texinfo;
-
-	return g_strcmp0(t1->name, t2->name);
+	
+	return t1->material < t2->material ? -1 : t1->material > t2->material ? 1 : 0;
 }
 
 /**
