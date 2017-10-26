@@ -527,6 +527,54 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 }
 
 /**
+ * @brief Serialize a packer to a file.
+ */
+void R_AtlasPacker_Serialize(const r_packer_t *packer, file_t *file) {
+	
+	Fs_Write(file, &packer->num_nodes, sizeof(packer->num_nodes), 1);
+	Fs_Write(file, &packer->root, sizeof(packer->root), 1);
+	Fs_Write(file, packer->nodes, sizeof(r_packer_node_t), packer->num_nodes);
+}
+
+/**
+ * @brief Unserialize packer from a file into the specified packer.
+ * @returns bool if packer in file was invalid.
+ */
+_Bool R_AtlasPacker_Unserialize(file_t *file, r_packer_t *packer) {
+
+	// read the header
+	if (!Fs_Read(file, &packer->num_nodes, sizeof(packer->num_nodes), 1) ||
+		!Fs_Read(file, &packer->root, sizeof(packer->root), 1)) {
+		return false;
+	}
+	
+	packer->num_nodes = (uint32_t) LittleLong(packer->num_nodes);
+	packer->root = (uint32_t) LittleLong(packer->root);
+
+	// check for malformed packer
+	if (packer->root >= packer->num_nodes) {
+		return false;
+	}
+
+	// see if the file even has enough room for this packer
+	if ((packer->num_nodes * sizeof(r_packer_node_t)) > (size_t) (Fs_FileLength(file) - Fs_Tell(file))) {
+		return false;
+	}
+
+	// good to go!
+	packer->nodes = Mem_Malloc(sizeof(r_packer_node_t) * packer->num_nodes);
+
+	// fatal somehow
+	if (Fs_Read(file, packer->nodes, sizeof(r_packer_node_t), packer->num_nodes) != packer->num_nodes) {
+		R_AtlasPacker_FreePacker(packer);
+		return false;
+	}
+
+	// done!
+	return true;
+}
+
+/**
  * @brief Initialize atlas subsystem.
  */
 void R_InitAtlas(void) {
