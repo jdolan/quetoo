@@ -65,12 +65,24 @@ void R_DumpImage(const r_image_t *image, const char *output) {
 		return;
 	}
 
-	GLubyte *pixels = Mem_Malloc(image->width * image->height * 4);
-	
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
 	R_BindDiffuseTexture(image->texnum);
+
+	int32_t width, height;
+
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
+	
+	GLubyte *pixels = Mem_Malloc(width * height * 4);
+	
 	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
-	SDL_Surface *ss = SDL_CreateRGBSurfaceFrom(pixels, image->width, image->height, 32, image->width * 4, RMASK, GMASK, BMASK, AMASK);
+	SDL_Surface *ss = SDL_CreateRGBSurfaceFrom(pixels, width, height, 32, width * 4, RMASK, GMASK, BMASK, AMASK);
 	IMG_SavePNG_RW(ss, f, 0);
 	SDL_FreeSurface(ss);
 

@@ -814,7 +814,7 @@ void R_ExportBSP_f(void) {
 	for (size_t i = 0; i < num_vertices; i++, vertex++) {
 
 		Fs_Print(file, "v %f %f %f\nvt %f %f\nvn %f %f %f\n",	-vertex->vertex[0], vertex->vertex[2], vertex->vertex[1],
-																vertex->diffuse[0], vertex->diffuse[1],
+																vertex->diffuse[0], -vertex->diffuse[1],
 																-vertex->normal[0], vertex->normal[2], vertex->normal[1]);
 	}
 	
@@ -993,8 +993,8 @@ static int R_SortBspSurfacesArrays_Compare(const void *s1, const void *s2) {
 
 	const r_bsp_texinfo_t *t1 = (*(r_bsp_surface_t **) s1)->texinfo;
 	const r_bsp_texinfo_t *t2 = (*(r_bsp_surface_t **) s2)->texinfo;
-
-	return g_strcmp0(t1->name, t2->name);
+	
+	return t1->material < t2->material ? -1 : t1->material > t2->material ? 1 : 0;
 }
 
 /**
