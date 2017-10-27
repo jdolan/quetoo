@@ -109,6 +109,7 @@
     <None Include="..\..\src\client\renderer\shaders\default_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\default_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\include\fog.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\include\color.glsl" />
     <None Include="..\..\src\client\renderer\shaders\include\uniforms.glsl" />
     <None Include="..\..\src\client\renderer\shaders\include\noise3d.glsl" />
     <None Include="..\..\src\client\renderer\shaders\include\tint.glsl" />

@@ -10,9 +10,10 @@
 #include "include/fog.glsl"
 #include "include/noise3d.glsl"
 #include "include/tint.glsl"
+#include "include/color.glsl"
 
 #define MAX_LIGHTS $r_max_lights
-#define LIGHT_SCALE $r_modulate
+#define MODULATE_SCALE $r_modulate
 
 #if MAX_LIGHTS
 struct LightParameters {
@@ -142,7 +143,7 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in floa
 	vec3 diffuseLightmapColor = lightmap.rgb * lightmapDiffuseBumpedLuma;
 	vec3 specularLightmapColor = (lightmapLuma + lightmap.rgb) * 0.5 * lightmapSpecularBumpedLuma;
 
-	fragColor.rgb = diffuse.rgb * ((diffuseLightmapColor + specularLightmapColor) * LIGHT_SCALE + light);
+	fragColor.rgb = diffuse.rgb * ((diffuseLightmapColor + specularLightmapColor) * MODULATE_SCALE + light);
 
 	// lastly modulate the alpha channel by the color
 	fragColor.a = diffuse.a * color.a;
@@ -250,7 +251,7 @@ void main(void) {
 	vec4 diffuse = vec4(1.0);
 
 	if (DIFFUSE) { // sample the diffuse texture, honoring the parallax offset
-		diffuse = texture(SAMPLER0, texcoords[0] + parallax);
+		diffuse = ColorFilter(texture(SAMPLER0, texcoords[0] + parallax));
 
 		// see if diffuse can be discarded because of alpha test
 		if (diffuse.a < ALPHA_THRESHOLD)
