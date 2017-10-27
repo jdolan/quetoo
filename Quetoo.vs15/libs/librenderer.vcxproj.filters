@@ -325,5 +325,8 @@
     <None Include="..\..\src\client\renderer\shaders\include\uniforms.glsl">
       <Filter>src\shaders\include</Filter>
     </None>
+    <None Include="..\..\src\client\renderer\shaders\include\color.glsl">
+      <Filter>src\shaders\include</Filter>
+    </None>
   </ItemGroup>
 </Project>
