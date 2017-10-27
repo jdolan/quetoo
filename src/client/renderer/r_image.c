@@ -141,6 +141,25 @@ void R_Screenshot_f(void) {
 }
 
 /**
+ * @brief Looks for invalid normalmap samples and pads them with (0, 0, 1). This
+ * is a bandaid, at best, for normalmap images that fail to load correctly because
+ * of (what appears to be) alpha channel pre-multiplication. For many normalmaps
+ * that store an alpha value of 0 for "low" heightmap areas, the red, green and
+ * blue channels are incorrectly loaded as 0 also.
+ */
+static void R_FilterNormalmap(r_image_t *image, byte *data) {
+
+	const size_t pixels = image->width * image->height;
+	byte *p = data;
+
+	for (size_t i = 0; i < pixels; i++, p += 4) {
+		if (VectorCompare(p, vec3_origin)) {
+			p[2] = 255;
+		}
+	}
+}
+
+/**
  * @brief Applies brightness, contrast and saturation to the specified image
  * while optionally computing the average color. Also handles image inversion
  * and monochrome. This is all munged into one function for performance.
@@ -361,6 +380,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 			if (image->type == IT_NORMALMAP) {
 				R_LoadHeightmap(name, surf);
+				R_FilterNormalmap(image, surf->pixels);
 			}
 
 			if (image->type & IT_MASK_FILTER) {
