@@ -87,7 +87,6 @@
 		CE1A281A1F740E5A005F62A9 /* libphysfs.2.0.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8301C5C6F0100CD0B13 /* libphysfs.2.0.3.dylib */; };
 		CE1A281B1F740E7B005F62A9 /* libcurl.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FF561C5E485A00A21A51 /* libcurl.4.dylib */; };
 		CE1A281C1F740E7B005F62A9 /* libncurses.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */; };
-		CE1A281D1F740EAC005F62A9 /* libSDL2_image-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8311C5C6F0100CD0B13 /* libSDL2_image-2.0.0.dylib */; };
 		CE1A281E1F740ECC005F62A9 /* libsndfile.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE3208511EBF518D00A92FF3 /* libsndfile.1.dylib */; };
 		CE1A281F1F748B09005F62A9 /* libphysfs.2.0.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8301C5C6F0100CD0B13 /* libphysfs.2.0.3.dylib */; };
 		CE1A28201F748B20005F62A9 /* libSDL2_image-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8311C5C6F0100CD0B13 /* libSDL2_image-2.0.0.dylib */; };
@@ -149,6 +148,7 @@
 		CE4A256C1FA2033B00A539E7 /* noise3d.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE585BDB1ED459E2009B7C14 /* noise3d.glsl */; };
 		CE4A256D1FA2033B00A539E7 /* tint.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE585BDD1ED45A94009B7C14 /* tint.glsl */; };
 		CE4A256E1FA2033B00A539E7 /* uniforms.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEFFF2261EEED2420028832B /* uniforms.glsl */; };
+		CE4A25701FA39FB400A539E7 /* libSDL2_image-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE4A256F1FA39FB400A539E7 /* libSDL2_image-2.0.0.dylib */; };
 		CE55308D1E57E3670009A127 /* ui_editor.c in Sources */ = {isa = PBXBuildFile; fileRef = CE55308B1E57E3670009A127 /* ui_editor.c */; };
 		CE55308E1E57E3670009A127 /* ui_editor.h in Headers */ = {isa = PBXBuildFile; fileRef = CE55308C1E57E3670009A127 /* ui_editor.h */; };
 		CE55309C1E5A93C60009A127 /* parse.c in Sources */ = {isa = PBXBuildFile; fileRef = CE55309A1E5A93C60009A127 /* parse.c */; };
@@ -1459,6 +1459,7 @@
 		CE3BCDF21DB91B52002E6C6D /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE3DA5051E575096009B26ED /* EditorView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = EditorView.c; sourceTree = "<group>"; };
 		CE3DA5061E575096009B26ED /* EditorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditorView.h; sourceTree = "<group>"; };
+		CE4A256F1FA39FB400A539E7 /* libSDL2_image-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSDL2_image-2.0.0.dylib"; path = "../../../../usr/local/lib/libSDL2_image-2.0.0.dylib"; sourceTree = "<group>"; };
 		CE55308B1E57E3670009A127 /* ui_editor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_editor.c; sourceTree = "<group>"; };
 		CE55308C1E57E3670009A127 /* ui_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_editor.h; sourceTree = "<group>"; };
 		CE5530991E5A939F0009A127 /* libparse.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libparse.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1635,7 +1636,7 @@
 				CE1A281C1F740E7B005F62A9 /* libncurses.6.dylib in Frameworks */,
 				CE1A281A1F740E5A005F62A9 /* libphysfs.2.0.3.dylib in Frameworks */,
 				CE5816EF1D904B0B002818F5 /* libSDL2-2.0.0.dylib in Frameworks */,
-				CE1A281D1F740EAC005F62A9 /* libSDL2_image-2.0.0.dylib in Frameworks */,
+				CE4A25701FA39FB400A539E7 /* libSDL2_image-2.0.0.dylib in Frameworks */,
 				CE1A281E1F740ECC005F62A9 /* libsndfile.1.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2902,6 +2903,7 @@
 		CE12D8391C5C6F4900CD0B13 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CE4A256F1FA39FB400A539E7 /* libSDL2_image-2.0.0.dylib */,
 				CE1A28161F740E2C005F62A9 /* libObjectively.dylib */,
 				CE1A28171F740E2C005F62A9 /* libObjectivelyMVC.dylib */,
 				CE6EE3BE1F71450C00FBC830 /* libObjectively.0.dylib */,
