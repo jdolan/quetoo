@@ -22,7 +22,7 @@
 #include "cg_local.h"
 
 #include "DialogView.h"
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 #define _Class _DialogView
 
@@ -54,7 +54,7 @@ static DialogView *init(DialogView *self) {
 		self->panel.isDraggable = false;
 		self->panel.isResizable = false;
 
-		Theme *theme = $(alloc(Theme), init);
+		QuetooTheme *theme = $(alloc(QuetooTheme), init);
 		assert(theme);
 
 		this->alignment = ViewAlignmentMiddleCenter;

@@ -27,7 +27,7 @@
 #include "CvarSelect.h"
 #include "CvarSlider.h"
 
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 #define _Class _OptionsViewController
 
@@ -80,7 +80,7 @@ static void loadView(ViewController *self) {
 
 	OptionsViewController *this = (OptionsViewController *) self;
 
-	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
 
 	StackView *container = $(theme, container);
 

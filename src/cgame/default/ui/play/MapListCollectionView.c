@@ -240,6 +240,9 @@ static void dealloc(Object *self) {
 
 #pragma mark - View
 
+/**
+ * @see View::layoutIfNeeded(View *)
+ */
 static void layoutIfNeeded(View *self) {
 
 	MapListCollectionView *this = (MapListCollectionView *) self;
@@ -261,7 +264,6 @@ static void layoutIfNeeded(View *self) {
 
 /**
  * @fn MapListCollectionView *initWithFrame(MapListCollectionView *self, const SDL_Rect *frame, ControlStyle style)
- *
  * @memberof MapListCollectionView
  */
 static MapListCollectionView *initWithFrame(MapListCollectionView *self, const SDL_Rect *frame, ControlStyle style) {

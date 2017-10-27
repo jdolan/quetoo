@@ -139,7 +139,7 @@ static void R_FilterLightmap(uint32_t width, uint32_t height, byte *lightmap) {
 	image.width = width;
 	image.height = height;
 
-	R_FilterImage(&image, GL_RGB, lightmap, false);
+	R_FilterImage(&image, GL_RGB, lightmap);
 }
 
 /**

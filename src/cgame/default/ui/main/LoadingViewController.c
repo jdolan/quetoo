@@ -23,7 +23,7 @@
 
 #include "LoadingViewController.h"
 
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 #define _Class _LoadingViewController
 
@@ -54,7 +54,7 @@ static void loadView(ViewController *self) {
 
 	LoadingViewController *this = (LoadingViewController *) self;
 
-	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
 	assert(theme);
 
 	this->mapShot = $(alloc(ImageView), initWithFrame, NULL);

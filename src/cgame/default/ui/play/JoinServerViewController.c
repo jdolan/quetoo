@@ -22,7 +22,7 @@
 #include "cg_local.h"
 
 #include "JoinServerViewController.h"
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 static const char *_hostname = "Hostname";
 static const char *_source = "Source";
@@ -271,7 +271,7 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
 	assert(theme);
 
 	self->view->autoresizingMask = ViewAutoresizingContain;

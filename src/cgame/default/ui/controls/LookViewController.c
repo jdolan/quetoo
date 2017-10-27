@@ -26,7 +26,7 @@
 #include "CvarSelect.h"
 #include "CvarSlider.h"
 
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 #define _Class _LookViewController
 
@@ -131,7 +131,7 @@ static void loadView(ViewController *self) {
 		.didEndEditing = didBindKey
 	};
 
-	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
 	assert(theme);
 
 	StackView *container = $(theme, container);

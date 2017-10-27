@@ -23,7 +23,7 @@
 
 #include "MainView.h"
 #include "PrimaryButton.h"
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 #define _Class _MainView
 
@@ -80,7 +80,7 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 		View *this = (View *) self;
 		this->autoresizingMask = ViewAutoresizingFill;
 
-		Theme *theme = $(alloc(Theme), initWithTarget, self);
+		QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self);
 		assert(theme);
 
 		{
