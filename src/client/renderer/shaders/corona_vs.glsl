@@ -16,6 +16,7 @@ in vec4 COLOR;
 out VertexData {
 	vec4 color;
 	vec2 texcoord;
+	vec3 point;
 };
 
 /**
@@ -24,6 +25,8 @@ out VertexData {
 void main(void) {
 
 	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * vec4(POSITION, 1.0);
+
+	point = gl_Position.xyz;
 
 	texcoord = TEXCOORD;
 

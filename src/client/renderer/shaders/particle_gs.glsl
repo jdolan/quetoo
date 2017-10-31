@@ -39,9 +39,11 @@ in VertexData {
 out VertexData {
 	vec4 color;
 	vec2 texcoord;
+	vec3 point;
 } out_data;
 
 void CopyCommon(void) {
+	out_data.point = gl_in[0].gl_Position.xyz;
 	out_data.color = in_data[0].color;
 }
 

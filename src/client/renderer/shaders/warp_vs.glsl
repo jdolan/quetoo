@@ -14,6 +14,7 @@ in vec2 TEXCOORD;
 
 out VertexData {
 	vec2 texcoord;
+	vec3 point;
 };
 
 /**
@@ -23,6 +24,8 @@ void main(void) {
 
 	// mvp transform into clip space
 	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * vec4(POSITION, 1.0);
+
+	point = gl_Position.xyz;
 
 	// pass texcoords through
 	texcoord = TEXCOORD;
