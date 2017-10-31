@@ -93,7 +93,7 @@ vec2 BumpTexcoord(in float height) {
 void BumpFragment(in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap, out float lightmapBumpScale, out float lightmapSpecularScale) {
 	float glossFactor = clamp(dot(glossmap, vec3(0.299, 0.587, 0.114)), 0.0078125, 1.0);
 
-	lightmapBumpScale = clamp(dot(deluxemap, normalmap), 0.0078125, 1.0);
+	lightmapBumpScale = clamp(dot(deluxemap, normalmap), 0.0, 1.0);
 	lightmapSpecularScale = (HARDNESS * glossFactor) * pow(clamp(-dot(eyeDir, reflect(deluxemap, normalmap)), 0.0078125, 1.0), (16.0 * glossFactor) * SPECULAR);
 }
 
@@ -132,8 +132,15 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in floa
 #endif
 
 	// now modulate the diffuse sample with the modified lightmap
-	vec3 diffuseLightmapColor = lightmap.rgb * lightmapBumpScale;
-	vec3 specularLightmapColor = (dot(lightmap.rgb, vec3(0.299, 0.587, 0.114)) + lightmap.rgb) * 0.5 * lightmapSpecularScale;
+	float lightmapLuma = dot(lightmap.rgb, vec3(0.299, 0.587, 0.114));
+
+	float blackPointLuma = 0.015625;
+	float l = exp2(lightmapLuma) - blackPointLuma;
+	float lightmapDiffuseBumpedLuma = l * lightmapBumpScale;
+	float lightmapSpecularBumpedLuma = l * lightmapSpecularScale;
+
+	vec3 diffuseLightmapColor = lightmap.rgb * lightmapDiffuseBumpedLuma;
+	vec3 specularLightmapColor = (lightmapLuma + lightmap.rgb) * 0.5 * lightmapSpecularBumpedLuma;
 
 	fragColor.rgb = diffuse.rgb * ((diffuseLightmapColor + specularLightmapColor) * LIGHT_SCALE + light);
 

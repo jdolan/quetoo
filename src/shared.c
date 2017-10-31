@@ -212,18 +212,12 @@ void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, v
 	VectorCopy(tdir, t);
 	VectorNormalize(t);
 
-	// project the directional vector onto the plane
-	VectorMA(s, -DotProduct(s, normal), normal, tangent);
-	VectorNormalize(tangent);
+	VectorCopy(s, bitangent);
+	VectorCopy(t, tangent);
 
-	// resolve sidedness, encode as fourth tangent component
 	CrossProduct(normal, tangent, bitangent);
 
-	if (DotProduct(t, bitangent) < 0.0) {
-		tangent[3] = -1.0;
-	} else {
-		tangent[3] = 1.0;
-	}
+	tangent[3] = DotProduct(s, bitangent) < 0.0f ? -1.0f : 1.0f;
 
 	VectorScale(bitangent, tangent[3], bitangent);
 }
