@@ -40,7 +40,7 @@ vec_t brightness = 1.0;
 vec_t saturation = 1.0;
 vec_t contrast = 1.0;
 
-vec_t surface_scale = 0.4;
+vec_t surface_scale = 1.0;
 vec_t entity_scale = 1.0;
 
 /**
