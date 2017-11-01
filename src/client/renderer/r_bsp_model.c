@@ -621,7 +621,7 @@ static gboolean R_UniqueVerts_EqualFunc(gconstpointer a, gconstpointer b) {
 	        memcmp(bsp->texcoords[va], bsp->texcoords[vb], sizeof(vec2_t)) == 0 &&
 	        memcmp(bsp->lightmap_texcoords[va], bsp->lightmap_texcoords[vb], sizeof(vec2_t)) == 0 &&
 	        memcmp(bsp->tangents[va], bsp->tangents[vb], sizeof(vec3_t)) == 0 &&
-			memcmp(bsp->bitangents[va], bsp->bitangents[vb], sizeof(vec3_t)) == 0;
+	        memcmp(bsp->bitangents[va], bsp->bitangents[vb], sizeof(vec3_t)) == 0;
 }
 
 /**
