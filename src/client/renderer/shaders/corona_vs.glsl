@@ -24,9 +24,9 @@ out VertexData {
  */
 void main(void) {
 
-	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * vec4(POSITION, 1.0);
+	point = (MODELVIEW_MAT * vec4(POSITION, 1.0)).xyz;
 
-	point = gl_Position.xyz;
+	gl_Position = PROJECTION_MAT * vec4(point, 1.0);
 
 	texcoord = TEXCOORD;
 

@@ -43,7 +43,7 @@ out VertexData {
 } out_data;
 
 void CopyCommon(void) {
-	out_data.point = gl_in[0].gl_Position.xyz;
+	out_data.point = (MODELVIEW_MAT * gl_in[0].gl_Position).xyz;
 	out_data.color = in_data[0].color;
 }
 

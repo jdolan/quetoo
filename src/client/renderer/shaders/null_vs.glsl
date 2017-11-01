@@ -25,10 +25,10 @@ out VertexData {
  */
 void main(void) {
 
-	// mvp transform into clip space
-	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * vec4(mix(POSITION, NEXT_POSITION, TIME_FRACTION), 1.0);
+	point = (MODELVIEW_MAT * vec4(mix(POSITION, NEXT_POSITION, TIME_FRACTION), 1.0)).xyz;
 
-	point = gl_Position.xyz;
+	// mvp transform into clip space
+	gl_Position = PROJECTION_MAT * vec4(point, 1.0);
 
 	texcoord = TEXCOORD;
 
