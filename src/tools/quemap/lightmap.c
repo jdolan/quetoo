@@ -753,12 +753,13 @@ static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal)
 }
 
 #define MAX_SAMPLES 5
+
 static const vec_t sampleofs[MAX_SAMPLES][2] = {
 	{ 0.0, 0.0 },
-	{ -0.125, -0.125 },
-	{ 0.125, -0.125 },
-	{ 0.125, 0.125 },
-	{ -0.125, 0.125 }
+	{ -0.5, -0.5 },
+	{ 0.5, -0.5 },
+	{ 0.5, 0.5 },
+	{ -0.5, 0.5 }
 };
 
 /**

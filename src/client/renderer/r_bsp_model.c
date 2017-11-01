@@ -620,7 +620,8 @@ static gboolean R_UniqueVerts_EqualFunc(gconstpointer a, gconstpointer b) {
 	        memcmp(bsp->normals[va], bsp->normals[vb], sizeof(vec3_t)) == 0 &&
 	        memcmp(bsp->texcoords[va], bsp->texcoords[vb], sizeof(vec2_t)) == 0 &&
 	        memcmp(bsp->lightmap_texcoords[va], bsp->lightmap_texcoords[vb], sizeof(vec2_t)) == 0 &&
-	        memcmp(bsp->tangents[va], bsp->tangents[vb], sizeof(vec4_t)) == 0;
+	        memcmp(bsp->tangents[va], bsp->tangents[vb], sizeof(vec3_t)) == 0 &&
+			memcmp(bsp->bitangents[va], bsp->bitangents[vb], sizeof(vec3_t)) == 0;
 }
 
 /**
@@ -707,11 +708,12 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 		VectorCopy(normal, mod->bsp->normals[*vertices]);
 
 		// tangent vectors
-		vec4_t tangent;
+		vec3_t tangent;
 		vec3_t bitangent;
 
 		TangentVectors(normal, sdir, tdir, tangent, bitangent);
-		Vector4Copy(tangent, mod->bsp->tangents[*vertices]);
+		VectorCopy(tangent, mod->bsp->tangents[*vertices]);
+		VectorCopy(bitangent, mod->bsp->bitangents[*vertices]);
 
 		// find the index that this vertex belongs to.
 		surf->elements[i] = R_LoadBspVertexArrays_VertexElement(vertices);
@@ -722,7 +724,8 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 typedef struct {
 	vec3_t vertex;
 	vec3_t normal;
-	vec4_t tangent;
+	vec3_t tangent;
+	vec3_t bitangent;
 	vec2_t diffuse;
 	vec2_t lightmap;
 } r_bsp_interleave_vertex_t;
@@ -730,7 +733,8 @@ typedef struct {
 static r_buffer_layout_t r_bsp_buffer_layout[] = {
 	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 3 },
 	{ .attribute = R_ATTRIB_NORMAL, .type = R_TYPE_FLOAT, .count = 3 },
-	{ .attribute = R_ATTRIB_TANGENT, .type = R_TYPE_FLOAT, .count = 4 },
+	{ .attribute = R_ATTRIB_TANGENT, .type = R_TYPE_FLOAT, .count = 3 },
+	{ .attribute = R_ATTRIB_BITANGENT, .type = R_TYPE_FLOAT, .count = 3 },
 	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_FLOAT, .count = 2 },
 	{ .attribute = R_ATTRIB_LIGHTMAP, .type = R_TYPE_FLOAT, .count = 2 },
 	{ .attribute = -1 }
@@ -891,13 +895,15 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 	// start with worst case scenario # of vertices
 	GLsizei v = mod->num_verts * sizeof(vec3_t);
 	GLsizei st = mod->num_verts * sizeof(vec2_t);
-	GLsizei t = mod->num_verts * sizeof(vec4_t);
+	GLsizei t = mod->num_verts * sizeof(vec3_t);
+	GLsizei b = mod->num_verts * sizeof(vec3_t);
 
 	mod->bsp->verts = Mem_LinkMalloc(v, mod);
 	mod->bsp->texcoords = Mem_LinkMalloc(st, mod);
 	mod->bsp->lightmap_texcoords = Mem_LinkMalloc(st, mod);
 	mod->bsp->normals = Mem_LinkMalloc(v, mod);
 	mod->bsp->tangents = Mem_LinkMalloc(t, mod);
+	mod->bsp->bitangents = Mem_LinkMalloc(b, mod);
 
 	// make lookup table
 	r_unique_vertices.count = 0;
@@ -925,13 +931,15 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 
 	v = mod->num_verts * sizeof(vec3_t);
 	st = mod->num_verts * sizeof(vec2_t);
-	t = mod->num_verts * sizeof(vec4_t);
+	t = mod->num_verts * sizeof(vec3_t);
+	b = mod->num_verts * sizeof(vec3_t);
 
 	mod->bsp->verts = Mem_Realloc(mod->bsp->verts, v);
 	mod->bsp->texcoords = Mem_Realloc(mod->bsp->texcoords, st);
 	mod->bsp->lightmap_texcoords = Mem_Realloc(mod->bsp->lightmap_texcoords, st);
 	mod->bsp->normals = Mem_Realloc(mod->bsp->normals, v);
 	mod->bsp->tangents = Mem_Realloc(mod->bsp->tangents, t);
+	mod->bsp->bitangents = Mem_Realloc(mod->bsp->bitangents, b);
 
 	// load the element buffer object
 	mod->num_elements = num_elements;
@@ -968,7 +976,8 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 	for (GLsizei i = 0; i < mod->num_verts; ++i) {
 		VectorCopy(mod->bsp->verts[i], interleaved[i].vertex);
 		VectorCopy(mod->bsp->normals[i], interleaved[i].normal);
-		Vector4Copy(mod->bsp->tangents[i], interleaved[i].tangent);
+		VectorCopy(mod->bsp->tangents[i], interleaved[i].tangent);
+		VectorCopy(mod->bsp->bitangents[i], interleaved[i].bitangent);
 		Vector2Copy(mod->bsp->texcoords[i], interleaved[i].diffuse);
 		Vector2Copy(mod->bsp->lightmap_texcoords[i], interleaved[i].lightmap);
 	}

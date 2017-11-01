@@ -121,6 +121,7 @@ typedef enum {
 	R_ATTRIB_COLOR,
 	R_ATTRIB_NORMAL,
 	R_ATTRIB_TANGENT,
+	R_ATTRIB_BITANGENT,
 	R_ATTRIB_DIFFUSE,
 	R_ATTRIB_LIGHTMAP,
 
@@ -131,6 +132,7 @@ typedef enum {
 	R_ATTRIB_NEXT_POSITION,
 	R_ATTRIB_NEXT_NORMAL,
 	R_ATTRIB_NEXT_TANGENT,
+	R_ATTRIB_NEXT_BITANGENT,
 
 	/**
 	 * @brief Geometry shader parameters
@@ -155,24 +157,26 @@ typedef enum {
  * up with the ones above to make things simple.
  */
 typedef enum {
-	R_ATTRIB_MASK_POSITION		= (1 << R_ATTRIB_POSITION),
-	R_ATTRIB_MASK_COLOR			= (1 << R_ATTRIB_COLOR),
-	R_ATTRIB_MASK_NORMAL		= (1 << R_ATTRIB_NORMAL),
-	R_ATTRIB_MASK_TANGENT		= (1 << R_ATTRIB_TANGENT),
-	R_ATTRIB_MASK_DIFFUSE		= (1 << R_ATTRIB_DIFFUSE),
-	R_ATTRIB_MASK_LIGHTMAP		= (1 << R_ATTRIB_LIGHTMAP),
+	R_ATTRIB_MASK_POSITION			= (1 << R_ATTRIB_POSITION),
+	R_ATTRIB_MASK_COLOR				= (1 << R_ATTRIB_COLOR),
+	R_ATTRIB_MASK_NORMAL			= (1 << R_ATTRIB_NORMAL),
+	R_ATTRIB_MASK_TANGENT			= (1 << R_ATTRIB_TANGENT),
+	R_ATTRIB_MASK_BITANGENT			= (1 << R_ATTRIB_BITANGENT),
+	R_ATTRIB_MASK_DIFFUSE			= (1 << R_ATTRIB_DIFFUSE),
+	R_ATTRIB_MASK_LIGHTMAP			= (1 << R_ATTRIB_LIGHTMAP),
 
-	R_ATTRIB_MASK_NEXT_POSITION	= (1 << R_ATTRIB_NEXT_POSITION),
-	R_ATTRIB_MASK_NEXT_NORMAL	= (1 << R_ATTRIB_NEXT_NORMAL),
-	R_ATTRIB_MASK_NEXT_TANGENT	= (1 << R_ATTRIB_NEXT_TANGENT),
+	R_ATTRIB_MASK_NEXT_POSITION		= (1 << R_ATTRIB_NEXT_POSITION),
+	R_ATTRIB_MASK_NEXT_NORMAL		= (1 << R_ATTRIB_NEXT_NORMAL),
+	R_ATTRIB_MASK_NEXT_TANGENT		= (1 << R_ATTRIB_NEXT_TANGENT),
+	R_ATTRIB_MASK_NEXT_BITANGENT	= (1 << R_ATTRIB_NEXT_BITANGENT),
 	
-	R_ATTRIB_MASK_SCALE			= (1 << R_ATTRIB_SCALE),
-	R_ATTRIB_MASK_ROLL			= (1 << R_ATTRIB_ROLL),
-	R_ATTRIB_MASK_END			= (1 << R_ATTRIB_END),
-	R_ATTRIB_MASK_TYPE			= (1 << R_ATTRIB_TYPE),
+	R_ATTRIB_MASK_SCALE				= (1 << R_ATTRIB_SCALE),
+	R_ATTRIB_MASK_ROLL				= (1 << R_ATTRIB_ROLL),
+	R_ATTRIB_MASK_END				= (1 << R_ATTRIB_END),
+	R_ATTRIB_MASK_TYPE				= (1 << R_ATTRIB_TYPE),
 
-	R_ATTRIB_MASK_ALL			= (1 << R_ATTRIB_ALL) - 1,
-	R_ATTRIB_GEOMETRY_MASK		= R_ATTRIB_MASK_SCALE | R_ATTRIB_MASK_ROLL | R_ATTRIB_MASK_END | R_ATTRIB_MASK_TYPE
+	R_ATTRIB_MASK_ALL				= (1 << R_ATTRIB_ALL) - 1,
+	R_ATTRIB_GEOMETRY_MASK			= R_ATTRIB_MASK_SCALE | R_ATTRIB_MASK_ROLL | R_ATTRIB_MASK_END | R_ATTRIB_MASK_TYPE
 } r_attribute_mask_t;
 
 /**
@@ -201,12 +205,12 @@ typedef union {
 	uint32_t packed;
 
 	struct {
-		uint32_t type : 3;
-		uint32_t count : 3;
-		uint32_t offset : 6;
-		uint32_t stride : 6;
-		uint32_t normalized : 2;
-		uint32_t integer : 2;
+		uint32_t normalized : 1; // bool
+		uint32_t integer : 1; // bool
+		uint32_t type : 3; // r_attrib_type_t, max 7
+		uint32_t count : 3; // # of elements, max 7
+		uint32_t offset : 12; // offset in bytes, max 4095
+		uint32_t stride : 12; // offset in bytes, max 4095
 	};
 } r_attrib_type_state_t;
 
@@ -656,7 +660,8 @@ typedef struct {
 typedef struct {
 	vec3_t point;
 	vec3_t normal;
-	vec4_t tangent;
+	vec3_t tangent;
+	vec3_t bitangent;
 } r_model_vertex_t;
 
 typedef struct {
@@ -726,7 +731,8 @@ typedef struct {
 	vec2_t *texcoords;
 	vec2_t *lightmap_texcoords;
 	vec3_t *normals;
-	vec4_t *tangents;
+	vec3_t *tangents;
+	vec3_t *bitangents;
 
 	// buffers
 	r_buffer_t vertex_buffer;
@@ -1221,7 +1227,8 @@ typedef struct {
 	vec_t *point;
 	vec_t *texcoords;
 	vec_t *normal;
-	vec4_t tangent;
+	vec3_t tangent;
+	vec3_t bitangent;
 } r_obj_vertex_t;
 
 typedef uint32_t r_obj_triangle_t[3];

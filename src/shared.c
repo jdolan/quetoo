@@ -200,26 +200,15 @@ void PerpendicularVector(const vec3_t in, vec3_t out) {
  * @brief Projects the normalized directional vectors on to the normal's plane.
  * The fourth component of the resulting tangent vector represents sidedness.
  */
-void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec4_t tangent,
+void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec3_t tangent,
                     vec3_t bitangent) {
 
-	vec3_t s, t;
-
 	// normalize the directional vectors
-	VectorCopy(sdir, s);
-	VectorNormalize(s);
+	VectorCopy(sdir, tangent);
+	VectorNormalize(tangent);
 
-	VectorCopy(tdir, t);
-	VectorNormalize(t);
-
-	VectorCopy(s, bitangent);
-	VectorCopy(t, tangent);
-
-	CrossProduct(normal, tangent, bitangent);
-
-	tangent[3] = DotProduct(s, bitangent) < 0.0f ? -1.0f : 1.0f;
-
-	VectorScale(bitangent, tangent[3], bitangent);
+	VectorCopy(tdir, bitangent);
+	VectorNormalize(bitangent);
 }
 
 /**
