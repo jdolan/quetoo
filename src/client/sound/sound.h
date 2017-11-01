@@ -30,7 +30,10 @@
 
 extern s_env_t s_env;
 
-extern cvar_t *s_ambient;
+extern cvar_t *s_ambient_volume;
+extern cvar_t *s_doppler;
+extern cvar_t *s_effects;
+extern cvar_t *s_effects_volume;
 extern cvar_t *s_rate;
 extern cvar_t *s_volume;
 

@@ -19,10 +19,13 @@ in vec4 COLOR;
 in vec2 TEXCOORD0;
 in vec2 TEXCOORD1;
 in vec3 NORMAL;
-in vec4 TANGENT;
+in vec3 TANGENT;
+in vec3 BITANGENT;
+
 in vec3 NEXT_POSITION;
 in vec3 NEXT_NORMAL;
-in vec4 NEXT_TANGENT;
+in vec3 NEXT_TANGENT;
+in vec3 NEXT_BITANGENT;
 
 out VertexData {
 	vec3 modelpoint;
@@ -41,13 +44,15 @@ out VertexData {
  */
 void LightVertex(void) {
 
-	point = vec3(MODELVIEW_MAT * vec4(mix(POSITION, NEXT_POSITION, TIME_FRACTION), 1.0));
+	point = (MODELVIEW_MAT * vec4(mix(POSITION, NEXT_POSITION, TIME_FRACTION), 1.0)).xyz;
 	normal = normalize(vec3(NORMAL_MAT * vec4(mix(NORMAL, NEXT_NORMAL, TIME_FRACTION), 1.0)));
 
 	if (NORMALMAP) {
-		vec4 tang = mix(TANGENT, NEXT_TANGENT, TIME_FRACTION);
-		tangent = normalize(vec3(NORMAL_MAT * tang));
-		bitangent = cross(normal, tangent) * tang.w;
+		vec3 tang = mix(TANGENT, NEXT_TANGENT, TIME_FRACTION).xyz;
+		tangent = normalize(vec3(NORMAL_MAT * vec4(tang, 1.0)));
+
+		vec3 bitang = mix(BITANGENT, NEXT_BITANGENT, TIME_FRACTION).xyz;
+		bitangent = normalize(vec3(NORMAL_MAT * vec4(bitang, 1.0)));
 
 		eye.x = -dot(point, tangent);
 		eye.y = -dot(point, bitangent);
@@ -76,5 +81,5 @@ void main(void) {
 	}
 
 	// pass the color through as well
-	color = COLOR;
+	color = COLOR * GLOBAL_COLOR;
 }

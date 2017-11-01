@@ -67,8 +67,6 @@ typedef struct cg_particle_s {
 	vec4_t color_start, color_end;
 	vec_t scale_start, scale_end;
 	vec_t bounce;
-	uint32_t next_collision_time;
-	vec3_t last_collision_origin;
 
 	// particle type specific
 	union {
@@ -103,7 +101,6 @@ typedef struct cg_particles_s {
  */
 typedef struct {
 	char team_name[MAX_USER_INFO_KEY];
-	int16_t hue;
 	color_t color;
 } cg_team_info_t;
 

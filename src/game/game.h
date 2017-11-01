@@ -182,7 +182,7 @@ typedef _Bool (*EntityFilterFunc)(const g_entity_t *ent);
  * @brief The game import provides engine functionality and core configuration
  * such as frame intervals to the game module.
  */
-typedef struct {
+typedef struct g_import_s {
 
 	/**
 	 * @brief The game's write directory
@@ -380,7 +380,7 @@ typedef struct {
  * @brief The game export structure exposes core game module entry points to
  * the server. The game must populate this structure as part of G_LoadGame.
  */
-typedef struct {
+typedef struct g_export_s {
 	/**
 	 * @brief Game API version, in case the game module was compiled for a
 	 * different version than the engine provides.

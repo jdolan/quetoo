@@ -139,7 +139,7 @@ static void R_FilterLightmap(uint32_t width, uint32_t height, byte *lightmap) {
 	image.width = width;
 	image.height = height;
 
-	R_FilterImage(&image, GL_RGB, lightmap, false);
+	R_FilterImage(&image, GL_RGB, lightmap);
 }
 
 /**
@@ -250,7 +250,7 @@ static void R_UploadPackedLightmaps(uint32_t width, uint32_t height, r_bsp_model
 	r_image_t *deluxemap = R_AllocDeluxemap(width, height);
 	r_stainmap_t stainmap = { .image = NULL, .fb = NULL };
 
-	if (r_stainmap->value) {
+	if (r_stainmaps->value) {
 		R_AllocStainmap(width, height, &stainmap);
 	}
 

@@ -98,8 +98,8 @@ typedef struct {
 	char name[MAX_USER_INFO_VALUE]; // the player name, e.g. newbie
 	char model[MAX_USER_INFO_VALUE]; // the model name, e.g. qforcer
 	char skin[MAX_USER_INFO_VALUE]; // the skin name, e.g. blue
-	color_t color; // the effect color, parsed from info as a hue value
-	vec4_t tints[TINT_TOTAL]; // tint colors. Alpha > 0 means it's not default.
+
+	color_t shirt, pants, helmet, color; // player and effects colors
 
 	r_model_t *head;
 	r_material_t *head_skins[MD3_MAX_MESHES];
@@ -309,16 +309,16 @@ typedef struct {
 typedef struct {
 	uint16_t percent;
 	const char *status;
-	r_image_t *background;
+	char mapshot[MAX_QPATH];
 } cl_loading_t;
 
 /**
- * Custom event codes for `SDL_USEREVENT`.
+ * Custom Notification names.
  */
 typedef enum {
-	EVENT_NONE,
-	EVENT_SERVER_PARSED
-} cl_event_t;
+	NOTIFICATION_NONE,
+	NOTIFICATION_SERVER_PARSED
+} cl_notification_t;
 
 /**
  * @brief The cl_static_t structure is persistent for the execution of the

@@ -263,16 +263,13 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 	} fs_block_t;
 
 	file_t *file;
+
 	if ((file = Fs_OpenRead(filename))) {
-
-		if (!PHYSFS_setBuffer((PHYSFS_File *) file, FS_FILE_BUFFER)) {
-			Com_Warn("%s: %s\n", filename, Fs_LastError());
-		}
-
 		const int64_t buffer_length = Fs_FileLength(file);
 
 		// if we can calculate the length, we can pull it easily
 		if (buffer_length != -1) {
+
 			len = buffer_length;
 
 			if (buffer) {
@@ -287,10 +284,12 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 					g_hash_table_insert(fs_state.loaded_files, *buffer,
 										(gpointer) Mem_CopyString(filename));
 				} else {
+
 					*buffer = NULL;
 				}
 			}
 		} else {
+
 			GList *list = NULL;
 			len = 0;
 
@@ -325,14 +324,17 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 					g_hash_table_insert(fs_state.loaded_files, *buffer,
 										(gpointer) Mem_CopyString(filename));
 				} else {
+
 					*buffer = NULL;
 				}
 			}
 
 			g_list_free_full(list, Mem_Free);
 		}
+
 		Fs_Close(file);
 	} else {
+
 		len = -1;
 
 		if (buffer) {
@@ -684,9 +686,9 @@ void Fs_Init(const uint32_t flags) {
 	// if the base directory was not resolved, add the default search paths
 	if (strlen(fs_state.base_dir)) {
 		Com_Debug(DEBUG_FILESYSTEM, "Resolved base dir: %s\n", fs_state.base_dir);
-	} else {
-		Fs_AddToSearchPath(PKGLIBDIR G_DIR_SEPARATOR_S DEFAULT_GAME);
-		Fs_AddToSearchPath(PKGDATADIR G_DIR_SEPARATOR_S DEFAULT_GAME);
+	} else { // trailing slash is added to "fix" links on Linux, possibly causes issues on other platforms?
+		Fs_AddToSearchPath(PKGLIBDIR G_DIR_SEPARATOR_S DEFAULT_GAME G_DIR_SEPARATOR_S);
+		Fs_AddToSearchPath(PKGDATADIR G_DIR_SEPARATOR_S DEFAULT_GAME G_DIR_SEPARATOR_S);
 	}
 
 	// then add the game directory in the user's home directory

@@ -223,6 +223,15 @@ void Net_Config(net_src_t source, _Bool up) {
 
 	if (up) {
 
+		net_loop_latency = Cvar_Add("net_loop_latency", "0", CVAR_DEVELOPER,
+				"Simulate network latency, in milliseconds, on localhost (developer tool)");
+
+		net_loop_jitter = Cvar_Add("net_loop_jitter", "0", CVAR_DEVELOPER,
+				"Simulate network jitter, in milliseconds, on localhost (developer tool)");
+
+		net_loop_loss = Cvar_Add("net_loop_loss", "0.0", CVAR_DEVELOPER,
+				"Simulate network packet loss, as a fraction, on localhost (developer tool)");
+
 		const cvar_t *net_interface = Cvar_Add("net_interface", "", CVAR_NO_SET, NULL);
 		const cvar_t *net_port = Cvar_Add("net_port", va("%i", PORT_SERVER), CVAR_NO_SET, NULL);
 
@@ -238,13 +247,4 @@ void Net_Config(net_src_t source, _Bool up) {
 			*sock = 0;
 		}
 	}
-
-	net_loop_latency = Cvar_Add("net_loop_latency", "0", CVAR_DEVELOPER,
-	                            "Simulate network latency, in milliseconds, on localhost (developer tool)");
-
-	net_loop_jitter = Cvar_Add("net_loop_jitter", "0", CVAR_DEVELOPER,
-	                           "Simulate network jitter, in milliseconds, on localhost (developer tool)");
-
-	net_loop_loss = Cvar_Add("net_loop_loss", "0.0", CVAR_DEVELOPER,
-	                         "Simulate network packet loss, as a fraction, on localhost (developer tool)");
 }

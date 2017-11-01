@@ -737,12 +737,13 @@ static void SampleNormal(const bsp_face_t *face, const vec3_t pos, vec3_t normal
 }
 
 #define MAX_SAMPLES 5
+
 static const vec_t sampleofs[MAX_SAMPLES][2] = {
 	{ 0.0, 0.0 },
-	{ -0.125, -0.125 },
-	{ 0.125, -0.125 },
-	{ 0.125, 0.125 },
-	{ -0.125, 0.125 }
+	{ -0.5, -0.5 },
+	{ 0.5, -0.5 },
+	{ 0.5, 0.5 },
+	{ -0.5, 0.5 }
 };
 
 /**

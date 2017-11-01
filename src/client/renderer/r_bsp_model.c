@@ -620,7 +620,8 @@ static gboolean R_UniqueVerts_EqualFunc(gconstpointer a, gconstpointer b) {
 	        memcmp(bsp->normals[va], bsp->normals[vb], sizeof(vec3_t)) == 0 &&
 	        memcmp(bsp->texcoords[va], bsp->texcoords[vb], sizeof(vec2_t)) == 0 &&
 	        memcmp(bsp->lightmap_texcoords[va], bsp->lightmap_texcoords[vb], sizeof(vec2_t)) == 0 &&
-	        memcmp(bsp->tangents[va], bsp->tangents[vb], sizeof(vec4_t)) == 0;
+	        memcmp(bsp->tangents[va], bsp->tangents[vb], sizeof(vec3_t)) == 0 &&
+	        memcmp(bsp->bitangents[va], bsp->bitangents[vb], sizeof(vec3_t)) == 0;
 }
 
 /**
@@ -707,11 +708,12 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 		VectorCopy(normal, mod->bsp->normals[*vertices]);
 
 		// tangent vectors
-		vec4_t tangent;
+		vec3_t tangent;
 		vec3_t bitangent;
 
 		TangentVectors(normal, sdir, tdir, tangent, bitangent);
-		Vector4Copy(tangent, mod->bsp->tangents[*vertices]);
+		VectorCopy(tangent, mod->bsp->tangents[*vertices]);
+		VectorCopy(bitangent, mod->bsp->bitangents[*vertices]);
 
 		// find the index that this vertex belongs to.
 		surf->elements[i] = R_LoadBspVertexArrays_VertexElement(vertices);
@@ -722,7 +724,8 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 typedef struct {
 	vec3_t vertex;
 	vec3_t normal;
-	vec4_t tangent;
+	vec3_t tangent;
+	vec3_t bitangent;
 	vec2_t diffuse;
 	vec2_t lightmap;
 } r_bsp_interleave_vertex_t;
@@ -730,11 +733,148 @@ typedef struct {
 static r_buffer_layout_t r_bsp_buffer_layout[] = {
 	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 3 },
 	{ .attribute = R_ATTRIB_NORMAL, .type = R_TYPE_FLOAT, .count = 3 },
-	{ .attribute = R_ATTRIB_TANGENT, .type = R_TYPE_FLOAT, .count = 4 },
+	{ .attribute = R_ATTRIB_TANGENT, .type = R_TYPE_FLOAT, .count = 3 },
+	{ .attribute = R_ATTRIB_BITANGENT, .type = R_TYPE_FLOAT, .count = 3 },
 	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_FLOAT, .count = 2 },
 	{ .attribute = R_ATTRIB_LIGHTMAP, .type = R_TYPE_FLOAT, .count = 2 },
 	{ .attribute = -1 }
 };
+
+/**
+ * @brief Function for exporting a BSP to an OBJ.
+ */
+void R_ExportBSP_f(void) {
+	const r_model_t *world = R_WorldModel();
+
+	if (!world) {
+		return;
+	}
+	
+	Com_Print("Dumping BSP...\n");
+	
+	char modelname[MAX_QPATH];
+	g_snprintf(modelname, sizeof(modelname), "export/%s.obj", Basename(world->media.name));
+	
+	char mtlname[MAX_QPATH], mtlpath[MAX_QPATH];
+	g_snprintf(mtlname, sizeof(mtlname), "%s.mtl", Basename(world->media.name));
+	g_snprintf(mtlpath, sizeof(mtlpath), "export/%s.mtl", Basename(world->media.name));
+	
+	R_BindBuffer(&world->bsp->vertex_buffer);
+
+	file_t *file = Fs_OpenWrite(mtlpath);
+
+	GHashTable *materials = g_hash_table_new(g_direct_hash, g_direct_equal);
+	size_t num_materials = 0;
+
+	// write out unique materials
+	for (size_t i = 0; i < world->bsp->num_surfaces; i++) {
+		const r_bsp_surface_t *surf = &world->bsp->surfaces[i];
+		
+		if (!surf->num_edges || !surf->texinfo->material) {
+			continue;
+		}
+
+		if (g_hash_table_contains(materials, surf->texinfo->material)) {
+			continue;
+		}
+
+		const r_image_t *diffuse = surf->texinfo->material->diffuse;
+		
+		Fs_Print(file, "newmtl %s\n", diffuse->media.name);
+		Fs_Print(file, "map_Ka %s.png\n", diffuse->media.name);
+		Fs_Print(file, "map_Kd %s.png\n\n", diffuse->media.name);
+
+		char path[MAX_OS_PATH];
+		g_snprintf(path, sizeof(path), "export/%s.png", diffuse->media.name);
+
+		R_DumpImage(diffuse, path);
+
+		g_hash_table_insert(materials, surf->texinfo->material, (gpointer) num_materials);
+		num_materials++;
+	}
+	
+	Fs_Close(file);
+
+	file = Fs_OpenWrite(modelname);
+	
+	const r_bsp_interleave_vertex_t *vbuff = (const r_bsp_interleave_vertex_t *) glMapBufferRange(GL_ARRAY_BUFFER, 0, world->bsp->vertex_buffer.size, GL_MAP_READ_BIT);
+	const size_t num_vertices = world->bsp->vertex_buffer.size / sizeof(r_bsp_interleave_vertex_t);
+
+	Com_Print("Calculating extents...\n");
+	vec3_t mins, maxs;
+	ClearBounds(mins, maxs);
+
+	const r_bsp_interleave_vertex_t *vertex = vbuff;
+	for (size_t i = 0; i < num_vertices; i++, vertex++) {
+		AddPointToBounds(vertex->vertex, mins, maxs);
+	}
+
+	Com_Print("Writing vertices...\n");
+
+	Fs_Print(file, "# Wavefront OBJ exported by Quetoo\n\n");
+	Fs_Print(file, "mtllib %s\n\n", mtlname);
+
+	vertex = vbuff;
+	for (size_t i = 0; i < num_vertices; i++, vertex++) {
+
+		Fs_Print(file, "v %f %f %f\nvt %f %f\nvn %f %f %f\n",	-vertex->vertex[0], vertex->vertex[2], vertex->vertex[1],
+																vertex->diffuse[0], -vertex->diffuse[1],
+																-vertex->normal[0], vertex->normal[2], vertex->normal[1]);
+	}
+	
+	Fs_Print(file, "# %" PRIdMAX " vertices\n\n", num_vertices);
+	
+	Com_Print("Writing elements...\n");
+
+	size_t num_surfs = 0;
+
+	GHashTableIter iter;
+	gpointer key;
+	g_hash_table_iter_init(&iter, materials);
+
+	while (g_hash_table_iter_next (&iter, &key, NULL)) {
+		const r_material_t *material = (const r_material_t *) key;
+		
+		Fs_Print(file, "g %s\n", material->diffuse->media.name);
+		Fs_Print(file, "usemtl %s\n", material->diffuse->media.name);
+
+		for (size_t i = 0; i < world->bsp->num_surfaces; i++) {
+			const r_bsp_surface_t *surf = &world->bsp->surfaces[i];
+
+			if (!surf->num_edges || !surf->texinfo->material) {
+				continue;
+			}
+
+			if (surf->texinfo->material != material) {
+				continue;
+			}
+
+			num_surfs++;
+
+			const uint32_t *element = surf->elements + surf->num_edges - 1;
+
+			Fs_Print(file, "f ");
+
+			for (size_t i = 0; i < surf->num_edges; i++, element--) {
+				const uint32_t e = (*element) + 1;
+				Fs_Print(file, "%u/%u/%u ", e, e, e);
+			}
+
+			Fs_Print(file, "\n");
+		}
+
+		Fs_Print(file, "\n");
+	}
+	
+	Fs_Print(file, "# %" PRIdMAX " surfaces\n\n", num_surfs);
+	Fs_Close(file);
+
+	g_hash_table_destroy(materials);
+
+	glUnmapBuffer(GL_ARRAY_BUFFER);
+
+	Com_Print("Done!\n");
+}
 
 /**
  * @brief Generates vertex primitives for the world model by iterating leafs.
@@ -755,13 +895,15 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 	// start with worst case scenario # of vertices
 	GLsizei v = mod->num_verts * sizeof(vec3_t);
 	GLsizei st = mod->num_verts * sizeof(vec2_t);
-	GLsizei t = mod->num_verts * sizeof(vec4_t);
+	GLsizei t = mod->num_verts * sizeof(vec3_t);
+	GLsizei b = mod->num_verts * sizeof(vec3_t);
 
 	mod->bsp->verts = Mem_LinkMalloc(v, mod);
 	mod->bsp->texcoords = Mem_LinkMalloc(st, mod);
 	mod->bsp->lightmap_texcoords = Mem_LinkMalloc(st, mod);
 	mod->bsp->normals = Mem_LinkMalloc(v, mod);
 	mod->bsp->tangents = Mem_LinkMalloc(t, mod);
+	mod->bsp->bitangents = Mem_LinkMalloc(b, mod);
 
 	// make lookup table
 	r_unique_vertices.count = 0;
@@ -789,13 +931,15 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 
 	v = mod->num_verts * sizeof(vec3_t);
 	st = mod->num_verts * sizeof(vec2_t);
-	t = mod->num_verts * sizeof(vec4_t);
+	t = mod->num_verts * sizeof(vec3_t);
+	b = mod->num_verts * sizeof(vec3_t);
 
 	mod->bsp->verts = Mem_Realloc(mod->bsp->verts, v);
 	mod->bsp->texcoords = Mem_Realloc(mod->bsp->texcoords, st);
 	mod->bsp->lightmap_texcoords = Mem_Realloc(mod->bsp->lightmap_texcoords, st);
 	mod->bsp->normals = Mem_Realloc(mod->bsp->normals, v);
 	mod->bsp->tangents = Mem_Realloc(mod->bsp->tangents, t);
+	mod->bsp->bitangents = Mem_Realloc(mod->bsp->bitangents, b);
 
 	// load the element buffer object
 	mod->num_elements = num_elements;
@@ -832,7 +976,8 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 	for (GLsizei i = 0; i < mod->num_verts; ++i) {
 		VectorCopy(mod->bsp->verts[i], interleaved[i].vertex);
 		VectorCopy(mod->bsp->normals[i], interleaved[i].normal);
-		Vector4Copy(mod->bsp->tangents[i], interleaved[i].tangent);
+		VectorCopy(mod->bsp->tangents[i], interleaved[i].tangent);
+		VectorCopy(mod->bsp->bitangents[i], interleaved[i].bitangent);
 		Vector2Copy(mod->bsp->texcoords[i], interleaved[i].diffuse);
 		Vector2Copy(mod->bsp->lightmap_texcoords[i], interleaved[i].lightmap);
 	}
@@ -857,8 +1002,8 @@ static int R_SortBspSurfacesArrays_Compare(const void *s1, const void *s2) {
 
 	const r_bsp_texinfo_t *t1 = (*(r_bsp_surface_t **) s1)->texinfo;
 	const r_bsp_texinfo_t *t2 = (*(r_bsp_surface_t **) s2)->texinfo;
-
-	return g_strcmp0(t1->name, t2->name);
+	
+	return t1->material < t2->material ? -1 : t1->material > t2->material ? 1 : 0;
 }
 
 /**

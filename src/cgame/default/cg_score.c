@@ -171,14 +171,16 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 	const r_pixel_t fw = SCORES_COL_WIDTH - SCORES_ICON_WIDTH - 1;
 	const r_pixel_t fh = SCORES_ROW_HEIGHT - 1;
 
-	if (s->color != -1) {
-		color_t color = ColorFromHSV((const vec3_t) {
-			s->color, 1.0, 1.0
-		});
-	
-		color.a = (uint8_t) (fa * 255.0);
+	if (s->color != 0) {
+		const SDL_Color color = MVC_HSVToRGB(s->color, 1.0, 1.0);
+		const color_t c = {
+			.r = color.r,
+			.g = color.g,
+			.b = color.b,
+			.a = (fa * 255)
+		};
 
-		cgi.DrawFill(x, y, fw, fh, color.u32, -1.0);
+		cgi.DrawFill(x, y, fw, fh, c.u32, -1.0);
 	}
 
 	cgi.BindFont("small", &cw, &ch);

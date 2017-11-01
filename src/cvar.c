@@ -125,11 +125,11 @@ static const char *Cvar_Stringify(const cvar_t *var) {
 	}
 
 	if (var->flags & CVAR_USER_INFO) {
-		modifiers = g_list_append(modifiers, "^4userinfo^7");
+		modifiers = g_list_append(modifiers, "^4user^7");
 	}
 
 	if (var->flags & CVAR_SERVER_INFO) {
-		modifiers = g_list_append(modifiers, "^5serverinfo");
+		modifiers = g_list_append(modifiers, "^5server^7");
 	}
 
 	if (var->flags & CVAR_DEVELOPER) {
@@ -147,6 +147,10 @@ static const char *Cvar_Stringify(const cvar_t *var) {
 	static char str[MAX_STRING_CHARS];
 	g_snprintf(str, sizeof(str), "%s \"^3%s^7\"", var->name, var->string);
 
+	if (g_strcmp0(var->string, var->default_value)) {
+		g_strlcat(str, va(" [\"^3%s^7\"]", var->default_value), sizeof(str));
+	}
+
 	if (modifiers) {
 		g_strlcat(str, " (", sizeof(str));
 
@@ -162,12 +166,8 @@ static const char *Cvar_Stringify(const cvar_t *var) {
 		g_list_free(modifiers);
 	}
 
-	if (g_strcmp0(var->string, var->default_value)) {
-		g_strlcat(str, va(" (default: \"^3%s^7\")", var->default_value), sizeof(str));
-	}
-
 	if (var->description) {
-		g_strlcat(str, va("\n\t^2%s^7", var->description), sizeof(str));
+		g_strlcat(str, va("\n  ^2%s^7", var->description), sizeof(str));
 	}
 
 	return str;
@@ -304,7 +304,7 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 		// command line variables retain their value through initialization
 		if (var->flags & CVAR_CLI) {
 			if (!Com_WasInit(QUETOO_CLIENT) && !Com_WasInit(QUETOO_SERVER)) {
-				Com_Debug(DEBUG_CONSOLE, "%s: retaining value \"%s\" from command line\n", name, var->string);
+				Com_Debug(DEBUG_CONSOLE, "%s: retaining value \"%s\" from command line.\n", name, var->string);
 				return var;
 			}
 		}
@@ -630,14 +630,25 @@ static void Cvar_Toggle_f(void) {
  * @brief Enumeration helper for Cvar_List_f.
  */
 static void Cvar_List_f_enumerate(cvar_t *var, void *data) {
-	Com_Print("%s\n", Cvar_Stringify(var));
+	GSList **list = (GSList **) data;
+	const gchar *str = g_strdup(Cvar_Stringify(var));
+
+	*list = g_slist_insert_sorted(*list, (gpointer) str, (GCompareFunc) g_ascii_strcasecmp);
 }
 
 /**
  * @brief Lists all known console variables.
  */
 static void Cvar_List_f(void) {
-	Cvar_Enumerate(Cvar_List_f_enumerate, NULL);
+	GSList *list = NULL;
+
+	Cvar_Enumerate(Cvar_List_f_enumerate, &list);
+	
+	for (GSList *entry = list; entry; entry = entry->next) {
+		Com_Print("%s\n", (const gchar *) entry->data);
+	}
+
+	g_slist_free_full(list, g_free);
 }
 
 /**
@@ -744,7 +755,7 @@ _Bool Cvar_ExpandString(const char *input, const size_t in_size, GString **outpu
  * @brief
  */
 static void Cvar_HashTable_Free(gpointer list) {
-	
+
 	g_queue_free_full((GQueue *) list, Mem_Free);
 }
 

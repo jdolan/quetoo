@@ -52,6 +52,45 @@ void R_ListMedia_f(void) {
 #define AMASK 0xff000000
 
 /**
+ * @brief Dump the image to the specified output file (must be .png)
+ */
+void R_DumpImage(const r_image_t *image, const char *output) {
+	const char *real_path = Fs_RealPath(output);
+	char real_dir[MAX_QPATH];
+	Dirname(output, real_dir);
+	Fs_Mkdir(real_dir);
+	SDL_RWops *f = SDL_RWFromFile(real_path, "wb");
+
+	if (!f) {
+		return;
+	}
+
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+	R_BindDiffuseTexture(image->texnum);
+
+	int32_t width, height;
+
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
+	
+	GLubyte *pixels = Mem_Malloc(width * height * 4);
+	
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+	SDL_Surface *ss = SDL_CreateRGBSurfaceFrom(pixels, width, height, 32, width * 4, RMASK, GMASK, BMASK, AMASK);
+	IMG_SavePNG_RW(ss, f, 0);
+	SDL_FreeSurface(ss);
+
+	Mem_Free(pixels);
+	SDL_RWclose(f);
+}
+
+/**
  * @brief
  */
 void R_DumpImages_f(void) {
@@ -65,50 +104,24 @@ void R_DumpImages_f(void) {
 		const r_media_t *media = g_hash_table_lookup(r_media_state.media, key->data);
 
 		if (media) {
-			r_pixel_t width = 0, height = 0;
-			GLuint texnum = 0;
+			const r_image_t *image = NULL;
 
 			if (media->type == MEDIA_IMAGE ||
 			        media->type == MEDIA_ATLAS) {
-				const r_image_t *image = (const r_image_t *) media;
-				width = image->width;
-				height = image->height;
-				texnum = image->texnum;
+				image = (const r_image_t *) media;
 			} else if (media->type == MEDIA_FRAMEBUFFER) {
 				const r_framebuffer_t *fb = (const r_framebuffer_t *) media;
 
 				if (fb->color) {
-					width = fb->color->width;
-					height = fb->color->height;
-					texnum = fb->color->texnum;
+					image = fb->color;
 				}
 			}
 
-			if (texnum) {
+			if (image) {
 				char path[MAX_OS_PATH];
 				g_snprintf(path, sizeof(path), "imgdmp/%s.png", media->name);
-				const char *real_path = Fs_RealPath(path);
-				char real_dir[MAX_QPATH];
-				Dirname(path, real_dir);
-				Fs_Mkdir(real_dir);
-				SDL_RWops *f;
 
-				if (!(f = SDL_RWFromFile(real_path, "wb"))) {
-					key = key->next;
-					continue;
-				}
-
-				GLubyte *pixels = Mem_Malloc(width * height * 4);
-	
-				R_BindDiffuseTexture(texnum);
-				glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-
-				SDL_Surface *ss = SDL_CreateRGBSurfaceFrom(pixels, width, height, 32, width * 4, RMASK, GMASK, BMASK, AMASK);
-				IMG_SavePNG_RW(ss, f, 0);
-				SDL_FreeSurface(ss);
-
-				Mem_Free(pixels);
-				SDL_RWclose(f);
+				R_DumpImage((const r_image_t *) media, path);
 			}
 		}
 

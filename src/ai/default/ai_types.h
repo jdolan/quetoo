@@ -125,6 +125,7 @@ typedef struct ai_entity_data_s {
 } ai_entity_data_t;
 
 #ifdef __AI_LOCAL_H__
+
 typedef struct {
 	uint32_t frame_num;
 	uint32_t time;

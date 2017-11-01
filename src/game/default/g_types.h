@@ -304,7 +304,7 @@ typedef enum {
 /**
  * @brief Scoreboard background color hues.
  */
-#define TEAM_COLOR_RED			0
+#define TEAM_COLOR_RED			360
 #define TEAM_COLOR_BLUE			240
 #define TEAM_COLOR_GREEN		120
 #define TEAM_COLOR_ORANGE		30
@@ -947,11 +947,11 @@ typedef struct {
 	char skin[32];
 	char flag[32]; // flag classname
 	char spawn[32]; // spawn classname
-	char tint_r[COLOR_MAX_LENGTH]; // shirt
-	char tint_g[COLOR_MAX_LENGTH]; // pants
-	char tint_b[COLOR_MAX_LENGTH]; // helmet
-	int16_t color;
-	int16_t effect;
+
+	color_t shirt, pants, helmet;
+
+	int16_t color; // scoreboard colors
+	int16_t effect; // weapon effect colors
 
 	// dynamic info, valid for all teams
 	int16_t score;
@@ -1006,10 +1006,9 @@ typedef struct {
 	g_hook_style_t hook_style; // the player's current hook style
 
 	g_team_t *team; // current team
-	int16_t color; // weapon effect colors
-	char tint_r[COLOR_MAX_LENGTH]; // shirt
-	char tint_g[COLOR_MAX_LENGTH]; // pants
-	char tint_b[COLOR_MAX_LENGTH]; // helmet
+
+	int16_t color; // effect color
+	color_t shirt, pants, helmet; // player colors
 
 	int16_t score;
 	int16_t captures;

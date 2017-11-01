@@ -36,13 +36,11 @@ cvar_t *cg_add_particles;
 cvar_t *cg_add_weather;
 cvar_t *cg_bob;
 cvar_t *cg_color;
-cvar_t *cg_tint_r; // shirt
-cvar_t *cg_tint_g; // pants
-cvar_t *cg_tint_b; // helmet
 cvar_t *cg_draw_blend;
 cvar_t *cg_draw_blend_damage;
 cvar_t *cg_draw_blend_liquid;
 cvar_t *cg_draw_blend_pickup;
+cvar_t *cg_draw_blend_powerup;
 cvar_t *cg_draw_captures;
 cvar_t *cg_draw_crosshair_color;
 cvar_t *cg_draw_crosshair_pulse;
@@ -75,11 +73,15 @@ cvar_t *cg_fov_zoom;
 cvar_t *cg_fov_interpolate;
 cvar_t *cg_hand;
 cvar_t *cg_handicap;
+cvar_t *cg_helmet;
+cvar_t *cg_hit_sound;
 cvar_t *cg_hook_style;
+cvar_t *cg_pants;
 cvar_t *cg_particle_quality;
 cvar_t *cg_predict;
 cvar_t *cg_quick_join_max_ping;
 cvar_t *cg_quick_join_min_clients;
+cvar_t *cg_shirt;
 cvar_t *cg_skin;
 cvar_t *cg_third_person;
 cvar_t *cg_third_person_chasecam;
@@ -93,6 +95,7 @@ cvar_t *g_gameplay;
 cvar_t *g_teams;
 cvar_t *g_ctf;
 cvar_t *g_match;
+cvar_t *g_ai_max_clients;
 
 cg_import_t cgi;
 
@@ -124,28 +127,30 @@ static void Cg_Init(void) {
 	cg_color = cgi.Cvar("color", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                    "Specifies the effect color for your own weapon trails.");
 
-	cg_tint_r = cgi.Cvar("shirt", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
-	                    "Specifies your shirt color, in the hexadecimal format \"rrggbb\". \"default\" uses the skin or team's defaults.");
+	cg_shirt = cgi.Cvar("shirt", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
+	                    "Specifies your shirt color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
 
-	cg_tint_g = cgi.Cvar("pants", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
-	                    "Specifies your pants color, in the hexadecimal format \"rrggbb\". \"default\" uses the skin or team's defaults.");
+	cg_pants = cgi.Cvar("pants", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
+	                    "Specifies your pants color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
 
-	cg_tint_b = cgi.Cvar("helmet", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
-	                    "Specifies your helmet color, in the hexadecimal format \"rrggbb\". \"default\" uses the skin or team's defaults.");
+	cg_helmet = cgi.Cvar("helmet", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
+	                    "Specifies your helmet color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
 
 	cg_draw_blend = cgi.Cvar("cg_draw_blend", "1.0", CVAR_ARCHIVE,
-                                 "Controls the intensity of screen alpha-blending");
-	cg_draw_blend_damage = cgi.Cvar("cg_draw_blend_damage", "1", CVAR_ARCHIVE,
-                                        "Controls if damage has blend flash effect");
-	cg_draw_blend_liquid = cgi.Cvar("cg_draw_blend_liquid", "1", CVAR_ARCHIVE,
-                                        "Controls if being in a liquid has blend flash effect");
-	cg_draw_blend_pickup = cgi.Cvar("cg_draw_blend_pickup", "1", CVAR_ARCHIVE,
-                                        "Controls if picking up items has blend flash effect");
+                                 "Controls the intensity of screen alpha-blending.");
+	cg_draw_blend_damage = cgi.Cvar("cg_draw_blend_damage", "1.0", CVAR_ARCHIVE,
+                                        "Controls the intensity of the blend flash effect when taking damage.");
+	cg_draw_blend_liquid = cgi.Cvar("cg_draw_blend_liquid", "1.0", CVAR_ARCHIVE,
+                                        "Controls the intensity of the blend effect while in a liquid.");
+	cg_draw_blend_pickup = cgi.Cvar("cg_draw_blend_pickup", "1.0", CVAR_ARCHIVE,
+                                        "Controls the intensity of the blend flash effect when picking up items.");
+	cg_draw_blend_powerup = cgi.Cvar("cg_draw_blend_powerup", "1.0", CVAR_ARCHIVE,
+                                         "Controls the intensity of the blend flash effect when holding a powerup.");
 	cg_draw_captures = cgi.Cvar("cg_draw_captures", "1", CVAR_ARCHIVE,
 	                            "Draw the number of captures");
 	cg_draw_crosshair = cgi.Cvar("cg_draw_crosshair", "1", CVAR_ARCHIVE,
                                      "Which crosshair image to use, 0 disables (Default is 1)");
-	cg_draw_crosshair_color = cgi.Cvar("cg_draw_crosshair_color", "", CVAR_ARCHIVE,
+	cg_draw_crosshair_color = cgi.Cvar("cg_draw_crosshair_color", "default", CVAR_ARCHIVE,
 	                                   "Specifies the crosshair color (red|green|yellow|default)");
 	cg_draw_crosshair_pulse = cgi.Cvar("cg_draw_crosshair_pulse", "1.0", CVAR_ARCHIVE,
 	                                   "Pulse the crosshair when picking up items");
@@ -195,6 +200,10 @@ static void Cg_Init(void) {
 	                   "Controls weapon handedness (center: 0, right: 1, left: 2).");
 	cg_handicap = cgi.Cvar("handicap", "100", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                       "Your handicap, or disadvantage.");
+
+	cg_hit_sound = cgi.Cvar("cg_hit_sound", "1", CVAR_ARCHIVE,
+	                       "If a hit sound is played when damaging an enemy.");
+
 	cg_hook_style = cgi.Cvar("hook_style", "pull", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                         "Your preferred hook style. Can be either \"pull\" or \"swing\".");
 
@@ -204,7 +213,7 @@ static void Cg_Init(void) {
 
 	cg_quick_join_max_ping = cgi.Cvar("cg_quick_join_max_ping", "200", CVAR_SERVER_INFO,
 									  "Maximum ping allowed for quick join");
-	cg_quick_join_min_clients = cgi.Cvar("cg_quick_join_min_clients", "0", CVAR_SERVER_INFO,
+	cg_quick_join_min_clients = cgi.Cvar("cg_quick_join_min_clients", "1", CVAR_SERVER_INFO,
 										 "Minimum clients allowed for quick join");
 
 	cg_skin = cgi.Cvar("skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE,
@@ -233,6 +242,8 @@ static void Cg_Init(void) {
 	                 "Enables capture the flag gameplay");
 	g_match = cgi.Cvar("g_match", "0", CVAR_SERVER_INFO,
 	                   "Enables match play requiring players to ready");
+	g_ai_max_clients = cgi.Cvar("g_ai_max_clients", "0", CVAR_SERVER_INFO,
+	                           "The minimum amount player slots that will always be filled. Specify -1 to fill all available slots.");
 
 	// add forward to server commands for tab completion
 
@@ -256,8 +267,6 @@ static void Cg_Init(void) {
 	cgi.Cmd("ready", NULL, CMD_CGAME, NULL);
 	cgi.Cmd("unready", NULL, CMD_CGAME, NULL);
 	cgi.Cmd("player_list", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("config_strings", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("baselines", NULL, CMD_CGAME, NULL);
 
 	Cg_InitUi();
 
@@ -349,27 +358,25 @@ cg_team_info_t cg_team_info[MAX_TEAMS];
 /**
  * @brief Resolve team info from team configstring
  */
-static void Cg_ResolveTeamInfo(const char *s) {
+static void Cg_ParseTeamInfo(const char *s) {
 
 	gchar **info = g_strsplit(s, "\\", 0);
-	const size_t info_count = g_strv_length(info);
+	const size_t count = g_strv_length(info);
 
-	if (info_count != lengthof(cg_team_info) * 2) {
+	if (count != lengthof(cg_team_info) * 2) {
 		g_strfreev(info);
 		cgi.Error("Invalid team data");
 	}
 
 	cg_team_info_t *team = cg_team_info;
 
-	for (size_t i = 0; i < info_count; i += 2, team++) {
+	for (size_t i = 0; i < count; i += 2, team++) {
 
 		g_strlcpy(team->team_name, info[i], sizeof(team->team_name));
-		team->hue = (int16_t) atoi(info[i + 1]);
-		team->color = ColorFromHSV((const vec3_t) {
-			team->hue,
-			1.0,
-			1.0
-		});
+
+		const int16_t hue = atoi(info[i + 1]);
+		const SDL_Color color = MVC_HSVToRGB(hue, 1.0, 1.0);
+		team->color.u32 = *(int32_t *) &color;
 	}
 
 	g_strfreev(info);
@@ -391,7 +398,7 @@ static void Cg_UpdateConfigString(uint16_t i) {
 			cg_state.hook_pull_speed = strtof(s, NULL);
 			return;
 		case CS_TEAM_INFO:
-			Cg_ResolveTeamInfo(s);
+			Cg_ParseTeamInfo(s);
 			return;
 		case CS_WEAPONS:
 			Cg_ParseWeaponInfo(s);
@@ -434,6 +441,7 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.Interpolate = Cg_Interpolate;
 	cge.UsePrediction = Cg_UsePrediction;
 	cge.PredictMovement = Cg_PredictMovement;
+	cge.UpdateLoading = Cg_UpdateLoading;
 	cge.UpdateView = Cg_UpdateView;
 	cge.UpdateScreen = Cg_UpdateScreen;
 

@@ -294,7 +294,7 @@ static void G_Ai_RemoveBots(const int32_t count) {
  * @brief
  */
 static void G_Ai_Add_f(void) {
-	
+
 	if (g_game.ai_fill_slots) {
 		gi.Print("g_ai_max_clients is set - change that instead\n");
 		return;
@@ -313,7 +313,7 @@ static void G_Ai_Add_f(void) {
  * @brief
  */
 static void G_Ai_Remove_f(void) {
-	
+
 	if (g_game.ai_fill_slots) {
 		gi.Print("g_ai_max_clients is set - change that instead\n");
 		return;
@@ -567,7 +567,7 @@ void G_Ai_RegisterItems(void) {
 static void G_Ai_SetDataPointers(void) {
 	static ai_entity_data_t entity;
 	static ai_client_data_t client;
-	
+
 	ENTITY_PTR_OFFSET(ground_entity);
 	ENTITY_PTR_OFFSET(item);
 	ENTITY_PTR_OFFSET(velocity);
@@ -575,7 +575,7 @@ static void G_Ai_SetDataPointers(void) {
 	ENTITY_PTR_OFFSET(max_health);
 	ENTITY_PTR_OFFSET(max_armor);
 	ENTITY_PTR_OFFSET(water_level);
-	
+
 	CLIENT_PTR_OFFSET(angles);
 	CLIENT_PTR_OFFSET(inventory);
 	CLIENT_PTR_OFFSET(weapon);
@@ -592,65 +592,12 @@ void G_Ai_Init(void) {
 
 	memset(&import, 0, sizeof(import));
 
-	g_strlcpy(import.write_dir, gi.write_dir, MAX_OS_PATH);
-
-	import.Print = gi.Print;
-	import.Debug_ = gi.Debug_;
-	import.PmDebug_ = gi.PmDebug_;
-	import.Warn_ = gi.Warn_;
-	import.Error_ = gi.Error_;
-
-	import.Malloc = gi.Malloc;
-	import.LinkMalloc = gi.LinkMalloc;
-	import.Free = gi.Free;
-	import.FreeTag = gi.FreeTag;
-
-	import.LoadFile = gi.LoadFile;
-	import.FreeFile = gi.FreeFile;
-	import.EnumerateFiles = gi.EnumerateFiles;
-
-	import.Cvar = gi.Cvar;
-	import.CvarString = gi.CvarString;
-	import.CvarValue = gi.CvarValue;
-	import.CvarGet = gi.CvarGet;
-	import.CvarSet = gi.CvarSet;
-	import.CvarSetValue = gi.CvarSetValue;
-	import.Cmd = gi.Cmd;
-	import.Argc = gi.Argc;
-	import.Argv = gi.Argv;
-	import.Args = gi.Args;
-	import.TokenizeString = gi.TokenizeString;
-
-	import.Trace = gi.Trace;
-	import.PointContents = gi.PointContents;
-	import.inPVS = gi.inPVS;
-	import.inPHS = gi.inPHS;
-	import.AreasConnected = gi.AreasConnected;
-
-	import.BoxEntities = gi.BoxEntities;
-
-	import.GetConfigString = gi.GetConfigString;
+	import.gi = &gi;
+	import.ge = &ge;
 
 	import.OnSameTeam = G_OnSameTeam;
-	import.ClientCommand = G_ClientCommand;
-	
-	import.Multicast = gi.Multicast;
-	import.Unicast = gi.Unicast;
-	import.WriteData = gi.WriteData;
-	import.WriteChar = gi.WriteChar;
-	import.WriteByte = gi.WriteByte;
-	import.WriteShort = gi.WriteShort;
-	import.WriteLong = gi.WriteLong;
-	import.WriteString = gi.WriteString;
-	import.WriteVector = gi.WriteVector;
-	import.WritePosition = gi.WritePosition;
-	import.WriteDir = gi.WriteDir;
-	import.WriteAngle = gi.WriteAngle;
-	import.WriteAngles = gi.WriteAngles;
 
 	// SCRATCH
-	import.entities = ge.entities;
-	import.entity_size = ge.entity_size;
 	import.ItemIndex = G_Ai_ItemIndex;
 	import.CanPickupItem = G_Ai_CanPickupItem;
 
@@ -665,7 +612,7 @@ void G_Ai_Init(void) {
 	G_Ai_SetDataPointers();
 
 	g_ai_max_clients = gi.Cvar("g_ai_max_clients", "0", CVAR_SERVER_INFO,
-	                           "The number of bots to automatically fill in empty slots in the server. Specify -1 to fill all available slots.");
+	                           "The minimum amount player slots that will always be filled. Specify -1 to fill all available slots.");
 
 	gi.Cmd("g_ai_add", G_Ai_Add_f, CMD_GAME, "Add one or more AI to the game");
 	gi.Cmd("g_ai_remove", G_Ai_Remove_f, CMD_GAME, "Remove one or more AI from the game");

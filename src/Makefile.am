@@ -61,9 +61,8 @@ libconsole_la_CFLAGS = \
 libconsole_la_LDFLAGS = \
 	-shared
 libconsole_la_LIBADD = \
-	libfilesystem.la \
-	@CURSES_LIBS@
-	
+	libfilesystem.la
+
 libfilesystem_la_SOURCES = \
 	filesystem.c
 libfilesystem_la_CFLAGS = \
@@ -96,8 +95,7 @@ libmatrix_la_CFLAGS = \
 libmatrix_la_LDFLAGS = \
 	-shared
 libmatrix_la_LIBADD = \
-	@BASE_LIBS@ \
-	@GLIB_LIBS@
+	@BASE_LIBS@
 
 libmem_la_SOURCES = \
 	mem.c \
@@ -121,8 +119,7 @@ libparse_la_CFLAGS = \
 libparse_la_LDFLAGS = \
 	-shared
 libparse_la_LIBADD = \
-	@BASE_LIBS@ \
-	@GLIB_LIBS@
+	@BASE_LIBS@
 
 libshared_la_SOURCES = \
 	shared.c \
@@ -135,7 +132,7 @@ libshared_la_LDFLAGS = \
 libshared_la_LIBADD = \
 	@BASE_LIBS@ \
 	@GLIB_LIBS@
-	
+
 libswap_la_SOURCES = \
 	swap.c
 libswap_la_CFLAGS = \

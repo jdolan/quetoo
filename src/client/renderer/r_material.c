@@ -32,7 +32,8 @@ typedef struct {
 	vec3_t		vertex;
 	u8vec4_t	color;
 	vec3_t		normal;
-	vec4_t		tangent;
+	vec3_t		tangent;
+	vec3_t		bitangent;
 	vec2_t		diffuse;
 	u16vec2_t	lightmap;
 } r_material_interleave_vertex_t;
@@ -57,7 +58,12 @@ static r_buffer_layout_t r_material_buffer_layout[] = {
 	{
 		.attribute = R_ATTRIB_TANGENT,
 		.type = R_TYPE_FLOAT,
-		.count = 4
+		.count = 3
+	},
+	{
+		.attribute = R_ATTRIB_BITANGENT,
+		.type = R_TYPE_FLOAT,
+		.count = 3
 	},
 	{
 		.attribute = R_ATTRIB_DIFFUSE,
@@ -446,7 +452,10 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
 			VectorCopy(n, vertex->normal);
 
 			const vec_t *t = &r_model_state.world->bsp->tangents[surf->elements[i]][0];
-			Vector4Copy(t, vertex->tangent);
+			VectorCopy(t, vertex->tangent);
+
+			const vec_t *b = &r_model_state.world->bsp->bitangents[surf->elements[i]][0];
+			VectorCopy(b, vertex->bitangent);
 		}
 	}
 
@@ -523,7 +532,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		R_EnableTexture(texunit_deluxemap, true);
 	}
 
-	if (r_stainmap->integer) {
+	if (r_stainmaps->integer) {
 		R_EnableTexture(texunit_stainmap, true);
 	}
 
@@ -840,9 +849,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 	material->media.Register = R_RegisterMaterial;
 	material->media.Free = R_FreeMaterial;
 
-	Cm_ResolveMaterial(cm, context);
-
-	if (*cm->diffuse.path) {
+	if (Cm_ResolveMaterial(cm, context)) {
 
 		material->diffuse = R_LoadImage(cm->diffuse.path, IT_DIFFUSE);
 		if (material->diffuse->type == IT_DIFFUSE) {

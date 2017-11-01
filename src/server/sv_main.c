@@ -815,10 +815,10 @@ static void Sv_InitLocal(void) {
 	sv_download_url = Cvar_Add("sv_download_url", "", CVAR_SERVER_INFO,
 	                           "The base URL for in-game HTTP downloads");
 	sv_enforce_time = Cvar_Add("sv_enforce_time", va("%d", CMD_MSEC_MAX_DRIFT_ERRORS), 0,
-	                           "Prevents the most blatant form of speed cheeting, disable at your own risk");
+	                           "Prevents the most blatant form of speed cheating, disable at your own risk");
 	sv_hostname = Cvar_Add("sv_hostname", "Quetoo", CVAR_SERVER_INFO | CVAR_ARCHIVE,
 	                       "The server hostname, visible in the server browser");
-	sv_max_clients = Cvar_Add("sv_max_clients", "1", CVAR_SERVER_INFO | CVAR_LATCH,
+	sv_max_clients = Cvar_Add("sv_max_clients", "8", CVAR_SERVER_INFO | CVAR_LATCH,
 	                          "The maximum number of clients the server will allow");
 	sv_no_areas = Cvar_Add("sv_no_areas", "0", CVAR_LATCH | CVAR_DEVELOPER,
 	                       "Disable server-side area management (developer tool)");

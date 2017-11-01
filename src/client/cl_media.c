@@ -96,41 +96,10 @@ GList *Cl_Mapshots(const char *mapname) {
 }
 
 /**
- * @return The loading screen background image, preferably map-specific.
- */
-static r_image_t *Cl_LoadingBackground() {
-	r_image_t *image = NULL;
-
-	GList *list = Cl_Mapshots(cl.config_strings[CS_MODELS]);
-
-	const guint len = g_list_length(list);
-	if (len > 0) {
-		const char *path = g_list_nth_data(list, Randomr(0, len));
-
-		image = R_LoadImage(path, IT_PIC);
-
-		if (image->type == IT_NULL) {
-			Com_Warn("Invalid loading background: %s\n", path);
-			image = NULL;
-		} else {
-			Com_Debug(DEBUG_CLIENT, "Loading background %s (%s)\n", image->media.name, path);
-		}
-	}
-
-	g_list_free_full(list, g_free);
-
-	return image;
-}
-
-/**
  * @brief Update the loading progress, handle events and update the screen.
  * This should be called periodically while loading media.
  */
 void Cl_LoadingProgress(uint16_t percent, const char *status) {
-
-	if (percent == 0) {
-		cls.loading.background = Cl_LoadingBackground();
-	}
 
 	cls.loading.percent = percent;
 	cls.loading.status = status;
@@ -139,83 +108,11 @@ void Cl_LoadingProgress(uint16_t percent, const char *status) {
 
 	Cl_SendCommands();
 
+	cls.cgame->UpdateLoading(cls.loading);
+
 	Cl_UpdateScreen();
 
 	quetoo.ticks = SDL_GetTicks();
-}
-
-/**
- * @brief
- */
-void Cl_DrawDownload(void) {
-	r_pixel_t cw, ch;
-
-	R_BindFont("small", &cw, &ch);
-
-	R_DrawFill(0, 0, r_context.width, r_context.height, 0, 1.0);
-
-	const int32_t kb = (int32_t) Fs_Tell(cls.download.file) / 1024;
-	const char *proto = cls.download.http ? "HTTP" : "UDP";
-
-	const char *status = va("Downloading %s [%s] %dKB ", cls.download.name, proto, kb);
-
-	const r_pixel_t x = (r_context.width - R_StringWidth(status)) / 2;
-	const r_pixel_t y = r_context.height / 2;
-
-	R_DrawString(x, y, status, CON_COLOR_DEFAULT);
-
-	R_BindFont(NULL, NULL, NULL);
-}
-
-/**
- * @brief Draws the loading screen.
- */
-void Cl_DrawLoading(void) {
-	r_pixel_t cw, ch;
-
-	// draw the background
-	if (cls.loading.background) {
-		const vec_t cr = (vec_t) r_context.width / r_context.height;
-		const vec_t ir = (vec_t) cls.loading.background->width / cls.loading.background->height;
-		if (cr >= ir) {
-			R_DrawImage(0, 0, (vec_t) r_context.width / cls.loading.background->width, cls.loading.background);
-		} else {
-			R_DrawImage(0, 0, (vec_t) r_context.height / cls.loading.background->height, cls.loading.background);
-		}
-	} else {
-		R_DrawFill(0, 0, r_context.width, r_context.height, 0, 1.0);
-	}
-
-	// then the progress bar and percentage
-	R_BindFont("medium", &cw, &ch);
-
-	const color_t bg = ColorFromRGBA(24, 128, 24, 48);
-	const color_t fg = ColorFromRGBA(48, 255, 48, 128);
-
-	const r_pixel_t x = r_context.width * 0.25;
-	const r_pixel_t y = r_context.height * 0.66;
-
-	const r_pixel_t w = r_context.width * 0.5;
-
-	R_DrawFill(x, y - 2, w, ch + 4, bg.u32, -1.0);
-	R_DrawFill(x + 1, y - 1, (w - 2) * (cls.loading.percent / 100.0), ch + 2, fg.u32, -1.0);
-
-	const char *percent = va("%2d%%", cls.loading.percent);
-	const r_pixel_t px = (r_context.width - R_StringWidth(percent)) / 2;
-
-	R_DrawString(px, y, percent, CON_COLOR_DEFAULT);
-
-	// and finally the status detail
-	R_BindFont("small", NULL, NULL);
-
-	const char *status = va("Loading %s..", cls.loading.status);
-
-	const r_pixel_t sx = (r_context.width - R_StringWidth(status)) / 2;
-	const r_pixel_t sy = y + ch * 2 + 2;
-
-	R_DrawString(sx, sy, status, CON_COLOR_DEFAULT);
-
-	R_BindFont(NULL, NULL, NULL);
 }
 
 /**
@@ -226,6 +123,19 @@ void Cl_DrawLoading(void) {
 void Cl_LoadMedia(void) {
 
 	cls.state = CL_LOADING;
+
+	// Mapshot
+
+	GList *mapshots = Cl_Mapshots(cl.config_strings[CS_MODELS]);
+	const size_t len = g_list_length(mapshots);
+
+	if (len > 0) {
+		strcpy(cls.loading.mapshot, g_list_nth_data(mapshots, rand() % len));
+	} else {
+		cls.loading.mapshot[0] = '\0';
+	}
+
+	g_list_free_full(mapshots, g_free);
 
 	Cl_UpdatePrediction();
 

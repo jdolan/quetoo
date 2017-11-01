@@ -83,7 +83,11 @@ static g_team_t g_teamlist_default[MAX_TEAMS];
 /**
  * @brief
  */
-static void G_InitTeam(const g_team_id_t id, const char *name, const int16_t color, const char tint[COLOR_MAX_LENGTH], const int16_t effect) {
+static void G_InitTeam(const g_team_id_t id, const char *name,
+					   const char *tint,
+					   const int16_t color,
+					   const int16_t effect) {
+	
 	g_team_t *team = &g_teamlist[id];
 
 	team->id = id;
@@ -92,9 +96,9 @@ static void G_InitTeam(const g_team_id_t id, const char *name, const int16_t col
 
 	team->color = color;
 
-	g_strlcpy(team->tint_r, tint, sizeof(team->tint_r)); // shirt
-	g_strlcpy(team->tint_g, tint, sizeof(team->tint_g)); // pants
-	g_strlcpy(team->tint_b, tint, sizeof(team->tint_b)); // helmet
+	ColorFromHex(tint, &team->shirt);
+	ColorFromHex(tint, &team->pants);
+	ColorFromHex(tint, &team->helmet);
 
 	g_strlcpy(team->skin, DEFAULT_TEAM_SKIN, sizeof(team->skin));
 
@@ -111,10 +115,10 @@ void G_ResetTeams(void) {
 
 	memset(g_teamlist, 0, sizeof(g_teamlist));
 
-	G_InitTeam(TEAM_RED, "Red", TEAM_COLOR_RED, "ff0000", EF_CTF_RED);
-	G_InitTeam(TEAM_BLUE, "Blue", TEAM_COLOR_BLUE, "0000ff", EF_CTF_BLUE);
-	G_InitTeam(TEAM_GREEN, "Green", TEAM_COLOR_GREEN, "00ff00", EF_CTF_GREEN);
-	G_InitTeam(TEAM_ORANGE, "Orange", TEAM_COLOR_ORANGE, "aa6600", EF_CTF_ORANGE);
+	G_InitTeam(TEAM_RED, "Red", "ff0000", TEAM_COLOR_RED, EF_CTF_RED);
+	G_InitTeam(TEAM_BLUE, "Blue", "0000ff", TEAM_COLOR_BLUE, EF_CTF_BLUE);
+	G_InitTeam(TEAM_GREEN, "Green", "00ff00", TEAM_COLOR_GREEN, EF_CTF_GREEN);
+	G_InitTeam(TEAM_ORANGE, "Orange", "aa6600", TEAM_COLOR_ORANGE, EF_CTF_ORANGE);
 
 	memcpy(g_teamlist_default, g_teamlist, sizeof(g_teamlist));
 
@@ -130,12 +134,12 @@ void G_SetTeamNames(void) {
 	for (int32_t t = 0; t < MAX_TEAMS; t++) {
 
 		if (t != TEAM_RED) {
-			strcat(team_info, "\\");
+			g_strlcat(team_info, "\\", sizeof(team_info));
 		}
 
-		strcat(team_info, g_teamlist[t].name);
-		strcat(team_info, "\\");
-		strcat(team_info, va("%i", g_teamlist[t].color));
+		g_strlcat(team_info, g_teamlist[t].name, sizeof(team_info));
+		g_strlcat(team_info, "\\", sizeof(team_info));
+		g_strlcat(team_info, va("%i", g_teamlist[t].color), sizeof(team_info));
 	}
 
 	gi.SetConfigString(CS_TEAM_INFO, team_info);
@@ -932,6 +936,10 @@ static void G_CheckRules(void) {
 				g_teams->modified = true;
 			}
 
+			if (g_strcmp0(g_num_teams->string, "default") && g_num_teams->integer != 2) {
+				gi.CvarSet(g_num_teams->name, "default");
+			}
+
 			if (g_match->integer == 0) {
 				g_match->integer = 1;
 				g_match->modified = true;
@@ -1003,7 +1011,7 @@ static void G_CheckRules(void) {
 		if (g_level.num_teams != num_teams) {
 			g_level.num_teams = num_teams;
 
-			if (g_teams->integer) {
+			if (g_teams->integer || g_ctf->integer) {
 				G_InitNumTeams();
 
 				gi.BroadcastPrint(PRINT_HIGH, "Number of teams set to %i\n",
@@ -1335,7 +1343,7 @@ void G_Init(void) {
 	                     "Allows usage of player handicap. 0 disallows handicap, 1 allows handicap, 2 allows handicap but disables damage reduction. (default 1)");
 	g_inhibit = gi.Cvar("g_inhibit", "", CVAR_SERVER_INFO,
 	                    "Prevents entities from spawning using a class name filter (e.g.: \"weapon_bfg ammo_nukes item_quad\")");
-	g_num_teams = gi.Cvar("g_num_teams", "default", CVAR_SERVER_INFO, "The number of teams allowed. By default, picks the valid amount for the map, or 2.");
+	g_num_teams = gi.Cvar("g_num_teams", "default", CVAR_SERVER_INFO, "The number of teams allowed. By default, picks the valid amount for the map, 2 for team games, or 1 for DM.");
 	g_match = gi.Cvar("g_match", "0", CVAR_SERVER_INFO, "Enables match play requiring players to ready");
 	g_max_entities = gi.Cvar("g_max_entities", "1024", CVAR_LATCH, NULL);
 	g_motd = gi.Cvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect");

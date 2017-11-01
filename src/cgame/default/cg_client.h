@@ -26,6 +26,5 @@
 #ifdef __CG_LOCAL_H__
 void Cg_LoadClient(cl_client_info_t *ci, const char *s);
 void Cg_LoadClients(void);
-color_t Cg_ClientEffectColor(const cl_client_info_t *cl, const color_t default_color);
 void Cg_AnimateClientEntity(cl_entity_t *ent, r_entity_t *torso, r_entity_t *legs);
 #endif /* __CG_LOCAL_H__ */
