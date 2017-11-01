@@ -249,6 +249,7 @@
 		CE8000031C5E4ED700A21A51 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE8000041C5E4EED00A21A51 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CE8000061C5E4F0500A21A51 /* libxml2.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE8000051C5E4F0500A21A51 /* libxml2.2.dylib */; };
+		CE8040191FA90D7000931A89 /* libmysqlclient.20.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE8040181FA90D7000931A89 /* libmysqlclient.20.dylib */; };
 		CE80FDB61C5E3D4E00A21A51 /* shared-anorms.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B71C5C58C300CD0B13 /* shared-anorms.c */; };
 		CE80FDB71C5E3D4E00A21A51 /* shared.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B81C5C58C300CD0B13 /* shared.c */; };
 		CE80FDD61C5E3D9700A21A51 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
@@ -432,7 +433,6 @@
 		CEA936661DBCD88D00A12B79 /* r_program_corona.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA936621DBCD87400A12B79 /* r_program_corona.c */; };
 		CEA936671DBCD89000A12B79 /* r_program_corona.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA936631DBCD87400A12B79 /* r_program_corona.h */; };
 		CEB8D6271E00B73200043814 /* cg_input.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB8D6231E00B72100043814 /* cg_input.c */; };
-		CEC986941D3835420002B714 /* libmysqlclient.18.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEC986931D3835420002B714 /* libmysqlclient.18.dylib */; };
 		CECA8CB01E50B5F1005E97E8 /* materials.c in Sources */ = {isa = PBXBuildFile; fileRef = CECA8CAE1E50B5F1005E97E8 /* materials.c */; };
 		CED4381E1D9D33AF0052BAFA /* libgame-pmove.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7B8A1D9D2E71000FA6B2 /* libgame-pmove.a */; };
 		CED438381D9D34450052BAFA /* r_array.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5B01C5C58C300CD0B13 /* r_array.c */; };
@@ -1553,6 +1553,7 @@
 		CE6EE4101F72919800FBC830 /* cg_ui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_ui.h; sourceTree = "<group>"; };
 		CE6FF29C1E9E6FBA00F3C160 /* qzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qzip.h; sourceTree = "<group>"; };
 		CE8000051C5E4F0500A21A51 /* libxml2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.dylib; path = /opt/local/lib/libxml2.2.dylib; sourceTree = "<absolute>"; };
+		CE8040181FA90D7000931A89 /* libmysqlclient.20.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmysqlclient.20.dylib; path = ../../../../opt/local/lib/mysql57/mysql/libmysqlclient.20.dylib; sourceTree = "<group>"; };
 		CE80FD871C5E3B6F00A21A51 /* quemap */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = quemap; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE80FDD51C5E3D4E00A21A51 /* libshared.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libshared.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE80FDE31C5E3E1100A21A51 /* libcommon.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libcommon.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1650,7 +1651,7 @@
 				CED4381E1D9D33AF0052BAFA /* libgame-pmove.a in Frameworks */,
 				CE80FDD61C5E3D9700A21A51 /* libshared.a in Frameworks */,
 				CE12D8241C5C69A800CD0B13 /* libglib-2.0.0.dylib in Frameworks */,
-				CEC986941D3835420002B714 /* libmysqlclient.18.dylib in Frameworks */,
+				CE8040191FA90D7000931A89 /* libmysqlclient.20.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2903,6 +2904,7 @@
 		CE12D8391C5C6F4900CD0B13 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CE8040181FA90D7000931A89 /* libmysqlclient.20.dylib */,
 				CE4A256F1FA39FB400A539E7 /* libSDL2_image-2.0.0.dylib */,
 				CE1A28161F740E2C005F62A9 /* libObjectively.dylib */,
 				CE1A28171F740E2C005F62A9 /* libObjectivelyMVC.dylib */,
@@ -4842,13 +4844,13 @@
 				HEADER_SEARCH_PATHS = (
 					/opt/local/include,
 					"/opt/local/include/glib-2.0",
-					/opt/local/include/mysql56/mysql,
+					/opt/local/include/mysql57/mysql,
 					"/opt/local/lib/glib-2.0/include",
 					/usr/local/include,
 				);
 				LIBRARY_SEARCH_PATHS = (
 					/opt/local/lib,
-					/opt/local/lib/mysql56/mysql,
+					/opt/local/lib/mysql57/mysql,
 					/usr/local/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
@@ -4886,13 +4888,13 @@
 				HEADER_SEARCH_PATHS = (
 					/opt/local/include,
 					"/opt/local/include/glib-2.0",
-					/opt/local/include/mysql56/mysql,
+					/opt/local/include/mysql57/mysql,
 					"/opt/local/lib/glib-2.0/include",
 					/usr/local/include,
 				);
 				LIBRARY_SEARCH_PATHS = (
 					/opt/local/lib,
-					/opt/local/lib/mysql56/mysql,
+					/opt/local/lib/mysql57/mysql,
 					/usr/local/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
