@@ -266,5 +266,5 @@ void main(void) {
 	CausticFragment(lightmap);
 
 	// and fog
-	FogFragment(fragColor);
+	FogFragment(length(point), fragColor);
 }

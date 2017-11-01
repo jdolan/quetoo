@@ -44,7 +44,7 @@ out VertexData {
  */
 void LightVertex(void) {
 
-	point = vec3(MODELVIEW_MAT * vec4(mix(POSITION, NEXT_POSITION, TIME_FRACTION), 1.0));
+	point = (MODELVIEW_MAT * vec4(mix(POSITION, NEXT_POSITION, TIME_FRACTION), 1.0)).xyz;
 	normal = normalize(vec3(NORMAL_MAT * vec4(mix(NORMAL, NEXT_NORMAL, TIME_FRACTION), 1.0)));
 
 	if (NORMALMAP) {
