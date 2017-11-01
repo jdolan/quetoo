@@ -25,7 +25,7 @@
 #include "polylib.h"
 #include "collision/cmodel.h"
 
-#define PATCH_SUBDIVIDE 64.0
+#define PATCH_SUBDIVIDE 16.0
 
 typedef enum {
 	LIGHT_POINT,
