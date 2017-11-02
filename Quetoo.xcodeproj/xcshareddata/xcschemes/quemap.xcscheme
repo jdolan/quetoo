@@ -70,6 +70,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-bsp -vis -light /Users/jdolan/.quetoo/default/maps/sandbox.map"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-bsp -onlyents maps/edge.bsp"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
