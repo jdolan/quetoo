@@ -40,7 +40,7 @@ typedef struct {
 	vec_t shift[2];
 	vec_t rotate;
 	vec_t scale[2];
-	char name[MAX_QPATH];
+	char name[32];
 	int32_t flags;
 	int32_t value;
 } map_brush_texture_t;
