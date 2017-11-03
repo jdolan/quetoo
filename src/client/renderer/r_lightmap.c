@@ -33,11 +33,12 @@ typedef struct {
 	file_t *cache_file;
 } r_lightmap_state_t;
 
-#define R_LMCACHE_MAGIC		0xABCDDCBA
+#define R_LMCACHE_MAGIC		0x43414348
 
 typedef struct {
 	uint32_t		magic;
 	uint32_t		size;
+	int64_t			time;
 	uint32_t		num_packers;
 } r_lmcache_header_t;
 
@@ -331,6 +332,15 @@ static void R_UploadPackedLightmaps(const uint32_t width, const uint32_t height,
 }
 
 /**
+ * @brief
+ */
+static void R_GetLightmapCacheName(const r_bsp_model_t *bsp, char *filename, const size_t filename_len) {
+	g_snprintf(filename, filename_len, "lmcache/%s", Basename(bsp->cm->name));
+	StripExtension(filename, filename);
+	g_strlcat(filename, ".lmc", filename_len);
+}
+
+/**
  * @brief Attempt to load, parse and upload the surface lightmap cache.
  * @returns false if the cache does not exist or is out of date.
  */
@@ -341,7 +351,7 @@ static _Bool R_LoadBspSurfaceLightmapCache(r_bsp_model_t *bsp) {
 	}
 
 	char filename[MAX_QPATH];
-	g_snprintf(filename, sizeof(filename), "lmcache/%s.lmc", bsp->cm->name);
+	R_GetLightmapCacheName(bsp, filename, sizeof(filename));
 
 	if (!Fs_Exists(filename)) {
 		return false;
@@ -363,9 +373,9 @@ static _Bool R_LoadBspSurfaceLightmapCache(r_bsp_model_t *bsp) {
 	}
 
 	// check header validity
-	// FIXME: better hashing?
 	if (header.magic != R_LMCACHE_MAGIC ||
-		header.size != bsp->cm->size) {
+		header.size != bsp->cm->size ||
+		header.time != bsp->cm->mod_time) {
 
 		Fs_Close(file);
 		return false;
@@ -465,7 +475,7 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 
 	if (r_lmcache->integer) {
 		char filename[MAX_QPATH];
-		g_snprintf(filename, sizeof(filename), "lmcache/%s.lmc", bsp->cm->name);
+		R_GetLightmapCacheName(bsp, filename, sizeof(filename));
 
 		r_lightmap_state.cache_file = Fs_OpenWrite(filename);
 
@@ -477,6 +487,7 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 			Fs_Write(r_lightmap_state.cache_file, &(const r_lmcache_header_t) {
 				.magic = R_LMCACHE_MAGIC,
 				.size = bsp->cm->size,
+				.time = bsp->cm->mod_time,
 				.num_packers = (uint32_t) -1
 			}, sizeof(r_lmcache_header_t), 1);
 		}
