@@ -73,11 +73,9 @@ in VertexData {
 #define uv_materials vtx_texcoords[0]
 #define uv_lightmap  vtx_texcoords[1]
 
-const vec3 negHalf = vec3(-0.5);
-
-vec3 eyeDir;
-
 out vec4 fragColor;
+
+vec3 eyeDir = normalize(vtx_eye);
 
 /**
  * @brief Yield the diffuse modulation from bump-mapping.
@@ -163,17 +161,16 @@ void main(void) {
 	float lightmapSpecularScale = 0.0;
 
 	if (NORMALMAP) {
-		eyeDir = normalize(vtx_eye);
 
 		if (DELUXEMAP) {
 			deluxemap = texture(tex_deluxe, uv_lightmap).rgb;
-			deluxemap = normalize((deluxemap + negHalf) * 2.0);
+			deluxemap = normalize((deluxemap - 0.5) * 2.0);
 		}
 
 		// resolve the initial normalmap sample
 		normalmap = texture(tex_normal, uv_materials);
 
-		normalmap.xyz = normalize((normalmap.xyz + negHalf) * 2.0);
+		normalmap.xyz = normalize((normalmap.xyz - 0.5) * 2.0);
 		normalmap.xyz = normalize(vec3(normalmap.x * BUMP, normalmap.y * BUMP, normalmap.z));
 
 		vec3 glossmap = vec3(0.5);
