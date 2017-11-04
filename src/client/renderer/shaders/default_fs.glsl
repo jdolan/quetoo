@@ -60,14 +60,14 @@ uniform sampler2D SAMPLER8;
 uniform float ALPHA_THRESHOLD;
 
 in VertexData {
-	vec3 modelpoint;
-	vec2 texcoords[2];
-	vec4 color;
-	vec3 point;
-	vec3 normal;
-	vec3 tangent;
-	vec3 bitangent;
-	vec3 eye;
+	vec3 vtx_modelpoint;
+	vec2 vtx_texcoords[2];
+	vec4 vtx_color;
+	vec3 vtx_point;
+	vec3 vtx_normal;
+	vec3 vtx_tangent;
+	vec3 vtx_bitangent;
+	vec3 vtx_eye;
 };
 
 #define uv_textures vtx_texcoords[0]

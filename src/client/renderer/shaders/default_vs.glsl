@@ -28,58 +28,58 @@ in vec3 NEXT_TANGENT;
 in vec3 NEXT_BITANGENT;
 
 out VertexData {
-	vec3 modelpoint;
-	vec2 texcoords[2];
-	vec4 color;
-	vec3 point;
-	vec3 normal;
-	vec3 tangent;
-	vec3 bitangent;
-	vec3 eye;
+	vec3 vtx_modelpoint;
+	vec2 vtx_texcoords[2];
+	vec4 vtx_color;
+	vec3 vtx_point;
+	vec3 vtx_normal;
+	vec3 vtx_tangent;
+	vec3 vtx_bitangent;
+	vec3 vtx_eye;
 };
 
 /**
- * @brief Transform the point, normal and tangent vectors, passing them through
+ * @brief Transform the vtx_point, vtx_normal and vtx_tangent vectors, passing them through
  * to the fragment shader for per-pixel lighting.
  */
 void LightVertex(void) {
 
-	point = (MODELVIEW_MAT * vec4(mix(POSITION, NEXT_POSITION, TIME_FRACTION), 1.0)).xyz;
-	normal = normalize(vec3(NORMAL_MAT * vec4(mix(NORMAL, NEXT_NORMAL, TIME_FRACTION), 1.0)));
+	vtx_point = (MODELVIEW_MAT * vec4(mix(POSITION, NEXT_POSITION, TIME_FRACTION), 1.0)).xyz;
+	vtx_normal = normalize(vec3(NORMAL_MAT * vec4(mix(NORMAL, NEXT_NORMAL, TIME_FRACTION), 1.0)));
 
 	if (NORMALMAP) {
 		vec3 tang = mix(TANGENT, NEXT_TANGENT, TIME_FRACTION).xyz;
-		tangent = normalize(vec3(NORMAL_MAT * vec4(tang, 1.0)));
+		vtx_tangent = normalize(vec3(NORMAL_MAT * vec4(tang, 1.0)));
 
 		vec3 bitang = mix(BITANGENT, NEXT_BITANGENT, TIME_FRACTION).xyz;
-		bitangent = normalize(vec3(NORMAL_MAT * vec4(bitang, 1.0)));
+		vtx_bitangent = normalize(vec3(NORMAL_MAT * vec4(bitang, 1.0)));
 
-		eye.x = -dot(point, tangent);
-		eye.y = -dot(point, bitangent);
-		eye.z = -dot(point, normal);
+		vtx_eye.x = -dot(vtx_point, vtx_tangent);
+		vtx_eye.y = -dot(vtx_point, vtx_bitangent);
+		vtx_eye.z = -dot(vtx_point, vtx_normal);
 	}
 }
 
 /**
- * @brief Shader entry point.
+ * @brief Shader entry vtx_point.
  */
 void main(void) {
 	// get model coordinate
-	modelpoint = vec3(mix(POSITION, NEXT_POSITION, TIME_FRACTION));
+	vtx_modelpoint = vec3(mix(POSITION, NEXT_POSITION, TIME_FRACTION));
 
 	LightVertex();
 
 	// mvp transform into clip space
-	gl_Position = PROJECTION_MAT * vec4(point, 1.0);
+	gl_Position = PROJECTION_MAT * vec4(vtx_point, 1.0);
 
 	if (DIFFUSE) { // pass texcoords through
-		texcoords[0] = TEXCOORD0;
+		vtx_texcoords[0] = TEXCOORD0;
 	}
 
 	if (LIGHTMAP) {
-		texcoords[1] = TEXCOORD1;
+		vtx_texcoords[1] = TEXCOORD1;
 	}
 
-	// pass the color through as well
-	color = COLOR * GLOBAL_COLOR;
+	// pass the vtx_color through as well
+	vtx_color = COLOR * GLOBAL_COLOR;
 }
