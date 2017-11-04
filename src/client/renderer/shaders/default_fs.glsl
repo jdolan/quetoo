@@ -73,7 +73,6 @@ in VertexData {
 #define uv_materials vtx_texcoords[0]
 #define uv_lightmap  vtx_texcoords[1]
 
-const vec3 two = vec3(2.0);
 const vec3 negHalf = vec3(-0.5);
 
 vec3 eyeDir;
@@ -168,13 +167,13 @@ void main(void) {
 
 		if (DELUXEMAP) {
 			deluxemap = texture(tex_deluxe, uv_lightmap).rgb;
-			deluxemap = normalize(two * (deluxemap + negHalf));
+			deluxemap = normalize((deluxemap + negHalf) * 2.0);
 		}
 
 		// resolve the initial normalmap sample
 		normalmap = texture(tex_normal, uv_materials);
 
-		normalmap.xyz = normalize(two * (normalmap.xyz + negHalf));
+		normalmap.xyz = normalize((normalmap.xyz + negHalf) * 2.0);
 		normalmap.xyz = normalize(vec3(normalmap.x * BUMP, normalmap.y * BUMP, normalmap.z));
 
 		vec3 glossmap = vec3(0.5);
