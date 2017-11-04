@@ -50,12 +50,12 @@ uniform sampler2D SAMPLER3;
 uniform sampler2D SAMPLER4;
 uniform sampler2D SAMPLER8;
 
-#define tex_normal   SAMPLER3
-#define tex_specular SAMPLER3
-#define tex_albedo   SAMPLER0
-#define tex_stain    SAMPLER8
-#define tex_deluxe   SAMPLER2
+#define tex_diffuse  SAMPLER0
 #define tex_light    SAMPLER1
+#define tex_normal   SAMPLER3
+#define tex_deluxe   SAMPLER2
+#define tex_specular SAMPLER4
+#define tex_stain    SAMPLER8
 
 uniform float ALPHA_THRESHOLD;
 
@@ -140,7 +140,7 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in floa
 }
 
 /**
- * @brief Shader entry vtx_point.
+ * @brief Shader entry point.
  */
 void main(void) {
 
@@ -149,10 +149,10 @@ void main(void) {
 	vec3 deluxemap = vec3(0.0, 0.0, 1.0);
 
 	if (LIGHTMAP) {
-		lightmap = texture(SAMPLER1, vtx_texcoords[1]).rgb;
+		lightmap = texture(tex_light, vtx_texcoords[1]).rgb;
 
 		if (STAINMAP) {
-			vec4 stain = texture(SAMPLER8, vtx_texcoords[1]);
+			vec4 stain = texture(tex_stain, vtx_texcoords[1]);
 			lightmap = mix(lightmap.rgb, stain.rgb, stain.a).rgb;
 		}
 	}
@@ -167,12 +167,12 @@ void main(void) {
 		eyeDir = normalize(vtx_eye);
 
 		if (DELUXEMAP) {
-			deluxemap = texture(SAMPLER2, vtx_texcoords[1]).rgb;
+			deluxemap = texture(tex_deluxe, vtx_texcoords[1]).rgb;
 			deluxemap = normalize(two * (deluxemap + negHalf));
 		}
 
 		// resolve the initial normalmap sample
-		normalmap = texture(SAMPLER3, vtx_texcoords[0]);
+		normalmap = texture(tex_normal, vtx_texcoords[0]);
 
 		normalmap.xyz = normalize(two * (normalmap.xyz + negHalf));
 		normalmap.xyz = normalize(vec3(normalmap.x * BUMP, normalmap.y * BUMP, normalmap.z));
@@ -180,9 +180,9 @@ void main(void) {
 		vec3 glossmap = vec3(0.5);
 
 		if (GLOSSMAP) {
-			glossmap = texture(SAMPLER4, vtx_texcoords[0]).rgb;
+			glossmap = texture(tex_specular, vtx_texcoords[0]).rgb;
 		} else if (DIFFUSE) {
-			vec4 diffuse = texture(SAMPLER0, vtx_texcoords[0]);
+			vec4 diffuse = texture(tex_diffuse, vtx_texcoords[0]);
 			float processedGrayscaleDiffuse = dot(diffuse.rgb * diffuse.a, vec3(0.299, 0.587, 0.114)) * 0.875 + 0.125;
 			float guessedGlossValue = clamp(pow(processedGrayscaleDiffuse * 3.0, 4.0), 0.0, 1.0) * 0.875 + 0.125;
 
@@ -203,7 +203,7 @@ void main(void) {
 	vec4 diffuse = vec4(1.0);
 
 	if (DIFFUSE) {
-		diffuse = texture(SAMPLER0, vtx_texcoords[0]);
+		diffuse = texture(tex_diffuse, vtx_texcoords[0]);
 
 		// see if diffuse can be discarded because of alpha test
 		if (diffuse.a < ALPHA_THRESHOLD)
