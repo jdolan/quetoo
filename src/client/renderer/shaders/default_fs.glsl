@@ -22,16 +22,6 @@ struct LightParameters {
 };
 
 uniform LightParameters LIGHTS;
-
-// linear + quadratic attenuation
-#define LIGHT_CONSTANT 0.0
-#define LIGHT_LINEAR 4.0
-#define LIGHT_QUADRATIC 8.0
-#define LIGHT_ATTENUATION (LIGHT_CONSTANT + (LIGHT_LINEAR * dist) + (LIGHT_QUADRATIC * dist * dist))
-
-// light color clamping
-#define LIGHT_CLAMP_MIN 0.0
-#define LIGHT_CLAMP_MAX 4.0
 #endif
 
 struct CausticParameters {
@@ -123,12 +113,10 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in floa
 			if (d > 0.0) {
 
 				dist = 1.0 - dist / LIGHTS.RADIUS[i];
-				light += LIGHTS.COLOR[i] * d * LIGHT_ATTENUATION;
+				light += LIGHTS.COLOR[i] * LIGHT_SCALE * d * dist * dist;
 			}
 		}
 	}
-
-	light = clamp(light, LIGHT_CLAMP_MIN, LIGHT_CLAMP_MAX);
 #endif
 
 	// now modulate the diffuse sample with the modified lightmap
