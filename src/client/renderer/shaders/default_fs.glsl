@@ -4,12 +4,17 @@
 
 #version 330
 
+precision lowp int;
+precision lowp float;
+
 #define FRAGMENT_SHADER
 
 #include "include/uniforms.glsl"
 #include "include/fog.glsl"
 #include "include/noise3d.glsl"
 #include "include/tint.glsl"
+#include "include/gamma.glsl"
+#include "include/hdr.glsl"
 
 #define MAX_LIGHTS $r_max_lights
 #define LIGHT_SCALE $r_modulate
@@ -210,6 +215,8 @@ void main(void) {
 
 	// add any dynamic lighting to yield the final fragment color
 	LightFragment(diffuse, lightmap, normalmap.xyz, lightmapBumpScale, lightmapSpecularScale);
+
+	fragColor.rgb = tonemap_ldr(fragColor.rgb);
 
 	// and fog
 	FogFragment(length(vtx_point), fragColor);
