@@ -81,13 +81,6 @@ vec3 eyeDir;
 out vec4 fragColor;
 
 /**
- * @brief Yield the parallax offset for the texture coordinate.
- */
-vec2 BumpTexcoord(in float height) {
-	return vec2(height * 0.04 - 0.02) * PARALLAX * eyeDir.xy;
-}
-
-/**
  * @brief Yield the diffuse modulation from bump-mapping.
  */
 void BumpFragment(in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap, out float lightmapBumpScale, out float lightmapSpecularScale) {
@@ -166,7 +159,6 @@ void main(void) {
 
 	// then resolve any bump mapping
 	vec4 normalmap = vec4(vtx_normal, 1.0);
-	vec2 parallax = vec2(0.0);
 	
 	float lightmapBumpScale = 1.0;
 	float lightmapSpecularScale = 0.0;
@@ -182,12 +174,6 @@ void main(void) {
 		// resolve the initial normalmap sample
 		normalmap = texture(SAMPLER3, vtx_texcoords[0]);
 
-		// resolve the parallax offset from the heightmap
-		parallax = BumpTexcoord(normalmap.w);
-
-		// resample the normalmap at the parallax offset
-		normalmap = texture(SAMPLER3, vtx_texcoords[0] + parallax);
-
 		normalmap.xyz = normalize(two * (normalmap.xyz + negHalf));
 		normalmap.xyz = normalize(vec3(normalmap.x * BUMP, normalmap.y * BUMP, normalmap.z));
 
@@ -196,7 +182,7 @@ void main(void) {
 		if (GLOSSMAP) {
 			glossmap = texture(SAMPLER4, vtx_texcoords[0]).rgb;
 		} else if (DIFFUSE) {
-			vec4 diffuse = texture(SAMPLER0, vtx_texcoords[0] + parallax);
+			vec4 diffuse = texture(SAMPLER0, vtx_texcoords[0]);
 			float processedGrayscaleDiffuse = dot(diffuse.rgb * diffuse.a, vec3(0.299, 0.587, 0.114)) * 0.875 + 0.125;
 			float guessedGlossValue = clamp(pow(processedGrayscaleDiffuse * 3.0, 4.0), 0.0, 1.0) * 0.875 + 0.125;
 
@@ -216,14 +202,14 @@ void main(void) {
 
 	vec4 diffuse = vec4(1.0);
 
-	if (DIFFUSE) { // sample the diffuse texture, honoring the parallax offset
-		diffuse = texture(SAMPLER0, vtx_texcoords[0] + parallax);
+	if (DIFFUSE) {
+		diffuse = texture(SAMPLER0, vtx_texcoords[0]);
 
 		// see if diffuse can be discarded because of alpha test
 		if (diffuse.a < ALPHA_THRESHOLD)
 			discard;
 
-		TintFragment(diffuse, vtx_texcoords[0] + parallax);
+		TintFragment(diffuse, vtx_texcoords[0]);
 	}
 
 	// add any dynamic lighting to yield the final fragment color
