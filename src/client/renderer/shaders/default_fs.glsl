@@ -70,8 +70,8 @@ in VertexData {
 	vec3 vtx_eye;
 };
 
-#define uv_textures vtx_texcoords[0]
-#define uv_lightmap vtx_texcoords[1]
+#define uv_materials vtx_texcoords[0]
+#define uv_lightmap  vtx_texcoords[1]
 
 const vec3 two = vec3(2.0);
 const vec3 negHalf = vec3(-0.5);
@@ -149,10 +149,10 @@ void main(void) {
 	vec3 deluxemap = vec3(0.0, 0.0, 1.0);
 
 	if (LIGHTMAP) {
-		lightmap = texture(tex_light, vtx_texcoords[1]).rgb;
+		lightmap = texture(tex_light, uv_lightmap).rgb;
 
 		if (STAINMAP) {
-			vec4 stain = texture(tex_stain, vtx_texcoords[1]);
+			vec4 stain = texture(tex_stain, uv_lightmap);
 			lightmap = mix(lightmap.rgb, stain.rgb, stain.a).rgb;
 		}
 	}
@@ -167,12 +167,12 @@ void main(void) {
 		eyeDir = normalize(vtx_eye);
 
 		if (DELUXEMAP) {
-			deluxemap = texture(tex_deluxe, vtx_texcoords[1]).rgb;
+			deluxemap = texture(tex_deluxe, uv_lightmap).rgb;
 			deluxemap = normalize(two * (deluxemap + negHalf));
 		}
 
 		// resolve the initial normalmap sample
-		normalmap = texture(tex_normal, vtx_texcoords[0]);
+		normalmap = texture(tex_normal, uv_materials);
 
 		normalmap.xyz = normalize(two * (normalmap.xyz + negHalf));
 		normalmap.xyz = normalize(vec3(normalmap.x * BUMP, normalmap.y * BUMP, normalmap.z));
@@ -180,9 +180,9 @@ void main(void) {
 		vec3 glossmap = vec3(0.5);
 
 		if (GLOSSMAP) {
-			glossmap = texture(tex_specular, vtx_texcoords[0]).rgb;
+			glossmap = texture(tex_specular, uv_materials).rgb;
 		} else if (DIFFUSE) {
-			vec4 diffuse = texture(tex_diffuse, vtx_texcoords[0]);
+			vec4 diffuse = texture(tex_diffuse, uv_materials);
 			float processedGrayscaleDiffuse = dot(diffuse.rgb * diffuse.a, vec3(0.299, 0.587, 0.114)) * 0.875 + 0.125;
 			float guessedGlossValue = clamp(pow(processedGrayscaleDiffuse * 3.0, 4.0), 0.0, 1.0) * 0.875 + 0.125;
 
@@ -203,13 +203,13 @@ void main(void) {
 	vec4 diffuse = vec4(1.0);
 
 	if (DIFFUSE) {
-		diffuse = texture(tex_diffuse, vtx_texcoords[0]);
+		diffuse = texture(tex_diffuse, uv_materials);
 
 		// see if diffuse can be discarded because of alpha test
 		if (diffuse.a < ALPHA_THRESHOLD)
 			discard;
 
-		TintFragment(diffuse, vtx_texcoords[0]);
+		TintFragment(diffuse, uv_materials);
 	}
 
 	// add any dynamic lighting to yield the final fragment color
