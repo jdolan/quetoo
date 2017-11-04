@@ -50,6 +50,13 @@ uniform sampler2D SAMPLER3;
 uniform sampler2D SAMPLER4;
 uniform sampler2D SAMPLER8;
 
+#define tex_normal   SAMPLER3
+#define tex_specular SAMPLER3
+#define tex_albedo   SAMPLER0
+#define tex_stain    SAMPLER8
+#define tex_deluxe   SAMPLER2
+#define tex_light    SAMPLER1
+
 uniform float ALPHA_THRESHOLD;
 
 in VertexData {
@@ -62,6 +69,9 @@ in VertexData {
 	vec3 bitangent;
 	vec3 eye;
 };
+
+#define uv_textures vtx_texcoords[0]
+#define uv_lightmap vtx_texcoords[1]
 
 const vec3 two = vec3(2.0);
 const vec3 negHalf = vec3(-0.5);
