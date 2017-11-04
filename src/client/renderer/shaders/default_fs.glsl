@@ -109,11 +109,11 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in floa
 
 		if (dist < LIGHTS.RADIUS[i]) {
 
-			float d = dot(normalmap, normalize(delta));
-			if (d > 0.0) {
+			float NdotL = dot(normalmap, normalize(delta));
+			if (NdotL > 0.0) {
 
 				dist = 1.0 - dist / LIGHTS.RADIUS[i];
-				light += LIGHTS.COLOR[i] * LIGHT_SCALE * d * dist * dist;
+				light += LIGHTS.COLOR[i] * LIGHT_SCALE * NdotL * dist * dist;
 			}
 		}
 	}
@@ -157,8 +157,8 @@ void main(void) {
 	// then resolve any bump mapping
 	vec4 normalmap = vec4(vtx_normal, 1.0);
 	
-	float lightmapBumpScale = 1.0;
-	float lightmapSpecularScale = 0.0;
+	const float lightmapBumpScale = 1.0;
+	const float lightmapSpecularScale = 0.0;
 
 	if (NORMALMAP) {
 
