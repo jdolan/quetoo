@@ -157,8 +157,8 @@ void main(void) {
 	// then resolve any bump mapping
 	vec4 normalmap = vec4(vtx_normal, 1.0);
 	
-	const float lightmapBumpScale = 1.0;
-	const float lightmapSpecularScale = 0.0;
+	float lightmapBumpScale = 1.0;
+	float lightmapSpecularScale = 0.0;
 
 	if (NORMALMAP) {
 
