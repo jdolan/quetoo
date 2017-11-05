@@ -83,6 +83,24 @@ out vec4 fragColor;
 vec3 eyeDir = normalize(vtx_eye);
 
 /**
+ * @brief Cleans up the rendering of the lightmap.
+ */
+vec3 NormalizeLightmap(vec3 lightmap, float bumpScale, float specularScale) {
+	
+	float lightmapLuma = dot(lightmap, vec3(0.299, 0.587, 0.114));
+	float blackPointLuma = 0.015625;
+	float l = exp2(lightmapLuma) - blackPointLuma;
+
+	float lightmapDiffuseBumpedLuma  = l * bumpScale;
+	float lightmapSpecularBumpedLuma = l * specularScale;
+
+	vec3 diffuseLightmapColor  = lightmap * lightmapDiffuseBumpedLuma;
+	vec3 specularLightmapColor = (lightmapLuma + lightmap) * 0.5 * lightmapSpecularBumpedLuma;
+	
+	return diffuseLightmapColor + specularLightmapColor;
+}
+
+/**
  * @brief Yield the diffuse modulation from bump-mapping.
  */
 void BumpFragment(in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap, out float lightmapBumpScale, out float lightmapSpecularScale) {
@@ -99,11 +117,11 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normal, in float l
 
 	vec3 light = vec3(0.0);
 
-#if MAX_LIGHTS
 	/*
 	 * Iterate the hardware light sources, accumulating dynamic lighting for
 	 * this fragment. A light radius of 0.0 means break.
 	 */
+	#if MAX_LIGHTS
 	for (int i = 0; i < MAX_LIGHTS; i++) {
 
 		if (LIGHTS.RADIUS[i] == 0.0) { break; }
@@ -120,23 +138,13 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normal, in float l
 		if (NdotL <= 0.0) { continue; }
 
 		dist = 1.0 - dist / LIGHTS.RADIUS[i];
-		light += LIGHTS.COLOR[i] * LIGHT_SCALE * NdotL * dist * dist;
+		light += LIGHTS.COLOR[i] * NdotL * dist * dist;
 
 	}
-#endif
+	#endif
 
-	// now modulate the diffuse sample with the modified lightmap
-	float lightmapLuma = dot(lightmap.rgb, vec3(0.299, 0.587, 0.114));
-
-	float blackPointLuma = 0.015625;
-	float l = exp2(lightmapLuma) - blackPointLuma;
-	float lightmapDiffuseBumpedLuma = l * lightmapBumpScale;
-	float lightmapSpecularBumpedLuma = l * lightmapSpecularScale;
-
-	vec3 diffuseLightmapColor = lightmap.rgb * lightmapDiffuseBumpedLuma;
-	vec3 specularLightmapColor = (lightmapLuma + lightmap.rgb) * 0.5 * lightmapSpecularBumpedLuma;
-
-	fragColor.rgb = diffuse.rgb * ((diffuseLightmapColor + specularLightmapColor) * LIGHT_SCALE + light);
+	lightmap.rgb = NormalizeLightmap(lightmap.rgb, lightmapBumpScale, lightmapSpecularScale);
+	fragColor.rgb = diffuse.rgb * ((lightmap.rgb + light) * LIGHT_SCALE);
 
 	// lastly modulate the alpha channel by the color
 	fragColor.a = diffuse.a * vtx_color.a;
