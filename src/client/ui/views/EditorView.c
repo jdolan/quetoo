@@ -132,6 +132,8 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 	self = (EditorView *) super(View, self, initWithFrame, frame);
 	if (self) {
 
+		self->view.autoresizingMask = ViewAutoresizingContain;
+
 		Panel *panel = $(alloc(Panel), initWithFrame, NULL, ControlStyleDefault);
 		assert(panel);
 
