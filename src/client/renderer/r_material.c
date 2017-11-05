@@ -1070,7 +1070,7 @@ static ssize_t R_SaveBspMaterials(const r_model_t *mod) {
 
 	GList *materials = NULL;
 	for (size_t i = 0; i < mod->num_materials; i++) {
-		materials = g_list_prepend(materials, mod->materials[i]);
+		materials = g_list_prepend(materials, mod->materials[i]->cm);
 	}
 
 	const ssize_t count = Cm_WriteMaterials(path, materials);
