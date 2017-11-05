@@ -111,19 +111,14 @@ void BumpFragment(in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap, out fl
 }
 
 /**
- * @brief Yield the final sample color after factoring in dynamic light sources.
+ * @brief Iterate the hardware light sources, accumulating dynamic lighting for this fragment.
  */
-void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normal, in float lightmapBumpScale, in float lightmapSpecularScale) {
+vec3 DynamicLighting(vec3 normal) {
 
 	vec3 light = vec3(0.0);
-
-	/*
-	 * Iterate the hardware light sources, accumulating dynamic lighting for
-	 * this fragment. A light radius of 0.0 means break.
-	 */
-	#if MAX_LIGHTS
 	for (int i = 0; i < MAX_LIGHTS; i++) {
 
+		// A light radius of 0.0 means break.
 		if (LIGHTS.RADIUS[i] == 0.0) { break; }
 
 		vec3 delta = LIGHTS.ORIGIN[i] - vtx_point;
@@ -141,10 +136,21 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normal, in float l
 		light += LIGHTS.COLOR[i] * NdotL * dist * dist;
 
 	}
-	#endif
+	return light;
+}
+
+/**
+ * @brief Yield the final sample color after factoring in dynamic light sources.
+ */
+void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normal, in float lightmapBumpScale, in float lightmapSpecularScale) {
 
 	lightmap.rgb = NormalizeLightmap(lightmap.rgb, lightmapBumpScale, lightmapSpecularScale);
-	fragColor.rgb = diffuse.rgb * ((lightmap.rgb + light) * LIGHT_SCALE);
+
+	#if MAX_LIGHTS
+	fragColor.rgb = diffuse.rgb * ((lightmap.rgb + DynamicLighting(normal)) * LIGHT_SCALE);
+	#else
+	fragColor.rgb = diffuse.rgb * (lightmap.rgb * LIGHT_SCALE);
+	#endif
 
 	// lastly modulate the alpha channel by the color
 	fragColor.a = diffuse.a * vtx_color.a;
