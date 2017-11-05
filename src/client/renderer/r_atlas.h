@@ -38,30 +38,30 @@ typedef struct {
 
 	uint32_t right;
 	uint32_t down; // nodes to the right/below this one
-} r_packer_node_t;
+} r_atlas_packer_node_t;
 
 typedef struct {
 	// required if only reading
 	uint32_t num_nodes;
-	r_packer_node_t *nodes;
+	r_atlas_packer_node_t *nodes;
 	uint32_t root;
 
 	// required for writing
 	uint32_t num_alloc_nodes;
 	_Bool keep_square;
 	uint16_t max_width, max_height;
-} r_packer_t;
+} r_atlas_packer_t;
 
-void R_AtlasPacker_InitPacker(r_packer_t *packer, const uint16_t max_width, const uint16_t max_height,
+void R_AtlasPacker_InitPacker(r_atlas_packer_t *packer, const uint16_t max_width, const uint16_t max_height,
                               const uint16_t root_width, const uint16_t root_height, const uint32_t initial_size);
-void R_AtlasPacker_FreePacker(r_packer_t *packer);
-r_packer_node_t *R_AtlasPacker_GrowNode(r_packer_t *packer, const uint16_t width, const uint16_t height);
-r_packer_node_t *R_AtlasPacker_SplitNode(r_packer_t *packer, r_packer_node_t *node, const uint16_t width,
+void R_AtlasPacker_FreePacker(r_atlas_packer_t *packer);
+r_atlas_packer_node_t *R_AtlasPacker_GrowNode(r_atlas_packer_t *packer, const uint16_t width, const uint16_t height);
+r_atlas_packer_node_t *R_AtlasPacker_SplitNode(r_atlas_packer_t *packer, r_atlas_packer_node_t *node, const uint16_t width,
         const uint16_t height);
-r_packer_node_t *R_AtlasPacker_FindNode(r_packer_t *packer, const uint32_t root, const uint16_t width,
+r_atlas_packer_node_t *R_AtlasPacker_FindNode(r_atlas_packer_t *packer, const uint32_t root, const uint16_t width,
                                         const uint16_t height);
-void R_AtlasPacker_Serialize(const r_packer_t *packer, file_t *file);
-_Bool R_AtlasPacker_Unserialize(file_t *file, r_packer_t *packer);
+void R_AtlasPacker_Serialize(const r_atlas_packer_t *packer, file_t *file);
+_Bool R_AtlasPacker_Unserialize(file_t *file, r_atlas_packer_t *packer);
 
 void R_InitAtlas(void);
 

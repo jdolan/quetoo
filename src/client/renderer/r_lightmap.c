@@ -33,19 +33,19 @@ typedef struct {
 	file_t *cache_file;
 } r_lightmap_state_t;
 
-#define R_LMCACHE_MAGIC		0x43414348
+#define R_LIGHTMAP_CACHE_MAGIC		0x43414348
 
 typedef struct {
 	uint32_t		magic;
 	uint32_t		size;
 	int64_t			time;
 	uint32_t		num_packers;
-} r_lmcache_header_t;
+} r_lightmap_cache_header_t;
 
 typedef struct {
 	uint32_t		width, height; // final lm size
 	uint32_t		count; // # of surfs this packer is responsible for
-} r_lmcache_packer_header_t;
+} r_lightmap_cache_packer_header_t;
 
 static r_lightmap_state_t r_lightmap_state;
 
@@ -259,7 +259,7 @@ void R_CreateBspSurfaceLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, const
  * @brief Uploads sorted lightmaps from start to (end - 1) and
  * puts them in the new maps sized to width/height
  */
-static void R_UploadPackedLightmaps(const uint32_t width, const uint32_t height, r_bsp_model_t *bsp, GSList *start, GSList *end, const r_packer_t *packer, const uint32_t num_surfs) {
+static void R_UploadPackedLightmaps(const uint32_t width, const uint32_t height, r_bsp_model_t *bsp, GSList *start, GSList *end, const r_atlas_packer_t *packer, const uint32_t num_surfs) {
 
 	// edge case, no blocks left
 	if (!width || !height || !start) {
@@ -269,11 +269,11 @@ static void R_UploadPackedLightmaps(const uint32_t width, const uint32_t height,
 	// write to cache
 	if (r_lightmap_state.cache_file) {
 
-		Fs_Write(r_lightmap_state.cache_file, &(const r_lmcache_packer_header_t) {
+		Fs_Write(r_lightmap_state.cache_file, &(const r_lightmap_cache_packer_header_t) {
 			.width = width,
 			.height = height,
 			.count = (end == NULL) ? g_slist_length(start) : g_slist_position(start, end)
-		}, sizeof(r_lmcache_packer_header_t), 1);
+		}, sizeof(r_lightmap_cache_packer_header_t), 1);
 
 		// serialize packer
 		R_AtlasPacker_Serialize(packer, r_lightmap_state.cache_file);
@@ -346,7 +346,7 @@ static void R_GetLightmapCacheName(const r_bsp_model_t *bsp, char *filename, con
  */
 static _Bool R_LoadBspSurfaceLightmapCache(r_bsp_model_t *bsp) {
 
-	if (!r_lmcache->integer) {
+	if (!r_lightmap_cache->integer) {
 		return false;
 	}
 
@@ -363,7 +363,7 @@ static _Bool R_LoadBspSurfaceLightmapCache(r_bsp_model_t *bsp) {
 		return false;
 	}
 
-	r_lmcache_header_t header;
+	r_lightmap_cache_header_t header;
 	
 	// read header
 	if (!Fs_Read(file, &header, sizeof(header), 1)) {
@@ -373,7 +373,7 @@ static _Bool R_LoadBspSurfaceLightmapCache(r_bsp_model_t *bsp) {
 	}
 
 	// check header validity
-	if (header.magic != R_LMCACHE_MAGIC ||
+	if (header.magic != R_LIGHTMAP_CACHE_MAGIC ||
 		header.size != bsp->cm->size ||
 		header.time != bsp->cm->mod_time) {
 
@@ -382,13 +382,13 @@ static _Bool R_LoadBspSurfaceLightmapCache(r_bsp_model_t *bsp) {
 	}
 
 	// read the packers
-	r_packer_t packer;
+	r_atlas_packer_t packer;
 	memset(&packer, 0, sizeof(packer));
 
 	GSList *start = r_lightmap_state.blocks, *list = start;
 
 	for (uint32_t i = 0; i < header.num_packers; i++) {
-		r_lmcache_packer_header_t packer_header;
+		r_lightmap_cache_packer_header_t packer_header;
 
 		if (!Fs_Read(file, &packer_header, sizeof(packer_header), 1)) {
 			
@@ -462,7 +462,7 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 	// make packers and start packin!
 	r_bsp_surface_t *surf = (r_bsp_surface_t *) r_lightmap_state.blocks->data;
 
-	r_packer_t packer;
+	r_atlas_packer_t packer;
 	memset(&packer, 0, sizeof(packer));
 
 	R_AtlasPacker_InitPacker(&packer, Min(r_config.max_texture_size, USHRT_MAX), Min(r_config.max_texture_size, USHRT_MAX), surf->lightmap_size[0],
@@ -473,7 +473,7 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 	uint32_t current_width = 0, current_height = 0, num_packers = 1, num_surfs = 0;
 	r_lightmap_state.cache_file = NULL;
 
-	if (r_lmcache->integer) {
+	if (r_lightmap_cache->integer) {
 		char filename[MAX_QPATH];
 		R_GetLightmapCacheName(bsp, filename, sizeof(filename));
 
@@ -484,12 +484,12 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 			// write initial header; num_packers will be substituted in later on.
 			// use -1 so that if this doesn't finish for some reason, it'll be picked up
 			// by the read function as invalid.
-			Fs_Write(r_lightmap_state.cache_file, &(const r_lmcache_header_t) {
-				.magic = R_LMCACHE_MAGIC,
+			Fs_Write(r_lightmap_state.cache_file, &(const r_lightmap_cache_header_t) {
+				.magic = R_LIGHTMAP_CACHE_MAGIC,
 				.size = bsp->cm->size,
 				.time = bsp->cm->mod_time,
 				.num_packers = (uint32_t) -1
-			}, sizeof(r_lmcache_header_t), 1);
+			}, sizeof(r_lightmap_cache_header_t), 1);
 		}
 	}
 
@@ -503,7 +503,7 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 
 		surf = (r_bsp_surface_t *) list->data;
 
-		r_packer_node_t *node;
+		r_atlas_packer_node_t *node;
 
 		do {
 			node = R_AtlasPacker_FindNode(&packer, packer.root, surf->lightmap_size[0], surf->lightmap_size[1]);
@@ -560,7 +560,7 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 	if (r_lightmap_state.cache_file) {
 
 		// write final packer #
-		Fs_Seek(r_lightmap_state.cache_file, offsetof(r_lmcache_header_t, num_packers));
+		Fs_Seek(r_lightmap_state.cache_file, offsetof(r_lightmap_cache_header_t, num_packers));
 		Fs_Write(r_lightmap_state.cache_file, &num_packers, sizeof(num_packers), 1);
 
 		Fs_Close(r_lightmap_state.cache_file);
