@@ -371,6 +371,14 @@ _Bool Fs_Rename(const char *source, const char *dest) {
 }
 
 /**
+ * @brief Fetch the "last modified" time for the specified file.
+ */
+int64_t Fs_LastModTime(const char *filename) {
+	return PHYSFS_getLastModTime(filename);
+}
+
+
+/**
  * @brief Unlinks (deletes) the specified file.
  */
 _Bool Fs_Unlink(const char *filename) {
