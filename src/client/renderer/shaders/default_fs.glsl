@@ -106,21 +106,22 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in floa
 	 */
 	for (int i = 0; i < MAX_LIGHTS; i++) {
 
-		if (LIGHTS.RADIUS[i] == 0.0)
-			break;
+		if (LIGHTS.RADIUS[i] == 0.0) { break; }
 
 		vec3 delta = LIGHTS.ORIGIN[i] - vtx_point;
 		float dist = length(delta);
 
-		if (dist < LIGHTS.RADIUS[i]) {
+		// Don't shade points outside of the radius.
+		if (dist > LIGHTS.RADIUS[i]) { continue; }
 
-			float NdotL = dot(normalmap, normalize(delta));
-			if (NdotL > 0.0) {
+		float NdotL = dot(normalmap, normalize(delta));
 
-				dist = 1.0 - dist / LIGHTS.RADIUS[i];
-				light += LIGHTS.COLOR[i] * LIGHT_SCALE * NdotL * dist * dist;
-			}
-		}
+		// Don't shade normals turned away from the light.
+		if (NdotL <= 0.0) { continue; }
+
+		dist = 1.0 - dist / LIGHTS.RADIUS[i];
+		light += LIGHTS.COLOR[i] * LIGHT_SCALE * NdotL * dist * dist;
+
 	}
 #endif
 
