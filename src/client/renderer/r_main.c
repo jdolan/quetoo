@@ -80,6 +80,7 @@ cvar_t *r_stainmaps;
 cvar_t *r_supersample;
 cvar_t *r_texture_mode;
 cvar_t *r_swap_interval;
+cvar_t *r_lightmap_cache;
 cvar_t *r_warp;
 cvar_t *r_width;
 cvar_t *r_windowed_height;
@@ -510,6 +511,7 @@ static void R_InitLocal(void) {
 	r_stainmaps = Cvar_Add("r_stainmaps", "1.0", CVAR_ARCHIVE, "Controls persistent stain effects.");
 	r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
 	r_texture_mode = Cvar_Add("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies the active texture filtering mode");
+	r_lightmap_cache = Cvar_Add("r_lightmap_cache", "1", CVAR_ARCHIVE, "Controls whether or not the lightmap cache is used. Improve map loading times at the expense of a bit more hard drive usage.");
 	r_warp = Cvar_Add("r_warp", "1", CVAR_ARCHIVE, "Controls warping surface effects (e.g. water)");
 	r_width = Cvar_Add("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_windowed_height = Cvar_Add("r_windowed_height", "1024", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
