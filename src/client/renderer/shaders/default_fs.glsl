@@ -152,8 +152,6 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normal, in float l
 	fragColor.rgb = diffuse.rgb * (lightmap.rgb * LIGHT_SCALE);
 	#endif
 
-	// lastly modulate the alpha channel by the color
-	fragColor.a = diffuse.a * vtx_color.a;
 }
 
 /**
@@ -162,14 +160,16 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normal, in float l
 void main(void) {
 
 	vec4 diffuse = vec4(1.0);
+	fragColor.a = vtx_color.a;
 
 	if (DIFFUSE) {
 		diffuse = texture(tex_diffuse, uv_materials);
+		fragColor.a *= diffuse.a;
 
 		// see if diffuse can be discarded because of alpha test
-		if (diffuse.a < ALPHA_THRESHOLD)
-			discard;
+		if (fragColor.a < ALPHA_THRESHOLD) { discard; }
 
+		// change the color of some things
 		TintFragment(diffuse, uv_materials);
 	}
 
