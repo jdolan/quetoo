@@ -164,8 +164,7 @@ static void control(const QuetooTheme *self, const char *label, ident control) {
 	$(input, setControl, cast(Control, control));
 	$(input->label->text, setText, label);
 
-	input->label->view.frame.w = THEME_INPUT_LABEL_WIDTH;
-	input->label->view.autoresizingMask &= ~ViewAutoresizingContain;
+	$((View *) input->label, addConstraintWithDescriptor, "w = 200");
 
 	$(self, attach, input);
 	release(input);
