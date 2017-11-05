@@ -147,6 +147,18 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in floa
  */
 void main(void) {
 
+	vec4 diffuse = vec4(1.0);
+
+	if (DIFFUSE) {
+		diffuse = texture(tex_diffuse, uv_materials);
+
+		// see if diffuse can be discarded because of alpha test
+		if (diffuse.a < ALPHA_THRESHOLD)
+			discard;
+
+		TintFragment(diffuse, uv_materials);
+	}
+
 	// first resolve the flat shading
 	vec3 lightmap = vtx_color.rgb;
 	vec3 deluxemap = vec3(0.0, 0.0, 1.0);
@@ -200,18 +212,6 @@ void main(void) {
 			normalmap.y * normalize(vtx_bitangent) +
 			normalmap.z * normalize(vtx_normal)
 		);
-	}
-
-	vec4 diffuse = vec4(1.0);
-
-	if (DIFFUSE) {
-		diffuse = texture(tex_diffuse, uv_materials);
-
-		// see if diffuse can be discarded because of alpha test
-		if (diffuse.a < ALPHA_THRESHOLD)
-			discard;
-
-		TintFragment(diffuse, uv_materials);
 	}
 
 	// add any dynamic lighting to yield the final fragment color
