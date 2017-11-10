@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="..\src\cgame\cgame.h" />
     <ClInclude Include="..\src\cgame\default\cg_client.h" />
+    <ClInclude Include="..\src\cgame\default\cg_discord.h" />
     <ClInclude Include="..\src\cgame\default\cg_effect.h" />
     <ClInclude Include="..\src\cgame\default\cg_entity.h" />
     <ClInclude Include="..\src\cgame\default\cg_entity_effect.h" />
@@ -75,6 +76,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\cgame\default\cg_client.c" />
+    <ClCompile Include="..\src\cgame\default\cg_discord.c" />
     <ClCompile Include="..\src\cgame\default\cg_effect.c" />
     <ClCompile Include="..\src\cgame\default\cg_entity.c" />
     <ClCompile Include="..\src\cgame\default\cg_entity_effect.c" />
@@ -164,9 +166,8 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;intl.lib;SDL2.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ModuleDefinitionFile>
-      </ModuleDefinitionFile>
+      <AdditionalDependencies>discord-rpc.lib;Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;intl.lib;SDL2.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ModuleDefinitionFile>cgame.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
       <Command>COPY_DEPENDENCIES "$(QUETOO_HOME)" "$(Platform)" "$(Configuration)" &amp;&amp; COPY_CGAME "$(QUETOO_HOME)" "$(Platform)$(Configuration)"</Command>

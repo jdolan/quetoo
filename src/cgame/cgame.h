@@ -933,6 +933,7 @@ typedef struct cg_export_s {
 	 * @brief Called each frame to draw any non-view visual elements, such as the HUD.
 	 */
 	void (*UpdateScreen)(const cl_frame_t *frame);
+	void (*UpdateDiscord)(void);
 
 } cg_export_t;
 

@@ -180,6 +180,9 @@
     <ClInclude Include="..\src\cgame\default\cg_flare.h">
       <Filter>src\default</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\default\cg_discord.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\cgame\default\ui\common\DialogViewController.h">
       <Filter>src\default\ui\common</Filter>
     </ClInclude>
@@ -330,6 +333,9 @@
       <Filter>src\default</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\cg_flare.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\cg_discord.c">
       <Filter>src\default</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\common\DialogViewController.c">
