@@ -23,9 +23,11 @@
 #include "discord-rpc.h"
 
 #define DISCORD_APP_ID				"378347526203637760"
+static int test_state = 0;
 
 static void Cg_DiscordReady(void) {
 	cgi.Print("Discord Initialized\n");
+	test_state = 1;
 }
 
 static void Cg_DiscordError(int code, const char *message) {
@@ -47,18 +49,16 @@ static void Cg_DiscordJoinRequest(const DiscordJoinRequest *request) {
 
 void Cg_DiscordUpdate(void) {
 
-	if (*cgi.state == CL_ACTIVE) {
+	//if (*cgi.state == CL_ACTIVE) {
+	if (test_state == 1) {
 		DiscordRichPresence discordPresence;
 		memset(&discordPresence, 0, sizeof(discordPresence));
 
 		discordPresence.state = "Dying";
 		discordPresence.details = "Being Cool";
-		discordPresence.startTimestamp = discordPresence.endTimestamp = time(NULL);
+		discordPresence.startTimestamp = discordPresence.endTimestamp = 0;
 		discordPresence.largeImageKey = "default";
-
-		if (cgi.WorldModel()) {
-			discordPresence.largeImageText = cgi.WorldModel()->media.name;
-		}
+		discordPresence.largeImageText = "The Edge";
 
 		discordPresence.smallImageKey = "default";
 		discordPresence.smallImageText = "Qforcer";
@@ -66,7 +66,10 @@ void Cg_DiscordUpdate(void) {
 		discordPresence.instance = 0;
 
 		Discord_UpdatePresence(&discordPresence);
+
+		test_state = 2;
 	}
+	//}
 
 #ifdef DISCORD_DISABLE_IO_THREAD
 	Discord_UpdateConnection();
@@ -85,7 +88,7 @@ void Cg_InitDiscord(void) {
 	handlers.spectateGame = Cg_DiscordSpectateGame;
 	handlers.joinRequest = Cg_DiscordJoinRequest;
 
-	Discord_Initialize(DISCORD_APP_ID, &handlers, 1, NULL);
+	Discord_Initialize(DISCORD_APP_ID, &handlers, 1, "");
 }
 
 void Cg_ShutdownDiscord(void) {
