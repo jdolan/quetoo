@@ -33,10 +33,10 @@ typedef struct {
 	file_t *cache_file;
 } r_lightmap_state_t;
 
-#define R_LIGHTMAP_CACHE_MAGIC		0x43414348
+#define R_LIGHTMAP_CACHE_MAGIC 0xbeef
 
 typedef struct {
-	uint32_t magic;
+	int32_t magic;
 	int64_t size;
 	int64_t time;
 	uint32_t num_packers;
