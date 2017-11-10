@@ -36,15 +36,15 @@ typedef struct {
 #define R_LIGHTMAP_CACHE_MAGIC		0x43414348
 
 typedef struct {
-	uint32_t		magic;
-	uint32_t		size;
-	int64_t			time;
-	uint32_t		num_packers;
+	uint32_t magic;
+	int64_t size;
+	int64_t time;
+	uint32_t num_packers;
 } r_lightmap_cache_header_t;
 
 typedef struct {
-	uint32_t		width, height; // final lm size
-	uint32_t		count; // # of surfs this packer is responsible for
+	uint32_t width, height; // final lm size
+	uint32_t count; // # of surfs this packer is responsible for
 } r_lightmap_cache_packer_header_t;
 
 static r_lightmap_state_t r_lightmap_state;
