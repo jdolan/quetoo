@@ -192,6 +192,9 @@
     <ClInclude Include="..\src\cgame\default\ui\common\QuetooTheme.h">
       <Filter>src\default\ui\common</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\default\cg_discord.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="cgame.def" />
@@ -349,6 +352,9 @@
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\common\QuetooTheme.c">
       <Filter>src\default\ui\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\cg_discord.c">
+      <Filter>src\default</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

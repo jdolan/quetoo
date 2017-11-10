@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="..\src\cgame\cgame.h" />
     <ClInclude Include="..\src\cgame\default\cg_client.h" />
+    <ClInclude Include="..\src\cgame\default\cg_discord.h" />
     <ClInclude Include="..\src\cgame\default\cg_effect.h" />
     <ClInclude Include="..\src\cgame\default\cg_emit.h" />
     <ClInclude Include="..\src\cgame\default\cg_entity.h" />
@@ -79,6 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\cgame\default\cg_client.c" />
+    <ClCompile Include="..\src\cgame\default\cg_discord.c" />
     <ClCompile Include="..\src\cgame\default\cg_effect.c" />
     <ClCompile Include="..\src\cgame\default\cg_emit.c" />
     <ClCompile Include="..\src\cgame\default\cg_entity.c" />
@@ -155,7 +157,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;libparse.lib;libshared.lib;libpmove.lib;libswap.lib;libmatrix.lib;SDL2.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;libparse.lib;libshared.lib;libpmove.lib;libswap.lib;libmatrix.lib;SDL2.lib;SDL2_image.lib;discord-rpc.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>cgame.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>

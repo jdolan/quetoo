@@ -792,6 +792,7 @@ typedef struct cg_export_s {
 	void (*UpdateLoading)(const cl_loading_t loading);
 	void (*UpdateView)(const cl_frame_t *frame);
 	void (*UpdateScreen)(const cl_frame_t *frame);
+	void (*UpdateDiscord)(void);
 
 } cg_export_t;
 

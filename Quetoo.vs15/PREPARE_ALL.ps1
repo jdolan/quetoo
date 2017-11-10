@@ -27,3 +27,9 @@ Push-Location "libs\xml\include\"
 .\PREPARE.ps1
 Pop-Location
 [Environment]::CurrentDirectory = $PWD
+
+Push-Location "libs\discord\"
+[Environment]::CurrentDirectory = $PWD
+.\PREPARE.ps1
+Pop-Location
+[Environment]::CurrentDirectory = $PWD

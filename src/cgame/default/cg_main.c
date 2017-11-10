@@ -272,6 +272,8 @@ static void Cg_Init(void) {
 
 	Cg_InitHud();
 
+	Cg_InitDiscord();
+
 	cgi.Print("  ^6Client game module initialized\n");
 }
 
@@ -283,6 +285,8 @@ static void Cg_Shutdown(void) {
 	cgi.Print("  ^6Client game module shutdown...\n");
 
 	Cg_ShutdownUi();
+
+	Cg_ShutdownDiscord();
 
 	cgi.FreeTag(MEM_TAG_CGAME_LEVEL);
 	cgi.FreeTag(MEM_TAG_CGAME);
@@ -444,6 +448,7 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.UpdateLoading = Cg_UpdateLoading;
 	cge.UpdateView = Cg_UpdateView;
 	cge.UpdateScreen = Cg_UpdateScreen;
+	cge.UpdateDiscord = Cg_DiscordUpdate;
 
 	return &cge;
 }

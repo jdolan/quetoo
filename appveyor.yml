@@ -100,3 +100,4 @@ cache:
   - Quetoo.vs15\libs\physfs\tmp.tar.bz2 -> appveyor.yml
   - Quetoo.vs15\libs\sdl_mixer\SDL2\tmp.zip -> appveyor.yml
   - Quetoo.vs15\libs\xml\include\tmp.tar.gz -> appveyor.yml
+  - Quetoo.vs15\libs\discord\tmp.tar.gz -> appveyor.yml
