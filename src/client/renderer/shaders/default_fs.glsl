@@ -82,6 +82,10 @@ out vec4 fragColor;
 
 vec3 eyeDir = normalize(vtx_eye);
 
+// For lightmap normalizing
+const float blackPointLuma = 0.015625;
+const float blackPointLumaHalf = 0.0078125;
+
 /**
  * @brief Cleans up the rendering of the lightmap.
  */
@@ -106,7 +110,7 @@ vec3 NormalizeLightmap(vec3 lightmap, float bumpScale, float specularScale) {
 void BumpFragment(in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap, out float lightmapBumpScale, out float lightmapSpecularScale) {
 	float glossFactor = clamp(dot(glossmap, vec3(0.299, 0.587, 0.114)), 0.0078125, 1.0);
 
-	lightmapBumpScale = clamp(dot(deluxemap, normalmap), 0.0, 1.0);
+	lightmapBumpScale = max(dot(deluxemap, normalmap), 0.0); // NdotL
 	lightmapSpecularScale = (HARDNESS * glossFactor) * pow(clamp(-dot(eyeDir, reflect(deluxemap, normalmap)), 0.0078125, 1.0), (16.0 * glossFactor) * SPECULAR);
 }
 
@@ -133,25 +137,12 @@ vec3 DynamicLighting(vec3 normal) {
 		if (NdotL <= 0.0) { continue; }
 
 		dist = 1.0 - dist / LIGHTS.RADIUS[i];
+
+		// Diffuse lighting.
 		light += LIGHTS.COLOR[i] * NdotL * dist * dist;
 
 	}
 	return light;
-}
-
-/**
- * @brief Yield the final sample color after factoring in dynamic light sources.
- */
-void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normal, in float lightmapBumpScale, in float lightmapSpecularScale) {
-
-	lightmap.rgb = NormalizeLightmap(lightmap.rgb, lightmapBumpScale, lightmapSpecularScale);
-
-	#if MAX_LIGHTS
-	fragColor.rgb = diffuse.rgb * ((lightmap.rgb + DynamicLighting(normal)) * LIGHT_SCALE);
-	#else
-	fragColor.rgb = diffuse.rgb * (lightmap.rgb * LIGHT_SCALE);
-	#endif
-
 }
 
 /**
@@ -216,10 +207,17 @@ void main(void) {
 	}
 
 	// add any dynamic lighting to yield the final fragment color
-	LightFragment(diffuse, lightmap, normal, lightmapBumpScale, lightmapSpecularScale);
+	lightmap.rgb = NormalizeLightmap(lightmap.rgb, lightmapBumpScale, lightmapSpecularScale);
 
-	fragColor.rgb = tonemap_ldr(fragColor.rgb);
+	#if MAX_LIGHTS
+	fragColor.rgb = diffuse.rgb * ((lightmap.rgb + DynamicLighting(normal)) * LIGHT_SCALE);
+	#else
+	fragColor.rgb = diffuse.rgb * (lightmap.rgb * LIGHT_SCALE);
+	#endif
 
+	//fragColor.rgb = tonemap_ldr(fragColor.rgb);
+
+	fragColor.rgb = lightmap.rgb;
 	// and fog
 	FogFragment(length(vtx_point), fragColor);
 }
