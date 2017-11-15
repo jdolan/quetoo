@@ -133,4 +133,34 @@ void DynamicLighting(vec3 viewDir, vec3 normal,
  */
 void main(void) {
 
+	// Get alpha and don't bother with fully transparent stuff.
+	float alpha = vtx_color.a;
+	if (DIFFUSE) {
+		alpha *= texture(tex_diffuse, uv_textures).a;
+		if (vtx_color.a * alpha < ALPHA_THRESHOLD) { discard; }
+	}
+
+	vec2 uv_materials = uv_textures;
+	// Get distance from view.
+	float viewDistance = length(vtx_point);
+
+	// Lighting accumulators for diffuse and specular contributions.
+	vec3 diffLight = vec3(0.0);
+	vec3 specLight = vec3(0.0);
+
+	// Get flat colors.
+	vec4 diffAlbedo = vec4(1.0);
+	vec3 specAlbedo = vec3(0.1);
+	// Get view direction.
+	vec3 eyeDir = normalize(vtx_eye);
+	// Get vertex-normal.
+	vec3 normal = normalize(vtx_normal);
+	// Get constant shading.
+	vec3 lightmap = vtx_color.rgb;
+
+	vec3 lightDir = DELUXEMAP
+		? texture(tex_deluxe, uv_lightmap).rgb
+		: vec3(0.0, 0.0, 1.0);
+	lightDir = normalize((lightDir - 0.5) * 2.0);
+
 }
