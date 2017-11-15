@@ -205,4 +205,26 @@ void main(void) {
 		}
 	}
 
+	// Get normalmap.
+	if (NORMALMAP) {
+
+		normal = texture(tex_normal, uv_materials).xyz;
+		normal = (normal - 0.5) * 2.0;
+		normal.xy *= BUMP;
+		normal = normalize(normal);
+
+		// Render static world lighting.
+		diffLight += Lambert(lightDir, normal, lightmap)
+			* (lightMask * 0.5 + 0.5);
+		specLight += Blinn(eyeDir, lightDir, normal, lightmap,
+			HARDNESS, SPECULAR) * lightMask;
+
+		// Combine vertex-normal and normalmap for dynamic lighting.
+		normal = normalize(
+			normal.x * normalize(vtx_tangent) +
+			normal.y * normalize(vtx_bitangent) +
+			normal.z * normalize(vtx_normal)
+		);
+	}
+
 }
