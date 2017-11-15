@@ -227,4 +227,17 @@ void main(void) {
 		);
 	}
 
+	#if MAX_LIGHTS
+	DynamicLighting(eyeDir, normal, HARDNESS, SPECULAR, diffLight, specLight);
+	#endif
+
+	vec3 diffuseTerm  = diffAlbedo.rgb * (diffLight * LIGHT_SCALE);
+	vec3 specularTerm = specAlbedo.rgb * (specLight * LIGHT_SCALE);
+
+	// Final result.
+	fragColor.rgb = diffuseTerm + specularTerm;
+	fragColor.rgb = tonemap_ldr(fragColor.rgb);
+	fragColor.a = alpha;
+	FogFragment(viewDistance, fragColor);
+
 }
