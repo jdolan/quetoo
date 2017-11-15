@@ -163,4 +163,27 @@ void main(void) {
 		: vec3(0.0, 0.0, 1.0);
 	lightDir = normalize((lightDir - 0.5) * 2.0);
 
+	float lightMask = 1.0;
+
+ 	if (DELUXEMAP && NORMALMAP && PARALLAX > 0) {
+		#ifdef PARALLAX_OCCLUSION
+		// Parallax mapping.
+		uv_materials = POM(tex_normal, uv_materials, eyeDir,
+			viewDistance, PARALLAX);
+		#else
+		uv_materials = BumpOffset(tex_normal, uv_materials, eyeDir,
+			PARALLAX);
+		#endif
+		#ifdef PARALLAX_SHADOW_HARD
+		// Self-shadowing parallax.
+		lightMask = SelfShadowHard(tex_normal, uv_materials, lightDir,
+			viewDistance, PARALLAX);
+		#endif
+		#ifdef PARALLAX_SHADOW_SOFT
+		// Self-shadowing parallax.
+		lightMask = SelfShadowSoft(tex_normal, uv_materials, lightDir,
+			viewDistance, PARALLAX);
+		#endif
+	}
+
 }
