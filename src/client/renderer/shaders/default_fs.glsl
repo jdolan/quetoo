@@ -87,8 +87,6 @@ in VertexData {
 
 out vec4 fragColor;
 
-vec3 eyeDir = normalize(vtx_eye);
-
 /**
  * @brief Iterate the hardware light sources,
  * accumulating dynamic lighting for this fragment.
@@ -131,6 +129,8 @@ void DynamicLighting(vec3 viewDir, vec3 normal,
 /**
  * @brief Shader entry point.
  */
+
+#line 5000
 void main(void) {
 
 	// Get alpha and don't bother with fully transparent stuff.
