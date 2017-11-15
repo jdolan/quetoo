@@ -9,12 +9,19 @@ precision lowp float;
 
 #define FRAGMENT_SHADER
 
+// Placeholders for ingame settings.
+#define PARALLAX_OCCLUSION
+#define PARALLAX_SHADOW_HARD
+// #define PARALLAX_SHADOW_SOFT
+
 #include "include/uniforms.glsl"
 #include "include/fog.glsl"
 #include "include/noise3d.glsl"
 #include "include/tint.glsl"
 #include "include/gamma.glsl"
 #include "include/hdr.glsl"
+#include "include/brdf.glsl"
+#include "include/parallax.glsl"
 
 #define MAX_LIGHTS $r_max_lights
 #define LIGHT_SCALE $r_modulate
@@ -82,73 +89,59 @@ out vec4 fragColor;
 
 vec3 eyeDir = normalize(vtx_eye);
 
-// For lightmap normalizing
-const float blackPointLuma = 0.015625;
-const float blackPointLumaHalf = 0.0078125;
-
 /**
- * @brief Cleans up the rendering of the lightmap.
+ * @brief Iterate the hardware light sources,
+ * accumulating dynamic lighting for this fragment.
  */
-vec3 NormalizeLightmap(vec3 lightmap, float bumpScale, float specularScale) {
-	
-	float lightmapLuma = dot(lightmap, vec3(0.299, 0.587, 0.114));
-	float blackPointLuma = 0.015625;
-	float l = exp2(lightmapLuma) - blackPointLuma;
+void DynamicLighting(vec3 viewDir, vec3 normal,
+	float specularIntensity, float specularPower,
+	in out vec3 lightDiffuse, in out vec3 lightSpecular) {
 
-	float lightmapDiffuseBumpedLuma  = l * bumpScale;
-	float lightmapSpecularBumpedLuma = l * specularScale;
-
-	vec3 diffuseLightmapColor  = lightmap * lightmapDiffuseBumpedLuma;
-	vec3 specularLightmapColor = (lightmapLuma + lightmap) * 0.5 * lightmapSpecularBumpedLuma;
-	
-	return diffuseLightmapColor + specularLightmapColor;
-}
-
-/**
- * @brief Yield the diffuse modulation from bump-mapping.
- */
-void BumpFragment(in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap, out float lightmapBumpScale, out float lightmapSpecularScale) {
-	float glossFactor = clamp(dot(glossmap, vec3(0.299, 0.587, 0.114)), 0.0078125, 1.0);
-
-	lightmapBumpScale = max(dot(deluxemap, normalmap), 0.0); // NdotL
-	lightmapSpecularScale = (HARDNESS * glossFactor) * pow(clamp(-dot(eyeDir, reflect(deluxemap, normalmap)), 0.0078125, 1.0), (16.0 * glossFactor) * SPECULAR);
-}
-
-/**
- * @brief Iterate the hardware light sources, accumulating dynamic lighting for this fragment.
- */
-vec3 DynamicLighting(vec3 normal) {
-
-	vec3 light = vec3(0.0);
+	const float fillLight = 0.2;
 	for (int i = 0; i < MAX_LIGHTS; i++) {
 
 		// A light radius of 0.0 means break.
 		if (LIGHTS.RADIUS[i] == 0.0) { break; }
 
-		vec3 delta = LIGHTS.ORIGIN[i] - vtx_point;
-		float dist = length(delta);
+		vec3  delta = LIGHTS.ORIGIN[i] - vtx_point;
+		float distance = length(delta);
 
 		// Don't shade points outside of the radius.
-		if (dist > LIGHTS.RADIUS[i]) { continue; }
+		if (distance > LIGHTS.RADIUS[i]) { continue; }
 
-		float NdotL = dot(normal, normalize(delta));
+		// Get angle.
+		vec3 lightDir = normalize(delta);
 
-		// Don't shade normals turned away from the light.
-		if (NdotL <= 0.0) { continue; }
+		// Make distance relative to radius.
+		distance = 1.0 - distance / LIGHTS.RADIUS[i];
 
-		dist = 1.0 - dist / LIGHTS.RADIUS[i];
-
-		// Diffuse lighting.
-		light += LIGHTS.COLOR[i] * NdotL * dist * dist;
-
+		if (LIGHTMAP) {
+			lightDiffuse += Lambert(lightDir, normal, LIGHTS.COLOR[i])
+				* distance * distance;
+		} else {
+			lightDiffuse += LambertFill(lightDir, normal, fillLight,
+				LIGHTS.COLOR[i]) * distance * distance;
+		}
+		
+		lightSpecular += Phong(viewDir, lightDir, normal, LIGHTS.COLOR[i],
+			specularIntensity, specularPower) * distance;
 	}
-	return light;
 }
 
 /**
  * @brief Shader entry point.
  */
 void main(void) {
+
+	// Get alpha and don't bother with fully transparent stuff.
+	float alpha = vtx_color.a;
+	if (DIFFUSE) {
+		alpha *= texture(tex_diffuse, uv_textures).a;
+		if (vtx_color.a * alpha < ALPHA_THRESHOLD) { discard; }
+	}
+
+	vec2 uv_materials = uv_textures;
+	float viewDistance = length(vtx_point);
 
 	vec4 diffuse = vec4(1.0);
 	fragColor.a = vtx_color.a;
@@ -176,7 +169,6 @@ void main(void) {
 		}
 	}
 
-	// then resolve any bump mapping
 	vec3 normal = vtx_normal;
 	
 	float lightmapBumpScale = 1.0;
