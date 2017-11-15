@@ -82,8 +82,8 @@ in VertexData {
 	vec3 vtx_eye;
 };
 
-#define uv_materials vtx_texcoords[0]
-#define uv_lightmap  vtx_texcoords[1]
+#define uv_textures vtx_texcoords[0]
+#define uv_lightmap vtx_texcoords[1]
 
 out vec4 fragColor;
 
