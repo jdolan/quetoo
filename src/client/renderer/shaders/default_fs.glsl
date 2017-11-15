@@ -186,4 +186,23 @@ void main(void) {
 		#endif
 	}
 
+	if (DIFFUSE) {
+		diffAlbedo = texture(tex_diffuse, uv_materials);
+		TintFragment(diffAlbedo, uv_materials);
+	}
+
+	if (GLOSSMAP) {
+		specAlbedo = texture(tex_specular, uv_materials).rgb;
+	}
+
+	// Get lightmap.
+	if (LIGHTMAP) {
+		lightmap = texture(tex_light, uv_lightmap).rgb;
+
+		if (STAINMAP) {
+			vec4 stain = texture(tex_stain, uv_lightmap);
+			lightmap = mix(lightmap.rgb, stain.rgb, stain.a).rgb;
+		}
+	}
+
 }
