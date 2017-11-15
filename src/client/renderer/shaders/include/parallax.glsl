@@ -2,21 +2,13 @@
 
 Some notes on performance / quality / features:
 
-* Fetching large textures repeatedly is slow,
-  limiting miplevel or using texture compression should help.
+* Fetching large textures repeatedly is slow, using texture compression should help.
 * It's common practice to scale the effect by miplevel, but here we do it by
   distance from the camera, this decouples it from anisotropic filtering.
-* Storing min/max height in the mipmaps allows hierarchical traversal,
-  which should be much faster in the average case. See references below.
-* Have not tried this, but jittering the height-offset at each
-  pixel/iteration might mask undersampling artefacts a bit.
-* Culling shadows on highly grazing angles might help a bit?
-* There's probably plenty of micro-optimization opportunities left.
 * Most implementations trace into the surface, or middle-out.
   This scales outwards. I have found that this makes texture swimming less
   noticable because the swimming parts tend to appear as if occluded.
   It might be possible to expose another parameter which sets a reference height.
-
 
 References:
 
@@ -29,6 +21,9 @@ References:
 * Michal Drobot, Quadtree Displacement Mapping With Height Blending,
   http://gamedevs.org/uploads/
   quadtree-displacement-mapping-with-height-blending.pdf
+* Natalya Tatarchuk
+  https://developer.amd.com/wordpress/media/2012/10/
+  Tatarchuk-ParallaxOcclusionMapping-FINAL_Print.pdf
 * Art Tevs, Ivo Ihrke, Hans-Peter Seidel,
   Maximum Mipmaps for Fast, Accurate, and Scalable Dynamic Height Field Rendering,
   http://tevs.eu/files/i3d08_talk.pdf
@@ -42,54 +37,81 @@ References:
 
 */
 
+/* textureLod supposedly is faster than textureGrad.
+vec2 pdx = dPdx(uv_materials);
+vec2 pdy = dPdy(uv_materials);
+float heightTexture(sampler2D tex, vec2 uv) {
+	return textureGrad(tex, uv, pdx, pdy).a;
+}
+*/
+
+#extension GL_ARB_texture_query_lod : require
+
+float heightTexture(sampler2D tex, vec2 uv) {
+	// Limit texture lod to 128*128
+	float lod = textureQueryLOD(tex, uv).x;
+	lod = min(lod, 7);
+	return textureLod(tex, uv, lod).a;
+}
+
+/**
+ * @brief Cheap parallax shader.
+ */
+vec2 BumpOffset(sampler2D tex, vec2 uv, vec3 viewDir, float scale) {
+	vec2 offset = viewDir.xy * heightTexture(tex, uv) * 0.02 * scale + uv;
+	// Offset limiting.
+	return mix (uv, offset, dot(vec3(0.0, 0.0, 1.0), normalize(viewDir)));
+}
+
 /**
  * @brief Parallax Occlusion Mapping. Expensive shader.
  * Performance is impacted by texture resolution
  * and by anisotropic filtering quality.
  */
-vec2 POM(sampler2D tex, vec2 texUV, vec3 viewDir, float distance, float scale) {
+vec2 POM(sampler2D tex, vec2 uv,
+	vec3 viewDir, float distance, float scale) {
 
-	// TODO: limit by miplevel so large texture fetches won't bog perf.
-	// TODO: feed proper derivatives to sampler to get rid of artefacts.
+	// Decide how much samples to take for this pixel.
+	// Clamp the effect to a range around the view
+	// and do less at perpendicular angles.
+	const float maxSamples = 16;
+	const float minSamples = 2;
+	const float near = 100;
+	const float far = 500;
+	float falloff = 1.0 - (clamp(distance, near, far) - near) / (far - near);
+	if (falloff == 0.0) { return uv; } // Early exit.
+	float angle = 1.0 - dot(vec3(0.0, 0.0, 1.0), normalize(viewDir));
+	angle = angle * 0.75 + 0.25; // Temper a bit.
+	float numSamples = mix(minSamples, maxSamples, min(angle, falloff));
 
-	// Attenuate scale.
-	scale *= 0.05;
+	// Attenuate scale with distance and scale to something sane.
+	scale = scale * falloff * 0.05;
 
 	// Record keeping.
 	vec2  prevUV;
-	vec2  currUV = texUV;
-	float prevTexZ;
-	float currTexZ = texture(tex, currUV).a;
-	float prevHeight;
-	float currHeight = 0.0;
-
-	// Decide on the maximum number of samples to take.
-	float numSamples = 20;
-	// Do less at perpendicular angles.
-	float angle = abs(dot(vec3(0.0, 0.0, 1.0), viewDir));
-	// Do less with distance.
-	float closeness = 1.0 - min(distance / 1000, 1.0);
-	// Final number of steps (minimum 1).
-	numSamples = (numSamples - 1) * angle * closeness + 1;
+	vec2  currUV = uv;
+	float surfaceHeightPrev;
+	float surfaceHeightCurr = heightTexture(tex, currUV);
+	float rayHeightPrev;
+	float rayHeightCurr = 0.0;
 
 	// Height offset per step.
 	float stepHeight = 1.0 / numSamples;
 	// UV offset per step.
 	vec2 uvDelta = viewDir.xy * scale / numSamples;
 
-	// Raymarch.
-	while (currHeight < currTexZ) {
+	while (rayHeightCurr < surfaceHeightCurr) {
 		prevUV = currUV;
 		currUV += uvDelta;
-		prevTexZ = currTexZ;
-		currTexZ = texture(tex, currUV).a;
-		prevHeight = currHeight;
-		currHeight += stepHeight;
+		surfaceHeightPrev = surfaceHeightCurr;
+		surfaceHeightCurr = heightTexture(tex, currUV);
+		rayHeightPrev = rayHeightCurr;
+		rayHeightCurr += stepHeight;
 	}
 
 	// Take last two heights and interpolate between them.
-	float a = currTexZ - currHeight;
-	float b = prevTexZ - currHeight + stepHeight;
+	float a = surfaceHeightCurr - rayHeightCurr;
+	float b = surfaceHeightPrev - rayHeightCurr + stepHeight;
 	float blend = a / (a - b);
 
 	return mix(currUV, prevUV, blend);
@@ -101,15 +123,17 @@ vec2 POM(sampler2D tex, vec2 texUV, vec3 viewDir, float distance, float scale) {
  * anisotropic filtering quality, sample count, and to some degree
  * by the scale of the effect.
  */
-float SelfShadowHard(sampler2D tex, vec2 uv, vec3 lightDir, float distance, float scale) {
+float SelfShadowHard(sampler2D tex, vec2 uv, vec3 lightDir,
+	float distance, float scale) {
 
-	// TODO: limit by miplevel so large texture fetches won't bog perf.
-
+	// Shorten the shadow cast.
+	// Mostly for practical reasons, samples get spaced closer.
+	const float shorten = 0.2;
+	
 	// Decide on the maximum number of samples to take.
 	float numSamples = 40;
 	// Do less at perpendicular angles.
-	// float angle = abs(dot(vec3(0.0, 0.0, 1.0), lightDir));
-	float angle = length(lightDir.xy); // Better :)
+	float angle = length(lightDir.xy);
 	// Do less at distance.
 	float closeness = 1.0 - min(distance / 1000, 1.0);
 	// Do less at low bumpiness.
@@ -117,24 +141,20 @@ float SelfShadowHard(sampler2D tex, vec2 uv, vec3 lightDir, float distance, floa
 	// Final sample number.
 	numSamples *= bumpiness * angle * closeness;
 
-	// Shorten the shadow cast.
-	// Mostly for practical reasons, samples get spaced closer.
-	scale *= 0.2;
-
 	// Simply return white if it's not worth it.
 	if (numSamples < 1.0) { return 1.0; } // Early exit.
 
 	float step = 1.0 / numSamples;
 	vec2 currUV  = uv;
-	vec2 deltaUV = lightDir.xy * scale / numSamples;
-	float heightSurface = texture(tex, currUV).a;
+	vec2 deltaUV = lightDir.xy * (scale * shorten) / numSamples;
+	float heightSurface = heightTexture(tex, currUV);
 	// Bias height to avoid shadow acne.
 	float heightRay = heightSurface + (step * 0.15);
 
 	while (heightRay > heightSurface && heightRay < 1.0) {
 		heightRay += step;
 		currUV += deltaUV;
-		heightSurface = texture(tex, currUV).a;
+		heightSurface = heightTexture(tex, currUV);
 	}
 
 	// Are we in shadow?
@@ -147,26 +167,27 @@ float SelfShadowHard(sampler2D tex, vec2 uv, vec3 lightDir, float distance, floa
  * anisotropic filtering quality, sample count, and to some degree
  * by the scale of the effect. Much more expensive than SelfShadowHard().
  */
-float SelfShadowSoft( sampler2D tex, vec2 uv, vec3 lightDir, float scale) {
+float SelfShadowSoft(sampler2D tex, vec2 uv, vec3 lightDir,
+	float distance, float scale) {
 
 	// Multiplier that shortens the shadow cast.
 	// Mostly for practical reasons, samples get spaced closer.
 	const float shorten = 0.2;
 
 	// Decide on the maximum number of samples to take.
-	// Do less at perpendicular angles.
-	// Do less at distance.
-	// Do less at low bumpiness.
 	float numSamples = 50;
-	// float angle = abs(dot(vec3(0.0, 0.0, 1.0), lightDir));
+	// Do less at perpendicular angles.
 	float angle = length(lightDir.xy); // Better :)
+	// Do less at distance.
 	float closeness = 1.0 - min(distance / 1000, 1.0);
+	// Do less at low bumpiness.
 	float bumpiness = min(scale, 1.0);
+	// float angle = abs(dot(vec3(0.0, 0.0, 1.0), lightDir));
 	numSamples *= bumpiness * angle * closeness;
 
 	// Setup positions and stepsizes. Start one sample out.
 	// Height of the step is a fraction of the empty space above the surface.
-	float heightInit = texture(tex, uv).a;
+	float heightInit = heightTexture(tex, uv);
 	float heightStep = (1.0 - heightInit) / numSamples;
 	float heightCurr = heightInit + heightStep;
 	vec2 coordsStep = lightDir.xy * (scale * shorten) / numSamples;
@@ -177,7 +198,7 @@ float SelfShadowSoft( sampler2D tex, vec2 uv, vec3 lightDir, float scale) {
 	float shadowFactor;
 	for (float i = 1; i < numSamples; i += 1) {
 
-		float heightSurface = texture(tex, coordsCurr).a;
+		float heightSurface = heightTexture(tex, coordsCurr);
 		// If we intersect the heightfield.
 		if (heightSurface > heightCurr) {
 			// Compute blocker-to-receiver formula.
