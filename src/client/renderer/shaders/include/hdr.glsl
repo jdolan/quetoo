@@ -28,7 +28,7 @@ vec3 tonemap_reinhard(vec3 x, float shallowness) {
 // Needs to be applied on the HDR value before the tonemapping stage.
 vec3 crosstalk(vec3 color, float treshold, float shallowness) {
 	// Luminosity
-	float luma = color.r * 0.299 + color.g * 0.587 + color.b * 0.114;
+	float luma = dot(color, vec3(0.299, 0.587, 0.114));
 	// Blending Factor (sigmoid curve)
 	float blend = max(luma - treshold, 0.0);
 	      blend *= blend;
