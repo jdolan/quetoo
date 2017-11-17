@@ -37,36 +37,52 @@ References:
 
 */
 
-/* textureLod supposedly is faster than textureGrad.
-vec2 pdx = dPdx(uv_materials);
-vec2 pdy = dPdy(uv_materials);
-float heightTexture(sampler2D tex, vec2 uv) {
-	return textureGrad(tex, uv, pdx, pdy).a;
+/*
+textureLod ditches aniso and hence is
+faster than textureGrad on grazing angles.
+The visual difference is very minor.
+
+vec2 derivX = dPdx(uv_materials);
+vec2 derivY = dPdy(uv_materials);
+
+float HeightTexture(sampler2D tex, vec2 uv) {
+	return textureGrad(tex, uv, derivX, derivY).a;
 }
 */
 
 #extension GL_ARB_texture_query_lod : require
 
-float heightTexture(sampler2D tex, vec2 uv) {
-	// Limit texture lod to 128*128
-	float lod = textureQueryLOD(tex, uv).x;
-	lod = min(lod, 7);
-	return textureLod(tex, uv, lod).a;
+float GetMipLevel(sampler2D tex, vec2 uv) {
+	return textureQueryLOD(tex, uv).y;
+}
+
+float GetMipLimit(sampler2D tex, float limit) {
+
+	// Get texture size in pixels, presume square texture (!).
+	float size = textureSize(tex, 0).x;
+	// Convert to power-of-two to get number of mipmaps.
+	size = log2(size);
+	// mipmap 0 = nearest and largest sized texture. Get the
+	// smallest required mip-offset to avoid large textures.
+	if (limit < size) {
+		return size - limit;
+	} else {
+		return size;
+	}
 }
 
 /**
  * @brief Cheap parallax shader.
  */
 vec2 BumpOffset(sampler2D tex, vec2 uv, vec3 viewDir, float scale) {
-	vec2 offset = viewDir.xy * heightTexture(tex, uv) * 0.02 * scale + uv;
+	vec2 offset = viewDir.xy * texture(tex, uv).a * 0.02 * scale + uv;
 	// Offset limiting.
-	return mix (uv, offset, dot(vec3(0.0, 0.0, 1.0), normalize(viewDir)));
+	return mix(uv, offset, dot(vec3(0.0, 0.0, 1.0), normalize(viewDir)));
 }
 
 /**
- * @brief Parallax Occlusion Mapping. Expensive shader.
- * Performance is impacted by texture resolution
- * and by anisotropic filtering quality.
+ * @brief Parallax Occlusion Mapping.
+ * Quality/speed depends on number of samples and max mipmap size.
  */
 vec2 POM(sampler2D tex, vec2 uv,
 	vec3 viewDir, float distance, float scale) {
@@ -84,14 +100,20 @@ vec2 POM(sampler2D tex, vec2 uv,
 	angle = angle * 0.75 + 0.25; // Temper a bit.
 	float numSamples = mix(minSamples, maxSamples, min(angle, falloff));
 
+
 	// Attenuate scale with distance and scale to something sane.
 	scale = scale * falloff * 0.05;
+
+	// Limit heightmap detail.
+	float mipLimit = GetMipLimit(tex, 7);
+	float mipLevel = GetMipLevel(tex, uv);
+	float mipLod   = max(mipLevel, mipLimit);
 
 	// Record keeping.
 	vec2  prevUV;
 	vec2  currUV = uv;
 	float surfaceHeightPrev;
-	float surfaceHeightCurr = heightTexture(tex, currUV);
+	float surfaceHeightCurr = textureLod(tex, uv, mipLod).a;
 	float rayHeightPrev;
 	float rayHeightCurr = 0.0;
 
@@ -104,7 +126,7 @@ vec2 POM(sampler2D tex, vec2 uv,
 		prevUV = currUV;
 		currUV += uvDelta;
 		surfaceHeightPrev = surfaceHeightCurr;
-		surfaceHeightCurr = heightTexture(tex, currUV);
+		surfaceHeightCurr = textureLod(tex, currUV, mipLod).a;
 		rayHeightPrev = rayHeightCurr;
 		rayHeightCurr += stepHeight;
 	}
@@ -119,9 +141,7 @@ vec2 POM(sampler2D tex, vec2 uv,
 
 /**
  * @brief Heightmap Hard Shadow Trace.
- * Expensive shader. Performance is impacted by texture resolution,
- * anisotropic filtering quality, sample count, and to some degree
- * by the scale of the effect.
+ * Quality/speed depends on number of samples and max mipmap size.
  */
 float SelfShadowHard(sampler2D tex, vec2 uv, vec3 lightDir,
 	float distance, float scale) {
@@ -129,7 +149,7 @@ float SelfShadowHard(sampler2D tex, vec2 uv, vec3 lightDir,
 	// Shorten the shadow cast.
 	// Mostly for practical reasons, samples get spaced closer.
 	const float shorten = 0.2;
-	
+
 	// Decide on the maximum number of samples to take.
 	float numSamples = 40;
 	// Do less at perpendicular angles.
@@ -144,17 +164,22 @@ float SelfShadowHard(sampler2D tex, vec2 uv, vec3 lightDir,
 	// Simply return white if it's not worth it.
 	if (numSamples < 1.0) { return 1.0; } // Early exit.
 
+	// Limit heightmap detail.
+	float mipLimit = GetMipLimit(tex, 7);
+	float mipLevel = GetMipLevel(tex, uv);
+	float mipLod   = max(mipLevel, mipLimit);
+
 	float step = 1.0 / numSamples;
 	vec2 currUV  = uv;
 	vec2 deltaUV = lightDir.xy * (scale * shorten) / numSamples;
-	float heightSurface = heightTexture(tex, currUV);
+	float heightSurface = textureLod(tex, uv, mipLod).a;
 	// Bias height to avoid shadow acne.
 	float heightRay = heightSurface + (step * 0.15);
 
 	while (heightRay > heightSurface && heightRay < 1.0) {
 		heightRay += step;
 		currUV += deltaUV;
-		heightSurface = heightTexture(tex, currUV);
+		heightSurface = textureLod(tex, currUV, mipLod).a;
 	}
 
 	// Are we in shadow?
@@ -163,9 +188,7 @@ float SelfShadowHard(sampler2D tex, vec2 uv, vec3 lightDir,
 
 /**
  * @brief Heightmap Soft Shadow Trace.
- * Expensive shader. Performance is impacted by texture resolution,
- * anisotropic filtering quality, sample count, and to some degree
- * by the scale of the effect. Much more expensive than SelfShadowHard().
+ * Quality/speed depends on number of samples and max mipmap size.
  */
 float SelfShadowSoft(sampler2D tex, vec2 uv, vec3 lightDir,
 	float distance, float scale) {
@@ -185,20 +208,25 @@ float SelfShadowSoft(sampler2D tex, vec2 uv, vec3 lightDir,
 	// float angle = abs(dot(vec3(0.0, 0.0, 1.0), lightDir));
 	numSamples *= bumpiness * angle * closeness;
 
+	// Limit heightmap detail.
+	float mipLimit = GetMipLimit(tex, 7);
+	float mipLevel = GetMipLevel(tex, uv);
+	float mipLod   = max(mipLevel, mipLimit);
+
 	// Setup positions and stepsizes. Start one sample out.
 	// Height of the step is a fraction of the empty space above the surface.
-	float heightInit = heightTexture(tex, uv);
+	float heightInit = textureLod(tex, uv, mipLod).a;
 	float heightStep = (1.0 - heightInit) / numSamples;
 	float heightCurr = heightInit + heightStep;
-	vec2 coordsStep = lightDir.xy * (scale * shorten) / numSamples;
-	vec2 coordsCurr = uv + coordsStep;
+	vec2  coordsStep = lightDir.xy * (scale * shorten) / numSamples;
+	vec2  coordsCurr = uv + coordsStep;
 
 	// Raymarch upwards along the lightray.
 	// Compute the partial shadowing factor.
 	float shadowFactor;
 	for (float i = 1; i < numSamples; i += 1) {
 
-		float heightSurface = heightTexture(tex, coordsCurr);
+		float heightSurface = textureLod(tex, coordsCurr, mipLod).a;
 		// If we intersect the heightfield.
 		if (heightSurface > heightCurr) {
 			// Compute blocker-to-receiver formula.
