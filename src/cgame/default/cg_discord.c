@@ -55,6 +55,8 @@ static void Cg_DiscordDisconnected(int code, const char *message) {
 }
 
 static void Cg_DiscordJoinGame(const char *joinSecret) {
+
+	cgi.Cbuf(va("connect %s\n", joinSecret));
 }
 
 static void Cg_DiscordSpectateGame(const char *spectateSecret) {
@@ -91,6 +93,7 @@ void Cg_UpdateDiscord(void) {
 
 			g_snprintf(descBuffer, sizeof(descBuffer), "%s - %s", Cg_GetGameMode(), cgi.ConfigString(CS_NAME));
 
+			cg_discord_state.presence.joinSecret = cgi.server_name;
 			cg_discord_state.presence.details = descBuffer;
 			cg_discord_state.presence.partySize = cg_state.numclients;
 			cg_discord_state.presence.partyMax = cg_state.maxclients;
