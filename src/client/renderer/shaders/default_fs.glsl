@@ -265,6 +265,10 @@ void main(void) {
     // underliquid caustics
 	CausticFragment(lightmap);
 
+	// tonemap
+	fragColor.rgb *= exp(fragColor.rgb);
+	fragColor.rgb /= fragColor.rgb + 0.825;
+
 	// and fog
 	FogFragment(length(point), fragColor);
 }
