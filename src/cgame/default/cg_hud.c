@@ -168,7 +168,7 @@ static void Cg_DrawVitals(const player_state_t *ps) {
 		Cg_DrawVital(x, health, health_icon, HUD_HEALTH_MED, HUD_HEALTH_LOW);
 	}
 
-	if (atoi(cgi.ConfigString(CS_GAMEPLAY)) != GAME_INSTAGIB) {
+	if (cg_state.gameplay != GAME_INSTAGIB) {
 
 		if (ps->stats[STAT_AMMO] > 0) {
 			const int16_t ammo = ps->stats[STAT_AMMO];
@@ -406,7 +406,7 @@ static void Cg_DrawCaptures(const player_state_t *ps) {
 		return;
 	}
 
-	if (atoi(cgi.ConfigString(CS_CTF)) < 1) {
+	if (!cg_state.ctf) {
 		return;
 	}
 
@@ -534,7 +534,7 @@ static void Cg_DrawTime(const player_state_t *ps) {
 	x = cgi.view->viewport.x + cgi.view->viewport.w - cgi.StringWidth(string);
 	y = cgi.view->viewport.y + 3 * (HUD_PIC_HEIGHT + ch);
 
-	if (atoi(cgi.ConfigString(CS_CTF)) > 0) {
+	if (cg_state.ctf) {
 		y += HUD_PIC_HEIGHT + ch;
 	}
 
@@ -558,7 +558,7 @@ static void Cg_DrawReady(const player_state_t *ps) {
 	x = cgi.view->viewport.x + cgi.view->viewport.w - cgi.StringWidth("Ready");
 	y = cgi.view->viewport.y + 3 * (HUD_PIC_HEIGHT + ch);
 
-	if (atoi(cgi.ConfigString(CS_CTF)) > 0) {
+	if (cg_state.ctf > 0) {
 		y += HUD_PIC_HEIGHT + ch;
 	}
 

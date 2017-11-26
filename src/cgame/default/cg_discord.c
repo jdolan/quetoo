@@ -23,18 +23,34 @@
 #include "discord-rpc.h"
 
 #define DISCORD_APP_ID				"378347526203637760"
-static int test_state = 0;
+
+typedef enum {
+	INVALID,
+	IN_MENU,
+	PLAYING
+} cg_discord_status_t;
+
+typedef struct {
+	_Bool initialized;
+	cg_discord_status_t status;
+	DiscordRichPresence presence;
+} cg_discord_state_t;
+
+static cg_discord_state_t cg_discord_state;
 
 static void Cg_DiscordReady(void) {
+
 	cgi.Print("Discord Initialized\n");
-	test_state = 1;
+	cg_discord_state.initialized = true;
 }
 
 static void Cg_DiscordError(int code, const char *message) {
-	cgi.Print("Discord Error: %s (%i)\n", message, code);
+
+	cgi.Warn("Discord Error: %s (%i)\n", message, code);
 }
 
 static void Cg_DiscordDisconnected(int code, const char *message) {
+
 	cgi.Print("Discord Disconnected\n");
 }
 
@@ -47,29 +63,56 @@ static void Cg_DiscordSpectateGame(const char *spectateSecret) {
 static void Cg_DiscordJoinRequest(const DiscordJoinRequest *request) {
 }
 
-void Cg_DiscordUpdate(void) {
-
-	//if (*cgi.state == CL_ACTIVE) {
-	if (test_state == 1) {
-		DiscordRichPresence discordPresence;
-		memset(&discordPresence, 0, sizeof(discordPresence));
-
-		discordPresence.state = "Dying";
-		discordPresence.details = "Being Cool";
-		discordPresence.startTimestamp = discordPresence.endTimestamp = 0;
-		discordPresence.largeImageKey = "default";
-		discordPresence.largeImageText = "The Edge";
-
-		discordPresence.smallImageKey = "default";
-		discordPresence.smallImageText = "Qforcer";
-
-		discordPresence.instance = 0;
-
-		Discord_UpdatePresence(&discordPresence);
-
-		test_state = 2;
+static const char *Cg_GetGameMode(void) {
+	if (cg_state.ctf) {
+		return va("%i-Team CTF", cg_state.teams);
+	} else if (cg_state.teams) {
+		return va("%i-Team Deathmatch", cg_state.teams);
+	} else if (cg_state.match) {
+		return "Match Mode";
 	}
-	//}
+
+	return "Deathmatch";
+}
+
+void Cg_UpdateDiscord(void) {
+
+	_Bool needs_update = false;
+	static char descBuffer[128];
+
+	if (*cgi.state == CL_ACTIVE) {
+		if (cg_discord_state.status != PLAYING) {
+			needs_update = true;
+
+			memset(&cg_discord_state.presence, 0, sizeof(cg_discord_state.presence));
+			
+			cg_discord_state.presence.largeImageKey = "default";
+			cg_discord_state.presence.state = "Playing";
+
+			g_snprintf(descBuffer, sizeof(descBuffer), "%s - %s", Cg_GetGameMode(), cgi.ConfigString(CS_NAME));
+
+			cg_discord_state.presence.details = descBuffer;
+			cg_discord_state.presence.partySize = cg_state.numclients;
+			cg_discord_state.presence.partyMax = cg_state.maxclients;
+			cg_discord_state.status = PLAYING;
+			cg_discord_state.presence.instance = 1;
+		}
+	} else {
+		if (cg_discord_state.status != IN_MENU) {
+			needs_update = true;
+
+			memset(&cg_discord_state.presence, 0, sizeof(cg_discord_state.presence));
+			
+			cg_discord_state.presence.largeImageKey = "default";
+			cg_discord_state.presence.state = "In Main Menu";
+
+			cg_discord_state.status = IN_MENU;
+		}
+	}
+
+	if (needs_update) {
+		Discord_UpdatePresence(&cg_discord_state.presence);
+	}
 
 #ifdef DISCORD_DISABLE_IO_THREAD
 	Discord_UpdateConnection();
@@ -88,10 +131,12 @@ void Cg_InitDiscord(void) {
 	handlers.spectateGame = Cg_DiscordSpectateGame;
 	handlers.joinRequest = Cg_DiscordJoinRequest;
 
+	memset(&cg_discord_state, 0, sizeof(cg_discord_state));
 	Discord_Initialize(DISCORD_APP_ID, &handlers, 1, "");
 }
 
 void Cg_ShutdownDiscord(void) {
 
 	Discord_Shutdown();
+	memset(&cg_discord_state, 0, sizeof(cg_discord_state));
 }

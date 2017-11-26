@@ -92,7 +92,9 @@ typedef struct {
 #define CS_TIME				(CS_GENERAL + 6)  // level or match timer
 #define CS_ROUND			(CS_GENERAL + 7)  // round number
 #define CS_VOTE				(CS_GENERAL + 8)  // vote string\yes count\no count
-#define CS_HOOK_PULL_SPEED	(CS_GENERAL + 9) // hook speed
+#define CS_HOOK_PULL_SPEED	(CS_GENERAL + 9)  // hook speed
+#define CS_MAXCLIENTS		(CS_GENERAL + 10) // maxclients of server
+#define CS_NUMCLIENTS		(CS_GENERAL + 11) // number of players in server
 
 /**
  * @brief Player state statistics (inventory, score, etc).

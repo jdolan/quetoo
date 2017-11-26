@@ -1027,7 +1027,9 @@ static void G_worldspawn(g_entity_t *ent) {
 	{
 		g_strlcpy(g_level.title, g_level.name, sizeof(g_level.title));
 	}
+
 	gi.SetConfigString(CS_NAME, g_level.title);
+	gi.SetConfigString(CS_MAXCLIENTS, va("%d", sv_max_clients->integer));
 
 	if (map && *map->sky) { // prefer maps.lst sky
 		gi.SetConfigString(CS_SKY, map->sky);

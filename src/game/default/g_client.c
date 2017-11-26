@@ -1245,6 +1245,23 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 }
 
 /**
+ * @brief Return the number of players in server. Used for CS_NUMCLIENTS.
+ */
+static uint8_t G_NumPlayers(void) {
+	uint8_t slots = 0;
+
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+		g_entity_t *ent = &g_game.entities[i + 1];
+
+		if (ent->client->connected) {
+			slots++;
+		}
+	}
+
+	return slots;
+}
+
+/**
  * @brief Called when a player begins connecting to the server.
  * The game can refuse entrance to a client by returning false.
  * If the client is allowed, the connection process will continue
@@ -1276,6 +1293,8 @@ _Bool G_ClientConnect(g_entity_t *ent, char *user_info) {
 	ent->client->connected = true;
 
 	G_Ai_ClientConnect(ent); // tell AI a client has connected
+
+	gi.SetConfigString(CS_NUMCLIENTS, va("%d", G_NumPlayers()));
 
 	return true;
 }
@@ -1321,6 +1340,7 @@ void G_ClientDisconnect(g_entity_t *ent) {
 
 	const int32_t entity_num = (int32_t) (ptrdiff_t) (ent - g_game.entities - 1);
 	gi.SetConfigString(CS_CLIENTS + entity_num, "");
+	gi.SetConfigString(CS_NUMCLIENTS, va("%d", G_NumPlayers()));
 
 	G_Ai_ClientDisconnect(ent); // tell AI
 }

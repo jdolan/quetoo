@@ -28,9 +28,6 @@
 typedef struct {
 	g_score_t scores[MAX_CLIENTS + MAX_TEAMS];
 	uint16_t num_scores;
-
-	int32_t teams;
-	_Bool ctf;
 } cg_score_state_t;
 
 static cg_score_state_t cg_score_state;
@@ -67,13 +64,10 @@ void Cg_ParseScores(void) {
 
 	if (cgi.ReadByte()) { // last packet in sequence
 
-		cg_score_state.teams = atoi(cgi.ConfigString(CS_TEAMS));
-		cg_score_state.ctf = atoi(cgi.ConfigString(CS_CTF));
-
 		cg_score_state.num_scores = index + count;
 
 		// the aggregate scores are the last set in the array
-		if (cg_score_state.ctf || cg_score_state.teams) {
+		if (cg_state.ctf || cg_state.teams) {
 			cg_score_state.num_scores -= MAX_TEAMS;
 		}
 	}
@@ -102,18 +96,18 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
 	y += ch;
 
 	// team names and scores
-	if (cg_score_state.teams || cg_score_state.ctf) {
+	if (cg_state.teams || cg_state.ctf) {
 		cgi.BindFont("small", &cw, &ch);
 
 		g_score_t *score = &cg_score_state.scores[cg_score_state.num_scores];
 
 		// start from center
 		x = cgi.context->width / 2;
-		x -= SCORES_COL_WIDTH * (cg_score_state.teams / 2.0);
+		x -= SCORES_COL_WIDTH * (cg_state.teams / 2.0);
 		x += SCORES_ICON_WIDTH;
 
-		for (int32_t i = 0; i < cg_score_state.teams; i++, score++) {
-			int16_t score_num = cg_score_state.ctf ? score->captures : score->score;
+		for (int32_t i = 0; i < cg_state.teams; i++, score++) {
+			int16_t score_num = cg_state.ctf ? score->captures : score->score;
 			int32_t color_id;
 
 			// FIXME: pls
@@ -134,7 +128,7 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
 			}
 
 			cgi.DrawString(x, y, va("%s^7 %d %s", cg_team_info[i].team_name, score_num,
-									cg_score_state.ctf ? "caps" : "frags"), color_id);
+									cg_state.ctf ? "caps" : "frags"), color_id);
 
 			x += SCORES_COL_WIDTH;
 		}
@@ -158,7 +152,7 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 	cgi.DrawImage(x, y, is, info->icon);
 
 	// flag carrier icon
-	if (atoi(cgi.ConfigString(CS_CTF)) && (s->flags & SCORE_CTF_FLAG)) {
+	if (cg_state.ctf && (s->flags & SCORE_CTF_FLAG)) {
 		const int32_t team = s->team;
 		const r_image_t *flag = cgi.LoadImage(va("pics/i_flag%d", team), IT_PIC);
 		cgi.DrawImage(x, y, 0.33, flag);
@@ -210,14 +204,14 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 	y += ch;
 
 	// ready/not ready
-	if (atoi(cgi.ConfigString(CS_MATCH))) {
+	if (cg_state.match) {
 		if (s->flags & SCORE_NOT_READY) {
 			cgi.DrawString(x + fw - cgi.StringWidth("not ready "), y, "not ready", CON_COLOR_DEFAULT);
 		}
 	}
 
 	// captures
-	if (!cg_score_state.ctf) {
+	if (!cg_state.ctf) {
 		return true;
 	}
 
@@ -238,11 +232,11 @@ static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 	rows = rows < 3 ? 3 : rows;
 
 	x = cgi.context->width / 2;
-	x -= SCORES_COL_WIDTH * (cg_score_state.teams / 2.0);
+	x -= SCORES_COL_WIDTH * (cg_state.teams / 2.0);
 
 	y = start_y;
 
-	for (int32_t t = 0; t < cg_score_state.teams; t++, x += SCORES_COL_WIDTH, y = start_y) {
+	for (int32_t t = 0; t < cg_state.teams; t++, x += SCORES_COL_WIDTH, y = start_y) {
 		for (i = 0; i < cg_score_state.num_scores; i++) {
 			const g_score_t *s = &cg_score_state.scores[i];
 
@@ -261,7 +255,7 @@ static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 	}
 
 	x = cgi.context->width / 2;
-	x -= SCORES_COL_WIDTH * (cg_score_state.teams / 2.0);
+	x -= SCORES_COL_WIDTH * (cg_state.teams / 2.0);
 	x -= SCORES_COL_WIDTH * 2.0;
 	y = start_y;
 
@@ -334,9 +328,9 @@ void Cg_DrawScores(const player_state_t *ps) {
 
 	const r_pixel_t start_y = Cg_DrawScoresHeader();
 
-	if (cg_score_state.ctf) {
+	if (cg_state.ctf) {
 		Cg_DrawTeamScores(start_y);
-	} else if (cg_score_state.teams) {
+	} else if (cg_state.teams) {
 		Cg_DrawTeamScores(start_y);
 	} else {
 		Cg_DrawDmScores(start_y);

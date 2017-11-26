@@ -24,7 +24,21 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
-vec_t Cg_GetHookPullSpeed(void);
+
+/**
+ * @brief Local state to the cgame per server.
+ */
+typedef struct {
+	vec_t hook_pull_speed;
+	g_gameplay_t gameplay;
+	uint8_t teams;
+	_Bool ctf;
+	_Bool match;
+	uint8_t maxclients;
+	uint8_t numclients;
+} cg_state_t;
+
+extern cg_state_t cg_state;
 
 extern cvar_t *cg_add_emits;
 extern cvar_t *cg_add_entities;
