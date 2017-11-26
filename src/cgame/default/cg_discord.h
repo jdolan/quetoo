@@ -21,6 +21,6 @@
 
 #pragma once
 
-void Cg_DiscordUpdate(void);
+void Cg_UpdateDiscord(void);
 void Cg_InitDiscord(void);
 void Cg_ShutdownDiscord(void);

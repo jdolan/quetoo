@@ -93,7 +93,8 @@ typedef struct {
 #define CS_TIME				(CS_GAME + 6)  // level or match timer
 #define CS_ROUND			(CS_GAME + 7)  // round number
 #define CS_HOOK_PULL_SPEED	(CS_GAME + 8)  // hook speed
-
+#define CS_MAXCLIENTS		(CS_GAME + 9)  // maxclients of server
+#define CS_NUMCLIENTS		(CS_GAME + 10) // number of players in server
 /**
  * @brief Player state statistics (inventory, score, etc).
  */
