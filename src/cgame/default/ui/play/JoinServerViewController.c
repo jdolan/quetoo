@@ -380,10 +380,10 @@ static gint comparator(gconstpointer a, gconstpointer b, gpointer data) {
 
 		switch (this->serversTableView->sortColumn->order) {
 			case OrderAscending:
-				s0 = a, s1 = b;
+				s0 = a; s1 = b;
 				break;
 			case OrderDescending:
-				s0 = b, s1 = a;
+				s0 = b; s1 = a;
 				break;
 			default:
 				return 0;

@@ -49,7 +49,8 @@ static void Cg_UpdateFov(void) {
 		}
 
 		if (time == 0) {
-			prev = cgi.view->fov[0] * 2.0, next = cg_fov->value;
+			prev = cgi.view->fov[0] * 2.0;
+			next = cg_fov->value;
 			time = cgi.client->unclamped_time;
 		}
 
