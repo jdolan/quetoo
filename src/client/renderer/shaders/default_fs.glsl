@@ -87,13 +87,16 @@ in VertexData {
 
 out vec4 fragColor;
 
+// Lighting accumulators for diffuse and specular contributions.
+vec3 diffLight = vec3(0.0);
+vec3 specLight = vec3(0.0);
+
 /**
  * @brief Iterate the hardware light sources,
  * accumulating dynamic lighting for this fragment.
  */
 void DynamicLighting(vec3 viewDir, vec3 normal,
-	float specularIntensity, float specularPower,
-	in out vec3 lightDiffuse, in out vec3 lightSpecular) {
+	float specularIntensity, float specularPower) {
 
 	const float fillLight = 0.2;
 	for (int i = 0; i < MAX_LIGHTS; i++) {
@@ -114,14 +117,14 @@ void DynamicLighting(vec3 viewDir, vec3 normal,
 		distance = 1.0 - distance / LIGHTS.RADIUS[i];
 
 		if (LIGHTMAP) {
-			lightDiffuse += Lambert(lightDir, normal, LIGHTS.COLOR[i])
+			diffLight += Lambert(lightDir, normal, LIGHTS.COLOR[i])
 				* distance * distance;
 		} else {
-			lightDiffuse += LambertFill(lightDir, normal, fillLight,
+			diffLight += LambertFill(lightDir, normal, fillLight,
 				LIGHTS.COLOR[i]) * distance * distance;
 		}
-		
-		lightSpecular += Phong(viewDir, lightDir, normal, LIGHTS.COLOR[i],
+
+		specLight += Phong(viewDir, lightDir, normal, LIGHTS.COLOR[i],
 			specularIntensity, specularPower) * distance;
 	}
 }
@@ -143,10 +146,6 @@ void main(void) {
 	vec2 uv_materials = uv_textures;
 	// Get distance from view.
 	float viewDistance = length(vtx_point);
-
-	// Lighting accumulators for diffuse and specular contributions.
-	vec3 diffLight = vec3(0.0);
-	vec3 specLight = vec3(0.0);
 
 	// Get flat colors.
 	vec4 diffAlbedo = vec4(1.0);
@@ -228,7 +227,7 @@ void main(void) {
 	}
 
 	#if MAX_LIGHTS
-	DynamicLighting(eyeDir, normal, HARDNESS, SPECULAR, diffLight, specLight);
+	DynamicLighting(eyeDir, normal, HARDNESS, SPECULAR);
 	#endif
 
 	vec3 diffuseTerm  = diffAlbedo.rgb * (diffLight * LIGHT_SCALE);
