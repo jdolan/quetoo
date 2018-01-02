@@ -97,7 +97,7 @@ static Box *box(const QuetooTheme *self, const char *label) {
  */
 static void button(const QuetooTheme *self, const char *title, ActionFunction function, ident sender, ident data) {
 
-	Control *button = (Control *) $(alloc(Button), initWithTitle, title, ControlStyleDefault);
+	Control *button = (Control *) $(alloc(Button), initWithTitle, title);
 	assert(button);
 
 	$(button, addActionForEventType, SDL_MOUSEBUTTONUP, function, sender, data);
@@ -234,7 +234,7 @@ static QuetooTheme *initWithTarget(QuetooTheme *self, ident target) {
  */
 static Panel *panel(const QuetooTheme *self) {
 
-	Panel *panel = $(alloc(Panel), initWithFrame, NULL, ControlStyleDefault);
+	Panel *panel = $(alloc(Panel), initWithFrame, NULL);
 	assert(panel);
 
 	panel->isDraggable = false;

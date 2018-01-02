@@ -90,20 +90,21 @@ struct PlayerModelViewInterface {
 
 	/**
 	 * @fn void PlayerModelView::animate(PlayerModelView *self)
+	 * @param self The PlayerModelView.
 	 * @brief Animates the model.
 	 * @memberof PlayerModelView
 	 */
 	void (*animate)(PlayerModelView *self);
 
 	/**
-	 * @fn PlayerModelView *PlayerModelView::initWithFrame(PlayerModelView *self)
-	 * @brief Initializes this PlayerModelView.
+	 * @fn PlayerModelView *PlayerModelView::initWithFrame(PlayerModelView *self, const SDL_Rect *frame)
+	 * @brief Initializes this PlayerModelView with the given frame.
+	 * @param self The PlayerModelView.
 	 * @param frame The frame.
-	 * @param style The ControlStyle to use.
 	 * @return The initialized PlayerModelView, or `NULL` on error.
 	 * @memberof PlayerModelView
 	 */
-	PlayerModelView *(*initWithFrame)(PlayerModelView *self, const SDL_Rect *frame, ControlStyle style);
+	PlayerModelView *(*initWithFrame)(PlayerModelView *self, const SDL_Rect *frame);
 };
 
 /**

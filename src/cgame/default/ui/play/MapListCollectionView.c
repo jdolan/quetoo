@@ -263,12 +263,12 @@ static void layoutIfNeeded(View *self) {
 #pragma mark - MapListCollectionView
 
 /**
- * @fn MapListCollectionView *initWithFrame(MapListCollectionView *self, const SDL_Rect *frame, ControlStyle style)
+ * @fn MapListCollectionView *initWithFrame(MapListCollectionView *self, const SDL_Rect *frame)
  * @memberof MapListCollectionView
  */
-static MapListCollectionView *initWithFrame(MapListCollectionView *self, const SDL_Rect *frame, ControlStyle style) {
+static MapListCollectionView *initWithFrame(MapListCollectionView *self, const SDL_Rect *frame) {
 
-	self = (MapListCollectionView *) super(CollectionView, self, initWithFrame, frame, style);
+	self = (MapListCollectionView *) super(CollectionView, self, initWithFrame, frame);
 	if (self) {
 		self->lock = $(alloc(Lock), init);
 		assert(self->lock);

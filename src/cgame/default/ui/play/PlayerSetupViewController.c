@@ -25,7 +25,7 @@
 
 #include "CvarSelect.h"
 #include "QuetooTheme.h"
-
+ 
 #define _Class _PlayerSetupViewController
 
 #pragma mark - Actions & delegates
@@ -68,8 +68,9 @@ static void enumerateSkins(const char *path, void *data) {
 			ident value = (ident) options->count;
 			$(select, addOption, name, value);
 
-			if (g_strcmp0(cg_skin->string, name) == 0) {
-				select->selectedOption = $(select, optionWithValue, value);
+			if (g_strcmp0(cg_skin->string, name) == 0 && $(select, selectedOption) == NULL) {
+				Option *option = $(select, optionWithValue, value);
+				$(option, setSelected, true);
 			}
 		}
 	}
@@ -199,7 +200,7 @@ static void loadView(ViewController *self) {
 
 		$(theme, textView, "Name", "name");
 
-		this->skinSelect = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
+		this->skinSelect = $(alloc(Select), initWithFrame, NULL);
 
 		this->skinSelect->comparator = sortSkins;
 		this->skinSelect->delegate.self = this;
@@ -222,7 +223,7 @@ static void loadView(ViewController *self) {
 		$(theme, attach, box);
 		$(theme, target, box->contentView);
 
-		this->effectsColorPicker = $(alloc(HueColorPicker), initWithFrame, NULL, ControlStyleDefault);
+		this->effectsColorPicker = $(alloc(HueColorPicker), initWithFrame, NULL);
 		assert(this->effectsColorPicker);
 
 		this->effectsColorPicker->delegate.self = this;
@@ -232,7 +233,7 @@ static void loadView(ViewController *self) {
 
 		$(theme, control, "Effects", this->effectsColorPicker);
 
-		this->helmetColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL, ControlStyleDefault);
+		this->helmetColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL);
 		assert(this->helmetColorPicker);
 		
 		this->helmetColorPicker->delegate.self = self;
@@ -243,7 +244,7 @@ static void loadView(ViewController *self) {
 
 		$(theme, control, "Helmet", this->helmetColorPicker);
 
-		this->shirtColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL, ControlStyleDefault);
+		this->shirtColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL);
 		assert(this->shirtColorPicker);
 		
 		this->shirtColorPicker->delegate.self = self;
@@ -254,7 +255,7 @@ static void loadView(ViewController *self) {
 
 		$(theme, control, "Shirt", this->shirtColorPicker);
 
-		this->pantsColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL, ControlStyleDefault);
+		this->pantsColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL);
 		assert(this->pantsColorPicker);
 		
 		this->pantsColorPicker->delegate.self = self;
@@ -270,7 +271,7 @@ static void loadView(ViewController *self) {
 
 	$(theme, targetSubview, columns, 1);
 
-	this->playerModelView = $(alloc(PlayerModelView), initWithFrame, &MakeRect(0, 0, 800, 680), ControlStyleDefault);
+	this->playerModelView = $(alloc(PlayerModelView), initWithFrame, &MakeRect(0, 0, 800, 680));
 	assert(this->playerModelView);
 
 	$(theme, attach, this->playerModelView);

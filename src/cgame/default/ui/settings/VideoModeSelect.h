@@ -67,14 +67,13 @@ struct VideoModeSelectInterface {
 	SelectInterface selectInterface;
 
 	/**
-	 * @fn VideoModeSelect *VideoModeSelect::initWithFrame(VideoModeSelect *self, const SDL_Rect *frame, ControlStyle style)
+	 * @fn VideoModeSelect *VideoModeSelect::initWithFrame(VideoModeSelect *self, const SDL_Rect *frame)
 	 * @brief Initializes this VideoModeSelect with the specified frame and style.
 	 * @param frame The frame.
-	 * @param style The ControlStyle.
 	 * @return The initialized VideoModeSelect, or `NULL` on error.
 	 * @memberof VideoModeSelect
 	 */
-	VideoModeSelect *(*initWithFrame)(VideoModeSelect *self, const SDL_Rect *frame, ControlStyle style);
+	VideoModeSelect *(*initWithFrame)(VideoModeSelect *self, const SDL_Rect *frame);
 };
 
 /**

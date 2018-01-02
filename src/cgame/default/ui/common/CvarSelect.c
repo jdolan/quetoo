@@ -90,7 +90,7 @@ static void selectOptionWithValue(Select *self, ident value) {
  */
 static CvarSelect *initWithVariable(CvarSelect *self, cvar_t *var) {
 
-	self = (CvarSelect *) super(Select, self, initWithFrame, NULL, ControlStyleDefault);
+	self = (CvarSelect *) super(Select, self, initWithFrame, NULL);
 	if (self) {
 
 		self->var = var;

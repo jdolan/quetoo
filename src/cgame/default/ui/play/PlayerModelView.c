@@ -383,13 +383,13 @@ static void animate(PlayerModelView *self) {
 }
 
 /**
- * @fn PlayerModelView *PlayerModelView::init(PlayerModelView *self)
+ * @fn PlayerModelView *PlayerModelView::initWithFrame(PlayerModelView *self, const SDL_Rect *frame)
  *
  * @memberof PlayerModelView
  */
-static PlayerModelView *initWithFrame(PlayerModelView *self, const SDL_Rect *frame, ControlStyle style) {
+static PlayerModelView *initWithFrame(PlayerModelView *self, const SDL_Rect *frame) {
 
-	self = (PlayerModelView *) super(Control, self, initWithFrame, frame, style);
+	self = (PlayerModelView *) super(Control, self, initWithFrame, frame);
 	if (self) {
 		self->yaw = 150.0;
 		self->zoom = 0.4;

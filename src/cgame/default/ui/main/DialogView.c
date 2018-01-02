@@ -46,7 +46,7 @@ static void dealloc(Object *self) {
  */
 static DialogView *init(DialogView *self) {
 
-	self = (DialogView *) super(Panel, self, initWithFrame, NULL, ControlStyleDefault);
+	self = (DialogView *) super(Panel, self, initWithFrame, NULL);
 	if (self) {
 
 		View *this = (View *) self;
@@ -75,7 +75,7 @@ static DialogView *init(DialogView *self) {
 		self->panel.accessoryView->view.alignment = ViewAlignmentBottomCenter;
 		self->panel.accessoryView->view.hidden = false;
 		
-		self->cancelButton = $(alloc(Button), initWithFrame, NULL, ControlStyleDefault);
+		self->cancelButton = $(alloc(Button), initWithFrame, NULL);
 		assert(self->cancelButton);
 
 		$(self->cancelButton->title, setText, "Cancel");
@@ -84,7 +84,7 @@ static DialogView *init(DialogView *self) {
 
 		$((View *) self->panel.accessoryView, addSubview, (View *) self->cancelButton);
 
-		self->okButton = $(alloc(Button), initWithFrame, NULL, ControlStyleDefault);
+		self->okButton = $(alloc(Button), initWithFrame, NULL);
 		assert(self->okButton);
 
 		$(self->okButton->title, setText, "Ok");

@@ -128,7 +128,7 @@ static _Bool captureEvent(Control *self, const SDL_Event *event) {
  */
 static BindTextView *initWithBind(BindTextView *self, const char *bind) {
 
-	self = (BindTextView *) super(TextView, self, initWithFrame, NULL, ControlStyleDefault);
+	self = (BindTextView *) super(TextView, self, initWithFrame, NULL);
 	if (self) {
 
 		self->bind = strdup(bind);

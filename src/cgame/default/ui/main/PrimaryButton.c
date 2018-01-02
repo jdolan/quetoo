@@ -37,7 +37,7 @@ static PrimaryButton *initWithTitle(PrimaryButton *self, const char *title) {
 
 	const SDL_Rect frame = MakeRect(0, 0, DEFAULT_PRIMARY_BUTTON_WIDTH, DEFAULT_PRIMARY_BUTTON_HEIGHT);
 
-	self = (PrimaryButton *) super(Button, self, initWithFrame, &frame, ControlStyleCustom);
+	self = (PrimaryButton *) super(Button, self, initWithFrame, &frame);
 	if (self) {
 
 		$(self->button.title, setFont, $$(Font, defaultFont, FontCategoryPrimaryResponder));

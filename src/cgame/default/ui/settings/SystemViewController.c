@@ -102,7 +102,7 @@ static void loadView(ViewController *self) {
 		$(theme, attach, box);
 		$(theme, target, box->contentView);
 
-		this->videoModeSelect = $(alloc(VideoModeSelect), initWithFrame, NULL, ControlStyleDefault);
+		this->videoModeSelect = $(alloc(VideoModeSelect), initWithFrame, NULL);
 		assert(this->videoModeSelect);
 
 		this->videoModeSelect->select.delegate.self = this;

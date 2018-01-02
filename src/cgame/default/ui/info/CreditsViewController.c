@@ -122,7 +122,7 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 
 		box->view.autoresizingMask = ViewAutoresizingFill;
 
-		this->tableView = $(alloc(TableView), initWithFrame, NULL, ControlStyleDefault);
+		this->tableView = $(alloc(TableView), initWithFrame, NULL);
 
 		this->tableView->control.selection = ControlSelectionNone;
 

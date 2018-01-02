@@ -66,7 +66,7 @@ static void action(Control *control, const SDL_Event *event, ident sender, ident
  */
 static CvarCheckbox *initWithVariable(CvarCheckbox *self, cvar_t *var) {
 
-	self = (CvarCheckbox *) super(Checkbox, self, initWithFrame, NULL, ControlStyleDefault);
+	self = (CvarCheckbox *) super(Checkbox, self, initWithFrame, NULL);
 	if (self) {
 
 		self->var = var;

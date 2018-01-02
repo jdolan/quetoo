@@ -287,7 +287,7 @@ static void loadView(ViewController *self) {
 
 	{
 		const SDL_Rect frame = { .w = 1200, .h = 600 };
-		this->serversTableView = $(alloc(TableView), initWithFrame, &frame, ControlStyleDefault);
+		this->serversTableView = $(alloc(TableView), initWithFrame, &frame);
 
 		TableColumn *hostname = $(alloc(TableColumn), initWithIdentifier, _hostname);
 		hostname->width = 360;

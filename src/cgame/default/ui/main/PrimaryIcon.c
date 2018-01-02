@@ -50,7 +50,7 @@ static PrimaryIcon *initWithIcon(PrimaryIcon *self, const char *icon) {
 
 	const SDL_Rect frame = MakeRect(0, 0, DEFAULT_PRIMARY_ICON_WIDTH, DEFAULT_PRIMARY_ICON_HEIGHT);
 
-	self = (PrimaryIcon *) super(Button, self, initWithFrame, &frame, ControlStyleCustom);
+	self = (PrimaryIcon *) super(Button, self, initWithFrame, &frame);
 	if (self) {
 
 		View *this = (View *) self;
