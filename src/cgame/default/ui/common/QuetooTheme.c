@@ -148,7 +148,7 @@ static StackView *container(const QuetooTheme *self) {
 	StackView *container = $(alloc(StackView), initWithFrame, NULL);
 	assert(container);
 
-	container->spacing = DEFAULT_PANEL_SPACING << 1;
+	container->spacing = 24;
 	return container;
 }
 

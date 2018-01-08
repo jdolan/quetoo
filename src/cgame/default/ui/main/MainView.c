@@ -136,14 +136,14 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 			self->topBar->view.autoresizingMask |= ViewAutoresizingWidth;
 			self->topBar->view.backgroundColor = theme->colors.mainHighlight;
 			self->topBar->view.borderColor = theme->colors.lightBorder;
-			self->topBar->view.padding.right = DEFAULT_PANEL_SPACING;
-			self->topBar->view.padding.left = DEFAULT_PANEL_SPACING;
+			self->topBar->view.padding.right = 12;
+			self->topBar->view.padding.left = 12;
 
 			self->primaryButtons = $(alloc(StackView), initWithFrame, NULL);
 			assert(self->primaryButtons);
 
 			self->primaryButtons->axis = StackViewAxisHorizontal;
-			self->primaryButtons->spacing = DEFAULT_PANEL_SPACING;
+			self->primaryButtons->spacing = 12;
 			self->primaryButtons->view.alignment = ViewAlignmentMiddleLeft;
 
 			$((View *) self->topBar, addSubview, (View *) self->primaryButtons);
@@ -152,7 +152,7 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 			assert(self->primaryIcons);
 
 			self->primaryIcons->axis = StackViewAxisHorizontal;
-			self->primaryIcons->spacing = DEFAULT_PANEL_SPACING;
+			self->primaryIcons->spacing = 12;
 			self->primaryIcons->view.alignment = ViewAlignmentMiddleRight;
 
 			$((View *) self->topBar, addSubview, (View *) self->primaryIcons);
@@ -165,13 +165,13 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 			assert(self->bottomBar);
 
 			self->bottomBar->axis = StackViewAxisHorizontal;
-			self->bottomBar->spacing = DEFAULT_PANEL_SPACING;
+			self->bottomBar->spacing = 12;
 			self->bottomBar->view.alignment = ViewAlignmentBottomCenter;
 			self->bottomBar->view.autoresizingMask |= ViewAutoresizingWidth;
 			self->bottomBar->view.backgroundColor = theme->colors.mainHighlight;
 			self->bottomBar->view.borderColor = theme->colors.lightBorder;
-			self->bottomBar->view.padding.right = DEFAULT_PANEL_SPACING;
-			self->bottomBar->view.padding.left = DEFAULT_PANEL_SPACING;
+			self->bottomBar->view.padding.right = 12;
+			self->bottomBar->view.padding.left = 12;
 
 			$(this, addSubview, (View *) self->bottomBar);
 		}

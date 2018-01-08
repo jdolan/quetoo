@@ -146,11 +146,11 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 		StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
 		columns->axis = StackViewAxisHorizontal;
-		columns->spacing = DEFAULT_PANEL_SPACING;
+		columns->spacing = 12;
 
 		{
 			StackView *column = $(alloc(StackView), initWithFrame, NULL);
-			column->spacing = DEFAULT_PANEL_SPACING;
+			column->spacing = 12;
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
