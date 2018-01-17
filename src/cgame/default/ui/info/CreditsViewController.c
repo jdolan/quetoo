@@ -134,35 +134,9 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 
 		this->tableView->delegate.cellForColumnAndRow = cellForColumnAndRow;
 
-		{
-			TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _name);
-			assert(column);
-
-			column->width = 30;
-
-			$(this->tableView, addColumn, column);
-			release(column);
-		}
-
-		{
-			TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _role);
-			assert(column);
-
-			column->width = 40;
-
-			$(this->tableView, addColumn, column);
-			release(column);
-		}
-
-		{
-			TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _link);
-			assert(column);
-
-			column->width = 30;
-
-			$(this->tableView, addColumn, column);
-			release(column);
-		}
+		$(this->tableView, addColumnWithIdentifier, _name);
+		$(this->tableView, addColumnWithIdentifier, _role);
+		$(this->tableView, addColumnWithIdentifier, _link);
 
 		$((View *) box, addSubview, (View *) this->tableView);
 

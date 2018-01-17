@@ -289,35 +289,12 @@ static void loadView(ViewController *self) {
 		const SDL_Rect frame = { .w = 1200, .h = 600 };
 		this->serversTableView = $(alloc(TableView), initWithFrame, &frame);
 
-		TableColumn *hostname = $(alloc(TableColumn), initWithIdentifier, _hostname);
-		hostname->width = 360;
-		$(this->serversTableView, addColumn, hostname);
-		release(hostname);
-
-		TableColumn *source = $(alloc(TableColumn), initWithIdentifier, _source);
-		source->width = 100;
-		$(this->serversTableView, addColumn, source);
-		release(source);
-
-		TableColumn *name = $(alloc(TableColumn), initWithIdentifier, _name);
-		name->width = 120;
-		$(this->serversTableView, addColumn, name);
-		release(name);
-
-		TableColumn *gameplay = $(alloc(TableColumn), initWithIdentifier, _gameplay);
-		gameplay->width = 100;
-		$(this->serversTableView, addColumn, gameplay);
-		release(gameplay);
-
-		TableColumn *players = $(alloc(TableColumn), initWithIdentifier, _players);
-		players->width = 80;
-		$(this->serversTableView, addColumn, players);
-		release(players);
-
-		TableColumn *ping = $(alloc(TableColumn), initWithIdentifier, _ping);
-		ping->width = 80;
-		$(this->serversTableView, addColumn, ping);
-		release(ping);
+		$(this->serversTableView, addColumnWithIdentifier, _hostname);
+		$(this->serversTableView, addColumnWithIdentifier, _source);
+		$(this->serversTableView, addColumnWithIdentifier, _name);
+		$(this->serversTableView, addColumnWithIdentifier, _gameplay);
+		$(this->serversTableView, addColumnWithIdentifier, _players);
+		$(this->serversTableView, addColumnWithIdentifier, _ping);
 
 		this->serversTableView->control.selection = ControlSelectionSingle;
 
