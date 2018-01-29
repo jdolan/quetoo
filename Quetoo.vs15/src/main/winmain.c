@@ -4,6 +4,8 @@
 #include "config.h"
 #include "shared.h"
 
+#include <Windows.h>
+
 #if defined(_MSC_VER)
 #include <DbgHelp.h>
 

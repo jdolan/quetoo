@@ -23,6 +23,7 @@
 
 #include <assert.h>
 
+#include "src/client/renderer/r_gl.h"
 #include "QuetooRenderer.h"
 
 #include "ui_local.h"

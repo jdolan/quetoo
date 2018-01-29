@@ -19,6 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#if defined(_WIN32)
+ #include <WinSock2.h> // for htons
+#endif
+
 #include "sv_local.h"
 
 #define HEARTBEAT_SECONDS 300

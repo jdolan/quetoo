@@ -20,6 +20,7 @@
  */
 
 #include "r_local.h"
+#include "r_gl.h"
 
 static cvar_t *r_atlas;
 
