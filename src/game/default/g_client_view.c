@@ -169,6 +169,7 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 static void G_ClientWorldAngles(g_entity_t *ent) {
 
 	if (ent->locals.dead) { // just lay there like a lump
+		ent->s.angles[PITCH] = 0.0;
 		return;
 	}
 

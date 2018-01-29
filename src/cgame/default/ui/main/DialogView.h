@@ -53,9 +53,9 @@ struct DialogView {
 	DialogViewInterface *interface;
 
 	/**
-	 * @brief The text.
+	 * @brief The message.
 	 */
-	Label *label;
+	Label *message;
 
 	/**
 	 * @brief The Ok button.
@@ -66,11 +66,6 @@ struct DialogView {
 	 * @brief The Cancel button.
 	 */
 	Button *cancelButton;
-
-	/**
-	 * @brief The okButton's click callback.
-	 */
-	void (*okFunction)(void);
 };
 
 /**

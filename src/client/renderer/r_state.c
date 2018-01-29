@@ -181,6 +181,10 @@ void R_EnableDepthMask(_Bool enable) {
  */
 void R_EnableBlend(_Bool enable) {
 
+	if (!r_blend->value && !r_blend->modified) {
+		return;
+	}
+
 	if (r_state.blend_enabled == enable) {
 		return;
 	}

@@ -327,9 +327,9 @@ static void R_LoadMd3Tangents(r_model_mesh_t *mesh, r_md3_mesh_t *md3_mesh) {
 	// calculate the tangents
 
 	for (uint16_t i = 0; i < mesh->num_verts; i++) {
-		static vec3_t bitangent;
 		const vec_t *normal = md3_mesh->verts[i].normal;
 		vec_t *tangent = md3_mesh->verts[i].tangent;
+		vec_t *bitangent = md3_mesh->verts[i].bitangent;
 
 		TangentVectors(normal, tan1[i], tan2[i], tangent, bitangent);
 	}
@@ -341,13 +341,15 @@ static void R_LoadMd3Tangents(r_model_mesh_t *mesh, r_md3_mesh_t *md3_mesh) {
 typedef struct {
 	vec3_t vertex;
 	vec3_t normal;
-	vec4_t tangent;
+	vec3_t tangent;
+	vec3_t bitangent;
 } r_md3_interleave_vertex_t;
 
 static r_buffer_layout_t r_md3_buffer_layout[] = {
 	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 3 },
 	{ .attribute = R_ATTRIB_NORMAL, .type = R_TYPE_FLOAT, .count = 3 },
-	{ .attribute = R_ATTRIB_TANGENT, .type = R_TYPE_FLOAT, .count = 4 },
+	{ .attribute = R_ATTRIB_TANGENT, .type = R_TYPE_FLOAT, .count = 3 },
+	{ .attribute = R_ATTRIB_BITANGENT, .type = R_TYPE_FLOAT, .count = 3 },
 	{ .attribute = -1 }
 };
 
@@ -400,7 +402,8 @@ static void R_LoadMd3VertexArrays(r_model_t *mod, r_md3_t *md3) {
 
 				VectorAdd(frame->translate, vert->point, vertexes[j + vert_offset].vertex);
 				VectorCopy(vert->normal, vertexes[j + vert_offset].normal);
-				Vector4Copy(vert->tangent, vertexes[j + vert_offset].tangent);
+				VectorCopy(vert->tangent, vertexes[j + vert_offset].tangent);
+				VectorCopy(vert->bitangent, vertexes[j + vert_offset].bitangent);
 
 				// only copy st coords once
 				if (f == 0) {
@@ -1067,10 +1070,9 @@ static void R_LoadObjTangents(r_model_t *mod, r_obj_t *obj) {
 	// calculate the tangents
 
 	for (uint32_t i = 0; i < obj->verts->len; i++) {
-		vec3_t bitangent;
 		r_obj_vertex_t *v = &g_array_index(obj->verts, r_obj_vertex_t, i);
 		const vec_t *normal = v->normal;
-		TangentVectors(normal, tan1[i], tan2[i], v->tangent, bitangent);
+		TangentVectors(normal, tan1[i], tan2[i], v->tangent, v->bitangent);
 	}
 
 	Mem_Free(tan1);
@@ -1175,14 +1177,16 @@ static void R_LoadObjShellVertexArrays(r_model_t *mod, r_obj_t *obj, GLuint *ele
 typedef struct {
 	vec3_t vertex;
 	vec3_t normal;
-	vec4_t tangent;
+	vec3_t tangent;
+	vec3_t bitangent;
 	u16vec2_t diffuse;
 } r_obj_interleave_vertex_t;
 
 static r_buffer_layout_t r_obj_buffer_layout[] = {
 	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 3 },
 	{ .attribute = R_ATTRIB_NORMAL, .type = R_TYPE_FLOAT, .count = 3 },
-	{ .attribute = R_ATTRIB_TANGENT, .type = R_TYPE_FLOAT, .count = 4 },
+	{ .attribute = R_ATTRIB_TANGENT, .type = R_TYPE_FLOAT, .count = 3 },
+	{ .attribute = R_ATTRIB_BITANGENT, .type = R_TYPE_FLOAT, .count = 3 },
 	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_UNSIGNED_SHORT, .count = 2, .normalized = true },
 	{ .attribute = -1 }
 };
@@ -1214,7 +1218,9 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 
 		VectorCopy(ve->normal, vout->normal);
 
-		Vector4Copy(ve->tangent, vout->tangent);
+		VectorCopy(ve->tangent, vout->tangent);
+
+		VectorCopy(ve->bitangent, vout->bitangent);
 
 		vout++;
 	}

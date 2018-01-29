@@ -4,7 +4,7 @@ noinst_HEADERS = \
 	common/CvarSelect.h \
 	common/CvarSlider.h \
 	common/CvarTextView.h \
-	common/Theme.h \
+	common/QuetooTheme.h \
 	\
 	controls/ControlsViewController.h \
 	controls/CrosshairView.h \
@@ -17,6 +17,7 @@ noinst_HEADERS = \
 	info/InfoViewController.h \
 	\
 	main/DialogView.h \
+	main/DialogViewController.h \
 	main/HomeViewController.h \
 	main/LoadingViewController.h \
 	main/MainView.h \
@@ -46,7 +47,7 @@ libui_la_SOURCES = \
 	common/CvarSelect.c \
 	common/CvarSlider.c \
 	common/CvarTextView.c \
-	common/Theme.c \
+	common/QuetooTheme.c \
 	\
 	controls/ControlsViewController.c \
 	controls/CrosshairView.c \
@@ -59,6 +60,7 @@ libui_la_SOURCES = \
 	info/InfoViewController.c \
 	\
 	main/DialogView.c \
+	main/DialogViewController.c \
 	main/HomeViewController.c \
 	main/LoadingViewController.c \
 	main/MainView.c \

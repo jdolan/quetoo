@@ -24,7 +24,7 @@
 #include "PlayerSetupViewController.h"
 
 #include "CvarSelect.h"
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 #define _Class _PlayerSetupViewController
 
@@ -178,7 +178,7 @@ static void loadView(ViewController *self) {
 
 	PlayerSetupViewController *this = (PlayerSetupViewController *) self;
 
-	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
 	assert(theme);
 
 	StackView *container = $(theme, container);

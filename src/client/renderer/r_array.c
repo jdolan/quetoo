@@ -540,9 +540,11 @@ r_attribute_mask_t R_ArraysMask(void) {
 	if (r_state.lighting_enabled) {
 		if (r_bumpmap->value) {
 			mask |= R_ATTRIB_MASK_TANGENT;
+			mask |= R_ATTRIB_MASK_BITANGENT;
 
 			if (do_interpolation) {
 				mask |= R_ATTRIB_MASK_NEXT_TANGENT;
+				mask |= R_ATTRIB_MASK_NEXT_BITANGENT;
 			}
 		}
 	}
@@ -652,6 +654,9 @@ static void R_SetArrayStateMesh(const r_model_t *mod, r_attribute_mask_t mask, r
 			if (mask & R_ATTRIB_MASK_NEXT_TANGENT) {
 				R_BindAttributeBufferOffset(R_ATTRIB_NEXT_TANGENT, &mod->mesh->vertex_buffer, offset);
 			}
+			if (mask & R_ATTRIB_MASK_NEXT_BITANGENT) {
+				R_BindAttributeBufferOffset(R_ATTRIB_NEXT_BITANGENT, &mod->mesh->vertex_buffer, offset);
+			}
 		}
 
 		// diffuse texcoords
@@ -740,6 +745,14 @@ void R_ResetArrayState(void) {
 
 				if (mask & R_ATTRIB_MASK_NEXT_TANGENT) {
 					R_UnbindAttributeBuffer(R_ATTRIB_NEXT_TANGENT);
+				}
+			}
+
+			if (mask & R_ATTRIB_MASK_BITANGENT) {
+				R_UnbindAttributeBuffer(R_ATTRIB_BITANGENT);
+
+				if (mask & R_ATTRIB_MASK_NEXT_BITANGENT) {
+					R_UnbindAttributeBuffer(R_ATTRIB_NEXT_BITANGENT);
 				}
 			}
 		}

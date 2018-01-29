@@ -32,7 +32,8 @@ typedef struct {
 	vec3_t		vertex;
 	u8vec4_t	color;
 	vec3_t		normal;
-	vec4_t		tangent;
+	vec3_t		tangent;
+	vec3_t		bitangent;
 	vec2_t		diffuse;
 	u16vec2_t	lightmap;
 } r_material_interleave_vertex_t;
@@ -57,7 +58,12 @@ static r_buffer_layout_t r_material_buffer_layout[] = {
 	{
 		.attribute = R_ATTRIB_TANGENT,
 		.type = R_TYPE_FLOAT,
-		.count = 4
+		.count = 3
+	},
+	{
+		.attribute = R_ATTRIB_BITANGENT,
+		.type = R_TYPE_FLOAT,
+		.count = 3
 	},
 	{
 		.attribute = R_ATTRIB_DIFFUSE,
@@ -446,7 +452,10 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
 			VectorCopy(n, vertex->normal);
 
 			const vec_t *t = &r_model_state.world->bsp->tangents[surf->elements[i]][0];
-			Vector4Copy(t, vertex->tangent);
+			VectorCopy(t, vertex->tangent);
+
+			const vec_t *b = &r_model_state.world->bsp->bitangents[surf->elements[i]][0];
+			VectorCopy(b, vertex->bitangent);
 		}
 	}
 
@@ -1061,7 +1070,7 @@ static ssize_t R_SaveBspMaterials(const r_model_t *mod) {
 
 	GList *materials = NULL;
 	for (size_t i = 0; i < mod->num_materials; i++) {
-		materials = g_list_prepend(materials, mod->materials[i]);
+		materials = g_list_prepend(materials, mod->materials[i]->cm);
 	}
 
 	const ssize_t count = Cm_WriteMaterials(path, materials);

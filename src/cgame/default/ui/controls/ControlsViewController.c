@@ -28,7 +28,7 @@
 #include "MoveViewController.h"
 #include "ShootViewController.h"
 
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 #define _Class _ControlsViewController
 
@@ -54,7 +54,7 @@ static void loadView(ViewController *self) {
 
 	ControlsViewController *this = (ControlsViewController *) self;
 
-	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
 	assert(theme);
 
 	Panel *panel = $(theme, panel);

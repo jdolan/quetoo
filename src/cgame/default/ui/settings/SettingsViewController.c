@@ -28,7 +28,7 @@
 #include "OptionsViewController.h"
 #include "SystemViewController.h"
 
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 #define _Class _SettingsViewController
 
@@ -54,7 +54,7 @@ static void loadView(ViewController *self) {
 
 	SettingsViewController *this = (SettingsViewController *) self;
 
-	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
 	assert(theme);
 
 	Panel *panel = $(theme, panel);

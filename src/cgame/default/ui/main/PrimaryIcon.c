@@ -22,7 +22,7 @@
 #include "cg_local.h"
 
 #include "PrimaryIcon.h"
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 #define _Class _PrimaryIcon
 
@@ -55,7 +55,7 @@ static PrimaryIcon *initWithIcon(PrimaryIcon *self, const char *icon) {
 
 		View *this = (View *) self;
 
-		Theme *theme = $(alloc(Theme), initWithTarget, this);
+		QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, this);
 		assert(theme);
 
 		self->imageView = $(theme, image, icon, NULL);

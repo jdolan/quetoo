@@ -25,7 +25,7 @@
 
 #include "CreateServerViewController.h"
 #include "MapListCollectionItemView.h"
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 #define _Class _CreateServerViewController
 
@@ -147,7 +147,7 @@ static void loadView(ViewController *self) {
 	self->view->autoresizingMask = ViewAutoresizingContain;
 	self->view->identifier = strdup("Create");
 
-	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
 	assert(theme);
 
 	CreateServerViewController *this = (CreateServerViewController *) self;

@@ -278,6 +278,13 @@ static void ProcessSubModel(void) {
 static void ProcessModels(void) {
 	BeginBSPFile();
 
+	const int32_t subdivide = atoi(ValueForKey(&entities[0], "subdivide"));
+
+	if (subdivide >= 256 && subdivide <= 2048) {
+		Com_Verbose("Using subdivide %d from worldspawn.\n", subdivide);
+		subdivide_size = subdivide;
+	}
+
 	for (entity_num = 0; entity_num < num_entities; entity_num++) {
 		if (!entities[entity_num].num_brushes) {
 			continue;
@@ -340,8 +347,6 @@ int32_t BSP_Main(void) {
 
 		const int32_t version = LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
 		num_entities = 0;
-
-		CreateBSPFile();
 
 		LoadMapFile(map_name);
 		SetModelNumbers();

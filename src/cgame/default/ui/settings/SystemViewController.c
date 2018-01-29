@@ -24,7 +24,7 @@
 #include "SystemViewController.h"
 
 #include "CvarSelect.h"
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 #define _Class _SystemViewController
 
@@ -84,7 +84,7 @@ static void loadView(ViewController *self) {
 
 	SystemViewController *this = (SystemViewController *) self;
 
-	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
 
 	StackView *container = $(theme, container);
 

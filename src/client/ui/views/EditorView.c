@@ -132,12 +132,14 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 	self = (EditorView *) super(View, self, initWithFrame, frame);
 	if (self) {
 
-		Panel *panel = $(alloc(Panel), initWithFrame, NULL);
+		self->view.autoresizingMask = ViewAutoresizingContain;
+
+		Panel *panel = $(alloc(Panel), initWithFrame, NULL, ControlStyleDefault);
+		assert(panel);
 
 		((View *) self)->alignment = ViewAlignmentMiddleCenter;
 
-		panel->stackView.view.alignment = ViewAlignmentMiddleCenter;
-		panel->stackView.view.needsLayout = true;
+		panel->control.view.alignment = ViewAlignmentMiddleCenter;
 
 		panel->accessoryView->view.hidden = false;
 

@@ -22,7 +22,7 @@
 #include "cg_local.h"
 
 #include "PrimaryButton.h"
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 #define _Class _PrimaryButton
 
@@ -47,7 +47,7 @@ static PrimaryButton *initWithTitle(PrimaryButton *self, const char *title) {
 
 		this->autoresizingMask = ViewAutoresizingNone;
 
-		Theme *theme = $(alloc(Theme), init);
+		QuetooTheme *theme = $(alloc(QuetooTheme), init);
 		assert(theme);
 
 		this->backgroundColor = theme->colors.dark;

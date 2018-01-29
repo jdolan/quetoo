@@ -22,7 +22,8 @@
 #include "cg_local.h"
 
 #include "MainView.h"
-#include "Theme.h"
+#include "PrimaryButton.h"
+#include "QuetooTheme.h"
 
 #define _Class _MainView
 
@@ -42,7 +43,6 @@ static void dealloc(Object *self) {
 	release(this->bottomBar);
 	release(this->logo);
 	release(this->version);
-	release(this->dialog);
 
 	super(Object, self, dealloc);
 }
@@ -80,7 +80,7 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 		View *this = (View *) self;
 		this->autoresizingMask = ViewAutoresizingFill;
 
-		Theme *theme = $(alloc(Theme), initWithTarget, self);
+		QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self);
 		assert(theme);
 
 		{
@@ -98,6 +98,9 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 
 			self->logo->view.alignment = ViewAlignmentBottomRight;
 
+			$((View *) self->logo, addConstraintWithDescriptor, "w <= superview.w * 0.2");
+			$((View *) self->logo, addConstraintWithDescriptor, "h = w * 0.45");
+
 			$(this, addSubview, (View *) self->logo);
 		}
 
@@ -112,6 +115,18 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 		}
 
 		{
+			self->contentView = $(alloc(View), initWithFrame, NULL);
+			assert(self->contentView);
+
+			self->contentView->autoresizingMask = ViewAutoresizingFill;
+			self->contentView->clipsSubviews = true;
+			self->contentView->padding.top = DEFAULT_PRIMARY_BUTTON_HEIGHT;
+			self->contentView->padding.bottom = DEFAULT_PRIMARY_BUTTON_HEIGHT;
+
+			$(this, addSubview, (View *) self->contentView);
+		}
+
+		{
 			self->topBar = $(alloc(StackView), initWithFrame, NULL);
 			assert(self->topBar);
 
@@ -123,7 +138,6 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 			self->topBar->view.borderColor = theme->colors.lightBorder;
 			self->topBar->view.padding.right = DEFAULT_PANEL_SPACING;
 			self->topBar->view.padding.left = DEFAULT_PANEL_SPACING;
-			self->topBar->view.zIndex = 10;
 
 			self->primaryButtons = $(alloc(StackView), initWithFrame, NULL);
 			assert(self->primaryButtons);
@@ -147,18 +161,6 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 		}
 
 		{
-			self->contentView = $(alloc(View), initWithFrame, NULL);
-			assert(self->contentView);
-
-			self->contentView->alignment = ViewAlignmentMiddleCenter;
-			self->contentView->autoresizingMask = ViewAutoresizingFill;
-			self->contentView->padding.top = 80;
-			self->contentView->padding.bottom = 80;
-
-			$(this, addSubview, (View *) self->contentView);
-		}
-
-		{
 			self->bottomBar = $(alloc(StackView), initWithFrame, NULL);
 			assert(self->bottomBar);
 
@@ -170,16 +172,8 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 			self->bottomBar->view.borderColor = theme->colors.lightBorder;
 			self->bottomBar->view.padding.right = DEFAULT_PANEL_SPACING;
 			self->bottomBar->view.padding.left = DEFAULT_PANEL_SPACING;
-			self->bottomBar->view.zIndex = 10;
 
 			$(this, addSubview, (View *) self->bottomBar);
-		}
-
-		{
-			self->dialog = $(alloc(DialogView), init);
-			assert(self->dialog);
-
-			$(this, addSubview, (View *) self->dialog);
 		}
 
 		release(theme);

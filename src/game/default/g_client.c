@@ -1162,7 +1162,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	} else {
 		s = GetUserInfo(user_info, "color");
 
-		cl->locals.persistent.color = 0;
+		cl->locals.persistent.color = -1;
 
 		if (strlen(s) && strcmp(s, "default")) { // not default
 			const int32_t hue = atoi(s);
@@ -1455,6 +1455,12 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 			if (g_level.time - 800 > cl->locals.land_time) {
 				g_entity_event_t event = EV_CLIENT_LAND;
 
+				if (G_IsAnimation(ent, ANIM_LEGS_JUMP2)) {
+					G_SetAnimation(ent, ANIM_LEGS_LAND2, true);
+				} else {
+					G_SetAnimation(ent, ANIM_LEGS_LAND1, true);
+				}
+
 				if (old_velocity[2] <= PM_SPEED_FALL) { // player will take damage
 					int16_t damage = ((int16_t) - ((old_velocity[2] - PM_SPEED_FALL) * 0.05));
 
@@ -1473,12 +1479,6 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 					cl->locals.pain_time = g_level.time; // suppress pain sound
 
 					G_Damage(ent, NULL, NULL, vec3_up, NULL, NULL, damage, 0, DMG_NO_ARMOR, MOD_FALLING);
-				}
-
-				if (G_IsAnimation(ent, ANIM_LEGS_JUMP2)) {
-					G_SetAnimation(ent, ANIM_LEGS_LAND2, true);
-				} else {
-					G_SetAnimation(ent, ANIM_LEGS_LAND1, true);
 				}
 
 				ent->s.event = event;

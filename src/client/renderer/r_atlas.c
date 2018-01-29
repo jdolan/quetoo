@@ -101,22 +101,22 @@ const r_atlas_image_t *R_GetAtlasImageFromAtlas(const r_atlas_t *atlas, const r_
 /**
  * @brief See if we have enough space for n number of nodes.
  */
-static void R_AtlasPacker_Reserve(r_packer_t *packer, const uint32_t new_nodes) {
+static void R_AtlasPacker_Reserve(r_atlas_packer_t *packer, const uint32_t new_nodes) {
 
 	// make sure we have at least n new entries
 	if (packer->num_alloc_nodes <= packer->num_nodes + new_nodes) {
 
 		packer->num_alloc_nodes = (packer->num_nodes + new_nodes) * 2;
-		packer->nodes = Mem_Realloc(packer->nodes, sizeof(r_packer_node_t) * packer->num_alloc_nodes);
+		packer->nodes = Mem_Realloc(packer->nodes, sizeof(r_atlas_packer_node_t) * packer->num_alloc_nodes);
 	}
 }
 
 /**
- * @brief Initialize an r_packer_t structure. If the packer is already
+ * @brief Initialize an r_atlas_packer_t structure. If the packer is already
  * created, clears the packer back to an initial state.
  */
-void R_AtlasPacker_InitPacker(r_packer_t *packer, const uint32_t max_width, const uint32_t max_height,
-                              const uint32_t root_width, const uint32_t root_height, const uint32_t initial_size) {
+void R_AtlasPacker_InitPacker(r_atlas_packer_t *packer, const uint16_t max_width, const uint16_t max_height,
+                              const uint16_t root_width, const uint16_t root_height, const uint32_t initial_size) {
 
 	packer->max_width = max_width;
 	packer->max_height = max_height;
@@ -130,7 +130,7 @@ void R_AtlasPacker_InitPacker(r_packer_t *packer, const uint32_t max_width, cons
 		packer->num_nodes = 0;
 	}
 
-	packer->nodes[0] = (const r_packer_node_t) {
+	packer->nodes[0] = (const r_atlas_packer_node_t) {
 		.width = root_width,
 		 .height = root_height,
 		  .right = -1,
@@ -144,7 +144,7 @@ void R_AtlasPacker_InitPacker(r_packer_t *packer, const uint32_t max_width, cons
 /**
  * @brief Free data created by R_AtlasPacker_InitPacker
  */
-void R_AtlasPacker_FreePacker(r_packer_t *packer) {
+void R_AtlasPacker_FreePacker(r_atlas_packer_t *packer) {
 
 	Mem_Free(packer->nodes);
 	packer->nodes = NULL;
@@ -153,8 +153,8 @@ void R_AtlasPacker_FreePacker(r_packer_t *packer) {
 /**
  * @brief Finds a free node that is big enough to hold us.
  */
-r_packer_node_t *R_AtlasPacker_FindNode(r_packer_t *packer, const uint32_t root, const uint32_t width,
-                                        const uint32_t height) {
+r_atlas_packer_node_t *R_AtlasPacker_FindNode(r_atlas_packer_t *packer, const uint32_t root, const uint16_t width,
+                                        const uint16_t height) {
 
 	uint32_t node_queue[packer->num_nodes];
 	uint32_t node_index = 1;
@@ -164,7 +164,7 @@ r_packer_node_t *R_AtlasPacker_FindNode(r_packer_t *packer, const uint32_t root,
 	do {
 
 		uint32_t node_id = node_queue[--node_index];
-		r_packer_node_t *node = &packer->nodes[node_id];
+		r_atlas_packer_node_t *node = &packer->nodes[node_id];
 
 		// TODO: this line is still hot. It's better without the boolean,
 		// but it's weird that this line causes the worst.
@@ -186,14 +186,14 @@ r_packer_node_t *R_AtlasPacker_FindNode(r_packer_t *packer, const uint32_t root,
 /**
  * @brief Split a packer node into two, assigning the first to the image.
  */
-r_packer_node_t *R_AtlasPacker_SplitNode(r_packer_t *packer, r_packer_node_t *node, const uint32_t width,
-        const uint32_t height) {
+r_atlas_packer_node_t *R_AtlasPacker_SplitNode(r_atlas_packer_t *packer, r_atlas_packer_node_t *node, const uint16_t width,
+        const uint16_t height) {
 	const uintptr_t index = (uintptr_t) (node - packer->nodes);
 
 	node->down = packer->num_nodes;
 	node->right = packer->num_nodes + 1;
 
-	const r_packer_node_t down_node = (const r_packer_node_t) {
+	const r_atlas_packer_node_t down_node = (const r_atlas_packer_node_t) {
 		.width = node->width,
 		 .height = node->height - height,
 		  .x = node->x,
@@ -202,7 +202,7 @@ r_packer_node_t *R_AtlasPacker_SplitNode(r_packer_t *packer, r_packer_node_t *no
 		     .down = -1
 	};
 
-	const r_packer_node_t right_node = (const r_packer_node_t) {
+	const r_atlas_packer_node_t right_node = (const r_atlas_packer_node_t) {
 		.width = node->width - width,
 		 .height = height,
 		  .x = node->x + width,
@@ -229,24 +229,24 @@ r_packer_node_t *R_AtlasPacker_SplitNode(r_packer_t *packer, r_packer_node_t *no
 /**
  * @brief Grow the packer in the specified direction.
  */
-static r_packer_node_t *R_AtlasPacker_Grow(r_packer_t *packer, const uint32_t width, const uint32_t height,
+static r_atlas_packer_node_t *R_AtlasPacker_Grow(r_atlas_packer_t *packer, const uint16_t width, const uint16_t height,
         const _Bool grow_direction) {
 	const uint32_t new_root_id = packer->num_nodes;
 	const uint32_t new_connect_id = packer->num_nodes + 1;
-	const r_packer_node_t *old_root = &packer->nodes[packer->root];
+	const r_atlas_packer_node_t *old_root = &packer->nodes[packer->root];
 
 	R_AtlasPacker_Reserve(packer, 2);
 
 	if (grow_direction == GROW_RIGHT) {
 
-		packer->nodes[new_root_id] = (const r_packer_node_t) {
+		packer->nodes[new_root_id] = (const r_atlas_packer_node_t) {
 			.width = old_root->width + width,
 			 .height = old_root->height,
 			  .down = packer->root,
 			   .right = new_connect_id
 		};
 
-		packer->nodes[new_connect_id] = (const r_packer_node_t) {
+		packer->nodes[new_connect_id] = (const r_atlas_packer_node_t) {
 			.width = width,
 			 .height = old_root->height,
 			  .x = old_root->width,
@@ -256,14 +256,14 @@ static r_packer_node_t *R_AtlasPacker_Grow(r_packer_t *packer, const uint32_t wi
 		};
 	} else {
 
-		packer->nodes[new_root_id] = (const r_packer_node_t) {
+		packer->nodes[new_root_id] = (const r_atlas_packer_node_t) {
 			.width = old_root->width,
 			 .height = old_root->height + height,
 			  .right = packer->root,
 			   .down = new_connect_id
 		};
 
-		packer->nodes[new_connect_id] = (const r_packer_node_t) {
+		packer->nodes[new_connect_id] = (const r_atlas_packer_node_t) {
 			.width = old_root->width,
 			 .height = height,
 			  .x = 0,
@@ -276,7 +276,7 @@ static r_packer_node_t *R_AtlasPacker_Grow(r_packer_t *packer, const uint32_t wi
 	packer->num_nodes += 2;
 	packer->root = new_root_id;
 
-	r_packer_node_t *node = R_AtlasPacker_FindNode(packer, packer->root, width, height);
+	r_atlas_packer_node_t *node = R_AtlasPacker_FindNode(packer, packer->root, width, height);
 
 	if (node != NULL) {
 		return R_AtlasPacker_SplitNode(packer, node, width, height);
@@ -288,8 +288,8 @@ static r_packer_node_t *R_AtlasPacker_Grow(r_packer_t *packer, const uint32_t wi
 /**
  * @brief Checks to see where the packer should grow into next. This keeps the atlas square.
  */
-r_packer_node_t *R_AtlasPacker_GrowNode(r_packer_t *packer, const uint32_t width, const uint32_t height) {
-	const r_packer_node_t *root = &packer->nodes[packer->root];
+r_atlas_packer_node_t *R_AtlasPacker_GrowNode(r_atlas_packer_t *packer, const uint16_t width, const uint16_t height) {
+	const r_atlas_packer_node_t *root = &packer->nodes[packer->root];
 
 	const _Bool canGrowDown = (width <= root->width);
 	const _Bool canGrowRight = (height <= root->height);
@@ -329,7 +329,7 @@ static void R_StitchAtlas(r_atlas_t *atlas, r_atlas_params_t *params) {
 	params->width = params->height = 0;
 
 	// setup base packer parameters
-	r_packer_t packer;
+	r_atlas_packer_t packer;
 	memset(&packer, 0, sizeof(packer));
 
 	r_atlas_image_t *image = (r_atlas_image_t *) atlas->images->data;
@@ -338,7 +338,7 @@ static void R_StitchAtlas(r_atlas_t *atlas, r_atlas_params_t *params) {
 
 	// stitch!
 	for (uint16_t i = 0; i < atlas->images->len; i++, image++) {
-		r_packer_node_t *node = R_AtlasPacker_FindNode(&packer, packer.root, image->input_image->width,
+		r_atlas_packer_node_t *node = R_AtlasPacker_FindNode(&packer, packer.root, image->input_image->width,
 		                        image->input_image->height);
 
 		if (node != NULL) {
@@ -395,8 +395,8 @@ static void R_GenerateAtlasMips(r_atlas_t *atlas, r_atlas_params_t *params) {
 	for (uint16_t i = 0; i < params->num_mips; i++) {
 		const uint16_t mip_scale = 1 << i;
 
-		const uint32_t mip_width = params->width / mip_scale;
-		const uint32_t mip_height = params->height / mip_scale;
+		const uint16_t mip_width = params->width / mip_scale;
+		const uint16_t mip_height = params->height / mip_scale;
 
 		R_BindDiffuseTexture(atlas->image.texnum);
 
@@ -428,8 +428,8 @@ static void R_GenerateAtlasMips(r_atlas_t *atlas, r_atlas_params_t *params) {
 			// push them into the atlas
 			R_BindDiffuseTexture(atlas->image.texnum);
 
-			const uint32_t subimage_x = image->position[0] / mip_scale;
-			const uint32_t subimage_y = image->position[1] / mip_scale;
+			const uint16_t subimage_x = image->position[0] / mip_scale;
+			const uint16_t subimage_y = image->position[1] / mip_scale;
 
 			glTexSubImage2D(GL_TEXTURE_2D, i, subimage_x, subimage_y, image_mip_width, image_mip_height, GL_RGBA, GL_UNSIGNED_BYTE,
 			                subimage_pixels);
@@ -525,6 +525,54 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 
 	uint32_t time = SDL_GetTicks() - time_start;
 	Com_Debug(DEBUG_RENDERER, "Atlas %s compiled in %u ms", atlas->image.media.name, time);
+}
+
+/**
+ * @brief Serialize a packer to a file.
+ */
+void R_AtlasPacker_Serialize(const r_atlas_packer_t *packer, file_t *file) {
+	
+	Fs_Write(file, &packer->num_nodes, sizeof(packer->num_nodes), 1);
+	Fs_Write(file, &packer->root, sizeof(packer->root), 1);
+	Fs_Write(file, packer->nodes, sizeof(r_atlas_packer_node_t), packer->num_nodes);
+}
+
+/**
+ * @brief Unserialize packer from a file into the specified packer.
+ * @returns bool if packer in file was invalid.
+ */
+_Bool R_AtlasPacker_Unserialize(file_t *file, r_atlas_packer_t *packer) {
+
+	// read the header
+	if (!Fs_Read(file, &packer->num_nodes, sizeof(packer->num_nodes), 1) ||
+		!Fs_Read(file, &packer->root, sizeof(packer->root), 1)) {
+		return false;
+	}
+	
+	packer->num_nodes = (uint32_t) LittleLong(packer->num_nodes);
+	packer->root = (uint32_t) LittleLong(packer->root);
+
+	// check for malformed packer
+	if (packer->root >= packer->num_nodes) {
+		return false;
+	}
+
+	// see if the file even has enough room for this packer
+	if ((packer->num_nodes * sizeof(r_atlas_packer_node_t)) > (size_t) (Fs_FileLength(file) - Fs_Tell(file))) {
+		return false;
+	}
+
+	// good to go!
+	packer->nodes = Mem_Malloc(sizeof(r_atlas_packer_node_t) * packer->num_nodes);
+
+	// fatal somehow
+	if (Fs_Read(file, packer->nodes, sizeof(r_atlas_packer_node_t), packer->num_nodes) != packer->num_nodes) {
+		R_AtlasPacker_FreePacker(packer);
+		return false;
+	}
+
+	// done!
+	return true;
 }
 
 /**

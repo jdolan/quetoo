@@ -27,7 +27,7 @@
 #include "JoinServerViewController.h"
 #include "PlayerSetupViewController.h"
 
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 #define _Class _PlayViewController
 
@@ -53,7 +53,7 @@ static void loadView(ViewController *self) {
 
 	PlayViewController *this = (PlayViewController *) self;
 
-	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
 	assert(theme);
 
 	Panel *panel = $(theme, panel);

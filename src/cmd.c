@@ -459,7 +459,7 @@ static const char *Cmd_Stringify(const cmd_t *cmd) {
 	} else if (cmd->commands) {
 		g_strlcat(buffer, va("^3%s^7\n\t%s", cmd->name, cmd->commands), sizeof(buffer));
 	} else {
-		return NULL;
+		g_strlcat(buffer, va("^3%s^7", cmd->name), sizeof(buffer));
 	}
 
 	return buffer;
@@ -574,18 +574,41 @@ static void Cmd_Alias_f(void) {
 }
 
 /**
+ * @brief Naiveless color-stripping cmp. Maybe can be better later.
+ */
+static int32_t ColorlessStricmp(const char *a, const char *b) {
+	char bufferA[strlen(a) + 1];
+	char bufferB[strlen(b) + 1];
+	
+	StripColors(a, bufferA);
+	StripColors(b, bufferB);
+
+	return g_ascii_strcasecmp(bufferA, bufferB);
+}
+
+/**
  * @brief Enumeration helper for Cmd_List_f.
  */
 static void Cmd_List_f_enumerate(cmd_t *cmd, void *data) {
-	
-	Com_Print("%s\n", Cmd_Stringify(cmd));
+	GSList **list = (GSList **) data;
+	const gchar *str = g_strdup(Cmd_Stringify(cmd));
+
+	*list = g_slist_insert_sorted(*list, (gpointer) str, (GCompareFunc) ColorlessStricmp);
 }
 
 /**
  * @brief Lists all known commands at the console.
  */
 static void Cmd_List_f(void) {
-	Cmd_Enumerate(Cmd_List_f_enumerate, NULL);
+	GSList *list = NULL;
+
+	Cmd_Enumerate(Cmd_List_f_enumerate, &list);
+	
+	for (GSList *entry = list; entry; entry = entry->next) {
+		Com_Print("%s\n", (const gchar *) entry->data);
+	}
+
+	g_slist_free_full(list, g_free);
 }
 
 /**

@@ -35,6 +35,7 @@ r_locals_t r_locals;
 
 r_config_t r_config;
 
+cvar_t *r_blend;
 cvar_t *r_clear;
 cvar_t *r_cull;
 cvar_t *r_lock_vis;
@@ -80,6 +81,7 @@ cvar_t *r_stainmaps;
 cvar_t *r_supersample;
 cvar_t *r_texture_mode;
 cvar_t *r_swap_interval;
+cvar_t *r_lightmap_cache;
 cvar_t *r_warp;
 cvar_t *r_width;
 cvar_t *r_windowed_height;
@@ -290,6 +292,14 @@ static void R_Clear(void) {
  */
 void R_BeginFrame(void) {
 
+	// disable blending at the beginning of the frame
+	if (r_blend->modified) {
+		if (!r_blend->value) {
+			R_EnableBlend(false);
+		}
+		r_blend->modified = false;
+	}
+
 	// draw buffer stuff
 	if (r_draw_buffer->modified) {
 		if (!g_ascii_strcasecmp(r_draw_buffer->string, "GL_FRONT")) {
@@ -456,7 +466,8 @@ static void R_ResetStainmap_f(void) {
 static void R_InitLocal(void) {
 
 	// development tools
-	r_clear = Cvar_Add("r_clear", "0", 0, "Controls buffer clearing (developer tool)");
+	r_blend = Cvar_Add("r_blend", "1", CVAR_DEVELOPER, "Controls alpha blending operations (developer tool)");
+	r_clear = Cvar_Add("r_clear", "0", CVAR_DEVELOPER, "Controls buffer clearing (developer tool)");
 	r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER, "Controls bounded box culling routines (developer tool)");
 	r_lock_vis = Cvar_Add("r_lock_vis", "0", CVAR_DEVELOPER, "Temporarily locks the PVS lookup for world surfaces (developer tool)");
 	r_no_vis = Cvar_Add("r_no_vis", "0", CVAR_DEVELOPER, "Disables PVS refresh and lookup for world surfaces (developer tool)");
@@ -489,7 +500,6 @@ static void R_InitLocal(void) {
 	r_materials = Cvar_Add("r_materials", "1", CVAR_ARCHIVE, "Enables or disables the materials (progressive texture effects) system");
 	r_max_lights = Cvar_Add("r_max_lights", "16", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the maximum number of lights affecting a rendered object");
 	r_modulate = Cvar_Add("r_modulate", "3.0", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls the brightness of world surface lightmaps");
-	Cvar_Add("r_lightscale", "1.0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the scale of lightmaps during fragment generation");
 	r_monochrome = Cvar_Add("r_monochrome", "0", CVAR_ARCHIVE | CVAR_R_MEDIA, "Loads all world textures as monochrome");
 	r_multisample = Cvar_Add("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls multisampling (anti-aliasing)");
 	r_parallax = Cvar_Add("r_parallax", "1.0", CVAR_ARCHIVE, "Controls the intensity of parallax mapping effects");
@@ -502,6 +512,7 @@ static void R_InitLocal(void) {
 	r_stainmaps = Cvar_Add("r_stainmaps", "1.0", CVAR_ARCHIVE, "Controls persistent stain effects.");
 	r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
 	r_texture_mode = Cvar_Add("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies the active texture filtering mode");
+	r_lightmap_cache = Cvar_Add("r_lightmap_cache", "1", CVAR_ARCHIVE, "Controls whether or not the lightmap cache is used. Improve map loading times at the expense of a bit more hard drive usage.");
 	r_warp = Cvar_Add("r_warp", "1", CVAR_ARCHIVE, "Controls warping surface effects (e.g. water)");
 	r_width = Cvar_Add("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_windowed_height = Cvar_Add("r_windowed_height", "1024", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);

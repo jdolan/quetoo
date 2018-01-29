@@ -23,7 +23,7 @@
 
 #include "MiscViewController.h"
 #include "CvarSelect.h"
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 #define _Class _MiscViewController
 
@@ -58,7 +58,7 @@ static void loadView(ViewController *self) {
 		.didEndEditing = didBindKey
 	};
 
-	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
 	assert(theme);
 
 	StackView *container = $(theme, container);
