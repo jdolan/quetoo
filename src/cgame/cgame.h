@@ -375,7 +375,7 @@ typedef struct cg_import_s {
 	int32_t (*ReadLong)(void);
 
 	/**
-	 * @brief Reads a NULL-terminated string from the last received network message.
+	 * @brief Reads a null-terminated string from the last received network message.
 	 * @return The string.
 	 * @remarks The returned value is statically allocated. Do not free it.
 	 */

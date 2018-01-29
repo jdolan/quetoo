@@ -193,7 +193,7 @@ int64_t Fs_Read(file_t *file, void *buffer, size_t size, size_t count) {
 
 /**
  * @brief Reads a line from the specified file. The newline character is
- * omitted from the returned, NULL-terminated string.
+ * omitted from the returned, null-terminated string.
  *
  * @return True on success, false on failures.
  */
