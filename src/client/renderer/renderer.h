@@ -24,6 +24,8 @@
 #include "collision/cmodel.h"
 #include "console.h"
 
+#include "r_gl_types.h"
+
 #include "r_array.h"
 #include "r_atlas.h"
 #include "r_bsp_light.h"
@@ -36,7 +38,6 @@
 #include "r_entity.h"
 #include "r_flare.h"
 #include "r_framebuffer.h"
-#include "r_glad_core.h"
 #include "r_image.h"
 #include "r_light.h"
 #include "r_lighting.h"
