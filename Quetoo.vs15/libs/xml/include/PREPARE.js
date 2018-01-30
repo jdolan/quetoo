@@ -8,7 +8,6 @@ log("Extracting libxml2...");
 unz("x tmp.tar.gz -aos");
 unz("e tmp.tar -aos \"libxml2-2.9.4\\include\\*.h");
 unz("e tmp.tar -aos \"libxml2-2.9.4\\include\\libxml\\*.h\" -olibxml\\");
-if (fso.FileExists("config.h"))
-	fso.DeleteFile("config.h");
-fso.MoveFile("win32config.h", "config.h");
-fso.DeleteFile("tmp.tar");
+deleteFile("config.h");
+moveFile("win32config.h", "config.h");
+deleteFile("tmp.tar");

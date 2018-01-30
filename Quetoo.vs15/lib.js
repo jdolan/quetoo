@@ -5,7 +5,7 @@ function log(msg)
 
 var shell = WScript.CreateObject("WScript.Shell");
 var debug = true;
-var fso = new ActiveXObject("Scripting.FileSystemObject");
+var fso = WScript.CreateObject("Scripting.FileSystemObject");
 
 function include(file)
 {
@@ -32,7 +32,7 @@ function download(url, output)
 	if (debug)
 		log("DOWNLOAD DEBUG: " + url + " " + output);
 	
-	var xhr = new ActiveXObject("MSXML2.XMLHTTP");
+	var xhr = WScript.CreateObject("MSXML2.ServerXMLHTTP");
 	xhr.open("GET", url, false);
 	xhr.send();
 
@@ -40,14 +40,13 @@ function download(url, output)
 		throw new Error("couldn't download!");
 
 	if (fso.FileExists(output))
-		fso.DeleteFile(output)
-
-	var stream = new ActiveXObject("ADODB.Stream");
-	stream.Open();
+		fso.DeleteFile(output);
+	
+	var stream = WScript.CreateObject("ADODB.Stream");
 	stream.Type = 1;
-	stream.Write(xhr.ResponseBody);
-	stream.Position = 0;
-	stream.SaveToFile(output);
+	stream.Open();
+	stream.Write(xhr.responseBody);
+	stream.SaveToFile(output, 2);
 	stream.Close();
 }
 
@@ -88,4 +87,34 @@ function unz(args)
 			log(exec.StdOut.ReadAll());
 	else
 		log(exec.StdErr.ReadAll());	
+}
+
+function deleteFile(file)
+{
+	if (debug)
+		log("DELETE: " + file);
+	
+	if (!fso.FileExists(file))
+	{
+		if (debug)
+			log("Doesn't exist.");
+	}
+	else
+	{
+		fso.DeleteFile(file);
+		
+		if (debug)
+			log("Deleted.");
+	}
+}
+
+function moveFile(oldPath, newPath)
+{
+	if (debug)
+		log("MOVE " + oldPath + " -> " + newPath);
+	
+	if (!fso.FileExists(oldPath))
+		throw new Error("can't move file, not there: " + oldPath);
+	
+	fso.MoveFile(oldPath, newPath);
 }
