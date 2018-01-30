@@ -2362,7 +2362,6 @@
 		CE12D5AC1C5C58C300CD0B13 /* renderer */ = {
 			isa = PBXGroup;
 			children = (
-				CE12D5F31C5C58C300CD0B13 /* shaders */,
 				CE12D5B01C5C58C300CD0B13 /* r_array.c */,
 				CE12D5B11C5C58C300CD0B13 /* r_array.h */,
 				CEA082331DC6EBB7001207AA /* r_atlas.c */,
@@ -2446,6 +2445,7 @@
 				CE12D5F11C5C58C300CD0B13 /* r_types.h */,
 				CE12D5F21C5C58C300CD0B13 /* renderer.h */,
 				CE12D5AE1C5C58C300CD0B13 /* Makefile.am */,
+				CE12D5F31C5C58C300CD0B13 /* shaders */,
 			);
 			path = renderer;
 			sourceTree = "<group>";

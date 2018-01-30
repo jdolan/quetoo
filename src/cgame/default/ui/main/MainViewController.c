@@ -122,24 +122,25 @@ static void loadView(ViewController *self) {
 
 	MainViewController *this = (MainViewController *) self;
 
-	MainView *mainView = $(alloc(MainView), initWithFrame, NULL);
-	assert(mainView);
+	MainView *view = $(alloc(MainView), initWithFrame, NULL);
+	assert(view);
 
-	$(self, setView, (View *) mainView);
+	$(self, setView, (View *) view);
+	release(view);
 
-	$(this, primaryButton, mainView->primaryButtons, "Home", _HomeViewController());
-	$(this, primaryButton, mainView->primaryButtons, "Play", _PlayViewController());
-	$(this, primaryButton, mainView->primaryButtons, "Controls", _ControlsViewController());
-	$(this, primaryButton, mainView->primaryButtons, "Settings", _SettingsViewController());
+	$(this, primaryButton, view->primaryButtons, "Home", _HomeViewController());
+	$(this, primaryButton, view->primaryButtons, "Play", _PlayViewController());
+	$(this, primaryButton, view->primaryButtons, "Controls", _ControlsViewController());
+	$(this, primaryButton, view->primaryButtons, "Settings", _SettingsViewController());
 
-	$(this, primaryIcon, mainView->primaryIcons, "ui/pics/info", _InfoViewController());
-	$(this, primaryIcon, mainView->primaryIcons, "ui/pics/quit", NULL);
+	$(this, primaryIcon, view->primaryIcons, "ui/pics/info", _InfoViewController());
+	$(this, primaryIcon, view->primaryIcons, "ui/pics/quit", NULL);
 
-	$(this, primaryButton, mainView->bottomBar, "Join", _HomeViewController()); // TODO
-	$(this, primaryButton, mainView->bottomBar, "Votes", _HomeViewController()); // TODO
+	$(this, primaryButton, view->bottomBar, "Join", _HomeViewController()); // TODO
+	$(this, primaryButton, view->bottomBar, "Votes", _HomeViewController()); // TODO
 
 	$(self, addChildViewController, (ViewController *) this->navigationViewController);
-	$(mainView->contentView, addSubview, this->navigationViewController->viewController.view);
+	$(view->contentView, addSubview, this->navigationViewController->viewController.view);
 
 	action(NULL, NULL, this, _HomeViewController());
 }

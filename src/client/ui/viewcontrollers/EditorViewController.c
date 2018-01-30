@@ -71,6 +71,7 @@ static void loadView(ViewController *self) {
 	super(ViewController, self, loadView);
 
 	EditorView *view = $(alloc(EditorView), initWithFrame, NULL);
+	assert(view);
 
 	view->bumpSlider->delegate.self = self;
 	view->bumpSlider->delegate.didSetValue = didSetValue;
@@ -87,6 +88,7 @@ static void loadView(ViewController *self) {
 	$((Control *) view->saveButton, addActionForEventType, SDL_MOUSEBUTTONUP, saveAction, self, NULL);
 
 	$(self, setView, (View *) view);
+	release(view);
 }
 
 #pragma mark - EditorViewController
