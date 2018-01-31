@@ -56,6 +56,8 @@ void R_InitContext(void) {
 
 	uint32_t flags = SDL_WINDOW_OPENGL;
 
+	const int display = Clamp(r_display->integer, 0, SDL_GetNumVideoDisplays());
+
 	if (r_allow_high_dpi->integer) {
 		flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 	}
@@ -66,7 +68,7 @@ void R_InitContext(void) {
 
 		if (r_width->integer == 0 && r_height->integer == 0) {
 			SDL_DisplayMode best;
-			SDL_GetDesktopDisplayMode(0, &best);
+			SDL_GetDesktopDisplayMode(display, &best);
 
 			w = best.w;
 			h = best.h;
@@ -102,7 +104,8 @@ void R_InitContext(void) {
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, s);
 
 	if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING,
-	                        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, flags)) == NULL) {
+			SDL_WINDOWPOS_CENTERED_DISPLAY(display),
+			SDL_WINDOWPOS_CENTERED_DISPLAY(display), w, h, flags)) == NULL) {
 		Com_Error(ERROR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
 	}
 
@@ -117,9 +120,14 @@ void R_InitContext(void) {
 		Com_Error(ERROR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
 	}
 
-	const int32_t valid_attribs[] = { SDL_GL_RED_SIZE, SDL_GL_GREEN_SIZE, SDL_GL_BLUE_SIZE, SDL_GL_ALPHA_SIZE, SDL_GL_DEPTH_SIZE, SDL_GL_STENCIL_SIZE, SDL_GL_BUFFER_SIZE,
-									SDL_GL_DOUBLEBUFFER, SDL_GL_MULTISAMPLEBUFFERS, SDL_GL_MULTISAMPLESAMPLES, SDL_GL_CONTEXT_MAJOR_VERSION, SDL_GL_CONTEXT_MINOR_VERSION,
-									SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_PROFILE_MASK };
+	const int32_t valid_attribs[] = {
+		SDL_GL_RED_SIZE, SDL_GL_GREEN_SIZE, SDL_GL_BLUE_SIZE, SDL_GL_ALPHA_SIZE,
+		SDL_GL_DEPTH_SIZE, SDL_GL_STENCIL_SIZE, SDL_GL_BUFFER_SIZE,
+		SDL_GL_DOUBLEBUFFER,
+		SDL_GL_MULTISAMPLEBUFFERS, SDL_GL_MULTISAMPLESAMPLES,
+		SDL_GL_CONTEXT_MAJOR_VERSION, SDL_GL_CONTEXT_MINOR_VERSION,
+		SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_PROFILE_MASK
+	};
 
 	int32_t attr[SDL_GL_CONTEXT_RELEASE_BEHAVIOR];
 	for (size_t i = 0; i < lengthof(valid_attribs); i++) {
@@ -166,6 +174,8 @@ void R_InitContext(void) {
  * @brief
  */
 void R_ShutdownContext(void) {
+
+	Cvar_SetValue(r_display->name, SDL_GetWindowDisplayIndex(r_context.window));
 
 	if (r_context.context) {
 		SDL_GL_DeleteContext(r_context.context);
