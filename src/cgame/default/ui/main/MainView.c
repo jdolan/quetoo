@@ -98,9 +98,6 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 
 			self->logo->view.alignment = ViewAlignmentBottomRight;
 
-			$((View *) self->logo, addConstraintWithDescriptor, "w <= superview.w * 0.2");
-			$((View *) self->logo, addConstraintWithDescriptor, "h = w * 0.45");
-
 			$(this, addSubview, (View *) self->logo);
 		}
 

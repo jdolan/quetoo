@@ -164,8 +164,6 @@ static void control(const QuetooTheme *self, const char *label, ident control) {
 	$(input, setControl, cast(Control, control));
 	$(input->label->text, setText, label);
 
-	$((View *) input->label, addConstraintWithDescriptor, "w = 200");
-
 	$(self, attach, input);
 	release(input);
 }
