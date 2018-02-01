@@ -138,7 +138,9 @@ static void LightWorld(void) {
 	FreePatches();
 
 	// build per-vertex normals for phong shading
-	BuildVertexNormals();
+	if (!legacy) {
+		BuildVertexNormals();
+	}
 
 	// build initial facelights
 	RunThreadsOn(bsp_file.num_faces, true, BuildFacelights);
