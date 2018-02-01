@@ -666,8 +666,6 @@ void BuildVertexNormals(void) {
 	vec3_t norm, delta;
 	int32_t i, j;
 
-	BuildFaceExtents();
-
 	for (i = 0; i < bsp_file.num_vertexes; i++) {
 
 		VectorClear(bsp_file.normals[i].normal);

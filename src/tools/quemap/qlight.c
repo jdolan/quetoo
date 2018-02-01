@@ -137,6 +137,9 @@ static void LightWorld(void) {
 	// patches are no longer needed
 	FreePatches();
 
+	// build face extents
+	BuildFaceExtents();
+
 	// build per-vertex normals for phong shading
 	if (!legacy) {
 		BuildVertexNormals();
