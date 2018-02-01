@@ -20,6 +20,7 @@
  */
 
 #include <SDL2/SDL_cpuinfo.h>
+#include <SDL2/SDL_timer.h>
 
 #include "thread.h"
 
@@ -177,7 +178,7 @@ void Thread_Wait(thread_t *t) {
 	}
 
 	while (t->status != THREAD_WAIT) {
-		usleep(0);
+		SDL_Delay(0);
 	}
 
 	t->status = THREAD_IDLE;

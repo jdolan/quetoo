@@ -20,6 +20,7 @@
  */
 
 #include "r_local.h"
+#include "r_gl.h"
 
 /*
  * In video memory, lightmaps are chunked into NxN RGB blocks. In the BSP,

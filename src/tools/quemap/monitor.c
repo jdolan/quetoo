@@ -19,6 +19,8 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include <SDL2/SDL_timer.h>
+
 #include "monitor.h"
 
 #if !defined(NOMONITOR)
@@ -27,8 +29,6 @@
 
 #if defined(_WIN32)
 	#define LIBXML_STATIC
-
-	#define sleep Sleep
 #endif
 
 #include <libxml/tree.h>
@@ -249,7 +249,7 @@ void Mon_Shutdown(const char *msg) {
 				Mon_SendMessage(MON_ERROR, msg);
 			}
 			Mon_SendString(xmlString("</q3map_feedback>"));
-			sleep(1);
+			SDL_Delay(1);
 		}
 
 		Net_CloseSocket(mon_state.socket);

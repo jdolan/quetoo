@@ -20,6 +20,7 @@
  */
 
 #include "r_local.h"
+#include "r_gl.h"
 
 /**
  * @brief Binds the specified buffer for the given attribute target with an offset.
