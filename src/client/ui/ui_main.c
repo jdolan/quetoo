@@ -31,8 +31,7 @@ static WindowController *windowController;
 static NavigationViewController *navigationViewController;
 
 /**
- * @brief Dispatch events to the user interface. Filter most common event types for
- * performance consideration.
+ * @brief Dispatch events to the user interface.
  */
 void Ui_HandleEvent(const SDL_Event *event) {
 
@@ -122,24 +121,24 @@ void Ui_PopAllViewControllers(void) {
 /**
  * @brief
  */
-static void Ui_SetDefaultFont(FontCategory category, const char *path, int32_t size, int32_t index) {
+static Font *Ui_Font(const char *path, int size, int index) {
+
+	Font *font = NULL;
 
 	void *buffer;
 	const int64_t length = Fs_Load(path, &buffer);
 	if (length != -1) {
-
 		Data *data = $$(Data, dataWithBytes, buffer, length);
 		assert(data);
 
-		Font *font = $(alloc(Font), initWithData, data, size, index);
+		font = $(alloc(Font), initWithData, data, size, index);
 		assert(font);
 
-		$$(Font, setDefaultFont, category, font);
-
-		release(font);
+		release(data);
 	}
 
 	Fs_Free(buffer);
+	return font;
 }
 
 /**
@@ -151,7 +150,7 @@ void Ui_Init(void) {
 
 #if defined(__APPLE__)
 	const char *path = Fs_BaseDir();
-	if (path) {
+	if (path && strlen(path)) {
 		char fonts[MAX_OS_PATH];
 		g_snprintf(fonts, sizeof(fonts), "%s/Contents/MacOS/etc/fonts", path);
 
@@ -159,18 +158,30 @@ void Ui_Init(void) {
 	}
 #endif
 
-	const char *coda = "fonts/coda.regular.ttf";
-	const char *codaHeavy = "fonts/coda.heavy.ttf";
+	Font *coda16 = Ui_Font("fonts/coda.regular.ttf", 16, 0);
+	assert(coda16);
 
-	Ui_SetDefaultFont(FontCategoryDefault, coda, 16, 0);
-	Ui_SetDefaultFont(FontCategoryPrimaryLabel, coda, 16, 0);
-	Ui_SetDefaultFont(FontCategoryPrimaryControl, coda, 16, 0);
+	$$(Font, setDefaultFont, FontCategoryDefault, coda16);
+	$$(Font, setDefaultFont, FontCategoryPrimaryLabel, coda16);
+	$$(Font, setDefaultFont, FontCategoryPrimaryControl, coda16);
 
-	Ui_SetDefaultFont(FontCategorySecondaryLabel, coda, 14, 0);
-	Ui_SetDefaultFont(FontCategorySecondaryControl, coda, 14, 0);
+	release(coda16);
 
-	Ui_SetDefaultFont(FontCategoryPrimaryResponder, codaHeavy, 18, 0);
-	Ui_SetDefaultFont(FontCategorySecondaryResponder, codaHeavy, 18, 0);
+	Font *coda14 = Ui_Font("fonts/coda.regular.ttf", 14, 0);
+	assert(coda14);
+
+	$$(Font, setDefaultFont, FontCategorySecondaryLabel, coda14);
+	$$(Font, setDefaultFont, FontCategorySecondaryControl, coda14);
+
+	release(coda14);
+
+	Font *codaHeavy18 = Ui_Font("fonts/coda.heavy.ttf", 18, 0);
+	assert(codaHeavy18);
+
+	$$(Font, setDefaultFont, FontCategoryPrimaryResponder, codaHeavy18);
+	$$(Font, setDefaultFont, FontCategorySecondaryResponder, codaHeavy18);
+
+	release(codaHeavy18);
 
 	Renderer *renderer = (Renderer *) $(alloc(QuetooRenderer), init);
 
