@@ -272,6 +272,8 @@ typedef struct cg_import_s {
 
 	/**
 	 * @}
+	 * @defgroup ui User interface
+	 * @{
 	 */
 
 	/**
@@ -293,6 +295,15 @@ typedef struct cg_import_s {
 	 * @brief Pops all ViewControllers from the user interface.
 	 */
 	void (*PopAllViewControllers)(void);
+
+	/**
+	 * @brief Initializes a new Stylesheet from the CSS file at the given path.
+	 */
+	Stylesheet *(*Stylesheet)(const char *path);
+
+	/**
+	 * @}
+	 */
 
 	/**
 	 * @brief Resolves the next key after `from` that references `bind`.

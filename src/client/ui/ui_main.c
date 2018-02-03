@@ -71,7 +71,6 @@ void Ui_Draw(void) {
 
 	Ui_CheckEditor();
 
-	// backup all of the matrices
 	for (r_matrix_id_t matrix = R_MATRIX_PROJECTION; matrix < R_MATRIX_TOTAL; ++matrix) {
 		R_PushMatrix(matrix);
 	}
@@ -80,7 +79,6 @@ void Ui_Draw(void) {
 
 	$(windowController, render);
 
-	// restore matrices
 	for (r_matrix_id_t matrix = R_MATRIX_PROJECTION; matrix < R_MATRIX_TOTAL; ++matrix) {
 		R_PopMatrix(matrix);
 	}
@@ -116,6 +114,27 @@ void Ui_PopViewController(void) {
  */
 void Ui_PopAllViewControllers(void) {
 	$(navigationViewController, popToRootViewController);
+}
+
+/**
+ * @brief
+ */
+Stylesheet *Ui_Stylesheet(const char *path) {
+
+	Stylesheet *stylesheet = NULL;
+
+	void *buffer;
+	if (Fs_Load(path, &buffer) != -1) {
+
+		stylesheet = $$(Stylesheet, stylesheetWithCharacters, (char *) buffer);
+		assert(stylesheet);
+
+		Fs_Free(buffer);
+	} else {
+		Com_Warn("Failed to load Stylesheet %s\n", path);
+	}
+
+	return stylesheet;
 }
 
 /**

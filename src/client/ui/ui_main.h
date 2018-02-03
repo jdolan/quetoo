@@ -29,6 +29,7 @@ void Ui_PushViewController(ViewController *viewController);
 void Ui_PopToViewController(ViewController *viewController);
 void Ui_PopViewController(void);
 void Ui_PopAllViewControllers(void);
+Stylesheet *Ui_Stylesheet(const char *path);
 void Ui_Draw(void);
 void Ui_Init(void);
 void Ui_Shutdown(void);

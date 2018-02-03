@@ -147,6 +147,7 @@
 		CE4A256D1FA2033B00A539E7 /* tint.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE585BDD1ED45A94009B7C14 /* tint.glsl */; };
 		CE4A256E1FA2033B00A539E7 /* uniforms.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEFFF2261EEED2420028832B /* uniforms.glsl */; };
 		CE4A25701FA39FB400A539E7 /* libSDL2_image-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE4A256F1FA39FB400A539E7 /* libSDL2_image-2.0.0.dylib */; };
+		CE4E07B52026524A000B276C /* common.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07B320264B15000B276C /* common.css */; };
 		CE55308D1E57E3670009A127 /* ui_editor.c in Sources */ = {isa = PBXBuildFile; fileRef = CE55308B1E57E3670009A127 /* ui_editor.c */; };
 		CE55308E1E57E3670009A127 /* ui_editor.h in Headers */ = {isa = PBXBuildFile; fileRef = CE55308C1E57E3670009A127 /* ui_editor.h */; };
 		CE55309C1E5A93C60009A127 /* parse.c in Sources */ = {isa = PBXBuildFile; fileRef = CE55309A1E5A93C60009A127 /* parse.c */; };
@@ -973,6 +974,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CE4E07B420265210000B276C /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = ui/common;
+			dstSubfolderSpec = 16;
+			files = (
+				CE4E07B52026524A000B276C /* common.css in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CE67EFA81E351A95009C2819 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1459,6 +1470,7 @@
 		CE3DA5051E575096009B26ED /* EditorView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = EditorView.c; sourceTree = "<group>"; };
 		CE3DA5061E575096009B26ED /* EditorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditorView.h; sourceTree = "<group>"; };
 		CE4A256F1FA39FB400A539E7 /* libSDL2_image-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSDL2_image-2.0.0.dylib"; path = "../../../../usr/local/lib/libSDL2_image-2.0.0.dylib"; sourceTree = "<group>"; };
+		CE4E07B320264B15000B276C /* common.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = common.css; sourceTree = "<group>"; };
 		CE55308B1E57E3670009A127 /* ui_editor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_editor.c; sourceTree = "<group>"; };
 		CE55308C1E57E3670009A127 /* ui_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_editor.h; sourceTree = "<group>"; };
 		CE5530991E5A939F0009A127 /* libparse.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libparse.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2362,6 +2374,7 @@
 		CE12D5AC1C5C58C300CD0B13 /* renderer */ = {
 			isa = PBXGroup;
 			children = (
+				CE12D5F31C5C58C300CD0B13 /* shaders */,
 				CE12D5B01C5C58C300CD0B13 /* r_array.c */,
 				CE12D5B11C5C58C300CD0B13 /* r_array.h */,
 				CEA082331DC6EBB7001207AA /* r_atlas.c */,
@@ -2445,7 +2458,6 @@
 				CE12D5F11C5C58C300CD0B13 /* r_types.h */,
 				CE12D5F21C5C58C300CD0B13 /* renderer.h */,
 				CE12D5AE1C5C58C300CD0B13 /* Makefile.am */,
-				CE12D5F31C5C58C300CD0B13 /* shaders */,
 			);
 			path = renderer;
 			sourceTree = "<group>";
@@ -2990,6 +3002,7 @@
 				CE5870A31F5CE97C004CAAB2 /* CvarTextView.h */,
 				CE107D7C1F6592860010A1DA /* QuetooTheme.c */,
 				CE107D7D1F6592860010A1DA /* QuetooTheme.h */,
+				CE4E07B320264B15000B276C /* common.css */,
 			);
 			path = common;
 			sourceTree = "<group>";
@@ -3679,6 +3692,7 @@
 				CE6EE3171F6BFAF600FBC830 /* Sources */,
 				CE6EE3241F6BFAF600FBC830 /* Frameworks */,
 				CE6EE3271F6BFAF600FBC830 /* Headers */,
+				CE4E07B420265210000B276C /* CopyFiles */,
 			);
 			buildRules = (
 			);

@@ -1,3 +1,8 @@
+commondir = @PKGLIBDIR@/default/ui/common
+
+common_DATA = \
+	common/common.css
+
 noinst_HEADERS = \
 	common/BindTextView.h \
 	common/CvarCheckbox.h \
