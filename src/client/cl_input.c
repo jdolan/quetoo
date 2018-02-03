@@ -352,7 +352,7 @@ static void Cl_HandleEvent(const SDL_Event *event) {
 			break;
 
 		case SDL_WINDOWEVENT:
-			if (event->window.event == SDL_WINDOWEVENT_RESIZED) {
+			if (event->window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
 				if (r_context.fullscreen == false) {
 					const int32_t w = event->window.data1;
 					const int32_t h = event->window.data2;
