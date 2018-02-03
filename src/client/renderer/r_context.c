@@ -174,6 +174,14 @@ void R_InitContext(void) {
  * @brief
  */
 void R_ShutdownContext(void) {
+	extern void Cl_HandleEvents(void);
+
+	SDL_PushEvent(&(SDL_Event) {
+		.window.type = SDL_WINDOWEVENT,
+		.window.event = SDL_WINDOWEVENT_CLOSE
+	});
+
+	Cl_HandleEvents();
 
 	Cvar_SetValue(r_display->name, SDL_GetWindowDisplayIndex(r_context.window));
 
