@@ -176,6 +176,8 @@ void R_InitContext(void) {
 void R_ShutdownContext(void) {
 	extern void Cl_HandleEvents(void);
 
+	SDL_FlushEvents(SDL_FIRSTEVENT, SDL_LASTEVENT);
+	
 	SDL_PushEvent(&(SDL_Event) {
 		.window.type = SDL_WINDOWEVENT,
 		.window.event = SDL_WINDOWEVENT_CLOSE
