@@ -148,6 +148,20 @@
 		CE4A256E1FA2033B00A539E7 /* uniforms.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEFFF2261EEED2420028832B /* uniforms.glsl */; };
 		CE4A25701FA39FB400A539E7 /* libSDL2_image-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE4A256F1FA39FB400A539E7 /* libSDL2_image-2.0.0.dylib */; };
 		CE4E07B52026524A000B276C /* common.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07B320264B15000B276C /* common.css */; };
+		CE4E07B820267825000B276C /* JoinServerViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07B6202676E7000B276C /* JoinServerViewController.css */; };
+		CE4E07CC20268832000B276C /* LookViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07BD20267EAB000B276C /* LookViewController.css */; };
+		CE4E07CD20268835000B276C /* MiscViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07BB20267EAB000B276C /* MiscViewController.css */; };
+		CE4E07CE20268838000B276C /* MoveViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07B920267EAB000B276C /* MoveViewController.css */; };
+		CE4E07CF2026883C000B276C /* ShootViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07BA20267EAB000B276C /* ShootViewController.css */; };
+		CE4E07D120268875000B276C /* CreditsViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07BF20267EC7000B276C /* CreditsViewController.css */; };
+		CE4E07D420268897000B276C /* DialogViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07C220267ED9000B276C /* DialogViewController.css */; };
+		CE4E07D52026889A000B276C /* HomeViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07C020267ED9000B276C /* HomeViewController.css */; };
+		CE4E07D62026889D000B276C /* LoadingViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07C320267ED9000B276C /* LoadingViewController.css */; };
+		CE4E07D8202688AF000B276C /* MainView.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07C120267ED9000B276C /* MainView.css */; };
+		CE4E07DE202689F4000B276C /* CreateServerViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07C420267EE8000B276C /* CreateServerViewController.css */; };
+		CE4E07DF202689FC000B276C /* PlayerSetupViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07C520267EE9000B276C /* PlayerSetupViewController.css */; };
+		CE4E07E020268A24000B276C /* OptionsViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07C720267EFA000B276C /* OptionsViewController.css */; };
+		CE4E07E120268A2B000B276C /* SystemViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07C820267EFA000B276C /* SystemViewController.css */; };
 		CE55308D1E57E3670009A127 /* ui_editor.c in Sources */ = {isa = PBXBuildFile; fileRef = CE55308B1E57E3670009A127 /* ui_editor.c */; };
 		CE55308E1E57E3670009A127 /* ui_editor.h in Headers */ = {isa = PBXBuildFile; fileRef = CE55308C1E57E3670009A127 /* ui_editor.h */; };
 		CE55309C1E5A93C60009A127 /* parse.c in Sources */ = {isa = PBXBuildFile; fileRef = CE55309A1E5A93C60009A127 /* parse.c */; };
@@ -984,6 +998,65 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CE4E07B720267815000B276C /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = ui/play;
+			dstSubfolderSpec = 16;
+			files = (
+				CE4E07DE202689F4000B276C /* CreateServerViewController.css in CopyFiles */,
+				CE4E07B820267825000B276C /* JoinServerViewController.css in CopyFiles */,
+				CE4E07DF202689FC000B276C /* PlayerSetupViewController.css in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE4E07CA2026881F000B276C /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = ui/controls;
+			dstSubfolderSpec = 16;
+			files = (
+				CE4E07CC20268832000B276C /* LookViewController.css in CopyFiles */,
+				CE4E07CD20268835000B276C /* MiscViewController.css in CopyFiles */,
+				CE4E07CE20268838000B276C /* MoveViewController.css in CopyFiles */,
+				CE4E07CF2026883C000B276C /* ShootViewController.css in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE4E07D02026884B000B276C /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = ui/info;
+			dstSubfolderSpec = 16;
+			files = (
+				CE4E07D120268875000B276C /* CreditsViewController.css in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE4E07D32026888A000B276C /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = ui/main;
+			dstSubfolderSpec = 16;
+			files = (
+				CE4E07D420268897000B276C /* DialogViewController.css in CopyFiles */,
+				CE4E07D52026889A000B276C /* HomeViewController.css in CopyFiles */,
+				CE4E07D62026889D000B276C /* LoadingViewController.css in CopyFiles */,
+				CE4E07D8202688AF000B276C /* MainView.css in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE4E07D9202688C5000B276C /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = ui/settings;
+			dstSubfolderSpec = 16;
+			files = (
+				CE4E07E020268A24000B276C /* OptionsViewController.css in CopyFiles */,
+				CE4E07E120268A2B000B276C /* SystemViewController.css in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CE67EFA81E351A95009C2819 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1471,6 +1544,20 @@
 		CE3DA5061E575096009B26ED /* EditorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditorView.h; sourceTree = "<group>"; };
 		CE4A256F1FA39FB400A539E7 /* libSDL2_image-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSDL2_image-2.0.0.dylib"; path = "../../../../usr/local/lib/libSDL2_image-2.0.0.dylib"; sourceTree = "<group>"; };
 		CE4E07B320264B15000B276C /* common.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = common.css; sourceTree = "<group>"; };
+		CE4E07B6202676E7000B276C /* JoinServerViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = JoinServerViewController.css; sourceTree = "<group>"; };
+		CE4E07B920267EAB000B276C /* MoveViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = MoveViewController.css; sourceTree = "<group>"; };
+		CE4E07BA20267EAB000B276C /* ShootViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = ShootViewController.css; sourceTree = "<group>"; };
+		CE4E07BB20267EAB000B276C /* MiscViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = MiscViewController.css; sourceTree = "<group>"; };
+		CE4E07BD20267EAB000B276C /* LookViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = LookViewController.css; sourceTree = "<group>"; };
+		CE4E07BF20267EC7000B276C /* CreditsViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = CreditsViewController.css; sourceTree = "<group>"; };
+		CE4E07C020267ED9000B276C /* HomeViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = HomeViewController.css; sourceTree = "<group>"; };
+		CE4E07C120267ED9000B276C /* MainView.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = MainView.css; sourceTree = "<group>"; };
+		CE4E07C220267ED9000B276C /* DialogViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = DialogViewController.css; sourceTree = "<group>"; };
+		CE4E07C320267ED9000B276C /* LoadingViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = LoadingViewController.css; sourceTree = "<group>"; };
+		CE4E07C420267EE8000B276C /* CreateServerViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = CreateServerViewController.css; sourceTree = "<group>"; };
+		CE4E07C520267EE9000B276C /* PlayerSetupViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = PlayerSetupViewController.css; sourceTree = "<group>"; };
+		CE4E07C720267EFA000B276C /* OptionsViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = OptionsViewController.css; sourceTree = "<group>"; };
+		CE4E07C820267EFA000B276C /* SystemViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = SystemViewController.css; sourceTree = "<group>"; };
 		CE55308B1E57E3670009A127 /* ui_editor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_editor.c; sourceTree = "<group>"; };
 		CE55308C1E57E3670009A127 /* ui_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_editor.h; sourceTree = "<group>"; };
 		CE5530991E5A939F0009A127 /* libparse.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libparse.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2940,12 +3027,16 @@
 				CE1A28441F7600AC005F62A9 /* CrosshairView.c */,
 				CE1A28451F7600AC005F62A9 /* CrosshairView.h */,
 				CE1A28381F75FE70005F62A9 /* LookViewController.c */,
+				CE4E07BD20267EAB000B276C /* LookViewController.css */,
 				CE1A28391F75FE70005F62A9 /* LookViewController.h */,
 				CE1A284A1F7602F2005F62A9 /* MiscViewController.c */,
+				CE4E07BB20267EAB000B276C /* MiscViewController.css */,
 				CE1A284B1F7602F2005F62A9 /* MiscViewController.h */,
 				CE1A28361F75FE70005F62A9 /* MoveViewController.c */,
+				CE4E07B920267EAB000B276C /* MoveViewController.css */,
 				CE1A28371F75FE70005F62A9 /* MoveViewController.h */,
 				CE1A284C1F7602F2005F62A9 /* ShootViewController.c */,
+				CE4E07BA20267EAB000B276C /* ShootViewController.css */,
 				CE1A284D1F7602F2005F62A9 /* ShootViewController.h */,
 			);
 			path = controls;
@@ -3011,6 +3102,7 @@
 			isa = PBXGroup;
 			children = (
 				CE58707A1F5CDFE0004CAAB2 /* CreditsViewController.c */,
+				CE4E07BF20267EC7000B276C /* CreditsViewController.css */,
 				CE58707B1F5CDFE0004CAAB2 /* CreditsViewController.h */,
 				CE58707C1F5CDFE0004CAAB2 /* InfoViewController.c */,
 				CE58707D1F5CDFE0004CAAB2 /* InfoViewController.h */,
@@ -3022,8 +3114,10 @@
 			isa = PBXGroup;
 			children = (
 				CE58707F1F5CDFE0004CAAB2 /* CreateServerViewController.c */,
+				CE4E07C420267EE8000B276C /* CreateServerViewController.css */,
 				CE5870801F5CDFE0004CAAB2 /* CreateServerViewController.h */,
 				CE5870811F5CDFE0004CAAB2 /* JoinServerViewController.c */,
+				CE4E07B6202676E7000B276C /* JoinServerViewController.css */,
 				CE5870821F5CDFE0004CAAB2 /* JoinServerViewController.h */,
 				CE5870AE1F5CE99C004CAAB2 /* MapListCollectionItemView.c */,
 				CE5870AF1F5CE99C004CAAB2 /* MapListCollectionItemView.h */,
@@ -3032,6 +3126,7 @@
 				CE1A282D1F75FC1D005F62A9 /* PlayerModelView.c */,
 				CE1A282E1F75FC1D005F62A9 /* PlayerModelView.h */,
 				CE1A282F1F75FC1D005F62A9 /* PlayerSetupViewController.c */,
+				CE4E07C520267EE9000B276C /* PlayerSetupViewController.css */,
 				CE1A28301F75FC1D005F62A9 /* PlayerSetupViewController.h */,
 				CE5870831F5CDFE0004CAAB2 /* PlayViewController.c */,
 				CE5870841F5CDFE0004CAAB2 /* PlayViewController.h */,
@@ -3043,10 +3138,12 @@
 			isa = PBXGroup;
 			children = (
 				CE58708B1F5CDFE0004CAAB2 /* OptionsViewController.c */,
+				CE4E07C720267EFA000B276C /* OptionsViewController.css */,
 				CE58708C1F5CDFE0004CAAB2 /* OptionsViewController.h */,
 				CE58708D1F5CDFE0004CAAB2 /* SettingsViewController.c */,
 				CE58708E1F5CDFE0004CAAB2 /* SettingsViewController.h */,
 				CE58708F1F5CDFE0004CAAB2 /* SystemViewController.c */,
+				CE4E07C820267EFA000B276C /* SystemViewController.css */,
 				CE5870901F5CDFE0004CAAB2 /* SystemViewController.h */,
 				CE5870BC1F5CE9AE004CAAB2 /* VideoModeSelect.c */,
 				CE5870BD1F5CE9AE004CAAB2 /* VideoModeSelect.h */,
@@ -3060,12 +3157,16 @@
 				CE6EE2791F6BE8FE00FBC830 /* DialogView.c */,
 				CE6EE27A1F6BE8FE00FBC830 /* DialogView.h */,
 				CE8819581F882D9F000D5AB7 /* DialogViewController.c */,
+				CE4E07C220267ED9000B276C /* DialogViewController.css */,
 				CE8819591F882D9F000D5AB7 /* DialogViewController.h */,
 				CE5870941F5CE7D2004CAAB2 /* HomeViewController.c */,
+				CE4E07C020267ED9000B276C /* HomeViewController.css */,
 				CE5870951F5CE7D2004CAAB2 /* HomeViewController.h */,
 				CE5870961F5CE7D2004CAAB2 /* LoadingViewController.c */,
+				CE4E07C320267ED9000B276C /* LoadingViewController.css */,
 				CE5870971F5CE7D2004CAAB2 /* LoadingViewController.h */,
 				CE5870AC1F5CE98D004CAAB2 /* MainView.c */,
+				CE4E07C120267ED9000B276C /* MainView.css */,
 				CE5870AD1F5CE98D004CAAB2 /* MainView.h */,
 				CE5870981F5CE7D2004CAAB2 /* MainViewController.c */,
 				CE5870991F5CE7D2004CAAB2 /* MainViewController.h */,
@@ -3693,6 +3794,11 @@
 				CE6EE3241F6BFAF600FBC830 /* Frameworks */,
 				CE6EE3271F6BFAF600FBC830 /* Headers */,
 				CE4E07B420265210000B276C /* CopyFiles */,
+				CE4E07CA2026881F000B276C /* CopyFiles */,
+				CE4E07D02026884B000B276C /* CopyFiles */,
+				CE4E07D32026888A000B276C /* CopyFiles */,
+				CE4E07B720267815000B276C /* CopyFiles */,
+				CE4E07D9202688C5000B276C /* CopyFiles */,
 			);
 			buildRules = (
 			);

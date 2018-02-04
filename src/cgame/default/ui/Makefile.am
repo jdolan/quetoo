@@ -1,7 +1,34 @@
 commondir = @PKGLIBDIR@/default/ui/common
-
 common_DATA = \
 	common/common.css
+
+_infodir = @PKGLIBDIR@/default/ui/info
+_info_DATA = \
+	info/CreditsViewController.css
+
+controlsdir = @PKGLIBDIR@/default/ui/controls
+controls_DATA = \
+	controls/LookViewController.css \
+	controls/MiscViewController.css \
+	controls/ShootViewController.css
+
+maindir = @PKGLIBDIR@/default/ui/main
+main_DATA = \
+	main/DialogViewController.css \
+	main/HomeViewController.css \
+	main/LoadingViewController.css \
+	main/MainView.css
+
+playdir = @PKGLIBDIR@/default/ui/play
+play_DATA = \
+	play/CreateServerViewController.css \
+	play/JoinServerViewController.css \
+	play/PlayerSetupViewController.css
+
+settingsdir = @PKGLIBDIR@/default/ui/settings
+settings_DATA = \
+	settings/OptionsViewController.css \
+	settings/SystemViewController.css
 
 noinst_HEADERS = \
 	common/BindTextView.h \

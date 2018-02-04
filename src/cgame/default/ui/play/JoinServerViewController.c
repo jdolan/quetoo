@@ -276,6 +276,7 @@ static void loadView(ViewController *self) {
 
 	self->view->autoresizingMask = ViewAutoresizingContain;
 	self->view->identifier = strdup("Join");
+	self->view->stylesheet = cgi.Stylesheet("ui/play/JoinServerViewController.css");
 
 	JoinServerViewController *this = (JoinServerViewController *) self;
 

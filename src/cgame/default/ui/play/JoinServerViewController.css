@@ -1,0 +1,9 @@
+
+#Join {
+	autoresizing-mask: contain;
+}
+
+#Join #Hostname {
+	min-width: 200;
+}
+
