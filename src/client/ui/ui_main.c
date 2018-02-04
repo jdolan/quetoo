@@ -35,22 +35,25 @@ static NavigationViewController *navigationViewController;
  */
 void Ui_HandleEvent(const SDL_Event *event) {
 
-	if (cls.key_state.dest != KEY_UI) {
+	if (windowController) {
+		
+		if (cls.key_state.dest != KEY_UI) {
 
-		switch (event->type) {
-			case SDL_KEYDOWN:
-			case SDL_KEYUP:
-			case SDL_MOUSEBUTTONDOWN:
-			case SDL_MOUSEBUTTONUP:
-			case SDL_MOUSEWHEEL:
-			case SDL_MOUSEMOTION:
-			case SDL_TEXTINPUT:
-			case SDL_TEXTEDITING:
-				return;
+			switch (event->type) {
+				case SDL_KEYDOWN:
+				case SDL_KEYUP:
+				case SDL_MOUSEBUTTONDOWN:
+				case SDL_MOUSEBUTTONUP:
+				case SDL_MOUSEWHEEL:
+				case SDL_MOUSEMOTION:
+				case SDL_TEXTINPUT:
+				case SDL_TEXTEDITING:
+					return;
+			}
 		}
-	}
 
-	$(windowController, respondToEvent, event);
+		$(windowController, respondToEvent, event);
+	}
 }
 
 /**
@@ -224,7 +227,7 @@ void Ui_Shutdown(void) {
 
 	Ui_PopAllViewControllers();
 
-	release(windowController);
+	windowController = release(windowController);
 
 	Mem_FreeTag(MEM_TAG_UI);
 }
