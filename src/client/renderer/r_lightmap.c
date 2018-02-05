@@ -126,7 +126,7 @@ static void R_BuildDefaultLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, by
 	const uint32_t smax = surf->lightmap_size[0];
 	const uint32_t tmax = surf->lightmap_size[1];
 
-	stride -= (smax * 3);
+	stride -= (smax * 4);
 
 	for (uint32_t i = 0; i < tmax; i++, sout += stride, dout += stride) {
 		for (uint32_t j = 0; j < smax; j++) {
@@ -134,14 +134,16 @@ static void R_BuildDefaultLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, by
 			sout[0] = 255;
 			sout[1] = 255;
 			sout[2] = 255;
+			sout[3] = 255;
 
-			sout += 3;
+			sout += 4;
 
 			dout[0] = 127;
 			dout[1] = 127;
 			dout[2] = 255;
+			dout[3] = 255;
 
-			dout += 3;
+			dout += 4;
 		}
 	}
 }
@@ -155,7 +157,7 @@ static void R_FilterLightmap(uint32_t width, uint32_t height, byte *lightmap) {
 	image.width = width;
 	image.height = height;
 
-	R_FilterImage(&image, GL_RGB, lightmap);
+	R_FilterImage(&image, GL_RGBA, lightmap);
 }
 
 /**
@@ -173,12 +175,12 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 	const uint32_t tmax = surf->lightmap_size[1];
 
 	const size_t size = smax * tmax;
-	stride -= (smax * 3);
+	stride -= (smax * 4);
 
-	byte *lightmap = (byte *) Mem_TagMalloc(size * 3, MEM_TAG_RENDERER);
+	byte *lightmap = (byte *) Mem_TagMalloc(size * 4, MEM_TAG_RENDERER);
 	byte *lm = lightmap;
 
-	byte *deluxemap = (byte *) Mem_TagMalloc(size * 3, MEM_TAG_RENDERER);
+	byte *deluxemap = (byte *) Mem_TagMalloc(size * 4, MEM_TAG_RENDERER);
 	byte *dm = deluxemap;
 
 	// convert the raw lightmap samples to RGBA for softening
@@ -189,18 +191,25 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 
 		// read in directional samples for per-pixel lighting as well
 		if (bsp->version == BSP_VERSION_QUETOO) {
+			*lm++ = *in++;
+
+			*dm++ = *in++;
 			*dm++ = *in++;
 			*dm++ = *in++;
 			*dm++ = *in++;
 		} else {
+			*lm++ = 255;
+
 			*dm++ = 127;
 			*dm++ = 127;
+			*dm++ = 255;
 			*dm++ = 255;
 		}
 	}
 
 	// apply modulate, contrast, saturation, etc..
-	R_FilterLightmap(smax, tmax, lightmap);
+	// disabled for now, it should have been moved to GLSL anyway eventually
+	// R_FilterLightmap(smax, tmax, lightmap);
 
 	// the lightmap is uploaded to the card via the strided block
 
@@ -214,7 +223,9 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 			*lout++ = *lm++;
 			*lout++ = *lm++;
 			*lout++ = *lm++;
+			*lout++ = *lm++;
 
+			*dout++ = *dm++;
 			*dout++ = *dm++;
 			*dout++ = *dm++;
 			*dout++ = *dm++;
@@ -290,14 +301,14 @@ static void R_UploadPackedLightmaps(const uint32_t width, const uint32_t height,
 	}
 
 	// temp buffers
-	byte *sample_buffer = Mem_Malloc(width * height * 3);
-	byte *direction_buffer = Mem_Malloc(width * height * 3);
+	byte *sample_buffer = Mem_Malloc(width * height * 4);
+	byte *direction_buffer = Mem_Malloc(width * height * 4);
 
 	do {
 		r_bsp_surface_t *surf = (r_bsp_surface_t *) start->data;
 
-		const size_t stride = width * 3;
-		const size_t lightmap_offset = (surf->lightmap_t *width + surf->lightmap_s) * 3;
+		const size_t stride = width * 4;
+		const size_t lightmap_offset = (surf->lightmap_t *width + surf->lightmap_s) * 4;
 
 		byte *sout = sample_buffer + lightmap_offset;
 		byte *dout = direction_buffer + lightmap_offset;
@@ -325,8 +336,8 @@ static void R_UploadPackedLightmaps(const uint32_t width, const uint32_t height,
 	} while (start != end);
 
 	// upload!
-	R_UploadImage(lightmap, GL_RGB, sample_buffer);
-	R_UploadImage(deluxemap, GL_RGB, direction_buffer);
+	R_UploadImage(lightmap, GL_RGBA, sample_buffer);
+	R_UploadImage(deluxemap, GL_RGBA, direction_buffer);
 
 	Mem_Free(sample_buffer);
 	Mem_Free(direction_buffer);

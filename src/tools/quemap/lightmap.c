@@ -904,9 +904,10 @@ void BuildFacelights(int32_t face_num) {
  */
 void FinalLightFace(int32_t face_num) {
 	bsp_face_t *f;
-	int32_t j, k;
+	int32_t j, k, lightmap_color_channels;
 	vec3_t temp;
 	vec3_t dir;
+	vec4_t output_color;
 	face_light_t *fl;
 	byte *dest;
 
@@ -917,16 +918,18 @@ void FinalLightFace(int32_t face_num) {
 		return;    // non-lit texture
 	}
 
+	lightmap_color_channels = (legacy ? 3 : 4);
+
 	f->unused[0] = 0; // pack the old lightstyles array for legacy games
 	f->unused[1] = f->unused[2] = f->unused[3] = 255;
 
 	ThreadLock();
 
 	f->light_ofs = bsp_file.lightmap_data_size;
-	bsp_file.lightmap_data_size += fl->num_samples * 3;
+	bsp_file.lightmap_data_size += fl->num_samples * lightmap_color_channels;
 
 	if (!legacy) { // account for light direction data as well
-		bsp_file.lightmap_data_size += fl->num_samples * 3;
+		bsp_file.lightmap_data_size += fl->num_samples * lightmap_color_channels;
 	}
 
 	if (bsp_file.lightmap_data_size > MAX_BSP_LIGHTING) {
@@ -952,9 +955,19 @@ void FinalLightFace(int32_t face_num) {
 		// apply brightness, saturation and contrast
 		ColorFilter(temp, temp, brightness, saturation, contrast);
 
+		VectorCopy(temp, output_color);
+
+		if (!legacy) {
+			vec_t max_channel = Max(Max(Max(output_color[0], output_color[1]), output_color[1]), 1.0 / 255.0);
+
+			max_channel = ceil(max_channel * 255.0) / 255.0;
+			VectorScale(output_color, 1.0 / max_channel, output_color);		
+			output_color[3] = max_channel;
+		}
+
 		// write the lightmap sample data as bytes
-		for (k = 0; k < 3; k++) {
-			*dest++ = (byte) Clamp(temp[k] * 255, 0, 255);
+		for (k = 0; k < lightmap_color_channels; k++) {
+			*dest++ = (byte)Clamp(floor(output_color[k] * 255.0 + 0.5), 0, 255);
 		}
 
 		if (!legacy) { // also write the directional data
@@ -962,6 +975,8 @@ void FinalLightFace(int32_t face_num) {
 			for (k = 0; k < 3; k++) {
 				*dest++ = (byte) ((dir[k] + 1.0) * 127.0);
 			}
+
+			*dest++ = 255;
 		}
 	}
 }

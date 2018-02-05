@@ -264,3 +264,72 @@ _Bool Img_WriteTGA(const char *path, byte *data, uint32_t width, uint32_t height
 	SDL_RWclose(f);
 	return true;
 }
+
+/**
+* @brief Write pixel data to a PBM file.
+*/
+_Bool Img_WritePBM(const char *path, byte *data, uint32_t width, uint32_t height, uint32_t bpp) {
+	SDL_RWops *f;
+	const char *real_path = Fs_RealPath(path);
+
+	if (!(f = SDL_RWFromFile(real_path, "wb"))) {
+		Com_Warn("Failed to open to %s\n", real_path);
+		return false;
+	}
+
+	char header[256];
+
+	if (bpp == 4) {
+		g_snprintf(header, sizeof(header), "PF\n%u %u\n%f\n", width, height, -1.0f);
+	}
+	else {
+		g_snprintf(header, sizeof(header), "P6\n%u %u\n%d\n", width, height, bpp == 2 ? 65535 : 255);
+	}
+
+	// write PBM header
+	SDL_RWwrite(f, header, strlen(header), 1);
+
+	// output buffer
+	byte *buffer = Mem_Malloc(width * height * 3 * bpp);
+	memcpy(buffer, data, width * height * 3 * bpp);
+
+	// possible input/output buffers in needed formats
+	const uint8_t *buffer_uint8_in = data;
+	uint8_t *buffer_uint8_out = buffer;
+
+	const uint16_t *buffer_uint16_in = (uint16_t *)data;
+	uint16_t *buffer_uint16_out = (uint16_t *)buffer;
+
+	const float *buffer_float_in = (float *)data;
+	float *buffer_float_out = (float *)buffer;
+
+	uint8_t *chunk = NULL;
+	
+	// swap to big endian and flip pixels vertically (if needed)
+	for (size_t i = 0; i < height; i++) {
+		for (size_t j = 0; j < width * 3; j++) {
+			size_t index_in = i * width * 3 + j;
+			size_t index_out = (height - i - 1) * width * 3 + j;
+
+			switch (bpp) {
+			case 1:
+				buffer_uint8_out[index_out] = buffer_uint8_in[index_in];
+				break;
+			case 2:
+				chunk = (uint8_t *)(&buffer_uint16_in[index_in]);
+				buffer_uint16_out[index_out] = (chunk[1] << 0) | (chunk[0] << 8);
+				break;
+			case 4:
+				buffer_float_out[index_out] = buffer_float_in[index_in];
+				break;
+			}
+		}
+	}
+
+	SDL_RWwrite(f, buffer, width * height, 3 * bpp);
+
+	Mem_Free(buffer);
+
+	SDL_RWclose(f);
+	return true;
+}

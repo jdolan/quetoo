@@ -45,6 +45,7 @@ extern cvar_t *r_line_width;
 extern cvar_t *r_materials;
 extern cvar_t *r_max_lights;
 extern cvar_t *r_modulate;
+extern cvar_t *r_hdr;
 extern cvar_t *r_monochrome;
 extern cvar_t *r_multisample;
 extern cvar_t *r_parallax;

@@ -184,7 +184,8 @@ void main(void) {
 	vec3 deluxemap = vec3(0.0, 0.0, 1.0);
 
 	if (LIGHTMAP) {
-		lightmap = texture(SAMPLER1, texcoords[1]).rgb;
+		vec4 lightmapColorHDR = texture(SAMPLER1, texcoords[1]);
+		lightmap = lightmapColorHDR.rgb * lightmapColorHDR.a;
 
 		if (STAINMAP) {
 			vec4 stain = texture(SAMPLER8, texcoords[1]);
@@ -257,7 +258,7 @@ void main(void) {
 	// add any dynamic lighting to yield the final fragment color
 	LightFragment(diffuse, lightmap, normalmap.xyz, lightmapBumpScale, lightmapSpecularScale);
 
-    // underliquid caustics
+	// underliquid caustics
 	CausticFragment(lightmap);
 
 	// tonemap
