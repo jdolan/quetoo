@@ -297,6 +297,11 @@ typedef struct cg_import_s {
 	void (*PopAllViewControllers)(void);
 
 	/**
+	 * @brief Initializes a new Image from the given file path.
+	 */
+	Image *(*Image)(const char *path);
+
+	/**
 	 * @brief Initializes a new Stylesheet from the CSS file at the given path.
 	 */
 	Stylesheet *(*Stylesheet)(const char *path);

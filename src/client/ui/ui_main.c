@@ -122,6 +122,26 @@ void Ui_PopAllViewControllers(void) {
 /**
  * @brief
  */
+Image *Ui_Image(const char *path) {
+
+	Image *image = NULL;
+
+	SDL_Surface *surface;
+	if (Img_LoadImage(path, &surface)) {
+
+		image = $(alloc(Image), initWithSurface, surface);
+		assert(image);
+
+		SDL_FreeSurface(surface);
+	} else {
+		Com_Warn("Failed to load Image %s\n", path);
+	}
+
+	return image;
+}
+/**
+ * @brief
+ */
 Stylesheet *Ui_Stylesheet(const char *path) {
 
 	Stylesheet *stylesheet = NULL;
