@@ -1,0 +1,29 @@
+
+#main {
+	autoresizing-mask: fill;
+}
+
+#topBar, #bottomBar {
+
+}
+
+#topBar Button, #bottomBar Button {
+	background-color: #08151a;
+	border-color: #ffffff;
+	border-width: 1;
+	bevel: none;
+}
+
+.primaryButtons > Button {
+	min-width: 200;
+	min-height: 36;
+}
+
+.primaryButtons > Button > Text {
+	font-category: primary-responder;
+}
+
+.primaryIcons > Button > ImageView {
+	width: 36;
+	height: 36;
+}

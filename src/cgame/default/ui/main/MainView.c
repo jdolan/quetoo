@@ -77,7 +77,10 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 	if (self) {
 
 		View *this = (View *) self;
-		this->autoresizingMask = ViewAutoresizingFill;
+		this->identifier = strdup("main");
+
+		this->stylesheet = cgi.Stylesheet("ui/main/MainView.css");
+		assert(this->stylesheet);
 
 		QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self);
 		assert(theme);
@@ -126,6 +129,8 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 			self->topBar = $(alloc(StackView), initWithFrame, NULL);
 			assert(self->topBar);
 
+			self->topBar->view.identifier = strdup("topBar");
+
 			self->topBar->axis = StackViewAxisHorizontal;
 			self->topBar->distribution = StackViewDistributionFill;
 			self->topBar->view.alignment = ViewAlignmentTopCenter;
@@ -138,6 +143,8 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 			self->primaryButtons = $(alloc(StackView), initWithFrame, NULL);
 			assert(self->primaryButtons);
 
+			$((View *) self->primaryButtons, addClassName, "primaryButtons");
+
 			self->primaryButtons->axis = StackViewAxisHorizontal;
 			self->primaryButtons->spacing = 12;
 			self->primaryButtons->view.alignment = ViewAlignmentMiddleLeft;
@@ -146,6 +153,8 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 
 			self->primaryIcons = $(alloc(StackView), initWithFrame, NULL);
 			assert(self->primaryIcons);
+
+			$((View *) self->primaryIcons, addClassName, "primaryIcons");
 
 			self->primaryIcons->axis = StackViewAxisHorizontal;
 			self->primaryIcons->spacing = 12;
@@ -159,6 +168,8 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 		{
 			self->bottomBar = $(alloc(StackView), initWithFrame, NULL);
 			assert(self->bottomBar);
+
+			self->bottomBar->view.identifier = strdup("bottomBar");
 
 			self->bottomBar->axis = StackViewAxisHorizontal;
 			self->bottomBar->spacing = 12;
