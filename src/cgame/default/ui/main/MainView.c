@@ -22,7 +22,6 @@
 #include "cg_local.h"
 
 #include "MainView.h"
-#include "PrimaryButton.h"
 #include "QuetooTheme.h"
 
 #define _Class _MainView
@@ -117,8 +116,8 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 
 			self->contentView->autoresizingMask = ViewAutoresizingFill;
 			self->contentView->clipsSubviews = true;
-			self->contentView->padding.top = DEFAULT_PRIMARY_BUTTON_HEIGHT;
-			self->contentView->padding.bottom = DEFAULT_PRIMARY_BUTTON_HEIGHT;
+			self->contentView->padding.top = 36;
+			self->contentView->padding.bottom = 36;
 
 			$(this, addSubview, (View *) self->contentView);
 		}

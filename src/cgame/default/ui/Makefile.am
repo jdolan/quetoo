@@ -54,8 +54,6 @@ noinst_HEADERS = \
 	main/LoadingViewController.h \
 	main/MainView.h \
 	main/MainViewController.h \
-	main/PrimaryButton.h \
-	main/PrimaryIcon.h \
 	\
 	play/CreateServerViewController.h \
 	play/JoinServerViewController.h \
@@ -97,8 +95,6 @@ libui_la_SOURCES = \
 	main/LoadingViewController.c \
 	main/MainView.c \
 	main/MainViewController.c \
-	main/PrimaryButton.c \
-	main/PrimaryIcon.c \
 	\
 	play/CreateServerViewController.c \
 	play/JoinServerViewController.c \

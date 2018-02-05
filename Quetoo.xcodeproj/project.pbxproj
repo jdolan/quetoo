@@ -220,8 +220,6 @@
 		CE6EE3DC1F720D8700FBC830 /* LoadingViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870961F5CE7D2004CAAB2 /* LoadingViewController.c */; };
 		CE6EE3DD1F720D8700FBC830 /* MainView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870AC1F5CE98D004CAAB2 /* MainView.c */; };
 		CE6EE3DE1F720D8700FBC830 /* MainViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870981F5CE7D2004CAAB2 /* MainViewController.c */; };
-		CE6EE3DF1F720D8700FBC830 /* PrimaryButton.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6EE2751F6BE87B00FBC830 /* PrimaryButton.c */; };
-		CE6EE3E01F720D8700FBC830 /* PrimaryIcon.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6EE2771F6BE87B00FBC830 /* PrimaryIcon.c */; };
 		CE6EE3E11F720D9A00FBC830 /* CreateServerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58707F1F5CDFE0004CAAB2 /* CreateServerViewController.c */; };
 		CE6EE3E21F720D9A00FBC830 /* JoinServerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870811F5CDFE0004CAAB2 /* JoinServerViewController.c */; };
 		CE6EE3E31F720D9A00FBC830 /* MapListCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870AE1F5CE99C004CAAB2 /* MapListCollectionItemView.c */; };
@@ -243,8 +241,6 @@
 		CE6EE3FA1F720DC300FBC830 /* LoadingViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870971F5CE7D2004CAAB2 /* LoadingViewController.h */; };
 		CE6EE3FB1F720DC300FBC830 /* MainView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870AD1F5CE98D004CAAB2 /* MainView.h */; };
 		CE6EE3FC1F720DC300FBC830 /* MainViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870991F5CE7D2004CAAB2 /* MainViewController.h */; };
-		CE6EE3FD1F720DC300FBC830 /* PrimaryButton.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6EE2761F6BE87B00FBC830 /* PrimaryButton.h */; };
-		CE6EE3FE1F720DC300FBC830 /* PrimaryIcon.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6EE2781F6BE87B00FBC830 /* PrimaryIcon.h */; };
 		CE6EE3FF1F720DC300FBC830 /* CreateServerViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870801F5CDFE0004CAAB2 /* CreateServerViewController.h */; };
 		CE6EE4001F720DC300FBC830 /* JoinServerViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870821F5CDFE0004CAAB2 /* JoinServerViewController.h */; };
 		CE6EE4011F720DC300FBC830 /* MapListCollectionItemView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870AF1F5CE99C004CAAB2 /* MapListCollectionItemView.h */; };
@@ -1638,10 +1634,6 @@
 		CE68F9A41E5E8E8400AC9AAE /* r_program_stain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_program_stain.h; sourceTree = "<group>"; };
 		CE6C2D0F1E24902900F55B0A /* cm_bsp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_bsp.c; sourceTree = "<group>"; };
 		CE6C2D101E24902900F55B0A /* cm_bsp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_bsp.h; sourceTree = "<group>"; };
-		CE6EE2751F6BE87B00FBC830 /* PrimaryButton.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PrimaryButton.c; sourceTree = "<group>"; };
-		CE6EE2761F6BE87B00FBC830 /* PrimaryButton.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PrimaryButton.h; sourceTree = "<group>"; };
-		CE6EE2771F6BE87B00FBC830 /* PrimaryIcon.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PrimaryIcon.c; sourceTree = "<group>"; };
-		CE6EE2781F6BE87B00FBC830 /* PrimaryIcon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PrimaryIcon.h; sourceTree = "<group>"; };
 		CE6EE2791F6BE8FE00FBC830 /* DialogView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DialogView.c; sourceTree = "<group>"; };
 		CE6EE27A1F6BE8FE00FBC830 /* DialogView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DialogView.h; sourceTree = "<group>"; };
 		CE6EE3371F6BFAF600FBC830 /* libcgame-ui.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libcgame-ui.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -3170,10 +3162,6 @@
 				CE5870AD1F5CE98D004CAAB2 /* MainView.h */,
 				CE5870981F5CE7D2004CAAB2 /* MainViewController.c */,
 				CE5870991F5CE7D2004CAAB2 /* MainViewController.h */,
-				CE6EE2751F6BE87B00FBC830 /* PrimaryButton.c */,
-				CE6EE2761F6BE87B00FBC830 /* PrimaryButton.h */,
-				CE6EE2771F6BE87B00FBC830 /* PrimaryIcon.c */,
-				CE6EE2781F6BE87B00FBC830 /* PrimaryIcon.h */,
 			);
 			path = main;
 			sourceTree = "<group>";
@@ -3370,8 +3358,6 @@
 				CE6EE3FA1F720DC300FBC830 /* LoadingViewController.h in Headers */,
 				CE6EE3FB1F720DC300FBC830 /* MainView.h in Headers */,
 				CE6EE3FC1F720DC300FBC830 /* MainViewController.h in Headers */,
-				CE6EE3FD1F720DC300FBC830 /* PrimaryButton.h in Headers */,
-				CE6EE3FE1F720DC300FBC830 /* PrimaryIcon.h in Headers */,
 				CE6EE3FF1F720DC300FBC830 /* CreateServerViewController.h in Headers */,
 				CE6EE4001F720DC300FBC830 /* JoinServerViewController.h in Headers */,
 				CE6EE4011F720DC300FBC830 /* MapListCollectionItemView.h in Headers */,
@@ -4405,8 +4391,6 @@
 				CE6EE3DD1F720D8700FBC830 /* MainView.c in Sources */,
 				CE1A28311F75FC1D005F62A9 /* PlayerModelView.c in Sources */,
 				CE6EE3DE1F720D8700FBC830 /* MainViewController.c in Sources */,
-				CE6EE3DF1F720D8700FBC830 /* PrimaryButton.c in Sources */,
-				CE6EE3E01F720D8700FBC830 /* PrimaryIcon.c in Sources */,
 				CE6EE3E11F720D9A00FBC830 /* CreateServerViewController.c in Sources */,
 				CE6EE3E21F720D9A00FBC830 /* JoinServerViewController.c in Sources */,
 				CE6EE3E31F720D9A00FBC830 /* MapListCollectionItemView.c in Sources */,

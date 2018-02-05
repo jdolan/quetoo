@@ -26,9 +26,6 @@
 #include "MainViewController.h"
 #include "MainView.h"
 
-#include "PrimaryButton.h"
-#include "PrimaryIcon.h"
-
 #include "ControlsViewController.h"
 #include "HomeViewController.h"
 #include "InfoViewController.h"
@@ -58,7 +55,7 @@ static void disconnect(ident data) {
 }
 
 /**
- * @brief ActionFunction for main menu PrimaryButtons.
+ * @brief ActionFunction for main menu primary items.
  */
 static void action(Control *control, const SDL_Event *event, ident sender, ident data) {
 
@@ -168,7 +165,7 @@ static MainViewController *init(MainViewController *self) {
  */
 static void primaryButton(MainViewController *self, ident target, const char *title, Class *clazz) {
 
-	PrimaryButton *button = $(alloc(PrimaryButton), initWithTitle, title);
+	Button *button = $(alloc(Button), initWithTitle, title);
 	assert(button);
 
 	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, clazz);
@@ -183,13 +180,17 @@ static void primaryButton(MainViewController *self, ident target, const char *ti
  */
 static void primaryIcon(MainViewController *self, ident target, const char *icon, Class *clazz) {
 
-	PrimaryIcon *button = $(alloc(PrimaryIcon), initWithIcon, icon);
-	assert(button);
+	Image *image = cgi.Image(icon);
+	if (image) {
 
-	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, clazz);
+		Button *button = $(alloc(Button), initWithImage, image);
+		assert(button);
 
-	$((View *) target, addSubview, (View *) button);
-	release(button);
+		$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, clazz);
+
+		$((View *) target, addSubview, (View *) button);
+		release(button);
+	}
 }
 
 #pragma mark - Class lifecycle
