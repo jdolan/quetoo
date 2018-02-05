@@ -30,6 +30,8 @@ Data *Ui_Data(const char *path) {
 	if (length != -1) {
 		data = $$(Data, dataWithBytes, buffer, length);
 		assert(data);
+
+		Fs_Free(buffer);
 	} else {
 		Com_Warn("Failed to load Data %s\n", path);
 	}
