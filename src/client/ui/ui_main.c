@@ -119,69 +119,7 @@ void Ui_PopAllViewControllers(void) {
 	$(navigationViewController, popToRootViewController);
 }
 
-/**
- * @brief
- */
-Image *Ui_Image(const char *path) {
 
-	Image *image = NULL;
-
-	SDL_Surface *surface;
-	if (Img_LoadImage(path, &surface)) {
-
-		image = $(alloc(Image), initWithSurface, surface);
-		assert(image);
-
-		SDL_FreeSurface(surface);
-	} else {
-		Com_Warn("Failed to load Image %s\n", path);
-	}
-
-	return image;
-}
-/**
- * @brief
- */
-Stylesheet *Ui_Stylesheet(const char *path) {
-
-	Stylesheet *stylesheet = NULL;
-
-	void *buffer;
-	if (Fs_Load(path, &buffer) != -1) {
-
-		stylesheet = $$(Stylesheet, stylesheetWithCharacters, (char *) buffer);
-		assert(stylesheet);
-
-		Fs_Free(buffer);
-	} else {
-		Com_Warn("Failed to load Stylesheet %s\n", path);
-	}
-
-	return stylesheet;
-}
-
-/**
- * @brief
- */
-static Font *Ui_Font(const char *path, int size, int index) {
-
-	Font *font = NULL;
-
-	void *buffer;
-	const int64_t length = Fs_Load(path, &buffer);
-	if (length != -1) {
-		Data *data = $$(Data, dataWithBytes, buffer, length);
-		assert(data);
-
-		font = $(alloc(Font), initWithData, data, size, index);
-		assert(font);
-
-		release(data);
-	}
-
-	Fs_Free(buffer);
-	return font;
-}
 
 /**
  * @brief Initializes the user interface.

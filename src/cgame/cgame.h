@@ -24,7 +24,7 @@
 
 #include "client/cl_types.h"
 
-#define CGAME_API_VERSION 19
+#define CGAME_API_VERSION 20
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -277,6 +277,31 @@ typedef struct cg_import_s {
 	 */
 
 	/**
+	 * @brief Loads Data from the given path.
+	 */
+	Data *(*Data)(const char *path);
+
+	/**
+	 * @ brief Loads a Font from the given path, size and index.
+	 */
+	Font *(*Font)(const char *path, int32_t size, int32_t index);
+
+	/**
+	 * @brief Loads an Image from the given path.
+	 */
+	Image *(*Image)(const char *path);
+
+	/**
+	 * @brief Loads a Stylesheet from the CSS file at the given path.
+	 */
+	Stylesheet *(*Stylesheet)(const char *path);
+
+	/**
+	 * @brief Loads a View from the JSON file at the given path.
+	 */
+	View *(*View)(const char *path, Outlet *outlets);
+
+	/**
 	 * @brief Pushes the specified ViewController to the user interface.
 	 */
 	void (*PushViewController)(ViewController *viewController);
@@ -295,16 +320,6 @@ typedef struct cg_import_s {
 	 * @brief Pops all ViewControllers from the user interface.
 	 */
 	void (*PopAllViewControllers)(void);
-
-	/**
-	 * @brief Initializes a new Image from the given file path.
-	 */
-	Image *(*Image)(const char *path);
-
-	/**
-	 * @brief Initializes a new Stylesheet from the CSS file at the given path.
-	 */
-	Stylesheet *(*Stylesheet)(const char *path);
 
 	/**
 	 * @}

@@ -23,15 +23,11 @@
 
 #include "ui_types.h"
 
-void Ui_HandleEvent(const SDL_Event *event);
-void Ui_ViewWillAppear(void);
-void Ui_PushViewController(ViewController *viewController);
-void Ui_PopToViewController(ViewController *viewController);
-void Ui_PopViewController(void);
-void Ui_PopAllViewControllers(void);
-void Ui_Draw(void);
-void Ui_Init(void);
-void Ui_Shutdown(void);
+Data *Ui_Data(const char *path);
+Font *Ui_Font(const char *path, int32_t size, int32_t index);
+Image *Ui_Image(const char *path);
+Stylesheet *Ui_Stylesheet(const char *path);
+View *Ui_View(const char *path, Outlet *outlets);
 
 #ifdef __UI_LOCAL_H__
 #endif /* __UI_LOCAL_H__ */
