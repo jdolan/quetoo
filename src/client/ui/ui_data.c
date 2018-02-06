@@ -42,14 +42,14 @@ Data *Ui_Data(const char *path) {
 /**
  * @brief
  */
-Font *Ui_Font(const char *path, int32_t size, int32_t index) {
+Font *Ui_Font(const char *path, const char *family, int32_t size, int32_t style) {
 
 	Font *font = NULL;
 
 	Data *data = Ui_Data(path);
 	if (data) {
 
-		font = $(alloc(Font), initWithData, data, size, index);
+		font = $(alloc(Font), initWithData, data, family, size, style);
 		assert(font);
 
 		release(data);

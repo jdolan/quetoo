@@ -284,7 +284,7 @@ typedef struct cg_import_s {
 	/**
 	 * @ brief Loads a Font from the given path, size and index.
 	 */
-	Font *(*Font)(const char *path, int32_t size, int32_t index);
+	Font *(*Font)(const char *path, const char *family, int32_t size, int32_t style);
 
 	/**
 	 * @brief Loads an Image from the given path.

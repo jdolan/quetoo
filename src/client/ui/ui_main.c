@@ -128,40 +128,30 @@ void Ui_Init(void) {
 
 	MVC_LogSetPriority(SDL_LOG_PRIORITY_DEBUG);
 
-#if defined(__APPLE__)
-	const char *path = Fs_BaseDir();
-	if (path && strlen(path)) {
-		char fonts[MAX_OS_PATH];
-		g_snprintf(fonts, sizeof(fonts), "%s/Contents/MacOS/etc/fonts", path);
-
-		setenv("FONTCONFIG_PATH", fonts, 0);
-	}
-#endif
-
-	Font *coda16 = Ui_Font("fonts/coda.regular.ttf", 16, 0);
-	assert(coda16);
-
-	$$(Font, setDefaultFont, FontCategoryDefault, coda16);
-	$$(Font, setDefaultFont, FontCategoryPrimaryLabel, coda16);
-	$$(Font, setDefaultFont, FontCategoryPrimaryControl, coda16);
-
-	release(coda16);
-
-	Font *coda14 = Ui_Font("fonts/coda.regular.ttf", 14, 0);
-	assert(coda14);
-
-	$$(Font, setDefaultFont, FontCategorySecondaryLabel, coda14);
-	$$(Font, setDefaultFont, FontCategorySecondaryControl, coda14);
-
-	release(coda14);
-
-	Font *codaHeavy18 = Ui_Font("fonts/coda.heavy.ttf", 18, 0);
-	assert(codaHeavy18);
-
-	$$(Font, setDefaultFont, FontCategoryPrimaryResponder, codaHeavy18);
-	$$(Font, setDefaultFont, FontCategorySecondaryResponder, codaHeavy18);
-
-	release(codaHeavy18);
+//	Font *coda16 = Ui_Font("fonts/coda.regular.ttf", 16, 0);
+//	assert(coda16);
+//
+//	$$(Font, setDefaultFont, FontCategoryDefault, coda16);
+//	$$(Font, setDefaultFont, FontCategoryPrimaryLabel, coda16);
+//	$$(Font, setDefaultFont, FontCategoryPrimaryControl, coda16);
+//
+//	release(coda16);
+//
+//	Font *coda14 = Ui_Font("fonts/coda.regular.ttf", 14, 0);
+//	assert(coda14);
+//
+//	$$(Font, setDefaultFont, FontCategorySecondaryLabel, coda14);
+//	$$(Font, setDefaultFont, FontCategorySecondaryControl, coda14);
+//
+//	release(coda14);
+//
+//	Font *codaHeavy18 = Ui_Font("fonts/coda.heavy.ttf", 18, 0);
+//	assert(codaHeavy18);
+//
+//	$$(Font, setDefaultFont, FontCategoryPrimaryResponder, codaHeavy18);
+//	$$(Font, setDefaultFont, FontCategorySecondaryResponder, codaHeavy18);
+//
+//	release(codaHeavy18);
 
 	Renderer *renderer = (Renderer *) $(alloc(QuetooRenderer), init);
 

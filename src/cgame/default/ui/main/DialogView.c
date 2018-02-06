@@ -65,7 +65,7 @@ static DialogView *init(DialogView *self) {
 
 		self->panel.contentView->view.alignment = ViewAlignmentMiddleCenter;
 
-		self->message = $(alloc(Label), initWithText, NULL, $$(Font, defaultFont, FontCategoryPrimaryResponder));
+		self->message = $(alloc(Label), initWithText, NULL, NULL);
 
 		self->message->view.alignment = ViewAlignmentMiddleCenter;
 		self->message->view.autoresizingMask = ViewAutoresizingContain;

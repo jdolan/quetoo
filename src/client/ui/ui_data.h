@@ -24,7 +24,7 @@
 #include "ui_types.h"
 
 Data *Ui_Data(const char *path);
-Font *Ui_Font(const char *path, int32_t size, int32_t index);
+Font *Ui_Font(const char *path, const char *family, int32_t size, int32_t style);
 Image *Ui_Image(const char *path);
 Stylesheet *Ui_Stylesheet(const char *path);
 View *Ui_View(const char *path, Outlet *outlets);
