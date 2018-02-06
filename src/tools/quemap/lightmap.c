@@ -957,12 +957,9 @@ void FinalLightFace(int32_t face_num) {
 
 		VectorCopy(temp, output_color);
 
+		// Encode RGBM for Quetoo BSP
 		if (!legacy) {
-			vec_t max_channel = Max(Max(Max(output_color[0], output_color[1]), output_color[1]), 1.0 / 255.0);
-
-			max_channel = ceil(max_channel * 255.0) / 255.0;
-			VectorScale(output_color, 1.0 / max_channel, output_color);		
-			output_color[3] = max_channel;
+			ColorEncodeRGBM(temp, output_color);
 		}
 
 		// write the lightmap sample data as bytes
@@ -972,11 +969,17 @@ void FinalLightFace(int32_t face_num) {
 
 		if (!legacy) { // also write the directional data
 			VectorCopy((fl->directions + j * 3), dir);
-			for (k = 0; k < 3; k++) {
-				*dest++ = (byte) ((dir[k] + 1.0) * 127.0);
-			}
 
-			*dest++ = 255;
+			static const vec3_t vec3_ones = { 1.0, 1.0, 1.0 };
+
+			VectorAdd(dir, vec3_ones, dir);
+			VectorScale(dir, 0.5, dir);
+
+			ColorEncodeRGBM(dir, output_color);
+
+			for (k = 0; k < lightmap_color_channels; k++) {
+				*dest++ = (byte)Clamp(floor(output_color[k] * 255.0 + 0.5), 0, 255);
+			}
 		}
 	}
 }

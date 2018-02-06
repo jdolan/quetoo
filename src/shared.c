@@ -593,6 +593,18 @@ vec_t ColorNormalize(const vec3_t in, vec3_t out) {
 }
 
 /**
+* @brief Applies RGBM encoding to the specified input color.
+*/
+void ColorEncodeRGBM(const vec3_t in, vec4_t out) {
+	const vec_t max_channel = ceil(Max(Max(Max(in[0], in[1]), in[2]), 1.0 / 255.0) * 255.0) / 255.0;
+
+	VectorCopy(in, out);
+	VectorScale(out, 1.0 / max_channel, out);
+
+	out[3] = max_channel;
+}
+
+/**
  * @brief Applies brightness, saturation and contrast to the specified input color.
  */
 void ColorFilter(const vec3_t in, vec3_t out, vec_t brightness, vec_t saturation, vec_t contrast) {

@@ -204,7 +204,9 @@ void main(void) {
 		eyeDir = normalize(eye);
 
 		if (DELUXEMAP) {
-			deluxemap = texture(SAMPLER2, texcoords[1]).rgb;
+			vec4 deluxeColorHDR = texture(SAMPLER2, texcoords[1]);
+			deluxemap = deluxeColorHDR.rgb * deluxeColorHDR.a;
+
 			deluxemap = normalize(two * (deluxemap + negHalf));
 		}
 

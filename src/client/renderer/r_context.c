@@ -93,6 +93,7 @@ void R_InitContext(void) {
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, r_hdr->integer ? 16 : 8);
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, r_hdr->integer ? 16 : 8);
 	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, r_hdr->integer ? 16 : 8);
+	SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, r_hdr->integer ? 64 : 32);
 
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
