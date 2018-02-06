@@ -9,6 +9,8 @@ set build_configuration=%~3
 
 call ROBO "../mingw-cross/Quetoo-i686/etc/fonts/" "%quetoo_folder%/etc/fonts/" *
 call ROBO "../src/client/renderer/shaders/" "%quetoo_folder%/lib/default/shaders/" *
+call ROBO "../src/cgame/default/ui/" "%quetoo_folder%/lib/default/ui/" *.css
+call ROBO "../src/client/ui/" "%quetoo_folder%/lib/default/ui/" *.json
 
 call ROBO "../../Objectively/Objectively.vs15/bin/%build_platform%%build_configuration%/" "%quetoo_folder%/bin/" Objectively.*
 call ROBO "../../ObjectivelyMVC/ObjectivelyMVC.vs15/bin/%build_platform%%build_configuration%/" "%quetoo_folder%/bin/" ObjectivelyMVC.*
