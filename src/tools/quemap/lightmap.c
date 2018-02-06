@@ -57,7 +57,7 @@ static face_extents_t face_extents[MAX_BSP_FACES];
  * This is done so that sample positions may be nudged outward along
  * the face normal and towards the face center to help with traces.
  */
-static void BuildFaceExtents(void) {
+void BuildFaceExtents(void) {
 	const bsp_vertex_t *v;
 	int32_t i, j, k;
 
