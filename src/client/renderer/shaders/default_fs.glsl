@@ -13,6 +13,7 @@
 
 #define MAX_LIGHTS $r_max_lights
 #define LIGHT_SCALE $r_modulate
+#define DEBUG_LIGHTMAP_LAYER_INDEX $r_draw_bsp_lightmaps
 
 #if MAX_LIGHTS
 struct LightParameters {
@@ -184,7 +185,11 @@ void main(void) {
 	vec3 deluxemap = vec3(0.0, 0.0, 1.0);
 
 	if (LIGHTMAP) {
-		vec4 lightmapColorHDR = texture(SAMPLER1, vec3(texcoords[1], 0.0));
+#if DEBUG_LIGHTMAP_LAYER_INDEX > 0
+		vec4 lightmapColorHDR = texture(SAMPLER1, vec3(texcoords[1], DEBUG_LIGHTMAP_LAYER_INDEX - 1));
+#else
+		vec4 lightmapColorHDR = texture(SAMPLER1, vec3(texcoords[1], 0));
+#endif // DEBUG_LIGHTMAP_LAYER_INDEX
 		lightmap = lightmapColorHDR.rgb * lightmapColorHDR.a;
 
 		if (STAINMAP) {
@@ -204,7 +209,7 @@ void main(void) {
 		eyeDir = normalize(eye);
 
 		if (DELUXEMAP) {
-			vec4 deluxeColorHDR = texture(SAMPLER1, vec3(texcoords[1], 1.0));
+			vec4 deluxeColorHDR = texture(SAMPLER1, vec3(texcoords[1], 1));
 			deluxemap = deluxeColorHDR.rgb * deluxeColorHDR.a;
 
 			deluxemap = normalize(two * (deluxemap + negHalf));

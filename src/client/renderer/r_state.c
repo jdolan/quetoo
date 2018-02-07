@@ -42,17 +42,6 @@ const vec2_t default_texcoords[4] = { // useful for particles, pics, etc..
 	{ 0.0, 1.0 }
 };
 
-const GLenum default_texunits_targets[R_TEXUNIT_TOTAL] = {
-	GL_TEXTURE_2D,			// R_TEXUNIT_DIFFUSE,
-	GL_TEXTURE_2D_ARRAY,	// R_TEXUNIT_LIGHTMAP,
-	GL_TEXTURE_2D,			// R_TEXUNIT_DELUXEMAP,
-	GL_TEXTURE_2D,			// R_TEXUNIT_NORMALMAP,
-	GL_TEXTURE_2D,			// R_TEXUNIT_SPECULARMAP,
-	GL_TEXTURE_2D,			// R_TEXUNIT_WARP,
-	GL_TEXTURE_2D,			// R_TEXUNIT_TINTMAP,
-	GL_TEXTURE_2D			// R_TEXUNIT_STAINMAP
-};
-
 /**
  * @brief Queries OpenGL for any errors and prints them as warnings.
  */

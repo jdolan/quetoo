@@ -51,11 +51,7 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 
 	if (texunit_lightmap->enabled) { // lightmap texture
 
-		if (r_draw_bsp_lightmaps->value == 2) {
-			// R_BindLightmapTexture(surf->deluxemap->texnum);
-		} else {
-			R_BindLightmapTexture(surf->lightmap->texnum);
-		}
+		R_BindLightmapTexture(surf->lightmap->texnum);
 
 		if (texunit_stainmap->enabled) {
 			if (surf->stainmap.image) {
@@ -65,8 +61,6 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 	}
 
 	if (r_state.lighting_enabled) { // hardware lighting
-
-		// R_BindDeluxemapTexture(surf->deluxemap->texnum);
 
 		if (surf->light_frame == r_locals.light_frame) { // dynamic light sources
 			R_EnableLights(surf->light_mask);
