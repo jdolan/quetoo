@@ -54,7 +54,8 @@ static void updateBindings(View *self) {
 
 	$(select, removeAllOptions);
 	$(select, addOption, "Custom", NULL);
-	$(select, selectOptionWithValue, NULL);
+
+	Option *option = $(select, optionWithValue, NULL);
 
 	const int32_t display = SDL_GetWindowDisplayIndex(SDL_GL_GetCurrentWindow());
 	const int32_t numDisplayModes = SDL_GetNumDisplayModes(display);
@@ -73,24 +74,24 @@ static void updateBindings(View *self) {
 				$(select, addOption, title, mode);
 
 				if (mode->w == cgi.context->window_width && mode->h == cgi.context->window_height) {
-					select->selectedOption = $(select, optionWithValue, mode);
+					option = $(select, optionWithValue, mode);
 				}
 			}
 		}
 	}
 
-	$(self, sizeToFit);
+	$(select, selectOption, option);
 }
 
 #pragma mark - VideoModeSelect
 
 /**
- * @fn VideoModeSelect *VideoModeSelect::init(VideoModeSelect *self)
+ * @fn VideoModeSelect *VideoModeSelect::initWithFrame(VideoModeSelect *self, const SDL_Rect *frame)
  * @memberof VideoModeSelect
  */
-static VideoModeSelect *initWithFrame(VideoModeSelect *self, const SDL_Rect *frame, ControlStyle style) {
+static VideoModeSelect *initWithFrame(VideoModeSelect *self, const SDL_Rect *frame) {
 
-	self = (VideoModeSelect *) super(Select, self, initWithFrame, frame, style);
+	self = (VideoModeSelect *) super(Select, self, initWithFrame, frame);
 	if (self) {
 		$((View *) self, updateBindings);
 	}

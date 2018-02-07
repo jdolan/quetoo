@@ -200,7 +200,7 @@ static void loadView(ViewController *self) {
 
 		$(theme, checkbox, "Pulse on pickup", cg_draw_crosshair_pulse->name);
 
-		this->crosshairColorPicker = $(alloc(HueColorPicker), initWithFrame, NULL, ControlStyleDefault);
+		this->crosshairColorPicker = $(alloc(HueColorPicker), initWithFrame, NULL);
 		assert(this->crosshairColorPicker);
 
 		this->crosshairColorPicker->delegate.self = this;

@@ -30,8 +30,6 @@
  * @brief The QuetooTheme provides a high level API for user interface construction.
  */
 
-#define THEME_INPUT_LABEL_WIDTH 200
-
 typedef struct QuetooThemeColors QuetooThemeColors;
 
 typedef struct QuetooTheme QuetooTheme;

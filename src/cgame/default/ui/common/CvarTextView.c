@@ -62,7 +62,7 @@ static void didEndEditing(TextView *textView) {
  */
 static CvarTextView *initWithVariable(CvarTextView *self, cvar_t *var) {
 
-	self = (CvarTextView *) super(TextView, self, initWithFrame, NULL, ControlStyleDefault);
+	self = (CvarTextView *) super(TextView, self, initWithFrame, NULL);
 	if (self) {
 
 		self->var = var;

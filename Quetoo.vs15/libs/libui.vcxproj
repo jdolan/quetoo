@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\src\client\ui\renderers\QuetooRenderer.h" />
     <ClInclude Include="..\..\src\client\ui\ui.h" />
+    <ClInclude Include="..\..\src\client\ui\ui_data.h" />
     <ClInclude Include="..\..\src\client\ui\ui_editor.h" />
     <ClInclude Include="..\..\src\client\ui\ui_local.h" />
     <ClInclude Include="..\..\src\client\ui\ui_main.h" />
@@ -30,6 +31,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\client\ui\renderers\QuetooRenderer.c" />
+    <ClCompile Include="..\..\src\client\ui\ui_data.c" />
     <ClCompile Include="..\..\src\client\ui\ui_editor.c" />
     <ClCompile Include="..\..\src\client\ui\ui_main.c" />
     <ClCompile Include="..\..\src\client\ui\viewcontrollers\EditorViewController.c" />

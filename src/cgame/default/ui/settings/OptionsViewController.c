@@ -143,7 +143,7 @@ static void loadView(ViewController *self) {
 		$(theme, attach, box);
 		$(theme, target, box->contentView);
 
-		Select *qualitySelect = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
+		Select *qualitySelect = $(alloc(Select), initWithFrame, NULL);
 
 		$(qualitySelect, addOption, "Highest", (ident) 3);
 		$(qualitySelect, addOption, "High", (ident) 2);

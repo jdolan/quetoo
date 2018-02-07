@@ -62,7 +62,7 @@ static void setValue(Slider *self, double value) {
  */
 static CvarSlider *initWithVariable(CvarSlider *self, cvar_t *var, double min, double max, double step) {
 
-	self = (CvarSlider *) super(Slider, self, initWithFrame, NULL, ControlStyleDefault);
+	self = (CvarSlider *) super(Slider, self, initWithFrame, NULL);
 	if (self) {
 
 		self->var = var;

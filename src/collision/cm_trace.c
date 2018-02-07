@@ -89,7 +89,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		const vec_t d2 = DotProduct(data->end, plane->normal) - dist;
 
 		if (d2 > 0.0) {
-			end_outside = true;    // end point is not in solid
+			end_outside = true; // end point is not in solid
 		}
 		if (d1 > 0.0) {
 			start_outside = true;
@@ -228,7 +228,7 @@ static void Cm_TestInLeaf(cm_trace_data_t *data, int32_t leaf_num) {
 		const int32_t brush_num = cm_bsp.leaf_brushes[leaf->first_leaf_brush + i];
 
 		if (Cm_BrushAlreadyTested(data, brush_num)) {
-			continue;    // already checked this brush in another leaf
+			continue; // already checked this brush in another leaf
 		}
 
 		const cm_bsp_brush_t *b = &cm_bsp.brushes[brush_num];
@@ -252,7 +252,7 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, vec_t p1f, vec_t 
                            const vec3_t p1, const vec3_t p2) {
 
 	if (data->trace.fraction <= p1f) {
-		return;    // already hit something nearer
+		return; // already hit something nearer
 	}
 
 	// if < 0, we are in a leaf node

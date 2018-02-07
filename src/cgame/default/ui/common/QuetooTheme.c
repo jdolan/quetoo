@@ -97,7 +97,7 @@ static Box *box(const QuetooTheme *self, const char *label) {
  */
 static void button(const QuetooTheme *self, const char *title, ActionFunction function, ident sender, ident data) {
 
-	Control *button = (Control *) $(alloc(Button), initWithTitle, title, ControlStyleDefault);
+	Control *button = (Control *) $(alloc(Button), initWithTitle, title);
 	assert(button);
 
 	$(button, addActionForEventType, SDL_MOUSEBUTTONUP, function, sender, data);
@@ -127,12 +127,13 @@ static StackView *columns(const QuetooTheme *self, size_t count) {
 
 	StackView *columns = $(self, container);
 
-	columns->axis = StackViewAxisHorizontal;
-	columns->distribution = StackViewDistributionFill;
+	$((View *) columns, addClassName, "columns");
 
 	for (size_t i = 0; i < count; i++) {
 
 		StackView *column = $(self, container);
+
+		$((View *) column, addClassName, "column");
 		$((View *) columns, addSubview, (View *) column);
 	}
 
@@ -148,7 +149,8 @@ static StackView *container(const QuetooTheme *self) {
 	StackView *container = $(alloc(StackView), initWithFrame, NULL);
 	assert(container);
 
-	container->spacing = DEFAULT_PANEL_SPACING << 1;
+	$((View *) container, addClassName, "container");
+
 	return container;
 }
 
@@ -163,9 +165,6 @@ static void control(const QuetooTheme *self, const char *label, ident control) {
 
 	$(input, setControl, cast(Control, control));
 	$(input->label->text, setText, label);
-
-	input->label->view.frame.w = THEME_INPUT_LABEL_WIDTH;
-	input->label->view.autoresizingMask &= ~ViewAutoresizingContain;
 
 	$(self, attach, input);
 	release(input);
@@ -235,7 +234,7 @@ static QuetooTheme *initWithTarget(QuetooTheme *self, ident target) {
  */
 static Panel *panel(const QuetooTheme *self) {
 
-	Panel *panel = $(alloc(Panel), initWithFrame, NULL, ControlStyleDefault);
+	Panel *panel = $(alloc(Panel), initWithFrame, NULL);
 	assert(panel);
 
 	panel->isDraggable = false;
