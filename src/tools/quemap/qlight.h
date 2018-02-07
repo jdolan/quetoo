@@ -26,7 +26,7 @@
 #include "polylib.h"
 #include "collision/cmodel.h"
 
-#define PATCH_SUBDIVIDE 64.0
+#define PATCH_SUBDIVIDE 16.0
 
 typedef enum {
 	LIGHT_POINT,
@@ -52,6 +52,7 @@ extern vec3_t face_offset[MAX_BSP_FACES]; // for rotating bmodels
 
 // lightmap.c
 void BuildLights(void);
+void BuildFaceExtents(void);
 void BuildVertexNormals(void);
 void DirectLighting(int32_t face_num);
 void IndirectLighting(int32_t face_num);

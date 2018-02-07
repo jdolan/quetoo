@@ -21,8 +21,12 @@
 
 #include "quemap.h"
 
-#if defined(__MINGW32__)
- #define SDL_MAIN_HANDLED
+#if defined(_WIN32)
+	#if defined(__MINGW32__)
+	 #define SDL_MAIN_HANDLED
+	#endif
+
+	#include <Windows.h>
 #endif
 
 #include <SDL2/SDL.h>

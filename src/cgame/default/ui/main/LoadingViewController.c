@@ -78,14 +78,6 @@ static void loadView(ViewController *self) {
 	this->progressBar->view.autoresizingMask = ViewAutoresizingWidth;
 
 	SDL_Surface *surface;
-
-//	if (cgi.LoadSurface("ui/pics/progress_bar_bg", &surface)) {
-//		$(this->progressBar->background, setImageWithSurface, surface);
-//		SDL_FreeSurface(surface);
-//	} else {
-//		$(this->progressBar->background, setImage, NULL);
-//	}
-
 	if (cgi.LoadSurface("ui/pics/progress_bar", &surface)) {
 		$(this->progressBar->foreground, setImageWithSurface, surface);
 		SDL_FreeSurface(surface);

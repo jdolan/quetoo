@@ -15,7 +15,8 @@ noinst_HEADERS = \
 	r_entity.h \
 	r_flare.h \
 	r_framebuffer.h \
-	r_glad_core.h \
+	r_gl.h \
+	r_gl_types.h \
 	r_image.h \
 	r_light.h \
 	r_lighting.h \
@@ -62,7 +63,7 @@ librenderer_la_SOURCES = \
 	r_entity.c \
 	r_flare.c \
 	r_framebuffer.c \
-	r_glad_core.c \
+	r_gl.c \
 	r_image.c \
 	r_light.c \
 	r_lighting.c \

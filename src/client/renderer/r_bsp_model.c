@@ -20,6 +20,7 @@
  */
 
 #include "r_local.h"
+#include "r_gl.h"
 #include "client.h"
 
 /**
@@ -339,7 +340,7 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
 		// lastly lighting info
 		const int32_t ofs = in->light_ofs;
 		const byte *data = (ofs == -1) ? NULL : bsp->file->lightmap_data + ofs;
-
+	
 		// to create the lightmap and deluxemap
 		R_CreateBspSurfaceLightmap(bsp, out, data);
 
@@ -822,7 +823,7 @@ void R_ExportBSP_f(void) {
 																-vertex->normal[0], vertex->normal[2], vertex->normal[1]);
 	}
 	
-	Fs_Print(file, "# %" PRIdMAX " vertices\n\n", num_vertices);
+	Fs_Print(file, "# %" PRIuPTR " vertices\n\n", num_vertices);
 	
 	Com_Print("Writing elements...\n");
 
@@ -866,7 +867,7 @@ void R_ExportBSP_f(void) {
 		Fs_Print(file, "\n");
 	}
 	
-	Fs_Print(file, "# %" PRIdMAX " surfaces\n\n", num_surfs);
+	Fs_Print(file, "# %" PRIuPTR " surfaces\n\n", num_surfs);
 	Fs_Close(file);
 
 	g_hash_table_destroy(materials);

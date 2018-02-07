@@ -40,10 +40,6 @@
 #define MAX_BSP_LIGHTMAP		(256 * 256) // minimum r_lightmap_block_size
 #define MAX_BSP_VISIBILITY		0x400000 // increased from Quake2 0x100000
 
-// key / value pair sizes
-#define MAX_BSP_ENTITY_KEY		32
-#define MAX_BSP_ENTITY_VALUE	1024
-
 typedef enum {
 	BSP_LUMP_ENTITIES,
 	BSP_LUMP_PLANES,

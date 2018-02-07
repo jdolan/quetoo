@@ -5,6 +5,7 @@ SUBDIRS = \
 
 noinst_HEADERS = \
 	ui.h \
+	ui_data.h \
 	ui_editor.h \
 	ui_local.h \
 	ui_main.h
@@ -13,6 +14,7 @@ noinst_LTLIBRARIES = \
 	libui.la
 
 libui_la_SOURCES = \
+	ui_data.c \
 	ui_editor.c \
 	ui_main.c
 

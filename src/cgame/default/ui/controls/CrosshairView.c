@@ -107,7 +107,7 @@ static void updateBindings(View *self) {
  */
 static CrosshairView *initWithFrame(CrosshairView *self, const SDL_Rect *frame) {
 
-	self = (CrosshairView *) super(Control, self, initWithFrame, frame, ControlStyleDefault);
+	self = (CrosshairView *) super(Control, self, initWithFrame, frame);
 	if (self) {
 
 		self->imageView = $(alloc(ImageView), initWithFrame, NULL);

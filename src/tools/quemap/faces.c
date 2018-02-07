@@ -297,7 +297,9 @@ static void FindEdgeVertexes(vec3_t v1, vec3_t v2) {
 		y2 = tmp;
 	}
 
-	int32_t x, y, num_edge_verts = 0;
+	num_edge_verts = 0;
+
+	int32_t x, y;
 	for (x = x1; x <= x2; x++) {
 		for (y = y1; y <= y2; y++) {
 			int32_t vnum;

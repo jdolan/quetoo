@@ -41,7 +41,7 @@ vec_t brightness = 1.0;
 vec_t saturation = 1.0;
 vec_t contrast = 1.0;
 
-vec_t surface_scale = 0.4;
+vec_t surface_scale = 1.0;
 vec_t entity_scale = 1.0;
 
 /**
@@ -162,8 +162,13 @@ static void LightWorld(void) {
 	// patches are no longer needed
 	FreePatches();
 
+	// build face extents
+	BuildFaceExtents();
+
 	// build per-vertex normals for phong shading
-	BuildVertexNormals();
+	if (!legacy) {
+		BuildVertexNormals();
+	}
 
 	// calculate direct lighting
 	RunThreadsOn(bsp_file.num_faces, true, DirectLighting);
