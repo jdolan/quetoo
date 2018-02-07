@@ -119,6 +119,14 @@ static void R_AllocStainmap_(const uint32_t width, const uint32_t height, r_stai
 #define R_AllocStainmap(w, h, o) R_AllocStainmap_(w, h, o)
 
 /**
+* @brief Default lightmaps colors for each of the pages
+*/
+static const u8vec4_t default_lightmap_colors[MAX_LIGHTMAP_PAGES] = {
+	{255, 255, 255, 255},
+	{127, 127, 255, 255}
+};
+
+/**
  * @brief
  */
 static void R_BuildDefaultLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, byte *lightmaps_out, 
@@ -132,15 +140,12 @@ static void R_BuildDefaultLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, by
 	for (uint32_t i = 0; i < tmax; i++, lightmaps_out += stride) {
 		for (uint32_t j = 0; j < smax; j++) {
 
-			lightmaps_out[0] = 255;
-			lightmaps_out[1] = 255;
-			lightmaps_out[2] = 255;
-			lightmaps_out[3] = 255;
-
-			lightmaps_out[0 + lightmap_layer_size] = 127;
-			lightmaps_out[1 + lightmap_layer_size] = 127;
-			lightmaps_out[2 + lightmap_layer_size] = 255;
-			lightmaps_out[3 + lightmap_layer_size] = 255;
+			for (uint32_t k = 0; k < MAX_LIGHTMAP_PAGES; k++) {
+				lightmaps_out[0 + lightmap_layer_size * k] = default_lightmap_colors[k][0];
+				lightmaps_out[1 + lightmap_layer_size * k] = default_lightmap_colors[k][1];
+				lightmaps_out[2 + lightmap_layer_size * k] = default_lightmap_colors[k][2];
+				lightmaps_out[3 + lightmap_layer_size * k] = default_lightmap_colors[k][3];
+			}
 
 			lightmaps_out += 4;
 		}
@@ -188,17 +193,21 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 		if (bsp->version == BSP_VERSION_QUETOO) {
 			lightmap[i * 4 + 3] = *in++;
 
-			lightmap[i * 4 + 0 + size * 4] = *in++;
-			lightmap[i * 4 + 1 + size * 4] = *in++;
-			lightmap[i * 4 + 2 + size * 4] = *in++;
-			lightmap[i * 4 + 3 + size * 4] = *in++;
+			for (uint32_t k = 1; k < MAX_LIGHTMAP_PAGES; k++) {
+				lightmap[i * 4 + 0 + size * 4 * k] = *in++;
+				lightmap[i * 4 + 1 + size * 4 * k] = *in++;
+				lightmap[i * 4 + 2 + size * 4 * k] = *in++;
+				lightmap[i * 4 + 3 + size * 4 * k] = *in++;
+			}
 		} else {
-			lightmap[i * 4 + 3] = 255;
+			lightmap[i * 4 + 3] = default_lightmap_colors[0][3];
 
-			lightmap[i * 4 + 0 + size * 4] = 127;
-			lightmap[i * 4 + 1 + size * 4] = 127;
-			lightmap[i * 4 + 2 + size * 4] = 255;
-			lightmap[i * 4 + 3 + size * 4] = 255;
+			for (uint32_t k = 1; k < MAX_LIGHTMAP_PAGES; k++) {
+				lightmap[i * 4 + 0 + size * 4 * k] = default_lightmap_colors[k][0];
+				lightmap[i * 4 + 1 + size * 4 * k] = default_lightmap_colors[k][1];
+				lightmap[i * 4 + 2 + size * 4 * k] = default_lightmap_colors[k][2];
+				lightmap[i * 4 + 3 + size * 4 * k] = default_lightmap_colors[k][3];
+			}
 		}
 	}
 
@@ -212,15 +221,12 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 		for (uint32_t s = 0; s < smax; s++) {
 			// copy the lightmap and deluxemap to the strided block
 
-			lightmaps_out[0] = lightmap[(t * smax + s) * 4 + 0];
-			lightmaps_out[1] = lightmap[(t * smax + s) * 4 + 1];
-			lightmaps_out[2] = lightmap[(t * smax + s) * 4 + 2];
-			lightmaps_out[3] = lightmap[(t * smax + s) * 4 + 3];
-
-			lightmaps_out[0 + lightmap_layer_size] = lightmap[(t * smax + s) * 4 + 0 + size * 4];
-			lightmaps_out[1 + lightmap_layer_size] = lightmap[(t * smax + s) * 4 + 1 + size * 4];
-			lightmaps_out[2 + lightmap_layer_size] = lightmap[(t * smax + s) * 4 + 2 + size * 4];
-			lightmaps_out[3 + lightmap_layer_size] = lightmap[(t * smax + s) * 4 + 3 + size * 4];
+			for (uint32_t k = 0; k < MAX_LIGHTMAP_PAGES; k++) {
+				lightmaps_out[0 + lightmap_layer_size * k] = lightmap[(t * smax + s) * 4 + 0 + size * 4 * k];
+				lightmaps_out[1 + lightmap_layer_size * k] = lightmap[(t * smax + s) * 4 + 1 + size * 4 * k];
+				lightmaps_out[2 + lightmap_layer_size * k] = lightmap[(t * smax + s) * 4 + 2 + size * 4 * k];
+				lightmaps_out[3 + lightmap_layer_size * k] = lightmap[(t * smax + s) * 4 + 3 + size * 4 * k];
+			}
 
 			lightmaps_out += 4;
 		}

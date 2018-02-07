@@ -123,8 +123,6 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in floa
 			}
 		}
 	}
-
-	light *= LIGHT_SCALE;
 #endif
 
 	// now modulate the diffuse sample with the modified lightmap
@@ -138,7 +136,7 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in floa
 	vec3 diffuseLightmapColor = lightmap.rgb * lightmapDiffuseBumpedLuma;
 	vec3 specularLightmapColor = (lightmapLuma + lightmap.rgb) * 0.5 * lightmapSpecularBumpedLuma;
 
-	fragColor.rgb = diffuse.rgb * ((diffuseLightmapColor + specularLightmapColor) * LIGHT_SCALE + light);
+	fragColor.rgb = diffuse.rgb * ((diffuseLightmapColor + specularLightmapColor) + light);
 
 	// lastly modulate the alpha channel by the color
 	fragColor.a = diffuse.a * color.a;
@@ -271,6 +269,9 @@ void main(void) {
 	// tonemap
 	fragColor.rgb *= exp(fragColor.rgb);
 	fragColor.rgb /= fragColor.rgb + 0.825;
+
+	// apply lightscale afterwards, because it should be done AFTER tonemapping
+	fragColor.rgb *= LIGHT_SCALE;
 
 	// and fog
 	FogFragment(length(point), fragColor);
