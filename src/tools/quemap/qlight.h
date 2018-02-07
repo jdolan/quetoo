@@ -51,6 +51,7 @@ extern vec3_t face_offset[MAX_BSP_FACES];  // for rotating bmodels
 
 // lightmap.c
 void BuildLights(void);
+void BuildFaceExtents(void);
 void BuildVertexNormals(void);
 void BuildFacelights(int32_t facenum);
 void FinalLightFace(int32_t facenum);

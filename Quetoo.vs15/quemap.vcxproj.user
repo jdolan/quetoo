@@ -6,7 +6,7 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LocalDebuggerCommandArguments>-vis maps/edge.bsp</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-l -bsp -vis -light testq23.bsp</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LocalDebuggerCommandArguments>-vis maps/edge.bsp</LocalDebuggerCommandArguments>
