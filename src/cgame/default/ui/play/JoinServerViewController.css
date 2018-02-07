@@ -3,7 +3,31 @@
 	autoresizing-mask: contain;
 }
 
-#Join #Hostname {
-	min-width: 200;
+#Servers {
+	width: 960;
+	height: 480;
 }
 
+TableCellView#Hostname {
+	min-width: 360;
+}
+
+#Source {
+	min-width: 140;
+}
+
+#Map {
+	min-width: 120;
+}
+
+#Gameplay {
+	min-width: 120;
+}
+
+#Players {
+	min-width: 80;
+}
+
+#Ping {
+	min-width: 80;
+}

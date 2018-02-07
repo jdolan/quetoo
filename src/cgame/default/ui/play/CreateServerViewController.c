@@ -144,8 +144,8 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	self->view->autoresizingMask = ViewAutoresizingContain;
 	self->view->identifier = strdup("Create");
+	self->view->stylesheet = cgi.Stylesheet("ui/play/CreateServerViewController.css");
 
 	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
 	assert(theme);
@@ -217,7 +217,6 @@ static void loadView(ViewController *self) {
 		$(this->teamsplay, addOption, "Team deathmatch", (ident) 1);
 		$(this->teamsplay, addOption, "Capture the flag", (ident) 2);
 
-		this->teamsplay->control.view.frame.w = 160;
 		this->teamsplay->delegate.didSelectOption = selectTeamsplay;
 
 		if (g_ctf->integer != 0) {
@@ -240,8 +239,7 @@ static void loadView(ViewController *self) {
 		$(theme, attach, box);
 		$(theme, target, box->contentView);
 
-		const SDL_Rect frame = { .w = 760, .h = 600 };
-		this->mapList = $(alloc(MapListCollectionView), initWithFrame, &frame);
+		this->mapList = $(alloc(MapListCollectionView), initWithFrame, NULL);
 		assert(this->mapList);
 
 		$(theme, attach, this->mapList);

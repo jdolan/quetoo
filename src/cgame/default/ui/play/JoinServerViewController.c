@@ -274,7 +274,6 @@ static void loadView(ViewController *self) {
 	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
 	assert(theme);
 
-	self->view->autoresizingMask = ViewAutoresizingContain;
 	self->view->identifier = strdup("Join");
 	self->view->stylesheet = cgi.Stylesheet("ui/play/JoinServerViewController.css");
 
@@ -287,8 +286,10 @@ static void loadView(ViewController *self) {
 	$(theme, target, container);
 
 	{
-		const SDL_Rect frame = { .w = 1200, .h = 600 };
-		this->serversTableView = $(alloc(TableView), initWithFrame, &frame);
+		this->serversTableView = $(alloc(TableView), initWithFrame, NULL);
+		assert(this->serversTableView);
+
+		this->serversTableView->control.view.identifier = strdup("Servers");
 
 		$(this->serversTableView, addColumnWithIdentifier, _hostname);
 		$(this->serversTableView, addColumnWithIdentifier, _source);

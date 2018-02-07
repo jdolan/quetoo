@@ -271,7 +271,7 @@ static void loadView(ViewController *self) {
 
 	$(theme, targetSubview, columns, 1);
 
-	this->playerModelView = $(alloc(PlayerModelView), initWithFrame, &MakeRect(0, 0, 800, 680));
+	this->playerModelView = $(alloc(PlayerModelView), initWithFrame, &MakeRect(0, 0, 600, 480));
 	assert(this->playerModelView);
 
 	$(theme, attach, this->playerModelView);

@@ -4,7 +4,8 @@
 }
 
 #topBar, #bottomBar {
-
+	background-color: #22222244;
+	padding: 4;
 }
 
 #topBar Button, #bottomBar Button {
@@ -20,7 +21,12 @@
 }
 
 .primaryButtons > Button > Text {
-	font-category: primary-responder;
+	font-style: bold;
+}
+
+.primaryIcons > Button {
+	min-width: 0;
+	padding: 0;
 }
 
 .primaryIcons > Button > ImageView {

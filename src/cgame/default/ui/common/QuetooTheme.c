@@ -127,12 +127,13 @@ static StackView *columns(const QuetooTheme *self, size_t count) {
 
 	StackView *columns = $(self, container);
 
-	columns->axis = StackViewAxisHorizontal;
-	columns->distribution = StackViewDistributionFill;
+	$((View *) columns, addClassName, "columns");
 
 	for (size_t i = 0; i < count; i++) {
 
 		StackView *column = $(self, container);
+
+		$((View *) column, addClassName, "column");
 		$((View *) columns, addSubview, (View *) column);
 	}
 
@@ -148,7 +149,8 @@ static StackView *container(const QuetooTheme *self) {
 	StackView *container = $(alloc(StackView), initWithFrame, NULL);
 	assert(container);
 
-	container->spacing = 24;
+	$((View *) container, addClassName, "container");
+
 	return container;
 }
 

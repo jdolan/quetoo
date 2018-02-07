@@ -1,4 +1,22 @@
 
 .container {
+	spacing: 12;
+}
+
+Panel Input Label {
+	min-width: 200;
+}
+
+.columns {
+	axis: horizontal;
+	distribution: fill;
 	spacing: 24;
+}
+
+.columns > .column {
+	min-width: 400;
+}
+
+.column Box {
+	autoresizing-mask: contain | width;
 }
