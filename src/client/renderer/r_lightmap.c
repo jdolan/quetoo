@@ -156,7 +156,7 @@ static void R_BuildDefaultLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, by
  * @brief Apply brightness, saturation and contrast to the lightmap.
  */
 static void R_FilterLightmap(uint32_t width, uint32_t height, byte *lightmap) {
-	static r_image_t image = { .type = IT_LIGHTMAP };
+	static r_image_t image = { .type = IT_LIGHTMAP, .layers = MAX_LIGHTMAP_PAGES };
 
 	image.width = width;
 	image.height = height;

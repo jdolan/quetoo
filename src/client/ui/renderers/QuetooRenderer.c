@@ -128,7 +128,7 @@ static void drawTexture(const Renderer *self, GLuint texture, const SDL_Rect *re
 
 	assert(rect);
 
-	const r_image_t image = { .texnum = texture };
+	const r_image_t image = { .texnum = texture, .layers = 0 };
 
 	R_DrawImageResized(rect->x, rect->y, rect->w, rect->h, &image);
 }

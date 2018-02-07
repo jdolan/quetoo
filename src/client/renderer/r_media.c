@@ -58,6 +58,8 @@ void R_ListMedia_f(void) {
 void R_DumpImage(const r_image_t *image, const char *output) {
 	const char *real_path = Fs_RealPath(output);
 	char real_dir[MAX_QPATH];
+	GLenum target;
+
 	Dirname(output, real_dir);
 	Fs_Mkdir(real_dir);
 	SDL_RWops *f = SDL_RWFromFile(real_path, "wb");
@@ -72,18 +74,27 @@ void R_DumpImage(const r_image_t *image, const char *output) {
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
-	R_BindDiffuseTexture(image->texnum);
+	// try GL_TEXTURE_2D first
+	target = GL_TEXTURE_2D;
+	R_BindUnitTexture(texunit_diffuse, image->texnum, target);
 
-	int32_t width, height;
+	// and if GL_TEXTURE_2D failed, then it had to be GL_TEXTURE_2D_ARRAY
+	if (glGetError() == GL_INVALID_OPERATION) {
+		target = GL_TEXTURE_2D_ARRAY;
+		R_BindUnitTexture(texunit_diffuse, image->texnum, target);
+	}
 
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
+	int32_t width, height, layers;
+
+	glGetTexLevelParameteriv(target, 0, GL_TEXTURE_WIDTH, &width);
+	glGetTexLevelParameteriv(target, 0, GL_TEXTURE_HEIGHT, &height);
+	glGetTexLevelParameteriv(target, 0, GL_TEXTURE_DEPTH, &layers);
 	
-	GLubyte *pixels = Mem_Malloc(width * height * 4);
+	GLubyte *pixels = Mem_Malloc(width * height * 4 * layers);
 	
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+	glGetTexImage(target, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
-	SDL_Surface *ss = SDL_CreateRGBSurfaceFrom(pixels, width, height, 32, width * 4, RMASK, GMASK, BMASK, AMASK);
+	SDL_Surface *ss = SDL_CreateRGBSurfaceFrom(pixels, width, height * layers, 32, width * 4, RMASK, GMASK, BMASK, AMASK);
 	IMG_SavePNG_RW(ss, f, 0);
 	SDL_FreeSurface(ss);
 
