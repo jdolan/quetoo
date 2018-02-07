@@ -1084,8 +1084,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		CE0B647C1D8979160011F974 /* fonts.conf */ = {isa = PBXFileReference; lastKnownFileType = text; path = fonts.conf; sourceTree = "<group>"; };
-		CE0B647E1D8979780011F974 /* fonts.conf */ = {isa = PBXFileReference; lastKnownFileType = text; path = fonts.conf; sourceTree = "<group>"; };
 		CE0B64811D89955B0011F974 /* .turd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
 		CE107D7C1F6592860010A1DA /* QuetooTheme.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = QuetooTheme.c; sourceTree = "<group>"; };
 		CE107D7D1F6592860010A1DA /* QuetooTheme.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QuetooTheme.h; sourceTree = "<group>"; };
@@ -2038,38 +2036,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		CE0B64781D8978F30011F974 /* etc */ = {
-			isa = PBXGroup;
-			children = (
-				CE0B64791D8978F30011F974 /* fonts */,
-			);
-			path = etc;
-			sourceTree = "<group>";
-		};
-		CE0B64791D8978F30011F974 /* fonts */ = {
-			isa = PBXGroup;
-			children = (
-				CE0B647E1D8979780011F974 /* fonts.conf */,
-			);
-			path = fonts;
-			sourceTree = "<group>";
-		};
-		CE0B647A1D8979030011F974 /* etc */ = {
-			isa = PBXGroup;
-			children = (
-				CE0B647B1D8979030011F974 /* fonts */,
-			);
-			path = etc;
-			sourceTree = "<group>";
-		};
-		CE0B647B1D8979030011F974 /* fonts */ = {
-			isa = PBXGroup;
-			children = (
-				CE0B647C1D8979160011F974 /* fonts.conf */,
-			);
-			path = fonts;
-			sourceTree = "<group>";
-		};
 		CE0B64801D89955B0011F974 /* bin */ = {
 			isa = PBXGroup;
 			children = (
@@ -2193,7 +2159,6 @@
 			isa = PBXGroup;
 			children = (
 				CE12D5201C5C58C300CD0B13 /* bin */,
-				CE0B64781D8978F30011F974 /* etc */,
 				CE12D5231C5C58C300CD0B13 /* lib */,
 				CE12D5271C5C58C300CD0B13 /* share */,
 			);
@@ -2243,7 +2208,6 @@
 			isa = PBXGroup;
 			children = (
 				CE12D52C1C5C58C300CD0B13 /* bin */,
-				CE0B647A1D8979030011F974 /* etc */,
 				CE12D52F1C5C58C300CD0B13 /* lib */,
 				CE12D5331C5C58C300CD0B13 /* share */,
 			);
