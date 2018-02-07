@@ -44,7 +44,7 @@ uniform float HARDNESS;
 uniform float SPECULAR;
 
 uniform sampler2D SAMPLER0;
-uniform sampler2D SAMPLER1;
+uniform sampler2DArray SAMPLER1;
 uniform sampler2D SAMPLER2;
 uniform sampler2D SAMPLER3;
 uniform sampler2D SAMPLER4;
@@ -184,7 +184,7 @@ void main(void) {
 	vec3 deluxemap = vec3(0.0, 0.0, 1.0);
 
 	if (LIGHTMAP) {
-		vec4 lightmapColorHDR = texture(SAMPLER1, texcoords[1]);
+		vec4 lightmapColorHDR = texture(SAMPLER1, vec3(texcoords[1], 0.0));
 		lightmap = lightmapColorHDR.rgb * lightmapColorHDR.a;
 
 		if (STAINMAP) {
@@ -204,7 +204,7 @@ void main(void) {
 		eyeDir = normalize(eye);
 
 		if (DELUXEMAP) {
-			vec4 deluxeColorHDR = texture(SAMPLER2, texcoords[1]);
+			vec4 deluxeColorHDR = texture(SAMPLER1, vec3(texcoords[1], 1.0));
 			deluxemap = deluxeColorHDR.rgb * deluxeColorHDR.a;
 
 			deluxemap = normalize(two * (deluxemap + negHalf));

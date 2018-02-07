@@ -195,16 +195,16 @@ extern r_state_t r_state;
 void R_GetError_(const char *function, const char *msg);
 void R_SelectTexture(r_texunit_t *texunit);
 
-void R_BindUnitTexture(r_texunit_t *texunit, GLuint texnum);
+void R_BindUnitTexture(r_texunit_t *texunit, GLuint texnum, GLenum target);
 
-#define R_BindDiffuseTexture(texnum)		R_BindUnitTexture(texunit_diffuse, texnum)
-#define R_BindLightmapTexture(texnum)		R_BindUnitTexture(texunit_lightmap, texnum)
-#define R_BindDeluxemapTexture(texnum)		R_BindUnitTexture(texunit_deluxemap, texnum)
-#define R_BindNormalmapTexture(texnum)		R_BindUnitTexture(texunit_normalmap, texnum)
-#define R_BindSpecularmapTexture(texnum)	R_BindUnitTexture(texunit_specularmap, texnum)
-#define R_BindWarpTexture(texnum)			R_BindUnitTexture(texunit_warp, texnum)
-#define R_BindTintTexture(texnum)			R_BindUnitTexture(texunit_tint, texnum)
-#define R_BindStainmapTexture(texnum)		R_BindUnitTexture(texunit_stainmap, texnum)
+#define R_BindDiffuseTexture(texnum)		R_BindUnitTexture(texunit_diffuse, texnum, GL_TEXTURE_2D)
+#define R_BindLightmapTexture(texnum)		R_BindUnitTexture(texunit_lightmap, texnum, GL_TEXTURE_2D_ARRAY)
+#define R_BindDeluxemapTexture(texnum)		R_BindUnitTexture(texunit_deluxemap, texnum, GL_TEXTURE_2D)
+#define R_BindNormalmapTexture(texnum)		R_BindUnitTexture(texunit_normalmap, texnum, GL_TEXTURE_2D)
+#define R_BindSpecularmapTexture(texnum)	R_BindUnitTexture(texunit_specularmap, texnum, GL_TEXTURE_2D)
+#define R_BindWarpTexture(texnum)			R_BindUnitTexture(texunit_warp, texnum, GL_TEXTURE_2D)
+#define R_BindTintTexture(texnum)			R_BindUnitTexture(texunit_tint, texnum, GL_TEXTURE_2D)
+#define R_BindStainmapTexture(texnum)		R_BindUnitTexture(texunit_stainmap, texnum, GL_TEXTURE_2D)
 
 void R_EnableDepthMask(_Bool enable);
 

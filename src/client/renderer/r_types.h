@@ -289,7 +289,7 @@ typedef struct r_buffer_s {
 typedef struct {
 	r_media_t media;
 	r_image_type_t type;
-	r_pixel_t width, height; // image dimensions
+	r_pixel_t width, height, layers; // image dimensions
 	GLuint texnum; // OpenGL texture binding
 	vec3_t color; // average color
 } r_image_t;
@@ -528,7 +528,6 @@ typedef struct {
 	r_pixel_t lightmap_s, lightmap_t; // lightmap texture coords
 
 	r_image_t *lightmap;
-	r_image_t *deluxemap;
 
 	// pointer to lightmap data on bsp.
 	const byte *lightmap_input;
@@ -874,6 +873,13 @@ typedef enum {
 	LIGHTING_DIRTY,
 	LIGHTING_READY
 } r_lighting_state_t;
+
+/**
+ * @brief All lightmaps are moved into texture arrays,
+ * instead of having different names (lightmap, deluxmap) like before,
+ * they now packed into pages/layers.
+ */
+#define MAX_LIGHTMAP_PAGES 2
 
 /**
  * @brief Up to MAX_ILLUMINATIONS illuminations are calculated for each mesh entity. The first

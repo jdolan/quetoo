@@ -222,26 +222,33 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 		glGenTextures(1, &(image->texnum));
 	}
 
-	R_BindDiffuseTexture(image->texnum);
+	const GLenum target = image->layers == 0 ? GL_TEXTURE_2D : GL_TEXTURE_2D_ARRAY;
+
+	R_BindUnitTexture(texunit_diffuse, image->texnum, target);
 
 	if (image->type & IT_MASK_MIPMAP) {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_image_state.filter_min);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_image_state.filter_mag);
+		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, r_image_state.filter_min);
+		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, r_image_state.filter_mag);
 
 		if (r_image_state.anisotropy) {
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_image_state.anisotropy);
+			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_image_state.anisotropy);
 		}
 
 	} else {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_image_state.filter_mag);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_image_state.filter_mag);
+		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, r_image_state.filter_mag);
+		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, r_image_state.filter_mag);
 	}
 
-	glTexImage2D(GL_TEXTURE_2D, 0, format, image->width, image->height, 0, format,
-	             GL_UNSIGNED_BYTE, data);
+	if (image->layers > 0) {
+		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, format, image->width, image->height, image->layers, 0, format,
+			GL_UNSIGNED_BYTE, data);
+	} else {
+		glTexImage2D(GL_TEXTURE_2D, 0, format, image->width, image->height, 0, format,
+			GL_UNSIGNED_BYTE, data);
+	}
 
 	if (image->type & IT_MASK_MIPMAP) {
-		glGenerateMipmap(GL_TEXTURE_2D);
+		glGenerateMipmap(target);
 	}
 
 	R_RegisterMedia((r_media_t *) image);
@@ -336,6 +343,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 			image->width = surf->w;
 			image->height = surf->h;
+			image->layers = 0;
 			image->type = type;
 
 			if (image->type == IT_NORMALMAP) {
@@ -369,6 +377,7 @@ static void R_InitNullImage(void) {
 	r_image_state.null->media.Free = R_FreeImage;
 
 	r_image_state.null->width = r_image_state.null->height = 1;
+	r_image_state.null->layers = 0;
 	r_image_state.null->type = IT_NULL;
 
 	byte data[1 * 1 * 3];
@@ -389,6 +398,7 @@ static void R_InitWarpImage(void) {
 	r_image_state.warp->media.Free = R_FreeImage;
 
 	r_image_state.warp->width = r_image_state.warp->height = WARP_SIZE;
+	r_image_state.warp->layers = 0;
 	r_image_state.warp->type = IT_PROGRAM;
 
 	byte data[WARP_SIZE][WARP_SIZE][4];

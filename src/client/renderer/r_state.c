@@ -42,6 +42,17 @@ const vec2_t default_texcoords[4] = { // useful for particles, pics, etc..
 	{ 0.0, 1.0 }
 };
 
+const GLenum default_texunits_targets[R_TEXUNIT_TOTAL] = {
+	GL_TEXTURE_2D,			// R_TEXUNIT_DIFFUSE,
+	GL_TEXTURE_2D_ARRAY,	// R_TEXUNIT_LIGHTMAP,
+	GL_TEXTURE_2D,			// R_TEXUNIT_DELUXEMAP,
+	GL_TEXTURE_2D,			// R_TEXUNIT_NORMALMAP,
+	GL_TEXTURE_2D,			// R_TEXUNIT_SPECULARMAP,
+	GL_TEXTURE_2D,			// R_TEXUNIT_WARP,
+	GL_TEXTURE_2D,			// R_TEXUNIT_TINTMAP,
+	GL_TEXTURE_2D			// R_TEXUNIT_STAINMAP
+};
+
 /**
  * @brief Queries OpenGL for any errors and prints them as warnings.
  */
@@ -119,7 +130,7 @@ void R_SelectTexture(r_texunit_t *texunit) {
  * @brief Request that a texnum be bound to the specified texture unit.
  * returns true if it was indeed bound (for statistical analysis)
  */
-void R_BindUnitTexture(r_texunit_t *texunit, GLuint texnum) {
+void R_BindUnitTexture(r_texunit_t *texunit, GLuint texnum, GLenum target) {
 
 	if (texnum == texunit->texnum) {
 		return;
@@ -128,7 +139,7 @@ void R_BindUnitTexture(r_texunit_t *texunit, GLuint texnum) {
 	R_SelectTexture(texunit);
 
 	// bind the texture
-	glBindTexture(GL_TEXTURE_2D, texnum);
+	glBindTexture(target, texnum);
 
 	r_view.num_state_changes[R_STATE_BIND_TEXTURE]++;
 
@@ -868,6 +879,7 @@ void R_InitSupersample(void) {
 
 	r_state.supersample_image->width = r_context.render_width;
 	r_state.supersample_image->height = r_context.render_height;
+	r_state.supersample_image->layers = 0;
 	r_state.supersample_image->type = IT_NULL;
 
 	R_UploadImage(r_state.supersample_image, GL_RGBA, NULL);

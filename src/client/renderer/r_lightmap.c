@@ -60,7 +60,7 @@ static void R_FreeLightmap(r_media_t *media) {
 /**
  * @brief Allocates a new lightmap (or deluxemap) image handle.
  */
-static r_image_t *R_AllocLightmap_(r_image_type_t type, const uint32_t width, const uint32_t height) {
+static r_image_t *R_AllocLightmap_(r_image_type_t type, const uint32_t width, const uint32_t height, const uint32_t layers) {
 	static uint32_t count;
 	char name[MAX_QPATH];
 
@@ -88,6 +88,7 @@ static r_image_t *R_AllocLightmap_(r_image_type_t type, const uint32_t width, co
 	image->type = type;
 	image->width = width;
 	image->height = height;
+	image->layers = layers;
 
 	return image;
 }
@@ -96,7 +97,7 @@ static r_image_t *R_AllocLightmap_(r_image_type_t type, const uint32_t width, co
  * @brief Allocate handles for the stainmap
  */
 static void R_AllocStainmap_(const uint32_t width, const uint32_t height, r_stainmap_t *out) {
-	out->image = R_AllocLightmap_(IT_STAINMAP, width, height);
+	out->image = R_AllocLightmap_(IT_STAINMAP, width, height, 0);
 
 	R_UploadImage(out->image, GL_RGBA, NULL);
 
@@ -113,37 +114,35 @@ static void R_AllocStainmap_(const uint32_t width, const uint32_t height, r_stai
 	R_BindFramebuffer(FRAMEBUFFER_DEFAULT);
 }
 
-#define R_AllocLightmap(w, h) R_AllocLightmap_(IT_LIGHTMAP, w, h)
+#define R_AllocLightmap(w, h) R_AllocLightmap_(IT_LIGHTMAP, w, h, MAX_LIGHTMAP_PAGES)
 #define R_AllocDeluxemap(w, h) R_AllocLightmap_(IT_DELUXEMAP, w, h)
 #define R_AllocStainmap(w, h, o) R_AllocStainmap_(w, h, o)
 
 /**
  * @brief
  */
-static void R_BuildDefaultLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, byte *sout,
-                                   byte *dout, size_t stride) {
+static void R_BuildDefaultLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, byte *lightmaps_out, 
+	size_t stride, size_t lightmap_layer_size) {
 
 	const uint32_t smax = surf->lightmap_size[0];
 	const uint32_t tmax = surf->lightmap_size[1];
 
 	stride -= (smax * 4);
 
-	for (uint32_t i = 0; i < tmax; i++, sout += stride, dout += stride) {
+	for (uint32_t i = 0; i < tmax; i++, lightmaps_out += stride) {
 		for (uint32_t j = 0; j < smax; j++) {
 
-			sout[0] = 255;
-			sout[1] = 255;
-			sout[2] = 255;
-			sout[3] = 255;
+			lightmaps_out[0] = 255;
+			lightmaps_out[1] = 255;
+			lightmaps_out[2] = 255;
+			lightmaps_out[3] = 255;
 
-			sout += 4;
+			lightmaps_out[0 + lightmap_layer_size] = 127;
+			lightmaps_out[1 + lightmap_layer_size] = 127;
+			lightmaps_out[2 + lightmap_layer_size] = 255;
+			lightmaps_out[3 + lightmap_layer_size] = 255;
 
-			dout[0] = 127;
-			dout[1] = 127;
-			dout[2] = 255;
-			dout[3] = 255;
-
-			dout += 4;
+			lightmaps_out += 4;
 		}
 	}
 }
@@ -169,7 +168,7 @@ static void R_FilterLightmap(uint32_t width, uint32_t height, byte *lightmap) {
  * @param dout The destination for processed deluxemap data.
  */
 static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *surf, const byte *in,
-                            byte *lout, byte *dout, size_t stride) {
+                            byte *lightmaps_out, size_t stride, size_t lightmap_layer_size) {
 
 	const uint32_t smax = surf->lightmap_size[0];
 	const uint32_t tmax = surf->lightmap_size[1];
@@ -177,63 +176,57 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 	const size_t size = smax * tmax;
 	stride -= (smax * 4);
 
-	byte *lightmap = (byte *) Mem_TagMalloc(size * 4, MEM_TAG_RENDERER);
-	byte *lm = lightmap;
-
-	byte *deluxemap = (byte *) Mem_TagMalloc(size * 4, MEM_TAG_RENDERER);
-	byte *dm = deluxemap;
+	byte *lightmap = (byte *) Mem_TagMalloc(size * 4 * MAX_LIGHTMAP_PAGES, MEM_TAG_RENDERER);
 
 	// convert the raw lightmap samples to RGBA for softening
 	for (size_t i = 0; i < size; i++) {
-		*lm++ = *in++;
-		*lm++ = *in++;
-		*lm++ = *in++;
+		lightmap[i * 4 + 0] = *in++;
+		lightmap[i * 4 + 1] = *in++;
+		lightmap[i * 4 + 2] = *in++;
 
 		// read in directional samples for per-pixel lighting as well
 		if (bsp->version == BSP_VERSION_QUETOO) {
-			*lm++ = *in++;
+			lightmap[i * 4 + 3] = *in++;
 
-			*dm++ = *in++;
-			*dm++ = *in++;
-			*dm++ = *in++;
-			*dm++ = *in++;
+			lightmap[i * 4 + 0 + size * 4] = *in++;
+			lightmap[i * 4 + 1 + size * 4] = *in++;
+			lightmap[i * 4 + 2 + size * 4] = *in++;
+			lightmap[i * 4 + 3 + size * 4] = *in++;
 		} else {
-			*lm++ = 255;
+			lightmap[i * 4 + 3] = 255;
 
-			*dm++ = 127;
-			*dm++ = 127;
-			*dm++ = 255;
-			*dm++ = 255;
+			lightmap[i * 4 + 0 + size * 4] = 127;
+			lightmap[i * 4 + 1 + size * 4] = 127;
+			lightmap[i * 4 + 2 + size * 4] = 255;
+			lightmap[i * 4 + 3 + size * 4] = 255;
 		}
 	}
 
 	// apply modulate, contrast, saturation, etc..
-	// disabled for now, it should have been moved to GLSL anyway eventually
+	// NOTE: disabled for now, it should have been moved to GLSL anyway eventually
 	// R_FilterLightmap(smax, tmax, lightmap);
 
 	// the lightmap is uploaded to the card via the strided block
 
-	lm = lightmap;
-	dm = deluxemap;
-
-	for (uint32_t t = 0; t < tmax; t++, lout += stride, dout += stride) {
+	for (uint32_t t = 0; t < tmax; t++, lightmaps_out += stride) {
 		for (uint32_t s = 0; s < smax; s++) {
-
 			// copy the lightmap and deluxemap to the strided block
-			*lout++ = *lm++;
-			*lout++ = *lm++;
-			*lout++ = *lm++;
-			*lout++ = *lm++;
 
-			*dout++ = *dm++;
-			*dout++ = *dm++;
-			*dout++ = *dm++;
-			*dout++ = *dm++;
+			lightmaps_out[0] = lightmap[(t * smax + s) * 4 + 0];
+			lightmaps_out[1] = lightmap[(t * smax + s) * 4 + 1];
+			lightmaps_out[2] = lightmap[(t * smax + s) * 4 + 2];
+			lightmaps_out[3] = lightmap[(t * smax + s) * 4 + 3];
+
+			lightmaps_out[0 + lightmap_layer_size] = lightmap[(t * smax + s) * 4 + 0 + size * 4];
+			lightmaps_out[1 + lightmap_layer_size] = lightmap[(t * smax + s) * 4 + 1 + size * 4];
+			lightmaps_out[2 + lightmap_layer_size] = lightmap[(t * smax + s) * 4 + 2 + size * 4];
+			lightmaps_out[3 + lightmap_layer_size] = lightmap[(t * smax + s) * 4 + 3 + size * 4];
+
+			lightmaps_out += 4;
 		}
 	}
 
 	Mem_Free(lightmap);
-	Mem_Free(deluxemap);
 }
 
 /**
@@ -293,7 +286,6 @@ static void R_UploadPackedLightmaps(const uint32_t width, const uint32_t height,
 
 	// allocate the image
 	r_image_t *lightmap = R_AllocLightmap(width, height);
-	r_image_t *deluxemap = R_AllocDeluxemap(width, height);
 	r_stainmap_t stainmap = { .image = NULL, .fb = NULL };
 
 	if (r_stainmaps->value) {
@@ -301,26 +293,23 @@ static void R_UploadPackedLightmaps(const uint32_t width, const uint32_t height,
 	}
 
 	// temp buffers
-	byte *sample_buffer = Mem_Malloc(width * height * 4);
-	byte *direction_buffer = Mem_Malloc(width * height * 4);
+	byte *lightmaps_buffer = Mem_Malloc(width * height * 4 * MAX_LIGHTMAP_PAGES);
 
 	do {
 		r_bsp_surface_t *surf = (r_bsp_surface_t *) start->data;
 
 		const size_t stride = width * 4;
-		const size_t lightmap_offset = (surf->lightmap_t *width + surf->lightmap_s) * 4;
+		const size_t lightmap_offset = (surf->lightmap_t * width + surf->lightmap_s) * 4;
 
-		byte *sout = sample_buffer + lightmap_offset;
-		byte *dout = direction_buffer + lightmap_offset;
+		byte *lightmaps_out = lightmaps_buffer + lightmap_offset;
 
 		if (surf->lightmap_input) {
-			R_BuildLightmap(bsp, surf, surf->lightmap_input, sout, dout, stride);
+			R_BuildLightmap(bsp, surf, surf->lightmap_input, lightmaps_out, stride, width * height * 4);
 		} else {
-			R_BuildDefaultLightmap(bsp, surf, sout, dout, stride);
+			R_BuildDefaultLightmap(bsp, surf, lightmaps_out, stride, width * height * 4);
 		}
 
 		surf->lightmap = lightmap;
-		surf->deluxemap = deluxemap;
 
 		if (stainmap.fb) {
 			surf->stainmap = stainmap;
@@ -336,11 +325,9 @@ static void R_UploadPackedLightmaps(const uint32_t width, const uint32_t height,
 	} while (start != end);
 
 	// upload!
-	R_UploadImage(lightmap, GL_RGBA, sample_buffer);
-	R_UploadImage(deluxemap, GL_RGBA, direction_buffer);
+	R_UploadImage(lightmap, GL_RGBA, lightmaps_buffer);
 
-	Mem_Free(sample_buffer);
-	Mem_Free(direction_buffer);
+	Mem_Free(lightmaps_buffer);
 }
 
 /**

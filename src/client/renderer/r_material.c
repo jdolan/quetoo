@@ -181,7 +181,7 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 
 			if (r_state.lighting_enabled) {
 
-				R_BindDeluxemapTexture(surf->deluxemap->texnum);
+				// R_BindDeluxemapTexture(surf->deluxemap->texnum);
 
 				if (surf->light_frame == r_locals.light_frame) { // dynamic light sources
 					R_EnableLights(surf->light_mask);
