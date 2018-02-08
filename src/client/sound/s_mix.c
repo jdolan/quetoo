@@ -190,19 +190,22 @@ void S_MixChannels(void) {
 
 		if (ch->sample) {
 
+			const ALuint src = s_env.sources[i];
+			assert(src);
+
 			if (S_SpatializeChannel(ch)) {
 
 				if (ch->relative) {
-					alSourcefv(s_env.sources[i], AL_POSITION, vec3_origin);
+					alSourcefv(src, AL_POSITION, vec3_origin);
 					S_CheckALError();
 				} else {
-					alSourcefv(s_env.sources[i], AL_POSITION, ch->position);
+					alSourcefv(src, AL_POSITION, ch->position);
 					S_CheckALError();
 
 					if (s_doppler->value) {
-						alSourcefv(s_env.sources[i], AL_VELOCITY, ch->velocity);
+						alSourcefv(src, AL_VELOCITY, ch->velocity);
 					} else {
-						alSourcefv(s_env.sources[i], AL_VELOCITY, vec3_origin);
+						alSourcefv(src, AL_VELOCITY, vec3_origin);
 					}
 				}
 
@@ -214,27 +217,27 @@ void S_MixChannels(void) {
 					volume = s_volume->value * s_effects_volume->value;
 				}
 
-				alSourcef(s_env.sources[i], AL_GAIN, ch->gain * volume);
+				alSourcef(src, AL_GAIN, ch->gain * volume);
 				S_CheckALError();
 
-				alSourcef(s_env.sources[i], AL_PITCH, ch->pitch);
+				alSourcef(src, AL_PITCH, ch->pitch);
 				S_CheckALError();
 
 				if (s_env.effects.loaded) {
-					alSourcei(s_env.sources[i], AL_DIRECT_FILTER, ch->filter);
+					alSourcei(src, AL_DIRECT_FILTER, ch->filter);
 					S_CheckALError();
 				}
 
 				if (!ch->start_time) {
 					ch->start_time = quetoo.ticks;
 
-					alSourcei(s_env.sources[i], AL_SOURCE_RELATIVE, ch->relative ? 1 : 0);
+					alSourcei(src, AL_SOURCE_RELATIVE, ch->relative ? 1 : 0);
 					S_CheckALError();
 
-					alSourcei(s_env.sources[i], AL_BUFFER, ch->sample->buffer);
+					alSourcei(src, AL_BUFFER, ch->sample->buffer);
 					S_CheckALError();
 
-					alSourcei(s_env.sources[i], AL_LOOPING, !!(ch->play.flags & S_PLAY_LOOP));
+					alSourcei(src, AL_LOOPING, !!(ch->play.flags & S_PLAY_LOOP));
 					S_CheckALError();
 
 					if (ch->play.flags & S_PLAY_AMBIENT) {
@@ -242,12 +245,12 @@ void S_MixChannels(void) {
 						S_CheckALError();
 					}
 
-					alSourcePlay(s_env.sources[i]);
+					alSourcePlay(src);
 					S_CheckALError();
 
 				} else {
 					ALenum state;
-					alGetSourcei(s_env.sources[i], AL_SOURCE_STATE, &state);
+					alGetSourcei(src, AL_SOURCE_STATE, &state);
 					S_CheckALError();
 
 					if (state != AL_PLAYING) {
