@@ -507,7 +507,7 @@ static void R_InitLocal(void) {
 	r_parallax = Cvar_Add("r_parallax", "1.0", CVAR_ARCHIVE, "Controls the intensity of parallax mapping effects");
 	r_render_plugin = Cvar_Add("r_render_plugin", "default", CVAR_ARCHIVE, "Specifies the active renderer plugin (default or pro)");
 	r_saturation = Cvar_Add("r_saturation", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls texture saturation");
-	r_screenshot_format = Cvar_Add("r_screenshot_format", "png", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\" or \"tga\".");
+	r_screenshot_format = Cvar_Add("r_screenshot_format", "png", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\", \"tga\" or \"pbm\".");
 	r_shadows = Cvar_Add("r_shadows", "2", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls the rendering of mesh model shadows");
 	r_shell = Cvar_Add("r_shell", "2", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls mesh shell effect (e.g. Quad Damage shell)");
 	r_specular = Cvar_Add("r_specular", "1.0", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects");

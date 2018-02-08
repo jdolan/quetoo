@@ -56,6 +56,7 @@ void R_InitProgram_warp(r_program_t *program) {
 	R_ProgramVariable(&p->fog.end, R_UNIFORM_FLOAT, "FOG.END", true);
 	R_ProgramVariable(&p->fog.color, R_UNIFORM_VEC3, "FOG.COLOR", true);
 	R_ProgramVariable(&p->fog.density, R_UNIFORM_FLOAT, "FOG.DENSITY", true);
+	R_ProgramVariable(&p->fog.gamma_correction, R_UNIFORM_FLOAT, "FOG.GAMMA_CORRECTION", true);
 
 	R_ProgramParameter1i(&p->sampler0, R_TEXUNIT_DIFFUSE);
 	R_ProgramParameter1i(&p->sampler5, R_TEXUNIT_WARP);
@@ -85,4 +86,6 @@ void R_UseFog_warp(const r_fog_parameters_t *fog) {
 	} else {
 		R_ProgramParameter1f(&p->fog.density, 0.0);
 	}
+
+	R_ProgramParameter1f(&p->fog.gamma_correction, r_framebuffer_state.current_framebuffer ? 0.0 : 1.0);
 }

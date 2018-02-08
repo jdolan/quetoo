@@ -134,7 +134,7 @@ void R_Screenshot_f(void) {
 	s->height = r_context.render_height;
 
 	s->using_rgb = !g_strcmp0(r_screenshot_format->string, "pbm");
-	s->using_hdr = r_hdr->integer && r_fullscreen->integer && s->using_rgb;
+	s->using_hdr = r_hdr->integer && s->using_rgb;
 
 	s->buffer = Mem_LinkMalloc(s->width * s->height * 3 * (s->using_hdr ? 2 : 1), s);
 
@@ -222,6 +222,34 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 		glGenTextures(1, &(image->texnum));
 	}
 
+	GLint input_format = GL_RGB;
+	GLenum type = GL_UNSIGNED_BYTE;
+
+	switch (format) {
+	case GL_RGB:
+	case GL_RGB8:
+	case GL_SRGB:
+	case GL_SRGB8:
+		input_format = GL_RGB;
+		type = GL_UNSIGNED_BYTE;
+		break;
+	case GL_RGBA:
+	case GL_RGBA8:
+	case GL_SRGB_ALPHA:
+	case GL_SRGB8_ALPHA8:
+		input_format = GL_RGBA;
+		type = GL_UNSIGNED_BYTE;
+		break;
+	case GL_RGB16:
+		input_format = GL_RGB;
+		type = GL_UNSIGNED_SHORT;
+		break;
+	case GL_RGBA16:
+		input_format = GL_RGBA;
+		type = GL_UNSIGNED_SHORT;
+		break;
+	}
+
 	const GLenum target = image->layers == 0 ? GL_TEXTURE_2D : GL_TEXTURE_2D_ARRAY;
 
 	R_BindUnitTexture(texunit_diffuse, image->texnum, target);
@@ -240,11 +268,11 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 	}
 
 	if (image->layers > 0) {
-		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, format, image->width, image->height, image->layers, 0, format,
-			GL_UNSIGNED_BYTE, data);
+		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, format, image->width, image->height, image->layers, 0,
+			input_format,	type, data);
 	} else {
-		glTexImage2D(GL_TEXTURE_2D, 0, format, image->width, image->height, 0, format,
-			GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, 0, format, image->width, image->height, 0,
+			input_format,	type, data);
 	}
 
 	if (image->type & IT_MASK_MIPMAP) {
@@ -354,7 +382,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 				R_FilterImage(image, GL_RGBA, surf->pixels);
 			}
 
-			R_UploadImage(image, GL_RGBA, surf->pixels);
+			R_UploadImage(image, GL_RGBA8, surf->pixels);
 
 			SDL_FreeSurface(surf);
 		} else {
@@ -383,7 +411,7 @@ static void R_InitNullImage(void) {
 	byte data[1 * 1 * 3];
 	memset(&data, 0xff, sizeof(data));
 
-	R_UploadImage(r_image_state.null, GL_RGB, data);
+	R_UploadImage(r_image_state.null, GL_RGB8, data);
 }
 
 #define WARP_SIZE 16
@@ -413,7 +441,7 @@ static void R_InitWarpImage(void) {
 		}
 	}
 
-	R_UploadImage(r_image_state.warp, GL_RGBA, (byte *) data);
+	R_UploadImage(r_image_state.warp, GL_RGBA8, (byte *) data);
 
 	R_BindWarpTexture(r_image_state.warp->texnum);
 }

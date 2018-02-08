@@ -68,33 +68,32 @@ typedef enum {
 	MOD_MESH
 } r_model_type_t;
 
-// high bits OR'ed with image types
-#define IT_MASK_MIPMAP		0x100
-#define IT_MASK_FILTER		0x200
-#define IT_MASK_MULTIPLY	0x400
-#define IT_MASK_TYPE		0x7F
-#define IT_MASK_FLAGS		(-1 & ~IT_MASK_TYPE)
+// high bits OR'ed with image categories, flags are bits 24..31
+#define IT_MASK_MIPMAP		1 << 24
+#define IT_MASK_FILTER		1 << 25
+#define IT_MASK_MULTIPLY	1 << 26
+#define IT_MASK_FLAGS		(IT_MASK_MIPMAP | IT_MASK_FILTER | IT_MASK_MULTIPLY)
 
-// image types
+// image categories (bits 0..23) + flags are making image types
 typedef enum {
-	IT_NULL = 0,
-	IT_PROGRAM = 1,
-	IT_FONT = 2 + (IT_MASK_FILTER),
-	IT_UI = 3 + (IT_MASK_FILTER),
-	IT_EFFECT = 4 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_DIFFUSE = 5 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_LIGHTMAP = 6 + (IT_MASK_FILTER),
-	IT_DELUXEMAP = 7,
-	IT_NORMALMAP = 8 + (IT_MASK_MIPMAP),
-	IT_SPECULARMAP = 9 + (IT_MASK_MIPMAP),
-	IT_ENVMAP = 10 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_FLARE = 11 + (IT_MASK_MIPMAP | IT_MASK_FILTER | IT_MASK_MULTIPLY),
-	IT_SKY = 12 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_PIC = 13 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_ATLAS_MAP = 14 + (IT_MASK_MIPMAP), // image is an r_atlas_t*
-	IT_ATLAS_IMAGE = 15, // image is an r_atlas_image_t*
-	IT_STAINMAP = 16,
-	IT_TINTMAP = 17 + (IT_MASK_MIPMAP | IT_MASK_FILTER)
+	IT_NULL = (1 << 0),
+	IT_PROGRAM = (1 << 1),
+	IT_FONT = (1 << 2) + (IT_MASK_FILTER),
+	IT_UI = (1 << 3) + (IT_MASK_FILTER),
+	IT_EFFECT = (1 << 4) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
+	IT_DIFFUSE = (1 << 5) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
+	IT_LIGHTMAP = (1 << 6) + (IT_MASK_FILTER),
+	IT_DELUXEMAP = (1 << 7),
+	IT_NORMALMAP = (1 << 8) + (IT_MASK_MIPMAP),
+	IT_SPECULARMAP = (1 << 9) + (IT_MASK_MIPMAP),
+	IT_ENVMAP = (1 << 10) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
+	IT_FLARE = (1 << 11) + (IT_MASK_MIPMAP | IT_MASK_FILTER | IT_MASK_MULTIPLY),
+	IT_SKY = (1 << 12) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
+	IT_PIC = (1 << 13) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
+	IT_ATLAS_MAP = (1 << 14) + (IT_MASK_MIPMAP), // image is an r_atlas_t*
+	IT_ATLAS_IMAGE = (1 << 15), // image is an r_atlas_image_t*
+	IT_STAINMAP = (1 << 16),
+	IT_TINTMAP = (1 << 17) + (IT_MASK_MIPMAP | IT_MASK_FILTER)
 } r_image_type_t;
 
 /**

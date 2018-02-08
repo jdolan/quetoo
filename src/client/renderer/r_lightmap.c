@@ -99,7 +99,7 @@ static r_image_t *R_AllocLightmap_(r_image_type_t type, const uint32_t width, co
 static void R_AllocStainmap_(const uint32_t width, const uint32_t height, r_stainmap_t *out) {
 	out->image = R_AllocLightmap_(IT_STAINMAP, width, height, 0);
 
-	R_UploadImage(out->image, GL_RGBA, NULL);
+	R_UploadImage(out->image, GL_RGBA8, NULL);
 
 	out->fb = R_CreateFramebuffer(va("%s_fb", out->image->media.name));
 	R_AttachFramebufferImage(out->fb, out->image);
@@ -331,7 +331,7 @@ static void R_UploadPackedLightmaps(const uint32_t width, const uint32_t height,
 	} while (start != end);
 
 	// upload!
-	R_UploadImage(lightmap, GL_RGBA, lightmaps_buffer);
+	R_UploadImage(lightmap, GL_RGBA8, lightmaps_buffer);
 
 	Mem_Free(lightmaps_buffer);
 }

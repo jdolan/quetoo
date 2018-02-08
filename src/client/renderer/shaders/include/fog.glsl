@@ -9,23 +9,19 @@ struct FogParameters {
 	float END;
 	vec3 COLOR;
 	float DENSITY;
+	float GAMMA_CORRECTION;
 };
 
 uniform FogParameters FOG;
 
 #ifdef FRAGMENT_SHADER
 
-#define IS_HDR_ENABLED $r_hdr_enabled
-
 /**
  * @brief Apply fog to the fragment if enabled.
  */
 void FogFragment(in float len, inout vec4 fragColor) {
 	fragColor.rgb = mix(fragColor.rgb, FOG.COLOR, clamp((len - FOG.START) / (FOG.END - FOG.START) * FOG.DENSITY, 0.0, 1.0));
-	
-#if IS_HDR_ENABLED
-	fragColor.rgb *= fragColor.rgb;
-#endif // IS_HDR_ENABLED
+	fragColor.rgb *= mix(vec3(1.0), fragColor.rgb, FOG.GAMMA_CORRECTION);
 }
 
 #endif
