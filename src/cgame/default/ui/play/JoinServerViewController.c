@@ -409,13 +409,13 @@ static void reloadServers(JoinServerViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewControllerInterface *) clazz->def->interface)->handleNotification = handleNotification;
-	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
-	((ViewControllerInterface *) clazz->def->interface)->viewWillAppear = viewWillAppear;
+	((ViewControllerInterface *) clazz->interface)->handleNotification = handleNotification;
+	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 
-	((JoinServerViewControllerInterface *) clazz->def->interface)->reloadServers = reloadServers;
+	((JoinServerViewControllerInterface *) clazz->interface)->reloadServers = reloadServers;
 }
 
 /**
@@ -423,19 +423,21 @@ static void initialize(Class *clazz) {
  * @memberof JoinServerViewController
  */
 Class *_JoinServerViewController(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "JoinServerViewController";
-		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(JoinServerViewController);
-		clazz.interfaceOffset = offsetof(JoinServerViewController, interface);
-		clazz.interfaceSize = sizeof(JoinServerViewControllerInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "JoinServerViewController",
+			.superclass = _ViewController(),
+			.instanceSize = sizeof(JoinServerViewController),
+			.interfaceOffset = offsetof(JoinServerViewController, interface),
+			.interfaceSize = sizeof(JoinServerViewControllerInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

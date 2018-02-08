@@ -128,12 +128,12 @@ static void setProgress(LoadingViewController *self, const cl_loading_t loading)
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 
-	((LoadingViewControllerInterface *) clazz->def->interface)->init = init;
-	((LoadingViewControllerInterface *) clazz->def->interface)->setProgress = setProgress;
+	((LoadingViewControllerInterface *) clazz->interface)->init = init;
+	((LoadingViewControllerInterface *) clazz->interface)->setProgress = setProgress;
 }
 
 /**
@@ -141,19 +141,21 @@ static void initialize(Class *clazz) {
  * @memberof LoadingViewController
  */
 Class *_LoadingViewController(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "LoadingViewController";
-		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(LoadingViewController);
-		clazz.interfaceOffset = offsetof(LoadingViewController, interface);
-		clazz.interfaceSize = sizeof(LoadingViewControllerInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "LoadingViewController",
+			.superclass = _ViewController(),
+			.instanceSize = sizeof(LoadingViewController),
+			.interfaceOffset = offsetof(LoadingViewController, interface),
+			.interfaceSize = sizeof(LoadingViewControllerInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

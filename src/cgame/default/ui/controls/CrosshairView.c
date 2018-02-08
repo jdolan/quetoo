@@ -133,12 +133,12 @@ static CrosshairView *initWithFrame(CrosshairView *self, const SDL_Rect *frame) 
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewInterface *) clazz->def->interface)->layoutSubviews = layoutSubviews;
-	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
+	((ViewInterface *) clazz->interface)->layoutSubviews = layoutSubviews;
+	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-	((CrosshairViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
+	((CrosshairViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
 }
 
 /**
@@ -146,19 +146,21 @@ static void initialize(Class *clazz) {
  * @memberof CrosshairView
  */
 Class *_CrosshairView(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "CrosshairView";
-		clazz.superclass = _Control();
-		clazz.instanceSize = sizeof(CrosshairView);
-		clazz.interfaceOffset = offsetof(CrosshairView, interface);
-		clazz.interfaceSize = sizeof(CrosshairViewInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "CrosshairView",
+			.superclass = _Control(),
+			.instanceSize = sizeof(CrosshairView),
+			.interfaceOffset = offsetof(CrosshairView, interface),
+			.interfaceSize = sizeof(CrosshairViewInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

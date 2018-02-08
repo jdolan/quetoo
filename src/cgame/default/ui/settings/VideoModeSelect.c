@@ -106,11 +106,11 @@ static VideoModeSelect *initWithFrame(VideoModeSelect *self, const SDL_Rect *fra
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
+	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-	((VideoModeSelectInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
+	((VideoModeSelectInterface *) clazz->interface)->initWithFrame = initWithFrame;
 }
 
 /**
@@ -118,19 +118,21 @@ static void initialize(Class *clazz) {
  * @memberof VideoModeSelect
  */
 Class *_VideoModeSelect(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "VideoModeSelect";
-		clazz.superclass = _Select();
-		clazz.instanceSize = sizeof(VideoModeSelect);
-		clazz.interfaceOffset = offsetof(VideoModeSelect, interface);
-		clazz.interfaceSize = sizeof(VideoModeSelectInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "VideoModeSelect",
+			.superclass = _Select(),
+			.instanceSize = sizeof(VideoModeSelect),
+			.interfaceOffset = offsetof(VideoModeSelect, interface),
+			.interfaceSize = sizeof(VideoModeSelectInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class
