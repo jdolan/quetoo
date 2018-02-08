@@ -23,7 +23,7 @@
 #include <signal.h>
 
 #if defined(_WIN32)
-	#include <WinSock2.h> // for AllocConsole
+	#include <winsock2.h> // for AllocConsole
 #endif
 
 #include "sv_local.h"

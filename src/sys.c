@@ -26,7 +26,7 @@
 #include <signal.h>
 
 #if defined(_WIN32)
-	#include <Windows.h>
+	#include <windows.h>
 
 	#if defined(_MSC_VER)
 		#include <DbgHelp.h>

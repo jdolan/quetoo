@@ -320,12 +320,12 @@ static Array *selectedMaps(const MapListCollectionView *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewInterface *) clazz->def->interface)->layoutIfNeeded = layoutIfNeeded;
+	((ViewInterface *) clazz->interface)->layoutIfNeeded = layoutIfNeeded;
 
-	((MapListCollectionViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
-	((MapListCollectionViewInterface *) clazz->def->interface)->selectedMaps = selectedMaps;
+	((MapListCollectionViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
+	((MapListCollectionViewInterface *) clazz->interface)->selectedMaps = selectedMaps;
 }
 
 /**
@@ -333,19 +333,21 @@ static void initialize(Class *clazz) {
  * @memberof MapListCollectionView
  */
 Class *_MapListCollectionView(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "MapListCollectionView";
-		clazz.superclass = _CollectionView();
-		clazz.instanceSize = sizeof(MapListCollectionView);
-		clazz.interfaceOffset = offsetof(MapListCollectionView, interface);
-		clazz.interfaceSize = sizeof(MapListCollectionViewInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "MapListCollectionView",
+			.superclass = _CollectionView(),
+			.instanceSize = sizeof(MapListCollectionView),
+			.interfaceOffset = offsetof(MapListCollectionView, interface),
+			.interfaceSize = sizeof(MapListCollectionViewInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

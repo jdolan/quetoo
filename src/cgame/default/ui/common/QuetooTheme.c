@@ -311,23 +311,23 @@ static void textView(const QuetooTheme *self, const char *label, const char *nam
  */
 static void initialize(Class *clazz) {
 
-	((QuetooThemeInterface *) clazz->def->interface)->accessories = accessories;
-	((QuetooThemeInterface *) clazz->def->interface)->attach = attach;
-	((QuetooThemeInterface *) clazz->def->interface)->bindTextView = bindTextView;
-	((QuetooThemeInterface *) clazz->def->interface)->box = box;
-	((QuetooThemeInterface *) clazz->def->interface)->button = button;
-	((QuetooThemeInterface *) clazz->def->interface)->checkbox = checkbox;
-	((QuetooThemeInterface *) clazz->def->interface)->columns = columns;
-	((QuetooThemeInterface *) clazz->def->interface)->container = container;
-	((QuetooThemeInterface *) clazz->def->interface)->control = control;
-	((QuetooThemeInterface *) clazz->def->interface)->image = image;
-	((QuetooThemeInterface *) clazz->def->interface)->init = init;
-	((QuetooThemeInterface *) clazz->def->interface)->initWithTarget = initWithTarget;
-	((QuetooThemeInterface *) clazz->def->interface)->panel = panel;
-	((QuetooThemeInterface *) clazz->def->interface)->slider = slider;
-	((QuetooThemeInterface *) clazz->def->interface)->target = target;
-	((QuetooThemeInterface *) clazz->def->interface)->targetSubview = targetSubview;
-	((QuetooThemeInterface *) clazz->def->interface)->textView = textView;
+	((QuetooThemeInterface *) clazz->interface)->accessories = accessories;
+	((QuetooThemeInterface *) clazz->interface)->attach = attach;
+	((QuetooThemeInterface *) clazz->interface)->bindTextView = bindTextView;
+	((QuetooThemeInterface *) clazz->interface)->box = box;
+	((QuetooThemeInterface *) clazz->interface)->button = button;
+	((QuetooThemeInterface *) clazz->interface)->checkbox = checkbox;
+	((QuetooThemeInterface *) clazz->interface)->columns = columns;
+	((QuetooThemeInterface *) clazz->interface)->container = container;
+	((QuetooThemeInterface *) clazz->interface)->control = control;
+	((QuetooThemeInterface *) clazz->interface)->image = image;
+	((QuetooThemeInterface *) clazz->interface)->init = init;
+	((QuetooThemeInterface *) clazz->interface)->initWithTarget = initWithTarget;
+	((QuetooThemeInterface *) clazz->interface)->panel = panel;
+	((QuetooThemeInterface *) clazz->interface)->slider = slider;
+	((QuetooThemeInterface *) clazz->interface)->target = target;
+	((QuetooThemeInterface *) clazz->interface)->targetSubview = targetSubview;
+	((QuetooThemeInterface *) clazz->interface)->textView = textView;
 }
 
 /**
@@ -335,19 +335,21 @@ static void initialize(Class *clazz) {
  * @memberof QuetooTheme
  */
 Class *_QuetooTheme(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "QuetooTheme";
-		clazz.superclass = _Object();
-		clazz.instanceSize = sizeof(QuetooTheme);
-		clazz.interfaceOffset = offsetof(QuetooTheme, interface);
-		clazz.interfaceSize = sizeof(QuetooThemeInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "QuetooTheme",
+			.superclass = _Object(),
+			.instanceSize = sizeof(QuetooTheme),
+			.interfaceOffset = offsetof(QuetooTheme, interface),
+			.interfaceSize = sizeof(QuetooThemeInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

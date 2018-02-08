@@ -425,16 +425,16 @@ static PlayerModelView *initWithFrame(PlayerModelView *self, const SDL_Rect *fra
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewInterface *) clazz->def->interface)->render = render;
-	((ViewInterface *) clazz->def->interface)->renderDeviceDidReset = renderDeviceDidReset;
-	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
+	((ViewInterface *) clazz->interface)->render = render;
+	((ViewInterface *) clazz->interface)->renderDeviceDidReset = renderDeviceDidReset;
+	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-	((ControlInterface *) clazz->def->interface)->captureEvent = captureEvent;
+	((ControlInterface *) clazz->interface)->captureEvent = captureEvent;
 
-	((PlayerModelViewInterface *) clazz->def->interface)->animate = animate;
-	((PlayerModelViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
+	((PlayerModelViewInterface *) clazz->interface)->animate = animate;
+	((PlayerModelViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
 }
 
 /**
@@ -442,19 +442,21 @@ static void initialize(Class *clazz) {
  * @memberof PlayerModelView
  */
 Class *_PlayerModelView(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "PlayerModelView";
-		clazz.superclass = _Control();
-		clazz.instanceSize = sizeof(PlayerModelView);
-		clazz.interfaceOffset = offsetof(PlayerModelView, interface);
-		clazz.interfaceSize = sizeof(PlayerModelViewInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "PlayerModelView",
+			.superclass = _Control(),
+			.instanceSize = sizeof(PlayerModelView),
+			.interfaceOffset = offsetof(PlayerModelView, interface),
+			.interfaceSize = sizeof(PlayerModelViewInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

@@ -26,7 +26,7 @@
 	 #define SDL_MAIN_HANDLED
 	#endif
 
-	#include <Windows.h>
+	#include <windows.h>
 #endif
 
 #include <SDL2/SDL.h>

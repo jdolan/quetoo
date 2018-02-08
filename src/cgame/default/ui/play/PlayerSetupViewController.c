@@ -329,10 +329,10 @@ static void viewWillAppear(ViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
-	((ViewControllerInterface *) clazz->def->interface)->viewWillAppear = viewWillAppear;
+	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 }
 
 /**
@@ -340,19 +340,21 @@ static void initialize(Class *clazz) {
  * @memberof PlayerSetupViewController
  */
 Class *_PlayerSetupViewController(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "PlayerSetupViewController";
-		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(PlayerSetupViewController);
-		clazz.interfaceOffset = offsetof(PlayerSetupViewController, interface);
-		clazz.interfaceSize = sizeof(PlayerSetupViewControllerInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "PlayerSetupViewController",
+			.superclass = _ViewController(),
+			.instanceSize = sizeof(PlayerSetupViewController),
+			.interfaceOffset = offsetof(PlayerSetupViewController, interface),
+			.interfaceSize = sizeof(PlayerSetupViewControllerInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

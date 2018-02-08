@@ -218,12 +218,12 @@ static void loadCredits(CreditsViewController *self, const char *path) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 
-	((CreditsViewControllerInterface *) clazz->def->interface)->init = init;
-	((CreditsViewControllerInterface *) clazz->def->interface)->loadCredits = loadCredits;
+	((CreditsViewControllerInterface *) clazz->interface)->init = init;
+	((CreditsViewControllerInterface *) clazz->interface)->loadCredits = loadCredits;
 }
 
 /**
@@ -231,19 +231,21 @@ static void initialize(Class *clazz) {
  * @memberof CreditsViewController
  */
 Class *_CreditsViewController(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "CreditsViewController";
-		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(CreditsViewController);
-		clazz.interfaceOffset = offsetof(CreditsViewController, interface);
-		clazz.interfaceSize = sizeof(CreditsViewControllerInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "CreditsViewController",
+			.superclass = _ViewController(),
+			.instanceSize = sizeof(CreditsViewController),
+			.interfaceOffset = offsetof(CreditsViewController, interface),
+			.interfaceSize = sizeof(CreditsViewControllerInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class
