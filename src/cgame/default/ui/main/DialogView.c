@@ -106,9 +106,9 @@ static DialogView *init(DialogView *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((DialogViewInterface *) clazz->def->interface)->init = init;
+	((DialogViewInterface *) clazz->interface)->init = init;
 }
 
 /**
@@ -116,19 +116,21 @@ static void initialize(Class *clazz) {
  * @memberof DialogView
  */
 Class *_DialogView(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "DialogView";
-		clazz.superclass = _Panel();
-		clazz.instanceSize = sizeof(DialogView);
-		clazz.interfaceOffset = offsetof(DialogView, interface);
-		clazz.interfaceSize = sizeof(DialogViewInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "DialogView",
+			.superclass = _Panel(),
+			.instanceSize = sizeof(DialogView),
+			.interfaceOffset = offsetof(DialogView, interface),
+			.interfaceSize = sizeof(DialogViewInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

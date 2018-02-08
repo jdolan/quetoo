@@ -200,13 +200,13 @@ static void primaryIcon(MainViewController *self, ident target, const char *icon
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 
-	((MainViewControllerInterface *) clazz->def->interface)->init = init;
-	((MainViewControllerInterface *) clazz->def->interface)->primaryButton = primaryButton;
-	((MainViewControllerInterface *) clazz->def->interface)->primaryIcon = primaryIcon;
+	((MainViewControllerInterface *) clazz->interface)->init = init;
+	((MainViewControllerInterface *) clazz->interface)->primaryButton = primaryButton;
+	((MainViewControllerInterface *) clazz->interface)->primaryIcon = primaryIcon;
 }
 
 /**
@@ -214,19 +214,21 @@ static void initialize(Class *clazz) {
  * @memberof MainViewController
  */
 Class *_MainViewController(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "MainViewController";
-		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(MainViewController);
-		clazz.interfaceOffset = offsetof(MainViewController, interface);
-		clazz.interfaceSize = sizeof(MainViewControllerInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "MainViewController",
+			.superclass = _ViewController(),
+			.instanceSize = sizeof(MainViewController),
+			.interfaceOffset = offsetof(MainViewController, interface),
+			.interfaceSize = sizeof(MainViewControllerInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

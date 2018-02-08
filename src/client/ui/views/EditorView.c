@@ -230,11 +230,11 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
+	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-	((EditorViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
+	((EditorViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
 }
 
 /**
@@ -242,19 +242,21 @@ static void initialize(Class *clazz) {
  * @memberof EditorView
  */
 Class *_EditorView(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "EditorView";
-		clazz.superclass = _View();
-		clazz.instanceSize = sizeof(EditorView);
-		clazz.interfaceOffset = offsetof(EditorView, interface);
-		clazz.interfaceSize = sizeof(EditorViewInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "EditorView",
+			.superclass = _View(),
+			.instanceSize = sizeof(EditorView),
+			.interfaceOffset = offsetof(EditorView, interface),
+			.interfaceSize = sizeof(EditorViewInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

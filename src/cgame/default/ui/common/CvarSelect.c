@@ -116,13 +116,13 @@ static CvarSelect *initWithVariableName(CvarSelect *self, const char *name) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
+	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-	((SelectInterface *) clazz->def->interface)->addOption = addOption;
-	((SelectInterface *) clazz->def->interface)->selectOptionWithValue = selectOptionWithValue;
+	((SelectInterface *) clazz->interface)->addOption = addOption;
+	((SelectInterface *) clazz->interface)->selectOptionWithValue = selectOptionWithValue;
 
-	((CvarSelectInterface *) clazz->def->interface)->initWithVariable = initWithVariable;
-	((CvarSelectInterface *) clazz->def->interface)->initWithVariableName = initWithVariableName;
+	((CvarSelectInterface *) clazz->interface)->initWithVariable = initWithVariable;
+	((CvarSelectInterface *) clazz->interface)->initWithVariableName = initWithVariableName;
 }
 
 /**
@@ -130,19 +130,21 @@ static void initialize(Class *clazz) {
  * @memberof CvarSelect
  */
 Class *_CvarSelect(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "CvarSelect";
-		clazz.superclass = _Select();
-		clazz.instanceSize = sizeof(CvarSelect);
-		clazz.interfaceOffset = offsetof(CvarSelect, interface);
-		clazz.interfaceSize = sizeof(CvarSelectInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "CvarSelect",
+			.superclass = _Select(),
+			.instanceSize = sizeof(CvarSelect),
+			.interfaceOffset = offsetof(CvarSelect, interface),
+			.interfaceSize = sizeof(CvarSelectInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

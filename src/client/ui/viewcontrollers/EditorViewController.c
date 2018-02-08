@@ -108,9 +108,9 @@ static EditorViewController *init(EditorViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 
-	((EditorViewControllerInterface *) clazz->def->interface)->init = init;
+	((EditorViewControllerInterface *) clazz->interface)->init = init;
 }
 
 /**
@@ -118,19 +118,21 @@ static void initialize(Class *clazz) {
  * @memberof EditorViewController
  */
 Class *_EditorViewController(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "EditorViewController";
-		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(EditorViewController);
-		clazz.interfaceOffset = offsetof(EditorViewController, interface);
-		clazz.interfaceSize = sizeof(EditorViewControllerInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "EditorViewController",
+			.superclass = _ViewController(),
+			.instanceSize = sizeof(EditorViewController),
+			.interfaceOffset = offsetof(EditorViewController, interface),
+			.interfaceSize = sizeof(EditorViewControllerInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

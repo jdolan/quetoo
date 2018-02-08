@@ -196,11 +196,11 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
+	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-	((MainViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
+	((MainViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
 }
 
 /**
@@ -208,19 +208,21 @@ static void initialize(Class *clazz) {
  * @memberof MainView
  */
 Class *_MainView(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "MainView";
-		clazz.superclass = _View();
-		clazz.instanceSize = sizeof(MainView);
-		clazz.interfaceOffset = offsetof(MainView, interface);
-		clazz.interfaceSize = sizeof(MainViewInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "MainView",
+			.superclass = _View(),
+			.instanceSize = sizeof(MainView),
+			.interfaceOffset = offsetof(MainView, interface),
+			.interfaceSize = sizeof(MainViewInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class
