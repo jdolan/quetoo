@@ -194,6 +194,7 @@ void Cl_InitCgame(void) {
 	import.Image = Ui_Image;
 	import.Stylesheet = Ui_Stylesheet;
 	import.View = Ui_View;
+	import.WakeView = Ui_WakeView;
 	import.PushViewController = Ui_PushViewController;
 	import.PopToViewController = Ui_PopToViewController;
 	import.PopViewController = Ui_PopViewController;

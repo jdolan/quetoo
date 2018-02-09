@@ -119,10 +119,6 @@
 		CE32529E1F760D3F00512523 /* BindTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE32529C1F760D3F00512523 /* BindTextView.h */; };
 		CE3BCDC91DB6DD81002E6C6D /* r_program_null.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3BCDB91DB6DCE0002E6C6D /* r_program_null.c */; };
 		CE3BCDCA1DB6DD87002E6C6D /* r_program_null.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3BCDBA1DB6DCE0002E6C6D /* r_program_null.h */; };
-		CE3BCDF01DB91B01002E6C6D /* QuetooRenderer.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3BCDEC1DB91AF7002E6C6D /* QuetooRenderer.c */; };
-		CE3BCDF11DB91B0B002E6C6D /* QuetooRenderer.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3BCDED1DB91AF7002E6C6D /* QuetooRenderer.h */; };
-		CE3DA5071E575096009B26ED /* EditorView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3DA5051E575096009B26ED /* EditorView.c */; };
-		CE3DA5081E575096009B26ED /* EditorView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3DA5061E575096009B26ED /* EditorView.h */; };
 		CE4898D11D8B9DE100EEACA5 /* libnet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.a */; };
 		CE4A25581FA2032700A539E7 /* corona_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA936601DBCD85400A12B79 /* corona_fs.glsl */; };
 		CE4A25591FA2032700A539E7 /* corona_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA936611DBCD85400A12B79 /* corona_vs.glsl */; };
@@ -200,6 +196,14 @@
 		CE69DC9F202D3EE700E5C8B1 /* miniz.h in Headers */ = {isa = PBXBuildFile; fileRef = CE69DC9D202D3EE600E5C8B1 /* miniz.h */; };
 		CE69DCA0202D3EE700E5C8B1 /* miniz.c in Sources */ = {isa = PBXBuildFile; fileRef = CE69DC9E202D3EE700E5C8B1 /* miniz.c */; };
 		CE69DCA2202D404900E5C8B1 /* color.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE69DCA1202D402F00E5C8B1 /* color.glsl */; };
+		CE69DCAC202D4FE500E5C8B1 /* EditorViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE69DCA8202D4FE500E5C8B1 /* EditorViewController.c */; };
+		CE69DCAD202D4FE500E5C8B1 /* EditorView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE69DCA9202D4FE500E5C8B1 /* EditorView.c */; };
+		CE69DCAE202D4FE500E5C8B1 /* EditorViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE69DCAA202D4FE500E5C8B1 /* EditorViewController.h */; };
+		CE69DCAF202D4FE500E5C8B1 /* EditorView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE69DCAB202D4FE500E5C8B1 /* EditorView.h */; };
+		CE69DCB2202D500700E5C8B1 /* QuetooRenderer.h in Headers */ = {isa = PBXBuildFile; fileRef = CE69DCB0202D500700E5C8B1 /* QuetooRenderer.h */; };
+		CE69DCB3202D500700E5C8B1 /* QuetooRenderer.c in Sources */ = {isa = PBXBuildFile; fileRef = CE69DCB1202D500700E5C8B1 /* QuetooRenderer.c */; };
+		CE69DCB5202D515700E5C8B1 /* EditorView.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE69DCA7202D4FE500E5C8B1 /* EditorView.css */; };
+		CE69DCB7202D58BC00E5C8B1 /* EditorView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE69DCB6202D570400E5C8B1 /* EditorView.json */; };
 		CE6C2D111E24902900F55B0A /* cm_bsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6C2D0F1E24902900F55B0A /* cm_bsp.c */; };
 		CE6C2D121E24902900F55B0A /* cm_bsp.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6C2D101E24902900F55B0A /* cm_bsp.h */; };
 		CE6EE3891F70B69F00FBC830 /* libconsole.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7A211D9CB408000FA6B2 /* libconsole.a */; };
@@ -435,8 +439,6 @@
 		CE88195D1F882EC3000D5AB7 /* DialogViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8819591F882D9F000D5AB7 /* DialogViewController.h */; };
 		CE8C734C1E0DE28000226317 /* r_stainmap.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8C734A1E0DE28000226317 /* r_stainmap.c */; };
 		CE8C734D1E0DE28000226317 /* r_stainmap.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8C734B1E0DE28000226317 /* r_stainmap.h */; };
-		CE95745E1E568F4900BBC4C0 /* EditorViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9574581E56860800BBC4C0 /* EditorViewController.c */; };
-		CE9574601E568F6C00BBC4C0 /* EditorViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9574591E56860800BBC4C0 /* EditorViewController.h */; };
 		CE9FECDD201FEB7400F954ED /* r_gl.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9FECDA201FEB7400F954ED /* r_gl.c */; };
 		CE9FECDE201FEB7400F954ED /* r_gl.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9FECDB201FEB7400F954ED /* r_gl.h */; };
 		CE9FECDF201FEB7400F954ED /* r_gl_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9FECDC201FEB7400F954ED /* r_gl_types.h */; };
@@ -1067,6 +1069,17 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
+		CE69DCA4202D4E9500E5C8B1 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = ui/editor;
+			dstSubfolderSpec = 16;
+			files = (
+				CE69DCB5202D515700E5C8B1 /* EditorView.css in CopyFiles */,
+				CE69DCB7202D58BC00E5C8B1 /* EditorView.json in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CE80FD851C5E3B6F00A21A51 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1535,11 +1548,6 @@
 		CE3BCDBA1DB6DCE0002E6C6D /* r_program_null.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_program_null.h; sourceTree = "<group>"; };
 		CE3BCDC31DB6DD05002E6C6D /* null_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = null_fs.glsl; sourceTree = "<group>"; };
 		CE3BCDC41DB6DD05002E6C6D /* null_vs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = null_vs.glsl; sourceTree = "<group>"; };
-		CE3BCDEC1DB91AF7002E6C6D /* QuetooRenderer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = QuetooRenderer.c; sourceTree = "<group>"; };
-		CE3BCDED1DB91AF7002E6C6D /* QuetooRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QuetooRenderer.h; sourceTree = "<group>"; };
-		CE3BCDF21DB91B52002E6C6D /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
-		CE3DA5051E575096009B26ED /* EditorView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = EditorView.c; sourceTree = "<group>"; };
-		CE3DA5061E575096009B26ED /* EditorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditorView.h; sourceTree = "<group>"; };
 		CE4A256F1FA39FB400A539E7 /* libSDL2_image-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSDL2_image-2.0.0.dylib"; path = "../../../../usr/local/lib/libSDL2_image-2.0.0.dylib"; sourceTree = "<group>"; };
 		CE4E07B320264B15000B276C /* common.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = common.css; sourceTree = "<group>"; };
 		CE4E07B6202676E7000B276C /* JoinServerViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = JoinServerViewController.css; sourceTree = "<group>"; };
@@ -1611,8 +1619,6 @@
 		CE5CDBB21D9F45090034757D /* ui_main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_main.c; sourceTree = "<group>"; };
 		CE5CDBB31D9F45090034757D /* ui_main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_main.h; sourceTree = "<group>"; };
 		CE5CDBB41D9F45090034757D /* ui_types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_types.h; sourceTree = "<group>"; };
-		CE5CDBBC1D9F450A0034757D /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
-		CE5CDBD41D9F450A0034757D /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE5CDC321D9F51580034757D /* libclient-ui.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libclient-ui.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE67EF641E3500C0009C2819 /* ai_goal.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ai_goal.c; sourceTree = "<group>"; };
 		CE67EF651E3500C0009C2819 /* ai_goal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ai_goal.h; sourceTree = "<group>"; };
@@ -1639,6 +1645,14 @@
 		CE69DC9D202D3EE600E5C8B1 /* miniz.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = miniz.h; sourceTree = "<group>"; };
 		CE69DC9E202D3EE700E5C8B1 /* miniz.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = miniz.c; sourceTree = "<group>"; };
 		CE69DCA1202D402F00E5C8B1 /* color.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = color.glsl; sourceTree = "<group>"; };
+		CE69DCA7202D4FE500E5C8B1 /* EditorView.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = EditorView.css; sourceTree = "<group>"; };
+		CE69DCA8202D4FE500E5C8B1 /* EditorViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = EditorViewController.c; sourceTree = "<group>"; };
+		CE69DCA9202D4FE500E5C8B1 /* EditorView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = EditorView.c; sourceTree = "<group>"; };
+		CE69DCAA202D4FE500E5C8B1 /* EditorViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditorViewController.h; sourceTree = "<group>"; };
+		CE69DCAB202D4FE500E5C8B1 /* EditorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditorView.h; sourceTree = "<group>"; };
+		CE69DCB0202D500700E5C8B1 /* QuetooRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QuetooRenderer.h; sourceTree = "<group>"; };
+		CE69DCB1202D500700E5C8B1 /* QuetooRenderer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = QuetooRenderer.c; sourceTree = "<group>"; };
+		CE69DCB6202D570400E5C8B1 /* EditorView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = EditorView.json; sourceTree = "<group>"; };
 		CE6C2D0F1E24902900F55B0A /* cm_bsp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_bsp.c; sourceTree = "<group>"; };
 		CE6C2D101E24902900F55B0A /* cm_bsp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_bsp.h; sourceTree = "<group>"; };
 		CE6EE2791F6BE8FE00FBC830 /* DialogView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DialogView.c; sourceTree = "<group>"; };
@@ -1649,6 +1663,7 @@
 		CE6EE40F1F72919800FBC830 /* cg_ui.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_ui.c; sourceTree = "<group>"; };
 		CE6EE4101F72919800FBC830 /* cg_ui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_ui.h; sourceTree = "<group>"; };
 		CE6FF29C1E9E6FBA00F3C160 /* qzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qzip.h; sourceTree = "<group>"; };
+		CE7D2C06202E670E004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE8000051C5E4F0500A21A51 /* libxml2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.dylib; path = /opt/local/lib/libxml2.2.dylib; sourceTree = "<absolute>"; };
 		CE8040181FA90D7000931A89 /* libmysqlclient.20.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmysqlclient.20.dylib; path = ../../../../opt/local/lib/mysql57/mysql/libmysqlclient.20.dylib; sourceTree = "<group>"; };
 		CE80FD871C5E3B6F00A21A51 /* quemap */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = quemap; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1671,8 +1686,6 @@
 		CE92B3AA1D2FF77800E9153A /* quemap.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = quemap.ico; sourceTree = "<group>"; };
 		CE92B3AB1D2FF7F600E9153A /* quetoo-dedicated-icon.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "quetoo-dedicated-icon.rc"; sourceTree = "<group>"; };
 		CE92B3AC1D2FF83A00E9153A /* quetoo-dedicated.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = "quetoo-dedicated.ico"; sourceTree = "<group>"; };
-		CE9574581E56860800BBC4C0 /* EditorViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = EditorViewController.c; sourceTree = "<group>"; };
-		CE9574591E56860800BBC4C0 /* EditorViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditorViewController.h; sourceTree = "<group>"; };
 		CE9FECDA201FEB7400F954ED /* r_gl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_gl.c; sourceTree = "<group>"; };
 		CE9FECDB201FEB7400F954ED /* r_gl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_gl.h; sourceTree = "<group>"; };
 		CE9FECDC201FEB7400F954ED /* r_gl_types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_gl_types.h; sourceTree = "<group>"; };
@@ -3008,16 +3021,6 @@
 			path = controls;
 			sourceTree = "<group>";
 		};
-		CE3BCDEB1DB91AF7002E6C6D /* renderers */ = {
-			isa = PBXGroup;
-			children = (
-				CE3BCDEC1DB91AF7002E6C6D /* QuetooRenderer.c */,
-				CE3BCDED1DB91AF7002E6C6D /* QuetooRenderer.h */,
-				CE3BCDF21DB91B52002E6C6D /* Makefile.am */,
-			);
-			path = renderers;
-			sourceTree = "<group>";
-		};
 		CE585BD51ED459E2009B7C14 /* include */ = {
 			isa = PBXGroup;
 			children = (
@@ -3144,9 +3147,9 @@
 		CE5CDB931D9F45090034757D /* ui */ = {
 			isa = PBXGroup;
 			children = (
-				CE3BCDEB1DB91AF7002E6C6D /* renderers */,
-				CE5CDBB51D9F45090034757D /* viewcontrollers */,
-				CE5CDBC71D9F450A0034757D /* views */,
+				CE69DCA6202D4FE500E5C8B1 /* editor */,
+				CE69DCB1202D500700E5C8B1 /* QuetooRenderer.c */,
+				CE69DCB0202D500700E5C8B1 /* QuetooRenderer.h */,
 				CE4E07E22028B0CB000B276C /* ui_data.h */,
 				CE4E07E32028B0CB000B276C /* ui_data.c */,
 				CE55308B1E57E3670009A127 /* ui_editor.c */,
@@ -3159,26 +3162,6 @@
 				CE5CDBAC1D9F45090034757D /* Makefile.am */,
 			);
 			path = ui;
-			sourceTree = "<group>";
-		};
-		CE5CDBB51D9F45090034757D /* viewcontrollers */ = {
-			isa = PBXGroup;
-			children = (
-				CE9574581E56860800BBC4C0 /* EditorViewController.c */,
-				CE9574591E56860800BBC4C0 /* EditorViewController.h */,
-				CE5CDBBC1D9F450A0034757D /* Makefile.am */,
-			);
-			path = viewcontrollers;
-			sourceTree = "<group>";
-		};
-		CE5CDBC71D9F450A0034757D /* views */ = {
-			isa = PBXGroup;
-			children = (
-				CE3DA5051E575096009B26ED /* EditorView.c */,
-				CE3DA5061E575096009B26ED /* EditorView.h */,
-				CE5CDBD41D9F450A0034757D /* Makefile.am */,
-			);
-			path = views;
 			sourceTree = "<group>";
 		};
 		CE67EF631E3500C0009C2819 /* default */ = {
@@ -3215,6 +3198,20 @@
 				CE67EF9A1E351A7B009C2819 /* Makefile.am */,
 			);
 			path = "quetoo-update";
+			sourceTree = "<group>";
+		};
+		CE69DCA6202D4FE500E5C8B1 /* editor */ = {
+			isa = PBXGroup;
+			children = (
+				CE69DCA9202D4FE500E5C8B1 /* EditorView.c */,
+				CE69DCA7202D4FE500E5C8B1 /* EditorView.css */,
+				CE69DCAB202D4FE500E5C8B1 /* EditorView.h */,
+				CE69DCB6202D570400E5C8B1 /* EditorView.json */,
+				CE69DCA8202D4FE500E5C8B1 /* EditorViewController.c */,
+				CE69DCAA202D4FE500E5C8B1 /* EditorViewController.h */,
+				CE7D2C06202E670E004BC58E /* Makefile.am */,
+			);
+			path = editor;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -3300,9 +3297,9 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE9574601E568F6C00BBC4C0 /* EditorViewController.h in Headers */,
-				CE3BCDF11DB91B0B002E6C6D /* QuetooRenderer.h in Headers */,
-				CE3DA5081E575096009B26ED /* EditorView.h in Headers */,
+				CE69DCAF202D4FE500E5C8B1 /* EditorView.h in Headers */,
+				CE69DCAE202D4FE500E5C8B1 /* EditorViewController.h in Headers */,
+				CE69DCB2202D500700E5C8B1 /* QuetooRenderer.h in Headers */,
 				CE4E07E42028B0CB000B276C /* ui_data.h in Headers */,
 				CE55308E1E57E3670009A127 /* ui_editor.h in Headers */,
 				CE5CDC361D9F51A90034757D /* ui_local.h in Headers */,
@@ -3722,6 +3719,7 @@
 				CE5CDC1D1D9F51580034757D /* Sources */,
 				CE5CDC231D9F51580034757D /* Frameworks */,
 				CE5CDC261D9F51580034757D /* Headers */,
+				CE69DCA4202D4E9500E5C8B1 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4329,9 +4327,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE3DA5071E575096009B26ED /* EditorView.c in Sources */,
-				CE95745E1E568F4900BBC4C0 /* EditorViewController.c in Sources */,
-				CE3BCDF01DB91B01002E6C6D /* QuetooRenderer.c in Sources */,
+				CE69DCAD202D4FE500E5C8B1 /* EditorView.c in Sources */,
+				CE69DCAC202D4FE500E5C8B1 /* EditorViewController.c in Sources */,
+				CE69DCB3202D500700E5C8B1 /* QuetooRenderer.c in Sources */,
 				CE4E07E52028B0CB000B276C /* ui_data.c in Sources */,
 				CE55308D1E57E3670009A127 /* ui_editor.c in Sources */,
 				CE5CDC331D9F518B0034757D /* ui_main.c in Sources */,

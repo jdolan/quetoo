@@ -1,0 +1,148 @@
+{
+  "subviews": [
+    {
+      "class": "Panel",
+      "contentView": {
+        "subviews": [
+          {
+            "class": "Box",
+            "classNames": [
+              "material"
+            ],
+            "label": {
+              "text": {
+                "text": "Material"
+              }
+            },
+            "contentView": {
+              "subviews": [
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Material name"
+                    }
+                  },
+                  "control": {
+                    "class": "TextView",
+                    "identifier": "name"
+                  }
+                },
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Diffuse texture"
+                    }
+                  },
+                  "control": {
+                    "class": "TextView",
+                    "identifier": "diffuse"
+                  }
+                },
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Normalmap texture"
+                    }
+                  },
+                  "control": {
+                    "class": "TextView",
+                    "identifier": "normalmap"
+                  }
+                },
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Specularmap texture"
+                    }
+                  },
+                  "control": {
+                    "class": "TextView",
+                    "identifier": "specularmap"
+                  }
+                },
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Bump"
+                    }
+                  },
+                  "control": {
+                    "class": "Slider",
+                    "identifier": "bumpmap",
+                    "min": 0,
+                    "max": 8,
+                    "step": 0.125
+                  }
+                },
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Hardness"
+                    }
+                  },
+                  "control": {
+                    "class": "Slider",
+                    "identifier": "hardness",
+                    "min": 0,
+                    "max": 8,
+                    "step": 0.125
+                  }
+                },
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Specularity"
+                    }
+                  },
+                  "control": {
+                    "class": "Slider",
+                    "identifier": "specular",
+                    "min": 0,
+                    "max": 8,
+                    "step": 0.125
+                  }
+                },
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Parallax"
+                    }
+                  },
+                  "control": {
+                    "class": "Slider",
+                    "identifier": "parallax",
+                    "min": 0,
+                    "max": 8,
+                    "step": 0.125
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "accessoryView": {
+        "style": {
+          "hidden": false
+        },
+        "subviews": [
+          {
+            "class": "Button",
+            "identifier": "save",
+            "title": {
+              "text": "Save"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

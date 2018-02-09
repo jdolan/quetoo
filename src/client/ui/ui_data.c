@@ -120,5 +120,24 @@ View *Ui_View(const char *path, Outlet *outlets) {
 		Com_Warn("Failed to load View %s\n", path);
 	}
 
+
 	return view;
+}
+
+/**
+ * @brief
+ */
+void Ui_WakeView(View *view, const char *path, Outlet *outlets) {
+
+	assert(view);
+
+	Data *data = Ui_Data(path);
+	if (data) {
+		$(view, awakeWithData, data);
+		$(view, resolve, outlets);
+
+		release(data);
+	} else {
+		Com_Warn("Failed to wake View %s\n", path);
+	}
 }

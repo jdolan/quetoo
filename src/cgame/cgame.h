@@ -302,6 +302,11 @@ typedef struct cg_import_s {
 	View *(*View)(const char *path, Outlet *outlets);
 
 	/**
+	 * @brief Wakes the specified View with the JSON file at the given path.
+	 */
+	void (*WakeView)(View *view, const char *path, Outlet *outlets);
+
+	/**
 	 * @brief Pushes the specified ViewController to the user interface.
 	 */
 	void (*PushViewController)(ViewController *viewController);

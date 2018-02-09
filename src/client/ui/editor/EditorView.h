@@ -59,47 +59,47 @@ struct EditorView {
 	/**
 	 * @brief The material name.
 	 */
-	TextView *materialName;
+	TextView *name;
 
 	/**
 	 * @brief The diffuse texture.
 	 */
-	TextView *diffuseTexture;
+	TextView *diffuse;
 
 	/**
 	 * @brief The normalmap texture.
 	 */
-	TextView *normalmapTexture;
+	TextView *normalmap;
 
 	/**
 	 * @brief The specularmap texture.
 	 */
-	TextView *specularmapTexture;
+	TextView *specularmap;
 
 	/**
 	 * @brief The bump slider.
 	 */
-	Slider *bumpSlider;
+	Slider *bump;
 
 	/**
 	 * @brief The hardness slider.
 	 */
-	Slider *hardnessSlider;
+	Slider *hardness;
 
 	/**
 	 * @brief The specular slider.
 	 */
-	Slider *specularSlider;
+	Slider *specular;
 
 	/**
 	 * @brief The parallax slider.
 	 */
-	Slider *parallaxSlider;
+	Slider *parallax;
 
 	/**
 	 * @brief The save button.
 	 */
-	Button *saveButton;
+	Button *save;
 };
 
 /**
@@ -122,6 +122,14 @@ struct EditorViewInterface {
 	 */
 	EditorView *(*initWithFrame)(EditorView *self, const SDL_Rect *frame);
 
+	/**
+	 * @fn EditorView::setMaterial(EditorView *self, r_material_t *material)
+	 * @brief Sets the Material for this EditorView.
+	 * @param self The EditorView.
+	 * @param material The material.
+	 * @memberof EditorView
+	 */
+	void (*setMaterial)(EditorView *self, r_material_t *material);
 };
 
 /**

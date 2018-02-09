@@ -48,14 +48,14 @@ static void didSetValue(Slider *slider) {
 		return;
 	}
 
-	if (slider == view->bumpSlider) {
-		view->material->cm->bump = view->bumpSlider->value;
-	} else if (slider == view->hardnessSlider) {
-		view->material->cm->hardness = view->hardnessSlider->value;
-	} else if (slider == view->specularSlider) {
-		view->material->cm->specular = view->specularSlider->value;
-	} else if (slider == view->parallaxSlider) {
-		view->material->cm->parallax = view->parallaxSlider->value;
+	if (slider == view->bump) {
+		view->material->cm->bump = view->bump->value;
+	} else if (slider == view->hardness) {
+		view->material->cm->hardness = view->hardness->value;
+	} else if (slider == view->specular) {
+		view->material->cm->specular = view->specular->value;
+	} else if (slider == view->parallax) {
+		view->material->cm->parallax = view->parallax->value;
 	} else {
 		Com_Debug(DEBUG_UI, "Unknown Slider %p\n", (void *) slider);
 	}
@@ -73,22 +73,45 @@ static void loadView(ViewController *self) {
 	EditorView *view = $(alloc(EditorView), initWithFrame, NULL);
 	assert(view);
 
-	view->bumpSlider->delegate.self = self;
-	view->bumpSlider->delegate.didSetValue = didSetValue;
+	view->bump->delegate.self = self;
+	view->bump->delegate.didSetValue = didSetValue;
 
-	view->hardnessSlider->delegate.self = self;
-	view->hardnessSlider->delegate.didSetValue = didSetValue;
+	view->hardness->delegate.self = self;
+	view->hardness->delegate.didSetValue = didSetValue;
 
-	view->specularSlider->delegate.self = self;
-	view->specularSlider->delegate.didSetValue = didSetValue;
+	view->specular->delegate.self = self;
+	view->specular->delegate.didSetValue = didSetValue;
 
-	view->parallaxSlider->delegate.self = self;
-	view->parallaxSlider->delegate.didSetValue = didSetValue;
+	view->parallax->delegate.self = self;
+	view->parallax->delegate.didSetValue = didSetValue;
 
-	$((Control *) view->saveButton, addActionForEventType, SDL_MOUSEBUTTONUP, saveAction, self, NULL);
+	$((Control *) view->save, addActionForEventType, SDL_MOUSEBUTTONUP, saveAction, self, NULL);
 
 	$(self, setView, (View *) view);
 	release(view);
+}
+
+/**
+ * @see ViewController::viewWillAppear(ViewController *)
+ */
+static void viewWillAppear(ViewController *self) {
+
+	EditorView *view = (EditorView *) self->view;
+
+	r_material_t *material = NULL;
+
+	vec3_t end;
+	VectorMA(r_view.origin, MAX_WORLD_DIST, r_view.forward, end);
+
+	const int32_t contents = MASK_SOLID | MASK_LIQUID | CONTENTS_MIST;
+	const cm_trace_t tr = Cl_Trace(r_view.origin, end, NULL, NULL, 0, contents);
+	if (tr.fraction < 1.0 && tr.surface->material) {
+		material = R_LoadMaterial(tr.surface->name, ASSET_CONTEXT_TEXTURES);
+	}
+
+	$(view, setMaterial, material);
+
+	super(ViewController, self, viewWillAppear);
 }
 
 #pragma mark - EditorViewController
@@ -109,6 +132,7 @@ static EditorViewController *init(EditorViewController *self) {
 static void initialize(Class *clazz) {
 
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 
 	((EditorViewControllerInterface *) clazz->interface)->init = init;
 }
