@@ -20,6 +20,7 @@
  */
 
 #include "r_local.h"
+#include "r_gl.h"
 
 cvar_t *r_geometry_shaders;
 
@@ -246,6 +247,9 @@ static void R_AttributePointer(const r_attribute_id_t attribute) {
 					break;
 				case R_ATTRIB_NEXT_TANGENT:
 					real_attrib = R_ATTRIB_TANGENT;
+					break;
+				case R_ATTRIB_NEXT_BITANGENT:
+					real_attrib = R_ATTRIB_BITANGENT;
 					break;
 				default:
 					break;
@@ -685,6 +689,29 @@ void R_SetupAttributes(void) {
 
 			R_DisableAttribute(R_ATTRIB_TANGENT);
 			R_DisableAttribute(R_ATTRIB_NEXT_TANGENT);
+		}
+	}
+
+	if (p->arrays_mask & R_ATTRIB_MASK_BITANGENT) {
+
+		if (mask & R_ATTRIB_MASK_BITANGENT) {
+
+			R_AttributePointer(R_ATTRIB_BITANGENT);
+
+			if (p->arrays_mask & R_ATTRIB_MASK_NEXT_BITANGENT) {
+
+				if ((mask & R_ATTRIB_MASK_NEXT_BITANGENT) && R_ValidBuffer(r_state.array_buffers[R_ATTRIB_NEXT_BITANGENT])) {
+					R_AttributePointer(R_ATTRIB_NEXT_BITANGENT);
+				}
+				else {
+					R_DisableAttribute(R_ATTRIB_NEXT_BITANGENT);
+				}
+			}
+		}
+		else {
+
+			R_DisableAttribute(R_ATTRIB_BITANGENT);
+			R_DisableAttribute(R_ATTRIB_NEXT_BITANGENT);
 		}
 	}
 

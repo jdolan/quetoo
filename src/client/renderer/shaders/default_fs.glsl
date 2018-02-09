@@ -12,7 +12,7 @@
 #include "include/tint.glsl"
 
 #define MAX_LIGHTS $r_max_lights
-#define LIGHT_SCALE $r_lightscale
+#define LIGHT_SCALE $r_modulate
 
 #if MAX_LIGHTS
 struct LightParameters {
@@ -22,16 +22,6 @@ struct LightParameters {
 };
 
 uniform LightParameters LIGHTS;
-
-// linear + quadratic attenuation
-#define LIGHT_CONSTANT 0.0
-#define LIGHT_LINEAR 4.0
-#define LIGHT_QUADRATIC 8.0
-#define LIGHT_ATTENUATION (LIGHT_CONSTANT + (LIGHT_LINEAR * dist) + (LIGHT_QUADRATIC * dist * dist))
-
-// light color clamping
-#define LIGHT_CLAMP_MIN 0.0
-#define LIGHT_CLAMP_MAX 4.0
 #endif
 
 struct CausticParameters {
@@ -90,19 +80,17 @@ vec2 BumpTexcoord(in float height) {
 /**
  * @brief Yield the diffuse modulation from bump-mapping.
  */
-vec3 BumpFragment(in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap) {
+void BumpFragment(in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap, out float lightmapBumpScale, out float lightmapSpecularScale) {
+	float glossFactor = clamp(dot(glossmap, vec3(0.299, 0.587, 0.114)), 0.0078125, 1.0);
 
-	float diffuse = max(dot(deluxemap, normalmap), 1.0);
-
-	float specular = HARDNESS * pow(max(-dot(eyeDir, reflect(deluxemap, normalmap)), 0.0), 8.0 * SPECULAR);
-
-	return diffuse + specular * glossmap;
+	lightmapBumpScale = clamp(dot(deluxemap, normalmap), 0.0, 1.0);
+	lightmapSpecularScale = (HARDNESS * glossFactor) * pow(clamp(-dot(eyeDir, reflect(deluxemap, normalmap)), 0.0078125, 1.0), (16.0 * glossFactor) * SPECULAR);
 }
 
 /**
  * @brief Yield the final sample color after factoring in dynamic light sources.
  */
-void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
+void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in float lightmapBumpScale, in float lightmapSpecularScale) {
 
 	vec3 light = vec3(0.0);
 
@@ -117,24 +105,39 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 			break;
 
 		vec3 delta = LIGHTS.ORIGIN[i] - point;
-		float dist = length(delta);
+		float len = length(delta);
 
-		if (dist < LIGHTS.RADIUS[i]) {
+		if (len < LIGHTS.RADIUS[i]) {
 
-			float d = dot(normalmap, normalize(delta));
-			if (d > 0.0) {
+			float lambert = dot(normalmap, normalize(delta));
+			if (lambert > 0.0) {
 
-				dist = 1.0 - dist / LIGHTS.RADIUS[i];
-				light += LIGHTS.COLOR[i] * d * LIGHT_ATTENUATION;
+				// windowed inverse square falloff
+				float dist = len/LIGHTS.RADIUS[i];
+				float falloff = clamp(1.0 - dist * dist * dist * dist, 0.0, 1.0);
+				falloff = falloff * falloff;
+				falloff = falloff / (dist * dist + 1.0);
+
+				light += LIGHTS.COLOR[i] * falloff * lambert;
 			}
 		}
 	}
 
-	light = clamp(light, LIGHT_CLAMP_MIN, LIGHT_CLAMP_MAX);
+	light *= LIGHT_SCALE;
 #endif
 
 	// now modulate the diffuse sample with the modified lightmap
-	fragColor.rgb = diffuse.rgb * (lightmap + light) * LIGHT_SCALE;
+	float lightmapLuma = dot(lightmap.rgb, vec3(0.299, 0.587, 0.114));
+
+	float blackPointLuma = 0.015625;
+	float l = exp2(lightmapLuma) - blackPointLuma;
+	float lightmapDiffuseBumpedLuma = l * lightmapBumpScale;
+	float lightmapSpecularBumpedLuma = l * lightmapSpecularScale;
+
+	vec3 diffuseLightmapColor = lightmap.rgb * lightmapDiffuseBumpedLuma;
+	vec3 specularLightmapColor = (lightmapLuma + lightmap.rgb) * 0.5 * lightmapSpecularBumpedLuma;
+
+	fragColor.rgb = diffuse.rgb * ((diffuseLightmapColor + specularLightmapColor) * LIGHT_SCALE + light);
 
 	// lastly modulate the alpha channel by the color
 	fragColor.a = diffuse.a * color.a;
@@ -186,17 +189,17 @@ void main(void) {
 		if (STAINMAP) {
 			vec4 stain = texture(SAMPLER8, texcoords[1]);
 			lightmap = mix(lightmap.rgb, stain.rgb, stain.a).rgb;
-			//lightmap = texture(SAMPLER8, texcoords[1]).rgb;
 		}
 	}
 
 	// then resolve any bump mapping
 	vec4 normalmap = vec4(normal, 1.0);
 	vec2 parallax = vec2(0.0);
-	vec3 bump = vec3(1.0);
+	
+	float lightmapBumpScale = 1.0;
+	float lightmapSpecularScale = 0.0;
 
 	if (NORMALMAP) {
-
 		eyeDir = normalize(eye);
 
 		if (DELUXEMAP) {
@@ -216,14 +219,20 @@ void main(void) {
 		normalmap.xyz = normalize(two * (normalmap.xyz + negHalf));
 		normalmap.xyz = normalize(vec3(normalmap.x * BUMP, normalmap.y * BUMP, normalmap.z));
 
-		vec3 glossmap = vec3(1.0);
+		vec3 glossmap = vec3(0.5);
 
 		if (GLOSSMAP) {
-			glossmap = texture(SAMPLER4, texcoords[0]).rgb;
+			glossmap = texture(SAMPLER4, texcoords[0] + parallax).rgb;
+		} else if (DIFFUSE) {
+			vec4 diffuse = texture(SAMPLER0, texcoords[0] + parallax);
+			float processedGrayscaleDiffuse = dot(diffuse.rgb * diffuse.a, vec3(0.299, 0.587, 0.114)) * 0.875 + 0.125;
+			float guessedGlossValue = clamp(pow(processedGrayscaleDiffuse * 3.0, 4.0), 0.0, 1.0) * 0.875 + 0.125;
+
+			glossmap = vec3(guessedGlossValue);
 		}
 
 		// resolve the bumpmap modulation
-		bump = BumpFragment(deluxemap, normalmap.xyz, glossmap);
+		BumpFragment(deluxemap, normalmap.xyz, glossmap, lightmapBumpScale, lightmapSpecularScale);
 
 		// and then transform the normalmap to model space for lighting
 		normalmap.xyz = normalize(
@@ -243,17 +252,18 @@ void main(void) {
 			discard;
 
 		TintFragment(diffuse, texcoords[0] + parallax);
-
-		// factor in bump mapping
-		diffuse.rgb *= bump;
 	}
 
 	// add any dynamic lighting to yield the final fragment color
-	LightFragment(diffuse, lightmap, normalmap.xyz);
+	LightFragment(diffuse, lightmap, normalmap.xyz, lightmapBumpScale, lightmapSpecularScale);
 
     // underliquid caustics
 	CausticFragment(lightmap);
 
+	// tonemap
+	fragColor.rgb *= exp(fragColor.rgb);
+	fragColor.rgb /= fragColor.rgb + 0.825;
+
 	// and fog
-	FogFragment(fragColor);
+	FogFragment(length(point), fragColor);
 }

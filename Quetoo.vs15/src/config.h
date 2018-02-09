@@ -20,10 +20,6 @@
 	#define S_ISDIR(m) (((m) & S_IFDIR) == S_IFDIR)
 #endif
 
-#ifndef usleep
-	#define usleep(t) Sleep(t / 1000)
-#endif
-
 #ifdef _WIN64
 	typedef signed __int64 ssize_t;
 #else

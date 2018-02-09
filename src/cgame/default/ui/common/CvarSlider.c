@@ -62,7 +62,7 @@ static void setValue(Slider *self, double value) {
  */
 static CvarSlider *initWithVariable(CvarSlider *self, cvar_t *var, double min, double max, double step) {
 
-	self = (CvarSlider *) super(Slider, self, initWithFrame, NULL, ControlStyleDefault);
+	self = (CvarSlider *) super(Slider, self, initWithFrame, NULL);
 	if (self) {
 
 		self->var = var;
@@ -92,11 +92,11 @@ static CvarSlider *initWithVariable(CvarSlider *self, cvar_t *var, double min, d
  */
 static void initialize(Class *clazz) {
 
-	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
+	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-	((SliderInterface *) clazz->def->interface)->setValue = setValue;
+	((SliderInterface *) clazz->interface)->setValue = setValue;
 
-	((CvarSliderInterface *) clazz->def->interface)->initWithVariable = initWithVariable;
+	((CvarSliderInterface *) clazz->interface)->initWithVariable = initWithVariable;
 }
 
 /**
@@ -104,19 +104,21 @@ static void initialize(Class *clazz) {
  * @memberof CvarSlider
  */
 Class *_CvarSlider(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "CvarSlider";
-		clazz.superclass = _Slider();
-		clazz.instanceSize = sizeof(CvarSlider);
-		clazz.interfaceOffset = offsetof(CvarSlider, interface);
-		clazz.interfaceSize = sizeof(CvarSliderInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "CvarSlider",
+			.superclass = _Slider(),
+			.instanceSize = sizeof(CvarSlider),
+			.interfaceOffset = offsetof(CvarSlider, interface),
+			.interfaceSize = sizeof(CvarSliderInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

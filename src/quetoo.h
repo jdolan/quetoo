@@ -39,10 +39,6 @@
 #endif
 
 #if defined(_WIN32)
-	#undef WIN32_LEAN_AND_MEAN
-	#define WIN32_LEAN_AND_MEAN
-	#include <windows.h>
-
 	// A hack to fix buggy MingW behavior
 	#if defined(__MINGW32__)
 		#undef PRIdPTR

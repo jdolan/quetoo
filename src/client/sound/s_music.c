@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <SDL2/SDL_timer.h>
+
 #include "s_local.h"
 #include "client.h"
 
@@ -322,7 +324,7 @@ static int S_MusicThread(void *data) {
 		SDL_mutexV(s_music_state.mutex);
 
 		// sleep a bit, so music thread doesn't eat cycles
-		usleep(QUETOO_TICK_MILLIS * 1000);
+		SDL_Delay(QUETOO_TICK_MILLIS);
 	}
 
 	return 0;

@@ -27,7 +27,7 @@
 #include "JoinServerViewController.h"
 #include "PlayerSetupViewController.h"
 
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 #define _Class _PlayViewController
 
@@ -53,7 +53,7 @@ static void loadView(ViewController *self) {
 
 	PlayViewController *this = (PlayViewController *) self;
 
-	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
 	assert(theme);
 
 	Panel *panel = $(theme, panel);
@@ -92,9 +92,9 @@ static void loadView(ViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
 /**
@@ -102,19 +102,21 @@ static void initialize(Class *clazz) {
  * @memberof PlayViewController
  */
 Class *_PlayViewController(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "PlayViewController";
-		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(PlayViewController);
-		clazz.interfaceOffset = offsetof(PlayViewController, interface);
-		clazz.interfaceSize = sizeof(PlayViewControllerInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "PlayViewController",
+			.superclass = _ViewController(),
+			.instanceSize = sizeof(PlayViewController),
+			.interfaceOffset = offsetof(PlayViewController, interface),
+			.interfaceSize = sizeof(PlayViewControllerInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

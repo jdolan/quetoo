@@ -24,8 +24,8 @@
 #include "PlayerSetupViewController.h"
 
 #include "CvarSelect.h"
-#include "Theme.h"
-
+#include "QuetooTheme.h"
+ 
 #define _Class _PlayerSetupViewController
 
 #pragma mark - Actions & delegates
@@ -68,8 +68,9 @@ static Fs_EnumerateResult enumerateSkins(const char *path, void *data) {
 			ident value = (ident) options->count;
 			$(select, addOption, name, value);
 
-			if (g_strcmp0(cg_skin->string, name) == 0) {
-				select->selectedOption = $(select, optionWithValue, value);
+			if (g_strcmp0(cg_skin->string, name) == 0 && $(select, selectedOption) == NULL) {
+				Option *option = $(select, optionWithValue, value);
+				$(option, setSelected, true);
 			}
 		}
 	}
@@ -181,7 +182,7 @@ static void loadView(ViewController *self) {
 
 	PlayerSetupViewController *this = (PlayerSetupViewController *) self;
 
-	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
 	assert(theme);
 
 	StackView *container = $(theme, container);
@@ -202,7 +203,7 @@ static void loadView(ViewController *self) {
 
 		$(theme, textView, "Name", "name");
 
-		this->skinSelect = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
+		this->skinSelect = $(alloc(Select), initWithFrame, NULL);
 
 		this->skinSelect->comparator = sortSkins;
 		this->skinSelect->delegate.self = this;
@@ -225,7 +226,7 @@ static void loadView(ViewController *self) {
 		$(theme, attach, box);
 		$(theme, target, box->contentView);
 
-		this->effectsColorPicker = $(alloc(HueColorPicker), initWithFrame, NULL, ControlStyleDefault);
+		this->effectsColorPicker = $(alloc(HueColorPicker), initWithFrame, NULL);
 		assert(this->effectsColorPicker);
 
 		this->effectsColorPicker->delegate.self = this;
@@ -235,7 +236,7 @@ static void loadView(ViewController *self) {
 
 		$(theme, control, "Effects", this->effectsColorPicker);
 
-		this->helmetColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL, ControlStyleDefault);
+		this->helmetColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL);
 		assert(this->helmetColorPicker);
 		
 		this->helmetColorPicker->delegate.self = self;
@@ -246,7 +247,7 @@ static void loadView(ViewController *self) {
 
 		$(theme, control, "Helmet", this->helmetColorPicker);
 
-		this->shirtColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL, ControlStyleDefault);
+		this->shirtColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL);
 		assert(this->shirtColorPicker);
 		
 		this->shirtColorPicker->delegate.self = self;
@@ -257,7 +258,7 @@ static void loadView(ViewController *self) {
 
 		$(theme, control, "Shirt", this->shirtColorPicker);
 
-		this->pantsColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL, ControlStyleDefault);
+		this->pantsColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL);
 		assert(this->pantsColorPicker);
 		
 		this->pantsColorPicker->delegate.self = self;
@@ -273,7 +274,7 @@ static void loadView(ViewController *self) {
 
 	$(theme, targetSubview, columns, 1);
 
-	this->playerModelView = $(alloc(PlayerModelView), initWithFrame, &MakeRect(0, 0, 800, 680), ControlStyleDefault);
+	this->playerModelView = $(alloc(PlayerModelView), initWithFrame, &MakeRect(0, 0, 600, 480));
 	assert(this->playerModelView);
 
 	$(theme, attach, this->playerModelView);
@@ -331,10 +332,10 @@ static void viewWillAppear(ViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
-	((ViewControllerInterface *) clazz->def->interface)->viewWillAppear = viewWillAppear;
+	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 }
 
 /**
@@ -342,19 +343,21 @@ static void initialize(Class *clazz) {
  * @memberof PlayerSetupViewController
  */
 Class *_PlayerSetupViewController(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "PlayerSetupViewController";
-		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(PlayerSetupViewController);
-		clazz.interfaceOffset = offsetof(PlayerSetupViewController, interface);
-		clazz.interfaceSize = sizeof(PlayerSetupViewControllerInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "PlayerSetupViewController",
+			.superclass = _ViewController(),
+			.instanceSize = sizeof(PlayerSetupViewController),
+			.interfaceOffset = offsetof(PlayerSetupViewController, interface),
+			.interfaceSize = sizeof(PlayerSetupViewControllerInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

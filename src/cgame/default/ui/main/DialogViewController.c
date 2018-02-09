@@ -117,31 +117,33 @@ static DialogViewController *initWithDialog(DialogViewController *self, const Di
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 
-	((DialogViewControllerInterface *) clazz->def->interface)->initWithDialog = initWithDialog;
+	((DialogViewControllerInterface *) clazz->interface)->initWithDialog = initWithDialog;
 }
 
 /**
- * @fn Class *DialogViewController::____FILEBASENAMEASIDENTIFIER___(void)
+ * @fn Class *DialogViewController::_DialogViewController(void)
  * @memberof DialogViewController
  */
 Class *_DialogViewController(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "DialogViewController";
-		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(DialogViewController);
-		clazz.interfaceOffset = offsetof(DialogViewController, interface);
-		clazz.interfaceSize = sizeof(DialogViewControllerInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "DialogViewController",
+			.superclass = _ViewController(),
+			.instanceSize = sizeof(DialogViewController),
+			.interfaceOffset = offsetof(DialogViewController, interface),
+			.interfaceSize = sizeof(DialogViewControllerInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

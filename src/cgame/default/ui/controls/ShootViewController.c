@@ -24,7 +24,7 @@
 #include "ShootViewController.h"
 
 #include "CvarSelect.h"
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 #define _Class _ShootViewController
 
@@ -59,7 +59,7 @@ static void loadView(ViewController *self) {
 		.didEndEditing = didBindKey
 	};
 
-	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
 	assert(theme);
 
 	StackView *container = $(theme, container);
@@ -143,7 +143,7 @@ static void loadView(ViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
 /**
@@ -151,19 +151,21 @@ static void initialize(Class *clazz) {
  * @memberof ShootViewController
  */
 Class *_ShootViewController(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "ShootViewController";
-		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(ShootViewController);
-		clazz.interfaceOffset = offsetof(ShootViewController, interface);
-		clazz.interfaceSize = sizeof(ShootViewControllerInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "ShootViewController",
+			.superclass = _ViewController(),
+			.instanceSize = sizeof(ShootViewController),
+			.interfaceOffset = offsetof(ShootViewController, interface),
+			.interfaceSize = sizeof(ShootViewControllerInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

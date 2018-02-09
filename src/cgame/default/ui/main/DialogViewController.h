@@ -128,4 +128,4 @@ struct DialogViewControllerInterface {
  * @return The DialogViewController Class.
  * @memberof DialogViewController
  */
-OBJECTIVELY_EXPORT Class *_DialogViewController(void);
+Class *_DialogViewController(void);

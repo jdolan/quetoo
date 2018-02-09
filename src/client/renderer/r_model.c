@@ -290,6 +290,8 @@ void R_InitModels(void) {
 		.size = sizeof(r_model_state.bound_vertices),
 		.data = r_model_state.bound_vertices
 	});
+
+	Cmd_Add("r_export_bsp", R_ExportBSP_f, CMD_RENDERER, "Export the current map to a .obj model.");
 }
 
 /**

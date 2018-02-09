@@ -26,6 +26,7 @@
 #endif
 
 #include "r_local.h"
+#include "r_gl.h"
 #include "client.h"
 
 r_view_t r_view;
@@ -53,6 +54,7 @@ cvar_t *r_bumpmap;
 cvar_t *r_caustics;
 cvar_t *r_contrast;
 cvar_t *r_deluxemap;
+cvar_t *r_display;
 cvar_t *r_draw_buffer;
 cvar_t *r_flares;
 cvar_t *r_fog;
@@ -80,6 +82,7 @@ cvar_t *r_stainmaps;
 cvar_t *r_supersample;
 cvar_t *r_texture_mode;
 cvar_t *r_swap_interval;
+cvar_t *r_lightmap_cache;
 cvar_t *r_warp;
 cvar_t *r_width;
 cvar_t *r_windowed_height;
@@ -484,6 +487,7 @@ static void R_InitLocal(void) {
 	r_caustics = Cvar_Add("r_caustics", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA, "Enable or disable liquid caustic effects");
 	r_contrast = Cvar_Add("r_contrast", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls texture contrast");
 	r_deluxemap = Cvar_Add("r_deluxemap", "1", CVAR_ARCHIVE, "Controls deluxemap rendering");
+	r_display = Cvar_Add("r_display", "0", CVAR_ARCHIVE, "Specifies the default display to use");
 	r_draw_buffer = Cvar_Add("r_draw_buffer", "GL_BACK", CVAR_ARCHIVE, NULL);
 	r_flares = Cvar_Add("r_flares", "1.0", CVAR_ARCHIVE, "Controls the rendering of light source flares");
 	r_fog = Cvar_Add("r_fog", "1", CVAR_ARCHIVE, "Controls the rendering of fog effects");
@@ -498,7 +502,6 @@ static void R_InitLocal(void) {
 	r_materials = Cvar_Add("r_materials", "1", CVAR_ARCHIVE, "Enables or disables the materials (progressive texture effects) system");
 	r_max_lights = Cvar_Add("r_max_lights", "16", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the maximum number of lights affecting a rendered object");
 	r_modulate = Cvar_Add("r_modulate", "3.0", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls the brightness of world surface lightmaps");
-	Cvar_Add("r_lightscale", "1.0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the scale of lightmaps during fragment generation");
 	r_monochrome = Cvar_Add("r_monochrome", "0", CVAR_ARCHIVE | CVAR_R_MEDIA, "Loads all world textures as monochrome");
 	r_multisample = Cvar_Add("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls multisampling (anti-aliasing)");
 	r_parallax = Cvar_Add("r_parallax", "1.0", CVAR_ARCHIVE, "Controls the intensity of parallax mapping effects");
@@ -511,6 +514,7 @@ static void R_InitLocal(void) {
 	r_stainmaps = Cvar_Add("r_stainmaps", "1.0", CVAR_ARCHIVE, "Controls persistent stain effects.");
 	r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
 	r_texture_mode = Cvar_Add("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies the active texture filtering mode");
+	r_lightmap_cache = Cvar_Add("r_lightmap_cache", "1", CVAR_ARCHIVE, "Controls whether or not the lightmap cache is used. Improve map loading times at the expense of a bit more hard drive usage.");
 	r_warp = Cvar_Add("r_warp", "1", CVAR_ARCHIVE, "Controls warping surface effects (e.g. water)");
 	r_width = Cvar_Add("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_windowed_height = Cvar_Add("r_windowed_height", "1024", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);

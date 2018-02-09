@@ -23,7 +23,7 @@
 
 #include "MoveViewController.h"
 #include "CvarSelect.h"
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 #define _Class _MoveViewController
 
@@ -58,7 +58,7 @@ static void loadView(ViewController *self) {
 		.didEndEditing = didBindKey
 	};
 
-	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
 	assert(theme);
 
 	StackView *container = $(theme, container);
@@ -104,7 +104,7 @@ static void loadView(ViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
 /**
@@ -112,19 +112,21 @@ static void initialize(Class *clazz) {
  * @memberof MoveViewController
  */
 Class *_MoveViewController(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "MoveViewController";
-		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(MoveViewController);
-		clazz.interfaceOffset = offsetof(MoveViewController, interface);
-		clazz.interfaceSize = sizeof(MoveViewControllerInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "MoveViewController",
+			.superclass = _ViewController(),
+			.instanceSize = sizeof(MoveViewController),
+			.interfaceOffset = offsetof(MoveViewController, interface),
+			.interfaceSize = sizeof(MoveViewControllerInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

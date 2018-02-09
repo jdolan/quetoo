@@ -109,7 +109,7 @@ static _Bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface 
 			SDL_Surface *s;
 			if ((s = IMG_LoadTyped_RW(rw, 0, (char *) type))) {
 
-				if (!g_str_has_prefix(path, IMG_PALETTE)) {
+				if (!g_str_has_prefix(path, IMG_PALETTE) && s->format->format != SDL_PIXELFORMAT_ABGR8888) {
 					*surf = SDL_ConvertSurfaceFormat(s, SDL_PIXELFORMAT_ABGR8888, 0);
 					SDL_FreeSurface(s);
 				} else {
@@ -131,9 +131,12 @@ static _Bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface 
  */
 _Bool Img_LoadImage(const char *name, SDL_Surface **surf) {
 
+	char basename[MAX_QPATH];
+	StripExtension(name, basename);
+
 	int32_t i = 0;
 	while (img_formats[i]) {
-		if (Img_LoadTypedImage(name, img_formats[i++], surf)) {
+		if (Img_LoadTypedImage(basename, img_formats[i++], surf)) {
 			return true;
 		}
 	}

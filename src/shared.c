@@ -197,11 +197,11 @@ void PerpendicularVector(const vec3_t in, vec3_t out) {
 }
 
 /**
- * @brief Projects the normalized directional vectors on to the normal's plane.
- * The fourth component of the resulting tangent vector represents sidedness.
+ * @brief Projects the normalized directional vectors on to the normal's plane in order to
+ * resolve sidedness, and scales the resulting tangent and bitangent accordingly.
  */
-void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec4_t tangent,
-                    vec3_t bitangent) {
+void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec3_t tangent,
+	vec3_t bitangent) {
 
 	vec3_t s, t;
 
@@ -216,16 +216,16 @@ void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, v
 	VectorMA(s, -DotProduct(s, normal), normal, tangent);
 	VectorNormalize(tangent);
 
-	// resolve sidedness, encode as fourth tangent component
+	// resolve sidedness
+	if (DotProduct(s, tangent) < 0.0f) {
+		VectorScale(tangent, -1.0f, tangent);
+	}
+	
 	CrossProduct(normal, tangent, bitangent);
 
-	if (DotProduct(t, bitangent) < 0.0) {
-		tangent[3] = -1.0;
-	} else {
-		tangent[3] = 1.0;
+	if (DotProduct(t, bitangent) < 0.0f) {
+		VectorScale(bitangent, -1.0f, bitangent);
 	}
-
-	VectorScale(bitangent, tangent[3], bitangent);
 }
 
 /**
@@ -371,6 +371,14 @@ void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross) {
 	cross[0] = v1[1] * v2[2] - v1[2] * v2[1];
 	cross[1] = v1[2] * v2[0] - v1[0] * v2[2];
 	cross[2] = v1[0] * v2[1] - v1[1] * v2[0];
+}
+
+/**
+ * @brief Reflects `dir` against the specified normal: r = d − 2 (d ⋅ n) n
+ */
+void Reflect(const vec3_t dir, const vec3_t normal, vec3_t ref) {
+	VectorScale(normal, -2.0 * DotProduct(dir, normal), ref);
+	VectorAdd(dir, ref, ref);
 }
 
 /**

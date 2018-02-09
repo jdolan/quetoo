@@ -193,7 +193,7 @@ int64_t Fs_Read(file_t *file, void *buffer, size_t size, size_t count) {
 
 /**
  * @brief Reads a line from the specified file. The newline character is
- * omitted from the returned, NULL-terminated string.
+ * omitted from the returned, null-terminated string.
  *
  * @return True on success, false on failures.
  */
@@ -369,6 +369,14 @@ _Bool Fs_Rename(const char *source, const char *dest) {
 
 	return rename(src, dst) == 0;
 }
+
+/**
+ * @brief Fetch the "last modified" time for the specified file.
+ */
+int64_t Fs_LastModTime(const char *filename) {
+	return PHYSFS_getLastModTime(filename);
+}
+
 
 /**
  * @brief Unlinks (deletes) the specified file.
@@ -694,9 +702,9 @@ void Fs_Init(const uint32_t flags) {
 	// if the base directory was not resolved, add the default search paths
 	if (strlen(fs_state.base_dir)) {
 		Com_Debug(DEBUG_FILESYSTEM, "Resolved base dir: %s\n", fs_state.base_dir);
-	} else {
-		Fs_AddToSearchPath(PKGLIBDIR G_DIR_SEPARATOR_S DEFAULT_GAME);
-		Fs_AddToSearchPath(PKGDATADIR G_DIR_SEPARATOR_S DEFAULT_GAME);
+	} else { // trailing slash is added to "fix" links on Linux, possibly causes issues on other platforms?
+		Fs_AddToSearchPath(PKGLIBDIR G_DIR_SEPARATOR_S DEFAULT_GAME G_DIR_SEPARATOR_S);
+		Fs_AddToSearchPath(PKGDATADIR G_DIR_SEPARATOR_S DEFAULT_GAME G_DIR_SEPARATOR_S);
 	}
 
 	// then add the game directory in the user's home directory

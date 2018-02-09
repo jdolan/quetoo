@@ -24,7 +24,7 @@
 
 #include "CreditsViewController.h"
 
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 static const char *_name = "Name";
 static const char *_role = "Role";
@@ -122,7 +122,7 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 
 		box->view.autoresizingMask = ViewAutoresizingFill;
 
-		this->tableView = $(alloc(TableView), initWithFrame, NULL, ControlStyleDefault);
+		this->tableView = $(alloc(TableView), initWithFrame, NULL);
 
 		this->tableView->control.selection = ControlSelectionNone;
 
@@ -134,35 +134,9 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 
 		this->tableView->delegate.cellForColumnAndRow = cellForColumnAndRow;
 
-		{
-			TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _name);
-			assert(column);
-
-			column->width = 30;
-
-			$(this->tableView, addColumn, column);
-			release(column);
-		}
-
-		{
-			TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _role);
-			assert(column);
-
-			column->width = 40;
-
-			$(this->tableView, addColumn, column);
-			release(column);
-		}
-
-		{
-			TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _link);
-			assert(column);
-
-			column->width = 30;
-
-			$(this->tableView, addColumn, column);
-			release(column);
-		}
+		$(this->tableView, addColumnWithIdentifier, _name);
+		$(this->tableView, addColumnWithIdentifier, _role);
+		$(this->tableView, addColumnWithIdentifier, _link);
 
 		$((View *) box, addSubview, (View *) this->tableView);
 
@@ -244,12 +218,12 @@ static void loadCredits(CreditsViewController *self, const char *path) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 
-	((CreditsViewControllerInterface *) clazz->def->interface)->init = init;
-	((CreditsViewControllerInterface *) clazz->def->interface)->loadCredits = loadCredits;
+	((CreditsViewControllerInterface *) clazz->interface)->init = init;
+	((CreditsViewControllerInterface *) clazz->interface)->loadCredits = loadCredits;
 }
 
 /**
@@ -257,19 +231,21 @@ static void initialize(Class *clazz) {
  * @memberof CreditsViewController
  */
 Class *_CreditsViewController(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "CreditsViewController";
-		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(CreditsViewController);
-		clazz.interfaceOffset = offsetof(CreditsViewController, interface);
-		clazz.interfaceSize = sizeof(CreditsViewControllerInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "CreditsViewController",
+			.superclass = _ViewController(),
+			.instanceSize = sizeof(CreditsViewController),
+			.interfaceOffset = offsetof(CreditsViewController, interface),
+			.interfaceSize = sizeof(CreditsViewControllerInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

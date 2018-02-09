@@ -18,7 +18,8 @@
         http://glad.dav1d.de/#profile=core&language=c&specification=gl&loader=on&api=gl%3D3.3&extensions=GL_EXT_texture_filter_anisotropic
 */
 
-#include "r_types.h"
+#include "r_local.h"
+#include "r_gl.h"
 
 static void* get_proc(const char *namez);
 

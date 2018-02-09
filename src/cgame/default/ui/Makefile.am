@@ -1,10 +1,42 @@
+commondir = @PKGLIBDIR@/default/ui/common
+common_DATA = \
+	common/common.css
+
+_infodir = @PKGLIBDIR@/default/ui/info
+_info_DATA = \
+	info/CreditsViewController.css
+
+controlsdir = @PKGLIBDIR@/default/ui/controls
+controls_DATA = \
+	controls/LookViewController.css \
+	controls/MiscViewController.css \
+	controls/ShootViewController.css
+
+maindir = @PKGLIBDIR@/default/ui/main
+main_DATA = \
+	main/DialogViewController.css \
+	main/HomeViewController.css \
+	main/LoadingViewController.css \
+	main/MainView.css
+
+playdir = @PKGLIBDIR@/default/ui/play
+play_DATA = \
+	play/CreateServerViewController.css \
+	play/JoinServerViewController.css \
+	play/PlayerSetupViewController.css
+
+settingsdir = @PKGLIBDIR@/default/ui/settings
+settings_DATA = \
+	settings/OptionsViewController.css \
+	settings/SystemViewController.css
+
 noinst_HEADERS = \
 	common/BindTextView.h \
 	common/CvarCheckbox.h \
 	common/CvarSelect.h \
 	common/CvarSlider.h \
 	common/CvarTextView.h \
-	common/Theme.h \
+	common/QuetooTheme.h \
 	\
 	controls/ControlsViewController.h \
 	controls/CrosshairView.h \
@@ -22,8 +54,6 @@ noinst_HEADERS = \
 	main/LoadingViewController.h \
 	main/MainView.h \
 	main/MainViewController.h \
-	main/PrimaryButton.h \
-	main/PrimaryIcon.h \
 	\
 	play/CreateServerViewController.h \
 	play/JoinServerViewController.h \
@@ -47,7 +77,7 @@ libui_la_SOURCES = \
 	common/CvarSelect.c \
 	common/CvarSlider.c \
 	common/CvarTextView.c \
-	common/Theme.c \
+	common/QuetooTheme.c \
 	\
 	controls/ControlsViewController.c \
 	controls/CrosshairView.c \
@@ -65,8 +95,6 @@ libui_la_SOURCES = \
 	main/LoadingViewController.c \
 	main/MainView.c \
 	main/MainViewController.c \
-	main/PrimaryButton.c \
-	main/PrimaryIcon.c \
 	\
 	play/CreateServerViewController.c \
 	play/JoinServerViewController.c \

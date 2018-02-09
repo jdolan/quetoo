@@ -151,7 +151,7 @@ static void Cg_Init(void) {
 	cg_draw_crosshair = cgi.Cvar("cg_draw_crosshair", "1", CVAR_ARCHIVE,
                                      "Which crosshair image to use, 0 disables (Default is 1)");
 	cg_draw_crosshair_color = cgi.Cvar("cg_draw_crosshair_color", "default", CVAR_ARCHIVE,
-	                                   "Specifies the crosshair color (red|green|yellow|default)");
+	                                   "Specifies your crosshair color, in the hex format \"rrggbb\". \"default\" uses white.");
 	cg_draw_crosshair_pulse = cgi.Cvar("cg_draw_crosshair_pulse", "1.0", CVAR_ARCHIVE,
 	                                   "Pulse the crosshair when picking up items");
 	cg_draw_crosshair_scale = cgi.Cvar("cg_draw_crosshair_scale", "1.0", CVAR_ARCHIVE,

@@ -25,7 +25,7 @@
 
 #include "CreditsViewController.h"
 
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 #define _Class _InfoViewController
 
@@ -54,7 +54,7 @@ static void loadView(ViewController *self) {
 
 	InfoViewController *this = (InfoViewController *) self;
 
-	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
 	assert(theme);
 
 	Panel *panel = $(theme, panel);
@@ -85,9 +85,9 @@ static void loadView(ViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
 /**
@@ -95,19 +95,21 @@ static void initialize(Class *clazz) {
  * @memberof InfoViewController
  */
 Class *_InfoViewController(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "InfoViewController";
-		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(InfoViewController);
-		clazz.interfaceOffset = offsetof(InfoViewController, interface);
-		clazz.interfaceSize = sizeof(InfoViewControllerInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "InfoViewController",
+			.superclass = _ViewController(),
+			.instanceSize = sizeof(InfoViewController),
+			.interfaceOffset = offsetof(InfoViewController, interface),
+			.interfaceSize = sizeof(InfoViewControllerInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

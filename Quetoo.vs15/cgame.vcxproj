@@ -45,7 +45,7 @@
     <ClInclude Include="..\src\cgame\default\ui\common\CvarSelect.h" />
     <ClInclude Include="..\src\cgame\default\ui\common\CvarSlider.h" />
     <ClInclude Include="..\src\cgame\default\ui\common\CvarTextView.h" />
-    <ClInclude Include="..\src\cgame\default\ui\common\Theme.h" />
+    <ClInclude Include="..\src\cgame\default\ui\common\QuetooTheme.h" />
     <ClInclude Include="..\src\cgame\default\ui\controls\ControlsViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\controls\CrosshairView.h" />
     <ClInclude Include="..\src\cgame\default\ui\controls\LookViewController.h" />
@@ -55,12 +55,11 @@
     <ClInclude Include="..\src\cgame\default\ui\info\CreditsViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\info\InfoViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\main\DialogView.h" />
+    <ClInclude Include="..\src\cgame\default\ui\main\DialogViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\main\HomeViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\main\LoadingViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\main\MainView.h" />
     <ClInclude Include="..\src\cgame\default\ui\main\MainViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\main\PrimaryButton.h" />
-    <ClInclude Include="..\src\cgame\default\ui\main\PrimaryIcon.h" />
     <ClInclude Include="..\src\cgame\default\ui\play\CreateServerViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\play\JoinServerViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\play\MapListCollectionItemView.h" />
@@ -100,7 +99,7 @@
     <ClCompile Include="..\src\cgame\default\ui\common\CvarSelect.c" />
     <ClCompile Include="..\src\cgame\default\ui\common\CvarSlider.c" />
     <ClCompile Include="..\src\cgame\default\ui\common\CvarTextView.c" />
-    <ClCompile Include="..\src\cgame\default\ui\common\Theme.c" />
+    <ClCompile Include="..\src\cgame\default\ui\common\QuetooTheme.c" />
     <ClCompile Include="..\src\cgame\default\ui\controls\ControlsViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\controls\CrosshairView.c" />
     <ClCompile Include="..\src\cgame\default\ui\controls\LookViewController.c" />
@@ -110,12 +109,11 @@
     <ClCompile Include="..\src\cgame\default\ui\info\CreditsViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\info\InfoViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\main\DialogView.c" />
+    <ClCompile Include="..\src\cgame\default\ui\main\DialogViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\main\HomeViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\main\LoadingViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\main\MainView.c" />
     <ClCompile Include="..\src\cgame\default\ui\main\MainViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\main\PrimaryButton.c" />
-    <ClCompile Include="..\src\cgame\default\ui\main\PrimaryIcon.c" />
     <ClCompile Include="..\src\cgame\default\ui\play\CreateServerViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\play\JoinServerViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\play\MapListCollectionItemView.c" />

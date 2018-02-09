@@ -28,7 +28,7 @@
 #include "OptionsViewController.h"
 #include "SystemViewController.h"
 
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 #define _Class _SettingsViewController
 
@@ -54,7 +54,7 @@ static void loadView(ViewController *self) {
 
 	SettingsViewController *this = (SettingsViewController *) self;
 
-	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
 	assert(theme);
 
 	Panel *panel = $(theme, panel);
@@ -89,9 +89,9 @@ static void loadView(ViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
 /**
@@ -99,19 +99,21 @@ static void initialize(Class *clazz) {
  * @memberof SettingsViewController
  */
 Class *_SettingsViewController(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "SettingsViewController";
-		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(SettingsViewController);
-		clazz.interfaceOffset = offsetof(SettingsViewController, interface);
-		clazz.interfaceSize = sizeof(SettingsViewControllerInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "SettingsViewController",
+			.superclass = _ViewController(),
+			.instanceSize = sizeof(SettingsViewController),
+			.interfaceOffset = offsetof(SettingsViewController, interface),
+			.interfaceSize = sizeof(SettingsViewControllerInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

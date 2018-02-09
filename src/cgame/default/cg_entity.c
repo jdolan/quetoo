@@ -390,7 +390,7 @@ static void Cg_WeaponOffset(cl_entity_t *ent, vec3_t offset, vec3_t angles) {
 	const vec3_t kick_offset = { -6.0, 0.0, 0.0 };
 	const vec3_t kick_angles = { -2.0, 0.0, 0.0 };
 
-	VectorSet(offset, cg_draw_weapon_x->value, cg_draw_weapon_y->value, cg_draw_weapon_z->value);
+	VectorClear(offset);
 	VectorClear(angles);
 
 	if (ent->animation1.animation == ANIM_TORSO_DROP) {
@@ -406,6 +406,10 @@ static void Cg_WeaponOffset(cl_entity_t *ent, vec3_t offset, vec3_t angles) {
 
 	VectorScale(offset, cg_bob->value, offset);
 	VectorScale(angles, cg_bob->value, angles);
+
+	offset[0] += cg_draw_weapon_x->value;
+	offset[1] += cg_draw_weapon_y->value;
+	offset[2] += cg_draw_weapon_z->value;
 }
 
 /**

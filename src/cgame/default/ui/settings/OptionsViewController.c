@@ -27,7 +27,7 @@
 #include "CvarSelect.h"
 #include "CvarSlider.h"
 
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 #define _Class _OptionsViewController
 
@@ -80,7 +80,7 @@ static void loadView(ViewController *self) {
 
 	OptionsViewController *this = (OptionsViewController *) self;
 
-	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
 
 	StackView *container = $(theme, container);
 
@@ -143,7 +143,7 @@ static void loadView(ViewController *self) {
 		$(theme, attach, box);
 		$(theme, target, box->contentView);
 
-		Select *qualitySelect = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
+		Select *qualitySelect = $(alloc(Select), initWithFrame, NULL);
 
 		$(qualitySelect, addOption, "Highest", (ident) 3);
 		$(qualitySelect, addOption, "High", (ident) 2);
@@ -200,7 +200,7 @@ static void loadView(ViewController *self) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
-	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
 /**
@@ -208,19 +208,21 @@ static void initialize(Class *clazz) {
  * @memberof OptionsViewController
  */
 Class *_OptionsViewController(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "OptionsViewController";
-		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(OptionsViewController);
-		clazz.interfaceOffset = offsetof(OptionsViewController, interface);
-		clazz.interfaceSize = sizeof(OptionsViewControllerInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "OptionsViewController",
+			.superclass = _ViewController(),
+			.instanceSize = sizeof(OptionsViewController),
+			.interfaceOffset = offsetof(OptionsViewController, interface),
+			.interfaceSize = sizeof(OptionsViewControllerInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

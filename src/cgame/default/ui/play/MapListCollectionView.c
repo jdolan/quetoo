@@ -242,6 +242,9 @@ static void dealloc(Object *self) {
 
 #pragma mark - View
 
+/**
+ * @see View::layoutIfNeeded(View *)
+ */
 static void layoutIfNeeded(View *self) {
 
 	MapListCollectionView *this = (MapListCollectionView *) self;
@@ -262,13 +265,12 @@ static void layoutIfNeeded(View *self) {
 #pragma mark - MapListCollectionView
 
 /**
- * @fn MapListCollectionView *initWithFrame(MapListCollectionView *self, const SDL_Rect *frame, ControlStyle style)
- *
+ * @fn MapListCollectionView *initWithFrame(MapListCollectionView *self, const SDL_Rect *frame)
  * @memberof MapListCollectionView
  */
-static MapListCollectionView *initWithFrame(MapListCollectionView *self, const SDL_Rect *frame, ControlStyle style) {
+static MapListCollectionView *initWithFrame(MapListCollectionView *self, const SDL_Rect *frame) {
 
-	self = (MapListCollectionView *) super(CollectionView, self, initWithFrame, frame, style);
+	self = (MapListCollectionView *) super(CollectionView, self, initWithFrame, frame);
 	if (self) {
 		self->lock = $(alloc(Lock), init);
 		assert(self->lock);
@@ -320,12 +322,12 @@ static Array *selectedMaps(const MapListCollectionView *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewInterface *) clazz->def->interface)->layoutIfNeeded = layoutIfNeeded;
+	((ViewInterface *) clazz->interface)->layoutIfNeeded = layoutIfNeeded;
 
-	((MapListCollectionViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
-	((MapListCollectionViewInterface *) clazz->def->interface)->selectedMaps = selectedMaps;
+	((MapListCollectionViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
+	((MapListCollectionViewInterface *) clazz->interface)->selectedMaps = selectedMaps;
 }
 
 /**
@@ -333,19 +335,21 @@ static void initialize(Class *clazz) {
  * @memberof MapListCollectionView
  */
 Class *_MapListCollectionView(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "MapListCollectionView";
-		clazz.superclass = _CollectionView();
-		clazz.instanceSize = sizeof(MapListCollectionView);
-		clazz.interfaceOffset = offsetof(MapListCollectionView, interface);
-		clazz.interfaceSize = sizeof(MapListCollectionViewInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "MapListCollectionView",
+			.superclass = _CollectionView(),
+			.instanceSize = sizeof(MapListCollectionView),
+			.interfaceOffset = offsetof(MapListCollectionView, interface),
+			.interfaceSize = sizeof(MapListCollectionViewInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

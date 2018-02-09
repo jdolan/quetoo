@@ -22,7 +22,7 @@
 #include "cg_local.h"
 
 #include "JoinServerViewController.h"
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 static const char *_hostname = "Hostname";
 static const char *_source = "Source";
@@ -271,11 +271,11 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
 	assert(theme);
 
-	self->view->autoresizingMask = ViewAutoresizingContain;
 	self->view->identifier = strdup("Join");
+	self->view->stylesheet = cgi.Stylesheet("ui/play/JoinServerViewController.css");
 
 	JoinServerViewController *this = (JoinServerViewController *) self;
 
@@ -286,38 +286,17 @@ static void loadView(ViewController *self) {
 	$(theme, target, container);
 
 	{
-		const SDL_Rect frame = { .w = 1200, .h = 600 };
-		this->serversTableView = $(alloc(TableView), initWithFrame, &frame, ControlStyleDefault);
+		this->serversTableView = $(alloc(TableView), initWithFrame, NULL);
+		assert(this->serversTableView);
 
-		TableColumn *hostname = $(alloc(TableColumn), initWithIdentifier, _hostname);
-		hostname->width = 360;
-		$(this->serversTableView, addColumn, hostname);
-		release(hostname);
+		this->serversTableView->control.view.identifier = strdup("Servers");
 
-		TableColumn *source = $(alloc(TableColumn), initWithIdentifier, _source);
-		source->width = 100;
-		$(this->serversTableView, addColumn, source);
-		release(source);
-
-		TableColumn *name = $(alloc(TableColumn), initWithIdentifier, _name);
-		name->width = 120;
-		$(this->serversTableView, addColumn, name);
-		release(name);
-
-		TableColumn *gameplay = $(alloc(TableColumn), initWithIdentifier, _gameplay);
-		gameplay->width = 100;
-		$(this->serversTableView, addColumn, gameplay);
-		release(gameplay);
-
-		TableColumn *players = $(alloc(TableColumn), initWithIdentifier, _players);
-		players->width = 80;
-		$(this->serversTableView, addColumn, players);
-		release(players);
-
-		TableColumn *ping = $(alloc(TableColumn), initWithIdentifier, _ping);
-		ping->width = 80;
-		$(this->serversTableView, addColumn, ping);
-		release(ping);
+		$(this->serversTableView, addColumnWithIdentifier, _hostname);
+		$(this->serversTableView, addColumnWithIdentifier, _source);
+		$(this->serversTableView, addColumnWithIdentifier, _name);
+		$(this->serversTableView, addColumnWithIdentifier, _gameplay);
+		$(this->serversTableView, addColumnWithIdentifier, _players);
+		$(this->serversTableView, addColumnWithIdentifier, _ping);
 
 		this->serversTableView->control.selection = ControlSelectionSingle;
 
@@ -380,10 +359,10 @@ static gint comparator(gconstpointer a, gconstpointer b, gpointer data) {
 
 		switch (this->serversTableView->sortColumn->order) {
 			case OrderAscending:
-				s0 = a, s1 = b;
+				s0 = a; s1 = b;
 				break;
 			case OrderDescending:
-				s0 = b, s1 = a;
+				s0 = b; s1 = a;
 				break;
 			default:
 				return 0;
@@ -430,13 +409,13 @@ static void reloadServers(JoinServerViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewControllerInterface *) clazz->def->interface)->handleNotification = handleNotification;
-	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
-	((ViewControllerInterface *) clazz->def->interface)->viewWillAppear = viewWillAppear;
+	((ViewControllerInterface *) clazz->interface)->handleNotification = handleNotification;
+	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 
-	((JoinServerViewControllerInterface *) clazz->def->interface)->reloadServers = reloadServers;
+	((JoinServerViewControllerInterface *) clazz->interface)->reloadServers = reloadServers;
 }
 
 /**
@@ -444,19 +423,21 @@ static void initialize(Class *clazz) {
  * @memberof JoinServerViewController
  */
 Class *_JoinServerViewController(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "JoinServerViewController";
-		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(JoinServerViewController);
-		clazz.interfaceOffset = offsetof(JoinServerViewController, interface);
-		clazz.interfaceSize = sizeof(JoinServerViewControllerInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "JoinServerViewController",
+			.superclass = _ViewController(),
+			.instanceSize = sizeof(JoinServerViewController),
+			.interfaceOffset = offsetof(JoinServerViewController, interface),
+			.interfaceSize = sizeof(JoinServerViewControllerInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

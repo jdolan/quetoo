@@ -105,9 +105,6 @@
     <ClInclude Include="..\src\cgame\default\ui\common\CvarTextView.h">
       <Filter>src\default\ui\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\common\Theme.h">
-      <Filter>src\default\ui\common</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\cgame\default\ui\info\CreditsViewController.h">
       <Filter>src\default\ui\info</Filter>
     </ClInclude>
@@ -127,12 +124,6 @@
       <Filter>src\default\ui\main</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\default\ui\main\MainViewController.h">
-      <Filter>src\default\ui\main</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\main\PrimaryButton.h">
-      <Filter>src\default\ui\main</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\main\PrimaryIcon.h">
       <Filter>src\default\ui\main</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\default\ui\settings\OptionsViewController.h">
@@ -187,6 +178,12 @@
       <Filter>src\default\ui\play</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\default\ui\common\BindTextView.h">
+      <Filter>src\default\ui\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\default\ui\main\DialogViewController.h">
+      <Filter>src\default\ui\main</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\default\ui\common\QuetooTheme.h">
       <Filter>src\default\ui\common</Filter>
     </ClInclude>
   </ItemGroup>
@@ -260,9 +257,6 @@
     <ClCompile Include="..\src\cgame\default\ui\common\CvarTextView.c">
       <Filter>src\default\ui\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\common\Theme.c">
-      <Filter>src\default\ui\common</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\info\CreditsViewController.c">
       <Filter>src\default\ui\info</Filter>
     </ClCompile>
@@ -282,12 +276,6 @@
       <Filter>src\default\ui\main</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\main\MainViewController.c">
-      <Filter>src\default\ui\main</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\main\PrimaryButton.c">
-      <Filter>src\default\ui\main</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\main\PrimaryIcon.c">
       <Filter>src\default\ui\main</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\settings\OptionsViewController.c">
@@ -342,6 +330,12 @@
       <Filter>src\default\ui\play</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\common\BindTextView.c">
+      <Filter>src\default\ui\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\ui\main\DialogViewController.c">
+      <Filter>src\default\ui\main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\ui\common\QuetooTheme.c">
       <Filter>src\default\ui\common</Filter>
     </ClCompile>
   </ItemGroup>

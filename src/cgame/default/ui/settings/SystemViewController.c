@@ -24,7 +24,7 @@
 #include "SystemViewController.h"
 
 #include "CvarSelect.h"
-#include "Theme.h"
+#include "QuetooTheme.h"
 
 #define _Class _SystemViewController
 
@@ -84,7 +84,7 @@ static void loadView(ViewController *self) {
 
 	SystemViewController *this = (SystemViewController *) self;
 
-	Theme *theme = $(alloc(Theme), initWithTarget, self->view);
+	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
 
 	StackView *container = $(theme, container);
 
@@ -102,7 +102,7 @@ static void loadView(ViewController *self) {
 		$(theme, attach, box);
 		$(theme, target, box->contentView);
 
-		this->videoModeSelect = $(alloc(VideoModeSelect), initWithFrame, NULL, ControlStyleDefault);
+		this->videoModeSelect = $(alloc(VideoModeSelect), initWithFrame, NULL);
 		assert(this->videoModeSelect);
 
 		this->videoModeSelect->select.delegate.self = this;
@@ -242,9 +242,9 @@ static void loadView(ViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
 /**
@@ -252,19 +252,21 @@ static void initialize(Class *clazz) {
  * @memberof SystemViewController
  */
 Class *_SystemViewController(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "SystemViewController";
-		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(SystemViewController);
-		clazz.interfaceOffset = offsetof(SystemViewController, interface);
-		clazz.interfaceSize = sizeof(SystemViewControllerInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "SystemViewController",
+			.superclass = _ViewController(),
+			.instanceSize = sizeof(SystemViewController),
+			.interfaceOffset = offsetof(SystemViewController, interface),
+			.interfaceSize = sizeof(SystemViewControllerInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class
