@@ -96,7 +96,7 @@ static void loadView(ViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
 /**
@@ -104,19 +104,21 @@ static void initialize(Class *clazz) {
  * @memberof MiscViewController
  */
 Class *_MiscViewController(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "MiscViewController";
-		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(MiscViewController);
-		clazz.interfaceOffset = offsetof(MiscViewController, interface);
-		clazz.interfaceSize = sizeof(MiscViewControllerInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "MiscViewController",
+			.superclass = _ViewController(),
+			.instanceSize = sizeof(MiscViewController),
+			.interfaceOffset = offsetof(MiscViewController, interface),
+			.interfaceSize = sizeof(MiscViewControllerInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

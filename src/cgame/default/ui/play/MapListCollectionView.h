@@ -73,15 +73,13 @@ struct MapListCollectionViewInterface {
 	CollectionViewInterface collectionViewInterface;
 
 	/**
-	 * @fn MapListCollectionView *MapListCollectionView::initWithFrame(MapListCollectionView *self, const SDL_Rect *frame, ControlStyle style)
+	 * @fn MapListCollectionView *MapListCollectionView::initWithFrame(MapListCollectionView *self, const SDL_Rect *frame)
 	 * @brief Initializes this MapListCollectionView with the specified frame and style.
 	 * @param frame The frame.
-	 * @param style The ControlStyle.
 	 * @return The initialized MapListCollectionView, or `NULL` on error.
 	 * @memberof MapListCollectionView
 	 */
-	MapListCollectionView *(*initWithFrame)(MapListCollectionView *self, const SDL_Rect *frame,
-	                                        ControlStyle style);
+	MapListCollectionView *(*initWithFrame)(MapListCollectionView *self, const SDL_Rect *frame);
 
 	/**
 	 * @fn Array *MapListCollectionView::selectedMaps(const MapListCollectionView *self)

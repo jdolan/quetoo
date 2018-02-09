@@ -46,7 +46,7 @@ static void dealloc(Object *self) {
  */
 static DialogView *init(DialogView *self) {
 
-	self = (DialogView *) super(Panel, self, initWithFrame, NULL, ControlStyleDefault);
+	self = (DialogView *) super(Panel, self, initWithFrame, NULL);
 	if (self) {
 
 		View *this = (View *) self;
@@ -65,7 +65,7 @@ static DialogView *init(DialogView *self) {
 
 		self->panel.contentView->view.alignment = ViewAlignmentMiddleCenter;
 
-		self->message = $(alloc(Label), initWithText, NULL, $$(Font, defaultFont, FontCategoryPrimaryResponder));
+		self->message = $(alloc(Label), initWithText, NULL, NULL);
 
 		self->message->view.alignment = ViewAlignmentMiddleCenter;
 		self->message->view.autoresizingMask = ViewAutoresizingContain;
@@ -75,7 +75,7 @@ static DialogView *init(DialogView *self) {
 		self->panel.accessoryView->view.alignment = ViewAlignmentBottomCenter;
 		self->panel.accessoryView->view.hidden = false;
 		
-		self->cancelButton = $(alloc(Button), initWithFrame, NULL, ControlStyleDefault);
+		self->cancelButton = $(alloc(Button), initWithFrame, NULL);
 		assert(self->cancelButton);
 
 		$(self->cancelButton->title, setText, "Cancel");
@@ -84,7 +84,7 @@ static DialogView *init(DialogView *self) {
 
 		$((View *) self->panel.accessoryView, addSubview, (View *) self->cancelButton);
 
-		self->okButton = $(alloc(Button), initWithFrame, NULL, ControlStyleDefault);
+		self->okButton = $(alloc(Button), initWithFrame, NULL);
 		assert(self->okButton);
 
 		$(self->okButton->title, setText, "Ok");
@@ -106,9 +106,9 @@ static DialogView *init(DialogView *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((DialogViewInterface *) clazz->def->interface)->init = init;
+	((DialogViewInterface *) clazz->interface)->init = init;
 }
 
 /**
@@ -116,19 +116,21 @@ static void initialize(Class *clazz) {
  * @memberof DialogView
  */
 Class *_DialogView(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "DialogView";
-		clazz.superclass = _Panel();
-		clazz.instanceSize = sizeof(DialogView);
-		clazz.interfaceOffset = offsetof(DialogView, interface);
-		clazz.interfaceSize = sizeof(DialogViewInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "DialogView",
+			.superclass = _Panel(),
+			.instanceSize = sizeof(DialogView),
+			.interfaceOffset = offsetof(DialogView, interface),
+			.interfaceSize = sizeof(DialogViewInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

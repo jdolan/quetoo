@@ -60,8 +60,6 @@
     <ClInclude Include="..\src\cgame\default\ui\main\LoadingViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\main\MainView.h" />
     <ClInclude Include="..\src\cgame\default\ui\main\MainViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\main\PrimaryButton.h" />
-    <ClInclude Include="..\src\cgame\default\ui\main\PrimaryIcon.h" />
     <ClInclude Include="..\src\cgame\default\ui\play\CreateServerViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\play\JoinServerViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\play\MapListCollectionItemView.h" />
@@ -116,8 +114,6 @@
     <ClCompile Include="..\src\cgame\default\ui\main\LoadingViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\main\MainView.c" />
     <ClCompile Include="..\src\cgame\default\ui\main\MainViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\main\PrimaryButton.c" />
-    <ClCompile Include="..\src\cgame\default\ui\main\PrimaryIcon.c" />
     <ClCompile Include="..\src\cgame\default\ui\play\CreateServerViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\play\JoinServerViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\play\MapListCollectionItemView.c" />

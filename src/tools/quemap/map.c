@@ -871,8 +871,6 @@ static _Bool ParseMapEntity(void) {
  * @brief
  */
 void LoadMapFile(const char *file_name) {
-	int32_t subdivide;
-	int32_t i;
 
 	Com_Verbose("--- LoadMapFile ---\n");
 
@@ -895,15 +893,8 @@ void LoadMapFile(const char *file_name) {
 	while (ParseMapEntity()) {
 	}
 
-	subdivide = atoi(ValueForKey(&entities[0], "subdivide"));
-
-	if (subdivide >= 256 && subdivide <= 2048) {
-		Com_Verbose("Using subdivide %d from worldspawn.\n", subdivide);
-		subdivide_size = subdivide;
-	}
-
 	ClearBounds(map_mins, map_maxs);
-	for (i = 0; i < entities[0].num_brushes; i++) {
+	for (int32_t i = 0; i < entities[0].num_brushes; i++) {
 		if (map_brushes[i].mins[0] > MAX_WORLD_COORD) {
 			continue;    // no valid points
 		}

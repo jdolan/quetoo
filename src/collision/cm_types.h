@@ -85,6 +85,16 @@ typedef struct {
 } cm_bsp_model_t;
 
 /**
+ * @brief The maximum length of an entity key-value key, in characters.
+ */
+#define MAX_BSP_ENTITY_KEY		32
+
+/**
+ * @brief The maximum length of an entity key-value value, in characters.
+ */
+#define MAX_BSP_ENTITY_VALUE	1024
+
+/**
  * @brief Traces are discrete movements through world space, clipped to the
  * BSP planes they intersect. This is the basis for all collision detection
  * within Quake.

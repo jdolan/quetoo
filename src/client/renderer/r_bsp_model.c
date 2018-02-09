@@ -20,6 +20,7 @@
  */
 
 #include "r_local.h"
+#include "r_gl.h"
 #include "client.h"
 
 /**
@@ -339,7 +340,7 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
 		// lastly lighting info
 		const int32_t ofs = in->light_ofs;
 		const byte *data = (ofs == -1) ? NULL : bsp->file->lightmap_data + ofs;
-
+	
 		// to create the lightmap and deluxemap
 		R_CreateBspSurfaceLightmap(bsp, out, data);
 

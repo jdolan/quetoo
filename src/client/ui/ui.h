@@ -22,6 +22,7 @@
 #ifndef __UI_H__
 #define __UI_H__
 
+#include "ui_data.h"
 #include "ui_editor.h"
 #include "ui_main.h"
 #include "ui_types.h"

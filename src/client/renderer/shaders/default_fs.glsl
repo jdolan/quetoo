@@ -23,16 +23,6 @@ struct LightParameters {
 };
 
 uniform LightParameters LIGHTS;
-
-// linear + quadratic attenuation
-#define LIGHT_CONSTANT 0.0
-#define LIGHT_LINEAR 4.0
-#define LIGHT_QUADRATIC 8.0
-#define LIGHT_ATTENUATION (LIGHT_CONSTANT + (LIGHT_LINEAR * dist) + (LIGHT_QUADRATIC * dist * dist))
-
-// light color clamping
-#define LIGHT_CLAMP_MIN 0.0
-#define LIGHT_CLAMP_MAX 4.0
 #endif
 
 struct CausticParameters {
@@ -116,20 +106,25 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in floa
 			break;
 
 		vec3 delta = LIGHTS.ORIGIN[i] - point;
-		float dist = length(delta);
+		float len = length(delta);
 
-		if (dist < LIGHTS.RADIUS[i]) {
+		if (len < LIGHTS.RADIUS[i]) {
 
-			float d = dot(normalmap, normalize(delta));
-			if (d > 0.0) {
+			float lambert = dot(normalmap, normalize(delta));
+			if (lambert > 0.0) {
 
-				dist = 1.0 - dist / LIGHTS.RADIUS[i];
-				light += LIGHTS.COLOR[i] * d * LIGHT_ATTENUATION;
+				// windowed inverse square falloff
+				float dist = len/LIGHTS.RADIUS[i];
+				float falloff = clamp(1.0 - dist * dist * dist * dist, 0.0, 1.0);
+				falloff = falloff * falloff;
+				falloff = falloff / (dist * dist + 1.0);
+
+				light += LIGHTS.COLOR[i] * falloff * lambert;
 			}
 		}
 	}
 
-	light = clamp(light, LIGHT_CLAMP_MIN, LIGHT_CLAMP_MAX);
+	light *= LIGHT_SCALE;
 #endif
 
 	// now modulate the diffuse sample with the modified lightmap
@@ -228,7 +223,7 @@ void main(void) {
 		vec3 glossmap = vec3(0.5);
 
 		if (GLOSSMAP) {
-			glossmap = texture(SAMPLER4, texcoords[0]).rgb;
+			glossmap = texture(SAMPLER4, texcoords[0] + parallax).rgb;
 		} else if (DIFFUSE) {
 			vec4 diffuse = texture(SAMPLER0, texcoords[0] + parallax);
 			float processedGrayscaleDiffuse = dot(diffuse.rgb * diffuse.a, vec3(0.299, 0.587, 0.114)) * 0.875 + 0.125;
@@ -265,6 +260,10 @@ void main(void) {
 
     // underliquid caustics
 	CausticFragment(lightmap);
+
+	// tonemap
+	fragColor.rgb *= exp(fragColor.rgb);
+	fragColor.rgb /= fragColor.rgb + 0.825;
 
 	// and fog
 	FogFragment(length(point), fragColor);

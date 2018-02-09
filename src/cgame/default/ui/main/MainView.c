@@ -22,7 +22,6 @@
 #include "cg_local.h"
 
 #include "MainView.h"
-#include "PrimaryButton.h"
 #include "QuetooTheme.h"
 
 #define _Class _MainView
@@ -78,7 +77,10 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 	if (self) {
 
 		View *this = (View *) self;
-		this->autoresizingMask = ViewAutoresizingFill;
+		this->identifier = strdup("main");
+
+		this->stylesheet = cgi.Stylesheet("ui/main/MainView.css");
+		assert(this->stylesheet);
 
 		QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self);
 		assert(theme);
@@ -97,9 +99,6 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 			assert(self->logo);
 
 			self->logo->view.alignment = ViewAlignmentBottomRight;
-
-			$((View *) self->logo, addConstraintWithDescriptor, "w <= superview.w * 0.2");
-			$((View *) self->logo, addConstraintWithDescriptor, "h = w * 0.45");
 
 			$(this, addSubview, (View *) self->logo);
 		}
@@ -120,8 +119,8 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 
 			self->contentView->autoresizingMask = ViewAutoresizingFill;
 			self->contentView->clipsSubviews = true;
-			self->contentView->padding.top = DEFAULT_PRIMARY_BUTTON_HEIGHT;
-			self->contentView->padding.bottom = DEFAULT_PRIMARY_BUTTON_HEIGHT;
+			self->contentView->padding.top = 36;
+			self->contentView->padding.bottom = 36;
 
 			$(this, addSubview, (View *) self->contentView);
 		}
@@ -130,20 +129,24 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 			self->topBar = $(alloc(StackView), initWithFrame, NULL);
 			assert(self->topBar);
 
+			self->topBar->view.identifier = strdup("topBar");
+
 			self->topBar->axis = StackViewAxisHorizontal;
 			self->topBar->distribution = StackViewDistributionFill;
 			self->topBar->view.alignment = ViewAlignmentTopCenter;
 			self->topBar->view.autoresizingMask |= ViewAutoresizingWidth;
 			self->topBar->view.backgroundColor = theme->colors.mainHighlight;
 			self->topBar->view.borderColor = theme->colors.lightBorder;
-			self->topBar->view.padding.right = DEFAULT_PANEL_SPACING;
-			self->topBar->view.padding.left = DEFAULT_PANEL_SPACING;
+			self->topBar->view.padding.right = 12;
+			self->topBar->view.padding.left = 12;
 
 			self->primaryButtons = $(alloc(StackView), initWithFrame, NULL);
 			assert(self->primaryButtons);
 
+			$((View *) self->primaryButtons, addClassName, "primaryButtons");
+
 			self->primaryButtons->axis = StackViewAxisHorizontal;
-			self->primaryButtons->spacing = DEFAULT_PANEL_SPACING;
+			self->primaryButtons->spacing = 12;
 			self->primaryButtons->view.alignment = ViewAlignmentMiddleLeft;
 
 			$((View *) self->topBar, addSubview, (View *) self->primaryButtons);
@@ -151,8 +154,10 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 			self->primaryIcons = $(alloc(StackView), initWithFrame, NULL);
 			assert(self->primaryIcons);
 
+			$((View *) self->primaryIcons, addClassName, "primaryIcons");
+
 			self->primaryIcons->axis = StackViewAxisHorizontal;
-			self->primaryIcons->spacing = DEFAULT_PANEL_SPACING;
+			self->primaryIcons->spacing = 12;
 			self->primaryIcons->view.alignment = ViewAlignmentMiddleRight;
 
 			$((View *) self->topBar, addSubview, (View *) self->primaryIcons);
@@ -164,14 +169,16 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 			self->bottomBar = $(alloc(StackView), initWithFrame, NULL);
 			assert(self->bottomBar);
 
+			self->bottomBar->view.identifier = strdup("bottomBar");
+
 			self->bottomBar->axis = StackViewAxisHorizontal;
-			self->bottomBar->spacing = DEFAULT_PANEL_SPACING;
+			self->bottomBar->spacing = 12;
 			self->bottomBar->view.alignment = ViewAlignmentBottomCenter;
 			self->bottomBar->view.autoresizingMask |= ViewAutoresizingWidth;
 			self->bottomBar->view.backgroundColor = theme->colors.mainHighlight;
 			self->bottomBar->view.borderColor = theme->colors.lightBorder;
-			self->bottomBar->view.padding.right = DEFAULT_PANEL_SPACING;
-			self->bottomBar->view.padding.left = DEFAULT_PANEL_SPACING;
+			self->bottomBar->view.padding.right = 12;
+			self->bottomBar->view.padding.left = 12;
 
 			$(this, addSubview, (View *) self->bottomBar);
 		}
@@ -189,11 +196,11 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
+	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-	((MainViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
+	((MainViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
 }
 
 /**
@@ -201,19 +208,21 @@ static void initialize(Class *clazz) {
  * @memberof MainView
  */
 Class *_MainView(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "MainView";
-		clazz.superclass = _View();
-		clazz.instanceSize = sizeof(MainView);
-		clazz.interfaceOffset = offsetof(MainView, interface);
-		clazz.interfaceSize = sizeof(MainViewInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "MainView",
+			.superclass = _View(),
+			.instanceSize = sizeof(MainView),
+			.interfaceOffset = offsetof(MainView, interface),
+			.interfaceSize = sizeof(MainViewInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

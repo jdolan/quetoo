@@ -56,7 +56,7 @@ static void action(Control *control, const SDL_Event *event, ident sender, ident
 
 	const CvarCheckbox *this = (CvarCheckbox *) control;
 
-	cgi.CvarSetValue(this->var->name, $(control, selected));
+	cgi.CvarSetValue(this->var->name, $(control, isSelected));
 }
 
 /**
@@ -66,7 +66,7 @@ static void action(Control *control, const SDL_Event *event, ident sender, ident
  */
 static CvarCheckbox *initWithVariable(CvarCheckbox *self, cvar_t *var) {
 
-	self = (CvarCheckbox *) super(Checkbox, self, initWithFrame, NULL, ControlStyleDefault);
+	self = (CvarCheckbox *) super(Checkbox, self, initWithFrame, NULL);
 	if (self) {
 
 		self->var = var;
@@ -87,9 +87,9 @@ static CvarCheckbox *initWithVariable(CvarCheckbox *self, cvar_t *var) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
+	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-	((CvarCheckboxInterface *) clazz->def->interface)->initWithVariable = initWithVariable;
+	((CvarCheckboxInterface *) clazz->interface)->initWithVariable = initWithVariable;
 }
 
 /**
@@ -97,19 +97,21 @@ static void initialize(Class *clazz) {
  * @memberof CvarCheckbox
  */
 Class *_CvarCheckbox(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "CvarCheckbox";
-		clazz.superclass = _Checkbox();
-		clazz.instanceSize = sizeof(CvarCheckbox);
-		clazz.interfaceOffset = offsetof(CvarCheckbox, interface);
-		clazz.interfaceSize = sizeof(CvarCheckboxInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "CvarCheckbox",
+			.superclass = _Checkbox(),
+			.instanceSize = sizeof(CvarCheckbox),
+			.interfaceOffset = offsetof(CvarCheckbox, interface),
+			.interfaceSize = sizeof(CvarCheckboxInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

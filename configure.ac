@@ -153,7 +153,7 @@ dnl --------------------------------------
 dnl Check for SDL2, SDL2_image, SDL2_mixer
 dnl --------------------------------------
 
-PKG_CHECK_MODULES([SDL2], [sdl2 >= 2.0.0 SDL2_image SDL2_mixer])
+PKG_CHECK_MODULES([SDL2], [sdl2 >= 2.0.0 SDL2_image])
 
 dnl --------------------
 dnl Check for libsndfile

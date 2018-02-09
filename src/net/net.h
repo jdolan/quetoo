@@ -31,9 +31,9 @@ const char *Net_GetErrorString(void);
 _Bool Net_CompareNetaddr(const net_addr_t *a, const net_addr_t *b);
 _Bool Net_CompareClientNetaddr(const net_addr_t *a, const net_addr_t *b);
 
-void Net_NetAddrToSockaddr(const net_addr_t *a, struct sockaddr_in *s);
+void Net_NetAddrToSockaddr(const net_addr_t *a, net_sockaddr *s);
 const char *Net_NetaddrToString(const net_addr_t *a);
-_Bool Net_StringToSockaddr(const char *s, struct sockaddr_in *saddr);
+_Bool Net_StringToSockaddr(const char *s, net_sockaddr *saddr);
 _Bool Net_StringToNetaddr(const char *s, net_addr_t *a);
 
 int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port);

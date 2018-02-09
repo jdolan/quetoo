@@ -144,8 +144,8 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	self->view->autoresizingMask = ViewAutoresizingContain;
 	self->view->identifier = strdup("Create");
+	self->view->stylesheet = cgi.Stylesheet("ui/play/CreateServerViewController.css");
 
 	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
 	assert(theme);
@@ -184,7 +184,7 @@ static void loadView(ViewController *self) {
 		$(theme, attach, box);
 		$(theme, target, box->contentView);
 
-		this->gameplay = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
+		this->gameplay = $(alloc(Select), initWithFrame, NULL);
 		assert(this->gameplay);
 
 		$(this->gameplay, addOption, "Default", (ident) 0);
@@ -193,7 +193,7 @@ static void loadView(ViewController *self) {
 		$(this->gameplay, addOption, "Arena", (ident) 3);
 		$(this->gameplay, addOption, "Duel", (ident) 4);
 
-		this->gameplay->control.view.frame.w = DEFAULT_TEXTVIEW_WIDTH;
+		this->gameplay->control.view.frame.w = 160;
 		this->gameplay->delegate.didSelectOption = selectGameplay;
 
 		if (!g_strcmp0(g_gameplay->string, "default")) {
@@ -210,14 +210,13 @@ static void loadView(ViewController *self) {
 
 		$(theme, control, "Gameplay", (Control *) this->gameplay);
 
-		this->teamsplay = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
+		this->teamsplay = $(alloc(Select), initWithFrame, NULL);
 		assert(this->teamsplay);
 
 		$(this->teamsplay, addOption, "Free for all", (ident) 0);
 		$(this->teamsplay, addOption, "Team deathmatch", (ident) 1);
 		$(this->teamsplay, addOption, "Capture the flag", (ident) 2);
 
-		this->teamsplay->control.view.frame.w = DEFAULT_TEXTVIEW_WIDTH;
 		this->teamsplay->delegate.didSelectOption = selectTeamsplay;
 
 		if (g_ctf->integer != 0) {
@@ -240,8 +239,7 @@ static void loadView(ViewController *self) {
 		$(theme, attach, box);
 		$(theme, target, box->contentView);
 
-		const SDL_Rect frame = { .w = 760, .h = 600 };
-		this->mapList = $(alloc(MapListCollectionView), initWithFrame, &frame, ControlStyleDefault);
+		this->mapList = $(alloc(MapListCollectionView), initWithFrame, NULL);
 		assert(this->mapList);
 
 		$(theme, attach, this->mapList);
@@ -271,9 +269,9 @@ static void loadView(ViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
 /**
@@ -281,19 +279,21 @@ static void initialize(Class *clazz) {
  * @memberof CreateServerViewController
  */
 Class *_CreateServerViewController(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "CreateServerViewController";
-		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(CreateServerViewController);
-		clazz.interfaceOffset = offsetof(CreateServerViewController, interface);
-		clazz.interfaceSize = sizeof(CreateServerViewControllerInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "CreateServerViewController",
+			.superclass = _ViewController(),
+			.instanceSize = sizeof(CreateServerViewController),
+			.interfaceOffset = offsetof(CreateServerViewController, interface),
+			.interfaceSize = sizeof(CreateServerViewControllerInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

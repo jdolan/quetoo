@@ -19,6 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#if defined(_WIN32)
+ #include <winsock2.h>
+#endif
+
 #include "cl_local.h"
 
 /**
