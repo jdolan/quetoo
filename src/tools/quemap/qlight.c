@@ -32,7 +32,8 @@ patch_t *face_patches[MAX_BSP_FACES];
 vec3_t face_offset[MAX_BSP_FACES]; // for rotating bmodels
 
 vec_t patch_subdivide = PATCH_SUBDIVIDE;
-_Bool extra_samples = false;
+_Bool antialias = false;
+_Bool indirect = false;
 
 vec3_t ambient;
 
@@ -76,10 +77,38 @@ _Bool Light_PointPVS(const vec3_t org, byte *pvs) {
 
 	const bsp_leaf_t *leaf = &bsp_file.leafs[Light_PointLeafnum(org)];
 	if (leaf->cluster == -1) {
-		return false;    // in solid leaf
+		return false; // in solid leaf
 	}
 
 	Bsp_DecompressVis(&bsp_file, bsp_file.vis_data.raw + bsp_file.vis_data.vis->bit_offsets[leaf->cluster][DVIS_PVS], pvs);
+	return true;
+}
+
+/**
+ * @brief
+ */
+_Bool Light_InPVS(const vec3_t p1, const vec3_t p2) {
+	byte pvs[MAX_BSP_LEAFS >> 3];
+
+	const int32_t leaf1 = Cm_PointLeafnum(p1, 0);
+	const int32_t leaf2 = Cm_PointLeafnum(p2, 0);
+
+	const int32_t area1 = Cm_LeafArea(leaf1);
+	const int32_t area2 = Cm_LeafArea(leaf2);
+
+	if (!Cm_AreasConnected(area1, area2)) {
+		return false; // a door blocks sight
+	}
+
+	const int32_t cluster1 = Cm_LeafCluster(leaf1);
+	const int32_t cluster2 = Cm_LeafCluster(leaf2);
+
+	Cm_ClusterPVS(cluster1, pvs);
+
+	if ((pvs[cluster2 >> 3] & (1 << (cluster2 & 7))) == 0) {
+		return false;
+	}
+
 	return true;
 }
 
@@ -91,16 +120,12 @@ static cm_bsp_model_t *cmodels[MAX_BSP_MODELS];
  * @brief
  */
 void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask) {
-	vec_t frac;
-	int32_t i;
 
-	frac = 9999.0;
+	vec_t frac = 999.0;
 
-	// and any BSP submodels, too
-	for (i = 0; i < num_cmodels; i++) {
-		const cm_trace_t tr = Cm_BoxTrace(start, end, vec3_origin, vec3_origin,
-		                                  cmodels[i]->head_node, mask);
+	for (int32_t i = 0; i < num_cmodels; i++) {
 
+		const cm_trace_t tr = Cm_BoxTrace(start, end, vec3_origin, vec3_origin, cmodels[i]->head_node, mask);
 		if (tr.fraction < frac) {
 			frac = tr.fraction;
 			*trace = tr;
@@ -145,14 +170,25 @@ static void LightWorld(void) {
 		BuildVertexNormals();
 	}
 
-	// build initial facelights
-	RunThreadsOn(bsp_file.num_faces, true, BuildFacelights);
+	// calculate direct lighting
+	RunThreadsOn(bsp_file.num_faces, true, DirectLighting);
+
+	// free the direct light sources
+	Mem_FreeTag(MEM_TAG_LIGHT);
+
+	if (indirect) { // calculate indirect lighting
+		RunThreadsOn(bsp_file.num_faces, true, IndirectLighting);
+	}
 
 	// finalize it and write it out
 	bsp_file.lightmap_data_size = 0;
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTMAPS, MAX_BSP_LIGHTING);
 
-	RunThreadsOn(bsp_file.num_faces, true, FinalLightFace);
+	// merge direct and indirect lighting, normalize all samples
+	RunThreadsOn(bsp_file.num_faces, true, FinalizeLighting);
+
+	// free the face lighting structs
+	Mem_FreeTag(MEM_TAG_FACE_LIGHTING);
 }
 
 /**
@@ -172,9 +208,15 @@ int32_t LIGHT_Main(void) {
 
 	ParseEntities();
 
-	CalcTextureReflectivity();
+	LoadMaterials(va("materials/%s.mat", map_base), ASSET_CONTEXT_TEXTURES, NULL);
+
+	BuildTextureColors();
 
 	LightWorld();
+
+	FreeTextureColors();
+
+	FreeMaterials();
 
 	WriteBSPFile(va("maps/%s.bsp", map_base), version);
 

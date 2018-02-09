@@ -126,6 +126,7 @@ vec_t VectorDistance(const vec3_t a, const vec3_t b);
 void VectorMix(const vec3_t v1, const vec3_t v2, const vec_t mix, vec3_t out);
 void VectorMA(const vec3_t veca, const vec_t scale, const vec3_t vecb, vec3_t vecc);
 void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross);
+void Reflect(const vec3_t dir, const vec3_t normal, vec3_t ref);
 
 void VectorAngles(const vec3_t vector, vec3_t angles);
 void AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up);

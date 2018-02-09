@@ -1428,8 +1428,8 @@
 		CE12D6EA1C5C58C300CD0B13 /* faces.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = faces.c; sourceTree = "<group>"; };
 		CE12D6EB1C5C58C300CD0B13 /* flow.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = flow.c; sourceTree = "<group>"; };
 		CE12D6EC1C5C58C300CD0B13 /* leakfile.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = leakfile.c; sourceTree = "<group>"; };
-		CE12D6ED1C5C58C300CD0B13 /* lightmap.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lightmap.c; sourceTree = "<group>"; };
-		CE12D6EE1C5C58C300CD0B13 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		CE12D6ED1C5C58C300CD0B13 /* lightmap.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = lightmap.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
+		CE12D6EE1C5C58C300CD0B13 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = main.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		CE12D6EF1C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE12D6F11C5C58C300CD0B13 /* map.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = map.c; sourceTree = "<group>"; };
 		CE12D6F21C5C58C300CD0B13 /* monitor.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = monitor.c; sourceTree = "<group>"; };
@@ -1442,10 +1442,10 @@
 		CE12D6F91C5C58C300CD0B13 /* qaas.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = qaas.c; sourceTree = "<group>"; };
 		CE12D6FA1C5C58C300CD0B13 /* qbsp.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = qbsp.c; sourceTree = "<group>"; };
 		CE12D6FB1C5C58C300CD0B13 /* qbsp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = qbsp.h; sourceTree = "<group>"; };
-		CE12D6FC1C5C58C300CD0B13 /* qlight.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = qlight.c; sourceTree = "<group>"; };
+		CE12D6FC1C5C58C300CD0B13 /* qlight.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = qlight.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		CE12D6FD1C5C58C300CD0B13 /* qlight.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = qlight.h; sourceTree = "<group>"; };
 		CE12D6FE1C5C58C300CD0B13 /* qmat.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = qmat.c; sourceTree = "<group>"; };
-		CE12D6FF1C5C58C300CD0B13 /* quemap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = quemap.h; sourceTree = "<group>"; };
+		CE12D6FF1C5C58C300CD0B13 /* quemap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = quemap.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		CE12D7001C5C58C300CD0B13 /* qvis.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = qvis.c; sourceTree = "<group>"; };
 		CE12D7011C5C58C300CD0B13 /* qvis.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = qvis.h; sourceTree = "<group>"; };
 		CE12D7021C5C58C300CD0B13 /* qzip.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = qzip.c; sourceTree = "<group>"; };
