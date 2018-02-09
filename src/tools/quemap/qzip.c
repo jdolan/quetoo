@@ -227,13 +227,11 @@ static void AddDocumentation(void) {
 /**
  * @brief
  */
-static Fs_EnumerateResult AddMapshots_enumerate(const char *path, void *data) {
+static void AddMapshots_enumerate(const char *path, void *data) {
 
 	if (g_str_has_suffix(path, ".jpg") || g_str_has_suffix(path, ".png")) {
 		AddPath(path, false);
 	}
-
-	return FS_ENUM_CONTINUE;
 }
 
 /**

@@ -215,9 +215,8 @@ typedef struct g_import_s {
 	 * @param pattern A Unix glob style pattern.
 	 * @param enumerator The enumerator function.
 	 * @param data User data.
-	 * @returns 1 on error, 0 on success.
 	 */
-	_Bool (*EnumerateFiles)(const char *pattern, Fs_EnumerateFunc enumerator, void *data);
+	void (*EnumerateFiles)(const char *pattern, Fs_EnumerateFunc enumerator, void *data);
 
 	/**
 	 * @brief Console variable and console command management.

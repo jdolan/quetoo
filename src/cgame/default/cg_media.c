@@ -84,11 +84,9 @@ static void Cg_FootstepsTable_Destroy(gpointer value) {
 /**
  * @brief
  */
-static Fs_EnumerateResult Cg_FootstepsTable_EnumerateFiles(const char *file, void *data) {
+static void Cg_FootstepsTable_EnumerateFiles(const char *file, void *data) {
 
 	(*((size_t *) data))++;
-
-	return FS_ENUM_CONTINUE;
 }
 
 /**

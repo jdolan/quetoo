@@ -374,7 +374,9 @@ _Bool Fs_Rename(const char *source, const char *dest) {
  * @brief Fetch the "last modified" time for the specified file.
  */
 int64_t Fs_LastModTime(const char *filename) {
-	return PHYSFS_getLastModTime(filename);
+	PHYSFS_Stat stat;
+	PHYSFS_stat(filename, &stat);
+	return stat.modtime;
 }
 
 
@@ -400,23 +402,21 @@ typedef struct {
 /**
  * @brief Enumeration helper for Fs_Enumerate.
  */
-static PHYSFS_EnumerateCallbackResult Fs_Enumerate_(void *data, const char *dir, const char *filename) {
+static void Fs_Enumerate_(void *data, const char *dir, const char *filename) {
 	char path[MAX_QPATH];
 	const fs_enumerate_t *en = data;
 
 	g_snprintf(path, sizeof(path), "%s%s", dir, filename);
 
 	if (GlobMatch(en->pattern, path, GLOB_FLAGS_NONE)) {
-		return en->function(path, en->data);
+		en->function(path, en->data);
 	}
-
-	return PHYSFS_ENUM_OK;
 }
 
 /**
  * @brief Enumerates files matching `pattern`, calling the given function.
  */
-_Bool Fs_Enumerate(const char *pattern, Fs_EnumerateFunc func, void *data) {
+void Fs_Enumerate(const char *pattern, Fs_EnumerateFunc func, void *data) {
 	fs_enumerate_t en = {
 		.pattern = pattern,
 		.function = func,
@@ -429,7 +429,7 @@ _Bool Fs_Enumerate(const char *pattern, Fs_EnumerateFunc func, void *data) {
 		g_strlcpy(en.dir, "/", sizeof(en.dir));
 	}
 
-	return PHYSFS_enumerate(en.dir, Fs_Enumerate_, &en);
+	PHYSFS_enumerateFilesCallback(en.dir, Fs_Enumerate_, &en);
 }
 
 /**
@@ -449,7 +449,7 @@ static int32_t Fs_CompleteFile_compare(const void *a, const void *b) {
 /**
  * @brief GHFunc for Fs_CompleteFile.
  */
-static Fs_EnumerateResult Fs_CompleteFile_enumerate(const char *path, void *data) {
+static void Fs_CompleteFile_enumerate(const char *path, void *data) {
 	GList **matches = (GList **) data;
 	char match[MAX_OS_PATH];
 
@@ -462,8 +462,6 @@ static Fs_EnumerateResult Fs_CompleteFile_enumerate(const char *path, void *data
 	if (!g_list_find_custom(*matches, &temp_match, Fs_CompleteFile_compare)) {
 		*matches = g_list_insert_sorted(*matches, Com_AllocMatch(match, NULL), Fs_CompleteFile_compare);
 	}
-
-	return FS_ENUM_CONTINUE;
 }
 
 /**
@@ -474,7 +472,7 @@ void Fs_CompleteFile(const char *pattern, GList **matches) {
 	Fs_Enumerate(pattern, Fs_CompleteFile_enumerate, (void *) matches);
 }
 
-static Fs_EnumerateResult Fs_AddToSearchPath_enumerate(const char *path, void *data);
+static void Fs_AddToSearchPath_enumerate(const char *path, void *data);
 
 /**
  * @brief Adds the directory to the search path, conditionally loading all
@@ -505,14 +503,12 @@ void Fs_AddToSearchPath(const char *dir) {
  * @brief Enumeration helper for Fs_AddToSearchPath. Adds all archive files for
  * the newly added filesystem mount point.
  */
-static Fs_EnumerateResult Fs_AddToSearchPath_enumerate(const char *path, void *data) {
+static void Fs_AddToSearchPath_enumerate(const char *path, void *data) {
 	const char *dir = (const char *) data;
 
 	if (!g_strcmp0(Fs_RealDir(path), dir)) {
 		Fs_AddToSearchPath(va("%s%s", dir, path));
 	}
-
-	return FS_ENUM_CONTINUE;
 }
 
 /**

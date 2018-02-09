@@ -93,7 +93,7 @@ static Order sortMaps(const ident a, const ident b) {
 /**
  * @brief Fs_EnumerateFunc for map discovery.
  */
-static Fs_EnumerateResult enumerateMaps(const char *path, void *data) {
+static void enumerateMaps(const char *path, void *data) {
 
 	MapListCollectionView *this = (MapListCollectionView *) data;
 
@@ -104,7 +104,7 @@ static Fs_EnumerateResult enumerateMaps(const char *path, void *data) {
 		const MapListItemInfo *info = value->value;
 
 		if (g_strcmp0(info->mapname, path) == 0) {
-			return FS_ENUM_CONTINUE;
+			return;
 		}
 	}
 
@@ -121,7 +121,6 @@ static Fs_EnumerateResult enumerateMaps(const char *path, void *data) {
 			if (header.version != BSP_VERSION && header.version != BSP_VERSION_QUETOO) {
 				cgi.Warn("Invalid BSP header found in %s: %d\n", path, header.version);
 				cgi.CloseFile(file);
-				return FS_ENUM_CONTINUE;
 			}
 
 			MapListItemInfo *info = g_new0(MapListItemInfo, 1);
@@ -211,8 +210,6 @@ static Fs_EnumerateResult enumerateMaps(const char *path, void *data) {
 
 		cgi.CloseFile(file);
 	}
-
-	return FS_ENUM_CONTINUE;
 }
 
 /**
