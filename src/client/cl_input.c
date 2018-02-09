@@ -352,11 +352,15 @@ static void Cl_HandleEvent(const SDL_Event *event) {
 			break;
 
 		case SDL_WINDOWEVENT:
-			if (event->window.event == SDL_WINDOWEVENT_RESIZED) {
-				if (!r_context.fullscreen) {
-					Cvar_SetValue(r_windowed_width->name, event->window.data1);
-					Cvar_SetValue(r_windowed_height->name, event->window.data2);
-					Cbuf_AddText("r_restart\n");
+			if (event->window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+				if (r_context.fullscreen == false) {
+					const int32_t w = event->window.data1;
+					const int32_t h = event->window.data2;
+					if (w != r_windowed_width->integer || h != r_windowed_height->integer) {
+						Cvar_SetValue(r_windowed_width->name, event->window.data1);
+						Cvar_SetValue(r_windowed_height->name, event->window.data2);
+						Cbuf_AddText("r_restart\n");
+					}
 				}
 			}
 			break;

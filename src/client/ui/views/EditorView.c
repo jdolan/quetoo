@@ -134,7 +134,7 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 
 		self->view.autoresizingMask = ViewAutoresizingContain;
 
-		Panel *panel = $(alloc(Panel), initWithFrame, NULL, ControlStyleDefault);
+		Panel *panel = $(alloc(Panel), initWithFrame, NULL);
 		assert(panel);
 
 		((View *) self)->alignment = ViewAlignmentMiddleCenter;
@@ -146,11 +146,11 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 		StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
 		columns->axis = StackViewAxisHorizontal;
-		columns->spacing = DEFAULT_PANEL_SPACING;
+		columns->spacing = 12;
 
 		{
 			StackView *column = $(alloc(StackView), initWithFrame, NULL);
-			column->spacing = DEFAULT_PANEL_SPACING;
+			column->spacing = 12;
 
 			{
 				Box *box = $(alloc(Box), initWithFrame, NULL);
@@ -158,41 +158,41 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 
 				const SDL_Rect frame = { .w = 300, .h = 0 };
 
-				self->materialName = $(alloc(TextView), initWithFrame, &frame, ControlStyleDefault);
+				self->materialName = $(alloc(TextView), initWithFrame, &frame);
 				self->materialName->isEditable = false;
 				addInput((View *) box->contentView, "Material name", (Control *) self->materialName);
 
-				self->diffuseTexture = $(alloc(TextView), initWithFrame, &frame, ControlStyleDefault);
+				self->diffuseTexture = $(alloc(TextView), initWithFrame, &frame);
 				self->diffuseTexture->isEditable = false;
 				addInput((View *) box->contentView, "Diffuse texture", (Control *) self->diffuseTexture);
 
-				self->normalmapTexture = $(alloc(TextView), initWithFrame, &frame, ControlStyleDefault);
+				self->normalmapTexture = $(alloc(TextView), initWithFrame, &frame);
 				self->normalmapTexture->isEditable = false;
 				addInput((View *) box->contentView, "Normalmap texture", (Control *) self->normalmapTexture);
 
-				self->specularmapTexture = $(alloc(TextView), initWithFrame, &frame, ControlStyleDefault);
+				self->specularmapTexture = $(alloc(TextView), initWithFrame, &frame);
 				self->specularmapTexture->isEditable = false;
 				addInput((View *) box->contentView, "Specularmap texture", (Control *) self->specularmapTexture);
 
-				self->bumpSlider = $(alloc(Slider), initWithFrame, &frame, ControlStyleDefault);
+				self->bumpSlider = $(alloc(Slider), initWithFrame, &frame);
 				self->bumpSlider->min = 0.0;
 				self->bumpSlider->max = 20.0;
 				self->bumpSlider->step = 0.125;
 				addInput((View *) box->contentView, "Bump", (Control *) self->bumpSlider);
 
-				self->hardnessSlider = $(alloc(Slider), initWithFrame, &frame, ControlStyleDefault);
+				self->hardnessSlider = $(alloc(Slider), initWithFrame, &frame);
 				self->hardnessSlider->min = 0.0;
 				self->hardnessSlider->max = 20.0;
 				self->hardnessSlider->step = 0.1;
 				addInput((View *) box->contentView, "Hardness", (Control *) self->hardnessSlider);
 
-				self->specularSlider = $(alloc(Slider), initWithFrame, &frame, ControlStyleDefault);
+				self->specularSlider = $(alloc(Slider), initWithFrame, &frame);
 				self->specularSlider->min = 0.0;
 				self->specularSlider->max = 20.0;
 				self->specularSlider->step = 0.1;
 				addInput((View *) box->contentView, "Specular", (Control *) self->specularSlider);
 
-				self->parallaxSlider = $(alloc(Slider), initWithFrame, &frame, ControlStyleDefault);
+				self->parallaxSlider = $(alloc(Slider), initWithFrame, &frame);
 				self->parallaxSlider->min = 0.0;
 				self->parallaxSlider->max = 20.0;
 				self->parallaxSlider->step = 0.1;
@@ -209,7 +209,7 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 		$((View *) panel->contentView, addSubview, (View *) columns);
 		release(columns);
 
-		self->saveButton = $(alloc(Button), initWithFrame, NULL, ControlStyleDefault);
+		self->saveButton = $(alloc(Button), initWithFrame, NULL);
 		$(self->saveButton->title, setText, "Save");
 
 		$((View *) panel->accessoryView, addSubview, (View *) self->saveButton);
@@ -230,11 +230,11 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
+	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-	((EditorViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
+	((EditorViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
 }
 
 /**
@@ -242,19 +242,21 @@ static void initialize(Class *clazz) {
  * @memberof EditorView
  */
 Class *_EditorView(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "EditorView";
-		clazz.superclass = _View();
-		clazz.instanceSize = sizeof(EditorView);
-		clazz.interfaceOffset = offsetof(EditorView, interface);
-		clazz.interfaceSize = sizeof(EditorViewInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "EditorView",
+			.superclass = _View(),
+			.instanceSize = sizeof(EditorView),
+			.interfaceOffset = offsetof(EditorView, interface),
+			.interfaceSize = sizeof(EditorViewInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

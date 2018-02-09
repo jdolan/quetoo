@@ -200,7 +200,7 @@ static void loadView(ViewController *self) {
 
 		$(theme, checkbox, "Pulse on pickup", cg_draw_crosshair_pulse->name);
 
-		this->crosshairColorPicker = $(alloc(HueColorPicker), initWithFrame, NULL, ControlStyleDefault);
+		this->crosshairColorPicker = $(alloc(HueColorPicker), initWithFrame, NULL);
 		assert(this->crosshairColorPicker);
 
 		this->crosshairColorPicker->delegate.self = this;
@@ -245,10 +245,10 @@ static void viewWillAppear(ViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
-	((ViewControllerInterface *) clazz->def->interface)->viewWillAppear = viewWillAppear;
+	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 }
 
 /**
@@ -256,20 +256,21 @@ static void initialize(Class *clazz) {
  * @memberof LookViewController
  */
 Class *_LookViewController(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "LookViewController";
-		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(LookViewController);
-		clazz.interfaceOffset = offsetof(LookViewController, interface);
-		clazz.interfaceSize = sizeof(LookViewControllerInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "LookViewController",
+			.superclass = _ViewController(),
+			.instanceSize = sizeof(LookViewController),
+			.interfaceOffset = offsetof(LookViewController, interface),
+			.interfaceSize = sizeof(LookViewControllerInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
-
 #undef _Class
 

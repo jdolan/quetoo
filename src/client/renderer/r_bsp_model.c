@@ -823,7 +823,7 @@ void R_ExportBSP_f(void) {
 																-vertex->normal[0], vertex->normal[2], vertex->normal[1]);
 	}
 	
-	Fs_Print(file, "# %" PRIdMAX " vertices\n\n", num_vertices);
+	Fs_Print(file, "# %" PRIuPTR " vertices\n\n", num_vertices);
 	
 	Com_Print("Writing elements...\n");
 
@@ -867,7 +867,7 @@ void R_ExportBSP_f(void) {
 		Fs_Print(file, "\n");
 	}
 	
-	Fs_Print(file, "# %" PRIdMAX " surfaces\n\n", num_surfs);
+	Fs_Print(file, "# %" PRIuPTR " surfaces\n\n", num_surfs);
 	Fs_Close(file);
 
 	g_hash_table_destroy(materials);

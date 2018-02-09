@@ -62,7 +62,7 @@ static void didEndEditing(TextView *textView) {
  */
 static CvarTextView *initWithVariable(CvarTextView *self, cvar_t *var) {
 
-	self = (CvarTextView *) super(TextView, self, initWithFrame, NULL, ControlStyleDefault);
+	self = (CvarTextView *) super(TextView, self, initWithFrame, NULL);
 	if (self) {
 
 		self->var = var;
@@ -83,9 +83,9 @@ static CvarTextView *initWithVariable(CvarTextView *self, cvar_t *var) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
+	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-	((CvarTextViewInterface *) clazz->def->interface)->initWithVariable = initWithVariable;
+	((CvarTextViewInterface *) clazz->interface)->initWithVariable = initWithVariable;
 }
 
 /**
@@ -93,19 +93,21 @@ static void initialize(Class *clazz) {
  * @memberof CvarTextView
  */
 Class *_CvarTextView(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "CvarTextView";
-		clazz.superclass = _TextView();
-		clazz.instanceSize = sizeof(CvarTextView);
-		clazz.interfaceOffset = offsetof(CvarTextView, interface);
-		clazz.interfaceSize = sizeof(CvarTextViewInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "CvarTextView",
+			.superclass = _TextView(),
+			.instanceSize = sizeof(CvarTextView),
+			.interfaceOffset = offsetof(CvarTextView, interface),
+			.interfaceSize = sizeof(CvarTextViewInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

@@ -946,3 +946,5 @@ typedef void (APIENTRY *GLVULKANPROCNV)(void);
 #define GL_TIME_ELAPSED 0x88BF
 #define GL_TIMESTAMP 0x8E28
 #define GL_INT_2_10_10_10_REV 0x8D9F
+
+#define NO_SDL_GLEXT

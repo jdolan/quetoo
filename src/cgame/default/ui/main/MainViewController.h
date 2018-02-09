@@ -78,7 +78,7 @@ struct MainViewControllerInterface {
 
 	/**
 	 * @fn void MainViewController::primaryButton(const MainViewController *self, ident target, const char *title, Class *clazz)
-	 * @brief Adds a PrimaryButton to the target View.
+	 * @brief Adds a primary Button to the target View.
 	 * @param self The MainViewController.
 	 * @param target The target View.
 	 * @param title The title text.
@@ -89,7 +89,7 @@ struct MainViewControllerInterface {
 
 	/**
 	 * @fn void MainViewController::primaryIcon(const MainViewController *self, ident target, const char *icon, Class *clazz)
-	 * @brief Adds a PrimaryButton to the target View.
+	 * @brief Adds a primary icon Button to the target View.
 	 * @param self The MainViewController.
 	 * @param target The target View.
 	 * @param icon The icon name.

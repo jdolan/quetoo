@@ -24,7 +24,7 @@
 
 #include "client/cl_types.h"
 
-#define CGAME_API_VERSION 19
+#define CGAME_API_VERSION 20
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -272,7 +272,34 @@ typedef struct cg_import_s {
 
 	/**
 	 * @}
+	 * @defgroup ui User interface
+	 * @{
 	 */
+
+	/**
+	 * @brief Loads Data from the given path.
+	 */
+	Data *(*Data)(const char *path);
+
+	/**
+	 * @ brief Loads a Font from the given path, size and index.
+	 */
+	Font *(*Font)(const char *path, const char *family, int32_t size, int32_t style);
+
+	/**
+	 * @brief Loads an Image from the given path.
+	 */
+	Image *(*Image)(const char *path);
+
+	/**
+	 * @brief Loads a Stylesheet from the CSS file at the given path.
+	 */
+	Stylesheet *(*Stylesheet)(const char *path);
+
+	/**
+	 * @brief Loads a View from the JSON file at the given path.
+	 */
+	View *(*View)(const char *path, Outlet *outlets);
 
 	/**
 	 * @brief Pushes the specified ViewController to the user interface.
@@ -293,6 +320,10 @@ typedef struct cg_import_s {
 	 * @brief Pops all ViewControllers from the user interface.
 	 */
 	void (*PopAllViewControllers)(void);
+
+	/**
+	 * @}
+	 */
 
 	/**
 	 * @brief Resolves the next key after `from` that references `bind`.
@@ -375,7 +406,7 @@ typedef struct cg_import_s {
 	int32_t (*ReadLong)(void);
 
 	/**
-	 * @brief Reads a NULL-terminated string from the last received network message.
+	 * @brief Reads a null-terminated string from the last received network message.
 	 * @return The string.
 	 * @remarks The returned value is statically allocated. Do not free it.
 	 */
