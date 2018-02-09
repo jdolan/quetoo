@@ -199,6 +199,7 @@
 		CE68F9A61E5E8E8400AC9AAE /* r_program_stain.h in Headers */ = {isa = PBXBuildFile; fileRef = CE68F9A41E5E8E8400AC9AAE /* r_program_stain.h */; };
 		CE69DC9F202D3EE700E5C8B1 /* miniz.h in Headers */ = {isa = PBXBuildFile; fileRef = CE69DC9D202D3EE600E5C8B1 /* miniz.h */; };
 		CE69DCA0202D3EE700E5C8B1 /* miniz.c in Sources */ = {isa = PBXBuildFile; fileRef = CE69DC9E202D3EE700E5C8B1 /* miniz.c */; };
+		CE69DCA2202D404900E5C8B1 /* color.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE69DCA1202D402F00E5C8B1 /* color.glsl */; };
 		CE6C2D111E24902900F55B0A /* cm_bsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6C2D0F1E24902900F55B0A /* cm_bsp.c */; };
 		CE6C2D121E24902900F55B0A /* cm_bsp.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6C2D101E24902900F55B0A /* cm_bsp.h */; };
 		CE6EE3891F70B69F00FBC830 /* libconsole.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7A211D9CB408000FA6B2 /* libconsole.a */; };
@@ -980,6 +981,7 @@
 			dstPath = shaders/include;
 			dstSubfolderSpec = 16;
 			files = (
+				CE69DCA2202D404900E5C8B1 /* color.glsl in CopyFiles */,
 				CE4A256B1FA2033B00A539E7 /* fog.glsl in CopyFiles */,
 				CE4A256C1FA2033B00A539E7 /* noise3d.glsl in CopyFiles */,
 				CE4A256D1FA2033B00A539E7 /* tint.glsl in CopyFiles */,
@@ -1636,6 +1638,7 @@
 		CE68F9A41E5E8E8400AC9AAE /* r_program_stain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_program_stain.h; sourceTree = "<group>"; };
 		CE69DC9D202D3EE600E5C8B1 /* miniz.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = miniz.h; sourceTree = "<group>"; };
 		CE69DC9E202D3EE700E5C8B1 /* miniz.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = miniz.c; sourceTree = "<group>"; };
+		CE69DCA1202D402F00E5C8B1 /* color.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = color.glsl; sourceTree = "<group>"; };
 		CE6C2D0F1E24902900F55B0A /* cm_bsp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_bsp.c; sourceTree = "<group>"; };
 		CE6C2D101E24902900F55B0A /* cm_bsp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_bsp.h; sourceTree = "<group>"; };
 		CE6EE2791F6BE8FE00FBC830 /* DialogView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DialogView.c; sourceTree = "<group>"; };
@@ -3018,6 +3021,7 @@
 		CE585BD51ED459E2009B7C14 /* include */ = {
 			isa = PBXGroup;
 			children = (
+				CE69DCA1202D402F00E5C8B1 /* color.glsl */,
 				CE585BD61ED459E2009B7C14 /* fog.glsl */,
 				CE585BDB1ED459E2009B7C14 /* noise3d.glsl */,
 				CE585BDD1ED45A94009B7C14 /* tint.glsl */,
