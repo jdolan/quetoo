@@ -266,12 +266,14 @@ void main(void) {
 	// underliquid caustics
 	CausticFragment(lightmap);
 
+#if DEBUG_LIGHTMAP_LAYER_INDEX == 0
 	// tonemap
 	fragColor.rgb *= exp(fragColor.rgb);
 	fragColor.rgb /= fragColor.rgb + 0.825;
 
 	// apply lightscale afterwards, because it should be done AFTER tonemapping
 	fragColor.rgb *= LIGHT_SCALE;
+#endif // DEBUG_LIGHTMAP_LAYER_INDEX == 0
 
 	// and fog
 	FogFragment(length(point), fragColor);

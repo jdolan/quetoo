@@ -874,13 +874,6 @@ typedef enum {
 } r_lighting_state_t;
 
 /**
- * @brief All lightmaps are moved into texture arrays,
- * instead of having different names (lightmap, deluxmap) like before,
- * they now packed into pages/layers.
- */
-#define MAX_LIGHTMAP_PAGES 2
-
-/**
  * @brief Up to MAX_ILLUMINATIONS illuminations are calculated for each mesh entity. The first
  * illumination in the structure is reserved for world lighting (ambient and
  * sunlight). The remaining (MAX_ILLUMINATIONS - 1) are populated by both BSP and dynamic light

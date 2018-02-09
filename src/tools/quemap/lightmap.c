@@ -231,6 +231,21 @@ static void CalcSamplePoints(const light_info_t *l, vec_t sofs, vec_t tofs, vec_
 }
 
 /**
+ * @brief Converts world space direction into tangent space for given TBN
+ */
+static void WorldSpaceToTangentSpace(const vec3_t tangent, const vec3_t bitangent, const vec3_t normal, const vec3_t direction, vec3_t result) {
+	// temporary storage in case if direction and result are the same pointer
+	vec3_t temporary_result;
+
+	// transform it into tangent space
+	temporary_result[0] = DotProduct(direction, tangent);
+	temporary_result[1] = DotProduct(direction, bitangent);
+	temporary_result[2] = DotProduct(direction, normal);
+
+	VectorCopy(temporary_result, result);
+}
+
+/**
  * @brief Light sample accumulation for each face.
  */
 typedef struct {
@@ -474,7 +489,7 @@ void BuildLights(void) {
  * @brief A follow-up to GatherSampleLight, simply trace along the sun normal, adding
  * sunlight when a sky surface is struck.
  */
-static void GatherSampleSunlight(const vec3_t pos, const vec3_t normal, vec_t *sample,
+static void GatherSampleSunlight(const vec3_t pos, const vec3_t tangent, const vec3_t bitangent, const vec3_t normal, vec_t *sample,
                                  vec_t *direction, vec_t scale) {
 
 	if (!sun.light) {
@@ -504,14 +519,16 @@ static void GatherSampleSunlight(const vec3_t pos, const vec3_t normal, vec_t *s
 
 	// and accumulate the direction
 	VectorMix(normal, sun.dir, light / sun.light, delta);
-	VectorMA(direction, light * scale, delta, direction);
+
+	WorldSpaceToTangentSpace(tangent, bitangent, normal, delta, delta);
+	VectorMA(direction, light * scale, delta, direction);	
 }
 
 /**
  * @brief Iterate over all light sources for the sample position's PVS, accumulating
  * light and directional information to the specified pointers.
  */
-static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs, vec_t *sample, vec_t *direction, vec_t scale) {
+static void GatherSampleLight(vec3_t pos, vec3_t tangent, vec3_t bitangent, vec3_t normal,  byte *pvs, vec_t *sample, vec_t *direction, vec_t scale) {
 
 	// iterate over lights, which are in buckets by cluster
 	for (int32_t i = 0; i < bsp_file.vis_data.vis->num_clusters; i++) {
@@ -574,11 +591,13 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs, vec_t *sampl
 
 			// and add some direction
 			VectorMix(normal, delta, 2.0 * light / l->intensity, delta);
+
+			WorldSpaceToTangentSpace(tangent, bitangent, normal, delta, delta);
 			VectorMA(direction, light * scale, delta, direction);
 		}
 	}
 
-	GatherSampleSunlight(pos, normal, sample, direction, scale);
+	GatherSampleSunlight(pos, tangent, bitangent, normal, sample, direction, scale);
 }
 
 #define SAMPLE_NUDGE 0.25
@@ -820,24 +839,29 @@ void DirectLighting(int32_t face_num) {
 		for (int32_t j = 0; j < num_samples; j++) { // with antialiasing
 
 			byte pvs[(MAX_BSP_LEAFS + 7) / 8];
-			vec3_t norm;
+			vec3_t normal;
 
 			const vec_t *point = light.sample_points + (j * light.num_sample_points + i) * 3;
 
 			if (light.texinfo->flags & SURF_PHONG) { // interpolated normal
-				SampleNormal(light.face, point, norm);
+				SampleNormal(light.face, point, normal);
 			} else { // or just plane normal
-				VectorCopy(light.normal, norm);
+				VectorCopy(light.normal, normal);
 			}
 
 			vec3_t pos;
 
-			if (!NudgeSamplePosition(point, norm, center, pos, pvs)) {
+			if (!NudgeSamplePosition(point, normal, center, pos, pvs)) {
 				continue; // not a valid point
 			}
 
+			vec4_t tangent;
+			vec3_t bitangent;
+
+			TangentVectors(normal, light.texinfo->vecs[0], light.texinfo->vecs[1], tangent, bitangent);
+
 			// query all light sources within range for their contribution
-			GatherSampleLight(pos, norm, pvs, sample, direction, 1.0 / num_samples);
+			GatherSampleLight(pos, tangent, bitangent, normal, pvs, sample, direction, 1.0 / num_samples);
 		}
 	}
 
@@ -1020,7 +1044,7 @@ void FinalizeLighting(int32_t face_num) {
 
 		if (legacy) { // write out good old RGB lightmap samples, converted to bytes
 			for (int32_t j = 0; j < 3; j++) {
-				*dest++ = (byte) Clamp(lightmap[j] * 255, 0, 255);
+				*dest++ = (byte) Clamp(floor(lightmap[j] * 255.0 + 0.5), 0, 255);
 			}
 		} else { // write out HDR lightmaps and deluxemaps
 
@@ -1038,33 +1062,12 @@ void FinalizeLighting(int32_t face_num) {
 
 			// if the sample was lit, it will have a directional vector in world space
 			if (!VectorCompare(direction, vec3_origin)) {
-				vec3_t normal;
-
-				if (tex->flags & SURF_PHONG) { // interpolated normal
-					SampleNormal(f, fl->origins + i * 3, normal);
-				} else {
-					if (f->side) {
-						VectorNegate(bsp_file.planes[f->plane_num].normal, normal);
-					} else {
-						VectorCopy(bsp_file.planes[f->plane_num].normal, normal);
-					}
-				}
-
-				vec4_t tangent;
-				vec3_t bitangent;
-
-				TangentVectors(normal, tex->vecs[0], tex->vecs[1], tangent, bitangent);
-
-				// normalize it
-				VectorNormalize(direction);
-
-				// transform it into tangent space
-				deluxemap[0] = DotProduct(direction, tangent);
-				deluxemap[1] = DotProduct(direction, bitangent);
-				deluxemap[2] = DotProduct(direction, normal);
+				VectorCopy(direction, deluxemap);
 			} else {
 				VectorCopy(vec3_up, deluxemap);
 			}
+
+			VectorNormalize(deluxemap);
 
 			static const vec3_t vec3_ones = { 1.0, 1.0, 1.0 };
 

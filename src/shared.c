@@ -667,6 +667,50 @@ void ColorDecompose3(const vec3_t in, u8vec3_t out) {
 }
 
 /**
+* @brief H-basis manipulating.
+*/
+void ProjectOntoH4(const vec3_t direction, h4_t result) {
+	// Band 0
+	result[0] = (1.0 / sqrt(2.0 * M_PI));
+
+	// Band 1
+	result[1] = -sqrt(1.5 / M_PI) * direction[1];
+	result[2] = sqrt(1.5 / M_PI) * (2.0 * direction[2] - 1.0);
+	result[3] = -sqrt(1.5 / M_PI) * direction[0];
+}
+
+void ProjectOntoH4Color(const vec3_t direction, const vec3_t color, h4color_t result) {
+	h4_t projected;
+	ProjectOntoH4(direction, projected);
+
+	for (size_t i = 0; i < 4; i++) {
+		VectorScale(color, projected[i], result[i]);
+	}
+}
+
+void EvaluateH4(const h4_t h, const vec3_t direction, vec_t *result) {
+	h4_t projected;
+	ProjectOntoH4(direction, projected);
+
+	*result = 0.0;
+
+	for (size_t i = 0; i < 4; i++) {
+		*result += projected[i] * h[i];
+	}
+}
+
+void EvaluateH4Color(const h4color_t h, const vec3_t direction, vec3_t result) {
+	h4_t projected;
+	ProjectOntoH4(direction, projected);
+
+	VectorCopy(vec3_origin, result);
+
+	for (size_t i = 0; i < 4; i++) {
+		VectorMA(result, projected[i], h[i], result);
+	}
+}
+
+/**
  * @brief Handles wildcard suffixes for GlobMatch.
  */
 static _Bool GlobMatchStar(const char *pattern, const char *text, const glob_flags_t flags) {
