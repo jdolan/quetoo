@@ -47,7 +47,15 @@ extern "C" {
 //#define HAVE_BZIP2
 
 #ifndef _ZLIB_H
-#include "zlib.h"
+// QUETOO MODIFIED
+#include "miniz.h"
+#ifndef OF
+  #define OF(args) args
+#endif
+#define ZEXPORT
+#define Z_BINARY 0
+#define Z_ASCII 1
+// QUETOO MODIFIED
 #endif
 
 #ifndef _ZLIBIOAPI_H

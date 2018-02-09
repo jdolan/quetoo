@@ -103,7 +103,7 @@ _Bool Fs_Flush(file_t *file) {
  * @return The last error message resulting from filesystem operations.
  */
 const char *Fs_LastError(void) {
-	return PHYSFS_getLastError();
+	return PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode());
 }
 
 /**
@@ -188,7 +188,7 @@ int64_t Fs_Print(file_t *file, const char *fmt, ...) {
  * @return The number of objects read, or -1 on failure.
  */
 int64_t Fs_Read(file_t *file, void *buffer, size_t size, size_t count) {
-	return PHYSFS_read((PHYSFS_File *) file, buffer, (PHYSFS_uint32) size, (PHYSFS_uint32) count);
+	return PHYSFS_readBytes((PHYSFS_File *) file, buffer, (PHYSFS_uint64) size * (PHYSFS_uint64) count) / size;
 }
 
 /**
@@ -244,7 +244,7 @@ int64_t Fs_Tell(file_t *file) {
  * @return The number of objects read, or -1 on failure.
  */
 int64_t Fs_Write(file_t *file, const void *buffer, size_t size, size_t count) {
-	return PHYSFS_write((PHYSFS_File *) file, buffer, (PHYSFS_uint32) size, (PHYSFS_uint32) count);
+	return PHYSFS_writeBytes((PHYSFS_File *) file, buffer, (PHYSFS_uint64) size * (PHYSFS_uint64) count) / size;
 }
 
 /**
@@ -374,7 +374,9 @@ _Bool Fs_Rename(const char *source, const char *dest) {
  * @brief Fetch the "last modified" time for the specified file.
  */
 int64_t Fs_LastModTime(const char *filename) {
-	return PHYSFS_getLastModTime(filename);
+	PHYSFS_Stat stat;
+	PHYSFS_stat(filename, &stat);
+	return stat.modtime;
 }
 
 
@@ -415,7 +417,6 @@ static void Fs_Enumerate_(void *data, const char *dir, const char *filename) {
  * @brief Enumerates files matching `pattern`, calling the given function.
  */
 void Fs_Enumerate(const char *pattern, Fs_EnumerateFunc func, void *data) {
-
 	fs_enumerate_t en = {
 		.pattern = pattern,
 		.function = func,
@@ -485,7 +486,7 @@ void Fs_AddToSearchPath(const char *dir) {
 		const _Bool is_dir = g_file_test(dir, G_FILE_TEST_IS_DIR);
 
 		if (PHYSFS_mount(dir, NULL, !is_dir) == 0) {
-			Com_Warn("%s: %s\n", dir, PHYSFS_getLastError());
+			Com_Warn("%s: %s\n", dir, Fs_LastError());
 			return;
 		}
 
@@ -559,7 +560,10 @@ void Fs_SetGame(const char *dir) {
 		}
 		if (!*p) {
 			Com_Debug(DEBUG_FILESYSTEM, "Removing %s\n", *path);
-			PHYSFS_removeFromSearchPath(*path);
+			if (PHYSFS_unmount(*path) == 0) {
+				Com_Warn("%s: %s\n", *path, Fs_LastError());
+				return;
+			}
 		}
 		path++;
 	}
@@ -642,7 +646,7 @@ void Fs_Init(const uint32_t flags) {
 	memset(&fs_state, 0, sizeof(fs_state_t));
 
 	if (PHYSFS_init(Com_Argv(0)) == 0) {
-		Com_Error(ERROR_FATAL, "%s\n", PHYSFS_getLastError());
+		Com_Error(ERROR_FATAL, "%s\n", Fs_LastError());
 	}
 
 	fs_state.flags = flags;

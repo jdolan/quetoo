@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\deps\minizip\ioapi.c" />
+    <ClCompile Include="..\deps\minizip\miniz.c" />
     <ClCompile Include="..\deps\minizip\zip.c" />
     <ClCompile Include="..\src\tools\quemap\brush.c" />
     <ClCompile Include="..\src\tools\quemap\bspfile.c" />
@@ -51,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\deps\minizip\ioapi.h" />
+    <ClInclude Include="..\deps\minizip\miniz.h" />
     <ClInclude Include="..\deps\minizip\zip.h" />
     <ClInclude Include="..\src\tools\quemap\bspfile.h" />
     <ClInclude Include="..\src\tools\quemap\materials.h" />
@@ -96,7 +98,7 @@
       <PreprocessorDefinitions>QUETOO_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SDL2.lib;SDL2_image.lib;glib-2.0.lib;libparse.lib;libswap.lib;libimage.lib;libmatrix.lib;libthread.lib;libcmodel.lib;libmem.lib;libfilesystem.lib;libshared.lib;libcommon.lib;libsys.lib;libnet.lib;physfs.lib;dbghelp.lib;Wldap32.lib;libxml2.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2_image.lib;glib-2.0.lib;libparse.lib;libswap.lib;libimage.lib;libmatrix.lib;libthread.lib;libcmodel.lib;libmem.lib;libfilesystem.lib;libshared.lib;libcommon.lib;libsys.lib;libnet.lib;dbghelp.lib;Wldap32.lib;physfs.lib;libxml2.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
     <PostBuildEvent>
