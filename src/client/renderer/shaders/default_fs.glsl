@@ -10,9 +10,10 @@
 #include "include/fog.glsl"
 #include "include/noise3d.glsl"
 #include "include/tint.glsl"
+#include "include/color.glsl"
 
 #define MAX_LIGHTS $r_max_lights
-#define LIGHT_SCALE $r_modulate
+#define MODULATE_SCALE $r_modulate
 #define DEBUG_LIGHTMAP_LAYER_INDEX $r_draw_bsp_lightmaps
 
 #if MAX_LIGHTS
@@ -251,7 +252,7 @@ void main(void) {
 	vec4 diffuse = vec4(1.0);
 
 	if (DIFFUSE) { // sample the diffuse texture, honoring the parallax offset
-		diffuse = texture(SAMPLER0, texcoords[0] + parallax);
+		diffuse = ColorFilter(texture(SAMPLER0, texcoords[0] + parallax));
 
 		// see if diffuse can be discarded because of alpha test
 		if (diffuse.a < ALPHA_THRESHOLD)
@@ -272,7 +273,7 @@ void main(void) {
 	fragColor.rgb /= fragColor.rgb + 0.825;
 
 	// apply lightscale afterwards, because it should be done AFTER tonemapping
-	fragColor.rgb *= LIGHT_SCALE;
+	fragColor.rgb *= MODULATE_SCALE;
 #endif // DEBUG_LIGHTMAP_LAYER_INDEX == 0
 
 	// and fog

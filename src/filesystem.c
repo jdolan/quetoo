@@ -415,7 +415,6 @@ static void Fs_Enumerate_(void *data, const char *dir, const char *filename) {
  * @brief Enumerates files matching `pattern`, calling the given function.
  */
 void Fs_Enumerate(const char *pattern, Fs_EnumerateFunc func, void *data) {
-
 	fs_enumerate_t en = {
 		.pattern = pattern,
 		.function = func,
@@ -485,7 +484,7 @@ void Fs_AddToSearchPath(const char *dir) {
 		const _Bool is_dir = g_file_test(dir, G_FILE_TEST_IS_DIR);
 
 		if (PHYSFS_mount(dir, NULL, !is_dir) == 0) {
-			Com_Warn("%s: %s\n", dir, PHYSFS_getLastError());
+			Com_Warn("%s: %s\n", dir, Fs_LastError());
 			return;
 		}
 
@@ -559,7 +558,10 @@ void Fs_SetGame(const char *dir) {
 		}
 		if (!*p) {
 			Com_Debug(DEBUG_FILESYSTEM, "Removing %s\n", *path);
-			PHYSFS_removeFromSearchPath(*path);
+			if (PHYSFS_removeFromSearchPath(*path) == 0) {
+				Com_Warn("%s: %s\n", *path, Fs_LastError());
+				return;
+			}
 		}
 		path++;
 	}
@@ -642,7 +644,7 @@ void Fs_Init(const uint32_t flags) {
 	memset(&fs_state, 0, sizeof(fs_state_t));
 
 	if (PHYSFS_init(Com_Argv(0)) == 0) {
-		Com_Error(ERROR_FATAL, "%s\n", PHYSFS_getLastError());
+		Com_Error(ERROR_FATAL, "%s\n", Fs_LastError());
 	}
 
 	fs_state.flags = flags;

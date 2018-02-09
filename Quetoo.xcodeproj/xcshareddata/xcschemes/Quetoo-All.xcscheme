@@ -69,11 +69,11 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_fullscreen 0"
+            argument = "+set r_fullscreen 1"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map torn"
+            argument = "+map edge"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

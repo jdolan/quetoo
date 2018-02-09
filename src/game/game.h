@@ -25,7 +25,7 @@
 #include "filesystem.h"
 #include "ai/ai.h"
 
-#define GAME_API_VERSION 8
+#define GAME_API_VERSION 9
 
 /**
  * @brief Server flags for g_entity_t.

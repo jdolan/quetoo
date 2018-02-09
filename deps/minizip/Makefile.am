@@ -4,10 +4,12 @@ noinst_LTLIBRARIES = \
 
 noinst_HEADERS = \
 	ioapi.h \
+	miniz.h \
 	zip.h
 
 libminizip_la_SOURCES = \
 	ioapi.c \
+	miniz.c \
 	zip.c
 
 libminizip_la_CFLAGS = \
