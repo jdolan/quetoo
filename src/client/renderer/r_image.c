@@ -147,19 +147,10 @@ void R_Screenshot_f(void) {
  * and monochrome. This is all munged into one function for performance.
  */
 void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
-	vec_t brightness = 1.0;
 	uint32_t color[3];
-	uint16_t mask;
 
 	if (image->type == IT_DIFFUSE) { // compute average color
 		VectorClear(color);
-	}
-
-	if (image->type == IT_LIGHTMAP) {
-		mask = 2;
-	} else {
-		brightness = r_brightness->value;
-		mask = 1;
 	}
 
 	const size_t pixels = image->width * image->height;
@@ -168,21 +159,6 @@ void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
 	byte *p = data;
 
 	for (size_t i = 0; i < pixels; i++, p += stride) {
-
-		vec3_t temp;
-		VectorScale(p, 1.0 / 255.0, temp);
-		ColorFilter(temp, temp, brightness, r_saturation->value, r_contrast->value);
-		VectorScale(temp, 255.0, p);
-
-		if (r_monochrome->integer & mask) { // monochrome
-			p[0] = p[1] = p[2] = (p[0] + p[1] + p[2]) / 3;
-		}
-
-		if (r_invert->integer & mask) { // inverted
-			p[0] = 255 - p[0];
-			p[1] = 255 - p[1];
-			p[2] = 255 - p[2];
-		}
 
 		if ((image->type & IT_MASK_MULTIPLY) && format == GL_RGBA) { // pre-multiplied alpha
 			VectorScale(p, p[3] / 255.0, p);

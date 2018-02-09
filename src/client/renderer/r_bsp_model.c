@@ -851,9 +851,9 @@ void R_ExportBSP_f(void) {
 			}
 
 			num_surfs++;
-
+	
 			const uint32_t *element = surf->elements + surf->num_edges - 1;
-
+	
 			Fs_Print(file, "f ");
 
 			for (size_t i = 0; i < surf->num_edges; i++, element--) {
@@ -866,7 +866,7 @@ void R_ExportBSP_f(void) {
 
 		Fs_Print(file, "\n");
 	}
-	
+
 	Fs_Print(file, "# %" PRIuPTR " surfaces\n\n", num_surfs);
 	Fs_Close(file);
 
