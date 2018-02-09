@@ -22,6 +22,7 @@
 #pragma once
 
 #include "bspfile.h"
+#include "materials.h"
 #include "polylib.h"
 #include "collision/cmodel.h"
 
@@ -41,28 +42,33 @@ typedef struct patch_s {
 	vec3_t normal;
 
 	vec_t area;
-	vec3_t light;  // emissive surface light
+	vec3_t light; // emissive surface light
 
 	struct patch_s *next;  // next in face
 } patch_t;
 
 extern patch_t *face_patches[MAX_BSP_FACES];
-extern vec3_t face_offset[MAX_BSP_FACES];  // for rotating bmodels
+extern vec3_t face_offset[MAX_BSP_FACES]; // for rotating bmodels
 
 // lightmap.c
 void BuildLights(void);
 void BuildFaceExtents(void);
 void BuildVertexNormals(void);
-void BuildFacelights(int32_t facenum);
-void FinalLightFace(int32_t facenum);
+void DirectLighting(int32_t face_num);
+void IndirectLighting(int32_t face_num);
+void FinalizeLighting(int32_t face_num);
 
 // patches.c
-void CalcTextureReflectivity(void);
+void BuildTextureColors(void);
+void GetTextureColor(const char *name, vec3_t color);
+void FreeTextureColors(void);
 void BuildPatches(void);
 void SubdividePatches(void);
 void FreePatches(void);
 
 // qlight.c
 _Bool Light_PointPVS(const vec3_t org, byte *pvs);
+_Bool Light_InPVS(const vec3_t point1, const vec3_t point2);
 int32_t Light_PointLeafnum(const vec3_t point);
 void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask);
+vec3_t *Light_AverageTextureColor(const char *name);

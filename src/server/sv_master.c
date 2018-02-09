@@ -20,7 +20,7 @@
  */
 
 #if defined(_WIN32)
- #include <WinSock2.h> // for htons
+ #include <winsock2.h> // for htons
 #endif
 
 #include "sv_local.h"

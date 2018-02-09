@@ -26,11 +26,20 @@
 
 static LoadingViewController *loadingViewController;
 static MainViewController *mainViewController;
+static Stylesheet *stylesheet;
 
 /**
  * @brief Initializes the user interface.
  */
 void Cg_InitUi(void) {
+
+	stylesheet = cgi.Stylesheet("ui/common/common.css");
+	assert(stylesheet);
+
+	Theme *theme = $$(Theme, theme, SDL_GL_GetCurrentWindow());
+	assert(theme);
+
+	$(theme, addStylesheet, stylesheet);
 
 	loadingViewController = $(alloc(LoadingViewController), init);
 	assert(loadingViewController);
@@ -53,6 +62,14 @@ void Cg_ShutdownUi(void) {
 
 	release(mainViewController);
 	mainViewController = NULL;
+
+	Theme *theme = $$(Theme, theme, SDL_GL_GetCurrentWindow());
+	assert(theme);
+
+	$(theme, removeStylesheet, stylesheet);
+
+	release(stylesheet);
+	stylesheet = NULL;
 }
 
 /**

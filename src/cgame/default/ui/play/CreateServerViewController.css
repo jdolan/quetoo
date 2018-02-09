@@ -1,0 +1,10 @@
+
+#Create {
+	autoresizing-mask: contain;
+}
+
+MapListCollectionView {
+	width: 560;
+	height: 480;
+	item-size: 260 180;
+}

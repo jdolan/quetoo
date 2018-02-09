@@ -26,9 +26,6 @@
 #include "MainViewController.h"
 #include "MainView.h"
 
-#include "PrimaryButton.h"
-#include "PrimaryIcon.h"
-
 #include "ControlsViewController.h"
 #include "HomeViewController.h"
 #include "InfoViewController.h"
@@ -58,7 +55,7 @@ static void disconnect(ident data) {
 }
 
 /**
- * @brief ActionFunction for main menu PrimaryButtons.
+ * @brief ActionFunction for main menu primary items.
  */
 static void action(Control *control, const SDL_Event *event, ident sender, ident data) {
 
@@ -122,24 +119,25 @@ static void loadView(ViewController *self) {
 
 	MainViewController *this = (MainViewController *) self;
 
-	MainView *mainView = $(alloc(MainView), initWithFrame, NULL);
-	assert(mainView);
+	MainView *view = $(alloc(MainView), initWithFrame, NULL);
+	assert(view);
 
-	$(self, setView, (View *) mainView);
+	$(self, setView, (View *) view);
+	release(view);
 
-	$(this, primaryButton, mainView->primaryButtons, "Home", _HomeViewController());
-	$(this, primaryButton, mainView->primaryButtons, "Play", _PlayViewController());
-	$(this, primaryButton, mainView->primaryButtons, "Controls", _ControlsViewController());
-	$(this, primaryButton, mainView->primaryButtons, "Settings", _SettingsViewController());
+	$(this, primaryButton, view->primaryButtons, "Home", _HomeViewController());
+	$(this, primaryButton, view->primaryButtons, "Play", _PlayViewController());
+	$(this, primaryButton, view->primaryButtons, "Controls", _ControlsViewController());
+	$(this, primaryButton, view->primaryButtons, "Settings", _SettingsViewController());
 
-	$(this, primaryIcon, mainView->primaryIcons, "ui/pics/info", _InfoViewController());
-	$(this, primaryIcon, mainView->primaryIcons, "ui/pics/quit", NULL);
+	$(this, primaryIcon, view->primaryIcons, "ui/pics/info", _InfoViewController());
+	$(this, primaryIcon, view->primaryIcons, "ui/pics/quit", NULL);
 
-	$(this, primaryButton, mainView->bottomBar, "Join", _HomeViewController()); // TODO
-	$(this, primaryButton, mainView->bottomBar, "Votes", _HomeViewController()); // TODO
+	$(this, primaryButton, view->bottomBar, "Join", _HomeViewController()); // TODO
+	$(this, primaryButton, view->bottomBar, "Votes", _HomeViewController()); // TODO
 
 	$(self, addChildViewController, (ViewController *) this->navigationViewController);
-	$(mainView->contentView, addSubview, this->navigationViewController->viewController.view);
+	$(view->contentView, addSubview, this->navigationViewController->viewController.view);
 
 	action(NULL, NULL, this, _HomeViewController());
 }
@@ -167,7 +165,7 @@ static MainViewController *init(MainViewController *self) {
  */
 static void primaryButton(MainViewController *self, ident target, const char *title, Class *clazz) {
 
-	PrimaryButton *button = $(alloc(PrimaryButton), initWithTitle, title);
+	Button *button = $(alloc(Button), initWithTitle, title);
 	assert(button);
 
 	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, clazz);
@@ -182,13 +180,17 @@ static void primaryButton(MainViewController *self, ident target, const char *ti
  */
 static void primaryIcon(MainViewController *self, ident target, const char *icon, Class *clazz) {
 
-	PrimaryIcon *button = $(alloc(PrimaryIcon), initWithIcon, icon);
-	assert(button);
+	Image *image = cgi.Image(icon);
+	if (image) {
 
-	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, clazz);
+		Button *button = $(alloc(Button), initWithImage, image);
+		assert(button);
 
-	$((View *) target, addSubview, (View *) button);
-	release(button);
+		$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, clazz);
+
+		$((View *) target, addSubview, (View *) button);
+		release(button);
+	}
 }
 
 #pragma mark - Class lifecycle
@@ -198,13 +200,13 @@ static void primaryIcon(MainViewController *self, ident target, const char *icon
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 
-	((MainViewControllerInterface *) clazz->def->interface)->init = init;
-	((MainViewControllerInterface *) clazz->def->interface)->primaryButton = primaryButton;
-	((MainViewControllerInterface *) clazz->def->interface)->primaryIcon = primaryIcon;
+	((MainViewControllerInterface *) clazz->interface)->init = init;
+	((MainViewControllerInterface *) clazz->interface)->primaryButton = primaryButton;
+	((MainViewControllerInterface *) clazz->interface)->primaryIcon = primaryIcon;
 }
 
 /**
@@ -212,19 +214,21 @@ static void initialize(Class *clazz) {
  * @memberof MainViewController
  */
 Class *_MainViewController(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "MainViewController";
-		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(MainViewController);
-		clazz.interfaceOffset = offsetof(MainViewController, interface);
-		clazz.interfaceSize = sizeof(MainViewControllerInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "MainViewController",
+			.superclass = _ViewController(),
+			.instanceSize = sizeof(MainViewController),
+			.interfaceOffset = offsetof(MainViewController, interface),
+			.interfaceSize = sizeof(MainViewControllerInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

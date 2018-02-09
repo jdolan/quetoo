@@ -39,6 +39,9 @@
     <ClInclude Include="..\..\src\client\ui\renderers\QuetooRenderer.h">
       <Filter>src\renderers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\ui_data.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\client\ui\ui_main.c">
@@ -55,6 +58,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\client\ui\renderers\QuetooRenderer.c">
       <Filter>src\renderers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\ui_data.c">
+      <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

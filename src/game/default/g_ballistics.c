@@ -141,7 +141,8 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, vec_t size,
 		start[0] = end[0] = (start[0] + end[0]) * 0.5;
 		start[1] = end[1] = (start[1] + end[1]) * 0.5;
 
-		start[2] += 16.0, end[2] -= 16.0;
+		start[2] += 16.0;
+		end[2] -= 16.0;
 
 	} else {
 		VectorCopy(pos1, start);

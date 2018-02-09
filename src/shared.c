@@ -374,6 +374,14 @@ void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross) {
 }
 
 /**
+ * @brief Reflects `dir` against the specified normal: r = d − 2 (d ⋅ n) n
+ */
+void Reflect(const vec3_t dir, const vec3_t normal, vec3_t ref) {
+	VectorScale(normal, -2.0 * DotProduct(dir, normal), ref);
+	VectorAdd(dir, ref, ref);
+}
+
+/**
  @brief Returns the squared length of the specified vector.
  */
 vec_t VectorLengthSquared(const vec3_t v) {

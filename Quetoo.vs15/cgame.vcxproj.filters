@@ -126,12 +126,6 @@
     <ClInclude Include="..\src\cgame\default\ui\main\MainViewController.h">
       <Filter>src\default\ui\main</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\main\PrimaryButton.h">
-      <Filter>src\default\ui\main</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\main\PrimaryIcon.h">
-      <Filter>src\default\ui\main</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\cgame\default\ui\settings\OptionsViewController.h">
       <Filter>src\default\ui\settings</Filter>
     </ClInclude>
@@ -282,12 +276,6 @@
       <Filter>src\default\ui\main</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\main\MainViewController.c">
-      <Filter>src\default\ui\main</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\main\PrimaryButton.c">
-      <Filter>src\default\ui\main</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\main\PrimaryIcon.c">
       <Filter>src\default\ui\main</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\settings\OptionsViewController.c">

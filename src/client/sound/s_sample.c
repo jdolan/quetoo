@@ -28,10 +28,11 @@ static const char *SAMPLE_TYPES[] = { ".ogg", ".wav", NULL };
 static const char *SOUND_PATHS[] = { "sounds/", "sound/", NULL };
 
 /**
- * @brief Resample audio. outdata will be realloc'd to the size required to handle this operation, so be sure to initialize to
- * NULL before calling if it's first time!
+ * @brief Resample audio. outdata will be realloc'd to the size required to handle this operation,
+ * so be sure to initialize to NULL before calling if it's first time!
  */
 size_t S_Resample(const int32_t channels, const int32_t source_rate, const int32_t dest_rate, const size_t num_frames, const int16_t *in_frames, int16_t **out_frames, size_t *out_size) {
+	
 	const vec_t stepscale = (vec_t) source_rate / (vec_t) dest_rate;
 	const size_t outcount = NearestMultiple((size_t) (num_frames / stepscale), channels);
 	const size_t size = outcount * sizeof(int16_t);

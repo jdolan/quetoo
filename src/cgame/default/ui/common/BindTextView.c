@@ -128,7 +128,7 @@ static _Bool captureEvent(Control *self, const SDL_Event *event) {
  */
 static BindTextView *initWithBind(BindTextView *self, const char *bind) {
 
-	self = (BindTextView *) super(TextView, self, initWithFrame, NULL, ControlStyleDefault);
+	self = (BindTextView *) super(TextView, self, initWithFrame, NULL);
 	if (self) {
 
 		self->bind = strdup(bind);
@@ -149,13 +149,13 @@ static BindTextView *initWithBind(BindTextView *self, const char *bind) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
+	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-	((ControlInterface *) clazz->def->interface)->captureEvent = captureEvent;
+	((ControlInterface *) clazz->interface)->captureEvent = captureEvent;
 
-	((BindTextViewInterface *) clazz->def->interface)->initWithBind = initWithBind;
+	((BindTextViewInterface *) clazz->interface)->initWithBind = initWithBind;
 }
 
 /**
@@ -163,19 +163,21 @@ static void initialize(Class *clazz) {
  * @memberof BindTextView
  */
 Class *_BindTextView(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "BindTextView";
-		clazz.superclass = _TextView();
-		clazz.instanceSize = sizeof(BindTextView);
-		clazz.interfaceOffset = offsetof(BindTextView, interface);
-		clazz.interfaceSize = sizeof(BindTextViewInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "BindTextView",
+			.superclass = _TextView(),
+			.instanceSize = sizeof(BindTextView),
+			.interfaceOffset = offsetof(BindTextView, interface),
+			.interfaceSize = sizeof(BindTextViewInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

@@ -97,9 +97,9 @@ static void loadView(ViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
 /**
@@ -107,19 +107,21 @@ static void initialize(Class *clazz) {
  * @memberof ControlsViewController
  */
 Class *_ControlsViewController(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "ControlsViewController";
-		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(ControlsViewController);
-		clazz.interfaceOffset = offsetof(ControlsViewController, interface);
-		clazz.interfaceSize = sizeof(ControlsViewControllerInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "ControlsViewController",
+			.superclass = _ViewController(),
+			.instanceSize = sizeof(ControlsViewController),
+			.interfaceOffset = offsetof(ControlsViewController, interface),
+			.interfaceSize = sizeof(ControlsViewControllerInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

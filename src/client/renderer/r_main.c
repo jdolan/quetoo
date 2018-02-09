@@ -54,6 +54,7 @@ cvar_t *r_bumpmap;
 cvar_t *r_caustics;
 cvar_t *r_contrast;
 cvar_t *r_deluxemap;
+cvar_t *r_display;
 cvar_t *r_draw_buffer;
 cvar_t *r_flares;
 cvar_t *r_fog;
@@ -487,6 +488,7 @@ static void R_InitLocal(void) {
 	r_caustics = Cvar_Add("r_caustics", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA, "Enable or disable liquid caustic effects");
 	r_contrast = Cvar_Add("r_contrast", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls texture contrast");
 	r_deluxemap = Cvar_Add("r_deluxemap", "1", CVAR_ARCHIVE, "Controls deluxemap rendering");
+	r_display = Cvar_Add("r_display", "0", CVAR_ARCHIVE, "Specifies the default display to use");
 	r_draw_buffer = Cvar_Add("r_draw_buffer", "GL_BACK", CVAR_ARCHIVE, NULL);
 	r_flares = Cvar_Add("r_flares", "1.0", CVAR_ARCHIVE, "Controls the rendering of light source flares");
 	r_fog = Cvar_Add("r_fog", "1", CVAR_ARCHIVE, "Controls the rendering of fog effects");

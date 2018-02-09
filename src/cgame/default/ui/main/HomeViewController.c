@@ -69,7 +69,7 @@ static void loadView(ViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
 /**
@@ -77,19 +77,21 @@ static void initialize(Class *clazz) {
  * @memberof HomeViewController
  */
 Class *_HomeViewController(void) {
-	static Class clazz;
+	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
-		clazz.name = "HomeViewController";
-		clazz.superclass = _ViewController();
-		clazz.instanceSize = sizeof(HomeViewController);
-		clazz.interfaceOffset = offsetof(HomeViewController, interface);
-		clazz.interfaceSize = sizeof(HomeViewControllerInterface);
-		clazz.initialize = initialize;
+		clazz = _initialize(&(const ClassDef) {
+			.name = "HomeViewController",
+			.superclass = _ViewController(),
+			.instanceSize = sizeof(HomeViewController),
+			.interfaceOffset = offsetof(HomeViewController, interface),
+			.interfaceSize = sizeof(HomeViewControllerInterface),
+			.initialize = initialize,
+		});
 	});
 
-	return &clazz;
+	return clazz;
 }
 
 #undef _Class

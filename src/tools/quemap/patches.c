@@ -22,69 +22,81 @@
 #include "qlight.h"
 #include "image.h"
 
-static vec3_t texture_reflectivity[MAX_BSP_TEXINFO];
+static GHashTable *texture_colors;
 
 /**
  * @brief
  */
-void CalcTextureReflectivity(void) {
-	char path[MAX_OS_PATH];
-	int32_t i, j, texels;
-	uint32_t color[3];
-	SDL_Surface *surf;
+void BuildTextureColors(void) {
 
-	// always set index 0 even if no textures
-	VectorSet(texture_reflectivity[0], 0.5, 0.5, 0.5);
+	texture_colors = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Mem_Free);
 
-	for (i = 0; i < bsp_file.num_texinfo; i++) {
+	for (int32_t i = 0; i < bsp_file.num_texinfo; i++) {
 
-		// see if an earlier texinfo already got the value
-		for (j = 0; j < i; j++) {
-			if (!g_strcmp0(bsp_file.texinfo[i].texture, bsp_file.texinfo[j].texture)) {
-				VectorCopy(texture_reflectivity[j], texture_reflectivity[i]);
-				break;
+		const bsp_texinfo_t *tex = &bsp_file.texinfo[i];
+
+		if (g_hash_table_contains(texture_colors, tex->texture)) {
+			continue;
+		}
+
+		const cm_material_t *material = LoadMaterial(tex->texture, ASSET_CONTEXT_TEXTURES);
+
+		vec_t *color = Mem_Malloc(sizeof(vec3_t));
+		VectorSet(color, 1.0, 1.0, 1.0);
+
+		SDL_Surface *surf;
+		if (Img_LoadImage(material->diffuse.path, &surf)) {
+			Com_Debug(DEBUG_ALL, "Loaded %s (%dx%d)\n", tex->texture, surf->w, surf->h);
+
+			const int32_t texels = surf->w * surf->h;
+			uint32_t c[3] = { 0, 0, 0 };
+
+			for (int32_t j = 0; j < texels; j++) {
+
+				const byte *pos = (byte *) surf->pixels + j * 4;
+
+				c[0] += *pos++; // r
+				c[1] += *pos++; // g
+				c[2] += *pos++; // b
 			}
+
+			SDL_FreeSurface(surf);
+
+			for (int32_t j = 0; j < 3; j++) {
+				color[j] = (c[j] / texels) / 255.0;
+			}
+		} else {
+			Com_Warn("Couldn't load %s\n", material->diffuse.path);
 		}
 
-		if (j != i) { // earlier texinfo found, continue
-			continue;
-		}
-
-		// load the image to calculate reflectivity
-		g_snprintf(path, sizeof(path), "textures/%s", bsp_file.texinfo[i].texture);
-
-		if (!Img_LoadImage(path, &surf)) {
-			Com_Warn("Couldn't load %s\n", path);
-			VectorSet(texture_reflectivity[i], 0.5, 0.5, 0.5);
-			continue;
-		}
-
-		// calculate average color
-		texels = surf->w * surf->h;
-		color[0] = color[1] = color[2] = 0;
-
-		for (j = 0; j < texels; j++) {
-			const byte *pos = (byte *) surf->pixels + j * 4;
-			color[0] += *pos++; // r
-			color[1] += *pos++; // g
-			color[2] += *pos++; // b
-		}
-
-		Com_Verbose("Loaded %s (%dx%d)\n", bsp_file.texinfo[i].texture, surf->w, surf->h);
-
-		SDL_FreeSurface(surf);
-
-		for (j = 0; j < 3; j++) {
-			const vec_t r = color[j] / texels / 255.0;
-			texture_reflectivity[i][j] = r;
-		}
+		g_hash_table_insert(texture_colors, (gpointer) tex->texture, color);
 	}
 }
 
 /**
  * @brief
  */
-static inline _Bool HasLight(const bsp_face_t *f) {
+void GetTextureColor(const char *name, vec3_t color) {
+
+	const vec_t *data = g_hash_table_lookup(texture_colors, name);
+	if (data) {
+		VectorCopy(data, color);
+	} else {
+		VectorSet(color, 1.0, 1.0, 1.0);
+	}
+}
+
+/**
+ * @brief Free the color hash table
+ */
+void FreeTextureColors(void) {
+	g_hash_table_destroy(texture_colors);
+}
+
+/**
+ * @brief
+ */
+static _Bool HasLight(const bsp_face_t *f) {
 	const bsp_texinfo_t *tex;
 
 	tex = &bsp_file.texinfo[f->texinfo];
@@ -94,7 +106,7 @@ static inline _Bool HasLight(const bsp_face_t *f) {
 /**
  * @brief
  */
-static inline _Bool IsSky(const bsp_face_t *f) {
+static _Bool IsSky(const bsp_face_t *f) {
 	const bsp_texinfo_t *tex;
 
 	tex = &bsp_file.texinfo[f->texinfo];
@@ -104,13 +116,15 @@ static inline _Bool IsSky(const bsp_face_t *f) {
 /**
  * @brief
  */
-static inline void EmissiveLight(patch_t *patch) {
+static void EmissiveLight(patch_t *patch) {
 
 	if (HasLight(patch->face)) {
-		const bsp_texinfo_t *tex = &bsp_file.texinfo[patch->face->texinfo];
-		const vec_t *ref = texture_reflectivity[patch->face->texinfo];
+		vec3_t color;
 
-		VectorScale(ref, tex->value, patch->light);
+		const bsp_texinfo_t *tex = &bsp_file.texinfo[patch->face->texinfo];
+		GetTextureColor(tex->texture, color);
+
+		VectorScale(color, tex->value, patch->light);
 	}
 }
 

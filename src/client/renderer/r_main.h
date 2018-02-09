@@ -31,6 +31,7 @@ extern cvar_t *r_bumpmap;
 extern cvar_t *r_caustics;
 extern cvar_t *r_contrast;
 extern cvar_t *r_deluxemap;
+extern cvar_t *r_display;
 extern cvar_t *r_draw_buffer;
 extern cvar_t *r_flares;
 extern cvar_t *r_fog;
