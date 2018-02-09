@@ -197,6 +197,8 @@
 		CE68F99F1E5E8D8000AC9AAE /* r_framebuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = CE68F99D1E5E8D8000AC9AAE /* r_framebuffer.h */; };
 		CE68F9A51E5E8E8400AC9AAE /* r_program_stain.c in Sources */ = {isa = PBXBuildFile; fileRef = CE68F9A31E5E8E8400AC9AAE /* r_program_stain.c */; };
 		CE68F9A61E5E8E8400AC9AAE /* r_program_stain.h in Headers */ = {isa = PBXBuildFile; fileRef = CE68F9A41E5E8E8400AC9AAE /* r_program_stain.h */; };
+		CE69DC9F202D3EE700E5C8B1 /* miniz.h in Headers */ = {isa = PBXBuildFile; fileRef = CE69DC9D202D3EE600E5C8B1 /* miniz.h */; };
+		CE69DCA0202D3EE700E5C8B1 /* miniz.c in Sources */ = {isa = PBXBuildFile; fileRef = CE69DC9E202D3EE700E5C8B1 /* miniz.c */; };
 		CE6C2D111E24902900F55B0A /* cm_bsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6C2D0F1E24902900F55B0A /* cm_bsp.c */; };
 		CE6C2D121E24902900F55B0A /* cm_bsp.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6C2D101E24902900F55B0A /* cm_bsp.h */; };
 		CE6EE3891F70B69F00FBC830 /* libconsole.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7A211D9CB408000FA6B2 /* libconsole.a */; };
@@ -1093,7 +1095,6 @@
 		CE12D5021C5C58C300CD0B13 /* ioapi.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ioapi.c; sourceTree = "<group>"; };
 		CE12D5031C5C58C300CD0B13 /* ioapi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ioapi.h; sourceTree = "<group>"; };
 		CE12D5041C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
-		CE12D5061C5C58C300CD0B13 /* MiniZip64_info.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = MiniZip64_info.txt; sourceTree = "<group>"; };
 		CE12D5071C5C58C300CD0B13 /* zip.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = zip.c; sourceTree = "<group>"; };
 		CE12D5081C5C58C300CD0B13 /* zip.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zip.h; sourceTree = "<group>"; };
 		CE12D50A1C5C58C300CD0B13 /* engine-architecture.graffle */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "engine-architecture.graffle"; sourceTree = "<group>"; };
@@ -1633,6 +1634,8 @@
 		CE68F9A21E5E8E5000AC9AAE /* stain_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = stain_vs.glsl; sourceTree = "<group>"; };
 		CE68F9A31E5E8E8400AC9AAE /* r_program_stain.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_program_stain.c; sourceTree = "<group>"; };
 		CE68F9A41E5E8E8400AC9AAE /* r_program_stain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_program_stain.h; sourceTree = "<group>"; };
+		CE69DC9D202D3EE600E5C8B1 /* miniz.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = miniz.h; sourceTree = "<group>"; };
+		CE69DC9E202D3EE700E5C8B1 /* miniz.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = miniz.c; sourceTree = "<group>"; };
 		CE6C2D0F1E24902900F55B0A /* cm_bsp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_bsp.c; sourceTree = "<group>"; };
 		CE6C2D101E24902900F55B0A /* cm_bsp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_bsp.h; sourceTree = "<group>"; };
 		CE6EE2791F6BE8FE00FBC830 /* DialogView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DialogView.c; sourceTree = "<group>"; };
@@ -2080,7 +2083,8 @@
 			children = (
 				CE12D5021C5C58C300CD0B13 /* ioapi.c */,
 				CE12D5031C5C58C300CD0B13 /* ioapi.h */,
-				CE12D5061C5C58C300CD0B13 /* MiniZip64_info.txt */,
+				CE69DC9E202D3EE700E5C8B1 /* miniz.c */,
+				CE69DC9D202D3EE600E5C8B1 /* miniz.h */,
 				CE12D5071C5C58C300CD0B13 /* zip.c */,
 				CE12D5081C5C58C300CD0B13 /* zip.h */,
 				CE12D5041C5C58C300CD0B13 /* Makefile.am */,
@@ -3274,6 +3278,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE69DC9F202D3EE700E5C8B1 /* miniz.h in Headers */,
 				CE80FE791C5E43AC00A21A51 /* ioapi.h in Headers */,
 				CE80FE7A1C5E43AC00A21A51 /* zip.h in Headers */,
 			);
@@ -4294,6 +4299,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE69DCA0202D3EE700E5C8B1 /* miniz.c in Sources */,
 				CE12D8151C5C5F0600CD0B13 /* ioapi.c in Sources */,
 				CE12D8161C5C5F0600CD0B13 /* zip.c in Sources */,
 			);
@@ -5034,6 +5040,7 @@
 		CE12D8131C5C5EF000CD0B13 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_WARN_COMMA = NO;
 				EXECUTABLE_PREFIX = lib;
 				OTHER_CFLAGS = (
 					"-DUSE_FILE32API",
@@ -5046,6 +5053,7 @@
 		CE12D8141C5C5EF000CD0B13 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_WARN_COMMA = NO;
 				EXECUTABLE_PREFIX = lib;
 				OTHER_CFLAGS = (
 					"-DUSE_FILE32API",
