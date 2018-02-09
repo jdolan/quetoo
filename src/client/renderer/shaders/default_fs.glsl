@@ -124,7 +124,7 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in floa
 		}
 	}
 
-	light *= LIGHT_SCALE;
+	light *= MODULATE_SCALE;
 #endif
 
 	// now modulate the diffuse sample with the modified lightmap
