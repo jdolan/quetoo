@@ -89,7 +89,7 @@ void R_InitContext(void) {
 
 	Com_Print("  Trying %dx%d..\n", w, h);
 
-	cvar_t *r_hdr_enabled = Cvar_FullSet("r_hdr_enabled", (r_hdr->integer && r_fullscreen->integer) ? "1" : "0", CVAR_NO_SET);
+	const cvar_t *r_hdr_enabled = Cvar_FullSet("r_hdr_enabled", (r_hdr->integer && r_fullscreen->integer) ? "1" : "0", CVAR_NO_SET);
 
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, r_hdr_enabled->integer ? 16 : 8);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, r_hdr_enabled->integer ? 16 : 8);
@@ -106,7 +106,6 @@ void R_InitContext(void) {
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, s ? 1 : 0);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, s);
 
-	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 	SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1);
 
 	if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING,
@@ -125,8 +124,6 @@ void R_InitContext(void) {
 	if ((r_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
 		Com_Error(ERROR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
 	}
-
-	SDL_GL_MakeCurrent(r_context.window, r_context.context);
 
 	const int32_t valid_attribs[] = {
 		SDL_GL_RED_SIZE, SDL_GL_GREEN_SIZE, SDL_GL_BLUE_SIZE, SDL_GL_ALPHA_SIZE,
