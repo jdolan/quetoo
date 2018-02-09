@@ -103,7 +103,7 @@ _Bool Fs_Flush(file_t *file) {
  * @return The last error message resulting from filesystem operations.
  */
 const char *Fs_LastError(void) {
-	return PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode());
+	return PHYSFS_getLastError();
 }
 
 /**
@@ -188,7 +188,7 @@ int64_t Fs_Print(file_t *file, const char *fmt, ...) {
  * @return The number of objects read, or -1 on failure.
  */
 int64_t Fs_Read(file_t *file, void *buffer, size_t size, size_t count) {
-	return PHYSFS_readBytes((PHYSFS_File *) file, buffer, (PHYSFS_uint64) size * (PHYSFS_uint64) count) / size;
+	return PHYSFS_read((PHYSFS_File *) file, buffer, (PHYSFS_uint32) size, (PHYSFS_uint32) count);
 }
 
 /**
@@ -244,7 +244,7 @@ int64_t Fs_Tell(file_t *file) {
  * @return The number of objects read, or -1 on failure.
  */
 int64_t Fs_Write(file_t *file, const void *buffer, size_t size, size_t count) {
-	return PHYSFS_writeBytes((PHYSFS_File *) file, buffer, (PHYSFS_uint64) size * (PHYSFS_uint64) count) / size;
+	return PHYSFS_write((PHYSFS_File *) file, buffer, (PHYSFS_uint32) size, (PHYSFS_uint32) count);
 }
 
 /**
@@ -374,9 +374,7 @@ _Bool Fs_Rename(const char *source, const char *dest) {
  * @brief Fetch the "last modified" time for the specified file.
  */
 int64_t Fs_LastModTime(const char *filename) {
-	PHYSFS_Stat stat;
-	PHYSFS_stat(filename, &stat);
-	return stat.modtime;
+	return PHYSFS_getLastModTime(filename);
 }
 
 
@@ -560,7 +558,7 @@ void Fs_SetGame(const char *dir) {
 		}
 		if (!*p) {
 			Com_Debug(DEBUG_FILESYSTEM, "Removing %s\n", *path);
-			if (PHYSFS_unmount(*path) == 0) {
+			if (PHYSFS_removeFromSearchPath(*path) == 0) {
 				Com_Warn("%s: %s\n", *path, Fs_LastError());
 				return;
 			}
