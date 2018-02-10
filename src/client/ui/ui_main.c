@@ -119,8 +119,6 @@ void Ui_PopAllViewControllers(void) {
 	$(navigationViewController, popToRootViewController);
 }
 
-
-
 /**
  * @brief Initializes the user interface.
  */

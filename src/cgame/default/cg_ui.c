@@ -24,7 +24,6 @@
 #include "ui/main/MainViewController.h"
 #include "ui/main/LoadingViewController.h"
 
-static LoadingViewController *loadingViewController;
 static MainViewController *mainViewController;
 static Stylesheet *stylesheet;
 
@@ -41,9 +40,6 @@ void Cg_InitUi(void) {
 
 	$(theme, addStylesheet, stylesheet);
 
-	loadingViewController = $(alloc(LoadingViewController), init);
-	assert(loadingViewController);
-
 	mainViewController = $(alloc(MainViewController), init);
 	assert(mainViewController);
 
@@ -56,9 +52,6 @@ void Cg_InitUi(void) {
 void Cg_ShutdownUi(void) {
 
 	cgi.PopAllViewControllers();
-
-	release(loadingViewController);
-	loadingViewController = NULL;
 
 	release(mainViewController);
 	mainViewController = NULL;
@@ -76,12 +69,17 @@ void Cg_ShutdownUi(void) {
  * @brief Updates the loading screen
  */
 void Cg_UpdateLoading(const cl_loading_t loading) {
+	static LoadingViewController *loadingViewController;
 
 	if (loading.percent == 0) {
+		loadingViewController = $(alloc(LoadingViewController), init);
 		cgi.PushViewController((ViewController *) loadingViewController);
 	} else if (loading.percent == 100) {
 		cgi.PopToViewController((ViewController *) mainViewController);
+		loadingViewController = release(loadingViewController);
 	}
 
-	$(loadingViewController, setProgress, loading);
+	if (loadingViewController) {
+		$(loadingViewController, setProgress, loading);
+	}
 }
