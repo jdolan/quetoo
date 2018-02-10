@@ -62,8 +62,8 @@ void Ui_HandleEvent(const SDL_Event *event) {
 void Ui_ViewWillAppear(void) {
 
 	if (windowController) {
-		$(windowController->viewController, viewWillAppear);
 		$(windowController->viewController->view, updateBindings);
+		$(windowController->viewController, viewWillAppear);
 	}
 }
 
