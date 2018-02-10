@@ -154,6 +154,8 @@ static void AddMaterial(const cm_material_t *material) {
  */
 static void AddMaterials(const char *path, cm_asset_context_t context) {
 
+	AddPath(path, false);
+	
 	GList *materials = NULL;
 	const ssize_t count = LoadMaterials(path, context, &materials);
 
