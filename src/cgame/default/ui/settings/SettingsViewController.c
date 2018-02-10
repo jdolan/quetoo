@@ -23,8 +23,6 @@
 
 #include "SettingsViewController.h"
 
-#include "MoveViewController.h"
-#include "LookViewController.h"
 #include "OptionsViewController.h"
 #include "SystemViewController.h"
 

@@ -1664,6 +1664,12 @@
 		CE6EE4101F72919800FBC830 /* cg_ui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_ui.h; sourceTree = "<group>"; };
 		CE6FF29C1E9E6FBA00F3C160 /* qzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qzip.h; sourceTree = "<group>"; };
 		CE7D2C06202E670E004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CE7D2C07202E9C6D004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CE7D2C08202E9DE6004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CE7D2C09202E9F79004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CE7D2C0A202EA0FB004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CE7D2C0B202EA3A2004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CE7D2C0C202EA40C004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE8000051C5E4F0500A21A51 /* libxml2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.dylib; path = /opt/local/lib/libxml2.2.dylib; sourceTree = "<absolute>"; };
 		CE8040181FA90D7000931A89 /* libmysqlclient.20.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmysqlclient.20.dylib; path = ../../../../opt/local/lib/mysql57/mysql/libmysqlclient.20.dylib; sourceTree = "<group>"; };
 		CE80FD871C5E3B6F00A21A51 /* quemap */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = quemap; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -3017,6 +3023,7 @@
 				CE1A284C1F7602F2005F62A9 /* ShootViewController.c */,
 				CE4E07BA20267EAB000B276C /* ShootViewController.css */,
 				CE1A284D1F7602F2005F62A9 /* ShootViewController.h */,
+				CE7D2C08202E9DE6004BC58E /* Makefile.am */,
 			);
 			path = controls;
 			sourceTree = "<group>";
@@ -3064,6 +3071,7 @@
 				CE107D7C1F6592860010A1DA /* QuetooTheme.c */,
 				CE107D7D1F6592860010A1DA /* QuetooTheme.h */,
 				CE4E07B320264B15000B276C /* common.css */,
+				CE7D2C07202E9C6D004BC58E /* Makefile.am */,
 			);
 			path = common;
 			sourceTree = "<group>";
@@ -3076,6 +3084,7 @@
 				CE58707B1F5CDFE0004CAAB2 /* CreditsViewController.h */,
 				CE58707C1F5CDFE0004CAAB2 /* InfoViewController.c */,
 				CE58707D1F5CDFE0004CAAB2 /* InfoViewController.h */,
+				CE7D2C09202E9F79004BC58E /* Makefile.am */,
 			);
 			path = info;
 			sourceTree = "<group>";
@@ -3100,6 +3109,7 @@
 				CE1A28301F75FC1D005F62A9 /* PlayerSetupViewController.h */,
 				CE5870831F5CDFE0004CAAB2 /* PlayViewController.c */,
 				CE5870841F5CDFE0004CAAB2 /* PlayViewController.h */,
+				CE7D2C0B202EA3A2004BC58E /* Makefile.am */,
 			);
 			path = play;
 			sourceTree = "<group>";
@@ -3117,6 +3127,7 @@
 				CE5870901F5CDFE0004CAAB2 /* SystemViewController.h */,
 				CE5870BC1F5CE9AE004CAAB2 /* VideoModeSelect.c */,
 				CE5870BD1F5CE9AE004CAAB2 /* VideoModeSelect.h */,
+				CE7D2C0C202EA40C004BC58E /* Makefile.am */,
 			);
 			path = settings;
 			sourceTree = "<group>";
@@ -3140,6 +3151,7 @@
 				CE5870AD1F5CE98D004CAAB2 /* MainView.h */,
 				CE5870981F5CE7D2004CAAB2 /* MainViewController.c */,
 				CE5870991F5CE7D2004CAAB2 /* MainViewController.h */,
+				CE7D2C0A202EA0FB004BC58E /* Makefile.am */,
 			);
 			path = main;
 			sourceTree = "<group>";

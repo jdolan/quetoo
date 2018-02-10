@@ -500,6 +500,12 @@ AC_CONFIG_FILES([
 	src/cgame/Makefile
 	src/cgame/default/Makefile
 	src/cgame/default/ui/Makefile
+	src/cgame/default/ui/common/Makefile
+	src/cgame/default/ui/controls/Makefile
+	src/cgame/default/ui/info/Makefile
+	src/cgame/default/ui/main/Makefile
+	src/cgame/default/ui/play/Makefile
+	src/cgame/default/ui/settings/Makefile
 	src/client/Makefile
 	src/client/renderer/Makefile
 	src/client/renderer/shaders/Makefile

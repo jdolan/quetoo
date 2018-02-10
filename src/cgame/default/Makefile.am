@@ -62,7 +62,12 @@ cgame_la_LDFLAGS = \
 	-shared
 
 cgame_la_LIBADD = \
-	ui/libui.la \
+	ui/common/libcguicommon.la \
+	ui/controls/libcguicontrols.la \
+	ui/info/libcguiinfo.la \
+	ui/main/libcguimain.la \
+	ui/play/libcguiplay.la \
+	ui/settings/libcguisettings.la \
 	$(top_builddir)/src/game/default/libpmove.la \
 	$(top_builddir)/src/libswap.la \
 	$(top_builddir)/src/libmatrix.la \

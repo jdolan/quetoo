@@ -23,7 +23,6 @@
 
 #include "OptionsViewController.h"
 
-#include "CrosshairView.h"
 #include "CvarSelect.h"
 #include "CvarSlider.h"
 
@@ -186,8 +185,7 @@ static void loadView(ViewController *self) {
 		$(theme, checkbox, "Stainmaps", "r_stainmaps");
 		
 		release(box);
-	 }
-
+	}
 
 	release(columns);
 	release(container);

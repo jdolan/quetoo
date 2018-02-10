@@ -174,8 +174,10 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	self->view->autoresizingMask = ViewAutoresizingContain;
 	self->view->identifier = strdup("Player");
+
+	self->view->stylesheet = cgi.Stylesheet("ui/play/PlayerSetupViewController.css");
+	assert(self->view->stylesheet);
 
 	PlayerSetupViewController *this = (PlayerSetupViewController *) self;
 
@@ -271,7 +273,7 @@ static void loadView(ViewController *self) {
 
 	$(theme, targetSubview, columns, 1);
 
-	this->playerModelView = $(alloc(PlayerModelView), initWithFrame, &MakeRect(0, 0, 600, 480));
+	this->playerModelView = $(alloc(PlayerModelView), initWithFrame, &MakeRect(0, 0, 600, 600));
 	assert(this->playerModelView);
 
 	$(theme, attach, this->playerModelView);
