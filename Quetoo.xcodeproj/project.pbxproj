@@ -149,9 +149,7 @@
 		CE4E07CD20268835000B276C /* MiscViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07BB20267EAB000B276C /* MiscViewController.css */; };
 		CE4E07CE20268838000B276C /* MoveViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07B920267EAB000B276C /* MoveViewController.css */; };
 		CE4E07CF2026883C000B276C /* ShootViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07BA20267EAB000B276C /* ShootViewController.css */; };
-		CE4E07D120268875000B276C /* CreditsViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07BF20267EC7000B276C /* CreditsViewController.css */; };
 		CE4E07D420268897000B276C /* DialogViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07C220267ED9000B276C /* DialogViewController.css */; };
-		CE4E07D52026889A000B276C /* HomeViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07C020267ED9000B276C /* HomeViewController.css */; };
 		CE4E07D62026889D000B276C /* LoadingViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07C320267ED9000B276C /* LoadingViewController.css */; };
 		CE4E07D8202688AF000B276C /* MainView.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07C120267ED9000B276C /* MainView.css */; };
 		CE4E07DE202689F4000B276C /* CreateServerViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07C420267EE8000B276C /* CreateServerViewController.css */; };
@@ -221,10 +219,7 @@
 		CE6EE3D41F720D6700FBC830 /* CvarSlider.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870A01F5CE97C004CAAB2 /* CvarSlider.c */; };
 		CE6EE3D51F720D6700FBC830 /* CvarTextView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870A21F5CE97C004CAAB2 /* CvarTextView.c */; };
 		CE6EE3D71F720D6700FBC830 /* QuetooTheme.c in Sources */ = {isa = PBXBuildFile; fileRef = CE107D7C1F6592860010A1DA /* QuetooTheme.c */; };
-		CE6EE3D81F720D7700FBC830 /* CreditsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58707A1F5CDFE0004CAAB2 /* CreditsViewController.c */; };
-		CE6EE3D91F720D7700FBC830 /* InfoViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58707C1F5CDFE0004CAAB2 /* InfoViewController.c */; };
 		CE6EE3DA1F720D8700FBC830 /* DialogView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6EE2791F6BE8FE00FBC830 /* DialogView.c */; };
-		CE6EE3DB1F720D8700FBC830 /* HomeViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870941F5CE7D2004CAAB2 /* HomeViewController.c */; };
 		CE6EE3DC1F720D8700FBC830 /* LoadingViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870961F5CE7D2004CAAB2 /* LoadingViewController.c */; };
 		CE6EE3DD1F720D8700FBC830 /* MainView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870AC1F5CE98D004CAAB2 /* MainView.c */; };
 		CE6EE3DE1F720D8700FBC830 /* MainViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870981F5CE7D2004CAAB2 /* MainViewController.c */; };
@@ -242,10 +237,7 @@
 		CE6EE3F21F720DC300FBC830 /* CvarSlider.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870A11F5CE97C004CAAB2 /* CvarSlider.h */; };
 		CE6EE3F31F720DC300FBC830 /* CvarTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870A31F5CE97C004CAAB2 /* CvarTextView.h */; };
 		CE6EE3F51F720DC300FBC830 /* QuetooTheme.h in Headers */ = {isa = PBXBuildFile; fileRef = CE107D7D1F6592860010A1DA /* QuetooTheme.h */; };
-		CE6EE3F61F720DC300FBC830 /* CreditsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE58707B1F5CDFE0004CAAB2 /* CreditsViewController.h */; };
-		CE6EE3F71F720DC300FBC830 /* InfoViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE58707D1F5CDFE0004CAAB2 /* InfoViewController.h */; };
 		CE6EE3F81F720DC300FBC830 /* DialogView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6EE27A1F6BE8FE00FBC830 /* DialogView.h */; };
-		CE6EE3F91F720DC300FBC830 /* HomeViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870951F5CE7D2004CAAB2 /* HomeViewController.h */; };
 		CE6EE3FA1F720DC300FBC830 /* LoadingViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870971F5CE7D2004CAAB2 /* LoadingViewController.h */; };
 		CE6EE3FB1F720DC300FBC830 /* MainView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870AD1F5CE98D004CAAB2 /* MainView.h */; };
 		CE6EE3FC1F720DC300FBC830 /* MainViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870991F5CE7D2004CAAB2 /* MainViewController.h */; };
@@ -261,6 +253,10 @@
 		CE6EE40E1F720F3A00FBC830 /* libcgame-ui.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE6EE3371F6BFAF600FBC830 /* libcgame-ui.a */; };
 		CE6EE4111F72919800FBC830 /* cg_ui.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6EE40F1F72919800FBC830 /* cg_ui.c */; };
 		CE6EE4121F72919800FBC830 /* cg_ui.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6EE4101F72919800FBC830 /* cg_ui.h */; };
+		CE7D2C0F202F6170004BC58E /* MainView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C0D202F6134004BC58E /* MainView.json */; };
+		CE7D2C16202F693B004BC58E /* HomeViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C12202F690A004BC58E /* HomeViewController.css */; };
+		CE7D2C17202F69B9004BC58E /* HomeViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7D2C11202F690A004BC58E /* HomeViewController.c */; };
+		CE7D2C18202F69D4004BC58E /* HomeViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7D2C14202F690A004BC58E /* HomeViewController.h */; };
 		CE8000001C5E4D4400A21A51 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
 		CE8000021C5E4D4400A21A51 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CE8000031C5E4ED700A21A51 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
@@ -1026,16 +1022,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		CE4E07D02026884B000B276C /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = ui/info;
-			dstSubfolderSpec = 16;
-			files = (
-				CE4E07D120268875000B276C /* CreditsViewController.css in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		CE4E07D32026888A000B276C /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1043,9 +1029,9 @@
 			dstSubfolderSpec = 16;
 			files = (
 				CE4E07D420268897000B276C /* DialogViewController.css in CopyFiles */,
-				CE4E07D52026889A000B276C /* HomeViewController.css in CopyFiles */,
 				CE4E07D62026889D000B276C /* LoadingViewController.css in CopyFiles */,
 				CE4E07D8202688AF000B276C /* MainView.css in CopyFiles */,
+				CE7D2C0F202F6170004BC58E /* MainView.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1077,6 +1063,16 @@
 			files = (
 				CE69DCB5202D515700E5C8B1 /* EditorView.css in CopyFiles */,
 				CE69DCB7202D58BC00E5C8B1 /* EditorView.json in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE7D2C15202F6911004BC58E /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = ui/home;
+			dstSubfolderSpec = 16;
+			files = (
+				CE7D2C16202F693B004BC58E /* HomeViewController.css in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1555,8 +1551,6 @@
 		CE4E07BA20267EAB000B276C /* ShootViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = ShootViewController.css; sourceTree = "<group>"; };
 		CE4E07BB20267EAB000B276C /* MiscViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = MiscViewController.css; sourceTree = "<group>"; };
 		CE4E07BD20267EAB000B276C /* LookViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = LookViewController.css; sourceTree = "<group>"; };
-		CE4E07BF20267EC7000B276C /* CreditsViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = CreditsViewController.css; sourceTree = "<group>"; };
-		CE4E07C020267ED9000B276C /* HomeViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = HomeViewController.css; sourceTree = "<group>"; };
 		CE4E07C120267ED9000B276C /* MainView.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = MainView.css; sourceTree = "<group>"; };
 		CE4E07C220267ED9000B276C /* DialogViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = DialogViewController.css; sourceTree = "<group>"; };
 		CE4E07C320267ED9000B276C /* LoadingViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = LoadingViewController.css; sourceTree = "<group>"; };
@@ -1575,10 +1569,6 @@
 		CE585BD81ED459E2009B7C14 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE585BDB1ED459E2009B7C14 /* noise3d.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = noise3d.glsl; sourceTree = "<group>"; };
 		CE585BDD1ED45A94009B7C14 /* tint.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = tint.glsl; sourceTree = "<group>"; };
-		CE58707A1F5CDFE0004CAAB2 /* CreditsViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CreditsViewController.c; sourceTree = "<group>"; };
-		CE58707B1F5CDFE0004CAAB2 /* CreditsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CreditsViewController.h; sourceTree = "<group>"; };
-		CE58707C1F5CDFE0004CAAB2 /* InfoViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = InfoViewController.c; sourceTree = "<group>"; };
-		CE58707D1F5CDFE0004CAAB2 /* InfoViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InfoViewController.h; sourceTree = "<group>"; };
 		CE58707F1F5CDFE0004CAAB2 /* CreateServerViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CreateServerViewController.c; sourceTree = "<group>"; };
 		CE5870801F5CDFE0004CAAB2 /* CreateServerViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CreateServerViewController.h; sourceTree = "<group>"; };
 		CE5870811F5CDFE0004CAAB2 /* JoinServerViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = JoinServerViewController.c; sourceTree = "<group>"; };
@@ -1591,8 +1581,6 @@
 		CE58708E1F5CDFE0004CAAB2 /* SettingsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SettingsViewController.h; sourceTree = "<group>"; };
 		CE58708F1F5CDFE0004CAAB2 /* SystemViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SystemViewController.c; sourceTree = "<group>"; };
 		CE5870901F5CDFE0004CAAB2 /* SystemViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SystemViewController.h; sourceTree = "<group>"; };
-		CE5870941F5CE7D2004CAAB2 /* HomeViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = HomeViewController.c; sourceTree = "<group>"; };
-		CE5870951F5CE7D2004CAAB2 /* HomeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HomeViewController.h; sourceTree = "<group>"; };
 		CE5870961F5CE7D2004CAAB2 /* LoadingViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = LoadingViewController.c; sourceTree = "<group>"; };
 		CE5870971F5CE7D2004CAAB2 /* LoadingViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoadingViewController.h; sourceTree = "<group>"; };
 		CE5870981F5CE7D2004CAAB2 /* MainViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = MainViewController.c; sourceTree = "<group>"; };
@@ -1666,10 +1654,14 @@
 		CE7D2C06202E670E004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE7D2C07202E9C6D004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE7D2C08202E9DE6004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
-		CE7D2C09202E9F79004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE7D2C0A202EA0FB004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE7D2C0B202EA3A2004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE7D2C0C202EA40C004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CE7D2C0D202F6134004BC58E /* MainView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = MainView.json; sourceTree = "<group>"; };
+		CE7D2C11202F690A004BC58E /* HomeViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = HomeViewController.c; sourceTree = "<group>"; };
+		CE7D2C12202F690A004BC58E /* HomeViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = HomeViewController.css; sourceTree = "<group>"; };
+		CE7D2C13202F690A004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CE7D2C14202F690A004BC58E /* HomeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HomeViewController.h; sourceTree = "<group>"; };
 		CE8000051C5E4F0500A21A51 /* libxml2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.dylib; path = /opt/local/lib/libxml2.2.dylib; sourceTree = "<absolute>"; };
 		CE8040181FA90D7000931A89 /* libmysqlclient.20.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmysqlclient.20.dylib; path = ../../../../opt/local/lib/mysql57/mysql/libmysqlclient.20.dylib; sourceTree = "<group>"; };
 		CE80FD871C5E3B6F00A21A51 /* quemap */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = quemap; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -3046,7 +3038,7 @@
 			children = (
 				CE5870781F5CDFE0004CAAB2 /* common */,
 				CE1A28351F75FE70005F62A9 /* controls */,
-				CE5870791F5CDFE0004CAAB2 /* info */,
+				CE7D2C10202F690A004BC58E /* home */,
 				CE5870931F5CE7D2004CAAB2 /* main */,
 				CE58707E1F5CDFE0004CAAB2 /* play */,
 				CE5870861F5CDFE0004CAAB2 /* settings */,
@@ -3074,19 +3066,6 @@
 				CE7D2C07202E9C6D004BC58E /* Makefile.am */,
 			);
 			path = common;
-			sourceTree = "<group>";
-		};
-		CE5870791F5CDFE0004CAAB2 /* info */ = {
-			isa = PBXGroup;
-			children = (
-				CE58707A1F5CDFE0004CAAB2 /* CreditsViewController.c */,
-				CE4E07BF20267EC7000B276C /* CreditsViewController.css */,
-				CE58707B1F5CDFE0004CAAB2 /* CreditsViewController.h */,
-				CE58707C1F5CDFE0004CAAB2 /* InfoViewController.c */,
-				CE58707D1F5CDFE0004CAAB2 /* InfoViewController.h */,
-				CE7D2C09202E9F79004BC58E /* Makefile.am */,
-			);
-			path = info;
 			sourceTree = "<group>";
 		};
 		CE58707E1F5CDFE0004CAAB2 /* play */ = {
@@ -3140,15 +3119,13 @@
 				CE8819581F882D9F000D5AB7 /* DialogViewController.c */,
 				CE4E07C220267ED9000B276C /* DialogViewController.css */,
 				CE8819591F882D9F000D5AB7 /* DialogViewController.h */,
-				CE5870941F5CE7D2004CAAB2 /* HomeViewController.c */,
-				CE4E07C020267ED9000B276C /* HomeViewController.css */,
-				CE5870951F5CE7D2004CAAB2 /* HomeViewController.h */,
 				CE5870961F5CE7D2004CAAB2 /* LoadingViewController.c */,
 				CE4E07C320267ED9000B276C /* LoadingViewController.css */,
 				CE5870971F5CE7D2004CAAB2 /* LoadingViewController.h */,
 				CE5870AC1F5CE98D004CAAB2 /* MainView.c */,
 				CE4E07C120267ED9000B276C /* MainView.css */,
 				CE5870AD1F5CE98D004CAAB2 /* MainView.h */,
+				CE7D2C0D202F6134004BC58E /* MainView.json */,
 				CE5870981F5CE7D2004CAAB2 /* MainViewController.c */,
 				CE5870991F5CE7D2004CAAB2 /* MainViewController.h */,
 				CE7D2C0A202EA0FB004BC58E /* Makefile.am */,
@@ -3224,6 +3201,17 @@
 				CE7D2C06202E670E004BC58E /* Makefile.am */,
 			);
 			path = editor;
+			sourceTree = "<group>";
+		};
+		CE7D2C10202F690A004BC58E /* home */ = {
+			isa = PBXGroup;
+			children = (
+				CE7D2C11202F690A004BC58E /* HomeViewController.c */,
+				CE7D2C12202F690A004BC58E /* HomeViewController.css */,
+				CE7D2C14202F690A004BC58E /* HomeViewController.h */,
+				CE7D2C13202F690A004BC58E /* Makefile.am */,
+			);
+			path = home;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -3337,11 +3325,9 @@
 				CE1A284F1F7602F2005F62A9 /* MiscViewController.h in Headers */,
 				CE1A283B1F75FE70005F62A9 /* MoveViewController.h in Headers */,
 				CE1A28511F7602F2005F62A9 /* ShootViewController.h in Headers */,
-				CE6EE3F61F720DC300FBC830 /* CreditsViewController.h in Headers */,
-				CE6EE3F71F720DC300FBC830 /* InfoViewController.h in Headers */,
+				CE7D2C18202F69D4004BC58E /* HomeViewController.h in Headers */,
 				CE6EE3F81F720DC300FBC830 /* DialogView.h in Headers */,
 				CE88195D1F882EC3000D5AB7 /* DialogViewController.h in Headers */,
-				CE6EE3F91F720DC300FBC830 /* HomeViewController.h in Headers */,
 				CE6EE3FA1F720DC300FBC830 /* LoadingViewController.h in Headers */,
 				CE6EE3FB1F720DC300FBC830 /* MainView.h in Headers */,
 				CE6EE3FC1F720DC300FBC830 /* MainViewController.h in Headers */,
@@ -3769,7 +3755,7 @@
 				CE6EE3271F6BFAF600FBC830 /* Headers */,
 				CE4E07B420265210000B276C /* CopyFiles */,
 				CE4E07CA2026881F000B276C /* CopyFiles */,
-				CE4E07D02026884B000B276C /* CopyFiles */,
+				CE7D2C15202F6911004BC58E /* CopyFiles */,
 				CE4E07D32026888A000B276C /* CopyFiles */,
 				CE4E07B720267815000B276C /* CopyFiles */,
 				CE4E07D9202688C5000B276C /* CopyFiles */,
@@ -4372,11 +4358,9 @@
 				CE1A284E1F7602F2005F62A9 /* MiscViewController.c in Sources */,
 				CE1A283A1F75FE70005F62A9 /* MoveViewController.c in Sources */,
 				CE1A28501F7602F2005F62A9 /* ShootViewController.c in Sources */,
-				CE6EE3D81F720D7700FBC830 /* CreditsViewController.c in Sources */,
-				CE6EE3D91F720D7700FBC830 /* InfoViewController.c in Sources */,
+				CE7D2C17202F69B9004BC58E /* HomeViewController.c in Sources */,
 				CE6EE3DA1F720D8700FBC830 /* DialogView.c in Sources */,
 				CE88195C1F882EBE000D5AB7 /* DialogViewController.c in Sources */,
-				CE6EE3DB1F720D8700FBC830 /* HomeViewController.c in Sources */,
 				CE6EE3DC1F720D8700FBC830 /* LoadingViewController.c in Sources */,
 				CE6EE3DD1F720D8700FBC830 /* MainView.c in Sources */,
 				CE1A28311F75FC1D005F62A9 /* PlayerModelView.c in Sources */,

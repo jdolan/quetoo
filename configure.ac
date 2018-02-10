@@ -502,7 +502,7 @@ AC_CONFIG_FILES([
 	src/cgame/default/ui/Makefile
 	src/cgame/default/ui/common/Makefile
 	src/cgame/default/ui/controls/Makefile
-	src/cgame/default/ui/info/Makefile
+	src/cgame/default/ui/home/Makefile
 	src/cgame/default/ui/main/Makefile
 	src/cgame/default/ui/play/Makefile
 	src/cgame/default/ui/settings/Makefile

@@ -24,11 +24,9 @@
 #include <ObjectivelyMVC/View.h>
 
 #include "MainViewController.h"
-#include "MainView.h"
 
 #include "ControlsViewController.h"
 #include "HomeViewController.h"
-#include "InfoViewController.h"
 #include "PlayViewController.h"
 #include "SettingsViewController.h"
 
@@ -64,6 +62,11 @@ static void action(Control *control, const SDL_Event *event, ident sender, ident
 	Class *clazz = (Class *) data;
 
 	if (clazz) {
+		ViewController *topViewController = $(this->navigationViewController, topViewController);
+		if (topViewController && $((Object *) topViewController, isKindOfClass, clazz)) {
+			return;
+		}
+
 		$(this->navigationViewController, popToRootViewController);
 		$(this->navigationViewController, popViewController);
 
@@ -103,6 +106,7 @@ static void dealloc(Object *self) {
 
 	MainViewController *this = (MainViewController *) self;
 
+	release(this->mainView);
 	release(this->navigationViewController);
 
 	super(Object, self, dealloc);
@@ -119,25 +123,23 @@ static void loadView(ViewController *self) {
 
 	MainViewController *this = (MainViewController *) self;
 
-	MainView *view = $(alloc(MainView), initWithFrame, NULL);
-	assert(view);
+	this->mainView = $(alloc(MainView), initWithFrame, NULL);
+	assert(this->mainView);
 
-	$(self, setView, (View *) view);
-	release(view);
+	$(self, setView, (View *) this->mainView);
 
-	$(this, primaryButton, view->primaryButtons, "Home", _HomeViewController());
-	$(this, primaryButton, view->primaryButtons, "Play", _PlayViewController());
-	$(this, primaryButton, view->primaryButtons, "Controls", _ControlsViewController());
-	$(this, primaryButton, view->primaryButtons, "Settings", _SettingsViewController());
+	$(this, primaryButton, "Home", _HomeViewController());
+	$(this, primaryButton, "Play", _PlayViewController());
+	$(this, primaryButton, "Controls", _ControlsViewController());
+	$(this, primaryButton, "Settings", _SettingsViewController());
 
-	$(this, primaryIcon, view->primaryIcons, "ui/pics/info", _InfoViewController());
-	$(this, primaryIcon, view->primaryIcons, "ui/pics/quit", NULL);
+	$(this, primaryButton, "Quit", NULL);
 
-	$(this, primaryButton, view->bottomBar, "Join", _HomeViewController()); // TODO
-	$(this, primaryButton, view->bottomBar, "Votes", _HomeViewController()); // TODO
+	$(this, secondaryButton, "Join", _HomeViewController()); // TODO
+	$(this, secondaryButton, "Votes", _HomeViewController()); // TODO
 
 	$(self, addChildViewController, (ViewController *) this->navigationViewController);
-	$(view->contentView, addSubview, this->navigationViewController->viewController.view);
+	$(this->mainView->contentView, addSubview, this->navigationViewController->viewController.view);
 
 	action(NULL, NULL, this, _HomeViewController());
 }
@@ -160,37 +162,33 @@ static MainViewController *init(MainViewController *self) {
 }
 
 /**
- * @fn void MainViewController::primaryButton(MainViewController *self, ident target, const char *title, Class *clazz)
+ * @fn void MainViewController::primaryButton(MainViewController *self, const char *title, Class *clazz)
  * @memberof MainViewController
  */
-static void primaryButton(MainViewController *self, ident target, const char *title, Class *clazz) {
+static void primaryButton(MainViewController *self, const char *title, Class *clazz) {
 
 	Button *button = $(alloc(Button), initWithTitle, title);
 	assert(button);
 
 	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, clazz);
 
-	$((View *) target, addSubview, (View *) button);
+	$((View *) self->mainView->primaryMenu, addSubview, (View *) button);
 	release(button);
 }
 
 /**
- * @fn void MainViewController::primaryIcon(MainViewController *self, ident target, const char *icon, Class *clazz)
+ * @fn void MainViewController::secondaryButton(MainViewController *self, const char *title, Class *clazz)
  * @memberof MainViewController
  */
-static void primaryIcon(MainViewController *self, ident target, const char *icon, Class *clazz) {
+static void secondaryButton(MainViewController *self, const char *title, Class *clazz) {
 
-	Image *image = cgi.Image(icon);
-	if (image) {
+	Button *button = $(alloc(Button), initWithTitle, title);
+	assert(button);
 
-		Button *button = $(alloc(Button), initWithImage, image);
-		assert(button);
+	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, clazz);
 
-		$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, clazz);
-
-		$((View *) target, addSubview, (View *) button);
-		release(button);
-	}
+	$((View *) self->mainView->secondaryMenu, addSubview, (View *) button);
+	release(button);
 }
 
 #pragma mark - Class lifecycle
@@ -206,7 +204,7 @@ static void initialize(Class *clazz) {
 
 	((MainViewControllerInterface *) clazz->interface)->init = init;
 	((MainViewControllerInterface *) clazz->interface)->primaryButton = primaryButton;
-	((MainViewControllerInterface *) clazz->interface)->primaryIcon = primaryIcon;
+	((MainViewControllerInterface *) clazz->interface)->secondaryButton = secondaryButton;
 }
 
 /**

@@ -1,14 +1,13 @@
 cguimaindir = @PKGLIBDIR@/default/ui/main
 cguimain_DATA = \
 	DialogViewController.css \
-	HomeViewController.css \
 	LoadingViewController.css \
-	MainView.css
+	MainView.css \
+	MainView.json
 
 noinst_HEADERS = \
 	DialogView.h \
 	DialogViewController.h \
-	HomeViewController.h \
 	LoadingViewController.h \
 	MainView.h \
 	MainViewController.h
@@ -19,7 +18,6 @@ noinst_LTLIBRARIES = \
 libcguimain_la_SOURCES = \
 	DialogView.c \
 	DialogViewController.c \
-	HomeViewController.c \
 	LoadingViewController.c \
 	MainView.c \
 	MainViewController.c
@@ -31,7 +29,7 @@ libcguimain_la_CFLAGS = \
 	-I$(top_srcdir)/src/cgame/default/ui \
 	-I$(top_srcdir)/src/cgame/default/ui/common \
 	-I$(top_srcdir)/src/cgame/default/ui/controls \
-	-I$(top_srcdir)/src/cgame/default/ui/info \
+	-I$(top_srcdir)/src/cgame/default/ui/home \
 	-I$(top_srcdir)/src/cgame/default/ui/play \
 	-I$(top_srcdir)/src/cgame/default/ui/settings \
 	@BASE_CFLAGS@ \

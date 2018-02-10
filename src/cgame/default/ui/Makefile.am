@@ -1,7 +1,7 @@
 SUBDIRS = \
 	common \
 	controls \
-	info \
+	home \
 	main \
 	play \
 	settings
