@@ -19,23 +19,23 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\client\ui\renderers\QuetooRenderer.h" />
+    <ClCompile Include="..\..\src\client\ui\editor\EditorView.c" />
+    <ClCompile Include="..\..\src\client\ui\editor\EditorViewController.c" />
+    <ClCompile Include="..\..\src\client\ui\QuetooRenderer.c" />
+    <ClCompile Include="..\..\src\client\ui\ui_data.c" />
+    <ClCompile Include="..\..\src\client\ui\ui_editor.c" />
+    <ClCompile Include="..\..\src\client\ui\ui_main.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\client\ui\editor\EditorView.h" />
+    <ClInclude Include="..\..\src\client\ui\editor\EditorViewController.h" />
+    <ClInclude Include="..\..\src\client\ui\QuetooRenderer.h" />
     <ClInclude Include="..\..\src\client\ui\ui.h" />
     <ClInclude Include="..\..\src\client\ui\ui_data.h" />
     <ClInclude Include="..\..\src\client\ui\ui_editor.h" />
     <ClInclude Include="..\..\src\client\ui\ui_local.h" />
     <ClInclude Include="..\..\src\client\ui\ui_main.h" />
     <ClInclude Include="..\..\src\client\ui\ui_types.h" />
-    <ClInclude Include="..\..\src\client\ui\viewcontrollers\EditorViewController.h" />
-    <ClInclude Include="..\..\src\client\ui\views\EditorView.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\src\client\ui\renderers\QuetooRenderer.c" />
-    <ClCompile Include="..\..\src\client\ui\ui_data.c" />
-    <ClCompile Include="..\..\src\client\ui\ui_editor.c" />
-    <ClCompile Include="..\..\src\client\ui\ui_main.c" />
-    <ClCompile Include="..\..\src\client\ui\viewcontrollers\EditorViewController.c" />
-    <ClCompile Include="..\..\src\client\ui\views\EditorView.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{EFD2B11D-5A11-43CC-AE87-DB2A2A050C05}</ProjectGuid>

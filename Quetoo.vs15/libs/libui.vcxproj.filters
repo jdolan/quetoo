@@ -4,18 +4,41 @@
     <Filter Include="src">
       <UniqueIdentifier>{fdc66d56-c60f-41f4-9e2a-482e8362c59e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\renderers">
-      <UniqueIdentifier>{2e11bfdc-615a-46e3-bf60-c4179728a25c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\views">
-      <UniqueIdentifier>{d3952e71-a631-40a7-b36e-408eacf93353}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\viewcontrollers">
-      <UniqueIdentifier>{2d1836be-8318-4494-84d4-788530649ed7}</UniqueIdentifier>
+    <Filter Include="src\editor">
+      <UniqueIdentifier>{e79a0750-db00-4f18-a415-1b09c9f034d0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\client\ui\QuetooRenderer.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\ui_data.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\ui_editor.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\ui_main.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\editor\EditorView.c">
+      <Filter>src\editor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\editor\EditorViewController.c">
+      <Filter>src\editor</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\client\ui\QuetooRenderer.h">
+      <Filter>src</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\client\ui\ui.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\ui_data.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\ui_editor.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\ui\ui_local.h">
@@ -27,40 +50,11 @@
     <ClInclude Include="..\..\src\client\ui\ui_types.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\client\ui\ui_editor.h">
-      <Filter>src</Filter>
+    <ClInclude Include="..\..\src\client\ui\editor\EditorView.h">
+      <Filter>src\editor</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\client\ui\viewcontrollers\EditorViewController.h">
-      <Filter>src\viewcontrollers</Filter>
+    <ClInclude Include="..\..\src\client\ui\editor\EditorViewController.h">
+      <Filter>src\editor</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\client\ui\views\EditorView.h">
-      <Filter>src\views</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\client\ui\renderers\QuetooRenderer.h">
-      <Filter>src\renderers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\client\ui\ui_data.h">
-      <Filter>src</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\src\client\ui\ui_main.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\client\ui\ui_editor.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\client\ui\viewcontrollers\EditorViewController.c">
-      <Filter>src\viewcontrollers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\client\ui\views\EditorView.c">
-      <Filter>src\views</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\client\ui\renderers\QuetooRenderer.c">
-      <Filter>src\renderers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\client\ui\ui_data.c">
-      <Filter>src</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>
