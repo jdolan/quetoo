@@ -22,6 +22,14 @@
 #ifndef __CGAME_H__
 #define __CGAME_H__
 
+#ifndef CGAME_EXPORT
+ #if defined(_WIN32)
+  #define CGAME_EXPORT __declspec(dllexport)
+ #else
+  #define CGAME_EXPORT extern
+ #endif
+#endif
+
 #include "client/cl_types.h"
 
 #define CGAME_API_VERSION 20

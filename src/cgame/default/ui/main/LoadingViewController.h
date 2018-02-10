@@ -103,4 +103,4 @@ struct LoadingViewControllerInterface {
  * @return The LoadingViewController Class.
  * @memberof LoadingViewController
  */
-extern Class *_LoadingViewController(void);
+CGAME_EXPORT Class *_LoadingViewController(void);

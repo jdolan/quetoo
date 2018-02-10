@@ -74,4 +74,4 @@ struct ControlsViewControllerInterface {
  * @return The ControlsViewController Class.
  * @memberof ControlsViewController
  */
-extern Class *_ControlsViewController(void);
+CGAME_EXPORT Class *_ControlsViewController(void);

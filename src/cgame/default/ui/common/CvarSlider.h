@@ -86,5 +86,5 @@ struct CvarSliderInterface {
  * @return The CvarSlider Class.
  * @memberof CvarSlider
  */
-extern Class *_CvarSlider(void);
+CGAME_EXPORT Class *_CvarSlider(void);
 

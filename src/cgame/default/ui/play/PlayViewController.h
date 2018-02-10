@@ -75,4 +75,4 @@ struct PlayViewControllerInterface {
  * @return The PlayViewController Class.
  * @memberof PlayViewController
  */
-extern Class *_PlayViewController(void);
+CGAME_EXPORT Class *_PlayViewController(void);

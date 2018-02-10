@@ -102,4 +102,4 @@ struct PlayerSetupViewControllerInterface {
  * @return The PlayerSetupViewController Class.
  * @memberof PlayerSetupViewController
  */
-extern Class *_PlayerSetupViewController(void);
+CGAME_EXPORT Class *_PlayerSetupViewController(void);

@@ -88,5 +88,5 @@ struct JoinServerViewControllerInterface {
  * @return The JoinServerViewController Class.
  * @memberof JoinServerViewController
  */
-extern Class *_JoinServerViewController(void);
+CGAME_EXPORT Class *_JoinServerViewController(void);
 

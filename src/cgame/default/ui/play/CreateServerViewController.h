@@ -93,5 +93,5 @@ struct CreateServerViewControllerInterface {
  * @return The CreateServerViewController Class.
  * @memberof CreateServerViewController
  */
-extern Class *_CreateServerViewController(void);
+CGAME_EXPORT Class *_CreateServerViewController(void);
 

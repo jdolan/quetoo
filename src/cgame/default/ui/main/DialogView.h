@@ -109,4 +109,4 @@ struct DialogViewInterface {
  * @return The DialogView Class.
  * @memberof DialogView
  */
-extern Class *_DialogView(void);
+CGAME_EXPORT Class *_DialogView(void);
