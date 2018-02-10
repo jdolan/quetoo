@@ -75,4 +75,4 @@ struct HomeViewControllerInterface {
  * @return The HomeViewController Class.
  * @memberof HomeViewController
  */
-extern Class *_HomeViewController(void);
+CGAME_EXPORT Class *_HomeViewController(void);

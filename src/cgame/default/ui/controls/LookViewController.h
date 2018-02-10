@@ -83,5 +83,5 @@ struct LookViewControllerInterface {
  * @return The LookViewController Class.
  * @memberof LookViewController
  */
-extern Class *_LookViewController(void);
+CGAME_EXPORT Class *_LookViewController(void);
 

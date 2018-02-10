@@ -83,4 +83,4 @@ struct CvarCheckboxInterface {
  * @return The CvarCheckbox Class.
  * @memberof CvarCheckbox
  */
-extern Class *_CvarCheckbox(void);
+CGAME_EXPORT Class *_CvarCheckbox(void);

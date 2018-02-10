@@ -112,4 +112,4 @@ struct MainViewControllerInterface {
  * @return The MainViewController Class.
  * @memberof MainViewController
  */
-extern Class *_MainViewController(void);
+CGAME_EXPORT Class *_MainViewController(void);
