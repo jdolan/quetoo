@@ -25,42 +25,32 @@
 
 #include "CreateServerViewController.h"
 #include "MapListCollectionItemView.h"
-#include "QuetooTheme.h"
 
 #define _Class _CreateServerViewController
 
 #pragma mark - Actions and delegate callbacks
 
-/**
- * @brief Select gameplay mode
- */
-static void selectGameplay(Select *select, Option *option) {
-	if (option->value == (ident) 0) {
-		cgi.CvarSet(g_gameplay->name, "default");
-	} else if (option->value == (ident) 1) {
-		cgi.CvarSet(g_gameplay->name, "deathmatch");
-	} else if (option->value == (ident) 2) {
-		cgi.CvarSet(g_gameplay->name, "instagib");
-	} else if (option->value == (ident) 3) {
-		cgi.CvarSet(g_gameplay->name, "arena");
-	} else if (option->value == (ident) 4) {
-		cgi.CvarSet(g_gameplay->name, "duel");
-	}
-}
+
 
 /**
- * @brief Select teamplay mode
+ * @brief Select teams mode
  */
-static void selectTeamsplay(Select *select, Option *option) {
-	if (option->value == (ident) 0) {
-		cgi.CvarSet(g_teams->name, "0");
-		cgi.CvarSet(g_ctf->name, "0");
-	} else if (option->value == (ident) 1) {
-		cgi.CvarSet(g_teams->name, "1");
-		cgi.CvarSet(g_ctf->name, "0");
-	} else if (option->value == (ident) 2) {
-		cgi.CvarSet(g_teams->name, "0");
-		cgi.CvarSet(g_ctf->name, "1");
+static void selectTeams(Select *select, Option *option) {
+
+	const intptr_t value = (intptr_t) option->value;
+	switch (value) {
+		case 1:
+			cgi.CvarSet(g_teams->name, "1");
+			cgi.CvarSet(g_ctf->name, "0");
+			break;
+		case 2:
+			cgi.CvarSet(g_teams->name, "0");
+			cgi.CvarSet(g_ctf->name, "1");
+			break;
+		default:
+			cgi.CvarSet(g_teams->name, "0");
+			cgi.CvarSet(g_ctf->name, "0");
+			break;
 	}
 }
 
@@ -118,23 +108,6 @@ static void createAction(Control *control, const SDL_Event *event, ident sender,
 	release(selectedMaps);
 }
 
-#pragma mark - Object
-
-/**
- * @see Object::dealloc(Object *)
- */
-static void dealloc(Object *self) {
-
-	CreateServerViewController *this = (CreateServerViewController *) self;
-
-	release(this->gameplay);
-	release(this->mapList);
-	release(this->matchMode);
-	release(this->teamsplay);
-
-	super(Object, self, dealloc);
-}
-
 #pragma mark - ViewController
 
 /**
@@ -144,122 +117,33 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	self->view->identifier = strdup("Create");
-	self->view->stylesheet = cgi.Stylesheet("ui/play/CreateServerViewController.css");
-
-	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
-	assert(theme);
-
 	CreateServerViewController *this = (CreateServerViewController *) self;
 
-	StackView *container = $(theme, container);
+	Outlet outlets[] = MakeOutlets(
+		MakeOutlet("gameplay", &this->gameplay),
+		MakeOutlet("teams", &this->teams),
+		MakeOutlet("mapList", &this->mapList),
+		MakeOutlet("create", &this->create)
+	);
 
-	$(theme, attach, container);
-	$(theme, target, container);
+	_MapListCollectionView(); // FIXME: What is Xcode's problem?
 
-	StackView *columns = $(theme, columns, 2);
+	cgi.WakeView(self->view, "ui/play/CreateServerViewController.json", outlets);
+	self->view->stylesheet = cgi.Stylesheet("ui/play/CreateServerViewController.css");
 
-	$(theme, attach, columns);
-	$(theme, targetSubview, columns, 0);
+	$(this->gameplay, addOption, "Default", "default");
+	$(this->gameplay, addOption, "Deathmatch", "deathmatch");
+	$(this->gameplay, addOption, "Instagib", "instagib");
+	$(this->gameplay, addOption, "Arena", "arena");
+	$(this->gameplay, addOption, "Duel", "duel");
 
-	{
-		Box *box = $(theme, box, "Server");
+	$(this->teams, addOption, "Free for all", (ident) 0);
+	$(this->teams, addOption, "Team deathmatch", (ident) 1);
+	$(this->teams, addOption, "Capture the flag", (ident) 2);
 
-		$(theme, attach, box);
-		$(theme, target, box->contentView);
+	this->teams->delegate.didSelectOption = selectTeams;
 
-		$(theme, textView, "Hostname", "sv_hostname");
-		$(theme, textView, "Clients", "sv_max_clients");
-		$(theme, checkbox, "Public", "sv_public");
-		$(theme, textView, "Password", "password");
-
-		release(box);
-	}
-
-	$(theme, targetSubview, columns, 0);
-
-	{
-		Box *box = $(theme, box, "Game");
-
-		$(theme, attach, box);
-		$(theme, target, box->contentView);
-
-		this->gameplay = $(alloc(Select), initWithFrame, NULL);
-		assert(this->gameplay);
-
-		$(this->gameplay, addOption, "Default", (ident) 0);
-		$(this->gameplay, addOption, "Deathmatch", (ident) 1);
-		$(this->gameplay, addOption, "Instagib", (ident) 2);
-		$(this->gameplay, addOption, "Arena", (ident) 3);
-		$(this->gameplay, addOption, "Duel", (ident) 4);
-
-		this->gameplay->control.view.frame.w = 160;
-		this->gameplay->delegate.didSelectOption = selectGameplay;
-
-		if (!g_strcmp0(g_gameplay->string, "default")) {
-			$(this->gameplay, selectOptionWithValue, (ident) 0);
-		} else if (!g_strcmp0(g_gameplay->string, "deathmatch")) {
-			$(this->gameplay, selectOptionWithValue, (ident) 1);
-		} else if (!g_strcmp0(g_gameplay->string, "instagib")) {
-			$(this->gameplay, selectOptionWithValue, (ident) 2);
-		} else if (!g_strcmp0(g_gameplay->string, "arena")) {
-			$(this->gameplay, selectOptionWithValue, (ident) 3);
-		} else if (!g_strcmp0(g_gameplay->string, "duel")) {
-			$(this->gameplay, selectOptionWithValue, (ident) 4);
-		}
-
-		$(theme, control, "Gameplay", (Control *) this->gameplay);
-
-		this->teamsplay = $(alloc(Select), initWithFrame, NULL);
-		assert(this->teamsplay);
-
-		$(this->teamsplay, addOption, "Free for all", (ident) 0);
-		$(this->teamsplay, addOption, "Team deathmatch", (ident) 1);
-		$(this->teamsplay, addOption, "Capture the flag", (ident) 2);
-
-		this->teamsplay->delegate.didSelectOption = selectTeamsplay;
-
-		if (g_ctf->integer != 0) {
-			$(this->teamsplay, selectOptionWithValue, (ident) 2);
-		} else {
-			$(this->teamsplay, selectOptionWithValue, (ident) (ptrdiff_t) g_teams->integer);
-		}
-
-		$(theme, control, "Teams play", (Control *) this->teamsplay);
-		$(theme, checkbox, "Match mode", "g_match");
-
-		release(box);
-	}
-
-	$(theme, targetSubview, columns, 1);
-
-	{
-		Box *box = $(theme, box, "Map list");
-
-		$(theme, attach, box);
-		$(theme, target, box->contentView);
-
-		this->mapList = $(alloc(MapListCollectionView), initWithFrame, NULL);
-		assert(this->mapList);
-
-		$(theme, attach, this->mapList);
-
-		release(box);
-	}
-
-	$(theme, target, container);
-
-	StackView *accessories = $(theme, accessories);
-
-	$(theme, attach, accessories);
-	$(theme, target, accessories);
-
-	$(theme, button, "Create", createAction, self, NULL);
-
-	release(accessories);
-	release(columns);
-	release(container);
-	release(theme);
+	$((Control *) this->create, addActionForEventType, SDL_MOUSEBUTTONUP, createAction, self, NULL);
 }
 
 #pragma mark - Class lifecycle
@@ -268,8 +152,6 @@ static void loadView(ViewController *self) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
-
-	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }

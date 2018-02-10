@@ -1,8 +1,11 @@
 cguiplaydir = @PKGLIBDIR@/default/ui/play
 cguiplay_DATA = \
 	CreateServerViewController.css \
+	CreateServerViewController.json \
 	JoinServerViewController.css \
-	PlayerSetupViewController.css
+	JoinServerViewController.json \
+	PlayerSetupViewController.css \
+	PlayerSetupViewController.json
 
 noinst_HEADERS = \
 	CreateServerViewController.h \

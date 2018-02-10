@@ -56,6 +56,11 @@ struct CreateServerViewController {
 	CreateServerViewControllerInterface *interface;
 
 	/**
+	 * @brief The create Button.
+	 */
+	Button *create;
+
+	/**
 	 * @brief The gameplay Select.
 	 */
 	Select *gameplay;
@@ -68,12 +73,7 @@ struct CreateServerViewController {
 	/**
 	 * @brief The teamsplay Select.
 	 */
-	Select *teamsplay;
-
-	/**
-	 * @brief The match mode Checkbox.
-	 */
-	Checkbox *matchMode;
+	Select *teams;
 };
 
 /**

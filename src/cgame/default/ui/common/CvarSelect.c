@@ -37,6 +37,7 @@ static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
 	CvarSelect *this = (CvarSelect *) self;
 
 	const Inlet inlets[] = MakeInlets(
+		MakeInlet("expectsStringValue", InletTypeBool, &this->expectsStringValue, NULL),
 		MakeInlet("var", InletTypeApplicationDefined, &this->var, Cg_BindCvar)
 	);
 
@@ -85,7 +86,7 @@ static void selectOptionWithValue(Select *self, ident value) {
 		const CvarSelect *this = (CvarSelect *) self;
 
 		if (this->expectsStringValue) {
-			cgi.CvarSet(this->var->name, option->title->text);
+			cgi.CvarSet(this->var->name, option->value ? (char *) option->value : option->title->text);
 		} else {
 			cgi.CvarSetValue(this->var->name, (int32_t) (intptr_t) option->value);
 		}
@@ -160,4 +161,3 @@ Class *_CvarSelect(void) {
 }
 
 #undef _Class
-

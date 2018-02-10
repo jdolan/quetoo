@@ -102,4 +102,3 @@ struct CvarSelectInterface {
  * @memberof CvarSelect
  */
 extern Class *_CvarSelect(void);
-

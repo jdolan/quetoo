@@ -23,8 +23,6 @@
 
 #include "HomeViewController.h"
 
-#include "QuetooTheme.h"
-
 #define _Class _HomeViewController
 
 #pragma mark - ViewController

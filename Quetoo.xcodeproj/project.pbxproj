@@ -258,6 +258,9 @@
 		CE7D2C17202F69B9004BC58E /* HomeViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7D2C11202F690A004BC58E /* HomeViewController.c */; };
 		CE7D2C18202F69D4004BC58E /* HomeViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7D2C14202F690A004BC58E /* HomeViewController.h */; };
 		CE7D2C1A202F6E96004BC58E /* HomeViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C19202F6E80004BC58E /* HomeViewController.json */; };
+		CE7D2C1C202F7116004BC58E /* CreateServerViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C1B202F7101004BC58E /* CreateServerViewController.json */; };
+		CE7D2C1F202F7177004BC58E /* JoinServerViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C1D202F714F004BC58E /* JoinServerViewController.json */; };
+		CE7D2C20202F7179004BC58E /* PlayerSetupViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C1E202F7166004BC58E /* PlayerSetupViewController.json */; };
 		CE8000001C5E4D4400A21A51 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
 		CE8000021C5E4D4400A21A51 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CE8000031C5E4ED700A21A51 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
@@ -1005,8 +1008,11 @@
 			dstSubfolderSpec = 16;
 			files = (
 				CE4E07DE202689F4000B276C /* CreateServerViewController.css in CopyFiles */,
+				CE7D2C1C202F7116004BC58E /* CreateServerViewController.json in CopyFiles */,
 				CE4E07B820267825000B276C /* JoinServerViewController.css in CopyFiles */,
+				CE7D2C1F202F7177004BC58E /* JoinServerViewController.json in CopyFiles */,
 				CE4E07DF202689FC000B276C /* PlayerSetupViewController.css in CopyFiles */,
+				CE7D2C20202F7179004BC58E /* PlayerSetupViewController.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1665,6 +1671,9 @@
 		CE7D2C13202F690A004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE7D2C14202F690A004BC58E /* HomeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HomeViewController.h; sourceTree = "<group>"; };
 		CE7D2C19202F6E80004BC58E /* HomeViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = HomeViewController.json; sourceTree = "<group>"; };
+		CE7D2C1B202F7101004BC58E /* CreateServerViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = CreateServerViewController.json; sourceTree = "<group>"; };
+		CE7D2C1D202F714F004BC58E /* JoinServerViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = JoinServerViewController.json; sourceTree = "<group>"; };
+		CE7D2C1E202F7166004BC58E /* PlayerSetupViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = PlayerSetupViewController.json; sourceTree = "<group>"; };
 		CE8000051C5E4F0500A21A51 /* libxml2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.dylib; path = /opt/local/lib/libxml2.2.dylib; sourceTree = "<absolute>"; };
 		CE8040181FA90D7000931A89 /* libmysqlclient.20.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmysqlclient.20.dylib; path = ../../../../opt/local/lib/mysql57/mysql/libmysqlclient.20.dylib; sourceTree = "<group>"; };
 		CE80FD871C5E3B6F00A21A51 /* quemap */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = quemap; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -3077,9 +3086,11 @@
 				CE58707F1F5CDFE0004CAAB2 /* CreateServerViewController.c */,
 				CE4E07C420267EE8000B276C /* CreateServerViewController.css */,
 				CE5870801F5CDFE0004CAAB2 /* CreateServerViewController.h */,
+				CE7D2C1B202F7101004BC58E /* CreateServerViewController.json */,
 				CE5870811F5CDFE0004CAAB2 /* JoinServerViewController.c */,
 				CE4E07B6202676E7000B276C /* JoinServerViewController.css */,
 				CE5870821F5CDFE0004CAAB2 /* JoinServerViewController.h */,
+				CE7D2C1D202F714F004BC58E /* JoinServerViewController.json */,
 				CE5870AE1F5CE99C004CAAB2 /* MapListCollectionItemView.c */,
 				CE5870AF1F5CE99C004CAAB2 /* MapListCollectionItemView.h */,
 				CE5870B01F5CE99C004CAAB2 /* MapListCollectionView.c */,
@@ -3089,6 +3100,7 @@
 				CE1A282F1F75FC1D005F62A9 /* PlayerSetupViewController.c */,
 				CE4E07C520267EE9000B276C /* PlayerSetupViewController.css */,
 				CE1A28301F75FC1D005F62A9 /* PlayerSetupViewController.h */,
+				CE7D2C1E202F7166004BC58E /* PlayerSetupViewController.json */,
 				CE5870831F5CDFE0004CAAB2 /* PlayViewController.c */,
 				CE5870841F5CDFE0004CAAB2 /* PlayViewController.h */,
 				CE7D2C0B202EA3A2004BC58E /* Makefile.am */,

@@ -84,4 +84,3 @@ struct CvarCheckboxInterface {
  * @memberof CvarCheckbox
  */
 extern Class *_CvarCheckbox(void);
-
