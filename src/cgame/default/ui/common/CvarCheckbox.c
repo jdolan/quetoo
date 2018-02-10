@@ -36,18 +36,11 @@ static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
 
 	CvarCheckbox *this = (CvarCheckbox *) self;
 
-	char *var = NULL;
 	const Inlet inlets[] = MakeInlets(
-		MakeInlet("var", InletTypeCharacters, &var, NULL)
+		MakeInlet("var", InletTypeApplicationDefined, &this->var, Cg_BindCvar)
 	);
 
-	if ($(self, bind, inlets, dictionary)) {
-
-		this->var = cgi.CvarGet(var);
-		free(var);
-
-		$((View *) self, updateBindings);
-	}
+	$(self, bind, inlets, dictionary);
 }
 
 /**

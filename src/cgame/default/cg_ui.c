@@ -77,3 +77,11 @@ void Cg_UpdateLoading(const cl_loading_t loading) {
 		$(loadingViewController, setProgress, loading);
 	}
 }
+
+/**
+ * @brief Inlet binding for `cvar_t *`.
+ */
+void Cg_BindCvar(const Inlet *inlet, ident obj) {
+
+	*(cvar_t **) inlet->dest = cgi.CvarGet((cast(String, obj)->chars));
+}

@@ -54,9 +54,7 @@ static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
 		MakeInlet("bind", InletTypeCharacters, &this->bind, NULL)
 	);
 
-	if ($(self, bind, inlets, dictionary)) {
-		$((View *) self, updateBindings);
-	}
+	$(self, bind, inlets, dictionary);
 }
 
 /**
@@ -73,24 +71,30 @@ static void updateBindings(View *self) {
 
 	super(View, self, updateBindings);
 
-	TextView *this = (TextView *) self;
+	BindTextView *this = (BindTextView *) self;
+	if (this->bind) {
 
-	MutableArray *keys = $$(MutableArray, array);
-	SDL_Scancode key = SDL_SCANCODE_UNKNOWN;
-	while (true) {
-		key = cgi.KeyForBind(key, ((BindTextView *) this)->bind);
-		if (key == SDL_SCANCODE_UNKNOWN) {
-			break;
+		MutableArray *keys = $$(MutableArray, array);
+		SDL_Scancode key = SDL_SCANCODE_UNKNOWN;
+		while (true) {
+			key = cgi.KeyForBind(key, ((BindTextView *) this)->bind);
+			if (key == SDL_SCANCODE_UNKNOWN) {
+				break;
+			}
+
+			$(keys, addObject, str(cgi.KeyName(key)));
 		}
 
-		$(keys, addObject, str(cgi.KeyName(key)));
+		String *keyNames = $((Array *) keys, componentsJoinedByCharacters, ", ");
+
+		$((TextView *) self, setDefaultText, keyNames->chars);
+
+		release(keyNames);
+		release(keys);
+
+	} else {
+		$((TextView *) self, setDefaultText, NULL);
 	}
-
-	String *keyNames = keys->array.count ?  $((Array *) keys, componentsJoinedByCharacters, ", ") : NULL;
-	$(this, setDefaultText, keyNames ? keyNames->chars : NULL);
-
-	release(keyNames);
-	release(keys);
 }
 
 #pragma mark - Control
