@@ -51,6 +51,11 @@ struct HomeViewController {
 	 * @private
 	 */
 	HomeViewControllerInterface *interface;
+
+	/**
+	 * @brief The message of the day.
+	 */
+	Label *motd;
 };
 
 /**

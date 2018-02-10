@@ -36,30 +36,16 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
-	assert(theme);
+	HomeViewController *this = (HomeViewController *) self;
 
-	Panel *panel = $(theme, panel);
+	Outlet outlets[] = MakeOutlets(
+		MakeOutlet("motd", &this->motd)
+	);
 
-	$(theme, attach, panel);
-	$(theme, target, panel->contentView);
+	cgi.WakeView(self->view, "ui/home/HomeViewController.json", outlets);
+	self->view->stylesheet = cgi.Stylesheet("ui/home/HomeViewController.css");
 
-	{
-		Box *box = $(theme, box, "Home");
-
-		$(theme, attach, box);
-		$(theme, target, box->contentView);
-
-		Label *label = $(alloc(Label), initWithText, "Message of the day", NULL);
-
-		$(theme, attach, label);
-
-		release(label);
-		release(box);
-	}
-
-	release(panel);
-	release(theme);
+	$(this->motd->text, setText, "Message of the day");
 }
 
 #pragma mark - Class lifecycle

@@ -1,0 +1,28 @@
+{
+	"identifier": "home",
+	"subviews": [
+		{
+			"class": "Panel",
+			"contentView": {
+				"subviews": [
+					{
+						"class": "Box",
+						"label": {
+							"text": {
+								"text": "Home"
+							}
+						},
+						"contentView": {
+							"subviews": [
+								{
+									"class": "Label",
+									"identifier": "motd"
+								}
+							]
+						}
+					}
+				]
+			}
+		}
+	]
+}
