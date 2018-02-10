@@ -35,10 +35,7 @@ void Cg_InitUi(void) {
 	stylesheet = cgi.Stylesheet("ui/common/common.css");
 	assert(stylesheet);
 
-	Theme *theme = $$(Theme, theme, SDL_GL_GetCurrentWindow());
-	assert(theme);
-
-	$(theme, addStylesheet, stylesheet);
+	$(cgi.Theme(), addStylesheet, stylesheet);
 
 	mainViewController = $(alloc(MainViewController), init);
 	assert(mainViewController);
@@ -56,10 +53,7 @@ void Cg_ShutdownUi(void) {
 	release(mainViewController);
 	mainViewController = NULL;
 
-	Theme *theme = $$(Theme, theme, SDL_GL_GetCurrentWindow());
-	assert(theme);
-
-	$(theme, removeStylesheet, stylesheet);
+	$(cgi.Theme(), removeStylesheet, stylesheet);
 
 	release(stylesheet);
 	stylesheet = NULL;

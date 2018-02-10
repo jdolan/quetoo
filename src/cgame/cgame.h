@@ -297,6 +297,11 @@ typedef struct cg_import_s {
 	Stylesheet *(*Stylesheet)(const char *path);
 
 	/**
+	 * @brief Resolves the current Theme.
+	 */
+	Theme *(*Theme)(void);
+
+	/**
 	 * @brief Loads a View from the JSON file at the given path.
 	 */
 	View *(*View)(const char *path, Outlet *outlets);

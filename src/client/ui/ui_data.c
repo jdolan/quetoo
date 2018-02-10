@@ -20,7 +20,11 @@
  */
 
 #include "ui_data.h"
+#include "client.h"
 
+/**
+ * @brief
+ */
 Data *Ui_Data(const char *path) {
 
 	Data *data = NULL;
@@ -100,6 +104,13 @@ Stylesheet *Ui_Stylesheet(const char *path) {
 	}
 
 	return stylesheet;
+}
+
+/**
+ * @brief
+ */
+Theme *Ui_Theme(void) {
+	return $$(Theme, theme, r_context.window);
 }
 
 /**
