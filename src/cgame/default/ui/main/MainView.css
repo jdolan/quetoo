@@ -40,18 +40,6 @@
 	min-height: 36;
 }
 
-#primaryMenu Button.image,
-#secondaryMenu Button.image {
-	min-width: 0;
-	padding: 0;
-}
-
 #primaryMenu Button > Text {
 	font-style: bold;
-}
-
-#primaryMenu Button.image > ImageView,
-#secondaryMenu Button.image > ImageView {
-	width: 36;
-	height: 36;
 }
