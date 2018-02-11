@@ -289,8 +289,6 @@ static MapListCollectionView *initWithFrame(MapListCollectionView *self, const S
 		self->collectionView.delegate.itemForObjectAtIndexPath = itemForObjectAtIndexPath;
 
 		self->collectionView.itemSize = MakeSize(240, 135);
-
-		self->collectionView.control.selection = ControlSelectionMultiple;
 	}
 
 	return self;

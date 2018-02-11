@@ -22,7 +22,6 @@
 #include "cg_local.h"
 
 #include "JoinServerViewController.h"
-#include "QuetooTheme.h"
 
 static const char *_hostname = "Hostname";
 static const char *_source = "Source";
@@ -245,8 +244,6 @@ static void dealloc(Object *self) {
 
 	g_list_free(this->servers);
 
-	release(this->serversTableView);
-
 	super(Object, self, dealloc);
 }
 
@@ -271,62 +268,40 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
-	assert(theme);
-
-	self->view->identifier = strdup("Join");
-	self->view->stylesheet = cgi.Stylesheet("ui/play/JoinServerViewController.css");
-
 	JoinServerViewController *this = (JoinServerViewController *) self;
 
-	StackView *container = $(theme, container);
-	assert(container);
+	Control *quickJoin, *refresh, *connect;
 
-	$(theme, attach, container);
-	$(theme, target, container);
+	Outlet outlets[] = MakeOutlets(
+		MakeOutlet("servers", &this->serversTableView),
+		MakeOutlet("quickJoin", &quickJoin),
+		MakeOutlet("refresh", &refresh),
+		MakeOutlet("connect", &connect)
+	);
 
-	{
-		this->serversTableView = $(alloc(TableView), initWithFrame, NULL);
-		assert(this->serversTableView);
+	cgi.WakeView(self->view, "ui/play/JoinServerViewController.json", outlets);
+	self->view->stylesheet = cgi.Stylesheet("ui/play/JoinServerViewController.css");
 
-		this->serversTableView->control.view.identifier = strdup("Servers");
+	$(this->serversTableView, addColumnWithIdentifier, _hostname);
+	$(this->serversTableView, addColumnWithIdentifier, _source);
+	$(this->serversTableView, addColumnWithIdentifier, _name);
+	$(this->serversTableView, addColumnWithIdentifier, _gameplay);
+	$(this->serversTableView, addColumnWithIdentifier, _players);
+	$(this->serversTableView, addColumnWithIdentifier, _ping);
 
-		$(this->serversTableView, addColumnWithIdentifier, _hostname);
-		$(this->serversTableView, addColumnWithIdentifier, _source);
-		$(this->serversTableView, addColumnWithIdentifier, _name);
-		$(this->serversTableView, addColumnWithIdentifier, _gameplay);
-		$(this->serversTableView, addColumnWithIdentifier, _players);
-		$(this->serversTableView, addColumnWithIdentifier, _ping);
+	this->serversTableView->dataSource.numberOfRows = numberOfRows;
+	this->serversTableView->dataSource.valueForColumnAndRow = valueForColumnAndRow;
+	this->serversTableView->dataSource.self = this;
 
-		this->serversTableView->control.selection = ControlSelectionSingle;
+	this->serversTableView->delegate.cellForColumnAndRow = cellForColumnAndRow;
+	this->serversTableView->delegate.didSetSortColumn = didSetSortColumn;
+	this->serversTableView->delegate.self = this;
 
-		this->serversTableView->dataSource.numberOfRows = numberOfRows;
-		this->serversTableView->dataSource.valueForColumnAndRow = valueForColumnAndRow;
-		this->serversTableView->dataSource.self = this;
+	$((Control *) this->serversTableView, addActionForEventType, SDL_MOUSEBUTTONUP, connectAction, this, NULL);
 
-		this->serversTableView->delegate.cellForColumnAndRow = cellForColumnAndRow;
-		this->serversTableView->delegate.didSetSortColumn = didSetSortColumn;
-		this->serversTableView->delegate.self = this;
-
-		$((Control *) this->serversTableView, addActionForEventType, SDL_MOUSEBUTTONUP, connectAction, this, NULL);
-
-		$(theme, attach, this->serversTableView);
-	}
-
-	$(theme, target, container);
-
-	StackView *accessories = $(theme, accessories);
-
-	$(theme, attach, accessories);
-	$(theme, target, accessories);
-
-	$(theme, button, "Quick join", quickjoinAction, self, NULL);
-	$(theme, button, "Refresh", refreshAction, self, NULL);
-	$(theme, button, "Connect", connectAction, self, NULL);
-
-	release(accessories);
-	release(container);
-	release(theme);
+	$(quickJoin, addActionForEventType, SDL_MOUSEBUTTONUP, quickjoinAction, self, NULL);
+	$(refresh, addActionForEventType, SDL_MOUSEBUTTONUP, refreshAction, self, NULL);
+	$(connect, addActionForEventType, SDL_MOUSEBUTTONUP, connectAction, self, NULL);
 }
 
 /**

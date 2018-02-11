@@ -34,13 +34,7 @@ static void rotateAction(Control *control, const SDL_Event *event, ident sender,
 
 	PlayerModelView *this = (PlayerModelView *) sender;
 
-	this->yaw += event->motion.xrel;
-
-	if (this->yaw < 0) {
-		this->yaw = 360;
-	} else if (this->yaw > 360) {
-		this->yaw = 0;
-	}
+	this->yaw = ClampAngle(this->yaw + event->motion.xrel);
 }
 
 /**
@@ -50,8 +44,7 @@ static void zoomAction(Control *control, const SDL_Event *event, ident sender, i
 
 	PlayerModelView *this = (PlayerModelView *) sender;
 
-	this->zoom += event->wheel.y * 0.2;
-	this->zoom = Clamp(this->zoom, 0.0, 1.0);
+	this->zoom = Clamp(this->zoom + event->wheel.y * 0.0125, 0.0, 1.0);
 }
 
 #pragma mark - Object
@@ -399,7 +392,7 @@ static PlayerModelView *initWithFrame(PlayerModelView *self, const SDL_Rect *fra
 	self = (PlayerModelView *) super(Control, self, initWithFrame, frame);
 	if (self) {
 		self->yaw = 150.0;
-		self->zoom = 0.5;
+		self->zoom = 0.1;
 
 		self->animation1.animation = ANIM_TORSO_STAND1;
 		self->animation2.animation = ANIM_LEGS_IDLE;

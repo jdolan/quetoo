@@ -3,21 +3,22 @@
   "subviews": [
     {
       "class": "StackView",
-			"classNames": [
-				"container"
-			],
+      "classNames": [
+        "container"
+      ],
       "subviews": [
         {
           "class": "StackView",
           "classNames": [
-            "columns"
+            "columns",
+            "container"
           ],
           "subviews": [
             {
               "class": "StackView",
               "classNames": [
                 "column",
-								"container"
+                "container"
               ],
               "subviews": [
                 {
@@ -98,9 +99,9 @@
                         },
                         "control": {
                           "class": "CvarSelect",
-													"expectsStringValue": true,
-													"identifier": "gameplay",
-													"var": "g_gameplay"
+                          "expectsStringValue": true,
+                          "identifier": "gameplay",
+                          "var": "g_gameplay"
                         }
                       },
                       {
@@ -112,7 +113,7 @@
                         },
                         "control": {
                           "class": "CvarSelect",
-													"identifier": "teams",
+                          "identifier": "teams",
                           "var": "g_teams"
                         }
                       },
@@ -132,15 +133,15 @@
                   }
                 }
               ]
-            }
-						{
-							"class": "StackView",
-							"classNames": [
-								"column",
-								"container"
-							],
-							"subviews": [
-								{
+            },
+            {
+              "class": "StackView",
+              "classNames": [
+                "column-2",
+                "container"
+              ],
+              "subviews": [
+                {
                   "class": "Box",
                   "label": {
                     "text": {
@@ -152,30 +153,30 @@
                       {
                         "class": "MapListCollectionView",
                         "identifier": "mapList",
-												"selection": "multiple"
-											}
-										]
-									}
-								}
-							]
-						}
+                        "selection": "multiple"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
           ]
         },
-				{
-					"class": "StackView",
-					"classNames": [
-						"accessoryView"
-					],
-					"subviews": [
-						{
-							"class": "Button",
-							"identifier": "create",
-							"title": {
-								"text": "Create"
-							}
-						}
-					]
-				}
+        {
+          "class": "StackView",
+          "classNames": [
+            "accessoryView"
+          ],
+          "subviews": [
+            {
+              "class": "Button",
+              "identifier": "create",
+              "title": {
+                "text": "Create"
+              }
+            }
+          ]
+        }
       ]
     }
   ]

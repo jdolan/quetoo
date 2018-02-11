@@ -4,7 +4,8 @@
 }
 
 MapListCollectionView {
-	width: 560;
-	height: 480;
-	item-size: 260 180;
+	item-size: 176 100;
+	selection: multiple;
+	width: 756;
+	height: 500;
 }

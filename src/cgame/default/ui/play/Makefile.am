@@ -5,7 +5,8 @@ cguiplay_DATA = \
 	JoinServerViewController.css \
 	JoinServerViewController.json \
 	PlayerSetupViewController.css \
-	PlayerSetupViewController.json
+	PlayerSetupViewController.json \
+	PlayViewController.json
 
 noinst_HEADERS = \
 	CreateServerViewController.h \

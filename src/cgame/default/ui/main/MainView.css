@@ -9,6 +9,8 @@
 
 #logo {
 	alignment: bottom-right;
+	width: 240;
+	height: 112;
 }
 
 #version {
@@ -19,6 +21,10 @@
 	autoresizing-mask: fill;
 	padding-top: 36;
 	padding-bottom: 36;
+}
+
+#contentView > View > * {
+	alignment: middle-center;
 }
 
 #primaryMenu,

@@ -27,20 +27,7 @@
 #include "JoinServerViewController.h"
 #include "PlayerSetupViewController.h"
 
-#include "QuetooTheme.h"
-
 #define _Class _PlayViewController
-
-#pragma mark - Object
-
-static void dealloc(Object *self) {
-
-	PlayViewController *this = (PlayViewController *) self;
-
-	release(this->tabViewController);
-
-	super(Object, self, dealloc);
-}
 
 #pragma mark - ViewController
 
@@ -53,13 +40,9 @@ static void loadView(ViewController *self) {
 
 	PlayViewController *this = (PlayViewController *) self;
 
-	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
-	assert(theme);
+	Panel *panel = (Panel *) cgi.View("ui/play/PlayViewController.json", NULL);
 
-	Panel *panel = $(theme, panel);
-
-	$(theme, attach, panel);
-	$(theme, target, panel->contentView);
+	$(self, setView, (View *) panel);
 
 	this->tabViewController = $(alloc(TabViewController), init);
 	assert(this->tabViewController);
@@ -79,10 +62,7 @@ static void loadView(ViewController *self) {
 	release(viewController);
 
 	$(self, addChildViewController, tabViewController);
-	$(theme, attach, tabViewController->view);
-
-	release(panel);
-	release(theme);
+	$((View *) panel->contentView, addSubview, tabViewController->view);
 }
 
 #pragma mark - Class lifecycle
@@ -91,9 +71,6 @@ static void loadView(ViewController *self) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
-
-	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
-
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 

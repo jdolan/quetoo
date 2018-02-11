@@ -1,14 +1,10 @@
 
-#Join {
-	autoresizing-mask: contain;
+#servers {
+	width: 1176;
+	height: 520;
 }
 
-#Servers {
-	width: 960;
-	height: 480;
-}
-
-TableCellView#Hostname {
+#Hostname {
 	min-width: 360;
 }
 

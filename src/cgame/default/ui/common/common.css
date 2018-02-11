@@ -12,11 +12,22 @@ Box > Label {
 }
 
 Box > .contentView > Input > Label {
-	min-width: 200;
+	min-width: 180;
 }
 
 Panel {
 	background-color: #08151aaa;
+}
+
+Panel.menu {
+	resizable: false;
+	draggable: false;
+}
+
+Panel.menu .tabPageView {
+	autoresizing-mask: none;
+	width: 1200;
+	height: 600;
 }
 
 TabView > .tabSelectionView > Label.selected {
@@ -24,12 +35,21 @@ TabView > .tabSelectionView > Label.selected {
 }
 
 .columns {
+	autoreizing-mask: contain | width;
 	axis: horizontal;
 	distribution: fill;
 }
 
 .columns > .column {
-	min-width: 400;
+	autoresizing-mask: contain | height;
+	distribution: fill;
+	width: 384;
+}
+
+.columns > .column-2 {
+	autoresizing-mask: contain | height;
+	distribution: fill;
+	width: 768;
 }
 
 .column Box {
