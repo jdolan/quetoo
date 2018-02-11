@@ -126,8 +126,6 @@ static void loadView(ViewController *self) {
 		MakeOutlet("create", &this->create)
 	);
 
-	_MapListCollectionView(); // FIXME: What is Xcode's problem?
-
 	cgi.WakeView(self->view, "ui/play/CreateServerViewController.json", outlets);
 	self->view->stylesheet = cgi.Stylesheet("ui/play/CreateServerViewController.css");
 

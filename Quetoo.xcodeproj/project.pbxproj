@@ -272,7 +272,6 @@
 		CE80FDD61C5E3D9700A21A51 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CE80FDE51C5E3E4A00A21A51 /* common.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6361C5C58C300CD0B13 /* common.c */; };
 		CE80FDF91C5E403000A21A51 /* common.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6371C5C58C300CD0B13 /* common.h */; };
-		CE80FE071C5E414A00A21A51 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CE80FE3B1C5E424300A21A51 /* cm_model.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D62A1C5C58C300CD0B13 /* cm_model.c */; };
 		CE80FE3C1C5E424300A21A51 /* cm_test.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D62C1C5C58C300CD0B13 /* cm_test.c */; };
 		CE80FE3D1C5E424300A21A51 /* cm_trace.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D62E1C5C58C300CD0B13 /* cm_trace.c */; };
@@ -1786,7 +1785,6 @@
 				CEFC7B931D9D2FB3000FA6B2 /* libgame-pmove.a in Frameworks */,
 				CEFF44DE1DE0E01100EFC902 /* libmatrix.a in Frameworks */,
 				CE5530A11E5A942E0009A127 /* libparse.a in Frameworks */,
-				CE80FE071C5E414A00A21A51 /* libshared.a in Frameworks */,
 				CE1CCD9D1D9D49C700891F05 /* libswap.a in Frameworks */,
 				CE1A28221F748B59005F62A9 /* libObjectively.dylib in Frameworks */,
 				CE1A28231F748B59005F62A9 /* libObjectivelyMVC.dylib in Frameworks */,
@@ -5039,6 +5037,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_EXTENSION = so;
+				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5047,6 +5046,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_EXTENSION = so;
+				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
