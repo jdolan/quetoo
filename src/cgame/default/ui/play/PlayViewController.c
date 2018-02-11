@@ -40,9 +40,11 @@ static void loadView(ViewController *self) {
 
 	PlayViewController *this = (PlayViewController *) self;
 
-	Panel *panel = (Panel *) cgi.View("ui/play/PlayViewController.json", NULL);
+	View *view = cgi.View("ui/play/PlayViewController.json", NULL);
 
-	$(self, setView, (View *) panel);
+	$(self, setView, view);
+
+	release(view);
 
 	this->tabViewController = $(alloc(TabViewController), init);
 	assert(this->tabViewController);
@@ -62,7 +64,7 @@ static void loadView(ViewController *self) {
 	release(viewController);
 
 	$(self, addChildViewController, tabViewController);
-	$((View *) panel->contentView, addSubview, tabViewController->view);
+	$((View *) ((Panel *) view)->contentView, addSubview, tabViewController->view);
 }
 
 #pragma mark - Class lifecycle

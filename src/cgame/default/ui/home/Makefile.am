@@ -1,6 +1,5 @@
 cguihomedir = @PKGLIBDIR@/default/ui/home
 cguihome_DATA = \
-	HomeViewController.css \
 	HomeViewController.json
 
 noinst_HEADERS = \

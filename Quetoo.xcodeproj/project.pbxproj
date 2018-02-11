@@ -254,7 +254,6 @@
 		CE6EE4111F72919800FBC830 /* cg_ui.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6EE40F1F72919800FBC830 /* cg_ui.c */; };
 		CE6EE4121F72919800FBC830 /* cg_ui.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6EE4101F72919800FBC830 /* cg_ui.h */; };
 		CE7D2C0F202F6170004BC58E /* MainView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C0D202F6134004BC58E /* MainView.json */; };
-		CE7D2C16202F693B004BC58E /* HomeViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C12202F690A004BC58E /* HomeViewController.css */; };
 		CE7D2C17202F69B9004BC58E /* HomeViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7D2C11202F690A004BC58E /* HomeViewController.c */; };
 		CE7D2C18202F69D4004BC58E /* HomeViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7D2C14202F690A004BC58E /* HomeViewController.h */; };
 		CE7D2C1A202F6E96004BC58E /* HomeViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C19202F6E80004BC58E /* HomeViewController.json */; };
@@ -1080,7 +1079,6 @@
 			dstPath = ui/home;
 			dstSubfolderSpec = 16;
 			files = (
-				CE7D2C16202F693B004BC58E /* HomeViewController.css in CopyFiles */,
 				CE7D2C1A202F6E96004BC58E /* HomeViewController.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1668,7 +1666,6 @@
 		CE7D2C0C202EA40C004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE7D2C0D202F6134004BC58E /* MainView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = MainView.json; sourceTree = "<group>"; };
 		CE7D2C11202F690A004BC58E /* HomeViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = HomeViewController.c; sourceTree = "<group>"; };
-		CE7D2C12202F690A004BC58E /* HomeViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = HomeViewController.css; sourceTree = "<group>"; };
 		CE7D2C13202F690A004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE7D2C14202F690A004BC58E /* HomeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HomeViewController.h; sourceTree = "<group>"; };
 		CE7D2C19202F6E80004BC58E /* HomeViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = HomeViewController.json; sourceTree = "<group>"; };
@@ -3224,7 +3221,6 @@
 			isa = PBXGroup;
 			children = (
 				CE7D2C11202F690A004BC58E /* HomeViewController.c */,
-				CE7D2C12202F690A004BC58E /* HomeViewController.css */,
 				CE7D2C14202F690A004BC58E /* HomeViewController.h */,
 				CE7D2C19202F6E80004BC58E /* HomeViewController.json */,
 				CE7D2C13202F690A004BC58E /* Makefile.am */,

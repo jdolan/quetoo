@@ -40,8 +40,11 @@ static void loadView(ViewController *self) {
 		MakeOutlet("motd", &this->motd)
 	);
 
-	cgi.WakeView(self->view, "ui/home/HomeViewController.json", outlets);
-	self->view->stylesheet = cgi.Stylesheet("ui/home/HomeViewController.css");
+	View *view = cgi.View("ui/home/HomeViewController.json", outlets);
+
+	$(self, setView, view);
+
+	release(view);
 
 	$(this->motd->text, setText, "Message of the day");
 }
@@ -52,7 +55,6 @@ static void loadView(ViewController *self) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
-
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
