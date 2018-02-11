@@ -144,6 +144,11 @@ static void AddMaterial(const cm_material_t *material) {
 		AddAsset(&material->heightmap);
 		AddAsset(&material->specularmap);
 		AddAsset(&material->tintmap);
+
+		const cm_stage_t *stage = material->stages;
+		for (size_t i = 0; i < material->num_stages; i++, stage++) {
+			AddAsset(&stage->asset);
+		}
 	} else {
 		Com_Warn("Failed to resolve %s\n", material->name);
 	}
