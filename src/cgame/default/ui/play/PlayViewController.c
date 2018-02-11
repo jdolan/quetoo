@@ -29,6 +29,17 @@
 
 #define _Class _PlayViewController
 
+#pragma mark - Object
+
+static void dealloc(Object *self) {
+
+	PlayViewController *this = (PlayViewController *) self;
+
+	release(this->tabViewController);
+
+	super(Object, self, dealloc);
+}
+
 #pragma mark - ViewController
 
 /**
@@ -41,7 +52,8 @@ static void loadView(ViewController *self) {
 	PlayViewController *this = (PlayViewController *) self;
 
 	View *view = cgi.View("ui/play/PlayViewController.json", NULL);
-
+	assert(view);
+	
 	$(self, setView, view);
 
 	release(view);
@@ -73,6 +85,9 @@ static void loadView(ViewController *self) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
+
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
+
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 

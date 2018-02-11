@@ -1,5 +1,6 @@
 cguicontrolsdir = @PKGLIBDIR@/default/ui/controls
 cguicontrols_DATA = \
+	ControlsViewController.json \
 	LookViewController.css \
 	MoveViewController.css \
 	MiscViewController.css \

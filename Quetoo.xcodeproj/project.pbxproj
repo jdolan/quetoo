@@ -261,6 +261,7 @@
 		CE7D2C1F202F7177004BC58E /* JoinServerViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C1D202F714F004BC58E /* JoinServerViewController.json */; };
 		CE7D2C20202F7179004BC58E /* PlayerSetupViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C1E202F7166004BC58E /* PlayerSetupViewController.json */; };
 		CE7D2C222030832C004BC58E /* PlayViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C2120308305004BC58E /* PlayViewController.json */; };
+		CE7D2C242030A133004BC58E /* ControlsViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C232030A107004BC58E /* ControlsViewController.json */; };
 		CE8000001C5E4D4400A21A51 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
 		CE8000021C5E4D4400A21A51 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CE8000031C5E4ED700A21A51 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
@@ -1022,6 +1023,7 @@
 			dstPath = ui/controls;
 			dstSubfolderSpec = 16;
 			files = (
+				CE7D2C242030A133004BC58E /* ControlsViewController.json in CopyFiles */,
 				CE4E07CC20268832000B276C /* LookViewController.css in CopyFiles */,
 				CE4E07CD20268835000B276C /* MiscViewController.css in CopyFiles */,
 				CE4E07CE20268838000B276C /* MoveViewController.css in CopyFiles */,
@@ -1673,6 +1675,7 @@
 		CE7D2C1D202F714F004BC58E /* JoinServerViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = JoinServerViewController.json; sourceTree = "<group>"; };
 		CE7D2C1E202F7166004BC58E /* PlayerSetupViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = PlayerSetupViewController.json; sourceTree = "<group>"; };
 		CE7D2C2120308305004BC58E /* PlayViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = PlayViewController.json; sourceTree = "<group>"; };
+		CE7D2C232030A107004BC58E /* ControlsViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ControlsViewController.json; sourceTree = "<group>"; };
 		CE8000051C5E4F0500A21A51 /* libxml2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.dylib; path = /opt/local/lib/libxml2.2.dylib; sourceTree = "<absolute>"; };
 		CE8040181FA90D7000931A89 /* libmysqlclient.20.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmysqlclient.20.dylib; path = ../../../../opt/local/lib/mysql57/mysql/libmysqlclient.20.dylib; sourceTree = "<group>"; };
 		CE80FD871C5E3B6F00A21A51 /* quemap */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = quemap; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -3011,6 +3014,7 @@
 			children = (
 				CE1A283E1F75FEB1005F62A9 /* ControlsViewController.c */,
 				CE1A283F1F75FEB1005F62A9 /* ControlsViewController.h */,
+				CE7D2C232030A107004BC58E /* ControlsViewController.json */,
 				CE1A28441F7600AC005F62A9 /* CrosshairView.c */,
 				CE1A28451F7600AC005F62A9 /* CrosshairView.h */,
 				CE1A28381F75FE70005F62A9 /* LookViewController.c */,

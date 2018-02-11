@@ -28,8 +28,6 @@
 #include "MoveViewController.h"
 #include "ShootViewController.h"
 
-#include "QuetooTheme.h"
-
 #define _Class _ControlsViewController
 
 #pragma mark - Object
@@ -54,13 +52,12 @@ static void loadView(ViewController *self) {
 
 	ControlsViewController *this = (ControlsViewController *) self;
 
-	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
-	assert(theme);
+	View *view = cgi.View("ui/controls/ControlsViewController.json", NULL);
+	assert(view);
 
-	Panel *panel = $(theme, panel);
+	$(self, setView, view);
 
-	$(theme, attach, panel);
-	$(theme, target, panel->contentView);
+	release(view);
 
 	this->tabViewController = $(alloc(TabViewController), init);
 	assert(this->tabViewController);
@@ -84,10 +81,7 @@ static void loadView(ViewController *self) {
 	release(viewController);
 
 	$(self, addChildViewController, tabViewController);
-	$(theme, attach, tabViewController->view);
-
-	release(panel);
-	release(theme);
+	$((View *) ((Panel *) view)->contentView, addSubview, tabViewController->view);
 }
 
 #pragma mark - Class lifecycle

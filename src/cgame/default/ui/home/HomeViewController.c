@@ -41,6 +41,7 @@ static void loadView(ViewController *self) {
 	);
 
 	View *view = cgi.View("ui/home/HomeViewController.json", outlets);
+	assert(view);
 
 	$(self, setView, view);
 
