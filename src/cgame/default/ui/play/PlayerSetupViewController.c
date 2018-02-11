@@ -23,9 +23,6 @@
 
 #include "PlayerSetupViewController.h"
 
-#include "CvarSelect.h"
-#include "QuetooTheme.h"
- 
 #define _Class _PlayerSetupViewController
 
 #pragma mark - Actions & delegates
@@ -146,25 +143,6 @@ static void didPickPlayerColor(HSVColorPicker *hsvColorPicker, double hue, doubl
 	}
 }
 
-#pragma mark - Object
-
-/**
- * @see Object::dealloc(Object *)
- */
-static void dealloc(Object *self) {
-
-	PlayerSetupViewController *this = (PlayerSetupViewController *) self;
-
-	release(this->effectsColorPicker);
-	release(this->helmetColorPicker);
-	release(this->pantsColorPicker);
-	release(this->playerModelView);
-	release(this->shirtColorPicker);
-	release(this->skinSelect);
-
-	super(Object, self, dealloc);
-}
-
 #pragma mark - ViewController
 
 /**
@@ -174,113 +152,39 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	self->view->identifier = strdup("Player");
+	PlayerSetupViewController *this = (PlayerSetupViewController *) self;
+
+	Outlet outlets[] = MakeOutlets(
+		MakeOutlet("skin", &this->skinSelect),
+		MakeOutlet("effects", &this->effectsColorPicker),
+		MakeOutlet("helmet", &this->helmetColorPicker),
+		MakeOutlet("shirt", &this->shirtColorPicker),
+		MakeOutlet("pants", &this->pantsColorPicker),
+		MakeOutlet("player", &this->playerModelView)
+	);
+
+	cgi.WakeView(self->view, "ui/play/PlayerSetupViewController.json", outlets);
 
 	self->view->stylesheet = cgi.Stylesheet("ui/play/PlayerSetupViewController.css");
 	assert(self->view->stylesheet);
 
-	PlayerSetupViewController *this = (PlayerSetupViewController *) self;
+	this->skinSelect->comparator = sortSkins;
+	this->skinSelect->delegate.self = this;
+	this->skinSelect->delegate.didSelectOption = didSelectSkin;
 
-	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
-	assert(theme);
+	cgi.EnumerateFiles("players/*", enumerateModels, this->skinSelect);
 
-	StackView *container = $(theme, container);
+	this->effectsColorPicker->delegate.self = this;
+	this->effectsColorPicker->delegate.didPickColor = didPickEffectColor;
 
-	$(theme, attach, container);
-	$(theme, target, container);
+	this->helmetColorPicker->delegate.self = self;
+	this->helmetColorPicker->delegate.didPickColor = didPickPlayerColor;
 
-	StackView *columns = $(theme, columns, 2);
-	$(theme, attach, columns);
+	this->shirtColorPicker->delegate.self = self;
+	this->shirtColorPicker->delegate.didPickColor = didPickPlayerColor;
 
-	$(theme, targetSubview, columns, 0);
-
-	{
-		Box *box = $(theme, box, "Player");
-
-		$(theme, attach, box);
-		$(theme, target, box->contentView);
-
-		$(theme, textView, "Name", "name");
-
-		this->skinSelect = $(alloc(Select), initWithFrame, NULL);
-
-		this->skinSelect->comparator = sortSkins;
-		this->skinSelect->delegate.self = this;
-		this->skinSelect->delegate.didSelectOption = didSelectSkin;
-
-		cgi.EnumerateFiles("players/*", enumerateModels, this->skinSelect);
-
-		$(theme, control, "Player model", this->skinSelect);
-
-		$(theme, slider, "Handicap", cg_handicap->name, 50.0, 100.0, 5.0, NULL);
-
-		release(box);
-	}
-
-	$(theme, targetSubview, columns, 0);
-
-	{
-		Box *box = $(theme, box, "Colors");
-
-		$(theme, attach, box);
-		$(theme, target, box->contentView);
-
-		this->effectsColorPicker = $(alloc(HueColorPicker), initWithFrame, NULL);
-		assert(this->effectsColorPicker);
-
-		this->effectsColorPicker->delegate.self = this;
-		this->effectsColorPicker->delegate.didPickColor = didPickEffectColor;
-		
-		this->effectsColorPicker->hueSlider->min = -1;
-
-		$(theme, control, "Effects", this->effectsColorPicker);
-
-		this->helmetColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL);
-		assert(this->helmetColorPicker);
-		
-		this->helmetColorPicker->delegate.self = self;
-		this->helmetColorPicker->delegate.didPickColor = didPickPlayerColor;
-		
-		this->helmetColorPicker->hueSlider->min = -1;
-		this->helmetColorPicker->valueSlider->min = 0.3;
-
-		$(theme, control, "Helmet", this->helmetColorPicker);
-
-		this->shirtColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL);
-		assert(this->shirtColorPicker);
-		
-		this->shirtColorPicker->delegate.self = self;
-		this->shirtColorPicker->delegate.didPickColor = didPickPlayerColor;
-		
-		this->shirtColorPicker->hueSlider->min = -1;
-		this->shirtColorPicker->valueSlider->min = 0.3;
-
-		$(theme, control, "Shirt", this->shirtColorPicker);
-
-		this->pantsColorPicker = $(alloc(HSVColorPicker), initWithFrame, NULL);
-		assert(this->pantsColorPicker);
-		
-		this->pantsColorPicker->delegate.self = self;
-		this->pantsColorPicker->delegate.didPickColor = didPickPlayerColor;
-		
-		this->pantsColorPicker->hueSlider->min = -1;
-		this->pantsColorPicker->valueSlider->min = 0.3;
-
-		$(theme, control, "Pants", this->pantsColorPicker);
-
-		release(box);
-	}
-
-	$(theme, targetSubview, columns, 1);
-
-	this->playerModelView = $(alloc(PlayerModelView), initWithFrame, &MakeRect(0, 0, 600, 600));
-	assert(this->playerModelView);
-
-	$(theme, attach, this->playerModelView);
-
-	release(columns);
-	release(container);
-	release(theme);
+	this->pantsColorPicker->delegate.self = self;
+	this->pantsColorPicker->delegate.didPickColor = didPickPlayerColor;
 }
 
 /**
@@ -330,8 +234,6 @@ static void viewWillAppear(ViewController *self) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
-
-	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 	((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;

@@ -71,6 +71,13 @@ static void dealloc(Object *self) {
 #pragma mark - View
 
 /**
+ * @brief
+ */
+static View *init(View *self) {
+	return (View *) $((PlayerModelView *) self, initWithFrame, NULL);
+}
+
+/**
  * @brief Renders the given entity stub.
  */
 static void renderMeshEntity(r_entity_t *e) {
@@ -392,24 +399,16 @@ static PlayerModelView *initWithFrame(PlayerModelView *self, const SDL_Rect *fra
 	self = (PlayerModelView *) super(Control, self, initWithFrame, frame);
 	if (self) {
 		self->yaw = 150.0;
-		self->zoom = 0.4;
+		self->zoom = 0.5;
 
 		self->animation1.animation = ANIM_TORSO_STAND1;
 		self->animation2.animation = ANIM_LEGS_IDLE;
 
-		const SDL_Rect iconFrame = MakeRect(0, 0, 64, 64);
-
-		self->iconView = $(alloc(ImageView), initWithFrame, &iconFrame);
+		self->iconView = $(alloc(ImageView), initWithFrame, NULL);
 		assert(self->iconView);
 
-		self->iconView->view.alignment = ViewAlignmentTopRight;
-
+		$((View *) self->iconView, addClassName, "iconView");
 		$((View *) self, addSubview, (View *) self->iconView);
-
-		self->control.view.padding.top = 4;
-		self->control.view.padding.right = 4;
-		self->control.view.padding.bottom = 4;
-		self->control.view.padding.left = 4;
 
 		$((Control *) self, addActionForEventType, SDL_MOUSEMOTION, rotateAction, self, NULL);
 		$((Control *) self, addActionForEventType, SDL_MOUSEWHEEL, zoomAction, self, NULL);
@@ -427,6 +426,7 @@ static void initialize(Class *clazz) {
 
 	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
+	((ViewInterface *) clazz->interface)->init = init;
 	((ViewInterface *) clazz->interface)->render = render;
 	((ViewInterface *) clazz->interface)->renderDeviceDidReset = renderDeviceDidReset;
 	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
