@@ -40,6 +40,17 @@ static void didBindKey(TextView *textView) {
 	$(this->view, updateBindings);
 }
 
+/**
+ * @brief ViewEnumerator for setting the TextViewDelegate on BindTextViews.
+ */
+static void setDelegate(View *view, ident data) {
+
+	((TextView *) view)->delegate = (TextViewDelegate) {
+		.self = data,
+		.didEndEditing = didBindKey
+	};
+}
+
 #pragma mark - ViewController
 
 /**
@@ -49,91 +60,18 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	self->view->autoresizingMask = ViewAutoresizingContain;
-	self->view->identifier = strdup("Shoot");
+	Select *hookStyle;
+	Outlet outlets[] = MakeOutlets(
+		MakeOutlet("hookStyle", &hookStyle)
+	);
 
-	ShootViewController *this = (ShootViewController *) self;
+	cgi.WakeView(self->view, "ui/controls/ShootViewController.json", outlets);
+	self->view->stylesheet = cgi.Stylesheet("ui/controls/ShootViewController.css");
 
-	TextViewDelegate delegate = {
-		.self = this,
-		.didEndEditing = didBindKey
-	};
+	$(self->view, enumerateSelection, "BindTextView", setDelegate, self);
 
-	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
-	assert(theme);
-
-	StackView *container = $(theme, container);
-
-	$(theme, attach, container);
-	$(theme, target, container);
-
-	StackView *columns = $(theme, columns, 2);
-
-	$(theme, attach, columns);
-	$(theme, targetSubview, columns, 0);
-
-	{
-		Box *box = $(theme, box, "Combat");
-
-		$(theme, attach, box);
-		$(theme, target, box->contentView);
-
-		$(theme, bindTextView, "Attack", "+attack", &delegate);
-		$(theme, bindTextView, "Next weapon", "cg_weapon_next", &delegate);
-		$(theme, bindTextView, "Previous weapon", "cg_weapon_previous", &delegate);
-		$(theme, bindTextView, "Best Weapon", "cg_weapon_best", &delegate);
-
-		release(box);
-	}
-
-	$(theme, targetSubview, columns, 0);
-
-	{
-		Box *box = $(theme, box, "Grapple hook");
-
-		$(theme, attach, box);
-		$(theme, target, box->contentView);
-
-		$(theme, bindTextView, "Hook", "+hook", &delegate);
-
-		CvarSelect *hookStyle = $(alloc(CvarSelect), initWithVariableName, "hook_style");
-		assert(hookStyle);
-
-		hookStyle->expectsStringValue = true;
-
-		$((Select *) hookStyle, addOption, "pull", (ident) HOOK_PULL);
-		$((Select *) hookStyle, addOption, "swing", (ident) HOOK_SWING);
-
-		$(theme, control, "Hook style", hookStyle);
-
-		release(box);
-	}
-
-	$(theme, targetSubview, columns, 1);
-
-	{
-		Box *box = $(theme, box, "Weapons");
-
-		$(theme, attach, box);
-		$(theme, target, box->contentView);
-
-		$(theme, bindTextView, "Blaster", "use blaster", &delegate);
-		$(theme, bindTextView, "Shotgun", "use shotgun", &delegate);
-		$(theme, bindTextView, "Super shotgun", "use super shotgun", &delegate);
-		$(theme, bindTextView, "Machinegun", "use machinegun", &delegate);
-		$(theme, bindTextView, "Hand grenades", "use hand grenades", &delegate);
-		$(theme, bindTextView, "Grenade launcher", "use grenade launcher", &delegate);
-		$(theme, bindTextView, "Rocket launcher", "use rocket launcher", &delegate);
-		$(theme, bindTextView, "Hyperblaster", "use hyperblaster", &delegate);
-		$(theme, bindTextView, "Lightning", "use lightning gun", &delegate);
-		$(theme, bindTextView, "Railgun", "use railgun", &delegate);
-		$(theme, bindTextView, "BFG-10K", "use bfg10k", &delegate);
-
-		release(box);
-	}
-
-	release(columns);
-	release(container);
+	$(hookStyle, addOption, "pull", (ident) HOOK_PULL);
+	$(hookStyle, addOption, "swing", (ident) HOOK_SWING);
 }
 
 #pragma mark - Class lifecycle

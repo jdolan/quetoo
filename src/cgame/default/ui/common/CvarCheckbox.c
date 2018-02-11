@@ -83,7 +83,11 @@ static void action(Control *control, const SDL_Event *event, ident sender, ident
 
 	const CvarCheckbox *this = (CvarCheckbox *) control;
 
-	cgi.CvarSetValue(this->var->name, $(control, isSelected));
+	if (this->var) {
+		cgi.CvarSetValue(this->var->name, $(control, isSelected));
+	} else {
+		MVC_LogWarn("No variable set\n");
+	}
 }
 
 /**

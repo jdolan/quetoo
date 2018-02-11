@@ -1,0 +1,322 @@
+{
+  "identifier": "Response & service",
+  "subviews": [
+    {
+      "class": "StackView",
+      "classNames": [
+        "container"
+      ],
+      "subviews": [
+        {
+          "class": "StackView",
+          "classNames": [
+            "columns",
+            "container"
+          ],
+          "subviews": [
+            {
+              "class": "StackView",
+              "classNames": [
+                "column",
+                "container"
+              ],
+              "subviews": [
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Response"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Sensitivity"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "min": 0.125,
+                          "max": 6,
+                          "var": "m_sensitivity"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Zoom sensitivity"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "min": 0.125,
+                          "max": 6,
+                          "var": "m_sensitivity_zoom"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Invert mouse"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "m_invert"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Smooth mouse"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "m_interpolate"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Field of view"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "FOV"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "min": 80,
+                          "max": 130,
+                          "step": 5,
+                          "var": "cg_fov"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Zoom"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "+ZOOM"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Zoom FOV"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "min": 20,
+                          "max": 70,
+                          "step": 5,
+                          "var": "cg_fov_zoom"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Zoom speed"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "min": 0,
+                          "max": 2,
+                          "step": 0.1,
+                          "var": "cg_fov_interpolate"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [
+                "column",
+                "container"
+              ],
+              "subviews": [
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Crosshair"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Crosshair"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSelect",
+                          "identifier": "crosshair",
+                          "var": "cg_draw_crosshair"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Color"
+                          }
+                        },
+                        "control": {
+                          "class": "HueColorPicker",
+                          "identifier": "crosshairColor"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Scale"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "identifier": "crosshairScale",
+                          "min": 0.1,
+                          "max": 3,
+                          "var": "cg_draw_crosshair_scale"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Pulse on pickup"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "cg_draw_crosshair_pulse"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Reflect health"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "bind": "cg_draw_crosshair_health"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "class": "CrosshairView",
+                  "identifier": "crosshairView"
+                }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [
+                "column",
+                "container"
+              ],
+              "subviews": [
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Communication"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Say"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "cl_message_mode"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Say team"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "cl_message_mode_2"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Show score"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "+score"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Take screenshot"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "r_screenshot"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

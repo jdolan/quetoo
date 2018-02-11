@@ -22,11 +22,6 @@
 #include "cg_local.h"
 
 #include "LookViewController.h"
-#include "CrosshairView.h"
-#include "CvarSelect.h"
-#include "CvarSlider.h"
-
-#include "QuetooTheme.h"
 
 #define _Class _LookViewController
 
@@ -97,6 +92,17 @@ static void didBindKey(TextView *textView) {
 	$(this->view, updateBindings);
 }
 
+/**
+ * @brief ViewEnumerator for setting the TextViewDelegate.
+ */
+static void setDelegate(View *view, ident data) {
+
+	((TextView *) view)->delegate = (TextViewDelegate) {
+		.self = data,
+		.didEndEditing = didBindKey
+	};
+}
+
 #pragma mark - Object
 
 /**
@@ -121,104 +127,32 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	self->view->autoresizingMask = ViewAutoresizingContain;
-	self->view->identifier = strdup("Look");
-
 	LookViewController *this = (LookViewController *) self;
 
-	TextViewDelegate delegate = {
-		.self = this,
-		.didEndEditing = didBindKey
-	};
+	Select *crosshair;
+	Slider *crosshairScale;
+	Outlet outlets[] = MakeOutlets(
+		MakeOutlet("crosshair", &crosshair),
+		MakeOutlet("crosshairScale", &crosshairScale),
+		MakeOutlet("crosshairColor", &this->crosshairColorPicker),
+		MakeOutlet("crosshairView", &this->crosshairView)
+	);
 
-	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
-	assert(theme);
+	cgi.WakeView(self->view, "ui/controls/LookViewController.json", outlets);
 
-	StackView *container = $(theme, container);
+	$(self->view, enumerateSelection, "BindTextView", setDelegate, self);
 
-	$(theme, attach, container);
-	$(theme, target, container);
+	$(crosshair, addOption, "", NULL);
+	cgi.EnumerateFiles("pics/ch*", enumerateCrosshairs, crosshair);
 
-	StackView *columns = $(theme, columns, 2);
-	$(theme, attach, columns);
+	crosshair->delegate.self = this;
+	crosshair->delegate.didSelectOption = didSelectCrosshair;
 
-	$(theme, targetSubview, columns, 0);
+	crosshairScale->delegate.self = this;
+	crosshairScale->delegate.didSetValue = didSetCrosshairScale;
 
-	{
-		Box *box = $(theme, box, "Response");
-
-		$(theme, attach, box);
-		$(theme, target, box->contentView);
-
-		$(theme, slider, "Sensitivity", "m_sensitivity", 0.1, 6.0, 0.0, NULL);
-		$(theme, slider, "Zoom sensitivity", "m_sensitivity_zoom", 0.1, 6.0, 0.0, NULL);
-		$(theme, checkbox, "Invert mouse", "m_invert");
-		$(theme, checkbox, "Smooth mouse", "m_interpolate");
-
-		release(box);
-	}
-
-	$(theme, targetSubview, columns, 0);
-
-	{
-		Box *box = $(theme, box, "Field of view");
-
-		$(theme, attach, box);
-		$(theme, target, box->contentView);
-
-		$(theme, slider, "FOV", cg_fov->name, 80.0, 130.0, 5.0, NULL);
-		$(theme, slider, "Zoom FOV", cg_fov_zoom->name, 20.0, 70.0, 5.0, NULL);
-		$(theme, bindTextView, "Zoom", "+ZOOM", &delegate);
-		$(theme, slider, "Zoom speed", cg_fov_interpolate->name, 0.0, 2.0, 0.1, NULL);
-	}
-
-	$(theme, targetSubview, columns, 1);
-
-	{
-		Box *box = $(theme, box, "Crosshair");
-
-		$(theme, attach, box);
-		$(theme, target, box->contentView);
-
-		Select *crosshair = (Select *) $(alloc(CvarSelect), initWithVariable, cg_draw_crosshair);
-		assert(crosshair);
-
-		$(crosshair, addOption, "", NULL);
-		cgi.EnumerateFiles("pics/ch*", enumerateCrosshairs, crosshair);
-
-		crosshair->delegate.self = this;
-		crosshair->delegate.didSelectOption = didSelectCrosshair;
-
-		$(theme, control, "Crosshair", crosshair);
-
-		SliderDelegate crosshairScaleDelegate = {
-			.self = this,
-			.didSetValue = didSetCrosshairScale
-		};
-
-		$(theme, slider, "Scale", cg_draw_crosshair_scale->name, 0.1, 3.0, 0.0, &crosshairScaleDelegate);
-
-		$(theme, checkbox, "Pulse on pickup", cg_draw_crosshair_pulse->name);
-
-		this->crosshairColorPicker = $(alloc(HueColorPicker), initWithFrame, NULL);
-		assert(this->crosshairColorPicker);
-
-		this->crosshairColorPicker->delegate.self = this;
-		this->crosshairColorPicker->delegate.didPickColor = didPickCrosshairColor;
-
-		$(theme, control, "Color", this->crosshairColorPicker);
-
-		this->crosshairView = $(alloc(CrosshairView), initWithFrame, &MakeRect(0, 0, 100, 100));
-		assert(this->crosshairView);
-
-		$(theme, control, "Preview", this->crosshairView);
-
-		release(box);
-	}
-
-	release(columns);
-	release(container);
-	release(theme);
+	this->crosshairColorPicker->delegate.self = this;
+	this->crosshairColorPicker->delegate.didPickColor = didPickCrosshairColor;
 }
 
 /**

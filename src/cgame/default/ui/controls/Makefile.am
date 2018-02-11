@@ -2,15 +2,13 @@ cguicontrolsdir = @PKGLIBDIR@/default/ui/controls
 cguicontrols_DATA = \
 	ControlsViewController.json \
 	LookViewController.css \
-	MoveViewController.css \
-	MiscViewController.css \
-	ShootViewController.css
+	LookViewController.json \
+	ShootViewController.css \
+	ShootViewController.json
 
 noinst_HEADERS = \
 	ControlsViewController.h \
 	CrosshairView.h \
-	MiscViewController.h \
-	MoveViewController.h \
 	LookViewController.h \
 	ShootViewController.h
 
@@ -20,8 +18,6 @@ noinst_LTLIBRARIES = \
 libcguicontrols_la_SOURCES = \
 	ControlsViewController.c \
 	CrosshairView.c \
-	MiscViewController.c \
-	MoveViewController.c \
 	LookViewController.c \
 	ShootViewController.c
 
