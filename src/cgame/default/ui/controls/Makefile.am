@@ -1,16 +1,16 @@
 cguicontrolsdir = @PKGLIBDIR@/default/ui/controls
 cguicontrols_DATA = \
 	ControlsViewController.json \
-	LookViewController.css \
-	LookViewController.json \
-	ShootViewController.css \
-	ShootViewController.json
+	MovementCombatViewController.css \
+	MovementCombatViewController.json \
+	ResponseServiceViewController.css \
+	ResponseServiceViewController.json
 
 noinst_HEADERS = \
 	ControlsViewController.h \
 	CrosshairView.h \
-	LookViewController.h \
-	ShootViewController.h
+	MovementCombatViewController.h \
+	ResponseServiceViewController.h
 
 noinst_LTLIBRARIES = \
 	libcguicontrols.la
@@ -18,8 +18,8 @@ noinst_LTLIBRARIES = \
 libcguicontrols_la_SOURCES = \
 	ControlsViewController.c \
 	CrosshairView.c \
-	LookViewController.c \
-	ShootViewController.c
+	MovementCombatViewController.c \
+	ResponseServiceViewController.c
 
 libcguicontrols_la_CFLAGS = \
 	-I$(top_srcdir)/src \

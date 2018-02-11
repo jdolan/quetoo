@@ -21,9 +21,9 @@
 
 #include "cg_local.h"
 
-#include "LookViewController.h"
+#include "ResponseServiceViewController.h"
 
-#define _Class _LookViewController
+#define _Class _ResponseServiceViewController
 
 #pragma mark - Crosshair selection
 
@@ -46,7 +46,7 @@ static void enumerateCrosshairs(const char *path, void *data) {
  */
 static void didSelectCrosshair(Select *select, Option *option) {
 
-	LookViewController *this = (LookViewController *) select->delegate.self;
+	ResponseServiceViewController *this = (ResponseServiceViewController *) select->delegate.self;
 
 	$((View *) this->crosshairView, updateBindings);
 }
@@ -56,7 +56,7 @@ static void didSelectCrosshair(Select *select, Option *option) {
  */
 static void didPickCrosshairColor(HueColorPicker *hueColorPicker, double hue, double saturation, double value) {
 
-	LookViewController *this = (LookViewController *) hueColorPicker->delegate.self;
+	ResponseServiceViewController *this = (ResponseServiceViewController *) hueColorPicker->delegate.self;
 
 	if (hue < 1.0) {
 		cgi.CvarSet(cg_draw_crosshair_color->name, "default");
@@ -77,7 +77,7 @@ static void didPickCrosshairColor(HueColorPicker *hueColorPicker, double hue, do
  */
 static void didSetCrosshairScale(Slider *slider) {
 
-	LookViewController *this = (LookViewController *) slider->delegate.self;
+	ResponseServiceViewController *this = (ResponseServiceViewController *) slider->delegate.self;
 
 	$((View *) this->crosshairView, updateBindings);
 }
@@ -110,7 +110,7 @@ static void setDelegate(View *view, ident data) {
  */
 static void dealloc(Object *self) {
 
-	LookViewController *this = (LookViewController *) self;
+	ResponseServiceViewController *this = (ResponseServiceViewController *) self;
 
 	release(this->crosshairColorPicker);
 	release(this->crosshairView);
@@ -127,7 +127,7 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	LookViewController *this = (LookViewController *) self;
+	ResponseServiceViewController *this = (ResponseServiceViewController *) self;
 
 	Select *crosshair;
 	Slider *crosshairScale;
@@ -138,7 +138,7 @@ static void loadView(ViewController *self) {
 		MakeOutlet("crosshairView", &this->crosshairView)
 	);
 
-	cgi.WakeView(self->view, "ui/controls/LookViewController.json", outlets);
+	cgi.WakeView(self->view, "ui/controls/ResponseServiceViewController.json", outlets);
 
 	$(self->view, enumerateSelection, "BindTextView", setDelegate, self);
 
@@ -162,7 +162,7 @@ static void viewWillAppear(ViewController *self) {
 
 	super(ViewController, self, viewWillAppear);
 
-	LookViewController *this = (LookViewController *) self;
+	ResponseServiceViewController *this = (ResponseServiceViewController *) self;
 
 	const SDL_Color color = MVC_HexToRGBA(cg_draw_crosshair_color->string);
 	if (color.r || color.g || color.b) {
@@ -186,20 +186,20 @@ static void initialize(Class *clazz) {
 }
 
 /**
- * @fn Class *LookViewController::_LookViewController(void)
- * @memberof LookViewController
+ * @fn Class *ResponseServiceViewController::_ResponseServiceViewController(void)
+ * @memberof ResponseServiceViewController
  */
-Class *_LookViewController(void) {
+Class *_ResponseServiceViewController(void) {
 	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
 		clazz = _initialize(&(const ClassDef) {
-			.name = "LookViewController",
+			.name = "ResponseServiceViewController",
 			.superclass = _ViewController(),
-			.instanceSize = sizeof(LookViewController),
-			.interfaceOffset = offsetof(LookViewController, interface),
-			.interfaceSize = sizeof(LookViewControllerInterface),
+			.instanceSize = sizeof(ResponseServiceViewController),
+			.interfaceOffset = offsetof(ResponseServiceViewController, interface),
+			.interfaceSize = sizeof(ResponseServiceViewControllerInterface),
 			.initialize = initialize,
 		});
 	});

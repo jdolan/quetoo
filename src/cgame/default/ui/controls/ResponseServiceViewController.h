@@ -23,38 +23,53 @@
 
 #include "cg_types.h"
 
+#include <ObjectivelyMVC/HueColorPicker.h>
 #include <ObjectivelyMVC/ViewController.h>
+
+#include "CrosshairView.h"
 
 /**
  * @file
- * @brief Shoot ViewController.
+ * @brief Controls ViewController.
  */
 
-typedef struct ShootViewController ShootViewController;
-typedef struct ShootViewControllerInterface ShootViewControllerInterface;
+typedef struct ResponseServiceViewController ResponseServiceViewController;
+typedef struct ResponseServiceViewControllerInterface ResponseServiceViewControllerInterface;
 
 /**
- * @brief The ShootViewController type.
+ * @brief The ResponseServiceViewController type.
  * @extends ViewController
+ * @ingroup ViewControllers
  */
-struct ShootViewController {
+struct ResponseServiceViewController {
 
 	/**
 	 * @brief The superclass.
+	 * @private
 	 */
 	ViewController viewController;
 
 	/**
 	 * @brief The interface.
-	 * @protected
+	 * @private
 	 */
-	ShootViewControllerInterface *interface;
+	ResponseServiceViewControllerInterface *interface;
+
+	/**
+	 * @brief The crosshair HueColorPicker.
+	 */
+	HueColorPicker *crosshairColorPicker;
+
+	/**
+	 * @brief The CrosshairView.
+	 */
+	CrosshairView *crosshairView;
 };
 
 /**
- * @brief The ShootViewController interface.
+ * @brief The ResponseServiceViewController interface.
  */
-struct ShootViewControllerInterface {
+struct ResponseServiceViewControllerInterface {
 
 	/**
 	 * @brief The superclass interface.
@@ -63,9 +78,10 @@ struct ShootViewControllerInterface {
 };
 
 /**
- * @fn Class *ShootViewController::_ShootViewController(void)
- * @brief The ShootViewController archetype.
- * @return The ShootViewController Class.
- * @memberof ShootViewController
+ * @fn Class *ResponseServiceViewController::_ResponseServiceViewController(void)
+ * @brief The ResponseServiceViewController archetype.
+ * @return The ResponseServiceViewController Class.
+ * @memberof ResponseServiceViewController
  */
-Class *_ShootViewController(void);
+CGAME_EXPORT Class *_ResponseServiceViewController(void);
+

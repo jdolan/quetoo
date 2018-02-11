@@ -23,53 +23,38 @@
 
 #include "cg_types.h"
 
-#include <ObjectivelyMVC/HueColorPicker.h>
 #include <ObjectivelyMVC/ViewController.h>
-
-#include "CrosshairView.h"
 
 /**
  * @file
- * @brief Controls ViewController.
+ * @brief Shoot ViewController.
  */
 
-typedef struct LookViewController LookViewController;
-typedef struct LookViewControllerInterface LookViewControllerInterface;
+typedef struct MovementCombatViewController MovementCombatViewController;
+typedef struct MovementCombatViewControllerInterface MovementCombatViewControllerInterface;
 
 /**
- * @brief The LookViewController type.
+ * @brief The MovementCombatViewController type.
  * @extends ViewController
- * @ingroup ViewControllers
  */
-struct LookViewController {
+struct MovementCombatViewController {
 
 	/**
 	 * @brief The superclass.
-	 * @private
 	 */
 	ViewController viewController;
 
 	/**
 	 * @brief The interface.
-	 * @private
+	 * @protected
 	 */
-	LookViewControllerInterface *interface;
-
-	/**
-	 * @brief The crosshair HueColorPicker.
-	 */
-	HueColorPicker *crosshairColorPicker;
-
-	/**
-	 * @brief The CrosshairView.
-	 */
-	CrosshairView *crosshairView;
+	MovementCombatViewControllerInterface *interface;
 };
 
 /**
- * @brief The LookViewController interface.
+ * @brief The MovementCombatViewController interface.
  */
-struct LookViewControllerInterface {
+struct MovementCombatViewControllerInterface {
 
 	/**
 	 * @brief The superclass interface.
@@ -78,10 +63,9 @@ struct LookViewControllerInterface {
 };
 
 /**
- * @fn Class *LookViewController::_LookViewController(void)
- * @brief The LookViewController archetype.
- * @return The LookViewController Class.
- * @memberof LookViewController
+ * @fn Class *MovementCombatViewController::_MovementCombatViewController(void)
+ * @brief The MovementCombatViewController archetype.
+ * @return The MovementCombatViewController Class.
+ * @memberof MovementCombatViewController
  */
-CGAME_EXPORT Class *_LookViewController(void);
-
+Class *_MovementCombatViewController(void);

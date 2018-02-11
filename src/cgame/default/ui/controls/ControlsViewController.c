@@ -23,8 +23,8 @@
 
 #include "ControlsViewController.h"
 
-#include "LookViewController.h"
-#include "ShootViewController.h"
+#include "ResponseServiceViewController.h"
+#include "MovementCombatViewController.h"
 
 #define _Class _ControlsViewController
 
@@ -62,11 +62,11 @@ static void loadView(ViewController *self) {
 
 	ViewController *viewController, *tabViewController = (ViewController *) this->tabViewController;
 
-	viewController = $((ViewController *) alloc(ShootViewController), init);
+	viewController = $((ViewController *) alloc(MovementCombatViewController), init);
 	$(tabViewController, addChildViewController, viewController);
 	release(viewController);
 
-	viewController = $((ViewController *) alloc(LookViewController), init);
+	viewController = $((ViewController *) alloc(ResponseServiceViewController), init);
 	$(tabViewController, addChildViewController, viewController);
 	release(viewController);
 

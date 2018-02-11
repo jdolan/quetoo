@@ -100,14 +100,14 @@
 		CE1A28321F75FC1D005F62A9 /* PlayerModelView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1A282E1F75FC1D005F62A9 /* PlayerModelView.h */; };
 		CE1A28331F75FC1D005F62A9 /* PlayerSetupViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282F1F75FC1D005F62A9 /* PlayerSetupViewController.c */; };
 		CE1A28341F75FC1D005F62A9 /* PlayerSetupViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1A28301F75FC1D005F62A9 /* PlayerSetupViewController.h */; };
-		CE1A283C1F75FE70005F62A9 /* LookViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28381F75FE70005F62A9 /* LookViewController.c */; };
-		CE1A283D1F75FE70005F62A9 /* LookViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1A28391F75FE70005F62A9 /* LookViewController.h */; };
+		CE1A283C1F75FE70005F62A9 /* ResponseServiceViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28381F75FE70005F62A9 /* ResponseServiceViewController.c */; };
+		CE1A283D1F75FE70005F62A9 /* ResponseServiceViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1A28391F75FE70005F62A9 /* ResponseServiceViewController.h */; };
 		CE1A28401F75FEB1005F62A9 /* ControlsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A283E1F75FEB1005F62A9 /* ControlsViewController.c */; };
 		CE1A28411F75FEB1005F62A9 /* ControlsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1A283F1F75FEB1005F62A9 /* ControlsViewController.h */; };
 		CE1A28481F7600AC005F62A9 /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28441F7600AC005F62A9 /* CrosshairView.c */; };
 		CE1A28491F7600AC005F62A9 /* CrosshairView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1A28451F7600AC005F62A9 /* CrosshairView.h */; };
-		CE1A28501F7602F2005F62A9 /* ShootViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A284C1F7602F2005F62A9 /* ShootViewController.c */; };
-		CE1A28511F7602F2005F62A9 /* ShootViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1A284D1F7602F2005F62A9 /* ShootViewController.h */; };
+		CE1A28501F7602F2005F62A9 /* MovementCombatViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A284C1F7602F2005F62A9 /* MovementCombatViewController.c */; };
+		CE1A28511F7602F2005F62A9 /* MovementCombatViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1A284D1F7602F2005F62A9 /* MovementCombatViewController.h */; };
 		CE1CCD9A1D9D41DA00891F05 /* libncurses.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */; };
 		CE1CCD9D1D9D49C700891F05 /* libswap.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC79D01D9CB22E000FA6B2 /* libswap.a */; };
 		CE3208501EBDFFB600A92FF3 /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE32084F1EBDFFB600A92FF3 /* OpenAL.framework */; };
@@ -141,8 +141,8 @@
 		CE4A25701FA39FB400A539E7 /* libSDL2_image-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE4A256F1FA39FB400A539E7 /* libSDL2_image-2.0.0.dylib */; };
 		CE4E07B52026524A000B276C /* common.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07B320264B15000B276C /* common.css */; };
 		CE4E07B820267825000B276C /* JoinServerViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07B6202676E7000B276C /* JoinServerViewController.css */; };
-		CE4E07CC20268832000B276C /* LookViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07BD20267EAB000B276C /* LookViewController.css */; };
-		CE4E07CF2026883C000B276C /* ShootViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07BA20267EAB000B276C /* ShootViewController.css */; };
+		CE4E07CC20268832000B276C /* ResponseServiceViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07BD20267EAB000B276C /* ResponseServiceViewController.css */; };
+		CE4E07CF2026883C000B276C /* MovementCombatViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07BA20267EAB000B276C /* MovementCombatViewController.css */; };
 		CE4E07D420268897000B276C /* DialogViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07C220267ED9000B276C /* DialogViewController.css */; };
 		CE4E07D62026889D000B276C /* LoadingViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07C320267ED9000B276C /* LoadingViewController.css */; };
 		CE4E07D8202688AF000B276C /* MainView.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07C120267ED9000B276C /* MainView.css */; };
@@ -256,8 +256,8 @@
 		CE7D2C20202F7179004BC58E /* PlayerSetupViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C1E202F7166004BC58E /* PlayerSetupViewController.json */; };
 		CE7D2C222030832C004BC58E /* PlayViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C2120308305004BC58E /* PlayViewController.json */; };
 		CE7D2C242030A133004BC58E /* ControlsViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C232030A107004BC58E /* ControlsViewController.json */; };
-		CE7D2C262030A3A3004BC58E /* ShootViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C252030A380004BC58E /* ShootViewController.json */; };
-		CE7D2C282030B0F8004BC58E /* LookViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C272030B0D6004BC58E /* LookViewController.json */; };
+		CE7D2C262030A3A3004BC58E /* MovementCombatViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C252030A380004BC58E /* MovementCombatViewController.json */; };
+		CE7D2C282030B0F8004BC58E /* ResponseServiceViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C272030B0D6004BC58E /* ResponseServiceViewController.json */; };
 		CE8000001C5E4D4400A21A51 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
 		CE8000021C5E4D4400A21A51 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CE8000031C5E4ED700A21A51 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
@@ -1020,10 +1020,10 @@
 			dstSubfolderSpec = 16;
 			files = (
 				CE7D2C242030A133004BC58E /* ControlsViewController.json in CopyFiles */,
-				CE4E07CC20268832000B276C /* LookViewController.css in CopyFiles */,
-				CE7D2C282030B0F8004BC58E /* LookViewController.json in CopyFiles */,
-				CE4E07CF2026883C000B276C /* ShootViewController.css in CopyFiles */,
-				CE7D2C262030A3A3004BC58E /* ShootViewController.json in CopyFiles */,
+				CE4E07CC20268832000B276C /* ResponseServiceViewController.css in CopyFiles */,
+				CE7D2C282030B0F8004BC58E /* ResponseServiceViewController.json in CopyFiles */,
+				CE4E07CF2026883C000B276C /* MovementCombatViewController.css in CopyFiles */,
+				CE7D2C262030A3A3004BC58E /* MovementCombatViewController.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1528,14 +1528,14 @@
 		CE1A282E1F75FC1D005F62A9 /* PlayerModelView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerModelView.h; sourceTree = "<group>"; };
 		CE1A282F1F75FC1D005F62A9 /* PlayerSetupViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PlayerSetupViewController.c; sourceTree = "<group>"; };
 		CE1A28301F75FC1D005F62A9 /* PlayerSetupViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerSetupViewController.h; sourceTree = "<group>"; };
-		CE1A28381F75FE70005F62A9 /* LookViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = LookViewController.c; sourceTree = "<group>"; };
-		CE1A28391F75FE70005F62A9 /* LookViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LookViewController.h; sourceTree = "<group>"; };
+		CE1A28381F75FE70005F62A9 /* ResponseServiceViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ResponseServiceViewController.c; sourceTree = "<group>"; };
+		CE1A28391F75FE70005F62A9 /* ResponseServiceViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ResponseServiceViewController.h; sourceTree = "<group>"; };
 		CE1A283E1F75FEB1005F62A9 /* ControlsViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ControlsViewController.c; sourceTree = "<group>"; };
 		CE1A283F1F75FEB1005F62A9 /* ControlsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControlsViewController.h; sourceTree = "<group>"; };
 		CE1A28441F7600AC005F62A9 /* CrosshairView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CrosshairView.c; sourceTree = "<group>"; };
 		CE1A28451F7600AC005F62A9 /* CrosshairView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CrosshairView.h; sourceTree = "<group>"; };
-		CE1A284C1F7602F2005F62A9 /* ShootViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ShootViewController.c; sourceTree = "<group>"; };
-		CE1A284D1F7602F2005F62A9 /* ShootViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShootViewController.h; sourceTree = "<group>"; };
+		CE1A284C1F7602F2005F62A9 /* MovementCombatViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MovementCombatViewController.c; sourceTree = "<group>"; };
+		CE1A284D1F7602F2005F62A9 /* MovementCombatViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MovementCombatViewController.h; sourceTree = "<group>"; };
 		CE27BE561D9167C700F87B2C /* libObjectively.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectively.dylib; path = "../../Library/Developer/Xcode/DerivedData/Quetoo-eijmznjiunzbaafulkyjapfulhqz/Build/Products/Debug/libObjectively.dylib"; sourceTree = "<group>"; };
 		CE32084F1EBDFFB600A92FF3 /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
 		CE3208511EBF518D00A92FF3 /* libsndfile.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsndfile.1.dylib; path = /opt/local/lib/libsndfile.1.dylib; sourceTree = "<absolute>"; };
@@ -1548,8 +1548,8 @@
 		CE4A256F1FA39FB400A539E7 /* libSDL2_image-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSDL2_image-2.0.0.dylib"; path = "../../../../usr/local/lib/libSDL2_image-2.0.0.dylib"; sourceTree = "<group>"; };
 		CE4E07B320264B15000B276C /* common.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = common.css; sourceTree = "<group>"; };
 		CE4E07B6202676E7000B276C /* JoinServerViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = JoinServerViewController.css; sourceTree = "<group>"; };
-		CE4E07BA20267EAB000B276C /* ShootViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = ShootViewController.css; sourceTree = "<group>"; };
-		CE4E07BD20267EAB000B276C /* LookViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = LookViewController.css; sourceTree = "<group>"; };
+		CE4E07BA20267EAB000B276C /* MovementCombatViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = MovementCombatViewController.css; sourceTree = "<group>"; };
+		CE4E07BD20267EAB000B276C /* ResponseServiceViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = ResponseServiceViewController.css; sourceTree = "<group>"; };
 		CE4E07C120267ED9000B276C /* MainView.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = MainView.css; sourceTree = "<group>"; };
 		CE4E07C220267ED9000B276C /* DialogViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = DialogViewController.css; sourceTree = "<group>"; };
 		CE4E07C320267ED9000B276C /* LoadingViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = LoadingViewController.css; sourceTree = "<group>"; };
@@ -1666,8 +1666,8 @@
 		CE7D2C1E202F7166004BC58E /* PlayerSetupViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = PlayerSetupViewController.json; sourceTree = "<group>"; };
 		CE7D2C2120308305004BC58E /* PlayViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = PlayViewController.json; sourceTree = "<group>"; };
 		CE7D2C232030A107004BC58E /* ControlsViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ControlsViewController.json; sourceTree = "<group>"; };
-		CE7D2C252030A380004BC58E /* ShootViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ShootViewController.json; sourceTree = "<group>"; };
-		CE7D2C272030B0D6004BC58E /* LookViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = LookViewController.json; sourceTree = "<group>"; };
+		CE7D2C252030A380004BC58E /* MovementCombatViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = MovementCombatViewController.json; sourceTree = "<group>"; };
+		CE7D2C272030B0D6004BC58E /* ResponseServiceViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ResponseServiceViewController.json; sourceTree = "<group>"; };
 		CE8000051C5E4F0500A21A51 /* libxml2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.dylib; path = /opt/local/lib/libxml2.2.dylib; sourceTree = "<absolute>"; };
 		CE8040181FA90D7000931A89 /* libmysqlclient.20.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmysqlclient.20.dylib; path = ../../../../opt/local/lib/mysql57/mysql/libmysqlclient.20.dylib; sourceTree = "<group>"; };
 		CE80FD871C5E3B6F00A21A51 /* quemap */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = quemap; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -3009,14 +3009,14 @@
 				CE7D2C232030A107004BC58E /* ControlsViewController.json */,
 				CE1A28441F7600AC005F62A9 /* CrosshairView.c */,
 				CE1A28451F7600AC005F62A9 /* CrosshairView.h */,
-				CE1A28381F75FE70005F62A9 /* LookViewController.c */,
-				CE4E07BD20267EAB000B276C /* LookViewController.css */,
-				CE1A28391F75FE70005F62A9 /* LookViewController.h */,
-				CE7D2C272030B0D6004BC58E /* LookViewController.json */,
-				CE1A284C1F7602F2005F62A9 /* ShootViewController.c */,
-				CE4E07BA20267EAB000B276C /* ShootViewController.css */,
-				CE1A284D1F7602F2005F62A9 /* ShootViewController.h */,
-				CE7D2C252030A380004BC58E /* ShootViewController.json */,
+				CE1A284C1F7602F2005F62A9 /* MovementCombatViewController.c */,
+				CE4E07BA20267EAB000B276C /* MovementCombatViewController.css */,
+				CE1A284D1F7602F2005F62A9 /* MovementCombatViewController.h */,
+				CE7D2C252030A380004BC58E /* MovementCombatViewController.json */,
+				CE1A28381F75FE70005F62A9 /* ResponseServiceViewController.c */,
+				CE4E07BD20267EAB000B276C /* ResponseServiceViewController.css */,
+				CE1A28391F75FE70005F62A9 /* ResponseServiceViewController.h */,
+				CE7D2C272030B0D6004BC58E /* ResponseServiceViewController.json */,
 				CE7D2C08202E9DE6004BC58E /* Makefile.am */,
 			);
 			path = controls;
@@ -3327,8 +3327,8 @@
 				CE6EE3F51F720DC300FBC830 /* QuetooTheme.h in Headers */,
 				CE1A28411F75FEB1005F62A9 /* ControlsViewController.h in Headers */,
 				CE1A28491F7600AC005F62A9 /* CrosshairView.h in Headers */,
-				CE1A283D1F75FE70005F62A9 /* LookViewController.h in Headers */,
-				CE1A28511F7602F2005F62A9 /* ShootViewController.h in Headers */,
+				CE1A283D1F75FE70005F62A9 /* ResponseServiceViewController.h in Headers */,
+				CE1A28511F7602F2005F62A9 /* MovementCombatViewController.h in Headers */,
 				CE7D2C18202F69D4004BC58E /* HomeViewController.h in Headers */,
 				CE6EE3F81F720DC300FBC830 /* DialogView.h in Headers */,
 				CE88195D1F882EC3000D5AB7 /* DialogViewController.h in Headers */,
@@ -4358,8 +4358,8 @@
 				CE6EE3D71F720D6700FBC830 /* QuetooTheme.c in Sources */,
 				CE1A28401F75FEB1005F62A9 /* ControlsViewController.c in Sources */,
 				CE1A28481F7600AC005F62A9 /* CrosshairView.c in Sources */,
-				CE1A283C1F75FE70005F62A9 /* LookViewController.c in Sources */,
-				CE1A28501F7602F2005F62A9 /* ShootViewController.c in Sources */,
+				CE1A283C1F75FE70005F62A9 /* ResponseServiceViewController.c in Sources */,
+				CE1A28501F7602F2005F62A9 /* MovementCombatViewController.c in Sources */,
 				CE7D2C17202F69B9004BC58E /* HomeViewController.c in Sources */,
 				CE6EE3DA1F720D8700FBC830 /* DialogView.c in Sources */,
 				CE88195C1F882EBE000D5AB7 /* DialogViewController.c in Sources */,

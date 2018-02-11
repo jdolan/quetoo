@@ -21,12 +21,12 @@
 
 #include "cg_local.h"
 
-#include "ShootViewController.h"
+#include "MovementCombatViewController.h"
 
 #include "CvarSelect.h"
 #include "QuetooTheme.h"
 
-#define _Class _ShootViewController
+#define _Class _MovementCombatViewController
 
 #pragma mark - Actions and delegates
 
@@ -65,8 +65,8 @@ static void loadView(ViewController *self) {
 		MakeOutlet("hookStyle", &hookStyle)
 	);
 
-	cgi.WakeView(self->view, "ui/controls/ShootViewController.json", outlets);
-	self->view->stylesheet = cgi.Stylesheet("ui/controls/ShootViewController.css");
+	cgi.WakeView(self->view, "ui/controls/MovementCombatViewController.json", outlets);
+	self->view->stylesheet = cgi.Stylesheet("ui/controls/MovementCombatViewController.css");
 
 	$(self->view, enumerateSelection, "BindTextView", setDelegate, self);
 
@@ -85,20 +85,20 @@ static void initialize(Class *clazz) {
 }
 
 /**
- * @fn Class *ShootViewController::_ShootViewController(void)
- * @memberof ShootViewController
+ * @fn Class *MovementCombatViewController::_MovementCombatViewController(void)
+ * @memberof MovementCombatViewController
  */
-Class *_ShootViewController(void) {
+Class *_MovementCombatViewController(void) {
 	static Class *clazz;
 	static Once once;
 
 	do_once(&once, {
 		clazz = _initialize(&(const ClassDef) {
-			.name = "ShootViewController",
+			.name = "MovementCombatViewController",
 			.superclass = _ViewController(),
-			.instanceSize = sizeof(ShootViewController),
-			.interfaceOffset = offsetof(ShootViewController, interface),
-			.interfaceSize = sizeof(ShootViewControllerInterface),
+			.instanceSize = sizeof(MovementCombatViewController),
+			.interfaceOffset = offsetof(MovementCombatViewController, interface),
+			.interfaceSize = sizeof(MovementCombatViewControllerInterface),
 			.initialize = initialize,
 		});
 	});
