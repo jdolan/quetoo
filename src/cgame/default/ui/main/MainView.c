@@ -70,17 +70,8 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 		cgi.WakeView(this, "ui/main/MainView.json", outlets);
 		this->stylesheet = cgi.Stylesheet("ui/main/MainView.css");
 
-		Image *image = cgi.Image(va("ui/backgrounds/%d", Random() % 6));
-		if (image) {
-			$(self->background, setImage, image);
-		}
-		release(image);
-
-		image = cgi.Image("ui/logo");
-		if (image) {
-			$(self->logo, setImage, image);
-		}
-		release(image);
+		cgi.SetImage(self->background, va("ui/backgrounds/%d", Random() % 6));
+		cgi.SetImage(self->logo, "ui/logo");
 
 		$(self->version->text, setText, va("Quetoo %s", cgi.CvarGet("version")->string));
 	}

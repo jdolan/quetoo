@@ -315,6 +315,11 @@ typedef struct cg_import_s {
 	View *(*View)(const char *path, Outlet *outlets);
 
 	/**
+	 * @brief Sets the Image for the given ImageView.
+	 */
+	void (*SetImage)(ImageView *view, const char *path);
+
+	/**
 	 * @brief Wakes the specified View with the JSON file at the given path.
 	 */
 	void (*WakeView)(View *view, const char *path, Outlet *outlets);

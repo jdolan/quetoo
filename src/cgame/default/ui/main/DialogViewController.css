@@ -1,0 +1,22 @@
+
+#dialog {
+	alignment: middle-center;
+	autoresizing-mask: contain | width;
+	background-color: #08151aaa;
+	padding: 12;
+}
+
+#dialog > Panel {
+	alignment: middle-center;
+	background-color: #08151a;
+	draggable: false;
+	resizable: false;
+}
+
+#dialog > Panel #message > Text {
+	font-style: bold;
+}
+
+#dialog > Panel .accessoryView {
+	hidden: false;
+}

@@ -1,12 +1,13 @@
 cguimaindir = @PKGLIBDIR@/default/ui/main
 cguimain_DATA = \
 	DialogViewController.css \
+	DialogViewController.json \
 	LoadingViewController.css \
+	LoadingViewController.json \
 	MainView.css \
 	MainView.json
 
 noinst_HEADERS = \
-	DialogView.h \
 	DialogViewController.h \
 	LoadingViewController.h \
 	MainView.h \
@@ -16,7 +17,6 @@ noinst_LTLIBRARIES = \
 	libcguimain.la
 
 libcguimain_la_SOURCES = \
-	DialogView.c \
 	DialogViewController.c \
 	LoadingViewController.c \
 	MainView.c \

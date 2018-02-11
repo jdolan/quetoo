@@ -25,8 +25,6 @@
 
 #include <ObjectivelyMVC.h>
 
-#include "DialogView.h"
-
 /**
  * @file
  * @brief Dialog ViewController.
@@ -96,9 +94,19 @@ struct DialogViewController {
 	Dialog dialog;
 
 	/**
-	 * @brief The DialogView.
+	 * @brief The message.
 	 */
-	DialogView *dialogView;
+	Label *message;
+
+	/**
+	 * @brief The Ok button.
+	 */
+	Button *okButton;
+
+	/**
+	 * @brief The Cancel button.
+	 */
+	Button *cancelButton;
 };
 
 /**

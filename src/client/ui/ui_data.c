@@ -138,6 +138,20 @@ View *Ui_View(const char *path, Outlet *outlets) {
 /**
  * @brief
  */
+void Ui_SetImage(ImageView *view, const char *path) {
+
+	Image *image = Ui_Image(path);
+	if (image) {
+		$(view, setImage, image);
+	} else {
+		$(view, setImage, NULL);
+	}
+	release(image);
+}
+
+/**
+ * @brief
+ */
 void Ui_WakeView(View *view, const char *path, Outlet *outlets) {
 
 	assert(view);

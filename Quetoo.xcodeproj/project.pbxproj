@@ -143,7 +143,6 @@
 		CE4E07B820267825000B276C /* JoinServerViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07B6202676E7000B276C /* JoinServerViewController.css */; };
 		CE4E07CC20268832000B276C /* ResponseServiceViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07BD20267EAB000B276C /* ResponseServiceViewController.css */; };
 		CE4E07CF2026883C000B276C /* MovementCombatViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07BA20267EAB000B276C /* MovementCombatViewController.css */; };
-		CE4E07D420268897000B276C /* DialogViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07C220267ED9000B276C /* DialogViewController.css */; };
 		CE4E07D62026889D000B276C /* LoadingViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07C320267ED9000B276C /* LoadingViewController.css */; };
 		CE4E07D8202688AF000B276C /* MainView.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07C120267ED9000B276C /* MainView.css */; };
 		CE4E07DE202689F4000B276C /* CreateServerViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07C420267EE8000B276C /* CreateServerViewController.css */; };
@@ -213,7 +212,6 @@
 		CE6EE3D41F720D6700FBC830 /* CvarSlider.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870A01F5CE97C004CAAB2 /* CvarSlider.c */; };
 		CE6EE3D51F720D6700FBC830 /* CvarTextView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870A21F5CE97C004CAAB2 /* CvarTextView.c */; };
 		CE6EE3D71F720D6700FBC830 /* QuetooTheme.c in Sources */ = {isa = PBXBuildFile; fileRef = CE107D7C1F6592860010A1DA /* QuetooTheme.c */; };
-		CE6EE3DA1F720D8700FBC830 /* DialogView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6EE2791F6BE8FE00FBC830 /* DialogView.c */; };
 		CE6EE3DC1F720D8700FBC830 /* LoadingViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870961F5CE7D2004CAAB2 /* LoadingViewController.c */; };
 		CE6EE3DD1F720D8700FBC830 /* MainView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870AC1F5CE98D004CAAB2 /* MainView.c */; };
 		CE6EE3DE1F720D8700FBC830 /* MainViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870981F5CE7D2004CAAB2 /* MainViewController.c */; };
@@ -231,7 +229,6 @@
 		CE6EE3F21F720DC300FBC830 /* CvarSlider.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870A11F5CE97C004CAAB2 /* CvarSlider.h */; };
 		CE6EE3F31F720DC300FBC830 /* CvarTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870A31F5CE97C004CAAB2 /* CvarTextView.h */; };
 		CE6EE3F51F720DC300FBC830 /* QuetooTheme.h in Headers */ = {isa = PBXBuildFile; fileRef = CE107D7D1F6592860010A1DA /* QuetooTheme.h */; };
-		CE6EE3F81F720DC300FBC830 /* DialogView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6EE27A1F6BE8FE00FBC830 /* DialogView.h */; };
 		CE6EE3FA1F720DC300FBC830 /* LoadingViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870971F5CE7D2004CAAB2 /* LoadingViewController.h */; };
 		CE6EE3FB1F720DC300FBC830 /* MainView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870AD1F5CE98D004CAAB2 /* MainView.h */; };
 		CE6EE3FC1F720DC300FBC830 /* MainViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870991F5CE7D2004CAAB2 /* MainViewController.h */; };
@@ -258,6 +255,9 @@
 		CE7D2C242030A133004BC58E /* ControlsViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C232030A107004BC58E /* ControlsViewController.json */; };
 		CE7D2C262030A3A3004BC58E /* MovementCombatViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C252030A380004BC58E /* MovementCombatViewController.json */; };
 		CE7D2C282030B0F8004BC58E /* ResponseServiceViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C272030B0D6004BC58E /* ResponseServiceViewController.json */; };
+		CE7D2C2B2030F46D004BC58E /* DialogViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C2A2030F269004BC58E /* DialogViewController.css */; };
+		CE7D2C2C2030F470004BC58E /* DialogViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C292030F25B004BC58E /* DialogViewController.json */; };
+		CE7D2C2E2030FDAE004BC58E /* LoadingViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C2D2030FD9C004BC58E /* LoadingViewController.json */; };
 		CE8000001C5E4D4400A21A51 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
 		CE8000021C5E4D4400A21A51 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CE8000031C5E4ED700A21A51 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
@@ -1033,8 +1033,10 @@
 			dstPath = ui/main;
 			dstSubfolderSpec = 16;
 			files = (
-				CE4E07D420268897000B276C /* DialogViewController.css in CopyFiles */,
+				CE7D2C2B2030F46D004BC58E /* DialogViewController.css in CopyFiles */,
+				CE7D2C2C2030F470004BC58E /* DialogViewController.json in CopyFiles */,
 				CE4E07D62026889D000B276C /* LoadingViewController.css in CopyFiles */,
+				CE7D2C2E2030FDAE004BC58E /* LoadingViewController.json in CopyFiles */,
 				CE4E07D8202688AF000B276C /* MainView.css in CopyFiles */,
 				CE7D2C0F202F6170004BC58E /* MainView.json in CopyFiles */,
 			);
@@ -1551,7 +1553,6 @@
 		CE4E07BA20267EAB000B276C /* MovementCombatViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = MovementCombatViewController.css; sourceTree = "<group>"; };
 		CE4E07BD20267EAB000B276C /* ResponseServiceViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = ResponseServiceViewController.css; sourceTree = "<group>"; };
 		CE4E07C120267ED9000B276C /* MainView.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = MainView.css; sourceTree = "<group>"; };
-		CE4E07C220267ED9000B276C /* DialogViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = DialogViewController.css; sourceTree = "<group>"; };
 		CE4E07C320267ED9000B276C /* LoadingViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = LoadingViewController.css; sourceTree = "<group>"; };
 		CE4E07C420267EE8000B276C /* CreateServerViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = CreateServerViewController.css; sourceTree = "<group>"; };
 		CE4E07C520267EE9000B276C /* PlayerSetupViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = PlayerSetupViewController.css; sourceTree = "<group>"; };
@@ -1642,8 +1643,6 @@
 		CE69DCB6202D570400E5C8B1 /* EditorView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = EditorView.json; sourceTree = "<group>"; };
 		CE6C2D0F1E24902900F55B0A /* cm_bsp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_bsp.c; sourceTree = "<group>"; };
 		CE6C2D101E24902900F55B0A /* cm_bsp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_bsp.h; sourceTree = "<group>"; };
-		CE6EE2791F6BE8FE00FBC830 /* DialogView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DialogView.c; sourceTree = "<group>"; };
-		CE6EE27A1F6BE8FE00FBC830 /* DialogView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DialogView.h; sourceTree = "<group>"; };
 		CE6EE3371F6BFAF600FBC830 /* libcgame-ui.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libcgame-ui.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE6EE3BE1F71450C00FBC830 /* libObjectively.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectively.0.dylib; path = ../../../../usr/local/lib/libObjectively.0.dylib; sourceTree = "<group>"; };
 		CE6EE3CE1F72018C00FBC830 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -1668,6 +1667,9 @@
 		CE7D2C232030A107004BC58E /* ControlsViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ControlsViewController.json; sourceTree = "<group>"; };
 		CE7D2C252030A380004BC58E /* MovementCombatViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = MovementCombatViewController.json; sourceTree = "<group>"; };
 		CE7D2C272030B0D6004BC58E /* ResponseServiceViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ResponseServiceViewController.json; sourceTree = "<group>"; };
+		CE7D2C292030F25B004BC58E /* DialogViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = DialogViewController.json; sourceTree = "<group>"; };
+		CE7D2C2A2030F269004BC58E /* DialogViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = DialogViewController.css; sourceTree = "<group>"; };
+		CE7D2C2D2030FD9C004BC58E /* LoadingViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = LoadingViewController.json; sourceTree = "<group>"; };
 		CE8000051C5E4F0500A21A51 /* libxml2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.dylib; path = /opt/local/lib/libxml2.2.dylib; sourceTree = "<absolute>"; };
 		CE8040181FA90D7000931A89 /* libmysqlclient.20.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmysqlclient.20.dylib; path = ../../../../opt/local/lib/mysql57/mysql/libmysqlclient.20.dylib; sourceTree = "<group>"; };
 		CE80FD871C5E3B6F00A21A51 /* quemap */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = quemap; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -3120,14 +3122,14 @@
 		CE5870931F5CE7D2004CAAB2 /* main */ = {
 			isa = PBXGroup;
 			children = (
-				CE6EE2791F6BE8FE00FBC830 /* DialogView.c */,
-				CE6EE27A1F6BE8FE00FBC830 /* DialogView.h */,
+				CE7D2C2A2030F269004BC58E /* DialogViewController.css */,
+				CE7D2C292030F25B004BC58E /* DialogViewController.json */,
 				CE8819581F882D9F000D5AB7 /* DialogViewController.c */,
-				CE4E07C220267ED9000B276C /* DialogViewController.css */,
 				CE8819591F882D9F000D5AB7 /* DialogViewController.h */,
 				CE5870961F5CE7D2004CAAB2 /* LoadingViewController.c */,
 				CE4E07C320267ED9000B276C /* LoadingViewController.css */,
 				CE5870971F5CE7D2004CAAB2 /* LoadingViewController.h */,
+				CE7D2C2D2030FD9C004BC58E /* LoadingViewController.json */,
 				CE5870AC1F5CE98D004CAAB2 /* MainView.c */,
 				CE4E07C120267ED9000B276C /* MainView.css */,
 				CE5870AD1F5CE98D004CAAB2 /* MainView.h */,
@@ -3330,7 +3332,6 @@
 				CE1A283D1F75FE70005F62A9 /* ResponseServiceViewController.h in Headers */,
 				CE1A28511F7602F2005F62A9 /* MovementCombatViewController.h in Headers */,
 				CE7D2C18202F69D4004BC58E /* HomeViewController.h in Headers */,
-				CE6EE3F81F720DC300FBC830 /* DialogView.h in Headers */,
 				CE88195D1F882EC3000D5AB7 /* DialogViewController.h in Headers */,
 				CE6EE3FA1F720DC300FBC830 /* LoadingViewController.h in Headers */,
 				CE6EE3FB1F720DC300FBC830 /* MainView.h in Headers */,
@@ -4361,7 +4362,6 @@
 				CE1A283C1F75FE70005F62A9 /* ResponseServiceViewController.c in Sources */,
 				CE1A28501F7602F2005F62A9 /* MovementCombatViewController.c in Sources */,
 				CE7D2C17202F69B9004BC58E /* HomeViewController.c in Sources */,
-				CE6EE3DA1F720D8700FBC830 /* DialogView.c in Sources */,
 				CE88195C1F882EBE000D5AB7 /* DialogViewController.c in Sources */,
 				CE6EE3DC1F720D8700FBC830 /* LoadingViewController.c in Sources */,
 				CE6EE3DD1F720D8700FBC830 /* MainView.c in Sources */,
