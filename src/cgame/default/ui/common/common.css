@@ -3,14 +3,29 @@
 	spacing: 12;
 }
 
-Panel Input Label {
+Box {
+	border-color: #1e4e62;
+}
+
+Box > Label {
+	background-color: #0c1f27;
+}
+
+Box > .contentView > Input > Label {
 	min-width: 200;
+}
+
+Panel {
+	background-color: #08151aaa;
+}
+
+TabView > .tabSelectionView > Label.selected {
+	background-color: #1e4e62aa;
 }
 
 .columns {
 	axis: horizontal;
 	distribution: fill;
-	spacing: 24;
 }
 
 .columns > .column {
