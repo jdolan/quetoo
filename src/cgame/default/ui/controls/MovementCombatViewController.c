@@ -23,9 +23,6 @@
 
 #include "MovementCombatViewController.h"
 
-#include "CvarSelect.h"
-#include "QuetooTheme.h"
-
 #define _Class _MovementCombatViewController
 
 #pragma mark - Actions and delegates

@@ -23,8 +23,6 @@
 
 #include <ObjectivelyMVC/ViewController.h>
 
-#include "VideoModeSelect.h"
-
 /**
  * @file
  * @brief System ViewController.
@@ -49,11 +47,6 @@ struct SystemViewController {
 	 * @protected
 	 */
 	SystemViewControllerInterface *interface;
-
-	/**
-	 * @brief The VideoModeSelect.
-	 */
-	VideoModeSelect *videoModeSelect;
 };
 
 /**

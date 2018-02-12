@@ -23,11 +23,6 @@
 
 #include "OptionsViewController.h"
 
-#include "CvarSelect.h"
-#include "CvarSlider.h"
-
-#include "QuetooTheme.h"
-
 #define _Class _OptionsViewController
 
 #pragma mark - Actions and delegate callbacks
@@ -52,7 +47,7 @@ static void didSelectQuality(Select *select, Option *option) {
 			break;
 		case 1:
 			cgi.CvarSetValue("r_caustics", 0.0);
-			cgi.CvarSetValue("r_shadows", 0.0);
+			cgi.CvarSetValue("r_shadows", 1.0);
 			cgi.CvarSetValue("r_stainmaps", 1.0);
 			cgi.CvarSetValue("cg_add_weather", 1.0);
 			break;
@@ -62,6 +57,11 @@ static void didSelectQuality(Select *select, Option *option) {
 			cgi.CvarSetValue("r_stainmaps", 0.0);
 			cgi.CvarSetValue("cg_add_weather", 0.0);
 			break;
+	}
+
+	ViewController *this = select->delegate.self;
+	if (this) {
+		$(this->view, updateBindings);
 	}
 }
 
@@ -74,122 +74,40 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	self->view->autoresizingMask = ViewAutoresizingContain;
-	self->view->identifier = strdup("Options");
+	Select *quality, *shadows, *weather, *stains;
 
-	OptionsViewController *this = (OptionsViewController *) self;
+	Outlet outlets[] = MakeOutlets(
+		MakeOutlet("quality", &quality),
+		MakeOutlet("shadows", &shadows),
+		MakeOutlet("weather", &weather),
+		MakeOutlet("stains", &stains)
+	);
 
-	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
+	cgi.WakeView(self->view, "ui/settings/OptionsViewController.json", outlets);
 
-	StackView *container = $(theme, container);
+	self->view->stylesheet = cgi.Stylesheet("ui/settings/OptionsViewController.css");
+	assert(self->view->stylesheet);
 
-	$(theme, attach, container);
-	$(theme, target, container);
+	$(quality, addOption, "Highest", (ident) 3);
+	$(quality, addOption, "High", (ident) 2);
+	$(quality, addOption, "Medium", (ident) 1);
+	$(quality, addOption, "Low", (ident) 0);
 
-	StackView *columns = $(theme, columns, 3);
+	quality->delegate.self = self;
+	quality->delegate.didSelectOption = didSelectQuality;
 
-	$(theme, attach, columns);
-	$(theme, targetSubview, columns, 0);
+	$(shadows, addOption, "Highest", (ident) 3);
+	$(shadows, addOption, "High", (ident) 2);
+	$(shadows, addOption, "Low", (ident) 1);
+	$(shadows, addOption, "Off", (ident) 0);
 
-	{
-		Box *box = $(theme, box, "Performance");
+	$(weather, addOption, "Heavy", (ident) 2);
+	$(weather, addOption, "Normal", (ident) 1);
+	$(weather, addOption, "Off", (ident) 0);
 
-		$(theme, attach, box);
-		$(theme, target, box->contentView);
-
-		$(theme, checkbox, "Counters", "cl_draw_counters");
-		$(theme, checkbox, "Net graph", "cl_draw_net_graph");
-
-		release(box);
-	}
-
-	$(theme, targetSubview, columns, 1);
-
-	{
-		Box *box = $(theme, box, "View");
-
-		$(theme, attach, box);
-		$(theme, target, box->contentView);
-
-		$(theme, checkbox, "Draw weapon", cg_draw_weapon->name);
-		$(theme, checkbox, "Weapon sway", cg_draw_weapon_bob->name);
-		$(theme, checkbox, "Bob view", cg_bob->name);
-
-		release(box);
-	}
-
-	$(theme, targetSubview, columns, 1);
-
-	{
-		Box *box = $(theme, box, "Screen");
-
-		$(theme, attach, box);
-		$(theme, target, box->contentView);
-
-		$(theme, checkbox, "Screen blending", cg_draw_blend->name);
-		$(theme, checkbox, "Liquid blend", cg_draw_blend_liquid->name);
-		$(theme, checkbox, "Pickup blend", cg_draw_blend_pickup->name);
-		$(theme, checkbox, "Powerup blend", cg_draw_blend_powerup->name);
-
-		release(box);
-	}
-
-	$(theme, targetSubview, columns, 2);
-
-	{
-		Box *box = $(theme, box, "Quality");
-
-		$(theme, attach, box);
-		$(theme, target, box->contentView);
-
-		Select *qualitySelect = $(alloc(Select), initWithFrame, NULL);
-
-		$(qualitySelect, addOption, "Highest", (ident) 3);
-		$(qualitySelect, addOption, "High", (ident) 2);
-		$(qualitySelect, addOption, "Medium", (ident) 1);
-		$(qualitySelect, addOption, "Low", (ident) 0);
-
-		qualitySelect->delegate.self = this;
-		qualitySelect->delegate.didSelectOption = didSelectQuality;
-
-		$(theme, control, "Quality", qualitySelect);
-		release(qualitySelect);
-
-		release(box);
-	 }
-
-	 $(theme, targetSubview, columns, 2);
-
-	 {
-		Box *box = $(theme, box, "Effects");
-
-		$(theme, attach, box);
-		$(theme, target, box->contentView);
-
-		Select *shadowsSelect = (Select *) $(alloc(CvarSelect), initWithVariableName, "r_shadows");
-
-		$(shadowsSelect, addOption, "Highest", (ident) 3);
-		$(shadowsSelect, addOption, "High", (ident) 2);
-		$(shadowsSelect, addOption, "Low", (ident) 1);
-		$(shadowsSelect, addOption, "Off", (ident) 0);
-
-		$(theme, control, "Shadows", shadowsSelect);
-		release(shadowsSelect);
-
-		$(theme, checkbox, "Caustics", "r_caustics");
-		$(theme, checkbox, "Weather effects", "cg_add_weather");
-
-		$(theme, checkbox, "Bump mapping", "r_bumpmap");
-		$(theme, checkbox, "Parallax mapping", "r_parallax");
-		$(theme, checkbox, "Deluxe mapping", "r_deluxemap");
-		$(theme, checkbox, "Stainmaps", "r_stainmaps");
-		
-		release(box);
-	}
-
-	release(columns);
-	release(container);
-	release(theme);
+	$(stains, addOption, "Never", (ident) 0);
+	$(stains, addOption, "Slow", (ident) 10000);
+	$(stains, addOption, "Fast", (ident) 4000);
 }
 
 #pragma mark - Class lifecycle

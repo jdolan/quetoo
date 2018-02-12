@@ -22,7 +22,6 @@
 #include "cg_local.h"
 
 #include "MainView.h"
-#include "QuetooTheme.h"
 
 #define _Class _MainView
 

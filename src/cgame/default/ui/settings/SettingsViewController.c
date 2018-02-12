@@ -26,8 +26,6 @@
 #include "OptionsViewController.h"
 #include "SystemViewController.h"
 
-#include "QuetooTheme.h"
-
 #define _Class _SettingsViewController
 
 #pragma mark - Object
@@ -52,13 +50,11 @@ static void loadView(ViewController *self) {
 
 	SettingsViewController *this = (SettingsViewController *) self;
 
-	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
-	assert(theme);
+	View *view = cgi.View("ui/settings/SettingsViewController.json", NULL);
+	assert(view);
 
-	Panel *panel = $(theme, panel);
-
-	$(theme, attach, panel);
-	$(theme, target, panel->contentView);
+	$(self, setView, view);
+	release(view);
 
 	this->tabViewController = $(alloc(TabViewController), init);
 	assert(this->tabViewController);
@@ -74,10 +70,7 @@ static void loadView(ViewController *self) {
 	release(viewController);
 
 	$(self, addChildViewController, tabViewController);
-	$(theme, attach, tabViewController->view);
-
-	release(panel);
-	release(theme);
+	$((View *) ((Panel *) view)->contentView, addSubview, tabViewController->view);
 }
 
 #pragma mark - Class lifecycle

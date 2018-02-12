@@ -1,7 +1,10 @@
 cguisettingsdir = @PKGLIBDIR@/default/ui/settings
 cguisettings_DATA = \
 	OptionsViewController.css \
-	SystemViewController.css
+	OptionsViewController.json \
+	SettingsViewController.json \
+	SystemViewController.css \
+	SystemViewController.json
 
 noinst_HEADERS = \
 	OptionsViewController.h \

@@ -19,6 +19,10 @@
 	height: 32;
 }
 
+#progress .background {
+	background-color: transparent;
+}
+
 #progress > Label {
 	alignment: middle-left;
 }

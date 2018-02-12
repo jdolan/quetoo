@@ -59,7 +59,9 @@ static void updateBindings(View *self) {
 
 	CvarSlider *this = (CvarSlider *) self;
 
-	$((Slider *) this, setValue, this->var->value);
+	if (this->var) {
+		$((Slider *) this, setValue, this->var->value);
+	}
 }
 
 #pragma mark - Slider

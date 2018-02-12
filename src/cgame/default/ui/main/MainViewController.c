@@ -21,8 +21,6 @@
 
 #include "cg_local.h"
 
-#include <ObjectivelyMVC/View.h>
-
 #include "MainViewController.h"
 
 #include "ControlsViewController.h"
@@ -31,8 +29,6 @@
 #include "SettingsViewController.h"
 
 #include "DialogViewController.h"
-
-#include "QuetooTheme.h"
 
 #define _Class _MainViewController
 

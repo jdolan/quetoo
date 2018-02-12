@@ -7,8 +7,7 @@ noinst_HEADERS = \
 	CvarCheckbox.h \
 	CvarSelect.h \
 	CvarSlider.h \
-	CvarTextView.h \
-	QuetooTheme.h
+	CvarTextView.h
 
 noinst_LTLIBRARIES = \
 	libcguicommon.la
@@ -18,8 +17,7 @@ libcguicommon_la_SOURCES = \
 	CvarCheckbox.c \
 	CvarSelect.c \
 	CvarSlider.c \
-	CvarTextView.c \
-	QuetooTheme.c
+	CvarTextView.c
 
 libcguicommon_la_CFLAGS = \
 	-I$(top_srcdir)/src \
