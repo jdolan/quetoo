@@ -105,9 +105,6 @@
     <ClInclude Include="..\src\cgame\default\ui\common\CvarTextView.h">
       <Filter>src\default\ui\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\main\DialogView.h">
-      <Filter>src\default\ui\main</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\cgame\default\ui\main\LoadingViewController.h">
       <Filter>src\default\ui\main</Filter>
     </ClInclude>
@@ -147,18 +144,6 @@
     <ClInclude Include="..\src\cgame\default\ui\controls\CrosshairView.h">
       <Filter>src\default\ui\controls</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\controls\LookViewController.h">
-      <Filter>src\default\ui\controls</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\controls\MiscViewController.h">
-      <Filter>src\default\ui\controls</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\controls\MoveViewController.h">
-      <Filter>src\default\ui\controls</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\controls\ShootViewController.h">
-      <Filter>src\default\ui\controls</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\cgame\default\ui\settings\SystemViewController.h">
       <Filter>src\default\ui\settings</Filter>
     </ClInclude>
@@ -174,11 +159,14 @@
     <ClInclude Include="..\src\cgame\default\ui\main\DialogViewController.h">
       <Filter>src\default\ui\main</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\common\QuetooTheme.h">
-      <Filter>src\default\ui\common</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\cgame\default\ui\home\HomeViewController.h">
       <Filter>src\default\ui\home</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\default\ui\controls\MovementCombatViewController.h">
+      <Filter>src\default\ui\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\default\ui\controls\ResponseServiceViewController.h">
+      <Filter>src\default\ui\controls</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -256,9 +244,6 @@
     <ClCompile Include="..\src\cgame\default\ui\common\CvarTextView.c">
       <Filter>src\default\ui\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\main\DialogView.c">
-      <Filter>src\default\ui\main</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\main\LoadingViewController.c">
       <Filter>src\default\ui\main</Filter>
     </ClCompile>
@@ -298,18 +283,6 @@
     <ClCompile Include="..\src\cgame\default\ui\controls\CrosshairView.c">
       <Filter>src\default\ui\controls</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\controls\LookViewController.c">
-      <Filter>src\default\ui\controls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\controls\MiscViewController.c">
-      <Filter>src\default\ui\controls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\controls\MoveViewController.c">
-      <Filter>src\default\ui\controls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\controls\ShootViewController.c">
-      <Filter>src\default\ui\controls</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\settings\SystemViewController.c">
       <Filter>src\default\ui\settings</Filter>
     </ClCompile>
@@ -325,11 +298,14 @@
     <ClCompile Include="..\src\cgame\default\ui\main\DialogViewController.c">
       <Filter>src\default\ui\main</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\common\QuetooTheme.c">
-      <Filter>src\default\ui\common</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\home\HomeViewController.c">
       <Filter>src\default\ui\home</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\ui\controls\MovementCombatViewController.c">
+      <Filter>src\default\ui\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\ui\controls\ResponseServiceViewController.c">
+      <Filter>src\default\ui\controls</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
