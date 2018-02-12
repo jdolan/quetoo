@@ -56,7 +56,7 @@ static void layoutSubviews(View *self) {
 	CrosshairView *this = (CrosshairView *) self;
 	if (this->imageView->image) {
 
-		const vec_t scale = cg_draw_crosshair_scale->value;
+		const vec_t scale = cg_draw_crosshair_scale->value * 0.125;
 
 		const SDL_Size size = MakeSize(
 			this->imageView->image->surface->w * scale,
