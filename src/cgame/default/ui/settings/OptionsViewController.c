@@ -57,6 +57,8 @@ static void didSelectQuality(Select *select, Option *option) {
 			cgi.CvarSetValue("r_stainmaps", 0.0);
 			cgi.CvarSetValue("cg_add_weather", 0.0);
 			break;
+		default:
+			break;
 	}
 
 	ViewController *this = select->delegate.self;
@@ -88,6 +90,7 @@ static void loadView(ViewController *self) {
 	self->view->stylesheet = cgi.Stylesheet("ui/settings/OptionsViewController.css");
 	assert(self->view->stylesheet);
 
+	$(quality, addOption, "Custom", (ident) -1);
 	$(quality, addOption, "Highest", (ident) 3);
 	$(quality, addOption, "High", (ident) 2);
 	$(quality, addOption, "Medium", (ident) 1);
