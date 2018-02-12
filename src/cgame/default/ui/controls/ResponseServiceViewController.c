@@ -140,6 +140,9 @@ static void loadView(ViewController *self) {
 
 	cgi.WakeView(self->view, "ui/controls/ResponseServiceViewController.json", outlets);
 
+	self->view->stylesheet = cgi.Stylesheet("ui/controls/ResponseServiceViewController.css");
+	assert(self->view->stylesheet);
+
 	$(self->view, enumerateSelection, "BindTextView", setDelegate, self);
 
 	$(crosshair, addOption, "", NULL);

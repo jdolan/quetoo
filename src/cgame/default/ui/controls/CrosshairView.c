@@ -120,14 +120,7 @@ static CrosshairView *initWithFrame(CrosshairView *self, const SDL_Rect *frame) 
 		self->imageView = $(alloc(ImageView), initWithFrame, NULL);
 		assert(self->imageView);
 
-		self->imageView->view.alignment = ViewAlignmentMiddleCenter;
-
 		$((View *) self, addSubview, (View *) self->imageView);
-
-		self->control.view.backgroundColor = Colors.Black;
-		self->control.view.backgroundColor.a = 48;
-
-		$((View *) self, updateBindings);
 	}
 
 	return self;
