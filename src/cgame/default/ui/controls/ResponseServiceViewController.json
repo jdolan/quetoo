@@ -103,9 +103,9 @@
                         },
                         "control": {
                           "class": "CvarSlider",
-                          "min": 80,
+                          "min": 90,
                           "max": 130,
-                          "step": 5,
+                          "step": 1,
                           "var": "cg_fov"
                         }
                       },
@@ -130,9 +130,9 @@
                         },
                         "control": {
                           "class": "CvarSlider",
-                          "min": 20,
-                          "max": 70,
-                          "step": 5,
+                          "min": 30,
+                          "max": 80,
+                          "step": 1,
                           "var": "cg_fov_zoom"
                         }
                       },
