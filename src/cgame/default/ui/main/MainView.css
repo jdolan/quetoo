@@ -32,7 +32,7 @@
 	autoresizing-mask: contain | width;
 	axis: horizontal;
 	background-color: #222222aa;
-	distribution: fill;
+	distribution: fill-equally;
 	padding: 4;
 	spacing: 12;
 }
@@ -48,4 +48,8 @@
 
 #primaryMenu Button > Text {
 	font-style: bold;
+}
+
+#secondaryMenu {
+	alignment: bottom-center;
 }
