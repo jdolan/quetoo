@@ -136,4 +136,4 @@ struct DialogViewControllerInterface {
  * @return The DialogViewController Class.
  * @memberof DialogViewController
  */
-Class *_DialogViewController(void);
+CGAME_EXPORT Class *_DialogViewController(void);

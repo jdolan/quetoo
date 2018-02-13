@@ -107,4 +107,4 @@ struct MainViewInterface {
  * @return The MainView Class.
  * @memberof MainView
  */
-Class *_MainView(void);
+CGAME_EXPORT Class *_MainView(void);
