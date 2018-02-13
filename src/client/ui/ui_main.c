@@ -36,7 +36,7 @@ static NavigationViewController *navigationViewController;
 void Ui_HandleEvent(const SDL_Event *event) {
 
 	if (windowController) {
-		
+
 		if (cls.key_state.dest != KEY_UI) {
 
 			switch (event->type) {
@@ -53,6 +53,8 @@ void Ui_HandleEvent(const SDL_Event *event) {
 		}
 
 		$(windowController, respondToEvent, event);
+	} else {
+		Com_Warn("windowController was NULL\n");
 	}
 }
 
@@ -64,6 +66,8 @@ void Ui_ViewWillAppear(void) {
 	if (windowController) {
 		$(windowController->viewController->view, updateBindings);
 		$(windowController->viewController, viewWillAppear);
+	} else {
+		Com_Warn("windowController was NULL\n");
 	}
 }
 
@@ -71,6 +75,8 @@ void Ui_ViewWillAppear(void) {
  * @brief
  */
 void Ui_Draw(void) {
+
+	assert(windowController);
 
 	Ui_CheckEditor();
 
@@ -91,8 +97,15 @@ void Ui_Draw(void) {
  * @brief
  */
 void Ui_PushViewController(ViewController *viewController) {
-	if (viewController) {
-		$(navigationViewController, pushViewController, viewController);
+
+	if (navigationViewController) {
+		if (viewController) {
+			$(navigationViewController, pushViewController, viewController);
+		} else {
+			Com_Warn("viewController was NULL\n");
+		}
+	} else {
+		Com_Warn("navigationViewController was NULL\n");
 	}
 }
 
@@ -100,8 +113,15 @@ void Ui_PushViewController(ViewController *viewController) {
  * @brief
  */
 void Ui_PopToViewController(ViewController *viewController) {
-	if (viewController) {
-		$(navigationViewController, popToViewController, viewController);
+
+	if (navigationViewController) {
+		if (viewController) {
+			$(navigationViewController, popToViewController, viewController);
+		} else {
+			Com_Warn("viewController was NULL\n");
+		}
+	} else {
+		Com_Warn("navigationViewController was NULL\n");
 	}
 }
 
@@ -109,14 +129,24 @@ void Ui_PopToViewController(ViewController *viewController) {
  * @brief
  */
 void Ui_PopViewController(void) {
-	$(navigationViewController, popViewController);
+
+	if (navigationViewController) {
+		$(navigationViewController, popViewController);
+	} else {
+		Com_Warn("navigationViewController was NULL\n");
+	}
 }
 
 /**
  * @brief
  */
 void Ui_PopAllViewControllers(void) {
-	$(navigationViewController, popToRootViewController);
+
+	if (navigationViewController) {
+		$(navigationViewController, popToRootViewController);
+	} else {
+		Com_Warn("navigationViewController was NULL\n");
+	}
 }
 
 /**
