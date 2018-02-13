@@ -172,6 +172,7 @@ static face_t *NewFaceFromFace(const face_t *f) {
 void FreeFace(face_t *f) {
 	if (f->w) {
 		FreeWinding(f->w);
+		f->w = NULL;
 	}
 	Mem_Free(f);
 	c_faces--;
@@ -441,10 +442,15 @@ static void FixEdges_r(node_t *node) {
 	}
 }
 
+void FixTJunctionsQ3( node_t *node );
+
 /**
  * @brief
  */
 void FixTjuncs(node_t *head_node) {
+	FixTJunctionsQ3(head_node);
+	FixTJunctionsQ3(head_node);
+
 	// snap and merge all vertexes
 	Com_Verbose("---- Fixing T Junctions ----\n");
 	memset(hash_verts, 0, sizeof(hash_verts));
@@ -461,7 +467,7 @@ void FixTjuncs(node_t *head_node) {
 	c_facecollapse = 0;
 	c_tjunctions = 0;
 	if (!notjunc) {
-		FixEdges_r(head_node);
+		//FixEdges_r(head_node);
 	}
 	Com_Verbose("%5i edges degenerated\n", c_degenerate);
 	Com_Verbose("%5i faces degenerated\n", c_facecollapse);

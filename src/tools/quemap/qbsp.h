@@ -89,7 +89,7 @@ typedef struct face_s {
 	int32_t output_number;
 	winding_t *w;
 	int32_t num_points;
-	int32_t vertexnums[MAXEDGES];
+	int32_t vertexnums[MAX_BSP_FACE_EDGES / 256];
 } face_t;
 
 typedef struct brush_s {

@@ -46,6 +46,7 @@
     <ClCompile Include="..\src\tools\quemap\scriptlib.c" />
     <ClCompile Include="..\src\tools\quemap\textures.c" />
     <ClCompile Include="..\src\tools\quemap\threads.c" />
+    <ClCompile Include="..\src\tools\quemap\tjunctions.c" />
     <ClCompile Include="..\src\tools\quemap\tree.c" />
     <ClCompile Include="..\src\tools\quemap\writebsp.c" />
     <ClCompile Include="src\main\winmain.c" />
