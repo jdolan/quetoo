@@ -44,6 +44,8 @@ vec_t contrast = 1.0;
 vec_t surface_scale = 1.0;
 vec_t entity_scale = 1.0;
 
+int32_t current_bounce = 1;
+
 /**
  * @brief
  */
@@ -176,8 +178,16 @@ static void LightWorld(void) {
 	// free the direct light sources
 	Mem_FreeTag(MEM_TAG_LIGHT);
 
-	if (indirect) { // calculate indirect lighting
-		RunThreadsOn(bsp_file.num_faces, true, IndirectLighting);
+	for (int32_t i = 0; i < 4; i++) {
+		if (indirect) { // calculate indirect lighting
+			current_bounce = i + 1;
+
+			BuildIndirectLights();
+			RunThreadsOn(bsp_file.num_faces, true, IndirectLighting);
+
+			// free the indirect light sources
+			Mem_FreeTag(MEM_TAG_LIGHT);
+		}
 	}
 
 	// finalize it and write it out

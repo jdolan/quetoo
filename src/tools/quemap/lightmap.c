@@ -753,14 +753,18 @@ static void SampleNormal(const bsp_face_t *face, const vec3_t pos, vec3_t normal
 	VectorNormalize(normal);
 }
 
-#define MAX_SAMPLES 5
+#define MAX_SAMPLES 9
 
 static const vec_t sampleofs[MAX_SAMPLES][2] = {
-	{ 0.0, 0.0 },
-	{ -0.5, -0.5 },
-	{ 0.5, -0.5 },
-	{ 0.5, 0.5 },
-	{ -0.5, 0.5 }
+	{ -0.5, -0.5 },{ +0.0, -0.5 },{ +0.5, -0.5 },
+	{ -0.5, +0.0 },{ +0.0, +0.0 },{ +0.5, +0.0 },
+	{ -0.5, +0.5 },{ +0.0, +0.5 },{ +0.5, +0.5 }
+};
+
+static const vec_t samplewgh[MAX_SAMPLES] = {
+	0.077847, 0.123317, 0.077847,
+	0.123317, 0.195346, 0.123317,
+	0.077847, 0.123317, 0.077847
 };
 
 /**
@@ -829,6 +833,10 @@ void DirectLighting(int32_t face_num) {
 	fl->directions = Mem_TagMalloc(fl->num_samples * sizeof(vec3_t), MEM_TAG_FACE_LIGHTING);
 	fl->indirect = Mem_TagMalloc(fl->num_samples * sizeof(vec3_t), MEM_TAG_FACE_LIGHTING);
 
+	memset(fl->direct, 0, fl->num_samples * sizeof(vec3_t));
+	memset(fl->directions, 0, fl->num_samples * sizeof(vec3_t));
+	memset(fl->indirect, 0, fl->num_samples * sizeof(vec3_t));
+
 	const vec_t *center = face_extents[face_num].center; // center of the face
 
 	for (int32_t i = 0; i < fl->num_samples; i++) { // calculate light for each sample
@@ -861,7 +869,7 @@ void DirectLighting(int32_t face_num) {
 			TangentVectors(normal, light.texinfo->vecs[0], light.texinfo->vecs[1], tangent, bitangent);
 
 			// query all light sources within range for their contribution
-			GatherSampleLight(pos, tangent, bitangent, normal, pvs, sample, direction, 1.0 / num_samples);
+			GatherSampleLight(pos, tangent, bitangent, normal, pvs, sample, direction, samplewgh[j]);
 		}
 	}
 
@@ -928,6 +936,87 @@ void IndirectLightingImpact(const cm_trace_t *trace, const vec3_t color) {
 }
 
 /**
+* @brief
+*/
+void BuildIndirectLights(void) {
+	int32_t i, face_num;
+
+	num_lights = 0;
+	memset(lights, 0, sizeof(lights));
+
+	for (face_num = 0; face_num < bsp_file.num_faces; face_num++) {
+		const bsp_face_t *face = &bsp_file.faces[face_num];
+		const bsp_texinfo_t *texinfo = &bsp_file.texinfo[face->texinfo];
+		const bsp_plane_t *plane = &bsp_file.planes[face->plane_num];
+
+		if (texinfo->flags & (SURF_SKY | SURF_WARP | SURF_LIGHT | SURF_HINT | SURF_NO_DRAW)) {
+			continue; // we have no light to reflect
+		}
+
+		const face_lighting_t *fl = &face_lighting[face_num];
+
+		vec3_t normal;
+
+		if (face->side) {
+			VectorNegate(plane->normal, normal);
+		}
+		else {
+			VectorCopy(plane->normal, normal);
+		}
+
+		const vec_t *center = face_extents[face_num].center;
+
+		for (i = 0; i < fl->num_samples; i++) {
+			byte pvs[(MAX_BSP_LEAFS + 7) / 8];
+
+			vec3_t direct, indirect, color;
+			VectorCopy(fl->direct + i * 3, direct);
+			VectorCopy(fl->indirect + i * 3, indirect);
+			VectorAdd(direct, indirect, color);
+
+			if (VectorCompare(color, vec3_origin)) {
+				continue;
+			}
+
+			vec3_t point, position;
+
+			VectorCopy(fl->origins + i * 3, point);
+
+			if (texinfo->flags & SURF_PHONG) {
+				SampleNormal(face, position, normal);
+			}
+
+			vec3_t offset;
+			VectorScale(normal, 1.0, offset);
+
+			VectorAdd(point, offset, point);
+
+			if (!NudgeSamplePosition(point, normal, center, position, pvs)) {
+				continue;
+			}			
+
+			num_lights++;
+			light_t *light = Mem_TagMalloc(sizeof(*light), MEM_TAG_LIGHT);
+
+			VectorCopy(position, light->origin);
+
+			const bsp_leaf_t *leaf = &bsp_file.leafs[Light_PointLeafnum(light->origin)];
+			const int16_t cluster = leaf->cluster;
+			light->next = lights[cluster];
+			lights[cluster] = light;
+
+			light->type = LIGHT_SPOT;
+			light->stopdot = 1.0;
+
+			VectorCopy(normal, light->normal);
+
+			VectorScale(color, 1.0 / 255.0 / 256.0 / (float)current_bounce, light->color);
+			light->intensity = 256;
+		}
+	}
+}
+
+/**
  * @brief Calculates indirect lighting via photon bouncing.
  * @details Direct lighting results are reflected outwards. Hits on neighboring surfaces are
  * traced to their lightmap sample, much like stain mapping.
@@ -938,11 +1027,10 @@ void IndirectLighting(int32_t face_num) {
 	const bsp_face_t *face = &bsp_file.faces[face_num];
 	const bsp_texinfo_t *texinfo = &bsp_file.texinfo[face->texinfo];
 
-	if (texinfo->flags & (SURF_SKY | SURF_WARP)) {
+	if (texinfo->flags & (SURF_SKY | SURF_WARP | SURF_HINT | SURF_NO_DRAW)) {
 		return; // we have no light to reflect
 	}
 
-	const cm_material_t *material = LoadMaterial(texinfo->texture, ASSET_CONTEXT_TEXTURES);
 	const bsp_plane_t *plane = &bsp_file.planes[face->plane_num];
 
 	vec3_t normal;
@@ -952,37 +1040,37 @@ void IndirectLighting(int32_t face_num) {
 	} else {
 		VectorCopy(plane->normal, normal);
 	}
+	
+	const vec_t *center = face_extents[face_num].center; // center of the face
 
-	const face_lighting_t *source_lighting = &face_lighting[face_num];
+	face_lighting_t *fl = &face_lighting[face_num];
 
-	for (int32_t i = 0; i < source_lighting->num_samples; i++) {
+	for (int32_t i = 0; i < fl->num_samples; i++) { // calculate light for each sample
 
-		const vec_t *org = source_lighting->origins + i * 3;
-		const vec_t *sample = source_lighting->direct + i * 3;
-		const vec_t *direction = source_lighting->directions + i * 3;
+		vec_t *sample = fl->indirect + i * 3; // accumulate lighting here
+		vec_t *direction = fl->directions + i * 3; // accumulate direction here
 
-		vec3_t color;
-		VectorCopy(sample, color);
+		byte pvs[(MAX_BSP_LEAFS + 7) / 8];
 
-		const vec_t light = VectorLength(color) * material->hardness;
-		ColorNormalize(color, color);
+		const vec_t *point = fl->origins + i * 3;
 
-		vec3_t reflect;
-		Reflect(direction, normal, reflect);
-
-		vec3_t end;
-		VectorMA(org, light, reflect, end);
-
-		cm_trace_t trace;
-		Light_Trace(&trace, org, end, CONTENTS_SOLID);
-
-		if (trace.all_solid || trace.fraction == 1.0) {
-			continue;
+		if (texinfo->flags & SURF_PHONG) { // interpolated normal
+			SampleNormal(face, point, normal);
 		}
 
-		assert(trace.surface);
+		vec3_t position;
 
-		IndirectLightingImpact(&trace, color);
+		if (!NudgeSamplePosition(point, normal, center, position, pvs)) {
+			continue; // not a valid point
+		}
+
+		vec4_t tangent;
+		vec3_t bitangent;
+
+		TangentVectors(normal, texinfo->vecs[0], texinfo->vecs[1], tangent, bitangent);
+
+		// query all light sources within range for their contribution
+		GatherSampleLight(position, tangent, bitangent, normal, pvs, sample, direction, 1.0);
 	}
 }
 
@@ -1031,13 +1119,14 @@ void FinalizeLighting(int32_t face_num) {
 		const vec_t *indirect = fl->indirect + i * 3;
 
 		// start with raw sample data
+		// VectorCopy(indirect, lightmap);
 		VectorAdd(direct, indirect, lightmap);
 
 		// convert to float
 		VectorScale(lightmap, 1.0 / 255.0, lightmap);
 
 		// add an ambient term if desired
-		VectorAdd(lightmap, ambient, lightmap);
+		// VectorAdd(lightmap, ambient, lightmap);
 
 		// apply brightness, saturation and contrast
 		ColorFilter(lightmap, lightmap, brightness, saturation, contrast);
