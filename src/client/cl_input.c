@@ -377,7 +377,7 @@ static void Cl_UpdateMouseState(void) {
 		cls.mouse_state.grabbed = false;
 	}
 
-	if (cls.key_state.dest == KEY_UI || !m_grab->integer) {
+	if (cls.key_state.dest == KEY_UI || (m_grab && !m_grab->integer)) {
 		if (cls.mouse_state.grabbed) {
 			SDL_ShowCursor(true);
 			SDL_SetWindowGrab(r_context.window, false);

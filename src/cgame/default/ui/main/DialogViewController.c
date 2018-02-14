@@ -34,13 +34,13 @@ static void action(Control *control, const SDL_Event *event, ident sender, ident
 
 	DialogViewController *this = (DialogViewController *) sender;
 
-	if (control == (Control *) this->dialogView->okButton) {
+	if (control == (Control *) this->okButton) {
 		if (this->dialog.okFunction) {
 			this->dialog.okFunction(this->dialog.data);
 		} else {
 			cgi.Warn("okFunction was NULL\n");
 		}
-	} else if (control == (Control *) this->dialogView->cancelButton) {
+	} else if (control == (Control *) this->cancelButton) {
 		if (this->dialog.cancelFunction) {
 			this->dialog.cancelFunction(this->dialog.data);
 		}
@@ -49,20 +49,6 @@ static void action(Control *control, const SDL_Event *event, ident sender, ident
 	}
 
 	$((ViewController *) this, removeFromParentViewController);
-}
-
-#pragma mark - Object
-
-/**
- * @see Object::dealloc(Object *)
- */
-static void dealloc(Object *self) {
-
-	DialogViewController *this = (DialogViewController *) self;
-
-	release(this->dialogView);
-
-	super(Object, self, dealloc);
 }
 
 #pragma mark - ViewController
@@ -76,21 +62,23 @@ static void loadView(ViewController *self) {
 
 	DialogViewController *this = (DialogViewController *) self;
 
-	this->dialogView = $(alloc(DialogView), init);
-	assert(this->dialogView);
+	Outlet outlets[] = MakeOutlets(
+		MakeOutlet("message", &this->message),
+		MakeOutlet("cancel", &this->cancelButton),
+		MakeOutlet("ok", &this->okButton)
+	);
 
-	$(this->dialogView->message->text, setText, this->dialog.message);
+	cgi.WakeView(self->view, "ui/main/DialogViewController.json", outlets);
 
-	$(this->dialogView->okButton->title, setText, this->dialog.ok);
-	$(this->dialogView->cancelButton->title, setText, this->dialog.cancel);
+	self->view->stylesheet = cgi.Stylesheet("ui/main/DialogViewController.css");
+	assert(self->view->stylesheet);
 
-	Control *ok = (Control *) this->dialogView->okButton;
-	$(ok, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, NULL);
+	$(this->message->text, setText, this->dialog.message);
+	$(this->cancelButton->title, setText, this->dialog.cancel);
+	$(this->okButton->title, setText, this->dialog.ok);
 
-	Control *cancel = (Control *) this->dialogView->cancelButton;
-	$(cancel, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, NULL);
-
-	$(self->view, addSubview, (View *) this->dialogView);
+	$((Control *) this->okButton, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, NULL);
+	$((Control *) this->cancelButton, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, NULL);
 }
 
 #pragma mark - DialogViewController
@@ -116,8 +104,6 @@ static DialogViewController *initWithDialog(DialogViewController *self, const Di
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
-
-	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 

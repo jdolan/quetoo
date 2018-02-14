@@ -42,35 +42,59 @@ static void dealloc(Object *self) {
 #pragma mark - View
 
 /**
+ * @see View::awakeWithDictionary(View *, const Dictionary *)
+ */
+static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
+
+	super(View, self, awakeWithDictionary, dictionary);
+
+	BindTextView *this = (BindTextView *) self;
+
+	const Inlet inlets[] = MakeInlets(
+		MakeInlet("bind", InletTypeCharacters, &this->bind, NULL)
+	);
+
+	$(self, bind, inlets, dictionary);
+}
+
+/**
+ * @see View::init(View *)
+ */
+static View *init(View *self) {
+	return (View *) $((BindTextView *) self, initWithBind, NULL);
+}
+
+/**
  * @see View::updateBindings(View *)
  */
 static void updateBindings(View *self) {
 
 	super(View, self, updateBindings);
 
-	TextView *this = (TextView *) self;
+	BindTextView *this = (BindTextView *) self;
+	if (this->bind) {
 
-	free(this->defaultText);
-	this->defaultText = NULL;
+		MutableArray *keys = $$(MutableArray, array);
+		SDL_Scancode key = SDL_SCANCODE_UNKNOWN;
+		while (true) {
+			key = cgi.KeyForBind(key, ((BindTextView *) this)->bind);
+			if (key == SDL_SCANCODE_UNKNOWN) {
+				break;
+			}
 
-	MutableArray *keys = $$(MutableArray, array);
-	SDL_Scancode key = SDL_SCANCODE_UNKNOWN;
-	while (true) {
-		key = cgi.KeyForBind(key, ((BindTextView *) this)->bind);
-		if (key == SDL_SCANCODE_UNKNOWN) {
-			break;
+			$(keys, addObject, str(cgi.KeyName(key)));
 		}
 
-		$(keys, addObject, str(cgi.KeyName(key)));
-	}
-
-	if (keys->array.count) {
 		String *keyNames = $((Array *) keys, componentsJoinedByCharacters, ", ");
-		this->defaultText = strdup(keyNames->chars);
-		release(keyNames);
-	}
 
-	release(keys);
+		$((TextView *) self, setDefaultText, keyNames->chars);
+
+		release(keyNames);
+		release(keys);
+
+	} else {
+		$((TextView *) self, setDefaultText, NULL);
+	}
 }
 
 #pragma mark - Control
@@ -131,12 +155,8 @@ static BindTextView *initWithBind(BindTextView *self, const char *bind) {
 	self = (BindTextView *) super(TextView, self, initWithFrame, NULL);
 	if (self) {
 
-		self->bind = strdup(bind);
+		self->bind = strdup(bind ?: "");
 		assert(self->bind);
-
-		self->textView.control.view.frame.w = BIND_TEXTVIEW_WIDTH;
-
-		$((View *) self, updateBindings);
 	}
 
 	return self;
@@ -151,6 +171,8 @@ static void initialize(Class *clazz) {
 
 	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
+	((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
+	((ViewInterface *) clazz->interface)->init = init;
 	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
 	((ControlInterface *) clazz->interface)->captureEvent = captureEvent;

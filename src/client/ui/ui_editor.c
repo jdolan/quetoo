@@ -22,7 +22,7 @@
 #include "ui_local.h"
 #include "client.h"
 
-#include "viewcontrollers/EditorViewController.h"
+#include "editor/EditorViewController.h"
 
 extern cl_static_t cls;
 

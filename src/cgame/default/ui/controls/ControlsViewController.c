@@ -23,12 +23,8 @@
 
 #include "ControlsViewController.h"
 
-#include "LookViewController.h"
-#include "MiscViewController.h"
-#include "MoveViewController.h"
-#include "ShootViewController.h"
-
-#include "QuetooTheme.h"
+#include "ResponseServiceViewController.h"
+#include "MovementCombatViewController.h"
 
 #define _Class _ControlsViewController
 
@@ -54,40 +50,27 @@ static void loadView(ViewController *self) {
 
 	ControlsViewController *this = (ControlsViewController *) self;
 
-	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
-	assert(theme);
+	View *view = cgi.View("ui/controls/ControlsViewController.json", NULL);
+	assert(view);
 
-	Panel *panel = $(theme, panel);
-
-	$(theme, attach, panel);
-	$(theme, target, panel->contentView);
+	$(self, setView, view);
+	release(view);
 
 	this->tabViewController = $(alloc(TabViewController), init);
 	assert(this->tabViewController);
 
 	ViewController *viewController, *tabViewController = (ViewController *) this->tabViewController;
 
-	viewController = $((ViewController *) alloc(LookViewController), init);
+	viewController = $((ViewController *) alloc(MovementCombatViewController), init);
 	$(tabViewController, addChildViewController, viewController);
 	release(viewController);
 
-	viewController = $((ViewController *) alloc(MoveViewController), init);
-	$(tabViewController, addChildViewController, viewController);
-	release(viewController);
-
-	viewController = $((ViewController *) alloc(ShootViewController), init);
-	$(tabViewController, addChildViewController, viewController);
-	release(viewController);
-
-	viewController = $((ViewController *) alloc(MiscViewController), init);
+	viewController = $((ViewController *) alloc(ResponseServiceViewController), init);
 	$(tabViewController, addChildViewController, viewController);
 	release(viewController);
 
 	$(self, addChildViewController, tabViewController);
-	$(theme, attach, tabViewController->view);
-
-	release(panel);
-	release(theme);
+	$((View *) ((Panel *) view)->contentView, addSubview, tabViewController->view);
 }
 
 #pragma mark - Class lifecycle

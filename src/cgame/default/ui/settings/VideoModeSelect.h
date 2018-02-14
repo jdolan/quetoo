@@ -82,5 +82,5 @@ struct VideoModeSelectInterface {
  * @return The VideoModeSelect Class.
  * @memberof VideoModeSelect
  */
-extern Class *_VideoModeSelect(void);
+CGAME_EXPORT Class *_VideoModeSelect(void);
 

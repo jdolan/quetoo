@@ -28,6 +28,30 @@
 #pragma mark - View
 
 /**
+ * @see View::awakeWithDictionary(View *, const Dictionary *)
+ */
+static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
+
+	super(View, self, awakeWithDictionary, dictionary);
+
+	CvarSelect *this = (CvarSelect *) self;
+
+	const Inlet inlets[] = MakeInlets(
+		MakeInlet("expectsStringValue", InletTypeBool, &this->expectsStringValue, NULL),
+		MakeInlet("var", InletTypeApplicationDefined, &this->var, Cg_BindCvar)
+	);
+
+	$(self, bind, inlets, dictionary);
+}
+
+/**
+ * @see View::init(View *)
+ */
+static View *init(View *self) {
+	return (View *) $((CvarSelect *) self, initWithVariable, NULL);
+}
+
+/**
  * @see View::updateBindings(View *)
  */
 static void updateBindings(View *self) {
@@ -53,16 +77,6 @@ static void updateBindings(View *self) {
 #pragma mark - Select
 
 /**
- * @see Select::addOption(Select *, const char *, ident)
- */
-static void addOption(Select *self, const char *title, ident value) {
-
-	super(Select, self, addOption, title, value);
-
-	$((View *) self, updateBindings);
-}
-
-/**
  * @see Select::selectOptionWithValue(Select *, ident)
  */
 static void selectOptionWithValue(Select *self, ident value) {
@@ -72,7 +86,7 @@ static void selectOptionWithValue(Select *self, ident value) {
 		const CvarSelect *this = (CvarSelect *) self;
 
 		if (this->expectsStringValue) {
-			cgi.CvarSet(this->var->name, option->title->text);
+			cgi.CvarSet(this->var->name, option->value ? (char *) option->value : option->title->text);
 		} else {
 			cgi.CvarSetValue(this->var->name, (int32_t) (intptr_t) option->value);
 		}
@@ -92,9 +106,7 @@ static CvarSelect *initWithVariable(CvarSelect *self, cvar_t *var) {
 
 	self = (CvarSelect *) super(Select, self, initWithFrame, NULL);
 	if (self) {
-
 		self->var = var;
-		assert(self->var);
 	}
 
 	return self;
@@ -116,9 +128,10 @@ static CvarSelect *initWithVariableName(CvarSelect *self, const char *name) {
  */
 static void initialize(Class *clazz) {
 
+	((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
+	((ViewInterface *) clazz->interface)->init = init;
 	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-	((SelectInterface *) clazz->interface)->addOption = addOption;
 	((SelectInterface *) clazz->interface)->selectOptionWithValue = selectOptionWithValue;
 
 	((CvarSelectInterface *) clazz->interface)->initWithVariable = initWithVariable;
@@ -148,4 +161,3 @@ Class *_CvarSelect(void) {
 }
 
 #undef _Class
-

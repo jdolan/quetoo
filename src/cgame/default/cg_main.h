@@ -95,6 +95,6 @@ extern cvar_t *g_ai_max_clients;
 
 extern cg_import_t cgi;
 
-cg_export_t *Cg_LoadCgame(cg_import_t *import);
+CGAME_EXPORT cg_export_t *Cg_LoadCgame(cg_import_t *import);
 
 #endif /* __CG_LOCAL_H__ */

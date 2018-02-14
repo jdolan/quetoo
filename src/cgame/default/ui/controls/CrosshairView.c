@@ -42,6 +42,13 @@ static void dealloc(Object *self) {
 #pragma mark - View
 
 /**
+ * @see View::init(View *)
+ */
+static View *init(View *self) {
+	return (View *) $((CrosshairView *) self, initWithFrame, NULL);
+}
+
+/**
  * @see View::layoutSubviews(View *)
  */
 static void layoutSubviews(View *self) {
@@ -49,7 +56,7 @@ static void layoutSubviews(View *self) {
 	CrosshairView *this = (CrosshairView *) self;
 	if (this->imageView->image) {
 
-		const vec_t scale = cg_draw_crosshair_scale->value;
+		const vec_t scale = cg_draw_crosshair_scale->value * 0.125;
 
 		const SDL_Size size = MakeSize(
 			this->imageView->image->surface->w * scale,
@@ -113,14 +120,7 @@ static CrosshairView *initWithFrame(CrosshairView *self, const SDL_Rect *frame) 
 		self->imageView = $(alloc(ImageView), initWithFrame, NULL);
 		assert(self->imageView);
 
-		self->imageView->view.alignment = ViewAlignmentMiddleCenter;
-
 		$((View *) self, addSubview, (View *) self->imageView);
-
-		self->control.view.backgroundColor = Colors.Black;
-		self->control.view.backgroundColor.a = 48;
-
-		$((View *) self, updateBindings);
 	}
 
 	return self;
@@ -135,6 +135,7 @@ static void initialize(Class *clazz) {
 
 	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
+	((ViewInterface *) clazz->interface)->init = init;
 	((ViewInterface *) clazz->interface)->layoutSubviews = layoutSubviews;
 	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 

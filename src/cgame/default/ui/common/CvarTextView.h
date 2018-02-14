@@ -84,5 +84,5 @@ struct CvarTextViewInterface {
  * @return The CvarTextView Class.
  * @memberof CvarTextView
  */
-extern Class *_CvarTextView(void);
+CGAME_EXPORT Class *_CvarTextView(void);
 

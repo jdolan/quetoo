@@ -28,32 +28,62 @@
 #pragma mark - View
 
 /**
+ * @see View::awakeWithDictionary(View *, const Dictionary *)
+ */
+static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
+
+	super(View, self, awakeWithDictionary, dictionary);
+
+	CvarTextView *this = (CvarTextView *) self;
+
+	const Inlet inlets[] = MakeInlets(
+		MakeInlet("var", InletTypeApplicationDefined, &this->var, Cg_BindCvar)
+	);
+
+	$(self, bind, inlets, dictionary);
+}
+
+/**
+ * @see View::init(View *)
+ */
+static View *init(View *self) {
+	return (View *) $((CvarTextView *) self, initWithVariable, NULL);
+}
+
+/**
  * @see View::updateBindings(View *)
  */
 static void updateBindings(View *self) {
 
 	super(View, self, updateBindings);
 
-	TextView *this = (TextView *) self;
+	CvarTextView *this = (CvarTextView *) self;
+	if (this->var) {
+		$((TextView *) self, setDefaultText, this->var->string);
+	} else {
+		$((TextView *) self, setDefaultText, NULL);
+	}
+}
 
-	const cvar_t *var = ((CvarTextView *) self)->var;
+#pragma mark - Control
 
-	free(this->defaultText);
+/**
+ * @see Control::stateDidChange(Control *)
+ */
+static void stateDidChange(Control *self) {
 
-	this->defaultText = strdup(var->string);
+	super(Control, self, stateDidChange);
+
+	const CvarTextView *this = (CvarTextView *) self;
+	if (this->var) {
+		if (!$(self, isFocused)) {
+			const String *string = (String *) this->textView.attributedText;
+			cgi.CvarSet(this->var->name, string->chars);
+		}
+	}
 }
 
 #pragma mark - CvarTextView
-
-/**
- * @brief TextViewDelegate callback.
- */
-static void didEndEditing(TextView *textView) {
-
-	const CvarTextView *this = (CvarTextView *) textView;
-
-	cgi.CvarSet(this->var->name, textView->attributedText->string.chars);
-}
 
 /**
  * @fn CvarTextView *CvarTextView::initWithVariable(CvarTextView *self, cvar_t *var)
@@ -64,13 +94,7 @@ static CvarTextView *initWithVariable(CvarTextView *self, cvar_t *var) {
 
 	self = (CvarTextView *) super(TextView, self, initWithFrame, NULL);
 	if (self) {
-
 		self->var = var;
-		assert(self->var);
-
-		self->textView.delegate.didEndEditing = didEndEditing;
-
-		$((View *) self, updateBindings);
 	}
 
 	return self;
@@ -83,7 +107,11 @@ static CvarTextView *initWithVariable(CvarTextView *self, cvar_t *var) {
  */
 static void initialize(Class *clazz) {
 
+	((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
+	((ViewInterface *) clazz->interface)->init = init;
 	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+
+	((ControlInterface *) clazz->interface)->stateDidChange = stateDidChange;
 
 	((CvarTextViewInterface *) clazz->interface)->initWithVariable = initWithVariable;
 }

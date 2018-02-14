@@ -28,8 +28,6 @@
  * @brief A TextView bound to a key binding.
  */
 
-#define BIND_TEXTVIEW_WIDTH 140
-
 typedef struct BindTextView BindTextView;
 typedef struct BindTextViewInterface BindTextViewInterface;
 
@@ -83,4 +81,4 @@ struct BindTextViewInterface {
  * @return The BindTextView Class.
  * @memberof BindTextView
  */
-Class *_BindTextView(void);
+CGAME_EXPORT Class *_BindTextView(void);

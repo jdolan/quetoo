@@ -22,29 +22,8 @@
 #include "cg_local.h"
 
 #include "MainView.h"
-#include "QuetooTheme.h"
 
 #define _Class _MainView
-
-#pragma mark - Object
-
-/**
- * @see Object::dealloc(Object *)
- */
-static void dealloc(Object *self) {
-
-	MainView *this = (MainView *) self;
-
-	release(this->background);
-	release(this->topBar);
-	release(this->primaryButtons);
-	release(this->primaryIcons);
-	release(this->bottomBar);
-	release(this->logo);
-	release(this->version);
-
-	super(Object, self, dealloc);
-}
 
 #pragma mark - View
 
@@ -62,7 +41,7 @@ static void updateBindings(View *self) {
 	this->background->view.hidden = isActive;
 	this->logo->view.hidden = isActive;
 	this->version->view.hidden = isActive;
-	this->bottomBar->view.hidden = !isActive;
+	this->secondaryMenu->view.hidden = !isActive;
 }
 
 #pragma mark - MainView
@@ -76,114 +55,24 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 	self = (MainView *) super(View, self, initWithFrame, frame);
 	if (self) {
 
+		Outlet outlets[] = MakeOutlets(
+			MakeOutlet("background", &self->background),
+			MakeOutlet("logo", &self->logo),
+			MakeOutlet("version", &self->version),
+			MakeOutlet("contentView", &self->contentView),
+			MakeOutlet("primaryMenu", &self->primaryMenu),
+			MakeOutlet("secondaryMenu", &self->secondaryMenu)
+		);
+
 		View *this = (View *) self;
-		this->identifier = strdup("main");
 
+		cgi.WakeView(this, "ui/main/MainView.json", outlets);
 		this->stylesheet = cgi.Stylesheet("ui/main/MainView.css");
-		assert(this->stylesheet);
 
-		QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self);
-		assert(theme);
+		cgi.SetImage(self->background, va("ui/backgrounds/%d", Random() % 6));
+		cgi.SetImage(self->logo, "ui/logo");
 
-		{
-			self->background = $(theme, image, va("ui/backgrounds/%d", Random() % 6), NULL);
-			assert(self->background);
-
-			self->background->view.autoresizingMask = ViewAutoresizingFill;
-
-			$(this, addSubview, (View *) self->background);
-		}
-
-		{
-			self->logo = $(theme, image, "ui/logo", NULL);
-			assert(self->logo);
-
-			self->logo->view.alignment = ViewAlignmentBottomRight;
-
-			$(this, addSubview, (View *) self->logo);
-		}
-
-		{
-			self->version = $(alloc(Label), initWithText, va("Quetoo %s", cgi.CvarGet("version")->string), NULL);
-			assert(self->version);
-
-			self->version->text->color = theme->colors.watermark;
-			self->version->view.alignment = ViewAlignmentBottomLeft;
-
-			$(this, addSubview, (View *) self->version);
-		}
-
-		{
-			self->contentView = $(alloc(View), initWithFrame, NULL);
-			assert(self->contentView);
-
-			self->contentView->autoresizingMask = ViewAutoresizingFill;
-			self->contentView->clipsSubviews = true;
-			self->contentView->padding.top = 36;
-			self->contentView->padding.bottom = 36;
-
-			$(this, addSubview, (View *) self->contentView);
-		}
-
-		{
-			self->topBar = $(alloc(StackView), initWithFrame, NULL);
-			assert(self->topBar);
-
-			self->topBar->view.identifier = strdup("topBar");
-
-			self->topBar->axis = StackViewAxisHorizontal;
-			self->topBar->distribution = StackViewDistributionFill;
-			self->topBar->view.alignment = ViewAlignmentTopCenter;
-			self->topBar->view.autoresizingMask |= ViewAutoresizingWidth;
-			self->topBar->view.backgroundColor = theme->colors.mainHighlight;
-			self->topBar->view.borderColor = theme->colors.lightBorder;
-			self->topBar->view.padding.right = 12;
-			self->topBar->view.padding.left = 12;
-
-			self->primaryButtons = $(alloc(StackView), initWithFrame, NULL);
-			assert(self->primaryButtons);
-
-			$((View *) self->primaryButtons, addClassName, "primaryButtons");
-
-			self->primaryButtons->axis = StackViewAxisHorizontal;
-			self->primaryButtons->spacing = 12;
-			self->primaryButtons->view.alignment = ViewAlignmentMiddleLeft;
-
-			$((View *) self->topBar, addSubview, (View *) self->primaryButtons);
-
-			self->primaryIcons = $(alloc(StackView), initWithFrame, NULL);
-			assert(self->primaryIcons);
-
-			$((View *) self->primaryIcons, addClassName, "primaryIcons");
-
-			self->primaryIcons->axis = StackViewAxisHorizontal;
-			self->primaryIcons->spacing = 12;
-			self->primaryIcons->view.alignment = ViewAlignmentMiddleRight;
-
-			$((View *) self->topBar, addSubview, (View *) self->primaryIcons);
-
-			$(this, addSubview, (View *) self->topBar);
-		}
-
-		{
-			self->bottomBar = $(alloc(StackView), initWithFrame, NULL);
-			assert(self->bottomBar);
-
-			self->bottomBar->view.identifier = strdup("bottomBar");
-
-			self->bottomBar->axis = StackViewAxisHorizontal;
-			self->bottomBar->spacing = 12;
-			self->bottomBar->view.alignment = ViewAlignmentBottomCenter;
-			self->bottomBar->view.autoresizingMask |= ViewAutoresizingWidth;
-			self->bottomBar->view.backgroundColor = theme->colors.mainHighlight;
-			self->bottomBar->view.borderColor = theme->colors.lightBorder;
-			self->bottomBar->view.padding.right = 12;
-			self->bottomBar->view.padding.left = 12;
-
-			$(this, addSubview, (View *) self->bottomBar);
-		}
-
-		release(theme);
+		$(self->version->text, setText, va("Quetoo %s", cgi.CvarGet("version")->string));
 	}
 
 	return self;
@@ -195,8 +84,6 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
-
-	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
 	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 

@@ -3,18 +3,53 @@
 	spacing: 12;
 }
 
-Panel Input Label {
-	min-width: 200;
+Box {
+	border-color: #1e4e62;
+}
+
+Box > Label {
+	background-color: #0c1f27;
+}
+
+Box > .contentView > Input > Label {
+	min-width: 180;
+}
+
+Panel {
+	background-color: #08151aaa;
+}
+
+Panel.menu {
+	resizable: false;
+	draggable: false;
+}
+
+Panel.menu .tabPageView {
+	autoresizing-mask: none;
+	width: 1200;
+	height: 600;
+}
+
+TabView > .tabSelectionView > Label.selected {
+	background-color: #1e4e62aa;
 }
 
 .columns {
+	autoreizing-mask: contain | width;
 	axis: horizontal;
 	distribution: fill;
-	spacing: 24;
 }
 
 .columns > .column {
-	min-width: 400;
+	autoresizing-mask: contain | height;
+	distribution: fill;
+	width: 384;
+}
+
+.columns > .column-2 {
+	autoresizing-mask: contain | height;
+	distribution: fill;
+	width: 768;
 }
 
 .column Box {

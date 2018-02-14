@@ -3,33 +3,53 @@
 	autoresizing-mask: fill;
 }
 
-#topBar, #bottomBar {
-	background-color: #22222244;
-	padding: 4;
+#background {
+	autoresizing-mask: fill;
 }
 
-#topBar Button, #bottomBar Button {
+#logo {
+	alignment: bottom-right;
+	width: 240;
+	height: 112;
+}
+
+#version {
+	alignment: bottom-left;
+}
+
+#contentView {
+	autoresizing-mask: fill;
+	padding-top: 36;
+	padding-bottom: 36;
+}
+
+#contentView > View > * {
+	alignment: middle-center;
+}
+
+#primaryMenu,
+#secondaryMenu {
+	autoresizing-mask: contain | width;
+	axis: horizontal;
+	background-color: #222222aa;
+	distribution: fill-equally;
+	padding: 4;
+	spacing: 12;
+}
+
+#primaryMenu Button,
+#secondaryMenu Button {
 	background-color: #08151a;
 	border-color: #ffffff;
 	border-width: 1;
 	bevel: none;
-}
-
-.primaryButtons > Button {
-	min-width: 200;
 	min-height: 36;
 }
 
-.primaryButtons > Button > Text {
+#primaryMenu Button > Text {
 	font-style: bold;
 }
 
-.primaryIcons > Button {
-	min-width: 0;
-	padding: 0;
-}
-
-.primaryIcons > Button > ImageView {
-	width: 36;
-	height: 36;
+#secondaryMenu {
+	alignment: bottom-center;
 }

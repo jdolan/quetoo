@@ -101,5 +101,4 @@ struct CvarSelectInterface {
  * @return The CvarSelect Class.
  * @memberof CvarSelect
  */
-extern Class *_CvarSelect(void);
-
+CGAME_EXPORT Class *_CvarSelect(void);

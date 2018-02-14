@@ -1,0 +1,17 @@
+{
+	"identifier": "loading",
+	"subviews": [
+		{
+			"class": "ImageView",
+			"identifier": "mapShot"
+		},
+		{
+			"class": "ImageView",
+			"identifier": "logo"
+		},
+		{
+			"class": "ProgressBar",
+			"identifier": "progress"
+		}
+	]
+}

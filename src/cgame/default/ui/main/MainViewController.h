@@ -24,6 +24,8 @@
 #include <ObjectivelyMVC/ViewController.h>
 #include <ObjectivelyMVC/NavigationViewController.h>
 
+#include "MainView.h"
+
 /**
  * @file
  *
@@ -53,6 +55,11 @@ struct MainViewController {
 	MainViewControllerInterface *interface;
 
 	/**
+	 * @brief The MainView.
+	 */
+	MainView *mainView;
+
+	/**
 	 * @brief The NavigationViewController.
 	 */
 	NavigationViewController *navigationViewController;
@@ -77,26 +84,26 @@ struct MainViewControllerInterface {
 	MainViewController *(*init)(MainViewController *self);
 
 	/**
-	 * @fn void MainViewController::primaryButton(const MainViewController *self, ident target, const char *title, Class *clazz)
-	 * @brief Adds a primary Button to the target View.
+	 * @fn void MainViewController::primaryButton(const MainViewController *self, const char *title, Class *clazz)
+	 * @brief Adds a Button to the primary menu.
 	 * @param self The MainViewController.
 	 * @param target The target View.
 	 * @param title The title text.
 	 * @param clazz The ViewController Class to navigate to.
 	 * @memberof MainViewController
 	 */
-	void (*primaryButton)(MainViewController *self, ident target, const char *title, Class *clazz);
+	void (*primaryButton)(MainViewController *self, const char *title, Class *clazz);
 
 	/**
-	 * @fn void MainViewController::primaryIcon(const MainViewController *self, ident target, const char *icon, Class *clazz)
-	 * @brief Adds a primary icon Button to the target View.
+	 * @fn void MainViewController::secondaryButton(const MainViewController *self, const char *title, Class *clazz)
+	 * @brief Adds a Button to the secondary menu.
 	 * @param self The MainViewController.
 	 * @param target The target View.
-	 * @param icon The icon name.
+	 * @param title The title text.
 	 * @param clazz The ViewController Class to navigate to.
 	 * @memberof MainViewController
 	 */
-	void (*primaryIcon)(MainViewController *self, ident target, const char *icon, Class *clazz);
+	void (*secondaryButton)(MainViewController *self, const char *title, Class *clazz);
 };
 
 /**
@@ -105,4 +112,4 @@ struct MainViewControllerInterface {
  * @return The MainViewController Class.
  * @memberof MainViewController
  */
-extern Class *_MainViewController(void);
+CGAME_EXPORT Class *_MainViewController(void);

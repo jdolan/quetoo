@@ -28,6 +28,29 @@
 #pragma mark - View
 
 /**
+ * @see View::awakeWithDictionary(View *, const Dictionary *)
+ */
+static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
+
+	super(View, self, awakeWithDictionary, dictionary);
+
+	CvarCheckbox *this = (CvarCheckbox *) self;
+
+	const Inlet inlets[] = MakeInlets(
+		MakeInlet("var", InletTypeApplicationDefined, &this->var, Cg_BindCvar)
+	);
+
+	$(self, bind, inlets, dictionary);
+}
+
+/**
+ * @see View::init(View *)
+ */
+static View *init(View *self) {
+	return (View *) $((CvarCheckbox *) self, initWithVariable, NULL);
+}
+
+/**
  * @see View::updateBindings(View *)
  */
 static void updateBindings(View *self) {
@@ -39,11 +62,15 @@ static void updateBindings(View *self) {
 	const ControlState state = this->state;
 
 	const cvar_t *var = ((CvarCheckbox *) self)->var;
+	if (var) {
 
-	this->state = var->integer ? ControlStateSelected : ControlStateDefault;
+		this->state = var->value ? ControlStateSelected : ControlStateDefault;
 
-	if ((ControlState) this->state != state) {
-		$(this, stateDidChange);
+		if ((ControlState) this->state != state) {
+			$(this, stateDidChange);
+		}
+	} else {
+		MVC_LogWarn("No variable set\n");
 	}
 }
 
@@ -56,7 +83,11 @@ static void action(Control *control, const SDL_Event *event, ident sender, ident
 
 	const CvarCheckbox *this = (CvarCheckbox *) control;
 
-	cgi.CvarSetValue(this->var->name, $(control, isSelected));
+	if (this->var) {
+		cgi.CvarSetValue(this->var->name, $(control, isSelected));
+	} else {
+		MVC_LogWarn("No variable set\n");
+	}
 }
 
 /**
@@ -70,11 +101,8 @@ static CvarCheckbox *initWithVariable(CvarCheckbox *self, cvar_t *var) {
 	if (self) {
 
 		self->var = var;
-		assert(self->var);
 
 		$((Control *) self, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, NULL);
-
-		$((View *) self, updateBindings);
 	}
 
 	return self;
@@ -87,6 +115,8 @@ static CvarCheckbox *initWithVariable(CvarCheckbox *self, cvar_t *var) {
  */
 static void initialize(Class *clazz) {
 
+	((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
+	((ViewInterface *) clazz->interface)->init = init;
 	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
 	((CvarCheckboxInterface *) clazz->interface)->initWithVariable = initWithVariable;

@@ -22,6 +22,14 @@
 #ifndef __CGAME_H__
 #define __CGAME_H__
 
+#ifndef CGAME_EXPORT
+ #if defined(_WIN32)
+  #define CGAME_EXPORT __declspec(dllexport)
+ #else
+  #define CGAME_EXPORT extern
+ #endif
+#endif
+
 #include "client/cl_types.h"
 
 #define CGAME_API_VERSION 20
@@ -297,9 +305,24 @@ typedef struct cg_import_s {
 	Stylesheet *(*Stylesheet)(const char *path);
 
 	/**
+	 * @brief Resolves the current Theme.
+	 */
+	Theme *(*Theme)(void);
+
+	/**
 	 * @brief Loads a View from the JSON file at the given path.
 	 */
 	View *(*View)(const char *path, Outlet *outlets);
+
+	/**
+	 * @brief Sets the Image for the given ImageView.
+	 */
+	void (*SetImage)(ImageView *view, const char *path);
+
+	/**
+	 * @brief Wakes the specified View with the JSON file at the given path.
+	 */
+	void (*WakeView)(View *view, const char *path, Outlet *outlets);
 
 	/**
 	 * @brief Pushes the specified ViewController to the user interface.

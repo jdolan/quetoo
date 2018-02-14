@@ -119,7 +119,7 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 				const uint32_t delta = (cl.frame.frame_num - ch->frame) * QUETOO_TICK_MILLIS;
 
 				if (delta > 250) {
-					return false; //x faded out
+					return false; // x faded out
 				}
 
 				ch->gain *= 1.0 - (delta / 250.0);

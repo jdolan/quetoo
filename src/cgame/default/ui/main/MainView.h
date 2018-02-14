@@ -65,29 +65,19 @@ struct MainView {
 	Label *version;
 
 	/**
-	 * @brief The top menu bar.
-	 */
-	StackView *topBar;
-
-	/**
-	 * @brief The top menu bar's buttons container.
-	 */
-	StackView *primaryButtons;
-
-	/**
-	 * @brief The top menu bar's icons container.
-	 */
-	StackView *primaryIcons;
-
-	/**
 	 * @brief The content View.
 	 */
 	View *contentView;
 
 	/**
+	 * @brief The top menu bar.
+	 */
+	StackView *primaryMenu;
+
+	/**
 	 * @brief The bottom menu bar.
 	 */
-	StackView *bottomBar;
+	StackView *secondaryMenu;
 };
 
 /**
@@ -117,4 +107,4 @@ struct MainViewInterface {
  * @return The MainView Class.
  * @memberof MainView
  */
-Class *_MainView(void);
+CGAME_EXPORT Class *_MainView(void);

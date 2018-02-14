@@ -25,9 +25,12 @@
 
 Data *Ui_Data(const char *path);
 Font *Ui_Font(const char *path, const char *family, int32_t size, int32_t style);
-Image *Ui_Image(const char *path);
+Image *Ui_Image(const char *paOth);
 Stylesheet *Ui_Stylesheet(const char *path);
+Theme *Ui_Theme(void);
 View *Ui_View(const char *path, Outlet *outlets);
+void Ui_SetImage(ImageView *view, const char *path);
+void Ui_WakeView(View *view, const char *path, Outlet *outlets);
 
 #ifdef __UI_LOCAL_H__
 #endif /* __UI_LOCAL_H__ */

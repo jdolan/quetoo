@@ -95,5 +95,5 @@ struct MapListCollectionViewInterface {
  * @return The MapListCollectionView Class.
  * @memberof MapListCollectionView
  */
-extern Class *_MapListCollectionView(void);
+CGAME_EXPORT Class *_MapListCollectionView(void);
 

@@ -113,4 +113,4 @@ struct PlayerModelViewInterface {
  * @return The PlayerModelView Class.
  * @memberof PlayerModelView
  */
-extern Class *_PlayerModelView(void);
+CGAME_EXPORT Class *_PlayerModelView(void);

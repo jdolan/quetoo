@@ -74,4 +74,4 @@ struct SettingsViewControllerInterface {
  * @return The SettingsViewController Class.
  * @memberof SettingsViewController
  */
-extern Class *_SettingsViewController(void);
+CGAME_EXPORT Class *_SettingsViewController(void);

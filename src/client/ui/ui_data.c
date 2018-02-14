@@ -20,7 +20,11 @@
  */
 
 #include "ui_data.h"
+#include "client.h"
 
+/**
+ * @brief
+ */
 Data *Ui_Data(const char *path) {
 
 	Data *data = NULL;
@@ -105,6 +109,13 @@ Stylesheet *Ui_Stylesheet(const char *path) {
 /**
  * @brief
  */
+Theme *Ui_Theme(void) {
+	return $$(Theme, theme, r_context.window);
+}
+
+/**
+ * @brief
+ */
 View *Ui_View(const char *path, Outlet *outlets) {
 
 	View *view = NULL;
@@ -120,5 +131,38 @@ View *Ui_View(const char *path, Outlet *outlets) {
 		Com_Warn("Failed to load View %s\n", path);
 	}
 
+
 	return view;
+}
+
+/**
+ * @brief
+ */
+void Ui_SetImage(ImageView *view, const char *path) {
+
+	Image *image = Ui_Image(path);
+	if (image) {
+		$(view, setImage, image);
+	} else {
+		$(view, setImage, NULL);
+	}
+	release(image);
+}
+
+/**
+ * @brief
+ */
+void Ui_WakeView(View *view, const char *path, Outlet *outlets) {
+
+	assert(view);
+
+	Data *data = Ui_Data(path);
+	if (data) {
+		$(view, awakeWithData, data);
+		$(view, resolve, outlets);
+
+		release(data);
+	} else {
+		Com_Warn("Failed to wake View %s\n", path);
+	}
 }

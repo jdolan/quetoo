@@ -22,7 +22,7 @@
 #include "ui_local.h"
 #include "client.h"
 
-#include "renderers/QuetooRenderer.h"
+#include "QuetooRenderer.h"
 
 extern cl_static_t cls;
 
@@ -36,7 +36,7 @@ static NavigationViewController *navigationViewController;
 void Ui_HandleEvent(const SDL_Event *event) {
 
 	if (windowController) {
-		
+
 		if (cls.key_state.dest != KEY_UI) {
 
 			switch (event->type) {
@@ -53,6 +53,8 @@ void Ui_HandleEvent(const SDL_Event *event) {
 		}
 
 		$(windowController, respondToEvent, event);
+	} else {
+		Com_Warn("windowController was NULL\n");
 	}
 }
 
@@ -62,8 +64,10 @@ void Ui_HandleEvent(const SDL_Event *event) {
 void Ui_ViewWillAppear(void) {
 
 	if (windowController) {
-		$(windowController->viewController, viewWillAppear);
 		$(windowController->viewController->view, updateBindings);
+		$(windowController->viewController, viewWillAppear);
+	} else {
+		Com_Warn("windowController was NULL\n");
 	}
 }
 
@@ -71,6 +75,8 @@ void Ui_ViewWillAppear(void) {
  * @brief
  */
 void Ui_Draw(void) {
+
+	assert(windowController);
 
 	Ui_CheckEditor();
 
@@ -91,8 +97,15 @@ void Ui_Draw(void) {
  * @brief
  */
 void Ui_PushViewController(ViewController *viewController) {
-	if (viewController) {
-		$(navigationViewController, pushViewController, viewController);
+
+	if (navigationViewController) {
+		if (viewController) {
+			$(navigationViewController, pushViewController, viewController);
+		} else {
+			Com_Warn("viewController was NULL\n");
+		}
+	} else {
+		Com_Warn("navigationViewController was NULL\n");
 	}
 }
 
@@ -100,8 +113,15 @@ void Ui_PushViewController(ViewController *viewController) {
  * @brief
  */
 void Ui_PopToViewController(ViewController *viewController) {
-	if (viewController) {
-		$(navigationViewController, popToViewController, viewController);
+
+	if (navigationViewController) {
+		if (viewController) {
+			$(navigationViewController, popToViewController, viewController);
+		} else {
+			Com_Warn("viewController was NULL\n");
+		}
+	} else {
+		Com_Warn("navigationViewController was NULL\n");
 	}
 }
 
@@ -109,17 +129,25 @@ void Ui_PopToViewController(ViewController *viewController) {
  * @brief
  */
 void Ui_PopViewController(void) {
-	$(navigationViewController, popViewController);
+
+	if (navigationViewController) {
+		$(navigationViewController, popViewController);
+	} else {
+		Com_Warn("navigationViewController was NULL\n");
+	}
 }
 
 /**
  * @brief
  */
 void Ui_PopAllViewControllers(void) {
-	$(navigationViewController, popToRootViewController);
+
+	if (navigationViewController) {
+		$(navigationViewController, popToRootViewController);
+	} else {
+		Com_Warn("navigationViewController was NULL\n");
+	}
 }
-
-
 
 /**
  * @brief Initializes the user interface.
@@ -127,31 +155,6 @@ void Ui_PopAllViewControllers(void) {
 void Ui_Init(void) {
 
 	MVC_LogSetPriority(SDL_LOG_PRIORITY_DEBUG);
-
-//	Font *coda16 = Ui_Font("fonts/coda.regular.ttf", 16, 0);
-//	assert(coda16);
-//
-//	$$(Font, setDefaultFont, FontCategoryDefault, coda16);
-//	$$(Font, setDefaultFont, FontCategoryPrimaryLabel, coda16);
-//	$$(Font, setDefaultFont, FontCategoryPrimaryControl, coda16);
-//
-//	release(coda16);
-//
-//	Font *coda14 = Ui_Font("fonts/coda.regular.ttf", 14, 0);
-//	assert(coda14);
-//
-//	$$(Font, setDefaultFont, FontCategorySecondaryLabel, coda14);
-//	$$(Font, setDefaultFont, FontCategorySecondaryControl, coda14);
-//
-//	release(coda14);
-//
-//	Font *codaHeavy18 = Ui_Font("fonts/coda.heavy.ttf", 18, 0);
-//	assert(codaHeavy18);
-//
-//	$$(Font, setDefaultFont, FontCategoryPrimaryResponder, codaHeavy18);
-//	$$(Font, setDefaultFont, FontCategorySecondaryResponder, codaHeavy18);
-//
-//	release(codaHeavy18);
 
 	Renderer *renderer = (Renderer *) $(alloc(QuetooRenderer), init);
 

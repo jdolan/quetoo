@@ -24,7 +24,6 @@
 #include "ui/main/MainViewController.h"
 #include "ui/main/LoadingViewController.h"
 
-static LoadingViewController *loadingViewController;
 static MainViewController *mainViewController;
 static Stylesheet *stylesheet;
 
@@ -36,13 +35,7 @@ void Cg_InitUi(void) {
 	stylesheet = cgi.Stylesheet("ui/common/common.css");
 	assert(stylesheet);
 
-	Theme *theme = $$(Theme, theme, SDL_GL_GetCurrentWindow());
-	assert(theme);
-
-	$(theme, addStylesheet, stylesheet);
-
-	loadingViewController = $(alloc(LoadingViewController), init);
-	assert(loadingViewController);
+	$(cgi.Theme(), addStylesheet, stylesheet);
 
 	mainViewController = $(alloc(MainViewController), init);
 	assert(mainViewController);
@@ -57,16 +50,10 @@ void Cg_ShutdownUi(void) {
 
 	cgi.PopAllViewControllers();
 
-	release(loadingViewController);
-	loadingViewController = NULL;
-
 	release(mainViewController);
 	mainViewController = NULL;
 
-	Theme *theme = $$(Theme, theme, SDL_GL_GetCurrentWindow());
-	assert(theme);
-
-	$(theme, removeStylesheet, stylesheet);
+	$(cgi.Theme(), removeStylesheet, stylesheet);
 
 	release(stylesheet);
 	stylesheet = NULL;
@@ -76,12 +63,25 @@ void Cg_ShutdownUi(void) {
  * @brief Updates the loading screen
  */
 void Cg_UpdateLoading(const cl_loading_t loading) {
+	static LoadingViewController *loadingViewController;
 
 	if (loading.percent == 0) {
+		loadingViewController = $(alloc(LoadingViewController), init);
 		cgi.PushViewController((ViewController *) loadingViewController);
 	} else if (loading.percent == 100) {
 		cgi.PopToViewController((ViewController *) mainViewController);
+		loadingViewController = release(loadingViewController);
 	}
 
-	$(loadingViewController, setProgress, loading);
+	if (loadingViewController) {
+		$(loadingViewController, setProgress, loading);
+	}
+}
+
+/**
+ * @brief Inlet binding for `cvar_t *`.
+ */
+void Cg_BindCvar(const Inlet *inlet, ident obj) {
+
+	*(cvar_t **) inlet->dest = cgi.CvarGet((cast(String, obj)->chars));
 }

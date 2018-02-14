@@ -1,0 +1,183 @@
+{
+  "identifier": "Create",
+  "subviews": [
+    {
+      "class": "StackView",
+      "classNames": [
+        "container"
+      ],
+      "subviews": [
+        {
+          "class": "StackView",
+          "classNames": [
+            "columns",
+            "container"
+          ],
+          "subviews": [
+            {
+              "class": "StackView",
+              "classNames": [
+                "column",
+                "container"
+              ],
+              "subviews": [
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Server"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Hostname"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarTextView",
+                          "var": "sv_hostname"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Clients"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarTextView",
+                          "var": "sv_max_clients"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Public"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "sv_public"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Password"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarTextView",
+                          "var": "sv_password"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Game"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Gameplay"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSelect",
+                          "expectsStringValue": true,
+                          "identifier": "gameplay",
+                          "var": "g_gameplay"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Teams"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSelect",
+                          "identifier": "teams",
+                          "var": "g_teams"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Match mode"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "g_match"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [
+                "column-2",
+                "container"
+              ],
+              "subviews": [
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Map list"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "MapListCollectionView",
+                        "identifier": "mapList",
+                        "selection": "multiple"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "class": "StackView",
+          "classNames": [
+            "accessoryView"
+          ],
+          "subviews": [
+            {
+              "class": "Button",
+              "identifier": "create",
+              "title": {
+                "text": "Create"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

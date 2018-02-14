@@ -240,6 +240,13 @@ static void dealloc(Object *self) {
 #pragma mark - View
 
 /**
+ * @see View::init(View *)
+ */
+static View *init(View *self) {
+	return (View *) $((MapListCollectionView *) self, initWithFrame, NULL);
+}
+
+/**
  * @see View::layoutIfNeeded(View *)
  */
 static void layoutIfNeeded(View *self) {
@@ -282,8 +289,6 @@ static MapListCollectionView *initWithFrame(MapListCollectionView *self, const S
 		self->collectionView.delegate.itemForObjectAtIndexPath = itemForObjectAtIndexPath;
 
 		self->collectionView.itemSize = MakeSize(240, 135);
-
-		self->collectionView.control.selection = ControlSelectionMultiple;
 	}
 
 	return self;
@@ -321,6 +326,7 @@ static void initialize(Class *clazz) {
 
 	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
+	((ViewInterface *) clazz->interface)->init = init;
 	((ViewInterface *) clazz->interface)->layoutIfNeeded = layoutIfNeeded;
 
 	((MapListCollectionViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
@@ -350,4 +356,3 @@ Class *_MapListCollectionView(void) {
 }
 
 #undef _Class
-

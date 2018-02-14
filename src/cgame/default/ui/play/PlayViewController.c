@@ -27,8 +27,6 @@
 #include "JoinServerViewController.h"
 #include "PlayerSetupViewController.h"
 
-#include "QuetooTheme.h"
-
 #define _Class _PlayViewController
 
 #pragma mark - Object
@@ -53,13 +51,12 @@ static void loadView(ViewController *self) {
 
 	PlayViewController *this = (PlayViewController *) self;
 
-	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
-	assert(theme);
+	View *view = cgi.View("ui/play/PlayViewController.json", NULL);
+	assert(view);
+	
+	$(self, setView, view);
 
-	Panel *panel = $(theme, panel);
-
-	$(theme, attach, panel);
-	$(theme, target, panel->contentView);
+	release(view);
 
 	this->tabViewController = $(alloc(TabViewController), init);
 	assert(this->tabViewController);
@@ -79,10 +76,7 @@ static void loadView(ViewController *self) {
 	release(viewController);
 
 	$(self, addChildViewController, tabViewController);
-	$(theme, attach, tabViewController->view);
-
-	release(panel);
-	release(theme);
+	$((View *) ((Panel *) view)->contentView, addSubview, tabViewController->view);
 }
 
 #pragma mark - Class lifecycle

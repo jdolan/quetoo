@@ -82,5 +82,5 @@ struct CrosshairViewInterface {
  * @return The CrosshairView Class.
  * @memberof CrosshairView
  */
-extern Class *_CrosshairView(void);
+CGAME_EXPORT Class *_CrosshairView(void);
 

@@ -13,9 +13,6 @@
     <Filter Include="src\default\ui\common">
       <UniqueIdentifier>{9dccc4fc-0c8a-4402-96ff-7e91455c26f4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\default\ui\info">
-      <UniqueIdentifier>{c9c2561c-2bed-4cdf-aaad-e940af1bf581}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\default\ui\main">
       <UniqueIdentifier>{fd5484cf-33be-4abc-b1fd-27530c456657}</UniqueIdentifier>
     </Filter>
@@ -27,6 +24,9 @@
     </Filter>
     <Filter Include="src\default\ui\controls">
       <UniqueIdentifier>{9857244c-6a1e-474f-92fa-6d9acfb03cbb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\default\ui\home">
+      <UniqueIdentifier>{5e79bf76-7c5c-4ba3-8526-839648afb61e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -105,18 +105,6 @@
     <ClInclude Include="..\src\cgame\default\ui\common\CvarTextView.h">
       <Filter>src\default\ui\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\info\CreditsViewController.h">
-      <Filter>src\default\ui\info</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\info\InfoViewController.h">
-      <Filter>src\default\ui\info</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\main\DialogView.h">
-      <Filter>src\default\ui\main</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\main\HomeViewController.h">
-      <Filter>src\default\ui\main</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\cgame\default\ui\main\LoadingViewController.h">
       <Filter>src\default\ui\main</Filter>
     </ClInclude>
@@ -156,18 +144,6 @@
     <ClInclude Include="..\src\cgame\default\ui\controls\CrosshairView.h">
       <Filter>src\default\ui\controls</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\controls\LookViewController.h">
-      <Filter>src\default\ui\controls</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\controls\MiscViewController.h">
-      <Filter>src\default\ui\controls</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\controls\MoveViewController.h">
-      <Filter>src\default\ui\controls</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\controls\ShootViewController.h">
-      <Filter>src\default\ui\controls</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\cgame\default\ui\settings\SystemViewController.h">
       <Filter>src\default\ui\settings</Filter>
     </ClInclude>
@@ -183,12 +159,23 @@
     <ClInclude Include="..\src\cgame\default\ui\main\DialogViewController.h">
       <Filter>src\default\ui\main</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\common\QuetooTheme.h">
-      <Filter>src\default\ui\common</Filter>
+    <ClInclude Include="..\src\cgame\default\ui\home\HomeViewController.h">
+      <Filter>src\default\ui\home</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\default\ui\controls\MovementCombatViewController.h">
+      <Filter>src\default\ui\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\default\ui\controls\ResponseServiceViewController.h">
+      <Filter>src\default\ui\controls</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="cgame.def" />
+    <None Include="..\src\cgame\default\ui\home\HomeViewController.json">
+      <Filter>src\default\ui\home</Filter>
+    </None>
+    <None Include="..\src\cgame\default\ui\home\HomeViewController.css">
+      <Filter>src\default\ui\home</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\cgame\default\cg_client.c">
@@ -257,18 +244,6 @@
     <ClCompile Include="..\src\cgame\default\ui\common\CvarTextView.c">
       <Filter>src\default\ui\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\info\CreditsViewController.c">
-      <Filter>src\default\ui\info</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\info\InfoViewController.c">
-      <Filter>src\default\ui\info</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\main\DialogView.c">
-      <Filter>src\default\ui\main</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\main\HomeViewController.c">
-      <Filter>src\default\ui\main</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\main\LoadingViewController.c">
       <Filter>src\default\ui\main</Filter>
     </ClCompile>
@@ -308,18 +283,6 @@
     <ClCompile Include="..\src\cgame\default\ui\controls\CrosshairView.c">
       <Filter>src\default\ui\controls</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\controls\LookViewController.c">
-      <Filter>src\default\ui\controls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\controls\MiscViewController.c">
-      <Filter>src\default\ui\controls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\controls\MoveViewController.c">
-      <Filter>src\default\ui\controls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\controls\ShootViewController.c">
-      <Filter>src\default\ui\controls</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\settings\SystemViewController.c">
       <Filter>src\default\ui\settings</Filter>
     </ClCompile>
@@ -335,8 +298,14 @@
     <ClCompile Include="..\src\cgame\default\ui\main\DialogViewController.c">
       <Filter>src\default\ui\main</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\common\QuetooTheme.c">
-      <Filter>src\default\ui\common</Filter>
+    <ClCompile Include="..\src\cgame\default\ui\home\HomeViewController.c">
+      <Filter>src\default\ui\home</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\ui\controls\MovementCombatViewController.c">
+      <Filter>src\default\ui\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\ui\controls\ResponseServiceViewController.c">
+      <Filter>src\default\ui\controls</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -23,9 +23,6 @@
 
 #include "SystemViewController.h"
 
-#include "CvarSelect.h"
-#include "QuetooTheme.h"
-
 #define _Class _SystemViewController
 
 #pragma mark - Actions and delegate callbacks
@@ -58,18 +55,6 @@ static void applyAction(Control *control, const SDL_Event *event, ident sender, 
 
 #pragma mark - Object
 
-/**
- * @see Object::dealloc(Object *)
- */
-static void dealloc(Object *self) {
-
-	SystemViewController *this = (SystemViewController *) self;
-
-	release(this->videoModeSelect);
-
-	super(Object, self, dealloc);
-}
-
 #pragma mark - ViewController
 
 /**
@@ -79,160 +64,65 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	self->view->autoresizingMask = ViewAutoresizingContain;
-	self->view->identifier = strdup("System");
+	Select *videoMode, *windowMode, *verticalSync,
+		   *textureMode, *anisotropy, *multisample, *supersample,
+	       *rate;
 
-	SystemViewController *this = (SystemViewController *) self;
+	Button *apply;
 
-	QuetooTheme *theme = $(alloc(QuetooTheme), initWithTarget, self->view);
+	Outlet outlets[] = MakeOutlets(
+		MakeOutlet("videoMode", &videoMode),
+		MakeOutlet("windowMode", &windowMode),
+		MakeOutlet("verticalSync", &verticalSync),
+		MakeOutlet("textureMode", &textureMode),
+		MakeOutlet("anisotropy", &anisotropy),
+		MakeOutlet("multisample", &multisample),
+		MakeOutlet("supersample", &supersample),
+		MakeOutlet("rate", &rate),
+		MakeOutlet("apply", &apply)
+	);
 
-	StackView *container = $(theme, container);
+	cgi.WakeView(self->view, "ui/settings/SystemViewController.json", outlets);
 
-	$(theme, attach, container);
-	$(theme, target, container);
+	self->view->stylesheet = cgi.Stylesheet("ui/settings/SystemViewController.css");
+	assert(self->view->stylesheet);
 
-	StackView *columns = $(theme, columns, 2);
+	videoMode->delegate.self = self;
+	videoMode->delegate.didSelectOption = didSelecVideoMode;
 
-	$(theme, attach, columns);
-	$(theme, targetSubview, columns, 0);
+	$(windowMode, addOption, "Windowed", (ident) 0);
+	$(windowMode, addOption, "Fullscreen", (ident) 1);
+	$(windowMode, addOption, "Borderless", (ident) 2);
 
-	{
-		Box *box = $(theme, box, "Display");
+	$(verticalSync, addOption, "Off", (ident) 0);
+	$(verticalSync, addOption, "On", (ident) 1);
+	$(verticalSync, addOption, "Adaptive", (ident) 2);
 
-		$(theme, attach, box);
-		$(theme, target, box->contentView);
+	$(textureMode, addOption, "Nearest", "GL_NEAREST");
+	$(textureMode, addOption, "Bilinear", "GL_LINEAR");
+	$(textureMode, addOption, "Trilinear", "GL_LINEAR_MIPMAP_LINEAR");
 
-		this->videoModeSelect = $(alloc(VideoModeSelect), initWithFrame, NULL);
-		assert(this->videoModeSelect);
+	$(anisotropy, addOption, "16x", (ident) 16);
+	$(anisotropy, addOption, "8x", (ident) 8);
+	$(anisotropy, addOption, "4x", (ident) 4);
+	$(anisotropy, addOption, "2x", (ident) 2);
+	$(anisotropy, addOption, "Off", (ident) 0);
 
-		this->videoModeSelect->select.delegate.self = this;
-		this->videoModeSelect->select.delegate.didSelectOption = didSelecVideoMode;
+	$(multisample, addOption, "8x", (ident) 4);
+	$(multisample, addOption, "4x", (ident) 2);
+	$(multisample, addOption, "2x", (ident) 1);
+	$(multisample, addOption, "Off", (ident) 0);
 
-		$(theme, control, "Video mode", this->videoModeSelect);
+	$(supersample, addOption, "4x", (ident) 4);
+	$(supersample, addOption, "2x", (ident) 2);
+	$(supersample, addOption, "Off", (ident) 0);
 
-		$(theme, checkbox, "High DPI (4K)", "r_allow_high_dpi");
+	$((Select *) rate, addOption, "100Mbps", (ident) (intptr_t) 0);
+	$((Select *) rate, addOption, "50Mbps", (ident) (intptr_t) 50000);
+	$((Select *) rate, addOption, "20Mbps", (ident) (intptr_t) 20000);
+	$((Select *) rate, addOption, "10Mbps", (ident) (intptr_t) 10000);
 
-		Select *fullscreenSelect = (Select *) $(alloc(CvarSelect), initWithVariableName, "r_fullscreen");
-
-		$(fullscreenSelect, addOption, "Windowed", (ident) 0);
-		$(fullscreenSelect, addOption, "Fullscreen", (ident) 1);
-		$(fullscreenSelect, addOption, "Borderless windowed", (ident) 2);
-
-		$(theme, control, "Window mode", fullscreenSelect);
-		release(fullscreenSelect);
-
-		Select *swapIntervalSelect = (Select *) $(alloc(CvarSelect), initWithVariableName, "r_swap_interval");
-
-		$(swapIntervalSelect, addOption, "On", (ident) 1);
-		$(swapIntervalSelect, addOption, "Off", (ident) 0);
-		$(swapIntervalSelect, addOption, "Adaptive", (ident) -1);
-
-		$(theme, control, "Vertical sync", swapIntervalSelect);
-		release(swapIntervalSelect);
-
-		$(theme, slider, "Framerate limiter", "cl_max_fps", 0.0, 240.0, 5.0, NULL);
-
-		release(box);
-	}
-
-	$(theme, targetSubview, columns, 0);
-
-	{
-		Box *box = $(theme, box, "Rendering");
-
-		$(theme, attach, box);
-		$(theme, target, box->contentView);
-
-		Select *anisotropySelect = (Select *) $(alloc(CvarSelect), initWithVariableName, "r_anisotropy");
-
-		$(anisotropySelect, addOption, "16x", (ident) 16);
-		$(anisotropySelect, addOption, "8x", (ident) 8);
-		$(anisotropySelect, addOption, "4x", (ident) 4);
-		$(anisotropySelect, addOption, "2x", (ident) 2);
-		$(anisotropySelect, addOption, "Off", (ident) 0);
-
-		$(theme, control, "Anisotropy", anisotropySelect);
-		release(anisotropySelect);
-
-		Select *multisampleSelect = (Select *) $(alloc(CvarSelect), initWithVariableName, "r_multisample");
-
-		$(multisampleSelect, addOption, "8x", (ident) 4);
-		$(multisampleSelect, addOption, "4x", (ident) 2);
-		$(multisampleSelect, addOption, "2x", (ident) 1);
-		$(multisampleSelect, addOption, "Off", (ident) 0);
-
-		$(theme, control, "Multisample", multisampleSelect);
-		release(multisampleSelect);
-
-		release(box);
-	}
-
-	$(theme, targetSubview, columns, 0);
-
-	{
-		Box *box = $(theme, box, "Picture");
-
-		$(theme, attach, box);
-		$(theme, target, box->contentView);
-
-		$(theme, slider, "Brightness", "r_brightness", 0.1, 2.0, 0.1, NULL);
-		$(theme, slider, "Contrast", "r_contrast", 0.1, 2.0, 0.1, NULL);
-		$(theme, slider, "Gamma", "r_gamma", 0.1, 2.0, 0.1, NULL);
-		$(theme, slider, "Modulate", "r_modulate", 0.1, 5.0, 0.1, NULL);
-
-		release(box);
-	}
-
-	$(theme, targetSubview, columns, 1);
-
-	{
-		Box *box = $(theme, box, "Sound");
-
-		$(theme, attach, box);
-		$(theme, target, box->contentView);
-
-		$(theme, slider, "Master", "s_volume", 0.0, 1.0, 0.1, NULL);
-		$(theme, slider, "Effects", "s_effects_volume", 0.0, 1.0, 0.1, NULL);
-		$(theme, slider, "Ambient", "s_ambient_volume", 0.0, 1.0, 0.1, NULL);
-		$(theme, slider, "Music", "s_music_volume", 0.0, 1.0, 0.1, NULL);
-
-		release(box);
-	}
-
-	$(theme, targetSubview, columns, 1);
-
-	{
-		Box *box = $(theme, box, "Network");
-
-		$(theme, attach, box);
-		$(theme, target, box->contentView);
-
-		CvarSelect *rate = $(alloc(CvarSelect), initWithVariableName, "rate");
-
-		$((Select *) rate, addOption, "100Mbps", (ident) (intptr_t) 0);
-		$((Select *) rate, addOption, "50Mbps", (ident) (intptr_t) 50000);
-		$((Select *) rate, addOption, "20Mbps", (ident) (intptr_t) 20000);
-		$((Select *) rate, addOption, "10Mbps", (ident) (intptr_t) 10000);
-
-		$(theme, control, "Connection speed", rate);
-
-		release(box);
-	}
-
-
-	$(theme, target, container);
-
-	StackView *accessories = $(theme, accessories);
-
-	$(theme, attach, accessories);
-	$(theme, target, accessories);
-
-	$(theme, button, "Apply", applyAction, self, NULL);
-
-	release(accessories);
-	release(columns);
-	release(container);
-	release(theme);
+	$((Control *) apply, addActionForEventType, SDL_MOUSEBUTTONUP, applyAction, self, NULL);
 }
 
 #pragma mark - Class lifecycle
@@ -241,9 +131,6 @@ static void loadView(ViewController *self) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
-
-	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
-
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
