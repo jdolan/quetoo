@@ -340,7 +340,12 @@ void R_EndFrame(void) {
 		}
 	}
 
-	SDL_GL_SwapWindow(r_context.window);
+	if (r_state.screenshot_pending) {
+		R_Screenshot_f();
+		r_state.screenshot_pending = false;
+	} else {
+		SDL_GL_SwapWindow(r_context.window);
+	}
 }
 
 /**
@@ -528,7 +533,7 @@ static void R_InitLocal(void) {
 	Cmd_Add("r_list_media", R_ListMedia_f, CMD_RENDERER, "List all currently loaded media");
 	Cmd_Add("r_dump_images", R_DumpImages_f, CMD_RENDERER, "Dump all loaded images. Careful!");
 	Cmd_Add("r_reset_stainmap", R_ResetStainmap_f, CMD_RENDERER, "Reset the stainmap");
-	Cmd_Add("r_screenshot", R_Screenshot_f, CMD_SYSTEM | CMD_RENDERER, "Take a screenshot");
+	Cmd_Add("r_screenshot", R_DeferScreenshot_f, CMD_SYSTEM | CMD_RENDERER, "Take a screenshot");
 	Cmd_Add("r_sky", R_Sky_f, CMD_RENDERER, NULL);
 	Cmd_Add("r_toggle_fullscreen", R_ToggleFullscreen_f, CMD_SYSTEM | CMD_RENDERER, "Toggle fullscreen");
 	Cmd_Add("r_restart", R_Restart_f, CMD_RENDERER, "Restart the rendering subsystem");

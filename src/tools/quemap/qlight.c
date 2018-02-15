@@ -178,7 +178,7 @@ static void LightWorld(void) {
 	// free the direct light sources
 	Mem_FreeTag(MEM_TAG_LIGHT);
 
-	for (int32_t i = 0; i < 2; i++) {
+	for (int32_t i = 0; i < 1; i++) {
 		if (indirect) { // calculate indirect lighting
 			current_bounce = i + 1;
 

@@ -977,6 +977,8 @@ void R_InitState(void) {
 	r_state.uniforms_dirty.begin = 0u;
 	r_state.uniforms_dirty.end = sizeof(r_state.uniforms);
 
+	r_state.screenshot_pending = false;
+
 	R_GetError("Post-init");
 }
 

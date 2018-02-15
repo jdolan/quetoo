@@ -58,7 +58,6 @@ void R_ListMedia_f(void) {
 void R_DumpImage(const r_image_t *image, const char *output) {
 	const char *real_path = Fs_RealPath(output);
 	char real_dir[MAX_QPATH];
-	GLenum target;
 
 	Dirname(output, real_dir);
 	Fs_Mkdir(real_dir);
@@ -74,15 +73,9 @@ void R_DumpImage(const r_image_t *image, const char *output) {
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
-	// try GL_TEXTURE_2D first
-	target = GL_TEXTURE_2D;
-	R_BindUnitTexture(texunit_diffuse, image->texnum, target);
+	const GLenum target = image->layers == 0 ? GL_TEXTURE_2D : GL_TEXTURE_2D_ARRAY;
 
-	// and if GL_TEXTURE_2D failed, then it had to be GL_TEXTURE_2D_ARRAY
-	if (glGetError() == GL_INVALID_OPERATION) {
-		target = GL_TEXTURE_2D_ARRAY;
-		R_BindUnitTexture(texunit_diffuse, image->texnum, target);
-	}
+	R_BindUnitTexture(texunit_diffuse, image->texnum, target);
 
 	int32_t width, height, layers;
 

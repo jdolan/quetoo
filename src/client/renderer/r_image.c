@@ -70,7 +70,7 @@ static void R_TextureMode(void) {
 	}
 }
 
-#define MAX_SCREENSHOTS 1000
+#define MAX_SCREENSHOTS 1024
 
 typedef struct {
 	uint32_t width;
@@ -124,8 +124,17 @@ static void R_Screenshot_f_encode(void *data) {
 }
 
 /**
- * @brief Captures a screenshot, writing it to the user's directory.
+ * @brief Defers capturing of an screenshot one frame.
  */
+void R_DeferScreenshot_f(void) {
+	if (!r_state.screenshot_pending) {
+		r_state.screenshot_pending = true;
+	}
+}
+
+/**
+* @brief Captures a screenshot, writing it to the user's directory.
+*/
 void R_Screenshot_f(void) {
 
 	r_screenshot_t *s = Mem_Malloc(sizeof(r_screenshot_t));

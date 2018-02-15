@@ -45,7 +45,7 @@
 * instead of having different names (lightmap, deluxmap) like before,
 * they now packed into pages/layers.
 */
-#define MAX_LIGHTMAP_PAGES 2
+#define MAX_LIGHTMAP_LAYERS 2
 
 typedef enum {
 	BSP_LUMP_ENTITIES,

@@ -111,7 +111,7 @@ void R_UseFog_particle(const r_fog_parameters_t *fog) {
 		R_ProgramParameter1f(&p->fog.density, 0.0);
 	}
 
-	R_ProgramParameter1f(&p->fog.gamma_correction, r_framebuffer_state.current_framebuffer ? 0.0 : 1.0);
+	R_ProgramParameter1f(&p->fog.gamma_correction, r_state.screenshot_pending || r_framebuffer_state.current_framebuffer ? 0.0 : 1.0);
 }
 
 /**

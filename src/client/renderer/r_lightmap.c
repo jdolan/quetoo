@@ -114,14 +114,14 @@ static void R_AllocStainmap_(const uint32_t width, const uint32_t height, r_stai
 	R_BindFramebuffer(FRAMEBUFFER_DEFAULT);
 }
 
-#define R_AllocLightmap(w, h) R_AllocLightmap_(IT_LIGHTMAP, w, h, MAX_LIGHTMAP_PAGES)
+#define R_AllocLightmap(w, h) R_AllocLightmap_(IT_LIGHTMAP, w, h, MAX_LIGHTMAP_LAYERS)
 #define R_AllocDeluxemap(w, h) R_AllocLightmap_(IT_DELUXEMAP, w, h)
 #define R_AllocStainmap(w, h, o) R_AllocStainmap_(w, h, o)
 
 /**
 * @brief Default lightmaps colors for each of the pages
 */
-static const u8vec4_t default_lightmap_colors[MAX_LIGHTMAP_PAGES] = {
+static const u8vec4_t default_lightmap_colors[MAX_LIGHTMAP_LAYERS] = {
 	{255, 255, 255, 255},
 	{127, 127, 255, 255}
 };
@@ -140,7 +140,7 @@ static void R_BuildDefaultLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, by
 	for (uint32_t i = 0; i < tmax; i++, lightmaps_out += stride) {
 		for (uint32_t j = 0; j < smax; j++) {
 
-			for (uint32_t k = 0; k < MAX_LIGHTMAP_PAGES; k++) {
+			for (uint32_t k = 0; k < MAX_LIGHTMAP_LAYERS; k++) {
 				lightmaps_out[0 + lightmap_layer_size * k] = default_lightmap_colors[k][0];
 				lightmaps_out[1 + lightmap_layer_size * k] = default_lightmap_colors[k][1];
 				lightmaps_out[2 + lightmap_layer_size * k] = default_lightmap_colors[k][2];
@@ -156,7 +156,7 @@ static void R_BuildDefaultLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, by
  * @brief Apply brightness, saturation and contrast to the lightmap.
  */
 static void R_FilterLightmap(uint32_t width, uint32_t height, byte *lightmap) {
-	static r_image_t image = { .type = IT_LIGHTMAP, .layers = MAX_LIGHTMAP_PAGES };
+	static r_image_t image = { .type = IT_LIGHTMAP, .layers = MAX_LIGHTMAP_LAYERS };
 
 	image.width = width;
 	image.height = height;
@@ -181,7 +181,7 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 	const size_t size = smax * tmax;
 	stride -= (smax * 4);
 
-	byte *lightmap = (byte *) Mem_TagMalloc(size * 4 * MAX_LIGHTMAP_PAGES, MEM_TAG_RENDERER);
+	byte *lightmap = (byte *) Mem_TagMalloc(size * 4 * MAX_LIGHTMAP_LAYERS, MEM_TAG_RENDERER);
 
 	// convert the raw lightmap samples to RGBA for softening
 	for (size_t i = 0; i < size; i++) {
@@ -193,7 +193,7 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 		if (bsp->version == BSP_VERSION_QUETOO) {
 			lightmap[i * 4 + 3] = *in++;
 
-			for (uint32_t k = 1; k < MAX_LIGHTMAP_PAGES; k++) {
+			for (uint32_t k = 1; k < MAX_LIGHTMAP_LAYERS; k++) {
 				lightmap[i * 4 + 0 + size * 4 * k] = *in++;
 				lightmap[i * 4 + 1 + size * 4 * k] = *in++;
 				lightmap[i * 4 + 2 + size * 4 * k] = *in++;
@@ -202,7 +202,7 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 		} else {
 			lightmap[i * 4 + 3] = default_lightmap_colors[0][3];
 
-			for (uint32_t k = 1; k < MAX_LIGHTMAP_PAGES; k++) {
+			for (uint32_t k = 1; k < MAX_LIGHTMAP_LAYERS; k++) {
 				lightmap[i * 4 + 0 + size * 4 * k] = default_lightmap_colors[k][0];
 				lightmap[i * 4 + 1 + size * 4 * k] = default_lightmap_colors[k][1];
 				lightmap[i * 4 + 2 + size * 4 * k] = default_lightmap_colors[k][2];
@@ -221,7 +221,7 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 		for (uint32_t s = 0; s < smax; s++) {
 			// copy the lightmap and deluxemap to the strided block
 
-			for (uint32_t k = 0; k < MAX_LIGHTMAP_PAGES; k++) {
+			for (uint32_t k = 0; k < MAX_LIGHTMAP_LAYERS; k++) {
 				lightmaps_out[0 + lightmap_layer_size * k] = lightmap[(t * smax + s) * 4 + 0 + size * 4 * k];
 				lightmaps_out[1 + lightmap_layer_size * k] = lightmap[(t * smax + s) * 4 + 1 + size * 4 * k];
 				lightmaps_out[2 + lightmap_layer_size * k] = lightmap[(t * smax + s) * 4 + 2 + size * 4 * k];
@@ -299,7 +299,7 @@ static void R_UploadPackedLightmaps(const uint32_t width, const uint32_t height,
 	}
 
 	// temp buffers
-	byte *lightmaps_buffer = Mem_Malloc(width * height * 4 * MAX_LIGHTMAP_PAGES);
+	byte *lightmaps_buffer = Mem_Malloc(width * height * 4 * MAX_LIGHTMAP_LAYERS);
 
 	do {
 		r_bsp_surface_t *surf = (r_bsp_surface_t *) start->data;

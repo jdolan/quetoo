@@ -47,6 +47,8 @@ r_atlas_t *R_CreateAtlas(const char *name) {
 
 	atlas->image.media.Free = R_FreeAtlas;
 	atlas->image.type = IT_ATLAS_MAP;
+	atlas->image.layers = 0;
+
 	g_strlcpy(atlas->image.media.name, name, sizeof(atlas->image.media.name));
 
 	if (r_atlas->value) {
@@ -358,6 +360,7 @@ static void R_StitchAtlas(r_atlas_t *atlas, r_atlas_params_t *params) {
 		image->image.height = image->input_image->height;
 		image->image.type = IT_ATLAS_IMAGE;
 		image->image.texnum = atlas->image.texnum;
+		image->image.layers = 0;
 
 		// replace with new atlas image ptr
 		g_hash_table_replace(atlas->hash, (gpointer) image->input_image, (gpointer) image);
