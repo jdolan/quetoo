@@ -126,9 +126,12 @@ static void loadView(ViewController *self) {
 		MakeOutlet("create", &this->create)
 	);
 
-	cgi.WakeView(self->view, "ui/play/CreateServerViewController.json", outlets);
-	self->view->stylesheet = cgi.Stylesheet("ui/play/CreateServerViewController.css");
+	$(self->view, awakeWithResourceName, "ui/play/CreateServerViewController.json");
+	$(self->view, resolve, outlets);
 
+	self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/play/CreateServerViewController.css");
+	assert(self->view->stylesheet);
+	
 	$(this->gameplay, addOption, "Default", "default");
 	$(this->gameplay, addOption, "Deathmatch", "deathmatch");
 	$(this->gameplay, addOption, "Instagib", "instagib");

@@ -82,9 +82,10 @@ static void loadView(ViewController *self) {
 		MakeOutlet("apply", &apply)
 	);
 
-	cgi.WakeView(self->view, "ui/settings/SystemViewController.json", outlets);
+	$(self->view, awakeWithResourceName, "ui/settings/SystemViewController.json");
+	$(self->view, resolve, outlets);
 
-	self->view->stylesheet = cgi.Stylesheet("ui/settings/SystemViewController.css");
+	self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/settings/SystemViewController.css");
 	assert(self->view->stylesheet);
 
 	videoMode->delegate.self = self;

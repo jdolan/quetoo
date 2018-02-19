@@ -285,44 +285,9 @@ typedef struct cg_import_s {
 	 */
 
 	/**
-	 * @brief Loads Data from the given path.
-	 */
-	Data *(*Data)(const char *path);
-
-	/**
-	 * @ brief Loads a Font from the given path, size and index.
-	 */
-	Font *(*Font)(const char *path, const char *family, int32_t size, int32_t style);
-
-	/**
-	 * @brief Loads an Image from the given path.
-	 */
-	Image *(*Image)(const char *path);
-
-	/**
-	 * @brief Loads a Stylesheet from the CSS file at the given path.
-	 */
-	Stylesheet *(*Stylesheet)(const char *path);
-
-	/**
 	 * @brief Resolves the current Theme.
 	 */
 	Theme *(*Theme)(void);
-
-	/**
-	 * @brief Loads a View from the JSON file at the given path.
-	 */
-	View *(*View)(const char *path, Outlet *outlets);
-
-	/**
-	 * @brief Sets the Image for the given ImageView.
-	 */
-	void (*SetImage)(ImageView *view, const char *path);
-
-	/**
-	 * @brief Wakes the specified View with the JSON file at the given path.
-	 */
-	void (*WakeView)(View *view, const char *path, Outlet *outlets);
 
 	/**
 	 * @brief Pushes the specified ViewController to the user interface.

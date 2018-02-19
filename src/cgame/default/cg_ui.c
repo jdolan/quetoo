@@ -32,7 +32,7 @@ static Stylesheet *stylesheet;
  */
 void Cg_InitUi(void) {
 
-	stylesheet = cgi.Stylesheet("ui/common/common.css");
+	stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/common/common.css");
 	assert(stylesheet);
 
 	$(cgi.Theme(), addStylesheet, stylesheet);

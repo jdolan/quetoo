@@ -279,9 +279,12 @@ static void loadView(ViewController *self) {
 		MakeOutlet("connect", &connect)
 	);
 
-	cgi.WakeView(self->view, "ui/play/JoinServerViewController.json", outlets);
-	self->view->stylesheet = cgi.Stylesheet("ui/play/JoinServerViewController.css");
+	$(self->view, awakeWithResourceName, "ui/play/JoinServerViewController.json");
+	$(self->view, resolve, outlets);
 
+	self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/play/JoinServerViewController.css");
+	assert(self->view->stylesheet);
+	
 	$(this->serversTableView, addColumnWithIdentifier, _hostname);
 	$(this->serversTableView, addColumnWithIdentifier, _source);
 	$(this->serversTableView, addColumnWithIdentifier, _name);

@@ -156,6 +156,8 @@ void Ui_Init(void) {
 
 	MVC_LogSetPriority(SDL_LOG_PRIORITY_DEBUG);
 
+	$$(Resource, setProvider, Ui_Data);
+
 	Renderer *renderer = (Renderer *) $(alloc(QuetooRenderer), init);
 
 	windowController = $(alloc(WindowController), initWithWindow, r_context.window);

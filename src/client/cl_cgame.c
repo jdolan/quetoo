@@ -189,14 +189,7 @@ void Cl_InitCgame(void) {
 	import.Cmd = Cmd_Add;
 	import.Cbuf = Cbuf_AddText;
 
-	import.Data = Ui_Data;
-	import.Font = Ui_Font;
-	import.Image = Ui_Image;
-	import.Stylesheet = Ui_Stylesheet;
 	import.Theme = Ui_Theme;
-	import.View = Ui_View;
-	import.SetImage = Ui_SetImage;
-	import.WakeView = Ui_WakeView;
 	import.PushViewController = Ui_PushViewController;
 	import.PopToViewController = Ui_PopToViewController;
 	import.PopViewController = Ui_PopViewController;

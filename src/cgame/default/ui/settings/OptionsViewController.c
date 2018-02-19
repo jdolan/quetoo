@@ -85,9 +85,10 @@ static void loadView(ViewController *self) {
 		MakeOutlet("stains", &stains)
 	);
 
-	cgi.WakeView(self->view, "ui/settings/OptionsViewController.json", outlets);
+	$(self->view, awakeWithResourceName, "ui/settings/OptionsViewController.json");
+	$(self->view, resolve, outlets);
 
-	self->view->stylesheet = cgi.Stylesheet("ui/settings/OptionsViewController.css");
+	self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/settings/OptionsViewController.css");
 	assert(self->view->stylesheet);
 
 	$(quality, addOption, "Custom", (ident) -1);

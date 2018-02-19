@@ -73,11 +73,7 @@ static void Cl_Mapshots_enumerate(const char *path, void *data) {
 	GList **list = (GList **) data;
 
 	if (g_str_has_suffix(path, ".jpg") || g_str_has_suffix(path, ".png")) {
-
-		char name[MAX_QPATH];
-		StripExtension(path, name);
-
-		*list = g_list_append(*list, g_strdup(name));
+		*list = g_list_append(*list, g_strdup(path));
 	}
 }
 

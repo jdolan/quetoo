@@ -163,9 +163,10 @@ static void loadView(ViewController *self) {
 		MakeOutlet("player", &this->playerModelView)
 	);
 
-	cgi.WakeView(self->view, "ui/play/PlayerSetupViewController.json", outlets);
+	$(self->view, awakeWithResourceName, "ui/play/PlayerSetupViewController.json");
+	$(self->view, resolve, outlets);
 
-	self->view->stylesheet = cgi.Stylesheet("ui/play/PlayerSetupViewController.css");
+	self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/play/PlayerSetupViewController.css");
 	assert(self->view->stylesheet);
 
 	this->skinSelect->comparator = sortSkins;

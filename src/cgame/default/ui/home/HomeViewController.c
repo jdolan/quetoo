@@ -40,7 +40,7 @@ static void loadView(ViewController *self) {
 		MakeOutlet("motd", &this->motd)
 	);
 
-	View *view = cgi.View("ui/home/HomeViewController.json", outlets);
+	View *view = $$(View, viewWithResourceName, "ui/home/HomeViewController.json", outlets);
 	assert(view);
 
 	$(self, setView, view);
