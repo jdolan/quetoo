@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <ObjectivelyMVC/Types.h>
-
 #include "r_local.h"
 
 r_context_t r_context;
@@ -174,16 +172,6 @@ void R_InitContext(void) {
  * @brief
  */
 void R_ShutdownContext(void) {
-	extern void Cl_HandleEvents(void);
-
-	SDL_FlushEvents(SDL_FIRSTEVENT, SDL_LASTEVENT);
-	
-	SDL_PushEvent(&(SDL_Event) {
-		.window.type = SDL_WINDOWEVENT,
-		.window.event = SDL_WINDOWEVENT_CLOSE
-	});
-
-	Cl_HandleEvents();
 
 	Cvar_SetValue(r_display->name, SDL_GetWindowDisplayIndex(r_context.window));
 

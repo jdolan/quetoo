@@ -36,9 +36,7 @@ static NavigationViewController *navigationViewController;
 void Ui_HandleEvent(const SDL_Event *event) {
 
 	if (windowController) {
-
 		if (cls.key_state.dest != KEY_UI) {
-
 			switch (event->type) {
 				case SDL_KEYDOWN:
 				case SDL_KEYUP:

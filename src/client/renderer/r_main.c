@@ -423,6 +423,13 @@ static void R_Restart_f(void) {
 		return;
 	}
 
+	extern void Ui_HandleEvent(const SDL_Event *event);
+
+	Ui_HandleEvent(&(const SDL_Event) {
+		.window.type = SDL_WINDOWEVENT,
+		.window.event = SDL_WINDOWEVENT_CLOSE
+	});
+
 	R_Shutdown();
 
 	R_Init();
