@@ -30,8 +30,6 @@
 
 #pragma mark - Actions and delegate callbacks
 
-
-
 /**
  * @brief Select teams mode
  */
