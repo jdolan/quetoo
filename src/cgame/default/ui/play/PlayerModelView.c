@@ -190,6 +190,10 @@ static void renderDeviceDidReset(View *self) {
 
 	super(View, self, renderDeviceDidReset);
 
+	PlayerModelView *this = (PlayerModelView *) self;
+
+	this->info[0] = '\0';
+
 	$(self, updateBindings);
 }
 
@@ -204,11 +208,16 @@ static void updateBindings(View *self) {
 
 	this->animation1.frame = this->animation2.frame = -1;
 
-	char string[MAX_STRING_CHARS];
-	g_snprintf(string, sizeof(string), "newbie\\%s\\%s\\%s\\%s\\0",
+	char info[MAX_STRING_CHARS];
+	g_snprintf(info, sizeof(info), "newbie\\%s\\%s\\%s\\%s\\0",
 			   cg_skin->string, cg_shirt->string, cg_pants->string, cg_helmet->string);
 
-	Cg_LoadClient(&this->client, string);
+	if (strcmp(this->info, info) == 0) {
+		return;
+	}
+
+	g_strlcpy(this->info, info, sizeof(this->info));
+	Cg_LoadClient(&this->client, this->info);
 
 	this->legs.model = this->client.legs;
 	this->legs.scale = 1.0;
