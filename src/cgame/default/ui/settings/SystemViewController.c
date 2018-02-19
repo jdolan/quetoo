@@ -33,16 +33,13 @@
 static void didSelecVideoMode(Select *select, Option *option) {
 
 	const SDL_DisplayMode *mode = option->value;
-
-	const int32_t w = mode ? mode->w : 0;
-	const int32_t h = mode ? mode->h : 0;
-
-	if (cgi.CvarValue("r_fullscreen")) {
-		cgi.CvarSetValue("r_width", w);
-		cgi.CvarSetValue("r_height", h);
-	} else {
-		cgi.CvarSetValue("r_windowed_width", w);
-		cgi.CvarSetValue("r_windowed_height", h);
+	if (mode) {
+		if (mode->w != cgi.context->width || mode->h != cgi.context->height) {
+			cgi.CvarSetValue("r_width", mode->w);
+			cgi.CvarSetValue("r_height", mode->h);
+			cgi.CvarSetValue("r_windowed_width", mode->w);
+			cgi.CvarSetValue("r_windowed_height", mode->h);
+		}
 	}
 }
 
@@ -50,7 +47,7 @@ static void didSelecVideoMode(Select *select, Option *option) {
  * @brief ActionFunction for the Apply button.
  */
 static void applyAction(Control *control, const SDL_Event *event, ident sender, ident data) {
-	cgi.Cbuf("r_restart");
+	cgi.Cbuf("r_restart; s_restart");
 }
 
 #pragma mark - Object
