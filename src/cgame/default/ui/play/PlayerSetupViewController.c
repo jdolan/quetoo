@@ -87,7 +87,7 @@ static void didSelectSkin(Select *select, Option *option) {
 
 	PlayerSetupViewController *self = (PlayerSetupViewController *) select->delegate.self;
 
-	cgi.CvarSet(cg_skin->name, option->title->text);
+	cgi.SetCvarString(cg_skin->name, option->title->text);
 
 	$((View *) self->playerModelView, updateBindings);
 }
@@ -100,13 +100,13 @@ static void didPickEffectColor(HueColorPicker *hueColorPicker, double hue, doubl
 	PlayerSetupViewController *this = hueColorPicker->delegate.self;
 
 	if (hue < 0.0) {
-		cgi.CvarSet(cg_color->name, "default");
+		cgi.SetCvarString(cg_color->name, "default");
 
 		this->effectsColorPicker->colorView->backgroundColor = Colors.Charcoal;
 
 		$(this->effectsColorPicker->hueSlider->label, setText, "");
 	} else {
-		cgi.CvarSetValue(cg_color->name, (vec_t) hueColorPicker->hue);
+		cgi.SetCvarInteger(cg_color->name, (int32_t) hueColorPicker->hue);
 	}
 }
 
@@ -128,14 +128,14 @@ static void didPickPlayerColor(HSVColorPicker *hsvColorPicker, double hue, doubl
 	assert(var);
 
 	if (hue < 0.0) {
-		cgi.CvarSet(var->name, "default");
+		cgi.SetCvarString(var->name, "default");
 
 		hsvColorPicker->colorView->backgroundColor = Colors.Charcoal;
 
 		$(hsvColorPicker->hueSlider->label, setText, "");
 	} else {
 		const SDL_Color color = $(hsvColorPicker, rgbColor);
-		cgi.CvarSet(var->name, MVC_RGBToHex(&color));
+		cgi.SetCvarString(var->name, MVC_RGBToHex(&color));
 	}
 
 	if (this->playerModelView) {

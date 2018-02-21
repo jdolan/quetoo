@@ -839,8 +839,8 @@ void R_InitSupersample(void) {
 	if (r_context.render_width == (uint32_t) r_context.width ||
 	        r_context.render_height == (uint32_t) r_context.height) {
 
-		Com_Warn("r_supersample set but won't change anything.\n");
-		Cvar_ForceSet("r_supersample", "0");
+		Com_Warn("%s set but won't change anything.\n", r_supersample->name);
+		Cvar_ForceSetValue(r_supersample->name, 0.0);
 		return;
 	}
 
@@ -850,8 +850,8 @@ void R_InitSupersample(void) {
 	        r_context.render_width > (uint32_t) r_config.max_texture_size ||
 	        r_context.render_height > (uint32_t) r_config.max_texture_size) {
 
-		Com_Warn("r_supersample is too low or too high.\n");
-		Cvar_Set("r_supersample", "0");
+		Com_Warn("%s is too low or too high.\n", r_supersample->name);
+		Cvar_ForceSetValue(r_supersample->name, 0.0);
 
 		r_context.render_width = r_context.width;
 		r_context.render_height = r_context.height;
@@ -880,7 +880,7 @@ void R_InitSupersample(void) {
 	if (!R_FramebufferReady(r_state.supersample_fb)) {
 
 		Com_Warn("Couldn't initialize supersample.\n");
-		Cvar_Set("r_supersample", "0");
+		Cvar_ForceSetValue(r_supersample->name, 0.0);
 
 		r_context.render_width = r_context.width;
 		r_context.render_height = r_context.height;

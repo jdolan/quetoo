@@ -83,5 +83,12 @@ void Cg_UpdateLoading(const cl_loading_t loading) {
  */
 void Cg_BindCvar(const Inlet *inlet, ident obj) {
 
-	*(cvar_t **) inlet->dest = cgi.CvarGet((cast(String, obj)->chars));
+	const char *name = cast(String, obj)->chars;
+	cvar_t *var = cgi.GetCvar(name);
+
+	if (var == NULL) {
+		cgi.Warn("%s not found\n", name);
+	}
+
+	*(cvar_t **) inlet->dest = var;
 }

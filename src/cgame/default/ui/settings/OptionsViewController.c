@@ -34,28 +34,28 @@ static void didSelectQuality(Select *select, Option *option) {
 
 	switch ((intptr_t) option->value) {
 		case 3:
-			cgi.CvarSetValue("r_caustics", 1.0);
-			cgi.CvarSetValue("r_shadows", 3.0);
-			cgi.CvarSetValue("r_stainmaps", 1.0);
-			cgi.CvarSetValue("cg_add_weather", 1.0);
+			cgi.SetCvarInteger("r_caustics", 1);
+			cgi.SetCvarInteger("r_shadows", 3);
+			cgi.SetCvarInteger("r_stainmaps", 1);
+			cgi.SetCvarInteger("cg_weather", 1);
 			break;
 		case 2:
-			cgi.CvarSetValue("r_caustics", 1.0);
-			cgi.CvarSetValue("r_shadows", 2.0);
-			cgi.CvarSetValue("r_stainmaps", 1.0);
-			cgi.CvarSetValue("cg_add_weather", 1.0);
+			cgi.SetCvarInteger("r_caustics", 1);
+			cgi.SetCvarInteger("r_shadows", 2);
+			cgi.SetCvarInteger("r_stainmaps", 1);
+			cgi.SetCvarInteger("cg_weather", 1);
 			break;
 		case 1:
-			cgi.CvarSetValue("r_caustics", 0.0);
-			cgi.CvarSetValue("r_shadows", 1.0);
-			cgi.CvarSetValue("r_stainmaps", 1.0);
-			cgi.CvarSetValue("cg_add_weather", 1.0);
+			cgi.SetCvarInteger("r_caustics", 0);
+			cgi.SetCvarInteger("r_shadows", 1);
+			cgi.SetCvarInteger("r_stainmaps", 1);
+			cgi.SetCvarInteger("cg_weather", 1);
 			break;
 		case 0:
-			cgi.CvarSetValue("r_caustics", 0.0);
-			cgi.CvarSetValue("r_shadows", 0.0);
-			cgi.CvarSetValue("r_stainmaps", 0.0);
-			cgi.CvarSetValue("cg_add_weather", 0.0);
+			cgi.SetCvarInteger("r_caustics", 0);
+			cgi.SetCvarInteger("r_shadows", 0);
+			cgi.SetCvarInteger("r_stainmaps", 0);
+			cgi.SetCvarInteger("cg_weather", 0);
 			break;
 		default:
 			break;

@@ -75,7 +75,7 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 		$(self->background, setImageWithResourceName, va("ui/backgrounds/%d.tga", Random() % 6));
 		$(self->logo, setImageWithResourceName, "ui/logo.tga");
 
-		$(self->version->text, setText, va("Quetoo %s", cgi.CvarGet("version")->string));
+		$(self->version->text, setText, va("Quetoo %s", cgi.GetCvarString("version")));
 	}
 
 	return self;

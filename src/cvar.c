@@ -48,23 +48,17 @@ static _Bool Cvar_InfoValidate(const char *s) {
 /**
  * @return The variable by the specified name, or `NULL`.
  */
-static cvar_t *Cvar_Get_(const char *name, const _Bool case_sensitive) {
+cvar_t *Cvar_Get(const char *name) {
 
 	if (cvar_vars) {
 		const GQueue *queue = (GQueue *) g_hash_table_lookup(cvar_vars, name);
-
 		if (queue) {
 			if (queue->length == 1) { // only 1 entry, return it
-				cvar_t *cvar = (cvar_t *) queue->head->data;
-
-				if (!case_sensitive || g_strcmp0(cvar->name, name) == 0) {
-					return cvar;
-				}
+				return (cvar_t *) queue->head->data;
 			} else {
 				// only return the exact match
 				for (const GList *list = queue->head; list; list = list->next) {
 					cvar_t *cvar = (cvar_t *) list->data;
-
 					if (!g_strcmp0(cvar->name, name)) {
 						return cvar;
 					}
@@ -77,41 +71,45 @@ static cvar_t *Cvar_Get_(const char *name, const _Bool case_sensitive) {
 }
 
 /**
- * @return The variable by the specified name, or `NULL`.
+ * @return The integer value for the specified variable, or 0.
  */
-cvar_t *Cvar_Get(const char *name) {
+int32_t Cvar_GetInteger(const char *name) {
 
-	return Cvar_Get_(name, false);
-}
-
-/**
- * @return The numeric value for the specified variable, or 0.
- */
-vec_t Cvar_GetValue(const char *name) {
-	cvar_t *var;
-
-	var = Cvar_Get(name);
+	const cvar_t *var = Cvar_Get(name);
 
 	if (!var) {
-		return 0.0f;
+		return 0;
 	}
 
-	return atof(var->string);
+	return var->integer;
 }
 
 /**
  * @return The string for the specified variable, or the empty string.
  */
 const char *Cvar_GetString(const char *name) {
-	cvar_t *var;
 
-	var = Cvar_Get(name);
+	const cvar_t *var = Cvar_Get(name);
 
 	if (!var) {
 		return "";
 	}
 
 	return var->string;
+}
+
+/**
+ * @return The floating point value for the specified variable, or 0.0.
+ */
+vec_t Cvar_GetValue(const char *name) {
+
+	const cvar_t *var = Cvar_Get(name);
+
+	if (!var) {
+		return 0.0f;
+	}
+
+	return atof(var->string);
 }
 
 /**
@@ -147,8 +145,8 @@ static const char *Cvar_Stringify(const cvar_t *var) {
 	static char str[MAX_STRING_CHARS];
 	g_snprintf(str, sizeof(str), "%s \"^3%s^7\"", var->name, var->string);
 
-	if (g_strcmp0(var->string, var->default_value)) {
-		g_strlcat(str, va(" [\"^3%s^7\"]", var->default_value), sizeof(str));
+	if (g_strcmp0(var->string, var->default_string)) {
+		g_strlcat(str, va(" [\"^3%s^7\"]", var->default_string), sizeof(str));
 	}
 
 	if (modifiers) {
@@ -219,6 +217,9 @@ void Cvar_CompleteVar(const char *pattern, GList **matches) {
  */
 cvar_t *Cvar_Add(const char *name, const char *value, uint32_t flags, const char *description) {
 
+	assert(name);
+	assert(value);
+
 	if (flags & (CVAR_USER_INFO | CVAR_SERVER_INFO)) {
 		if (!Cvar_InfoValidate(name)) {
 			Com_Print("Invalid variable name: %s\n", name);
@@ -231,13 +232,13 @@ cvar_t *Cvar_Add(const char *name, const char *value, uint32_t flags, const char
 	}
 
 	// update existing variables with meta data from owning subsystem
-	cvar_t *var = Cvar_Get_(name, true);
+	cvar_t *var = Cvar_Get(name);
 	if (var) {
 		if (value) {
-			if (var->default_value) {
-				Mem_Free((void *) var->default_value);
+			if (var->default_string) {
+				Mem_Free((void *) var->default_string);
 			}
-			var->default_value = Mem_Link(Mem_TagCopyString(value, MEM_TAG_CVAR), var);
+			var->default_string = Mem_Link(Mem_TagCopyString(value, MEM_TAG_CVAR), var);
 		}
 		var->flags |= flags;
 		if (description) {
@@ -249,15 +250,12 @@ cvar_t *Cvar_Add(const char *name, const char *value, uint32_t flags, const char
 		return var;
 	}
 
-	if (!value) { // don't create variables if a value isn't provided
-		return NULL;
-	}
-
 	// create a new variable
 	var = Mem_TagMalloc(sizeof(*var), MEM_TAG_CVAR);
-
+	assert(var);
+	
 	var->name = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CVAR), var);
-	var->default_value = Mem_Link(Mem_TagCopyString(value, MEM_TAG_CVAR), var);
+	var->default_string = Mem_Link(Mem_TagCopyString(value, MEM_TAG_CVAR), var);
 	var->string = Mem_Link(Mem_TagCopyString(value, MEM_TAG_CVAR), var);
 	var->value = strtof(var->string, NULL);
 	var->integer = (int32_t) strtol(var->string, NULL, 0);
@@ -283,12 +281,11 @@ cvar_t *Cvar_Add(const char *name, const char *value, uint32_t flags, const char
 /**
  * @brief
  */
-static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
-	cvar_t *var;
+static cvar_t *Cvar_Set_(const char *name, const char *value, int32_t flags, _Bool force) {
 
-	var = Cvar_Get_(name, true);
+	cvar_t *var = Cvar_Get(name);
 	if (!var) { // create it
-		return Cvar_Add(name, value, 0, NULL);
+		return Cvar_Add(name, value, flags, NULL);
 	}
 
 	if (var->flags & (CVAR_USER_INFO | CVAR_SERVER_INFO)) {
@@ -357,8 +354,8 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 		}
 	}
 
-	if (!g_strcmp0(value, var->string)) {
-		return var;    // not changed
+	if (!g_strcmp0(var->string, value)) {
+		return var; // not changed
 	}
 
 	if (!force) {
@@ -373,46 +370,6 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 	}
 
 	if (var->flags & CVAR_USER_INFO) {
-		cvar_user_info_modified = true;    // transmit at next opportunity
-	}
-
-	Mem_Free(var->string);
-
-	var->string = Mem_Link(Mem_CopyString(value), var);
-	var->value = strtof(var->string, NULL);
-	var->integer = (int32_t) strtol(var->string, NULL, 0);
-
-	var->modified = true;
-
-	return var;
-}
-
-/**
- * @brief
- */
-cvar_t *Cvar_ForceSet(const char *name, const char *value) {
-	return Cvar_Set_(name, value, true);
-}
-
-/**
- * @brief
- */
-cvar_t *Cvar_Set(const char *name, const char *value) {
-	return Cvar_Set_(name, value, false);
-}
-
-/**
- * @brief
- */
-cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags) {
-	cvar_t *var;
-
-	var = Cvar_Get_(name, true);
-	if (!var) { // create it
-		return Cvar_Add(name, value, flags, NULL);
-	}
-
-	if (var->flags & CVAR_USER_INFO) {
 		cvar_user_info_modified = true; // transmit at next opportunity
 	}
 
@@ -421,7 +378,6 @@ cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags) {
 	var->string = Mem_Link(Mem_CopyString(value), var);
 	var->value = strtof(var->string, NULL);
 	var->integer = (int32_t) strtol(var->string, NULL, 0);
-	var->flags = flags;
 	var->modified = true;
 
 	return var;
@@ -430,16 +386,54 @@ cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags) {
 /**
  * @brief
  */
+cvar_t *Cvar_SetInteger(const char *name, int32_t value) {
+	return Cvar_Set_(name, va("%d", value), 0, false);
+}
+
+/**
+ * @brief
+ */
+cvar_t *Cvar_SetString(const char *name, const char *value) {
+	return Cvar_Set_(name, value, 0, false);
+}
+
+/**
+ * @brief
+ */
 cvar_t *Cvar_SetValue(const char *name, vec_t value) {
-	char val[32];
+	return Cvar_Set_(name, va("%g", value), 0, false);
+}
 
-	if (value == (int32_t) value) {
-		g_snprintf(val, sizeof(val), "%i", (int32_t) value);
-	} else {
-		g_snprintf(val, sizeof(val), "%f", value);
+/**
+ * @brief
+ */
+cvar_t *Cvar_SetFlags(const char *name, uint32_t flags) {
+	cvar_t *var = Cvar_Get(name);
+	if (var) {
+		var->flags = flags;
 	}
+	return var;
+}
 
-	return Cvar_Set(name, val);
+/**
+ * @brief
+ */
+cvar_t *Cvar_ForceSetInteger(const char *name, int32_t value) {
+	return Cvar_Set_(name, va("%d", value), 0, true);
+}
+
+/**
+ * @brief
+ */
+cvar_t *Cvar_ForceSetString(const char *name, const char *value) {
+	return Cvar_Set_(name, value, 0, true);
+}
+
+/**
+ * @brief
+ */
+cvar_t *Cvar_ForceSetValue(const char *name, vec_t value) {
+	return Cvar_Set_(name, va("%f", value), 0, true);
 }
 
 /**
@@ -447,23 +441,23 @@ cvar_t *Cvar_SetValue(const char *name, vec_t value) {
  */
 cvar_t *Cvar_Toggle(const char *name) {
 
-	cvar_t *var = Cvar_Get_(name, true) ? : Cvar_Add(name, "0", 0, NULL);
+	cvar_t *var = Cvar_Get(name) ? : Cvar_Add(name, "0", 0, NULL);
 
-	if (var->value) {
-		return Cvar_SetValue(name, 0.0);
+	if (var->integer) {
+		return Cvar_SetInteger(name, 0);
 	} else {
-		return Cvar_SetValue(name, 1.0);
+		return Cvar_SetInteger(name, 1);
 	}
 }
 
 /**
- * @brief Enumeration helper for Car_ResetDeveloper.
+ * @brief Enumeration helper for Cvar_ResetDeveloper.
  */
-static void Car_ResetDeveloper_enumerate(cvar_t *var, void *data) {
+static void Cvar_ResetDeveloper_enumerate(cvar_t *var, void *data) {
 
 	if (var->flags & CVAR_DEVELOPER) {
-		if (var->default_value) {
-			Cvar_FullSet(var->name, var->default_value, var->flags);
+		if (var->default_string) {
+			Cvar_ForceSetString(var->name, var->default_string);
 		}
 	}
 }
@@ -471,10 +465,10 @@ static void Car_ResetDeveloper_enumerate(cvar_t *var, void *data) {
 /**
  * @brief Reset CVAR_DEVELOPER to their default values.
  */
-void Car_ResetDeveloper(void) {
+void Cvar_ResetDeveloper(void) {
 
 	if (!Com_WasInit(QUETOO_SERVER)) {
-		Cvar_Enumerate(Car_ResetDeveloper_enumerate, NULL);
+		Cvar_Enumerate(Cvar_ResetDeveloper_enumerate, NULL);
 	}
 }
 
@@ -582,7 +576,7 @@ _Bool Cvar_Command(void) {
 		return true;
 	}
 
-	Cvar_Set(var->name, Cmd_Argv(1));
+	Cvar_SetString(var->name, Cmd_Argv(1));
 	return true;
 }
 
@@ -604,25 +598,29 @@ static void Cvar_Set_f(void) {
 		return;
 	}
 
+	int32_t flags = 0;
+
 	if (!g_strcmp0("seta", Cmd_Argv(0))) {
-		Cvar_FullSet(Cmd_Argv(1), Cmd_Argv(2), CVAR_ARCHIVE);
+		flags |= CVAR_ARCHIVE;
 	} else if (!g_strcmp0("sets", Cmd_Argv(0))) {
-		Cvar_FullSet(Cmd_Argv(1), Cmd_Argv(2), CVAR_SERVER_INFO);
+		flags |= CVAR_SERVER_INFO;
 	} else if (!g_strcmp0("setu", Cmd_Argv(0))) {
-		Cvar_FullSet(Cmd_Argv(1), Cmd_Argv(2), CVAR_USER_INFO);
-	} else {
-		Cvar_Set(Cmd_Argv(1), Cmd_Argv(2));
+		flags |= CVAR_USER_INFO;
 	}
+
+	Cvar_Set_(Cmd_Argv(1), Cmd_Argv(2), flags, false);
 }
 
 /**
  * @brief Allows toggling of arbitrary cvars from console.
  */
 static void Cvar_Toggle_f(void) {
+
 	if (Cmd_Argc() != 2) {
 		Com_Print("Usage: toggle <variable>\n");
 		return;
 	}
+
 	Cvar_Toggle(Cmd_Argv(1));
 }
 
@@ -791,7 +789,7 @@ void Cvar_Init(void) {
 		if (!strncmp(s, "+set", 4)) {
 			Cmd_ExecuteString(va("%s %s %s\n", Com_Argv(i) + 1, Com_Argv(i + 1), Com_Argv(i + 2)));
 
-			cvar_t *var = Cvar_Get_(Com_Argv(i + 1), true);
+			cvar_t *var = Cvar_Get(Com_Argv(i + 1));
 			if (var) {
 				var->flags |= CVAR_CLI;
 			} else {

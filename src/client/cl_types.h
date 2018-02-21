@@ -297,9 +297,10 @@ typedef enum {
 typedef struct {
 	net_addr_t addr;
 	cl_server_source_t source;
-	char hostname[64];
+	char hostname[48];
 	char name[32];
 	char gameplay[32];
+	char error[128];
 	uint16_t clients;
 	uint16_t max_clients;
 	uint32_t ping_time; // when we pinged the server

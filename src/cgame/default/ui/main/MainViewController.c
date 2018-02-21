@@ -35,23 +35,9 @@
 #pragma mark - Actions
 
 /**
- * @brief Quit the game.
- */
-static void quit(ident data) {
-	cgi.Cbuf("quit\n");
-}
-
-/**
- * @brief Disconnect from the current game.
- */
-static void disconnect(ident data) {
-	cgi.Cbuf("disconnect\n");
-}
-
-/**
  * @brief ActionFunction for main menu primary items.
  */
-static void action(Control *control, const SDL_Event *event, ident sender, ident data) {
+static void pushViewControllerAction(Control *control, const SDL_Event *event, ident sender, ident data) {
 
 	MainViewController *this = (MainViewController *) sender;
 
@@ -70,27 +56,58 @@ static void action(Control *control, const SDL_Event *event, ident sender, ident
 		$(this->navigationViewController, pushViewController, viewController);
 		release(viewController);
 	} else {
-
-		Dialog dialog;
-		if (*cgi.state >= CL_CONNECTED) {
-			dialog = (const Dialog) {
-				.message = "Are you sure you want to disconnect?",
-				.ok = "Yes",
-				.cancel = "No",
-				.okFunction = disconnect
-			};
-		} else {
-			dialog = (const Dialog) {
-				.message = "Are you sure you want to quit?",
-				.ok = "Yes",
-				.cancel = "No",
-				.okFunction = quit
-			};
-		}
-
-		ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, &dialog);
-		$((ViewController *) this, addChildViewController, viewController);
+		cgi.Warn("Menu item does not provide a ViewController class\n");
 	}
+}
+
+/**
+ * @brief Quit the game.
+ */
+static void quit(ident data) {
+	cgi.Cbuf("quit\n");
+}
+
+/**
+ * @brief Quit Action.
+ */
+static void quitAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+
+	MainViewController *this = (MainViewController *) sender;
+
+	const Dialog dialog = {
+		.message = "Are you sure you want to quit?",
+		.ok = "Yes",
+		.cancel = "No",
+		.okFunction = quit
+	};
+
+	ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, &dialog);
+	$((ViewController *) this, addChildViewController, viewController);
+}
+
+/**
+ * @brief Disconnect from the current game.
+ */
+static void disconnect(ident data) {
+	cgi.Cbuf("disconnect\n");
+}
+
+/**
+ * @brief Disconnect Action.
+ */
+static void disconnectAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+
+	MainViewController *this = (MainViewController *) sender;
+
+	const Dialog dialog = {
+		.message = "Are you sure you want to disconnect?",
+		.ok = "Yes",
+		.cancel = "No",
+		.okFunction = disconnect
+	};
+
+	ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, &dialog);
+	$((ViewController *) this, addChildViewController, viewController);
 }
 
 #pragma mark - Object
@@ -124,20 +141,21 @@ static void loadView(ViewController *self) {
 
 	$(self, setView, (View *) this->mainView);
 
-	$(this, primaryButton, "Home", _HomeViewController());
-	$(this, primaryButton, "Play", _PlayViewController());
-	$(this, primaryButton, "Controls", _ControlsViewController());
-	$(this, primaryButton, "Settings", _SettingsViewController());
+	$(this, primaryButton, "Home", pushViewControllerAction, _HomeViewController());
+	$(this, primaryButton, "Play", pushViewControllerAction, _PlayViewController());
+	$(this, primaryButton, "Controls", pushViewControllerAction, _ControlsViewController());
+	$(this, primaryButton, "Settings", pushViewControllerAction, _SettingsViewController());
 
-	$(this, primaryButton, "Quit", NULL);
+	$(this, primaryButton, "Quit", quitAction, NULL);
 
-	$(this, secondaryButton, "Join", _HomeViewController()); // TODO
-	$(this, secondaryButton, "Votes", _HomeViewController()); // TODO
+	$(this, secondaryButton, "Join", pushViewControllerAction, NULL); // TODO
+	$(this, secondaryButton, "Votes", pushViewControllerAction, NULL); // TODO
+	$(this, secondaryButton, "Disconnect", disconnectAction, NULL);
 
 	$(self, addChildViewController, (ViewController *) this->navigationViewController);
 	$(this->mainView->contentView, addSubview, this->navigationViewController->viewController.view);
 
-	action(NULL, NULL, this, _HomeViewController());
+	pushViewControllerAction(NULL, NULL, this, _HomeViewController());
 }
 
 #pragma mark - MainViewController
@@ -158,30 +176,33 @@ static MainViewController *init(MainViewController *self) {
 }
 
 /**
- * @fn void MainViewController::primaryButton(MainViewController *self, const char *title, Class *clazz)
+ * @fn void MainViewController::primaryButton(MainViewController *self, const char *title, ActionFunction action, ident data)
  * @memberof MainViewController
  */
-static void primaryButton(MainViewController *self, const char *title, Class *clazz) {
+static void primaryButton(MainViewController *self, const char *title, ActionFunction action, ident data) {
 
 	Button *button = $(alloc(Button), initWithTitle, title);
 	assert(button);
 
-	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, clazz);
+	button->control.view.identifier = strdup(title);
+	assert(button->control.view.identifier);
+
+	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, data);
 
 	$((View *) self->mainView->primaryMenu, addSubview, (View *) button);
 	release(button);
 }
 
 /**
- * @fn void MainViewController::secondaryButton(MainViewController *self, const char *title, Class *clazz)
+ * @fn void MainViewController::secondaryButton(MainViewController *self, const char *title, ActionFunction action, ident data)
  * @memberof MainViewController
  */
-static void secondaryButton(MainViewController *self, const char *title, Class *clazz) {
+static void secondaryButton(MainViewController *self, const char *title, ActionFunction action, ident data) {
 
 	Button *button = $(alloc(Button), initWithTitle, title);
 	assert(button);
 
-	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, clazz);
+	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, data);
 
 	$((View *) self->mainView->secondaryMenu, addSubview, (View *) button);
 	release(button);

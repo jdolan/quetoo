@@ -179,14 +179,18 @@ void Cl_InitCgame(void) {
 	import.EnumerateFiles = Fs_Enumerate;
 	import.FileExists = Fs_Exists;
 
-	import.Cvar = Cvar_Add;
-	import.CvarGet = Cvar_Get;
-	import.CvarSet = Cvar_Set;
-	import.CvarString = Cvar_GetString;
-	import.CvarValue = Cvar_GetValue;
-	import.CvarSetValue = Cvar_SetValue;
-	import.CvarToggle = Cvar_Toggle;
-	import.Cmd = Cmd_Add;
+	import.AddCvar = Cvar_Add;
+	import.GetCvar = Cvar_Get;
+	import.GetCvarInteger = Cvar_GetInteger;
+	import.GetCvarString = Cvar_GetString;
+	import.GetCvarValue = Cvar_GetValue;
+	import.SetCvarInteger = Cvar_SetInteger;
+	import.SetCvarString = Cvar_SetString;
+	import.SetCvarValue = Cvar_SetValue;
+	import.ForceSetCvarString = Cvar_ForceSetString;
+	import.ForceSetCvarValue = Cvar_ForceSetValue;
+	import.ToggleCvar = Cvar_Toggle;
+	import.AddCmd = Cmd_Add;
 	import.Cbuf = Cbuf_AddText;
 
 	import.Theme = Ui_Theme;

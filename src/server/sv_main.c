@@ -148,7 +148,7 @@ static void Sv_Info_f(void) {
 			}
 		}
 
-		g_snprintf(string, sizeof(string), "%-63s\\%-31s\\%-31s\\%d\\%d", sv_hostname->string,
+		g_snprintf(string, sizeof(string), "%-64s\\%-31s\\%-31s\\%d\\%d", sv_hostname->string,
 		           sv.name, svs.game->GameName(), count, sv_max_clients->integer);
 	}
 
@@ -822,7 +822,7 @@ static void Sv_InitLocal(void) {
 	                          "The maximum number of clients the server will allow");
 	sv_no_areas = Cvar_Add("sv_no_areas", "0", CVAR_LATCH | CVAR_DEVELOPER,
 	                       "Disable server-side area management (developer tool)");
-	sv_public = Cvar_Add("sv_public", "0", 0,
+	sv_public = Cvar_Add("sv_public", "0", CVAR_SERVER_INFO,
 	                     "Set to 1 to to advertise this server via the master server");
 	sv_rcon_password = Cvar_Add("rcon_password", "", 0,
 	                            "The remote console password. If set, only give this to trusted clients");
@@ -831,8 +831,7 @@ static void Sv_InitLocal(void) {
 	                           "If set, in-game UDP downloads will be allowed when HTTP downloads fail");
 
 	if (dedicated->value) {
-		Cvar_SetValue(sv_max_clients->name, 8.0);
-		Cvar_SetValue(sv_public->name, 1.0);
+		Cvar_SetInteger(sv_public->name, 1);
 	}
 
 	// set this so clients and server browsers can see it

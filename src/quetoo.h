@@ -240,7 +240,7 @@ typedef void (*AutocompleteFunc)(const uint32_t argi, GList **matches);
  */
 typedef struct cvar_s {
 	const char *name;
-	const char *default_value;
+	const char *default_string;
 	char *string;
 	char *latched_string; // for CVAR_LATCH vars
 	vec_t value;

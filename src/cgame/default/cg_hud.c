@@ -1283,9 +1283,13 @@ void Cg_LoadHudMedia(void) {
  * @brief
  */
 void Cg_InitHud(void) {
-	cgi.Cmd("cg_weapon_next", Cg_Weapon_Next_f, CMD_CGAME, "Open the weapon bar to the next weapon. In chasecam, switches to next target.");
-	cgi.Cmd("cg_weapon_previous", Cg_Weapon_Prev_f, CMD_CGAME, "Open the weapon bar to the previous weapon. In chasecam, switches to previous target.");
+	cgi.AddCmd("cg_weapon_next", Cg_Weapon_Next_f, CMD_CGAME,
+			   "Open the weapon bar to the next weapon. In chasecam, switches to next target.");
+	cgi.AddCmd("cg_weapon_previous", Cg_Weapon_Prev_f, CMD_CGAME,
+			   "Open the weapon bar to the previous weapon. In chasecam, switches to previous target.");
 
-	cg_select_weapon_delay = cgi.Cvar("cg_select_weapon_delay", "250", CVAR_ARCHIVE, "The amount of time, in milliseconds, to wait between changing weapons in the scroll view. Clicking will override this value and switch immediately.");
-	cg_select_weapon_interval = cgi.Cvar("cg_select_weapon_interval", "750", CVAR_ARCHIVE, "The amount of time, in milliseconds, to show the weapon bar after changing weapons.");
+	cg_select_weapon_delay = cgi.AddCvar("cg_select_weapon_delay", "250", CVAR_ARCHIVE,
+										 "The amount of time, in milliseconds, to wait between changing weapons in the scroll view. Clicking will override this value and switch immediately.");
+	cg_select_weapon_interval = cgi.AddCvar("cg_select_weapon_interval", "750", CVAR_ARCHIVE,
+											"The amount of time, in milliseconds, to show the weapon bar after changing weapons.");
 }

@@ -59,14 +59,14 @@ static void didPickCrosshairColor(HueColorPicker *hueColorPicker, double hue, do
 	ResponseServiceViewController *this = (ResponseServiceViewController *) hueColorPicker->delegate.self;
 
 	if (hue < 1.0) {
-		cgi.CvarSet(cg_draw_crosshair_color->name, "default");
+		cgi.SetCvarString(cg_draw_crosshair_color->name, "default");
 
 		hueColorPicker->colorView->backgroundColor = Colors.Charcoal;
 
 		$(hueColorPicker->hueSlider->label, setText, "");
 	} else {
 		const SDL_Color color = $(hueColorPicker, rgbColor);
-		cgi.CvarSet(cg_draw_crosshair_color->name, MVC_RGBToHex(&color));
+		cgi.SetCvarString(cg_draw_crosshair_color->name, MVC_RGBToHex(&color));
 	}
 
 	$((View *) this->crosshairView, updateBindings);

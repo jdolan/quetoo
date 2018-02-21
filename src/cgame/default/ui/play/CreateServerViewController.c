@@ -38,16 +38,16 @@ static void selectTeams(Select *select, Option *option) {
 	const intptr_t value = (intptr_t) option->value;
 	switch (value) {
 		case 1:
-			cgi.CvarSet(g_teams->name, "1");
-			cgi.CvarSet(g_ctf->name, "0");
+			cgi.SetCvarInteger(g_teams->name, 1);
+			cgi.SetCvarInteger(g_ctf->name, 0);
 			break;
 		case 2:
-			cgi.CvarSet(g_teams->name, "0");
-			cgi.CvarSet(g_ctf->name, "1");
+			cgi.SetCvarInteger(g_teams->name, 0);
+			cgi.SetCvarInteger(g_ctf->name, 1);
 			break;
 		default:
-			cgi.CvarSet(g_teams->name, "0");
-			cgi.CvarSet(g_ctf->name, "0");
+			cgi.SetCvarInteger(g_teams->name, 0);
+			cgi.SetCvarInteger(g_ctf->name, 1);
 			break;
 	}
 }
@@ -96,7 +96,7 @@ static void createAction(Control *control, const SDL_Event *event, ident sender,
 
 		cgi.CloseFile(file);
 
-		cgi.CvarSet("g_map_list", MAP_LIST_UI);
+		cgi.SetCvarString("g_map_list", MAP_LIST_UI);
 		cgi.Cbuf(va("map %s", map));
 
 	} else {

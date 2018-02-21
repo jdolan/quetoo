@@ -35,10 +35,8 @@ static void didSelecVideoMode(Select *select, Option *option) {
 	const SDL_DisplayMode *mode = option->value;
 	if (mode) {
 		if (mode->w != cgi.context->width || mode->h != cgi.context->height) {
-			cgi.CvarSetValue("r_width", mode->w);
-			cgi.CvarSetValue("r_height", mode->h);
-			cgi.CvarSetValue("r_windowed_width", mode->w);
-			cgi.CvarSetValue("r_windowed_height", mode->h);
+			cgi.SetCvarInteger("r_width", mode->w);
+			cgi.SetCvarInteger("r_height", mode->h);
 		}
 	}
 }
@@ -49,8 +47,6 @@ static void didSelecVideoMode(Select *select, Option *option) {
 static void applyAction(Control *control, const SDL_Event *event, ident sender, ident data) {
 	cgi.Cbuf("r_restart; s_restart");
 }
-
-#pragma mark - Object
 
 #pragma mark - ViewController
 

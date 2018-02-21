@@ -27,3 +27,7 @@
 #Ping {
 	min-width: 80;
 }
+
+#servers .error > Text {
+	color: darkred;
+}

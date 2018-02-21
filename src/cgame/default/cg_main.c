@@ -108,165 +108,165 @@ static void Cg_Init(void) {
 	cgi.Print("  ^6Client game module initialization...\n");
 
 	const char *s = va("%s %s %s", VERSION, BUILD_HOST, REVISION);
-	cvar_t *cgame_version = cgi.Cvar("cgame_version", s, CVAR_NO_SET, NULL);
+	cvar_t *cgame_version = cgi.AddCvar("cgame_version", s, CVAR_NO_SET, NULL);
 
 	cgi.Print("  ^6Version %s\n", cgame_version->string);
 
 	Cg_InitInput();
 
-	cg_add_emits = cgi.Cvar("cg_add_emits", "1", 0,
+	cg_add_emits = cgi.AddCvar("cg_add_emits", "1", 0,
 	                        "Toggles adding client-side entities to the scene.");
-	cg_add_entities = cgi.Cvar("cg_add_entities", "1", 0, "Toggles adding entities to the scene.");
-	cg_add_particles = cgi.Cvar("cg_add_particles", "1", 0,
+	cg_add_entities = cgi.AddCvar("cg_add_entities", "1", 0, "Toggles adding entities to the scene.");
+	cg_add_particles = cgi.AddCvar("cg_add_particles", "1", 0,
 	                            "Toggles adding particles to the scene.");
-	cg_add_weather = cgi.Cvar("cg_add_weather", "1", CVAR_ARCHIVE,
+	cg_add_weather = cgi.AddCvar("cg_add_weather", "1", CVAR_ARCHIVE,
 	                          "Control the intensity of atmospheric effects.");
 
-	cg_bob = cgi.Cvar("cg_bob", "1.0", CVAR_ARCHIVE, "Controls weapon bobbing effect.");
+	cg_bob = cgi.AddCvar("cg_bob", "1", CVAR_ARCHIVE, "Controls weapon bobbing effect.");
 
-	cg_color = cgi.Cvar("color", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
+	cg_color = cgi.AddCvar("color", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                    "Specifies the effect color for your own weapon trails.");
 
-	cg_shirt = cgi.Cvar("shirt", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
+	cg_shirt = cgi.AddCvar("shirt", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                    "Specifies your shirt color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
 
-	cg_pants = cgi.Cvar("pants", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
+	cg_pants = cgi.AddCvar("pants", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                    "Specifies your pants color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
 
-	cg_helmet = cgi.Cvar("helmet", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
+	cg_helmet = cgi.AddCvar("helmet", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                    "Specifies your helmet color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
 
-	cg_draw_blend = cgi.Cvar("cg_draw_blend", "1.0", CVAR_ARCHIVE,
+	cg_draw_blend = cgi.AddCvar("cg_draw_blend", "1", CVAR_ARCHIVE,
                                  "Controls the intensity of screen alpha-blending.");
-	cg_draw_blend_damage = cgi.Cvar("cg_draw_blend_damage", "1.0", CVAR_ARCHIVE,
+	cg_draw_blend_damage = cgi.AddCvar("cg_draw_blend_damage", "1", CVAR_ARCHIVE,
                                         "Controls the intensity of the blend flash effect when taking damage.");
-	cg_draw_blend_liquid = cgi.Cvar("cg_draw_blend_liquid", "1.0", CVAR_ARCHIVE,
+	cg_draw_blend_liquid = cgi.AddCvar("cg_draw_blend_liquid", "1", CVAR_ARCHIVE,
                                         "Controls the intensity of the blend effect while in a liquid.");
-	cg_draw_blend_pickup = cgi.Cvar("cg_draw_blend_pickup", "1.0", CVAR_ARCHIVE,
+	cg_draw_blend_pickup = cgi.AddCvar("cg_draw_blend_pickup", "1", CVAR_ARCHIVE,
                                         "Controls the intensity of the blend flash effect when picking up items.");
-	cg_draw_blend_powerup = cgi.Cvar("cg_draw_blend_powerup", "1.0", CVAR_ARCHIVE,
+	cg_draw_blend_powerup = cgi.AddCvar("cg_draw_blend_powerup", "1", CVAR_ARCHIVE,
                                          "Controls the intensity of the blend flash effect when holding a powerup.");
-	cg_draw_captures = cgi.Cvar("cg_draw_captures", "1", CVAR_ARCHIVE,
+	cg_draw_captures = cgi.AddCvar("cg_draw_captures", "1", CVAR_ARCHIVE,
 	                            "Draw the number of captures");
-	cg_draw_crosshair = cgi.Cvar("cg_draw_crosshair", "1", CVAR_ARCHIVE,
+	cg_draw_crosshair = cgi.AddCvar("cg_draw_crosshair", "1", CVAR_ARCHIVE,
                                      "Which crosshair image to use, 0 disables (Default is 1)");
-	cg_draw_crosshair_color = cgi.Cvar("cg_draw_crosshair_color", "default", CVAR_ARCHIVE,
+	cg_draw_crosshair_color = cgi.AddCvar("cg_draw_crosshair_color", "default", CVAR_ARCHIVE,
 	                                   "Specifies your crosshair color, in the hex format \"rrggbb\". \"default\" uses white.");
-	cg_draw_crosshair_pulse = cgi.Cvar("cg_draw_crosshair_pulse", "1.0", CVAR_ARCHIVE,
+	cg_draw_crosshair_pulse = cgi.AddCvar("cg_draw_crosshair_pulse", "1", CVAR_ARCHIVE,
 	                                   "Pulse the crosshair when picking up items");
-	cg_draw_crosshair_scale = cgi.Cvar("cg_draw_crosshair_scale", "1.0", CVAR_ARCHIVE,
+	cg_draw_crosshair_scale = cgi.AddCvar("cg_draw_crosshair_scale", "1", CVAR_ARCHIVE,
 	                                   "Controls the crosshair scale (size)");
 
-	cg_draw_held_flag = cgi.Cvar("cg_draw_held_flag", "1", CVAR_ARCHIVE, "Draw the currently held team flag");
-	cg_draw_held_tech = cgi.Cvar("cg_draw_held_tech", "1", CVAR_ARCHIVE, "Draw the currently held tech");
-	cg_draw_frags = cgi.Cvar("cg_draw_frags", "1", CVAR_ARCHIVE, "Draw the number of frags");
-	cg_draw_deaths = cgi.Cvar("cg_draw_deaths", "1", CVAR_ARCHIVE, "Draw the number of deaths");
-	cg_draw_hud = cgi.Cvar("cg_draw_hud", "1", CVAR_ARCHIVE, "Render the Heads-Up-Display");
-	cg_draw_pickup = cgi.Cvar("cg_draw_pickup", "1", CVAR_ARCHIVE, "Draw the current pickup");
-	cg_draw_time = cgi.Cvar("cg_draw_time", "1", CVAR_ARCHIVE, "Draw the time remaning");
-	cg_draw_target_name = cgi.Cvar("cg_draw_target_name", "1", CVAR_ARCHIVE, "Draw the target's name");
-	cg_draw_team_banner = cgi.Cvar("cg_draw_team_banner", "1", CVAR_ARCHIVE, "Draw the team banner");
-	cg_draw_powerups = cgi.Cvar("cg_draw_powerups", "1", CVAR_ARCHIVE,
+	cg_draw_held_flag = cgi.AddCvar("cg_draw_held_flag", "1", CVAR_ARCHIVE, "Draw the currently held team flag");
+	cg_draw_held_tech = cgi.AddCvar("cg_draw_held_tech", "1", CVAR_ARCHIVE, "Draw the currently held tech");
+	cg_draw_frags = cgi.AddCvar("cg_draw_frags", "1", CVAR_ARCHIVE, "Draw the number of frags");
+	cg_draw_deaths = cgi.AddCvar("cg_draw_deaths", "1", CVAR_ARCHIVE, "Draw the number of deaths");
+	cg_draw_hud = cgi.AddCvar("cg_draw_hud", "1", CVAR_ARCHIVE, "Render the Heads-Up-Display");
+	cg_draw_pickup = cgi.AddCvar("cg_draw_pickup", "1", CVAR_ARCHIVE, "Draw the current pickup");
+	cg_draw_time = cgi.AddCvar("cg_draw_time", "1", CVAR_ARCHIVE, "Draw the time remaning");
+	cg_draw_target_name = cgi.AddCvar("cg_draw_target_name", "1", CVAR_ARCHIVE, "Draw the target's name");
+	cg_draw_team_banner = cgi.AddCvar("cg_draw_team_banner", "1", CVAR_ARCHIVE, "Draw the team banner");
+	cg_draw_powerups = cgi.AddCvar("cg_draw_powerups", "1", CVAR_ARCHIVE,
 	                            "Draw currently active powerups, such as Quad Damage and Adrenaline.");
 
-	cg_draw_weapon = cgi.Cvar("cg_draw_weapon", "1", CVAR_ARCHIVE,
+	cg_draw_weapon = cgi.AddCvar("cg_draw_weapon", "1", CVAR_ARCHIVE,
 	                          "Toggle drawing of the weapon model.");
-	cg_draw_weapon_alpha = cgi.Cvar("cg_draw_weapon_alpha", "1.0", CVAR_ARCHIVE,
+	cg_draw_weapon_alpha = cgi.AddCvar("cg_draw_weapon_alpha", "1", CVAR_ARCHIVE,
 	                                "The alpha transparency for drawing the weapon model.");
-	cg_draw_weapon_bob = cgi.Cvar("cg_draw_weapon_bob", "1.0", CVAR_ARCHIVE,
+	cg_draw_weapon_bob = cgi.AddCvar("cg_draw_weapon_bob", "1", CVAR_ARCHIVE,
 	                                "If the weapon model bobs while moving.");
-	cg_draw_weapon_x = cgi.Cvar("cg_draw_weapon_x", "0.0", CVAR_ARCHIVE,
+	cg_draw_weapon_x = cgi.AddCvar("cg_draw_weapon_x", "0", CVAR_ARCHIVE,
 	                            "The x offset for drawing the weapon model.");
-	cg_draw_weapon_y = cgi.Cvar("cg_draw_weapon_y", "0.0", CVAR_ARCHIVE,
+	cg_draw_weapon_y = cgi.AddCvar("cg_draw_weapon_y", "0", CVAR_ARCHIVE,
 	                            "The y offset for drawing the weapon model.");
-	cg_draw_weapon_z = cgi.Cvar("cg_draw_weapon_z", "0.0", CVAR_ARCHIVE,
+	cg_draw_weapon_z = cgi.AddCvar("cg_draw_weapon_z", "0", CVAR_ARCHIVE,
 	                            "The z offset for drawing the weapon model.");
-	cg_draw_vitals = cgi.Cvar("cg_draw_vitals", "1", CVAR_ARCHIVE,
+	cg_draw_vitals = cgi.AddCvar("cg_draw_vitals", "1", CVAR_ARCHIVE,
 	                          "Draw the vitals (health, armor, ammo)");
-	cg_draw_vitals_pulse = cgi.Cvar("cg_draw_vitals_pulse", "1", CVAR_ARCHIVE,
+	cg_draw_vitals_pulse = cgi.AddCvar("cg_draw_vitals_pulse", "1", CVAR_ARCHIVE,
 	                                "Pulse the vitals when low");
-	cg_draw_vote = cgi.Cvar("cg_draw_vote", "1", CVAR_ARCHIVE, "Draw the current vote on the hud");
+	cg_draw_vote = cgi.AddCvar("cg_draw_vote", "1", CVAR_ARCHIVE, "Draw the current vote on the hud");
 
-	cg_entity_bob = cgi.Cvar("cg_entity_bob", "1.0", CVAR_ARCHIVE, "Controls the bobbing of items");
-	cg_entity_pulse = cgi.Cvar("cg_entity_pulse", "1.0", CVAR_ARCHIVE, "Controls the pulsing of items");
-	cg_entity_rotate = cgi.Cvar("cg_entity_rotate", "1.0", CVAR_ARCHIVE, "Controls the rotation of items");
+	cg_entity_bob = cgi.AddCvar("cg_entity_bob", "1", CVAR_ARCHIVE, "Controls the bobbing of items");
+	cg_entity_pulse = cgi.AddCvar("cg_entity_pulse", "1", CVAR_ARCHIVE, "Controls the pulsing of items");
+	cg_entity_rotate = cgi.AddCvar("cg_entity_rotate", "1", CVAR_ARCHIVE, "Controls the rotation of items");
 
-	cg_fov = cgi.Cvar("cg_fov", "110.0", CVAR_ARCHIVE, "Horizontal field of view, in degrees");
-	cg_fov_zoom = cgi.Cvar("cg_fov_zoom", "55.0", CVAR_ARCHIVE, "Zoomed in field of view");
-	cg_fov_interpolate = cgi.Cvar("cg_fov_interpolate", "1.0", CVAR_ARCHIVE,
+	cg_fov = cgi.AddCvar("cg_fov", "110", CVAR_ARCHIVE, "Horizontal field of view, in degrees");
+	cg_fov_zoom = cgi.AddCvar("cg_fov_zoom", "55", CVAR_ARCHIVE, "Zoomed in field of view");
+	cg_fov_interpolate = cgi.AddCvar("cg_fov_interpolate", "1", CVAR_ARCHIVE,
 	                              "Interpolate between field of view changes (default 1.0).");
 
-	cg_hand = cgi.Cvar("hand", "1", CVAR_ARCHIVE | CVAR_USER_INFO,
+	cg_hand = cgi.AddCvar("hand", "1", CVAR_ARCHIVE | CVAR_USER_INFO,
 	                   "Controls weapon handedness (center: 0, right: 1, left: 2).");
-	cg_handicap = cgi.Cvar("handicap", "100", CVAR_USER_INFO | CVAR_ARCHIVE,
+	cg_handicap = cgi.AddCvar("handicap", "100", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                       "Your handicap, or disadvantage.");
 
-	cg_hit_sound = cgi.Cvar("cg_hit_sound", "1", CVAR_ARCHIVE,
+	cg_hit_sound = cgi.AddCvar("cg_hit_sound", "1", CVAR_ARCHIVE,
 	                       "If a hit sound is played when damaging an enemy.");
 
-	cg_hook_style = cgi.Cvar("hook_style", "pull", CVAR_USER_INFO | CVAR_ARCHIVE,
+	cg_hook_style = cgi.AddCvar("hook_style", "pull", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                         "Your preferred hook style. Can be either \"pull\" or \"swing\".");
 
-	cg_particle_quality = cgi.Cvar("cg_particle_quality", "1", CVAR_ARCHIVE, "Particle quality. 0 disables most eyecandy particles, 1 enables all.");
+	cg_particle_quality = cgi.AddCvar("cg_particle_quality", "1", CVAR_ARCHIVE, "Particle quality. 0 disables most eyecandy particles, 1 enables all.");
 
-	cg_predict = cgi.Cvar("cg_predict", "1", 0, "Use client side movement prediction");
+	cg_predict = cgi.AddCvar("cg_predict", "1", 0, "Use client side movement prediction");
 
-	cg_quick_join_max_ping = cgi.Cvar("cg_quick_join_max_ping", "200", CVAR_SERVER_INFO,
+	cg_quick_join_max_ping = cgi.AddCvar("cg_quick_join_max_ping", "200", CVAR_SERVER_INFO,
 									  "Maximum ping allowed for quick join");
-	cg_quick_join_min_clients = cgi.Cvar("cg_quick_join_min_clients", "1", CVAR_SERVER_INFO,
+	cg_quick_join_min_clients = cgi.AddCvar("cg_quick_join_min_clients", "1", CVAR_SERVER_INFO,
 										 "Minimum clients allowed for quick join");
 
-	cg_skin = cgi.Cvar("skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE,
+	cg_skin = cgi.AddCvar("skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                   "Your player model and skin.");
 
-	cg_third_person = cgi.Cvar("cg_third_person", "0.0", CVAR_ARCHIVE | CVAR_DEVELOPER,
+	cg_third_person = cgi.AddCvar("cg_third_person", "0", CVAR_ARCHIVE | CVAR_DEVELOPER,
 	                           "Activate third person perspective.");
-	cg_third_person_chasecam = cgi.Cvar("cg_third_person_chasecam", "0", CVAR_ARCHIVE,
+	cg_third_person_chasecam = cgi.AddCvar("cg_third_person_chasecam", "0", CVAR_ARCHIVE,
 	                                    "Activate third person chase camera perspective.");
-	cg_third_person_x = cgi.Cvar("cg_third_person_x", "-200.0", CVAR_ARCHIVE,
+	cg_third_person_x = cgi.AddCvar("cg_third_person_x", "-200", CVAR_ARCHIVE,
 	                             "The x offset for third person perspective.");
-	cg_third_person_y = cgi.Cvar("cg_third_person_y", "0.0", CVAR_ARCHIVE,
+	cg_third_person_y = cgi.AddCvar("cg_third_person_y", "0", CVAR_ARCHIVE,
 	                             "The y offset for third person perspective.");
-	cg_third_person_z = cgi.Cvar("cg_third_person_z", "40.0", CVAR_ARCHIVE,
+	cg_third_person_z = cgi.AddCvar("cg_third_person_z", "40", CVAR_ARCHIVE,
 	                             "The z offset for third person perspective.");
-	cg_third_person_pitch = cgi.Cvar("cg_third_person_pitch", "0.0", CVAR_ARCHIVE,
+	cg_third_person_pitch = cgi.AddCvar("cg_third_person_pitch", "0", CVAR_ARCHIVE,
 	                                 "The pitch offset for third person perspective.");
-	cg_third_person_yaw = cgi.Cvar("cg_third_person_yaw", "0.0", CVAR_ARCHIVE,
+	cg_third_person_yaw = cgi.AddCvar("cg_third_person_yaw", "0", CVAR_ARCHIVE,
 	                               "The yaw offset for third person perspective.");
 
-	g_gameplay = cgi.Cvar("g_gameplay", "default", CVAR_SERVER_INFO,
+	g_gameplay = cgi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO,
 	                      "Selects deathmatch, duel, arena, or instagib combat");
-	g_teams = cgi.Cvar("g_teams", "0", CVAR_SERVER_INFO,
+	g_teams = cgi.AddCvar("g_teams", "0", CVAR_SERVER_INFO,
 	                   "Enables teams-based play");
-	g_ctf = cgi.Cvar("g_ctf", "0", CVAR_SERVER_INFO,
+	g_ctf = cgi.AddCvar("g_ctf", "0", CVAR_SERVER_INFO,
 	                 "Enables capture the flag gameplay");
-	g_match = cgi.Cvar("g_match", "0", CVAR_SERVER_INFO,
+	g_match = cgi.AddCvar("g_match", "0", CVAR_SERVER_INFO,
 	                   "Enables match play requiring players to ready");
-	g_ai_max_clients = cgi.Cvar("g_ai_max_clients", "0", CVAR_SERVER_INFO,
+	g_ai_max_clients = cgi.AddCvar("g_ai_max_clients", "0", CVAR_SERVER_INFO,
 	                           "The minimum amount player slots that will always be filled. Specify -1 to fill all available slots.");
 
 	// add forward to server commands for tab completion
 
-	cgi.Cmd("wave", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("kill", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("use", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("drop", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("say", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("say_team", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("info", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("give", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("god", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("no_clip", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("weapon_last", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("vote", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("team", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("team_name", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("team_skin", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("spectate", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("join", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("ready", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("unready", NULL, CMD_CGAME, NULL);
-	cgi.Cmd("player_list", NULL, CMD_CGAME, NULL);
+	cgi.AddCmd("wave", NULL, CMD_CGAME, NULL);
+	cgi.AddCmd("kill", NULL, CMD_CGAME, NULL);
+	cgi.AddCmd("use", NULL, CMD_CGAME, NULL);
+	cgi.AddCmd("drop", NULL, CMD_CGAME, NULL);
+	cgi.AddCmd("say", NULL, CMD_CGAME, NULL);
+	cgi.AddCmd("say_team", NULL, CMD_CGAME, NULL);
+	cgi.AddCmd("info", NULL, CMD_CGAME, NULL);
+	cgi.AddCmd("give", NULL, CMD_CGAME, NULL);
+	cgi.AddCmd("god", NULL, CMD_CGAME, NULL);
+	cgi.AddCmd("no_clip", NULL, CMD_CGAME, NULL);
+	cgi.AddCmd("weapon_last", NULL, CMD_CGAME, NULL);
+	cgi.AddCmd("vote", NULL, CMD_CGAME, NULL);
+	cgi.AddCmd("team", NULL, CMD_CGAME, NULL);
+	cgi.AddCmd("team_name", NULL, CMD_CGAME, NULL);
+	cgi.AddCmd("team_skin", NULL, CMD_CGAME, NULL);
+	cgi.AddCmd("spectate", NULL, CMD_CGAME, NULL);
+	cgi.AddCmd("join", NULL, CMD_CGAME, NULL);
+	cgi.AddCmd("ready", NULL, CMD_CGAME, NULL);
+	cgi.AddCmd("unready", NULL, CMD_CGAME, NULL);
+	cgi.AddCmd("player_list", NULL, CMD_CGAME, NULL);
 
 	Cg_InitUi();
 

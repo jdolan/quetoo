@@ -42,7 +42,6 @@ static void R_SetWindowIcon(void) {
  * @brief Initialize the OpenGL context, returning true on success, false on failure.
  */
 void R_InitContext(void) {
-	int32_t w, h;
 
 	memset(&r_context, 0, sizeof(r_context));
 
@@ -60,28 +59,24 @@ void R_InitContext(void) {
 		flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 	}
 
+	int32_t w = Max(0, r_width->integer);
+	int32_t h = Max(0, r_height->integer);
+
+	if (w == 0 || h == 0) {
+		SDL_DisplayMode best;
+		SDL_GetDesktopDisplayMode(display, &best);
+
+		w = best.w;
+		h = best.h;
+	}
+
 	if (r_fullscreen->integer) {
-		w = Max(0, r_width->integer);
-		h = Max(0, r_height->integer);
-
-		if (r_width->integer == 0 && r_height->integer == 0) {
-			SDL_DisplayMode best;
-			SDL_GetDesktopDisplayMode(display, &best);
-
-			w = best.w;
-			h = best.h;
-		}
-
 		if (r_fullscreen->integer == 2) {
 			flags |= SDL_WINDOW_BORDERLESS;
 		} else {
 			flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 		}
-
 	} else {
-		w = Max(0, r_windowed_width->integer);
-		h = Max(0, r_windowed_height->integer);
-
 		flags |= SDL_WINDOW_RESIZABLE;
 	}
 
@@ -173,7 +168,7 @@ void R_InitContext(void) {
  */
 void R_ShutdownContext(void) {
 
-	Cvar_SetValue(r_display->name, SDL_GetWindowDisplayIndex(r_context.window));
+	Cvar_SetInteger(r_display->name, SDL_GetWindowDisplayIndex(r_context.window));
 
 	if (r_context.context) {
 		SDL_GL_DeleteContext(r_context.context);

@@ -39,7 +39,7 @@ static void Sv_SetMaster_f(void) {
 	}
 
 	// make sure the server is listed public
-	Cvar_Set("public", "1");
+	Cvar_ForceSetInteger("public", 1);
 
 	for (i = 1; i < MAX_MASTERS; i++) {
 		addr = &svs.masters[i];
