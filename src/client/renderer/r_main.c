@@ -430,6 +430,10 @@ static void R_Restart_f(void) {
 
 	R_Init();
 
+	extern void Cl_HandleEvents(void);
+	
+	Cl_HandleEvents();
+
 	const cl_state_t state = cls.state;
 
 	if (cls.state == CL_ACTIVE) {
