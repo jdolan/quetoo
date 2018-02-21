@@ -455,14 +455,9 @@ void S_Shutdown(void) {
 	S_ShutdownMedia();
 
 	alcMakeContextCurrent(NULL);
-	S_CheckALError();
-
 	alcDestroyContext(s_env.context);
-	S_CheckALError();
-
 	alcCloseDevice(s_env.device);
-	S_CheckALError();
-
+	
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
 	Cmd_RemoveAll(CMD_SOUND);
