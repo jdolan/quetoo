@@ -46,6 +46,22 @@ TextView {
 	background-color: #dedede10;
 }
 
+.options {
+	border-color: #1e4e62;
+}
+
+.options > Option {
+	background-color: #08151a;
+}
+
+.options > Option:hover {
+	background-color: #1e4e62;
+}
+
+.options > Option:selected {
+	background-color: #122e3b;
+}
+
 .columns {
 	autoreizing-mask: contain | width;
 	axis: horizontal;
