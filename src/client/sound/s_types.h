@@ -21,12 +21,8 @@
 
 #pragma once
 
-#if defined (__APPLE__)
-#include <OpenAL/OpenAL.h>
-#else
 #include <AL/al.h>
 #include <AL/alc.h>
-#endif
 
 #include "s_al_ext.h"
 
