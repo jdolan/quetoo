@@ -75,7 +75,7 @@ static void didPickCrosshairColor(HueColorPicker *hueColorPicker, double hue, do
 /**
  * @brief SliderDelegate callback for crosshair scale.
  */
-static void didSetCrosshairScale(Slider *slider) {
+static void didSetCrosshairScale(Slider *slider, double value) {
 
 	ResponseServiceViewController *this = (ResponseServiceViewController *) slider->delegate.self;
 

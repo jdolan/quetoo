@@ -39,7 +39,7 @@ static void saveAction(Control *control, const SDL_Event *event, ident sender, i
 /**
  * @brief SliderDelegate callback for changing bump.
  */
-static void didSetValue(Slider *slider) {
+static void didSetValue(Slider *slider, double value) {
 
 	EditorViewController *this = (EditorViewController *) slider->delegate.self;
 	EditorView *view = (EditorView *) this->viewController.view;
