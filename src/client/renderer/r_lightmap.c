@@ -213,7 +213,7 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 
 	// apply modulate, contrast, saturation, etc..
 	// NOTE: disabled for now, it should have been moved to GLSL anyway eventually
-	// R_FilterLightmap(smax, tmax, lightmap);
+	 R_FilterLightmap(smax, tmax, lightmap);
 
 	// the lightmap is uploaded to the card via the strided block
 
