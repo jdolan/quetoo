@@ -39,6 +39,7 @@ cvar_t *cl_team_chat_sound;
 cvar_t *cl_timeout;
 
 cvar_t *name;
+cvar_t *active;
 cvar_t *message_level;
 cvar_t *password;
 cvar_t *rate;
@@ -542,6 +543,7 @@ static void Cl_InitLocal(void) {
 	// user info
 
 	name = Cvar_Add("name", Cl_Username(), CVAR_USER_INFO | CVAR_ARCHIVE, "Your player name");
+	active = Cvar_Add("active", "0", CVAR_USER_INFO | CVAR_NO_SET, NULL);
 	message_level = Cvar_Add("message_level", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "The lowest message level you'll receive");
 	password = Cvar_Add("password", "", CVAR_USER_INFO, "Password to the server you want to connect to");
 	rate = Cvar_Add("rate", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "Your bandwidth throttle, or 0 for none");

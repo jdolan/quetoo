@@ -312,12 +312,12 @@ void S_Restart_f(void) {
  */
 static void S_InitLocal(void) {
 
-	s_ambient_volume = Cvar_Add("s_ambient_volume", "1.0", CVAR_ARCHIVE, "Ambient sound volume.");
-	s_doppler = Cvar_Add("s_doppler", "0.0", CVAR_ARCHIVE, "The scale for the doppler effect. 0 is disabled, 1 is default, anything inbetween is scale.");
+	s_ambient_volume = Cvar_Add("s_ambient_volume", "1", CVAR_ARCHIVE, "Ambient sound volume.");
+	s_doppler = Cvar_Add("s_doppler", "1", CVAR_ARCHIVE, "Doppler effect intensity (default 1).");
 	s_effects = Cvar_Add("s_effects", "0", CVAR_ARCHIVE | CVAR_S_MEDIA, "Enables advanced sound effects.");
-	s_effects_volume = Cvar_Add("s_effects_volume", "1.0", CVAR_ARCHIVE, "Effects sound volume.");
+	s_effects_volume = Cvar_Add("s_effects_volume", "1", CVAR_ARCHIVE, "Effects sound volume.");
 	s_rate = Cvar_Add("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE, "Sound sample rate in Hz.");
-	s_volume = Cvar_Add("s_volume", "1.0", CVAR_ARCHIVE, "Master sound volume level.");
+	s_volume = Cvar_Add("s_volume", "1", CVAR_ARCHIVE, "Master sound volume level.");
 
 	Cvar_ClearAll(CVAR_S_MASK);
 
@@ -392,7 +392,7 @@ void S_Init(void) {
 	if (s_effects->integer) {
 		if (!ALAD_ALC_EXT_EFX) {
 			Com_Warn("s_effects is enabled but OpenAL driver does not support them.");
-			Cvar_ForceSet("s_effects", "0");
+			Cvar_ForceSetInteger(s_effects->name, 0);
 			s_effects->modified = false;
 			s_env.effects.loaded = false;
 		} else {
@@ -455,13 +455,8 @@ void S_Shutdown(void) {
 	S_ShutdownMedia();
 
 	alcMakeContextCurrent(NULL);
-	S_CheckALError();
-
 	alcDestroyContext(s_env.context);
-	S_CheckALError();
-
 	alcCloseDevice(s_env.device);
-	S_CheckALError();
 
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 

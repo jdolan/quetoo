@@ -121,6 +121,7 @@ static void enumerateMaps(const char *path, void *data) {
 			if (header.version != BSP_VERSION && header.version != BSP_VERSION_QUETOO) {
 				cgi.Warn("Invalid BSP header found in %s: %d\n", path, header.version);
 				cgi.CloseFile(file);
+				return;
 			}
 
 			MapListItemInfo *info = g_new0(MapListItemInfo, 1);
@@ -217,7 +218,7 @@ static void enumerateMaps(const char *path, void *data) {
  */
 static void loadMaps(void *data) {
 
-	MapListCollectionView *this = (MapListCollectionView *) data;
+	MapListCollectionView *this = data;
 
 	cgi.EnumerateFiles("maps/*.bsp", enumerateMaps, this);
 }

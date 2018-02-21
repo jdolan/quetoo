@@ -92,6 +92,7 @@ void Cl_ParseServerInfo(void) {
 
 		Com_Debug(DEBUG_CLIENT, "Failed to parse info \"%s\" for %s\n", info, Net_NetaddrToString(&server->addr));
 
+		g_strlcpy(server->error, info, sizeof(server->error));
 		server->hostname[0] = '\0';
 		server->name[0] = '\0';
 		server->gameplay[0] = '\0';
@@ -108,8 +109,8 @@ void Cl_ParseServerInfo(void) {
 	server->hostname[sizeof(server->hostname) - 1] = '\0';
 	server->name[sizeof(server->name) - 1] = '\0';
 	server->gameplay[sizeof(server->name) - 1] = '\0';
-
 	server->ping = Clamp(quetoo.ticks - server->ping_time, 1u, 999u);
+	server->error[0] = '\0';
 
 	MVC_PostNotification(&(const Notification) {
 		.name = NOTIFICATION_SERVER_PARSED,

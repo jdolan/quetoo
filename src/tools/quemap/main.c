@@ -35,8 +35,8 @@ quetoo_t quetoo;
 
 char map_base[MAX_QPATH]; // the base name (e.g. "edge")
 
-char map_name[MAX_OS_PATH]; // the input map name (e.g. "~/.quetoo/default/maps/edge.map")
-char bsp_name[MAX_OS_PATH]; // the input bsp name (e.g. "~/.quetoo/default/maps/edge.bsp")
+char map_name[MAX_OS_PATH]; // the input map name (e.g. "maps/edge.map")
+char bsp_name[MAX_OS_PATH]; // the input bsp name (e.g. "maps/edge.bsp")
 
 _Bool verbose = false;
 _Bool debug = false;

@@ -50,7 +50,7 @@ static void loadView(ViewController *self) {
 
 	ControlsViewController *this = (ControlsViewController *) self;
 
-	View *view = cgi.View("ui/controls/ControlsViewController.json", NULL);
+	View *view = $$(View, viewWithResourceName, "ui/controls/ControlsViewController.json", NULL);
 	assert(view);
 
 	$(self, setView, view);

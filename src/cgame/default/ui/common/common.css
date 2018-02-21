@@ -15,6 +15,10 @@ Box > .contentView > Input > Label {
 	min-width: 180;
 }
 
+Checkbox > Control {
+	background-color: #dedede10;
+}
+
 Panel {
 	background-color: #08151aaa;
 }
@@ -30,8 +34,32 @@ Panel.menu .tabPageView {
 	height: 600;
 }
 
+Slider > .bar > .handle {
+	background-color: #1e4e62dd;
+}
+
 TabView > .tabSelectionView > Label.selected {
 	background-color: #1e4e62aa;
+}
+
+TextView {
+	background-color: #dedede10;
+}
+
+.options {
+	border-color: #1e4e62;
+}
+
+.options > Option {
+	background-color: #08151a;
+}
+
+.options > Option:hover {
+	background-color: #1e4e62;
+}
+
+.options > Option:selected {
+	background-color: #122e3b;
 }
 
 .columns {

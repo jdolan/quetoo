@@ -63,7 +63,7 @@ static void R_TextureMode(void) {
 			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &r_image_state.anisotropy);
 		} else {
 			Com_Warn("Anisotropy is enabled but not supported by your GPU.\n");
-			Cvar_ForceSet("r_anisotropy", "0");
+			Cvar_ForceSetInteger(r_anisotropy->name, 0);
 		}
 	} else {
 		r_image_state.anisotropy = 1.0;

@@ -241,8 +241,7 @@ void S_MixChannels(void) {
 					S_CheckALError();
 
 					if (ch->play.flags & S_PLAY_AMBIENT) {
-//						FIXME: https://github.com/jdolan/quetoo/issues/519
-//						alSourcei(src, AL_SAMPLE_OFFSET, (ALint) (Randomf() * ch->sample->num_samples));
+						alSourcei(src, AL_SAMPLE_OFFSET, (ALint) (Randomf() * ch->sample->num_samples));
 						S_CheckALError();
 					}
 

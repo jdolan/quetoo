@@ -213,9 +213,6 @@ HOST_OPENAL_CFLAGS=""
 HOST_OPENAL_LIBS=""
 
 case "$host" in
-	*-apple-*)
-		HOST_OPENAL_LIBS="-framework OpenAL"
-		;;
 	*-mingw*)
 		HOST_OPENAL_LIBS="-lOpenAL32"
 		;;

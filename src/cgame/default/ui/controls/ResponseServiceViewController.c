@@ -59,14 +59,14 @@ static void didPickCrosshairColor(HueColorPicker *hueColorPicker, double hue, do
 	ResponseServiceViewController *this = (ResponseServiceViewController *) hueColorPicker->delegate.self;
 
 	if (hue < 1.0) {
-		cgi.CvarSet(cg_draw_crosshair_color->name, "default");
+		cgi.SetCvarString(cg_draw_crosshair_color->name, "default");
 
 		hueColorPicker->colorView->backgroundColor = Colors.Charcoal;
 
 		$(hueColorPicker->hueSlider->label, setText, "");
 	} else {
 		const SDL_Color color = $(hueColorPicker, rgbColor);
-		cgi.CvarSet(cg_draw_crosshair_color->name, MVC_RGBToHex(&color));
+		cgi.SetCvarString(cg_draw_crosshair_color->name, MVC_RGBToHex(&color));
 	}
 
 	$((View *) this->crosshairView, updateBindings);
@@ -127,6 +127,8 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
+	$(self->view, awakeWithResourceName, "ui/controls/ResponseServiceViewController.json");
+
 	ResponseServiceViewController *this = (ResponseServiceViewController *) self;
 
 	Select *crosshair;
@@ -138,9 +140,9 @@ static void loadView(ViewController *self) {
 		MakeOutlet("crosshairView", &this->crosshairView)
 	);
 
-	cgi.WakeView(self->view, "ui/controls/ResponseServiceViewController.json", outlets);
+	$(self->view, resolve, outlets);
 
-	self->view->stylesheet = cgi.Stylesheet("ui/controls/ResponseServiceViewController.css");
+	self->view->stylesheet = $(alloc(Stylesheet), initWithResourceName, "ui/controls/ResponseServiceViewController.css");
 	assert(self->view->stylesheet);
 
 	$(self->view, enumerateSelection, "BindTextView", setDelegate, self);

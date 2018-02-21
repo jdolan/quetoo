@@ -30,8 +30,6 @@
 
 #pragma mark - Actions and delegate callbacks
 
-
-
 /**
  * @brief Select teams mode
  */
@@ -40,16 +38,16 @@ static void selectTeams(Select *select, Option *option) {
 	const intptr_t value = (intptr_t) option->value;
 	switch (value) {
 		case 1:
-			cgi.CvarSet(g_teams->name, "1");
-			cgi.CvarSet(g_ctf->name, "0");
+			cgi.SetCvarInteger(g_teams->name, 1);
+			cgi.SetCvarInteger(g_ctf->name, 0);
 			break;
 		case 2:
-			cgi.CvarSet(g_teams->name, "0");
-			cgi.CvarSet(g_ctf->name, "1");
+			cgi.SetCvarInteger(g_teams->name, 0);
+			cgi.SetCvarInteger(g_ctf->name, 1);
 			break;
 		default:
-			cgi.CvarSet(g_teams->name, "0");
-			cgi.CvarSet(g_ctf->name, "0");
+			cgi.SetCvarInteger(g_teams->name, 0);
+			cgi.SetCvarInteger(g_ctf->name, 1);
 			break;
 	}
 }
@@ -98,7 +96,7 @@ static void createAction(Control *control, const SDL_Event *event, ident sender,
 
 		cgi.CloseFile(file);
 
-		cgi.CvarSet("g_map_list", MAP_LIST_UI);
+		cgi.SetCvarString("g_map_list", MAP_LIST_UI);
 		cgi.Cbuf(va("map %s", map));
 
 	} else {
@@ -126,9 +124,12 @@ static void loadView(ViewController *self) {
 		MakeOutlet("create", &this->create)
 	);
 
-	cgi.WakeView(self->view, "ui/play/CreateServerViewController.json", outlets);
-	self->view->stylesheet = cgi.Stylesheet("ui/play/CreateServerViewController.css");
+	$(self->view, awakeWithResourceName, "ui/play/CreateServerViewController.json");
+	$(self->view, resolve, outlets);
 
+	self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/play/CreateServerViewController.css");
+	assert(self->view->stylesheet);
+	
 	$(this->gameplay, addOption, "Default", "default");
 	$(this->gameplay, addOption, "Deathmatch", "deathmatch");
 	$(this->gameplay, addOption, "Instagib", "instagib");

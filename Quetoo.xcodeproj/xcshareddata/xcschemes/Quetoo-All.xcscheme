@@ -69,11 +69,11 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_fullscreen 0 +set r_windowed_width 1440 +set r_windowed_height 900"
+            argument = "+set r_fullscreen 0 +set r_width 1440 +set r_height 900"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map edge"
+            argument = "+map edge +set g_cheats 1 +give all"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

@@ -107,15 +107,15 @@ void G_MySQL_Init(void) {
 
 	memset(&g_mysql_state, 0, sizeof(g_mysql_state));
 
-	const cvar_t *g_mysql = gi.Cvar("g_mysql", "0", 0, NULL);
+	const cvar_t *g_mysql = gi.AddCvar("g_mysql", "0", 0, NULL);
 	if (g_mysql->value) {
 
 		g_mysql_state.mysql = mysql_init(NULL);
 
-		const char *host = gi.Cvar("g_mysql_host", "localhost", 0, NULL)->string;
-		const char *db = gi.Cvar("g_mysql_db", "quetoo", 0, NULL)->string;
-		const char *user = gi.Cvar("g_mysql_user", "quetoo", 0, NULL)->string;
-		const char *pass = gi.Cvar("g_mysql_password", "", 0, NULL)->string;
+		const char *host = gi.AddCvar("g_mysql_host", "localhost", 0, NULL)->string;
+		const char *db = gi.AddCvar("g_mysql_db", "quetoo", 0, NULL)->string;
+		const char *user = gi.AddCvar("g_mysql_user", "quetoo", 0, NULL)->string;
+		const char *pass = gi.AddCvar("g_mysql_password", "", 0, NULL)->string;
 
 		if (mysql_real_connect(g_mysql_state.mysql, host, user, pass, db, 0, NULL, 0)) {
 			gi.Print("    MySQL: connected to %s/%s", host, db);

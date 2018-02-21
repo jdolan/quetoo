@@ -42,13 +42,14 @@ static void loadView(ViewController *self) {
 		MakeOutlet("progress", &this->progressBar)
 	);
 
-	cgi.WakeView(self->view, "ui/main/LoadingViewController.json", outlets);
+	$(self->view, awakeWithResourceName, "ui/main/LoadingViewController.json");
+	$(self->view, resolve, outlets);
 
-	self->view->stylesheet = cgi.Stylesheet("ui/main/LoadingViewController.css");
+	self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/main/LoadingViewController.css");
 	assert(self->view->stylesheet);
 
-	cgi.SetImage(this->logo, "ui/loading");
-	cgi.SetImage(this->progressBar->foreground, "ui/pics/progress_bar");
+	$(this->logo, setImageWithResourceName, "ui/loading.tga");
+	$(this->progressBar->foreground, setImageWithResourceName, "ui/pics/progress_bar.tga");
 }
 
 #pragma mark - LoadingViewController
@@ -71,7 +72,7 @@ static void setProgress(LoadingViewController *self, const cl_loading_t loading)
 	$(self->progressBar, setValue, loading.percent);
 
 	if (loading.percent == 0 && loading.mapshot[0] != '\0') {
-		cgi.SetImage(self->mapShot, loading.mapshot);
+		$(self->mapShot, setImageWithResourceName, loading.mapshot);
 	}
 }
 

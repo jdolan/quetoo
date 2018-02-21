@@ -41,12 +41,11 @@ extern cvar_t *r_hardness;
 extern cvar_t *r_height;
 extern cvar_t *r_invert;
 extern cvar_t *r_lighting;
-extern cvar_t *r_line_alpha;
-extern cvar_t *r_line_width;
 extern cvar_t *r_materials;
 extern cvar_t *r_max_lights;
 extern cvar_t *r_modulate;
 extern cvar_t *r_hdr;
+extern cvar_t *r_hdr_enabled;
 extern cvar_t *r_monochrome;
 extern cvar_t *r_multisample;
 extern cvar_t *r_parallax;
@@ -63,8 +62,6 @@ extern cvar_t *r_swap_interval;
 extern cvar_t *r_lightmap_cache;
 extern cvar_t *r_warp;
 extern cvar_t *r_width;
-extern cvar_t *r_windowed_height;
-extern cvar_t *r_windowed_width;
 
 extern r_view_t r_view;
 

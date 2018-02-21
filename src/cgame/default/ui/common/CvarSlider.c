@@ -79,7 +79,7 @@ static void setValue(Slider *self, double value) {
 
 	const CvarSlider *this = (CvarSlider *) self;
 	if (this->var) {
-		cgi.CvarSetValue(this->var->name, value);
+		cgi.SetCvarValue(this->var->name, value);
 	}
 }
 

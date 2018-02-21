@@ -611,11 +611,11 @@ void G_Ai_Init(void) {
 
 	G_Ai_SetDataPointers();
 
-	g_ai_max_clients = gi.Cvar("g_ai_max_clients", "0", CVAR_SERVER_INFO,
+	g_ai_max_clients = gi.AddCvar("g_ai_max_clients", "0", CVAR_SERVER_INFO,
 	                           "The minimum amount player slots that will always be filled. Specify -1 to fill all available slots.");
 
-	gi.Cmd("g_ai_add", G_Ai_Add_f, CMD_GAME, "Add one or more AI to the game");
-	gi.Cmd("g_ai_remove", G_Ai_Remove_f, CMD_GAME, "Remove one or more AI from the game");
+	gi.AddCmd("g_ai_add", G_Ai_Add_f, CMD_GAME, "Add one or more AI to the game");
+	gi.AddCmd("g_ai_remove", G_Ai_Remove_f, CMD_GAME, "Remove one or more AI from the game");
 }
 
 /**

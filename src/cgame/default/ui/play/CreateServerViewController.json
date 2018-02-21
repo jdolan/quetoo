@@ -75,7 +75,7 @@
                         },
                         "control": {
                           "class": "CvarTextView",
-                          "var": "sv_password"
+                          "var": "password"
                         }
                       }
                     ]

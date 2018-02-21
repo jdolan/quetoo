@@ -36,9 +36,7 @@ static NavigationViewController *navigationViewController;
 void Ui_HandleEvent(const SDL_Event *event) {
 
 	if (windowController) {
-
 		if (cls.key_state.dest != KEY_UI) {
-
 			switch (event->type) {
 				case SDL_KEYDOWN:
 				case SDL_KEYUP:
@@ -155,6 +153,8 @@ void Ui_PopAllViewControllers(void) {
 void Ui_Init(void) {
 
 	MVC_LogSetPriority(SDL_LOG_PRIORITY_DEBUG);
+
+	$$(Resource, setProvider, Ui_Data);
 
 	Renderer *renderer = (Renderer *) $(alloc(QuetooRenderer), init);
 

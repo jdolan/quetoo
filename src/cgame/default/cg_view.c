@@ -202,7 +202,7 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	}
 
 	if (cg_bob->modified) {
-		cgi.CvarSetValue(cg_bob->name, Clamp(cg_bob->value, 0.0, 2.0));
+		cgi.SetCvarValue(cg_bob->name, Clamp(cg_bob->value, 0.0, 2.0));
 		cg_bob->modified = false;
 	}
 
