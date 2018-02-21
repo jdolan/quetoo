@@ -902,7 +902,7 @@ void R_InitSupersample(void) {
  */
 void R_InitState(void) {
 
-	r_get_error = Cvar_Add("r_get_error", "0", 0, NULL);
+	r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER, "Log OpenGL errors to the console");
 
 	// See if we have any errors before state initialization.
 	R_GetError("Pre-init");
