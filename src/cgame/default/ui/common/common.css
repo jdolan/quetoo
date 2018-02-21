@@ -42,6 +42,10 @@ TabView > .tabSelectionView > Label.selected {
 	background-color: #1e4e62aa;
 }
 
+TextView {
+	background-color: #dedede10;
+}
+
 .columns {
 	autoreizing-mask: contain | width;
 	axis: horizontal;
