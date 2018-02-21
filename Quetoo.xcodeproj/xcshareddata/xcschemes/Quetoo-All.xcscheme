@@ -73,8 +73,8 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map edge"
-            isEnabled = "NO">
+            argument = "+map edge +set g_cheats 1 +give all"
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
