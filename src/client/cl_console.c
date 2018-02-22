@@ -24,8 +24,8 @@
 console_t cl_console;
 console_t cl_chat_console;
 
-static cvar_t *cl_console_background_alpha;
 static cvar_t *cl_console_height;
+static cvar_t *cl_draw_console_background_alpha;
 
 static cvar_t *cl_draw_chat;
 static cvar_t *cl_draw_notify;
@@ -41,6 +41,10 @@ static cvar_t *cl_notify_time;
  */
 static void Cl_DrawConsole_Background(void) {
 
+	if (cl_draw_console_background_alpha->value == 0.0) {
+		return;
+	}
+
 	const r_image_t *image = R_LoadImage("ui/conback", IT_UI);
 	if (image->type != IT_NULL) {
 
@@ -55,7 +59,7 @@ static void Cl_DrawConsole_Background(void) {
 		r_pixel_t y = cl_console.height * ch;
 
 		R_Color((const vec4_t) {
-			1.0, 1.0, 1.0, cl_console_background_alpha->value
+			1.0, 1.0, 1.0, cl_draw_console_background_alpha->value
 		});
 
 		R_DrawImage(0, (-image->height * scale) + y + ch * 1.25, scale, image);
@@ -336,8 +340,8 @@ void Cl_InitConsole(void) {
 	memset(&cl_chat_console, 0, sizeof(cl_chat_console));
 	cl_chat_console.level = PRINT_CHAT | PRINT_TEAM_CHAT;
 
-	cl_console_background_alpha = Cvar_Add("cl_console_background_alpha", "0.8", CVAR_ARCHIVE, NULL);
 	cl_console_height = Cvar_Add("cl_console_height", "0.4", CVAR_ARCHIVE, "Console height, as a multiplier of the screen height. Default is 0.4.");
+	cl_draw_console_background_alpha = Cvar_Add("cl_draw_console_background_alpha", "0.8", CVAR_ARCHIVE, NULL);
 
 	cl_draw_chat = Cvar_Add("cl_draw_chat", "1", 0, "Draw recent chat messages");
 	cl_draw_notify = Cvar_Add("cl_draw_notify", "1", 0, "Draw recent console activity");

@@ -125,12 +125,10 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	cg_particle_t *p;
 
 	if (ent) {
-
 		// don't emit smoke trails for static entities (grenades on the floor)
 		if (VectorCompare(ent->current.origin, ent->prev.origin)) {
 			return;
 		}
-
 	}
 
 	if (cgi.PointContents(end) & MASK_LIQUID) {
@@ -159,7 +157,7 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
 		const vec_t c = Randomfr(0.8, 1.0);
 
-		Vector4Set(p->color_start, c, c, c, 0.1);
+		Vector4Set(p->color_start, c, c, c, 0.05);
 		Vector4Set(p->color_end, c, c, c, 0.0);
 
 		p->scale_start = 1.0;

@@ -75,8 +75,9 @@ out vec4 fragColor;
 /**
  * @brief Yield the parallax offset for the texture coordinate.
  */
-vec2 BumpTexcoord(in float height) {
-	return vec2(height * 0.04 - 0.02) * PARALLAX * eyeDir.xy;
+vec2 BumpTexcoord() {
+	float height = NORMALMAP ? texture(SAMPLER3, texcoords[0]).a : 0.5;
+	return texcoords[0] + eyeDir.xy * (height * 0.04 - 0.02) * PARALLAX;
 }
 
 /**
@@ -179,7 +180,13 @@ void CausticFragment(in vec3 lightmap) {
  */
 void main(void) {
 
-	// first resolve the flat shading
+	eyeDir = normalize(eye);
+
+	// texture coordinates
+	vec2 uvTextures = BumpTexcoord();
+	vec2 uvLightmap = texcoords[1];
+
+	// flat shading
 	vec3 lightmap = color.rgb;
 	vec3 deluxemap = vec3(0.0, 0.0, 1.0);
 
@@ -192,7 +199,7 @@ void main(void) {
 		lightmap = lightmapColorHDR.rgb * lightmapColorHDR.a;
 
 		if (STAINMAP) {
-			vec4 stain = texture(SAMPLER8, texcoords[1]);
+			vec4 stain = texture(SAMPLER8, uvLightmap);
 			lightmap = mix(lightmap.rgb, stain.rgb, stain.a).rgb;
 		}
 	}
@@ -200,38 +207,30 @@ void main(void) {
 	// then resolve any bump mapping
 	vec4 normalmap = vec4(normal, 1.0);
 	vec2 parallax = vec2(0.0);
-	
+
 	float lightmapBumpScale = 1.0;
 	float lightmapSpecularScale = 0.0;
 
 	if (NORMALMAP) {
-		eyeDir = normalize(eye);
 
 		if (DELUXEMAP) {
 			vec4 deluxeColorHDR = texture(SAMPLER1, vec3(texcoords[1], 1));
 			deluxemap = deluxeColorHDR.rgb * deluxeColorHDR.a;
-
 			deluxemap = normalize(two * (deluxemap + negHalf));
 		}
 
-		// resolve the initial normalmap sample
-		normalmap = texture(SAMPLER3, texcoords[0]);
+		normalmap = texture(SAMPLER3, uvTextures);
 
-		// resolve the parallax offset from the heightmap
-		parallax = BumpTexcoord(normalmap.w);
-
-		// resample the normalmap at the parallax offset
-		normalmap = texture(SAMPLER3, texcoords[0] + parallax);
-
+		// scale by BUMP
 		normalmap.xyz = normalize(two * (normalmap.xyz + negHalf));
 		normalmap.xyz = normalize(vec3(normalmap.x * BUMP, normalmap.y * BUMP, normalmap.z));
 
 		vec3 glossmap = vec3(0.5);
 
 		if (GLOSSMAP) {
-			glossmap = texture(SAMPLER4, texcoords[0] + parallax).rgb;
+			glossmap = texture(SAMPLER4, uvTextures).rgb;
 		} else if (DIFFUSE) {
-			vec4 diffuse = texture(SAMPLER0, texcoords[0] + parallax);
+			vec4 diffuse = texture(SAMPLER0, uvTextures);
 			float processedGrayscaleDiffuse = dot(diffuse.rgb * diffuse.a, vec3(0.299, 0.587, 0.114)) * 0.875 + 0.125;
 			float guessedGlossValue = clamp(pow(processedGrayscaleDiffuse * 3.0, 4.0), 0.0, 1.0) * 0.875 + 0.125;
 
@@ -252,13 +251,13 @@ void main(void) {
 	vec4 diffuse = vec4(1.0);
 
 	if (DIFFUSE) { // sample the diffuse texture, honoring the parallax offset
-		diffuse = ColorFilter(texture(SAMPLER0, texcoords[0] + parallax));
+		diffuse = ColorFilter(texture(SAMPLER0, uvTextures));
 
 		// see if diffuse can be discarded because of alpha test
 		if (diffuse.a < ALPHA_THRESHOLD)
 			discard;
 
-		TintFragment(diffuse, texcoords[0] + parallax);
+		TintFragment(diffuse, uvTextures);
 	}
 
 	// add any dynamic lighting to yield the final fragment color

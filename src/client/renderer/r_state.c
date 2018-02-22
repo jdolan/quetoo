@@ -470,7 +470,7 @@ void R_EnableFog(_Bool enable) {
 			r_state.active_fog_parameters.start = FOG_START;
 			r_state.active_fog_parameters.end = FOG_END;
 			VectorCopy(r_view.fog_color, r_state.active_fog_parameters.color);
-			r_state.active_fog_parameters.density = r_view.fog_color[3] * r_fog->value;
+			r_state.active_fog_parameters.density = r_view.fog_color[3];
 		} else {
 			r_state.active_fog_parameters.density = 0.0;
 		}
@@ -903,7 +903,7 @@ void R_InitSupersample(void) {
  */
 void R_InitState(void) {
 
-	r_get_error = Cvar_Add("r_get_error", "0", 0, NULL);
+	r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER, "Log OpenGL errors to the console");
 
 	// See if we have any errors before state initialization.
 	R_GetError("Pre-init");
