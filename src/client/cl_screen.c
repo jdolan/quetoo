@@ -414,8 +414,6 @@ void Cl_UpdateScreen(void) {
 		Cl_DrawConsole();
 	}
 
-	// FIXME: This seems to have a leak state somewhere; calling
-	// Cl_DrawConsole after this appears to cause depth sorting issues
 	R_Draw2D();
 
 	if (cls.key_state.dest == KEY_UI || cls.state == CL_LOADING) {
