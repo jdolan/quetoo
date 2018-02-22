@@ -89,7 +89,7 @@
                         "control": {
                           "class": "CvarSelect",
                           "identifier": "stains",
-                          "var": "r_stainmap_expire_time"
+                          "var": "r_stainmaps_expiration"
                         }
                       },
                       {
