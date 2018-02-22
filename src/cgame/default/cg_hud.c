@@ -668,8 +668,8 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		const uint32_t delta = cgi.client->unclamped_time - cg_hud_locals.pulse.time;
 		if (delta < 300) {
 			const vec_t frac = 1.0 - (delta / 300.0);
-			scale += cg_draw_crosshair_pulse->value * frac;
-			alpha += cg_draw_crosshair_pulse->value * frac;
+			scale += cg_draw_crosshair_pulse->value * 0.25 * frac;
+			alpha += cg_draw_crosshair_pulse->value * 0.25 * frac;
 		}
 
 		crosshair.color[3] = alpha;
