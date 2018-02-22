@@ -72,6 +72,19 @@ vec3 eyeDir;
 out vec4 fragColor;
 
 /**
+ * @brief Used to dither the image before quantizing, combats banding artifacts.
+ */
+void Dither(in out vec3 color) {
+
+	// source: Alex Vlachos, Valve Software. Advanced VR Rendering, GDC2015.
+
+	vec3 pattern = vec3(dot(vec2(171.0, 231.0), gl_FragCoord.xy));
+	pattern.rgb = fract(pattern.rgb / vec3(103.0, 71.0, 97.0));
+	color = clamp(color + (pattern.rgb / 255.0), 0.0, 1.0);
+
+}
+
+/**
  * @brief Yield the parallax offset for the texture coordinate.
  */
 vec2 BumpTexcoord() {
@@ -265,6 +278,7 @@ void main(void) {
 	fragColor.rgb *= exp(fragColor.rgb);
 	fragColor.rgb /= fragColor.rgb + 0.825;
 
-	// and fog
 	FogFragment(length(point), fragColor);
+	
+	Dither(fragColor.rgb);
 }
