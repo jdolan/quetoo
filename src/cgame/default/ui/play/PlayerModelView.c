@@ -327,7 +327,6 @@ static void animate_(const r_mesh_model_t *model, cl_entity_animation_t *a, r_en
 
 /**
  * @fn void PlayerModelView::animate(PlayerModelView *self)
- *
  * @memberof PlayerModelView
  */
 static void animate(PlayerModelView *self) {
