@@ -35,9 +35,11 @@ static qzip_t qzip;
  * filename.
  */
 static void AddPath(const char *name, _Bool required) {
+
 	if (Fs_Exists(name)) {
-		char *key = Mem_CopyString(name);
-		g_hash_table_replace(qzip.assets, (gpointer) key, Mem_CopyString(name));
+		if (!g_hash_table_contains(qzip.assets, name)) {
+			g_hash_table_insert(qzip.assets, g_strdup(name), g_strdup(name));
+		}
 	} else {
 		if (required) {
 			Com_Error(ERROR_FATAL, "Failed to add %s\n", name);
@@ -61,19 +63,17 @@ static _Bool ResolveAsset(const char *name, const char **extensions) {
 		return true;
 	}
 
-	gpointer *key = (gpointer *) Mem_CopyString(base);
-
 	const char **ext = extensions;
 	while (*ext) {
-		const char *path = va("%s.%s", (char *) key, *ext);
+		const char *path = va("%s.%s", base, *ext);
 		if (Fs_Exists(path)) {
-			g_hash_table_replace(qzip.assets, key, Mem_CopyString(path));
+			g_hash_table_insert(qzip.assets, g_strdup(base), g_strdup(path));
 			return true;
 		}
 		ext++;
 	}
 
-	g_hash_table_insert(qzip.assets, key, Mem_CopyString(MISSING));
+	g_hash_table_insert(qzip.assets, g_strdup(base), g_strdup(MISSING));
 	return false;
 }
 
@@ -124,9 +124,7 @@ static _Bool AddAsset(const cm_asset_t *asset) {
 
 	if (*asset->path) {
 		if (!g_hash_table_contains(qzip.assets, asset->path)) {
-			g_hash_table_insert(qzip.assets,
-								Mem_CopyString(asset->path),
-								Mem_CopyString(asset->path));
+			g_hash_table_insert(qzip.assets, g_strdup(asset->path), g_strdup(asset->path));
 		}
 		return true;
 	}
@@ -214,6 +212,30 @@ static void AddModel(char *model) {
 	g_strlcat(path, ".mat", sizeof(path));
 
 	AddMaterials(path, ASSET_CONTEXT_MODELS);
+}
+
+/**
+ * @brief
+ */
+static void AddEntities(void) {
+
+	ParseEntities();
+
+	for (uint16_t i = 0; i < num_entities; i++) {
+		const epair_t *e = entities[i].epairs;
+		while (e) {
+
+			if (!g_strcmp0(e->key, "noise") || !g_strcmp0(e->key, "sound")) {
+				AddSound(e->value);
+			} else if (!g_strcmp0(e->key, "model")) {
+				AddModel(e->value);
+			} else if (!g_strcmp0(e->key, "sky")) {
+				AddSky(e->value);
+			}
+
+			e = e->next;
+		}
+	}
 }
 
 /**
@@ -316,7 +338,7 @@ int32_t ZIP_Main(void) {
 
 	const time_t start = time(NULL);
 
-	qzip.assets = g_hash_table_new_full(g_str_hash, g_str_equal, Mem_Free, Mem_Free);
+	qzip.assets = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 
 	LoadBSPFile(bsp_name, (1 << BSP_LUMP_TEXINFO) | (1 << BSP_LUMP_ENTITIES));
 
@@ -324,23 +346,7 @@ int32_t ZIP_Main(void) {
 	AddTextures();
 
 	// add the sounds, models, sky, ..
-	ParseEntities();
-
-	for (uint16_t i = 0; i < num_entities; i++) {
-		const epair_t *e = entities[i].epairs;
-		while (e) {
-
-			if (!g_strcmp0(e->key, "noise") || !g_strcmp0(e->key, "sound")) {
-				AddSound(e->value);
-			} else if (!g_strcmp0(e->key, "model")) {
-				AddModel(e->value);
-			} else if (!g_strcmp0(e->key, "sky")) {
-				AddSky(e->value);
-			}
-
-			e = e->next;
-		}
-	}
+	AddEntities();
 
 	// add location, docs and mapshots
 	AddLocation();
@@ -365,9 +371,7 @@ int32_t ZIP_Main(void) {
 		while (a) {
 			const char *filename = (char *) a->data;
 			if (g_strcmp0(filename, MISSING)) {
-
 				DeflateAsset(zip_file, filename);
-
 				Com_Print("%s\n", filename);
 			}
 			a = a->next;
