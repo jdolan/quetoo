@@ -38,14 +38,9 @@ void Ui_HandleEvent(const SDL_Event *event) {
 	if (windowController) {
 		if (cls.key_state.dest != KEY_UI) {
 			switch (event->type) {
-				case SDL_KEYDOWN:
-				case SDL_KEYUP:
-				case SDL_MOUSEBUTTONDOWN:
-				case SDL_MOUSEBUTTONUP:
-				case SDL_MOUSEWHEEL:
-				case SDL_MOUSEMOTION:
-				case SDL_TEXTINPUT:
-				case SDL_TEXTEDITING:
+				case SDL_WINDOWEVENT:
+					break;
+				default:
 					return;
 			}
 		}
