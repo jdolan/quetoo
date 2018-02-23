@@ -74,7 +74,7 @@ out vec4 fragColor;
 /**
  * @brief Used to dither the image before quantizing, combats banding artifacts.
  */
-void DitherFragment(in out vec3 color) {
+void DitherFragment(inout vec3 color) {
 
 	// source: Alex Vlachos, Valve Software. Advanced VR Rendering, GDC2015.
 
