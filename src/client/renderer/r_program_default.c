@@ -346,11 +346,14 @@ void R_UseCurrentColor_default(const vec4_t color) {
 	r_default_program_t *p = &r_default_program;
 	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
 
-	if (color && r_state.color_array_enabled) {
-		R_ProgramParameter4fv(&p->current_color, color);
-	} else {
-		R_ProgramParameter4fv(&p->current_color, white);
-	}
+//	FIXME @Paril What's up with this? Are we not managing the color array the way we think we are?
+//	if (color && r_state.color_array_enabled) {
+//		R_ProgramParameter4fv(&p->current_color, color);
+//	} else {
+//		R_ProgramParameter4fv(&p->current_color, white);
+//	}
+
+	R_ProgramParameter4fv(&p->current_color, color ?: white);
 }
 
 /**
