@@ -50,7 +50,8 @@ typedef struct patch_s {
 extern patch_t *face_patches[MAX_BSP_FACES];
 extern vec3_t face_offset[MAX_BSP_FACES]; // for rotating bmodels
 
-extern int32_t current_bounce;
+extern int32_t indirect_bounces;
+extern int32_t indirect_bounce;
 
 // lightmap.c
 void BuildLights(void);

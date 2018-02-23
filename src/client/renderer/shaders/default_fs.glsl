@@ -6,7 +6,7 @@
 
 #define FRAGMENT_SHADER
 
-#include "include/uniforms.glsl"
+#include "include/matrix.glsl"
 #include "include/fog.glsl"
 #include "include/noise3d.glsl"
 #include "include/tint.glsl"
@@ -54,6 +54,9 @@ uniform sampler2D SAMPLER8;
 
 uniform float ALPHA_THRESHOLD;
 
+uniform float TIME_FRACTION;
+uniform float TIME;
+
 in VertexData {
 	vec3 modelpoint;
 	vec2 texcoords[2];
@@ -73,10 +76,23 @@ vec3 eyeDir;
 out vec4 fragColor;
 
 /**
+ * @brief Used to dither the image before quantizing, combats banding artifacts.
+ */
+void DitherFragment(inout vec3 color) {
+
+	// source: Alex Vlachos, Valve Software. Advanced VR Rendering, GDC2015.
+
+	vec3 pattern = vec3(dot(vec2(171.0, 231.0), gl_FragCoord.xy));
+	pattern.rgb = fract(pattern.rgb / vec3(103.0, 71.0, 97.0));
+	color = clamp(color + (pattern.rgb / 255.0), 0.0, 1.0);
+
+}
+
+/**
  * @brief Yield the parallax offset for the texture coordinate.
  */
 vec2 BumpTexcoord() {
-	float height = NORMALMAP ? texture(SAMPLER3, texcoords[0]).a : 0.5;
+	float height = texture(SAMPLER3, texcoords[0]).a;
 	return texcoords[0] + eyeDir.xy * (height * 0.04 - 0.02) * PARALLAX;
 }
 
@@ -183,7 +199,7 @@ void main(void) {
 	eyeDir = normalize(eye);
 
 	// texture coordinates
-	vec2 uvTextures = BumpTexcoord();
+	vec2 uvTextures = NORMALMAP ? BumpTexcoord() : texcoords[0];
 	vec2 uvLightmap = texcoords[1];
 
 	// flat shading
@@ -206,7 +222,6 @@ void main(void) {
 
 	// then resolve any bump mapping
 	vec4 normalmap = vec4(normal, 1.0);
-	vec2 parallax = vec2(0.0);
 
 	float lightmapBumpScale = 1.0;
 	float lightmapSpecularScale = 0.0;
@@ -222,8 +237,8 @@ void main(void) {
 		normalmap = texture(SAMPLER3, uvTextures);
 
 		// scale by BUMP
-		normalmap.xyz = normalize(two * (normalmap.xyz + negHalf));
-		normalmap.xyz = normalize(vec3(normalmap.x * BUMP, normalmap.y * BUMP, normalmap.z));
+		normalmap.xy = (normalmap.xy * 2.0 - 1.0) * BUMP;
+		normalmap.xyz = normalize(normalmap.xyz);
 
 		vec3 glossmap = vec3(0.5);
 
@@ -254,8 +269,9 @@ void main(void) {
 		diffuse = ColorFilter(texture(SAMPLER0, uvTextures));
 
 		// see if diffuse can be discarded because of alpha test
-		if (diffuse.a < ALPHA_THRESHOLD)
+		if (diffuse.a < ALPHA_THRESHOLD) {
 			discard;
+		}
 
 		TintFragment(diffuse, uvTextures);
 	}
@@ -276,5 +292,8 @@ void main(void) {
 #endif // DEBUG_LIGHTMAP_LAYER_INDEX == 0
 
 	// and fog
+
 	FogFragment(length(point), fragColor);
+	
+	DitherFragment(fragColor.rgb);
 }

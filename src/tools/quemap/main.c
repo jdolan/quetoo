@@ -202,9 +202,6 @@ static void Check_BSP_Options(int32_t argc) {
 		} else if (!g_strcmp0(Com_Argv(i), "-nomerge")) {
 			Com_Verbose("nomerge = true\n");
 			nomerge = true;
-		} else if (!g_strcmp0(Com_Argv(i), "-nosubdivide")) {
-			Com_Verbose("nosubdivide = true\n");
-			nosubdivide = true;
 		} else if (!g_strcmp0(Com_Argv(i), "-nodetail")) {
 			Com_Verbose("nodetail = true\n");
 			nodetail = true;
@@ -221,10 +218,6 @@ static void Check_BSP_Options(int32_t argc) {
 		} else if (!g_strcmp0(Com_Argv(i), "-leaktest")) {
 			Com_Verbose("leaktest = true\n");
 			leaktest = true;
-		} else if (!g_strcmp0(Com_Argv(i), "-subdivide")) {
-			subdivide_size = atoi(Com_Argv(i + 1));
-			Com_Verbose("subdivide_size = %d\n", subdivide_size);
-			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "-block")) {
 			block_xl = block_xh = atoi(Com_Argv(i + 1));
 			block_yl = block_yh = atoi(Com_Argv(i + 2));
@@ -270,8 +263,9 @@ static void Check_LIGHT_Options(int32_t argc) {
 		if (!g_strcmp0(Com_Argv(i), "-antialias") || !g_strcmp0(Com_Argv(i), "-extra")) {
 			antialias = true;
 			Com_Verbose("antialias: true\n");
-		} if (!g_strcmp0(Com_Argv(i), "-indirect")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-indirect")) {
 			indirect = true;
+			indirect_bounces = (int32_t) strtol(Com_Argv(i + 1), NULL, 10) ? : 1;
 			Com_Verbose("indirect lighting: true\n");
 		} else if (!g_strcmp0(Com_Argv(i), "-brightness")) {
 			brightness = atof(Com_Argv(i + 1));
@@ -294,8 +288,8 @@ static void Check_LIGHT_Options(int32_t argc) {
 			Com_Verbose("entity light scale: %f\n", entity_scale);
 			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "-patch")) {
-			patch_subdivide = atof(Com_Argv(i + 1));
-			Com_Verbose("patch subdivide: %f\n", patch_subdivide);
+			patch_size = atof(Com_Argv(i + 1));
+			Com_Verbose("patch size: %f\n", patch_size);
 			i++;
 		} else {
 			break;
@@ -350,12 +344,10 @@ static void PrintHelpMessage(void) {
 	Com_Print(" -noopt - don't optimize by merging final faces\n");
 	Com_Print(" -noprune - don't prune (or cut) nodes\n");
 	Com_Print(" -noshare\n");
-	Com_Print(" -nosubdivide\n");
 	Com_Print(" -notjunc\n");
 	Com_Print(" -nowater - skip water brushes\n");
 	Com_Print(" -noweld\n");
 	Com_Print(" -onlyents - modify existing bsp file with entities from map file\n");
-	Com_Print(" -subdivide <int> - bsp subdivision grid size in world units\n");
 	Com_Print(" -tmpout\n");
 	Com_Print("\n");
 
@@ -366,7 +358,7 @@ static void PrintHelpMessage(void) {
 
 	Com_Print("-light             LIGHT stage options:\n");
 	Com_Print(" -antialias - calculate extra lighting samples and average them\n");
-	Com_Print(" -indirect - calculate indirect lighting\n");
+	Com_Print(" -indirect <integer> - calculate indirect lighting with bounces\n");
 	Com_Print(" -entity <float> - entity light scaling\n");
 	Com_Print(" -surface <float> - surface light scaling\n");
 	Com_Print(" -brightness <float> - brightness factor\n");
@@ -515,9 +507,8 @@ int32_t main(int32_t argc, char **argv) {
 		gchar *dirname = g_path_get_dirname(filename);
 		if (dirname) {
 			Fs_AddToSearchPath(dirname);
-			g_free(dirname);
-
 			filename += strlen(dirname);
+			g_free(dirname);
 		}
 	}
 

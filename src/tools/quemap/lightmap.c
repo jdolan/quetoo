@@ -318,9 +318,9 @@ void BuildLights(void) {
 
 	// surfaces
 	for (i = 0; i < lengthof(face_patches); i++) {
+		
 		const patch_t *p = face_patches[i];
-
-		while (p) { // iterate subdivided patches
+		while (p) { // iterate patches
 
 			if (VectorCompare(p->light, vec3_origin)) {
 				continue;
@@ -878,64 +878,6 @@ void DirectLighting(int32_t face_num) {
 }
 
 /**
- * @brief Tests surfaces in the impacted leaf, modulating the lighting sample closest to
- * the impact point.
- */
-void IndirectLightingImpact(const cm_trace_t *trace, const vec3_t color) {
-
-	const int32_t leaf_num = Light_PointLeafnum(trace->end);
-
-	if (leaf_num == -1) {
-		Com_Debug(DEBUG_ALL, "Invalid leaf @ %s: %s\n", vtos(trace->end), trace->surface->name);
-		return;
-	}
-
-	const bsp_leaf_t *leaf = &bsp_file.leafs[leaf_num];
-
-	const uint16_t *leaf_face = bsp_file.leaf_faces + leaf->first_leaf_face;
-	for (int16_t i = 0; i < leaf->num_leaf_faces; i++, leaf_face++) {
-
-		const bsp_face_t *face = &bsp_file.faces[*leaf_face];
-		const bsp_texinfo_t *texinfo = &bsp_file.texinfo[face->texinfo];
-
-		if (texinfo->flags & (SURF_SKY | SURF_WARP)) {
-			continue;
-		}
-
-		const bsp_plane_t *plane = &bsp_file.planes[face->plane_num];
-		const vec_t dist = DotProduct(trace->end, plane->normal) - plane->dist;
-
-		if (fabs(dist) > 1.0 / lightmap_scale) {
-			continue;
-		}
-
-		face_lighting_t *lighting = &face_lighting[face - bsp_file.faces];
-
-		vec_t best_dist = MAX_WORLD_DIST;
-		vec_t *sample = NULL;
-
-		for (int32_t j = 0; j < lighting->num_samples; j++) {
-			const vec_t *org = lighting->origins + j * 3;
-
-			vec3_t delta;
-			VectorSubtract(org, trace->end, delta);
-
-			const vec_t dist = VectorLengthSquared(delta);
-			if (dist < best_dist) {
-				sample = lighting->indirect + j * 3;
-				best_dist = dist;
-			}
-		}
-
-		if (sample) {
-			VectorMA(sample, 1.0 - trace->fraction, color, sample);
-		}
-
-		break; // once we've hit a surface, we can skip the rest of the leaf
-	}
-}
-
-/**
 * @brief
 */
 void BuildIndirectLights(void) {
@@ -1010,7 +952,7 @@ void BuildIndirectLights(void) {
 
 			VectorCopy(normal, light->normal);
 
-			VectorScale(color, 1.0 / 255.0 / 256.0 / (float)current_bounce, light->color);
+			VectorScale(color, 1.0 / 255.0 / 256.0 / (indirect_bounce + 1.0), light->color);
 			light->intensity = 256;
 		}
 	}

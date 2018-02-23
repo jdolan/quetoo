@@ -31,7 +31,7 @@ patch_t *face_patches[MAX_BSP_FACES];
 
 vec3_t face_offset[MAX_BSP_FACES]; // for rotating bmodels
 
-vec_t patch_subdivide = PATCH_SUBDIVIDE;
+vec_t patch_size = PATCH_SUBDIVIDE;
 _Bool antialias = false;
 _Bool indirect = false;
 
@@ -44,7 +44,8 @@ vec_t contrast = 1.0;
 vec_t surface_scale = 1.0;
 vec_t entity_scale = 1.0;
 
-int32_t current_bounce = 1;
+int32_t indirect_bounces = 1;
+int32_t indirect_bounce = 0;
 
 /**
  * @brief
@@ -178,9 +179,8 @@ static void LightWorld(void) {
 	// free the direct light sources
 	Mem_FreeTag(MEM_TAG_LIGHT);
 
-	for (int32_t i = 0; i < 1; i++) {
-		if (indirect) { // calculate indirect lighting
-			current_bounce = i + 1;
+	if (indirect) { // calculate indirect lighting
+		for (indirect_bounce = 0; indirect_bounce < indirect_bounces; indirect_bounce++) {
 
 			BuildIndirectLights();
 			RunThreadsOn(bsp_file.num_faces, true, IndirectLighting);

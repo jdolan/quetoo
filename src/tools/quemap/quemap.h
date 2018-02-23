@@ -61,19 +61,19 @@ extern _Bool nowater;
 extern _Bool nocsg;
 extern _Bool noweld;
 extern _Bool noshare;
-extern _Bool nosubdivide;
 extern _Bool notjunc;
 extern _Bool noopt;
 extern _Bool leaktest;
 
 extern int32_t block_xl, block_xh, block_yl, block_yh;
-extern int32_t subdivide_size;
 
 extern vec_t microvolume;
 
 // LIGHT
 extern _Bool antialias;
 extern _Bool indirect;
+extern int32_t indirect_bounces;
+extern int32_t indirect_bounce;
 
 extern vec_t brightness;
 extern vec_t saturation;
@@ -84,7 +84,7 @@ extern vec_t entity_scale;
 
 extern vec3_t ambient;
 
-extern vec_t patch_subdivide;
+extern vec_t patch_size;
 
 // threads.c
 typedef struct semaphores_s {

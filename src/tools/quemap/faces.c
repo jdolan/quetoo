@@ -36,7 +36,6 @@
 #define	OFF_EPSILON			0.5
 
 static int32_t c_merge;
-static int32_t c_subdivide;
 
 static int32_t c_totalverts;
 static int32_t c_uniqueverts;
@@ -60,8 +59,6 @@ static vec3_t edge_start;
 
 static uint32_t num_edge_verts;
 static int32_t edge_verts[MAX_BSP_VERTS];
-
-int32_t subdivide_size = 1024;
 
 #define	HASH_SIZE 128
 
@@ -687,90 +684,6 @@ static void MergeNodeFaces(node_t *node) {
 	}
 }
 
-/**
- * @brief Chop up faces that are larger than we want in the surface cache
- */
-static void SubdivideFace(node_t *node, face_t *f) {
-	vec_t mins, maxs;
-	vec_t v;
-	int32_t axis, i;
-	const bsp_texinfo_t *tex;
-	vec3_t temp;
-	vec_t dist;
-	winding_t *w, *frontw, *backw;
-
-	if (f->merged) {
-		return;
-	}
-
-	// special (non-surface cached) faces don't need subdivision
-	tex = &bsp_file.texinfo[f->texinfo];
-
-	if (tex->flags & (SURF_SKY | SURF_WARP)) {
-		return;
-	}
-
-	for (axis = 0; axis < 2; axis++) {
-		while (true) {
-			mins = 999999;
-			maxs = -999999;
-
-			VectorCopy(tex->vecs[axis], temp);
-			w = f->w;
-			for (i = 0; i < w->num_points; i++) {
-				v = DotProduct(w->points[i], temp);
-				if (v < mins) {
-					mins = v;
-				}
-				if (v > maxs) {
-					maxs = v;
-				}
-			}
-
-			if (maxs - mins <= subdivide_size) {
-				break;
-			}
-
-			// split it
-			c_subdivide++;
-
-			v = VectorNormalize(temp);
-
-			dist = (mins + subdivide_size - 16.0) / v;
-
-			ClipWindingEpsilon(w, temp, dist, ON_EPSILON, &frontw, &backw);
-			if (!frontw || !backw) {
-				Mon_SendWinding(MON_ERROR, (const vec3_t *) w->points, w->num_points, "Failed to split polygon");
-			}
-
-			f->split[0] = NewFaceFromFace(f);
-			f->split[0]->w = frontw;
-			f->split[0]->next = node->faces;
-			node->faces = f->split[0];
-
-			f->split[1] = NewFaceFromFace(f);
-			f->split[1]->w = backw;
-			f->split[1]->next = node->faces;
-			node->faces = f->split[1];
-
-			SubdivideFace(node, f->split[0]);
-			SubdivideFace(node, f->split[1]);
-			return;
-		}
-	}
-}
-
-/**
- * @brief
- */
-static void SubdivideNodeFaces(node_t *node) {
-	face_t *f;
-
-	for (f = node->faces; f; f = f->next) {
-		SubdivideFace(node, f);
-	}
-}
-
 static int32_t c_nodefaces;
 
 /**
@@ -832,9 +745,6 @@ static void MakeFaces_r(node_t *node) {
 		if (!nomerge) {
 			MergeNodeFaces(node);
 		}
-		if (!nosubdivide) {
-			SubdivideNodeFaces(node);
-		}
 
 		return;
 	}
@@ -862,12 +772,10 @@ static void MakeFaces_r(node_t *node) {
 void MakeFaces(node_t *node) {
 	Com_Verbose("--- MakeFaces ---\n");
 	c_merge = 0;
-	c_subdivide = 0;
 	c_nodefaces = 0;
 
 	MakeFaces_r(node);
 
 	Com_Verbose("%5i node faces\n", c_nodefaces);
 	Com_Verbose("%5i merged\n", c_merge);
-	Com_Verbose("%5i subdivided\n", c_subdivide);
 }

@@ -73,7 +73,7 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 			if (!ch->relative) {
 				VectorSubtract(ent->current.origin, ent->prev.origin, ch->velocity);
 			}
-	}
+		}
 
 		if (ent->current.solid == SOLID_BSP) {
 			const r_model_t *mod = cl.model_precache[ent->current.model1];
