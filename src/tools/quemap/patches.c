@@ -311,7 +311,7 @@ void SubdividePatches(void) {
 
 	// patch_size may come from worldspawn
 	const vec_t ps = FloatForKey(entities, "patch_size");
-	if (ps > 0.0 && (int32_t) patch_size == (int32_t) PATCH_SUBDIVIDE) {
+	if (ps > 0.0 && (int32_t) patch_size == (int32_t) PATCH_SIZE) {
 		patch_size = ps;
 	}
 
