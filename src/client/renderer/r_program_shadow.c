@@ -91,13 +91,8 @@ void R_UpdateShadowLightPlane_shadow(const vec4_t light, const vec4_t plane) {
 void R_UseCurrentColor_shadow(const vec4_t color) {
 
 	r_shadow_program_t *p = &r_shadow_program;
-	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
 
-	if (color) {
-		R_ProgramParameter4fv(&p->current_color, color);
-	} else {
-		R_ProgramParameter4fv(&p->current_color, white);
-	}
+	R_ProgramParameter4fv(&p->current_color, color);
 }
 
 /**

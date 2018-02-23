@@ -119,7 +119,6 @@ typedef struct {
 	void (*MatricesChanged)(void);
 	void (*UseAlphaTest)(const vec_t threshold);
 	void (*UseCurrentColor)(const vec4_t color);
-	void (*UseAttributes)(void);
 	void (*UseInterpolation)(const vec_t time_fraction);
 	void (*UseTints)(void);
 } r_program_t;

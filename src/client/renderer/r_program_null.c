@@ -119,13 +119,8 @@ void R_UseFog_null(const r_fog_parameters_t *fog) {
 void R_UseCurrentColor_null(const vec4_t color) {
 
 	r_null_program_t *p = &r_null_program;
-	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
 
-	if (color && r_state.color_array_enabled) {
-		R_ProgramParameter4fv(&p->current_color, color);
-	} else {
-		R_ProgramParameter4fv(&p->current_color, white);
-	}
+	R_ProgramParameter4fv(&p->current_color, color);
 }
 
 /**
