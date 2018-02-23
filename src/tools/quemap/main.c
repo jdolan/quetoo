@@ -515,9 +515,8 @@ int32_t main(int32_t argc, char **argv) {
 		gchar *dirname = g_path_get_dirname(filename);
 		if (dirname) {
 			Fs_AddToSearchPath(dirname);
-			g_free(dirname);
-
 			filename += strlen(dirname);
+			g_free(dirname);
 		}
 	}
 
