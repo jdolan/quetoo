@@ -849,7 +849,7 @@ void DirectLighting(int32_t face_num) {
  * @brief Tests surfaces in the impacted leaf, modulating the lighting sample closest to
  * the impact point.
  */
-void IndirectLightingImpact(const cm_trace_t *trace, const vec3_t color) {
+static void IndirectLightingImpact(const cm_trace_t *trace, const vec3_t color) {
 
 	const int32_t leaf_num = Light_PointLeafnum(trace->end);
 

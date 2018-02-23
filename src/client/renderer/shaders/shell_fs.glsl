@@ -6,9 +6,8 @@
 
 #define FRAGMENT_SHADER
 
-#include "include/uniforms.glsl"
-
 uniform sampler2D SAMPLER0;
+uniform vec4 GLOBAL_COLOR;
 
 in VertexData {
 	vec4 color;

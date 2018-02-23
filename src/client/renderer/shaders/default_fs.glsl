@@ -6,7 +6,7 @@
 
 #define FRAGMENT_SHADER
 
-#include "include/uniforms.glsl"
+#include "include/matrix.glsl"
 #include "include/fog.glsl"
 #include "include/noise3d.glsl"
 #include "include/tint.glsl"
@@ -52,6 +52,9 @@ uniform sampler2D SAMPLER4;
 uniform sampler2D SAMPLER8;
 
 uniform float ALPHA_THRESHOLD;
+
+uniform float TIME_FRACTION;
+uniform float TIME;
 
 in VertexData {
 	vec3 modelpoint;

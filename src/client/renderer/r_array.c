@@ -88,8 +88,6 @@ static GLenum R_BufferTypeToTarget(const r_buffer_type_t type) {
 		return GL_ARRAY_BUFFER;
 	case R_BUFFER_ELEMENT:
 		return GL_ELEMENT_ARRAY_BUFFER;
-	case R_BUFFER_UNIFORM:
-		return GL_UNIFORM_BUFFER;
 	default:
 		Com_Error(ERROR_FATAL, "What");
 	}
@@ -348,18 +346,15 @@ void R_CreateBuffer(r_buffer_t *buffer, const r_create_buffer_t *arguments) {
 	buffer->hint = arguments->hint;
 	buffer->element_type.type = arguments->element.type;
 
-	if (buffer->type != R_BUFFER_UNIFORM) {
-
-		if (arguments->type & R_BUFFER_INTERLEAVE) {
-			buffer->interleave = true;
-			buffer->element_type.stride = arguments->element.count;
-		} else {
-			buffer->element_type.count = arguments->element.count ?: 1u;
-			buffer->element_type.stride = R_GetElementSize(buffer->element_type.type);
-			buffer->element_gl_type = R_GetGLTypeFromAttribType(buffer->element_type.type);
-			buffer->element_type.normalized = arguments->element.normalized;
-			buffer->element_type.integer = arguments->element.integer;
-		}
+	if (arguments->type & R_BUFFER_INTERLEAVE) {
+		buffer->interleave = true;
+		buffer->element_type.stride = arguments->element.count;
+	} else {
+		buffer->element_type.count = arguments->element.count ?: 1u;
+		buffer->element_type.stride = R_GetElementSize(buffer->element_type.type);
+		buffer->element_gl_type = R_GetGLTypeFromAttribType(buffer->element_type.type);
+		buffer->element_type.normalized = arguments->element.normalized;
+		buffer->element_type.integer = arguments->element.integer;
 	}
 
 	if (arguments->size) {
@@ -789,11 +784,11 @@ static void R_PrepareProgram() {
 	// upload state data that needs to be synced up to current program
 	R_SetupAttributes();
 
-	R_SetupUniforms();
-
 	R_UseMatrices();
 
 	R_UseAlphaTest();
+
+	R_UseCurrentColor();
 
 	R_UseFog();
 

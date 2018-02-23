@@ -6,9 +6,11 @@
 
 #define VERTEX_SHADER
 
-#include "include/uniforms.glsl"
+#include "include/matrix.glsl"
 
+uniform float OFFSET;
 uniform float SHELL_OFFSET;
+uniform float TIME_FRACTION;
 
 in vec3 POSITION;
 in vec3 NORMAL;
@@ -33,5 +35,5 @@ void main(void) {
 	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * position;
 
 	// pass texcoords through
-	texcoord = TEXCOORD + (TIME * 0.00025);
+	texcoord = TEXCOORD + OFFSET;
 }
