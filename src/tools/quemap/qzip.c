@@ -145,8 +145,7 @@ static void AddMaterial(const cm_material_t *material) {
 		AddAsset(&material->specularmap);
 		AddAsset(&material->tintmap);
 
-		const cm_stage_t *stage = material->stages;
-		for (size_t i = 0; i < material->num_stages; i++, stage++) {
+		for (const cm_stage_t *stage = material->stages; stage; stage = stage->next) {
 			AddAsset(&stage->asset);
 		}
 	} else {
