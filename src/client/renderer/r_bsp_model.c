@@ -65,7 +65,6 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
  * Quake2 levels.
  */
 static void R_LoadBspNormals(r_bsp_model_t *bsp) {
-
 	const bsp_normal_t *in = bsp->file->normals;
 
 	if (bsp->file->num_normals != r_unique_vertices.num_vertexes) { // ensure sane normals count

@@ -1,3 +1,6 @@
+#ifndef QUETOO_TINT_GLSL
+#define QUETOO_TINT_GLSL
+
 // RGB layer tints
 uniform vec4 TINTS[3];
 uniform bool TINTMAP;
@@ -14,3 +17,5 @@ void TintFragment(inout vec4 diffuse, in vec2 texcoord)
 		diffuse.rgb += (TINTS[2].rgb * tint.b);
 	}
 }
+
+#endif //QUETOO_TINT_GLSL

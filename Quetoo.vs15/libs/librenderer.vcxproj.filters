@@ -319,13 +319,13 @@
     <None Include="..\..\src\client\renderer\shaders\include\fog.glsl">
       <Filter>src\shaders\include</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\include\matrix.glsl">
-      <Filter>src\shaders\include</Filter>
-    </None>
     <None Include="..\..\src\client\renderer\shaders\include\noise3d.glsl">
       <Filter>src\shaders\include</Filter>
     </None>
     <None Include="..\..\src\client\renderer\shaders\include\tint.glsl">
+      <Filter>src\shaders\include</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\include\uniforms.glsl">
       <Filter>src\shaders\include</Filter>
     </None>
     <None Include="..\..\src\client\renderer\shaders\include\color.glsl">

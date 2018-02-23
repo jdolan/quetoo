@@ -6,15 +6,13 @@
 
 #define VERTEX_SHADER
 
-#include "include/matrix.glsl"
+#include "include/uniforms.glsl"
 #include "include/fog.glsl"
 
 uniform bool DIFFUSE;
 uniform bool LIGHTMAP;
 uniform bool NORMALMAP;
-
-uniform vec4 GLOBAL_COLOR;
-uniform float TIME_FRACTION;
+uniform mat4 NORMAL_MAT;
 
 in vec3 POSITION;
 in vec4 COLOR;

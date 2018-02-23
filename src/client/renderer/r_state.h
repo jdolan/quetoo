@@ -63,10 +63,27 @@ typedef struct r_texunit_s {
 // matrix stack
 #define MAX_MATRIX_STACK		16
 
-typedef struct r_matrix_stack_s {
+typedef struct {
 	matrix4x4_t matrices[MAX_MATRIX_STACK];
 	uint8_t depth;
 } r_matrix_stack_t;
+
+// SEE uniforms.glsl BEFORE TOUCHING THIS STRUCTURE!!!
+typedef struct {
+	matrix4x4_t matrices[R_MATRIX_TOTAL];
+	vec4_t global_color;
+	vec_t time;
+	vec_t time_fraction;
+} r_program_uniforms_t;
+
+typedef struct {
+	size_t begin, end;
+} r_update_bounds_t;
+
+void R_ExpandUpdateBounds(r_update_bounds_t *bounds, const size_t offset, const size_t size);
+
+#define R_EXPAND_BOUNDS(bounds, member) \
+	R_ExpandUpdateBounds(&bounds, offsetof(r_program_uniforms_t, member), sizeof(r_state.uniforms.member));
 
 // opengl state management
 typedef struct r_state_s {
@@ -93,11 +110,13 @@ typedef struct r_state_s {
 	_Bool blend_enabled;
 
 	float alpha_threshold;
-	vec4_t current_color;
 
 	r_texunit_t texunits[R_TEXUNIT_TOTAL];
 	r_texunit_t *active_texunit;
 
+	r_program_uniforms_t uniforms;
+	r_buffer_t uniforms_buffer;
+	r_update_bounds_t uniforms_dirty;
 	r_matrix_stack_t matrix_stacks[R_MATRIX_TOTAL];
 
 	r_program_t programs[R_PROGRAM_TOTAL];
@@ -210,7 +229,6 @@ void R_UseMaterial(const r_material_t *material);
 void R_UseMatrices(void);
 void R_UseInterpolation(const vec_t lerp);
 void R_UseAlphaTest(void);
-void R_UseCurrentColor(void);
 void R_UseFog(void);
 void R_UseCaustic(void);
 void R_UseTints(void);
