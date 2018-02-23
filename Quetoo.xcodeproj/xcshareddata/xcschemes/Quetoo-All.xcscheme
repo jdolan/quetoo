@@ -77,7 +77,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map tokays +set g_cheats 1 +give all"
+            argument = "+map torn +set g_cheats 1 +give all"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
