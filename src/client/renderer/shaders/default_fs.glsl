@@ -74,7 +74,7 @@ out vec4 fragColor;
 /**
  * @brief Used to dither the image before quantizing, combats banding artifacts.
  */
-void Dither(in out vec3 color) {
+void DitherFragment(in out vec3 color) {
 
 	// source: Alex Vlachos, Valve Software. Advanced VR Rendering, GDC2015.
 
@@ -88,7 +88,7 @@ void Dither(in out vec3 color) {
  * @brief Yield the parallax offset for the texture coordinate.
  */
 vec2 BumpTexcoord() {
-	float height = NORMALMAP ? texture(SAMPLER3, texcoords[0]).a : 0.5;
+	float height = texture(SAMPLER3, texcoords[0]).a;
 	return texcoords[0] + eyeDir.xy * (height * 0.04 - 0.02) * PARALLAX;
 }
 
@@ -197,7 +197,7 @@ void main(void) {
 	eyeDir = normalize(eye);
 
 	// texture coordinates
-	vec2 uvTextures = BumpTexcoord();
+	vec2 uvTextures = NORMALMAP ? BumpTexcoord() : texcoords[0];
 	vec2 uvLightmap = texcoords[1];
 
 	// flat shading
@@ -215,7 +215,6 @@ void main(void) {
 
 	// then resolve any bump mapping
 	vec4 normalmap = vec4(normal, 1.0);
-	vec2 parallax = vec2(0.0);
 
 	float lightmapBumpScale = 1.0;
 	float lightmapSpecularScale = 0.0;
@@ -230,8 +229,8 @@ void main(void) {
 		normalmap = texture(SAMPLER3, uvTextures);
 
 		// scale by BUMP
-		normalmap.xyz = normalize(two * (normalmap.xyz + negHalf));
-		normalmap.xyz = normalize(vec3(normalmap.x * BUMP, normalmap.y * BUMP, normalmap.z));
+		normalmap.xy = (normalmap.xy * 2.0 - 1.0) * BUMP;
+		normalmap.xyz = normalize(normalmap.xyz);
 
 		vec3 glossmap = vec3(0.5);
 
@@ -262,8 +261,9 @@ void main(void) {
 		diffuse = ColorFilter(texture(SAMPLER0, uvTextures));
 
 		// see if diffuse can be discarded because of alpha test
-		if (diffuse.a < ALPHA_THRESHOLD)
+		if (diffuse.a < ALPHA_THRESHOLD) {
 			discard;
+		}
 
 		TintFragment(diffuse, uvTextures);
 	}
@@ -280,5 +280,5 @@ void main(void) {
 
 	FogFragment(length(point), fragColor);
 	
-	Dither(fragColor.rgb);
+	DitherFragment(fragColor.rgb);
 }
