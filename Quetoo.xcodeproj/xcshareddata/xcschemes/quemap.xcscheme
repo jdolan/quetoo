@@ -78,6 +78,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-bsp -onlyents maps/torn.bsp"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-zip maps/gehenna.bsp"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

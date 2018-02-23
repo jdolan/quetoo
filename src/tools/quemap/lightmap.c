@@ -303,9 +303,9 @@ void BuildLights(void) {
 
 	// surfaces
 	for (i = 0; i < lengthof(face_patches); i++) {
+		
 		const patch_t *p = face_patches[i];
-
-		while (p) { // iterate subdivided patches
+		while (p) { // iterate patches
 
 			if (VectorCompare(p->light, vec3_origin)) {
 				continue;

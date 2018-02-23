@@ -31,7 +31,7 @@ patch_t *face_patches[MAX_BSP_FACES];
 
 vec3_t face_offset[MAX_BSP_FACES]; // for rotating bmodels
 
-vec_t patch_subdivide = PATCH_SUBDIVIDE;
+vec_t patch_size = PATCH_SUBDIVIDE;
 _Bool antialias = false;
 _Bool indirect = false;
 
