@@ -6,10 +6,9 @@
 
 #define FRAGMENT_SHADER
 
-#include "include/uniforms.glsl"
-
 uniform vec4 LIGHT;
 uniform vec4 PLANE;
+uniform vec4 GLOBAL_COLOR;
 
 in VertexData {
 	vec4 point;

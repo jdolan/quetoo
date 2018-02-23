@@ -81,18 +81,9 @@ _Bool R_ValidBuffer(const r_buffer_t *buffer) {
 /**
  * @brief Binds the appropriate shared vertex array to the specified target.
  */
-static GLenum R_BufferTypeToTarget(const r_buffer_type_t type) {
+static GLenum R_BufferTypeToTarget(int type) {
 
-	switch (type) {
-	case R_BUFFER_DATA:
-		return GL_ARRAY_BUFFER;
-	case R_BUFFER_ELEMENT:
-		return GL_ELEMENT_ARRAY_BUFFER;
-	case R_BUFFER_UNIFORM:
-		return GL_UNIFORM_BUFFER;
-	default:
-		Com_Error(ERROR_FATAL, "What");
-	}
+	return (type == R_BUFFER_ELEMENT) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 }
 
 /**
@@ -112,8 +103,6 @@ void R_BindBuffer(const r_buffer_t *buffer) {
 
 	r_view.num_state_changes[R_STATE_BIND_BUFFER]++;
 
-	r_view.buffer_stats[buffer->type].bound++;
-
 	R_GetError(NULL);
 }
 
@@ -131,8 +120,6 @@ void R_UnbindBuffer(const r_buffer_type_t type) {
 	glBindBuffer(R_BufferTypeToTarget(type), 0);
 
 	r_view.num_state_changes[R_STATE_BIND_BUFFER]++;
-	
-	r_view.buffer_stats[type].bound++;
 
 	R_GetError(NULL);
 }
@@ -163,20 +150,20 @@ void R_UploadToBuffer(r_buffer_t *buffer, const size_t size, const void *data) {
 
 		glBufferData(buffer->target, size, data, buffer->hint);
 		R_GetError("Full resize");
-		r_view.buffer_stats[buffer->type].num_full_uploads++;
+		r_view.num_buffer_full_uploads++;
 
 		buffer->size = size;
 	} else {
 		// just update the range we specified
 		if (data) {
 			glBufferSubData(buffer->target, 0, size, data);
-			r_view.buffer_stats[buffer->type].num_partial_uploads++;
+			r_view.num_buffer_partial_uploads++;
 
 			R_GetError("Updating existing buffer");
 		}
 	}
 
-	r_view.buffer_stats[buffer->type].size_uploaded += size;
+	r_view.size_buffer_uploads += size;
 }
 
 /**
@@ -221,14 +208,14 @@ void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t si
 
 			glBufferData(buffer->target, total_size, NULL, buffer->hint);
 			R_GetError("Partial resize");
-			r_view.buffer_stats[buffer->type].num_full_uploads++;
+			r_view.num_buffer_full_uploads++;
 			glBufferSubData(buffer->target, start, size, data);
 			R_GetError("Partial update");
-			r_view.buffer_stats[buffer->type].num_partial_uploads++;
+			r_view.num_buffer_partial_uploads++;
 		} else {
 			glBufferData(buffer->target, total_size, data, buffer->hint);
 			R_GetError("Full resize");
-			r_view.buffer_stats[buffer->type].num_full_uploads++;
+			r_view.num_buffer_full_uploads++;
 		}
 
 		r_state.buffers_total_bytes -= buffer->size;
@@ -239,10 +226,10 @@ void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t si
 		// just update the range we specified
 		glBufferSubData(buffer->target, start, size, data);
 		R_GetError("Updating existing buffer");
-		r_view.buffer_stats[buffer->type].num_partial_uploads++;
+		r_view.num_buffer_partial_uploads++;
 	}
 
-	r_view.buffer_stats[buffer->type].size_uploaded += size;
+	r_view.size_buffer_uploads += size;
 }
 
 /**
@@ -348,18 +335,15 @@ void R_CreateBuffer(r_buffer_t *buffer, const r_create_buffer_t *arguments) {
 	buffer->hint = arguments->hint;
 	buffer->element_type.type = arguments->element.type;
 
-	if (buffer->type != R_BUFFER_UNIFORM) {
-
-		if (arguments->type & R_BUFFER_INTERLEAVE) {
-			buffer->interleave = true;
-			buffer->element_type.stride = arguments->element.count;
-		} else {
-			buffer->element_type.count = arguments->element.count ?: 1u;
-			buffer->element_type.stride = R_GetElementSize(buffer->element_type.type);
-			buffer->element_gl_type = R_GetGLTypeFromAttribType(buffer->element_type.type);
-			buffer->element_type.normalized = arguments->element.normalized;
-			buffer->element_type.integer = arguments->element.integer;
-		}
+	if (arguments->type & R_BUFFER_INTERLEAVE) {
+		buffer->interleave = true;
+		buffer->element_type.stride = arguments->element.count;
+	} else {
+		buffer->element_type.count = arguments->element.count ?: 1u;
+		buffer->element_type.stride = R_GetElementSize(buffer->element_type.type);
+		buffer->element_gl_type = R_GetGLTypeFromAttribType(buffer->element_type.type);
+		buffer->element_type.normalized = arguments->element.normalized;
+		buffer->element_type.integer = arguments->element.integer;
 	}
 
 	if (arguments->size) {
@@ -789,11 +773,11 @@ static void R_PrepareProgram() {
 	// upload state data that needs to be synced up to current program
 	R_SetupAttributes();
 
-	R_SetupUniforms();
-
 	R_UseMatrices();
 
 	R_UseAlphaTest();
+
+	R_UseCurrentColor();
 
 	R_UseFog();
 

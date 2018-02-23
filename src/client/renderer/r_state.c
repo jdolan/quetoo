@@ -24,15 +24,6 @@
 
 static cvar_t *r_get_error;
 
-/**
- * @brief Expand an r_update_bounds_t to encompass the passed offset/size
- */
-void R_ExpandUpdateBounds(r_update_bounds_t *bounds, const size_t offset, const size_t size) {
-
-	bounds->begin = Min(bounds->begin, offset);
-	bounds->end = Max(bounds->end, offset + size);
-}
-
 r_state_t r_state;
 
 const vec2_t default_texcoords[4] = { // useful for particles, pics, etc..
@@ -41,6 +32,12 @@ const vec2_t default_texcoords[4] = { // useful for particles, pics, etc..
 	{ 1.0, 1.0 },
 	{ 0.0, 1.0 }
 };
+
+/**
+ * @brief The active matrices are private, to prevent being overwritten
+ * without dirtyage.
+ */
+static matrix4x4_t active_matrices[R_MATRIX_TOTAL];
 
 /**
  * @brief Queries OpenGL for any errors and prints them as warnings.
@@ -91,12 +88,10 @@ void R_Color(const vec4_t color) {
 	static const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
 
 	if (color) {
-		Vector4Copy(color, r_state.uniforms.global_color);
+		Vector4Copy(color, r_state.current_color);
 	} else {
-		Vector4Copy(white, r_state.uniforms.global_color);
+		Vector4Copy(white, r_state.current_color);
 	}
-
-	R_EXPAND_BOUNDS(r_state.uniforms_dirty, global_color);
 }
 
 /**
@@ -531,7 +526,7 @@ void R_PushMatrix(const r_matrix_id_t id) {
 		Com_Error(ERROR_DROP, "Matrix stack overflow");
 	}
 
-	Matrix4x4_Copy(&r_state.matrix_stacks[id].matrices[r_state.matrix_stacks[id].depth++], &r_state.uniforms.matrices[id]);
+	Matrix4x4_Copy(&r_state.matrix_stacks[id].matrices[r_state.matrix_stacks[id].depth++], &active_matrices[id]);
 }
 
 /**
@@ -551,17 +546,13 @@ void R_PopMatrix(const r_matrix_id_t id) {
  */
 void R_SetMatrix(const r_matrix_id_t id, const matrix4x4_t *matrix) {
 
-	if (memcmp(&r_state.uniforms.matrices[id], matrix, sizeof(matrix4x4_t)) == 0) {
-		return;
-	}
-
-	Matrix4x4_Copy(&r_state.uniforms.matrices[id], matrix);
-
-	R_ExpandUpdateBounds(&r_state.uniforms_dirty, (uint8_t *) &r_state.uniforms.matrices[id] - (uint8_t *) r_state.uniforms.matrices, sizeof(matrix4x4_t));
+	Matrix4x4_Copy(&active_matrices[id], matrix);
 
 	for (r_program_id_t i = 0; i < R_PROGRAM_TOTAL; i++) {
 
-		r_state.programs[i].matrix_dirty[id] = true;
+		if (r_state.programs[i].matrix_uniforms[id].location != -1) {
+			r_state.programs[i].matrix_dirty[id] = true;
+		}
 	}
 }
 
@@ -570,7 +561,7 @@ void R_SetMatrix(const r_matrix_id_t id, const matrix4x4_t *matrix) {
  */
 void R_GetMatrix(const r_matrix_id_t id, matrix4x4_t *matrix) {
 
-	Matrix4x4_Copy(matrix, &r_state.uniforms.matrices[id]);
+	Matrix4x4_Copy(matrix, &active_matrices[id]);
 }
 
 /**
@@ -580,13 +571,15 @@ void R_GetMatrix(const r_matrix_id_t id, matrix4x4_t *matrix) {
  */
 const matrix4x4_t *R_GetMatrixPtr(const r_matrix_id_t id) {
 
-	return &r_state.uniforms.matrices[id];
+	return &active_matrices[id];
 }
 
 /**
- * @brief Let each program know that certain matrices are dirty.
+ * @brief Uploads matrices to the currently loaded program.
  */
 void R_UseMatrices(void) {
+
+	_Bool any_changed = false;
 
 	for (r_matrix_id_t i = 0; i < R_MATRIX_TOTAL; i++) {
 
@@ -594,12 +587,19 @@ void R_UseMatrices(void) {
 			continue;
 		}
 
+		if (R_ProgramParameterMatrix4fv(&((r_program_t *) r_state.active_program)->matrix_uniforms[i],
+		                                (const GLfloat *) active_matrices[i].m)) {
+			any_changed = true;
+		}
+	}
+
+	if (any_changed) {
+
 		if (r_state.active_program->MatricesChanged) {
 			r_state.active_program->MatricesChanged();
 		}
 
 		memset(((r_program_t *) r_state.active_program)->matrix_dirty, 0, sizeof(r_state.active_program->matrix_dirty));
-		return;
 	}
 }
 
@@ -610,6 +610,16 @@ void R_UseAlphaTest(void) {
 
 	if (r_state.active_program->UseAlphaTest) {
 		r_state.active_program->UseAlphaTest(r_state.alpha_threshold);
+	}
+}
+
+/**
+ * @brief Uploads the current global color to the currently loaded program.
+ */
+void R_UseCurrentColor(void) {
+
+	if (r_state.active_program->UseCurrentColor) {
+		r_state.active_program->UseCurrentColor(r_state.current_color);
 	}
 }
 
@@ -648,10 +658,8 @@ void R_UseTints(void) {
  */
 void R_UseInterpolation(const vec_t lerp) {
 
-	if (r_state.uniforms.time_fraction != lerp) {
-
-		r_state.uniforms.time_fraction = lerp;
-		R_EXPAND_BOUNDS(r_state.uniforms_dirty, time_fraction);
+	if (r_state.active_program->UseInterpolation) {
+		r_state.active_program->UseInterpolation(lerp);
 	}
 }
 
@@ -912,6 +920,7 @@ void R_InitState(void) {
 	r_state.buffers_list = g_hash_table_new(g_direct_hash, g_direct_equal);
 
 	r_state.depth_mask_enabled = true;
+	Vector4Set(r_state.current_color, 1.0, 1.0, 1.0, 1.0);
 
 	// setup texture units
 	for (int32_t i = 0; i < R_TEXUNIT_TOTAL; i++) {
@@ -961,19 +970,6 @@ void R_InitState(void) {
 	glEnable(GL_CULL_FACE);
 	glFrontFace(GL_CW);
 	glDepthFunc(GL_LEQUAL);
-	
-	R_CreateBuffer(&r_state.uniforms_buffer, &(const r_create_buffer_t) {
-		.type = R_BUFFER_UNIFORM,
-		.hint = GL_DYNAMIC_DRAW,
-		.size = sizeof(r_program_uniforms_t)
-	});
-	
-	glBindBufferBase(GL_UNIFORM_BUFFER, 8, r_state.uniforms_buffer.bufnum);
-
-	Vector4Set(r_state.uniforms.global_color, 1.0, 1.0, 1.0, 1.0);
-
-	r_state.uniforms_dirty.begin = 0u;
-	r_state.uniforms_dirty.end = sizeof(r_state.uniforms);
 
 	R_GetError("Post-init");
 }
@@ -994,8 +990,6 @@ static void R_ShutdownState_PrintBuffers(gpointer       key,
 void R_ShutdownState(void) {
 
 	R_ShutdownSupersample();
-
-	R_DestroyBuffer(&r_state.uniforms_buffer);
 
 	if (r_state.buffers_total) {
 		g_hash_table_foreach(r_state.buffers_list, R_ShutdownState_PrintBuffers, NULL);

@@ -103,7 +103,6 @@ typedef enum {
 typedef enum {
 	R_BUFFER_DATA,
 	R_BUFFER_ELEMENT,
-	R_BUFFER_UNIFORM,
 
 	R_NUM_BUFFERS,
 
@@ -237,9 +236,9 @@ typedef struct {
  * @brief Structure that holds construction arguments for buffers
  */
 typedef struct {
-	r_buffer_type_t type;
-	GLenum hint;
 	r_buffer_layout_t element;
+	GLenum hint;
+	r_buffer_type_t type;
 	size_t size;
 	const void *data;
 } r_create_buffer_t;
@@ -269,7 +268,7 @@ typedef struct {
  * @brief Buffers are used to hold data for the renderer.
  */
 typedef struct r_buffer_s {
-	r_buffer_type_t type; // R_BUFFER_DATA, R_BUFFER_ELEMENT, R_BUFFER_UNIFORM
+	r_buffer_type_t type; // R_BUFFER_DATA or R_BUFFER_ELEMENT
 	GLenum hint; // GL_x_y, where x is STATIC or DYNAMIC, and where y is DRAW, READ or COPY
 	GLenum target; // GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER; mapped from above var
 	GLuint bufnum; // e.g. 123
@@ -1078,16 +1077,6 @@ typedef enum {
 } r_state_id_t;
 
 /**
- * @brief
- */
-typedef struct {
-	uint32_t bound;
-	uint32_t num_full_uploads;
-	uint32_t num_partial_uploads;
-	size_t size_uploaded;
-} r_buffer_stats_t;
-
-/**
  * @brief Provides read-write visibility and scene management to the client.
  */
 typedef struct {
@@ -1150,7 +1139,7 @@ typedef struct {
 
 	uint32_t num_state_changes[R_STATE_TOTAL];
 	uint32_t num_binds[R_TEXUNIT_TOTAL];
-	r_buffer_stats_t buffer_stats[R_NUM_BUFFERS];
+	uint32_t num_buffer_full_uploads, num_buffer_partial_uploads, size_buffer_uploads;
 
 	uint32_t num_draw_elements, num_draw_element_count;
 	uint32_t num_draw_arrays, num_draw_array_count;

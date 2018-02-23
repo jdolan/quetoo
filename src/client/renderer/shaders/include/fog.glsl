@@ -1,9 +1,3 @@
-#ifndef QUETOO_FOG_GLSL
-#define QUETOO_FOG_GLSL
-
-#include "include/uniforms.glsl"
-#include "include/noise3d.glsl"
-
 struct FogParameters {
 	float START;
 	float END;
@@ -23,5 +17,3 @@ void FogFragment(in float len, inout vec4 fragColor) {
 }
 
 #endif
-
-#endif //QUETOO_FOG_GLSL

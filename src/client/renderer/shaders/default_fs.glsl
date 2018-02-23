@@ -6,7 +6,7 @@
 
 #define FRAGMENT_SHADER
 
-#include "include/uniforms.glsl"
+#include "include/matrix.glsl"
 #include "include/fog.glsl"
 #include "include/noise3d.glsl"
 #include "include/tint.glsl"
@@ -52,6 +52,9 @@ uniform sampler2D SAMPLER4;
 uniform sampler2D SAMPLER8;
 
 uniform float ALPHA_THRESHOLD;
+
+uniform float TIME_FRACTION;
+uniform float TIME;
 
 in VertexData {
 	vec3 modelpoint;
@@ -164,7 +167,7 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in floa
 void CausticFragment(in vec3 lightmap) {
 	if (CAUSTIC.ENABLE) {
 		vec3 model_scale = vec3(0.024, 0.024, 0.016);
-		float time_scale = 0.0006;
+		float time_scale = 0.6;
 		float caustic_thickness = 0.02;
 		float caustic_glow = 8.0;
 		float caustic_intensity = 0.3;

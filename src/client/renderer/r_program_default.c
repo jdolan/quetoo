@@ -38,6 +38,9 @@ typedef struct {
 	r_uniform1f_t hardness;
 	r_uniform1f_t specular;
 
+	r_uniform1f_t time_fraction;
+	r_uniform1f_t time;
+
 	r_sampler2d_t sampler0;
 	r_sampler2d_t sampler1;
 	r_sampler2d_t sampler2;
@@ -152,6 +155,9 @@ void R_InitProgram_default(r_program_t *program) {
 
 	R_ProgramVariable(&p->alpha_threshold, R_UNIFORM_FLOAT, "ALPHA_THRESHOLD", true);
 
+	R_ProgramVariable(&p->time_fraction, R_UNIFORM_FLOAT, "TIME_FRACTION", true);
+	R_ProgramVariable(&p->time, R_UNIFORM_FLOAT, "TIME", true);
+
 	R_ProgramParameter1i(&p->diffuse, 0);
 	R_ProgramParameter1i(&p->lightmap, 0);
 	R_ProgramParameter1i(&p->deluxemap, 0);
@@ -176,6 +182,9 @@ void R_InitProgram_default(r_program_t *program) {
 	R_ProgramParameter1f(&p->alpha_threshold, ALPHA_TEST_DISABLED_THRESHOLD);
 
 	R_ProgramParameter1i(&p->caustic.enable, 0);
+
+	R_ProgramParameter1f(&p->time_fraction, 0.0f);
+	R_ProgramParameter1f(&p->time, 0.0f);
 }
 
 /**
@@ -286,6 +295,7 @@ void R_UseCaustic_default(const r_caustic_parameters_t *caustic) {
 	if (caustic && caustic->enable) {
 		R_ProgramParameter1i(&p->caustic.enable, caustic->enable);
 		R_ProgramParameter3fv(&p->caustic.color, caustic->color);
+		R_ProgramParameter1f(&p->time, r_view.ticks / 1000.0);
 	} else {
 		R_ProgramParameter1i(&p->caustic.enable, 0);
 	}
@@ -315,6 +325,15 @@ void R_UseAlphaTest_default(const vec_t threshold) {
 	r_default_program_t *p = &r_default_program;
 
 	R_ProgramParameter1f(&p->alpha_threshold, threshold);
+}
+
+/**
+ * @brief
+ */
+void R_UseInterpolation_default(const vec_t time_fraction) {
+	r_default_program_t *p = &r_default_program;
+
+	R_ProgramParameter1f(&p->time_fraction, time_fraction);
 }
 
 /**

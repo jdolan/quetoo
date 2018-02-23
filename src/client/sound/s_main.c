@@ -224,14 +224,6 @@ void S_LoadMedia(void) {
 
 	Cl_LoadingProgress(80, "sounds");
 
-	if (*cl_chat_sound->string) {
-		S_LoadSample(cl_chat_sound->string);
-	}
-
-	if (*cl_team_chat_sound->string) {
-		S_LoadSample(cl_team_chat_sound->string);
-	}
-
 	for (uint32_t i = 0; i < MAX_SOUNDS; i++) {
 
 		if (!cl.config_strings[CS_SOUNDS + i][0]) {
