@@ -109,11 +109,6 @@ void R_UseFog_warp(const r_fog_parameters_t *fog) {
 void R_UseCurrentColor_warp(const vec4_t color) {
 
 	r_warp_program_t *p = &r_warp_program;
-	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
 
-	if (color) {
-		R_ProgramParameter4fv(&p->current_color, color);
-	} else {
-		R_ProgramParameter4fv(&p->current_color, white);
-	}
+	R_ProgramParameter4fv(&p->current_color, color);
 }

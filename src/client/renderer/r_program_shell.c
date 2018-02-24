@@ -102,13 +102,8 @@ void R_UseShellOffset_shell(const vec_t offset) {
 void R_UseCurrentColor_shell(const vec4_t color) {
 
 	r_shell_program_t *p = &r_shell_program;
-	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
 
-	if (color) {
-		R_ProgramParameter4fv(&p->current_color, color);
-	} else {
-		R_ProgramParameter4fv(&p->current_color, white);
-	}
+	R_ProgramParameter4fv(&p->current_color, color);
 }
 
 /**

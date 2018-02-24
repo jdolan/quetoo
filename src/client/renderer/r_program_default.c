@@ -333,24 +333,21 @@ void R_UseAlphaTest_default(const vec_t threshold) {
 /**
  * @brief
  */
-void R_UseInterpolation_default(const vec_t time_fraction) {
+void R_UseCurrentColor_default(const vec4_t color) {
+
 	r_default_program_t *p = &r_default_program;
 
-	R_ProgramParameter1f(&p->time_fraction, time_fraction);
+	R_ProgramParameter4fv(&p->current_color, color);
 }
 
 /**
  * @brief
  */
-void R_UseCurrentColor_default(const vec4_t color) {
-	r_default_program_t *p = &r_default_program;
-	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
+void R_UseInterpolation_default(const vec_t time_fraction) {
 
-	if (color && r_state.color_array_enabled) {
-		R_ProgramParameter4fv(&p->current_color, color);
-	} else {
-		R_ProgramParameter4fv(&p->current_color, white);
-	}
+	r_default_program_t *p = &r_default_program;
+
+	R_ProgramParameter1f(&p->time_fraction, time_fraction);
 }
 
 /**
