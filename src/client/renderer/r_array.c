@@ -784,11 +784,9 @@ static void R_PrepareProgram() {
 	// upload state data that needs to be synced up to current program
 	R_SetupAttributes();
 
-	R_UseMatrices();
+	R_UseUniforms();
 
 	R_UseAlphaTest();
-
-	R_UseCurrentColor();
 
 	R_UseFog();
 

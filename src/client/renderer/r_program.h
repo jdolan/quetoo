@@ -60,6 +60,13 @@ typedef r_variable_t r_uniform4fv_t;
 typedef r_variable_t r_uniform_matrix4fv_t;
 typedef r_variable_t r_sampler2d_t;
 
+// global uniforms
+typedef enum {
+	R_GLOBALS_COLOR,
+
+	R_GLOBALS_TOTAL
+} r_uniform_global_t;
+
 // fog info
 typedef struct {
 	vec_t start;
@@ -107,6 +114,9 @@ typedef struct {
 	r_uniform_matrix4fv_t matrix_uniforms[R_MATRIX_TOTAL];
 	_Bool matrix_dirty[R_MATRIX_TOTAL];
 
+	r_variable_t global_uniforms[R_GLOBALS_TOTAL];
+	_Bool global_dirty[R_GLOBALS_TOTAL];
+
 	void (*Init)(void);
 	void (*Shutdown)(void);
 	void (*Use)(void);
@@ -118,7 +128,6 @@ typedef struct {
 	void (*UseCaustic)(const r_caustic_parameters_t *caustic);
 	void (*MatricesChanged)(void);
 	void (*UseAlphaTest)(const vec_t threshold);
-	void (*UseCurrentColor)(const vec4_t color);
 	void (*UseInterpolation)(const vec_t time_fraction);
 	void (*UseTints)(void);
 } r_program_t;

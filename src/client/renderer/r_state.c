@@ -39,6 +39,8 @@ const vec2_t default_texcoords[4] = { // useful for particles, pics, etc..
  */
 static matrix4x4_t active_matrices[R_MATRIX_TOTAL];
 
+static vec4_t active_color = { 1.0, 1.0, 1.0, 1.0 };
+
 /**
  * @brief Queries OpenGL for any errors and prints them as warnings.
  */
@@ -88,10 +90,24 @@ void R_Color(const vec4_t color) {
 	static const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
 
 	if (color) {
-		Vector4Copy(color, r_state.current_color);
+		Vector4Copy(color, active_color);
 	} else {
-		Vector4Copy(white, r_state.current_color);
+		Vector4Copy(white, active_color);
 	}
+
+	for (r_program_id_t i = 0; i < R_PROGRAM_TOTAL; i++) {
+
+		if (r_state.programs[i].global_uniforms[R_GLOBALS_COLOR].location != -1) {
+			r_state.programs[i].global_dirty[R_GLOBALS_COLOR] = true;
+		}
+	}
+}
+
+/**
+ * @brief Get pointer to current color.
+ */
+const vec_t *R_GetCurrentColor(void) {
+	return active_color;
 }
 
 /**
@@ -575,10 +591,9 @@ const matrix4x4_t *R_GetMatrixPtr(const r_matrix_id_t id) {
 }
 
 /**
- * @brief Uploads matrices to the currently loaded program.
+ * @brief Uploads uniforms to the currently loaded program.
  */
-void R_UseMatrices(void) {
-
+void R_UseUniforms(void) {
 	_Bool any_changed = false;
 
 	for (r_matrix_id_t i = 0; i < R_MATRIX_TOTAL; i++) {
@@ -601,6 +616,11 @@ void R_UseMatrices(void) {
 
 		memset(((r_program_t *) r_state.active_program)->matrix_dirty, 0, sizeof(r_state.active_program->matrix_dirty));
 	}
+
+	if (r_state.active_program->global_dirty[R_GLOBALS_COLOR]) {
+		R_ProgramParameter4fv(&((r_program_t *) r_state.active_program)->global_uniforms[R_GLOBALS_COLOR], active_color);
+		((r_program_t *) r_state.active_program)->global_dirty[R_GLOBALS_COLOR] = false;
+	}
 }
 
 /**
@@ -610,16 +630,6 @@ void R_UseAlphaTest(void) {
 
 	if (r_state.active_program->UseAlphaTest) {
 		r_state.active_program->UseAlphaTest(r_state.alpha_threshold);
-	}
-}
-
-/**
- * @brief Uploads the current global color to the currently loaded program.
- */
-void R_UseCurrentColor(void) {
-
-	if (r_state.active_program->UseCurrentColor) {
-		r_state.active_program->UseCurrentColor(r_state.current_color);
 	}
 }
 
@@ -920,7 +930,6 @@ void R_InitState(void) {
 	r_state.buffers_list = g_hash_table_new(g_direct_hash, g_direct_equal);
 
 	r_state.depth_mask_enabled = true;
-	Vector4Set(r_state.current_color, 1.0, 1.0, 1.0, 1.0);
 
 	// setup texture units
 	for (int32_t i = 0; i < R_TEXUNIT_TOTAL; i++) {
