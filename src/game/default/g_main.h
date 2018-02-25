@@ -81,9 +81,9 @@ extern cvar_t *g_warmup_time;
 extern cvar_t *g_weapon_respawn_time;
 extern cvar_t *g_weapon_stay;
 
-extern cvar_t *g_max_clients;
-extern cvar_t *g_hostname;
-extern cvar_t *g_dedicated;
+extern cvar_t *sv_max_clients;
+extern cvar_t *sv_hostname;
+extern cvar_t *dedicated;
 
 extern g_team_t g_teamlist[MAX_TEAMS];
 

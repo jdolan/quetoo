@@ -73,9 +73,9 @@ cvar_t *g_warmup_time;
 cvar_t *g_weapon_respawn_time;
 cvar_t *g_weapon_stay;
 
-cvar_t *g_max_clients;
-cvar_t *g_hostname;
-cvar_t *g_dedicated;
+cvar_t *sv_max_clients;
+cvar_t *sv_hostname;
+cvar_t *dedicated;
 
 g_team_t g_teamlist[MAX_TEAMS];
 static g_team_t g_teamlist_default[MAX_TEAMS];
@@ -159,7 +159,7 @@ const g_team_t *G_TeamDefaults(const g_team_t *team) {
 void G_ResetVote(void) {
 	int32_t i;
 
-	for (i = 0; i < g_max_clients->integer; i++) { //reset vote flags
+	for (i = 0; i < sv_max_clients->integer; i++) { //reset vote flags
 
 		if (!g_game.entities[i + 1].in_use) {
 			continue;
@@ -325,7 +325,7 @@ static void G_RestartGame(_Bool teamz) {
 		g_level.round_num++;
 	}
 
-	for (int32_t i = 0; i < g_max_clients->integer; i++) { // reset clients
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) { // reset clients
 
 		if (!g_game.entities[i + 1].in_use) {
 			continue;
@@ -421,7 +421,7 @@ static void G_BeginIntermission(const char *map) {
 	g_level.intermission_time = g_level.time;
 
 	// respawn any dead clients
-	for (int32_t i = 0; i < g_max_clients->integer; i++) {
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 
 		g_entity_t *client = g_game.entities + 1 + i;
 
@@ -447,7 +447,7 @@ static void G_BeginIntermission(const char *map) {
 	VectorCopy(ent->s.angles, g_level.intermission_angle);
 
 	// move all clients to the intermission point
-	for (int32_t i = 0; i < g_max_clients->integer; i++) {
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 
 		g_entity_t *client = g_game.entities + 1 + i;
 
@@ -502,7 +502,7 @@ static void G_CheckVote(void) {
 		return;
 	}
 
-	for (i = 0; i < g_max_clients->integer; i++) {
+	for (i = 0; i < sv_max_clients->integer; i++) {
 		if (!g_game.entities[i + 1].in_use) {
 			continue;
 		}
@@ -553,7 +553,7 @@ static void G_CheckRoundStart(void) {
 	uint8_t teams_ready[MAX_TEAMS];
 	memset(teams_ready, 0, sizeof(teams_ready));
 
-	for (i = 0; i < g_max_clients->integer; i++) {
+	for (i = 0; i < sv_max_clients->integer; i++) {
 		if (!g_game.entities[i + 1].in_use) {
 			continue;
 		}
@@ -617,7 +617,7 @@ static void G_CheckRoundLimit() {
 	}
 
 	// or attempt to re-join previously active players
-	for (i = 0; i < g_max_clients->integer; i++) {
+	for (i = 0; i < sv_max_clients->integer; i++) {
 		if (!g_game.entities[i + 1].in_use) {
 			continue;
 		}
@@ -668,7 +668,7 @@ static void G_CheckRoundEnd(void) {
 	uint8_t teams_count[MAX_TEAMS];
 	memset(teams_count, 0, sizeof(teams_count));
 
-	for (j = 0; j < g_max_clients->integer; j++) {
+	for (j = 0; j < sv_max_clients->integer; j++) {
 		if (!g_game.entities[j + 1].in_use) {
 			continue;
 		}
@@ -764,7 +764,7 @@ static void G_CheckMatchEnd(void) {
 	uint8_t teams_count[MAX_TEAMS];
 	memset(teams_count, 0, sizeof(teams_count));
 
-	for (i = 0; i < g_max_clients->integer; i++) {
+	for (i = 0; i < sv_max_clients->integer; i++) {
 		if (!g_game.entities[i + 1].in_use) {
 			continue;
 		}
@@ -851,7 +851,7 @@ static void G_CheckRules(void) {
 		g_level.time_limit = (g_time_limit->value * 60 * 1000) + g_level.time;
 		g_level.match_status = MSTAT_PLAYING;
 
-		for (i = 0; i < g_max_clients->integer; i++) {
+		for (i = 0; i < sv_max_clients->integer; i++) {
 			if (!g_game.entities[i + 1].in_use) {
 				continue;
 			}
@@ -867,7 +867,7 @@ static void G_CheckRules(void) {
 		g_level.start_round = false;
 		g_level.warmup = false;
 
-		for (i = 0; i < g_max_clients->integer; i++) {
+		for (i = 0; i < sv_max_clients->integer; i++) {
 			if (!g_game.entities[i + 1].in_use) {
 				continue;
 			}
@@ -891,7 +891,7 @@ static void G_CheckRules(void) {
 				}
 			}
 		} else { // or individual scores
-			for (i = 0; i < g_max_clients->integer; i++) {
+			for (i = 0; i < sv_max_clients->integer; i++) {
 				g_client_t *cl = g_game.clients + i;
 				if (!g_game.entities[i + 1].in_use) {
 					continue;
@@ -983,7 +983,7 @@ static void G_CheckRules(void) {
 		g_hook_style->modified = false;
 
 		// reset all the hook styles on the players
-		for (i = 0; i < g_max_clients->integer; i++) {
+		for (i = 0; i < sv_max_clients->integer; i++) {
 			G_SetClientHookStyle(&g_game.entities[i + 1]);
 		}
 
@@ -1367,23 +1367,23 @@ void G_Init(void) {
 	g_weapon_respawn_time = gi.AddCvar("g_weapon_respawn_time", "5.0", CVAR_SERVER_INFO, "Weapon respawn interval in seconds");
 	g_weapon_stay = gi.AddCvar("g_weapon_stay", "0", CVAR_SERVER_INFO, "Controls whether weapons will respawn like normal or always stay");
 
-	g_max_clients = gi.GetCvar("sv_max_clients");
-	g_hostname = gi.GetCvar("sv_hostname");
+	sv_max_clients = gi.GetCvar("sv_max_clients");
+	sv_hostname = gi.GetCvar("sv_hostname");
 
-	g_dedicated = gi.GetCvar("dedicated");
+	dedicated = gi.GetCvar("dedicated");
 
 	G_InitVote();
 
 	// initialize entities and clients for this game
 	g_game.entities = gi.Malloc(g_max_entities->integer * sizeof(g_entity_t), MEM_TAG_GAME);
-	g_game.clients = gi.Malloc(g_max_clients->integer * sizeof(g_client_t), MEM_TAG_GAME);
+	g_game.clients = gi.Malloc(sv_max_clients->integer * sizeof(g_client_t), MEM_TAG_GAME);
 
 	ge.entities = g_game.entities;
 	ge.max_entities = g_max_entities->integer;
-	ge.num_entities = g_max_clients->integer + 1;
+	ge.num_entities = sv_max_clients->integer + 1;
 
 	// set up client pointers
-	for (int32_t i = 1; i <= g_max_clients->integer; i++) {
+	for (int32_t i = 1; i <= sv_max_clients->integer; i++) {
 		g_game.entities[i].client = g_game.clients + (i - 1);
 	}
 
@@ -1447,7 +1447,7 @@ void G_CallTimeOut(g_entity_t *ent) {
 	g_level.timeout_frame = g_level.frame_num;
 
 	// lock everyone in place
-	for (int32_t i = 1; i < g_max_clients->integer; i++) {
+	for (int32_t i = 1; i < sv_max_clients->integer; i++) {
 		g_game.entities[i].client->ps.pm_state.type = PM_FREEZE;
 	}
 
@@ -1460,7 +1460,7 @@ void G_CallTimeIn(void) {
 	g_level.frame_num = g_level.timeout_frame; // where we were before timeout
 
 	// unlock everyone
-	for (int32_t i = 1; i < g_max_clients->integer; i++) {
+	for (int32_t i = 1; i < sv_max_clients->integer; i++) {
 		g_game.entities[i].client->ps.pm_state.type = PM_NORMAL;
 	}
 

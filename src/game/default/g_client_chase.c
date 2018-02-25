@@ -91,7 +91,7 @@ void G_ClientChaseNext(g_entity_t *ent) {
 	do {
 		i++;
 
-		if (i > g_max_clients->integer) {
+		if (i > sv_max_clients->integer) {
 			i = 1;
 		}
 
@@ -121,7 +121,7 @@ void G_ClientChasePrevious(g_entity_t *ent) {
 		i--;
 
 		if (i < 1) {
-			i = g_max_clients->integer;
+			i = sv_max_clients->integer;
 		}
 
 		e = g_game.entities + i;
@@ -140,7 +140,7 @@ void G_ClientChasePrevious(g_entity_t *ent) {
  */
 void G_ClientChaseTarget(g_entity_t *ent) {
 
-	for (int32_t i = 0; i < g_max_clients->integer; i++) {
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 		g_entity_t *other = g_game.entities + i + 1;
 		if (G_IsMeat(other)) {
 			ent->client->locals.chase_target = other;

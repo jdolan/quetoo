@@ -31,7 +31,7 @@ static void G_Give_f(g_entity_t *ent) {
 	_Bool give_all;
 	g_entity_t *it_ent;
 
-	if (g_max_clients->integer > 1 && !g_cheats->value) {
+	if (sv_max_clients->integer > 1 && !g_cheats->value) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Cheats are disabled\n");
 		return;
 	}
@@ -160,7 +160,7 @@ static void G_Give_f(g_entity_t *ent) {
 static void G_God_f(g_entity_t *ent) {
 	char *msg;
 
-	if (g_max_clients->integer > 1 && !g_cheats->value) {
+	if (sv_max_clients->integer > 1 && !g_cheats->value) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Cheats are disabled\n");
 		return;
 	}
@@ -181,7 +181,7 @@ static void G_God_f(g_entity_t *ent) {
 static void G_NoClip_f(g_entity_t *ent) {
 	char *msg;
 
-	if (g_max_clients->integer > 1 && !g_cheats->value) {
+	if (sv_max_clients->integer > 1 && !g_cheats->value) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Cheats are disabled\n");
 		return;
 	}
@@ -409,7 +409,7 @@ void G_StuffAll_Sv_f(void) {
 
 	const char *cmd = gi.Args();
 
-	for (int32_t i = 0; i < g_max_clients->integer; i++) {
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 		const g_entity_t *ent = &g_game.entities[i + 1];
 		if (!ent->in_use) {
 			continue;
@@ -563,7 +563,7 @@ static void G_Say_f(g_entity_t *ent) {
 	const int32_t color = team ? CON_COLOR_TEAMCHAT : CON_COLOR_CHAT;
 	g_snprintf(text, sizeof(text), "%s^%d: %s\n", cl->locals.persistent.net_name, color, s);
 
-	for (i = 1; i <= g_max_clients->integer; i++) { // print to clients
+	for (i = 1; i <= sv_max_clients->integer; i++) { // print to clients
 		const g_entity_t *other = &g_game.entities[i];
 
 		if (!other->in_use) {
@@ -580,7 +580,7 @@ static void G_Say_f(g_entity_t *ent) {
 		}
 	}
 
-	if (g_dedicated->value) { // print to the console
+	if (dedicated->value) { // print to the console
 		gi.Print("%s", text);
 	}
 }
@@ -597,7 +597,7 @@ static void G_PlayerList_f(g_entity_t *ent) {
 	memset(text, 0, sizeof(text));
 
 	// connect time, ping, score, name
-	for (i = 0, e2 = g_game.entities + 1; i < g_max_clients->integer; i++, e2++) {
+	for (i = 0, e2 = g_game.entities + 1; i < sv_max_clients->integer; i++, e2++) {
 
 		if (!e2->in_use) {
 			continue;
@@ -839,7 +839,7 @@ static void G_Vote_f(g_entity_t *ent) {
 		}
 		if (g_strcmp0(vote, "yes") == 0) {
 			if (ent->client->locals.persistent.admin) {
-				g_level.votes[VOTE_YES] = g_max_clients->integer; // admin vote wins immediately
+				g_level.votes[VOTE_YES] = sv_max_clients->integer; // admin vote wins immediately
 				return;
 			}
 			ent->client->locals.persistent.vote = VOTE_YES;
@@ -1066,7 +1066,7 @@ static void G_Teamskin_f(g_entity_t *ent) {
 
 	t->skin_time = g_level.time;
 
-	for (i = 0; i < g_max_clients->integer; i++) { // update skins
+	for (i = 0; i < sv_max_clients->integer; i++) { // update skins
 		cl = g_game.clients + i;
 
 		if (!cl->locals.persistent.team || cl->locals.persistent.team != t) {
@@ -1154,7 +1154,7 @@ static void G_Ready_f(g_entity_t *ent) {
 	uint8_t teams_ready[MAX_TEAMS];
 	memset(teams_ready, 0, sizeof(teams_ready));
 
-	for (i = 0; i < g_max_clients->integer; i++) { // is everyone ready?
+	for (i = 0; i < sv_max_clients->integer; i++) { // is everyone ready?
 		cl = g_game.clients + i;
 
 		if (!g_game.entities[i + 1].in_use) {
@@ -1176,7 +1176,7 @@ static void G_Ready_f(g_entity_t *ent) {
 		}
 	}
 
-	if (i != (int32_t) g_max_clients->integer) { // someone isn't ready
+	if (i != (int32_t) sv_max_clients->integer) { // someone isn't ready
 		return;
 	}
 
