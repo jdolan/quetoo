@@ -148,7 +148,7 @@ static void Sv_Info_f(void) {
 			}
 		}
 
-		g_snprintf(string, sizeof(string), "%-64s\\%-31s\\%-31s\\%d\\%d", sv_hostname->string,
+		g_snprintf(string, sizeof(string), "%s\\%s\\%s\\%d\\%d", sv_hostname->string,
 		           sv.name, svs.game->GameName(), count, sv_max_clients->integer);
 	}
 
