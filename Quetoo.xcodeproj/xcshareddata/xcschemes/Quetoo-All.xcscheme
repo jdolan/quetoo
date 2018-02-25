@@ -73,12 +73,12 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_fullscreen 1 +set r_width 0 +set r_height 0 +set r_display 1"
+            argument = "+set r_fullscreen 1 +set r_width 0 +set r_height 0 +set r_display 0"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map tokays +set g_cheats 1 +give all"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>

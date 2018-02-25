@@ -79,7 +79,11 @@ static void renderMeshEntity(r_entity_t *e) {
 
 	cgi.SetMatrixForEntity(e);
 
+	cgi.EnableBlend(false);
+
 	cgi.DrawMeshModel(e);
+
+	cgi.EnableBlend(true);
 }
 
 /**
@@ -107,8 +111,6 @@ static void render(View *self, Renderer *renderer) {
 	if (this->client.torso == NULL) {
 		$(self, updateBindings);
 	}
-
-	cgi.view->ticks = cgi.client->unclamped_time;
 
 	if (this->client.torso) {
 		$(this, animate);
@@ -420,7 +422,7 @@ static PlayerModelView *initWithFrame(PlayerModelView *self, const SDL_Rect *fra
 
 #pragma mark - Class lifecycle
 
-/**
+/*-*
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
