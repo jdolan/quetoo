@@ -668,7 +668,7 @@ static vec_t G_EnemyRangeFromSpot(g_entity_t *ent, g_entity_t *spot) {
 
 	best_dist = 9999999.0;
 
-	for (int32_t i = 1; i <= sv_max_clients->integer; i++) {
+	for (int32_t i = 1; i <= g_max_clients->integer; i++) {
 		const g_entity_t *other = &g_game.entities[i];
 
 		if (!other->in_use) {
@@ -1013,7 +1013,7 @@ void G_ClientBegin(g_entity_t *ent) {
 	if (g_level.intermission_time) {
 		G_ClientToIntermission(ent);
 	} else {
-		g_snprintf(welcome, sizeof(welcome), "^2Welcome to ^7%s", sv_hostname->string);
+		g_snprintf(welcome, sizeof(welcome), "^2Welcome to ^7%s", g_hostname->string);
 
 		if (*g_motd->string) {
 			char motd[MAX_QPATH];
@@ -1271,7 +1271,7 @@ _Bool G_ClientConnect(g_entity_t *ent, char *user_info) {
 	// set name, skin, etc..
 	G_ClientUserInfoChanged(ent, user_info);
 
-	if (sv_max_clients->integer > 1) {
+	if (g_max_clients->integer > 1) {
 		gi.BroadcastPrint(PRINT_HIGH, "%s connected\n", ent->client->locals.persistent.net_name);
 	}
 
@@ -1635,7 +1635,7 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 	G_ClientInventoryThink(ent);
 
 	// update chase camera if being followed
-	for (int32_t i = 1; i <= sv_max_clients->integer; i++) {
+	for (int32_t i = 1; i <= g_max_clients->integer; i++) {
 
 		g_entity_t *other = g_game.entities + i;
 

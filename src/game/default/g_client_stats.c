@@ -106,7 +106,7 @@ static size_t G_UpdateScores(g_score_t *scores) {
 	int32_t i;
 
 	// assemble the client scores
-	for (i = 0; i < sv_max_clients->integer; i++) {
+	for (i = 0; i < g_max_clients->integer; i++) {
 		const g_entity_t *e = &g_game.entities[i + 1];
 
 		if (!e->in_use) {

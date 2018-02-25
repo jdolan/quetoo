@@ -842,15 +842,15 @@ void G_SpawnEntities(const char *name, const char *entities) {
 
 		if (g_ai_max_clients->integer) {
 			if (g_ai_max_clients->integer == -1) {
-				g_game.ai_fill_slots = sv_max_clients->integer;
+				g_game.ai_fill_slots = g_max_clients->integer;
 			} else {
-				g_game.ai_fill_slots = Clamp(g_ai_max_clients->integer, 0, sv_max_clients->integer);
+				g_game.ai_fill_slots = Clamp(g_ai_max_clients->integer, 0, g_max_clients->integer);
 			}
 
 			g_game.ai_left_to_spawn = g_game.ai_fill_slots;
 			g_ai_max_clients->modified = false;
 		} else {
-			for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+			for (int32_t i = 0; i < g_max_clients->integer; i++) {
 				if (g_game.entities[i + 1].client && g_game.entities[i + 1].client->ai) {
 					g_game.ai_left_to_spawn++;
 				}
@@ -859,13 +859,13 @@ void G_SpawnEntities(const char *name, const char *entities) {
 	}
 	
 	memset(g_game.entities, 0, g_max_entities->value * sizeof(g_entity_t));
-	memset(g_game.clients, 0, sv_max_clients->value * sizeof(g_client_t));
+	memset(g_game.clients, 0, g_max_clients->value * sizeof(g_client_t));
 
-	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+	for (int32_t i = 0; i < g_max_clients->integer; i++) {
 		g_game.entities[i + 1].client = g_game.clients + i;
 	}
 
-	ge.num_entities = sv_max_clients->integer + 1;
+	ge.num_entities = g_max_clients->integer + 1;
 
 	g_entity_t *ent = NULL;
 

@@ -407,8 +407,8 @@ void G_InitEntity(g_entity_t *ent, const char *class_name) {
 g_entity_t *G_AllocEntity_(const char *class_name) {
 	uint16_t i;
 
-	g_entity_t *e = &g_game.entities[sv_max_clients->integer + 1];
-	for (i = sv_max_clients->integer + 1; i < ge.num_entities; i++, e++) {
+	g_entity_t *e = &g_game.entities[g_max_clients->integer + 1];
+	for (i = g_max_clients->integer + 1; i < ge.num_entities; i++, e++) {
 		if (!e->in_use) {
 			G_InitEntity(e, class_name);
 			return e;
@@ -431,7 +431,7 @@ void G_FreeEntity(g_entity_t *ent) {
 
 	gi.UnlinkEntity(ent);
 
-	if ((ent - g_game.entities) <= sv_max_clients->integer) {
+	if ((ent - g_game.entities) <= g_max_clients->integer) {
 		return;
 	}
 
@@ -656,7 +656,7 @@ const g_item_t *G_IsFlagBearer(const g_entity_t *ent) {
 size_t G_TeamSize(const g_team_t *team) {
 	size_t count = 0;
 
-	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+	for (int32_t i = 0; i < g_max_clients->integer; i++) {
 		if (!g_game.entities[i + 1].in_use) {
 			continue;
 		}
@@ -678,7 +678,7 @@ g_team_t *G_SmallestTeam(void) {
 
 	memset(num_clients, 0, sizeof(num_clients));
 
-	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+	for (int32_t i = 0; i < g_max_clients->integer; i++) {
 		if (!g_game.entities[i + 1].in_use) {
 			continue;
 		}
@@ -719,7 +719,7 @@ g_entity_t *G_EntityByName(char *name) {
 	ret = NULL;
 	min = 9999;
 
-	for (i = 0; i < sv_max_clients->integer; i++) {
+	for (i = 0; i < g_max_clients->integer; i++) {
 		if (!g_game.entities[i + 1].in_use) {
 			continue;
 		}
@@ -954,7 +954,7 @@ void G_TeamCenterPrint(g_team_t *team, const char *fmt, ...) {
 	va_end(args);
 
 	// look through all players
-	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+	for (int32_t i = 0; i < g_max_clients->integer; i++) {
 		if (!g_game.entities[i + 1].in_use) {
 			continue;
 		}

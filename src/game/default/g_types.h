@@ -719,7 +719,7 @@ typedef struct {
  */
 typedef struct {
 	g_entity_t *entities; // [g_max_entities]
-	g_client_t *clients; // [sv_max_clients]
+	g_client_t *clients; // [g_max_clients]
 
 	g_spawn_temp_t spawn;
 

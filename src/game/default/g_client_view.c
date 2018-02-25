@@ -408,7 +408,7 @@ void G_ClientEndFrame(g_entity_t *ent) {
 void G_EndClientFrames(void) {
 
 	// finalize the player_state_t for this frame
-	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+	for (int32_t i = 0; i < g_max_clients->integer; i++) {
 
 		g_entity_t *ent = g_game.entities + 1 + i;
 
@@ -420,7 +420,7 @@ void G_EndClientFrames(void) {
 	}
 
 	// now loop through again, and for chase camera users, copy the final player state
-	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+	for (int32_t i = 0; i < g_max_clients->integer; i++) {
 
 		g_entity_t *ent = g_game.entities + 1 + i;
 

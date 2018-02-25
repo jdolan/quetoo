@@ -30,7 +30,7 @@ cvar_t *g_ai_max_clients;
 static uint8_t G_Ai_EmptySlots(void) {
 	uint8_t empty_slots = 0;
 
-	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+	for (int32_t i = 0; i < g_max_clients->integer; i++) {
 
 		g_entity_t *ent = &g_game.entities[i + 1];
 
@@ -48,7 +48,7 @@ static uint8_t G_Ai_EmptySlots(void) {
 static uint8_t G_Ai_NumberOfBots(void) {
 	uint8_t filled_slots = 0;
 
-	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+	for (int32_t i = 0; i < g_max_clients->integer; i++) {
 
 		g_entity_t *ent = &g_game.entities[i + 1];
 
@@ -66,7 +66,7 @@ static uint8_t G_Ai_NumberOfBots(void) {
 static uint8_t G_Ai_NumberOfClients(void) {
 	uint8_t filled_slots = 0;
 
-	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+	for (int32_t i = 0; i < g_max_clients->integer; i++) {
 
 		g_entity_t *ent = &g_game.entities[i + 1];
 
@@ -194,7 +194,7 @@ static void G_Ai_ClientThink(g_entity_t *self) {
 			uint8_t num_players = 0;
 			uint8_t ready_slots = 0;
 
-			for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+			for (int32_t i = 0; i < g_max_clients->integer; i++) {
 
 				g_entity_t *ent = &g_game.entities[i + 1];
 
@@ -258,7 +258,7 @@ static void G_Ai_AddBots(const int32_t count) {
 	int32_t empty_slots = G_Ai_EmptySlots();
 
 	if (!empty_slots) {
-		gi.Print("No client slots available, increase sv_max_clients.\n");
+		gi.Print("No client slots available, increase g_max_clients.\n");
 		return;
 	}
 
@@ -279,7 +279,7 @@ static void G_Ai_RemoveBots(const int32_t count) {
 		g_entity_t *ent = &g_game.entities[1];
 		int32_t j;
 
-		for (j = 1; j <= sv_max_clients->integer; j++, ent++) {
+		for (j = 1; j <= g_max_clients->integer; j++, ent++) {
 			if (ent->in_use && ent->client->connected && ent->client->ai) {
 				G_ClientDisconnect(ent);
 				break;
@@ -386,9 +386,9 @@ void G_Ai_Frame(void) {
 		g_ai_max_clients->modified = false;
 
 		if (g_ai_max_clients->integer == -1) {
-			g_ai_max_clients->integer = sv_max_clients->integer;
+			g_ai_max_clients->integer = g_max_clients->integer;
 		} else {
-			g_game.ai_fill_slots = Clamp(g_ai_max_clients->integer, 0, sv_max_clients->integer);
+			g_game.ai_fill_slots = Clamp(g_ai_max_clients->integer, 0, g_max_clients->integer);
 		}
 
 		int32_t slot_diff = g_ai_max_clients->integer - G_Ai_NumberOfClients();
@@ -405,14 +405,14 @@ void G_Ai_Frame(void) {
 		g_entity_t *ent = &g_game.entities[1];
 		int32_t j;
 
-		for (j = 1; j <= sv_max_clients->integer; j++, ent++) {
+		for (j = 1; j <= g_max_clients->integer; j++, ent++) {
 			if (!ent->in_use && !ent->client->connected) {
 				G_Ai_Spawn(ent, (g_game.ai_left_to_spawn - 1) * 500);
 				break;
 			}
 		}
 
-		if (j > sv_max_clients->integer) { // should never happen
+		if (j > g_max_clients->integer) { // should never happen
 			gi.Print("Desync in ai_left_to_spawn?\n");
 			g_game.ai_left_to_spawn = 0;
 			break;
@@ -421,7 +421,7 @@ void G_Ai_Frame(void) {
 
 	// run AI think functions
 	g_entity_t *ent = &g_game.entities[1];
-	for (uint16_t i = 1; i <= sv_max_clients->integer; i++, ent++) {
+	for (uint16_t i = 1; i <= g_max_clients->integer; i++, ent++) {
 
 		if (!ent->client->connected) {
 			continue;
