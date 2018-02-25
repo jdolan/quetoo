@@ -1367,10 +1367,10 @@ void G_Init(void) {
 	g_weapon_respawn_time = gi.AddCvar("g_weapon_respawn_time", "5.0", CVAR_SERVER_INFO, "Weapon respawn interval in seconds");
 	g_weapon_stay = gi.AddCvar("g_weapon_stay", "0", CVAR_SERVER_INFO, "Controls whether weapons will respawn like normal or always stay");
 
-	sv_max_clients = gi.AddCvar("sv_max_clients", "1", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
-	sv_hostname = gi.AddCvar("sv_hostname", "Quetoo", CVAR_SERVER_INFO, NULL);
+	sv_max_clients = gi.GetCvar("sv_max_clients");
+	sv_hostname = gi.GetCvar("sv_hostname");
 
-	dedicated = gi.AddCvar("dedicated", "0", CVAR_NO_SET, NULL);
+	dedicated = gi.GetCvar("dedicated");
 
 	G_InitVote();
 
