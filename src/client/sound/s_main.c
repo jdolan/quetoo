@@ -396,16 +396,16 @@ void S_Init(void) {
 			s_effects->modified = false;
 			s_env.effects.loaded = false;
 		} else {
+			alGenFilters(1, &s_env.effects.occluded);
+			alFilteri(s_env.effects.occluded, AL_FILTER_TYPE, AL_FILTER_LOWPASS);
+			alFilterf(s_env.effects.occluded, AL_LOWPASS_GAIN, 0.6);
+			alFilterf(s_env.effects.occluded, AL_LOWPASS_GAINHF, 0.6);
+
 			alGenFilters(1, &s_env.effects.underwater);
-			S_CheckALError();
-
 			alFilteri(s_env.effects.underwater, AL_FILTER_TYPE, AL_FILTER_LOWPASS);
-			S_CheckALError();
-
-			alFilterf(s_env.effects.underwater, AL_LOWPASS_GAIN, 0.8);
-			S_CheckALError();
-
+			alFilterf(s_env.effects.underwater, AL_LOWPASS_GAIN, 0.3);
 			alFilterf(s_env.effects.underwater, AL_LOWPASS_GAINHF, 0.3);
+
 			S_CheckALError();
 
 			s_env.effects.loaded = true;

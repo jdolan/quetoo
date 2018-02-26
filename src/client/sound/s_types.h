@@ -102,6 +102,7 @@ typedef struct s_music_s {
  * @brief Filters used by the sound system if s_effects is enabled & supported.
  */
 typedef struct {
+	ALuint occluded;
 	ALuint underwater;
 
 	_Bool loaded; // whether the above are currently loaded.
