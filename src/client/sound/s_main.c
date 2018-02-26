@@ -314,7 +314,7 @@ static void S_InitLocal(void) {
 
 	s_ambient_volume = Cvar_Add("s_ambient_volume", "1", CVAR_ARCHIVE, "Ambient sound volume.");
 	s_doppler = Cvar_Add("s_doppler", "1", CVAR_ARCHIVE, "Doppler effect intensity (default 1).");
-	s_effects = Cvar_Add("s_effects", "0", CVAR_ARCHIVE | CVAR_S_MEDIA, "Enables advanced sound effects.");
+	s_effects = Cvar_Add("s_effects", "1", CVAR_ARCHIVE | CVAR_S_MEDIA, "Enables advanced sound effects.");
 	s_effects_volume = Cvar_Add("s_effects_volume", "1", CVAR_ARCHIVE, "Effects sound volume.");
 	s_rate = Cvar_Add("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE, "Sound sample rate in Hz.");
 	s_volume = Cvar_Add("s_volume", "1", CVAR_ARCHIVE, "Master sound volume level.");
