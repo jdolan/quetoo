@@ -141,7 +141,7 @@ s_sample_t *Cg_GetFootstepSample(const char *footsteps) {
 	int32_t index = Randomr(0, sounds->len);
 
 	if (last_index == index) {
-		index ^= 1;
+		index = (index ^ 1) % sounds->len;
 	}
 
 	last_index = index;

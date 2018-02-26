@@ -6,7 +6,7 @@
 
 #define FRAGMENT_SHADER
 
-#include "include/uniforms.glsl"
+#include "include/matrix.glsl"
 #include "include/fog.glsl"
 #include "include/tint.glsl"
 
@@ -15,6 +15,7 @@ uniform sampler2D SAMPLER0;
 in VertexData {
 	vec2 texcoord;
 	vec4 color;
+	vec3 point;
 };
 
 out vec4 fragColor;
@@ -28,5 +29,5 @@ void main(void) {
 
 	TintFragment(fragColor, texcoord);
 
-	FogFragment(fragColor);
+	FogFragment(length(point), fragColor);
 }

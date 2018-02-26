@@ -20,17 +20,9 @@
  */
 
 #include "r_local.h"
+#include "r_gl.h"
 
 static cvar_t *r_get_error;
-
-/**
- * @brief Expand an r_update_bounds_t to encompass the passed offset/size
- */
-void R_ExpandUpdateBounds(r_update_bounds_t *bounds, const size_t offset, const size_t size) {
-
-	bounds->begin = Min(bounds->begin, offset);
-	bounds->end = Max(bounds->end, offset + size);
-}
 
 r_state_t r_state;
 
@@ -40,6 +32,14 @@ const vec2_t default_texcoords[4] = { // useful for particles, pics, etc..
 	{ 1.0, 1.0 },
 	{ 0.0, 1.0 }
 };
+
+/**
+ * @brief The active matrices are private, to prevent being overwritten
+ * without dirtyage.
+ */
+static matrix4x4_t active_matrices[R_MATRIX_TOTAL];
+
+static vec4_t active_color = { 1.0, 1.0, 1.0, 1.0 };
 
 /**
  * @brief Queries OpenGL for any errors and prints them as warnings.
@@ -90,12 +90,24 @@ void R_Color(const vec4_t color) {
 	static const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
 
 	if (color) {
-		Vector4Copy(color, r_state.uniforms.global_color);
+		Vector4Copy(color, active_color);
 	} else {
-		Vector4Copy(white, r_state.uniforms.global_color);
+		Vector4Copy(white, active_color);
 	}
 
-	R_EXPAND_BOUNDS(r_state.uniforms_dirty, global_color);
+	for (r_program_id_t i = 0; i < R_PROGRAM_TOTAL; i++) {
+
+		if (r_state.programs[i].global_uniforms[R_GLOBALS_COLOR].location != -1) {
+			r_state.programs[i].global_dirty[R_GLOBALS_COLOR] = true;
+		}
+	}
+}
+
+/**
+ * @brief Get pointer to current color.
+ */
+const vec_t *R_GetCurrentColor(void) {
+	return active_color;
 }
 
 /**
@@ -179,6 +191,10 @@ void R_EnableDepthMask(_Bool enable) {
  * @brief
  */
 void R_EnableBlend(_Bool enable) {
+
+	if (!r_blend->value && !r_blend->modified) {
+		return;
+	}
 
 	if (r_state.blend_enabled == enable) {
 		return;
@@ -465,7 +481,7 @@ void R_EnableFog(_Bool enable) {
 			r_state.active_fog_parameters.start = FOG_START;
 			r_state.active_fog_parameters.end = FOG_END;
 			VectorCopy(r_view.fog_color, r_state.active_fog_parameters.color);
-			r_state.active_fog_parameters.density = r_view.fog_color[3] * r_fog->value;
+			r_state.active_fog_parameters.density = r_view.fog_color[3];
 		} else {
 			r_state.active_fog_parameters.density = 0.0;
 		}
@@ -526,7 +542,7 @@ void R_PushMatrix(const r_matrix_id_t id) {
 		Com_Error(ERROR_DROP, "Matrix stack overflow");
 	}
 
-	Matrix4x4_Copy(&r_state.matrix_stacks[id].matrices[r_state.matrix_stacks[id].depth++], &r_state.uniforms.matrices[id]);
+	Matrix4x4_Copy(&r_state.matrix_stacks[id].matrices[r_state.matrix_stacks[id].depth++], &active_matrices[id]);
 }
 
 /**
@@ -546,17 +562,13 @@ void R_PopMatrix(const r_matrix_id_t id) {
  */
 void R_SetMatrix(const r_matrix_id_t id, const matrix4x4_t *matrix) {
 
-	if (memcmp(&r_state.uniforms.matrices[id], matrix, sizeof(matrix4x4_t)) == 0) {
-		return;
-	}
-
-	Matrix4x4_Copy(&r_state.uniforms.matrices[id], matrix);
-
-	R_ExpandUpdateBounds(&r_state.uniforms_dirty, (uint8_t *) &r_state.uniforms.matrices[id] - (uint8_t *) r_state.uniforms.matrices, sizeof(matrix4x4_t));
+	Matrix4x4_Copy(&active_matrices[id], matrix);
 
 	for (r_program_id_t i = 0; i < R_PROGRAM_TOTAL; i++) {
 
-		r_state.programs[i].matrix_dirty[id] = true;
+		if (r_state.programs[i].matrix_uniforms[id].location != -1) {
+			r_state.programs[i].matrix_dirty[id] = true;
+		}
 	}
 }
 
@@ -565,7 +577,7 @@ void R_SetMatrix(const r_matrix_id_t id, const matrix4x4_t *matrix) {
  */
 void R_GetMatrix(const r_matrix_id_t id, matrix4x4_t *matrix) {
 
-	Matrix4x4_Copy(matrix, &r_state.uniforms.matrices[id]);
+	Matrix4x4_Copy(matrix, &active_matrices[id]);
 }
 
 /**
@@ -575,13 +587,14 @@ void R_GetMatrix(const r_matrix_id_t id, matrix4x4_t *matrix) {
  */
 const matrix4x4_t *R_GetMatrixPtr(const r_matrix_id_t id) {
 
-	return &r_state.uniforms.matrices[id];
+	return &active_matrices[id];
 }
 
 /**
- * @brief Let each program know that certain matrices are dirty.
+ * @brief Uploads uniforms to the currently loaded program.
  */
-void R_UseMatrices(void) {
+void R_UseUniforms(void) {
+	_Bool any_changed = false;
 
 	for (r_matrix_id_t i = 0; i < R_MATRIX_TOTAL; i++) {
 
@@ -589,12 +602,24 @@ void R_UseMatrices(void) {
 			continue;
 		}
 
+		if (R_ProgramParameterMatrix4fv(&((r_program_t *) r_state.active_program)->matrix_uniforms[i],
+		                                (const GLfloat *) active_matrices[i].m)) {
+			any_changed = true;
+		}
+	}
+
+	if (any_changed) {
+
 		if (r_state.active_program->MatricesChanged) {
 			r_state.active_program->MatricesChanged();
 		}
 
 		memset(((r_program_t *) r_state.active_program)->matrix_dirty, 0, sizeof(r_state.active_program->matrix_dirty));
-		return;
+	}
+
+	if (r_state.active_program->global_dirty[R_GLOBALS_COLOR]) {
+		R_ProgramParameter4fv(&((r_program_t *) r_state.active_program)->global_uniforms[R_GLOBALS_COLOR], active_color);
+		((r_program_t *) r_state.active_program)->global_dirty[R_GLOBALS_COLOR] = false;
 	}
 }
 
@@ -643,10 +668,8 @@ void R_UseTints(void) {
  */
 void R_UseInterpolation(const vec_t lerp) {
 
-	if (r_state.uniforms.time_fraction != lerp) {
-
-		r_state.uniforms.time_fraction = lerp;
-		R_EXPAND_BOUNDS(r_state.uniforms_dirty, time_fraction);
+	if (r_state.active_program->UseInterpolation) {
+		r_state.active_program->UseInterpolation(lerp);
 	}
 }
 
@@ -834,8 +857,8 @@ void R_InitSupersample(void) {
 	if (r_context.render_width == (uint32_t) r_context.width ||
 	        r_context.render_height == (uint32_t) r_context.height) {
 
-		Com_Warn("r_supersample set but won't change anything.\n");
-		Cvar_ForceSet("r_supersample", "0");
+		Com_Warn("%s set but won't change anything.\n", r_supersample->name);
+		Cvar_ForceSetValue(r_supersample->name, 0.0);
 		return;
 	}
 
@@ -845,8 +868,8 @@ void R_InitSupersample(void) {
 	        r_context.render_width > (uint32_t) r_config.max_texture_size ||
 	        r_context.render_height > (uint32_t) r_config.max_texture_size) {
 
-		Com_Warn("r_supersample is too low or too high.\n");
-		Cvar_Set("r_supersample", "0");
+		Com_Warn("%s is too low or too high.\n", r_supersample->name);
+		Cvar_ForceSetValue(r_supersample->name, 0.0);
 
 		r_context.render_width = r_context.width;
 		r_context.render_height = r_context.height;
@@ -870,13 +893,13 @@ void R_InitSupersample(void) {
 	r_state.supersample_fb = R_CreateFramebuffer("r_state.supersample_fb");
 	R_AttachFramebufferImage(r_state.supersample_fb, r_state.supersample_image);
 	R_CreateFramebufferDepthStencilBuffers(r_state.supersample_fb);
-	
+
 	// attempt to gracefully recover from errors
 	if (!R_FramebufferReady(r_state.supersample_fb)) {
 
 		Com_Warn("Couldn't initialize supersample.\n");
-		Cvar_Set("r_supersample", "0");
-		
+		Cvar_ForceSetValue(r_supersample->name, 0.0);
+
 		r_context.render_width = r_context.width;
 		r_context.render_height = r_context.height;
 
@@ -897,7 +920,7 @@ void R_InitSupersample(void) {
  */
 void R_InitState(void) {
 
-	r_get_error = Cvar_Add("r_get_error", "0", 0, NULL);
+	r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER, "Log OpenGL errors to the console");
 
 	// See if we have any errors before state initialization.
 	R_GetError("Pre-init");
@@ -956,19 +979,6 @@ void R_InitState(void) {
 	glEnable(GL_CULL_FACE);
 	glFrontFace(GL_CW);
 	glDepthFunc(GL_LEQUAL);
-	
-	R_CreateBuffer(&r_state.uniforms_buffer, &(const r_create_buffer_t) {
-		.type = R_BUFFER_UNIFORM,
-		.hint = GL_DYNAMIC_DRAW,
-		.size = sizeof(r_program_uniforms_t)
-	});
-	
-	glBindBufferBase(GL_UNIFORM_BUFFER, 8, r_state.uniforms_buffer.bufnum);
-
-	Vector4Set(r_state.uniforms.global_color, 1.0, 1.0, 1.0, 1.0);
-
-	r_state.uniforms_dirty.begin = 0u;
-	r_state.uniforms_dirty.end = sizeof(r_state.uniforms);
 
 	R_GetError("Post-init");
 }
@@ -989,8 +999,6 @@ static void R_ShutdownState_PrintBuffers(gpointer       key,
 void R_ShutdownState(void) {
 
 	R_ShutdownSupersample();
-
-	R_DestroyBuffer(&r_state.uniforms_buffer);
 
 	if (r_state.buffers_total) {
 		g_hash_table_foreach(r_state.buffers_list, R_ShutdownState_PrintBuffers, NULL);

@@ -382,7 +382,10 @@ void BeginBSPFile(void) {
 
 	// leave vertex 0 as an error
 	bsp_file.num_vertexes = 1;
-	bsp_file.num_normals = 1;
+
+	if (!legacy) {
+		bsp_file.num_normals = 1;
+	}
 
 	// leave leaf 0 as an error
 	bsp_file.num_leafs = 1;
@@ -401,7 +404,9 @@ void EndBSPFile(void) {
 	UnparseEntities();
 
 	// now that the verts have been resolved, align the normals count
-	bsp_file.num_normals = bsp_file.num_vertexes;
+	if (!legacy) {
+		bsp_file.num_normals = bsp_file.num_vertexes;
+	}
 
 	const int32_t version = legacy ? BSP_VERSION : BSP_VERSION_QUETOO;
 	WriteBSPFile(va("maps/%s.bsp", map_base), version);

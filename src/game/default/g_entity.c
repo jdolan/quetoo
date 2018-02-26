@@ -351,10 +351,9 @@ static void G_ParseField(const char *key, const char *value, g_entity_t *ent) {
  * The entity should be a properly initialized free entity.
  */
 static void G_ParseEntity(parser_t *parser, g_entity_t *ent) {
-	_Bool init;
-	char key[MAX_QPATH], value[MAX_QPATH];
+	char key[MAX_BSP_ENTITY_KEY], value[MAX_BSP_ENTITY_VALUE];
 
-	init = false;
+	_Bool init = false;
 	memset(&g_game.spawn, 0, sizeof(g_game.spawn));
 
 	// go through all the dictionary pairs
@@ -561,8 +560,8 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
 	g_entity_t *red_flag, *blue_flag;
 	g_entity_t *reused_spawns[2] = { NULL, NULL };
 	
-	red_flag = G_FlagForTeam(g_team_red);
-	blue_flag = G_FlagForTeam(g_team_blue);
+	red_flag = g_team_red->flag_entity;
+	blue_flag = g_team_blue->flag_entity;
 
 	if (!!red_flag != !!blue_flag) {
 		gi.Error("Make sure you have both flags in your map!\n");
@@ -620,8 +619,8 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
 		G_SpawnItem(red_flag, g_media.items.flags[TEAM_RED]);
 		G_SpawnItem(blue_flag, g_media.items.flags[TEAM_BLUE]);
 		
-		g_teamlist[TEAM_RED].flag_entity = red_flag;
-		g_teamlist[TEAM_BLUE].flag_entity = blue_flag;
+		g_team_red->flag_entity = red_flag;
+		g_team_blue->flag_entity = blue_flag;
 	}
 
 	for (GSList *point = *dm_spawns; point; point = point->next) {

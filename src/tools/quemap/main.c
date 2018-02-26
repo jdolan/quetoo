@@ -21,8 +21,12 @@
 
 #include "quemap.h"
 
-#if defined(__MINGW32__)
- #define SDL_MAIN_HANDLED
+#if defined(_WIN32)
+	#if defined(__MINGW32__)
+	 #define SDL_MAIN_HANDLED
+	#endif
+
+	#include <windows.h>
 #endif
 
 #include <SDL2/SDL.h>
@@ -31,8 +35,8 @@ quetoo_t quetoo;
 
 char map_base[MAX_QPATH]; // the base name (e.g. "edge")
 
-char map_name[MAX_OS_PATH]; // the input map name (e.g. "~/.quetoo/default/maps/edge.map")
-char bsp_name[MAX_OS_PATH]; // the input bsp name (e.g. "~/.quetoo/default/maps/edge.bsp")
+char map_name[MAX_OS_PATH]; // the input map name (e.g. "maps/edge.map")
+char bsp_name[MAX_OS_PATH]; // the input bsp name (e.g. "maps/edge.bsp")
 
 _Bool verbose = false;
 _Bool debug = false;
@@ -198,9 +202,6 @@ static void Check_BSP_Options(int32_t argc) {
 		} else if (!g_strcmp0(Com_Argv(i), "-nomerge")) {
 			Com_Verbose("nomerge = true\n");
 			nomerge = true;
-		} else if (!g_strcmp0(Com_Argv(i), "-nosubdivide")) {
-			Com_Verbose("nosubdivide = true\n");
-			nosubdivide = true;
 		} else if (!g_strcmp0(Com_Argv(i), "-nodetail")) {
 			Com_Verbose("nodetail = true\n");
 			nodetail = true;
@@ -217,10 +218,6 @@ static void Check_BSP_Options(int32_t argc) {
 		} else if (!g_strcmp0(Com_Argv(i), "-leaktest")) {
 			Com_Verbose("leaktest = true\n");
 			leaktest = true;
-		} else if (!g_strcmp0(Com_Argv(i), "-subdivide")) {
-			subdivide_size = atoi(Com_Argv(i + 1));
-			Com_Verbose("subdivide_size = %d\n", subdivide_size);
-			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "-block")) {
 			block_xl = block_xh = atoi(Com_Argv(i + 1));
 			block_yl = block_yh = atoi(Com_Argv(i + 2));
@@ -263,33 +260,35 @@ static void Check_VIS_Options(int32_t argc) {
 static void Check_LIGHT_Options(int32_t argc) {
 
 	for (int32_t i = argc; i < Com_Argc(); i++) {
-		if (!g_strcmp0(Com_Argv(i), "-extra")) {
-			extra_samples = true;
-			Com_Verbose("extra samples = true\n");
+		if (!g_strcmp0(Com_Argv(i), "-antialias") || !g_strcmp0(Com_Argv(i), "-extra")) {
+			antialias = true;
+			Com_Verbose("antialias: true\n");
+		} if (!g_strcmp0(Com_Argv(i), "-indirect")) {
+			indirect = true;
+			Com_Verbose("indirect lighting: true\n");
 		} else if (!g_strcmp0(Com_Argv(i), "-brightness")) {
 			brightness = atof(Com_Argv(i + 1));
-			Com_Verbose("brightness at %f\n", brightness);
+			Com_Verbose("brightness: %f\n", brightness);
 			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "-saturation")) {
 			saturation = atof(Com_Argv(i + 1));
-			Com_Verbose("saturation at %f\n", saturation);
+			Com_Verbose("saturation: %f\n", saturation);
 			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "-contrast")) {
 			contrast = atof(Com_Argv(i + 1));
-			Com_Verbose("contrast at %f\n", contrast);
+			Com_Verbose("contrast: %f\n", contrast);
 			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "-surface")) {
 			surface_scale *= atof(Com_Argv(i + 1));
-			Com_Verbose("surface light scale at %f\n", surface_scale);
+			Com_Verbose("surface light scale: %f\n", surface_scale);
 			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "-entity")) {
 			entity_scale *= atof(Com_Argv(i + 1));
-			Com_Verbose("entity light scale at %f\n", entity_scale);
+			Com_Verbose("entity light scale: %f\n", entity_scale);
 			i++;
-			
 		} else if (!g_strcmp0(Com_Argv(i), "-patch")) {
-			patch_subdivide = atof(Com_Argv(i + 1));
-			Com_Verbose("patch subdivide at %f\n", patch_subdivide);
+			patch_size = atof(Com_Argv(i + 1));
+			Com_Verbose("patch size: %f\n", patch_size);
 			i++;
 		} else {
 			break;
@@ -344,12 +343,10 @@ static void PrintHelpMessage(void) {
 	Com_Print(" -noopt - don't optimize by merging final faces\n");
 	Com_Print(" -noprune - don't prune (or cut) nodes\n");
 	Com_Print(" -noshare\n");
-	Com_Print(" -nosubdivide\n");
 	Com_Print(" -notjunc\n");
 	Com_Print(" -nowater - skip water brushes\n");
 	Com_Print(" -noweld\n");
 	Com_Print(" -onlyents - modify existing bsp file with entities from map file\n");
-	Com_Print(" -subdivide <int> - bsp subdivision grid size in world units\n");
 	Com_Print(" -tmpout\n");
 	Com_Print("\n");
 
@@ -359,7 +356,8 @@ static void PrintHelpMessage(void) {
 	Com_Print("\n");
 
 	Com_Print("-light             LIGHT stage options:\n");
-	Com_Print(" -extra - extra light samples\n");
+	Com_Print(" -antialias - calculate extra lighting samples and average them\n");
+	Com_Print(" -indirect - calculate indirect lighting\n");
 	Com_Print(" -entity <float> - entity light scaling\n");
 	Com_Print(" -surface <float> - surface light scaling\n");
 	Com_Print(" -brightness <float> - brightness factor\n");
@@ -375,12 +373,16 @@ static void PrintHelpMessage(void) {
 	Com_Print("\n");
 
 	Com_Print("Examples:\n");
-	Com_Print("Materials file generation:\n quemap -mat maps/my.map\n");
-	Com_Print("Standard full compile:\n quemap -bsp -vis -light maps/my.map\n");
-	Com_Print("Fast vis, extra light, two threads:\n"
-	          " quemap -t 2 -bsp -vis -fast -light -extra maps/my.map\n");
-	Com_Print("Area awareness compile (for bots):\n quemap -aas maps/my.bsp\n");
-	Com_Print("Zip file generation:\n quemap -zip maps/my.bsp\n");
+	Com_Print("Materials file generation:\n"
+			  " quemap -mat maps/my.map\n");
+	Com_Print("Fast compile rough lighting:\n"
+			  " quemap -bsp -vis -fast -light maps/my.map\n");
+	Com_Print("Final compile with expensive lighting:\n"
+	          " quemap -bsp -vis -light -antialias -indirect maps/my.map\n");
+	Com_Print("Area awareness compile for artificial intelligence routing:\n"
+			  " quemap -aas maps/my.bsp\n");
+	Com_Print("Zip file generation:\n"
+			  " quemap -zip maps/my.bsp\n");
 	Com_Print("\n");
 }
 
@@ -504,9 +506,8 @@ int32_t main(int32_t argc, char **argv) {
 		gchar *dirname = g_path_get_dirname(filename);
 		if (dirname) {
 			Fs_AddToSearchPath(dirname);
-			g_free(dirname);
-
 			filename += strlen(dirname);
+			g_free(dirname);
 		}
 	}
 

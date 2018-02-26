@@ -254,10 +254,6 @@ static void Cl_DrawRendererStats(void) {
 						  r_view.buffer_stats[R_BUFFER_ELEMENT].num_full_uploads, r_view.buffer_stats[R_BUFFER_ELEMENT].size_uploaded), CON_COLOR_GREEN);
 	
 	y += ch;
-	R_DrawString(0, y, va("Uniform Buffers: %u partial, %u full; %" PRIuPTR " bytes",
-	                      r_view.buffer_stats[R_BUFFER_UNIFORM].num_partial_uploads,
-						  r_view.buffer_stats[R_BUFFER_UNIFORM].num_full_uploads, r_view.buffer_stats[R_BUFFER_UNIFORM].size_uploaded), CON_COLOR_GREEN);
-	y += ch;
 
 	R_DrawString(0, y, va("%d total buffers created (%d bytes)", R_GetNumAllocatedBuffers(),
 	                      R_GetNumAllocatedBufferBytes()), CON_COLOR_WHITE);
@@ -377,9 +373,9 @@ static void Cl_DrawCounters(void) {
  */
 void Cl_UpdateScreen(void) {
 
-	if (cls.state == CL_ACTIVE) {
+	R_BeginFrame();
 
-		R_BeginFrame();
+	if (cls.state == CL_ACTIVE) {
 
 		R_Setup3D();
 
@@ -393,38 +389,32 @@ void Cl_UpdateScreen(void) {
 
 		R_EnableBlend(true);
 
-		switch (cls.key_state.dest) {
-			case KEY_CONSOLE:
-				Cl_DrawConsole();
-				break;
-			default:
+		Cl_DrawChat();
 
-				Cl_DrawChat();
-				Cl_DrawNotify();
-				Cl_DrawNetGraph();
-				Cl_DrawCounters();
-				Cl_DrawRendererStats();
-				Cl_DrawSoundStats();
-				cls.cgame->UpdateScreen(&cl.frame);
-				break;
+		Cl_DrawNetGraph();
+		Cl_DrawCounters();
+
+		if (cls.key_state.dest != KEY_CONSOLE && cls.key_state.dest != KEY_UI) {
+			Cl_DrawNotify();
+			Cl_DrawRendererStats();
+			Cl_DrawSoundStats();
+
+			cls.cgame->UpdateScreen(&cl.frame);
 		}
 
-		R_AddStains();
 	} else {
-		R_BeginFrame();
-
 		R_Setup2D();
+	}
 
-		if (cls.state == CL_LOADING) {
-			Cl_DrawLoading();
-		} else if (cls.key_state.dest == KEY_CONSOLE) {
-			Cl_DrawConsole();
-		}
+	if (cls.state != CL_LOADING && cls.key_state.dest == KEY_CONSOLE) {
+		Cl_DrawConsole();
 	}
 
 	R_Draw2D();
 
-	Ui_Draw();
+	if (cls.key_state.dest == KEY_UI || cls.state == CL_LOADING) {
+		Ui_Draw();
+	}
 
 	R_EndFrame();
 

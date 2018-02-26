@@ -206,6 +206,10 @@ static void G_Wave_f(g_entity_t *ent) {
 		return;
 	}
 
+	if (ent->locals.dead) {
+		return;
+	}	
+
 	G_SetAnimation(ent, ANIM_TORSO_GESTURE, true);
 }
 
@@ -658,7 +662,7 @@ void G_InitVote(void) {
 		const char *name = va("g_vote_allow_%s", vote_cmds[i]);
 		const char *desc = va("Allows voting on %s", vote_cmds[i]);
 
-		vote_cvars = g_list_append(vote_cvars, gi.Cvar(name, "1", CVAR_SERVER_INFO, desc));
+		vote_cvars = g_list_append(vote_cvars, gi.AddCvar(name, "1", CVAR_SERVER_INFO, desc));
 
 		i++;
 	}

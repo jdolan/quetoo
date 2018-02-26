@@ -6,7 +6,7 @@
 
 #define FRAGMENT_SHADER
 
-#include "include/uniforms.glsl"
+#include "include/matrix.glsl"
 
 uniform sampler2D SAMPLER0;
 

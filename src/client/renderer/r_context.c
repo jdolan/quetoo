@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <ObjectivelyMVC/Types.h>
-
 #include "r_local.h"
 
 r_context_t r_context;
@@ -44,7 +42,6 @@ static void R_SetWindowIcon(void) {
  * @brief Initialize the OpenGL context, returning true on success, false on failure.
  */
 void R_InitContext(void) {
-	int32_t w, h;
 
 	memset(&r_context, 0, sizeof(r_context));
 
@@ -56,32 +53,30 @@ void R_InitContext(void) {
 
 	uint32_t flags = SDL_WINDOW_OPENGL;
 
+	const int display = Clamp(r_display->integer, 0, SDL_GetNumVideoDisplays() - 1);
+
 	if (r_allow_high_dpi->integer) {
 		flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 	}
 
+	int32_t w = Max(0, r_width->integer);
+	int32_t h = Max(0, r_height->integer);
+
+	if (w == 0 || h == 0) {
+		SDL_DisplayMode best;
+		SDL_GetDesktopDisplayMode(display, &best);
+
+		w = best.w;
+		h = best.h;
+	}
+
 	if (r_fullscreen->integer) {
-		w = Max(0, r_width->integer);
-		h = Max(0, r_height->integer);
-
-		if (r_width->integer == 0 && r_height->integer == 0) {
-			SDL_DisplayMode best;
-			SDL_GetDesktopDisplayMode(0, &best);
-
-			w = best.w;
-			h = best.h;
-		}
-
 		if (r_fullscreen->integer == 2) {
 			flags |= SDL_WINDOW_BORDERLESS;
 		} else {
 			flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 		}
-
 	} else {
-		w = Max(0, r_windowed_width->integer);
-		h = Max(0, r_windowed_height->integer);
-
 		flags |= SDL_WINDOW_RESIZABLE;
 	}
 
@@ -102,7 +97,8 @@ void R_InitContext(void) {
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, s);
 
 	if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING,
-	                        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, flags)) == NULL) {
+			SDL_WINDOWPOS_CENTERED_DISPLAY(display),
+			SDL_WINDOWPOS_CENTERED_DISPLAY(display), w, h, flags)) == NULL) {
 		Com_Error(ERROR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
 	}
 
@@ -117,9 +113,14 @@ void R_InitContext(void) {
 		Com_Error(ERROR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
 	}
 
-	const int32_t valid_attribs[] = { SDL_GL_RED_SIZE, SDL_GL_GREEN_SIZE, SDL_GL_BLUE_SIZE, SDL_GL_ALPHA_SIZE, SDL_GL_DEPTH_SIZE, SDL_GL_STENCIL_SIZE, SDL_GL_BUFFER_SIZE,
-									SDL_GL_DOUBLEBUFFER, SDL_GL_MULTISAMPLEBUFFERS, SDL_GL_MULTISAMPLESAMPLES, SDL_GL_CONTEXT_MAJOR_VERSION, SDL_GL_CONTEXT_MINOR_VERSION,
-									SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_PROFILE_MASK };
+	const int32_t valid_attribs[] = {
+		SDL_GL_RED_SIZE, SDL_GL_GREEN_SIZE, SDL_GL_BLUE_SIZE, SDL_GL_ALPHA_SIZE,
+		SDL_GL_DEPTH_SIZE, SDL_GL_STENCIL_SIZE, SDL_GL_BUFFER_SIZE,
+		SDL_GL_DOUBLEBUFFER,
+		SDL_GL_MULTISAMPLEBUFFERS, SDL_GL_MULTISAMPLESAMPLES,
+		SDL_GL_CONTEXT_MAJOR_VERSION, SDL_GL_CONTEXT_MINOR_VERSION,
+		SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_PROFILE_MASK
+	};
 
 	int32_t attr[SDL_GL_CONTEXT_RELEASE_BEHAVIOR];
 	for (size_t i = 0; i < lengthof(valid_attribs); i++) {
@@ -135,8 +136,8 @@ void R_InitContext(void) {
 	Com_Verbose("   Version: %i.%i (%i flags, %i profile)\n", attr[SDL_GL_CONTEXT_MAJOR_VERSION],
 	            attr[SDL_GL_CONTEXT_MINOR_VERSION], attr[SDL_GL_CONTEXT_FLAGS], attr[SDL_GL_CONTEXT_PROFILE_MASK]);
 
-	if (SDL_GL_SetSwapInterval(r_vsync->integer) == -1) {
-		Com_Warn("Failed to set VSync %d: %s\n", r_vsync->integer, SDL_GetError());
+	if (SDL_GL_SetSwapInterval(r_swap_interval->integer) == -1) {
+		Com_Warn("Failed to set VSync %d: %s\n", r_swap_interval->integer, SDL_GetError());
 	}
 
 	if (SDL_SetWindowBrightness(r_context.window, r_gamma->value) == -1) {
@@ -166,6 +167,8 @@ void R_InitContext(void) {
  * @brief
  */
 void R_ShutdownContext(void) {
+
+	Cvar_SetInteger(r_display->name, SDL_GetWindowDisplayIndex(r_context.window));
 
 	if (r_context.context) {
 		SDL_GL_DeleteContext(r_context.context);

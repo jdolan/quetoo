@@ -24,7 +24,8 @@
 console_t cl_console;
 console_t cl_chat_console;
 
-static cvar_t *cl_console_background_alpha;
+static cvar_t *cl_console_height;
+static cvar_t *cl_draw_console_background_alpha;
 
 static cvar_t *cl_draw_chat;
 static cvar_t *cl_draw_notify;
@@ -40,6 +41,10 @@ static cvar_t *cl_notify_time;
  */
 static void Cl_DrawConsole_Background(void) {
 
+	if (cl_draw_console_background_alpha->value == 0.0) {
+		return;
+	}
+
 	const r_image_t *image = R_LoadImage("ui/conback", IT_UI);
 	if (image->type != IT_NULL) {
 
@@ -53,17 +58,13 @@ static void Cl_DrawConsole_Background(void) {
 
 		r_pixel_t y = cl_console.height * ch;
 
-		if (cls.state == CL_ACTIVE) {
-			R_Color((const vec4_t) {
-				1.0, 1.0, 1.0, cl_console_background_alpha->value
-			});
+		R_Color((const vec4_t) {
+			1.0, 1.0, 1.0, cl_draw_console_background_alpha->value
+		});
 
-			R_DrawImage(0, (-image->height * scale) + y + ch * 1.25, scale, image);
+		R_DrawImage(0, (-image->height * scale) + y + ch * 1.25, scale, image);
 
-			R_Color(NULL);
-		} else {
-			R_DrawImage(0, 0, scale, image);
-		}
+		R_Color(NULL);
 	}
 }
 
@@ -128,11 +129,7 @@ void Cl_DrawConsole(void) {
 
 	R_BindFont("small", &cw, &ch);
 
-	if (cls.state == CL_ACTIVE) {
-		height = r_context.height * 0.666;
-	} else {
-		height = r_context.height;
-	}
+	height = r_context.height * (cls.state == CL_ACTIVE ? cl_console_height->value : 1.0);
 
 	cl_console.width = r_context.width / cw;
 	cl_console.height = (height / ch) - 1;
@@ -347,16 +344,17 @@ void Cl_InitConsole(void) {
 	memset(&cl_chat_console, 0, sizeof(cl_chat_console));
 	cl_chat_console.level = PRINT_CHAT | PRINT_TEAM_CHAT;
 
-	cl_console_background_alpha = Cvar_Add("cl_console_background_alpha", "0.9", CVAR_ARCHIVE, NULL);
+	cl_console_height = Cvar_Add("cl_console_height", "0.4", CVAR_ARCHIVE, "Console height, as a multiplier of the screen height. Default is 0.4.");
+	cl_draw_console_background_alpha = Cvar_Add("cl_draw_console_background_alpha", "0.8", CVAR_ARCHIVE, NULL);
 
 	cl_draw_chat = Cvar_Add("cl_draw_chat", "1", 0, "Draw recent chat messages");
 	cl_draw_notify = Cvar_Add("cl_draw_notify", "1", 0, "Draw recent console activity");
 
-	cl_notify_lines = Cvar_Add("cl_console_notify_lines", "3", CVAR_ARCHIVE, NULL);
-	cl_notify_time = Cvar_Add("cl_notify_time", "3.0", CVAR_ARCHIVE, NULL);
+	cl_notify_lines = Cvar_Add("cl_console_notify_lines", "3", CVAR_ARCHIVE, "How many lines to show in the notify console.");
+	cl_notify_time = Cvar_Add("cl_notify_time", "3.0", CVAR_ARCHIVE, "How long notify messages stay on-screen.");
 
-	cl_chat_lines = Cvar_Add("cl_chat_lines", "3", CVAR_ARCHIVE, NULL);
-	cl_chat_time = Cvar_Add("cl_chat_time", "10.0", CVAR_ARCHIVE, NULL);
+	cl_chat_lines = Cvar_Add("cl_chat_lines", "3", CVAR_ARCHIVE, "How many chat lines to show");
+	cl_chat_time = Cvar_Add("cl_chat_time", "10.0", CVAR_ARCHIVE, "How long chat messages last");
 
 	Cmd_Add("cl_toggle_console", Cl_ToggleConsole_f, CMD_SYSTEM | CMD_CLIENT, "Toggle the console");
 	Cmd_Add("cl_message_mode", Cl_MessageMode_f, CMD_CLIENT, "Activate chat");

@@ -21,14 +21,14 @@
 
 #pragma once
 
-#include "r_glad_core.h"
-
 #include <SDL2/SDL_video.h>
 
 #include "files.h"
 #include "image.h"
 #include "matrix.h"
 #include "thread.h"
+
+#include "r_gl_types.h"
 
 /**
  * @brief Media identifier type
@@ -103,7 +103,6 @@ typedef enum {
 typedef enum {
 	R_BUFFER_DATA,
 	R_BUFFER_ELEMENT,
-	R_BUFFER_UNIFORM,
 
 	R_NUM_BUFFERS,
 
@@ -121,6 +120,7 @@ typedef enum {
 	R_ATTRIB_COLOR,
 	R_ATTRIB_NORMAL,
 	R_ATTRIB_TANGENT,
+	R_ATTRIB_BITANGENT,
 	R_ATTRIB_DIFFUSE,
 	R_ATTRIB_LIGHTMAP,
 
@@ -131,6 +131,7 @@ typedef enum {
 	R_ATTRIB_NEXT_POSITION,
 	R_ATTRIB_NEXT_NORMAL,
 	R_ATTRIB_NEXT_TANGENT,
+	R_ATTRIB_NEXT_BITANGENT,
 
 	/**
 	 * @brief Geometry shader parameters
@@ -155,24 +156,26 @@ typedef enum {
  * up with the ones above to make things simple.
  */
 typedef enum {
-	R_ATTRIB_MASK_POSITION		= (1 << R_ATTRIB_POSITION),
-	R_ATTRIB_MASK_COLOR			= (1 << R_ATTRIB_COLOR),
-	R_ATTRIB_MASK_NORMAL		= (1 << R_ATTRIB_NORMAL),
-	R_ATTRIB_MASK_TANGENT		= (1 << R_ATTRIB_TANGENT),
-	R_ATTRIB_MASK_DIFFUSE		= (1 << R_ATTRIB_DIFFUSE),
-	R_ATTRIB_MASK_LIGHTMAP		= (1 << R_ATTRIB_LIGHTMAP),
+	R_ATTRIB_MASK_POSITION       = (1 << R_ATTRIB_POSITION),
+	R_ATTRIB_MASK_COLOR          = (1 << R_ATTRIB_COLOR),
+	R_ATTRIB_MASK_NORMAL         = (1 << R_ATTRIB_NORMAL),
+	R_ATTRIB_MASK_TANGENT        = (1 << R_ATTRIB_TANGENT),
+	R_ATTRIB_MASK_BITANGENT      = (1 << R_ATTRIB_BITANGENT),
+	R_ATTRIB_MASK_DIFFUSE        = (1 << R_ATTRIB_DIFFUSE),
+	R_ATTRIB_MASK_LIGHTMAP       = (1 << R_ATTRIB_LIGHTMAP),
 
-	R_ATTRIB_MASK_NEXT_POSITION	= (1 << R_ATTRIB_NEXT_POSITION),
-	R_ATTRIB_MASK_NEXT_NORMAL	= (1 << R_ATTRIB_NEXT_NORMAL),
-	R_ATTRIB_MASK_NEXT_TANGENT	= (1 << R_ATTRIB_NEXT_TANGENT),
-	
-	R_ATTRIB_MASK_SCALE			= (1 << R_ATTRIB_SCALE),
-	R_ATTRIB_MASK_ROLL			= (1 << R_ATTRIB_ROLL),
-	R_ATTRIB_MASK_END			= (1 << R_ATTRIB_END),
-	R_ATTRIB_MASK_TYPE			= (1 << R_ATTRIB_TYPE),
+	R_ATTRIB_MASK_NEXT_POSITION  = (1 << R_ATTRIB_NEXT_POSITION),
+	R_ATTRIB_MASK_NEXT_NORMAL    = (1 << R_ATTRIB_NEXT_NORMAL),
+	R_ATTRIB_MASK_NEXT_TANGENT   = (1 << R_ATTRIB_NEXT_TANGENT),
+	R_ATTRIB_MASK_NEXT_BITANGENT = (1 << R_ATTRIB_NEXT_BITANGENT),
 
-	R_ATTRIB_MASK_ALL			= (1 << R_ATTRIB_ALL) - 1,
-	R_ATTRIB_GEOMETRY_MASK		= R_ATTRIB_MASK_SCALE | R_ATTRIB_MASK_ROLL | R_ATTRIB_MASK_END | R_ATTRIB_MASK_TYPE
+	R_ATTRIB_MASK_SCALE          = (1 << R_ATTRIB_SCALE),
+	R_ATTRIB_MASK_ROLL           = (1 << R_ATTRIB_ROLL),
+	R_ATTRIB_MASK_END            = (1 << R_ATTRIB_END),
+	R_ATTRIB_MASK_TYPE           = (1 << R_ATTRIB_TYPE),
+
+	R_ATTRIB_MASK_ALL            = (1 << R_ATTRIB_ALL) - 1,
+	R_ATTRIB_GEOMETRY_MASK       = R_ATTRIB_MASK_SCALE | R_ATTRIB_MASK_ROLL | R_ATTRIB_MASK_END | R_ATTRIB_MASK_TYPE
 } r_attribute_mask_t;
 
 /**
@@ -201,12 +204,12 @@ typedef union {
 	uint32_t packed;
 
 	struct {
-		uint32_t type : 3;
-		uint32_t count : 3;
-		uint32_t offset : 6;
-		uint32_t stride : 6;
-		uint32_t normalized : 2;
-		uint32_t integer : 2;
+		uint32_t normalized : 1; // bool
+		uint32_t integer : 1; // bool
+		uint32_t type : 3; // r_attrib_type_t, max 7
+		uint32_t count : 3; // # of elements, max 7
+		uint32_t offset : 12; // offset in bytes, max 4095
+		uint32_t stride : 12; // offset in bytes, max 4095
 	};
 } r_attrib_type_state_t;
 
@@ -265,7 +268,7 @@ typedef struct {
  * @brief Buffers are used to hold data for the renderer.
  */
 typedef struct r_buffer_s {
-	r_buffer_type_t type; // R_BUFFER_DATA, R_BUFFER_ELEMENT, R_BUFFER_UNIFORM
+	r_buffer_type_t type; // R_BUFFER_DATA or R_BUFFER_ELEMENT
 	GLenum hint; // GL_x_y, where x is STATIC or DYNAMIC, and where y is DRAW, READ or COPY
 	GLenum target; // GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER; mapped from above var
 	GLuint bufnum; // e.g. 123
@@ -656,7 +659,8 @@ typedef struct {
 typedef struct {
 	vec3_t point;
 	vec3_t normal;
-	vec4_t tangent;
+	vec3_t tangent;
+	vec3_t bitangent;
 } r_model_vertex_t;
 
 typedef struct {
@@ -726,7 +730,8 @@ typedef struct {
 	vec2_t *texcoords;
 	vec2_t *lightmap_texcoords;
 	vec3_t *normals;
-	vec4_t *tangents;
+	vec3_t *tangents;
+	vec3_t *bitangents;
 
 	// buffers
 	r_buffer_t vertex_buffer;
@@ -936,7 +941,7 @@ typedef struct r_entity_s {
 
 	r_lighting_t *lighting; // static lighting information
 
-	const vec_t *tints[TINT_TOTAL]; // tint pointers - NULL means use default
+	vec4_t tints[TINT_TOTAL]; // tint colors, non-zero alpha enables the tint
 } r_entity_t;
 
 /**
@@ -1193,6 +1198,7 @@ typedef struct {
 } r_context_t;
 
 #ifdef __R_LOCAL_H__
+
 /**
  * @brief Quake3 (MD3) model in-memory representation.
  */
@@ -1220,7 +1226,8 @@ typedef struct {
 	vec_t *point;
 	vec_t *texcoords;
 	vec_t *normal;
-	vec4_t tangent;
+	vec3_t tangent;
+	vec3_t bitangent;
 } r_obj_vertex_t;
 
 typedef uint32_t r_obj_triangle_t[3];

@@ -31,6 +31,7 @@ extern cvar_t *r_bumpmap;
 extern cvar_t *r_caustics;
 extern cvar_t *r_contrast;
 extern cvar_t *r_deluxemap;
+extern cvar_t *r_display;
 extern cvar_t *r_draw_buffer;
 extern cvar_t *r_flares;
 extern cvar_t *r_fog;
@@ -40,8 +41,6 @@ extern cvar_t *r_hardness;
 extern cvar_t *r_height;
 extern cvar_t *r_invert;
 extern cvar_t *r_lighting;
-extern cvar_t *r_line_alpha;
-extern cvar_t *r_line_width;
 extern cvar_t *r_materials;
 extern cvar_t *r_max_lights;
 extern cvar_t *r_modulate;
@@ -54,14 +53,13 @@ extern cvar_t *r_screenshot_format;
 extern cvar_t *r_shadows;
 extern cvar_t *r_shell;
 extern cvar_t *r_specular;
-extern cvar_t *r_stainmap;
+extern cvar_t *r_stainmaps;
 extern cvar_t *r_supersample;
 extern cvar_t *r_texture_mode;
-extern cvar_t *r_vsync;
+extern cvar_t *r_swap_interval;
+extern cvar_t *r_lightmap_cache;
 extern cvar_t *r_warp;
 extern cvar_t *r_width;
-extern cvar_t *r_windowed_height;
-extern cvar_t *r_windowed_width;
 
 extern r_view_t r_view;
 
@@ -108,6 +106,7 @@ typedef struct {
 extern r_locals_t r_locals;
 
 // development tools
+extern cvar_t *r_blend;
 extern cvar_t *r_clear;
 extern cvar_t *r_cull;
 extern cvar_t *r_lock_vis;

@@ -197,11 +197,11 @@ void PerpendicularVector(const vec3_t in, vec3_t out) {
 }
 
 /**
- * @brief Projects the normalized directional vectors on to the normal's plane.
- * The fourth component of the resulting tangent vector represents sidedness.
+ * @brief Projects the normalized directional vectors on to the normal's plane in order to
+ * resolve sidedness, and scales the resulting tangent and bitangent accordingly.
  */
-void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec4_t tangent,
-                    vec3_t bitangent) {
+void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec3_t tangent,
+	vec3_t bitangent) {
 
 	vec3_t s, t;
 
@@ -216,16 +216,16 @@ void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, v
 	VectorMA(s, -DotProduct(s, normal), normal, tangent);
 	VectorNormalize(tangent);
 
-	// resolve sidedness, encode as fourth tangent component
+	// resolve sidedness
+	if (DotProduct(s, tangent) < 0.0f) {
+		VectorScale(tangent, -1.0f, tangent);
+	}
+	
 	CrossProduct(normal, tangent, bitangent);
 
-	if (DotProduct(t, bitangent) < 0.0) {
-		tangent[3] = -1.0;
-	} else {
-		tangent[3] = 1.0;
+	if (DotProduct(t, bitangent) < 0.0f) {
+		VectorScale(bitangent, -1.0f, bitangent);
 	}
-
-	VectorScale(bitangent, tangent[3], bitangent);
 }
 
 /**
@@ -371,6 +371,14 @@ void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross) {
 	cross[0] = v1[1] * v2[2] - v1[2] * v2[1];
 	cross[1] = v1[2] * v2[0] - v1[0] * v2[2];
 	cross[2] = v1[0] * v2[1] - v1[1] * v2[0];
+}
+
+/**
+ * @brief Reflects `dir` against the specified normal: r = d − 2 (d ⋅ n) n
+ */
+void Reflect(const vec3_t dir, const vec3_t normal, vec3_t ref) {
+	VectorScale(normal, -2.0 * DotProduct(dir, normal), ref);
+	VectorAdd(dir, ref, ref);
 }
 
 /**
@@ -841,6 +849,25 @@ void Dirname(const char *in, char *out) {
 }
 
 /**
+ * @brief Removes the first newline and everything following it
+ * from the specified input string.
+ */
+void StripNewline(const char *in, char *out) {
+
+	if (in) {
+		const size_t len = strlen(in);
+		memmove(out, in, len + 1);
+
+		char *ext = strrchr(out, '\n');
+		if (ext) {
+			*ext = '\0';
+		}
+	} else {
+		*out = '\0';
+	}
+}
+
+/**
  * @brief Removes any file extension(s) from the specified input string.
  */
 void StripExtension(const char *in, char *out) {
@@ -989,6 +1016,16 @@ char *vtos(const vec3_t v) {
 	}
 
 	return s;
+}
+
+/**
+ * @brief Lowers an entire string.
+ */
+void StrLower(const char *in, char *out) {
+
+	while (*in) {
+		(*(out++)) = tolower(*(in++));
+	}
 }
 
 /**
@@ -1157,135 +1194,44 @@ void SetUserInfo(char *s, const char *key, const char *value) {
 	*s = '\0';
 }
 
-#define HEX_TO_DEC(l) \
-		(l >= 'a' && l <= 'f') ? (10 + (5 - ('f' - l))) : (9 - ('9' - l))
-
-/**
- * @brief Damn you, MinGW.
- */
-static _Bool ParseHexString(const char *input, color_t *output, const uint8_t num_digits, const uint8_t num_values) {
-	byte *c = output->bytes;
-	const char *id = input;
-
-	for (uint8_t i = 0; i < num_values; i++, c++) {
-
-		for (uint8_t d = 0, o = 0; d < num_digits; d++, id++, o += 4) {
-			const char l = tolower(*id);
-
-			if (!((l >= 'a' && l <= 'f') || (l >= '0' && l <= '9'))) {
-				return false;
-			}
-			
-			const uint8_t dec = HEX_TO_DEC(l);
-
-			if (d == 0) {
-				*c = dec << o;
-			} else {
-				*c |= dec << o;
-			}
-		}
-	}
-
-	return true;
-}
-
 /**
  * @brief Attempt to convert a hexadecimal value to its string representation.
  */
-_Bool ColorParseHex(const char *s, color_t *color) {
-	const size_t s_len = strlen(s);
+_Bool ColorFromHex(const char *s, color_t *color) {
+	static char buffer[9];
 	static color_t temp;
-	
+
 	if (!color) {
 		color = &temp;
 	}
 
-	if (s_len != 3 && s_len != 6 && // rgb or rrggbb format
-		s_len != 4 && s_len != 8) { // rgba or rrggbbaa format
+	const size_t length = strlen(s);
+	if (length != 6 && length != 8) {
 		return false;
 	}
 
-	switch (s_len) {
-	case 3:
-		if (!ParseHexString(s, color, 1, 3)) {
-			return false;
-		}
+	g_strlcpy(buffer, s, sizeof(buffer));
 
-		for (int32_t i = 0; i < 3; i++) {
-			color->bytes[i] |= color->bytes[i] << 4;
-		}
-
-		color->a = 0xFF;
-		break;
-	case 6:
-		if (!ParseHexString(s, color, 2, 3)) {
-			return false;
-		}
-
-		color->a = 0xFF;
-		break;
-
-	case 4:
-		if (!ParseHexString(s, color, 1, 4)) {
-			return false;
-		}
-
-		for (int32_t i = 0; i < 4; i++) {
-			color->bytes[i] |= color->bytes[i] << 4;
-		}
-		break;
-	case 8:
-		if (!ParseHexString(s, color, 2, 4)) {
-			return false;
-		}
-
-		break;
+	if (length == 6) {
+		g_strlcat(buffer, "ff", sizeof(buffer));
 	}
+
+	if (sscanf(buffer, "%x", &color->u32) != 1) {
+		return false;
+	}
+
+#if G_BYTE_ORDER == G_LITTLE_ENDIAN
+	color->u32 = (((color->u32 & 0xff000000) >> 24) | ((color->u32 & 0x00ff0000) >> 8) | ((color->u32 & 0x0000ff00) << 8) | ((color->u32 & 0x000000ff) << 24));
+#endif
 
 	return color;
 }
 
-#define COLOR_BYTES_ARE_SAME(x) \
-	((x & 15) == ((x >> 4) & 15))
-
 /**
- * @brief Attempt to convert a color to a hexadecimal string representation.
+ * @brief
  */
-_Bool ColorToHex(const color_t color, char *s, const size_t s_len) {
-	
-	_Bool is_short_form = COLOR_BYTES_ARE_SAME(color.r) &&
-						  COLOR_BYTES_ARE_SAME(color.g) &&
-						  COLOR_BYTES_ARE_SAME(color.b);
-	_Bool is_32_bit = color.a != 0xFF;
-
-	*s = 0;
-
-	if (is_32_bit) {
-		is_short_form = is_short_form && COLOR_BYTES_ARE_SAME(color.a);
-	
-		if (is_short_form) {
-			if (g_strlcat(s, va("%1x%1x%1x%1x", color.r & 15, color.g & 15, color.b & 15, color.a & 15), s_len) >= s_len) {
-				return false;
-			}
-		} else {
-			if (g_strlcat(s, va("%02x%02x%02x%02x", color.r, color.g, color.b, color.a), s_len) >= s_len) {
-				return false;
-			}
-		}
-	} else {
-
-		if (is_short_form) {
-			if (g_strlcat(s, va("%1x%1x%1x", color.r & 15, color.g & 15, color.b & 15), s_len) >= s_len) {
-				return false;
-			}
-		} else {
-			if (g_strlcat(s, va("%02x%02x%02x", color.r, color.g, color.b), s_len) >= s_len) {
-				return false;
-			}
-		}
-	}
-
-	return true;
+char *ColorToHex(const color_t *color) {
+	return va("%02x%02x%02x%02x", color->r, color->g, color->b, color->a);
 }
 
 /**
@@ -1328,65 +1274,6 @@ void ColorFromVec4(const vec4_t vec, color_t *color) {
 	for (int32_t i = 0; i < 4; i++) {
 		color->bytes[i] = (uint8_t) (Clamp(vec[i], 0.0, 1.0) * 255.0);
 	}
-}
-
-/**
- * @brief
- */
-color_t ColorFromHSV(const vec3_t hsv) {
-	color_t out = { .a = 0xFF };
-
-	if (hsv[1] <= 0.0) {
-		out.r = (uint8_t) (hsv[2] * 255.0);
-		out.g = out.r;
-		out.b = out.r;
-		return out;
-	}
-
-	const vec_t hh = Clamp(hsv[0], 0, 360.0) / 60.0;
-	const int32_t i = (int32_t) hh;
-	const vec_t ff = hh - i;
-	const vec_t p = hsv[2] * (1.0 - hsv[1]);
-	const vec_t q = hsv[2] * (1.0 - (hsv[1] * ff));
-	const vec_t t = hsv[2] * (1.0 - (hsv[1] * (1.0 - ff)));
-
-	vec3_t color_float;
-
-	switch(i) {
-	case 0:
-		color_float[0] = hsv[2];
-		color_float[1] = t;
-		color_float[2] = p;
-		break;
-	case 1:
-		color_float[0] = q;
-		color_float[1] = hsv[2];
-		color_float[2] = p;
-		break;
-	case 2:
-		color_float[0] = p;
-		color_float[1] = hsv[2];
-		color_float[2] = t;
-		break;
-	case 3:
-		color_float[0] = p;
-		color_float[1] = q;
-		color_float[2] = hsv[2];
-		break;
-	case 4:
-		color_float[0] = t;
-		color_float[1] = p;
-		color_float[2] = hsv[2];
-		break;
-	default:
-		color_float[0] = hsv[2];
-		color_float[1] = p;
-		color_float[2] = q;
-		break;
-	}
-
-	ColorFromVec3(color_float, &out);
-	return out;
 }
 
 /**

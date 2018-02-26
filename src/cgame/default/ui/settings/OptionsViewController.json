@@ -1,0 +1,308 @@
+{
+  "identifier": "Options",
+  "subviews": [
+    {
+      "class": "StackView",
+      "classNames": [
+        "container"
+      ],
+      "subviews": [
+        {
+          "class": "StackView",
+          "classNames": [
+            "columns",
+            "container"
+          ],
+          "subviews": [
+            {
+              "class": "StackView",
+              "classNames": [
+                "column",
+                "container"
+              ],
+              "subviews": [
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Quality presets"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Quality"
+                          }
+                        },
+                        "control": {
+                          "class": "Select",
+                          "identifier": "quality"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Advanced"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Shadows"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSelect",
+                          "identifier": "shadows",
+                          "var": "r_shadows"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Stains"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "r_stainmaps"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Stain expiration"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSelect",
+                          "identifier": "stains",
+                          "var": "r_stainmaps_expiration"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Caustics"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "r_caustics"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Weather effects"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSelect",
+                          "identifier": "weather",
+                          "var": "cg_add_weather"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Flares"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "r_flares"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [
+                "column",
+                "container"
+              ],
+              "subviews": [
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Post effects"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Master"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "min": 0,
+                          "max": 1,
+                          "var": "cg_draw_blend"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Damage"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "min": 0,
+                          "max": 1,
+                          "var": "cg_draw_blend_damage"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Underwater"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "min": 0,
+                          "max": 1,
+                          "var": "cg_draw_blend_liquid"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Pickups"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "min": 0,
+                          "max": 1,
+                          "var": "cg_draw_blend_pickup"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Powerups"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "min": 0,
+                          "max": 1,
+                          "var": "cg_draw_blend_powerup"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [
+                "column",
+                "container"
+              ],
+              "subviews": [
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "View"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Draw weapon"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "cg_draw_weapon"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Weapon alpha"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "min": 0.1,
+                          "max": 1,
+                          "var": "cg_draw_weapon_alpha"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Weapon sway"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "min": 0,
+                          "max": 2,
+                          "var": "cg_draw_weapon_bob"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "View sway"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "min": 0,
+                          "max": 2,
+                          "var": "cg_bob"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

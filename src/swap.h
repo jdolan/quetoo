@@ -23,9 +23,9 @@
 
 #include "quetoo.h"
 
-extern int16_t BigShort(int16_t s);
-extern int16_t LittleShort(int16_t s);
-extern int32_t BigLong(int32_t l);
-extern int32_t LittleLong(int32_t l);
-extern vec_t BigFloat(vec_t f);
-extern vec_t LittleFloat(vec_t f);
+int16_t BigShort(int16_t s);
+int16_t LittleShort(int16_t s);
+int32_t BigLong(int32_t l);
+int32_t LittleLong(int32_t l);
+vec_t BigFloat(vec_t f);
+vec_t LittleFloat(vec_t f);

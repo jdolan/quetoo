@@ -66,7 +66,7 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 			break;
 		case KEY_UI:
 			SDL_StopTextInput();
-			Ui_UpdateBindings();
+			Ui_ViewWillAppear();
 			break;
 		case KEY_GAME:
 			SDL_StopTextInput();
@@ -84,7 +84,7 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 
 	cls.key_state.dest = dest;
 
-	Cvar_FullSet("active", dest == KEY_GAME ? "1" : "0", CVAR_NO_SET | CVAR_USER_INFO);
+	Cvar_ForceSetInteger(active->name, dest == KEY_GAME);
 }
 
 /**

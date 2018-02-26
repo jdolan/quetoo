@@ -50,7 +50,7 @@ libcommon_la_LDFLAGS = \
 	-shared
 libcommon_la_LIBADD = \
 	libshared.la
-
+	
 libconsole_la_SOURCES = \
 	cmd.c \
 	console.c \
@@ -61,8 +61,7 @@ libconsole_la_CFLAGS = \
 libconsole_la_LDFLAGS = \
 	-shared
 libconsole_la_LIBADD = \
-	libfilesystem.la \
-	@CURSES_LIBS@
+	libfilesystem.la
 
 libfilesystem_la_SOURCES = \
 	filesystem.c
@@ -96,8 +95,7 @@ libmatrix_la_CFLAGS = \
 libmatrix_la_LDFLAGS = \
 	-shared
 libmatrix_la_LIBADD = \
-	@BASE_LIBS@ \
-	@GLIB_LIBS@
+	@BASE_LIBS@
 
 libmem_la_SOURCES = \
 	mem.c \
@@ -121,8 +119,7 @@ libparse_la_CFLAGS = \
 libparse_la_LDFLAGS = \
 	-shared
 libparse_la_LIBADD = \
-	@BASE_LIBS@ \
-	@GLIB_LIBS@
+	@BASE_LIBS@
 
 libshared_la_SOURCES = \
 	shared.c \

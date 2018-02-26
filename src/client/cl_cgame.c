@@ -148,6 +148,7 @@ void Cl_InitCgame(void) {
 	memset(&import, 0, sizeof(import));
 
 	import.client = &cl;
+	import.state = &cls.state;
 
 	import.context = &r_context;
 
@@ -178,16 +179,21 @@ void Cl_InitCgame(void) {
 	import.EnumerateFiles = Fs_Enumerate;
 	import.FileExists = Fs_Exists;
 
-	import.Cvar = Cvar_Add;
-	import.CvarGet = Cvar_Get;
-	import.CvarSet = Cvar_Set;
-	import.CvarString = Cvar_GetString;
-	import.CvarValue = Cvar_GetValue;
-	import.CvarSetValue = Cvar_SetValue;
-	import.CvarToggle = Cvar_Toggle;
-	import.Cmd = Cmd_Add;
+	import.AddCvar = Cvar_Add;
+	import.GetCvar = Cvar_Get;
+	import.GetCvarInteger = Cvar_GetInteger;
+	import.GetCvarString = Cvar_GetString;
+	import.GetCvarValue = Cvar_GetValue;
+	import.SetCvarInteger = Cvar_SetInteger;
+	import.SetCvarString = Cvar_SetString;
+	import.SetCvarValue = Cvar_SetValue;
+	import.ForceSetCvarString = Cvar_ForceSetString;
+	import.ForceSetCvarValue = Cvar_ForceSetValue;
+	import.ToggleCvar = Cvar_Toggle;
+	import.AddCmd = Cmd_Add;
 	import.Cbuf = Cbuf_AddText;
 
+	import.Theme = Ui_Theme;
 	import.PushViewController = Ui_PushViewController;
 	import.PopToViewController = Ui_PopToViewController;
 	import.PopViewController = Ui_PopViewController;
@@ -260,6 +266,7 @@ void Cl_InitCgame(void) {
 	import.PopMatrix = R_PopMatrix;
 	import.DrawMeshModel = R_DrawMeshModel_default;
 	import.DrawMeshModelMaterials = R_DrawMeshModelMaterials_default;
+	import.EnableBlend = R_EnableBlend;
 	import.EnableDepthTest = R_EnableDepthTest;
 	import.DepthRange = R_DepthRange;
 	import.EnableTexture = R_EnableTextureByIdentifier;
@@ -270,20 +277,24 @@ void Cl_InitCgame(void) {
 	import.AddStain = R_AddStain;
 
 	import.DrawImage = R_DrawImage;
+	import.DrawImageResized = R_DrawImageResized;
 	import.DrawFill = R_DrawFill;
 
 	import.BindFont = R_BindFont;
 	import.StringWidth = R_StringWidth;
 	import.DrawString = R_DrawString;
 
-	cls.cgame = Sys_LoadLibrary("cgame", &cgame_handle, "Cg_LoadCgame", &import);
+	cgame_handle = Sys_OpenLibrary("cgame", true);
+	assert(cgame_handle);
+	
+	cls.cgame = Sys_LoadLibrary(cgame_handle, "Cg_LoadCgame", &import);
 
 	if (!cls.cgame) {
 		Com_Error(ERROR_DROP, "Failed to load client game\n");
 	}
 
 	if (cls.cgame->api_version != CGAME_API_VERSION) {
-		Com_Error(ERROR_DROP, "Client game has wrong version (%d)\n", cls.cgame->api_version);
+		Com_Error(ERROR_DROP, "Client game is version %i, not %i\n", cls.cgame->api_version, CGAME_API_VERSION);
 	}
 
 	cls.cgame->Init();
@@ -314,5 +325,6 @@ void Cl_ShutdownCgame(void) {
 	Com_Print("Client game down\n");
 	Com_QuitSubsystem(QUETOO_CGAME);
 
-	Sys_CloseLibrary(&cgame_handle);
+	Sys_CloseLibrary(cgame_handle);
+	cgame_handle = NULL;
 }

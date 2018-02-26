@@ -36,12 +36,14 @@ extern cvar_t *cl_timeout;
 
 // user_info
 extern cvar_t *name;
+extern cvar_t *active;
 extern cvar_t *message_level;
 extern cvar_t *password;
 extern cvar_t *rate;
 
 void Cl_Connect(const net_addr_t *addr);
 void Cl_Disconnect(void);
+void Cl_Drop(const char *text);
 void Cl_Frame(const uint32_t msec);
 void Cl_Init(void);
 void Cl_Shutdown(void);

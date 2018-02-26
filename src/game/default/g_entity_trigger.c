@@ -273,6 +273,7 @@ static void G_trigger_push_Effect(g_entity_t *self) {
 
  -------- Keys --------
  angles : The direction to push the player in "pitch yaw roll" notation (e.g. -80 270 0).
+ noise : The sound effect to play when the player is pushed (default "world/jumppad").
  speed : The speed with which to push the player (default 100).
 
  -------- Spawn flags --------
@@ -284,7 +285,9 @@ void G_trigger_push(g_entity_t *self) {
 	G_Trigger_Init(self);
 
 	self->locals.Touch = G_trigger_push_Touch;
-	self->locals.move_info.sound_start = gi.SoundIndex("world/jumppad");
+
+	const char *noise = g_game.spawn.noise ?: "world/jumppad";
+	self->locals.move_info.sound_start = gi.SoundIndex(noise);
 
 	if (!self->locals.speed) {
 		self->locals.speed = 100;

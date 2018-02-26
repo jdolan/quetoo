@@ -6,7 +6,7 @@
 
 #define FRAGMENT_SHADER
 
-#include "include/uniforms.glsl"
+#include "include/matrix.glsl"
 #include "include/fog.glsl"
 
 uniform sampler2D SAMPLER0;
@@ -14,6 +14,7 @@ uniform sampler2D SAMPLER0;
 in VertexData {
 	vec4 color;
 	vec2 texcoord;
+	vec3 point;
 };
 
 out vec4 fragColor;
@@ -25,5 +26,5 @@ void main(void) {
 
 	fragColor = color * texture(SAMPLER0, texcoord);
 
-	FogFragment(fragColor);
+	FogFragment(length(point), fragColor);
 }

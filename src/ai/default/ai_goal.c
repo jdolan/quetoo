@@ -41,7 +41,7 @@ void Ai_AddFuncGoal(g_entity_t *ent, Ai_GoalFunc func, uint32_t time_offset) {
 		return;
 	}
 
-	aim.Warn("Bot ran out of empty goal slots\n");
+	aim.gi->Warn("Bot ran out of empty goal slots\n");
 }
 
 /**
@@ -68,7 +68,7 @@ void Ai_RemoveFuncGoal(g_entity_t *ent, Ai_GoalFunc func) {
  */
 void Ai_SetEntityGoal(ai_goal_t *goal, ai_goal_type_t type, vec_t priority, const g_entity_t *entity) {
 
-	aim.Debug("New goal: %s (%f priority)\n", etos(entity), priority);
+	aim.gi->Debug("New goal: %s (%f priority)\n", etos(entity), priority);
 
 	goal->type = type;
 	goal->time = ai_level.time;

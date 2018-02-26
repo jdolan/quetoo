@@ -737,10 +737,11 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 
 	// clear the client and restore the persistent state
 
+	const g_client_t cl = *ent->client;
 	memset(ent->client, 0, sizeof(*ent->client));
 	ent->client->locals.persistent = persistent;
-	ent->client->ai = persistent.ai;
-	ent->client->connected = persistent.connected;
+	ent->client->ai = cl.ai;
+	ent->client->connected = cl.connected;
 
 	// find a spawn point
 	const g_entity_t *spawn = G_SelectSpawnPoint(ent);
@@ -879,9 +880,6 @@ void G_ClientBegin(g_entity_t *ent) {
 
 	G_InitEntity(ent, "client");
 
-	ent->client->locals.persistent.connected = ent->client->connected;
-	ent->client->locals.persistent.ai = ent->client->ai;
-
 	VectorClear(ent->client->locals.cmd_angles);
 	ent->client->locals.persistent.first_frame = g_level.frame_num;
 
@@ -926,9 +924,12 @@ void G_ClientBegin(g_entity_t *ent) {
 			strncat(welcome, "\n^2Voting is enabled", sizeof(welcome) - strlen(welcome) - 1);
 		}
 
+		// FIXME: Move these tidbits into ConfigStrings so that the client can display a menu
+#if 0
 		gi.WriteByte(SV_CMD_CENTER_PRINT);
 		gi.WriteString(welcome);
 		gi.Unicast(ent, true);
+#endif
 
 		if (G_MatchIsTimeout()) { // joined during a match timeout
 			ent->client->ps.pm_state.type = PM_FREEZE;
@@ -1029,7 +1030,6 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 		s = GetUserInfo(user_info, "skin");
 
 		char *p;
-
 		if (strlen(s) && (p = strchr(s, '/'))) {
 			*p = 0;
 			s = va("%s/%s", s, DEFAULT_TEAM_SKIN);
@@ -1046,7 +1046,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 		g_strlcpy(cl->locals.persistent.skin, DEFAULT_USER_MODEL "/" DEFAULT_USER_SKIN, sizeof(cl->locals.persistent.skin));
 	}
 
-	// set color
+	// set effect color
 	if ((g_level.teams || g_level.ctf) && cl->locals.persistent.team) { // players must use team_skin to change
 		cl->locals.persistent.color = cl->locals.persistent.team->color;
 	} else {
@@ -1055,63 +1055,56 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 		cl->locals.persistent.color = -1;
 
 		if (strlen(s) && strcmp(s, "default")) { // not default
-
-			int32_t hue = atoi(s);
-
+			const int32_t hue = atoi(s);
 			if (hue >= 0) {
 				cl->locals.persistent.color = Min(hue, 360);
 			}
 		}
 	}
 
-	// set red/green/blue tint colors
-	if ((g_level.teams || g_level.ctf) && cl->locals.persistent.team) { // players must use team_skin to change
-		g_strlcpy(cl->locals.persistent.tint_r, cl->locals.persistent.team->tint_r, sizeof(cl->locals.persistent.tint_r));
-		g_strlcpy(cl->locals.persistent.tint_g, cl->locals.persistent.team->tint_g, sizeof(cl->locals.persistent.tint_g));
-		g_strlcpy(cl->locals.persistent.tint_b, cl->locals.persistent.team->tint_b, sizeof(cl->locals.persistent.tint_b));
+	// set shirt, pants and head colors
+
+	cl->locals.persistent.shirt.a = 0;
+	cl->locals.persistent.pants.a = 0;
+	cl->locals.persistent.helmet.a = 0;
+
+	if ((g_level.teams || g_level.ctf) && cl->locals.persistent.team) {
+
+		cl->locals.persistent.shirt = cl->locals.persistent.team->shirt;
+		cl->locals.persistent.pants = cl->locals.persistent.team->pants;
+		cl->locals.persistent.helmet = cl->locals.persistent.team->helmet;
+
 	} else {
-		g_strlcpy(cl->locals.persistent.tint_r, "default", sizeof(cl->locals.persistent.tint_r));
-		g_strlcpy(cl->locals.persistent.tint_g, "default", sizeof(cl->locals.persistent.tint_g));
-		g_strlcpy(cl->locals.persistent.tint_b, "default", sizeof(cl->locals.persistent.tint_b));
 
-		s = GetUserInfo(user_info, "shirt"); // shirt
+		s = GetUserInfo(user_info, "shirt");
+		ColorFromHex(s, &cl->locals.persistent.shirt);
 
-		if (strlen(s) && strcmp(s, "default") && ColorParseHex(s, NULL)) { // not default
-			g_strlcpy(cl->locals.persistent.tint_r, s, sizeof(cl->locals.persistent.tint_r));
-		}
+		s = GetUserInfo(user_info, "pants");
+		ColorFromHex(s, &cl->locals.persistent.pants);
 
-		s = GetUserInfo(user_info, "pants"); // pants
-
-		if (strlen(s) && strcmp(s, "default") && ColorParseHex(s, NULL)) { // not default
-			g_strlcpy(cl->locals.persistent.tint_g, s, sizeof(cl->locals.persistent.tint_g));
-		}
-
-		s = GetUserInfo(user_info, "helmet"); // helmet
-
-		if (strlen(s) && strcmp(s, "default") && ColorParseHex(s, NULL)) { // not default
-			g_strlcpy(cl->locals.persistent.tint_b, s, sizeof(cl->locals.persistent.tint_b));
-		}
+		s = GetUserInfo(user_info, "helmet");
+		ColorFromHex(s, &cl->locals.persistent.helmet);
 	}
 
 	gchar client_info[MAX_USER_INFO_STRING] = { '\0' };
 
-	// build the clientinfo string
+	// build the client info string
 	g_strlcat(client_info, cl->locals.persistent.net_name, MAX_USER_INFO_STRING);
 
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
 	g_strlcat(client_info, cl->locals.persistent.skin, MAX_USER_INFO_STRING);
 
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
+	g_strlcat(client_info, ColorToHex(&cl->locals.persistent.shirt), MAX_USER_INFO_STRING);
+
+	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
+	g_strlcat(client_info, ColorToHex(&cl->locals.persistent.pants), MAX_USER_INFO_STRING);
+
+	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
+	g_strlcat(client_info, ColorToHex(&cl->locals.persistent.helmet), MAX_USER_INFO_STRING);
+
+	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
 	g_strlcat(client_info, va("%i", cl->locals.persistent.color), MAX_USER_INFO_STRING);
-
-	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-	g_strlcat(client_info, cl->locals.persistent.tint_r, MAX_USER_INFO_STRING); // shirt
-
-	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-	g_strlcat(client_info, cl->locals.persistent.tint_g, MAX_USER_INFO_STRING); // pants
-
-	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-	g_strlcat(client_info, cl->locals.persistent.tint_b, MAX_USER_INFO_STRING); // helmet
 
 	// send it to clients
 	gi.SetConfigString(CS_CLIENTS + (cl - g_game.clients), client_info);
@@ -1352,6 +1345,12 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 			if (g_level.time - 800 > cl->locals.land_time) {
 				g_entity_event_t event = EV_CLIENT_LAND;
 
+				if (G_IsAnimation(ent, ANIM_LEGS_JUMP2)) {
+					G_SetAnimation(ent, ANIM_LEGS_LAND2, true);
+				} else {
+					G_SetAnimation(ent, ANIM_LEGS_LAND1, true);
+				}
+
 				if (old_velocity[2] <= PM_SPEED_FALL) { // player will take damage
 					int16_t damage = ((int16_t) - ((old_velocity[2] - PM_SPEED_FALL) * 0.05));
 
@@ -1370,12 +1369,6 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 					cl->locals.pain_time = g_level.time; // suppress pain sound
 
 					G_Damage(ent, NULL, NULL, vec3_up, NULL, NULL, damage, 0, DMG_NO_ARMOR, MOD_FALLING);
-				}
-
-				if (G_IsAnimation(ent, ANIM_LEGS_JUMP2)) {
-					G_SetAnimation(ent, ANIM_LEGS_LAND2, true);
-				} else {
-					G_SetAnimation(ent, ANIM_LEGS_LAND1, true);
 				}
 
 				ent->s.event = event;

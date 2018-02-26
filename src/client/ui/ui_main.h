@@ -24,7 +24,7 @@
 #include "ui_types.h"
 
 void Ui_HandleEvent(const SDL_Event *event);
-void Ui_UpdateBindings(void);
+void Ui_ViewWillAppear(void);
 void Ui_PushViewController(ViewController *viewController);
 void Ui_PopToViewController(ViewController *viewController);
 void Ui_PopViewController(void);

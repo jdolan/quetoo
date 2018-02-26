@@ -20,6 +20,7 @@
  */
 
 #include "r_local.h"
+#include "r_gl.h"
 
 /**
  * @brief Binds the specified buffer for the given attribute target with an offset.
@@ -87,8 +88,6 @@ static GLenum R_BufferTypeToTarget(const r_buffer_type_t type) {
 		return GL_ARRAY_BUFFER;
 	case R_BUFFER_ELEMENT:
 		return GL_ELEMENT_ARRAY_BUFFER;
-	case R_BUFFER_UNIFORM:
-		return GL_UNIFORM_BUFFER;
 	default:
 		Com_Error(ERROR_FATAL, "What");
 	}
@@ -347,18 +346,15 @@ void R_CreateBuffer(r_buffer_t *buffer, const r_create_buffer_t *arguments) {
 	buffer->hint = arguments->hint;
 	buffer->element_type.type = arguments->element.type;
 
-	if (buffer->type != R_BUFFER_UNIFORM) {
-
-		if (arguments->type & R_BUFFER_INTERLEAVE) {
-			buffer->interleave = true;
-			buffer->element_type.stride = arguments->element.count;
-		} else {
-			buffer->element_type.count = arguments->element.count ?: 1u;
-			buffer->element_type.stride = R_GetElementSize(buffer->element_type.type);
-			buffer->element_gl_type = R_GetGLTypeFromAttribType(buffer->element_type.type);
-			buffer->element_type.normalized = arguments->element.normalized;
-			buffer->element_type.integer = arguments->element.integer;
-		}
+	if (arguments->type & R_BUFFER_INTERLEAVE) {
+		buffer->interleave = true;
+		buffer->element_type.stride = arguments->element.count;
+	} else {
+		buffer->element_type.count = arguments->element.count ?: 1u;
+		buffer->element_type.stride = R_GetElementSize(buffer->element_type.type);
+		buffer->element_gl_type = R_GetGLTypeFromAttribType(buffer->element_type.type);
+		buffer->element_type.normalized = arguments->element.normalized;
+		buffer->element_type.integer = arguments->element.integer;
 	}
 
 	if (arguments->size) {
@@ -539,9 +535,11 @@ r_attribute_mask_t R_ArraysMask(void) {
 	if (r_state.lighting_enabled) {
 		if (r_bumpmap->value) {
 			mask |= R_ATTRIB_MASK_TANGENT;
+			mask |= R_ATTRIB_MASK_BITANGENT;
 
 			if (do_interpolation) {
 				mask |= R_ATTRIB_MASK_NEXT_TANGENT;
+				mask |= R_ATTRIB_MASK_NEXT_BITANGENT;
 			}
 		}
 	}
@@ -651,6 +649,9 @@ static void R_SetArrayStateMesh(const r_model_t *mod, r_attribute_mask_t mask, r
 			if (mask & R_ATTRIB_MASK_NEXT_TANGENT) {
 				R_BindAttributeBufferOffset(R_ATTRIB_NEXT_TANGENT, &mod->mesh->vertex_buffer, offset);
 			}
+			if (mask & R_ATTRIB_MASK_NEXT_BITANGENT) {
+				R_BindAttributeBufferOffset(R_ATTRIB_NEXT_BITANGENT, &mod->mesh->vertex_buffer, offset);
+			}
 		}
 
 		// diffuse texcoords
@@ -741,6 +742,14 @@ void R_ResetArrayState(void) {
 					R_UnbindAttributeBuffer(R_ATTRIB_NEXT_TANGENT);
 				}
 			}
+
+			if (mask & R_ATTRIB_MASK_BITANGENT) {
+				R_UnbindAttributeBuffer(R_ATTRIB_BITANGENT);
+
+				if (mask & R_ATTRIB_MASK_NEXT_BITANGENT) {
+					R_UnbindAttributeBuffer(R_ATTRIB_NEXT_BITANGENT);
+				}
+			}
 		}
 	}
 
@@ -775,9 +784,7 @@ static void R_PrepareProgram() {
 	// upload state data that needs to be synced up to current program
 	R_SetupAttributes();
 
-	R_SetupUniforms();
-
-	R_UseMatrices();
+	R_UseUniforms();
 
 	R_UseAlphaTest();
 

@@ -57,7 +57,5 @@ void VectorForKey(const entity_t *ent, const char *key, vec3_t vec);
 
 epair_t *ParseEpair(void);
 
-extern int32_t subdivide_size; // shared by qbsp and light
-
 int32_t LoadBSPFile(const char *filename, const bsp_lump_id_t lumps);
 void WriteBSPFile(const char *filename, const int32_t version);

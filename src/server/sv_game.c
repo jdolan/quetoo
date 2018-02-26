@@ -256,24 +256,17 @@ static ai_export_t *Sv_LoadAi(ai_import_t *import) {
 
 	Com_Print("Ai initialization...\n");
 
-	if (!*ai->string) {
-		return NULL;
-	}
+	ai_handle = Sys_OpenLibrary("ai", false);
+	assert(ai_handle);
 
-	svs.ai = (ai_export_t *) Sys_LoadLibrary("ai", &ai_handle, "Ai_LoadAi", import);
+	svs.ai = Sys_LoadLibrary(ai_handle, "Ai_LoadAi", import);
 
 	if (!svs.ai) {
-		Com_Warn("Failed to load Ai module\n");
-		Sys_CloseLibrary(&ai_handle);
-		svs.ai = NULL;
-		return NULL;
+		Com_Error(ERROR_DROP, "Failed to load ai\n");
 	}
 
 	if (svs.ai->api_version != AI_API_VERSION) {
-		Com_Warn("Ai module is version %i, not %i\n", svs.ai->api_version, AI_API_VERSION);
-		Sys_CloseLibrary(&ai_handle);
-		svs.ai = NULL;
-		return NULL;
+		Com_Error(ERROR_DROP, "Ai is version %i, not %i\n", svs.ai->api_version, AI_API_VERSION);
 	}
 
 	svs.ai->Init();
@@ -306,7 +299,8 @@ static void Sv_ShutdownAi(void) {
 	Com_Print("Ai down\n");
 	Com_QuitSubsystem(QUETOO_AI);
 
-	Sys_CloseLibrary(&ai_handle);
+	Sys_CloseLibrary(ai_handle);
+	ai_handle = NULL;
 }
 
 
@@ -350,13 +344,15 @@ void Sv_InitGame(void) {
 	import.FreeFile = Fs_Free;
 	import.EnumerateFiles = Fs_Enumerate;
 
-	import.Cvar = Cvar_Add;
-	import.CvarString = Cvar_GetString;
-	import.CvarValue = Cvar_GetValue;
-	import.CvarGet = Cvar_Get;
-	import.CvarSet = Cvar_Set;
-	import.CvarSetValue = Cvar_SetValue;
-	import.Cmd = Cmd_Add;
+	import.AddCvar = Cvar_Add;
+	import.GetCvar = Cvar_Get;
+	import.GetCvarInteger = Cvar_GetInteger;
+	import.GetCvarString = Cvar_GetString;
+	import.GetCvarValue = Cvar_GetValue;
+	import.SetCvarInteger = Cvar_SetInteger;
+	import.SetCvarString = Cvar_SetString;
+	import.SetCvarValue = Cvar_SetValue;
+	import.AddCmd = Cmd_Add;
 	import.Argc = Cmd_Argc;
 	import.Argv = Cmd_Argv;
 	import.Args = Cmd_Args;
@@ -405,15 +401,17 @@ void Sv_InitGame(void) {
 
 	import.LoadAi = Sv_LoadAi;
 
-	svs.game = (g_export_t *) Sys_LoadLibrary("game", &game_handle, "G_LoadGame", &import);
+	game_handle = Sys_OpenLibrary("game", false);
+	assert(game_handle);
+	
+	svs.game = (g_export_t *) Sys_LoadLibrary(game_handle, "G_LoadGame", &import);
 
 	if (!svs.game) {
 		Com_Error(ERROR_DROP, "Failed to load game module\n");
 	}
 
 	if (svs.game->api_version != GAME_API_VERSION) {
-		Com_Error(ERROR_DROP, "Game is version %i, not %i\n", svs.game->api_version,
-		          GAME_API_VERSION);
+		Com_Error(ERROR_DROP, "Game is version %i, not %i\n", svs.game->api_version, GAME_API_VERSION);
 	}
 
 	svs.game->Init();

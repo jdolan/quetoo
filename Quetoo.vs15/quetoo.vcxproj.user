@@ -12,9 +12,9 @@
     <LocalDebuggerCommandArguments>+set sv_max_clients 8 +set r_get_error 1 +set g_hook 1 +map edge</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>-p G:\quake2\baseq2 -p G:\quake2\ctf -p G:\quake2\lmctf -p G:\quake2\3tctf +map edge</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-p G:\quake2\baseq2 -p G:\quake2\ctf -p G:\quake2\lmctf -p G:\quake2\3tctf +set threads 0 +set sv_max_clients 8 +set g_cheats 1 +set verbose 1</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>+set threads -1 +set sv_max_clients 8</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-p G:\quake2\baseq2 -p G:\quake2\ctf -p G:\quake2\lmctf -p G:\quake2\3tctf +set threads 0 +set sv_max_clients 8 +set g_cheats 1 +set verbose 1</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

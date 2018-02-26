@@ -20,7 +20,7 @@ all: clean install-lib install-update post-install snapshot
 all-data: clean install-lib install-update install-data post-install snapshot
 
 configure:
-	cd .. ; autoreconf -i; ./configure --prefix=/
+	cd .. ; autoreconf -i; ./configure CFLAGS='-g -O0' --prefix=/
 	
 compile: configure
 	make -C .. -j8 all

@@ -105,9 +105,6 @@
     <ClCompile Include="..\..\src\client\renderer\r_program_null.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\client\renderer\r_glad_core.c">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\client\renderer\r_program_corona.c">
       <Filter>src</Filter>
     </ClCompile>
@@ -127,6 +124,9 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\client\renderer\r_program_particle_corona.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\renderer\r_gl.c">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
@@ -233,9 +233,6 @@
     <ClInclude Include="..\..\src\client\renderer\r_program_null.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\client\renderer\r_glad_core.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_program_corona.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -255,6 +252,12 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_program_particle_corona.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\renderer\r_gl.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\renderer\r_gl_types.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
@@ -322,7 +325,10 @@
     <None Include="..\..\src\client\renderer\shaders\include\tint.glsl">
       <Filter>src\shaders\include</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\include\uniforms.glsl">
+    <None Include="..\..\src\client\renderer\shaders\include\color.glsl">
+      <Filter>src\shaders\include</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\include\matrix.glsl">
       <Filter>src\shaders\include</Filter>
     </None>
   </ItemGroup>

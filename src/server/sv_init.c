@@ -121,9 +121,7 @@ static void Sv_ShutdownMessage(const char *msg, _Bool reconnect) {
 
 	if (reconnect) { // send reconnect
 		Net_WriteByte(&net_message, SV_CMD_RECONNECT);
-	} else
-		// or just disconnect
-	{
+	} else { // or just disconnect
 		Net_WriteByte(&net_message, SV_CMD_DISCONNECT);
 	}
 
@@ -193,7 +191,7 @@ static void Sv_ShutdownClients(void) {
  * we must allocate clients and edicts based on sizes the game module requests,
  * we refresh the game module.
  */
-static void Sv_InitEntities(void) {
+static void Sv_InitEntities(sv_state_t state) {
 
 	if (!svs.initialized || Cvar_PendingLatched()) {
 
@@ -222,7 +220,7 @@ static void Sv_InitEntities(void) {
  * @brief Prepares the client slots for loading a new level. Connected clients are
  * carried over.
  */
-static void Sv_InitClients(void) {
+static void Sv_InitClients(sv_state_t state) {
 
 	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 
@@ -304,8 +302,6 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 	}
 
 	g_snprintf(sv.config_strings[CS_BSP_SIZE], MAX_STRING_CHARS, "%" PRId64, bsp_size);
-
-	Cvar_FullSet("map_name", sv.name, CVAR_SERVER_INFO | CVAR_NO_SET);
 }
 
 /**
@@ -351,9 +347,9 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 	Mem_InitBuffer(&sv.multicast, sv.multicast_buffer, sizeof(sv.multicast_buffer));
 
 	// initialize entities, reloading the game module if necessary
-	Sv_InitEntities();
+	Sv_InitEntities(state);
 
-	Sv_InitClients();
+	Sv_InitClients(state);
 
 	// load the map or demo and related media
 	Sv_LoadMedia(server, state);

@@ -1,0 +1,47 @@
+{
+  "identifier": "Join",
+  "subviews": [
+    {
+      "class": "StackView",
+      "classNames": [
+        "container"
+      ],
+      "subviews": [
+        {
+          "class": "TableView",
+          "identifier": "servers"
+        },
+        {
+          "class": "StackView",
+          "classNames": [
+            "accessoryView",
+            "container"
+          ],
+          "subviews": [
+            {
+              "class": "Button",
+              "identifier": "quickJoin",
+              "title": {
+                "text": "Quick join"
+              }
+            },
+            {
+              "class": "Button",
+              "identifier": "refresh",
+              "title": {
+                "text": "Refresh"
+              }
+            },
+            {
+              "class": "Button",
+              "identifier": "connect",
+              "title": {
+                "text": "Connect"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

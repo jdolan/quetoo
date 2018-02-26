@@ -60,6 +60,13 @@ typedef r_variable_t r_uniform4fv_t;
 typedef r_variable_t r_uniform_matrix4fv_t;
 typedef r_variable_t r_sampler2d_t;
 
+// global uniforms
+typedef enum {
+	R_GLOBALS_COLOR,
+
+	R_GLOBALS_TOTAL
+} r_uniform_global_t;
+
 // fog info
 typedef struct {
 	vec_t start;
@@ -104,7 +111,11 @@ typedef struct {
 	r_attribute_mask_t arrays_mask;
 	r_attribute_t attributes[R_ATTRIB_ALL];
 
+	r_uniform_matrix4fv_t matrix_uniforms[R_MATRIX_TOTAL];
 	_Bool matrix_dirty[R_MATRIX_TOTAL];
+
+	r_variable_t global_uniforms[R_GLOBALS_TOTAL];
+	_Bool global_dirty[R_GLOBALS_TOTAL];
 
 	void (*Init)(void);
 	void (*Shutdown)(void);
@@ -115,9 +126,9 @@ typedef struct {
 	void (*UseFog)(const r_fog_parameters_t *fog);
 	void (*UseLight)(const uint16_t light_index, const matrix4x4_t *world_view, const r_light_t *light);
 	void (*UseCaustic)(const r_caustic_parameters_t *caustic);
-	void (*MatricesChanged)();
+	void (*MatricesChanged)(void);
 	void (*UseAlphaTest)(const vec_t threshold);
-	void (*UseAttributes)(void);
+	void (*UseInterpolation)(const vec_t time_fraction);
 	void (*UseTints)(void);
 } r_program_t;
 
@@ -141,7 +152,6 @@ void R_BindAttributeLocation(const r_program_t *prog, const char *name, const GL
 void R_EnableAttribute(const r_attribute_id_t attribute);
 void R_DisableAttribute(const r_attribute_id_t attribute);
 void R_SetupAttributes(void);
-void R_SetupUniforms(void);
 void R_ShutdownPrograms(void);
 void R_InitPrograms(void);
 

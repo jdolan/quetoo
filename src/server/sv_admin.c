@@ -19,6 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#if defined(_WIN32)
+	#include <winsock2.h> // for htons
+#endif
+
 #include "sv_local.h"
 
 /**
@@ -35,7 +39,7 @@ static void Sv_SetMaster_f(void) {
 	}
 
 	// make sure the server is listed public
-	Cvar_Set("public", "1");
+	Cvar_ForceSetInteger("public", 1);
 
 	for (i = 1; i < MAX_MASTERS; i++) {
 		addr = &svs.masters[i];

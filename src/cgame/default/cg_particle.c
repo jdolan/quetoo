@@ -240,9 +240,6 @@ static void Cg_ClipVelocity(const vec3_t in, const vec3_t normal, vec3_t out, ve
 	}
 }
 
-// collision milliseconds
-#define PARTICLE_COLLISION_MS	(1.0 / 60.0) * 1000
-
 /**
  * @brief Adds all particles that are active for this frame to the view.
  */
@@ -301,16 +298,10 @@ void Cg_AddParticles(void) {
 					continue;
 				}
 
-				uint32_t collision_ms = 0;
+				vec3_t old_origin;
 				
-				if (p->effects & PARTICLE_EFFECT_PHYSICAL) {
-					const vec_t distance = VectorDistanceSquared(cgi.view->origin, p->part.org);
-					collision_ms = Max(PARTICLE_COLLISION_MS, PARTICLE_COLLISION_MS * (distance / (256.0 * 256.0)));
-
-					if (!p->next_collision_time) {
-						VectorCopy(p->part.org, p->last_collision_origin);
-						p->next_collision_time = cgi.client->unclamped_time + collision_ms;
-					}
+				if ((p->effects & PARTICLE_EFFECT_PHYSICAL) && cg_particle_quality->integer) {
+					VectorCopy(p->part.org, old_origin);
 				}
 
 				for (int32_t i = 0; i < 3; i++) { // update origin and acceleration
@@ -318,23 +309,17 @@ void Cg_AddParticles(void) {
 					p->vel[i] += p->accel[i] * delta;
 				}
 
-				if (p->effects & PARTICLE_EFFECT_PHYSICAL) {
+				if ((p->effects & PARTICLE_EFFECT_PHYSICAL) && cg_particle_quality->integer) {
+					const vec_t half_scale = p->part.scale * 0.5;
+					const vec3_t particle_mins = { -half_scale, -half_scale, -half_scale };
+					const vec3_t particle_maxs = { half_scale, half_scale, half_scale };
+					const cm_trace_t tr = cgi.Trace(old_origin, p->part.org, particle_mins, particle_maxs, 0, MASK_SOLID);
 
-					if (p->next_collision_time < cgi.client->unclamped_time) {
-						const vec_t half_scale = p->part.scale * 0.5;
-						const vec3_t particle_mins = { -half_scale, -half_scale, -half_scale };
-						const vec3_t particle_maxs = { half_scale, half_scale, half_scale };
-						const cm_trace_t tr = cgi.Trace(p->last_collision_origin, p->part.org, particle_mins, particle_maxs, 0, MASK_SOLID);
+					if (tr.fraction < 1.0) {
 
-						if (tr.fraction < 1.0) {
+						Cg_ClipVelocity(p->vel, tr.plane.normal, p->vel, p->bounce);
 
-							Cg_ClipVelocity(p->vel, tr.plane.normal, p->vel, p->bounce);
-
-							VectorCopy(tr.end, p->part.org);
-						}
-						
-						VectorCopy(p->part.org, p->last_collision_origin);
-						p->next_collision_time = cgi.client->unclamped_time + collision_ms;
+						VectorCopy(tr.end, p->part.org);
 					}
 				}
 

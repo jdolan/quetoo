@@ -25,7 +25,7 @@
 #include "filesystem.h"
 #include "ai/ai.h"
 
-#define GAME_API_VERSION 8
+#define GAME_API_VERSION 9
 
 /**
  * @brief Server flags for g_entity_t.
@@ -65,12 +65,12 @@ typedef struct {
 
 struct g_client_s {
 	/**
-	 * @brief True if the client is AI-controlled.
+	 * @brief True if the client is a bot.
 	 */
 	_Bool ai;
 
 	/**
-	 * @brief True if the client's slot is taken.
+	 * @brief True if the client's is connected.
 	 */
 	_Bool connected;
 
@@ -182,7 +182,7 @@ typedef _Bool (*EntityFilterFunc)(const g_entity_t *ent);
  * @brief The game import provides engine functionality and core configuration
  * such as frame intervals to the game module.
  */
-typedef struct {
+typedef struct g_import_s {
 
 	/**
 	 * @brief The game's write directory
@@ -219,15 +219,82 @@ typedef struct {
 	void (*EnumerateFiles)(const char *pattern, Fs_EnumerateFunc enumerator, void *data);
 
 	/**
-	 * @brief Console variable and console command management.
+	 * @brief Resolves a console variable, creating it if not found.
+	 * @param name The variable name.
+	 * @param value The variable value string.
+	 * @param flags The variable flags (e.g. CVAR_ARCHIVE).
+	 * @param desc The variable description for builtin console help.
+	 * @return The console variable.
 	 */
-	cvar_t *(*Cvar)(const char *name, const char *value, uint32_t flags, const char *desc);
-	const char *(*CvarString)(const char *name);
-	vec_t (*CvarValue)(const char *name);
-	cvar_t *(*CvarGet)(const char *name);
-	cvar_t *(*CvarSet)(const char *name, const char *string);
-	cvar_t *(*CvarSetValue)(const char *name, vec_t value);
-	cmd_t *(*Cmd)(const char *name, CmdExecuteFunc Execute, uint32_t flags, const char *desc);
+	cvar_t *(*AddCvar)(const char *name, const char *value, uint32_t flags, const char *desc);
+
+	/**
+	 * @brief Resolves a console variable that is expected to be defined by the engine.
+	 * @return The predefined console variable.
+	 */
+	cvar_t *(*GetCvar)(const char *name);
+
+	/**
+	 * @return The integer value of the console variable with the given name.
+	 */
+	int32_t (*GetCvarInteger)(const char *name);
+
+	/**
+	 * @return The string value of the console variable with the given name.
+	 */
+	const char *(*GetCvarString)(const char *name);
+
+	/**
+	 * @return The floating point value of the console variable with the given name.
+	 */
+	vec_t (*GetCvarValue)(const char *name);
+
+	/**
+	 * @brief Sets the console variable by `name` to `value`.
+	 */
+	cvar_t *(*SetCvarInteger)(const char *name, int32_t value);
+
+	/**
+	 * @brief Sets the console variable by `name` to `string`.
+	 */
+	cvar_t *(*SetCvarString)(const char *name, const char *string);
+
+	/**
+	 * @brief Sets the console variable by `name` to `value`.
+	 */
+	cvar_t *(*SetCvarValue)(const char *name, vec_t value);
+
+	/**
+	 * @brief Forces the console variable to take the value of the string immediately.
+	 * @param name The variable name.
+	 * @param string The variable string.
+	 * @return The modified variable.
+	 */
+	cvar_t *(*ForceSetCvarString)(const char *name, const char *string);
+
+	/**
+	 * @brief Forces the console variable to take the given value immediately.
+	 * @param name The variable name.
+	 * @param value The variable value.
+	 * @return The modified variable.
+	 */
+	cvar_t *(*ForceSetCvarValue)(const char *name, vec_t value);
+
+	/**
+	 * @brief Toggles the console variable by `name`.
+	 */
+	cvar_t *(*ToggleCvar)(const char *name);
+
+	/**
+	 * @brief Registers and returns a console command.
+	 * @param name The command name (e.g. `"wave"`).
+	 * @param function The command function.
+	 * @param flags The command flags (e.g. CMD_CGAME).
+	 * @param desc The command description for builtin console help.
+	 * @return The console command.
+	 */
+	cmd_t *(*AddCmd)(const char *name, CmdExecuteFunc function, uint32_t flags, const char *desc);
+
 	int32_t (*Argc)(void);
 	const char *(*Argv)(int32_t arg);
 	const char *(*Args)(void);
@@ -380,7 +447,7 @@ typedef struct {
  * @brief The game export structure exposes core game module entry points to
  * the server. The game must populate this structure as part of G_LoadGame.
  */
-typedef struct {
+typedef struct g_export_s {
 	/**
 	 * @brief Game API version, in case the game module was compiled for a
 	 * different version than the engine provides.

@@ -82,10 +82,10 @@ static void Cl_WriteMovementCommand(mem_buf_t *buf) {
 	cl_cmd_t *from = &null_cmd, *to = &cl.cmds[(cls.net_chan.outgoing_sequence - 2) & CMD_MASK];
 	Net_WriteDeltaMoveCmd(buf, &from->cmd, &to->cmd);
 
-	from = to, to = &cl.cmds[(cls.net_chan.outgoing_sequence - 1) & CMD_MASK];
+	from = to; to = &cl.cmds[(cls.net_chan.outgoing_sequence - 1) & CMD_MASK];
 	Net_WriteDeltaMoveCmd(buf, &from->cmd, &to->cmd);
 
-	from = to, to = &cl.cmds[(cls.net_chan.outgoing_sequence) & CMD_MASK];
+	from = to;  to = &cl.cmds[(cls.net_chan.outgoing_sequence) & CMD_MASK];
 	Net_WriteDeltaMoveCmd(buf, &from->cmd, &to->cmd);
 }
 
@@ -112,7 +112,7 @@ void Cl_SendCommands(void) {
 
 	const uint32_t delta = quetoo.ticks - cls.net_chan.last_sent;
 
-	if (delta < 8 && !r_vsync->value) {
+	if (delta < 8 && !r_swap_interval->value) {
 		return;
 	}
 

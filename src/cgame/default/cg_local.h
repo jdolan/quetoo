@@ -45,5 +45,4 @@
 #include "cg_temp_entity.h"
 #include "cg_types.h"
 #include "cg_ui.h"
-#include "cg_ui_data.h"
 #include "cg_view.h"

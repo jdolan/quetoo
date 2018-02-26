@@ -23,7 +23,9 @@
 
 // these are the variables defined in the GLSL shader
 typedef struct r_shell_program_s {
+	r_uniform1f_t offset;
 	r_uniform1f_t shell_offset;
+	r_uniform1f_t time_fraction;
 
 	r_sampler2d_t sampler0;
 	r_sampler2d_t sampler1;
@@ -57,11 +59,18 @@ void R_InitProgram_shell(r_program_t *program) {
 	R_ProgramVariable(&program->attributes[R_ATTRIB_NEXT_POSITION], R_ATTRIBUTE, "NEXT_POSITION", true);
 	R_ProgramVariable(&program->attributes[R_ATTRIB_NEXT_NORMAL], R_ATTRIBUTE, "NEXT_NORMAL", true);
 
+	R_ProgramVariable(&p->offset, R_UNIFORM_FLOAT, "OFFSET", true);
+	R_ProgramParameter1f(&p->offset, 0.0);
+
 	R_ProgramVariable(&p->shell_offset, R_UNIFORM_FLOAT, "SHELL_OFFSET", true);
 	R_ProgramParameter1f(&p->shell_offset, 0.0);
 
 	R_ProgramVariable(&p->sampler0, R_SAMPLER_2D, "SAMPLER0", true);
 	R_ProgramParameter1i(&p->sampler0, R_TEXUNIT_DIFFUSE);
+
+	R_ProgramVariable(&p->time_fraction, R_UNIFORM_FLOAT, "TIME_FRACTION", true);
+
+	R_ProgramParameter1f(&p->time_fraction, 0.0f);
 }
 
 /**
@@ -69,6 +78,7 @@ void R_InitProgram_shell(r_program_t *program) {
  */
 void R_UseProgram_shell(void) {
 
+	R_ProgramParameter1f(&r_shell_program.offset, r_view.ticks * 0.00025);
 }
 
 /**
@@ -79,3 +89,12 @@ void R_UseShellOffset_shell(const vec_t offset) {
 	R_ProgramParameter1f(&r_shell_program.shell_offset, offset);
 }
 
+/**
+ * @brief
+ */
+void R_UseInterpolation_shell(const vec_t time_fraction) {
+
+	r_shell_program_t *p = &r_shell_program;
+
+	R_ProgramParameter1f(&p->time_fraction, time_fraction);
+}

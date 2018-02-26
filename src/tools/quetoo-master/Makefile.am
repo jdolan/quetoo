@@ -11,5 +11,5 @@ quetoo_master_CFLAGS = \
 	@GLIB_CFLAGS@
 
 quetoo_master_LDADD = \
-	$(top_srcdir)/src/libfilesystem.la \
-	$(top_srcdir)/src/libparse.la
+	$(top_builddir)/src/libfilesystem.la \
+	$(top_builddir)/src/libparse.la

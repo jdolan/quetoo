@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26206.0
+VisualStudioVersion = 15.0.27004.2005
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "quetoo", "quetoo.vcxproj", "{A05CAC53-F8F2-4A14-9C81-8A34F4EA9085}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -141,6 +141,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libparse", "libs\libparse.vcxproj", "{FEF51ACC-31F2-41AC-B562-41F5C5988088}"
 EndProject
 Global
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
 		Debug|x64 = Debug|x64
@@ -387,6 +390,12 @@ Global
 		{570EB326-F102-4C08-8B17-4C2B600BDAC7} = {12075155-7B18-4525-885E-A2CCD24EFE04}
 		{B1E86937-5A7A-48F6-9DAB-A1D2900C3AE1} = {570EB326-F102-4C08-8B17-4C2B600BDAC7}
 		{FEF51ACC-31F2-41AC-B562-41F5C5988088} = {12075155-7B18-4525-885E-A2CCD24EFE04}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B8857714-34A9-463D-A04B-B95D6BCB9221}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true

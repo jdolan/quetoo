@@ -40,7 +40,8 @@ libbgame_la_LDFLAGS = \
 libbgame_la_LIBADD = \
 	$(top_builddir)/src/libshared.la
 
-gamelibdir = @PKGLIBDIR@/default
+gamelibdir = \
+	@PKGLIBDIR@/default
 
 gamelib_LTLIBRARIES = \
 	game.la
@@ -83,5 +84,6 @@ game_la_LDFLAGS = \
 
 game_la_LIBADD = \
 	libbgame.la \
-	$(top_srcdir)/src/libparse.la \
+	$(top_builddir)/src/libparse.la \
+	@GLIB_LIBS@ \
 	@MYSQL_LIBS@

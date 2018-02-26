@@ -126,6 +126,7 @@ vec_t VectorDistance(const vec3_t a, const vec3_t b);
 void VectorMix(const vec3_t v1, const vec3_t v2, const vec_t mix, vec3_t out);
 void VectorMA(const vec3_t veca, const vec_t scale, const vec3_t vecb, vec3_t vecc);
 void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross);
+void Reflect(const vec3_t dir, const vec3_t normal, vec3_t ref);
 
 void VectorAngles(const vec3_t vector, vec3_t angles);
 void AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up);
@@ -170,6 +171,23 @@ u16vec_t PackTexcoord(const vec_t in);
 void PackTexcoords(const vec2_t in, u16vec2_t out);
 
 /**
+ * @brief A 32-bit RGBA color
+ */
+typedef union {
+	struct {
+		byte r, g, b, a;
+	}; // as separate components
+
+	byte bytes[4]; // as four bytes, for loopage
+
+	uint32_t u32; // as a full uint32_t
+} color_t;
+
+#define ColorFromRGBA(rr, gg, bb, aa) ({ color_t _c; _c.r = rr; _c.g = gg; _c.b = bb; _c.a = aa; _c; })
+#define ColorFromRGB(r, g, b) ColorFromRGBA(r, g, b, 255)
+#define ColorFromU32(v) { color_t _c; _c.u32 = v; _c; }
+
+/**
  * @brief Color manipulating.
  */
 vec_t ColorNormalize(const vec3_t in, vec3_t out);
@@ -188,6 +206,7 @@ typedef enum {
 _Bool GlobMatch(const char *pattern, const char *text, const glob_flags_t flags);
 const char *Basename(const char *path);
 void Dirname(const char *in, char *out);
+void StripNewline(const char *in, char *out);
 void StripExtension(const char *in, char *out);
 void StripColors(const char *in, char *out);
 size_t StrColorLen(const char *s);
@@ -196,6 +215,8 @@ int32_t StrColor(const char *s);
 int32_t StrrColor(const char *s);
 char *va(const char *format, ...) __attribute__((format(printf, 1, 2)));
 char *vtos(const vec3_t v);
+
+void StrLower(const char *in, char *out);
 
 // a cute little hack for printing g_entity_t
 #define etos(e) (e ? va("%u: %s @ %s", e->s.number, e->class_name, vtos(e->s.origin)) : "null")
@@ -216,16 +237,12 @@ _Bool ValidateUserInfo(const char *s);
 /**
  * @brief Color manipulation functions
  */
-_Bool ColorParseHex(const char *s, color_t *color);
-_Bool ColorToHex(const color_t color, char *s, const size_t s_len);
+_Bool ColorFromHex(const char *s, color_t *color);
+char *ColorToHex(const color_t *color);
 void ColorToVec3(const color_t color, vec3_t vec);
 void ColorToVec4(const color_t color, vec4_t vec);
 void ColorFromVec3(const vec3_t vec, color_t *color);
 void ColorFromVec4(const vec4_t vec, color_t *color);
-color_t ColorFromHSV(const vec3_t hsv);
-
-// max length of a color string is "rrggbbaa\0" - "default" fits in here
-#define COLOR_MAX_LENGTH		9
 
 gboolean g_stri_equal (gconstpointer v1, gconstpointer v2);
 guint g_stri_hash (gconstpointer v);

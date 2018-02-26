@@ -38,6 +38,9 @@ typedef struct {
 	r_uniform1f_t hardness;
 	r_uniform1f_t specular;
 
+	r_uniform1f_t time_fraction;
+	r_uniform1f_t time;
+
 	r_sampler2d_t sampler0;
 	r_sampler2d_t sampler1;
 	r_sampler2d_t sampler2;
@@ -71,10 +74,12 @@ void R_PreLink_default(const r_program_t *program) {
 	R_BindAttributeLocation(program, "TEXCOORD1", R_ATTRIB_LIGHTMAP);
 	R_BindAttributeLocation(program, "NORMAL", R_ATTRIB_NORMAL);
 	R_BindAttributeLocation(program, "TANGENT", R_ATTRIB_TANGENT);
+	R_BindAttributeLocation(program, "BITANGENT", R_ATTRIB_BITANGENT);
 
 	R_BindAttributeLocation(program, "NEXT_POSITION", R_ATTRIB_NEXT_POSITION);
 	R_BindAttributeLocation(program, "NEXT_NORMAL", R_ATTRIB_NEXT_NORMAL);
 	R_BindAttributeLocation(program, "NEXT_TANGENT", R_ATTRIB_NEXT_TANGENT);
+	R_BindAttributeLocation(program, "NEXT_BITANGENT", R_ATTRIB_NEXT_BITANGENT);
 }
 
 /**
@@ -92,10 +97,12 @@ void R_InitProgram_default(r_program_t *program) {
 	R_ProgramVariable(&program->attributes[R_ATTRIB_LIGHTMAP], R_ATTRIBUTE, "TEXCOORD1", true);
 	R_ProgramVariable(&program->attributes[R_ATTRIB_NORMAL], R_ATTRIBUTE, "NORMAL", true);
 	R_ProgramVariable(&program->attributes[R_ATTRIB_TANGENT], R_ATTRIBUTE, "TANGENT", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_BITANGENT], R_ATTRIBUTE, "BITANGENT", true);
 
 	R_ProgramVariable(&program->attributes[R_ATTRIB_NEXT_POSITION], R_ATTRIBUTE, "NEXT_POSITION", true);
 	R_ProgramVariable(&program->attributes[R_ATTRIB_NEXT_NORMAL], R_ATTRIBUTE, "NEXT_NORMAL", true);
 	R_ProgramVariable(&program->attributes[R_ATTRIB_NEXT_TANGENT], R_ATTRIBUTE, "NEXT_TANGENT", true);
+	R_ProgramVariable(&program->attributes[R_ATTRIB_NEXT_BITANGENT], R_ATTRIBUTE, "NEXT_BITANGENT", true);
 
 	R_ProgramVariable(&p->diffuse, R_UNIFORM_INT, "DIFFUSE", true);
 	R_ProgramVariable(&p->lightmap, R_UNIFORM_INT, "LIGHTMAP", true);
@@ -148,6 +155,9 @@ void R_InitProgram_default(r_program_t *program) {
 
 	R_ProgramVariable(&p->alpha_threshold, R_UNIFORM_FLOAT, "ALPHA_THRESHOLD", true);
 
+	R_ProgramVariable(&p->time_fraction, R_UNIFORM_FLOAT, "TIME_FRACTION", true);
+	R_ProgramVariable(&p->time, R_UNIFORM_FLOAT, "TIME", true);
+
 	R_ProgramParameter1i(&p->diffuse, 0);
 	R_ProgramParameter1i(&p->lightmap, 0);
 	R_ProgramParameter1i(&p->deluxemap, 0);
@@ -172,6 +182,9 @@ void R_InitProgram_default(r_program_t *program) {
 	R_ProgramParameter1f(&p->alpha_threshold, ALPHA_TEST_DISABLED_THRESHOLD);
 
 	R_ProgramParameter1i(&p->caustic.enable, 0);
+
+	R_ProgramParameter1f(&p->time_fraction, 0.0f);
+	R_ProgramParameter1f(&p->time, 0.0f);
 }
 
 /**
@@ -209,9 +222,11 @@ void R_UseMaterial_default(const r_material_t *material) {
 			!r_state.lighting_enabled) {
 
 		R_DisableAttribute(R_ATTRIB_TANGENT);
+		R_DisableAttribute(R_ATTRIB_BITANGENT);
 		R_ProgramParameter1i(&p->normalmap, 0);
 	} else {
 		R_EnableAttribute(R_ATTRIB_TANGENT);
+		R_EnableAttribute(R_ATTRIB_BITANGENT);
 
 		R_BindNormalmapTexture(material->normalmap->texnum);
 		R_ProgramParameter1i(&p->normalmap, 1);
@@ -280,6 +295,7 @@ void R_UseCaustic_default(const r_caustic_parameters_t *caustic) {
 	if (caustic && caustic->enable) {
 		R_ProgramParameter1i(&p->caustic.enable, caustic->enable);
 		R_ProgramParameter3fv(&p->caustic.color, caustic->color);
+		R_ProgramParameter1f(&p->time, r_view.ticks / 1000.0);
 	} else {
 		R_ProgramParameter1i(&p->caustic.enable, 0);
 	}
@@ -314,6 +330,16 @@ void R_UseAlphaTest_default(const vec_t threshold) {
 /**
  * @brief
  */
+void R_UseInterpolation_default(const vec_t time_fraction) {
+
+	r_default_program_t *p = &r_default_program;
+
+	R_ProgramParameter1f(&p->time_fraction, time_fraction);
+}
+
+/**
+ * @brief
+ */
 void R_UseTints_default(void) {
 	r_default_program_t *p = &r_default_program;
 
@@ -322,7 +348,7 @@ void R_UseTints_default(void) {
 	}
 
 	for (int32_t i = 0; i < TINT_TOTAL; i++) {
-		if (r_view.current_entity->tints[i]) {
+		if (r_view.current_entity->tints[i][3]) {
 			R_ProgramParameter4fv(&p->tints[i], r_view.current_entity->tints[i]);
 		} else {
 			R_ProgramParameter4fv(&p->tints[i], r_state.active_material->cm->tintmap_defaults[i]);

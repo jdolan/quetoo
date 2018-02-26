@@ -34,7 +34,6 @@ _Bool nowater = false;
 _Bool nocsg = false;
 _Bool noweld = false;
 _Bool noshare = false;
-_Bool nosubdivide = false;
 _Bool notjunc = false;
 _Bool noopt = false;
 _Bool leaktest = false;
@@ -340,8 +339,6 @@ int32_t BSP_Main(void) {
 
 		const int32_t version = LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
 		num_entities = 0;
-
-		CreateBSPFile();
 
 		LoadMapFile(map_name);
 		SetModelNumbers();

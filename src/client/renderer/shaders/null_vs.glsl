@@ -6,8 +6,11 @@
 
 #define VERTEX_SHADER
 
-#include "include/uniforms.glsl"
+#include "include/matrix.glsl"
 #include "include/fog.glsl"
+
+uniform vec4 GLOBAL_COLOR;
+uniform float TIME_FRACTION;
 
 in vec3 POSITION;
 in vec2 TEXCOORD;
@@ -17,6 +20,7 @@ in vec3 NEXT_POSITION;
 out VertexData {
 	vec2 texcoord;
 	vec4 color;
+	vec3 point;
 };
 
 /**
@@ -24,8 +28,10 @@ out VertexData {
  */
 void main(void) {
 
+	point = (MODELVIEW_MAT * vec4(mix(POSITION, NEXT_POSITION, TIME_FRACTION), 1.0)).xyz;
+
 	// mvp transform into clip space
-	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * vec4(mix(POSITION, NEXT_POSITION, TIME_FRACTION), 1.0);
+	gl_Position = PROJECTION_MAT * vec4(point, 1.0);
 
 	texcoord = TEXCOORD;
 

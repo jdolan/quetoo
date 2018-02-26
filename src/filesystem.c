@@ -193,7 +193,7 @@ int64_t Fs_Read(file_t *file, void *buffer, size_t size, size_t count) {
 
 /**
  * @brief Reads a line from the specified file. The newline character is
- * omitted from the returned, NULL-terminated string.
+ * omitted from the returned, null-terminated string.
  *
  * @return True on success, false on failures.
  */
@@ -263,16 +263,13 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 	} fs_block_t;
 
 	file_t *file;
+
 	if ((file = Fs_OpenRead(filename))) {
-
-		if (!PHYSFS_setBuffer((PHYSFS_File *) file, FS_FILE_BUFFER)) {
-			Com_Warn("%s: %s\n", filename, Fs_LastError());
-		}
-
 		const int64_t buffer_length = Fs_FileLength(file);
 
 		// if we can calculate the length, we can pull it easily
 		if (buffer_length != -1) {
+
 			len = buffer_length;
 
 			if (buffer) {
@@ -287,10 +284,12 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 					g_hash_table_insert(fs_state.loaded_files, *buffer,
 										(gpointer) Mem_CopyString(filename));
 				} else {
+
 					*buffer = NULL;
 				}
 			}
 		} else {
+
 			GList *list = NULL;
 			len = 0;
 
@@ -325,14 +324,17 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 					g_hash_table_insert(fs_state.loaded_files, *buffer,
 										(gpointer) Mem_CopyString(filename));
 				} else {
+
 					*buffer = NULL;
 				}
 			}
 
 			g_list_free_full(list, Mem_Free);
 		}
+
 		Fs_Close(file);
 	} else {
+
 		len = -1;
 
 		if (buffer) {
@@ -367,6 +369,14 @@ _Bool Fs_Rename(const char *source, const char *dest) {
 
 	return rename(src, dst) == 0;
 }
+
+/**
+ * @brief Fetch the "last modified" time for the specified file.
+ */
+int64_t Fs_LastModTime(const char *filename) {
+	return PHYSFS_getLastModTime(filename);
+}
+
 
 /**
  * @brief Unlinks (deletes) the specified file.
@@ -405,7 +415,6 @@ static void Fs_Enumerate_(void *data, const char *dir, const char *filename) {
  * @brief Enumerates files matching `pattern`, calling the given function.
  */
 void Fs_Enumerate(const char *pattern, Fs_EnumerateFunc func, void *data) {
-
 	fs_enumerate_t en = {
 		.pattern = pattern,
 		.function = func,
@@ -475,7 +484,7 @@ void Fs_AddToSearchPath(const char *dir) {
 		const _Bool is_dir = g_file_test(dir, G_FILE_TEST_IS_DIR);
 
 		if (PHYSFS_mount(dir, NULL, !is_dir) == 0) {
-			Com_Warn("%s: %s\n", dir, PHYSFS_getLastError());
+			Com_Warn("%s: %s\n", dir, Fs_LastError());
 			return;
 		}
 
@@ -549,7 +558,10 @@ void Fs_SetGame(const char *dir) {
 		}
 		if (!*p) {
 			Com_Debug(DEBUG_FILESYSTEM, "Removing %s\n", *path);
-			PHYSFS_removeFromSearchPath(*path);
+			if (PHYSFS_removeFromSearchPath(*path) == 0) {
+				Com_Warn("%s: %s\n", *path, Fs_LastError());
+				return;
+			}
 		}
 		path++;
 	}
@@ -632,7 +644,7 @@ void Fs_Init(const uint32_t flags) {
 	memset(&fs_state, 0, sizeof(fs_state_t));
 
 	if (PHYSFS_init(Com_Argv(0)) == 0) {
-		Com_Error(ERROR_FATAL, "%s\n", PHYSFS_getLastError());
+		Com_Error(ERROR_FATAL, "%s\n", Fs_LastError());
 	}
 
 	fs_state.flags = flags;
@@ -684,9 +696,9 @@ void Fs_Init(const uint32_t flags) {
 	// if the base directory was not resolved, add the default search paths
 	if (strlen(fs_state.base_dir)) {
 		Com_Debug(DEBUG_FILESYSTEM, "Resolved base dir: %s\n", fs_state.base_dir);
-	} else {
-		Fs_AddToSearchPath(PKGLIBDIR G_DIR_SEPARATOR_S DEFAULT_GAME);
-		Fs_AddToSearchPath(PKGDATADIR G_DIR_SEPARATOR_S DEFAULT_GAME);
+	} else { // trailing slash is added to "fix" links on Linux, possibly causes issues on other platforms?
+		Fs_AddToSearchPath(PKGLIBDIR G_DIR_SEPARATOR_S DEFAULT_GAME G_DIR_SEPARATOR_S);
+		Fs_AddToSearchPath(PKGDATADIR G_DIR_SEPARATOR_S DEFAULT_GAME G_DIR_SEPARATOR_S);
 	}
 
 	// then add the game directory in the user's home directory

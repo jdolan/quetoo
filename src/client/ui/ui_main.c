@@ -22,7 +22,7 @@
 #include "ui_local.h"
 #include "client.h"
 
-#include "renderers/QuetooRenderer.h"
+#include "QuetooRenderer.h"
 
 extern cl_static_t cls;
 
@@ -31,36 +31,36 @@ static WindowController *windowController;
 static NavigationViewController *navigationViewController;
 
 /**
- * @brief Dispatch events to the user interface. Filter most common event types for
- * performance consideration.
+ * @brief Dispatch events to the user interface.
  */
 void Ui_HandleEvent(const SDL_Event *event) {
 
-	if (cls.key_state.dest != KEY_UI) {
-
-		switch (event->type) {
-			case SDL_KEYDOWN:
-			case SDL_KEYUP:
-			case SDL_MOUSEBUTTONDOWN:
-			case SDL_MOUSEBUTTONUP:
-			case SDL_MOUSEWHEEL:
-			case SDL_MOUSEMOTION:
-			case SDL_TEXTINPUT:
-			case SDL_TEXTEDITING:
-				return;
+	if (windowController) {
+		if (cls.key_state.dest != KEY_UI) {
+			switch (event->type) {
+				case SDL_WINDOWEVENT:
+					break;
+				default:
+					return;
+			}
 		}
-	}
 
-	$(windowController, respondToEvent, event);
+		$(windowController, respondToEvent, event);
+	} else {
+		Com_Warn("windowController was NULL\n");
+	}
 }
 
 /**
  * @brief
  */
-void Ui_UpdateBindings(void) {
+void Ui_ViewWillAppear(void) {
 
 	if (windowController) {
 		$(windowController->viewController->view, updateBindings);
+		$(windowController->viewController, viewWillAppear);
+	} else {
+		Com_Warn("windowController was NULL\n");
 	}
 }
 
@@ -69,17 +69,10 @@ void Ui_UpdateBindings(void) {
  */
 void Ui_Draw(void) {
 
-	if (cls.state == CL_LOADING) {
-		return;
-	}
+	assert(windowController);
 
 	Ui_CheckEditor();
 
-	if (cls.key_state.dest != KEY_UI) {
-		return;
-	}
-
-	// backup all of the matrices
 	for (r_matrix_id_t matrix = R_MATRIX_PROJECTION; matrix < R_MATRIX_TOTAL; ++matrix) {
 		R_PushMatrix(matrix);
 	}
@@ -88,7 +81,6 @@ void Ui_Draw(void) {
 
 	$(windowController, render);
 
-	// restore matrices
 	for (r_matrix_id_t matrix = R_MATRIX_PROJECTION; matrix < R_MATRIX_TOTAL; ++matrix) {
 		R_PopMatrix(matrix);
 	}
@@ -98,8 +90,15 @@ void Ui_Draw(void) {
  * @brief
  */
 void Ui_PushViewController(ViewController *viewController) {
-	if (viewController) {
-		$(navigationViewController, pushViewController, viewController);
+
+	if (navigationViewController) {
+		if (viewController) {
+			$(navigationViewController, pushViewController, viewController);
+		} else {
+			Com_Warn("viewController was NULL\n");
+		}
+	} else {
+		Com_Warn("navigationViewController was NULL\n");
 	}
 }
 
@@ -107,8 +106,15 @@ void Ui_PushViewController(ViewController *viewController) {
  * @brief
  */
 void Ui_PopToViewController(ViewController *viewController) {
-	if (viewController) {
-		$(navigationViewController, popToViewController, viewController);
+
+	if (navigationViewController) {
+		if (viewController) {
+			$(navigationViewController, popToViewController, viewController);
+		} else {
+			Com_Warn("viewController was NULL\n");
+		}
+	} else {
+		Com_Warn("navigationViewController was NULL\n");
 	}
 }
 
@@ -116,14 +122,24 @@ void Ui_PopToViewController(ViewController *viewController) {
  * @brief
  */
 void Ui_PopViewController(void) {
-	$(navigationViewController, popViewController);
+
+	if (navigationViewController) {
+		$(navigationViewController, popViewController);
+	} else {
+		Com_Warn("navigationViewController was NULL\n");
+	}
 }
 
 /**
  * @brief
  */
 void Ui_PopAllViewControllers(void) {
-	$(navigationViewController, popToRootViewController);
+
+	if (navigationViewController) {
+		$(navigationViewController, popToRootViewController);
+	} else {
+		Com_Warn("navigationViewController was NULL\n");
+	}
 }
 
 /**
@@ -131,15 +147,9 @@ void Ui_PopAllViewControllers(void) {
  */
 void Ui_Init(void) {
 
-#if defined(__APPLE__)
-	const char *path = Fs_BaseDir();
-	if (path) {
-		char fonts[MAX_OS_PATH];
-		g_snprintf(fonts, sizeof(fonts), "%s/Contents/MacOS/etc/fonts", path);
+	MVC_LogSetPriority(SDL_LOG_PRIORITY_DEBUG);
 
-		setenv("FONTCONFIG_PATH", fonts, 0);
-	}
-#endif
+	$$(Resource, setProvider, Ui_Data);
 
 	Renderer *renderer = (Renderer *) $(alloc(QuetooRenderer), init);
 
@@ -163,7 +173,7 @@ void Ui_Shutdown(void) {
 
 	Ui_PopAllViewControllers();
 
-	release(windowController);
+	windowController = release(windowController);
 
 	Mem_FreeTag(MEM_TAG_UI);
 }

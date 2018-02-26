@@ -281,17 +281,17 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		Cg_BreathTrail(ent);
 	}
 
-	// set red/green tints
-	if (ci->tints[TINT_R][3]) { // shirt
-		e->tints[TINT_R] = ci->tints[TINT_R];
+	// set tints
+	if (ci->shirt.a) {
+		ColorToVec4(ci->shirt, e->tints[0]);
 	}
 
-	if (ci->tints[TINT_G][3]) { // pants
-		e->tints[TINT_G] = ci->tints[TINT_G];
+	if (ci->pants.a) {
+		ColorToVec4(ci->pants, e->tints[1]);
 	}
 
-	if (ci->tints[TINT_B][3]) { // helmmet
-		e->tints[TINT_B] = ci->tints[TINT_B];
+	if (ci->helmet.a) {
+		ColorToVec4(ci->helmet, e->tints[2]);
 	}
 
 	r_entity_t head, torso, legs;
@@ -390,7 +390,7 @@ static void Cg_WeaponOffset(cl_entity_t *ent, vec3_t offset, vec3_t angles) {
 	const vec3_t kick_offset = { -6.0, 0.0, 0.0 };
 	const vec3_t kick_angles = { -2.0, 0.0, 0.0 };
 
-	VectorSet(offset, cg_draw_weapon_x->value, cg_draw_weapon_y->value, cg_draw_weapon_z->value);
+	VectorClear(offset);
 	VectorClear(angles);
 
 	if (ent->animation1.animation == ANIM_TORSO_DROP) {
@@ -406,6 +406,10 @@ static void Cg_WeaponOffset(cl_entity_t *ent, vec3_t offset, vec3_t angles) {
 
 	VectorScale(offset, cg_bob->value, offset);
 	VectorScale(angles, cg_bob->value, angles);
+
+	offset[0] += cg_draw_weapon_x->value;
+	offset[1] += cg_draw_weapon_y->value;
+	offset[2] += cg_draw_weapon_z->value;
 }
 
 /**

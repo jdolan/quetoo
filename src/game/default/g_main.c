@@ -84,7 +84,11 @@ static g_team_t g_teamlist_default[MAX_TEAMS];
 /**
  * @brief
  */
-static void G_InitTeam(const g_team_id_t id, const char *name, const int16_t color, const char tint[COLOR_MAX_LENGTH], const int16_t effect) {
+static void G_InitTeam(const g_team_id_t id, const char *name,
+					   const char *tint,
+					   const int16_t color,
+					   const int16_t effect) {
+	
 	g_team_t *team = &g_teamlist[id];
 
 	team->id = id;
@@ -93,9 +97,9 @@ static void G_InitTeam(const g_team_id_t id, const char *name, const int16_t col
 
 	team->color = color;
 
-	g_strlcpy(team->tint_r, tint, sizeof(team->tint_r)); // shirt
-	g_strlcpy(team->tint_g, tint, sizeof(team->tint_g)); // pants
-	g_strlcpy(team->tint_b, tint, sizeof(team->tint_b)); // helmet
+	ColorFromHex(tint, &team->shirt);
+	ColorFromHex(tint, &team->pants);
+	ColorFromHex(tint, &team->helmet);
 
 	g_strlcpy(team->skin, DEFAULT_TEAM_SKIN, sizeof(team->skin));
 
@@ -112,10 +116,10 @@ void G_ResetTeams(void) {
 
 	memset(g_teamlist, 0, sizeof(g_teamlist));
 
-	G_InitTeam(TEAM_RED, "Red", TEAM_COLOR_RED, "ff0000", EF_CTF_RED);
-	G_InitTeam(TEAM_BLUE, "Blue", TEAM_COLOR_BLUE, "0000ff", EF_CTF_BLUE);
-	G_InitTeam(TEAM_GREEN, "Green", TEAM_COLOR_GREEN, "00ff00", EF_CTF_GREEN);
-	G_InitTeam(TEAM_ORANGE, "Orange", TEAM_COLOR_ORANGE, "aa6600", EF_CTF_ORANGE);
+	G_InitTeam(TEAM_RED, "Red", "ff0000", TEAM_COLOR_RED, EF_CTF_RED);
+	G_InitTeam(TEAM_BLUE, "Blue", "0000ff", TEAM_COLOR_BLUE, EF_CTF_BLUE);
+	G_InitTeam(TEAM_GREEN, "Green", "00ff00", TEAM_COLOR_GREEN, EF_CTF_GREEN);
+	G_InitTeam(TEAM_ORANGE, "Orange", "aa6600", TEAM_COLOR_ORANGE, EF_CTF_ORANGE);
 
 	memcpy(g_teamlist_default, g_teamlist, sizeof(g_teamlist));
 
@@ -131,12 +135,12 @@ void G_SetTeamNames(void) {
 	for (int32_t t = 0; t < MAX_TEAMS; t++) {
 
 		if (t != TEAM_RED) {
-			strcat(team_info, "\\");
+			g_strlcat(team_info, "\\", sizeof(team_info));
 		}
 
-		strcat(team_info, g_teamlist[t].name);
-		strcat(team_info, "\\");
-		strcat(team_info, va("%i", g_teamlist[t].color));
+		g_strlcat(team_info, g_teamlist[t].name, sizeof(team_info));
+		g_strlcat(team_info, "\\", sizeof(team_info));
+		g_strlcat(team_info, va("%i", g_teamlist[t].color), sizeof(team_info));
 	}
 
 	gi.SetConfigString(CS_TEAM_INFO, team_info);
@@ -933,6 +937,10 @@ static void G_CheckRules(void) {
 				g_teams->modified = true;
 			}
 
+			if (g_strcmp0(g_num_teams->string, "default") && g_num_teams->integer != 2) {
+				gi.SetCvarString(g_num_teams->name, "default");
+			}
+
 			if (g_match->integer == 0) {
 				g_match->integer = 1;
 				g_match->modified = true;
@@ -1004,7 +1012,7 @@ static void G_CheckRules(void) {
 		if (g_level.num_teams != num_teams) {
 			g_level.num_teams = num_teams;
 
-			if (g_teams->integer) {
+			if (g_teams->integer || g_ctf->integer) {
 				G_InitNumTeams();
 
 				gi.BroadcastPrint(PRINT_HIGH, "Number of teams set to %i\n",
@@ -1021,7 +1029,7 @@ static void G_CheckRules(void) {
 		// teams are required for duel
 		if (g_level.gameplay == GAME_DUEL && g_teams->integer == 0) {
 			gi.Print("Teams can't be disabled in DUEL mode, enabling...\n");
-			gi.CvarSetValue(g_teams->name, 1.0);
+			gi.SetCvarValue(g_teams->name, 1.0);
 		} else {
 			g_level.teams = g_teams->integer;
 			G_InitNumTeams();
@@ -1059,7 +1067,7 @@ static void G_CheckRules(void) {
 
 		if (g_level.gameplay == GAME_DUEL && g_match->integer == 0) {
 			gi.Print("Matches can't be disabled in DUEL mode, enabling...\n");
-			gi.CvarSetValue(g_match->name, 1.0);
+			gi.SetCvarValue(g_match->name, 1.0);
 		} else {
 			g_level.match = g_match->integer;
 			gi.SetConfigString(CS_MATCH, va("%d", g_level.match));
@@ -1301,70 +1309,70 @@ void G_Init(void) {
 	gi.Print("  ^5Game module initialization...\n");
 
 	const char *s = va("%s %s %s", VERSION, BUILD_HOST, REVISION);
-	cvar_t *game_version = gi.Cvar("game_version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
+	cvar_t *game_version = gi.AddCvar("game_version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
 	gi.Print("  ^5Version %s\n", game_version->string);
 
 	memset(&g_game, 0, sizeof(g_game));
 
-	gi.Cvar("game_name", GAME_NAME, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
-	gi.Cvar("game_date", __DATE__, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
+	gi.AddCvar("game_name", GAME_NAME, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
+	gi.AddCvar("game_date", __DATE__, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
-	g_admin_password = gi.Cvar("g_admin_password", "", CVAR_LATCH, "Password to authenticate as an admin");
-	g_ammo_respawn_time = gi.Cvar("g_ammo_respawn_time", "20.0", CVAR_SERVER_INFO, "Ammo respawn interval in seconds");
-	g_auto_join = gi.Cvar("g_auto_join", "1", CVAR_SERVER_INFO,
+	g_admin_password = gi.AddCvar("g_admin_password", "", CVAR_LATCH, "Password to authenticate as an admin");
+	g_ammo_respawn_time = gi.AddCvar("g_ammo_respawn_time", "20.0", CVAR_SERVER_INFO, "Ammo respawn interval in seconds");
+	g_auto_join = gi.AddCvar("g_auto_join", "1", CVAR_SERVER_INFO,
 	                      "Automatically assigns players to teams , ignored for duel mode");
-	g_capture_limit = gi.Cvar("g_capture_limit", "8", CVAR_SERVER_INFO, "The capture limit per level");
-	g_cheats = gi.Cvar("g_cheats", "0", CVAR_SERVER_INFO, NULL);
-	g_ctf = gi.Cvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay");
-	g_hook = gi.Cvar("g_hook", "default", CVAR_SERVER_INFO,
+	g_capture_limit = gi.AddCvar("g_capture_limit", "8", CVAR_SERVER_INFO, "The capture limit per level");
+	g_cheats = gi.AddCvar("g_cheats", "0", CVAR_SERVER_INFO, NULL);
+	g_ctf = gi.AddCvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay");
+	g_hook = gi.AddCvar("g_hook", "default", CVAR_SERVER_INFO,
 	                 "Whether to allow the hook to be used or not. \"default\" only allows hook in CTF; 1 is always allow, 0 is never allow.");
-	g_hook_distance = gi.Cvar("g_hook_distance", va("%.1f", PM_HOOK_DEF_DIST), CVAR_SERVER_INFO,
+	g_hook_distance = gi.AddCvar("g_hook_distance", va("%.1f", PM_HOOK_DEF_DIST), CVAR_SERVER_INFO,
 							  "The maximum distance the hook will travel");
-	g_hook_style = gi.Cvar("g_hook_style", "default", CVAR_SERVER_INFO,
+	g_hook_style = gi.AddCvar("g_hook_style", "default", CVAR_SERVER_INFO,
 	                       "Whether to allow only \"pull\", \"swing\" or any (\"default\") hook swing style.");
-	g_hook_speed = gi.Cvar("g_hook_speed", "900", CVAR_SERVER_INFO, "The speed that the hook will fly at");
-	g_hook_pull_speed = gi.Cvar("g_hook_pull_speed", "700", CVAR_SERVER_INFO,
+	g_hook_speed = gi.AddCvar("g_hook_speed", "900", CVAR_SERVER_INFO, "The speed that the hook will fly at");
+	g_hook_pull_speed = gi.AddCvar("g_hook_pull_speed", "700", CVAR_SERVER_INFO,
 	                            "The speed that you get pulled towards the hook");
-	g_frag_limit = gi.Cvar("g_frag_limit", "30", CVAR_SERVER_INFO, "The frag limit per level");
-	g_friendly_fire = gi.Cvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Enables friendly fire");
-	g_force_demo = gi.Cvar("g_force_demo", "0", CVAR_SERVER_INFO, "Force all players to record a demo");
-	g_force_screenshot = gi.Cvar("g_force_screenshot", "0", CVAR_SERVER_INFO, "Force all players to take a screenshot");
-	g_gameplay = gi.Cvar("g_gameplay", "default", CVAR_SERVER_INFO, "Selects deathmatch, duel, arena, or instagib combat");
-	g_gravity = gi.Cvar("g_gravity", "800", CVAR_SERVER_INFO, NULL);
-	g_handicap = gi.Cvar("g_handicap", "1", CVAR_SERVER_INFO,
+	g_frag_limit = gi.AddCvar("g_frag_limit", "30", CVAR_SERVER_INFO, "The frag limit per level");
+	g_friendly_fire = gi.AddCvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Enables friendly fire");
+	g_force_demo = gi.AddCvar("g_force_demo", "0", CVAR_SERVER_INFO, "Force all players to record a demo");
+	g_force_screenshot = gi.AddCvar("g_force_screenshot", "0", CVAR_SERVER_INFO, "Force all players to take a screenshot");
+	g_gameplay = gi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO, "Selects deathmatch, duel, arena, or instagib combat");
+	g_gravity = gi.AddCvar("g_gravity", "800", CVAR_SERVER_INFO, NULL);
+	g_handicap = gi.AddCvar("g_handicap", "1", CVAR_SERVER_INFO,
 	                     "Allows usage of player handicap. 0 disallows handicap, 1 allows handicap, 2 allows handicap but disables damage reduction. (default 1)");
-	g_inhibit = gi.Cvar("g_inhibit", "", CVAR_SERVER_INFO,
+	g_inhibit = gi.AddCvar("g_inhibit", "", CVAR_SERVER_INFO,
 	                    "Prevents entities from spawning using a class name filter (e.g.: \"weapon_bfg ammo_nukes item_quad\")");
-	g_num_teams = gi.Cvar("g_num_teams", "default", CVAR_SERVER_INFO, "The number of teams allowed. By default, picks the valid amount for the map, or 2.");
-	g_match = gi.Cvar("g_match", "0", CVAR_SERVER_INFO, "Enables match play requiring players to ready");
-	g_max_entities = gi.Cvar("g_max_entities", "1024", CVAR_LATCH, NULL);
-	g_motd = gi.Cvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect");
-	g_password = gi.Cvar("g_password", "", CVAR_USER_INFO, "The server password");
-	g_player_projectile = gi.Cvar("g_player_projectile", "1.0", CVAR_SERVER_INFO, "Scales player velocity to projectiles");
-	g_random_map = gi.Cvar("g_random_map", "0", 0, "Enables map shuffling");
-	g_respawn_protection = gi.Cvar("g_respawn_protection", "0.0", 0, "Respawn protection in seconds.");
-	g_respawn_time = gi.Cvar("g_respawn_time", "1.8", 0, "Respawn delay in seconds.");
-	g_round_limit = gi.Cvar("g_round_limit", "30", CVAR_SERVER_INFO, "The number of rounds to run per level.");
-	g_rounds = gi.Cvar("g_rounds", "0", CVAR_SERVER_INFO, "Enables rounds-based play, where last player standing wins.");
-	g_show_attacker_stats = gi.Cvar("g_show_attacker_stats", "1", CVAR_SERVER_INFO, NULL);
-	g_spawn_farthest = gi.Cvar("g_spawn_farthest", "0", CVAR_SERVER_INFO, NULL);
-	g_spectator_chat = gi.Cvar("g_spectator_chat", "1", CVAR_SERVER_INFO,
-	                           "If enabled, spectators can only talk to other spectators");
-	g_teams = gi.Cvar("g_teams", "0", CVAR_SERVER_INFO, "Enables teams-based play");
-	g_techs = gi.Cvar("g_techs", "default", CVAR_SERVER_INFO,
+	g_num_teams = gi.AddCvar("g_num_teams", "default", CVAR_SERVER_INFO, "The number of teams allowed. By default, picks the valid amount for the map, 2 for team games, or 1 for DM.");
+	g_match = gi.AddCvar("g_match", "0", CVAR_SERVER_INFO, "Enables match play requiring players to ready");
+	g_max_entities = gi.AddCvar("g_max_entities", "1024", CVAR_LATCH, NULL);
+	g_motd = gi.AddCvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect");
+	g_password = gi.AddCvar("g_password", "", CVAR_USER_INFO, "The server password");
+	g_player_projectile = gi.AddCvar("g_player_projectile", "1.0", CVAR_SERVER_INFO, "Scales player velocity to projectiles");
+	g_random_map = gi.AddCvar("g_random_map", "0", 0, "Enables map shuffling");
+	g_respawn_protection = gi.AddCvar("g_respawn_protection", "0.0", 0, "Respawn protection in seconds");
+	g_respawn_time = gi.AddCvar("g_respawn_time", "1.8", 0, "Respawn delay in seconds.");
+	g_round_limit = gi.AddCvar("g_round_limit", "30", CVAR_SERVER_INFO, "The number of rounds to run per level");
+	g_rounds = gi.AddCvar("g_rounds", "0", CVAR_SERVER_INFO, "Enables rounds-based play, where last player standing wins");
+	g_show_attacker_stats = gi.AddCvar("g_show_attacker_stats", "1", CVAR_SERVER_INFO, NULL);
+	g_spawn_farthest = gi.AddCvar("g_spawn_farthest", "0", CVAR_SERVER_INFO, NULL);
+	g_spectator_chat = gi.AddCvar("g_spectator_chat", "1", CVAR_SERVER_INFO,
+								  "If enabled, spectators can only talk to other spectators");
+	g_teams = gi.AddCvar("g_teams", "0", CVAR_SERVER_INFO, "Enables teams-based play");
+	g_techs = gi.AddCvar("g_techs", "default", CVAR_SERVER_INFO,
 	                 "Whether to allow techs or not. \"default\" only allows techs in CTF; 1 is always allow, 0 is never allow.");
-	g_time_limit = gi.Cvar("g_time_limit", "20.0", CVAR_SERVER_INFO, "The time limit per level in minutes");
-	g_timeout_time = gi.Cvar("g_timeout_time", "120", CVAR_SERVER_INFO, "Length in seconds of a timeout, 0 = disabled");
-	g_voting = gi.Cvar("g_voting", "1", CVAR_SERVER_INFO, "Activates voting");
-	g_warmup_time = gi.Cvar("g_warmup_time", "15", CVAR_SERVER_INFO, "Match warmup countdown in seconds, up to 30");
-	g_weapon_respawn_time = gi.Cvar("g_weapon_respawn_time", "5.0", CVAR_SERVER_INFO, "Weapon respawn interval in seconds");
-	g_weapon_stay = gi.Cvar("g_weapon_stay", "0", CVAR_SERVER_INFO, "Controls whether weapons will respawn like normal or always stay");
+	g_time_limit = gi.AddCvar("g_time_limit", "20.0", CVAR_SERVER_INFO, "The time limit per level in minutes");
+	g_timeout_time = gi.AddCvar("g_timeout_time", "120", CVAR_SERVER_INFO, "Length in seconds of a timeout, 0 = disabled");
+	g_voting = gi.AddCvar("g_voting", "1", CVAR_SERVER_INFO, "Activates voting");
+	g_warmup_time = gi.AddCvar("g_warmup_time", "15", CVAR_SERVER_INFO, "Match warmup countdown in seconds, up to 30");
+	g_weapon_respawn_time = gi.AddCvar("g_weapon_respawn_time", "5.0", CVAR_SERVER_INFO, "Weapon respawn interval in seconds");
+	g_weapon_stay = gi.AddCvar("g_weapon_stay", "0", CVAR_SERVER_INFO, "Controls whether weapons will respawn like normal or always stay");
 
-	sv_max_clients = gi.Cvar("sv_max_clients", "1", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
-	sv_hostname = gi.Cvar("sv_hostname", "Quetoo", CVAR_SERVER_INFO, NULL);
+	sv_max_clients = gi.GetCvar("sv_max_clients");
+	sv_hostname = gi.GetCvar("sv_hostname");
 
-	dedicated = gi.Cvar("dedicated", "0", CVAR_NO_SET, NULL);
+	dedicated = gi.GetCvar("dedicated");
 
 	G_InitVote();
 
@@ -1401,11 +1409,11 @@ void G_Init(void) {
 			g_time_limit->modified = false;
 
 	// add game-specific server console commands
-	gi.Cmd("mute", G_Mute_Sv_f, CMD_GAME, "Prevent a client from talking");
-	gi.Cmd("unmute", G_Mute_Sv_f, CMD_GAME, "Allow a muted client to talk again");
-	gi.Cmd("stuff", G_Stuff_Sv_f, CMD_GAME, "Force a client to execute a command");
-	gi.Cmd("stuff_all", G_StuffAll_Sv_f, CMD_GAME, "Force all players to execute a command");
-	gi.Cmd("g_restart", G_Restart_Sv_f, CMD_GAME, "Force the game to restart");
+	gi.AddCmd("mute", G_Mute_Sv_f, CMD_GAME, "Prevent a client from talking");
+	gi.AddCmd("unmute", G_Mute_Sv_f, CMD_GAME, "Allow a muted client to talk again");
+	gi.AddCmd("stuff", G_Stuff_Sv_f, CMD_GAME, "Force a client to execute a command");
+	gi.AddCmd("stuff_all", G_StuffAll_Sv_f, CMD_GAME, "Force all players to execute a command");
+	gi.AddCmd("g_restart", G_Restart_Sv_f, CMD_GAME, "Force the game to restart");
 
 	gi.Print("  ^5Game module initialized\n");
 }

@@ -17,7 +17,7 @@ all: clean install-lib install-update snapshot
 all-data: clean install-lib install-update install-data snapshot
 
 configure:
-	cd .. ; autoreconf -i; ./configure LDFLAGS='-Wl,-rpath=XORIGIN/../lib' --host=$(HOST) --prefix=/
+	cd .. ; autoreconf -i; ./configure CFLAGS='-g -O0' LDFLAGS='-Wl,-rpath=XORIGIN/../lib' --host=$(HOST) --prefix=/
 
 compile: configure
 	make -C .. all
