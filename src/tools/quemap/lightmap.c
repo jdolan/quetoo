@@ -1068,7 +1068,7 @@ void FinalizeLighting(int32_t face_num) {
 		VectorScale(lightmap, 1.0 / 255.0, lightmap);
 
 		// add an ambient term if desired
-		// VectorAdd(lightmap, ambient, lightmap);
+		VectorAdd(lightmap, ambient, lightmap);
 
 		// apply brightness, saturation and contrast
 		ColorFilter(lightmap, lightmap, brightness, saturation, contrast);
