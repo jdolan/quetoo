@@ -74,7 +74,7 @@ void Cl_FreeServers(void) {
  * @brief
  */
 void Cl_ParseServerInfo(void) {
-	char info[MAX_MSG_SIZE];
+	char string[MAX_MSG_SIZE];
 
 	cl_server_info_t *server = Cl_ServerForNetaddr(&net_from);
 	if (!server) { // unknown server, assumed response to broadcast
@@ -86,31 +86,33 @@ void Cl_ParseServerInfo(void) {
 	}
 
 	// try to parse the info string
-	g_strlcpy(info, Net_ReadString(&net_message), sizeof(info));
-	if (sscanf(info, "%63c\\%31c\\%31c\\%hu\\%hu", server->hostname, server->name,
-	           server->gameplay, &server->clients, &server->max_clients) != 5) {
+	g_strlcpy(string, Net_ReadString(&net_message), sizeof(string));
 
-		Com_Debug(DEBUG_CLIENT, "Failed to parse info \"%s\" for %s\n", info, Net_NetaddrToString(&server->addr));
+	gchar **info = g_strsplit(string, "\\", 0);
+	const size_t num_info = g_strv_length(info);
+	if (num_info == 5) {
+		g_strlcpy(server->hostname, g_strchomp(info[0]), sizeof(server->hostname));
+		g_strlcpy(server->name, g_strchomp(info[1]), sizeof(server->name));
+		g_strlcpy(server->gameplay, g_strchomp(info[2]), sizeof(server->gameplay));
 
-		g_strlcpy(server->error, info, sizeof(server->error));
+		server->clients = strtoul(info[3], NULL, 10);
+		server->max_clients = strtoul(info[4], NULL, 10);
+
+		server->ping = Clamp(quetoo.ticks - server->ping_time, 1u, 999u);
+		server->error[0] = '\0';
+
+	} else {
 		server->hostname[0] = '\0';
 		server->name[0] = '\0';
 		server->gameplay[0] = '\0';
+
 		server->clients = 0;
 		server->max_clients = 0;
 
-		return;
+		g_snprintf(server->error, sizeof(server->error), "Invalid response from %s\n", Net_NetaddrToString(&server->addr));
 	}
 
-	g_strchomp(server->hostname);
-	g_strchomp(server->name);
-	g_strchomp(server->gameplay);
-
-	server->hostname[sizeof(server->hostname) - 1] = '\0';
-	server->name[sizeof(server->name) - 1] = '\0';
-	server->gameplay[sizeof(server->name) - 1] = '\0';
-	server->ping = Clamp(quetoo.ticks - server->ping_time, 1u, 999u);
-	server->error[0] = '\0';
+	g_strfreev(info);
 
 	MVC_PostNotification(&(const Notification) {
 		.name = NOTIFICATION_SERVER_PARSED,

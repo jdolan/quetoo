@@ -27,8 +27,6 @@ typedef struct {
 
 	r_uniform_fog_t fog;
 
-	r_uniform4fv_t current_color;
-
 	r_uniform3f_t view_origin;
 	r_uniform3f_t view_angles;
 	r_uniform3f_t view_right;
@@ -95,14 +93,9 @@ void R_InitProgram_particle(r_program_t *program) {
 
 	R_ProgramVariable(&p->ticks, R_UNIFORM_FLOAT, "TICKS", true);
 
-	R_ProgramVariable(&p->current_color, R_UNIFORM_VEC4, "GLOBAL_COLOR", true);
-
 	R_ProgramParameter1i(&p->sampler0, R_TEXUNIT_DIFFUSE);
 
 	R_ProgramParameter1f(&p->fog.density, 0.0);
-
-	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
-	R_ProgramParameter4fv(&p->current_color, white);
 }
 
 /**
@@ -124,20 +117,6 @@ void R_UseFog_particle(const r_fog_parameters_t *fog) {
 	R_ProgramParameter1f(&p->fog.gamma_correction, r_state.screenshot_pending || r_framebuffer_state.current_framebuffer ? 0.0 : 1.0);
 }
 
-/**
- * @brief
- */
-void R_UseCurrentColor_particle(const vec4_t color) {
-
-	r_particle_program_t *p = &r_particle_program;
-	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
-
-	if (color && r_state.color_array_enabled) {
-		R_ProgramParameter4fv(&p->current_color, color);
-	} else {
-		R_ProgramParameter4fv(&p->current_color, white);
-	}
-}
 
 /**
  * @brief

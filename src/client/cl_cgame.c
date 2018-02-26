@@ -266,6 +266,7 @@ void Cl_InitCgame(void) {
 	import.PopMatrix = R_PopMatrix;
 	import.DrawMeshModel = R_DrawMeshModel_default;
 	import.DrawMeshModelMaterials = R_DrawMeshModelMaterials_default;
+	import.EnableBlend = R_EnableBlend;
 	import.EnableDepthTest = R_EnableDepthTest;
 	import.DepthRange = R_DepthRange;
 	import.EnableTexture = R_EnableTextureByIdentifier;
@@ -283,14 +284,17 @@ void Cl_InitCgame(void) {
 	import.StringWidth = R_StringWidth;
 	import.DrawString = R_DrawString;
 
-	cls.cgame = Sys_LoadLibrary("cgame", &cgame_handle, "Cg_LoadCgame", &import);
+	cgame_handle = Sys_OpenLibrary("cgame", true);
+	assert(cgame_handle);
+	
+	cls.cgame = Sys_LoadLibrary(cgame_handle, "Cg_LoadCgame", &import);
 
 	if (!cls.cgame) {
 		Com_Error(ERROR_DROP, "Failed to load client game\n");
 	}
 
 	if (cls.cgame->api_version != CGAME_API_VERSION) {
-		Com_Error(ERROR_DROP, "Client game has wrong version (%d)\n", cls.cgame->api_version);
+		Com_Error(ERROR_DROP, "Client game is version %i, not %i\n", cls.cgame->api_version, CGAME_API_VERSION);
 	}
 
 	cls.cgame->Init();
@@ -321,5 +325,6 @@ void Cl_ShutdownCgame(void) {
 	Com_Print("Client game down\n");
 	Com_QuitSubsystem(QUETOO_CGAME);
 
-	Sys_CloseLibrary(&cgame_handle);
+	Sys_CloseLibrary(cgame_handle);
+	cgame_handle = NULL;
 }

@@ -149,9 +149,9 @@ static void setDrawColor(Renderer *self, const SDL_Color *color) {
 	if (color) {
 		R_Color((const vec4_t) {
 			color->r / 255.0f,
-			      color->g / 255.0f,
-			      color->b / 255.0f,
-			      color->a / 255.0f
+			color->g / 255.0f,
+			color->b / 255.0f,
+			color->a / 255.0f
 		});
 	} else {
 		R_Color(NULL);

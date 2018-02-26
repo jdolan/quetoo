@@ -90,7 +90,9 @@
                         "control": {
                           "class": "HueColorPicker",
                           "identifier": "effects",
-                          "min": -1
+                          "hueSlider": {
+                            "min": -1
+                          }
                         }
                       },
                       {

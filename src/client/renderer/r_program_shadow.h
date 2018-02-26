@@ -27,6 +27,5 @@
 void R_InitProgram_shadow(r_program_t *program);
 void R_PreLink_shadow(const r_program_t *program);
 void R_UpdateShadowLightPlane_shadow(const vec4_t light, const vec4_t plane);
-void R_UseCurrentColor_shadow(const vec4_t color);
 void R_UseInterpolation_shadow(const vec_t time_fraction);
 #endif /* __R_LOCAL_H__ */

@@ -53,7 +53,7 @@ void R_InitContext(void) {
 
 	uint32_t flags = SDL_WINDOW_OPENGL;
 
-	const int display = Clamp(r_display->integer, 0, SDL_GetNumVideoDisplays());
+	const int display = Clamp(r_display->integer, 0, SDL_GetNumVideoDisplays() - 1);
 
 	if (r_allow_high_dpi->integer) {
 		flags |= SDL_WINDOW_ALLOW_HIGHDPI;

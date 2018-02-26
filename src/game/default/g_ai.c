@@ -601,18 +601,12 @@ void G_Ai_Init(void) {
 	import.ItemIndex = G_Ai_ItemIndex;
 	import.CanPickupItem = G_Ai_CanPickupItem;
 
-	ai_export_t *exports = gi.LoadAi(&import);
-
-	if (!exports) {
-		return;
-	}
-
-	aix = exports;
+	aix = gi.LoadAi(&import);
 
 	G_Ai_SetDataPointers();
 
 	g_ai_max_clients = gi.AddCvar("g_ai_max_clients", "0", CVAR_SERVER_INFO,
-	                           "The minimum amount player slots that will always be filled. Specify -1 to fill all available slots.");
+								  "The minimum amount player slots that will always be filled. Specify -1 to fill all available slots.");
 
 	gi.AddCmd("g_ai_add", G_Ai_Add_f, CMD_GAME, "Add one or more AI to the game");
 	gi.AddCmd("g_ai_remove", G_Ai_Remove_f, CMD_GAME, "Remove one or more AI from the game");

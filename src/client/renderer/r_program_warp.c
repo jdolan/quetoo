@@ -29,8 +29,6 @@ typedef struct r_warp_program_s {
 	r_sampler2d_t sampler5;
 
 	r_uniform_fog_t fog;
-
-	r_uniform4fv_t current_color;
 } r_warp_program_t;
 
 static r_warp_program_t r_warp_program;
@@ -58,8 +56,6 @@ void R_InitProgram_warp(r_program_t *program) {
 	R_ProgramVariable(&p->sampler0, R_SAMPLER_2D, "SAMPLER0", true);
 	R_ProgramVariable(&p->sampler5, R_SAMPLER_2D, "SAMPLER5", true);
 
-	R_ProgramVariable(&p->current_color, R_UNIFORM_VEC4, "GLOBAL_COLOR", true);
-
 	R_ProgramVariable(&p->fog.start, R_UNIFORM_FLOAT, "FOG.START", true);
 	R_ProgramVariable(&p->fog.end, R_UNIFORM_FLOAT, "FOG.END", true);
 	R_ProgramVariable(&p->fog.color, R_UNIFORM_VEC3, "FOG.COLOR", true);
@@ -72,9 +68,6 @@ void R_InitProgram_warp(r_program_t *program) {
 	R_ProgramParameter1i(&p->sampler5, R_TEXUNIT_WARP);
 
 	R_ProgramParameter1f(&p->fog.density, 0.0);
-
-	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
-	R_ProgramParameter4fv(&p->current_color, white);
 }
 
 /**
@@ -104,19 +97,4 @@ void R_UseFog_warp(const r_fog_parameters_t *fog) {
 	}
 
 	R_ProgramParameter1f(&p->fog.gamma_correction, r_state.screenshot_pending || r_framebuffer_state.current_framebuffer ? 0.0 : 1.0);
-}
-
-/**
- * @brief
- */
-void R_UseCurrentColor_warp(const vec4_t color) {
-
-	r_warp_program_t *p = &r_warp_program;
-	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
-
-	if (color) {
-		R_ProgramParameter4fv(&p->current_color, color);
-	} else {
-		R_ProgramParameter4fv(&p->current_color, white);
-	}
 }

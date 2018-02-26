@@ -712,6 +712,11 @@ typedef struct cg_import_s {
 	void (*DrawMeshModelMaterials)(const r_entity_t *e);
 
 	/**
+	 * @brief Toggle the state of alpha blending.
+	 */
+	void (*EnableBlend)(_Bool enable);
+
+	/**
 	 * @brief Toggle the state of depth testing.
 	 */
 	void (*EnableDepthTest)(_Bool enable);
