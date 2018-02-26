@@ -1061,7 +1061,6 @@ void FinalizeLighting(int32_t face_num) {
 		const vec_t *indirect = fl->indirect + i * 3;
 
 		// start with raw sample data
-		// VectorCopy(indirect, lightmap);
 		VectorAdd(direct, indirect, lightmap);
 
 		// convert to float
