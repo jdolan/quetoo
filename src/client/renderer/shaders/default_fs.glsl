@@ -4,6 +4,8 @@
 
 #version 330
 
+#extension GL_ARB_texture_query_lod: enable
+
 #define FRAGMENT_SHADER
 
 #include "include/matrix.glsl"
@@ -67,9 +69,6 @@ in VertexData {
 	vec3 eye;
 };
 
-const vec3 two = vec3(2.0);
-const vec3 negHalf = vec3(-0.5);
-
 vec3 eyeDir;
 
 out vec4 fragColor;
@@ -91,8 +90,29 @@ void DitherFragment(inout vec3 color) {
  * @brief Yield the parallax offset for the texture coordinate.
  */
 vec2 BumpTexcoord() {
+
+	#ifdef GL_ARB_texture_query_lod
+	// sample height, but make sure it doesn't sample the heaviest mips on high res textures (slow)
+	float height;
+	{
+		// 2^7 = 128*128 largest texture size
+		const float maxMipmaps = 7;
+
+		vec2 texSize = textureSize(SAMPLER3, 0).xy;
+		float numMipmaps = log2(max(texSize.x, texSize.y));
+
+		float minMip = numMipmaps - maxMipmaps;
+		float mipLevel = textureQueryLOD(SAMPLER3, texcoords[0]).y;
+
+		height = textureLod(SAMPLER3, texcoords[0], max(mipLevel, minMip)).a;
+	}
+	#else
 	float height = texture(SAMPLER3, texcoords[0]).a;
-	return texcoords[0] + eyeDir.xy * (height * 0.04 - 0.02) * PARALLAX;
+	#endif
+
+	vec2 offset = eyeDir.xy * (height * 0.04 - 0.02) * PARALLAX;
+
+	return texcoords[0] + offset;
 }
 
 /**
@@ -217,7 +237,7 @@ void main(void) {
 	}
 
 	// then resolve any bump mapping
-	vec4 normalmap = vec4(normal, 1.0);
+	vec4 normalmap = vec4(normal, 0.5);
 
 	float lightmapBumpScale = 1.0;
 	float lightmapSpecularScale = 0.0;
@@ -226,7 +246,7 @@ void main(void) {
 
 		if (DELUXEMAP) {
 			deluxemap = texture(SAMPLER2, uvLightmap).rgb;
-			deluxemap = normalize(two * (deluxemap + negHalf));
+			deluxemap = normalize(2.0 * (deluxemap + 0.5));
 		}
 
 		normalmap = texture(SAMPLER3, uvTextures);
@@ -238,7 +258,7 @@ void main(void) {
 		vec3 glossmap = vec3(0.5);
 
 		if (GLOSSMAP) {
-			glossmap = texture(SAMPLER4, uvTextures).rgb;
+			glossmap = texture(SAMPLER4, uvTextures);
 		} else if (DIFFUSE) {
 			vec4 diffuse = texture(SAMPLER0, uvTextures);
 			float processedGrayscaleDiffuse = dot(diffuse.rgb * diffuse.a, vec3(0.299, 0.587, 0.114)) * 0.875 + 0.125;
