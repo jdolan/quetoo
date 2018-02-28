@@ -258,7 +258,7 @@ void main(void) {
 		vec3 glossmap = vec3(0.5);
 
 		if (GLOSSMAP) {
-			glossmap = texture(SAMPLER4, uvTextures);
+			glossmap = texture(SAMPLER4, uvTextures).rgb;
 		} else if (DIFFUSE) {
 			vec4 diffuse = texture(SAMPLER0, uvTextures);
 			float processedGrayscaleDiffuse = dot(diffuse.rgb * diffuse.a, vec3(0.299, 0.587, 0.114)) * 0.875 + 0.125;
