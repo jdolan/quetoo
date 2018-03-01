@@ -1,0 +1,28 @@
+{
+	"identifier": "main",
+	"subviews": [
+		{
+			"class": "ImageView",
+			"identifier": "background"
+		},
+		{
+			"class": "ImageView",
+			"identifier": "logo"
+		},
+		{
+			"class": "Label",
+			"identifier": "version"
+		},
+		{
+			"identifier": "contentView"
+		},
+		{
+			"class": "StackView",
+			"identifier": "primaryMenu",
+		},
+		{
+			"class": "StackView",
+			"identifier": "secondaryMenu"
+		}
+	]
+}

@@ -247,7 +247,7 @@ void Cg_Move(pm_cmd_t *cmd) {
 			}
 
 			if (cgi.client->unclamped_time - time > 200) {
-				cgi.CvarToggle(cg_third_person_chasecam->name);
+				cgi.ToggleCvar(cg_third_person_chasecam->name);
 				time = cgi.client->unclamped_time;
 			}
 		}
@@ -299,16 +299,16 @@ static void Cg_Score_up_f(void) {
  */
 void Cg_InitInput(void) {
 
-	cg_run = cgi.Cvar("cg_run", "1", CVAR_ARCHIVE, NULL);
+	cg_run = cgi.AddCvar("cg_run", "1", CVAR_ARCHIVE, NULL);
 
-	cgi.Cmd("+speed", Cg_Speed_down_f, CMD_CGAME, NULL);
-	cgi.Cmd("-speed", Cg_Speed_up_f, CMD_CGAME, NULL);
-	cgi.Cmd("+attack", Cg_Attack_down_f, CMD_CGAME, NULL);
-	cgi.Cmd("-attack", Cg_Attack_up_f, CMD_CGAME, NULL);
-	cgi.Cmd("+hook", Cg_Hook_down_f, CMD_CGAME, NULL);
-	cgi.Cmd("-hook", Cg_Hook_up_f, CMD_CGAME, NULL);
-	cgi.Cmd("+score", Cg_Score_down_f, CMD_CGAME, NULL);
-	cgi.Cmd("-score", Cg_Score_up_f, CMD_CGAME, NULL);
+	cgi.AddCmd("+speed", Cg_Speed_down_f, CMD_CGAME, NULL);
+	cgi.AddCmd("-speed", Cg_Speed_up_f, CMD_CGAME, NULL);
+	cgi.AddCmd("+attack", Cg_Attack_down_f, CMD_CGAME, NULL);
+	cgi.AddCmd("-attack", Cg_Attack_up_f, CMD_CGAME, NULL);
+	cgi.AddCmd("+hook", Cg_Hook_down_f, CMD_CGAME, NULL);
+	cgi.AddCmd("-hook", Cg_Hook_up_f, CMD_CGAME, NULL);
+	cgi.AddCmd("+score", Cg_Score_down_f, CMD_CGAME, NULL);
+	cgi.AddCmd("-score", Cg_Score_up_f, CMD_CGAME, NULL);
 
 	Cg_ClearInput();
 }

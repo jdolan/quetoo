@@ -49,7 +49,8 @@ static void Cg_UpdateFov(void) {
 		}
 
 		if (time == 0) {
-			prev = cgi.view->fov[0] * 2.0, next = cg_fov->value;
+			prev = cgi.view->fov[0] * 2.0;
+			next = cg_fov->value;
 			time = cgi.client->unclamped_time;
 		}
 
@@ -201,7 +202,7 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	}
 
 	if (cg_bob->modified) {
-		cgi.CvarSetValue(cg_bob->name, Clamp(cg_bob->value, 0.0, 2.0));
+		cgi.SetCvarValue(cg_bob->name, Clamp(cg_bob->value, 0.0, 2.0));
 		cg_bob->modified = false;
 	}
 

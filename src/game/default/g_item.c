@@ -752,9 +752,10 @@ g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
 	} else {
 		AngleVectors(ent->s.angles, forward, NULL, NULL);
 		VectorCopy(ent->s.origin, it->s.origin);
+		it->s.origin[2] -= it->mins[2];
 	}
 
-	tr = gi.Trace(ent->s.origin, it->s.origin, it->mins, it->maxs, ent, MASK_SOLID);
+	tr = gi.Trace(it->s.origin, it->s.origin, it->mins, it->maxs, ent, MASK_SOLID);
 
 	it->locals.item = item;
 

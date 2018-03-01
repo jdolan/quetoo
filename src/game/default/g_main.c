@@ -97,7 +97,11 @@ static g_team_t g_teamlist_default[MAX_TEAMS];
 /**
  * @brief
  */
-static void G_InitTeam(const g_team_id_t id, const char *name, const int16_t color, const char tint[COLOR_MAX_LENGTH], const int16_t effect) {
+static void G_InitTeam(const g_team_id_t id, const char *name,
+					   const char *tint,
+					   const int16_t color,
+					   const int16_t effect) {
+
 	g_team_t *team = &g_teamlist[id];
 
 	team->id = id;
@@ -106,9 +110,9 @@ static void G_InitTeam(const g_team_id_t id, const char *name, const int16_t col
 
 	team->color = color;
 
-	g_strlcpy(team->tint_r, tint, sizeof(team->tint_r)); // shirt
-	g_strlcpy(team->tint_g, tint, sizeof(team->tint_g)); // pants
-	g_strlcpy(team->tint_b, tint, sizeof(team->tint_b)); // helmet
+	ColorFromHex(tint, &team->shirt);
+	ColorFromHex(tint, &team->pants);
+	ColorFromHex(tint, &team->helmet);
 
 	g_strlcpy(team->skin, DEFAULT_TEAM_SKIN, sizeof(team->skin));
 
@@ -125,10 +129,10 @@ void G_ResetTeams(void) {
 
 	memset(g_teamlist, 0, sizeof(g_teamlist));
 
-	G_InitTeam(TEAM_RED, "Red", TEAM_COLOR_RED, "ff0000", EF_CTF_RED);
-	G_InitTeam(TEAM_BLUE, "Blue", TEAM_COLOR_BLUE, "0000ff", EF_CTF_BLUE);
-	G_InitTeam(TEAM_GREEN, "Green", TEAM_COLOR_GREEN, "00ff00", EF_CTF_GREEN);
-	G_InitTeam(TEAM_ORANGE, "Orange", TEAM_COLOR_ORANGE, "aa6600", EF_CTF_ORANGE);
+	G_InitTeam(TEAM_RED, "Red", "ff0000", TEAM_COLOR_RED, EF_CTF_RED);
+	G_InitTeam(TEAM_BLUE, "Blue", "0000ff", TEAM_COLOR_BLUE, EF_CTF_BLUE);
+	G_InitTeam(TEAM_GREEN, "Green", "00ff00", TEAM_COLOR_GREEN, EF_CTF_GREEN);
+	G_InitTeam(TEAM_ORANGE, "Orange", "aa6600", TEAM_COLOR_ORANGE, EF_CTF_ORANGE);
 
 	memcpy(g_teamlist_default, g_teamlist, sizeof(g_teamlist));
 
@@ -144,12 +148,12 @@ void G_SetTeamNames(void) {
 	for (int32_t t = 0; t < MAX_TEAMS; t++) {
 
 		if (t != TEAM_RED) {
-			strcat(team_info, "\\");
+			g_strlcat(team_info, "\\", sizeof(team_info));
 		}
 
-		strcat(team_info, g_teamlist[t].name);
-		strcat(team_info, "\\");
-		strcat(team_info, va("%i", g_teamlist[t].color));
+		g_strlcat(team_info, g_teamlist[t].name, sizeof(team_info));
+		g_strlcat(team_info, "\\", sizeof(team_info));
+		g_strlcat(team_info, va("%i", g_teamlist[t].color), sizeof(team_info));
 	}
 
 	gi.SetConfigString(CS_TEAM_INFO, team_info);
@@ -946,6 +950,10 @@ static void G_CheckRules(void) {
 				g_teams->modified = true;
 			}
 
+			if (g_strcmp0(g_num_teams->string, "default") && g_num_teams->integer != 2) {
+				gi.SetCvarString(g_num_teams->name, "default");
+			}
+
 			if (g_match->integer == 0) {
 				g_match->integer = 1;
 				g_match->modified = true;
@@ -1028,7 +1036,7 @@ static void G_CheckRules(void) {
 		if (g_level.num_teams != num_teams) {
 			g_level.num_teams = num_teams;
 
-			if (g_teams->integer) {
+			if (g_teams->integer || g_ctf->integer) {
 				G_InitNumTeams();
 
 				gi.BroadcastPrint(PRINT_HIGH, "Number of teams set to %i\n",
@@ -1045,7 +1053,7 @@ static void G_CheckRules(void) {
 		// teams are required for duel
 		if (g_level.gameplay == GAME_DUEL && g_teams->integer == 0) {
 			gi.Print("Teams can't be disabled in DUEL mode, enabling...\n");
-			gi.CvarSetValue(g_teams->name, 1.0);
+			gi.SetCvarValue(g_teams->name, 1.0);
 		} else {
 			g_level.teams = g_teams->integer;
 			G_InitNumTeams();
@@ -1083,7 +1091,7 @@ static void G_CheckRules(void) {
 
 		if (g_level.gameplay == GAME_DUEL && g_match->integer == 0) {
 			gi.Print("Matches can't be disabled in DUEL mode, enabling...\n");
-			gi.CvarSetValue(g_match->name, 1.0);
+			gi.SetCvarValue(g_match->name, 1.0);
 		} else {
 			g_level.match = g_match->integer;
 			gi.SetConfigString(CS_MATCH, va("%d", g_level.match));
@@ -1325,14 +1333,14 @@ void G_Init(void) {
 	gi.Print("  ^5Game module initialization...\n");
 
 	const char *s = va("%s %s %s", VERSION, BUILD_HOST, REVISION);
-	cvar_t *game_version = gi.Cvar("game_version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
+	cvar_t *game_version = gi.AddCvar("game_version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
 	gi.Print("  ^5Version %s\n", game_version->string);
 
 	memset(&g_game, 0, sizeof(g_game));
 
-	gi.Cvar("game_name", GAME_NAME, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
-	gi.Cvar("game_date", __DATE__, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
+	gi.AddCvar("game_name", GAME_NAME, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
+	gi.AddCvar("game_date", __DATE__, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
 	g_admin_password = gi.Cvar("g_admin_password", "", CVAR_LATCH, "Password to authenticate as an admin.");
 	g_ammo_respawn_time = gi.Cvar("g_ammo_respawn_time", "20.0", CVAR_SERVER_INFO, "Ammo respawn interval in seconds.");
@@ -1375,7 +1383,7 @@ void G_Init(void) {
 	g_gravity = gi.Cvar("g_gravity", "800", CVAR_SERVER_INFO, NULL);
 	g_handicap = gi.Cvar("g_handicap", "1", CVAR_SERVER_INFO,
 	                     "Allows usage of player handicap. 0 disallows handicap, 1 allows handicap, 2 allows handicap but disables damage reduction. (default 1)");
-	g_inhibit = gi.Cvar("g_inhibit", "", CVAR_SERVER_INFO,
+	g_inhibit = gi.AddCvar("g_inhibit", "", CVAR_SERVER_INFO,
 	                    "Prevents entities from spawning using a class name filter (e.g.: \"weapon_bfg ammo_nukes item_quad\")");
 	g_num_teams = gi.Cvar("g_num_teams", "default", CVAR_SERVER_INFO,
 			      "The number of teams allowed. By default, picks the valid amount for the map, or 2.");
@@ -1404,10 +1412,10 @@ void G_Init(void) {
 	g_weapon_respawn_time = gi.Cvar("g_weapon_respawn_time", "5.0", CVAR_SERVER_INFO, "Weapon respawn interval in seconds.");
 	g_weapon_stay = gi.Cvar("g_weapon_stay", "0", CVAR_SERVER_INFO, "Controls whether weapons will respawn like normal or always stay.");
 
-	sv_max_clients = gi.Cvar("sv_max_clients", "1", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
-	sv_hostname = gi.Cvar("sv_hostname", "Quetoo", CVAR_SERVER_INFO, NULL);
+	sv_max_clients = gi.GetCvar("sv_max_clients");
+	sv_hostname = gi.GetCvar("sv_hostname");
 
-	dedicated = gi.Cvar("dedicated", "0", CVAR_NO_SET, NULL);
+	dedicated = gi.GetCvar("dedicated");
 
 	G_InitVote();
 
@@ -1444,11 +1452,11 @@ void G_Init(void) {
 			g_time_limit->modified = false;
 
 	// add game-specific server console commands
-	gi.Cmd("mute", G_Mute_Sv_f, CMD_GAME, "Prevent a client from talking");
-	gi.Cmd("unmute", G_Mute_Sv_f, CMD_GAME, "Allow a muted client to talk again");
-	gi.Cmd("stuff", G_Stuff_Sv_f, CMD_GAME, "Force a client to execute a command");
-	gi.Cmd("stuff_all", G_StuffAll_Sv_f, CMD_GAME, "Force all players to execute a command");
-	gi.Cmd("g_restart", G_Restart_Sv_f, CMD_GAME, "Force the game to restart");
+	gi.AddCmd("mute", G_Mute_Sv_f, CMD_GAME, "Prevent a client from talking");
+	gi.AddCmd("unmute", G_Mute_Sv_f, CMD_GAME, "Allow a muted client to talk again");
+	gi.AddCmd("stuff", G_Stuff_Sv_f, CMD_GAME, "Force a client to execute a command");
+	gi.AddCmd("stuff_all", G_StuffAll_Sv_f, CMD_GAME, "Force all players to execute a command");
+	gi.AddCmd("g_restart", G_Restart_Sv_f, CMD_GAME, "Force the game to restart");
 
 	gi.Print("  ^5Game module initialized\n");
 }

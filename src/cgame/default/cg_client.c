@@ -133,19 +133,6 @@ static _Bool Cg_ValidateSkin(cl_client_info_t *ci) {
 }
 
 /**
- * @brief Resolve a client's custom effect color, or default_color if the client
- * has "default" specified.
- */
-color_t Cg_ClientEffectColor(const cl_client_info_t *cl, const color_t default_color) {
-
-	if (cl->color.a) {
-		return cl->color;
-	}
-
-	return default_color;
-}
-
-/**
  * @brief Resolve and load the specified model/skin for the player.
  */
 static _Bool Cg_LoadClientModel(cl_client_info_t *ci, const char *model, const char *skin) {
@@ -167,10 +154,10 @@ static _Bool Cg_LoadClientModel(cl_client_info_t *ci, const char *model, const c
 			if ((ci->legs = cgi.LoadModel(path)) &&
 				Cg_LoadClientSkins(ci->legs, ci->legs_skins, ci->skin)) {
 
-				g_snprintf(path, sizeof(path), "players/%s/%s_i", ci->model, ci->skin);
-				ci->icon = cgi.LoadImage(path, IT_PIC | IT_MASK_FAIL);
+				g_snprintf(path, sizeof(path), "players/%s/%s_i.tga", ci->model, ci->skin);
+				ci->icon = cgi.LoadImage(path, IT_PIC);
 
-				if (ci->icon) {
+				if (ci->icon->type == IT_PIC) {
 					return true;
 				}
 			}
@@ -237,33 +224,24 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 			}
 		}
 
-		ci->color = EFFECT_COLOR_DEFAULT;
-
-		// if we have effect color, parse it
-		int32_t hue = atoi(info[2]);
-
-		if (hue != -1) {
-			hue = Clamp(atoi(info[2]), 0, 360);
-			ci->color = ColorFromHSV((const vec3_t) { hue, 1.0, 0.5 });
+		if (!ColorFromHex(info[2], &ci->shirt)) {
+			ci->shirt.a = 0;
 		}
 
-		// load red/green/blue tint colors
-		color_t tint_r, tint_g, tint_b;
-		ci->tints[TINT_R][3] = ci->tints[TINT_G][3] = ci->tints[TINT_B][3] = 0.0;
-
-		if (g_strcmp0(info[3], "default") && ColorParseHex(info[3], &tint_r)) { // shirt
-			ColorToVec4(tint_r, ci->tints[TINT_R]);
-			ci->tints[TINT_R][3] = 1.0;
+		if (!ColorFromHex(info[3], &ci->pants)) {
+			ci->pants.a = 0;
 		}
 
-		if (g_strcmp0(info[4], "default") && ColorParseHex(info[4], &tint_g)) { // pants
-			ColorToVec4(tint_g, ci->tints[TINT_G]);
-			ci->tints[TINT_G][3] = 1.0;
+		if (!ColorFromHex(info[4], &ci->helmet)) {
+			ci->helmet.a = 0;
 		}
 
-		if (g_strcmp0(info[5], "default") && ColorParseHex(info[5], &tint_b)) { // helmet
-			ColorToVec4(tint_b, ci->tints[TINT_B]);
-			ci->tints[TINT_B][3] = 1.0;
+		const int16_t hue = atoi(info[5]);
+		if (hue >= 0) {
+			const SDL_Color color = MVC_HSVToRGB(hue, 1.0, 1.0);
+			ci->color.u32 = *(int32_t *) &color;
+		} else {
+			ci->color.a = 0;
 		}
 
 		// ensure we were able to load everything
@@ -279,7 +257,10 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 
 		ci->legs->radius = (ci->legs->maxs[2] - ci->legs->mins[2]) / 2.0;
 
-		cgi.LoadClientSamples(ci->model);
+		// load sound files if we're in-game
+		if (*cgi.state > CL_DISCONNECTED) {
+			cgi.LoadClientSamples(ci->model);
+		}
 	}
 
 	g_strfreev(info);

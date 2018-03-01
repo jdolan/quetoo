@@ -739,6 +739,18 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			}
 
 			m = Cm_AllocMaterial(token);
+			assert(m);
+
+			for (const GList *list = *materials; list; list = list->next) {
+				const cm_material_t *mat = list->data;
+				if (!g_strcmp0(m->basename, mat->basename)) {
+					Cm_MaterialWarn(path, &parser, "Redefining material");
+					Cm_FreeMaterial(m);
+					m = NULL;
+					break;
+				}
+			}
+
 			continue;
 		}
 
@@ -965,6 +977,8 @@ static _Bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context) {
 
 	for (size_t i = 0; i < lengthof(extensions); i++) {
 		g_snprintf(asset->path, sizeof(asset->path), "%s.%s", name, extensions[i]);
+
+		StrLower(asset->path, asset->path);
 
 		if (Fs_Exists(asset->path)) {
 			return true;

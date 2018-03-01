@@ -21,16 +21,24 @@
 
 #include "cg_local.h"
 
-#include "viewcontrollers/MainViewController.h"
+#include "ui/main/MainViewController.h"
+#include "ui/main/LoadingViewController.h"
 
 static MainViewController *mainViewController;
+static Stylesheet *stylesheet;
 
 /**
  * @brief Initializes the user interface.
  */
 void Cg_InitUi(void) {
 
+	stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/common/common.css");
+	assert(stylesheet);
+
+	$(cgi.Theme(), addStylesheet, stylesheet);
+
 	mainViewController = $(alloc(MainViewController), init);
+	assert(mainViewController);
 
 	cgi.PushViewController((ViewController *) mainViewController);
 }
@@ -40,8 +48,47 @@ void Cg_InitUi(void) {
  */
 void Cg_ShutdownUi(void) {
 
-	cgi.PopToViewController((ViewController *) mainViewController);
-	cgi.PopViewController();
+	cgi.PopAllViewControllers();
 
 	release(mainViewController);
+	mainViewController = NULL;
+
+	$(cgi.Theme(), removeStylesheet, stylesheet);
+
+	release(stylesheet);
+	stylesheet = NULL;
+}
+
+/**
+ * @brief Updates the loading screen
+ */
+void Cg_UpdateLoading(const cl_loading_t loading) {
+	static LoadingViewController *loadingViewController;
+
+	if (loading.percent == 0) {
+		loadingViewController = $(alloc(LoadingViewController), init);
+		cgi.PushViewController((ViewController *) loadingViewController);
+	} else if (loading.percent == 100) {
+		cgi.PopToViewController((ViewController *) mainViewController);
+		loadingViewController = release(loadingViewController);
+	}
+
+	if (loadingViewController) {
+		$(loadingViewController, setProgress, loading);
+	}
+}
+
+/**
+ * @brief Inlet binding for `cvar_t *`.
+ */
+void Cg_BindCvar(const Inlet *inlet, ident obj) {
+
+	const char *name = cast(String, obj)->chars;
+	cvar_t *var = cgi.GetCvar(name);
+
+	if (var == NULL) {
+		cgi.Warn("%s not found\n", name);
+	}
+
+	*(cvar_t **) inlet->dest = var;
 }

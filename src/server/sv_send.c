@@ -190,7 +190,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
 	switch (to) {
 		case MULTICAST_ALL_R:
 			reliable = true;
-		/* no break */
+                        /* FALLTHRU */
 		case MULTICAST_ALL:
 			memset(vis, 1, sizeof(vis));
 			area = 0;
@@ -198,7 +198,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
 
 		case MULTICAST_PHS_R:
 			reliable = true;
-		/* no break */
+                        /* FALLTHRU */
 		case MULTICAST_PHS: {
 				const int32_t leaf = Cm_PointLeafnum(origin, 0);
 				const int32_t cluster = Cm_LeafCluster(leaf);
@@ -210,7 +210,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
 
 		case MULTICAST_PVS_R:
 			reliable = true;
-		/* no break */
+                        /* FALLTHRU */
 		case MULTICAST_PVS: {
 				const int32_t leaf = Cm_PointLeafnum(origin, 0);
 				const int32_t cluster = Cm_LeafCluster(leaf);

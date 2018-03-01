@@ -86,17 +86,23 @@ cg_particle_t *Cg_AllocParticle(const r_particle_type_t type, cg_particles_t *pa
 
 	Cg_PopParticle(p, &cg_free_particles);
 
+	memset(p, 0, sizeof(cg_particle_t));
+
 	particles = particles ? particles : cg_particles_normal;
 
 	p->part.type = type;
 	p->part.image = particles->image;
 
-	p->color_end[3] = p->color_start[3] = p->part.color[3] = 1.0;
+	p->color_end[3] = p->color_start[3] = 1.0;
 
-	Cg_PushParticle(p, &particles->particles);
+	p->part.blend = GL_ONE;
+	Vector4Set(p->part.color, 1.0, 1.0, 1.0, 1.0);
+	p->part.scale = 1.0;
 
 	p->start = cgi.client->unclamped_time;
 	p->lifetime = PARTICLE_INFINITE;
+
+	Cg_PushParticle(p, &particles->particles);
 
 	return p;
 }
@@ -111,12 +117,6 @@ static cg_particle_t *Cg_FreeParticle(cg_particle_t *p, cg_particle_t **list) {
 	if (list) {
 		Cg_PopParticle(p, list);
 	}
-
-	memset(p, 0, sizeof(cg_particle_t));
-
-	p->part.blend = GL_ONE;
-	Vector4Set(p->part.color, 1.0, 1.0, 1.0, 1.0);
-	p->part.scale = 1.0;
 
 	Cg_PushParticle(p, &cg_free_particles);
 
@@ -221,6 +221,26 @@ static _Bool Cg_UpdateParticle_Spark(cg_particle_t *p, const vec_t delta, const 
 }
 
 /**
+ * @brief Slide off of the impacted plane.
+ */
+static void Cg_ClipVelocity(const vec3_t in, const vec3_t normal, vec3_t out, vec_t bounce) {
+
+	vec_t backoff = DotProduct(in, normal);
+
+	if (backoff < 0.0) {
+		backoff *= bounce;
+	} else {
+		backoff /= bounce;
+	}
+
+	for (int32_t i = 0; i < 3; i++) {
+
+		const vec_t change = normal[i] * backoff;
+		out[i] = in[i] - change;
+	}
+}
+
+/**
  * @brief Adds all particles that are active for this frame to the view.
  */
 void Cg_AddParticles(void) {
@@ -278,9 +298,29 @@ void Cg_AddParticles(void) {
 					continue;
 				}
 
+				vec3_t old_origin;
+				
+				if ((p->effects & PARTICLE_EFFECT_PHYSICAL) && cg_particle_quality->integer) {
+					VectorCopy(p->part.org, old_origin);
+				}
+
 				for (int32_t i = 0; i < 3; i++) { // update origin and acceleration
 					p->part.org[i] += p->vel[i] * delta + p->accel[i] * delta_squared;
 					p->vel[i] += p->accel[i] * delta;
+				}
+
+				if ((p->effects & PARTICLE_EFFECT_PHYSICAL) && cg_particle_quality->integer) {
+					const vec_t half_scale = p->part.scale * 0.5;
+					const vec3_t particle_mins = { -half_scale, -half_scale, -half_scale };
+					const vec3_t particle_maxs = { half_scale, half_scale, half_scale };
+					const cm_trace_t tr = cgi.Trace(old_origin, p->part.org, particle_mins, particle_maxs, 0, MASK_SOLID);
+
+					if (tr.fraction < 1.0) {
+
+						Cg_ClipVelocity(p->vel, tr.plane.normal, p->vel, p->bounce);
+
+						VectorCopy(tr.end, p->part.org);
+					}
 				}
 
 				_Bool free = false;

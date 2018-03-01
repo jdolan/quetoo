@@ -209,20 +209,20 @@ static void R_ParticleTexcoords(const r_particle_t *p, r_particle_interleave_ver
 	_Bool is_atlas = p->image && p->image->type == IT_ATLAS_IMAGE;
 
 	if (!p->image ||
-	        (!p->scroll_s && !p->scroll_t &&!is_atlas && !(p->flags & PARTICLE_FLAG_REPEAT)) ||
+	        (!p->scroll_s && !p->scroll_t &&! is_atlas && !(p->flags & PARTICLE_FLAG_REPEAT)) ||
 	        p->type == PARTICLE_CORONA) {
 
 		for (int32_t i = 0; i < 4; ++i) {
 			Vector2Copy(default_texcoords[i], verts[i].texcoord);
 		}
-		
+
 		return;
 	}
 
 	// atlas needs a different pipeline
 	if (is_atlas) {
 		const r_atlas_image_t *atlas_image = (const r_atlas_image_t *) p->image;
-	
+
 		Vector2Set(verts[0].texcoord, atlas_image->texcoords[0], atlas_image->texcoords[1]);
 		Vector2Set(verts[1].texcoord, atlas_image->texcoords[2], atlas_image->texcoords[1]);
 		Vector2Set(verts[2].texcoord, atlas_image->texcoords[2], atlas_image->texcoords[3]);
@@ -257,6 +257,10 @@ static void R_ParticleColor(const r_particle_t *p, r_particle_interleave_vertex_
 
 	for (int32_t i = 0; i < 4; i++) {
 		ColorDecompose(p->color, verts[i].color);
+		
+		for (int32_t x = 0; x < 3; x++) {
+			verts[i].color[x] *= p->color[3];
+		}
 	}
 }
 
@@ -329,6 +333,10 @@ static void R_ParticleGeometryTexcoords(const r_particle_t *p, r_geometry_partic
 static void R_ParticleGeometryColor(const r_particle_t *p, r_geometry_particle_interleave_vertex_t *vert) {
 
 	ColorDecompose(p->color, vert->color);
+	
+	for (int32_t x = 0; x < 3; x++) {
+		vert->color[x] *= p->color[3];
+	}
 }
 
 
@@ -364,9 +372,9 @@ void R_UpdateParticles(r_element_t *e, const size_t count) {
 		if (e->type != ELEMENT_PARTICLE) {
 			continue;
 		}
-		
+
 		r_particle_t *p = (r_particle_t *) e->element;
-		
+
 		if (r_state.particle_program == program_particle) {
 
 			R_ParticleGeometryVerts(p, &r_particle_state.geometry_verts[r_particle_state.num_particles]);
@@ -403,7 +411,7 @@ void R_UploadParticles(void) {
 	if (!p->num_particles) {
 		return;
 	}
-	
+
 	if (r_state.particle_program == program_particle) {
 		R_UploadToBuffer(&p->geometry_verts_buffer, p->num_particles * sizeof(r_geometry_particle_interleave_vertex_t), p->geometry_verts);
 	} else {
@@ -477,7 +485,7 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 			} else {
 				R_DepthRange(0.0, 1.0);
 			}
-		
+
 			if (p->type == PARTICLE_FLARE) {
 				R_EnableDepthTest(false);
 			} else {
@@ -494,7 +502,7 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 		}
 
 		if (p->blend != last_blend) {
-			R_BlendFunc(GL_SRC_ALPHA, p->blend);
+			R_BlendFunc(GL_ONE, p->blend);
 			last_blend = p->blend;
 		}
 
@@ -527,4 +535,3 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 
 	R_UseProgram(program_null);
 }
-

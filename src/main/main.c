@@ -175,6 +175,7 @@ static void Error(err_t err, const char *msg) {
 		case ERROR_DROP:
 			Sv_ShutdownServer(msg);
 			Cl_Disconnect();
+			Cl_Drop(msg);
 			quetoo.recursive_error = false;
 			longjmp(env, err);
 			break;
@@ -309,11 +310,7 @@ static void Init(void) {
 
 	dedicated = Cvar_Add("dedicated", "0", CVAR_NO_SET, "Run a dedicated server");
 	if (strstr(Sys_ExecutablePath(), "-dedicated")) {
-		Cvar_ForceSet("dedicated", "1");
-	}
-
-	if (dedicated->value) {
-		Cvar_ForceSet("threads", "0");
+		Cvar_ForceSetInteger(dedicated->name, 1);
 	}
 
 	game = Cvar_Add("game", DEFAULT_GAME, CVAR_LATCH | CVAR_SERVER_INFO, "The game module name");

@@ -28,7 +28,6 @@ out VertexData {
 	float roll;
 	vec3 end;
 	int type;
-	float fog;
 };
 
 /**
@@ -48,6 +47,4 @@ void main(void) {
 
 	// pass the color through as well
 	color = COLOR * GLOBAL_COLOR;
-
-	fog = FogVertex();
 }

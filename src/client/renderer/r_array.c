@@ -20,6 +20,7 @@
  */
 
 #include "r_local.h"
+#include "r_gl.h"
 
 /**
  * @brief Binds the specified buffer for the given attribute target with an offset.
@@ -80,9 +81,16 @@ _Bool R_ValidBuffer(const r_buffer_t *buffer) {
 /**
  * @brief Binds the appropriate shared vertex array to the specified target.
  */
-static GLenum R_BufferTypeToTarget(int type) {
+static GLenum R_BufferTypeToTarget(const r_buffer_type_t type) {
 
-	return (type == R_BUFFER_ELEMENT) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
+	switch (type) {
+	case R_BUFFER_DATA:
+		return GL_ARRAY_BUFFER;
+	case R_BUFFER_ELEMENT:
+		return GL_ELEMENT_ARRAY_BUFFER;
+	default:
+		Com_Error(ERROR_FATAL, "What");
+	}
 }
 
 /**
@@ -102,6 +110,8 @@ void R_BindBuffer(const r_buffer_t *buffer) {
 
 	r_view.num_state_changes[R_STATE_BIND_BUFFER]++;
 
+	r_view.buffer_stats[buffer->type].bound++;
+
 	R_GetError(NULL);
 }
 
@@ -119,6 +129,8 @@ void R_UnbindBuffer(const r_buffer_type_t type) {
 	glBindBuffer(R_BufferTypeToTarget(type), 0);
 
 	r_view.num_state_changes[R_STATE_BIND_BUFFER]++;
+	
+	r_view.buffer_stats[type].bound++;
 
 	R_GetError(NULL);
 }
@@ -149,20 +161,20 @@ void R_UploadToBuffer(r_buffer_t *buffer, const size_t size, const void *data) {
 
 		glBufferData(buffer->target, size, data, buffer->hint);
 		R_GetError("Full resize");
-		r_view.num_buffer_full_uploads++;
+		r_view.buffer_stats[buffer->type].num_full_uploads++;
 
 		buffer->size = size;
 	} else {
 		// just update the range we specified
 		if (data) {
 			glBufferSubData(buffer->target, 0, size, data);
-			r_view.num_buffer_partial_uploads++;
+			r_view.buffer_stats[buffer->type].num_partial_uploads++;
 
 			R_GetError("Updating existing buffer");
 		}
 	}
 
-	r_view.size_buffer_uploads += size;
+	r_view.buffer_stats[buffer->type].size_uploaded += size;
 }
 
 /**
@@ -207,14 +219,14 @@ void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t si
 
 			glBufferData(buffer->target, total_size, NULL, buffer->hint);
 			R_GetError("Partial resize");
-			r_view.num_buffer_full_uploads++;
+			r_view.buffer_stats[buffer->type].num_full_uploads++;
 			glBufferSubData(buffer->target, start, size, data);
 			R_GetError("Partial update");
-			r_view.num_buffer_partial_uploads++;
+			r_view.buffer_stats[buffer->type].num_partial_uploads++;
 		} else {
 			glBufferData(buffer->target, total_size, data, buffer->hint);
 			R_GetError("Full resize");
-			r_view.num_buffer_full_uploads++;
+			r_view.buffer_stats[buffer->type].num_full_uploads++;
 		}
 
 		r_state.buffers_total_bytes -= buffer->size;
@@ -225,10 +237,10 @@ void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t si
 		// just update the range we specified
 		glBufferSubData(buffer->target, start, size, data);
 		R_GetError("Updating existing buffer");
-		r_view.num_buffer_partial_uploads++;
+		r_view.buffer_stats[buffer->type].num_partial_uploads++;
 	}
 
-	r_view.size_buffer_uploads += size;
+	r_view.buffer_stats[buffer->type].size_uploaded += size;
 }
 
 /**
@@ -523,9 +535,11 @@ r_attribute_mask_t R_ArraysMask(void) {
 	if (r_state.lighting_enabled) {
 		if (r_bumpmap->value) {
 			mask |= R_ATTRIB_MASK_TANGENT;
+			mask |= R_ATTRIB_MASK_BITANGENT;
 
 			if (do_interpolation) {
 				mask |= R_ATTRIB_MASK_NEXT_TANGENT;
+				mask |= R_ATTRIB_MASK_NEXT_BITANGENT;
 			}
 		}
 	}
@@ -635,6 +649,9 @@ static void R_SetArrayStateMesh(const r_model_t *mod, r_attribute_mask_t mask, r
 			if (mask & R_ATTRIB_MASK_NEXT_TANGENT) {
 				R_BindAttributeBufferOffset(R_ATTRIB_NEXT_TANGENT, &mod->mesh->vertex_buffer, offset);
 			}
+			if (mask & R_ATTRIB_MASK_NEXT_BITANGENT) {
+				R_BindAttributeBufferOffset(R_ATTRIB_NEXT_BITANGENT, &mod->mesh->vertex_buffer, offset);
+			}
 		}
 
 		// diffuse texcoords
@@ -725,6 +742,14 @@ void R_ResetArrayState(void) {
 					R_UnbindAttributeBuffer(R_ATTRIB_NEXT_TANGENT);
 				}
 			}
+
+			if (mask & R_ATTRIB_MASK_BITANGENT) {
+				R_UnbindAttributeBuffer(R_ATTRIB_BITANGENT);
+
+				if (mask & R_ATTRIB_MASK_NEXT_BITANGENT) {
+					R_UnbindAttributeBuffer(R_ATTRIB_NEXT_BITANGENT);
+				}
+			}
 		}
 	}
 
@@ -759,11 +784,9 @@ static void R_PrepareProgram() {
 	// upload state data that needs to be synced up to current program
 	R_SetupAttributes();
 
-	R_UseMatrices();
+	R_UseUniforms();
 
 	R_UseAlphaTest();
-
-	R_UseCurrentColor();
 
 	R_UseFog();
 

@@ -73,7 +73,7 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 			if (!ch->relative) {
 				VectorSubtract(ent->current.origin, ent->prev.origin, ch->velocity);
 			}
-	}
+		}
 
 		if (ent->current.solid == SOLID_BSP) {
 			const r_model_t *mod = cl.model_precache[ent->current.model1];
@@ -87,7 +87,7 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 	}
 
 	VectorCopy(org, ch->position);
-	VectorMA(ch->position, S_GET_Z_ORIGIN_OFFSET(ch->play.attenuation) * 4.0, vec3_up, ch->position);
+//  	VectorMA(ch->position, S_GET_Z_ORIGIN_OFFSET(ch->play.attenuation) * 4.0, vec3_up, ch->position);
 
 	VectorSubtract(org, r_view.origin, delta);
 
@@ -119,7 +119,7 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 				const uint32_t delta = (cl.frame.frame_num - ch->frame) * QUETOO_TICK_MILLIS;
 
 				if (delta > 250) {
-					return false; //x faded out
+					return false; // x faded out
 				}
 
 				ch->gain *= 1.0 - (delta / 250.0);
@@ -137,13 +137,20 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 
 	// offset pitch by sound-requested offset
 	if (ch->play.pitch) {
-		const vec_t octaves = (vec_t)pow(2, 0.69314718 * ((vec_t)ch->play.pitch / TONES_PER_OCTAVE));
+		const vec_t octaves = (vec_t) pow(2, 0.69314718 * ((vec_t) ch->play.pitch / TONES_PER_OCTAVE));
 		ch->pitch *= octaves;
 	}
 
+	// apply sound effects
 	if (s_env.effects.loaded) {
-		 if (Cm_PointContents(ch->position, 0) & MASK_LIQUID) {
+
+		if (Cm_PointContents(ch->position, 0) & MASK_LIQUID) {
 			ch->filter = s_env.effects.underwater;
+		} else {
+			const cm_trace_t tr = Cl_Trace(r_view.origin, ch->position, NULL, NULL, ch->play.entity, MASK_CLIP_PROJECTILE);
+			if (tr.fraction < 1.0) {
+				ch->filter = s_env.effects.occluded;
+			}
 		}
 	}
 
@@ -190,56 +197,67 @@ void S_MixChannels(void) {
 
 		if (ch->sample) {
 
+			const ALuint src = s_env.sources[i];
+			assert(src);
+
 			if (S_SpatializeChannel(ch)) {
 
 				if (ch->relative) {
-					alSourcefv(s_env.sources[i], AL_POSITION, vec3_origin);
+					alSourcefv(src, AL_POSITION, vec3_origin);
 					S_CheckALError();
 				} else {
-					alSourcefv(s_env.sources[i], AL_POSITION, ch->position);
+					alSourcefv(src, AL_POSITION, ch->position);
 					S_CheckALError();
 
 					if (s_doppler->value) {
-						alSourcefv(s_env.sources[i], AL_VELOCITY, ch->velocity);
+						alSourcefv(src, AL_VELOCITY, ch->velocity);
 					} else {
-						alSourcefv(s_env.sources[i], AL_VELOCITY, vec3_origin);
+						alSourcefv(src, AL_VELOCITY, vec3_origin);
 					}
 				}
 
-				alSourcef(s_env.sources[i], AL_GAIN, ch->gain * s_volume->value);
+				vec_t volume;
+
+				if (ch->play.flags & S_PLAY_AMBIENT) {
+					volume = s_volume->value * s_ambient_volume->value;
+				} else {
+					volume = s_volume->value * s_effects_volume->value;
+				}
+
+				alSourcef(src, AL_GAIN, ch->gain * volume);
 				S_CheckALError();
 
-				alSourcef(s_env.sources[i], AL_PITCH, ch->pitch);
+				alSourcef(src, AL_PITCH, ch->pitch);
 				S_CheckALError();
 
 				if (s_env.effects.loaded) {
-					alSourcei(s_env.sources[i], AL_DIRECT_FILTER, ch->filter);
+					alSourcei(src, AL_DIRECT_FILTER, ch->filter);
 					S_CheckALError();
 				}
 
 				if (!ch->start_time) {
 					ch->start_time = quetoo.ticks;
 
-					alSourcei(s_env.sources[i], AL_SOURCE_RELATIVE, ch->relative ? 1 : 0);
+					alSourcei(src, AL_SOURCE_RELATIVE, ch->relative ? 1 : 0);
 					S_CheckALError();
 
-					alSourcei(s_env.sources[i], AL_BUFFER, ch->sample->buffer);
+					alSourcei(src, AL_BUFFER, ch->sample->buffer);
 					S_CheckALError();
 
-					alSourcei(s_env.sources[i], AL_LOOPING, !!(ch->play.flags & S_PLAY_LOOP));
+					alSourcei(src, AL_LOOPING, !!(ch->play.flags & S_PLAY_LOOP));
 					S_CheckALError();
 
 					if (ch->play.flags & S_PLAY_AMBIENT) {
-						alSourcei(s_env.sources[i], AL_SAMPLE_OFFSET, (ALint) (Randomf() * ch->sample->num_samples));
+						alSourcei(src, AL_SAMPLE_OFFSET, (ALint) (Randomf() * ch->sample->num_samples));
 						S_CheckALError();
 					}
 
-					alSourcePlay(s_env.sources[i]);
+					alSourcePlay(src);
 					S_CheckALError();
 
 				} else {
 					ALenum state;
-					alGetSourcei(s_env.sources[i], AL_SOURCE_STATE, &state);
+					alGetSourcei(src, AL_SOURCE_STATE, &state);
 					S_CheckALError();
 
 					if (state != AL_PLAYING) {
@@ -282,22 +300,16 @@ void S_AddSample(const s_play_sample_t *play) {
 		return;
 	}
 
-	switch (s_ambient->integer) {
-		case 0: // Disable ambient sounds
-			if (play->flags & S_PLAY_AMBIENT) {
-				return;
-			}
-			break;
-		case 2: // Only ambient sounds
-			if (!(play->flags & S_PLAY_AMBIENT)) {
-				return;
-			}
-			break;
-		default:
-			break;
-
+	if (play->flags & S_PLAY_AMBIENT) {
+		if (!s_ambient_volume->value) {
+			return;
+		}
+	} else {
+		if (!s_effects_volume->value) {
+			return;
+		}
 	}
-
+	
 	const s_sample_t *sample = play->sample;
 
 	const char *name = sample->media.name;
@@ -332,8 +344,8 @@ void S_AddSample(const s_play_sample_t *play) {
 	// warn on spatialized stereo samples
 
 	if (play->sample->stereo) {
-		if ((play->attenuation & 0x0f) != ATTEN_NONE ||
-			(play->entity != -1 && &cl.entities[play->entity] != cl.entity)) {
+		const _Bool has_atten = (play->attenuation & 0x0f) != ATTEN_NONE;
+		if (has_atten || (has_atten && play->entity != -1 && &cl.entities[play->entity] != cl.entity)) {
 			Com_Warn("%s is a stereo sound sample and is being spatialized\n", play->sample->media.name);
 		}
 	}

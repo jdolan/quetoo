@@ -125,12 +125,10 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	cg_particle_t *p;
 
 	if (ent) {
-
 		// don't emit smoke trails for static entities (grenades on the floor)
 		if (VectorCompare(ent->current.origin, ent->prev.origin)) {
 			return;
 		}
-
 	}
 
 	if (cgi.PointContents(end) & MASK_LIQUID) {
@@ -159,7 +157,7 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
 		const vec_t c = Randomfr(0.8, 1.0);
 
-		Vector4Set(p->color_start, c, c, c, 0.1);
+		Vector4Set(p->color_start, c, c, c, 0.05);
 		Vector4Set(p->color_end, c, c, c, 0.0);
 
 		p->scale_start = 1.0;
@@ -562,6 +560,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 		p->part.scale = 8.0;
 		p->part.scroll_s = -8.0;
+		p->part.blend = GL_ONE;
 
 		VectorCopy(pos, p->part.org);
 
@@ -586,6 +585,12 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	l.radius = 90.0 + 10.0 * Randomc();
 	cgi.AddLight(&l);
 
+	if (ent->current.animation1 != LIGHTNING_SOLID_HIT) {
+		return;
+	}
+
+	cg_particle_t *p;
+
 	if (ent->timestamp < cgi.client->unclamped_time) {
 
 		vec3_t real_end;
@@ -604,14 +609,40 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 			});
 		}
 
-		ent->timestamp = cgi.client->unclamped_time + 64;
-	}
+		// Impact sparks
 
-	if (ent->current.animation1 != LIGHTNING_SOLID_HIT) {
-		return;
-	}
+		if ((cgi.PointContents(end) & MASK_LIQUID) == 0) {
+			for (i = 0; i < 6; i++) {
+				if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark, false))) {
+					break;
+				}
 
-	cg_particle_t *p;
+				p->lifetime = 170 + Randomf() * 300;
+
+				if (i % 3 == 0) { // 30% chance of white instead of blue
+					Vector4Set(p->part.color, 1.0, 1.0, 1.0, 1.0);
+				} else {
+					Vector4Set(p->part.color, 0.6, 0.6, 1.0, 1.0);
+				}
+
+				p->part.scale = 1.3 + Randomf() * 0.6;
+
+				VectorCopy(end, p->part.org);
+
+				p->vel[0] = Randomc() * 130.0;
+				p->vel[1] = Randomc() * 130.0;
+				p->vel[2] = Randomc() * 130.0;
+
+				p->accel[2] = -PARTICLE_GRAVITY * 2.0;
+
+				p->spark.length = 0.07 + Randomf() * 0.05;
+
+				VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
+			}
+		}
+
+		ent->timestamp = cgi.client->unclamped_time + 25; // 40hz
+	}
 
 	if ((p = Cg_AllocParticle(PARTICLE_CORONA, NULL, false))) {
 		// TODO: color modulation
@@ -621,38 +652,6 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 		p->lifetime = PARTICLE_IMMEDIATE;
 		p->part.scale = CORONA_SCALE(32.0, 0.6);
-	}
-
-	// Impact sparks
-
-	if ((cgi.PointContents(end) & MASK_LIQUID) == 0) {
-		for (i = 0; i < 6; i++) {
-			if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark, false))) {
-				break;
-			}
-
-			p->lifetime = 170 + Randomf() * 300;
-
-			if (i % 3 == 0) { // 30% chance of white instead of blue
-				Vector4Set(p->part.color, 1.0, 1.0, 1.0, 1.0);
-			} else {
-				Vector4Set(p->part.color, 0.6, 0.6, 1.0, 1.0);
-			}
-
-			p->part.scale = 1.3 + Randomf() * 0.6;
-
-			VectorCopy(end, p->part.org);
-
-			p->vel[0] = Randomc() * 130.0;
-			p->vel[1] = Randomc() * 130.0;
-			p->vel[2] = Randomc() * 130.0;
-
-			p->accel[2] = -PARTICLE_GRAVITY * 2.0;
-
-			p->spark.length = 0.07 + Randomf() * 0.05;
-
-			VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
-		}
 	}
 }
 
@@ -773,7 +772,7 @@ static void Cg_SpawnPointTrail(cl_entity_t *ent, const color_t color) {
 
 	cg_particle_t *p;
 
-	if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_teleporter, false))) {
+	if ((p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_teleporter, false))) {
 		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 		p->lifetime = 450;
 

@@ -30,8 +30,6 @@ typedef struct {
 	
 	r_uniform_fog_t fog;
 
-	r_uniform4fv_t current_color;
-
 	r_uniform1f_t time_fraction;
 	
 	r_uniform4fv_t tints[TINT_TOTAL];
@@ -78,8 +76,6 @@ void R_InitProgram_null(r_program_t *program) {
 		R_ProgramVariable(&p->tints[i], R_UNIFORM_VEC4, va("TINTS[%i]", i), true);
 	}
 
-	R_ProgramVariable(&p->current_color, R_UNIFORM_VEC4, "GLOBAL_COLOR", true);
-
 	R_ProgramVariable(&p->time_fraction, R_UNIFORM_FLOAT, "TIME_FRACTION", true);
 
 	R_ProgramParameter1i(&p->tintmap, 0);
@@ -88,9 +84,6 @@ void R_InitProgram_null(r_program_t *program) {
 	R_ProgramParameter1i(&p->sampler6, R_TEXUNIT_TINTMAP);
 
 	R_ProgramParameter1f(&p->fog.density, 0.0);
-
-	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
-	R_ProgramParameter4fv(&p->current_color, white);
 
 	R_ProgramParameter1f(&p->time_fraction, 0.0f);
 
@@ -110,21 +103,6 @@ void R_UseFog_null(const r_fog_parameters_t *fog) {
 		R_ProgramParameter3fv(&p->fog.color, fog->color);
 	} else {
 		R_ProgramParameter1f(&p->fog.density, 0.0);
-	}
-}
-
-/**
- * @brief
- */
-void R_UseCurrentColor_null(const vec4_t color) {
-
-	r_null_program_t *p = &r_null_program;
-	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
-
-	if (color && r_state.color_array_enabled) {
-		R_ProgramParameter4fv(&p->current_color, color);
-	} else {
-		R_ProgramParameter4fv(&p->current_color, white);
 	}
 }
 
@@ -159,7 +137,7 @@ void R_UseTints_null(void) {
 	r_null_program_t *p = &r_null_program;
 
 	for (int32_t i = 0; i < TINT_TOTAL; i++) {
-		if (r_view.current_entity->tints[i]) {
+		if (r_view.current_entity->tints[i][3]) {
 			R_ProgramParameter4fv(&p->tints[i], r_view.current_entity->tints[i]);
 		} else {
 			R_ProgramParameter4fv(&p->tints[i], r_state.active_material->cm->tintmap_defaults[i]);

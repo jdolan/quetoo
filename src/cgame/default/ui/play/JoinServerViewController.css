@@ -1,0 +1,33 @@
+
+#servers {
+	width: 1176;
+	height: 520;
+}
+
+#Hostname {
+	min-width: 360;
+}
+
+#Source {
+	min-width: 140;
+}
+
+#Map {
+	min-width: 120;
+}
+
+#Gameplay {
+	min-width: 120;
+}
+
+#Players {
+	min-width: 80;
+}
+
+#Ping {
+	min-width: 80;
+}
+
+#servers .error > Text {
+	color: darkred;
+}

@@ -20,6 +20,7 @@
  */
 
 #include "r_local.h"
+#include "r_gl.h"
 
 r_image_state_t r_image_state;
 
@@ -62,7 +63,7 @@ static void R_TextureMode(void) {
 			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &r_image_state.anisotropy);
 		} else {
 			Com_Warn("Anisotropy is enabled but not supported by your GPU.\n");
-			Cvar_ForceSet("r_anisotropy", "0");
+			Cvar_ForceSetInteger(r_anisotropy->name, 0);
 		}
 	} else {
 		r_image_state.anisotropy = 1.0;
@@ -146,21 +147,10 @@ void R_Screenshot_f(void) {
  * and monochrome. This is all munged into one function for performance.
  */
 void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
-	vec_t brightness;
 	uint32_t color[3];
-	uint16_t mask;
-	size_t i, j;
 
-	if (image->type == IT_DIFFUSE) {// compute average color
+	if (image->type == IT_DIFFUSE) { // compute average color
 		VectorClear(color);
-	}
-
-	if (image->type == IT_LIGHTMAP) {
-		brightness = r_modulate->value;
-		mask = 2;
-	} else {
-		brightness = r_brightness->value;
-		mask = 1;
 	}
 
 	const size_t pixels = image->width * image->height;
@@ -168,54 +158,20 @@ void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
 
 	byte *p = data;
 
-	for (i = 0; i < pixels; i++, p += stride) {
-		vec3_t temp;
+	for (size_t i = 0; i < pixels; i++, p += stride) {
 
-		VectorScale(p, 1.0 / 255.0, temp); // convert to float
-
-		// apply brightness, saturation and contrast
-		ColorFilter(temp, temp, brightness, r_saturation->value, r_contrast->value);
-
-		for (j = 0; j < 3; j++) {
-
-			temp[j] = Clamp(temp[j] * 255, 0, 255); // back to byte
-
-			p[j] = (byte) temp[j];
-
-			if (image->type == IT_DIFFUSE) { // accumulate color
-				color[j] += p[j];
-			}
+		if ((image->type & IT_MASK_MULTIPLY) && format == GL_RGBA) { // pre-multiplied alpha
+			VectorScale(p, p[3] / 255.0, p);
 		}
 
-		if (r_monochrome->integer & mask) { // monochrome
-			p[0] = p[1] = p[2] = (p[0] + p[1] + p[2]) / 3;
-		}
-
-		if (r_invert->integer & mask) { // inverted
-			p[0] = 255 - p[0];
-			p[1] = 255 - p[1];
-			p[2] = 255 - p[2];
+		if (image->type == IT_DIFFUSE) { // accumulate color
+			VectorAdd(color, p, color);
 		}
 	}
 
 	if (image->type == IT_DIFFUSE) { // average accumulated colors
-		for (i = 0; i < 3; i++) {
-			color[i] /= (vec_t) pixels;
-		}
-
-		if (r_monochrome->integer & mask) {
-			color[0] = color[1] = color[2] = (color[0] + color[1] + color[2]) / 3.0;
-		}
-
-		if (r_invert->integer & mask) {
-			color[0] = 255 - color[0];
-			color[1] = 255 - color[1];
-			color[2] = 255 - color[2];
-		}
-
-		for (i = 0; i < 3; i++) {
-			image->color[i] = color[i] / 255.0;
-		}
+		VectorScale(color, 1.0 / pixels, color);
+		VectorScale(color, 1.0 / 255.0, image->color);
 	}
 }
 
@@ -349,7 +305,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 			image->width = surf->w;
 			image->height = surf->h;
-			image->type = type & ~IT_MASK_FAIL;
+			image->type = type;
 
 			if (image->type == IT_NORMALMAP) {
 				R_LoadHeightmap(name, surf);
@@ -363,11 +319,6 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 			SDL_FreeSurface(surf);
 		} else {
-
-			if (type & IT_MASK_FAIL) {
-				return NULL;
-			}
-
 			Com_Debug(DEBUG_RENDERER, "Couldn't load %s\n", key);
 			image = r_image_state.null;
 		}

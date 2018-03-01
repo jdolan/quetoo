@@ -1,0 +1,85 @@
+
+.container {
+	spacing: 12;
+}
+
+Box {
+	border-color: #1e4e62;
+}
+
+Box > Label {
+	background-color: #0c1f27;
+}
+
+Box > .contentView > Input > Label {
+	min-width: 180;
+}
+
+Checkbox > Control {
+	background-color: #dedede10;
+}
+
+Panel {
+	background-color: #08151aaa;
+}
+
+Panel.menu {
+	resizable: false;
+	draggable: false;
+}
+
+Panel.menu .tabPageView {
+	autoresizing-mask: none;
+	width: 1200;
+	height: 600;
+}
+
+Slider > .bar > .handle {
+	background-color: #1e4e62dd;
+}
+
+TabView > .tabSelectionView > Label.selected {
+	background-color: #1e4e62aa;
+}
+
+TextView {
+	background-color: #dedede10;
+}
+
+.options {
+	border-color: #1e4e62;
+}
+
+.options > Option {
+	background-color: #08151a;
+}
+
+.options > Option:hover {
+	background-color: #1e4e62;
+}
+
+.options > Option:selected {
+	background-color: #122e3b;
+}
+
+.columns {
+	autoreizing-mask: contain | width;
+	axis: horizontal;
+	distribution: fill;
+}
+
+.columns > .column {
+	autoresizing-mask: contain | height;
+	distribution: fill;
+	width: 384;
+}
+
+.columns > .column-2 {
+	autoresizing-mask: contain | height;
+	distribution: fill;
+	width: 768;
+}
+
+.column Box {
+	autoresizing-mask: contain | width;
+}

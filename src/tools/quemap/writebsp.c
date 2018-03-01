@@ -285,17 +285,12 @@ void WriteBSP(node_t *head_node) {
  * @brief
  */
 void SetModelNumbers(void) {
-	int32_t i;
-	int32_t models;
-	char value[10];
 
 	// 0 is the world - start at 1
-	models = 1;
-	for (i = 1; i < num_entities; i++) {
+	int32_t models = 1;
+	for (int32_t i = 1; i < num_entities; i++) {
 		if (entities[i].num_brushes) {
-			sprintf(value, "*%i", models);
-			models++;
-			SetKeyValue(&entities[i], "model", value);
+			SetKeyValue(&entities[i], "model", va("%d", models++));
 		}
 	}
 }
@@ -382,7 +377,10 @@ void BeginBSPFile(void) {
 
 	// leave vertex 0 as an error
 	bsp_file.num_vertexes = 1;
-	bsp_file.num_normals = 1;
+
+	if (!legacy) {
+		bsp_file.num_normals = 1;
+	}
 
 	// leave leaf 0 as an error
 	bsp_file.num_leafs = 1;
@@ -401,7 +399,9 @@ void EndBSPFile(void) {
 	UnparseEntities();
 
 	// now that the verts have been resolved, align the normals count
-	bsp_file.num_normals = bsp_file.num_vertexes;
+	if (!legacy) {
+		bsp_file.num_normals = bsp_file.num_vertexes;
+	}
 
 	const int32_t version = legacy ? BSP_VERSION : BSP_VERSION_QUETOO;
 	WriteBSPFile(va("maps/%s.bsp", map_base), version);

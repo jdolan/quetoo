@@ -1,0 +1,55 @@
+
+#main {
+	autoresizing-mask: fill;
+}
+
+#background {
+	autoresizing-mask: fill;
+}
+
+#logo {
+	alignment: bottom-right;
+	width: 240;
+	height: 112;
+}
+
+#version {
+	alignment: bottom-left;
+}
+
+#contentView {
+	autoresizing-mask: fill;
+	padding-top: 36;
+	padding-bottom: 36;
+}
+
+#contentView > View > * {
+	alignment: middle-center;
+}
+
+#primaryMenu,
+#secondaryMenu {
+	autoresizing-mask: contain | width;
+	axis: horizontal;
+	background-color: #222222aa;
+	distribution: fill-equally;
+	padding: 4;
+	spacing: 12;
+}
+
+#primaryMenu Button,
+#secondaryMenu Button {
+	background-color: #08151a;
+	border-color: #ffffff;
+	border-width: 1;
+	bevel: none;
+	min-height: 36;
+}
+
+#primaryMenu Button > Text {
+	font-style: bold;
+}
+
+#secondaryMenu {
+	alignment: bottom-center;
+}

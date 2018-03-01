@@ -19,6 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#if defined(_WIN32)
+ #include <winsock2.h>
+#endif
+
 #include "cl_local.h"
 #include "server/server.h"
 #include "parse.h"
@@ -35,6 +39,7 @@ cvar_t *cl_team_chat_sound;
 cvar_t *cl_timeout;
 
 cvar_t *name;
+cvar_t *active;
 cvar_t *message_level;
 cvar_t *password;
 cvar_t *rate;
@@ -106,7 +111,7 @@ static void Cl_AttemptConnect(void) {
 	net_addr_t addr;
 
 	if (!Net_StringToNetaddr(cls.server_name, &addr)) {
-		Com_Print("Bad server address\n");
+		Com_Warn("Bad server address: %s\n", cls.server_name);
 		cls.state = CL_DISCONNECTED;
 		return;
 	}
@@ -257,25 +262,12 @@ void Cl_ClearState(void) {
  * @brief Sends the disconnect command to the server.
  */
 void Cl_SendDisconnect(void) {
-	byte final[16];
+	byte cmd[16];
 
-	if (cls.state <= CL_DISCONNECTED) {
-		return;
-	}
+	cmd[0] = CL_CMD_STRING;
+	strcpy((char *) cmd + 1, "disconnect");
 
-	Com_Print("Disconnecting from %s...\n", cls.server_name);
-
-	// send a disconnect message to the server
-	final[0] = CL_CMD_STRING;
-	strcpy((char *) final + 1, "disconnect");
-
-	Netchan_Transmit(&cls.net_chan, final, strlen((char *) final));
-
-	Cl_ClearState();
-
-	cls.broadcast_time = 0;
-	cls.connect_time = 0;
-	cls.state = CL_DISCONNECTED;
+	Netchan_Transmit(&cls.net_chan, cmd, strlen((char *) cmd));
 }
 
 /**
@@ -288,38 +280,42 @@ void Cl_Disconnect(void) {
 		return;
 	}
 
-	if (time_demo->value) { // summarize time_demo results
+	Com_Print("Disconnecting from %s...\n", cls.server_name);
 
-		const vec_t s = (quetoo.ticks - cl.time_demo_start) / 1000.0;
+	Cl_SendDisconnect();
 
-		Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.time_demo_frames, s,
-		          cl.time_demo_frames / s);
+	Cl_ClearState();
 
-		cl.time_demo_frames = cl.time_demo_start = 0;
-	}
-
-	Cl_SendDisconnect(); // tell the server to deallocate us
-
-	if (cls.demo_file) { // stop demo recording
+	if (cls.demo_file) {
 		Cl_Stop_f();
 	}
 
-	if (cls.download.file) { // stop download
+	if (cls.download.file) {
 
-		if (cls.download.http) { // clean up http downloads
+		if (cls.download.http) {
 			Cl_HttpDownload_Complete();
-		} else
-			// or just stop legacy ones
-		{
+		} else {
 			Fs_Close(cls.download.file);
 		}
 
-		cls.download.file = NULL;
+		memset(&cls.download, 0, sizeof(cls.download));
 	}
 
 	memset(cls.server_name, 0, sizeof(cls.server_name));
 
-	Cl_SetKeyDest(KEY_CONSOLE);
+	cls.broadcast_time = 0;
+	cls.connect_time = 0;
+	cls.state = CL_DISCONNECTED;
+
+	if (time_demo->value) {
+		const vec_t s = (quetoo.ticks - cl.time_demo_start) / 1000.0;
+		Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.time_demo_frames, s,
+				  cl.time_demo_frames / s);
+
+		cl.time_demo_frames = cl.time_demo_start = 0;
+	}
+
+	Cl_SetKeyDest(KEY_UI);
 }
 
 /**
@@ -343,16 +339,10 @@ void Cl_Reconnect_f(void) {
 		return;
 	}
 
-	if (cls.server_name[0] != '\0') {
+	if (cls.server_name[0] != '\0') { // already connected
 
 		if (cls.state >= CL_CONNECTING) {
-			char server_name[MAX_OS_PATH];
-
-			g_strlcpy(server_name, cls.server_name, sizeof(server_name));
-
 			Cl_Disconnect();
-
-			g_strlcpy(cls.server_name, server_name, sizeof(cls.server_name));
 		}
 
 		cls.connect_time = 0; // fire immediately
@@ -360,6 +350,13 @@ void Cl_Reconnect_f(void) {
 	} else {
 		Com_Print("No server to reconnect to\n");
 	}
+}
+
+/**
+ * @brief Tells the cgame to show the last ERROR_DROP message.
+ */
+void Cl_Drop(const char *text) {
+	//cls.cgame->Dialog(text, "Ok", "Reconnect", Cl_Reconnect_f);
 }
 
 /**
@@ -546,6 +543,7 @@ static void Cl_InitLocal(void) {
 	// user info
 
 	name = Cvar_Add("name", Cl_Username(), CVAR_USER_INFO | CVAR_ARCHIVE, "Your player name");
+	active = Cvar_Add("active", "0", CVAR_USER_INFO | CVAR_NO_SET, NULL);
 	message_level = Cvar_Add("message_level", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "The lowest message level you'll receive");
 	password = Cvar_Add("password", "", CVAR_USER_INFO, "Password to the server you want to connect to");
 	rate = Cvar_Add("rate", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "Your bandwidth throttle, or 0 for none");

@@ -156,7 +156,7 @@ void Cl_HttpThink(void) {
 	int32_t i;
 
 	if (!cls.download.http) {
-		return;    // nothing to do
+		return; // nothing to do
 	}
 
 	// process the download as long as data is available
@@ -179,6 +179,7 @@ void Cl_HttpThink(void) {
 		if (cl_http_state.status == 200) {
 			// disconnect while we download, this could take some time
 			Cl_SendDisconnect();
+			cls.state = CL_DISCONNECTED;
 		} else if (cl_http_state.status > 0) { // 404, 403, etc..
 			Cl_HttpDownload_Complete();
 			return;
@@ -214,7 +215,6 @@ void Cl_InitHttp(void) {
 	}
 
 	cl_http_state.ready = true;
-
 }
 
 /**
@@ -226,10 +226,13 @@ void Cl_ShutdownHttp(void) {
 
 	if (cl_http_state.curl) {
 		curl_easy_cleanup(cl_http_state.curl);
+		cl_http_state.curl = NULL;
 	}
 
 	if (cl_http_state.curlm) {
 		curl_multi_cleanup(cl_http_state.curlm);
+		cl_http_state.curlm = NULL;
 	}
 
+	cl_http_state.ready = false;
 }

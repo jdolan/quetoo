@@ -25,6 +25,7 @@
 
 void R_EnableScissor(const SDL_Rect *bounds);
 void R_Color(const vec4_t color);
+const vec_t *R_GetCurrentColor(void);
 void R_Setup3D(void);
 void R_Setup2D(void);
 void R_EnableColorArray(_Bool enable);
@@ -63,7 +64,7 @@ typedef struct r_texunit_s {
 // matrix stack
 #define MAX_MATRIX_STACK		16
 
-typedef struct r_matrix_stack_s {
+typedef struct {
 	matrix4x4_t matrices[MAX_MATRIX_STACK];
 	uint8_t depth;
 } r_matrix_stack_t;
@@ -93,7 +94,6 @@ typedef struct r_state_s {
 	_Bool blend_enabled;
 
 	float alpha_threshold;
-	vec4_t current_color;
 
 	r_texunit_t texunits[R_TEXUNIT_TOTAL];
 	r_texunit_t *active_texunit;
@@ -207,10 +207,9 @@ void R_EnableShell(const r_program_t *program, _Bool enable);
 void R_EnableFog(_Bool enable);
 void R_EnableCaustic(_Bool enable);
 void R_UseMaterial(const r_material_t *material);
-void R_UseMatrices(void);
+void R_UseUniforms(void);
 void R_UseInterpolation(const vec_t lerp);
 void R_UseAlphaTest(void);
-void R_UseCurrentColor(void);
 void R_UseFog(void);
 void R_UseCaustic(void);
 void R_UseTints(void);

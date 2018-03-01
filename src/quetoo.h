@@ -39,10 +39,6 @@
 #endif
 
 #if defined(_WIN32)
-	#undef WIN32_LEAN_AND_MEAN
-	#define WIN32_LEAN_AND_MEAN
-	#include <windows.h>
-
 	// A hack to fix buggy MingW behavior
 	#if defined(__MINGW32__)
 		#undef PRIdPTR
@@ -124,28 +120,6 @@ DECLARE_VECTOR_TYPE(int16_t, s16vec);
 #undef VECTOR_TYPE
 #undef VECTOR_TYPENAME_N
 #undef VECTOR_TYPENAME
-
-/**
- * @brief A 32-bit RGBA color
- */
-typedef union {
-	struct {
-		byte r, g, b, a;
-	}; // as separate components
-
-	byte bytes[4]; // as four bytes, for loopage
-
-	uint32_t u32; // as a full uint32_t
-} color_t;
-
-#define ColorFromRGBA(rr, gg, bb, aa) \
-		({ color_t _c; _c.r = rr; _c.g = gg; _c.b = bb; _c.a = aa; _c; })
-
-#define ColorFromRGB(r, g, b) \
-		ColorFromRGBA(r, g, b, 255)
-
-#define ColorFromU32(v) \
-		({ color_t _c; _c.u32 = v; _c; })
 
 /**
  * @brief Indices for angle vectors.
@@ -269,7 +243,7 @@ typedef void (*AutocompleteFunc)(const uint32_t argi, GList **matches);
  */
 typedef struct cvar_s {
 	const char *name;
-	const char *default_value;
+	const char *default_string;
 	char *string;
 	char *latched_string; // for CVAR_LATCH vars
 	vec_t value;
@@ -317,6 +291,7 @@ typedef enum {
 	SV_CMD_CONFIG_STRING, // [short] [string]
 	SV_CMD_DISCONNECT,
 	SV_CMD_DOWNLOAD, // [short] size [size bytes]
+	SV_CMD_DROP,
 	SV_CMD_FRAME,
 	SV_CMD_PRINT, // [byte] id [string] null terminated string
 	SV_CMD_RECONNECT,

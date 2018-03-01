@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Quetoo BETA Update
 Comment=Update utility for Quetoo BETA.
-Exec="%QUETOO_HOME%/bin/update"
+Exec="%QUETOO_HOME%/bin/quetoo-update"
 Icon="%QUETOO_HOME%/share/default/icons/update.png"
 Terminal=true
 Type=Application

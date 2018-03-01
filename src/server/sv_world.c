@@ -127,8 +127,6 @@ void Sv_UnlinkEntity(g_entity_t *ent) {
  */
 void Sv_LinkEntity(g_entity_t *ent) {
 	int32_t leafs[MAX_ENT_LEAFS];
-	int32_t clusters[MAX_ENT_LEAFS];
-	size_t i, j;
 	int32_t top_node;
 
 	if (ent == svs.game->entities) { // never bother with the world
@@ -169,12 +167,10 @@ void Sv_LinkEntity(g_entity_t *ent) {
 	sent->areas[0] = sent->areas[1] = 0;
 
 	// get all leafs, including solids
-	const size_t len = Cm_BoxLeafnums(ent->abs_mins, ent->abs_maxs, leafs, lengthof(leafs),
-	                                  &top_node, 0);
+	const size_t len = Cm_BoxLeafnums(ent->abs_mins, ent->abs_maxs, leafs, lengthof(leafs), &top_node, 0);
 
 	// set areas, allowing entities (doors) to occupy up to two
-	for (i = 0; i < len; i++) {
-		clusters[i] = Cm_LeafCluster(leafs[i]);
+	for (size_t i = 0; i < len; i++) {
 		const int32_t area = Cm_LeafArea(leafs[i]);
 		if (area) {
 			if (sent->areas[0] && sent->areas[0] != area) {
@@ -193,18 +189,20 @@ void Sv_LinkEntity(g_entity_t *ent) {
 		sent->top_node = top_node;
 	} else {
 		sent->num_clusters = 0;
-		for (i = 0; i < len; i++) {
+		for (size_t i = 0; i < len; i++) {
 
-			if (clusters[i] == -1) {
-				continue;    // not a visible leaf
+			const int32_t cluster = Cm_LeafCluster(leafs[i]);
+			if (cluster == -1) {
+				continue; // not a visible leaf
 			}
 
-			for (j = 0; j < i; j++)
-				if (clusters[j] == clusters[i]) {
+			int32_t c;
+			for (c = 0; c < sent->num_clusters; c++)
+				if (sent->clusters[c] == cluster) {
 					break;
 				}
 
-			if (j == i) {
+			if (c == sent->num_clusters) {
 				if (sent->num_clusters == MAX_ENT_CLUSTERS) { // use top_node
 					Com_Debug(DEBUG_SERVER, "%s exceeds MAX_ENT_CLUSTERS\n", etos(ent));
 					sent->num_clusters = -1;
@@ -212,7 +210,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 					break;
 				}
 
-				sent->clusters[sent->num_clusters++] = clusters[i];
+				sent->clusters[sent->num_clusters++] = cluster;
 			}
 		}
 	}

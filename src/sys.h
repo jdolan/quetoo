@@ -27,9 +27,9 @@ const char *Sys_ExecutablePath(void);
 const char *Sys_Username(void);
 const char *Sys_UserDir(void);
 
-void Sys_OpenLibrary(const char *name, void **handle);
-void Sys_CloseLibrary(void **handle);
-void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, void *params);
+void *Sys_OpenLibrary(const char *name, _Bool global);
+void *Sys_LoadLibrary(void *handle, const char *entry_point, void *params);
+void Sys_CloseLibrary(void *handle);
 
 void Sys_Backtrace(const char *msg);
 void Sys_Signal(int32_t s) __attribute__((noreturn));

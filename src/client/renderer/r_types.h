@@ -21,14 +21,14 @@
 
 #pragma once
 
-#include "r_glad_core.h"
-
 #include <SDL2/SDL_video.h>
 
 #include "files.h"
 #include "image.h"
 #include "matrix.h"
 #include "thread.h"
+
+#include "r_gl_types.h"
 
 /**
  * @brief Media identifier type
@@ -69,17 +69,11 @@ typedef enum {
 } r_model_type_t;
 
 // high bits OR'ed with image types
-#define IT_MASK_MIPMAP	128
-#define IT_MASK_FILTER	256
-
-/**
- * @brief Don't return the null white picture if we can't find the image, return
- * null instead.
- */
-#define IT_MASK_FAIL	512 
-
-#define IT_MASK_TYPE	0x7F
-#define IT_MASK_FLAGS	(-1 & ~IT_MASK_TYPE)
+#define IT_MASK_MIPMAP		0x100
+#define IT_MASK_FILTER		0x200
+#define IT_MASK_MULTIPLY	0x400
+#define IT_MASK_TYPE		0x7F
+#define IT_MASK_FLAGS		(-1 & ~IT_MASK_TYPE)
 
 // image types
 typedef enum {
@@ -94,7 +88,7 @@ typedef enum {
 	IT_NORMALMAP = 8 + (IT_MASK_MIPMAP),
 	IT_SPECULARMAP = 9 + (IT_MASK_MIPMAP),
 	IT_ENVMAP = 10 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_FLARE = 11 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
+	IT_FLARE = 11 + (IT_MASK_MIPMAP | IT_MASK_FILTER | IT_MASK_MULTIPLY),
 	IT_SKY = 12 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_PIC = 13 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_ATLAS_MAP = 14 + (IT_MASK_MIPMAP), // image is an r_atlas_t*
@@ -126,6 +120,7 @@ typedef enum {
 	R_ATTRIB_COLOR,
 	R_ATTRIB_NORMAL,
 	R_ATTRIB_TANGENT,
+	R_ATTRIB_BITANGENT,
 	R_ATTRIB_DIFFUSE,
 	R_ATTRIB_LIGHTMAP,
 
@@ -136,6 +131,7 @@ typedef enum {
 	R_ATTRIB_NEXT_POSITION,
 	R_ATTRIB_NEXT_NORMAL,
 	R_ATTRIB_NEXT_TANGENT,
+	R_ATTRIB_NEXT_BITANGENT,
 
 	/**
 	 * @brief Geometry shader parameters
@@ -160,24 +156,26 @@ typedef enum {
  * up with the ones above to make things simple.
  */
 typedef enum {
-	R_ATTRIB_MASK_POSITION		= (1 << R_ATTRIB_POSITION),
-	R_ATTRIB_MASK_COLOR			= (1 << R_ATTRIB_COLOR),
-	R_ATTRIB_MASK_NORMAL		= (1 << R_ATTRIB_NORMAL),
-	R_ATTRIB_MASK_TANGENT		= (1 << R_ATTRIB_TANGENT),
-	R_ATTRIB_MASK_DIFFUSE		= (1 << R_ATTRIB_DIFFUSE),
-	R_ATTRIB_MASK_LIGHTMAP		= (1 << R_ATTRIB_LIGHTMAP),
+	R_ATTRIB_MASK_POSITION       = (1 << R_ATTRIB_POSITION),
+	R_ATTRIB_MASK_COLOR          = (1 << R_ATTRIB_COLOR),
+	R_ATTRIB_MASK_NORMAL         = (1 << R_ATTRIB_NORMAL),
+	R_ATTRIB_MASK_TANGENT        = (1 << R_ATTRIB_TANGENT),
+	R_ATTRIB_MASK_BITANGENT      = (1 << R_ATTRIB_BITANGENT),
+	R_ATTRIB_MASK_DIFFUSE        = (1 << R_ATTRIB_DIFFUSE),
+	R_ATTRIB_MASK_LIGHTMAP       = (1 << R_ATTRIB_LIGHTMAP),
 
-	R_ATTRIB_MASK_NEXT_POSITION	= (1 << R_ATTRIB_NEXT_POSITION),
-	R_ATTRIB_MASK_NEXT_NORMAL	= (1 << R_ATTRIB_NEXT_NORMAL),
-	R_ATTRIB_MASK_NEXT_TANGENT	= (1 << R_ATTRIB_NEXT_TANGENT),
-	
-	R_ATTRIB_MASK_SCALE			= (1 << R_ATTRIB_SCALE),
-	R_ATTRIB_MASK_ROLL			= (1 << R_ATTRIB_ROLL),
-	R_ATTRIB_MASK_END			= (1 << R_ATTRIB_END),
-	R_ATTRIB_MASK_TYPE			= (1 << R_ATTRIB_TYPE),
+	R_ATTRIB_MASK_NEXT_POSITION  = (1 << R_ATTRIB_NEXT_POSITION),
+	R_ATTRIB_MASK_NEXT_NORMAL    = (1 << R_ATTRIB_NEXT_NORMAL),
+	R_ATTRIB_MASK_NEXT_TANGENT   = (1 << R_ATTRIB_NEXT_TANGENT),
+	R_ATTRIB_MASK_NEXT_BITANGENT = (1 << R_ATTRIB_NEXT_BITANGENT),
 
-	R_ATTRIB_MASK_ALL			= (1 << R_ATTRIB_ALL) - 1,
-	R_ATTRIB_GEOMETRY_MASK		= R_ATTRIB_MASK_SCALE | R_ATTRIB_MASK_ROLL | R_ATTRIB_MASK_END | R_ATTRIB_MASK_TYPE
+	R_ATTRIB_MASK_SCALE          = (1 << R_ATTRIB_SCALE),
+	R_ATTRIB_MASK_ROLL           = (1 << R_ATTRIB_ROLL),
+	R_ATTRIB_MASK_END            = (1 << R_ATTRIB_END),
+	R_ATTRIB_MASK_TYPE           = (1 << R_ATTRIB_TYPE),
+
+	R_ATTRIB_MASK_ALL            = (1 << R_ATTRIB_ALL) - 1,
+	R_ATTRIB_GEOMETRY_MASK       = R_ATTRIB_MASK_SCALE | R_ATTRIB_MASK_ROLL | R_ATTRIB_MASK_END | R_ATTRIB_MASK_TYPE
 } r_attribute_mask_t;
 
 /**
@@ -206,12 +204,12 @@ typedef union {
 	uint32_t packed;
 
 	struct {
-		uint32_t type : 3;
-		uint32_t count : 3;
-		uint32_t offset : 6;
-		uint32_t stride : 6;
-		uint32_t normalized : 2;
-		uint32_t integer : 2;
+		uint32_t normalized : 1; // bool
+		uint32_t integer : 1; // bool
+		uint32_t type : 3; // r_attrib_type_t, max 7
+		uint32_t count : 3; // # of elements, max 7
+		uint32_t offset : 12; // offset in bytes, max 4095
+		uint32_t stride : 12; // offset in bytes, max 4095
 	};
 } r_attrib_type_state_t;
 
@@ -238,9 +236,9 @@ typedef struct {
  * @brief Structure that holds construction arguments for buffers
  */
 typedef struct {
-	r_buffer_layout_t element;
-	GLenum hint;
 	r_buffer_type_t type;
+	GLenum hint;
+	r_buffer_layout_t element;
 	size_t size;
 	const void *data;
 } r_create_buffer_t;
@@ -661,7 +659,8 @@ typedef struct {
 typedef struct {
 	vec3_t point;
 	vec3_t normal;
-	vec4_t tangent;
+	vec3_t tangent;
+	vec3_t bitangent;
 } r_model_vertex_t;
 
 typedef struct {
@@ -731,7 +730,8 @@ typedef struct {
 	vec2_t *texcoords;
 	vec2_t *lightmap_texcoords;
 	vec3_t *normals;
-	vec4_t *tangents;
+	vec3_t *tangents;
+	vec3_t *bitangents;
 
 	// buffers
 	r_buffer_t vertex_buffer;
@@ -941,7 +941,7 @@ typedef struct r_entity_s {
 
 	r_lighting_t *lighting; // static lighting information
 
-	const vec_t *tints[TINT_TOTAL]; // tint pointers - NULL means use default
+	vec4_t tints[TINT_TOTAL]; // tint colors, non-zero alpha enables the tint
 } r_entity_t;
 
 /**
@@ -1077,6 +1077,16 @@ typedef enum {
 } r_state_id_t;
 
 /**
+ * @brief
+ */
+typedef struct {
+	uint32_t bound;
+	uint32_t num_full_uploads;
+	uint32_t num_partial_uploads;
+	size_t size_uploaded;
+} r_buffer_stats_t;
+
+/**
  * @brief Provides read-write visibility and scene management to the client.
  */
 typedef struct {
@@ -1139,7 +1149,7 @@ typedef struct {
 
 	uint32_t num_state_changes[R_STATE_TOTAL];
 	uint32_t num_binds[R_TEXUNIT_TOTAL];
-	uint32_t num_buffer_full_uploads, num_buffer_partial_uploads, size_buffer_uploads;
+	r_buffer_stats_t buffer_stats[R_NUM_BUFFERS];
 
 	uint32_t num_draw_elements, num_draw_element_count;
 	uint32_t num_draw_arrays, num_draw_array_count;
@@ -1188,6 +1198,7 @@ typedef struct {
 } r_context_t;
 
 #ifdef __R_LOCAL_H__
+
 /**
  * @brief Quake3 (MD3) model in-memory representation.
  */
@@ -1215,7 +1226,8 @@ typedef struct {
 	vec_t *point;
 	vec_t *texcoords;
 	vec_t *normal;
-	vec4_t tangent;
+	vec3_t tangent;
+	vec3_t bitangent;
 } r_obj_vertex_t;
 
 typedef uint32_t r_obj_triangle_t[3];

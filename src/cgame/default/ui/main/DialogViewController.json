@@ -1,0 +1,34 @@
+{
+	"identifier": "dialog",
+  "subviews": [
+    {
+      "class": "Panel",
+      "contentView": {
+        "subviews": [
+          {
+            "class": "Label",
+            "identifier": "message"
+          }
+        ]
+      },
+      "accessoryView": {
+        "subviews": [
+          {
+            "class": "Button",
+            "identifier": "cancel",
+            "title": {
+              "text": "Cancel"
+            }
+          },
+          {
+            "class": "Button",
+            "identifier": "ok",
+            "title": {
+              "text": "Ok"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

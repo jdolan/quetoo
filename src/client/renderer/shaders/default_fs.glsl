@@ -4,15 +4,18 @@
 
 #version 330
 
+#extension GL_ARB_texture_query_lod: enable
+
 #define FRAGMENT_SHADER
 
 #include "include/matrix.glsl"
 #include "include/fog.glsl"
 #include "include/noise3d.glsl"
 #include "include/tint.glsl"
+#include "include/color.glsl"
 
 #define MAX_LIGHTS $r_max_lights
-#define LIGHT_SCALE $r_lightscale
+#define MODULATE_SCALE $r_modulate
 
 #if MAX_LIGHTS
 struct LightParameters {
@@ -22,16 +25,6 @@ struct LightParameters {
 };
 
 uniform LightParameters LIGHTS;
-
-// linear + quadratic attenuation
-#define LIGHT_CONSTANT 0.0
-#define LIGHT_LINEAR 4.0
-#define LIGHT_QUADRATIC 8.0
-#define LIGHT_ATTENUATION (LIGHT_CONSTANT + (LIGHT_LINEAR * dist) + (LIGHT_QUADRATIC * dist * dist))
-
-// light color clamping
-#define LIGHT_CLAMP_MIN 0.0
-#define LIGHT_CLAMP_MAX 4.0
 #endif
 
 struct CausticParameters {
@@ -74,39 +67,132 @@ in VertexData {
 	vec3 tangent;
 	vec3 bitangent;
 	vec3 eye;
-	float fog;
 };
-
-const vec3 two = vec3(2.0);
-const vec3 negHalf = vec3(-0.5);
 
 vec3 eyeDir;
 
 out vec4 fragColor;
 
 /**
+ * @brief Clamp value t to range [a,b] and map [a,b] to [0,1].
+ */
+float linearstep(float a, float b, float t) {
+	return clamp((t - a) / (b - a), 0.0, 1.0);
+}
+
+/**
+ * @brief Used to dither the image before quantizing, combats banding artifacts.
+ */
+void DitherFragment(inout vec3 color) {
+
+	// source: Alex Vlachos, Valve Software. Advanced VR Rendering, GDC2015.
+
+	vec3 pattern = vec3(dot(vec2(171.0, 231.0), gl_FragCoord.xy));
+	pattern.rgb = fract(pattern.rgb / vec3(103.0, 71.0, 97.0));
+	color = clamp(color + (pattern.rgb / 255.0), 0.0, 1.0);
+
+}
+
+/**
  * @brief Yield the parallax offset for the texture coordinate.
  */
-vec2 BumpTexcoord(in float height) {
-	return vec2(height * 0.04 - 0.02) * PARALLAX * eyeDir.xy;
+/**
+ * @brief Yield the parallax offset for the texture coordinate.
+ */
+vec2 BumpTexcoord() {
+
+	float bias = 0;
+
+	#if GL_ARB_texture_query_lod
+	{
+		// 2^7 = 128*128 largest texture size.
+		const float maxMipmaps = 7;
+
+		vec2 texSize = textureSize(SAMPLER3, 0).xy;
+		float numMipmaps = log2(max(texSize.x, texSize.y));
+
+		float minMip = numMipmaps - maxMipmaps;
+		float mipLevel = textureQueryLOD(SAMPLER3, texcoords[0]).y;
+
+		bias = max(mipLevel, minMip);
+	}
+	#endif
+
+	float numSamples = 32;
+	float scale = PARALLAX * 0.04;
+
+	#if 1 // Optimizations
+	{
+		const float minSamples = 8;
+
+		#if 1 // Fade out at a distance.
+		const float near = 200.0;
+		const float far = 500.0;
+		float dist = 1.0 - linearstep(near, far, length(point));
+		numSamples = mix(minSamples, numSamples, dist);
+		scale *= dist;
+		#endif
+
+		#if 1 // Do less work on surfaces orthogonal to the view. Might give subtle peeling artifacts.
+		float orthogonality = clamp(dot(eyeDir, vec3(0.0, 0.0, 1.0)), 0.0, 1.0);
+		numSamples = mix(minSamples, numSamples, 1.0 - orthogonality*orthogonality);
+		#endif
+	}
+	#endif
+
+	if (scale == 0.0) {
+		return texcoords[0];
+	}
+
+	// Record keeping.
+	vec2  uvPrev;
+	vec2  uvCurr = texcoords[0] - (eyeDir.xy * scale * 0.5); // Middle-out parallaxing.
+	float surfaceHeightPrev;
+	float surfaceHeightCurr = textureLod(SAMPLER3, texcoords[0], bias).a;
+	float rayHeightPrev;
+	float rayHeightCurr = 0.0;
+
+	if (PARALLAX < 0.5) {
+		return uvCurr + (eyeDir.xy * surfaceHeightCurr * scale);
+	}
+
+	// Height offset per step.
+	float stepHeight = 1.0 / numSamples;
+	// UV offset per step.
+	vec2 uvDelta = eyeDir.xy * scale / numSamples;
+
+	while (rayHeightCurr < surfaceHeightCurr) {
+
+		uvPrev = uvCurr;
+		uvCurr += uvDelta;
+		surfaceHeightPrev = surfaceHeightCurr;
+		surfaceHeightCurr = textureLod(SAMPLER3, uvCurr, bias).a;
+		rayHeightPrev = rayHeightCurr;
+		rayHeightCurr += stepHeight;
+	}
+
+	// Take last two heights and interpolate between them.
+	float a = surfaceHeightCurr - rayHeightCurr;
+	float b = surfaceHeightPrev - rayHeightCurr + stepHeight;
+	float blend = a / (a - b);
+
+	return mix(uvCurr, uvPrev, blend);
 }
 
 /**
  * @brief Yield the diffuse modulation from bump-mapping.
  */
-vec3 BumpFragment(in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap) {
+void BumpFragment(in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap, out float lightmapBumpScale, out float lightmapSpecularScale) {
+	float glossFactor = clamp(dot(glossmap, vec3(0.299, 0.587, 0.114)), 0.0078125, 1.0);
 
-	float diffuse = max(dot(deluxemap, normalmap), 1.0);
-
-	float specular = HARDNESS * pow(max(-dot(eyeDir, reflect(deluxemap, normalmap)), 0.0), 8.0 * SPECULAR);
-
-	return diffuse + specular * glossmap;
+	lightmapBumpScale = clamp(dot(deluxemap, normalmap), 0.0, 1.0);
+	lightmapSpecularScale = (HARDNESS * glossFactor) * pow(clamp(-dot(eyeDir, reflect(deluxemap, normalmap)), 0.0078125, 1.0), (16.0 * glossFactor) * SPECULAR);
 }
 
 /**
  * @brief Yield the final sample color after factoring in dynamic light sources.
  */
-void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
+void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in float lightmapBumpScale, in float lightmapSpecularScale) {
 
 	vec3 light = vec3(0.0);
 
@@ -121,24 +207,39 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 			break;
 
 		vec3 delta = LIGHTS.ORIGIN[i] - point;
-		float dist = length(delta);
+		float len = length(delta);
 
-		if (dist < LIGHTS.RADIUS[i]) {
+		if (len < LIGHTS.RADIUS[i]) {
 
-			float d = dot(normalmap, normalize(delta));
-			if (d > 0.0) {
+			float lambert = dot(normalmap, normalize(delta));
+			if (lambert > 0.0) {
 
-				dist = 1.0 - dist / LIGHTS.RADIUS[i];
-				light += LIGHTS.COLOR[i] * d * LIGHT_ATTENUATION;
+				// windowed inverse square falloff
+				float dist = len/LIGHTS.RADIUS[i];
+				float falloff = clamp(1.0 - dist * dist * dist * dist, 0.0, 1.0);
+				falloff = falloff * falloff;
+				falloff = falloff / (dist * dist + 1.0);
+
+				light += LIGHTS.COLOR[i] * falloff * lambert;
 			}
 		}
 	}
 
-	light = clamp(light, LIGHT_CLAMP_MIN, LIGHT_CLAMP_MAX);
+	light *= MODULATE_SCALE;
 #endif
 
 	// now modulate the diffuse sample with the modified lightmap
-	fragColor.rgb = diffuse.rgb * (lightmap + light) * LIGHT_SCALE;
+	float lightmapLuma = dot(lightmap.rgb, vec3(0.299, 0.587, 0.114));
+
+	float blackPointLuma = 0.015625;
+	float l = exp2(lightmapLuma) - blackPointLuma;
+	float lightmapDiffuseBumpedLuma = l * lightmapBumpScale;
+	float lightmapSpecularBumpedLuma = l * lightmapSpecularScale;
+
+	vec3 diffuseLightmapColor = lightmap.rgb * lightmapDiffuseBumpedLuma;
+	vec3 specularLightmapColor = (lightmapLuma + lightmap.rgb) * 0.5 * lightmapSpecularBumpedLuma;
+
+	fragColor.rgb = diffuse.rgb * ((diffuseLightmapColor + specularLightmapColor) * MODULATE_SCALE + light);
 
 	// lastly modulate the alpha channel by the color
 	fragColor.a = diffuse.a * color.a;
@@ -180,54 +281,58 @@ void CausticFragment(in vec3 lightmap) {
  */
 void main(void) {
 
-	// first resolve the flat shading
+	eyeDir = normalize(eye);
+
+	// texture coordinates
+	vec2 uvTextures = NORMALMAP && PARALLAX > 0 ? BumpTexcoord() : texcoords[0];
+	vec2 uvLightmap = texcoords[1];
+
+	// flat shading
 	vec3 lightmap = color.rgb;
 	vec3 deluxemap = vec3(0.0, 0.0, 1.0);
 
 	if (LIGHTMAP) {
-		lightmap = texture(SAMPLER1, texcoords[1]).rgb;
+		lightmap = texture(SAMPLER1, uvLightmap).rgb;
 
 		if (STAINMAP) {
-			vec4 stain = texture(SAMPLER8, texcoords[1]);
+			vec4 stain = texture(SAMPLER8, uvLightmap);
 			lightmap = mix(lightmap.rgb, stain.rgb, stain.a).rgb;
-			//lightmap = texture(SAMPLER8, texcoords[1]).rgb;
 		}
 	}
 
 	// then resolve any bump mapping
-	vec4 normalmap = vec4(normal, 1.0);
-	vec2 parallax = vec2(0.0);
-	vec3 bump = vec3(1.0);
+	vec4 normalmap = vec4(normal, 0.5);
+
+	float lightmapBumpScale = 1.0;
+	float lightmapSpecularScale = 0.0;
 
 	if (NORMALMAP) {
 
-		eyeDir = normalize(eye);
-
 		if (DELUXEMAP) {
-			deluxemap = texture(SAMPLER2, texcoords[1]).rgb;
-			deluxemap = normalize(two * (deluxemap + negHalf));
+			deluxemap = texture(SAMPLER2, uvLightmap).rgb;
+			deluxemap = normalize(2.0 * (deluxemap + 0.5));
 		}
 
-		// resolve the initial normalmap sample
-		normalmap = texture(SAMPLER3, texcoords[0]);
+		normalmap = texture(SAMPLER3, uvTextures);
 
-		// resolve the parallax offset from the heightmap
-		parallax = BumpTexcoord(normalmap.w);
+		// scale by BUMP
+		normalmap.xy = (normalmap.xy * 2.0 - 1.0) * BUMP;
+		normalmap.xyz = normalize(normalmap.xyz);
 
-		// resample the normalmap at the parallax offset
-		normalmap = texture(SAMPLER3, texcoords[0] + parallax);
-
-		normalmap.xyz = normalize(two * (normalmap.xyz + negHalf));
-		normalmap.xyz = normalize(vec3(normalmap.x * BUMP, normalmap.y * BUMP, normalmap.z));
-
-		vec3 glossmap = vec3(1.0);
+		vec3 glossmap = vec3(0.5);
 
 		if (GLOSSMAP) {
-			glossmap = texture(SAMPLER4, texcoords[0]).rgb;
+			glossmap = texture(SAMPLER4, uvTextures).rgb;
+		} else if (DIFFUSE) {
+			vec4 diffuse = texture(SAMPLER0, uvTextures);
+			float processedGrayscaleDiffuse = dot(diffuse.rgb * diffuse.a, vec3(0.299, 0.587, 0.114)) * 0.875 + 0.125;
+			float guessedGlossValue = clamp(pow(processedGrayscaleDiffuse * 3.0, 4.0), 0.0, 1.0) * 0.875 + 0.125;
+
+			glossmap = vec3(guessedGlossValue);
 		}
 
 		// resolve the bumpmap modulation
-		bump = BumpFragment(deluxemap, normalmap.xyz, glossmap);
+		BumpFragment(deluxemap, normalmap.xyz, glossmap, lightmapBumpScale, lightmapSpecularScale);
 
 		// and then transform the normalmap to model space for lighting
 		normalmap.xyz = normalize(
@@ -240,24 +345,27 @@ void main(void) {
 	vec4 diffuse = vec4(1.0);
 
 	if (DIFFUSE) { // sample the diffuse texture, honoring the parallax offset
-		diffuse = texture(SAMPLER0, texcoords[0] + parallax);
+		diffuse = ColorFilter(texture(SAMPLER0, uvTextures));
 
 		// see if diffuse can be discarded because of alpha test
-		if (diffuse.a < ALPHA_THRESHOLD)
+		if (diffuse.a < ALPHA_THRESHOLD) {
 			discard;
+		}
 
-		TintFragment(diffuse, texcoords[0] + parallax);
-
-		// factor in bump mapping
-		diffuse.rgb *= bump;
+		TintFragment(diffuse, uvTextures);
 	}
 
 	// add any dynamic lighting to yield the final fragment color
-	LightFragment(diffuse, lightmap, normalmap.xyz);
+	LightFragment(diffuse, lightmap, normalmap.xyz, lightmapBumpScale, lightmapSpecularScale);
 
     // underliquid caustics
 	CausticFragment(lightmap);
 
-	// and fog
-	FogFragment(fragColor, fog);
+	// tonemap
+	fragColor.rgb *= exp(fragColor.rgb);
+	fragColor.rgb /= fragColor.rgb + 0.825;
+
+	FogFragment(length(point), fragColor);
+	
+	DitherFragment(fragColor.rgb);
 }

@@ -1,0 +1,166 @@
+{
+  "identifier": "Player",
+  "subviews": [
+    {
+      "class": "StackView",
+      "classNames": [
+        "container"
+      ],
+      "subviews": [
+        {
+          "class": "StackView",
+          "classNames": [
+            "columns"
+          ],
+          "subviews": [
+            {
+              "class": "StackView",
+              "classNames": [
+                "column",
+                "container"
+              ],
+              "subviews": [
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Player"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Name"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarTextView",
+                          "var": "name"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Player model"
+                          }
+                        },
+                        "control": {
+                          "class": "Select",
+                          "identifier": "skin"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Handicap"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "min": 50,
+                          "max": 100,
+                          "step": 5,
+                          "var": "handicap"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Colors"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Effects"
+                          }
+                        },
+                        "control": {
+                          "class": "HueColorPicker",
+                          "identifier": "effects",
+                          "hueSlider": {
+                            "min": -1
+                          }
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Helmet"
+                          }
+                        },
+                        "control": {
+                          "class": "HSVColorPicker",
+                          "identifier": "helmet",
+                          "hueSlider": {
+                            "min": -1
+                          },
+                          "valueSlider": {
+                            "min": 0.3
+                          }
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Shirt"
+                          }
+                        },
+                        "control": {
+                          "class": "HSVColorPicker",
+                          "identifier": "shirt",
+                          "hueSlider": {
+                            "min": -1
+                          },
+                          "valueSlider": {
+                            "min": 0.3
+                          }
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Pants"
+                          }
+                        },
+                        "control": {
+                          "class": "HSVColorPicker",
+                          "identifier": "pants",
+                          "hueSlider": {
+                            "min": -1
+                          },
+                          "valueSlider": {
+                            "min": 0.3
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "class": "PlayerModelView",
+              "identifier": "player"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -61,7 +61,7 @@ void Sv_DropClient(sv_client_t *cl) {
 			svs.game->ClientDisconnect(cl->entity);
 		}
 
-		Net_WriteByte(&cl->net_chan.message, SV_CMD_DISCONNECT);
+		Net_WriteByte(&cl->net_chan.message, SV_CMD_DROP);
 		Netchan_Transmit(&cl->net_chan, cl->net_chan.message.data, cl->net_chan.message.size);
 	}
 
@@ -148,7 +148,7 @@ static void Sv_Info_f(void) {
 			}
 		}
 
-		g_snprintf(string, sizeof(string), "%-63s\\%-31s\\%-31s\\%d\\%d", sv_hostname->string,
+		g_snprintf(string, sizeof(string), "%s\\%s\\%s\\%d\\%d", sv_hostname->string,
 		           sv.name, svs.game->GameName(), count, sv_max_clients->integer);
 	}
 
@@ -296,7 +296,7 @@ static void Sv_Connect_f(void) {
 	// otherwise, treat as a fresh connect to a new slot
 	if (!client) {
 		for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
-			if (cl->state == SV_CLIENT_FREE && !cl->entity->client->connected && !cl->entity->client->ai) { // we have a free one
+			if (cl->state == SV_CLIENT_FREE && !cl->entity->client->ai) { // we have a free one
 				client = cl;
 				break;
 			}
@@ -306,7 +306,7 @@ static void Sv_Connect_f(void) {
 	// no free slots, see if there's an AI slot ready to go and boot them.
 	if (!client) {
 		for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
-			if (cl->state == SV_CLIENT_FREE && cl->entity->client->connected && cl->entity->client->ai) { // we have a free one
+			if (cl->state == SV_CLIENT_FREE && cl->entity->client->ai) { // we have a free one
 				client = cl;
 				svs.game->ClientDisconnect(cl->entity);
 				break;
@@ -815,14 +815,14 @@ static void Sv_InitLocal(void) {
 	sv_download_url = Cvar_Add("sv_download_url", "", CVAR_SERVER_INFO,
 	                           "The base URL for in-game HTTP downloads");
 	sv_enforce_time = Cvar_Add("sv_enforce_time", va("%d", CMD_MSEC_MAX_DRIFT_ERRORS), 0,
-	                           "Prevents the most blatant form of speed cheeting, disable at your own risk");
+	                           "Prevents the most blatant form of speed cheating, disable at your own risk");
 	sv_hostname = Cvar_Add("sv_hostname", "Quetoo", CVAR_SERVER_INFO | CVAR_ARCHIVE,
 	                       "The server hostname, visible in the server browser");
-	sv_max_clients = Cvar_Add("sv_max_clients", "1", CVAR_SERVER_INFO | CVAR_LATCH,
+	sv_max_clients = Cvar_Add("sv_max_clients", "8", CVAR_SERVER_INFO | CVAR_LATCH,
 	                          "The maximum number of clients the server will allow");
 	sv_no_areas = Cvar_Add("sv_no_areas", "0", CVAR_LATCH | CVAR_DEVELOPER,
 	                       "Disable server-side area management (developer tool)");
-	sv_public = Cvar_Add("sv_public", "0", 0,
+	sv_public = Cvar_Add("sv_public", "0", CVAR_SERVER_INFO,
 	                     "Set to 1 to to advertise this server via the master server");
 	sv_rcon_password = Cvar_Add("rcon_password", "", 0,
 	                            "The remote console password. If set, only give this to trusted clients");
@@ -831,8 +831,7 @@ static void Sv_InitLocal(void) {
 	                           "If set, in-game UDP downloads will be allowed when HTTP downloads fail");
 
 	if (dedicated->value) {
-		Cvar_SetValue(sv_max_clients->name, 8.0);
-		Cvar_SetValue(sv_public->name, 1.0);
+		Cvar_SetInteger(sv_public->name, 1);
 	}
 
 	// set this so clients and server browsers can see it

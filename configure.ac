@@ -26,7 +26,7 @@ fi
 
 AC_DEFINE_UNQUOTED(REVISION, "$REVISION", [Git revision])
 
-AM_INIT_AUTOMAKE([foreign])
+AM_INIT_AUTOMAKE([foreign subdir-objects])
 AM_SILENT_RULES([yes])
 
 dnl ---------------
@@ -153,7 +153,7 @@ dnl --------------------------------------
 dnl Check for SDL2, SDL2_image, SDL2_mixer
 dnl --------------------------------------
 
-PKG_CHECK_MODULES([SDL2], [sdl2 >= 2.0.0 SDL2_image SDL2_mixer])
+PKG_CHECK_MODULES([SDL2], [sdl2 >= 2.0.0 SDL2_image])
 
 dnl --------------------
 dnl Check for libsndfile
@@ -213,9 +213,6 @@ HOST_OPENAL_CFLAGS=""
 HOST_OPENAL_LIBS=""
 
 case "$host" in
-	*-apple-*)
-		HOST_OPENAL_LIBS="-framework OpenAL"
-		;;
 	*-mingw*)
 		HOST_OPENAL_LIBS="-lOpenAL32"
 		;;
@@ -499,17 +496,20 @@ AC_CONFIG_FILES([
 	src/collision/Makefile
 	src/cgame/Makefile
 	src/cgame/default/Makefile
-	src/cgame/default/viewcontrollers/Makefile
-	src/cgame/default/views/Makefile
+	src/cgame/default/ui/Makefile
+	src/cgame/default/ui/common/Makefile
+	src/cgame/default/ui/controls/Makefile
+	src/cgame/default/ui/home/Makefile
+	src/cgame/default/ui/main/Makefile
+	src/cgame/default/ui/play/Makefile
+	src/cgame/default/ui/settings/Makefile
 	src/client/Makefile
 	src/client/renderer/Makefile
 	src/client/renderer/shaders/Makefile
 	src/client/renderer/shaders/include/Makefile
 	src/client/sound/Makefile
 	src/client/ui/Makefile
-	src/client/ui/renderers/Makefile
-	src/client/ui/viewcontrollers/Makefile
-	src/client/ui/views/Makefile
+	src/client/ui/editor/Makefile
 	src/game/Makefile
 	src/game/default/Makefile
 	src/main/Makefile

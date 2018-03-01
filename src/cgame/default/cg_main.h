@@ -33,18 +33,18 @@ extern cvar_t *cg_add_weather;
 extern cvar_t *cg_autoswitch;
 extern cvar_t *cg_bob;
 extern cvar_t *cg_color;
-extern cvar_t *cg_tint_r; // shirt
-extern cvar_t *cg_tint_g; // pants
-extern cvar_t *cg_tint_b; // helmet
 extern cvar_t *cg_draw_blend;
 extern cvar_t *cg_draw_blend_damage;
 extern cvar_t *cg_draw_blend_liquid;
 extern cvar_t *cg_draw_blend_pickup;
+extern cvar_t *cg_draw_blend_powerup;
 extern cvar_t *cg_draw_captures;
+extern cvar_t *cg_draw_crosshair;
+extern cvar_t *cg_draw_crosshair_alpha;
 extern cvar_t *cg_draw_crosshair_color;
+extern cvar_t *cg_draw_crosshair_health;
 extern cvar_t *cg_draw_crosshair_pulse;
 extern cvar_t *cg_draw_crosshair_scale;
-extern cvar_t *cg_draw_crosshair;
 extern cvar_t *cg_draw_held_flag;
 extern cvar_t *cg_draw_held_tech;
 extern cvar_t *cg_draw_frags;
@@ -72,11 +72,15 @@ extern cvar_t *cg_fov_zoom;
 extern cvar_t *cg_fov_interpolate;
 extern cvar_t *cg_hand;
 extern cvar_t *cg_handicap;
+extern cvar_t *cg_helmet;
+extern cvar_t *cg_hit_sound;
 extern cvar_t *cg_hook_style;
+extern cvar_t *cg_pants;
 extern cvar_t *cg_particle_quality;
 extern cvar_t *cg_predict;
 extern cvar_t *cg_quick_join_max_ping;
 extern cvar_t *cg_quick_join_min_clients;
+extern cvar_t *cg_shirt;
 extern cvar_t *cg_skin;
 extern cvar_t *cg_third_person;
 extern cvar_t *cg_third_person_chasecam;
@@ -90,9 +94,10 @@ extern cvar_t *g_gameplay;
 extern cvar_t *g_teams;
 extern cvar_t *g_ctf;
 extern cvar_t *g_match;
+extern cvar_t *g_ai_max_clients;
 
 extern cg_import_t cgi;
 
-cg_export_t *Cg_LoadCgame(cg_import_t *import);
+CGAME_EXPORT cg_export_t *Cg_LoadCgame(cg_import_t *import);
 
 #endif /* __CG_LOCAL_H__ */

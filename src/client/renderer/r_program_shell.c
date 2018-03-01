@@ -29,8 +29,6 @@ typedef struct r_shell_program_s {
 
 	r_sampler2d_t sampler0;
 	r_sampler2d_t sampler1;
-
-	r_uniform4fv_t current_color;
 } r_shell_program_t;
 
 static r_shell_program_t r_shell_program;
@@ -70,12 +68,7 @@ void R_InitProgram_shell(r_program_t *program) {
 	R_ProgramVariable(&p->sampler0, R_SAMPLER_2D, "SAMPLER0", true);
 	R_ProgramParameter1i(&p->sampler0, R_TEXUNIT_DIFFUSE);
 
-	R_ProgramVariable(&p->current_color, R_UNIFORM_VEC4, "GLOBAL_COLOR", true);
-
 	R_ProgramVariable(&p->time_fraction, R_UNIFORM_FLOAT, "TIME_FRACTION", true);
-
-	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
-	R_ProgramParameter4fv(&p->current_color, white);
 
 	R_ProgramParameter1f(&p->time_fraction, 0.0f);
 }
@@ -94,21 +87,6 @@ void R_UseProgram_shell(void) {
 void R_UseShellOffset_shell(const vec_t offset) {
 
 	R_ProgramParameter1f(&r_shell_program.shell_offset, offset);
-}
-
-/**
- * @brief
- */
-void R_UseCurrentColor_shell(const vec4_t color) {
-
-	r_shell_program_t *p = &r_shell_program;
-	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
-
-	if (color) {
-		R_ProgramParameter4fv(&p->current_color, color);
-	} else {
-		R_ProgramParameter4fv(&p->current_color, white);
-	}
 }
 
 /**

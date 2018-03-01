@@ -22,9 +22,17 @@
 #ifndef __CGAME_H__
 #define __CGAME_H__
 
+#ifndef CGAME_EXPORT
+ #if defined(_WIN32)
+  #define CGAME_EXPORT __declspec(dllexport)
+ #else
+  #define CGAME_EXPORT extern
+ #endif
+#endif
+
 #include "client/cl_types.h"
 
-#define CGAME_API_VERSION 16
+#define CGAME_API_VERSION 20
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -37,9 +45,14 @@ typedef struct cg_import_s {
 	cl_client_t *client;
 
 	/**
+	 * @brief The client state.
+	 */
+	const cl_state_t *state;
+
+	/**
 	 * @brief The renderer context.
 	 */
-	r_context_t *context;
+	const r_context_t *context;
 
 	/**
 	 * @brief The renderer view scene.
@@ -217,38 +230,64 @@ typedef struct cg_import_s {
 	 * @param desc The variable description for builtin console help.
 	 * @return The console variable.
 	 */
-	cvar_t *(*Cvar)(const char *name, const char *value, uint32_t flags, const char *desc);
-
-	/**
-	 * @return The string value of the console variable with the given name.
-	 */
-	const char *(*CvarString)(const char *name);
-
-	/**
-	 * @return The floating point value of the console variable with the given name.
-	 */
-	vec_t (*CvarValue)(const char *name);
+	cvar_t *(*AddCvar)(const char *name, const char *value, uint32_t flags, const char *desc);
 
 	/**
 	 * @brief Resolves a console variable that is expected to be defined by the engine.
 	 * @return The predefined console variable.
 	 */
-	cvar_t *(*CvarGet)(const char *name);
+	cvar_t *(*GetCvar)(const char *name);
 
 	/**
-	 * @brief Sets the console variable by `name` to `string`.
+	 * @return The integer value of the console variable with the given name.
 	 */
-	cvar_t *(*CvarSet)(const char *name, const char *string);
+	int32_t (*GetCvarInteger)(const char *name);
+
+	/**
+	 * @return The string value of the console variable with the given name.
+	 */
+	const char *(*GetCvarString)(const char *name);
+
+	/**
+	 * @return The floating point value of the console variable with the given name.
+	 */
+	vec_t (*GetCvarValue)(const char *name);
 
 	/**
 	 * @brief Sets the console variable by `name` to `value`.
 	 */
-	cvar_t *(*CvarSetValue)(const char *name, vec_t value);
+	cvar_t *(*SetCvarInteger)(const char *name, int32_t value);
+
+	/**
+	 * @brief Sets the console variable by `name` to `string`.
+	 */
+	cvar_t *(*SetCvarString)(const char *name, const char *string);
+
+	/**
+	 * @brief Sets the console variable by `name` to `value`.
+	 */
+	cvar_t *(*SetCvarValue)(const char *name, vec_t value);
+
+	/**
+	 * @brief Forces the console variable to take the value of the string immediately.
+	 * @param name The variable name.
+	 * @param string The variable string.
+	 * @return The modified variable.
+	 */
+	cvar_t *(*ForceSetCvarString)(const char *name, const char *string);
+
+	/**
+	 * @brief Forces the console variable to take the given value immediately.
+	 * @param name The variable name.
+	 * @param value The variable value.
+	 * @return The modified variable.
+	 */
+	cvar_t *(*ForceSetCvarValue)(const char *name, vec_t value);
 
 	/**
 	 * @brief Toggles the console variable by `name`.
 	 */
-	cvar_t *(*CvarToggle)(const char *name);
+	cvar_t *(*ToggleCvar)(const char *name);
 
 	/**
 	 * @brief Registers and returns a console command.
@@ -258,7 +297,7 @@ typedef struct cg_import_s {
 	 * @param desc The command description for builtin console help.
 	 * @return The console command.
 	 */
-	cmd_t *(*Cmd)(const char *name, CmdExecuteFunc function, uint32_t flags, const char *desc);
+	cmd_t *(*AddCmd)(const char *name, CmdExecuteFunc function, uint32_t flags, const char *desc);
 
 	/**
 	 * @brief Appends the specified string to the command buffer.
@@ -267,7 +306,14 @@ typedef struct cg_import_s {
 
 	/**
 	 * @}
+	 * @defgroup ui User interface
+	 * @{
 	 */
+
+	/**
+	 * @brief Resolves the current Theme.
+	 */
+	Theme *(*Theme)(void);
 
 	/**
 	 * @brief Pushes the specified ViewController to the user interface.
@@ -288,6 +334,10 @@ typedef struct cg_import_s {
 	 * @brief Pops all ViewControllers from the user interface.
 	 */
 	void (*PopAllViewControllers)(void);
+
+	/**
+	 * @}
+	 */
 
 	/**
 	 * @brief Resolves the next key after `from` that references `bind`.
@@ -370,7 +420,7 @@ typedef struct cg_import_s {
 	int32_t (*ReadLong)(void);
 
 	/**
-	 * @brief Reads a NULL-terminated string from the last received network message.
+	 * @brief Reads a null-terminated string from the last received network message.
 	 * @return The string.
 	 * @remarks The returned value is statically allocated. Do not free it.
 	 */
@@ -662,6 +712,11 @@ typedef struct cg_import_s {
 	void (*DrawMeshModelMaterials)(const r_entity_t *e);
 
 	/**
+	 * @brief Toggle the state of alpha blending.
+	 */
+	void (*EnableBlend)(_Bool enable);
+
+	/**
 	 * @brief Toggle the state of depth testing.
 	 */
 	void (*EnableDepthTest)(_Bool enable);
@@ -714,6 +769,16 @@ typedef struct cg_import_s {
 	 * @param image The image.
 	 */
 	void (*DrawImage)(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image);
+
+	/**
+	 * @brief Draws an image with an arbitrary size on the screen.
+	 * @param x The x coordinate, in pixels.
+	 * @param y The y coordinate, in pixels.
+	 * @param x The width, in pixels.
+	 * @param y The height, in pixels.
+	 * @param image The image.
+	 */
+	void (*DrawImageResized)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image);
 
 	/**
 	 * @brief Draws a filled rectangle in orthographic projection on the screen.
@@ -774,6 +839,7 @@ typedef struct cg_export_s {
 	void (*Interpolate)(const cl_frame_t *frame);
 	_Bool (*UsePrediction)(void);
 	void (*PredictMovement)(const GList *cmds);
+	void (*UpdateLoading)(const cl_loading_t loading);
 	void (*UpdateView)(const cl_frame_t *frame);
 	void (*UpdateScreen)(const cl_frame_t *frame);
 

@@ -6,6 +6,8 @@
 
 #define GEOMETRY_SHADER
 
+#include "include/matrix.glsl"
+
 // the number of vertices for both ends of a wire.
 #define CYLINDER_VERT_COUNT 16
 #define CYLINDER_SIDES (CYLINDER_VERT_COUNT / 2)
@@ -33,18 +35,17 @@ in VertexData {
 	float roll;
 	vec3 end;
 	int type;
-	float fog;
 } in_data[];
 
 out VertexData {
 	vec4 color;
 	vec2 texcoord;
-	float fog;
+	vec3 point;
 } out_data;
 
 void CopyCommon(void) {
+	out_data.point = (MODELVIEW_MAT * gl_in[0].gl_Position).xyz;
 	out_data.color = in_data[0].color;
-	out_data.fog = in_data[0].fog;
 }
 
 #define PARTICLE_SPARK 1
@@ -59,9 +60,6 @@ void CopyCommon(void) {
 #define Degrees(r)					((r) * 57.2957795131) // * 180.0 / M_PI
 
 #define atan2 atan
-
-#include "include/fog.glsl"
-#include "include/matrix.glsl"
 
 /**
  * @brief Circular clamp Euler angles between 0.0 and 360.0.

@@ -22,11 +22,8 @@
 #pragma once
 
 #if defined(_WIN32)
-
-	#include <winsock2.h>
-	#include <ws2tcpip.h>
-
 	#include <inttypes.h>
+
 	typedef uint32_t in_addr_t;
 	typedef uint16_t in_port_t;
 
@@ -53,6 +50,9 @@
  * messages and sent in series. See Sv_SendClientDatagram.
  */
 #define MAX_MSG_SIZE 4096 * 8
+
+// A typedef for net_sockaddr, to reduce "struct" everywhere and silence Windows warning.
+typedef struct sockaddr_in net_sockaddr;
 
 typedef enum {
 	NA_LOOP,

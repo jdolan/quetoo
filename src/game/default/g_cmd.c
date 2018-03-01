@@ -206,6 +206,10 @@ static void G_Wave_f(g_entity_t *ent) {
 		return;
 	}
 
+	if (ent->locals.dead) {
+		return;
+	}	
+
 	G_SetAnimation(ent, ANIM_TORSO_GESTURE, true);
 }
 
@@ -658,7 +662,7 @@ void G_InitVote(void) {
 		const char *name = va("g_vote_allow_%s", vote_cmds[i]);
 		const char *desc = va("Allows voting on %s", vote_cmds[i]);
 
-		vote_cvars = g_list_append(vote_cvars, gi.Cvar(name, "1", CVAR_SERVER_INFO, desc));
+		vote_cvars = g_list_append(vote_cvars, gi.AddCvar(name, "1", CVAR_SERVER_INFO, desc));
 
 		i++;
 	}
@@ -1051,7 +1055,7 @@ static void G_Teamskin_f(g_entity_t *ent) {
 
 	const char *s = gi.Argv(1);
 
-	if (s != '\0' &&
+	if (*s != '\0' &&
 		!strchr(s, '/')) { // something valid-ish was provided
 		g_strlcpy(t->skin, s, sizeof(t->skin));
 	} else {
@@ -1110,9 +1114,9 @@ static void G_Unready_f(g_entity_t *ent) {
 	}
 
 	ent->client->locals.persistent.ready = false;
-	gi.BroadcastPrint(PRINT_HIGH, "%s is having second thoughts...%s\n",
+	gi.BroadcastPrint(PRINT_HIGH, "^7%s ^4is no longer ready%s\n",
 	                  ent->client->locals.persistent.net_name,
-	                  (g_level.start_match) ? "countdown aborted" : ""
+	                  (g_level.start_match) ? ", countdown aborted" : ""
 	                 );
 
 	g_level.start_match = false;
@@ -1143,7 +1147,7 @@ static void G_Ready_f(g_entity_t *ent) {
 	}
 
 	ent->client->locals.persistent.ready = true;
-	gi.BroadcastPrint(PRINT_HIGH, "%s is ready\n", ent->client->locals.persistent.net_name);
+	gi.BroadcastPrint(PRINT_CHAT, "^7%s ^4is ready\n", ent->client->locals.persistent.net_name);
 
 	clients = 0;
 
@@ -1232,7 +1236,7 @@ static void G_Spectate_f(g_entity_t *ent) {
 	}
 
 	// prevent spectators from joining matches
-	if (g_level.match_time && ent->client->locals.persistent.spectator) {
+	if (!g_level.warmup && g_level.match_time && ent->client->locals.persistent.spectator) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Match has already started\n");
 		return;
 	}
@@ -1258,7 +1262,7 @@ static void G_Spectate_f(g_entity_t *ent) {
 		if (g_level.gameplay == GAME_DEATHMATCH || g_level.gameplay == GAME_DUEL) {
 			G_TossQuadDamage(ent);
 		}
-		
+
 		G_TossFlag(ent);
 		G_TossTech(ent);
 		G_ClientHookDetach(ent);
@@ -1402,7 +1406,7 @@ void G_ClientCommand(g_entity_t *ent) {
 		G_Teamskin_f(ent);
 	} else if (g_strcmp0(cmd, "ready") == 0) {
 		G_Ready_f(ent);
-	} else if (g_strcmp0(cmd, "unready") == 0 || g_strcmp0(cmd, "not_ready") == 0) {
+	} else if (g_strcmp0(cmd, "unready") == 0) {
 		G_Unready_f(ent);
 	} else if (g_strcmp0(cmd, "toggle_ready") == 0) {
 		G_ToggleReady_f(ent);

@@ -14,17 +14,10 @@ uniform sampler2D SAMPLER0;
 in VertexData {
 	vec4 color;
 	vec2 texcoord;
-	float fog;
+	vec3 point;
 };
 
 out vec4 fragColor;
-
-/**
- * @brief Apply fog to the fragment if enabled.
- */
-void FogFragment(void) {
-	fragColor.rgb = mix(fragColor.rgb, FOG.COLOR, fog);
-}
 
 /**
  * @brief Shader entry point.
@@ -33,5 +26,5 @@ void main(void) {
 
 	fragColor = color * texture(SAMPLER0, texcoord);
 
-	FogFragment(fragColor, fog);
+	FogFragment(length(point), fragColor);
 }

@@ -26,7 +26,6 @@
 #ifdef __R_LOCAL_H__
 void R_InitProgram_shell(r_program_t *program);
 void R_UseProgram_shell(void);
-void R_UseCurrentColor_shell(const vec4_t color);
 void R_PreLink_shell(const r_program_t *program);
 void R_UseInterpolation_shell(const vec_t time_fraction);
 void R_UseShellOffset_shell(const vec_t offset);

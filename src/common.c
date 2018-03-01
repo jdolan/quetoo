@@ -22,6 +22,14 @@
 #include "common.h"
 #include "parse.h"
 
+/*
+ * FIXME: This is a hack. I'd rather see this implemented as a Windows-only console appender
+ * in console.c or something.
+ */
+#if defined(_WIN32) && defined(_DEBUG) && defined(_MSC_VER)
+ #include <Windows.h>
+#endif
+
 /**
  * @brief Sets up a log file that will be used for debugging issues
  * with the game's initialization routines.

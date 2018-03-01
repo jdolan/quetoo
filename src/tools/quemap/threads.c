@@ -59,8 +59,6 @@ void Sem_Shutdown(void) {
  * @brief Return an iteration of work, updating progress when appropriate.
  */
 static int32_t GetThreadWork(void) {
-	int r;
-	int f;
 
 	ThreadLock();
 
@@ -70,16 +68,22 @@ static int32_t GetThreadWork(void) {
 	}
 
 	// update work fraction and output progress if desired
-	f = 10 * thread_work.index / thread_work.count;
+	const int32_t f = 50 * thread_work.index / thread_work.count;
 	if (f != thread_work.fraction) {
-		thread_work.fraction = f;
 		if (thread_work.progress && !(verbose || debug)) {
-			Com_Print("%i...", f);
+			for (int32_t i = thread_work.fraction; i < f; i++) {
+				if (i % 5 == 0) {
+					Com_Print("%i", i / 5);
+				} else {
+					Com_Print(".");
+				}
+			}
 		}
+		thread_work.fraction = f;
 	}
 
 	// assign the next work iteration
-	r = thread_work.index;
+	const int32_t r = thread_work.index;
 	thread_work.index++;
 
 	ThreadUnlock();
@@ -95,10 +99,9 @@ static ThreadWorkFunc WorkFunction;
  * chunks of work iteratively until work is finished.
  */
 static void ThreadWork(void *p) {
-	int32_t work;
 
 	while (true) {
-		work = GetThreadWork();
+		const int32_t work = GetThreadWork();
 		if (work == -1) {
 			break;
 		}
@@ -144,6 +147,7 @@ static void RunThreads(void) {
 		return;
 	}
 
+	assert(!lock);
 	lock = SDL_CreateMutex();
 
 	thread_t *threads[thread_count];
@@ -164,23 +168,21 @@ static void RunThreads(void) {
  * @brief Entry point for all thread work requests.
  */
 void RunThreadsOn(int32_t work_count, _Bool progress, ThreadWorkFunc func) {
-	time_t start, end;
 
 	thread_work.index = 0;
 	thread_work.count = work_count;
-	thread_work.fraction = -1;
+	thread_work.fraction = 0;
 	thread_work.progress = progress;
 
 	WorkFunction = func;
 
-	start = time(NULL);
+	const time_t start = time(NULL);
 
 	RunThreads();
 
-	end = time(NULL);
+	const time_t end = time(NULL);
 
 	if (thread_work.progress) {
 		Com_Print(" (%i seconds)\n", (int32_t) (end - start));
 	}
 }
-

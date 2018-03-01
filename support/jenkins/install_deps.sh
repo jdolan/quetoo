@@ -4,9 +4,12 @@ dnf -y install \
 	mingw32-SDL2 \
 	mingw32-SDL2_image \
 	mingw32-curl \
+	mingw32-dlfcn \
+	mingw32-flac \
 	mingw32-freeglut \
 	mingw32-freetype \
 	mingw32-glib2 \
+	mingw32-libgnurx \
 	mingw32-libogg \
 	mingw32-libvorbis \
 	mingw32-libxml2 \
@@ -20,9 +23,12 @@ dnf -y install \
 	mingw64-SDL2 \
 	mingw64-SDL2_image \
 	mingw64-curl \
+	mingw64-dlfcn \
+	mingw64-flac \
 	mingw64-freeglut \
 	mingw64-freetype \
 	mingw64-glib2 \
+	mingw64-libgnurx \
 	mingw64-libogg \
 	mingw64-libvorbis \
 	mingw64-libxml2 \

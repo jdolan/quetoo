@@ -1,0 +1,459 @@
+{
+  "identifier": "Movement & combat",
+  "subviews": [
+    {
+      "class": "StackView",
+      "classNames": [
+        "container"
+      ],
+      "subviews": [
+        {
+          "class": "StackView",
+          "classNames": [
+            "columns",
+						"container"
+          ],
+          "subviews": [
+            {
+              "class": "StackView",
+              "classNames": [
+                "column",
+                "container"
+              ],
+              "subviews": [
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Movement"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Forward"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "+forward"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Back"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "+back"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Move left"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "+move_left"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Move right"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "+move_right"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Jump"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "+move_up"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Crouch"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "+move_down"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Turn left"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "+left"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Turn right"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "+right"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Center view"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "center_view"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Always run"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "cg_run"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [
+                "column",
+                "container"
+              ],
+              "subviews": [
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Combat"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Attack"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "+attack"
+                        }
+                      },
+											{
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Secondary attack"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "+attack2"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Next weapon"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "cg_weapon_next"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Previous weapon"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "cg_weapon_previous"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Best weapon"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "cg_weapon_best"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Drop weapon"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "drop weapon"
+                        }
+                      },
+											{
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Drop ammo"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "drop ammo"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Grapple hook"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Fire hook"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "+hook"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Hook style"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSelect",
+                          "identifier": "hookStyle",
+                          "expectsStringValue": true,
+                          "var": "hook_style"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [
+                "column",
+                "container"
+              ],
+              "subviews": [
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Weapons"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Blaster"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "use blaster"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Shotgun"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "use shotgun"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Super shotgun"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "use super shotgun"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Machinegun"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "use machinegun"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Hand grenades"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "use hand grenades"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Grenade launcher"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "use grenade launcher"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Rocket launcher"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "use rocket launcher"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Hyperblaster"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "use hyperblaster"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Shaft"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "use lightning gun"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Railgun"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "use railgun"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "BFG-10K"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "use bfg10k"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

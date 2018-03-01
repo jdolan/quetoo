@@ -141,7 +141,8 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, vec_t size,
 		start[0] = end[0] = (start[0] + end[0]) * 0.5;
 		start[1] = end[1] = (start[1] + end[1]) * 0.5;
 
-		start[2] += 16.0, end[2] -= 16.0;
+		start[2] += 16.0;
+		end[2] -= 16.0;
 
 	} else {
 		VectorCopy(pos1, start);
@@ -1203,8 +1204,8 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 			VectorCopy(self->s.origin, self->owner->client->ps.pm_state.hook_position);
 
 			if (self->owner->client->locals.persistent.hook_style == HOOK_SWING) {
-
 				const vec_t distance = VectorDistance(self->owner->s.origin, self->s.origin);
+
 				self->owner->client->ps.pm_state.hook_length = Clamp(distance, PM_HOOK_MIN_DIST, g_hook_distance->value);
 			}
 
@@ -1311,8 +1312,10 @@ static void G_HookProjectile_Think(g_entity_t *ent) {
 			VectorCopy(ent->s.origin, ent->owner->client->ps.pm_state.hook_position);
 		}
 
-		if (VectorLengthSquared(ent->owner->locals.velocity) > 200.0) {
+		if ((ent->owner->client->locals.persistent.hook_style == HOOK_PULL && VectorLengthSquared(ent->owner->locals.velocity) > 128.0) ||
+			ent->locals.knockback != ent->owner->client->ps.pm_state.hook_length) {
 			ent->s.sound = g_media.sounds.hook_pull;
+			ent->locals.knockback = ent->owner->client->ps.pm_state.hook_length;
 		} else {
 			ent->s.sound = 0;
 		}
