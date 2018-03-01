@@ -42,6 +42,23 @@ static void enumerateCrosshairs(const char *path, void *data) {
 }
 
 /**
+ * @brief Alphabetical sorting.
+ */
+static Order sortAlphabetical(const ident id1, const ident id2) {
+
+	Option *opt1 = (Option *) id1;
+	Option *opt2 = (Option *) id2;
+
+	int sort = g_strcmp0(opt1->title->text, opt2->title->text);
+
+	if (sort <= 0) {
+		return OrderAscending;
+	} else {
+		return OrderDescending;
+	}
+}
+
+/**
  * @brief SelectDelegate callback for crosshair selection.
  */
 static void didSelectCrosshair(Select *select, Option *option) {
@@ -78,6 +95,26 @@ static void didPickCrosshairColor(HueColorPicker *hueColorPicker, double hue, do
 static void didSetCrosshairScale(Slider *slider, double value) {
 
 	ResponseServiceViewController *this = (ResponseServiceViewController *) slider->delegate.self;
+
+	$((View *) this->crosshairView, updateBindings);
+}
+
+/**
+ * @brief SliderDelegate callback for crosshair opcaity.
+ */
+static void didSetCrosshairAlpha(Slider *slider, double value) {
+
+	ResponseServiceViewController *this = (ResponseServiceViewController *) slider->delegate.self;
+
+	$((View *) this->crosshairView, updateBindings);
+}
+
+/**
+ * @brief SelectDelegate callback for crosshair health style.
+ */
+static void didSelectCrosshairHealth(Select *select, Option *option) {
+
+	ResponseServiceViewController *this = (ResponseServiceViewController *) select->delegate.self;
 
 	$((View *) this->crosshairView, updateBindings);
 }
@@ -133,10 +170,14 @@ static void loadView(ViewController *self) {
 
 	Select *crosshair;
 	Slider *crosshairScale;
+	Slider *crosshairAlpha;
+	Select *crosshairHealth;
 	Outlet outlets[] = MakeOutlets(
 		MakeOutlet("crosshair", &crosshair),
-		MakeOutlet("crosshairScale", &crosshairScale),
 		MakeOutlet("crosshairColor", &this->crosshairColorPicker),
+		MakeOutlet("crosshairAlpha", &crosshairAlpha),
+		MakeOutlet("crosshairScale", &crosshairScale),
+		MakeOutlet("crosshairHealth", &crosshairHealth),
 		MakeOutlet("crosshairView", &this->crosshairView)
 	);
 
@@ -147,6 +188,8 @@ static void loadView(ViewController *self) {
 
 	$(self->view, enumerateSelection, "BindTextView", setDelegate, self);
 
+	crosshair->comparator = sortAlphabetical;
+
 	$(crosshair, addOption, "", NULL);
 	cgi.EnumerateFiles("pics/ch*", enumerateCrosshairs, crosshair);
 
@@ -155,6 +198,18 @@ static void loadView(ViewController *self) {
 
 	crosshairScale->delegate.self = this;
 	crosshairScale->delegate.didSetValue = didSetCrosshairScale;
+
+	crosshairAlpha->delegate.self = this;
+	crosshairAlpha->delegate.didSetValue = didSetCrosshairAlpha;
+
+	crosshairHealth->delegate.self = this;
+	crosshairHealth->delegate.didSelectOption = didSelectCrosshairHealth;
+	$(crosshairHealth, addOption, "None", (ident) 0);
+	$(crosshairHealth, addOption, "1", (ident) 1);
+	$(crosshairHealth, addOption, "2", (ident) 2);
+	$(crosshairHealth, addOption, "3", (ident) 3);
+	$(crosshairHealth, addOption, "4", (ident) 4);
+	$(crosshairHealth, addOption, "5", (ident) 5);
 
 	this->crosshairColorPicker->delegate.self = this;
 	this->crosshairColorPicker->delegate.didPickColor = didPickCrosshairColor;
@@ -212,4 +267,3 @@ Class *_ResponseServiceViewController(void) {
 	return clazz;
 }
 #undef _Class
-

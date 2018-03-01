@@ -201,6 +201,21 @@
                         "class": "Input",
                         "label": {
                           "text": {
+                            "text": "Alpha"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "identifier": "crosshairAlpha",
+                          "min": 0.1,
+                          "max": 1,
+                          "var": "cg_draw_crosshair_alpha"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
                             "text": "Scale"
                           }
                         },
@@ -230,12 +245,13 @@
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Reflect health"
+                            "text": "Color by health"
                           }
                         },
                         "control": {
-                          "class": "CvarCheckbox",
-                          "bind": "cg_draw_crosshair_health"
+                          "class": "CvarSelect",
+                          "identifier": "crosshairHealth",
+                          "var": "cg_draw_crosshair_health"
                         }
                       }
                     ]
