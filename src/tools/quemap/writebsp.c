@@ -285,17 +285,12 @@ void WriteBSP(node_t *head_node) {
  * @brief
  */
 void SetModelNumbers(void) {
-	int32_t i;
-	int32_t models;
-	char value[10];
 
 	// 0 is the world - start at 1
-	models = 1;
-	for (i = 1; i < num_entities; i++) {
+	int32_t models = 1;
+	for (int32_t i = 1; i < num_entities; i++) {
 		if (entities[i].num_brushes) {
-			sprintf(value, "*%i", models);
-			models++;
-			SetKeyValue(&entities[i], "model", value);
+			SetKeyValue(&entities[i], "model", va("%d", models++));
 		}
 	}
 }
