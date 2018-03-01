@@ -25,6 +25,8 @@
 #define HUD_COLOR_STAT_MED		CON_COLOR_YELLOW
 #define HUD_COLOR_STAT_LOW		CON_COLOR_RED
 
+#define HUD_CROSSHAIR_SCALE		0.125
+
 #define HUD_PIC_HEIGHT			64
 
 #define HUD_HEALTH_MED			75
@@ -653,7 +655,8 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		ColorToVec4(color, crosshair.color);
 	}
 
-	vec_t alpha = 1.0, scale = cg_draw_crosshair_scale->value * (cgi.context->high_dpi ? 0.25 : 0.125);
+	vec_t scale = cg_draw_crosshair_scale->value * (cgi.context->high_dpi ? (HUD_CROSSHAIR_SCALE * 0.5) : HUD_CROSSHAIR_SCALE);
+	vec_t alpha = cg_draw_crosshair_alpha->value;
 
 	// pulse the crosshair size and alpha based on pickups
 	if (cg_draw_crosshair_pulse->value) {
@@ -668,7 +671,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		const uint32_t delta = cgi.client->unclamped_time - cg_hud_locals.pulse.time;
 		if (delta < 300) {
 			const vec_t frac = 1.0 - (delta / 300.0);
-			scale += cg_draw_crosshair_pulse->value * 0.25 * frac;
+			scale += cg_draw_crosshair_pulse->value * 0.25 * frac * scale;
 			alpha += cg_draw_crosshair_pulse->value * 0.25 * frac;
 		}
 
