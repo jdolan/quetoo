@@ -45,6 +45,7 @@ cvar_t *cg_draw_captures;
 cvar_t *cg_draw_crosshair;
 cvar_t *cg_draw_crosshair_alpha;
 cvar_t *cg_draw_crosshair_color;
+cvar_t *cg_draw_crosshair_health;
 cvar_t *cg_draw_crosshair_pulse;
 cvar_t *cg_draw_crosshair_scale;
 cvar_t *cg_draw_held_flag;
@@ -155,6 +156,8 @@ static void Cg_Init(void) {
                                 	      "Opacity of the crosshair");
 	cg_draw_crosshair_color = cgi.AddCvar("cg_draw_crosshair_color", "default", CVAR_ARCHIVE,
 	                                   "Specifies your crosshair color, in the hex format \"rrggbb\". \"default\" uses white.");
+	cg_draw_crosshair_health = cgi.AddCvar("cg_draw_crosshair_health", "0", CVAR_ARCHIVE,
+	                                     "Method of coloring the crosshair by health. Range from 0-1.");
 	cg_draw_crosshair_pulse = cgi.AddCvar("cg_draw_crosshair_pulse", "1", CVAR_ARCHIVE,
 	                                   "Pulse the crosshair when picking up items");
 	cg_draw_crosshair_scale = cgi.AddCvar("cg_draw_crosshair_scale", "1", CVAR_ARCHIVE,

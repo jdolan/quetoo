@@ -41,6 +41,7 @@ extern cvar_t *cg_draw_captures;
 extern cvar_t *cg_draw_crosshair;
 extern cvar_t *cg_draw_crosshair_alpha;
 extern cvar_t *cg_draw_crosshair_color;
+extern cvar_t *cg_draw_crosshair_health;
 extern cvar_t *cg_draw_crosshair_pulse;
 extern cvar_t *cg_draw_crosshair_scale;
 extern cvar_t *cg_draw_held_flag;
