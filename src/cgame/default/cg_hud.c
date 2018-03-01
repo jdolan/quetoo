@@ -642,10 +642,11 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		return;
 	}
 
-	// TODO: Add more styles
-	// Method 2: red(0), white(100)
-	// Method 4: red(0), green(100), blue(200)
-	// Method 3: red(0), white(100), blue(200)
+	// Method 0: [color](0)
+	// Method 1: red(0), green(100)
+	// Method 2: red(0), green(100), blue(200)
+	// Method 3: red(0), yellow(50), white(100)
+	// Method 4: red(0), yellow(50), white(100), blue(200)
 	// Method 5: white(100), blue(200)
 	if (cg_draw_crosshair_health->integer == 1) { // Method 1: red(0), green(100)
 		vec_t health_frac = Clamp(ps->stats[STAT_HEALTH] / 100.0, 0.0, 1.0);
@@ -653,6 +654,60 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		crosshair.color[0] = 1.0 - health_frac;
 		crosshair.color[1] = health_frac;
 		crosshair.color[2] = 0.0;
+	} else if (cg_draw_crosshair_health->integer == 2) { // Method 2: red(0), green(100), blue(200)
+		vec_t health_frac = Clamp(ps->stats[STAT_HEALTH] / 100.0, 0.0, 1.0);
+		vec_t health_over = Clamp(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 0.1) * 5;
+
+		if (ps->stats[STAT_HEALTH] <= 100) {
+			crosshair.color[0] = 1.0 - health_frac;
+			crosshair.color[1] = health_frac;
+			crosshair.color[2] = 0.0;
+		} else {
+			crosshair.color[0] = 0.0;
+			crosshair.color[1] = 1.0 - health_over;
+			crosshair.color[2] = health_over;
+		}
+	} else if (cg_draw_crosshair_health->integer == 3) { // Method 3: red(0), yellow(50), white(100)
+		vec_t health_frac = Clamp(ps->stats[STAT_HEALTH] / 100.0, 0.0, 1.0);
+
+		if (ps->stats[STAT_HEALTH] <= 50) {
+			crosshair.color[0] = 1.0 - health_frac;
+			crosshair.color[1] = health_frac;
+			crosshair.color[2] = 0.0;
+		} else {
+			crosshair.color[0] = 1.0;
+			crosshair.color[1] = 1.0;
+			crosshair.color[2] = health_frac;
+		}
+	} else if (cg_draw_crosshair_health->integer == 4) { // Method 4: red(0), yellow(50), white(100), blue(200)
+		vec_t health_frac = Clamp(ps->stats[STAT_HEALTH] / 100.0, 0.0, 1.0);
+		vec_t health_over = Clamp(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 0.1) * 10;
+
+		if (ps->stats[STAT_HEALTH] <= 50) {
+			crosshair.color[0] = 1.0 - health_frac;
+			crosshair.color[1] = health_frac;
+			crosshair.color[2] = 0.0;
+		} else if (ps->stats[STAT_HEALTH] <= 100) {
+			crosshair.color[0] = 1.0;
+			crosshair.color[1] = 1.0;
+			crosshair.color[2] = health_frac;
+		} else {
+			crosshair.color[0] = 1.0 - health_over;
+			crosshair.color[1] = 1.0 - health_over;
+			crosshair.color[2] = 1.0;
+		}
+	} else if (cg_draw_crosshair_health->integer == 5) { // Method 5: white(100), blue(200)
+		vec_t health_over = (1.0 - Clamp(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 0.1) * 10);
+
+		if (ps->stats[STAT_HEALTH] <= 100) {
+			crosshair.color[0] = 1.0;
+			crosshair.color[1] = 1.0;
+			crosshair.color[2] = 1.0;
+		} else {
+			crosshair.color[0] = health_over;
+			crosshair.color[1] = health_over;
+			crosshair.color[2] = 1.0;
+		}
 	} else {
 		if (cg_draw_crosshair_color->modified || (cg_draw_crosshair_health->modified && cg_draw_crosshair_health->integer == 0)) { // crosshair color
 			cg_draw_crosshair_health->modified = false;
