@@ -5,6 +5,7 @@ dnf -y install \
 	mingw32-SDL2_image \
 	mingw32-curl \
 	mingw32-dlfcn \
+	mingw32-flac \
 	mingw32-freeglut \
 	mingw32-freetype \
 	mingw32-glib2 \
@@ -23,6 +24,7 @@ dnf -y install \
 	mingw64-SDL2_image \
 	mingw64-curl \
 	mingw64-dlfcn \
+	mingw64-flac \
 	mingw64-freeglut \
 	mingw64-freetype \
 	mingw64-glib2 \
