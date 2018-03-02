@@ -141,23 +141,6 @@ static void setDelegate(View *view, ident data) {
 	};
 }
 
-#pragma mark - Object
-
-/**
- * @see Object::dealloc(Object *)
- */
-static void dealloc(Object *self) {
-
-	ResponseServiceViewController *this = (ResponseServiceViewController *) self;
-
-	release(this->crosshairColorPicker);
-	release(this->crosshairView);
-	release(this->crosshairHealth);
-	release(this->crosshair);
-
-	super(Object, self, dealloc);
-}
-
 #pragma mark - ViewController
 
 /**
@@ -244,8 +227,6 @@ static void viewWillAppear(ViewController *self) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
-
-	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 	((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
