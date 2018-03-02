@@ -1,4 +1,4 @@
-dnf -y install libtool make zip
+dnf -y install awscli libtool make wget zip
 
 dnf -y install \
 	mingw32-SDL2 \
