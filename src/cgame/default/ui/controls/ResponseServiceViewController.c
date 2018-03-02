@@ -65,6 +65,7 @@ static void didSelectCrosshair(Select *select, Option *option) {
 
 	ResponseServiceViewController *this = (ResponseServiceViewController *) select->delegate.self;
 
+	$((View *) select, updateBindings);
 	$((View *) this->crosshairView, updateBindings);
 }
 
