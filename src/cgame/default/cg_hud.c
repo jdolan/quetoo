@@ -25,8 +25,6 @@
 #define HUD_COLOR_STAT_MED		CON_COLOR_YELLOW
 #define HUD_COLOR_STAT_LOW		CON_COLOR_RED
 
-#define HUD_CROSSHAIR_SCALE		0.125
-
 #define HUD_PIC_HEIGHT			64
 
 #define HUD_HEALTH_MED			75
@@ -656,19 +654,13 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		ColorToVec4(color, crosshair.color);
 	}
 
-	// Method 0: [color](0)
-	// Method 1: red(0), green(100)
-	// Method 2: red(0), green(100), blue(200)
-	// Method 3: red(0), yellow(50), white(100)
-	// Method 4: red(0), yellow(50), white(100), blue(200)
-	// Method 5: white(100), blue(200)
-	if (cg_draw_crosshair_health->integer == 1) { // Method 1: red(0), green(100)
+	if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_GREEN) {
 		vec_t health_frac = Clamp(ps->stats[STAT_HEALTH] / 100.0, 0.0, 1.0);
 
 		crosshair.color[0] = 1.0 - health_frac;
 		crosshair.color[1] = health_frac;
 		crosshair.color[2] = 0.0;
-	} else if (cg_draw_crosshair_health->integer == 2) { // Method 2: red(0), green(100), blue(200)
+	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_GREEN_BLUE) {
 		vec_t health_frac = Clamp(ps->stats[STAT_HEALTH] / 100.0, 0.0, 1.0);
 		vec_t health_over = Clamp(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 0.1) * 5;
 
@@ -681,7 +673,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 			crosshair.color[1] = 1.0 - health_over;
 			crosshair.color[2] = health_over;
 		}
-	} else if (cg_draw_crosshair_health->integer == 3) { // Method 3: red(0), yellow(50), white(100)
+	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_YELLOW_WHITE) {
 		vec_t health_frac = Clamp(ps->stats[STAT_HEALTH] / 100.0, 0.0, 1.0);
 
 		if (ps->stats[STAT_HEALTH] <= 50) {
@@ -693,7 +685,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 			crosshair.color[1] = 1.0;
 			crosshair.color[2] = health_frac;
 		}
-	} else if (cg_draw_crosshair_health->integer == 4) { // Method 4: red(0), yellow(50), white(100), blue(200)
+	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_YELLOW_WHITE_BLUE) {
 		vec_t health_frac = Clamp(ps->stats[STAT_HEALTH] / 100.0, 0.0, 1.0);
 		vec_t health_over = Clamp(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 0.1) * 10;
 
@@ -710,7 +702,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 			crosshair.color[1] = 1.0 - health_over;
 			crosshair.color[2] = 1.0;
 		}
-	} else if (cg_draw_crosshair_health->integer == 5) { // Method 5: white(100), blue(200)
+	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_WHITE_BLUE) {
 		vec_t health_over = (1.0 - Clamp(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 0.1) * 10);
 
 		if (ps->stats[STAT_HEALTH] <= 100) {
@@ -724,7 +716,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		}
 	}
 
-	vec_t scale = cg_draw_crosshair_scale->value * (cgi.context->high_dpi ? (HUD_CROSSHAIR_SCALE * 0.5) : HUD_CROSSHAIR_SCALE);
+	vec_t scale = cg_draw_crosshair_scale->value * CROSSHAIR_SCALE * MVC_WindowScale(NULL, NULL, NULL);
 	vec_t alpha = cg_draw_crosshair_alpha->value;
 
 	// pulse the crosshair size and alpha based on pickups
@@ -740,8 +732,8 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		const uint32_t delta = cgi.client->unclamped_time - cg_hud_locals.pulse.time;
 		if (delta < 300) {
 			const vec_t frac = 1.0 - (delta / 300.0);
-			scale += cg_draw_crosshair_pulse->value * 0.25 * frac * scale;
-			alpha += cg_draw_crosshair_pulse->value * 0.25 * frac;
+			scale += cg_draw_crosshair_pulse->value * CROSSHAIR_SCALE * frac * scale;
+			alpha += cg_draw_crosshair_pulse->value * CROSSHAIR_SCALE * frac;
 		}
 
 		crosshair.color[3] = alpha;
