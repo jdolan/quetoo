@@ -92,7 +92,6 @@ static void selectOptionWithValue(Select *self, ident value) {
 			if (this->expectsStringValue) {
 				cgi.SetCvarString(this->var->name, option->value ? (char *) option->value : option->title->text);
 			} else {
-				printf("%d\n", option->value); // For some reason this is always the currently selected Option's ident? Not sure if this is correct but would cause my issues
 				cgi.SetCvarInteger(this->var->name, (int32_t) (intptr_t) option->value);
 			}
 		}
