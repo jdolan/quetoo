@@ -187,7 +187,8 @@ static void loadView(ViewController *self) {
 	crosshairAlpha->delegate.self = this;
 	crosshairAlpha->delegate.didSetValue = didSetCrosshairAlpha;
 
-	$(this->crosshairHealth, addOption, "None", (ident) 0); // Add options as needed; this is ugly but functional for now
+	// TODO: Add an enum for the crosshair health options, and iterate it here
+	$(this->crosshairHealth, addOption, "None", (ident) 0);
 	$(this->crosshairHealth, addOption, "1", (ident) 1);
 	$(this->crosshairHealth, addOption, "2", (ident) 2);
 	$(this->crosshairHealth, addOption, "3", (ident) 3);
