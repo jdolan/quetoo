@@ -642,6 +642,20 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		return;
 	}
 
+	if (cg_draw_crosshair_color->modified) { // crosshair color
+		cg_draw_crosshair_color->modified = false;
+
+		color_t color;
+
+		if (!g_strcmp0(cg_draw_crosshair_color->string, "default")) {
+			color.r = color.g = color.b = 255;
+		} else {
+			ColorFromHex(cg_draw_crosshair_color->string, &color);
+		}
+
+		ColorToVec4(color, crosshair.color);
+	}
+
 	// Method 0: [color](0)
 	// Method 1: red(0), green(100)
 	// Method 2: red(0), green(100), blue(200)
@@ -707,20 +721,6 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 			crosshair.color[0] = health_over;
 			crosshair.color[1] = health_over;
 			crosshair.color[2] = 1.0;
-		}
-	} else {
-		if (cg_draw_crosshair_color->modified || (cg_draw_crosshair_health->modified && cg_draw_crosshair_health->integer == 0)) { // crosshair color
-			cg_draw_crosshair_health->modified = false;
-			cg_draw_crosshair_color->modified = false;
-
-			color_t color;
-			if (!g_strcmp0(cg_draw_crosshair_color->string, "default")) {
-				color.r = color.g = color.b = 255;
-			} else {
-				ColorFromHex(cg_draw_crosshair_color->string, &color);
-			}
-
-			ColorToVec4(color, crosshair.color);
 		}
 	}
 

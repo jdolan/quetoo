@@ -151,6 +151,8 @@ static void dealloc(Object *self) {
 
 	release(this->crosshairColorPicker);
 	release(this->crosshairView);
+	release(this->crosshairHealth);
+	release(this->crosshair);
 
 	super(Object, self, dealloc);
 }
@@ -168,16 +170,15 @@ static void loadView(ViewController *self) {
 
 	ResponseServiceViewController *this = (ResponseServiceViewController *) self;
 
-	Select *crosshair;
 	Slider *crosshairScale;
 	Slider *crosshairAlpha;
-	Select *crosshairHealth;
+
 	Outlet outlets[] = MakeOutlets(
-		MakeOutlet("crosshair", &crosshair),
+		MakeOutlet("crosshair", &this->crosshair),
 		MakeOutlet("crosshairColor", &this->crosshairColorPicker),
 		MakeOutlet("crosshairAlpha", &crosshairAlpha),
 		MakeOutlet("crosshairScale", &crosshairScale),
-		MakeOutlet("crosshairHealth", &crosshairHealth),
+		MakeOutlet("crosshairHealth", &this->crosshairHealth),
 		MakeOutlet("crosshairView", &this->crosshairView)
 	);
 
@@ -188,13 +189,13 @@ static void loadView(ViewController *self) {
 
 	$(self->view, enumerateSelection, "BindTextView", setDelegate, self);
 
-	crosshair->comparator = sortAlphabetical;
+	this->crosshair->comparator = sortAlphabetical;
 
-	$(crosshair, addOption, "", NULL);
-	cgi.EnumerateFiles("pics/ch*", enumerateCrosshairs, crosshair);
+	$(this->crosshair, addOption, "", (ident) 0);
+	cgi.EnumerateFiles("pics/ch*", enumerateCrosshairs, this->crosshair);
 
-	crosshair->delegate.self = this;
-	crosshair->delegate.didSelectOption = didSelectCrosshair;
+	this->crosshair->delegate.self = this;
+	this->crosshair->delegate.didSelectOption = didSelectCrosshair;
 
 	crosshairScale->delegate.self = this;
 	crosshairScale->delegate.didSetValue = didSetCrosshairScale;
@@ -202,14 +203,15 @@ static void loadView(ViewController *self) {
 	crosshairAlpha->delegate.self = this;
 	crosshairAlpha->delegate.didSetValue = didSetCrosshairAlpha;
 
-	crosshairHealth->delegate.self = this;
-	crosshairHealth->delegate.didSelectOption = didSelectCrosshairHealth;
-	$(crosshairHealth, addOption, "None", (ident) 0);
-	$(crosshairHealth, addOption, "1", (ident) 1);
-	$(crosshairHealth, addOption, "2", (ident) 2);
-	$(crosshairHealth, addOption, "3", (ident) 3);
-	$(crosshairHealth, addOption, "4", (ident) 4);
-	$(crosshairHealth, addOption, "5", (ident) 5);
+	$(this->crosshairHealth, addOption, "None", (ident) 0); // Add options as needed; this is ugly but functional for now
+	$(this->crosshairHealth, addOption, "1", (ident) 1);
+	$(this->crosshairHealth, addOption, "2", (ident) 2);
+	$(this->crosshairHealth, addOption, "3", (ident) 3);
+	$(this->crosshairHealth, addOption, "4", (ident) 4);
+	$(this->crosshairHealth, addOption, "5", (ident) 5);
+
+	this->crosshairHealth->delegate.self = this;
+	this->crosshairHealth->delegate.didSelectOption = didSelectCrosshairHealth;
 
 	this->crosshairColorPicker->delegate.self = this;
 	this->crosshairColorPicker->delegate.didPickColor = didPickCrosshairColor;
@@ -230,6 +232,9 @@ static void viewWillAppear(ViewController *self) {
 	} else {
 		$(this->crosshairColorPicker, setColor, 0.0, 1.0, 1.0);
 	}
+
+	$(this->crosshair, selectOptionWithValue, (ident) ((size_t) cg_draw_crosshair->integer)); // Double cast to silence warnings
+	$(this->crosshairHealth, selectOptionWithValue, (ident) ((size_t) cg_draw_crosshair_health->integer));
 }
 
 #pragma mark - Class lifecycle
