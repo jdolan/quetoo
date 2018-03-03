@@ -542,7 +542,7 @@ void G_FireBlaster(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_BlasterProjectile(ent, org, forward, 1200, 34, 80);
+		G_BlasterProjectile(ent, org, forward, 1200, 15, 2);
 
 		G_MuzzleFlash(ent, MZ_BLASTER);
 
@@ -560,7 +560,7 @@ void G_FireShotgun(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_ShotgunProjectiles(ent, org, forward, 5, 2, 700, 700, 13, MOD_SHOTGUN);
+		G_ShotgunProjectiles(ent, org, forward, 4, 2, 700, 300, 12, MOD_SHOTGUN);
 
 		G_MuzzleFlash(ent, MZ_SHOTGUN);
 
@@ -580,13 +580,13 @@ void G_FireSuperShotgun(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_ShotgunProjectiles(ent, org, forward, 5, 2, 2000, 1200, 13, MOD_SUPER_SHOTGUN);
+		G_ShotgunProjectiles(ent, org, forward, 4, 2, 1400, 600, 12, MOD_SUPER_SHOTGUN);
 
 		ent->client->locals.angles[YAW] += 8.0;
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_ShotgunProjectiles(ent, org, forward, 5, 2, 2000, 1200, 13, MOD_SUPER_SHOTGUN);
+		G_ShotgunProjectiles(ent, org, forward, 4, 2, 1400, 500, 12, MOD_SUPER_SHOTGUN);
 
 		ent->client->locals.angles[YAW] -= 4.0;
 
@@ -606,7 +606,7 @@ void G_FireMachinegun(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_BulletProjectile(ent, org, forward, 7, 3, 550, 200, MOD_MACHINEGUN);
+		G_BulletProjectile(ent, org, forward, 4, 2, 20, 300, MOD_MACHINEGUN);
 
 		G_MuzzleFlash(ent, MZ_MACHINEGUN);
 
@@ -795,7 +795,7 @@ void G_FireHyperblaster(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_HyperblasterProjectile(ent, org, forward, 1800, 14, 7);
+		G_HyperblasterProjectile(ent, org, forward, 1800, 16, 4);
 
 		G_MuzzleFlash(ent, MZ_HYPERBLASTER);
 
@@ -825,7 +825,7 @@ void G_FireLightning(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_LightningProjectile(ent, org, forward, 6, 4);
+		G_LightningProjectile(ent, org, forward, 12, 6);
 
 		G_WeaponFired(ent, QUETOO_TO_MILLIS(g_balance_lightning_refire->value), ent->client->locals.weapon->quantity);
 	}

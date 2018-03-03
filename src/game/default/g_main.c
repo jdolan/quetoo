@@ -1352,13 +1352,13 @@ void G_Init(void) {
 	g_balance_blaster_refire = gi.Cvar("g_balance_blaster_refire", "0.45", CVAR_SERVER_INFO, NULL);
 	g_balance_handgrenade_refire = gi.Cvar("g_balance_handgrenade_refire", "2.0", CVAR_SERVER_INFO, NULL);
 	g_balance_hyperblaster_refire = gi.Cvar("g_balance_hyperblaster_refire", "0.1", CVAR_SERVER_INFO, NULL);
-	g_balance_lightning_refire = gi.Cvar("g_balance_lightning_refire", "0.05", CVAR_SERVER_INFO, NULL);
+	g_balance_lightning_refire = gi.Cvar("g_balance_lightning_refire", "0.1", CVAR_SERVER_INFO, NULL);
 	g_balance_machinegun_refire = gi.Cvar("g_balance_machinegun_refire", "0.05", CVAR_SERVER_INFO, NULL);
 	g_balance_grenadelauncher_refire = gi.Cvar("g_balance_grenadelauncher_refire", "1.0", CVAR_SERVER_INFO, NULL);
 	g_balance_railgun_refire = gi.Cvar("g_balance_railgun_refire", "1.4", CVAR_SERVER_INFO, NULL);
 	g_balance_rocketlauncher_refire = gi.Cvar("g_balance_rocketlauncher_refire", "1.0", CVAR_SERVER_INFO, NULL);
-	g_balance_shotgun_refire = gi.Cvar("g_balance_shotgun_refire", "0.8", CVAR_SERVER_INFO, NULL);
-	g_balance_supershotgun_refire = gi.Cvar("g_balance_supershotgun_refire", "0.9", CVAR_SERVER_INFO, NULL);
+	g_balance_shotgun_refire = gi.Cvar("g_balance_shotgun_refire", "0.6", CVAR_SERVER_INFO, NULL);
+	g_balance_supershotgun_refire = gi.Cvar("g_balance_supershotgun_refire", "0.8", CVAR_SERVER_INFO, NULL);
 	g_capture_limit = gi.Cvar("g_capture_limit", "8", CVAR_SERVER_INFO, "The capture limit per level.");
 	g_cheats = gi.Cvar("g_cheats", "0", CVAR_SERVER_INFO, NULL);
 	g_ctf = gi.Cvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay.");
