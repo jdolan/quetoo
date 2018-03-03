@@ -601,7 +601,9 @@ void G_FireMachinegun(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_BulletProjectile(ent, org, forward, 4, 2, 20, 300, MOD_MACHINEGUN);
+		G_BulletProjectile(ent, org, forward, g_balance_machinegun_damage->integer,
+			g_balance_machinegun_knockback->integer, g_balance_machinegun_spread_x->integer,
+			g_balance_machinegun_spread_y->integer, MOD_MACHINEGUN);
 
 		G_MuzzleFlash(ent, MZ_MACHINEGUN);
 
