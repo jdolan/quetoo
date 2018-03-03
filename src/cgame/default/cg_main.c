@@ -34,7 +34,7 @@ cvar_t *cg_add_emits;
 cvar_t *cg_add_entities;
 cvar_t *cg_add_particles;
 cvar_t *cg_add_weather;
-cvar_t *cg_autoswitch;
+cvar_t *cg_auto_switch;
 cvar_t *cg_bob;
 cvar_t *cg_color;
 cvar_t *cg_draw_blend;
@@ -125,7 +125,7 @@ static void Cg_Init(void) {
 	cg_add_weather = cgi.AddCvar("cg_add_weather", "1", CVAR_ARCHIVE,
 	                          "Control the intensity of atmospheric effects.");
 
-	cg_autoswitch = cgi.AddCvar("autoswitch", "1", CVAR_USER_INFO | CVAR_ARCHIVE,
+	cg_auto_switch = cgi.AddCvar("auto_switch", "1", CVAR_USER_INFO | CVAR_ARCHIVE,
 				 "The weapon pickup autoswitch method. 0 disables, 1 autoswitches from Blaster only,"
 				 " 2 always switches, 3 switches to new weapons.");
 
