@@ -224,8 +224,8 @@ typedef enum {
 #define QUETOO_TICK_SECONDS	(1.0 / QUETOO_TICK_RATE)
 #define QUETOO_TICK_MILLIS	(1000 / QUETOO_TICK_RATE)
 
-#define QUETOO_TO_MILLIS(t)	(t * 1000)
-#define QUETOO_TO_SECONDS(t)	(t / 1000)
+#define SECONDS_TO_MILLIS(t)	(t * 1000)
+#define MILLIS_TO_SECONDS(t)	(t / 1000)
 
 /**
  * @brief Autocomplete function definition. You must fill "matches"

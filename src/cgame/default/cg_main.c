@@ -125,11 +125,11 @@ static void Cg_Init(void) {
 	cg_add_weather = cgi.AddCvar("cg_add_weather", "1", CVAR_ARCHIVE,
 	                          "Control the intensity of atmospheric effects.");
 
-	cg_autoswitch = cgi.Cvar("autoswitch", "1", CVAR_USER_INFO | CVAR_ARCHIVE,
+	cg_autoswitch = cgi.AddCvar("autoswitch", "1", CVAR_USER_INFO | CVAR_ARCHIVE,
 				 "The weapon pickup autoswitch method. 0 disables, 1 autoswitches from Blaster only,"
 				 " 2 always switches, 3 switches to new weapons.");
 
-	cg_bob = cgi.Cvar("cg_bob", "1.0", CVAR_ARCHIVE, "Controls weapon bobbing effect.");
+	cg_bob = cgi.AddCvar("cg_bob", "1.0", CVAR_ARCHIVE, "Controls weapon bobbing effect.");
 
 	cg_color = cgi.AddCvar("color", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                    "Specifies the effect color for your own weapon trails.");
