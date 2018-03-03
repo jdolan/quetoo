@@ -542,7 +542,8 @@ void G_FireBlaster(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_BlasterProjectile(ent, org, forward, g_balance_blaster_speed->value, g_balance_blaster_damage->value, g_balance_blaster_knockback->value);
+		G_BlasterProjectile(ent, org, forward, g_balance_blaster_speed->value,
+			g_balance_blaster_damage->integer, g_balance_blaster_knockback->integer);
 
 		G_MuzzleFlash(ent, MZ_BLASTER);
 
@@ -560,7 +561,9 @@ void G_FireShotgun(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_ShotgunProjectiles(ent, org, forward, 4, 2, 700, 300, 12, MOD_SHOTGUN);
+		G_ShotgunProjectiles(ent, org, forward, g_balance_shotgun_damage->integer,
+			g_balance_shotgun_knockback->integer, g_balance_shotgun_spread_x->integer,
+			g_balance_shotgun_spread_y->integer, g_balance_shotgun_pellets->integer, MOD_SHOTGUN);
 
 		G_MuzzleFlash(ent, MZ_SHOTGUN);
 
