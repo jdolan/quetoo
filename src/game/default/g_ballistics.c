@@ -721,9 +721,9 @@ static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 
 				if (VectorLength(v) < 32.0) { // hyperblaster climbing
 					G_Damage(self->owner, self, self->owner, NULL, self->s.origin, plane->normal,
-					        3, 0, DMG_ENERGY, MOD_HYPERBLASTER_CLIMB);
+					        g_balance_hyperblaster_climb_damage->integer, 0, DMG_ENERGY, MOD_HYPERBLASTER_CLIMB);
 
-					self->owner->locals.velocity[2] += 68.0;
+					self->owner->locals.velocity[2] += g_balance_hyperblaster_climb_knockback->value;
 				}
 
 			}
