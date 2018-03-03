@@ -1244,7 +1244,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 
 	cl->locals.persistent.handicap_next = Clamp(handicap, 50, 100);
 
-	// autoswitch
+	// auto-switch
 	uint16_t auto_switch = strtoul(GetUserInfo(user_info, "auto_switch"), NULL, 10);
 
 	cl->locals.persistent.auto_switch = auto_switch;

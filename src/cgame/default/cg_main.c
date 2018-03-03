@@ -126,10 +126,10 @@ static void Cg_Init(void) {
 	                          "Control the intensity of atmospheric effects.");
 
 	cg_auto_switch = cgi.AddCvar("auto_switch", "1", CVAR_USER_INFO | CVAR_ARCHIVE,
-				 "The weapon pickup autoswitch method. 0 disables, 1 autoswitches from Blaster only,"
+				 "The weapon pickup auto-switch method. 0 disables, 1 switches from Blaster only,"
 				 " 2 always switches, 3 switches to new weapons.");
 
-	cg_bob = cgi.AddCvar("cg_bob", "1.0", CVAR_ARCHIVE, "Controls weapon bobbing effect.");
+	cg_bob = cgi.AddCvar("cg_bob", "1", CVAR_ARCHIVE, "Controls weapon bobbing effect.");
 
 	cg_color = cgi.AddCvar("color", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                    "Specifies the effect color for your own weapon trails.");
