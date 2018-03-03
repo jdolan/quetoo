@@ -44,18 +44,12 @@ static void enumerateCrosshairs(const char *path, void *data) {
 /**
  * @brief Alphabetical sorting.
  */
-static Order sortAlphabetical(const ident id1, const ident id2) {
+static Order sortAlphabetical(const ident a, const ident b) {
 
-	Option *opt1 = (Option *) id1;
-	Option *opt2 = (Option *) id2;
+	const char *c = ((const Option *) a)->title->text;
+	const char *d = ((const Option *) b)->title->text;
 
-	int sort = g_strcmp0(opt1->title->text, opt2->title->text);
-
-	if (sort <= 0) {
-		return OrderAscending;
-	} else {
-		return OrderDescending;
-	}
+	return g_strcmp0(c, d) < 0 ? OrderAscending : OrderDescending;
 }
 
 /**
