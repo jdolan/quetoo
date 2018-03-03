@@ -137,7 +137,6 @@
 		CE4A256B1FA2033B00A539E7 /* fog.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE585BD61ED459E2009B7C14 /* fog.glsl */; };
 		CE4A256C1FA2033B00A539E7 /* noise3d.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE585BDB1ED459E2009B7C14 /* noise3d.glsl */; };
 		CE4A256D1FA2033B00A539E7 /* tint.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE585BDD1ED45A94009B7C14 /* tint.glsl */; };
-		CE4A25701FA39FB400A539E7 /* libSDL2_image-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE4A256F1FA39FB400A539E7 /* libSDL2_image-2.0.0.dylib */; };
 		CE4E07B52026524A000B276C /* common.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07B320264B15000B276C /* common.css */; };
 		CE4E07B820267825000B276C /* JoinServerViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07B6202676E7000B276C /* JoinServerViewController.css */; };
 		CE4E07CC20268832000B276C /* ResponseServiceViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07BD20267EAB000B276C /* ResponseServiceViewController.css */; };
@@ -557,6 +556,7 @@
 		CED4397D1D9D3EBF0052BAFA /* libimage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7A6B1D9CB512000FA6B2 /* libimage.a */; };
 		CED4397E1D9D3EBF0052BAFA /* libmatrix.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7A831D9CB5C9000FA6B2 /* libmatrix.a */; };
 		CED4397F1D9D3EBF0052BAFA /* libnet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.a */; };
+		CEDCFC7820497B4B008A4252 /* libSDL2_image-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8311C5C6F0100CD0B13 /* libSDL2_image-2.0.0.dylib */; };
 		CEE818951E280DFC003C66DD /* ai.so in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FEC61C5E44E800A21A51 /* ai.so */; };
 		CEFC79A41D9CB1A6000FA6B2 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */; };
 		CEFC79A51D9CB1EE000FA6B2 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
@@ -1761,8 +1761,8 @@
 				CE1A281C1F740E7B005F62A9 /* libncurses.6.dylib in Frameworks */,
 				CEAD2AB4203CF7E800F1FB7E /* libopenal.1.18.2.dylib in Frameworks */,
 				CE1A281A1F740E5A005F62A9 /* libphysfs.2.0.3.dylib in Frameworks */,
+				CEDCFC7820497B4B008A4252 /* libSDL2_image-2.0.0.dylib in Frameworks */,
 				CE5816EF1D904B0B002818F5 /* libSDL2-2.0.0.dylib in Frameworks */,
-				CE4A25701FA39FB400A539E7 /* libSDL2_image-2.0.0.dylib in Frameworks */,
 				CE1A281E1F740ECC005F62A9 /* libsndfile.1.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

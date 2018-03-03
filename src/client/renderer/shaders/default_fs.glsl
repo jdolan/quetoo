@@ -96,9 +96,6 @@ void DitherFragment(inout vec3 color) {
 /**
  * @brief Yield the parallax offset for the texture coordinate.
  */
-/**
- * @brief Yield the parallax offset for the texture coordinate.
- */
 vec2 BumpTexcoord() {
 
 	float bias = 0;
@@ -177,6 +174,53 @@ vec2 BumpTexcoord() {
 	float blend = a / (a - b);
 
 	return mix(uvCurr, uvPrev, blend);
+}
+
+/**
+ * @brief Raytraced self-shadowing for heightmaps.
+ */
+float SelfShadowHeightmap(vec3 lightDir, sampler2D tex, vec2 uv) {
+
+	float dist = length(point);
+	if (dist > 500) {
+		return 1.0;
+	}
+
+	float bias = 0;
+
+	#if GL_ARB_texture_query_lod
+	{
+		const float maxMipmaps = 7;
+
+		vec2 texSize = textureSize(tex, 0).xy;
+		float numMipmaps = log2(max(texSize.x, texSize.y));
+
+		float minMip = numMipmaps - maxMipmaps;
+		float mipLevel = textureQueryLOD(tex, uv).y;
+
+		bias = max(mipLevel, minMip);
+	}
+	#endif
+
+	const float numSamples = 8;
+	const float radius = 1.0;
+	const float radiusBase = 0.5 - radius / 2;
+
+	float shadowLength = radiusBase + radius * fract(dot(vec2(171.0, 231.0), gl_FragCoord.xy) / 600);
+	float softenContact = 0.2 * shadowLength;
+
+	vec3 ray = vec3(uv.x, uv.y, textureLod(tex, uv, bias).a - (softenContact * 0.75));
+	vec3 step = vec3(lightDir.xy * shadowLength * PARALLAX, 1.0) / numSamples;
+
+	while (ray.z < 1.0 - step.z) {
+		if (ray.z + softenContact < textureLod(tex, ray.xy, bias).a) {
+			return linearstep(300, 500, dist);
+		}
+		ray += step;
+	}
+
+	return 1.0;
+
 }
 
 /**

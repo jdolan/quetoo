@@ -149,9 +149,9 @@ dnl -----------------
 
 PKG_CHECK_MODULES(XML, libxml-2.0 >= 2.4)
 
-dnl --------------------------------------
-dnl Check for SDL2, SDL2_image, SDL2_mixer
-dnl --------------------------------------
+dnl --------------------------
+dnl Check for SDL2, SDL2_image
+dnl --------------------------
 
 PKG_CHECK_MODULES([SDL2], [sdl2 >= 2.0.0 SDL2_image])
 

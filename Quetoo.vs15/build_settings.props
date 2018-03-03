@@ -35,7 +35,7 @@
     <QuetooObjectivelyPath>$(SolutionDir)..\..\Objectively\</QuetooObjectivelyPath>
     <QuetooObjectivelyWinPath>$(QuetooObjectivelyPath)Objectively.vs15\</QuetooObjectivelyWinPath>
     <QuetooObjectivelyLibsPath>$(QuetooObjectivelyWinPath)libs\</QuetooObjectivelyLibsPath>
-    <QuetooObjectivelyIncludePath>$(QuetooObjectivelyPath)Sources\;$(QuetooObjectivelyWinPath)Sources\</QuetooObjectivelyIncludePath>
+    <QuetooObjectivelyIncludePath>$(QuetooObjectivelyPath)Sources\;$(QuetooObjectivelyWinPath)Sources\;$(QuetooObjectivelyWinPath)Sources\gnu\</QuetooObjectivelyIncludePath>
     <QuetooObjectivelyLibraryPath>$(QuetooObjectivelyWinPath)bin\$(Platform)$(Configuration)\</QuetooObjectivelyLibraryPath>
 
     <QuetooObjectivelyMVCPath>$(SolutionDir)..\..\ObjectivelyMVC\</QuetooObjectivelyMVCPath>
