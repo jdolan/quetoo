@@ -579,19 +579,11 @@ void G_FireSuperShotgun(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		ent->client->locals.angles[YAW] -= 4.0;
-
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_ShotgunProjectiles(ent, org, forward, 4, 2, 1400, 600, 12, MOD_SUPER_SHOTGUN);
-
-		ent->client->locals.angles[YAW] += 8.0;
-
-		G_InitProjectile(ent, forward, right, up, org, 1.0);
-
-		G_ShotgunProjectiles(ent, org, forward, 4, 2, 1400, 500, 12, MOD_SUPER_SHOTGUN);
-
-		ent->client->locals.angles[YAW] -= 4.0;
+		G_ShotgunProjectiles(ent, org, forward, g_balance_supershotgun_damage->integer,
+			g_balance_supershotgun_knockback->integer, g_balance_supershotgun_spread_x->integer,
+			g_balance_supershotgun_spread_y->integer, g_balance_supershotgun_pellets->integer, MOD_SUPER_SHOTGUN);
 
 		G_MuzzleFlash(ent, MZ_SUPER_SHOTGUN);
 
