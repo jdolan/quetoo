@@ -1391,7 +1391,11 @@ void G_Init(void) {
 	g_balance_grenadelauncher_speed = gi.AddCvar("g_balance_grenadelauncher_speed", "800", CVAR_SERVER_INFO, NULL);
 	g_balance_grenadelauncher_timer = gi.AddCvar("g_balance_grenadelauncher_timer", "2.5", CVAR_SERVER_INFO, NULL);
 	g_balance_railgun_refire = gi.AddCvar("g_balance_railgun_refire", "1.4", CVAR_SERVER_INFO, NULL);
+	g_balance_rocketlauncher_damage = gi.AddCvar("g_balance_rocketlauncher_damage", "100", CVAR_SERVER_INFO, NULL);
+	g_balance_rocketlauncher_knockback = gi.AddCvar("g_balance_rocketlauncher_knockback", "100", CVAR_SERVER_INFO, NULL);
+	g_balance_rocketlauncher_radius = gi.AddCvar("g_balance_rocketlauncher_radius", "150", CVAR_SERVER_INFO, NULL);
 	g_balance_rocketlauncher_refire = gi.AddCvar("g_balance_rocketlauncher_refire", "1.0", CVAR_SERVER_INFO, NULL);
+	g_balance_rocketlauncher_speed = gi.AddCvar("g_balance_rocketlauncher_speed", "1000", CVAR_SERVER_INFO, NULL);
 	g_balance_shotgun_damage = gi.AddCvar("g_balance_shotgun_damage", "4", CVAR_SERVER_INFO, NULL);
 	g_balance_shotgun_knockback = gi.AddCvar("g_balance_shotgun_knockback", "2", CVAR_SERVER_INFO, NULL);
 	g_balance_shotgun_pellets = gi.AddCvar("g_balance_shotgun_pellets", "12", CVAR_SERVER_INFO, NULL);

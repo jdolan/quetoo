@@ -758,7 +758,7 @@ void G_FireGrenadeLauncher(g_entity_t *ent) {
 
 		G_GrenadeProjectile(ent, org, forward, g_balance_grenadelauncher_speed->integer,
 			g_balance_grenadelauncher_damage->integer, g_balance_grenadelauncher_knockback->integer,
-			g_balance_grenadelauncher_radius->integer, SECONDS_TO_MILLIS(g_balance_grenadelauncher_timer->value));
+			g_balance_grenadelauncher_radius->value, SECONDS_TO_MILLIS(g_balance_grenadelauncher_timer->value));
 
 		G_MuzzleFlash(ent, MZ_GRENADE_LAUNCHER);
 
@@ -776,7 +776,9 @@ void G_FireRocketLauncher(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_RocketProjectile(ent, org, forward, 1000, 100, 100, 150.0);
+		G_RocketProjectile(ent, org, forward, g_balance_rocketlauncher_speed->integer,
+			g_balance_rocketlauncher_damage->integer, g_balance_rocketlauncher_knockback->integer,
+			g_balance_rocketlauncher_radius->integer);
 
 		G_MuzzleFlash(ent, MZ_ROCKET_LAUNCHER);
 
