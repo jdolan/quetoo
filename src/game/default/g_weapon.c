@@ -95,15 +95,15 @@ _Bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other) {
 	}
 
 	// auto-switch the weapon if applicable
-	const uint16_t autoswitch = other->client->locals.persistent.autoswitch;
+	const uint16_t auto_switch = other->client->locals.persistent.auto_switch;
 
-	if (autoswitch == 1) { // switch from blaster
+	if (auto_switch == 1) { // switch from blaster
 		if (other->client->locals.weapon == g_media.items.weapons[WEAPON_BLASTER]) {
 			G_ChangeWeapon(other, ent->locals.item);
 		}
-	} else if (autoswitch == 2) { // switch to all
+	} else if (auto_switch == 2) { // switch to all
 		G_ChangeWeapon(other, ent->locals.item);
-	} else if (autoswitch == 3) { // switch to new
+	} else if (auto_switch == 3) { // switch to new
 		if (!had_weapon) {
 			G_ChangeWeapon(other, ent->locals.item);
 		}

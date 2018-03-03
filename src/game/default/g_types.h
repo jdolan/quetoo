@@ -1006,7 +1006,7 @@ typedef struct {
 	uint16_t handicap; // current handicap inverse percentage from 0 to 100
 	uint16_t handicap_next; // handicap to use next respawn
 
-	uint16_t autoswitch; // if weapons autoswitch on pickup
+	uint16_t auto_switch; // if weapons autoswitch on pickup
 
 	g_hook_style_t hook_style; // the player's current hook style
 
@@ -1022,7 +1022,7 @@ typedef struct {
 	_Bool admin; // client is special?
 	_Bool spectator; // client is a spectator
 	_Bool ready; // ready
-	
+
 	g_vote_t vote; // current vote (yes/no)
 	uint32_t match_num; // most recent match
 	uint32_t round_num; // most recent arena round
