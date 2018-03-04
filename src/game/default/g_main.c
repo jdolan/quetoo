@@ -1014,32 +1014,32 @@ static void G_CheckRules(void) {
 	if (g_hook_speed->modified) {
 		g_hook_speed->modified = false;
 
-		gi.BroadcastPrint(PRINT_HIGH, "Hook speed has been changed to %f\n",
+		gi.BroadcastPrint(PRINT_HIGH, "Hook speed has been changed to %g\n",
 		                  g_hook_speed->value);
 	}
 
 	if (g_friendly_fire->modified) {
 		g_friendly_fire->modified = false;
 
-		gi.SetCvarValue(g_friendly_fire->name, Clamp(g_friendly_fire->value, 0.0, 2.0));
+		gi.SetCvarValue(g_friendly_fire->name, Clamp(g_friendly_fire->value, 0.0, 4.0));
 
-		gi.BroadcastPrint(PRINT_HIGH, "Friendly fire has been changed to %f\n",
+		gi.BroadcastPrint(PRINT_HIGH, "Friendly fire has been changed to %g\n",
 		                  g_friendly_fire->value);
 	}
 
 	if (g_self_damage->modified) {
 		g_self_damage->modified = false;
 
-		gi.SetCvarValue(g_self_damage->name, Clamp(g_self_damage->value, 0.0, 2.0));
+		gi.SetCvarValue(g_self_damage->name, Clamp(g_self_damage->value, 0.0, 4.0));
 
-		gi.BroadcastPrint(PRINT_HIGH, "Self damage has been changed to %f\n",
+		gi.BroadcastPrint(PRINT_HIGH, "Self damage has been changed to %g\n",
 		                  g_self_damage->value);
 	}
 
 	if (g_hook_pull_speed->modified) {
 		g_hook_pull_speed->modified = false;
 
-		gi.BroadcastPrint(PRINT_HIGH, "Hook pull speed has been changed to %f\n",
+		gi.BroadcastPrint(PRINT_HIGH, "Hook pull speed has been changed to %g\n",
 		                  g_hook_pull_speed->value);
 
 		gi.SetConfigString(CS_HOOK_PULL_SPEED, g_hook_pull_speed->string);
@@ -1389,16 +1389,16 @@ void G_Init(void) {
 	                      "Automatically assigns players to teams, ignored for duel mode.");
 	g_balance_bfg_damage = gi.AddCvar("g_balance_bfg_damage", "180", CVAR_SERVER_INFO, NULL);
 	g_balance_bfg_knockback = gi.AddCvar("g_balance_bfg_knockback", "140", CVAR_SERVER_INFO, NULL);
-	g_balance_bfg_prefire = gi.AddCvar("g_balance_bfg_prefire", "1.0", CVAR_SERVER_INFO,
+	g_balance_bfg_prefire = gi.AddCvar("g_balance_bfg_prefire", "1", CVAR_SERVER_INFO,
 					"The prefire warmup delay for the BFG10K in seconds.");
 	g_balance_bfg_radius = gi.AddCvar("g_balance_bfg_radius", "512", CVAR_SERVER_INFO, NULL);
-	g_balance_bfg_refire = gi.AddCvar("g_balance_bfg_refire", "2.0", CVAR_SERVER_INFO, NULL);
+	g_balance_bfg_refire = gi.AddCvar("g_balance_bfg_refire", "2", CVAR_SERVER_INFO, NULL);
 	g_balance_bfg_speed = gi.AddCvar("g_balance_bfg_speed", "720", CVAR_SERVER_INFO, NULL);
 	g_balance_blaster_damage = gi.AddCvar("g_balance_blaster_damage", "15", CVAR_SERVER_INFO, NULL);
 	g_balance_blaster_knockback = gi.AddCvar("g_balance_blaster_knockback", "2", CVAR_SERVER_INFO, NULL);
 	g_balance_blaster_refire = gi.AddCvar("g_balance_blaster_refire", "0.45", CVAR_SERVER_INFO, NULL);
 	g_balance_blaster_speed = gi.AddCvar("g_balance_blaster_speed", "1000", CVAR_SERVER_INFO, NULL);
-	g_balance_handgrenade_refire = gi.AddCvar("g_balance_handgrenade_refire", "2.0", CVAR_SERVER_INFO, NULL);
+	g_balance_handgrenade_refire = gi.AddCvar("g_balance_handgrenade_refire", "2", CVAR_SERVER_INFO, NULL);
 	g_balance_hyperblaster_climb_damage = gi.AddCvar("g_balance_hyperblaster_climb_damage", "3", CVAR_SERVER_INFO, NULL);
 	g_balance_hyperblaster_climb_knockback = gi.AddCvar("g_balance_hyperblaster_climb_knockback", "68", CVAR_SERVER_INFO, NULL);
 	g_balance_hyperblaster_damage = gi.AddCvar("g_balance_hyperblaster_damage", "16", CVAR_SERVER_INFO, NULL);
@@ -1417,7 +1417,7 @@ void G_Init(void) {
 	g_balance_grenadelauncher_damage = gi.AddCvar("g_balance_grenadelauncher_damage", "120", CVAR_SERVER_INFO, NULL);
 	g_balance_grenadelauncher_knockback = gi.AddCvar("g_balance_grenadelauncher_knockback", "120", CVAR_SERVER_INFO, NULL);
 	g_balance_grenadelauncher_radius = gi.AddCvar("g_balance_grenadelauncher_radius", "185", CVAR_SERVER_INFO, NULL);
-	g_balance_grenadelauncher_refire = gi.AddCvar("g_balance_grenadelauncher_refire", "1.0", CVAR_SERVER_INFO, NULL);
+	g_balance_grenadelauncher_refire = gi.AddCvar("g_balance_grenadelauncher_refire", "1", CVAR_SERVER_INFO, NULL);
 	g_balance_grenadelauncher_speed = gi.AddCvar("g_balance_grenadelauncher_speed", "800", CVAR_SERVER_INFO, NULL);
 	g_balance_grenadelauncher_timer = gi.AddCvar("g_balance_grenadelauncher_timer", "2.5", CVAR_SERVER_INFO, NULL);
 	g_balance_railgun_damage = gi.AddCvar("g_balance_railgun_damage", "100", CVAR_SERVER_INFO, NULL);
@@ -1426,7 +1426,7 @@ void G_Init(void) {
 	g_balance_rocketlauncher_damage = gi.AddCvar("g_balance_rocketlauncher_damage", "100", CVAR_SERVER_INFO, NULL);
 	g_balance_rocketlauncher_knockback = gi.AddCvar("g_balance_rocketlauncher_knockback", "100", CVAR_SERVER_INFO, NULL);
 	g_balance_rocketlauncher_radius = gi.AddCvar("g_balance_rocketlauncher_radius", "150", CVAR_SERVER_INFO, NULL);
-	g_balance_rocketlauncher_refire = gi.AddCvar("g_balance_rocketlauncher_refire", "1.0", CVAR_SERVER_INFO, NULL);
+	g_balance_rocketlauncher_refire = gi.AddCvar("g_balance_rocketlauncher_refire", "1", CVAR_SERVER_INFO, NULL);
 	g_balance_rocketlauncher_speed = gi.AddCvar("g_balance_rocketlauncher_speed", "1000", CVAR_SERVER_INFO, NULL);
 	g_balance_shotgun_damage = gi.AddCvar("g_balance_shotgun_damage", "4", CVAR_SERVER_INFO, NULL);
 	g_balance_shotgun_knockback = gi.AddCvar("g_balance_shotgun_knockback", "2", CVAR_SERVER_INFO, NULL);
@@ -1457,7 +1457,7 @@ void G_Init(void) {
 	g_hook_pull_speed = gi.AddCvar("g_hook_pull_speed", "800", CVAR_SERVER_INFO,
 	                            "The speed that you get pulled towards the hook.");
 	g_frag_limit = gi.AddCvar("g_frag_limit", "30", CVAR_SERVER_INFO, "The frag limit per level.");
-	g_friendly_fire = gi.AddCvar("g_friendly_fire", "1.0", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to teammates.");
+	g_friendly_fire = gi.AddCvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to teammates.");
 	g_force_demo = gi.AddCvar("g_force_demo", "0", CVAR_SERVER_INFO, "Force all players to record a demo.");
 	g_force_screenshot = gi.AddCvar("g_force_screenshot", "0", CVAR_SERVER_INFO, "Force all players to take a screenshot.");
 	g_gameplay = gi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO, "Selects deathmatch, duel, arena, or instagib combat.");
@@ -1472,12 +1472,12 @@ void G_Init(void) {
 	g_max_entities = gi.AddCvar("g_max_entities", "1024", CVAR_LATCH, NULL);
 	g_motd = gi.AddCvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect.");
 	g_password = gi.AddCvar("g_password", "", CVAR_USER_INFO, "The server password.");
-	g_player_projectile = gi.AddCvar("g_player_projectile", "1.0", CVAR_SERVER_INFO, "Scales player velocity to projectiles.");
+	g_player_projectile = gi.AddCvar("g_player_projectile", "1", CVAR_SERVER_INFO, "Scales player velocity to projectiles.");
 	g_random_map = gi.AddCvar("g_random_map", "0", 0, "Enables map shuffling.");
 	g_respawn_protection = gi.AddCvar("g_respawn_protection", "0.0", 0, "Respawn protection in seconds.");
 	g_round_limit = gi.AddCvar("g_round_limit", "30", CVAR_SERVER_INFO, "The number of rounds to run per level.");
 	g_rounds = gi.AddCvar("g_rounds", "0", CVAR_SERVER_INFO, "Enables rounds-based play, where last player standing wins.");
-	g_self_damage = gi.AddCvar("g_self_damage", "1.0", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to yourself.");
+	g_self_damage = gi.AddCvar("g_self_damage", "1", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to yourself.");
 	g_show_attacker_stats = gi.AddCvar("g_show_attacker_stats", "0", CVAR_SERVER_INFO,
 					"Allows can see their attackers' health and armor when they die.");
 	g_spawn_farthest = gi.AddCvar("g_spawn_farthest", "0", CVAR_SERVER_INFO, NULL);
