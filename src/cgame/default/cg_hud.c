@@ -1536,8 +1536,6 @@ static void Cg_DrawRespawn(const player_state_t *ps) {
 
 	const char *string;
 
-	printf("%d\n", ps->stats[STAT_RESPAWN]);
-
 	if (ps->stats[STAT_RESPAWN]) {
 		string = va("Respawn in ^3%0.1f", MILLIS_TO_SECONDS(ps->stats[STAT_RESPAWN]));
 	} else {
