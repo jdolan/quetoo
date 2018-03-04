@@ -827,7 +827,7 @@ void G_FireLightning(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_LightningProjectile(ent, org, forward, 12, 6);
+		G_LightningProjectile(ent, org, forward, g_balance_lightning_damage->integer, g_balance_lightning_knockback->integer);
 
 		G_WeaponFired(ent, SECONDS_TO_MILLIS(g_balance_lightning_refire->value), ent->client->locals.weapon->quantity);
 	}
