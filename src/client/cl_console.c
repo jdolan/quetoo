@@ -129,7 +129,7 @@ void Cl_DrawConsole(void) {
 
 	R_BindFont("small", &cw, &ch);
 
-	height = r_context.height * (cls.state == CL_ACTIVE ? cl_console_height->value : 1.0);
+	height = r_context.height * (cls.state == CL_ACTIVE ? Clamp(cl_console_height->value, 0.1, 1.0) : 1.0);
 
 	cl_console.width = r_context.width / cw;
 	cl_console.height = (height / ch) - 1;
