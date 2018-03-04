@@ -1124,8 +1124,8 @@ static void Cg_SelectWeapon(const int8_t dir) {
 		}
 
 		if (cg_hud_locals.weapon.has[cg_hud_locals.weapon.tag]) {
-			cg_hud_locals.weapon.time = cgi.client->unclamped_time + (cg_select_weapon_delay->value * 1000);
-			cg_hud_locals.weapon.bar_time = cgi.client->unclamped_time + (cg_select_weapon_interval->value * 1000);
+			cg_hud_locals.weapon.time = cgi.client->unclamped_time + SECONDS_TO_MILLIS(cg_select_weapon_delay->value);
+			cg_hud_locals.weapon.bar_time = cgi.client->unclamped_time + SECONDS_TO_MILLIS(cg_select_weapon_interval->value);
 			return;
 		}
 	}
@@ -1148,8 +1148,8 @@ _Bool Cg_AttemptSelectWeapon(const player_state_t *ps) {
 			const char *name = cgi.client->config_strings[CS_ITEMS + cg_hud_weapons[cg_hud_locals.weapon.tag].item_index];
 			cgi.Cbuf(va("use %s\n", name));
 
-			cg_hud_locals.weapon.time = cgi.client->unclamped_time + (cg_select_weapon_interval->value * 1000);
-			cg_hud_locals.weapon.bar_time = cgi.client->unclamped_time + (cg_select_weapon_interval->value * 1000);
+			cg_hud_locals.weapon.time = cgi.client->unclamped_time + SECONDS_TO_MILLIS(cg_select_weapon_interval->value);
+			cg_hud_locals.weapon.bar_time = cgi.client->unclamped_time + SECONDS_TO_MILLIS(cg_select_weapon_interval->value);
 			return true;
 		}
 
@@ -1206,8 +1206,8 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 
 			// we changed weapons without using scrolly, show it for a bit
 			cg_hud_locals.weapon.tag = cg_hud_locals.weapon.used_tag - 1;
-			cg_hud_locals.weapon.time = cgi.client->unclamped_time + (cg_select_weapon_interval->value * 1000);
-			cg_hud_locals.weapon.bar_time = cgi.client->unclamped_time + (cg_select_weapon_interval->value * 1000);
+			cg_hud_locals.weapon.time = cgi.client->unclamped_time + SECONDS_TO_MILLIS(cg_select_weapon_interval->value);
+			cg_hud_locals.weapon.bar_time = cgi.client->unclamped_time + SECONDS_TO_MILLIS(cg_select_weapon_interval->value);
 		}
 	}
 
@@ -1235,7 +1235,7 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 		cg_select_weapon_fade->value = Clamp(cg_select_weapon_fade->value, 0.0, cg_select_weapon_interval->value);
 	}
 
-	const vec_t alpha = Min((cg_hud_locals.weapon.bar_time - cgi.client->unclamped_time) / (cg_select_weapon_fade->value * 1000), 1.0);
+	const vec_t alpha = Min((cg_hud_locals.weapon.bar_time - cgi.client->unclamped_time) / SECONDS_TO_MILLIS(cg_select_weapon_fade->value), 1.0);
 
 	const vec4_t color_select = {1.0, 1.0, 1.0, alpha};
 	const vec4_t color = {1.0, 1.0, 1.0, alpha * cg_select_weapon_alpha->value};
@@ -1652,22 +1652,18 @@ void Cg_InitHud(void) {
 
 	cgi.AddCmd("cg_weapon_next", Cg_Weapon_Next_f, CMD_CGAME,
 			   "Open the weapon bar to the next weapon. In chasecam, switches to next target.");
-
 	cgi.AddCmd("cg_weapon_previous", Cg_Weapon_Prev_f, CMD_CGAME,
 			   "Open the weapon bar to the previous weapon. In chasecam, switches to previous target.");
 
 	cg_select_weapon_alpha = cgi.AddCvar("cg_select_weapon_alpha", "0.5", CVAR_ARCHIVE,
-										 "The opacity of unselected weapons in the weapon bar.");
-
-	cg_select_weapon_delay = cgi.AddCvar("cg_select_weapon_delay", "250", CVAR_ARCHIVE,
-										 "The amount of time, in milliseconds, to wait between changing weapons in the scroll view. "
-										 "Clicking will override this value and switch immediately.");
-
+					   "The opacity of unselected weapons in the weapon bar.");
+	cg_select_weapon_delay = cgi.AddCvar("cg_select_weapon_delay", "0.25", CVAR_ARCHIVE,
+					   "The amount of time, in seconds, to wait between changing weapons in the scroll view. "
+					   "Clicking will override this value and switch immediately.");
 	cg_select_weapon_fade = cgi.AddCvar("cg_select_weapon_fade", "0.2", CVAR_ARCHIVE,
-										"The amount of time in seconds for the weapon bar to fade out in.");
-
-	cg_select_weapon_interval = cgi.AddCvar("cg_select_weapon_interval", "750", CVAR_ARCHIVE,
-											"The amount of time, in milliseconds, to show the weapon bar after changing weapons.");
+					  "The amount of time in seconds for the weapon bar to fade out in.");
+	cg_select_weapon_interval = cgi.AddCvar("cg_select_weapon_interval", "0.75", CVAR_ARCHIVE,
+					      "The amount of time, in seconds, to show the weapon bar after changing weapons.");
 }
 
 /**
