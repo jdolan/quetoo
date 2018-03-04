@@ -273,7 +273,7 @@ void G_ClientStats(g_entity_t *ent) {
 	// respawn time
 	client->ps.stats[STAT_RESPAWN] = 0;
 	if (g_level.time < client->locals.respawn_time) {
-		client->ps.stats[STAT_RESPAWN] = client->locals.respawn_time;
+		client->ps.stats[STAT_RESPAWN] = client->locals.respawn_time - g_level.time;
 	}
 
 	// rounds

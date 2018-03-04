@@ -22,6 +22,9 @@
 #include "cg_local.h"
 #include "game/default/bg_notification.h"
 
+#define BLEND_TIME_DAMAGE 1500
+#define BLEND_TIME_PICKUP 600
+
 #define HUD_COLOR_STAT			CON_COLOR_DEFAULT
 #define HUD_COLOR_STAT_MED		CON_COLOR_YELLOW
 #define HUD_COLOR_STAT_LOW		CON_COLOR_RED
@@ -38,7 +41,8 @@
 
 #define HUD_POWERUP_LOW			5
 
-#define NOTIFICATION_PIC_HEIGHT			32
+#define NOTIFICATION_PIC_SIZE			32
+#define NOTIFICATION_ICON_SCALE			NOTIFICATION_PIC_SIZE / 32.0
 #define NOTIFICATION_PADDING_X			5
 
 typedef struct cg_crosshair_s {
@@ -659,10 +663,10 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 
 		g_snprintf(crosshair.name, sizeof(crosshair.name), "ch%d", cg_draw_crosshair->integer);
 
-		crosshair.image = cgi.LoadImage(va("pics/ch%d", cg_draw_crosshair->integer), IT_PIC);
+		crosshair.image = cgi.LoadImage(va("pics/%s", crosshair.name), IT_PIC);
 
 		if (crosshair.image->type == IT_NULL) {
-			cgi.Print("Couldn't load pics/ch%d.\n", cg_draw_crosshair->integer);
+			cgi.Print("Couldn't load pics/%s.\n", crosshair.name);
 			return;
 		}
 	}
@@ -912,9 +916,6 @@ static void Cg_DrawBlendFlashImage(const r_image_t *image, const vec_t alpha) {
 	cgi.Color(NULL);
 }
 
-#define CG_DAMAGE_BLEND_TIME 1500
-#define CG_PICKUP_BLEND_TIME 600
-
 /**
  * @brief Draw a full-screen blend effect based on world interaction.
  */
@@ -955,7 +956,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 
 	if (cg_hud_locals.blend.pickup_time && cg_draw_blend_pickup->value) {
 		Cg_DrawBlendFlashImage(cg_pickup_blend_image,
-			Cg_CalculateBlendAlpha(cg_hud_locals.blend.pickup_time, CG_PICKUP_BLEND_TIME, cg_draw_blend_pickup->value));
+			Cg_CalculateBlendAlpha(cg_hud_locals.blend.pickup_time, BLEND_TIME_PICKUP, cg_draw_blend_pickup->value));
 	}
 
 	// quad damage powerup
@@ -975,7 +976,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 
 	if (cg_hud_locals.blend.damage_time && cg_draw_blend_damage->value) {
 		Cg_DrawBlendFlashImage(cg_damage_blend_image,
-			Cg_CalculateBlendAlpha(cg_hud_locals.blend.damage_time, CG_DAMAGE_BLEND_TIME, cg_draw_blend_damage->value));
+			Cg_CalculateBlendAlpha(cg_hud_locals.blend.damage_time, BLEND_TIME_DAMAGE, cg_draw_blend_damage->value));
 	}
 
 	// if we have a blend, draw it
@@ -1405,7 +1406,7 @@ void Cg_ParseNotification(void) {
  * @brief
  */
 static void Cg_DrawNotification(const player_state_t *ps) {
-	r_pixel_t cw, ch, x, y;
+	r_pixel_t cw, ch, x, y, text_offset;
 	bg_notification_item_t *item;
 
 	GSList *list;
@@ -1430,7 +1431,9 @@ static void Cg_DrawNotification(const player_state_t *ps) {
 
 	cgi.BindFont("small", &cw, &ch);
 
-	y = (Min(notifications.num_lines - 1, cg_draw_notifications_lines->integer - 1) * NOTIFICATION_PIC_HEIGHT) + 10;
+	y = (Min(notifications.num_lines - 1, cg_draw_notifications_lines->integer - 1) * NOTIFICATION_PIC_SIZE) + 10;
+
+	text_offset = (NOTIFICATION_PIC_SIZE / 2.0) - 8;
 
 	for (int32_t i = 0; i < Min(notifications.num_lines, cg_draw_notifications_lines->integer); i++) {
 		list = g_slist_nth(notifications.items, i);
@@ -1449,18 +1452,18 @@ static void Cg_DrawNotification(const player_state_t *ps) {
 
 				x -= cgi.StringWidth(name) + NOTIFICATION_PADDING_X;
 
-				cgi.DrawString(x, y + 6, name, CON_COLOR_DEFAULT);
+				cgi.DrawString(x, y + text_offset, name, CON_COLOR_DEFAULT);
 
-				x -= NOTIFICATION_PIC_HEIGHT + NOTIFICATION_PADDING_X;
+				x -= NOTIFICATION_PIC_SIZE + NOTIFICATION_PADDING_X;
 
-				cgi.DrawImage(x, y, 1.0,
+				cgi.DrawImage(x, y, NOTIFICATION_ICON_SCALE,
 					cgi.LoadImage(Bg_GetModIconString(item->mod, item->mod & MOD_FRIENDLY_FIRE), IT_PIC));
 
 				name = cgi.client->client_info[item->client_id_1].name;
 
 				x -= cgi.StringWidth(name) + NOTIFICATION_PADDING_X;
 
-				cgi.DrawString(x, y + 6, name, CON_COLOR_DEFAULT);
+				cgi.DrawString(x, y + text_offset, name, CON_COLOR_DEFAULT);
 			}
 				break;
 			case NOTIFICATION_TYPE_OBITUARY_SELF: {
@@ -1468,11 +1471,11 @@ static void Cg_DrawNotification(const player_state_t *ps) {
 
 				x -= cgi.StringWidth(name) + NOTIFICATION_PADDING_X;
 
-				cgi.DrawString(x, y + 6, name, CON_COLOR_DEFAULT);
+				cgi.DrawString(x, y + text_offset, name, CON_COLOR_DEFAULT);
 
-				x -= NOTIFICATION_PIC_HEIGHT + NOTIFICATION_PADDING_X;
+				x -= NOTIFICATION_PIC_SIZE + NOTIFICATION_PADDING_X;
 
-				cgi.DrawImage(x, y, 1.0,
+				cgi.DrawImage(x, y, NOTIFICATION_ICON_SCALE,
 					cgi.LoadImage(Bg_GetModIconString(item->mod, item->mod & MOD_FRIENDLY_FIRE), IT_PIC));
 			}
 				break;
@@ -1481,17 +1484,17 @@ static void Cg_DrawNotification(const player_state_t *ps) {
 
 				x -= cgi.StringWidth(name) + NOTIFICATION_PADDING_X;
 
-				cgi.DrawString(x, y + 6, name, CON_COLOR_DEFAULT);
+				cgi.DrawString(x, y + text_offset, name, CON_COLOR_DEFAULT);
 
-				x -= NOTIFICATION_PIC_HEIGHT + NOTIFICATION_PADDING_X;
+				x -= NOTIFICATION_PIC_SIZE + NOTIFICATION_PADDING_X;
 
-				Cg_DrawIcon(x, y, 1.0, item->pic);
+				Cg_DrawIcon(x, y, NOTIFICATION_ICON_SCALE, item->pic);
 
 				name = cgi.client->client_info[item->client_id_1].name;
 
 				x -= cgi.StringWidth(name) + NOTIFICATION_PADDING_X;
 
-				cgi.DrawString(x, y + 6, name, CON_COLOR_DEFAULT);
+				cgi.DrawString(x, y + text_offset, name, CON_COLOR_DEFAULT);
 			}
 				break;
 			case NOTIFICATION_TYPE_PLAYER_ACTION: {
@@ -1499,9 +1502,9 @@ static void Cg_DrawNotification(const player_state_t *ps) {
 
 				cgi.DrawString(x, y + 6, item->string_1, CON_COLOR_DEFAULT);
 
-				x -= NOTIFICATION_PIC_HEIGHT + NOTIFICATION_PADDING_X;
+				x -= NOTIFICATION_PIC_SIZE + NOTIFICATION_PADDING_X;
 
-				Cg_DrawIcon(x, y, 1.0, item->pic);
+				Cg_DrawIcon(x, y, NOTIFICATION_ICON_SCALE, item->pic);
 
 				char *name = cgi.client->client_info[item->client_id_1].name;
 
@@ -1515,7 +1518,7 @@ static void Cg_DrawNotification(const player_state_t *ps) {
 
 		}
 
-		y -= NOTIFICATION_PIC_HEIGHT;
+		y -= NOTIFICATION_PIC_SIZE;
 	}
 
 	cgi.BindFont(NULL, NULL, NULL);
@@ -1533,8 +1536,10 @@ static void Cg_DrawRespawn(const player_state_t *ps) {
 
 	const char *string;
 
+	printf("%d\n", ps->stats[STAT_RESPAWN]);
+
 	if (ps->stats[STAT_RESPAWN]) {
-		string = va("Respawn in ^3%0.1f", (ps->stats[STAT_RESPAWN] - cgi.client->time) / 1000.0);
+		string = va("Respawn in ^3%0.1f", MILLIS_TO_SECONDS(ps->stats[STAT_RESPAWN]));
 	} else {
 		string = va("^2Ready to respawn");
 	}
