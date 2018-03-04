@@ -102,6 +102,8 @@ void R_InitContext(void) {
 		Com_Error(ERROR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
 	}
 
+	Cvar_ForceSetInteger(r_display->name, SDL_GetWindowDisplayIndex(r_context.window));
+
 	Com_Print("  Setting up OpenGL context..\n");
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -167,8 +169,6 @@ void R_InitContext(void) {
  * @brief
  */
 void R_ShutdownContext(void) {
-
-	Cvar_SetInteger(r_display->name, SDL_GetWindowDisplayIndex(r_context.window));
 
 	if (r_context.context) {
 		SDL_GL_DeleteContext(r_context.context);

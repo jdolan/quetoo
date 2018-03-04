@@ -357,42 +357,6 @@ typedef enum {
 	HOOK_SWING // hookmod-style swing hook
 } g_hook_style_t;
 
-/**
- * @brief Means of death.
- */
-#define MOD_UNKNOWN					0
-#define MOD_BLASTER					1
-#define MOD_SHOTGUN					2
-#define MOD_SUPER_SHOTGUN			3
-#define MOD_MACHINEGUN				4
-#define MOD_GRENADE					5
-#define MOD_GRENADE_SPLASH			6
-#define MOD_ROCKET					7
-#define MOD_ROCKET_SPLASH			8
-#define MOD_HYPERBLASTER			9
-#define MOD_LIGHTNING				10
-#define MOD_LIGHTNING_DISCHARGE		11
-#define MOD_RAILGUN					12
-#define MOD_BFG_LASER				13
-#define MOD_BFG_BLAST				14
-#define MOD_WATER					15
-#define MOD_SLIME					16
-#define MOD_LAVA					17
-#define MOD_CRUSH					18
-#define MOD_TELEFRAG				19
-#define MOD_FALLING					20
-#define MOD_SUICIDE					21
-#define MOD_EXPLOSIVE				22
-#define MOD_TRIGGER_HURT			23
-#define MOD_HANDGRENADE				24
-#define MOD_HANDGRENADE_SPLASH		25
-#define MOD_HANDGRENADE_SUICIDE		26
-#define MOD_HANDGRENADE_KAMIKAZE	27
-#define MOD_FIREBALL				28
-#define MOD_HOOK					29
-#define MOD_ACT_OF_GOD				30
-#define MOD_FRIENDLY_FIRE			0x80
-
 #ifdef __GAME_LOCAL_H__
 
 /**
@@ -909,6 +873,45 @@ typedef struct {
 } g_level_t;
 
 /**
+ * @brief Means of death.
+ */
+ typedef enum {
+	MOD_UNKNOWN,
+	MOD_BLASTER,
+	MOD_SHOTGUN,
+	MOD_SUPER_SHOTGUN,
+	MOD_MACHINEGUN,
+	MOD_GRENADE,
+	MOD_GRENADE_SPLASH,
+	MOD_ROCKET,
+	MOD_ROCKET_SPLASH,
+	MOD_HYPERBLASTER,
+	MOD_HYPERBLASTER_CLIMB,
+	MOD_LIGHTNING,
+	MOD_LIGHTNING_DISCHARGE,
+	MOD_RAILGUN,
+	MOD_BFG_LASER,
+	MOD_BFG_BLAST,
+	MOD_WATER,
+	MOD_SLIME,
+	MOD_LAVA,
+	MOD_CRUSH,
+	MOD_TELEFRAG,
+	MOD_FALLING,
+	MOD_SUICIDE,
+	MOD_EXPLOSIVE,
+	MOD_TRIGGER_HURT,
+	MOD_HANDGRENADE,
+	MOD_HANDGRENADE_SPLASH,
+	MOD_HANDGRENADE_SUICIDE,
+	MOD_HANDGRENADE_KAMIKAZE,
+	MOD_FIREBALL,
+	MOD_HOOK,
+	MOD_ACT_OF_GOD,
+	MOD_FRIENDLY_FIRE = 0x8000000
+} g_mod_t;
+
+/**
  * @brief Damage flags. These can be and often are combined.
  */
 #define DMG_RADIUS		0x1  // damage was indirect
@@ -1005,6 +1008,8 @@ typedef struct {
 	uint16_t handicap; // current handicap inverse percentage from 0 to 100
 	uint16_t handicap_next; // handicap to use next respawn
 
+	uint16_t auto_switch; // if weapons auto-switch on pickup
+
 	g_hook_style_t hook_style; // the player's current hook style
 
 	g_team_t *team; // current team
@@ -1019,7 +1024,7 @@ typedef struct {
 	_Bool admin; // client is special?
 	_Bool spectator; // client is a spectator
 	_Bool ready; // ready
-	
+
 	g_vote_t vote; // current vote (yes/no)
 	uint32_t match_num; // most recent match
 	uint32_t round_num; // most recent arena round

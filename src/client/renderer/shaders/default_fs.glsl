@@ -4,6 +4,8 @@
 
 #version 330
 
+#extension GL_ARB_texture_query_lod: enable
+
 #define FRAGMENT_SHADER
 
 #include "include/matrix.glsl"
@@ -67,12 +69,16 @@ in VertexData {
 	vec3 eye;
 };
 
-const vec3 two = vec3(2.0);
-const vec3 negHalf = vec3(-0.5);
-
 vec3 eyeDir;
 
 out vec4 fragColor;
+
+/**
+ * @brief Clamp value t to range [a,b] and map [a,b] to [0,1].
+ */
+float linearstep(float a, float b, float t) {
+	return clamp((t - a) / (b - a), 0.0, 1.0);
+}
 
 /**
  * @brief Used to dither the image before quantizing, combats banding artifacts.
@@ -91,8 +97,130 @@ void DitherFragment(inout vec3 color) {
  * @brief Yield the parallax offset for the texture coordinate.
  */
 vec2 BumpTexcoord() {
-	float height = texture(SAMPLER3, texcoords[0]).a;
-	return texcoords[0] + eyeDir.xy * (height * 0.04 - 0.02) * PARALLAX;
+
+	float bias = 0;
+
+	#if GL_ARB_texture_query_lod
+	{
+		// 2^7 = 128*128 largest texture size.
+		const float maxMipmaps = 7;
+
+		vec2 texSize = textureSize(SAMPLER3, 0).xy;
+		float numMipmaps = log2(max(texSize.x, texSize.y));
+
+		float minMip = numMipmaps - maxMipmaps;
+		float mipLevel = textureQueryLOD(SAMPLER3, texcoords[0]).y;
+
+		bias = max(mipLevel, minMip);
+	}
+	#endif
+
+	float numSamples = 32;
+	float scale = PARALLAX * 0.04;
+
+	#if 1 // Optimizations
+	{
+		const float minSamples = 8;
+
+		#if 1 // Fade out at a distance.
+		const float near = 200.0;
+		const float far = 500.0;
+		float dist = 1.0 - linearstep(near, far, length(point));
+		numSamples = mix(minSamples, numSamples, dist);
+		scale *= dist;
+		#endif
+
+		#if 1 // Do less work on surfaces orthogonal to the view. Might give subtle peeling artifacts.
+		float orthogonality = clamp(dot(eyeDir, vec3(0.0, 0.0, 1.0)), 0.0, 1.0);
+		numSamples = mix(minSamples, numSamples, 1.0 - orthogonality*orthogonality);
+		#endif
+	}
+	#endif
+
+	if (scale == 0.0) {
+		return texcoords[0];
+	}
+
+	// Record keeping.
+	vec2  uvPrev;
+	vec2  uvCurr = texcoords[0] - (eyeDir.xy * scale * 0.5); // Middle-out parallaxing.
+	float surfaceHeightPrev;
+	float surfaceHeightCurr = textureLod(SAMPLER3, texcoords[0], bias).a;
+	float rayHeightPrev;
+	float rayHeightCurr = 0.0;
+
+	if (PARALLAX < 0.5) {
+		return uvCurr + (eyeDir.xy * surfaceHeightCurr * scale);
+	}
+
+	// Height offset per step.
+	float stepHeight = 1.0 / numSamples;
+	// UV offset per step.
+	vec2 uvDelta = eyeDir.xy * scale / numSamples;
+
+	while (rayHeightCurr < surfaceHeightCurr) {
+
+		uvPrev = uvCurr;
+		uvCurr += uvDelta;
+		surfaceHeightPrev = surfaceHeightCurr;
+		surfaceHeightCurr = textureLod(SAMPLER3, uvCurr, bias).a;
+		rayHeightPrev = rayHeightCurr;
+		rayHeightCurr += stepHeight;
+	}
+
+	// Take last two heights and interpolate between them.
+	float a = surfaceHeightCurr - rayHeightCurr;
+	float b = surfaceHeightPrev - rayHeightCurr + stepHeight;
+	float blend = a / (a - b);
+
+	return mix(uvCurr, uvPrev, blend);
+}
+
+/**
+ * @brief Raytraced self-shadowing for heightmaps.
+ */
+float SelfShadowHeightmap(vec3 lightDir, sampler2D tex, vec2 uv) {
+
+	float dist = length(point);
+	if (dist > 500) {
+		return 1.0;
+	}
+
+	float bias = 0;
+
+	#if GL_ARB_texture_query_lod
+	{
+		const float maxMipmaps = 7;
+
+		vec2 texSize = textureSize(tex, 0).xy;
+		float numMipmaps = log2(max(texSize.x, texSize.y));
+
+		float minMip = numMipmaps - maxMipmaps;
+		float mipLevel = textureQueryLOD(tex, uv).y;
+
+		bias = max(mipLevel, minMip);
+	}
+	#endif
+
+	const float numSamples = 8;
+	const float radius = 1.0;
+	const float radiusBase = 0.5 - radius / 2;
+
+	float shadowLength = radiusBase + radius * fract(dot(vec2(171.0, 231.0), gl_FragCoord.xy) / 600);
+	float softenContact = 0.2 * shadowLength;
+
+	vec3 ray = vec3(uv.x, uv.y, textureLod(tex, uv, bias).a - (softenContact * 0.75));
+	vec3 step = vec3(lightDir.xy * shadowLength * PARALLAX, 1.0) / numSamples;
+
+	while (ray.z < 1.0 - step.z) {
+		if (ray.z + softenContact < textureLod(tex, ray.xy, bias).a) {
+			return linearstep(300, 500, dist);
+		}
+		ray += step;
+	}
+
+	return 1.0;
+
 }
 
 /**
@@ -200,7 +328,7 @@ void main(void) {
 	eyeDir = normalize(eye);
 
 	// texture coordinates
-	vec2 uvTextures = NORMALMAP ? BumpTexcoord() : texcoords[0];
+	vec2 uvTextures = NORMALMAP && PARALLAX > 0 ? BumpTexcoord() : texcoords[0];
 	vec2 uvLightmap = texcoords[1];
 
 	// flat shading
@@ -217,7 +345,7 @@ void main(void) {
 	}
 
 	// then resolve any bump mapping
-	vec4 normalmap = vec4(normal, 1.0);
+	vec4 normalmap = vec4(normal, 0.5);
 
 	float lightmapBumpScale = 1.0;
 	float lightmapSpecularScale = 0.0;
@@ -226,7 +354,7 @@ void main(void) {
 
 		if (DELUXEMAP) {
 			deluxemap = texture(SAMPLER2, uvLightmap).rgb;
-			deluxemap = normalize(two * (deluxemap + negHalf));
+			deluxemap = normalize(2.0 * (deluxemap + 0.5));
 		}
 
 		normalmap = texture(SAMPLER3, uvTextures);

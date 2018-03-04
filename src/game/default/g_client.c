@@ -52,7 +52,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 
 		if (dedicated->value) {
 			gi.Print("^1%s ^7%s\n", Bg_GetModString(mod, false),
-			self->client->locals.persistent.net_name);
+				self->client->locals.persistent.net_name);
 		}
 	}
 
@@ -1126,9 +1126,12 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 		handicap = 100;
 	}
 
-	handicap = Clamp(handicap, 50, 100);
+	cl->locals.persistent.handicap_next = Clamp(handicap, 50, 100);
 
-	cl->locals.persistent.handicap_next = handicap;
+	// auto-switch
+	uint16_t auto_switch = strtoul(GetUserInfo(user_info, "auto_switch"), NULL, 10);
+
+	cl->locals.persistent.auto_switch = auto_switch;
 
 	// hook style
 	G_SetClientHookStyle(ent);
@@ -1493,7 +1496,7 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 
 		// process hook buttons
 		if (cl->locals.hook_think_time < g_level.time) {
-			G_ClientHookThink(ent);
+			G_ClientHookThink(ent, false);
 		}
 
 		G_ClientMove(ent, cmd);
@@ -1557,7 +1560,7 @@ void G_ClientBeginFrame(g_entity_t *ent) {
 	}
 
 	if (cl->locals.hook_think_time < g_level.time) {
-		G_ClientHookThink(ent);
+		G_ClientHookThink(ent, false);
 	}
 
 	if (ent->locals.dead) {
