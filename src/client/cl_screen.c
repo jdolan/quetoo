@@ -247,12 +247,12 @@ static void Cl_DrawRendererStats(void) {
 	R_DrawString(0, y, va("Data Buffers: %u bound, %u partial, %u full; %" PRIuPTR " bytes",
 	                      r_view.buffer_stats[R_BUFFER_DATA].bound, r_view.buffer_stats[R_BUFFER_DATA].num_partial_uploads,
 						  r_view.buffer_stats[R_BUFFER_DATA].num_full_uploads, r_view.buffer_stats[R_BUFFER_DATA].size_uploaded), CON_COLOR_GREEN);
-	
+
 	y += ch;
 	R_DrawString(0, y, va("Element Buffers: %u bound, %u partial, %u full; %" PRIuPTR " bytes",
 	                      r_view.buffer_stats[R_BUFFER_ELEMENT].bound, r_view.buffer_stats[R_BUFFER_ELEMENT].num_partial_uploads,
 						  r_view.buffer_stats[R_BUFFER_ELEMENT].num_full_uploads, r_view.buffer_stats[R_BUFFER_ELEMENT].size_uploaded), CON_COLOR_GREEN);
-	
+
 	y += ch;
 
 	R_DrawString(0, y, va("%d total buffers created (%d bytes)", R_GetNumAllocatedBuffers(),
@@ -389,12 +389,11 @@ void Cl_UpdateScreen(void) {
 
 		R_EnableBlend(true);
 
-		Cl_DrawChat();
-
 		Cl_DrawNetGraph();
 		Cl_DrawCounters();
 
 		if (cls.key_state.dest != KEY_CONSOLE && cls.key_state.dest != KEY_UI) {
+			Cl_DrawChat();
 			Cl_DrawNotify();
 			Cl_DrawRendererStats();
 			Cl_DrawSoundStats();
