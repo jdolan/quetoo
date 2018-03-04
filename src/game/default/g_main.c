@@ -62,6 +62,8 @@ cvar_t *g_balance_grenadelauncher_radius;
 cvar_t *g_balance_grenadelauncher_refire;
 cvar_t *g_balance_grenadelauncher_speed;
 cvar_t *g_balance_grenadelauncher_timer;
+cvar_t *g_balance_railgun_damage;
+cvar_t *g_balance_railgun_knockback;
 cvar_t *g_balance_railgun_refire;
 cvar_t *g_balance_rocketlauncher_damage;
 cvar_t *g_balance_rocketlauncher_knockback;
@@ -1410,6 +1412,8 @@ void G_Init(void) {
 	g_balance_grenadelauncher_refire = gi.AddCvar("g_balance_grenadelauncher_refire", "1.0", CVAR_SERVER_INFO, NULL);
 	g_balance_grenadelauncher_speed = gi.AddCvar("g_balance_grenadelauncher_speed", "800", CVAR_SERVER_INFO, NULL);
 	g_balance_grenadelauncher_timer = gi.AddCvar("g_balance_grenadelauncher_timer", "2.5", CVAR_SERVER_INFO, NULL);
+	g_balance_railgun_damage = gi.AddCvar("g_balance_railgun_damage", "100", CVAR_SERVER_INFO, NULL);
+	g_balance_railgun_knockback = gi.AddCvar("g_balance_railgun_knockback", "80", CVAR_SERVER_INFO, NULL);
 	g_balance_railgun_refire = gi.AddCvar("g_balance_railgun_refire", "1.4", CVAR_SERVER_INFO, NULL);
 	g_balance_rocketlauncher_damage = gi.AddCvar("g_balance_rocketlauncher_damage", "100", CVAR_SERVER_INFO, NULL);
 	g_balance_rocketlauncher_knockback = gi.AddCvar("g_balance_rocketlauncher_knockback", "100", CVAR_SERVER_INFO, NULL);

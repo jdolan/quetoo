@@ -843,9 +843,9 @@ void G_FireRailgun(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		const int16_t damage = (g_level.gameplay == GAME_INSTAGIB) ? 999 : 100;
+		const int16_t damage = (g_level.gameplay == GAME_INSTAGIB) ? 999 : g_balance_railgun_damage->integer;
 
-		G_RailgunProjectile(ent, org, forward, damage, 80);
+		G_RailgunProjectile(ent, org, forward, damage, g_balance_railgun_knockback->integer);
 
 		G_MuzzleFlash(ent, MZ_RAILGUN);
 

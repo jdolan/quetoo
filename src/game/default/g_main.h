@@ -71,6 +71,8 @@ extern cvar_t *g_balance_grenadelauncher_radius;
 extern cvar_t *g_balance_grenadelauncher_refire;
 extern cvar_t *g_balance_grenadelauncher_speed;
 extern cvar_t *g_balance_grenadelauncher_timer;
+extern cvar_t *g_balance_railgun_damage;
+extern cvar_t *g_balance_railgun_knockback;
 extern cvar_t *g_balance_railgun_refire;
 extern cvar_t *g_balance_rocketlauncher_damage;
 extern cvar_t *g_balance_rocketlauncher_knockback;
