@@ -1476,6 +1476,7 @@ void G_Init(void) {
 	g_player_projectile = gi.AddCvar("g_player_projectile", "1", CVAR_SERVER_INFO, "Scales player velocity to projectiles.");
 	g_random_map = gi.AddCvar("g_random_map", "0", 0, "Enables map shuffling.");
 	g_respawn_protection = gi.AddCvar("g_respawn_protection", "0.0", 0, "Respawn protection in seconds.");
+	g_respawn_time = gi.AddCvar("g_respawn_time", "2.0", 0, "Player respawn time in seconds.");
 	g_round_limit = gi.AddCvar("g_round_limit", "30", CVAR_SERVER_INFO, "The number of rounds to run per level.");
 	g_rounds = gi.AddCvar("g_rounds", "0", CVAR_SERVER_INFO, "Enables rounds-based play, where last player standing wins.");
 	g_self_damage = gi.AddCvar("g_self_damage", "1", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to yourself.");

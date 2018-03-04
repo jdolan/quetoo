@@ -406,7 +406,7 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 
 	self->locals.take_damage = true;
 
-	self->client->locals.respawn_time = g_level.time + (g_respawn_time->value * 1000.0); // respawn after death animation finishes
+	self->client->locals.respawn_time = g_level.time + SECONDS_TO_MILLIS(g_respawn_time->value); // respawn after death animation finishes
 	self->client->locals.show_scores = true;
 	self->client->locals.persistent.deaths++;
 
