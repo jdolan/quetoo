@@ -1055,7 +1055,7 @@ static void G_Teamskin_f(g_entity_t *ent) {
 
 	const char *s = gi.Argv(1);
 
-	if (s != '\0' &&
+	if (*s != '\0' &&
 		!strchr(s, '/')) { // something valid-ish was provided
 		g_strlcpy(t->skin, s, sizeof(t->skin));
 	} else {

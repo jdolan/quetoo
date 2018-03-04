@@ -719,11 +719,11 @@ static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 				vec3_t v;
 				VectorSubtract(self->s.origin, self->owner->s.origin, v);
 
-				if (VectorLength(v) < 32.0) { // hyperblaster climb
+				if (VectorLength(v) < 32.0) { // hyperblaster climbing
 					G_Damage(self->owner, self, self->owner, NULL, self->s.origin, plane->normal,
-					         self->locals.damage * 0.06, 0, DMG_ENERGY, MOD_HYPERBLASTER);
+					        g_balance_hyperblaster_climb_damage->integer, 0, DMG_ENERGY, MOD_HYPERBLASTER_CLIMB);
 
-					self->owner->locals.velocity[2] += 80.0;
+					self->owner->locals.velocity[2] += g_balance_hyperblaster_climb_knockback->value;
 				}
 
 			}
@@ -767,9 +767,10 @@ void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t 
 	projectile->locals.clip_mask = MASK_CLIP_PROJECTILE;
 	projectile->locals.damage = damage;
 	projectile->locals.knockback = knockback;
+	projectile->locals.ripple_size = 22.0;
 	projectile->locals.move_type = MOVE_TYPE_FLY;
-	projectile->locals.Think = G_FreeEntity;
 	projectile->locals.next_think = g_level.time + 6000;
+	projectile->locals.Think = G_FreeEntity;
 	projectile->locals.Touch = G_HyperblasterProjectile_Touch;
 	projectile->s.trail = TRAIL_HYPERBLASTER;
 
@@ -820,7 +821,7 @@ static void G_LightningProjectile_Discharge(g_entity_t *self) {
  */
 static _Bool G_LightningProjectile_Expire(g_entity_t *self) {
 
-	if (self->locals.timestamp < g_level.time - 101) {
+	if (self->locals.timestamp < g_level.time - (SECONDS_TO_MILLIS(g_balance_lightning_refire->value) + 1)) {
 		return true;
 	}
 
@@ -859,7 +860,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		return;
 	}
 
-	VectorMA(start, 768.0, forward, end); // resolve end
+	VectorMA(start, g_balance_lightning_length->value, forward, end); // resolve end
 	VectorMA(end, 2.0 * sin(g_level.time / 4.0), up, end);
 	VectorMA(end, 2.0 * Randomc(), right, end);
 
@@ -934,7 +935,7 @@ void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir
 			VectorCopy(ent->s.origin, projectile->s.origin);
 		}
 
-		VectorMA(start, 768.0, dir, projectile->s.termination);
+		VectorMA(start, g_balance_lightning_length->value, dir, projectile->s.termination);
 
 		projectile->owner = ent;
 		projectile->solid = SOLID_NOT;
@@ -1215,17 +1216,32 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
 		} else {
 
-			VectorNormalize(self->locals.velocity);
-			G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, vec3_origin, 5, 0, 0, MOD_HOOK);
-
 			gi.Sound(self, g_media.sounds.hook_gibhit, ATTEN_DEFAULT, (int8_t) (Randomc() * 4.0));
 
-			G_ClientHookDetach(self->owner);
-		}
+			/*
+			if (g_hook_auto_refire->integer) {
 
+				G_ClientHookThink(self->owner, true);
+			} else {*/
+
+				VectorNormalize(self->locals.velocity);
+
+				G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, vec3_origin, 5, 0, 0, MOD_HOOK);
+
+				G_ClientHookDetach(self->owner);
+//			}
+		}
 	} else {
 
-		G_ClientHookDetach(self->owner);
+		/* Currently disabled due to bugs
+		if (g_hook_auto_refire->integer) {
+
+			G_ClientHookThink(self->owner, true);
+		} else {
+		*/
+
+			G_ClientHookDetach(self->owner);
+//		}
 	}
 }
 
@@ -1313,7 +1329,6 @@ static void G_HookProjectile_Think(g_entity_t *ent) {
  * @brief
  */
 g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir) {
-
 	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;
 

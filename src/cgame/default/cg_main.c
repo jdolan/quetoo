@@ -34,6 +34,7 @@ cvar_t *cg_add_emits;
 cvar_t *cg_add_entities;
 cvar_t *cg_add_particles;
 cvar_t *cg_add_weather;
+cvar_t *cg_auto_switch;
 cvar_t *cg_bob;
 cvar_t *cg_color;
 cvar_t *cg_draw_blend;
@@ -42,10 +43,12 @@ cvar_t *cg_draw_blend_liquid;
 cvar_t *cg_draw_blend_pickup;
 cvar_t *cg_draw_blend_powerup;
 cvar_t *cg_draw_captures;
+cvar_t *cg_draw_crosshair;
+cvar_t *cg_draw_crosshair_alpha;
 cvar_t *cg_draw_crosshair_color;
+cvar_t *cg_draw_crosshair_health;
 cvar_t *cg_draw_crosshair_pulse;
 cvar_t *cg_draw_crosshair_scale;
-cvar_t *cg_draw_crosshair;
 cvar_t *cg_draw_held_flag;
 cvar_t *cg_draw_held_tech;
 cvar_t *cg_draw_frags;
@@ -122,6 +125,10 @@ static void Cg_Init(void) {
 	cg_add_weather = cgi.AddCvar("cg_add_weather", "1", CVAR_ARCHIVE,
 	                          "Control the intensity of atmospheric effects.");
 
+	cg_auto_switch = cgi.AddCvar("auto_switch", "1", CVAR_USER_INFO | CVAR_ARCHIVE,
+				 "The weapon pickup auto-switch method. 0 disables, 1 switches from Blaster only,"
+				 " 2 always switches, 3 switches to new weapons.");
+
 	cg_bob = cgi.AddCvar("cg_bob", "1", CVAR_ARCHIVE, "Controls weapon bobbing effect.");
 
 	cg_color = cgi.AddCvar("color", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
@@ -150,8 +157,12 @@ static void Cg_Init(void) {
 	                            "Draw the number of captures");
 	cg_draw_crosshair = cgi.AddCvar("cg_draw_crosshair", "1", CVAR_ARCHIVE,
                                      "Which crosshair image to use, 0 disables (Default is 1)");
+	cg_draw_crosshair_alpha = cgi.AddCvar("cg_draw_crosshair_alpha", "1.0", CVAR_ARCHIVE,
+                                	      "Opacity of the crosshair");
 	cg_draw_crosshair_color = cgi.AddCvar("cg_draw_crosshair_color", "default", CVAR_ARCHIVE,
 	                                   "Specifies your crosshair color, in the hex format \"rrggbb\". \"default\" uses white.");
+	cg_draw_crosshair_health = cgi.AddCvar("cg_draw_crosshair_health", "0", CVAR_ARCHIVE,
+	                                     "Method of coloring the crosshair by health. Range from 1-5, 0 disables.");
 	cg_draw_crosshair_pulse = cgi.AddCvar("cg_draw_crosshair_pulse", "1", CVAR_ARCHIVE,
 	                                   "Pulse the crosshair when picking up items");
 	cg_draw_crosshair_scale = cgi.AddCvar("cg_draw_crosshair_scale", "1", CVAR_ARCHIVE,
