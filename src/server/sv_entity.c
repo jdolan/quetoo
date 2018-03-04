@@ -154,7 +154,9 @@ static void Sv_ClientVisibility(const vec3_t org, byte *pvs, byte *phs) {
 
 	const size_t len = Cm_BoxLeafnums(mins, maxs, leafs, lengthof(leafs), NULL, 0);
 	if (len == 0) {
-		Com_Error(ERROR_DROP, "Bad leaf count @ %s\n", vtos(org));
+		Com_Error(ERROR_DROP, "Bad leaf count for client @ %s\n", vtos(org));
+	} else if (len == lengthof(leafs)) {
+		Com_Warn("MAX_ENT_LEAFS for client @ %s\n", vtos(org));
 	}
 
 	memset(pvs, 0, MAX_BSP_LEAFS >> 3);
@@ -190,7 +192,7 @@ static void Sv_ClientVisibility(const vec3_t org, byte *pvs, byte *phs) {
 		}
 
 		if (num_clusters == lengthof(clusters)) {
-			Com_Warn("MAX_ENT_CLUSTERS %s\n", vtos(org));
+			Com_Warn("MAX_ENT_CLUSTERS for client @ %s\n", vtos(org));
 			break;
 		}
 	}
