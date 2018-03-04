@@ -864,7 +864,9 @@ static void G_FireBfg_(g_entity_t *ent) {
 
 			G_InitProjectile(ent->owner, forward, right, up, org, 1.0);
 
-			G_BfgProjectile(ent->owner, org, forward, 720, 180, 140, 512.0);
+			G_BfgProjectile(ent->owner, org, forward, g_balance_bfg_speed->integer,
+				g_balance_bfg_damage->integer, g_balance_bfg_knockback->integer,
+				g_balance_bfg_radius->value);
 
 			G_MuzzleFlash(ent->owner, MZ_BFG10K);
 

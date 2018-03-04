@@ -34,8 +34,12 @@ g_media_t g_media;
 cvar_t *g_admin_password;
 cvar_t *g_ammo_respawn_time;
 cvar_t *g_auto_join;
+cvar_t *g_balance_bfg_damage;
+cvar_t *g_balance_bfg_knockback;
 cvar_t *g_balance_bfg_prefire;
+cvar_t *g_balance_bfg_radius;
 cvar_t *g_balance_bfg_refire;
+cvar_t *g_balance_bfg_speed;
 cvar_t *g_balance_blaster_damage;
 cvar_t *g_balance_blaster_knockback;
 cvar_t *g_balance_blaster_refire;
@@ -1383,9 +1387,13 @@ void G_Init(void) {
 	g_ammo_respawn_time = gi.AddCvar("g_ammo_respawn_time", "20.0", CVAR_SERVER_INFO, "Ammo respawn interval in seconds.");
 	g_auto_join = gi.AddCvar("g_auto_join", "0", CVAR_SERVER_INFO,
 	                      "Automatically assigns players to teams, ignored for duel mode.");
-	g_balance_bfg_refire = gi.AddCvar("g_balance_bfg_refire", "2.0", CVAR_SERVER_INFO, NULL);
+	g_balance_bfg_damage = gi.AddCvar("g_balance_bfg_damage", "180", CVAR_SERVER_INFO, NULL);
+	g_balance_bfg_knockback = gi.AddCvar("g_balance_bfg_knockback", "140", CVAR_SERVER_INFO, NULL);
 	g_balance_bfg_prefire = gi.AddCvar("g_balance_bfg_prefire", "1.0", CVAR_SERVER_INFO,
 					"The prefire warmup delay for the BFG10K in seconds.");
+	g_balance_bfg_radius = gi.AddCvar("g_balance_bfg_radius", "512", CVAR_SERVER_INFO, NULL);
+	g_balance_bfg_refire = gi.AddCvar("g_balance_bfg_refire", "2.0", CVAR_SERVER_INFO, NULL);
+	g_balance_bfg_speed = gi.AddCvar("g_balance_bfg_speed", "720", CVAR_SERVER_INFO, NULL);
 	g_balance_blaster_damage = gi.AddCvar("g_balance_blaster_damage", "15", CVAR_SERVER_INFO, NULL);
 	g_balance_blaster_knockback = gi.AddCvar("g_balance_blaster_knockback", "2", CVAR_SERVER_INFO, NULL);
 	g_balance_blaster_refire = gi.AddCvar("g_balance_blaster_refire", "0.45", CVAR_SERVER_INFO, NULL);
