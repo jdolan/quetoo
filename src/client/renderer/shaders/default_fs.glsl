@@ -442,6 +442,7 @@ void main(void) {
 	DitherFragment(fragColor.rgb);
 
 	// TEMPORARY HACK TO HARSHLY SHOW OFF THE PARALLAX SHADOWS
+	vec3 lightDir = normalize(texture(SAMPLER2, uvLightmap).xyz * 2.0 - 1.0);
 	fragColor.rgb *= NORMALMAP && PARALLAX > 0.0
 		? vec3(SelfShadowHeightmap(lightDir, SAMPLER3, uvTextures))
 		: vec3(1.0);
