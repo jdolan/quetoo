@@ -611,6 +611,10 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		return; // spectating
 	}
 
+	if (!ps->stats[STAT_WEAPONS]) {
+		return; // dead
+	}
+
 	if (center_print.time > cgi.client->unclamped_time) {
 		return;
 	}
