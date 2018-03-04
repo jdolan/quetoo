@@ -1542,7 +1542,7 @@ static void Cg_DrawRespawn(const player_state_t *ps) {
 		string = va("^2Ready to respawn");
 	}
 
-	cgi.BindFont("small", NULL, NULL);
+	cgi.BindFont("medium", NULL, NULL);
 
 	x = cgi.view->viewport.x + ((cgi.view->viewport.w - cgi.StringWidth(string)) / 2);
 	y = cgi.view->viewport.y + (cgi.view->viewport.h * 0.7);
