@@ -177,17 +177,34 @@ vec2 BumpTexcoord() {
 }
 
 /**
+ * @brief Highpasses the heightmap to approximate ambient occlusion.
+ */
+float AmbientOcclusionHeightmap() {
+	float heightA = texture(SAMPLER3, texcoords[0]).a;
+	float heightB = texture(SAMPLER3, texcoords[0], 4).a;
+	return (heightA - heightB) * 0.5 + 0.5;
+}
+
+/**
  * @brief Raytraced self-shadowing for heightmaps.
  */
 float SelfShadowHeightmap(vec3 lightDir, sampler2D tex, vec2 uv) {
 
-	float dist = length(point);
-	if (dist > 500) {
+	// Only work on grazing angles.
+ 	float angle = (0.95 - lightDir.z) * 2.0;
+	if (angle == 0.0) {
 		return 1.0;
 	}
 
-	float bias = 0;
+	// Only work near the camera.
+	const float near = 750.0;
+	const float far = 1000.0;
+	float distance = linearstep(near, far, length(point));
+	if (distance > 1.0) {
+		return 1.0;
+	}
 
+	float texLod = 0;
 	#if GL_ARB_texture_query_lod
 	{
 		const float maxMipmaps = 7;
@@ -198,29 +215,40 @@ float SelfShadowHeightmap(vec3 lightDir, sampler2D tex, vec2 uv) {
 		float minMip = numMipmaps - maxMipmaps;
 		float mipLevel = textureQueryLOD(tex, uv).y;
 
-		bias = max(mipLevel, minMip);
+		texLod = max(mipLevel, minMip);
 	}
 	#endif
 
-	const float numSamples = 8;
-	const float radius = 1.0;
-	const float radiusBase = 0.5 - radius / 2;
+	float shadowLength;
+	{
+		const float lengthScale = 0.2;
+		
+		// Noisy edges are better than blocky edges.
+		const float softness = 0.1;
+		float pattern = fract(dot(vec2(171.0, 231.0), gl_FragCoord.xy) / 600);
 
-	float shadowLength = radiusBase + radius * fract(dot(vec2(171.0, 231.0), gl_FragCoord.xy) / 600);
-	float softenContact = 0.2 * shadowLength;
+		shadowLength = (PARALLAX * lengthScale) + (softness * pattern);
+		shadowLength *= 1.0 - distance;
+	}
 
-	vec3 ray = vec3(uv.x, uv.y, textureLod(tex, uv, bias).a - (softenContact * 0.75));
-	vec3 step = vec3(lightDir.xy * shadowLength * PARALLAX, 1.0) / numSamples;
+	vec3 ray;
+	vec3 rayDelta;
+	{
+		float numSamples = 8 + (16 * angle);
+		numSamples *= 1.0 - distance;
+		ray = vec3(uv.x, uv.y, textureLod(tex, uv, texLod).a);
+		rayDelta = vec3(lightDir.xy * shadowLength, 1.0) / numSamples;
+	}
 
-	while (ray.z < 1.0 - step.z) {
-		if (ray.z + softenContact < textureLod(tex, ray.xy, bias).a) {
-			return linearstep(300, 500, dist);
+	while (ray.z < 1.0 - rayDelta.z) {
+		if (ray.z < textureLod(tex, ray.xy, texLod).a) {
+			// return linearstep(300, 500, dist);
+			return 0.0;
 		}
-		ray += step;
+		ray += rayDelta;
 	}
 
 	return 1.0;
-
 }
 
 /**
@@ -412,4 +440,9 @@ void main(void) {
 	FogFragment(length(point), fragColor);
 	
 	DitherFragment(fragColor.rgb);
+
+	// TEMPORARY HACK TO HARSHLY SHOW OFF THE PARALLAX SHADOWS
+	fragColor.rgb *= NORMALMAP && PARALLAX > 0.0
+		? vec3(SelfShadowHeightmap(lightDir, SAMPLER3, uvTextures))
+		: vec3(1.0);
 }
