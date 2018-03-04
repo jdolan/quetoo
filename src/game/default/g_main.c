@@ -1446,7 +1446,7 @@ void G_Init(void) {
 	g_hook = gi.AddCvar("g_hook", "default", CVAR_SERVER_INFO,
 	                 "Whether to allow the hook to be used or not. \"default\" only allows hook in CTF; 1 is always allow, 0 is never allow.");
 	g_hook_auto_refire = gi.AddCvar("g_hook_auto_refire", "0", CVAR_SERVER_INFO,
-				     "If the hook automatically refires when it hits a non-solid surface, like players or weapon clips.");
+				     "If the hook automatically refires when it hits a non-solid surface, like players or weapon clips. (Currently non-functional)");
 	g_hook_distance = gi.AddCvar("g_hook_distance", va("%.1f", PM_HOOK_DEF_DIST), CVAR_SERVER_INFO,
 							  "The maximum distance the hook will travel.");
 	g_hook_refire = gi.AddCvar("g_hook_refire", "0.25", CVAR_SERVER_INFO,

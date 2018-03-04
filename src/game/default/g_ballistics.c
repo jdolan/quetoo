@@ -1232,6 +1232,7 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 		}
 	} else {
 
+		/* Currently disabled due to bugs
 		if (g_hook_auto_refire->integer) {
 
 			G_ClientHookThink(self->owner, true);
@@ -1239,6 +1240,9 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 
 			G_ClientHookDetach(self->owner);
 		}
+		*/
+
+		G_ClientHookDetach(self->owner);
 	}
 }
 
