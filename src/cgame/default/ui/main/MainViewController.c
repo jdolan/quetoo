@@ -63,7 +63,7 @@ static void pushViewControllerAction(Control *control, const SDL_Event *event, i
 /**
  * @brief Quit the game.
  */
-static void quit(ident data) {
+static void quitAction_quit(ident data) {
 	cgi.Cbuf("quit\n");
 }
 
@@ -78,7 +78,7 @@ static void quitAction(Control *control, const SDL_Event *event, ident sender, i
 		.message = "Are you sure you want to quit?",
 		.ok = "Yes",
 		.cancel = "No",
-		.okFunction = quit
+		.okFunction = quitAction_quit
 	};
 
 	ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, &dialog);
@@ -88,7 +88,7 @@ static void quitAction(Control *control, const SDL_Event *event, ident sender, i
 /**
  * @brief Disconnect from the current game.
  */
-static void disconnect(ident data) {
+static void disconnectAction_disconnect(ident data) {
 	cgi.Cbuf("disconnect\n");
 }
 
@@ -103,11 +103,31 @@ static void disconnectAction(Control *control, const SDL_Event *event, ident sen
 		.message = "Are you sure you want to disconnect?",
 		.ok = "Yes",
 		.cancel = "No",
-		.okFunction = disconnect
+		.okFunction = disconnectAction_disconnect
 	};
 
 	ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, &dialog);
 	$((ViewController *) this, addChildViewController, viewController);
+}
+
+/**
+ * @brief Join Action.
+ */
+static void joinAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+
+	MainViewController *this = (MainViewController *) sender;
+
+	printf("Join!\n");
+}
+
+/**
+ * @brief Vote Action.
+ */
+static void voteAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+
+	MainViewController *this = (MainViewController *) sender;
+
+	printf("Vote!\n");
 }
 
 #pragma mark - Object
@@ -148,8 +168,8 @@ static void loadView(ViewController *self) {
 
 	$(this, primaryButton, "Quit", quitAction, NULL);
 
-	$(this, secondaryButton, "Join", pushViewControllerAction, NULL); // TODO
-	$(this, secondaryButton, "Votes", pushViewControllerAction, NULL); // TODO
+	$(this, secondaryButton, "Join", joinAction, NULL);
+	$(this, secondaryButton, "Voting", voteAction, NULL);
 	$(this, secondaryButton, "Disconnect", disconnectAction, NULL);
 
 	$(self, addChildViewController, (ViewController *) this->navigationViewController);
