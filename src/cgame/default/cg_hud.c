@@ -658,65 +658,75 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		ColorToVec4(color, crosshair.color);
 	}
 
-	if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_GREEN) {
+	if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_WHITE) {
 		vec_t health_frac = Clamp(ps->stats[STAT_HEALTH] / 100.0, 0.0, 1.0);
 
-		crosshair.color[0] = 1.0 - health_frac;
+		crosshair.color[0] = 1.0;
 		crosshair.color[1] = health_frac;
-		crosshair.color[2] = 0.0;
-	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_GREEN_BLUE) {
+		crosshair.color[2] = health_frac;
+	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_WHITE_GREEN) {
 		vec_t health_frac = Clamp(ps->stats[STAT_HEALTH] / 100.0, 0.0, 1.0);
-		vec_t health_over = Clamp(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 0.1) * 5;
+		vec_t health_over = Clamp(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 1.0);
 
 		if (ps->stats[STAT_HEALTH] <= 100) {
-			crosshair.color[0] = 1.0 - health_frac;
+			crosshair.color[0] = 1.0;
 			crosshair.color[1] = health_frac;
-			crosshair.color[2] = 0.0;
+			crosshair.color[2] = health_frac;
 		} else {
-			crosshair.color[0] = 0.0;
-			crosshair.color[1] = 1.0 - health_over;
-			crosshair.color[2] = health_over;
+			crosshair.color[0] = 1.0 - health_over;
+			crosshair.color[1] = 1.0;
+			crosshair.color[2] = 1.0 - health_over;
 		}
 	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_YELLOW_WHITE) {
-		vec_t health_frac = Clamp(ps->stats[STAT_HEALTH] / 100.0, 0.0, 1.0);
+		vec_t health_frac_low = Clamp((ps->stats[STAT_HEALTH] - 15) / 50.0, 0.0, 1.0);
+		vec_t health_frac_medium = Clamp((ps->stats[STAT_HEALTH] - 65) / 35.0, 0.0, 1.0);
 
-		if (ps->stats[STAT_HEALTH] <= 50) {
-			crosshair.color[0] = 1.0 - health_frac;
-			crosshair.color[1] = health_frac;
+		if (ps->stats[STAT_HEALTH] <= 20) {
+			crosshair.color[0] = 1.0;
+			crosshair.color[1] = 0.0;
+			crosshair.color[2] = 0.0;
+		} else if (ps->stats[STAT_HEALTH] <= 70) {
+			crosshair.color[0] = 1.0;
+			crosshair.color[1] = health_frac_low;
 			crosshair.color[2] = 0.0;
 		} else {
 			crosshair.color[0] = 1.0;
 			crosshair.color[1] = 1.0;
-			crosshair.color[2] = health_frac;
+			crosshair.color[2] = health_frac_medium;
 		}
-	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_YELLOW_WHITE_BLUE) {
-		vec_t health_frac = Clamp(ps->stats[STAT_HEALTH] / 100.0, 0.0, 1.0);
-		vec_t health_over = Clamp(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 0.1) * 10;
+	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_YELLOW_WHITE_GREEN) {
+		vec_t health_frac_low = Clamp((ps->stats[STAT_HEALTH] - 15) / 50.0, 0.0, 1.0);
+		vec_t health_frac_medium = Clamp((ps->stats[STAT_HEALTH] - 65) / 35.0, 0.0, 1.0);
+		vec_t health_over = Clamp(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 1.0);
 
-		if (ps->stats[STAT_HEALTH] <= 50) {
-			crosshair.color[0] = 1.0 - health_frac;
-			crosshair.color[1] = health_frac;
+		if (ps->stats[STAT_HEALTH] <= 20) {
+			crosshair.color[0] = 1.0;
+			crosshair.color[1] = 0.0;
+			crosshair.color[2] = 0.0;
+		} else if (ps->stats[STAT_HEALTH] <= 70) {
+			crosshair.color[0] = 1.0;
+			crosshair.color[1] = health_frac_low;
 			crosshair.color[2] = 0.0;
 		} else if (ps->stats[STAT_HEALTH] <= 100) {
 			crosshair.color[0] = 1.0;
 			crosshair.color[1] = 1.0;
-			crosshair.color[2] = health_frac;
+			crosshair.color[2] = health_frac_medium;
 		} else {
 			crosshair.color[0] = 1.0 - health_over;
-			crosshair.color[1] = 1.0 - health_over;
-			crosshair.color[2] = 1.0;
+			crosshair.color[1] = 1.0;
+			crosshair.color[2] = 1.0 - health_over;
 		}
-	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_WHITE_BLUE) {
-		vec_t health_over = (1.0 - Clamp(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 0.1) * 10);
+	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_WHITE_GREEN) {
+		vec_t health_over = (1.0 - Clamp(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 1.0));
 
 		if (ps->stats[STAT_HEALTH] <= 100) {
 			crosshair.color[0] = 1.0;
 			crosshair.color[1] = 1.0;
 			crosshair.color[2] = 1.0;
 		} else {
-			crosshair.color[0] = health_over;
-			crosshair.color[1] = health_over;
-			crosshair.color[2] = 1.0;
+			crosshair.color[0] = 1.0 - health_over;
+			crosshair.color[1] = 1.0;
+			crosshair.color[2] = 1.0 - health_over;
 		}
 	}
 
