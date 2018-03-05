@@ -34,6 +34,7 @@ cvar_t *cg_add_emits;
 cvar_t *cg_add_entities;
 cvar_t *cg_add_particles;
 cvar_t *cg_add_weather;
+cvar_t *cg_auto_switch;
 cvar_t *cg_bob;
 cvar_t *cg_color;
 cvar_t *cg_draw_blend;
@@ -124,6 +125,10 @@ static void Cg_Init(void) {
 	cg_add_weather = cgi.AddCvar("cg_add_weather", "1", CVAR_ARCHIVE,
 	                          "Control the intensity of atmospheric effects.");
 
+	cg_auto_switch = cgi.AddCvar("auto_switch", "1", CVAR_USER_INFO | CVAR_ARCHIVE,
+				 "The weapon pickup auto-switch method. 0 disables, 1 switches from Blaster only,"
+				 " 2 always switches, 3 switches to new weapons.");
+
 	cg_bob = cgi.AddCvar("cg_bob", "1", CVAR_ARCHIVE, "Controls weapon bobbing effect.");
 
 	cg_color = cgi.AddCvar("color", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
@@ -157,7 +162,7 @@ static void Cg_Init(void) {
 	cg_draw_crosshair_color = cgi.AddCvar("cg_draw_crosshair_color", "default", CVAR_ARCHIVE,
 	                                   "Specifies your crosshair color, in the hex format \"rrggbb\". \"default\" uses white.");
 	cg_draw_crosshair_health = cgi.AddCvar("cg_draw_crosshair_health", "0", CVAR_ARCHIVE,
-	                                     "Method of coloring the crosshair by health. Range from 0-1.");
+	                                     "Method of coloring the crosshair by health. Range from 1-5, 0 disables.");
 	cg_draw_crosshair_pulse = cgi.AddCvar("cg_draw_crosshair_pulse", "1", CVAR_ARCHIVE,
 	                                   "Pulse the crosshair when picking up items");
 	cg_draw_crosshair_scale = cgi.AddCvar("cg_draw_crosshair_scale", "1", CVAR_ARCHIVE,

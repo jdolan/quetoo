@@ -129,7 +129,7 @@ void Cl_DrawConsole(void) {
 
 	R_BindFont("small", &cw, &ch);
 
-	height = r_context.height * (cls.state == CL_ACTIVE ? cl_console_height->value : 1.0);
+	height = r_context.height * (cls.state == CL_ACTIVE ? Clamp(cl_console_height->value, 0.1, 1.0) : 1.0);
 
 	cl_console.width = r_context.width / cw;
 	cl_console.height = (height / ch) - 1;
@@ -269,12 +269,15 @@ void Cl_ToggleConsole_f(void) {
 	memset(&cl_console.input, 0, sizeof(cl_console.input));
 }
 
-static void Cl_MessageMode(_Bool team) {
+/**
+ * @brief
+ */
+static void Cl_MessageMode(_Bool team_chat) {
 
 	console_input_t *in = &cl_chat_console.input;
 	memset(in, 0, sizeof(*in));
 
-	cls.chat_state.team_chat = team;
+	cls.chat_state.team_chat = team_chat;
 
 	Cl_SetKeyDest(KEY_CHAT);
 }

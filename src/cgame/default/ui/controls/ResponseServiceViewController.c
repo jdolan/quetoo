@@ -42,12 +42,24 @@ static void enumerateCrosshairs(const char *path, void *data) {
 }
 
 /**
+ * @brief Alphabetical sorting.
+ */
+static Order sortAlphabetical(const ident a, const ident b) {
+
+	const char *c = ((const Option *) a)->title->text;
+	const char *d = ((const Option *) b)->title->text;
+
+	return g_strcmp0(c, d) < 0 ? OrderAscending : OrderDescending;
+}
+
+/**
  * @brief SelectDelegate callback for crosshair selection.
  */
 static void didSelectCrosshair(Select *select, Option *option) {
 
 	ResponseServiceViewController *this = (ResponseServiceViewController *) select->delegate.self;
 
+	$((View *) select, updateBindings);
 	$((View *) this->crosshairView, updateBindings);
 }
 
@@ -83,6 +95,26 @@ static void didSetCrosshairScale(Slider *slider, double value) {
 }
 
 /**
+ * @brief SliderDelegate callback for crosshair opcaity.
+ */
+static void didSetCrosshairAlpha(Slider *slider, double value) {
+
+	ResponseServiceViewController *this = (ResponseServiceViewController *) slider->delegate.self;
+
+	$((View *) this->crosshairView, updateBindings);
+}
+
+/**
+ * @brief SelectDelegate callback for crosshair health style.
+ */
+static void didSelectCrosshairHealth(Select *select, Option *option) {
+
+	ResponseServiceViewController *this = (ResponseServiceViewController *) select->delegate.self;
+
+	$((View *) this->crosshairView, updateBindings);
+}
+
+/**
  * @brief TextViewDelegate callback for binding keys.
  */
 static void didBindKey(TextView *textView) {
@@ -103,21 +135,6 @@ static void setDelegate(View *view, ident data) {
 	};
 }
 
-#pragma mark - Object
-
-/**
- * @see Object::dealloc(Object *)
- */
-static void dealloc(Object *self) {
-
-	ResponseServiceViewController *this = (ResponseServiceViewController *) self;
-
-	release(this->crosshairColorPicker);
-	release(this->crosshairView);
-
-	super(Object, self, dealloc);
-}
-
 #pragma mark - ViewController
 
 /**
@@ -131,12 +148,15 @@ static void loadView(ViewController *self) {
 
 	ResponseServiceViewController *this = (ResponseServiceViewController *) self;
 
-	Select *crosshair;
 	Slider *crosshairScale;
+	Slider *crosshairAlpha;
+
 	Outlet outlets[] = MakeOutlets(
-		MakeOutlet("crosshair", &crosshair),
-		MakeOutlet("crosshairScale", &crosshairScale),
+		MakeOutlet("crosshair", &this->crosshair),
 		MakeOutlet("crosshairColor", &this->crosshairColorPicker),
+		MakeOutlet("crosshairAlpha", &crosshairAlpha),
+		MakeOutlet("crosshairScale", &crosshairScale),
+		MakeOutlet("crosshairHealth", &this->crosshairHealth),
 		MakeOutlet("crosshairView", &this->crosshairView)
 	);
 
@@ -147,14 +167,30 @@ static void loadView(ViewController *self) {
 
 	$(self->view, enumerateSelection, "BindTextView", setDelegate, self);
 
-	$(crosshair, addOption, "", NULL);
-	cgi.EnumerateFiles("pics/ch*", enumerateCrosshairs, crosshair);
+	this->crosshair->comparator = sortAlphabetical;
 
-	crosshair->delegate.self = this;
-	crosshair->delegate.didSelectOption = didSelectCrosshair;
+	$(this->crosshair, addOption, "", (ident) 0);
+	cgi.EnumerateFiles("pics/ch*", enumerateCrosshairs, this->crosshair);
+
+	this->crosshair->delegate.self = this;
+	this->crosshair->delegate.didSelectOption = didSelectCrosshair;
 
 	crosshairScale->delegate.self = this;
 	crosshairScale->delegate.didSetValue = didSetCrosshairScale;
+
+	crosshairAlpha->delegate.self = this;
+	crosshairAlpha->delegate.didSetValue = didSetCrosshairAlpha;
+
+	// TODO: Add an enum for the crosshair health options, and iterate it here
+	$(this->crosshairHealth, addOption, "None", (ident) CROSSHAIR_HEALTH_NONE);
+	$(this->crosshairHealth, addOption, "red / white", (ident) CROSSHAIR_HEALTH_RED_WHITE);
+	$(this->crosshairHealth, addOption, "red / white / green", (ident) CROSSHAIR_HEALTH_RED_WHITE_GREEN);
+	$(this->crosshairHealth, addOption, "red / yellow / white", (ident) CROSSHAIR_HEALTH_RED_YELLOW_WHITE);
+	$(this->crosshairHealth, addOption, "red / yellow / white / green", (ident) CROSSHAIR_HEALTH_RED_YELLOW_WHITE_GREEN);
+	$(this->crosshairHealth, addOption, "white / green", (ident) CROSSHAIR_HEALTH_WHITE_GREEN);
+
+	this->crosshairHealth->delegate.self = this;
+	this->crosshairHealth->delegate.didSelectOption = didSelectCrosshairHealth;
 
 	this->crosshairColorPicker->delegate.self = this;
 	this->crosshairColorPicker->delegate.didPickColor = didPickCrosshairColor;
@@ -175,6 +211,9 @@ static void viewWillAppear(ViewController *self) {
 	} else {
 		$(this->crosshairColorPicker, setColor, 0.0, 1.0, 1.0);
 	}
+
+	$(this->crosshair, selectOptionWithValue, (ident) ((size_t) cg_draw_crosshair->integer)); // Double cast to silence warnings
+	$(this->crosshairHealth, selectOptionWithValue, (ident) ((size_t) cg_draw_crosshair_health->integer));
 }
 
 #pragma mark - Class lifecycle
@@ -183,8 +222,6 @@ static void viewWillAppear(ViewController *self) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
-
-	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 	((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
@@ -212,4 +249,3 @@ Class *_ResponseServiceViewController(void) {
 	return clazz;
 }
 #undef _Class
-

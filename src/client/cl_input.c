@@ -33,7 +33,6 @@ cvar_t *m_sensitivity;
 cvar_t *m_sensitivity_zoom;
 cvar_t *m_pitch;
 cvar_t *m_yaw;
-cvar_t *m_grab;
 
 static button_t cl_buttons[10];
 #define in_left cl_buttons[0]
@@ -381,30 +380,15 @@ static void Cl_HandleEvent(const SDL_Event *event) {
  */
 static void Cl_UpdateMouseState(void) {
 
-	// force a mouse grab when changing video modes
-	if (r_view.update) {
-		cls.mouse_state.grabbed = false;
-	}
-
-	if (cls.key_state.dest == KEY_UI || (m_grab && !m_grab->integer)) {
-		if (cls.mouse_state.grabbed) {
+	if (cls.key_state.dest == KEY_UI || cls.key_state.dest == KEY_CONSOLE) {
+		if (SDL_GetWindowGrab(r_context.window)) {
 			SDL_ShowCursor(true);
 			SDL_SetWindowGrab(r_context.window, false);
-			cls.mouse_state.grabbed = false;
-		}
-	} else if (cls.key_state.dest == KEY_CONSOLE) {
-		if (!r_context.fullscreen) { // allow cursor to move outside window
-			if (cls.mouse_state.grabbed) {
-				SDL_ShowCursor(true);
-				SDL_SetWindowGrab(r_context.window, false);
-				cls.mouse_state.grabbed = false;
-			}
 		}
 	} else {
-		if (!cls.mouse_state.grabbed) { // grab it for everything else
+		if (!SDL_GetWindowGrab(r_context.window)) {
 			SDL_ShowCursor(false);
 			SDL_SetWindowGrab(r_context.window, true);
-			cls.mouse_state.grabbed = true;
 		}
 	}
 }
@@ -548,10 +532,7 @@ void Cl_InitInput(void) {
 	m_invert = Cvar_Add("m_invert", "0", CVAR_ARCHIVE, "Invert the mouse");
 	m_pitch = Cvar_Add("m_pitch", "0.022", 0, NULL);
 	m_yaw = Cvar_Add("m_yaw", "0.022", 0, NULL);
-	m_grab = Cvar_Add("m_grab", "1", 0, NULL);
 
 	Cl_ClearInput();
-
-	cls.mouse_state.grabbed = true;
 }
 

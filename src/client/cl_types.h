@@ -277,7 +277,6 @@ typedef struct {
 typedef struct {
 	int32_t x, y;
 	int32_t old_x, old_y;
-	_Bool grabbed;
 } cl_mouse_state_t;
 
 typedef struct {
