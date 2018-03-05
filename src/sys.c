@@ -113,10 +113,8 @@ const char *Sys_UserDir(void) {
 void *Sys_OpenLibrary(const char *name, _Bool global) {
 
 #if defined(_WIN32)
-	const int mode = RTLD_NOW;
 	const char *so_name = va("%s.dll", name);
 #else
-	const int mode = RTLD_LAZY;
 	const char *so_name = va("%s.so", name);
 #endif
 
@@ -126,7 +124,7 @@ void *Sys_OpenLibrary(const char *name, _Bool global) {
 		g_snprintf(path, sizeof(path), "%s%c%s", Fs_RealDir(so_name), G_DIR_SEPARATOR, so_name);
 		Com_Print("Trying %s...\n", path);
 
-		void *handle = dlopen(path, mode | (global ? RTLD_GLOBAL : RTLD_LOCAL));
+		void *handle = dlopen(path, RTLD_LAZY | (global ? RTLD_GLOBAL : RTLD_LOCAL));
 		if (handle) {
 			return handle;
 		}
