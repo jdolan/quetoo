@@ -269,12 +269,15 @@ void Cl_ToggleConsole_f(void) {
 	memset(&cl_console.input, 0, sizeof(cl_console.input));
 }
 
-static void Cl_MessageMode(_Bool team) {
+/**
+ * @brief
+ */
+static void Cl_MessageMode(_Bool team_chat) {
 
 	console_input_t *in = &cl_chat_console.input;
 	memset(in, 0, sizeof(*in));
 
-	cls.chat_state.team_chat = team;
+	cls.chat_state.team_chat = team_chat;
 
 	Cl_SetKeyDest(KEY_CHAT);
 }

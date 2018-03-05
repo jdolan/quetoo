@@ -48,15 +48,12 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 			}
 		}
 
-		if (m_grab->integer) {
+		SDL_SetRelativeMouseMode(false);
 
-			SDL_SetRelativeMouseMode(false);
+		const r_pixel_t cx = r_context.window_width * 0.5;
+		const r_pixel_t cy = r_context.window_height * 0.5;
 
-			const r_pixel_t cx = r_context.window_width * 0.5;
-			const r_pixel_t cy = r_context.window_height * 0.5;
-
-			SDL_WarpMouseInWindow(r_context.window, cx, cy);
-		}
+		SDL_WarpMouseInWindow(r_context.window, cx, cy);
 	}
 
 	switch (dest) {
@@ -70,11 +67,7 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 			break;
 		case KEY_GAME:
 			SDL_StopTextInput();
-
-			if (m_grab->integer) {
-				SDL_SetRelativeMouseMode(true);
-			}
-
+			SDL_SetRelativeMouseMode(true);
 			break;
 	}
 
