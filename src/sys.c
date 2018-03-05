@@ -27,36 +27,24 @@
 
 #if defined(_WIN32)
 	#include <windows.h>
-
-	#if defined(_MSC_VER)
-		#include <DbgHelp.h>
-	#endif
-
 	#include <shlobj.h>
-	#define dlopen(file_name, mode) LoadLibrary(file_name)
-
-	static const char *dlerror() {
-		char num_buffer[32];
-		const DWORD err = GetLastError();
-
-		itoa(err, num_buffer, 10);
-		return va("Error loading library: %lu", err);
-	}
-
-	#define dlsym(handle, symbol) GetProcAddress(handle, symbol)
-	#define dlclose(handle) FreeLibrary(handle)
-#else
-	#include <sys/time.h>
-	#include <dlfcn.h>
 #endif
 
 #if defined(__APPLE__)
 	#include <mach-o/dyld.h>
 #endif
 
+#if HAVE_DLFCN_H
+	#include <dlfcn.h>
+#endif
+
 #if HAVE_EXECINFO
 	#include <execinfo.h>
 	#define MAX_BACKTRACE_SYMBOLS 50
+#endif
+
+#if HAVE_SYS_TIME_H
+	#include <sys/time.h>
 #endif
 
 #include <SDL2/SDL.h>
