@@ -112,6 +112,8 @@ cvar_t *g_motd;
 cvar_t *g_num_teams;
 cvar_t *g_password;
 cvar_t *g_player_projectile;
+cvar_t *g_quad_damage_respawn_time;
+cvar_t *g_quad_damage_time;
 cvar_t *g_random_map;
 cvar_t *g_respawn_protection;
 cvar_t *g_round_limit;
@@ -1473,6 +1475,8 @@ void G_Init(void) {
 	g_motd = gi.AddCvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect.");
 	g_password = gi.AddCvar("g_password", "", CVAR_USER_INFO, "The server password.");
 	g_player_projectile = gi.AddCvar("g_player_projectile", "1", CVAR_SERVER_INFO, "Scales player velocity to projectiles.");
+	g_quad_damage_respawn_time = gi.AddCvar("g_quad_damage_respawn_time", "60", CVAR_SERVER_INFO, "How long it takes for Quad Damage to respawn, in seconds.");
+	g_quad_damage_time = gi.AddCvar("g_quad_damage_time", "20", CVAR_SERVER_INFO, "How long Quad Damage lasts, in seconds.");
 	g_random_map = gi.AddCvar("g_random_map", "0", 0, "Enables map shuffling.");
 	g_respawn_protection = gi.AddCvar("g_respawn_protection", "0.0", 0, "Respawn protection in seconds.");
 	g_round_limit = gi.AddCvar("g_round_limit", "30", CVAR_SERVER_INFO, "The number of rounds to run per level.");

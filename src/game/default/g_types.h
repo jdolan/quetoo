@@ -1098,6 +1098,7 @@ typedef struct {
 	_Bool muted;
 
 	uint32_t quad_damage_time; // has quad when time < this
+	uint32_t quad_countdown_time; // has quad when time < this
 	uint32_t quad_attack_time; // play attack sound when time > this
 
 	g_entity_t *chase_target; // player we are chasing
