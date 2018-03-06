@@ -34,9 +34,8 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 			break;
 		}
 
-		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE | PARTICLE_EFFECT_PHYSICAL;
+		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE | PARTICLE_EFFECT_BOUNCE;
 		p->lifetime = 450 + Randomf() * 450;
-		p->bounce = 1.15;
 
 		ColorToVec4(color, p->color_start);
 		p->color_start[3] = 2.0;
@@ -45,6 +44,8 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 
 		p->scale_start = 3.5;
 		p->scale_end = Randomf() * 1.0;
+
+		p->bounce = 1.15;
 
 		VectorAdd(org, dir, p->part.org);
 
@@ -126,7 +127,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 		while (k--) {
 			if ((p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_beam, true))) {
 
-				p->effects |= PARTICLE_EFFECT_PHYSICAL;
+				p->effects |= PARTICLE_EFFECT_BOUNCE;
 				p->bounce = 1.5;
 				p->lifetime = 100 + Randomf() * 350;
 
@@ -540,15 +541,23 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 
 	if ((cgi.PointContents(org) & MASK_LIQUID) == 0) {
 		for (int32_t i = 0; i < 6; i++) {
+
 			if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark, false))) {
 				break;
 			}
 
+			p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE | PARTICLE_EFFECT_BOUNCE;
 			p->lifetime = 200 + Randomf() * 500;
 
-			Vector4Set(p->part.color, 0.4, 0.7, 1.0, 1.0);
+			Vector4Set(p->color_start, 0.4, 0.7, 1.0, 1.0);
+			p->color_start[3] = 2.0;
+			VectorCopy(p->color_start, p->color_end);
+			p->color_end[3] = 0.0;
 
-			p->part.scale = 1.5 + Randomf() * 0.7;
+			p->scale_start = 3.5;
+			p->scale_end = Randomf() * 1.0;
+
+			p->bounce = 1.15;
 
 			VectorCopy(org, p->part.org);
 
