@@ -98,7 +98,10 @@ void DitherFragment(inout vec3 color) {
  */
 vec2 BumpTexcoord() {
 
-	float bias = 0;
+	// Negative PARRALAX is used to skip the expensive SelfShadowHeightmap() routine.
+	float SCALE = abs(PARALLAX);
+
+	float texLod = 0;
 
 	#if GL_ARB_texture_query_lod
 	{
@@ -111,12 +114,12 @@ vec2 BumpTexcoord() {
 		float minMip = numMipmaps - maxMipmaps;
 		float mipLevel = textureQueryLOD(SAMPLER3, texcoords[0]).y;
 
-		bias = max(mipLevel, minMip);
+		texLod = max(mipLevel, minMip);
 	}
 	#endif
 
 	float numSamples = 32;
-	float scale = PARALLAX * 0.04;
+	float scale = SCALE * 0.04;
 
 	#if 1 // Optimizations
 	{
@@ -145,11 +148,11 @@ vec2 BumpTexcoord() {
 	vec2  uvPrev;
 	vec2  uvCurr = texcoords[0] - (eyeDir.xy * scale * 0.5); // Middle-out parallaxing.
 	float surfaceHeightPrev;
-	float surfaceHeightCurr = textureLod(SAMPLER3, texcoords[0], bias).a;
+	float surfaceHeightCurr = textureLod(SAMPLER3, texcoords[0], texLod).a;
 	float rayHeightPrev;
 	float rayHeightCurr = 0.0;
 
-	if (PARALLAX < 0.5) {
+	if (SCALE < 0.5) {
 		return uvCurr + (eyeDir.xy * surfaceHeightCurr * scale);
 	}
 
@@ -163,7 +166,7 @@ vec2 BumpTexcoord() {
 		uvPrev = uvCurr;
 		uvCurr += uvDelta;
 		surfaceHeightPrev = surfaceHeightCurr;
-		surfaceHeightCurr = textureLod(SAMPLER3, uvCurr, bias).a;
+		surfaceHeightCurr = textureLod(SAMPLER3, uvCurr, texLod).a;
 		rayHeightPrev = rayHeightCurr;
 		rayHeightCurr += stepHeight;
 	}
@@ -186,7 +189,8 @@ float AmbientOcclusionHeightmap() {
 }
 
 /**
- * @brief Raytraced self-shadowing for heightmaps.
+ * @brief Traces a ray from a point on the heightmap
+ * towards the lightsource and checks for intersections.
  */
 float SelfShadowHeightmap(vec3 lightDir, sampler2D tex, vec2 uv) {
 
@@ -356,7 +360,7 @@ void main(void) {
 	eyeDir = normalize(eye);
 
 	// texture coordinates
-	vec2 uvTextures = NORMALMAP && PARALLAX > 0 ? BumpTexcoord() : texcoords[0];
+	vec2 uvTextures = NORMALMAP && PARALLAX != 0.0 ? BumpTexcoord() : texcoords[0];
 	vec2 uvLightmap = texcoords[1];
 
 	// flat shading
@@ -441,9 +445,10 @@ void main(void) {
 	
 	DitherFragment(fragColor.rgb);
 
-	// TEMPORARY HACK TO HARSHLY SHOW OFF THE PARALLAX SHADOWS
+	// TODO: This should be moved up in the pipeline and not do the duplicated work it's doing now.
 	vec3 lightDir = normalize(texture(SAMPLER2, uvLightmap).xyz * 2.0 - 1.0);
 	fragColor.rgb *= NORMALMAP && PARALLAX > 0.0
-		? vec3(SelfShadowHeightmap(lightDir, SAMPLER3, uvTextures))
+		? vec3(SelfShadowHeightmap(lightDir, SAMPLER3, uvTextures)) * 0.5 + 0.5
 		: vec3(1.0);
+
 }
