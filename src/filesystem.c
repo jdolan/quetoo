@@ -402,7 +402,7 @@ typedef struct {
 /**
  * @brief Enumeration helper for Fs_Enumerate.
  */
-static void Fs_Enumerate_(void *data, const char *dir, const char *filename) {
+static int32_t Fs_Enumerate_(void *data, const char *dir, const char *filename) {
 	char path[MAX_QPATH];
 	const fs_enumerate_t *en = data;
 
@@ -411,6 +411,8 @@ static void Fs_Enumerate_(void *data, const char *dir, const char *filename) {
 	if (GlobMatch(en->pattern, path, GLOB_FLAGS_NONE)) {
 		en->function(path, en->data);
 	}
+
+	return 1;
 }
 
 /**
@@ -429,7 +431,7 @@ void Fs_Enumerate(const char *pattern, Fs_EnumerateFunc func, void *data) {
 		g_strlcpy(en.dir, "/", sizeof(en.dir));
 	}
 
-	PHYSFS_enumerateFilesCallback(en.dir, Fs_Enumerate_, &en);
+	PHYSFS_enumerate(en.dir, Fs_Enumerate_, &en);
 }
 
 /**
