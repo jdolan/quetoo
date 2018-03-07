@@ -56,8 +56,9 @@ before_build:
     Pop-Location
 
     [Environment]::CurrentDirectory = $PWD
-after_build:
-- ps: >-
+test: off
+on_success:
+- ps:  >-
     Push-Location "Quetoo.vs15\"
 
     [Environment]::CurrentDirectory = $PWD
@@ -67,16 +68,6 @@ after_build:
     .\AWS_UPDATER.ps1
 
     7z a ..\Quetoo.zip Quetoo\
-
-    Pop-Location
-
-    [Environment]::CurrentDirectory = $PWD
-test: off
-on_finish:
-- ps:  >-
-    Push-Location "Quetoo.vs15\"
-
-    [Environment]::CurrentDirectory = $PWD
 
     .\AWS.ps1
 
