@@ -42,7 +42,7 @@ install:
 
     [Environment]::CurrentDirectory = $PWD
 build:
-  parallel: true
+  parallel: false
   verbosity: minimal
   project: Quetoo.vs15\quetoo.sln
 before_build:
