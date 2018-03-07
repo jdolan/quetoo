@@ -599,59 +599,63 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 		if (tr.surface) {
 
-			VectorMA(tr.end, 1.0, tr.plane.normal, tr.end);
+			VectorMA(tr.end, 1.0, tr.plane.normal, pos);
 
 			cgi.AddStain(&(const r_stain_t) {
-				.origin = { tr.end[0], tr.end[1], tr.end[2] },
+				.origin = { pos[0], pos[1], pos[2] },
 				.radius = 8.0 + Randomf() * 4.0,
 				.image = cg_particles_lightning_burn->image,
 				.color = { 0.0, 0.0, 0.0, 0.33 },
 			});
-		}
 
-		// Impact sparks
+			VectorMA(tr.end, 2.0, tr.plane.normal, pos);
 
-		if ((cgi.PointContents(end) & MASK_LIQUID) == 0) {
-			for (i = 0; i < 6; i++) {
-				if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark, false))) {
-					break;
+			if ((cgi.PointContents(pos) & MASK_LIQUID) == 0) {
+				for (i = 0; i < 6; i++) {
+					if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark, false))) {
+						break;
+					}
+
+					p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_BOUNCE;
+					p->lifetime = 600 + Randomf() * 300;
+
+					if (i % 3 == 0) {
+						Vector4Set(p->color_start, 1.0, 1.0, 1.0, 1.0);
+					} else {
+						Vector4Set(p->color_start, 0.8, 0.8, 1.0, 1.0);
+					}
+					VectorCopy(p->color_start, p->color_end);
+					p->color_end[3] = 0.125;
+
+					p->bounce = 1.15;
+
+					p->part.scale = 1.3 + Randomf() * 0.6;
+
+					VectorCopy(pos, p->part.org);
+
+					p->vel[0] = dir[0] * -200.0 + Randomc() * 100.0;
+					p->vel[1] = dir[1] * -200.0 + Randomc() * 100.0;
+					p->vel[2] = dir[2] * -200.0 + Randomf() * 100.0;
+
+					p->accel[2] = -PARTICLE_GRAVITY * 3.0;
+
+					p->spark.length = 0.1 + Randomc() * 0.05;
+
+					VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 				}
-
-				p->lifetime = 170 + Randomf() * 300;
-
-				if (i % 3 == 0) { // 30% chance of white instead of blue
-					Vector4Set(p->part.color, 1.0, 1.0, 1.0, 1.0);
-				} else {
-					Vector4Set(p->part.color, 0.6, 0.6, 1.0, 1.0);
-				}
-
-				p->part.scale = 1.3 + Randomf() * 0.6;
-
-				VectorCopy(end, p->part.org);
-
-				p->vel[0] = Randomc() * 130.0;
-				p->vel[1] = Randomc() * 130.0;
-				p->vel[2] = Randomc() * 130.0;
-
-				p->accel[2] = -PARTICLE_GRAVITY * 2.0;
-
-				p->spark.length = 0.07 + Randomf() * 0.05;
-
-				VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 			}
 		}
 
 		ent->timestamp = cgi.client->unclamped_time + 25; // 40hz
 	}
 
-	if ((p = Cg_AllocParticle(PARTICLE_CORONA, NULL, false))) {
-		// TODO: color modulation
-		//cgi.ColorFromPalette(EFFECT_COLOR_BLUE + (Random() & 3), p->part.color);
-		ColorToVec4(EFFECT_COLOR_BLUE, p->part.color);
-		VectorCopy(end, p->part.org);
+	if ((p = Cg_AllocParticle(PARTICLE_EXPLOSION, cg_particles_explosion, false))) {
+
+		Vector4Set(p->part.color, 0.1, 0.3, 0.9 + Randomc() * 0.1, 1.0);
+		VectorCopy(pos, p->part.org);
 
 		p->lifetime = PARTICLE_IMMEDIATE;
-		p->part.scale = CORONA_SCALE(32.0, 0.6);
+		p->part.scale = CORONA_SCALE(8.0, 4.0);
 	}
 }
 

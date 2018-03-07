@@ -32,6 +32,26 @@ const vec3_t vec3_down = { 0.0, 0.0, -1.0 };
 const vec3_t vec3_forward = { 0.0, 1.0, 0.0 };
 
 /**
+ * @brief Make `value` stepped as specified by `step`
+ */
+
+int32_t Step(int32_t value, int32_t step) {
+	if (!step) {
+		return 0; // divide by zero check
+	}
+
+	return floor(value / (vec_t) step) * step;
+}
+
+vec_t Stepf(vec_t value, vec_t step) {
+	if (!step) {
+		return 0.0; // divide by zero check
+	}
+
+	return floor(value / step) * step;
+}
+
+/**
  * @brief Returns a pseudo-random positive integer.
  *
  * Uses a Linear Congruence Generator, values kindly borrowed from glibc.
@@ -220,7 +240,7 @@ void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, v
 	if (DotProduct(s, tangent) < 0.0f) {
 		VectorScale(tangent, -1.0f, tangent);
 	}
-	
+
 	CrossProduct(normal, tangent, bitangent);
 
 	if (DotProduct(t, bitangent) < 0.0f) {

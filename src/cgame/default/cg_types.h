@@ -37,7 +37,7 @@ typedef enum {
 
 	PARTICLE_EFFECT_COLOR = 1 << 0, // use color lerp
 	PARTICLE_EFFECT_SCALE = 1 << 1, // use scale lerp
-	PARTICLE_EFFECT_PHYSICAL = 1 << 2, // bounce/touch walls
+	PARTICLE_EFFECT_BOUNCE = 1 << 2, // collide with solids
 } cg_particle_effects_t;
 
 typedef enum {

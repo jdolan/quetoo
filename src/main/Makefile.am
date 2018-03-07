@@ -28,7 +28,7 @@ quetoo_dedicated_LDADD = \
 	$(top_builddir)/src/client/libclient_null.la \
 	$(top_builddir)/src/server/libserver.la
 
-if WINDOWS
+if MINGW
 
 .rc.o:
 	@WINDRES@ $^ -o $@

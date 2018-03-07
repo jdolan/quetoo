@@ -1545,12 +1545,15 @@ static void G_ClientInventoryThink(g_entity_t *ent) {
 
 	if (ent->client->locals.inventory[g_media.items.powerups[POWERUP_QUAD]->index]) { // if they have quad
 
+		if (ent->client->locals.quad_countdown_time && ent->client->locals.quad_countdown_time < g_level.time) { // play the countdown sound
+			gi.Sound(ent, g_media.sounds.quad_expire, ATTEN_NORM, 0);
+			ent->client->locals.quad_countdown_time += 1000;
+		}
+
 		if (ent->client->locals.quad_damage_time < g_level.time) { // expire it
 
 			ent->client->locals.quad_damage_time = 0.0;
 			ent->client->locals.inventory[g_media.items.powerups[POWERUP_QUAD]->index] = 0;
-
-			gi.Sound(ent, g_media.sounds.quad_expire, ATTEN_NORM, 0);
 
 			ent->s.effects &= ~EF_QUAD;
 		}

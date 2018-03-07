@@ -75,11 +75,11 @@ case "$host" in
 		AC_MSG_RESULT(bsd)
 		;;
 	*-*-mingw*)
-		HOST_NAME="WINDOWS"
+		HOST_NAME="MINGW"
 		HOST_CFLAGS="-mfpmath=sse -msse2"
-		HOST_LIBS="-lws2_32 -lole32"
+		HOST_LIBS="-ldl -lws2_32 -lole32"
 		DEFAULT_PREFIX="/"
-		AC_MSG_RESULT(windows)
+		AC_MSG_RESULT(mingw)
 		AC_PATH_PROGS([WINDRES],
 			[windres $host-windres],
 		)
@@ -118,7 +118,7 @@ AC_SUBST(CPPFLAGS)
 
 AM_CONDITIONAL([APPLE], [test "x$HOST_NAME" = "xAPPLE"])
 AM_CONDITIONAL([BSD], [test "x$HOST_NAME" = "xBSD"])
-AM_CONDITIONAL([WINDOWS], [test "x$HOST_NAME" = "xWINDOWS"])
+AM_CONDITIONAL([MINGW], [test "x$HOST_NAME" = "xMINGW"])
 AM_CONDITIONAL([LINUX], [test "x$HOST_NAME" = "xLINUX"])
 
 dnl --------------

@@ -120,6 +120,8 @@ extern cvar_t *g_max_entities;
 extern cvar_t *g_motd;
 extern cvar_t *g_password;
 extern cvar_t *g_player_projectile;
+extern cvar_t *g_quad_damage_respawn_time;
+extern cvar_t *g_quad_damage_time;
 extern cvar_t *g_random_map;
 extern cvar_t *g_respawn_protection;
 extern cvar_t *g_round_limit;

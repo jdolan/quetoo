@@ -69,15 +69,15 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_fullscreen 0 +set r_width 1440 +set r_height 900 +set r_display 1"
-            isEnabled = "NO">
+            argument = "+set r_fullscreen 0 +set r_width 1440 +set r_height 900 +set r_display 0"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_fullscreen 1 +set r_width 0 +set r_height 0 +set r_display 1"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map torn +set g_cheats 1 +give all"
+            argument = "+map edge +set g_cheats 1 +give all"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

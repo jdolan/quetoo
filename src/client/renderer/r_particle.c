@@ -480,7 +480,7 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 
 		// change states
 		if (p->type != last_type) {
-			if (p->type == PARTICLE_EXPLOSION) {
+			if (p->type == PARTICLE_EXPLOSION || p->type == PARTICLE_CORONA) {
 				R_DepthRange(0.0, 0.999);
 			} else {
 				R_DepthRange(0.0, 1.0);

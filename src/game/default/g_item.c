@@ -154,11 +154,17 @@ static _Bool G_PickupQuadDamage(g_entity_t *ent, g_entity_t *other) {
 
 	other->client->locals.inventory[g_media.items.powerups[POWERUP_QUAD]->index] = 1;
 
+	uint32_t delta = 3000;
+
 	if (ent->locals.spawn_flags & SF_ITEM_DROPPED) { // receive only the time left
+		delta = Max(0, Step((ent->locals.next_think + 1000) - g_level.time, 1000));
+
 		other->client->locals.quad_damage_time = ent->locals.next_think;
+		other->client->locals.quad_countdown_time = ent->locals.next_think - delta;
 	} else {
-		other->client->locals.quad_damage_time = g_level.time + 20000;
-		G_SetItemRespawn(ent, 60000);
+		other->client->locals.quad_damage_time = g_level.time + SECONDS_TO_MILLIS(g_quad_damage_time->value);
+		other->client->locals.quad_countdown_time = other->client->locals.quad_damage_time - delta;
+		G_SetItemRespawn(ent, SECONDS_TO_MILLIS(g_quad_damage_respawn_time->value));
 	}
 
 	other->s.effects |= EF_QUAD;
@@ -547,7 +553,7 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 				return false;
 			}
-		}	
+		}
 
 		// touching our own flag for no particular reason
 		return false;
@@ -938,7 +944,7 @@ static _Bool G_PickupTech(g_entity_t *ent, g_entity_t *other) {
  * @brief
  */
 const g_item_t *G_CarryingTech(const g_entity_t *ent) {
-	
+
 	for (g_tech_t i = TECH_HASTE; i < TECH_TOTAL; i++) {
 
 		if (G_HasTech(ent, i)) {
@@ -1038,7 +1044,7 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 		// try thinner box
 		gi.Debug("%s in too small of a spot for large box, correcting..\n", etos(ent));
 		ent->maxs[2] /= 2.0;
-		
+
 		tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, MASK_SOLID);
 		if (tr.start_solid) {
 
@@ -1054,7 +1060,7 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 			if (tr.start_solid) {
 
 				gi.Debug("%s trying higher, last attempt..\n", etos(ent));
-				
+
 				ent->s.origin[2] += 8.0;
 
 				// make an effort to come up out of the floor (broken maps)
@@ -1098,7 +1104,7 @@ void G_PrecacheItem(const g_item_t *it) {
 	// parse everything for its ammo
 	if (it->ammo) {
 		const g_item_t *ammo = it->ammo_item;
-		
+
 		if (ammo != it) {
 			G_PrecacheItem(ammo);
 		}
@@ -2411,7 +2417,7 @@ static void G_InitWeapons(void) {
 		}
 
 		const g_item_t *weapon = g_media.items.weapons[t];
-		
+
 		strcat(weapon_info, va("%i\\%i", weapon->icon_index, weapon->index));
 	}
 
@@ -2454,7 +2460,7 @@ void G_InitItems(void) {
 
 		// set up media pointers
 		const g_item_t **array = NULL;
-		
+
 		switch (item->type) {
 		default:
 			gi.Error("Item %s has an invalid type\n", item->name);
@@ -2480,7 +2486,7 @@ void G_InitItems(void) {
 			array = g_media.items.techs;
 			break;
 		}
-		
+
 		if (array[item->tag]) {
 			gi.Error("Item %s has the same tag as %s\n", item->name, array[item->tag]->name);
 		}

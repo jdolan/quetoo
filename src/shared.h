@@ -107,6 +107,9 @@ extern const vec3_t vec3_forward;
 /**
  * @brief Math and trigonometry functions.
  */
+int32_t Step(int32_t value, int32_t step);
+vec_t Stepf(vec_t value, vec_t step);
+
 int32_t Random(void); // 0 to (2^32)-1
 vec_t Randomf(void); // 0.0 to 1.0
 vec_t Randomc(void); // -1.0 to 1.0
