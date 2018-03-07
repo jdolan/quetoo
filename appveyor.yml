@@ -10,16 +10,6 @@ init:
 - ps: 
 install:
 - ps: >-
-    Push-Location "Quetoo.vs15\"
-
-    [Environment]::CurrentDirectory = $PWD
-
-    .\PREPARE_ALL.ps1
-
-    Pop-Location
-
-    [Environment]::CurrentDirectory = $PWD
-
     md -Path "..\Objectively"
 
     Push-Location "..\Objectively\"
@@ -94,9 +84,3 @@ on_finish:
 
     [Environment]::CurrentDirectory = $PWD
 deploy: off
-cache:
-  - Quetoo.vs15\libs\curses\tmp.zip -> appveyor.yml
-  - Quetoo.vs15\libs\glib\include\tmp.tar.xz -> appveyor.yml
-  - Quetoo.vs15\libs\physfs\tmp3.tar.bz2 -> appveyor.yml
-  - Quetoo.vs15\libs\xml\include\tmp.tar.gz -> appveyor.yml
-  - Quetoo.vs15\libs\openal\tmp2.zip -> appveyor.yml

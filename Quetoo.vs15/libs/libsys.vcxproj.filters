@@ -4,15 +4,24 @@
     <Filter Include="src">
       <UniqueIdentifier>{fdc66d56-c60f-41f4-9e2a-482e8362c59e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="dlfcn">
+      <UniqueIdentifier>{fe1265a5-a55b-4583-8316-652ae353c97f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\sys.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\Objectively\Objectively.vs15\libs\dlfcn\dlfcn.h">
+      <Filter>dlfcn</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\sys.c">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Objectively\Objectively.vs15\libs\dlfcn\dlfcn.c">
+      <Filter>dlfcn</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

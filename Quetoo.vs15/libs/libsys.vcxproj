@@ -19,9 +19,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\Objectively\Objectively.vs15\libs\dlfcn\dlfcn.h" />
     <ClInclude Include="..\..\src\sys.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\Objectively\Objectively.vs15\libs\dlfcn\dlfcn.c" />
     <ClCompile Include="..\..\src\sys.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
