@@ -266,8 +266,8 @@ static _Bool Cl_HandleSystemEvent(const SDL_Event *event) {
 					const int32_t w = event->window.data1;
 					const int32_t h = event->window.data2;
 					if (w != r_width->integer || h != r_height->integer) {
-						Cvar_SetInteger(r_width->name, event->window.data1);
-						Cvar_SetInteger(r_height->name, event->window.data2);
+						Cvar_ForceSetInteger(r_width->name, event->window.data1);
+						Cvar_ForceSetInteger(r_height->name, event->window.data2);
 						Cbuf_AddText("r_restart\n");
 						return true;
 					}
@@ -275,6 +275,7 @@ static _Bool Cl_HandleSystemEvent(const SDL_Event *event) {
 			} else if (event->window.event == SDL_WINDOWEVENT_EXPOSED) {
 				const int32_t display = SDL_GetWindowDisplayIndex(SDL_GL_GetCurrentWindow());
 				if (display != r_display->integer) {
+					Cvar_ForceSetInteger(r_display->name, display);
 					Cbuf_AddText("r_restart\n");
 					return true;
 				}
