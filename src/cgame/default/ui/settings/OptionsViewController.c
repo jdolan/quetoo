@@ -110,8 +110,8 @@ static void loadView(ViewController *self) {
 	$(weather, addOption, "Off", (ident) 0);
 
 	$(stains, addOption, "Never", (ident) 0);
-	$(stains, addOption, "Slow", (ident) 10000);
-	$(stains, addOption, "Fast", (ident) 4000);
+	$(stains, addOption, "Slow", (ident) 20000);
+	$(stains, addOption, "Fast", (ident) 10000);
 }
 
 #pragma mark - Class lifecycle

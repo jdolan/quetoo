@@ -585,7 +585,7 @@ void R_InitStainmaps(void) {
 		.size = sizeof(uint16_t) * MAX_STAINS * 6
 	});
 
-	r_stainmaps_expiration = Cvar_Add("r_stainmaps_expiration", "8000", CVAR_ARCHIVE,
+	r_stainmaps_expiration = Cvar_Add("r_stainmaps_expiration", "20000", CVAR_ARCHIVE,
 									  "The amount of time, in milliseconds, stains should take to fully disappear.");
 }
 
