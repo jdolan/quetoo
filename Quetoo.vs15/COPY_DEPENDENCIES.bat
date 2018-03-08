@@ -15,6 +15,7 @@ call ROBO "../src/cgame/default/ui/" "%quetoo_folder%/lib/default/ui/" *.json
 call ROBO "../src/client/ui/" "%quetoo_folder%/lib/default/ui/" *.json
 
 call ROBO "../../Objectively/Objectively.vs15/bin/%build_platform%%build_configuration%/" "%quetoo_folder%/bin/" Objectively.*
+call ROBO "../../Objectively/Objectively.vs15/libs/dlfcn/%build_platform%/" "%quetoo_folder%/bin/" *.dll
 call ROBO "../../ObjectivelyMVC/ObjectivelyMVC.vs15/bin/%build_platform%%build_configuration%/" "%quetoo_folder%/bin/" ObjectivelyMVC.*
 
 call ROBO "libs/gettext/%build_platform%/bin/" "%quetoo_folder%/bin/" *.dll

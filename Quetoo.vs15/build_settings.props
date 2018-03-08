@@ -72,6 +72,7 @@
     <QuetooPthreadLibraryPath>$(QuetooPthreadPath)lib\$(Platform)\</QuetooPthreadLibraryPath>
 
     <QuetooDLFCNIncludePath>$(QuetooObjectivelyLibsPath)dlfcn\</QuetooDLFCNIncludePath>
+    <QuetooDLFCNLibraryPath>$(QuetooDLFCNIncludePath)$(Platform)\</QuetooDLFCNLibraryPath>
 
     <QuetooIconvPath>$(QuetooObjectivelyLibsPath)iconv\</QuetooIconvPath>
     <QuetooIconvIncludePath>$(QuetooIconvPath)include\</QuetooIconvIncludePath>
@@ -110,7 +111,7 @@
     <OpenALLibraryPath>$(OpenALPath)\libs\$(Platform)\</OpenALLibraryPath>
 
     <QuetooFullIncludePath>$(OpenALIncludePath);$(QuetooIncludePath);$(QuetooPath)src\client\;$(QuetooPath)src\client\ui\;$(QuetooPath)src\cgame\default\;$(QuetooPath)src\cgame\default\ui\common\;$(QuetooPath)src\cgame\default\ui\home\;$(QuetooPath)src\cgame\default\ui\main\;$(QuetooPath)src\cgame\default\ui\play\;$(QuetooPath)src\cgame\default\ui\controls\;$(QuetooPath)src\cgame\default\ui\settings\;$(QuetooObjectivelyIncludePath);$(QuetooObjectivelyMVCIncludePath);$(QuetooPthreadIncludePath);$(QuetooIconvIncludePath);$(QuetooCURLIncludePath);$(QuetooGlibIncludePath);$(QuetooLibXMLIncludePath);$(QuetooPhysFSIncludePath);$(QuetooZlibIncludePath);$(QuetooCursesIncludePath);$(QuetooFontConfigIncludePath);$(QuetooFreeTypeIncludePath);$(QuetooSDLIncludePath);$(QuetooSDLTTFIncludePath);$(QuetooSDLImageIncludePath);$(QuetoolibsndfileIncludePath);$(QuetooDLFCNIncludePath)</QuetooFullIncludePath>
-    <QuetooFullLibraryPath>$(OpenALLibraryPath);$(QuetooLibraryPath);$(QuetooObjectivelyLibraryPath);$(QuetooObjectivelyMVCLibraryPath);$(QuetooPthreadLibraryPath);$(QuetooIconvLibraryPath);$(QuetooCURLLibraryPath);$(QuetooGlibLibraryPath);$(QuetooLibXMLLibraryPath);$(QuetooPhysFSLibraryPath);$(QuetooCursesLibraryPath);$(QuetooFontConfigLibraryPath);$(QuetooFreeTypeLibraryPath);$(QuetooSDLLibraryPath);$(QuetooSDLTTFLibraryPath);$(QuetooSDLImageLibraryPath);$(QuetoolibsndfileLibraryPath)</QuetooFullLibraryPath>
+    <QuetooFullLibraryPath>$(OpenALLibraryPath);$(QuetooLibraryPath);$(QuetooObjectivelyLibraryPath);$(QuetooObjectivelyMVCLibraryPath);$(QuetooPthreadLibraryPath);$(QuetooIconvLibraryPath);$(QuetooCURLLibraryPath);$(QuetooGlibLibraryPath);$(QuetooLibXMLLibraryPath);$(QuetooPhysFSLibraryPath);$(QuetooCursesLibraryPath);$(QuetooFontConfigLibraryPath);$(QuetooFreeTypeLibraryPath);$(QuetooSDLLibraryPath);$(QuetooSDLTTFLibraryPath);$(QuetooSDLImageLibraryPath);$(QuetoolibsndfileLibraryPath);$(QuetooDLFCNLibraryPath)</QuetooFullLibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
