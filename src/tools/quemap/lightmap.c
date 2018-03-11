@@ -453,7 +453,10 @@ void BuildLights(void) {
 			            sun.color[2], sun.angles[0], sun.angles[1], sun.angles[2]);
 
 		// ambient light, also from worldspawn
-		color = ValueForKey(e, "ambient_light");
+		color = ValueForKey(e, "ambient");
+		if (!strlen(color)) {
+			color = ValueForKey(e, "ambient_light");
+		}
 		sscanf(color, "%f %f %f", &ambient[0], &ambient[1], &ambient[2]);
 
 		if (VectorLength(ambient))
@@ -475,6 +478,21 @@ void BuildLights(void) {
 		v = FloatForKey(e, "contrast");
 		if (v > 0.0) {
 			contrast = v;
+		}
+
+		v = FloatForKey(e, "light_scale");
+		if (v > 0.0) {
+			light_scale = v;
+		}
+
+		v = FloatForKey(e, "surface_scale");
+		if (v > 0.0) {
+			surface_scale = v;
+		}
+
+		v = FloatForKey(e, "patch_size");
+		if (v > 0.0) {
+			patch_size = v;
 		}
 
 		// lightmap resolution downscale (e.g. 0.125, 0.0625)
