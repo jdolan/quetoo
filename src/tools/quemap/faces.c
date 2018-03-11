@@ -39,11 +39,7 @@ static int32_t c_merge;
 
 static int32_t c_totalverts;
 static int32_t c_uniqueverts;
-static int32_t c_degenerate;
-static int32_t c_tjunctions;
 static int32_t c_faceoverflows;
-static int32_t c_facecollapse;
-static int32_t c_badstartverts;
 
 #define	MAX_SUPERVERTS	512
 static int32_t superverts[MAX_SUPERVERTS];
@@ -54,17 +50,10 @@ int32_t first_bsp_model_edge = 1;
 
 static int32_t c_tryedges;
 
-static vec3_t edge_dir;
-static vec3_t edge_start;
-
-static uint32_t num_edge_verts;
-static int32_t edge_verts[MAX_BSP_VERTS];
-
 #define	HASH_SIZE 128
 
 static int32_t vertex_chain[MAX_BSP_VERTS]; // the next vertex in a hash chain
 static int32_t hash_verts[HASH_SIZE * HASH_SIZE]; // a vertex number, or 0 for no verts
-
 
 /**
  * @brief
@@ -274,172 +263,6 @@ static void EmitVertexes_r(node_t *node) {
 }
 
 /**
- * @brief Forced a dumb check of everything
- */
-static void FindEdgeVertexes(vec3_t v1, vec3_t v2) {
-
-	int32_t x1 = (4096 + (int32_t) (v1[0] + 0.5)) >> 6;
-	int32_t y1 = (4096 + (int32_t) (v1[1] + 0.5)) >> 6;
-	int32_t x2 = (4096 + (int32_t) (v2[0] + 0.5)) >> 6;
-	int32_t y2 = (4096 + (int32_t) (v2[1] + 0.5)) >> 6;
-
-	int32_t tmp;
-	if (x1 > x2) {
-		tmp = x1;
-		x1 = x2;
-		x2 = tmp;
-	}
-	if (y1 > y2) {
-		tmp = y1;
-		y1 = y2;
-		y2 = tmp;
-	}
-
-	num_edge_verts = 0;
-
-	int32_t x, y;
-	for (x = x1; x <= x2; x++) {
-		for (y = y1; y <= y2; y++) {
-			int32_t vnum;
-			for (vnum = hash_verts[y * HASH_SIZE + x]; vnum; vnum = vertex_chain[vnum]) {
-				edge_verts[num_edge_verts++] = vnum;
-			}
-		}
-	}
-}
-
-/**
- * @brief Can be recursively reentered
- */
-static void TestEdge(vec_t start, vec_t end, int32_t p1, int32_t p2, int32_t startvert) {
-	vec_t dist;
-	vec3_t delta;
-	vec3_t exact;
-	vec3_t off;
-	vec_t error;
-	vec3_t p;
-
-	if (p1 == p2) {
-		c_degenerate++;
-		return; // degenerate edge
-	}
-
-	for (uint32_t k = startvert; k < num_edge_verts; k++) {
-		const int32_t j = edge_verts[k];
-		if (j == p1 || j == p2) {
-			continue;
-		}
-
-		VectorCopy(bsp_file.vertexes[j].point, p);
-
-		VectorSubtract(p, edge_start, delta);
-		dist = DotProduct(delta, edge_dir);
-		if (dist <= start || dist >= end) {
-			continue;    // off an end
-		}
-
-		VectorMA(edge_start, dist, edge_dir, exact);
-		VectorSubtract(p, exact, off);
-		error = VectorLength(off);
-
-		if (fabs(error) > OFF_EPSILON) {
-			continue;    // not on the edge
-		}
-
-		// break the edge
-		c_tjunctions++;
-		TestEdge(start, dist, p1, j, k + 1);
-		TestEdge(dist, end, j, p2, k + 1);
-		return;
-	}
-
-	// the edge p1 to p2 is now free of tjunctions
-	if (num_superverts >= MAX_SUPERVERTS) {
-		Com_Error(ERROR_FATAL, "MAX_SUPERVERTS\n");
-	}
-	superverts[num_superverts] = p1;
-	num_superverts++;
-}
-
-/**
- * @brief
- */
-static void FixFaceEdges(node_t *node, face_t *f) {
-	int32_t i;
-	vec3_t e2;
-	vec_t len;
-	int32_t count[MAX_SUPERVERTS], start[MAX_SUPERVERTS];
-	int32_t base;
-
-	if (f->merged || f->split[0] || f->split[1]) {
-		return;
-	}
-
-	num_superverts = 0;
-
-	for (i = 0; i < f->num_points; i++) {
-		const int32_t p1 = f->vertexnums[i];
-		const int32_t p2 = f->vertexnums[(i + 1) % f->num_points];
-
-		VectorCopy(bsp_file.vertexes[p1].point, edge_start);
-		VectorCopy(bsp_file.vertexes[p2].point, e2);
-
-		FindEdgeVertexes(edge_start, e2);
-
-		VectorSubtract(e2, edge_start, edge_dir);
-		len = VectorNormalize(edge_dir);
-
-		start[i] = num_superverts;
-		TestEdge(0, len, p1, p2, 0);
-
-		count[i] = num_superverts - start[i];
-	}
-
-	if (num_superverts < 3) { // entire face collapsed
-		f->num_points = 0;
-		c_facecollapse++;
-		return;
-	}
-	// we want to pick a vertex that doesn't have tjunctions
-	// on either side, which can cause artifacts on trifans,
-	// especially underwater
-	for (i = 0; i < f->num_points; i++) {
-		if (count[i] == 1 && count[(i + f->num_points - 1) % f->num_points] == 1) {
-			break;
-		}
-	}
-	if (i == f->num_points) {
-		c_badstartverts++;
-		base = 0;
-	} else { // rotate the vertex order
-		base = start[i];
-	}
-
-	// this may fragment the face if > MAXEDGES
-	FaceFromSuperverts(node, f, base);
-}
-
-/**
- * @brief
- */
-static void FixEdges_r(node_t *node) {
-	int32_t i;
-	face_t *f;
-
-	if (node->plane_num == PLANENUM_LEAF) {
-		return;
-	}
-
-	for (f = node->faces; f; f = f->next) {
-		FixFaceEdges(node, f);
-	}
-
-	for (i = 0; i < 2; i++) {
-		FixEdges_r(node->children[i]);
-	}
-}
-
-/**
  * @brief
  */
 void FixTjuncs(node_t *head_node) {
@@ -456,21 +279,6 @@ void FixTjuncs(node_t *head_node) {
 	c_faceoverflows = 0;
 	EmitVertexes_r(head_node);
 	Com_Verbose("%i unique from %i\n", c_uniqueverts, c_totalverts);
-
-	// break edges on tjunctions
-	Com_Verbose("---- fixing edges ----\n");
-	c_tryedges = 0;
-	c_degenerate = 0;
-	c_facecollapse = 0;
-	c_tjunctions = 0;
-	if (!notjunc) {
-		FixEdges_r(head_node);
-	}
-	Com_Verbose("%5i edges degenerated\n", c_degenerate);
-	Com_Verbose("%5i faces degenerated\n", c_facecollapse);
-	Com_Verbose("%5i edges added by tjunctions\n", c_tjunctions);
-	Com_Verbose("%5i faces added by tjunctions\n", c_faceoverflows);
-	Com_Verbose("%5i bad start verts\n", c_badstartverts);
 }
 
 /*
