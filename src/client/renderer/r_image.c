@@ -70,7 +70,7 @@ static void R_TextureMode(void) {
 	}
 }
 
-#define MAX_SCREENSHOTS 1024
+#define MAX_SCREENSHOTS 1000
 
 typedef struct {
 	uint32_t width;
