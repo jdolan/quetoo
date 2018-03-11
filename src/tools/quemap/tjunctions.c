@@ -56,7 +56,7 @@ typedef struct {
 	mapDrawVert_t	*dv[2];
 } originalEdge_t;
 
-#define	MAX_ORIGINAL_EDGES	0x10000
+#define	MAX_ORIGINAL_EDGES	0x0000
 static originalEdge_t	originalEdges[MAX_ORIGINAL_EDGES];
 static int				numOriginalEdges;
 
@@ -160,7 +160,7 @@ static int AddEdge( vec3_t v1, vec3_t v2, _Bool createNonAxial ) {
 	vec3_t		dir;
 
 	VectorSubtract( v2, v1, dir );
-	d = VectorNormalize2( dir, dir );
+	d = VectorNormalize( dir );
 	if ( d < 0.1 ) {
 		// if we added a 0 length vector, it would make degenerate planes
 		c_degenerateEdges++;
