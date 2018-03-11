@@ -1502,7 +1502,7 @@
 		CE12D72B1C5C58D800CD0B13 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		CE12D72D1C5C58D800CD0B13 /* Quetoo.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; path = Quetoo.app; sourceTree = "<group>"; };
 		CE12D72E1C5C58D800CD0B13 /* Update.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; path = Update.app; sourceTree = "<group>"; };
-		CE12D72F1C5C58D800CD0B13 /* set-icon.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "set-icon.sh"; sourceTree = "<group>"; };
+		CE12D72F1C5C58D800CD0B13 /* set-icon.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = "set-icon.py"; sourceTree = "<group>"; };
 		CE12D7351C5C5B9300CD0B13 /* quetoo */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = quetoo; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE12D7CD1C5C5D5C00CD0B13 /* game.so */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = game.so; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE12D7EB1C5C5DF900CD0B13 /* cgame.so */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = cgame.so; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2921,7 +2921,7 @@
 			isa = PBXGroup;
 			children = (
 				CE12D72C1C5C58D800CD0B13 /* Quetoo */,
-				CE12D72F1C5C58D800CD0B13 /* set-icon.sh */,
+				CE12D72F1C5C58D800CD0B13 /* set-icon.py */,
 				CE12D72B1C5C58D800CD0B13 /* Makefile */,
 			);
 			path = apple;
