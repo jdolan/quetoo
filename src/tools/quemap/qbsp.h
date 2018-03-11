@@ -71,7 +71,7 @@ typedef struct {
 
 #define	PLANENUM_LEAF -1
 
-#define	MAXEDGES 20
+#define	MAXEDGES 32
 
 typedef struct face_s {
 	struct face_s *next; // on node
@@ -89,7 +89,7 @@ typedef struct face_s {
 	int32_t output_number;
 	winding_t *w;
 	int32_t num_points;
-	int32_t vertexnums[MAX_BSP_FACE_EDGES / 256];
+	int32_t vertexnums[MAXEDGES];
 } face_t;
 
 typedef struct brush_s {
