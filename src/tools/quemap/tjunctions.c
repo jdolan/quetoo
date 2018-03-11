@@ -170,7 +170,7 @@ static int AddEdge( vec3_t v1, vec3_t v2, _Bool createNonAxial ) {
 	if ( !createNonAxial ) {
 		if ( fabs( dir[0] + dir[1] + dir[2] ) != 1.0 ) {
 			if ( numOriginalEdges == MAX_ORIGINAL_EDGES ) {
-				Com_Error(ERROR_FATAL, "MAX_ORIGINAL_EDGES" );
+				Com_Error(ERROR_FATAL, "MAX_ORIGINAL_EDGES\n" );
 			}
 			originalEdges[ numOriginalEdges ].dv[0] = (mapDrawVert_t *)v1;
 			originalEdges[ numOriginalEdges ].dv[1] = (mapDrawVert_t *)v2;
@@ -209,7 +209,7 @@ static int AddEdge( vec3_t v1, vec3_t v2, _Bool createNonAxial ) {
 
 	// create a new edge
 	if ( numEdgeLines >= MAX_EDGE_LINES ) {
-		Com_Error( ERROR_DROP, "MAX_EDGE_LINES" );
+		Com_Error( ERROR_DROP, "MAX_EDGE_LINES\n" );
 	}
 
 	e = &edgeLines[ numEdgeLines ];
@@ -274,7 +274,7 @@ static void FixSurfaceJunctions( mapDrawSurface_t *ds ) {
 
 		// copy first vert
 		if ( numVerts == MAX_SURFACE_VERTS ) {
-			Com_Error( ERROR_DROP, "MAX_SURFACE_VERTS" );
+			Com_Error( ERROR_DROP, "MAX_SURFACE_VERTS\n" );
 		}
 		verts[numVerts] = ds->verts[i];
 		originals[numVerts] = i;
@@ -319,7 +319,7 @@ static void FixSurfaceJunctions( mapDrawSurface_t *ds ) {
 				( start > end && p->intercept < start - ON_EPSILON ) ) {
 				// insert this point
 				if ( numVerts == MAX_SURFACE_VERTS ) {
-					Com_Error(ERROR_FATAL, "MAX_SURFACE_VERTS" );
+					Com_Error(ERROR_FATAL, "MAX_SURFACE_VERTS\n" );
 				}
 
 				// take the exact intercept point
