@@ -434,6 +434,7 @@
 		CE88195D1F882EC3000D5AB7 /* DialogViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8819591F882D9F000D5AB7 /* DialogViewController.h */; };
 		CE8C734C1E0DE28000226317 /* r_stainmap.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8C734A1E0DE28000226317 /* r_stainmap.c */; };
 		CE8C734D1E0DE28000226317 /* r_stainmap.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8C734B1E0DE28000226317 /* r_stainmap.h */; };
+		CE91924D2055731E007AC8FF /* tjunctions.c in Sources */ = {isa = PBXBuildFile; fileRef = CE91924C2055731E007AC8FF /* tjunctions.c */; };
 		CE9FECDD201FEB7400F954ED /* r_gl.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9FECDA201FEB7400F954ED /* r_gl.c */; };
 		CE9FECDE201FEB7400F954ED /* r_gl.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9FECDB201FEB7400F954ED /* r_gl.h */; };
 		CE9FECDF201FEB7400F954ED /* r_gl_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9FECDC201FEB7400F954ED /* r_gl_types.h */; };
@@ -1695,6 +1696,7 @@
 		CE8819591F882D9F000D5AB7 /* DialogViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DialogViewController.h; sourceTree = "<group>"; };
 		CE8C734A1E0DE28000226317 /* r_stainmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_stainmap.c; sourceTree = "<group>"; };
 		CE8C734B1E0DE28000226317 /* r_stainmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_stainmap.h; sourceTree = "<group>"; };
+		CE91924C2055731E007AC8FF /* tjunctions.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tjunctions.c; sourceTree = "<group>"; };
 		CE92B3A91D2FF72200E9153A /* quemap-icon.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "quemap-icon.rc"; sourceTree = "<group>"; };
 		CE92B3AA1D2FF77800E9153A /* quemap.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = quemap.ico; sourceTree = "<group>"; };
 		CE92B3AB1D2FF7F600E9153A /* quetoo-dedicated-icon.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "quetoo-dedicated-icon.rc"; sourceTree = "<group>"; };
@@ -2817,6 +2819,7 @@
 				CE12D7041C5C58C300CD0B13 /* scriptlib.h */,
 				CE12D7051C5C58C300CD0B13 /* textures.c */,
 				CE12D7061C5C58C300CD0B13 /* threads.c */,
+				CE91924C2055731E007AC8FF /* tjunctions.c */,
 				CE12D7071C5C58C300CD0B13 /* tree.c */,
 				CE12D7081C5C58C300CD0B13 /* writebsp.c */,
 				CE12D6EF1C5C58C300CD0B13 /* Makefile.am */,
@@ -4416,6 +4419,7 @@
 				CE80FFF71C5E4D1800A21A51 /* scriptlib.c in Sources */,
 				CE80FFF81C5E4D1800A21A51 /* textures.c in Sources */,
 				CE80FFF91C5E4D1800A21A51 /* threads.c in Sources */,
+				CE91924D2055731E007AC8FF /* tjunctions.c in Sources */,
 				CE80FFFA1C5E4D1800A21A51 /* tree.c in Sources */,
 				CE80FFFB1C5E4D1800A21A51 /* writebsp.c in Sources */,
 			);
