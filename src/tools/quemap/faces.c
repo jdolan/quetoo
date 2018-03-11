@@ -443,11 +443,13 @@ static void FixEdges_r(node_t *node) {
  * @brief
  */
 void FixTjuncs(node_t *head_node) {
-	FixTJunctionsQ3(head_node);
-	FixTJunctionsQ3(head_node);
+
+	if (!notjunc) {
+		FixTJunctionsQ3(head_node);
+	}
 
 	// snap and merge all vertexes
-	Com_Verbose("---- Fixing T Junctions ----\n");
+	Com_Verbose("---- emitting vertices ----\n");
 	memset(hash_verts, 0, sizeof(hash_verts));
 	c_totalverts = 0;
 	c_uniqueverts = 0;
@@ -456,13 +458,13 @@ void FixTjuncs(node_t *head_node) {
 	Com_Verbose("%i unique from %i\n", c_uniqueverts, c_totalverts);
 
 	// break edges on tjunctions
-	Com_Verbose("---- tjunc ----\n");
+	Com_Verbose("---- fixing edges ----\n");
 	c_tryedges = 0;
 	c_degenerate = 0;
 	c_facecollapse = 0;
 	c_tjunctions = 0;
 	if (!notjunc) {
-		//FixEdges_r(head_node);
+		FixEdges_r(head_node);
 	}
 	Com_Verbose("%5i edges degenerated\n", c_degenerate);
 	Com_Verbose("%5i faces degenerated\n", c_facecollapse);
