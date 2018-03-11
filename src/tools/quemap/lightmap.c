@@ -1046,7 +1046,7 @@ void FinalizeLighting(int32_t face_num) {
 		return;
 	}
 
-	int32_t lightmap_color_channels = (legacy ? 3 : 4);
+	const int32_t lightmap_color_channels = (legacy ? 3 : 4);
 
 	f->unused[0] = 0; // pack the old lightstyles array for legacy games
 	f->unused[1] = f->unused[2] = f->unused[3] = 255;
