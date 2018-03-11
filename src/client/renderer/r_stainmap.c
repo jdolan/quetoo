@@ -61,7 +61,7 @@ typedef struct {
 	uint32_t expire_check;
 } r_stainmap_state_t;
 
-static cvar_t *r_stainmap_expire_time;
+static cvar_t *r_stainmaps_expiration;
 static r_stainmap_state_t r_stainmap_state;
 
 /**
@@ -340,11 +340,11 @@ void R_AddStains(void) {
 		return;
 	}
 
-	if (r_stainmap_expire_time->integer) {
+	if (r_stainmaps_expiration->integer) {
 
-		if (r_stainmap_expire_time->modified) {
-			r_stainmap_expire_time->modified = false;
-			r_stainmap_state.expire_seconds = (255.0 / r_stainmap_expire_time->value);
+		if (r_stainmaps_expiration->modified) {
+			r_stainmaps_expiration->modified = false;
+			r_stainmap_state.expire_seconds = (255.0 / r_stainmaps_expiration->value);
 			r_stainmap_state.expire_check = r_view.ticks;
 		} else {
 			uint32_t diff = r_view.ticks - r_stainmap_state.expire_check;
@@ -585,7 +585,8 @@ void R_InitStainmaps(void) {
 		.size = sizeof(uint16_t) * MAX_STAINS * 6
 	});
 
-	r_stainmap_expire_time = Cvar_Add("r_stainmap_expire_time", "8000", CVAR_ARCHIVE, "The amount of time, in milliseconds, stains should take to fully disappear.");
+	r_stainmaps_expiration = Cvar_Add("r_stainmaps_expiration", "20000", CVAR_ARCHIVE,
+									  "The amount of time, in milliseconds, stains should take to fully disappear.");
 }
 
 /**

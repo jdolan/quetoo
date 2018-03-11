@@ -303,9 +303,9 @@ void BuildLights(void) {
 
 	// surfaces
 	for (i = 0; i < lengthof(face_patches); i++) {
+		
 		const patch_t *p = face_patches[i];
-
-		while (p) { // iterate subdivided patches
+		while (p) { // iterate patches
 
 			if (VectorCompare(p->light, vec3_origin)) {
 				continue;
@@ -849,7 +849,7 @@ void DirectLighting(int32_t face_num) {
  * @brief Tests surfaces in the impacted leaf, modulating the lighting sample closest to
  * the impact point.
  */
-void IndirectLightingImpact(const cm_trace_t *trace, const vec3_t color) {
+static void IndirectLightingImpact(const cm_trace_t *trace, const vec3_t color) {
 
 	const int32_t leaf_num = Light_PointLeafnum(trace->end);
 

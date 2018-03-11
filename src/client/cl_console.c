@@ -24,8 +24,8 @@
 console_t cl_console;
 console_t cl_chat_console;
 
-static cvar_t *cl_console_background_alpha;
 static cvar_t *cl_console_height;
+static cvar_t *cl_draw_console_background_alpha;
 
 static cvar_t *cl_draw_chat;
 static cvar_t *cl_draw_notify;
@@ -41,6 +41,10 @@ static cvar_t *cl_notify_time;
  */
 static void Cl_DrawConsole_Background(void) {
 
+	if (cl_draw_console_background_alpha->value == 0.0) {
+		return;
+	}
+
 	const r_image_t *image = R_LoadImage("ui/conback", IT_UI);
 	if (image->type != IT_NULL) {
 
@@ -55,7 +59,7 @@ static void Cl_DrawConsole_Background(void) {
 		r_pixel_t y = cl_console.height * ch;
 
 		R_Color((const vec4_t) {
-			1.0, 1.0, 1.0, cl_console_background_alpha->value
+			1.0, 1.0, 1.0, cl_draw_console_background_alpha->value
 		});
 
 		R_DrawImage(0, (-image->height * scale) + y + ch * 1.25, scale, image);
@@ -125,7 +129,7 @@ void Cl_DrawConsole(void) {
 
 	R_BindFont("small", &cw, &ch);
 
-	height = r_context.height * (cls.state == CL_ACTIVE ? cl_console_height->value : 1.0);
+	height = r_context.height * (cls.state == CL_ACTIVE ? Clamp(cl_console_height->value, 0.1, 1.0) : 1.0);
 
 	cl_console.width = r_context.width / cw;
 	cl_console.height = (height / ch) - 1;
@@ -265,12 +269,15 @@ void Cl_ToggleConsole_f(void) {
 	memset(&cl_console.input, 0, sizeof(cl_console.input));
 }
 
-static void Cl_MessageMode(_Bool team) {
+/**
+ * @brief
+ */
+static void Cl_MessageMode(_Bool team_chat) {
 
 	console_input_t *in = &cl_chat_console.input;
 	memset(in, 0, sizeof(*in));
 
-	cls.chat_state.team_chat = team;
+	cls.chat_state.team_chat = team_chat;
 
 	Cl_SetKeyDest(KEY_CHAT);
 }
@@ -336,8 +343,8 @@ void Cl_InitConsole(void) {
 	memset(&cl_chat_console, 0, sizeof(cl_chat_console));
 	cl_chat_console.level = PRINT_CHAT | PRINT_TEAM_CHAT;
 
-	cl_console_background_alpha = Cvar_Add("cl_console_background_alpha", "0.8", CVAR_ARCHIVE, NULL);
 	cl_console_height = Cvar_Add("cl_console_height", "0.4", CVAR_ARCHIVE, "Console height, as a multiplier of the screen height. Default is 0.4.");
+	cl_draw_console_background_alpha = Cvar_Add("cl_draw_console_background_alpha", "0.8", CVAR_ARCHIVE, NULL);
 
 	cl_draw_chat = Cvar_Add("cl_draw_chat", "1", 0, "Draw recent chat messages");
 	cl_draw_notify = Cvar_Add("cl_draw_notify", "1", 0, "Draw recent console activity");

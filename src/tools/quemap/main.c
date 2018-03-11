@@ -35,8 +35,8 @@ quetoo_t quetoo;
 
 char map_base[MAX_QPATH]; // the base name (e.g. "edge")
 
-char map_name[MAX_OS_PATH]; // the input map name (e.g. "~/.quetoo/default/maps/edge.map")
-char bsp_name[MAX_OS_PATH]; // the input bsp name (e.g. "~/.quetoo/default/maps/edge.bsp")
+char map_name[MAX_OS_PATH]; // the input map name (e.g. "maps/edge.map")
+char bsp_name[MAX_OS_PATH]; // the input bsp name (e.g. "maps/edge.bsp")
 
 _Bool verbose = false;
 _Bool debug = false;
@@ -202,9 +202,6 @@ static void Check_BSP_Options(int32_t argc) {
 		} else if (!g_strcmp0(Com_Argv(i), "-nomerge")) {
 			Com_Verbose("nomerge = true\n");
 			nomerge = true;
-		} else if (!g_strcmp0(Com_Argv(i), "-nosubdivide")) {
-			Com_Verbose("nosubdivide = true\n");
-			nosubdivide = true;
 		} else if (!g_strcmp0(Com_Argv(i), "-nodetail")) {
 			Com_Verbose("nodetail = true\n");
 			nodetail = true;
@@ -221,10 +218,6 @@ static void Check_BSP_Options(int32_t argc) {
 		} else if (!g_strcmp0(Com_Argv(i), "-leaktest")) {
 			Com_Verbose("leaktest = true\n");
 			leaktest = true;
-		} else if (!g_strcmp0(Com_Argv(i), "-subdivide")) {
-			subdivide_size = atoi(Com_Argv(i + 1));
-			Com_Verbose("subdivide_size = %d\n", subdivide_size);
-			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "-block")) {
 			block_xl = block_xh = atoi(Com_Argv(i + 1));
 			block_yl = block_yh = atoi(Com_Argv(i + 2));
@@ -294,8 +287,8 @@ static void Check_LIGHT_Options(int32_t argc) {
 			Com_Verbose("entity light scale: %f\n", entity_scale);
 			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "-patch")) {
-			patch_subdivide = atof(Com_Argv(i + 1));
-			Com_Verbose("patch subdivide: %f\n", patch_subdivide);
+			patch_size = atof(Com_Argv(i + 1));
+			Com_Verbose("patch size: %f\n", patch_size);
 			i++;
 		} else {
 			break;
@@ -350,12 +343,10 @@ static void PrintHelpMessage(void) {
 	Com_Print(" -noopt - don't optimize by merging final faces\n");
 	Com_Print(" -noprune - don't prune (or cut) nodes\n");
 	Com_Print(" -noshare\n");
-	Com_Print(" -nosubdivide\n");
 	Com_Print(" -notjunc\n");
 	Com_Print(" -nowater - skip water brushes\n");
 	Com_Print(" -noweld\n");
 	Com_Print(" -onlyents - modify existing bsp file with entities from map file\n");
-	Com_Print(" -subdivide <int> - bsp subdivision grid size in world units\n");
 	Com_Print(" -tmpout\n");
 	Com_Print("\n");
 
@@ -515,9 +506,8 @@ int32_t main(int32_t argc, char **argv) {
 		gchar *dirname = g_path_get_dirname(filename);
 		if (dirname) {
 			Fs_AddToSearchPath(dirname);
-			g_free(dirname);
-
 			filename += strlen(dirname);
+			g_free(dirname);
 		}
 	}
 

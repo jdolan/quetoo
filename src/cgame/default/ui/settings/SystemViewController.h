@@ -66,4 +66,4 @@ struct SystemViewControllerInterface {
  * @return The SystemViewController Class.
  * @memberof SystemViewController
  */
-Class *_SystemViewController(void);
+CGAME_EXPORT Class *_SystemViewController(void);

@@ -21,6 +21,8 @@
 
 #include "cg_local.h"
 
+#include <Objectively/Regexp.h>
+
 #include "PlayerSetupViewController.h"
 
 #define _Class _PlayerSetupViewController
@@ -42,42 +44,49 @@ static Order sortSkins(const ident a, const ident b) {
  * @brief Fs_EnumerateFunc for resolving available skins for a give model.
  */
 static void enumerateSkins(const char *path, void *data) {
-	char name[MAX_QPATH];
 
 	Select *select = (Select *) data;
 
-	char *s = strstr(path, "players/");
-	if (s) {
-		StripExtension(s + strlen("players/"), name);
+	Regexp *regexp = re("players/([a-z]+)/upper_([a-z]+)\\.skin", 0);
 
-		if (g_str_has_suffix(name, "_i")) {
-			name[strlen(name) - strlen("_i")] = '\0';
+	Range *matches;
+	if ($(regexp, matchesCharacters, path, 0, &matches)) {
 
-			Array *options = (Array *) select->options;
-			for (size_t i = 0; i < options->count; i++) {
+		const Range *model = &matches[1];
+		const Range *skin = &matches[2];
 
-				const Option *option = $(options, objectAtIndex, i);
-				if (g_strcmp0(option->title->text, name) == 0) {
-					return;
-				}
-			}
+		char title[MAX_QPATH];
+		g_snprintf(title, sizeof(title), "%.*s/%.*s",
+				   (int) model->length, path + model->location,
+				   (int) skin->length, path + skin->location);
 
-			ident value = (ident) options->count;
-			$(select, addOption, name, value);
+		const Array *options = (Array *) select->options;
+		for (size_t i = 0; i < options->count; i++) {
 
-			if (g_strcmp0(cg_skin->string, name) == 0 && $(select, selectedOption) == NULL) {
-				Option *option = $(select, optionWithValue, value);
-				$(option, setSelected, true);
+			const Option *option = $(options, objectAtIndex, i);
+			if (g_strcmp0(option->title->text, title) == 0) {
+				return;
 			}
 		}
+
+		ident value = (ident) options->count;
+		$(select, addOption, title, value);
+
+		if (g_strcmp0(cg_skin->string, title) == 0) {
+			$(select, selectOptionWithValue, value);
+		}
+
+		free(matches);
 	}
+
+	release(regexp);
 }
 
 /**
  * @brief Fs_EnumerateFunc for resolving available models.
  */
 static void enumerateModels(const char *path, void *data) {
-	cgi.EnumerateFiles(va("%s/*.tga", path), enumerateSkins, data);
+	cgi.EnumerateFiles(va("%s/*.skin", path), enumerateSkins, data);
 }
 
 /**
@@ -87,7 +96,7 @@ static void didSelectSkin(Select *select, Option *option) {
 
 	PlayerSetupViewController *self = (PlayerSetupViewController *) select->delegate.self;
 
-	cgi.CvarSet(cg_skin->name, option->title->text);
+	cgi.SetCvarString(cg_skin->name, option->title->text);
 
 	$((View *) self->playerModelView, updateBindings);
 }
@@ -100,13 +109,13 @@ static void didPickEffectColor(HueColorPicker *hueColorPicker, double hue, doubl
 	PlayerSetupViewController *this = hueColorPicker->delegate.self;
 
 	if (hue < 0.0) {
-		cgi.CvarSet(cg_color->name, "default");
+		cgi.SetCvarString(cg_color->name, "default");
 
 		this->effectsColorPicker->colorView->backgroundColor = Colors.Charcoal;
 
 		$(this->effectsColorPicker->hueSlider->label, setText, "");
 	} else {
-		cgi.CvarSetValue(cg_color->name, (vec_t) hueColorPicker->hue);
+		cgi.SetCvarInteger(cg_color->name, (int32_t) hueColorPicker->hue);
 	}
 }
 
@@ -128,14 +137,14 @@ static void didPickPlayerColor(HSVColorPicker *hsvColorPicker, double hue, doubl
 	assert(var);
 
 	if (hue < 0.0) {
-		cgi.CvarSet(var->name, "default");
+		cgi.SetCvarString(var->name, "default");
 
 		hsvColorPicker->colorView->backgroundColor = Colors.Charcoal;
 
 		$(hsvColorPicker->hueSlider->label, setText, "");
 	} else {
 		const SDL_Color color = $(hsvColorPicker, rgbColor);
-		cgi.CvarSet(var->name, MVC_RGBToHex(&color));
+		cgi.SetCvarString(var->name, MVC_RGBToHex(&color));
 	}
 
 	if (this->playerModelView) {
@@ -163,9 +172,10 @@ static void loadView(ViewController *self) {
 		MakeOutlet("player", &this->playerModelView)
 	);
 
-	cgi.WakeView(self->view, "ui/play/PlayerSetupViewController.json", outlets);
+	$(self->view, awakeWithResourceName, "ui/play/PlayerSetupViewController.json");
+	$(self->view, resolve, outlets);
 
-	self->view->stylesheet = cgi.Stylesheet("ui/play/PlayerSetupViewController.css");
+	self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/play/PlayerSetupViewController.css");
 	assert(self->view->stylesheet);
 
 	this->skinSelect->comparator = sortSkins;

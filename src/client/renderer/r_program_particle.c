@@ -35,6 +35,7 @@ typedef struct {
 	r_uniform3f_t weather_up;
 	r_uniform3f_t splash_right[2];
 	r_uniform3f_t splash_up[2];
+	r_uniform1f_t ticks;
 } r_particle_program_t;
 
 static r_particle_program_t r_particle_program;
@@ -89,6 +90,8 @@ void R_InitProgram_particle(r_program_t *program) {
 		R_ProgramVariable(&p->splash_up[i], R_UNIFORM_VEC4, va("SPLASH_UP[%i]", i), true);
 	}
 
+	R_ProgramVariable(&p->ticks, R_UNIFORM_FLOAT, "TICKS", true);
+
 	R_ProgramParameter1i(&p->sampler0, R_TEXUNIT_DIFFUSE);
 
 	R_ProgramParameter1f(&p->fog.density, 0.0);
@@ -111,6 +114,7 @@ void R_UseFog_particle(const r_fog_parameters_t *fog) {
 	}
 }
 
+
 /**
  * @brief
  */
@@ -128,4 +132,6 @@ void R_UseParticleData_particle(vec3_t weather_right, vec3_t weather_up, vec3_t 
 		R_ProgramParameter3fv(&p->splash_right[i], splash_right[i]);
 		R_ProgramParameter3fv(&p->splash_up[i], splash_up[i]);
 	}
+
+	R_ProgramParameter1f(&p->ticks, r_view.ticks / 1000.0);
 }

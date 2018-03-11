@@ -191,6 +191,16 @@ void Cg_FreeParticles(void) {
 /**
  * @brief
  */
+static _Bool Cg_UpdateParticle_Spark(cg_particle_t *p, const vec_t delta, const vec_t delta_squared) {
+
+	VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
+
+	return false;
+}
+
+/**
+ * @brief
+ */
 static _Bool Cg_UpdateParticle_Weather(cg_particle_t *p, const vec_t delta, const vec_t delta_squared) {
 
 	// free up weather particles that have hit the ground
@@ -206,16 +216,6 @@ static _Bool Cg_UpdateParticle_Weather(cg_particle_t *p, const vec_t delta, cons
 
 		return true;
 	}
-
-	return false;
-}
-
-/**
- * @brief
- */
-static _Bool Cg_UpdateParticle_Spark(cg_particle_t *p, const vec_t delta, const vec_t delta_squared) {
-
-	VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 
 	return false;
 }
@@ -256,7 +256,6 @@ void Cg_AddParticles(void) {
 
 	const vec_t delta = (cgi.client->unclamped_time - ticks) * 0.001;
 	const vec_t delta_squared = delta * delta;
-	_Bool cull;
 
 	ticks = cgi.client->unclamped_time;
 
@@ -300,7 +299,7 @@ void Cg_AddParticles(void) {
 
 				vec3_t old_origin;
 				
-				if ((p->effects & PARTICLE_EFFECT_PHYSICAL) && cg_particle_quality->integer) {
+				if ((p->effects & PARTICLE_EFFECT_BOUNCE) && cg_particle_quality->integer) {
 					VectorCopy(p->part.org, old_origin);
 				}
 
@@ -309,16 +308,14 @@ void Cg_AddParticles(void) {
 					p->vel[i] += p->accel[i] * delta;
 				}
 
-				if ((p->effects & PARTICLE_EFFECT_PHYSICAL) && cg_particle_quality->integer) {
+				if ((p->effects & PARTICLE_EFFECT_BOUNCE) && cg_particle_quality->integer) {
 					const vec_t half_scale = p->part.scale * 0.5;
-					const vec3_t particle_mins = { -half_scale, -half_scale, -half_scale };
-					const vec3_t particle_maxs = { half_scale, half_scale, half_scale };
-					const cm_trace_t tr = cgi.Trace(old_origin, p->part.org, particle_mins, particle_maxs, 0, MASK_SOLID);
+					const vec3_t mins = { -half_scale, -half_scale, -half_scale };
+					const vec3_t maxs = { half_scale, half_scale, half_scale };
+					const cm_trace_t tr = cgi.Trace(old_origin, p->part.org, mins, maxs, 0, MASK_SOLID);
 
 					if (tr.fraction < 1.0) {
-
 						Cg_ClipVelocity(p->vel, tr.plane.normal, p->vel, p->bounce);
-
 						VectorCopy(tr.end, p->part.org);
 					}
 				}
@@ -326,11 +323,11 @@ void Cg_AddParticles(void) {
 				_Bool free = false;
 
 				switch (p->part.type) {
-					case PARTICLE_WEATHER:
-						free = Cg_UpdateParticle_Weather(p, delta, delta_squared);
-						break;
 					case PARTICLE_SPARK:
 						free = Cg_UpdateParticle_Spark(p, delta, delta_squared);
+						break;
+					case PARTICLE_WEATHER:
+						free = Cg_UpdateParticle_Weather(p, delta, delta_squared);
 						break;
 					default:
 						break;
@@ -360,8 +357,12 @@ void Cg_AddParticles(void) {
 				}
 			}
 
+			_Bool cull = false;
+
 			// add the particle if it's visible on our screen
-			if (p->part.type == PARTICLE_BEAM || p->part.type == PARTICLE_SPARK || p->part.type == PARTICLE_WIRE) {
+			if (p->part.type == PARTICLE_BEAM ||
+				p->part.type == PARTICLE_SPARK ||
+				p->part.type == PARTICLE_WIRE) {
 				vec3_t distance, center;
 
 				VectorSubtract(p->part.end, p->part.org, distance);
@@ -370,7 +371,6 @@ void Cg_AddParticles(void) {
 				cull = cgi.CullSphere(center, radius);
 			} else {
 				const vec_t radius = p->part.scale * 0.5;
-
 				cull = cgi.CullSphere(p->part.org, radius);
 			}
 

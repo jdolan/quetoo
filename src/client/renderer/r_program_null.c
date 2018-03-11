@@ -29,6 +29,8 @@ typedef struct {
 	r_uniform1i_t tintmap;
 	
 	r_uniform_fog_t fog;
+
+	r_uniform1f_t time_fraction;
 	
 	r_uniform4fv_t tints[TINT_TOTAL];
 } r_null_program_t;
@@ -74,12 +76,17 @@ void R_InitProgram_null(r_program_t *program) {
 		R_ProgramVariable(&p->tints[i], R_UNIFORM_VEC4, va("TINTS[%i]", i), true);
 	}
 
+	R_ProgramVariable(&p->time_fraction, R_UNIFORM_FLOAT, "TIME_FRACTION", true);
+
 	R_ProgramParameter1i(&p->tintmap, 0);
 
 	R_ProgramParameter1i(&p->sampler0, R_TEXUNIT_DIFFUSE);
 	R_ProgramParameter1i(&p->sampler6, R_TEXUNIT_TINTMAP);
 
 	R_ProgramParameter1f(&p->fog.density, 0.0);
+
+	R_ProgramParameter1f(&p->time_fraction, 0.0f);
+
 }
 
 /**
@@ -97,6 +104,16 @@ void R_UseFog_null(const r_fog_parameters_t *fog) {
 	} else {
 		R_ProgramParameter1f(&p->fog.density, 0.0);
 	}
+}
+
+/**
+ * @brief
+ */
+void R_UseInterpolation_null(const vec_t time_fraction) {
+
+	r_null_program_t *p = &r_null_program;
+
+	R_ProgramParameter1f(&p->time_fraction, time_fraction);
 }
 
 /**

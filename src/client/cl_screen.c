@@ -254,10 +254,6 @@ static void Cl_DrawRendererStats(void) {
 						  r_view.buffer_stats[R_BUFFER_ELEMENT].num_full_uploads, r_view.buffer_stats[R_BUFFER_ELEMENT].size_uploaded), CON_COLOR_GREEN);
 	
 	y += ch;
-	R_DrawString(0, y, va("Uniform Buffers: %u partial, %u full; %" PRIuPTR " bytes",
-	                      r_view.buffer_stats[R_BUFFER_UNIFORM].num_partial_uploads,
-						  r_view.buffer_stats[R_BUFFER_UNIFORM].num_full_uploads, r_view.buffer_stats[R_BUFFER_UNIFORM].size_uploaded), CON_COLOR_GREEN);
-	y += ch;
 
 	R_DrawString(0, y, va("%d total buffers created (%d bytes)", R_GetNumAllocatedBuffers(),
 	                      R_GetNumAllocatedBufferBytes()), CON_COLOR_WHITE);
@@ -414,8 +410,6 @@ void Cl_UpdateScreen(void) {
 		Cl_DrawConsole();
 	}
 
-	// FIXME: This seems to have a leak state somewhere; calling
-	// Cl_DrawConsole after this appears to cause depth sorting issues
 	R_Draw2D();
 
 	if (cls.key_state.dest == KEY_UI || cls.state == CL_LOADING) {

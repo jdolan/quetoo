@@ -59,6 +59,10 @@ static void updateBindings(View *self) {
 
 	CvarSlider *this = (CvarSlider *) self;
 
+	if (this->slider.step >= 1.0) {
+		$((Slider *) this, setLabelFormat, "%g");
+	}
+
 	if (this->var) {
 		$((Slider *) this, setValue, this->var->value);
 	}
@@ -75,7 +79,7 @@ static void setValue(Slider *self, double value) {
 
 	const CvarSlider *this = (CvarSlider *) self;
 	if (this->var) {
-		cgi.CvarSetValue(this->var->name, value);
+		cgi.SetCvarValue(this->var->name, value);
 	}
 }
 
@@ -99,10 +103,6 @@ static CvarSlider *initWithVariable(CvarSlider *self, cvar_t *var, double min, d
 		this->max = max;
 		this->step = step;
 		this->snapToStep = true;
-
-		if (this->step >= 1.0) {
-			$(this, setLabelFormat, "%0.0f");
-		}
 	}
 
 	return self;

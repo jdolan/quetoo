@@ -68,9 +68,10 @@ static void loadView(ViewController *self) {
 		MakeOutlet("ok", &this->okButton)
 	);
 
-	cgi.WakeView(self->view, "ui/main/DialogViewController.json", outlets);
+	$(self->view, awakeWithResourceName, "ui/main/DialogViewController.json");
+	$(self->view, resolve, outlets);
 
-	self->view->stylesheet = cgi.Stylesheet("ui/main/DialogViewController.css");
+	self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/main/DialogViewController.css");
 	assert(self->view->stylesheet);
 
 	$(this->message->text, setText, this->dialog.message);

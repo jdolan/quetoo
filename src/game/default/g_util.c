@@ -641,7 +641,7 @@ const g_item_t *G_IsFlagBearer(const g_entity_t *ent) {
 		}
 
 		g_entity_t *f = G_FlagForTeam(&g_teamlist[i]);
-			
+
 		if (f && ent->client->locals.inventory[f->locals.item->index]) {
 			return f->locals.item;
 		}

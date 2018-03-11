@@ -127,7 +127,6 @@ void Sv_UnlinkEntity(g_entity_t *ent) {
  */
 void Sv_LinkEntity(g_entity_t *ent) {
 	int32_t leafs[MAX_ENT_LEAFS];
-	int32_t clusters[MAX_ENT_CLUSTERS];
 	int32_t top_node;
 
 	if (ent == svs.game->entities) { // never bother with the world
@@ -168,8 +167,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 	sent->areas[0] = sent->areas[1] = 0;
 
 	// get all leafs, including solids
-	const size_t len = Cm_BoxLeafnums(ent->abs_mins, ent->abs_maxs, leafs, lengthof(leafs),
-	                                  &top_node, 0);
+	const size_t len = Cm_BoxLeafnums(ent->abs_mins, ent->abs_maxs, leafs, lengthof(leafs), &top_node, 0);
 
 	// set areas, allowing entities (doors) to occupy up to two
 	for (size_t i = 0; i < len; i++) {
@@ -200,7 +198,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 
 			int32_t c;
 			for (c = 0; c < sent->num_clusters; c++)
-				if (clusters[c] == cluster) {
+				if (sent->clusters[c] == cluster) {
 					break;
 				}
 

@@ -62,13 +62,16 @@ static void loadView(ViewController *self) {
 		MakeOutlet("hookStyle", &hookStyle)
 	);
 
-	cgi.WakeView(self->view, "ui/controls/MovementCombatViewController.json", outlets);
-	self->view->stylesheet = cgi.Stylesheet("ui/controls/MovementCombatViewController.css");
-
+	$(self->view, awakeWithResourceName, "ui/controls/MovementCombatViewController.json");
+	$(self->view, resolve, outlets);
+	
+	self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/controls/MovementCombatViewController.css");
+	assert(self->view->stylesheet);
+	
 	$(self->view, enumerateSelection, "BindTextView", setDelegate, self);
 
-	$(hookStyle, addOption, "pull", (ident) HOOK_PULL);
-	$(hookStyle, addOption, "swing", (ident) HOOK_SWING);
+	$(hookStyle, addOption, "pull", NULL);
+	$(hookStyle, addOption, "swing", NULL);
 }
 
 #pragma mark - Class lifecycle

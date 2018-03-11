@@ -27,36 +27,24 @@
 
 #if defined(_WIN32)
 	#include <windows.h>
-
-	#if defined(_MSC_VER)
-		#include <DbgHelp.h>
-	#endif
-
 	#include <shlobj.h>
-	#define dlopen(file_name, mode) LoadLibrary(file_name)
-
-	static const char *dlerror() {
-		char num_buffer[32];
-		const DWORD err = GetLastError();
-
-		itoa(err, num_buffer, 10);
-		return va("Error loading library: %lu", err);
-	}
-
-	#define dlsym(handle, symbol) GetProcAddress(handle, symbol)
-	#define dlclose(handle) FreeLibrary(handle)
-#else
-	#include <sys/time.h>
-	#include <dlfcn.h>
 #endif
 
 #if defined(__APPLE__)
 	#include <mach-o/dyld.h>
 #endif
 
+#if HAVE_DLFCN_H
+	#include <dlfcn.h>
+#endif
+
 #if HAVE_EXECINFO
 	#include <execinfo.h>
 	#define MAX_BACKTRACE_SYMBOLS 50
+#endif
+
+#if HAVE_SYS_TIME_H
+	#include <sys/time.h>
 #endif
 
 #include <SDL2/SDL.h>
@@ -122,13 +110,12 @@ const char *Sys_UserDir(void) {
 /**
  * @brief
  */
-void Sys_OpenLibrary(const char *name, void **handle) {
-	*handle = NULL;
+void *Sys_OpenLibrary(const char *name, _Bool global) {
 
 #if defined(_WIN32)
-	char *so_name = va("%s.dll", name);
+	const char *so_name = va("%s.dll", name);
 #else
-	char *so_name = va("%s.so", name);
+	const char *so_name = va("%s.so", name);
 #endif
 
 	if (Fs_Exists(so_name)) {
@@ -137,8 +124,9 @@ void Sys_OpenLibrary(const char *name, void **handle) {
 		g_snprintf(path, sizeof(path), "%s%c%s", Fs_RealDir(so_name), G_DIR_SEPARATOR, so_name);
 		Com_Print("Trying %s...\n", path);
 
-		if ((*handle = dlopen(path, RTLD_NOW))) {
-			return;
+		void *handle = dlopen(path, RTLD_LAZY | (global ? RTLD_GLOBAL : RTLD_LOCAL));
+		if (handle) {
+			return handle;
 		}
 
 		Com_Error(ERROR_DROP, "%s\n", dlerror());
@@ -150,11 +138,8 @@ void Sys_OpenLibrary(const char *name, void **handle) {
 /**
  * @brief Closes an open game module.
  */
-void Sys_CloseLibrary(void **handle) {
-	if (*handle) {
-		dlclose(*handle);
-	}
-	*handle = NULL;
+void Sys_CloseLibrary(void *handle) {
+	dlclose(handle);
 }
 
 /**
@@ -162,22 +147,16 @@ void Sys_CloseLibrary(void **handle) {
  * entry_point is resolved and invoked with the specified parameters, its
  * return value returned by this function.
  */
-void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, void *params) {
+void *Sys_LoadLibrary(void *handle, const char *entry_point, void *params) {
 	typedef void *EntryPointFunc(void *);
 	EntryPointFunc *EntryPoint;
 
-	if (*handle) {
-		Com_Warn("%s: handle already open\n", name);
-		Sys_CloseLibrary(handle);
-	}
+	assert(handle);
+	assert(entry_point);
 
-	Sys_OpenLibrary(name, handle);
-
-	EntryPoint = (EntryPointFunc *) dlsym(*handle, entry_point);
-
+	EntryPoint = (EntryPointFunc *) dlsym(handle, entry_point);
 	if (!EntryPoint) {
-		Sys_CloseLibrary(handle);
-		Com_Error(ERROR_DROP, "%s: Failed to resolve %s\n", name, entry_point);
+		Com_Error(ERROR_DROP, "Failed to resolve entry point: %s\n", entry_point);
 	}
 
 	return EntryPoint(params);

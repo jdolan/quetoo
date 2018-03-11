@@ -66,13 +66,16 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 
 		View *this = (View *) self;
 
-		cgi.WakeView(this, "ui/main/MainView.json", outlets);
-		this->stylesheet = cgi.Stylesheet("ui/main/MainView.css");
+		$(this, awakeWithResourceName, "ui/main/MainView.json");
+		$(this, resolve, outlets);
 
-		cgi.SetImage(self->background, va("ui/backgrounds/%d", Random() % 6));
-		cgi.SetImage(self->logo, "ui/logo");
+		this->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/main/MainView.css");
+		assert(this->stylesheet);
+		
+		$(self->background, setImageWithResourceName, va("ui/backgrounds/%d.tga", Random() % 6));
+		$(self->logo, setImageWithResourceName, "ui/logo.tga");
 
-		$(self->version->text, setText, va("Quetoo %s", cgi.CvarGet("version")->string));
+		$(self->version->text, setText, va("Quetoo %s", cgi.GetCvarString("version")));
 	}
 
 	return self;

@@ -68,4 +68,4 @@ struct MovementCombatViewControllerInterface {
  * @return The MovementCombatViewController Class.
  * @memberof MovementCombatViewController
  */
-Class *_MovementCombatViewController(void);
+CGAME_EXPORT Class *_MovementCombatViewController(void);

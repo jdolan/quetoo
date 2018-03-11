@@ -166,19 +166,11 @@ static _Bool ParseEntity(void) {
  * @brief Parses the d_bsp.entity_string string into entities
  */
 void ParseEntities(void) {
-	int32_t subdivide;
 
 	ParseFromMemory(bsp_file.entity_string, bsp_file.entity_string_size);
 
 	num_entities = 0;
 	while (ParseEntity()) {
-	}
-
-	subdivide = atoi(ValueForKey(&entities[0], "subdivide"));
-
-	if (subdivide >= 256 && subdivide <= 2048) {
-		Com_Verbose("Using subdivide %d from worldspawn.\n", subdivide);
-		subdivide_size = subdivide;
 	}
 }
 

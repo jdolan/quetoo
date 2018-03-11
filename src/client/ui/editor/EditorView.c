@@ -39,6 +39,8 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 	self = (EditorView *) super(View, self, initWithFrame, frame);
 	if (self) {
 
+		$((View *) self, awakeWithResourceName, "ui/editor/EditorView.json");
+
 		Outlet outlets[] = MakeOutlets(
 			MakeOutlet("name", &self->name),
 			MakeOutlet("diffuse", &self->diffuse),
@@ -51,9 +53,9 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 			MakeOutlet("save", &self->save)
 		);
 
-		Ui_WakeView((View *) self, "ui/editor/EditorView.json", outlets);
+		$((View *) self, resolve, outlets);
 
-		self->view.stylesheet = Ui_Stylesheet("ui/editor/EditorView.css");
+		self->view.stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/editor/EditorView.css");
 		assert(self->view.stylesheet);
 	}
 

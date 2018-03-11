@@ -611,6 +611,10 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		return; // spectating
 	}
 
+	if (!ps->stats[STAT_WEAPONS]) {
+		return; // dead
+	}
+
 	if (center_print.time > cgi.client->unclamped_time) {
 		return;
 	}
@@ -644,6 +648,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		cg_draw_crosshair_color->modified = false;
 
 		color_t color;
+
 		if (!g_strcmp0(cg_draw_crosshair_color->string, "default")) {
 			color.r = color.g = color.b = 255;
 		} else {
@@ -653,7 +658,80 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		ColorToVec4(color, crosshair.color);
 	}
 
-	vec_t alpha = 1.0, scale = cg_draw_crosshair_scale->value * (cgi.context->high_dpi ? 0.25 : 0.125);
+	if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_WHITE) {
+		vec_t health_frac = Clamp(ps->stats[STAT_HEALTH] / 100.0, 0.0, 1.0);
+
+		crosshair.color[0] = 1.0;
+		crosshair.color[1] = health_frac;
+		crosshair.color[2] = health_frac;
+	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_WHITE_GREEN) {
+		vec_t health_frac = Clamp(ps->stats[STAT_HEALTH] / 100.0, 0.0, 1.0);
+		vec_t health_over = Clamp(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 1.0);
+
+		if (ps->stats[STAT_HEALTH] <= 100) {
+			crosshair.color[0] = 1.0;
+			crosshair.color[1] = health_frac;
+			crosshair.color[2] = health_frac;
+		} else {
+			crosshair.color[0] = 1.0 - health_over;
+			crosshair.color[1] = 1.0;
+			crosshair.color[2] = 1.0 - health_over;
+		}
+	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_YELLOW_WHITE) {
+		vec_t health_frac_low = Clamp((ps->stats[STAT_HEALTH] - 15) / 50.0, 0.0, 1.0);
+		vec_t health_frac_medium = Clamp((ps->stats[STAT_HEALTH] - 65) / 35.0, 0.0, 1.0);
+
+		if (ps->stats[STAT_HEALTH] <= 20) {
+			crosshair.color[0] = 1.0;
+			crosshair.color[1] = 0.0;
+			crosshair.color[2] = 0.0;
+		} else if (ps->stats[STAT_HEALTH] <= 70) {
+			crosshair.color[0] = 1.0;
+			crosshair.color[1] = health_frac_low;
+			crosshair.color[2] = 0.0;
+		} else {
+			crosshair.color[0] = 1.0;
+			crosshair.color[1] = 1.0;
+			crosshair.color[2] = health_frac_medium;
+		}
+	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_YELLOW_WHITE_GREEN) {
+		vec_t health_frac_low = Clamp((ps->stats[STAT_HEALTH] - 15) / 50.0, 0.0, 1.0);
+		vec_t health_frac_medium = Clamp((ps->stats[STAT_HEALTH] - 65) / 35.0, 0.0, 1.0);
+		vec_t health_over = Clamp(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 1.0);
+
+		if (ps->stats[STAT_HEALTH] <= 20) {
+			crosshair.color[0] = 1.0;
+			crosshair.color[1] = 0.0;
+			crosshair.color[2] = 0.0;
+		} else if (ps->stats[STAT_HEALTH] <= 70) {
+			crosshair.color[0] = 1.0;
+			crosshair.color[1] = health_frac_low;
+			crosshair.color[2] = 0.0;
+		} else if (ps->stats[STAT_HEALTH] <= 100) {
+			crosshair.color[0] = 1.0;
+			crosshair.color[1] = 1.0;
+			crosshair.color[2] = health_frac_medium;
+		} else {
+			crosshair.color[0] = 1.0 - health_over;
+			crosshair.color[1] = 1.0;
+			crosshair.color[2] = 1.0 - health_over;
+		}
+	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_WHITE_GREEN) {
+		vec_t health_over = (1.0 - Clamp(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 1.0));
+
+		if (ps->stats[STAT_HEALTH] <= 100) {
+			crosshair.color[0] = 1.0;
+			crosshair.color[1] = 1.0;
+			crosshair.color[2] = 1.0;
+		} else {
+			crosshair.color[0] = 1.0 - health_over;
+			crosshair.color[1] = 1.0;
+			crosshair.color[2] = 1.0 - health_over;
+		}
+	}
+
+	vec_t scale = cg_draw_crosshair_scale->value * CROSSHAIR_SCALE * MVC_WindowScale(NULL, NULL, NULL);
+	vec_t alpha = cg_draw_crosshair_alpha->value;
 
 	// pulse the crosshair size and alpha based on pickups
 	if (cg_draw_crosshair_pulse->value) {
@@ -668,8 +746,8 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		const uint32_t delta = cgi.client->unclamped_time - cg_hud_locals.pulse.time;
 		if (delta < 300) {
 			const vec_t frac = 1.0 - (delta / 300.0);
-			scale += cg_draw_crosshair_pulse->value * frac;
-			alpha += cg_draw_crosshair_pulse->value * frac;
+			scale += cg_draw_crosshair_pulse->value * CROSSHAIR_SCALE * frac * scale;
+			alpha += cg_draw_crosshair_pulse->value * CROSSHAIR_SCALE * frac;
 		}
 
 		crosshair.color[3] = alpha;
@@ -1283,9 +1361,13 @@ void Cg_LoadHudMedia(void) {
  * @brief
  */
 void Cg_InitHud(void) {
-	cgi.Cmd("cg_weapon_next", Cg_Weapon_Next_f, CMD_CGAME, "Open the weapon bar to the next weapon. In chasecam, switches to next target.");
-	cgi.Cmd("cg_weapon_previous", Cg_Weapon_Prev_f, CMD_CGAME, "Open the weapon bar to the previous weapon. In chasecam, switches to previous target.");
+	cgi.AddCmd("cg_weapon_next", Cg_Weapon_Next_f, CMD_CGAME,
+			   "Open the weapon bar to the next weapon. In chasecam, switches to next target.");
+	cgi.AddCmd("cg_weapon_previous", Cg_Weapon_Prev_f, CMD_CGAME,
+			   "Open the weapon bar to the previous weapon. In chasecam, switches to previous target.");
 
-	cg_select_weapon_delay = cgi.Cvar("cg_select_weapon_delay", "250", CVAR_ARCHIVE, "The amount of time, in milliseconds, to wait between changing weapons in the scroll view. Clicking will override this value and switch immediately.");
-	cg_select_weapon_interval = cgi.Cvar("cg_select_weapon_interval", "750", CVAR_ARCHIVE, "The amount of time, in milliseconds, to show the weapon bar after changing weapons.");
+	cg_select_weapon_delay = cgi.AddCvar("cg_select_weapon_delay", "250", CVAR_ARCHIVE,
+										 "The amount of time, in milliseconds, to wait between changing weapons in the scroll view. Clicking will override this value and switch immediately.");
+	cg_select_weapon_interval = cgi.AddCvar("cg_select_weapon_interval", "750", CVAR_ARCHIVE,
+											"The amount of time, in milliseconds, to show the weapon bar after changing weapons.");
 }

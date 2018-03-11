@@ -35,7 +35,7 @@
     <QuetooObjectivelyPath>$(SolutionDir)..\..\Objectively\</QuetooObjectivelyPath>
     <QuetooObjectivelyWinPath>$(QuetooObjectivelyPath)Objectively.vs15\</QuetooObjectivelyWinPath>
     <QuetooObjectivelyLibsPath>$(QuetooObjectivelyWinPath)libs\</QuetooObjectivelyLibsPath>
-    <QuetooObjectivelyIncludePath>$(QuetooObjectivelyPath)Sources\;$(QuetooObjectivelyWinPath)Sources\</QuetooObjectivelyIncludePath>
+    <QuetooObjectivelyIncludePath>$(QuetooObjectivelyPath)Sources\;$(QuetooObjectivelyWinPath)Sources\;$(QuetooObjectivelyWinPath)Sources\gnu\</QuetooObjectivelyIncludePath>
     <QuetooObjectivelyLibraryPath>$(QuetooObjectivelyWinPath)bin\$(Platform)$(Configuration)\</QuetooObjectivelyLibraryPath>
 
     <QuetooObjectivelyMVCPath>$(SolutionDir)..\..\ObjectivelyMVC\</QuetooObjectivelyMVCPath>
@@ -70,6 +70,9 @@
     <QuetooPthreadPath>$(QuetooObjectivelyLibsPath)pthread\</QuetooPthreadPath>
     <QuetooPthreadIncludePath>$(QuetooPthreadPath)include\</QuetooPthreadIncludePath>
     <QuetooPthreadLibraryPath>$(QuetooPthreadPath)lib\$(Platform)\</QuetooPthreadLibraryPath>
+
+    <QuetooDLFCNIncludePath>$(QuetooObjectivelyLibsPath)dlfcn\</QuetooDLFCNIncludePath>
+    <QuetooDLFCNLibraryPath>$(QuetooDLFCNIncludePath)$(Platform)\</QuetooDLFCNLibraryPath>
 
     <QuetooIconvPath>$(QuetooObjectivelyLibsPath)iconv\</QuetooIconvPath>
     <QuetooIconvIncludePath>$(QuetooIconvPath)include\</QuetooIconvIncludePath>
@@ -107,14 +110,14 @@
     <OpenALIncludePath>$(OpenALPath)\</OpenALIncludePath>
     <OpenALLibraryPath>$(OpenALPath)\libs\$(Platform)\</OpenALLibraryPath>
 
-    <QuetooFullIncludePath>$(OpenALIncludePath);$(QuetooIncludePath);$(QuetooPath)src\client\;$(QuetooPath)src\client\ui\;$(QuetooPath)src\cgame\default\;$(QuetooPath)src\cgame\default\ui\common\;$(QuetooPath)src\cgame\default\ui\home\;$(QuetooPath)src\cgame\default\ui\main\;$(QuetooPath)src\cgame\default\ui\play\;$(QuetooPath)src\cgame\default\ui\controls\;$(QuetooPath)src\cgame\default\ui\settings\;$(QuetooObjectivelyIncludePath);$(QuetooObjectivelyMVCIncludePath);$(QuetooPthreadIncludePath);$(QuetooIconvIncludePath);$(QuetooCURLIncludePath);$(QuetooGlibIncludePath);$(QuetooLibXMLIncludePath);$(QuetooPhysFSIncludePath);$(QuetooZlibIncludePath);$(QuetooCursesIncludePath);$(QuetooFontConfigIncludePath);$(QuetooFreeTypeIncludePath);$(QuetooSDLIncludePath);$(QuetooSDLTTFIncludePath);$(QuetooSDLImageIncludePath);$(QuetoolibsndfileIncludePath)</QuetooFullIncludePath>
-    <QuetooFullLibraryPath>$(OpenALLibraryPath);$(QuetooLibraryPath);$(QuetooObjectivelyLibraryPath);$(QuetooObjectivelyMVCLibraryPath);$(QuetooPthreadLibraryPath);$(QuetooIconvLibraryPath);$(QuetooCURLLibraryPath);$(QuetooGlibLibraryPath);$(QuetooLibXMLLibraryPath);$(QuetooPhysFSLibraryPath);$(QuetooCursesLibraryPath);$(QuetooFontConfigLibraryPath);$(QuetooFreeTypeLibraryPath);$(QuetooSDLLibraryPath);$(QuetooSDLTTFLibraryPath);$(QuetooSDLImageLibraryPath);$(QuetoolibsndfileLibraryPath)</QuetooFullLibraryPath>
+    <QuetooFullIncludePath>$(OpenALIncludePath);$(QuetooIncludePath);$(QuetooPath)src\client\;$(QuetooPath)src\client\ui\;$(QuetooPath)src\cgame\default\;$(QuetooPath)src\cgame\default\ui\common\;$(QuetooPath)src\cgame\default\ui\home\;$(QuetooPath)src\cgame\default\ui\main\;$(QuetooPath)src\cgame\default\ui\play\;$(QuetooPath)src\cgame\default\ui\controls\;$(QuetooPath)src\cgame\default\ui\settings\;$(QuetooObjectivelyIncludePath);$(QuetooObjectivelyMVCIncludePath);$(QuetooPthreadIncludePath);$(QuetooIconvIncludePath);$(QuetooCURLIncludePath);$(QuetooGlibIncludePath);$(QuetooLibXMLIncludePath);$(QuetooPhysFSIncludePath);$(QuetooZlibIncludePath);$(QuetooCursesIncludePath);$(QuetooFontConfigIncludePath);$(QuetooFreeTypeIncludePath);$(QuetooSDLIncludePath);$(QuetooSDLTTFIncludePath);$(QuetooSDLImageIncludePath);$(QuetoolibsndfileIncludePath);$(QuetooDLFCNIncludePath)</QuetooFullIncludePath>
+    <QuetooFullLibraryPath>$(OpenALLibraryPath);$(QuetooLibraryPath);$(QuetooObjectivelyLibraryPath);$(QuetooObjectivelyMVCLibraryPath);$(QuetooPthreadLibraryPath);$(QuetooIconvLibraryPath);$(QuetooCURLLibraryPath);$(QuetooGlibLibraryPath);$(QuetooLibXMLLibraryPath);$(QuetooPhysFSLibraryPath);$(QuetooCursesLibraryPath);$(QuetooFontConfigLibraryPath);$(QuetooFreeTypeLibraryPath);$(QuetooSDLLibraryPath);$(QuetooSDLTTFLibraryPath);$(QuetooSDLImageLibraryPath);$(QuetoolibsndfileLibraryPath);$(QuetooDLFCNLibraryPath)</QuetooFullLibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>$(QuetooPhysFSDefs);WIN32_LEAN_AND_MEAN;SDL_MAIN_HANDLED;NOCRYPT;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>$(QuetooPhysFSDefs);HAVE_DLFCN_H=1;G_DISABLE_DEPRECATED;WIN32_LEAN_AND_MEAN;SDL_MAIN_HANDLED;NOCRYPT;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC=1;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CLanguageStandard>gnu99</CLanguageStandard>
       <AdditionalOptions>%(AdditionalOptions) -ferror-limit=0 -Weverything -Wno-unreachable-code-return -Wno-unreachable-code-break -Wno-unused-parameter -Wno-reserved-id-macro -Wno-conversion -Wno-double-promotion -Wno-documentation -Wno-switch-enum -Wno-float-equal -Wno-undef -Wno-gnu-conditional-omitted-operand -Wno-cast-qual -Wno-vla -Wno-documentation-unknown-command -Wno-disabled-macro-expansion -Wno-gnu-statement-expression -Wno-dollar-in-identifier-extension -Wno-cast-align -Wno-language-extension-token -Wno-newline-eof -Wno-date-time -Wno-covered-switch-default -Wno-bad-function-cast -Wno-gnu-zero-variadic-macro-arguments -Wno-gcc-compat -Wno-pointer-arith -Wno-assign-enum -Wno-shadow</AdditionalOptions>
     </ClCompile>

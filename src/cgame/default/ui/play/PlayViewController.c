@@ -51,7 +51,7 @@ static void loadView(ViewController *self) {
 
 	PlayViewController *this = (PlayViewController *) self;
 
-	View *view = cgi.View("ui/play/PlayViewController.json", NULL);
+	View *view = $$(View, viewWithResourceName, "ui/play/PlayViewController.json", NULL);
 	assert(view);
 	
 	$(self, setView, view);

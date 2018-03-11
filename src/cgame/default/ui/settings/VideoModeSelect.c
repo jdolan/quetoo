@@ -39,6 +39,13 @@ static void dealloc(Object *self) {
 #pragma mark - View
 
 /**
+ * @see View::init(View *)
+ */
+static View *init(View *self) {
+	return (View *) $((VideoModeSelect *) self, initWithFrame, NULL);
+}
+
+/**
  * @see View::updateBindings(View *)
  */
 static void updateBindings(View *self) {
@@ -91,12 +98,7 @@ static void updateBindings(View *self) {
  */
 static VideoModeSelect *initWithFrame(VideoModeSelect *self, const SDL_Rect *frame) {
 
-	self = (VideoModeSelect *) super(Select, self, initWithFrame, frame);
-	if (self) {
-		$((View *) self, updateBindings);
-	}
-
-	return self;
+	return (VideoModeSelect *) super(Select, self, initWithFrame, frame);
 }
 
 #pragma mark - Class lifecycle
@@ -108,6 +110,7 @@ static void initialize(Class *clazz) {
 
 	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
+	((ViewInterface *) clazz->interface)->init = init;
 	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
 	((VideoModeSelectInterface *) clazz->interface)->initWithFrame = initWithFrame;

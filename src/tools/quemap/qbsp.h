@@ -162,13 +162,11 @@ extern _Bool nowater;
 extern _Bool nocsg;
 extern _Bool noweld;
 extern _Bool noshare;
-extern _Bool nosubdivide;
 extern _Bool notjunc;
 extern _Bool noopt;
 extern _Bool leaktest;
 
 extern int32_t block_xl, block_xh, block_yl, block_yh;
-extern int32_t subdivide_size;
 
 extern vec_t microvolume;
 

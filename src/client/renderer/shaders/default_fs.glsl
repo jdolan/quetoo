@@ -4,9 +4,11 @@
 
 #version 330
 
+#extension GL_ARB_texture_query_lod: enable
+
 #define FRAGMENT_SHADER
 
-#include "include/uniforms.glsl"
+#include "include/matrix.glsl"
 #include "include/fog.glsl"
 #include "include/noise3d.glsl"
 #include "include/tint.glsl"
@@ -53,6 +55,9 @@ uniform sampler2D SAMPLER8;
 
 uniform float ALPHA_THRESHOLD;
 
+uniform float TIME_FRACTION;
+uniform float TIME;
+
 in VertexData {
 	vec3 modelpoint;
 	vec2 texcoords[2];
@@ -64,18 +69,190 @@ in VertexData {
 	vec3 eye;
 };
 
-const vec3 two = vec3(2.0);
-const vec3 negHalf = vec3(-0.5);
-
 vec3 eyeDir;
 
 out vec4 fragColor;
 
 /**
+ * @brief Clamp value t to range [a,b] and map [a,b] to [0,1].
+ */
+float linearstep(float a, float b, float t) {
+	return clamp((t - a) / (b - a), 0.0, 1.0);
+}
+
+/**
+ * @brief Used to dither the image before quantizing, combats banding artifacts.
+ */
+void DitherFragment(inout vec3 color) {
+
+	// source: Alex Vlachos, Valve Software. Advanced VR Rendering, GDC2015.
+
+	vec3 pattern = vec3(dot(vec2(171.0, 231.0), gl_FragCoord.xy));
+	pattern.rgb = fract(pattern.rgb / vec3(103.0, 71.0, 97.0));
+	color = clamp(color + (pattern.rgb / 255.0), 0.0, 1.0);
+
+}
+
+/**
  * @brief Yield the parallax offset for the texture coordinate.
  */
-vec2 BumpTexcoord(in float height) {
-	return vec2(height * 0.04 - 0.02) * PARALLAX * eyeDir.xy;
+vec2 BumpTexcoord() {
+
+	// Negative PARRALAX is used to skip the expensive SelfShadowHeightmap() routine.
+	float SCALE = abs(PARALLAX);
+
+	float texLod = 0;
+
+	#if GL_ARB_texture_query_lod
+	{
+		// 2^7 = 128*128 largest texture size.
+		const float maxMipmaps = 7;
+
+		vec2 texSize = textureSize(SAMPLER3, 0).xy;
+		float numMipmaps = log2(max(texSize.x, texSize.y));
+
+		float minMip = numMipmaps - maxMipmaps;
+		float mipLevel = textureQueryLOD(SAMPLER3, texcoords[0]).y;
+
+		texLod = max(mipLevel, minMip);
+	}
+	#endif
+
+	float numSamples = 32;
+	float scale = SCALE * 0.04;
+
+	#if 1 // Optimizations
+	{
+		const float minSamples = 8;
+
+		#if 1 // Fade out at a distance.
+		const float near = 200.0;
+		const float far = 500.0;
+		float dist = 1.0 - linearstep(near, far, length(point));
+		numSamples = mix(minSamples, numSamples, dist);
+		scale *= dist;
+		#endif
+
+		#if 1 // Do less work on surfaces orthogonal to the view. Might give subtle peeling artifacts.
+		float orthogonality = clamp(dot(eyeDir, vec3(0.0, 0.0, 1.0)), 0.0, 1.0);
+		numSamples = mix(minSamples, numSamples, 1.0 - orthogonality*orthogonality);
+		#endif
+	}
+	#endif
+
+	if (scale == 0.0) {
+		return texcoords[0];
+	}
+
+	// Record keeping.
+	vec2  uvPrev;
+	vec2  uvCurr = texcoords[0] - (eyeDir.xy * scale * 0.5); // Middle-out parallaxing.
+	float surfaceHeightPrev;
+	float surfaceHeightCurr = textureLod(SAMPLER3, texcoords[0], texLod).a;
+	float rayHeightPrev;
+	float rayHeightCurr = 0.0;
+
+	if (SCALE < 0.5) {
+		return uvCurr + (eyeDir.xy * surfaceHeightCurr * scale);
+	}
+
+	// Height offset per step.
+	float stepHeight = 1.0 / numSamples;
+	// UV offset per step.
+	vec2 uvDelta = eyeDir.xy * scale / numSamples;
+
+	while (rayHeightCurr < surfaceHeightCurr) {
+
+		uvPrev = uvCurr;
+		uvCurr += uvDelta;
+		surfaceHeightPrev = surfaceHeightCurr;
+		surfaceHeightCurr = textureLod(SAMPLER3, uvCurr, texLod).a;
+		rayHeightPrev = rayHeightCurr;
+		rayHeightCurr += stepHeight;
+	}
+
+	// Take last two heights and interpolate between them.
+	float a = surfaceHeightCurr - rayHeightCurr;
+	float b = surfaceHeightPrev - rayHeightCurr + stepHeight;
+	float blend = a / (a - b);
+
+	return mix(uvCurr, uvPrev, blend);
+}
+
+/**
+ * @brief Highpasses the heightmap to approximate ambient occlusion.
+ */
+float AmbientOcclusionHeightmap() {
+	float heightA = texture(SAMPLER3, texcoords[0]).a;
+	float heightB = texture(SAMPLER3, texcoords[0], 4).a;
+	return (heightA - heightB) * 0.5 + 0.5;
+}
+
+/**
+ * @brief Traces a ray from a point on the heightmap
+ * towards the lightsource and checks for intersections.
+ */
+float SelfShadowHeightmap(vec3 lightDir, sampler2D tex, vec2 uv) {
+
+	// Only work on grazing angles.
+ 	float angle = (0.95 - lightDir.z) * 2.0;
+	if (angle == 0.0) {
+		return 1.0;
+	}
+
+	// Only work near the camera.
+	const float near = 750.0;
+	const float far = 1000.0;
+	float distance = linearstep(near, far, length(point));
+	if (distance > 1.0) {
+		return 1.0;
+	}
+
+	float texLod = 0;
+	#if GL_ARB_texture_query_lod
+	{
+		const float maxMipmaps = 7;
+
+		vec2 texSize = textureSize(tex, 0).xy;
+		float numMipmaps = log2(max(texSize.x, texSize.y));
+
+		float minMip = numMipmaps - maxMipmaps;
+		float mipLevel = textureQueryLOD(tex, uv).y;
+
+		texLod = max(mipLevel, minMip);
+	}
+	#endif
+
+	float shadowLength;
+	{
+		const float lengthScale = 0.2;
+		
+		// Noisy edges are better than blocky edges.
+		const float softness = 0.1;
+		float pattern = fract(dot(vec2(171.0, 231.0), gl_FragCoord.xy) / 600);
+
+		shadowLength = (PARALLAX * lengthScale) + (softness * pattern);
+		shadowLength *= 1.0 - distance;
+	}
+
+	vec3 ray;
+	vec3 rayDelta;
+	{
+		float numSamples = 8 + (16 * angle);
+		numSamples *= 1.0 - distance;
+		ray = vec3(uv.x, uv.y, textureLod(tex, uv, texLod).a);
+		rayDelta = vec3(lightDir.xy * shadowLength, 1.0) / numSamples;
+	}
+
+	while (ray.z < 1.0 - rayDelta.z) {
+		if (ray.z < textureLod(tex, ray.xy, texLod).a) {
+			// return linearstep(300, 500, dist);
+			return 0.0;
+		}
+		ray += rayDelta;
+	}
+
+	return 1.0;
 }
 
 /**
@@ -150,7 +327,7 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in floa
 void CausticFragment(in vec3 lightmap) {
 	if (CAUSTIC.ENABLE) {
 		vec3 model_scale = vec3(0.024, 0.024, 0.016);
-		float time_scale = 0.0006;
+		float time_scale = 0.6;
 		float caustic_thickness = 0.02;
 		float caustic_glow = 8.0;
 		float caustic_intensity = 0.3;
@@ -180,52 +357,50 @@ void CausticFragment(in vec3 lightmap) {
  */
 void main(void) {
 
-	// first resolve the flat shading
+	eyeDir = normalize(eye);
+
+	// texture coordinates
+	vec2 uvTextures = NORMALMAP && PARALLAX != 0.0 ? BumpTexcoord() : texcoords[0];
+	vec2 uvLightmap = texcoords[1];
+
+	// flat shading
 	vec3 lightmap = color.rgb;
 	vec3 deluxemap = vec3(0.0, 0.0, 1.0);
 
 	if (LIGHTMAP) {
-		lightmap = texture(SAMPLER1, texcoords[1]).rgb;
+		lightmap = texture(SAMPLER1, uvLightmap).rgb;
 
 		if (STAINMAP) {
-			vec4 stain = texture(SAMPLER8, texcoords[1]);
+			vec4 stain = texture(SAMPLER8, uvLightmap);
 			lightmap = mix(lightmap.rgb, stain.rgb, stain.a).rgb;
 		}
 	}
 
 	// then resolve any bump mapping
-	vec4 normalmap = vec4(normal, 1.0);
-	vec2 parallax = vec2(0.0);
-	
+	vec4 normalmap = vec4(normal, 0.5);
+
 	float lightmapBumpScale = 1.0;
 	float lightmapSpecularScale = 0.0;
 
 	if (NORMALMAP) {
-		eyeDir = normalize(eye);
 
 		if (DELUXEMAP) {
-			deluxemap = texture(SAMPLER2, texcoords[1]).rgb;
-			deluxemap = normalize(two * (deluxemap + negHalf));
+			deluxemap = texture(SAMPLER2, uvLightmap).rgb;
+			deluxemap = normalize(2.0 * (deluxemap + 0.5));
 		}
 
-		// resolve the initial normalmap sample
-		normalmap = texture(SAMPLER3, texcoords[0]);
+		normalmap = texture(SAMPLER3, uvTextures);
 
-		// resolve the parallax offset from the heightmap
-		parallax = BumpTexcoord(normalmap.w);
-
-		// resample the normalmap at the parallax offset
-		normalmap = texture(SAMPLER3, texcoords[0] + parallax);
-
-		normalmap.xyz = normalize(two * (normalmap.xyz + negHalf));
-		normalmap.xyz = normalize(vec3(normalmap.x * BUMP, normalmap.y * BUMP, normalmap.z));
+		// scale by BUMP
+		normalmap.xy = (normalmap.xy * 2.0 - 1.0) * BUMP;
+		normalmap.xyz = normalize(normalmap.xyz);
 
 		vec3 glossmap = vec3(0.5);
 
 		if (GLOSSMAP) {
-			glossmap = texture(SAMPLER4, texcoords[0] + parallax).rgb;
+			glossmap = texture(SAMPLER4, uvTextures).rgb;
 		} else if (DIFFUSE) {
-			vec4 diffuse = texture(SAMPLER0, texcoords[0] + parallax);
+			vec4 diffuse = texture(SAMPLER0, uvTextures);
 			float processedGrayscaleDiffuse = dot(diffuse.rgb * diffuse.a, vec3(0.299, 0.587, 0.114)) * 0.875 + 0.125;
 			float guessedGlossValue = clamp(pow(processedGrayscaleDiffuse * 3.0, 4.0), 0.0, 1.0) * 0.875 + 0.125;
 
@@ -246,13 +421,14 @@ void main(void) {
 	vec4 diffuse = vec4(1.0);
 
 	if (DIFFUSE) { // sample the diffuse texture, honoring the parallax offset
-		diffuse = ColorFilter(texture(SAMPLER0, texcoords[0] + parallax));
+		diffuse = ColorFilter(texture(SAMPLER0, uvTextures));
 
 		// see if diffuse can be discarded because of alpha test
-		if (diffuse.a < ALPHA_THRESHOLD)
+		if (diffuse.a < ALPHA_THRESHOLD) {
 			discard;
+		}
 
-		TintFragment(diffuse, texcoords[0] + parallax);
+		TintFragment(diffuse, uvTextures);
 	}
 
 	// add any dynamic lighting to yield the final fragment color
@@ -265,6 +441,14 @@ void main(void) {
 	fragColor.rgb *= exp(fragColor.rgb);
 	fragColor.rgb /= fragColor.rgb + 0.825;
 
-	// and fog
 	FogFragment(length(point), fragColor);
+	
+	DitherFragment(fragColor.rgb);
+
+	// TODO: This should be moved up in the pipeline and not do the duplicated work it's doing now.
+	vec3 lightDir = normalize(texture(SAMPLER2, uvLightmap).xyz * 2.0 - 1.0);
+	fragColor.rgb *= NORMALMAP && PARALLAX > 0.0
+		? vec3(SelfShadowHeightmap(lightDir, SAMPLER3, uvTextures)) * 0.5 + 0.5
+		: vec3(1.0);
+
 }

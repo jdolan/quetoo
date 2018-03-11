@@ -199,29 +199,39 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 
 	TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
 
-	if (g_strcmp0(column->identifier, _hostname) == 0) {
-		$(cell->text, setText, server->hostname);
-	} else if (g_strcmp0(column->identifier, _source) == 0) {
-		switch (server->source) {
-			case SERVER_SOURCE_INTERNET:
-				$(cell->text, setText, "Internet");
-				break;
-			case SERVER_SOURCE_USER:
-				$(cell->text, setText, "User");
-				break;
-			case SERVER_SOURCE_BCAST:
-				$(cell->text, setText, "LAN");
-				break;
+	if (strlen(server->error)) {
+		if (g_strcmp0(column->identifier, _hostname) == 0) {
+			$(cell->text, setText, server->error);
+			$((View *) cell, addClassName, "error");
+		} else {
+			$(cell->text, setText, NULL);
 		}
-	} else if (g_strcmp0(column->identifier, _name) == 0) {
-		$(cell->text, setText, server->name);
-	} else if (g_strcmp0(column->identifier, _gameplay) == 0) {
-		$(cell->text, setText, server->gameplay);
-	} else if (g_strcmp0(column->identifier, _players) == 0) {
-		$(cell->text, setText, va("%d/%d", server->clients, server->max_clients));
-	} else if (g_strcmp0(column->identifier, _ping) == 0) {
-		$(cell->text, setText, va("%3d", server->ping));
+	} else {
+		if (g_strcmp0(column->identifier, _hostname) == 0) {
+			$(cell->text, setText, server->hostname);
+		} else if (g_strcmp0(column->identifier, _source) == 0) {
+			switch (server->source) {
+				case SERVER_SOURCE_INTERNET:
+					$(cell->text, setText, "Internet");
+					break;
+				case SERVER_SOURCE_USER:
+					$(cell->text, setText, "User");
+					break;
+				case SERVER_SOURCE_BCAST:
+					$(cell->text, setText, "LAN");
+					break;
+			}
+		} else if (g_strcmp0(column->identifier, _name) == 0) {
+			$(cell->text, setText, server->name);
+		} else if (g_strcmp0(column->identifier, _gameplay) == 0) {
+			$(cell->text, setText, server->gameplay);
+		} else if (g_strcmp0(column->identifier, _players) == 0) {
+			$(cell->text, setText, va("%d/%d", server->clients, server->max_clients));
+		} else if (g_strcmp0(column->identifier, _ping) == 0) {
+			$(cell->text, setText, va("%3d", server->ping));
+		}
 	}
+
 
 	return cell;
 }
@@ -279,9 +289,12 @@ static void loadView(ViewController *self) {
 		MakeOutlet("connect", &connect)
 	);
 
-	cgi.WakeView(self->view, "ui/play/JoinServerViewController.json", outlets);
-	self->view->stylesheet = cgi.Stylesheet("ui/play/JoinServerViewController.css");
+	$(self->view, awakeWithResourceName, "ui/play/JoinServerViewController.json");
+	$(self->view, resolve, outlets);
 
+	self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/play/JoinServerViewController.css");
+	assert(self->view->stylesheet);
+	
 	$(this->serversTableView, addColumnWithIdentifier, _hostname);
 	$(this->serversTableView, addColumnWithIdentifier, _source);
 	$(this->serversTableView, addColumnWithIdentifier, _name);

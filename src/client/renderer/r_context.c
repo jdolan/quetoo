@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <ObjectivelyMVC/Types.h>
-
 #include "r_local.h"
 
 r_context_t r_context;
@@ -44,7 +42,6 @@ static void R_SetWindowIcon(void) {
  * @brief Initialize the OpenGL context, returning true on success, false on failure.
  */
 void R_InitContext(void) {
-	int32_t w, h;
 
 	memset(&r_context, 0, sizeof(r_context));
 
@@ -56,34 +53,30 @@ void R_InitContext(void) {
 
 	uint32_t flags = SDL_WINDOW_OPENGL;
 
-	const int display = Clamp(r_display->integer, 0, SDL_GetNumVideoDisplays());
+	const int display = Clamp(r_display->integer, 0, SDL_GetNumVideoDisplays() - 1);
 
 	if (r_allow_high_dpi->integer) {
 		flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 	}
 
+	int32_t w = Max(0, r_width->integer);
+	int32_t h = Max(0, r_height->integer);
+
+	if (w == 0 || h == 0) {
+		SDL_DisplayMode best;
+		SDL_GetDesktopDisplayMode(display, &best);
+
+		w = best.w;
+		h = best.h;
+	}
+
 	if (r_fullscreen->integer) {
-		w = Max(0, r_width->integer);
-		h = Max(0, r_height->integer);
-
-		if (r_width->integer == 0 && r_height->integer == 0) {
-			SDL_DisplayMode best;
-			SDL_GetDesktopDisplayMode(display, &best);
-
-			w = best.w;
-			h = best.h;
-		}
-
 		if (r_fullscreen->integer == 2) {
 			flags |= SDL_WINDOW_BORDERLESS;
 		} else {
 			flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 		}
-
 	} else {
-		w = Max(0, r_windowed_width->integer);
-		h = Max(0, r_windowed_height->integer);
-
 		flags |= SDL_WINDOW_RESIZABLE;
 	}
 
@@ -108,6 +101,8 @@ void R_InitContext(void) {
 			SDL_WINDOWPOS_CENTERED_DISPLAY(display), w, h, flags)) == NULL) {
 		Com_Error(ERROR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
 	}
+
+	Cvar_ForceSetInteger(r_display->name, SDL_GetWindowDisplayIndex(r_context.window));
 
 	Com_Print("  Setting up OpenGL context..\n");
 
@@ -174,18 +169,6 @@ void R_InitContext(void) {
  * @brief
  */
 void R_ShutdownContext(void) {
-	extern void Cl_HandleEvents(void);
-
-	SDL_FlushEvents(SDL_FIRSTEVENT, SDL_LASTEVENT);
-	
-	SDL_PushEvent(&(SDL_Event) {
-		.window.type = SDL_WINDOWEVENT,
-		.window.event = SDL_WINDOWEVENT_CLOSE
-	});
-
-	Cl_HandleEvents();
-
-	Cvar_SetValue(r_display->name, SDL_GetWindowDisplayIndex(r_context.window));
 
 	if (r_context.context) {
 		SDL_GL_DeleteContext(r_context.context);

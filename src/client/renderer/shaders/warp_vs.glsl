@@ -6,8 +6,8 @@
 
 #define VERTEX_SHADER
 
-#include "include/uniforms.glsl"
 #include "include/fog.glsl"
+#include "include/matrix.glsl"
 
 in vec3 POSITION;
 in vec2 TEXCOORD;

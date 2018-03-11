@@ -69,8 +69,6 @@ static void updateBindings(View *self) {
 		if ((ControlState) this->state != state) {
 			$(this, stateDidChange);
 		}
-	} else {
-		MVC_LogWarn("No variable set\n");
 	}
 }
 
@@ -84,9 +82,7 @@ static void action(Control *control, const SDL_Event *event, ident sender, ident
 	const CvarCheckbox *this = (CvarCheckbox *) control;
 
 	if (this->var) {
-		cgi.CvarSetValue(this->var->name, $(control, isSelected));
-	} else {
-		MVC_LogWarn("No variable set\n");
+		cgi.SetCvarInteger(this->var->name, $(control, isSelected));
 	}
 }
 

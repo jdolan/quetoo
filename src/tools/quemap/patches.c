@@ -276,7 +276,7 @@ static void SubdividePatch(patch_t *patch) {
 	VectorClear(split);
 
 	for (i = 0; i < 3; i++) {
-		if (floor((mins[i] + 1) / patch_subdivide) < floor((maxs[i] - 1) / patch_subdivide)) {
+		if (floor((mins[i] + 1) / patch_size) < floor((maxs[i] - 1) / patch_size)) {
 			split[i] = 1.0;
 			break;
 		}
@@ -286,7 +286,7 @@ static void SubdividePatch(patch_t *patch) {
 		return;
 	}
 
-	dist = patch_subdivide * (1 + floor((mins[i] + 1) / patch_subdivide));
+	dist = patch_size * (1 + floor((mins[i] + 1) / patch_size));
 	ClipWindingEpsilon(w, split, dist, ON_EPSILON, &o1, &o2);
 
 	// create a new patch
@@ -311,8 +311,8 @@ void SubdividePatches(void) {
 
 	// patch_size may come from worldspawn
 	const vec_t ps = FloatForKey(entities, "patch_size");
-	if (ps > 0.0 && (int32_t) patch_subdivide == (int32_t) PATCH_SUBDIVIDE) {
-		patch_subdivide = ps;
+	if (ps > 0.0 && (int32_t) patch_size == (int32_t) PATCH_SIZE) {
+		patch_size = ps;
 	}
 
 	for (int32_t i = 0; i < MAX_BSP_FACES; i++) {

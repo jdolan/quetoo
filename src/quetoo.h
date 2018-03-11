@@ -224,6 +224,9 @@ typedef enum {
 #define QUETOO_TICK_SECONDS	(1.0 / QUETOO_TICK_RATE)
 #define QUETOO_TICK_MILLIS	(1000 / QUETOO_TICK_RATE)
 
+#define SECONDS_TO_MILLIS(t)	(t * 1000.0)
+#define MILLIS_TO_SECONDS(t)	(t / 1000.0)
+
 /**
  * @brief Autocomplete function definition. You must fill "matches"
  * with any results that match the state of the current input buffer.
@@ -240,7 +243,7 @@ typedef void (*AutocompleteFunc)(const uint32_t argi, GList **matches);
  */
 typedef struct cvar_s {
 	const char *name;
-	const char *default_value;
+	const char *default_string;
 	char *string;
 	char *latched_string; // for CVAR_LATCH vars
 	vec_t value;

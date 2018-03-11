@@ -36,6 +36,7 @@ extern cvar_t *cl_timeout;
 
 // user_info
 extern cvar_t *name;
+extern cvar_t *active;
 extern cvar_t *message_level;
 extern cvar_t *password;
 extern cvar_t *rate;

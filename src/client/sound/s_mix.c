@@ -73,7 +73,7 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 			if (!ch->relative) {
 				VectorSubtract(ent->current.origin, ent->prev.origin, ch->velocity);
 			}
-	}
+		}
 
 		if (ent->current.solid == SOLID_BSP) {
 			const r_model_t *mod = cl.model_precache[ent->current.model1];
@@ -137,13 +137,20 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 
 	// offset pitch by sound-requested offset
 	if (ch->play.pitch) {
-		const vec_t octaves = (vec_t)pow(2, 0.69314718 * ((vec_t)ch->play.pitch / TONES_PER_OCTAVE));
+		const vec_t octaves = (vec_t) pow(2, 0.69314718 * ((vec_t) ch->play.pitch / TONES_PER_OCTAVE));
 		ch->pitch *= octaves;
 	}
 
+	// apply sound effects
 	if (s_env.effects.loaded) {
-		 if (Cm_PointContents(ch->position, 0) & MASK_LIQUID) {
+
+		if (Cm_PointContents(ch->position, 0) & MASK_LIQUID) {
 			ch->filter = s_env.effects.underwater;
+		} else {
+			const cm_trace_t tr = Cl_Trace(r_view.origin, ch->position, NULL, NULL, ch->play.entity, MASK_CLIP_PROJECTILE);
+			if (tr.fraction < 1.0) {
+				ch->filter = s_env.effects.occluded;
+			}
 		}
 	}
 
@@ -241,8 +248,7 @@ void S_MixChannels(void) {
 					S_CheckALError();
 
 					if (ch->play.flags & S_PLAY_AMBIENT) {
-//						FIXME: https://github.com/jdolan/quetoo/issues/519
-//						alSourcei(src, AL_SAMPLE_OFFSET, (ALint) (Randomf() * ch->sample->num_samples));
+						alSourcei(src, AL_SAMPLE_OFFSET, (ALint) (Randomf() * ch->sample->num_samples));
 						S_CheckALError();
 					}
 

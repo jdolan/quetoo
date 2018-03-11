@@ -1057,14 +1057,14 @@ static void Ai_Init(void) {
 	aim.gi->Print("  ^5Ai module initialization...\n");
 
 	const char *s = va("%s %s %s", VERSION, BUILD_HOST, REVISION);
-	cvar_t *ai_version = aim.gi->Cvar("ai_version", s, CVAR_NO_SET, NULL);
+	cvar_t *ai_version = aim.gi->AddCvar("ai_version", s, CVAR_NO_SET, NULL);
 
 	aim.gi->Print("  ^5Version %s\n", ai_version->string);
 
-	sv_max_clients = aim.gi->Cvar("sv_max_clients", 0, 0, "");
+	sv_max_clients = aim.gi->GetCvar("sv_max_clients");
 
-	ai_passive = aim.gi->Cvar("ai_passive", "0", 0, "Whether the bots will attack or not.");
-	ai_name_prefix = aim.gi->Cvar("ai_name_prefix", "^0[^1BOT^0] ^7", 0, NULL);
+	ai_passive = aim.gi->AddCvar("ai_passive", "0", 0, "Whether the bots will attack or not.");
+	ai_name_prefix = aim.gi->AddCvar("ai_name_prefix", "^0[^1BOT^0] ^7", 0, NULL);
 	ai_locals = (ai_locals_t *) aim.gi->Malloc(sizeof(ai_locals_t) * sv_max_clients->integer, MEM_TAG_AI);
 
 	Ai_InitSkins();

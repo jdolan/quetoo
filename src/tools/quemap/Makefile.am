@@ -61,7 +61,7 @@ quemap_LDADD = \
 	@SDL2_LIBS@ \
 	@XML_LIBS@
 
-if WINDOWS
+if MINGW
 
 .rc.o:
 	@WINDRES@ $^ -o $@

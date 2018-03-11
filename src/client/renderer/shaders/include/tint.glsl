@@ -8,16 +8,13 @@ uniform sampler2D SAMPLER6;
 
 void TintFragment(inout vec4 diffuse, in vec2 texcoord)
 {
+	// tintmaps use premultiplied alpha textures
 	if (TINTMAP) {
 		vec4 tint = texture(SAMPLER6, texcoord);
-
-		if (tint.a > 0) {
-			for (int i = 0; i < 3; i++) {
-				if (TINTS[i].a > 0 && tint[i] > 0) {
-					diffuse.rgb = mix(diffuse.rgb, TINTS[i].rgb * tint[i], tint.a);
-				}
-			}
-		}
+		diffuse.rgb *= 1.0 - tint.a;
+		diffuse.rgb += (TINTS[0].rgb * tint.r);
+		diffuse.rgb += (TINTS[1].rgb * tint.g);
+		diffuse.rgb += (TINTS[2].rgb * tint.b);
 	}
 }
 

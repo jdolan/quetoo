@@ -81,4 +81,4 @@ struct BindTextViewInterface {
  * @return The BindTextView Class.
  * @memberof BindTextView
  */
-Class *_BindTextView(void);
+CGAME_EXPORT Class *_BindTextView(void);

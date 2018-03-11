@@ -178,7 +178,7 @@ static void Cl_AdjustDemoPlayback(vec_t delta) {
 		return;
 	}
 
-	Cvar_SetValue("time_scale", Clamp(time_scale->value + delta, DEMO_PLAYBACK_STEP, 4.0));
+	Cvar_ForceSetValue(time_scale->name, Clamp(time_scale->value + delta, DEMO_PLAYBACK_STEP, 4.0));
 
 	Com_Print("Demo playback rate %d%%\n", (int32_t) (time_scale->value * 100));
 }

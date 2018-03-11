@@ -21,12 +21,8 @@
 
 #pragma once
 
-#if defined (__APPLE__)
-#include <OpenAL/OpenAL.h>
-#else
 #include <AL/al.h>
 #include <AL/alc.h>
-#endif
 
 #include "s_al_ext.h"
 
@@ -106,6 +102,7 @@ typedef struct s_music_s {
  * @brief Filters used by the sound system if s_effects is enabled & supported.
  */
 typedef struct {
+	ALuint occluded;
 	ALuint underwater;
 
 	_Bool loaded; // whether the above are currently loaded.

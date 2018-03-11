@@ -6,7 +6,7 @@
 
 #define FRAGMENT_SHADER
 
-#include "include/uniforms.glsl"
+#include "include/matrix.glsl"
 #include "include/fog.glsl"
 
 in VertexData {

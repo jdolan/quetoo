@@ -499,17 +499,27 @@ static void R_LoadShader(GLenum type, const char *name, r_shader_t *out_shader) 
  */
 static void R_InitProgramUniforms(r_program_t *program) {
 
-	for (r_matrix_id_t i = R_MATRIX_PROJECTION; i < R_MATRIX_TOTAL; i++) {
+	R_ProgramVariable(&program->matrix_uniforms[R_MATRIX_PROJECTION], R_UNIFORM_MAT4, "PROJECTION_MAT", false);
+	R_ProgramVariable(&program->matrix_uniforms[R_MATRIX_MODELVIEW], R_UNIFORM_MAT4, "MODELVIEW_MAT", false);
+	R_ProgramVariable(&program->matrix_uniforms[R_MATRIX_SHADOW], R_UNIFORM_MAT4, "SHADOW_MAT", false);
 
-		// initial dirtiness
-		program->matrix_dirty[i] = true;
+	// initial dirtiness
+	for (r_matrix_id_t i = R_MATRIX_PROJECTION; i <= R_MATRIX_SHADOW; i++) {
+		if (program->matrix_uniforms[i].location == -1) {
+			program->matrix_dirty[i] = false;
+		} else {
+			program->matrix_dirty[i] = true;
+		}
 	}
 
-	// hook up UBO
-	GLuint block_index = glGetUniformBlockIndex(program->id, "SharedData");
+	R_ProgramVariable(&program->global_uniforms[R_GLOBALS_COLOR], R_UNIFORM_VEC4, "GLOBAL_COLOR", false);
 
-	if (block_index != GL_INVALID_INDEX) {
-		glUniformBlockBinding(program->id, block_index, 8);
+	for (r_uniform_global_t i = R_GLOBALS_COLOR; i < R_GLOBALS_TOTAL; i++) {
+		if (program->global_uniforms[i].location == -1) {
+			program->global_dirty[i] = false;
+		} else {
+			program->global_dirty[i] = true;
+		}
 	}
 }
 
@@ -625,7 +635,7 @@ void R_SetupAttributes(void) {
 		if (mask & R_ATTRIB_MASK_COLOR) {
 			R_AttributePointer(R_ATTRIB_COLOR);
 		} else if (r_state.color_array_enabled) {
-			R_AttributeConstant4fv(R_ATTRIB_COLOR, r_state.uniforms.global_color);
+			R_AttributeConstant4fv(R_ATTRIB_COLOR, R_GetCurrentColor());
 		} else {
 			const vec_t white[] = { 1.0, 1.0, 1.0, 1.0 };
 			R_AttributeConstant4fv(R_ATTRIB_COLOR, white);
@@ -753,28 +763,6 @@ void R_SetupAttributes(void) {
 }
 
 /**
- * @brief Upload the shared uniform data block if it's changed
- */
-void R_SetupUniforms(void) {
-	
-	// update per-frame uniforms
-	if (r_state.uniforms.time != r_view.ticks) {
-
-		r_state.uniforms.time = r_view.ticks;
-		R_EXPAND_BOUNDS(r_state.uniforms_dirty, time);
-	}
-
-	if (r_state.uniforms_dirty.end == 0) {
-		return;
-	}
-	
-	R_UploadToSubBuffer(&r_state.uniforms_buffer, r_state.uniforms_dirty.begin, r_state.uniforms_dirty.end - r_state.uniforms_dirty.begin, &r_state.uniforms, true);
-
-	r_state.uniforms_dirty.begin = (size_t) -1;
-	r_state.uniforms_dirty.end = 0;
-}
-
-/**
  * @brief
  */
 static _Bool R_LoadSimpleProgram(const char *name, void (*Init)(r_program_t *program),
@@ -805,7 +793,7 @@ void R_InitPrograms(void) {
 	}
 
 	memset(r_state.programs, 0, sizeof(r_state.programs));
-	
+
 	r_geometry_shaders = Cvar_Add("r_geometry_shaders", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Whether geometry shaders are enabled or not, if supported.");
 
 	if (R_LoadSimpleProgram("default", R_InitProgram_default, R_PreLink_default, program_default)) {
@@ -817,16 +805,19 @@ void R_InitPrograms(void) {
 		program_default->UseCaustic = R_UseCaustic_default;
 		program_default->MatricesChanged = R_MatricesChanged_default;
 		program_default->UseAlphaTest = R_UseAlphaTest_default;
+		program_default->UseInterpolation = R_UseInterpolation_default;
 		program_default->UseTints = R_UseTints_default;
 		program_default->arrays_mask = R_ATTRIB_MASK_ALL & ~R_ATTRIB_GEOMETRY_MASK;
 	}
 
 	if (R_LoadSimpleProgram("shadow", R_InitProgram_shadow, R_PreLink_shadow, program_shadow)) {
+		program_shadow->UseInterpolation = R_UseInterpolation_shadow;
 		program_shadow->arrays_mask = R_ATTRIB_MASK_POSITION | R_ATTRIB_MASK_NEXT_POSITION;
 	}
 
 	if (R_LoadSimpleProgram("shell", R_InitProgram_shell, R_PreLink_shell, program_shell)) {
 		program_shell->Use = R_UseProgram_shell;
+		program_shell->UseInterpolation = R_UseInterpolation_shell;
 		program_shell->arrays_mask = R_ATTRIB_MASK_POSITION | R_ATTRIB_MASK_NEXT_POSITION | R_ATTRIB_MASK_DIFFUSE |
 		                             R_ATTRIB_MASK_NORMAL | R_ATTRIB_MASK_NEXT_NORMAL;
 	}
@@ -839,6 +830,7 @@ void R_InitPrograms(void) {
 
 	if (R_LoadSimpleProgram("null", R_InitProgram_null, R_PreLink_null, program_null)) {
 		program_null->UseFog = R_UseFog_null;
+		program_null->UseInterpolation = R_UseInterpolation_null;
 		program_null->UseMaterial = R_UseMaterial_null;
 		program_null->UseTints = R_UseTints_null;
 		program_null->arrays_mask = R_ATTRIB_MASK_POSITION | R_ATTRIB_MASK_NEXT_POSITION | R_ATTRIB_MASK_DIFFUSE |

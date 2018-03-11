@@ -156,6 +156,9 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 				case MOD_ROCKET_SPLASH:
 					msg = "%s blew up";
 					break;
+				case MOD_HYPERBLASTER_CLIMB:
+					msg = "%s forgot how to climb";
+					break;
 				case MOD_LIGHTNING_DISCHARGE:
 					msg = "%s took a toaster bath";
 					break;
@@ -1037,9 +1040,12 @@ void G_ClientBegin(g_entity_t *ent) {
 			strncat(welcome, "\n^2Voting is enabled", sizeof(welcome) - strlen(welcome) - 1);
 		}
 
+		// FIXME: Move these tidbits into ConfigStrings so that the client can display a menu
+#if 0
 		gi.WriteByte(SV_CMD_CENTER_PRINT);
 		gi.WriteString(welcome);
 		gi.Unicast(ent, true);
+#endif
 
 		if (G_MatchIsTimeout()) { // joined during a match timeout
 			ent->client->ps.pm_state.type = PM_FREEZE;
@@ -1236,9 +1242,12 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 		handicap = 100;
 	}
 
-	handicap = Clamp(handicap, 50, 100);
+	cl->locals.persistent.handicap_next = Clamp(handicap, 50, 100);
 
-	cl->locals.persistent.handicap_next = handicap;
+	// auto-switch
+	uint16_t auto_switch = strtoul(GetUserInfo(user_info, "auto_switch"), NULL, 10);
+
+	cl->locals.persistent.auto_switch = auto_switch;
 
 	// hook style
 	G_SetClientHookStyle(ent);
@@ -1536,12 +1545,15 @@ static void G_ClientInventoryThink(g_entity_t *ent) {
 
 	if (ent->client->locals.inventory[g_media.items.powerups[POWERUP_QUAD]->index]) { // if they have quad
 
+		if (ent->client->locals.quad_countdown_time && ent->client->locals.quad_countdown_time < g_level.time) { // play the countdown sound
+			gi.Sound(ent, g_media.sounds.quad_expire, ATTEN_NORM, 0);
+			ent->client->locals.quad_countdown_time += 1000;
+		}
+
 		if (ent->client->locals.quad_damage_time < g_level.time) { // expire it
 
 			ent->client->locals.quad_damage_time = 0.0;
 			ent->client->locals.inventory[g_media.items.powerups[POWERUP_QUAD]->index] = 0;
-
-			gi.Sound(ent, g_media.sounds.quad_expire, ATTEN_NORM, 0);
 
 			ent->s.effects &= ~EF_QUAD;
 		}
@@ -1603,7 +1615,7 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 
 		// process hook buttons
 		if (cl->locals.hook_think_time < g_level.time) {
-			G_ClientHookThink(ent);
+			G_ClientHookThink(ent, false);
 		}
 
 		G_ClientMove(ent, cmd);
@@ -1667,7 +1679,7 @@ void G_ClientBeginFrame(g_entity_t *ent) {
 	}
 
 	if (cl->locals.hook_think_time < g_level.time) {
-		G_ClientHookThink(ent);
+		G_ClientHookThink(ent, false);
 	}
 
 	if (ent->locals.dead) {

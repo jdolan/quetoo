@@ -73,6 +73,8 @@ _Bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other) {
 		return false;
 	}
 
+	const int16_t had_weapon = other->client->locals.inventory[ent->locals.item->index];
+
 	// add the weapon to inventory
 	other->client->locals.inventory[ent->locals.item->index]++;
 
@@ -89,12 +91,22 @@ _Bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other) {
 
 	// setup respawn if it's not a dropped item
 	if (!(ent->locals.spawn_flags & SF_ITEM_DROPPED) && !g_weapon_stay->integer) {
-		G_SetItemRespawn(ent, g_weapon_respawn_time->value * 1000);
+		G_SetItemRespawn(ent, SECONDS_TO_MILLIS(g_weapon_respawn_time->value));
 	}
 
-	// auto-change if it's the first weapon we pick up
-	if (other->client->locals.weapon == g_media.items.weapons[WEAPON_BLASTER]) {
+	// auto-switch the weapon if applicable
+	const uint16_t auto_switch = other->client->locals.persistent.auto_switch;
+
+	if (auto_switch == 1) { // switch from blaster
+		if (other->client->locals.weapon == g_media.items.weapons[WEAPON_BLASTER]) {
+			G_ChangeWeapon(other, ent->locals.item);
+		}
+	} else if (auto_switch == 2) { // switch to all
 		G_ChangeWeapon(other, ent->locals.item);
+	} else if (auto_switch == 3) { // switch to new
+		if (!had_weapon) {
+			G_ChangeWeapon(other, ent->locals.item);
+		}
 	}
 
 	return true;
@@ -421,7 +433,7 @@ void G_ClientHookDetach(g_entity_t *ent) {
 
 	// prevent hook spam
 	if (!ent->client->locals.hook_pull) {
-		ent->client->locals.hook_fire_time = g_level.time + 250;
+		ent->client->locals.hook_fire_time = g_level.time + SECONDS_TO_MILLIS(g_hook_refire->value);
 	} else {
 		// don't get hurt from sweet-ass hooking
 		ent->client->locals.land_time = g_level.time;
@@ -447,19 +459,25 @@ void G_ClientHookDetach(g_entity_t *ent) {
 /**
  * @brief Handles the firing of the hook.
  */
-static void G_ClientHookCheckFire(g_entity_t *ent) {
+static void G_ClientHookCheckFire(g_entity_t *ent, const _Bool refire) {
 
 	// hook can fire, see if we should
-	if (!(ent->client->locals.latched_buttons & BUTTON_HOOK)) {
+	if (!refire && !(ent->client->locals.latched_buttons & BUTTON_HOOK)) {
 		return;
 	}
 
-	// use small epsilon for low server frame rates
-	if (ent->client->locals.hook_fire_time > g_level.time + 1) {
-		return;
-	}
+	if (!refire) {
 
-	ent->client->locals.latched_buttons &= ~BUTTON_HOOK;
+		// use small epsilon for low server frame rates
+		if (ent->client->locals.hook_fire_time > g_level.time + 1) {
+			return;
+		}
+
+		ent->client->locals.latched_buttons &= ~BUTTON_HOOK;
+	} else {
+
+		G_ClientHookDetach(ent);
+	}
 
 	// fire away!
 	vec3_t forward, right, up, org;
@@ -475,7 +493,7 @@ static void G_ClientHookCheckFire(g_entity_t *ent) {
 /**
  * @brief Handles management of the hook for a given player.
  */
-void G_ClientHookThink(g_entity_t *ent) {
+void G_ClientHookThink(g_entity_t *ent, const _Bool refire) {
 
 	// sanity checks
 	if (!g_level.hook_allowed) {
@@ -491,6 +509,14 @@ void G_ClientHookThink(g_entity_t *ent) {
 	}
 
 	// send off to the proper sub-function
+
+	if (refire) {
+
+		G_ClientHookCheckFire(ent, true);
+
+		return;
+	}
+
 	if (ent->client->locals.hook_entity) {
 
 		if ((ent->client->locals.persistent.hook_style == HOOK_PULL && !(ent->client->locals.buttons & BUTTON_HOOK)) ||
@@ -502,7 +528,7 @@ void G_ClientHookThink(g_entity_t *ent) {
 		}
 	} else {
 
-		G_ClientHookCheckFire(ent);
+		G_ClientHookCheckFire(ent, false);
 	}
 }
 
@@ -516,11 +542,12 @@ void G_FireBlaster(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_BlasterProjectile(ent, org, forward, 1000, 15, 2);
+		G_BlasterProjectile(ent, org, forward, g_balance_blaster_speed->integer,
+			g_balance_blaster_damage->integer, g_balance_blaster_knockback->integer);
 
 		G_MuzzleFlash(ent, MZ_BLASTER);
 
-		G_WeaponFired(ent, 450, ent->client->locals.weapon->quantity);
+		G_WeaponFired(ent, SECONDS_TO_MILLIS(g_balance_blaster_refire->value), ent->client->locals.weapon->quantity);
 	}
 }
 
@@ -534,11 +561,13 @@ void G_FireShotgun(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_ShotgunProjectiles(ent, org, forward, 4, 2, 700, 300, 12, MOD_SHOTGUN);
+		G_ShotgunProjectiles(ent, org, forward, g_balance_shotgun_damage->integer,
+			g_balance_shotgun_knockback->integer, g_balance_shotgun_spread_x->integer,
+			g_balance_shotgun_spread_y->integer, g_balance_shotgun_pellets->integer, MOD_SHOTGUN);
 
 		G_MuzzleFlash(ent, MZ_SHOTGUN);
 
-		G_WeaponFired(ent, 600, ent->client->locals.weapon->quantity);
+		G_WeaponFired(ent, SECONDS_TO_MILLIS(g_balance_shotgun_refire->value), ent->client->locals.weapon->quantity);
 	}
 }
 
@@ -550,23 +579,15 @@ void G_FireSuperShotgun(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		ent->client->locals.angles[YAW] -= 4.0;
-
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_ShotgunProjectiles(ent, org, forward, 4, 2, 1400, 600, 12, MOD_SUPER_SHOTGUN);
-
-		ent->client->locals.angles[YAW] += 8.0;
-
-		G_InitProjectile(ent, forward, right, up, org, 1.0);
-
-		G_ShotgunProjectiles(ent, org, forward, 4, 2, 1400, 600, 12, MOD_SUPER_SHOTGUN);
-
-		ent->client->locals.angles[YAW] -= 4.0;
+		G_ShotgunProjectiles(ent, org, forward, g_balance_supershotgun_damage->integer,
+			g_balance_supershotgun_knockback->integer, g_balance_supershotgun_spread_x->integer,
+			g_balance_supershotgun_spread_y->integer, g_balance_supershotgun_pellets->integer, MOD_SUPER_SHOTGUN);
 
 		G_MuzzleFlash(ent, MZ_SUPER_SHOTGUN);
 
-		G_WeaponFired(ent, 800, ent->client->locals.weapon->quantity);
+		G_WeaponFired(ent, SECONDS_TO_MILLIS(g_balance_supershotgun_refire->value), ent->client->locals.weapon->quantity);
 	}
 }
 
@@ -580,11 +601,13 @@ void G_FireMachinegun(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_BulletProjectile(ent, org, forward, 4, 2, 200, 300, MOD_MACHINEGUN);
+		G_BulletProjectile(ent, org, forward, g_balance_machinegun_damage->integer,
+			g_balance_machinegun_knockback->integer, g_balance_machinegun_spread_x->integer,
+			g_balance_machinegun_spread_y->integer, MOD_MACHINEGUN);
 
 		G_MuzzleFlash(ent, MZ_MACHINEGUN);
 
-		G_WeaponFired(ent, 50, ent->client->locals.weapon->quantity);
+		G_WeaponFired(ent, SECONDS_TO_MILLIS(g_balance_machinegun_refire->value), ent->client->locals.weapon->quantity);
 	}
 }
 
@@ -717,7 +740,7 @@ void G_FireHandGrenade(g_entity_t *ent) {
 	gi.Sound(ent, g_media.sounds.grenade_throw, ATTEN_NORM | S_SET_Z_ORIGIN_OFFSET(3), 0);
 
 	// push the next fire time out by the interval (2 secs)
-	G_WeaponFired(ent, 2000, ammo_needed);
+	G_WeaponFired(ent, SECONDS_TO_MILLIS(g_balance_handgrenade_refire->value), ammo_needed);
 
 	ent->client->locals.grenade_hold_time = 0;
 	ent->client->locals.grenade_hold_frame = 0;
@@ -733,11 +756,13 @@ void G_FireGrenadeLauncher(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_GrenadeProjectile(ent, org, forward, 800, 120, 120, 185.0, 2500.0);
+		G_GrenadeProjectile(ent, org, forward, g_balance_grenadelauncher_speed->integer,
+			g_balance_grenadelauncher_damage->integer, g_balance_grenadelauncher_knockback->integer,
+			g_balance_grenadelauncher_radius->value, SECONDS_TO_MILLIS(g_balance_grenadelauncher_timer->value));
 
 		G_MuzzleFlash(ent, MZ_GRENADE_LAUNCHER);
 
-		G_WeaponFired(ent, 1000, ent->client->locals.weapon->quantity);
+		G_WeaponFired(ent, SECONDS_TO_MILLIS(g_balance_grenadelauncher_refire->value), ent->client->locals.weapon->quantity);
 	}
 }
 
@@ -751,11 +776,13 @@ void G_FireRocketLauncher(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_RocketProjectile(ent, org, forward, 1000, 100, 100, 150.0);
+		G_RocketProjectile(ent, org, forward, g_balance_rocketlauncher_speed->integer,
+			g_balance_rocketlauncher_damage->integer, g_balance_rocketlauncher_knockback->integer,
+			g_balance_rocketlauncher_radius->value);
 
 		G_MuzzleFlash(ent, MZ_ROCKET_LAUNCHER);
 
-		G_WeaponFired(ent, 1000, ent->client->locals.weapon->quantity);
+		G_WeaponFired(ent, SECONDS_TO_MILLIS(g_balance_rocketlauncher_refire->value), ent->client->locals.weapon->quantity);
 	}
 }
 
@@ -769,11 +796,12 @@ void G_FireHyperblaster(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_HyperblasterProjectile(ent, org, forward, 1800, 16, 4);
+		G_HyperblasterProjectile(ent, org, forward, g_balance_hyperblaster_speed->integer,
+			g_balance_hyperblaster_damage->integer, g_balance_hyperblaster_knockback->value);
 
 		G_MuzzleFlash(ent, MZ_HYPERBLASTER);
 
-		G_WeaponFired(ent, 100, ent->client->locals.weapon->quantity);
+		G_WeaponFired(ent, SECONDS_TO_MILLIS(g_balance_hyperblaster_refire->value), ent->client->locals.weapon->quantity);
 	}
 }
 
@@ -799,9 +827,9 @@ void G_FireLightning(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_LightningProjectile(ent, org, forward, 12, 6);
+		G_LightningProjectile(ent, org, forward, g_balance_lightning_damage->integer, g_balance_lightning_knockback->integer);
 
-		G_WeaponFired(ent, 100, ent->client->locals.weapon->quantity);
+		G_WeaponFired(ent, SECONDS_TO_MILLIS(g_balance_lightning_refire->value), ent->client->locals.weapon->quantity);
 	}
 }
 
@@ -815,13 +843,13 @@ void G_FireRailgun(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		const int16_t damage = (g_level.gameplay == GAME_INSTAGIB) ? 999 : 100;
+		const int16_t damage = (g_level.gameplay == GAME_INSTAGIB) ? 999 : g_balance_railgun_damage->integer;
 
-		G_RailgunProjectile(ent, org, forward, damage, 80);
+		G_RailgunProjectile(ent, org, forward, damage, g_balance_railgun_knockback->integer);
 
 		G_MuzzleFlash(ent, MZ_RAILGUN);
 
-		G_WeaponFired(ent, 1400, ent->client->locals.weapon->quantity);
+		G_WeaponFired(ent, SECONDS_TO_MILLIS(g_balance_railgun_refire->value), ent->client->locals.weapon->quantity);
 	}
 }
 
@@ -836,11 +864,13 @@ static void G_FireBfg_(g_entity_t *ent) {
 
 			G_InitProjectile(ent->owner, forward, right, up, org, 1.0);
 
-			G_BfgProjectile(ent->owner, org, forward, 720, 180, 140, 512.0);
+			G_BfgProjectile(ent->owner, org, forward, g_balance_bfg_speed->integer,
+				g_balance_bfg_damage->integer, g_balance_bfg_knockback->integer,
+				g_balance_bfg_radius->value);
 
 			G_MuzzleFlash(ent->owner, MZ_BFG10K);
 
-			G_WeaponFired(ent->owner, 2000, ent->owner->client->locals.weapon->quantity);
+			G_WeaponFired(ent->owner, SECONDS_TO_MILLIS(g_balance_bfg_refire->value), ent->owner->client->locals.weapon->quantity);
 		}
 	}
 
@@ -854,14 +884,14 @@ static void G_FireBfg_(g_entity_t *ent) {
 void G_FireBfg(g_entity_t *ent) {
 
 	if (G_FireWeapon(ent)) {
-		ent->client->locals.weapon_fire_time = g_level.time + 3000;
+		ent->client->locals.weapon_fire_time = g_level.time + SECONDS_TO_MILLIS(g_balance_bfg_refire->value + g_balance_bfg_prefire->value);
 
 		g_entity_t *timer = G_AllocEntity();
 		timer->owner = ent;
 		timer->sv_flags = SVF_NO_CLIENT;
 
 		timer->locals.Think = G_FireBfg_;
-		timer->locals.next_think = g_level.time + 1000 - QUETOO_TICK_MILLIS;
+		timer->locals.next_think = g_level.time + SECONDS_TO_MILLIS(g_balance_bfg_prefire->value) - QUETOO_TICK_MILLIS;
 
 		gi.Sound(ent, g_media.sounds.bfg_prime, ATTEN_NORM | S_SET_Z_ORIGIN_OFFSET(3), 0);
 	}

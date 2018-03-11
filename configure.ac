@@ -75,11 +75,11 @@ case "$host" in
 		AC_MSG_RESULT(bsd)
 		;;
 	*-*-mingw*)
-		HOST_NAME="WINDOWS"
+		HOST_NAME="MINGW"
 		HOST_CFLAGS="-mfpmath=sse -msse2"
-		HOST_LIBS="-lws2_32 -lole32"
+		HOST_LIBS="-ldl -lws2_32 -lole32"
 		DEFAULT_PREFIX="/"
-		AC_MSG_RESULT(windows)
+		AC_MSG_RESULT(mingw)
 		AC_PATH_PROGS([WINDRES],
 			[windres $host-windres],
 		)
@@ -118,7 +118,7 @@ AC_SUBST(CPPFLAGS)
 
 AM_CONDITIONAL([APPLE], [test "x$HOST_NAME" = "xAPPLE"])
 AM_CONDITIONAL([BSD], [test "x$HOST_NAME" = "xBSD"])
-AM_CONDITIONAL([WINDOWS], [test "x$HOST_NAME" = "xWINDOWS"])
+AM_CONDITIONAL([MINGW], [test "x$HOST_NAME" = "xMINGW"])
 AM_CONDITIONAL([LINUX], [test "x$HOST_NAME" = "xLINUX"])
 
 dnl --------------
@@ -149,9 +149,9 @@ dnl -----------------
 
 PKG_CHECK_MODULES(XML, libxml-2.0 >= 2.4)
 
-dnl --------------------------------------
-dnl Check for SDL2, SDL2_image, SDL2_mixer
-dnl --------------------------------------
+dnl --------------------------
+dnl Check for SDL2, SDL2_image
+dnl --------------------------
 
 PKG_CHECK_MODULES([SDL2], [sdl2 >= 2.0.0 SDL2_image])
 
@@ -213,9 +213,6 @@ HOST_OPENAL_CFLAGS=""
 HOST_OPENAL_LIBS=""
 
 case "$host" in
-	*-apple-*)
-		HOST_OPENAL_LIBS="-framework OpenAL"
-		;;
 	*-mingw*)
 		HOST_OPENAL_LIBS="-lOpenAL32"
 		;;

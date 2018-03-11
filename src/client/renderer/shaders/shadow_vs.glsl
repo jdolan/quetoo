@@ -6,9 +6,11 @@
 
 #define VERTEX_SHADER
 
-#include "include/uniforms.glsl"
+#include "include/matrix.glsl"
 
+uniform mat4 SHADOW_MAT;
 uniform vec4 LIGHT;
+uniform float TIME_FRACTION;
 
 in vec3 POSITION;
 in vec3 NEXT_POSITION;

@@ -61,6 +61,16 @@ struct ResponseServiceViewController {
 	HueColorPicker *crosshairColorPicker;
 
 	/**
+	 * @brief The crosshair Select.
+	 */
+	Select *crosshair;
+
+	/**
+	 * @brief The crosshair health Select.
+	 */
+	Select *crosshairHealth;
+
+	/**
 	 * @brief The CrosshairView.
 	 */
 	CrosshairView *crosshairView;
@@ -84,4 +94,3 @@ struct ResponseServiceViewControllerInterface {
  * @memberof ResponseServiceViewController
  */
 CGAME_EXPORT Class *_ResponseServiceViewController(void);
-

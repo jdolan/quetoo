@@ -662,7 +662,7 @@ void G_InitVote(void) {
 		const char *name = va("g_vote_allow_%s", vote_cmds[i]);
 		const char *desc = va("Allows voting on %s", vote_cmds[i]);
 
-		vote_cvars = g_list_append(vote_cvars, gi.Cvar(name, "1", CVAR_SERVER_INFO, desc));
+		vote_cvars = g_list_append(vote_cvars, gi.AddCvar(name, "1", CVAR_SERVER_INFO, desc));
 
 		i++;
 	}
@@ -1055,7 +1055,7 @@ static void G_Teamskin_f(g_entity_t *ent) {
 
 	const char *s = gi.Argv(1);
 
-	if (s != '\0' &&
+	if (*s != '\0' &&
 		!strchr(s, '/')) { // something valid-ish was provided
 		g_strlcpy(t->skin, s, sizeof(t->skin));
 	} else {

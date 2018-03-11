@@ -60,17 +60,17 @@ static void updateBindings(View *self) {
 
 	CvarSelect *this = (CvarSelect *) self;
 
-	if (this->expectsStringValue) {
+	if (this->var) {
 		const Array *options = (Array *) this->select.options;
 		for (size_t i = 0; i < options->count; i++) {
-			const Option *option = $(options, objectAtIndex, i);
-			if (strcmp(option->title->text, this->var->string) == 0) {
-				$((Select *) this, selectOptionWithValue, option->value);
-				break;
+			Option *option = $(options, objectAtIndex, i);
+			if (this->expectsStringValue) {
+				const char *string = option->value ?: option->title->text;
+				option->isSelected = !strcmp(string, this->var->string);
+			} else {
+				option->isSelected = (intptr_t) option->value == this->var->integer;
 			}
 		}
-	} else {
-		$((Select *) this, selectOptionWithValue, (ident) (intptr_t) this->var->integer);
 	}
 }
 
@@ -81,14 +81,18 @@ static void updateBindings(View *self) {
  */
 static void selectOptionWithValue(Select *self, ident value) {
 
-	Option *option = $(self, optionWithValue, value);
-	if (option) {
-		const CvarSelect *this = (CvarSelect *) self;
+	const CvarSelect *this = (CvarSelect *) self;
+	if (this->var) {
 
-		if (this->expectsStringValue) {
-			cgi.CvarSet(this->var->name, option->value ? (char *) option->value : option->title->text);
-		} else {
-			cgi.CvarSetValue(this->var->name, (int32_t) (intptr_t) option->value);
+		Option *option = $(self, optionWithValue, value);
+		if (option) {
+
+			if (this->expectsStringValue) {
+				const char *string = option->value ?: option->title->text;
+				cgi.SetCvarString(this->var->name, string);
+			} else {
+				cgi.SetCvarInteger(this->var->name, (int32_t) (intptr_t) option->value);
+			}
 		}
 	}
 
@@ -118,7 +122,7 @@ static CvarSelect *initWithVariable(CvarSelect *self, cvar_t *var) {
  * @memberof CvarSelect
  */
 static CvarSelect *initWithVariableName(CvarSelect *self, const char *name) {
-	return $(self, initWithVariable, cgi.CvarGet(name));
+	return $(self, initWithVariable, cgi.GetCvar(name));
 }
 
 #pragma mark - Class lifecycle

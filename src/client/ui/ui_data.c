@@ -37,7 +37,7 @@ Data *Ui_Data(const char *path) {
 
 		Fs_Free(buffer);
 	} else {
-		Com_Warn("Failed to load Data %s\n", path);
+		Com_Warn("Failed to load %s\n", path);
 	}
 
 	return data;
@@ -46,123 +46,6 @@ Data *Ui_Data(const char *path) {
 /**
  * @brief
  */
-Font *Ui_Font(const char *path, const char *family, int32_t size, int32_t style) {
-
-	Font *font = NULL;
-
-	Data *data = Ui_Data(path);
-	if (data) {
-
-		font = $(alloc(Font), initWithData, data, family, size, style);
-		assert(font);
-
-		release(data);
-	} else {
-		Com_Warn("Failed to load Font %s\n", path);
-	}
-
-	return font;
-}
-
-/**
- * @brief
- */
-Image *Ui_Image(const char *path) {
-
-	Image *image = NULL;
-
-	SDL_Surface *surface;
-	if (Img_LoadImage(path, &surface)) {
-
-		image = $(alloc(Image), initWithSurface, surface);
-		assert(image);
-
-		SDL_FreeSurface(surface);
-	} else {
-		Com_Warn("Failed to load Image %s\n", path);
-	}
-
-	return image;
-}
-
-/**
- * @brief
- */
-Stylesheet *Ui_Stylesheet(const char *path) {
-
-	Stylesheet *stylesheet = NULL;
-
-	void *buffer;
-	if (Fs_Load(path, &buffer) != -1) {
-
-		stylesheet = $$(Stylesheet, stylesheetWithCharacters, (char *) buffer);
-		assert(stylesheet);
-
-		Fs_Free(buffer);
-	} else {
-		Com_Warn("Failed to load Stylesheet %s\n", path);
-	}
-
-	return stylesheet;
-}
-
-/**
- * @brief
- */
 Theme *Ui_Theme(void) {
 	return $$(Theme, theme, r_context.window);
-}
-
-/**
- * @brief
- */
-View *Ui_View(const char *path, Outlet *outlets) {
-
-	View *view = NULL;
-
-	Data *data = Ui_Data(path);
-	if (data) {
-
-		view = $$(View, viewWithData, data, outlets);
-		assert(view);
-
-		release(data);
-	} else {
-		Com_Warn("Failed to load View %s\n", path);
-	}
-
-
-	return view;
-}
-
-/**
- * @brief
- */
-void Ui_SetImage(ImageView *view, const char *path) {
-
-	Image *image = Ui_Image(path);
-	if (image) {
-		$(view, setImage, image);
-	} else {
-		$(view, setImage, NULL);
-	}
-	release(image);
-}
-
-/**
- * @brief
- */
-void Ui_WakeView(View *view, const char *path, Outlet *outlets) {
-
-	assert(view);
-
-	Data *data = Ui_Data(path);
-	if (data) {
-		$(view, awakeWithData, data);
-		$(view, resolve, outlets);
-
-		release(data);
-	} else {
-		Com_Warn("Failed to wake View %s\n", path);
-	}
 }

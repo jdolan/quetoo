@@ -34,12 +34,9 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 			break;
 		}
 
-		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE | PARTICLE_EFFECT_PHYSICAL;
+		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE | PARTICLE_EFFECT_BOUNCE;
 		p->lifetime = 450 + Randomf() * 450;
-		p->bounce = 1.15;
 
-		// TODO: color modulation
-		//cgi.ColorFromPalette(color + (Random() & 5), p->color_start);
 		ColorToVec4(color, p->color_start);
 		p->color_start[3] = 2.0;
 		VectorCopy(p->color_start, p->color_end);
@@ -47,6 +44,8 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 
 		p->scale_start = 3.5;
 		p->scale_end = Randomf() * 1.0;
+
+		p->bounce = 1.15;
 
 		VectorAdd(org, dir, p->part.org);
 
@@ -64,9 +63,9 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 
 	cgi.AddSustainedLight(&(const r_sustained_light_t) {
 		.light.origin = { org[0] + dir[0], org[1] + dir[1], org[2] + dir[2] },
-		       .light.color = { c[0], c[1], c[2] },
-		              .light.radius = 150.0,
-		                     .sustain = 250
+		.light.color = { c[0], c[1], c[2] },
+		.light.radius = 150.0,
+		.sustain = 350
 	});
 
 	cgi.AddStain(&(const r_stain_t) {
@@ -128,7 +127,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 		while (k--) {
 			if ((p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_beam, true))) {
 
-				p->effects |= PARTICLE_EFFECT_PHYSICAL;
+				p->effects |= PARTICLE_EFFECT_BOUNCE;
 				p->bounce = 1.5;
 				p->lifetime = 100 + Randomf() * 350;
 
@@ -408,11 +407,10 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 			p->lifetime = 1500 + (Randomc() * 500);
 			p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-			const vec_t smoke_color = Randomfr(0.4, 0.7);
+			const vec_t smoke_color = Randomfr(0.6, 0.9);
 
-			Vector4Set(p->color_start, smoke_color, smoke_color, smoke_color, 0.7);
-			VectorCopy(p->color_start, p->color_end);
-			p->color_end[3] = 0.0;
+			Vector4Set(p->color_start, smoke_color, smoke_color, smoke_color, 0.125);
+			Vector4Set(p->color_end, smoke_color, smoke_color, smoke_color, 0.0);
 
 			p->scale_start = 40.0;
 			p->scale_end = 16.0;
@@ -470,16 +468,16 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 		VectorCopy(p->color_start, p->color_end);
 		p->color_end[3] = 0.3;
 
-		p->part.scale = 5.0;
+		p->part.scale = 3.0;
 		p->part.roll = Randomc() * 30.0;
 
 		p->part.org[0] = org[0] + Randomfr(-16.0, 16.0);
 		p->part.org[1] = org[1] + Randomfr(-16.0, 16.0);
 		p->part.org[2] = org[2] + Randomfr(-16.0, 16.0);
 
-		p->vel[0] = Randomc() * 160.0;
-		p->vel[1] = Randomc() * 160.0;
-		p->vel[2] = Randomc() * 160.0;
+		p->vel[0] = Randomc() * 800.0;
+		p->vel[1] = Randomc() * 800.0;
+		p->vel[2] = Randomc() * 800.0;
 
 		p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
 
@@ -543,15 +541,23 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 
 	if ((cgi.PointContents(org) & MASK_LIQUID) == 0) {
 		for (int32_t i = 0; i < 6; i++) {
+
 			if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark, false))) {
 				break;
 			}
 
+			p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE | PARTICLE_EFFECT_BOUNCE;
 			p->lifetime = 200 + Randomf() * 500;
 
-			Vector4Set(p->part.color, 0.4, 0.7, 1.0, 1.0);
+			Vector4Set(p->color_start, 0.4, 0.7, 1.0, 1.0);
+			p->color_start[3] = 2.0;
+			VectorCopy(p->color_start, p->color_end);
+			p->color_end[3] = 0.0;
 
-			p->part.scale = 1.5 + Randomf() * 0.7;
+			p->scale_start = 3.5;
+			p->scale_end = Randomf() * 1.0;
+
+			p->bounce = 1.15;
 
 			VectorCopy(org, p->part.org);
 

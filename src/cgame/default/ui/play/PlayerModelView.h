@@ -73,6 +73,11 @@ struct PlayerModelView {
 	ImageView *iconView;
 
 	/**
+	 * @brief The client info string, used to avoid load thrashing.
+	 */
+	char info[MAX_STRING_CHARS];
+
+	/**
 	 * @brief The camera yaw and zoom.
 	 */
 	vec_t yaw, zoom;

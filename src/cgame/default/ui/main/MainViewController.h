@@ -84,26 +84,26 @@ struct MainViewControllerInterface {
 	MainViewController *(*init)(MainViewController *self);
 
 	/**
-	 * @fn void MainViewController::primaryButton(const MainViewController *self, const char *title, Class *clazz)
+	 * @fn void MainViewController::primaryButton(const MainViewController *self, const char *title, ActionFunction action, ident data)
 	 * @brief Adds a Button to the primary menu.
 	 * @param self The MainViewController.
-	 * @param target The target View.
 	 * @param title The title text.
-	 * @param clazz The ViewController Class to navigate to.
+	 * @param action The ActionFunction to bind to click events.
+	 * @param data The user data.
 	 * @memberof MainViewController
 	 */
-	void (*primaryButton)(MainViewController *self, const char *title, Class *clazz);
+	void (*primaryButton)(MainViewController *self, const char *title, ActionFunction action, ident data);
 
 	/**
-	 * @fn void MainViewController::secondaryButton(const MainViewController *self, const char *title, Class *clazz)
+	 * @fn void MainViewController::secondaryButton(const MainViewController *self, const char *title, ActionFunction action, ident data)
 	 * @brief Adds a Button to the secondary menu.
 	 * @param self The MainViewController.
-	 * @param target The target View.
 	 * @param title The title text.
-	 * @param clazz The ViewController Class to navigate to.
+	 * @param action The ActionFunction to bind to click events.
+	 * @param data The user data.
 	 * @memberof MainViewController
 	 */
-	void (*secondaryButton)(MainViewController *self, const char *title, Class *clazz);
+	void (*secondaryButton)(MainViewController *self, const char *title, ActionFunction action, ident data);
 };
 
 /**

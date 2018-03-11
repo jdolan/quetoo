@@ -32,14 +32,14 @@
  * entity exceeds this (by having a massive bounding box, for example), it may
  * fall out of PVS for some valid client positions.
  */
-#define MAX_ENT_LEAFS 128
+#define MAX_ENT_LEAFS 512
 
 /**
  * @brief The maximum number of clusters an entity may occupy. If an entity
  * exceeds this (by having a massive bounding box, for example), a full BSP
  * recursion is necessary to determine its visibility (bad).
  */
-#define MAX_ENT_CLUSTERS 32
+#define MAX_ENT_CLUSTERS 64
 
 /**
  * @brief The server-specific view of an entity. An sv_entity_t corresponds to

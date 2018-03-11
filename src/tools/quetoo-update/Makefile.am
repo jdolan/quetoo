@@ -14,7 +14,7 @@ quetoo_update_LDADD = \
 	@BASE_LIBS@ \
 	@GLIB_LIBS@
 
-if WINDOWS
+if MINGW
 
 .rc.o:
 	@WINDRES@ $^ -o $@

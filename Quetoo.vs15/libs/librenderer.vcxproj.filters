@@ -325,10 +325,10 @@
     <None Include="..\..\src\client\renderer\shaders\include\tint.glsl">
       <Filter>src\shaders\include</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\include\uniforms.glsl">
+    <None Include="..\..\src\client\renderer\shaders\include\color.glsl">
       <Filter>src\shaders\include</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\include\color.glsl">
+    <None Include="..\..\src\client\renderer\shaders\include\matrix.glsl">
       <Filter>src\shaders\include</Filter>
     </None>
   </ItemGroup>
