@@ -439,8 +439,6 @@ static void FixEdges_r(node_t *node) {
 	}
 }
 
-void FixTJunctionsQ3( node_t *node );
-
 /**
  * @brief
  */
