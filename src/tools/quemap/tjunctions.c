@@ -56,7 +56,7 @@ typedef struct {
 	mapDrawVert_t	*dv[2];
 } originalEdge_t;
 
-#define	MAX_ORIGINAL_EDGES	0x0000
+#define	MAX_ORIGINAL_EDGES	0x40000
 static originalEdge_t	originalEdges[MAX_ORIGINAL_EDGES];
 static int				numOriginalEdges;
 
