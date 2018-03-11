@@ -966,7 +966,7 @@ tree_t *BrushBSP(brush_t *brushlist, vec3_t mins, vec3_t maxs) {
 		c_brushes++;
 
 		volume = BrushVolume(b);
-		if (volume < microvolume) {
+		if (volume < micro_volume) {
 			Mon_SendSelect(MON_WARN, b->original->entity_num, b->original->brush_num, "Microbrush");
 		}
 

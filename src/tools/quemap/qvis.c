@@ -23,8 +23,8 @@
 
 map_vis_t map_vis;
 
-_Bool fastvis = false;
-_Bool nosort = false;
+_Bool fast_vis = false;
+_Bool no_sort = false;
 
 static int32_t visibility_count;
 
@@ -83,7 +83,7 @@ static void SortPortals(void) {
 		map_vis.sorted_portals[i] = &map_vis.portals[i];
 	}
 
-	if (nosort) {
+	if (no_sort) {
 		return;
 	}
 
@@ -183,7 +183,7 @@ static void CalcVis(void) {
 	SortPortals();
 
 	// fast vis just uses the flood result for a very loose bound
-	if (fastvis) {
+	if (fast_vis) {
 		for (i = 0; i < map_vis.num_portals * 2; i++) {
 			map_vis.portals[i].vis = map_vis.portals[i].flood;
 			map_vis.portals[i].status = stat_done;

@@ -35,14 +35,14 @@ vec_t patch_size = PATCH_SIZE;
 _Bool antialias = false;
 _Bool indirect = false;
 
-vec3_t ambient;
+vec3_t ambient = { 0.0, 0.0, 0.0 };
 
 vec_t brightness = 1.0;
 vec_t saturation = 1.0;
 vec_t contrast = 1.0;
 
 vec_t surface_scale = 1.0;
-vec_t entity_scale = 1.0;
+vec_t light_scale = 1.0;
 
 int32_t indirect_bounces = 1;
 int32_t indirect_bounce = 0;

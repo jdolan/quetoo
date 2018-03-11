@@ -615,7 +615,7 @@ static void ParseBrush(entity_t *mapent) {
 		if (side->contents & (CONTENTS_PLAYER_CLIP | CONTENTS_MONSTER_CLIP)) {
 			side->contents |= CONTENTS_DETAIL;
 		}
-		if (fulldetail) {
+		if (all_structural) {
 			side->contents &= ~CONTENTS_DETAIL;
 		}
 		if (!(side->contents & ((LAST_VISIBLE_CONTENTS - 1) | CONTENTS_PLAYER_CLIP | CONTENTS_MONSTER_CLIP | CONTENTS_MIST))) {
@@ -668,13 +668,13 @@ static void ParseBrush(entity_t *mapent) {
 	b->contents = BrushContents(b);
 
 	// allow detail brushes to be removed
-	if (nodetail && (b->contents & CONTENTS_DETAIL)) {
+	if (no_detail && (b->contents & CONTENTS_DETAIL)) {
 		b->num_sides = 0;
 		return;
 	}
 
 	// allow water brushes to be removed
-	if (nowater && (b->contents & MASK_LIQUID)) {
+	if (no_water && (b->contents & MASK_LIQUID)) {
 		b->num_sides = 0;
 		return;
 	}

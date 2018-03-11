@@ -44,30 +44,29 @@ extern _Bool debug;
 extern _Bool legacy;
 
 // VIS
-extern _Bool fastvis;
-extern _Bool nosort;
+extern _Bool fast_vis;
+extern _Bool no_sort;
 
 // BSP
 extern int32_t entity_num;
 
 extern vec3_t map_mins, map_maxs;
 
-extern _Bool noprune;
-extern _Bool nodetail;
-extern _Bool fulldetail;
-extern _Bool onlyents;
-extern _Bool nomerge;
-extern _Bool nowater;
-extern _Bool nocsg;
-extern _Bool noweld;
-extern _Bool noshare;
-extern _Bool notjunc;
-extern _Bool noopt;
+extern _Bool no_prune;
+extern _Bool no_detail;
+extern _Bool all_structural;
+extern _Bool only_ents;
+extern _Bool no_merge;
+extern _Bool no_water;
+extern _Bool no_csg;
+extern _Bool no_weld;
+extern _Bool no_share;
+extern _Bool no_tjunc;
 extern _Bool leaktest;
 
 extern int32_t block_xl, block_xh, block_yl, block_yh;
 
-extern vec_t microvolume;
+extern vec_t micro_volume;
 
 // LIGHT
 extern _Bool antialias;
@@ -80,7 +79,7 @@ extern vec_t saturation;
 extern vec_t contrast;
 
 extern vec_t surface_scale;
-extern vec_t entity_scale;
+extern vec_t light_scale;
 
 extern vec3_t ambient;
 

@@ -153,22 +153,21 @@ extern map_brush_t map_brushes[MAX_BSP_BRUSHES];
 
 extern vec3_t map_mins, map_maxs;
 
-extern _Bool noprune;
-extern _Bool nodetail;
-extern _Bool fulldetail;
-extern _Bool onlyents;
-extern _Bool nomerge;
-extern _Bool nowater;
-extern _Bool nocsg;
-extern _Bool noweld;
-extern _Bool noshare;
-extern _Bool notjunc;
-extern _Bool noopt;
+extern _Bool no_prune;
+extern _Bool no_detail;
+extern _Bool all_structural;
+extern _Bool only_ents;
+extern _Bool no_merge;
+extern _Bool no_water;
+extern _Bool no_csg;
+extern _Bool no_weld;
+extern _Bool no_share;
+extern _Bool no_tjunc;
 extern _Bool leaktest;
 
 extern int32_t block_xl, block_xh, block_yl, block_yh;
 
-extern vec_t microvolume;
+extern vec_t micro_volume;
 
 extern int32_t first_bsp_model_edge;
 

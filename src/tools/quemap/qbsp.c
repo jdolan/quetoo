@@ -24,18 +24,17 @@
 #include "materials.h"
 #include "scriptlib.h"
 
-vec_t microvolume = 0.125;
-_Bool noprune = false;
-_Bool nodetail = false;
-_Bool fulldetail = false;
-_Bool onlyents = false;
-_Bool nomerge = false;
-_Bool nowater = false;
-_Bool nocsg = false;
-_Bool noweld = false;
-_Bool noshare = false;
-_Bool notjunc = false;
-_Bool noopt = false;
+vec_t micro_volume = 0.125;
+_Bool no_prune = false;
+_Bool no_detail = false;
+_Bool all_structural = false;
+_Bool only_ents = false;
+_Bool no_merge = false;
+_Bool no_water = false;
+_Bool no_csg = false;
+_Bool no_weld = false;
+_Bool no_share = false;
+_Bool no_tjunc = false;
 _Bool leaktest = false;
 
 int32_t block_xl = -8, block_xh = 7, block_yl = -8, block_yh = 7;
@@ -125,7 +124,7 @@ static void ProcessBlock_Thread(int32_t blocknum) {
 		return;
 	}
 
-	if (!nocsg) {
+	if (!no_csg) {
 		brushes = ChopBrushes(brushes);
 	}
 
@@ -180,8 +179,7 @@ static void ProcessWorldModel(void) {
 	for (optimize = 0; optimize <= 1; optimize++) {
 		Com_Verbose("--------------------------------------------\n");
 
-		RunThreadsOn((block_xh - block_xl + 1) * (block_yh - block_yl + 1), !verbose,
-		             ProcessBlock_Thread);
+		RunThreadsOn((block_xh - block_xl + 1) * (block_yh - block_yl + 1), !verbose, ProcessBlock_Thread);
 
 		// build the division tree
 		// oversizing the blocks guarantees that all the boundaries
@@ -216,7 +214,7 @@ static void ProcessWorldModel(void) {
 		}
 
 		MarkVisibleSides(tree, brush_start, brush_end);
-		if (noopt || leaked) {
+		if (leaked) {
 			break;
 		}
 		if (!optimize) {
@@ -228,7 +226,7 @@ static void ProcessWorldModel(void) {
 	MakeFaces(tree->head_node);
 	FixTjuncs(tree->head_node);
 
-	if (!noprune) {
+	if (!no_prune) {
 		PruneNodes(tree->head_node);
 	}
 
@@ -259,7 +257,7 @@ static void ProcessSubModel(void) {
 	mins[0] = mins[1] = mins[2] = MIN_WORLD_COORD;
 	maxs[0] = maxs[1] = maxs[2] = MAX_WORLD_COORD;
 	list = MakeBspBrushList(start, end, mins, maxs);
-	if (!nocsg) {
+	if (!no_csg) {
 		list = ChopBrushes(list);
 	}
 	tree = BrushBSP(list, mins, maxs);
@@ -334,8 +332,8 @@ int32_t BSP_Main(void) {
 
 	LoadMaterials(va("materials/%s.mat", map_base), ASSET_CONTEXT_TEXTURES, NULL);
 
-	// if onlyents, just grab the entities and re-save
-	if (onlyents) {
+	// if only_ents, just grab the entities and re-save
+	if (only_ents) {
 
 		const int32_t version = LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
 		num_entities = 0;

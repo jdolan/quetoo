@@ -233,7 +233,7 @@ static void EmitFaceVertexes(node_t *node, face_t *f) {
 
 	w = f->w;
 	for (i = 0; i < w->num_points; i++) {
-		if (noweld) { // make every point unique
+		if (no_weld) { // make every point unique
 			if (bsp_file.num_vertexes == MAX_BSP_VERTS) {
 				Com_Error(ERROR_FATAL, "MAX_BSP_VERTS\n");
 			}
@@ -457,7 +457,7 @@ void FixTjuncs(node_t *head_node) {
 	c_degenerate = 0;
 	c_facecollapse = 0;
 	c_tjunctions = 0;
-	if (!notjunc) {
+	if (!no_tjunc) {
 		FixEdges_r(head_node);
 	}
 	Com_Verbose("%5i edges degenerated\n", c_degenerate);
@@ -478,7 +478,7 @@ int32_t GetEdge2(int32_t v1, int32_t v2, face_t *f) {
 
 	c_tryedges++;
 
-	if (!noshare) {
+	if (!no_share) {
 		for (i = first_bsp_model_edge; i < bsp_file.num_edges; i++) {
 			edge = &bsp_file.edges[i];
 			if (v1 == edge->v[1] && v2 == edge->v[0] && edge_faces[i][0]->contents == f->contents) {
@@ -742,7 +742,7 @@ static void MakeFaces_r(node_t *node) {
 		MakeFaces_r(node->children[1]);
 
 		// merge together all visible faces on the node
-		if (!nomerge) {
+		if (!no_merge) {
 			MergeNodeFaces(node);
 		}
 

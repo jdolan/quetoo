@@ -124,8 +124,8 @@ typedef struct map_vis_s {
 
 extern map_vis_t map_vis;
 
-extern _Bool fastvis;
-extern _Bool nosort;
+extern _Bool fast_vis;
+extern _Bool no_sort;
 
 void BaseVis(int32_t portal_num);
 void FinalVis(int32_t portal_num);

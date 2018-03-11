@@ -381,7 +381,7 @@ void BuildLights(void) {
 			VectorSet(l->color, 1.0, 1.0, 1.0);
 		}
 
-		l->intensity = intensity * entity_scale;
+		l->intensity = intensity * light_scale;
 		l->type = LIGHT_POINT;
 
 		target = ValueForKey(e, "target");

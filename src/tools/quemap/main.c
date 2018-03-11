@@ -178,52 +178,49 @@ static void Shutdown(const char *msg) {
 static void Check_BSP_Options(int32_t argc) {
 
 	for (int32_t i = argc; i < Com_Argc(); i++) {
-		if (!g_strcmp0(Com_Argv(i), "-noweld")) {
-			Com_Verbose("noweld = true\n");
-			noweld = true;
-		} else if (!g_strcmp0(Com_Argv(i), "-nocsg")) {
-			Com_Verbose("nocsg = true\n");
-			nocsg = true;
-		} else if (!g_strcmp0(Com_Argv(i), "-noshare")) {
-			Com_Verbose("noshare = true\n");
-			noshare = true;
-		} else if (!g_strcmp0(Com_Argv(i), "-notjunc")) {
-			Com_Verbose("notjunc = true\n");
-			notjunc = true;
-		} else if (!g_strcmp0(Com_Argv(i), "-nowater")) {
-			Com_Verbose("nowater = true\n");
-			nowater = true;
-		} else if (!g_strcmp0(Com_Argv(i), "-noopt")) {
-			Com_Verbose("noopt = true\n");
-			noopt = true;
-		} else if (!g_strcmp0(Com_Argv(i), "-noprune")) {
-			Com_Verbose("noprune = true\n");
-			noprune = true;
-		} else if (!g_strcmp0(Com_Argv(i), "-nomerge")) {
-			Com_Verbose("nomerge = true\n");
-			nomerge = true;
-		} else if (!g_strcmp0(Com_Argv(i), "-nodetail")) {
-			Com_Verbose("nodetail = true\n");
-			nodetail = true;
-		} else if (!g_strcmp0(Com_Argv(i), "-fulldetail")) {
-			Com_Verbose("fulldetail = true\n");
-			fulldetail = true;
-		} else if (!g_strcmp0(Com_Argv(i), "-onlyents")) {
-			Com_Verbose("onlyents = true\n");
-			onlyents = true;
-		} else if (!g_strcmp0(Com_Argv(i), "-micro")) {
-			microvolume = atof(Com_Argv(i + 1));
-			Com_Verbose("microvolume = %f\n", microvolume);
+		if (!g_strcmp0(Com_Argv(i), "--no-weld")) {
+			Com_Verbose("no_weld = true\n");
+			no_weld = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--no-csg")) {
+			Com_Verbose("no_csg = true\n");
+			no_csg = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--no-share")) {
+			Com_Verbose("no_share = true\n");
+			no_share = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--no-tjunc")) {
+			Com_Verbose("no_tjunc = true\n");
+			no_tjunc = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--no-water")) {
+			Com_Verbose("no_water = true\n");
+			no_water = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--no-prune")) {
+			Com_Verbose("no_prune = true\n");
+			no_prune = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--no-merge")) {
+			Com_Verbose("no_merge = true\n");
+			no_merge = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--no-detail")) {
+			Com_Verbose("no_detail = true\n");
+			no_detail = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--all-detail")) {
+			Com_Verbose("all_structural = true\n");
+			all_structural = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--only-ents")) {
+			Com_Verbose("only_ents = true\n");
+			only_ents = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--micro-volume")) {
+			micro_volume = atof(Com_Argv(i + 1));
+			Com_Verbose("micro_volume = %f\n", micro_volume);
 			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "-leaktest")) {
-			Com_Verbose("leaktest = true\n");
+		} else if (!g_strcmp0(Com_Argv(i), "--leak-test")) {
+			Com_Verbose("leak-test = true\n");
 			leaktest = true;
-		} else if (!g_strcmp0(Com_Argv(i), "-block")) {
+		} else if (!g_strcmp0(Com_Argv(i), "--block")) {
 			block_xl = block_xh = atoi(Com_Argv(i + 1));
 			block_yl = block_yh = atoi(Com_Argv(i + 2));
 			Com_Verbose("block: %i,%i\n", block_xl, block_yl);
 			i += 2;
-		} else if (!g_strcmp0(Com_Argv(i), "-blocks")) {
+		} else if (!g_strcmp0(Com_Argv(i), "--blocks")) {
 			block_xl = atoi(Com_Argv(i + 1));
 			block_yl = atoi(Com_Argv(i + 2));
 			block_xh = atoi(Com_Argv(i + 3));
@@ -242,12 +239,12 @@ static void Check_BSP_Options(int32_t argc) {
 static void Check_VIS_Options(int32_t argc) {
 
 	for (int32_t i = argc; i < Com_Argc(); i++) {
-		if (!g_strcmp0(Com_Argv(i), "-fast")) {
-			Com_Verbose("fastvis = true\n");
-			fastvis = true;
-		} else if (!g_strcmp0(Com_Argv(i), "-nosort")) {
-			Com_Verbose("nosort = true\n");
-			nosort = true;
+		if (!g_strcmp0(Com_Argv(i), "--fast")) {
+			Com_Verbose("fast_vis = true\n");
+			fast_vis = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--no-sort")) {
+			Com_Verbose("no-sort = true\n");
+			no_sort = true;
 		} else {
 			break;
 		}
@@ -260,34 +257,34 @@ static void Check_VIS_Options(int32_t argc) {
 static void Check_LIGHT_Options(int32_t argc) {
 
 	for (int32_t i = argc; i < Com_Argc(); i++) {
-		if (!g_strcmp0(Com_Argv(i), "-antialias") || !g_strcmp0(Com_Argv(i), "-extra")) {
+		if (!g_strcmp0(Com_Argv(i), "--antialias") || !g_strcmp0(Com_Argv(i), "--extra")) {
 			antialias = true;
 			Com_Verbose("antialias: true\n");
-		} else if (!g_strcmp0(Com_Argv(i), "-indirect")) {
+		} else if (!g_strcmp0(Com_Argv(i), "--indirect")) {
 			indirect = true;
 			indirect_bounces = (int32_t) strtol(Com_Argv(i + 1), NULL, 10) ? : 1;
 			Com_Verbose("indirect lighting: true\n");
-		} else if (!g_strcmp0(Com_Argv(i), "-brightness")) {
+		} else if (!g_strcmp0(Com_Argv(i), "--brightness")) {
 			brightness = atof(Com_Argv(i + 1));
 			Com_Verbose("brightness: %f\n", brightness);
 			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "-saturation")) {
+		} else if (!g_strcmp0(Com_Argv(i), "--saturation")) {
 			saturation = atof(Com_Argv(i + 1));
 			Com_Verbose("saturation: %f\n", saturation);
 			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "-contrast")) {
+		} else if (!g_strcmp0(Com_Argv(i), "--contrast")) {
 			contrast = atof(Com_Argv(i + 1));
 			Com_Verbose("contrast: %f\n", contrast);
 			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "-surface")) {
+		} else if (!g_strcmp0(Com_Argv(i), "--surface-scale")) {
 			surface_scale *= atof(Com_Argv(i + 1));
 			Com_Verbose("surface light scale: %f\n", surface_scale);
 			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "-entity")) {
-			entity_scale *= atof(Com_Argv(i + 1));
-			Com_Verbose("entity light scale: %f\n", entity_scale);
+		} else if (!g_strcmp0(Com_Argv(i), "--light-scale")) {
+			light_scale *= atof(Com_Argv(i + 1));
+			Com_Verbose("light entity scale: %f\n", light_scale);
 			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "-patch")) {
+		} else if (!g_strcmp0(Com_Argv(i), "--patch-size")) {
 			patch_size = atof(Com_Argv(i + 1));
 			Com_Verbose("patch size: %f\n", patch_size);
 			i++;
@@ -320,51 +317,50 @@ static void Check_MAT_Options(int32_t argc) {
  */
 static void PrintHelpMessage(void) {
 	Com_Print("General options\n");
-	Com_Print("-v -verbose\n");
-	Com_Print("-d -debug\n");
-	Com_Print("-l -legacy - compile a legacy Quake II map\n");
-	Com_Print("-t -threads <int> - Specify the number of worker threads (default auto)\n");
-	Com_Print("-p -path <game directory> - add the path to the search directory\n");
-	Com_Print("-w -wpath <game directory> - add the write path to the search directory\n");
-	Com_Print("-c -connect <host> - use GtkRadiant's BSP monitoring server\n");
+	Com_Print("-v --verbose\n");
+	Com_Print("-d --debug\n");
+	Com_Print("-l --legacy - compile a legacy Quake II map\n");
+	Com_Print("-t --threads <int> - Specify the number of worker threads (default auto)\n");
+	Com_Print("-p --path <game directory> - add the path to the search directory\n");
+	Com_Print("-w --wpath <game directory> - add the write path to the search directory\n");
+	Com_Print("-c --connect <host> - use GtkRadiant's BSP monitoring server\n");
 	Com_Print("\n");
 
 	Com_Print("-mat               MAT stage options:\n");
 	Com_Print("\n");
 
 	Com_Print("-bsp               BSP stage options:\n");
-	Com_Print(" -block <int> <int>\n");
-	Com_Print(" -blocks <int> <int> <int> <int>\n");
-	Com_Print(" -fulldetail - don't treat details (and trans surfaces) as details\n");
-	Com_Print(" -leaktest\n");
-	Com_Print(" -micro <float>\n");
-	Com_Print(" -nocsg\n");
-	Com_Print(" -nodetail - skip detail brushes\n");
-	Com_Print(" -nomerge - skip node face merging\n");
-	Com_Print(" -noopt - don't optimize by merging final faces\n");
-	Com_Print(" -noprune - don't prune (or cut) nodes\n");
-	Com_Print(" -noshare\n");
-	Com_Print(" -notjunc\n");
-	Com_Print(" -nowater - skip water brushes\n");
-	Com_Print(" -noweld\n");
-	Com_Print(" -onlyents - modify existing bsp file with entities from map file\n");
-	Com_Print(" -tmpout\n");
+	Com_Print(" --block <int> <int>\n");
+	Com_Print(" --blocks <int> <int> <int> <int>\n");
+	Com_Print(" --full-detail - don't treat details (and trans surfaces) as details\n");
+	Com_Print(" --leak-test\n");
+	Com_Print(" --micro <float>\n");
+	Com_Print(" --no-csg\n");
+	Com_Print(" --no-detail - skip detail brushes\n");
+	Com_Print(" --no-merge - skip node face merging\n");
+	Com_Print(" --no-opt - don't optimize by merging final faces\n");
+	Com_Print(" --no-prune - don't prune (or cut) nodes\n");
+	Com_Print(" --no-share\n");
+	Com_Print(" --no-tjunc\n");
+	Com_Print(" --no-water - skip water brushes\n");
+	Com_Print(" --no-weld\n");
+	Com_Print(" --only-ents - modify existing bsp file with entities from map file\n");
 	Com_Print("\n");
 
 	Com_Print("-vis               VIS stage options:\n");
-	Com_Print(" -fast\n");
-	Com_Print(" -nosort\n");
+	Com_Print(" --fast\n");
+	Com_Print(" --no-sort\n");
 	Com_Print("\n");
 
 	Com_Print("-light             LIGHT stage options:\n");
-	Com_Print(" -antialias - calculate extra lighting samples and average them\n");
-	Com_Print(" -indirect <integer> - calculate indirect lighting with bounces\n");
-	Com_Print(" -entity <float> - entity light scaling\n");
-	Com_Print(" -surface <float> - surface light scaling\n");
-	Com_Print(" -brightness <float> - brightness factor\n");
-	Com_Print(" -contrast <float> - contrast factor\n");
-	Com_Print(" -saturation <float> - saturation factor\n");
-	Com_Print(" -patch <float> - surface light patch size (default 64)\n");
+	Com_Print(" --antialias - calculate extra lighting samples and average them\n");
+	Com_Print(" --indirect <integer> - calculate indirect lighting with bounces\n");
+	Com_Print(" --light-scale <float> - entity light scaling\n");
+	Com_Print(" --surface-scale <float> - surface light scaling\n");
+	Com_Print(" --brightness <float> - brightness factor\n");
+	Com_Print(" --contrast <float> - contrast factor\n");
+	Com_Print(" --saturation <float> - saturation factor\n");
+	Com_Print(" --patch <float> - surface light patch size (default 64)\n");
 	Com_Print("\n");
 
 	Com_Print("-aas               AAS stage options:\n");
