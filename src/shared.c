@@ -624,11 +624,11 @@ vec_t ColorNormalize(const vec3_t in, vec3_t out) {
 * @brief Applies RGBM encoding to the specified input color.
 */
 void ColorEncodeRGBM(const vec3_t in, vec4_t out) {
-	const vec_t max_channel = ceil(Max(Max(Max(in[0], in[1]), in[2]), 1.0 / 255.0) * 255.0) / 255.0;
 
-	VectorCopy(in, out);
-	VectorScale(out, 1.0 / max_channel, out);
+	const vec_t max_channel = Max(Max(in[0], in[1]), in[2]);
+	const vec_t multiplier = ceil(Max(max_channel, 1.0 / 255.0) * 255.0) / 255.0;
 
+	VectorScale(in, 1.0 / multiplier, out);
 	out[3] = max_channel;
 }
 
