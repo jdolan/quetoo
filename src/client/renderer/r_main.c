@@ -513,7 +513,7 @@ static void R_InitLocal(void) {
 	r_lighting = Cvar_Add("r_lighting", "1", CVAR_ARCHIVE, "Controls intensity of lighting effects");
 	r_materials = Cvar_Add("r_materials", "1", CVAR_ARCHIVE, "Enables or disables the materials (progressive texture effects) system");
 	r_max_lights = Cvar_Add("r_max_lights", "16", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the maximum number of lights affecting a rendered object");
-	r_modulate = Cvar_Add("r_modulate", "3", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls the brightness of world surface lightmaps");
+	r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls the brightness of static lighting");
 	r_hdr = Cvar_Add("r_hdr", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls high dynamic range (HDR) rendering");
 	r_hdr_enabled = Cvar_Add("r_hdr_enabled", "0", CVAR_NO_SET, NULL);
 	r_monochrome = Cvar_Add("r_monochrome", "0", CVAR_ARCHIVE | CVAR_R_MEDIA, "Loads all world textures as monochrome");
