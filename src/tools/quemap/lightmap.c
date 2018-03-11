@@ -571,11 +571,8 @@ static void GatherSampleLight(vec3_t pos, vec3_t tangent, vec3_t bitangent, vec3
 
 			switch (l->type) {
 				case LIGHT_POINT: // linear falloff
+				case LIGHT_FACE:
 					light = (l->intensity - dist) * dot;
-					break;
-
-				case LIGHT_FACE: // exponential falloff
-					light = (l->intensity / (dist * dist)) * dot;
 					break;
 
 				case LIGHT_SPOT: { // linear falloff with cone
