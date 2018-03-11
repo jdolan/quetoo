@@ -12,7 +12,7 @@
     <LocalDebuggerCommandArguments>-vis maps/edge.bsp</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>-vis maps/edge.bsp</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-verbose -bsp maps/tjuncs.bsp</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerCommandArguments>-vis maps/edge.bsp</LocalDebuggerCommandArguments>

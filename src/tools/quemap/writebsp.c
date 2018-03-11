@@ -290,7 +290,7 @@ void SetModelNumbers(void) {
 	int32_t models = 1;
 	for (int32_t i = 1; i < num_entities; i++) {
 		if (entities[i].num_brushes) {
-			SetKeyValue(&entities[i], "model", va("%d", models++));
+			SetKeyValue(&entities[i], "model", va("*%d", models++));
 		}
 	}
 }
