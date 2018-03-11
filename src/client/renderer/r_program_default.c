@@ -119,7 +119,6 @@ void R_InitProgram_default(r_program_t *program) {
 
 	R_ProgramVariable(&p->sampler0, R_SAMPLER_2D, "SAMPLER0", true);
 	R_ProgramVariable(&p->sampler1, R_SAMPLER_2D, "SAMPLER1", true);
-	R_ProgramVariable(&p->sampler2, R_SAMPLER_2D, "SAMPLER2", true);
 	R_ProgramVariable(&p->sampler3, R_SAMPLER_2D, "SAMPLER3", true);
 	R_ProgramVariable(&p->sampler4, R_SAMPLER_2D, "SAMPLER4", true);
 	R_ProgramVariable(&p->sampler6, R_SAMPLER_2D, "SAMPLER6", true);

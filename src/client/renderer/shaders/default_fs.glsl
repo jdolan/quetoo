@@ -49,7 +49,6 @@ uniform float SPECULAR;
 
 uniform sampler2D SAMPLER0;
 uniform sampler2DArray SAMPLER1;
-uniform sampler2D SAMPLER2;
 uniform sampler2D SAMPLER3;
 uniform sampler2D SAMPLER4;
 uniform sampler2D SAMPLER8;
@@ -259,17 +258,17 @@ float SelfShadowHeightmap(vec3 lightDir, sampler2D tex, vec2 uv) {
 /**
  * @brief Yield the diffuse modulation from bump-mapping.
  */
-void BumpFragment(in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap, out float lightmapBumpScale, out float lightmapSpecularScale) {
+void BumpFragment(in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap, out float lightmapDiffuseScale, out float lightmapSpecularScale) {
 	float glossFactor = clamp(dot(glossmap, vec3(0.299, 0.587, 0.114)), 0.0078125, 1.0);
 
-	lightmapBumpScale = clamp(dot(deluxemap, normalmap), 0.0, 1.0);
+	lightmapDiffuseScale = clamp(dot(deluxemap, normalmap), 0.0, 1.0);
 	lightmapSpecularScale = (HARDNESS * glossFactor) * pow(clamp(-dot(eyeDir, reflect(deluxemap, normalmap)), 0.0078125, 1.0), (16.0 * glossFactor) * SPECULAR);
 }
 
 /**
  * @brief Yield the final sample color after factoring in dynamic light sources.
  */
-void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in float lightmapBumpScale, in float lightmapSpecularScale) {
+void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in float lightmapDiffuseScale, in float lightmapSpecularScale) {
 
 	vec3 light = vec3(0.0);
 
@@ -308,7 +307,7 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in floa
 
 	float blackPointLuma = 0.015625;
 	float l = exp2(lightmapLuma) - blackPointLuma;
-	float lightmapDiffuseBumpedLuma = l * lightmapBumpScale;
+	float lightmapDiffuseBumpedLuma = l * lightmapDiffuseScale;
 	float lightmapSpecularBumpedLuma = l * lightmapSpecularScale;
 
 	vec3 diffuseLightmapColor = lightmap.rgb * lightmapDiffuseBumpedLuma;
@@ -383,16 +382,11 @@ void main(void) {
 	// then resolve any bump mapping
 	vec4 normalmap = vec4(normal, 0.5);
 
-	float lightmapBumpScale = 1.0;
+	float lightmapDiffuseScale = 1.0;
 	float lightmapSpecularScale = 0.0;
+	float lightmapSelfShadowScale = 1.0;
 
-	if (NORMALMAP) {
-
-		if (DELUXEMAP) {
-			vec4 deluxeColorHDR = texture(SAMPLER1, vec3(texcoords[1], 1));
-			deluxemap = deluxeColorHDR.rgb * deluxeColorHDR.a;
-			deluxemap = normalize(2.0 * (deluxemap + 0.5));
-		}
+	if (NORMALMAP && DELUXEMAP) {
 
 		normalmap = texture(SAMPLER3, uvTextures);
 
@@ -412,8 +406,19 @@ void main(void) {
 			glossmap = vec3(guessedGlossValue);
 		}
 
-		// resolve the bumpmap modulation
-		BumpFragment(deluxemap, normalmap.xyz, glossmap, lightmapBumpScale, lightmapSpecularScale);
+		// resolve the light direction and deluxemap
+		vec4 deluxeColorHDR = texture(SAMPLER1, vec3(texcoords[1], 1));
+		vec3 lightdir = deluxeColorHDR.rgb * deluxeColorHDR.a;
+
+		deluxemap = normalize(2.0 * (lightdir + 0.5));
+
+		// resolve the bumpmap diffuse and specular scales
+		BumpFragment(deluxemap, normalmap.xyz, glossmap, lightmapDiffuseScale, lightmapSpecularScale);
+
+		// and self-shadowing, if a heightmap is available
+		if (PARALLAX > 0.0) {
+			lightmapSelfShadowScale = SelfShadowHeightmap(lightdir * 2.0 - 1.0, SAMPLER3, uvTextures) * 0.5 + 0.5;
+		}
 
 		// and then transform the normalmap to model space for lighting
 		normalmap.xyz = normalize(
@@ -422,6 +427,8 @@ void main(void) {
 			normalmap.z * normalize(normal)
 		);
 	}
+
+	lightmapDiffuseScale *= lightmapSelfShadowScale;
 
 	vec4 diffuse = vec4(1.0);
 
@@ -437,7 +444,7 @@ void main(void) {
 	}
 
 	// add any dynamic lighting to yield the final fragment color
-	LightFragment(diffuse, lightmap, normalmap.xyz, lightmapBumpScale, lightmapSpecularScale);
+	LightFragment(diffuse, lightmap, normalmap.xyz, lightmapDiffuseScale, lightmapSpecularScale);
 
 	// underliquid caustics
 	CausticFragment(lightmap);
@@ -456,11 +463,4 @@ void main(void) {
 	FogFragment(length(point), fragColor);
 	
 	DitherFragment(fragColor.rgb);
-
-	// TODO: This should be moved up in the pipeline and not do the duplicated work it's doing now.
-	vec3 lightDir = normalize(texture(SAMPLER2, uvLightmap).xyz * 2.0 - 1.0);
-	fragColor.rgb *= NORMALMAP && PARALLAX > 0.0
-		? vec3(SelfShadowHeightmap(lightDir, SAMPLER3, uvTextures)) * 0.5 + 0.5
-		: vec3(1.0);
-
 }

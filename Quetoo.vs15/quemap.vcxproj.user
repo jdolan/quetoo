@@ -6,15 +6,15 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LocalDebuggerCommandArguments>-light -indirect maps/rage</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-l -bsp -vis -light testq23.bsp</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LocalDebuggerCommandArguments>-light -indirect maps/rage</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-vis maps/edge.bsp</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>-light -indirect maps/rage</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-verbose -bsp maps/tjuncs.bsp</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>-light -indirect maps/rage</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-vis maps/edge.bsp</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

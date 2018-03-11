@@ -39,6 +39,7 @@ quemap_SOURCES = \
 	scriptlib.c \
 	textures.c \
 	threads.c \
+	tjunctions.c \
 	tree.c \
 	writebsp.c
 
