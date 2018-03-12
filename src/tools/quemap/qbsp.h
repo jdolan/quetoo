@@ -71,7 +71,7 @@ typedef struct {
 
 #define	PLANENUM_LEAF -1
 
-#define	MAXEDGES 20
+#define	MAXEDGES 32
 
 typedef struct face_s {
 	struct face_s *next; // on node
@@ -249,8 +249,10 @@ void EndModel(void);
 void MakeFaces(node_t *head_node);
 void FixTjuncs(node_t *head_node);
 int32_t GetEdge2(int32_t v1, int32_t v2, face_t *f);
-
 void FreeFace(face_t *f);
+
+// tjunctions.c
+void FixTJunctionsQ3(node_t *head_node);
 
 // tree.c
 void FreeTree(tree_t *tree);

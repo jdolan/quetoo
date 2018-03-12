@@ -111,6 +111,9 @@
     <ClCompile Include="..\deps\minizip\miniz.c">
       <Filter>deps\minizip</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\tools\quemap\tjunctions.c">
+      <Filter>src\tools\quemap</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\tools\quemap\bspfile.h">
