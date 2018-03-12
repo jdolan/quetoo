@@ -863,6 +863,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			} else {
 				m->contents = Cm_ParseContents(token);
 			}
+			continue;
 		}
 
 		if (!g_strcmp0(token, "surface")) {
@@ -872,6 +873,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			} else {
 				m->surface = Cm_ParseSurface(token);
 			}
+			continue;
 		}
 
 		if (!g_strcmp0(token, "light")) {
