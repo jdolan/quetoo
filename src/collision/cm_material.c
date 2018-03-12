@@ -376,7 +376,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 
 		if (!g_strcmp0(token, "pulse")) {
 
-			if (!Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->pulse.hz, 1)) {
+			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->pulse.hz, 1) != 1) {
 				Cm_MaterialWarn(path, parser, "Need a value for pulse");
 				continue;
 			}
@@ -392,7 +392,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 
 		if (!g_strcmp0(token, "stretch")) {
 
-			if (!Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->stretch.amp, 1)) {
+			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->stretch.amp, 1) != 1) {
 				Cm_MaterialWarn(path, parser, "Need a value for amplitude");
 				continue;
 			}
@@ -401,7 +401,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 				Cm_MaterialWarn(path, parser, "Amplitude must not be zero");
 			}
 
-			if (!Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->stretch.hz, 1)) {
+			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->stretch.hz, 1) != 1) {
 				Cm_MaterialWarn(path, parser, "Need a value for frequency");
 				continue;
 			}
@@ -420,7 +420,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 
 		if (!g_strcmp0(token, "rotate")) {
 
-			if (!Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->rotate.hz, 1)) {
+			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->rotate.hz, 1) != 1) {
 				Cm_MaterialWarn(path, parser, "Need a value for rotate");
 				continue;
 			}
@@ -436,7 +436,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 
 		if (!g_strcmp0(token, "scroll.s")) {
 
-			if (!Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->scroll.s, 1)) {
+			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->scroll.s, 1) != 1) {
 				Cm_MaterialWarn(path, parser, "Need a value for scroll.s");
 				continue;
 			}
@@ -452,7 +452,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 
 		if (!g_strcmp0(token, "scroll.t")) {
 
-			if (!Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->scroll.t, 1)) {
+			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->scroll.t, 1) != 1) {
 				Cm_MaterialWarn(path, parser, "Need a value for scroll.t");
 				continue;
 			}
@@ -468,7 +468,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 
 		if (!g_strcmp0(token, "scale.s")) {
 
-			if (!Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->scale.s, 1)) {
+			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->scale.s, 1) != 1) {
 				Cm_MaterialWarn(path, parser, "Need a value for scale.s");
 				continue;
 			}
@@ -484,7 +484,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 
 		if (!g_strcmp0(token, "scale.t")) {
 
-			if (!Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->scale.t, 1)) {
+			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->scale.t, 1) != 1) {
 				Cm_MaterialWarn(path, parser, "Need a value for scale.t");
 				continue;
 			}
@@ -500,14 +500,14 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 
 		if (!g_strcmp0(token, "terrain")) {
 
-			if (!Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->terrain.floor, 1) ||
-				!Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->terrain.ceil, 1)) {
-				Cm_MaterialWarn(path, parser, "Need two values for terrain");
+			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->terrain.floor, 1) != 1 ||
+				Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->terrain.ceil, 1) != 1) {
+				Cm_MaterialWarn(path, parser, "Missing floor or ceiling for terrain");
 				continue;
 			}
 
 			if (s->terrain.ceil <= s->terrain.floor) {
-				Cm_MaterialWarn(path, parser, "Terrain ceiling must be > the floor");
+				Cm_MaterialWarn(path, parser, "Terrain ceiling must be > floor");
 			} else {
 				s->terrain.height = s->terrain.ceil - s->terrain.floor;
 				s->flags |= STAGE_TERRAIN;
@@ -518,7 +518,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 
 		if (!g_strcmp0(token, "dirtmap")) {
 
-			if (!Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->dirt.intensity, 1)) {
+			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->dirt.intensity, 1) != 1) {
 				Cm_MaterialWarn(path, parser, "Need a value for dirtmap");
 				continue;
 			}
@@ -534,7 +534,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 
 		if (!g_strcmp0(token, "anim")) {
 
-			if (!Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_UINT16, &s->anim.num_frames, 1)) {
+			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_UINT16, &s->anim.num_frames, 1) != 1) {
 				Cm_MaterialWarn(path, parser, "Need number of frames");
 				continue;
 			}
@@ -543,7 +543,7 @@ static int32_t Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, 
 				Cm_MaterialWarn(path, parser, "Invalid number of frames");
 			}
 
-			if (!Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->anim.fps, 1)) {
+			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->anim.fps, 1) != 1) {
 				Cm_MaterialWarn(path, parser, "Need FPS value");
 				continue;
 			}
@@ -818,7 +818,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 
 		if (!g_strcmp0(token, "bump")) {
 
-			if (!Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->bump, 1)) {
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->bump, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No bump specified");
 			} else if (m->bump < 0.0) {
 				Cm_MaterialWarn(path, &parser, "Invalid bump value, must be > 0.0\n");
@@ -828,7 +828,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 
 		if (!g_strcmp0(token, "parallax")) {
 
-			if (!Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->parallax, 1)) {
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->parallax, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No bump specified");
 			} else if (m->parallax < 0.0) {
 				Cm_MaterialWarn(path, &parser, "Invalid parallax value, must be > 0.0\n");
@@ -838,7 +838,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 
 		if (!g_strcmp0(token, "hardness")) {
 
-			if (!Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->hardness, 1)) {
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->hardness, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No bump specified");
 			} else if (m->hardness < 0.0) {
 				Cm_MaterialWarn(path, &parser, "Invalid hardness value, must be > 0.0\n");
@@ -848,7 +848,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 
 		if (!g_strcmp0(token, "specular")) {
 
-			if (!Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->specular, 1)) {
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->specular, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No bump specified");
 			} else if (m->specular < 0.0) {
 				Cm_MaterialWarn(path, &parser, "Invalid specular value, must be > 0.0\n");
@@ -878,8 +878,8 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 
 		if (!g_strcmp0(token, "light")) {
 
-			if (!Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light, 1)) {
-				Cm_MaterialWarn(path, &parser, "No bump specified");
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No light specified");
 			} else if (m->light < 0.0) {
 				Cm_MaterialWarn(path, &parser, "Invalid light value, must be > 0.0\n");
 				m->light = DEFAULT_LIGHT;
