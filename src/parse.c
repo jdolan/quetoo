@@ -448,7 +448,9 @@ static _Bool Parse_TypeParse(const parse_type_t type, const char *input, void *o
 	}
 
 	if (result == 1) {
-		memcpy(output, scan_buffer, type_size);
+		if (output) {
+			memcpy(output, scan_buffer, type_size);
+		}
 		return true;
 	}
 
@@ -465,10 +467,6 @@ size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_
 	const size_t type_size = Parse_TypeSize(type);
 	size_t num_parsed = 0;
 
-	if (!output) {
-		output = calloc(count, type_size);
-	}
-
 	if (flags & PARSE_PEEK) {
 		old_position = parser->position;
 	}
@@ -476,6 +474,11 @@ size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_
 	const parse_flags_t prim_flags = ((flags & PARSE_WITHIN_QUOTES) ? (flags | PARSE_RETAIN_QUOTES) : flags) & ~PARSE_PEEK;
 
 	if (!Parse_Token(parser, prim_flags, parser->scratch, sizeof(parser->scratch))) {
+
+		if (flags & PARSE_PEEK) {
+			parser->position = old_position;
+		}
+
 		return num_parsed;
 	}
 
@@ -489,10 +492,15 @@ size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_
 
 		num_parsed = Parse_Primitive(&sub_parser, flags & ~(PARSE_WITHIN_QUOTES | PARSE_PEEK), type, output, count);
 	} else {
-		for (size_t i = 0; i < count; i++, output += type_size) {
+		for (size_t i = 0; i < count; i++) {
 
 			if (i != 0) { // 0 is parsed above for quote checking
 				if (!Parse_Token(parser, prim_flags, parser->scratch, sizeof(parser->scratch))) {
+
+					if (flags & PARSE_PEEK) {
+						parser->position = old_position;
+					}
+
 					return num_parsed;
 				}
 			}
@@ -502,6 +510,10 @@ size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_
 			}
 
 			num_parsed++;
+
+			if (output) {
+				output += type_size;
+			}
 		}
 	}
 
