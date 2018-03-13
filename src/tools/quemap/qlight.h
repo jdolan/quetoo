@@ -41,8 +41,8 @@ typedef struct patch_s {
 	vec3_t origin;
 	vec3_t normal;
 
-	vec_t area;
-	vec3_t light; // emissive surface light
+	vec_t light; // light radius in units
+	vec3_t color; // emissive light color from surface texture
 
 	struct patch_s *next;  // next in face
 } patch_t;
