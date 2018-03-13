@@ -69,7 +69,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-bsp -vis -light maps/lighttest.map"
+            argument = "-bsp -vis -light --indirect maps/torn.map"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
