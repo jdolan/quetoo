@@ -919,10 +919,7 @@ void BuildIndirectLights(void) {
 			VectorCopy(plane->normal, normal);
 		}
 
-		const vec_t *center = face_extents[face_num].center;
-
 		for (i = 0; i < fl->num_samples; i++) {
-			byte pvs[(MAX_BSP_LEAFS + 7) / 8];
 
 			vec3_t direct, indirect, color;
 			VectorCopy(fl->direct + i * 3, direct);
@@ -933,27 +930,18 @@ void BuildIndirectLights(void) {
 				continue;
 			}
 
-			vec3_t point, position;
+			vec3_t origin;
 
-			VectorCopy(fl->origins + i * 3, point);
+			VectorCopy(fl->origins + i * 3, origin);
 
 			if (texinfo->flags & SURF_PHONG) {
-				SampleNormal(face, position, normal);
+				SampleNormal(face, origin, normal);
 			}
-
-			vec3_t offset;
-			VectorScale(normal, 1.0, offset);
-
-			VectorAdd(point, offset, point);
-
-			if (!NudgeSamplePosition(point, normal, center, position, pvs)) {
-				continue;
-			}			
 
 			num_lights++;
 			light_t *light = Mem_TagMalloc(sizeof(*light), MEM_TAG_LIGHT);
 
-			VectorCopy(position, light->origin);
+			VectorMA(origin, 2.0, normal, light->origin);
 
 			const bsp_leaf_t *leaf = &bsp_file.leafs[Light_PointLeafnum(light->origin)];
 			const int16_t cluster = leaf->cluster;
@@ -966,7 +954,7 @@ void BuildIndirectLights(void) {
 			VectorCopy(normal, light->normal);
 
 			VectorScale(color, 1.0 / 255.0 / 256.0 / (indirect_bounce + 1.0), light->color);
-			light->radius = 256;
+			light->radius = 256.0;
 		}
 	}
 }
