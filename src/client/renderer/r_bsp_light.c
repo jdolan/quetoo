@@ -42,8 +42,6 @@
 
 #define BSP_LIGHT_SUN_SCALE 1.0
 #define BSP_LIGHT_MERGE_THRESHOLD 24.0
-#define BSP_LIGHT_SURFACE_RADIUS_SCALE 1.0
-#define BSP_LIGHT_POINT_RADIUS_SCALE 1.0
 #define BSP_LIGHT_POINT_DEFAULT_RADIUS 300.0
 
 r_bsp_light_state_t r_bsp_light_state;
@@ -176,7 +174,12 @@ static void R_AddBspLight(r_bsp_model_t *bsp, vec3_t origin, vec3_t color, vec_t
 	bl->count++;
 	bl->light.radius = ((bl->light.radius * (bl->count - 1)) + radius) / bl->count;
 
-	VectorMix(bl->light.color, color, 1.0 / bl->count, bl->light.color);
+	const r_bsp_light_state_t *s = &r_bsp_light_state;
+
+	vec3_t filtered_color;
+	ColorFilter(color, filtered_color, s->brightness, s->saturation, s->contrast);
+
+	VectorMix(bl->light.color, filtered_color, 1.0 / bl->count, bl->light.color);
 
 	bl->debug.type = PARTICLE_CORONA;
 	bl->debug.color[3] = 1.0;
@@ -194,8 +197,6 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 
 	memset(&r_bsp_light_state, 0, sizeof(r_bsp_light_state));
 
-	const r_bsp_light_state_t *s = &r_bsp_light_state;
-
 	R_ResolveBspLightParameters();
 
 	// iterate the world surfaces for surface lights
@@ -207,9 +208,9 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 		if ((surf->texinfo->flags & SURF_LIGHT) && surf->texinfo->value) {
 			VectorMA(surf->center, 1.0, surf->normal, origin);
 
-			radius = sqrt(surf->texinfo->light * sqrt(surf->area) * BSP_LIGHT_SURFACE_RADIUS_SCALE);
+			radius = surf->texinfo->light;
 
-			R_AddBspLight(bsp, origin, surf->texinfo->emissive, radius * s->brightness);
+			R_AddBspLight(bsp, origin, surf->texinfo->emissive, radius);
 		}
 	}
 
@@ -218,7 +219,7 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 
 	VectorClear(origin);
 
-	radius = BSP_LIGHT_POINT_DEFAULT_RADIUS * s->brightness;
+	radius = BSP_LIGHT_POINT_DEFAULT_RADIUS;
 	VectorSet(color, 1.0, 1.0, 1.0);
 
 	_Bool entity = false, light = false;
@@ -246,7 +247,7 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 			entity = false;
 
 			if (light) { // add it
-				R_AddBspLight(bsp, origin, color, radius * BSP_LIGHT_POINT_RADIUS_SCALE);
+				R_AddBspLight(bsp, origin, color, radius);
 
 				radius = BSP_LIGHT_POINT_DEFAULT_RADIUS;
 				VectorSet(color, 1.0, 1.0, 1.0);
@@ -283,7 +284,6 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 				break;
 			}
 
-			radius *= s->brightness;
 			continue;
 		}
 
@@ -293,7 +293,6 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 				break;
 			}
 
-			ColorFilter(color, color, s->brightness, s->saturation, s->contrast);
 			continue;
 		}
 	}
