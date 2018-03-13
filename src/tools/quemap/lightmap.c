@@ -263,11 +263,11 @@ typedef struct light_s { // a light source
 	struct light_s *next;
 	light_type_t type;
 
-	vec_t intensity; // brightness
+	vec_t radius;
 	vec3_t origin;
 	vec3_t color;
 	vec3_t normal; // spotlight direction
-	vec_t stopdot; // spotlight cone
+	vec_t cone; // spotlight cone, in radians
 } light_t;
 
 static light_t *lights[MAX_BSP_LEAFS];
@@ -306,47 +306,38 @@ static entity_t *FindTargetEntity(const char *target) {
  * @brief
  */
 void BuildLights(void) {
-	size_t i;
-	light_t *l;
-	const bsp_leaf_t *leaf;
-	int32_t cluster;
-	const char *target;
-	vec3_t dest;
-	const char *color;
-	const char *angles;
-	vec_t v, intensity;
 
 	// surfaces
-	for (i = 0; i < lengthof(face_patches); i++) {
+	for (size_t i = 0; i < lengthof(face_patches); i++) {
 		
 		const patch_t *p = face_patches[i];
 		while (p) { // iterate patches
 
-			if (VectorCompare(p->light, vec3_origin)) {
+			if (p->light == 0.0) {
 				continue;
 			}
 
 			num_lights++;
-			l = Mem_TagMalloc(sizeof(*l), MEM_TAG_LIGHT);
+			light_t *l = Mem_TagMalloc(sizeof(*l), MEM_TAG_LIGHT);
 
 			VectorCopy(p->origin, l->origin);
 
-			leaf = &bsp_file.leafs[Light_PointLeafnum(l->origin)];
-			cluster = leaf->cluster;
+			const bsp_leaf_t *leaf = &bsp_file.leafs[Light_PointLeafnum(l->origin)];
+			const int16_t cluster = leaf->cluster;
 			l->next = lights[cluster];
 			lights[cluster] = l;
 
 			l->type = LIGHT_FACE;
 
-			l->intensity = ColorNormalize(p->light, l->color);
-			l->intensity *= p->area * surface_scale;
+			l->radius = p->light * surface_scale;
+			ColorNormalize(p->color, l->color);
 
 			p = p->next;
 		}
 	}
 
 	// entities
-	for (i = 1; i < num_entities; i++) {
+	for (size_t i = 1; i < num_entities; i++) {
 		const entity_t *e = &entities[i];
 
 		const char *name = ValueForKey(e, "classname");
@@ -355,25 +346,25 @@ void BuildLights(void) {
 		}
 
 		num_lights++;
-		l = Mem_TagMalloc(sizeof(*l), MEM_TAG_LIGHT);
+		light_t *l = Mem_TagMalloc(sizeof(*l), MEM_TAG_LIGHT);
 
 		VectorForKey(e, "origin", l->origin);
 
-		leaf = &bsp_file.leafs[Light_PointLeafnum(l->origin)];
-		cluster = leaf->cluster;
+		const bsp_leaf_t *leaf = &bsp_file.leafs[Light_PointLeafnum(l->origin)];
+		const int16_t cluster = leaf->cluster;
 
 		l->next = lights[cluster];
 		lights[cluster] = l;
 
-		intensity = FloatForKey(e, "light");
-		if (!intensity) {
-			intensity = FloatForKey(e, "_light");
+		vec_t radius = FloatForKey(e, "light");
+		if (!radius) {
+			radius = FloatForKey(e, "_light");
 		}
-		if (!intensity) {
-			intensity = 300.0;
+		if (!radius) {
+			radius = DEFAULT_LIGHT;
 		}
 
-		color = ValueForKey(e, "_color");
+		const char *color = ValueForKey(e, "_color");
 		if (color && color[0]) {
 			sscanf(color, "%f %f %f", &l->color[0], &l->color[1], &l->color[2]);
 			ColorNormalize(l->color, l->color);
@@ -381,31 +372,33 @@ void BuildLights(void) {
 			VectorSet(l->color, 1.0, 1.0, 1.0);
 		}
 
-		l->intensity = intensity * light_scale;
+		l->radius = radius * light_scale;
 		l->type = LIGHT_POINT;
 
-		target = ValueForKey(e, "target");
+		const char *target = ValueForKey(e, "target");
 		if (!g_strcmp0(name, "light_spot") || target[0]) {
 
 			l->type = LIGHT_SPOT;
 
-			l->stopdot = FloatForKey(e, "cone");
-			if (!l->stopdot) {
-				l->stopdot = FloatForKey(e, "_cone");
+			l->cone = FloatForKey(e, "cone");
+			if (!l->cone) {
+				l->cone = FloatForKey(e, "_cone");
 			}
-			if (!l->stopdot) { // reasonable default cone
-				l->stopdot = 20.0;
+			if (!l->cone) { // reasonable default cone
+				l->cone = 20.0;
 			}
 
-			l->stopdot = cos(Radians(l->stopdot));
+			l->cone = cos(Radians(l->cone));
 
 			if (target[0]) { // point towards target
 				entity_t *e2 = FindTargetEntity(target);
 				if (!e2) {
 					Mon_SendSelect(MON_WARN, i, 0, va("Light at %s missing target", vtos(l->origin)));
+					VectorCopy(vec3_down, l->normal);
 				} else {
-					VectorForKey(e2, "origin", dest);
-					VectorSubtract(dest, l->origin, l->normal);
+					vec3_t org;
+					VectorForKey(e2, "origin", org);
+					VectorSubtract(org, l->origin, l->normal);
 					VectorNormalize(l->normal);
 				}
 			} else { // point down angle
@@ -434,37 +427,36 @@ void BuildLights(void) {
 		sun.light = FloatForKey(e, "sun_light");
 
 		VectorSet(sun.color, 1.0, 1.0, 1.0);
-		color = ValueForKey(e, "sun_color");
+		const char *color = ValueForKey(e, "sun_color");
 		if (color && color[0]) {
 			sscanf(color, "%f %f %f", &sun.color[0], &sun.color[1], &sun.color[2]);
 			ColorNormalize(sun.color, sun.color);
 		}
 
-		angles = ValueForKey(e, "sun_angles");
+		const char *angles = ValueForKey(e, "sun_angles");
 
 		VectorClear(sun.angles);
 		sscanf(angles, "%f %f", &sun.angles[0], &sun.angles[1]);
 
 		AngleVectors(sun.angles, sun.dir, NULL, NULL);
 
-		if (sun.light)
+		if (sun.light) {
 			Com_Verbose("Sun defined with light %3.0f, color %0.2f %0.2f %0.2f, "
 			            "angles %1.3f %1.3f %1.3f\n", sun.light, sun.color[0], sun.color[1],
 			            sun.color[2], sun.angles[0], sun.angles[1], sun.angles[2]);
+		}
 
 		// ambient light, also from worldspawn
-		color = ValueForKey(e, "ambient");
-		if (!strlen(color)) {
-			color = ValueForKey(e, "ambient_light");
-		}
-		sscanf(color, "%f %f %f", &ambient[0], &ambient[1], &ambient[2]);
+		const char *ambient_ = ValueForKey(e, "ambient");
+		sscanf(ambient_, "%f %f %f", &ambient[0], &ambient[1], &ambient[2]);
 
-		if (VectorLength(ambient))
+		if (VectorLength(ambient)) {
 			Com_Verbose("Ambient lighting defined with color %0.2f %0.2f %0.2f\n", ambient[0],
-			            ambient[1], ambient[2]);
+						ambient[1], ambient[2]);
+		}
 
 		// optionally pull brightness from worldspawn
-		v = FloatForKey(e, "brightness");
+		vec_t v = FloatForKey(e, "brightness");
 		if (v > 0.0) {
 			brightness = v;
 		}
@@ -561,10 +553,13 @@ static void GatherSampleLight(vec3_t pos, vec3_t tangent, vec3_t bitangent, vec3
 			VectorSubtract(l->origin, pos, delta);
 
 			const vec_t dist = VectorNormalize(delta);
+			if (dist > l->radius) {
+				continue;
+			}
 
 			const vec_t dot = DotProduct(delta, normal);
-			if (dot <= 0.001) {
-				continue;    // behind sample surface
+			if (dot < SIDE_EPSILON) {
+				continue;
 			}
 
 			vec_t light = 0.0;
@@ -572,16 +567,16 @@ static void GatherSampleLight(vec3_t pos, vec3_t tangent, vec3_t bitangent, vec3
 			switch (l->type) {
 				case LIGHT_POINT: // linear falloff
 				case LIGHT_FACE:
-					light = (l->intensity - dist) * dot;
+					light = (l->radius - dist) * dot;
 					break;
 
 				case LIGHT_SPOT: { // linear falloff with cone
 					const vec_t dot2 = -DotProduct(delta, l->normal);
-					if (dot2 > l->stopdot) { // inside the cone
-						light = (l->intensity - dist) * dot;
+					if (dot2 > l->cone) { // inside the cone
+						light = (l->radius - dist) * dot;
 					} else { // outside the cone
-						const vec_t decay = 1.0 + l->stopdot - dot2;
-						light = (l->intensity - decay * decay * dist) * dot;
+						const vec_t decay = 1.0 + l->cone - dot2;
+						light = (l->radius - decay * decay * dist) * dot;
 					}
 				}
 					break;
@@ -605,9 +600,10 @@ static void GatherSampleLight(vec3_t pos, vec3_t tangent, vec3_t bitangent, vec3
 			VectorMA(sample, light * scale, l->color, sample);
 
 			// and add some direction
-			VectorMix(normal, delta, 2.0 * light / l->intensity, delta);
+			VectorMix(normal, delta, 2.0 * light / l->radius, delta);
 
 			WorldSpaceToTangentSpace(tangent, bitangent, normal, delta, delta);
+
 			VectorMA(direction, light * scale, delta, direction);
 		}
 	}
@@ -963,12 +959,12 @@ void BuildIndirectLights(void) {
 			lights[cluster] = light;
 
 			light->type = LIGHT_SPOT;
-			light->stopdot = 1.0;
+			light->cone = 1.0;
 
 			VectorCopy(normal, light->normal);
 
 			VectorScale(color, 1.0 / 255.0 / 256.0 / (indirect_bounce + 1.0), light->color);
-			light->intensity = 256;
+			light->radius = 256;
 		}
 	}
 }
