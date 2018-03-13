@@ -97,9 +97,8 @@ void FreeTextureColors(void) {
  * @brief
  */
 static _Bool HasLight(const bsp_face_t *f) {
-	const bsp_texinfo_t *tex;
 
-	tex = &bsp_file.texinfo[f->texinfo];
+	const bsp_texinfo_t *tex = &bsp_file.texinfo[f->texinfo];
 	return (tex->flags & SURF_LIGHT) && tex->value;
 }
 
@@ -107,9 +106,8 @@ static _Bool HasLight(const bsp_face_t *f) {
  * @brief
  */
 static _Bool IsSky(const bsp_face_t *f) {
-	const bsp_texinfo_t *tex;
 
-	tex = &bsp_file.texinfo[f->texinfo];
+	const bsp_texinfo_t *tex = &bsp_file.texinfo[f->texinfo];
 	return tex->flags & SURF_SKY;
 }
 
@@ -118,32 +116,26 @@ static _Bool IsSky(const bsp_face_t *f) {
  */
 static void EmissiveLight(patch_t *patch) {
 
-	if (HasLight(patch->face)) {
-		vec3_t color;
-
-		const bsp_texinfo_t *tex = &bsp_file.texinfo[patch->face->texinfo];
-		GetTextureColor(tex->texture, color);
-
-		VectorScale(color, tex->value, patch->light);
-	}
+	const bsp_texinfo_t *tex = &bsp_file.texinfo[patch->face->texinfo];
+	const cm_material_t *material = LoadMaterial(tex->texture, ASSET_CONTEXT_TEXTURES);
+	
+	patch->light = Max(tex->value, material->light);
+	GetTextureColor(tex->texture, patch->color);
 }
 
 /**
  * @brief
  */
 static void BuildPatch(int32_t fn, winding_t *w) {
-	patch_t *patch;
-	bsp_plane_t *plane;
 
-	patch = (patch_t *) Mem_TagMalloc(sizeof(*patch), MEM_TAG_PATCH);
-
+	patch_t *patch = (patch_t *) Mem_TagMalloc(sizeof(*patch), MEM_TAG_PATCH);
 	face_patches[fn] = patch;
 
 	patch->face = &bsp_file.faces[fn];
 	patch->winding = w;
 
 	// resolve the normal
-	plane = &bsp_file.planes[patch->face->plane_num];
+	const bsp_plane_t *plane = &bsp_file.planes[patch->face->plane_num];
 
 	if (patch->face->side) {
 		VectorNegate(plane->normal, patch->normal);
@@ -156,12 +148,6 @@ static void BuildPatch(int32_t fn, winding_t *w) {
 	// nudge the origin out along the normal
 	VectorMA(patch->origin, 2.0, patch->normal, patch->origin);
 
-	patch->area = WindingArea(w);
-
-	if (patch->area < 1.0) { // clamp area
-		patch->area = 1.0;
-	}
-
 	EmissiveLight(patch); // surface light
 }
 
@@ -169,13 +155,12 @@ static void BuildPatch(int32_t fn, winding_t *w) {
  * @brief
  */
 static entity_t *EntityForModel(int32_t num) {
-	int32_t i;
-	char name[16];
 
+	char name[16];
 	g_snprintf(name, sizeof(name), "*%i", num);
 
 	// search the entities for one using modnum
-	for (i = 0; i < num_entities; i++) {
+	for (int32_t i = 0; i < num_entities; i++) {
 
 		const char *s = ValueForKey(&entities[i], "model");
 
@@ -192,20 +177,17 @@ static entity_t *EntityForModel(int32_t num) {
  * may be computed along them.
  */
 void BuildPatches(void) {
-	int32_t i, j, k;
-	winding_t *w;
-	vec3_t origin;
 
-	for (i = 0; i < bsp_file.num_models; i++) {
+	for (int32_t i = 0; i < bsp_file.num_models; i++) {
 
 		const bsp_model_t *mod = &bsp_file.models[i];
 		const entity_t *ent = EntityForModel(i);
 
-		// bmodels with origin brushes need to be offset into their
-		// in-use position
+		// bmodels with origin brushes need to be offset into their in-use position
+		vec3_t origin;
 		VectorForKey(ent, "origin", origin);
 
-		for (j = 0; j < mod->num_faces; j++) {
+		for (int32_t j = 0; j < mod->num_faces; j++) {
 
 			const int32_t facenum = mod->first_face + j;
 			bsp_face_t *f = &bsp_file.faces[facenum];
@@ -216,9 +198,9 @@ void BuildPatches(void) {
 				continue;
 			}
 
-			w = WindingForFace(f);
+			winding_t *w = WindingForFace(f);
 
-			for (k = 0; k < w->num_points; k++) {
+			for (int32_t k = 0; k < w->num_points; k++) {
 				VectorAdd(w->points[k], origin, w->points[k]);
 			}
 
@@ -234,19 +216,8 @@ static void FinishSubdividePatch(patch_t *patch, patch_t *newp) {
 
 	VectorCopy(patch->normal, newp->normal);
 
-	VectorCopy(patch->light, newp->light);
-
-	patch->area = WindingArea(patch->winding);
-
-	if (patch->area < 1.0) {
-		patch->area = 1.0;
-	}
-
-	newp->area = WindingArea(newp->winding);
-
-	if (newp->area < 1.0) {
-		newp->area = 1.0;
-	}
+	newp->light = patch->light;
+	VectorCopy(patch->color, newp->color);
 
 	WindingCenter(patch->winding, patch->origin);
 
