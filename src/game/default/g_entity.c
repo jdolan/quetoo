@@ -989,7 +989,7 @@ static void G_WorldspawnMusic(void) {
  -------- KEYS --------
  message : The map title.
  sky : The sky environment map (default unit1_).
- ambient_light : The ambient light level (e.g. 0.14 0.11 0.12).
+ ambient : The ambient light level (e.g. 0.14 0.11 0.12).
  sun_light : Sun light intensity, a single scalar value 0 - 255.
  sun_color : Sun light color (e.g. 0.8 0.4 0.7).
  sun_angles : Sun light angles as "pitch yaw roll" (e.g. 85 225 0).
