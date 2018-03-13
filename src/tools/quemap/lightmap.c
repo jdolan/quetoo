@@ -352,6 +352,8 @@ void BuildLights(void) {
 		num_lights++;
 		light_t *l = Mem_TagMalloc(sizeof(*l), MEM_TAG_LIGHT);
 
+		l->type = LIGHT_POINT;
+
 		VectorForKey(e, "origin", l->origin);
 
 		const bsp_leaf_t *leaf = &bsp_file.leafs[Light_PointLeafnum(l->origin)];
@@ -368,7 +370,10 @@ void BuildLights(void) {
 			radius = DEFAULT_LIGHT;
 		}
 
-		const char *color = ValueForKey(e, "_color");
+		const char *color = ValueForKey(e, "color");
+		if (!strlen(color)) {
+			color = ValueForKey(e, "_color");
+		}
 		if (color && color[0]) {
 			sscanf(color, "%f %f %f", &l->color[0], &l->color[1], &l->color[2]);
 			ColorNormalize(l->color, l->color);
@@ -377,7 +382,6 @@ void BuildLights(void) {
 		}
 
 		l->radius = radius * light_scale;
-		l->type = LIGHT_POINT;
 
 		const char *target = ValueForKey(e, "target");
 		if (!g_strcmp0(name, "light_spot") || target[0]) {
@@ -498,8 +502,8 @@ void BuildLights(void) {
  * @brief A follow-up to GatherSampleLight, simply trace along the sun normal, adding
  * sunlight when a sky surface is struck.
  */
-static void GatherSampleSunlight(const vec3_t pos, const vec3_t tangent, const vec3_t bitangent, const vec3_t normal, vec_t *sample,
-                                 vec_t *direction, vec_t scale) {
+static void GatherSampleSunlight(const vec3_t pos, const vec3_t tangent, const vec3_t bitangent,
+								 const vec3_t normal, vec_t *sample, vec_t *direction, vec_t scale) {
 
 	if (!sun.light) {
 		return;
@@ -911,8 +915,7 @@ void BuildIndirectLights(void) {
 
 		if (face->side) {
 			VectorNegate(plane->normal, normal);
-		}
-		else {
+		} else {
 			VectorCopy(plane->normal, normal);
 		}
 
