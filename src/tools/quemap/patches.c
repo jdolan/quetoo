@@ -65,6 +65,8 @@ void BuildTextureColors(void) {
 			for (int32_t j = 0; j < 3; j++) {
 				color[j] = (c[j] / texels) / 255.0;
 			}
+
+			ColorNormalize(color, color);
 		} else {
 			Com_Warn("Couldn't load %s\n", material->diffuse.path);
 		}
@@ -96,36 +98,6 @@ void FreeTextureColors(void) {
 /**
  * @brief
  */
-static _Bool HasLight(const bsp_face_t *f) {
-
-	const bsp_texinfo_t *tex = &bsp_file.texinfo[f->texinfo];
-	return (tex->flags & SURF_LIGHT) && tex->value;
-}
-
-/**
- * @brief
- */
-static _Bool IsSky(const bsp_face_t *f) {
-
-	const bsp_texinfo_t *tex = &bsp_file.texinfo[f->texinfo];
-	return tex->flags & SURF_SKY;
-}
-
-/**
- * @brief
- */
-static void EmissiveLight(patch_t *patch) {
-
-	const bsp_texinfo_t *tex = &bsp_file.texinfo[patch->face->texinfo];
-	const cm_material_t *material = LoadMaterial(tex->texture, ASSET_CONTEXT_TEXTURES);
-	
-	patch->light = Max(tex->value, material->light);
-	GetTextureColor(tex->texture, patch->color);
-}
-
-/**
- * @brief
- */
 static void BuildPatch(int32_t fn, winding_t *w) {
 
 	patch_t *patch = (patch_t *) Mem_TagMalloc(sizeof(*patch), MEM_TAG_PATCH);
@@ -133,22 +105,6 @@ static void BuildPatch(int32_t fn, winding_t *w) {
 
 	patch->face = &bsp_file.faces[fn];
 	patch->winding = w;
-
-	// resolve the normal
-	const bsp_plane_t *plane = &bsp_file.planes[patch->face->plane_num];
-
-	if (patch->face->side) {
-		VectorNegate(plane->normal, patch->normal);
-	} else {
-		VectorCopy(plane->normal, patch->normal);
-	}
-
-	WindingCenter(w, patch->origin);
-
-	// nudge the origin out along the normal
-	VectorMA(patch->origin, 2.0, patch->normal, patch->origin);
-
-	EmissiveLight(patch); // surface light
 }
 
 /**
@@ -194,7 +150,8 @@ void BuildPatches(void) {
 
 			VectorCopy(origin, face_offset[facenum]);
 
-			if (!HasLight(f)) { // no light
+			const bsp_texinfo_t *tex = &bsp_file.texinfo[f->texinfo];
+			if (!(tex->flags & SURF_LIGHT)) {
 				continue;
 			}
 
@@ -207,27 +164,6 @@ void BuildPatches(void) {
 			BuildPatch(facenum, w);
 		}
 	}
-}
-
-/**
- * @brief
- */
-static void FinishSubdividePatch(patch_t *patch, patch_t *newp) {
-
-	VectorCopy(patch->normal, newp->normal);
-
-	newp->light = patch->light;
-	VectorCopy(patch->color, newp->color);
-
-	WindingCenter(patch->winding, patch->origin);
-
-	// nudge the patch origin out along the normal
-	VectorMA(patch->origin, 2.0, patch->normal, patch->origin);
-
-	WindingCenter(newp->winding, newp->origin);
-
-	// nudge the patch origin out along the normal
-	VectorMA(newp->origin, 2.0, newp->normal, newp->origin);
 }
 
 /**
@@ -262,14 +198,13 @@ static void SubdividePatch(patch_t *patch) {
 
 	// create a new patch
 	newp = (patch_t *) Mem_TagMalloc(sizeof(*newp), MEM_TAG_PATCH);
-
-	newp->next = patch->next;
-	patch->next = newp;
+	newp->face = patch->face;
 
 	patch->winding = o1;
 	newp->winding = o2;
 
-	FinishSubdividePatch(patch, newp);
+	newp->next = patch->next;
+	patch->next = newp;
 
 	SubdividePatch(patch);
 	SubdividePatch(newp);
@@ -281,18 +216,18 @@ static void SubdividePatch(patch_t *patch) {
 void SubdividePatches(void) {
 
 	// patch_size may come from worldspawn
-	const vec_t ps = FloatForKey(entities, "patch_size");
-	if (ps > 0.0 && (int32_t) patch_size == (int32_t) PATCH_SIZE) {
-		patch_size = ps;
+	const vec_t v = FloatForKey(entities, "patch_size");
+	if (v > 0.0) {
+		patch_size = v;
 	}
 
 	for (int32_t i = 0; i < MAX_BSP_FACES; i++) {
-
-		const bsp_face_t *f = &bsp_file.faces[i];
 		patch_t *p = face_patches[i];
-
-		if (p && !IsSky(f)) { // break it up
-			SubdividePatch(p);
+		if (p) {
+			const bsp_texinfo_t *tex = &bsp_file.texinfo[p->face->texinfo];
+			if (!(tex->flags & SURF_SKY)) { // break it up
+				SubdividePatch(p);
+			}
 		}
 	}
 }

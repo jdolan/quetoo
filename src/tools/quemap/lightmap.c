@@ -258,7 +258,6 @@ typedef struct {
 
 static face_lighting_t face_lighting[MAX_BSP_FACES];
 
-
 typedef struct light_s { // a light source
 	struct light_s *next;
 	light_type_t type;
@@ -313,24 +312,29 @@ void BuildLights(void) {
 		const patch_t *p = face_patches[i];
 		while (p) { // iterate patches
 
-			if (p->light == 0.0) {
-				continue;
-			}
-
 			num_lights++;
 			light_t *l = Mem_TagMalloc(sizeof(*l), MEM_TAG_LIGHT);
 
-			VectorCopy(p->origin, l->origin);
+			l->type = LIGHT_FACE;
+
+			WindingCenter(p->winding, l->origin);
+			const bsp_plane_t *plane = &bsp_file.planes[p->face->plane_num];
+			if (p->face->side) {
+				VectorMA(l->origin, -2.0, plane->normal, l->origin);
+			} else {
+				VectorMA(l->origin,  2.0, plane->normal, l->origin);
+			}
 
 			const bsp_leaf_t *leaf = &bsp_file.leafs[Light_PointLeafnum(l->origin)];
 			const int16_t cluster = leaf->cluster;
 			l->next = lights[cluster];
 			lights[cluster] = l;
 
-			l->type = LIGHT_FACE;
 
-			l->radius = p->light * surface_scale;
-			ColorNormalize(p->color, l->color);
+			const bsp_texinfo_t *tex = &bsp_file.texinfo[p->face->texinfo];
+			const cm_material_t *material = LoadMaterial(tex->texture, ASSET_CONTEXT_TEXTURES);
+			l->radius = Max(tex->value, material->light) * surface_scale;
+			GetTextureColor(tex->texture, l->color);
 
 			p = p->next;
 		}

@@ -35,15 +35,8 @@ typedef enum {
 } light_type_t;
 
 typedef struct patch_s {
-	bsp_face_t *face;
+	const bsp_face_t *face;
 	winding_t *winding;
-
-	vec3_t origin;
-	vec3_t normal;
-
-	vec_t light; // light radius in units
-	vec3_t color; // emissive light color from surface texture
-
 	struct patch_s *next;  // next in face
 } patch_t;
 
