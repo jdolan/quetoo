@@ -482,11 +482,6 @@ void BuildLights(void) {
 			surface_scale = v;
 		}
 
-		v = FloatForKey(e, "patch_size");
-		if (v > 0.0) {
-			patch_size = v;
-		}
-
 		// lightmap resolution downscale (e.g. 0.125, 0.0625)
 		lightmap_scale = FloatForKey(e, "lightmap_scale");
 		if (lightmap_scale == 0.0) {
