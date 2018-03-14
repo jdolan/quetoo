@@ -268,20 +268,15 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	e->effects &= ~EF_CTF_MASK;
 
 	const _Bool self_draw = (Cg_IsSelf(ent) && !cgi.client->third_person);
-	const _Bool self_third_person_predict = (Cg_IsSelf(ent) && cgi.client->third_person && cg_predict->value);
 
 	// don't draw ourselves unless third person is set
 	if (self_draw) {
+
 		e->effects |= EF_NO_DRAW;
 
-		// keep our shadow underneath us using the camera origin
+		// keep our shadow underneath us using the predicted origin
 		e->origin[0] = cgi.view->origin[0];
 		e->origin[1] = cgi.view->origin[1];
-	} else if (self_third_person_predict) {
-		// move the third person player model according to prediction
-		e->origin[0] = cgi.client->predicted_state.view.origin[0];
-		e->origin[1] = cgi.client->predicted_state.view.origin[1];
-		e->origin[2] = cgi.client->predicted_state.view.origin[2];
 	} else {
 		Cg_BreathTrail(ent);
 	}
