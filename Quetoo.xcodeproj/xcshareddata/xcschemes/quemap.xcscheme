@@ -69,15 +69,15 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-bsp -vis -light --indirect maps/torn.map"
+            argument = "-bsp -vis -light maps/torn.map"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-bsp -vis -light /Users/jdolan/.quetoo/default/maps/sandbox.map"
+            argument = "-bsp -vis -light --indirect maps/torn.map"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-bsp -onlyents maps/torn.bsp"
+            argument = "-bsp --only-ents maps/torn.bsp"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument

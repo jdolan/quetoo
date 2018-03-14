@@ -155,12 +155,6 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
 				}
 			}
 		}
-
-		// resolve emissive lighting
-		if ((out->flags & SURF_LIGHT) && out->value) {
-			VectorScale(out->material->diffuse->color, out->value, out->emissive);
-			out->light = ColorNormalize(out->emissive, out->emissive);
-		}
 	}
 
 	if (wal_files) {
@@ -242,7 +236,7 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 
 	VectorMix(surf->mins, surf->maxs, 0.5, surf->center); // calculate the center
 
-	if (surf->texinfo->light) { // resolve surface area
+	if ((surf->texinfo->flags & SURF_LIGHT) && surf->texinfo->value) { // resolve surface area
 
 		uint16_t vert = 0;
 

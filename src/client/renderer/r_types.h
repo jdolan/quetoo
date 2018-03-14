@@ -468,8 +468,6 @@ typedef struct {
 	uint32_t flags;
 	int32_t value;
 	r_material_t *material;
-	vec3_t emissive;
-	vec_t light;
 } r_bsp_texinfo_t;
 
 typedef struct {

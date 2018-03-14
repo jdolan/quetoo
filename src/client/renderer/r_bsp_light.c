@@ -204,13 +204,15 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 
 	for (uint16_t i = 0; i < bsp->num_surfaces; i++, surf++) {
 
-		// light-emitting surfaces are of course lights
-		if ((surf->texinfo->flags & SURF_LIGHT) && surf->texinfo->value) {
-			VectorMA(surf->center, 1.0, surf->normal, origin);
+		const r_bsp_texinfo_t *tex = surf->texinfo;
+		if ((tex->flags & SURF_LIGHT) && tex->value) {
+			VectorMA(surf->center, 4.0, surf->normal, origin);
 
-			radius = surf->texinfo->light;
+			vec3_t delta;
+			VectorSubtract(surf->maxs, surf->mins, delta);
+			radius = tex->value + VectorLength(delta);
 
-			R_AddBspLight(bsp, origin, surf->texinfo->emissive, radius);
+			R_AddBspLight(bsp, origin, tex->material->diffuse->color, radius);
 		}
 	}
 
