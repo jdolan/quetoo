@@ -388,9 +388,9 @@ void BuildLights(void) {
 			WindingCenter(p->winding, l->origin);
 			const bsp_plane_t *plane = &bsp_file.planes[p->face->plane_num];
 			if (p->face->side) {
-				VectorMA(l->origin, -2.0, plane->normal, l->origin);
+				VectorMA(l->origin, -4.0, plane->normal, l->origin);
 			} else {
-				VectorMA(l->origin,  2.0, plane->normal, l->origin);
+				VectorMA(l->origin,  4.0, plane->normal, l->origin);
 			}
 
 			const bsp_leaf_t *leaf = &bsp_file.leafs[Light_PointLeafnum(l->origin)];
