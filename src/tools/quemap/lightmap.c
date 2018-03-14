@@ -301,10 +301,78 @@ static entity_t *FindTargetEntity(const char *target) {
 #define ANGLE_UP	-1.0
 #define ANGLE_DOWN	-2.0
 
+#define DEFAULT_CONE 20.0
+
 /**
  * @brief
  */
 void BuildLights(void) {
+
+	{
+		// sun.light parameters come from worldspawn
+		const entity_t *e = &entities[0];
+
+		sun.light = FloatForKey(e, "sun_light");
+
+		VectorForKey(e, "sun_color", sun.color);
+		if (VectorCompare(sun.color, vec3_origin)) {
+			VectorSet(sun.color, 1.0, 1.0, 1.0);
+		}
+		ColorNormalize(sun.color, sun.color);
+
+		const char *angles = ValueForKey(e, "sun_angles");
+
+		VectorClear(sun.angles);
+		sscanf(angles, "%f %f", &sun.angles[0], &sun.angles[1]);
+
+		AngleVectors(sun.angles, sun.dir, NULL, NULL);
+
+		if (sun.light) {
+			Com_Verbose("Sun defined with light %3.0f, color %0.2f %0.2f %0.2f, "
+						"angles %1.3f %1.3f %1.3f\n", sun.light, sun.color[0], sun.color[1],
+						sun.color[2], sun.angles[0], sun.angles[1], sun.angles[2]);
+		}
+
+		// ambient light, also from worldspawn
+		VectorForKey(e, "ambient", ambient);
+		if (VectorLength(ambient)) {
+			Com_Verbose("Ambient lighting defined with color %0.2f %0.2f %0.2f\n", ambient[0],
+						ambient[1], ambient[2]);
+		}
+
+		// optionally pull brightness from worldspawn
+		vec_t v = FloatForKey(e, "brightness");
+		if (v > 0.0) {
+			brightness = v;
+		}
+
+		// saturation as well
+		v = FloatForKey(e, "saturation");
+		if (v > 0.0) {
+			saturation = v;
+		}
+
+		v = FloatForKey(e, "contrast");
+		if (v > 0.0) {
+			contrast = v;
+		}
+
+		v = FloatForKey(e, "light_scale");
+		if (v > 0.0) {
+			light_scale = v;
+		}
+
+		v = FloatForKey(e, "surface_scale");
+		if (v > 0.0) {
+			surface_scale = v;
+		}
+
+		// lightmap resolution downscale (e.g. 0.125, 0.0625)
+		lightmap_scale = FloatForKey(e, "lightmap_scale");
+		if (lightmap_scale == 0.0) {
+			lightmap_scale = BSP_DEFAULT_LIGHTMAP_SCALE;
+		}
+	}
 
 	// surfaces
 	for (size_t i = 0; i < lengthof(face_patches); i++) {
@@ -340,7 +408,7 @@ void BuildLights(void) {
 		}
 	}
 
-	// entities
+	// point lights and spot lights
 	for (size_t i = 1; i < num_entities; i++) {
 		const entity_t *e = &entities[i];
 
@@ -358,7 +426,6 @@ void BuildLights(void) {
 
 		const bsp_leaf_t *leaf = &bsp_file.leafs[Light_PointLeafnum(l->origin)];
 		const int16_t cluster = leaf->cluster;
-
 		l->next = lights[cluster];
 		lights[cluster] = l;
 
@@ -427,75 +494,6 @@ void BuildLights(void) {
 	}
 
 	Com_Verbose("Lighting %i lights\n", num_lights);
-
-	{
-		// sun.light parameters come from worldspawn
-		const entity_t *e = &entities[0];
-
-		sun.light = FloatForKey(e, "sun_light");
-
-		VectorSet(sun.color, 1.0, 1.0, 1.0);
-		const char *color = ValueForKey(e, "sun_color");
-		if (color && color[0]) {
-			sscanf(color, "%f %f %f", &sun.color[0], &sun.color[1], &sun.color[2]);
-			ColorNormalize(sun.color, sun.color);
-		}
-
-		const char *angles = ValueForKey(e, "sun_angles");
-
-		VectorClear(sun.angles);
-		sscanf(angles, "%f %f", &sun.angles[0], &sun.angles[1]);
-
-		AngleVectors(sun.angles, sun.dir, NULL, NULL);
-
-		if (sun.light) {
-			Com_Verbose("Sun defined with light %3.0f, color %0.2f %0.2f %0.2f, "
-			            "angles %1.3f %1.3f %1.3f\n", sun.light, sun.color[0], sun.color[1],
-			            sun.color[2], sun.angles[0], sun.angles[1], sun.angles[2]);
-		}
-
-		// ambient light, also from worldspawn
-		const char *ambient_ = ValueForKey(e, "ambient");
-		sscanf(ambient_, "%f %f %f", &ambient[0], &ambient[1], &ambient[2]);
-
-		if (VectorLength(ambient)) {
-			Com_Verbose("Ambient lighting defined with color %0.2f %0.2f %0.2f\n", ambient[0],
-						ambient[1], ambient[2]);
-		}
-
-		// optionally pull brightness from worldspawn
-		vec_t v = FloatForKey(e, "brightness");
-		if (v > 0.0) {
-			brightness = v;
-		}
-
-		// saturation as well
-		v = FloatForKey(e, "saturation");
-		if (v > 0.0) {
-			saturation = v;
-		}
-
-		v = FloatForKey(e, "contrast");
-		if (v > 0.0) {
-			contrast = v;
-		}
-
-		v = FloatForKey(e, "light_scale");
-		if (v > 0.0) {
-			light_scale = v;
-		}
-
-		v = FloatForKey(e, "surface_scale");
-		if (v > 0.0) {
-			surface_scale = v;
-		}
-
-		// lightmap resolution downscale (e.g. 0.125, 0.0625)
-		lightmap_scale = FloatForKey(e, "lightmap_scale");
-		if (lightmap_scale == 0.0) {
-			lightmap_scale = BSP_DEFAULT_LIGHTMAP_SCALE;
-		}
-	}
 }
 
 /**
@@ -561,7 +559,7 @@ static void GatherSampleLight(vec3_t pos, vec3_t tangent, vec3_t bitangent, vec3
 			}
 
 			const vec_t dot = DotProduct(delta, normal);
-			if (dot < SIDE_EPSILON) {
+			if (dot < 0.0) {
 				continue;
 			}
 
