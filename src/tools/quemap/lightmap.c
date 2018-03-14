@@ -398,10 +398,8 @@ void BuildLights(void) {
 			l->next = lights[cluster];
 			lights[cluster] = l;
 
-
 			const bsp_texinfo_t *tex = &bsp_file.texinfo[p->face->texinfo];
-			const cm_material_t *material = LoadMaterial(tex->texture, ASSET_CONTEXT_TEXTURES);
-			l->radius = Max(tex->value, material->light) * surface_scale;
+			l->radius = tex->value * surface_scale;
 			GetTextureColor(tex->texture, l->color);
 
 			p = p->next;
@@ -429,26 +427,25 @@ void BuildLights(void) {
 		l->next = lights[cluster];
 		lights[cluster] = l;
 
-		vec_t radius = FloatForKey(e, "light");
-		if (!radius) {
-			radius = FloatForKey(e, "_light");
-		}
-		if (!radius) {
-			radius = DEFAULT_LIGHT;
-		}
-
-		const char *color = ValueForKey(e, "color");
-		if (!strlen(color)) {
-			color = ValueForKey(e, "_color");
-		}
-		if (color && color[0]) {
-			sscanf(color, "%f %f %f", &l->color[0], &l->color[1], &l->color[2]);
-			ColorNormalize(l->color, l->color);
-		} else {
-			VectorSet(l->color, 1.0, 1.0, 1.0);
+		vec_t light = FloatForKey(e, "light");
+		if (!light) {
+			light = FloatForKey(e, "_light");
+			if (!light) {
+				light = DEFAULT_LIGHT;
+			}
 		}
 
-		l->radius = radius * light_scale;
+		l->radius = light * light_scale;
+
+		VectorForKey(e, "color", l->color);
+		if (VectorCompare(l->color, vec3_origin)) {
+			VectorForKey(e, "_color", l->color);
+			if (VectorCompare(l->color, vec3_origin)) {
+				VectorSet(l->color, 1.0, 1.0, 1.0);
+			}
+		}
+
+		ColorNormalize(l->color, l->color);
 
 		const char *target = ValueForKey(e, "target");
 		if (!g_strcmp0(name, "light_spot") || target[0]) {
@@ -458,9 +455,9 @@ void BuildLights(void) {
 			l->cone = FloatForKey(e, "cone");
 			if (!l->cone) {
 				l->cone = FloatForKey(e, "_cone");
-			}
-			if (!l->cone) { // reasonable default cone
-				l->cone = 20.0;
+				if (!l->cone) {
+					l->cone = DEFAULT_CONE;
+				}
 			}
 
 			l->cone = cos(Radians(l->cone));
