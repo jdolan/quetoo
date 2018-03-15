@@ -153,18 +153,6 @@ static void R_BuildDefaultLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, by
 }
 
 /**
- * @brief Apply brightness, saturation and contrast to the lightmap.
- */
-static void R_FilterLightmap(uint32_t width, uint32_t height, byte *lightmap) {
-	static r_image_t image = { .type = IT_LIGHTMAP, .layers = MAX_LIGHTMAP_LAYERS };
-
-	image.width = width;
-	image.height = height;
-
-	R_FilterImage(&image, GL_RGBA, lightmap);
-}
-
-/**
  * @brief Consume raw lightmap and deluxemap RGB/XYZ data from the surface samples,
  * writing processed lightmap and deluxemap RGB to the specified destinations.
  *
@@ -210,10 +198,6 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 			}
 		}
 	}
-
-	// apply modulate, contrast, saturation, etc..
-	// NOTE: disabled for now, it should have been moved to GLSL anyway eventually
-	 //R_FilterLightmap(smax, tmax, lightmap);
 
 	// the lightmap is uploaded to the card via the strided block
 
