@@ -982,8 +982,6 @@ void R_InitState(void) {
 	glFrontFace(GL_CW);
 	glDepthFunc(GL_LEQUAL);
 
-	r_state.screenshot_pending = false;
-
 	R_GetError("Post-init");
 }
 

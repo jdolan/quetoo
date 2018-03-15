@@ -148,7 +148,6 @@ typedef struct r_state_s {
 	_Bool depth_mask_enabled;
 	_Bool depth_test_enabled;
 	_Bool scissor_enabled;
-	_Bool screenshot_pending;
 } r_state_t;
 
 extern r_state_t r_state;

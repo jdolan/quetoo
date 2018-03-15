@@ -124,15 +124,6 @@ static void R_Screenshot_f_encode(void *data) {
 }
 
 /**
- * @brief Defers capturing of an screenshot one frame.
- */
-void R_DeferScreenshot_f(void) {
-	if (!r_state.screenshot_pending) {
-		r_state.screenshot_pending = true;
-	}
-}
-
-/**
 * @brief Captures a screenshot, writing it to the user's directory.
 */
 void R_Screenshot_f(void) {
@@ -158,9 +149,7 @@ void R_Screenshot_f(void) {
 }
 
 /**
- * @brief Applies brightness, contrast and saturation to the specified image
- * while optionally computing the average color. Also handles image inversion
- * and monochrome. This is all munged into one function for performance.
+ * @brief Applies any image filtering that can not be done via GLSL.
  */
 void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
 	uint32_t color[3];
