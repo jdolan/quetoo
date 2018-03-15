@@ -424,7 +424,7 @@ void BuildLights(void) {
 		l->next = lights[cluster];
 		lights[cluster] = l;
 
-		l->radius = FloatForKey(e, "_light", DEFAULT_LIGHT) * light_scale;
+		l->radius = FloatForKey(e, "light", DEFAULT_LIGHT) * light_scale;
 
 		VectorForKey(e, "_color", l->color, (vec3_t) { 1.0, 1.0, 1.0 });
 
