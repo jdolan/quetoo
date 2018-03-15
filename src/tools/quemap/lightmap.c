@@ -300,7 +300,7 @@ static entity_t *FindTargetEntity(const char *target) {
 #define DEFAULT_SUN_LIGHT 64
 #define DEFAULT_SUN_ANGLES "-90 0"
 
-#define DEFAULT_CONE 20.0
+#define DEFAULT_CONE 15.0
 #define ANGLE_UP	-1.0
 #define ANGLE_DOWN	-2.0
 #define DEFAULT_ANGLE ANGLE_UP
@@ -522,34 +522,38 @@ static void GatherSampleLight(vec3_t pos, vec3_t tangent, vec3_t bitangent, vec3
 
 		for (light_t *l = lights[i]; l; l = l->next) {
 
-			vec3_t delta;
-			VectorSubtract(l->origin, pos, delta);
+			vec3_t dir;
+			VectorSubtract(l->origin, pos, dir);
 
-			const vec_t dist = VectorNormalize(delta);
+			const vec_t dist = VectorNormalize(dir);
 			if (dist > l->radius) {
 				continue;
 			}
 
-			const vec_t dot = DotProduct(delta, normal);
+			const vec_t dot = DotProduct(dir, normal);
 			if (dot < 0.0) {
 				continue;
 			}
 
-			vec_t light = 0.0;
+			const vec_t atten = Clamp(1.0 - dist / l->radius, 0.0, 1.0);
+			const vec_t atten_squared = atten * atten;
+
+			vec_t diffuse = 0.0;
 
 			switch (l->type) {
-				case LIGHT_POINT: // linear falloff
+				case LIGHT_POINT:
 				case LIGHT_FACE:
-					light = (l->radius - dist) * dot;
+					diffuse = (l->radius - dist) * dot * atten_squared;
 					break;
 
-				case LIGHT_SPOT: { // linear falloff with cone
-					const vec_t dot2 = -DotProduct(delta, l->normal);
+				case LIGHT_SPOT: {
+					const vec_t dot2 = -DotProduct(dir, l->normal);
 					if (dot2 > l->cone) { // inside the cone
-						light = (l->radius - dist) * dot;
+						diffuse = (l->radius - dist) * dot * atten_squared;
 					} else { // outside the cone
 						const vec_t decay = 1.0 + l->cone - dot2;
-						light = (l->radius - decay * decay * dist) * dot;
+						const vec_t decay_squared = decay * decay;
+						diffuse = (l->radius - decay_squared * dist) * dot * atten_squared;
 					}
 				}
 					break;
@@ -558,7 +562,7 @@ static void GatherSampleLight(vec3_t pos, vec3_t tangent, vec3_t bitangent, vec3
 					break;
 			}
 
-			if (light <= 0.0) { // no light
+			if (diffuse <= 0.0) { // no light
 				continue;
 			}
 
@@ -570,14 +574,17 @@ static void GatherSampleLight(vec3_t pos, vec3_t tangent, vec3_t bitangent, vec3
 			}
 
 			// add some light to it
-			VectorMA(sample, light * scale, l->color, sample);
+			VectorMA(sample, diffuse * scale, l->color, sample);
 
 			// and add some direction
-			VectorMix(normal, delta, 2.0 * light / l->radius, delta);
+			//VectorMix(normal, dir, 2.0 * diffuse / l->radius, dir);
 
-			WorldSpaceToTangentSpace(tangent, bitangent, normal, delta, delta);
+			// fuck it, add a lot of direction
+			VectorMix(normal, dir, diffuse, dir);
 
-			VectorMA(direction, light * scale, delta, direction);
+			WorldSpaceToTangentSpace(tangent, bitangent, normal, dir, dir);
+
+			VectorMA(direction, diffuse * scale, dir, direction);
 		}
 	}
 
