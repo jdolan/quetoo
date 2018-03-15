@@ -479,8 +479,8 @@ static void SetMaterialFlags(side_t *side, map_brush_texture_t *td) {
 			}
 		}
 		if (material->surface) {
-			if (side->surf == 0) {
-				side->surf = td->flags = material->surface;
+			if (td->flags == 0) {
+				td->flags = material->surface;
 			}
 		}
 		if (material->light) {
@@ -492,28 +492,28 @@ static void SetMaterialFlags(side_t *side, map_brush_texture_t *td) {
 
 	if (!g_strcmp0(td->name, "common/areaportal")) {
 		side->contents |= CONTENTS_AREA_PORTAL;
-		side->surf |= SURF_NO_DRAW;
+		td->flags |= SURF_NO_DRAW;
 	} else if (!g_strcmp0(td->name, "common/monsterclip") ||
 			   !g_strcmp0(td->name, "common/botclip")) {
 		side->contents |= CONTENTS_MONSTER_CLIP;
 	} else if (!g_strcmp0(td->name, "common/caulk")) {
-		side->surf |= SURF_NO_DRAW;
+		td->flags |= SURF_NO_DRAW;
 	} else if (!g_strcmp0(td->name, "common/clip")) {
 		side->contents |= CONTENTS_PLAYER_CLIP;
 	} else if (!g_strcmp0(td->name, "common/hint")) {
-		side->surf |= SURF_HINT;
+		td->flags |= SURF_HINT;
 	} else if (!g_strcmp0(td->name, "common/ladder")) {
 		side->contents |= CONTENTS_LADDER | CONTENTS_DETAIL | CONTENTS_WINDOW;
-		side->surf |= SURF_NO_DRAW;
+		td->flags |= SURF_NO_DRAW;
 	} else if (!g_strcmp0(td->name, "common/origin")) {
 		side->contents |= CONTENTS_ORIGIN;
 	} else if (!g_strcmp0(td->name, "common/skip")) {
-		side->surf |= SURF_SKIP;
+		td->flags |= SURF_SKIP;
 	} else if (!g_strcmp0(td->name, "common/sky")) {
-		side->surf |= SURF_SKY;
+		td->flags |= SURF_SKY;
 	} else if (!g_strcmp0(td->name, "common/trigger")) {
-		side->contents |= CONTENTS_DETAIL;
-		side->surf |= SURF_NO_DRAW;
+		side->contents |= CONTENTS_DETAIL | CONTENTS_WINDOW;
+		td->flags |= SURF_NO_DRAW;
 	}
 }
 
@@ -596,17 +596,19 @@ static void ParseBrush(entity_t *mapent) {
 			GetToken(false);
 			side->contents = atoi(token);
 			GetToken(false);
-			side->surf = td.flags = atoi(token);
+			td.flags = atoi(token);
 			GetToken(false);
 			td.value = atoi(token);
 		} else {
 			side->contents = 0;
-			side->surf = td.flags = 0;
+			td.flags = 0;
 			td.value = 0;
 		}
 
 		// resolve material-based surface and contents flags
 		SetMaterialFlags(side, &td);
+
+		side->surf = td.flags;
 
 		// translucent objects are automatically classified as detail
 		if (side->surf & (SURF_ALPHA_TEST | SURF_BLEND_33 | SURF_BLEND_66)) {
@@ -718,7 +720,6 @@ static void ParseBrush(entity_t *mapent) {
 
 		// don't keep this brush
 		b->num_sides = 0;
-
 		return;
 	}
 
