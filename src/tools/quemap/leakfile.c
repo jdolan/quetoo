@@ -67,8 +67,9 @@ void LeakFile(tree_t *tree) {
 		Fs_Print(leakfile, "%f %f %f\n", mid[0], mid[1], mid[2]);
 		count++;
 	}
+	
 	// add the occupant center
-	VectorForKey(node->occupant, "origin", mid);
+	VectorForKey(node->occupant, "origin", mid, NULL);
 
 	Fs_Print(leakfile, "%f %f %f\n", mid[0], mid[1], mid[2]);
 	Com_Debug(DEBUG_ALL, "%5i point leakfile\n", count + 1);

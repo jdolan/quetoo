@@ -21,7 +21,7 @@
 
 #include "qlight.h"
 
-static vec_t lightmap_scale;
+static vec_t lightmap_scale = BSP_DEFAULT_LIGHTMAP_SCALE;
 
 // light_info_t is a temporary bucket for lighting calculations
 typedef struct light_info_s {
@@ -286,11 +286,10 @@ static sun_t sun;
  * @brief
  */
 static entity_t *FindTargetEntity(const char *target) {
-	int32_t i;
 
-	for (i = 0; i < num_entities; i++) {
-		const char *n = ValueForKey(&entities[i], "targetname");
-		if (!g_strcmp0(n, target)) {
+	for (int32_t i = 0; i < num_entities; i++) {
+		const char *name = ValueForKey(&entities[i], "targetname", NULL);
+		if (!g_ascii_strcasecmp(name, target)) {
 			return &entities[i];
 		}
 	}
@@ -298,10 +297,13 @@ static entity_t *FindTargetEntity(const char *target) {
 	return NULL;
 }
 
-#define ANGLE_UP	-1.0
-#define ANGLE_DOWN	-2.0
+#define DEFAULT_SUN_LIGHT 64
+#define DEFAULT_SUN_ANGLES "-90 0"
 
 #define DEFAULT_CONE 20.0
+#define ANGLE_UP	-1.0
+#define ANGLE_DOWN	-2.0
+#define DEFAULT_ANGLE ANGLE_UP
 
 /**
  * @brief
@@ -312,69 +314,64 @@ void BuildLights(void) {
 		// sun.light parameters come from worldspawn
 		const entity_t *e = &entities[0];
 
-		sun.light = FloatForKey(e, "sun_light");
+		sun.light = FloatForKey(e, "sun_light", DEFAULT_SUN_LIGHT);
 
-		VectorForKey(e, "sun_color", sun.color);
-		if (VectorCompare(sun.color, vec3_origin)) {
-			VectorSet(sun.color, 1.0, 1.0, 1.0);
-		}
+		VectorForKey(e, "sun_color", sun.color, (vec3_t) { 1.0, 1.0, 1.0 });
 		ColorNormalize(sun.color, sun.color);
 
-		const char *angles = ValueForKey(e, "sun_angles");
-
-		VectorClear(sun.angles);
+		const char *angles = ValueForKey(e, "sun_angles", DEFAULT_SUN_ANGLES);
 		sscanf(angles, "%f %f", &sun.angles[0], &sun.angles[1]);
 
 		AngleVectors(sun.angles, sun.dir, NULL, NULL);
 
 		if (sun.light) {
-			Com_Verbose("Sun defined with light %3.0f, color %0.2f %0.2f %0.2f, "
-						"angles %1.3f %1.3f %1.3f\n", sun.light, sun.color[0], sun.color[1],
-						sun.color[2], sun.angles[0], sun.angles[1], sun.angles[2]);
+			Com_Verbose("Sun defined with light %g, color %g %g %g, angles %g %g %g\n",
+						sun.light,
+						sun.color[0], sun.color[1], sun.color[2],
+						sun.angles[0], sun.angles[1], sun.angles[2]);
 		}
 
 		// ambient light, also from worldspawn
-		VectorForKey(e, "ambient", ambient);
+		VectorForKey(e, "ambient", ambient, NULL);
 		if (VectorLength(ambient)) {
-			Com_Verbose("Ambient lighting defined with color %0.2f %0.2f %0.2f\n", ambient[0],
-						ambient[1], ambient[2]);
+			Com_Verbose("Ambient lighting defined with color %g %g %g\n",
+						ambient[0], ambient[1], ambient[2]);
 		}
 
 		// optionally pull brightness from worldspawn
-		vec_t v = FloatForKey(e, "brightness");
+		vec_t v = FloatForKey(e, "brightness", 1.0);
 		if (v > 0.0) {
 			brightness = v;
 		}
 
 		// saturation as well
-		v = FloatForKey(e, "saturation");
+		v = FloatForKey(e, "saturation", 1.0);
 		if (v > 0.0) {
 			saturation = v;
 		}
 
-		v = FloatForKey(e, "contrast");
+		v = FloatForKey(e, "contrast", 1.0);
 		if (v > 0.0) {
 			contrast = v;
 		}
 
-		v = FloatForKey(e, "light_scale");
+		v = FloatForKey(e, "light_scale", 1.0);
 		if (v > 0.0) {
 			light_scale = v;
 		}
 
-		v = FloatForKey(e, "surface_scale");
+		v = FloatForKey(e, "surface_scale", 1.0);
 		if (v > 0.0) {
 			surface_scale = v;
 		}
 
-		// lightmap resolution downscale (e.g. 0.125, 0.0625)
-		lightmap_scale = FloatForKey(e, "lightmap_scale");
-		if (lightmap_scale == 0.0) {
-			lightmap_scale = BSP_DEFAULT_LIGHTMAP_SCALE;
+		v = FloatForKey(e, "lightmap_scale", BSP_DEFAULT_LIGHTMAP_SCALE);
+		if (v > 0.0) {
+			lightmap_scale = v;
 		}
 	}
 
-	// surfaces
+	// surface lights
 	for (size_t i = 0; i < lengthof(face_patches); i++) {
 		
 		const patch_t *p = face_patches[i];
@@ -406,12 +403,12 @@ void BuildLights(void) {
 		}
 	}
 
-	// point lights and spot lights
+	// entity lights
 	for (size_t i = 1; i < num_entities; i++) {
 		const entity_t *e = &entities[i];
 
-		const char *name = ValueForKey(e, "classname");
-		if (strncmp(name, "light", 5)) { // not a light
+		const char *classname = ValueForKey(e, "classname", NULL);
+		if (!g_str_has_prefix(classname, "light")) { // not a light
 			continue;
 		}
 
@@ -420,61 +417,39 @@ void BuildLights(void) {
 
 		l->type = LIGHT_POINT;
 
-		VectorForKey(e, "origin", l->origin);
+		VectorForKey(e, "origin", l->origin, NULL);
 
 		const bsp_leaf_t *leaf = &bsp_file.leafs[Light_PointLeafnum(l->origin)];
 		const int16_t cluster = leaf->cluster;
 		l->next = lights[cluster];
 		lights[cluster] = l;
 
-		vec_t light = FloatForKey(e, "light");
-		if (!light) {
-			light = FloatForKey(e, "_light");
-			if (!light) {
-				light = DEFAULT_LIGHT;
-			}
-		}
+		l->radius = FloatForKey(e, "_light", DEFAULT_LIGHT) * light_scale;
 
-		l->radius = light * light_scale;
-
-		VectorForKey(e, "color", l->color);
-		if (VectorCompare(l->color, vec3_origin)) {
-			VectorForKey(e, "_color", l->color);
-			if (VectorCompare(l->color, vec3_origin)) {
-				VectorSet(l->color, 1.0, 1.0, 1.0);
-			}
-		}
+		VectorForKey(e, "_color", l->color, (vec3_t) { 1.0, 1.0, 1.0 });
 
 		ColorNormalize(l->color, l->color);
 
-		const char *target = ValueForKey(e, "target");
-		if (!g_strcmp0(name, "light_spot") || target[0]) {
+		const char *target = ValueForKey(e, "target", NULL);
+		if (!g_strcmp0(classname, "light_spot") || target) {
 
 			l->type = LIGHT_SPOT;
 
-			l->cone = FloatForKey(e, "cone");
-			if (!l->cone) {
-				l->cone = FloatForKey(e, "_cone");
-				if (!l->cone) {
-					l->cone = DEFAULT_CONE;
-				}
-			}
+			l->cone = cos(Radians(FloatForKey(e, "_cone", DEFAULT_CONE)));
 
-			l->cone = cos(Radians(l->cone));
-
-			if (target[0]) { // point towards target
+			if (target) { // point towards target
 				entity_t *e2 = FindTargetEntity(target);
 				if (!e2) {
 					Mon_SendSelect(MON_WARN, i, 0, va("Light at %s missing target", vtos(l->origin)));
 					VectorCopy(vec3_down, l->normal);
 				} else {
 					vec3_t org;
-					VectorForKey(e2, "origin", org);
+					VectorForKey(e2, "origin", org, NULL);
 					VectorSubtract(org, l->origin, l->normal);
 					VectorNormalize(l->normal);
 				}
 			} else { // point down angle
-				const vec_t angle = FloatForKey(e, "angle");
+				const vec_t angle = FloatForKey(e, "_angle", DEFAULT_ANGLE);
 				if (angle == ANGLE_UP) {
 					l->normal[0] = l->normal[1] = 0.0;
 					l->normal[2] = 1.0;
@@ -482,9 +457,9 @@ void BuildLights(void) {
 					l->normal[0] = l->normal[1] = 0.0;
 					l->normal[2] = -1.0;
 				} else { // general case
-					l->normal[2] = 0;
 					l->normal[0] = cos(Radians(angle));
 					l->normal[1] = sin(Radians(angle));
+					l->normal[2] = 0;
 				}
 			}
 		}
@@ -764,13 +739,13 @@ static void SampleNormal(const bsp_face_t *face, const vec3_t pos, vec3_t normal
 
 #define MAX_SAMPLES 9
 
-static const vec_t sampleofs[MAX_SAMPLES][2] = {
+static const vec_t sample_offsets[MAX_SAMPLES][2] = {
 	{ +0.0, +0.0 }, { -0.5, -0.5 }, { +0.0, -0.5 },
 	{ +0.5, -0.5 },	{ -0.5, +0.0 }, { +0.5, +0.0 },
 	{ -0.5, +0.5 }, { +0.0, +0.5 }, { +0.5, +0.5 }
 };
 
-static const vec_t samplewgh[MAX_SAMPLES] = {
+static const vec_t sample_weights[MAX_SAMPLES] = {
 	0.195346, 0.077847, 0.123317,
 	0.077847, 0.123317, 0.123317,
 	0.077847, 0.123317, 0.077847
@@ -824,8 +799,8 @@ void DirectLighting(int32_t face_num) {
 
 	for (int32_t i = 0; i < num_samples; i++) { // and calculate them in world space
 
-		const vec_t sofs = sampleofs[i][0];
-		const vec_t tofs = sampleofs[i][1];
+		const vec_t sofs = sample_offsets[i][0];
+		const vec_t tofs = sample_offsets[i][1];
 
 		vec_t *out = light.sample_points + (i * light.num_sample_points * 3);
 
@@ -877,8 +852,11 @@ void DirectLighting(int32_t face_num) {
 
 			TangentVectors(normal, light.texinfo->vecs[0], light.texinfo->vecs[1], tangent, bitangent);
 
-			// query all light sources within range for their contribution
-			GatherSampleLight(pos, tangent, bitangent, normal, pvs, sample, direction, samplewgh[j]);
+			// query all light sources within range for their weighted contribution
+
+			const vec_t scale = num_samples == 1 ? 1.0 : sample_weights[j];
+
+			GatherSampleLight(pos, tangent, bitangent, normal, pvs, sample, direction, scale);
 		}
 	}
 

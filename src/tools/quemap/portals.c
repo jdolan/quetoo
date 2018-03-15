@@ -592,13 +592,13 @@ _Bool FloodEntities(tree_t *tree) {
 	cl = "";
 
 	for (i = 1; i < num_entities; i++) {
-		VectorForKey(&entities[i], "origin", origin);
+		VectorForKey(&entities[i], "origin", origin, NULL);
 		if (VectorCompare(origin, vec3_origin)) {
 			continue;
 		}
 
-		cl = ValueForKey(&entities[i], "classname");
-		origin[2] += 1; // so objects on floor are ok
+		cl = ValueForKey(&entities[i], "classname", NULL);
+		origin[2] += 1.0; // so objects on floor are ok
 
 		// nudge playerstart around if needed so clipping hulls always
 		// have a valid point

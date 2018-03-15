@@ -49,11 +49,10 @@ void ParseEntities(void);
 void UnparseEntities(void);
 
 void SetKeyValue(entity_t *ent, const char *key, const char *value);
-const char *ValueForKey(const entity_t *ent, const char *key);
-// will return "" if not present
+const char *ValueForKey(const entity_t *ent, const char *key, const char *def);
 
-vec_t FloatForKey(const entity_t *ent, const char *key);
-void VectorForKey(const entity_t *ent, const char *key, vec3_t vec);
+vec_t FloatForKey(const entity_t *ent, const char *key, vec_t def);
+void VectorForKey(const entity_t *ent, const char *key, vec3_t out, const vec3_t def);
 
 epair_t *ParseEpair(void);
 

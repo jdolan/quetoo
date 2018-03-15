@@ -118,8 +118,7 @@ static entity_t *EntityForModel(int32_t num) {
 	// search the entities for one using modnum
 	for (int32_t i = 0; i < num_entities; i++) {
 
-		const char *s = ValueForKey(&entities[i], "model");
-
+		const char *s = ValueForKey(&entities[i], "model", NULL);
 		if (!g_strcmp0(s, name)) {
 			return &entities[i];
 		}
@@ -139,9 +138,9 @@ void BuildPatches(void) {
 		const bsp_model_t *mod = &bsp_file.models[i];
 		const entity_t *ent = EntityForModel(i);
 
-		// bmodels with origin brushes need to be offset into their in-use position
+		// inline models need to be offset into their in-use position
 		vec3_t origin;
-		VectorForKey(ent, "origin", origin);
+		VectorForKey(ent, "origin", origin, NULL);
 
 		for (int32_t j = 0; j < mod->num_faces; j++) {
 
@@ -216,7 +215,7 @@ static void SubdividePatch(patch_t *patch) {
 void SubdividePatches(void) {
 
 	// patch_size may come from worldspawn
-	const vec_t v = FloatForKey(entities, "patch_size");
+	const vec_t v = FloatForKey(entities, "patch_size", DEFAULT_PATCH_SIZE);
 	if (v > 0.0) {
 		patch_size = v;
 	}

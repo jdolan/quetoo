@@ -813,7 +813,7 @@ static _Bool ParseMapEntity(void) {
 		}
 	} while (true);
 
-	VectorForKey(mapent, "origin", mapent->origin);
+	VectorForKey(mapent, "origin", mapent->origin, NULL);
 
 	// if there was an origin brush, offset all of the planes and texinfo
 	if (mapent->origin[0] || mapent->origin[1] || mapent->origin[2]) {
@@ -837,14 +837,16 @@ static _Bool ParseMapEntity(void) {
 
 	// group entities are just for editor convenience
 	// toss all brushes into the world entity
-	if (!g_strcmp0("func_group", ValueForKey(mapent, "classname"))) {
+
+	const char *classname = ValueForKey(mapent, "classname", NULL);
+	if (!g_strcmp0("func_group", classname)) {
 		MoveBrushesToWorld(mapent);
 		mapent->num_brushes = 0;
 		return true;
 	}
 
 	// areaportal entities move their brushes, but don't eliminate the entity
-	if (!g_strcmp0("func_areaportal", ValueForKey(mapent, "classname"))) {
+	if (!g_strcmp0("func_areaportal", classname)) {
 		char str[128];
 
 		if (mapent->num_brushes != 1)

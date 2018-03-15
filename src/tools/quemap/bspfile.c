@@ -237,31 +237,33 @@ void SetKeyValue(entity_t *ent, const char *key, const char *value) {
 	ep->value = Mem_CopyString(value);
 }
 
-const char *ValueForKey(const entity_t *ent, const char *key) {
-	const epair_t *ep;
+const char *ValueForKey(const entity_t *ent, const char *key, const char *def) {
 
-	for (ep = ent->epairs; ep; ep = ep->next)
+	for (const epair_t *ep = ent->epairs; ep; ep = ep->next) {
 		if (!g_strcmp0(ep->key, key)) {
 			return ep->value;
 		}
-	return "";
-}
-
-vec_t FloatForKey(const entity_t *ent, const char *key) {
-	const char *k;
-
-	k = ValueForKey(ent, key);
-	return atof(k);
-}
-
-void VectorForKey(const entity_t *ent, const char *key, vec3_t vec) {
-	const char *k;
-
-	k = ValueForKey(ent, key);
-
-	if (sscanf(k, "%f %f %f", &vec[0], &vec[1], &vec[2]) != 3) {
-		VectorClear(vec);
 	}
+
+	return def;
+}
+
+vec_t FloatForKey(const entity_t *ent, const char *key, vec_t def) {
+
+	const char *value = ValueForKey(ent, key, NULL);
+	return value ? atof(value) : def;
+}
+
+void VectorForKey(const entity_t *ent, const char *key, vec3_t out, const vec3_t def) {
+
+	const char *value = ValueForKey(ent, key, NULL);
+	if (value) {
+		if (sscanf(value, "%f %f %f", &out[0], &out[1], &out[2]) == 3) {
+			return;
+		}
+	}
+
+	VectorCopy(def ?: vec3_origin, out);
 }
 
 int32_t LoadBSPFile(const char *filename, const bsp_lump_id_t lumps) {
