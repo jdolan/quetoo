@@ -8,6 +8,7 @@
 
 #include "include/matrix.glsl"
 #include "include/fog.glsl"
+#include "include/gamma.glsl"
 
 in VertexData {
 	vec4 color;
@@ -28,4 +29,6 @@ void main(void) {
 	fragColor = vec4(color.rgb * alpha, alpha);
 
 	FogFragment(length(point), fragColor);
+
+	GammaFragment(fragColor);
 }

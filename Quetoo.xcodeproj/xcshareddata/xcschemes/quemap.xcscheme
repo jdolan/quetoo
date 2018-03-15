@@ -69,7 +69,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-bsp -vis -light maps/torn.map"
+            argument = "-bsp -vis -light --antialias maps/torn.map"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

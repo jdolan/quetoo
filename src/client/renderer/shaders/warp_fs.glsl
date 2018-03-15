@@ -7,6 +7,7 @@
 #define FRAGMENT_SHADER
 
 #include "include/fog.glsl"
+#include "include/gamma.glsl"
 
 uniform float OFFSET;
 uniform vec4 GLOBAL_COLOR;
@@ -37,4 +38,6 @@ void main(void) {
 
 	// and add fog
 	FogFragment(length(point), fragColor);
+
+	GammaFragment(fragColor);
 }

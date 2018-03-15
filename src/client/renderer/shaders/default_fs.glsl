@@ -8,11 +8,12 @@
 
 #define FRAGMENT_SHADER
 
-#include "include/matrix.glsl"
+#include "include/color.glsl"
 #include "include/fog.glsl"
+#include "include/gamma.glsl"
+#include "include/matrix.glsl"
 #include "include/noise3d.glsl"
 #include "include/tint.glsl"
-#include "include/color.glsl"
 
 #define MAX_LIGHTS $r_max_lights
 #define MODULATE $r_modulate
@@ -90,7 +91,6 @@ void DitherFragment(inout vec3 color) {
 	vec3 pattern = vec3(dot(vec2(171.0, 231.0), gl_FragCoord.xy));
 	pattern.rgb = fract(pattern.rgb / vec3(103.0, 71.0, 97.0));
 	color = clamp(color + (pattern.rgb / 255.0), 0.0, 1.0);
-
 }
 
 /**
@@ -459,6 +459,9 @@ void main(void) {
 	// and fog
 	FogFragment(length(point), fragColor);
 
-	// and finally dithering
+	// and dithering
 	DitherFragment(fragColor.rgb);
+
+	// and gamma
+	GammaFragment(fragColor);
 }

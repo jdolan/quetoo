@@ -27,6 +27,7 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		CE0F624D205A01F400530EC6 /* gamma.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE0F624C205A010600530EC6 /* gamma.glsl */; };
 		CE12D7A91C5C5C3200CD0B13 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D67A1C5C58C300CD0B13 /* main.c */; };
 		CE12D7D11C5C5D6A00CD0B13 /* g_ai.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6431C5C58C300CD0B13 /* g_ai.c */; };
 		CE12D7D31C5C5D6A00CD0B13 /* g_ballistics.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6471C5C58C300CD0B13 /* g_ballistics.c */; };
@@ -983,6 +984,7 @@
 			files = (
 				CE69DCA2202D404900E5C8B1 /* color.glsl in CopyFiles */,
 				CE4A256B1FA2033B00A539E7 /* fog.glsl in CopyFiles */,
+				CE0F624D205A01F400530EC6 /* gamma.glsl in CopyFiles */,
 				CE30BF242040A8FD004A8DDE /* matrix.glsl in CopyFiles */,
 				CE4A256C1FA2033B00A539E7 /* noise3d.glsl in CopyFiles */,
 				CE4A256D1FA2033B00A539E7 /* tint.glsl in CopyFiles */,
@@ -1110,6 +1112,7 @@
 
 /* Begin PBXFileReference section */
 		CE0B64811D89955B0011F974 /* .turd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
+		CE0F624C205A010600530EC6 /* gamma.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = gamma.glsl; sourceTree = "<group>"; };
 		CE12D4A71C5C58C300CD0B13 /* config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
 		CE12D4A81C5C58C300CD0B13 /* configure.ac */ = {isa = PBXFileReference; lastKnownFileType = text; path = configure.ac; sourceTree = "<group>"; };
 		CE12D4FF1C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -3041,6 +3044,7 @@
 			children = (
 				CE69DCA1202D402F00E5C8B1 /* color.glsl */,
 				CE585BD61ED459E2009B7C14 /* fog.glsl */,
+				CE0F624C205A010600530EC6 /* gamma.glsl */,
 				CE30BF232040A8E9004A8DDE /* matrix.glsl */,
 				CE585BDB1ED459E2009B7C14 /* noise3d.glsl */,
 				CE585BDD1ED45A94009B7C14 /* tint.glsl */,

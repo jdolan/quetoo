@@ -6,6 +6,8 @@
 
 #define FRAGMENT_SHADER
 
+#include "include/gamma.glsl"
+
 uniform sampler2D SAMPLER0;
 uniform vec4 GLOBAL_COLOR;
 
@@ -21,5 +23,7 @@ out vec4 fragColor;
  */
 void main(void) {
 
-	fragColor = GLOBAL_COLOR * texture(SAMPLER0, texcoord);	
+	fragColor = GLOBAL_COLOR * texture(SAMPLER0, texcoord);
+
+	GammaFragment(fragColor);
 }

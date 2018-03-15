@@ -80,7 +80,6 @@ typedef struct {
 	r_variable_t end;
 	r_variable_t color;
 	r_variable_t density;
-	r_variable_t gamma_correction;
 } r_uniform_fog_t;
 
 // light info

@@ -6,6 +6,8 @@
 
 #define FRAGMENT_SHADER
 
+#include "include/gamma.glsl"
+
 uniform vec4 LIGHT;
 uniform vec4 PLANE;
 uniform vec4 GLOBAL_COLOR;
@@ -43,4 +45,6 @@ void main(void) {
 	fragColor = GLOBAL_COLOR;
 
 	ShadowFragment();
+
+	GammaFragment(fragColor);
 }

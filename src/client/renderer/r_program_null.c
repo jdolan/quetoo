@@ -71,7 +71,6 @@ void R_InitProgram_null(r_program_t *program) {
 	R_ProgramVariable(&p->fog.end, R_UNIFORM_FLOAT, "FOG.END", true);
 	R_ProgramVariable(&p->fog.color, R_UNIFORM_VEC3, "FOG.COLOR", true);
 	R_ProgramVariable(&p->fog.density, R_UNIFORM_FLOAT, "FOG.DENSITY", true);
-	R_ProgramVariable(&p->fog.gamma_correction, R_UNIFORM_FLOAT, "FOG.GAMMA_CORRECTION", true);
 	
 	for (int32_t i = 0; i < TINT_TOTAL; i++) {
 		R_ProgramVariable(&p->tints[i], R_UNIFORM_VEC4, va("TINTS[%i]", i), true);
@@ -87,7 +86,6 @@ void R_InitProgram_null(r_program_t *program) {
 	R_ProgramParameter1f(&p->fog.density, 0.0);
 
 	R_ProgramParameter1f(&p->time_fraction, 0.0f);
-
 }
 
 /**
@@ -105,8 +103,6 @@ void R_UseFog_null(const r_fog_parameters_t *fog) {
 	} else {
 		R_ProgramParameter1f(&p->fog.density, 0.0);
 	}
-
-	R_ProgramParameter1f(&p->fog.gamma_correction, r_state.screenshot_pending || r_framebuffer_state.current_framebuffer ? 0.0 : 1.0);
 }
 
 /**

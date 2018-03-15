@@ -8,7 +8,7 @@ struct FogParameters {
 	float END;
 	vec3 COLOR;
 	float DENSITY;
-	float GAMMA_CORRECTION;
+	//float GAMMA_CORRECTION;
 };
 
 uniform FogParameters FOG;
@@ -19,10 +19,12 @@ uniform FogParameters FOG;
  * @brief Apply fog to the fragment if enabled.
  */
 void FogFragment(in float len, inout vec4 fragColor) {
-	fragColor.rgb = mix(fragColor.rgb, FOG.COLOR, clamp((len - FOG.START) / (FOG.END - FOG.START) * FOG.DENSITY, 0.0, 1.0));
-	fragColor.rgb *= mix(vec3(1.0), fragColor.rgb, FOG.GAMMA_CORRECTION);
+
+	float fog = (len - FOG.START) / (FOG.END - FOG.START) * FOG.DENSITY;
+
+	fragColor.rgb = mix(fragColor.rgb, FOG.COLOR, clamp(fog, 0.0, 1.0));
 }
 
 #endif
 
-#endif //QUETOO_FOG_GLSL
+#endif // QUETOO_FOG_GLSL

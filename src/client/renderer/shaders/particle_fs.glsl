@@ -6,8 +6,9 @@
 
 #define FRAGMENT_SHADER
 
-#include "include/matrix.glsl"
 #include "include/fog.glsl"
+#include "include/gamma.glsl"
+#include "include/matrix.glsl"
 
 uniform sampler2D SAMPLER0;
 
@@ -27,4 +28,6 @@ void main(void) {
 	fragColor = color * texture(SAMPLER0, texcoord);
 
 	FogFragment(length(point), fragColor);
+
+	GammaFragment(fragColor);
 }
