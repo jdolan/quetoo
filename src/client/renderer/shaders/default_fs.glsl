@@ -15,8 +15,8 @@
 #include "include/color.glsl"
 
 #define MAX_LIGHTS $r_max_lights
-#define MODULATE_SCALE $r_modulate
-#define DEBUG_LIGHTMAP_LAYER_INDEX $r_draw_bsp_lightmaps
+#define MODULATE $r_modulate
+#define DRAW_BSP_LIGHTMAPS $r_draw_bsp_lightmaps
 
 #if MAX_LIGHTS
 struct LightParameters {
@@ -366,12 +366,12 @@ void main(void) {
 	vec3 deluxemap = vec3(0.0, 0.0, 1.0);
 
 	if (LIGHTMAP) {
-#if DEBUG_LIGHTMAP_LAYER_INDEX > 0
-		vec4 lightmapColorHDR = texture(SAMPLER1, vec3(texcoords[1], DEBUG_LIGHTMAP_LAYER_INDEX - 1));
+#if DRAW_BSP_LIGHTMAPS > 0
+		vec4 lightmapColorHDR = texture(SAMPLER1, vec3(texcoords[1], DRAW_BSP_LIGHTMAPS - 1));
 #else
 		vec4 lightmapColorHDR = texture(SAMPLER1, vec3(texcoords[1], 0));
-#endif // DEBUG_LIGHTMAP_LAYER_INDEX
-		lightmap = lightmapColorHDR.rgb * lightmapColorHDR.a;
+#endif
+		lightmap = lightmapColorHDR.rgb * lightmapColorHDR.a * MODULATE;
 
 		if (STAINMAP) {
 			vec4 stain = texture(SAMPLER8, uvLightmap);
@@ -449,14 +449,12 @@ void main(void) {
 	// underliquid caustics
 	CausticFragment(lightmap);
 
-#if DEBUG_LIGHTMAP_LAYER_INDEX == 0
-	// tonemap
+#if DRAW_BSP_LIGHTMAPS == 0
+
 	fragColor.rgb *= exp(fragColor.rgb);
 	fragColor.rgb /= fragColor.rgb + 0.825;
 
-	// apply lightscale afterwards, because it should be done AFTER tonemapping
-	fragColor.rgb *= MODULATE_SCALE;
-#endif // DEBUG_LIGHTMAP_LAYER_INDEX == 0
+#endif
 
 	// and fog
 
