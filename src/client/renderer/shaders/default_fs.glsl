@@ -291,7 +291,7 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in floa
 			if (lambert > 0.0) {
 
 				// windowed inverse square falloff
-				float dist = len/LIGHTS.RADIUS[i];
+				float dist = len / LIGHTS.RADIUS[i];
 				float falloff = clamp(1.0 - dist * dist * dist * dist, 0.0, 1.0);
 				falloff = falloff * falloff;
 				falloff = falloff / (dist * dist + 1.0);
@@ -457,8 +457,8 @@ void main(void) {
 #endif
 
 	// and fog
-
 	FogFragment(length(point), fragColor);
-	
+
+	// and finally dithering
 	DitherFragment(fragColor.rgb);
 }
