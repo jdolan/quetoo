@@ -413,7 +413,7 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
 					continue;
 				}
 
-				out->first_leaf_surface[j]->flags |= R_SURF_UNDERLIQUID;
+				out->first_leaf_surface[j]->flags |= R_SURF_IN_LIQUID;
 			}
 		}
 	}

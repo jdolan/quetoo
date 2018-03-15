@@ -68,7 +68,7 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 			R_EnableLights(0);
 		}
 
-		R_EnableCaustic(surf->flags & R_SURF_UNDERLIQUID);
+		R_EnableCaustic(surf->flags & R_SURF_IN_LIQUID);
 	} else {
 		R_EnableCaustic(false);
 	}
