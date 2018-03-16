@@ -607,7 +607,7 @@ static _Bool NudgeSamplePosition(const vec3_t in, const vec3_t normal, const vec
 	VectorCopy(in, out);
 
 	// move into the level using the normal and surface center
-	VectorSubtract(out, center, dir);
+	VectorSubtract(center, out, dir);
 	VectorNormalize(dir);
 
 	VectorMA(out, SAMPLE_NUDGE, dir, out);
