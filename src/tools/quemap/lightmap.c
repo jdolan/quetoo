@@ -511,7 +511,9 @@ static void GatherSampleSunlight(const vec3_t pos, const vec3_t tangent, const v
  * @brief Iterate over all light sources for the sample position's PVS, accumulating
  * light and directional information to the specified pointers.
  */
-static void GatherSampleLight(vec3_t pos, vec3_t tangent, vec3_t bitangent, vec3_t normal,  byte *pvs, vec_t *sample, vec_t *direction, vec_t scale) {
+static void GatherSampleLight(const vec3_t pos, const vec3_t tangent, const vec3_t bitangent,
+							  const vec3_t normal, const byte *pvs, vec_t *sample, vec_t *direction,
+							  vec_t scale) {
 
 	// iterate over lights, which are in buckets by cluster
 	for (int32_t i = 0; i < bsp_file.vis_data.vis->num_clusters; i++) {
