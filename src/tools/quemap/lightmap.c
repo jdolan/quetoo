@@ -522,7 +522,7 @@ static void GatherSampleLight(const vec3_t pos, const vec3_t tangent, const vec3
 			continue;
 		}
 
-		for (light_t *l = lights[i]; l; l = l->next) {
+		for (const light_t *l = lights[i]; l; l = l->next) {
 
 			vec3_t dir;
 			VectorSubtract(l->origin, pos, dir);
@@ -537,36 +537,28 @@ static void GatherSampleLight(const vec3_t pos, const vec3_t tangent, const vec3
 				continue;
 			}
 
+			vec_t diffuse = (l->radius - dist) * dot;
+
+			switch (l->type) {
+				case LIGHT_SPOT:
+					if (-dot < l->cone) {
+						const vec_t decay = 1.0 + l->cone - dot;
+						const vec_t decay_squared = decay * decay;
+						diffuse = (l->radius - decay_squared * dist) * dot;
+					}
+					break;
+				default:
+					break;
+			}
+
+			if (diffuse <= 0.0) {
+				continue;
+			}
+
 			const vec_t atten = Clamp(1.0 - dist / l->radius, 0.0, 1.0);
 			const vec_t atten_squared = atten * atten;
 
-			vec_t diffuse = 0.0;
-
-			switch (l->type) {
-				case LIGHT_POINT:
-				case LIGHT_FACE:
-					diffuse = (l->radius - dist) * dot * atten_squared;
-					break;
-
-				case LIGHT_SPOT: {
-					const vec_t dot2 = -DotProduct(dir, l->normal);
-					if (dot2 > l->cone) { // inside the cone
-						diffuse = (l->radius - dist) * dot * atten_squared;
-					} else { // outside the cone
-						const vec_t decay = 1.0 + l->cone - dot2;
-						const vec_t decay_squared = decay * decay;
-						diffuse = (l->radius - decay_squared * dist) * dot * atten_squared;
-					}
-				}
-					break;
-				default:
-					Mon_SendPoint(MON_WARN, l->origin, "Light with bad type");
-					break;
-			}
-
-			if (diffuse <= 0.0) { // no light
-				continue;
-			}
+			diffuse *= atten_squared;
 
 			cm_trace_t trace;
 			Light_Trace(&trace, l->origin, pos, CONTENTS_SOLID);
