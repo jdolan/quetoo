@@ -386,7 +386,7 @@ void main(void) {
 	float lightmapSpecularScale = 0.0;
 	float lightmapSelfShadowScale = 1.0;
 
-	if (NORMALMAP && DELUXEMAP) {
+	if (NORMALMAP) {
 
 		normalmap = texture(SAMPLER3, uvTextures);
 
@@ -406,18 +406,21 @@ void main(void) {
 			glossmap = vec3(guessedGlossValue);
 		}
 
-		// resolve the light direction and deluxemap
-		vec4 deluxeColorHDR = texture(SAMPLER1, vec3(texcoords[1], 1));
-		vec3 lightdir = deluxeColorHDR.rgb * deluxeColorHDR.a;
+		if (DELUXEMAP) {
 
-		deluxemap = normalize(2.0 * (lightdir + 0.5));
+			// resolve the light direction and deluxemap
+			vec4 deluxeColorHDR = texture(SAMPLER1, vec3(texcoords[1], 1));
+			vec3 lightdir = deluxeColorHDR.rgb * deluxeColorHDR.a;
 
-		// resolve the bumpmap diffuse and specular scales
-		BumpFragment(deluxemap, normalmap.xyz, glossmap, lightmapDiffuseScale, lightmapSpecularScale);
+			deluxemap = normalize(2.0 * (lightdir + 0.5));
 
-		// and self-shadowing, if a heightmap is available
-		if (PARALLAX > 0.0) {
-			lightmapSelfShadowScale = SelfShadowHeightmap(lightdir * 2.0 - 1.0, SAMPLER3, uvTextures) * 0.5 + 0.5;
+			// resolve the bumpmap diffuse and specular scales
+			BumpFragment(deluxemap, normalmap.xyz, glossmap, lightmapDiffuseScale, lightmapSpecularScale);
+
+			// and self-shadowing, if a heightmap is available
+			if (PARALLAX > 0.0) {
+				lightmapSelfShadowScale = SelfShadowHeightmap(deluxemap, SAMPLER3, uvTextures) * 0.5 + 0.5;
+			}
 		}
 
 		// and then transform the normalmap to model space for lighting
