@@ -290,13 +290,10 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in floa
 			float lambert = dot(normalmap, normalize(delta));
 			if (lambert > 0.0) {
 
-				// windowed inverse square falloff
-				float dist = len / LIGHTS.RADIUS[i];
-				float falloff = clamp(1.0 - dist * dist * dist * dist, 0.0, 1.0);
-				falloff = falloff * falloff;
-				falloff = falloff / (dist * dist + 1.0);
+				float atten = clamp(1.0 - len / LIGHTS.RADIUS[i], 0.0, 1.0);
+				float atten_squared = atten * atten;
 
-				light += LIGHTS.COLOR[i] * falloff * lambert;
+				light += LIGHTS.COLOR[i] * lambert * atten_squared;
 			}
 		}
 	}
