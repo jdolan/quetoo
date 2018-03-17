@@ -362,13 +362,13 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
 	VectorCopy(start, data.start);
 	VectorCopy(end, data.end);
 
-	VectorCopy(mins, data.mins);
-	VectorCopy(maxs, data.maxs);
+	VectorCopy(mins ?: vec3_origin, data.mins);
+	VectorCopy(maxs ?: vec3_origin, data.maxs);
 
 	data.contents = contents;
 
 	// check for point special case
-	if (VectorCompare(mins, vec3_origin) && VectorCompare(maxs, vec3_origin)) {
+	if (VectorCompare(data.mins, vec3_origin) && VectorCompare(data.maxs, vec3_origin)) {
 		data.is_point = true;
 	} else {
 		data.is_point = false;
@@ -414,11 +414,11 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
 
 	for (int32_t i = 0; i < 3; i++) {
 		if (start[i] < end[i]) {
-			data.box_mins[i] = start[i] + mins[i] - 1.0;
-			data.box_maxs[i] = end[i] + maxs[i] + 1.0;
+			data.box_mins[i] = start[i] + data.mins[i] - 1.0;
+			data.box_maxs[i] = end[i] + data.maxs[i] + 1.0;
 		} else {
-			data.box_mins[i] = end[i] + mins[i] - 1.0;
-			data.box_maxs[i] = start[i] + maxs[i] + 1.0;
+			data.box_mins[i] = end[i] + data.mins[i] - 1.0;
+			data.box_maxs[i] = start[i] + data.maxs[i] + 1.0;
 		}
 	}
 
