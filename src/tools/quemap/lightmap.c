@@ -359,14 +359,14 @@ static void BuildFaceLightingPoints(const light_info_t *l, vec_t *origins, vec_t
 
 	const int32_t step = 1.0 / lightmap_scale;
 
-	const vec_t starts = l->tex_mins[0] * step;
-	const vec_t startt = l->tex_mins[1] * step;
+	const vec_t start_s = l->tex_mins[0] * step;
+	const vec_t start_t = l->tex_mins[1] * step;
 
 	for (int32_t t = 0; t < h; t++) {
 		for (int32_t s = 0; s < w; s++, origins += 3, normals += 3) {
 
-			const vec_t us = starts + s * step;
-			const vec_t ut = startt + t * step;
+			const vec_t us = start_s + s * step;
+			const vec_t ut = start_t + t * step;
 
 			for (int32_t j = 0; j < 3; j++) {
 				origins[j] = l->tex_org[j] + l->tex_to_world[0][j] * us + l->tex_to_world[1][j] * ut;
