@@ -620,8 +620,8 @@ void IndirectLighting(int32_t face_num) {
 	light.plane = &bsp_file.planes[light.face->plane_num];
 	light.texinfo = &bsp_file.texinfo[light.face->texinfo];
 
-	if (light.texinfo->flags & (SURF_SKY | SURF_WARP | SURF_HINT | SURF_NO_DRAW | SURF_SKIP)) {
-		return; // we have no light to reflect
+	if (light.texinfo->flags & (SURF_SKY | SURF_WARP)) {
+		return;
 	}
 
 	// calculate lightmap texture mins and maxs
