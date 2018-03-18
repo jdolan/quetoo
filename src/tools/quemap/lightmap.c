@@ -661,7 +661,7 @@ void IndirectLighting(int32_t face_num) {
 		}
 
 		// gather indirect lighting from indirect light sources
-		GatherSampleLight(pos, normal, pvs, indirect, NULL, 1.0);
+		GatherSampleLight(pos, normal, pvs, indirect, NULL, 0.125);
 	}
 }
 
