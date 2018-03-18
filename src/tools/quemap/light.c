@@ -212,7 +212,7 @@ void BuildIndirectLights(void) {
 		const bsp_face_t *face = &bsp_file.faces[face_num];
 		const bsp_texinfo_t *texinfo = &bsp_file.texinfo[face->texinfo];
 
-		if (texinfo->flags & (SURF_SKY | SURF_WARP | SURF_LIGHT | SURF_HINT | SURF_NO_DRAW)) {
+		if (texinfo->flags & (SURF_LIGHT | SURF_SKY | SURF_WARP)) {
 			continue; // we have no light to reflect
 		}
 
