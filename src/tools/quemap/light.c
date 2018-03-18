@@ -87,8 +87,12 @@ void BuildDirectLights(void) {
 	// surface lights
 	for (size_t i = 0; i < lengthof(face_patches); i++) {
 
-		const patch_t *p = face_patches[i];
-		while (p) {
+		for (const patch_t *p = face_patches[i]; p; p = p->next) {
+
+			const bsp_texinfo_t *tex = &bsp_file.texinfo[p->face->texinfo];
+			if (!(tex->flags & SURF_LIGHT)) {
+				continue;
+			}
 
 			vec3_t origin;
 			WindingCenter(p->winding, origin);
@@ -102,12 +106,8 @@ void BuildDirectLights(void) {
 
 			light_t *light = BuildLight(origin, LIGHT_SURFACE);
 
-			const bsp_texinfo_t *tex = &bsp_file.texinfo[p->face->texinfo];
-
 			light->radius = tex->value;
 			GetTextureColor(tex->texture, light->color);
-
-			p = p->next;
 		}
 	}
 
