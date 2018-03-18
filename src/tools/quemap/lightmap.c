@@ -430,7 +430,24 @@ static _Bool NudgeSamplePosition(const light_info_t *l, const vec3_t origin, con
 	}
 
 	VectorMA(out, SAMPLE_NUDGE, normal, out);
-	return Light_PointPVS(out, pvs);
+
+	if (Light_PointPVS(out, pvs)) {
+		return true;
+	}
+
+	const vec_t *center = face_extents[l->face - bsp_file.faces].center;
+
+	vec3_t delta;
+	VectorSubtract(center, origin, delta);
+	VectorNormalize(delta);
+
+	VectorMA(out, SAMPLE_NUDGE, delta, out);
+
+	if (Light_PointPVS(out, pvs)) {
+		return true;
+	}
+
+	return false;
 }
 
 /**
