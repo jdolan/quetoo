@@ -187,7 +187,7 @@ static void LightWorld(void) {
 		}
 	}
 
-	// turn each light emitting face into a single patch
+	// turn each face into a single patch
 	BuildPatches();
 
 	// subdivide patches to the desired resolution
@@ -195,9 +195,6 @@ static void LightWorld(void) {
 
 	// create direct lights out of patches and entities
 	BuildDirectLights();
-
-	// patches are no longer needed
-	FreePatches();
 
 	// build face extents
 	BuildFaceExtents();
@@ -233,6 +230,9 @@ static void LightWorld(void) {
 
 	// free the face lighting structs
 	Mem_FreeTag(MEM_TAG_FACE_LIGHTING);
+
+	// free the patches
+	Mem_FreeTag(MEM_TAG_PATCH);
 }
 
 /**

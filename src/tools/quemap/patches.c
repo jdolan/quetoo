@@ -225,21 +225,3 @@ void SubdividePatches(void) {
 		}
 	}
 }
-
-/**
- * @brief After light sources have been created, patches may be freed.
- */
-void FreePatches(void) {
-	int32_t i;
-
-	for (i = 0; i < MAX_BSP_FACES; i++) {
-
-		patch_t *p = face_patches[i];
-
-		while (p) {
-			patch_t *pnext = p->next;
-			Mem_Free(p);
-			p = pnext;
-		}
-	}
-}

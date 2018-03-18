@@ -38,4 +38,3 @@ void GetTextureColor(const char *name, vec3_t color);
 void FreeTextureColors(void);
 void BuildPatches(void);
 void SubdividePatches(void);
-void FreePatches(void);
