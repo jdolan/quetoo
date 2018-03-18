@@ -424,8 +424,11 @@ static _Bool NudgeSamplePosition(const light_info_t *l, const vec3_t origin, con
 		}
 	}
 
-	VectorMA(out, SAMPLE_NUDGE, normal, out);
+	if (Light_PointPVS(out, pvs)) {
+		return true;
+	}
 
+	VectorMA(out, SAMPLE_NUDGE, normal, out);
 	return Light_PointPVS(out, pvs);
 }
 
