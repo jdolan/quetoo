@@ -72,7 +72,10 @@ void BuildTextureColors(void) {
 				color[j] = (c[j] / texels) / 255.0;
 			}
 
-			ColorNormalize(color, color);
+			const vec_t brightness = ColorNormalize(color, color);
+			if (brightness < 1.0) {
+				VectorScale(color, 1.0 / brightness, color);
+			}
 		} else {
 			Com_Warn("Couldn't load %s\n", material->diffuse.path);
 		}
