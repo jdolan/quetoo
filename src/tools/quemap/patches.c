@@ -150,15 +150,10 @@ void BuildPatches(void) {
 
 		for (int32_t j = 0; j < mod->num_faces; j++) {
 
-			const int32_t facenum = mod->first_face + j;
-			bsp_face_t *f = &bsp_file.faces[facenum];
+			const int32_t face_num = mod->first_face + j;
+			bsp_face_t *f = &bsp_file.faces[face_num];
 
-			VectorCopy(origin, face_offsets[facenum]);
-
-			const bsp_texinfo_t *tex = &bsp_file.texinfo[f->texinfo];
-			if (!(tex->flags & SURF_LIGHT)) {
-				continue;
-			}
+			VectorCopy(origin, face_offsets[face_num]);
 
 			winding_t *w = WindingForFace(f);
 
@@ -166,7 +161,7 @@ void BuildPatches(void) {
 				VectorAdd(w->points[k], origin, w->points[k]);
 			}
 
-			BuildPatch(facenum, w);
+			BuildPatch(face_num, w);
 		}
 	}
 }
