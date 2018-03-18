@@ -213,38 +213,55 @@ void BuildIndirectLights(void) {
 		const bsp_texinfo_t *texinfo = &bsp_file.texinfo[face->texinfo];
 
 		if (texinfo->flags & (SURF_LIGHT | SURF_SKY | SURF_WARP)) {
-			continue; // we have no light to reflect
+			continue;
 		}
 
 		const face_lighting_t *fl = &face_lighting[face_num];
+		const face_extents_t *fe = &face_extents[face_num];
 
 		for (size_t i = 0; i < fl->num_luxels; i++) {
 
+			const vec_t *origin = fl->origins + i * 3;
+			const vec_t *normal = fl->normals + i * 3;
 			const vec_t *direct = fl->direct + i * 3;
 			const vec_t *indirect = fl->indirect + i * 3;
 
-			vec3_t color;
-			VectorAdd(direct, indirect, color);
+			vec3_t lightmap;
+			VectorAdd(direct, indirect, lightmap);
 
-			if (VectorCompare(color, vec3_origin)) {
+			if (VectorCompare(lightmap, vec3_origin)) {
 				continue;
 			}
 
-			vec3_t origin;
-			vec3_t normal;
+			byte pvs[MAX_BSP_LEAFS >> 3];
 
-			VectorCopy(fl->origins + i * 3, origin);
-			VectorCopy(fl->normals + i * 3, normal);
+			vec3_t org;
+			VectorCopy(origin, org);
 
-			light_t *light = BuildLight(origin, LIGHT_SPOT);
+			if (!Light_PointPVS(org, pvs)) {
 
-			VectorMA(light->origin, 4.0, normal, light->origin);
+				VectorAdd(org, normal, org);
+
+				if (!Light_PointPVS(org, pvs)) {
+
+					vec3_t delta;
+					VectorSubtract(fe->center, org, delta);
+					VectorNormalize(delta);
+					VectorAdd(org, delta, org);
+
+					if (!Light_PointPVS(org, pvs)) {
+						continue;
+					}
+				}
+			}
+
+			light_t *light = BuildLight(org, LIGHT_SPOT);
+
 			VectorCopy(normal, light->normal);
 
-			VectorScale(color, 1.0 / 255.0 / 256.0 / (indirect_bounce + 1.0), light->color);
-			light->radius = 256.0;
+			light->radius = ColorNormalize(lightmap, light->color);
 
-			light->cone = 1.0;
+			light->cone = 1.0; // 90º
 		}
 	}
 }
