@@ -512,8 +512,7 @@ static face_t *FaceFromPortal(portal_t *p, int32_t pside) {
 		return NULL;    // portal does not bridge different visible contents
 	}
 
-	if ((side->surf & SURF_NO_DRAW) // Knightmare- nodraw faces
-	        && !(side->surf & (SURF_SKY | SURF_HINT | SURF_SKIP))) {
+	if (side->surf & (SURF_NO_DRAW | SURF_SKIP) && !(side->surf & (SURF_SKY | SURF_HINT))) {
 		return NULL;
 	}
 
