@@ -493,10 +493,9 @@ static void SetMaterialFlags(side_t *side, map_brush_texture_t *td) {
 	if (!g_strcmp0(td->name, "common/areaportal")) {
 		side->contents |= CONTENTS_AREA_PORTAL;
 		td->flags |= SURF_NO_DRAW;
-	} else if (!g_strcmp0(td->name, "common/monsterclip") ||
-			   !g_strcmp0(td->name, "common/botclip")) {
+	} else if (!g_strcmp0(td->name, "common/monsterclip") || !g_strcmp0(td->name, "common/botclip")) {
 		side->contents |= CONTENTS_MONSTER_CLIP;
-	} else if (!g_strcmp0(td->name, "common/caulk")) {
+	} else if (!g_strcmp0(td->name, "common/caulk") || !g_strcmp0(td->name, "common/nodraw")) {
 		td->flags |= SURF_NO_DRAW;
 	} else if (!g_strcmp0(td->name, "common/clip")) {
 		side->contents |= CONTENTS_PLAYER_CLIP;
