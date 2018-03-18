@@ -21,17 +21,6 @@
 
 #include "qlight.h"
 
-/*
- *
- * every surface must be divided into at least two patches each axis
- *
- */
-
-patch_t *face_patches[MAX_BSP_FACES];
-
-vec3_t face_offset[MAX_BSP_FACES]; // for rotating bmodels
-
-vec_t patch_size = DEFAULT_PATCH_SIZE;
 _Bool antialias = false;
 _Bool indirect = false;
 
@@ -40,9 +29,7 @@ vec3_t ambient = { 0.0, 0.0, 0.0 };
 vec_t brightness = 1.0;
 vec_t saturation = 1.0;
 vec_t contrast = 1.0;
-
-vec_t surface_scale = 1.0;
-vec_t light_scale = 1.0;
+vec_t lightmap_scale = BSP_DEFAULT_LIGHTMAP_SCALE;
 
 int32_t indirect_bounces = 1;
 int32_t indirect_bounce = 0;
@@ -128,7 +115,7 @@ void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_
 
 	for (int32_t i = 0; i < num_cmodels; i++) {
 
-		const cm_trace_t tr = Cm_BoxTrace(start, end, vec3_origin, vec3_origin, cmodels[i]->head_node, mask);
+		const cm_trace_t tr = Cm_BoxTrace(start, end, NULL, NULL, cmodels[i]->head_node, mask);
 		if (tr.fraction < frac) {
 			frac = tr.fraction;
 			*trace = tr;
@@ -153,14 +140,61 @@ static void LightWorld(void) {
 		cmodels[i] = Cm_Model(va("*%d", i));
 	}
 
-	// turn each face into a single patch
+	const entity_t *e = &entities[0];
+
+	VectorForKey(e, "ambient", ambient, NULL);
+	if (!VectorCompare(ambient, vec3_origin)) {
+		Com_Verbose("Ambient: %g %g %g\n", ambient[0], ambient[1], ambient[2]);
+	}
+
+	if (brightness == 1.0) {
+		const vec_t v = FloatForKey(e, "brightness", 0.0);
+		if (v > 0.0) {
+			brightness = v;
+			Com_Verbose("Brightness: %g\n", brightness);
+		}
+	}
+
+	if (saturation == 1.0) {
+		const vec_t  v = FloatForKey(e, "saturation", 0.0);
+		if (v > 0.0) {
+			saturation = v;
+			Com_Verbose("Saturation: %g\n", saturation);
+		}
+	}
+
+	if (contrast == 1.0) {
+		const vec_t v = FloatForKey(e, "contrast", 0.0);
+		if (v > 0.0) {
+			contrast = v;
+			Com_Verbose("Contrast: %g\n", contrast);
+		}
+	}
+
+	if (lightmap_scale == BSP_DEFAULT_LIGHTMAP_SCALE) {
+		const vec_t v = FloatForKey(e, "lightmap_scale", 0.0);
+		if (v > 0.0) {
+			lightmap_scale = v;
+			Com_Verbose("Lightmap scale: %g\n", lightmap_scale);
+		}
+	}
+
+	if (patch_size == DEFAULT_PATCH_SIZE) {
+		const vec_t v = FloatForKey(e, "patch_size", 0.0);
+		if (v > 0.0) {
+			patch_size = v;
+			Com_Verbose("Patch size: %g\n", patch_size);
+		}
+	}
+
+	// turn each light emitting face into a single patch
 	BuildPatches();
 
-	// subdivide patches to a maximum dimension
+	// subdivide patches to the desired resolution
 	SubdividePatches();
 
-	// create lights out of patches and entities
-	BuildLights();
+	// create direct lights out of patches and entities
+	BuildDirectLights();
 
 	// patches are no longer needed
 	FreePatches();

@@ -143,6 +143,7 @@ static g_entity_spawn_t g_entity_spawns[] = { // entity class names -> spawn fun
 	{ "info_null", G_FreeEntity },
 	{ "light", G_FreeEntity },
 	{ "light_spot", G_FreeEntity },
+	{ "light_sun", G_FreeEntity },
 	{ "misc_emit", G_FreeEntity },
 	{ "misc_model", G_FreeEntity },
 
@@ -990,9 +991,6 @@ static void G_WorldspawnMusic(void) {
  message : The map title.
  sky : The sky environment map (default unit1_).
  ambient : The ambient light level (e.g. 0.14 0.11 0.12).
- sun_light : Sun light intensity, a single scalar value 0 - 255.
- sun_color : Sun light color (e.g. 0.8 0.4 0.7).
- sun_angles : Sun light angles as "pitch yaw roll" (e.g. 85 225 0).
  brightness : Global light scale, a single positive scalar value (e.g. 1.125).
  saturation : Global light saturation, a single positive scalar value (e.g. 0.9).
  contrast : Global light contrast, a single positive scalar value (e.g. 1.17).

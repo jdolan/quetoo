@@ -21,16 +21,21 @@
 
 #pragma once
 
-#include "light.h"
-#include "lightmap.h"
-#include "materials.h"
-#include "patches.h"
+#include "bspfile.h"
+#include "polylib.h"
 
-extern int32_t indirect_bounces;
-extern int32_t indirect_bounce;
+typedef struct patch_s {
+	const bsp_face_t *face;
+	winding_t *winding;
+	struct patch_s *next;  // next in face
+} patch_t;
 
-_Bool Light_PointPVS(const vec3_t org, byte *pvs);
-_Bool Light_InPVS(const vec3_t point1, const vec3_t point2);
-int32_t Light_PointLeafnum(const vec3_t point);
-void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask);
-vec3_t *Light_AverageTextureColor(const char *name);
+extern patch_t *face_patches[MAX_BSP_FACES];
+extern vec3_t face_offsets[MAX_BSP_FACES];
+
+void BuildTextureColors(void);
+void GetTextureColor(const char *name, vec3_t color);
+void FreeTextureColors(void);
+void BuildPatches(void);
+void SubdividePatches(void);
+void FreePatches(void);

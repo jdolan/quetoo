@@ -276,13 +276,9 @@ static void Check_LIGHT_Options(int32_t argc) {
 			contrast = atof(Com_Argv(i + 1));
 			Com_Verbose("contrast: %f\n", contrast);
 			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--surface-scale")) {
-			surface_scale *= atof(Com_Argv(i + 1));
-			Com_Verbose("surface light scale: %f\n", surface_scale);
-			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--light-scale")) {
-			light_scale *= atof(Com_Argv(i + 1));
-			Com_Verbose("light entity scale: %f\n", light_scale);
+		} else if (!g_strcmp0(Com_Argv(i), "--lightmap_scale")) {
+			lightmap_scale = atof(Com_Argv(i + 1));
+			Com_Verbose("lightmap scale: %f\n", lightmap_scale);
 			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "--patch-size")) {
 			patch_size = atof(Com_Argv(i + 1));

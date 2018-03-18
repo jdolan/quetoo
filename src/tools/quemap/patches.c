@@ -19,8 +19,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "qlight.h"
+#include "patches.h"
 #include "image.h"
+#include "materials.h"
+
+patch_t *face_patches[MAX_BSP_FACES];
+vec3_t face_offsets[MAX_BSP_FACES];
+
+vec_t patch_size = DEFAULT_PATCH_SIZE;
 
 static GHashTable *texture_colors;
 
@@ -147,7 +153,7 @@ void BuildPatches(void) {
 			const int32_t facenum = mod->first_face + j;
 			bsp_face_t *f = &bsp_file.faces[facenum];
 
-			VectorCopy(origin, face_offset[facenum]);
+			VectorCopy(origin, face_offsets[facenum]);
 
 			const bsp_texinfo_t *tex = &bsp_file.texinfo[f->texinfo];
 			if (!(tex->flags & SURF_LIGHT)) {
@@ -213,12 +219,6 @@ static void SubdividePatch(patch_t *patch) {
  * @brief Iterate all of the head face patches, subdividing them as necessary.
  */
 void SubdividePatches(void) {
-
-	// patch_size may come from worldspawn
-	const vec_t v = FloatForKey(entities, "patch_size", DEFAULT_PATCH_SIZE);
-	if (v > 0.0) {
-		patch_size = v;
-	}
 
 	for (int32_t i = 0; i < MAX_BSP_FACES; i++) {
 		patch_t *p = face_patches[i];

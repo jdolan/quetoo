@@ -74,15 +74,15 @@ extern _Bool indirect;
 extern int32_t indirect_bounces;
 extern int32_t indirect_bounce;
 
+extern vec3_t ambient;
+
 extern vec_t brightness;
 extern vec_t saturation;
 extern vec_t contrast;
 
-extern vec_t surface_scale;
-extern vec_t light_scale;
+extern vec_t lightmap_scale;
 
-extern vec3_t ambient;
-
+#define DEFAULT_PATCH_SIZE 4.0
 extern vec_t patch_size;
 
 // threads.c

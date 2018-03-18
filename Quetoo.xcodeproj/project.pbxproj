@@ -107,6 +107,7 @@
 		CE1A28511F7602F2005F62A9 /* MovementCombatViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1A284D1F7602F2005F62A9 /* MovementCombatViewController.h */; };
 		CE1CCD9A1D9D41DA00891F05 /* libncurses.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */; };
 		CE1CCD9D1D9D49C700891F05 /* libswap.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC79D01D9CB22E000FA6B2 /* libswap.a */; };
+		CE230DE0205EAB9000D9AA42 /* light.c in Sources */ = {isa = PBXBuildFile; fileRef = CE230DDF205EAB9000D9AA42 /* light.c */; };
 		CE30BF242040A8FD004A8DDE /* matrix.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE30BF232040A8E9004A8DDE /* matrix.glsl */; };
 		CE32529D1F760D3F00512523 /* BindTextView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE32529B1F760D3F00512523 /* BindTextView.c */; };
 		CE32529E1F760D3F00512523 /* BindTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE32529C1F760D3F00512523 /* BindTextView.h */; };
@@ -1544,6 +1545,10 @@
 		CE1A28451F7600AC005F62A9 /* CrosshairView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CrosshairView.h; sourceTree = "<group>"; };
 		CE1A284C1F7602F2005F62A9 /* MovementCombatViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MovementCombatViewController.c; sourceTree = "<group>"; };
 		CE1A284D1F7602F2005F62A9 /* MovementCombatViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MovementCombatViewController.h; sourceTree = "<group>"; };
+		CE230DDE205EAB9000D9AA42 /* light.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = light.h; sourceTree = "<group>"; };
+		CE230DDF205EAB9000D9AA42 /* light.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = light.c; sourceTree = "<group>"; };
+		CE230DE1205EAC2800D9AA42 /* lightmap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lightmap.h; sourceTree = "<group>"; };
+		CE230DE2205EAE5900D9AA42 /* patches.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = patches.h; sourceTree = "<group>"; };
 		CE27BE561D9167C700F87B2C /* libObjectively.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectively.dylib; path = "../../Library/Developer/Xcode/DerivedData/Quetoo-eijmznjiunzbaafulkyjapfulhqz/Build/Products/Debug/libObjectively.dylib"; sourceTree = "<group>"; };
 		CE30BF232040A8E9004A8DDE /* matrix.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = matrix.glsl; sourceTree = "<group>"; };
 		CE32084F1EBDFFB600A92FF3 /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
@@ -2792,7 +2797,10 @@
 				CE12D6EA1C5C58C300CD0B13 /* faces.c */,
 				CE12D6EB1C5C58C300CD0B13 /* flow.c */,
 				CE12D6EC1C5C58C300CD0B13 /* leakfile.c */,
+				CE230DDF205EAB9000D9AA42 /* light.c */,
+				CE230DDE205EAB9000D9AA42 /* light.h */,
 				CE12D6ED1C5C58C300CD0B13 /* lightmap.c */,
+				CE230DE1205EAC2800D9AA42 /* lightmap.h */,
 				CE12D6EE1C5C58C300CD0B13 /* main.c */,
 				CE12D6F11C5C58C300CD0B13 /* map.c */,
 				CECA8CAE1E50B5F1005E97E8 /* materials.c */,
@@ -2800,6 +2808,7 @@
 				CE12D6F21C5C58C300CD0B13 /* monitor.c */,
 				CE12D6F31C5C58C300CD0B13 /* monitor.h */,
 				CE12D6F41C5C58C300CD0B13 /* patches.c */,
+				CE230DE2205EAE5900D9AA42 /* patches.h */,
 				CE12D6F51C5C58C300CD0B13 /* polylib.c */,
 				CE12D6F61C5C58C300CD0B13 /* polylib.h */,
 				CE12D6F71C5C58C300CD0B13 /* portals.c */,
@@ -4419,6 +4428,7 @@
 				CE80FFF31C5E4D1800A21A51 /* qlight.c in Sources */,
 				CE80FFF41C5E4D1800A21A51 /* qmat.c in Sources */,
 				CE80FFF51C5E4D1800A21A51 /* qvis.c in Sources */,
+				CE230DE0205EAB9000D9AA42 /* light.c in Sources */,
 				CE80FFF61C5E4D1800A21A51 /* qzip.c in Sources */,
 				CE80FFF71C5E4D1800A21A51 /* scriptlib.c in Sources */,
 				CE80FFF81C5E4D1800A21A51 /* textures.c in Sources */,

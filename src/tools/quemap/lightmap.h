@@ -21,16 +21,35 @@
 
 #pragma once
 
-#include "light.h"
-#include "lightmap.h"
-#include "materials.h"
-#include "patches.h"
+#include "bspfile.h"
 
-extern int32_t indirect_bounces;
-extern int32_t indirect_bounce;
+/**
+ * @brief Face texture extents.
+ */
+typedef struct {
+	vec3_t mins, maxs;
+	vec3_t center;
+	vec2_t st_mins, st_maxs;
+} face_extents_t;
 
-_Bool Light_PointPVS(const vec3_t org, byte *pvs);
-_Bool Light_InPVS(const vec3_t point1, const vec3_t point2);
-int32_t Light_PointLeafnum(const vec3_t point);
-void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask);
-vec3_t *Light_AverageTextureColor(const char *name);
+extern face_extents_t face_extents[MAX_BSP_FACES];
+
+/**
+ * @brief Light sample accumulation for each face.
+ */
+typedef struct {
+	size_t num_luxels;
+	vec_t *origins;
+	vec_t *normals;
+	vec_t *direct;
+	vec_t *directions;
+	vec_t *indirect;
+} face_lighting_t;
+
+extern face_lighting_t face_lighting[MAX_BSP_FACES];
+
+void BuildFaceExtents(void);
+void BuildVertexNormals(void);
+void DirectLighting(int32_t face_num);
+void IndirectLighting(int32_t face_num);
+void FinalizeLighting(int32_t face_num);
