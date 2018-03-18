@@ -601,9 +601,6 @@ void DirectLighting(int32_t face_num) {
 			// including all configured suns
 			GatherSampleSunlight(pos, normal, direct, direction, scale);
 		}
-
-		// accumulate radiosity for the indirect lighting pass
-		VectorMA(fl->radiosity, 1.0 / fl->num_luxels, direct, fl->radiosity);
 	}
 }
 
@@ -648,9 +645,6 @@ void IndirectLighting(int32_t face_num) {
 
 		// gather indirect lighting from indirect light sources
 		GatherSampleLight(pos, normal, pvs, indirect, NULL, 1.0);
-
-		// accumulate radiosity for subsequent indirect lighting passes
-		VectorMA(fl->radiosity, 1.0 / fl->num_luxels, indirect, fl->radiosity);
 	}
 }
 

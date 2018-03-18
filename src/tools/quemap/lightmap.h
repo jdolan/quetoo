@@ -44,7 +44,6 @@ typedef struct {
 	vec_t *direct;
 	vec_t *directions;
 	vec_t *indirect;
-	vec3_t radiosity;
 } face_lighting_t;
 
 extern face_lighting_t face_lighting[MAX_BSP_FACES];
