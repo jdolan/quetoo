@@ -382,7 +382,8 @@ static void BuildFaceLightingPoints(const light_info_t *l, vec_t *origins, vec_t
 }
 
 /**
- * @brief
+ * @brief Allocates and populates the buffers that will contain origins, normals and lighting
+ * results for the face referenced by the given light info.
  */
 static face_lighting_t *BuildFaceLighting(const light_info_t *light) {
 
@@ -569,6 +570,7 @@ void DirectLighting(int32_t face_num) {
 	// build the face lighting struct, which will outlive direct lighting
 	face_lighting_t *fl = BuildFaceLighting(&light);
 
+	// for each luxel, peek our head out into the world and attempt to gather light
 	for (size_t i = 0; i < fl->num_luxels; i++) {
 
 		const vec_t *origin = fl->origins + i * 3;
@@ -581,21 +583,27 @@ void DirectLighting(int32_t face_num) {
 
 		for (size_t j = 0; j < num_samples; j++) {
 
+			// shift the sample origins by weighted offsets
 			const vec_t soffs = sample_offsets[j][0];
 			const vec_t toffs = sample_offsets[j][1];
 
 			vec3_t pos;
 
 			if (!NudgeSamplePosition(&light, origin, normal, soffs, toffs, pos, pvs)) {
-				continue; // not a valid point
+				continue;
 			}
 
 			const vec_t scale = antialias ? sample_weights[j] : 1.0;
 
+			// gather lighting from direct light sources
 			GatherSampleLight(pos, normal, pvs, direct, direction, scale);
 
+			// including all configured suns
 			GatherSampleSunlight(pos, normal, direct, direction, scale);
 		}
+
+		// accumulate radiosity for the indirect lighting pass
+		VectorMA(fl->radiosity, 1.0 / fl->num_luxels, direct, fl->radiosity);
 	}
 }
 
@@ -624,6 +632,7 @@ void IndirectLighting(int32_t face_num) {
 
 	face_lighting_t *fl = &face_lighting[face_num];
 
+	// for each luxel, peek our head out into the world and attempt to gather light
 	for (size_t i = 0; i < fl->num_luxels; i++) {
 
 		const vec_t *origin = fl->origins + i * 3;
@@ -637,7 +646,11 @@ void IndirectLighting(int32_t face_num) {
 			continue;
 		}
 
+		// gather indirect lighting from indirect light sources
 		GatherSampleLight(pos, normal, pvs, indirect, NULL, 1.0);
+
+		// accumulate radiosity for subsequent indirect lighting passes
+		VectorMA(fl->radiosity, 1.0 / fl->num_luxels, indirect, fl->radiosity);
 	}
 }
 
