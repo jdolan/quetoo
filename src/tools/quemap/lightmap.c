@@ -524,7 +524,7 @@ static void GatherSampleLight(const vec3_t pos, const vec3_t normal, const byte 
 				case LIGHT_SPOT: {
 					const vec_t dot2 = DotProduct(dir, l->normal);
 					if (dot2 <= l->cone) {
-						if (dot2 <= 0.0) {
+						if (dot2 <= 0.1) {
 							diffuse = 0.0;
 						} else {
 							diffuse *= l->cone - (1.0 - dot2);
