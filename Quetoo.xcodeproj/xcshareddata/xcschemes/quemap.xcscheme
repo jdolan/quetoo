@@ -65,7 +65,11 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-mat maps/lighttest.map"
+            argument = "-bsp -vis -light maps/lighttest.map"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-bsp -vis -light --antialias --indirect maps/lighttest.map"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
