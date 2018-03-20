@@ -686,7 +686,7 @@ static void Cvar_ServerInfo_enumerate(cvar_t *var, void *data) {
  * @return An info string containing all the CVAR_SERVER_INFO cvars.
  */
 char *Cvar_ServerInfo(void) {
-	static char info[MAX_USER_INFO_STRING];
+	static char info[MAX_USER_INFO_STRING * 16];
 
 	memset(info, 0, sizeof(info));
 
