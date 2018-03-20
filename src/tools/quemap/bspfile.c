@@ -237,6 +237,9 @@ void SetKeyValue(entity_t *ent, const char *key, const char *value) {
 	ep->value = Mem_CopyString(value);
 }
 
+/**
+ * @brief
+ */
 const char *ValueForKey(const entity_t *ent, const char *key, const char *def) {
 
 	for (const epair_t *ep = ent->epairs; ep; ep = ep->next) {
@@ -248,12 +251,18 @@ const char *ValueForKey(const entity_t *ent, const char *key, const char *def) {
 	return def;
 }
 
+/**
+ * @brief
+ */
 vec_t FloatForKey(const entity_t *ent, const char *key, vec_t def) {
 
 	const char *value = ValueForKey(ent, key, NULL);
 	return value ? atof(value) : def;
 }
 
+/**
+ * @brief
+ */
 void VectorForKey(const entity_t *ent, const char *key, vec3_t out, const vec3_t def) {
 
 	const char *value = ValueForKey(ent, key, NULL);
@@ -266,6 +275,9 @@ void VectorForKey(const entity_t *ent, const char *key, vec3_t out, const vec3_t
 	VectorCopy(def ?: vec3_origin, out);
 }
 
+/**
+ * @brief
+ */
 int32_t LoadBSPFile(const char *filename, const bsp_lump_id_t lumps) {
 
 	memset(&bsp_file, 0, sizeof(bsp_file));
@@ -289,9 +301,15 @@ int32_t LoadBSPFile(const char *filename, const bsp_lump_id_t lumps) {
 	return version;
 }
 
+/**
+ * @brief
+ */
 void WriteBSPFile(const char *filename, const int32_t version) {
+
 	file_t *file = Fs_OpenWrite(filename);
+
 	Bsp_Write(file, &bsp_file, version);
+
 	Fs_Close(file);
 
 	if (verbose) {
