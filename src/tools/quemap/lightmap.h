@@ -27,17 +27,17 @@
  * @brief Face texture extents.
  */
 typedef struct {
+	const bsp_face_t *face;
+	const bsp_texinfo_t *texinfo;
+	vec3_t offset;
 	vec3_t mins, maxs;
 	vec3_t center;
+	vec3_t normal;
 	vec2_t st_mins, st_maxs;
-} face_extents_t;
-
-extern face_extents_t face_extents[MAX_BSP_FACES];
-
-/**
- * @brief Light sample accumulation for each face.
- */
-typedef struct {
+	vec3_t st_origin;
+	vec3_t st_normal;
+	vec3_t st_to_world[2]; // world = tex_org + s * tex_to_world[0]
+	s16vec2_t lm_mins, lm_maxs, lm_size;
 	size_t num_luxels;
 	vec_t *origins;
 	vec_t *normals;
@@ -48,7 +48,7 @@ typedef struct {
 
 extern face_lighting_t face_lighting[MAX_BSP_FACES];
 
-void BuildFaceExtents(void);
+void BuildFaceLighting(void);
 void BuildVertexNormals(void);
 void DirectLighting(int32_t face_num);
 void IndirectLighting(int32_t face_num);

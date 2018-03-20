@@ -26,108 +26,142 @@
 #include "polylib.h"
 #include "qlight.h"
 
-/**
- * @brief A temporary bucket for storing lightmap calculations.
- */
-typedef struct {
-	const bsp_face_t *face;
-	const bsp_plane_t *plane;
-	const bsp_texinfo_t *texinfo;
-
-	vec3_t normal; // the plane normal, negated if back facing plane
-	vec_t dist; // the plane distance, negated if back facing plane
-
-	vec3_t model_org; // for bsp submodels
-
-	vec3_t tex_org;
-	vec3_t tex_to_world[2]; // world = tex_org + s * tex_to_world[0]
-
-	int32_t tex_mins[2], tex_maxs[2], tex_size[2];
-
-	size_t num_luxels;
-
-} light_info_t;
-
-face_extents_t face_extents[MAX_BSP_FACES];
 face_lighting_t face_lighting[MAX_BSP_FACES];
 
-#define MAX_SAMPLES 9
-
-static const vec_t sample_offsets[MAX_SAMPLES][2] = {
-	{ +0.0, +0.0 }, { -0.5, -0.5 }, { +0.0, -0.5 },
-	{ +0.5, -0.5 },	{ -0.5, +0.0 }, { +0.5, +0.0 },
-	{ -0.5, +0.5 }, { +0.0, +0.5 }, { +0.5, +0.5 }
-};
-
-static const vec_t sample_weights[MAX_SAMPLES] = {
-	0.195346, 0.077847, 0.123317,
-	0.077847, 0.123317, 0.123317,
-	0.077847, 0.123317, 0.077847
-};
-
 /**
- * @brief Populates face_extents for all d_bsp_face_t, prior to light creation.
- * This is done so that sample positions may be nudged outward along
- * the face normal and towards the face center to help with traces.
+ * @brief Sets up all per-face lighting calculations. This includes world space bounds, offsets,
+ * and normals, as well as tangent space bounds, normals, and vectors to convert between the two.
+ * The texture math here would probably be better served by a matrix, but that's a project for a
+ * very rainy day.
  */
-void BuildFaceExtents(void) {
+void BuildFaceLighting(void) {
 	const bsp_vertex_t *v;
-	int32_t i, j, k;
 
-	memset(face_extents, 0, sizeof(face_extents));
 	memset(face_lighting, 0, sizeof(face_lighting));
 
-	for (k = 0; k < bsp_file.num_faces; k++) {
+	face_lighting_t *l = face_lighting;
+	for (int32_t i = 0; i < bsp_file.num_faces; i++, l++) {
 
-		const bsp_face_t *s = &bsp_file.faces[k];
-		const bsp_texinfo_t *tex = &bsp_file.texinfo[s->texinfo];
-		const size_t face_index = (ptrdiff_t) (s - bsp_file.faces);
+		const bsp_face_t *face = l->face = &bsp_file.faces[i];
+		const bsp_texinfo_t *tex = l->texinfo = &bsp_file.texinfo[face->texinfo];
 
-		vec_t *mins = face_extents[face_index].mins;
-		vec_t *maxs = face_extents[face_index].maxs;
+		VectorCopy(face_offsets[i], l->offset);
 
-		vec_t *center = face_extents[face_index].center;
+		VectorSet(l->mins, 999999, 999999, 999999);
+		VectorSet(l->maxs, -999999, -999999, -999999);
 
-		vec_t *st_mins = face_extents[face_index].st_mins;
-		vec_t *st_maxs = face_extents[face_index].st_maxs;
+		l->st_mins[0] = l->st_mins[1] = 999999;
+		l->st_maxs[0] = l->st_maxs[1] = -999999;
 
-		VectorSet(mins, 999999, 999999, 999999);
-		VectorSet(maxs, -999999, -999999, -999999);
-
-		st_mins[0] = st_mins[1] = 999999;
-		st_maxs[0] = st_maxs[1] = -999999;
-
-		for (i = 0; i < s->num_edges; i++) {
-			const int32_t e = bsp_file.face_edges[s->first_edge + i];
+		for (int32_t j = 0; j < face->num_edges; j++) {
+			const int32_t e = bsp_file.face_edges[face->first_edge + j];
 			if (e >= 0) {
 				v = bsp_file.vertexes + bsp_file.edges[e].v[0];
 			} else {
 				v = bsp_file.vertexes + bsp_file.edges[-e].v[1];
 			}
 
-			for (j = 0; j < 3; j++) { // calculate mins, maxs
-				if (v->point[j] > maxs[j]) {
-					maxs[j] = v->point[j];
+			for (int32_t k = 0; k < 3; k++) {
+				if (v->point[k] > l->maxs[k]) {
+					l->maxs[k] = v->point[k];
 				}
-				if (v->point[j] < mins[j]) {
-					mins[j] = v->point[j];
+				if (v->point[k] < l->mins[k]) {
+					l->mins[k] = v->point[k];
 				}
 			}
 
-			for (j = 0; j < 2; j++) { // calculate st_mins, st_maxs
-				const vec_t val = DotProduct(v->point, tex->vecs[j]) + tex->vecs[j][3];
-				if (val < st_mins[j]) {
-					st_mins[j] = val;
+			for (int32_t k = 0; k < 2; k++) {
+				const vec_t val = DotProduct(v->point, tex->vecs[k]) + tex->vecs[k][3];
+				if (val < l->st_mins[k]) {
+					l->st_mins[k] = val;
 				}
-				if (val > st_maxs[j]) {
-					st_maxs[j] = val;
+				if (val > l->st_maxs[k]) {
+					l->st_maxs[k] = val;
 				}
 			}
 		}
 
-		for (i = 0; i < 3; i++) { // calculate center
-			center[i] = (mins[i] + maxs[i]) / 2.0;
+		VectorMix(l->mins, l->maxs, 0.5, l->center);
+
+		const bsp_plane_t *plane = &bsp_file.planes[face->plane_num];
+		vec_t dist;
+		if (face->side) {
+			VectorNegate(plane->normal, l->normal);
+			dist = -plane->dist;
+		} else {
+			VectorCopy(plane->normal, l->normal);
+			dist = plane->dist;
 		}
+
+		// calculate the texture normal vector
+		l->st_normal[0] = tex->vecs[1][1] * tex->vecs[0][2] - tex->vecs[1][2] * tex->vecs[0][1];
+		l->st_normal[1] = tex->vecs[1][2] * tex->vecs[0][0] - tex->vecs[1][0] * tex->vecs[0][2];
+		l->st_normal[2] = tex->vecs[1][0] * tex->vecs[0][1] - tex->vecs[1][1] * tex->vecs[0][0];
+
+		VectorNormalize(l->st_normal);
+
+		// flip it towards plane normal
+		vec_t scale = DotProduct(l->st_normal, l->normal);
+		if (scale == 0.0) {
+			Com_Warn("Texture axis perpendicular to face\n");
+			scale = 1.0;
+		} else if (scale < 0.0) {
+			scale = -scale;
+			VectorNegate(l->st_normal, l->st_normal);
+		}
+
+		// we're interested in texture to world, so invert it
+		scale = 1.0 / scale;
+
+		for (int32_t i = 0; i < 2; i++) {
+
+			const vec_t len = VectorLength(tex->vecs[i]);
+			const vec_t distance = DotProduct(tex->vecs[i], l->normal) * scale;
+
+			VectorMA(tex->vecs[i], -distance, l->st_normal, l->st_to_world[i]);
+			VectorScale(l->st_to_world[i], (1.0 / len) * (1.0 / len), l->st_to_world[i]);
+		}
+
+		// calculate texture origin on the texture plane
+		for (int32_t i = 0; i < 3; i++) {
+			l->st_origin[i] = -tex->vecs[0][3] * l->st_to_world[0][i] - tex->vecs[1][3] * l->st_to_world[1][i];
+		}
+
+		// project back to the face plane
+		const vec_t back = DotProduct(l->st_origin, l->normal) - dist - 1.0;
+
+		VectorMA(l->st_origin, -back * scale, l->st_normal, l->st_origin);
+
+		// add the offset
+		VectorAdd(l->st_origin, l->offset, l->st_origin);
+
+		// calculate the lightmap mins and maxs
+		for (int32_t i = 0; i < 2; i++) {
+
+			l->lm_mins[i] = floorf(l->st_mins[i] * lightmap_scale);
+			l->lm_maxs[i] = ceilf(l->st_maxs[i] * lightmap_scale);
+
+			l->lm_size[i] = l->lm_maxs[i] - l->lm_mins[i] + 1;
+		}
+
+		l->num_luxels = l->lm_size[0] * l->lm_size[1];
+
+		if (l->num_luxels > MAX_BSP_LIGHTMAP) {
+			const winding_t *w = WindingForFace(face);
+			Mon_SendWinding(MON_ERROR, (const vec3_t *) w->points, w->num_points,
+							va("Surface too large to light (%zd)\n", l->num_luxels));
+		}
+
+		for (patch_t *p = face_patches[face - bsp_file.faces]; p; p = p->next) {
+			// now back the lightmap mins and maxs into the patches belonging to this face
+		}
+
+		// allocate the luxel origins, normals and sample buffers
+		l->origins = Mem_TagMalloc(l->num_luxels * sizeof(vec3_t), MEM_TAG_FACE_LIGHTING);
+		l->normals = Mem_TagMalloc(l->num_luxels * sizeof(vec3_t), MEM_TAG_FACE_LIGHTING);
+		l->direct = Mem_TagMalloc(l->num_luxels * sizeof(vec3_t), MEM_TAG_FACE_LIGHTING);
+		l->directions = Mem_TagMalloc(l->num_luxels * sizeof(vec3_t), MEM_TAG_FACE_LIGHTING);
+		l->indirect = Mem_TagMalloc(l->num_luxels * sizeof(vec3_t), MEM_TAG_FACE_LIGHTING);
 	}
 }
 
@@ -191,8 +225,8 @@ void BuildVertexNormals(void) {
 			const bsp_plane_t *plane = &bsp_file.planes[face->plane_num];
 
 			// scale the contribution of each face based on size
-			const face_extents_t *extents = &face_extents[vert_faces[j]];
-			VectorSubtract(extents->maxs, extents->mins, delta);
+			const face_lighting_t *lighting = &face_lighting[vert_faces[j]];
+			VectorSubtract(lighting->maxs, lighting->mins, delta);
 
 			const vec_t scale = VectorLength(delta);
 
@@ -210,104 +244,27 @@ void BuildVertexNormals(void) {
 }
 
 /**
- * @brief Fills in l->tex_mins, l->tex_size[]
+ * @brief A bucket for resolving Phong-interpolated normal vectors.
  */
-static void CalcLightInfoExtents(light_info_t *l) {
-
-	const vec_t *st_mins = face_extents[l->face - bsp_file.faces].st_mins;
-	const vec_t *st_maxs = face_extents[l->face - bsp_file.faces].st_maxs;
-
-	for (int32_t i = 0; i < 2; i++) {
-
-		l->tex_mins[i] = floorf(st_mins[i] * lightmap_scale);
-		l->tex_maxs[i] = ceilf(st_maxs[i] * lightmap_scale);
-
-		l->tex_size[i] = l->tex_maxs[i] - l->tex_mins[i];
-	}
-
-	l->num_luxels = (l->tex_size[0] + 1) * (l->tex_size[1] + 1);
-
-	// if a surface lightmap is too large to fit in a single lightmap block, we must fail here
-	// practically speaking, this will never happen, as long as the BSP is subdivided
-	if (l->num_luxels > MAX_BSP_LIGHTMAP) {
-		const winding_t *w = WindingForFace(l->face);
-		Mon_SendWinding(MON_ERROR, (const vec3_t *) w->points, w->num_points,
-						va("Surface too large to light (%dx%d)\n", l->tex_size[0], l->tex_size[1]));
-	}
-}
+typedef struct {
+	vec3_t normal;
+	vec_t dist;
+} phong_vertex_t;
 
 /**
- * @brief Fills in tex_org, world_to_tex. and tex_to_world
+ * @brief Qsort comparator for PhongNormal.
  */
-static void CalcLightInfoVectors(light_info_t *l) {
-
-	// determine the correct normal and distance for back-facing planes
-	if (l->face->side) {
-		VectorNegate(l->plane->normal, l->normal);
-		l->dist = -l->plane->dist;
-	} else {
-		VectorCopy(l->plane->normal, l->normal);
-		l->dist = l->plane->dist;
-	}
-
-	// get the origin offset for rotating bmodels
-	VectorCopy(face_offsets[l->face - bsp_file.faces], l->model_org);
-
-	const bsp_texinfo_t *tex = l->texinfo;
-
-	// calculate a normal to the texture axis. points can be moved along this without changing their S/T
-	vec3_t tex_normal;
-	tex_normal[0] = tex->vecs[1][1] * tex->vecs[0][2] - tex->vecs[1][2] * tex->vecs[0][1];
-	tex_normal[1] = tex->vecs[1][2] * tex->vecs[0][0] - tex->vecs[1][0] * tex->vecs[0][2];
-	tex_normal[2] = tex->vecs[1][0] * tex->vecs[0][1] - tex->vecs[1][1] * tex->vecs[0][0];
-	VectorNormalize(tex_normal);
-
-	// flip it towards plane normal
-	vec_t dist_scale = DotProduct(tex_normal, l->normal);
-	if (dist_scale == 0.0) {
-		Com_Warn("Texture axis perpendicular to face\n");
-		dist_scale = 1.0;
-	}
-	if (dist_scale < 0.0) {
-		dist_scale = -dist_scale;
-		VectorSubtract(vec3_origin, tex_normal, tex_normal);
-	}
-
-	// dist_scale is the ratio of the distance along the texture normal to
-	// the distance along the plane normal
-	dist_scale = 1.0 / dist_scale;
-
-	for (int32_t i = 0; i < 2; i++) {
-		const vec_t len = VectorLength(tex->vecs[i]);
-		const vec_t distance = DotProduct(tex->vecs[i], l->normal) * dist_scale;
-		VectorMA(tex->vecs[i], -distance, tex_normal, l->tex_to_world[i]);
-		VectorScale(l->tex_to_world[i], (1 / len) * (1 / len), l->tex_to_world[i]);
-	}
-
-	// calculate tex_org on the texture plane
-	for (int32_t i = 0; i < 3; i++) {
-		l->tex_org[i] = -tex->vecs[0][3] * l->tex_to_world[0][i] - tex->vecs[1][3] * l->tex_to_world[1][i];
-	}
-
-	// project back to the face plane
-	vec_t dist = DotProduct(l->tex_org, l->normal) - l->dist - 1.0;
-	dist *= dist_scale;
-
-	VectorMA(l->tex_org, -dist, tex_normal, l->tex_org);
-
-	// compensate for org'd bmodels
-	VectorAdd(l->tex_org, l->model_org, l->tex_org);
+static int32_t PhongNormal_sort(const void *a, const void *b) {
+	return ((phong_vertex_t *) a)->dist - ((phong_vertex_t *) b)->dist;
 }
 
 /**
  * @brief For Phong-shaded samples, calculate the interpolated normal vector using
- * linear interpolation between the nearest and farthest vertexes.
+ * the three nearest vertexes.
  */
 static void PhongNormal(const bsp_face_t *face, const vec3_t pos, vec3_t normal) {
-	vec_t total_dist = 0.0;
-	vec_t dist[face->num_edges];
+	phong_vertex_t verts[face->num_edges];
 
-	// calculate the distance to each vertex
 	for (int32_t i = 0; i < face->num_edges; i++) {
 		const int32_t e = bsp_file.face_edges[face->first_edge + i];
 		uint16_t v;
@@ -317,32 +274,24 @@ static void PhongNormal(const bsp_face_t *face, const vec3_t pos, vec3_t normal)
 		} else {
 			v = bsp_file.edges[-e].v[1];
 		}
+
+		VectorCopy(bsp_file.normals[v].normal, verts[i].normal);
 
 		vec3_t delta;
 		VectorSubtract(pos, bsp_file.vertexes[v].point, delta);
+		verts[i].dist = VectorLength(delta);
 
-		dist[i] = VectorLength(delta);
-		total_dist += dist[i];
 	}
 
-	VectorSet(normal, 0.0, 0.0, 0.0);
-	const vec_t max_dist = 2.0 * total_dist / face->num_edges;
+	qsort(verts, face->num_edges, sizeof(phong_vertex_t), PhongNormal_sort);
 
-	// add in weighted components from the vertex normals
-	for (int32_t i = 0; i < face->num_edges; i++) {
-		const int32_t e = bsp_file.face_edges[face->first_edge + i];
-		uint16_t v;
+	VectorClear(normal);
 
-		if (e >= 0) {
-			v = bsp_file.edges[e].v[0];
-		} else {
-			v = bsp_file.edges[-e].v[1];
-		}
+	const vec_t dist = (verts[0].dist + verts[1].dist + verts[2].dist);
 
-		const vec_t mix = powf(max_dist - dist[i], 4.0) / powf(max_dist, 4.0);
-		VectorMA(normal, mix, bsp_file.normals[v].normal, normal);
-
-		// printf("%03.2f / %03.2f contributes %01.2f\n", dist[i], max_dist, mix);
+	for (int32_t i = 0; i < 3; i++) {
+		const vec_t scale = 1.0 - verts[i].dist / dist;
+		VectorMA(normal, scale, verts[i].normal, normal);
 	}
 
 	VectorNormalize(normal);
@@ -352,15 +301,18 @@ static void PhongNormal(const bsp_face_t *face, const vec3_t pos, vec3_t normal)
  * @brief For each texture aligned grid point, back project onto the plane to yield the origin.
  * Additionally calculate the per-sample normal vector, which may use Phong interpolation.
  */
-static void BuildFaceLightingPoints(const light_info_t *l, vec_t *origins, vec_t *normals) {
+static void BuildFaceLightingPoints(face_lighting_t *l) {
 
-	const int32_t h = l->tex_size[1] + 1;
-	const int32_t w = l->tex_size[0] + 1;
+	const int32_t w = l->lm_size[0];
+	const int32_t h = l->lm_size[1];
 
 	const int32_t step = 1.0 / lightmap_scale;
 
-	const vec_t start_s = l->tex_mins[0] * step;
-	const vec_t start_t = l->tex_mins[1] * step;
+	const vec_t start_s = l->lm_mins[0] * step;
+	const vec_t start_t = l->lm_mins[1] * step;
+
+	vec_t *origins = l->origins;
+	vec_t *normals = l->normals;
 
 	for (int32_t t = 0; t < h; t++) {
 		for (int32_t s = 0; s < w; s++, origins += 3, normals += 3) {
@@ -368,8 +320,8 @@ static void BuildFaceLightingPoints(const light_info_t *l, vec_t *origins, vec_t
 			const vec_t us = start_s + s * step;
 			const vec_t ut = start_t + t * step;
 
-			for (int32_t j = 0; j < 3; j++) {
-				origins[j] = l->tex_org[j] + l->tex_to_world[0][j] * us + l->tex_to_world[1][j] * ut;
+			for (int32_t i = 0; i < 3; i++) {
+				origins[i] = l->st_origin[i] + l->st_to_world[0][i] * us + l->st_to_world[1][i] * ut;
 			}
 
 			if (l->texinfo->flags & SURF_PHONG) {
@@ -381,35 +333,13 @@ static void BuildFaceLightingPoints(const light_info_t *l, vec_t *origins, vec_t
 	}
 }
 
-/**
- * @brief Allocates and populates the buffers that will contain origins, normals and lighting
- * results for the face referenced by the given light info.
- */
-static face_lighting_t *BuildFaceLighting(const light_info_t *light) {
-
-	face_lighting_t *fl = &face_lighting[light->face - bsp_file.faces];
-
-	fl->num_luxels = light->num_luxels;
-
-	fl->origins = Mem_TagMalloc(fl->num_luxels * sizeof(vec3_t), MEM_TAG_FACE_LIGHTING);
-	fl->normals = Mem_TagMalloc(fl->num_luxels * sizeof(vec3_t), MEM_TAG_FACE_LIGHTING);
-
-	BuildFaceLightingPoints(light, fl->origins, fl->normals);
-
-	fl->direct = Mem_TagMalloc(fl->num_luxels * sizeof(vec3_t), MEM_TAG_FACE_LIGHTING);
-	fl->directions = Mem_TagMalloc(fl->num_luxels * sizeof(vec3_t), MEM_TAG_FACE_LIGHTING);
-	fl->indirect = Mem_TagMalloc(fl->num_luxels * sizeof(vec3_t), MEM_TAG_FACE_LIGHTING);
-
-	return fl;
-}
-
 #define SAMPLE_NUDGE 0.25
 
 /**
  * @brief Nudge the sample origin outward along the surface normal to reduce false-positive traces.
  * Test the PVS at the new position, returning true if the new point is valid, false otherwise.
  */
-static _Bool NudgeSamplePosition(const light_info_t *l, const vec3_t origin, const vec3_t normal,
+static _Bool NudgeSamplePosition(const face_lighting_t *l, const vec3_t origin, const vec3_t normal,
 								 vec_t soffs, vec_t toffs, vec3_t out, byte *pvs) {
 
 	VectorCopy(origin, out);
@@ -421,7 +351,7 @@ static _Bool NudgeSamplePosition(const light_info_t *l, const vec3_t origin, con
 		const vec_t ut = toffs * step;
 
 		for (int32_t i = 0; i < 3; i++) {
-			out[i] += l->tex_to_world[0][i] * us + l->tex_to_world[1][i] * ut;
+			out[i] += l->st_to_world[0][i] * us + l->st_to_world[1][i] * ut;
 		}
 	}
 
@@ -435,10 +365,8 @@ static _Bool NudgeSamplePosition(const light_info_t *l, const vec3_t origin, con
 		return true;
 	}
 
-	const vec_t *center = face_extents[l->face - bsp_file.faces].center;
-
 	vec3_t delta;
-	VectorSubtract(center, origin, delta);
+	VectorSubtract(l->center, origin, delta);
 	VectorNormalize(delta);
 
 	VectorMA(out, SAMPLE_NUDGE, delta, out);
@@ -562,55 +490,59 @@ static void GatherSampleLight(const vec3_t pos, const vec3_t normal, const byte 
 }
 
 /**
- * @brief
+ * @brief Calculates direct lighting for the given face. An origin and normal vector in world
+ * space are calculated for each luxel, using the texture vectors provided in face_lighting_t.
+ * We then query the light sources that are in PVS for each luxel, and accumulate their diffuse
+ * and directional contributions as non-normalized floating point.
  */
 void DirectLighting(int32_t face_num) {
+
+	static const vec2_t offsets[] = {
+		{ +0.0, +0.0 }, { -0.5, -0.5 }, { +0.0, -0.5 },
+		{ +0.5, -0.5 },	{ -0.5, +0.0 }, { +0.5, +0.0 },
+		{ -0.5, +0.5 }, { +0.0, +0.5 }, { +0.5, +0.5 }
+	};
+
+	static const vec_t weights[] = {
+		0.195346, 0.077847, 0.123317,
+		0.077847, 0.123317, 0.123317,
+		0.077847, 0.123317, 0.077847
+	};
+
 	byte pvs[(MAX_BSP_LEAFS + 7) / 8];
 
-	light_info_t light;
-	memset(&light, 0, sizeof(light));
+	face_lighting_t *l = &face_lighting[face_num];
 
-	light.face = &bsp_file.faces[face_num];
-	light.plane = &bsp_file.planes[light.face->plane_num];
-	light.texinfo = &bsp_file.texinfo[light.face->texinfo];
-
-	if (light.texinfo->flags & (SURF_SKY | SURF_WARP)) {
+	if (l->texinfo->flags & (SURF_SKY | SURF_WARP)) {
 		return;
 	}
 
-	// calculate lightmap texture mins and maxs
-	CalcLightInfoExtents(&light);
-
-	// and the lighting vectors
-	CalcLightInfoVectors(&light);
-
-	// build the face lighting struct, which will outlive direct lighting
-	face_lighting_t *fl = BuildFaceLighting(&light);
+	// calculate the origins and normals for all sample points
+	BuildFaceLightingPoints(l);
 
 	// for each luxel, peek our head out into the world and attempt to gather light
-	for (size_t i = 0; i < fl->num_luxels; i++) {
+	for (size_t i = 0; i < l->num_luxels; i++) {
 
-		const vec_t *origin = fl->origins + i * 3;
-		const vec_t *normal = fl->normals + i * 3;
+		const vec_t *origin = l->origins + i * 3;
+		const vec_t *normal = l->normals + i * 3;
 
-		vec_t *direct = fl->direct + i * 3;
-		vec_t *direction = fl->directions + i * 3;
+		vec_t *direct = l->direct + i * 3;
+		vec_t *direction = l->directions + i * 3;
 
-		const size_t num_samples = antialias ? MAX_SAMPLES : 1;
+		const size_t num_samples = antialias ? lengthof(offsets) : 1;
 
 		for (size_t j = 0; j < num_samples; j++) {
 
-			// shift the sample origins by weighted offsets
-			const vec_t soffs = sample_offsets[j][0];
-			const vec_t toffs = sample_offsets[j][1];
+			const vec_t soffs = offsets[j][0];
+			const vec_t toffs = offsets[j][1];
 
 			vec3_t pos;
 
-			if (!NudgeSamplePosition(&light, origin, normal, soffs, toffs, pos, pvs)) {
+			if (!NudgeSamplePosition(l, origin, normal, soffs, toffs, pos, pvs)) {
 				continue;
 			}
 
-			const vec_t scale = antialias ? sample_weights[j] : 1.0;
+			const vec_t scale = antialias ? weights[j] : 1.0;
 
 			// gather lighting from direct light sources
 			GatherSampleLight(pos, normal, pvs, direct, direction, scale);
@@ -627,36 +559,23 @@ void DirectLighting(int32_t face_num) {
 void IndirectLighting(int32_t face_num) {
 	byte pvs[(MAX_BSP_LEAFS + 7) / 8];
 
-	light_info_t light;
-	memset(&light, 0, sizeof(light));
+	face_lighting_t *l = &face_lighting[face_num];
 
-	light.face = &bsp_file.faces[face_num];
-	light.plane = &bsp_file.planes[light.face->plane_num];
-	light.texinfo = &bsp_file.texinfo[light.face->texinfo];
-
-	if (light.texinfo->flags & (SURF_SKY | SURF_WARP)) {
+	if (l->texinfo->flags & (SURF_SKY | SURF_WARP)) {
 		return;
 	}
 
-	// calculate lightmap texture mins and maxs
-	CalcLightInfoExtents(&light);
-
-	// and the lighting vectors
-	CalcLightInfoVectors(&light);
-
-	face_lighting_t *fl = &face_lighting[face_num];
-
 	// for each luxel, peek our head out into the world and attempt to gather light
-	for (size_t i = 0; i < fl->num_luxels; i++) {
+	for (size_t i = 0; i < l->num_luxels; i++) {
 
-		const vec_t *origin = fl->origins + i * 3;
-		const vec_t *normal = fl->normals + i * 3;
+		const vec_t *origin = l->origins + i * 3;
+		const vec_t *normal = l->normals + i * 3;
 
-		vec_t *indirect = fl->indirect + i * 3;
+		vec_t *indirect = l->indirect + i * 3;
 
 		vec3_t pos;
 
-		if (!NudgeSamplePosition(&light, origin, normal, 0.0, 0.0, pos, pvs)) {
+		if (!NudgeSamplePosition(l, origin, normal, 0.0, 0.0, pos, pvs)) {
 			continue;
 		}
 
@@ -684,13 +603,13 @@ void FinalizeLighting(int32_t face_num) {
 
 	ThreadLock();
 
-	face_lighting_t *fl = &face_lighting[face_num];
+	face_lighting_t *l = &face_lighting[face_num];
 
 	f->light_ofs = bsp_file.lightmap_data_size;
-	bsp_file.lightmap_data_size += fl->num_luxels * lightmap_color_channels;
+	bsp_file.lightmap_data_size += l->num_luxels * lightmap_color_channels;
 
 	if (!legacy) { // account for light direction data as well
-		bsp_file.lightmap_data_size += fl->num_luxels * lightmap_color_channels;
+		bsp_file.lightmap_data_size += l->num_luxels * lightmap_color_channels;
 	}
 
 	if (bsp_file.lightmap_data_size > MAX_BSP_LIGHTING) {
@@ -702,12 +621,12 @@ void FinalizeLighting(int32_t face_num) {
 	// write it out
 	byte *dest = &bsp_file.lightmap_data[f->light_ofs];
 
-	for (size_t i = 0; i < fl->num_luxels; i++) {
+	for (size_t i = 0; i < l->num_luxels; i++) {
 		vec3_t lightmap;
 		vec4_t hdr_lightmap;
 
-		const vec_t *direct = fl->direct + i * 3;
-		const vec_t *indirect = fl->indirect + i * 3;
+		const vec_t *direct = l->direct + i * 3;
+		const vec_t *indirect = l->indirect + i * 3;
 
 		// start with raw sample data
 		VectorAdd(direct, indirect, lightmap);
@@ -738,12 +657,12 @@ void FinalizeLighting(int32_t face_num) {
 			vec4_t hdr_deluxemap;
 
 			// start with the raw direction data
-			VectorCopy((fl->directions + i * 3), direction);
+			VectorCopy((l->directions + i * 3), direction);
 
 			// if the sample was lit, it will have a directional vector in world space
 			if (!VectorCompare(direction, vec3_origin)) {
 
-				const vec_t *normal = fl->normals + i * 3;
+				const vec_t *normal = l->normals + i * 3;
 
 				vec4_t tangent;
 				vec3_t bitangent;

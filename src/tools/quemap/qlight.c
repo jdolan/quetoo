@@ -193,16 +193,14 @@ static void LightWorld(void) {
 	// subdivide patches to the desired resolution
 	SubdividePatches();
 
-	// create direct lights out of patches and entities
-	BuildDirectLights();
-
-	// build face extents
-	BuildFaceExtents();
+	// build face lighting
+	BuildFaceLighting();
 
 	// build per-vertex normals for phong shading
-	if (!legacy) {
-		BuildVertexNormals();
-	}
+	BuildVertexNormals();
+
+	// create direct lights out of patches and entities
+	BuildDirectLights();
 
 	// calculate direct lighting
 	RunThreadsOn(bsp_file.num_faces, true, DirectLighting);
@@ -210,10 +208,13 @@ static void LightWorld(void) {
 	// free the direct light sources
 	Mem_FreeTag(MEM_TAG_LIGHT);
 
-	if (indirect) { // calculate indirect lighting
+	if (indirect) {
 		for (indirect_bounce = 0; indirect_bounce < indirect_bounces; indirect_bounce++) {
 
+			// create indirect lights from directly lit patches
 			BuildIndirectLights();
+
+			// calculate indirect lighting
 			RunThreadsOn(bsp_file.num_faces, true, IndirectLighting);
 
 			// free the indirect light sources

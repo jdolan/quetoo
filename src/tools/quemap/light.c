@@ -217,7 +217,6 @@ void BuildIndirectLights(void) {
 		}
 
 		const face_lighting_t *fl = &face_lighting[face_num];
-		const face_extents_t *fe = &face_extents[face_num];
 
 		for (size_t i = 0; i < fl->num_luxels; i++) {
 
@@ -245,7 +244,7 @@ void BuildIndirectLights(void) {
 				if (!Light_PointPVS(org, pvs)) {
 
 					vec3_t delta;
-					VectorSubtract(fe->center, org, delta);
+					VectorSubtract(fl->center, org, delta);
 					VectorNormalize(delta);
 					VectorAdd(org, delta, org);
 
