@@ -88,8 +88,7 @@ typedef struct {
 	vec3_t mins, maxs;
 	vec3_t origin; // for sounds or lights
 	int32_t head_node;
-	int32_t first_face, num_faces; // submodels just draw faces
-	// without walking the bsp tree
+	int32_t first_face, num_faces; // submodels just draw faces without walking the bsp tree
 } bsp_model_t;
 
 typedef struct {
