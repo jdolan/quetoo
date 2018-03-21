@@ -94,10 +94,7 @@ void BuildFaceLighting(void) {
 		}
 
 		// calculate the texture normal vector
-		l->st_normal[0] = tex->vecs[1][1] * tex->vecs[0][2] - tex->vecs[1][2] * tex->vecs[0][1];
-		l->st_normal[1] = tex->vecs[1][2] * tex->vecs[0][0] - tex->vecs[1][0] * tex->vecs[0][2];
-		l->st_normal[2] = tex->vecs[1][0] * tex->vecs[0][1] - tex->vecs[1][1] * tex->vecs[0][0];
-
+		CrossProduct(tex->vecs[0], tex->vecs[1], l->st_normal);
 		VectorNormalize(l->st_normal);
 
 		// flip it towards plane normal
