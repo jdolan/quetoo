@@ -129,9 +129,9 @@ void BuildFaceLighting(void) {
 		}
 
 		// project back to the face plane
-		const vec_t back = DotProduct(l->st_origin, l->normal) - dist - 1.0;
+		const vec_t back = DotProduct(l->st_origin, l->normal) - dist;
 
-		VectorMA(l->st_origin, -back * scale, l->st_normal, l->st_origin);
+		VectorMA(l->st_origin, -back * scale + 1.0, l->st_normal, l->st_origin);
 
 		// add the offset
 		VectorAdd(l->st_origin, l->offset, l->st_origin);
