@@ -113,18 +113,22 @@ void BuildFaceLighting(void) {
 		// we're interested in texture to world, so invert it
 		scale = 1.0 / scale;
 
-		for (int32_t i = 0; i < 2; i++) {
+		// calculate the tangent and bitangent vectors in texture space
+		const vec_t tangent_len = VectorLength(tex->vecs[0]);
+		const vec_t tangent_dist = DotProduct(tex->vecs[0], l->normal) * scale;
 
-			const vec_t len = VectorLength(tex->vecs[i]);
-			const vec_t distance = DotProduct(tex->vecs[i], l->normal) * scale;
+		VectorMA(tex->vecs[0], -tangent_dist, l->st_normal, l->st_tangent);
+		VectorScale(l->st_tangent, (1.0 / tangent_len) * (1.0 / tangent_len), l->st_tangent);
 
-			VectorMA(tex->vecs[i], -distance, l->st_normal, l->st_to_world[i]);
-			VectorScale(l->st_to_world[i], (1.0 / len) * (1.0 / len), l->st_to_world[i]);
-		}
+		const vec_t bitangent_len = VectorLength(tex->vecs[1]);
+		const vec_t bitangent_dist = DotProduct(tex->vecs[1], l->normal) * scale;
+
+		VectorMA(tex->vecs[1], -bitangent_dist, l->st_normal, l->st_bitangent);
+		VectorScale(l->st_bitangent, (1.0 / bitangent_len) * (1.0 / bitangent_len), l->st_bitangent);
 
 		// calculate texture origin on the texture plane
 		for (int32_t i = 0; i < 3; i++) {
-			l->st_origin[i] = -tex->vecs[0][3] * l->st_to_world[0][i] - tex->vecs[1][3] * l->st_to_world[1][i];
+			l->st_origin[i] = -tex->vecs[0][3] * l->st_tangent[i] - tex->vecs[1][3] * l->st_bitangent[i];
 		}
 
 		// project back to the face plane
@@ -321,7 +325,7 @@ static void BuildFaceLightingPoints(face_lighting_t *l) {
 			const vec_t ut = start_t + t * step;
 
 			for (int32_t i = 0; i < 3; i++) {
-				origins[i] = l->st_origin[i] + l->st_to_world[0][i] * us + l->st_to_world[1][i] * ut;
+				origins[i] = l->st_origin[i] + l->st_tangent[i] * us + l->st_bitangent[i] * ut;
 			}
 
 			if (l->texinfo->flags & SURF_PHONG) {
@@ -351,7 +355,7 @@ static _Bool NudgeSamplePosition(const face_lighting_t *l, const vec3_t origin, 
 		const vec_t ut = toffs * step;
 
 		for (int32_t i = 0; i < 3; i++) {
-			out[i] += l->st_to_world[0][i] * us + l->st_to_world[1][i] * ut;
+			out[i] += l->st_tangent[i] * us + l->st_bitangent[i] * ut;
 		}
 	}
 
@@ -488,6 +492,8 @@ static void GatherSampleLight(const vec3_t pos, const vec3_t normal, const byte 
 		}
 	}
 }
+
+static const vec3_t invalid = { -1.0, -1.0, -1.0 };
 
 /**
  * @brief Calculates direct lighting for the given face. An origin and normal vector in world

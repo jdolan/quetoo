@@ -36,7 +36,8 @@ typedef struct {
 	vec2_t st_mins, st_maxs;
 	vec3_t st_origin;
 	vec3_t st_normal;
-	vec3_t st_to_world[2]; // world = tex_org + s * tex_to_world[0]
+	vec3_t st_tangent;
+	vec3_t st_bitangent;
 	s16vec2_t lm_mins, lm_maxs, lm_size;
 	size_t num_luxels;
 	vec_t *origins;

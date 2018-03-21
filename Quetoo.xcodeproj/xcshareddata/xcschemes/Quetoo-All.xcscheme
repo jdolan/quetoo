@@ -78,10 +78,6 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map lighttest +set g_cheats 1 +give all +set r_draw_bsp_lightmaps 1"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+map torn +set g_cheats 1 +give all +set r_draw_bsp_lightmaps 1"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
