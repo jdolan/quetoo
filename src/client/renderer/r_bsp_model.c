@@ -80,9 +80,7 @@ static void R_LoadBspNormals(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Loads the lightmap and deluxemap information into memory so that it
- * may be parsed into GL textures for r_bsp_surface_t. This memory is actually
- * freed once all surfaces are fully loaded.
+ * @brief
  */
 static void R_LoadBspLightmaps(r_bsp_model_t *bsp) {
 	const char *c;
