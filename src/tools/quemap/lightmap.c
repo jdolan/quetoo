@@ -111,17 +111,17 @@ void BuildFaceLighting(void) {
 		scale = 1.0 / scale;
 
 		// calculate the tangent and bitangent vectors in texture space
-		const vec_t tangent_len = VectorLength(tex->vecs[0]);
-		const vec_t tangent_dist = DotProduct(tex->vecs[0], l->normal) * scale;
+		const vec_t s_len = VectorLength(tex->vecs[0]);
+		const vec_t s_dist = DotProduct(tex->vecs[0], l->normal) * scale;
 
-		VectorMA(tex->vecs[0], -tangent_dist, l->st_normal, l->st_tangent);
-		VectorScale(l->st_tangent, (1.0 / tangent_len) * (1.0 / tangent_len), l->st_tangent);
+		VectorMA(tex->vecs[0], -s_dist, l->st_normal, l->st_tangent);
+		VectorScale(l->st_tangent, (1.0 / s_len) * (1.0 / s_len), l->st_tangent);
 
-		const vec_t bitangent_len = VectorLength(tex->vecs[1]);
-		const vec_t bitangent_dist = DotProduct(tex->vecs[1], l->normal) * scale;
+		const vec_t t_len = VectorLength(tex->vecs[1]);
+		const vec_t t_dist = DotProduct(tex->vecs[1], l->normal) * scale;
 
-		VectorMA(tex->vecs[1], -bitangent_dist, l->st_normal, l->st_bitangent);
-		VectorScale(l->st_bitangent, (1.0 / bitangent_len) * (1.0 / bitangent_len), l->st_bitangent);
+		VectorMA(tex->vecs[1], -t_dist, l->st_normal, l->st_bitangent);
+		VectorScale(l->st_bitangent, (1.0 / t_len) * (1.0 / t_len), l->st_bitangent);
 
 		// calculate texture origin on the texture plane
 		for (int32_t i = 0; i < 3; i++) {
