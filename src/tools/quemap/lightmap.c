@@ -535,7 +535,7 @@ void DirectLighting(int32_t face_num) {
 		vec_t *direct = l->direct + i * 3;
 		vec_t *direction = l->directions + i * 3;
 
-		const size_t num_samples = antialias ? lengthof(offsets) : 1;
+		size_t num_samples = antialias ? lengthof(offsets) : 1, valid_samples = 0;
 
 		for (size_t j = 0; j < num_samples; j++) {
 
@@ -548,6 +548,8 @@ void DirectLighting(int32_t face_num) {
 				continue;
 			}
 
+			valid_samples++;
+
 			const vec_t scale = antialias ? weights[j] : 1.0;
 
 			// gather lighting from direct light sources
@@ -555,6 +557,13 @@ void DirectLighting(int32_t face_num) {
 
 			// including all configured suns
 			GatherSampleSunlight(pos, normal, direct, direction, scale);
+		}
+
+		if (valid_samples == 0) {
+		} else if (valid_samples < num_samples) {
+			const vec_t scale = 1.0 / ((vec_t) valid_samples / num_samples);
+			VectorScale(direct, scale, direct);
+			VectorScale(direction, scale, direction);
 		}
 	}
 }
