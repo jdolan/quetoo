@@ -200,7 +200,7 @@ void Matrix4x4_Transpose (matrix4x4_t *out, const matrix4x4_t *in1) {
 	out->m[3][3] = in1->m[3][3];
 }
 
-#if 1
+#if 0
 // Adapted from code contributed to Mesa by David Moore (Mesa 7.6 under SGI Free License B - which is MIT/X11-type)
 // added helper for common subexpression elimination by eihrul, and other optimizations by div0
 int32_t Matrix4x4_Invert_Full (matrix4x4_t *out, const matrix4x4_t *in1) {

@@ -113,6 +113,7 @@
 
 DECLARE_VECTOR_TYPE(float, vec);
 DECLARE_VECTOR_TYPE(double, dvec);
+DECLARE_VECTOR_TYPE(long double, ddvec);
 DECLARE_VECTOR_TYPE(uint8_t, u8vec);
 DECLARE_VECTOR_TYPE(uint16_t, u16vec);
 DECLARE_VECTOR_TYPE(int16_t, s16vec);

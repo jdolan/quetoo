@@ -29,10 +29,7 @@
 face_lighting_t face_lighting[MAX_BSP_FACES];
 
 /**
- * @brief Sets up all per-face lighting calculations. This includes world space bounds, offsets,
- * and normals, as well as tangent space bounds, normals, and vectors to convert between the two.
- * The texture math here would probably be better served by a matrix, but that's a project for a
- * very rainy day.
+ * @brief Sets up all per-face lighting calculations.
  */
 void BuildFaceLighting(void) {
 	const bsp_vertex_t *v;
@@ -42,19 +39,19 @@ void BuildFaceLighting(void) {
 	face_lighting_t *l = face_lighting;
 	for (int32_t i = 0; i < bsp_file.num_faces; i++, l++) {
 
-		const bsp_face_t *face = l->face = &bsp_file.faces[i];
-		const bsp_texinfo_t *tex = l->texinfo = &bsp_file.texinfo[face->texinfo];
+		l->face = &bsp_file.faces[i];
+		l->texinfo = &bsp_file.texinfo[l->face->texinfo];
+		l->plane = &bsp_file.planes[l->face->plane_num];
 
 		VectorCopy(face_offsets[i], l->offset);
 
-		VectorSet(l->mins, 999999, 999999, 999999);
-		VectorSet(l->maxs, -999999, -999999, -999999);
+		ClearBounds(l->mins, l->maxs);
 
-		l->st_mins[0] = l->st_mins[1] = 999999;
-		l->st_maxs[0] = l->st_maxs[1] = -999999;
+		l->st_mins[0] = l->st_mins[1] = MAX_WORLD_COORD;
+		l->st_maxs[0] = l->st_maxs[1] = MIN_WORLD_COORD;
 
-		for (int32_t j = 0; j < face->num_edges; j++) {
-			const int32_t e = bsp_file.face_edges[face->first_edge + j];
+		for (int32_t j = 0; j < l->face->num_edges; j++) {
+			const int32_t e = bsp_file.face_edges[l->face->first_edge + j];
 			if (e >= 0) {
 				v = bsp_file.vertexes + bsp_file.edges[e].v[0];
 			} else {
@@ -70,8 +67,11 @@ void BuildFaceLighting(void) {
 				}
 			}
 
+			ddvec3_t point;
+			VectorCopy(v->point, point);
+
 			for (int32_t k = 0; k < 2; k++) {
-				const vec_t val = DotProduct(v->point, tex->vecs[k]) + tex->vecs[k][3];
+				const vec_t val = DotProduct(point, l->texinfo->vecs[k]) + l->texinfo->vecs[k][3];
 				if (val < l->st_mins[k]) {
 					l->st_mins[k] = val;
 				}
@@ -83,62 +83,26 @@ void BuildFaceLighting(void) {
 
 		VectorMix(l->mins, l->maxs, 0.5, l->center);
 
-		const bsp_plane_t *plane = &bsp_file.planes[face->plane_num];
-		vec_t dist;
-		if (face->side) {
-			VectorNegate(plane->normal, l->normal);
-			dist = -plane->dist;
+		vec4_t normal;
+		if (l->face->side) {
+			VectorNegate(l->plane->normal, normal);
+			normal[3] = l->plane->dist;
 		} else {
-			VectorCopy(plane->normal, l->normal);
-			dist = plane->dist;
+			VectorCopy(l->plane->normal, normal);
+			normal[3] = -l->plane->dist;
 		}
 
-		// calculate the texture normal vector
-		CrossProduct(tex->vecs[0], tex->vecs[1], l->st_normal);
-		VectorNormalize(l->st_normal);
+		Matrix4x4_FromArrayFloatGL(&l->world_to_tex, (const vec_t[]) {
+			l->texinfo->vecs[0][0], l->texinfo->vecs[1][0], normal[0], 0.0,
+			l->texinfo->vecs[0][1], l->texinfo->vecs[1][1], normal[1], 0.0,
+			l->texinfo->vecs[0][2], l->texinfo->vecs[1][2], normal[2], 0.0,
+			l->texinfo->vecs[0][3], l->texinfo->vecs[1][3], normal[3], 1.0
+		});
 
-		// flip it towards plane normal
-		vec_t scale = DotProduct(l->st_normal, l->normal);
-		if (scale == 0.0) {
-			Com_Warn("Texture axis perpendicular to face\n");
-			scale = 1.0;
-		} else if (scale < 0.0) {
-			scale = -scale;
-			VectorNegate(l->st_normal, l->st_normal);
-		}
+		Matrix4x4_Invert_Full(&l->tex_to_world, &l->world_to_tex);
 
-		// we're interested in texture to world, so invert it
-		scale = 1.0 / scale;
-
-		// calculate the tangent and bitangent vectors in texture space
-		const vec_t s_len = VectorLength(tex->vecs[0]);
-		const vec_t s_dist = DotProduct(tex->vecs[0], l->normal) * scale;
-
-		VectorMA(tex->vecs[0], -s_dist, l->st_normal, l->st_tangent);
-		VectorScale(l->st_tangent, (1.0 / s_len) * (1.0 / s_len), l->st_tangent);
-
-		const vec_t t_len = VectorLength(tex->vecs[1]);
-		const vec_t t_dist = DotProduct(tex->vecs[1], l->normal) * scale;
-
-		VectorMA(tex->vecs[1], -t_dist, l->st_normal, l->st_bitangent);
-		VectorScale(l->st_bitangent, (1.0 / t_len) * (1.0 / t_len), l->st_bitangent);
-
-		// calculate texture origin on the texture plane
-		for (int32_t i = 0; i < 3; i++) {
-			l->st_origin[i] = -tex->vecs[0][3] * l->st_tangent[i] - tex->vecs[1][3] * l->st_bitangent[i];
-		}
-
-		// project back to the face plane
-		const vec_t back = DotProduct(l->st_origin, l->normal) - dist;
-
-		VectorMA(l->st_origin, -back * scale + 1.0, l->st_normal, l->st_origin);
-
-		// add the offset
-		VectorAdd(l->st_origin, l->offset, l->st_origin);
-
-		// calculate the lightmap mins and maxs
 		for (int32_t i = 0; i < 2; i++) {
-
+			
 			l->lm_mins[i] = floorf(l->st_mins[i] * lightmap_scale);
 			l->lm_maxs[i] = ceilf(l->st_maxs[i] * lightmap_scale);
 
@@ -148,12 +112,12 @@ void BuildFaceLighting(void) {
 		l->num_luxels = l->lm_size[0] * l->lm_size[1];
 
 		if (l->num_luxels > MAX_BSP_LIGHTMAP) {
-			const winding_t *w = WindingForFace(face);
+			const winding_t *w = WindingForFace(l->face);
 			Mon_SendWinding(MON_ERROR, (const vec3_t *) w->points, w->num_points,
 							va("Surface too large to light (%zd)\n", l->num_luxels));
 		}
 
-		for (patch_t *p = face_patches[face - bsp_file.faces]; p; p = p->next) {
+		for (patch_t *p = face_patches[l->face - bsp_file.faces]; p; p = p->next) {
 			// now back the lightmap mins and maxs into the patches belonging to this face
 		}
 
@@ -309,8 +273,8 @@ static void BuildFaceLightingPoints(face_lighting_t *l) {
 
 	const int32_t step = 1.0 / lightmap_scale;
 
-	const vec_t start_s = l->lm_mins[0] * step;
-	const vec_t start_t = l->lm_mins[1] * step;
+	const int32_t start_s = l->lm_mins[0] * step;
+	const int32_t start_t = l->lm_mins[1] * step;
 
 	vec_t *origins = l->origins;
 	vec_t *normals = l->normals;
@@ -318,17 +282,20 @@ static void BuildFaceLightingPoints(face_lighting_t *l) {
 	for (int32_t t = 0; t < h; t++) {
 		for (int32_t s = 0; s < w; s++, origins += 3, normals += 3) {
 
-			const vec_t us = start_s + s * step;
-			const vec_t ut = start_t + t * step;
+			const vec_t ds = start_s + s * step;
+			const vec_t dt = start_t + t * step;
 
-			for (int32_t i = 0; i < 3; i++) {
-				origins[i] = l->st_origin[i] + l->st_tangent[i] * us + l->st_bitangent[i] * ut;
-			}
+			const vec3_t dst = { ds, dt, 1.0 };
+			Matrix4x4_Transform(&l->tex_to_world, dst, origins);
 
 			if (l->texinfo->flags & SURF_PHONG) {
 				PhongNormal(l->face, origins, normals);
 			} else {
-				VectorCopy(l->normal, normals);
+				if (l->face->side) {
+					VectorNegate(l->plane->normal, normals);
+				} else {
+					VectorCopy(l->plane->normal, normals);
+				}
 			}
 		}
 	}
@@ -348,12 +315,11 @@ static _Bool NudgeSamplePosition(const face_lighting_t *l, const vec3_t origin, 
 	if (soffs || toffs) {
 		const int32_t step = 1.0 / lightmap_scale;
 
-		const vec_t us = soffs * step;
-		const vec_t ut = toffs * step;
+		const vec_t ds = soffs * step;
+		const vec_t dt = toffs * step;
 
-		for (int32_t i = 0; i < 3; i++) {
-			out[i] += l->st_tangent[i] * us + l->st_bitangent[i] * ut;
-		}
+		const vec3_t dst = { ds, dt, 0.0 };
+		Matrix4x4_Transform(&l->tex_to_world, dst, out);
 	}
 
 	if (Light_PointPVS(out, pvs)) {
@@ -557,6 +523,8 @@ void DirectLighting(int32_t face_num) {
 		}
 
 		if (valid_samples == 0) {
+			VectorCopy(invalid, direct);
+			VectorCopy(invalid, direction);
 		} else if (valid_samples < num_samples) {
 			const vec_t scale = 1.0 / ((vec_t) valid_samples / num_samples);
 			VectorScale(direct, scale, direct);
