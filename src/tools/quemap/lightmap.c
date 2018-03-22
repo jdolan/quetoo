@@ -310,16 +310,16 @@ static void BuildFaceLightingPoints(face_lighting_t *l) {
 static _Bool NudgeSamplePosition(const face_lighting_t *l, const vec3_t origin, const vec3_t normal,
 								 vec_t soffs, vec_t toffs, vec3_t out, byte *pvs) {
 
+	vec3_t delta;
+
 	VectorCopy(origin, out);
 
 	if (soffs || toffs) {
+		const vec3_t delta_st = { soffs, toffs, 0.0 };
+		Matrix4x4_Transform(&l->tex_to_world, delta_st, delta);
+
 		const int32_t step = 1.0 / lightmap_scale;
-
-		const vec_t ds = soffs * step;
-		const vec_t dt = toffs * step;
-
-		const vec3_t dst = { ds, dt, 0.0 };
-		Matrix4x4_Transform(&l->tex_to_world, dst, out);
+		VectorMA(out, step, delta, out);
 	}
 
 	if (Light_PointPVS(out, pvs)) {
@@ -332,7 +332,6 @@ static _Bool NudgeSamplePosition(const face_lighting_t *l, const vec3_t origin, 
 		return true;
 	}
 
-	vec3_t delta;
 	VectorSubtract(l->center, origin, delta);
 	VectorNormalize(delta);
 
