@@ -86,17 +86,17 @@ void BuildFaceLighting(void) {
 		vec4_t normal;
 		if (l->face->side) {
 			VectorNegate(l->plane->normal, normal);
-			normal[3] = l->plane->dist;
+			normal[3] = -l->plane->dist;
 		} else {
 			VectorCopy(l->plane->normal, normal);
-			normal[3] = -l->plane->dist;
+			normal[3] = l->plane->dist;
 		}
 
 		Matrix4x4_FromArrayFloatGL(&l->world_to_tex, (const vec_t[]) {
 			l->texinfo->vecs[0][0], l->texinfo->vecs[1][0], normal[0], 0.0,
 			l->texinfo->vecs[0][1], l->texinfo->vecs[1][1], normal[1], 0.0,
 			l->texinfo->vecs[0][2], l->texinfo->vecs[1][2], normal[2], 0.0,
-			l->texinfo->vecs[0][3], l->texinfo->vecs[1][3], normal[3], 1.0
+			l->texinfo->vecs[0][3], l->texinfo->vecs[1][3], -normal[3], 1.0
 		});
 
 		Matrix4x4_Invert_Full(&l->tex_to_world, &l->world_to_tex);
