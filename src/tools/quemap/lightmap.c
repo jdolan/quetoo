@@ -104,7 +104,7 @@ void BuildFaceLighting(void) {
 		for (int32_t i = 0; i < 2; i++) {
 			
 			l->lm_mins[i] = floorf(l->st_mins[i] * lightmap_scale);
-			l->lm_maxs[i] = ceilf(l->st_maxs[i] * lightmap_scale);
+			l->lm_maxs[i] =  ceilf(l->st_maxs[i] * lightmap_scale);
 
 			l->lm_size[i] = l->lm_maxs[i] - l->lm_mins[i] + 1;
 		}
@@ -265,6 +265,43 @@ static void PhongNormal(const bsp_face_t *face, const vec3_t pos, vec3_t normal)
 /**
  * @brief For each texture aligned grid point, back project onto the plane to yield the origin.
  * Additionally calculate the per-sample normal vector, which may use Phong interpolation.
+ * @brief
+ */
+static void DebugFaceLightingPoints(void) {
+
+	file_t *file = Fs_OpenWrite(va("maps/%s.debug.map", map_base));
+	if (file) {
+
+		face_lighting_t *l = face_lighting;
+		for (int32_t i = 0; i < bsp_file.num_faces; i++, l++) {
+
+			if (strstr(l->texinfo->texture, "grate1_5")) {
+
+				const int32_t w = l->lm_size[0];
+				const int32_t h = l->lm_size[1];
+
+				const vec_t *origin = l->origins;
+				const vec_t *normal = l->normals;
+
+				for (int32_t t = 0; t < h; t++) {
+					for (int32_t s = 0; s < w; s++, origin += 3, normal += 3) {
+						Fs_Print(file, "{\n");
+						Fs_Print(file, "  \"classname\" \"info_luxel\"\n");
+						Fs_Print(file, "  \"origin\" \"%g %g %g\"\n", origin[0], origin[1], origin[2]);
+						Fs_Print(file, "  \"normal\" \"%g %g %g\"\n", normal[0], normal[1], normal[2]);
+						Fs_Print(file, "  \"face\" \"%d\"\n", i);
+						Fs_Print(file, "  \"s\" \"%d\"\n", s);
+						Fs_Print(file, "  \"t\" \"%d\"\n", t);
+						Fs_Print(file, "}\n");
+					}
+				}
+			}
+		}
+
+		Fs_Close(file);
+	}
+}
+
  */
 static void BuildFaceLightingPoints(face_lighting_t *l) {
 
@@ -298,6 +335,10 @@ static void BuildFaceLightingPoints(face_lighting_t *l) {
 				}
 			}
 		}
+	}
+
+	if (debug) {
+		DebugFaceLightingPoints();
 	}
 }
 
