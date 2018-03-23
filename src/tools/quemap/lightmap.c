@@ -263,8 +263,6 @@ static void PhongNormal(const bsp_face_t *face, const vec3_t pos, vec3_t normal)
 }
 
 /**
- * @brief For each texture aligned grid point, back project onto the plane to yield the origin.
- * Additionally calculate the per-sample normal vector, which may use Phong interpolation.
  * @brief
  */
 static void DebugFaceLightingPoints(void) {
@@ -302,38 +300,48 @@ static void DebugFaceLightingPoints(void) {
 	}
 }
 
+/**
+ * @brief For each luxel, project the sample origin and normal vectors in world space. Samples are
+ * biased towards the center of the surface, and pushed into the world along the normal vector, so
+ * that light traces are successful.
  */
 static void BuildFaceLightingPoints(face_lighting_t *l) {
+
+	const int32_t step = 1.0 / lightmap_scale;
 
 	const int32_t w = l->lm_size[0];
 	const int32_t h = l->lm_size[1];
 
-	const int32_t step = 1.0 / lightmap_scale;
+	const vec_t mid_s = (w * 0.5);
+	const vec_t mid_t = (h * 0.5);
 
-	const int32_t start_s = l->lm_mins[0] * step;
-	const int32_t start_t = l->lm_mins[1] * step;
-
-	vec_t *origins = l->origins;
-	vec_t *normals = l->normals;
+	vec_t *origin = l->origins;
+	vec_t *normal = l->normals;
 
 	for (int32_t t = 0; t < h; t++) {
-		for (int32_t s = 0; s < w; s++, origins += 3, normals += 3) {
+		for (int32_t s = 0; s < w; s++, origin += 3, normal += 3) {
 
-			const vec_t ds = start_s + s * step;
-			const vec_t dt = start_t + t * step;
+			vec_t ds = l->lm_mins[0] + s;
+			vec_t dt = l->lm_mins[1] + t;
 
-			const vec3_t dst = { ds, dt, 1.0 };
-			Matrix4x4_Transform(&l->tex_to_world, dst, origins);
+			ds += 0.5 * (1.0 - s / mid_s);
+			dt += 0.5 * (1.0 - t / mid_t);
+
+			const vec3_t dst = { ds * step, dt * step, 0.0 };
+			Matrix4x4_Transform(&l->tex_to_world, dst, origin);
 
 			if (l->texinfo->flags & SURF_PHONG) {
-				PhongNormal(l->face, origins, normals);
+				PhongNormal(l->face, origin, normal);
 			} else {
 				if (l->face->side) {
-					VectorNegate(l->plane->normal, normals);
+					VectorNegate(l->plane->normal, normal);
 				} else {
-					VectorCopy(l->plane->normal, normals);
+					VectorCopy(l->plane->normal, normal);
 				}
 			}
+
+			VectorAdd(origin, normal, origin);
+			VectorAdd(origin, l->offset, origin);
 		}
 	}
 
