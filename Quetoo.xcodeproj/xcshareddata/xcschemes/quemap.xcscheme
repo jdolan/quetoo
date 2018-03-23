@@ -66,7 +66,7 @@
       <CommandLineArguments>
          <CommandLineArgument
             argument = "-bsp -vis -light --antialias maps/lighttest.map"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-bsp -vis -light --antialias --indirect maps/lighttest.map"
@@ -77,8 +77,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-bsp -vis -light --antialias maps/torn.map"
-            isEnabled = "NO">
+            argument = "-bsp -vis -light --antialias maps/edge.map"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-bsp -vis -light --antialias --indirect maps/torn.map"

@@ -47,8 +47,8 @@ void BuildFaceLighting(void) {
 
 		ClearBounds(l->mins, l->maxs);
 
-		l->st_mins[0] = l->st_mins[1] = MAX_WORLD_COORD;
-		l->st_maxs[0] = l->st_maxs[1] = MIN_WORLD_COORD;
+		l->st_mins[0] = l->st_mins[1] = FLT_MAX;
+		l->st_maxs[0] = l->st_maxs[1] = -FLT_MAX;
 
 		for (int32_t j = 0; j < l->face->num_edges; j++) {
 			const int32_t e = bsp_file.face_edges[l->face->first_edge + j];
