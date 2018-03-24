@@ -82,7 +82,7 @@ extern vec_t contrast;
 
 extern vec_t lightmap_scale;
 
-#define DEFAULT_PATCH_SIZE 8.0
+#define DEFAULT_PATCH_SIZE 16.0
 extern vec_t patch_size;
 
 // threads.c
