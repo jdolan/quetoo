@@ -26,116 +26,188 @@
 #include "polylib.h"
 #include "qlight.h"
 
-face_lighting_t face_lighting[MAX_BSP_FACES];
+lightmap_t lightmaps[MAX_BSP_FACES];
 
 /**
- * @brief Sets up all per-face lighting calculations.
+ * @brief Resolves the extents, in world space and texture space, for the given lightmap.
  */
-void BuildFaceLighting(void) {
-	const bsp_vertex_t *v;
+static void BuildLightmapExtents(lightmap_t *lm) {
 
-	memset(face_lighting, 0, sizeof(face_lighting));
+	ClearBounds(lm->mins, lm->maxs);
 
-	face_lighting_t *l = face_lighting;
-	for (int32_t i = 0; i < bsp_file.num_faces; i++, l++) {
+	lm->st_mins[0] = lm->st_mins[1] = FLT_MAX;
+	lm->st_maxs[0] = lm->st_maxs[1] = -FLT_MAX;
 
-		l->face = &bsp_file.faces[i];
-		l->texinfo = &bsp_file.texinfo[l->face->texinfo];
-		l->plane = &bsp_file.planes[l->face->plane_num];
+	for (int32_t i = 0; i < lm->face->num_edges; i++) {
+		const int32_t e = bsp_file.face_edges[lm->face->first_edge + i];
+		const bsp_vertex_t *v;
 
-		VectorCopy(face_offsets[i], l->offset);
-
-		ClearBounds(l->mins, l->maxs);
-
-		l->st_mins[0] = l->st_mins[1] = FLT_MAX;
-		l->st_maxs[0] = l->st_maxs[1] = -FLT_MAX;
-
-		for (int32_t j = 0; j < l->face->num_edges; j++) {
-			const int32_t e = bsp_file.face_edges[l->face->first_edge + j];
-			if (e >= 0) {
-				v = bsp_file.vertexes + bsp_file.edges[e].v[0];
-			} else {
-				v = bsp_file.vertexes + bsp_file.edges[-e].v[1];
-			}
-
-			for (int32_t k = 0; k < 3; k++) {
-				if (v->point[k] > l->maxs[k]) {
-					l->maxs[k] = v->point[k];
-				}
-				if (v->point[k] < l->mins[k]) {
-					l->mins[k] = v->point[k];
-				}
-			}
-
-			ddvec3_t point;
-			VectorCopy(v->point, point);
-
-			for (int32_t k = 0; k < 2; k++) {
-				const vec_t val = DotProduct(point, l->texinfo->vecs[k]) + l->texinfo->vecs[k][3];
-				if (val < l->st_mins[k]) {
-					l->st_mins[k] = val;
-				}
-				if (val > l->st_maxs[k]) {
-					l->st_maxs[k] = val;
-				}
-			}
-		}
-
-		VectorMix(l->mins, l->maxs, 0.5, l->center);
-
-		vec4_t normal;
-		if (l->face->side) {
-			VectorNegate(l->plane->normal, normal);
-			normal[3] = -l->plane->dist;
+		if (e >= 0) {
+			v = bsp_file.vertexes + bsp_file.edges[e].v[0];
 		} else {
-			VectorCopy(l->plane->normal, normal);
-			normal[3] = l->plane->dist;
+			v = bsp_file.vertexes + bsp_file.edges[-e].v[1];
 		}
 
-		Matrix4x4_FromArrayFloatGL(&l->world_to_tex, (const vec_t[]) {
-			l->texinfo->vecs[0][0], l->texinfo->vecs[1][0], normal[0], 0.0,
-			l->texinfo->vecs[0][1], l->texinfo->vecs[1][1], normal[1], 0.0,
-			l->texinfo->vecs[0][2], l->texinfo->vecs[1][2], normal[2], 0.0,
-			l->texinfo->vecs[0][3], l->texinfo->vecs[1][3], -normal[3], 1.0
-		});
-
-		Matrix4x4_Invert_Full(&l->tex_to_world, &l->world_to_tex);
-
-		for (int32_t i = 0; i < 2; i++) {
-			
-			l->lm_mins[i] = floorf(l->st_mins[i] * lightmap_scale);
-			l->lm_maxs[i] =  ceilf(l->st_maxs[i] * lightmap_scale);
-
-			l->lm_size[i] = l->lm_maxs[i] - l->lm_mins[i] + 1;
+		for (int32_t k = 0; k < 3; k++) {
+			if (v->point[k] > lm->maxs[k]) {
+				lm->maxs[k] = v->point[k];
+			}
+			if (v->point[k] < lm->mins[k]) {
+				lm->mins[k] = v->point[k];
+			}
 		}
 
-		l->num_luxels = l->lm_size[0] * l->lm_size[1];
+		ddvec3_t point;
+		VectorCopy(v->point, point);
 
-		if (l->num_luxels > MAX_BSP_LIGHTMAP) {
-			const winding_t *w = WindingForFace(l->face);
-			Mon_SendWinding(MON_ERROR, (const vec3_t *) w->points, w->num_points,
-							va("Surface too large to light (%zd)\n", l->num_luxels));
+		for (int32_t j = 0; j < 2; j++) {
+			const vec_t val = DotProduct(point, lm->texinfo->vecs[j]) + lm->texinfo->vecs[j][3];
+			if (val < lm->st_mins[j]) {
+				lm->st_mins[j] = val;
+			}
+			if (val > lm->st_maxs[j]) {
+				lm->st_maxs[j] = val;
+			}
+		}
+	}
+
+	for (int32_t i = 0; i < 2; i++) {
+		lm->lm_mins[i] = floorf(lm->st_mins[i] * lightmap_scale);
+		lm->lm_maxs[i] = ceilf(lm->st_maxs[i] * lightmap_scale);
+	}
+
+	lm->width = lm->lm_maxs[0] - lm->lm_mins[0] + 1;
+	lm->height = lm->lm_maxs[1] - lm->lm_mins[1] + 1;
+}
+
+/**
+ * @brief Resolves the texture projection matrices for the given lightmap.
+ */
+static void BuildLightmapMatrices(lightmap_t *lm) {
+
+	vec_t dist;
+	if (lm->face->side) {
+		VectorNegate(lm->plane->normal, lm->normal);
+		dist = -lm->plane->dist;
+	} else {
+		VectorCopy(lm->plane->normal, lm->normal);
+		dist = lm->plane->dist;
+	}
+
+	Matrix4x4_FromArrayFloatGL(&lm->world_to_tex, (const vec_t[]) {
+		lm->texinfo->vecs[0][0], lm->texinfo->vecs[1][0], lm->normal[0], 0.0,
+		lm->texinfo->vecs[0][1], lm->texinfo->vecs[1][1], lm->normal[1], 0.0,
+		lm->texinfo->vecs[0][2], lm->texinfo->vecs[1][2], lm->normal[2], 0.0,
+		lm->texinfo->vecs[0][3], lm->texinfo->vecs[1][3], -dist, 1.0
+	});
+
+	Matrix4x4_Invert_Full(&lm->tex_to_world, &lm->world_to_tex);
+}
+
+/**
+ * @brief Allocates and seeds the luxels for the given lightmap. Projection of the luxels into world
+ * space is handled individually by the actual lighting passes, as they have different projections.
+ */
+static void BuildLightmapLuxels(lightmap_t *lm) {
+
+	lm->num_luxels = lm->width * lm->height;
+
+	if (lm->num_luxels > MAX_BSP_LIGHTMAP) {
+		const winding_t *w = WindingForFace(lm->face);
+		Mon_SendWinding(MON_ERROR, (const vec3_t *) w->points, w->num_points,
+						va("Surface too large to light (%zd)\n", lm->num_luxels));
+	}
+
+	lm->luxels = Mem_TagMalloc(sizeof(luxel_t) * lm->num_luxels, MEM_TAG_LIGHTMAP);
+
+	luxel_t *l = lm->luxels;
+
+	for (int32_t t = 0; t < lm->height; t++) {
+		for (int32_t s = 0; s < lm->width; s++, l++) {
+
+			l->s = s;
+			l->t = t;
+
+			VectorCopy(lm->normal, l->direction);
+		}
+	}
+}
+
+static _Bool ProjectLuxel(const lightmap_t *lm, luxel_t *l, vec_t soffs, vec_t toffs, byte *pvs);
+
+/**
+ * @brief Authors a .map file which can be imported into Radiant to view the luxel projections.
+ */
+void DebugLightmapLuxels(void) {
+
+	file_t *file = Fs_OpenWrite(va("maps/%s.luxels.map", map_base));
+	if (file) {
+
+		lightmap_t *lm = lightmaps;
+		for (int32_t i = 0; i < bsp_file.num_faces; i++, lm++) {
+
+			if (lm->texinfo->flags & SURF_DEBUG_LUXEL) {
+
+				luxel_t *l = lm->luxels;
+				for (size_t j = 0; j < lm->num_luxels; j++, l++) {
+
+					byte pvs[(MAX_BSP_LEAFS + 7) / 8];
+
+					ProjectLuxel(lm, l, 0.0, 0.0, pvs);
+
+					Fs_Print(file, "{\n");
+					Fs_Print(file, "  \"classname\" \"info_luxel\"\n");
+					Fs_Print(file, "  \"origin\" \"%g %g %g\"\n", l->origin[0], l->origin[1], l->origin[2]);
+					Fs_Print(file, "  \"normal\" \"%g %g %g\"\n", l->normal[0], l->normal[1], l->normal[2]);
+					Fs_Print(file, "  \"face\" \"%d\"\n", i);
+					Fs_Print(file, "  \"s\" \"%d\"\n", l->s);
+					Fs_Print(file, "  \"t\" \"%d\"\n", l->t);
+					Fs_Print(file, "}\n");
+				}
+			}
 		}
 
-		for (patch_t *p = face_patches[l->face - bsp_file.faces]; p; p = p->next) {
-			// now back the lightmap mins and maxs into the patches belonging to this face
+		Fs_Close(file);
+	}
+}
+
+/**
+ * @brief Builds a lightmap for each face in the BSP.
+ */
+void BuildLightmaps(void) {
+
+	memset(lightmaps, 0, sizeof(lightmaps));
+
+	lightmap_t *lm = lightmaps;
+	for (int32_t i = 0; i < bsp_file.num_faces; i++, lm++) {
+
+		lm->face = &bsp_file.faces[i];
+		lm->texinfo = &bsp_file.texinfo[lm->face->texinfo];
+		lm->plane = &bsp_file.planes[lm->face->plane_num];
+
+		if (lm->texinfo->flags & (SURF_SKY | SURF_WARP)) {
+			continue;
 		}
 
-		// allocate the luxel origins, normals and sample buffers
-		l->origins = Mem_TagMalloc(l->num_luxels * sizeof(vec3_t), MEM_TAG_FACE_LIGHTING);
-		l->normals = Mem_TagMalloc(l->num_luxels * sizeof(vec3_t), MEM_TAG_FACE_LIGHTING);
-		l->direct = Mem_TagMalloc(l->num_luxels * sizeof(vec3_t), MEM_TAG_FACE_LIGHTING);
-		l->directions = Mem_TagMalloc(l->num_luxels * sizeof(vec3_t), MEM_TAG_FACE_LIGHTING);
-		l->indirect = Mem_TagMalloc(l->num_luxels * sizeof(vec3_t), MEM_TAG_FACE_LIGHTING);
+		VectorCopy(face_offsets[i], lm->offset);
+
+		BuildLightmapMatrices(lm);
+
+		BuildLightmapExtents(lm);
+
+		BuildLightmapLuxels(lm);
+	}
+
+	if (debug) {
+		DebugLightmapLuxels();
 	}
 }
 
 #define MAX_VERT_FACES 256
 
 /**
- * @brief Populate faces with indexes of all Phong-shaded d_bsp_face_t's
- * referencing the specified vertex. The number of d_bsp_face_t's referencing
- * the vertex is returned in nfaces.
+ * @brief Populate faces with indexes of all Phong-shaded bsp_face_t's referencing the vertex.
+ * @return The number of bsp_face_t's referencing the vertex.
  */
 static int32_t FacesWithVert(int32_t vert, int32_t *faces) {
 
@@ -167,9 +239,8 @@ static int32_t FacesWithVert(int32_t vert, int32_t *faces) {
 }
 
 /**
- * @brief Calculate per-vertex (instead of per-plane) normal vectors. This is done by
- * finding all of the faces which share a given vertex, and calculating a weighted
- * average of their normals.
+ * @brief Calculate per-vertex (instead of per-plane) normal vectors. This is done by finding all of
+ * the faces which share a given vertex, and calculating a weighted average of their normals.
  */
 void BuildVertexNormals(void) {
 	int32_t vert_faces[MAX_VERT_FACES];
@@ -190,7 +261,7 @@ void BuildVertexNormals(void) {
 			const bsp_plane_t *plane = &bsp_file.planes[face->plane_num];
 
 			// scale the contribution of each face based on size
-			const face_lighting_t *lighting = &face_lighting[vert_faces[j]];
+			const lightmap_t *lighting = &lightmaps[vert_faces[j]];
 			VectorSubtract(lighting->maxs, lighting->mins, delta);
 
 			const vec_t scale = VectorLength(delta);
@@ -265,171 +336,70 @@ static void PhongNormal(const bsp_face_t *face, const vec3_t pos, vec3_t normal)
 /**
  * @brief
  */
-static void DebugFaceLightingPoints(void) {
+static _Bool ProjectLuxel(const lightmap_t *lm, luxel_t *l, vec_t soffs, vec_t toffs, byte *pvs) {
 
-	file_t *file = Fs_OpenWrite(va("maps/%s.debug.map", map_base));
-	if (file) {
+	const vec_t mid_s = (lm->width * 0.5);
+	const vec_t mid_t = (lm->height * 0.5);
 
-		face_lighting_t *l = face_lighting;
-		for (int32_t i = 0; i < bsp_file.num_faces; i++, l++) {
+	vec_t ds = lm->lm_mins[0] + l->s + soffs;
+	vec_t dt = lm->lm_mins[1] + l->t + toffs;
 
-			if (strstr(l->texinfo->texture, "grate1_5")) {
+	ds += 0.5 * (1.0 - l->s / mid_s);
+	dt += 0.5 * (1.0 - l->t / mid_t);
 
-				const int32_t w = l->lm_size[0];
-				const int32_t h = l->lm_size[1];
+	const vec3_t dst = { ds / lightmap_scale, dt / lightmap_scale, 0.0 };
+	Matrix4x4_Transform(&lm->tex_to_world, dst, l->origin);
 
-				const vec_t *origin = l->origins;
-				const vec_t *normal = l->normals;
-
-				for (int32_t t = 0; t < h; t++) {
-					for (int32_t s = 0; s < w; s++, origin += 3, normal += 3) {
-						Fs_Print(file, "{\n");
-						Fs_Print(file, "  \"classname\" \"info_luxel\"\n");
-						Fs_Print(file, "  \"origin\" \"%g %g %g\"\n", origin[0], origin[1], origin[2]);
-						Fs_Print(file, "  \"normal\" \"%g %g %g\"\n", normal[0], normal[1], normal[2]);
-						Fs_Print(file, "  \"face\" \"%d\"\n", i);
-						Fs_Print(file, "  \"s\" \"%d\"\n", s);
-						Fs_Print(file, "  \"t\" \"%d\"\n", t);
-						Fs_Print(file, "}\n");
-					}
-				}
-			}
-		}
-
-		Fs_Close(file);
-	}
-}
-
-/**
- * @brief For each luxel, project the sample origin and normal vectors in world space. Samples are
- * biased towards the center of the surface, and pushed into the world along the normal vector, so
- * that light traces are successful.
- */
-static void BuildFaceLightingPoints(face_lighting_t *l) {
-
-	const int32_t step = 1.0 / lightmap_scale;
-
-	const int32_t w = l->lm_size[0];
-	const int32_t h = l->lm_size[1];
-
-	const vec_t mid_s = (w * 0.5);
-	const vec_t mid_t = (h * 0.5);
-
-	vec_t *origin = l->origins;
-	vec_t *normal = l->normals;
-
-	for (int32_t t = 0; t < h; t++) {
-		for (int32_t s = 0; s < w; s++, origin += 3, normal += 3) {
-
-			vec_t ds = l->lm_mins[0] + s;
-			vec_t dt = l->lm_mins[1] + t;
-
-			ds += 0.5 * (1.0 - s / mid_s);
-			dt += 0.5 * (1.0 - t / mid_t);
-
-			const vec3_t dst = { ds * step, dt * step, 0.0 };
-			Matrix4x4_Transform(&l->tex_to_world, dst, origin);
-
-			if (l->texinfo->flags & SURF_PHONG) {
-				PhongNormal(l->face, origin, normal);
-			} else {
-				if (l->face->side) {
-					VectorNegate(l->plane->normal, normal);
-				} else {
-					VectorCopy(l->plane->normal, normal);
-				}
-			}
-
-			VectorAdd(origin, normal, origin);
-			VectorAdd(origin, l->offset, origin);
-		}
+	if (lm->texinfo->flags & SURF_PHONG) {
+		PhongNormal(lm->face, l->origin, l->normal);
+	} else {
+		VectorCopy(lm->normal, l->normal);
 	}
 
-	if (debug) {
-		DebugFaceLightingPoints();
-	}
-}
+	VectorAdd(l->origin, l->normal, l->origin);
+	VectorAdd(l->origin, lm->offset, l->origin);
 
-#define SAMPLE_NUDGE 0.25
-
-/**
- * @brief Nudge the sample origin outward along the surface normal to reduce false-positive traces.
- * Test the PVS at the new position, returning true if the new point is valid, false otherwise.
- */
-static _Bool NudgeSamplePosition(const face_lighting_t *l, const vec3_t origin, const vec3_t normal,
-								 vec_t soffs, vec_t toffs, vec3_t out, byte *pvs) {
-
-	vec3_t delta;
-
-	VectorCopy(origin, out);
-
-	if (soffs || toffs) {
-		const vec3_t delta_st = { soffs, toffs, 0.0 };
-		Matrix4x4_Transform(&l->tex_to_world, delta_st, delta);
-
-		const int32_t step = 1.0 / lightmap_scale;
-		VectorMA(out, step, delta, out);
-	}
-
-	if (Light_PointPVS(out, pvs)) {
-		return true;
-	}
-
-	VectorMA(out, SAMPLE_NUDGE, normal, out);
-
-	if (Light_PointPVS(out, pvs)) {
-		return true;
-	}
-
-	VectorSubtract(l->center, origin, delta);
-	VectorNormalize(delta);
-
-	VectorMA(out, SAMPLE_NUDGE, delta, out);
-
-	if (Light_PointPVS(out, pvs)) {
-		return true;
-	}
-
-	return false;
+	return Light_PointPVS(l->origin, pvs);
 }
 
 /**
  * @brief Iterates all sun light sources, tracing towards them and adding light if a sky was found.
  */
-static void GatherSampleSunlight(const vec3_t pos, const vec3_t normal, vec_t *sample, vec_t *direction, vec_t scale) {
+static void SunlightLuxel(const luxel_t *l, vec_t *sample, vec_t *direction, vec_t scale) {
 
 	const sun_t *sun = suns;
 	for (size_t i = 0; i < num_suns; i++, sun++) {
 
-		const vec_t dot = DotProduct(sun->normal, normal);
+		const vec_t dot = DotProduct(sun->normal, l->normal);
 		if (dot <= 0.0) {
 			continue;
 		}
 
 		vec3_t end;
-		VectorMA(pos, MAX_WORLD_DIST, sun->normal, end);
+		VectorMA(l->origin, MAX_WORLD_DIST, sun->normal, end);
 
 		cm_trace_t trace;
-		Light_Trace(&trace, pos, end, CONTENTS_SOLID);
+		Light_Trace(&trace, l->origin, end, CONTENTS_SOLID);
 
 		if (trace.fraction < 1.0 && (trace.surface->flags & SURF_SKY)) {
 
-			const vec_t diffuse = sun->light * DEFAULT_LIGHT * dot * DEFAULT_PATCH_SIZE;
+			const vec_t diffuse = sun->light * dot * DEFAULT_PATCH_SIZE;
 
-			VectorMA(sample, diffuse * scale, sun->color, sample);
+			if (sample) {
+				VectorMA(sample, diffuse * scale, sun->color, sample);
+			}
 
 			if (direction) {
-				VectorMA(direction, diffuse * scale / DEFAULT_LIGHT, sun->normal, direction);
+				VectorMA(direction, diffuse * scale, sun->normal, direction);
 			}
 		}
 	}
 }
 
 /**
- * @brief Iterate over all light sources for the sample position's PVS, accumulating light and
- * directional information to the specified pointers.
+ * @brief Iterate over all light sources for the luxel's PVS, accumulating diffuse and directional information to the specified pointers.
  */
-static void GatherSampleLight(const vec3_t pos, const vec3_t normal, const byte *pvs, vec_t *sample, vec_t *direction, vec_t scale) {
+static void LightLuxel(const luxel_t *l, const byte *pvs, vec_t *sample, vec_t *direction, vec_t scale) {
 
 	for (int32_t cluster = 0; cluster < bsp_file.vis_data.vis->num_clusters; cluster++) {
 
@@ -437,26 +407,26 @@ static void GatherSampleLight(const vec3_t pos, const vec3_t normal, const byte 
 			continue;
 		}
 
-		for (const light_t *l = lights[cluster]; l; l = l->next) {
+		for (const light_t *light = lights[cluster]; light; light = light->next) {
 
 			vec3_t dir;
-			VectorSubtract(l->origin, pos, dir);
+			VectorSubtract(light->origin, l->origin, dir);
 
 			const vec_t dist = VectorNormalize(dir);
-			if (dist > l->radius) {
+			if (dist > light->radius) {
 				continue;
 			}
 
-			const vec_t dot = DotProduct(dir, normal);
+			const vec_t dot = DotProduct(dir, l->normal);
 			if (dot <= 0.0) {
 				continue;
 			}
 
-			vec_t diffuse = l->radius * dot;
+			vec_t diffuse = Clamp(light->radius * dot, 0.0, 255.0);;
 
-			switch (l->type) {
+			switch (light->type) {
 
-				case LIGHT_SURFACE:
+				case LIGHT_PATCH:
 					diffuse *= patch_size / DEFAULT_PATCH_SIZE;
 					break;
 
@@ -465,12 +435,12 @@ static void GatherSampleLight(const vec3_t pos, const vec3_t normal, const byte 
 					break;
 
 				case LIGHT_SPOT: {
-					const vec_t dot2 = DotProduct(dir, l->normal);
-					if (dot2 <= l->cone) {
+					const vec_t dot2 = DotProduct(dir, light->normal);
+					if (dot2 <= light->cone) {
 						if (dot2 <= 0.1) {
 							diffuse = 0.0;
 						} else {
-							diffuse *= l->cone - (1.0 - dot2);
+							diffuse *= light->cone - (1.0 - dot2);
 						}
 					} else {
 						diffuse *= DEFAULT_PATCH_SIZE;
@@ -483,68 +453,50 @@ static void GatherSampleLight(const vec3_t pos, const vec3_t normal, const byte 
 				continue;
 			}
 
-			const vec_t atten = Clamp(1.0 - dist / l->radius, 0.0, 1.0);
+			const vec_t atten = Clamp(1.0 - dist / light->radius, 0.0, 1.0);
 			const vec_t atten_squared = atten * atten;
 
 			diffuse *= atten_squared;
 
 			cm_trace_t trace;
-			Light_Trace(&trace, l->origin, pos, CONTENTS_SOLID);
+			Light_Trace(&trace, light->origin, l->origin, CONTENTS_SOLID);
 
 			if (trace.fraction < 1.0) {
 				continue;
 			}
 
-			VectorMA(sample, diffuse * scale, l->color, sample);
+			if (sample) {
+				VectorMA(sample, diffuse * scale, light->color, sample);
+			}
 
 			if (direction) {
-				VectorMA(direction, diffuse * scale / l->radius, dir, direction);
+				VectorMA(direction, diffuse * scale / light->radius, dir, direction);
 			}
 		}
 	}
 }
 
-static const vec3_t invalid = { -1.0, -1.0, -1.0 };
-
 /**
- * @brief Calculates direct lighting for the given face. An origin and normal vector in world
- * space are calculated for each luxel, using the texture vectors provided in face_lighting_t.
+ * @brief Calculates direct lighting for the given face. Luxels are projected into world space.
  * We then query the light sources that are in PVS for each luxel, and accumulate their diffuse
  * and directional contributions as non-normalized floating point.
  */
 void DirectLighting(int32_t face_num) {
 
-	static const vec2_t offsets[] = {
-		{ +0.0, +0.0 }, { -0.5, -0.5 }, { +0.0, -0.5 },
-		{ +0.5, -0.5 },	{ -0.5, +0.0 }, { +0.5, +0.0 },
-		{ -0.5, +0.5 }, { +0.0, +0.5 }, { +0.5, +0.5 }
+	static const vec3_t offsets[] = {
+		{ +0.0, +0.0, 0.195346 }, { -0.5, -0.5, 0.077847 }, { +0.0, -0.5, 0.123317 },
+		{ +0.5, -0.5, 0.077847 }, { -0.5, +0.0, 0.123317 }, { +0.5, +0.0, 0.123317 },
+		{ -0.5, +0.5, 0.077847 }, { +0.0, +0.5, 0.123317 }, { +0.5, +0.5, 0.077847 }
 	};
 
-	static const vec_t weights[] = {
-		0.195346, 0.077847, 0.123317,
-		0.077847, 0.123317, 0.123317,
-		0.077847, 0.123317, 0.077847
-	};
+	const lightmap_t *lm = &lightmaps[face_num];
 
-	byte pvs[(MAX_BSP_LEAFS + 7) / 8];
-
-	face_lighting_t *l = &face_lighting[face_num];
-
-	if (l->texinfo->flags & (SURF_SKY | SURF_WARP)) {
+	if (lm->texinfo->flags & (SURF_SKY | SURF_WARP)) {
 		return;
 	}
 
-	// calculate the origins and normals for all sample points
-	BuildFaceLightingPoints(l);
-
-	// for each luxel, peek our head out into the world and attempt to gather light
-	for (size_t i = 0; i < l->num_luxels; i++) {
-
-		const vec_t *origin = l->origins + i * 3;
-		const vec_t *normal = l->normals + i * 3;
-
-		vec_t *direct = l->direct + i * 3;
-		vec_t *direction = l->directions + i * 3;
+	luxel_t *l = lm->luxels;
+	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 
 		size_t num_samples = antialias ? lengthof(offsets) : 1, valid_samples = 0;
 
@@ -552,31 +504,27 @@ void DirectLighting(int32_t face_num) {
 
 			const vec_t soffs = offsets[j][0];
 			const vec_t toffs = offsets[j][1];
+			const vec_t scale = offsets[j][2];
 
-			vec3_t pos;
+			byte pvs[(MAX_BSP_LEAFS + 7) / 8];
 
-			if (!NudgeSamplePosition(l, origin, normal, soffs, toffs, pos, pvs)) {
+			if (!ProjectLuxel(lm, l, soffs, toffs, pvs)) {
 				continue;
 			}
 
 			valid_samples++;
 
-			const vec_t scale = antialias ? weights[j] : 1.0;
+			LightLuxel(l, pvs, l->direct, l->direction, antialias ? scale : 1.0);
 
-			// gather lighting from direct light sources
-			GatherSampleLight(pos, normal, pvs, direct, direction, scale);
-
-			// including all configured suns
-			GatherSampleSunlight(pos, normal, direct, direction, scale);
+			SunlightLuxel(l, l->direct, l->direction, antialias ? scale : 1.0);
 		}
 
-		if (valid_samples == 0) {
-			VectorCopy(invalid, direct);
-			VectorCopy(invalid, direction);
-		} else if (valid_samples < num_samples) {
-			const vec_t scale = 1.0 / ((vec_t) valid_samples / num_samples);
-			VectorScale(direct, scale, direct);
-			VectorScale(direction, scale, direction);
+		if (valid_samples > 0 && valid_samples < num_samples) {
+
+			const vec_t rescale = 1.0 / ((vec_t) valid_samples / num_samples);
+
+			VectorScale(l->direct, rescale, l->direct);
+			VectorScale(l->direction, rescale, l->direction);
 		}
 	}
 }
@@ -585,30 +533,23 @@ void DirectLighting(int32_t face_num) {
  * @brief
  */
 void IndirectLighting(int32_t face_num) {
-	byte pvs[(MAX_BSP_LEAFS + 7) / 8];
 
-	face_lighting_t *l = &face_lighting[face_num];
+	const lightmap_t *lm = &lightmaps[face_num];
 
-	if (l->texinfo->flags & (SURF_SKY | SURF_WARP)) {
+	if (lm->texinfo->flags & (SURF_SKY | SURF_WARP)) {
 		return;
 	}
 
-	// for each luxel, peek our head out into the world and attempt to gather light
-	for (size_t i = 0; i < l->num_luxels; i++) {
+	luxel_t *l = lm->luxels;
+	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 
-		const vec_t *origin = l->origins + i * 3;
-		const vec_t *normal = l->normals + i * 3;
+		byte pvs[(MAX_BSP_LEAFS + 7) / 8];
 
-		vec_t *indirect = l->indirect + i * 3;
-
-		vec3_t pos;
-
-		if (!NudgeSamplePosition(l, origin, normal, 0.0, 0.0, pos, pvs)) {
+		if (!ProjectLuxel(lm, l, 0.0, 0.0, pvs)) {
 			continue;
 		}
 
-		// gather indirect lighting from indirect light sources
-		GatherSampleLight(pos, normal, pvs, indirect, NULL, 0.125);
+		LightLuxel(l, pvs, l->indirect, NULL, 0.125);
 	}
 }
 
@@ -631,13 +572,13 @@ void FinalizeLighting(int32_t face_num) {
 
 	ThreadLock();
 
-	face_lighting_t *l = &face_lighting[face_num];
+	lightmap_t *lm = &lightmaps[face_num];
 
 	f->light_ofs = bsp_file.lightmap_data_size;
-	bsp_file.lightmap_data_size += l->num_luxels * lightmap_color_channels;
+	bsp_file.lightmap_data_size += lm->num_luxels * lightmap_color_channels;
 
 	if (!legacy) { // account for light direction data as well
-		bsp_file.lightmap_data_size += l->num_luxels * lightmap_color_channels;
+		bsp_file.lightmap_data_size += lm->num_luxels * lightmap_color_channels;
 	}
 
 	if (bsp_file.lightmap_data_size > MAX_BSP_LIGHTING) {
@@ -649,15 +590,13 @@ void FinalizeLighting(int32_t face_num) {
 	// write it out
 	byte *dest = &bsp_file.lightmap_data[f->light_ofs];
 
-	for (size_t i = 0; i < l->num_luxels; i++) {
+	luxel_t *l = lm->luxels;
+	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 		vec3_t lightmap;
 		vec4_t hdr_lightmap;
 
-		const vec_t *direct = l->direct + i * 3;
-		const vec_t *indirect = l->indirect + i * 3;
-
 		// start with raw sample data
-		VectorAdd(direct, indirect, lightmap);
+		VectorAdd(l->direct, l->indirect, lightmap);
 		//VectorCopy(indirect, lightmap); // uncomment this to see just indirect lighting
 
 		// convert to float
@@ -685,22 +624,20 @@ void FinalizeLighting(int32_t face_num) {
 			vec4_t hdr_deluxemap;
 
 			// start with the raw direction data
-			VectorCopy((l->directions + i * 3), direction);
+			VectorCopy(l->direction, direction);
 
 			// if the sample was lit, it will have a directional vector in world space
 			if (!VectorCompare(direction, vec3_origin)) {
 
-				const vec_t *normal = l->normals + i * 3;
-
 				vec4_t tangent;
 				vec3_t bitangent;
 
-				TangentVectors(normal, tex->vecs[0], tex->vecs[1], tangent, bitangent);
+				TangentVectors(l->normal, tex->vecs[0], tex->vecs[1], tangent, bitangent);
 
 				// transform it into tangent space
 				deluxemap[0] = DotProduct(direction, tangent);
 				deluxemap[1] = DotProduct(direction, bitangent);
-				deluxemap[2] = DotProduct(direction, normal);
+				deluxemap[2] = DotProduct(direction, l->normal);
 
 				VectorAdd(deluxemap, vec3_up, deluxemap);
 				VectorNormalize(deluxemap);

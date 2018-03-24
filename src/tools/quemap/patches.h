@@ -27,7 +27,6 @@
 typedef struct patch_s {
 	const bsp_face_t *face;
 	winding_t *winding;
-	vec2_t lm_mins, lm_maxs;
 	struct patch_s *next;  // next in face
 } patch_t;
 

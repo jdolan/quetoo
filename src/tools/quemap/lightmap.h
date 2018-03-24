@@ -24,6 +24,15 @@
 #include "bspfile.h"
 #include "matrix.h"
 
+typedef struct {
+	int32_t s, t;
+	vec3_t origin;
+	vec3_t normal;
+	vec3_t direct;
+	vec3_t direction;
+	vec3_t indirect;
+} luxel_t;
+
 /**
  * @brief Face texture extents.
  */
@@ -32,23 +41,20 @@ typedef struct {
 	const bsp_plane_t *plane;
 	const bsp_texinfo_t *texinfo;
 	vec3_t offset;
-	vec3_t mins, maxs;
-	vec3_t center;
+	vec3_t normal;
 	matrix4x4_t world_to_tex;
 	matrix4x4_t tex_to_world;
+	vec3_t mins, maxs;
 	vec2_t st_mins, st_maxs;
-	s16vec2_t lm_mins, lm_maxs, lm_size;
+	s16vec2_t lm_mins, lm_maxs;
+	int16_t width, height;
+	luxel_t *luxels;
 	size_t num_luxels;
-	vec_t *origins;
-	vec_t *normals;
-	vec_t *direct;
-	vec_t *directions;
-	vec_t *indirect;
-} face_lighting_t;
+} lightmap_t;
 
-extern face_lighting_t face_lighting[MAX_BSP_FACES];
+extern lightmap_t lightmaps[MAX_BSP_FACES];
 
-void BuildFaceLighting(void);
+void BuildLightmaps(void);
 void BuildVertexNormals(void);
 void DirectLighting(int32_t face_num);
 void IndirectLighting(int32_t face_num);

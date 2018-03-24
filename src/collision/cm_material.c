@@ -160,6 +160,10 @@ static uint32_t Cm_ParseSurface(const char *c) {
 		surface |= SURF_MATERIAL;
 	}
 
+	if (strstr(c, "debug_luxel")) {
+		surface |= SURF_DEBUG_LUXEL;
+	}
+
 	return surface;
 }
 

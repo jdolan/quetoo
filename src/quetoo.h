@@ -368,6 +368,7 @@ typedef enum {
 #define SURF_ALPHA_TEST			0x400 // alpha test (grates, foliage, etc..)
 #define SURF_PHONG				0x800 // phong interpolated lighting at compile time
 #define SURF_MATERIAL			0x1000 // retain the geometry, but don't draw diffuse pass
+#define SURF_DEBUG_LUXEL		0x10000000 // generate luxel debugging information in quemap
 
 /**
  * @brief Contents masks: frequently combined contents flags.

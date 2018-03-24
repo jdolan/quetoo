@@ -193,8 +193,8 @@ static void LightWorld(void) {
 	// subdivide patches to the desired resolution
 	SubdividePatches();
 
-	// build face lighting
-	BuildFaceLighting();
+	// build lightmaps
+	BuildLightmaps();
 
 	// build per-vertex normals for phong shading
 	BuildVertexNormals();
@@ -229,8 +229,8 @@ static void LightWorld(void) {
 	// merge direct and indirect lighting, normalize all samples
 	RunThreadsOn(bsp_file.num_faces, true, FinalizeLighting);
 
-	// free the face lighting structs
-	Mem_FreeTag(MEM_TAG_FACE_LIGHTING);
+	// free the lightmaps
+	Mem_FreeTag(MEM_TAG_LIGHTMAP);
 
 	// free the patches
 	Mem_FreeTag(MEM_TAG_PATCH);

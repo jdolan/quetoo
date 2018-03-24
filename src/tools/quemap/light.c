@@ -84,7 +84,6 @@ void BuildDirectLights(void) {
 	num_suns = 0;
 	memset(suns, 0, sizeof(suns));
 
-	// surface lights
 	for (size_t i = 0; i < lengthof(face_patches); i++) {
 
 		for (const patch_t *p = face_patches[i]; p; p = p->next) {
@@ -104,14 +103,13 @@ void BuildDirectLights(void) {
 				VectorMA(origin,  4.0, plane->normal, origin);
 			}
 
-			light_t *light = BuildLight(origin, LIGHT_SURFACE);
+			light_t *light = BuildLight(origin, LIGHT_PATCH);
 
 			light->radius = tex->value;
 			GetTextureColor(tex->texture, light->color);
 		}
 	}
 
-	// entity lights
 	for (size_t i = 1; i < num_entities; i++) {
 
 		const entity_t *e = &entities[i];
@@ -207,60 +205,85 @@ void BuildIndirectLights(void) {
 	num_lights = 0;
 	memset(lights, 0, sizeof(lights));
 
-	for (int32_t face_num = 0; face_num < bsp_file.num_faces; face_num++) {
+	for (int32_t i = 0; i < bsp_file.num_faces; i++) {
 
-		const bsp_face_t *face = &bsp_file.faces[face_num];
-		const bsp_texinfo_t *texinfo = &bsp_file.texinfo[face->texinfo];
+		const lightmap_t *fl = &lightmaps[i];
 
-		if (texinfo->flags & (SURF_LIGHT | SURF_SKY | SURF_WARP)) {
+		if (fl->texinfo->flags & (SURF_LIGHT | SURF_SKY | SURF_WARP)) {
 			continue;
 		}
 
-		const face_lighting_t *fl = &face_lighting[face_num];
+		for (const patch_t *p = face_patches[i]; p; p = p->next) {
 
-		for (size_t i = 0; i < fl->num_luxels; i++) {
+			vec2_t st_mins, st_maxs;
 
-			const vec_t *origin = fl->origins + i * 3;
-			const vec_t *normal = fl->normals + i * 3;
-			const vec_t *direct = fl->direct + i * 3;
-			const vec_t *indirect = fl->indirect + i * 3;
+			st_mins[0] = st_mins[1] = FLT_MAX;
+			st_maxs[0] = st_maxs[1] = -FLT_MAX;
+
+			for (int32_t j = 0; j < p->winding->num_points; j++) {
+
+				ddvec3_t point;
+				VectorCopy(p->winding->points[j], point);
+
+				for (int32_t k = 0; k < 2; k++) {
+					const vec_t val = DotProduct(point, fl->texinfo->vecs[k]) + fl->texinfo->vecs[k][3];
+					if (val < st_mins[k]) {
+						st_mins[k] = val;
+					}
+					if (val > st_maxs[k]) {
+						st_maxs[k] = val;
+					}
+				}
+			}
+
+			assert(st_mins[0] >= fl->st_mins[0]);
+			assert(st_mins[1] >= fl->st_mins[1]);
+			assert(st_maxs[0] <= fl->st_maxs[0]);
+			assert(st_maxs[1] <= fl->st_maxs[1]);
+
+			s16vec2_t lm_mins, lm_maxs;
+
+			for (int32_t i = 0; i < 2; i++) {
+				lm_mins[i] = floorf(st_mins[i] * lightmap_scale);
+				lm_maxs[i] = ceilf(st_maxs[i] * lightmap_scale);
+			}
+
+			const int16_t width = lm_maxs[0] - lm_mins[0];
+			const int16_t height = lm_maxs[1] - lm_mins[1];
 
 			vec3_t lightmap;
-			VectorAdd(direct, indirect, lightmap);
+			VectorClear(lightmap);
+
+			for (int32_t t = 0; t < height; t++) {
+				for (int32_t s = 0; s < width; s++) {
+
+					const int32_t ds = lm_mins[0] - fl->lm_mins[0] + s;
+					const int32_t dt = lm_mins[1] - fl->lm_mins[1] + t;
+
+					const luxel_t *l = &fl->luxels[dt * fl->width + ds];
+
+					assert(l->s == ds);
+					assert(l->t == dt);
+
+					VectorAdd(lightmap, l->direct, lightmap);
+					VectorAdd(lightmap, l->indirect, lightmap);
+				}
+			}
 
 			if (VectorCompare(lightmap, vec3_origin)) {
 				continue;
 			}
 
-			byte pvs[MAX_BSP_LEAFS >> 3];
+			VectorScale(lightmap, 1.0 / (width * height), lightmap);
 
-			vec3_t org;
-			VectorCopy(origin, org);
+			vec3_t origin;
+			WindingCenter(p->winding, origin);
 
-			if (!Light_PointPVS(org, pvs)) {
+			VectorMA(origin, 4.0, fl->normal, origin);
 
-				VectorAdd(org, normal, org);
-
-				if (!Light_PointPVS(org, pvs)) {
-
-					vec3_t delta;
-					VectorSubtract(fl->center, org, delta);
-					VectorNormalize(delta);
-					VectorAdd(org, delta, org);
-
-					if (!Light_PointPVS(org, pvs)) {
-						continue;
-					}
-				}
-			}
-
-			light_t *light = BuildLight(org, LIGHT_SPOT);
-
-			VectorCopy(normal, light->normal);
+			light_t *light = BuildLight(origin, LIGHT_PATCH);
 
 			light->radius = ColorNormalize(lightmap, light->color);
-
-			light->cone = 1.0; // 90º
 		}
 	}
 }

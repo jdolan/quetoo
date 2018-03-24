@@ -25,7 +25,7 @@
 #include "bspfile.h"
 
 typedef enum {
-	LIGHT_SURFACE,
+	LIGHT_PATCH,
 	LIGHT_POINT,
 	LIGHT_SPOT,
 } light_type_t;
