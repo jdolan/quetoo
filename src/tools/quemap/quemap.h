@@ -43,10 +43,6 @@ extern _Bool verbose;
 extern _Bool debug;
 extern _Bool legacy;
 
-// VIS
-extern _Bool fast_vis;
-extern _Bool no_sort;
-
 // BSP
 extern int32_t entity_num;
 
@@ -67,6 +63,10 @@ extern _Bool leaktest;
 extern int32_t block_xl, block_xh, block_yl, block_yh;
 
 extern vec_t micro_volume;
+
+// VIS
+extern _Bool fast_vis;
+extern _Bool no_sort;
 
 // LIGHT
 extern _Bool antialias;
