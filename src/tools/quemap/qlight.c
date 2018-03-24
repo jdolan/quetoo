@@ -70,7 +70,7 @@ _Bool Light_PointPVS(const vec3_t org, byte *pvs) {
 		return false; // in solid leaf
 	}
 
-	Bsp_DecompressVis(&bsp_file, bsp_file.vis_data.raw + bsp_file.vis_data.vis->bit_offsets[leaf->cluster][DVIS_PVS], pvs);
+	Cm_ClusterPVS(leaf->cluster, pvs);
 	return true;
 }
 
