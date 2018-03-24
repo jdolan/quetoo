@@ -198,9 +198,7 @@ void BuildLightmaps(void) {
 		BuildLightmapLuxels(lm);
 	}
 
-	if (debug) {
-		DebugLightmapLuxels();
-	}
+	DebugLightmapLuxels();
 }
 
 #define MAX_VERT_FACES 256
