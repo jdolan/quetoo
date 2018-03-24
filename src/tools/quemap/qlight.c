@@ -111,7 +111,7 @@ static cm_bsp_model_t *cmodels[MAX_BSP_MODELS];
  */
 void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask) {
 
-	vec_t frac = 999.0;
+	vec_t frac = FLT_MAX;
 
 	for (int32_t i = 0; i < num_cmodels; i++) {
 
