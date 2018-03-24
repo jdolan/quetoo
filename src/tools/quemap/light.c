@@ -207,9 +207,9 @@ void BuildIndirectLights(void) {
 
 	for (int32_t i = 0; i < bsp_file.num_faces; i++) {
 
-		const lightmap_t *fl = &lightmaps[i];
+		const lightmap_t *lm = &lightmaps[i];
 
-		if (fl->texinfo->flags & (SURF_LIGHT | SURF_SKY | SURF_WARP)) {
+		if (lm->texinfo->flags & (SURF_LIGHT | SURF_SKY | SURF_WARP)) {
 			continue;
 		}
 
@@ -226,7 +226,7 @@ void BuildIndirectLights(void) {
 				VectorCopy(p->winding->points[j], point);
 
 				for (int32_t k = 0; k < 2; k++) {
-					const vec_t val = DotProduct(point, fl->texinfo->vecs[k]) + fl->texinfo->vecs[k][3];
+					const vec_t val = DotProduct(point, lm->texinfo->vecs[k]) + lm->texinfo->vecs[k][3];
 					if (val < st_mins[k]) {
 						st_mins[k] = val;
 					}
@@ -236,10 +236,10 @@ void BuildIndirectLights(void) {
 				}
 			}
 
-			assert(st_mins[0] >= fl->st_mins[0]);
-			assert(st_mins[1] >= fl->st_mins[1]);
-			assert(st_maxs[0] <= fl->st_maxs[0]);
-			assert(st_maxs[1] <= fl->st_maxs[1]);
+			assert(st_mins[0] >= lm->st_mins[0]);
+			assert(st_mins[1] >= lm->st_mins[1]);
+			assert(st_maxs[0] <= lm->st_maxs[0]);
+			assert(st_maxs[1] <= lm->st_maxs[1]);
 
 			s16vec2_t lm_mins, lm_maxs;
 
@@ -257,10 +257,10 @@ void BuildIndirectLights(void) {
 			for (int32_t t = 0; t < height; t++) {
 				for (int32_t s = 0; s < width; s++) {
 
-					const int32_t ds = lm_mins[0] - fl->lm_mins[0] + s;
-					const int32_t dt = lm_mins[1] - fl->lm_mins[1] + t;
+					const int32_t ds = lm_mins[0] - lm->lm_mins[0] + s;
+					const int32_t dt = lm_mins[1] - lm->lm_mins[1] + t;
 
-					const luxel_t *l = &fl->luxels[dt * fl->width + ds];
+					const luxel_t *l = &lm->luxels[dt * lm->width + ds];
 
 					assert(l->s == ds);
 					assert(l->t == dt);
@@ -279,7 +279,7 @@ void BuildIndirectLights(void) {
 			vec3_t origin;
 			WindingCenter(p->winding, origin);
 
-			VectorMA(origin, 4.0, fl->normal, origin);
+			VectorMA(origin, 4.0, lm->normal, origin);
 
 			light_t *light = BuildLight(origin, LIGHT_PATCH);
 
