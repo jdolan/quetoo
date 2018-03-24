@@ -244,38 +244,22 @@ static int32_t FacesWithVert(int32_t vert, int32_t *faces) {
  */
 void BuildVertexNormals(void) {
 	int32_t vert_faces[MAX_VERT_FACES];
-	vec3_t normal, delta;
 
 	for (int32_t i = 0; i < bsp_file.num_vertexes; i++) {
 
-		VectorClear(bsp_file.normals[i].normal);
+		vec_t *normal = bsp_file.normals[i].normal;
+		VectorClear(normal);
 
 		const int32_t count = FacesWithVert(i, vert_faces);
-		if (!count) {
-			continue;
-		}
+		if (count) {
 
-		for (int32_t j = 0; j < count; j++) {
-
-			const bsp_face_t *face = &bsp_file.faces[vert_faces[j]];
-			const bsp_plane_t *plane = &bsp_file.planes[face->plane_num];
-
-			// scale the contribution of each face based on size
-			const lightmap_t *lighting = &lightmaps[vert_faces[j]];
-			VectorSubtract(lighting->maxs, lighting->mins, delta);
-
-			const vec_t scale = VectorLength(delta);
-
-			if (face->side) {
-				VectorScale(plane->normal, -scale, normal);
-			} else {
-				VectorScale(plane->normal, scale, normal);
+			for (int32_t j = 0; j < count; j++) {
+				const lightmap_t *lm = &lightmaps[vert_faces[j]];
+				VectorMA(normal, lm->num_luxels, lm->normal, normal);
 			}
 
-			VectorAdd(bsp_file.normals[i].normal, normal, bsp_file.normals[i].normal);
+			VectorNormalize(normal);
 		}
-
-		VectorNormalize(bsp_file.normals[i].normal);
 	}
 }
 

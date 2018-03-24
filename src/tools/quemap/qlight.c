@@ -102,7 +102,7 @@ _Bool Light_InPVS(const vec3_t p1, const vec3_t p2) {
 	return true;
 }
 
-// we use the c_model_t collision detection facilities for lighting
+// we use the collision detection facilities for lighting
 static int32_t num_cmodels;
 static cm_bsp_model_t *cmodels[MAX_BSP_MODELS];
 
