@@ -130,13 +130,11 @@ vec_t WindingArea(const winding_t *w) {
  * @brief
  */
 void WindingBounds(const winding_t *w, vec3_t mins, vec3_t maxs) {
-	int32_t i, j;
 
-	mins[0] = mins[1] = mins[2] = 99999;
-	maxs[0] = maxs[1] = maxs[2] = -99999;
+	ClearBounds(mins, maxs);
 
-	for (i = 0; i < w->num_points; i++) {
-		for (j = 0; j < 3; j++) {
+	for (int32_t i = 0; i < w->num_points; i++) {
+		for (int32_t j = 0; j < 3; j++) {
 			const vec_t v = w->points[i][j];
 			if (v < mins[j]) {
 				mins[j] = v;
@@ -152,15 +150,14 @@ void WindingBounds(const winding_t *w, vec3_t mins, vec3_t maxs) {
  * @brief
  */
 void WindingCenter(const winding_t *w, vec3_t center) {
-	int32_t i;
-	vec_t scale;
 
 	VectorClear(center);
-	for (i = 0; i < w->num_points; i++) {
+
+	for (int32_t i = 0; i < w->num_points; i++) {
 		VectorAdd(w->points[i], center, center);
 	}
 
-	scale = 1.0 / w->num_points;
+	const vec_t scale = 1.0 / w->num_points;
 	VectorScale(center, scale, center);
 }
 
