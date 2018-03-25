@@ -531,7 +531,7 @@ void IndirectLighting(int32_t face_num) {
 			continue;
 		}
 
-		LightLuxel(l, pvs, l->indirect, NULL, 0.125);
+		LightLuxel(l, pvs, l->indirect, NULL, 0.0125);
 	}
 }
 
