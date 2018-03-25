@@ -58,7 +58,7 @@ static void BuildLightmapExtents(lightmap_t *lm) {
 		}
 
 		ddvec3_t point;
-		VectorCopy(v->point, point);
+		VectorAdd(lm->offset, v->point, point);
 
 		for (int32_t j = 0; j < 2; j++) {
 			const vec_t val = DotProduct(point, lm->texinfo->vecs[j]) + lm->texinfo->vecs[j][3];
