@@ -27,6 +27,64 @@ cm_bsp_t cm_bsp;
 /**
  * @brief
  */
+static void Cm_LoadBspEntities(void) {
+
+	GList *entities = NULL;
+
+	parser_t parser;
+	Parse_Init(&parser, cm_bsp.bsp.entity_string, PARSER_NO_COMMENTS);
+
+	while (true) {
+
+		char token[MAX_BSP_ENTITY_VALUE];
+
+		if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
+			break;
+		}
+
+		if (!g_strcmp0("{", token)) {
+
+			cm_entity_t *entity = NULL;
+
+			while (true) {
+
+				cm_entity_t *pair = Mem_TagMalloc(sizeof(*pair), MEM_TAG_CMODEL);
+
+				Parse_Token(&parser, PARSE_DEFAULT, pair->key, sizeof(pair->key));
+				Parse_Token(&parser, PARSE_DEFAULT, pair->value, sizeof(pair->value));
+
+				pair->next = entity;
+				entity = pair;
+
+				Parse_PeekToken(&parser, PARSE_DEFAULT, token, sizeof(token));
+
+				if (!g_strcmp0("}", token)) {
+					break;
+				}
+			}
+
+			assert(entity);
+
+			entities = g_list_prepend(entities, entity);
+		}
+	}
+
+	entities = g_list_reverse(entities);
+
+	cm_bsp.num_entities = g_list_length(entities);
+	cm_bsp.entities = Mem_TagMalloc(sizeof(cm_entity_t *) * cm_bsp.num_entities, MEM_TAG_CMODEL);
+
+	cm_entity_t **out = cm_bsp.entities;
+	for (const GList *list = entities; list; list = list->next, out++) {
+		*out = list->data;
+	}
+
+	g_list_free(entities);
+}
+
+/**
+ * @brief
+ */
 static void Cm_LoadBspPlanes(void) {
 
 	const int32_t num_planes = cm_bsp.bsp.num_planes;
@@ -72,7 +130,7 @@ static void Cm_LoadBspNodes(void) {
 /**
  * @brief
  */
-static void Cm_LoadBspSurfaces(void) {
+static void Cm_LoadBspTexinfos(void) {
 
 	const int32_t num_texinfo = cm_bsp.bsp.num_texinfo;
 	const bsp_texinfo_t *in = cm_bsp.bsp.texinfo;
@@ -311,9 +369,6 @@ static void Cm_LoadBspMaterials(const char *name) {
 		}
 	}
 
-	// flatten the list into the array
-	// linking them so that they are freed as well
-
 	cm_bsp.num_materials = g_list_length(materials);
 	cm_bsp.materials = Mem_TagMalloc(sizeof(cm_material_t *) * cm_bsp.num_materials, MEM_TAG_CMODEL);
 
@@ -321,6 +376,8 @@ static void Cm_LoadBspMaterials(const char *name) {
 	for (const GList *list = materials; list; list = list->next, out++) {
 		*out = Mem_Link(list->data, cm_bsp.materials);
 	}
+
+	g_list_free(materials);
 }
 
 /**
@@ -360,6 +417,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	Bsp_UnloadLumps(&cm_bsp.bsp, BSP_LUMPS_ALL);
 
 	// free dynamic memory
+	Mem_Free(cm_bsp.entities);
 	Mem_Free(cm_bsp.materials);
 	Mem_Free(cm_bsp.planes);
 	Mem_Free(cm_bsp.nodes);
@@ -414,9 +472,10 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 
 	Cm_LoadBspMaterials(name);
 
+	Cm_LoadBspEntities();
 	Cm_LoadBspPlanes();
 	Cm_LoadBspNodes();
-	Cm_LoadBspSurfaces();
+	Cm_LoadBspTexinfos();
 	Cm_LoadBspLeafs();
 	Cm_LoadBspLeafBrushes();
 	Cm_LoadBspInlineModels();
@@ -475,26 +534,50 @@ const char *Cm_EntityString(void) {
 }
 
 /**
- * @brief Parses values from the worldspawn entity definition.
+ * @brief
  */
-const char *Cm_WorldspawnValue(const char *key) {
-	static char value[MAX_BSP_ENTITY_VALUE];
-	const char *c = strstr(Cm_EntityString(), va("\"%s\"", key));
+const char *Cm_EntityValue(const cm_entity_t *entity, const char *key) {
 
-	if (!c) {
-		return NULL;
+	for (const cm_entity_t *e = entity; e; e = e->next) {
+		if (!g_strcmp0(e->key, key)) {
+			return e->value;
+		}
 	}
 
-	c += strlen(key) + 3; // skip quotes and key
+	return NULL;
+}
 
-	parser_t parser;
-	Parse_Init(&parser, c, PARSER_DEFAULT);
-		
-	if (!Parse_Token(&parser, PARSE_DEFAULT, value, sizeof(value))) {
-		return NULL;
+/**
+ * @brief
+ */
+cm_entity_t *Cm_Worldspawn(void) {
+	return *cm_bsp.entities;
+}
+
+/**
+ * @brief
+ */
+cm_entity_t *Cm_EntityWithValue(const char *key, const char *value) {
+
+	cm_entity_t **entity = cm_bsp.entities;
+	for (size_t i = 0; i < cm_bsp.num_entities; i++, entity++) {
+		if (!g_strcmp0(value, Cm_EntityValue(*entity, key))) {
+			return *entity;
+		}
 	}
 
-	return value;
+	return NULL;
+}
+
+/**
+ * @brief
+ */
+void Cm_EnumerateEntities(EntityEnumerator enumerator, void *data) {
+
+	cm_entity_t **entity = cm_bsp.entities;
+	for (size_t i = 0; i < cm_bsp.num_entities; i++, entity++) {
+		enumerator(*entity, data);
+	}
 }
 
 /**

@@ -92,7 +92,16 @@ typedef struct {
 /**
  * @brief The maximum length of an entity key-value value, in characters.
  */
-#define MAX_BSP_ENTITY_VALUE	1024
+#define MAX_BSP_ENTITY_VALUE	256
+
+/**
+ * @brief Entities are, essentially, linked lists of key-value pairs.
+ */
+typedef struct cm_entity_s {
+	char key[MAX_BSP_ENTITY_KEY];
+	char value[MAX_BSP_ENTITY_VALUE];
+	struct cm_entity_s *next;
+} cm_entity_t;
 
 /**
  * @brief Traces are discrete movements through world space, clipped to the

@@ -30,7 +30,12 @@ int32_t Cm_NumClusters(void);
 int32_t Cm_NumModels(void);
 
 const char *Cm_EntityString(void);
-const char *Cm_WorldspawnValue(const char *key);
+const char *Cm_EntityValue(const cm_entity_t *entity, const char *key);
+cm_entity_t *Cm_EntityWithValue(const char *key, const char *value);
+cm_entity_t *Cm_Worldspawn(void);
+
+typedef void (*EntityEnumerator)(cm_entity_t *entity, void *data);
+void Cm_EnumerateEntities(EntityEnumerator enumerator, void *data);
 
 int32_t Cm_LeafContents(const int32_t leaf_num);
 int32_t Cm_LeafCluster(const int32_t leaf_num);
@@ -54,6 +59,9 @@ typedef struct {
 
 	_Bool *portal_open;
 	int32_t flood_valid;
+
+	cm_entity_t **entities;
+	size_t num_entities;
 
 	cm_material_t **materials;
 	size_t num_materials;
