@@ -705,7 +705,7 @@ cm_material_t *Cm_AllocMaterial(const char *name) {
 /**
  * @brief Loads the materials defined in the specified file.
  * @param path The Quake path of the materials file.
- * @Param materials The list to append to.
+ * @param materials The list to append to.
  * @return The number of materials parsed, or -1 on error.
  */
 ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
