@@ -24,6 +24,8 @@
 #include "bspfile.h"
 #include "polylib.h"
 
+#define DEFAULT_PATCH_SIZE 16.0
+
 typedef struct patch_s {
 	const bsp_face_t *face;
 	winding_t *winding;
