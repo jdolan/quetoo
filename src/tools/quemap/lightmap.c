@@ -540,21 +540,20 @@ void IndirectLighting(int32_t face_num) {
  */
 void FinalizeLighting(int32_t face_num) {
 
-	bsp_face_t *f = &bsp_file.faces[face_num];
-	const bsp_texinfo_t *tex = &bsp_file.texinfo[f->texinfo];
+	const lightmap_t *lm = &lightmaps[face_num];
 
-	if (tex->flags & (SURF_WARP | SURF_SKY)) {
+	if (lm->texinfo->flags & (SURF_WARP | SURF_SKY)) {
 		return;
 	}
 
 	const int32_t lightmap_color_channels = (legacy ? 3 : 4);
 
+	bsp_face_t *f = &bsp_file.faces[face_num];
+
 	f->unused[0] = 0; // pack the old lightstyles array for legacy games
 	f->unused[1] = f->unused[2] = f->unused[3] = 255;
 
 	ThreadLock();
-
-	lightmap_t *lm = &lightmaps[face_num];
 
 	f->light_ofs = bsp_file.lightmap_data_size;
 	bsp_file.lightmap_data_size += lm->num_luxels * lightmap_color_channels;
@@ -614,7 +613,7 @@ void FinalizeLighting(int32_t face_num) {
 				vec4_t tangent;
 				vec3_t bitangent;
 
-				TangentVectors(l->normal, tex->vecs[0], tex->vecs[1], tangent, bitangent);
+				TangentVectors(l->normal, lm->texinfo->vecs[0], lm->texinfo->vecs[1], tangent, bitangent);
 
 				// transform it into tangent space
 				deluxemap[0] = DotProduct(direction, tangent);
