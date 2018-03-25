@@ -349,6 +349,11 @@ _Bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, con
 		output[0] = '\0';
 	}
 
+	// nothing to parse
+	if (!parser->start) {
+		return false;
+	}
+
 	// start by skipping whitespace tokens
 	if (!Parse_SkipWhitespace(parser, flags)) {
 		return false;
