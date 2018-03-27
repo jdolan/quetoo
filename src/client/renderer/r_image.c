@@ -174,9 +174,14 @@ void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
 		}
 	}
 
-	if (image->type == IT_DIFFUSE) { // average accumulated colors
+	if (image->type == IT_DIFFUSE) { // average accumulated colors, normalize and brighten
 		VectorScale(color, 1.0 / pixels, color);
 		VectorScale(color, 1.0 / 255.0, image->color);
+
+		const vec_t brightness = ColorNormalize(image->color, image->color);
+		if (brightness < 1.0) {
+			VectorScale(image->color, 1.0 / brightness, image->color);
+		}
 	}
 }
 
