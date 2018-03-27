@@ -88,7 +88,7 @@ static void R_LoadBspLightmaps(r_bsp_model_t *bsp) {
 	bsp->lightmap_scale = BSP_DEFAULT_LIGHTMAP_SCALE;
 
 	// resolve lightmap scale
-	if ((c = Cm_WorldspawnValue("lightmap_scale"))) {
+	if ((c = Cm_EntityValue(Cm_Worldspawn(), "lightmap_scale"))) {
 		bsp->lightmap_scale = strtof(c, NULL);
 		Com_Debug(DEBUG_RENDERER, "Resolved lightmap_scale: %1.3f\n", bsp->lightmap_scale);
 	}
