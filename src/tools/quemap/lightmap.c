@@ -185,7 +185,7 @@ void BuildLightmaps(void) {
 		lm->texinfo = &bsp_file.texinfo[lm->face->texinfo];
 		lm->plane = &bsp_file.planes[lm->face->plane_num];
 
-		if (lm->texinfo->flags & (SURF_SKY | SURF_WARP)) {
+		if (lm->texinfo->flags & SURF_SKY) {
 			continue;
 		}
 
@@ -345,115 +345,120 @@ static _Bool ProjectLuxel(const lightmap_t *lm, luxel_t *l, vec_t soffs, vec_t t
 }
 
 /**
- * @brief Iterates all sun light sources, tracing towards them and adding light if a sky was found.
+ * @brief Iterates all lights, accumulating diffuse and directional samples to the specified pointers.
+ * @param luxel The luxel to light.
+ * @param pvs The PVS for the luxel's origin.
+ * @param sample The output vector for light color, or `NULL`.
+ * @param direction The output vector for ligtht direction, or `NULL`.
+ * @param scale A scalar applied to both light and direction.
  */
-static void SunlightLuxel(const luxel_t *l, vec_t *sample, vec_t *direction, vec_t scale) {
+static void LightLuxel(const luxel_t *luxel, const byte *pvs, vec_t *sample, vec_t *direction, vec_t scale) {
 
-	const sun_t *sun = suns;
-	for (size_t i = 0; i < num_suns; i++, sun++) {
+	for (const GList *list = lights; list; list = list->next) {
 
-		const vec_t dot = DotProduct(sun->normal, l->normal);
+		const light_t *light = list->data;
+
+		if (light->type == LIGHT_INVALID) {
+			continue;
+		}
+
+		if (light->cluster != -1) {
+			if (!(pvs[light->cluster >> 3] & (1 << (light->cluster & 7)))) {
+				continue;
+			}
+		}
+
+		vec3_t dir;
+		VectorSubtract(light->origin, luxel->origin, dir);
+		const vec_t dist = VectorNormalize(dir);
+
+		if (light->atten != ATTEN_NONE) {
+			if (dist > light->radius) {
+				continue;
+			}
+		}
+
+		const vec_t dot = DotProduct(dir, luxel->normal);
 		if (dot <= 0.0) {
 			continue;
 		}
 
-		vec3_t end;
-		VectorMA(l->origin, MAX_WORLD_DIST, sun->normal, end);
+		vec_t diffuse = Clamp(light->radius * dot, 0.0, 255.0);
 
-		cm_trace_t trace;
-		Light_Trace(&trace, l->origin, end, CONTENTS_SOLID);
-
-		if (trace.fraction < 1.0 && (trace.surface->flags & SURF_SKY)) {
-
-			const vec_t diffuse = sun->light * dot * DEFAULT_PATCH_SIZE;
-
-			if (sample) {
-				VectorMA(sample, diffuse * scale, sun->color, sample);
+		switch (light->type) {
+			case LIGHT_INVALID:
+				break;
+			case LIGHT_AMBIENT:
+				break;
+			case LIGHT_PATCH:
+				diffuse *= patch_size / DEFAULT_PATCH_SIZE;
+				break;
+			case LIGHT_POINT:
+				diffuse *= DEFAULT_PATCH_SIZE;
+				break;
+			case LIGHT_SPOT: {
+				const vec_t dot2 = DotProduct(dir, light->normal);
+				if (dot2 <= light->cone) {
+					if (dot2 <= 0.1) {
+						diffuse = 0.0;
+					} else {
+						diffuse *= light->cone - (1.0 - dot2);
+					}
+				} else {
+					diffuse *= DEFAULT_PATCH_SIZE;
+				}
 			}
-
-			if (direction) {
-				VectorMA(direction, diffuse * scale, sun->normal, direction);
-			}
+				break;
+			case LIGHT_SUN:
+				diffuse *= DEFAULT_PATCH_SIZE;
+				break;
 		}
-	}
-}
 
-/**
- * @brief Iterate over all light sources for the luxel's PVS, accumulating diffuse and directional information to the specified pointers.
- */
-static void LightLuxel(const luxel_t *l, const byte *pvs, vec_t *sample, vec_t *direction, vec_t scale) {
+		vec_t atten = 1.0;
 
-	for (int32_t cluster = 0; cluster < bsp_file.vis_data.vis->num_clusters; cluster++) {
+		switch (light->atten) {
+			case LIGHT_ATTEN_NONE:
+				break;
+			case LIGHT_ATTEN_LINEAR:
+				atten = Clamp(1.0 - dist / light->radius, 0.0, 1.0);
+				break;
+			case LIGHT_ATTEN_INVERSE_SQUARE:
+				atten = Clamp(1.0 - dist / light->radius, 0.0, 1.0);
+				atten *= atten;
+				break;
+		}
 
-		if (!(pvs[cluster >> 3] & (1 << (cluster & 7)))) {
+		diffuse *= atten;
+
+		if (diffuse <= 0.0) {
 			continue;
 		}
 
-		for (const light_t *light = lights[cluster]; light; light = light->next) {
+		cm_trace_t trace;
 
-			vec3_t dir;
-			VectorSubtract(light->origin, l->origin, dir);
+		if (light->type == LIGHT_SUN) {
+			vec3_t sun_origin;
 
-			const vec_t dist = VectorNormalize(dir);
-			if (dist > light->radius) {
+			VectorMA(luxel->origin, MAX_WORLD_DIST, light->normal, sun_origin);
+			Light_Trace(&trace, luxel->origin, sun_origin, CONTENTS_SOLID);
+
+			if (trace.surface == NULL || !(trace.surface->flags & SURF_SKY)) {
 				continue;
 			}
-
-			const vec_t dot = DotProduct(dir, l->normal);
-			if (dot <= 0.0) {
-				continue;
-			}
-
-			vec_t diffuse = Clamp(light->radius * dot, 0.0, 255.0);;
-
-			switch (light->type) {
-
-				case LIGHT_PATCH:
-					diffuse *= patch_size / DEFAULT_PATCH_SIZE;
-					break;
-
-				case LIGHT_POINT:
-					diffuse *= DEFAULT_PATCH_SIZE;
-					break;
-
-				case LIGHT_SPOT: {
-					const vec_t dot2 = DotProduct(dir, light->normal);
-					if (dot2 <= light->cone) {
-						if (dot2 <= 0.1) {
-							diffuse = 0.0;
-						} else {
-							diffuse *= light->cone - (1.0 - dot2);
-						}
-					} else {
-						diffuse *= DEFAULT_PATCH_SIZE;
-					}
-				}
-					break;
-			}
-
-			if (diffuse <= 0.0) {
-				continue;
-			}
-
-			const vec_t atten = Clamp(1.0 - dist / light->radius, 0.0, 1.0);
-			const vec_t atten_squared = atten * atten;
-
-			diffuse *= atten_squared;
-
-			cm_trace_t trace;
-			Light_Trace(&trace, light->origin, l->origin, CONTENTS_SOLID);
+		} else {
+			Light_Trace(&trace, luxel->origin, light->origin, CONTENTS_SOLID);
 
 			if (trace.fraction < 1.0) {
 				continue;
 			}
+		}
 
-			if (sample) {
-				VectorMA(sample, diffuse * scale, light->color, sample);
-			}
+		if (sample) {
+			VectorMA(sample, diffuse * scale, light->color, sample);
+		}
 
-			if (direction) {
-				VectorMA(direction, diffuse * scale / light->radius, dir, direction);
-			}
+		if (direction) {
+			VectorMA(direction, diffuse * scale / light->radius, dir, direction);
 		}
 	}
 }
@@ -473,7 +478,7 @@ void DirectLighting(int32_t face_num) {
 
 	const lightmap_t *lm = &lightmaps[face_num];
 
-	if (lm->texinfo->flags & (SURF_SKY | SURF_WARP)) {
+	if (lm->texinfo->flags & SURF_SKY) {
 		return;
 	}
 
@@ -497,8 +502,6 @@ void DirectLighting(int32_t face_num) {
 			valid_samples++;
 
 			LightLuxel(l, pvs, l->direct, l->direction, antialias ? scale : 1.0);
-
-			SunlightLuxel(l, l->direct, l->direction, antialias ? scale : 1.0);
 		}
 
 		if (valid_samples > 0 && valid_samples < num_samples) {
@@ -518,7 +521,7 @@ void IndirectLighting(int32_t face_num) {
 
 	const lightmap_t *lm = &lightmaps[face_num];
 
-	if (lm->texinfo->flags & (SURF_SKY | SURF_WARP)) {
+	if (lm->texinfo->flags & SURF_SKY) {
 		return;
 	}
 
@@ -542,7 +545,7 @@ void FinalizeLighting(int32_t face_num) {
 
 	const lightmap_t *lm = &lightmaps[face_num];
 
-	if (lm->texinfo->flags & (SURF_WARP | SURF_SKY)) {
+	if (lm->texinfo->flags & SURF_SKY) {
 		return;
 	}
 
@@ -582,9 +585,6 @@ void FinalizeLighting(int32_t face_num) {
 
 		// convert to float
 		VectorScale(lightmap, 1.0 / 255.0, lightmap);
-
-		// add an ambient term if desired
-		VectorAdd(lightmap, ambient, lightmap);
 
 		// apply brightness, saturation and contrast
 		ColorFilter(lightmap, lightmap, brightness, saturation, contrast);

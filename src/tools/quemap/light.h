@@ -21,45 +21,77 @@
 
 #pragma once
 
-#include "shared.h"
 #include "bspfile.h"
 
+#define LIGHT_COLOR (vec3_t) { 1.0, 1.0, 1.0 }
+#define LIGHT_RADIUS 300.0
+#define LIGHT_ANGLE_UP -1.0
+#define LIGHT_ANGLE_DOWN -2.0
+#define LIGHT_CONE 20.0
+
 typedef enum {
+	LIGHT_INVALID = -1,
+	LIGHT_AMBIENT,
 	LIGHT_PATCH,
 	LIGHT_POINT,
 	LIGHT_SPOT,
+	LIGHT_SUN,
 } light_type_t;
 
-typedef struct light_s {
-	struct light_s *next;
+typedef enum {
+	LIGHT_ATTEN_NONE,
+	LIGHT_ATTEN_LINEAR,
+	LIGHT_ATTEN_INVERSE_SQUARE,
+} light_atten_t;
+
+/**
+ * @brief BSP light sources may come from entities or emissive surfaces.
+ */
+typedef struct {
+
+	/**
+	 * @brief The cluster containing this light, or -1 for directional lights.
+	 */
+	int32_t cluster;
+
+	/**
+	 * @brief The type.
+	 */
 	light_type_t type;
 
-	vec_t radius;
+	/**
+	 * @brief The attenuation.
+	 */
+	light_atten_t atten;
+
+	/**
+	 * @brief The origin.
+	 */
 	vec3_t origin;
+
+	/**
+	 * @brief The color.
+	 */
 	vec3_t color;
-	vec3_t normal; // spotlight and sun direction
-	vec_t cone; // spotlight cone, in radians
+
+	/**
+	 * @brief The normal vector for spotlights and sunlights.
+	 */
+	vec3_t normal;
+
+	/**
+	 * @brief The light radius in units.
+	 */
+	vec_t radius;
+
+	/**
+	 * @brief The angle, in radians, from the normal where spotlight attenuation occurs.
+	 */
+	vec_t cone;
+
 } light_t;
 
-/**
- * @brief Light sources are dynamically allocated, but hashed into bins by PVS cluster. Each light
- * in this array is a linked list of all lights in that cluster.
- */
-extern light_t *lights[MAX_BSP_LEAFS];
-
-typedef struct {
-	vec3_t origin;
-	vec3_t color;
-	vec3_t normal;
-	vec_t light;
-} sun_t;
-
-/**
- * @brief Map authors can define any number of suns (directional light sources) that will
- * illuminate their map globally.
- */
-extern sun_t suns[MAX_BSP_ENTITIES];
-extern size_t num_suns;
+extern GList *lights;
 
 void BuildDirectLights(void);
 void BuildIndirectLights(void);

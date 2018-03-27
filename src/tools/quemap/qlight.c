@@ -24,8 +24,6 @@
 _Bool antialias = false;
 _Bool indirect = false;
 
-vec3_t ambient = { 0.0, 0.0, 0.0 };
-
 vec_t brightness = 1.0;
 vec_t saturation = 1.0;
 vec_t contrast = 1.0;
@@ -142,11 +140,6 @@ static void LightWorld(void) {
 
 	const entity_t *e = &entities[0];
 
-	VectorForKey(e, "ambient", ambient, NULL);
-	if (!VectorCompare(ambient, vec3_origin)) {
-		Com_Verbose("Ambient: %g %g %g\n", ambient[0], ambient[1], ambient[2]);
-	}
-
 	if (brightness == 1.0) {
 		const vec_t v = FloatForKey(e, "brightness", 0.0);
 		if (v > 0.0) {
@@ -204,9 +197,6 @@ static void LightWorld(void) {
 
 	// calculate direct lighting
 	RunThreadsOn(bsp_file.num_faces, true, DirectLighting);
-
-	// free the direct light sources
-	Mem_FreeTag(MEM_TAG_LIGHT);
 
 	if (indirect) {
 		for (indirect_bounce = 0; indirect_bounce < indirect_bounces; indirect_bounce++) {

@@ -74,8 +74,6 @@ extern _Bool indirect;
 extern int32_t indirect_bounces;
 extern int32_t indirect_bounce;
 
-extern vec3_t ambient;
-
 extern vec_t brightness;
 extern vec_t saturation;
 extern vec_t contrast;

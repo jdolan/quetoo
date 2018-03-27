@@ -33,4 +33,3 @@ _Bool Light_PointPVS(const vec3_t org, byte *pvs);
 _Bool Light_InPVS(const vec3_t point1, const vec3_t point2);
 int32_t Light_PointLeafnum(const vec3_t point);
 void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask);
-vec3_t *Light_AverageTextureColor(const char *name);

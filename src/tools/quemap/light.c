@@ -22,53 +22,129 @@
 #include "light.h"
 #include "qlight.h"
 
-#define LIGHT_DEFAULT_COLOR (vec3_t) { 1.0, 1.0, 1.0 }
-
-#define LIGHT_SPOT_DEFAULT_CONE 20.0
-#define LIGHT_SPOT_ANGLE_UP -1.0
-#define LIGHT_SPOT_ANGLE_DOWN -2.0
-#define LIGHT_SPOT_DEFAULT_ANGLE LIGHT_SPOT_ANGLE_DOWN
-
-#define LIGHT_SUN_DEFAULT_LIGHT 1.0
-#define LIGHT_SUN_DEFAULT_COLOR (vec3_t) { 1.0, 1.0, 1.0 }
-
-light_t *lights[MAX_BSP_LEAFS];
-static size_t num_lights;
-
-sun_t suns[MAX_BSP_ENTITIES];
-size_t num_suns;
+GList *lights = NULL;
 
 /**
  * @brief
  */
-static entity_t *FindTargetEntity(const char *target) {
+light_t *LightForEntity(const entity_t *entity) {
 
-	for (int32_t i = 0; i < num_entities; i++) {
-		const char *name = ValueForKey(&entities[i], "targetname", NULL);
-		if (name && !g_ascii_strcasecmp(name, target)) {
-			return &entities[i];
+	light_t *light = NULL;
+
+	const char *classname = ValueForKey(entity, "classname", NULL);
+	if (!g_strcmp0(classname, "worldspawn")) {
+
+		vec3_t v;
+		VectorForKey(entity, "ambient", v, NULL);
+		if (!VectorCompare(v, vec3_origin)) {
+
+			light = Mem_TagMalloc(sizeof(*light), MEM_TAG_LIGHT);
+
+			light->type = LIGHT_AMBIENT;
+
+			VectorCopy(v, light->color);
 		}
 	}
 
-	return NULL;
+	if (!g_strcmp0(classname, "light") ||
+		!g_strcmp0(classname, "light_spot") ||
+		!g_strcmp0(classname, "light_sun")) {
+
+		light = Mem_TagMalloc(sizeof(*light), MEM_TAG_LIGHT);
+
+		const char *targetname = ValueForKey(entity, "target", NULL);
+
+		if (!g_strcmp0(classname, "light_sun")) {
+			light->type = LIGHT_SUN;
+			light->atten = LIGHT_ATTEN_NONE;
+		} else if (!g_strcmp0(classname, "light_spot") || targetname) {
+			light->type = LIGHT_SPOT;
+			light->atten = LIGHT_ATTEN_INVERSE_SQUARE;
+		} else {
+			light->type = LIGHT_POINT;
+			light->atten = LIGHT_ATTEN_INVERSE_SQUARE;
+		}
+
+		VectorForKey(entity, "origin", light->origin, NULL);
+
+		VectorForKey(entity, "_color", light->color, (vec3_t) { 1.0, 1.0, 1.0 });
+
+		light->radius = FloatForKey(entity, "light", LIGHT_RADIUS);
+
+		if (targetname) {
+			entity_t *target = NULL, *e = entities;
+			for (size_t i = 0; i < num_entities; i++, e++) {
+				if (!g_strcmp0(targetname, ValueForKey(e, "targetname", NULL))) {
+					target = e;
+					break;
+				}
+			}
+			if (target) {
+				vec3_t target_origin;
+				VectorForKey(target, "origin", target_origin, NULL);
+				VectorSubtract(target_origin, light->origin, light->normal);
+			} else {
+				Mon_SendSelect(MON_WARN, entity - entities, 0,
+							   va("Spot light at %s missing target", vtos(light->origin)));
+				VectorCopy(vec3_down, light->normal);
+			}
+		} else {
+			if (light->type == LIGHT_SPOT) {
+				vec3_t angles = { 0.0, FloatForKey(entity, "_angle", 0.0), 0.0};
+				if (angles[YAW] == 0.0) {
+					VectorCopy(vec3_down, light->normal);
+				} else {
+					if (angles[YAW] == LIGHT_ANGLE_UP) {
+						VectorCopy(vec3_up, light->normal);
+					} else if (angles[YAW] == LIGHT_ANGLE_DOWN) {
+						VectorCopy(vec3_down, light->normal);
+					} else {
+						AngleVectors(angles, light->normal, NULL, NULL);
+					}
+				}
+			} else {
+				VectorCopy(vec3_down, light->normal);
+			}
+		}
+
+		if (light->type == LIGHT_SPOT) {
+			light->cone = cos(Radians(FloatForKey(entity, "_cone", LIGHT_CONE)));
+		}
+
+		VectorNegate(light->normal, light->normal);
+		VectorNormalize(light->normal);
+
+		light->cluster = Cm_LeafCluster(Cm_PointLeafnum(light->origin, 0));
+	}
+
+	return light;
 }
 
 /**
  * @brief
  */
-static light_t *BuildLight(const vec3_t origin, light_type_t type) {
+light_t *LightForPatch(const patch_t *patch) {
 
 	light_t *light = Mem_TagMalloc(sizeof(*light), MEM_TAG_LIGHT);
-	num_lights++;
 
-	VectorCopy(origin, light->origin);
-	light->type = type;
+	light->type = LIGHT_PATCH;
+	light->atten = LIGHT_ATTEN_INVERSE_SQUARE;
 
-	const bsp_leaf_t *leaf = &bsp_file.leafs[Light_PointLeafnum(light->origin)];
-	const int16_t cluster = leaf->cluster;
+	WindingCenter(patch->winding, light->origin);
 
-	light->next = lights[cluster];
-	lights[cluster] = light;
+	const bsp_plane_t *plane = &bsp_file.planes[patch->face->plane_num];
+	if (patch->face->side) {
+		VectorMA(light->origin, -4.0, plane->normal, light->origin);
+	} else {
+		VectorMA(light->origin,  4.0, plane->normal, light->origin);
+	}
+
+	const bsp_texinfo_t *texinfo = &bsp_file.texinfo[patch->face->texinfo];
+
+	GetTextureColor(texinfo->texture, light->color);
+	light->radius = texinfo->value;
+
+	light->cluster = Cm_LeafCluster(Cm_PointLeafnum(light->origin, 0));
 
 	return light;
 }
@@ -78,123 +154,116 @@ static light_t *BuildLight(const vec3_t origin, light_type_t type) {
  */
 void BuildDirectLights(void) {
 
-	num_lights = 0;
-	memset(lights, 0, sizeof(lights));
+	g_list_free_full(lights, Mem_Free);
+	lights = NULL;
 
-	num_suns = 0;
-	memset(suns, 0, sizeof(suns));
+	const entity_t *entity = entities;
+	for (int32_t i = 0; i < num_entities; i++, entity++) {
 
-	for (size_t i = 0; i < lengthof(face_patches); i++) {
-
-		for (const patch_t *p = face_patches[i]; p; p = p->next) {
-
-			const bsp_texinfo_t *tex = &bsp_file.texinfo[p->face->texinfo];
-			if (!(tex->flags & SURF_LIGHT)) {
-				continue;
-			}
-
-			vec3_t origin;
-			WindingCenter(p->winding, origin);
-
-			const bsp_plane_t *plane = &bsp_file.planes[p->face->plane_num];
-			if (p->face->side) {
-				VectorMA(origin, -4.0, plane->normal, origin);
-			} else {
-				VectorMA(origin,  4.0, plane->normal, origin);
-			}
-
-			light_t *light = BuildLight(origin, LIGHT_PATCH);
-
-			light->radius = tex->value;
-			GetTextureColor(tex->texture, light->color);
+		light_t *light = LightForEntity(entity);
+		if (light) {
+			lights = g_list_prepend(lights, light);
 		}
 	}
 
-	for (size_t i = 1; i < num_entities; i++) {
+	const bsp_face_t *face = bsp_file.faces;
+	for (int32_t i = 0; i < bsp_file.num_faces; i++, face++) {
 
-		const entity_t *e = &entities[i];
+		const bsp_texinfo_t *texinfo = &bsp_file.texinfo[face->texinfo];
 
-		const char *classname = ValueForKey(e, "classname", NULL);
-		const char *targetname = ValueForKey(e, "target", NULL);
+		if (texinfo->flags & SURF_LIGHT) {
 
-		vec3_t origin;
-		VectorForKey(e, "origin", origin, NULL);
-
-		if (!g_strcmp0(classname, "light") || !g_strcmp0(classname, "light_spot")) {
-
-			light_t *light;
-			if (!g_strcmp0(classname, "light_spot") || targetname) {
-				light = BuildLight(origin, LIGHT_SPOT);
-			} else {
-				light = BuildLight(origin, LIGHT_POINT);
-			}
-
-			light->radius = FloatForKey(e, "light", DEFAULT_LIGHT);
-
-			VectorForKey(e, "_color", light->color, LIGHT_DEFAULT_COLOR);
-			ColorNormalize(light->color, light->color);
-
-			if (light->type == LIGHT_SPOT) {
-				light->cone = cos(Radians(FloatForKey(e, "_cone", LIGHT_SPOT_DEFAULT_CONE)));
-
-				if (targetname) {
-					const entity_t *target = FindTargetEntity(targetname);
-					if (target) {
-						vec3_t target_origin;
-						VectorForKey(target, "origin", target_origin, NULL);
-						VectorSubtract(target_origin, light->origin, light->normal);
-						VectorNormalize(light->normal);
-					} else {
-						Mon_SendSelect(MON_WARN, i, 0, va("Spot light at %s missing target", vtos(light->origin)));
-						VectorCopy(vec3_down, light->normal);
-					}
-				} else {
-					const vec_t angle = FloatForKey(e, "_angle", LIGHT_SPOT_DEFAULT_ANGLE);
-					if (angle == LIGHT_SPOT_ANGLE_UP) {
-						VectorCopy(vec3_up, light->normal);
-					} else if (angle == LIGHT_SPOT_ANGLE_DOWN) {
-						VectorCopy(vec3_down, light->normal);
-					} else {
-						AngleVectors((const vec3_t) { 0.0, angle, 0.0 }, light->normal, NULL, NULL);
-					}
+			for (const patch_t *patch = face_patches[i]; patch; patch = patch->next) {
+				light_t *light = LightForPatch(patch);
+				if (light) {
+					lights = g_list_prepend(lights, light);
 				}
-
-				VectorNegate(light->normal, light->normal);
 			}
-		}
-
-		if (!g_strcmp0(classname, "light_sun")) {
-
-			sun_t *sun = &suns[num_suns++];
-
-			VectorCopy(origin, sun->origin);
-
-			sun->light = FloatForKey(e, "light", LIGHT_SUN_DEFAULT_LIGHT);
-
-			VectorForKey(e, "_color", sun->color, LIGHT_SUN_DEFAULT_COLOR);
-			ColorNormalize(sun->color, sun->color);
-
-			if (targetname) {
-				const entity_t *target = FindTargetEntity(targetname);
-				if (target) {
-					vec3_t target_origin;
-					VectorForKey(target, "origin", target_origin, NULL);
-					VectorSubtract(target_origin, sun->origin, sun->normal);
-					VectorNormalize(sun->normal);
-				} else {
-					Mon_SendSelect(MON_WARN, i, 0, va("Sun light at %s missing target", vtos(origin)));
-					VectorCopy(vec3_down, sun->normal);
-				}
-			} else {
-				Mon_SendSelect(MON_WARN, i, 0, va("Sun light at %s missing target", vtos(origin)));
-				VectorCopy(vec3_down, sun->normal);
-			}
-
-			VectorNegate(sun->normal, sun->normal);
 		}
 	}
 
-	Com_Verbose("Lighting %zd lights, %zd suns\n", num_lights, num_suns);
+	Com_Verbose("Direct lighting for %d lights\n", g_list_length(lights));
+}
+
+/**
+ * @return A light source for indirect light from a directly lit patch.
+ */
+light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
+
+	light_t *light = NULL;
+
+	vec2_t st_mins, st_maxs;
+
+	st_mins[0] = st_mins[1] = FLT_MAX;
+	st_maxs[0] = st_maxs[1] = -FLT_MAX;
+
+	for (int32_t j = 0; j < patch->winding->num_points; j++) {
+
+		ddvec3_t point;
+		VectorCopy(patch->winding->points[j], point);
+
+		for (int32_t k = 0; k < 2; k++) {
+			const vec_t val = DotProduct(point, lm->texinfo->vecs[k]) + lm->texinfo->vecs[k][3];
+			if (val < st_mins[k]) {
+				st_mins[k] = val;
+			}
+			if (val > st_maxs[k]) {
+				st_maxs[k] = val;
+			}
+		}
+	}
+
+	assert(st_mins[0] >= lm->st_mins[0]);
+	assert(st_mins[1] >= lm->st_mins[1]);
+	assert(st_maxs[0] <= lm->st_maxs[0]);
+	assert(st_maxs[1] <= lm->st_maxs[1]);
+
+	s16vec2_t lm_mins, lm_maxs;
+
+	for (int32_t i = 0; i < 2; i++) {
+		lm_mins[i] = floorf(st_mins[i] * lightmap_scale);
+		lm_maxs[i] = ceilf(st_maxs[i] * lightmap_scale);
+	}
+
+	const int16_t width = lm_maxs[0] - lm_mins[0];
+	const int16_t height = lm_maxs[1] - lm_mins[1];
+
+	vec3_t lightmap;
+	VectorClear(lightmap);
+
+	for (int32_t t = 0; t < height; t++) {
+		for (int32_t s = 0; s < width; s++) {
+
+			const int32_t ds = lm_mins[0] - lm->lm_mins[0] + s;
+			const int32_t dt = lm_mins[1] - lm->lm_mins[1] + t;
+
+			const luxel_t *l = &lm->luxels[dt * lm->width + ds];
+
+			assert(l->s == ds);
+			assert(l->t == dt);
+
+			VectorAdd(lightmap, l->direct, lightmap);
+			VectorAdd(lightmap, l->indirect, lightmap);
+		}
+	}
+
+	if (!VectorCompare(lightmap, vec3_origin)) {
+
+		VectorScale(lightmap, 1.0 / (width * height), lightmap);
+
+		light = Mem_TagMalloc(sizeof(*light), MEM_TAG_LIGHT);
+
+		light->type = LIGHT_PATCH;
+		light->atten = LIGHT_ATTEN_INVERSE_SQUARE;
+
+		WindingCenter(patch->winding, light->origin);
+		VectorMA(light->origin, 4.0, lm->normal, light->origin);
+
+		light->radius = ColorNormalize(lightmap, light->color);
+		light->cluster = Cm_LeafCluster(Cm_PointLeafnum(light->origin, 0));
+	}
+
+	return light;
 }
 
 /**
@@ -202,89 +271,25 @@ void BuildDirectLights(void) {
  */
 void BuildIndirectLights(void) {
 
-	num_lights = 0;
-	memset(lights, 0, sizeof(lights));
+	g_list_free_full(lights, Mem_Free);
+	lights = NULL;
 
 	for (int32_t i = 0; i < bsp_file.num_faces; i++) {
 
 		const lightmap_t *lm = &lightmaps[i];
 
-		if (lm->texinfo->flags & (SURF_LIGHT | SURF_SKY | SURF_WARP)) {
+		if (lm->texinfo->flags & (SURF_LIGHT | SURF_SKY)) {
 			continue;
 		}
 
-		for (const patch_t *p = face_patches[i]; p; p = p->next) {
+		for (const patch_t *patch = face_patches[i]; patch; patch = patch->next) {
 
-			vec2_t st_mins, st_maxs;
-
-			st_mins[0] = st_mins[1] = FLT_MAX;
-			st_maxs[0] = st_maxs[1] = -FLT_MAX;
-
-			for (int32_t j = 0; j < p->winding->num_points; j++) {
-
-				ddvec3_t point;
-				VectorCopy(p->winding->points[j], point);
-
-				for (int32_t k = 0; k < 2; k++) {
-					const vec_t val = DotProduct(point, lm->texinfo->vecs[k]) + lm->texinfo->vecs[k][3];
-					if (val < st_mins[k]) {
-						st_mins[k] = val;
-					}
-					if (val > st_maxs[k]) {
-						st_maxs[k] = val;
-					}
-				}
+			light_t *light = LightForLightmappedPatch(lm, patch);
+			if (light) {
+				lights = g_list_prepend(lights, light);
 			}
-
-			assert(st_mins[0] >= lm->st_mins[0]);
-			assert(st_mins[1] >= lm->st_mins[1]);
-			assert(st_maxs[0] <= lm->st_maxs[0]);
-			assert(st_maxs[1] <= lm->st_maxs[1]);
-
-			s16vec2_t lm_mins, lm_maxs;
-
-			for (int32_t i = 0; i < 2; i++) {
-				lm_mins[i] = floorf(st_mins[i] * lightmap_scale);
-				lm_maxs[i] = ceilf(st_maxs[i] * lightmap_scale);
-			}
-
-			const int16_t width = lm_maxs[0] - lm_mins[0];
-			const int16_t height = lm_maxs[1] - lm_mins[1];
-
-			vec3_t lightmap;
-			VectorClear(lightmap);
-
-			for (int32_t t = 0; t < height; t++) {
-				for (int32_t s = 0; s < width; s++) {
-
-					const int32_t ds = lm_mins[0] - lm->lm_mins[0] + s;
-					const int32_t dt = lm_mins[1] - lm->lm_mins[1] + t;
-
-					const luxel_t *l = &lm->luxels[dt * lm->width + ds];
-
-					assert(l->s == ds);
-					assert(l->t == dt);
-
-					VectorAdd(lightmap, l->direct, lightmap);
-					VectorAdd(lightmap, l->indirect, lightmap);
-				}
-			}
-
-			if (VectorCompare(lightmap, vec3_origin)) {
-				continue;
-			}
-
-			VectorScale(lightmap, 1.0 / (width * height), lightmap);
-
-			vec3_t origin;
-			WindingCenter(p->winding, origin);
-
-			VectorMA(origin, 4.0, lm->normal, origin);
-
-			light_t *light = BuildLight(origin, LIGHT_PATCH);
-
-			light->radius = ColorNormalize(lightmap, light->color);
 		}
 	}
-}
 
+	Com_Verbose("Indirect lighting for %d patches\n", g_list_length(lights));
+}
