@@ -1,5 +1,6 @@
 noinst_HEADERS = \
 	cm_bsp.h \
+	cm_entity.h \
 	cm_local.h \
 	cm_material.h \
 	cm_model.h \
@@ -18,6 +19,7 @@ libcmodel_la_CFLAGS = \
 
 libcmodel_la_SOURCES = \
 	cm_bsp.c \
+	cm_entity.c \
 	cm_material.c \
 	cm_model.c \
 	cm_test.c \

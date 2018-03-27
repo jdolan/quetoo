@@ -21,15 +21,7 @@
 
 #pragma once
 
-#include "files.h"
-#include "filesystem.h"
-#include "matrix.h"
-
-#include "cm_bsp.h"
-#include "cm_entity.h"
-#include "cm_material.h"
-#include "cm_model.h"
-#include "cm_test.h"
-#include "cm_trace.h"
 #include "cm_types.h"
-#include "cm_vis.h"
+
+GList *Cm_LoadEntities(const char *entity_string);
+const char *Cm_EntityValue(const cm_entity_t *entity, const char *key);

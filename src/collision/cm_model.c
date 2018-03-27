@@ -29,47 +29,7 @@ cm_bsp_t cm_bsp;
  */
 static void Cm_LoadBspEntities(void) {
 
-	GList *entities = NULL;
-
-	parser_t parser;
-	Parse_Init(&parser, cm_bsp.bsp.entity_string, PARSER_NO_COMMENTS);
-
-	while (true) {
-
-		char token[MAX_BSP_ENTITY_VALUE];
-
-		if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
-			break;
-		}
-
-		if (!g_strcmp0("{", token)) {
-
-			cm_entity_t *entity = NULL;
-
-			while (true) {
-
-				cm_entity_t *pair = Mem_TagMalloc(sizeof(*pair), MEM_TAG_CMODEL);
-
-				Parse_Token(&parser, PARSE_DEFAULT, pair->key, sizeof(pair->key));
-				Parse_Token(&parser, PARSE_DEFAULT, pair->value, sizeof(pair->value));
-
-				pair->next = entity;
-				entity = pair;
-
-				Parse_PeekToken(&parser, PARSE_DEFAULT, token, sizeof(token));
-
-				if (!g_strcmp0("}", token)) {
-					break;
-				}
-			}
-
-			assert(entity);
-
-			entities = g_list_prepend(entities, entity);
-		}
-	}
-
-	entities = g_list_reverse(entities);
+	GList *entities = Cm_LoadEntities(cm_bsp.bsp.entity_string);
 
 	cm_bsp.num_entities = g_list_length(entities);
 	cm_bsp.entities = Mem_TagMalloc(sizeof(cm_entity_t *) * cm_bsp.num_entities, MEM_TAG_CMODEL);
@@ -536,48 +496,8 @@ const char *Cm_EntityString(void) {
 /**
  * @brief
  */
-const char *Cm_EntityValue(const cm_entity_t *entity, const char *key) {
-
-	for (const cm_entity_t *e = entity; e; e = e->next) {
-		if (!g_strcmp0(e->key, key)) {
-			return e->value;
-		}
-	}
-
-	return NULL;
-}
-
-/**
- * @brief
- */
 cm_entity_t *Cm_Worldspawn(void) {
 	return *cm_bsp.entities;
-}
-
-/**
- * @brief
- */
-cm_entity_t *Cm_EntityWithValue(const char *key, const char *value) {
-
-	cm_entity_t **entity = cm_bsp.entities;
-	for (size_t i = 0; i < cm_bsp.num_entities; i++, entity++) {
-		if (!g_strcmp0(value, Cm_EntityValue(*entity, key))) {
-			return *entity;
-		}
-	}
-
-	return NULL;
-}
-
-/**
- * @brief
- */
-void Cm_EnumerateEntities(EntityEnumerator enumerator, void *data) {
-
-	cm_entity_t **entity = cm_bsp.entities;
-	for (size_t i = 0; i < cm_bsp.num_entities; i++, entity++) {
-		enumerator(*entity, data);
-	}
 }
 
 /**

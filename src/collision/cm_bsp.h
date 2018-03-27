@@ -203,7 +203,6 @@ typedef struct {
  * if you want to expand the space required use the Bsp_* functions.
  */
 typedef struct {
-	// BSP lumps
 	int32_t entity_string_size;
 	char *entity_string;
 
