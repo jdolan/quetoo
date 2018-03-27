@@ -26,19 +26,20 @@
 #ifdef __R_LOCAL_H__
 
 typedef struct {
-	vec3_t ambient;
+	vec_t diffuse;
+	vec3_t dir;
+	vec3_t color;
+} sun_t;
 
-	struct {
-		vec_t diffuse;
-		vec3_t dir;
-		vec3_t color;
-	} sun;
+typedef struct {
+	vec3_t ambient;
 
 	vec_t brightness;
 	vec_t saturation;
 	vec_t contrast;
 
 	GSList *lights;
+	GSList *suns;
 } r_bsp_light_state_t;
 
 extern r_bsp_light_state_t r_bsp_light_state;

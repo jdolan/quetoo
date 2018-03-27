@@ -636,7 +636,6 @@ typedef struct {
  */
 typedef struct {
 	const r_bsp_leaf_t *leaf;
-	uint16_t count;
 
 	/**
 	 * @see r_light_t

@@ -117,11 +117,11 @@ static void R_AmbientIllumination(const r_lighting_t *l) {
 #define LIGHTING_SUN_DIST 260.0
 
 /**
- * @brief Adds an illumination for sun lighting. Traces to the lighting bounds
+ * @brief Adds an illumination for each sun. Traces to the lighting bounds
  * determine sun exposure, which scales the applied sun color.
  */
-static void R_SunIllumination(const r_lighting_t *l) {
-	r_illumination_t il;
+static void R_SunIlluminations(const r_lighting_t *l) {
+	/*r_illumination_t il;
 
 	if (!r_bsp_light_state.sun.diffuse) {
 		return;
@@ -159,12 +159,12 @@ static void R_SunIllumination(const r_lighting_t *l) {
 
 	il.diffuse = il.light.radius - LIGHTING_SUN_DIST;
 
-	R_AddIllumination(&il);
+	R_AddIllumination(&il);*/
 }
 
 /**
- * @brief Adds an illumination for the positional light source, if the given
- * point is within range and not occluded.
+ * @brief Adds an illumination for the positional light source, if the given point is within range
+ * and not occluded.
  */
 static _Bool R_PositionalIllumination(const r_lighting_t *l, r_illumination_type_t type, const r_light_t *light) {
 	r_illumination_t il;
@@ -180,7 +180,7 @@ static _Bool R_PositionalIllumination(const r_lighting_t *l, r_illumination_type
 		// is it within range of the point in question
 		VectorSubtract(light->origin, p[i], dir);
 
-		const vec_t diff = light->radius - VectorLength(dir);
+		const vec_t diff = light->radius * r_lighting->value - VectorLength(dir);
 
 		if (diff <= 0.0) {
 			continue;
@@ -285,7 +285,7 @@ static void R_UpdateIlluminations(r_lighting_t *l) {
 	// otherwise, resolve ambient, sun and static illuminations as well
 	R_AmbientIllumination(l);
 
-	R_SunIllumination(l);
+	R_SunIlluminations(l);
 
 	R_StaticIlluminations(l);
 

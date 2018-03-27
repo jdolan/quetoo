@@ -40,9 +40,7 @@
  * typically quite large, their surface area coefficient actually scales down.
  */
 
-#define BSP_LIGHT_SUN_SCALE 1.0
-#define BSP_LIGHT_MERGE_THRESHOLD 24.0
-#define BSP_LIGHT_POINT_DEFAULT_RADIUS 300.0
+#define BSP_LIGHT_MERGE_THRESHOLD 8.0
 
 r_bsp_light_state_t r_bsp_light_state;
 
@@ -51,10 +49,9 @@ r_bsp_light_state_t r_bsp_light_state;
  */
 static void R_ResolveBspLightParameters(void) {
 	const char *c;
-	vec3_t tmp;
 
 	// resolve ambient light
-	if ((c = Cm_WorldspawnValue("ambient"))) {
+	if ((c = Cm_EntityValue(Cm_Worldspawn(), "ambient"))) {
 		vec_t *f = r_bsp_light_state.ambient;
 		sscanf(c, "%f %f %f", &f[0], &f[1], &f[2]);
 
@@ -65,52 +62,22 @@ static void R_ResolveBspLightParameters(void) {
 		VectorSet(r_bsp_light_state.ambient, 0.15, 0.15, 0.15);
 	}
 
-	// resolve sun light
-	if ((c = Cm_WorldspawnValue("sun_light"))) {
-		r_bsp_light_state.sun.diffuse = atof(c) * BSP_LIGHT_SUN_SCALE;
-
-		Com_Debug(DEBUG_RENDERER, "Resolved sun_light: %1.2f\n", r_bsp_light_state.sun.diffuse);
-	} else {
-		r_bsp_light_state.sun.diffuse = 0.0;
-	}
-
-	// resolve sun angles and direction
-	if ((c = Cm_WorldspawnValue("sun_angles"))) {
-		VectorClear(tmp);
-		sscanf(c, "%f %f", &tmp[0], &tmp[1]);
-
-		Com_Debug(DEBUG_RENDERER, "Resolved sun_angles: %s\n", vtos(tmp));
-		AngleVectors(tmp, r_bsp_light_state.sun.dir, NULL, NULL);
-	} else {
-		VectorCopy(vec3_down, r_bsp_light_state.sun.dir);
-	}
-
-	// resolve sun color
-	if ((c = Cm_WorldspawnValue("sun_color"))) {
-		vec_t *f = r_bsp_light_state.sun.color;
-		sscanf(c, "%f %f %f", &f[0], &f[1], &f[2]);
-
-		Com_Debug(DEBUG_RENDERER, "Resolved sun_color: %s\n", vtos(f));
-	} else {
-		VectorSet(r_bsp_light_state.sun.color, 1.0, 1.0, 1.0);
-	}
-
 	// resolve brightness
-	if ((c = Cm_WorldspawnValue("brightness"))) {
+	if ((c = Cm_EntityValue(Cm_Worldspawn(), "brightness"))) {
 		r_bsp_light_state.brightness = atof(c);
 	} else {
 		r_bsp_light_state.brightness = 1.0;
 	}
 
 	// resolve saturation
-	if ((c = Cm_WorldspawnValue("saturation"))) {
+	if ((c = Cm_EntityValue(Cm_Worldspawn(), "saturation"))) {
 		r_bsp_light_state.saturation = atof(c);
 	} else {
 		r_bsp_light_state.saturation = 1.0;
 	}
 
 	// resolve contrast
-	if ((c = Cm_WorldspawnValue("contrast"))) {
+	if ((c = Cm_EntityValue(Cm_Worldspawn(), "contrast"))) {
 		r_bsp_light_state.contrast = atof(c);
 	} else {
 		r_bsp_light_state.contrast = 1.0;
@@ -127,73 +94,39 @@ static void R_ResolveBspLightParameters(void) {
 	// apply brightness, saturation and contrast to the colors
 	ColorFilter(r_bsp_light_state.ambient, r_bsp_light_state.ambient, brt, sat, con);
 	Com_Debug(DEBUG_RENDERER, "Scaled ambient: %s\n", vtos(r_bsp_light_state.ambient));
-
-	ColorFilter(r_bsp_light_state.sun.color, r_bsp_light_state.sun.color, brt, sat, con);
-	Com_Debug(DEBUG_RENDERER, "Scaled sun color: %s\n", vtos(r_bsp_light_state.sun.color));
 }
 
 /**
  * @brief Adds the specified static light source after first ensuring that it
  * can not be merged with any known sources.
  */
-static void R_AddBspLight(r_bsp_model_t *bsp, vec3_t origin, vec3_t color, vec_t radius) {
+static void R_AddBspLight(r_bsp_model_t *bsp, const r_light_t *l) {
 
-	if (radius <= 0.0) {
-		Com_Debug(DEBUG_RENDERER, "Bad radius: %f\n", radius);
+	if (l->radius <= 0.0) {
+		Com_Debug(DEBUG_RENDERER, "Bad radius: %f\n", l->radius);
 		return;
 	}
 
-	if (r_lighting->value) { // scale by r_lighting->value, if enabled
-		radius *= r_lighting->value;
-	}
+	r_bsp_light_t *light = Mem_LinkMalloc(sizeof(*light), bsp);
+	r_bsp_light_state.lights = g_slist_prepend(r_bsp_light_state.lights, light);
 
-	r_bsp_light_t *bl = NULL;
-	GSList *e = r_bsp_light_state.lights;
-	while (e) {
-		vec3_t delta;
+	memcpy(&light->light, l, sizeof(*l));
 
-		bl = (r_bsp_light_t *) e->data;
-		VectorSubtract(origin, bl->light.origin, delta);
-
-		if (VectorLength(delta) <= BSP_LIGHT_MERGE_THRESHOLD) { // merge them
-			break;
-		}
-
-		bl = NULL;
-		e = e->next;
-	}
-
-	if (!bl) { // or allocate a new one
-		bl = Mem_LinkMalloc(sizeof(*bl), bsp);
-		r_bsp_light_state.lights = g_slist_prepend(r_bsp_light_state.lights, bl);
-
-		VectorCopy(origin, bl->light.origin);
-		bl->leaf = R_LeafForPoint(bl->light.origin, bsp);
-	}
-
-	bl->count++;
-	bl->light.radius = ((bl->light.radius * (bl->count - 1)) + radius) / bl->count;
+	light->leaf = R_LeafForPoint(light->light.origin, bsp);
 
 	const r_bsp_light_state_t *s = &r_bsp_light_state;
 
-	vec3_t filtered_color;
-	ColorFilter(color, filtered_color, s->brightness, s->saturation, s->contrast);
+	ColorFilter(light->light.color, light->light.color, s->brightness, s->saturation, s->contrast);
 
-	VectorMix(bl->light.color, filtered_color, 1.0 / bl->count, bl->light.color);
-
-	bl->debug.type = PARTICLE_CORONA;
-	bl->debug.color[3] = 1.0;
-	bl->debug.blend = GL_ONE;
+	light->debug.type = PARTICLE_CORONA;
+	light->debug.color[3] = 1.0;
+	light->debug.blend = GL_ONE;
 }
 
 /**
- * @brief Parse the entity string and resolve all static light sources. Sources which
- * are very close to each other are merged. Their colors are blended according
- * to their light value (intensity).
+ * @brief Parse the entity string and resolve all static light sources.
  */
 void R_LoadBspLights(r_bsp_model_t *bsp) {
-	vec3_t origin, color;
-	vec_t radius;
 
 	memset(&r_bsp_light_state, 0, sizeof(r_bsp_light_state));
 
@@ -206,96 +139,87 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 
 		const r_bsp_texinfo_t *tex = surf->texinfo;
 		if ((tex->flags & SURF_LIGHT) && tex->value) {
-			VectorMA(surf->center, 4.0, surf->normal, origin);
 
-			vec3_t delta;
-			VectorSubtract(surf->maxs, surf->mins, delta);
-			radius = tex->value + VectorLength(delta);
+			r_light_t light;
 
-			R_AddBspLight(bsp, origin, tex->material->diffuse->color, radius);
+			VectorMA(surf->center, 4.0, surf->normal, light.origin);
+			light.radius = tex->value + sqrt(surf->area);
+			VectorCopy(tex->material->diffuse->color, light.color);
+
+			R_AddBspLight(bsp, &light);
 		}
 	}
 
-	// parse the entity string for point lights
-	const char *ents = Cm_EntityString();
+	// enumerate the entities for point lights, spot lights and suns
+	cm_entity_t **entity = Cm_Bsp()->entities;
+	for (size_t i = 0; i < Cm_Bsp()->num_entities; i++, entity++) {
 
-	VectorClear(origin);
+		const char *classname = Cm_EntityValue(*entity, "classname");
+		if (!g_strcmp0(classname, "light") ||
+			!g_strcmp0(classname, "light_spot") ||
+			!g_strcmp0(classname, "light_sun")) {
 
-	radius = BSP_LIGHT_POINT_DEFAULT_RADIUS;
-	VectorSet(color, 1.0, 1.0, 1.0);
+			r_light_t light;
 
-	_Bool entity = false, light = false;
-	char token[MAX_BSP_ENTITY_VALUE];
-	parser_t parser;
+			parser_t parser;
 
-	Parse_Init(&parser, ents, PARSER_NO_COMMENTS);
-
-	while (true) {
-
-		if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
-			break;
-		}
-
-		if (*token == '{') {
-			entity = true;
-			continue;
-		}
-
-		if (!entity) { // skip any whitespace between ents
-			continue;
-		}
-
-		if (*token == '}') {
-			entity = false;
-
-			if (light) { // add it
-				R_AddBspLight(bsp, origin, color, radius);
-
-				radius = BSP_LIGHT_POINT_DEFAULT_RADIUS;
-				VectorSet(color, 1.0, 1.0, 1.0);
-
-				light = false;
-			}
-		}
-
-		if (!g_strcmp0(token, "classname")) {
-
-			if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
-				break;
+			Parse_Init(&parser, Cm_EntityValue(*entity, "origin"), PARSER_DEFAULT);
+			if (Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, light.origin, 3) != 3) {
+				Com_Debug(DEBUG_RENDERER, "Invalid light source\n");
+				continue;
 			}
 
-			if (!strncmp(token, "light", 5)) { // light, light_spot, etc..
-				light = true;
+			Parse_Init(&parser, Cm_EntityValue(*entity, "_color"), PARSER_DEFAULT);
+			if (Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, light.color, 3) != 3) {
+				VectorSet(light.color, 1.0, 1.0, 1.0);
+
 			}
 
-			continue;
-		}
-
-		if (!g_strcmp0(token, "origin")) {
-
-			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_NO_WRAP | PARSE_WITHIN_QUOTES, PARSE_FLOAT, origin, 3) != 3) {
-				break;
+			Parse_Init(&parser, Cm_EntityValue(*entity, "light"), PARSER_DEFAULT);
+			if (Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, &light.radius, 1) != 1) {
+				light.radius = DEFAULT_LIGHT;
 			}
 
-			continue;
-		}
+			/*
+			 TODO: Sun light sources
+			const char *targetname = Cm_EntityValue(*entity, "target");
+			if (targetname) {
+				cm_entity_t *target = NULL, *e = entities;
+				for (size_t i = 0; i < num_entities; i++, e++) {
+					if (!g_strcmp0(targetname, ValueForKey(e, "targetname", NULL))) {
+						target = e;
+						break;
+					}
+				}
+				if (target) {
+					vec3_t target_origin;
+					VectorForKey(target, "origin", target_origin, NULL);
+					VectorSubtract(target_origin, light->origin, light->normal);
+				} else {
+					Mon_SendSelect(MON_WARN, entity - entities, 0,
+								   va("Spot light at %s missing target", vtos(light->origin)));
+					VectorCopy(vec3_down, light->normal);
+				}
+			} else {
+				if (light->type == LIGHT_SPOT) {
+					vec3_t angles = { 0.0, FloatForKey(entity, "_angle", 0.0), 0.0};
+					if (angles[YAW] == 0.0) {
+						VectorCopy(vec3_down, light->normal);
+					} else {
+						if (angles[YAW] == LIGHT_ANGLE_UP) {
+							VectorCopy(vec3_up, light->normal);
+						} else if (angles[YAW] == LIGHT_ANGLE_DOWN) {
+							VectorCopy(vec3_down, light->normal);
+						} else {
+							AngleVectors(angles, light->normal, NULL, NULL);
+						}
+					}
+				} else {
+					VectorCopy(vec3_down, light->normal);
+				}
+			}*/
 
-		if (!g_strcmp0(token, "light")) {
-
-			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_NO_WRAP | PARSE_WITHIN_QUOTES, PARSE_FLOAT, &radius, 1) != 1) {
-				break;
-			}
-
-			continue;
-		}
-
-		if (!g_strcmp0(token, "_color")) {
-
-			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_NO_WRAP | PARSE_WITHIN_QUOTES, PARSE_FLOAT, color, 3) != 3) {
-				break;
-			}
-
-			continue;
+			R_AddBspLight(bsp, &light);
 		}
 	}
 
@@ -303,11 +227,9 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 	bsp->num_bsp_lights = g_slist_length(r_bsp_light_state.lights);
 	bsp->bsp_lights = Mem_LinkMalloc(sizeof(r_bsp_light_t) * bsp->num_bsp_lights, bsp);
 
-	GSList *e = r_bsp_light_state.lights;
 	r_bsp_light_t *bl = bsp->bsp_lights;
-	while (e) {
+	for (GSList *e = r_bsp_light_state.lights; e; e = e->next) {
 		*bl++ = *((r_bsp_light_t *) e->data);
-		e = e->next;
 	}
 
 	// reset state
