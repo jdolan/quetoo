@@ -197,18 +197,18 @@ light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
 	st_mins[0] = st_mins[1] = FLT_MAX;
 	st_maxs[0] = st_maxs[1] = -FLT_MAX;
 
-	for (int32_t j = 0; j < patch->winding->num_points; j++) {
+	for (int32_t i = 0; i < patch->winding->num_points; i++) {
 
 		ddvec3_t point;
-		VectorCopy(patch->winding->points[j], point);
+		VectorCopy(patch->winding->points[i], point);
 
-		for (int32_t k = 0; k < 2; k++) {
-			const vec_t val = DotProduct(point, lm->texinfo->vecs[k]) + lm->texinfo->vecs[k][3];
-			if (val < st_mins[k]) {
-				st_mins[k] = val;
+		for (int32_t j = 0; j < 2; j++) {
+			const vec_t val = DotProduct(point, lm->texinfo->vecs[j]) + lm->texinfo->vecs[j][3];
+			if (val < st_mins[j]) {
+				st_mins[j] = val;
 			}
-			if (val > st_maxs[k]) {
-				st_maxs[k] = val;
+			if (val > st_maxs[j]) {
+				st_maxs[j] = val;
 			}
 		}
 	}
