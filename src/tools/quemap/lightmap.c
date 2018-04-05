@@ -33,8 +33,6 @@ lightmap_t lightmaps[MAX_BSP_FACES];
  */
 static void BuildLightmapExtents(lightmap_t *lm) {
 
-	ClearBounds(lm->mins, lm->maxs);
-
 	lm->st_mins[0] = lm->st_mins[1] = FLT_MAX;
 	lm->st_maxs[0] = lm->st_maxs[1] = -FLT_MAX;
 
@@ -46,15 +44,6 @@ static void BuildLightmapExtents(lightmap_t *lm) {
 			v = bsp_file.vertexes + bsp_file.edges[e].v[0];
 		} else {
 			v = bsp_file.vertexes + bsp_file.edges[-e].v[1];
-		}
-
-		for (int32_t k = 0; k < 3; k++) {
-			if (v->point[k] > lm->maxs[k]) {
-				lm->maxs[k] = v->point[k];
-			}
-			if (v->point[k] < lm->mins[k]) {
-				lm->mins[k] = v->point[k];
-			}
 		}
 
 		ddvec3_t point;

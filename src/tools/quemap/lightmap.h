@@ -44,7 +44,6 @@ typedef struct {
 	vec3_t normal;
 	matrix4x4_t world_to_tex;
 	matrix4x4_t tex_to_world;
-	vec3_t mins, maxs;
 	vec2_t st_mins, st_maxs;
 	s16vec2_t lm_mins, lm_maxs;
 	int16_t width, height;
