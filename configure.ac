@@ -335,7 +335,7 @@ if test "x${with_tools}" != x; then
 fi
 
 if test ${TOOLS} = "no"; then
-        TOOLS="quetoo-master quetoo-update"
+        TOOLS=""
 fi
 
 AC_SUBST(TOOLS)
