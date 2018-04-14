@@ -23,20 +23,22 @@
 
 Preview releases of _Quetoo_ for all platforms are available for download on the [project website](http://quetoo.org/pages/downloads). Installation instructions are available there as well.
 
+## Community
+
+Looking for a game? Join the official [Quetoo Discord](https://discord.gg/unb9U4b) server.
+
 ## Compiling
 
-Compilation of _Quetoo_ is only recommended for users running GNU/Linux or Mac OS X. Windows users should consider using our cross-compiled snapshots. For more information, see [Installation and Maintenance](http://quetoo.org/books/documentation/installation-and-maintenance).
+Compiling _Quetoo_ is only recommended for advanced users. Supported platforms and targets include GNU Linux, BSD, Apple OS X, MinGW Cross Compile, and Microsoft Visual Studio. See [Installation and Maintenance](http://quetoo.org/books/documentation/installation-and-maintenance).
 
 The following dependencies are required:
 
- * [SDL2_image](https://www.libsdl.org/projects/SDL_image/)
- * [SDL2_mixer](https://www.libsdl.org/projects/SDL_mixer/)
+ * [ObjectivelyMVC](https://github.com/jdolan/ObjectivelyMVC/)
  * [PhysicsFS](https://icculus.org/physfs/)
+ * [OpenAL](https://www.openal.org/)
  * [glib2](https://developer.gnome.org/glib/)
- * [cURL](https://curl.haxx.se/libcurl/)
  * [ncurses](https://www.gnu.org/software/ncurses/)
  * [libxml2](http://xmlsoft.org/)
- * [ObjectivelyMVC](https://github.com/jdolan/ObjectivelyMVC/)
 
 Quetoo builds with GNU Autotools. To build it, run the following:
 
@@ -54,4 +56,5 @@ To have a working game, you must install the game data using `git`:
 More information on hacking on _Quetoo_ is available [on the project website](http://quetoo.org/books/documentation/developing-and-modding).
 
 ## Support
- * The IRC channel for this project is *#quetoo* on *irc.freenode.net*
+
+Support is available via [Discord](https://discord.gg/unb9U4b).
