@@ -89,7 +89,7 @@ static GLenum R_BufferTypeToTarget(const r_buffer_type_t type) {
 	case R_BUFFER_ELEMENT:
 		return GL_ELEMENT_ARRAY_BUFFER;
 	default:
-		Com_Error(ERROR_FATAL, "What");
+		Com_Error(ERROR_FATAL, "Invalid buffer type\n");
 	}
 }
 
@@ -190,13 +190,13 @@ void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t si
 
 	// Check size. This is benign really, but it's usually a bug.
 	if (!size) {
-		Com_Warn("Attempted to upload 0 bytes to GPU\n");
+		Com_Warn("Empty buffer\n");
 		return;
 	}
 
 	// Don't allow null ptrs since bufferSubData does not allow it.
 	if (!data) {
-		Com_Error(ERROR_DROP, "Fatal: attempted to upload null to GPU. bufferSubData does not allow this.\n");
+		Com_Error(ERROR_DROP, "NULL buffer\n");
 	}
 
 	// offset ptr if requested
