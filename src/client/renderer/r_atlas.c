@@ -124,11 +124,8 @@ void R_AtlasPacker_InitPacker(r_atlas_packer_t *packer, const uint16_t max_width
 	packer->max_height = max_height;
 
 	if (packer->nodes == NULL) {
-
 		R_AtlasPacker_Reserve(packer, initial_size ? : 1);
-
 	} else {
-
 		packer->num_nodes = 0;
 	}
 
@@ -330,18 +327,22 @@ static void R_StitchAtlas(r_atlas_t *atlas, r_atlas_params_t *params) {
 	uint16_t min_size = USHRT_MAX;
 	params->width = params->height = 0;
 
+	r_atlas_image_t *image = (r_atlas_image_t *) atlas->images->data;
+
 	// setup base packer parameters
 	r_atlas_packer_t packer;
 	memset(&packer, 0, sizeof(packer));
-
-	r_atlas_image_t *image = (r_atlas_image_t *) atlas->images->data;
-	R_AtlasPacker_InitPacker(&packer, r_config.max_texture_size, r_config.max_texture_size, image->input_image->width,
-	                         image->input_image->height, atlas->images->len);
+	
+	R_AtlasPacker_InitPacker(&packer, r_config.max_texture_size, r_config.max_texture_size,
+							 image->input_image->width,
+	                         image->input_image->height,
+							 atlas->images->len);
 
 	// stitch!
 	for (uint16_t i = 0; i < atlas->images->len; i++, image++) {
-		r_atlas_packer_node_t *node = R_AtlasPacker_FindNode(&packer, packer.root, image->input_image->width,
-		                        image->input_image->height);
+		r_atlas_packer_node_t *node = R_AtlasPacker_FindNode(&packer, packer.root,
+															 image->input_image->width,
+															 image->input_image->height);
 
 		if (node != NULL) {
 			node = R_AtlasPacker_SplitNode(&packer, node, image->input_image->width, image->input_image->height);
