@@ -142,7 +142,7 @@ light_t *LightForPatch(const patch_t *patch) {
 	const bsp_texinfo_t *texinfo = &bsp_file.texinfo[patch->face->texinfo];
 
 	GetTextureColor(texinfo->texture, light->color);
-	light->radius = texinfo->value;
+	light->radius = texinfo->value ?: DEFAULT_LIGHT;
 
 	light->cluster = Cm_LeafCluster(Cm_PointLeafnum(light->origin, 0));
 
