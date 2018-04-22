@@ -209,6 +209,11 @@ dnl -----------------------------------
 dnl Sort out OpenAL flags and libraries
 dnl -----------------------------------
 
+AC_CHECK_HEADER(AL/al.h,
+	PHYSFS_LIBS="-lphysfs -lz",
+	[AC_MSG_ERROR([Could not find AL/al.h, please install OpenAL])]
+)
+
 HOST_OPENAL_CFLAGS=""
 HOST_OPENAL_LIBS=""
 
