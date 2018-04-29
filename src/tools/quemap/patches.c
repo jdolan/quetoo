@@ -26,8 +26,6 @@
 patch_t *face_patches[MAX_BSP_FACES];
 vec3_t face_offsets[MAX_BSP_FACES];
 
-vec_t patch_size = DEFAULT_PATCH_SIZE;
-
 static GHashTable *texture_colors;
 
 /**

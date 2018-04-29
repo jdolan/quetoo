@@ -40,12 +40,8 @@
 #define MAX_BSP_LIGHTMAP		(256 * 256) // the largest single lightmap allowed
 #define MAX_BSP_VISIBILITY		0x400000 // increased from Quake2 0x100000
 
-/**
-* @brief All lightmaps are moved into texture arrays,
-* instead of having different names (lightmap, deluxmap) like before,
-* they now packed into pages/layers.
-*/
-#define MAX_LIGHTMAP_LAYERS 2
+// lightmap luxel size, in world units
+#define DEFAULT_BSP_LUXEL_SIZE 4
 
 typedef enum {
 	BSP_LUMP_ENTITIES,
@@ -98,9 +94,6 @@ typedef struct {
 typedef struct {
 	vec3_t normal;
 } bsp_normal_t;
-
-// lightmap information is 1/n texture resolution
-#define BSP_DEFAULT_LIGHTMAP_SCALE (1.0 / 16.0)
 
 // planes (x & ~1) and (x & ~1) + 1 are always opposites
 

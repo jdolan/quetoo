@@ -85,12 +85,12 @@ static void R_LoadBspNormals(r_bsp_model_t *bsp) {
 static void R_LoadBspLightmaps(r_bsp_model_t *bsp) {
 	const char *c;
 
-	bsp->lightmap_scale = BSP_DEFAULT_LIGHTMAP_SCALE;
+	bsp->luxel_size = DEFAULT_BSP_LUXEL_SIZE;
 
-	// resolve lightmap scale
-	if ((c = Cm_EntityValue(Cm_Worldspawn(), "lightmap_scale"))) {
-		bsp->lightmap_scale = strtof(c, NULL);
-		Com_Debug(DEBUG_RENDERER, "Resolved lightmap_scale: %1.3f\n", bsp->lightmap_scale);
+	// resolve luxel size
+	if ((c = Cm_EntityValue(Cm_Worldspawn(), "luxel_size"))) {
+		bsp->luxel_size = strtol(c, NULL, 10);
+		Com_Debug(DEBUG_RENDERER, "Resolved luxel_size: %d\n", bsp->luxel_size);
 	}
 }
 

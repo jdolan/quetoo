@@ -42,11 +42,10 @@ typedef struct {
 	const bsp_texinfo_t *texinfo;
 	vec3_t offset;
 	vec3_t normal;
-	matrix4x4_t world_to_tex;
-	matrix4x4_t tex_to_world;
-	vec2_t st_mins, st_maxs;
-	s16vec2_t lm_mins, lm_maxs;
-	int16_t width, height;
+	matrix4x4_t matrix;
+	matrix4x4_t inverse_matrix;
+	vec2_t lm_mins, lm_maxs;
+	int16_t w, h;
 	luxel_t *luxels;
 	size_t num_luxels;
 } lightmap_t;

@@ -192,52 +192,47 @@ light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
 
 	light_t *light = NULL;
 
-	vec2_t st_mins, st_maxs;
+	vec2_t patch_mins, patch_maxs;
 
-	st_mins[0] = st_mins[1] = FLT_MAX;
-	st_maxs[0] = st_maxs[1] = -FLT_MAX;
+	patch_mins[0] = patch_mins[1] = FLT_MAX;
+	patch_maxs[0] = patch_maxs[1] = -FLT_MAX;
 
 	for (int32_t i = 0; i < patch->winding->num_points; i++) {
 
-		ddvec3_t point;
-		VectorCopy(patch->winding->points[i], point);
+		vec3_t point, st;
+		VectorAdd(lm->offset, patch->winding->points[i], point);
+
+		Matrix4x4_Transform(&lm->matrix, point, st);
 
 		for (int32_t j = 0; j < 2; j++) {
-			const vec_t val = DotProduct(point, lm->texinfo->vecs[j]) + lm->texinfo->vecs[j][3];
-			if (val < st_mins[j]) {
-				st_mins[j] = val;
+
+			if (st[j] < lm->lm_mins[j]) {
+				patch_mins[j] = st[j];
 			}
-			if (val > st_maxs[j]) {
-				st_maxs[j] = val;
+			if (st[j] > lm->lm_maxs[j]) {
+				patch_maxs[j] = st[j];
 			}
 		}
 	}
 
-	assert(st_mins[0] >= lm->st_mins[0]);
-	assert(st_mins[1] >= lm->st_mins[1]);
-	assert(st_maxs[0] <= lm->st_maxs[0]);
-	assert(st_maxs[1] <= lm->st_maxs[1]);
+	assert(patch_mins[0] >= lm->lm_mins[0]);
+	assert(patch_mins[1] >= lm->lm_mins[1]);
+	assert(patch_maxs[0] <= lm->lm_maxs[0]);
+	assert(patch_maxs[1] <= lm->lm_maxs[1]);
 
-	s16vec2_t lm_mins, lm_maxs;
-
-	for (int32_t i = 0; i < 2; i++) {
-		lm_mins[i] = floorf(st_mins[i] * lightmap_scale);
-		lm_maxs[i] = ceilf(st_maxs[i] * lightmap_scale);
-	}
-
-	const int16_t width = lm_maxs[0] - lm_mins[0];
-	const int16_t height = lm_maxs[1] - lm_mins[1];
+	const int16_t w = patch_maxs[0] - patch_mins[0];
+	const int16_t h = patch_maxs[1] - patch_mins[1];
 
 	vec3_t lightmap;
 	VectorClear(lightmap);
 
-	for (int32_t t = 0; t < height; t++) {
-		for (int32_t s = 0; s < width; s++) {
+	for (int32_t t = 0; t < h; t++) {
+		for (int32_t s = 0; s < w; s++) {
 
-			const int32_t ds = lm_mins[0] - lm->lm_mins[0] + s;
-			const int32_t dt = lm_mins[1] - lm->lm_mins[1] + t;
+			const int32_t ds = patch_mins[0] - lm->lm_mins[0] + s;
+			const int32_t dt = patch_mins[1] - lm->lm_mins[1] + t;
 
-			const luxel_t *l = &lm->luxels[dt * lm->width + ds];
+			const luxel_t *l = &lm->luxels[dt * lm->w + ds];
 
 			assert(l->s == ds);
 			assert(l->t == dt);
@@ -249,7 +244,7 @@ light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
 
 	if (!VectorCompare(lightmap, vec3_origin)) {
 
-		VectorScale(lightmap, 1.0 / (width * height), lightmap);
+		VectorScale(lightmap, 1.0 / (w * h), lightmap);
 
 		light = Mem_TagMalloc(sizeof(*light), MEM_TAG_LIGHT);
 

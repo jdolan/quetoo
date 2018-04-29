@@ -93,7 +93,7 @@ static _Bool R_StainSurface(const r_stain_t *stain, const r_bsp_surface_t *surf)
 	const vec_t radius = sqrt(stain->radius * stain->radius - dist * dist);
 
 	// transform the radius into lightmap space, accounting for unevenly scaled textures
-	const vec_t radius_st = (radius / tex->scale[0]) * r_model_state.world->bsp->lightmap_scale;
+	const vec_t radius_st = (radius / tex->scale[0]) * r_model_state.world->bsp->luxel_size;
 
 	// transform the impact point into texture space
 	vec2_t point_st = {
@@ -102,8 +102,8 @@ static _Bool R_StainSurface(const r_stain_t *stain, const r_bsp_surface_t *surf)
 	};
 
 	// and convert to lightmap space
-	point_st[0] *= r_model_state.world->bsp->lightmap_scale;
-	point_st[1] *= r_model_state.world->bsp->lightmap_scale;
+	point_st[0] *= r_model_state.world->bsp->luxel_size;
+	point_st[1] *= r_model_state.world->bsp->luxel_size;
 
 	point_st[0] -= radius_st / 2.0;
 	point_st[1] -= radius_st / 2.0;

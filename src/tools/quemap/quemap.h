@@ -78,9 +78,8 @@ extern vec_t brightness;
 extern vec_t saturation;
 extern vec_t contrast;
 
-extern vec_t lightmap_scale;
-
-extern vec_t patch_size;
+extern int16_t luxel_size;
+extern int16_t patch_size;
 
 // threads.c
 typedef struct semaphores_s {

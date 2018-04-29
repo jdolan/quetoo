@@ -266,28 +266,30 @@ static void Check_LIGHT_Options(int32_t argc) {
 			Com_Verbose("indirect lighting: true\n");
 		} else if (!g_strcmp0(Com_Argv(i), "--brightness")) {
 			brightness = atof(Com_Argv(i + 1));
-			Com_Verbose("brightness: %f\n", brightness);
+			Com_Verbose("brightness: %g\n", brightness);
 			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "--saturation")) {
 			saturation = atof(Com_Argv(i + 1));
-			Com_Verbose("saturation: %f\n", saturation);
+			Com_Verbose("saturation: %g\n", saturation);
 			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "--contrast")) {
 			contrast = atof(Com_Argv(i + 1));
-			Com_Verbose("contrast: %f\n", contrast);
+			Com_Verbose("contrast: %g\n", contrast);
 			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--lightmap_scale")) {
-			lightmap_scale = atof(Com_Argv(i + 1));
-			Com_Verbose("lightmap scale: %f\n", lightmap_scale);
+		} else if (!g_strcmp0(Com_Argv(i), "--luxel-size")) {
+			luxel_size = strtol(Com_Argv(i + 1), NULL, 10);
+			Com_Verbose("luxel size: %d\n", luxel_size);
 			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "--patch-size")) {
-			patch_size = atof(Com_Argv(i + 1));
-			Com_Verbose("patch size: %f\n", patch_size);
+			patch_size = strtol(Com_Argv(i + 1), NULL, 10);
+			Com_Verbose("patch size: %d\n", patch_size);
 			i++;
 		} else {
 			break;
 		}
 	}
+
+	patch_size = Max(patch_size, luxel_size);
 }
 
 /**

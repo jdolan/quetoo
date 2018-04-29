@@ -29,47 +29,6 @@
 lightmap_t lightmaps[MAX_BSP_FACES];
 
 /**
- * @brief Resolves the extents, in world space and texture space, for the given lightmap.
- */
-static void BuildLightmapExtents(lightmap_t *lm) {
-
-	lm->st_mins[0] = lm->st_mins[1] = FLT_MAX;
-	lm->st_maxs[0] = lm->st_maxs[1] = -FLT_MAX;
-
-	for (int32_t i = 0; i < lm->face->num_edges; i++) {
-		const int32_t e = bsp_file.face_edges[lm->face->first_edge + i];
-		const bsp_vertex_t *v;
-
-		if (e >= 0) {
-			v = bsp_file.vertexes + bsp_file.edges[e].v[0];
-		} else {
-			v = bsp_file.vertexes + bsp_file.edges[-e].v[1];
-		}
-
-		ddvec3_t point;
-		VectorAdd(lm->offset, v->point, point);
-
-		for (int32_t j = 0; j < 2; j++) {
-			const vec_t val = DotProduct(point, lm->texinfo->vecs[j]) + lm->texinfo->vecs[j][3];
-			if (val < lm->st_mins[j]) {
-				lm->st_mins[j] = val;
-			}
-			if (val > lm->st_maxs[j]) {
-				lm->st_maxs[j] = val;
-			}
-		}
-	}
-
-	for (int32_t i = 0; i < 2; i++) {
-		lm->lm_mins[i] = floorf(lm->st_mins[i] * lightmap_scale);
-		lm->lm_maxs[i] = ceilf(lm->st_maxs[i] * lightmap_scale);
-	}
-
-	lm->width = lm->lm_maxs[0] - lm->lm_mins[0] + 1;
-	lm->height = lm->lm_maxs[1] - lm->lm_mins[1] + 1;
-}
-
-/**
  * @brief Resolves the texture projection matrices for the given lightmap.
  */
 static void BuildLightmapMatrices(lightmap_t *lm) {
@@ -83,14 +42,60 @@ static void BuildLightmapMatrices(lightmap_t *lm) {
 		dist = lm->plane->dist;
 	}
 
-	Matrix4x4_FromArrayFloatGL(&lm->world_to_tex, (const vec_t[]) {
-		lm->texinfo->vecs[0][0], lm->texinfo->vecs[1][0], lm->normal[0], 0.0,
-		lm->texinfo->vecs[0][1], lm->texinfo->vecs[1][1], lm->normal[1], 0.0,
-		lm->texinfo->vecs[0][2], lm->texinfo->vecs[1][2], lm->normal[2], 0.0,
-		lm->texinfo->vecs[0][3], lm->texinfo->vecs[1][3], -dist, 1.0
+	vec3_t s, t;
+
+	VectorNormalize2(lm->texinfo->vecs[0], s);
+	VectorNormalize2(lm->texinfo->vecs[1], t);
+
+	VectorScale(s, 1.0 / luxel_size, s);
+	VectorScale(t, 1.0 / luxel_size, t);
+
+	Matrix4x4_FromArrayFloatGL(&lm->matrix, (const vec_t[]) {
+		s[0], t[0], lm->normal[0], 0.0,
+		s[1], t[1], lm->normal[1], 0.0,
+		s[2], t[2], lm->normal[2], 0.0,
+		0.0,  0.0,  -dist,         1.0
 	});
 
-	Matrix4x4_Invert_Full(&lm->tex_to_world, &lm->world_to_tex);
+	Matrix4x4_Invert_Full(&lm->inverse_matrix, &lm->matrix);
+}
+
+/**
+ * @brief Resolves the extents, in world space and texture space, for the given lightmap.
+ */
+static void BuildLightmapExtents(lightmap_t *lm) {
+
+	lm->lm_mins[0] = lm->lm_mins[1] = FLT_MAX;
+	lm->lm_maxs[0] = lm->lm_maxs[1] = -FLT_MAX;
+
+	for (int32_t i = 0; i < lm->face->num_edges; i++) {
+		const int32_t e = bsp_file.face_edges[lm->face->first_edge + i];
+		const bsp_vertex_t *v;
+
+		if (e >= 0) {
+			v = bsp_file.vertexes + bsp_file.edges[e].v[0];
+		} else {
+			v = bsp_file.vertexes + bsp_file.edges[-e].v[1];
+		}
+
+		vec3_t point, st;
+		VectorAdd(lm->offset, v->point, point);
+
+		Matrix4x4_Transform(&lm->matrix, point, st);
+
+		for (int32_t j = 0; j < 2; j++) {
+
+			if (st[j] < lm->lm_mins[j]) {
+				lm->lm_mins[j] = st[j];
+			}
+			if (st[j] > lm->lm_maxs[j]) {
+				lm->lm_maxs[j] = st[j];
+			}
+		}
+	}
+
+	lm->w = Clamp(rint(lm->lm_maxs[0] - lm->lm_mins[0]), 2, MAX_BSP_LIGHTMAP);
+	lm->h = Clamp(rint(lm->lm_maxs[1] - lm->lm_mins[1]), 2, MAX_BSP_LIGHTMAP);
 }
 
 /**
@@ -99,7 +104,7 @@ static void BuildLightmapMatrices(lightmap_t *lm) {
  */
 static void BuildLightmapLuxels(lightmap_t *lm) {
 
-	lm->num_luxels = lm->width * lm->height;
+	lm->num_luxels = lm->w * lm->h;
 
 	if (lm->num_luxels > MAX_BSP_LIGHTMAP) {
 		const winding_t *w = WindingForFace(lm->face);
@@ -111,8 +116,8 @@ static void BuildLightmapLuxels(lightmap_t *lm) {
 
 	luxel_t *l = lm->luxels;
 
-	for (int32_t t = 0; t < lm->height; t++) {
-		for (int32_t s = 0; s < lm->width; s++, l++) {
+	for (int32_t t = 0; t < lm->h; t++) {
+		for (int32_t s = 0; s < lm->w; s++, l++) {
 
 			l->s = s;
 			l->t = t;
@@ -305,21 +310,24 @@ static void PhongNormal(const bsp_face_t *face, const vec3_t pos, vec3_t normal)
 }
 
 /**
- * @brief
+ * @brief Projects the luxel for the given lightmap into world space.
+ * @param lm The lightmap.
+ * @param l The luxel.
+ * @param soffs The S offset in texture space, for antialiasing.
+ * @param toffs The T offset in texture space, for antialiasing.
+ * @param pvs A pointer to receive the PVS data for the projected luxel origin.
+ * @return True if the luxel projection yielded a valid position, false otherwise.
  */
 static _Bool ProjectLuxel(const lightmap_t *lm, luxel_t *l, vec_t soffs, vec_t toffs, byte *pvs) {
 
-	const vec_t mid_s = (lm->width * 0.5);
-	const vec_t mid_t = (lm->height * 0.5);
+	const vec_t padding_s = ((lm->lm_maxs[0] - lm->lm_mins[0]) - lm->w) * 0.5;
+	const vec_t padding_t = ((lm->lm_maxs[1] - lm->lm_mins[1]) - lm->h) * 0.5;
 
-	vec_t ds = lm->lm_mins[0] + l->s + soffs;
-	vec_t dt = lm->lm_mins[1] + l->t + toffs;
+	const vec_t s = lm->lm_mins[0] + padding_s + l->s + 0.5 + soffs;
+	const vec_t t = lm->lm_mins[1] + padding_t + l->t + 0.5 + toffs;
 
-	ds += 0.5 * (1.0 - l->s / mid_s);
-	dt += 0.5 * (1.0 - l->t / mid_t);
-
-	const vec3_t dst = { ds / lightmap_scale, dt / lightmap_scale, 0.0 };
-	Matrix4x4_Transform(&lm->tex_to_world, dst, l->origin);
+	const vec3_t origin_st = { s , t, 0.0 };
+	Matrix4x4_Transform(&lm->inverse_matrix, origin_st, l->origin);
 
 	if (lm->texinfo->flags & SURF_PHONG) {
 		PhongNormal(lm->face, l->origin, l->normal);
@@ -380,10 +388,10 @@ static void LightLuxel(const luxel_t *luxel, const byte *pvs, vec_t *sample, vec
 			case LIGHT_AMBIENT:
 				break;
 			case LIGHT_PATCH:
-				diffuse *= patch_size / DEFAULT_PATCH_SIZE;
+				diffuse *= patch_size / DEFAULT_BSP_PATCH_SIZE;
 				break;
 			case LIGHT_POINT:
-				diffuse *= DEFAULT_PATCH_SIZE;
+				diffuse *= DEFAULT_BSP_PATCH_SIZE;
 				break;
 			case LIGHT_SPOT: {
 				const vec_t dot2 = DotProduct(dir, light->normal);
@@ -394,12 +402,12 @@ static void LightLuxel(const luxel_t *luxel, const byte *pvs, vec_t *sample, vec
 						diffuse *= light->cone - (1.0 - dot2);
 					}
 				} else {
-					diffuse *= DEFAULT_PATCH_SIZE;
+					diffuse *= DEFAULT_BSP_PATCH_SIZE;
 				}
 			}
 				break;
 			case LIGHT_SUN:
-				diffuse *= DEFAULT_PATCH_SIZE;
+				diffuse *= DEFAULT_BSP_PATCH_SIZE;
 				break;
 		}
 

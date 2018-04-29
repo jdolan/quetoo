@@ -712,7 +712,7 @@ typedef struct {
 	uint16_t num_clusters;
 	r_bsp_cluster_t *clusters;
 
-	vec_t lightmap_scale;
+	int16_t luxel_size;
 
 	uint16_t num_bsp_lights;
 	r_bsp_light_t *bsp_lights;

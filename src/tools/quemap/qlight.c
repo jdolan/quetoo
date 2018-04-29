@@ -27,7 +27,9 @@ _Bool indirect = false;
 vec_t brightness = 1.0;
 vec_t saturation = 1.0;
 vec_t contrast = 1.0;
-vec_t lightmap_scale = BSP_DEFAULT_LIGHTMAP_SCALE;
+
+int16_t luxel_size = DEFAULT_BSP_LUXEL_SIZE;
+int16_t patch_size = DEFAULT_BSP_PATCH_SIZE;
 
 int32_t indirect_bounces = 1;
 int32_t indirect_bounce = 0;
@@ -164,19 +166,19 @@ static void LightWorld(void) {
 		}
 	}
 
-	if (lightmap_scale == BSP_DEFAULT_LIGHTMAP_SCALE) {
-		const vec_t v = FloatForKey(e, "lightmap_scale", 0.0);
+	if (luxel_size == DEFAULT_BSP_LUXEL_SIZE) {
+		const vec_t v = FloatForKey(e, "luxel_size", 0.0);
 		if (v > 0.0) {
-			lightmap_scale = v;
-			Com_Verbose("Lightmap scale: %g\n", lightmap_scale);
+			luxel_size = v;
+			Com_Verbose("Luxel size: %d\n", luxel_size);
 		}
 	}
 
-	if (patch_size == DEFAULT_PATCH_SIZE) {
+	if (patch_size == DEFAULT_BSP_PATCH_SIZE) {
 		const vec_t v = FloatForKey(e, "patch_size", 0.0);
 		if (v > 0.0) {
 			patch_size = v;
-			Com_Verbose("Patch size: %g\n", patch_size);
+			Com_Verbose("Patch size: %d\n", patch_size);
 		}
 	}
 
