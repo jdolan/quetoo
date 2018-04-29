@@ -714,14 +714,14 @@ static r_buffer_layout_t r_bsp_buffer_layout[] = {
 /**
  * @brief Function for exporting a BSP to an OBJ.
  */
-void R_ExportBSP_f(void) {
+void R_ExportBsp_f(void) {
 	const r_model_t *world = R_WorldModel();
 
 	if (!world) {
 		return;
 	}
 	
-	Com_Print("Dumping BSP...\n");
+	Com_Print("Exporting BSP...\n");
 	
 	char modelname[MAX_QPATH];
 	g_snprintf(modelname, sizeof(modelname), "export/%s.obj", Basename(world->media.name));
