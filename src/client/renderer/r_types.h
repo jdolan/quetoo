@@ -42,6 +42,8 @@ typedef enum {
 	MEDIA_OBJ, // r_model_t
 	MEDIA_BSP, //
 
+	MEDIA_LIGHTMAP, // r_lightmap_media_t
+
 	MEDIA_MATERIAL, // r_material_t
 	MEDIA_FRAMEBUFFER, // r_framebuffer_t
 
@@ -83,17 +85,16 @@ typedef enum {
 	IT_EFFECT = (1 << 4) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_DIFFUSE = (1 << 5) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_LIGHTMAP = (1 << 6) + (IT_MASK_FILTER),
-	IT_DELUXEMAP = (1 << 7),
-	IT_NORMALMAP = (1 << 8) + (IT_MASK_MIPMAP),
-	IT_SPECULARMAP = (1 << 9) + (IT_MASK_MIPMAP),
-	IT_ENVMAP = (1 << 10) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_FLARE = (1 << 11) + (IT_MASK_MIPMAP | IT_MASK_FILTER | IT_MASK_MULTIPLY),
-	IT_SKY = (1 << 12) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_PIC = (1 << 13) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_ATLAS_MAP = (1 << 14) + (IT_MASK_MIPMAP), // image is an r_atlas_t*
-	IT_ATLAS_IMAGE = (1 << 15), // image is an r_atlas_image_t*
-	IT_STAINMAP = (1 << 16),
-	IT_TINTMAP = (1 << 17) + (IT_MASK_MIPMAP | IT_MASK_FILTER)
+	IT_NORMALMAP = (1 << 7) + (IT_MASK_MIPMAP),
+	IT_SPECULARMAP = (1 << 8) + (IT_MASK_MIPMAP),
+	IT_ENVMAP = (1 << 9) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
+	IT_FLARE = (1 << 10) + (IT_MASK_MIPMAP | IT_MASK_FILTER | IT_MASK_MULTIPLY),
+	IT_SKY = (1 << 11) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
+	IT_PIC = (1 << 12) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
+	IT_ATLAS_MAP = (1 << 13) + (IT_MASK_MIPMAP), // image is an r_atlas_t*
+	IT_ATLAS_IMAGE = (1 << 14), // image is an r_atlas_image_t*
+	IT_STAINMAP = (1 << 15),
+	IT_TINTMAP = (1 << 16) + (IT_MASK_MIPMAP | IT_MASK_FILTER)
 } r_image_type_t;
 
 /**
