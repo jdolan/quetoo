@@ -202,15 +202,14 @@ static const r_bsp_vertex_t *R_UnwindBspSurface(const r_bsp_model_t *bsp,
 }
 
 /**
- * @brief Resolves the surface bounding box and lightmap texture coordinates.
+ * @brief Resolves the surface bounds in world and texture space.
  */
 static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
-	vec2_t st_mins, st_maxs;
 
 	ClearBounds(surf->mins, surf->maxs);
 
-	st_mins[0] = st_mins[1] = 999999.0;
-	st_maxs[0] = st_maxs[1] = -999999.0;
+	surf->st_mins[0] = surf->st_mins[1] = FLT_MAX;
+	surf->st_maxs[0] = surf->st_maxs[1] = -FLT_MAX;
 
 	const r_bsp_texinfo_t *tex = surf->texinfo;
 
@@ -221,18 +220,22 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 
 		AddPointToBounds(v->position, surf->mins, surf->maxs); // calculate mins, maxs
 
+		ddvec3_t p;
+		VectorCopy(v->position, p);
+
 		for (int32_t j = 0; j < 2; j++) { // calculate st_mins, st_maxs
-			const vec_t val = DotProduct(v->position, tex->vecs[j]) + tex->vecs[j][3];
-			if (val < st_mins[j]) {
-				st_mins[j] = val;
+			const vec_t val = DotProduct(p, tex->vecs[j]) + tex->vecs[j][3];
+			if (val < surf->st_mins[j]) {
+				surf->st_mins[j] = val;
 			}
-			if (val > st_maxs[j]) {
-				st_maxs[j] = val;
+			if (val > surf->st_maxs[j]) {
+				surf->st_maxs[j] = val;
 			}
 		}
 	}
 
 	VectorMix(surf->mins, surf->maxs, 0.5, surf->center); // calculate the center
+	VectorMix(surf->st_mins, surf->st_maxs, 0.5, surf->st_center);
 
 	if ((surf->texinfo->flags & SURF_LIGHT) && surf->texinfo->value) { // resolve surface area
 
@@ -256,22 +259,6 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 			v1 = v2;
 			v2 = R_UnwindBspSurface(bsp, surf, &vert);
 		}
-	}
-
-	// bump the texture coordinate vectors to ensure we don't split samples
-	for (int32_t i = 0; i < 2; i++) {
-
-		const int32_t bmins = floor(st_mins[i] * bsp->lightmap_scale);
-		const int32_t bmaxs = ceil(st_maxs[i] * bsp->lightmap_scale);
-
-		surf->st_mins[i] = bmins / bsp->lightmap_scale;
-		surf->st_maxs[i] = bmaxs / bsp->lightmap_scale;
-
-		surf->st_center[i] = (surf->st_maxs[i] + surf->st_mins[i]) / 2.0;
-
-		const vec_t size = surf->st_maxs[i] - surf->st_mins[i];
-
-		surf->lightmap_size[i] = (r_pixel_t) ((size * bsp->lightmap_scale) + 1.0);
 	}
 }
 
@@ -342,15 +329,6 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
 	}
 
 	R_EndBspSurfaceLightmaps(bsp);
-
-	// free the lightmap lump, we're done with it
-	if (bsp->file->lightmap_data_size) {
-		out = bsp->surfaces;
-
-		for (uint16_t i = 0; i < bsp->num_surfaces; i++, out++) {
-			out->lightmap_input = NULL;
-		}
-	}
 
 	uint32_t end = SDL_GetTicks();
 	Com_Verbose("Generated lightmaps in %u ms\n", end - start);
@@ -604,7 +582,6 @@ static gboolean R_UniqueVerts_EqualFunc(gconstpointer a, gconstpointer b) {
 	const GLuint vb = BSP_VERTEX_INDEX_FOR_KEY(b);
 
 	if (va != vb) {
-
 		return false;
 	}
 
@@ -660,31 +637,29 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 
 		VectorCopy(vert->position, mod->bsp->verts[*vertices]);
 
-		// texture directional vectors and offsets
-		const vec_t *sdir = surf->texinfo->vecs[0];
-		const vec_t soff = surf->texinfo->vecs[0][3];
-
-		const vec_t *tdir = surf->texinfo->vecs[1];
-		const vec_t toff = surf->texinfo->vecs[1][3];
-
 		// texture coordinates
-		vec_t s = DotProduct(vert->position, sdir) + soff;
-		vec_t t = DotProduct(vert->position, tdir) + toff;
+		const vec_t *sdir = surf->texinfo->vecs[0];
+		const vec_t *tdir = surf->texinfo->vecs[1];
+
+		vec_t s = DotProduct(vert->position, sdir) + surf->texinfo->vecs[0][3];
+		vec_t t = DotProduct(vert->position, tdir) + surf->texinfo->vecs[1][3];
 
 		mod->bsp->texcoords[*vertices][0] = s / surf->texinfo->material->diffuse->width;
 		mod->bsp->texcoords[*vertices][1] = t / surf->texinfo->material->diffuse->height;
 
 		// lightmap texture coordinates
 		if (surf->flags & R_SURF_LIGHTMAP) {
-			s -= surf->st_mins[0];
-			s += surf->lightmap_s / mod->bsp->lightmap_scale;
-			s += (1.0 / mod->bsp->lightmap_scale) / 2.0;
-			s /= surf->lightmap->width / mod->bsp->lightmap_scale;
 
-			t -= surf->st_mins[1];
-			t += surf->lightmap_t / mod->bsp->lightmap_scale;
-			t += (1.0 / mod->bsp->lightmap_scale) / 2.0;
-			t /= surf->lightmap->height / mod->bsp->lightmap_scale;
+			vec3_t st;
+			Matrix4x4_Transform(&surf->lightmap.matrix, vert->position, st);
+
+			const r_image_t *lightmaps = surf->lightmap.media->lightmaps;
+
+			s = surf->lightmap.s / (vec_t) lightmaps->width;
+			s += (st[0] / surf->lightmap.w) * (surf->lightmap.w / (vec_t) lightmaps->width);
+
+			t = surf->lightmap.t / (vec_t) lightmaps->height;
+			t += (st[1] / surf->lightmap.h) * (surf->lightmap.h / (vec_t) lightmaps->height);
 		}
 
 		mod->bsp->lightmap_texcoords[*vertices][0] = s;
@@ -911,7 +886,6 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 
 		r_bsp_surface_t **s = leaf->first_leaf_surface;
 		for (uint16_t j = 0; j < leaf->num_leaf_surfaces; j++, s++) {
-
 			R_LoadBspVertexArrays_Surface(mod, *s, &num_elements, &num_vertices);
 		}
 	}

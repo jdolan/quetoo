@@ -54,12 +54,7 @@ static void R_RegisterModel(r_media_t *self) {
 		const r_bsp_surface_t *s = mod->bsp->surfaces;
 
 		for (i = 0; i < mod->bsp->num_surfaces; i++, s++) {
-			R_RegisterDependency(self, (r_media_t *) s->lightmap);
-
-			if (s->stainmap.fb) {
-				R_RegisterDependency(self, (r_media_t *) s->stainmap.fb);
-				R_RegisterDependency(self, (r_media_t *) s->stainmap.image);
-			}
+			R_RegisterDependency(self, (r_media_t *) s->lightmap.media);
 		}
 
 		// keep a reference to the world model

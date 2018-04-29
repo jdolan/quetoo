@@ -112,8 +112,8 @@ static _Bool R_StainSurface(const r_stain_t *stain, const r_bsp_surface_t *surf)
 
 	if ((point_st[0] < 0 && (point_st[0] + radius_rounded) < 0) ||
 		(point_st[1] < 0 && (point_st[1] + radius_rounded) < 0) ||
-		point_st[0] >= surf->lightmap_size[0] ||
-		point_st[1] >= surf->lightmap_size[1]) {
+		point_st[0] >= surf->lightmap.w ||
+		point_st[1] >= surf->lightmap.h) {
 		return false;
 	}
 
@@ -121,7 +121,7 @@ static _Bool R_StainSurface(const r_stain_t *stain, const r_bsp_surface_t *surf)
 		.surf = surf,
 		.stain = stain,
 		.radius = radius_rounded,
-		.point = { round(surf->lightmap_s + point_st[0]), round(surf->lightmap_t + point_st[1]) },
+		.point = { round(surf->lightmap.s + point_st[0]), round(surf->lightmap.t + point_st[1]) },
 		.color = ColorFromRGBA((byte) (stain->color[0] * 255.0),
 							   (byte) (stain->color[1] * 255.0),
 							   (byte) (stain->color[2] * 255.0),
@@ -165,7 +165,7 @@ static _Bool R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 			continue;
 		}
 
-		if (!surf->stainmap.fb) {
+		if (!surf->lightmap.media->framebuffer) {
 			continue;
 		}
 
@@ -210,11 +210,12 @@ void R_AddStain(const r_stain_t *s) {
  * @brief Sort stains to maintain optimal bindings
  */
 static gint R_AddStains_Sort(gconstpointer a, gconstpointer b) {
+
 	const r_stained_surf_t *sa = (const r_stained_surf_t *) a;
 	const r_stained_surf_t *sb = (const r_stained_surf_t *) b;
 
-	if (sa->surf->stainmap.fb != sb->surf->stainmap.fb) {
-		return Sign(sa->surf->stainmap.fb - sb->surf->stainmap.fb);
+	if (sa->surf->lightmap.media != sb->surf->lightmap.media) {
+		return Sign(sa->surf->lightmap.media - sb->surf->lightmap.media);
 	}
 
 	if (sa->stain->image != sb->stain->image) {
@@ -279,33 +280,40 @@ static void R_ExpireStains(const byte alpha) {
 	R_BlendFunc(GL_ONE, GL_ONE);
 
 	for (uint32_t s = 0; s < r_model_state.world->bsp->num_surfaces; s++) {
-		r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces + s;
+		const r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces + s;
 
-		// skip if we don't have a stainmap or we weren't stained
-		if (!surf->stainmap.fb) {
+		if (!(surf->flags & R_SURF_LIGHTMAP)) {
 			continue;
 		}
 
-		if (g_slist_find(reset, surf->stainmap.fb)) {
+		const r_lightmap_media_t *media = surf->lightmap.media;
+
+		if (!media->framebuffer) {
 			continue;
 		}
 
-		reset = g_slist_prepend(reset, surf->stainmap.fb);
+		if (g_slist_find(reset, media->framebuffer)) {
+			continue;
+		}
+
+		reset = g_slist_prepend(reset, media->framebuffer);
+
+		const r_image_t *stainmaps = media->stainmaps;
 
 		const r_stainmap_interleave_vertex_t stain_fill[4] = {
 			{ .position = { 0, 0 }, .texcoord = { 0, 0 }, .color = { alpha, alpha, alpha, alpha } },
-			{ .position = { surf->stainmap.image->width, 0 }, .texcoord = { 1, 0 }, .color = { alpha, alpha, alpha, alpha } },
-			{ .position = { surf->stainmap.image->width, surf->stainmap.image->height }, .texcoord = { 1, 1 }, .color = { alpha, alpha, alpha, alpha } },
-			{ .position = { 0, surf->stainmap.image->height }, .texcoord = { 0, 1 }, .color = { alpha, alpha, alpha, alpha } },
+			{ .position = { stainmaps->width, 0 }, .texcoord = { 1, 0 }, .color = { alpha, alpha, alpha, alpha } },
+			{ .position = { stainmaps->width, stainmaps->height }, .texcoord = { 1, 1 }, .color = { alpha, alpha, alpha, alpha } },
+			{ .position = { 0, stainmaps->height }, .texcoord = { 0, 1 }, .color = { alpha, alpha, alpha, alpha } },
 		};
 
 		R_UploadToSubBuffer(&r_stainmap_state.reset_buffer, 0, sizeof(stain_fill), stain_fill, false);
 
-		R_BindFramebuffer(surf->stainmap.fb);
+		R_BindFramebuffer(media->framebuffer);
 
-		R_SetViewport(0, 0, surf->stainmap.image->width, surf->stainmap.image->height, true);
+		R_SetViewport(0, 0, stainmaps->width, stainmaps->height, true);
 
-		R_SetMatrix(R_MATRIX_PROJECTION, &surf->stainmap.projection);
+		R_SetMatrix(R_MATRIX_PROJECTION, &media->projection);
 
 		R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	}
@@ -466,19 +474,22 @@ void R_AddStains(void) {
 		vec4_t texcoords;
 		R_Stain_ResolveTexcoords(image, texcoords);
 
-		R_BindFramebuffer(stain->surf->stainmap.fb);
+		const r_lightmap_media_t *media = stain->surf->lightmap.media;
+		const r_image_t *stainmaps = media->stainmaps;
 
-		R_SetViewport(0, 0, stain->surf->stainmap.image->width, stain->surf->stainmap.image->height, true);
+		R_BindFramebuffer(media->framebuffer);
 
-		R_SetMatrix(R_MATRIX_PROJECTION, &stain->surf->stainmap.projection);
+		R_SetViewport(0, 0, stainmaps->width, stainmaps->height, true);
+
+		R_SetMatrix(R_MATRIX_PROJECTION, &media->projection);
 
 		R_BindDiffuseTexture(image->texnum);
 
 		vec4_t position = { stain->point[0], stain->point[1], stain->point[0] + stain->radius, stain->point[1] + stain->radius };
 
 		// flip Y, because apparently we need this :)
-		position[1] = stain->surf->stainmap.image->height - position[1];
-		position[3] = stain->surf->stainmap.image->height - position[3];
+		position[1] = stainmaps->height - position[1];
+		position[3] = stainmaps->height - position[3];
 
 		matrix4x4_t m = matrix4x4_identity;
 		vec2_t center = {
@@ -508,10 +519,10 @@ void R_AddStains(void) {
 		}, 4);
 
 		R_EnableScissor(&(const SDL_Rect) {
-			stain->surf->lightmap_s,
-			stain->surf->lightmap_t,
-			stain->surf->lightmap_size[0],
-			stain->surf->lightmap_size[1]
+			stain->surf->lightmap.s,
+			stain->surf->lightmap.t,
+			stain->surf->lightmap.w,
+			stain->surf->lightmap.h
 		});
 
 		R_UploadToSubBuffer(&r_stainmap_state.vertex_buffer, sizeof(r_stainmap_interleave_vertex_t) * vert_offset, sizeof(r_stainmap_interleave_vertex_t) * 4, r_stainmap_state.vertex_scratch->data, true);

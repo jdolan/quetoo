@@ -99,8 +99,9 @@ void R_DumpImage(const r_image_t *image, const char *output) {
  * @brief
  */
 void R_DumpImages_f(void) {
+	int32_t count = 0;
 
-	Com_Print("Dumping media... ");
+	Com_Print("Dumping images... ");
 
 	Fs_Mkdir("imgdmp");
 
@@ -111,12 +112,10 @@ void R_DumpImages_f(void) {
 		if (media) {
 			const r_image_t *image = NULL;
 
-			if (media->type == MEDIA_IMAGE ||
-			        media->type == MEDIA_ATLAS) {
+			if (media->type == MEDIA_IMAGE || media->type == MEDIA_ATLAS) {
 				image = (const r_image_t *) media;
 			} else if (media->type == MEDIA_FRAMEBUFFER) {
 				const r_framebuffer_t *fb = (const r_framebuffer_t *) media;
-
 				if (fb->color) {
 					image = fb->color;
 				}
@@ -127,13 +126,14 @@ void R_DumpImages_f(void) {
 				g_snprintf(path, sizeof(path), "imgdmp/%s.png", media->name);
 
 				R_DumpImage((const r_image_t *) media, path);
+				count++;
 			}
 		}
 
 		key = key->next;
 	}
 
-	Com_Print("done! Enjoy your wasted disk space.\n");
+	Com_Print("Dumped %d images\n", count);
 }
 
 /**

@@ -465,9 +465,9 @@ typedef struct {
 typedef struct {
 	char name[32];
 	vec_t vecs[2][4];
-	vec2_t scale;
 	uint32_t flags;
 	int32_t value;
+	vec2_t scale;
 	r_material_t *material;
 } r_bsp_texinfo_t;
 
@@ -484,12 +484,34 @@ typedef struct {
 #define R_SURF_LIGHTMAP		2
 #define R_SURF_IN_LIQUID	4
 
+/**
+ * @brief Lightmaps are packed into atlas textures. Each packed lightmap also has a corresponding
+ * stain buffer. These are managed as media, so that they are freed at each level load.
+ */
 typedef struct {
-	r_image_t *image;
-	r_framebuffer_t *fb;
+	r_media_t media;
 
-	matrix4x4_t projection; // projection for this stainmap
-} r_stainmap_t;
+	r_image_t *lightmaps;
+	r_image_t *stainmaps;
+	r_framebuffer_t *framebuffer;
+	matrix4x4_t projection;
+
+} r_lightmap_media_t;
+
+typedef struct {
+
+	const byte *data;
+
+	matrix4x4_t matrix;
+	matrix4x4_t inverse_matrix;
+
+	vec2_t lm_mins, lm_maxs;
+	r_pixel_t w, h;
+
+	r_lightmap_media_t *media; // the media containing this lightmap
+	r_pixel_t s, t; // the texture coordinates into the atlas image
+
+} r_lightmap_t;
 
 typedef struct {
 	int16_t vis_frame; // PVS frame
@@ -521,15 +543,7 @@ typedef struct {
 
 	r_bsp_flare_t *flare;
 
-	r_pixel_t lightmap_size[2];
-	r_pixel_t lightmap_s, lightmap_t; // lightmap texture coords
-
-	r_image_t *lightmap;
-
-	// pointer to lightmap data on bsp.
-	const byte *lightmap_input;
-
-	r_stainmap_t stainmap; // the stainmap image to use
+	r_lightmap_t lightmap;
 } r_bsp_surface_t;
 
 /**
