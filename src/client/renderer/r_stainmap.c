@@ -551,8 +551,7 @@ void R_AddStains(void) {
 /**
  * @brief Resets the stainmaps that we have loaded.
  */
-void R_ResetStainmap(void) {
-
+void R_ResetStainmaps(void) {
 	R_ExpireStains(255);
 }
 

@@ -27,5 +27,5 @@ void R_AddStains(void);
 #ifdef __R_LOCAL_H__
 void R_InitStainmaps(void);
 void R_ShutdownStainmaps(void);
-void R_ResetStainmap(void);
+void R_ResetStainmaps(void);
 #endif /* __R_LOCAL_H__ */

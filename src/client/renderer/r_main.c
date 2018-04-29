@@ -379,7 +379,7 @@ void R_LoadMedia(void) {
 
 	Cl_LoadingProgress(55, "mopping up blood");
 
-	R_ResetStainmap(); // clear the stainmap if we have to
+	R_ResetStainmaps(); // clear the stainmap if we have to
 
 	Cl_LoadingProgress(60, "models");
 
@@ -466,8 +466,8 @@ static void R_ToggleFullscreen_f(void) {
 /**
  * @brief Resets the stainmap.
  */
-static void R_ResetStainmap_f(void) {
-	R_ResetStainmap();
+static void R_ResetStainmaps_f(void) {
+	R_ResetStainmaps();
 }
 
 /**
@@ -521,22 +521,22 @@ static void R_InitLocal(void) {
 	r_shell = Cvar_Add("r_shell", "2", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls mesh shell effect (e.g. Quad Damage shell)");
 	r_specular = Cvar_Add("r_specular", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects");
 	r_stainmaps = Cvar_Add("r_stainmaps", "1", CVAR_ARCHIVE, "Controls persistent stain effects.");
+	r_supersample = Cvar_Add("r_supersample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the level of super-sampling. Requires framebuffer extension.");
 	r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
 	r_texture_mode = Cvar_Add("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies the active texture filtering mode");
 	r_lightmap_cache = Cvar_Add("r_lightmap_cache", "1", CVAR_ARCHIVE, "Controls whether or not the lightmap cache is used. Improve map loading times at the expense of a bit more hard drive usage.");
 	r_warp = Cvar_Add("r_warp", "1", CVAR_ARCHIVE, "Controls warping surface effects (e.g. water)");
 	r_width = Cvar_Add("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
-	r_supersample = Cvar_Add("r_supersample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the level of super-sampling. Requires framebuffer extension.");
 
 	Cvar_ClearAll(CVAR_R_MASK);
 
-	Cmd_Add("r_list_media", R_ListMedia_f, CMD_RENDERER, "List all currently loaded media");
-	Cmd_Add("r_dump_images", R_DumpImages_f, CMD_RENDERER, "Dump all loaded images. Careful!");
-	Cmd_Add("r_reset_stainmap", R_ResetStainmap_f, CMD_RENDERER, "Reset the stainmap");
-	Cmd_Add("r_screenshot", R_Screenshot_f, CMD_SYSTEM | CMD_RENDERER, "Take a screenshot");
-	Cmd_Add("r_sky", R_Sky_f, CMD_RENDERER, NULL);
-	Cmd_Add("r_toggle_fullscreen", R_ToggleFullscreen_f, CMD_SYSTEM | CMD_RENDERER, "Toggle fullscreen");
+	Cmd_Add("r_dump_images", R_DumpImages_f, CMD_RENDERER, "Dump all loaded images to disk (developer tool)");
+	Cmd_Add("r_list_media", R_ListMedia_f, CMD_RENDERER, "List all currently loaded media (developer tool)");
+	Cmd_Add("r_reset_stainmaps", R_ResetStainmaps_f, CMD_RENDERER, "Reset stains, clearing all persistent stains");
 	Cmd_Add("r_restart", R_Restart_f, CMD_RENDERER, "Restart the rendering subsystem");
+	Cmd_Add("r_screenshot", R_Screenshot_f, CMD_SYSTEM | CMD_RENDERER, "Take a screenshot");
+	Cmd_Add("r_sky", R_Sky_f, CMD_RENDERER, "Sets the sky environment map");
+	Cmd_Add("r_toggle_fullscreen", R_ToggleFullscreen_f, CMD_SYSTEM | CMD_RENDERER, "Toggle fullscreen");
 }
 
 /**
