@@ -25,5 +25,5 @@
 
 #ifdef __R_LOCAL_H__
 void R_CreateBspSurfaceLightmap(const r_bsp_model_t *bsp, r_bsp_surface_t *surf, const byte *data);
-void R_EndBspSurfaceLightmaps(const r_bsp_model_t *bsp);
+void R_LoadBspSurfaceLightmaps(const r_bsp_model_t *bsp);
 #endif /* __R_LOCAL_H__ */

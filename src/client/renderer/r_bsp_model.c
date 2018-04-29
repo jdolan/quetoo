@@ -87,9 +87,11 @@ static void R_LoadBspLightmaps(r_bsp_model_t *bsp) {
 
 	bsp->luxel_size = DEFAULT_BSP_LUXEL_SIZE;
 
-	// resolve luxel size
 	if ((c = Cm_EntityValue(Cm_Worldspawn(), "luxel_size"))) {
 		bsp->luxel_size = strtol(c, NULL, 10);
+		if (bsp->luxel_size <= 0) {
+			bsp->luxel_size = DEFAULT_BSP_LUXEL_SIZE;
+		}
 		Com_Debug(DEBUG_RENDERER, "Resolved luxel_size: %d\n", bsp->luxel_size);
 	}
 }
@@ -328,7 +330,7 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
 		R_CreateBspSurfaceFlare(bsp, out);
 	}
 
-	R_EndBspSurfaceLightmaps(bsp);
+	R_LoadBspSurfaceLightmaps(bsp);
 
 	uint32_t end = SDL_GetTicks();
 	Com_Verbose("Generated lightmaps in %u ms\n", end - start);

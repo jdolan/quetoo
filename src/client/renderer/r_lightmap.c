@@ -50,6 +50,79 @@ typedef struct {
 static r_lightmap_state_t r_lightmap_state;
 
 /**
+ * @brief Pushes lightmap to list of blocks to be processed
+ */
+void R_CreateBspSurfaceLightmap(const r_bsp_model_t *bsp, r_bsp_surface_t *surf, const byte *data) {
+
+	if (!(surf->flags & R_SURF_LIGHTMAP)) {
+		return;
+	}
+
+	r_lightmap_t *lm = &surf->lightmap;
+
+	lm->data = data;
+
+	vec_t dist;
+	if (surf->flags & R_SURF_PLANE_BACK) {
+		dist = -surf->plane->dist;
+	} else {
+		dist = surf->plane->dist;
+	}
+
+	vec3_t s, t;
+
+	VectorNormalize2(surf->texinfo->vecs[0], s);
+	VectorNormalize2(surf->texinfo->vecs[1], t);
+
+	VectorScale(s, 1.0 / bsp->luxel_size, s);
+	VectorScale(t, 1.0 / bsp->luxel_size, t);
+
+	Matrix4x4_FromArrayFloatGL(&lm->matrix, (const vec_t[]) {
+		s[0], t[0], surf->normal[0], 0.0,
+		s[1], t[1], surf->normal[1], 0.0,
+		s[2], t[2], surf->normal[2], 0.0,
+		0.0,  0.0,  -dist,           1.0
+	});
+
+	Matrix4x4_Invert_Full(&lm->inverse_matrix, &lm->matrix);
+
+	lm->lm_mins[0] = lm->lm_mins[1] = FLT_MAX;
+	lm->lm_maxs[0] = lm->lm_maxs[1] = -FLT_MAX;
+
+	for (int32_t i = 0; i < surf->num_edges; i++) {
+		const int32_t e = bsp->file->face_edges[surf->first_edge + i];
+		const bsp_vertex_t *v;
+
+		if (e >= 0) {
+			v = bsp->file->vertexes + bsp->file->edges[e].v[0];
+		} else {
+			v = bsp->file->vertexes + bsp->file->edges[-e].v[1];
+		}
+
+		vec3_t point, st;
+		//VectorAdd(surf->offset, v->point, point); FIXME: Model offset?
+		VectorCopy(v->point, point);
+
+		Matrix4x4_Transform(&lm->matrix, point, st);
+
+		for (int32_t j = 0; j < 2; j++) {
+
+			if (st[j] < lm->lm_mins[j]) {
+				lm->lm_mins[j] = st[j];
+			}
+			if (st[j] > lm->lm_maxs[j]) {
+				lm->lm_maxs[j] = st[j];
+			}
+		}
+	}
+
+	lm->w = Clamp(rint(lm->lm_maxs[0] - lm->lm_mins[0]), 2, MAX_BSP_LIGHTMAP);
+	lm->h = Clamp(rint(lm->lm_maxs[1] - lm->lm_mins[1]), 2, MAX_BSP_LIGHTMAP);
+
+	r_lightmap_state.blocks = g_slist_prepend(r_lightmap_state.blocks, surf);
+}
+
+/**
  * @brief Allocates a `r_lightmap_media_t` with the given dimensions.
  */
 static r_lightmap_media_t *R_AllocLightmapMedia(r_pixel_t width, r_pixel_t height) {
@@ -185,96 +258,6 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 }
 
 /**
- * @brief Stable sort, for read/write purposes
- */
-static gint R_InsertBlock_CompareFunc(gconstpointer a, gconstpointer b) {
-
-	const r_bsp_surface_t *ai = (const r_bsp_surface_t *) a;
-	const r_bsp_surface_t *bi = (const r_bsp_surface_t *) b;
-
-	int32_t result = bi->lightmap.h - ai->lightmap.h;
-
-	if (result) {
-		return result;
-	}
-
-	return bi->index - ai->index;
-}
-
-/**
- * @brief Pushes lightmap to list of blocks to be processed
- */
-void R_CreateBspSurfaceLightmap(const r_bsp_model_t *bsp, r_bsp_surface_t *surf, const byte *data) {
-
-	if (!(surf->flags & R_SURF_LIGHTMAP)) {
-		return;
-	}
-
-	r_lightmap_t *lm = &surf->lightmap;
-
-	lm->data = data;
-
-	vec_t dist;
-	if (surf->flags & R_SURF_PLANE_BACK) {
-		dist = -surf->plane->dist;
-	} else {
-		dist = surf->plane->dist;
-	}
-
-	vec3_t s, t;
-
-	VectorNormalize2(surf->texinfo->vecs[0], s);
-	VectorNormalize2(surf->texinfo->vecs[1], t);
-
-	VectorScale(s, 1.0 / bsp->luxel_size, s);
-	VectorScale(t, 1.0 / bsp->luxel_size, t);
-
-	Matrix4x4_FromArrayFloatGL(&lm->matrix, (const vec_t[]) {
-		s[0], t[0], surf->normal[0], 0.0,
-		s[1], t[1], surf->normal[1], 0.0,
-		s[2], t[2], surf->normal[2], 0.0,
-		0.0,  0.0,  -dist,           1.0
-	});
-
-	Matrix4x4_Invert_Full(&lm->inverse_matrix, &lm->matrix);
-
-	lm->lm_mins[0] = lm->lm_mins[1] = FLT_MAX;
-	lm->lm_maxs[0] = lm->lm_maxs[1] = -FLT_MAX;
-
-	for (int32_t i = 0; i < surf->num_edges; i++) {
-		const int32_t e = bsp->file->face_edges[surf->first_edge + i];
-		const bsp_vertex_t *v;
-
-		if (e >= 0) {
-			v = bsp->file->vertexes + bsp->file->edges[e].v[0];
-		} else {
-			v = bsp->file->vertexes + bsp->file->edges[-e].v[1];
-		}
-
-		vec3_t point, st;
-		//VectorAdd(surf->offset, v->point, point); FIXME: Model offset?
-		VectorCopy(v->point, point);
-
-		Matrix4x4_Transform(&lm->matrix, point, st);
-
-		for (int32_t j = 0; j < 2; j++) {
-
-			if (st[j] < lm->lm_mins[j]) {
-				lm->lm_mins[j] = st[j];
-			}
-			if (st[j] > lm->lm_maxs[j]) {
-				lm->lm_maxs[j] = st[j];
-			}
-		}
-	}
-
-	lm->w = Clamp(rint(lm->lm_maxs[0] - lm->lm_mins[0]), 2, MAX_BSP_LIGHTMAP);
-	lm->h = Clamp(rint(lm->lm_maxs[1] - lm->lm_mins[1]), 2, MAX_BSP_LIGHTMAP);
-
-	r_lightmap_state.blocks = g_slist_prepend(r_lightmap_state.blocks, surf);
-}
-
-/**
  * @brief Uploads sorted lightmaps from start to (end - 1) and
  * puts them in the new maps sized to width/height
  */
@@ -345,26 +328,19 @@ static void R_UploadLightmaps(const r_bsp_model_t *bsp, const r_atlas_packer_t *
 }
 
 /**
- * @brief
- */
-static void R_GetLightmapCacheName(const r_bsp_model_t *bsp, char *filename, const size_t filename_len) {
-	g_snprintf(filename, filename_len, "lmcache/%s", Basename(bsp->cm->name));
-	StripExtension(filename, filename);
-	g_strlcat(filename, ".lmc", filename_len);
-}
-
-/**
  * @brief Attempt to load, parse and upload the surface lightmap cache.
  * @returns false if the cache does not exist or is out of date.
  */
 static _Bool R_LoadBspSurfaceLightmapCache(const r_bsp_model_t *bsp) {
+	char filename[MAX_QPATH];
 
 	if (!r_lightmap_cache->integer) {
 		return false;
 	}
 
-	char filename[MAX_QPATH];
-	R_GetLightmapCacheName(bsp, filename, sizeof(filename));
+	StripExtension(bsp->cm->name, filename);
+	g_strlcat(filename, ".lmc", sizeof(filename));
+
 	if (!Fs_Exists(filename)) {
 		return false;
 	}
@@ -374,15 +350,12 @@ static _Bool R_LoadBspSurfaceLightmapCache(const r_bsp_model_t *bsp) {
 		return false;
 	}
 
-	// read the header
 	r_lightmap_cache_header_t header;
 	if (!Fs_Read(file, &header, sizeof(header), 1)) {
-
 		Fs_Close(file);
 		return false;
 	}
 
-	// check header validity
 	if (header.magic != LIGHTMAP_CACHE_MAGIC ||
 		header.size != bsp->cm->size ||
 		header.time != bsp->cm->mod_time) {
@@ -391,7 +364,6 @@ static _Bool R_LoadBspSurfaceLightmapCache(const r_bsp_model_t *bsp) {
 		return false;
 	}
 
-	// read the packers
 	r_atlas_packer_t packer;
 	memset(&packer, 0, sizeof(packer));
 
@@ -401,14 +373,12 @@ static _Bool R_LoadBspSurfaceLightmapCache(const r_bsp_model_t *bsp) {
 		r_lightmap_cache_packer_header_t packer_header;
 
 		if (!Fs_Read(file, &packer_header, sizeof(packer_header), 1)) {
-			
 			R_AtlasPacker_FreePacker(&packer);
 			Fs_Close(file);
 			return false;
 		}
 
 		if (!R_AtlasPacker_Unserialize(file, &packer)) {
-			
 			R_AtlasPacker_FreePacker(&packer);
 			Fs_Close(file);
 			return false;
@@ -421,14 +391,12 @@ static _Bool R_LoadBspSurfaceLightmapCache(const r_bsp_model_t *bsp) {
 
 			if (!Fs_Read(file, &surf->lightmap.s, sizeof(surf->lightmap.s), 1) ||
 				!Fs_Read(file, &surf->lightmap.t, sizeof(surf->lightmap.t), 1)) {
-				
 				R_AtlasPacker_FreePacker(&packer);
 				Fs_Close(file);
 				return false;
 			}
 
 			if (surf->lightmap.s == -1 || surf->lightmap.t == -1) {
-
 				R_AtlasPacker_FreePacker(&packer);
 				Fs_Close(file);
 				return false;
@@ -437,7 +405,6 @@ static _Bool R_LoadBspSurfaceLightmapCache(const r_bsp_model_t *bsp) {
 			list = list->next;
 		}
 
-		// upload!
 		R_UploadLightmaps(bsp, NULL, packer_header.width, packer_header.height, start, list);
 
 		// reset for next round
@@ -455,9 +422,28 @@ static _Bool R_LoadBspSurfaceLightmapCache(const r_bsp_model_t *bsp) {
 }
 
 /**
+ * @brief Sort surfaces by height descending, and then by their index. This is a stable sort, so
+ * that for the same BSP, the surface ordering is always the same. This enables the lightmap cache
+ * to work reliably.
+ */
+static gint R_InsertBlock_CompareFunc(gconstpointer a, gconstpointer b) {
+
+	const r_bsp_surface_t *ai = (const r_bsp_surface_t *) a;
+	const r_bsp_surface_t *bi = (const r_bsp_surface_t *) b;
+
+	int32_t result = bi->lightmap.h - ai->lightmap.h;
+
+	if (result) {
+		return result;
+	}
+
+	return bi->index - ai->index;
+}
+
+/**
  * @brief
  */
-void R_EndBspSurfaceLightmaps(const r_bsp_model_t *bsp) {
+void R_LoadBspSurfaceLightmaps(const r_bsp_model_t *bsp) {
 
 	// sort all the lightmap blocks
 	r_lightmap_state.blocks = g_slist_sort(r_lightmap_state.blocks, R_InsertBlock_CompareFunc);
@@ -487,7 +473,9 @@ void R_EndBspSurfaceLightmaps(const r_bsp_model_t *bsp) {
 
 	if (r_lightmap_cache->integer) {
 		char filename[MAX_QPATH];
-		R_GetLightmapCacheName(bsp, filename, sizeof(filename));
+
+		StripExtension(bsp->cm->name, filename);
+		g_strlcat(filename, ".lmc", sizeof(filename));
 
 		r_lightmap_state.cache_file = Fs_OpenWrite(filename);
 
