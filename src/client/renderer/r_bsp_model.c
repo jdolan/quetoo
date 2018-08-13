@@ -655,8 +655,8 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 			vec3_t st;
 			Matrix4x4_Transform(&surf->lightmap.matrix, vert->position, st);
 
-			st[0] -= surf->lightmap.lm_mins[0];
-			st[1] -= surf->lightmap.lm_mins[1];
+			st[0] -= surf->lightmap.lm_mins[0] - 0.5;
+			st[1] -= surf->lightmap.lm_mins[1] - 0.5;
 
 			const r_image_t *lightmaps = surf->lightmap.media->lightmaps;
 

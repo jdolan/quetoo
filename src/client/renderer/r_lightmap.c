@@ -116,8 +116,8 @@ void R_CreateBspSurfaceLightmap(const r_bsp_model_t *bsp, r_bsp_surface_t *surf,
 		}
 	}
 
-	lm->w = Clamp(rint(lm->lm_maxs[0] - lm->lm_mins[0]), 2, MAX_BSP_LIGHTMAP);
-	lm->h = Clamp(rint(lm->lm_maxs[1] - lm->lm_mins[1]), 2, MAX_BSP_LIGHTMAP);
+	lm->w = Clamp(rint(lm->lm_maxs[0] - lm->lm_mins[0]) + 1, 2, MAX_BSP_LIGHTMAP >> 1);
+	lm->h = Clamp(rint(lm->lm_maxs[1] - lm->lm_mins[1]) + 1, 2, MAX_BSP_LIGHTMAP >> 1);
 
 	r_lightmap_state.blocks = g_slist_prepend(r_lightmap_state.blocks, surf);
 }
@@ -262,7 +262,7 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
  * puts them in the new maps sized to width/height
  */
 static void R_UploadLightmaps(const r_bsp_model_t *bsp, const r_atlas_packer_t *packer,
-									uint32_t width, uint32_t height, GSList *start, GSList *end) {
+							  uint32_t width, uint32_t height, GSList *start, GSList *end) {
 
 	// write to cache
 	if (r_lightmap_state.cache_file) {

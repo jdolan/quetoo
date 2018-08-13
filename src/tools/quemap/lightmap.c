@@ -94,8 +94,8 @@ static void BuildLightmapExtents(lightmap_t *lm) {
 		}
 	}
 
-	lm->w = Clamp(rint(lm->lm_maxs[0] - lm->lm_mins[0]), 2, MAX_BSP_LIGHTMAP);
-	lm->h = Clamp(rint(lm->lm_maxs[1] - lm->lm_mins[1]), 2, MAX_BSP_LIGHTMAP);
+	lm->w = Clamp(rint(lm->lm_maxs[0] - lm->lm_mins[0]) + 1, 2, MAX_BSP_LIGHTMAP >> 1);
+	lm->h = Clamp(rint(lm->lm_maxs[1] - lm->lm_mins[1]) + 1, 2, MAX_BSP_LIGHTMAP >> 1);
 }
 
 /**
@@ -292,7 +292,6 @@ static void PhongNormal(const bsp_face_t *face, const vec3_t pos, vec3_t normal)
 		vec3_t delta;
 		VectorSubtract(pos, bsp_file.vertexes[v].point, delta);
 		verts[i].dist = VectorLength(delta);
-
 	}
 
 	qsort(verts, face->num_edges, sizeof(phong_vertex_t), PhongNormal_sort);
