@@ -116,8 +116,8 @@ void R_CreateBspSurfaceLightmap(const r_bsp_model_t *bsp, r_bsp_surface_t *surf,
 		}
 	}
 
-	lm->w = Clamp(rint(lm->lm_maxs[0] - lm->lm_mins[0]), 1, MAX_BSP_LIGHTMAP);
-	lm->h = Clamp(rint(lm->lm_maxs[1] - lm->lm_mins[1]), 1, MAX_BSP_LIGHTMAP);
+	lm->w = ceilf(lm->lm_maxs[0] - lm->lm_mins[0]) + 1;
+	lm->h = ceilf(lm->lm_maxs[1] - lm->lm_mins[1]) + 1;
 
 	r_lightmap_state.blocks = g_slist_prepend(r_lightmap_state.blocks, surf);
 }
