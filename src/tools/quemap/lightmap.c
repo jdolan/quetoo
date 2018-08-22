@@ -183,6 +183,8 @@ void BuildLightmaps(void) {
 			continue;
 		}
 
+		lm->material = LoadMaterial(lm->texinfo->texture, ASSET_CONTEXT_TEXTURES);
+
 		VectorCopy(face_offsets[i], lm->offset);
 
 		BuildLightmapMatrices(lm);
