@@ -659,8 +659,11 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 			st[0] -= lm->lm_mins[0];
 			st[1] -= lm->lm_mins[1];
 
-			s = (surf->lightmap.s + st[0] + 0.5) / lm->media->lightmaps->width;
-			t = (surf->lightmap.t + st[1] + 0.5) / lm->media->lightmaps->height;
+			const vec_t padding_s = (lm->w - (lm->lm_maxs[0] - lm->lm_mins[0])) * 0.5;
+			const vec_t padding_t = (lm->h - (lm->lm_maxs[1] - lm->lm_mins[1])) * 0.5;
+
+			s = (surf->lightmap.s + padding_s + st[0]) / lm->media->lightmaps->width;
+			t = (surf->lightmap.t + padding_t + st[1]) / lm->media->lightmaps->height;
 		}
 
 		mod->bsp->lightmap_texcoords[*vertices][0] = s;
