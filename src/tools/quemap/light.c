@@ -251,6 +251,11 @@ light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
 
 		VectorScale(lightmap, 1.0 / (w * h), lightmap);
 
+		// TODO: Mix diffuse texture color into reflected light
+//		vec3_t diffuse;
+//		GetTextureColor(lm->texinfo->texture, diffuse);
+//		VectorMix(lightmap, diffuse, lm->material->hardness / 8.0, lightmap);
+
 		light = Mem_TagMalloc(sizeof(*light), MEM_TAG_LIGHT);
 
 		light->type = LIGHT_PATCH;
