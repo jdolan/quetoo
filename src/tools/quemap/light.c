@@ -211,10 +211,10 @@ light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
 
 		for (int32_t j = 0; j < 2; j++) {
 
-			if (st[j] < lm->lm_mins[j]) {
+			if (st[j] < patch_mins[j]) {
 				patch_mins[j] = st[j];
 			}
-			if (st[j] > lm->lm_maxs[j]) {
+			if (st[j] > patch_maxs[j]) {
 				patch_maxs[j] = st[j];
 			}
 		}
