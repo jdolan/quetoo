@@ -481,9 +481,9 @@ void DirectLighting(int32_t face_num) {
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 
-		size_t num_samples = antialias ? lengthof(offsets) : 1, valid_samples = 0;
+		vec_t light = 0.0;
 
-		for (size_t j = 0; j < num_samples; j++) {
+		for (size_t j = 0; j < lengthof(offsets); j++) {
 
 			const vec_t soffs = offsets[j][0];
 			const vec_t toffs = offsets[j][1];
@@ -495,17 +495,18 @@ void DirectLighting(int32_t face_num) {
 				continue;
 			}
 
-			valid_samples++;
+			light += scale;
 
-			LightLuxel(l, pvs, l->direct, l->direction, antialias ? scale : 1.0);
+			LightLuxel(l, pvs, l->direct, l->direction, scale);
+
+			if (!antialias) {
+				break;
+			}
 		}
 
-		if (valid_samples > 0 && valid_samples < num_samples) {
-
-			const vec_t rescale = 1.0 / ((vec_t) valid_samples / num_samples);
-
-			VectorScale(l->direct, rescale, l->direct);
-			VectorScale(l->direction, rescale, l->direction);
+		if (light > 0.0 && light < 1.0) {
+			VectorScale(l->direct, 1.0 / light, l->direct);
+			VectorScale(l->direction, 1.0 / light, l->direction);
 		}
 	}
 }
