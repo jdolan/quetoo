@@ -651,17 +651,16 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 
 		// lightmap texture coordinates
 		if (surf->flags & R_SURF_LIGHTMAP) {
+			const r_lightmap_t *lm = &surf->lightmap;
 
 			vec3_t st;
-			Matrix4x4_Transform(&surf->lightmap.matrix, vert->position, st);
+			Matrix4x4_Transform(&lm->matrix, vert->position, st);
 
-			st[0] -= surf->lightmap.lm_mins[0];
-			st[1] -= surf->lightmap.lm_mins[1];
+			st[0] -= lm->lm_mins[0];
+			st[1] -= lm->lm_mins[1];
 
-			const r_image_t *lightmaps = surf->lightmap.media->lightmaps;
-
-			s = (surf->lightmap.s + st[0] + 0.5) / lightmaps->width;
-			t = (surf->lightmap.t + st[1] + 0.5) / lightmaps->height;
+			s = (surf->lightmap.s + st[0] + 0.5) / lm->media->lightmaps->width;
+			t = (surf->lightmap.t + st[1] + 0.5) / lm->media->lightmaps->height;
 		}
 
 		mod->bsp->lightmap_texcoords[*vertices][0] = s;
