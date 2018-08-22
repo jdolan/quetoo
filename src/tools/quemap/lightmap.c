@@ -94,8 +94,8 @@ static void BuildLightmapExtents(lightmap_t *lm) {
 		}
 	}
 
-	lm->w = ceilf(lm->lm_maxs[0] - lm->lm_mins[0]) + 1;
-	lm->h = ceilf(lm->lm_maxs[1] - lm->lm_mins[1]) + 1;
+	lm->w = rint(lm->lm_maxs[0] - lm->lm_mins[0]) + 1;
+	lm->h = rint(lm->lm_maxs[1] - lm->lm_mins[1]) + 1;
 }
 
 /**
