@@ -114,7 +114,11 @@ light_t *LightForEntity(const entity_t *entity) {
 		VectorNegate(light->normal, light->normal);
 		VectorNormalize(light->normal);
 
-		light->cluster = Cm_LeafCluster(Cm_PointLeafnum(light->origin, 0));
+		if (light->atten == LIGHT_ATTEN_NONE) {
+			light->cluster = -1;
+		} else {
+			light->cluster = Cm_LeafCluster(Cm_PointLeafnum(light->origin, 0));
+		}
 	}
 
 	return light;
