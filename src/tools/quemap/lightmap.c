@@ -381,7 +381,7 @@ static void LightLuxel(const luxel_t *luxel, const byte *pvs, vec_t *sample, vec
 			continue;
 		}
 
-		vec_t diffuse = Clamp(light->radius * dot, 0.0, 255.0);
+		vec_t diffuse = Clamp(light->radius * dot, 0.0, DEFAULT_LIGHT);
 
 		switch (light->type) {
 			case LIGHT_INVALID:
