@@ -204,10 +204,8 @@ light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
 
 	for (int32_t i = 0; i < patch->winding->num_points; i++) {
 
-		vec3_t point, st;
-		VectorAdd(lm->offset, patch->winding->points[i], point);
-
-		Matrix4x4_Transform(&lm->matrix, point, st);
+		vec3_t st;
+		Matrix4x4_Transform(&lm->matrix, patch->winding->points[i], st);
 
 		for (int32_t j = 0; j < 2; j++) {
 
@@ -220,10 +218,10 @@ light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
 		}
 	}
 
-	assert(patch_mins[0] >= lm->lm_mins[0]);
-	assert(patch_mins[1] >= lm->lm_mins[1]);
-	assert(patch_maxs[0] <= lm->lm_maxs[0]);
-	assert(patch_maxs[1] <= lm->lm_maxs[1]);
+	assert(patch_mins[0] >= lm->lm_mins[0] - SIDE_EPSILON);
+	assert(patch_mins[1] >= lm->lm_mins[1] - SIDE_EPSILON);
+	assert(patch_maxs[0] <= lm->lm_maxs[0] + SIDE_EPSILON);
+	assert(patch_maxs[1] <= lm->lm_maxs[1] + SIDE_EPSILON);
 
 	const int16_t w = patch_maxs[0] - patch_mins[0];
 	const int16_t h = patch_maxs[1] - patch_mins[1];
