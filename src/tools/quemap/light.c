@@ -246,13 +246,7 @@ light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
 	}
 
 	if (!VectorCompare(lightmap, vec3_origin)) {
-
-		VectorScale(lightmap, 1.0 / (w * h), lightmap);
-
-		// TODO: Mix diffuse texture color into reflected light
-//		vec3_t diffuse;
-//		GetTextureColor(lm->texinfo->texture, diffuse);
-//		VectorMix(lightmap, diffuse, lm->material->hardness / 8.0, lightmap);
+		vec3_t diffuse;
 
 		light = Mem_TagMalloc(sizeof(*light), MEM_TAG_LIGHT);
 
@@ -262,7 +256,12 @@ light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
 		WindingCenter(patch->winding, light->origin);
 		VectorMA(light->origin, 4.0, lm->normal, light->origin);
 
-		light->radius = ColorNormalize(lightmap, light->color);
+		VectorScale(lightmap, 1.0 / (w * h), lightmap);
+		light->radius = ColorNormalize(lightmap, lightmap);
+
+		GetTextureColor(lm->texinfo->texture, diffuse);
+		VectorMultiply(lightmap, diffuse, light->color);
+
 		light->cluster = Cm_LeafCluster(Cm_PointLeafnum(light->origin, 0));
 	}
 
