@@ -408,7 +408,6 @@ static void LightLuxel(const luxel_t *luxel, const byte *pvs, vec_t *sample, vec
 			}
 				break;
 			case LIGHT_SUN:
-				diffuse *= DEFAULT_BSP_PATCH_SIZE;
 				break;
 		}
 
