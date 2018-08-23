@@ -579,7 +579,7 @@ void FinalizeLighting(int32_t face_num) {
 
 		// start with raw sample data
 		VectorAdd(l->direct, l->indirect, lightmap);
-		//VectorCopy(indirect, lightmap); // uncomment this to see just indirect lighting
+		//VectorCopy(l->indirect, lightmap); // uncomment this to see just indirect lighting
 
 		// convert to float
 		VectorScale(lightmap, 1.0 / 255.0, lightmap);
