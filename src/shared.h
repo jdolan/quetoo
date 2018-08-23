@@ -81,6 +81,7 @@ extern const vec3_t vec3_forward;
 #define Vector4Compare(a, b)		(a[0] == b[0] && a[1] == b[1] && a[2] == b[2] && a[3] == b[3])
 #define VectorAdd(a,b,c)			(c[0] = a[0] + b[0], c[1] = a[1] + b[1], c[2] = a[2] + b[2])
 #define VectorSubtract(a, b, c)		(c[0] = a[0] - b[0], c[1] = a[1] - b[1], c[2] = a[2] - b[2])
+#define VectorMultiply(a, b, c)		(c[0] = a[0] * b[0], c[1] = a[1] * b[1], c[2] = a[2] * b[2])
 #define VectorScale(a, s, b)		(b[0] = a[0] * (s), b[1] = a[1] * (s), b[2] = a[2] * (s))
 #define Vector2Copy(a, b)			((b)[0] = (a)[0], (b)[1] = (a)[1])
 #define Vector2Set(v, x, y)         (v[0] = (x), v[1] = (y))
