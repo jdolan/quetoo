@@ -41,7 +41,7 @@
 #define MAX_BSP_VISIBILITY		0x400000 // increased from Quake2 0x100000
 
 // lightmap luxel size, in world units
-#define DEFAULT_BSP_LUXEL_SIZE 4
+#define DEFAULT_BSP_LUXEL_SIZE 8
 
 typedef enum {
 	BSP_LUMP_ENTITIES,
