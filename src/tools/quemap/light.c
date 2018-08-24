@@ -114,6 +114,11 @@ light_t *LightForEntity(const entity_t *entity) {
 		VectorNegate(light->normal, light->normal);
 		VectorNormalize(light->normal);
 
+		const char *atten = ValueForKey(entity, "atten", NULL) ?: ValueForKey(entity, "attenuation", NULL);
+		if (atten) {
+			light->atten = (light_atten_t) strtol(atten, NULL, 10);
+		}
+
 		if (light->atten == LIGHT_ATTEN_NONE) {
 			light->cluster = -1;
 		} else {
