@@ -35,7 +35,6 @@ ai_client_data_t ai_client_data;
 ai_level_t ai_level;
 static cvar_t *sv_max_clients;
 cvar_t *ai_passive;
-static cvar_t *ai_name_prefix;
 
 /**
  * @brief AI imports.
@@ -58,117 +57,6 @@ static ai_locals_t *ai_locals;
 ai_locals_t *Ai_GetLocals(const g_entity_t *ent) {
 
 	return ai_locals + (ent->s.number - 1);
-}
-
-/**
- * @brief Type for a single skin string
- */
-typedef char ai_skin_t[MAX_QPATH];
-
-/**
- * @brief List of AI skins.
- */
-static GArray *ai_skins;
-
-/**
- * @brief Fs_EnumerateFunc for resolving available skins for a given model.
- */
-static void Ai_EnumerateSkins(const char *path, void *data) {
-	char name[MAX_QPATH];
-	char *s = strstr(path, "players/");
-
-	if (s) {
-		StripExtension(s + strlen("players/"), name);
-
-		if (g_str_has_suffix(name, "_i")) {
-			name[strlen(name) - strlen("_i")] = '\0';
-
-			for (size_t i = 0; i < ai_skins->len; i++) {
-
-				if (g_strcmp0(g_array_index(ai_skins, ai_skin_t, i), name) == 0) {
-					return;
-				}
-			}
-
-			g_array_append_val(ai_skins, name);
-		}
-	}
-}
-
-/**
- * @brief Fs_EnumerateFunc for resolving available models.
- */
-static void Ai_EnumerateModels(const char *path, void *data) {
-
-	aim.gi->EnumerateFiles(va("%s/*.tga", path), Ai_EnumerateSkins, NULL);
-}
-
-/**
- * @brief
- */
-static void Ai_InitSkins(void) {
-
-	ai_skins = g_array_new(false, false, sizeof(ai_skin_t));
-	aim.gi->EnumerateFiles("players/*", Ai_EnumerateModels, NULL);
-}
-
-static void Ai_ShutdownSkins(void) {
-	g_array_free(ai_skins, true);
-	ai_skins = NULL;
-}
-
-/**
- * @brief
- */
-static const char ai_names[][MAX_USER_INFO_VALUE] = {
-	"Stroggo",
-	"Enforcer",
-	"Berserker",
-	"Gunner",
-	"Gladiator",
-	"Makron",
-	"Brain"
-};
-
-/**
- * @brief
- */
-static const uint32_t ai_names_count = lengthof(ai_names);
-
-/**
- * @brief Integers for current name index in g_ai_names table
- * and number of times we've wrapped around it.
- */
-static uint32_t ai_name_index;
-static uint32_t ai_name_suffix;
-
-/**
- * @brief Create the user info for the specified bot entity.
- */
-static void Ai_GetUserInfo(const g_entity_t *self, char *userinfo) {
-
-	g_strlcpy(userinfo, DEFAULT_BOT_INFO, MAX_USER_INFO_STRING);
-
-	SetUserInfo(userinfo, "skin", g_array_index(ai_skins, ai_skin_t, Randomr(0, ai_skins->len)));
-	SetUserInfo(userinfo, "color", va("%i", Randomr(0, 360)));
-	SetUserInfo(userinfo, "hand", va("%i", Randomr(0, 3)));
-	SetUserInfo(userinfo, "head", va("%02x%02x%02x", Randomr(0, 255), Randomr(0, 255), Randomr(0, 255)));
-	SetUserInfo(userinfo, "shirt", va("%02x%02x%02x", Randomr(0, 255), Randomr(0, 255), Randomr(0, 255)));
-	SetUserInfo(userinfo, "pants", va("%02x%02x%02x", Randomr(0, 255), Randomr(0, 255), Randomr(0, 255)));
-
-	if (ai_name_suffix == 0) {
-		SetUserInfo(userinfo, "name", va("%s%s", ai_name_prefix->string, ai_names[ai_name_index]));
-	} else {
-		SetUserInfo(userinfo, "name", va("%s%s %i",
-			ai_name_prefix->string, ai_names[ai_name_index], ai_name_suffix + 1));
-	}
-
-	ai_name_index++;
-
-	if (ai_name_index == ai_names_count) {
-		ai_name_index = 0;
-		ai_name_suffix++;
-	}
 }
 
 /**
@@ -1069,7 +957,6 @@ static void Ai_Init(void) {
 	sv_max_clients = aim.gi->GetCvar("sv_max_clients");
 
 	ai_passive = aim.gi->AddCvar("ai_passive", "0", 0, "Whether the bots will attack or not.");
-	ai_name_prefix = aim.gi->AddCvar("ai_name_prefix", "^0[^1BOT^0] ^7", 0, NULL);
 	ai_locals = (ai_locals_t *) aim.gi->Malloc(sizeof(ai_locals_t) * sv_max_clients->integer, MEM_TAG_AI);
 
 	Ai_InitAnn();

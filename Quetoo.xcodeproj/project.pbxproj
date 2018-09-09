@@ -440,6 +440,8 @@
 		CE9771AA2145519300BBD71C /* ai_ann.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9771A82145519300BBD71C /* ai_ann.h */; };
 		CE9771AB2145519300BBD71C /* ai_ann.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9771A92145519300BBD71C /* ai_ann.c */; };
 		CE9771AC2145562C00BBD71C /* libgenann.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9771A121454EEB00BBD71C /* libgenann.a */; };
+		CE9771B1214557F500BBD71C /* ai_info.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9771AF214557F500BBD71C /* ai_info.h */; };
+		CE9771B2214557F500BBD71C /* ai_info.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9771B0214557F500BBD71C /* ai_info.c */; };
 		CE9FECDD201FEB7400F954ED /* r_gl.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9FECDA201FEB7400F954ED /* r_gl.c */; };
 		CE9FECDE201FEB7400F954ED /* r_gl.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9FECDB201FEB7400F954ED /* r_gl.h */; };
 		CE9FECDF201FEB7400F954ED /* r_gl_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9FECDC201FEB7400F954ED /* r_gl_types.h */; };
@@ -1719,6 +1721,8 @@
 		CE9771A721454F5E00BBD71C /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE9771A82145519300BBD71C /* ai_ann.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ai_ann.h; sourceTree = "<group>"; };
 		CE9771A92145519300BBD71C /* ai_ann.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ai_ann.c; sourceTree = "<group>"; };
+		CE9771AF214557F500BBD71C /* ai_info.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ai_info.h; sourceTree = "<group>"; };
+		CE9771B0214557F500BBD71C /* ai_info.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ai_info.c; sourceTree = "<group>"; };
 		CE9FECDA201FEB7400F954ED /* r_gl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_gl.c; sourceTree = "<group>"; };
 		CE9FECDB201FEB7400F954ED /* r_gl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_gl.h; sourceTree = "<group>"; };
 		CE9FECDC201FEB7400F954ED /* r_gl_types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_gl_types.h; sourceTree = "<group>"; };
@@ -3209,6 +3213,8 @@
 				CE9771A92145519300BBD71C /* ai_ann.c */,
 				CE67EF641E3500C0009C2819 /* ai_goal.c */,
 				CE67EF651E3500C0009C2819 /* ai_goal.h */,
+				CE9771B0214557F500BBD71C /* ai_info.c */,
+				CE9771AF214557F500BBD71C /* ai_info.h */,
 				CE67EF661E3500C0009C2819 /* ai_item.c */,
 				CE67EF671E3500C0009C2819 /* ai_item.h */,
 				CE67EF681E3500C0009C2819 /* ai_local.h */,
@@ -3454,6 +3460,7 @@
 				CE67EF851E35023B009C2819 /* ai.h in Headers */,
 				CE67EF7E1E3501F9009C2819 /* ai_goal.h in Headers */,
 				CE67EF801E3501F9009C2819 /* ai_item.h in Headers */,
+				CE9771B1214557F500BBD71C /* ai_info.h in Headers */,
 				CE67EF811E3501F9009C2819 /* ai_local.h in Headers */,
 				CE67EF831E3501F9009C2819 /* ai_main.h in Headers */,
 				CE67EF841E3501F9009C2819 /* ai_types.h in Headers */,
@@ -4542,6 +4549,7 @@
 				CE67EF771E3501E8009C2819 /* ai_goal.c in Sources */,
 				CE67EF7F1E3501F9009C2819 /* ai_item.c in Sources */,
 				CE67EF821E3501F9009C2819 /* ai_main.c in Sources */,
+				CE9771B2214557F500BBD71C /* ai_info.c in Sources */,
 				CE9771AB2145519300BBD71C /* ai_ann.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

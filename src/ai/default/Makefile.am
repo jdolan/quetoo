@@ -3,6 +3,7 @@ ailibdir = @PKGLIBDIR@/default
 noinst_HEADERS = \
 	ai_ann.h \
 	ai_goal.h \
+	ai_info.h \
 	ai_item.h \
 	ai_local.h \
 	ai_main.h \
@@ -14,6 +15,7 @@ ailib_LTLIBRARIES = \
 ai_la_SOURCES = \
 	ai_ann.c \
 	ai_goal.c \
+	ai_info.c \
 	ai_item.c \
 	ai_main.c
 

@@ -21,18 +21,10 @@
 
 #pragma once
 
-#define __AI_LOCAL_H__
-
-// this is the AI name that we advertise to clients
-#define AI_NAME "default"
-
-#define Debug(...) Debug_(DEBUG_AI, __func__, __VA_ARGS__)
-#define Error(...) Error_(__func__, __VA_ARGS__)
-#define Warn(...) Warn_(__func__, __VA_ARGS__)
-
-#include "ai_ann.h"
-#include "ai_goal.h"
-#include "ai_info.h"
-#include "ai_item.h"
-#include "ai_main.h"
 #include "ai_types.h"
+
+#ifdef __AI_LOCAL_H__
+void Ai_InitSkins(void);
+void Ai_ShutdownSkins(void);
+void Ai_GetUserInfo(const g_entity_t *self, char *info);
+#endif /* __AI_LOCAL_H__ */
