@@ -23,19 +23,6 @@
 #include "game/default/bg_pmove.h"
 #include "game/default/g_ai.h"
 
-ai_entity_data_t ai_entity_data;
-ai_client_data_t ai_client_data;
-
-/**
- * @brief Yields a pointer to the edict by the given number by negotiating the
- * edicts array based on the reported size of g_entity_t.
- */
-#define ENTITY_FOR_NUM(n) ( (g_entity_t *) ((byte *) aim.ge->entities + aim.ge->entity_size * (n)) )
-
-ai_level_t ai_level;
-static cvar_t *sv_max_clients;
-cvar_t *ai_passive;
-
 /**
  * @brief AI imports.
  */
@@ -46,6 +33,14 @@ ai_import_t aim;
  */
 ai_export_t aix;
 
+ai_level_t ai_level;
+
+ai_entity_data_t ai_entity_data;
+ai_client_data_t ai_client_data;
+
+cvar_t *sv_max_clients;
+cvar_t *ai_passive;
+
 /**
  * @brief Ptr to AI locals that are hooked to bot entities.
  */
@@ -55,7 +50,6 @@ static ai_locals_t *ai_locals;
  * @brief Get the locals for the specified bot entity.
  */
 ai_locals_t *Ai_GetLocals(const g_entity_t *ent) {
-
 	return ai_locals + (ent->s.number - 1);
 }
 
@@ -914,7 +908,7 @@ static void Ai_Begin(g_entity_t *self) {
 }
 
 /**
- * @brief Called every frame.
+ * @brief Advance the bot simulation one frame.
  */
 static void Ai_Frame(void) {
 
@@ -996,6 +990,7 @@ ai_export_t *Ai_LoadAi(ai_import_t *import) {
 	aix.Begin = Ai_Begin;
 	aix.Spawn = Ai_Spawn;
 	aix.Think = Ai_Think;
+	aix.Learn = Ai_Learn;
 
 	aix.GameRestarted = Ai_GameStarted;
 

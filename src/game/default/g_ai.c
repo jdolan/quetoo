@@ -556,10 +556,10 @@ void G_Ai_RegisterItems(void) {
 }
 
 #define ENTITY_PTR_OFFSET(m) \
-			entity.m = (typeof(entity.m)) offsetof(g_entity_locals_t, m)
+	entity.m = (typeof(entity.m)) offsetof(g_entity_locals_t, m)
 
 #define CLIENT_PTR_OFFSET(m) \
-			client.m = (typeof(client.m)) offsetof(g_client_locals_t, m)
+	client.m = (typeof(client.m)) offsetof(g_client_locals_t, m)
 
 /**
  * @brief

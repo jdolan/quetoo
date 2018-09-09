@@ -111,9 +111,14 @@ typedef struct {
 	void (*Spawn)(g_entity_t *self);
 
 	/**
-	 * @brief Call cause an AI to think. Returns the movement command for the bot.
+	 * @brief Called to think for an AI. Returns the movement command for the bot.
 	 */
 	void (*Think)(g_entity_t *self, pm_cmd_t *cmd);
+
+	/**
+	 * @brief Called when a human client has a command that the AI can learn from.
+	 */
+	void (*Learn)(const g_entity_t *self, const pm_cmd_t *cmd);
 
 	/**
 	 * @brief Register an item on the AI system

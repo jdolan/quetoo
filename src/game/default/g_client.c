@@ -1536,6 +1536,9 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 
 		G_TouchOccupy(ent);
 	}
+
+	// and finally, share this command with the bot library so that it can learn
+	aix->Learn(ent, cmd);
 }
 
 /**
@@ -1596,7 +1599,7 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 
 		if (!G_IsMeat(cl->locals.chase_target)) {
 
-			g_entity_t *other = cl->locals.chase_target;
+			const g_entity_t *other = cl->locals.chase_target;
 
 			G_ClientChaseNext(ent);
 

@@ -49,13 +49,16 @@ void Ai_ShutdownAnn(void) {
 /**
  * @brief
  */
-void Ai_TrainAnn(const g_entity_t *ent, const pm_cmd_t *cmd) {
+void Ai_Learn(const g_entity_t *ent, const pm_cmd_t *cmd) {
 
+	if (ent->client->ps.pm_state.type == PM_NORMAL) {
+		printf("%d %d %d %d\n", cmd->msec, cmd->forward, cmd->right, cmd->up);
+	}
 }
 
 /**
  * @brief
  */
-void Ai_PredictAnn(const g_entity_t *ent, pm_cmd_t *cmd) {
+void Ai_Predict(const g_entity_t *ent, pm_cmd_t *cmd) {
 
 }
