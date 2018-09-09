@@ -173,7 +173,7 @@ struct g_entity_s {
 	 * opaque field. Therefore, the actual size of g_entity_t is returned to the
 	 * server through ge.entity_size.
 	 */
-	g_entity_locals_t locals; // game-local data members
+	g_entity_locals_t locals;
 };
 
 typedef _Bool (*EntityFilterFunc)(const g_entity_t *ent);
