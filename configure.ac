@@ -209,6 +209,11 @@ dnl -----------------------------------
 dnl Sort out OpenAL flags and libraries
 dnl -----------------------------------
 
+AC_CHECK_HEADER(AL/al.h,
+	PHYSFS_LIBS="-lphysfs -lz",
+	[AC_MSG_ERROR([Could not find AL/al.h, please install OpenAL])]
+)
+
 HOST_OPENAL_CFLAGS=""
 HOST_OPENAL_LIBS=""
 
@@ -322,16 +327,25 @@ dnl --------------------------
 
 AC_MSG_CHECKING(which tools to build)
 
-TOOLS="quemap quetoo-master quetoo-update"
+ALL_TOOLS="quemap quetoo-master quetoo-update"
+TOOLS=${ALL_TOOLS}
 
 AC_ARG_WITH(tools,
-	AS_HELP_STRING([--with-tools='quemap quetoo-master quetoo-update...'],
+	AS_HELP_STRING([--with-tools='${ALL_TOOLS}...'],
 		[build specified tools]
 	)
 )
 
 if test "x${with_tools}" != x; then
 	TOOLS="${with_tools}"
+fi
+
+if test ${TOOLS} = "no"; then
+        TOOLS=""
+fi
+
+if test ${TOOLS} = "yes"; then
+        TOOLS="${ALL_TOOLS}"
 fi
 
 AC_SUBST(TOOLS)

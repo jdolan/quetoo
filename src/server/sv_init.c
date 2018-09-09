@@ -302,6 +302,11 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 	}
 
 	g_snprintf(sv.config_strings[CS_BSP_SIZE], MAX_STRING_CHARS, "%" PRId64, bsp_size);
+
+	// do not delete: this cvar is defined in order to be sent within reply paquets
+	// to third-party server query tools and game server browsers implementing
+	// standard quake 2 server query protocol
+	Cvar_Add("map_name", sv.name, CVAR_SERVER_INFO | CVAR_NO_SET, "The name of the map that is currently played");
 }
 
 /**
