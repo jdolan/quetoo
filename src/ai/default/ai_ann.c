@@ -23,8 +23,9 @@
 
 #include "deps/genann/genann.h"
 
-#define AI_ANN_LAYERS 4
-#define AI_ANN_NEURONS 64
+#define AI_ANN_HIDDEN_LAYERS 16
+#define AI_ANN_NEURONS 16
+#define AI_ANN_LEARNING_RATE 1.0
 
 static genann *ai_ann;
 
@@ -33,7 +34,7 @@ static genann *ai_ann;
  */
 void Ai_InitAnn(void) {
 
-	ai_ann = genann_init(AI_ANN_INPUTS, AI_ANN_LAYERS, AI_ANN_NEURONS, AI_ANN_OUTPUTS);
+	ai_ann = genann_init(AI_ANN_INPUTS, AI_ANN_HIDDEN_LAYERS, AI_ANN_NEURONS, AI_ANN_OUTPUTS);
 	assert(ai_ann);
 }
 
@@ -41,6 +42,10 @@ void Ai_InitAnn(void) {
  * @brief
  */
 void Ai_ShutdownAnn(void) {
+
+	FILE *file = fopen("/tmp/quetoo.ann", "w");
+	genann_write(ai_ann, file);
+	fclose(file);
 
 	genann_free(ai_ann);
 	ai_ann = NULL;
@@ -51,8 +56,29 @@ void Ai_ShutdownAnn(void) {
  */
 void Ai_Learn(const g_entity_t *ent, const pm_cmd_t *cmd) {
 
+	if (ent->client->ai) {
+		return;
+	}
+
 	if (ent->client->ps.pm_state.type == PM_NORMAL) {
-		printf("%d %d %d %d\n", cmd->msec, cmd->forward, cmd->right, cmd->up);
+		if (cmd->forward || cmd->right) {
+
+			ai_ann_input_t in;
+
+			VectorCopy(ent->s.origin, in.origin);
+			VectorCopy(ent->s.angles, in.angles);
+			VectorCopy(ENTITY_DATA_ARRAY(ent, velocity), in.velocity);
+
+			ai_ann_output_t out;
+
+			VectorCopy(cmd->angles, out.angles);
+			out.forward = cmd->forward;
+			out.right = cmd->right;
+			out.up = cmd->up;
+			out.buttons = cmd->buttons;
+
+			genann_train(ai_ann, (const dvec_t *) &in, (const dvec_t *) &out, AI_ANN_LEARNING_RATE);
+		}
 	}
 }
 
@@ -61,4 +87,18 @@ void Ai_Learn(const g_entity_t *ent, const pm_cmd_t *cmd) {
  */
 void Ai_Predict(const g_entity_t *ent, pm_cmd_t *cmd) {
 
+	ai_ann_input_t in;
+
+	VectorCopy(ent->s.origin, in.origin);
+	VectorCopy(ent->s.angles, in.angles);
+	VectorCopy(ENTITY_DATA_ARRAY(ent, velocity), in.velocity);
+
+	ai_ann_output_t *out = (ai_ann_output_t *) genann_run(ai_ann, (const dvec_t *) &in);
+	assert(out);
+
+	VectorCopy(out->angles, cmd->angles);
+	cmd->forward = out->forward;
+	cmd->right = out->right;
+	cmd->up = out->up;
+	cmd->buttons = out->buttons;
 }

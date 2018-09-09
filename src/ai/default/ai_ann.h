@@ -27,9 +27,8 @@
 
 typedef struct {
 	dvec3_t origin;
+	dvec3_t angles;
 	dvec3_t velocity;
-	dvec_t node;
-
 } ai_ann_input_t;
 
 #define AI_ANN_INPUTS (sizeof(ai_ann_input_t) / sizeof(double))
