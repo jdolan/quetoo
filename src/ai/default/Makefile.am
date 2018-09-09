@@ -30,6 +30,6 @@ ai_la_LDFLAGS = \
 	-shared
 
 ai_la_LIBADD = \
-	$(top_builddir)/deps/libgenann.la \
+	$(top_builddir)/deps/genann/libgenann.la \
 	$(top_builddir)/src/game/default/libpmove.la \
 	@GLIB_LIBS@
