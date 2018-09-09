@@ -35,10 +35,11 @@ typedef struct {
 #define AI_ANN_INPUTS (sizeof(ai_ann_input_t) / sizeof(double))
 
 typedef union {
+	dvec3_t angles;
 	dvec_t forward;
 	dvec_t right;
 	dvec_t up;
-
+	dvec_t buttons;
 } ai_ann_output_t;
 
 #define AI_ANN_OUTPUTS (sizeof(ai_ann_output_t) / sizeof(double))
