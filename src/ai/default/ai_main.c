@@ -688,6 +688,21 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 
 	VectorSubtract(dest, self->s.origin, dir);
 	VectorNormalize(dir);
+
+	pm_cmd_t predicted;
+	Ai_Predict(self, &predicted);
+	if (predicted.forward || predicted.right) {
+		aim.gi->Debug("Neural net predicted\n");
+
+		vec3_t forward;
+		UnpackAngles(predicted.angles, angles);
+		AngleVectors(angles, forward, NULL, NULL);
+
+		if (DotProduct(dir, forward) > 0.66) {
+			aim.gi->Debug("Neural net assisted\n");
+		}
+	}
+
 	VectorAngles(dir, angles);
 
 	const vec_t delta_yaw = CLIENT_DATA_ARRAY(self->client, angles)[YAW] - angles[YAW];
