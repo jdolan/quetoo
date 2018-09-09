@@ -37,13 +37,13 @@ extern cvar_t *ai_passive;
  * @brief Resolve the entity at the given index.
  */
 #define ENTITY_FOR_NUM(n) \
-	( (g_entity_t *) ((byte *) aim.ge->entities + aim.ge->entity_size * (n)) )
+	((g_entity_t *) ((byte *) aim.ge->entities + aim.ge->entity_size * (n)))
 
 /**
  * @brief Resolve typed data from a structure using offsets.
  */
 #define BASE_DATA_RESOLVE(from, member) \
-		((typeof(member)) ((byte *) (from) + ((ptrdiff_t) member)))
+	((typeof(member)) ((byte *) (from) + ((ptrdiff_t) member)))
 
 /**
  * @brief Resolve the entity data ptr for the specified member
