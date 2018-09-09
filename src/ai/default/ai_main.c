@@ -664,30 +664,28 @@ static cm_trace_t Ai_ClientMove_Trace(const vec3_t start, const vec3_t end, cons
  * @brief Move towards our current target
  */
 static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
-	ai_locals_t *ai = Ai_GetLocals(self);
-	ai_goal_t *move_target = &ai->move_target;
 
-	vec3_t dest;
+	ai_locals_t *ai = Ai_GetLocals(self);
 
 	// TODO: node navigation.
-	if (move_target->type <= AI_GOAL_NAV) {
+	if (ai->move_target.type <= AI_GOAL_NAV) {
 		Ai_Wander(self, cmd);
 	}
 
-	switch (move_target->type) {
+	vec3_t dir, angles, dest;
+	switch (ai->move_target.type) {
 		default: {
-				vec3_t movement_dir = { 0, ai->wander_angle, 0 };
-				AngleVectors(movement_dir, movement_dir, NULL, NULL);
-				VectorMA(self->s.origin, 1.0, movement_dir, dest);
+				VectorSet(angles, 0.0, ai->wander_angle, 0.0);
+				AngleVectors(angles, dir, NULL, NULL);
+				VectorMA(self->s.origin, 1.0, dir, dest);
 			}
 			break;
 		case AI_GOAL_ITEM:
 		case AI_GOAL_ENEMY:
-			VectorCopy(move_target->ent->s.origin, dest);
+			VectorCopy(ai->move_target.ent->s.origin, dest);
 			break;
 	}
 
-	vec3_t dir, angles;
 	VectorSubtract(dest, self->s.origin, dir);
 	VectorNormalize(dir);
 	VectorAngles(dir, angles);
@@ -742,7 +740,7 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	}
 
 	if (ENTITY_DATA(self, ground_entity) && !pm.ground_entity) { // predicted ground is gone
-		if (move_target->type <= AI_GOAL_NAV) {
+		if (ai->move_target.type <= AI_GOAL_NAV) {
 			vec_t angle = 45 + Randomf() * 45;
 
 			ai->wander_angle += (Randomf() < 0.5) ? -angle : angle;
