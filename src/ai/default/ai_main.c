@@ -667,7 +667,7 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	ai_locals_t *ai = Ai_GetLocals(self);
 	ai_goal_t *move_target = &ai->move_target;
 
-	vec3_t movement_goal;
+	vec3_t dest;
 
 	// TODO: node navigation.
 	if (move_target->type <= AI_GOAL_NAV) {
@@ -678,30 +678,27 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		default: {
 				vec3_t movement_dir = { 0, ai->wander_angle, 0 };
 				AngleVectors(movement_dir, movement_dir, NULL, NULL);
-				VectorMA(self->s.origin, 1.0, movement_dir, movement_goal);
+				VectorMA(self->s.origin, 1.0, movement_dir, dest);
 			}
 			break;
 		case AI_GOAL_ITEM:
 		case AI_GOAL_ENEMY:
-			VectorCopy(move_target->ent->s.origin, movement_goal);
+			VectorCopy(move_target->ent->s.origin, dest);
 			break;
 	}
 
-	vec3_t move_direction;
-	VectorSubtract(movement_goal, self->s.origin, move_direction);
-	VectorNormalize(move_direction);
-	VectorAngles(move_direction, move_direction);
-	move_direction[0] = move_direction[2] = 0.0;
+	vec3_t dir, angles;
+	VectorSubtract(dest, self->s.origin, dir);
+	VectorNormalize(dir);
+	VectorAngles(dir, angles);
 
-	const vec3_t view_direction = { 0.0, CLIENT_DATA_ARRAY(self->client, angles)[1], 0.0};
-	VectorSubtract(view_direction, move_direction, move_direction);
+	const vec_t delta_yaw = CLIENT_DATA_ARRAY(self->client, angles)[YAW] - angles[YAW];
+	AngleVectors((vec3_t) { 0.0, delta_yaw, 0.0 }, dir, NULL, NULL);
 
-	AngleVectors(move_direction, move_direction, NULL, NULL);
+	VectorScale(dir, PM_SPEED_RUN, dir);
 
-	VectorScale(move_direction, PM_SPEED_RUN, move_direction);
-
-	cmd->forward = move_direction[0];
-	cmd->right = move_direction[1];
+	cmd->forward = dir[0];
+	cmd->right = dir[1];
 
 	if (ENTITY_DATA(self, water_level) >= WATER_WAIST) {
 		cmd->up = PM_SPEED_JUMP;
