@@ -21,7 +21,7 @@
 
 #include "ai_local.h"
 
-#include "genann.h"
+#include "deps/genann/genann.h"
 
 #define AI_ANN_LAYERS 4
 #define AI_ANN_NEURONS 64
@@ -54,7 +54,7 @@ void Ai_TrainAnn(const g_entity_t *ent, const pm_cmd_t *cmd) {
 }
 
 /**
- *
+ * @brief
  */
 void Ai_PredictAnn(const g_entity_t *ent, pm_cmd_t *cmd) {
 
