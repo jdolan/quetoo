@@ -21,17 +21,30 @@
 
 #pragma once
 
-#define __AI_LOCAL_H__
-
-// this is the AI name that we advertise to clients
-#define AI_NAME "default"
-
-#define Debug(...) Debug_(DEBUG_AI, __func__, __VA_ARGS__)
-#define Error(...) Error_(__func__, __VA_ARGS__)
-#define Warn(...) Warn_(__func__, __VA_ARGS__)
-
-#include "ai_ann.h"
-#include "ai_goal.h"
-#include "ai_item.h"
-#include "ai_main.h"
 #include "ai_types.h"
+
+#ifdef __AI_LOCAL_H__
+
+typedef struct {
+	dvec3_t origin;
+	dvec3_t velocity;
+	dvec_t node;
+
+} ai_ann_input_t;
+
+#define AI_ANN_INPUTS (sizeof(ai_ann_input_t) / sizeof(double))
+
+typedef union {
+	dvec_t forward;
+	dvec_t right;
+	dvec_t up;
+
+} ai_ann_output_t;
+
+#define AI_ANN_OUTPUTS (sizeof(ai_ann_output_t) / sizeof(double))
+
+void Ai_InitAnn(void);
+void Ai_ShutdownAnn(void);
+void Ai_TrainAnn(const g_entity_t *ent, const pm_cmd_t *cmd);
+void Ai_PredictAnn(const g_entity_t *ent, pm_cmd_t *cmd);
+#endif

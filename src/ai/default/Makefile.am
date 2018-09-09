@@ -1,6 +1,7 @@
 ailibdir = @PKGLIBDIR@/default
 
 noinst_HEADERS = \
+	ai_ann.h \
 	ai_goal.h \
 	ai_item.h \
 	ai_local.h \
@@ -11,6 +12,7 @@ ailib_LTLIBRARIES = \
 	ai.la
 
 ai_la_SOURCES = \
+	ai_ann.c \
 	ai_goal.c \
 	ai_item.c \
 	ai_main.c
@@ -28,5 +30,6 @@ ai_la_LDFLAGS = \
 	-shared
 
 ai_la_LIBADD = \
+	$(top_builddir)/deps/libgenann.la \
 	$(top_builddir)/src/game/default/libpmove.la \
 	@GLIB_LIBS@

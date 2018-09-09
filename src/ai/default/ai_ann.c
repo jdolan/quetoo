@@ -19,19 +19,43 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+#include "ai_local.h"
 
-#define __AI_LOCAL_H__
+#include "genann.h"
 
-// this is the AI name that we advertise to clients
-#define AI_NAME "default"
+#define AI_ANN_LAYERS 4
+#define AI_ANN_NEURONS 64
 
-#define Debug(...) Debug_(DEBUG_AI, __func__, __VA_ARGS__)
-#define Error(...) Error_(__func__, __VA_ARGS__)
-#define Warn(...) Warn_(__func__, __VA_ARGS__)
+static genann *ai_ann;
 
-#include "ai_ann.h"
-#include "ai_goal.h"
-#include "ai_item.h"
-#include "ai_main.h"
-#include "ai_types.h"
+/**
+ * @brief
+ */
+void Ai_InitAnn(void) {
+
+	ai_ann = genann_init(AI_ANN_INPUTS, AI_ANN_LAYERS, AI_ANN_NEURONS, AI_ANN_OUTPUTS);
+	assert(ai_ann);
+}
+
+/**
+ * @brief
+ */
+void Ai_ShutdownAnn(void) {
+
+	genann_free(ai_ann);
+	ai_ann = NULL;
+}
+
+/**
+ * @brief
+ */
+void Ai_TrainAnn(const g_entity_t *ent, const pm_cmd_t *cmd) {
+
+}
+
+/**
+ *
+ */
+void Ai_PredictAnn(const g_entity_t *ent, pm_cmd_t *cmd) {
+
+}

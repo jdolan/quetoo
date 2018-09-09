@@ -437,6 +437,9 @@
 		CE91924D2055731E007AC8FF /* tjunctions.c in Sources */ = {isa = PBXBuildFile; fileRef = CE91924C2055731E007AC8FF /* tjunctions.c */; };
 		CE9771A521454F0F00BBD71C /* genann.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9771A321454F0F00BBD71C /* genann.h */; };
 		CE9771A621454F0F00BBD71C /* genann.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9771A421454F0F00BBD71C /* genann.c */; };
+		CE9771AA2145519300BBD71C /* ai_ann.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9771A82145519300BBD71C /* ai_ann.h */; };
+		CE9771AB2145519300BBD71C /* ai_ann.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9771A92145519300BBD71C /* ai_ann.c */; };
+		CE9771AC2145562C00BBD71C /* libgenann.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9771A121454EEB00BBD71C /* libgenann.a */; };
 		CE9FECDD201FEB7400F954ED /* r_gl.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9FECDA201FEB7400F954ED /* r_gl.c */; };
 		CE9FECDE201FEB7400F954ED /* r_gl.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9FECDB201FEB7400F954ED /* r_gl.h */; };
 		CE9FECDF201FEB7400F954ED /* r_gl_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9FECDC201FEB7400F954ED /* r_gl_types.h */; };
@@ -755,6 +758,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = CE80FE0E1C5E421900A21A51;
 			remoteInfo = collision;
+		};
+		CE9771AD2145565800BBD71C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE97719421454EEB00BBD71C;
+			remoteInfo = genann;
 		};
 		CEA029B71C5E546200341079 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1707,6 +1717,8 @@
 		CE9771A321454F0F00BBD71C /* genann.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = genann.h; sourceTree = "<group>"; };
 		CE9771A421454F0F00BBD71C /* genann.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = genann.c; sourceTree = "<group>"; };
 		CE9771A721454F5E00BBD71C /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CE9771A82145519300BBD71C /* ai_ann.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ai_ann.h; sourceTree = "<group>"; };
+		CE9771A92145519300BBD71C /* ai_ann.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ai_ann.c; sourceTree = "<group>"; };
 		CE9FECDA201FEB7400F954ED /* r_gl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_gl.c; sourceTree = "<group>"; };
 		CE9FECDB201FEB7400F954ED /* r_gl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_gl.h; sourceTree = "<group>"; };
 		CE9FECDC201FEB7400F954ED /* r_gl_types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_gl_types.h; sourceTree = "<group>"; };
@@ -1930,6 +1942,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE9771AC2145562C00BBD71C /* libgenann.a in Frameworks */,
 				CE6EE3C71F7147CE00FBC830 /* libshared.a in Frameworks */,
 				CE6EE3B71F70BE8300FBC830 /* libgame-pmove.a in Frameworks */,
 				CE6EE3C61F7147B700FBC830 /* libglib-2.0.0.dylib in Frameworks */,
@@ -3192,6 +3205,8 @@
 		CE67EF631E3500C0009C2819 /* default */ = {
 			isa = PBXGroup;
 			children = (
+				CE9771A82145519300BBD71C /* ai_ann.h */,
+				CE9771A92145519300BBD71C /* ai_ann.c */,
 				CE67EF641E3500C0009C2819 /* ai_goal.c */,
 				CE67EF651E3500C0009C2819 /* ai_goal.h */,
 				CE67EF661E3500C0009C2819 /* ai_item.c */,
@@ -3435,6 +3450,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE9771AA2145519300BBD71C /* ai_ann.h in Headers */,
 				CE67EF851E35023B009C2819 /* ai.h in Headers */,
 				CE67EF7E1E3501F9009C2819 /* ai_goal.h in Headers */,
 				CE67EF801E3501F9009C2819 /* ai_item.h in Headers */,
@@ -3868,6 +3884,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				CE9771AE2145565800BBD71C /* PBXTargetDependency */,
 				CE80FDF21C5E3E5C00A21A51 /* PBXTargetDependency */,
 			);
 			name = common;
@@ -4525,6 +4542,7 @@
 				CE67EF771E3501E8009C2819 /* ai_goal.c in Sources */,
 				CE67EF7F1E3501F9009C2819 /* ai_item.c in Sources */,
 				CE67EF821E3501F9009C2819 /* ai_main.c in Sources */,
+				CE9771AB2145519300BBD71C /* ai_ann.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4833,6 +4851,11 @@
 			isa = PBXTargetDependency;
 			target = CE80FE0E1C5E421900A21A51 /* collision */;
 			targetProxy = CE80FFFC1C5E4D2D00A21A51 /* PBXContainerItemProxy */;
+		};
+		CE9771AE2145565800BBD71C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE97719421454EEB00BBD71C /* genann */;
+			targetProxy = CE9771AD2145565800BBD71C /* PBXContainerItemProxy */;
 		};
 		CEA029B81C5E546200341079 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;

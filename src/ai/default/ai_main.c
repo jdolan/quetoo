@@ -112,6 +112,11 @@ static void Ai_InitSkins(void) {
 	aim.gi->EnumerateFiles("players/*", Ai_EnumerateModels, NULL);
 }
 
+static void Ai_ShutdownSkins(void) {
+	g_array_free(ai_skins, true);
+	ai_skins = NULL;
+}
+
 /**
  * @brief
  */
@@ -1067,6 +1072,7 @@ static void Ai_Init(void) {
 	ai_name_prefix = aim.gi->AddCvar("ai_name_prefix", "^0[^1BOT^0] ^7", 0, NULL);
 	ai_locals = (ai_locals_t *) aim.gi->Malloc(sizeof(ai_locals_t) * sv_max_clients->integer, MEM_TAG_AI);
 
+	Ai_InitAnn();
 	Ai_InitSkins();
 
 	aim.gi->Print("  ^5Ai module initialized\n");
@@ -1079,8 +1085,8 @@ static void Ai_Shutdown(void) {
 
 	aim.gi->Print("  ^5Ai module shutdown...\n");
 
-	g_array_free(ai_skins, true);
-	ai_skins = NULL;
+	Ai_ShutdownAnn();
+	Ai_ShutdownSkins();
 
 	aim.gi->FreeTag(MEM_TAG_AI);
 }
