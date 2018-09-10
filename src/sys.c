@@ -47,7 +47,7 @@
 	#include <sys/time.h>
 #endif
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 /**
  * @return The current executable path (argv[0]).
