@@ -2,7 +2,7 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "container:/Users/jdolan/Coding/quetoo/Quetoo.xcodeproj">
+      location = "group:Quetoo.xcodeproj">
    </FileRef>
    <FileRef
       location = "container:../ObjectivelyMVC/ObjectivelyMVC.xcodeproj">

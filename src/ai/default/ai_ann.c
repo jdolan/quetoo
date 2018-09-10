@@ -24,20 +24,22 @@
 #include "deps/genann/genann.h"
 
 typedef struct {
-	dvec3_t origin;
-	dvec3_t angles;
+    dvec3_t origin;
+    dvec3_t angles;
 	dvec3_t velocity;
 } ai_ann_input_t;
 
 #define AI_ANN_INPUTS (sizeof(ai_ann_input_t) / sizeof(double))
 
-typedef union {
-	dvec3_t angles;
+typedef struct {
+//    dvec3_t angles;
 	dvec_t forward;
 	dvec_t right;
 	dvec_t up;
-	dvec_t buttons;
+//    dvec_t buttons;
 } ai_ann_output_t;
+
+#define MOVEMENT_SCALE 10000.0f
 
 #define AI_ANN_OUTPUTS (sizeof(ai_ann_output_t) / sizeof(double))
 
@@ -53,6 +55,7 @@ static genann *ai_ann;
 void Ai_InitAnn(void) {
 
 	ai_ann = genann_init(AI_ANN_INPUTS, AI_ANN_HIDDEN_LAYERS, AI_ANN_NEURONS, AI_ANN_OUTPUTS);
+    genann_randomize(ai_ann);
 	assert(ai_ann);
 }
 
@@ -83,17 +86,17 @@ void Ai_Learn(const g_entity_t *ent, const pm_cmd_t *cmd) {
 
 			ai_ann_input_t in;
 
-			VectorCopy(ent->s.origin, in.origin);
-			VectorCopy(ent->s.angles, in.angles);
+            VectorCopy(ent->s.origin, in.origin);
+            VectorCopy(ent->s.angles, in.angles);
 			VectorCopy(ENTITY_DATA_ARRAY(ent, velocity), in.velocity);
 
 			ai_ann_output_t out;
 
-			VectorCopy(cmd->angles, out.angles);
-			out.forward = cmd->forward;
-			out.right = cmd->right;
-			out.up = cmd->up;
-			out.buttons = cmd->buttons;
+//            VectorCopy(cmd->angles, out.angles);
+			out.forward = ((double) cmd->forward) / MOVEMENT_SCALE + 0.5;
+			out.right = ((double) cmd->right) / MOVEMENT_SCALE + 0.5;
+			out.up = ((double) cmd->up) / MOVEMENT_SCALE + 0.5;
+//            out.buttons = cmd->buttons;
 
 			genann_train(ai_ann, (const dvec_t *) &in, (const dvec_t *) &out, AI_ANN_LEARNING_RATE);
 		}
@@ -107,16 +110,16 @@ void Ai_Predict(const g_entity_t *ent, pm_cmd_t *cmd) {
 
 	ai_ann_input_t in;
 
-	VectorCopy(ent->s.origin, in.origin);
-	VectorCopy(ent->s.angles, in.angles);
+    VectorCopy(ent->s.origin, in.origin);
+    VectorCopy(ent->s.angles, in.angles);
 	VectorCopy(ENTITY_DATA_ARRAY(ent, velocity), in.velocity);
 
 	ai_ann_output_t *out = (ai_ann_output_t *) genann_run(ai_ann, (const dvec_t *) &in);
 	assert(out);
 
-	VectorCopy(out->angles, cmd->angles);
-	cmd->forward = out->forward;
-	cmd->right = out->right;
-	cmd->up = out->up;
-	cmd->buttons = out->buttons;
+//    VectorCopy(out->angles, cmd->angles);
+	cmd->forward = (out->forward - 0.5) * MOVEMENT_SCALE;
+	cmd->right = (out->right - 0.5) * MOVEMENT_SCALE;
+	cmd->up = (out->up - 0.5) * MOVEMENT_SCALE;
+//    cmd->buttons = out->buttons;
 }
