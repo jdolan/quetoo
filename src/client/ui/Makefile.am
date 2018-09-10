@@ -24,7 +24,8 @@ libui_la_CFLAGS = \
 	-I$(top_srcdir)/src/client/renderer \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
-	@OBJECTIVELYMVC_CFLAGS@
+	@OBJECTIVELYMVC_CFLAGS@ \
+	@SDL2_CFLAGS@
 
 libui_la_LDFLAGS = \
 	-shared

@@ -57,7 +57,8 @@ libconsole_la_SOURCES = \
 	cvar.c
 libconsole_la_CFLAGS = \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@
+	@GLIB_CFLAGS@ \
+	@SDL2_CFLAGS@
 libconsole_la_LDFLAGS = \
 	-shared
 libconsole_la_LIBADD = \
@@ -137,7 +138,8 @@ libswap_la_SOURCES = \
 	swap.c
 libswap_la_CFLAGS = \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@
+	@GLIB_CFLAGS@ \
+	@SDL2_CFLAGS@
 libswap_la_LDFLAGS = \
 	-shared
 
