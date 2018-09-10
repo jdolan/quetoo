@@ -23,8 +23,26 @@
 
 #include "deps/genann/genann.h"
 
-#define AI_ANN_HIDDEN_LAYERS 16
-#define AI_ANN_NEURONS 16
+typedef struct {
+	dvec3_t origin;
+	dvec3_t angles;
+	dvec3_t velocity;
+} ai_ann_input_t;
+
+#define AI_ANN_INPUTS (sizeof(ai_ann_input_t) / sizeof(double))
+
+typedef union {
+	dvec3_t angles;
+	dvec_t forward;
+	dvec_t right;
+	dvec_t up;
+	dvec_t buttons;
+} ai_ann_output_t;
+
+#define AI_ANN_OUTPUTS (sizeof(ai_ann_output_t) / sizeof(double))
+
+#define AI_ANN_HIDDEN_LAYERS 4
+#define AI_ANN_NEURONS 4
 #define AI_ANN_LEARNING_RATE 1.0
 
 static genann *ai_ann;

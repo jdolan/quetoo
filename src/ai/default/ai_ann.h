@@ -24,25 +24,6 @@
 #include "ai_types.h"
 
 #ifdef __AI_LOCAL_H__
-
-typedef struct {
-	dvec3_t origin;
-	dvec3_t angles;
-	dvec3_t velocity;
-} ai_ann_input_t;
-
-#define AI_ANN_INPUTS (sizeof(ai_ann_input_t) / sizeof(double))
-
-typedef union {
-	dvec3_t angles;
-	dvec_t forward;
-	dvec_t right;
-	dvec_t up;
-	dvec_t buttons;
-} ai_ann_output_t;
-
-#define AI_ANN_OUTPUTS (sizeof(ai_ann_output_t) / sizeof(double))
-
 void Ai_InitAnn(void);
 void Ai_ShutdownAnn(void);
 void Ai_Learn(const g_entity_t *ent, const pm_cmd_t *cmd);

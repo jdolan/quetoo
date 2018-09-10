@@ -75,7 +75,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map edge +set g_cheats 1 +give all"
+            argument = "+map edge +set g_cheats 1 +give all +god +g_ai_add"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
