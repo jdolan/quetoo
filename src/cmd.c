@@ -294,7 +294,7 @@ cmd_t *Cmd_Get(const char *name) {
 /**
  * @brief Enumerates all known commands with the given function.
  */
-void Cmd_Enumerate(CmdEnumerateFunc func, void *data) {
+void Cmd_Enumerate(Cmd_Enumerator func, void *data) {
 	GHashTableIter iter;
 	gpointer key, value;
 	g_hash_table_iter_init(&iter, cmd_state.commands);
