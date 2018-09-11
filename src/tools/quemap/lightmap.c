@@ -482,7 +482,7 @@ void DirectLighting(int32_t face_num) {
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 
-		vec_t light = 0.0;
+		vec_t contribution = 0.0;
 
 		for (size_t j = 0; j < lengthof(offsets); j++) {
 
@@ -496,7 +496,7 @@ void DirectLighting(int32_t face_num) {
 				continue;
 			}
 
-			light += scale;
+			contribution += scale;
 
 			LightLuxel(l, pvs, l->direct, l->direction, scale);
 
@@ -505,9 +505,9 @@ void DirectLighting(int32_t face_num) {
 			}
 		}
 
-		if (light > 0.0 && light < 1.0) {
-			VectorScale(l->direct, 1.0 / light, l->direct);
-			VectorScale(l->direction, 1.0 / light, l->direction);
+		if (contribution > 0.0 && contribution < 1.0) {
+			VectorScale(l->direct, 1.0 / contribution, l->direct);
+			VectorScale(l->direction, 1.0 / contribution, l->direction);
 		}
 	}
 }
@@ -516,6 +516,12 @@ void DirectLighting(int32_t face_num) {
  * @brief
  */
 void IndirectLighting(int32_t face_num) {
+
+	static const vec2_t offsets[] = {
+		{ +0.0, +0.0 }, { -1.0, -1.0 }, { +0.0, -1.0 },
+		{ +1.0, -1.0 }, { -1.0, +0.0 }, { +1.0, +0.0 },
+		{ -1.0, +1.0 }, { +0.0, +1.0 }, { +1.0, +1.0 }
+	};
 
 	const lightmap_t *lm = &lightmaps[face_num];
 
@@ -526,13 +532,18 @@ void IndirectLighting(int32_t face_num) {
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 
-		byte pvs[(MAX_BSP_LEAFS + 7) / 8];
+		for (size_t j = 0; j < lengthof(offsets); j++) {
 
-		if (!ProjectLuxel(lm, l, 0.0, 0.0, pvs)) {
-			continue;
+			const vec_t soffs = offsets[j][0];
+			const vec_t toffs = offsets[j][1];
+
+			byte pvs[(MAX_BSP_LEAFS + 7) / 8];
+
+			if (ProjectLuxel(lm, l, soffs, toffs, pvs)) {
+				LightLuxel(l, pvs, l->direct, NULL, 0.125);
+				break;
+			}
 		}
-
-		LightLuxel(l, pvs, l->indirect, NULL, 0.0125);
 	}
 }
 
