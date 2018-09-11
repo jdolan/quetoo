@@ -41,7 +41,7 @@ static Order sortSkins(const ident a, const ident b) {
 }
 
 /**
- * @brief Fs_EnumerateFunc for resolving available skins for a give model.
+ * @brief Fs_Enumerator for resolving available skins for a give model.
  */
 static void enumerateSkins(const char *path, void *data) {
 
@@ -83,7 +83,7 @@ static void enumerateSkins(const char *path, void *data) {
 }
 
 /**
- * @brief Fs_EnumerateFunc for resolving available models.
+ * @brief Fs_Enumerator for resolving available models.
  */
 static void enumerateModels(const char *path, void *data) {
 	cgi.EnumerateFiles(va("%s/*.skin", path), enumerateSkins, data);

@@ -28,7 +28,7 @@
 #pragma mark - Crosshair selection
 
 /**
- * @brief Fs_EnumerateFunc for crosshair selection.
+ * @brief Fs_Enumerator for crosshair selection.
  */
 static void enumerateCrosshairs(const char *path, void *data) {
 	char name[MAX_QPATH];

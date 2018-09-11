@@ -34,7 +34,7 @@ typedef char ai_skin_t[MAX_QPATH];
 static GArray *ai_skins;
 
 /**
- * @brief Fs_EnumerateFunc for resolving available skins for a given model.
+ * @brief Fs_Enumerator for resolving available skins for a given model.
  */
 static void Ai_EnumerateSkins(const char *path, void *data) {
 	char name[MAX_QPATH];
@@ -59,7 +59,7 @@ static void Ai_EnumerateSkins(const char *path, void *data) {
 }
 
 /**
- * @brief Fs_EnumerateFunc for resolving available models.
+ * @brief Fs_Enumerator for resolving available models.
  */
 static void Ai_EnumerateModels(const char *path, void *data) {
 	aim.gi->EnumerateFiles(va("%s/*.tga", path), Ai_EnumerateSkins, NULL);

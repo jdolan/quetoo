@@ -216,7 +216,7 @@ typedef struct g_import_s {
 	 * @param enumerator The enumerator function.
 	 * @param data User data.
 	 */
-	void (*EnumerateFiles)(const char *pattern, Fs_EnumerateFunc enumerator, void *data);
+	void (*EnumerateFiles)(const char *pattern, Fs_Enumerator enumerator, void *data);
 
 	/**
 	 * @brief Resolves a console variable, creating it if not found.
