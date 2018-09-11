@@ -49,8 +49,9 @@ libcommon_la_CFLAGS = \
 libcommon_la_LDFLAGS = \
 	-shared
 libcommon_la_LIBADD = \
-	libshared.la
-	
+	libshared.la \
+	libparse.la
+
 libconsole_la_SOURCES = \
 	cmd.c \
 	console.c \
