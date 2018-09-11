@@ -36,9 +36,9 @@ typedef struct {
 
 #define AI_ANN_OUTPUTS (sizeof(ai_ann_output_t) / sizeof(double))
 
-#define AI_ANN_HIDDEN_LAYERS 4
-#define AI_ANN_NEURONS 8
-#define AI_ANN_LEARNING_RATE 0.1
+#define AI_ANN_HIDDEN_LAYERS 1
+#define AI_ANN_NEURONS 64
+#define AI_ANN_LEARNING_RATE 1.0
 
 static genann *ai_ann;
 

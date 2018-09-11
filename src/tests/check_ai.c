@@ -61,8 +61,6 @@ START_TEST(check_Ai_Learn) {
 		.buttons = 0
 	};
 
-	Ai_Learn(&player, &cmd);
-
 	const g_entity_t bot = {
 		.class_name = "player",
 		.in_use = true,
@@ -71,10 +69,14 @@ START_TEST(check_Ai_Learn) {
 		}
 	};
 
-	vec3_t dir;
-	Ai_Predict(&bot, dir);
+	for (int32_t i = 0; i < 100; i++) {
+		Ai_Learn(&player, &cmd);
 
-	printf("%.2f %.2f %.2f\n", dir[0], dir[1], dir[2]);
+		vec3_t dir;
+		Ai_Predict(&bot, dir);
+
+		printf("%.2f %.2f %.2f\n", dir[0], dir[1], dir[2]);
+	}
 } END_TEST
 
 /**
