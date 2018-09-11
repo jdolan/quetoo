@@ -327,6 +327,86 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 	return image;
 }
 
+#define RMASK 0x000000ff
+#define GMASK 0x0000ff00
+#define BMASK 0x00ff0000
+#define AMASK 0xff000000
+
+/**
+ * @brief Dump the image to the specified output file (must be .png)
+ */
+void R_DumpImage(const r_image_t *image, const char *output) {
+
+	const char *real_path = Fs_RealPath(output);
+	char real_dir[MAX_QPATH];
+	Dirname(output, real_dir);
+	Fs_Mkdir(real_dir);
+
+	SDL_RWops *f = SDL_RWFromFile(real_path, "wb");
+	if (!f) {
+		return;
+	}
+
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+	R_BindDiffuseTexture(image->texnum);
+
+	int32_t width, height;
+
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
+
+	GLubyte *pixels = Mem_Malloc(width * height * 4);
+
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+	SDL_Surface *ss = SDL_CreateRGBSurfaceFrom(pixels, width, height, 32, width * 4, RMASK, GMASK, BMASK, AMASK);
+	IMG_SavePNG_RW(ss, f, 0);
+	SDL_FreeSurface(ss);
+
+	Mem_Free(pixels);
+	SDL_RWclose(f);
+}
+
+/**
+ * @brief R_MediaEnumerator for R_DumpImages_f.
+ */
+static void R_DumpImages_enumerator(const r_media_t *media, void *data) {
+	const r_image_t *image = NULL;
+
+	if (media->type == MEDIA_IMAGE || media->type == MEDIA_ATLAS) {
+		image = (const r_image_t *) media;
+	} else if (media->type == MEDIA_FRAMEBUFFER) {
+		const r_framebuffer_t *fb = (const r_framebuffer_t *) media;
+		if (fb->color) {
+			image = fb->color;
+		}
+	}
+
+	if (image) {
+		char path[MAX_OS_PATH];
+		g_snprintf(path, sizeof(path), "imgdmp/%s.png", media->name);
+
+		R_DumpImage((const r_image_t *) media, path);
+	}
+}
+
+/**
+ * @brief
+ */
+void R_DumpImages_f(void) {
+
+	Com_Print("Dumping media... ");
+
+	Fs_Mkdir("imgdmp");
+
+	R_EnumerateMedia(R_DumpImages_enumerator, NULL);
+}
+
 /**
  * @brief Initializes the null (default) image, used when the desired texture
  * is not available.
