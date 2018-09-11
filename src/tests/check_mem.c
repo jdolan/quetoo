@@ -60,8 +60,7 @@ START_TEST(check_Mem_LinkMalloc) {
 
 	ck_assert(Mem_Size() == 0);
 
-}
-END_TEST
+} END_TEST
 
 START_TEST(check_Mem_CopyString) {
 	char *test = Mem_CopyString("test");
@@ -71,8 +70,7 @@ START_TEST(check_Mem_CopyString) {
 	Mem_Free(test);
 
 	ck_assert(Mem_Size() == 0);
-}
-END_TEST
+} END_TEST
 
 /**
  * @brief Test entry point.

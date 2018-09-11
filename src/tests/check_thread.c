@@ -80,8 +80,7 @@ START_TEST(check_Thread_Wait) {
 
 	ck_assert(!cs.ready);
 
-}
-END_TEST
+} END_TEST
 
 /**
  * @brief Test entry point.

@@ -97,8 +97,7 @@ START_TEST(check_R_RegisterMedia) {
 
 	ck_assert_msg(Mem_Size() == 0, "Not all memory freed: %u", (uint32_t) Mem_Size());
 
-}
-END_TEST
+} END_TEST
 
 /**
  * @brief Test entry point.

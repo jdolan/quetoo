@@ -58,8 +58,7 @@ START_TEST(check_Fs_OpenRead) {
 
 		filename++;
 	}
-}
-END_TEST
+} END_TEST
 
 START_TEST(check_Fs_OpenWrite) {
 	file_t *f = Fs_OpenWrite(__func__);
@@ -72,8 +71,7 @@ START_TEST(check_Fs_OpenWrite) {
 	ck_assert_msg((size_t) len == strlen(testing), "Failed to write %s", __func__);
 	ck_assert_msg(Fs_Close(f), "Failed to close %s", __func__);
 
-}
-END_TEST
+} END_TEST
 
 START_TEST(check_Fs_LoadFile) {
 	void *buffer;
@@ -86,8 +84,7 @@ START_TEST(check_Fs_LoadFile) {
 
 	Fs_Free(buffer);
 
-}
-END_TEST
+} END_TEST
 
 /**
  * @brief Test entry point.
