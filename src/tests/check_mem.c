@@ -22,6 +22,8 @@
 #include "tests.h"
 #include "mem.h"
 
+quetoo_t quetoo;
+
 /**
  * @brief Setup fixture.
  */

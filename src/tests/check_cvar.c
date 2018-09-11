@@ -23,6 +23,8 @@
 #include "cmd.h"
 #include "cvar.h"
 
+quetoo_t quetoo;
+
 /**
  * @brief Setup fixture.
  */

@@ -7,16 +7,16 @@
       buildImplicitDependencies = "YES">
       <BuildActionEntries>
          <BuildActionEntry
-            buildForTesting = "NO"
+            buildForTesting = "YES"
             buildForRunning = "YES"
-            buildForProfiling = "NO"
+            buildForProfiling = "YES"
             buildForArchiving = "YES"
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "CEA029B31C5E545B00341079"
-               BuildableName = "quetoo-all"
-               BlueprintName = "quetoo-all"
+               BlueprintIdentifier = "CE51FBCC21481FC100ABE14F"
+               BuildableName = "check_filesystem"
+               BlueprintName = "check_filesystem"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -32,9 +32,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE12D7341C5C5B9300CD0B13"
-            BuildableName = "quetoo"
-            BlueprintName = "quetoo"
+            BlueprintIdentifier = "CE51FBCC21481FC100ABE14F"
+            BuildableName = "check_filesystem"
+            BlueprintName = "check_filesystem"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -55,30 +55,19 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE12D7341C5C5B9300CD0B13"
-            BuildableName = "quetoo"
-            BlueprintName = "quetoo"
+            BlueprintIdentifier = "CE51FBCC21481FC100ABE14F"
+            BuildableName = "check_filesystem"
+            BlueprintName = "check_filesystem"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
-      <CommandLineArguments>
-         <CommandLineArgument
-            argument = "-p $BUILT_PRODUCTS_DIR"
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "CK_FORK"
+            value = "no"
             isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set r_fullscreen 0 +set r_width 1440 +set r_height 900 +set r_display 0"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set r_fullscreen 1 +set r_width 0 +set r_height 0 +set r_display 1"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+map sandbox +set g_cheats 1 +give all +god +g_ai_add +debug ai"
-            isEnabled = "YES">
-         </CommandLineArgument>
-      </CommandLineArguments>
+         </EnvironmentVariable>
+      </EnvironmentVariables>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
@@ -88,15 +77,16 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CEA029B31C5E545B00341079"
-            BuildableName = "quetoo-all"
-            BlueprintName = "quetoo-all"
+            BlueprintIdentifier = "CE51FBCC21481FC100ABE14F"
+            BuildableName = "check_filesystem"
+            BlueprintName = "check_filesystem"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

@@ -22,6 +22,8 @@
 #include "tests.h"
 #include "thread.h"
 
+quetoo_t quetoo;
+
 typedef struct {
 	_Bool ready;
 } critical_section_t;
