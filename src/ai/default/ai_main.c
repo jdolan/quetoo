@@ -689,84 +689,76 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	VectorSubtract(dest, self->s.origin, dir);
 	VectorNormalize(dir);
 
-	pm_cmd_t predicted;
-	Ai_Predict(self, &predicted);
-    cmd->forward = predicted.forward;
-    cmd->right = predicted.right;
-    cmd->up = predicted.up;
-//    if (predicted.forward || predicted.right) {
-//        aim.gi->Debug("Neural net predicted\n");
-//
-//        vec3_t forward;
-//        UnpackAngles(predicted.angles, angles);
-//        AngleVectors(angles, forward, NULL, NULL);
-//
-//        if (DotProduct(dir, forward) > 0.66) {
-//            aim.gi->Debug("Neural net assisted\n");
-//        }
-//    }
+	vec3_t predicted;
+	Ai_Predict(self, predicted);
+	printf("%s\n", vtos(predicted));
 
-//    VectorAngles(dir, angles);
-//
-//    const vec_t delta_yaw = CLIENT_DATA_ARRAY(self->client, angles)[YAW] - angles[YAW];
-//    AngleVectors((vec3_t) { 0.0, delta_yaw, 0.0 }, dir, NULL, NULL);
-//
-//    VectorScale(dir, PM_SPEED_RUN, dir);
+	VectorAdd(dir, predicted, dir);
+	VectorNormalize(dir);
 
-//    cmd->forward = dir[0];
-//    cmd->right = dir[1];
-//
-//    if (ENTITY_DATA(self, water_level) >= WATER_WAIST) {
-//        cmd->up = PM_SPEED_JUMP;
-//    }
+    VectorAngles(dir, angles);
 
-//    ai_current_entity = self;
-//
-//    // predict ahead
-//    pm_move_t pm;
-//
-//    memset(&pm, 0, sizeof(pm));
-//    pm.s = self->client->ps.pm_state;
-//
-//    VectorCopy(self->s.origin, pm.s.origin);
-//
-//    /*if (self->client->locals.hook_pull) {
-//
-//        if (self->client->locals.persistent.hook_style == HOOK_SWING) {
-//            pm.s.type = PM_HOOK_SWING;
-//        } else {
-//            pm.s.type = PM_HOOK_PULL;
-//        }
-//    } else {*/
-//        VectorCopy(ENTITY_DATA_ARRAY(self, velocity), pm.s.velocity);
-//    /*}*/
-//
-//    pm.s.type = PM_NORMAL;
-//
-//    pm.cmd = *cmd;
-//    pm.ground_entity = ENTITY_DATA(self, ground_entity);
-//    //pm.hook_pull_speed = g_hook_pull_speed->value;
-//
-//    pm.PointContents = aim.gi->PointContents;
-//    pm.Trace = Ai_ClientMove_Trace;
-//
-//    pm.Debug = aim.gi->PmDebug_;
-//
-//    // perform a move; predict a few frames ahead
-//    for (int32_t i = 0; i < 8; ++i) {
-//        Pm_Move(&pm);
-//    }
-//
-//    if (ENTITY_DATA(self, ground_entity) && !pm.ground_entity) { // predicted ground is gone
-//        if (ai->move_target.type <= AI_GOAL_NAV) {
-//            vec_t angle = 45 + Randomf() * 45;
-//
-//            ai->wander_angle += (Randomf() < 0.5) ? -angle : angle;
-//            ai->wander_angle = ClampAngle(ai->wander_angle); // turn around to miss the cliff
-//        } else {
-//            cmd->forward = cmd->right = 0; // stop for now
-//        }
-//    }
+    const vec_t delta_yaw = CLIENT_DATA_ARRAY(self->client, angles)[YAW] - angles[YAW];
+    AngleVectors((vec3_t) { 0.0, delta_yaw, 0.0 }, dir, NULL, NULL);
+
+    VectorScale(dir, PM_SPEED_RUN, dir);
+	VectorScale(predicted, PM_SPEED_RUN, predicted);
+
+    cmd->forward = dir[0];
+    cmd->right = dir[1];
+	cmd->up = predicted[2];
+
+    if (ENTITY_DATA(self, water_level) >= WATER_WAIST) {
+        cmd->up = PM_SPEED_JUMP;
+    }
+
+    ai_current_entity = self;
+
+    // predict ahead
+    pm_move_t pm;
+
+    memset(&pm, 0, sizeof(pm));
+    pm.s = self->client->ps.pm_state;
+
+    VectorCopy(self->s.origin, pm.s.origin);
+
+    /*if (self->client->locals.hook_pull) {
+
+        if (self->client->locals.persistent.hook_style == HOOK_SWING) {
+            pm.s.type = PM_HOOK_SWING;
+        } else {
+            pm.s.type = PM_HOOK_PULL;
+        }
+    } else {*/
+        VectorCopy(ENTITY_DATA_ARRAY(self, velocity), pm.s.velocity);
+    /*}*/
+
+    pm.s.type = PM_NORMAL;
+
+    pm.cmd = *cmd;
+    pm.ground_entity = ENTITY_DATA(self, ground_entity);
+    //pm.hook_pull_speed = g_hook_pull_speed->value;
+
+    pm.PointContents = aim.gi->PointContents;
+    pm.Trace = Ai_ClientMove_Trace;
+
+    pm.Debug = aim.gi->PmDebug_;
+
+    // perform a move; predict a few frames ahead
+    for (int32_t i = 0; i < 8; ++i) {
+        Pm_Move(&pm);
+    }
+
+    if (ENTITY_DATA(self, ground_entity) && !pm.ground_entity) { // predicted ground is gone
+        if (ai->move_target.type <= AI_GOAL_NAV) {
+            vec_t angle = 45 + Randomf() * 45;
+
+            ai->wander_angle += (Randomf() < 0.5) ? -angle : angle;
+            ai->wander_angle = ClampAngle(ai->wander_angle); // turn around to miss the cliff
+        } else {
+            cmd->forward = cmd->right = 0; // stop for now
+        }
+    }
 }
 
 static vec_t AngleMod(const vec_t a) {
