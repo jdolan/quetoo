@@ -287,25 +287,39 @@ static cmd_t *Cmd_Get_(const char *name, const _Bool case_sensitive) {
  * @return The variable by the specified name, or `NULL`.
  */
 cmd_t *Cmd_Get(const char *name) {
-
 	return Cmd_Get_(name, false);
+}
+
+/**
+ * @brief GCompareFunc for Cmd_Enumerate.
+ */
+static gint Cmd_Enumerate_comparator(gconstpointer a, const gconstpointer b) {
+	return g_ascii_strcasecmp(((const cmd_t *) a)->name, ((const cmd_t *) b)->name);
 }
 
 /**
  * @brief Enumerates all known commands with the given function.
  */
 void Cmd_Enumerate(Cmd_Enumerator func, void *data) {
+	GList *sorted = NULL;
+
 	GHashTableIter iter;
 	gpointer key, value;
 	g_hash_table_iter_init(&iter, cmd_state.commands);
 
-	while (g_hash_table_iter_next (&iter, &key, &value)) {
+	while (g_hash_table_iter_next(&iter, &key, &value)) {
 		const GQueue *queue = (GQueue *) value;
 
-		for (const GList *list = queue->head; list; list = list->next) {
-			func((cmd_t *) list->data, data);
+		for (GList *list = queue->head; list; list = list->next) {
+			sorted = g_list_concat(sorted, g_list_copy(list));
 		}
 	}
+
+	sorted = g_list_sort(sorted, Cmd_Enumerate_comparator);
+
+	g_list_foreach(sorted, (GFunc) func, data);
+
+	g_list_free(sorted);
 }
 
 /**
@@ -574,26 +588,13 @@ static void Cmd_Alias_f(void) {
 }
 
 /**
- * @brief Naiveless color-stripping cmp. Maybe can be better later.
- */
-static int32_t ColorlessStricmp(const char *a, const char *b) {
-	char bufferA[strlen(a) + 1];
-	char bufferB[strlen(b) + 1];
-	
-	StripColors(a, bufferA);
-	StripColors(b, bufferB);
-
-	return g_ascii_strcasecmp(bufferA, bufferB);
-}
-
-/**
  * @brief Enumeration helper for Cmd_List_f.
  */
 static void Cmd_List_f_enumerate(cmd_t *cmd, void *data) {
 	GSList **list = (GSList **) data;
 	const gchar *str = g_strdup(Cmd_Stringify(cmd));
 
-	*list = g_slist_insert_sorted(*list, (gpointer) str, (GCompareFunc) ColorlessStricmp);
+	*list = g_slist_insert_sorted(*list, (gpointer) str, (GCompareFunc) StrColorCmp);
 }
 
 /**

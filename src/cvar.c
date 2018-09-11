@@ -647,7 +647,7 @@ static void Cvar_List_f_enumerate(cvar_t *var, void *data) {
 	const gchar *str = g_strdup(Cvar_Stringify(var));
 
 	GSList **list = (GSList **) data;
-	*list = g_slist_append(*list, (gpointer) str);
+	*list = g_slist_insert_sorted(*list, (gpointer) str, (GCompareFunc) StrColorCmp);
 }
 
 /**
