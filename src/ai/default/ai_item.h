@@ -32,6 +32,7 @@ extern uint16_t ai_num_items;
 extern uint16_t ai_num_weapons;
 
 void Ai_RegisterItem(const g_item_t *item);
+_Bool Ai_CanPickupItem(const g_entity_t *self, const g_entity_t *other);
 void Ai_InitItems(void);
 void Ai_ShutdownItems(void);
 #endif

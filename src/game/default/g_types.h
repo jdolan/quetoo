@@ -136,41 +136,6 @@ typedef enum {
 #define STAT_TOGGLE_BIT		0x4000
 
 /**
- * @brief Weapon tags to inform the client game which weapon the player wields and
- * the order of the weapon switcher.
- */
-typedef enum {
-	WEAPON_NONE,
-
-	WEAPON_BLASTER,
-	WEAPON_SHOTGUN,
-	WEAPON_SUPER_SHOTGUN,
-	WEAPON_MACHINEGUN,
-	WEAPON_HAND_GRENADE,
-	WEAPON_GRENADE_LAUNCHER,
-	WEAPON_ROCKET_LAUNCHER,
-	WEAPON_HYPERBLASTER,
-	WEAPON_LIGHTNING,
-	WEAPON_RAILGUN,
-	WEAPON_BFG10K,
-
-	WEAPON_TOTAL
-} g_weapon_tag_t;
-
-/**
- * @brief Weapon flags provide hints to indicate weapon use.
- */
-typedef enum {
-	WF_PROJECTILE		= (1 << 0), // fires a projectile with "speed" speed
-	WF_HITSCAN			= (1 << 1), // fires hitscan shot(s)
-	WF_TIMED			= (1 << 2), // a holdable that must be thrown within "time" milliseconds
-	WF_EXPLOSIVE		= (1 << 3), // fires explosive shots (might hurt self),
-	WF_SHORT_RANGE		= (1 << 4), // weapon works at close range
-	WF_MED_RANGE		= (1 << 5), // weapon works at medium range
-	WF_LONG_RANGE		= (1 << 6), // weapon works at long range
-} g_weapon_flags_t;
-
-/**
  * @brief Muzzle flashes are bound to the entity that created them. This allows
  * the protocol to forego sending the origin and angles for the effect, as they
  * can be inferred from the referenced entity.
@@ -383,49 +348,40 @@ typedef enum {
 	ITEM_TOTAL
 } g_item_type_t;
 
-#ifdef __GAME_LOCAL_H__
+/**
+ * @brief Weapon tags to inform the client game which weapon the player wields and
+ * the order of the weapon switcher.
+ */
+typedef enum {
+	WEAPON_NONE,
+
+	WEAPON_BLASTER,
+	WEAPON_SHOTGUN,
+	WEAPON_SUPER_SHOTGUN,
+	WEAPON_MACHINEGUN,
+	WEAPON_HAND_GRENADE,
+	WEAPON_GRENADE_LAUNCHER,
+	WEAPON_ROCKET_LAUNCHER,
+	WEAPON_HYPERBLASTER,
+	WEAPON_LIGHTNING,
+	WEAPON_RAILGUN,
+	WEAPON_BFG10K,
+
+	WEAPON_TOTAL
+} g_weapon_tag_t;
 
 /**
- * @brief This file will define the game-visible definitions of g_client_t
- * and g_entity_t. They are much larger than the server-visible definitions,
- * which are intentionally truncated stubs.
+ * @brief Weapon flags provide hints to indicate weapon use.
  */
-typedef struct g_client_s g_client_t;
-typedef struct g_entity_s g_entity_t;
-
-/**
- * @brief Spawn flags for g_entity_t are set in the level editor.
- */
-#define SF_ITEM_TRIGGER			0x00000001
-#define SF_ITEM_NO_TOUCH		0x00000002
-#define SF_ITEM_HOVER			0x00000004
-
-/**
- * @brief These are legacy spawn flags from Quake II. We maintain these simply
- * for backwards compatibility with old levels. They do nothing in QUETOO.
- */
-#define SF_NOT_EASY				0x00000100
-#define SF_NOT_MEDIUM			0x00000200
-#define SF_NOT_HARD				0x00000400
-#define SF_NOT_DEATHMATCH		0x00000800
-#define SF_NOT_COOP				0x00001000
-
-/**
- * @brief These spawn flags are actually set by the game module on entities
- * that are programmatically instantiated.
- */
-#define SF_ITEM_DROPPED			0x00010000
-#define SF_ITEM_TARGETS_USED	0x00020000
-
-/**
- * @brief Entity flags (g_entity_locals.flags). These again are mostly for
- * backwards compatibility with Quake II.
- * still valid.
- */
-#define FL_FLY					0x00000001
-#define FL_SWIM					0x00000002  // implied immunity to drowning
-#define FL_GOD_MODE				0x00000004
-#define FL_TEAM_SLAVE			0x00000008  // not the first on the team
+typedef enum {
+	WF_PROJECTILE		= (1 << 0), // fires a projectile with "speed" speed
+	WF_HITSCAN			= (1 << 1), // fires hitscan shot(s)
+	WF_TIMED			= (1 << 2), // a holdable that must be thrown within "time" milliseconds
+	WF_EXPLOSIVE		= (1 << 3), // fires explosive shots (might hurt self),
+	WF_SHORT_RANGE		= (1 << 4), // weapon works at close range
+	WF_MED_RANGE		= (1 << 5), // weapon works at medium range
+	WF_LONG_RANGE		= (1 << 6), // weapon works at long range
+} g_weapon_flags_t;
 
 /**
  * @brief Ammunition types.
@@ -498,6 +454,50 @@ typedef enum {
 
 	TECH_TOTAL
 } g_tech_t;
+
+#ifdef __GAME_LOCAL_H__
+
+/**
+ * @brief This file will define the game-visible definitions of g_client_t
+ * and g_entity_t. They are much larger than the server-visible definitions,
+ * which are intentionally truncated stubs.
+ */
+typedef struct g_client_s g_client_t;
+typedef struct g_entity_s g_entity_t;
+
+/**
+ * @brief Spawn flags for g_entity_t are set in the level editor.
+ */
+#define SF_ITEM_TRIGGER			0x00000001
+#define SF_ITEM_NO_TOUCH		0x00000002
+#define SF_ITEM_HOVER			0x00000004
+
+/**
+ * @brief These are legacy spawn flags from Quake II. We maintain these simply
+ * for backwards compatibility with old levels. They do nothing in QUETOO.
+ */
+#define SF_NOT_EASY				0x00000100
+#define SF_NOT_MEDIUM			0x00000200
+#define SF_NOT_HARD				0x00000400
+#define SF_NOT_DEATHMATCH		0x00000800
+#define SF_NOT_COOP				0x00001000
+
+/**
+ * @brief These spawn flags are actually set by the game module on entities
+ * that are programmatically instantiated.
+ */
+#define SF_ITEM_DROPPED			0x00010000
+#define SF_ITEM_TARGETS_USED	0x00020000
+
+/**
+ * @brief Entity flags (g_entity_locals.flags). These again are mostly for
+ * backwards compatibility with Quake II.
+ * still valid.
+ */
+#define FL_FLY					0x00000001
+#define FL_SWIM					0x00000002  // implied immunity to drowning
+#define FL_GOD_MODE				0x00000004
+#define FL_TEAM_SLAVE			0x00000008  // not the first on the team
 
 /**
  * @brief Move types govern the physics dispatch in G_RunEntity.

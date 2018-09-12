@@ -204,7 +204,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 		// check to see if the item has gone out of our line of sight
 		if (!Ai_GoalHasEntity(&ai->move_target, ai->move_target.ent) || // item picked up and changed into something else
 				!Ai_CanTarget(self, ai->move_target.ent) ||
-				!aim.CanPickupItem(self, ai->move_target.ent) ||
+				!Ai_CanPickupItem(self, ai->move_target.ent) ||
 		        Ai_ItemReachable(self, ai->move_target.ent) == AI_ITEM_UNREACHABLE) {
 
 			Ai_ResetWander(self, ai->move_target.ent->s.origin);
@@ -254,7 +254,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 		vec_t distance;
 
 		if (!Ai_CanTarget(self, ent) ||
-				!aim.CanPickupItem(self, ent) ||
+				!Ai_CanPickupItem(self, ent) ||
 		        (distance = Ai_ItemReachable(self, ent)) == AI_ITEM_UNREACHABLE) {
 			continue;
 		}

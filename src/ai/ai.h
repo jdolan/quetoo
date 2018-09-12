@@ -44,14 +44,10 @@ typedef struct {
 	g_export_t *ge;
 	
 	/**
-	 * @brief Query if two entities are on the same team
+	 * @brief Query if two entities are on the same team.
 	 */
 	_Bool (*OnSameTeam)(const g_entity_t *self, const g_entity_t *other);
-
-	/**
-	 * @brief TODO FIXME - TEMPORARY API SCRATCH SPACE.
-	 */
-	_Bool (*CanPickupItem)(const g_entity_t *self, const g_entity_t *other);
+	
 } ai_import_t;
 
 /**

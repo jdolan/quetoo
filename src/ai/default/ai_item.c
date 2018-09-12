@@ -53,6 +53,72 @@ void Ai_RegisterItem(const g_item_t *item) {
 }
 
 /**
+ * @return True if the bot entity can pick up the item entity.
+ */
+_Bool Ai_CanPickupItem(const g_entity_t *self, const g_entity_t *other) {
+	const g_item_t *item = ENTITY_DATA(other, item);
+
+	if (!item) {
+		return false;
+	}
+
+	const int16_t *inventory = &CLIENT_DATA(self->client, inventory);
+
+	if (ITEM_DATA(item, type) == ITEM_HEALTH) {
+		if (ITEM_DATA(item, tag) == HEALTH_SMALL ||
+			ITEM_DATA(item, tag) == HEALTH_MEGA) {
+			return true;
+		}
+
+		return ENTITY_DATA(self, health) < ENTITY_DATA(self, max_health);
+	} else if (ITEM_DATA(item, type) == ITEM_ARMOR) {
+
+		if (ITEM_DATA(item, tag) == ARMOR_SHARD ||
+			inventory[ITEM_DATA(item, index)] < ITEM_DATA(item, max)) {
+			return true;
+		}
+
+		return false;
+	} else if (ITEM_DATA(item, type) == ITEM_AMMO) {
+		return inventory[ITEM_DATA(item, index)] < ITEM_DATA(item, max);
+	} else if (ITEM_DATA(item, type) == ITEM_WEAPON) {
+
+		if (inventory[ITEM_DATA(item, index)]) {
+			const g_item_t *ammo = ITEM_DATA(item, ammo);
+			if (ammo) {
+				return inventory[ITEM_DATA(ammo, index)] < ITEM_DATA(ammo, max);
+			}
+
+			return false;
+		}
+
+		return true;
+	} else if (ITEM_DATA(item, type) == ITEM_TECH) {
+
+		const g_item_t **it = ai_items;
+		for (int32_t i = 0; i < ai_num_items; i++, it++) {
+			if (ITEM_DATA(*it, type) == ITEM_TECH) {
+				if (inventory[ITEM_DATA(*it, index)]) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	} else if (ITEM_DATA(item, type) == ITEM_FLAG) {
+
+		const g_team_id_t team = CLIENT_DATA(self->client, team);
+		if (ITEM_DATA(item, tag) == team && other->owner == NULL) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+	return true;
+}
+
+/**
  * @brief
  */
 void Ai_InitItems(void) {

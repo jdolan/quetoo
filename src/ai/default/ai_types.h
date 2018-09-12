@@ -95,6 +95,7 @@ typedef struct ai_item_data_s {
  * will make use of. These will be offsets, not actual pointers.
  */
 typedef struct ai_entity_data_s {
+
 	/**
 	 * @brief Offset to ground entity
 	 */
@@ -156,6 +157,12 @@ typedef struct ai_client_data_s {
 	 * @brief Offset to current weapon
 	 */
 	const g_item_t *const *weapon;
+
+	/**
+	 * @brief Offset to team id
+	 */
+	const g_team_id_t *team;
+
 } ai_client_data_t;
 
 /**

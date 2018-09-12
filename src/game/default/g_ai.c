@@ -81,72 +81,6 @@ static uint8_t G_Ai_NumberOfClients(void) {
 /**
  * @brief
  */
-static _Bool G_Ai_CanPickupItem(const g_entity_t *self, const g_entity_t *other) {
-	const g_item_t *item = other->locals.item;
-
-	if (!item) {
-		return false;
-	}
-
-	if (item->type == ITEM_HEALTH) {
-		// stimpack/mega is always gettable
-		if (item->tag == HEALTH_SMALL || item->tag == HEALTH_MEGA) {
-			return true;
-		}
-
-		return self->locals.health < self->locals.max_health;
-	} else if (item->type == ITEM_ARMOR) {
-		const g_item_t *current_armor = G_ClientArmor(self);
-
-		// no armor or shard or not filled up, can get.
-		if (!current_armor ||
-		        item->tag == ARMOR_SHARD ||
-		        self->client->locals.inventory[current_armor->index] < current_armor->max) {
-			return true;
-		}
-
-		return false;
-	} else if (item->type == ITEM_AMMO) { // just if we need the ammo
-		return self->client->locals.inventory[item->index] < item->max;
-	} else if (item->type == ITEM_WEAPON) {
-
-		if (self->client->locals.inventory[item->index]) { // we have the weapon
-
-			if (item->ammo) {
-				const g_item_t *ammo = item->ammo_item;
-				return self->client->locals.inventory[ammo->index] < ammo->max;
-			}
-
-			return false;
-		}
-
-		return true;
-	} else if (item->type == ITEM_TECH) {
-
-		if (G_CarryingTech(self)) {
-			return false;
-		}
-
-		return true;
-	} else if (item->type == ITEM_FLAG) {
-
-		g_team_t *team = G_TeamForFlag(other);
-
-		// if it's our flag, recover it if dropped, or tag it if carrying enemy flag
-		if (team == self->client->locals.persistent.team) {
-			return (other->locals.spawn_flags & SF_ITEM_DROPPED) || G_IsFlagBearer(self);
-		}
-
-		// otherwise, only if we don't have a flag
-		return !G_IsFlagBearer(self);
-	}
-
-	return true;
-}
-
-/**
- * @brief
- */
 static void G_Ai_ClientThink(g_entity_t *self) {
 	pm_cmd_t cmd;
 
@@ -448,6 +382,9 @@ void G_Ai_RegisterItems(void) {
 #define CLIENT_PTR_OFFSET(m) \
 	client.m = (typeof(client.m)) offsetof(g_client_locals_t, m)
 
+#define CLIENT_PERSISTENT_PTR_OFFSET(m) \
+	client.m = (typeof(client.m)) offsetof(g_client_locals_t, persistent) + offsetof(g_client_persistent_t, m)
+
 #define ITEM_PTR_OFFSET(m) \
 	item.m = (typeof(item.m)) offsetof(g_item_t, m)
 
@@ -464,12 +401,13 @@ static void G_Ai_SetDataPointers(void) {
 	ENTITY_PTR_OFFSET(velocity);
 	ENTITY_PTR_OFFSET(health);
 	ENTITY_PTR_OFFSET(max_health);
-	ENTITY_PTR_OFFSET(max_armor);
 	ENTITY_PTR_OFFSET(water_level);
 
 	CLIENT_PTR_OFFSET(angles);
 	CLIENT_PTR_OFFSET(inventory);
+	CLIENT_PTR_OFFSET(max_armor);
 	CLIENT_PTR_OFFSET(weapon);
+	CLIENT_PERSISTENT_PTR_OFFSET(team);
 
 	ITEM_PTR_OFFSET(class_name);
 	ITEM_PTR_OFFSET(index);
@@ -498,9 +436,6 @@ void G_Ai_Init(void) {
 	import.ge = &ge;
 
 	import.OnSameTeam = G_OnSameTeam;
-
-	// SCRATCH
-	import.CanPickupItem = G_Ai_CanPickupItem;
 
 	aix = gi.LoadAi(&import);
 
