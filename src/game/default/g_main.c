@@ -463,7 +463,7 @@ void G_MuteClient(char *name, _Bool mute) {
 		return;
 	}
 
-	cl->locals.muted = mute;
+	cl->locals.persistent.muted = mute;
 }
 
 /**

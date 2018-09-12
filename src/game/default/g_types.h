@@ -1039,6 +1039,7 @@ typedef struct {
 	_Bool admin; // client is special?
 	_Bool spectator; // client is a spectator
 	_Bool ready; // ready
+	_Bool muted;
 
 	g_vote_t vote; // current vote (yes/no)
 	uint32_t match_num; // most recent match
@@ -1110,9 +1111,7 @@ typedef struct {
 	g_entity_t *held_grenade; // the grenade we're holding onto
 
 	uint32_t pickup_msg_time; // display message until time > this
-
 	uint32_t chat_time; // can chat when time > this
-	_Bool muted;
 
 	uint32_t quad_damage_time; // has quad when time < this
 	uint32_t quad_countdown_time; // has quad when time < this

@@ -433,11 +433,11 @@ void G_Mute_Sv_f(void) {
 		return;
 	}
 
-	if (cl->locals.muted) {
-		cl->locals.muted = false;
+	if (cl->locals.persistent.muted) {
+		cl->locals.persistent.muted = false;
 		gi.Print(" %s is now unmuted\n", cl->locals.persistent.net_name);
 	} else {
-		cl->locals.muted = true;
+		cl->locals.persistent.muted = true;
 		gi.Print(" %s is now muted\n", cl->locals.persistent.net_name);
 	}
 }
@@ -508,7 +508,7 @@ static void G_Say_f(g_entity_t *ent) {
 	int32_t i;
 
 	g_client_t *cl = ent->client;
-	if (cl->locals.muted) {
+	if (cl->locals.persistent.muted) {
 		gi.ClientPrint(ent, PRINT_HIGH, "You have been muted\n");
 		return;
 	}
