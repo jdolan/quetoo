@@ -12,15 +12,12 @@ noinst_HEADERS = \
 noinst_LTLIBRARIES = \
 	libai.la
 
-SOURCES = \
+libai_la_SOURCES = \
 	ai_ann.c \
 	ai_goal.c \
 	ai_info.c \
 	ai_item.c \
 	ai_main.c
-
-libai_la_SOURCES = \
-	$(SOURCES)
 
 libai_la_CFLAGS = \
 	-I$(top_srcdir)/src \
@@ -40,21 +37,16 @@ ailib_LTLIBRARIES = \
 	ai.la
 
 ai_la_SOURCES = \
-	$(SOURCES)
+	$(libai_la_SOURCES)
 
 ai_la_CFLAGS = \
-	-I$(top_srcdir)/src \
-	@SO_CFLAGS@ \
-	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@
+	$(libai_la_CFLAGS)
 
 ai_la_LDFLAGS = \
+	$(libai_la_LDFLAGS) \
 	-avoid-version \
 	-module \
-	-no-undefined \
-	-shared
+	-no-undefined
 
 ai_la_LIBADD = \
-	$(top_builddir)/deps/genann/libgenann.la \
-	$(top_builddir)/src/game/default/libpmove.la \
-	@GLIB_LIBS@
+	$(libai_la_LIBADD)

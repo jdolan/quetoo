@@ -693,7 +693,7 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 
 	vec3_t predicted;
 	Ai_Predict(self, predicted);
-	printf("%s\n", vtos(predicted));
+	//printf("%s\n", vtos(predicted));
 
 	VectorAdd(dir, predicted, dir);
 	VectorNormalize(dir);
@@ -829,7 +829,6 @@ static void Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	}
 
 	const vec_t *view_angles = &CLIENT_DATA(self->client, angles);
-	printf("%s\n", vtos(view_angles));
 
 	for (int32_t i = 0; i < 2; ++i) {
 		ideal_angles[i] = Ai_CalculateAngle(self, 6.5, view_angles[i], ideal_angles[i]);
