@@ -24,11 +24,14 @@
 #include "ai_types.h"
 
 #ifdef __AI_LOCAL_H__
-extern ai_item_t ai_items[];
+extern ai_item_data_t ai_item_data;
+
+extern g_item_t const *ai_items[];
+
 extern uint16_t ai_num_items;
 extern uint16_t ai_num_weapons;
 
-void Ai_RegisterItem(const uint16_t index, const ai_item_t *item);
-uint16_t Ai_ItemIndex(const ai_item_t *item);
-ai_item_t *Ai_ItemForGameItem(const g_item_t *item);
+void Ai_RegisterItem(const g_item_t *item);
+void Ai_InitItems(void);
+void Ai_ShutdownItems(void);
 #endif

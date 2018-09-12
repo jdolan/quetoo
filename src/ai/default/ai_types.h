@@ -25,42 +25,70 @@
 #include "game/default/g_types.h"
 
 /**
- * @brief Flags that bots use for its timing
+ * @brief Resolve typed data from a structure using offsets.
  */
-typedef enum {
-	AI_ITEM_AMMO			= (1 << 0),
-	AI_ITEM_ARMOR			= (1 << 1),
-	AI_ITEM_FLAG			= (1 << 2),
-	AI_ITEM_HEALTH			= (1 << 3),
-	AI_ITEM_POWERUP			= (1 << 4),
-	AI_ITEM_WEAPON			= (1 << 5),
-	AI_ITEM_TECH			= (1 << 6),
-
-	AI_WEAPON_PROJECTILE	= (1 << 16), // fires a projectile with "speed" speed
-	AI_WEAPON_HITSCAN		= (1 << 17), // fires hitscan shot(s)
-	AI_WEAPON_TIMED			= (1 << 18), // a holdable that must be thrown within "time" milliseconds
-	AI_WEAPON_EXPLOSIVE		= (1 << 19), // fires explosive shots (might hurt self),
-	AI_WEAPON_SHORT_RANGE	= (1 << 20), // weapon works at close range
-	AI_WEAPON_MED_RANGE		= (1 << 21), // weapon works at medium range
-	AI_WEAPON_LONG_RANGE	= (1 << 22) // weapon works at long range
-} ai_item_flags_t;
+#define MEMBER_DATA(from, member) \
+	((typeof(member)) ((byte *) (from) + ((ptrdiff_t) member)))
 
 /**
- * @brief Forward declaration of item registration struct.
+ * @brief Typed offsets into g_item_t, populated by the game module.
  */
-typedef struct ai_item_s {
-	const char *class_name;
-	const char *name;
-	ai_item_flags_t flags;
-	uint16_t ammo; // index to item
-	g_weapon_tag_t tag;
-	vec_t priority;
-	uint16_t quantity;
-	uint16_t max;
+typedef struct ai_item_data_s {
 
-	int32_t speed; // used for projectile weapons
-	uint32_t time; // used for timing items (handgrenades)
-} ai_item_t;
+	/**
+	 * @brief The item class name.
+	 */
+	const char *const *class_name;
+
+	/**
+	 * @brief The item index.
+	 */
+	uint16_t *index;
+
+	/**
+	 * @brief The item type.
+	 */
+	g_item_type_t *type;
+
+	/**
+	 * @brief The weapon tag, if any.
+	 */
+	g_weapon_tag_t *tag;
+
+	/**
+	 * @brief The weapon flags, if any.
+	 */
+	g_weapon_flags_t *flags;
+
+	/**
+	 * @brief The pickup name.
+	 */
+	const char *const *name;
+
+	/**
+	 * @brief The ammo item, if any.
+	 */
+	const g_item_t *const *ammo;
+
+	/**
+	 * @brief The quantity, provided or used, depending on the item type.
+	 */
+	uint16_t *quantity;
+
+	/**
+	 * @brief The maximum quantity the player can carry.
+	 */
+	uint16_t *max;
+
+	/**
+	 * @brief The priority, for bots to weigh.
+	 */
+	vec_t *priority;
+
+} ai_item_data_t;
+
+#define ITEM_DATA(item, m) \
+	(*MEMBER_DATA(item, ai_item_data.m))
 
 /**
  * @brief Struct of parameters from g_entity_t that the bot
@@ -104,6 +132,12 @@ typedef struct ai_entity_data_s {
 } ai_entity_data_t;
 
 /**
+ * @brief Resolve the entity data ptr for the specified member
+ */
+#define ENTITY_DATA(ent, m) \
+	(*MEMBER_DATA(&ent->locals, ai_entity_data.m))
+
+/**
  * @brief Struct of parameters from g_client_t that the bot
  * will make use of. These will be offsets, not actual pointers.
  */
@@ -123,6 +157,12 @@ typedef struct ai_client_data_s {
 	 */
 	const g_item_t *const *weapon;
 } ai_client_data_t;
+
+/**
+ * @brief Resolve the client data ptr for the specified member
+ */
+#define CLIENT_DATA(client, m) \
+	(*MEMBER_DATA(&client->locals, ai_client_data.m))
 
 #ifdef __AI_LOCAL_H__
 

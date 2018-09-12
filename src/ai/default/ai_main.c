@@ -113,7 +113,7 @@ static void Ai_Command(g_entity_t *self, const char *command) {
  */
 typedef struct {
 	const g_entity_t *entity;
-	const ai_item_t *item;
+	const g_item_t *item;
 	vec_t weight;
 } ai_item_pick_t;
 
@@ -244,14 +244,13 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 			continue;
 		}
 
-		const g_item_t *ent_item = ENTITY_DATA(ent, item);
+		const g_item_t *item = ENTITY_DATA(ent, item);
 
-		if (!ent_item) {
+		if (!item) {
 			continue;
 		}
 
 		// most likely an item!
-		ai_item_t *item = Ai_ItemForGameItem(ent_item);
 		vec_t distance;
 
 		if (!Ai_CanTarget(self, ent) ||
@@ -263,7 +262,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 		g_array_append_vals(items_visible, &(const ai_item_pick_t) {
 			.entity = ent,
 			 .item = item,
-			  .weight = (AI_MAX_ITEM_DISTANCE - distance) * item->priority
+			  .weight = (AI_MAX_ITEM_DISTANCE - distance) * ITEM_DATA(item, priority)
 		}, 1);
 	}
 
@@ -330,44 +329,47 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 	ai_item_pick_t weapons[ai_num_weapons];
 	uint16_t num_weapons = 0;
 
-	const int16_t *inventory = CLIENT_DATA_ARRAY(self->client, inventory);
+	const int16_t *inventory = &CLIENT_DATA(self->client, inventory);
 
 	for (uint16_t i = 0; i < ai_num_items; i++) {
-		const ai_item_t *item = &ai_items[i];
+		const g_item_t *item = ai_items[i];
 
-		if (!(item->flags & AI_ITEM_WEAPON)) { // not weapon
+		if (ITEM_DATA(item, type) != ITEM_WEAPON) { // not weapon
 			continue;
 		}
 
-		if (!inventory[i]) { // don't got
+		if (!inventory[ITEM_DATA(item, index)]) { // not in stock
 			continue;
 		}
 
-		if (item->ammo && inventory[item->ammo] < item->quantity) { // no ammo
-			continue;
+		const g_item_t *ammo = ITEM_DATA(item, ammo);
+		if (ammo) {
+			if (inventory[ITEM_DATA(ammo, index)] < ITEM_DATA(item, quantity)) {
+				continue;
+			}
 		}
 
 		// calculate weight, start with base weapon priority
-		vec_t weight = item->priority;
+		vec_t weight = ITEM_DATA(item, priority);
 
 		switch (targ_range) { // range bonus
 			case RANGE_MELEE:
 			case RANGE_SHORT:
-				if (item->flags & AI_WEAPON_SHORT_RANGE) {
+				if (ITEM_DATA(item, flags) & WF_SHORT_RANGE) {
 					weight *= 2.5;
 				} else {
 					weight /= 2.5;
 				}
 				break;
 			case RANGE_MED:
-				if (item->flags & AI_WEAPON_MED_RANGE) {
+				if (ITEM_DATA(item, flags) & WF_MED_RANGE) {
 					weight *= 2.5;
 				} else {
 					weight /= 2.5;
 				}
 				break;
 			case RANGE_LONG:
-				if (item->flags & AI_WEAPON_LONG_RANGE) {
+				if (ITEM_DATA(item, flags) & WF_LONG_RANGE) {
 					weight *= 2.5;
 				} else {
 					weight /= 2.5;
@@ -376,29 +378,29 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 		}
 
 		if ((ENTITY_DATA(ai->aim_target.ent, health) < 25) &&
-		        (item->flags & AI_WEAPON_EXPLOSIVE)) { // bonus for explosive at low enemy health
+		        (ITEM_DATA(item, flags) & WF_EXPLOSIVE)) { // bonus for explosive at low enemy health
 			weight *= 1.5;
 		}
 
 		// additional penalty for long range + projectile unless explicitly long range
-		if ((item->flags & AI_WEAPON_PROJECTILE) &&
-		        !(item->flags & AI_WEAPON_LONG_RANGE)) {
+		if ((ITEM_DATA(item, flags) & WF_PROJECTILE) &&
+		        !(ITEM_DATA(item, flags) & WF_LONG_RANGE)) {
 			weight /= 2.0;
 		}
 
 		// penalty for explosive weapons at short range
-		if ((item->flags & AI_WEAPON_EXPLOSIVE) &&
+		if ((ITEM_DATA(item, flags) & WF_EXPLOSIVE) &&
 		        targ_range <= RANGE_SHORT) {
 			weight /= 2.0;
 		}
 
 		// penalty for explosive weapons at low self health
 		if ((ENTITY_DATA(self, health) < 25) &&
-		        (item->flags & AI_WEAPON_EXPLOSIVE)) {
+		        (ITEM_DATA(item, flags) & WF_EXPLOSIVE)) {
 			weight /= 2.0;
 		}
 
-		weight *= item->priority;
+		weight *= ITEM_DATA(item, priority); // FIXME: Isn't this redundant?
 
 		weapons[num_weapons++] = (ai_item_pick_t) {
 			.item = item,
@@ -414,11 +416,11 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 
 	const ai_item_pick_t *best_weapon = &weapons[0];
 
-	if (aim.ItemIndex(CLIENT_DATA(self->client, weapon)) == Ai_ItemIndex(best_weapon->item)) {
+	if (CLIENT_DATA(self->client, weapon) == best_weapon->item) {
 		return;
 	}
 
-	Ai_Command(self, va("use %s", best_weapon->item->name));
+	Ai_Command(self, va("use %s", ITEM_DATA(best_weapon->item, name)));
 	ai->weapon_check_time = ai_level.time + 3000; // don't try again for a bit
 }
 
@@ -698,7 +700,7 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 
     VectorAngles(dir, angles);
 
-    const vec_t delta_yaw = CLIENT_DATA_ARRAY(self->client, angles)[YAW] - angles[YAW];
+    const vec_t delta_yaw = (&CLIENT_DATA(self->client, angles))[YAW] - angles[YAW];
     AngleVectors((vec3_t) { 0.0, delta_yaw, 0.0 }, dir, NULL, NULL);
 
     VectorScale(dir, PM_SPEED_RUN, dir);
@@ -730,7 +732,7 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
             pm.s.type = PM_HOOK_PULL;
         }
     } else {*/
-        VectorCopy(ENTITY_DATA_ARRAY(self, velocity), pm.s.velocity);
+        VectorCopy(&ENTITY_DATA(self, velocity), pm.s.velocity);
     /*}*/
 
     pm.s.type = PM_NORMAL;
@@ -826,7 +828,8 @@ static void Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		ideal_angles[1] += cos(ai_level.time / 164.0) * 4.0;
 	}
 
-	const vec_t *view_angles = CLIENT_DATA_ARRAY(self->client, angles);
+	const vec_t *view_angles = &CLIENT_DATA(self->client, angles);
+	printf("%s\n", vtos(view_angles));
 
 	for (int32_t i = 0; i < 2; ++i) {
 		ideal_angles[i] = Ai_CalculateAngle(self, 6.5, view_angles[i], ideal_angles[i]);
@@ -850,7 +853,7 @@ static void Ai_Think(g_entity_t *self, pm_cmd_t *cmd) {
 		Ai_ClearGoal(&ai->aim_target);
 		Ai_ClearGoal(&ai->move_target);
 	} else {
-		AngleVectors(CLIENT_DATA_ARRAY(self->client, angles), ai->aim_forward, NULL, NULL);
+		AngleVectors(&CLIENT_DATA(self->client, angles), ai->aim_forward, NULL, NULL);
 
 		for (int32_t i = 0; i < 3; i++) {
 			ai->eye_origin[i] = self->s.origin[i] + UnpackAngle(self->client->ps.pm_state.view_offset[i]);
@@ -935,10 +938,11 @@ static void Ai_GameStarted(void) {
 /**
  * @brief Sets up data offsets to local game data
  */
-static void Ai_SetDataPointers(ai_entity_data_t *entity, ai_client_data_t *client) {
+static void Ai_SetDataPointers(ai_entity_data_t *entity, ai_client_data_t *client, ai_item_data_t *item) {
 
 	ai_entity_data = *entity;
 	ai_client_data = *client;
+	ai_item_data = *item;
 }
 
 /**
@@ -958,8 +962,9 @@ static void Ai_Init(void) {
 	ai_passive = aim.gi->AddCvar("ai_passive", "0", 0, "Whether the bots will attack or not.");
 	ai_locals = (ai_locals_t *) aim.gi->Malloc(sizeof(ai_locals_t) * sv_max_clients->integer, MEM_TAG_AI);
 
-	Ai_InitAnn();
+	Ai_InitItems();
 	Ai_InitSkins();
+	Ai_InitAnn();
 
 	aim.gi->Print("  ^5Ai module initialized\n");
 }
@@ -971,8 +976,9 @@ static void Ai_Shutdown(void) {
 
 	aim.gi->Print("  ^5Ai module shutdown...\n");
 
-	Ai_ShutdownAnn();
+	Ai_ShutdownItems();
 	Ai_ShutdownSkins();
+	Ai_ShutdownAnn();
 
 	aim.gi->FreeTag(MEM_TAG_AI);
 }

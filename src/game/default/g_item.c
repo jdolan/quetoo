@@ -1358,6 +1358,7 @@ static g_item_t g_items[] = {
 		.ammo = NULL,
 		.type = ITEM_WEAPON,
 		.tag = WEAPON_BLASTER,
+		.flags = WF_PROJECTILE,
 		.priority = 0.10,
 		.precaches = "weapons/blaster/fire.wav"
 	},
@@ -1391,6 +1392,7 @@ static g_item_t g_items[] = {
 		.ammo = "Shells",
 		.type = ITEM_WEAPON,
 		.tag = WEAPON_SHOTGUN,
+		.flags = WF_HITSCAN | WF_SHORT_RANGE | WF_MED_RANGE,
 		.priority = 0.15,
 		.precaches = "weapons/shotgun/fire.wav"
 	},
@@ -1424,6 +1426,7 @@ static g_item_t g_items[] = {
 		.ammo = "Shells",
 		.type = ITEM_WEAPON,
 		.tag = WEAPON_SUPER_SHOTGUN,
+		.flags = WF_HITSCAN | WF_SHORT_RANGE,
 		.priority = 0.25,
 		.precaches = "weapons/supershotgun/fire.wav"
 	},
@@ -1457,6 +1460,7 @@ static g_item_t g_items[] = {
 		.ammo = "Bullets",
 		.type = ITEM_WEAPON,
 		.tag = WEAPON_MACHINEGUN,
+		.flags = WF_HITSCAN | WF_SHORT_RANGE | WF_MED_RANGE,
 		.priority = 0.30,
 		.precaches = "weapons/machinegun/fire_1.wav weapons/machinegun/fire_2.wav "
 		"weapons/machinegun/fire_3.wav weapons/machinegun/fire_4.wav"
@@ -1491,6 +1495,7 @@ static g_item_t g_items[] = {
 		.ammo = "Grenades",
 		.type = ITEM_WEAPON,
 		.tag = WEAPON_HAND_GRENADE,
+		.flags = WF_PROJECTILE | WF_EXPLOSIVE | WF_TIMED | WF_MED_RANGE,
 		.priority = 0.30,
 		.precaches = "weapons/handgrenades/hg_throw.wav weapons/handgrenades/hg_clang.ogg "
 		"weapons/handgrenades/hg_tick.ogg"
@@ -1525,6 +1530,7 @@ static g_item_t g_items[] = {
 		.ammo = "Grenades",
 		.type = ITEM_WEAPON,
 		.tag = WEAPON_GRENADE_LAUNCHER,
+		.flags = WF_PROJECTILE | WF_EXPLOSIVE,
 		.priority = 0.40,
 		.precaches = "models/objects/grenade/tris.md3 weapons/grenadelauncher/fire.wav"
 	},
@@ -1558,6 +1564,7 @@ static g_item_t g_items[] = {
 		.ammo = "Rockets",
 		.type = ITEM_WEAPON,
 		.tag = WEAPON_ROCKET_LAUNCHER,
+		.flags = WF_PROJECTILE | WF_EXPLOSIVE | WF_MED_RANGE | WF_LONG_RANGE,
 		.priority = 0.50,
 		.precaches = "models/objects/rocket/tris.obj objects/rocket/fly.wav "
 		"weapons/rocketlauncher/fire.wav"
@@ -1592,6 +1599,7 @@ static g_item_t g_items[] = {
 		.ammo = "Cells",
 		.type = ITEM_WEAPON,
 		.tag = WEAPON_HYPERBLASTER,
+		.flags = WF_PROJECTILE | WF_MED_RANGE,
 		.priority = 0.50,
 		.precaches = "weapons/hyperblaster/fire.wav weapons/hyperblaster/hit.wav"
 	},
@@ -1625,6 +1633,7 @@ static g_item_t g_items[] = {
 		.ammo = "Bolts",
 		.type = ITEM_WEAPON,
 		.tag = WEAPON_LIGHTNING,
+		.flags = WF_HITSCAN | WF_SHORT_RANGE,
 		.priority = 0.50,
 		.precaches = "weapons/lightning/fire.wav weapons/lightning/fly.wav "
 		"weapons/lightning/discharge.wav"
@@ -1659,6 +1668,7 @@ static g_item_t g_items[] = {
 		.ammo = "Slugs",
 		.type = ITEM_WEAPON,
 		.tag = WEAPON_RAILGUN,
+		.flags = WF_HITSCAN | WF_LONG_RANGE,
 		.priority = 0.60,
 		.precaches = "weapons/railgun/fire.wav"
 	},
@@ -1692,6 +1702,7 @@ static g_item_t g_items[] = {
 		.ammo = "Nukes",
 		.type = ITEM_WEAPON,
 		.tag = WEAPON_BFG10K,
+		.flags = WF_PROJECTILE | WF_MED_RANGE | WF_LONG_RANGE,
 		.priority = 0.66,
 		.precaches = "weapons/bfg/prime.wav weapons/bfg/hit.wav"
 	},

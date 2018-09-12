@@ -83,7 +83,7 @@ void Ai_Learn(const g_entity_t *ent, const pm_cmd_t *cmd) {
 			ai_ann_input_t in;
 
             VectorCopy(ent->s.origin, in.origin);
-			VectorCopy(ENTITY_DATA_ARRAY(ent, velocity), in.velocity);
+			VectorCopy(&ENTITY_DATA(ent, velocity), in.velocity);
 
 			ai_ann_output_t out;
 
@@ -111,7 +111,7 @@ void Ai_Predict(const g_entity_t *ent, vec3_t dir) {
 	ai_ann_input_t in;
 
 	VectorCopy(ent->s.origin, in.origin);
-	VectorCopy(ENTITY_DATA_ARRAY(ent, velocity), in.velocity);
+	VectorCopy(&ENTITY_DATA(ent, velocity), in.velocity);
 
 	const ai_ann_output_t *out = (ai_ann_output_t *) genann_run(ai_ann, (const dvec_t *) &in);
 	assert(out);

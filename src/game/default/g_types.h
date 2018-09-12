@@ -158,6 +158,19 @@ typedef enum {
 } g_weapon_tag_t;
 
 /**
+ * @brief Weapon flags provide hints to indicate weapon use.
+ */
+typedef enum {
+	WF_PROJECTILE		= (1 << 0), // fires a projectile with "speed" speed
+	WF_HITSCAN			= (1 << 1), // fires hitscan shot(s)
+	WF_TIMED			= (1 << 2), // a holdable that must be thrown within "time" milliseconds
+	WF_EXPLOSIVE		= (1 << 3), // fires explosive shots (might hurt self),
+	WF_SHORT_RANGE		= (1 << 4), // weapon works at close range
+	WF_MED_RANGE		= (1 << 5), // weapon works at medium range
+	WF_LONG_RANGE		= (1 << 6), // weapon works at long range
+} g_weapon_flags_t;
+
+/**
  * @brief Muzzle flashes are bound to the entity that created them. This allows
  * the protocol to forego sending the origin and angles for the effect, as they
  * can be inferred from the referenced entity.
@@ -355,6 +368,21 @@ typedef enum {
 	HOOK_SWING // hookmod-style swing hook
 } g_hook_style_t;
 
+/**
+ * @brief Item types.
+ */
+typedef enum {
+	ITEM_AMMO,
+	ITEM_ARMOR,
+	ITEM_FLAG,
+	ITEM_HEALTH,
+	ITEM_POWERUP,
+	ITEM_WEAPON,
+	ITEM_TECH,
+
+	ITEM_TOTAL
+} g_item_type_t;
+
 #ifdef __GAME_LOCAL_H__
 
 /**
@@ -492,21 +520,6 @@ typedef enum {
 #define MOVE_TYPE_THINK MOVE_TYPE_NONE
 
 /**
- * @brief Item types.
- */
-typedef enum {
-	ITEM_AMMO,
-	ITEM_ARMOR,
-	ITEM_FLAG,
-	ITEM_HEALTH,
-	ITEM_POWERUP,
-	ITEM_WEAPON,
-	ITEM_TECH,
-
-	ITEM_TOTAL
-} g_item_type_t;
-
-/**
  * @brief Items are touchable entities that players visit to acquire inventory.
  */
 typedef struct g_item_s {
@@ -553,7 +566,7 @@ typedef struct g_item_s {
 	const char *model;
 
 	/**
-	 * @brief The effect flags on the pickup item
+	 * @brief The effect flags on the pickup item.
 	 */
 	uint32_t effects;
 
@@ -569,8 +582,7 @@ typedef struct g_item_s {
 	const char *name;
 
 	/**
-	 * @brief For ammo, how much is stored in a box of ammo. For weapons, how much
-	 * ammo is consumed per shot.
+	 * @brief The quantity, provided or used, depending on the item type.
 	 */
 	uint16_t quantity;
 
@@ -580,9 +592,14 @@ typedef struct g_item_s {
 	uint16_t max;
 
 	/**
-	 * @brief A special tag that items can use for type-specific data.
+	 * @brief A tag that items can use for type-specific data.
 	 */
 	uint16_t tag;
+
+	/**
+	 * @brief Custom flags that items can use for type-specific data.
+	 */
+	uint16_t flags;
 
 	/**
 	 * @brief The type category for this item.
@@ -593,7 +610,7 @@ typedef struct g_item_s {
 	/**
 	 * @brief A value to determine the relative priority of items.
 	 */
-	vec_t priority; // AI priority level
+	vec_t priority;
 
 	/**
 	 * @brief A string list of models, sounds and images that this model will use in a game.

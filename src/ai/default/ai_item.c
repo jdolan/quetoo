@@ -21,34 +21,51 @@
 
 #include "ai_local.h"
 
-ai_item_t ai_items[MAX_ITEMS];
+ai_item_data_t ai_item_data;
+
+g_item_t const *ai_items[MAX_ITEMS];
+
 uint16_t ai_num_items;
 uint16_t ai_num_weapons;
 
-void Ai_RegisterItem(const uint16_t index, const ai_item_t *item) {
+/**
+ * @brief
+ */
+void Ai_RegisterItem(const g_item_t *item) {
+
+	const uint16_t index = ITEM_DATA(item, index);
 
 	if (index >= MAX_ITEMS) {
-		aim.gi->Warn("Bad item ID for item\n");
+		aim.gi->Warn("Bad index for item: %d\n", index);
 		return;
 	}
 
-	if (ai_items[index].flags) { // already registered, just ignore
+	if (ai_items[index]) {
 		return;
 	}
 
+	ai_items[index] = item;
 	ai_num_items++;
 
-	if (item->flags & AI_ITEM_WEAPON) {
+	if (ITEM_DATA(item, type) == ITEM_WEAPON) {
 		ai_num_weapons++;
 	}
-
-	memcpy(&ai_items[index], item, sizeof(ai_item_t));
 }
 
-uint16_t Ai_ItemIndex(const ai_item_t *item) {
-	return item - ai_items;
+/**
+ * @brief
+ */
+void Ai_InitItems(void) {
+
+	memset(ai_items, 0, sizeof(ai_items));
+
+	ai_num_items = 0;
+	ai_num_weapons = 0;
 }
 
-ai_item_t *Ai_ItemForGameItem(const g_item_t *item) {
-	return ai_items + aim.ItemIndex(item);
+/**
+ * @brief
+ */
+void Ai_ShutdownItems(void) {
+
 }
