@@ -41,41 +41,46 @@ void teardown(void) {
 
 START_TEST(check_Ai_Learn) {
 
-	const g_entity_t player = {
-		.class_name = "player",
-		.in_use = true,
-		.client = &(g_client_t) {
-			.ai = false,
-			.ps = {
-				.pm_state = {
-					.type = PM_NORMAL
+	for (int32_t i = 0; i < 64; i++) {
+
+		g_entity_t player = {
+			.class_name = "player",
+			.in_use = true,
+			.client = &(g_client_t) {
+				.ai = false,
+				.ps = {
+					.pm_state = {
+						.type = PM_NORMAL
+					}
 				}
 			}
-		}
-	};
+		};
 
-	const pm_cmd_t cmd = {
-		.forward = 300,
-		.right = 0,
-		.up = 0,
-		.buttons = 0
-	};
+		const vec3_t origin = { (i - 32) * 64.0, (i - 32) * 64.0, 0.0 };
 
-	const g_entity_t bot = {
-		.class_name = "player",
-		.in_use = true,
-		.client = &(g_client_t) {
-			.ai = true
-		}
-	};
+		VectorCopy(origin, player.s.origin);
 
-	for (int32_t i = 0; i < 100; i++) {
+		pm_cmd_t cmd = {
+			.forward = 300
+		};
+
 		Ai_Learn(&player, &cmd);
+
+		g_entity_t bot = {
+			.class_name = "player",
+			.in_use = true,
+			.client = &(g_client_t) {
+				.ai = true
+			}
+		};
+
+		VectorMA(origin, Randomc() * 16.0, vec3_down, bot.s.origin);
 
 		vec3_t dir;
 		Ai_Predict(&bot, dir);
 
 		printf("%.2f %.2f %.2f\n", dir[0], dir[1], dir[2]);
+		ck_assert(VectorLength(dir) >= 1.0 - FLT_EPSILON);
 	}
 } END_TEST
 
