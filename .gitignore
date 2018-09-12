@@ -37,6 +37,7 @@ src/main/quetoo
 src/main/quetoo-dedicated
 src/tests/*.log
 src/tests/*.trs
+src/tests/check_ai_ann
 src/tests/check_cmd
 src/tests/check_cvar
 src/tests/check_filesystem

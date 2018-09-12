@@ -525,7 +525,7 @@
 		CE8E2020214837AB00C18C94 /* libparse.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5530991E5A939F0009A127 /* libparse.a */; };
 		CE8E2021214837AB00C18C94 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE51FB9121481AE300ABE14F /* libcheck.0.dylib */; };
 		CE8E2022214837AB00C18C94 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
-		CE8E202B214837C200C18C94 /* check_ai.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8E2016214836C800C18C94 /* check_ai.c */; };
+		CE8E202B214837C200C18C94 /* check_ai_ann.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8E2016214836C800C18C94 /* check_ai_ann.c */; };
 		CE8E202C214837D900C18C94 /* libgenann.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9771A121454EEB00BBD71C /* libgenann.a */; };
 		CE8E202D214838E900C18C94 /* ai.so in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FEC61C5E44E800A21A51 /* ai.so */; };
 		CE91924D2055731E007AC8FF /* tjunctions.c in Sources */ = {isa = PBXBuildFile; fileRef = CE91924C2055731E007AC8FF /* tjunctions.c */; };
@@ -1989,8 +1989,8 @@
 		CE8819591F882D9F000D5AB7 /* DialogViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DialogViewController.h; sourceTree = "<group>"; };
 		CE8C734A1E0DE28000226317 /* r_stainmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_stainmap.c; sourceTree = "<group>"; };
 		CE8C734B1E0DE28000226317 /* r_stainmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_stainmap.h; sourceTree = "<group>"; };
-		CE8E2016214836C800C18C94 /* check_ai.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_ai.c; sourceTree = "<group>"; };
-		CE8E2028214837AB00C18C94 /* check_ai */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_ai; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE8E2016214836C800C18C94 /* check_ai_ann.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_ai_ann.c; sourceTree = "<group>"; };
+		CE8E2028214837AB00C18C94 /* check_ai_ann */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_ai_ann; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE91924C2055731E007AC8FF /* tjunctions.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tjunctions.c; sourceTree = "<group>"; };
 		CE92B3A91D2FF72200E9153A /* quemap-icon.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "quemap-icon.rc"; sourceTree = "<group>"; };
 		CE92B3AA1D2FF77800E9153A /* quemap.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = quemap.ico; sourceTree = "<group>"; };
@@ -3173,7 +3173,7 @@
 		CE12D6BE1C5C58C300CD0B13 /* tests */ = {
 			isa = PBXGroup;
 			children = (
-				CE8E2016214836C800C18C94 /* check_ai.c */,
+				CE8E2016214836C800C18C94 /* check_ai_ann.c */,
 				CE12D6CB1C5C58C300CD0B13 /* check_cmd.c */,
 				CE12D6CD1C5C58C300CD0B13 /* check_cvar.c */,
 				CE12D6CF1C5C58C300CD0B13 /* check_filesystem.c */,
@@ -3409,7 +3409,7 @@
 				CE51FBF72148207700ABE14F /* check_master */,
 				CE052A6E214831FE003446C9 /* check_mem */,
 				CE052A8421483255003446C9 /* check_thread */,
-				CE8E2028214837AB00C18C94 /* check_ai */,
+				CE8E2028214837AB00C18C94 /* check_ai_ann */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -4547,9 +4547,9 @@
 			productReference = CE80FF7F1C5E49C400A21A51 /* libserver.a */;
 			productType = "com.apple.product-type.library.static";
 		};
-		CE8E2017214837AB00C18C94 /* check_ai */ = {
+		CE8E2017214837AB00C18C94 /* check_ai_ann */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = CE8E2025214837AB00C18C94 /* Build configuration list for PBXNativeTarget "check_ai" */;
+			buildConfigurationList = CE8E2025214837AB00C18C94 /* Build configuration list for PBXNativeTarget "check_ai_ann" */;
 			buildPhases = (
 				CE8E201A214837AB00C18C94 /* Sources */,
 				CE8E201D214837AB00C18C94 /* Frameworks */,
@@ -4560,9 +4560,9 @@
 			dependencies = (
 				CE8E202A214837B700C18C94 /* PBXTargetDependency */,
 			);
-			name = check_ai;
+			name = check_ai_ann;
 			productName = "test-r_media";
-			productReference = CE8E2028214837AB00C18C94 /* check_ai */;
+			productReference = CE8E2028214837AB00C18C94 /* check_ai_ann */;
 			productType = "com.apple.product-type.tool";
 		};
 		CE97719421454EEB00BBD71C /* genann */ = {
@@ -4879,7 +4879,7 @@
 				CE67EF9C1E351A95009C2819 /* quetoo-update */,
 				CE80FD861C5E3B6F00A21A51 /* quemap */,
 				CEA029B31C5E545B00341079 /* quetoo-all */,
-				CE8E2017214837AB00C18C94 /* check_ai */,
+				CE8E2017214837AB00C18C94 /* check_ai_ann */,
 				CE51FB9D21481DD300ABE14F /* check_cmd */,
 				CE51FBB321481F2500ABE14F /* check_cvar */,
 				CE51FBCC21481FC100ABE14F /* check_filesystem */,
@@ -5253,7 +5253,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE8E202B214837C200C18C94 /* check_ai.c in Sources */,
+				CE8E202B214837C200C18C94 /* check_ai_ann.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -6717,7 +6717,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		CE8E2025214837AB00C18C94 /* Build configuration list for PBXNativeTarget "check_ai" */ = {
+		CE8E2025214837AB00C18C94 /* Build configuration list for PBXNativeTarget "check_ai_ann" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CE8E2026214837AB00C18C94 /* Debug */,

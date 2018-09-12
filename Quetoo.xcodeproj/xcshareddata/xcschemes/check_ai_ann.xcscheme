@@ -15,8 +15,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "CE8E2017214837AB00C18C94"
-               BuildableName = "check_ai"
-               BlueprintName = "check_ai"
+               BuildableName = "check_ai_ann"
+               BlueprintName = "check_ai_ann"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -33,8 +33,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE8E2017214837AB00C18C94"
-            BuildableName = "check_ai"
-            BlueprintName = "check_ai"
+            BuildableName = "check_ai_ann"
+            BlueprintName = "check_ai_ann"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -56,8 +56,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE8E2017214837AB00C18C94"
-            BuildableName = "check_ai"
-            BlueprintName = "check_ai"
+            BuildableName = "check_ai_ann"
+            BlueprintName = "check_ai_ann"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -82,8 +82,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE8E2017214837AB00C18C94"
-            BuildableName = "check_ai"
-            BlueprintName = "check_ai"
+            BuildableName = "check_ai_ann"
+            BlueprintName = "check_ai_ann"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

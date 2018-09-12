@@ -9,15 +9,38 @@ noinst_HEADERS = \
 	ai_main.h \
 	ai_types.h
 
-ailib_LTLIBRARIES = \
-	ai.la
+noinst_LTLIBRARIES = \
+	libai.la
 
-ai_la_SOURCES = \
+SOURCES = \
 	ai_ann.c \
 	ai_goal.c \
 	ai_info.c \
 	ai_item.c \
 	ai_main.c
+
+libai_la_SOURCES = \
+	$(SOURCES)
+
+libai_la_CFLAGS = \
+	-I$(top_srcdir)/src \
+	@SO_CFLAGS@ \
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@
+
+libai_la_LDFLAGS = \
+	-shared
+
+libai_la_LIBADD = \
+	$(top_builddir)/deps/genann/libgenann.la \
+	$(top_builddir)/src/game/default/libpmove.la \
+	@GLIB_LIBS@
+
+ailib_LTLIBRARIES = \
+	ai.la
+
+ai_la_SOURCES = \
+	$(SOURCES)
 
 ai_la_CFLAGS = \
 	-I$(top_srcdir)/src \

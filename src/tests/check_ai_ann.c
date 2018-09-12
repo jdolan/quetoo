@@ -27,7 +27,6 @@
  * @brief Setup fixture.
  */
 void setup(void) {
-
 	Ai_InitAnn();
 }
 
@@ -35,7 +34,6 @@ void setup(void) {
  * @brief Teardown fixture.
  */
 void teardown(void) {
-
 	Ai_ShutdownAnn();
 }
 
@@ -89,12 +87,12 @@ START_TEST(check_Ai_Learn) {
  */
 int32_t main(int32_t argc, char **argv) {
 
-	TCase *tcase = tcase_create("check_ai");
+	TCase *tcase = tcase_create("check_ai_ann");
 	tcase_add_checked_fixture(tcase, setup, teardown);
 
 	tcase_add_test(tcase, check_Ai_Learn);
 
-	Suite *suite = suite_create("check_ai");
+	Suite *suite = suite_create("check_ai_ann");
 	suite_add_tcase(suite, tcase);
 
 	SRunner *runner = srunner_create(suite);

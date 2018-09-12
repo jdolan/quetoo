@@ -30,6 +30,7 @@ libtests_la_LIBADD = \
 	$(top_builddir)/src/libcommon.la
 
 TESTS = \
+	check_ai_ann \
 	check_cmd \
 	check_cvar \
 	check_filesystem \
@@ -39,6 +40,15 @@ TESTS = \
 	check_thread
 
 noinst_PROGRAMS = $(TESTS)
+
+check_ai_ann_SOURCES = \
+	check_ai_ann.c
+check_ai_ann_CFLAGS = \
+	-I$(top_srcdir)/src/ai/default \
+	$(TESTS_CFLAGS)
+check_ai_ann_LDADD = \
+	$(TESTS_LIBS) \
+	$(top_builddir)/src/ai/default/libai.la
 
 check_cmd_SOURCES = \
 	check_cmd.c
@@ -81,8 +91,8 @@ check_mem_LDADD = \
 	$(top_builddir)/src/libmem.la
 
 check_r_media_SOURCES = \
-	check_r_media.c \
-	$(top_srcdir)/src/client/renderer/r_media.c
+	$(top_srcdir)/src/client/renderer/r_media.c \
+	check_r_media.c
 check_r_media_CFLAGS = \
 	-I$(top_srcdir)/src/client/renderer \
 	$(TESTS_CFLAGS) \
