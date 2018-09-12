@@ -958,7 +958,7 @@ typedef enum {
 #define DEFAULT_TEAM_SKIN "ctf"
 
 /**
- * @brief There are two teams in the default game module.
+ * @brief There are four teams in the default game module.
  */
 typedef struct {
 	// static info, valid for all and default teams
@@ -1085,6 +1085,7 @@ typedef struct {
 	int16_t damage_health; // damage taken out of health
 	int16_t damage_inflicted; // damage done to other clients
 
+	int16_t max_armor;
 	int16_t max_boost_health; // max health can be boosted to
 
 	vec_t speed; // x/y speed after moving
@@ -1180,8 +1181,6 @@ typedef struct {
 	int16_t health;
 	int16_t max_health;
 	_Bool dead;
-
-	int16_t max_armor;
 
 	_Bool take_damage;
 	int16_t damage;

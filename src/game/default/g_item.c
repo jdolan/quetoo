@@ -382,16 +382,16 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 		if (current_armor) {
 			other->client->locals.inventory[current_armor->index] =
 			    Clamp(other->client->locals.inventory[current_armor->index] + new_armor->quantity,
-			          0, other->locals.max_armor);
+			          0, other->client->locals.max_armor);
 		} else {
 			other->client->locals.inventory[g_media.items.armor[ARMOR_JACKET]->index] =
-			    Clamp((int16_t) new_armor->quantity, 0, other->locals.max_armor);
+			    Clamp((int16_t) new_armor->quantity, 0, other->client->locals.max_armor);
 		}
 
 		taken = true;
 	} else if (!current_armor) { // no current armor, take it
 		other->client->locals.inventory[new_armor->index] =
-		    Clamp((int16_t) new_armor->quantity, 0, other->locals.max_armor);
+		    Clamp((int16_t) new_armor->quantity, 0, other->client->locals.max_armor);
 
 		taken = true;
 	} else {
@@ -405,11 +405,11 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 
 			const int16_t new_count = Clamp(salvage_count + new_armor->quantity, 0, new_armor->max);
 
-			if (new_count < other->locals.max_armor) {
+			if (new_count < other->client->locals.max_armor) {
 				other->client->locals.inventory[current_armor->index] = 0;
 
 				other->client->locals.inventory[new_armor->index] =
-				    Clamp(new_count, 0, other->locals.max_armor);
+				    Clamp(new_count, 0, other->client->locals.max_armor);
 			}
 
 			taken = true;
@@ -423,9 +423,9 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 
 			// take it
 			if (other->client->locals.inventory[current_armor->index] < new_count &&
-			        other->client->locals.inventory[current_armor->index] < other->locals.max_armor) {
+			        other->client->locals.inventory[current_armor->index] < other->client->locals.max_armor) {
 				other->client->locals.inventory[current_armor->index] =
-				    Clamp(new_count, 0, other->locals.max_armor);
+				    Clamp(new_count, 0, other->client->locals.max_armor);
 
 				taken = true;
 			}

@@ -923,7 +923,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		ent->client->locals.persistent.handicap = ent->client->locals.persistent.handicap_next;
 		ent->locals.max_health = ent->client->locals.persistent.handicap;
 		ent->locals.health = ent->locals.max_health + 5;
-		ent->locals.max_armor = 200;
+		ent->client->locals.max_armor = 200;
 		ent->client->locals.max_boost_health = ent->locals.max_health + 100;
 		ent->locals.move_type = MOVE_TYPE_WALK;
 		ent->locals.mass = 200.0;

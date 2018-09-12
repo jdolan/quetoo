@@ -121,11 +121,6 @@ typedef struct ai_entity_data_s {
 	const int16_t *max_health;
 
 	/**
-	 * @brief Offset to max armor
-	 */
-	const int16_t *max_armor;
-
-	/**
 	 * @brief Offset to water level
 	 */
 	const pm_water_level_t *water_level;
@@ -151,6 +146,11 @@ typedef struct ai_client_data_s {
 	 * @brief Offset to inventory
 	 */
 	const int16_t *inventory;
+
+	/**
+	 * @brief Offset to max armor
+	 */
+	const int16_t *max_armor;
 
 	/**
 	 * @brief Offset to current weapon
