@@ -24,7 +24,7 @@
 #include "files.h"
 #include "filesystem.h"
 
-#include <SDL2/SDL_image.h>
+#include <SDL_image.h>
 
 #define IMG_PALETTE_SIZE 256
 typedef uint32_t img_palette_t[IMG_PALETTE_SIZE];

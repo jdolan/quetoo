@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <SDL2/SDL_mutex.h>
+#include <SDL_mutex.h>
 
 #include "cmd.h"
 #include "cvar.h"

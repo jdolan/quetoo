@@ -872,11 +872,11 @@ static _Bool ParseMapEntity(void) {
 /**
  * @brief
  */
-void LoadMapFile(const char *file_name) {
+void LoadMapFile(const char *filename) {
 
 	Com_Verbose("--- LoadMapFile ---\n");
 
-	LoadScriptFile(file_name);
+	LoadScriptFile(filename);
 
 	memset(map_brushes, 0, sizeof(map_brush_t) * MAX_BSP_BRUSHES);
 	num_map_brushes = 0;

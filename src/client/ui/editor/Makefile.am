@@ -21,7 +21,8 @@ libuieditor_la_CFLAGS = \
 	-I$(top_srcdir)/src/client/ui \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
-	@OBJECTIVELYMVC_CFLAGS@
+	@OBJECTIVELYMVC_CFLAGS@ \
+	@SDL2_CFLAGS@
 
 libuieditor_la_LDFLAGS = \
 	-shared

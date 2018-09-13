@@ -85,7 +85,6 @@ static void Cg_FootstepsTable_Destroy(gpointer value) {
  * @brief
  */
 static void Cg_FootstepsTable_EnumerateFiles(const char *file, void *data) {
-
 	(*((size_t *) data))++;
 }
 

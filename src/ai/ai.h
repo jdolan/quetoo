@@ -36,8 +36,6 @@ typedef struct g_export_s g_export_t;
  */
 typedef struct g_item_s g_item_t;
 
-typedef _Bool (*EntityFilterFunc)(const g_entity_t *ent);
-
 /**
  * @brief Functions and the like that the AI system imports from the game.
  */
@@ -46,23 +44,18 @@ typedef struct {
 	g_export_t *ge;
 	
 	/**
-	 * @brief Query if two entities are on the same team
+	 * @brief Query if two entities are on the same team.
 	 */
 	_Bool (*OnSameTeam)(const g_entity_t *self, const g_entity_t *other);
-
-	/**
-	 * @brief TODO FIXME - TEMPORARY API SCRATCH SPACE.
-	 */
-	uint16_t (*ItemIndex)(const g_item_t *item);
-	_Bool (*CanPickupItem)(const g_entity_t *self, const g_entity_t *other);
+	
 } ai_import_t;
 
 /**
  * @brief Forward declaration of AI structs.
  */
-typedef struct ai_item_s ai_item_t;
 typedef struct ai_entity_data_s ai_entity_data_t;
 typedef struct ai_client_data_s ai_client_data_t;
+typedef struct ai_item_data_s ai_item_data_t;
 
 /**
  * @brief Functions and the like that the AI system exports to the game.
@@ -88,7 +81,7 @@ typedef struct {
 	/**
 	 * @brief Called once by game to setup its data pointers
 	 */
-	void (*SetDataPointers)(ai_entity_data_t *entity, ai_client_data_t *client);
+	void (*SetDataPointers)(ai_entity_data_t *entity, ai_client_data_t *client, ai_item_data_t *item);
 
 	/**
 	 * @brief Run an AI frame.
@@ -111,12 +104,17 @@ typedef struct {
 	void (*Spawn)(g_entity_t *self);
 
 	/**
-	 * @brief Call cause an AI to think. Returns the movement command for the bot.
+	 * @brief Called to think for an AI. Returns the movement command for the bot.
 	 */
 	void (*Think)(g_entity_t *self, pm_cmd_t *cmd);
 
 	/**
+	 * @brief Called when a human client has a command that the AI can learn from.
+	 */
+	void (*Learn)(const g_entity_t *self, const pm_cmd_t *cmd);
+
+	/**
 	 * @brief Register an item on the AI system
 	 */
-	void (*RegisterItem)(const uint16_t index, const ai_item_t *item);
+	void (*RegisterItem)(const g_item_t *item);
 } ai_export_t;

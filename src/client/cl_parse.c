@@ -110,7 +110,7 @@ _Bool Cl_CheckOrDownloadFile(const char *filename) {
 void Cl_Download_f(void) {
 
 	if (Cmd_Argc() != 2) {
-		Com_Print("Usage: %s <file_name>\n", Cmd_Argv(0));
+		Com_Print("Usage: %s <filename>\n", Cmd_Argv(0));
 		return;
 	}
 

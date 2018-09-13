@@ -173,7 +173,7 @@ struct g_entity_s {
 	 * opaque field. Therefore, the actual size of g_entity_t is returned to the
 	 * server through ge.entity_size.
 	 */
-	g_entity_locals_t locals; // game-local data members
+	g_entity_locals_t locals;
 };
 
 typedef _Bool (*EntityFilterFunc)(const g_entity_t *ent);
@@ -205,10 +205,29 @@ typedef struct g_import_s {
 	void (*FreeTag)(mem_tag_t tag);
 
 	/**
-	 * @brief Filesystem interaction.
+	 * @brief Loads the specified file into the given buffer.
+	 * @param filename The game-relative filename.
+	 * @param buffer The buffer to allocate and load.
+	 * @return The length of the file in bytes.
 	 */
-	int64_t (*LoadFile)(const char *file_name, void **buffer);
+	int64_t (*LoadFile)(const char *filename, void **buffer);
+
+	/**
+	 * @brief Frees a file loaded via `LoadFile`.
+	 * @param buffer The buffer.
+	 */
 	void (*FreeFile)(void *buffer);
+
+	/**
+	 * @brief Creates the specified directory (and any ancestors) in the game's write directory.
+	 * @param dir The directory name to create.
+	 */
+	_Bool (*Mkdir)(const char *dir);
+
+	/**
+	 * @return The real path name of the specified file or directory.
+	 */
+	const char *(*RealPath)(const char *path);
 
 	/**
 	 * @brief Enumerates files matching `pattern`, calling the given function.
@@ -216,7 +235,7 @@ typedef struct g_import_s {
 	 * @param enumerator The enumerator function.
 	 * @param data User data.
 	 */
-	void (*EnumerateFiles)(const char *pattern, Fs_EnumerateFunc enumerator, void *data);
+	void (*EnumerateFiles)(const char *pattern, Fs_Enumerator enumerator, void *data);
 
 	/**
 	 * @brief Resolves a console variable, creating it if not found.

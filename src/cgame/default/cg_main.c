@@ -108,12 +108,12 @@ cg_import_t cgi;
  */
 static void Cg_Init(void) {
 
-	cgi.Print("  ^6Client game module initialization...\n");
+	cgi.Print("Client game module initialization...\n");
 
 	const char *s = va("%s %s %s", VERSION, BUILD_HOST, REVISION);
 	cvar_t *cgame_version = cgi.AddCvar("cgame_version", s, CVAR_NO_SET, NULL);
 
-	cgi.Print("  ^6Version %s\n", cgame_version->string);
+	cgi.Print("  Version:    ^2%s^7\n", cgame_version->string);
 
 	Cg_InitInput();
 
@@ -283,7 +283,7 @@ static void Cg_Init(void) {
 
 	Cg_InitHud();
 
-	cgi.Print("  ^6Client game module initialized\n");
+	cgi.Print("Client game module initialized\n");
 }
 
 /**
@@ -291,7 +291,7 @@ static void Cg_Init(void) {
  */
 static void Cg_Shutdown(void) {
 
-	cgi.Print("  ^6Client game module shutdown...\n");
+	cgi.Print("Client game module shutdown...\n");
 
 	Cg_ShutdownUi();
 

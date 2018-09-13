@@ -1012,7 +1012,7 @@ size_t StrColorLen(const char *s) {
  * @brief Performs a color- and case-insensitive string comparison.
  */
 int32_t StrColorCmp(const char *s1, const char *s2) {
-	char string1[MAX_STRING_CHARS], string2[MAX_STRING_CHARS];
+	char string1[strlen(s1) + 1], string2[strlen(s2) + 1];
 
 	StripColors(s1, string1);
 	StripColors(s2, string2);

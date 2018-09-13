@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __TESTS_H__
-#define __TESTS_H__
+#pragma once
 
 #include <check.h>
 
@@ -29,5 +28,3 @@
 int Test_Run(Suite *suite);
 void Test_Init(int32_t argc, char **argv);
 void Test_Shutdown(void);
-
-#endif /* __TESTS_H__ */

@@ -25,9 +25,9 @@
 
 #ifdef __R_LOCAL_H__
 
+typedef void (*R_MediaEnumerator)(const r_media_t *media, void *data);
+void R_EnumerateMedia(R_MediaEnumerator enumerator, void *data);
 void R_ListMedia_f(void);
-void R_DumpImages_f(void);
-void R_DumpImage(const r_image_t *image, const char *output);
 r_media_t *R_RegisterDependency(r_media_t *dependent, r_media_t *dependency);
 r_media_t *R_RegisterMedia(r_media_t *media);
 r_media_t *R_FindMedia(const char *name);

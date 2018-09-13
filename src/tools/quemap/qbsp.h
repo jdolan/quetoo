@@ -171,7 +171,7 @@ extern vec_t micro_volume;
 
 extern int32_t first_bsp_model_edge;
 
-void LoadMapFile(const char *file_name);
+void LoadMapFile(const char *filename);
 int32_t FindPlane(vec3_t normal, dvec_t dist);
 _Bool WindingIsTiny(const winding_t *w);
 

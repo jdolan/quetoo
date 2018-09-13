@@ -136,28 +136,6 @@ typedef enum {
 #define STAT_TOGGLE_BIT		0x4000
 
 /**
- * @brief Weapon tags to inform the client game which weapon the player wields and
- * the order of the weapon switcher.
- */
-typedef enum {
-	WEAPON_NONE,
-
-	WEAPON_BLASTER,
-	WEAPON_SHOTGUN,
-	WEAPON_SUPER_SHOTGUN,
-	WEAPON_MACHINEGUN,
-	WEAPON_HAND_GRENADE,
-	WEAPON_GRENADE_LAUNCHER,
-	WEAPON_ROCKET_LAUNCHER,
-	WEAPON_HYPERBLASTER,
-	WEAPON_LIGHTNING,
-	WEAPON_RAILGUN,
-	WEAPON_BFG10K,
-
-	WEAPON_TOTAL
-} g_weapon_tag_t;
-
-/**
  * @brief Muzzle flashes are bound to the entity that created them. This allows
  * the protocol to forego sending the origin and angles for the effect, as they
  * can be inferred from the referenced entity.
@@ -355,49 +333,55 @@ typedef enum {
 	HOOK_SWING // hookmod-style swing hook
 } g_hook_style_t;
 
-#ifdef __GAME_LOCAL_H__
+/**
+ * @brief Item types.
+ */
+typedef enum {
+	ITEM_AMMO,
+	ITEM_ARMOR,
+	ITEM_FLAG,
+	ITEM_HEALTH,
+	ITEM_POWERUP,
+	ITEM_WEAPON,
+	ITEM_TECH,
+
+	ITEM_TOTAL
+} g_item_type_t;
 
 /**
- * @brief This file will define the game-visible definitions of g_client_t
- * and g_entity_t. They are much larger than the server-visible definitions,
- * which are intentionally truncated stubs.
+ * @brief Weapon tags to inform the client game which weapon the player wields and
+ * the order of the weapon switcher.
  */
-typedef struct g_client_s g_client_t;
-typedef struct g_entity_s g_entity_t;
+typedef enum {
+	WEAPON_NONE,
+
+	WEAPON_BLASTER,
+	WEAPON_SHOTGUN,
+	WEAPON_SUPER_SHOTGUN,
+	WEAPON_MACHINEGUN,
+	WEAPON_HAND_GRENADE,
+	WEAPON_GRENADE_LAUNCHER,
+	WEAPON_ROCKET_LAUNCHER,
+	WEAPON_HYPERBLASTER,
+	WEAPON_LIGHTNING,
+	WEAPON_RAILGUN,
+	WEAPON_BFG10K,
+
+	WEAPON_TOTAL
+} g_weapon_tag_t;
 
 /**
- * @brief Spawn flags for g_entity_t are set in the level editor.
+ * @brief Weapon flags provide hints to indicate weapon use.
  */
-#define SF_ITEM_TRIGGER			0x00000001
-#define SF_ITEM_NO_TOUCH		0x00000002
-#define SF_ITEM_HOVER			0x00000004
-
-/**
- * @brief These are legacy spawn flags from Quake II. We maintain these simply
- * for backwards compatibility with old levels. They do nothing in QUETOO.
- */
-#define SF_NOT_EASY				0x00000100
-#define SF_NOT_MEDIUM			0x00000200
-#define SF_NOT_HARD				0x00000400
-#define SF_NOT_DEATHMATCH		0x00000800
-#define SF_NOT_COOP				0x00001000
-
-/**
- * @brief These spawn flags are actually set by the game module on entities
- * that are programmatically instantiated.
- */
-#define SF_ITEM_DROPPED			0x00010000
-#define SF_ITEM_TARGETS_USED	0x00020000
-
-/**
- * @brief Entity flags (g_entity_locals.flags). These again are mostly for
- * backwards compatibility with Quake II.
- * still valid.
- */
-#define FL_FLY					0x00000001
-#define FL_SWIM					0x00000002  // implied immunity to drowning
-#define FL_GOD_MODE				0x00000004
-#define FL_TEAM_SLAVE			0x00000008  // not the first on the team
+typedef enum {
+	WF_PROJECTILE		= (1 << 0), // fires a projectile with "speed" speed
+	WF_HITSCAN			= (1 << 1), // fires hitscan shot(s)
+	WF_TIMED			= (1 << 2), // a holdable that must be thrown within "time" milliseconds
+	WF_EXPLOSIVE		= (1 << 3), // fires explosive shots (might hurt self),
+	WF_SHORT_RANGE		= (1 << 4), // weapon works at close range
+	WF_MED_RANGE		= (1 << 5), // weapon works at medium range
+	WF_LONG_RANGE		= (1 << 6), // weapon works at long range
+} g_weapon_flags_t;
 
 /**
  * @brief Ammunition types.
@@ -471,6 +455,50 @@ typedef enum {
 	TECH_TOTAL
 } g_tech_t;
 
+#ifdef __GAME_LOCAL_H__
+
+/**
+ * @brief This file will define the game-visible definitions of g_client_t
+ * and g_entity_t. They are much larger than the server-visible definitions,
+ * which are intentionally truncated stubs.
+ */
+typedef struct g_client_s g_client_t;
+typedef struct g_entity_s g_entity_t;
+
+/**
+ * @brief Spawn flags for g_entity_t are set in the level editor.
+ */
+#define SF_ITEM_TRIGGER			0x00000001
+#define SF_ITEM_NO_TOUCH		0x00000002
+#define SF_ITEM_HOVER			0x00000004
+
+/**
+ * @brief These are legacy spawn flags from Quake II. We maintain these simply
+ * for backwards compatibility with old levels. They do nothing in QUETOO.
+ */
+#define SF_NOT_EASY				0x00000100
+#define SF_NOT_MEDIUM			0x00000200
+#define SF_NOT_HARD				0x00000400
+#define SF_NOT_DEATHMATCH		0x00000800
+#define SF_NOT_COOP				0x00001000
+
+/**
+ * @brief These spawn flags are actually set by the game module on entities
+ * that are programmatically instantiated.
+ */
+#define SF_ITEM_DROPPED			0x00010000
+#define SF_ITEM_TARGETS_USED	0x00020000
+
+/**
+ * @brief Entity flags (g_entity_locals.flags). These again are mostly for
+ * backwards compatibility with Quake II.
+ * still valid.
+ */
+#define FL_FLY					0x00000001
+#define FL_SWIM					0x00000002  // implied immunity to drowning
+#define FL_GOD_MODE				0x00000004
+#define FL_TEAM_SLAVE			0x00000008  // not the first on the team
+
 /**
  * @brief Move types govern the physics dispatch in G_RunEntity.
  */
@@ -490,21 +518,6 @@ typedef enum {
  * Think function will update its origin and handle other interactions.
  */
 #define MOVE_TYPE_THINK MOVE_TYPE_NONE
-
-/**
- * @brief Item types.
- */
-typedef enum {
-	ITEM_AMMO,
-	ITEM_ARMOR,
-	ITEM_FLAG,
-	ITEM_HEALTH,
-	ITEM_POWERUP,
-	ITEM_WEAPON,
-	ITEM_TECH,
-
-	ITEM_TOTAL
-} g_item_type_t;
 
 /**
  * @brief Items are touchable entities that players visit to acquire inventory.
@@ -553,7 +566,7 @@ typedef struct g_item_s {
 	const char *model;
 
 	/**
-	 * @brief The effect flags on the pickup item
+	 * @brief The effect flags on the pickup item.
 	 */
 	uint32_t effects;
 
@@ -569,8 +582,7 @@ typedef struct g_item_s {
 	const char *name;
 
 	/**
-	 * @brief For ammo, how much is stored in a box of ammo. For weapons, how much
-	 * ammo is consumed per shot.
+	 * @brief The quantity, provided or used, depending on the item type.
 	 */
 	uint16_t quantity;
 
@@ -580,9 +592,14 @@ typedef struct g_item_s {
 	uint16_t max;
 
 	/**
-	 * @brief A special tag that items can use for type-specific data.
+	 * @brief A tag that items can use for type-specific data.
 	 */
 	uint16_t tag;
+
+	/**
+	 * @brief Custom flags that items can use for type-specific data.
+	 */
+	uint16_t flags;
 
 	/**
 	 * @brief The type category for this item.
@@ -593,7 +610,7 @@ typedef struct g_item_s {
 	/**
 	 * @brief A value to determine the relative priority of items.
 	 */
-	vec_t priority; // AI priority level
+	vec_t priority;
 
 	/**
 	 * @brief A string list of models, sounds and images that this model will use in a game.
@@ -941,7 +958,7 @@ typedef enum {
 #define DEFAULT_TEAM_SKIN "ctf"
 
 /**
- * @brief There are two teams in the default game module.
+ * @brief There are four teams in the default game module.
  */
 typedef struct {
 	// static info, valid for all and default teams
@@ -1022,6 +1039,7 @@ typedef struct {
 	_Bool admin; // client is special?
 	_Bool spectator; // client is a spectator
 	_Bool ready; // ready
+	_Bool muted;
 
 	g_vote_t vote; // current vote (yes/no)
 	uint32_t match_num; // most recent match
@@ -1067,6 +1085,7 @@ typedef struct {
 	int16_t damage_health; // damage taken out of health
 	int16_t damage_inflicted; // damage done to other clients
 
+	int16_t max_armor;
 	int16_t max_boost_health; // max health can be boosted to
 
 	vec_t speed; // x/y speed after moving
@@ -1093,9 +1112,7 @@ typedef struct {
 	g_entity_t *held_grenade; // the grenade we're holding onto
 
 	uint32_t pickup_msg_time; // display message until time > this
-
 	uint32_t chat_time; // can chat when time > this
-	_Bool muted;
 
 	uint32_t quad_damage_time; // has quad when time < this
 	uint32_t quad_countdown_time; // has quad when time < this
@@ -1164,8 +1181,6 @@ typedef struct {
 	int16_t health;
 	int16_t max_health;
 	_Bool dead;
-
-	int16_t max_armor;
 
 	_Bool take_damage;
 	int16_t damage;

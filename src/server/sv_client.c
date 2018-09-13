@@ -244,7 +244,7 @@ static void Sv_Download_f(void) {
 
 	const char *filename = Cmd_Argv(1);
 
-	// catch illegal offset or file_names
+	// catch illegal offset or filenames
 	if (IS_INVALID_DOWNLOAD(filename)) {
 		Com_Warn("Malicious download (%s) from %s\n", filename, Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);

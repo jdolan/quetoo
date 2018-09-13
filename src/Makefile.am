@@ -49,15 +49,17 @@ libcommon_la_CFLAGS = \
 libcommon_la_LDFLAGS = \
 	-shared
 libcommon_la_LIBADD = \
-	libshared.la
-	
+	libshared.la \
+	libparse.la
+
 libconsole_la_SOURCES = \
 	cmd.c \
 	console.c \
 	cvar.c
 libconsole_la_CFLAGS = \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@
+	@GLIB_CFLAGS@ \
+	@SDL2_CFLAGS@
 libconsole_la_LDFLAGS = \
 	-shared
 libconsole_la_LIBADD = \
@@ -137,7 +139,8 @@ libswap_la_SOURCES = \
 	swap.c
 libswap_la_CFLAGS = \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@
+	@GLIB_CFLAGS@ \
+	@SDL2_CFLAGS@
 libswap_la_LDFLAGS = \
 	-shared
 

@@ -468,9 +468,9 @@ typedef struct {
  */
 typedef struct {
 	uint8_t msec; // duration of the command, in milliseconds
-	uint8_t buttons; // bit mask of buttons down
-	uint16_t angles[3]; // the final view angles for this command
+	u16vec3_t angles; // the final view angles for this command
 	int16_t forward, right, up; // directional intentions
+	uint8_t buttons; // bit mask of buttons down
 } pm_cmd_t;
 
 /**

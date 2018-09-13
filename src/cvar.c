@@ -172,20 +172,35 @@ static const char *Cvar_Stringify(const cvar_t *var) {
 }
 
 /**
+ * @brief GCompareFunc for Cvar_Enumerate.
+ */
+static gint Cvar_Enumerate_comparator(gconstpointer a, const gconstpointer b) {
+	return g_ascii_strcasecmp(((const cvar_t *) a)->name, ((const cvar_t *) b)->name);
+}
+
+/**
  * @brief Enumerates all known variables with the given function.
  */
-void Cvar_Enumerate(CvarEnumerateFunc func, void *data) {
+void Cvar_Enumerate(Cvar_Enumerator func, void *data) {
+	GList *sorted = NULL;
+
 	GHashTableIter iter;
 	gpointer key, value;
 	g_hash_table_iter_init(&iter, cvar_vars);
 
-	while (g_hash_table_iter_next (&iter, &key, &value)) {
+	while (g_hash_table_iter_next(&iter, &key, &value)) {
 		const GQueue *queue = (GQueue *) value;
 
-		for (const GList *list = queue->head; list; list = list->next) {
-			func((cvar_t *) list->data, data);
+		for (GList *list = queue->head; list; list = list->next) {
+			sorted = g_list_concat(sorted, g_list_copy(list));
 		}
 	}
+
+	sorted = g_list_sort(sorted, Cvar_Enumerate_comparator);
+
+	g_list_foreach(sorted, (GFunc) func, data);
+
+	g_list_free(sorted);
 }
 
 static char cvar_complete_pattern[MAX_STRING_CHARS];
@@ -625,13 +640,14 @@ static void Cvar_Toggle_f(void) {
 }
 
 /**
- * @brief Enumeration helper for Cvar_List_f.
+ * @brief Cvar_Enumerator for Cvar_List_f.
  */
 static void Cvar_List_f_enumerate(cvar_t *var, void *data) {
-	GSList **list = (GSList **) data;
+
 	const gchar *str = g_strdup(Cvar_Stringify(var));
 
-	*list = g_slist_insert_sorted(*list, (gpointer) str, (GCompareFunc) g_ascii_strcasecmp);
+	GSList **list = (GSList **) data;
+	*list = g_slist_insert_sorted(*list, (gpointer) str, (GCompareFunc) StrColorCmp);
 }
 
 /**
@@ -698,7 +714,7 @@ char *Cvar_ServerInfo(void) {
 /**
  * @brief Enumeration helper for Cl_WriteVariables.
  */
-static void Cvar_WriteVariables_enumerate(cvar_t *var, void *data) {
+static void Cvar_WriteAll_enumerate(cvar_t *var, void *data) {
 
 	if (var->flags & CVAR_ARCHIVE) {
 		Fs_Print((file_t *) data, "set %s \"%s\"\n", var->name, var->string);
@@ -709,7 +725,7 @@ static void Cvar_WriteVariables_enumerate(cvar_t *var, void *data) {
  * @brief Writes all variables to the specified file.
  */
 void Cvar_WriteAll(file_t *f) {
-	Cvar_Enumerate(Cvar_WriteVariables_enumerate, (void *) f);
+	Cvar_Enumerate(Cvar_WriteAll_enumerate, (void *) f);
 }
 
 static GRegex *cvar_emplace_regex = NULL;

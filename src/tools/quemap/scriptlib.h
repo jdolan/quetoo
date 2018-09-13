@@ -26,7 +26,7 @@
 #define	MAXTOKEN 1024
 extern char token[MAXTOKEN];
 
-void LoadScriptFile(const char *file_name);
+void LoadScriptFile(const char *filename);
 void UnloadScriptFiles(void);
 
 void ParseFromMemory(char *buffer, int32_t size);

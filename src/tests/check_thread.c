@@ -22,6 +22,8 @@
 #include "tests.h"
 #include "thread.h"
 
+quetoo_t quetoo;
+
 typedef struct {
 	_Bool ready;
 } critical_section_t;
@@ -78,8 +80,7 @@ START_TEST(check_Thread_Wait) {
 
 	ck_assert(!cs.ready);
 
-}
-END_TEST
+} END_TEST
 
 /**
  * @brief Test entry point.

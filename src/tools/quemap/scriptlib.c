@@ -26,7 +26,7 @@
  */
 
 typedef struct {
-	char file_name[MAX_OS_PATH];
+	char filename[MAX_OS_PATH];
 	char *buffer, *script_p, *end_p;
 	int32_t line;
 } script_t;
@@ -42,22 +42,22 @@ static _Bool endofscript;
 /**
  * @brief
  */
-static void AddScriptToStack(const char *file_name) {
+static void AddScriptToStack(const char *filename) {
 
 	script++;
 	if (script == &scriptstack[MAX_INCLUDES]) {
 		Com_Error(ERROR_FATAL, "Script file exceeded MAX_INCLUDES\n");
 	}
 
-	strcpy(script->file_name, file_name);
+	strcpy(script->filename, filename);
 
-	const int64_t size = Fs_Load(script->file_name, (void **) (char *) &script->buffer);
+	const int64_t size = Fs_Load(script->filename, (void **) (char *) &script->buffer);
 
 	if (size == -1) {
-		Com_Error(ERROR_FATAL, "Could not load %s\n", script->file_name);
+		Com_Error(ERROR_FATAL, "Could not load %s\n", script->filename);
 	}
 
-	Com_Verbose("Loading %s (%u bytes)\n", script->file_name, (uint32_t) size);
+	Com_Verbose("Loading %s (%u bytes)\n", script->filename, (uint32_t) size);
 
 	script->line = 1;
 
@@ -68,9 +68,9 @@ static void AddScriptToStack(const char *file_name) {
 /**
  * @brief
  */
-void LoadScriptFile(const char *file_name) {
+void LoadScriptFile(const char *filename) {
 	script = scriptstack;
-	AddScriptToStack(file_name);
+	AddScriptToStack(filename);
 
 	endofscript = false;
 }
@@ -82,7 +82,7 @@ void UnloadScriptFiles(void) {
 
 	for (size_t i = 0; i < lengthof(scriptstack); i++) {
 		if (scriptstack[i].buffer) {
-			Com_Verbose("Unloading %s\n", scriptstack[i].file_name);
+			Com_Verbose("Unloading %s\n", scriptstack[i].filename);
 			Fs_Free(scriptstack[i].buffer);
 		}
 	}
@@ -99,7 +99,7 @@ void ParseFromMemory(char *buffer, int32_t size) {
 	if (script == &scriptstack[MAX_INCLUDES]) {
 		Com_Error(ERROR_FATAL, "Script file exceeded MAX_INCLUDES\n");
 	}
-	strcpy(script->file_name, "memory buffer");
+	strcpy(script->filename, "memory buffer");
 
 	script->buffer = buffer;
 	script->line = 1;
@@ -117,7 +117,7 @@ static _Bool EndOfScript(_Bool crossline) {
 		Com_Error(ERROR_FATAL, "Line %i is incomplete\n", scriptline);
 	}
 
-	if (!g_strcmp0(script->file_name, "memory buffer")) {
+	if (!g_strcmp0(script->filename, "memory buffer")) {
 		endofscript = true;
 		return false;
 	}
@@ -130,7 +130,7 @@ static _Bool EndOfScript(_Bool crossline) {
 	}
 	script--;
 	scriptline = script->line;
-	Com_Verbose("returning to %s\n", script->file_name);
+	Com_Verbose("returning to %s\n", script->filename);
 	return GetToken(crossline);
 }
 
