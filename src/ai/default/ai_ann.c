@@ -125,7 +125,7 @@ void Ai_Learn(const g_entity_t *ent, const pm_cmd_t *cmd) {
 
 			ai_ann_input_t in;
 
-            VectorCopy(ent->s.origin, in.origin);
+            // VectorCopy(ent->s.origin, in.origin);
 			VectorCopy(&ENTITY_DATA(ent, velocity), in.velocity);
 
 			ai_ann_output_t out;

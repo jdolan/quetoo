@@ -250,6 +250,7 @@ typedef struct ai_locals_s {
 	vec3_t ghost_position;
 
 	uint32_t weapon_check_time;
+    uint32_t jump_time;
 
 	uint32_t no_movement_frames;
 } ai_locals_t;
