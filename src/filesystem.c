@@ -616,7 +616,7 @@ const char *Fs_RealDir(const char *filename) {
 }
 
 /**
- * @brief Returns the real path name of the specified file or directory.
+ * @return The real path name of the specified file or directory.
  */
 const char *Fs_RealPath(const char *path) {
 	static char real_path[MAX_OS_PATH];
