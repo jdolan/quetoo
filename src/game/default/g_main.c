@@ -1373,12 +1373,12 @@ void G_InitNumTeams(void) {
  */
 void G_Init(void) {
 
-	gi.Print("  ^5Game module initialization...\n");
+	gi.Print("Game module initialization...\n");
 
 	const char *s = va("%s %s %s", VERSION, BUILD_HOST, REVISION);
 	cvar_t *game_version = gi.AddCvar("game_version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
-	gi.Print("  ^5Version %s\n", game_version->string);
+	gi.Print("  Version:    ^2%s^7\n", game_version->string);
 
 	memset(&g_game, 0, sizeof(g_game));
 
@@ -1543,7 +1543,7 @@ void G_Init(void) {
 	gi.AddCmd("stuff_all", G_StuffAll_Sv_f, CMD_GAME, "Force all players to execute a command");
 	gi.AddCmd("g_restart", G_Restart_Sv_f, CMD_GAME, "Force the game to restart");
 
-	gi.Print("  ^5Game module initialized\n");
+	gi.Print("Game module initialized\n");
 }
 
 /**
@@ -1552,7 +1552,7 @@ void G_Init(void) {
  */
 void G_Shutdown(void) {
 
-	gi.Print("  ^5Game module shutdown...\n");
+	gi.Print("Game module shutdown...\n");
 
 	G_MySQL_Shutdown();
 	G_MapList_Shutdown();

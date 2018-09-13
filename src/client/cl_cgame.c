@@ -143,7 +143,7 @@ void Cl_InitCgame(void) {
 		Cl_ShutdownCgame();
 	}
 
-	Com_Print("Client initialization...\n");
+	Com_Print("Client game initialization...\n");
 
 	memset(&import, 0, sizeof(import));
 
@@ -299,7 +299,7 @@ void Cl_InitCgame(void) {
 
 	cls.cgame->Init();
 
-	Com_Print("Client initialized\n");
+	Com_Print("Client game initialized\n");
 	Com_InitSubsystem(QUETOO_CGAME);
 }
 
