@@ -39,7 +39,8 @@ ai_entity_data_t ai_entity_data;
 ai_client_data_t ai_client_data;
 
 cvar_t *sv_max_clients;
-cvar_t *ai_passive;
+cvar_t *ai_ann;
+cvar_t *ai_no_target;
 
 /**
  * @brief Ptr to AI locals that are hooked to bot entities.
@@ -446,7 +447,7 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 
 	ai_locals_t *ai = Ai_GetLocals(self);
 
-	if (ai_passive->integer) {
+	if (ai_no_target->integer) {
 
 		if (ai->aim_target.type == AI_GOAL_ENEMY) {
 			Ai_ClearGoal(&ai->aim_target);
@@ -693,10 +694,10 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 
 	vec3_t predicted;
 	Ai_Predict(self, predicted);
-	//printf("%s\n", vtos(predicted));
-
-	VectorAdd(dir, predicted, dir);
-	VectorNormalize(dir);
+	if (VectorLength(predicted)) {
+		VectorAdd(dir, predicted, dir);
+		VectorNormalize(dir);
+	}
 
     VectorAngles(dir, angles);
 
@@ -704,10 +705,12 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
     AngleVectors((vec3_t) { 0.0, delta_yaw, 0.0 }, dir, NULL, NULL);
 
     VectorScale(dir, PM_SPEED_RUN, dir);
-	VectorScale(predicted, PM_SPEED_RUN, predicted);
 
     cmd->forward = dir[0];
     cmd->right = dir[1];
+
+	VectorScale(predicted, PM_SPEED_JUMP, predicted);
+
 	cmd->up = predicted[2];
 
     if (ENTITY_DATA(self, water_level) >= WATER_WAIST) {
@@ -921,6 +924,11 @@ static void Ai_Frame(void) {
 
 	ai_level.frame_num++;
 	ai_level.time = ai_level.frame_num * QUETOO_TICK_MILLIS;
+
+	if (ai_ann->modified) {
+		Ai_ShutdownAnn();
+		Ai_InitAnn();
+	}
 }
 
 /**
@@ -949,23 +957,25 @@ static void Ai_SetDataPointers(ai_entity_data_t *entity, ai_client_data_t *clien
  */
 static void Ai_Init(void) {
 
-	aim.gi->Print("  ^5Ai module initialization...\n");
+	aim.gi->Print("Ai module initialization...\n");
 
 	const char *s = va("%s %s %s", VERSION, BUILD_HOST, REVISION);
 	cvar_t *ai_version = aim.gi->AddCvar("ai_version", s, CVAR_NO_SET, NULL);
 
-	aim.gi->Print("  ^5Version %s\n", ai_version->string);
+	aim.gi->Print("  Version:    ^2%s^7\n", ai_version->string);
 
 	sv_max_clients = aim.gi->GetCvar("sv_max_clients");
 
-	ai_passive = aim.gi->AddCvar("ai_passive", "0", 0, "Whether the bots will attack or not.");
+	ai_ann = aim.gi->AddCvar("ai_ann", "0", CVAR_DEVELOPER, "Enables training bots using an artificial neural network");
+	ai_no_target = aim.gi->AddCvar("ai_no_target", "0", CVAR_DEVELOPER, "Disables bots targeting enemies");
+
 	ai_locals = (ai_locals_t *) aim.gi->Malloc(sizeof(ai_locals_t) * sv_max_clients->integer, MEM_TAG_AI);
 
 	Ai_InitItems();
 	Ai_InitSkins();
 	Ai_InitAnn();
 
-	aim.gi->Print("  ^5Ai module initialized\n");
+	aim.gi->Print("Ai module initialized\n");
 }
 
 /**

@@ -38,18 +38,49 @@ typedef struct {
 
 #define AI_ANN_HIDDEN_LAYERS 1
 #define AI_ANN_NEURONS 64
-#define AI_ANN_LEARNING_RATE 1.0
+#define AI_ANN_LEARNING_RATE 0.666
 
-static genann *ai_ann;
+static genann *ai_genann;
 
 /**
  * @brief
  */
 void Ai_InitAnn(void) {
 
-	ai_ann = genann_init(AI_ANN_INPUTS, AI_ANN_HIDDEN_LAYERS, AI_ANN_NEURONS, AI_ANN_OUTPUTS);
-    genann_randomize(ai_ann);
-	assert(ai_ann);
+	aim.gi->Mkdir("ai");
+	
+	if (ai_ann->value) {
+		ai_ann->modified = false;
+
+		const char *path = aim.gi->RealPath("ai/genann.ann");
+		FILE *file = fopen(path, "r");
+		if (file) {
+			ai_genann = genann_read(file);
+			if (ai_genann) {
+				if (ai_genann->inputs == AI_ANN_INPUTS &&
+					ai_genann->outputs == AI_ANN_OUTPUTS &&
+					ai_genann->hidden_layers == AI_ANN_HIDDEN_LAYERS &&
+					ai_genann->hidden == AI_ANN_NEURONS) {
+					aim.gi->Print("  Loaded %s, %d weights\n", path, ai_genann->total_weights);
+				} else {
+					genann_free(ai_genann);
+					ai_genann = NULL;
+					aim.gi->Warn("Failed to load %s (wrong format)\n", path);
+				}
+			} else {
+				aim.gi->Warn("Failed to load %s (invalid)\n", path);
+			}
+			fclose(file);
+		}
+
+		if (ai_genann == NULL) {
+			ai_genann = genann_init(AI_ANN_INPUTS, AI_ANN_HIDDEN_LAYERS, AI_ANN_NEURONS, AI_ANN_OUTPUTS);
+			assert(ai_genann);
+		}
+
+		aim.gi->Print("  Neural net: ^2%zd inputs, %zd outputs, ^2%d layers, %d neurons\n",
+					  AI_ANN_INPUTS, AI_ANN_OUTPUTS, AI_ANN_HIDDEN_LAYERS, AI_ANN_NEURONS);
+	}
 }
 
 /**
@@ -57,12 +88,20 @@ void Ai_InitAnn(void) {
  */
 void Ai_ShutdownAnn(void) {
 
-	FILE *file = fopen("/tmp/quetoo.ann", "w");
-	genann_write(ai_ann, file);
-	fclose(file);
+	if (ai_genann) {
+		const char *path = aim.gi->RealPath("ai/genann.ann");
+		FILE *file = fopen(path, "w");
+		if (file) {
 
-	genann_free(ai_ann);
-	ai_ann = NULL;
+			genann_write(ai_genann, file);
+			fclose(file);
+
+			aim.gi->Debug("Saved %s\n", path);
+		}
+
+		genann_free(ai_genann);
+		ai_genann = NULL;
+	}
 }
 
 /**
@@ -71,6 +110,10 @@ void Ai_ShutdownAnn(void) {
  * @param cmd The movement command issued by the client.
  */
 void Ai_Learn(const g_entity_t *ent, const pm_cmd_t *cmd) {
+
+	if (!ai_genann) {
+		return;
+	}
 
 	if (ent->client->ai) {
 		return;
@@ -98,7 +141,7 @@ void Ai_Learn(const g_entity_t *ent, const pm_cmd_t *cmd) {
 			VectorNormalize(dir);
 			VectorCopy(dir, out.dir);
 
-			genann_train(ai_ann, (const dvec_t *) &in, (const dvec_t *) &out, AI_ANN_LEARNING_RATE);
+			genann_train(ai_genann, (const dvec_t *) &in, (const dvec_t *) &out, AI_ANN_LEARNING_RATE);
 		}
 	}
 }
@@ -108,12 +151,17 @@ void Ai_Learn(const g_entity_t *ent, const pm_cmd_t *cmd) {
  */
 void Ai_Predict(const g_entity_t *ent, vec3_t dir) {
 
+	if (!ai_genann) {
+		VectorClear(dir);
+		return;
+	}
+
 	ai_ann_input_t in;
 
 	VectorCopy(ent->s.origin, in.origin);
 	VectorCopy(&ENTITY_DATA(ent, velocity), in.velocity);
 
-	const ai_ann_output_t *out = (ai_ann_output_t *) genann_run(ai_ann, (const dvec_t *) &in);
+	const ai_ann_output_t *out = (ai_ann_output_t *) genann_run(ai_genann, (const dvec_t *) &in);
 	assert(out);
 
 	VectorCopy(out->dir, dir);
