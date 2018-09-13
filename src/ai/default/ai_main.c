@@ -23,20 +23,6 @@
 #include "game/default/bg_pmove.h"
 #include "game/default/g_ai.h"
 
-ai_entity_data_t ai_entity_data;
-ai_client_data_t ai_client_data;
-
-/**
- * @brief Yields a pointer to the edict by the given number by negotiating the
- * edicts array based on the reported size of g_entity_t.
- */
-#define ENTITY_FOR_NUM(n) ( (g_entity_t *) ((byte *) aim.ge->entities + aim.ge->entity_size * (n)) )
-
-ai_level_t ai_level;
-static cvar_t *sv_max_clients;
-cvar_t *ai_passive;
-static cvar_t *ai_name_prefix;
-
 /**
  * @brief AI imports.
  */
@@ -47,6 +33,15 @@ ai_import_t aim;
  */
 ai_export_t aix;
 
+ai_level_t ai_level;
+
+ai_entity_data_t ai_entity_data;
+ai_client_data_t ai_client_data;
+
+cvar_t *sv_max_clients;
+cvar_t *ai_ann;
+cvar_t *ai_no_target;
+
 /**
  * @brief Ptr to AI locals that are hooked to bot entities.
  */
@@ -56,114 +51,7 @@ static ai_locals_t *ai_locals;
  * @brief Get the locals for the specified bot entity.
  */
 ai_locals_t *Ai_GetLocals(const g_entity_t *ent) {
-
 	return ai_locals + (ent->s.number - 1);
-}
-
-/**
- * @brief Type for a single skin string
- */
-typedef char ai_skin_t[MAX_QPATH];
-
-/**
- * @brief List of AI skins.
- */
-static GArray *ai_skins;
-
-/**
- * @brief Fs_EnumerateFunc for resolving available skins for a given model.
- */
-static void Ai_EnumerateSkins(const char *path, void *data) {
-	char name[MAX_QPATH];
-	char *s = strstr(path, "players/");
-
-	if (s) {
-		StripExtension(s + strlen("players/"), name);
-
-		if (g_str_has_suffix(name, "_i")) {
-			name[strlen(name) - strlen("_i")] = '\0';
-
-			for (size_t i = 0; i < ai_skins->len; i++) {
-
-				if (g_strcmp0(g_array_index(ai_skins, ai_skin_t, i), name) == 0) {
-					return;
-				}
-			}
-
-			g_array_append_val(ai_skins, name);
-		}
-	}
-}
-
-/**
- * @brief Fs_EnumerateFunc for resolving available models.
- */
-static void Ai_EnumerateModels(const char *path, void *data) {
-
-	aim.gi->EnumerateFiles(va("%s/*.tga", path), Ai_EnumerateSkins, NULL);
-}
-
-/**
- * @brief
- */
-static void Ai_InitSkins(void) {
-
-	ai_skins = g_array_new(false, false, sizeof(ai_skin_t));
-	aim.gi->EnumerateFiles("players/*", Ai_EnumerateModels, NULL);
-}
-
-/**
- * @brief
- */
-static const char ai_names[][MAX_USER_INFO_VALUE] = {
-	"Stroggo",
-	"Enforcer",
-	"Berserker",
-	"Gunner",
-	"Gladiator",
-	"Makron",
-	"Brain"
-};
-
-/**
- * @brief
- */
-static const uint32_t ai_names_count = lengthof(ai_names);
-
-/**
- * @brief Integers for current name index in g_ai_names table
- * and number of times we've wrapped around it.
- */
-static uint32_t ai_name_index;
-static uint32_t ai_name_suffix;
-
-/**
- * @brief Create the user info for the specified bot entity.
- */
-static void Ai_GetUserInfo(const g_entity_t *self, char *userinfo) {
-
-	g_strlcpy(userinfo, DEFAULT_BOT_INFO, MAX_USER_INFO_STRING);
-
-	SetUserInfo(userinfo, "skin", g_array_index(ai_skins, ai_skin_t, Randomr(0, ai_skins->len)));
-	SetUserInfo(userinfo, "color", va("%i", Randomr(0, 360)));
-	SetUserInfo(userinfo, "hand", va("%i", Randomr(0, 3)));
-	SetUserInfo(userinfo, "head", va("%02x%02x%02x", Randomr(0, 255), Randomr(0, 255), Randomr(0, 255)));
-	SetUserInfo(userinfo, "shirt", va("%02x%02x%02x", Randomr(0, 255), Randomr(0, 255), Randomr(0, 255)));
-	SetUserInfo(userinfo, "pants", va("%02x%02x%02x", Randomr(0, 255), Randomr(0, 255), Randomr(0, 255)));
-
-	if (ai_name_suffix == 0) {
-		SetUserInfo(userinfo, "name", va("%s%s", ai_name_prefix->string, ai_names[ai_name_index]));
-	} else {
-		SetUserInfo(userinfo, "name", va("%s%s %i",
-			ai_name_prefix->string, ai_names[ai_name_index], ai_name_suffix + 1));
-	}
-
-	ai_name_index++;
-
-	if (ai_name_index == ai_names_count) {
-		ai_name_index = 0;
-		ai_name_suffix++;
-	}
 }
 
 /**
@@ -226,7 +114,7 @@ static void Ai_Command(g_entity_t *self, const char *command) {
  */
 typedef struct {
 	const g_entity_t *entity;
-	const ai_item_t *item;
+	const g_item_t *item;
 	vec_t weight;
 } ai_item_pick_t;
 
@@ -317,7 +205,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 		// check to see if the item has gone out of our line of sight
 		if (!Ai_GoalHasEntity(&ai->move_target, ai->move_target.ent) || // item picked up and changed into something else
 				!Ai_CanTarget(self, ai->move_target.ent) ||
-				!aim.CanPickupItem(self, ai->move_target.ent) ||
+				!Ai_CanPickupItem(self, ai->move_target.ent) ||
 		        Ai_ItemReachable(self, ai->move_target.ent) == AI_ITEM_UNREACHABLE) {
 
 			Ai_ResetWander(self, ai->move_target.ent->s.origin);
@@ -357,18 +245,17 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 			continue;
 		}
 
-		const g_item_t *ent_item = ENTITY_DATA(ent, item);
+		const g_item_t *item = ENTITY_DATA(ent, item);
 
-		if (!ent_item) {
+		if (!item) {
 			continue;
 		}
 
 		// most likely an item!
-		ai_item_t *item = Ai_ItemForGameItem(ent_item);
 		vec_t distance;
 
 		if (!Ai_CanTarget(self, ent) ||
-				!aim.CanPickupItem(self, ent) ||
+				!Ai_CanPickupItem(self, ent) ||
 		        (distance = Ai_ItemReachable(self, ent)) == AI_ITEM_UNREACHABLE) {
 			continue;
 		}
@@ -376,7 +263,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 		g_array_append_vals(items_visible, &(const ai_item_pick_t) {
 			.entity = ent,
 			 .item = item,
-			  .weight = (AI_MAX_ITEM_DISTANCE - distance) * item->priority
+			  .weight = (AI_MAX_ITEM_DISTANCE - distance) * ITEM_DATA(item, priority)
 		}, 1);
 	}
 
@@ -443,44 +330,47 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 	ai_item_pick_t weapons[ai_num_weapons];
 	uint16_t num_weapons = 0;
 
-	const int16_t *inventory = CLIENT_DATA_ARRAY(self->client, inventory);
+	const int16_t *inventory = &CLIENT_DATA(self->client, inventory);
 
 	for (uint16_t i = 0; i < ai_num_items; i++) {
-		const ai_item_t *item = &ai_items[i];
+		const g_item_t *item = ai_items[i];
 
-		if (!(item->flags & AI_ITEM_WEAPON)) { // not weapon
+		if (ITEM_DATA(item, type) != ITEM_WEAPON) { // not weapon
 			continue;
 		}
 
-		if (!inventory[i]) { // don't got
+		if (!inventory[ITEM_DATA(item, index)]) { // not in stock
 			continue;
 		}
 
-		if (item->ammo && inventory[item->ammo] < item->quantity) { // no ammo
-			continue;
+		const g_item_t *ammo = ITEM_DATA(item, ammo);
+		if (ammo) {
+			if (inventory[ITEM_DATA(ammo, index)] < ITEM_DATA(item, quantity)) {
+				continue;
+			}
 		}
 
 		// calculate weight, start with base weapon priority
-		vec_t weight = item->priority;
+		vec_t weight = ITEM_DATA(item, priority);
 
 		switch (targ_range) { // range bonus
 			case RANGE_MELEE:
 			case RANGE_SHORT:
-				if (item->flags & AI_WEAPON_SHORT_RANGE) {
+				if (ITEM_DATA(item, flags) & WF_SHORT_RANGE) {
 					weight *= 2.5;
 				} else {
 					weight /= 2.5;
 				}
 				break;
 			case RANGE_MED:
-				if (item->flags & AI_WEAPON_MED_RANGE) {
+				if (ITEM_DATA(item, flags) & WF_MED_RANGE) {
 					weight *= 2.5;
 				} else {
 					weight /= 2.5;
 				}
 				break;
 			case RANGE_LONG:
-				if (item->flags & AI_WEAPON_LONG_RANGE) {
+				if (ITEM_DATA(item, flags) & WF_LONG_RANGE) {
 					weight *= 2.5;
 				} else {
 					weight /= 2.5;
@@ -489,29 +379,29 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 		}
 
 		if ((ENTITY_DATA(ai->aim_target.ent, health) < 25) &&
-		        (item->flags & AI_WEAPON_EXPLOSIVE)) { // bonus for explosive at low enemy health
+		        (ITEM_DATA(item, flags) & WF_EXPLOSIVE)) { // bonus for explosive at low enemy health
 			weight *= 1.5;
 		}
 
 		// additional penalty for long range + projectile unless explicitly long range
-		if ((item->flags & AI_WEAPON_PROJECTILE) &&
-		        !(item->flags & AI_WEAPON_LONG_RANGE)) {
+		if ((ITEM_DATA(item, flags) & WF_PROJECTILE) &&
+		        !(ITEM_DATA(item, flags) & WF_LONG_RANGE)) {
 			weight /= 2.0;
 		}
 
 		// penalty for explosive weapons at short range
-		if ((item->flags & AI_WEAPON_EXPLOSIVE) &&
+		if ((ITEM_DATA(item, flags) & WF_EXPLOSIVE) &&
 		        targ_range <= RANGE_SHORT) {
 			weight /= 2.0;
 		}
 
 		// penalty for explosive weapons at low self health
 		if ((ENTITY_DATA(self, health) < 25) &&
-		        (item->flags & AI_WEAPON_EXPLOSIVE)) {
+		        (ITEM_DATA(item, flags) & WF_EXPLOSIVE)) {
 			weight /= 2.0;
 		}
 
-		weight *= item->priority;
+		weight *= ITEM_DATA(item, priority); // FIXME: Isn't this redundant?
 
 		weapons[num_weapons++] = (ai_item_pick_t) {
 			.item = item,
@@ -527,11 +417,11 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 
 	const ai_item_pick_t *best_weapon = &weapons[0];
 
-	if (aim.ItemIndex(CLIENT_DATA(self->client, weapon)) == Ai_ItemIndex(best_weapon->item)) {
+	if (CLIENT_DATA(self->client, weapon) == best_weapon->item) {
 		return;
 	}
 
-	Ai_Command(self, va("use %s", best_weapon->item->name));
+	Ai_Command(self, va("use %s", ITEM_DATA(best_weapon->item, name)));
 	ai->weapon_check_time = ai_level.time + 3000; // don't try again for a bit
 }
 
@@ -557,7 +447,7 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 
 	ai_locals_t *ai = Ai_GetLocals(self);
 
-	if (ai_passive->integer) {
+	if (ai_no_target->integer) {
 
 		if (ai->aim_target.type == AI_GOAL_ENEMY) {
 			Ai_ClearGoal(&ai->aim_target);
@@ -777,96 +667,103 @@ static cm_trace_t Ai_ClientMove_Trace(const vec3_t start, const vec3_t end, cons
  * @brief Move towards our current target
  */
 static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
-	ai_locals_t *ai = Ai_GetLocals(self);
-	ai_goal_t *move_target = &ai->move_target;
 
-	vec3_t movement_goal;
+	ai_locals_t *ai = Ai_GetLocals(self);
 
 	// TODO: node navigation.
-	if (move_target->type <= AI_GOAL_NAV) {
+	if (ai->move_target.type <= AI_GOAL_NAV) {
 		Ai_Wander(self, cmd);
 	}
 
-	switch (move_target->type) {
+	vec3_t dir, angles, dest;
+	switch (ai->move_target.type) {
 		default: {
-				vec3_t movement_dir = { 0, ai->wander_angle, 0 };
-				AngleVectors(movement_dir, movement_dir, NULL, NULL);
-				VectorMA(self->s.origin, 1.0, movement_dir, movement_goal);
+				VectorSet(angles, 0.0, ai->wander_angle, 0.0);
+				AngleVectors(angles, dir, NULL, NULL);
+				VectorMA(self->s.origin, 1.0, dir, dest);
 			}
 			break;
 		case AI_GOAL_ITEM:
 		case AI_GOAL_ENEMY:
-			VectorCopy(move_target->ent->s.origin, movement_goal);
+			VectorCopy(ai->move_target.ent->s.origin, dest);
 			break;
 	}
 
-	vec3_t move_direction;
-	VectorSubtract(movement_goal, self->s.origin, move_direction);
-	VectorNormalize(move_direction);
-	VectorAngles(move_direction, move_direction);
-	move_direction[0] = move_direction[2] = 0.0;
+	VectorSubtract(dest, self->s.origin, dir);
+	VectorNormalize(dir);
 
-	const vec3_t view_direction = { 0.0, CLIENT_DATA_ARRAY(self->client, angles)[1], 0.0};
-	VectorSubtract(view_direction, move_direction, move_direction);
-
-	AngleVectors(move_direction, move_direction, NULL, NULL);
-
-	VectorScale(move_direction, PM_SPEED_RUN, move_direction);
-
-	cmd->forward = move_direction[0];
-	cmd->right = move_direction[1];
-
-	if (ENTITY_DATA(self, water_level) >= WATER_WAIST) {
-		cmd->up = PM_SPEED_JUMP;
+	vec3_t predicted;
+	Ai_Predict(self, predicted);
+	if (VectorLength(predicted)) {
+		VectorAdd(dir, predicted, dir);
+		VectorNormalize(dir);
 	}
 
-	ai_current_entity = self;
+    VectorAngles(dir, angles);
 
-	// predict ahead
-	pm_move_t pm;
+    const vec_t delta_yaw = (&CLIENT_DATA(self->client, angles))[YAW] - angles[YAW];
+    AngleVectors((vec3_t) { 0.0, delta_yaw, 0.0 }, dir, NULL, NULL);
 
-	memset(&pm, 0, sizeof(pm));
-	pm.s = self->client->ps.pm_state;
+    VectorScale(dir, PM_SPEED_RUN, dir);
 
-	VectorCopy(self->s.origin, pm.s.origin);
+    cmd->forward = dir[0];
+    cmd->right = dir[1];
 
-	/*if (self->client->locals.hook_pull) {
+	VectorScale(predicted, PM_SPEED_JUMP, predicted);
 
-		if (self->client->locals.persistent.hook_style == HOOK_SWING) {
-			pm.s.type = PM_HOOK_SWING;
-		} else {
-			pm.s.type = PM_HOOK_PULL;
-		}
-	} else {*/
-		VectorCopy(ENTITY_DATA_ARRAY(self, velocity), pm.s.velocity);
-	/*}*/
+	cmd->up = predicted[2];
 
-	pm.s.type = PM_NORMAL;
+    if (ENTITY_DATA(self, water_level) >= WATER_WAIST) {
+        cmd->up = PM_SPEED_JUMP;
+    }
 
-	pm.cmd = *cmd;
-	pm.ground_entity = ENTITY_DATA(self, ground_entity);
-	//pm.hook_pull_speed = g_hook_pull_speed->value;
+    ai_current_entity = self;
 
-	pm.PointContents = aim.gi->PointContents;
-	pm.Trace = Ai_ClientMove_Trace;
+    // predict ahead
+    pm_move_t pm;
 
-	pm.Debug = aim.gi->PmDebug_;
+    memset(&pm, 0, sizeof(pm));
+    pm.s = self->client->ps.pm_state;
 
-	// perform a move; predict a few frames ahead
-	for (int32_t i = 0; i < 8; ++i) {
-		Pm_Move(&pm);
-	}
+    VectorCopy(self->s.origin, pm.s.origin);
 
-	if (ENTITY_DATA(self, ground_entity) && !pm.ground_entity) { // predicted ground is gone
-		if (move_target->type <= AI_GOAL_NAV) {
-			vec_t angle = 45 + Randomf() * 45;
+    /*if (self->client->locals.hook_pull) {
 
-			ai->wander_angle += (Randomf() < 0.5) ? -angle : angle;
-			ai->wander_angle = ClampAngle(ai->wander_angle); // turn around to miss the cliff
-		} else {
-			cmd->forward = cmd->right = 0; // stop for now
-		}
-	}
+        if (self->client->locals.persistent.hook_style == HOOK_SWING) {
+            pm.s.type = PM_HOOK_SWING;
+        } else {
+            pm.s.type = PM_HOOK_PULL;
+        }
+    } else {*/
+        VectorCopy(&ENTITY_DATA(self, velocity), pm.s.velocity);
+    /*}*/
+
+    pm.s.type = PM_NORMAL;
+
+    pm.cmd = *cmd;
+    pm.ground_entity = ENTITY_DATA(self, ground_entity);
+    //pm.hook_pull_speed = g_hook_pull_speed->value;
+
+    pm.PointContents = aim.gi->PointContents;
+    pm.Trace = Ai_ClientMove_Trace;
+
+    pm.Debug = aim.gi->PmDebug_;
+
+    // perform a move; predict a few frames ahead
+    for (int32_t i = 0; i < 8; ++i) {
+        Pm_Move(&pm);
+    }
+
+    if (ENTITY_DATA(self, ground_entity) && !pm.ground_entity) { // predicted ground is gone
+        if (ai->move_target.type <= AI_GOAL_NAV) {
+            vec_t angle = 45 + Randomf() * 45;
+
+            ai->wander_angle += (Randomf() < 0.5) ? -angle : angle;
+            ai->wander_angle = ClampAngle(ai->wander_angle); // turn around to miss the cliff
+        } else {
+            cmd->forward = cmd->right = 0; // stop for now
+        }
+    }
 }
 
 static vec_t AngleMod(const vec_t a) {
@@ -934,7 +831,7 @@ static void Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		ideal_angles[1] += cos(ai_level.time / 164.0) * 4.0;
 	}
 
-	const vec_t *view_angles = CLIENT_DATA_ARRAY(self->client, angles);
+	const vec_t *view_angles = &CLIENT_DATA(self->client, angles);
 
 	for (int32_t i = 0; i < 2; ++i) {
 		ideal_angles[i] = Ai_CalculateAngle(self, 6.5, view_angles[i], ideal_angles[i]);
@@ -958,7 +855,7 @@ static void Ai_Think(g_entity_t *self, pm_cmd_t *cmd) {
 		Ai_ClearGoal(&ai->aim_target);
 		Ai_ClearGoal(&ai->move_target);
 	} else {
-		AngleVectors(CLIENT_DATA_ARRAY(self->client, angles), ai->aim_forward, NULL, NULL);
+		AngleVectors(&CLIENT_DATA(self->client, angles), ai->aim_forward, NULL, NULL);
 
 		for (int32_t i = 0; i < 3; i++) {
 			ai->eye_origin[i] = self->s.origin[i] + UnpackAngle(self->client->ps.pm_state.view_offset[i]);
@@ -1021,12 +918,17 @@ static void Ai_Begin(g_entity_t *self) {
 }
 
 /**
- * @brief Called every frame.
+ * @brief Advance the bot simulation one frame.
  */
 static void Ai_Frame(void) {
 
 	ai_level.frame_num++;
 	ai_level.time = ai_level.frame_num * QUETOO_TICK_MILLIS;
+
+	if (ai_ann->modified) {
+		Ai_ShutdownAnn();
+		Ai_InitAnn();
+	}
 }
 
 /**
@@ -1043,10 +945,11 @@ static void Ai_GameStarted(void) {
 /**
  * @brief Sets up data offsets to local game data
  */
-static void Ai_SetDataPointers(ai_entity_data_t *entity, ai_client_data_t *client) {
+static void Ai_SetDataPointers(ai_entity_data_t *entity, ai_client_data_t *client, ai_item_data_t *item) {
 
 	ai_entity_data = *entity;
 	ai_client_data = *client;
+	ai_item_data = *item;
 }
 
 /**
@@ -1054,22 +957,25 @@ static void Ai_SetDataPointers(ai_entity_data_t *entity, ai_client_data_t *clien
  */
 static void Ai_Init(void) {
 
-	aim.gi->Print("  ^5Ai module initialization...\n");
+	aim.gi->Print("Ai module initialization...\n");
 
 	const char *s = va("%s %s %s", VERSION, BUILD_HOST, REVISION);
 	cvar_t *ai_version = aim.gi->AddCvar("ai_version", s, CVAR_NO_SET, NULL);
 
-	aim.gi->Print("  ^5Version %s\n", ai_version->string);
+	aim.gi->Print("  Version:    ^2%s^7\n", ai_version->string);
 
 	sv_max_clients = aim.gi->GetCvar("sv_max_clients");
 
-	ai_passive = aim.gi->AddCvar("ai_passive", "0", 0, "Whether the bots will attack or not.");
-	ai_name_prefix = aim.gi->AddCvar("ai_name_prefix", "^0[^1BOT^0] ^7", 0, NULL);
+	ai_ann = aim.gi->AddCvar("ai_ann", "0", CVAR_DEVELOPER, "Enables training bots using an artificial neural network");
+	ai_no_target = aim.gi->AddCvar("ai_no_target", "0", CVAR_DEVELOPER, "Disables bots targeting enemies");
+
 	ai_locals = (ai_locals_t *) aim.gi->Malloc(sizeof(ai_locals_t) * sv_max_clients->integer, MEM_TAG_AI);
 
+	Ai_InitItems();
 	Ai_InitSkins();
+	Ai_InitAnn();
 
-	aim.gi->Print("  ^5Ai module initialized\n");
+	aim.gi->Print("Ai module initialized\n");
 }
 
 /**
@@ -1079,8 +985,9 @@ static void Ai_Shutdown(void) {
 
 	aim.gi->Print("  ^5Ai module shutdown...\n");
 
-	g_array_free(ai_skins, true);
-	ai_skins = NULL;
+	Ai_ShutdownItems();
+	Ai_ShutdownSkins();
+	Ai_ShutdownAnn();
 
 	aim.gi->FreeTag(MEM_TAG_AI);
 }
@@ -1103,6 +1010,7 @@ ai_export_t *Ai_LoadAi(ai_import_t *import) {
 	aix.Begin = Ai_Begin;
 	aix.Spawn = Ai_Spawn;
 	aix.Think = Ai_Think;
+	aix.Learn = Ai_Learn;
 
 	aix.GameRestarted = Ai_GameStarted;
 

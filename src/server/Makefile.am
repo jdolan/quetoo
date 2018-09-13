@@ -32,7 +32,8 @@ libserver_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
 	@CURSES_CFLAGS@ \
-	@GLIB_CFLAGS@
+	@GLIB_CFLAGS@ \
+	@SDL2_CFLAGS@
 
 libserver_la_LDFLAGS = \
 	-shared

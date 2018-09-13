@@ -126,14 +126,14 @@ r_model_t *R_LoadModel(const char *name) {
 	if (!(mod = (r_model_t *) R_FindMedia(key))) {
 
 		const r_model_format_t *format = r_model_formats;
-		char file_name[MAX_QPATH];
+		char filename[MAX_QPATH];
 
 		for (i = 0; i < lengthof(r_model_formats); i++, format++) {
 
-			strncpy(file_name, key, MAX_QPATH);
-			strcat(file_name, format->extension);
+			strncpy(filename, key, MAX_QPATH);
+			strcat(filename, format->extension);
 
-			if (Fs_Exists(file_name)) {
+			if (Fs_Exists(filename)) {
 				break;
 			}
 		}
@@ -156,7 +156,7 @@ r_model_t *R_LoadModel(const char *name) {
 
 		void *buf = NULL;
 
-		Fs_Load(file_name, &buf);
+		Fs_Load(filename, &buf);
 
 		// load it
 		format->Load(mod, buf);

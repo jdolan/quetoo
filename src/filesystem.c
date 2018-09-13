@@ -395,7 +395,7 @@ _Bool Fs_Unlink(const char *filename) {
 typedef struct {
 	char dir[MAX_QPATH];
 	const char *pattern;
-	Fs_EnumerateFunc function;
+	Fs_Enumerator function;
 	void *data;
 } fs_enumerate_t;
 
@@ -418,7 +418,7 @@ static int32_t Fs_Enumerate_(void *data, const char *dir, const char *filename) 
 /**
  * @brief Enumerates files matching `pattern`, calling the given function.
  */
-void Fs_Enumerate(const char *pattern, Fs_EnumerateFunc func, void *data) {
+void Fs_Enumerate(const char *pattern, Fs_Enumerator func, void *data) {
 	fs_enumerate_t en = {
 		.pattern = pattern,
 		.function = func,
@@ -616,7 +616,7 @@ const char *Fs_RealDir(const char *filename) {
 }
 
 /**
- * @brief Returns the real path name of the specified file or directory.
+ * @return The real path name of the specified file or directory.
  */
 const char *Fs_RealPath(const char *path) {
 	static char real_path[MAX_OS_PATH];

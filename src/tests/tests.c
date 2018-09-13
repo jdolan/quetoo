@@ -21,8 +21,6 @@
 
 #include "tests.h"
 
-quetoo_t quetoo;
-
 /**
  * @brief Runs the specified suite, returning the number of tests that failed.
  */

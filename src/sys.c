@@ -47,7 +47,7 @@
 	#include <sys/time.h>
 #endif
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 /**
  * @return The current executable path (argv[0]).
@@ -122,7 +122,7 @@ void *Sys_OpenLibrary(const char *name, _Bool global) {
 		char path[MAX_OS_PATH];
 
 		g_snprintf(path, sizeof(path), "%s%c%s", Fs_RealDir(so_name), G_DIR_SEPARATOR, so_name);
-		Com_Print("Trying %s...\n", path);
+		Com_Print("  Loading %s...\n", path);
 
 		void *handle = dlopen(path, RTLD_LAZY | (global ? RTLD_GLOBAL : RTLD_LOCAL));
 		if (handle) {

@@ -42,6 +42,8 @@ extern r_image_state_t r_image_state;
 void R_FilterImage(r_image_t *image, GLenum format, byte *data);
 void R_UploadImage(r_image_t *image, GLenum format, byte *data);
 void R_Screenshot_f(void);
+void R_DumpImage(const r_image_t *image, const char *output);
+void R_DumpImages_f(void);
 void R_InitImages(void);
 
 void R_FreeImage(r_media_t *media);

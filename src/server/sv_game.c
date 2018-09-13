@@ -342,6 +342,8 @@ void Sv_InitGame(void) {
 
 	import.LoadFile = Fs_Load;
 	import.FreeFile = Fs_Free;
+	import.Mkdir = Fs_Mkdir;
+	import.RealPath = Fs_RealPath;
 	import.EnumerateFiles = Fs_Enumerate;
 
 	import.AddCvar = Cvar_Add;

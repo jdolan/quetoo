@@ -22,6 +22,8 @@
 #include "tests.h"
 #include "cmd.h"
 
+quetoo_t quetoo;
+
 /**
  * @brief Setup fixture.
  */
@@ -67,8 +69,7 @@ START_TEST(check_Cmd_RemoveAll) {
 	ck_assert(cmd1 != NULL);
 	ck_assert(cmd2 == NULL);
 
-}
-END_TEST
+} END_TEST
 
 /**
  * @brief Test entry point.

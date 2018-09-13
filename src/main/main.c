@@ -22,7 +22,7 @@
 #include <setjmp.h>
 #include <signal.h>
 
-#include <SDL2/SDL_assert.h>
+#include <SDL_assert.h>
 
 #include "config.h"
 #include "client/client.h"

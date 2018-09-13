@@ -340,11 +340,11 @@ if test "x${with_tools}" != x; then
 	TOOLS="${with_tools}"
 fi
 
-if test ${TOOLS} = "no"; then
+if test "${TOOLS}" = "no"; then
         TOOLS=""
 fi
 
-if test ${TOOLS} = "yes"; then
+if test "${TOOLS}" = "yes"; then
         TOOLS="${ALL_TOOLS}"
 fi
 
@@ -503,6 +503,7 @@ dnl -----------------------------------------------------------
 AC_CONFIG_FILES([
 	Makefile
 	deps/Makefile
+	deps/genann/Makefile
 	deps/minizip/Makefile
 	src/Makefile
 	src/ai/Makefile

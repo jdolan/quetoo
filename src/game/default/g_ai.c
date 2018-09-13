@@ -79,79 +79,6 @@ static uint8_t G_Ai_NumberOfClients(void) {
 }
 
 /**
- * @brief MAYBE TEMPORARY
- */
-static uint16_t G_Ai_ItemIndex(const g_item_t *item) {
-	return item->index;
-}
-
-/**
- * @brief
- */
-static _Bool G_Ai_CanPickupItem(const g_entity_t *self, const g_entity_t *other) {
-	const g_item_t *item = other->locals.item;
-
-	if (!item) {
-		return false;
-	}
-
-	if (item->type == ITEM_HEALTH) {
-		// stimpack/mega is always gettable
-		if (item->tag == HEALTH_SMALL || item->tag == HEALTH_MEGA) {
-			return true;
-		}
-
-		return self->locals.health < self->locals.max_health;
-	} else if (item->type == ITEM_ARMOR) {
-		const g_item_t *current_armor = G_ClientArmor(self);
-
-		// no armor or shard or not filled up, can get.
-		if (!current_armor ||
-		        item->tag == ARMOR_SHARD ||
-		        self->client->locals.inventory[current_armor->index] < current_armor->max) {
-			return true;
-		}
-
-		return false;
-	} else if (item->type == ITEM_AMMO) { // just if we need the ammo
-		return self->client->locals.inventory[item->index] < item->max;
-	} else if (item->type == ITEM_WEAPON) {
-
-		if (self->client->locals.inventory[item->index]) { // we have the weapon
-
-			if (item->ammo) {
-				const g_item_t *ammo = item->ammo_item;
-				return self->client->locals.inventory[ammo->index] < ammo->max;
-			}
-
-			return false;
-		}
-
-		return true;
-	} else if (item->type == ITEM_TECH) {
-
-		if (G_CarryingTech(self)) {
-			return false;
-		}
-
-		return true;
-	} else if (item->type == ITEM_FLAG) {
-
-		g_team_t *team = G_TeamForFlag(other);
-
-		// if it's our flag, recover it if dropped, or tag it if carrying enemy flag
-		if (team == self->client->locals.persistent.team) {
-			return (other->locals.spawn_flags & SF_ITEM_DROPPED) || G_IsFlagBearer(self);
-		}
-
-		// otherwise, only if we don't have a flag
-		return !G_IsFlagBearer(self);
-	}
-
-	return true;
-}
-
-/**
  * @brief
  */
 static void G_Ai_ClientThink(g_entity_t *self) {
@@ -438,91 +365,6 @@ void G_Ai_Frame(void) {
 /**
  * @brief
  */
-static void G_Ai_RegisterItem(const g_item_t *item) {
-
-	if (!item || item->type == ITEM_WEAPON) {
-		gi.Warn("Invalid item registration\n");
-		return;
-	}
-
-	ai_item_t ai_item;
-
-	ai_item.class_name = item->class_name;
-
-	switch (item->type) {
-		default:
-			gi.Warn("Invalid item registration\n");
-			break;
-		case ITEM_AMMO:
-			ai_item.flags = AI_ITEM_AMMO;
-			break;
-		case ITEM_ARMOR:
-			ai_item.flags = AI_ITEM_ARMOR;
-			break;
-		case ITEM_FLAG:
-			ai_item.flags = AI_ITEM_FLAG;
-			break;
-		case ITEM_HEALTH:
-			ai_item.flags = AI_ITEM_HEALTH;
-			break;
-		case ITEM_POWERUP:
-			ai_item.flags = AI_ITEM_POWERUP;
-			break;
-		case ITEM_TECH:
-			ai_item.flags = AI_ITEM_TECH;
-			break;
-	}
-
-	ai_item.name = item->name;
-	ai_item.priority = item->priority;
-	ai_item.quantity = item->quantity;
-	ai_item.tag = item->tag;
-	ai_item.max = item->max;
-
-	ai_item.ammo = 0;
-	ai_item.speed = 0;
-	ai_item.time = 0;
-
-	aix->RegisterItem(item->index, &ai_item);
-}
-
-/**
- * @brief
- */
-static void G_Ai_RegisterWeapon(const g_item_t *item, const ai_item_flags_t weapon_flags, const int32_t speed,
-                                const uint32_t time) {
-
-	if (!item || item->type != ITEM_WEAPON) {
-		gi.Warn("Invalid item registration\n");
-		return;
-	}
-
-	ai_item_t ai_item;
-
-	ai_item.class_name = item->class_name;
-	if (item->ammo) {
-		const g_item_t *ammo = item->ammo_item;
-		ai_item.ammo = ammo->index;
-		ai_item.max = ammo->max;
-	} else {
-		ai_item.ammo = 0;
-	}
-	ai_item.flags = AI_ITEM_WEAPON | weapon_flags;
-
-	ai_item.name = item->name;
-	ai_item.priority = item->priority;
-	ai_item.quantity = item->quantity;
-	ai_item.tag = item->tag;
-
-	ai_item.speed = speed;
-	ai_item.time = time;
-
-	aix->RegisterItem(item->index, &ai_item);
-}
-
-/**
- * @brief
- */
 void G_Ai_RegisterItems(void) {
 
 	if (!aix) {
@@ -530,36 +372,21 @@ void G_Ai_RegisterItems(void) {
 	}
 
 	for (uint16_t i = 0; i < g_num_items; i++) {
-
-		const g_item_t *item = G_ItemByIndex(i);
-
-		if (item->type == ITEM_WEAPON) { // items are registered below
-			continue;
-		}
-
-		G_Ai_RegisterItem(item);
+		aix->RegisterItem(G_ItemByIndex(i));
 	}
-
-	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_BLASTER], AI_WEAPON_PROJECTILE, 1000, 0);
-	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_SHOTGUN], AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE | AI_WEAPON_MED_RANGE, 0, 0);
-	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_SUPER_SHOTGUN], AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE, 0, 0);
-	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_MACHINEGUN], AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE | AI_WEAPON_MED_RANGE, 0, 0);
-	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_GRENADE_LAUNCHER], AI_WEAPON_PROJECTILE | AI_WEAPON_EXPLOSIVE, 700, 0);
-	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_HAND_GRENADE],
-	                    AI_WEAPON_PROJECTILE | AI_WEAPON_EXPLOSIVE | AI_WEAPON_TIMED | AI_WEAPON_MED_RANGE, 1000, 3000);
-	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_ROCKET_LAUNCHER],
-	                    AI_WEAPON_PROJECTILE | AI_WEAPON_EXPLOSIVE | AI_WEAPON_MED_RANGE | AI_WEAPON_LONG_RANGE, 1000, 0);
-	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_HYPERBLASTER], AI_WEAPON_PROJECTILE | AI_WEAPON_MED_RANGE, 1800, 0);
-	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_LIGHTNING], AI_WEAPON_HITSCAN | AI_WEAPON_SHORT_RANGE, 0, 0);
-	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_RAILGUN], AI_WEAPON_HITSCAN | AI_WEAPON_LONG_RANGE, 0, 0);
-	G_Ai_RegisterWeapon(g_media.items.weapons[WEAPON_BFG10K], AI_WEAPON_PROJECTILE | AI_WEAPON_MED_RANGE | AI_WEAPON_LONG_RANGE, 720, 0);
 }
 
 #define ENTITY_PTR_OFFSET(m) \
-			entity.m = (typeof(entity.m)) offsetof(g_entity_locals_t, m)
+	entity.m = (typeof(entity.m)) offsetof(g_entity_locals_t, m)
 
 #define CLIENT_PTR_OFFSET(m) \
-			client.m = (typeof(client.m)) offsetof(g_client_locals_t, m)
+	client.m = (typeof(client.m)) offsetof(g_client_locals_t, m)
+
+#define CLIENT_PERSISTENT_PTR_OFFSET(m) \
+	client.m = (typeof(client.m)) offsetof(g_client_locals_t, persistent) + offsetof(g_client_persistent_t, m)
+
+#define ITEM_PTR_OFFSET(m) \
+	item.m = (typeof(item.m)) offsetof(g_item_t, m)
 
 /**
  * @brief
@@ -567,20 +394,33 @@ void G_Ai_RegisterItems(void) {
 static void G_Ai_SetDataPointers(void) {
 	static ai_entity_data_t entity;
 	static ai_client_data_t client;
+	static ai_item_data_t item;
 
 	ENTITY_PTR_OFFSET(ground_entity);
 	ENTITY_PTR_OFFSET(item);
 	ENTITY_PTR_OFFSET(velocity);
 	ENTITY_PTR_OFFSET(health);
 	ENTITY_PTR_OFFSET(max_health);
-	ENTITY_PTR_OFFSET(max_armor);
 	ENTITY_PTR_OFFSET(water_level);
 
 	CLIENT_PTR_OFFSET(angles);
 	CLIENT_PTR_OFFSET(inventory);
+	CLIENT_PTR_OFFSET(max_armor);
 	CLIENT_PTR_OFFSET(weapon);
+	CLIENT_PERSISTENT_PTR_OFFSET(team);
 
-	aix->SetDataPointers(&entity, &client);
+	ITEM_PTR_OFFSET(class_name);
+	ITEM_PTR_OFFSET(index);
+	ITEM_PTR_OFFSET(type);
+	ITEM_PTR_OFFSET(tag);
+	ITEM_PTR_OFFSET(flags);
+	ITEM_PTR_OFFSET(name);
+	ITEM_PTR_OFFSET(ammo);
+	ITEM_PTR_OFFSET(quantity);
+	ITEM_PTR_OFFSET(max);
+	ITEM_PTR_OFFSET(priority);
+
+	aix->SetDataPointers(&entity, &client, &item);
 }
 
 /**
@@ -596,10 +436,6 @@ void G_Ai_Init(void) {
 	import.ge = &ge;
 
 	import.OnSameTeam = G_OnSameTeam;
-
-	// SCRATCH
-	import.ItemIndex = G_Ai_ItemIndex;
-	import.CanPickupItem = G_Ai_CanPickupItem;
 
 	aix = gi.LoadAi(&import);
 

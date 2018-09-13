@@ -923,7 +923,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		ent->client->locals.persistent.handicap = ent->client->locals.persistent.handicap_next;
 		ent->locals.max_health = ent->client->locals.persistent.handicap;
 		ent->locals.health = ent->locals.max_health + 5;
-		ent->locals.max_armor = 200;
+		ent->client->locals.max_armor = 200;
 		ent->client->locals.max_boost_health = ent->locals.max_health + 100;
 		ent->locals.move_type = MOVE_TYPE_WALK;
 		ent->locals.mass = 200.0;
@@ -1373,6 +1373,9 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	// copy the current gravity in
 	cl->ps.pm_state.gravity = g_level.gravity;
 
+	// share the command with the bot library so that it can learn
+	aix->Learn(ent, cmd);
+
 	memset(&pm, 0, sizeof(pm));
 	pm.s = cl->ps.pm_state;
 
@@ -1596,7 +1599,7 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 
 		if (!G_IsMeat(cl->locals.chase_target)) {
 
-			g_entity_t *other = cl->locals.chase_target;
+			const g_entity_t *other = cl->locals.chase_target;
 
 			G_ClientChaseNext(ent);
 

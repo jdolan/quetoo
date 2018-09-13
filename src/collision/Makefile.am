@@ -14,7 +14,8 @@ noinst_LTLIBRARIES = \
 libcmodel_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@
+	@GLIB_CFLAGS@ \
+	@SDL2_CFLAGS@
 
 libcmodel_la_SOURCES = \
 	cm_bsp.c \

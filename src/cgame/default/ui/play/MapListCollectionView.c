@@ -91,7 +91,7 @@ static Order sortMaps(const ident a, const ident b) {
 }
 
 /**
- * @brief Fs_EnumerateFunc for map discovery.
+ * @brief Fs_Enumerator for map discovery.
  */
 static void enumerateMaps(const char *path, void *data) {
 
