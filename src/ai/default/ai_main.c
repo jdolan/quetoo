@@ -667,7 +667,6 @@ static cm_trace_t Ai_ClientMove_Trace(const vec3_t start, const vec3_t end, cons
  * @brief Move towards our current target
  */
 static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
-
 	ai_locals_t *ai = Ai_GetLocals(self);
 
 	// TODO: node navigation.
@@ -698,7 +697,7 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		VectorAdd(dir, predicted, dir);
 		VectorNormalize(dir);
 	}
-
+    
     VectorAngles(dir, angles);
 
     const vec_t delta_yaw = (&CLIENT_DATA(self->client, angles))[YAW] - angles[YAW];
@@ -709,9 +708,13 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
     cmd->forward = dir[0];
     cmd->right = dir[1];
 
-	VectorScale(predicted, PM_SPEED_JUMP, predicted);
-
-	cmd->up = predicted[2];
+    if (ai->jump_time < ai_level.time && predicted[2] > 0.7) {
+        VectorScale(predicted, PM_SPEED_JUMP, predicted);
+        cmd->up = predicted[2];
+        ai->jump_time = ai_level.time + 100;
+    } else {
+        cmd->up = 0;
+    }
 
     if (ENTITY_DATA(self, water_level) >= WATER_WAIST) {
         cmd->up = PM_SPEED_JUMP;
@@ -887,8 +890,9 @@ static void Ai_Think(g_entity_t *self, pm_cmd_t *cmd) {
 		// FIXME: should these be funcgoals?
 		// they'd have to be appended to the end of the list always
 		// and we can't really enforce that.
-		Ai_TurnToTarget(self, cmd);
-		Ai_MoveToTarget(self, cmd);
+        Ai_MoveToTarget(self, cmd);
+        Ai_TurnToTarget(self, cmd);
+
 	}
 
 	VectorCopy(self->s.origin, ai->last_origin);
