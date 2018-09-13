@@ -205,10 +205,29 @@ typedef struct g_import_s {
 	void (*FreeTag)(mem_tag_t tag);
 
 	/**
-	 * @brief Filesystem interaction.
+	 * @brief Loads the specified file into the given buffer.
+	 * @param filename The game-relative filename.
+	 * @param buffer The buffer to allocate and load.
+	 * @return The length of the file in bytes.
 	 */
-	int64_t (*LoadFile)(const char *file_name, void **buffer);
+	int64_t (*LoadFile)(const char *filename, void **buffer);
+
+	/**
+	 * @brief Frees a file loaded via `LoadFile`.
+	 * @param buffer The buffer.
+	 */
 	void (*FreeFile)(void *buffer);
+
+	/**
+	 * @brief Creates the specified directory (and any ancestors) in the game's write directory.
+	 * @param dir The directory name to create.
+	 */
+	_Bool (*Mkdir)(const char *dir);
+
+	/**
+	 * @return The real path name of the specified file or directory.
+	 */
+	const char *(*RealPath)(const char *path);
 
 	/**
 	 * @brief Enumerates files matching `pattern`, calling the given function.
