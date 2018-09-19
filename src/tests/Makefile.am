@@ -91,7 +91,6 @@ check_mem_LDADD = \
 	$(top_builddir)/src/libmem.la
 
 check_r_media_SOURCES = \
-	$(top_srcdir)/src/client/renderer/r_media.c \
 	check_r_media.c
 check_r_media_CFLAGS = \
 	-I$(top_srcdir)/src/client/renderer \
@@ -99,7 +98,7 @@ check_r_media_CFLAGS = \
 	@OPENGL_CFLAGS@
 check_r_media_LDADD = \
 	$(TESTS_LIBS) \
-	$(top_builddir)/src/libfilesystem.la
+	$(top_builddir)/src/client/renderer/librenderer.la
 
 check_thread_SOURCES = \
 	check_thread.c

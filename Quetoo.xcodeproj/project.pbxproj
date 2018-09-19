@@ -187,7 +187,6 @@
 		CE51FB9221481AE400ABE14F /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE51FB9121481AE300ABE14F /* libcheck.0.dylib */; };
 		CE51FB9321481B1400ABE14F /* check_r_media.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6D51C5C58C300CD0B13 /* check_r_media.c */; };
 		CE51FB9421481B2000ABE14F /* libfilesystem.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7A4C1D9CB483000FA6B2 /* libfilesystem.a */; };
-		CE51FB9521481B5F00ABE14F /* r_media.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5D51C5C58C300CD0B13 /* r_media.c */; };
 		CE51FB9621481B8100ABE14F /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CE51FB9721481B8100ABE14F /* libconsole.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7A211D9CB408000FA6B2 /* libconsole.a */; };
 		CE51FB9821481B8100ABE14F /* libmem.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC79DC1D9CB287000FA6B2 /* libmem.a */; };
@@ -549,6 +548,7 @@
 		CEA936671DBCD89000A12B79 /* r_program_corona.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA936631DBCD87400A12B79 /* r_program_corona.h */; };
 		CEAD2AB4203CF7E800F1FB7E /* libopenal.1.18.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEAD2AB3203CF7E800F1FB7E /* libopenal.1.18.2.dylib */; };
 		CEB8D6271E00B73200043814 /* cg_input.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB8D6231E00B72100043814 /* cg_input.c */; };
+		CEBDB0CC2151E65600A7AC3D /* libclient-renderer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CED438AD1D9D34450052BAFA /* libclient-renderer.a */; };
 		CECA8CB01E50B5F1005E97E8 /* materials.c in Sources */ = {isa = PBXBuildFile; fileRef = CECA8CAE1E50B5F1005E97E8 /* materials.c */; };
 		CED4381E1D9D33AF0052BAFA /* libgame-pmove.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7B8A1D9D2E71000FA6B2 /* libgame-pmove.a */; };
 		CED438381D9D34450052BAFA /* r_array.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5B01C5C58C300CD0B13 /* r_array.c */; };
@@ -2171,6 +2171,7 @@
 				CE51FB9421481B2000ABE14F /* libfilesystem.a in Frameworks */,
 				CE51FB9821481B8100ABE14F /* libmem.a in Frameworks */,
 				CE51FB9921481B8100ABE14F /* libparse.a in Frameworks */,
+				CEBDB0CC2151E65600A7AC3D /* libclient-renderer.a in Frameworks */,
 				CE51FB9221481AE400ABE14F /* libcheck.0.dylib in Frameworks */,
 				CE51FB9A21481BC200ABE14F /* libglib-2.0.0.dylib in Frameworks */,
 				CE51FB9B21481C0D00ABE14F /* libSDL2-2.0.0.dylib in Frameworks */,
@@ -5010,7 +5011,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE51FB9521481B5F00ABE14F /* r_media.c in Sources */,
 				CE51FB9C21481CF700ABE14F /* tests.c in Sources */,
 				CE51FB9321481B1400ABE14F /* check_r_media.c in Sources */,
 			);
