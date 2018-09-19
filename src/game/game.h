@@ -185,10 +185,8 @@ typedef _Bool (*EntityFilterFunc)(const g_entity_t *ent);
 typedef struct g_import_s {
 
 	/**
-	 * @brief The game's write directory
+	 * @brief Console logging facilities.
 	 */
-	char write_dir[MAX_OS_PATH];
-
 	void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 	void (*Debug_)(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 	void (*PmDebug_)(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
