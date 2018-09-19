@@ -257,7 +257,14 @@ typedef struct {
 
 	sv_challenge_t challenges[MAX_CHALLENGES]; // to prevent invalid IPs from connecting
 
+	/**
+	 * @brief The exported game module API.
+	 */
 	g_export_t *game;
+
+	/**
+	 * @brief The exported ai module API.
+	 */
 	ai_export_t *ai;
 } sv_static_t;
 
@@ -265,12 +272,14 @@ typedef struct {
  * @brief Yields a pointer to the edict by the given number by negotiating the
  * edicts array based on the reported size of g_entity_t.
  */
-#define ENTITY_FOR_NUM(n) ( (g_entity_t *) ((byte *) svs.game->entities + svs.game->entity_size * (n)) )
+#define ENTITY_FOR_NUM(n) \
+	( (g_entity_t *) ((byte *) svs.game->entities + svs.game->entity_size * (n)) )
 
 /**
  * @brief Yields the entity number (index) for the specified g_entity_t * by
  * negotiating the edicts array based on the reported size of g_entity_t.
  */
-#define NUM_FOR_ENTITY(e) ( ((byte *)(e) - (byte *) svs.game->entities) / svs.game->entity_size )
+#define NUM_FOR_ENTITY(e) \
+	( ((byte *)(e) - (byte *) svs.game->entities) / svs.game->entity_size )
 
 #endif /* __SV_LOCAL_H__ */
