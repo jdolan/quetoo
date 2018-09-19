@@ -43,68 +43,6 @@ typedef struct {
 static genann *ai_genann;
 
 /**
- * @brief
- */
-void Ai_InitAnn(void) {
-
-	aim.gi->Mkdir("ai");
-	
-	if (ai_ann->value) {
-		ai_ann->modified = false;
-
-		const char *path = aim.gi->RealPath("ai/genann.ann");
-		FILE *file = fopen(path, "r");
-		if (file) {
-			ai_genann = genann_read(file);
-			if (ai_genann) {
-				if (ai_genann->inputs == AI_ANN_INPUTS &&
-					ai_genann->outputs == AI_ANN_OUTPUTS &&
-					ai_genann->hidden_layers == AI_ANN_HIDDEN_LAYERS &&
-					ai_genann->hidden == AI_ANN_NEURONS) {
-					aim.gi->Print("  Loaded %s, %d weights\n", path, ai_genann->total_weights);
-				} else {
-					genann_free(ai_genann);
-					ai_genann = NULL;
-					aim.gi->Warn("Failed to load %s (wrong format)\n", path);
-				}
-			} else {
-				aim.gi->Warn("Failed to load %s (invalid)\n", path);
-			}
-			fclose(file);
-		}
-
-		if (ai_genann == NULL) {
-			ai_genann = genann_init(AI_ANN_INPUTS, AI_ANN_HIDDEN_LAYERS, AI_ANN_NEURONS, AI_ANN_OUTPUTS);
-			assert(ai_genann);
-		}
-
-		aim.gi->Print("  Neural net: ^2%zd inputs, %zd outputs, ^2%d layers, %d neurons\n",
-					  AI_ANN_INPUTS, AI_ANN_OUTPUTS, AI_ANN_HIDDEN_LAYERS, AI_ANN_NEURONS);
-	}
-}
-
-/**
- * @brief
- */
-void Ai_ShutdownAnn(void) {
-
-	if (ai_genann) {
-		const char *path = aim.gi->RealPath("ai/genann.ann");
-		FILE *file = fopen(path, "w");
-		if (file) {
-
-			genann_write(ai_genann, file);
-			fclose(file);
-
-			aim.gi->Debug("Saved %s\n", path);
-		}
-
-		genann_free(ai_genann);
-		ai_genann = NULL;
-	}
-}
-
-/**
  * @brief Trains the neural network with a movement command from a human client.
  * @param ent The client entity.
  * @param cmd The movement command issued by the client.
@@ -166,4 +104,64 @@ void Ai_Predict(const g_entity_t *ent, vec3_t dir) {
 
 	VectorCopy(out->dir, dir);
 	VectorNormalize(dir);
+}
+
+/**
+ * @brief
+ */
+void Ai_InitAnn(void) {
+
+	if (ai_ann->value) {
+		ai_ann->modified = false;
+
+		const char *path = aim.gi->RealPath("ai/genann.ann");
+		FILE *file = fopen(path, "r");
+		if (file) {
+			ai_genann = genann_read(file);
+			if (ai_genann) {
+				if (ai_genann->inputs == AI_ANN_INPUTS &&
+					ai_genann->outputs == AI_ANN_OUTPUTS &&
+					ai_genann->hidden_layers == AI_ANN_HIDDEN_LAYERS &&
+					ai_genann->hidden == AI_ANN_NEURONS) {
+					aim.gi->Print("  Loaded %s, %d weights\n", path, ai_genann->total_weights);
+				} else {
+					genann_free(ai_genann);
+					ai_genann = NULL;
+					aim.gi->Warn("Failed to load %s (wrong format)\n", path);
+				}
+			} else {
+				aim.gi->Warn("Failed to load %s (invalid)\n", path);
+			}
+			fclose(file);
+		}
+
+		if (ai_genann == NULL) {
+			ai_genann = genann_init(AI_ANN_INPUTS, AI_ANN_HIDDEN_LAYERS, AI_ANN_NEURONS, AI_ANN_OUTPUTS);
+			assert(ai_genann);
+		}
+
+		aim.gi->Print("  Neural net: ^2%zd inputs, %zd outputs, ^2%d layers, %d neurons\n",
+					  AI_ANN_INPUTS, AI_ANN_OUTPUTS, AI_ANN_HIDDEN_LAYERS, AI_ANN_NEURONS);
+	}
+}
+
+/**
+ * @brief
+ */
+void Ai_ShutdownAnn(void) {
+
+	if (ai_genann) {
+		const char *path = aim.gi->RealPath("ai/genann.ann");
+		FILE *file = fopen(path, "w");
+		if (file) {
+
+			genann_write(ai_genann, file);
+			fclose(file);
+
+			aim.gi->Debug("Saved %s\n", path);
+		}
+
+		genann_free(ai_genann);
+		ai_genann = NULL;
+	}
 }
