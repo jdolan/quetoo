@@ -513,7 +513,7 @@ void DirectLighting(int32_t face_num) {
 }
 
 /**
- * @brief
+ * @brief Calculates indirect lighting for the given face.
  */
 void IndirectLighting(int32_t face_num) {
 
@@ -540,7 +540,7 @@ void IndirectLighting(int32_t face_num) {
 			byte pvs[(MAX_BSP_LEAFS + 7) / 8];
 
 			if (ProjectLuxel(lm, l, soffs, toffs, pvs)) {
-				LightLuxel(l, pvs, l->direct, NULL, 0.125);
+				LightLuxel(l, pvs, l->indirect, NULL, 0.125);
 				break;
 			}
 		}
