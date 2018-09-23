@@ -169,92 +169,44 @@ static r_lightmap_media_t *R_AllocLightmapMedia(r_pixel_t width, r_pixel_t heigh
 }
 
 /**
-* @brief Default lightmaps colors for each of the pages
-*/
-static const u8vec4_t default_luxel[MAX_LIGHTMAP_LAYERS] = {
-	{255, 255, 255, 255},
-	{127, 127, 255, 255}
-};
-
-/**
- * @brief
- */
-static void R_BuildDefaultLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *surf,
-								   byte *out, size_t stride, size_t layer_size) {
-
-	for (int16_t i = 0; i < surf->lightmap.h; i++, out += stride) {
-		for (int16_t j = 0; j < surf->lightmap.w; j++) {
-
-			for (uint32_t k = 0; k < MAX_LIGHTMAP_LAYERS; k++) {
-				out[0 + layer_size * k] = default_luxel[k][0];
-				out[1 + layer_size * k] = default_luxel[k][1];
-				out[2 + layer_size * k] = default_luxel[k][2];
-				out[3 + layer_size * k] = default_luxel[k][3];
-			}
-
-			out += 4;
-		}
-	}
-}
-
-/**
- * @brief Consume raw lightmap and deluxemap RGB/XYZ data from the surface samples,
- * writing processed lightmap and deluxemap RGB to the specified destinations.
+ * @brief Copy the contiguous lightmap and deluxemap samples to the strided, layered lightmap.
  */
 static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *surf, const byte *in,
                             byte *out, size_t stride, size_t layer_size) {
 
-	const size_t size = surf->lightmap.w * surf->lightmap.h;
-	byte *lightmap = (byte *) Mem_TagMalloc(size * 4 * MAX_LIGHTMAP_LAYERS, MEM_TAG_RENDERER);
-
-	// read RGB lightmap samples
-	for (size_t i = 0; i < size; i++) {
-		lightmap[i * 4 + 0] = *in++;
-		lightmap[i * 4 + 1] = *in++;
-		lightmap[i * 4 + 2] = *in++;
-
-		// read in directional samples for per-pixel lighting as well
-		if (bsp->version == BSP_VERSION_QUETOO) {
-			lightmap[i * 4 + 3] = *in++;
-
-			for (uint32_t k = 1; k < MAX_LIGHTMAP_LAYERS; k++) {
-				lightmap[i * 4 + 0 + size * 4 * k] = *in++;
-				lightmap[i * 4 + 1 + size * 4 * k] = *in++;
-				lightmap[i * 4 + 2 + size * 4 * k] = *in++;
-				lightmap[i * 4 + 3 + size * 4 * k] = *in++;
-			}
-		} else {
-			lightmap[i * 4 + 3] = default_luxel[0][3];
-
-			for (uint32_t k = 1; k < MAX_LIGHTMAP_LAYERS; k++) {
-				lightmap[i * 4 + 0 + size * 4 * k] = default_luxel[k][0];
-				lightmap[i * 4 + 1 + size * 4 * k] = default_luxel[k][1];
-				lightmap[i * 4 + 2 + size * 4 * k] = default_luxel[k][2];
-				lightmap[i * 4 + 3 + size * 4 * k] = default_luxel[k][3];
-			}
-		}
-	}
-
-	// the lightmap is uploaded to the card via the strided block
-
 	for (r_pixel_t t = 0; t < surf->lightmap.h; t++, out += stride) {
 		for (r_pixel_t s = 0; s < surf->lightmap.w; s++) {
 
-			// copy the lightmap and deluxemap to the strided block
-			const int16_t luxel = t * surf->lightmap.w + s;
+			const ptrdiff_t offset = (t * surf->lightmap.w + s) * 3;
 
-			for (uint32_t k = 0; k < MAX_LIGHTMAP_LAYERS; k++) {
-				out[0 + layer_size * k] = lightmap[luxel * 4 + 0 + size * 4 * k];
-				out[1 + layer_size * k] = lightmap[luxel * 4 + 1 + size * 4 * k];
-				out[2 + layer_size * k] = lightmap[luxel * 4 + 2 + size * 4 * k];
-				out[3 + layer_size * k] = lightmap[luxel * 4 + 3 + size * 4 * k];
+			byte *lm = out + offset;
+			byte *dm = out + offset + layer_size;
+
+			if (in) {
+				*lm++ = *in++;
+				*lm++ = *in++;
+				*lm++ = *in++;
+
+				if (bsp->version == BSP_VERSION_QUETOO) {
+					*dm++ = *in++;
+					*dm++ = *in++;
+					*dm++ = *in++;
+				} else {
+					*dm++ = 127;
+					*dm++ = 127;
+					*dm++ = 255;
+				}
+			} else {
+				*lm++ = 255;
+				*lm++ = 255;
+				*lm++ = 255;
+
+				*dm++ = 127;
+				*dm++ = 127;
+				*dm++ = 255;
 			}
-
-			out += 4;
 		}
 	}
-
-	Mem_Free(lightmap);
 }
 
 /**
@@ -281,22 +233,18 @@ static void R_UploadLightmaps(const r_bsp_model_t *bsp, const r_atlas_packer_t *
 	r_lightmap_media_t *media = R_AllocLightmapMedia(width, height);
 
 	// temp buffers
-	const size_t layer_size = width * height * 4;
+	const size_t layer_size = width * height * 3;
 	byte *buffer = Mem_Malloc(layer_size * MAX_LIGHTMAP_LAYERS);
 
 	do {
 		r_bsp_surface_t *surf = start->data;
 
-		const size_t offset = (surf->lightmap.t * width + surf->lightmap.s) * 4;
-		const size_t stride = (width - surf->lightmap.w) * 4;
+		const size_t offset = (surf->lightmap.t * width + surf->lightmap.s) * 3;
+		const size_t stride = (width - surf->lightmap.w) * 3;
 
 		byte *out = buffer + offset;
 
-		if (surf->lightmap.data) {
-			R_BuildLightmap(bsp, surf, surf->lightmap.data, out, stride, layer_size);
-		} else {
-			R_BuildDefaultLightmap(bsp, surf, out, stride, layer_size);
-		}
+		R_BuildLightmap(bsp, surf, surf->lightmap.data, out, stride, layer_size);
 
 		surf->lightmap.media = media;
 
@@ -308,7 +256,7 @@ static void R_UploadLightmaps(const r_bsp_model_t *bsp, const r_atlas_packer_t *
 		start = start->next;
 	} while (start != end);
 
-	R_UploadImage(media->lightmaps, GL_RGBA8, buffer);
+	R_UploadImage(media->lightmaps, GL_RGB8, buffer);
 
 	Mem_Free(buffer);
 

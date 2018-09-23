@@ -67,8 +67,6 @@ cvar_t *r_lighting;
 cvar_t *r_materials;
 cvar_t *r_max_lights;
 cvar_t *r_modulate;
-cvar_t *r_hdr;
-cvar_t *r_hdr_enabled;
 cvar_t *r_monochrome;
 cvar_t *r_multisample;
 cvar_t *r_parallax;
@@ -509,8 +507,6 @@ static void R_InitLocal(void) {
 	r_materials = Cvar_Add("r_materials", "1", CVAR_ARCHIVE, "Enables or disables the materials (progressive texture effects) system");
 	r_max_lights = Cvar_Add("r_max_lights", "16", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the maximum number of lights affecting a rendered object");
 	r_modulate = Cvar_Add("r_modulate", "3", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls the brightness of static lighting");
-	r_hdr = Cvar_Add("r_hdr", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls high dynamic range (HDR) rendering");
-	r_hdr_enabled = Cvar_Add("r_hdr_enabled", "0", CVAR_NO_SET, NULL);
 	r_monochrome = Cvar_Add("r_monochrome", "0", CVAR_ARCHIVE | CVAR_R_MEDIA, "Loads all world textures as monochrome");
 	r_multisample = Cvar_Add("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls multisampling (anti-aliasing)");
 	r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax mapping effects");

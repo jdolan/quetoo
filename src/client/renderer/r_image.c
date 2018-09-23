@@ -75,8 +75,6 @@ static void R_TextureMode(void) {
 typedef struct {
 	uint32_t width;
 	uint32_t height;
-	uint32_t using_rgb;
-	uint32_t using_hdr;
 	byte *buffer;
 } r_screenshot_t;
 
@@ -106,9 +104,7 @@ static void R_Screenshot_f_encode(void *data) {
 	r_screenshot_t *s = (r_screenshot_t *) data;
 	_Bool screenshot_saved;
 
-	if (!g_strcmp0(r_screenshot_format->string, "pbm")) {
-		screenshot_saved = Img_WritePBM(filename, s->buffer, s->width, s->height, s->using_hdr ? 2 : 1);
-	} else if (!g_strcmp0(r_screenshot_format->string, "tga")) {
+	if (!g_strcmp0(r_screenshot_format->string, "tga")) {
 		screenshot_saved = Img_WriteTGA(filename, s->buffer, s->width, s->height);
 	} else {
 		screenshot_saved = Img_WritePNG(filename, s->buffer, s->width, s->height);
@@ -133,16 +129,13 @@ void R_Screenshot_f(void) {
 	s->width = r_context.render_width;
 	s->height = r_context.render_height;
 
-	s->using_rgb = !g_strcmp0(r_screenshot_format->string, "pbm");
-	s->using_hdr = r_hdr->integer && s->using_rgb;
-
-	s->buffer = Mem_LinkMalloc(s->width * s->height * 3 * (s->using_hdr ? 2 : 1), s);
+	s->buffer = Mem_LinkMalloc(s->width * s->height * 3, s);
 
 	if (r_state.supersample_fb) {
 		R_BindDiffuseTexture(r_state.supersample_image->texnum);
-		glGetTexImage(GL_TEXTURE_2D, 0, s->using_rgb ? GL_RGB : GL_BGR, s->using_hdr ? GL_UNSIGNED_SHORT : GL_UNSIGNED_BYTE, s->buffer);
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, s->buffer);
 	} else {
-		glReadPixels(0, 0, s->width, s->height, s->using_rgb ? GL_RGB : GL_BGR, s->using_hdr ? GL_UNSIGNED_SHORT : GL_UNSIGNED_BYTE, s->buffer);
+		glReadPixels(0, 0, s->width, s->height, GL_BGR, GL_UNSIGNED_BYTE, s->buffer);
 	}
 
 	Thread_Create(R_Screenshot_f_encode, s);

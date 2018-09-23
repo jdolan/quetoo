@@ -558,8 +558,6 @@ void FinalizeLighting(int32_t face_num) {
 		return;
 	}
 
-	const int32_t lightmap_color_channels = (legacy ? 3 : 4);
-
 	bsp_face_t *f = &bsp_file.faces[face_num];
 
 	f->unused[0] = 0; // pack the old lightstyles array for legacy games
@@ -568,10 +566,10 @@ void FinalizeLighting(int32_t face_num) {
 	ThreadLock();
 
 	f->light_ofs = bsp_file.lightmap_data_size;
-	bsp_file.lightmap_data_size += lm->num_luxels * lightmap_color_channels;
+	bsp_file.lightmap_data_size += lm->num_luxels * 3;
 
 	if (!legacy) { // account for light direction data as well
-		bsp_file.lightmap_data_size += lm->num_luxels * lightmap_color_channels;
+		bsp_file.lightmap_data_size += lm->num_luxels * 3;
 	}
 
 	if (bsp_file.lightmap_data_size > MAX_BSP_LIGHTING) {
@@ -586,7 +584,6 @@ void FinalizeLighting(int32_t face_num) {
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 		vec3_t lightmap;
-		vec4_t hdr_lightmap;
 
 		// start with raw sample data
 		VectorAdd(l->direct, l->indirect, lightmap);
@@ -598,20 +595,13 @@ void FinalizeLighting(int32_t face_num) {
 		// apply brightness, saturation and contrast
 		ColorFilter(lightmap, lightmap, brightness, saturation, contrast);
 
-		if (legacy) { // write out good old RGB lightmap samples, converted to bytes
-			for (int32_t j = 0; j < 3; j++) {
-				*dest++ = (byte) Clamp(floor(lightmap[j] * 255.0 + 0.5), 0, 255);
-			}
-		} else { // write out HDR lightmaps and deluxemaps
+		// write the lightmap sample data as bytes
+		for (int32_t j = 0; j < 3; j++) {
+			*dest++ = (byte) Clamp(lightmap[j] * 255.0, 0, 255);
+		}
 
-			ColorEncodeRGBM(lightmap, hdr_lightmap);
-
-			for (int32_t j = 0; j < 4; j++) {
-				*dest++ = (byte) Clamp(floor(hdr_lightmap[j] * 255.0 + 0.5), 0, 255);
-			}
-
+		if (!legacy) { // write the deluxemap, also converted to bytes
 			vec3_t direction, deluxemap;
-			vec4_t hdr_deluxemap;
 
 			// start with the raw direction data
 			VectorCopy(l->direction, direction);
@@ -637,13 +627,7 @@ void FinalizeLighting(int32_t face_num) {
 
 			// pack floating point -1.0 to 1.0 to positive bytes (0.0 becomes 127)
 			for (int32_t j = 0; j < 3; j++) {
-				deluxemap[j] = (deluxemap[j] + 1.0) * 0.5;
-			}
-
-			ColorEncodeRGBM(deluxemap, hdr_deluxemap);
-
-			for (int32_t j = 0; j < 4; j++) {
-				*dest++ = (byte) Clamp(floor(hdr_deluxemap[j] * 255.0 + 0.5), 0, 255);
+				*dest++ = (byte) Clamp((deluxemap[j] + 1.0) * 0.5 * 255.0, 0, 255);
 			}
 		}
 	}

@@ -889,7 +889,7 @@ void R_InitSupersample(void) {
 	r_state.supersample_image->layers = 0;
 	r_state.supersample_image->type = IT_NULL;
 
-	R_UploadImage(r_state.supersample_image, r_hdr->integer ? GL_RGBA16 : GL_RGBA8, NULL);
+	R_UploadImage(r_state.supersample_image, GL_RGBA8, NULL);
 
 	r_state.supersample_fb = R_CreateFramebuffer("r_state.supersample_fb");
 	R_AttachFramebufferImage(r_state.supersample_fb, r_state.supersample_image);

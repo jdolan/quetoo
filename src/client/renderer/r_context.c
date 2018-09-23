@@ -82,13 +82,10 @@ void R_InitContext(void) {
 
 	Com_Print("  Trying %dx%d..\n", w, h);
 
-	Cvar_ForceSetInteger(r_hdr_enabled->name, (r_hdr->integer && r_fullscreen->integer));
-
-	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, r_hdr_enabled->integer ? 16 : 8);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, r_hdr_enabled->integer ? 16 : 8);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, r_hdr_enabled->integer ? 16 : 8);
-	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, r_hdr_enabled->integer ? 16 : 8);
-	SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, r_hdr_enabled->integer ? 64 : 32);
+	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
 
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
