@@ -363,12 +363,8 @@ void main(void) {
 	vec3 deluxemap = vec3(0.0, 0.0, 1.0);
 
 	if (LIGHTMAP) {
-#if DRAW_BSP_LIGHTMAPS > 0
-		vec4 lightmapColorHDR = texture(SAMPLER1, vec3(texcoords[1], DRAW_BSP_LIGHTMAPS - 1));
-#else
-		vec4 lightmapColorHDR = texture(SAMPLER1, vec3(texcoords[1], 0));
-#endif
-		lightmap = lightmapColorHDR.rgb * lightmapColorHDR.a * MODULATE;
+		const float layer = max(0, DRAW_BSP_LIGHTMAPS - 1);
+		lightmap =  texture(SAMPLER1, vec3(uvLightmap, layer)).rgb * MODULATE;
 
 		if (STAINMAP) {
 			vec4 stain = texture(SAMPLER8, uvLightmap);

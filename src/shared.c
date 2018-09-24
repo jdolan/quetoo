@@ -621,18 +621,6 @@ vec_t ColorNormalize(const vec3_t in, vec3_t out) {
 }
 
 /**
-* @brief Applies RGBM encoding to the specified input color.
-*/
-void ColorEncodeRGBM(const vec3_t in, vec4_t out) {
-
-	const vec_t max_channel = Max(Max(in[0], in[1]), in[2]);
-	const vec_t multiplier = ceil(Max(max_channel, 1.0 / 255.0) * 255.0) / 255.0;
-
-	VectorScale(in, 1.0 / multiplier, out);
-	out[3] = max_channel;
-}
-
-/**
  * @brief Applies brightness, saturation and contrast to the specified input color.
  */
 void ColorFilter(const vec3_t in, vec3_t out, vec_t brightness, vec_t saturation, vec_t contrast) {
@@ -672,7 +660,7 @@ void ColorFilter(const vec3_t in, vec3_t out, vec_t brightness, vec_t saturation
  * @brief Decomposes float color into byte color.
  */
 void ColorDecompose(const vec4_t in, u8vec4_t out) {
-	for (int32_t i = 0; i < 4; ++i) {
+	for (int32_t i = 0; i < 4; i++) {
 		out[i] = (u8vec_t) (Min(1.0, Max(0.0, in[i])) * 255.0);
 	}
 }
@@ -681,52 +669,8 @@ void ColorDecompose(const vec4_t in, u8vec4_t out) {
  * @brief Decomposes RGB float color into byte color.
  */
 void ColorDecompose3(const vec3_t in, u8vec3_t out) {
-	for (int32_t i = 0; i < 3; ++i) {
+	for (int32_t i = 0; i < 3; i++) {
 		out[i] = (u8vec_t) (Min(1.0, Max(0.0, in[i])) * 255.0);
-	}
-}
-
-/**
-* @brief H-basis manipulating.
-*/
-void ProjectOntoH4(const vec3_t direction, h4_t result) {
-	// Band 0
-	result[0] = (1.0 / sqrt(2.0 * M_PI));
-
-	// Band 1
-	result[1] = -sqrt(1.5 / M_PI) * direction[1];
-	result[2] = sqrt(1.5 / M_PI) * (2.0 * direction[2] - 1.0);
-	result[3] = -sqrt(1.5 / M_PI) * direction[0];
-}
-
-void ProjectOntoH4Color(const vec3_t direction, const vec3_t color, h4color_t result) {
-	h4_t projected;
-	ProjectOntoH4(direction, projected);
-
-	for (size_t i = 0; i < 4; i++) {
-		VectorScale(color, projected[i], result[i]);
-	}
-}
-
-void EvaluateH4(const h4_t h, const vec3_t direction, vec_t *result) {
-	h4_t projected;
-	ProjectOntoH4(direction, projected);
-
-	*result = 0.0;
-
-	for (size_t i = 0; i < 4; i++) {
-		*result += projected[i] * h[i];
-	}
-}
-
-void EvaluateH4Color(const h4color_t h, const vec3_t direction, vec3_t result) {
-	h4_t projected;
-	ProjectOntoH4(direction, projected);
-
-	VectorCopy(vec3_origin, result);
-
-	for (size_t i = 0; i < 4; i++) {
-		VectorMA(result, projected[i], h[i], result);
 	}
 }
 

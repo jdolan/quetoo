@@ -193,11 +193,8 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 	R_BindAttributeInterleaveBuffer(&r_model_state.bound_vertice_buffer, R_ATTRIB_MASK_ALL);
 	R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &r_model_state.bound_element_buffer);
 
-	u8vec4_t bc;
-	ColorDecompose(color, bc);
-
-	for (int32_t i = 0; i < 8; ++i) {
-		Vector4Set(r_model_state.bound_vertices[i].color, bc[0], bc[1], bc[2], bc[3]);
+	for (int32_t i = 0; i < 8; i++) {
+		ColorDecompose(color, r_model_state.bound_vertices[i].color);
 	}
 
 	static matrix4x4_t mat, modelview;
