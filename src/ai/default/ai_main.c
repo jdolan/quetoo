@@ -958,6 +958,7 @@ static void Ai_SetDataPointers(ai_entity_data_t *entity, ai_client_data_t *clien
 static void Ai_Init(void) {
 
 	aim.gi->Print("Ai module initialization...\n");
+	aim.gi->Mkdir("ai");
 
 	const char *s = va("%s %s %s", VERSION, BUILD_HOST, REVISION);
 	cvar_t *ai_version = aim.gi->AddCvar("ai_version", s, CVAR_NO_SET, NULL);
