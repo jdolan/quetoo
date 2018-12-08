@@ -78,10 +78,8 @@ static void BuildLightmapExtents(lightmap_t *lm) {
 			v = bsp_file.vertexes + bsp_file.edges[-e].v[1];
 		}
 
-		vec3_t point, st;
-		VectorAdd(lm->offset, v->point, point);
-
-		Matrix4x4_Transform(&lm->matrix, point, st);
+		vec3_t st;
+		Matrix4x4_Transform(&lm->matrix, v->point, st);
 
 		for (int32_t j = 0; j < 2; j++) {
 
