@@ -41,6 +41,7 @@ typedef struct {
 	const bsp_plane_t *plane;
 	const bsp_texinfo_t *texinfo;
 	const cm_material_t *material;
+	vec3_t offset;
 	vec3_t normal;
 	matrix4x4_t matrix;
 	matrix4x4_t inverse_matrix;
