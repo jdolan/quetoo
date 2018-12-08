@@ -43,17 +43,18 @@ static void BuildLightmapMatrices(lightmap_t *lm) {
 	}
 
 	vec3_t s, t;
-
 	VectorNormalize2(lm->texinfo->vecs[0], s);
 	VectorNormalize2(lm->texinfo->vecs[1], t);
 
 	VectorScale(s, 1.0 / luxel_size, s);
 	VectorScale(t, 1.0 / luxel_size, t);
 
+	const vec_t *offset = face_offsets[lm->face - bsp_file.faces];
+
 	Matrix4x4_FromArrayFloatGL(&lm->matrix, (const vec_t[]) {
-		s[0], t[0], lm->normal[0], 0.0,
-		s[1], t[1], lm->normal[1], 0.0,
-		s[2], t[2], lm->normal[2], 0.0,
+		s[0], t[0], lm->normal[0], offset[0],
+		s[1], t[1], lm->normal[1], offset[1],
+		s[2], t[2], lm->normal[2], offset[2],
 		0.0,  0.0,  -dist,         1.0
 	});
 
@@ -78,10 +79,8 @@ static void BuildLightmapExtents(lightmap_t *lm) {
 			v = bsp_file.vertexes + bsp_file.edges[-e].v[1];
 		}
 
-		vec3_t point, st;
-		VectorAdd(lm->offset, v->point, point);
-
-		Matrix4x4_Transform(&lm->matrix, point, st);
+		vec3_t st;
+		Matrix4x4_Transform(&lm->matrix, v->point, st);
 
 		for (int32_t j = 0; j < 2; j++) {
 
@@ -137,7 +136,7 @@ void DebugLightmapLuxels(void) {
 	file_t *file = Fs_OpenWrite(va("maps/%s.luxels.map", map_base));
 	if (file) {
 
-		lightmap_t *lm = lightmaps;
+		const lightmap_t *lm = lightmaps;
 		for (int32_t i = 0; i < bsp_file.num_faces; i++, lm++) {
 
 			if (lm->texinfo->flags & SURF_DEBUG_LUXEL) {
@@ -184,8 +183,6 @@ void BuildLightmaps(void) {
 		}
 
 		lm->material = LoadMaterial(lm->texinfo->texture, ASSET_CONTEXT_TEXTURES);
-
-		VectorCopy(face_offsets[i], lm->offset);
 
 		BuildLightmapMatrices(lm);
 
@@ -337,7 +334,6 @@ static _Bool ProjectLuxel(const lightmap_t *lm, luxel_t *l, vec_t soffs, vec_t t
 	}
 
 	VectorAdd(l->origin, l->normal, l->origin);
-	VectorAdd(l->origin, lm->offset, l->origin);
 
 	return Light_PointPVS(l->origin, pvs);
 }
