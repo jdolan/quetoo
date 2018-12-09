@@ -103,8 +103,7 @@ _Bool Light_InPVS(const vec3_t p1, const vec3_t p2) {
 }
 
 // we use the collision detection facilities for lighting
-static int32_t num_cmodels;
-static cm_bsp_model_t *cmodels[MAX_BSP_MODELS];
+static cm_bsp_model_t *bsp_models[MAX_BSP_MODELS];
 
 /**
  * @brief
@@ -113,9 +112,9 @@ void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_
 
 	vec_t frac = FLT_MAX;
 
-	for (int32_t i = 0; i < num_cmodels; i++) {
+	for (int32_t i = 0; i < Cm_NumModels(); i++) {
 
-		const cm_trace_t tr = Cm_BoxTrace(start, end, NULL, NULL, cmodels[i]->head_node, mask);
+		const cm_trace_t tr = Cm_BoxTrace(start, end, NULL, NULL, bsp_models[i]->head_node, mask);
 		if (tr.fraction < frac) {
 			frac = tr.fraction;
 			*trace = tr;
@@ -133,11 +132,10 @@ static void LightWorld(void) {
 	}
 
 	// load the map for tracing
-	cmodels[0] = Cm_LoadBspModel(bsp_name, NULL);
-	num_cmodels = Cm_NumModels();
+	bsp_models[0] = Cm_LoadBspModel(bsp_name, NULL);
 
-	for (int32_t i = 1; i < num_cmodels; i++) {
-		cmodels[i] = Cm_Model(va("*%d", i));
+	for (int32_t i = 1; i < Cm_NumModels(); i++) {
+		bsp_models[i] = Cm_Model(va("*%d", i));
 	}
 
 	const entity_t *e = &entities[0];
