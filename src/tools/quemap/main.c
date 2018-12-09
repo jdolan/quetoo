@@ -371,9 +371,9 @@ static void PrintHelpMessage(void) {
 	Com_Print("Materials file generation:\n"
 			  " quemap -mat maps/my.map\n");
 	Com_Print("Fast compile rough lighting:\n"
-			  " quemap -bsp -vis -fast -light maps/my.map\n");
+			  " quemap -bsp -vis --fast -light maps/my.map\n");
 	Com_Print("Final compile with expensive lighting:\n"
-	          " quemap -bsp -vis -light -antialias -indirect maps/my.map\n");
+	          " quemap -bsp -vis -light --antialias --indirect maps/my.map\n");
 	Com_Print("Area awareness compile for artificial intelligence routing:\n"
 			  " quemap -aas maps/my.bsp\n");
 	Com_Print("Zip file generation:\n"
@@ -422,33 +422,33 @@ int32_t main(int32_t argc, char **argv) {
 	// general options
 	for (int32_t i = 1; i < Com_Argc(); i++) {
 
-		if (!g_strcmp0(Com_Argv(i), "-h") || !g_strcmp0(Com_Argv(i), "-help")) {
+		if (!g_strcmp0(Com_Argv(i), "-h") || !g_strcmp0(Com_Argv(i), "--help")) {
 			PrintHelpMessage();
 			Com_Shutdown(NULL);
 		}
 
-		if (!g_strcmp0(Com_Argv(i), "-v") || !g_strcmp0(Com_Argv(i), "-verbose")) {
+		if (!g_strcmp0(Com_Argv(i), "-v") || !g_strcmp0(Com_Argv(i), "--verbose")) {
 			verbose = true;
 			continue;
 		}
 
-		if (!g_strcmp0(Com_Argv(i), "-d") || !g_strcmp0(Com_Argv(i), "-debug")) {
+		if (!g_strcmp0(Com_Argv(i), "-d") || !g_strcmp0(Com_Argv(i), "--debug")) {
 			Com_SetDebug("all");
 			debug = true;
 			continue;
 		}
 
-		if (!g_strcmp0(Com_Argv(i), "-l") || !g_strcmp0(Com_Argv(i), "-legacy")) {
+		if (!g_strcmp0(Com_Argv(i), "-l") || !g_strcmp0(Com_Argv(i), "--legacy")) {
 			legacy = true;
 			continue;
 		}
 
-		if (!g_strcmp0(Com_Argv(i), "-t") || !g_strcmp0(Com_Argv(i), "-threads")) {
+		if (!g_strcmp0(Com_Argv(i), "-t") || !g_strcmp0(Com_Argv(i), "--threads")) {
 			num_threads = atoi(Com_Argv(i + 1));
 			continue;
 		}
 
-		if (!g_strcmp0(Com_Argv(i), "-c") || !g_strcmp0(Com_Argv(i), "-connect")) {
+		if (!g_strcmp0(Com_Argv(i), "-c") || !g_strcmp0(Com_Argv(i), "--connect")) {
 			is_monitor = Mon_Connect(Com_Argv(i + 1));
 			continue;
 		}
@@ -490,7 +490,6 @@ int32_t main(int32_t argc, char **argv) {
 
 	if (!do_bsp && !do_vis && !do_light && !do_aas && !do_mat && !do_zip) {
 		Com_Error(ERROR_FATAL, "No action specified. Try %s -help\n", Com_Argv(0));
-		return 0;
 	}
 
 	Thread_Init(num_threads);
