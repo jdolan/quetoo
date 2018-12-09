@@ -43,7 +43,6 @@ static void BuildLightmapMatrices(lightmap_t *lm) {
 	}
 
 	vec3_t s, t;
-
 	VectorNormalize2(lm->texinfo->vecs[0], s);
 	VectorNormalize2(lm->texinfo->vecs[1], t);
 
@@ -57,7 +56,15 @@ static void BuildLightmapMatrices(lightmap_t *lm) {
 		0.0,  0.0,  -dist,         1.0
 	});
 
-	Matrix4x4_Invert_Full(&lm->inverse_matrix, &lm->matrix);
+	const vec_t *offset = face_offsets[lm - lightmaps];
+
+	matrix4x4_t translate;
+	Matrix4x4_CreateTranslate(&translate, offset[0], offset[1], offset[2]);
+
+	matrix4x4_t inverse;
+	Matrix4x4_Invert_Full(&inverse, &lm->matrix);
+
+	Matrix4x4_Concat(&lm->inverse_matrix, &translate, &inverse);
 }
 
 /**
@@ -182,8 +189,6 @@ void BuildLightmaps(void) {
 		}
 
 		lm->material = LoadMaterial(lm->texinfo->texture, ASSET_CONTEXT_TEXTURES);
-
-		VectorCopy(face_offsets[i], lm->offset);
 
 		BuildLightmapMatrices(lm);
 
@@ -335,7 +340,6 @@ static _Bool ProjectLuxel(const lightmap_t *lm, luxel_t *l, vec_t soffs, vec_t t
 	}
 
 	VectorAdd(l->origin, l->normal, l->origin);
-	VectorAdd(l->origin, lm->offset, l->origin);
 
 	return Light_PointPVS(l->origin, pvs);
 }
