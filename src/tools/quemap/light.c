@@ -211,10 +211,14 @@ light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
 	patch_mins[0] = patch_mins[1] = FLT_MAX;
 	patch_maxs[0] = patch_maxs[1] = -FLT_MAX;
 
+	const vec_t *offset = patch_offsets[lm - lightmaps];
+
 	for (int32_t i = 0; i < patch->winding->num_points; i++) {
 
-		vec3_t st;
-		Matrix4x4_Transform(&lm->matrix, patch->winding->points[i], st);
+		vec3_t point, st;
+		VectorSubtract(patch->winding->points[i], offset, point);
+
+		Matrix4x4_Transform(&lm->matrix, point, st);
 
 		for (int32_t j = 0; j < 2; j++) {
 
