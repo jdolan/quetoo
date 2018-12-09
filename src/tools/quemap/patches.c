@@ -23,8 +23,8 @@
 #include "image.h"
 #include "materials.h"
 
-patch_t *face_patches[MAX_BSP_FACES];
-vec3_t face_offsets[MAX_BSP_FACES];
+patch_t *patches[MAX_BSP_FACES];
+vec3_t patch_offsets[MAX_BSP_FACES];
 
 static GHashTable *texture_colors;
 
@@ -103,7 +103,7 @@ void FreeTextureColors(void) {
 static void BuildPatch(int32_t fn, winding_t *w) {
 
 	patch_t *patch = (patch_t *) Mem_TagMalloc(sizeof(*patch), MEM_TAG_PATCH);
-	face_patches[fn] = patch;
+	patches[fn] = patch;
 
 	patch->face = &bsp_file.faces[fn];
 	patch->winding = w;
@@ -149,7 +149,7 @@ void BuildPatches(void) {
 			const int32_t face_num = mod->first_face + j;
 			bsp_face_t *f = &bsp_file.faces[face_num];
 
-			VectorCopy(origin, face_offsets[face_num]);
+			VectorCopy(origin, patch_offsets[face_num]);
 
 			winding_t *w = WindingForFace(f);
 
@@ -212,7 +212,7 @@ static void SubdividePatch(patch_t *patch) {
 void SubdividePatches(void) {
 
 	for (int32_t i = 0; i < MAX_BSP_FACES; i++) {
-		patch_t *p = face_patches[i];
+		patch_t *p = patches[i];
 		if (p) {
 			const bsp_texinfo_t *tex = &bsp_file.texinfo[p->face->texinfo];
 			if (!(tex->flags & SURF_SKY)) { // break it up

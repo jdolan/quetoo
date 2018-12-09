@@ -56,7 +56,7 @@ static void BuildLightmapMatrices(lightmap_t *lm) {
 		0.0,  0.0,  -dist,         1.0
 	});
 
-	const vec_t *offset = face_offsets[lm - lightmaps];
+	const vec_t *offset = patch_offsets[lm - lightmaps];
 
 	matrix4x4_t translate;
 	Matrix4x4_CreateTranslate(&translate, offset[0], offset[1], offset[2]);

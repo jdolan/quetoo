@@ -32,8 +32,8 @@ typedef struct patch_s {
 	struct patch_s *next;  // next in face
 } patch_t;
 
-extern patch_t *face_patches[MAX_BSP_FACES];
-extern vec3_t face_offsets[MAX_BSP_FACES];
+extern patch_t *patches[MAX_BSP_FACES];
+extern vec3_t patch_offsets[MAX_BSP_FACES];
 
 void BuildTextureColors(void);
 void GetTextureColor(const char *name, vec3_t color);

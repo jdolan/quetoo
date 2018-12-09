@@ -187,7 +187,7 @@ void BuildDirectLights(void) {
 
 		if (texinfo->flags & SURF_LIGHT) {
 
-			for (const patch_t *patch = face_patches[i]; patch; patch = patch->next) {
+			for (const patch_t *patch = patches[i]; patch; patch = patch->next) {
 				light_t *light = LightForPatch(patch);
 				if (light) {
 					lights = g_list_prepend(lights, light);
@@ -293,7 +293,7 @@ void BuildIndirectLights(void) {
 			continue;
 		}
 
-		for (const patch_t *patch = face_patches[i]; patch; patch = patch->next) {
+		for (const patch_t *patch = patches[i]; patch; patch = patch->next) {
 
 			light_t *light = LightForLightmappedPatch(lm, patch);
 			if (light) {
