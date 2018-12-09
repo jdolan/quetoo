@@ -139,33 +139,42 @@ static _Bool ProjectLuxel(const lightmap_t *lm, luxel_t *l, vec_t soffs, vec_t t
  */
 void DebugLightmapLuxels(void) {
 
-	file_t *file = Fs_OpenWrite(va("maps/%s.luxels.map", map_base));
-	if (file) {
+	file_t *file = NULL;
 
-		lightmap_t *lm = lightmaps;
-		for (int32_t i = 0; i < bsp_file.num_faces; i++, lm++) {
+	lightmap_t *lm = lightmaps;
+	for (int32_t i = 0; i < bsp_file.num_faces; i++, lm++) {
 
-			if (lm->texinfo->flags & SURF_DEBUG_LUXEL) {
+		if (lm->texinfo->flags & SURF_DEBUG_LUXEL) {
 
-				luxel_t *l = lm->luxels;
-				for (size_t j = 0; j < lm->num_luxels; j++, l++) {
-
-					byte pvs[(MAX_BSP_LEAFS + 7) / 8];
-
-					ProjectLuxel(lm, l, 0.0, 0.0, pvs);
-
-					Fs_Print(file, "{\n");
-					Fs_Print(file, "  \"classname\" \"info_luxel\"\n");
-					Fs_Print(file, "  \"origin\" \"%g %g %g\"\n", l->origin[0], l->origin[1], l->origin[2]);
-					Fs_Print(file, "  \"normal\" \"%g %g %g\"\n", l->normal[0], l->normal[1], l->normal[2]);
-					Fs_Print(file, "  \"face\" \"%d\"\n", i);
-					Fs_Print(file, "  \"s\" \"%d\"\n", l->s);
-					Fs_Print(file, "  \"t\" \"%d\"\n", l->t);
-					Fs_Print(file, "}\n");
+			if (file == NULL) {
+				const char *path = va("maps/%s.luxels.map", map_base);
+				file = Fs_OpenWrite(path);
+				if (file == NULL) {
+					Com_Warn("Failed to open %s\n", path);
+					return;
 				}
 			}
-		}
 
+			luxel_t *l = lm->luxels;
+			for (size_t j = 0; j < lm->num_luxels; j++, l++) {
+
+				byte pvs[(MAX_BSP_LEAFS + 7) / 8];
+
+				ProjectLuxel(lm, l, 0.0, 0.0, pvs);
+
+				Fs_Print(file, "{\n");
+				Fs_Print(file, "  \"classname\" \"info_luxel\"\n");
+				Fs_Print(file, "  \"origin\" \"%g %g %g\"\n", l->origin[0], l->origin[1], l->origin[2]);
+				Fs_Print(file, "  \"normal\" \"%g %g %g\"\n", l->normal[0], l->normal[1], l->normal[2]);
+				Fs_Print(file, "  \"face\" \"%d\"\n", i);
+				Fs_Print(file, "  \"s\" \"%d\"\n", l->s);
+				Fs_Print(file, "  \"t\" \"%d\"\n", l->t);
+				Fs_Print(file, "}\n");
+			}
+		}
+	}
+
+	if (file) {
 		Fs_Close(file);
 	}
 }
