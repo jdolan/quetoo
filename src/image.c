@@ -33,56 +33,7 @@ static _Bool img_palette_initialized;
 #define AMASK 0xff000000
 
 // image formats, tried in this order
-static const char *img_formats[] = { "tga", "png", "jpg", "wal", "pcx", NULL };
-
-/**
- * @brief A helper which mangles a .wal file into an SDL_Surface suitable for
- * OpenGL uploads and other basic manipulations.
- */
-static _Bool Img_LoadWal(const char *path, SDL_Surface **surf) {
-	void *buf;
-
-	*surf = NULL;
-
-	if (Fs_Load(path, &buf) == -1) {
-		return false;
-	}
-
-	d_wal_t *wal = (d_wal_t *) buf;
-
-	wal->width = LittleLong(wal->width);
-	wal->height = LittleLong(wal->height);
-
-	wal->offsets[0] = LittleLong(wal->offsets[0]);
-
-	if (!img_palette_initialized) { // lazy-load palette if necessary
-		Img_InitPalette();
-	}
-
-	size_t size = wal->width * wal->height;
-	uint32_t *p = (uint32_t *) SDL_malloc(size * sizeof(uint32_t));
-
-	const byte *b = (byte *) wal + wal->offsets[0];
-	for (size_t i = 0; i < size; i++) { // convert to 32bpp RGBA via palette
-		if (b[i] == 255) { // transparent
-			p[i] = 0;
-		} else {
-			p[i] = img_palette[b[i]];
-		}
-	}
-
-	// create the RGBA surface
-	if ((*surf = SDL_CreateRGBSurfaceFrom(p, wal->width, wal->height, 32, 0,
-	                                      RMASK, GMASK, BMASK, AMASK))) {
-
-		// trick SDL into freeing the pixel data with the surface
-		(*surf)->flags &= ~SDL_PREALLOC;
-	}
-
-	Fs_Free(buf);
-
-	return *surf != NULL;
-}
+static const char *img_formats[] = { "tga", "png", "jpg", "pcx", NULL };
 
 /**
  * @brief Loads the specified image from the game filesystem and populates
@@ -94,10 +45,6 @@ static _Bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface 
 	int64_t len;
 
 	g_snprintf(path, sizeof(path), "%s.%s", name, type);
-
-	if (!g_strcmp0(type, "wal")) { // special case for .wal files
-		return Img_LoadWal(path, surf);
-	}
 
 	*surf = NULL;
 
