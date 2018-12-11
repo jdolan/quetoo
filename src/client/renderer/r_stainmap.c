@@ -87,33 +87,28 @@ static _Bool R_StainSurface(const r_stain_t *stain, const r_bsp_surface_t *surf)
 		return false;
 	}
 
-	const r_bsp_texinfo_t *tex = surf->texinfo;
+	// transform the point into lightmap space
+	vec3_t st;
+	Matrix4x4_Transform(&surf->lightmap.matrix, point, st);
+
+	st[0] -= surf->lightmap.lm_mins[0];
+	st[1] -= surf->lightmap.lm_mins[1];
 
 	// resolve the radius of the stain where it impacts the surface
 	const vec_t radius = sqrt(stain->radius * stain->radius - dist * dist);
 
 	// transform the radius into lightmap space, accounting for unevenly scaled textures
-	const vec_t radius_st = (radius / tex->scale[0]) * r_model_state.world->bsp->luxel_size;
+	const vec_t radius_st = radius / r_model_state.world->bsp->luxel_size;
 
-	// transform the impact point into texture space
-	vec2_t point_st = {
-		DotProduct(point, tex->vecs[0]) + tex->vecs[0][3] - surf->st_mins[0],
-		DotProduct(point, tex->vecs[1]) + tex->vecs[1][3] - surf->st_mins[1]
-	};
-
-	// and convert to lightmap space
-	point_st[0] *= r_model_state.world->bsp->luxel_size;
-	point_st[1] *= r_model_state.world->bsp->luxel_size;
-
-	point_st[0] -= radius_st / 2.0;
-	point_st[1] -= radius_st / 2.0;
+	st[0] -= radius_st / 2.0;
+	st[1] -= radius_st / 2.0;
 
 	const vec_t radius_rounded = ceil(radius_st);
 
-	if ((point_st[0] < 0 && (point_st[0] + radius_rounded) < 0) ||
-		(point_st[1] < 0 && (point_st[1] + radius_rounded) < 0) ||
-		point_st[0] >= surf->lightmap.w ||
-		point_st[1] >= surf->lightmap.h) {
+	if ((st[0] < 0 && (st[0] + radius_rounded) < 0) ||
+		(st[1] < 0 && (st[1] + radius_rounded) < 0) ||
+		st[0] >= surf->lightmap.w ||
+		st[1] >= surf->lightmap.h) {
 		return false;
 	}
 
@@ -121,7 +116,7 @@ static _Bool R_StainSurface(const r_stain_t *stain, const r_bsp_surface_t *surf)
 		.surf = surf,
 		.stain = stain,
 		.radius = radius_rounded,
-		.point = { round(surf->lightmap.s + point_st[0]), round(surf->lightmap.t + point_st[1]) },
+		.point = { round(surf->lightmap.s + st[0]), round(surf->lightmap.t + st[1]) },
 		.color = ColorFromRGBA((byte) (stain->color[0] * 255.0),
 							   (byte) (stain->color[1] * 255.0),
 							   (byte) (stain->color[2] * 255.0),
@@ -181,10 +176,10 @@ static _Bool R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 	}
 
 	// recurse down both sides
-	const _Bool left = R_StainNode(stain, node->children[0]);
-	const _Bool right = R_StainNode(stain, node->children[1]);
+	stained |= R_StainNode(stain, node->children[0]);
+	stained |= R_StainNode(stain, node->children[1]);
 
-	return stained || left || right;
+	return stained;
 }
 
 /**
