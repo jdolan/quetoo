@@ -719,15 +719,9 @@ typedef struct player_state_s {
 /**
  * @return True if the byte represents a color escape sequence.
  */
-#define IS_COLOR(c)( \
-                     *c == COLOR_ESC && ( \
-                             *(c + 1) >= '0' && *(c + 1) <= '7' \
-                                        ) \
-                   )
+#define IS_COLOR(c) (*c == COLOR_ESC && (*(c + 1) >= '0' && *(c + 1) <= '7'))
 
 /**
  * @return True if the byte represents a legacy color escape sequence.
  */
-#define IS_LEGACY_COLOR(c)( \
-                            *c == 1 || *c == 2 \
-                          )
+#define IS_LEGACY_COLOR(c) (*c == 1 || *c == 2)

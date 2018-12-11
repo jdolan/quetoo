@@ -56,5 +56,5 @@ void VectorForKey(const entity_t *ent, const char *key, vec3_t out, const vec3_t
 
 epair_t *ParseEpair(void);
 
-int32_t LoadBSPFile(const char *filename, const bsp_lump_id_t lumps);
-void WriteBSPFile(const char *filename, const int32_t version);
+void LoadBSPFile(const char *filename, const bsp_lump_id_t lumps);
+void WriteBSPFile(const char *filename);

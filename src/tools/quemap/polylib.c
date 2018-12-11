@@ -237,11 +237,11 @@ winding_t *WindingForFace(const bsp_face_t *f) {
 	int32_t v;
 	winding_t *w;
 
-	w = AllocWinding(f->num_edges);
-	w->num_points = f->num_edges;
+	w = AllocWinding(f->num_face_edges);
+	w->num_points = f->num_face_edges;
 
-	for (i = 0; i < f->num_edges; i++) {
-		const int32_t se = bsp_file.face_edges[f->first_edge + i];
+	for (i = 0; i < f->num_face_edges; i++) {
+		const int32_t se = bsp_file.face_edges[f->first_face_edge + i];
 		if (se < 0) {
 			v = bsp_file.edges[-se].v[1];
 		} else {

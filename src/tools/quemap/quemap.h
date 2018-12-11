@@ -41,7 +41,6 @@ extern char bsp_name[MAX_OS_PATH];
 
 extern _Bool verbose;
 extern _Bool debug;
-extern _Bool legacy;
 
 // BSP
 extern int32_t entity_num;

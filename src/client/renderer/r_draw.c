@@ -273,14 +273,14 @@ size_t R_DrawSizedString(r_pixel_t x, r_pixel_t y, const char *s, size_t len, si
 	i = j = 0;
 	while (*s && i < len && j < size) {
 
-		if (IS_COLOR(s)) { // color escapes
+		if (IS_COLOR(s)) {
 			color = *(s + 1) - '0';
 			j += 2;
 			s += 2;
 			continue;
 		}
 
-		if (IS_LEGACY_COLOR(s)) { // legacy colors
+		if (IS_LEGACY_COLOR(s)) {
 			color = CON_COLOR_ALT;
 			j++;
 			s++;

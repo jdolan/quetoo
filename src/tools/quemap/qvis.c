@@ -449,7 +449,7 @@ int32_t VIS_Main(void) {
 
 	const time_t start = time(NULL);
 
-	const int32_t version = LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
+	LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
 
 	if (bsp_file.num_nodes == 0 || bsp_file.num_faces == 0) {
 		Com_Error(ERROR_FATAL, "Empty map\n");
@@ -465,7 +465,7 @@ int32_t VIS_Main(void) {
 	Com_Print("VIS data: %d bytes (compressed from %u bytes)\n", bsp_file.vis_data_size,
 	          (uint32_t) (map_vis.uncompressed_size * 2));
 
-	WriteBSPFile(va("maps/%s.bsp", map_base), version);
+	WriteBSPFile(va("maps/%s.bsp", map_base));
 
 	const time_t end = time(NULL);
 	const time_t duration = end - start;

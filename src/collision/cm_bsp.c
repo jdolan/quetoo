@@ -15,12 +15,21 @@ typedef struct {
 	sizeof(*((T *) 0)->F)
 #endif
 
-#define BSP_LUMP_NUM_STRUCT(n, m) \
-	{ .size_ofs = offsetof(bsp_file_t, num_ ## n), .data_ofs = offsetof(bsp_file_t, n), .type_size = BSP_SIZEOF(bsp_file_t, n), .max_count = m }
-#define BSP_LUMP_SIZE_STRUCT(n, m) \
-	{ .size_ofs = offsetof(bsp_file_t, n ## _size), .data_ofs = offsetof(bsp_file_t, n), .type_size = sizeof(byte), .max_count = m }
-#define BSP_LUMP_SKIP \
-	{ 0, 0, 0, 0 }
+#define BSP_LUMP_NUM_STRUCT(n, m) { \
+	.size_ofs = offsetof(bsp_file_t, num_ ## n), \
+	.data_ofs = offsetof(bsp_file_t, n), \
+	.type_size = BSP_SIZEOF(bsp_file_t, n), \
+	.max_count = m \
+}
+
+#define BSP_LUMP_SIZE_STRUCT(n, m) { \
+	.size_ofs = offsetof(bsp_file_t, n ## _size), \
+	.data_ofs = offsetof(bsp_file_t, n),\
+	.type_size = sizeof(byte), \
+	.max_count = m \
+}
+
+#define BSP_LUMP_SKIP { 0, 0, 0, 0 }
 
 static bsp_lump_meta_t bsp_lump_meta[BSP_TOTAL_LUMPS] = {
 	BSP_LUMP_SIZE_STRUCT(entity_string, MAX_BSP_ENT_STRING),
@@ -41,8 +50,7 @@ static bsp_lump_meta_t bsp_lump_meta[BSP_TOTAL_LUMPS] = {
 	BSP_LUMP_NUM_STRUCT(brush_sides, MAX_BSP_BRUSH_SIDES),
 	BSP_LUMP_SKIP,
 	BSP_LUMP_NUM_STRUCT(areas, MAX_BSP_AREAS),
-	BSP_LUMP_NUM_STRUCT(area_portals, MAX_BSP_AREA_PORTALS),
-	BSP_LUMP_NUM_STRUCT(normals, MAX_BSP_VERTS)
+	BSP_LUMP_NUM_STRUCT(area_portals, MAX_BSP_AREA_PORTALS)
 };
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
@@ -82,6 +90,7 @@ static void Bsp_SwapVertexes(void *lump, const int32_t num) {
 
 		for (int32_t j = 0; j < 3; j++) {
 			vertex->point[j] = LittleFloat(vertex->point[j]);
+			vertex->normal[j] = LittleFloat(vertex->normal[j]);
 		}
 
 		vertex++;
@@ -166,9 +175,9 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
 		face->texinfo = LittleShort(face->texinfo);
 		face->plane_num = LittleShort(face->plane_num);
 		face->side = LittleShort(face->side);
-		face->light_ofs = LittleLong(face->light_ofs);
-		face->first_edge = LittleLong(face->first_edge);
-		face->num_edges = LittleShort(face->num_edges);
+		face->lightmap_offset = LittleLong(face->lightmap_offset);
+		face->first_face_edge = LittleLong(face->first_face_edge);
+		face->num_face_edges = LittleShort(face->num_face_edges);
 
 		face++;
 	}
@@ -344,23 +353,6 @@ static void Bsp_SwapAreaPortals(void *lump, const int32_t num) {
 	}
 }
 
-/**
- * @brief Swap function.
- */
-static void Bsp_SwapNormals(void *lump, const int32_t num) {
-
-	bsp_normal_t *normal = (bsp_normal_t *) lump;
-
-	for (int32_t i = 0; i < num; i++) {
-
-		for (int32_t j = 0; j < 3; j++) {
-			normal->normal[j] = LittleFloat(normal->normal[j]);
-		}
-
-		normal++;
-	}
-}
-
 static Bsp_SwapFunction bsp_swap_funcs[BSP_TOTAL_LUMPS] = {
 	NULL,
 	Bsp_SwapPlanes,
@@ -380,8 +372,7 @@ static Bsp_SwapFunction bsp_swap_funcs[BSP_TOTAL_LUMPS] = {
 	Bsp_SwapBrushSides,
 	NULL,
 	Bsp_SwapAreas,
-	Bsp_SwapAreaPortals,
-	Bsp_SwapNormals
+	Bsp_SwapAreaPortals
 };
 #endif
 
@@ -409,7 +400,11 @@ int32_t Bsp_Verify(const bsp_header_t *file) {
 		return -1;
 	}
 
-	return LittleLong(file->version);
+	if (LittleLong(file->version) != BSP_VERSION) {
+		return -1;
+	}
+
+	return BSP_VERSION;
 }
 
 /**
@@ -637,13 +632,13 @@ void Bsp_AllocLump(bsp_file_t *bsp, const bsp_lump_id_t lump_id, const size_t co
  * @brief Writes the specified BSP to the file. This will write from the current
  * position of the file.
  */
-void Bsp_Write(file_t *file, const bsp_file_t *bsp, const int32_t version) {
+void Bsp_Write(file_t *file, const bsp_file_t *bsp) {
 
 	// create the header
 	bsp_header_t header;
 
 	header.ident = LittleLong(BSP_IDENT);
-	header.version = LittleLong(version);
+	header.version = LittleLong(BSP_VERSION);
 
 	// store where we are, write what we got
 	int64_t header_pos = Fs_Tell(file);
@@ -682,8 +677,8 @@ void Bsp_Write(file_t *file, const bsp_file_t *bsp, const int32_t version) {
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
 		// swap back to memory endianness
-		if (bsp_swap_funcs[lump_id]) {
-			bsp_swap_funcs[lump_id](*lump_data, *lump_count);
+		if (bsp_swap_funcs[i]) {
+			bsp_swap_funcs[i](*lump_data, *lump_count);
 		}
 #endif
 

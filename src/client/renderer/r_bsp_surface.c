@@ -89,7 +89,7 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
  */
 static void R_DrawBspSurface_default(const r_bsp_surface_t *surf) {
 
-	R_DrawArrays(GL_TRIANGLE_FAN, surf->index, surf->num_edges);
+	R_DrawArrays(GL_TRIANGLE_FAN, surf->index, surf->num_face_edges);
 
 	r_view.num_bsp_surfaces++;
 }

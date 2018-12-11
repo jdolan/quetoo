@@ -235,7 +235,7 @@ int32_t LIGHT_Main(void) {
 
 	const time_t start = time(NULL);
 
-	const int32_t version = LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
+	LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
 
 	if (!bsp_file.vis_data_size) {
 		Com_Error(ERROR_FATAL, "No VIS information\n");
@@ -253,7 +253,7 @@ int32_t LIGHT_Main(void) {
 
 	FreeMaterials();
 
-	WriteBSPFile(va("maps/%s.bsp", map_base), version);
+	WriteBSPFile(va("maps/%s.bsp", map_base));
 
 	const time_t end = time(NULL);
 	const time_t duration = end - start;

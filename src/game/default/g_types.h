@@ -473,16 +473,6 @@ typedef struct g_entity_s g_entity_t;
 #define SF_ITEM_HOVER			0x00000004
 
 /**
- * @brief These are legacy spawn flags from Quake II. We maintain these simply
- * for backwards compatibility with old levels. They do nothing in QUETOO.
- */
-#define SF_NOT_EASY				0x00000100
-#define SF_NOT_MEDIUM			0x00000200
-#define SF_NOT_HARD				0x00000400
-#define SF_NOT_DEATHMATCH		0x00000800
-#define SF_NOT_COOP				0x00001000
-
-/**
  * @brief These spawn flags are actually set by the game module on entities
  * that are programmatically instantiated.
  */
@@ -1008,9 +998,7 @@ typedef struct {
 #define MAX_NET_NAME_PRINTABLE 15
 
 /**
- * @brief This structure contains client data that persists over multiple
- * spawns. Part of this is legacy code; "persistence" refers to saved game
- * state.
+ * @brief This structure contains client data that persists over multiple spawns.
  */
 typedef struct {
 	uint32_t first_frame; // g_level.frame_num the client entered the game

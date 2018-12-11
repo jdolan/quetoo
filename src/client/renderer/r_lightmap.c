@@ -89,8 +89,8 @@ void R_CreateBspSurfaceLightmap(const r_bsp_model_t *bsp, r_bsp_surface_t *surf,
 	lm->lm_mins[0] = lm->lm_mins[1] = FLT_MAX;
 	lm->lm_maxs[0] = lm->lm_maxs[1] = -FLT_MAX;
 
-	for (int32_t i = 0; i < surf->num_edges; i++) {
-		const int32_t e = bsp->file->face_edges[surf->first_edge + i];
+	for (int32_t i = 0; i < surf->num_face_edges; i++) {
+		const int32_t e = bsp->file->face_edges[surf->first_face_edge + i];
 		const bsp_vertex_t *v;
 
 		if (e >= 0) {
@@ -187,15 +187,9 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 				*lm++ = *in++;
 				*lm++ = *in++;
 
-				if (bsp->version == BSP_VERSION_QUETOO) {
-					*dm++ = *in++;
-					*dm++ = *in++;
-					*dm++ = *in++;
-				} else {
-					*dm++ = 127;
-					*dm++ = 127;
-					*dm++ = 255;
-				}
+				*dm++ = *in++;
+				*dm++ = *in++;
+				*dm++ = *in++;
 			} else {
 				*lm++ = 255;
 				*lm++ = 255;

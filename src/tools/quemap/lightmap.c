@@ -75,8 +75,9 @@ static void BuildLightmapExtents(lightmap_t *lm) {
 	lm->lm_mins[0] = lm->lm_mins[1] = FLT_MAX;
 	lm->lm_maxs[0] = lm->lm_maxs[1] = -FLT_MAX;
 
-	for (int32_t i = 0; i < lm->face->num_edges; i++) {
-		const int32_t e = bsp_file.face_edges[lm->face->first_edge + i];
+	for (int32_t i = 0; i < lm->face->num_face_edges; i++) {
+		const int32_t e = bsp_file.face_edges[lm->face->first_face_edge + i];
+
 		const bsp_vertex_t *v;
 
 		if (e >= 0) {
@@ -226,9 +227,9 @@ static int32_t FacesWithVert(int32_t vert, int32_t *faces) {
 			continue;
 		}
 
-		for (int32_t j = 0; j < face->num_edges; j++) {
+		for (int32_t j = 0; j < face->num_face_edges; j++) {
 
-			const int32_t e = bsp_file.face_edges[face->first_edge + j];
+			const int32_t e = bsp_file.face_edges[face->first_face_edge + j];
 			const int32_t v = e >= 0 ? bsp_file.edges[e].v[0] : bsp_file.edges[-e].v[1];
 
 			if (v == vert) { // face references vert
@@ -253,7 +254,7 @@ void BuildVertexNormals(void) {
 
 	for (int32_t i = 0; i < bsp_file.num_vertexes; i++) {
 
-		vec_t *normal = bsp_file.normals[i].normal;
+		vec_t *normal = bsp_file.vertexes[i].normal;
 		VectorClear(normal);
 
 		const int32_t count = FacesWithVert(i, vert_faces);
@@ -289,26 +290,20 @@ static int32_t PhongNormal_sort(const void *a, const void *b) {
  * the three nearest vertexes.
  */
 static void PhongNormal(const bsp_face_t *face, const vec3_t pos, vec3_t normal) {
-	phong_vertex_t verts[face->num_edges];
+	phong_vertex_t verts[face->num_face_edges];
 
-	for (int32_t i = 0; i < face->num_edges; i++) {
-		const int32_t e = bsp_file.face_edges[face->first_edge + i];
-		uint16_t v;
+	for (int32_t i = 0; i < face->num_face_edges; i++) {
+		const int32_t e = bsp_file.face_edges[face->first_face_edge + i];
+		const int32_t v = e >= 0 ? bsp_file.edges[e].v[0] : bsp_file.edges[-e].v[1];
 
-		if (e >= 0) {
-			v = bsp_file.edges[e].v[0];
-		} else {
-			v = bsp_file.edges[-e].v[1];
-		}
-
-		VectorCopy(bsp_file.normals[v].normal, verts[i].normal);
+		VectorCopy(bsp_file.vertexes[v].normal, verts[i].normal);
 
 		vec3_t delta;
 		VectorSubtract(pos, bsp_file.vertexes[v].point, delta);
 		verts[i].dist = VectorLength(delta);
 	}
 
-	qsort(verts, face->num_edges, sizeof(phong_vertex_t), PhongNormal_sort);
+	qsort(verts, face->num_face_edges, sizeof(phong_vertex_t), PhongNormal_sort);
 
 	VectorClear(normal);
 
@@ -571,17 +566,10 @@ void FinalizeLighting(int32_t face_num) {
 
 	bsp_face_t *f = &bsp_file.faces[face_num];
 
-	f->unused[0] = 0; // pack the old lightstyles array for legacy games
-	f->unused[1] = f->unused[2] = f->unused[3] = 255;
-
 	ThreadLock();
 
-	f->light_ofs = bsp_file.lightmap_data_size;
-	bsp_file.lightmap_data_size += lm->num_luxels * 3;
-
-	if (!legacy) { // account for light direction data as well
-		bsp_file.lightmap_data_size += lm->num_luxels * 3;
-	}
+	f->lightmap_ofs = bsp_file.lightmap_data_size;
+	bsp_file.lightmap_data_size += lm->num_luxels * 6;
 
 	if (bsp_file.lightmap_data_size > MAX_BSP_LIGHTING) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_LIGHTING\n");
@@ -590,7 +578,7 @@ void FinalizeLighting(int32_t face_num) {
 	ThreadUnlock();
 
 	// write it out
-	byte *dest = &bsp_file.lightmap_data[f->light_ofs];
+	byte *dest = &bsp_file.lightmap_data[f->lightmap_ofs];
 
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
@@ -611,35 +599,34 @@ void FinalizeLighting(int32_t face_num) {
 			*dest++ = (byte) Clamp(lightmap[j] * 255.0, 0, 255);
 		}
 
-		if (!legacy) { // write the deluxemap, also converted to bytes
-			vec3_t direction, deluxemap;
+		// write the deluxemap sample data, in tangent space, also converted to bytes
+		vec3_t direction, deluxemap;
 
-			// start with the raw direction data
-			VectorCopy(l->direction, direction);
+		// start with the raw direction data
+		VectorCopy(l->direction, direction);
 
-			// if the sample was lit, it will have a directional vector in world space
-			if (!VectorCompare(direction, vec3_origin)) {
+		// if the sample was lit, it will have a directional vector in world space
+		if (!VectorCompare(direction, vec3_origin)) {
 
-				vec4_t tangent;
-				vec3_t bitangent;
+			vec4_t tangent;
+			vec3_t bitangent;
 
-				TangentVectors(l->normal, lm->texinfo->vecs[0], lm->texinfo->vecs[1], tangent, bitangent);
+			TangentVectors(l->normal, lm->texinfo->vecs[0], lm->texinfo->vecs[1], tangent, bitangent);
 
-				// transform it into tangent space
-				deluxemap[0] = DotProduct(direction, tangent);
-				deluxemap[1] = DotProduct(direction, bitangent);
-				deluxemap[2] = DotProduct(direction, l->normal);
+			// transform it into tangent space
+			deluxemap[0] = DotProduct(direction, tangent);
+			deluxemap[1] = DotProduct(direction, bitangent);
+			deluxemap[2] = DotProduct(direction, l->normal);
 
-				VectorAdd(deluxemap, vec3_up, deluxemap);
-				VectorNormalize(deluxemap);
-			} else {
-				VectorCopy(vec3_up, deluxemap);
-			}
+			VectorAdd(deluxemap, vec3_up, deluxemap);
+			VectorNormalize(deluxemap);
+		} else {
+			VectorCopy(vec3_up, deluxemap);
+		}
 
-			// pack floating point -1.0 to 1.0 to positive bytes (0.0 becomes 127)
-			for (int32_t j = 0; j < 3; j++) {
-				*dest++ = (byte) Clamp((deluxemap[j] + 1.0) * 0.5 * 255.0, 0, 255);
-			}
+		// pack floating point -1.0 to 1.0 to positive bytes (0.0 becomes 127)
+		for (int32_t j = 0; j < 3; j++) {
+			*dest++ = (byte) Clamp((deluxemap[j] + 1.0) * 0.5 * 255.0, 0, 255);
 		}
 	}
 }

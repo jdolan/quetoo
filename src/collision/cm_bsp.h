@@ -14,8 +14,7 @@
  */
 
 #define BSP_IDENT (('P' << 24) + ('S' << 16) + ('B' << 8) + 'I') // "IBSP"
-#define BSP_VERSION	38
-#define BSP_VERSION_QUETOO 69 // haha, 69..
+#define BSP_VERSION	71
 
 // upper bounds of BSP format
 #define MAX_BSP_MODELS			0x400
@@ -63,7 +62,6 @@ typedef enum {
 	BSP_LUMP_POP,
 	BSP_LUMP_AREAS,
 	BSP_LUMP_AREA_PORTALS,
-	BSP_LUMP_NORMALS, // new for Quetoo
 
 	BSP_TOTAL_LUMPS,
 
@@ -89,11 +87,8 @@ typedef struct {
 
 typedef struct {
 	vec3_t point;
-} bsp_vertex_t;
-
-typedef struct {
 	vec3_t normal;
-} bsp_normal_t;
+} bsp_vertex_t;
 
 // planes (x & ~1) and (x & ~1) + 1 are always opposites
 
@@ -130,12 +125,11 @@ typedef struct {
 	uint16_t plane_num;
 	int16_t side;
 
-	int32_t first_edge; // we must support > 64k edges
-	uint16_t num_edges;
+	uint32_t first_face_edge;
+	uint16_t num_face_edges;
 	uint16_t texinfo;
 
-	byte unused[4]; // was light styles
-	uint32_t light_ofs; // start of samples in lighting lump
+	uint32_t lightmap_ofs; // start of samples in lighting lump
 } bsp_face_t;
 
 typedef struct {
@@ -253,9 +247,6 @@ typedef struct {
 	int32_t num_area_portals;
 	bsp_area_portal_t *area_portals;
 
-	int32_t num_normals;
-	bsp_normal_t *normals;
-
 	// local to bsp_file_t
 	bsp_lump_id_t loaded_lumps;
 } bsp_file_t;
@@ -268,6 +259,6 @@ void Bsp_UnloadLumps(bsp_file_t *bsp, const bsp_lump_id_t lump_bits);
 _Bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_id);
 _Bool Bsp_LoadLumps(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_bits);
 void Bsp_AllocLump(bsp_file_t *bsp, const bsp_lump_id_t lump_id, const size_t count);
-void Bsp_Write(file_t *file, const bsp_file_t *bsp, const int32_t version);
+void Bsp_Write(file_t *file, const bsp_file_t *bsp);
 int32_t Bsp_CompressVis(const bsp_file_t *bsp, const byte *vis, byte *dest);
 void Bsp_DecompressVis(const bsp_file_t *bsp, const byte *in, byte *out);

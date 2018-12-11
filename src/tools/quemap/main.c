@@ -40,7 +40,6 @@ char bsp_name[MAX_OS_PATH]; // the input bsp name (e.g. "maps/edge.bsp")
 
 _Bool verbose = false;
 _Bool debug = false;
-_Bool legacy = false;
 static _Bool is_monitor = false;
 
 static void Print(const char *msg);
@@ -317,7 +316,6 @@ static void PrintHelpMessage(void) {
 	Com_Print("General options\n");
 	Com_Print("-v --verbose\n");
 	Com_Print("-d --debug\n");
-	Com_Print("-l --legacy - compile a legacy Quake II map\n");
 	Com_Print("-t --threads <int> - Specify the number of worker threads (default auto)\n");
 	Com_Print("-p --path <game directory> - add the path to the search directory\n");
 	Com_Print("-w --wpath <game directory> - add the write path to the search directory\n");
@@ -435,11 +433,6 @@ int32_t main(int32_t argc, char **argv) {
 		if (!g_strcmp0(Com_Argv(i), "-d") || !g_strcmp0(Com_Argv(i), "--debug")) {
 			Com_SetDebug("all");
 			debug = true;
-			continue;
-		}
-
-		if (!g_strcmp0(Com_Argv(i), "-l") || !g_strcmp0(Com_Argv(i), "--legacy")) {
-			legacy = true;
 			continue;
 		}
 

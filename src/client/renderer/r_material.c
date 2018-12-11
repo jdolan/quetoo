@@ -418,13 +418,13 @@ static uint32_t r_material_vertex_count, r_material_index_count;
 static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_stage_t *stage) {
 
 	// expand array if we're gonna eat it
-	if (r_material_state.vertex_len <= (r_material_vertex_count + surf->num_edges)) {
+	if (r_material_state.vertex_len <= (r_material_vertex_count + surf->num_face_edges)) {
 		r_material_state.vertex_len *= 2;
 		r_material_state.vertex_array = g_array_set_size(r_material_state.vertex_array, r_material_state.vertex_len);
 		Com_Debug(DEBUG_RENDERER, "Expanded material vertex array to %u\n", r_material_state.vertex_len);
 	}
 
-	for (int32_t i = 0; i < surf->num_edges; i++) {
+	for (int32_t i = 0; i < surf->num_face_edges; i++) {
 
 		const vec_t *v = &r_model_state.world->bsp->verts[surf->elements[i]][0];
 		const vec_t *st = &r_model_state.world->bsp->texcoords[surf->elements[i]][0];
@@ -467,7 +467,7 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
 	// first # to render
 	ELEMENT_ARRAY_INDEX(r_material_index_count) = r_material_vertex_count;
 
-	r_material_vertex_count += surf->num_edges;
+	r_material_vertex_count += surf->num_face_edges;
 	r_material_index_count++;
 }
 
@@ -577,7 +577,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 			R_SetStageState(surf, s);
 
-			R_DrawArrays(GL_TRIANGLE_FAN, (GLint) ELEMENT_ARRAY_INDEX(si), surf->num_edges);
+			R_DrawArrays(GL_TRIANGLE_FAN, (GLint) ELEMENT_ARRAY_INDEX(si), surf->num_face_edges);
 
 			++si;
 		}

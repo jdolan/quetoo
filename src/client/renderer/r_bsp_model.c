@@ -56,25 +56,6 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 
 	for (uint16_t i = 0; i < r_unique_vertices.num_vertexes; i++, in++, out++) {
 		VectorCopy(in->point, out->position);
-	}
-}
-
-/**
- * @brief Populates r_bsp_vertex_t normals for the specified BSP model. Vertex
- * normals are packed in a separate lump to maintain compatibility with legacy
- * Quake2 levels.
- */
-static void R_LoadBspNormals(r_bsp_model_t *bsp) {
-
-	const bsp_normal_t *in = bsp->file->normals;
-
-	if (bsp->file->num_normals != r_unique_vertices.num_vertexes) { // ensure sane normals count
-		Com_Error(ERROR_DROP, "Bad count (%d != %d)\n", bsp->file->num_normals, r_unique_vertices.num_vertexes);
-	}
-
-	r_bsp_vertex_t *out = r_unique_vertices.vertexes;
-
-	for (uint16_t i = 0; i < r_unique_vertices.num_vertexes; i++, in++, out++) {
 		VectorCopy(in->normal, out->normal);
 	}
 }
@@ -116,8 +97,6 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
 	bsp->num_texinfo = bsp->file->num_texinfo;
 	bsp->texinfo = out = Mem_LinkMalloc(bsp->num_texinfo * sizeof(*out), bsp);
 
-	GHashTable *wal_files = NULL;
-
 	for (uint16_t i = 0; i < bsp->num_texinfo; i++, in++, out++) {
 		g_strlcpy(out->name, in->texture, sizeof(out->name));
 
@@ -131,34 +110,6 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
 		out->value = in->value;
 
 		out->material = R_LoadMaterial(out->name, ASSET_CONTEXT_TEXTURES);
-
-		// hack to down-scale high-res textures for legacy levels
-		if (bsp->version == BSP_VERSION) {
-
-			if (!wal_files) {
-				wal_files = g_hash_table_new(g_direct_hash, g_direct_equal);
-			}
-
-			if (!g_hash_table_contains(wal_files, out->material)) {
-				g_hash_table_add(wal_files, out->material);
-
-				void *buffer;
-
-				int64_t len = Fs_Load(va("textures/%s.wal", out->name), &buffer);
-				if (len != -1) {
-					d_wal_t *wal = (d_wal_t *) buffer;
-
-					out->material->diffuse->width = LittleLong(wal->width);
-					out->material->diffuse->height = LittleLong(wal->height);
-
-					Fs_Free(buffer);
-				}
-			}
-		}
-	}
-
-	if (wal_files) {
-		g_hash_table_destroy(wal_files);
 	}
 }
 
@@ -177,13 +128,13 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
 static const r_bsp_vertex_t *R_UnwindBspSurface(const r_bsp_model_t *bsp,
         const r_bsp_surface_t *surf, uint16_t *index) {
 
-	const int32_t *edges = &bsp->file->face_edges[surf->first_edge];
+	const int32_t *edges = &bsp->file->face_edges[surf->first_face_edge];
 
 	const r_bsp_vertex_t *v0 = R_BSP_VERTEX(bsp, edges[*index]);
-	while (*index < surf->num_edges - 1) {
+	while (*index < surf->num_face_edges - 1) {
 
-		const r_bsp_vertex_t *v1 = R_BSP_VERTEX(bsp, edges[(*index + 1) % surf->num_edges]);
-		const r_bsp_vertex_t *v2 = R_BSP_VERTEX(bsp, edges[(*index + 2) % surf->num_edges]);
+		const r_bsp_vertex_t *v1 = R_BSP_VERTEX(bsp, edges[(*index + 1) % surf->num_face_edges]);
+		const r_bsp_vertex_t *v2 = R_BSP_VERTEX(bsp, edges[(*index + 2) % surf->num_face_edges]);
 
 		*index = *index + 1;
 
@@ -215,9 +166,9 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 
 	const r_bsp_texinfo_t *tex = surf->texinfo;
 
-	const int32_t *e = &bsp->file->face_edges[surf->first_edge];
+	const int32_t *e = &bsp->file->face_edges[surf->first_face_edge];
 
-	for (uint16_t i = 0; i < surf->num_edges; i++, e++) {
+	for (uint16_t i = 0; i < surf->num_face_edges; i++, e++) {
 		const r_bsp_vertex_t *v = R_BSP_VERTEX(bsp, *e);
 
 		AddPointToBounds(v->position, surf->mins, surf->maxs); // calculate mins, maxs
@@ -282,8 +233,8 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
 
 	for (uint16_t i = 0; i < bsp->num_surfaces; i++, in++, out++) {
 
-		out->first_edge = in->first_edge;
-		out->num_edges = in->num_edges;
+		out->first_face_edge = in->first_face_edge;
+		out->num_face_edges = in->num_face_edges;
 
 		// resolve plane
 		const uint16_t plane_num = in->plane_num;
@@ -317,11 +268,11 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
 		R_SetupBspSurface(bsp, out);
 
 		// make room for elements
-		out->elements = Mem_LinkMalloc(sizeof(GLuint) * out->num_edges, bsp);
+		out->elements = Mem_LinkMalloc(sizeof(GLuint) * out->num_face_edges, bsp);
 
 		// lastly lighting info
-		const int32_t ofs = in->light_ofs;
-		const byte *data = (ofs == -1) ? NULL : bsp->file->lightmap_data + ofs;
+		const int32_t offset = in->lightmap_ofs;
+		const byte *data = (offset == -1) ? NULL : bsp->file->lightmap_data + offset;
 	
 		// to create the lightmap and deluxemap
 		R_CreateBspSurfaceLightmap(bsp, out, data);
@@ -632,9 +583,9 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 
 	surf->index = *elements;
 
-	const int32_t *e = &mod->bsp->file->face_edges[surf->first_edge];
+	const int32_t *e = &mod->bsp->file->face_edges[surf->first_face_edge];
 
-	for (uint16_t i = 0; i < surf->num_edges; i++, e++) {
+	for (uint16_t i = 0; i < surf->num_face_edges; i++, e++) {
 		const r_bsp_vertex_t *vert = R_BSP_VERTEX(mod->bsp, *e);
 
 		VectorCopy(vert->position, mod->bsp->verts[*vertices]);
@@ -743,7 +694,7 @@ void R_ExportBsp_f(void) {
 	for (size_t i = 0; i < world->bsp->num_surfaces; i++) {
 		const r_bsp_surface_t *surf = &world->bsp->surfaces[i];
 		
-		if (!surf->num_edges || !surf->texinfo->material) {
+		if (!surf->num_face_edges || !surf->texinfo->material) {
 			continue;
 		}
 
@@ -814,7 +765,7 @@ void R_ExportBsp_f(void) {
 		for (size_t i = 0; i < world->bsp->num_surfaces; i++) {
 			const r_bsp_surface_t *surf = &world->bsp->surfaces[i];
 
-			if (!surf->num_edges || !surf->texinfo->material) {
+			if (!surf->num_face_edges || !surf->texinfo->material) {
 				continue;
 			}
 
@@ -824,11 +775,11 @@ void R_ExportBsp_f(void) {
 
 			num_surfs++;
 	
-			const uint32_t *element = surf->elements + surf->num_edges - 1;
+			const uint32_t *element = surf->elements + surf->num_face_edges - 1;
 	
 			Fs_Print(file, "f ");
 
-			for (size_t i = 0; i < surf->num_edges; i++, element--) {
+			for (size_t i = 0; i < surf->num_face_edges; i++, element--) {
 				const uint32_t e = (*element) + 1;
 				Fs_Print(file, "%u/%u/%u ", e, e, e);
 			}
@@ -861,7 +812,7 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 
 		r_bsp_surface_t **s = leaf->first_leaf_surface;
 		for (uint16_t j = 0; j < leaf->num_leaf_surfaces; j++, s++) {
-			mod->num_verts += (*s)->num_edges;
+			mod->num_verts += (*s)->num_face_edges;
 		}
 	}
 
@@ -927,7 +878,7 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 		for (uint16_t j = 0; j < leaf->num_leaf_surfaces; j++, s++) {
 
 			r_bsp_surface_t *surf = (*s);
-			for (uint16_t k = 0; k < surf->num_edges; k++, ei++) {
+			for (uint16_t k = 0; k < surf->num_face_edges; k++, ei++) {
 				elements[ei] = surf->elements[k];
 			}
 		}
@@ -1108,12 +1059,6 @@ static void R_LoadBspSurfacesArrays(r_model_t *mod) {
 	(1 << BSP_LUMP_LEAF_FACES)
 
 /**
- * @brief Extra lumps we need to load for the R subsystem.
- */
-#define R_BSP_LUMPS_ENHANCED \
-	(1 << BSP_LUMP_NORMALS)
-
-/**
  * @brief
  */
 void R_LoadBspModel(r_model_t *mod, void *buffer) {
@@ -1125,27 +1070,14 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	mod->bsp->cm = Cm_Bsp();
 	mod->bsp->file = &mod->bsp->cm->bsp;
 
-	int32_t version = Bsp_Verify(file);
-
 	// load in lumps that the renderer needs
 	Bsp_LoadLumps(file, mod->bsp->file, R_BSP_LUMPS);
-
-	if (version == BSP_VERSION_QUETOO) { // enhanced format
-		Bsp_LoadLumps(file, mod->bsp->file, R_BSP_LUMPS_ENHANCED);
-	}
-
-	mod->bsp->version = version;
 
 	Cl_LoadingProgress(2, "materials");
 	R_LoadModelMaterials(mod);
 
 	Cl_LoadingProgress(4, "vertices");
 	R_LoadBspVertexes(mod->bsp);
-
-	if (version == BSP_VERSION_QUETOO) {
-		Cl_LoadingProgress(6, "normals");
-		R_LoadBspNormals(mod->bsp);
-	}
 
 	Cl_LoadingProgress(8, "lightmaps");
 	R_LoadBspLightmaps(mod->bsp);

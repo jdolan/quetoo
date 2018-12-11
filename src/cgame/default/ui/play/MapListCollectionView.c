@@ -118,7 +118,7 @@ static void enumerateMaps(const char *path, void *data) {
 				((int32_t *) &header)[i] = LittleLong(((int32_t *) &header)[i]);
 			}
 
-			if (header.version != BSP_VERSION && header.version != BSP_VERSION_QUETOO) {
+			if (header.version != BSP_VERSION) {
 				cgi.Warn("Invalid BSP header found in %s: %d\n", path, header.version);
 				cgi.CloseFile(file);
 				return;

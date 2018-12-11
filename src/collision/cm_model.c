@@ -404,14 +404,12 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	bsp_header_t *file;
 
 	if (Fs_Load(name, (void **) &file) == -1) {
-		Com_Error(ERROR_DROP, "Couldn't load %s\n", name);
+		Com_Error(ERROR_DROP, "Failed to load %s\n", name);
 	}
 
-	int32_t version = Bsp_Verify(file);
-
-	if (version != BSP_VERSION && version != BSP_VERSION_QUETOO) {
+	if (Bsp_Verify(file) == -1) {
 		Fs_Free(file);
-		Com_Error(ERROR_DROP, "%s has unsupported version: %d\n", name, version);
+		Com_Error(ERROR_DROP, "Failed to verify %s\n", name);
 	}
 
 	if (!Bsp_LoadLumps(file, &cm_bsp.bsp, CM_BSP_LUMPS)) {
@@ -540,6 +538,5 @@ int32_t Cm_LeafArea(const int32_t leaf_num) {
  * @brief
  */
 cm_bsp_t *Cm_Bsp(void) {
-
 	return &cm_bsp;
 }

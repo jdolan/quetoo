@@ -693,19 +693,9 @@ static void G_InitSpawnPoints(void) {
 	// first, set up all of the deathmatch points
 	GSList *dm_spawns = NULL;
 	g_entity_t *spot = NULL;
-	
+
 	while ((spot = G_Find(spot, EOFS(class_name), "info_player_deathmatch")) != NULL) {
 		dm_spawns = g_slist_prepend(dm_spawns, spot);
-	}
-
-	spot = NULL;
-
-	// for legacy maps
-	if (!g_slist_length(dm_spawns)) {
-
-		while ((spot = G_Find(spot, EOFS(class_name), "info_player_start")) != NULL) {
-			dm_spawns = g_slist_prepend(dm_spawns, spot);
-		}
 	}
 	
 	// find the team points, if we have any explicit ones in the map.
@@ -906,16 +896,6 @@ void G_SpawnEntities(const char *name, const char *entities) {
 					continue;
 				}
 			}
-
-			// handle legacy spawn flags
-			if (ent->locals.spawn_flags & SF_NOT_DEATHMATCH) {
-				G_FreeEntity(ent);
-				inhibited++;
-				continue;
-			}
-
-			// strip away unsupported flags
-			ent->locals.spawn_flags &= ~(SF_NOT_EASY | SF_NOT_MEDIUM | SF_NOT_HARD | SF_NOT_COOP);
 		}
 
 		if (!G_SpawnEntity(ent)) {

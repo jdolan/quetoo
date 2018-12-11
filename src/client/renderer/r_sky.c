@@ -272,12 +272,12 @@ static void R_AddSkySurface(const r_bsp_surface_t *surf) {
 	}
 
 	// calculate distance to surface verts
-	for (i = 0; i < surf->num_edges; i++) {
+	for (i = 0; i < surf->num_face_edges; i++) {
 		const vec_t *v = &r_model_state.world->bsp->verts[surf->elements[i]][0];
 		VectorSubtract(v, r_view.origin, verts[i]);
 	}
 
-	R_ClipSkySurface(surf->num_edges, verts[0], 0);
+	R_ClipSkySurface(surf->num_face_edges, verts[0], 0);
 }
 
 /**

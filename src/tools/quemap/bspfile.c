@@ -55,9 +55,6 @@ static void PrintBSPFileSizes(void) {
 	Com_Verbose("%5i vertexes     %7i\n", bsp_file.num_vertexes,
 	            (int32_t) (bsp_file.num_vertexes * sizeof(bsp_vertex_t)));
 
-	Com_Verbose("%5i normals      %7i\n", bsp_file.num_normals,
-	            (int32_t) (bsp_file.num_normals * sizeof(bsp_normal_t)));
-
 	Com_Verbose("%5i nodes        %7i\n", bsp_file.num_nodes,
 	            (int32_t) (bsp_file.num_nodes * sizeof(bsp_node_t)));
 
@@ -278,37 +275,33 @@ void VectorForKey(const entity_t *ent, const char *key, vec3_t out, const vec3_t
 /**
  * @brief
  */
-int32_t LoadBSPFile(const char *filename, const bsp_lump_id_t lumps) {
+void LoadBSPFile(const char *filename, const bsp_lump_id_t lumps) {
 
 	memset(&bsp_file, 0, sizeof(bsp_file));
 
 	bsp_header_t *file;
 
 	if (Fs_Load(filename, (void **) &file) == -1) {
-		Com_Error(ERROR_FATAL, "Invalid BSP file at %s\n", filename);
+		Com_Error(ERROR_FATAL, "Failed to load %s\n", filename);
 	}
 
-	const int32_t version = Bsp_Verify(file);
-
-	if (!version) {
+	if (Bsp_Verify(file) == -1) {
 		Fs_Free(file);
-		Com_Error(ERROR_FATAL, "Invalid BSP file at %s\n", filename);
+		Com_Error(ERROR_FATAL, "Failed to verify %s\n", filename);
 	}
 
 	Bsp_LoadLumps(file, &bsp_file, lumps);
 	Fs_Free(file);
-
-	return version;
 }
 
 /**
  * @brief
  */
-void WriteBSPFile(const char *filename, const int32_t version) {
+void WriteBSPFile(const char *filename) {
 
 	file_t *file = Fs_OpenWrite(filename);
 
-	Bsp_Write(file, &bsp_file, version);
+	Bsp_Write(file, &bsp_file);
 
 	Fs_Close(file);
 

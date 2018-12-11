@@ -523,8 +523,8 @@ typedef struct {
 	cm_bsp_plane_t *plane;
 	uint16_t flags; // R_SURF flags
 
-	int32_t first_edge; // look up in model->surf_edges, negative numbers
-	uint16_t num_edges; // are backwards edges
+	int32_t first_face_edge; // look up in model->surf_edges, negative numbers
+	uint16_t num_face_edges; // are backwards edges
 
 	vec3_t mins;
 	vec3_t maxs;
@@ -697,7 +697,6 @@ typedef struct {
 
 // BSP model, used for maps
 typedef struct {
-	int32_t version;
 
 	/**
 	 * @brief Reference to the cm_ bsp that is currently loaded. We use this

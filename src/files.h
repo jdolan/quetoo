@@ -24,20 +24,6 @@
 #include "shared.h"
 
 /**
- * @brief Quake2 .wal legacy texture format.
- */
-typedef struct {
-	char name[32];
-	uint32_t width;
-	uint32_t height;
-	uint32_t offsets[4]; // four mip maps stored
-	char anim_name[32]; // next frame in animation chain, not used
-	uint32_t flags;
-	int32_t contents;
-	int32_t value;
-} d_wal_t;
-
-/**
  * @brief Quake3 .md3 model format.
  */
 #define MD3_HEADER			(('3'<<24)+('P'<<16)+('D'<<8)+'I')

@@ -342,7 +342,7 @@ void R_DrawBspNormals(void) {
 			continue;    // don't care
 		}
 
-		for (uint16_t j = 0; j < surf->num_edges; j++) {
+		for (uint16_t j = 0; j < surf->num_face_edges; j++) {
 			const vec_t *vertex = &r_model_state.world->bsp->verts[surf->elements[j]][0];
 			const vec_t *normal = &r_model_state.world->bsp->normals[surf->elements[j]][0];
 
@@ -418,7 +418,7 @@ void R_DrawBspLeafs(void) {
 				continue;
 			}
 
-			R_DrawArrays(GL_TRIANGLE_FAN, (*s)->index, (*s)->num_edges);
+			R_DrawArrays(GL_TRIANGLE_FAN, (*s)->index, (*s)->num_face_edges);
 		}
 	}
 

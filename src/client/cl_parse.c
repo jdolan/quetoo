@@ -485,7 +485,7 @@ void Cl_ParseServerMessage(void) {
 				if (cls.download.file) {
 					if (cls.download.http) { // clean up http downloads
 						Cl_HttpDownload_Complete();
-					} else { // or just stop legacy ones
+					} else { // or just stop UDP ones
 						Fs_Close(cls.download.file);
 					}
 					cls.download.name[0] = '\0';
