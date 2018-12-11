@@ -650,7 +650,7 @@ static const char *vote_cmds[] = {
 	NULL
 };
 
-static GList *vote_cvars; // temp number so it doesn't have to be dynamically allocated
+static GList *vote_cvars;
 
 /**
  * @brief Create g_vote_allow_<vote> CVars
@@ -673,6 +673,7 @@ void G_InitVote(void) {
  */
 void G_ShutdownVote(void) {
 	g_list_free(vote_cvars);
+	vote_cvars = NULL;
 }
 
 /**
