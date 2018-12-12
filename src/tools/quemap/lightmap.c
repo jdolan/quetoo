@@ -77,7 +77,6 @@ static void BuildLightmapExtents(lightmap_t *lm) {
 
 	for (int32_t i = 0; i < lm->face->num_face_edges; i++) {
 		const int32_t e = bsp_file.face_edges[lm->face->first_face_edge + i];
-
 		const bsp_vertex_t *v;
 
 		if (e >= 0) {

@@ -33,9 +33,6 @@ typedef struct {
 	vec3_t indirect;
 } luxel_t;
 
-/**
- * @brief Face texture extents.
- */
 typedef struct {
 	const bsp_face_t *face;
 	const bsp_plane_t *plane;
