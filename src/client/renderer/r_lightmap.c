@@ -99,11 +99,8 @@ void R_CreateBspSurfaceLightmap(const r_bsp_model_t *bsp, r_bsp_surface_t *surf,
 			v = bsp->file->vertexes + bsp->file->edges[-e].v[1];
 		}
 
-		vec3_t point, st;
-		//VectorAdd(surf->offset, v->point, point); FIXME: Model offset?
-		VectorCopy(v->point, point);
-
-		Matrix4x4_Transform(&lm->matrix, point, st);
+		vec3_t st;
+		Matrix4x4_Transform(&lm->matrix, v->point, st);
 
 		for (int32_t j = 0; j < 2; j++) {
 
@@ -204,8 +201,7 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 }
 
 /**
- * @brief Uploads sorted lightmaps from start to (end - 1) and
- * puts them in the new maps sized to width/height
+ * @brief Uploads sorted lightmaps from start (inclusive) to end (exclusive).
  */
 static void R_UploadLightmaps(const r_bsp_model_t *bsp, const r_atlas_packer_t *packer,
 							  uint32_t width, uint32_t height, GSList *start, GSList *end) {
