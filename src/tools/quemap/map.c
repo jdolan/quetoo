@@ -84,10 +84,10 @@ static _Bool PlaneEqual(const map_plane_t *p, const vec3_t normal, const dvec_t 
 	const vec_t ne = NORMAL_EPSILON;
 	const dvec_t de = DIST_EPSILON;
 
-	if ((p->dist == dist || fabsl(p->dist - dist) < de) && (p->normal[0] == normal[0] || fabs(
-	            p->normal[0] - normal[0]) < ne) && (p->normal[1] == normal[1] || fabs(
-	                        p->normal[1] - normal[1]) < ne) && (p->normal[2] == normal[2] || fabs(
-	                                    p->normal[2] - normal[2]) < ne)) {
+	if ((p->dist == dist || fabsl(p->dist - dist) < de) &&
+		(p->normal[0] == normal[0] || fabs(p->normal[0] - normal[0]) < ne) &&
+		(p->normal[1] == normal[1] || fabs(p->normal[1] - normal[1]) < ne) &&
+		(p->normal[2] == normal[2] || fabs(p->normal[2] - normal[2]) < ne)) {
 		return true;
 	}
 

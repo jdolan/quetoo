@@ -35,7 +35,7 @@ _Bool no_csg = false;
 _Bool no_weld = false;
 _Bool no_share = false;
 _Bool no_tjunc = false;
-_Bool leaktest = false;
+_Bool leak_test = false;
 
 int32_t block_xl = -8, block_xh = 7, block_yl = -8, block_yh = 7;
 
@@ -207,8 +207,8 @@ static void ProcessWorldModel(void) {
 			leaked = true;
 			LeakFile(tree);
 
-			if (leaktest) {
-				Com_Error(ERROR_FATAL, "!--- MAP LEAKED, ABORTING LEAKTEST ---\n");
+			if (leak_test) {
+				Com_Error(ERROR_FATAL, "!--- MAP LEAKED, ABORTING LEAK TEST ---\n");
 			}
 			Com_Verbose("**** leaked ****\n");
 		}

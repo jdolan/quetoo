@@ -213,7 +213,7 @@ static void Check_BSP_Options(int32_t argc) {
 			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "--leak-test")) {
 			Com_Verbose("leak-test = true\n");
-			leaktest = true;
+			leak_test = true;
 		} else if (!g_strcmp0(Com_Argv(i), "--block")) {
 			block_xl = block_xh = atoi(Com_Argv(i + 1));
 			block_yl = block_yh = atoi(Com_Argv(i + 2));
