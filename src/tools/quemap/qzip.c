@@ -105,7 +105,7 @@ static void AddImage(const char *image, _Bool required) {
 /**
  * @brief Adds the sky environment map.
  */
-static void AddSky(char *sky) {
+static void AddSky(const char *sky) {
 	const char *suffix[] = { "rt", "bk", "lf", "ft", "up", "dn", NULL };
 	const char **suf = suffix;
 
@@ -185,7 +185,7 @@ static void AddTextures(void) {
 /**
  * @brief Attempts to add the specified mesh model.
  */
-static void AddModel(char *model) {
+static void AddModel(const char *model) {
 	const char *model_formats[] = { "md3", "obj", NULL };
 	char path[MAX_QPATH];
 
