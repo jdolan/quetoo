@@ -208,8 +208,8 @@ static void Cm_LoadBspBrushSides(void) {
 	const int32_t num_brush_sides = cm_bsp.bsp.num_brush_sides;
 	const bsp_brush_side_t *in = cm_bsp.bsp.brush_sides;
 
-	cm_bsp_brush_side_t *out = cm_bsp.brush_sides = Mem_TagMalloc(sizeof(cm_bsp_brush_side_t) * (num_brush_sides + 6),
-	                           MEM_TAG_CMODEL); // extra for box hull
+	cm_bsp_brush_side_t *out = cm_bsp.brush_sides = Mem_TagMalloc(sizeof(cm_bsp_brush_side_t) *
+				(num_brush_sides + 6), MEM_TAG_CMODEL); // extra for box hull
 
 	for (int32_t i = 0; i < num_brush_sides; i++, in++, out++) {
 
@@ -226,9 +226,8 @@ static void Cm_LoadBspBrushSides(void) {
 		if (s == USHRT_MAX) {
 			out->surface = &null_texinfo;
 		} else {
-			// NOTE: "surface" and "texinfo" are used interchangably here. yuck.
 			if (s >= cm_bsp.bsp.num_texinfo) {
-				Com_Error(ERROR_DROP, "Brush side %d has invalid surface %d\n", i, s);
+				Com_Error(ERROR_DROP, "Brush side %d has invalid texinfo %d\n", i, s);
 			}
 
 			out->surface = &cm_bsp.texinfos[s];
