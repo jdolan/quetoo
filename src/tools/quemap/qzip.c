@@ -219,10 +219,10 @@ static void AddModel(const char *model) {
  */
 static void AddEntities(void) {
 
-	ParseEntities();
+	GList *entities = Cm_LoadEntities(bsp_file.entity_string);
 
-	for (uint16_t i = 0; i < num_entities; i++) {
-		const epair_t *e = entities[i].epairs;
+	for (GList *entity = entities; entity; entity = entity->next) {
+		const cm_entity_t *e = entity->data;
 		while (e) {
 
 			if (!g_strcmp0(e->key, "noise") || !g_strcmp0(e->key, "sound")) {
@@ -236,6 +236,8 @@ static void AddEntities(void) {
 			e = e->next;
 		}
 	}
+
+	g_list_free_full(entities, Mem_Free);
 }
 
 /**
