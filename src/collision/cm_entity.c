@@ -84,3 +84,14 @@ const char *Cm_EntityValue(const cm_entity_t *entity, const char *key) {
 
 	return NULL;
 }
+
+/**
+ * @brief
+ */
+size_t Cm_EntityVector(const cm_entity_t *entity, const char *key, vec_t *out, size_t count) {
+
+	parser_t parser;
+	Parse_Init(&parser, Cm_EntityValue(entity, key), PARSER_DEFAULT);
+
+	return Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, out, count);
+}

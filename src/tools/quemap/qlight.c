@@ -138,47 +138,46 @@ static void LightWorld(void) {
 		bsp_models[i] = Cm_Model(va("*%d", i));
 	}
 
-	const entity_t *e = &entities[0];
+	// resolve global lighting parameters from worldspawn
+
+	GList *entities = Cm_LoadEntities(bsp_file.entity_string);
+	const cm_entity_t *e = entities->data;
 
 	if (brightness == 1.0) {
-		const vec_t v = FloatForKey(e, "brightness", 0.0);
-		if (v > 0.0) {
-			brightness = v;
+		if (Cm_EntityVector(e, "brightness", &brightness, 1) == 1) {
 			Com_Verbose("Brightness: %g\n", brightness);
 		}
 	}
 
 	if (saturation == 1.0) {
-		const vec_t  v = FloatForKey(e, "saturation", 0.0);
-		if (v > 0.0) {
-			saturation = v;
+		if (Cm_EntityVector(e, "saturation", &saturation, 1) == 1) {
 			Com_Verbose("Saturation: %g\n", saturation);
 		}
 	}
 
 	if (contrast == 1.0) {
-		const vec_t v = FloatForKey(e, "contrast", 0.0);
-		if (v > 0.0) {
-			contrast = v;
+		if (Cm_EntityVector(e, "contrast", &contrast, 1) == 1) {
 			Com_Verbose("Contrast: %g\n", contrast);
 		}
 	}
 
 	if (luxel_size == DEFAULT_BSP_LUXEL_SIZE) {
-		const vec_t v = FloatForKey(e, "luxel_size", 0.0);
-		if (v > 0.0) {
+		vec_t v;
+		if (Cm_EntityVector(e, "luxel_size", &v, 1) == 1) {
 			luxel_size = v;
 			Com_Verbose("Luxel size: %d\n", luxel_size);
 		}
 	}
 
 	if (patch_size == DEFAULT_BSP_PATCH_SIZE) {
-		const vec_t v = FloatForKey(e, "patch_size", 0.0);
-		if (v > 0.0) {
+		vec_t v;
+		if (Cm_EntityVector(e, "patch_size", &v, 1) == 1) {
 			patch_size = v;
 			Com_Verbose("Patch size: %d\n", patch_size);
 		}
 	}
+
+	g_list_free_full(entities, Mem_Free);
 
 	// turn each face into a single patch
 	BuildPatches();
@@ -240,8 +239,6 @@ int32_t LIGHT_Main(void) {
 	if (!bsp_file.vis_data_size) {
 		Com_Error(ERROR_FATAL, "No VIS information\n");
 	}
-
-	ParseEntities();
 
 	LoadMaterials(va("materials/%s.mat", map_base), ASSET_CONTEXT_TEXTURES, NULL);
 
