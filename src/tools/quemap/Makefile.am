@@ -3,6 +3,7 @@ bin_PROGRAMS = \
 
 noinst_HEADERS = \
 	bspfile.h \
+	entity.h \
 	light.h \
 	lightmap.h \
 	materials.h \
@@ -14,13 +15,13 @@ noinst_HEADERS = \
 	qlight.h \
 	qmat.h \
 	qvis.h \
-	qzip.h \
-	scriptlib.h
+	qzip.h
 
 quemap_SOURCES = \
 	brush.c \
 	bspfile.c \
 	csg.c \
+	entity.c \
 	faces.c \
 	flow.c \
 	leakfile.c \
@@ -40,7 +41,6 @@ quemap_SOURCES = \
 	qlight.c \
 	qvis.c \
 	qzip.c \
-	scriptlib.c \
 	textures.c \
 	threads.c \
 	tjunctions.c \

@@ -22,7 +22,6 @@
 #include "quemap.h"
 #include "qbsp.h"
 #include "materials.h"
-#include "scriptlib.h"
 
 vec_t micro_volume = 0.125;
 _Bool no_prune = false;
@@ -332,12 +331,9 @@ int32_t BSP_Main(void) {
 	if (only_ents) {
 
 		LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
-		num_entities = 0;
-
 		LoadMapFile(map_name);
-		SetModelNumbers();
 
-		UnparseEntities();
+		EmitEntities();
 
 		WriteBSPFile(va("maps/%s.bsp", map_base));
 	} else {
@@ -349,14 +345,11 @@ int32_t BSP_Main(void) {
 		CreateBSPFile();
 
 		LoadMapFile(map_name);
-		SetModelNumbers();
 
 		ProcessModels();
 	}
 
 	FreeMaterials();
-
-	UnloadScriptFiles();
 
 	const time_t end = time(NULL);
 	const time_t duration = end - start;

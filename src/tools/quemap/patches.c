@@ -112,37 +112,36 @@ static void BuildPatch(int32_t fn, winding_t *w) {
 /**
  * @brief
  */
-static entity_t *EntityForModel(int32_t num) {
+static cm_entity_t *EntityForModel(const GList *entities, int32_t num) {
+	char model[16];
 
-	char name[16];
-	g_snprintf(name, sizeof(name), "*%i", num);
+	g_snprintf(model, sizeof(model), "*%d", num);
 
-	// search the entities for one using modnum
-	for (int32_t i = 0; i < num_entities; i++) {
-
-		const char *s = ValueForKey(&entities[i], "model", NULL);
-		if (!g_strcmp0(s, name)) {
-			return &entities[i];
+	for (const GList *e = entities; e; e = e->next) {
+		if (!g_strcmp0(Cm_EntityValue(e->data, "model"), model)) {
+			return e->data;
 		}
 	}
 
-	return &entities[0];
+	return entities->data;
 }
 
 /**
  * @brief Create surface fragments for light-emitting surfaces so that light sources
  * may be computed along them.
  */
-void BuildPatches(void) {
+void BuildPatches(const GList *entities) {
 
 	for (int32_t i = 0; i < bsp_file.num_models; i++) {
 
 		const bsp_model_t *mod = &bsp_file.models[i];
-		const entity_t *ent = EntityForModel(i);
+		const cm_entity_t *ent = EntityForModel(entities, i);
 
 		// inline models need to be offset into their in-use position
 		vec3_t origin;
-		VectorForKey(ent, "origin", origin, NULL);
+		if (Cm_EntityVector(ent, "origin", origin, 3) != 3) {
+			VectorCopy(vec3_origin, origin);
+		}
 
 		for (int32_t j = 0; j < mod->num_faces; j++) {
 

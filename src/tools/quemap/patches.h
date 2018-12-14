@@ -38,5 +38,5 @@ extern vec3_t patch_offsets[MAX_BSP_FACES];
 void BuildTextureColors(void);
 void GetTextureColor(const char *name, vec3_t color);
 void FreeTextureColors(void);
-void BuildPatches(void);
+void BuildPatches(const GList *entities);
 void SubdividePatches(void);

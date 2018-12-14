@@ -265,34 +265,19 @@ static int32_t EmitDrawNode_r(node_t *node) {
  * @brief
  */
 void WriteBSP(node_t *head_node) {
-	int32_t old_faces;
 
 	c_nofaces = 0;
 	c_facenodes = 0;
 
 	Com_Verbose("--- WriteBSP ---\n");
 
-	old_faces = bsp_file.num_faces;
+	const int32_t old_faces = bsp_file.num_faces;
 
 	bsp_file.models[bsp_file.num_models].head_node = EmitDrawNode_r(head_node);
 
 	Com_Verbose("%5i nodes with faces\n", c_facenodes);
 	Com_Verbose("%5i nodes without faces\n", c_nofaces);
 	Com_Verbose("%5i faces\n", bsp_file.num_faces - old_faces);
-}
-
-/**
- * @brief
- */
-void SetModelNumbers(void) {
-
-	// 0 is the world - start at 1
-	int32_t models = 1;
-	for (int32_t i = 1; i < num_entities; i++) {
-		if (entities[i].num_brushes) {
-			SetKeyValue(&entities[i], "model", va("*%d", models++));
-		}
-	}
 }
 
 /**
@@ -368,6 +353,36 @@ static void EmitBrushes(void) {
 }
 
 /**
+ * @brief Generates the entity string from all retained entities.
+ */
+void EmitEntities(void) {
+
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_ENTITIES, MAX_BSP_ENT_STRING);
+
+	char *out = bsp_file.entity_string;
+
+	for (int32_t i = 0; i < num_entities; i++) {
+		const entity_key_value_t *e = entities[i].values;
+		if (e) {
+			g_strlcat(out, "{\n", MAX_BSP_ENT_STRING);
+			while (e) {
+				g_strlcat(out, va(" \"%s\" \"%s\"\n", e->key, e->value), MAX_BSP_ENT_STRING);
+				e = e->next;
+			}
+			g_strlcat(out, "}\n", MAX_BSP_ENT_STRING);
+		}
+	}
+
+	const size_t len = strlen(out);
+
+	if (len == MAX_BSP_ENT_STRING - 1) {
+		Com_Error(ERROR_FATAL, "MAX_BSP_ENT_STRING\n");
+	}
+
+	bsp_file.entity_string_size = (int32_t) len + 1;
+}
+
+/**
  * @brief
  */
 void BeginBSPFile(void) {
@@ -391,8 +406,7 @@ void EndBSPFile(void) {
 	EmitBrushes();
 	EmitPlanes();
 	EmitAreaPortals();
-
-	UnparseEntities();
+	EmitEntities();
 
 	WriteBSPFile(va("maps/%s.bsp", map_base));
 }

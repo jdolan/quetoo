@@ -144,6 +144,7 @@
 		CE30BF242040A8FD004A8DDE /* matrix.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE30BF232040A8E9004A8DDE /* matrix.glsl */; };
 		CE32529D1F760D3F00512523 /* BindTextView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE32529B1F760D3F00512523 /* BindTextView.c */; };
 		CE32529E1F760D3F00512523 /* BindTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE32529C1F760D3F00512523 /* BindTextView.h */; };
+		CE34099021C2D52500989FC9 /* entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CE34098F21C2D52500989FC9 /* entity.c */; };
 		CE3BCDC91DB6DD81002E6C6D /* r_program_null.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3BCDB91DB6DCE0002E6C6D /* r_program_null.c */; };
 		CE3BCDCA1DB6DD87002E6C6D /* r_program_null.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3BCDBA1DB6DCE0002E6C6D /* r_program_null.h */; };
 		CE40147B204B9EF0009FD74E /* libphysfs.3.0.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE40147A204B9EF0009FD74E /* libphysfs.3.0.1.dylib */; };
@@ -511,7 +512,6 @@
 		CE80FFF41C5E4D1800A21A51 /* qmat.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6FE1C5C58C300CD0B13 /* qmat.c */; };
 		CE80FFF51C5E4D1800A21A51 /* qvis.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7001C5C58C300CD0B13 /* qvis.c */; };
 		CE80FFF61C5E4D1800A21A51 /* qzip.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7021C5C58C300CD0B13 /* qzip.c */; };
-		CE80FFF71C5E4D1800A21A51 /* scriptlib.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7031C5C58C300CD0B13 /* scriptlib.c */; };
 		CE80FFF81C5E4D1800A21A51 /* textures.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7051C5C58C300CD0B13 /* textures.c */; };
 		CE80FFF91C5E4D1800A21A51 /* threads.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7061C5C58C300CD0B13 /* threads.c */; };
 		CE80FFFA1C5E4D1800A21A51 /* tree.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7071C5C58C300CD0B13 /* tree.c */; };
@@ -1762,8 +1762,6 @@
 		CE12D7001C5C58C300CD0B13 /* qvis.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = qvis.c; sourceTree = "<group>"; };
 		CE12D7011C5C58C300CD0B13 /* qvis.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = qvis.h; sourceTree = "<group>"; };
 		CE12D7021C5C58C300CD0B13 /* qzip.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = qzip.c; sourceTree = "<group>"; };
-		CE12D7031C5C58C300CD0B13 /* scriptlib.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = scriptlib.c; sourceTree = "<group>"; };
-		CE12D7041C5C58C300CD0B13 /* scriptlib.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = scriptlib.h; sourceTree = "<group>"; };
 		CE12D7051C5C58C300CD0B13 /* textures.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = textures.c; sourceTree = "<group>"; };
 		CE12D7061C5C58C300CD0B13 /* threads.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = threads.c; sourceTree = "<group>"; };
 		CE12D7071C5C58C300CD0B13 /* tree.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tree.c; sourceTree = "<group>"; };
@@ -1838,6 +1836,8 @@
 		CE3208511EBF518D00A92FF3 /* libsndfile.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsndfile.1.dylib; path = /opt/local/lib/libsndfile.1.dylib; sourceTree = "<absolute>"; };
 		CE32529B1F760D3F00512523 /* BindTextView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = BindTextView.c; sourceTree = "<group>"; };
 		CE32529C1F760D3F00512523 /* BindTextView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BindTextView.h; sourceTree = "<group>"; };
+		CE34098E21C2D52500989FC9 /* entity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = entity.h; sourceTree = "<group>"; };
+		CE34098F21C2D52500989FC9 /* entity.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = entity.c; sourceTree = "<group>"; };
 		CE3BCDB91DB6DCE0002E6C6D /* r_program_null.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_program_null.c; sourceTree = "<group>"; };
 		CE3BCDBA1DB6DCE0002E6C6D /* r_program_null.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_program_null.h; sourceTree = "<group>"; };
 		CE3BCDC31DB6DD05002E6C6D /* null_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = null_fs.glsl; sourceTree = "<group>"; };
@@ -3227,6 +3227,8 @@
 				CE12D6E71C5C58C300CD0B13 /* bspfile.c */,
 				CE12D6E81C5C58C300CD0B13 /* bspfile.h */,
 				CE12D6E91C5C58C300CD0B13 /* csg.c */,
+				CE34098F21C2D52500989FC9 /* entity.c */,
+				CE34098E21C2D52500989FC9 /* entity.h */,
 				CE12D6EA1C5C58C300CD0B13 /* faces.c */,
 				CE12D6EB1C5C58C300CD0B13 /* flow.c */,
 				CE12D6EC1C5C58C300CD0B13 /* leakfile.c */,
@@ -3260,8 +3262,6 @@
 				CE12D7011C5C58C300CD0B13 /* qvis.h */,
 				CE12D7021C5C58C300CD0B13 /* qzip.c */,
 				CE6FF29C1E9E6FBA00F3C160 /* qzip.h */,
-				CE12D7031C5C58C300CD0B13 /* scriptlib.c */,
-				CE12D7041C5C58C300CD0B13 /* scriptlib.h */,
 				CE12D7051C5C58C300CD0B13 /* textures.c */,
 				CE12D7061C5C58C300CD0B13 /* threads.c */,
 				CE91924C2055731E007AC8FF /* tjunctions.c */,
@@ -5140,6 +5140,7 @@
 				CE80FFE51C5E4D1800A21A51 /* csg.c in Sources */,
 				CE80FFE61C5E4D1800A21A51 /* faces.c in Sources */,
 				CE80FFE71C5E4D1800A21A51 /* flow.c in Sources */,
+				CE34099021C2D52500989FC9 /* entity.c in Sources */,
 				CE80FFE81C5E4D1800A21A51 /* leakfile.c in Sources */,
 				CEBDB0C6214A02B500A7AC3D /* light.c in Sources */,
 				CE80FFE91C5E4D1800A21A51 /* lightmap.c in Sources */,
@@ -5158,7 +5159,6 @@
 				CE80FFF41C5E4D1800A21A51 /* qmat.c in Sources */,
 				CE80FFF51C5E4D1800A21A51 /* qvis.c in Sources */,
 				CE80FFF61C5E4D1800A21A51 /* qzip.c in Sources */,
-				CE80FFF71C5E4D1800A21A51 /* scriptlib.c in Sources */,
 				CE80FFF81C5E4D1800A21A51 /* textures.c in Sources */,
 				CE80FFF91C5E4D1800A21A51 /* threads.c in Sources */,
 				CE91924D2055731E007AC8FF /* tjunctions.c in Sources */,

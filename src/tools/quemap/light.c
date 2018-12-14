@@ -171,12 +171,10 @@ light_t *LightForPatch(const patch_t *patch) {
 /**
  * @brief
  */
-void BuildDirectLights(void) {
+void BuildDirectLights(const GList *entities) {
 
 	g_list_free_full(lights, Mem_Free);
 	lights = NULL;
-
-	GList *entities = Cm_LoadEntities(bsp_file.entity_string);
 
 	for (const GList *e = entities; e; e = e->next) {
 		light_t *light = LightForEntity(entities, e->data);
@@ -184,8 +182,6 @@ void BuildDirectLights(void) {
 			lights = g_list_prepend(lights, light);
 		}
 	}
-
-	g_list_free_full(entities, Mem_Free);
 
 	const bsp_face_t *face = bsp_file.faces;
 	for (int32_t i = 0; i < bsp_file.num_faces; i++, face++) {

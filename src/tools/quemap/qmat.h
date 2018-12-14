@@ -23,4 +23,3 @@
 
 #include "qbsp.h"
 #include "materials.h"
-#include "scriptlib.h"

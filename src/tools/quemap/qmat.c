@@ -47,8 +47,6 @@ int32_t MAT_Main(void) {
 		LoadMaterial(bsp_file.texinfo[i].texture, ASSET_CONTEXT_TEXTURES);
 	}
 
-	UnloadScriptFiles();
-
 	WriteMaterialsFile(path);
 
 	FreeMaterials();

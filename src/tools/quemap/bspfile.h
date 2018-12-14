@@ -25,36 +25,5 @@
 
 extern bsp_file_t bsp_file;
 
-typedef struct epair_s {
-	struct epair_s *next;
-	char *key;
-	char *value;
-} epair_t;
-
-typedef struct {
-	vec3_t origin;
-	int32_t first_brush;
-	int32_t num_brushes;
-	epair_t *epairs;
-
-	// only valid for func_areaportals
-	int32_t area_portal_num;
-	int32_t portal_areas[2];
-} entity_t;
-
-extern uint16_t num_entities;
-extern entity_t entities[MAX_BSP_ENTITIES];
-
-void ParseEntities(void);
-void UnparseEntities(void);
-
-void SetKeyValue(entity_t *ent, const char *key, const char *value);
-const char *ValueForKey(const entity_t *ent, const char *key, const char *def);
-
-vec_t FloatForKey(const entity_t *ent, const char *key, vec_t def);
-void VectorForKey(const entity_t *ent, const char *key, vec3_t out, const vec3_t def);
-
-epair_t *ParseEpair(void);
-
 void LoadBSPFile(const char *filename, const bsp_lump_id_t lumps);
 void WriteBSPFile(const char *filename);

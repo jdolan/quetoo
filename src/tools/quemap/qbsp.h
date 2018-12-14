@@ -23,6 +23,7 @@
 
 #include "bspfile.h"
 #include "polylib.h"
+#include "entity.h"
 
 #define	MAX_BRUSH_SIDES 128
 #define	CLIP_EPSILON 0.1
@@ -143,7 +144,10 @@ typedef struct {
 	vec3_t mins, maxs;
 } tree_t;
 
-extern int32_t entity_num;
+// map.c
+
+extern uint16_t num_entities;
+extern entity_t entities[MAX_BSP_ENTITIES];
 
 extern map_plane_t map_planes[MAX_BSP_PLANES];
 extern int32_t num_map_planes;
@@ -172,31 +176,19 @@ extern vec_t micro_volume;
 extern int32_t first_bsp_model_edge;
 
 void LoadMapFile(const char *filename);
+
 int32_t FindPlane(vec3_t normal, dvec_t dist);
-_Bool WindingIsTiny(const winding_t *w);
 
 // textures.c
-int32_t FindMiptex(char *name);
 
 int32_t TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt, const vec3_t origin);
 
-void FindGCD(int32_t *v);
-
-map_brush_t *Brush_LoadEntity(entity_t *ent);
-_Bool MakeBrushPlanes(map_brush_t *b);
-int32_t FindIntPlane(int32_t *inormal, int32_t *iorigin);
-void CreateBrush(int32_t brush_num);
-
 // csg.c
-brush_t *MakeBspBrushList(int32_t startbrush, int32_t endbrush, vec3_t clipmins,
-                          vec3_t clipmaxs);
+brush_t *MakeBspBrushList(int32_t startbrush, int32_t endbrush, vec3_t clipmins, vec3_t clipmaxs);
 brush_t *ChopBrushes(brush_t *head);
 
-void WriteBrushMap(char *name, brush_t *list);
-
-// brushbsp.c
-void WriteBrushList(char *name, brush_t *brush, _Bool onlyvis);
-
+// brush.c
+_Bool WindingIsTiny(const winding_t *w);
 brush_t *CopyBrush(brush_t *brush);
 
 void SplitBrush(brush_t *brush, int32_t plane_num, brush_t **front, brush_t **back);
@@ -237,7 +229,7 @@ void LeakFile(tree_t *tree);
 void WritePortalFile(tree_t *tree);
 
 // writebsp.c
-void SetModelNumbers(void);
+void EmitEntities(void);
 void BeginBSPFile(void);
 void WriteBSP(node_t *head_node);
 void EndBSPFile(void);

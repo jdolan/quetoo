@@ -177,10 +177,8 @@ static void LightWorld(void) {
 		}
 	}
 
-	g_list_free_full(entities, Mem_Free);
-
 	// turn each face into a single patch
-	BuildPatches();
+	BuildPatches(entities);
 
 	// subdivide patches to the desired resolution
 	SubdividePatches();
@@ -192,7 +190,7 @@ static void LightWorld(void) {
 	BuildVertexNormals();
 
 	// create direct lights out of patches and entities
-	BuildDirectLights();
+	BuildDirectLights(entities);
 
 	// calculate direct lighting
 	RunThreadsOn(bsp_file.num_faces, true, DirectLighting);
@@ -217,6 +215,8 @@ static void LightWorld(void) {
 
 	// merge direct and indirect lighting, normalize all samples
 	RunThreadsOn(bsp_file.num_faces, true, FinalizeLighting);
+
+	g_list_free_full(entities, Mem_Free);
 
 	// free the lightmaps
 	Mem_FreeTag(MEM_TAG_LIGHTMAP);

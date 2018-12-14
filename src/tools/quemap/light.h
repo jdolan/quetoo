@@ -93,5 +93,5 @@ typedef struct {
 
 extern GList *lights;
 
-void BuildDirectLights(void);
+void BuildDirectLights(const GList *entities);
 void BuildIndirectLights(void);
