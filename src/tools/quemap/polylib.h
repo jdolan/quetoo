@@ -23,12 +23,16 @@
 
 #include <float.h>
 
+#include "quemap.h"
+
 typedef struct {
 	uint16_t num_points;
 	vec3_t points[4]; // variable sized
 } winding_t;
 
 #define	MAX_POINTS_ON_WINDING	64
+
+#define	CLIP_EPSILON 0.1
 
 #ifndef	ON_EPSILON
 	#define	ON_EPSILON	0.1
@@ -37,6 +41,8 @@ typedef struct {
 winding_t *AllocWinding(int32_t points);
 vec_t WindingArea(const winding_t *w);
 void WindingCenter(const winding_t *w, vec3_t center);
+_Bool WindingIsTiny(const winding_t *w);
+_Bool WindingIsHuge(const winding_t *w);
 void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist, vec_t epsilon, winding_t **front, winding_t **back);
 winding_t *CopyWinding(const winding_t *w);
 winding_t *ReverseWinding(winding_t *w);

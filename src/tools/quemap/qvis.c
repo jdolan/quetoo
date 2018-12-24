@@ -19,6 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include "flow.h"
 #include "qvis.h"
 
 map_vis_t map_vis;
@@ -131,7 +132,7 @@ static void ClusterMerge(uint32_t leaf_num) {
 	leaf = &map_vis.leafs[leaf_num];
 	for (i = 0; i < leaf->num_portals; i++) {
 		p = leaf->portals[i];
-		if (p->status != stat_done) {
+		if (p->status != STATUS_DONE) {
 			Com_Error(ERROR_FATAL, "Portal not done\n");
 		}
 		for (j = 0; j < map_vis.portal_bytes; j++) {
@@ -176,24 +177,23 @@ static void ClusterMerge(uint32_t leaf_num) {
  * @brief
  */
 static void CalcVis(void) {
-	uint32_t i;
 
-	RunThreadsOn(map_vis.num_portals * 2, true, BaseVis);
+	Work(BaseVis, map_vis.num_portals * 2);
 
 	SortPortals();
 
 	// fast vis just uses the flood result for a very loose bound
 	if (fast_vis) {
-		for (i = 0; i < map_vis.num_portals * 2; i++) {
+		for (uint32_t i = 0; i < map_vis.num_portals * 2; i++) {
 			map_vis.portals[i].vis = map_vis.portals[i].flood;
-			map_vis.portals[i].status = stat_done;
+			map_vis.portals[i].status = STATUS_DONE;
 		}
 	} else {
-		RunThreadsOn(map_vis.num_portals * 2, true, FinalVis);
+		Work(FinalVis, map_vis.num_portals * 2);
 	}
 
 	// assemble the leaf vis lists by OR-ing and compressing the portal lists
-	for (i = 0; i < map_vis.portal_clusters; i++) {
+	for (uint32_t i = 0; i < map_vis.portal_clusters; i++) {
 		ClusterMerge(i);
 	}
 

@@ -19,7 +19,8 @@ along with Foobar; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
-#include "qbsp.h"
+
+#include "tjunction.h"
 
 typedef struct mapDrawVert_s {
 	vec3_t xyz;
@@ -326,7 +327,7 @@ static void FixSurfaceJunctions( mapDrawSurface_t *ds ) {
 				VectorCopy( p->xyz, verts[ numVerts ].xyz );
 
 				// copy the normal
-				//VectorCopy( v1->normal, verts[ numVerts ].normal );
+				// VectorCopy( v1->normal, verts[ numVerts ].normal );
 
 				// interpolate the texture coordinates
 				/*frac = ( p->intercept - start ) / ( end - start );
@@ -474,7 +475,7 @@ FixTJunctions
 Call after the surface list has been pruned, but before lightmap allocation
 ================
 */
-void FixTJunctionsQ3( node_t *node ) {
+void FixTJunctions( node_t *node ) {
 	int					i;
 	mapDrawSurface_t	*ds;
 	int					axialEdgeLines;

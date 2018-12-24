@@ -20,10 +20,18 @@
  */
 
 #include "quemap.h"
-#include "thread.h"
 
 semaphores_t semaphores;
-thread_work_t thread_work;
+
+typedef struct {
+	SDL_mutex *lock; // mutex on all running work
+	WorkFunc func; // the work function
+	int32_t index; // current work cycle
+	int32_t count; // total work cycles
+	int32_t fraction; // last fraction of work completed
+} work_t;
+
+work_t work;
 
 /**
  * @brief Initializes the shared semaphores that threads will touch.
@@ -58,131 +66,98 @@ void Sem_Shutdown(void) {
 /**
  * @brief Return an iteration of work, updating progress when appropriate.
  */
-static int32_t GetThreadWork(void) {
+static int32_t GetWork(void) {
 
-	ThreadLock();
+	WorkLock();
 
-	if (thread_work.index == thread_work.count || !Com_WasInit(QUETOO_MAPTOOL)) { // done or killed
-		ThreadUnlock();
+	if (work.index == work.count || !Com_WasInit(QUEMAP)) { // done or killed
+		WorkUnlock();
 		return -1;
 	}
 
-	// update work fraction and output progress if desired
-	const int32_t f = 50 * thread_work.index / thread_work.count;
-	if (f != thread_work.fraction) {
-		if (thread_work.progress && !(verbose || debug)) {
-			for (int32_t i = thread_work.fraction; i < f; i++) {
-				if (i % 5 == 0) {
-					Com_Print("%i", i / 5);
-				} else {
-					Com_Print(".");
-				}
+	// update work fraction and output progress
+	const int32_t f = 50 * work.index / work.count;
+	if (f != work.fraction) {
+		for (int32_t i = work.fraction; i < f; i++) {
+			if (i % 5 == 0) {
+				Com_Print("%i", i / 5);
+			} else {
+				Com_Print(".");
 			}
 		}
-		thread_work.fraction = f;
+		work.fraction = f;
 	}
 
 	// assign the next work iteration
-	const int32_t r = thread_work.index;
-	thread_work.index++;
+	const int32_t w = work.index;
+	work.index++;
 
-	ThreadUnlock();
+	WorkUnlock();
 
-	return r;
+	return w;
 }
-
-// generic function pointer to actual work to be done
-static ThreadWorkFunc WorkFunction;
 
 /**
  * @brief Shared work entry point by all threads. Retrieve and perform
  * chunks of work iteratively until work is finished.
  */
-static void ThreadWork(void *p) {
+static void RunWorkFunc(void *p) {
 
 	while (true) {
-		const int32_t work = GetThreadWork();
-		if (work == -1) {
+		const int32_t w = GetWork();
+		if (w == -1) {
 			break;
 		}
-		WorkFunction(work);
+		work.func(w);
 	}
-}
-
-static SDL_mutex *lock = NULL;
-
-/**
- * @brief
- */
-void ThreadLock(void) {
-
-	if (!lock) {
-		return;
-	}
-
-	SDL_mutexP(lock);
 }
 
 /**
  * @brief
  */
-void ThreadUnlock(void) {
-
-	if (!lock) {
-		return;
-	}
-
-	SDL_mutexV(lock);
+void WorkLock(void) {
+	SDL_LockMutex(work.lock);
 }
 
 /**
  * @brief
  */
-static void RunThreads(void) {
-
-	const uint16_t thread_count = Thread_Count();
-
-	if (thread_count == 0) {
-		ThreadWork(0);
-		return;
-	}
-
-	assert(!lock);
-	lock = SDL_CreateMutex();
-
-	thread_t *threads[thread_count];
-
-	for (uint16_t i = 0; i < thread_count; i++) {
-		threads[i] = Thread_Create(ThreadWork, NULL);
-	}
-
-	for (uint16_t i = 0; i < thread_count; i++) {
-		Thread_Wait(threads[i]);
-	}
-
-	SDL_DestroyMutex(lock);
-	lock = NULL;
+void WorkUnlock(void) {
+	SDL_UnlockMutex(work.lock);
 }
 
 /**
  * @brief Entry point for all thread work requests.
  */
-void RunThreadsOn(int32_t work_count, _Bool progress, ThreadWorkFunc func) {
+void Work(WorkFunc func, int32_t count) {
 
-	thread_work.index = 0;
-	thread_work.count = work_count;
-	thread_work.fraction = 0;
-	thread_work.progress = progress;
+	memset(&work, 0, sizeof(work));
 
-	WorkFunction = func;
+	work.lock = SDL_CreateMutex();
+	work.count = count;
+	work.func = func;
 
 	const time_t start = time(NULL);
 
-	RunThreads();
+	const uint16_t thread_count = Thread_Count();
+
+	if (thread_count == 0) {
+		RunWorkFunc(0);
+	} else {
+		thread_t *threads[thread_count];
+
+		for (uint16_t i = 0; i < thread_count; i++) {
+			threads[i] = Thread_Create(RunWorkFunc, NULL);
+		}
+
+		for (uint16_t i = 0; i < thread_count; i++) {
+			Thread_Wait(threads[i]);
+		}
+	}
+
+	SDL_DestroyMutex(work.lock);
 
 	const time_t end = time(NULL);
 
-	if (thread_work.progress) {
-		Com_Print(" (%i seconds)\n", (int32_t) (end - start));
-	}
+	Com_Print(" (%i seconds)\n", (int32_t) (end - start));
 }

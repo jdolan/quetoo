@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "bspfile.h"
+#include "bsp.h"
 #include "polylib.h"
 
 #define DEFAULT_BSP_PATCH_SIZE 16

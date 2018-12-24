@@ -2,49 +2,60 @@ bin_PROGRAMS = \
 	quemap
 
 noinst_HEADERS = \
-	bspfile.h \
+	brush.h \
+	bsp.h \
+	csg.h \
 	entity.h \
+	face.h \
+	flow.h \
+	leakfile.h \
 	light.h \
 	lightmap.h \
-	materials.h \
+	material.h \
 	monitor.h \
-	patches.h \
+	patch.h \
 	polylib.h \
-	quemap.h \
+	portal.h \
+	prtfile.h \
 	qbsp.h \
 	qlight.h \
 	qmat.h \
+	quemap.h \
 	qvis.h \
-	qzip.h
+	qzip.h \
+	texinfo.h \
+	tjunction.h \
+	tree.h \
+	work.h \
+	writebsp.h
 
 quemap_SOURCES = \
 	brush.c \
-	bspfile.c \
+	bsp.c \
 	csg.c \
 	entity.c \
-	faces.c \
+	face.c \
 	flow.c \
 	leakfile.c \
 	light.c \
 	lightmap.c \
 	main.c \
 	map.c \
-	materials.c \
+	material.c \
 	monitor.c \
-	patches.c \
+	patch.c \
 	polylib.c \
-	portals.c \
+	portal.c \
 	prtfile.c \
-	qaas.c \
 	qbsp.c \
 	qmat.c \
 	qlight.c \
 	qvis.c \
 	qzip.c \
-	textures.c \
-	threads.c \
-	tjunctions.c \
+	texinfo.c \
+	tjunction.c \
 	tree.c \
+	work.c \
 	writebsp.c
 
 quemap_CFLAGS = \

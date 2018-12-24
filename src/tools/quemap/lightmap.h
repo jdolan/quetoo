@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "bspfile.h"
+#include "quemap.h"
 #include "matrix.h"
 
 typedef struct {

@@ -21,28 +21,33 @@
 
 #pragma once
 
-#include "light.h"
-#include "lightmap.h"
-#include "material.h"
-#include "patch.h"
-#include "quemap.h"
+#include "polylib.h"
 
-extern _Bool antialias;
-extern _Bool indirect;
+/**
+ * @brief
+ */
+typedef struct face_s {
+	struct face_s *next; // on node
 
-extern vec_t brightness;
-extern vec_t saturation;
-extern vec_t contrast;
+	// the chain of faces off of a node can be merged,
+	// but each face_t along the way will remain in the chain
+	// until the entire tree is freed
+	struct face_s *merged; // if set, this face isn't valid anymore
 
-extern int16_t luxel_size;
-extern int16_t patch_size;
+	struct portal_s *portal;
+	int32_t texinfo;
+	int32_t plane_num;
+	int32_t contents; // faces in different contents can't merge
+	int32_t output_number;
+	winding_t *w;
+} face_t;
 
-extern int32_t indirect_bounces;
-extern int32_t indirect_bounce;
+extern int32_t first_bsp_model_edge;
+extern int32_t c_merge;
 
-_Bool Light_PointPVS(const vec3_t org, byte *pvs);
-_Bool Light_InPVS(const vec3_t point1, const vec3_t point2);
-int32_t Light_PointLeafnum(const vec3_t point);
-void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask);
+face_t *AllocFace(void);
+void FreeFace(face_t *f);
+face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal);
+int32_t EmitVertex(const vec3_t v);
+int32_t EmitEdge(int32_t v1, int32_t v2, face_t *f);
 
-int32_t LIGHT_Main(void);

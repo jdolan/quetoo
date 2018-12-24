@@ -21,18 +21,10 @@
 
 #pragma once
 
+#include "common.h"
 #include "files.h"
-#include "filesystem.h"
 #include "monitor.h"
-#include "thread.h"
-#include "collision/cm_material.h"
-
-int32_t BSP_Main(void);
-int32_t VIS_Main(void);
-int32_t LIGHT_Main(void);
-int32_t AAS_Main(void);
-int32_t MAT_Main(void);
-int32_t ZIP_Main(void);
+#include "work.h"
 
 extern char map_base[MAX_QPATH];
 
@@ -41,75 +33,6 @@ extern char bsp_name[MAX_OS_PATH];
 
 extern _Bool verbose;
 extern _Bool debug;
-
-// BSP
-extern int32_t entity_num;
-
-extern vec3_t map_mins, map_maxs;
-
-extern _Bool no_prune;
-extern _Bool no_detail;
-extern _Bool all_structural;
-extern _Bool only_ents;
-extern _Bool no_merge;
-extern _Bool no_water;
-extern _Bool no_csg;
-extern _Bool no_weld;
-extern _Bool no_share;
-extern _Bool no_tjunc;
-extern _Bool leak_test;
-
-extern int32_t block_xl, block_xh, block_yl, block_yh;
-
-extern vec_t micro_volume;
-
-// VIS
-extern _Bool fast_vis;
-extern _Bool no_sort;
-
-// LIGHT
-extern _Bool antialias;
-extern _Bool indirect;
-extern int32_t indirect_bounces;
-extern int32_t indirect_bounce;
-
-extern vec_t brightness;
-extern vec_t saturation;
-extern vec_t contrast;
-
-extern int16_t luxel_size;
-extern int16_t patch_size;
-
-// threads.c
-typedef struct semaphores_s {
-	SDL_sem *active_portals;
-	SDL_sem *active_nodes;
-	SDL_sem *vis_nodes;
-	SDL_sem *nonvis_nodes;
-	SDL_sem *active_brushes;
-	SDL_sem *active_windings;
-	SDL_sem *removed_points;
-} semaphores_t;
-
-extern semaphores_t semaphores;
-
-void Sem_Init(void);
-void Sem_Shutdown(void);
-
-typedef struct thread_work_s {
-	int32_t index; // current work cycle
-	int32_t count; // total work cycles
-	int32_t fraction; // last fraction of work completed
-	_Bool progress; // are we reporting progress
-} thread_work_t;
-
-extern thread_work_t thread_work;
-
-typedef void (*ThreadWorkFunc)(int32_t);
-
-void ThreadLock(void);
-void ThreadUnlock(void);
-void RunThreadsOn(int32_t workcount, _Bool progress, ThreadWorkFunc func);
 
 enum {
 	MEM_TAG_QUEMAP	= 1000,

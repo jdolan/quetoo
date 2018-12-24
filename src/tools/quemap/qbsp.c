@@ -19,16 +19,23 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "quemap.h"
-#include "qbsp.h"
-#include "materials.h"
+#include "bsp.h"
+#include "face.h"
+#include "leakfile.h"
+#include "map.h"
+#include "material.h"
+#include "portal.h"
+#include "prtfile.h"
+#include "tjunction.h"
+#include "writebsp.h"
 
 vec_t micro_volume = 0.125;
+
 _Bool no_prune = false;
+_Bool no_merge = false;
 _Bool no_detail = false;
 _Bool all_structural = false;
 _Bool only_ents = false;
-_Bool no_merge = false;
 _Bool no_water = false;
 _Bool no_csg = false;
 _Bool no_weld = false;
@@ -87,19 +94,16 @@ static node_t *BlockTree(int32_t xl, int32_t yl, int32_t xh, int32_t yh) {
 	return node;
 }
 
+static int32_t brush_start, brush_end;
+
 /**
  * @brief
  */
-static int32_t brush_start, brush_end;
-static void ProcessBlock_Thread(int32_t blocknum) {
-	int32_t xblock, yblock;
+static void ProcessBlock_Work(int32_t blocknum) {
 	vec3_t mins, maxs;
-	brush_t *brushes;
-	tree_t *tree;
-	node_t *node;
 
-	yblock = block_yl + blocknum / (block_xh - block_xl + 1);
-	xblock = block_xl + blocknum % (block_xh - block_xl + 1);
+	const int32_t yblock = block_yl + blocknum / (block_xh - block_xl + 1);
+	const int32_t xblock = block_xl + blocknum % (block_xh - block_xl + 1);
 
 	Com_Verbose("############### block %2i,%2i ###############\n", xblock, yblock);
 
@@ -110,16 +114,16 @@ static void ProcessBlock_Thread(int32_t blocknum) {
 	maxs[1] = (yblock + 1) * 1024;
 	maxs[2] = MAX_WORLD_COORD;
 
-	ThreadLock();
+	WorkLock(); // FIXME: Remove locking?
 
-	// the makelist and chopbrushes could be cached between the passes...
-	brushes = MakeBspBrushList(brush_start, brush_end, mins, maxs);
+	// the brushes and chopbrushes could be cached between the passes...
+	csg_brush_t *brushes = MakeBrushes(brush_start, brush_end, mins, maxs);
 	if (!brushes) {
-		node = AllocNode();
+		node_t *node = AllocNode();
 		node->plane_num = PLANENUM_LEAF;
 		node->contents = CONTENTS_SOLID;
 		block_nodes[xblock + 5][yblock + 5] = node;
-		ThreadUnlock();
+		WorkUnlock();
 		return;
 	}
 
@@ -127,9 +131,9 @@ static void ProcessBlock_Thread(int32_t blocknum) {
 		brushes = ChopBrushes(brushes);
 	}
 
-	tree = BrushBSP(brushes, mins, maxs);
+	tree_t *tree = BuildTree(brushes, mins, maxs);
 
-	ThreadUnlock();
+	WorkUnlock();
 	block_nodes[xblock + 5][yblock + 5] = tree->head_node;
 }
 
@@ -178,7 +182,9 @@ static void ProcessWorldModel(void) {
 	for (optimize = 0; optimize <= 1; optimize++) {
 		Com_Verbose("--------------------------------------------\n");
 
-		RunThreadsOn((block_xh - block_xl + 1) * (block_yh - block_yl + 1), !verbose, ProcessBlock_Thread);
+		const int32_t count = (block_xh - block_xl + 1) * (block_yh - block_yl + 1);
+
+		Work(ProcessBlock_Work, count);
 
 		// build the division tree
 		// oversizing the blocks guarantees that all the boundaries
@@ -222,8 +228,11 @@ static void ProcessWorldModel(void) {
 	}
 
 	FloodAreas(tree);
-	MakeFaces(tree->head_node);
-	FixTjuncs(tree->head_node);
+	MakeTreeFaces(tree);
+
+	if (!no_tjunc) {
+		FixTJunctions(tree->head_node);
+	}
 
 	if (!no_prune) {
 		PruneNodes(tree->head_node);
@@ -242,28 +251,36 @@ static void ProcessWorldModel(void) {
  * @brief
  */
 static void ProcessSubModel(void) {
-	entity_t *e;
-	int32_t start, end;
-	tree_t *tree;
-	brush_t *list;
+
+	const entity_t *e = &entities[entity_num];
+
+	const int32_t start = e->first_brush;
+	const int32_t end = start + e->num_brushes;
+
 	vec3_t mins, maxs;
-
-	e = &entities[entity_num];
-
-	start = e->first_brush;
-	end = start + e->num_brushes;
 
 	mins[0] = mins[1] = mins[2] = MIN_WORLD_COORD;
 	maxs[0] = maxs[1] = maxs[2] = MAX_WORLD_COORD;
-	list = MakeBspBrushList(start, end, mins, maxs);
+
+	csg_brush_t *brushes = MakeBrushes(start, end, mins, maxs);
 	if (!no_csg) {
-		list = ChopBrushes(list);
+		brushes = ChopBrushes(brushes);
 	}
-	tree = BrushBSP(list, mins, maxs);
+
+	tree_t *tree = BuildTree(brushes, mins, maxs);
+
 	MakeTreePortals(tree);
 	MarkVisibleSides(tree, start, end);
-	MakeFaces(tree->head_node);
-	FixTjuncs(tree->head_node);
+	MakeTreeFaces(tree);
+
+	if (!no_tjunc) {
+		FixTJunctions(tree->head_node);
+	}
+
+	if (!no_prune) {
+		PruneNodes(tree->head_node);
+	}
+	
 	WriteBSP(tree->head_node);
 	FreeTree(tree);
 }
@@ -275,6 +292,7 @@ static void ProcessModels(void) {
 	BeginBSPFile();
 
 	for (entity_num = 0; entity_num < num_entities; entity_num++) {
+
 		if (!entities[entity_num].num_brushes) {
 			continue;
 		}

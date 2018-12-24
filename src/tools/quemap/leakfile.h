@@ -21,28 +21,6 @@
 
 #pragma once
 
-#include "light.h"
-#include "lightmap.h"
-#include "material.h"
-#include "patch.h"
-#include "quemap.h"
+#include "tree.h"
 
-extern _Bool antialias;
-extern _Bool indirect;
-
-extern vec_t brightness;
-extern vec_t saturation;
-extern vec_t contrast;
-
-extern int16_t luxel_size;
-extern int16_t patch_size;
-
-extern int32_t indirect_bounces;
-extern int32_t indirect_bounce;
-
-_Bool Light_PointPVS(const vec3_t org, byte *pvs);
-_Bool Light_InPVS(const vec3_t point1, const vec3_t point2);
-int32_t Light_PointLeafnum(const vec3_t point);
-void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask);
-
-int32_t LIGHT_Main(void);
+void LeakFile(tree_t *tree);

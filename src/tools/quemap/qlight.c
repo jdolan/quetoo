@@ -193,7 +193,7 @@ static void LightWorld(void) {
 	BuildDirectLights(entities);
 
 	// calculate direct lighting
-	RunThreadsOn(bsp_file.num_faces, true, DirectLighting);
+	Work(DirectLighting, bsp_file.num_faces);
 
 	if (indirect) {
 		for (indirect_bounce = 0; indirect_bounce < indirect_bounces; indirect_bounce++) {
@@ -202,7 +202,7 @@ static void LightWorld(void) {
 			BuildIndirectLights();
 
 			// calculate indirect lighting
-			RunThreadsOn(bsp_file.num_faces, true, IndirectLighting);
+			Work(IndirectLighting, bsp_file.num_faces);
 
 			// free the indirect light sources
 			Mem_FreeTag(MEM_TAG_LIGHT);
@@ -214,7 +214,7 @@ static void LightWorld(void) {
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTMAPS, MAX_BSP_LIGHTING);
 
 	// merge direct and indirect lighting, normalize all samples
-	RunThreadsOn(bsp_file.num_faces, true, FinalizeLighting);
+	Work(FinalizeLighting, bsp_file.num_faces);
 
 	g_list_free_full(entities, Mem_Free);
 

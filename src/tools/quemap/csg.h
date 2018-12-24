@@ -21,28 +21,19 @@
 
 #pragma once
 
-#include "light.h"
-#include "lightmap.h"
-#include "material.h"
-#include "patch.h"
 #include "quemap.h"
 
-extern _Bool antialias;
-extern _Bool indirect;
+/**
+ * @brief Brushes defined in the map file are carved via CSG before being sorted into the tree.
+ */
+typedef struct csg_brush_s {
+	struct csg_brush_s *next;
+	vec3_t mins, maxs;
+	int32_t side, test_side; // side of node during construction
+	struct brush_s *original;
+	int32_t num_sides;
+	struct brush_side_s *sides;
+} csg_brush_t;
 
-extern vec_t brightness;
-extern vec_t saturation;
-extern vec_t contrast;
-
-extern int16_t luxel_size;
-extern int16_t patch_size;
-
-extern int32_t indirect_bounces;
-extern int32_t indirect_bounce;
-
-_Bool Light_PointPVS(const vec3_t org, byte *pvs);
-_Bool Light_InPVS(const vec3_t point1, const vec3_t point2);
-int32_t Light_PointLeafnum(const vec3_t point);
-void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask);
-
-int32_t LIGHT_Main(void);
+csg_brush_t *MakeBrushes(int32_t start, int32_t end, vec3_t mins, vec3_t maxs);
+csg_brush_t *ChopBrushes(csg_brush_t *head);

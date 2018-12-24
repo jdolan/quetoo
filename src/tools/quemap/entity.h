@@ -21,8 +21,11 @@
 
 #pragma once
 
-#include "bspfile.h"
+#include "quemap.h"
 
+/**
+ * @brief Entity key-value pairs.
+ */
 typedef struct entity_key_value_s {
 	struct entity_key_value_s *next;
 	char key[MAX_BSP_ENTITY_KEY];
@@ -30,7 +33,7 @@ typedef struct entity_key_value_s {
 } entity_key_value_t;
 
 /**
- * @brief The .map file representation of an entity.
+ * @brief The map file representation of an entity.
  */
 typedef struct {
 

@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "qvis.h"
+#include "flow.h"
 
 /*
  *
@@ -366,7 +366,7 @@ static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t *thread, pstack_t 
 			continue; // can't possibly see it
 		}
 		// if the portal can't see anything we haven't already seen, skip it
-		if (p->status == stat_done) {
+		if (p->status == STATUS_DONE) {
 			test = p->vis;
 		} else {
 			test = p->flood;
@@ -463,7 +463,7 @@ void FinalVis(int32_t portal_num) {
 	size_t c_might, c_can;
 
 	p = map_vis.sorted_portals[portal_num];
-	p->status = stat_working;
+	p->status = STATUS_WORKING;
 
 	c_might = CountBits(p->flood, map_vis.num_portals * 2);
 
@@ -480,7 +480,7 @@ void FinalVis(int32_t portal_num) {
 
 	RecursiveLeafFlow(p->leaf, &data, &data.pstack_head);
 
-	p->status = stat_done;
+	p->status = STATUS_DONE;
 
 	c_can = CountBits(p->vis, map_vis.num_portals * 2);
 

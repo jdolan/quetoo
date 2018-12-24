@@ -21,28 +21,25 @@
 
 #pragma once
 
-#include "light.h"
-#include "lightmap.h"
-#include "material.h"
-#include "patch.h"
-#include "quemap.h"
+#include "thread.h"
 
-extern _Bool antialias;
-extern _Bool indirect;
+typedef struct semaphores_s {
+	SDL_sem *active_portals;
+	SDL_sem *active_nodes;
+	SDL_sem *vis_nodes;
+	SDL_sem *nonvis_nodes;
+	SDL_sem *active_brushes;
+	SDL_sem *active_windings;
+	SDL_sem *removed_points;
+} semaphores_t;
 
-extern vec_t brightness;
-extern vec_t saturation;
-extern vec_t contrast;
+extern semaphores_t semaphores;
 
-extern int16_t luxel_size;
-extern int16_t patch_size;
+void Sem_Init(void);
+void Sem_Shutdown(void);
 
-extern int32_t indirect_bounces;
-extern int32_t indirect_bounce;
+typedef void (*WorkFunc)(int32_t);
 
-_Bool Light_PointPVS(const vec3_t org, byte *pvs);
-_Bool Light_InPVS(const vec3_t point1, const vec3_t point2);
-int32_t Light_PointLeafnum(const vec3_t point);
-void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask);
-
-int32_t LIGHT_Main(void);
+void WorkLock(void);
+void WorkUnlock(void);
+void Work(WorkFunc func, int32_t count);

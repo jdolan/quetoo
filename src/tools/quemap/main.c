@@ -19,7 +19,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "quemap.h"
+#include "qbsp.h"
+#include "qvis.h"
+#include "qlight.h"
+#include "qmat.h"
+#include "qzip.h"
 
 #if defined(_WIN32)
 	#if defined(__MINGW32__)
@@ -129,7 +133,7 @@ static void Init(void) {
 
 	SDL_Init(SDL_INIT_TIMER);
 
-	Com_InitSubsystem(QUETOO_MAPTOOL);
+	Com_InitSubsystem(QUEMAP);
 
 	Mem_Init();
 
@@ -147,7 +151,7 @@ static void Init(void) {
  */
 static void Shutdown(const char *msg) {
 
-	Com_QuitSubsystem(QUETOO_MAPTOOL);
+	Com_QuitSubsystem(QUEMAP);
 
 	Thread_Shutdown();
 
@@ -294,12 +298,6 @@ static void Check_LIGHT_Options(int32_t argc) {
 /**
  * @brief
  */
-static void Check_AAS_Options(int32_t argc) {
-}
-
-/**
- * @brief
- */
 static void Check_ZIP_Options(int32_t argc) {
 }
 
@@ -359,9 +357,6 @@ static void PrintHelpMessage(void) {
 	Com_Print(" --patch <float> - surface light patch size (default 64)\n");
 	Com_Print("\n");
 
-	Com_Print("-aas               AAS stage options:\n");
-	Com_Print("\n");
-
 	Com_Print("-zip               ZIP stage options:\n");
 	Com_Print("\n");
 
@@ -372,8 +367,6 @@ static void PrintHelpMessage(void) {
 			  " quemap -bsp -vis --fast -light maps/my.map\n");
 	Com_Print("Final compile with expensive lighting:\n"
 	          " quemap -bsp -vis -light --antialias --indirect maps/my.map\n");
-	Com_Print("Area awareness compile for artificial intelligence routing:\n"
-			  " quemap -aas maps/my.bsp\n");
 	Com_Print("Zip file generation:\n"
 			  " quemap -zip maps/my.bsp\n");
 	Com_Print("\n");
@@ -388,7 +381,6 @@ int32_t main(int32_t argc, char **argv) {
 	_Bool do_bsp = false;
 	_Bool do_vis = false;
 	_Bool do_light = false;
-	_Bool do_aas = false;
 	_Bool do_zip = false;
 
 	printf("Quetoo Map %s %s %s\n", VERSION, BUILD_HOST, REVISION);
@@ -470,18 +462,13 @@ int32_t main(int32_t argc, char **argv) {
 			Check_LIGHT_Options(i + 1);
 		}
 
-		if (!g_strcmp0(Com_Argv(i), "-aas")) {
-			do_aas = true;
-			Check_AAS_Options(i + 1);
-		}
-
 		if (!g_strcmp0(Com_Argv(i), "-zip")) {
 			do_zip = true;
 			Check_ZIP_Options(i + 1);
 		}
 	}
 
-	if (!do_bsp && !do_vis && !do_light && !do_aas && !do_mat && !do_zip) {
+	if (!do_bsp && !do_vis && !do_light && !do_mat && !do_zip) {
 		Com_Error(ERROR_FATAL, "No action specified. Try %s -help\n", Com_Argv(0));
 	}
 
@@ -531,9 +518,6 @@ int32_t main(int32_t argc, char **argv) {
 	}
 	if (do_light) {
 		LIGHT_Main();
-	}
-	if (do_aas) {
-		AAS_Main();
 	}
 	if (do_zip) {
 		ZIP_Main();

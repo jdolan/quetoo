@@ -188,8 +188,8 @@ void Com_Shutdown(const char *fmt, ...) __attribute__((noreturn, format(printf, 
 #define QUETOO_GAME			0x2
 #define QUETOO_CLIENT		0x4
 #define QUETOO_CGAME		0x8
-#define QUETOO_MAPTOOL		0x10
-#define QUETOO_AI			0x20
+#define QUETOO_AI			0x10
+#define QUEMAP				0x1000
 
 /**
  * @brief Global engine structure.

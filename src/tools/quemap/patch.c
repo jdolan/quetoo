@@ -19,9 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "patches.h"
 #include "image.h"
-#include "materials.h"
+#include "material.h"
+#include "patch.h"
+#include "qlight.h"
 
 patch_t *patches[MAX_BSP_FACES];
 vec3_t patch_offsets[MAX_BSP_FACES];

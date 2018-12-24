@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "bspfile.h"
+#include "bsp.h"
 
 #define LIGHT_COLOR (vec3_t) { 1.0, 1.0, 1.0 }
 #define LIGHT_RADIUS DEFAULT_LIGHT

@@ -72,11 +72,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-bsp -vis -light maps/torn.map"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--verbose -bsp -vis -light --antialias --indirect maps/torn.map"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-bsp -vis -light /Users/jdolan/.quetoo/default/maps/sandbox.map"

@@ -19,10 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include "bsp.h"
 #include "light.h"
 #include "lightmap.h"
-#include "bspfile.h"
-#include "patches.h"
+#include "patch.h"
 #include "polylib.h"
 #include "qlight.h"
 
@@ -565,7 +565,7 @@ void FinalizeLighting(int32_t face_num) {
 
 	bsp_face_t *f = &bsp_file.faces[face_num];
 
-	ThreadLock();
+	WorkLock();
 
 	f->lightmap_ofs = bsp_file.lightmap_data_size;
 	bsp_file.lightmap_data_size += lm->num_luxels * 6;
@@ -574,7 +574,7 @@ void FinalizeLighting(int32_t face_num) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_LIGHTING\n");
 	}
 
-	ThreadUnlock();
+	WorkUnlock();
 
 	// write it out
 	byte *dest = &bsp_file.lightmap_data[f->lightmap_ofs];

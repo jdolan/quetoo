@@ -19,7 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "qbsp.h"
+#include "portal.h"
+#include "entity.h"
 
 /**
  * @brief Finds the shortest possible chain of portals that leads from the
