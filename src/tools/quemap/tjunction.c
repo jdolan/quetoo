@@ -521,6 +521,12 @@ void FixTJunctions( node_t *node ) {
 	Com_Verbose( "%6i non-axial edge lines\n", numEdgeLines - axialEdgeLines );
 	Com_Verbose( "%6i degenerate edges\n", c_degenerateEdges );
 
+	c_addedVerts = 0;
+	c_totalVerts = 0;
+	c_natural = 0;
+	c_rotate = 0;
+	c_cant = 0;
+
 	// insert any needed vertexes
 	for ( i = 0 ; i < numDrawSurfs ; i++ ) {
 		ds = &surfs[i];

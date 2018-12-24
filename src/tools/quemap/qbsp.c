@@ -230,12 +230,12 @@ static void ProcessWorldModel(void) {
 	FloodAreas(tree);
 	MakeTreeFaces(tree);
 
-	if (!no_tjunc) {
-		FixTJunctions(tree->head_node);
-	}
-
 	if (!no_prune) {
 		PruneNodes(tree->head_node);
+	}
+
+	if (!no_tjunc) {
+		FixTJunctions(tree->head_node);
 	}
 
 	WriteBSP(tree->head_node);
@@ -273,14 +273,14 @@ static void ProcessSubModel(void) {
 	MarkVisibleSides(tree, start, end);
 	MakeTreeFaces(tree);
 
+	if (!no_prune) {
+		PruneNodes(tree->head_node);
+	}
+
 	if (!no_tjunc) {
 		FixTJunctions(tree->head_node);
 	}
 
-	if (!no_prune) {
-		PruneNodes(tree->head_node);
-	}
-	
 	WriteBSP(tree->head_node);
 	FreeTree(tree);
 }
