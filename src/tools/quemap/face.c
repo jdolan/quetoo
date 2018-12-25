@@ -32,10 +32,11 @@
  *   meeting planes of different water current volumes
  */
 
+#define	CONTINUOUS_EPSILON	0.001
 #define EQUAL_EPSILON		0.001
 #define	INTEGRAL_EPSILON	0.01
-#define	POINT_EPSILON		0.1
 #define	OFF_EPSILON			0.5
+#define	POINT_EPSILON		0.1
 
 int32_t c_merge;
 
@@ -67,10 +68,9 @@ static int32_t HashVertex(const vec3_t vec) {
  * then hashes it and searches for an existing vertex to reuse.
  */
 int32_t EmitVertex(const vec3_t in) {
-	int32_t i, vnum;
 	vec3_t vert;
 
-	for (i = 0; i < 3; i++) {
+	for (int32_t i = 0; i < 3; i++) {
 		const vec_t v = floor(in[i] + 0.5);
 
 		if (fabs(in[i] - v) < INTEGRAL_EPSILON) {
@@ -82,7 +82,7 @@ int32_t EmitVertex(const vec3_t in) {
 
 	const int32_t h = HashVertex(vert);
 
-	for (vnum = hash_verts[h]; vnum; vnum = vertex_chain[vnum]) {
+	for (int32_t vnum = hash_verts[h]; vnum; vnum = vertex_chain[vnum]) {
 		vec3_t delta;
 
 		// compare the points; we go out of our way to avoid using VectorLength
@@ -117,9 +117,8 @@ static int32_t c_faces;
  * @brief
  */
 face_t *AllocFace(void) {
-	face_t *f;
 
-	f = Mem_TagMalloc(sizeof(*f), MEM_TAG_FACE);
+	face_t *f = Mem_TagMalloc(sizeof(*f), MEM_TAG_FACE);
 	c_faces++;
 
 	return f;
@@ -143,7 +142,6 @@ static face_t *NewFaceFromFace(const face_t *f) {
 void FreeFace(face_t *f) {
 	if (f->w) {
 		FreeWinding(f->w);
-		f->w = NULL;
 	}
 	Mem_Free(f);
 	c_faces--;
@@ -179,8 +177,6 @@ int32_t EmitEdge(int32_t v1, int32_t v2, face_t *f) {
 
 	return bsp_file.num_edges - 1;
 }
-
-#define	CONTINUOUS_EPSILON	0.001
 
 /**
  * @brief If two polygons share a common edge and the edges that meet at the
@@ -239,7 +235,7 @@ static winding_t *MergeWindings(winding_t *f1, winding_t *f2, const vec3_t plane
 	VectorSubtract(back, p1, delta);
 	dot = DotProduct(delta, normal);
 	if (dot > CONTINUOUS_EPSILON) {
-		return NULL;    // not a convex polygon
+		return NULL; // not a convex polygon
 	}
 	keep1 = (_Bool) (dot < -CONTINUOUS_EPSILON);
 
@@ -252,7 +248,7 @@ static winding_t *MergeWindings(winding_t *f1, winding_t *f2, const vec3_t plane
 	VectorSubtract(back, p2, delta);
 	dot = DotProduct(delta, normal);
 	if (dot > CONTINUOUS_EPSILON) {
-		return NULL;    // not a convex polygon
+		return NULL; // not a convex polygon
 	}
 	keep2 = (_Bool) (dot < -CONTINUOUS_EPSILON);
 
