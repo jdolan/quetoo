@@ -232,7 +232,7 @@ csg_brush_t *MakeBrushes(int32_t start, int32_t end, vec3_t mins, vec3_t maxs) {
 /**
  * @brief
  */
-static csg_brush_t *AddBrushListToTail(csg_brush_t *list, csg_brush_t *tail) {
+static csg_brush_t *AddBrushToBrushes(csg_brush_t *list, csg_brush_t *tail) {
 	csg_brush_t *walk, *next;
 
 	for (walk = list; walk; walk = next) { // add to end of list
@@ -248,22 +248,20 @@ static csg_brush_t *AddBrushListToTail(csg_brush_t *list, csg_brush_t *tail) {
 /**
  * @brief Builds a new list that doesn't hold the given brush.
  */
-static csg_brush_t *CullList(csg_brush_t *list, const csg_brush_t *skip1) {
-	csg_brush_t *newlist;
+static csg_brush_t *RemoveBrushFromBrushes(csg_brush_t *list, const csg_brush_t *skip) {
 	csg_brush_t *next;
-
-	newlist = NULL;
+	csg_brush_t *new_list = NULL;
 
 	for (; list; list = next) {
 		next = list->next;
-		if (list == skip1) {
+		if (list == skip) {
 			FreeBrush(list);
 			continue;
 		}
-		list->next = newlist;
-		newlist = list;
+		list->next = new_list;
+		new_list = list;
 	}
-	return newlist;
+	return new_list;
 }
 
 /**
@@ -285,64 +283,64 @@ static inline _Bool BrushGE(const csg_brush_t *b1, const csg_brush_t *b2) {
  * of non-intersecting brushes.
  */
 csg_brush_t *ChopBrushes(csg_brush_t *head) {
-	csg_brush_t *b1, *b2, *next;
-	csg_brush_t *tail;
-	csg_brush_t *keep;
-	csg_brush_t *sub, *sub2;
-	size_t c1, c2;
 
 	Com_Verbose("---- ChopBrushes ----\n");
 	Com_Verbose("original brushes: %zi\n", CountBrushes(head));
 
-	keep = NULL;
+	csg_brush_t *keep = NULL;
 
 newlist:
-	// find tail
 	if (!head) {
 		return NULL;
 	}
-	for (tail = head; tail->next; tail = tail->next)
-		;
 
-	for (b1 = head; b1; b1 = next) {
+	csg_brush_t *tail = head;
+	for (; tail->next; tail = tail->next) {
+		// find tail
+	}
+
+	csg_brush_t *next;
+	for (csg_brush_t *b1 = head; b1; b1 = next) {
 		next = b1->next;
-		for (b2 = b1->next; b2; b2 = b2->next) {
+		csg_brush_t *b2 = next;
+		for (; b2; b2 = b2->next) {
 			if (BrushesDisjoint(b1, b2)) {
 				continue;
 			}
 
-			sub = NULL;
-			sub2 = NULL;
-			c1 = 999999;
-			c2 = 999999;
+			csg_brush_t *sub1 = NULL;
+			csg_brush_t *sub2 = NULL;
+
+			size_t c1 = SIZE_MAX;
+			size_t c2 = SIZE_MAX;
 
 			if (BrushGE(b2, b1)) {
-				sub = SubtractBrush(b1, b2);
-				if (sub == b1) {
-					continue;    // didn't really intersect
+				sub1 = SubtractBrush(b1, b2);
+				if (sub1 == b1) {
+					continue; // didn't really intersect
 				}
-				if (!sub) { // b1 is swallowed by b2
-					head = CullList(b1, b1);
+				if (!sub1) { // b1 is swallowed by b2
+					head = RemoveBrushFromBrushes(b1, b1);
 					goto newlist;
 				}
-				c1 = CountBrushes(sub);
+				c1 = CountBrushes(sub1);
 			}
 
 			if (BrushGE(b1, b2)) {
 				sub2 = SubtractBrush(b2, b1);
 				if (sub2 == b2) {
-					continue;    // didn't really intersect
+					continue; // didn't really intersect
 				}
 				if (!sub2) { // b2 is swallowed by b1
-					FreeBrushes(sub);
-					head = CullList(b1, b2);
+					FreeBrushes(sub1);
+					head = RemoveBrushFromBrushes(b1, b2);
 					goto newlist;
 				}
 				c2 = CountBrushes(sub2);
 			}
 
-			if (!sub && !sub2) {
-				continue;    // neither one can bite
+			if (!sub1 && !sub2) {
+				continue;  // neither one can bite
 			}
 
 			// only accept if it didn't fragment
@@ -351,8 +349,8 @@ newlist:
 				if (sub2) {
 					FreeBrushes(sub2);
 				}
-				if (sub) {
-					FreeBrushes(sub);
+				if (sub1) {
+					FreeBrushes(sub1);
 				}
 				continue;
 			}
@@ -361,15 +359,15 @@ newlist:
 				if (sub2) {
 					FreeBrushes(sub2);
 				}
-				tail = AddBrushListToTail(sub, tail);
-				head = CullList(b1, b1);
+				tail = AddBrushToBrushes(sub1, tail);
+				head = RemoveBrushFromBrushes(b1, b1);
 				goto newlist;
 			} else {
-				if (sub) {
-					FreeBrushes(sub);
+				if (sub1) {
+					FreeBrushes(sub1);
 				}
-				tail = AddBrushListToTail(sub2, tail);
-				head = CullList(b1, b2);
+				tail = AddBrushToBrushes(sub2, tail);
+				head = RemoveBrushFromBrushes(b1, b2);
 				goto newlist;
 			}
 		}

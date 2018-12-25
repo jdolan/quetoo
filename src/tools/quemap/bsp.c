@@ -29,50 +29,50 @@ bsp_file_t bsp_file;
  */
 static void PrintBSPFileSizes(void) {
 
-	Com_Verbose("%5i models       %7i\n", bsp_file.num_models,
+	Com_Verbose("%5i models       %7i bytes\n", bsp_file.num_models,
 	            (int32_t) (bsp_file.num_models * sizeof(bsp_model_t)));
 
-	Com_Verbose("%5i brushes      %7i\n", bsp_file.num_brushes,
+	Com_Verbose("%5i brushes      %7i bytes\n", bsp_file.num_brushes,
 	            (int32_t) (bsp_file.num_brushes * sizeof(bsp_brush_t)));
 
-	Com_Verbose("%5i brush_sides  %7i\n", bsp_file.num_brush_sides,
+	Com_Verbose("%5i brush_sides  %7i bytes\n", bsp_file.num_brush_sides,
 	            (int32_t) (bsp_file.num_brush_sides * sizeof(bsp_brush_side_t)));
 
-	Com_Verbose("%5i planes       %7i\n", bsp_file.num_planes,
+	Com_Verbose("%5i planes       %7i bytes\n", bsp_file.num_planes,
 	            (int32_t) (bsp_file.num_planes * sizeof(bsp_plane_t)));
 
-	Com_Verbose("%5i texinfo      %7i\n", bsp_file.num_texinfo,
+	Com_Verbose("%5i texinfo      %7i bytes\n", bsp_file.num_texinfo,
 	            (int32_t) (bsp_file.num_texinfo * sizeof(bsp_texinfo_t)));
 
-	Com_Verbose("%5i entities     %7i\n", num_entities, bsp_file.entity_string_size);
+	Com_Verbose("%5i entities     %7i bytes\n", num_entities, bsp_file.entity_string_size);
 
-	Com_Verbose("%5i vertexes     %7i\n", bsp_file.num_vertexes,
+	Com_Verbose("%5i vertexes     %7i bytes\n", bsp_file.num_vertexes,
 	            (int32_t) (bsp_file.num_vertexes * sizeof(bsp_vertex_t)));
 
-	Com_Verbose("%5i nodes        %7i\n", bsp_file.num_nodes,
+	Com_Verbose("%5i nodes        %7i bytes\n", bsp_file.num_nodes,
 	            (int32_t) (bsp_file.num_nodes * sizeof(bsp_node_t)));
 
-	Com_Verbose("%5i faces        %7i\n", bsp_file.num_faces,
+	Com_Verbose("%5i faces        %7i bytes\n", bsp_file.num_faces,
 	            (int32_t) (bsp_file.num_faces * sizeof(bsp_face_t)));
 
-	Com_Verbose("%5i leafs        %7i\n", bsp_file.num_leafs,
+	Com_Verbose("%5i leafs        %7i bytes\n", bsp_file.num_leafs,
 	            (int32_t) (bsp_file.num_leafs * sizeof(bsp_leaf_t)));
 
-	Com_Verbose("%5i leaf_faces   %7i\n", bsp_file.num_leaf_faces,
+	Com_Verbose("%5i leaf_faces   %7i bytes\n", bsp_file.num_leaf_faces,
 	            (int32_t) (bsp_file.num_leaf_faces * sizeof(bsp_file.leaf_faces[0])));
 
-	Com_Verbose("%5i leaf_brushes %7i\n", bsp_file.num_leaf_brushes,
+	Com_Verbose("%5i leaf_brushes %7i bytes\n", bsp_file.num_leaf_brushes,
 	            (int32_t) (bsp_file.num_leaf_brushes * sizeof(bsp_file.leaf_brushes[0])));
 
-	Com_Verbose("%5i surf_edges   %7i\n", bsp_file.num_face_edges,
+	Com_Verbose("%5i surf_edges   %7i bytes\n", bsp_file.num_face_edges,
 	            (int32_t) (bsp_file.num_face_edges * sizeof(bsp_file.face_edges[0])));
 
-	Com_Verbose("%5i edges        %7i\n", bsp_file.num_edges,
+	Com_Verbose("%5i edges        %7i bytes\n", bsp_file.num_edges,
 	            (int32_t) (bsp_file.num_edges * sizeof(bsp_edge_t)));
 
-	Com_Verbose("      lightmap     %7i\n", bsp_file.lightmap_data_size);
+	Com_Verbose("      lightmap     %7i bytes\n", bsp_file.lightmap_data_size);
 
-	Com_Verbose("      vis          %7i\n", bsp_file.vis_data_size);
+	Com_Verbose("      vis          %7i bytes\n", bsp_file.vis_data_size);
 }
 
 /**
