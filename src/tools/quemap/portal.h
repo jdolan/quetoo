@@ -25,12 +25,12 @@
 
 typedef struct portal_s {
 	plane_t plane;
-	node_t *onnode; // NULL = outside box
+	node_t *on_node; // NULL = outside box
 	node_t *nodes[2]; // [0] = front side of plane
 	struct portal_s *next[2];
 	winding_t *winding;
 
-	_Bool sidefound; // false if ->side hasn't been checked
+	_Bool side_found; // false if ->side hasn't been checked
 	brush_side_t *side; // NULL = non-visible
 	face_t *face[2]; // output face in bsp file
 } portal_t;

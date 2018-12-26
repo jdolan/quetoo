@@ -44,7 +44,7 @@ typedef struct node_s {
 	csg_brush_t *brushes; // fragments of all brushes in this leaf
 	int32_t contents; // OR of all brush contents
 	int32_t occupied; // 1 or greater can reach entity
-	entity_t *occupant; // for leak file testing
+	const entity_t *occupant; // for leak file testing
 	int32_t cluster; // for portal file writing
 	int32_t area; // for area portals
 	struct portal_s *portals; // also on nodes during construction
