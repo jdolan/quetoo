@@ -49,8 +49,8 @@ void BuildTextureColors(void) {
 		vec_t *color = Mem_Malloc(sizeof(vec3_t));
 		VectorSet(color, 1.0, 1.0, 1.0);
 
-		SDL_Surface *surf;
-		if (Img_LoadImage(material->diffuse.path, &surf)) {
+		SDL_Surface *surf = LoadAsset(&material->diffuse);
+		if (surf) {
 			Com_Debug(DEBUG_ALL, "Loaded %s (%dx%d)\n", tex->texture, surf->w, surf->h);
 
 			const int32_t texels = surf->w * surf->h;
@@ -64,8 +64,6 @@ void BuildTextureColors(void) {
 				c[1] += *pos++; // g
 				c[2] += *pos++; // b
 			}
-
-			SDL_FreeSurface(surf);
 
 			for (int32_t j = 0; j < 3; j++) {
 				color[j] = (c[j] / texels) / 255.0;

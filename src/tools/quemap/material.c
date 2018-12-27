@@ -19,9 +19,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include "image.h"
 #include "material.h"
 
 static GList *materials;
+static GHashTable *assets;
 
 /**
  * @brief Loads all materials defined in the material file.
@@ -67,12 +69,38 @@ cm_material_t *LoadMaterial(const char *name, cm_asset_context_t context) {
 }
 
 /**
+ * @brief
+ */
+SDL_Surface *LoadAsset(const cm_asset_t *asset) {
+
+	if (assets == NULL) {
+		assets = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify) SDL_FreeSurface);
+	}
+
+	SDL_Surface *surf = g_hash_table_lookup(assets, (void *) asset->path);
+	if (surf == NULL) {
+		if (Img_LoadImage(asset->path, &surf)) {
+			g_hash_table_insert(assets, (void *) asset->path, surf);
+		}
+	}
+
+	return surf;
+}
+
+/**
  * @brief Frees all loaded materials.
  */
 void FreeMaterials(void) {
 
-	g_list_free_full(materials, (GDestroyNotify) Cm_FreeMaterial);
-	materials = NULL;
+	if (materials != NULL) {
+		g_list_free_full(materials, (GDestroyNotify) Cm_FreeMaterial);
+		materials = NULL;
+	}
+
+	if (assets != NULL) {
+		g_hash_table_destroy(assets);
+		assets = NULL;
+	}
 }
 
 /**

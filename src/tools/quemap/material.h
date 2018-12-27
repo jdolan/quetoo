@@ -20,10 +20,13 @@
  */
 #pragma once
 
-#include "quemap.h"
 #include "collision/cm_material.h"
+#include "image.h"
+
+#include "quemap.h"
 
 ssize_t LoadMaterials(const char *path, cm_asset_context_t context, GList **materials);
 cm_material_t *LoadMaterial(const char *diffuse, cm_asset_context_t context);
+SDL_Surface *LoadAsset(const cm_asset_t *asset);
 ssize_t WriteMaterialsFile(const char *filename);
 void FreeMaterials(void);
