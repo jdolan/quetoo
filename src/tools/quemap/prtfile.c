@@ -52,9 +52,7 @@ static void WriteFloat(file_t *f, vec_t v) {
  * @brief
  */
 static void WritePortalFile_r(node_t *node) {
-	int32_t i, s;
-	portal_t *p;
-	winding_t *w;
+	int32_t s;
 	vec3_t normal;
 	vec_t dist;
 
@@ -69,8 +67,8 @@ static void WritePortalFile_r(node_t *node) {
 		return;
 	}
 
-	for (p = node->portals; p; p = p->next[s]) {
-		w = p->winding;
+	for (portal_t *p = node->portals; p; p = p->next[s]) {
+		winding_t *w = p->winding;
 		s = (p->nodes[1] == node);
 		if (w && p->nodes[0] == node) {
 			if (!Portal_VisFlood(p)) {
@@ -81,7 +79,7 @@ static void WritePortalFile_r(node_t *node) {
 			// sometimes planes get turned around when they are very near
 			// the changeover point between different axis. interpret the
 			// plane the same way vis will, and flip the side orders if needed
-			// FIXME: is this still relevent?
+			// FIXME: is this still relevent? Yes. jgothic.
 			WindingPlane(w, normal, &dist);
 			if (DotProduct(p->plane.normal, normal) < 0.99) { // backwards...
 				Fs_Print(prtfile, "%i %i %i ", w->num_points, p->nodes[1]->cluster,
@@ -89,7 +87,7 @@ static void WritePortalFile_r(node_t *node) {
 			} else
 				Fs_Print(prtfile, "%i %i %i ", w->num_points, p->nodes[0]->cluster,
 				         p->nodes[1]->cluster);
-			for (i = 0; i < w->num_points; i++) {
+			for (int32_t i = 0; i < w->num_points; i++) {
 				Fs_Print(prtfile, "(");
 				WriteFloat(prtfile, w->points[i][0]);
 				WriteFloat(prtfile, w->points[i][1]);
