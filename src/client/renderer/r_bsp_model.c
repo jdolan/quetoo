@@ -594,8 +594,8 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 		const vec_t *sdir = surf->texinfo->vecs[0];
 		const vec_t *tdir = surf->texinfo->vecs[1];
 
-		vec_t s = DotProduct(vert->position, sdir) + surf->texinfo->vecs[0][3];
-		vec_t t = DotProduct(vert->position, tdir) + surf->texinfo->vecs[1][3];
+		vec_t s = DotProduct(vert->position, sdir) + sdir[3];
+		vec_t t = DotProduct(vert->position, tdir) + tdir[3];
 
 		mod->bsp->texcoords[*vertices][0] = s / surf->texinfo->material->diffuse->width;
 		mod->bsp->texcoords[*vertices][1] = t / surf->texinfo->material->diffuse->height;
