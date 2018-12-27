@@ -640,7 +640,6 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 			int32_t plane_num = PlaneFromPoints(points[0], points[1], points[2]);
 			if (plane_num == -1) {
 				Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "Bad plane");
-				Com_Warn("Entity %i, Brush %i: bad plane\n", brush->entity_num, brush->brush_num);
 				continue;
 			}
 
@@ -650,12 +649,10 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 				brush_side_t *side = brush->original_sides + i;
 				if (side->plane_num == plane_num) {
 					Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "Duplicate plane");
-					Com_Verbose("Entity %i, Brush %i: duplicate plane\n", brush->entity_num, brush->brush_num);
 					break;
 				}
 				if (side->plane_num == (plane_num ^ 1)) {
 					Mon_SendSelect(MON_WARN, brush->entity_num, brush->brush_num, "Mirrored plane");
-					Com_Verbose("Entity %i, Brush %i: mirrored plane\n", brush->entity_num, brush->brush_num);
 					break;
 				}
 			}
