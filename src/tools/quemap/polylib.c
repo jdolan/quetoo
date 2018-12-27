@@ -61,13 +61,11 @@ void FreeWinding(winding_t *w) {
  * @brief
  */
 void RemoveColinearPoints(winding_t *w) {
-	int32_t i;
 	vec3_t v1, v2;
-	int32_t nump;
-	vec3_t p[MAX_POINTS_ON_WINDING];
+	vec3_t p[w->num_points];
 
-	nump = 0;
-	for (i = 0; i < w->num_points; i++) {
+	int32_t num_points = 0;
+	for (int32_t i = 0; i < w->num_points; i++) {
 		const int32_t j = (i + 1) % w->num_points;
 		const int32_t k = (i + w->num_points - 1) % w->num_points;
 		VectorSubtract(w->points[j], w->points[i], v1);
@@ -75,24 +73,24 @@ void RemoveColinearPoints(winding_t *w) {
 		VectorNormalize(v1);
 		VectorNormalize(v2);
 		if (DotProduct(v1, v2) < 0.999) {
-			VectorCopy(w->points[i], p[nump]);
-			nump++;
+			VectorCopy(w->points[i], p[num_points]);
+			num_points++;
 		}
 	}
 
-	if (nump == w->num_points) {
+	if (num_points == w->num_points) {
 		return;
 	}
 
 	if (debug) {
-		const int32_t j = w->num_points - nump;
-		for (i = 0; i < j; i++) {
+		const int32_t j = w->num_points - num_points;
+		for (int32_t i = 0; i < j; i++) {
 			SDL_SemPost(semaphores.removed_points);
 		}
 	}
 
-	w->num_points = nump;
-	memcpy(w->points, p, nump * sizeof(p[0]));
+	w->num_points = num_points;
+	memcpy(w->points, p, num_points * sizeof(p[0]));
 }
 
 /**
@@ -112,18 +110,16 @@ void WindingPlane(const winding_t *w, vec3_t normal, vec_t *dist) {
  * @brief
  */
 vec_t WindingArea(const winding_t *w) {
-	int32_t i;
 	vec3_t d1, d2, cross;
-	vec_t total;
+	vec_t area = 0.0;
 
-	total = 0;
-	for (i = 2; i < w->num_points; i++) {
+	for (int32_t i = 2; i < w->num_points; i++) {
 		VectorSubtract(w->points[i - 1], w->points[0], d1);
 		VectorSubtract(w->points[i], w->points[0], d2);
 		CrossProduct(d1, d2, cross);
-		total += 0.5 * VectorLength(cross);
+		area += 0.5 * VectorLength(cross);
 	}
-	return total;
+	return area;
 }
 
 /**
@@ -169,12 +165,12 @@ void WindingCenter(const winding_t *w, vec3_t center) {
 _Bool WindingIsTiny(const winding_t *w) {
 	vec3_t delta;
 
-	int32_t edges = 0;
+	int32_t valid_edges = 0;
 	for (int32_t i = 0; i < w->num_points; i++) {
 		VectorSubtract(w->points[i], w->points[(i + 1) % w->num_points], delta);
 		const vec_t len = VectorLength(delta);
 		if (len > VALID_EDGE_LENGTH) {
-			if (++edges == 3) {
+			if (++valid_edges == 3) {
 				return false;
 			}
 		}
@@ -296,12 +292,12 @@ winding_t *WindingForFace(const bsp_face_t *f) {
  * @brief
  */
 winding_t *CopyWinding(const winding_t *w) {
-	size_t size;
-	winding_t *c;
 
-	c = AllocWinding(w->num_points);
-	size = (size_t) ((winding_t *) 0)->points[w->num_points];
+	winding_t *c = AllocWinding(w->num_points);
+
+	const size_t size = (size_t) ((winding_t *) 0)->points[w->num_points];
 	memcpy(c, w, size);
+
 	return c;
 }
 
@@ -309,13 +305,13 @@ winding_t *CopyWinding(const winding_t *w) {
  * @brief
  */
 winding_t *ReverseWinding(winding_t *w) {
-	int32_t i;
-	winding_t *c;
 
-	c = AllocWinding(w->num_points);
-	for (i = 0; i < w->num_points; i++) {
+	winding_t *c = AllocWinding(w->num_points);
+
+	for (int32_t i = 0; i < w->num_points; i++) {
 		VectorCopy(w->points[w->num_points - 1 - i], c->points[i]);
 	}
+
 	c->num_points = w->num_points;
 	return c;
 }

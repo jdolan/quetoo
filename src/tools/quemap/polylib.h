@@ -26,7 +26,7 @@
 #include "quemap.h"
 
 typedef struct {
-	uint16_t num_points;
+	int32_t num_points;
 	vec3_t points[4]; // variable sized
 } winding_t;
 
