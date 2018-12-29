@@ -151,10 +151,10 @@ static void LeafNode(node_t *node, csg_brush_t *brushes) {
 /**
  * @brief
  */
-static void CheckPlaneAgainstParents(int32_t pnum, node_t *node) {
+static void CheckPlaneAgainstParents(int32_t plane_num, node_t *node) {
 
 	for (node_t *p = node->parent; p; p = p->parent) {
-		if (p->plane_num == pnum) {
+		if (p->plane_num == plane_num) {
 			Com_Error(ERROR_FATAL, "Tried parent\n");
 		}
 	}
@@ -163,9 +163,10 @@ static void CheckPlaneAgainstParents(int32_t pnum, node_t *node) {
 /**
  * @brief
  */
-static _Bool CheckPlaneAgainstVolume(int32_t pnum, node_t *node) {
+static _Bool CheckPlaneAgainstVolume(int32_t plane_num, node_t *node) {
 	csg_brush_t *front, *back;
-	SplitBrush(node->volume, pnum, &front, &back);
+
+	SplitBrush(node->volume, plane_num, &front, &back);
 
 	const _Bool good = (front && back);
 	if (front) {
@@ -188,7 +189,7 @@ static brush_side_t *SelectSplitSide(csg_brush_t *brushes, node_t *node) {
 	csg_brush_t *brush, *test;
 	brush_side_t *side, *best_side;
 	int32_t i, j, pass, num_passes;
-	int32_t pnum;
+	int32_t plane_num;
 	int32_t s;
 	int32_t front, back, both, facing, splits;
 	int32_t bsplits;
@@ -232,12 +233,12 @@ static brush_side_t *SelectSplitSide(csg_brush_t *brushes, node_t *node) {
 					continue;    // only check visible faces on first pass
 				}
 
-				pnum = side->plane_num;
-				pnum &= ~1; // always use positive facing plane
+				plane_num = side->plane_num;
+				plane_num &= ~1; // always use positive facing plane
 
-				CheckPlaneAgainstParents(pnum, node);
+				CheckPlaneAgainstParents(plane_num, node);
 
-				if (!CheckPlaneAgainstVolume(pnum, node)) {
+				if (!CheckPlaneAgainstVolume(plane_num, node)) {
 					continue; // would produce a tiny volume
 				}
 
@@ -250,7 +251,7 @@ static brush_side_t *SelectSplitSide(csg_brush_t *brushes, node_t *node) {
 				hint_split = false;
 
 				for (test = brushes; test; test = test->next) {
-					s = TestBrushToPlane(test, pnum, &bsplits, &hint_split, &epsilon_brush);
+					s = TestBrushToPlane(test, plane_num, &bsplits, &hint_split, &epsilon_brush);
 
 					splits += bsplits;
 					if (bsplits && (s & SIDE_FACING)) {
@@ -263,7 +264,7 @@ static brush_side_t *SelectSplitSide(csg_brush_t *brushes, node_t *node) {
 					if (s & SIDE_FACING) {
 						facing++;
 						for (j = 0; j < test->num_sides; j++) {
-							if ((test->sides[j].plane_num & ~1) == pnum) {
+							if ((test->sides[j].plane_num & ~1) == plane_num) {
 								test->sides[j].tested = true;
 							}
 						}
@@ -282,7 +283,7 @@ static brush_side_t *SelectSplitSide(csg_brush_t *brushes, node_t *node) {
 				// give a value estimate for using this plane
 
 				value = 5 * facing - 5 * splits - abs(front - back);
-				if (AXIAL(&planes[pnum])) {
+				if (AXIAL(&planes[plane_num])) {
 					value += 5;    // axial is better
 				}
 				value -= epsilon_brush * 1000; // avoid!
