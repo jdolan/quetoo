@@ -35,7 +35,7 @@ typedef struct {
 
 static r_buffer_layout_t r_sky_buffer_layout[] = {
 	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 3 },
-	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_FLOAT, .count = 2, .normalized = true },
+	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_FLOAT, .count = 2 },
 	{ .attribute = -1 }
 };
 
