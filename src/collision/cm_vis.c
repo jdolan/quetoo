@@ -27,6 +27,11 @@
 _Bool cm_no_areas = false;
 
 /**
+ * @brief If true, PVS culling is skipped.
+ */
+_Bool cm_no_vis = false;
+
+/**
  * @brief
  *
  * @remarks `pvs` must be at least `MAX_BSP_LEAFS >> 3` in length.
@@ -36,10 +41,12 @@ size_t Cm_ClusterPVS(const int32_t cluster, byte *pvs) {
 	const bsp_vis_t *vis = cm_bsp.bsp.vis_data.vis;
 	const size_t len = (vis->num_clusters + 7) >> 3;
 
-	if (cluster == -1) {
+	if (cm_no_vis) {
+		memset(pvs, 1, len);
+	} else if (cluster == -1) {
 		memset(pvs, 0, len);
 	} else {
-		Bsp_DecompressVis(&cm_bsp.bsp, cm_bsp.bsp.vis_data.raw + vis->bit_offsets[cluster][DVIS_PVS], pvs);
+		Bsp_DecompressVis(&cm_bsp.bsp, cm_bsp.bsp.vis_data.raw + vis->bit_offsets[cluster][VIS_PVS], pvs);
 	}
 
 	return len;
@@ -53,10 +60,12 @@ size_t Cm_ClusterPHS(const int32_t cluster, byte *phs) {
 	const bsp_vis_t *vis = cm_bsp.bsp.vis_data.vis;
 	const size_t len = (vis->num_clusters + 7) >> 3;
 
-	if (cluster == -1) {
+	if (cm_no_vis) {
+		memset(phs, 1, len);
+	} else if (cluster == -1) {
 		memset(phs, 0, len);
 	} else {
-		Bsp_DecompressVis(&cm_bsp.bsp, cm_bsp.bsp.vis_data.raw + vis->bit_offsets[cluster][DVIS_PHS], phs);
+		Bsp_DecompressVis(&cm_bsp.bsp, cm_bsp.bsp.vis_data.raw + vis->bit_offsets[cluster][VIS_PHS], phs);
 	}
 
 	return len;

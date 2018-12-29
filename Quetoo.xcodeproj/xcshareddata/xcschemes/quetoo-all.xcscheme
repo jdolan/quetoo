@@ -83,7 +83,11 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map torn +set g_cheats 1 +no_clip +set r_materials 0"
+            argument = "+map torn +set g_cheats 1 +no_clip +give all"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+set cm_no_vis 1 +set r_no_vis 1"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

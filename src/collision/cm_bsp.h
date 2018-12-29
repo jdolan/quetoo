@@ -152,8 +152,8 @@ typedef struct {
 // the visibility lump consists of a header with a count, then
 // byte offsets for the PVS and PHS of each cluster, then the raw
 // compressed bit vectors
-#define DVIS_PVS	0
-#define DVIS_PHS	1
+#define VIS_PVS	0
+#define VIS_PHS	1
 
 typedef struct {
 	int32_t num_clusters;
