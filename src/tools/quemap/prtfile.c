@@ -84,9 +84,10 @@ static void WritePortalFile_r(node_t *node) {
 			if (DotProduct(p->plane.normal, normal) < 0.99) { // backwards...
 				Fs_Print(prtfile, "%i %i %i ", w->num_points, p->nodes[1]->cluster,
 				         p->nodes[0]->cluster);
-			} else
+			} else {
 				Fs_Print(prtfile, "%i %i %i ", w->num_points, p->nodes[0]->cluster,
 				         p->nodes[1]->cluster);
+			}
 			for (int32_t i = 0; i < w->num_points; i++) {
 				Fs_Print(prtfile, "(");
 				WriteFloat(prtfile, w->points[i][0]);
@@ -150,7 +151,6 @@ static void NumberLeafs_r(node_t *node) {
 			p = p->next[1];
 		}
 	}
-
 }
 
 /**
