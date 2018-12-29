@@ -100,7 +100,7 @@ typedef struct {
 } thread_data_t;
 
 typedef struct map_vis_s {
-	uint32_t num_portals;
+	int32_t num_portals;
 	uint32_t portal_clusters;
 
 	portal_t *portals;

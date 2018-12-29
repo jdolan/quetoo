@@ -520,7 +520,7 @@ static void SimpleFlood(portal_t *srcportal, int32_t leaf_num) {
  * @brief
  */
 void BaseVis(int32_t portal_num) {
-	uint32_t j, k;
+	int32_t j, k;
 	portal_t *tp, *p;
 	vec_t d;
 	const winding_t *w;
@@ -533,7 +533,7 @@ void BaseVis(int32_t portal_num) {
 
 	for (j = 0, tp = map_vis.portals; j < map_vis.num_portals * 2; j++, tp++) {
 
-		if (j == (uint32_t) portal_num) {
+		if (j == portal_num) {
 			continue;
 		}
 
@@ -546,7 +546,7 @@ void BaseVis(int32_t portal_num) {
 		}
 
 		if (k == w->num_points) {
-			continue;    // no points on front
+			continue; // no points on front
 		}
 
 		w = p->winding;
@@ -558,7 +558,7 @@ void BaseVis(int32_t portal_num) {
 		}
 
 		if (k == w->num_points) {
-			continue;    // no points on front
+			continue; // no points on front
 		}
 
 		p->front[j >> 3] |= (1 << (j & 7));
