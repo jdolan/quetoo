@@ -711,30 +711,26 @@ void Bsp_DecompressVis(const bsp_file_t *bsp, const byte *in, byte *out) {
  * @brief
  */
 int32_t Bsp_CompressVis(const bsp_file_t *bsp, const byte *vis, byte *dest) {
-	int32_t j;
-	int32_t rep;
-	int32_t visrow;
-	byte *dest_p;
 
-	dest_p = dest;
-	visrow = (bsp->vis_data.vis->num_clusters + 7) >> 3;
+	byte *out = dest;
+	const int32_t row = (bsp->vis_data.vis->num_clusters + 7) >> 3;
 
-	for (j = 0; j < visrow; j++) {
-		*dest_p++ = vis[j];
+	for (int32_t j = 0; j < row; j++) {
+		*out++ = vis[j];
 		if (vis[j]) {
 			continue;
 		}
 
-		rep = 1;
-		for (j++; j < visrow; j++)
+		int32_t rep = 1;
+		for (j++; j < row; j++)
 			if (vis[j] || rep == 0xff) {
 				break;
 			} else {
 				rep++;
 			}
-		*dest_p++ = rep;
+		*out++ = rep;
 		j--;
 	}
 
-	return (int32_t) (ptrdiff_t) (dest_p - dest);
+	return (int32_t) (ptrdiff_t) (out - dest);
 }
