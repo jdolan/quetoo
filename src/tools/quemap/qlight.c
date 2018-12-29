@@ -234,7 +234,7 @@ int32_t LIGHT_Main(void) {
 	LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
 
 	if (!bsp_file.vis_data_size) {
-		Com_Error(ERROR_FATAL, "No VIS information\n");
+		Com_Warn("No VIS information, expect longer compile time\n");
 	}
 
 	LoadMaterials(va("materials/%s.mat", map_base), ASSET_CONTEXT_TEXTURES, NULL);
