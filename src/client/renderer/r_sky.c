@@ -23,24 +23,26 @@
 
 #define SKY_DISTANCE (MAX_WORLD_COORD * 2)
 
-#define SKY_ST_MIN	(128) // offset to prevent ST wrapping
-#define SKY_ST_MAX	(UINT16_MAX - SKY_ST_MIN)
+#define SKY_ST_EPSILON (0.00175)
+
+#define SKY_ST_MIN   (0.0 + SKY_ST_EPSILON)
+#define SKY_ST_MAX   (1.0 - SKY_ST_EPSILON)
 
 typedef struct {
-	s16vec3_t position;
-	u16vec2_t texcoord;
-} r_sky_interleave_vertex_t;
+	vec3_t position;
+	vec2_t diffuse;
+} r_sky_vertex_t;
 
 static r_buffer_layout_t r_sky_buffer_layout[] = {
-	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_SHORT, .count = 3 },
-	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_UNSIGNED_SHORT, .count = 2, .normalized = true },
+	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 3 },
+	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_FLOAT, .count = 2, .normalized = true },
 	{ .attribute = -1 }
 };
 
 // sky structure
 typedef struct {
 	r_image_t *images[6];
-	r_buffer_t quick_vert_buffer;
+	r_buffer_t vertex_buffer;
 } r_sky_t;
 
 static r_sky_t r_sky;
@@ -53,7 +55,7 @@ void R_DrawSkyBox(void) {
 
 	R_GetMatrix(R_MATRIX_MODELVIEW, &modelview);
 
-	R_BindAttributeInterleaveBuffer(&r_sky.quick_vert_buffer, R_ATTRIB_MASK_ALL);
+	R_BindAttributeInterleaveBuffer(&r_sky.vertex_buffer, R_ATTRIB_MASK_ALL);
 
 	R_PushMatrix(R_MATRIX_MODELVIEW);
 
@@ -101,77 +103,77 @@ void R_DrawSkyBox(void) {
  * @brief
  */
 void R_InitSky(void) {
-	const r_sky_interleave_vertex_t quick_sky_verts[] = {
+	const r_sky_vertex_t vertexes[] = {
 		// +z (top)
 		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
-			.texcoord = { SKY_ST_MAX, SKY_ST_MIN } },
+			.diffuse = { SKY_ST_MAX, SKY_ST_MIN } },
 		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
-			.texcoord = { SKY_ST_MAX, SKY_ST_MAX } },
+			.diffuse = { SKY_ST_MAX, SKY_ST_MAX } },
 		{ .position = { SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
-			.texcoord = { SKY_ST_MIN, SKY_ST_MAX } },
+			.diffuse = { SKY_ST_MIN, SKY_ST_MAX } },
 		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
-			.texcoord = { SKY_ST_MIN, SKY_ST_MIN } },
+			.diffuse = { SKY_ST_MIN, SKY_ST_MIN } },
 
 		// -z (bottom)
 		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
-			.texcoord = { SKY_ST_MIN, SKY_ST_MAX } },
+			.diffuse = { SKY_ST_MIN, SKY_ST_MAX } },
 		{ .position = { SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
-			.texcoord = { SKY_ST_MIN, SKY_ST_MIN } },
+			.diffuse = { SKY_ST_MIN, SKY_ST_MIN } },
 		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
-			.texcoord = { SKY_ST_MAX, SKY_ST_MIN } },
+			.diffuse = { SKY_ST_MAX, SKY_ST_MIN } },
 		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
-			.texcoord = { SKY_ST_MAX, SKY_ST_MAX } },
+			.diffuse = { SKY_ST_MAX, SKY_ST_MAX } },
 
 		// +x (right)
 		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
-			.texcoord = { SKY_ST_MAX, SKY_ST_MIN } },
+			.diffuse = { SKY_ST_MAX, SKY_ST_MIN } },
 		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
-			.texcoord = { SKY_ST_MAX, SKY_ST_MAX } },
+			.diffuse = { SKY_ST_MAX, SKY_ST_MAX } },
 		{ .position = { SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
-			.texcoord = { SKY_ST_MIN, SKY_ST_MAX } },
+			.diffuse = { SKY_ST_MIN, SKY_ST_MAX } },
 		{ .position = { SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
-			.texcoord = { SKY_ST_MIN, SKY_ST_MIN } },
+			.diffuse = { SKY_ST_MIN, SKY_ST_MIN } },
 
 		// -x (left)
 		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
-			.texcoord = { SKY_ST_MAX, SKY_ST_MIN } },
+			.diffuse = { SKY_ST_MAX, SKY_ST_MIN } },
 		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
-			.texcoord = { SKY_ST_MAX, SKY_ST_MAX } },
+			.diffuse = { SKY_ST_MAX, SKY_ST_MAX } },
 		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
-			.texcoord = { SKY_ST_MIN, SKY_ST_MAX } },
+			.diffuse = { SKY_ST_MIN, SKY_ST_MAX } },
 		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
-			.texcoord = { SKY_ST_MIN, SKY_ST_MIN } },
+			.diffuse = { SKY_ST_MIN, SKY_ST_MIN } },
 
 		// +y (back)
 		{ .position = { SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
-			.texcoord = { SKY_ST_MAX, SKY_ST_MIN } },
+			.diffuse = { SKY_ST_MAX, SKY_ST_MIN } },
 		{ .position = { SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
-			.texcoord = { SKY_ST_MAX, SKY_ST_MAX } },
+			.diffuse = { SKY_ST_MAX, SKY_ST_MAX } },
 		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
-			.texcoord = { SKY_ST_MIN, SKY_ST_MAX } },
+			.diffuse = { SKY_ST_MIN, SKY_ST_MAX } },
 		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
-			.texcoord = { SKY_ST_MIN, SKY_ST_MIN } },
+			.diffuse = { SKY_ST_MIN, SKY_ST_MIN } },
 
 		// -y (front)
 		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
-			.texcoord = { SKY_ST_MAX, SKY_ST_MIN } },
+			.diffuse = { SKY_ST_MAX, SKY_ST_MIN } },
 		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
-			.texcoord = { SKY_ST_MAX, SKY_ST_MAX } },
+			.diffuse = { SKY_ST_MAX, SKY_ST_MAX } },
 		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
-			.texcoord = { SKY_ST_MIN, SKY_ST_MAX } },
+			.diffuse = { SKY_ST_MIN, SKY_ST_MAX } },
 		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
-			.texcoord = { SKY_ST_MIN, SKY_ST_MIN } },
+			.diffuse = { SKY_ST_MIN, SKY_ST_MIN } },
 	};
 
-	R_CreateInterleaveBuffer(&r_sky.quick_vert_buffer, &(const r_create_interleave_t) {
-		.struct_size = sizeof(r_sky_interleave_vertex_t),
+	R_CreateInterleaveBuffer(&r_sky.vertex_buffer, &(const r_create_interleave_t) {
+		.struct_size = sizeof(r_sky_vertex_t),
 		.layout = r_sky_buffer_layout,
 		.hint = GL_STATIC_DRAW,
-		.size = sizeof(r_sky_interleave_vertex_t) * MAX_SKY_VERTS,
+		.size = sizeof(r_sky_vertex_t) * MAX_SKY_VERTS,
 		.data = NULL
 	});
 
-	R_UploadToSubBuffer(&r_sky.quick_vert_buffer, 0, sizeof(quick_sky_verts), quick_sky_verts, false);
+	R_UploadToSubBuffer(&r_sky.vertex_buffer, 0, sizeof(vertexes), vertexes, false);
 }
 
 /**
@@ -179,7 +181,7 @@ void R_InitSky(void) {
  */
 void R_ShutdownSky(void) {
 
-	R_DestroyBuffer(&r_sky.quick_vert_buffer);
+	R_DestroyBuffer(&r_sky.vertex_buffer);
 }
 
 /**
