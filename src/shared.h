@@ -120,6 +120,8 @@ int32_t Randomr(const int32_t min, const int32_t max); // min to max
 void ClearBounds(vec3_t mins, vec3_t maxs);
 void AddPointToBounds(const vec3_t v, vec3_t mins, vec3_t maxs);
 vec_t RadiusFromBounds(const vec3_t mins, const vec3_t maxs);
+void ClearStBounds(vec2_t mins, vec2_t maxs);
+void AddStToBounds(const vec2_t st, vec2_t st_mins, vec2_t st_maxs);
 
 vec_t VectorNormalize(vec3_t v);
 vec_t VectorNormalize2(const vec3_t in, vec3_t out);

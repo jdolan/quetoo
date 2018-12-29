@@ -324,7 +324,7 @@ typedef struct {
  * @brief Stitches the atlas, returning atlas parameters.
  */
 static void R_StitchAtlas(r_atlas_t *atlas, r_atlas_params_t *params) {
-	uint16_t min_size = USHRT_MAX;
+	uint16_t min_size = UINT16_MAX;
 	params->width = params->height = 0;
 
 	r_atlas_image_t *image = (r_atlas_image_t *) atlas->images->data;

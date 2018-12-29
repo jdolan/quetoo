@@ -23,8 +23,6 @@
 
 #include "quemap.h"
 
-#define	PORTALFILE	"PRT1"
-
 extern _Bool fast_vis;
 extern _Bool no_sort;
 

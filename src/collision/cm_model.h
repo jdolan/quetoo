@@ -40,19 +40,20 @@ typedef struct {
 	char name[MAX_QPATH];
 	int64_t size;
 	int64_t mod_time;
+
 	bsp_file_t bsp;
 
+	cm_bsp_texinfo_t *texinfos;
 	cm_bsp_plane_t *planes;
 	cm_bsp_node_t *nodes;
-	cm_bsp_texinfo_t *texinfos;
 	cm_bsp_leaf_t *leafs;
 	uint16_t *leaf_brushes;
-	cm_bsp_model_t *models;
 	cm_bsp_brush_t *brushes;
 	cm_bsp_brush_side_t *brush_sides;
+	cm_bsp_model_t *models;
+	cm_bsp_area_portal_t *area_portals;
 	cm_bsp_area_t *areas;
 
-	_Bool *portal_open;
 	int32_t flood_valid;
 
 	cm_entity_t **entities;

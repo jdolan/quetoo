@@ -100,22 +100,18 @@ static void R_ResolveBspLightParameters(void) {
  * @brief Adds the specified static light source after first ensuring that it
  * can not be merged with any known sources.
  */
-static void R_AddBspLight(r_bsp_model_t *bsp, const r_light_t *l) {
+static void R_AddBspLight(r_bsp_model_t *bsp, const r_bsp_light_t *l) {
 
-	if (l->radius <= 0.0) {
-		Com_Debug(DEBUG_RENDERER, "Bad radius: %f\n", l->radius);
-		return;
-	}
+	assert(l->type != LIGHT_INVALID);
 
 	r_bsp_light_t *light = Mem_LinkMalloc(sizeof(*light), bsp);
 	r_bsp_light_state.lights = g_slist_prepend(r_bsp_light_state.lights, light);
 
-	memcpy(&light->light, l, sizeof(*l));
+	memcpy(light, l, sizeof(*l));
 
 	light->leaf = R_LeafForPoint(light->light.origin, bsp);
 
 	const r_bsp_light_state_t *s = &r_bsp_light_state;
-
 	ColorFilter(light->light.color, light->light.color, s->brightness, s->saturation, s->contrast);
 
 	light->debug.type = PARTICLE_CORONA;
@@ -140,11 +136,18 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 		const r_bsp_texinfo_t *tex = surf->texinfo;
 		if ((tex->flags & SURF_LIGHT) && tex->value) {
 
-			r_light_t light;
+			r_bsp_light_t light = {
+				.type = LIGHT_PATCH
+			};
 
-			VectorMA(surf->center, 4.0, surf->normal, light.origin);
-			light.radius = tex->value + sqrt(surf->area);
-			VectorCopy(tex->material->diffuse->color, light.color);
+			VectorMix(surf->mins, surf->maxs, 0.5, light.light.origin);
+			VectorMA(light.light.origin, 4.0, surf->plane->normal, light.light.origin);
+
+			vec3_t delta;
+			VectorSubtract(surf->mins, surf->maxs, delta);
+			light.light.radius = tex->value + VectorLength(delta) * 0.5;
+			
+			VectorCopy(tex->material->diffuse->color, light.light.color);
 
 			R_AddBspLight(bsp, &light);
 		}
@@ -159,25 +162,24 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 			!g_strcmp0(classname, "light_spot") ||
 			!g_strcmp0(classname, "light_sun")) {
 
-			r_light_t light;
+			r_bsp_light_t light;
 
 			parser_t parser;
 
 			Parse_Init(&parser, Cm_EntityValue(*entity, "origin"), PARSER_DEFAULT);
-			if (Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, light.origin, 3) != 3) {
+			if (Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, light.light.origin, 3) != 3) {
 				Com_Debug(DEBUG_RENDERER, "Invalid light source\n");
 				continue;
 			}
 
 			Parse_Init(&parser, Cm_EntityValue(*entity, "_color"), PARSER_DEFAULT);
-			if (Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, light.color, 3) != 3) {
-				VectorSet(light.color, 1.0, 1.0, 1.0);
-
+			if (Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, light.light.color, 3) != 3) {
+				VectorSet(light.light.color, 1.0, 1.0, 1.0);
 			}
 
 			Parse_Init(&parser, Cm_EntityValue(*entity, "light"), PARSER_DEFAULT);
-			if (Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, &light.radius, 1) != 1) {
-				light.radius = DEFAULT_LIGHT;
+			if (Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, &light.light.radius, 1) != 1) {
+				light.light.radius = DEFAULT_LIGHT;
 			}
 
 			/*
@@ -227,9 +229,9 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 	bsp->num_bsp_lights = g_slist_length(r_bsp_light_state.lights);
 	bsp->bsp_lights = Mem_LinkMalloc(sizeof(r_bsp_light_t) * bsp->num_bsp_lights, bsp);
 
-	r_bsp_light_t *bl = bsp->bsp_lights;
+	r_bsp_light_t *light = bsp->bsp_lights;
 	for (GSList *e = r_bsp_light_state.lights; e; e = e->next) {
-		*bl++ = *((r_bsp_light_t *) e->data);
+		*light++ = *((r_bsp_light_t *) e->data);
 	}
 
 	// reset state

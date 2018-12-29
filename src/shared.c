@@ -314,7 +314,7 @@ _Bool BoxIntersect(const vec3_t mins0, const vec3_t maxs0, const vec3_t mins1, c
 }
 
 /**
- * @brief Initializes the specified bounds so that they may be safely calculated.
+ * @brief Resets the specified bounds.
  */
 void ClearBounds(vec3_t mins, vec3_t maxs) {
 	mins[0] = mins[1] = mins[2] = MAX_WORLD_COORD;
@@ -322,7 +322,7 @@ void ClearBounds(vec3_t mins, vec3_t maxs) {
 }
 
 /**
- * @brief Useful for accumulating a bounding box over a series of points.
+ * @brief Accumulate a bounding box over a series of points.
  */
 void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs) {
 
@@ -337,7 +337,7 @@ void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs) {
 }
 
 /**
- * @brief Returns an approximate radius from the specified bounding box.
+ * @return An approximate radius from the specified bounding box.
  */
 vec_t RadiusFromBounds(const vec3_t mins, const vec3_t maxs) {
 	vec3_t corner;
@@ -347,6 +347,29 @@ vec_t RadiusFromBounds(const vec3_t mins, const vec3_t maxs) {
 	}
 
 	return VectorLength(corner);
+}
+
+/**
+ * @brief Resets the texture coordinate bounds.
+ */
+void ClearStBounds(vec2_t mins, vec2_t maxs) {
+	mins[0] = mins[1] = FLT_MAX;
+	maxs[0] = maxs[1] = -FLT_MAX;
+}
+
+/**
+ * @brief Accumulate texture bounds over a series of texture coordinates.
+ */
+void AddStToBounds(const vec2_t st, vec2_t mins, vec2_t maxs) {
+
+	for (int32_t i = 0; i < 2; i++) {
+		if (st[i] < mins[i]) {
+			mins[i] = st[i];
+		}
+		if (st[i] > maxs[i]) {
+			maxs[i] = st[i];
+		}
+	}
 }
 
 /**
@@ -577,15 +600,15 @@ void UnpackBounds(const uint32_t in, vec3_t mins, vec3_t maxs) {
 }
 
 /**
- * @brief Packs a float texcoord [0,1) to [0,USHRT_MAX]
+ * @brief Packs a float texcoord [0,1) to [0,UINT16_MAX]
  */
 u16vec_t PackTexcoord(const vec_t in) {
 
-	return (u16vec_t) (in * USHRT_MAX);
+	return (u16vec_t) (in * UINT16_MAX);
 }
 
 /**
- * @brief Packs float texcoords [0,1) to [0,USHRT_MAX]
+ * @brief Packs float texcoords [0,1) to [0,UINT16_MAX]
  */
 void PackTexcoords(const vec2_t in, u16vec2_t out) {
 

@@ -21,6 +21,7 @@
 
 #include "bsp.h"
 #include "map.h"
+#include "material.h"
 #include "portal.h"
 #include "qbsp.h"
 
@@ -28,20 +29,18 @@ static int32_t c_nofaces;
 static int32_t c_facenodes;
 
 /**
- * @brief There is no opportunity to discard planes, because all of the original
- * brushes will be saved in the map.
+ * @brief
  */
 static void EmitPlanes(void) {
-	int32_t i;
-	bsp_plane_t *dp;
-	plane_t *mp;
 
-	mp = planes;
-	for (i = 0; i < num_planes; i++, mp++) {
-		dp = &bsp_file.planes[bsp_file.num_planes];
-		VectorCopy(mp->normal, dp->normal);
-		dp->dist = mp->dist;
-		dp->type = mp->type;
+	const plane_t *p = planes;
+	for (int32_t i = 0; i < num_planes; i++, p++) {
+		bsp_plane_t *bp = &bsp_file.planes[bsp_file.num_planes];
+
+		VectorCopy(p->normal, bp->normal);
+		bp->dist = p->dist;
+		bp->type = p->type;
+
 		bsp_file.num_planes++;
 	}
 }
@@ -85,20 +84,14 @@ static void EmitLeafFace(bsp_leaf_t *leaf_p, face_t *f) {
  * @brief
  */
 static void EmitLeaf(node_t *node) {
-	bsp_leaf_t *leaf_p;
-	portal_t *p;
 	int32_t s;
-	face_t *f;
-	csg_brush_t *b;
-	int32_t i;
-	ptrdiff_t brush_num;
 
 	// emit a leaf
 	if (bsp_file.num_leafs >= MAX_BSP_LEAFS) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_LEAFS\n");
 	}
 
-	leaf_p = &bsp_file.leafs[bsp_file.num_leafs];
+	bsp_leaf_t *leaf_p = &bsp_file.leafs[bsp_file.num_leafs];
 	bsp_file.num_leafs++;
 
 	leaf_p->contents = node->contents;
@@ -111,14 +104,15 @@ static void EmitLeaf(node_t *node) {
 
 	// write the leaf_brushes
 	leaf_p->first_leaf_brush = bsp_file.num_leaf_brushes;
-	for (b = node->brushes; b; b = b->next) {
+	for (csg_brush_t *b = node->brushes; b; b = b->next) {
 
 		if (bsp_file.num_leaf_brushes >= MAX_BSP_LEAF_BRUSHES) {
 			Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_BRUSHES\n");
 		}
 
-		brush_num = b->original - brushes;
+		const ptrdiff_t brush_num = b->original - brushes;
 
+		int32_t i;
 		for (i = leaf_p->first_leaf_brush; i < bsp_file.num_leaf_brushes; i++) {
 			if (bsp_file.leaf_brushes[i] == brush_num) {
 				break;
@@ -134,18 +128,18 @@ static void EmitLeaf(node_t *node) {
 
 	// write the leaf_faces
 	if (leaf_p->contents & CONTENTS_SOLID) {
-		return;    // no leaf_faces in solids
+		return; // no leaf_faces in solids
 	}
 
 	leaf_p->first_leaf_face = bsp_file.num_leaf_faces;
 
-	for (p = node->portals; p; p = p->next[s]) {
+	for (portal_t *p = node->portals; p; p = p->next[s]) {
 
 		s = (p->nodes[1] == node);
-		f = p->face[s];
+		face_t *f = p->face[s];
 
 		if (!f) {
-			continue;    // not a visible portal
+			continue; // not a visible portal
 		}
 
 		EmitLeafFace(leaf_p, f);
@@ -157,68 +151,11 @@ static void EmitLeaf(node_t *node) {
 /**
  * @brief
  */
-static void EmitFace(face_t *f) {
-
-	f->output_number = -1;
-
-	if (f->w->num_points < 3) {
-		return; // degenerated
-	}
-	if (f->merged) {
-		return; // not a final face
-	}
-	// save output number so leaffaces can use
-	f->output_number = bsp_file.num_faces;
-
-	if (bsp_file.num_faces >= MAX_BSP_FACES) {
-		Com_Error(ERROR_FATAL, "MAX_BSP_FACES\n");
-	}
-
-	bsp_face_t *df = &bsp_file.faces[bsp_file.num_faces];
-	bsp_file.num_faces++;
-
-	// plane_num is used by qlight, but not quake
-	df->plane_num = f->plane_num & (~1);
-	df->side = f->plane_num & 1;
-
-	df->first_face_edge = bsp_file.num_face_edges;
-	df->num_face_edges = f->w->num_points;
-	df->texinfo = f->texinfo;
-
-	const bsp_texinfo_t *tex = &bsp_file.texinfo[f->texinfo];
-
-	int32_t vertex_nums[f->w->num_points];
-
-	for (int32_t i = 0; i < f->w->num_points; i++) {
-		if (tex->flags & SURF_NO_WELD) {
-			VectorCopy(f->w->points[i], bsp_file.vertexes[bsp_file.num_vertexes].point);
-			vertex_nums[i] = bsp_file.num_vertexes++;
-		} else {
-			vertex_nums[i] = EmitVertex(f->w->points[i]);
-		}
-	}
-
-	for (int32_t i = 0; i < f->w->num_points; i++) {
-		const int32_t j = (i + 1) % f->w->num_points;
-		const int32_t e = EmitEdge(vertex_nums[i], vertex_nums[j], f);
-
-		if (bsp_file.num_face_edges >= MAX_BSP_FACE_EDGES) {
-			Com_Error(ERROR_FATAL, "MAX_BSP_FACE_EDGES\n");
-		}
-
-		bsp_file.face_edges[bsp_file.num_face_edges] = e;
-		bsp_file.num_face_edges++;
-	}
-	df->lightmap_ofs = -1;
-}
-
-/**
- * @brief
- */
 static int32_t EmitDrawNode_r(node_t *node) {
-	bsp_node_t *n;
-	face_t *f;
-	int32_t i;
+
+	if (node->plane_num & 1) {
+		Com_Error(ERROR_FATAL, "Odd plane number\n");
+	}
 
 	if (node->plane_num == PLANENUM_LEAF) {
 		EmitLeaf(node);
@@ -230,15 +167,11 @@ static int32_t EmitDrawNode_r(node_t *node) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_NODES\n");
 	}
 
-	n = &bsp_file.nodes[bsp_file.num_nodes];
+	bsp_node_t *n = &bsp_file.nodes[bsp_file.num_nodes];
 	bsp_file.num_nodes++;
 
 	VectorCopy(node->mins, n->mins);
 	VectorCopy(node->maxs, n->maxs);
-
-	if (node->plane_num & 1) {
-		Com_Error(ERROR_FATAL, "Odd plane number\n");
-	}
 
 	n->plane_num = node->plane_num;
 	n->first_face = bsp_file.num_faces;
@@ -249,14 +182,14 @@ static int32_t EmitDrawNode_r(node_t *node) {
 		c_facenodes++;
 	}
 
-	for (f = node->faces; f; f = f->next) {
+	for (face_t *f = node->faces; f; f = f->next) {
 		EmitFace(f);
 	}
 
 	n->num_faces = bsp_file.num_faces - n->first_face;
 
 	// recursively output the other nodes
-	for (i = 0; i < 2; i++) {
+	for (int32_t i = 0; i < 2; i++) {
 		if (node->children[i]->plane_num == PLANENUM_LEAF) {
 			n->children[i] = -(bsp_file.num_leafs + 1);
 			EmitLeaf(node->children[i]);
@@ -395,15 +328,22 @@ void EmitEntities(void) {
  */
 void BeginBSPFile(void) {
 
-	// edge 0 is not used, because 0 can't be negated
-	bsp_file.num_edges = 1;
+	memset(&bsp_file, 0, sizeof(bsp_file));
 
-	// leave vertex 0 as an error
-	bsp_file.num_vertexes = 1;
-
-	// leave leaf 0 as an error
-	bsp_file.num_leafs = 1;
-	bsp_file.leafs[0].contents = CONTENTS_SOLID;
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_TEXINFO, MAX_BSP_TEXINFO);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_PLANES, MAX_BSP_PLANES);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_NODES, MAX_BSP_NODES);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_LEAFS, MAX_BSP_LEAFS);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_LEAF_FACES, MAX_BSP_LEAF_FACES);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_LEAF_BRUSHES, MAX_BSP_LEAF_BRUSHES);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_BRUSHES, MAX_BSP_BRUSHES);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_BRUSH_SIDES, MAX_BSP_BRUSH_SIDES);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_VERTEXES, MAX_BSP_VERTEXES);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_FACES, MAX_BSP_FACES);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_FACE_VERTEXES, MAX_BSP_FACE_VERTEXES);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_MODELS, MAX_BSP_MODELS);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_AREA_PORTALS, MAX_BSP_AREA_PORTALS);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_AREAS, MAX_BSP_AREAS);
 }
 
 /**
@@ -416,7 +356,7 @@ void EndBSPFile(void) {
 	EmitAreaPortals();
 	EmitEntities();
 
-	WriteBSPFile(va("maps/%s.bsp", map_base));
+	PhongVertexes();
 }
 
 /**
@@ -436,8 +376,6 @@ void BeginModel(void) {
 	mod = &bsp_file.models[bsp_file.num_models];
 
 	mod->first_face = bsp_file.num_faces;
-
-	first_bsp_model_edge = bsp_file.num_edges;
 
 	// bound the brushes
 	e = &entities[entity_num];

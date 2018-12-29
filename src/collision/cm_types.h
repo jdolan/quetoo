@@ -179,6 +179,11 @@ typedef struct {
 	vec3_t mins, maxs;
 } cm_bsp_brush_t;
 
+/**
+ * @brief True if the area portal is open.
+ */
+typedef _Bool cm_bsp_area_portal_t;
+
 typedef struct {
 	int32_t num_area_portals;
 	int32_t first_area_portal;

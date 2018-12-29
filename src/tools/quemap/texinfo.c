@@ -109,22 +109,20 @@ static int32_t FindTexinfo(bsp_texinfo_t *tx) {
  * @brief
  */
 int32_t TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, const vec3_t origin) {
-	vec3_t vecs[2];
 	vec_t ang, sinv, cosv;
-	vec_t ns, nt;
-	vec2_t shift;
-	bsp_texinfo_t tx;
-	int32_t i, j, sv, tv;
 
 	if (!bt->name[0]) {
 		return 0;
 	}
 
+	bsp_texinfo_t tx;
 	memset(&tx, 0, sizeof(tx));
 	strcpy(tx.texture, bt->name);
 
+	vec3_t vecs[2];
 	TextureAxisFromPlane(plane, vecs[0], vecs[1]);
 
+	vec2_t shift;
 	shift[0] = DotProduct(origin, vecs[0]);
 	shift[1] = DotProduct(origin, vecs[1]);
 
@@ -154,6 +152,7 @@ int32_t TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, const vec3_t
 		cosv = cos(ang);
 	}
 
+	int32_t sv;
 	if (vecs[0][0]) {
 		sv = 0;
 	} else if (vecs[0][1]) {
@@ -162,6 +161,7 @@ int32_t TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, const vec3_t
 		sv = 2;
 	}
 
+	int32_t tv;
 	if (vecs[1][0]) {
 		tv = 0;
 	} else if (vecs[1][1]) {
@@ -170,15 +170,15 @@ int32_t TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, const vec3_t
 		tv = 2;
 	}
 
-	for (i = 0; i < 2; i++) {
-		ns = cosv * vecs[i][sv] - sinv * vecs[i][tv];
-		nt = sinv * vecs[i][sv] + cosv * vecs[i][tv];
+	for (int32_t i = 0; i < 2; i++) {
+		const vec_t ns = cosv * vecs[i][sv] - sinv * vecs[i][tv];
+		const vec_t nt = sinv * vecs[i][sv] + cosv * vecs[i][tv];
 		vecs[i][sv] = ns;
 		vecs[i][tv] = nt;
 	}
 
-	for (i = 0; i < 2; i++)
-		for (j = 0; j < 3; j++) {
+	for (int32_t i = 0; i < 2; i++)
+		for (int32_t j = 0; j < 3; j++) {
 			tx.vecs[i][j] = vecs[i][j] / bt->scale[i];
 		}
 
@@ -186,7 +186,6 @@ int32_t TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, const vec3_t
 	tx.vecs[1][3] = bt->shift[1] + shift[1];
 	tx.flags = bt->flags;
 	tx.value = bt->value;
-	tx.next_texinfo = 0;
 
 	return FindTexinfo(&tx);
 }

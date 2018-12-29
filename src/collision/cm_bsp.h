@@ -3,71 +3,66 @@
 #include "cm_types.h"
 
 /**
- * @brief .bsp file format. Quetoo supports idTech2 BSP as well as an
- * extended version containing per-pixel lighting information (deluxemaps) and
- * vertex normals (BSP_LUMP_NORMALS).
- *
- * Some of the arbitrary limits set in Quake2 have been increased to support
- * larger or more complex levels (i.e. visibility and lightmap lumps).
- *
- * Quetoo BSP identifies itself with BSP_VERSION_QUETOO.
+ * @brief BSP file identification.
  */
-
 #define BSP_IDENT (('P' << 24) + ('S' << 16) + ('B' << 8) + 'I') // "IBSP"
 #define BSP_VERSION	71
 
-// upper bounds of BSP format
-#define MAX_BSP_MODELS			0x400
-#define MAX_BSP_BRUSHES			0x4000
-#define MAX_BSP_ENTITIES		0x800
+/**
+ * @brief BSP file format limits.
+ */
 #define MAX_BSP_ENT_STRING		0x40000
+#define MAX_BSP_ENTITIES		0x800
 #define MAX_BSP_TEXINFO			0x4000
-#define MAX_BSP_AREAS			0x100
-#define MAX_BSP_AREA_PORTALS	0x400
 #define MAX_BSP_PLANES			0x10000
 #define MAX_BSP_NODES			0x10000
-#define MAX_BSP_BRUSH_SIDES		0x10000
 #define MAX_BSP_LEAFS			0x10000
-#define MAX_BSP_VERTS			0x10000
-#define MAX_BSP_FACES			0x10000
 #define MAX_BSP_LEAF_FACES		0x10000
 #define MAX_BSP_LEAF_BRUSHES 	0x10000
+#define MAX_BSP_BRUSHES			0x4000
+#define MAX_BSP_BRUSH_SIDES		0x10000
+#define MAX_BSP_VERTEXES		0x10000
+#define MAX_BSP_FACES			0x10000
+#define MAX_BSP_FACE_VERTEXES	0x80000
+#define MAX_BSP_MODELS			0x400
+#define MAX_BSP_AREA_PORTALS	0x400
+#define MAX_BSP_AREAS			0x100
 #define MAX_BSP_PORTALS			0x10000
-#define MAX_BSP_EDGES			0x40000
-#define MAX_BSP_FACE_EDGES		0x40000
+#define MAX_BSP_VISIBILITY		0x400000 // increased from Quake2 0x100000
 #define MAX_BSP_LIGHTING		0x10000000 // increased from Quake2 0x200000
 #define MAX_BSP_LIGHTMAP		(256 * 256) // the largest single lightmap allowed
-#define MAX_BSP_VISIBILITY		0x400000 // increased from Quake2 0x100000
 
-// lightmap luxel size, in world units
+/**
+ * @brief Lightmap luxel size, in world units.
+ */
 #define DEFAULT_BSP_LUXEL_SIZE 8
 
+/**
+ * @brief BSP file format lump identifiers.
+ */
 typedef enum {
-	BSP_LUMP_ENTITIES,
-	BSP_LUMP_PLANES,
-	BSP_LUMP_VERTEXES,
-	BSP_LUMP_VISIBILITY,
-	BSP_LUMP_NODES,
+	BSP_LUMP_FIRST,
+	BSP_LUMP_ENTITIES = BSP_LUMP_FIRST,
 	BSP_LUMP_TEXINFO,
-	BSP_LUMP_FACES,
-	BSP_LUMP_LIGHTMAPS,
+	BSP_LUMP_PLANES,
+	BSP_LUMP_NODES,
 	BSP_LUMP_LEAFS,
 	BSP_LUMP_LEAF_FACES,
 	BSP_LUMP_LEAF_BRUSHES,
-	BSP_LUMP_EDGES,
-	BSP_LUMP_FACE_EDGES,
-	BSP_LUMP_MODELS,
 	BSP_LUMP_BRUSHES,
 	BSP_LUMP_BRUSH_SIDES,
-	BSP_LUMP_POP,
-	BSP_LUMP_AREAS,
+	BSP_LUMP_VERTEXES,
+	BSP_LUMP_FACES,
+	BSP_LUMP_FACE_VERTEXES,
+	BSP_LUMP_MODELS,
 	BSP_LUMP_AREA_PORTALS,
-
-	BSP_TOTAL_LUMPS,
-
-	// Lump masks
-	BSP_LUMPS_ALL = (1 << BSP_TOTAL_LUMPS) - 1
+	BSP_LUMP_AREAS,
+	BSP_LUMP_VISIBILITY,
+	BSP_LUMP_LIGHTMAPS,
+	BSP_LUMP_LAST
 } bsp_lump_id_t;
+
+#define BSP_LUMPS_ALL ((1 << BSP_LUMP_LAST) - 1)
 
 /**
  * @brief Represents the header of a BSP file.
@@ -75,7 +70,7 @@ typedef enum {
 typedef struct {
 	int32_t ident;
 	int32_t version;
-	d_bsp_lump_t lumps[BSP_TOTAL_LUMPS];
+	d_bsp_lump_t lumps[BSP_LUMP_LAST];
 } bsp_header_t;
 
 typedef struct {
@@ -86,8 +81,11 @@ typedef struct {
 } bsp_model_t;
 
 typedef struct {
-	vec3_t point;
+	vec3_t position;
 	vec3_t normal;
+	vec3_t tangent;
+	vec3_t bitangent;
+	int32_t texinfo;
 } bsp_vertex_t;
 
 // planes (x & ~1) and (x & ~1) + 1 are always opposites
@@ -112,24 +110,16 @@ typedef struct {
 	int32_t flags; // SURF_* flags
 	int32_t value; // light emission, etc
 	char texture[32]; // texture name (e.g. torn/metal1)
-	int32_t next_texinfo; // no longer used, here to maintain compatibility
 } bsp_texinfo_t;
-
-// note that edge 0 is never used, because negative edge nums are used for
-// counterclockwise use of the edge in a face
-typedef struct {
-	uint16_t v[2]; // vertex numbers
-} bsp_edge_t;
 
 typedef struct {
 	uint16_t plane_num;
-	int16_t side;
-
-	uint32_t first_face_edge;
-	uint16_t num_face_edges;
 	uint16_t texinfo;
 
-	uint32_t lightmap_ofs; // start of samples in lighting lump
+	uint32_t vertex;
+	uint16_t num_vertexes;
+
+	uint32_t lightmap; // start of samples in lighting lump
 } bsp_face_t;
 
 typedef struct {
@@ -193,29 +183,14 @@ typedef struct {
 	int32_t entity_string_size;
 	char *entity_string;
 
-	int32_t num_planes;
-	bsp_plane_t *planes;
-
-	int32_t num_vertexes;
-	bsp_vertex_t *vertexes;
-
-	int32_t vis_data_size;
-	union {
-		bsp_vis_t *vis;
-		byte *raw;
-	} vis_data;
-
-	int32_t num_nodes;
-	bsp_node_t *nodes;
-
 	int32_t num_texinfo;
 	bsp_texinfo_t *texinfo;
 
-	int32_t num_faces;
-	bsp_face_t *faces;
+	int32_t num_planes;
+	bsp_plane_t *planes;
 
-	int32_t lightmap_data_size;
-	byte *lightmap_data;
+	int32_t num_nodes;
+	bsp_node_t *nodes;
 
 	int32_t num_leafs;
 	bsp_leaf_t *leafs;
@@ -226,26 +201,38 @@ typedef struct {
 	int32_t num_leaf_brushes;
 	uint16_t *leaf_brushes;
 
-	int32_t num_edges;
-	bsp_edge_t *edges;
-
-	int32_t num_face_edges;
-	int32_t *face_edges;
-
-	int32_t num_models;
-	bsp_model_t *models;
-
 	int32_t num_brushes;
 	bsp_brush_t *brushes;
 
 	int32_t num_brush_sides;
 	bsp_brush_side_t *brush_sides;
 
-	int32_t num_areas;
-	bsp_area_t *areas;
+	int32_t num_vertexes;
+	bsp_vertex_t *vertexes;
+
+	int32_t num_faces;
+	bsp_face_t *faces;
+
+	int32_t num_face_vertexes;
+	int32_t *face_vertexes;
+
+	int32_t num_models;
+	bsp_model_t *models;
 
 	int32_t num_area_portals;
 	bsp_area_portal_t *area_portals;
+
+	int32_t num_areas;
+	bsp_area_t *areas;
+
+	int32_t lightmap_data_size;
+	byte *lightmap_data;
+
+	int32_t vis_data_size;
+	union {
+		bsp_vis_t *vis;
+		byte *raw;
+	} vis_data;
 
 	// local to bsp_file_t
 	bsp_lump_id_t loaded_lumps;

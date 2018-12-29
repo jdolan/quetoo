@@ -38,10 +38,9 @@ typedef struct {
 	const bsp_plane_t *plane;
 	const bsp_texinfo_t *texinfo;
 	const cm_material_t *material;
-	vec3_t normal;
 	matrix4x4_t matrix;
 	matrix4x4_t inverse_matrix;
-	vec2_t lm_mins, lm_maxs;
+	vec2_t st_mins, st_maxs;
 	int16_t w, h;
 	luxel_t *luxels;
 	size_t num_luxels;

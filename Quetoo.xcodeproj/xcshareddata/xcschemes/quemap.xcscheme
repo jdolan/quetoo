@@ -67,15 +67,15 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-bsp maps/torn.map"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-bsp -vis -light maps/torn.map"
+            argument = "--verbose -bsp --no-tjunc maps/torn.map"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--verbose -bsp -vis -light --antialias --indirect maps/torn.map"
+            argument = "-bsp --no-tjunc -vis -light maps/torn.map"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-bsp --no-tjunc -vis -light --antialias --indirect maps/edge.map"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument

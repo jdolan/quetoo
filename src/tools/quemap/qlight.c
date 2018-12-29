@@ -186,9 +186,6 @@ static void LightWorld(void) {
 	// build lightmaps
 	BuildLightmaps();
 
-	// build per-vertex normals for phong shading
-	BuildVertexNormals();
-
 	// create direct lights out of patches and entities
 	BuildDirectLights(entities);
 

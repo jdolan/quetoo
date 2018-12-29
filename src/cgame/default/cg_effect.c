@@ -84,14 +84,17 @@ void Cg_ResolveWeather(const char *weather) {
  * emitter depends on the area of the surface.
  */
 static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_surface_t *s) {
-	vec3_t delta;
+	vec3_t center, delta;
 	uint16_t i;
 
 	cg_weather_emit_t *e = cgi.Malloc(sizeof(cg_weather_emit_t), MEM_TAG_CGAME_LEVEL);
 
 	// resolve the leaf for the point just in front of the surface
-	VectorMA(s->center, 1.0, s->normal, delta);
-	e->leaf = cgi.LeafForPoint(delta, bsp);
+
+	VectorMix(s->mins, s->maxs, 0.5, center);
+	VectorMA(center, 1.0, s->plane->normal, center);
+
+	e->leaf = cgi.LeafForPoint(center, bsp);
 
 	// resolve the number of origins based on surface area
 	VectorSubtract(s->maxs, s->mins, delta);
@@ -111,7 +114,7 @@ static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_surface_t *s) 
 			org[j] = s->mins[j] + Randomf() * delta[j];
 		}
 
-		VectorAdd(org, s->normal, org);
+		VectorAdd(org, s->plane->normal, org);
 
 		vec3_t end;
 		VectorSet(end, org[0], org[1], org[2] - MAX_WORLD_DIST);
@@ -124,7 +127,7 @@ static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_surface_t *s) 
 	e->next = cg_weather_state.emits;
 	cg_weather_state.emits = e;
 
-	cgi.Debug("%s: %d origins\n", vtos(s->center), e->num_origins);
+	cgi.Debug("%s: %d origins\n", vtos(center), e->num_origins);
 }
 
 /**
@@ -150,7 +153,7 @@ static void Cg_LoadWeather(void) {
 	for (i = j = 0; i < bsp->num_surfaces; i++, s++) {
 
 		// for downward facing sky brushes, create an emitter
-		if ((s->texinfo->flags & SURF_SKY) && s->normal[2] < -0.1) {
+		if ((s->texinfo->flags & SURF_SKY) && s->plane->normal[2] < -0.1) {
 			Cg_LoadWeather_(bsp, s);
 			j++;
 		}

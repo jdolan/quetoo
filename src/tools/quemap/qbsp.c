@@ -289,7 +289,6 @@ static void ProcessSubModel(void) {
  * @brief
  */
 static void ProcessModels(void) {
-	BeginBSPFile();
 
 	for (entity_num = 0; entity_num < num_entities; entity_num++) {
 
@@ -307,31 +306,6 @@ static void ProcessModels(void) {
 		EndModel();
 	}
 
-	EndBSPFile();
-}
-
-/**
- * @brief
- */
-static void CreateBSPFile(void) {
-
-	memset(&bsp_file, 0, sizeof(bsp_file));
-
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_PLANES, MAX_BSP_PLANES);
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_VERTEXES, MAX_BSP_VERTS);
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_NODES, MAX_BSP_NODES);
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_TEXINFO, MAX_BSP_TEXINFO);
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_FACES, MAX_BSP_FACES);
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_LEAFS, MAX_BSP_LEAFS);
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_LEAF_FACES, MAX_BSP_LEAF_FACES);
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_LEAF_BRUSHES, MAX_BSP_LEAF_BRUSHES);
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_EDGES, MAX_BSP_EDGES);
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_FACE_EDGES, MAX_BSP_FACE_EDGES);
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_MODELS, MAX_BSP_MODELS);
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_BRUSHES, MAX_BSP_BRUSHES);
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_BRUSH_SIDES, MAX_BSP_BRUSH_SIDES);
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_AREAS, MAX_BSP_AREAS);
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_AREA_PORTALS, MAX_BSP_AREA_PORTALS);
 }
 
 /**
@@ -345,27 +319,28 @@ int32_t BSP_Main(void) {
 
 	LoadMaterials(va("materials/%s.mat", map_base), ASSET_CONTEXT_TEXTURES, NULL);
 
-	// if only_ents, just grab the entities and re-save
 	if (only_ents) {
 
 		LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
+
 		LoadMapFile(map_name);
 
 		EmitEntities();
-
-		WriteBSPFile(va("maps/%s.bsp", map_base));
 	} else {
 
-		// delete portal and line files
 		Fs_Delete(va("maps/%s.prt", map_base));
-		Fs_Delete(va("maps/%s.lib", map_base));
+		Fs_Delete(va("maps/%s.lin", map_base));
 
-		CreateBSPFile();
+		BeginBSPFile();
 
 		LoadMapFile(map_name);
 
 		ProcessModels();
+
+		EndBSPFile();
 	}
+
+	WriteBSPFile(va("maps/%s.bsp", map_base));
 
 	FreeMaterials();
 

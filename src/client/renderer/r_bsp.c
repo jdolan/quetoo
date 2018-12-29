@@ -156,13 +156,8 @@ static void R_DrawBspInlineModel_(const r_entity_t *e) {
 	for (uint16_t i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
 
 		const vec_t dist = R_DistanceToSurface(r_bsp_model_org, surf);
-
 		if (dist > SIDE_EPSILON) { // visible, flag for rendering
 			surf->frame = r_locals.frame;
-			surf->back_frame = -1;
-		} else { // back-facing
-			surf->frame = -1;
-			surf->back_frame = r_locals.frame;
 		}
 	}
 
@@ -177,8 +172,6 @@ static void R_DrawBspInlineModel_(const r_entity_t *e) {
 	R_EnableBlend(true);
 
 	R_EnableDepthMask(false);
-
-	R_DrawBackBspSurfaces(&surfs->back);
 
 	R_DrawMaterialBspSurfaces(&surfs->material);
 
@@ -243,15 +236,9 @@ static void R_AddBspInlineModelFlares_(const r_entity_t *e) {
 	r_bsp_surface_t *surf = &r_model_state.world->bsp->surfaces[e->model->bsp_inline->first_surface];
 
 	for (uint32_t i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
-
 		const vec_t dist = R_DistanceToSurface(r_bsp_model_org, surf);
-
 		if (dist > SIDE_EPSILON) { // visible, flag for rendering
 			surf->frame = r_locals.frame;
-			surf->back_frame = -1;
-		} else { // back-facing
-			surf->frame = -1;
-			surf->back_frame = r_locals.frame;
 		}
 	}
 
@@ -342,15 +329,15 @@ void R_DrawBspNormals(void) {
 			continue;    // don't care
 		}
 
-		for (uint16_t j = 0; j < surf->num_face_edges; j++) {
-			const vec_t *vertex = &r_model_state.world->bsp->verts[surf->elements[j]][0];
-			const vec_t *normal = &r_model_state.world->bsp->normals[surf->elements[j]][0];
+		const r_bsp_vertex_t *v = r_model_state.world->bsp->vertexes + surf->vertex;
+		for (uint16_t j = 0; j < surf->num_vertexes; j++, v++) {
 
-			// draw origin
 			vec3_t angles;
-
-			VectorAngles(normal, angles);
-			Matrix4x4_CreateFromQuakeEntity(&mat, vertex[0], vertex[1], vertex[2], angles[0], angles[1], angles[2], 1.0);
+			VectorAngles(v->normal, angles);
+			Matrix4x4_CreateFromQuakeEntity(&mat,
+											v->position[0], v->position[1], v->position[2],
+											angles[0], angles[1], angles[2],
+											1.0);
 
 			Matrix4x4_Concat(&mat, &modelview, &mat);
 
@@ -418,7 +405,7 @@ void R_DrawBspLeafs(void) {
 				continue;
 			}
 
-			R_DrawArrays(GL_TRIANGLE_FAN, (*s)->index, (*s)->num_face_edges);
+			R_DrawArrays(GL_TRIANGLE_FAN, (*s)->vertex, (*s)->num_vertexes);
 		}
 	}
 
@@ -439,7 +426,7 @@ void R_DrawBspLeafs(void) {
  * Finally, the back-side child node is recursed.
  */
 static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
-	int32_t side, side_bit;
+	int32_t side;
 
 	if (node->contents == CONTENTS_SOLID) {
 		return;    // solid
@@ -475,13 +462,10 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 	// otherwise, traverse down the appropriate sides of the node
 
 	const vec_t dist = Cm_DistanceToPlane(r_view.origin, node->plane);
-
 	if (dist > SIDE_EPSILON) {
 		side = 0;
-		side_bit = 0;
 	} else {
 		side = 1;
-		side_bit = R_SURF_PLANE_BACK;
 	}
 
 	// recurse down the children, front side first
@@ -491,16 +475,8 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 	r_bsp_surface_t *s = r_model_state.world->bsp->surfaces + node->first_surface;
 
 	for (uint16_t i = 0; i < node->num_surfaces; i++, s++) {
-
 		if (s->vis_frame == r_locals.vis_frame) { // it's been marked
-
-			if ((s->flags & R_SURF_PLANE_BACK) != side_bit) { // but back-facing
-				s->frame = -1;
-				s->back_frame = r_locals.frame;
-			} else { // draw it
-				s->frame = r_locals.frame;
-				s->back_frame = -1;
-			}
+			s->frame = r_locals.frame;
 		}
 	}
 
@@ -517,9 +493,6 @@ void R_MarkBspSurfaces(void) {
 		r_locals.frame = 0;
 	}
 
-	// clear the bounds of the sky box
-	R_ClearSkyBox();
-
 	// flag all visible world surfaces
 	R_MarkBspSurfaces_(r_model_state.world->bsp->nodes);
 }
@@ -528,14 +501,7 @@ void R_MarkBspSurfaces(void) {
  * @return The distance from the specified point to the given surface.
  */
 vec_t R_DistanceToSurface(const vec3_t p, const r_bsp_surface_t *surf) {
-
-	const vec_t dist = Cm_DistanceToPlane(p, surf->plane);
-
-	if (surf->flags & R_SURF_PLANE_BACK) {
-		return -dist;
-	}
-
-	return dist;
+	return Cm_DistanceToPlane(p, surf->plane);
 }
 
 /**

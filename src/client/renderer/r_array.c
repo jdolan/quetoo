@@ -560,7 +560,7 @@ r_attribute_mask_t R_ArraysMask(void) {
 /**
  * @brief
  */
-static void R_SetArrayStateBSP(const r_model_t *mod, r_attribute_mask_t mask, r_attribute_mask_t attribs) {
+static void R_SetArrayStateBsp(const r_model_t *mod, r_attribute_mask_t mask, r_attribute_mask_t attribs) {
 
 	if (r_array_state.model == mod) { // try to save some binds
 
@@ -575,8 +575,6 @@ static void R_SetArrayStateBSP(const r_model_t *mod, r_attribute_mask_t mask, r_
 	}
 
 	R_BindAttributeInterleaveBuffer(&mod->bsp->vertex_buffer, mask);
-
-	R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &mod->bsp->element_buffer);
 }
 
 /**
@@ -678,7 +676,7 @@ void R_SetArrayState(const r_model_t *mod) {
 	r_attribute_mask_t arrays = R_ArraysMask(); // resolve the desired arrays mask
 
 	if (IS_BSP_MODEL(mod)) {
-		R_SetArrayStateBSP(mod, mask, arrays);
+		R_SetArrayStateBsp(mod, mask, arrays);
 	} else if (IS_MESH_MODEL(mod)) {
 		R_SetArrayStateMesh(mod, mask, arrays);
 	}

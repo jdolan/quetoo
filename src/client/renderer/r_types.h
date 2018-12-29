@@ -125,8 +125,8 @@ typedef enum {
 	R_ATTRIB_LIGHTMAP,
 
 	/**
-	 * @brief These three are only used for shader-based lerp.
-	 * They are only enabled if the ones that match up to it are enabled as well.
+	 * @brief These are only used for shader-based lerp. They are only enabled if
+	 * the ones that match up to it are enabled as well.
 	 */
 	R_ATTRIB_NEXT_POSITION,
 	R_ATTRIB_NEXT_NORMAL,
@@ -459,15 +459,10 @@ typedef struct {
 #define R_STENCIL_REF(pnum) (((pnum) % 0xff) + 1)
 
 typedef struct {
-	uint16_t v[2];
-} r_bsp_edge_t;
-
-typedef struct {
-	char name[32];
 	vec_t vecs[2][4];
-	uint32_t flags;
+	int32_t flags;
 	int32_t value;
-	vec2_t scale;
+	char texture[32];
 	r_material_t *material;
 } r_bsp_texinfo_t;
 
@@ -480,9 +475,7 @@ typedef struct {
 } r_bsp_flare_t;
 
 // r_bsp_surface_t flags
-#define R_SURF_PLANE_BACK	1
-#define R_SURF_LIGHTMAP		2
-#define R_SURF_IN_LIQUID	4
+#define R_SURF_IN_LIQUID	0x1
 
 /**
  * @brief Lightmaps are packed into atlas textures. Each packed lightmap also has a corresponding
@@ -505,7 +498,7 @@ typedef struct {
 	matrix4x4_t matrix;
 	matrix4x4_t inverse_matrix;
 
-	vec2_t lm_mins, lm_maxs;
+	vec2_t st_mins, st_maxs;
 	r_pixel_t w, h;
 
 	r_lightmap_media_t *media; // the media containing this lightmap
@@ -514,36 +507,25 @@ typedef struct {
 } r_lightmap_t;
 
 typedef struct {
-	int16_t vis_frame; // PVS frame
-	int16_t frame; // renderer frame
-	int16_t back_frame; // back-facing renderer frame
-	int16_t light_frame; // dynamic lighting frame
-	uint64_t light_mask; // bit mask of dynamic light sources
-
 	cm_bsp_plane_t *plane;
+	r_bsp_texinfo_t *texinfo;
+
 	uint16_t flags; // R_SURF flags
 
-	int32_t first_face_edge; // look up in model->surf_edges, negative numbers
-	uint16_t num_face_edges; // are backwards edges
+	uint16_t num_vertexes;
+	GLuint vertex; // index into the vertex buffer
 
-	vec3_t mins;
-	vec3_t maxs;
-	vec3_t center;
-	vec3_t normal;
-	vec_t area;
-
-	vec2_t st_mins;
-	vec2_t st_maxs;
-	vec2_t st_center;
-
-	GLuint index; // index into element buffer
-	GLuint *elements; // elements unique to this surf
-
-	r_bsp_texinfo_t *texinfo; // SURF_ flags
+	r_lightmap_t lightmap;
 
 	r_bsp_flare_t *flare;
 
-	r_lightmap_t lightmap;
+	vec3_t mins, maxs;
+	vec2_t st_mins, st_maxs;
+
+	int16_t vis_frame; // PVS frame
+	int16_t frame; // renderer frame
+	int16_t light_frame; // dynamic lighting frame
+	uint64_t light_mask; // bit mask of dynamic light sources
 } r_bsp_surface_t;
 
 /**
@@ -568,7 +550,6 @@ typedef struct {
 	r_bsp_surfaces_t blend_warp;
 	r_bsp_surfaces_t material;
 	r_bsp_surfaces_t flare;
-	r_bsp_surfaces_t back;
 } r_sorted_bsp_surfaces_t;
 
 /**
@@ -640,6 +621,20 @@ typedef struct {
 } r_bsp_leaf_t;
 
 /**
+ * @brief BSP vertexes include position, normal, tangent and bitangent. Because
+ * lightmap texture coordinates are unique to each face, they are not calculated
+ * until the renderer loads them.
+ */
+typedef struct {
+	vec3_t position;
+	vec3_t normal;
+	vec3_t tangent;
+	vec3_t bitangent;
+	vec2_t diffuse;
+	vec2_t lightmap;
+} r_bsp_vertex_t;
+
+/**
  * @brief
  */
 typedef struct {
@@ -647,9 +642,23 @@ typedef struct {
 } r_bsp_cluster_t;
 
 /**
+ * @brief
+ */
+typedef enum {
+	LIGHT_INVALID = -1,
+	LIGHT_AMBIENT,
+	LIGHT_PATCH,
+	LIGHT_POINT,
+	LIGHT_SPOT,
+	LIGHT_SUN
+} r_bsp_light_type_t;
+
+/**
  * @brief BSP light sources.
  */
 typedef struct {
+	r_bsp_light_type_t type;
+
 	const r_bsp_leaf_t *leaf;
 
 	/**
@@ -699,52 +708,46 @@ typedef struct {
 typedef struct {
 
 	/**
-	 * @brief Reference to the cm_ bsp that is currently loaded. We use this
+	 * @brief Reference to the cm_bsp_t that is currently loaded. We use this
 	 * to populate some stuff in r_bsp.
 	 */
 	cm_bsp_t *cm;
 	bsp_file_t *file;
 
-	uint16_t num_inline_models;
-	r_bsp_inline_model_t *inline_models;
-
-	uint16_t num_leafs;
-	r_bsp_leaf_t *leafs;
-
-	uint16_t num_nodes;
-	r_bsp_node_t *nodes;
-
-	uint16_t num_texinfo;
+	int32_t num_texinfo;
 	r_bsp_texinfo_t *texinfo;
 
-	uint16_t num_surfaces;
-	r_bsp_surface_t *surfaces;
+	int32_t num_nodes;
+	r_bsp_node_t *nodes;
 
-	uint16_t num_leaf_surfaces;
+	int32_t num_leafs;
+	r_bsp_leaf_t *leafs;
+
+	int32_t num_leaf_surfaces;
 	r_bsp_surface_t **leaf_surfaces;
 
-	uint16_t num_clusters;
+	int32_t num_vertexes;
+	r_bsp_vertex_t *vertexes;
+
+	int32_t num_surfaces;
+	r_bsp_surface_t *surfaces;
+
+	int32_t num_inline_models;
+	r_bsp_inline_model_t *inline_models;
+
+	int32_t num_clusters;
 	r_bsp_cluster_t *clusters;
 
 	int16_t luxel_size;
 
-	uint16_t num_bsp_lights;
+	int32_t num_bsp_lights;
 	r_bsp_light_t *bsp_lights;
 
 	// sorted surfaces arrays
 	r_sorted_bsp_surfaces_t *sorted_surfaces;
 
-	// vertex arrays, for materials
-	vec3_t *verts;
-	vec2_t *texcoords;
-	vec2_t *lightmap_texcoords;
-	vec3_t *normals;
-	vec3_t *tangents;
-	vec3_t *bitangents;
-
-	// buffers
+	// vertex buffer
 	r_buffer_t vertex_buffer;
-	r_buffer_t element_buffer;
 
 	// an array of shadow counts, indexed by plane number
 	uint16_t *plane_shadows;

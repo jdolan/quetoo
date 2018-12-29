@@ -23,49 +23,16 @@
 
 #define SKY_DISTANCE (MAX_WORLD_COORD * 2)
 
-// clipping matrix
-static const vec3_t r_sky_clip[6] = {
-	{ 1.0,  1.0,  0.0},
-	{ 1.0, -1.0,  0.0},
-	{ 0.0, -1.0,  1.0},
-	{ 0.0,  1.0,  1.0},
-	{ 1.0,  0.0,  1.0},
-	{ -1.0,  0.0,  1.0}
-};
-
-// 1 = s, 2 = t, 3 = SKY_DISTANCE
-static const int32_t st_to_vec[6][3] = {
-	{ 3, -1,  2},
-	{ -3,  1,  2},
-
-	{ 1,  3,  2},
-	{ -1, -3,  2},
-
-	{ -2, -1,  3}, // 0 degrees yaw, look straight up
-	{ 2, -1, -3} // look straight down
-};
-
-// s = [0]/[2], t = [1]/[2]
-static const int32_t vec_to_st[6][3] = {
-	{ -2,  3,  1},
-	{  2,  3, -1},
-
-	{  1,  3,  2},
-	{ -1,  3, -2},
-
-	{ -2, -1,  3},
-	{ -2,  1, -3}
-};
-
-#define MAX_CLIP_VERTS	64
+#define SKY_ST_MIN	(128) // offset to prevent ST wrapping
+#define SKY_ST_MAX	(UINT16_MAX - SKY_ST_MIN)
 
 typedef struct {
-	vec3_t position;
+	s16vec3_t position;
 	u16vec2_t texcoord;
 } r_sky_interleave_vertex_t;
 
-static r_buffer_layout_t r_sky_layout_buffer[] = {
-	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 3 },
+static r_buffer_layout_t r_sky_buffer_layout[] = {
+	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_SHORT, .count = 3 },
 	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_UNSIGNED_SHORT, .count = 2, .normalized = true },
 	{ .attribute = -1 }
 };
@@ -73,13 +40,7 @@ static r_buffer_layout_t r_sky_layout_buffer[] = {
 // sky structure
 typedef struct {
 	r_image_t *images[6];
-	vec_t st_mins[2][6];
-	vec_t st_maxs[2][6];
-	vec_t st_min;
-	vec_t st_max;
-	GLuint vert_index;
-	r_sky_interleave_vertex_t vertices[MAX_CLIP_VERTS];
-	r_buffer_t vert_buffer;
+	r_buffer_t quick_vert_buffer;
 } r_sky_t;
 
 static r_sky_t r_sky;
@@ -87,269 +48,12 @@ static r_sky_t r_sky;
 /**
  * @brief
  */
-static void R_DrawSkySurface(int32_t nump, vec3_t vecs) {
-	int32_t i, j;
-	vec3_t v, av;
-	vec_t s, t, dv;
-	int32_t axis;
-	vec_t *vp;
-
-	// decide which face it maps to
-	VectorClear(v);
-
-	for (i = 0, vp = vecs; i < nump; i++, vp += 3) {
-		VectorAdd(v, vp, v);    // sum them
-	}
-
-	av[0] = fabsf(v[0]);
-	av[1] = fabsf(v[1]);
-	av[2] = fabsf(v[2]);
-
-	// find the weight of the verts, and therefore the correct axis
-	if (av[0] > av[1] && av[0] > av[2]) {
-		if (v[0] < 0) {
-			axis = 1;
-		} else {
-			axis = 0;
-		}
-	} else if (av[1] > av[2] && av[1] > av[0]) {
-		if (v[1] < 0) {
-			axis = 3;
-		} else {
-			axis = 2;
-		}
-	} else {
-		if (v[2] < 0) {
-			axis = 5;
-		} else {
-			axis = 4;
-		}
-	}
-
-	// project new texture coords
-	for (i = 0; i < nump; i++, vecs += 3) {
-
-		j = vec_to_st[axis][2];
-		if (j > 0) {
-			dv = vecs[j - 1];
-		} else {
-			dv = -vecs[-j - 1];
-		}
-
-		if (dv < 0.001) {
-			continue;    // don't divide by zero
-		}
-
-		j = vec_to_st[axis][0];
-		if (j < 0) {
-			s = -vecs[-j - 1] / dv;
-		} else {
-			s = vecs[j - 1] / dv;
-		}
-
-		j = vec_to_st[axis][1];
-		if (j < 0) {
-			t = -vecs[-j - 1] / dv;
-		} else {
-			t = vecs[j - 1] / dv;
-		}
-
-		// extend the bounds of the sky surface
-		if (s < r_sky.st_mins[0][axis]) {
-			r_sky.st_mins[0][axis] = s;
-		}
-		if (t < r_sky.st_mins[1][axis]) {
-			r_sky.st_mins[1][axis] = t;
-		}
-
-		if (s > r_sky.st_maxs[0][axis]) {
-			r_sky.st_maxs[0][axis] = s;
-		}
-		if (t > r_sky.st_maxs[1][axis]) {
-			r_sky.st_maxs[1][axis] = t;
-		}
-	}
-}
-
-#define ON_EPSILON		0.1 // point on plane side epsilon
-
-/**
- * @brief
- */
-static void R_ClipSkySurface(int32_t nump, vec3_t vecs, int32_t stage) {
-	const vec_t *norm;
-	vec_t *v;
-	_Bool front, back;
-	vec_t d, e;
-	vec_t dists[MAX_CLIP_VERTS];
-	int32_t sides[MAX_CLIP_VERTS];
-	vec3_t newv[2][MAX_CLIP_VERTS];
-	int32_t newc[2];
-	int32_t i, j;
-
-	if (nump > MAX_CLIP_VERTS - 2) {
-		Com_Error(ERROR_DROP, "MAX_CLIP_VERTS reached\n");
-	}
-
-	if (stage == 6) { // fully clipped, so draw it
-		R_DrawSkySurface(nump, vecs);
-		return;
-	}
-
-	front = back = false;
-	norm = r_sky_clip[stage];
-	for (i = 0, v = vecs; i < nump; i++, v += 3) {
-		d = DotProduct(v, norm);
-		if (d > ON_EPSILON) {
-			front = true;
-			sides[i] = SIDE_FRONT;
-		} else if (d < -ON_EPSILON) {
-			back = true;
-			sides[i] = SIDE_BACK;
-		} else {
-			sides[i] = SIDE_BOTH;
-		}
-		dists[i] = d;
-	}
-
-	if (!front || !back) { // not clipped
-		R_ClipSkySurface(nump, vecs, stage + 1);
-		return;
-	}
-
-	// clip it
-	sides[i] = sides[0];
-	dists[i] = dists[0];
-	VectorCopy(vecs, (vecs + (i * 3)));
-	newc[0] = newc[1] = 0;
-
-	for (i = 0, v = vecs; i < nump; i++, v += 3) {
-		switch (sides[i]) {
-			case SIDE_FRONT:
-				VectorCopy(v, newv[0][newc[0]]);
-				newc[0]++;
-				break;
-			case SIDE_BACK:
-				VectorCopy(v, newv[1][newc[1]]);
-				newc[1]++;
-				break;
-			case SIDE_BOTH:
-				VectorCopy(v, newv[0][newc[0]]);
-				newc[0]++;
-				VectorCopy(v, newv[1][newc[1]]);
-				newc[1]++;
-				break;
-		}
-
-		if (sides[i] == SIDE_BOTH || sides[i + 1] == SIDE_BOTH || sides[i + 1] == sides[i]) {
-			continue;
-		}
-
-		d = dists[i] / (dists[i] - dists[i + 1]);
-		for (j = 0; j < 3; j++) {
-			e = v[j] + d * (v[j + 3] - v[j]);
-			newv[0][newc[0]][j] = e;
-			newv[1][newc[1]][j] = e;
-		}
-		newc[0]++;
-		newc[1]++;
-	}
-
-	// continue
-	R_ClipSkySurface(newc[0], newv[0][0], stage + 1);
-	R_ClipSkySurface(newc[1], newv[1][0], stage + 1);
-}
-
-/**
- * @brief
- */
-static void R_AddSkySurface(const r_bsp_surface_t *surf) {
-	vec3_t verts[MAX_CLIP_VERTS];
-	uint16_t i;
-
-	if (r_draw_wireframe->value) {
-		return;
-	}
-
-	// calculate distance to surface verts
-	for (i = 0; i < surf->num_face_edges; i++) {
-		const vec_t *v = &r_model_state.world->bsp->verts[surf->elements[i]][0];
-		VectorSubtract(v, r_view.origin, verts[i]);
-	}
-
-	R_ClipSkySurface(surf->num_face_edges, verts[0], 0);
-}
-
-/**
- * @brief
- */
-void R_ClearSkyBox(void) {
-	int32_t i;
-
-	for (i = 0; i < 6; i++) {
-		r_sky.st_mins[0][i] = r_sky.st_mins[1][i] = 9999.0;
-		r_sky.st_maxs[0][i] = r_sky.st_maxs[1][i] = -9999.0;
-	}
-}
-
-/**
- * @brief
- */
-static void R_MakeSkyVec(const vec_t s, const vec_t t, const int32_t axis) {
-	vec3_t v, b;
-	int32_t j;
-
-	VectorSet(b, s * SKY_DISTANCE, t * SKY_DISTANCE, SKY_DISTANCE);
-
-	for (j = 0; j < 3; j++) {
-		const int32_t k = st_to_vec[axis][j];
-		if (k < 0) {
-			v[j] = -b[-k - 1];
-		} else {
-			v[j] = b[k - 1];
-		}
-	}
-
-	VectorCopy(v, r_sky.vertices[r_sky.vert_index].position);
-
-	// avoid bilerp seam
-	vec2_t st = { (s + 1.0) * 0.5, (t + 1.0) * 0.5 };
-
-	st[0] = Clamp(st[0], r_sky.st_min, r_sky.st_max);
-	st[1] = 1.0 - Clamp(st[1], r_sky.st_min, r_sky.st_max);
-
-	PackTexcoords(st, r_sky.vertices[r_sky.vert_index].texcoord);
-
-	r_sky.vert_index++;
-}
-
-/**
- * @brief
- */
 void R_DrawSkyBox(void) {
-	const int32_t sky_order[6] = { 0, 2, 1, 3, 4, 5 };
-	uint32_t i, j;
-
-	const r_bsp_surfaces_t *surfs = &r_model_state.world->bsp->sorted_surfaces->sky;
-	j = 0;
-
-	// first add all visible sky surfaces to the sky bounds
-	for (i = 0; i < surfs->count; i++) {
-		if (surfs->surfaces[i]->frame == r_locals.frame) {
-			R_AddSkySurface(surfs->surfaces[i]);
-			j++;
-		}
-	}
-
-	if (!j) { // no visible sky surfaces
-		return;
-	}
-
 	matrix4x4_t modelview;
 
 	R_GetMatrix(R_MATRIX_MODELVIEW, &modelview);
 
-	R_BindAttributeInterleaveBuffer(&r_sky.vert_buffer, R_ATTRIB_MASK_ALL);
+	R_BindAttributeInterleaveBuffer(&r_sky.quick_vert_buffer, R_ATTRIB_MASK_ALL);
 
 	R_PushMatrix(R_MATRIX_MODELVIEW);
 
@@ -362,27 +66,23 @@ void R_DrawSkyBox(void) {
 	r_state.active_fog_parameters.end = FOG_END * 8.0;
 	r_state.active_program->UseFog(&r_state.active_fog_parameters);
 
-	r_sky.vert_index = 0;
+	R_BindDiffuseTexture(r_sky.images[4]->texnum);
+	R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-	for (i = 0; i < 6; i++) {
+	R_BindDiffuseTexture(r_sky.images[5]->texnum);
+	R_DrawArrays(GL_TRIANGLE_FAN, 4, 4);
 
-		if (r_sky.st_mins[0][i] >= r_sky.st_maxs[0][i]
-		        || r_sky.st_mins[1][i] >= r_sky.st_maxs[1][i]) {
-			continue;    // nothing on this plane
-		}
+	R_BindDiffuseTexture(r_sky.images[0]->texnum);
+	R_DrawArrays(GL_TRIANGLE_FAN, 8, 4);
 
-		R_BindDiffuseTexture(r_sky.images[sky_order[i]]->texnum);
+	R_BindDiffuseTexture(r_sky.images[2]->texnum);
+	R_DrawArrays(GL_TRIANGLE_FAN, 12, 4);
 
-		R_MakeSkyVec(r_sky.st_mins[0][i], r_sky.st_mins[1][i], i);
-		R_MakeSkyVec(r_sky.st_mins[0][i], r_sky.st_maxs[1][i], i);
-		R_MakeSkyVec(r_sky.st_maxs[0][i], r_sky.st_maxs[1][i], i);
-		R_MakeSkyVec(r_sky.st_maxs[0][i], r_sky.st_mins[1][i], i);
+	R_BindDiffuseTexture(r_sky.images[1]->texnum);
+	R_DrawArrays(GL_TRIANGLE_FAN, 16, 4);
 
-		R_UploadToBuffer(&r_sky.vert_buffer, r_sky.vert_index * sizeof(r_sky_interleave_vertex_t), r_sky.vertices);
-
-		R_DrawArrays(GL_TRIANGLE_FAN, 0, r_sky.vert_index);
-		r_sky.vert_index = 0;
-	}
+	R_BindDiffuseTexture(r_sky.images[3]->texnum);
+	R_DrawArrays(GL_TRIANGLE_FAN, 20, 4);
 
 	r_state.active_fog_parameters.end = FOG_END;
 	r_state.active_program->UseFog(&r_state.active_fog_parameters);
@@ -390,19 +90,88 @@ void R_DrawSkyBox(void) {
 	R_EnableFog(false);
 
 	R_PopMatrix(R_MATRIX_MODELVIEW);
+
+	R_UnbindAttributeBuffers();
 }
+
+// 4 verts for 6 sides
+#define MAX_SKY_VERTS	4 * 6
 
 /**
  * @brief
  */
 void R_InitSky(void) {
+	const r_sky_interleave_vertex_t quick_sky_verts[] = {
+		// +z (top)
+		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
+			.texcoord = { SKY_ST_MAX, SKY_ST_MIN } },
+		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
+			.texcoord = { SKY_ST_MAX, SKY_ST_MAX } },
+		{ .position = { SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
+			.texcoord = { SKY_ST_MIN, SKY_ST_MAX } },
+		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
+			.texcoord = { SKY_ST_MIN, SKY_ST_MIN } },
 
-	R_CreateInterleaveBuffer(&r_sky.vert_buffer, &(const r_create_interleave_t) {
+		// -z (bottom)
+		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
+			.texcoord = { SKY_ST_MIN, SKY_ST_MAX } },
+		{ .position = { SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
+			.texcoord = { SKY_ST_MIN, SKY_ST_MIN } },
+		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
+			.texcoord = { SKY_ST_MAX, SKY_ST_MIN } },
+		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
+			.texcoord = { SKY_ST_MAX, SKY_ST_MAX } },
+
+		// +x (right)
+		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
+			.texcoord = { SKY_ST_MAX, SKY_ST_MIN } },
+		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
+			.texcoord = { SKY_ST_MAX, SKY_ST_MAX } },
+		{ .position = { SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
+			.texcoord = { SKY_ST_MIN, SKY_ST_MAX } },
+		{ .position = { SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
+			.texcoord = { SKY_ST_MIN, SKY_ST_MIN } },
+
+		// -x (left)
+		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
+			.texcoord = { SKY_ST_MAX, SKY_ST_MIN } },
+		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
+			.texcoord = { SKY_ST_MAX, SKY_ST_MAX } },
+		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
+			.texcoord = { SKY_ST_MIN, SKY_ST_MAX } },
+		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
+			.texcoord = { SKY_ST_MIN, SKY_ST_MIN } },
+
+		// +y (back)
+		{ .position = { SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
+			.texcoord = { SKY_ST_MAX, SKY_ST_MIN } },
+		{ .position = { SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
+			.texcoord = { SKY_ST_MAX, SKY_ST_MAX } },
+		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
+			.texcoord = { SKY_ST_MIN, SKY_ST_MAX } },
+		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
+			.texcoord = { SKY_ST_MIN, SKY_ST_MIN } },
+
+		// -y (front)
+		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
+			.texcoord = { SKY_ST_MAX, SKY_ST_MIN } },
+		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
+			.texcoord = { SKY_ST_MAX, SKY_ST_MAX } },
+		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
+			.texcoord = { SKY_ST_MIN, SKY_ST_MAX } },
+		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
+			.texcoord = { SKY_ST_MIN, SKY_ST_MIN } },
+	};
+
+	R_CreateInterleaveBuffer(&r_sky.quick_vert_buffer, &(const r_create_interleave_t) {
 		.struct_size = sizeof(r_sky_interleave_vertex_t),
-		.layout = r_sky_layout_buffer,
-		.hint = GL_DYNAMIC_DRAW,
-		.size = sizeof(r_sky_interleave_vertex_t) * MAX_CLIP_VERTS
+		.layout = r_sky_buffer_layout,
+		.hint = GL_STATIC_DRAW,
+		.size = sizeof(r_sky_interleave_vertex_t) * MAX_SKY_VERTS,
+		.data = NULL
 	});
+
+	R_UploadToSubBuffer(&r_sky.quick_vert_buffer, 0, sizeof(quick_sky_verts), quick_sky_verts, false);
 }
 
 /**
@@ -410,7 +179,7 @@ void R_InitSky(void) {
  */
 void R_ShutdownSky(void) {
 
-	R_DestroyBuffer(&r_sky.vert_buffer);
+	R_DestroyBuffer(&r_sky.quick_vert_buffer);
 }
 
 /**
@@ -433,10 +202,6 @@ void R_SetSky(const char *name) {
 			}
 		}
 	}
-
-	// assume all sky components are the same size
-	r_sky.st_min = 1.0 / (vec_t) r_sky.images[0]->width;
-	r_sky.st_max = (r_sky.images[0]->width - 1.0) / (vec_t) r_sky.images[0]->width;
 }
 
 /**

@@ -704,8 +704,8 @@ typedef struct player_state_s {
 #define CON_COLOR_GREEN		2
 #define CON_COLOR_YELLOW	3
 #define CON_COLOR_BLUE		4
-#define CON_COLOR_CYAN		5
-#define CON_COLOR_MAGENTA	6
+#define CON_COLOR_MAGENTA	5
+#define CON_COLOR_CYAN		6
 #define CON_COLOR_WHITE		7
 
 #define MAX_COLORS			8

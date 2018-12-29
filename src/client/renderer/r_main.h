@@ -127,7 +127,6 @@ extern BspSurfacesDrawFunc R_DrawOpaqueWarpBspSurfaces;
 extern BspSurfacesDrawFunc R_DrawAlphaTestBspSurfaces;
 extern BspSurfacesDrawFunc R_DrawBlendBspSurfaces;
 extern BspSurfacesDrawFunc R_DrawBlendWarpBspSurfaces;
-extern BspSurfacesDrawFunc R_DrawBackBspSurfaces;
 
 extern MeshModelsDrawFunc R_DrawMeshModels;
 

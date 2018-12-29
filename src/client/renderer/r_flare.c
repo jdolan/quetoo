@@ -28,7 +28,7 @@
  * be freed automatically.
  */
 void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
-	vec3_t span;
+	vec3_t center, span;
 
 	const r_material_t *m = surf->texinfo->material;
 
@@ -39,7 +39,8 @@ void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 	surf->flare = Mem_LinkMalloc(sizeof(*surf->flare), bsp);
 
 	// move the flare away from the surface, into the level
-	VectorMA(surf->center, 2, surf->normal, surf->flare->particle.org);
+	VectorMix(surf->mins, surf->maxs, 0.5, center);
+	VectorMA(center, 2.0, surf->plane->normal, surf->flare->particle.org);
 
 	// calculate the flare radius based on surface size
 	VectorSubtract(surf->maxs, surf->mins, span);
@@ -120,7 +121,7 @@ void R_AddFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		const vec_t dist = VectorNormalize(view);
 
 		// fade according to angle
-		const vec_t cos = DotProduct(surf->normal, view);
+		const vec_t cos = DotProduct(surf->plane->normal, view);
 		if (cos > 0.0) {
 			continue;
 		}

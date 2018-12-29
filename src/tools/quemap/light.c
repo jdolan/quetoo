@@ -147,11 +147,7 @@ light_t *LightForPatch(const patch_t *patch) {
 	WindingCenter(patch->winding, light->origin);
 
 	const bsp_plane_t *plane = &bsp_file.planes[patch->face->plane_num];
-	if (patch->face->side) {
-		VectorMA(light->origin, -4.0, plane->normal, light->origin);
-	} else {
-		VectorMA(light->origin,  4.0, plane->normal, light->origin);
-	}
+	VectorMA(light->origin, 4.0, plane->normal, light->origin);
 
 	const bsp_texinfo_t *texinfo = &bsp_file.texinfo[patch->face->texinfo];
 
@@ -234,10 +230,10 @@ light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
 		}
 	}
 
-	assert(patch_mins[0] >= lm->lm_mins[0] - SIDE_EPSILON);
-	assert(patch_mins[1] >= lm->lm_mins[1] - SIDE_EPSILON);
-	assert(patch_maxs[0] <= lm->lm_maxs[0] + SIDE_EPSILON);
-	assert(patch_maxs[1] <= lm->lm_maxs[1] + SIDE_EPSILON);
+	assert(patch_mins[0] >= lm->st_mins[0] - SIDE_EPSILON);
+	assert(patch_mins[1] >= lm->st_mins[1] - SIDE_EPSILON);
+	assert(patch_maxs[0] <= lm->st_maxs[0] + SIDE_EPSILON);
+	assert(patch_maxs[1] <= lm->st_maxs[1] + SIDE_EPSILON);
 
 	const int16_t w = patch_maxs[0] - patch_mins[0];
 	const int16_t h = patch_maxs[1] - patch_mins[1];
@@ -248,8 +244,8 @@ light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
 	for (int32_t t = 0; t < h; t++) {
 		for (int32_t s = 0; s < w; s++) {
 
-			const int32_t ds = patch_mins[0] - lm->lm_mins[0] + s;
-			const int32_t dt = patch_mins[1] - lm->lm_mins[1] + t;
+			const int32_t ds = patch_mins[0] - lm->st_mins[0] + s;
+			const int32_t dt = patch_mins[1] - lm->st_mins[1] + t;
 
 			const luxel_t *l = &lm->luxels[dt * lm->w + ds];
 
@@ -270,7 +266,7 @@ light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
 		light->atten = LIGHT_ATTEN_INVERSE_SQUARE;
 
 		WindingCenter(patch->winding, light->origin);
-		VectorMA(light->origin, 4.0, lm->normal, light->origin);
+		VectorMA(light->origin, 4.0, lm->plane->normal, light->origin);
 
 		VectorScale(lightmap, 1.0 / (w * h), lightmap);
 		light->radius = ColorNormalize(lightmap, lightmap);

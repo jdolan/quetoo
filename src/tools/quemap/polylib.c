@@ -263,28 +263,18 @@ winding_t *WindingForPlane(const vec3_t normal, const vec_t dist) {
  * @brief
  */
 winding_t *WindingForFace(const bsp_face_t *f) {
-	int32_t i;
-	bsp_vertex_t *dv;
-	int32_t v;
-	winding_t *w;
 
-	w = AllocWinding(f->num_face_edges);
-	w->num_points = f->num_face_edges;
+	winding_t *w = AllocWinding(f->num_vertexes);
+	w->num_points = f->num_vertexes;
 
-	for (i = 0; i < f->num_face_edges; i++) {
-		const int32_t se = bsp_file.face_edges[f->first_face_edge + i];
-		if (se < 0) {
-			v = bsp_file.edges[-se].v[1];
-		} else {
-			v = bsp_file.edges[se].v[0];
-		}
+	const int32_t *fv = bsp_file.face_vertexes + f->vertex;
+	for (int32_t i = 0; i < f->num_vertexes; i++, fv++) {
 
-		dv = &bsp_file.vertexes[v];
-		VectorCopy(dv->point, w->points[i]);
+		const bsp_vertex_t *v = &bsp_file.vertexes[*fv];
+		VectorCopy(v->position, w->points[i]);
 	}
 
 	RemoveColinearPoints(w);
-
 	return w;
 }
 

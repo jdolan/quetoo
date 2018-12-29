@@ -22,95 +22,8 @@
 #include "bsp.h"
 #include "face.h"
 #include "map.h"
-#include "portal.h"
-#include "qbsp.h"
-
-/*
- *   some faces will be removed before saving, but still form nodes:
- *
- *   the insides of sky volumes
- *   meeting planes of different water current volumes
- */
-
-#define	CONTINUOUS_EPSILON	0.001
-#define EQUAL_EPSILON		0.001
-#define	INTEGRAL_EPSILON	0.01
-#define	OFF_EPSILON			0.5
-#define	POINT_EPSILON		0.1
 
 int32_t c_merge;
-
-static face_t *edge_faces[MAX_BSP_EDGES][2];
-int32_t first_bsp_model_edge = 1;
-
-#define	HASH_SIZE 128
-
-static int32_t vertex_chain[MAX_BSP_VERTS]; // the next vertex in a hash chain
-static int32_t hash_verts[HASH_SIZE * HASH_SIZE]; // a vertex number, or 0 for no verts
-
-/**
- * @brief
- */
-static int32_t HashVertex(const vec3_t vec) {
-
-	const int32_t x = (4096 + (int32_t) (vec[0] + 0.5)) >> 6;
-	const int32_t y = (4096 + (int32_t) (vec[1] + 0.5)) >> 6;
-
-	if (x < 0 || x >= HASH_SIZE || y < 0 || y >= HASH_SIZE) {
-		Com_Error(ERROR_FATAL, "Point outside valid range\n");
-	}
-
-	return y * HASH_SIZE + x;
-}
-
-/**
- * @brief Snaps the vertex to integer coordinates if it is already very close,
- * then hashes it and searches for an existing vertex to reuse.
- */
-int32_t EmitVertex(const vec3_t in) {
-	vec3_t vert;
-
-	for (int32_t i = 0; i < 3; i++) {
-		const vec_t v = floor(in[i] + 0.5);
-
-		if (fabs(in[i] - v) < INTEGRAL_EPSILON) {
-			vert[i] = v;
-		} else {
-			vert[i] = in[i];
-		}
-	}
-
-	const int32_t h = HashVertex(vert);
-
-	for (int32_t vnum = hash_verts[h]; vnum; vnum = vertex_chain[vnum]) {
-		vec3_t delta;
-
-		// compare the points; we go out of our way to avoid using VectorLength
-		VectorSubtract(bsp_file.vertexes[vnum].point, vert, delta);
-
-		if (delta[0] < POINT_EPSILON && delta[0] > -POINT_EPSILON) {
-			if (delta[1] < POINT_EPSILON && delta[1] > -POINT_EPSILON) {
-				if (delta[2] < POINT_EPSILON && delta[2] > -POINT_EPSILON) {
-					return vnum;
-				}
-			}
-		}
-	}
-
-	if (bsp_file.num_vertexes == MAX_BSP_VERTS) {
-		Com_Error(ERROR_FATAL, "MAX_BSP_VERTS\n");
-	}
-
-	VectorCopy(vert, bsp_file.vertexes[bsp_file.num_vertexes].point);
-
-	vertex_chain[bsp_file.num_vertexes] = hash_verts[h];
-	hash_verts[h] = bsp_file.num_vertexes;
-
-	bsp_file.num_vertexes++;
-
-	return bsp_file.num_vertexes - 1;
-}
-
 static int32_t c_faces;
 
 /**
@@ -147,36 +60,8 @@ void FreeFace(face_t *f) {
 	c_faces--;
 }
 
-/**
- * @brief Called by writebsp. Don't allow four way edges
- */
-int32_t EmitEdge(int32_t v1, int32_t v2, face_t *f) {
-	bsp_edge_t *edge;
-
-	if (!no_share) {
-		for (int32_t i = first_bsp_model_edge; i < bsp_file.num_edges; i++) {
-			edge = &bsp_file.edges[i];
-			if (v1 == edge->v[1] && v2 == edge->v[0] && edge_faces[i][0]->contents == f->contents) {
-				if (edge_faces[i][1]) {
-					continue;
-				}
-				edge_faces[i][1] = f;
-				return -i;
-			}
-		}
-	}
-	// emit an edge
-	if (bsp_file.num_edges >= MAX_BSP_EDGES) {
-		Com_Error(ERROR_FATAL, "MAX_BSP_EDGES\n");
-	}
-	edge = &bsp_file.edges[bsp_file.num_edges];
-	edge->v[0] = v1;
-	edge->v[1] = v2;
-	edge_faces[bsp_file.num_edges][0] = f;
-	bsp_file.num_edges++;
-
-	return bsp_file.num_edges - 1;
-}
+#define	CONTINUOUS_EPSILON	0.001
+#define EQUAL_EPSILON		0.001
 
 /**
  * @brief If two polygons share a common edge and the edges that meet at the
@@ -195,7 +80,6 @@ static winding_t *MergeWindings(winding_t *f1, winding_t *f2, const vec3_t plane
 
 	// find a common edge
 	p1 = p2 = NULL;
-	j = 0;
 
 	for (i = 0; i < f1->num_points; i++) {
 		p1 = f1->points[i];
@@ -221,10 +105,9 @@ static winding_t *MergeWindings(winding_t *f1, winding_t *f2, const vec3_t plane
 	}
 
 	if (i == f1->num_points) {
-		return NULL;    // no matching edges
+		return NULL; // no matching edges
 	}
 
-	// check slope of connected lines
 	// if the slopes are colinear, the point can be removed
 	back = f1->points[(i + f1->num_points - 1) % f1->num_points];
 	VectorSubtract(p1, back, delta);
@@ -312,4 +195,158 @@ face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal) {
 	f2->merged = newf;
 
 	return newf;
+}
+
+/**
+ * @brief Emit vertexes and vertex indices for the given face.
+ */
+static int32_t EmitFaceVertexes(const face_t *face) {
+
+	const bsp_texinfo_t *texinfo = &bsp_file.texinfo[face->texinfo];
+
+	const vec_t *sdir = texinfo->vecs[0];
+	const vec_t *tdir = texinfo->vecs[1];
+
+	for (int32_t i = 0; i < face->w->num_points; i++) {
+
+		if (bsp_file.num_vertexes == MAX_BSP_VERTEXES) {
+			Com_Error(ERROR_FATAL, "MAX_BSP_VERTEXES");
+		}
+
+		bsp_vertex_t v = {
+			.texinfo = face->texinfo
+		};
+
+		VectorCopy(face->w->points[i], v.position);
+
+//		if (!(texinfo->flags & SURF_NO_WELD)) {
+//			for (int32_t i = 0; i < 3; i++) {
+//				v.position[i] = roundf(v.position[i]);
+//			}
+//		}
+
+		VectorCopy(planes[face->plane_num].normal, v.normal);
+		TangentVectors(v.normal, sdir, tdir, v.tangent, v.bitangent);
+
+		int32_t j;
+		for (j = 0; j < bsp_file.num_vertexes; j++) {
+			if (memcmp(&v, &bsp_file.vertexes[j], sizeof(v)) == 0) {
+				break;
+			}
+		}
+
+		if (j == bsp_file.num_vertexes) {
+			bsp_file.vertexes[bsp_file.num_vertexes] = v;
+			bsp_file.num_vertexes++;
+		}
+
+		bsp_file.face_vertexes[bsp_file.num_face_vertexes] = j;
+		bsp_file.num_face_vertexes++;
+	}
+
+	return bsp_file.num_face_vertexes - face->w->num_points;
+}
+
+/**
+ * @brief
+ */
+void EmitFace(face_t *face) {
+
+	face->output_number = -1;
+
+	if (face->w->num_points < 3) {
+		return; // degenerated
+	}
+	if (face->merged) {
+		return; // not a final face
+	}
+	// save output number so leaffaces can use
+	face->output_number = bsp_file.num_faces;
+
+	if (bsp_file.num_faces >= MAX_BSP_FACES) {
+		Com_Error(ERROR_FATAL, "MAX_BSP_FACES\n");
+	}
+
+	bsp_face_t *df = &bsp_file.faces[bsp_file.num_faces];
+	bsp_file.num_faces++;
+
+	df->plane_num = face->plane_num;
+	df->texinfo = face->texinfo;
+
+	df->vertex = EmitFaceVertexes(face);
+	df->num_vertexes = face->w->num_points;
+
+	df->lightmap = UINT32_MAX;
+}
+
+#define MAX_PHONG_FACES 256
+
+/**
+ * @brief Populate Phong faces with indexes of all Phong shaded faces referencing the vertex.
+ * @return The number of Phong shaded bsp_face_t's referencing the vertex.
+ */
+static size_t PhongFacesForVertex(const bsp_vertex_t *vertex, const bsp_face_t **phong_faces) {
+
+	size_t count = 0;
+
+	const bsp_face_t *face = bsp_file.faces;
+	for (int32_t i = 0; i < bsp_file.num_faces; i++, face++) {
+
+		if (!(bsp_file.texinfo[face->texinfo].flags & SURF_PHONG)) {
+			continue;
+		}
+
+		const int32_t *fv = bsp_file.face_vertexes + face->vertex;
+		for (uint16_t j = 0; j < face->num_vertexes; j++, fv++) {
+
+			const bsp_vertex_t *v = &bsp_file.vertexes[*fv];
+
+			if (VectorCompare(vertex->position, v->position)) {
+				phong_faces[count++] = face;
+				if (count == MAX_PHONG_FACES) {
+					Mon_SendPoint(MON_ERROR, vertex->position, "MAX_PHONG_FACES");
+				}
+				break;
+			}
+		}
+	}
+
+	return count;
+}
+
+/**
+ * @brief Calculate per-vertex (instead of per-plane) normal vectors. This is done by finding all of
+ * the faces which share a given vertex, and calculating a weighted average of their normals.
+ */
+void PhongVertexes(void) {
+	const bsp_face_t *phong_faces[MAX_PHONG_FACES];
+
+	bsp_vertex_t *v = bsp_file.vertexes;
+	for (int32_t i = 0; i < bsp_file.num_vertexes; i++, v++) {
+
+		const size_t count = PhongFacesForVertex(v, phong_faces);
+		if (count) {
+
+			VectorClear(v->normal);
+
+			const bsp_face_t **pf = phong_faces;
+			for (size_t j = 0; j < count; j++, pf++) {
+
+				const plane_t *plane = &planes[(*pf)->plane_num];
+
+				winding_t *w = WindingForFace(*pf);
+				VectorMA(v->normal, WindingArea(w), plane->normal, v->normal);
+				FreeWinding(w);
+			}
+
+			VectorNormalize(v->normal);
+
+			const bsp_texinfo_t *texinfo = &bsp_file.texinfo[v->texinfo];
+
+			const vec_t *sdir = texinfo->vecs[0];
+			const vec_t *tdir = texinfo->vecs[1];
+
+			TangentVectors(v->normal, sdir, tdir, v->tangent, v->bitangent);
+		}
+	}
 }

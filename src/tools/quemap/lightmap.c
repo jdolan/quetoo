@@ -33,15 +33,6 @@ lightmap_t lightmaps[MAX_BSP_FACES];
  */
 static void BuildLightmapMatrices(lightmap_t *lm) {
 
-	vec_t dist;
-	if (lm->face->side) {
-		VectorNegate(lm->plane->normal, lm->normal);
-		dist = -lm->plane->dist;
-	} else {
-		VectorCopy(lm->plane->normal, lm->normal);
-		dist = lm->plane->dist;
-	}
-
 	vec3_t s, t;
 	VectorNormalize2(lm->texinfo->vecs[0], s);
 	VectorNormalize2(lm->texinfo->vecs[1], t);
@@ -50,10 +41,10 @@ static void BuildLightmapMatrices(lightmap_t *lm) {
 	VectorScale(t, 1.0 / luxel_size, t);
 
 	Matrix4x4_FromArrayFloatGL(&lm->matrix, (const vec_t[]) {
-		s[0], t[0], lm->normal[0], 0.0,
-		s[1], t[1], lm->normal[1], 0.0,
-		s[2], t[2], lm->normal[2], 0.0,
-		0.0,  0.0,  -dist,         1.0
+		s[0], t[0], lm->plane->normal[0], 0.0,
+		s[1], t[1], lm->plane->normal[1], 0.0,
+		s[2], t[2], lm->plane->normal[2], 0.0,
+		0.0,  0.0,  -lm->plane->dist,     1.0
 	});
 
 	const vec_t *offset = patch_offsets[lm - lightmaps];
@@ -72,35 +63,21 @@ static void BuildLightmapMatrices(lightmap_t *lm) {
  */
 static void BuildLightmapExtents(lightmap_t *lm) {
 
-	lm->lm_mins[0] = lm->lm_mins[1] = FLT_MAX;
-	lm->lm_maxs[0] = lm->lm_maxs[1] = -FLT_MAX;
+	ClearStBounds(lm->st_mins, lm->st_maxs);
 
-	for (int32_t i = 0; i < lm->face->num_face_edges; i++) {
-		const int32_t e = bsp_file.face_edges[lm->face->first_face_edge + i];
-		const bsp_vertex_t *v;
+	const int32_t *fv = &bsp_file.face_vertexes[lm->face->vertex];
+	for (int32_t i = 0; i < lm->face->num_vertexes; i++, fv++) {
 
-		if (e >= 0) {
-			v = bsp_file.vertexes + bsp_file.edges[e].v[0];
-		} else {
-			v = bsp_file.vertexes + bsp_file.edges[-e].v[1];
-		}
+		const bsp_vertex_t *v = &bsp_file.vertexes[*fv];
 
 		vec3_t st;
-		Matrix4x4_Transform(&lm->matrix, v->point, st);
+		Matrix4x4_Transform(&lm->matrix, v->position, st);
 
-		for (int32_t j = 0; j < 2; j++) {
-
-			if (st[j] < lm->lm_mins[j]) {
-				lm->lm_mins[j] = st[j];
-			}
-			if (st[j] > lm->lm_maxs[j]) {
-				lm->lm_maxs[j] = st[j];
-			}
-		}
+		AddStToBounds(st, lm->st_mins, lm->st_maxs);
 	}
 
-	lm->w = floorf(lm->lm_maxs[0] - lm->lm_mins[0]) + 2;
-	lm->h = floorf(lm->lm_maxs[1] - lm->lm_mins[1]) + 2;
+	lm->w = floorf(lm->st_maxs[0] - lm->st_mins[0]) + 2;
+	lm->h = floorf(lm->st_maxs[1] - lm->st_mins[1]) + 2;
 }
 
 /**
@@ -127,7 +104,7 @@ static void BuildLightmapLuxels(lightmap_t *lm) {
 			l->s = s;
 			l->t = t;
 
-			VectorCopy(lm->normal, l->direction);
+			VectorCopy(lm->plane->normal, l->direction);
 		}
 	}
 }
@@ -209,66 +186,6 @@ void BuildLightmaps(void) {
 	DebugLightmapLuxels();
 }
 
-#define MAX_VERT_FACES 256
-
-/**
- * @brief Populate faces with indexes of all Phong-shaded bsp_face_t's referencing the vertex.
- * @return The number of bsp_face_t's referencing the vertex.
- */
-static int32_t FacesWithVert(int32_t vert, int32_t *faces) {
-
-	int32_t count = 0;
-
-	for (int32_t i = 0; i < bsp_file.num_faces; i++) {
-		const bsp_face_t *face = &bsp_file.faces[i];
-
-		if (!(bsp_file.texinfo[face->texinfo].flags & SURF_PHONG)) {
-			continue;
-		}
-
-		for (int32_t j = 0; j < face->num_face_edges; j++) {
-
-			const int32_t e = bsp_file.face_edges[face->first_face_edge + j];
-			const int32_t v = e >= 0 ? bsp_file.edges[e].v[0] : bsp_file.edges[-e].v[1];
-
-			if (v == vert) { // face references vert
-				faces[count++] = i;
-				if (count == MAX_VERT_FACES) {
-					Mon_SendPoint(MON_ERROR, bsp_file.vertexes[v].point, "MAX_VERT_FACES");
-				}
-				break;
-			}
-		}
-	}
-
-	return count;
-}
-
-/**
- * @brief Calculate per-vertex (instead of per-plane) normal vectors. This is done by finding all of
- * the faces which share a given vertex, and calculating a weighted average of their normals.
- */
-void BuildVertexNormals(void) {
-	int32_t vert_faces[MAX_VERT_FACES];
-
-	for (int32_t i = 0; i < bsp_file.num_vertexes; i++) {
-
-		vec_t *normal = bsp_file.vertexes[i].normal;
-		VectorClear(normal);
-
-		const int32_t count = FacesWithVert(i, vert_faces);
-		if (count) {
-
-			for (int32_t j = 0; j < count; j++) {
-				const lightmap_t *lm = &lightmaps[vert_faces[j]];
-				VectorMA(normal, lm->num_luxels, lm->normal, normal);
-			}
-
-			VectorNormalize(normal);
-		}
-	}
-}
-
 /**
  * @brief A bucket for resolving Phong-interpolated normal vectors.
  */
@@ -289,28 +206,28 @@ static int32_t PhongNormal_sort(const void *a, const void *b) {
  * the three nearest vertexes.
  */
 static void PhongNormal(const bsp_face_t *face, const vec3_t pos, vec3_t normal) {
-	phong_vertex_t verts[face->num_face_edges];
+	phong_vertex_t phong_vertexes[face->num_vertexes], *pv = phong_vertexes;
 
-	for (int32_t i = 0; i < face->num_face_edges; i++) {
-		const int32_t e = bsp_file.face_edges[face->first_face_edge + i];
-		const int32_t v = e >= 0 ? bsp_file.edges[e].v[0] : bsp_file.edges[-e].v[1];
+	const int32_t *fv = bsp_file.face_vertexes + face->vertex;
+	for (int32_t i = 0; i < face->num_vertexes; i++, fv++, pv++) {
 
-		VectorCopy(bsp_file.vertexes[v].normal, verts[i].normal);
+		const bsp_vertex_t *v = &bsp_file.vertexes[*fv];
+		VectorCopy(v->normal, pv->normal);
 
 		vec3_t delta;
-		VectorSubtract(pos, bsp_file.vertexes[v].point, delta);
-		verts[i].dist = VectorLength(delta);
+		VectorSubtract(pos, v->position, delta);
+		pv->dist = VectorLength(delta);
 	}
 
-	qsort(verts, face->num_face_edges, sizeof(phong_vertex_t), PhongNormal_sort);
+	qsort(phong_vertexes, face->num_vertexes, sizeof(phong_vertex_t), PhongNormal_sort);
 
 	VectorClear(normal);
+	pv = phong_vertexes;
 
-	const vec_t dist = (verts[0].dist + verts[1].dist + verts[2].dist);
+	const vec_t dist = (pv[0].dist + pv[1].dist + pv[2].dist);
 
-	for (int32_t i = 0; i < 3; i++) {
-		const vec_t scale = 1.0 - verts[i].dist / dist;
-		VectorMA(normal, scale, verts[i].normal, normal);
+	for (int32_t i = 0; i < 3; i++, pv++) {
+		VectorMA(normal, 1.0 - pv->dist / dist, pv->normal, normal);
 	}
 
 	VectorNormalize(normal);
@@ -327,11 +244,11 @@ static void PhongNormal(const bsp_face_t *face, const vec3_t pos, vec3_t normal)
  */
 static _Bool ProjectLuxel(const lightmap_t *lm, luxel_t *l, vec_t soffs, vec_t toffs, byte *pvs) {
 
-	const vec_t padding_s = ((lm->lm_maxs[0] - lm->lm_mins[0]) - lm->w) * 0.5;
-	const vec_t padding_t = ((lm->lm_maxs[1] - lm->lm_mins[1]) - lm->h) * 0.5;
+	const vec_t padding_s = ((lm->st_maxs[0] - lm->st_mins[0]) - lm->w) * 0.5;
+	const vec_t padding_t = ((lm->st_maxs[1] - lm->st_mins[1]) - lm->h) * 0.5;
 
-	const vec_t s = lm->lm_mins[0] + padding_s + l->s + 0.5 + soffs;
-	const vec_t t = lm->lm_mins[1] + padding_t + l->t + 0.5 + toffs;
+	const vec_t s = lm->st_mins[0] + padding_s + l->s + 0.5 + soffs;
+	const vec_t t = lm->st_mins[1] + padding_t + l->t + 0.5 + toffs;
 
 	const vec3_t origin_st = { s , t, 0.0 };
 	Matrix4x4_Transform(&lm->inverse_matrix, origin_st, l->origin);
@@ -339,7 +256,7 @@ static _Bool ProjectLuxel(const lightmap_t *lm, luxel_t *l, vec_t soffs, vec_t t
 	if (lm->texinfo->flags & SURF_PHONG) {
 		PhongNormal(lm->face, l->origin, l->normal);
 	} else {
-		VectorCopy(lm->normal, l->normal);
+		VectorCopy(lm->plane->normal, l->normal);
 	}
 
 	VectorAdd(l->origin, l->normal, l->origin);
@@ -567,7 +484,7 @@ void FinalizeLighting(int32_t face_num) {
 
 	WorkLock();
 
-	f->lightmap_ofs = bsp_file.lightmap_data_size;
+	f->lightmap = bsp_file.lightmap_data_size;
 	bsp_file.lightmap_data_size += lm->num_luxels * 6;
 
 	if (bsp_file.lightmap_data_size > MAX_BSP_LIGHTING) {
@@ -577,7 +494,7 @@ void FinalizeLighting(int32_t face_num) {
 	WorkUnlock();
 
 	// write it out
-	byte *dest = &bsp_file.lightmap_data[f->lightmap_ofs];
+	byte *dest = &bsp_file.lightmap_data[f->lightmap];
 
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {

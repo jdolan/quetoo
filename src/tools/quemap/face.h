@@ -42,12 +42,10 @@ typedef struct face_s {
 	winding_t *w;
 } face_t;
 
-extern int32_t first_bsp_model_edge;
 extern int32_t c_merge;
 
 face_t *AllocFace(void);
 void FreeFace(face_t *f);
 face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal);
-int32_t EmitVertex(const vec3_t v);
-int32_t EmitEdge(int32_t v1, int32_t v2, face_t *f);
-
+void EmitFace(face_t *face);
+void PhongVertexes(void);

@@ -50,24 +50,12 @@ typedef struct {
 static r_lightmap_state_t r_lightmap_state;
 
 /**
- * @brief Pushes lightmap to list of blocks to be processed
+ * @brief Calculates the lightmap extents and pushes it to list of blocks to be processed.
  */
 void R_CreateBspSurfaceLightmap(const r_bsp_model_t *bsp, r_bsp_surface_t *surf, const byte *data) {
 
-	if (!(surf->flags & R_SURF_LIGHTMAP)) {
-		return;
-	}
-
 	r_lightmap_t *lm = &surf->lightmap;
-
 	lm->data = data;
-
-	vec_t dist;
-	if (surf->flags & R_SURF_PLANE_BACK) {
-		dist = -surf->plane->dist;
-	} else {
-		dist = surf->plane->dist;
-	}
 
 	vec3_t s, t;
 
@@ -78,43 +66,27 @@ void R_CreateBspSurfaceLightmap(const r_bsp_model_t *bsp, r_bsp_surface_t *surf,
 	VectorScale(t, 1.0 / bsp->luxel_size, t);
 
 	Matrix4x4_FromArrayFloatGL(&lm->matrix, (const vec_t[]) {
-		s[0], t[0], surf->normal[0], 0.0,
-		s[1], t[1], surf->normal[1], 0.0,
-		s[2], t[2], surf->normal[2], 0.0,
-		0.0,  0.0,  -dist,           1.0
+		s[0], t[0], surf->plane->normal[0], 0.0,
+		s[1], t[1], surf->plane->normal[1], 0.0,
+		s[2], t[2], surf->plane->normal[2], 0.0,
+		0.0,  0.0,  -surf->plane->dist,     1.0
 	});
 
 	Matrix4x4_Invert_Full(&lm->inverse_matrix, &lm->matrix);
 
-	lm->lm_mins[0] = lm->lm_mins[1] = FLT_MAX;
-	lm->lm_maxs[0] = lm->lm_maxs[1] = -FLT_MAX;
+	ClearStBounds(lm->st_mins, lm->st_maxs);
 
-	for (int32_t i = 0; i < surf->num_face_edges; i++) {
-		const int32_t e = bsp->file->face_edges[surf->first_face_edge + i];
-		const bsp_vertex_t *v;
-
-		if (e >= 0) {
-			v = bsp->file->vertexes + bsp->file->edges[e].v[0];
-		} else {
-			v = bsp->file->vertexes + bsp->file->edges[-e].v[1];
-		}
+	const r_bsp_vertex_t *v = bsp->vertexes + surf->vertex;
+	for (GLuint i = 0; i < surf->num_vertexes; i++, v++) {
 
 		vec3_t st;
-		Matrix4x4_Transform(&lm->matrix, v->point, st);
+		Matrix4x4_Transform(&lm->matrix, v->position, st);
 
-		for (int32_t j = 0; j < 2; j++) {
-
-			if (st[j] < lm->lm_mins[j]) {
-				lm->lm_mins[j] = st[j];
-			}
-			if (st[j] > lm->lm_maxs[j]) {
-				lm->lm_maxs[j] = st[j];
-			}
-		}
+		AddStToBounds(st, lm->st_mins, lm->st_maxs);
 	}
 
-	lm->w = floorf(lm->lm_maxs[0] - lm->lm_mins[0]) + 2;
-	lm->h = floorf(lm->lm_maxs[1] - lm->lm_mins[1]) + 2;
+	lm->w = floorf(lm->st_maxs[0] - lm->st_mins[0]) + 2;
+	lm->h = floorf(lm->st_maxs[1] - lm->st_mins[1]) + 2;
 
 	r_lightmap_state.blocks = g_slist_prepend(r_lightmap_state.blocks, surf);
 }
@@ -375,7 +347,7 @@ static gint R_InsertBlock_CompareFunc(gconstpointer a, gconstpointer b) {
 		return result;
 	}
 
-	return bi->index - ai->index;
+	return bi->vertex - ai->vertex;
 }
 
 /**
@@ -394,12 +366,13 @@ void R_LoadBspSurfaceLightmaps(const r_bsp_model_t *bsp) {
 	// if the cache fails, then build a new packed lightmap atlas
 	r_bsp_surface_t *surf = (r_bsp_surface_t *) r_lightmap_state.blocks->data;
 
+
 	r_atlas_packer_t packer;
 	memset(&packer, 0, sizeof(packer));
 
 	R_AtlasPacker_InitPacker(&packer,
-							 Min(r_config.max_texture_size, USHRT_MAX),
-							 Min(r_config.max_texture_size, USHRT_MAX),
+							 Min(r_config.max_texture_size, INT16_MAX),
+							 Min(r_config.max_texture_size, INT16_MAX),
 							 surf->lightmap.w,
 	                         surf->lightmap.h,
 							 bsp->num_surfaces / 2);
@@ -459,8 +432,8 @@ void R_LoadBspSurfaceLightmaps(const r_bsp_model_t *bsp) {
 
 				// reinitialize packer
 				R_AtlasPacker_InitPacker(&packer,
-										 Min(r_config.max_texture_size, USHRT_MAX),
-										 Min(r_config.max_texture_size, USHRT_MAX),
+										 Min(r_config.max_texture_size, INT16_MAX),
+										 Min(r_config.max_texture_size, INT16_MAX),
 				                         surf->lightmap.w,
 										 surf->lightmap.h,
 										 bsp->num_surfaces / 2);

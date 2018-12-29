@@ -91,8 +91,8 @@ static _Bool R_StainSurface(const r_stain_t *stain, const r_bsp_surface_t *surf)
 	vec3_t st;
 	Matrix4x4_Transform(&surf->lightmap.matrix, point, st);
 
-	st[0] -= surf->lightmap.lm_mins[0];
-	st[1] -= surf->lightmap.lm_mins[1];
+	st[0] -= surf->lightmap.st_mins[0];
+	st[1] -= surf->lightmap.st_mins[1];
 
 	// resolve the radius of the stain where it impacts the surface
 	const vec_t radius = sqrt(stain->radius * stain->radius - dist * dist);
@@ -274,10 +274,10 @@ static void R_ExpireStains(const byte alpha) {
 
 	R_BlendFunc(GL_ONE, GL_ONE);
 
-	for (uint32_t s = 0; s < r_model_state.world->bsp->num_surfaces; s++) {
+	for (int32_t s = 0; s < r_model_state.world->bsp->num_surfaces; s++) {
 		const r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces + s;
 
-		if (!(surf->flags & R_SURF_LIGHTMAP)) {
+		if (surf->texinfo->flags & SURF_SKY) {
 			continue;
 		}
 

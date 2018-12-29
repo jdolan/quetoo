@@ -26,8 +26,7 @@
 
 typedef struct matrix4x4_s {
 	vec_t m[4][4];
-}
-matrix4x4_t;
+} matrix4x4_t;
 
 extern const matrix4x4_t matrix4x4_identity;
 

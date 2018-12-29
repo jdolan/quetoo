@@ -89,7 +89,7 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
  */
 static void R_DrawBspSurface_default(const r_bsp_surface_t *surf) {
 
-	R_DrawArrays(GL_TRIANGLE_FAN, surf->index, surf->num_face_edges);
+	R_DrawArrays(GL_TRIANGLE_FAN, surf->vertex, surf->num_vertexes);
 
 	r_view.num_bsp_surfaces++;
 }
@@ -356,11 +356,4 @@ void R_DrawBlendWarpBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 	R_DrawBspSurfaces_default(surfs);
 
 	R_EnableWarp(NULL, false);
-}
-
-/**
- * @brief
- */
-void R_DrawBackBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
-	// no-op
 }

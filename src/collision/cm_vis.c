@@ -81,7 +81,7 @@ static void Cm_FloodArea(cm_bsp_area_t *area, int32_t flood_num) {
 	const bsp_area_portal_t *p = &cm_bsp.bsp.area_portals[area->first_area_portal];
 
 	for (int32_t i = 0; i < area->num_area_portals; i++, p++) {
-		if (cm_bsp.portal_open[p->portal_num]) {
+		if (cm_bsp.area_portals[p->portal_num]) {
 			Cm_FloodArea(&cm_bsp.areas[p->other_area], flood_num);
 		}
 	}
@@ -101,7 +101,7 @@ void Cm_FloodAreas(void) {
 		cm_bsp_area_t *area = &cm_bsp.areas[i];
 
 		if (area->flood_valid == cm_bsp.flood_valid) {
-			continue;    // already flooded into
+			continue;  // already flooded into
 		}
 
 		Cm_FloodArea(area, flood_num++);
@@ -119,7 +119,7 @@ void Cm_SetAreaPortalState(const int32_t portal_num, const _Bool open) {
 		Com_Error(ERROR_DROP, "Portal %d > num_area_portals", portal_num);
 	}
 
-	cm_bsp.portal_open[portal_num] = open;
+	cm_bsp.area_portals[portal_num] = open;
 	Cm_FloodAreas();
 }
 

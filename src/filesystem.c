@@ -241,7 +241,7 @@ int64_t Fs_Tell(file_t *file) {
 /**
  * @brief Writes to the specified file.
  *
- * @return The number of objects read, or -1 on failure.
+ * @return The number of objects written, or -1 on failure.
  */
 int64_t Fs_Write(file_t *file, const void *buffer, size_t size, size_t count) {
 	return PHYSFS_writeBytes((PHYSFS_File *) file, buffer, (PHYSFS_uint64) size * (PHYSFS_uint64) count) / size;

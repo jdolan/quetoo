@@ -641,8 +641,8 @@ void R_InitDraw(void) {
 	r_draw.colors[CON_COLOR_GREEN] = 0xff00ff00;
 	r_draw.colors[CON_COLOR_YELLOW] = 0xff00ffff;
 	r_draw.colors[CON_COLOR_BLUE] = 0xffff0000;
-	r_draw.colors[CON_COLOR_CYAN] = 0xffffff00;
 	r_draw.colors[CON_COLOR_MAGENTA] = 0xffff00ff;
+	r_draw.colors[CON_COLOR_CYAN] = 0xffffff00;
 	r_draw.colors[CON_COLOR_WHITE] = 0xffffffff;
 
 	for (int32_t i = 0; i < MAX_FONTS; ++i) {

@@ -45,6 +45,35 @@ static void Cm_LoadBspEntities(void) {
 /**
  * @brief
  */
+static void Cm_LoadBspTexinfos(void) {
+
+	const int32_t num_texinfo = cm_bsp.bsp.num_texinfo;
+	const bsp_texinfo_t *in = cm_bsp.bsp.texinfo;
+
+	cm_bsp_texinfo_t *out = cm_bsp.texinfos = Mem_TagMalloc(sizeof(cm_bsp_texinfo_t) * num_texinfo, MEM_TAG_CMODEL);
+
+	for (int32_t i = 0; i < num_texinfo; i++, in++, out++) {
+
+		g_strlcpy(out->name, in->texture, sizeof(out->name));
+		out->flags = in->flags;
+		out->value = in->value;
+
+		for (size_t i = 0; i < cm_bsp.num_materials; i++) {
+			cm_material_t *material = cm_bsp.materials[i];
+			if (!g_strcmp0(out->name, material->name)) {
+				out->material = material;
+				break;
+			}
+		}
+
+		assert(out->material);
+	}
+}
+
+
+/**
+ * @brief
+ */
 static void Cm_LoadBspPlanes(void) {
 
 	const int32_t num_planes = cm_bsp.bsp.num_planes;
@@ -87,33 +116,6 @@ static void Cm_LoadBspNodes(void) {
 	}
 }
 
-/**
- * @brief
- */
-static void Cm_LoadBspTexinfos(void) {
-
-	const int32_t num_texinfo = cm_bsp.bsp.num_texinfo;
-	const bsp_texinfo_t *in = cm_bsp.bsp.texinfo;
-
-	cm_bsp_texinfo_t *out = cm_bsp.texinfos = Mem_TagMalloc(sizeof(cm_bsp_texinfo_t) * num_texinfo, MEM_TAG_CMODEL);
-
-	for (int32_t i = 0; i < num_texinfo; i++, in++, out++) {
-
-		g_strlcpy(out->name, in->texture, sizeof(out->name));
-		out->flags = in->flags;
-		out->value = in->value;
-
-		for (size_t i = 0; i < cm_bsp.num_materials; i++) {
-			cm_material_t *material = cm_bsp.materials[i];
-			if (!g_strcmp0(out->name, material->name)) {
-				out->material = material;
-				break;
-			}
-		}
-
-		assert(out->material);
-	}
-}
 
 /**
  * @brief
@@ -134,10 +136,6 @@ static void Cm_LoadBspLeafs(void) {
 		out->first_leaf_brush = in->first_leaf_brush;
 		out->num_leaf_brushes = in->num_leaf_brushes;
 	}
-
-	if (cm_bsp.leafs[0].contents != CONTENTS_SOLID) {
-		Com_Error(ERROR_DROP, "Map leaf 0 is not CONTENTS_SOLID\n");
-	}
 }
 
 /**
@@ -154,28 +152,6 @@ static void Cm_LoadBspLeafBrushes(void) {
 	for (int32_t i = 0; i < num_leaf_brushes; i++, in++, out++) {
 
 		*out = *in;
-	}
-}
-
-/**
- * @brief
- */
-static void Cm_LoadBspInlineModels(void) {
-
-	const int32_t num_models = cm_bsp.bsp.num_models;
-	const bsp_model_t *in = cm_bsp.bsp.models;
-
-	cm_bsp_model_t *out = cm_bsp.models = Mem_TagMalloc(sizeof(cm_bsp_model_t) * num_models, MEM_TAG_CMODEL);
-
-	for (int32_t i = 0; i < num_models; i++, in++, out++) {
-
-		for (int32_t j = 0; j < 3; j++) {
-			out->mins[j] = in->mins[j] - 1.0;
-			out->maxs[j] = in->maxs[j] + 1.0;
-			out->origin[j] = in->origin[j];
-		}
-
-		out->head_node = in->head_node;
 	}
 }
 
@@ -223,7 +199,7 @@ static void Cm_LoadBspBrushSides(void) {
 
 		const int32_t s = in->surf_num;
 
-		if (s == USHRT_MAX) {
+		if (s == UINT16_MAX) {
 			out->surface = &null_texinfo;
 		} else {
 			if (s >= cm_bsp.bsp.num_texinfo) {
@@ -257,15 +233,33 @@ static void Cm_SetupBspBrushes(void) {
 /**
  * @brief
  */
-static void Cm_LoadBspVisibility(void) {
+static void Cm_LoadBspInlineModels(void) {
 
-	// If we have no visibility data, pad the clusters so that Bsp_DecompressVis
-	// produces correctly-sized rows. If we don't do this, non-VIS'ed maps will
-	// not produce any visible entities.
-	if (cm_bsp.bsp.vis_data_size == 0) {
-		Bsp_AllocLump(&cm_bsp.bsp, BSP_LUMP_VISIBILITY, MAX_BSP_VISIBILITY);
-		cm_bsp.bsp.vis_data.vis->num_clusters = cm_bsp.bsp.num_leafs;
+	const int32_t num_models = cm_bsp.bsp.num_models;
+	const bsp_model_t *in = cm_bsp.bsp.models;
+
+	cm_bsp_model_t *out = cm_bsp.models = Mem_TagMalloc(sizeof(cm_bsp_model_t) * num_models, MEM_TAG_CMODEL);
+
+	for (int32_t i = 0; i < num_models; i++, in++, out++) {
+
+		for (int32_t j = 0; j < 3; j++) {
+			out->mins[j] = in->mins[j] - 1.0;
+			out->maxs[j] = in->maxs[j] + 1.0;
+			out->origin[j] = in->origin[j];
+		}
+
+		out->head_node = in->head_node;
 	}
+}
+
+/**
+ * @brief
+ */
+static void Cm_LoadBspAreaPortals(void) {
+
+	const int32_t num_area_portals = cm_bsp.bsp.num_area_portals;
+
+	cm_bsp.area_portals = Mem_TagMalloc(sizeof(bool) * num_area_portals, MEM_TAG_CMODEL);
 }
 
 /**
@@ -290,11 +284,15 @@ static void Cm_LoadBspAreas(void) {
 /**
  * @brief
  */
-static void Cm_LoadBspAreaPortals(void) {
+static void Cm_LoadBspVisibility(void) {
 
-	const int32_t num_area_portals = cm_bsp.bsp.num_area_portals;
-
-	cm_bsp.portal_open = Mem_TagMalloc(sizeof(bool) * num_area_portals, MEM_TAG_CMODEL);
+	// If we have no visibility data, pad the clusters so that Bsp_DecompressVis
+	// produces correctly-sized rows. If we don't do this, non-VIS'ed maps will
+	// not produce any visible entities.
+	if (cm_bsp.bsp.vis_data_size == 0) {
+		Bsp_AllocLump(&cm_bsp.bsp, BSP_LUMP_VISIBILITY, MAX_BSP_VISIBILITY);
+		cm_bsp.bsp.vis_data.vis->num_clusters = cm_bsp.bsp.num_leafs;
+	}
 }
 
 /**
@@ -344,17 +342,17 @@ static void Cm_LoadBspMaterials(const char *name) {
  */
 #define CM_BSP_LUMPS \
 	(1 << BSP_LUMP_ENTITIES) | \
+	(1 << BSP_LUMP_TEXINFO) | \
 	(1 << BSP_LUMP_PLANES) | \
 	(1 << BSP_LUMP_NODES) | \
-	(1 << BSP_LUMP_TEXINFO) | \
 	(1 << BSP_LUMP_LEAFS) | \
 	(1 << BSP_LUMP_LEAF_BRUSHES) | \
-	(1 << BSP_LUMP_MODELS) | \
 	(1 << BSP_LUMP_BRUSHES) | \
 	(1 << BSP_LUMP_BRUSH_SIDES) | \
-	(1 << BSP_LUMP_VISIBILITY) | \
+	(1 << BSP_LUMP_MODELS) | \
+	(1 << BSP_LUMP_AREA_PORTALS) | \
 	(1 << BSP_LUMP_AREAS) | \
-	(1 << BSP_LUMP_AREA_PORTALS)
+	(1 << BSP_LUMP_VISIBILITY)
 
 /**
  * @brief Loads in the BSP and all sub-models for collision detection. This
@@ -376,18 +374,19 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	Bsp_UnloadLumps(&cm_bsp.bsp, BSP_LUMPS_ALL);
 
 	// free dynamic memory
-	Mem_Free(cm_bsp.entities);
-	Mem_Free(cm_bsp.materials);
+	Mem_Free(cm_bsp.texinfos);
 	Mem_Free(cm_bsp.planes);
 	Mem_Free(cm_bsp.nodes);
-	Mem_Free(cm_bsp.texinfos);
 	Mem_Free(cm_bsp.leafs);
 	Mem_Free(cm_bsp.leaf_brushes);
-	Mem_Free(cm_bsp.models);
 	Mem_Free(cm_bsp.brushes);
 	Mem_Free(cm_bsp.brush_sides);
+	Mem_Free(cm_bsp.models);
+	Mem_Free(cm_bsp.area_portals);
 	Mem_Free(cm_bsp.areas);
-	Mem_Free(cm_bsp.portal_open);
+
+	Mem_Free(cm_bsp.entities);
+	Mem_Free(cm_bsp.materials);
 
 	memset(&cm_bsp, 0, sizeof(cm_bsp));
 
@@ -430,17 +429,17 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	Cm_LoadBspMaterials(name);
 
 	Cm_LoadBspEntities();
+	Cm_LoadBspTexinfos();
 	Cm_LoadBspPlanes();
 	Cm_LoadBspNodes();
-	Cm_LoadBspTexinfos();
 	Cm_LoadBspLeafs();
 	Cm_LoadBspLeafBrushes();
-	Cm_LoadBspInlineModels();
 	Cm_LoadBspBrushes();
 	Cm_LoadBspBrushSides();
-	Cm_LoadBspVisibility();
-	Cm_LoadBspAreas();
+	Cm_LoadBspInlineModels();
 	Cm_LoadBspAreaPortals();
+	Cm_LoadBspAreas();
+	Cm_LoadBspVisibility();
 
 	Cm_SetupBspBrushes();
 

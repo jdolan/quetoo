@@ -116,7 +116,7 @@ static inline void AddPlaneToHash(plane_t *p) {
  * @brief
  */
 static int32_t CreateNewFloatPlane(vec3_t normal, vec_t dist) {
-	plane_t *p, temp;
+	plane_t *p;
 
 	// bad plane
 	if (VectorLength(normal) < 0.5) {
@@ -131,9 +131,9 @@ static int32_t CreateNewFloatPlane(vec3_t normal, vec_t dist) {
 	p = &planes[num_planes];
 	VectorCopy(normal, p->normal);
 	p->dist = dist;
-	p->type = (p + 1)->type = PlaneTypeForNormal(p->normal);
 
-	VectorSubtract(vec3_origin, normal, (p + 1)->normal);
+	p->type = (p + 1)->type = PlaneTypeForNormal(p->normal);
+	VectorNegate(normal, (p + 1)->normal);
 	(p + 1)->dist = -dist;
 
 	num_planes += 2;
@@ -142,7 +142,7 @@ static int32_t CreateNewFloatPlane(vec3_t normal, vec_t dist) {
 	if (AXIAL(p)) {
 		if (p->normal[0] < 0.0 || p->normal[1] < 0.0 || p->normal[2] < 0.0) {
 			// flip order
-			temp = *p;
+			plane_t temp = *p;
 			*p = *(p + 1);
 			*(p + 1) = temp;
 
@@ -161,14 +161,15 @@ static int32_t CreateNewFloatPlane(vec3_t normal, vec_t dist) {
  * @brief If the specified normal is very close to an axis, align with it.
  */
 static void SnapNormal(vec3_t normal) {
-	int32_t i;
 
 	_Bool snap = false;
 
-	for (i = 0; i < 3; i++) {
-		if (normal[i] != 0.0 && -NORMAL_EPSILON < normal[i] && normal[i] < NORMAL_EPSILON) {
-			normal[i] = 0.0;
-			snap = true;
+	for (int32_t i = 0; i < 3; i++) {
+		if (normal[i] != 0.0) {
+			if (normal[i] > -NORMAL_EPSILON && normal[i] < NORMAL_EPSILON) {
+				normal[i] = 0.0;
+				snap = true;
+			}
 		}
 	}
 
@@ -198,13 +199,12 @@ static void SnapPlane(vec3_t normal, dvec_t *dist) {
  * @brief
  */
 int32_t FindPlane(vec3_t normal, dvec_t dist) {
-	int32_t i;
 
 	SnapPlane(normal, &dist);
 	const uint16_t hash = ((uint32_t) fabsl(dist)) & (PLANE_HASHES - 1);
 
 	// search the border bins as well
-	for (i = -1; i <= 1; i++) {
+	for (int32_t i = -1; i <= 1; i++) {
 		const uint16_t h = (hash + i) & (PLANE_HASHES - 1);
 		const plane_t *p = plane_hash[h];
 
@@ -901,6 +901,7 @@ void LoadMapFile(const char *filename) {
 	}
 
 	ClearBounds(map_mins, map_maxs);
+
 	for (int32_t i = 0; i < entities[0].num_brushes; i++) {
 		if (brushes[i].mins[0] > MAX_WORLD_COORD) {
 			continue; // no valid points
@@ -919,4 +920,6 @@ void LoadMapFile(const char *filename) {
 	Com_Verbose("%5i area portals\n", c_area_portals);
 	Com_Verbose("size: %5.0f,%5.0f,%5.0f to %5.0f,%5.0f,%5.0f\n",
 				map_mins[0], map_mins[1], map_mins[2], map_maxs[0], map_maxs[1], map_maxs[2]);
+
+	Fs_Free(buffer);
 }

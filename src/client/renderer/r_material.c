@@ -29,7 +29,7 @@ static matrix4x4_t r_texture_matrix;
 
 // interleave constants
 typedef struct {
-	vec3_t		vertex;
+	vec3_t		position;
 	u8vec4_t	color;
 	vec3_t		normal;
 	vec3_t		tangent;
@@ -158,9 +158,7 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 		return;
 	}
 
-	// if the surface has a lightmap, and the stage specifies lighting..
-
-	if ((surf->flags & R_SURF_LIGHTMAP) && (stage->cm->flags & (STAGE_LIGHTMAP | STAGE_LIGHTING))) {
+	if (stage->cm->flags & (STAGE_LIGHTMAP | STAGE_LIGHTING)) {
 
 		R_EnableTexture(texunit_lightmap, true);
 
@@ -232,8 +230,8 @@ static void R_StageTextureMatrix(const r_bsp_surface_t *surf, const r_stage_t *s
 
 	if (surf) { // for BSP surfaces, add stretch and rotate
 
-		s = surf->st_center[0] / surf->texinfo->material->diffuse->width;
-		t = surf->st_center[1] / surf->texinfo->material->diffuse->height;
+		s = (surf->st_mins[0] + surf->st_maxs[0]) * 0.5;
+		t = (surf->st_mins[1] + surf->st_maxs[1]) * 0.5;
 
 		if (stage->cm->flags & STAGE_STRETCH) {
 			Matrix4x4_ConcatTranslate(&r_texture_matrix, -s, -t, 0.0);
@@ -418,42 +416,34 @@ static uint32_t r_material_vertex_count, r_material_index_count;
 static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_stage_t *stage) {
 
 	// expand array if we're gonna eat it
-	if (r_material_state.vertex_len <= (r_material_vertex_count + surf->num_face_edges)) {
+	if (r_material_state.vertex_len <= (r_material_vertex_count + surf->num_vertexes)) {
 		r_material_state.vertex_len *= 2;
 		r_material_state.vertex_array = g_array_set_size(r_material_state.vertex_array, r_material_state.vertex_len);
 		Com_Debug(DEBUG_RENDERER, "Expanded material vertex array to %u\n", r_material_state.vertex_len);
 	}
 
-	for (int32_t i = 0; i < surf->num_face_edges; i++) {
+	const r_bsp_vertex_t *in = r_model_state.world->bsp->vertexes + surf->vertex;
+	for (int32_t i = 0; i < surf->num_vertexes; i++, in++) {
 
-		const vec_t *v = &r_model_state.world->bsp->verts[surf->elements[i]][0];
-		const vec_t *st = &r_model_state.world->bsp->texcoords[surf->elements[i]][0];
+		r_material_interleave_vertex_t *out = &VERTEX_ARRAY_INDEX(r_material_vertex_count + i);
 
-		r_material_interleave_vertex_t *vertex = &VERTEX_ARRAY_INDEX(r_material_vertex_count + i);
+		R_StageVertex(surf, stage, in->position, out->position);
 
-		R_StageVertex(surf, stage, v, &vertex->vertex[0]);
-
-		R_StageTexCoord(stage, v, st, &vertex->diffuse[0]);
+		R_StageTexCoord(stage, in->position, in->diffuse, out->diffuse);
 
 		if (texunit_lightmap->enabled) { // lightmap texcoords
-			st = &r_model_state.world->bsp->lightmap_texcoords[surf->elements[i]][0];
-			PackTexcoords(st, vertex->lightmap);
+			PackTexcoords(in->lightmap, out->lightmap);
 		}
 
 		if (r_state.color_array_enabled) { // colors
-			R_StageColor(stage, v, &vertex->color[0]);
+			R_StageColor(stage, in->position, out->color);
 		}
 
 		if (r_state.lighting_enabled) { // normals and tangents
 
-			const vec_t *n = &r_model_state.world->bsp->normals[surf->elements[i]][0];
-			VectorCopy(n, vertex->normal);
-
-			const vec_t *t = &r_model_state.world->bsp->tangents[surf->elements[i]][0];
-			VectorCopy(t, vertex->tangent);
-
-			const vec_t *b = &r_model_state.world->bsp->bitangents[surf->elements[i]][0];
-			VectorCopy(b, vertex->bitangent);
+			VectorCopy(in->normal, out->normal);
+			VectorCopy(in->tangent, out->tangent);
+			VectorCopy(in->bitangent, out->bitangent);
 		}
 	}
 
@@ -467,7 +457,7 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
 	// first # to render
 	ELEMENT_ARRAY_INDEX(r_material_index_count) = r_material_vertex_count;
 
-	r_material_vertex_count += surf->num_face_edges;
+	r_material_vertex_count += surf->num_vertexes;
 	r_material_index_count++;
 }
 
@@ -577,7 +567,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 			R_SetStageState(surf, s);
 
-			R_DrawArrays(GL_TRIANGLE_FAN, (GLint) ELEMENT_ARRAY_INDEX(si), surf->num_face_edges);
+			R_DrawArrays(GL_TRIANGLE_FAN, (GLint) ELEMENT_ARRAY_INDEX(si), surf->num_vertexes);
 
 			++si;
 		}

@@ -90,7 +90,6 @@ BspSurfacesDrawFunc R_DrawOpaqueWarpBspSurfaces;
 BspSurfacesDrawFunc R_DrawAlphaTestBspSurfaces;
 BspSurfacesDrawFunc R_DrawBlendBspSurfaces;
 BspSurfacesDrawFunc R_DrawBlendWarpBspSurfaces;
-BspSurfacesDrawFunc R_DrawBackBspSurfaces;
 
 MeshModelsDrawFunc R_DrawMeshModels;
 
@@ -186,8 +185,6 @@ void R_DrawView(void) {
 
 	R_EnableDepthMask(false);
 
-	R_DrawBackBspSurfaces(&surfs->back);
-
 	R_DrawMaterialBspSurfaces(&surfs->material);
 
 	R_EnableBlend(false);
@@ -238,7 +235,6 @@ static void R_RenderPlugin(const char *plugin) {
 	R_DrawAlphaTestBspSurfaces = R_DrawAlphaTestBspSurfaces_default;
 	R_DrawBlendBspSurfaces = R_DrawBlendBspSurfaces_default;
 	R_DrawBlendWarpBspSurfaces = R_DrawBlendWarpBspSurfaces_default;
-	R_DrawBackBspSurfaces = R_DrawBackBspSurfaces_default;
 
 	R_DrawMeshModels = R_DrawMeshModels_default;
 
