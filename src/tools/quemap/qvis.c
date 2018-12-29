@@ -176,7 +176,7 @@ static void ClusterMerge(uint32_t leaf_num) {
 /**
  * @brief
  */
-static void CalcVis(void) {
+static void CalcPVS(void) {
 
 	Work(BaseVis, map_vis.num_portals * 2);
 
@@ -457,7 +457,7 @@ int32_t VIS_Main(void) {
 
 	LoadPortals(va("maps/%s.prt", map_base));
 
-	CalcVis();
+	CalcPVS();
 
 	CalcPHS();
 
