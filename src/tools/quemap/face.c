@@ -200,7 +200,7 @@ face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal) {
 }
 
 #define SNAP_FLOAT_TO_INT   8
-#define SNAP_INT_TO_FLOAT   ( 1.0 / SNAP_FLOAT_TO_INT )
+#define SNAP_INT_TO_FLOAT   (1.0 / SNAP_FLOAT_TO_INT)
 
 /**
  * @brief Emit vertexes and vertex indices for the given face.
