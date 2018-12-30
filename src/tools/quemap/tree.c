@@ -397,14 +397,14 @@ static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
 	if (!split_side) {
 		// leaf node
 		node->side = NULL;
-		node->plane_num = -1;
+		node->plane_num = PLANENUM_LEAF;
 		LeafNode(node, brushes);
 		return node;
 	}
 
-	// this is a splitplane node
+	// this is a split-plane node
 	node->side = split_side;
-	node->plane_num = split_side->plane_num & ~1; // always use front facing
+	node->plane_num = split_side->plane_num & ~1; // always use positive facing
 
 	SplitBrushes(brushes, node, &children[0], &children[1]);
 	FreeBrushes(brushes);
@@ -497,12 +497,6 @@ tree_t *BuildTree(csg_brush_t *brushes, const vec3_t mins, const vec3_t maxs) {
 	return tree;
 }
 
-/*
- *
- * NODES THAT DON'T SEPERATE DIFFERENT CONTENTS CAN BE PRUNED
- *
- */
-
 static int32_t c_pruned;
 
 /**
@@ -514,11 +508,12 @@ void PruneNodes_r(node_t *node) {
 	if (node->plane_num == PLANENUM_LEAF) {
 		return;
 	}
+
 	PruneNodes_r(node->children[0]);
 	PruneNodes_r(node->children[1]);
 
-	if ((node->children[0]->contents & CONTENTS_SOLID) && (node->children[1]->contents
-	        & CONTENTS_SOLID)) {
+	if ((node->children[0]->contents & CONTENTS_SOLID) &&
+		(node->children[1]->contents & CONTENTS_SOLID)) {
 		if (node->faces) {
 			Com_Error(ERROR_FATAL, "Node faces separating CONTENTS_SOLID\n");
 		}
@@ -526,7 +521,8 @@ void PruneNodes_r(node_t *node) {
 			Com_Error(ERROR_FATAL, "Node has no faces but children do\n");
 		}
 
-		// FIXME: free stuff
+		// convert this node into a leaf, absorbing all brushes from its children
+
 		node->plane_num = PLANENUM_LEAF;
 		node->contents = CONTENTS_SOLID;
 		node->detail_seperator = false;
@@ -544,10 +540,22 @@ void PruneNodes_r(node_t *node) {
 			node->brushes = b;
 		}
 
+		FreeNode(node->children[0]);
+		node->children[0] = NULL;
+
+		FreeNode(node->children[1]);
+		node->children[1] = NULL;
+
 		c_pruned++;
 	}
 }
 
+/**
+ * @brief Adjacent solids that do not separate contents can be pruned.
+ * @remarks Depth-first recursion will merge the brushes of such nodes into their
+ * parents, until an ancestor of different contents mask is found. The pruned
+ * nodes become leafs.
+ */
 void PruneNodes(node_t *node) {
 	Com_Verbose("--- PruneNodes ---\n");
 	c_pruned = 0;
