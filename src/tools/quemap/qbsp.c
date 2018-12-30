@@ -141,16 +141,14 @@ static void ProcessBlock_Work(int32_t blocknum) {
  * @brief
  */
 static void ProcessWorldModel(void) {
-	entity_t *e;
 	tree_t *tree = NULL;
-	_Bool leaked;
-	int32_t optimize;
 
-	e = &entities[entity_num];
+	const entity_t *e = &entities[entity_num];
 
 	brush_start = e->first_brush;
 	brush_end = brush_start + e->num_brushes;
-	leaked = false;
+
+	_Bool leaked = false;
 
 	// perform per-block operations
 	if (block_xh * 1024 > map_maxs[0]) {
@@ -179,7 +177,7 @@ static void ProcessWorldModel(void) {
 		block_yh = 3;
 	}
 
-	for (optimize = 0; optimize <= 1; optimize++) {
+	for (int32_t optimize = 0; optimize <= 1; optimize++) {
 		Com_Verbose("--------------------------------------------\n");
 
 		const int32_t count = (block_xh - block_xl + 1) * (block_yh - block_yl + 1);
