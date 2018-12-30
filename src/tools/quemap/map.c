@@ -78,7 +78,7 @@ static _Bool PlaneEqual(const plane_t *p, const vec3_t normal, const dvec_t dist
  */
 static inline void AddPlaneToHash(plane_t *p) {
 
-	const uint16_t hash = ((uint32_t) fabs(p->dist)) & (PLANE_HASHES - 1);
+	const int32_t hash = ((int32_t) fabs(p->dist)) & (PLANE_HASHES - 1);
 
 	p->hash_chain = plane_hash[hash];
 	plane_hash[hash] = p;
@@ -87,8 +87,7 @@ static inline void AddPlaneToHash(plane_t *p) {
 /**
  * @brief
  */
-static int32_t CreateNewFloatPlane(vec3_t normal, vec_t dist) {
-	plane_t *p;
+static int32_t CreatePlane(vec3_t normal, vec_t dist) {
 
 	// bad plane
 	if (VectorLength(normal) < 0.5) {
@@ -100,32 +99,31 @@ static int32_t CreateNewFloatPlane(vec3_t normal, vec_t dist) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_PLANES\n");
 	}
 
-	p = &planes[num_planes];
-	VectorCopy(normal, p->normal);
-	p->dist = dist;
+	plane_t *a = &planes[num_planes++];
+	VectorCopy(normal, a->normal);
+	a->dist = dist;
+	a->type = Cm_PlaneTypeForNormal(a->normal);
 
-	p->type = (p + 1)->type = Cm_PlaneTypeForNormal(p->normal);
-	VectorNegate(normal, (p + 1)->normal);
-	(p + 1)->dist = -dist;
-
-	num_planes += 2;
+	plane_t *b = &planes[num_planes++];
+	VectorNegate(normal, b->normal);
+	b->dist = -dist;
+	b->type = Cm_PlaneTypeForNormal(b->normal);
 
 	// always put axial planes facing positive first
-	if (AXIAL(p)) {
-		if (p->normal[0] < 0.0 || p->normal[1] < 0.0 || p->normal[2] < 0.0) {
-			// flip order
-			plane_t temp = *p;
-			*p = *(p + 1);
-			*(p + 1) = temp;
+	if (AXIAL(a)) {
+		if (a->normal[0] < 0.0 || a->normal[1] < 0.0 || a->normal[2] < 0.0) {
+			plane_t temp = *a;
+			*a = *b;
+			*b = temp;
 
-			AddPlaneToHash(p);
-			AddPlaneToHash(p + 1);
+			AddPlaneToHash(a);
+			AddPlaneToHash(b);
 			return num_planes - 1;
 		}
 	}
 
-	AddPlaneToHash(p);
-	AddPlaneToHash(p + 1);
+	AddPlaneToHash(a);
+	AddPlaneToHash(b);
 	return num_planes - 2;
 }
 
@@ -173,13 +171,14 @@ static void SnapPlane(vec3_t normal, dvec_t *dist) {
 int32_t FindPlane(vec3_t normal, dvec_t dist) {
 
 	SnapPlane(normal, &dist);
-	const uint16_t hash = ((uint32_t) fabsl(dist)) & (PLANE_HASHES - 1);
 
-	// search the border bins as well
+	const int32_t hash = ((int32_t) fabsl(dist)) & (PLANE_HASHES - 1);
+
+	// search the adjacent bins as well
 	for (int32_t i = -1; i <= 1; i++) {
-		const uint16_t h = (hash + i) & (PLANE_HASHES - 1);
+		const int32_t h = (hash + i) & (PLANE_HASHES - 1);
+		
 		const plane_t *p = plane_hash[h];
-
 		while (p) {
 			if (PlaneEqual(p, normal, dist)) {
 				return (int32_t) (ptrdiff_t) (p - planes);
@@ -188,7 +187,7 @@ int32_t FindPlane(vec3_t normal, dvec_t dist) {
 		}
 	}
 
-	return CreateNewFloatPlane(normal, dist);
+	return CreatePlane(normal, dist);
 }
 
 /**
