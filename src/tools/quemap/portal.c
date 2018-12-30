@@ -547,7 +547,7 @@ _Bool FloodEntities(tree_t *tree) {
 			inside_occupied = true;
 		} else {
 			const char *classname = ValueForKey(ent, "classname", NULL);
-			Mon_SendSelect(MON_WARN, ent - entities, 0, va("%s resulted in leak", classname));
+			Mon_SendSelect(MON_WARN, ent - entities, 0, va("%s resides outside map", classname));
 		}
 	}
 
