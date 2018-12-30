@@ -25,7 +25,7 @@
 
 void EmitEntities(void);
 void BeginBSPFile(void);
-void WriteBSP(node_t *head_node);
+void EmitNodes(node_t *head_node);
 void EndBSPFile(void);
 void BeginModel(void);
 void EndModel(void);

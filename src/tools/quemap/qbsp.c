@@ -238,7 +238,7 @@ static void ProcessWorldModel(void) {
 		FixTJunctions(tree->head_node);
 	}
 
-	WriteBSP(tree->head_node);
+	EmitNodes(tree->head_node);
 
 	if (!leaked) {
 		WritePortalFile(tree);
@@ -281,7 +281,7 @@ static void ProcessSubModel(void) {
 		FixTJunctions(tree->head_node);
 	}
 
-	WriteBSP(tree->head_node);
+	EmitNodes(tree->head_node);
 	FreeTree(tree);
 }
 

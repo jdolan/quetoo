@@ -138,16 +138,15 @@ static void EmitLeaf(node_t *node) {
  */
 static int32_t EmitDrawNode_r(node_t *node) {
 
-	if (node->plane_num & 1) {
-		Com_Error(ERROR_FATAL, "Odd plane number\n");
-	}
-
 	if (node->plane_num == PLANENUM_LEAF) {
 		EmitLeaf(node);
 		return -bsp_file.num_leafs;
 	}
 
-	// emit a node
+	if (node->plane_num & 1) {
+		Com_Error(ERROR_FATAL, "Node referencing negative plane\n");
+	}
+
 	if (bsp_file.num_nodes == MAX_BSP_NODES) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_NODES\n");
 	}
@@ -190,7 +189,7 @@ static int32_t EmitDrawNode_r(node_t *node) {
 /**
  * @brief
  */
-void WriteBSP(node_t *head_node) {
+void EmitNodes(node_t *head_node) {
 
 	c_nofaces = 0;
 	c_facenodes = 0;
