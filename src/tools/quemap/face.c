@@ -199,6 +199,9 @@ face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal) {
 	return newf;
 }
 
+#define SNAP_FLOAT_TO_INT   8
+#define SNAP_INT_TO_FLOAT   ( 1.0 / SNAP_FLOAT_TO_INT )
+
 /**
  * @brief Emit vertexes and vertex indices for the given face.
  */
@@ -221,18 +224,19 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 
 		VectorCopy(face->w->points[i], v.position);
 
-//		if (!(texinfo->flags & SURF_NO_WELD)) {
-//			for (int32_t i = 0; i < 3; i++) {
-//				v.position[i] = roundf(v.position[i]);
-//			}
-//		}
+		if (!(texinfo->flags & SURF_NO_WELD)) {
+			for (int32_t i = 0; i < 3; i++) {
+				v.position[i] = SNAP_INT_TO_FLOAT * floorf(v.position[i] * SNAP_FLOAT_TO_INT + 0.5);
+			}
+		}
 
 		VectorCopy(planes[face->plane_num].normal, v.normal);
 		TangentVectors(v.normal, sdir, tdir, v.tangent, v.bitangent);
 
 		int32_t j;
 		for (j = 0; j < bsp_file.num_vertexes; j++) {
-			if (memcmp(&v, &bsp_file.vertexes[j], sizeof(v)) == 0) {
+			const bsp_vertex_t *v1 = &bsp_file.vertexes[j];
+			if (VectorCompare(v1->position, v.position) && v1->texinfo == v.texinfo) {
 				break;
 			}
 		}
