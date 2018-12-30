@@ -34,6 +34,8 @@ face_t *AllocFace(void) {
 	face_t *f = Mem_TagMalloc(sizeof(*f), MEM_TAG_FACE);
 	c_faces++;
 
+	f->num = -1;
+
 	return f;
 }
 
@@ -252,16 +254,13 @@ static int32_t EmitFaceVertexes(const face_t *face) {
  */
 void EmitFace(face_t *face) {
 
-	face->output_number = -1;
+	assert(face->w->num_points > 2);
 
-	if (face->w->num_points < 3) {
-		return; // degenerated
-	}
 	if (face->merged) {
 		return; // not a final face
 	}
 	// save output number so leaffaces can use
-	face->output_number = bsp_file.num_faces;
+	face->num = bsp_file.num_faces;
 
 	if (bsp_file.num_faces >= MAX_BSP_FACES) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_FACES\n");

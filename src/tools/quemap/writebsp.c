@@ -48,72 +48,35 @@ static void EmitPlanes(void) {
 /**
  * @brief
  */
-static void EmitLeafFace(bsp_leaf_t *leaf_p, face_t *f) {
-	int32_t i;
-	int32_t face_num;
-
-	while (f->merged) {
-		f = f->merged;
-	}
-
-	face_num = f->output_number;
-	if (face_num == -1) {
-		return;    // degenerate face
-	}
-
-	if (face_num < 0 || face_num >= bsp_file.num_faces) {
-		Com_Error(ERROR_FATAL, "Bad leaf face\n");
-	}
-
-	for (i = leaf_p->first_leaf_face; i < bsp_file.num_leaf_faces; i++)
-		if (bsp_file.leaf_faces[i] == face_num) {
-			break;    // merged out face
-		}
-
-	if (i == bsp_file.num_leaf_faces) {
-		if (bsp_file.num_leaf_faces >= MAX_BSP_LEAF_FACES) {
-			Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_FACES\n");
-		}
-
-		bsp_file.leaf_faces[bsp_file.num_leaf_faces] = face_num;
-		bsp_file.num_leaf_faces++;
-	}
-}
-
-/**
- * @brief
- */
 static void EmitLeaf(node_t *node) {
-	int32_t s;
 
-	// emit a leaf
 	if (bsp_file.num_leafs >= MAX_BSP_LEAFS) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_LEAFS\n");
 	}
 
-	bsp_leaf_t *leaf_p = &bsp_file.leafs[bsp_file.num_leafs];
+	bsp_leaf_t *leaf = &bsp_file.leafs[bsp_file.num_leafs];
 	bsp_file.num_leafs++;
 
-	leaf_p->contents = node->contents;
-	leaf_p->cluster = node->cluster;
-	leaf_p->area = node->area;
+	leaf->contents = node->contents;
+	leaf->cluster = node->cluster;
+	leaf->area = node->area;
 
-	// write bounding box info
-	VectorCopy(node->mins, leaf_p->mins);
-	VectorCopy(node->maxs, leaf_p->maxs);
+	VectorCopy(node->mins, leaf->mins);
+	VectorCopy(node->maxs, leaf->maxs);
 
 	// write the leaf_brushes
-	leaf_p->first_leaf_brush = bsp_file.num_leaf_brushes;
-	for (csg_brush_t *b = node->brushes; b; b = b->next) {
+	leaf->first_leaf_brush = bsp_file.num_leaf_brushes;
+
+	for (const csg_brush_t *brush = node->brushes; brush; brush = brush->next) {
 
 		if (bsp_file.num_leaf_brushes >= MAX_BSP_LEAF_BRUSHES) {
 			Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_BRUSHES\n");
 		}
 
-		const ptrdiff_t brush_num = b->original - brushes;
+		const ptrdiff_t brush_num = brush->original - brushes;
 
 		int32_t i;
-		for (i = leaf_p->first_leaf_brush; i < bsp_file.num_leaf_brushes; i++) {
+		for (i = leaf->first_leaf_brush; i < bsp_file.num_leaf_brushes; i++) {
 			if (bsp_file.leaf_brushes[i] == brush_num) {
 				break;
 			}
@@ -124,28 +87,51 @@ static void EmitLeaf(node_t *node) {
 			bsp_file.num_leaf_brushes++;
 		}
 	}
-	leaf_p->num_leaf_brushes = bsp_file.num_leaf_brushes - leaf_p->first_leaf_brush;
+
+	leaf->num_leaf_brushes = bsp_file.num_leaf_brushes - leaf->first_leaf_brush;
 
 	// write the leaf_faces
-	if (leaf_p->contents & CONTENTS_SOLID) {
-		return; // no leaf_faces in solids
+	if (leaf->contents & CONTENTS_SOLID) {
+		return;
 	}
 
-	leaf_p->first_leaf_face = bsp_file.num_leaf_faces;
+	leaf->first_leaf_face = bsp_file.num_leaf_faces;
 
+	int32_t s;
 	for (portal_t *p = node->portals; p; p = p->next[s]) {
 
 		s = (p->nodes[1] == node);
-		face_t *f = p->face[s];
 
-		if (!f) {
+		const face_t *face = p->face[s];
+		if (!face) {
 			continue; // not a visible portal
 		}
 
-		EmitLeafFace(leaf_p, f);
+		while (face->merged) {
+			face = face->merged;
+		}
+
+		assert(face->num >= 0);
+		assert(face->num <= bsp_file.num_faces);
+
+		int32_t i;
+		for (i = leaf->first_leaf_face; i < bsp_file.num_leaf_faces; i++) {
+			if (bsp_file.leaf_faces[i] == face->num) {
+				break;
+			}
+		}
+
+		if (i == bsp_file.num_leaf_faces) {
+			if (bsp_file.num_leaf_faces >= MAX_BSP_LEAF_FACES) {
+				Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_FACES\n");
+			}
+
+			bsp_file.leaf_faces[bsp_file.num_leaf_faces] = face->num;
+			bsp_file.num_leaf_faces++;
+		}
 	}
 
-	leaf_p->num_leaf_faces = bsp_file.num_leaf_faces - leaf_p->first_leaf_face;
+	leaf->num_leaf_faces = bsp_file.num_leaf_faces - leaf->first_leaf_face;
 }
 
 /**
