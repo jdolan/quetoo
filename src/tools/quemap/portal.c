@@ -552,7 +552,7 @@ _Bool FloodEntities(tree_t *tree) {
 	}
 
 	if (!inside_occupied) {
-		Mon_SendMessage(MON_WARN, "No zzzzentities inside map");
+		Mon_SendMessage(MON_WARN, "No entities inside map");
 	}
 
 	return inside_occupied && !tree->outside_node.occupied;
