@@ -78,9 +78,8 @@ static int32_t SortPortals_Compare(const void *a, const void *b) {
  * the earlier information.
  */
 static void SortPortals(void) {
-	uint32_t i;
 
-	for (i = 0; i < map_vis.num_portals * 2; i++) {
+	for (int32_t i = 0; i < map_vis.num_portals * 2; i++) {
 		map_vis.sorted_portals[i] = &map_vis.portals[i];
 	}
 
@@ -94,12 +93,11 @@ static void SortPortals(void) {
 /**
  * @brief
  */
-static size_t LeafVectorFromPortalVector(byte *portalbits, byte *leafbits) {
-	uint32_t i;
+static int32_t LeafVectorFromPortalVector(byte *portalbits, byte *leafbits) {
 
 	memset(leafbits, 0, map_vis.leaf_bytes);
 
-	for (i = 0; i < map_vis.num_portals * 2; i++) {
+	for (int32_t i = 0; i < map_vis.num_portals * 2; i++) {
 		if (portalbits[i >> 3] & (1 << (i & 7))) {
 			const portal_t *p = map_vis.portals + i;
 			leafbits[p->leaf >> 3] |= (1 << (p->leaf & 7));
@@ -113,64 +111,58 @@ static size_t LeafVectorFromPortalVector(byte *portalbits, byte *leafbits) {
  * @brief Merges the portal visibility for a leaf.
  */
 static void ClusterMerge(uint32_t leaf_num) {
-	leaf_t *leaf;
-	byte portalvector[MAX_BSP_PORTALS / 8];
 	byte uncompressed[MAX_BSP_LEAFS / 8];
 	byte compressed[MAX_BSP_LEAFS / 8];
-	uint32_t i, j;
-	size_t numvis;
-	byte *dest;
-	portal_t *p;
-	ptrdiff_t pnum;
+	byte vector[MAX_BSP_PORTALS / 8];
 
-	if (map_vis.portal_bytes > sizeof(portalvector)) {
+	if ((size_t) map_vis.portal_bytes > sizeof(vector)) {
 		Com_Error(ERROR_FATAL, "VIS overflow. Try making more brushes CONTENTS_DETAIL.\n");
 	}
 
 	// OR together all the portal vis bits
-	memset(portalvector, 0, map_vis.portal_bytes);
-	leaf = &map_vis.leafs[leaf_num];
-	for (i = 0; i < leaf->num_portals; i++) {
-		p = leaf->portals[i];
+	memset(vector, 0, map_vis.portal_bytes);
+	const leaf_t *leaf = &map_vis.leafs[leaf_num];
+	for (int32_t i = 0; i < leaf->num_portals; i++) {
+		portal_t *p = leaf->portals[i];
 		if (p->status != STATUS_DONE) {
 			Com_Error(ERROR_FATAL, "Portal not done\n");
 		}
-		for (j = 0; j < map_vis.portal_bytes; j++) {
-			portalvector[j] |= p->vis[j];
+		for (int32_t j = 0; j < map_vis.portal_bytes; j++) {
+			vector[j] |= p->vis[j];
 		}
-		pnum = p - map_vis.portals;
-		portalvector[pnum >> 3] |= 1 << (pnum & 7);
+		const ptrdiff_t portal_num = p - map_vis.portals;
+		vector[portal_num >> 3] |= 1 << (portal_num & 7);
 	}
 
 	// convert portal bits to leaf bits
-	numvis = LeafVectorFromPortalVector(portalvector, uncompressed);
+	int32_t visible = LeafVectorFromPortalVector(vector, uncompressed);
 
 	if (uncompressed[leaf_num >> 3] & (1 << (leaf_num & 7))) {
 		Com_Warn("Leaf portals saw into leaf\n");
 	}
 
 	uncompressed[leaf_num >> 3] |= (1 << (leaf_num & 7));
-	numvis++; // count the leaf itself
+	visible++; // count the leaf itself
 
 	// save uncompressed for PHS calculation
 	memcpy(map_vis.uncompressed + leaf_num * map_vis.leaf_bytes, uncompressed, map_vis.leaf_bytes);
 
 	// compress the bit string
-	Com_Debug(DEBUG_ALL, "Cluster %4i : %4" PRIuPTR " visible\n", leaf_num, numvis);
-	visibility_count += numvis;
+	Com_Debug(DEBUG_ALL, "Cluster %4d : %4d visible\n", leaf_num, visible);
+	visibility_count += visible;
 
-	i = Bsp_CompressVis(&bsp_file, uncompressed, compressed);
+	const int32_t len = Bsp_CompressVis(&bsp_file, uncompressed, compressed);
 
-	dest = map_vis.pointer;
-	map_vis.pointer += i;
+	byte *dest = map_vis.pointer;
+	map_vis.pointer += len;
 
 	if (map_vis.pointer > map_vis.end) {
 		Com_Error(ERROR_FATAL, "VIS expansion overflow\n");
 	}
 
-	bsp_file.vis_data.vis->bit_offsets[leaf_num][DVIS_PVS] = (int32_t) (ptrdiff_t) (dest - map_vis.base);
+	bsp_file.vis_data.vis->bit_offsets[leaf_num][VIS_PVS] = (int32_t) (ptrdiff_t) (dest - map_vis.base);
 
-	memcpy(dest, compressed, i);
+	memcpy(dest, compressed, len);
 }
 
 /**
@@ -184,7 +176,7 @@ static void CalcPVS(void) {
 
 	// fast vis just uses the flood result for a very loose bound
 	if (fast_vis) {
-		for (uint32_t i = 0; i < map_vis.num_portals * 2; i++) {
+		for (int32_t i = 0; i < map_vis.num_portals * 2; i++) {
 			map_vis.portals[i].vis = map_vis.portals[i].flood;
 			map_vis.portals[i].status = STATUS_DONE;
 		}
@@ -193,7 +185,7 @@ static void CalcPVS(void) {
 	}
 
 	// assemble the leaf vis lists by OR-ing and compressing the portal lists
-	for (uint32_t i = 0; i < map_vis.portal_clusters; i++) {
+	for (int32_t i = 0; i < map_vis.portal_clusters; i++) {
 		ClusterMerge(i);
 	}
 
@@ -239,27 +231,24 @@ static void SetPortalSphere(portal_t *p) {
  * @brief
  */
 static void LoadPortals(const char *filename) {
-	uint32_t i;
-	portal_t *p;
 	leaf_t *l;
 	char magic[80];
-	char *buffer, *s;
 	int32_t len;
 	int32_t num_points;
 	winding_t *w;
 	int32_t leaf_nums[2];
 	plane_t plane;
 
-	if (Fs_Load(filename, (void **) &buffer) == -1) {
+	void *buffer;
+	if (Fs_Load(filename, &buffer) == -1) {
 		Com_Error(ERROR_FATAL, "Could not open %s\n", filename);
 	}
 
-	s = buffer;
+	char *s = buffer;
 
 	memset(&map_vis, 0, sizeof(map_vis));
 
-	if (sscanf(s, "%79s\n%u\n%u\n%n", magic, &map_vis.portal_clusters, &map_vis.num_portals, &len)
-	        != 3) {
+	if (sscanf(s, "%79s\n%u\n%u\n%n", magic, &map_vis.portal_clusters, &map_vis.num_portals, &len) != 3) {
 		Com_Error(ERROR_FATAL, "Failed to read header: %s\n", filename);
 	}
 	s += len;
@@ -293,8 +282,8 @@ static void LoadPortals(const char *filename) {
 
 	map_vis.end = map_vis.base + MAX_BSP_VISIBILITY;
 
-	for (i = 0, p = map_vis.portals; i < map_vis.num_portals; i++) {
-		int32_t j;
+	portal_t *p = map_vis.portals;
+	for (int32_t i = 0; i < map_vis.num_portals; i++) {
 
 		if (sscanf(s, "%i %i %i %n", &num_points, &leaf_nums[0], &leaf_nums[1], &len) != 3) {
 			Com_Error(ERROR_FATAL, "Failed to read portal %i\n", i);
@@ -305,8 +294,7 @@ static void LoadPortals(const char *filename) {
 			Com_Error(ERROR_FATAL, "Portal %i has too many points\n", i);
 		}
 
-		if ((uint32_t) leaf_nums[0] > map_vis.portal_clusters || (uint32_t) leaf_nums[1]
-		        > map_vis.portal_clusters) {
+		if (leaf_nums[0] > map_vis.portal_clusters || leaf_nums[1] > map_vis.portal_clusters) {
 			Com_Error(ERROR_FATAL, "Portal %i has invalid leafs\n", i);
 		}
 
@@ -314,7 +302,7 @@ static void LoadPortals(const char *filename) {
 		w->original = true;
 		w->num_points = num_points;
 
-		for (j = 0; j < num_points; j++) {
+		for (int32_t j = 0; j < num_points; j++) {
 			double v[3];
 			int32_t k;
 
@@ -361,7 +349,7 @@ static void LoadPortals(const char *filename) {
 
 		p->winding = NewWinding(w->num_points);
 		p->winding->num_points = w->num_points;
-		for (j = 0; j < w->num_points; j++) {
+		for (int32_t j = 0; j < w->num_points; j++) {
 			VectorCopy(w->points[w->num_points - 1 - j], p->winding->points[j]);
 		}
 
@@ -379,58 +367,51 @@ static void LoadPortals(const char *filename) {
  * by ORing together all the PVS visible from a leaf
  */
 static void CalcPHS(void) {
-	uint32_t i, j, k, l, index;
-	int32_t bitbyte;
-	byte *dest, *src;
-	byte *scan;
-	int32_t count;
 	byte uncompressed[MAX_BSP_LEAFS / 8];
 	byte compressed[MAX_BSP_LEAFS / 8];
 
 	Com_Verbose("Building PHS...\n");
 
-	count = 0;
-	for (i = 0; i < map_vis.portal_clusters; i++) {
-		scan = map_vis.uncompressed + i * map_vis.leaf_bytes;
+	int32_t count = 0;
+	for (int32_t i = 0; i < map_vis.portal_clusters; i++) {
+		const byte *scan = map_vis.uncompressed + i * map_vis.leaf_bytes;
 		memcpy(uncompressed, scan, map_vis.leaf_bytes);
-		for (j = 0; j < map_vis.leaf_bytes; j++) {
-			bitbyte = scan[j];
-			if (!bitbyte) {
+		for (int32_t j = 0; j < map_vis.leaf_bytes; j++) {
+			if (!scan[j]) {
 				continue;
 			}
-			for (k = 0; k < 8; k++) {
-				if (!(bitbyte & (1 << k))) {
+			for (int32_t k = 0; k < 8; k++) {
+				if (!(scan[j] & (1 << k))) {
 					continue;
 				}
 				// OR this pvs row into the phs
-				index = ((j << 3) + k);
+				int32_t index = ((j << 3) + k);
 				if (index >= map_vis.portal_clusters) {
-					Com_Error(ERROR_FATAL, "Bad bit vector in PVS\n");    // pad bits should be 0
+					Com_Error(ERROR_FATAL, "Bad bit vector in PVS\n"); // pad bits should be 0
 				}
-				src = (map_vis.uncompressed + index * map_vis.leaf_bytes);
-				for (l = 0; l < map_vis.leaf_bytes; l++) {
+				const byte *src = (map_vis.uncompressed + index * map_vis.leaf_bytes);
+				for (int32_t l = 0; l < map_vis.leaf_bytes; l++) {
 					uncompressed[l] |= src[l];
 				}
 			}
 		}
-		for (j = 0; j < map_vis.portal_clusters; j++)
+		for (int32_t j = 0; j < map_vis.portal_clusters; j++)
 			if (uncompressed[j >> 3] & (1 << (j & 7))) {
 				count++;
 			}
 
 		// compress the bit string
-		j = Bsp_CompressVis(&bsp_file, uncompressed, compressed);
+		const int32_t len = Bsp_CompressVis(&bsp_file, uncompressed, compressed);
 
-		dest = map_vis.pointer;
-		map_vis.pointer += j;
+		byte *dest = map_vis.pointer;
+		map_vis.pointer += len;
 
 		if (map_vis.pointer > map_vis.end) {
 			Com_Error(ERROR_FATAL, "Overflow\n");
 		}
 
-		bsp_file.vis_data.vis->bit_offsets[i][DVIS_PHS] = (int32_t) (ptrdiff_t) (dest - map_vis.base);
-
-		memcpy(dest, compressed, j);
+		bsp_file.vis_data.vis->bit_offsets[i][VIS_PHS] = (int32_t) (ptrdiff_t) (dest - map_vis.base);
+		memcpy(dest, compressed, len);
 	}
 
 	if (map_vis.portal_clusters) {

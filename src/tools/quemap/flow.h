@@ -37,7 +37,7 @@ typedef struct {
 
 typedef struct {
 	_Bool original; // don't free, it's part of the portal
-	uint16_t num_points;
+	int32_t num_points;
 	vec3_t points[MAX_POINTS_ON_FIXED_WINDING]; // variable sized
 } winding_t;
 
@@ -68,13 +68,13 @@ typedef struct separating_plane_s {
 
 typedef struct passage_s {
 	struct passage_s *next;
-	uint32_t from, to; // leaf numbers
+	int32_t from, to; // leaf numbers
 	separating_plane_t *planes;
 } passage_t;
 
 #define	MAX_PORTALS_ON_LEAF		128
 typedef struct leaf_s {
-	uint32_t num_portals;
+	int32_t num_portals;
 	passage_t *passages;
 	portal_t *portals[MAX_PORTALS_ON_LEAF];
 } leaf_t;
@@ -101,17 +101,17 @@ typedef struct {
 
 typedef struct map_vis_s {
 	int32_t num_portals;
-	uint32_t portal_clusters;
+	int32_t portal_clusters;
 
 	portal_t *portals;
 	portal_t *sorted_portals[MAX_BSP_PORTALS * 2];
 
 	leaf_t *leafs;
 
-	size_t leaf_bytes; // (portal_clusters + 63) >> 3
-	size_t portal_bytes; // (num_portals * 2 + 63) >> 3
+	int32_t leaf_bytes; // (portal_clusters + 63) >> 3
+	int32_t portal_bytes; // (num_portals * 2 + 63) >> 3
 
-	size_t uncompressed_size;
+	int32_t uncompressed_size;
 	byte *uncompressed;
 
 	byte *base;
@@ -127,4 +127,4 @@ extern _Bool no_sort;
 void BaseVis(int32_t portal_num);
 void FinalVis(int32_t portal_num);
 
-size_t CountBits(const byte *bits, size_t max);
+int32_t CountBits(const byte *bits, int32_t max);
