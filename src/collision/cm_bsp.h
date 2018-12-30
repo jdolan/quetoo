@@ -14,22 +14,22 @@
 #define MAX_BSP_ENT_STRING		0x40000
 #define MAX_BSP_ENTITIES		0x800
 #define MAX_BSP_TEXINFO			0x4000
-#define MAX_BSP_PLANES			0x10000
-#define MAX_BSP_NODES			0x10000
-#define MAX_BSP_LEAFS			0x10000
-#define MAX_BSP_LEAF_FACES		0x10000
-#define MAX_BSP_LEAF_BRUSHES 	0x10000
-#define MAX_BSP_BRUSHES			0x4000
-#define MAX_BSP_BRUSH_SIDES		0x10000
-#define MAX_BSP_VERTEXES		0x10000
-#define MAX_BSP_FACES			0x10000
+#define MAX_BSP_PLANES			0x20000
+#define MAX_BSP_NODES			0x20000
+#define MAX_BSP_LEAFS			0x20000
+#define MAX_BSP_LEAF_FACES		0x20000
+#define MAX_BSP_LEAF_BRUSHES 	0x20000
+#define MAX_BSP_BRUSHES			0x8000
+#define MAX_BSP_BRUSH_SIDES		0x20000
+#define MAX_BSP_VERTEXES		0x20000
+#define MAX_BSP_FACES			0x20000
 #define MAX_BSP_FACE_VERTEXES	0x80000
 #define MAX_BSP_MODELS			0x400
 #define MAX_BSP_AREA_PORTALS	0x400
 #define MAX_BSP_AREAS			0x100
-#define MAX_BSP_PORTALS			0x10000
-#define MAX_BSP_VISIBILITY		0x400000 // increased from Quake2 0x100000
-#define MAX_BSP_LIGHTING		0x10000000 // increased from Quake2 0x200000
+#define MAX_BSP_PORTALS			0x20000
+#define MAX_BSP_VISIBILITY		0x200000
+#define MAX_BSP_LIGHTING		0x800000
 #define MAX_BSP_LIGHTMAP		(256 * 256) // the largest single lightmap allowed
 
 /**
@@ -85,15 +85,14 @@ typedef struct {
 	vec3_t normal;
 	vec3_t tangent;
 	vec3_t bitangent;
-	int32_t texinfo;
+	int16_t texinfo;
 } bsp_vertex_t;
 
 // planes (x & ~1) and (x & ~1) + 1 are always opposites
 
 typedef struct {
-	vec_t normal[3];
+	vec3_t normal;
 	vec_t dist;
-	int32_t type; // PLANE_X - PLANE_ANYZ ?remove? trivial to regenerate
 } bsp_plane_t;
 
 typedef struct {
@@ -101,25 +100,25 @@ typedef struct {
 	int32_t children[2]; // negative numbers are -(leafs+1), not nodes
 	int16_t mins[3]; // for frustum culling
 	int16_t maxs[3];
-	uint16_t first_face;
-	uint16_t num_faces; // counting both sides
+	int32_t first_face;
+	int32_t num_faces; // counting both sides
 } bsp_node_t;
 
 typedef struct {
-	vec_t vecs[2][4]; // [s/t][xyz offset]
+	vec4_t vecs[2]; // [s/t][xyz offset]
 	int32_t flags; // SURF_* flags
 	int32_t value; // light emission, etc
 	char texture[32]; // texture name (e.g. torn/metal1)
 } bsp_texinfo_t;
 
 typedef struct {
-	uint16_t plane_num;
-	uint16_t texinfo;
+	int32_t plane_num;
+	int16_t texinfo;
 
-	uint32_t vertex;
-	uint16_t num_vertexes;
+	int32_t vertex;
+	int16_t num_vertexes;
 
-	uint32_t lightmap; // start of samples in lighting lump
+	int32_t lightmap; // start of samples in lighting lump
 } bsp_face_t;
 
 typedef struct {
@@ -131,16 +130,16 @@ typedef struct {
 	int16_t mins[3]; // for frustum culling
 	int16_t maxs[3];
 
-	uint16_t first_leaf_face;
-	uint16_t num_leaf_faces;
+	int32_t first_leaf_face;
+	int32_t num_leaf_faces;
 
-	uint16_t first_leaf_brush;
-	uint16_t num_leaf_brushes;
+	int32_t first_leaf_brush;
+	int32_t num_leaf_brushes;
 } bsp_leaf_t;
 
 typedef struct {
-	uint16_t plane_num; // facing out of the leaf
-	uint16_t surf_num;
+	int32_t plane_num; // facing out of the leaf
+	int16_t texinfo;
 } bsp_brush_side_t;
 
 typedef struct {
@@ -196,10 +195,10 @@ typedef struct {
 	bsp_leaf_t *leafs;
 
 	int32_t num_leaf_faces;
-	uint16_t *leaf_faces;
+	int32_t *leaf_faces;
 
 	int32_t num_leaf_brushes;
-	uint16_t *leaf_brushes;
+	int32_t *leaf_brushes;
 
 	int32_t num_brushes;
 	bsp_brush_t *brushes;

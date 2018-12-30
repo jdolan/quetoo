@@ -71,7 +71,7 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
  * @brief
  */
 static void R_LoadBspPlanes(r_bsp_model_t *bsp) {
-	bsp->plane_shadows = Mem_LinkMalloc(bsp->file->num_planes * sizeof(uint16_t), bsp);
+	bsp->plane_shadows = Mem_LinkMalloc(bsp->file->num_planes * sizeof(int32_t), bsp);
 }
 
 /**
@@ -150,7 +150,7 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
 		out->cluster = in->cluster;
 		out->area = in->area;
 
-		const uint16_t f = in->first_leaf_face;
+		const int32_t f = in->first_leaf_face;
 		out->first_leaf_surface = bsp->leaf_surfaces + f;
 		out->num_leaf_surfaces = in->num_leaf_faces;
 	}
@@ -162,14 +162,14 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
 static void R_LoadBspLeafSurfaces(r_bsp_model_t *bsp) {
 	r_bsp_surface_t **out;
 
-	const uint16_t *in = bsp->file->leaf_faces;
+	const int32_t *in = bsp->file->leaf_faces;
 
 	bsp->num_leaf_surfaces = bsp->file->num_leaf_faces;
 	bsp->leaf_surfaces = out = Mem_LinkMalloc(bsp->num_leaf_surfaces * sizeof(*out), bsp);
 
 	for (int32_t i = 0; i < bsp->num_leaf_surfaces; i++) {
 
-		const uint16_t j = in[i];
+		const int32_t j = in[i];
 
 		if (j >= bsp->num_surfaces) {
 			Com_Error(ERROR_DROP, "Bad surface number: %d\n", j);
@@ -214,18 +214,17 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
 	for (int32_t i = 0; i < bsp->num_surfaces; i++, in++, out++) {
 
 		// resolve plane
-		const uint16_t plane_num = in->plane_num;
+		const int32_t plane_num = in->plane_num;
 		out->plane = bsp->cm->planes + plane_num;
 
 		// then texinfo
-		const uint16_t ti = in->texinfo;
-		if (ti == UINT16_MAX) {
+		if (in->texinfo == -1) {
 			out->texinfo = &null_texinfo;
 		} else {
-			if (ti >= bsp->num_texinfo) {
-				Com_Error(ERROR_DROP, "Bad texinfo number: %d\n", ti);
+			if (in->texinfo >= bsp->num_texinfo) {
+				Com_Error(ERROR_DROP, "Bad texinfo number: %d\n", in->texinfo);
 			}
-			out->texinfo = bsp->texinfo + ti;
+			out->texinfo = bsp->texinfo + in->texinfo;
 		}
 
 		// then vertexes
@@ -245,7 +244,7 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
 
 		// and lastly lightmap data
 		const byte *data;
-		if (in->lightmap == UINT32_MAX) {
+		if (in->lightmap == -1) {
 			data = NULL;
 		} else {
 			data = bsp->file->lightmap_data + in->lightmap;

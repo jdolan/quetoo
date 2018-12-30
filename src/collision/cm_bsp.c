@@ -93,7 +93,6 @@ static void Bsp_SwapPlanes(void *lump, const int32_t num) {
 		}
 
 		plane->dist = LittleFloat(plane->dist);
-		plane->type = LittleLong(plane->type);
 
 		plane++;
 	}
@@ -117,8 +116,8 @@ static void Bsp_SwapNodes(void *lump, const int32_t num) {
 
 		node->children[0] = LittleLong(node->children[0]);
 		node->children[1] = LittleLong(node->children[1]);
-		node->first_face = LittleShort(node->first_face);
-		node->num_faces = LittleShort(node->num_faces);
+		node->first_face = LittleLong(node->first_face);
+		node->num_faces = LittleLong(node->num_faces);
 
 		node++;
 	}
@@ -142,10 +141,11 @@ static void Bsp_SwapLeafs(void *lump, const int32_t num) {
 			leaf->maxs[j] = LittleShort(leaf->maxs[j]);
 		}
 
-		leaf->first_leaf_face = LittleShort(leaf->first_leaf_face);
-		leaf->num_leaf_faces = LittleShort(leaf->num_leaf_faces);
-		leaf->first_leaf_brush = LittleShort(leaf->first_leaf_brush);
-		leaf->num_leaf_brushes = LittleShort(leaf->num_leaf_brushes);
+		leaf->first_leaf_face = LittleLong(leaf->first_leaf_face);
+		leaf->num_leaf_faces = LittleLong(leaf->num_leaf_faces);
+
+		leaf->first_leaf_brush = LittleLong(leaf->first_leaf_brush);
+		leaf->num_leaf_brushes = LittleLong(leaf->num_leaf_brushes);
 
 		leaf++;
 	}
@@ -156,11 +156,10 @@ static void Bsp_SwapLeafs(void *lump, const int32_t num) {
  */
 static void Bsp_SwapLeafFaces(void *lump, const int32_t num) {
 
-	uint16_t *leaf_face = (uint16_t *) lump;
+	int32_t *leaf_face = (int32_t *) lump;
 
 	for (int32_t i = 0; i < num; i++) {
-
-		leaf_face[i] = LittleShort(leaf_face[i]);
+		leaf_face[i] = LittleLong(leaf_face[i]);
 	}
 }
 
@@ -169,11 +168,10 @@ static void Bsp_SwapLeafFaces(void *lump, const int32_t num) {
  */
 static void Bsp_SwapLeafBrushes(void *lump, const int32_t num) {
 
-	uint16_t *leaf_brush = (uint16_t *) lump;
+	int32_t *leaf_brush = (int32_t *) lump;
 
 	for (int32_t i = 0; i < num; i++) {
-
-		leaf_brush[i] = LittleShort(leaf_brush[i]);
+		leaf_brush[i] = LittleLong(leaf_brush[i]);
 	}
 }
 
@@ -203,8 +201,8 @@ static void Bsp_SwapBrushSides(void *lump, const int32_t num) {
 
 	for (int32_t i = 0; i < num; i++) {
 
-		brush_side->plane_num = LittleShort(brush_side->plane_num);
-		brush_side->surf_num = LittleShort(brush_side->surf_num);
+		brush_side->plane_num = LittleLong(brush_side->plane_num);
+		brush_side->texinfo = LittleShort(brush_side->texinfo);
 
 		brush_side++;
 	}
@@ -226,7 +224,7 @@ static void Bsp_SwapVertexes(void *lump, const int32_t num) {
 			vertex->bitangent[j] = LittleFloat(vertex->bitangent[j]);
 		}
 
-		vertex->texinfo = LittleLong(vertex->texinfo);
+		vertex->texinfo = LittleShort(vertex->texinfo);
 
 		vertex++;
 	}
@@ -241,7 +239,7 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
 
 	for (int32_t i = 0; i < num; i++) {
 
-		face->plane_num = LittleShort(face->plane_num);
+		face->plane_num = LittleLong(face->plane_num);
 		face->texinfo = LittleShort(face->texinfo);
 		face->vertex = LittleLong(face->vertex);
 		face->num_vertexes = LittleShort(face->num_vertexes);

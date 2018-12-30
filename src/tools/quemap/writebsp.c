@@ -39,7 +39,6 @@ static void EmitPlanes(void) {
 
 		VectorCopy(p->normal, bp->normal);
 		bp->dist = p->dist;
-		bp->type = p->type;
 
 		bsp_file.num_planes++;
 	}
@@ -73,7 +72,7 @@ static void EmitLeaf(node_t *node) {
 			Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_BRUSHES\n");
 		}
 
-		const ptrdiff_t brush_num = brush->original - brushes;
+		const int32_t brush_num = (int32_t) (ptrdiff_t) (brush->original - brushes);
 
 		int32_t i;
 		for (i = leaf->first_leaf_brush; i < bsp_file.num_leaf_brushes; i++) {
@@ -240,7 +239,7 @@ static void EmitBrushes(void) {
 			bsp_file.num_brush_sides++;
 
 			cp->plane_num = b->original_sides[j].plane_num;
-			cp->surf_num = b->original_sides[j].texinfo;
+			cp->texinfo = b->original_sides[j].texinfo;
 		}
 
 		// add any axis planes not contained in the brush to bevel off corners
@@ -269,8 +268,7 @@ static void EmitBrushes(void) {
 					}
 
 					bsp_file.brush_sides[bsp_file.num_brush_sides].plane_num = plane_num;
-					bsp_file.brush_sides[bsp_file.num_brush_sides].surf_num
-					    = bsp_file.brush_sides[bsp_file.num_brush_sides - 1].surf_num;
+					bsp_file.brush_sides[bsp_file.num_brush_sides].texinfo = bsp_file.brush_sides[bsp_file.num_brush_sides - 1].texinfo;
 					bsp_file.num_brush_sides++;
 					db->num_sides++;
 				}

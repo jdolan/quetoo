@@ -84,12 +84,9 @@ static void Cm_LoadBspPlanes(void) {
 
 	for (int32_t i = 0; i < num_planes; i++, in++, out++) {
 
-		// copied from bsp_
 		VectorCopy(in->normal, out->normal);
 		out->dist = in->dist;
-		out->type = in->type;
-
-		// local to cm_
+		out->type = Cm_PlaneTypeForNormal(out->normal);
 		out->sign_bits = Cm_SignBitsForPlane(out);
 		out->num = (i >> 1) + 1;
 	}
@@ -144,9 +141,9 @@ static void Cm_LoadBspLeafs(void) {
 static void Cm_LoadBspLeafBrushes(void) {
 
 	const int32_t num_leaf_brushes = cm_bsp.bsp.num_leaf_brushes;
-	const uint16_t *in = cm_bsp.bsp.leaf_brushes;
+	const int32_t *in = cm_bsp.bsp.leaf_brushes;
 
-	uint16_t *out = cm_bsp.leaf_brushes = Mem_TagMalloc(sizeof(uint16_t) * (num_leaf_brushes + 1),
+	int32_t *out = cm_bsp.leaf_brushes = Mem_TagMalloc(sizeof(int32_t) * (num_leaf_brushes + 1),
 	                                      MEM_TAG_CMODEL); // extra for box hull
 
 	for (int32_t i = 0; i < num_leaf_brushes; i++, in++, out++) {
@@ -197,16 +194,14 @@ static void Cm_LoadBspBrushSides(void) {
 
 		out->plane = &cm_bsp.planes[p];
 
-		const int32_t s = in->surf_num;
-
-		if (s == UINT16_MAX) {
+		if (in->texinfo == -1) {
 			out->surface = &null_texinfo;
 		} else {
-			if (s >= cm_bsp.bsp.num_texinfo) {
-				Com_Error(ERROR_DROP, "Brush side %d has invalid texinfo %d\n", i, s);
+			if (in->texinfo >= cm_bsp.bsp.num_texinfo) {
+				Com_Error(ERROR_DROP, "Brush side %d has invalid texinfo %d\n", i, in->texinfo);
 			}
 
-			out->surface = &cm_bsp.texinfos[s];
+			out->surface = &cm_bsp.texinfos[in->texinfo];
 		}
 	}
 }

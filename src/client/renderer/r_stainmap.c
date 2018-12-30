@@ -154,7 +154,7 @@ static _Bool R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 	r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces + node->first_surface;
 	_Bool stained = false;
 
-	for (uint32_t i = 0; i < node->num_surfaces; i++, surf++) {
+	for (int32_t i = 0; i < node->num_surfaces; i++, surf++) {
 
 		if (surf->texinfo->flags & (SURF_SKY | SURF_WARP)) {
 			continue;

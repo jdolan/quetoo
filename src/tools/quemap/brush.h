@@ -50,7 +50,7 @@ typedef struct {
 
 typedef struct brush_side_s {
 	int32_t plane_num;
-	int32_t texinfo;
+	int16_t texinfo;
 	winding_t *winding;
 	struct brush_side_s *original;
 	int32_t contents;

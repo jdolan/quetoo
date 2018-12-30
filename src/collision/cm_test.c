@@ -22,6 +22,35 @@
 #include "cm_local.h"
 
 /**
+ * @return The PLANE_ type for the given normal vector.
+ */
+int32_t Cm_PlaneTypeForNormal(const vec3_t normal) {
+
+	if (normal[0] == 1.0 || normal[0] == -1.0) {
+		return PLANE_X;
+	}
+	if (normal[1] == 1.0 || normal[1] == -1.0) {
+		return PLANE_Y;
+	}
+	if (normal[2] == 1.0 || normal[2] == -1.0) {
+		return PLANE_Z;
+	}
+
+	const vec_t ax = fabsf(normal[0]);
+	const vec_t ay = fabsf(normal[1]);
+	const vec_t az = fabsf(normal[2]);
+
+	if (ax >= ay && ax >= az) {
+		return PLANE_ANY_X;
+	}
+	if (ay >= ax && ay >= az) {
+		return PLANE_ANY_Y;
+	}
+
+	return PLANE_ANY_Z;
+}
+
+/**
  * @return A bit mask hinting at the sign of each normal vector component. This
  * can be used to optimize plane side tests.
  */

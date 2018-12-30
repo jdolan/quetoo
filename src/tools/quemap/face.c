@@ -279,7 +279,7 @@ void EmitFace(face_t *face) {
 	df->vertex = EmitFaceVertexes(face);
 	df->num_vertexes = face->w->num_points;
 
-	df->lightmap = UINT32_MAX;
+	df->lightmap = -1;
 }
 
 #define MAX_PHONG_FACES 256

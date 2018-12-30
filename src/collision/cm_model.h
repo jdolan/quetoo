@@ -47,7 +47,7 @@ typedef struct {
 	cm_bsp_plane_t *planes;
 	cm_bsp_node_t *nodes;
 	cm_bsp_leaf_t *leafs;
-	uint16_t *leaf_brushes;
+	int32_t *leaf_brushes;
 	cm_bsp_brush_t *brushes;
 	cm_bsp_brush_side_t *brush_sides;
 	cm_bsp_model_t *models;

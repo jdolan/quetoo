@@ -384,7 +384,7 @@ typedef struct r_particle_s {
 	vec_t repeat_scale;
 } r_particle_t;
 
-#define MAX_PARTICLES		16384
+#define MAX_PARTICLES		0x4000
 
 // renderer-specific material stuff
 typedef struct {
@@ -591,8 +591,8 @@ typedef struct r_bsp_node_s {
 	cm_bsp_plane_t *plane;
 	struct r_bsp_node_s *children[2];
 
-	uint16_t first_surface;
-	uint16_t num_surfaces;
+	int32_t first_surface;
+	int32_t num_surfaces;
 } r_bsp_node_t;
 
 /**
@@ -617,7 +617,7 @@ typedef struct {
 	int16_t area;
 
 	r_bsp_surface_t **first_leaf_surface;
-	uint16_t num_leaf_surfaces;
+	int32_t num_leaf_surfaces;
 } r_bsp_leaf_t;
 
 /**
@@ -750,7 +750,7 @@ typedef struct {
 	r_buffer_t vertex_buffer;
 
 	// an array of shadow counts, indexed by plane number
-	uint16_t *plane_shadows;
+	int32_t *plane_shadows;
 } r_bsp_model_t;
 
 /**

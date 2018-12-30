@@ -24,6 +24,7 @@
 #include "cm_types.h"
 
 vec_t Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane);
+int32_t Cm_PlaneTypeForNormal(const vec3_t normal);
 int32_t Cm_SignBitsForPlane(const cm_bsp_plane_t *plane);
 int32_t Cm_BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const cm_bsp_plane_t *plane);
 int32_t Cm_SetBoxHull(const vec3_t mins, const vec3_t maxs, const int32_t contents);

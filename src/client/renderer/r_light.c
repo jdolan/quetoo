@@ -129,7 +129,7 @@ void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node) {
 	// mark all surfaces in this node
 	r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces + node->first_surface;
 
-	for (uint32_t i = 0; i < node->num_surfaces; i++, surf++) {
+	for (int32_t i = 0; i < node->num_surfaces; i++, surf++) {
 
 		if (surf->light_frame != r_locals.light_frame) { // reset it
 			surf->light_frame = r_locals.light_frame;

@@ -52,34 +52,6 @@ static int32_t c_edge_bevels;
 static int32_t c_area_portals;
 static int32_t c_clip_brushes;
 
-/**
- * @brief Set the type of the plane according to it's (snapped) normal vector.
- */
-static int32_t PlaneTypeForNormal(const vec3_t normal) {
-
-	if (normal[0] == 1.0 || normal[0] == -1.0) {
-		return PLANE_X;
-	}
-	if (normal[1] == 1.0 || normal[1] == -1.0) {
-		return PLANE_Y;
-	}
-	if (normal[2] == 1.0 || normal[2] == -1.0) {
-		return PLANE_Z;
-	}
-
-	const vec_t ax = fabs(normal[0]);
-	const vec_t ay = fabs(normal[1]);
-	const vec_t az = fabs(normal[2]);
-
-	if (ax >= ay && ax >= az) {
-		return PLANE_ANY_X;
-	}
-	if (ay >= ax && ay >= az) {
-		return PLANE_ANY_Y;
-	}
-	return PLANE_ANY_Z;
-}
-
 #define	NORMAL_EPSILON	0.00001
 #define	DIST_EPSILON	0.005
 
@@ -132,7 +104,7 @@ static int32_t CreateNewFloatPlane(vec3_t normal, vec_t dist) {
 	VectorCopy(normal, p->normal);
 	p->dist = dist;
 
-	p->type = (p + 1)->type = PlaneTypeForNormal(p->normal);
+	p->type = (p + 1)->type = Cm_PlaneTypeForNormal(p->normal);
 	VectorNegate(normal, (p + 1)->normal);
 	(p + 1)->dist = -dist;
 
@@ -186,7 +158,7 @@ static void SnapPlane(vec3_t normal, dvec_t *dist) {
 	SnapNormal(normal);
 
 	// snap axial planes to integer distances
-	if (PlaneTypeForNormal(normal) <= PLANE_Z) {
+	if (Cm_PlaneTypeForNormal(normal) <= PLANE_Z) {
 
 		const vec_t f = floor(*dist + 0.5);
 		if (fabs(*dist - f) < DIST_EPSILON) {
