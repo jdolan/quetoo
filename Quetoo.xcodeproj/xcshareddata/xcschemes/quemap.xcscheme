@@ -63,32 +63,44 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-mat maps/lighttest.map"
+            argument = "-mat"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--verbose -bsp --no-tjunc maps/torn.map"
+            argument = "-bsp --only-ents"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-bsp"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-bsp --no-tjunc"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-bsp --no-tjunc -vis -light maps/torn.map"
+            argument = "-vis"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-bsp --no-tjunc -vis -light --antialias --indirect maps/edge.map"
+            argument = "-vis --fast"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-bsp -vis -light /Users/jdolan/.quetoo/default/maps/sandbox.map"
+            argument = "-light"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-bsp -onlyents maps/torn.bsp"
+            argument = "-light --antialias --indirect"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-zip maps/gehenna.bsp"
+            argument = "-zip"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "maps/torn.map"
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
