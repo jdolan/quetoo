@@ -381,7 +381,6 @@ static void SplitBrushes(csg_brush_t *brushes, node_t *node, csg_brush_t **front
 	}
 }
 
-
 /**
  * @brief
  */
