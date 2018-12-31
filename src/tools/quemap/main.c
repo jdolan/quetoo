@@ -69,7 +69,7 @@ static void Error(err_t err, const char *msg) __attribute__((noreturn));
 static void Error(err_t err, const char *msg) {
 
 	fprintf(stderr, "ERROR: %s", msg);
-	
+
 	fflush(stderr);
 
 	Shutdown(msg);
@@ -316,7 +316,7 @@ static void PrintHelpMessage(void) {
 	Com_Print("-t --threads <int> - Specify the number of worker threads (default auto)\n");
 	Com_Print("-p --path <game directory> - add the path to the search directory\n");
 	Com_Print("-w --wpath <game directory> - add the write path to the search directory\n");
-	Com_Print("-c --connect <host> - use GtkRadiant's BSP monitoring server\n");
+	Com_Print("-connect <host> - use GtkRadiant's BSP monitoring server\n");
 	Com_Print("\n");
 
 	Com_Print("-mat               MAT stage options:\n");
@@ -432,7 +432,7 @@ int32_t main(int32_t argc, char **argv) {
 			continue;
 		}
 
-		if (!g_strcmp0(Com_Argv(i), "-c") || !g_strcmp0(Com_Argv(i), "--connect")) {
+		if (!g_strcmp0(Com_Argv(i), "-connect")) { // GtkRadiant hard-codes this option
 			is_monitor = Mon_Connect(Com_Argv(i + 1));
 			continue;
 		}
