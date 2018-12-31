@@ -585,7 +585,7 @@ void R_UpdateVis(void) {
 	clusters[0] = clusters[1] = -1;
 
 	// resolve current leaf and derive the PVS clusters
-	if (!r_no_vis->value && r_model_state.world->bsp->num_clusters) {
+	if (r_model_state.world->bsp->num_clusters && !r_no_vis->integer) {
 
 		const r_bsp_leaf_t *leaf = R_LeafForPoint(r_view.origin, NULL);
 		if (leaf->cluster != -1) {
@@ -609,7 +609,7 @@ void R_UpdateVis(void) {
 	}
 
 	// if we have no vis, mark everything and return
-	if (clusters[0] == -1) {
+	if (clusters[0] == -1 || r_no_vis->integer) {
 
 		memset(r_locals.vis_data_pvs, 0xff, sizeof(r_locals.vis_data_pvs));
 		memset(r_locals.vis_data_phs, 0xff, sizeof(r_locals.vis_data_phs));
