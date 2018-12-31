@@ -207,13 +207,14 @@ static void ProcessWorldModel(void) {
 		if (FloodEntities(tree)) {
 			FillOutside(tree->head_node);
 		} else {
+			Com_Warn("Map leaked, writing maps/%s.lin\n", map_base);
 			leaked = true;
+
 			LeakFile(tree);
 
 			if (leak_test) {
-				Com_Error(ERROR_FATAL, "!--- MAP LEAKED, ABORTING LEAK TEST ---\n");
+				Com_Error(ERROR_FATAL, "Leak test failed");
 			}
-			Com_Verbose("**** leaked ****\n");
 		}
 
 		MarkVisibleSides(tree, brush_start, brush_end);
