@@ -262,7 +262,7 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 
 			const byte *vis = ent->s.sound || ent->s.event ? phs : pvs;
 
-			if (sent->num_clusters == -1) { // use top_node
+			if (sent->num_clusters < 1) { // use top_node
 				if (!Cm_HeadnodeVisible(sent->top_node, vis)) {
 					continue;
 				}

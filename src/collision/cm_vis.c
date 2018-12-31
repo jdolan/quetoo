@@ -41,8 +41,8 @@ size_t Cm_ClusterPVS(const int32_t cluster, byte *pvs) {
 	const bsp_vis_t *vis = cm_bsp.bsp.vis_data.vis;
 	const size_t len = (vis->num_clusters + 7) >> 3;
 
-	if (cm_no_vis) {
-		memset(pvs, 1, len);
+	if (!cm_bsp.bsp.vis_data_size || cm_no_vis) {
+		memset(pvs, 0xff, len);
 	} else if (cluster == -1) {
 		memset(pvs, 0, len);
 	} else {
@@ -60,8 +60,8 @@ size_t Cm_ClusterPHS(const int32_t cluster, byte *phs) {
 	const bsp_vis_t *vis = cm_bsp.bsp.vis_data.vis;
 	const size_t len = (vis->num_clusters + 7) >> 3;
 
-	if (cm_no_vis) {
-		memset(phs, 1, len);
+	if (!cm_bsp.bsp.vis_data_size || cm_no_vis) {
+		memset(phs, 0xff, len);
 	} else if (cluster == -1) {
 		memset(phs, 0, len);
 	} else {
