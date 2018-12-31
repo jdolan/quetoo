@@ -614,11 +614,11 @@ void R_UpdateVis(void) {
 		memset(r_locals.vis_data_pvs, 0xff, sizeof(r_locals.vis_data_pvs));
 		memset(r_locals.vis_data_phs, 0xff, sizeof(r_locals.vis_data_phs));
 
-		for (uint16_t i = 0; i < r_model_state.world->bsp->num_leafs; i++) {
+		for (int32_t i = 0; i < r_model_state.world->bsp->num_leafs; i++) {
 			r_model_state.world->bsp->leafs[i].vis_frame = r_locals.vis_frame;
 		}
 
-		for (uint16_t i = 0; i < r_model_state.world->bsp->num_nodes; i++) {
+		for (int32_t i = 0; i < r_model_state.world->bsp->num_nodes; i++) {
 			r_model_state.world->bsp->nodes[i].vis_frame = r_locals.vis_frame;
 		}
 
