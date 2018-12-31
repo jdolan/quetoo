@@ -944,11 +944,12 @@ static void MakeFaces_r(node_t *node) {
 	for (portal_t *p = node->portals; p; p = p->next[s]) {
 		s = (p->nodes[1] == node);
 
-		p->face[s] = FaceFromPortal(p, s);
-		if (p->face[s]) {
+		face_t *f = FaceFromPortal(p, s);
+		if (f) {
+			f->next = p->on_node->faces;
+			p->on_node->faces = f;
+			p->face[s] = f;
 			c_nodefaces++;
-			p->face[s]->next = p->on_node->faces;
-			p->on_node->faces = p->face[s];
 		}
 	}
 }
