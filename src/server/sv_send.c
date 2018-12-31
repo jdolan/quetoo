@@ -192,7 +192,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
 			reliable = true;
                         /* FALLTHRU */
 		case MULTICAST_ALL:
-			memset(vis, 1, sizeof(vis));
+			memset(vis, 0xff, sizeof(vis));
 			area = 0;
 			break;
 
