@@ -341,9 +341,7 @@ static void R_LoadBspClusters(r_bsp_model_t *bsp) {
 		return;
 	}
 
-	bsp_vis_t *vis = bsp->file->vis_data.vis;
-
-	bsp->num_clusters = vis->num_clusters;
+	bsp->num_clusters = bsp->file->vis_data->num_clusters;
 	bsp->clusters = Mem_LinkMalloc(bsp->num_clusters * sizeof(r_bsp_cluster_t), bsp);
 }
 
