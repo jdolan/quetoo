@@ -64,8 +64,7 @@ void R_AddElement(const r_element_t *e) {
 static void R_AddBspSurfaceElements(const r_bsp_surfaces_t *surfs, const r_element_type_t type) {
 	static r_element_t e;
 
-	uint16_t i;
-	for (i = 0; i < surfs->count; i++) {
+	for (size_t i = 0; i < surfs->count; i++) {
 
 		const r_bsp_surface_t *s = surfs->surfaces[i];
 
