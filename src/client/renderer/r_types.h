@@ -611,8 +611,8 @@ typedef struct {
 	struct r_model_s *model;
 
 	// leaf specific
-	int16_t cluster;
-	int16_t area;
+	int32_t cluster;
+	int32_t area;
 
 	r_bsp_surface_t **first_leaf_surface;
 	int32_t num_leaf_surfaces;

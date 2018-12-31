@@ -108,14 +108,14 @@ static void Bsp_SwapNodes(void *lump, const int32_t num) {
 	for (int32_t i = 0; i < num; i++) {
 
 		node->plane_num = LittleLong(node->plane_num);
+		node->children[0] = LittleLong(node->children[0]);
+		node->children[1] = LittleLong(node->children[1]);
 
 		for (int32_t j = 0; j < 3; j++) {
 			node->mins[j] = LittleShort(node->mins[j]);
 			node->maxs[j] = LittleShort(node->maxs[j]);
 		}
 
-		node->children[0] = LittleLong(node->children[0]);
-		node->children[1] = LittleLong(node->children[1]);
 		node->first_face = LittleLong(node->first_face);
 		node->num_faces = LittleLong(node->num_faces);
 
@@ -133,8 +133,8 @@ static void Bsp_SwapLeafs(void *lump, const int32_t num) {
 	for (int32_t i = 0; i < num; i++) {
 
 		leaf->contents = LittleLong(leaf->contents);
-		leaf->cluster = LittleShort(leaf->cluster);
-		leaf->area = LittleShort(leaf->area);
+		leaf->cluster = LittleLong(leaf->cluster);
+		leaf->area = LittleLong(leaf->area);
 
 		for (int32_t j = 0; j < 3; j++) {
 			leaf->mins[j] = LittleShort(leaf->mins[j]);

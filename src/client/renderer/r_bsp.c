@@ -433,7 +433,7 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 	}
 
 	if (node->vis_frame != r_locals.vis_frame) {
-		return;    // not in view
+		return;    // not in pvs
 	}
 
 	if (R_CullBox(node->mins, node->maxs)) {
@@ -452,7 +452,7 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 
 		r_bsp_surface_t **s = leaf->first_leaf_surface;
 
-		for (uint16_t i = 0; i < leaf->num_leaf_surfaces; i++, s++) {
+		for (int32_t i = 0; i < leaf->num_leaf_surfaces; i++, s++) {
 			(*s)->vis_frame = r_locals.vis_frame;
 		}
 
@@ -474,7 +474,7 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 	// prune all marked surfaces to just those which are front-facing
 	r_bsp_surface_t *s = r_model_state.world->bsp->surfaces + node->first_surface;
 
-	for (uint16_t i = 0; i < node->num_surfaces; i++, s++) {
+	for (int32_t i = 0; i < node->num_surfaces; i++, s++) {
 		if (s->vis_frame == r_locals.vis_frame) { // it's been marked
 			s->frame = r_locals.frame;
 		}
@@ -520,9 +520,10 @@ const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_bsp_model_t *bsp) {
  * @brief Returns true if the specified leaf is in the PVS for the current frame.
  */
 _Bool R_LeafVisible(const r_bsp_leaf_t *leaf) {
-	int32_t c;
 
-	if ((c = leaf->cluster) == -1) {
+	const int32_t c = leaf->cluster;
+
+	if (c == -1) {
 		return false;
 	}
 
@@ -533,9 +534,10 @@ _Bool R_LeafVisible(const r_bsp_leaf_t *leaf) {
  * @brief Returns true if the specified leaf is in the PHS for the current frame.
  */
 _Bool R_LeafHearable(const r_bsp_leaf_t *leaf) {
-	int32_t c;
 
-	if ((c = leaf->cluster) == -1) {
+	const int32_t c = leaf->cluster;
+
+	if (c == -1) {
 		return false;
 	}
 
@@ -549,7 +551,7 @@ _Bool R_LeafHearable(const r_bsp_leaf_t *leaf) {
  * origin is currently spanning. This allows us to bit-wise-OR in the PVS and
  * PHS data from another cluster. Returns -1 if no transition is taking place.
  */
-static int16_t R_CrossingContents(int32_t contents) {
+static int32_t R_CrossingContents(int32_t contents) {
 
 	vec3_t org;
 	VectorCopy(r_view.origin, org);

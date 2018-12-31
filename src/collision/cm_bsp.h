@@ -124,8 +124,8 @@ typedef struct {
 typedef struct {
 	int32_t contents; // OR of all brushes (not needed?)
 
-	int16_t cluster;
-	int16_t area;
+	int32_t cluster;
+	int32_t area;
 
 	int16_t mins[3]; // for frustum culling
 	int16_t maxs[3];

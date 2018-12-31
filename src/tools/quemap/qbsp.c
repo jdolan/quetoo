@@ -303,7 +303,6 @@ static void ProcessModels(void) {
 		}
 		EndModel();
 	}
-
 }
 
 /**
