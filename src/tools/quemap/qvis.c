@@ -303,11 +303,10 @@ static void LoadPortals(const char *filename) {
 		w->num_points = num_points;
 
 		for (int32_t j = 0; j < num_points; j++) {
-			double v[3];
+			dvec3_t v;
 			int32_t k;
 
-			// scanf into double, then assign to vec_t
-			// so we don't care what size vec_t is
+			// scanf into double, then assign to vec_t so we don't care what size vec_t is
 			if (sscanf(s, "(%lf %lf %lf ) %n", &v[0], &v[1], &v[2], &len) != 3) {
 				Com_Error(ERROR_FATAL, "Failed to read portal vertex definition %i:%i\n", i, j);
 			}
