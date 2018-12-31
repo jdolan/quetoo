@@ -450,7 +450,7 @@ typedef struct {
 	vec3_t origin; // for sounds or lights
 	vec_t radius;
 	int32_t head_node;
-	uint16_t first_surface, num_surfaces;
+	int32_t first_surface, num_surfaces;
 } r_bsp_inline_model_t;
 
 /**

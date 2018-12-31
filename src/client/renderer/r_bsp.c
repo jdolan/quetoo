@@ -135,11 +135,11 @@ static void R_RotateLightsForBspInlineModel(const r_entity_t *e) {
 
 /**
  * @brief Draws all BSP surfaces for the specified entity. This is a condensed
- * version of the world drawing routine that relies on setting the visibility
- * counters to -2 to safely iterate the sorted surfaces arrays.
+ * version of the world drawing routine that relies on setting the view frame
+ * counter to negative to safely iterate the sorted surfaces arrays.
  */
 static void R_DrawBspInlineModel_(const r_entity_t *e) {
-	static int16_t frame = -2;
+	static int16_t frame = -1;
 
 	// temporarily swap the view frame so that the surface drawing
 	// routines pickup only the inline model's surfaces
@@ -148,12 +148,12 @@ static void R_DrawBspInlineModel_(const r_entity_t *e) {
 	r_locals.frame = frame--;
 
 	if (frame == INT16_MIN) {
-		frame = -2;
+		frame = -1;
 	}
 
 	r_bsp_surface_t *surf = &r_model_state.world->bsp->surfaces[e->model->bsp_inline->first_surface];
 
-	for (uint16_t i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
+	for (int32_t i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
 
 		const vec_t dist = R_DistanceToSurface(r_bsp_model_org, surf);
 		if (dist > SIDE_EPSILON) { // visible, flag for rendering
@@ -221,7 +221,7 @@ static void R_DrawBspInlineModel(const r_entity_t *e) {
  * @brief
  */
 static void R_AddBspInlineModelFlares_(const r_entity_t *e) {
-	static int16_t frame = -2;
+	static int16_t frame = -1;
 
 	// temporarily swap the view frame so that the surface drawing
 	// routines pickup only the inline model's surfaces
@@ -230,12 +230,12 @@ static void R_AddBspInlineModelFlares_(const r_entity_t *e) {
 	r_locals.frame = frame--;
 
 	if (frame == INT16_MIN) {
-		frame = -2;
+		frame = -1;
 	}
 
 	r_bsp_surface_t *surf = &r_model_state.world->bsp->surfaces[e->model->bsp_inline->first_surface];
 
-	for (uint32_t i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
+	for (int32_t i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
 		const vec_t dist = R_DistanceToSurface(r_bsp_model_org, surf);
 		if (dist > SIDE_EPSILON) { // visible, flag for rendering
 			surf->frame = r_locals.frame;
