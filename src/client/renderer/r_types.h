@@ -492,9 +492,6 @@ typedef struct {
 } r_lightmap_media_t;
 
 typedef struct {
-
-	const byte *data;
-
 	matrix4x4_t matrix;
 	matrix4x4_t inverse_matrix;
 
@@ -504,23 +501,24 @@ typedef struct {
 	r_lightmap_media_t *media; // the media containing this lightmap
 	r_pixel_t s, t; // the texture coordinates into the atlas image
 
+	const byte *data; // raw lightmap data, available during level load
+
 } r_lightmap_t;
 
 typedef struct {
-	cm_bsp_plane_t *plane;
-	r_bsp_texinfo_t *texinfo;
-
-	uint16_t flags; // R_SURF flags
-
-	uint16_t num_vertexes;
-	GLuint vertex; // index into the vertex buffer
-
 	r_lightmap_t lightmap;
 
+	cm_bsp_plane_t *plane;
+	r_bsp_texinfo_t *texinfo;
 	r_bsp_flare_t *flare;
 
 	vec3_t mins, maxs;
 	vec2_t st_mins, st_maxs;
+
+	int32_t flags; // R_SURF flags
+
+	int32_t vertex; // index into the vertex buffer
+	int16_t num_vertexes;
 
 	int16_t vis_frame; // PVS frame
 	int16_t frame; // renderer frame

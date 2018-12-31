@@ -77,7 +77,7 @@ void R_CreateBspSurfaceLightmap(const r_bsp_model_t *bsp, r_bsp_surface_t *surf,
 	ClearStBounds(lm->st_mins, lm->st_maxs);
 
 	const r_bsp_vertex_t *v = bsp->vertexes + surf->vertex;
-	for (GLuint i = 0; i < surf->num_vertexes; i++, v++) {
+	for (int32_t i = 0; i < surf->num_vertexes; i++, v++) {
 
 		vec3_t st;
 		Matrix4x4_Transform(&lm->matrix, v->position, st);

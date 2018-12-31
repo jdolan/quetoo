@@ -93,9 +93,7 @@ typedef struct {
 	byte vis_data_phs[MAX_BSP_LEAFS >> 3]; // decompressed PHS at origin
 
 	int16_t vis_frame; // PVS frame, negatives are special cases
-
 	int16_t frame; // renderer frame, negatives are special cases
-	int16_t back_frame; // back-facing renderer frame
 
 	int16_t light_frame; // dynamic lighting frame
 	uint64_t light_mask; // a bit mask into r_view.lights
