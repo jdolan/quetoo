@@ -27,53 +27,44 @@
  * outside leaf to a specifically occupied leaf.
  */
 void LeakFile(tree_t *tree) {
-	vec3_t mid;
-	file_t *leakfile;
-	char filename[MAX_OS_PATH];
-	node_t *node;
-	int32_t count;
+	vec3_t point;
 
-	if (!tree->outside_node.occupied) {
-		return;
+	char path[MAX_OS_PATH];
+	g_snprintf(path, sizeof(path), "maps/%s.lin", map_base);
+
+	file_t *file = Fs_OpenWrite(path);
+	if (!file) {
+		Com_Error(ERROR_FATAL, "Couldn't open %s\n", path);
 	}
 
-	Com_Print("--- LeakFile ---\n");
-
-	g_snprintf(filename, sizeof(filename), "maps/%s.lin", map_base);
-
-	if (!(leakfile = Fs_OpenWrite(filename))) {
-		Com_Error(ERROR_FATAL, "Couldn't open %s\n", filename);
-	}
-
-	count = 0;
-	node = &tree->outside_node;
+	const node_t *node = &tree->outside_node;
 	while (node->occupied > 1) {
-		int32_t next;
-		portal_t *p, *nextportal = NULL;
-		node_t *nextnode = NULL;
+		int32_t occupied = node->occupied;
+
+		const portal_t *next_portal = NULL;
+		const node_t *next_node = NULL;
+
 		int32_t s;
 
-		// find the best portal exit
-		next = node->occupied;
-		for (p = node->portals; p; p = p->next[!s]) {
+		// find the most sparse portal in this node
+		for (const portal_t *p = node->portals; p; p = p->next[!s]) {
 			s = (p->nodes[0] == node);
-			if (p->nodes[s]->occupied && p->nodes[s]->occupied < next) {
-				nextportal = p;
-				nextnode = p->nodes[s];
-				next = nextnode->occupied;
+			if (p->nodes[s]->occupied && p->nodes[s]->occupied < occupied) {
+				next_portal = p;
+				next_node = p->nodes[s];
+				occupied = next_node->occupied;
 			}
 		}
-		node = nextnode;
-		WindingCenter(nextportal->winding, mid);
-		Fs_Print(leakfile, "%f %f %f\n", mid[0], mid[1], mid[2]);
-		count++;
+		node = next_node;
+
+		// add the portal center
+		WindingCenter(next_portal->winding, point);
+		Fs_Print(file, "%f %f %f\n", point[0], point[1], point[2]);
 	}
 	
-	// add the occupant center
-	VectorForKey(node->occupant, "origin", mid, NULL);
+	// add the entity origin
+	VectorForKey(node->occupant, "origin", point, NULL);
+	Fs_Print(file, "%f %f %f\n", point[0], point[1], point[2]);
 
-	Fs_Print(leakfile, "%f %f %f\n", mid[0], mid[1], mid[2]);
-	Com_Debug(DEBUG_ALL, "%5i point leakfile\n", count + 1);
-
-	Fs_Close(leakfile);
+	Fs_Close(file);
 }
