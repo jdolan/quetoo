@@ -23,8 +23,6 @@
 
 #include "bsp.h"
 
-#define	PORTALFILE	"PRT1"
-
 #define	ON_EPSILON	0.1
 
 typedef struct {

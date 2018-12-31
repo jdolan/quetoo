@@ -23,6 +23,4 @@
 
 #include "portal.h"
 
-#define	PORTALFILE	"PRT1"
-
 void WritePortalFile(tree_t *tree);

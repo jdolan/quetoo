@@ -22,15 +22,6 @@
 #include "bsp.h"
 #include "portal.h"
 
-/*
- *
- * PORTAL FILE GENERATION
- *
- * Save out name.prt for qvis to read
- */
-
-#define	PORTALFILE	"PRT1"
-
 static file_t *prtfile;
 static int32_t num_visclusters; /* clusters the player can be in */
 static int32_t num_visportals;
@@ -98,7 +89,6 @@ static void WritePortalFile_r(node_t *node) {
 			Fs_Print(prtfile, "\n");
 		}
 	}
-
 }
 
 /**

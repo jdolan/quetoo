@@ -26,6 +26,11 @@
 #include "monitor.h"
 #include "work.h"
 
+/**
+ * @brief Quemap .prt file magic.
+ */
+#define	PORTALFILE	"PRT1"
+
 extern char map_base[MAX_QPATH];
 
 extern char map_name[MAX_OS_PATH];
