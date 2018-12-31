@@ -112,7 +112,6 @@ static void FillLeafNumbers_r(node_t *node, int32_t num) {
  * @brief
  */
 static void NumberLeafs_r(node_t *node) {
-	portal_t *p;
 
 	if (node->plane_num != PLANENUM_LEAF && !node->detail_seperator) { // decision node
 		node->cluster = -99;
@@ -120,8 +119,8 @@ static void NumberLeafs_r(node_t *node) {
 		NumberLeafs_r(node->children[1]);
 		return;
 	}
-	// either a leaf or a detail cluster
 
+	// either a leaf or a detail cluster
 	if (node->contents & CONTENTS_SOLID) { // solid block, viewpoint never inside
 		node->cluster = -1;
 		return;
@@ -131,7 +130,7 @@ static void NumberLeafs_r(node_t *node) {
 	num_visclusters++;
 
 	// count the portals
-	for (p = node->portals; p;) {
+	for (const portal_t *p = node->portals; p;) {
 		if (p->nodes[0] == node) { // only write out from first leaf
 			if (Portal_VisFlood(p)) {
 				num_visportals++;
