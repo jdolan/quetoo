@@ -42,6 +42,7 @@ _Bool no_weld = false;
 _Bool no_share = false;
 _Bool no_tjunc = false;
 _Bool leak_test = false;
+_Bool leaked = false;
 
 int32_t block_xl = -8, block_xh = 7, block_yl = -8, block_yh = 7;
 
@@ -147,8 +148,6 @@ static void ProcessWorldModel(void) {
 
 	brush_start = e->first_brush;
 	brush_end = brush_start + e->num_brushes;
-
-	_Bool leaked = false;
 
 	// perform per-block operations
 	if (block_xh * 1024 > map_maxs[0]) {

@@ -818,7 +818,7 @@ static void FindPortalSide(portal_t *portal) {
 		}
 	}
 
-	if (!portal->side) {
+	if (!portal->side && !leaked) {
 		Mon_SendWinding(MON_WARN, portal->winding->points, portal->winding->num_points,
 						"Side not found for portal");
 	}
@@ -853,7 +853,6 @@ static void MarkVisibleSides_r(const node_t *node) {
 			p->side->visible = true;
 		}
 	}
-
 }
 
 /**
@@ -907,6 +906,7 @@ static face_t *FaceFromPortal(portal_t *p, int32_t pside) {
 		f->w = CopyWinding(p->winding);
 		f->contents = p->nodes[0]->contents;
 	}
+
 	return f;
 }
 

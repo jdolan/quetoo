@@ -34,6 +34,7 @@ extern _Bool no_weld;
 extern _Bool no_share;
 extern _Bool no_tjunc;
 extern _Bool leak_test;
+extern _Bool leaked;
 
 extern int32_t block_xl, block_xh, block_yl, block_yh;
 
