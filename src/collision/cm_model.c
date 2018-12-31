@@ -279,20 +279,6 @@ static void Cm_LoadBspAreas(void) {
 /**
  * @brief
  */
-static void Cm_LoadBspVisibility(void) {
-
-	// If we have no visibility data, pad the clusters so that Bsp_DecompressVis
-	// produces correctly-sized rows. If we don't do this, non-VIS'ed maps will
-	// not produce any visible entities.
-	if (cm_bsp.bsp.vis_data_size == 0) {
-		Bsp_AllocLump(&cm_bsp.bsp, BSP_LUMP_VISIBILITY, MAX_BSP_VISIBILITY);
-		cm_bsp.bsp.vis_data.vis->num_clusters = cm_bsp.bsp.num_leafs;
-	}
-}
-
-/**
- * @brief
- */
 static void Cm_LoadBspMaterials(const char *name) {
 
 	char path[MAX_QPATH];
@@ -434,7 +420,6 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	Cm_LoadBspInlineModels();
 	Cm_LoadBspAreaPortals();
 	Cm_LoadBspAreas();
-	Cm_LoadBspVisibility();
 
 	Cm_SetupBspBrushes();
 
@@ -467,7 +452,12 @@ cm_bsp_model_t *Cm_Model(const char *name) {
  * @brief
  */
 int32_t Cm_NumClusters(void) {
-	return cm_bsp.bsp.vis_data.vis->num_clusters;
+
+	if (cm_bsp.bsp.vis_data) {
+		return cm_bsp.bsp.vis_data->num_clusters;
+	}
+	
+	return 0;
 }
 
 /**

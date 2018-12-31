@@ -680,59 +680,56 @@ void Bsp_Write(file_t *file, const bsp_file_t *bsp) {
 /**
  * @brief
  */
-void Bsp_DecompressVis(const bsp_file_t *bsp, const byte *in, byte *out) {
-	const int32_t row = (bsp->vis_data.vis->num_clusters + 7) >> 3;
+int32_t Bsp_DecompressVis(const bsp_file_t *bsp, const byte *in, byte *out) {
+
+	const int32_t row = (bsp->vis_data->num_clusters + 7) >> 3;
 	byte *out_p = out;
 
-	if (!in || !bsp->vis_data_size) { // no vis info, so make all visible
-		for (int32_t i = 0; i < row; i++) {
-			*out_p++ = 0xff;
+	do {
+		if (*in) {
+			*out_p++ = *in++;
+			continue;
 		}
-	} else {
-		do {
-			if (*in) {
-				*out_p++ = *in++;
-				continue;
-			}
 
-			int32_t c = in[1];
-			in += 2;
-			if ((out_p - out) + c > row) {
-				c = (int32_t) (row - (out_p - out));
-				Com_Warn("Overrun\n");
-			}
-			while (c) {
-				*out_p++ = 0;
-				c--;
-			}
-		} while (out_p - out < row);
-	}
+		int32_t c = in[1];
+		in += 2;
+		if ((out_p - out) + c > row) {
+			c = (int32_t) (row - (out_p - out));
+			Com_Warn("Overrun\n");
+		}
+		while (c) {
+			*out_p++ = 0;
+			c--;
+		}
+	} while (out_p - out < row);
+
+	return (int32_t) (ptrdiff_t) (out_p - out);
 }
 
 /**
  * @brief
  */
-int32_t Bsp_CompressVis(const bsp_file_t *bsp, const byte *vis, byte *dest) {
+int32_t Bsp_CompressVis(const bsp_file_t *bsp, const byte *in, byte *out) {
 
-	byte *out = dest;
-	const int32_t row = (bsp->vis_data.vis->num_clusters + 7) >> 3;
+	const int32_t row = (bsp->vis_data->num_clusters + 7) >> 3;
+	byte *out_p = out;
 
 	for (int32_t j = 0; j < row; j++) {
-		*out++ = vis[j];
-		if (vis[j]) {
+		*out_p++ = in[j];
+		if (in[j]) {
 			continue;
 		}
 
 		int32_t rep = 1;
 		for (j++; j < row; j++)
-			if (vis[j] || rep == 0xff) {
+			if (in[j] || rep == 0xff) {
 				break;
 			} else {
 				rep++;
 			}
-		*out++ = rep;
+		*out_p++ = rep;
 		j--;
 	}
 
-	return (int32_t) (ptrdiff_t) (out - dest);
+	return (int32_t) (ptrdiff_t) (out_p - out);
 }

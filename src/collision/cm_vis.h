@@ -23,8 +23,8 @@
 
 #include "cm_types.h"
 
-size_t Cm_ClusterPVS(const int32_t cluster, byte *pvs);
-size_t Cm_ClusterPHS(const int32_t cluster, byte *phs);
+int32_t Cm_ClusterPVS(const int32_t cluster, byte *pvs);
+int32_t Cm_ClusterPHS(const int32_t cluster, byte *phs);
 
 void Cm_SetAreaPortalState(const int32_t portal_num, const _Bool open);
 _Bool Cm_AreasConnected(const int32_t area1, const int32_t area2);

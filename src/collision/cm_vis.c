@@ -32,43 +32,39 @@ _Bool cm_no_areas = false;
 _Bool cm_no_vis = false;
 
 /**
- * @brief
- *
  * @remarks `pvs` must be at least `MAX_BSP_LEAFS >> 3` in length.
  */
-size_t Cm_ClusterPVS(const int32_t cluster, byte *pvs) {
+static int Cm_DecompressVis(int32_t cluster, byte *out, int32_t set) {
 
-	const bsp_vis_t *vis = cm_bsp.bsp.vis_data.vis;
-	const size_t len = (vis->num_clusters + 7) >> 3;
-
-	if (!cm_bsp.bsp.vis_data_size || cm_no_vis) {
-		memset(pvs, 0xff, len);
-	} else if (cluster == -1) {
-		memset(pvs, 0, len);
-	} else {
-		Bsp_DecompressVis(&cm_bsp.bsp, cm_bsp.bsp.vis_data.raw + vis->bit_offsets[cluster][VIS_PVS], pvs);
+	if (Cm_NumClusters() == 0 || cm_no_vis) {
+		memset(out, 0xff, MAX_BSP_LEAFS >> 3);
+		return MAX_BSP_LEAFS >> 3;
 	}
 
-	return len;
+	memset(out, 0, MAX_BSP_LEAFS >> 3);
+	
+	if (cluster == -1) {
+		return MAX_BSP_LEAFS >> 3;
+	}
+
+	const bsp_vis_t *vis = cm_bsp.bsp.vis_data;
+	const byte *in = ((byte *) vis) + vis->bit_offsets[cluster][set];
+
+	return Bsp_DecompressVis(&cm_bsp.bsp, in, out);
 }
 
 /**
  * @brief
  */
-size_t Cm_ClusterPHS(const int32_t cluster, byte *phs) {
+int32_t Cm_ClusterPVS(const int32_t cluster, byte *pvs) {
+	return Cm_DecompressVis(cluster, pvs, VIS_PVS);
+}
 
-	const bsp_vis_t *vis = cm_bsp.bsp.vis_data.vis;
-	const size_t len = (vis->num_clusters + 7) >> 3;
-
-	if (!cm_bsp.bsp.vis_data_size || cm_no_vis) {
-		memset(phs, 0xff, len);
-	} else if (cluster == -1) {
-		memset(phs, 0, len);
-	} else {
-		Bsp_DecompressVis(&cm_bsp.bsp, cm_bsp.bsp.vis_data.raw + vis->bit_offsets[cluster][VIS_PHS], phs);
-	}
-
-	return len;
+/**
+ * @brief
+ */
+int32_t Cm_ClusterPHS(const int32_t cluster, byte *phs) {
+	return Cm_DecompressVis(cluster, phs, VIS_PHS);
 }
 
 /**

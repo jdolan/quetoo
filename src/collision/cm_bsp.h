@@ -228,10 +228,7 @@ typedef struct {
 	byte *lightmap_data;
 
 	int32_t vis_data_size;
-	union {
-		bsp_vis_t *vis;
-		byte *raw;
-	} vis_data;
+	bsp_vis_t *vis_data;
 
 	// local to bsp_file_t
 	bsp_lump_id_t loaded_lumps;
@@ -246,5 +243,5 @@ _Bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_
 _Bool Bsp_LoadLumps(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_bits);
 void Bsp_AllocLump(bsp_file_t *bsp, const bsp_lump_id_t lump_id, const size_t count);
 void Bsp_Write(file_t *file, const bsp_file_t *bsp);
-int32_t Bsp_CompressVis(const bsp_file_t *bsp, const byte *vis, byte *dest);
-void Bsp_DecompressVis(const bsp_file_t *bsp, const byte *in, byte *out);
+int32_t Bsp_CompressVis(const bsp_file_t *bsp, const byte *in, byte *out);
+int32_t Bsp_DecompressVis(const bsp_file_t *bsp, const byte *in, byte *out);

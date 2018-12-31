@@ -37,40 +37,21 @@ int32_t indirect_bounce = 0;
 /**
  * @brief
  */
-int32_t Light_PointLeafnum(const vec3_t point) {
-	int32_t nodenum;
+_Bool Light_PointPVS(const vec3_t p, byte *pvs) {
 
-	nodenum = 0;
-	while (nodenum >= 0) {
-		bsp_node_t *node = &bsp_file.nodes[nodenum];
-		bsp_plane_t *plane = &bsp_file.planes[node->plane_num];
-		vec_t dist = DotProduct(point, plane->normal) - plane->dist;
-		if (dist > 0) {
-			nodenum = node->children[0];
-		} else {
-			nodenum = node->children[1];
-		}
-	}
-
-	return -nodenum - 1;
-}
-
-/**
- * @brief
- */
-_Bool Light_PointPVS(const vec3_t org, byte *pvs) {
-
-	if (!bsp_file.vis_data_size) {
-		memset(pvs, 0xff, (bsp_file.num_leafs + 7) / 8);
+	if (Cm_NumClusters() == 0) {
+		Cm_ClusterPVS(0, pvs);
 		return true;
 	}
 
-	const bsp_leaf_t *leaf = &bsp_file.leafs[Light_PointLeafnum(org)];
-	if (leaf->cluster == -1) {
+	const int32_t leaf = Cm_PointLeafnum(p, 0);
+	const int32_t cluster = Cm_LeafCluster(leaf);
+
+	if (cluster == -1) {
 		return false; // in solid leaf
 	}
 
-	Cm_ClusterPVS(leaf->cluster, pvs);
+	Cm_ClusterPVS(cluster, pvs);
 	return true;
 }
 
@@ -131,11 +112,14 @@ static void LightWorld(void) {
 		Com_Error(ERROR_FATAL, "Empty map\n");
 	}
 
-	// load the map for tracing
+	// load the bsp for tracing
 	bsp_models[0] = Cm_LoadBspModel(bsp_name, NULL);
-
 	for (int32_t i = 1; i < Cm_NumModels(); i++) {
 		bsp_models[i] = Cm_Model(va("*%d", i));
+	}
+
+	if (Cm_NumClusters() == 0) {
+		Com_Warn("No VIS information, expect longer compile time\n");
 	}
 
 	// resolve global lighting parameters from worldspawn
@@ -232,10 +216,6 @@ int32_t LIGHT_Main(void) {
 	const time_t start = time(NULL);
 
 	LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
-
-	if (!bsp_file.vis_data_size) {
-		Com_Warn("No VIS information, expect longer compile time\n");
-	}
 
 	LoadMaterials(va("materials/%s.mat", map_base), ASSET_CONTEXT_TEXTURES, NULL);
 
