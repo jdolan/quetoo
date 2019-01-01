@@ -115,8 +115,6 @@ static void ProcessBlock_Work(int32_t blocknum) {
 	maxs[1] = (yblock + 1) * 1024;
 	maxs[2] = MAX_WORLD_COORD;
 
-	WorkLock(); // FIXME: Remove locking?
-
 	// the brushes and chopbrushes could be cached between the passes...
 	csg_brush_t *brushes = MakeBrushes(brush_start, brush_end, mins, maxs);
 	if (!brushes) {
@@ -124,7 +122,6 @@ static void ProcessBlock_Work(int32_t blocknum) {
 		node->plane_num = PLANENUM_LEAF;
 		node->contents = CONTENTS_SOLID;
 		block_nodes[xblock + 5][yblock + 5] = node;
-		WorkUnlock();
 		return;
 	}
 
@@ -134,7 +131,6 @@ static void ProcessBlock_Work(int32_t blocknum) {
 
 	tree_t *tree = BuildTree(brushes, mins, maxs);
 
-	WorkUnlock();
 	block_nodes[xblock + 5][yblock + 5] = tree->head_node;
 }
 
