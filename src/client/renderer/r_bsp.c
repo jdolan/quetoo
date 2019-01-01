@@ -503,6 +503,11 @@ void R_MarkBspSurfaces(void) {
  * @return The distance from the specified point to the given surface.
  */
 vec_t R_DistanceToSurface(const vec3_t p, const r_bsp_surface_t *surf) {
+
+	if (surf->flags & R_SURF_BACK_SIDE) {
+		return -Cm_DistanceToPlane(p, surf->plane);
+	}
+
 	return Cm_DistanceToPlane(p, surf->plane);
 }
 
