@@ -138,7 +138,6 @@ static void Thread_Shutdown_(void) {
  */
 thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data, thread_options_t options) {
 
-
 	// if threads are available, find an idle one and dispatch it
 	if (thread_pool.num_threads) {
 		SDL_AtomicLock(&thread_pool.lock);
@@ -152,7 +151,7 @@ thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data, thread
 				SDL_LockMutex(t->mutex);
 
 				// if the thread is idle, dispatch it
-				if (t->Run == THREAD_IDLE) {
+				if (t->status == THREAD_IDLE) {
 					t->status = THREAD_RUNNING;
 					t->options = options;
 
