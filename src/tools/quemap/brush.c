@@ -22,6 +22,8 @@
 #include "brush.h"
 #include "map.h"
 
+static SDL_atomic_t c_active_brushes;
+
 /**
  * @brief
  */
@@ -30,9 +32,7 @@ csg_brush_t *AllocBrush(int32_t num_sides) {
 	csg_brush_t *brush = Mem_TagMalloc(sizeof(csg_brush_t), MEM_TAG_BRUSH);
 	brush->sides = Mem_LinkMalloc(sizeof(brush_side_t) * num_sides, brush);
 
-	if (debug) {
-		SDL_SemPost(semaphores.active_brushes);
-	}
+	SDL_AtomicAdd(&c_active_brushes, 1);
 
 	return brush;
 }
@@ -42,13 +42,12 @@ csg_brush_t *AllocBrush(int32_t num_sides) {
  */
 void FreeBrush(csg_brush_t *brush) {
 
-	for (int32_t i = 0; i < brush->num_sides; i++)
+	SDL_AtomicAdd(&c_active_brushes, -1);
+	
+	for (int32_t i = 0; i < brush->num_sides; i++) {
 		if (brush->sides[i].winding) {
 			FreeWinding(brush->sides[i].winding);
 		}
-
-	if (debug) {
-		SDL_SemWait(semaphores.active_brushes);
 	}
 
 	Mem_Free(brush);

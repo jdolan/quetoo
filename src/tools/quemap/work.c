@@ -21,8 +21,6 @@
 
 #include "quemap.h"
 
-semaphores_t semaphores;
-
 typedef struct {
 	SDL_mutex *lock; // mutex on all running work
 	WorkFunc func; // the work function
@@ -32,36 +30,6 @@ typedef struct {
 } work_t;
 
 work_t work;
-
-/**
- * @brief Initializes the shared semaphores that threads will touch.
- */
-void Sem_Init(void) {
-
-	memset(&semaphores, 0, sizeof(semaphores));
-
-	semaphores.active_portals = SDL_CreateSemaphore(0);
-	semaphores.active_nodes = SDL_CreateSemaphore(0);
-	semaphores.vis_nodes = SDL_CreateSemaphore(0);
-	semaphores.nonvis_nodes = SDL_CreateSemaphore(0);
-	semaphores.active_brushes = SDL_CreateSemaphore(0);
-	semaphores.active_windings = SDL_CreateSemaphore(0);
-	semaphores.removed_points = SDL_CreateSemaphore(0);
-}
-
-/**
- * @brief Shuts down shared semaphores, releasing any resources they hold.
- */
-void Sem_Shutdown(void) {
-
-	SDL_DestroySemaphore(semaphores.active_portals);
-	SDL_DestroySemaphore(semaphores.active_nodes);
-	SDL_DestroySemaphore(semaphores.vis_nodes);
-	SDL_DestroySemaphore(semaphores.nonvis_nodes);
-	SDL_DestroySemaphore(semaphores.active_brushes);
-	SDL_DestroySemaphore(semaphores.active_windings);
-	SDL_DestroySemaphore(semaphores.removed_points);
-}
 
 /**
  * @brief Return an iteration of work, updating progress when appropriate.
@@ -76,12 +44,12 @@ static int32_t GetWork(void) {
 	}
 
 	// update work fraction and output progress
-	const int32_t f = 50 * work.index / work.count;
+	const int32_t f = 100 * work.index / work.count;
 	if (f != work.fraction) {
 		for (int32_t i = work.fraction; i < f; i++) {
-			if (i % 5 == 0) {
-				Com_Print("%i", i / 5);
-			} else {
+			if (i % 10 == 0) {
+				Com_Print("%i", i / 10);
+			} else if (i % 2 == 0) {
 				Com_Print(".");
 			}
 		}

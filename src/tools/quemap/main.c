@@ -140,8 +140,6 @@ static void Init(void) {
 
 	Fs_Init(FS_AUTO_LOAD_ARCHIVES);
 
-	Sem_Init();
-
 	Com_Print("Quetoo Map %s %s %s %s initialized\n", VERSION, __DATE__, BUILD_HOST, REVISION);
 }
 
@@ -155,8 +153,6 @@ static void Shutdown(const char *msg) {
 	Thread_Shutdown();
 
 	Mon_Shutdown(msg);
-
-	Sem_Shutdown();
 
 	Fs_Shutdown();
 

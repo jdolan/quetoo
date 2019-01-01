@@ -22,7 +22,8 @@
 #include "bsp.h"
 #include "polylib.h"
 
-static uint32_t c_peak_windings;
+static SDL_atomic_t c_active_windings;
+static SDL_atomic_t c_colinear_points;
 
 #define	BOGUS_RANGE	MAX_WORLD_DIST
 
@@ -33,14 +34,7 @@ static const dvec_t MIN_EPSILON = (FLT_EPSILON * (dvec_t) 0.5);
  */
 winding_t *AllocWinding(int32_t points) {
 
-	if (debug) {
-		SDL_SemPost(semaphores.active_windings);
-		uint32_t active_windings = SDL_SemValue(semaphores.active_windings);
-
-		if (active_windings > c_peak_windings) {
-			c_peak_windings = active_windings;
-		}
-	}
+	SDL_AtomicAdd(&c_active_windings, 1);
 
 	return Mem_TagMalloc(sizeof(int32_t) + sizeof(vec3_t) * points, MEM_TAG_WINDING);
 }
@@ -50,9 +44,7 @@ winding_t *AllocWinding(int32_t points) {
  */
 void FreeWinding(winding_t *w) {
 
-	if (debug) {
-		SDL_SemWait(semaphores.active_windings);
-	}
+	SDL_AtomicAdd(&c_active_windings, -1);
 
 	Mem_Free(w);
 }
@@ -82,12 +74,7 @@ void RemoveColinearPoints(winding_t *w) {
 		return;
 	}
 
-	if (debug) {
-		const int32_t j = w->num_points - num_points;
-		for (int32_t i = 0; i < j; i++) {
-			SDL_SemPost(semaphores.removed_points);
-		}
-	}
+	SDL_AtomicAdd(&c_colinear_points, w->num_points - num_points);
 
 	w->num_points = num_points;
 	memcpy(w->points, p, num_points * sizeof(p[0]));

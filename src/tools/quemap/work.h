@@ -23,21 +23,6 @@
 
 #include "thread.h"
 
-typedef struct semaphores_s {
-	SDL_sem *active_portals;
-	SDL_sem *active_nodes;
-	SDL_sem *vis_nodes;
-	SDL_sem *nonvis_nodes;
-	SDL_sem *active_brushes;
-	SDL_sem *active_windings;
-	SDL_sem *removed_points;
-} semaphores_t;
-
-extern semaphores_t semaphores;
-
-void Sem_Init(void);
-void Sem_Shutdown(void);
-
 typedef void (*WorkFunc)(int32_t);
 
 void WorkLock(void);

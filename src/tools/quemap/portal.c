@@ -24,21 +24,14 @@
 #include "portal.h"
 #include "qbsp.h"
 
-static uint32_t c_peak_portals;
+static SDL_atomic_t c_active_portals;
 
 /**
  * @brief
  */
 static portal_t *AllocPortal(void) {
 
-	if (debug) {
-		SDL_SemPost(semaphores.active_portals);
-		const uint32_t active_portals = SDL_SemValue(semaphores.active_portals);
-
-		if (active_portals > c_peak_portals) {
-			c_peak_portals = active_portals;
-		}
-	}
+	SDL_AtomicAdd(&c_active_portals, 1);
 
 	return Mem_TagMalloc(sizeof(portal_t), MEM_TAG_PORTAL);
 }
@@ -52,9 +45,7 @@ void FreePortal(portal_t *p) {
 		FreeWinding(p->winding);
 	}
 
-	if (debug) {
-		SDL_SemWait(semaphores.active_portals);
-	}
+	SDL_AtomicAdd(&c_active_portals, -1);
 
 	Mem_Free(p);
 }

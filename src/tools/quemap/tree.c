@@ -23,14 +23,14 @@
 #include "portal.h"
 #include "qbsp.h"
 
+static SDL_atomic_t c_active_nodes;
+
 /**
  * @brief
  */
 node_t *AllocNode(void) {
 
-	if (debug) {
-		SDL_SemPost(semaphores.active_nodes);
-	}
+	SDL_AtomicAdd(&c_active_nodes, 1);
 
 	return Mem_TagMalloc(sizeof(node_t), MEM_TAG_NODE);
 }
@@ -40,9 +40,7 @@ node_t *AllocNode(void) {
  */
 void FreeNode(node_t *node) {
 
-	if (debug) {
-		SDL_SemWait(semaphores.active_nodes);
-	}
+	SDL_AtomicAdd(&c_active_nodes, -1);
 
 	Mem_Free(node);
 }
@@ -308,11 +306,6 @@ static brush_side_t *SelectSplitSide(csg_brush_t *brushes, node_t *node) {
 
 		// if we found a good plane, don't bother trying any other passes
 		if (best_side) {
-			if (pass > 1) {
-				if (debug) {
-					SDL_SemPost(semaphores.nonvis_nodes);
-				}
-			}
 			if (pass > 0) {
 				node->detail_seperator = true;    // not needed for vis
 			}
@@ -387,10 +380,6 @@ static void SplitBrushes(csg_brush_t *brushes, node_t *node, csg_brush_t **front
 static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
 	csg_brush_t *children[2];
 
-	if (debug) {
-		SDL_SemPost(semaphores.vis_nodes);
-	}
-
 	// find the best plane to use as a splitter
 	brush_side_t *split_side = SelectSplitSide(brushes, node);
 	if (!split_side) {
@@ -436,8 +425,8 @@ tree_t *BuildTree(csg_brush_t *brushes, const vec3_t mins, const vec3_t maxs) {
 	tree_t *tree = AllocTree();
 
 	int32_t c_brushes = 0;
-	int32_t c_faces = 0;
-	int32_t c_nonvisfaces = 0;
+	int32_t c_vis_faces = 0;
+	int32_t c_non_vis_faces = 0;
 
 	for (csg_brush_t *b = brushes; b; b = b->next) {
 		c_brushes++;
@@ -458,9 +447,9 @@ tree_t *BuildTree(csg_brush_t *brushes, const vec3_t mins, const vec3_t maxs) {
 				continue;
 			}
 			if (b->sides[i].visible) {
-				c_faces++;
+				c_vis_faces++;
 			} else {
-				c_nonvisfaces++;
+				c_non_vis_faces++;
 			}
 		}
 
@@ -469,14 +458,8 @@ tree_t *BuildTree(csg_brush_t *brushes, const vec3_t mins, const vec3_t maxs) {
 	}
 
 	Com_Debug(DEBUG_ALL, "%5i brushes\n", c_brushes);
-	Com_Debug(DEBUG_ALL, "%5i visible faces\n", c_faces);
-	Com_Debug(DEBUG_ALL, "%5i nonvisible faces\n", c_nonvisfaces);
-
-	SDL_DestroySemaphore(semaphores.vis_nodes);
-	semaphores.vis_nodes = SDL_CreateSemaphore(0);
-
-	SDL_DestroySemaphore(semaphores.nonvis_nodes);
-	semaphores.nonvis_nodes = SDL_CreateSemaphore(0);
+	Com_Debug(DEBUG_ALL, "%5i visible faces\n", c_vis_faces);
+	Com_Debug(DEBUG_ALL, "%5i nonvisible faces\n", c_non_vis_faces);
 
 	node_t *node = AllocNode();
 
@@ -485,13 +468,6 @@ tree_t *BuildTree(csg_brush_t *brushes, const vec3_t mins, const vec3_t maxs) {
 	tree->head_node = node;
 
 	node = BuildTree_r(node, brushes);
-
-	const uint32_t vis_nodes = SDL_SemValue(semaphores.vis_nodes);
-	const uint32_t nonvis_nodes = SDL_SemValue(semaphores.nonvis_nodes);
-
-	Com_Debug(DEBUG_ALL, "%5i visible nodes\n", vis_nodes / 2 - nonvis_nodes);
-	Com_Debug(DEBUG_ALL, "%5i nonvis nodes\n", nonvis_nodes);
-	Com_Debug(DEBUG_ALL, "%5i leafs\n", (vis_nodes + 1) / 2);
 
 	return tree;
 }
