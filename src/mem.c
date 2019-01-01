@@ -53,7 +53,7 @@ typedef struct {
 typedef struct {
 	GHashTable *blocks;
 	size_t size;
-	SDL_mutex *lock;
+	SDL_SpinLock lock;
 } mem_state_t;
 
 static mem_state_t mem_state;
@@ -155,7 +155,7 @@ void Mem_Free(void *p) {
 	if (p) {
 		mem_block_t *b = Mem_CheckMagic(p);
 
-		SDL_mutexP(mem_state.lock);
+		SDL_AtomicLock(&mem_state.lock);
 
 		if (b->parent) {
 			b->parent->children = g_slist_remove(b->parent->children, b);
@@ -165,7 +165,7 @@ void Mem_Free(void *p) {
 
 		Mem_Free_(b);
 
-		SDL_mutexV(mem_state.lock);
+		SDL_AtomicUnlock(&mem_state.lock);
 	}
 }
 
@@ -176,7 +176,7 @@ void Mem_FreeTag(mem_tag_t tag) {
 	GHashTableIter it;
 	gpointer key, value;
 
-	SDL_mutexP(mem_state.lock);
+	SDL_AtomicLock(&mem_state.lock);
 
 	g_hash_table_iter_init(&it, mem_state.blocks);
 
@@ -189,7 +189,7 @@ void Mem_FreeTag(mem_tag_t tag) {
 		}
 	}
 
-	SDL_mutexV(mem_state.lock);
+	SDL_AtomicUnlock(&mem_state.lock);
 }
 
 /**
@@ -233,7 +233,7 @@ static void *Mem_Malloc_(size_t size, mem_tag_t tag, void *parent) {
 	footer->magic = (mem_magic_t) (MEM_MAGIC + b->size);
 
 	// insert it into the managed memory structures
-	SDL_mutexP(mem_state.lock);
+	SDL_AtomicLock(&mem_state.lock);
 
 	if (b->parent) {
 		b->parent->children = g_slist_prepend(b->parent->children, b);
@@ -247,7 +247,7 @@ static void *Mem_Malloc_(size_t size, mem_tag_t tag, void *parent) {
 	Mem_SetStack(b);
 #endif
 
-	SDL_mutexV(mem_state.lock);
+	SDL_AtomicUnlock(&mem_state.lock);
 
 	// return the address in front of the block
 	return data;
@@ -330,7 +330,7 @@ void *Mem_Realloc(void *p, size_t size) {
 	mem_footer_t *footer = (mem_footer_t *) (((byte *) data) + size);
 	footer->magic = (mem_magic_t) (MEM_MAGIC + new_b->size);
 
-	SDL_mutexP(mem_state.lock);
+	SDL_AtomicLock(&mem_state.lock);
 
 	// re-seat us in our parent or in global hash list
 	if (new_b->parent) {
@@ -360,7 +360,7 @@ void *Mem_Realloc(void *p, size_t size) {
 #endif
 #endif
 
-	SDL_mutexV(mem_state.lock);
+	SDL_AtomicUnlock(&mem_state.lock);
 
 	return data;
 }
@@ -378,7 +378,7 @@ void *Mem_Link(void *child, void *parent) {
 	mem_block_t *c = Mem_CheckMagic(child);
 	mem_block_t *p = Mem_CheckMagic(parent);
 
-	SDL_mutexP(mem_state.lock);
+	SDL_AtomicLock(&mem_state.lock);
 
 	if (c->parent) {
 		c->parent->children = g_slist_remove(c->parent->children, c);
@@ -389,7 +389,7 @@ void *Mem_Link(void *child, void *parent) {
 	c->parent = p;
 	p->children = g_slist_prepend(p->children, c);
 
-	SDL_mutexV(mem_state.lock);
+	SDL_AtomicUnlock(&mem_state.lock);
 
 	return child;
 }
@@ -450,7 +450,7 @@ GArray *Mem_Stats(void) {
 	GHashTableIter it;
 	gpointer key, value;
 
-	SDL_mutexP(mem_state.lock);
+	SDL_AtomicLock(&mem_state.lock);
 
 	GArray *stat_array = g_array_new(false, true, sizeof(mem_stat_t));
 
@@ -488,7 +488,7 @@ GArray *Mem_Stats(void) {
 		}
 	}
 
-	SDL_mutexV(mem_state.lock);
+	SDL_AtomicUnlock(&mem_state.lock);
 
 	g_array_sort(stat_array, Mem_Stats_Sort);
 
@@ -504,8 +504,6 @@ void Mem_Init(void) {
 	memset(&mem_state, 0, sizeof(mem_state));
 
 	mem_state.blocks = g_hash_table_new(g_direct_hash, g_direct_equal);
-
-	mem_state.lock = SDL_CreateMutex();
 }
 
 /**
@@ -517,6 +515,4 @@ void Mem_Shutdown(void) {
 	Mem_FreeTag(MEM_TAG_ALL);
 
 	g_hash_table_destroy(mem_state.blocks);
-
-	SDL_DestroyMutex(mem_state.lock);
 }
