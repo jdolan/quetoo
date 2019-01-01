@@ -138,7 +138,7 @@ void R_Screenshot_f(void) {
 		glReadPixels(0, 0, s->width, s->height, GL_BGR, GL_UNSIGNED_BYTE, s->buffer);
 	}
 
-	Thread_Create(R_Screenshot_f_encode, s);
+	Thread_Create(R_Screenshot_f_encode, s, THREAD_NO_WAIT);
 }
 
 /**

@@ -283,7 +283,7 @@ static MapListCollectionView *initWithFrame(MapListCollectionView *self, const S
 		self->maps = $$(MutableArray, array);
 		assert(self->maps);
 
-		cgi.Thread(__func__, loadMaps, self);
+		cgi.Thread(__func__, loadMaps, self, THREAD_NO_WAIT);
 
 		self->collectionView.dataSource.numberOfItems = numberOfItems;
 		self->collectionView.dataSource.objectForItemAtIndexPath = objectForItemAtIndexPath;

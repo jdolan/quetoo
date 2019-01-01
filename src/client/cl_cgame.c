@@ -166,6 +166,7 @@ void Cl_InitCgame(void) {
 	import.FreeTag = Mem_FreeTag;
 
 	import.Thread = Thread_Create_;
+	import.Wait = Thread_Wait;
 
 	import.BaseDir = Fs_BaseDir;
 	import.OpenFile = Fs_OpenRead;

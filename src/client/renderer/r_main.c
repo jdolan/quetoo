@@ -171,7 +171,7 @@ void R_DrawView(void) {
 
 	R_MarkLights();
 
-	thread_t *sort_elements = Thread_Create(R_SortElements, NULL);
+	thread_t *sort_elements = Thread_Create(R_SortElements, NULL, 0);
 
 	const r_sorted_bsp_surfaces_t *surfs = r_model_state.world->bsp->sorted_surfaces;
 

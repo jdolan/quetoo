@@ -121,12 +121,28 @@ typedef struct cg_import_s {
 	void (*FreeTag)(mem_tag_t tag);
 
 	/**
-	 * @brief Creates and starts a thread for the given function.
+	 * @}
+	 *
+	 * @defgroup threads Threads
+	 * @{
+	 */
+
+	/**
+	 * @brief Starts a thread for the given function.
 	 * @param name The thread name.
 	 * @param run The thread function.
 	 * @param data User data.
+	 * @param options The thread options.
+	 * @remarks Unless `THREAD_NO_WAIT` is passed via `options`, the caller must also
+	 * call `Wait` on the returned thread in order to relinquish it to the thread pool.
 	 */
-	thread_t *(*Thread)(const char *name, ThreadRunFunc run, void *data);
+	thread_t *(*Thread)(const char *name, ThreadRunFunc run, void *data, thread_options_t options);
+
+	/**
+	 * @brief Waits for the previously started thread, blocking the calling thread.
+	 * @param thread The thread.
+	 */
+	void (*Wait)(thread_t *thread);
 
 	/**
 	 * @}
