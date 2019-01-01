@@ -229,7 +229,7 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
 
 		// then vertexes
 		out->num_vertexes = in->num_vertexes;
-		out->vertex = (GLuint) (outv - bsp->vertexes);
+		out->vertex = (int32_t) (ptrdiff_t) (outv - bsp->vertexes);
 
 		const int32_t *fv = bsp->file->face_vertexes + in->vertex;
 		for (int32_t j = 0; j < in->num_vertexes; j++, fv++, outv++) {

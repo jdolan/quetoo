@@ -116,7 +116,7 @@ typedef struct {
 	int16_t texinfo;
 
 	int32_t vertex;
-	int16_t num_vertexes;
+	int32_t num_vertexes;
 
 	int32_t lightmap; // start of samples in lighting lump
 } bsp_face_t;

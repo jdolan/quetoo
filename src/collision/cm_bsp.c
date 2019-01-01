@@ -240,9 +240,10 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
 	for (int32_t i = 0; i < num; i++) {
 
 		face->plane_num = LittleLong(face->plane_num);
+		face->side = LittleShort(face->side);
 		face->texinfo = LittleShort(face->texinfo);
 		face->vertex = LittleLong(face->vertex);
-		face->num_vertexes = LittleShort(face->num_vertexes);
+		face->num_vertexes = LittleLong(face->num_vertexes);
 		face->lightmap = LittleLong(face->lightmap);
 
 		face++;

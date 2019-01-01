@@ -518,7 +518,7 @@ typedef struct {
 	int32_t flags; // R_SURF flags
 
 	int32_t vertex; // index into the vertex buffer
-	int16_t num_vertexes;
+	int32_t num_vertexes;
 
 	int16_t vis_frame; // PVS frame
 	int16_t frame; // renderer frame

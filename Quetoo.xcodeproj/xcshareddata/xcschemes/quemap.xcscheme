@@ -72,15 +72,15 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-bsp"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-bsp --no-tjunc"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-vis"
+            argument = "-bsp --no-tjunc"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-vis"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-vis --fast"
@@ -88,7 +88,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-light"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-light --antialias --indirect"
