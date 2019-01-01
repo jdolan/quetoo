@@ -246,7 +246,7 @@ static void S_BufferMusic(s_music_t *music, _Bool setup_buffers) {
  */
 static void S_PlayMusic(s_music_t *music) {
 	
-	SDL_mutexP(s_music_state.mutex);
+	SDL_LockMutex(s_music_state.mutex);
 
 	S_StopMusic();
 
@@ -271,7 +271,7 @@ static void S_PlayMusic(s_music_t *music) {
 	alSourcePlay(s_music_state.source);
 	S_CheckALError();
 
-	SDL_mutexV(s_music_state.mutex);
+	SDL_UnlockMutex(s_music_state.mutex);
 }
 
 /**
@@ -312,16 +312,16 @@ static int S_MusicThread(void *data) {
 
 	while (true) {
 		
-		SDL_mutexP(s_music_state.mutex);
+		SDL_LockMutex(s_music_state.mutex);
 	
 		if (s_music_state.shutdown) {
-			SDL_mutexV(s_music_state.mutex);
+			SDL_UnlockMutex(s_music_state.mutex);
 			return 1;
 		}
 
 		S_MusicThreadTick();
 
-		SDL_mutexV(s_music_state.mutex);
+		SDL_UnlockMutex(s_music_state.mutex);
 
 		// sleep a bit, so music thread doesn't eat cycles
 		SDL_Delay(QUETOO_TICK_MILLIS);
@@ -346,7 +346,7 @@ void S_FrameMusic(void) {
 		return;
 	}
 	
-	SDL_mutexP(s_music_state.mutex);
+	SDL_LockMutex(s_music_state.mutex);
 
 	// revert to the default music when the client disconnects
 	if (last_state == CL_ACTIVE && cls.state != CL_ACTIVE) {
@@ -373,7 +373,7 @@ void S_FrameMusic(void) {
 	alGetSourcei(s_music_state.source, AL_SOURCE_STATE, &state);
 	S_CheckALError();
 
-	SDL_mutexV(s_music_state.mutex);
+	SDL_UnlockMutex(s_music_state.mutex);
 
 	if (s_music_volume->value && state != AL_PLAYING) {
 		S_NextTrack_f();
@@ -455,7 +455,7 @@ void S_InitMusic(void) {
  */
 void S_ShutdownMusic(void) {
 	
-	SDL_mutexP(s_music_state.mutex);
+	SDL_LockMutex(s_music_state.mutex);
 	S_StopMusic();
 
 	if (s_music_state.source) {
@@ -471,10 +471,10 @@ void S_ShutdownMusic(void) {
 	if (s_music_state.thread) {
 		s_music_state.shutdown = true;
 	
-		SDL_mutexV(s_music_state.mutex);
+		SDL_UnlockMutex(s_music_state.mutex);
 		SDL_WaitThread(s_music_state.thread, NULL); // wait for thread to end
 	} else {
-		SDL_mutexV(s_music_state.mutex);
+		SDL_UnlockMutex(s_music_state.mutex);
 	}
 
 	// kill mutex
