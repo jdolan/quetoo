@@ -105,19 +105,16 @@ static _Bool BrushesDisjoint(const csg_brush_t *a, const csg_brush_t *b) {
 	return false; // might intersect
 }
 
-static int32_t minplane_nums[3];
-static int32_t maxplane_nums[3];
-
 /**
  * @brief Any planes shared with the box edge will be set to TEXINFO_NODE.
  */
-static csg_brush_t *ClipBrushToBox(csg_brush_t *brush, vec3_t mins, vec3_t maxs) {
+static csg_brush_t *ClipBrushToBox(csg_brush_t *brush, vec3_t mins, vec3_t maxs, int32_t box_planes[6]) {
 
 	csg_brush_t *front = NULL, *back = NULL;
 
 	for (int32_t i = 0; i < 2; i++) {
 		if (brush->maxs[i] > maxs[i]) {
-			SplitBrush(brush, maxplane_nums[i], &front, &back);
+			SplitBrush(brush, box_planes[i + 3], &front, &back);
 			FreeBrush(brush);
 			if (front) {
 				FreeBrush(front);
@@ -128,7 +125,7 @@ static csg_brush_t *ClipBrushToBox(csg_brush_t *brush, vec3_t mins, vec3_t maxs)
 			}
 		}
 		if (brush->mins[i] < mins[i]) {
-			SplitBrush(brush, minplane_nums[i], &front, &back);
+			SplitBrush(brush, box_planes[i], &front, &back);
 			FreeBrush(brush);
 			if (back) {
 				FreeBrush(back);
@@ -143,28 +140,34 @@ static csg_brush_t *ClipBrushToBox(csg_brush_t *brush, vec3_t mins, vec3_t maxs)
 	// remove any colinear faces
 
 	for (int32_t i = 0; i < brush->num_sides; i++) {
-		const int32_t p = brush->sides[i].plane_num & ~1;
-		if (p == maxplane_nums[0] || p == maxplane_nums[1] ||
-			p == minplane_nums[0] || p == minplane_nums[1]) {
-			brush->sides[i].texinfo = TEXINFO_NODE;
-			brush->sides[i].visible = false;
+		const int32_t plane_num = brush->sides[i].plane_num & ~1;
+		for (int32_t j = 0; j < 6; j++) {
+			if (plane_num == box_planes[j]) {
+				brush->sides[i].texinfo = TEXINFO_NODE;
+				brush->sides[i].visible = false;
+				break;
+			}
 		}
 	}
+
 	return brush;
 }
 
 /**
- * @brief
+ * @brief Create a list of csg_brush_t of the brush_t occupying, and optionally
+ * clipped to, the given bounding box.
  */
 csg_brush_t *MakeBrushes(int32_t start, int32_t end, vec3_t mins, vec3_t maxs) {
 	csg_brush_t *list = NULL;
 
-	for (int32_t i = 0; i < 2; i++) {
+	int32_t box_planes[6];
+
+	for (int32_t i = 0; i < 3; i++) {
 		vec3_t normal;
 		VectorClear(normal);
-		normal[i] = 1;
-		maxplane_nums[i] = FindPlane(normal, maxs[i]);
-		minplane_nums[i] = FindPlane(normal, mins[i]);
+		normal[i] = 1.0;
+		box_planes[i] = FindPlane(normal, mins[i]);
+		box_planes[i + 3] = FindPlane(normal, maxs[i]);
 	}
 
 	int32_t c_faces = 0;
@@ -214,7 +217,7 @@ csg_brush_t *MakeBrushes(int32_t start, int32_t end, vec3_t mins, vec3_t maxs) {
 		VectorCopy(b->maxs, brush->maxs);
 
 		// carve off anything outside the clip box
-		brush = ClipBrushToBox(brush, mins, maxs);
+		brush = ClipBrushToBox(brush, mins, maxs, box_planes);
 		if (!brush) {
 			continue;
 		}
