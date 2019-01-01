@@ -475,7 +475,8 @@ typedef struct {
 } r_bsp_flare_t;
 
 // r_bsp_surface_t flags
-#define R_SURF_IN_LIQUID	0x1
+#define R_SURF_BACK_SIDE	0x1
+#define R_SURF_IN_LIQUID	0x2
 
 /**
  * @brief Lightmaps are packed into atlas textures. Each packed lightmap also has a corresponding
@@ -506,11 +507,11 @@ typedef struct {
 } r_lightmap_t;
 
 typedef struct {
-	r_lightmap_t lightmap;
-
 	cm_bsp_plane_t *plane;
 	r_bsp_texinfo_t *texinfo;
 	r_bsp_flare_t *flare;
+
+	r_lightmap_t lightmap;
 
 	vec3_t mins, maxs;
 	vec2_t st_mins, st_maxs;

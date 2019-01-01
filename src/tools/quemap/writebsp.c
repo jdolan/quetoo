@@ -47,7 +47,7 @@ static void EmitPlanes(void) {
 /**
  * @brief
  */
-static void EmitLeaf(node_t *node) {
+static int32_t EmitLeaf(node_t *node) {
 
 	if (bsp_file.num_leafs >= MAX_BSP_LEAFS) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_LEAFS\n");
@@ -91,7 +91,7 @@ static void EmitLeaf(node_t *node) {
 
 	// write the leaf_faces
 	if (leaf->contents & CONTENTS_SOLID) {
-		return;
+		return bsp_file.num_leafs - 1;
 	}
 
 	leaf->first_leaf_face = bsp_file.num_leaf_faces;
@@ -131,6 +131,7 @@ static void EmitLeaf(node_t *node) {
 	}
 
 	leaf->num_leaf_faces = bsp_file.num_leaf_faces - leaf->first_leaf_face;
+	return bsp_file.num_leafs - 1;
 }
 
 /**
@@ -327,6 +328,17 @@ void BeginBSPFile(void) {
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_MODELS, MAX_BSP_MODELS);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_AREA_PORTALS, MAX_BSP_AREA_PORTALS);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_AREAS, MAX_BSP_AREAS);
+
+	/*
+	 * jdolan 2019-01-01
+	 *
+	 * Leafs are referenced by their parents as child nodes, but with negative indices.
+	 * Because zero can not be negated, the first leaf in the map must be padded here.
+	 * You can choose to ignore this comment if you want to lose 3 days of your life
+	 * to debugging PVS, like I did.
+	 */
+	bsp_file.num_leafs = 1;
+	bsp_file.leafs[0].contents = CONTENTS_SOLID;
 }
 
 /**

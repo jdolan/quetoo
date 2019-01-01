@@ -476,7 +476,9 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 
 	for (int32_t i = 0; i < node->num_surfaces; i++, s++) {
 		if (s->vis_frame == r_locals.vis_frame) { // it's been marked
-			s->frame = r_locals.frame;
+			if ((s->flags & R_SURF_BACK_SIDE) == side) { // and it's on the right side
+				s->frame = r_locals.frame;
+			}
 		}
 	}
 

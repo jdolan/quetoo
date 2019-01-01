@@ -353,7 +353,7 @@ typedef enum {
 #define CONTENTS_NODE			-1
 
 /**
- * @brief c_bsp_surface_t.flags.
+ * @brief Texinfo flags.
  */
 #define SURF_LIGHT				0x1 // value will hold the light radius
 #define SURF_SLICK				0x2 // effects game physics

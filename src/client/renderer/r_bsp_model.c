@@ -214,8 +214,10 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
 	for (int32_t i = 0; i < bsp->num_surfaces; i++, in++, out++) {
 
 		// resolve plane
-		const int32_t plane_num = in->plane_num;
-		out->plane = bsp->cm->planes + plane_num;
+		out->plane = bsp->cm->planes + in->plane_num;
+		if (in->plane_num & 1) {
+			out->flags |= R_SURF_BACK_SIDE;
+		}
 
 		// then texinfo
 		if (in->texinfo == -1) {
