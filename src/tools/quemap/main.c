@@ -472,7 +472,7 @@ int32_t main(int32_t argc, char **argv) {
 	}
 
 	Thread_Init(num_threads);
-	Com_Print("Using %u threads\n", Thread_Count());
+	Com_Print("Using %d threads\n", Thread_Count());
 
 	const char *filename = Com_Argv(Com_Argc() - 1);
 	if (g_file_test(filename, G_FILE_TEST_EXISTS | G_FILE_TEST_IS_REGULAR)) {

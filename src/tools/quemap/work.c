@@ -139,18 +139,18 @@ void Work(WorkFunc func, int32_t count) {
 
 	const time_t start = time(NULL);
 
-	const uint16_t thread_count = Thread_Count();
+	const int32_t thread_count = Thread_Count();
 
 	if (thread_count == 0) {
 		RunWorkFunc(0);
 	} else {
 		thread_t *threads[thread_count];
 
-		for (uint16_t i = 0; i < thread_count; i++) {
-			threads[i] = Thread_Create(RunWorkFunc, NULL);
+		for (int32_t i = 0; i < thread_count; i++) {
+			threads[i] = Thread_Create(RunWorkFunc, NULL, 0);
 		}
 
-		for (uint16_t i = 0; i < thread_count; i++) {
+		for (int32_t i = 0; i < thread_count; i++) {
 			Thread_Wait(threads[i]);
 		}
 	}

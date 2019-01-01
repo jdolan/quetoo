@@ -187,8 +187,8 @@ void Thread_Wait(thread_t *t) {
 /**
  * @brief Returns the number of threads in the pool.
  */
-uint16_t Thread_Count(void) {
-	return thread_pool.num_threads;
+int32_t Thread_Count(void) {
+	return (int32_t) thread_pool.num_threads;
 }
 
 /**

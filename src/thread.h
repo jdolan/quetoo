@@ -48,7 +48,7 @@ typedef struct {
 thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data);
 #define Thread_Create(function, data) Thread_Create_(#function, function, data)
 void Thread_Wait(thread_t *t);
-uint16_t Thread_Count(void);
+int32_t Thread_Count(void);
 void Thread_Init(ssize_t num_threads);
 void Thread_Shutdown(void);
 
