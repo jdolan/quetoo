@@ -254,9 +254,6 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
 
 		// to create the lightmap and deluxemap
 		R_CreateBspSurfaceLightmap(bsp, out, data);
-
-		// and flare
-		R_CreateBspSurfaceFlare(bsp, out);
 	}
 }
 
@@ -314,6 +311,8 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_leaf_t *leaf, r_bsp_surf
 			surf->flags |= R_SURF_IN_LIQUID;
 		}
 	}
+
+	R_CreateBspSurfaceFlare(bsp, surf);
 }
 
 /**

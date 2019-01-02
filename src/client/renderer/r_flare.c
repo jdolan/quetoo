@@ -92,7 +92,7 @@ void R_AddFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		return;
 	}
 
-	for (uint32_t i = 0; i < surfs->count; i++) {
+	for (size_t i = 0; i < surfs->count; i++) {
 		const r_bsp_surface_t *surf = surfs->surfaces[i];
 
 		if (surf->frame != r_locals.frame) {
@@ -105,7 +105,7 @@ void R_AddFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		if (r_view.ticks - f->time > 15) {
 
 			if (r_view.ticks - f->time > 500) { // reset old flares
-				f->alpha = 0;
+				f->alpha = 0.0;
 			}
 
 			cm_trace_t tr = Cl_Trace(r_view.origin, f->particle.org, NULL, NULL, 0, MASK_CLIP_PROJECTILE);
