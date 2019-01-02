@@ -292,7 +292,7 @@ static brush_side_t *SelectSplitSide(csg_brush_t *brushes, node_t *node) {
 				}
 
 				// save off the side test so we don't need
-				// to recalculate it when we actually seperate
+				// to recalculate it when we actually separate
 				// the brushes
 				if (value > best_value) {
 					best_value = value;
@@ -307,7 +307,7 @@ static brush_side_t *SelectSplitSide(csg_brush_t *brushes, node_t *node) {
 		// if we found a good plane, don't bother trying any other passes
 		if (best_side) {
 			if (pass > 0) {
-				node->detail_seperator = true;    // not needed for vis
+				node->detail_separator = true;    // not needed for vis
 			}
 			break;
 		}
@@ -500,7 +500,7 @@ void PruneNodes_r(node_t *node) {
 
 		node->plane_num = PLANENUM_LEAF;
 		node->contents = CONTENTS_SOLID;
-		node->detail_seperator = false;
+		node->detail_separator = false;
 
 		if (node->brushes) {
 			Com_Error(ERROR_FATAL, "Node still references brushes\n");

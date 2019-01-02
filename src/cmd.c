@@ -550,7 +550,7 @@ static void Cmd_Alias_f_enumerate(cmd_t *cmd, void *data) {
 }
 
 /**
- * @brief Creates a new command that executes a command string (possibly ; seperated)
+ * @brief Creates a new command that executes a command string (possibly ; separated)
  */
 static void Cmd_Alias_f(void) {
 	char cmd[MAX_STRING_CHARS];

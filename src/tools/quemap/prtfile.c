@@ -48,7 +48,7 @@ static void WritePortalFile_r(node_t *node) {
 	vec_t dist;
 
 	// decision node
-	if (node->plane_num != PLANENUM_LEAF && !node->detail_seperator) {
+	if (node->plane_num != PLANENUM_LEAF && !node->detail_separator) {
 		WritePortalFile_r(node->children[0]);
 		WritePortalFile_r(node->children[1]);
 		return;
@@ -113,7 +113,7 @@ static void FillLeafNumbers_r(node_t *node, int32_t num) {
  */
 static void NumberLeafs_r(node_t *node) {
 
-	if (node->plane_num != PLANENUM_LEAF && !node->detail_seperator) { // decision node
+	if (node->plane_num != PLANENUM_LEAF && !node->detail_separator) { // decision node
 		node->cluster = -99;
 		NumberLeafs_r(node->children[0]);
 		NumberLeafs_r(node->children[1]);
@@ -146,9 +146,9 @@ static void NumberLeafs_r(node_t *node) {
  * @brief
  */
 static void CreateVisPortals_r(node_t *node) {
-	// stop as soon as we get to a detail_seperator, which
+	// stop as soon as we get to a detail_separator, which
 	// means that everything below is in a single cluster
-	if (node->plane_num == PLANENUM_LEAF || node->detail_seperator) {
+	if (node->plane_num == PLANENUM_LEAF || node->detail_separator) {
 		return;
 	}
 
