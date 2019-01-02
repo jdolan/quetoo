@@ -48,8 +48,9 @@
 
 /**
  * @brief BSP planes are essential to collision detection as well as rendering.
- * Quake uses "positive planes," where the plane distances are represented as
- * negative offsets from the origin.
+ * Quake stores planes in front and back facing pairs, but most references to
+ * planes in the game prefer the "positive planes," or the ones with a normal
+ * vector such that all components are >= 0.
  */
 typedef struct {
 	vec3_t normal;
