@@ -71,7 +71,16 @@ in VertexData {
 
 vec3 eyeDir;
 
+vec4 dbColor;
+float meh;
+
 out vec4 fragColor;
+
+float pinch(const float s, float t) {
+	// s is scale from 0 (soft) to 1 (hard)
+	// o is offset from -s to s
+	return smoothstep(s*0.5, 1-s*0.5, t);
+};
 
 /**
  * @brief Clamp value t to range [a,b] and map [a,b] to [0,1].
@@ -292,11 +301,9 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in floa
 
 				// windowed inverse square falloff
 				float dist = len/LIGHTS.RADIUS[i];
-				float falloff = clamp(1.0 - dist * dist * dist * dist, 0.0, 1.0);
-				falloff = falloff * falloff;
-				falloff = falloff / (dist * dist + 1.0);
+				float falloff = 1 - dist*dist;
 
-				light += LIGHTS.COLOR[i] * falloff * lambert;
+				light += LIGHTS.COLOR[i] * lambert * falloff;
 			}
 		}
 	}
@@ -336,7 +343,7 @@ void CausticFragment(in vec3 lightmap) {
 		float factor = noise3d((modelpoint * model_scale) + (TIME * time_scale));
 
 		// scale to make very close to -1.0 to 1.0 based on observational data
-		factor = factor * (0.3515 * 2.0);
+		factor *= 0.73;
 
 		// make the inner edges stronger, clamp to 0-1
 		factor = clamp(pow((1 - abs(factor)) + caustic_thickness, caustic_glow), 0, 1);
@@ -358,6 +365,7 @@ void CausticFragment(in vec3 lightmap) {
 void main(void) {
 
 	eyeDir = normalize(eye);
+	float eyeDist = length(point);
 
 	// texture coordinates
 	vec2 uvTextures = NORMALMAP && PARALLAX != 0.0 ? BumpTexcoord() : texcoords[0];
@@ -369,11 +377,6 @@ void main(void) {
 
 	if (LIGHTMAP) {
 		lightmap = texture(SAMPLER1, uvLightmap).rgb;
-
-		if (STAINMAP) {
-			vec4 stain = texture(SAMPLER8, uvLightmap);
-			lightmap = mix(lightmap.rgb, stain.rgb, stain.a).rgb;
-		}
 	}
 
 	// then resolve any bump mapping
@@ -383,9 +386,12 @@ void main(void) {
 	float lightmapSpecularScale = 0.0;
 	float lightmapSelfShadowScale = 1.0;
 
+	vec4 bloodhack_normal;
+
 	if (NORMALMAP) {
 
 		normalmap = texture(SAMPLER3, uvTextures);
+		bloodhack_normal = normalmap;
 
 		// scale by BUMP
 		normalmap.xy = (normalmap.xy * 2.0 - 1.0) * BUMP;
@@ -436,6 +442,28 @@ void main(void) {
 			discard;
 		}
 
+		#if 1
+		if (STAINMAP) {
+			#line 447
+			const vec3 bloodColor = vec3(0.65, 0.05, 0.05);
+			float bloodFactor = texture(SAMPLER8, uvLightmap).r;
+			float bloodMask = pinch(0.8, bloodFactor);
+
+			vec3 preBrighten = 0.2*bloodFactor*bloodColor;
+			vec3 blood = mix(vec3(1), bloodColor, pinch(0.8, bloodMask));
+			
+			diffuse.rgb = (diffuse.rgb + preBrighten.rgb) * blood.rgb;
+
+			vec3 H = normalize(eyeDir.xyz + deluxemap.xyz);
+			float spec0 = max(dot(bloodhack_normal.xyz, H.xyz), 0);
+			float spec1 = 1-abs(spec0*2-1);
+			float pinchFactor = max(max(dot(vec3(0.0, 0.0, 1.0),
+				bloodhack_normal.xyz)-0.5,0)*2 - 0.3333, 0)*1.5;
+			float spec2 = pow(smoothstep(0, 1, spec1), 10*pinchFactor);
+			dbColor.rgb = pinch(0.9, bloodFactor)*lightmap.rgb*spec2;
+		}
+		#endif
+
 		TintFragment(diffuse, uvTextures);
 	}
 
@@ -445,11 +473,15 @@ void main(void) {
     // underliquid caustics
 	CausticFragment(lightmap);
 
+	fragColor.rgb += dbColor.rgb;
+
 	// tonemap
 	fragColor.rgb *= exp(fragColor.rgb);
 	fragColor.rgb /= fragColor.rgb + 0.825;
 
-	FogFragment(length(point), fragColor);
+	FogFragment(eyeDist, fragColor);
 	
 	DitherFragment(fragColor.rgb);
+
+
 }
