@@ -186,11 +186,11 @@ static winding_t *ChopWinding(winding_t *in, pstack_t *stack, plane_t *split) {
 
 /*
  * ==============
- * ClipToSeperators
+ * ClipToSeparators
  *
  * Source, pass, and target are an ordering of portals.
  *
- * Generates seperating planes canidates by taking two points from source and one
+ * Generates separating planes canidates by taking two points from source and one
  * point from pass, and clips target by them.
  *
  * If target is totally clipped away, that portal can not be seen through.
@@ -200,35 +200,35 @@ static winding_t *ChopWinding(winding_t *in, pstack_t *stack, plane_t *split) {
  * flipclip should be set.
  * ==============
  */
-static winding_t *ClipToSeperators(winding_t *source, winding_t *pass, winding_t *target,
-                                   _Bool flipclip, pstack_t *stack) {
-	int32_t i, j, k, l;
-	plane_t plane;
-	vec3_t v1, v2;
-	vec_t d;
-	vec_t length;
-	int32_t counts[3];
-	_Bool fliptest;
+static winding_t *ClipToSeparators(winding_t *source, winding_t *pass, winding_t *target,
+                                   _Bool flip_clip, pstack_t *stack) {
+	int32_t k;
 
 	// check all combinations
-	for (i = 0; i < source->num_points; i++) {
-		l = (i + 1) % source->num_points;
+	for (int32_t i = 0; i < source->num_points; i++) {
+		const int32_t l = (i + 1) % source->num_points;
+
+		vec3_t v1;
 		VectorSubtract(source->points[l], source->points[i], v1);
 
 		// fing a vertex of pass that makes a plane that puts all of the
 		// vertexes of pass on the front side and all of the vertexes of
 		// source on the back side
-		for (j = 0; j < pass->num_points; j++) {
+		for (int32_t j = 0; j < pass->num_points; j++) {
+
+			vec3_t v2;
 			VectorSubtract(pass->points[j], source->points[i], v2);
 
+			plane_t plane;
 			plane.normal[0] = v1[1] * v2[2] - v1[2] * v2[1];
 			plane.normal[1] = v1[2] * v2[0] - v1[0] * v2[2];
 			plane.normal[2] = v1[0] * v2[1] - v1[1] * v2[0];
 
 			// if points don't make a valid plane, skip it
 
-			length = plane.normal[0] * plane.normal[0] + plane.normal[1] * plane.normal[1]
-			         + plane.normal[2] * plane.normal[2];
+			vec_t length = plane.normal[0] * plane.normal[0] +
+						   plane.normal[1] * plane.normal[1] +
+						   plane.normal[2] * plane.normal[2];
 
 			if (length < ON_EPSILON) {
 				continue;
@@ -243,23 +243,23 @@ static winding_t *ClipToSeperators(winding_t *source, winding_t *pass, winding_t
 			plane.dist = DotProduct(pass->points[j], plane.normal);
 
 			//
-			// find out which side of the generated seperating plane has the
+			// find out which side of the generated separating plane has the
 			// source portal
 			//
 #if 1
-			fliptest = false;
+			_Bool flip_test = false;
 			for (k = 0; k < source->num_points; k++) {
 				if (k == i || k == l) {
 					continue;
 				}
-				d = DotProduct(source->points[k], plane.normal) - plane.dist;
+				const vec_t d = DotProduct(source->points[k], plane.normal) - plane.dist;
 				if (d < -ON_EPSILON) { // source is on the negative side, so we want all
 					// pass and target on the positive side
-					fliptest = false;
+					flip_test = false;
 					break;
 				} else if (d > ON_EPSILON) { // source is on the positive side, so we want all
 					// pass and target on the negative side
-					fliptest = true;
+					flip_test = true;
 					break;
 				}
 			}
@@ -272,21 +272,21 @@ static winding_t *ClipToSeperators(winding_t *source, winding_t *pass, winding_t
 			//
 			// flip the normal if the source portal is backwards
 			//
-			if (fliptest) {
+			if (flip_test) {
 				VectorSubtract(vec3_origin, plane.normal, plane.normal);
 				plane.dist = -plane.dist;
 			}
 #if 1
 			//
 			// if all of the pass portal points are now on the positive side,
-			// this is the seperating plane
+			// this is the separating plane
 			//
-			counts[0] = counts[1] = counts[2] = 0;
+			int32_t counts[3] = { 0, 0, 0 };
 			for (k = 0; k < pass->num_points; k++) {
 				if (k == j) {
 					continue;
 				}
-				d = DotProduct(pass->points[k], plane.normal) - plane.dist;
+				const vec_t d = DotProduct(pass->points[k], plane.normal) - plane.dist;
 				if (d < -ON_EPSILON) {
 					break;
 				} else if (d > ON_EPSILON) {
@@ -296,11 +296,11 @@ static winding_t *ClipToSeperators(winding_t *source, winding_t *pass, winding_t
 				}
 			}
 			if (k != pass->num_points) {
-				continue;    // points on negative side, not a seperating plane
+				continue;    // points on negative side, not a separating plane
 			}
 
 			if (!counts[0]) {
-				continue;    // planar with seperating plane
+				continue;    // planar with separating plane
 			}
 #else
 			k = (j + 1) % pass->num_points;
@@ -317,12 +317,12 @@ static winding_t *ClipToSeperators(winding_t *source, winding_t *pass, winding_t
 			//
 			// flip the normal if we want the back side
 			//
-			if (flipclip) {
+			if (flip_clip) {
 				VectorSubtract(vec3_origin, plane.normal, plane.normal);
 				plane.dist = -plane.dist;
 			}
 			//
-			// clip target by the seperating plane
+			// clip target by the separating plane
 			//
 			target = ChopWinding(target, stack, &plane);
 			if (!target) {
@@ -434,12 +434,12 @@ static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t *thread, pstack_t 
 			continue;
 		}
 
-		stack.pass = ClipToSeperators(stack.source, prevstack->pass, stack.pass, false, &stack);
+		stack.pass = ClipToSeparators(stack.source, prevstack->pass, stack.pass, false, &stack);
 		if (!stack.pass) {
 			continue;
 		}
 
-		stack.pass = ClipToSeperators(prevstack->pass, stack.source, stack.pass, true, &stack);
+		stack.pass = ClipToSeparators(prevstack->pass, stack.source, stack.pass, true, &stack);
 
 		if (!stack.pass) {
 			continue;
