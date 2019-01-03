@@ -321,6 +321,16 @@ static winding_t *ClipToSeparators(winding_t *source, winding_t *pass, winding_t
 				VectorSubtract(vec3_origin, plane.normal, plane.normal);
 				plane.dist = -plane.dist;
 			}
+			// MrE: fast check first
+			const vec_t d = DotProduct(stack->portal->origin, plane.normal) - plane.dist;
+			//if completely at the back of the separator plane
+			if (d < -stack->portal->radius) {
+				return NULL;
+			}
+			// if completely on the front of the separator plane
+			if (d > stack->portal->radius) {
+				break;
+			}
 			//
 			// clip target by the separating plane
 			//
@@ -328,6 +338,7 @@ static winding_t *ClipToSeparators(winding_t *source, winding_t *pass, winding_t
 			if (!target) {
 				return NULL;    // target is not visible
 			}
+			break; // optimization by Antony Suter
 		}
 	}
 
