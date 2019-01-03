@@ -343,19 +343,17 @@ static winding_t *ClipToSeparators(winding_t *source, winding_t *pass, winding_t
  * ==================
  */
 static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t *thread, pstack_t *prevstack) {
-	plane_t back_plane;
-	byte *test;
 
 	thread->c_chains++;
 
-	leaf_t *leaf = &map_vis.leafs[leaf_num];
+	// jdolan: This memory used to be allocated on the stack. Unfortunately, for very
+	// complex maps, this would fail and cause crashes when > 1 threads were running.
+	// So, we incur a small penalty by dynamically allocating the memory, but we're
+	// free to throw all of the threads we want at it.
+	pstack_t *stack = Mem_TagMalloc(sizeof(*stack), MEM_TAG_VIS);
 
-	pstack_t stack;
-	prevstack->next = &stack;
-
-	stack.next = NULL;
-	stack.leaf = leaf;
-	stack.portal = NULL;
+	leaf_t *leaf = stack->leaf = &map_vis.leafs[leaf_num];
+	prevstack->next = stack;
 
 	// check all portals for flowing into other leafs
 	for (int32_t i = 0; i < leaf->num_portals; i++) {
@@ -366,6 +364,8 @@ static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t *thread, pstack_t 
 			continue; // can't possibly see it
 		}
 
+		const byte *test;
+
 		// if the portal can't see anything we haven't already seen, skip it
 		if (p->status == STATUS_DONE) {
 			test = p->vis;
@@ -373,10 +373,10 @@ static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t *thread, pstack_t 
 			test = p->flood;
 		}
 
-		byte more = 0;
+		_Bool more = false;
 		for (int32_t j = 0; j < map_vis.portal_bytes; j++) {
-			stack.mightsee[j] = prevstack->mightsee[j] & test[j];
-			more |= (stack.mightsee[j] & ~thread->base->vis[j]);
+			stack->mightsee[j] = prevstack->mightsee[j] & test[j];
+			more |= (stack->mightsee[j] & ~thread->base->vis[j]);
 		}
 
 		if (!more && (thread->base->vis[portal_num >> 3] & (1 << (portal_num & 7)))) { // can't see anything new
@@ -384,15 +384,16 @@ static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t *thread, pstack_t 
 		}
 
 		// get plane of portal, point normal into the neighbor leaf
-		stack.portalplane = p->plane;
+		stack->portalplane = p->plane;
+		plane_t back_plane;
 		VectorSubtract(vec3_origin, p->plane.normal, back_plane.normal);
 		back_plane.dist = -p->plane.dist;
 
-		stack.portal = p;
-		stack.next = NULL;
-		stack.freewindings[0] = 1;
-		stack.freewindings[1] = 1;
-		stack.freewindings[2] = 1;
+		stack->portal = p;
+		stack->next = NULL;
+		stack->freewindings[0] = 1;
+		stack->freewindings[1] = 1;
+		stack->freewindings[2] = 1;
 
 		{
 			const vec_t d = DotProduct(p->origin, thread->pstack_head.portalplane.normal)
@@ -400,10 +401,10 @@ static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t *thread, pstack_t 
 			if (d < -p->radius) {
 				continue;
 			} else if (d > p->radius) {
-				stack.pass = p->winding;
+				stack->pass = p->winding;
 			} else {
-				stack.pass = ChopWinding(p->winding, &stack, &thread->pstack_head.portalplane);
-				if (!stack.pass) {
+				stack->pass = ChopWinding(p->winding, stack, &thread->pstack_head.portalplane);
+				if (!stack->pass) {
 					continue;
 				}
 			}
@@ -418,10 +419,10 @@ static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t *thread, pstack_t 
 				continue;
 			} else if (d < -thread->base->radius) {
 				//} else if(d < -p->radius){
-				stack.source = prevstack->source;
+				stack->source = prevstack->source;
 			} else {
-				stack.source = ChopWinding(prevstack->source, &stack, &back_plane);
-				if (!stack.source) {
+				stack->source = ChopWinding(prevstack->source, stack, &back_plane);
+				if (!stack->source) {
 					continue;
 				}
 			}
@@ -430,18 +431,18 @@ static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t *thread, pstack_t 
 		if (!prevstack->pass) { // the second leaf can only be blocked if coplanar
 			// mark the portal as visible
 			thread->base->vis[portal_num >> 3] |= (1 << (portal_num & 7));
-			RecursiveLeafFlow(p->leaf, thread, &stack);
+			RecursiveLeafFlow(p->leaf, thread, stack);
 			continue;
 		}
 
-		stack.pass = ClipToSeparators(stack.source, prevstack->pass, stack.pass, false, &stack);
-		if (!stack.pass) {
+		stack->pass = ClipToSeparators(stack->source, prevstack->pass, stack->pass, false, stack);
+		if (!stack->pass) {
 			continue;
 		}
 
-		stack.pass = ClipToSeparators(prevstack->pass, stack.source, stack.pass, true, &stack);
+		stack->pass = ClipToSeparators(prevstack->pass, stack->source, stack->pass, true, stack);
 
-		if (!stack.pass) {
+		if (!stack->pass) {
 			continue;
 		}
 
@@ -449,8 +450,10 @@ static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t *thread, pstack_t 
 		thread->base->vis[portal_num >> 3] |= (1 << (portal_num & 7));
 
 		// flow through it for real
-		RecursiveLeafFlow(p->leaf, thread, &stack);
+		RecursiveLeafFlow(p->leaf, thread, stack);
 	}
+
+	Mem_Free(stack);
 }
 
 /**
