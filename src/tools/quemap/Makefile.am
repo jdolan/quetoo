@@ -7,7 +7,6 @@ noinst_HEADERS = \
 	csg.h \
 	entity.h \
 	face.h \
-	flow.h \
 	leakfile.h \
 	light.h \
 	lightmap.h \
@@ -26,6 +25,7 @@ noinst_HEADERS = \
 	texinfo.h \
 	tjunction.h \
 	tree.h \
+	vis.h \
 	work.h \
 	writebsp.h
 
@@ -35,7 +35,6 @@ quemap_SOURCES = \
 	csg.c \
 	entity.c \
 	face.c \
-	flow.c \
 	leakfile.c \
 	light.c \
 	lightmap.c \
@@ -55,6 +54,7 @@ quemap_SOURCES = \
 	texinfo.c \
 	tjunction.c \
 	tree.c \
+	vis.c \
 	work.c \
 	writebsp.c
 

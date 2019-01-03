@@ -496,7 +496,7 @@
 		CE80FFE41C5E4D1800A21A51 /* bsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6E71C5C58C300CD0B13 /* bsp.c */; };
 		CE80FFE51C5E4D1800A21A51 /* csg.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6E91C5C58C300CD0B13 /* csg.c */; };
 		CE80FFE61C5E4D1800A21A51 /* face.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6EA1C5C58C300CD0B13 /* face.c */; };
-		CE80FFE71C5E4D1800A21A51 /* flow.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6EB1C5C58C300CD0B13 /* flow.c */; };
+		CE80FFE71C5E4D1800A21A51 /* vis.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6EB1C5C58C300CD0B13 /* vis.c */; };
 		CE80FFE81C5E4D1800A21A51 /* leakfile.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6EC1C5C58C300CD0B13 /* leakfile.c */; };
 		CE80FFE91C5E4D1800A21A51 /* lightmap.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6ED1C5C58C300CD0B13 /* lightmap.c */; };
 		CE80FFEA1C5E4D1800A21A51 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6EE1C5C58C300CD0B13 /* main.c */; };
@@ -1737,7 +1737,7 @@
 		CE12D6E81C5C58C300CD0B13 /* bsp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bsp.h; sourceTree = "<group>"; };
 		CE12D6E91C5C58C300CD0B13 /* csg.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = csg.c; sourceTree = "<group>"; };
 		CE12D6EA1C5C58C300CD0B13 /* face.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = face.c; sourceTree = "<group>"; };
-		CE12D6EB1C5C58C300CD0B13 /* flow.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = flow.c; sourceTree = "<group>"; };
+		CE12D6EB1C5C58C300CD0B13 /* vis.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vis.c; sourceTree = "<group>"; };
 		CE12D6EC1C5C58C300CD0B13 /* leakfile.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = leakfile.c; sourceTree = "<group>"; };
 		CE12D6ED1C5C58C300CD0B13 /* lightmap.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = lightmap.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		CE12D6EE1C5C58C300CD0B13 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = main.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
@@ -2029,7 +2029,7 @@
 		CEAD2AB3203CF7E800F1FB7E /* libopenal.1.18.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopenal.1.18.2.dylib; path = ../../../../usr/local/lib/libopenal.1.18.2.dylib; sourceTree = "<group>"; };
 		CEB8D6231E00B72100043814 /* cg_input.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_input.c; sourceTree = "<group>"; };
 		CEB8D6241E00B72100043814 /* cg_input.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_input.h; sourceTree = "<group>"; };
-		CEBCE0C421CFC6AF00976E76 /* flow.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = flow.h; sourceTree = "<group>"; };
+		CEBCE0C421CFC6AF00976E76 /* vis.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vis.h; sourceTree = "<group>"; };
 		CEBCE0C521CFC6CE00976E76 /* leakfile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = leakfile.h; sourceTree = "<group>"; };
 		CEBCE0C621CFD43500976E76 /* work.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = work.h; sourceTree = "<group>"; };
 		CEBCE0C721CFDD1600976E76 /* texinfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = texinfo.h; sourceTree = "<group>"; };
@@ -3243,8 +3243,6 @@
 				CE34098E21C2D52500989FC9 /* entity.h */,
 				CE12D6EA1C5C58C300CD0B13 /* face.c */,
 				CE42657421C3EDB400F768DD /* face.h */,
-				CE12D6EB1C5C58C300CD0B13 /* flow.c */,
-				CEBCE0C421CFC6AF00976E76 /* flow.h */,
 				CE12D6EC1C5C58C300CD0B13 /* leakfile.c */,
 				CEBCE0C521CFC6CE00976E76 /* leakfile.h */,
 				CEBDB0C5214A02B500A7AC3D /* light.c */,
@@ -3285,6 +3283,8 @@
 				CE2E374421CABB8C00DB4648 /* tjunction.h */,
 				CE12D7071C5C58C300CD0B13 /* tree.c */,
 				CE2E374321CAB82800DB4648 /* tree.h */,
+				CE12D6EB1C5C58C300CD0B13 /* vis.c */,
+				CEBCE0C421CFC6AF00976E76 /* vis.h */,
 				CE12D7061C5C58C300CD0B13 /* work.c */,
 				CEBCE0C621CFD43500976E76 /* work.h */,
 				CE12D7081C5C58C300CD0B13 /* writebsp.c */,
@@ -5162,7 +5162,7 @@
 				CE80FFE51C5E4D1800A21A51 /* csg.c in Sources */,
 				CE34099021C2D52500989FC9 /* entity.c in Sources */,
 				CE80FFE61C5E4D1800A21A51 /* face.c in Sources */,
-				CE80FFE71C5E4D1800A21A51 /* flow.c in Sources */,
+				CE80FFE71C5E4D1800A21A51 /* vis.c in Sources */,
 				CE80FFE81C5E4D1800A21A51 /* leakfile.c in Sources */,
 				CEBDB0C6214A02B500A7AC3D /* light.c in Sources */,
 				CE80FFE91C5E4D1800A21A51 /* lightmap.c in Sources */,
