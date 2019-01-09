@@ -207,7 +207,7 @@ csg_brush_t *MakeBrushes(int32_t start, int32_t end, vec3_t mins, vec3_t maxs) {
 		memcpy(brush->sides, b->original_sides, brush->num_sides * sizeof(brush_side_t));
 		for (int32_t j = 0; j < b->num_sides; j++) {
 			if (brush->sides[j].winding) {
-				brush->sides[j].winding = CopyWinding(brush->sides[j].winding);
+				brush->sides[j].winding = Cm_CopyWinding(brush->sides[j].winding);
 			}
 			if (brush->sides[j].surf & SURF_HINT) {
 				brush->sides[j].visible = true; // hints are always visible

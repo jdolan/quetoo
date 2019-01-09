@@ -29,6 +29,7 @@
 #include "cm_entity.h"
 #include "cm_material.h"
 #include "cm_model.h"
+#include "cm_polylib.h"
 #include "cm_test.h"
 #include "cm_trace.h"
 #include "cm_types.h"

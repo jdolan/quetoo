@@ -103,7 +103,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "maps/edge.map"
+            argument = "maps/torn.map"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

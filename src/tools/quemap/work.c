@@ -26,7 +26,7 @@ typedef struct {
 	WorkFunc func; // the work function
 	int32_t index; // current work cycle
 	int32_t count; // total work cycles
-	int32_t fraction; // last fraction of work completed
+	int32_t percent; // last fraction of work completed
 } work_t;
 
 work_t work;
@@ -39,21 +39,18 @@ static int32_t GetWork(void) {
 	WorkLock();
 
 	if (work.index == work.count || !Com_WasInit(QUEMAP)) { // done or killed
+		if (work.percent != 100) {
+			Com_Print("\r100%%");
+		}
 		WorkUnlock();
 		return -1;
 	}
 
-	// update work fraction and output progress
-	const int32_t f = 100 * work.index / work.count;
-	if (f != work.fraction) {
-		for (int32_t i = work.fraction; i < f; i++) {
-			if (i % 10 == 0) {
-				Com_Print("%i", i / 10);
-			} else if (i % 2 == 0) {
-				Com_Print(".");
-			}
-		}
-		work.fraction = f;
+	// update work percent and output progress
+	const int32_t p = 100.0 * work.index / work.count;
+	if (p != work.percent) {
+		Com_Print("\r%2d%%", p);
+		work.percent = p;
 	}
 
 	// assign the next work iteration

@@ -58,7 +58,7 @@ void LeakFile(tree_t *tree) {
 		node = next_node;
 
 		// add the portal center
-		WindingCenter(next_portal->winding, point);
+		Cm_WindingCenter(next_portal->winding, point);
 		Fs_Print(file, "%f %f %f\n", point[0], point[1], point[2]);
 	}
 	

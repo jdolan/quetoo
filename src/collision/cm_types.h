@@ -29,6 +29,11 @@
 #define	SIDE_EPSILON			0.001
 
 /**
+ * @brief Point equality epsilon value.
+ */
+#define ON_EPSILON				0.1
+
+/**
  * @brief Plane side constants used for BSP recursion.
  */
 #define	SIDE_FRONT				1

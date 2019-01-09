@@ -55,9 +55,11 @@ static face_t *NewFaceFromFace(const face_t *f) {
  * @brief
  */
 void FreeFace(face_t *f) {
+
 	if (f->w) {
-		FreeWinding(f->w);
+		Cm_FreeWinding(f->w);
 	}
+
 	Mem_Free(f);
 	c_faces--;
 }
@@ -72,9 +74,9 @@ void FreeFace(face_t *f) {
  * Returns NULL if the faces couldn't be merged, or the new face.
  * The originals will NOT be freed.
  */
-static winding_t *MergeWindings(winding_t *f1, winding_t *f2, const vec3_t plane_normal) {
+static cm_winding_t *MergeWindings(cm_winding_t *f1, cm_winding_t *f2, const vec3_t plane_normal) {
 	vec_t *p1, *p2, *back;
-	winding_t *newf;
+	cm_winding_t *newf;
 	int32_t i, j, k, l;
 	vec3_t normal, delta;
 	vec_t dot;
@@ -138,7 +140,7 @@ static winding_t *MergeWindings(winding_t *f1, winding_t *f2, const vec3_t plane
 	keep2 = (_Bool) (dot < -CONTINUOUS_EPSILON);
 
 	// build the new polygon
-	newf = AllocWinding(f1->num_points + f2->num_points);
+	newf = Cm_AllocWinding(f1->num_points + f2->num_points);
 
 	// copy first polygon
 	for (k = (i + 1) % f1->num_points; k != i; k = (k + 1) % f1->num_points) {
@@ -184,7 +186,7 @@ face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal) {
 		return NULL;
 	}
 
-	winding_t *nw = MergeWindings(f1->w, f2->w, normal);
+	cm_winding_t *nw = MergeWindings(f1->w, f2->w, normal);
 	if (!nw) {
 		return NULL;
 	}
@@ -199,8 +201,8 @@ face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal) {
 	return newf;
 }
 
-#define SNAP_FLOAT_TO_INT   8
-#define SNAP_INT_TO_FLOAT   (1.0 / SNAP_FLOAT_TO_INT)
+#define SNAP_TO_INT   8
+#define SNAP_TO_FLOAT   (1.0 / SNAP_TO_INT)
 
 /**
  * @brief Emit vertexes and vertex indices for the given face.
@@ -226,7 +228,7 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 
 		if (!(texinfo->flags & SURF_NO_WELD)) {
 			for (int32_t i = 0; i < 3; i++) {
-				v.position[i] = SNAP_INT_TO_FLOAT * floorf(v.position[i] * SNAP_FLOAT_TO_INT + 0.5);
+				v.position[i] = SNAP_TO_FLOAT * floorf(v.position[i] * SNAP_TO_INT + 0.5);
 			}
 		}
 
@@ -337,9 +339,9 @@ void PhongVertexes(void) {
 
 				const plane_t *plane = &planes[(*pf)->plane_num];
 
-				winding_t *w = WindingForFace(*pf);
-				VectorMA(v->normal, WindingArea(w), plane->normal, v->normal);
-				FreeWinding(w);
+				cm_winding_t *w = Cm_WindingForFace(&bsp_file, *pf);
+				VectorMA(v->normal, Cm_WindingArea(w), plane->normal, v->normal);
+				Cm_FreeWinding(w);
 			}
 
 			VectorNormalize(v->normal);

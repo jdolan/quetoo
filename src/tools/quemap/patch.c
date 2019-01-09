@@ -99,7 +99,7 @@ void FreeTextureColors(void) {
 /**
  * @brief
  */
-static void BuildPatch(int32_t fn, winding_t *w) {
+static void BuildPatch(int32_t fn, cm_winding_t *w) {
 
 	patch_t *patch = (patch_t *) Mem_TagMalloc(sizeof(*patch), MEM_TAG_PATCH);
 	patches[fn] = patch;
@@ -149,7 +149,7 @@ void BuildPatches(const GList *entities) {
 
 			VectorCopy(origin, patch_offsets[face_num]);
 
-			winding_t *w = WindingForFace(f);
+			cm_winding_t *w = Cm_WindingForFace(&bsp_file, f);
 
 			for (int32_t k = 0; k < w->num_points; k++) {
 				VectorAdd(w->points[k], origin, w->points[k]);
@@ -164,7 +164,7 @@ void BuildPatches(const GList *entities) {
  * @brief
  */
 static void SubdividePatch(patch_t *patch) {
-	winding_t *w, *o1, *o2;
+	cm_winding_t *w, *o1, *o2;
 	vec3_t mins, maxs;
 	vec3_t split;
 	vec_t dist;
@@ -172,7 +172,7 @@ static void SubdividePatch(patch_t *patch) {
 	patch_t *newp;
 
 	w = patch->winding;
-	WindingBounds(w, mins, maxs);
+	Cm_WindingBounds(w, mins, maxs);
 
 	VectorClear(split);
 
@@ -188,7 +188,7 @@ static void SubdividePatch(patch_t *patch) {
 	}
 
 	dist = patch_size * (1 + floor((mins[i] + 1) / patch_size));
-	ClipWindingEpsilon(w, split, dist, ON_EPSILON, &o1, &o2);
+	Cm_ClipWinding(w, split, dist, ON_EPSILON, &o1, &o2);
 
 	// create a new patch
 	newp = (patch_t *) Mem_TagMalloc(sizeof(*newp), MEM_TAG_PATCH);

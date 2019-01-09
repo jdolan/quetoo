@@ -4,6 +4,7 @@ noinst_HEADERS = \
 	cm_local.h \
 	cm_material.h \
 	cm_model.h \
+	cm_polylib.h \
 	cm_test.h \
 	cm_types.h \
 	cm_vis.h \
@@ -23,6 +24,7 @@ libcmodel_la_SOURCES = \
 	cm_entity.c \
 	cm_material.c \
 	cm_model.c \
+	cm_polylib.c \
 	cm_test.c \
 	cm_trace.c \
 	cm_vis.c

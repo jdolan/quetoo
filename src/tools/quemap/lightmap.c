@@ -89,7 +89,7 @@ static void BuildLightmapLuxels(lightmap_t *lm) {
 	lm->num_luxels = lm->w * lm->h;
 
 	if (lm->num_luxels > MAX_BSP_LIGHTMAP) {
-		const winding_t *w = WindingForFace(lm->face);
+		const cm_winding_t *w = Cm_WindingForFace(&bsp_file, lm->face);
 		Mon_SendWinding(MON_ERROR, (const vec3_t *) w->points, w->num_points,
 						va("Surface too large to light (%zd)\n", lm->num_luxels));
 	}

@@ -59,7 +59,7 @@ static void WritePortalFile_r(node_t *node) {
 	}
 
 	for (portal_t *p = node->portals; p; p = p->next[s]) {
-		winding_t *w = p->winding;
+		cm_winding_t *w = p->winding;
 		s = (p->nodes[1] == node);
 		if (w && p->nodes[0] == node) {
 			if (!Portal_VisFlood(p)) {
@@ -71,7 +71,7 @@ static void WritePortalFile_r(node_t *node) {
 			// the changeover point between different axis. interpret the
 			// plane the same way vis will, and flip the side orders if needed
 			// FIXME: is this still relevent? Yes. jgothic.
-			WindingPlane(w, normal, &dist);
+			Cm_PlaneForWinding(w, normal, &dist);
 			if (DotProduct(p->plane.normal, normal) < 0.99) { // backwards...
 				Fs_Print(prtfile, "%i %i %i ", w->num_points, p->nodes[1]->cluster,
 				         p->nodes[0]->cluster);

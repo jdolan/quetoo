@@ -250,7 +250,7 @@ static void AddBrushBevels(brush_t *b) {
 	brush_side_t *s, *s2;
 	vec3_t normal;
 	vec_t dist;
-	winding_t *w, *w2;
+	cm_winding_t *w, *w2;
 	vec3_t vec, vec2;
 	vec_t d;
 
@@ -404,7 +404,7 @@ static _Bool MakeBrushWindings(brush_t *ob) {
 
 	for (int32_t i = 0; i < ob->num_sides; i++) {
 		const plane_t *plane = &planes[ob->original_sides[i].plane_num];
-		winding_t *w = WindingForPlane(plane->normal, plane->dist);
+		cm_winding_t *w = Cm_WindingForPlane(plane->normal, plane->dist);
 		for (int32_t j = 0; j < ob->num_sides && w; j++) {
 			if (i == j) {
 				continue;
@@ -417,7 +417,7 @@ static _Bool MakeBrushWindings(brush_t *ob) {
 				continue;
 			}
 			plane = &planes[ob->original_sides[j].plane_num ^ 1];
-			ChopWindingInPlace(&w, plane->normal, plane->dist, 0); //CLIP_EPSILON);
+			Cm_ChopWinding(&w, plane->normal, plane->dist, 0); //ON_EPSILON);
 		}
 
 		brush_side_t *side = &ob->original_sides[i];

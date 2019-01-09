@@ -39,7 +39,7 @@ typedef struct face_s {
 	int32_t plane_num;
 	int32_t contents; // faces in different contents can't merge
 	int32_t num;
-	winding_t *w;
+	cm_winding_t *w;
 } face_t;
 
 extern int32_t c_merge;

@@ -42,7 +42,7 @@ static portal_t *AllocPortal(void) {
 void FreePortal(portal_t *p) {
 
 	if (p->winding) {
-		FreeWinding(p->winding);
+		Cm_FreeWinding(p->winding);
 	}
 
 	SDL_AtomicAdd(&c_active_portals, -1);
@@ -234,7 +234,7 @@ void MakeHeadnodePortals(tree_t *tree) {
 				plane->normal[i] = 1;
 				plane->dist = bounds[j][i];
 			}
-			p->winding = WindingForPlane(plane->normal, plane->dist);
+			p->winding = Cm_WindingForPlane(plane->normal, plane->dist);
 			AddPortalToNodes(p, tree->head_node, &tree->outside_node);
 		}
 	}
@@ -246,7 +246,7 @@ void MakeHeadnodePortals(tree_t *tree) {
 				continue;
 			}
 			const plane_t *plane = &portals[j]->plane;
-			ChopWindingInPlace(&portals[i]->winding, plane->normal, plane->dist, ON_EPSILON);
+			Cm_ChopWinding(&portals[i]->winding, plane->normal, plane->dist, ON_EPSILON);
 		}
 	}
 }
@@ -257,23 +257,21 @@ void MakeHeadnodePortals(tree_t *tree) {
 /**
  * @brief
  */
-static winding_t *BaseWindingForNode(const node_t *node) {
-	const plane_t *plane;
+static cm_winding_t *BaseWindingForNode(const node_t *node) {
 	vec3_t normal;
-	vec_t dist;
 
-	winding_t *w = WindingForPlane(planes[node->plane_num].normal, planes[node->plane_num].dist);
+	const plane_t *plane = &planes[node->plane_num];
+	cm_winding_t *w = Cm_WindingForPlane(plane->normal, plane->dist);
 
 	// clip by all the parents
 	for (const node_t *n = node->parent; n && w;) {
 		plane = &planes[n->plane_num];
 
 		if (n->children[0] == node) { // take front
-			ChopWindingInPlace(&w, plane->normal, plane->dist, BASE_WINDING_EPSILON);
+			Cm_ChopWinding(&w, plane->normal, plane->dist, BASE_WINDING_EPSILON);
 		} else { // take back
 			VectorSubtract(vec3_origin, plane->normal, normal);
-			dist = -plane->dist;
-			ChopWindingInPlace(&w, normal, dist, BASE_WINDING_EPSILON);
+			Cm_ChopWinding(&w, normal, -plane->dist, BASE_WINDING_EPSILON);
 		}
 		node = n;
 		n = n->parent;
@@ -291,7 +289,7 @@ void MakeNodePortal(node_t *node) {
 	vec_t dist;
 	int32_t side;
 
-	winding_t *w = BaseWindingForNode(node);
+	cm_winding_t *w = BaseWindingForNode(node);
 
 	// clip the portal by all the other portals in the node
 	for (const portal_t *p = node->portals; p && w; p = p->next[side]) {
@@ -307,7 +305,7 @@ void MakeNodePortal(node_t *node) {
 			Com_Error(ERROR_FATAL, "Mis-linked portal\n");
 		}
 
-		ChopWindingInPlace(&w, normal, dist, 0.1);
+		Cm_ChopWinding(&w, normal, dist, 0.1);
 	}
 
 	if (!w) {
@@ -316,7 +314,7 @@ void MakeNodePortal(node_t *node) {
 
 	if (WindingIsTiny(w)) {
 		c_tinyportals++;
-		FreeWinding(w);
+		Cm_FreeWinding(w);
 		return;
 	}
 
@@ -353,18 +351,18 @@ void SplitNodePortals(node_t *node) {
 
 		// cut the portal into two portals, one on each side of the cut plane
 
-		winding_t *front_winding, *back_winding;
-		ClipWindingEpsilon(p->winding, plane->normal, plane->dist, SPLIT_WINDING_EPSILON,
+		cm_winding_t *front_winding, *back_winding;
+		Cm_ClipWinding(p->winding, plane->normal, plane->dist, SPLIT_WINDING_EPSILON,
 		                   &front_winding, &back_winding);
 
 		if (front_winding && WindingIsTiny(front_winding)) {
-			FreeWinding(front_winding);
+			Cm_FreeWinding(front_winding);
 			front_winding = NULL;
 			c_tinyportals++;
 		}
 
 		if (back_winding && WindingIsTiny(back_winding)) {
-			FreeWinding(back_winding);
+			Cm_FreeWinding(back_winding);
 			back_winding = NULL;
 			c_tinyportals++;
 		}
@@ -374,7 +372,7 @@ void SplitNodePortals(node_t *node) {
 		}
 
 		if (!front_winding) { // only back
-			FreeWinding(back_winding);
+			Cm_FreeWinding(back_winding);
 			if (side == 0) {
 				AddPortalToNodes(p, node->children[1], other);
 			} else {
@@ -383,7 +381,7 @@ void SplitNodePortals(node_t *node) {
 			continue;
 		}
 		if (!back_winding) { // only front
-			FreeWinding(front_winding);
+			Cm_FreeWinding(front_winding);
 			if (side == 0) {
 				AddPortalToNodes(p, node->children[0], other);
 			} else {
@@ -397,7 +395,7 @@ void SplitNodePortals(node_t *node) {
 		portal_t *q = AllocPortal();
 		*q = *p;
 		q->winding = back_winding;
-		FreeWinding(p->winding);
+		Cm_FreeWinding(p->winding);
 		p->winding = front_winding;
 
 		if (side == 0) {
@@ -891,10 +889,10 @@ static face_t *FaceFromPortal(portal_t *p, int32_t pside) {
 	}
 
 	if (pside) {
-		f->w = ReverseWinding(p->winding);
+		f->w = Cm_ReverseWinding(p->winding);
 		f->contents = p->nodes[1]->contents;
 	} else {
-		f->w = CopyWinding(p->winding);
+		f->w = Cm_CopyWinding(p->winding);
 		f->contents = p->nodes[0]->contents;
 	}
 
@@ -919,7 +917,6 @@ static void MakeFaces_r(node_t *node) {
 		MakeFaces_r(node->children[0]);
 		MakeFaces_r(node->children[1]);
 
-		// merge together all visible faces on the node
 		if (!no_merge) {
 			MergeNodeFaces(node);
 		}

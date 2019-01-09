@@ -147,6 +147,8 @@
 		CE34099021C2D52500989FC9 /* entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CE34098F21C2D52500989FC9 /* entity.c */; };
 		CE3BCDC91DB6DD81002E6C6D /* r_program_null.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3BCDB91DB6DCE0002E6C6D /* r_program_null.c */; };
 		CE3BCDCA1DB6DD87002E6C6D /* r_program_null.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3BCDBA1DB6DCE0002E6C6D /* r_program_null.h */; };
+		CE3C529421E4DF2500FEDBED /* cm_polylib.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3C529221E4DF2500FEDBED /* cm_polylib.h */; };
+		CE3C529521E4DF2500FEDBED /* cm_polylib.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3C529321E4DF2500FEDBED /* cm_polylib.c */; };
 		CE40147B204B9EF0009FD74E /* libphysfs.3.0.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE40147A204B9EF0009FD74E /* libphysfs.3.0.1.dylib */; };
 		CE40147C204B9F32009FD74E /* libphysfs.3.0.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE40147A204B9EF0009FD74E /* libphysfs.3.0.1.dylib */; };
 		CE40147D204B9F4C009FD74E /* libphysfs.3.0.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE40147A204B9EF0009FD74E /* libphysfs.3.0.1.dylib */; };
@@ -1843,6 +1845,8 @@
 		CE3BCDBA1DB6DCE0002E6C6D /* r_program_null.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_program_null.h; sourceTree = "<group>"; };
 		CE3BCDC31DB6DD05002E6C6D /* null_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = null_fs.glsl; sourceTree = "<group>"; };
 		CE3BCDC41DB6DD05002E6C6D /* null_vs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = null_vs.glsl; sourceTree = "<group>"; };
+		CE3C529221E4DF2500FEDBED /* cm_polylib.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cm_polylib.h; sourceTree = "<group>"; };
+		CE3C529321E4DF2500FEDBED /* cm_polylib.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cm_polylib.c; sourceTree = "<group>"; };
 		CE40147A204B9EF0009FD74E /* libphysfs.3.0.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libphysfs.3.0.1.dylib; path = ../../../../opt/local/lib/libphysfs.3.0.1.dylib; sourceTree = "<group>"; };
 		CE42657321C3CD7D00F768DD /* map.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = map.h; sourceTree = "<group>"; };
 		CE42657421C3EDB400F768DD /* face.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = face.h; sourceTree = "<group>"; };
@@ -3052,6 +3056,8 @@
 				CEA3B4861E057569004A6CF3 /* cm_material.h */,
 				CE12D62A1C5C58C300CD0B13 /* cm_model.c */,
 				CE12D62B1C5C58C300CD0B13 /* cm_model.h */,
+				CE3C529221E4DF2500FEDBED /* cm_polylib.h */,
+				CE3C529321E4DF2500FEDBED /* cm_polylib.c */,
 				CE12D62C1C5C58C300CD0B13 /* cm_test.c */,
 				CE12D62D1C5C58C300CD0B13 /* cm_test.h */,
 				CE12D62E1C5C58C300CD0B13 /* cm_trace.c */,
@@ -3875,6 +3881,7 @@
 			files = (
 				CE6C2D121E24902900F55B0A /* cm_bsp.h in Headers */,
 				CEBDB0C9214A037900A7AC3D /* cm_entity.h in Headers */,
+				CE3C529421E4DF2500FEDBED /* cm_polylib.h in Headers */,
 				CE80FE721C5E437F00A21A51 /* cm_local.h in Headers */,
 				CEA3B48E1E0576E7004A6CF3 /* cm_material.h in Headers */,
 				CE80FE731C5E437F00A21A51 /* cm_model.h in Headers */,
@@ -5215,6 +5222,7 @@
 				CE80FE3C1C5E424300A21A51 /* cm_test.c in Sources */,
 				CE80FE3D1C5E424300A21A51 /* cm_trace.c in Sources */,
 				CE80FE3E1C5E424300A21A51 /* cm_vis.c in Sources */,
+				CE3C529521E4DF2500FEDBED /* cm_polylib.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

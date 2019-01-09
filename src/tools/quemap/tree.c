@@ -286,6 +286,10 @@ static brush_side_t *SelectSplitSide(csg_brush_t *brushes, node_t *node) {
 				}
 				value -= epsilon_brush * 1000; // avoid!
 
+				if (side->contents & CONTENTS_DETAIL) {
+					//value -= 5; // try to avoid splitting on details
+				}
+
 				// never split a hint side except with another hint
 				if (hint_split && !(side->surf & SURF_HINT)) {
 					value = -9999999;
