@@ -57,11 +57,12 @@ int32_t CountBits(const byte *bits, int32_t max) {
 /**
  * @brief
  */
-static winding_t *AllocWinding(pstack_t *stack) {
+static winding_t *AllocStackWinding(pstack_t *stack) {
 
 	for (int32_t i = 0; i < 3; i++) {
-		if (stack->freewindings[i]) {
-			stack->freewindings[i] = 0;
+		if (stack->free_windings[i]) {
+			stack->free_windings[i] = false;
+			stack->windings[i].num_points = 0;
 			return &stack->windings[i];
 		}
 	}
@@ -73,39 +74,36 @@ static winding_t *AllocWinding(pstack_t *stack) {
 /**
  * @brief
  */
-static void FreeWinding(const winding_t *w, pstack_t *stack) {
+static void FreeStackWinding(pstack_t *stack, const winding_t *w) {
 	const ptrdiff_t i = w - stack->windings;
 
 	if (i < 0 || i > 2) {
-		return; // not from local
+		return; // the winding does not belong to the stack, it's a portal winding
 	}
 
-	if (stack->freewindings[i]) {
+	if (stack->free_windings[i] == true) {
 		Com_Error(ERROR_FATAL, "Already free\n");
 	}
 
-	stack->freewindings[i] = 1;
+	stack->free_windings[i] = true;
 }
 
 /**
  * @brief
  */
-static winding_t *ChopWinding(winding_t *in, pstack_t *stack, plane_t *split) {
-	vec_t dists[128];
-	int32_t sides[128];
-	int32_t counts[SIDE_BOTH + 1];
-	vec_t dot;
-	int32_t i, j;
-	vec_t *p1, *p2;
-	vec3_t mid;
-	winding_t *neww;
+static winding_t *ClipStackWinding(pstack_t *stack, winding_t *in, const plane_t *plane) {
 
+	const int32_t max_points = in->num_points + 4;
+
+	vec_t dists[max_points];
+	int32_t sides[max_points];
+
+	int32_t counts[SIDE_BOTH + 1];
 	memset(counts, 0, sizeof(counts));
 
 	// determine sides for each point
-	for (i = 0; i < in->num_points; i++) {
-		dot = DotProduct(in->points[i], split->normal);
-		dot -= split->dist;
+	for (int32_t i = 0; i < in->num_points; i++) {
+		const vec_t dot = DotProduct(in->points[i], plane->normal) - plane->dist;
 		dists[i] = dot;
 		if (dot > ON_EPSILON) {
 			sides[i] = SIDE_FRONT;
@@ -117,76 +115,74 @@ static winding_t *ChopWinding(winding_t *in, pstack_t *stack, plane_t *split) {
 		counts[sides[i]]++;
 	}
 
-	if (!counts[SIDE_BACK]) {
-		return in; // completely on front side
-	}
+	sides[in->num_points] = sides[0];
+	dists[in->num_points] = dists[0];
 
 	if (!counts[SIDE_FRONT]) {
-		FreeWinding(in, stack);
+		FreeStackWinding(stack, in);
 		return NULL;
 	}
 
-	sides[i] = sides[0];
-	dists[i] = dists[0];
+	if (!counts[SIDE_BACK]) {
+		return in;
+	}
 
-	neww = AllocWinding(stack);
+	winding_t *out = AllocStackWinding(stack);
 
-	neww->num_points = 0;
+	for (int32_t i = 0; i < in->num_points; i++) {
 
-	for (i = 0; i < in->num_points; i++) {
-		p1 = in->points[i];
+		vec3_t p1, p2, mid;
+		VectorCopy(in->points[i], p1);
 
-		if (neww->num_points == MAX_POINTS_ON_FIXED_WINDING) {
-			FreeWinding(neww, stack);
+		if (out->num_points == MAX_POINTS_ON_STACK_WINDING) {
+			FreeStackWinding(stack, out);
 			return in; // can't chop -- fall back to original
 		}
 
 		if (sides[i] == SIDE_BOTH) {
-			VectorCopy(p1, neww->points[neww->num_points]);
-			neww->num_points++;
+			VectorCopy(p1, out->points[out->num_points]);
+			out->num_points++;
 			continue;
 		}
 
 		if (sides[i] == SIDE_FRONT) {
-			VectorCopy(p1, neww->points[neww->num_points]);
-			neww->num_points++;
+			VectorCopy(p1, out->points[out->num_points]);
+			out->num_points++;
 		}
 
 		if (sides[i + 1] == SIDE_BOTH || sides[i + 1] == sides[i]) {
 			continue;
 		}
 
-		if (neww->num_points == MAX_POINTS_ON_FIXED_WINDING) {
-			FreeWinding(neww, stack);
+		if (out->num_points == MAX_POINTS_ON_STACK_WINDING) {
+			FreeStackWinding(stack, out);
 			return in; // can't chop -- fall back to original
 		}
 		// generate a split point
-		p2 = in->points[(i + 1) % in->num_points];
+		VectorCopy(in->points[(i + 1) % in->num_points], p2);
 
-		dot = dists[i] / (dists[i] - dists[i + 1]);
-		for (j = 0; j < 3; j++) { // avoid round off error when possible
-			if (split->normal[j] == 1) {
-				mid[j] = split->dist;
-			} else if (split->normal[j] == -1) {
-				mid[j] = -split->dist;
+		const vec_t dot = dists[i] / (dists[i] - dists[i + 1]);
+		for (int32_t j = 0; j < 3; j++) { // avoid round off error when possible
+			if (plane->normal[j] == 1) {
+				mid[j] = plane->dist;
+			} else if (plane->normal[j] == -1) {
+				mid[j] = -plane->dist;
 			} else {
 				mid[j] = p1[j] + dot * (p2[j] - p1[j]);
 			}
 		}
 
-		VectorCopy(mid, neww->points[neww->num_points]);
-		neww->num_points++;
+		VectorCopy(mid, out->points[out->num_points]);
+		out->num_points++;
 	}
 
 	// free the original winding
-	FreeWinding(in, stack);
-
-	return neww;
+	FreeStackWinding(stack, in);
+	return out;
 }
 
 /*
- * ==============
- * ClipToSeparators
+ * @brief
  *
  * Source, pass, and target are an ordering of portals.
  *
@@ -197,11 +193,10 @@ static winding_t *ChopWinding(winding_t *in, pstack_t *stack, plane_t *split) {
  *
  * Normal clip keeps target on the same side as pass, which is correct if the
  * order goes source, pass, target. If the order goes pass, source, target then
- * flipclip should be set.
- * ==============
+ * flip_clip should be set.
  */
-static winding_t *ClipToSeparators(winding_t *source, winding_t *pass, winding_t *target,
-                                   _Bool flip_clip, pstack_t *stack) {
+static winding_t *ClipToSeparators(pstack_t *stack, winding_t *source, winding_t *pass, winding_t *target,
+                                   _Bool flip_clip) {
 	int32_t k;
 
 	// check all combinations
@@ -211,7 +206,7 @@ static winding_t *ClipToSeparators(winding_t *source, winding_t *pass, winding_t
 		vec3_t v1;
 		VectorSubtract(source->points[l], source->points[i], v1);
 
-		// fing a vertex of pass that makes a plane that puts all of the
+		// find a vertex of pass that makes a plane that puts all of the
 		// vertexes of pass on the front side and all of the vertexes of
 		// source on the back side
 		for (int32_t j = 0; j < pass->num_points; j++) {
@@ -267,7 +262,7 @@ static winding_t *ClipToSeparators(winding_t *source, winding_t *pass, winding_t
 				continue;    // planar with source portal
 			}
 #else
-			fliptest = flipclip;
+			flip_test = flip_clip;
 #endif
 			//
 			// flip the normal if the source portal is backwards
@@ -334,7 +329,7 @@ static winding_t *ClipToSeparators(winding_t *source, winding_t *pass, winding_t
 			//
 			// clip target by the separating plane
 			//
-			target = ChopWinding(target, stack, &plane);
+			target = ClipStackWinding(stack, target, &plane);
 			if (!target) {
 				return NULL;    // target is not visible
 			}
@@ -371,7 +366,7 @@ static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t *thread, pstack_t 
 		portal_t *p = leaf->portals[i];
 		const ptrdiff_t portal_num = p - map_vis.portals;
 
-		if (!(prevstack->mightsee[portal_num >> 3] & (1 << (portal_num & 7)))) {
+		if (!(prevstack->might_see[portal_num >> 3] & (1 << (portal_num & 7)))) {
 			continue; // can't possibly see it
 		}
 
@@ -386,8 +381,8 @@ static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t *thread, pstack_t 
 
 		_Bool more = false;
 		for (int32_t j = 0; j < map_vis.portal_bytes; j++) {
-			stack->mightsee[j] = prevstack->mightsee[j] & test[j];
-			more |= (stack->mightsee[j] & ~thread->base->vis[j]);
+			stack->might_see[j] = prevstack->might_see[j] & test[j];
+			more |= (stack->might_see[j] & ~thread->base->vis[j]);
 		}
 
 		if (!more && (thread->base->vis[portal_num >> 3] & (1 << (portal_num & 7)))) { // can't see anything new
@@ -402,19 +397,19 @@ static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t *thread, pstack_t 
 
 		stack->portal = p;
 		stack->next = NULL;
-		stack->freewindings[0] = 1;
-		stack->freewindings[1] = 1;
-		stack->freewindings[2] = 1;
+		stack->free_windings[0] = 1;
+		stack->free_windings[1] = 1;
+		stack->free_windings[2] = 1;
 
 		{
-			const vec_t d = DotProduct(p->origin, thread->pstack_head.portalplane.normal)
-			                - thread->pstack_head.portalplane.dist;
+			const plane_t *plane = &thread->pstack_head.portalplane;
+			const vec_t d = DotProduct(p->origin, plane->normal) - plane->dist;
 			if (d < -p->radius) {
 				continue;
 			} else if (d > p->radius) {
 				stack->pass = p->winding;
 			} else {
-				stack->pass = ChopWinding(p->winding, stack, &thread->pstack_head.portalplane);
+				stack->pass = ClipStackWinding(stack, p->winding, plane);
 				if (!stack->pass) {
 					continue;
 				}
@@ -432,7 +427,7 @@ static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t *thread, pstack_t 
 				//} else if(d < -p->radius){
 				stack->source = prevstack->source;
 			} else {
-				stack->source = ChopWinding(prevstack->source, stack, &back_plane);
+				stack->source = ClipStackWinding(stack, prevstack->source, &back_plane);
 				if (!stack->source) {
 					continue;
 				}
@@ -446,13 +441,12 @@ static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t *thread, pstack_t 
 			continue;
 		}
 
-		stack->pass = ClipToSeparators(stack->source, prevstack->pass, stack->pass, false, stack);
+		stack->pass = ClipToSeparators(stack, stack->source, prevstack->pass, stack->pass, false);
 		if (!stack->pass) {
 			continue;
 		}
 
-		stack->pass = ClipToSeparators(prevstack->pass, stack->source, stack->pass, true, stack);
-
+		stack->pass = ClipToSeparators(stack, prevstack->pass, stack->source, stack->pass, true);
 		if (!stack->pass) {
 			continue;
 		}
@@ -486,7 +480,7 @@ void FinalVis(int32_t portal_num) {
 	data.pstack_head.portalplane = p->plane;
 
 	for (int32_t i = 0; i < map_vis.portal_bytes; i++) {
-		data.pstack_head.mightsee[i] = p->flood[i];
+		data.pstack_head.might_see[i] = p->flood[i];
 	}
 
 	RecursiveLeafFlow(p->leaf, &data, &data.pstack_head);

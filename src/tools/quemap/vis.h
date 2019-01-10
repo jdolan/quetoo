@@ -31,12 +31,11 @@ typedef struct {
 } plane_t;
 
 #define MAX_POINTS_ON_WINDING	64
-#define	MAX_POINTS_ON_FIXED_WINDING	12
+#define	MAX_POINTS_ON_STACK_WINDING	12
 
 typedef struct {
-	_Bool original; // don't free, it's part of the portal
 	int32_t num_points;
-	vec3_t points[MAX_POINTS_ON_FIXED_WINDING]; // variable sized
+	vec3_t points[MAX_POINTS_ON_STACK_WINDING]; // variable sized
 } winding_t;
 
 typedef enum {
@@ -59,36 +58,25 @@ typedef struct {
 	size_t num_might_see; // bit count on flood for sort
 } portal_t;
 
-typedef struct separating_plane_s {
-	struct separating_plane_s *next;
-	plane_t plane; // from portal is on positive side
-} separating_plane_t;
-
-typedef struct passage_s {
-	struct passage_s *next;
-	int32_t from, to; // leaf numbers
-	separating_plane_t *planes;
-} passage_t;
-
 #define	MAX_PORTALS_ON_LEAF		128
-typedef struct leaf_s {
+
+typedef struct {
 	int32_t num_portals;
-	passage_t *passages;
 	portal_t *portals[MAX_PORTALS_ON_LEAF];
 } leaf_t;
 
 typedef struct pstack_s {
-	byte mightsee[MAX_BSP_PORTALS / 8];	// bit string
-	struct pstack_s *next;
+	byte might_see[MAX_BSP_PORTALS / 8]; // bit string
 	leaf_t *leaf;
 	portal_t *portal; // portal exiting
 	winding_t *source;
 	winding_t *pass;
 
 	winding_t windings[3]; // source, pass, temp in any order
-	int32_t freewindings[3];
+	_Bool free_windings[3];
 
 	plane_t portalplane;
+	struct pstack_s *next;
 } pstack_t;
 
 typedef struct {

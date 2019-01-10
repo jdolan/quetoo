@@ -27,7 +27,8 @@ map_vis_t map_vis;
 _Bool fast_vis = false;
 _Bool no_sort = false;
 
-static int32_t visibility_count;
+static int32_t c_windings;
+static int32_t c_vis_clusters;
 
 /**
  * @brief
@@ -35,7 +36,6 @@ static int32_t visibility_count;
 static void PlaneFromWinding(const winding_t *w, plane_t *plane) {
 	vec3_t v1, v2;
 
-	// calc plane
 	VectorSubtract(w->points[2], w->points[1], v1);
 	VectorSubtract(w->points[0], w->points[1], v2);
 	CrossProduct(v2, v1, plane->normal);
@@ -46,18 +46,11 @@ static void PlaneFromWinding(const winding_t *w, plane_t *plane) {
 /**
  * @brief
  */
-static winding_t *NewWinding(uint16_t points) {
-	winding_t *w;
-	size_t size;
+static winding_t *AllocWinding(int32_t num_points) {
 
-	if (points > MAX_POINTS_ON_WINDING) {
-		Com_Error(ERROR_FATAL, "MAX_POINTS_ON_WINDING\n");
-	}
+	c_windings++;
 
-	size = (size_t) ((winding_t *) 0)->points[points];
-	w = Mem_TagMalloc(size, MEM_TAG_WINDING);
-
-	return w;
+	return Mem_TagMalloc(sizeof(int32_t) + sizeof(vec3_t) * num_points, MEM_TAG_WINDING);
 }
 
 /**
@@ -149,7 +142,7 @@ static void ClusterMerge(uint32_t leaf_num) {
 
 	// compress the bit string
 	Com_Debug(DEBUG_ALL, "Cluster %4d : %4d visible\n", leaf_num, visible);
-	visibility_count += visible;
+	c_vis_clusters += visible;
 
 	const int32_t len = Bsp_CompressVis(&bsp_file, uncompressed, compressed);
 
@@ -190,7 +183,7 @@ static void CalcPVS(void) {
 	}
 
 	if (map_vis.portal_clusters) {
-		Com_Print("Average clusters visible: %i\n", visibility_count / map_vis.portal_clusters);
+		Com_Print("Average clusters visible: %i\n", c_vis_clusters / map_vis.portal_clusters);
 	} else {
 		Com_Print("Average clusters visible: 0\n");
 	}
@@ -298,8 +291,7 @@ static void LoadPortals(const char *filename) {
 			Com_Error(ERROR_FATAL, "Portal %i has invalid leafs\n", i);
 		}
 
-		w = p->winding = NewWinding(num_points);
-		w->original = true;
+		w = p->winding = AllocWinding(num_points);
 		w->num_points = num_points;
 
 		for (int32_t j = 0; j < num_points; j++) {
@@ -346,7 +338,7 @@ static void LoadPortals(const char *filename) {
 		l->portals[l->num_portals] = p;
 		l->num_portals++;
 
-		p->winding = NewWinding(w->num_points);
+		p->winding = AllocWinding(w->num_points);
 		p->winding->num_points = w->num_points;
 		for (int32_t j = 0; j < w->num_points; j++) {
 			VectorCopy(w->points[w->num_points - 1 - j], p->winding->points[j]);
