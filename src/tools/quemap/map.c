@@ -417,7 +417,7 @@ static _Bool MakeBrushWindings(brush_t *ob) {
 				continue;
 			}
 			plane = &planes[ob->original_sides[j].plane_num ^ 1];
-			Cm_ChopWinding(&w, plane->normal, plane->dist, 0); //ON_EPSILON);
+			Cm_ClipWinding(&w, plane->normal, plane->dist, 0); //ON_EPSILON);
 		}
 
 		brush_side_t *side = &ob->original_sides[i];

@@ -25,8 +25,6 @@
 
 static SDL_atomic_t c_windings;
 
-static const dvec_t MIN_EPSILON = (FLT_EPSILON * (dvec_t) 0.5);
-
 /**
  * @brief
  */
@@ -140,13 +138,10 @@ void Cm_PlaneForWinding(const cm_winding_t *w, vec3_t normal, vec_t *dist) {
 }
 
 /**
- * @brief Create a massive polygon for the specified plane. This will be used
- * as the basis for all clipping operations against the plane. Double precision
- * is used to produce very accurate results; this is an improvement over the
- * Quake II tools.
+ * @brief Create a massive polygon for the specified plane.
  */
 cm_winding_t *Cm_WindingForPlane(const vec3_t normal, const vec_t dist) {
-	dvec3_t org, vnormal, vright, vup;
+	vec3_t org, right, up;
 
 	// find the major axis
 	vec_t max = 0.0;
@@ -165,40 +160,35 @@ cm_winding_t *Cm_WindingForPlane(const vec3_t normal, const vec_t dist) {
 	switch (x) {
 		case 0:
 		case 1:
-			VectorSet(vright, -normal[1], normal[0], 0.0);
+			VectorSet(right, -normal[1], normal[0], 0.0);
 			break;
 		case 2:
-			VectorSet(vright, 0.0, -normal[2], normal[1]);
+			VectorSet(right, 0.0, -normal[2], normal[1]);
 			break;
 		default:
 			Com_Error(ERROR_FATAL, "Bad axis\n");
 	}
 
-	VectorScale(vright, MAX_WORLD_DIST, vright);
+	VectorScale(right, MAX_WORLD_DIST, right);
 
-	VectorCopy(normal, vnormal);
+	CrossProduct(normal, right, up);
 
-	// CrossProduct(vnormal, vright, vup);
-	vup[0] = vnormal[1] * vright[2] - vnormal[2] * vright[1];
-	vup[1] = vnormal[2] * vright[0] - vnormal[0] * vright[2];
-	vup[2] = vnormal[0] * vright[1] - vnormal[1] * vright[0];
-
-	VectorScale(vnormal, dist, org);
+	VectorMA(vec3_origin, dist, normal, org);
 
 	// project a really big	axis aligned box onto the plane
 	cm_winding_t *w = Cm_AllocWinding(4);
 
-	VectorSubtract(org, vright, w->points[0]);
-	VectorAdd(w->points[0], vup, w->points[0]);
+	VectorSubtract(org, right, w->points[0]);
+	VectorAdd(w->points[0], up, w->points[0]);
 
-	VectorAdd(org, vright, w->points[1]);
-	VectorAdd(w->points[1], vup, w->points[1]);
+	VectorAdd(org, right, w->points[1]);
+	VectorAdd(w->points[1], up, w->points[1]);
 
-	VectorAdd(org, vright, w->points[2]);
-	VectorSubtract(w->points[2], vup, w->points[2]);
+	VectorAdd(org, right, w->points[2]);
+	VectorSubtract(w->points[2], up, w->points[2]);
 
-	VectorSubtract(org, vright, w->points[3]);
-	VectorSubtract(w->points[3], vup, w->points[3]);
+	VectorSubtract(org, right, w->points[3]);
+	VectorSubtract(w->points[3], up, w->points[3]);
 
 	w->num_points = 4;
 
@@ -241,29 +231,24 @@ cm_winding_t *Cm_WindingForFace(const bsp_file_t *file, const bsp_face_t *face) 
 /**
  * @brief
  */
-void Cm_ClipWinding(const cm_winding_t *in, const vec3_t normal, const vec_t dist, vec_t epsilon,
+void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, const vec_t dist, vec_t epsilon,
 						cm_winding_t **front, cm_winding_t **back) {
 
 	const int32_t max_points = in->num_points + 4;
 
-	dvec_t dists[max_points];
+	vec_t dists[max_points];
 	int32_t sides[max_points];
 
 	int32_t counts[SIDE_BOTH + 1];
 	memset(counts, 0, sizeof(counts));
 
-	dvec3_t dnormal;
-	VectorCopy(normal, dnormal);
-
-	const dvec_t depsilon = (epsilon > MIN_EPSILON) ? epsilon : MIN_EPSILON;
-
 	// determine sides for each point
 	for (int32_t i = 0; i < in->num_points; i++) {
-		const vec_t dot = DotProduct(in->points[i], dnormal) - dist;
+		const vec_t dot = DotProduct(in->points[i], normal) - dist;
 		dists[i] = dot;
-		if (dot > depsilon) {
+		if (dot > epsilon) {
 			sides[i] = SIDE_FRONT;
-		} else if (dot < -depsilon) {
+		} else if (dot < -epsilon) {
 			sides[i] = SIDE_BACK;
 		} else {
 			sides[i] = SIDE_BOTH;
@@ -291,7 +276,7 @@ void Cm_ClipWinding(const cm_winding_t *in, const vec3_t normal, const vec_t dis
 
 	for (int32_t i = 0; i < in->num_points; i++) {
 
-		dvec3_t p1, p2, mid;
+		vec3_t p1, p2, mid;
 		VectorCopy(in->points[i], p1);
 
 		if (sides[i] == SIDE_BOTH) {
@@ -348,31 +333,26 @@ void Cm_ClipWinding(const cm_winding_t *in, const vec3_t normal, const vec_t dis
 }
 
 /**
- * @brief
+ * @brief Clips the winding against the given plane.
  */
-void Cm_ChopWinding(cm_winding_t **in_out, const vec3_t normal, const vec_t dist, vec_t epsilon) {
+void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, const vec_t dist, vec_t epsilon) {
 
 	cm_winding_t *in = *in_out;
 	const int32_t max_points = in->num_points + 4;
 
-	dvec_t dists[max_points];
+	vec_t dists[max_points];
 	int32_t sides[max_points];
 
 	int32_t counts[SIDE_BOTH + 1];
 	memset(counts, 0, sizeof(counts));
 
-	dvec3_t dnormal;
-	VectorCopy(normal, dnormal);
-
-	const dvec_t depsilon = (epsilon > MIN_EPSILON) ? epsilon : MIN_EPSILON;
-
 	// determine sides for each point
 	for (int32_t i = 0; i < in->num_points; i++) {
-		const vec_t dot = DotProduct(in->points[i], dnormal) - dist;
+		const vec_t dot = DotProduct(in->points[i], normal) - dist;
 		dists[i] = dot;
-		if (dot > depsilon) {
+		if (dot > epsilon) {
 			sides[i] = SIDE_FRONT;
-		} else if (dot < -depsilon) {
+		} else if (dot < -epsilon) {
 			sides[i] = SIDE_BACK;
 		} else {
 			sides[i] = SIDE_BOTH;
@@ -397,7 +377,7 @@ void Cm_ChopWinding(cm_winding_t **in_out, const vec3_t normal, const vec_t dist
 
 	for (int32_t i = 0; i < in->num_points; i++) {
 
-		dvec3_t p1, p2, mid;
+		vec3_t p1, p2, mid;
 		VectorCopy(in->points[i], p1);
 
 		if (sides[i] == SIDE_BOTH) {

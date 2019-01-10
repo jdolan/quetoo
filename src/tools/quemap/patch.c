@@ -188,7 +188,7 @@ static void SubdividePatch(patch_t *patch) {
 	}
 
 	dist = patch_size * (1 + floor((mins[i] + 1) / patch_size));
-	Cm_ClipWinding(w, split, dist, ON_EPSILON, &o1, &o2);
+	Cm_SplitWinding(w, split, dist, ON_EPSILON, &o1, &o2);
 
 	// create a new patch
 	newp = (patch_t *) Mem_TagMalloc(sizeof(*newp), MEM_TAG_PATCH);
