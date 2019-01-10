@@ -193,31 +193,31 @@ static void CalcPVS(void) {
  * @brief
  */
 static void SetPortalSphere(portal_t *p) {
-	int32_t i;
-	vec3_t total, dist;
-	winding_t *w;
-	vec_t r, bestr;
+	vec3_t origin;
 
-	w = p->winding;
-	VectorClear(total);
-	for (i = 0; i < w->num_points; i++) {
-		VectorAdd(total, w->points[i], total);
+	const winding_t *w = p->winding;
+	VectorClear(origin);
+
+	for (int32_t i = 0; i < w->num_points; i++) {
+		VectorAdd(origin, w->points[i], origin);
 	}
 
-	for (i = 0; i < 3; i++) {
-		total[i] /= w->num_points;
+	for (int32_t i = 0; i < 3; i++) {
+		origin[i] /= w->num_points;
 	}
 
-	bestr = 0;
-	for (i = 0; i < w->num_points; i++) {
-		VectorSubtract(w->points[i], total, dist);
-		r = VectorLength(dist);
-		if (r > bestr) {
-			bestr = r;
+	vec_t radius = 0;
+	for (int32_t i = 0; i < w->num_points; i++) {
+		vec3_t delta;
+		VectorSubtract(w->points[i], origin, delta);
+		const vec_t r = VectorLength(delta);
+		if (r > radius) {
+			radius = r;
 		}
 	}
-	VectorCopy(total, p->origin);
-	p->radius = bestr;
+	
+	VectorCopy(origin, p->origin);
+	p->radius = radius;
 }
 
 /**
