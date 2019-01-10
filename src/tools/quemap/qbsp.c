@@ -337,6 +337,10 @@ int32_t BSP_Main(void) {
 
 	FreeMaterials();
 
+	for (int32_t tag = MEM_TAG_QBSP; tag < MEM_TAG_QVIS; tag++) {
+		Mem_FreeTag(tag);
+	}
+
 	const time_t end = time(NULL);
 	const time_t duration = end - start;
 	Com_Print("\nBSP Time: ");

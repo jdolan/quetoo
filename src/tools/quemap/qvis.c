@@ -439,6 +439,10 @@ int32_t VIS_Main(void) {
 
 	WriteBSPFile(va("maps/%s.bsp", map_base));
 
+	for (int32_t tag = MEM_TAG_QVIS; tag < MEM_TAG_QLIGHT; tag++) {
+		Mem_FreeTag(tag);
+	}
+
 	const time_t end = time(NULL);
 	const time_t duration = end - start;
 	Com_Print("\nVIS Time: ");

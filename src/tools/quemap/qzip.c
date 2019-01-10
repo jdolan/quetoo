@@ -391,6 +391,8 @@ int32_t ZIP_Main(void) {
 	g_list_free(assets);
 	g_hash_table_destroy(qzip.assets);
 
+	Mem_FreeTag(MEM_TAG_ASSET);
+
 	const time_t end = time(NULL);
 	const time_t duration = end - start;
 	Com_Print("\nZIP Time: ");
