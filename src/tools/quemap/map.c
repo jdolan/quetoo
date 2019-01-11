@@ -27,7 +27,7 @@
 #include "qbsp.h"
 #include "texinfo.h"
 
-uint16_t num_entities;
+int32_t num_entities;
 entity_t entities[MAX_BSP_ENTITIES];
 
 int32_t num_brushes;

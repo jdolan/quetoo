@@ -23,7 +23,7 @@
 #include "brush.h"
 #include "entity.h"
 
-extern uint16_t num_entities;
+extern int32_t num_entities;
 extern entity_t entities[MAX_BSP_ENTITIES];
 
 extern plane_t planes[MAX_BSP_PLANES];
