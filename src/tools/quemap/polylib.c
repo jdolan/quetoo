@@ -55,3 +55,9 @@ _Bool WindingIsHuge(const cm_winding_t *w) {
 	return false;
 }
 
+/**
+ * @brief
+ */
+void FreeWindings(void) {
+	Mem_FreeTag(MEM_TAG_POLYLIB);
+}

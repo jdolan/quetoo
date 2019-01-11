@@ -229,6 +229,12 @@ int32_t LIGHT_Main(void) {
 
 	WriteBSPFile(va("maps/%s.bsp", map_base));
 
+	FreeWindings();
+
+	for (int32_t tag = MEM_TAG_QLIGHT; tag < MEM_TAG_QMAT; tag++) {
+		Mem_FreeTag(tag);
+	}
+
 	const time_t end = time(NULL);
 	const time_t duration = end - start;
 	Com_Print("\nLIGHT Time: ");

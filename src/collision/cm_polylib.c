@@ -32,7 +32,7 @@ cm_winding_t *Cm_AllocWinding(int32_t num_points) {
 
 	SDL_AtomicAdd(&c_windings, 1);
 
-	return Mem_Malloc(sizeof(int32_t) + sizeof(vec3_t) * num_points);
+	return Mem_TagMalloc(sizeof(int32_t) + sizeof(vec3_t) * num_points, MEM_TAG_POLYLIB);
 }
 
 /**
