@@ -68,15 +68,15 @@ static void Shutdown(const char *msg);
 static void Error(err_t err, const char *msg) __attribute__((noreturn));
 static void Error(err_t err, const char *msg) {
 
-	fprintf(stderr, "ERROR: %s", msg);
+	fprintf(stderr, "ERROR: Thread %lu: %s", SDL_ThreadID(), msg);
 
 	fflush(stderr);
 
-	if (SDL_ThreadID()) {
-		raise(SIGINT);
+	if (SDL_ThreadID() == thread_main) {
+		Shutdown(msg);
 		exit(err);
 	} else {
-		Shutdown(msg);
+		raise(SIGINT);
 		exit(err);
 	}
 }

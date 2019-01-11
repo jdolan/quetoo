@@ -24,7 +24,7 @@
 
 #include "thread.h"
 
-typedef struct thread_pool_s {
+typedef struct {
 
 	/**
 	 * @brief The lock governing global thread pool access.
@@ -54,6 +54,14 @@ static thread_pool_t thread_pool;
  */
 static ThreadRunFunc ThreadTerminate = (ThreadRunFunc) &ThreadTerminate;
 
+/**
+ * @brief The main thread ID.
+ */
+SDL_threadID thread_main;
+
+/**
+ * @brief The number of threads to spawn, or 0 to disable.
+ */
 cvar_t *threads;
 
 /**
@@ -211,6 +219,8 @@ void Thread_Init(ssize_t num_threads) {
 	memset(&thread_pool, 0, sizeof(thread_pool));
 
 	Thread_Init_(num_threads);
+
+	thread_main = SDL_ThreadID();
 }
 
 /**
