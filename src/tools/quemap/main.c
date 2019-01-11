@@ -72,9 +72,13 @@ static void Error(err_t err, const char *msg) {
 
 	fflush(stderr);
 
-	Shutdown(msg);
-
-	exit(err);
+	if (SDL_ThreadID()) {
+		raise(SIGINT);
+		exit(err);
+	} else {
+		Shutdown(msg);
+		exit(err);
+	}
 }
 
 /**
