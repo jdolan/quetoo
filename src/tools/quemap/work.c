@@ -36,29 +36,25 @@ work_t work;
  */
 static int32_t GetWork(void) {
 
+	int32_t w = -1;
 	WorkLock();
 
-	if (work.index == work.count || !Com_WasInit(QUEMAP)) { // done or killed
-		if (work.percent != 100) {
-			Com_Print("\r100%%");
+	if (Com_WasInit(QUEMAP)) {
+		if (work.index < work.count) {
+
+			// update work percent and output progress
+			const int32_t p = ceilf(100.0 * work.index / work.count);
+			if (p != work.percent) {
+				Com_Print("\r%2d%%", p);
+				work.percent = p;
+			}
+
+			// assign the next work iteration
+			w = work.index++;
 		}
-		WorkUnlock();
-		return -1;
 	}
-
-	// update work percent and output progress
-	const int32_t p = 100.0 * work.index / work.count;
-	if (p != work.percent) {
-		Com_Print("\r%2d%%", p);
-		work.percent = p;
-	}
-
-	// assign the next work iteration
-	const int32_t w = work.index;
-	work.index++;
 
 	WorkUnlock();
-
 	return w;
 }
 
@@ -101,6 +97,8 @@ void Work(WorkFunc func, int32_t count) {
 	work.lock = SDL_CreateMutex();
 	work.count = count;
 	work.func = func;
+	work.index = 0;
+	work.percent = -1;
 
 	const time_t start = time(NULL);
 
