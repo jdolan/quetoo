@@ -81,6 +81,7 @@ static int32_t Thread_Run(void *data) {
 			} else {
 				t->status = THREAD_WAITING;
 			}
+			SDL_CondBroadcast(t->cond);
 		} else {
 			SDL_CondWait(t->cond, t->mutex);
 		}
@@ -193,13 +194,18 @@ thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data, thread
  */
 void Thread_Wait(thread_t *t) {
 
-	if (!t || t->status == THREAD_IDLE) {
+	if (!t) {
 		return;
 	}
 
-	while (t->status != THREAD_WAITING) {
-		SDL_Delay(0); // FIXME: Reuse the conditional here?
+	SDL_LockMutex(t->mutex);
+
+	if (t->status == THREAD_RUNNING) {
+		SDL_CondWait(t->cond, t->mutex);
+		assert(t->status == THREAD_WAITING);
 	}
+
+	SDL_UnlockMutex(t->mutex);
 
 	t->status = THREAD_IDLE;
 }
