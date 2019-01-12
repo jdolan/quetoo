@@ -33,24 +33,73 @@ typedef enum {
 	STATUS_NONE, STATUS_WORKING, STATUS_DONE
 } status_t;
 
+/**
+ * @brief Portals output by the BSP stage are parsed into pairs, front and back.
+ * @remarks Each BSP portal is a bridge between two leafs. For PVS calculation,
+ * they are separated into two portals: one facing into each of the neighboring
+ * leafs.
+ */
 typedef struct {
-	plane_t plane; // normal pointing into neighbor
-	int32_t leaf; // neighbor
+	/**
+	 * @brief The plane facing into the neighboring leaf.
+	 */
+	plane_t plane;
 
-	vec3_t origin; // for fast clip testing
+	/**
+	 * @brief The neighboring leaf that this portal points into.
+	 */
+	int32_t leaf;
+
+	/**
+	 * @brief The origin of the winding for this portal.
+	 */
+	vec3_t origin;
+
+	/**
+	 * @brief The radius of the winding for this portal.
+	 */
 	vec_t radius;
 
+	/**
+	 * @brief The winding for this portal.
+	 */
 	cm_winding_t *winding;
+
+	/**
+	 * @brief The VIS status, which is used to optimize later recursive
+	 * iterations of chain culling.
+	 */
 	status_t status;
+
+	/**
+	 * @brief A vector of portals that are in front of this portal.
+	 */
 	byte *front; // [portals], preliminary
+
+	/**
+	 * @brief A vector of portals that are in front of this portal's leaf.
+	 */
 	byte *flood; // [portals], intermediate
+
+	/**
+	 * @brief A vector of portals that are in front of this portal's leaf and visible.
+	 */
 	byte *vis; // [portals], final
 
+	/**
+	 * @brief Portals are sorted by their flood result to improve performance.
+	 * @remarks Portals with smaller flood results are processed first, so that their
+	 * final visibility vector may speed up the processing of more complex portals.
+	 */
 	int32_t num_might_see; // bit count on flood for sort
 } portal_t;
 
 #define	MAX_PORTALS_ON_LEAF		128
 
+/**
+ * @brief For the purpose of PVS calculation, leafs are simply an aggregation
+ * of portals that occupy them.
+ */
 typedef struct {
 	int32_t num_portals;
 	portal_t *portals[MAX_PORTALS_ON_LEAF];

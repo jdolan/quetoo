@@ -470,7 +470,6 @@ void FinalVis(int32_t portal_num) {
 	}
 
 	RecursiveLeafFlow(&portal_chain, &portal_chain.chain, p->leaf);
-
 	p->status = STATUS_DONE;
 
 	const int32_t can_see = CountBits(p->vis, map_vis.num_portals * 2);
@@ -481,24 +480,25 @@ void FinalVis(int32_t portal_num) {
 /**
  * @brief
  */
-static void SimpleFlood(portal_t *srcportal, int32_t leaf_num) {
+static void SimpleFlood(portal_t *portal, int32_t leaf_num) {
 
 	const leaf_t *leaf = &map_vis.leafs[leaf_num];
 
 	for (int32_t i = 0; i < leaf->num_portals; i++) {
-		portal_t *p = leaf->portals[i];
-		const ptrdiff_t portal_num = p - map_vis.portals;
-		if (!(srcportal->front[portal_num >> 3] & (1 << (portal_num & 7)))) {
+		const portal_t *p = leaf->portals[i];
+		const ptrdiff_t pnum = p - map_vis.portals;
+
+		if (!(portal->front[pnum >> 3] & (1 << (pnum & 7)))) {
 			continue;
 		}
 
-		if (srcportal->flood[portal_num >> 3] & (1 << (portal_num & 7))) {
+		if (portal->flood[pnum >> 3] & (1 << (pnum & 7))) {
 			continue;
 		}
 
-		srcportal->flood[portal_num >> 3] |= (1 << (portal_num & 7));
+		portal->flood[pnum >> 3] |= (1 << (pnum & 7));
 
-		SimpleFlood(srcportal, p->leaf);
+		SimpleFlood(portal, p->leaf);
 	}
 }
 
