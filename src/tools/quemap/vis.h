@@ -22,21 +22,12 @@
 #pragma once
 
 #include "bsp.h"
-
-#define	ON_EPSILON	0.1
+#include "polylib.h"
 
 typedef struct {
 	vec3_t normal;
 	vec_t dist;
 } plane_t;
-
-#define MAX_POINTS_ON_WINDING	64
-#define	MAX_POINTS_ON_STACK_WINDING	12
-
-typedef struct {
-	int32_t num_points;
-	vec3_t points[MAX_POINTS_ON_STACK_WINDING]; // variable sized
-} winding_t;
 
 typedef enum {
 	STATUS_NONE, STATUS_WORKING, STATUS_DONE
@@ -49,13 +40,13 @@ typedef struct {
 	vec3_t origin; // for fast clip testing
 	vec_t radius;
 
-	winding_t *winding;
+	cm_winding_t *winding;
 	status_t status;
 	byte *front; // [portals], preliminary
 	byte *flood; // [portals], intermediate
 	byte *vis; // [portals], final
 
-	size_t num_might_see; // bit count on flood for sort
+	int32_t num_might_see; // bit count on flood for sort
 } portal_t;
 
 #define	MAX_PORTALS_ON_LEAF		128
@@ -65,27 +56,73 @@ typedef struct {
 	portal_t *portals[MAX_PORTALS_ON_LEAF];
 } leaf_t;
 
-typedef struct pstack_s {
-	byte might_see[MAX_BSP_PORTALS / 8]; // bit string
-	leaf_t *leaf;
-	portal_t *portal; // portal exiting
-	winding_t *source;
-	winding_t *pass;
+#define	MAX_POINTS_ON_CHAIN_WINDING	16
 
-	winding_t windings[3]; // source, pass, temp in any order
-	_Bool free_windings[3];
-
-	plane_t portalplane;
-	struct pstack_s *next;
-} pstack_t;
-
+/**
+ * @brief Chain windings are windings that are statically allocated for
+ * performance considerations.
+ */
 typedef struct {
-	portal_t *base;
-	int32_t c_chains;
-	pstack_t pstack_head;
-} thread_data_t;
+	int32_t num_points;
+	vec3_t points[MAX_POINTS_ON_CHAIN_WINDING];
+} chain_winding_t;
 
-typedef struct map_vis_s {
+/**
+ * @brief Chains are formed recursively through leafs by traversing leaf portals.
+ * @details Each link in the chain clips the incoming `source` winding by its
+ * portal plane. If the winding is valid, the portal represented by that chain is
+ * added to the potentially visible set of the originating portal, and vise versa.
+ * When the winding becomes completely occluded, the chain is terminated.
+ */
+typedef struct chain_s {
+	/**
+	 * @brief The flood result, allowing fast culling of occluded neighbors.
+	 */
+	byte might_see[MAX_BSP_PORTALS / 8]; // bit string
+
+	/**
+	 * @brief The leaf that this chain
+	 */
+	const leaf_t *leaf;
+
+	/**
+	 * @brief The portal that this chain exits.
+	 */
+	const portal_t *portal;
+
+	/**
+	 * @brief The incoming visible winding from the head of the chain.
+	 */
+	chain_winding_t *source;
+
+	/**
+	 * @brief The `portal` winding, clipped by the head of the chain.
+	 * @remarks This is the winding that will clip `source`.
+	 */
+	chain_winding_t *pass;
+
+	/**
+	 * @brief Statically allocated "scratch" windings for clipping operations.
+	 */
+	chain_winding_t windings[3];
+
+	struct chain_s *next;
+} chain_t;
+
+/**
+ * @brief A portal chain is constructed for each portal in the map. All neighboring
+ * leafs that the chain is able to visit before becoming completely occluded are
+ * counted as visible to the originating portal.
+ */
+typedef struct {
+	portal_t *portal;
+	chain_t chain;
+} portal_chain_t;
+
+/**
+ * @brief A bucket for accumulating PVS and PHS results.
+ */
+typedef struct {
 	int32_t num_portals;
 	int32_t portal_clusters;
 
@@ -103,9 +140,9 @@ typedef struct map_vis_s {
 	byte *base;
 	byte *pointer;
 	byte *end;
-} map_vis_t;
+} vis_t;
 
-extern map_vis_t map_vis;
+extern vis_t map_vis;
 
 extern _Bool fast_vis;
 extern _Bool no_sort;

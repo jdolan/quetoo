@@ -22,36 +22,12 @@
 #include "qvis.h"
 #include "vis.h"
 
-map_vis_t map_vis;
+vis_t map_vis;
 
 _Bool fast_vis = false;
 _Bool no_sort = false;
 
-static int32_t c_windings;
 static int32_t c_vis_clusters;
-
-/**
- * @brief
- */
-static void PlaneFromWinding(const winding_t *w, plane_t *plane) {
-	vec3_t v1, v2;
-
-	VectorSubtract(w->points[2], w->points[1], v1);
-	VectorSubtract(w->points[0], w->points[1], v2);
-	CrossProduct(v2, v1, plane->normal);
-	VectorNormalize(plane->normal);
-	plane->dist = DotProduct(w->points[0], plane->normal);
-}
-
-/**
- * @brief
- */
-static winding_t *AllocWinding(int32_t num_points) {
-
-	c_windings++;
-
-	return Mem_TagMalloc(sizeof(int32_t) + sizeof(vec3_t) * num_points, MEM_TAG_WINDING);
-}
 
 /**
  * @brief
@@ -195,7 +171,7 @@ static void CalcPVS(void) {
 static void SetPortalSphere(portal_t *p) {
 	vec3_t origin;
 
-	const winding_t *w = p->winding;
+	const cm_winding_t *w = p->winding;
 	VectorClear(origin);
 
 	for (int32_t i = 0; i < w->num_points; i++) {
@@ -224,13 +200,10 @@ static void SetPortalSphere(portal_t *p) {
  * @brief
  */
 static void LoadPortals(const char *filename) {
-	leaf_t *l;
 	char magic[80];
 	int32_t len;
 	int32_t num_points;
-	winding_t *w;
 	int32_t leaf_nums[2];
-	plane_t plane;
 
 	void *buffer;
 	if (Fs_Load(filename, &buffer) == -1) {
@@ -283,20 +256,15 @@ static void LoadPortals(const char *filename) {
 		}
 		s += len;
 
-		if (num_points > MAX_POINTS_ON_WINDING) {
-			Com_Error(ERROR_FATAL, "Portal %i has too many points\n", i);
-		}
-
 		if (leaf_nums[0] > map_vis.portal_clusters || leaf_nums[1] > map_vis.portal_clusters) {
 			Com_Error(ERROR_FATAL, "Portal %i has invalid leafs\n", i);
 		}
 
-		w = p->winding = AllocWinding(num_points);
+		cm_winding_t *w = p->winding = Cm_AllocWinding(num_points);
 		w->num_points = num_points;
 
-		for (int32_t j = 0; j < num_points; j++) {
+		for (int32_t j = 0; j < w->num_points; j++) {
 			dvec3_t v;
-			int32_t k;
 
 			// scanf into double, then assign to vec_t so we don't care what size vec_t is
 			if (sscanf(s, "(%lf %lf %lf ) %n", &v[0], &v[1], &v[2], &len) != 3) {
@@ -304,19 +272,18 @@ static void LoadPortals(const char *filename) {
 			}
 			s += len;
 
-			for (k = 0; k < 3; k++) {
-				w->points[j][k] = v[k];
-			}
+			VectorCopy(v, w->points[j]);
 		}
 		if (sscanf(s, "\n%n", &len)) {
 			s += len;
 		}
 
 		// calc plane
-		PlaneFromWinding(w, &plane);
+		plane_t plane;
+		Cm_PlaneForWinding(w, plane.normal, &plane.dist);
 
 		// create forward portal
-		l = &map_vis.leafs[leaf_nums[0]];
+		leaf_t *l = &map_vis.leafs[leaf_nums[0]];
 		if (l->num_portals == MAX_PORTALS_ON_LEAF) {
 			Com_Error(ERROR_FATAL, "MAX_PORTALS_ON_LEAF\n");
 		}
@@ -338,7 +305,7 @@ static void LoadPortals(const char *filename) {
 		l->portals[l->num_portals] = p;
 		l->num_portals++;
 
-		p->winding = AllocWinding(w->num_points);
+		p->winding = Cm_AllocWinding(w->num_points);
 		p->winding->num_points = w->num_points;
 		for (int32_t j = 0; j < w->num_points; j++) {
 			VectorCopy(w->points[w->num_points - 1 - j], p->winding->points[j]);
@@ -438,6 +405,8 @@ int32_t VIS_Main(void) {
 	          (uint32_t) (map_vis.uncompressed_size * 2));
 
 	WriteBSPFile(va("maps/%s.bsp", map_base));
+
+	FreeWindings();
 
 	for (int32_t tag = MEM_TAG_QVIS; tag < MEM_TAG_QLIGHT; tag++) {
 		Mem_FreeTag(tag);
