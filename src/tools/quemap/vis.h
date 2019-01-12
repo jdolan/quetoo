@@ -35,7 +35,7 @@ typedef enum {
 
 /**
  * @brief Portals output by the BSP stage are parsed into pairs, front and back.
- * @remarks Each BSP portal is a bridge between two leafs. For PVS calculation,
+ * @details Each BSP portal is a bridge between two leafs. For PVS calculation,
  * they are separated into two portals: one facing into each of the neighboring
  * leafs.
  */
@@ -88,7 +88,7 @@ typedef struct {
 
 	/**
 	 * @brief Portals are sorted by their flood result to improve performance.
-	 * @remarks Portals with smaller flood results are processed first, so that their
+	 * @details Portals with smaller flood results are processed first, so that their
 	 * final visibility vector may speed up the processing of more complex portals.
 	 */
 	int32_t num_might_see; // bit count on flood for sort
@@ -146,7 +146,7 @@ typedef struct chain_s {
 
 	/**
 	 * @brief The `portal` winding, clipped by the head of the chain.
-	 * @remarks This is the winding that will clip `source`.
+	 * @details This is the winding that will clip `source`.
 	 */
 	chain_winding_t *pass;
 
@@ -159,9 +159,9 @@ typedef struct chain_s {
 } chain_t;
 
 /**
- * @brief A portal chain is constructed for each portal in the map. All neighboring
- * leafs that the chain is able to visit before becoming completely occluded are
- * counted as visible to the originating portal.
+ * @brief A portal chain is constructed for each portal in the map.
+ * @details All neighboring portals that the chain is able to visit before becoming
+ * completely occluded are counted as visible to the originating portal.
  */
 typedef struct {
 	portal_t *portal;
