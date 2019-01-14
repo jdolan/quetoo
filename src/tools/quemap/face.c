@@ -64,105 +64,6 @@ void FreeFace(face_t *f) {
 	c_faces--;
 }
 
-#define	CONTINUOUS_EPSILON	0.001
-#define EQUAL_EPSILON		0.001
-
-/**
- * @brief If two polygons share a common edge and the edges that meet at the
- * common points are both inside the other polygons, merge them
- *
- * Returns NULL if the faces couldn't be merged, or the new face.
- * The originals will NOT be freed.
- */
-static cm_winding_t *MergeWindings(cm_winding_t *f1, cm_winding_t *f2, const vec3_t plane_normal) {
-	vec_t *p1, *p2, *back;
-	cm_winding_t *newf;
-	int32_t i, j, k, l;
-	vec3_t normal, delta;
-	vec_t dot;
-	_Bool keep1, keep2;
-
-	// find a common edge
-	p1 = p2 = NULL;
-
-	for (i = 0; i < f1->num_points; i++) {
-		p1 = f1->points[i];
-		p2 = f1->points[(i + 1) % f1->num_points];
-		for (j = 0; j < f2->num_points; j++) {
-			const vec_t *p3 = f2->points[j];
-			const vec_t *p4 = f2->points[(j + 1) % f2->num_points];
-			for (k = 0; k < 3; k++) {
-				if (fabs(p1[k] - p4[k]) > EQUAL_EPSILON) {
-					break;
-				}
-				if (fabs(p2[k] - p3[k]) > EQUAL_EPSILON) {
-					break;
-				}
-			}
-			if (k == 3) {
-				break;
-			}
-		}
-		if (j < f2->num_points) {
-			break;
-		}
-	}
-
-	if (i == f1->num_points) {
-		return NULL; // no matching edges
-	}
-
-	// if the slopes are colinear, the point can be removed
-	back = f1->points[(i + f1->num_points - 1) % f1->num_points];
-	VectorSubtract(p1, back, delta);
-	CrossProduct(plane_normal, delta, normal);
-	VectorNormalize(normal);
-
-	back = f2->points[(j + 2) % f2->num_points];
-	VectorSubtract(back, p1, delta);
-	dot = DotProduct(delta, normal);
-	if (dot > CONTINUOUS_EPSILON) {
-		return NULL; // not a convex polygon
-	}
-	keep1 = (_Bool) (dot < -CONTINUOUS_EPSILON);
-
-	back = f1->points[(i + 2) % f1->num_points];
-	VectorSubtract(back, p2, delta);
-	CrossProduct(plane_normal, delta, normal);
-	VectorNormalize(normal);
-
-	back = f2->points[(j + f2->num_points - 1) % f2->num_points];
-	VectorSubtract(back, p2, delta);
-	dot = DotProduct(delta, normal);
-	if (dot > CONTINUOUS_EPSILON) {
-		return NULL; // not a convex polygon
-	}
-	keep2 = (_Bool) (dot < -CONTINUOUS_EPSILON);
-
-	// build the new polygon
-	newf = Cm_AllocWinding(f1->num_points + f2->num_points);
-
-	// copy first polygon
-	for (k = (i + 1) % f1->num_points; k != i; k = (k + 1) % f1->num_points) {
-		if (k == (i + 1) % f1->num_points && !keep2) {
-			continue;
-		}
-
-		VectorCopy(f1->points[k], newf->points[newf->num_points]);
-		newf->num_points++;
-	}
-
-	// copy second polygon
-	for (l = (j + 1) % f2->num_points; l != j; l = (l + 1) % f2->num_points) {
-		if (l == (j + 1) % f2->num_points && !keep1) {
-			continue;
-		}
-		VectorCopy(f2->points[l], newf->points[newf->num_points]);
-		newf->num_points++;
-	}
-
-	return newf;
-}
 
 /**
  * @brief If two polygons share a common edge and the edges that meet at the
@@ -186,7 +87,7 @@ face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal) {
 		return NULL;
 	}
 
-	cm_winding_t *nw = MergeWindings(f1->w, f2->w, normal);
+	cm_winding_t *nw = Cm_MergeWindings(f1->w, f2->w, normal);
 	if (!nw) {
 		return NULL;
 	}

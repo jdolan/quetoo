@@ -420,3 +420,98 @@ void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, const vec_t dist
 	Cm_FreeWinding(in);
 	*in_out = f;
 }
+
+/**
+ * @brief If two polygons share a common edge and the edges that meet at the
+ * common points are both inside the other polygons, merge them
+ *
+ * Returns NULL if the faces couldn't be merged, or the new face.
+ * The originals will NOT be freed.
+ */
+cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, const vec3_t normal) {
+	const vec_t *p1, *p2, *back;
+	int32_t i, j, k, l;
+	vec3_t cross, delta;
+	vec_t dot;
+
+	// find a common edge
+	p1 = p2 = NULL;
+
+	for (i = 0; i < a->num_points; i++) {
+		p1 = a->points[i];
+		p2 = a->points[(i + 1) % a->num_points];
+		for (j = 0; j < b->num_points; j++) {
+			const vec_t *p3 = b->points[j];
+			const vec_t *p4 = b->points[(j + 1) % b->num_points];
+			for (k = 0; k < 3; k++) {
+				if (fabsf(p1[k] - p4[k]) > ON_EPSILON) {
+					break;
+				}
+				if (fabsf(p2[k] - p3[k]) > ON_EPSILON) {
+					break;
+				}
+			}
+			if (k == 3) {
+				break;
+			}
+		}
+		if (j < b->num_points) {
+			break;
+		}
+	}
+
+	if (i == a->num_points) {
+		return NULL; // no matching edges
+	}
+
+	// if the slopes are colinear, the point can be removed
+	back = a->points[(i + a->num_points - 1) % a->num_points];
+	VectorSubtract(p1, back, delta);
+	CrossProduct(normal, delta, cross);
+	VectorNormalize(cross);
+
+	back = b->points[(j + 2) % b->num_points];
+	VectorSubtract(back, p1, delta);
+	dot = DotProduct(delta, cross);
+	if (dot > SIDE_EPSILON) {
+		return NULL; // not a convex polygon
+	}
+	const _Bool keep1 = dot < -SIDE_EPSILON;
+
+	back = a->points[(i + 2) % a->num_points];
+	VectorSubtract(back, p2, delta);
+	CrossProduct(normal, delta, cross);
+	VectorNormalize(cross);
+
+	back = b->points[(j + b->num_points - 1) % b->num_points];
+	VectorSubtract(back, p2, delta);
+	dot = DotProduct(delta, cross);
+	if (dot > SIDE_EPSILON) {
+		return NULL; // not a convex polygon
+	}
+	const _Bool keep2 = dot < -SIDE_EPSILON;
+
+	// build the new polygon
+	cm_winding_t *merged = Cm_AllocWinding(a->num_points + b->num_points);
+
+	// copy first polygon
+	for (k = (i + 1) % a->num_points; k != i; k = (k + 1) % a->num_points) {
+		if (k == (i + 1) % a->num_points && !keep2) {
+			continue;
+		}
+
+		VectorCopy(a->points[k], merged->points[merged->num_points]);
+		merged->num_points++;
+	}
+
+	// copy second polygon
+	for (l = (j + 1) % b->num_points; l != j; l = (l + 1) % b->num_points) {
+		if (l == (j + 1) % b->num_points && !keep1) {
+			continue;
+		}
+		VectorCopy(b->points[l], merged->points[merged->num_points]);
+		merged->num_points++;
+	}
+
+	return merged;
+}
