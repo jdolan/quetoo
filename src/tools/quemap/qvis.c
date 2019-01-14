@@ -43,8 +43,9 @@ static int32_t SortPortals_Compare(const void *a, const void *b) {
 }
 
 /**
- * @brief Sorts the portals from the least complex, so the later ones can reuse
- * the earlier information.
+ * @brief Sorts the portals by flood result in ascending order. This way, portals
+ * with simpler visibility information are processed first, and their results
+ * can be reused when they are visited by more complex portals later on.
  */
 static void SortPortals(void) {
 
