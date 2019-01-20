@@ -515,3 +515,56 @@ cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, con
 
 	return merged;
 }
+
+/**
+ * @brief Returns a vertex array of GL_TRIANGLES for the given winding using ear clipping.
+ * @return The number of triangles.
+ */
+int32_t Cm_TrianglesForWinding(const cm_winding_t *w, vec_t **tris) {
+
+	const int32_t num_tris = w->num_points - 2;
+	vec_t *out = *tris = Mem_Malloc(num_tris * 3 * sizeof(vec3_t));
+
+	int32_t num_points = w->num_points;
+	vec3_t points[w->num_points];
+
+	memcpy(points, w->points, w->num_points * sizeof(vec3_t));
+
+	while (num_points > 2) {
+
+		int32_t i;
+		const vec_t *a, *b, *c;
+
+		for (i = 0; i < num_points; i++) {
+			a = points[(i + 0) % num_points];
+			b = points[(i + 1) % num_points];
+			c = points[(i + 2) % num_points];
+
+			vec3_t ba, cb, cross;
+			VectorSubtract(b, a, ba);
+			VectorSubtract(c, b, cb);
+			CrossProduct(ba, cb, cross);
+
+			if (VectorLength(cross)) {
+				 break;
+			}
+		}
+
+		VectorCopy(a, out);
+		out += 3;
+
+		VectorCopy(b, out);
+		out += 3;
+
+		VectorCopy(c, out);
+		out += 3;
+
+		for (i = (i + 1) % num_points; i < num_points; i++) {
+			VectorCopy(points[(i + 1) % num_points], points[i]);
+		}
+
+		num_points--;
+	}
+
+	return num_tris;
+}

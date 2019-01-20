@@ -58,6 +58,14 @@ check_cmd_LDADD = \
 	$(TESTS_LIBS) \
 	$(top_builddir)/src/libconsole.la
 
+check_cm_polylib_SOURCES = \
+	check_cm_polylib.c
+check_cm_polylib_CFLAGS = \
+	$(TESTS_CFLAGS)
+check_cm_polylib_LDADD = \
+	$(TESTS_LIBS) \
+	$(top_builddir)/src/libmem.la
+
 check_cvar_SOURCES = \
 	check_cvar.c
 check_cvar_CFLAGS = \

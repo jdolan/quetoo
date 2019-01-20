@@ -51,3 +51,5 @@ void Cm_PlaneForWinding(const cm_winding_t *w, vec3_t normal, vec_t *dist);
 void Cm_SplitWinding(const cm_winding_t *w, const vec3_t normal, const vec_t dist, vec_t epsilon, cm_winding_t **front, cm_winding_t **back);
 void Cm_ClipWinding(cm_winding_t **w, const vec3_t normal, const vec_t dist, vec_t epsilon);
 cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, const vec3_t normal);
+int32_t Cm_TrianglesForWinding(const cm_winding_t *w, vec_t **out);
+
