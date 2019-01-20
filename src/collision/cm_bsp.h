@@ -1,5 +1,7 @@
 #pragma once
 
+#include "filesystem.h"
+
 #include "cm_types.h"
 
 /**
@@ -65,12 +67,20 @@ typedef enum {
 #define BSP_LUMPS_ALL ((1 << BSP_LUMP_LAST) - 1)
 
 /**
+ * @brief Represents the data to find and read in a lump from the disk.
+ */
+typedef struct {
+	int32_t file_ofs;
+	int32_t file_len;
+} bsp_lump_t;
+
+/**
  * @brief Represents the header of a BSP file.
  */
 typedef struct {
 	int32_t ident;
 	int32_t version;
-	d_bsp_lump_t lumps[BSP_LUMP_LAST];
+	bsp_lump_t lumps[BSP_LUMP_LAST];
 } bsp_header_t;
 
 typedef struct {

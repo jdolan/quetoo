@@ -391,7 +391,7 @@ int32_t Bsp_Verify(const bsp_header_t *file) {
 /**
  * @brief Read the lump length/offset from the BSP file.
  */
-static void Bsp_GetLumpPosition(const bsp_header_t *file, const bsp_lump_id_t lump_id, d_bsp_lump_t *lump) {
+static void Bsp_GetLumpPosition(const bsp_header_t *file, const bsp_lump_id_t lump_id, bsp_lump_t *lump) {
 
 	*lump = file->lumps[lump_id];
 	lump->file_len = LittleLong(lump->file_len);
@@ -517,7 +517,7 @@ _Bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_
 	Bsp_UnloadLump(bsp, lump_id);
 
 	// find the lump in the file
-	d_bsp_lump_t lump;
+	bsp_lump_t lump;
 	Bsp_GetLumpPosition(file, lump_id, &lump);
 
 	const size_t lump_type_size = bsp_lump_meta[lump_id].type_size;

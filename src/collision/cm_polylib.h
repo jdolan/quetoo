@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "cm_types.h"
+#include "cm_bsp.h"
 
 /**
  * @brief An ordered collection of coplanar points describing a convex volume.

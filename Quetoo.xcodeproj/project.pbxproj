@@ -663,6 +663,12 @@
 		CED4397E1D9D3EBF0052BAFA /* libmatrix.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7A831D9CB5C9000FA6B2 /* libmatrix.a */; };
 		CED4397F1D9D3EBF0052BAFA /* libnet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.a */; };
 		CEDCFC7820497B4B008A4252 /* libSDL2_image-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8311C5C6F0100CD0B13 /* libSDL2_image-2.0.0.dylib */; };
+		CEE3A0F421EE2B3F0070FD3E /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
+		CEE3A0FA21EE2B3F0070FD3E /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE51FB9121481AE300ABE14F /* libcheck.0.dylib */; };
+		CEE3A10421EE2B7A0070FD3E /* check_cm_polylib.c in Sources */ = {isa = PBXBuildFile; fileRef = CEE3A0EF21EE2A5E0070FD3E /* check_cm_polylib.c */; };
+		CEE3A10521EE2BAA0070FD3E /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
+		CEE3A10621EE2DDC0070FD3E /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
+		CEE3A10721EE2DF40070FD3E /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CEE818951E280DFC003C66DD /* ai.so in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FEC61C5E44E800A21A51 /* ai.so */; };
 		CEFC79A41D9CB1A6000FA6B2 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */; };
 		CEFC79A51D9CB1EE000FA6B2 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
@@ -1076,6 +1082,13 @@
 			remoteGlobalIDString = CEFC79E11D9CB2D2000FA6B2;
 			remoteInfo = thread;
 		};
+		CEE3A10221EE2B570070FD3E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE80FE0E1C5E421900A21A51;
+			remoteInfo = collision;
+		};
 		CEFC79F11D9CB300000FA6B2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
@@ -1394,6 +1407,15 @@
 			runOnlyForDeploymentPostprocessing = 1;
 		};
 		CEA029F01C5E558100341079 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		CEE3A0FD21EE2B3F0070FD3E /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = /usr/share/man/man1/;
@@ -2057,6 +2079,8 @@
 		CED438AD1D9D34450052BAFA /* libclient-renderer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libclient-renderer.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CED4393B1D9D344E0052BAFA /* libclient-sound.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libclient-sound.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = "../../Library/Developer/Xcode/DerivedData/Quetoo-eijmznjiunzbaafulkyjapfulhqz/Build/Products/Debug/libObjectivelyMVC.dylib"; sourceTree = "<group>"; };
+		CEE3A0EF21EE2A5E0070FD3E /* check_cm_polylib.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_cm_polylib.c; sourceTree = "<group>"; };
+		CEE3A10121EE2B3F0070FD3E /* check_cm_polylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_cm_polylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEE59C301F2125D70044F6F2 /* libz.1.2.11.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.11.dylib; path = /opt/local/lib/libz.1.2.11.dylib; sourceTree = "<absolute>"; };
 		CEFC79D01D9CB22E000FA6B2 /* libswap.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libswap.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEFC79DC1D9CB287000FA6B2 /* libmem.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libmem.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2450,6 +2474,17 @@
 			buildActionMask = 2147483647;
 			files = (
 				CED439641D9D3B4F0052BAFA /* libclient-renderer.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CEE3A0F621EE2B3F0070FD3E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEE3A10521EE2BAA0070FD3E /* libcollision.a in Frameworks */,
+				CEE3A0FA21EE2B3F0070FD3E /* libcheck.0.dylib in Frameworks */,
+				CEE3A10621EE2DDC0070FD3E /* libglib-2.0.0.dylib in Frameworks */,
+				CEE3A10721EE2DF40070FD3E /* libSDL2-2.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3210,6 +3245,7 @@
 			children = (
 				CE8E2016214836C800C18C94 /* check_ai_ann.c */,
 				CE12D6CB1C5C58C300CD0B13 /* check_cmd.c */,
+				CEE3A0EF21EE2A5E0070FD3E /* check_cm_polylib.c */,
 				CE12D6CD1C5C58C300CD0B13 /* check_cvar.c */,
 				CE12D6CF1C5C58C300CD0B13 /* check_filesystem.c */,
 				CE12D6D11C5C58C300CD0B13 /* check_master.c */,
@@ -3461,6 +3497,7 @@
 				CE052A6E214831FE003446C9 /* check_mem */,
 				CE052A8421483255003446C9 /* check_thread */,
 				CE8E2028214837AB00C18C94 /* check_ai_ann */,
+				CEE3A10121EE2B3F0070FD3E /* check_cm_polylib */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -4693,6 +4730,24 @@
 			productReference = CED4393B1D9D344E0052BAFA /* libclient-sound.a */;
 			productType = "com.apple.product-type.library.static";
 		};
+		CEE3A0F021EE2B3F0070FD3E /* check_cm_polylib */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CEE3A0FE21EE2B3F0070FD3E /* Build configuration list for PBXNativeTarget "check_cm_polylib" */;
+			buildPhases = (
+				CEE3A0F321EE2B3F0070FD3E /* Sources */,
+				CEE3A0F621EE2B3F0070FD3E /* Frameworks */,
+				CEE3A0FD21EE2B3F0070FD3E /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CEE3A10321EE2B570070FD3E /* PBXTargetDependency */,
+			);
+			name = check_cm_polylib;
+			productName = "test-r_media";
+			productReference = CEE3A10121EE2B3F0070FD3E /* check_cm_polylib */;
+			productType = "com.apple.product-type.tool";
+		};
 		CEFC79A61D9CB22E000FA6B2 /* swap */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CEFC79CD1D9CB22E000FA6B2 /* Build configuration list for PBXNativeTarget "swap" */;
@@ -4936,6 +4991,7 @@
 				CEA029B31C5E545B00341079 /* quetoo-all */,
 				CE8E2017214837AB00C18C94 /* check_ai_ann */,
 				CE51FB9D21481DD300ABE14F /* check_cmd */,
+				CEE3A0F021EE2B3F0070FD3E /* check_cm_polylib */,
 				CE51FBB321481F2500ABE14F /* check_cvar */,
 				CE51FBCC21481FC100ABE14F /* check_filesystem */,
 				CE51FBE42148207700ABE14F /* check_master */,
@@ -5389,6 +5445,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CEE3A0F321EE2B3F0070FD3E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEE3A0F421EE2B3F0070FD3E /* tests.c in Sources */,
+				CEE3A10421EE2B7A0070FD3E /* check_cm_polylib.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CEFC79A91D9CB22E000FA6B2 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -5726,6 +5791,11 @@
 			isa = PBXTargetDependency;
 			target = CEFC79E11D9CB2D2000FA6B2 /* thread */;
 			targetProxy = CEE3A0ED21E91B760070FD3E /* PBXContainerItemProxy */;
+		};
+		CEE3A10321EE2B570070FD3E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE80FE0E1C5E421900A21A51 /* collision */;
+			targetProxy = CEE3A10221EE2B570070FD3E /* PBXContainerItemProxy */;
 		};
 		CEFC79F21D9CB300000FA6B2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -6373,6 +6443,20 @@
 			};
 			name = Release;
 		};
+		CEE3A0FF21EE2B3F0070FD3E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CEE3A10021EE2B3F0070FD3E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		CEFC79CE1D9CB22E000FA6B2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -6813,6 +6897,15 @@
 			buildConfigurations = (
 				CED439391D9D344E0052BAFA /* Debug */,
 				CED4393A1D9D344E0052BAFA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CEE3A0FE21EE2B3F0070FD3E /* Build configuration list for PBXNativeTarget "check_cm_polylib" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CEE3A0FF21EE2B3F0070FD3E /* Debug */,
+				CEE3A10021EE2B3F0070FD3E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
