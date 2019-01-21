@@ -521,7 +521,7 @@ cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, con
  * @details This function uses an ear-clipping algorithm to clip triangles from
  * the given winding. Invalid triangles due to colinear points are skipped over.
  * The returned vertex element array should be freed with Mem_Free.
- * @return The number of vertexes written to tris.
+ * @return The number of vertex elements written to tris.
  */
 int32_t Cm_TrianglesForWinding(const cm_winding_t *w, int32_t **tris) {
 
@@ -531,7 +531,7 @@ int32_t Cm_TrianglesForWinding(const cm_winding_t *w, int32_t **tris) {
 	GPtrArray *points = g_ptr_array_new();
 
 	for (int32_t i = 0; i < w->num_points; i++) {
-		g_ptr_array_add(points, (void *) (w->points + i));
+		g_ptr_array_add(points, (gpointer) w->points[i]);
 	}
 
 	while (points->len > 2) {
