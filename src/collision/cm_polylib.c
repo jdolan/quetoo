@@ -517,28 +517,32 @@ cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, con
 }
 
 /**
- * @brief Returns a vertex array of GL_TRIANGLES for the given winding using ear clipping.
- * @return The number of triangles.
+ * @brief Creates a vertex element array of triangles for the given winding.
+ * @details This function uses an ear-clipping algorithm to clip triangles from
+ * the given winding. Invalid triangles due to colinear points are skipped over.
+ * The returned vertex element array should be freed with Mem_Free.
+ * @return The number of vertexes written to tris.
  */
-int32_t Cm_TrianglesForWinding(const cm_winding_t *w, vec_t **tris) {
+int32_t Cm_TrianglesForWinding(const cm_winding_t *w, int32_t **tris) {
 
-	const int32_t num_tris = w->num_points - 2;
-	vec_t *out = *tris = Mem_Malloc(num_tris * 3 * sizeof(vec3_t));
+	const int32_t num_vertexes = (w->num_points - 2) * 3;
+	int32_t *out = *tris = Mem_Malloc(num_vertexes * sizeof(int32_t));
 
-	int32_t num_points = w->num_points;
-	vec3_t points[w->num_points];
+	GPtrArray *points = g_ptr_array_new();
 
-	memcpy(points, w->points, w->num_points * sizeof(vec3_t));
+	for (int32_t i = 0; i < w->num_points; i++) {
+		g_ptr_array_add(points, (void *) (w->points + i));
+	}
 
-	while (num_points > 2) {
+	while (points->len > 2) {
 
 		int32_t i;
 		const vec_t *a, *b, *c;
 
-		for (i = 0; i < num_points; i++) {
-			a = points[(i + 0) % num_points];
-			b = points[(i + 1) % num_points];
-			c = points[(i + 2) % num_points];
+		for (i = 0; i < (int32_t) points->len; i++) {
+			a = g_ptr_array_index(points, (i + 0) % points->len);
+			b = g_ptr_array_index(points, (i + 1) % points->len);
+			c = g_ptr_array_index(points, (i + 2) % points->len);
 
 			vec3_t ba, cb, cross;
 			VectorSubtract(b, a, ba);
@@ -550,21 +554,14 @@ int32_t Cm_TrianglesForWinding(const cm_winding_t *w, vec_t **tris) {
 			}
 		}
 
-		VectorCopy(a, out);
-		out += 3;
+		*out++ = (int32_t) (a - (vec_t *) w->points) / 3;
+		*out++ = (int32_t) (b - (vec_t *) w->points) / 3;
+		*out++ = (int32_t) (c - (vec_t *) w->points) / 3;
 
-		VectorCopy(b, out);
-		out += 3;
-
-		VectorCopy(c, out);
-		out += 3;
-
-		for (i = (i + 1) % num_points; i < num_points; i++) {
-			VectorCopy(points[(i + 1) % num_points], points[i]);
-		}
-
-		num_points--;
+		g_ptr_array_remove_index(points, (i + 1) % points->len);
 	}
 
-	return num_tris;
+	g_ptr_array_free(points, false);
+
+	return num_vertexes;
 }

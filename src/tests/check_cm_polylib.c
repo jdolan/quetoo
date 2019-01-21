@@ -38,17 +38,6 @@ void teardown(void) {
 	Mem_Shutdown();
 }
 
-static void assert_point_equal(const vec_t *point, vec_t x, vec_t y, vec_t z) {
-
-	if (fabsf(point[0] - x) < ON_EPSILON &&
-		fabsf(point[1] - y) < ON_EPSILON &&
-		fabsf(point[2] - z) < ON_EPSILON) {
-		return;
-	}
-
-	ck_assert_msg("%s !== to %g %g %g", vtos(point), x, y, z);
-}
-
 START_TEST(Cm_TrianglesForWinding_triangle) {
 
 	cm_winding_t *w = Cm_AllocWinding(3);
@@ -58,14 +47,14 @@ START_TEST(Cm_TrianglesForWinding_triangle) {
 	VectorSet(w->points[1], 1, 0, 0);
 	VectorSet(w->points[2], 0, 1, 0);
 
-	vec_t *tris;
-	const int32_t num_tris = Cm_TrianglesForWinding(w, &tris);
+	int32_t *tris;
+	const int32_t num_vertexes = Cm_TrianglesForWinding(w, &tris);
 
-	ck_assert_int_eq(1, num_tris);
+	ck_assert_int_eq(3, num_vertexes);
 
-	assert_point_equal(tris + 0, 0, 0, 0);
-	assert_point_equal(tris + 3, 1, 0, 0);
-	assert_point_equal(tris + 6, 0, 1, 0);
+	ck_assert_int_eq(0, tris[0]);
+	ck_assert_int_eq(1, tris[1]);
+	ck_assert_int_eq(2, tris[2]);
 
 	Mem_Free(tris);
 
@@ -81,18 +70,18 @@ START_TEST(Cm_TrianglesForWinding_quad) {
 	VectorSet(w->points[2], 1, 1, 0);
 	VectorSet(w->points[3], 0, 1, 0);
 
-	vec_t *tris;
-	const int32_t num_tris = Cm_TrianglesForWinding(w, &tris);
+	int32_t *tris;
+	const int32_t num_vertexes = Cm_TrianglesForWinding(w, &tris);
 
-	ck_assert_int_eq(2, num_tris);
+	ck_assert_int_eq(6, num_vertexes);
 
-	assert_point_equal(tris + 0, 0, 0, 0);
-	assert_point_equal(tris + 3, 1, 0, 0);
-	assert_point_equal(tris + 6, 1, 1, 0);
+	ck_assert_int_eq(0, tris[0]);
+	ck_assert_int_eq(1, tris[1]);
+	ck_assert_int_eq(2, tris[2]);
 
-	assert_point_equal(tris +  9, 0, 0, 0);
-	assert_point_equal(tris + 12, 1, 1, 0);
-	assert_point_equal(tris + 15, 0, 1, 0);
+	ck_assert_int_eq(0, tris[3]);
+	ck_assert_int_eq(2, tris[4]);
+	ck_assert_int_eq(3, tris[5]);
 
 	Mem_Free(tris);
 
@@ -111,31 +100,26 @@ START_TEST(Cm_TrianglesForWinding_colinear) {
 	VectorSet(w->points[4], 1, 2, 0);
 	VectorSet(w->points[5], 0, 2, 0);
 
-	vec_t *tris;
-	const int32_t num_tris = Cm_TrianglesForWinding(w, &tris);
+	int32_t *tris;
+	const int32_t num_vertexes = Cm_TrianglesForWinding(w, &tris);
 
-	ck_assert_int_eq(4, num_tris);
+	ck_assert_int_eq(12, num_vertexes);
 
-	assert_point_equal(tris + 0, 1, 0, 0);
-	assert_point_equal(tris + 3, 2, 0, 0);
-	assert_point_equal(tris + 6, 2, 2, 0);
+	ck_assert_int_eq(1, tris[0]);
+	ck_assert_int_eq(2, tris[1]);
+	ck_assert_int_eq(3, tris[2]);
 
-	assert_point_equal(tris +  9, 0, 0, 0);
-	assert_point_equal(tris + 12, 1, 0, 0);
-	assert_point_equal(tris + 15, 2, 2, 0);
+	ck_assert_int_eq(0, tris[3]);
+	ck_assert_int_eq(1, tris[4]);
+	ck_assert_int_eq(3, tris[5]);
 
-	assert_point_equal(tris + 18, 0, 0, 0);
-	assert_point_equal(tris + 21, 2, 2, 0);
-	assert_point_equal(tris + 24, 1, 2, 0);
+	ck_assert_int_eq(0, tris[6]);
+	ck_assert_int_eq(3, tris[7]);
+	ck_assert_int_eq(4, tris[8]);
 
-	assert_point_equal(tris + 27, 0, 0, 0);
-	assert_point_equal(tris + 30, 1, 2, 0);
-	assert_point_equal(tris + 33, 0, 2, 0);
-
-//	const vec_t *v = tris;
-//	for (int32_t i = 0; i < num_tris; i++, v += 9) {
-//		printf("%s %s %s\n", vtos(v), vtos(v + 3), vtos(v + 6));
-//	}
+	ck_assert_int_eq(0, tris[9]);
+	ck_assert_int_eq(4, tris[10]);
+	ck_assert_int_eq(5, tris[11]);
 
 	Mem_Free(tris);
 
