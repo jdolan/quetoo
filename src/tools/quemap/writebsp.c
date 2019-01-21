@@ -359,29 +359,26 @@ void EndBSPFile(void) {
  * @brief
  */
 void BeginModel(void) {
-	bsp_model_t *mod;
-	int32_t start, end;
-	brush_t *b;
-	int32_t j;
-	entity_t *e;
-	vec3_t mins, maxs;
 
 	if (bsp_file.num_models == MAX_BSP_MODELS) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_MODELS\n");
 	}
-	mod = &bsp_file.models[bsp_file.num_models];
+
+	bsp_model_t *mod = &bsp_file.models[bsp_file.num_models];
 
 	mod->first_face = bsp_file.num_faces;
 
 	// bound the brushes
-	e = &entities[entity_num];
+	const entity_t *e = &entities[entity_num];
 
-	start = e->first_brush;
-	end = start + e->num_brushes;
+	const int32_t start = e->first_brush;
+	const int32_t end = start + e->num_brushes;
+
+	vec3_t mins, maxs;
 	ClearBounds(mins, maxs);
 
-	for (j = start; j < end; j++) {
-		b = &brushes[j];
+	for (int32_t j = start; j < end; j++) {
+		const brush_t *b = &brushes[j];
 		if (!b->num_sides) {
 			continue;    // not a real brush (origin brush)
 		}
@@ -397,9 +394,7 @@ void BeginModel(void) {
  * @brief
  */
 void EndModel(void) {
-	bsp_model_t *mod;
-
-	mod = &bsp_file.models[bsp_file.num_models];
+	bsp_model_t *mod = &bsp_file.models[bsp_file.num_models];
 
 	mod->num_faces = bsp_file.num_faces - mod->first_face;
 
