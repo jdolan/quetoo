@@ -575,6 +575,8 @@ static void R_SetArrayStateBsp(const r_model_t *mod, r_attribute_mask_t mask, r_
 	}
 
 	R_BindAttributeInterleaveBuffer(&mod->bsp->vertex_buffer, mask);
+
+	R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &mod->bsp->element_buffer);
 }
 
 /**

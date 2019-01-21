@@ -380,7 +380,7 @@ void BeginModel(void) {
 	for (int32_t j = start; j < end; j++) {
 		const brush_t *b = &brushes[j];
 		if (!b->num_sides) {
-			continue;    // not a real brush (origin brush)
+			continue; // not a real brush (origin brush)
 		}
 		AddPointToBounds(b->mins, mins, maxs);
 		AddPointToBounds(b->maxs, mins, maxs);

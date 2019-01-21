@@ -163,7 +163,7 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 /**
  * @brief Emits a vertex elements array of triangles for the given face.
  */
-static int32_t EmitFaceElements(const face_t *face, int32_t vertex) {
+static int32_t EmitFaceElements(const face_t *face) {
 
 	const int32_t num_triangles = (face->w->num_points - 2);
 	const int32_t num_elements = num_triangles * 3;
@@ -172,9 +172,7 @@ static int32_t EmitFaceElements(const face_t *face, int32_t vertex) {
 	Cm_ElementsForWinding(face->w, elements);
 
 	for (int32_t i = 0; i < num_elements; i++) {
-
-		const int32_t e = *(bsp_file.face_vertexes + vertex + elements[i]);
-		bsp_file.face_elements[bsp_file.num_face_elements] = e;
+		bsp_file.face_elements[bsp_file.num_face_elements] = elements[i];
 		bsp_file.num_face_elements++;
 	}
 
@@ -209,7 +207,7 @@ void EmitFace(face_t *face) {
 	out->num_vertexes = EmitFaceVertexes(face);
 
 	out->elements = bsp_file.num_face_elements;
-	out->num_elements = EmitFaceElements(face, out->vertex);
+	out->num_elements = EmitFaceElements(face);
 
 	out->lightmap = -1;
 }

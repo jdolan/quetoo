@@ -440,7 +440,6 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
 		}
 
 		if (r_state.lighting_enabled) { // normals and tangents
-
 			VectorCopy(in->normal, out->normal);
 			VectorCopy(in->tangent, out->tangent);
 			VectorCopy(in->bitangent, out->bitangent);

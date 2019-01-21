@@ -522,6 +522,9 @@ typedef struct {
 	int32_t vertex; // index into the vertex buffer
 	int32_t num_vertexes;
 
+	int32_t element; // index into element buffer
+	int32_t num_elements;
+
 	int16_t vis_frame; // PVS frame
 	int16_t frame; // renderer frame
 	int16_t light_frame; // dynamic lighting frame
@@ -729,6 +732,9 @@ typedef struct {
 	int32_t num_vertexes;
 	r_bsp_vertex_t *vertexes;
 
+	int32_t num_elements;
+	int32_t *elements;
+
 	int32_t num_surfaces;
 	r_bsp_surface_t *surfaces;
 
@@ -748,6 +754,9 @@ typedef struct {
 
 	// vertex buffer
 	r_buffer_t vertex_buffer;
+
+	// element buffer
+	r_buffer_t element_buffer;
 
 	// an array of shadow counts, indexed by plane number
 	int32_t *plane_shadows;

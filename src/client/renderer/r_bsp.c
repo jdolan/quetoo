@@ -405,7 +405,7 @@ void R_DrawBspLeafs(void) {
 				continue;
 			}
 
-			R_DrawArrays(GL_TRIANGLE_FAN, (*s)->vertex, (*s)->num_vertexes);
+			R_DrawArrays(GL_TRIANGLES, (*s)->element, (*s)->num_elements);
 		}
 	}
 

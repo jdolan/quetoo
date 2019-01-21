@@ -186,13 +186,17 @@ static void R_LoadBspLeafSurfaces(r_bsp_model_t *bsp) {
  */
 static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 
-	bsp->num_vertexes = 0;
-
-	for (int32_t i = 0; i < bsp->file->num_faces; i++) {
-		bsp->num_vertexes += bsp->file->faces[i].num_vertexes;
-	}
-
+	bsp->num_vertexes = bsp->file->num_face_vertexes;
 	bsp->vertexes = Mem_LinkMalloc(bsp->num_vertexes * sizeof(r_bsp_vertex_t), bsp);
+}
+
+/**
+ * @brief
+ */
+static void R_LoadBspElements(r_bsp_model_t *bsp) {
+
+	bsp->num_elements = bsp->file->num_face_elements;
+	bsp->elements = Mem_LinkMalloc(bsp->num_elements * sizeof(int32_t), bsp);
 }
 
 /**
@@ -210,6 +214,7 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
 	bsp->surfaces = out = Mem_LinkMalloc(bsp->num_surfaces * sizeof(*out), bsp);
 
 	r_bsp_vertex_t *outv = bsp->vertexes;
+	int32_t *oute = bsp->elements;
 
 	for (int32_t i = 0; i < bsp->num_surfaces; i++, in++, out++) {
 
@@ -230,8 +235,8 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
 		}
 
 		// then vertexes
-		out->num_vertexes = in->num_vertexes;
 		out->vertex = (int32_t) (ptrdiff_t) (outv - bsp->vertexes);
+		out->num_vertexes = in->num_vertexes;
 
 		const int32_t *fv = bsp->file->face_vertexes + in->vertex;
 		for (int32_t j = 0; j < in->num_vertexes; j++, fv++, outv++) {
@@ -242,6 +247,15 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
 			VectorCopy(inv->normal, outv->normal);
 			VectorCopy(inv->tangent, outv->tangent);
 			VectorCopy(inv->bitangent, outv->bitangent);
+		}
+
+		// then elements
+		out->element = (int32_t) (ptrdiff_t) (oute - bsp->elements);
+		out->num_elements = in->num_elements;
+
+		const int32_t *fe = bsp->file->face_elements + in->elements;
+		for (int32_t j = 0; j < in->num_elements; j++, fe++, oute++) {
+			*oute = out->vertex + *fe;
 		}
 
 		// and lastly lightmap data
@@ -581,6 +595,15 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 		.data = mod->bsp->vertexes
 	});
 
+	mod->num_elements = mod->bsp->num_elements;
+
+	R_CreateElementBuffer(&mod->bsp->element_buffer, &(const r_create_element_t) {
+		.type = R_TYPE_UNSIGNED_INT,
+		.hint = GL_STATIC_DRAW,
+		.size = mod->num_elements * sizeof(int32_t),
+		.data = mod->bsp->elements
+	});
+
 	R_GetError(mod->media.name);
 }
 
@@ -713,6 +736,7 @@ static void R_LoadBspSurfacesArrays(r_model_t *mod) {
 	(1 << BSP_LUMP_LEAF_FACES) | \
 	(1 << BSP_LUMP_FACES) | \
 	(1 << BSP_LUMP_FACE_VERTEXES) | \
+	(1 << BSP_LUMP_FACE_ELEMENTS) | \
 	(1 << BSP_LUMP_LIGHTMAPS)
 
 /**
@@ -744,6 +768,9 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 
 	Cl_LoadingProgress(16, "vertexes");
 	R_LoadBspVertexes(mod->bsp);
+
+	Cl_LoadingProgress(18, "elements");
+	R_LoadBspElements(mod->bsp);
 
 	Cl_LoadingProgress(20, "faces");
 	R_LoadBspSurfaces(mod->bsp);
