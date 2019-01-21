@@ -157,7 +157,7 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 		bsp_file.num_face_vertexes++;
 	}
 
-	return bsp_file.num_face_vertexes - face->w->num_points;
+	return face->w->num_points;
 }
 
 /**
@@ -170,23 +170,24 @@ void EmitFace(face_t *face) {
 	if (face->merged) {
 		return; // not a final face
 	}
-	// save output number so leaffaces can use
+
+	// save output order so leaf can reference
 	face->num = bsp_file.num_faces;
 
 	if (bsp_file.num_faces >= MAX_BSP_FACES) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_FACES\n");
 	}
 
-	bsp_face_t *df = &bsp_file.faces[bsp_file.num_faces];
+	bsp_face_t *out = &bsp_file.faces[bsp_file.num_faces];
 	bsp_file.num_faces++;
 
-	df->plane_num = face->plane_num;
-	df->texinfo = face->texinfo;
+	out->plane_num = face->plane_num;
+	out->texinfo = face->texinfo;
 
-	df->vertex = EmitFaceVertexes(face);
-	df->num_vertexes = face->w->num_points;
+	out->vertex = bsp_file.num_face_vertexes;
+	out->num_vertexes = EmitFaceVertexes(face);
 
-	df->lightmap = -1;
+	out->lightmap = -1;
 }
 
 #define MAX_PHONG_FACES 256
