@@ -51,6 +51,11 @@ static r_sky_t r_sky;
  * @brief
  */
 void R_DrawSkyBox(void) {
+
+	if (r_clear->value && r_draw_wireframe->value) {
+		return;
+	}
+
 	matrix4x4_t modelview;
 
 	R_GetMatrix(R_MATRIX_MODELVIEW, &modelview);
