@@ -132,8 +132,8 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 		VectorCopy(face->w->points[i], v.position);
 
 		if (!(texinfo->flags & SURF_NO_WELD)) {
-			for (int32_t i = 0; i < 3; i++) {
-				v.position[i] = SNAP_TO_FLOAT * floorf(v.position[i] * SNAP_TO_INT + 0.5);
+			for (int32_t j = 0; j < 3; j++) {
+				v.position[j] = SNAP_TO_FLOAT * floorf(v.position[j] * SNAP_TO_INT + 0.5);
 			}
 		}
 
