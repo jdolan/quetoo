@@ -44,6 +44,7 @@ static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
 	BSP_LUMP_NUM_STRUCT(vertexes, MAX_BSP_VERTEXES),
 	BSP_LUMP_NUM_STRUCT(faces, MAX_BSP_FACES),
 	BSP_LUMP_NUM_STRUCT(face_vertexes, MAX_BSP_FACE_VERTEXES),
+	BSP_LUMP_NUM_STRUCT(face_elements, MAX_BSP_FACE_ELEMENTS),
 	BSP_LUMP_NUM_STRUCT(models, MAX_BSP_MODELS),
 	BSP_LUMP_NUM_STRUCT(area_portals, MAX_BSP_AREA_PORTALS),
 	BSP_LUMP_NUM_STRUCT(areas, MAX_BSP_AREAS),
@@ -244,6 +245,8 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
 		face->texinfo = LittleShort(face->texinfo);
 		face->vertex = LittleLong(face->vertex);
 		face->num_vertexes = LittleLong(face->num_vertexes);
+		face->triangles = LittleLong(face->triangles);
+		face->num_triangles = LittleLong(face->num_triangles);
 		face->lightmap = LittleLong(face->lightmap);
 
 		face++;
@@ -259,6 +262,18 @@ static void Bsp_SwapFaceVertexes(void *lump, const int32_t num) {
 
 	for (int32_t i = 0; i < num; i++) {
 		face_vertex[i] = LittleLong(face_vertex[i]);
+	}
+}
+
+/**
+ * @brief Swap function.
+ */
+static void Bsp_SwapFaceElements(void *lump, const int32_t num) {
+
+	int32_t *face_element = (int32_t *) lump;
+
+	for (int32_t i = 0; i < num; i++) {
+		face_element[i] = LittleLong(face_element[i]);
 	}
 }
 
@@ -350,6 +365,7 @@ static Bsp_SwapFunction bsp_swap_funcs[BSP_LUMP_LAST] = {
 	Bsp_SwapVertexes,
 	Bsp_SwapFaces,
 	Bsp_SwapFaceVertexes,
+	Bsp_SwapFaceElements,
 	Bsp_SwapModels,
 	Bsp_SwapAreaPortals,
 	Bsp_SwapAreas,

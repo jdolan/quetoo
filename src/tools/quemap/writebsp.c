@@ -325,6 +325,7 @@ void BeginBSPFile(void) {
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_VERTEXES, MAX_BSP_VERTEXES);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_FACES, MAX_BSP_FACES);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_FACE_VERTEXES, MAX_BSP_FACE_VERTEXES);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_FACE_ELEMENTS, MAX_BSP_FACE_ELEMENTS);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_MODELS, MAX_BSP_MODELS);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_AREA_PORTALS, MAX_BSP_AREA_PORTALS);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_AREAS, MAX_BSP_AREAS);

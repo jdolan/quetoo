@@ -106,7 +106,7 @@ face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal) {
 #define SNAP_TO_FLOAT   (1.0 / SNAP_TO_INT)
 
 /**
- * @brief Emit vertexes and vertex indices for the given face.
+ * @brief Emits a vertex array for the given face.
  */
 static int32_t EmitFaceVertexes(const face_t *face) {
 
@@ -161,6 +161,27 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 }
 
 /**
+ * @brief Emits a vertex elements array of triangles for the given face.
+ */
+static int32_t EmitFaceElements(const face_t *face, int32_t vertex) {
+
+	const int32_t num_triangles = (face->w->num_points - 2);
+	const int32_t num_elements = num_triangles * 3;
+
+	int32_t elements[num_elements];
+	Cm_ElementsForWinding(face->w, elements);
+
+	for (int32_t i = 0; i < num_elements; i++) {
+
+		const int32_t e = *(bsp_file.face_vertexes + vertex + elements[i]);
+		bsp_file.face_elements[bsp_file.num_face_elements] = e;
+		bsp_file.num_face_elements++;
+	}
+
+	return num_elements;
+}
+
+/**
  * @brief
  */
 void EmitFace(face_t *face) {
@@ -186,6 +207,9 @@ void EmitFace(face_t *face) {
 
 	out->vertex = bsp_file.num_face_vertexes;
 	out->num_vertexes = EmitFaceVertexes(face);
+
+	out->elements = bsp_file.num_face_elements;
+	out->num_elements = EmitFaceElements(face, out->vertex);
 
 	out->lightmap = -1;
 }

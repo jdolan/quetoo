@@ -26,6 +26,7 @@
 #define MAX_BSP_VERTEXES		0x20000
 #define MAX_BSP_FACES			0x20000
 #define MAX_BSP_FACE_VERTEXES	0x80000
+#define MAX_BSP_FACE_ELEMENTS	0x80000
 #define MAX_BSP_MODELS			0x400
 #define MAX_BSP_AREA_PORTALS	0x400
 #define MAX_BSP_AREAS			0x100
@@ -56,6 +57,7 @@ typedef enum {
 	BSP_LUMP_VERTEXES,
 	BSP_LUMP_FACES,
 	BSP_LUMP_FACE_VERTEXES,
+	BSP_LUMP_FACE_ELEMENTS,
 	BSP_LUMP_MODELS,
 	BSP_LUMP_AREA_PORTALS,
 	BSP_LUMP_AREAS,
@@ -125,8 +127,11 @@ typedef struct {
 	int32_t plane_num;
 	int16_t texinfo;
 
-	int32_t vertex;
+	int32_t vertex; // vertex array for winding
 	int32_t num_vertexes;
+
+	int32_t elements; // elements array for triangles
+	int32_t num_elements;
 
 	int32_t lightmap; // start of samples in lighting lump
 } bsp_face_t;
@@ -224,6 +229,9 @@ typedef struct {
 
 	int32_t num_face_vertexes;
 	int32_t *face_vertexes;
+
+	int32_t num_face_elements;
+	int32_t *face_elements;
 
 	int32_t num_models;
 	bsp_model_t *models;
