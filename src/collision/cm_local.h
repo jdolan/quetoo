@@ -22,4 +22,4 @@
 #pragma once
 
 #define __CM_LOCAL_H__
-#include "cmodel.h"
+#include "collision.h"

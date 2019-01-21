@@ -246,7 +246,7 @@ static const char *mem_tag_names[MEM_TAG_TOTAL] = {
 	"material",
 	"cmd",
 	"cvar",
-	"cmodel",
+	"collision",
 	"bsp",
 	"fs"
 };

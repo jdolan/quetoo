@@ -1632,7 +1632,7 @@
 		CE12D6301C5C58C300CD0B13 /* cm_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cm_types.h; sourceTree = "<group>"; };
 		CE12D6311C5C58C300CD0B13 /* cm_vis.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cm_vis.c; sourceTree = "<group>"; };
 		CE12D6321C5C58C300CD0B13 /* cm_vis.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cm_vis.h; sourceTree = "<group>"; };
-		CE12D6331C5C58C300CD0B13 /* cmodel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cmodel.h; sourceTree = "<group>"; };
+		CE12D6331C5C58C300CD0B13 /* collision.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = collision.h; sourceTree = "<group>"; };
 		CE12D6341C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE12D6361C5C58C300CD0B13 /* common.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = common.c; sourceTree = "<group>"; };
 		CE12D6371C5C58C300CD0B13 /* common.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = common.h; sourceTree = "<group>"; };
@@ -3107,7 +3107,7 @@
 				CE12D6301C5C58C300CD0B13 /* cm_types.h */,
 				CE12D6311C5C58C300CD0B13 /* cm_vis.c */,
 				CE12D6321C5C58C300CD0B13 /* cm_vis.h */,
-				CE12D6331C5C58C300CD0B13 /* cmodel.h */,
+				CE12D6331C5C58C300CD0B13 /* collision.h */,
 				CE12D6341C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = collision;

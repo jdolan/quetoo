@@ -23,6 +23,7 @@
 
 #include <SDL_video.h>
 
+#include "collision/collision.h"
 #include "files.h"
 #include "image.h"
 #include "matrix.h"

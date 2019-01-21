@@ -104,5 +104,5 @@ librenderer_la_LDFLAGS = \
 	
 librenderer_la_LIBADD = \
 	$(top_builddir)/src/libimage.la \
-	$(top_builddir)/src/collision/libcmodel.la \
+	$(top_builddir)/src/collision/libcollision.la \
 	@OPENGL_LIBS@

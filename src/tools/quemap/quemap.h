@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "cmodel.h"
+#include "collision/collision.h"
 #include "common.h"
 #include "monitor.h"
 #include "work.h"

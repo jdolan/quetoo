@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "collision/cmodel.h"
+#include "collision/collision.h"
 #include "console.h"
 #include "filesystem.h"
 #include "cgame/cgame.h"

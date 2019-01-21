@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "collision/cmodel.h"
+#include "collision/collision.h"
 #include "console.h"
 
 #include "r_gl_types.h"

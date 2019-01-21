@@ -21,7 +21,7 @@
 
 #include "cg_local.h"
 #include "game/default/bg_pmove.h"
-#include "collision/cmodel.h"
+#include "collision/collision.h"
 
 /**
  * @brief
