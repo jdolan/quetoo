@@ -38,7 +38,7 @@ void teardown(void) {
 	Mem_Shutdown();
 }
 
-START_TEST(Cm_TrianglesForWinding_triangle) {
+START_TEST(Cm_ElementsForWinding_triangle) {
 
 	cm_winding_t *w = Cm_AllocWinding(3);
 	w->num_points = 3;
@@ -47,20 +47,18 @@ START_TEST(Cm_TrianglesForWinding_triangle) {
 	VectorSet(w->points[1], 1, 0, 0);
 	VectorSet(w->points[2], 0, 1, 0);
 
-	int32_t *tris;
-	const int32_t num_vertexes = Cm_TrianglesForWinding(w, &tris);
+	int32_t elements[(w->num_points - 2) * 3];
+	const int32_t num_elements = Cm_ElementsForWinding(w, elements);
 
-	ck_assert_int_eq(3, num_vertexes);
+	ck_assert_int_eq(3, num_elements);
 
-	ck_assert_int_eq(0, tris[0]);
-	ck_assert_int_eq(1, tris[1]);
-	ck_assert_int_eq(2, tris[2]);
-
-	Mem_Free(tris);
+	ck_assert_int_eq(0, elements[0]);
+	ck_assert_int_eq(1, elements[1]);
+	ck_assert_int_eq(2, elements[2]);
 
 } END_TEST
 
-START_TEST(Cm_TrianglesForWinding_quad) {
+START_TEST(Cm_ElementsForWinding_quad) {
 
 	cm_winding_t *w = Cm_AllocWinding(4);
 	w->num_points = 4;
@@ -70,24 +68,22 @@ START_TEST(Cm_TrianglesForWinding_quad) {
 	VectorSet(w->points[2], 1, 1, 0);
 	VectorSet(w->points[3], 0, 1, 0);
 
-	int32_t *tris;
-	const int32_t num_vertexes = Cm_TrianglesForWinding(w, &tris);
+	int32_t elements[(w->num_points - 2) * 3];
+	const int32_t num_elements = Cm_ElementsForWinding(w, elements);
 
-	ck_assert_int_eq(6, num_vertexes);
+	ck_assert_int_eq(6, num_elements);
 
-	ck_assert_int_eq(0, tris[0]);
-	ck_assert_int_eq(1, tris[1]);
-	ck_assert_int_eq(2, tris[2]);
+	ck_assert_int_eq(0, elements[0]);
+	ck_assert_int_eq(1, elements[1]);
+	ck_assert_int_eq(2, elements[2]);
 
-	ck_assert_int_eq(0, tris[3]);
-	ck_assert_int_eq(2, tris[4]);
-	ck_assert_int_eq(3, tris[5]);
-
-	Mem_Free(tris);
+	ck_assert_int_eq(0, elements[3]);
+	ck_assert_int_eq(2, elements[4]);
+	ck_assert_int_eq(3, elements[5]);
 
 } END_TEST
 
-START_TEST(Cm_TrianglesForWinding_colinear) {
+START_TEST(Cm_ElementsForWinding_colinear) {
 
 	cm_winding_t *w = Cm_AllocWinding(6);
 	w->num_points = 6;
@@ -100,28 +96,26 @@ START_TEST(Cm_TrianglesForWinding_colinear) {
 	VectorSet(w->points[4], 1, 2, 0);
 	VectorSet(w->points[5], 0, 2, 0);
 
-	int32_t *tris;
-	const int32_t num_vertexes = Cm_TrianglesForWinding(w, &tris);
+	int32_t elements[(w->num_points - 2) * 3];
+	const int32_t num_elements = Cm_ElementsForWinding(w, elements);
 
-	ck_assert_int_eq(12, num_vertexes);
+	ck_assert_int_eq(12, num_elements);
 
-	ck_assert_int_eq(1, tris[0]);
-	ck_assert_int_eq(2, tris[1]);
-	ck_assert_int_eq(3, tris[2]);
+	ck_assert_int_eq(1, elements[0]);
+	ck_assert_int_eq(2, elements[1]);
+	ck_assert_int_eq(3, elements[2]);
 
-	ck_assert_int_eq(0, tris[3]);
-	ck_assert_int_eq(1, tris[4]);
-	ck_assert_int_eq(3, tris[5]);
+	ck_assert_int_eq(0, elements[3]);
+	ck_assert_int_eq(1, elements[4]);
+	ck_assert_int_eq(3, elements[5]);
 
-	ck_assert_int_eq(0, tris[6]);
-	ck_assert_int_eq(3, tris[7]);
-	ck_assert_int_eq(4, tris[8]);
+	ck_assert_int_eq(0, elements[6]);
+	ck_assert_int_eq(3, elements[7]);
+	ck_assert_int_eq(4, elements[8]);
 
-	ck_assert_int_eq(0, tris[9]);
-	ck_assert_int_eq(4, tris[10]);
-	ck_assert_int_eq(5, tris[11]);
-
-	Mem_Free(tris);
+	ck_assert_int_eq(0, elements[9]);
+	ck_assert_int_eq(4, elements[10]);
+	ck_assert_int_eq(5, elements[11]);
 
 } END_TEST
 
@@ -135,9 +129,9 @@ int32_t main(int32_t argc, char **argv) {
 	TCase *tcase = tcase_create("check_cm_polylib");
 	tcase_add_checked_fixture(tcase, setup, teardown);
 
-	tcase_add_test(tcase, Cm_TrianglesForWinding_triangle);
-	tcase_add_test(tcase, Cm_TrianglesForWinding_quad);
-	tcase_add_test(tcase, Cm_TrianglesForWinding_colinear);
+	tcase_add_test(tcase, Cm_ElementsForWinding_triangle);
+	tcase_add_test(tcase, Cm_ElementsForWinding_quad);
+	tcase_add_test(tcase, Cm_ElementsForWinding_colinear);
 
 	Suite *suite = suite_create("check_cm_polylib");
 	suite_add_tcase(suite, tcase);

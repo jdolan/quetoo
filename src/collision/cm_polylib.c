@@ -520,29 +520,30 @@ cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, con
  * @brief Creates a vertex element array of triangles for the given winding.
  * @details This function uses an ear-clipping algorithm to clip triangles from
  * the given winding. Invalid triangles due to colinear points are skipped over.
- * The returned vertex element array should be freed with Mem_Free.
+ * @param w The winding.
+ * @param elements The output array, which must be `>= (w->num_points - 2) * 3` in length.
  * @return The number of vertex elements written to tris.
  */
-int32_t Cm_TrianglesForWinding(const cm_winding_t *w, int32_t **tris) {
+int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
 
-	const int32_t num_vertexes = (w->num_points - 2) * 3;
-	int32_t *out = *tris = Mem_Malloc(num_vertexes * sizeof(int32_t));
+	int32_t *out = elements;
 
-	GPtrArray *points = g_ptr_array_new();
+	int32_t num_points = w->num_points;
+	int32_t points[num_points];
 
 	for (int32_t i = 0; i < w->num_points; i++) {
-		g_ptr_array_add(points, (gpointer) w->points[i]);
+		points[i] = i;
 	}
 
-	while (points->len > 2) {
+	while (num_points > 2) {
 
 		int32_t i;
 		const vec_t *a, *b, *c;
 
-		for (i = 0; i < (int32_t) points->len; i++) {
-			a = g_ptr_array_index(points, (i + 0) % points->len);
-			b = g_ptr_array_index(points, (i + 1) % points->len);
-			c = g_ptr_array_index(points, (i + 2) % points->len);
+		for (i = 0; i < num_points; i++) {
+			a = w->points[points[(i + 0) % num_points]];
+			b = w->points[points[(i + 1) % num_points]];
+			c = w->points[points[(i + 2) % num_points]];
 
 			vec3_t ba, cb, cross;
 			VectorSubtract(b, a, ba);
@@ -558,10 +559,12 @@ int32_t Cm_TrianglesForWinding(const cm_winding_t *w, int32_t **tris) {
 		*out++ = (int32_t) (b - (vec_t *) w->points) / 3;
 		*out++ = (int32_t) (c - (vec_t *) w->points) / 3;
 
-		g_ptr_array_remove_index(points, (i + 1) % points->len);
+		for (i = (i + 1) % num_points; i < num_points; i++) {
+			points[i] = points[(i + 1) % num_points];
+		}
+
+		num_points--;
 	}
 
-	g_ptr_array_free(points, false);
-
-	return num_vertexes;
+	return (int32_t) (ptrdiff_t) (out - elements);
 }
