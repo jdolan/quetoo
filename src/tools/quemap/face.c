@@ -121,6 +121,10 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 			Com_Error(ERROR_FATAL, "MAX_BSP_VERTEXES");
 		}
 
+		if (bsp_file.num_face_vertexes == MAX_BSP_FACE_VERTEXES) {
+			Com_Error(ERROR_FATAL, "MAX_BSP_FACE_VERTEXES");
+		}
+
 		bsp_vertex_t v = {
 			.texinfo = face->texinfo
 		};
