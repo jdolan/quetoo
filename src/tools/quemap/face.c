@@ -203,11 +203,11 @@ void EmitFace(face_t *face) {
 	out->plane_num = face->plane_num;
 	out->texinfo = face->texinfo;
 
-	out->vertex = bsp_file.num_face_vertexes;
-	out->num_vertexes = EmitFaceVertexes(face);
+	out->first_face_vertex = bsp_file.num_face_vertexes;
+	out->num_face_vertexes = EmitFaceVertexes(face);
 
-	out->elements = bsp_file.num_face_elements;
-	out->num_elements = EmitFaceElements(face);
+	out->first_face_element = bsp_file.num_face_elements;
+	out->num_face_elements = EmitFaceElements(face);
 
 	out->lightmap = -1;
 }
@@ -229,8 +229,8 @@ static size_t PhongFacesForVertex(const bsp_vertex_t *vertex, const bsp_face_t *
 			continue;
 		}
 
-		const int32_t *fv = bsp_file.face_vertexes + face->vertex;
-		for (uint16_t j = 0; j < face->num_vertexes; j++, fv++) {
+		const int32_t *fv = bsp_file.face_vertexes + face->first_face_vertex;
+		for (uint16_t j = 0; j < face->num_face_vertexes; j++, fv++) {
 
 			const bsp_vertex_t *v = &bsp_file.vertexes[*fv];
 

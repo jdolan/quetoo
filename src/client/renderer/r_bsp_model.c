@@ -236,10 +236,10 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
 
 		// then vertexes
 		out->vertex = (int32_t) (ptrdiff_t) (outv - bsp->vertexes);
-		out->num_vertexes = in->num_vertexes;
+		out->num_vertexes = in->num_face_vertexes;
 
-		const int32_t *fv = bsp->file->face_vertexes + in->vertex;
-		for (int32_t j = 0; j < in->num_vertexes; j++, fv++, outv++) {
+		const int32_t *fv = bsp->file->face_vertexes + in->first_face_vertex;
+		for (int32_t j = 0; j < in->num_face_vertexes; j++, fv++, outv++) {
 
 			const bsp_vertex_t *inv = &bsp->file->vertexes[*fv];
 
@@ -251,10 +251,10 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
 
 		// then elements
 		out->element = (int32_t) (ptrdiff_t) (oute - bsp->elements);
-		out->num_elements = in->num_elements;
+		out->num_elements = in->num_face_elements;
 
-		const int32_t *fe = bsp->file->face_elements + in->elements;
-		for (int32_t j = 0; j < in->num_elements; j++, fe++, oute++) {
+		const int32_t *fe = bsp->file->face_elements + in->first_face_element;
+		for (int32_t j = 0; j < in->num_face_elements; j++, fe++, oute++) {
 			*oute = out->vertex + *fe;
 		}
 
@@ -560,8 +560,8 @@ void R_ExportBsp_f(void) {
 
 			Fs_Print(file, "f ");
 
-			for (int32_t i = 2; i < surf->num_vertexes; i++) {
-				Fs_Print(file, "%u/%u/%u ", surf->vertex, surf->vertex + i - 1, surf->vertex + i);
+			for (int32_t j = 2; j < surf->num_vertexes; j++) {
+				Fs_Print(file, "%u/%u/%u ", surf->vertex, surf->vertex + j - 1, surf->vertex + j);
 			}
 
 			Fs_Print(file, "\n");

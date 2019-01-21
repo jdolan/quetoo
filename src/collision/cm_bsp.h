@@ -127,11 +127,11 @@ typedef struct {
 	int32_t plane_num;
 	int16_t texinfo;
 
-	int32_t vertex; // vertex array for winding
-	int32_t num_vertexes;
+	int32_t first_face_vertex; // vertex array for polygon or triangle fan
+	int32_t num_face_vertexes;
 
-	int32_t elements; // elements array for triangles
-	int32_t num_elements;
+	int32_t first_face_element; // element array for triangles
+	int32_t num_face_elements;
 
 	int32_t lightmap; // start of samples in lighting lump
 } bsp_face_t;

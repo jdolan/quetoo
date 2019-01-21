@@ -200,15 +200,15 @@ cm_winding_t *Cm_WindingForPlane(const vec3_t normal, const vec_t dist) {
  */
 cm_winding_t *Cm_WindingForFace(const bsp_file_t *file, const bsp_face_t *face) {
 
-	cm_winding_t *w = Cm_AllocWinding(face->num_vertexes);
+	cm_winding_t *w = Cm_AllocWinding(face->num_face_vertexes);
 
-	const int32_t *fv = file->face_vertexes + face->vertex;
+	const int32_t *fv = file->face_vertexes + face->first_face_vertex;
 
-	for (int32_t i = 0; i < face->num_vertexes; i++) {
+	for (int32_t i = 0; i < face->num_face_vertexes; i++) {
 
-		const bsp_vertex_t *v0 = &file->vertexes[*(fv + (i + 0) % face->num_vertexes)];
-		const bsp_vertex_t *v1 = &file->vertexes[*(fv + (i + 1) % face->num_vertexes)];
-		const bsp_vertex_t *v2 = &file->vertexes[*(fv + (i + 2) % face->num_vertexes)];
+		const bsp_vertex_t *v0 = &file->vertexes[*(fv + (i + 0) % face->num_face_vertexes)];
+		const bsp_vertex_t *v1 = &file->vertexes[*(fv + (i + 1) % face->num_face_vertexes)];
+		const bsp_vertex_t *v2 = &file->vertexes[*(fv + (i + 2) % face->num_face_vertexes)];
 
 		VectorCopy(v0->position, w->points[w->num_points]);
 		w->num_points++;

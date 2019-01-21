@@ -65,8 +65,8 @@ static void BuildLightmapExtents(lightmap_t *lm) {
 
 	ClearStBounds(lm->st_mins, lm->st_maxs);
 
-	const int32_t *fv = &bsp_file.face_vertexes[lm->face->vertex];
-	for (int32_t i = 0; i < lm->face->num_vertexes; i++, fv++) {
+	const int32_t *fv = &bsp_file.face_vertexes[lm->face->first_face_vertex];
+	for (int32_t i = 0; i < lm->face->num_face_vertexes; i++, fv++) {
 
 		const bsp_vertex_t *v = &bsp_file.vertexes[*fv];
 
@@ -206,10 +206,10 @@ static int32_t PhongNormal_sort(const void *a, const void *b) {
  * the three nearest vertexes.
  */
 static void PhongNormal(const bsp_face_t *face, const vec3_t pos, vec3_t normal) {
-	phong_vertex_t phong_vertexes[face->num_vertexes], *pv = phong_vertexes;
+	phong_vertex_t phong_vertexes[face->num_face_vertexes], *pv = phong_vertexes;
 
-	const int32_t *fv = bsp_file.face_vertexes + face->vertex;
-	for (int32_t i = 0; i < face->num_vertexes; i++, fv++, pv++) {
+	const int32_t *fv = bsp_file.face_vertexes + face->first_face_vertex;
+	for (int32_t i = 0; i < face->num_face_vertexes; i++, fv++, pv++) {
 
 		const bsp_vertex_t *v = &bsp_file.vertexes[*fv];
 		VectorCopy(v->normal, pv->normal);
@@ -219,7 +219,7 @@ static void PhongNormal(const bsp_face_t *face, const vec3_t pos, vec3_t normal)
 		pv->dist = VectorLength(delta);
 	}
 
-	qsort(phong_vertexes, face->num_vertexes, sizeof(phong_vertex_t), PhongNormal_sort);
+	qsort(phong_vertexes, face->num_face_vertexes, sizeof(phong_vertex_t), PhongNormal_sort);
 
 	VectorClear(normal);
 	pv = phong_vertexes;
