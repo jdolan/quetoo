@@ -83,7 +83,32 @@ START_TEST(Cm_ElementsForWinding_quad) {
 
 } END_TEST
 
-START_TEST(Cm_ElementsForWinding_colinear) {
+START_TEST(Cm_ElementsForWinding_skinnyQuad) {
+
+	cm_winding_t *w = Cm_AllocWinding(4);
+	w->num_points = 4;
+
+	VectorSet(w->points[0], 0, 0, 0);
+	VectorSet(w->points[1], 128, 0, 0);
+	VectorSet(w->points[2], 128, 1, 0);
+	VectorSet(w->points[3], 0, 1, 0);
+
+	int32_t elements[(w->num_points - 2) * 3];
+	const int32_t num_elements = Cm_ElementsForWinding(w, elements);
+
+	ck_assert_int_eq(6, num_elements);
+
+	ck_assert_int_eq(0, elements[0]);
+	ck_assert_int_eq(1, elements[1]);
+	ck_assert_int_eq(2, elements[2]);
+
+	ck_assert_int_eq(0, elements[3]);
+	ck_assert_int_eq(2, elements[4]);
+	ck_assert_int_eq(3, elements[5]);
+
+} END_TEST
+
+START_TEST(Cm_ElementsForWinding_collinearQuad) {
 
 	cm_winding_t *w = Cm_AllocWinding(6);
 	w->num_points = 6;
@@ -105,17 +130,17 @@ START_TEST(Cm_ElementsForWinding_colinear) {
 	ck_assert_int_eq(2, elements[1]);
 	ck_assert_int_eq(3, elements[2]);
 
-	ck_assert_int_eq(0, elements[3]);
-	ck_assert_int_eq(1, elements[4]);
-	ck_assert_int_eq(3, elements[5]);
+	ck_assert_int_eq(4, elements[3]);
+	ck_assert_int_eq(5, elements[4]);
+	ck_assert_int_eq(0, elements[5]);
 
 	ck_assert_int_eq(0, elements[6]);
-	ck_assert_int_eq(3, elements[7]);
-	ck_assert_int_eq(4, elements[8]);
+	ck_assert_int_eq(1, elements[7]);
+	ck_assert_int_eq(3, elements[8]);
 
 	ck_assert_int_eq(0, elements[9]);
-	ck_assert_int_eq(4, elements[10]);
-	ck_assert_int_eq(5, elements[11]);
+	ck_assert_int_eq(3, elements[10]);
+	ck_assert_int_eq(4, elements[11]);
 
 } END_TEST
 
@@ -129,9 +154,10 @@ int32_t main(int32_t argc, char **argv) {
 	TCase *tcase = tcase_create("check_cm_polylib");
 	tcase_add_checked_fixture(tcase, setup, teardown);
 
-	tcase_add_test(tcase, Cm_ElementsForWinding_triangle);
-	tcase_add_test(tcase, Cm_ElementsForWinding_quad);
-	tcase_add_test(tcase, Cm_ElementsForWinding_colinear);
+	//tcase_add_test(tcase, Cm_ElementsForWinding_triangle);
+	//tcase_add_test(tcase, Cm_ElementsForWinding_quad);
+	tcase_add_test(tcase, Cm_ElementsForWinding_skinnyQuad);
+	//tcase_add_test(tcase, Cm_ElementsForWinding_collinearQuad);
 
 	Suite *suite = suite_create("check_cm_polylib");
 	suite_add_tcase(suite, tcase);

@@ -528,39 +528,83 @@ int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
 
 	int32_t *out = elements;
 
-	int32_t num_points = w->num_points;
-	int32_t points[num_points];
+	typedef struct {
+		vec3_t position;
+		int32_t index;
+		int32_t corner;
+	} point_t;
 
-	for (int32_t i = 0; i < w->num_points; i++) {
-		points[i] = i;
+	int32_t num_points = w->num_points;
+	point_t points[num_points];
+
+	for (int32_t i = 0; i < num_points; i++) {
+		VectorCopy(w->points[i], points[i].position);
+		points[i].index = i;
 	}
 
 	while (num_points > 2) {
 
-		int32_t i;
-		const vec_t *a, *b, *c;
+		// find the corners, or points without collinear neighbors
 
-		for (i = 0; i < num_points; i++) {
-			a = w->points[points[(i + 0) % num_points]];
-			b = w->points[points[(i + 1) % num_points]];
-			c = w->points[points[(i + 2) % num_points]];
+		int32_t num_corners = 0;
+		for (int32_t i = 0; i < num_points; i++) {
 
-			vec3_t ba, cb, cross;
-			VectorSubtract(b, a, ba);
-			VectorSubtract(c, b, cb);
-			CrossProduct(ba, cb, cross);
+			point_t *a = &points[(i + 0) % num_points];
+			point_t *b = &points[(i + 1) % num_points];
+			point_t *c = &points[(i + 2) % num_points];
 
-			if (VectorLength(cross)) {
-				 break;
+			vec3_t ba, cb;
+			VectorSubtract(b->position, a->position, ba);
+			VectorSubtract(c->position, b->position, cb);
+			VectorNormalize(ba);
+			VectorNormalize(cb);
+
+			if (DotProduct(ba, cb) > 1.0 - SIDE_EPSILON) {
+				b->corner = 0;
+			} else {
+				b->corner = ++num_corners;
 			}
 		}
 
-		*out++ = (int32_t) (a - (vec_t *) w->points) / 3;
-		*out++ = (int32_t) (b - (vec_t *) w->points) / 3;
-		*out++ = (int32_t) (c - (vec_t *) w->points) / 3;
+#if 0
+		for (int32_t i = 0; i < num_points; i++) {
+			if (points[i].corner) {
+				printf("*");
+			}
+			printf("%d ", points[i].index);
+		}
+		printf("\n");
+#endif
 
-		for (i = (i + 1) % num_points; i < num_points; i++) {
-			points[i] = points[(i + 1) % num_points];
+		assert(num_corners > 2);
+
+		// chip away at edges with collinear points first
+
+		const point_t *clip = NULL;
+		if (num_corners < num_points) {
+			for (int32_t i = 0; i < num_points; i++) {
+				const point_t *a = &points[(i + 0) % num_points];
+				const point_t *b = &points[(i + 1) % num_points];
+
+				if (!a->corner && b->corner) {
+					clip = b;
+					break;
+				}
+			}
+			assert(clip);
+		} else {
+			clip = points + 1;
+		}
+
+		const int32_t i = (int32_t) (ptrdiff_t) (clip - points);
+		const int32_t j = (i - 1 + num_points) % num_points;
+
+		for (int32_t k = 0; k < 3; k++) {
+			*out++ = points[(j + k) % num_points].index;
+		}
+
+		for (int32_t k = i; k < num_points - 1; k++) {
+			points[k] = points[k + 1];
 		}
 
 		num_points--;
