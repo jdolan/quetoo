@@ -102,8 +102,8 @@ face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal) {
 	return newf;
 }
 
-#define SNAP_TO_INT   8
-#define SNAP_TO_FLOAT   (1.0 / SNAP_TO_INT)
+#define SNAP_TO_INT		(8.0)
+#define SNAP_TO_FLOAT	(1.0 / SNAP_TO_INT)
 
 /**
  * @brief Emits a vertex array for the given face.
@@ -135,6 +135,7 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 			for (int32_t j = 0; j < 3; j++) {
 				v.position[j] = SNAP_TO_FLOAT * floorf(v.position[j] * SNAP_TO_INT + 0.5);
 			}
+			VectorCopy(v.position, face->w->points[i]);
 		}
 
 		VectorCopy(planes[face->plane_num].normal, v.normal);
