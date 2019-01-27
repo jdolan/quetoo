@@ -566,24 +566,14 @@ int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
 			}
 		}
 
-#if 0
-		for (int32_t i = 0; i < num_points; i++) {
-			if (points[i].corner) {
-				printf("*");
-			}
-			printf("%d ", points[i].index);
-		}
-		printf("\n");
-#endif
-
-		assert(num_corners > 2);
+		//assert(num_corners > 2);
 
 		// chip away at edges with collinear points first
 
 		const point_t *clip = NULL;
 		if (num_corners < num_points) {
-
 			vec_t best = FLT_MAX;
+
 			for (int32_t i = 0; i < num_points; i++) {
 				const point_t *a = &points[(i + 0) % num_points];
 				const point_t *b = &points[(i + 1) % num_points];
