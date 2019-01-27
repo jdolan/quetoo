@@ -32,7 +32,7 @@ _Bool WindingIsTiny(const cm_winding_t *w) {
 	for (int32_t i = 0; i < w->num_points; i++) {
 		VectorSubtract(w->points[i], w->points[(i + 1) % w->num_points], delta);
 		const vec_t len = VectorLength(delta);
-		if (len > (ON_EPSILON + FLT_EPSILON)) {
+		if (len > ON_EPSILON) {
 			if (++valid_edges == 3) {
 				return false;
 			}

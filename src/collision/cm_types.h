@@ -31,7 +31,7 @@
 /**
  * @brief Point equality epsilon value.
  */
-#define ON_EPSILON				0.1
+#define ON_EPSILON				0.125
 
 /**
  * @brief Plane side constants used for BSP recursion.
