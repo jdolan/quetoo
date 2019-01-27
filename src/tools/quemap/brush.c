@@ -220,13 +220,13 @@ static int32_t BoxOnPlaneSide(vec3_t mins, vec3_t maxs, plane_t *plane) {
 
 	// axial planes are easy
 	if (AXIAL(plane)) {
-		if (maxs[plane->type] > plane->dist + SIDE_EPSILON) {
-			side |= SIDE_FRONT;
+		if (plane->dist - SIDE_EPSILON <= mins[plane->type]) {
+			return SIDE_FRONT;
 		}
-		if (mins[plane->type] < plane->dist - SIDE_EPSILON) {
-			side |= SIDE_BACK;
+		if (plane->dist + SIDE_EPSILON >= maxs[plane->type]) {
+			return SIDE_BACK;
 		}
-		return side;
+		return SIDE_BOTH;
 	}
 	// create the proper leading and trailing verts for the box
 
