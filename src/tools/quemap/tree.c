@@ -547,8 +547,6 @@ void PruneNodes(node_t *node) {
  */
 void MergeNodeFaces(node_t *node) {
 
-	const plane_t *plane = &planes[node->plane_num];
-
 	for (face_t *f1 = node->faces; f1; f1 = f1->next) {
 		if (f1->merged) {
 			continue;
@@ -557,6 +555,18 @@ void MergeNodeFaces(node_t *node) {
 			if (f2->merged) {
 				continue;
 			}
+
+			//IDBUG: always passes the face's node's normal to TryMerge()
+			//regardless of which side the face is on. Approximately 50% of
+			//the time the face will be on the other side of node, and thus
+			//the result of the convex/concave test in TryMergeWinding(),
+			//which depends on the normal, is flipped. This causes faces
+			//that shouldn't be merged to be merged and faces that
+			//should be merged to not be merged.
+			//the following added line fixes this bug
+			//thanks to: Alexander Malmberg <alexander@malmberg.org>
+			const plane_t *plane = &planes[f1->plane_num];
+
 			face_t *merged = MergeFaces(f1, f2, plane->normal);
 			if (!merged) {
 				continue;
