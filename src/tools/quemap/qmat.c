@@ -51,7 +51,7 @@ int32_t MAT_Main(void) {
 		LoadMaterial(bsp_file.texinfo[i].texture, ASSET_CONTEXT_TEXTURES);
 	}
 
-	const ssize_t count = WriteMaterialsFile(path);
+	WriteMaterialsFile(path);
 
 	FreeMaterials();
 
