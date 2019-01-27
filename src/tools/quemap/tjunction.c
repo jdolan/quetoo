@@ -48,18 +48,18 @@ static void FixTJunctions_(int32_t face_num) {
 
 			const vec_t d = DotProduct(v, plane->normal) - plane->dist;
 			if (fabsf(d) > ON_EPSILON) {
-				continue;
+				continue; // v is not on face's plane
 			}
 
 			// v is on face's plane, so test it against face's edges
 
 			for (int32_t j = 0; j < face->w->num_points; j++) {
 
-				const vec_t *v1 = face->w->points[j];
+				const vec_t *v1 = face->w->points[(j + 0) % face->w->num_points];
 				const vec_t *v2 = face->w->points[(j + 1) % face->w->num_points];
 
 				vec3_t a, b;
-				VectorSubtract(v, v1, a);
+				VectorSubtract(v1, v, a);
 				const vec_t a_dist = VectorNormalize(a);
 
 				VectorSubtract(v2, v, b);
@@ -70,7 +70,7 @@ static void FixTJunctions_(int32_t face_num) {
 				}
 
 				const vec_t d = DotProduct(a, b);
-				if (d < 1.0 - SIDE_EPSILON) {
+				if (d > -1.0 + SIDE_EPSILON) {
 					continue; // v is not on the edge v1 <-> v2
 				}
 
