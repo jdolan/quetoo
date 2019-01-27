@@ -385,7 +385,7 @@ static void CalcPHS(void) {
  */
 int32_t VIS_Main(void) {
 
-	Com_Print("\n----- VIS -----\n\n");
+	Com_Print("\n----- VIS %s -----\n\n", bsp_name);
 
 	const time_t start = time(NULL);
 

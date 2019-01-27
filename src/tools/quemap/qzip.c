@@ -340,7 +340,7 @@ static _Bool DeflateAsset(zipFile zip_file, const char *filename) {
 int32_t ZIP_Main(void) {
 	char zip[MAX_QPATH];
 
-	Com_Print("\n----- ZIP -----\n\n");
+	Com_Print("\n----- ZIP %s -----\n\n", bsp_name);
 
 	const time_t start = time(NULL);
 

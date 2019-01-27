@@ -306,7 +306,7 @@ static void ProcessModels(void) {
  */
 int32_t BSP_Main(void) {
 
-	Com_Print("\n----- BSP -----\n\n");
+	Com_Print("\n----- BSP %s -----\n\n", map_name);
 
 	const time_t start = time(NULL);
 

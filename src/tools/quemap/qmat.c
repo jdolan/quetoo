@@ -30,7 +30,7 @@
  */
 int32_t MAT_Main(void) {
 
-	Com_Print("\n----- MAT -----\n\n");
+	Com_Print("\n----- MAT %s -----\n\n", map_name);
 
 	const time_t start = time(NULL);
 

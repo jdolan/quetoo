@@ -211,7 +211,7 @@ static void LightWorld(void) {
  */
 int32_t LIGHT_Main(void) {
 
-	Com_Print("\n----- LIGHT -----\n\n");
+	Com_Print("\n----- LIGHT %s -----\n\n", bsp_name);
 
 	const time_t start = time(NULL);
 
