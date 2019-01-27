@@ -582,13 +582,25 @@ int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
 
 		const point_t *clip = NULL;
 		if (num_corners < num_points) {
+
+			vec_t best = FLT_MAX;
 			for (int32_t i = 0; i < num_points; i++) {
 				const point_t *a = &points[(i + 0) % num_points];
 				const point_t *b = &points[(i + 1) % num_points];
+				const point_t *c = &points[(i + 2) % num_points];
 
 				if (!a->corner && b->corner) {
-					clip = b;
-					break;
+
+					vec3_t ba, cb, cross;
+					VectorSubtract(b->position, a->position, ba);
+					VectorSubtract(c->position, b->position, cb);
+					CrossProduct(ba, cb, cross);
+
+					const vec_t area = 0.5 * VectorLength(cross);
+					if (area < best) {
+						best = area;
+						clip = b;
+					}
 				}
 			}
 			assert(clip);
