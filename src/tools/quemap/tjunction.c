@@ -21,6 +21,7 @@
 
 #include "tjunction.h"
 #include "portal.h"
+#include "qbsp.h"
 
 static SDL_atomic_t c_tjunctions;
 static GPtrArray *faces;
