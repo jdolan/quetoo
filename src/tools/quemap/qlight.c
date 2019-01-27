@@ -174,7 +174,7 @@ static void LightWorld(void) {
 	BuildDirectLights(entities);
 
 	// calculate direct lighting
-	Work(DirectLighting, bsp_file.num_faces);
+	Work("Direct lighting", DirectLighting, bsp_file.num_faces);
 
 	if (indirect) {
 		for (indirect_bounce = 0; indirect_bounce < indirect_bounces; indirect_bounce++) {
@@ -183,7 +183,7 @@ static void LightWorld(void) {
 			BuildIndirectLights();
 
 			// calculate indirect lighting
-			Work(IndirectLighting, bsp_file.num_faces);
+			Work("Indirect lighting", IndirectLighting, bsp_file.num_faces);
 
 			// free the indirect light sources
 			Mem_FreeTag(MEM_TAG_LIGHT);
@@ -195,7 +195,7 @@ static void LightWorld(void) {
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTMAPS, MAX_BSP_LIGHTING);
 
 	// merge direct and indirect lighting, normalize all samples
-	Work(FinalizeLighting, bsp_file.num_faces);
+	Work("Finalize lighting", FinalizeLighting, bsp_file.num_faces);
 
 	g_list_free_full(entities, Mem_Free);
 
@@ -211,9 +211,10 @@ static void LightWorld(void) {
  */
 int32_t LIGHT_Main(void) {
 
-	Com_Print("\n----- LIGHT %s -----\n\n", bsp_name);
+	Com_Print("\n------------------------------------------\n");
+	Com_Print("\nLighting %s\n\n", bsp_name);
 
-	const time_t start = time(NULL);
+	const uint32_t start = SDL_GetTicks();
 
 	LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
 
@@ -235,13 +236,8 @@ int32_t LIGHT_Main(void) {
 		Mem_FreeTag(tag);
 	}
 
-	const time_t end = time(NULL);
-	const time_t duration = end - start;
-	Com_Print("\nLIGHT Time: ");
-	if (duration > 59) {
-		Com_Print("%d Minutes ", (int32_t) (duration / 60));
-	}
-	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
+	const uint32_t end = SDL_GetTicks();
+	Com_Print("\nLit %s in %d ms\n", bsp_name, (end - start));
 
 	return 0;
 }

@@ -504,7 +504,7 @@ int32_t main(int32_t argc, char **argv) {
 	}
 
 	// start timer
-	const time_t start = time(NULL);
+	const uint32_t start = SDL_GetTicks();
 
 	if (do_mat) {
 		MAT_Main();
@@ -523,13 +523,8 @@ int32_t main(int32_t argc, char **argv) {
 	}
 
 	// emit time
-	const time_t end = time(NULL);
-	const time_t duration = end - start;
-	Com_Print("\nTotal Time: ");
-	if (duration > 59) {
-		Com_Print("%d Minutes ", (int32_t) (duration / 60));
-	}
-	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
+	const uint32_t end = SDL_GetTicks();
+	Com_Print("\n%s finished in %dms\n", Com_Argv(0), end - start);
 
 	Com_Shutdown(NULL);
 

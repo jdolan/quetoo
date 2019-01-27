@@ -19,10 +19,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <SDL_timer.h>
+
 #include "quemap.h"
 
 typedef struct {
 	SDL_mutex *lock; // mutex on all running work
+	const char *name; // the work name
 	WorkFunc func; // the work function
 	int32_t index; // current work cycle
 	int32_t count; // total work cycles
@@ -45,7 +48,9 @@ static int32_t GetWork(void) {
 			// update work percent and output progress
 			const int32_t p = ceilf(100.0 * work.index / work.count);
 			if (p != work.percent) {
-				Com_Print("\r%2d%%", p);
+				if (work.name) {
+					Com_Print("\r%-24s [%3d%%]", work.name, p);
+				}
 				work.percent = p;
 			}
 
@@ -90,17 +95,18 @@ void WorkUnlock(void) {
 /**
  * @brief Entry point for all thread work requests.
  */
-void Work(WorkFunc func, int32_t count) {
+void Work(const char *name, WorkFunc func, int32_t count) {
 
 	memset(&work, 0, sizeof(work));
 
 	work.lock = SDL_CreateMutex();
+	work.name = name;
 	work.count = count;
 	work.func = func;
 	work.index = 0;
 	work.percent = -1;
 
-	const time_t start = time(NULL);
+	const uint32_t start = SDL_GetTicks();
 
 	const int32_t thread_count = Thread_Count();
 
@@ -120,7 +126,9 @@ void Work(WorkFunc func, int32_t count) {
 
 	SDL_DestroyMutex(work.lock);
 
-	const time_t end = time(NULL);
+	const uint32_t end = SDL_GetTicks();
 
-	Com_Print(" (%i seconds)\n", (int32_t) (end - start));
+	if (work.name) {
+		Com_Print(" %d ms\n", end - start);
+	}
 }

@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <SDL_timer.h>
+
 #include "qvis.h"
 #include "vis.h"
 
@@ -140,7 +142,7 @@ static void ClusterMerge(uint32_t leaf_num) {
  */
 static void CalcPVS(void) {
 
-	Work(BaseVis, map_vis.num_portals * 2);
+	Work("Base visibility", BaseVis, map_vis.num_portals * 2);
 
 	SortPortals();
 
@@ -151,8 +153,10 @@ static void CalcPVS(void) {
 			map_vis.portals[i].status = STATUS_DONE;
 		}
 	} else {
-		Work(FinalVis, map_vis.num_portals * 2);
+		Work("Final visibility", FinalVis, map_vis.num_portals * 2);
 	}
+
+	Com_Print("\n");
 
 	// assemble the leaf vis lists by OR-ing and compressing the portal lists
 	for (int32_t i = 0; i < map_vis.portal_clusters; i++) {
@@ -385,9 +389,10 @@ static void CalcPHS(void) {
  */
 int32_t VIS_Main(void) {
 
-	Com_Print("\n----- VIS %s -----\n\n", bsp_name);
+	Com_Print("\n------------------------------------------\n");
+	Com_Print("\nCalculating PVS for %s\n\n", bsp_name);
 
-	const time_t start = time(NULL);
+	const uint32_t start = SDL_GetTicks();
 
 	LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
 
@@ -400,10 +405,13 @@ int32_t VIS_Main(void) {
 	CalcPVS();
 
 	CalcPHS();
+	
+	Com_Print("\n");
 
 	bsp_file.vis_data_size = (int32_t) (ptrdiff_t) (map_vis.pointer - map_vis.base);
-	Com_Print("VIS data: %d bytes (compressed from %u bytes)\n", bsp_file.vis_data_size,
-	          (uint32_t) (map_vis.uncompressed_size * 2));
+
+	Com_Print("Generated %d bytes of PVS data\n", map_vis.uncompressed_size * 2);
+	Com_Print("Compressed size is %d bytes\n", bsp_file.vis_data_size);
 
 	WriteBSPFile(va("maps/%s.bsp", map_base));
 
@@ -413,13 +421,8 @@ int32_t VIS_Main(void) {
 		Mem_FreeTag(tag);
 	}
 
-	const time_t end = time(NULL);
-	const time_t duration = end - start;
-	Com_Print("\nVIS Time: ");
-	if (duration > 59) {
-		Com_Print("%d Minutes ", (int32_t) (duration / 60));
-	}
-	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
+	const uint32_t end = SDL_GetTicks();
+	Com_Print("\nCalculated PVS for %s in %d ms\n", bsp_name, (end - start));
 
 	return 0;
 }

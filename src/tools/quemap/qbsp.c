@@ -177,7 +177,7 @@ static void ProcessWorldModel(void) {
 
 		const int32_t count = (block_xh - block_xl + 1) * (block_yh - block_yl + 1);
 
-		Work(ProcessBlock_Work, count);
+		Work(optimize ? "Optimizing tree" : "Creating tree", ProcessBlock_Work, count);
 
 		// build the division tree
 		// oversizing the blocks guarantees that all the boundaries
@@ -306,9 +306,10 @@ static void ProcessModels(void) {
  */
 int32_t BSP_Main(void) {
 
-	Com_Print("\n----- BSP %s -----\n\n", map_name);
+	Com_Print("\n------------------------------------------\n");
+	Com_Print("\nCompiling %s from %s\n\n", bsp_name, map_name);
 
-	const time_t start = time(NULL);
+	const uint32_t start = SDL_GetTicks();
 
 	LoadMaterials(va("materials/%s.mat", map_base), ASSET_CONTEXT_TEXTURES, NULL);
 
@@ -343,13 +344,8 @@ int32_t BSP_Main(void) {
 		Mem_FreeTag(tag);
 	}
 
-	const time_t end = time(NULL);
-	const time_t duration = end - start;
-	Com_Print("\nBSP Time: ");
-	if (duration > 59) {
-		Com_Print("%d Minutes ", (int32_t) (duration / 60));
-	}
-	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
+	const uint32_t end = SDL_GetTicks();
+	Com_Print("\nCompiled %s in %d ms\n", bsp_name, (end - start));
 
 	return 0;
 }

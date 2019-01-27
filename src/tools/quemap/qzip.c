@@ -338,11 +338,12 @@ static _Bool DeflateAsset(zipFile zip_file, const char *filename) {
  * but straightforward implementation.
  */
 int32_t ZIP_Main(void) {
-	char zip[MAX_QPATH];
+	char path[MAX_QPATH];
 
-	Com_Print("\n----- ZIP %s -----\n\n", bsp_name);
+	Com_Print("\n------------------------------------------\n");
+	Com_Print("\nCreating archive for %s\n\n", bsp_name);
 
-	const time_t start = time(NULL);
+	const uint32_t start = SDL_GetTicks();
 
 	qzip.assets = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 
@@ -367,11 +368,11 @@ int32_t ZIP_Main(void) {
 	GList *assets = g_hash_table_get_values(qzip.assets);
 	assets = g_list_sort(assets, (GCompareFunc) g_strcmp0);
 
-	g_snprintf(zip, sizeof(zip), "%s/%s", Fs_WriteDir(), GetZipFilename());
-	zipFile zip_file = zipOpen(zip, APPEND_STATUS_CREATE);
+	g_snprintf(path, sizeof(path), "%s/%s", Fs_WriteDir(), GetZipFilename());
+	zipFile zip_file = zipOpen(path, APPEND_STATUS_CREATE);
 
 	if (zip_file) {
-		Com_Print("Compressing %d resources to %s...\n", g_list_length(assets), zip);
+		Com_Print("Compressing %d resources to %s...\n", g_list_length(assets), path);
 
 		GList *a = assets;
 		while (a) {
@@ -385,7 +386,7 @@ int32_t ZIP_Main(void) {
 
 		zipClose(zip_file, NULL);
 	} else {
-		Com_Warn("Failed to open %s\n", zip);
+		Com_Warn("Failed to open %s\n", path);
 	}
 
 	g_list_free(assets);
@@ -393,13 +394,8 @@ int32_t ZIP_Main(void) {
 
 	Mem_FreeTag(MEM_TAG_ASSET);
 
-	const time_t end = time(NULL);
-	const time_t duration = end - start;
-	Com_Print("\nZIP Time: ");
-	if (duration > 59) {
-		Com_Print("%d Minutes ", (int32_t) (duration / 60));
-	}
-	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
+	const uint32_t end = SDL_GetTicks();
+	Com_Print("\nWrote %s in %d ms\n", path, end - start);
 
 	return 0;
 }

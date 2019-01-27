@@ -134,7 +134,7 @@ void FixTJunctions(node_t *node) {
 	faces = g_ptr_array_new();
 	FixTJunctions_r(node);
 
-	Work(FixTJunctions_, faces->len);
+	Work(entity_num == 0 ? "Fixing t-junctions" : NULL, FixTJunctions_, faces->len);
 
 	Com_Verbose("%5i fixed tjunctions\n", SDL_AtomicGet(&c_tjunctions));
 

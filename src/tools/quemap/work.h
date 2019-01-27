@@ -27,4 +27,4 @@ typedef void (*WorkFunc)(int32_t);
 
 void WorkLock(void);
 void WorkUnlock(void);
-void Work(WorkFunc func, int32_t count);
+void Work(const char *name, WorkFunc func, int32_t count);
