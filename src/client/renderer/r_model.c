@@ -77,7 +77,6 @@ static void R_FreeModel(r_media_t *self) {
 	if (IS_BSP_MODEL(mod)) {
 
 		R_DestroyBuffer(&mod->bsp->vertex_buffer);
-
 		R_DestroyBuffer(&mod->bsp->element_buffer);
 
 	} else if (IS_MESH_MODEL(mod)) {
