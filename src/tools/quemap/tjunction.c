@@ -47,7 +47,7 @@ static void FixTJunctions_(int32_t face_num) {
 			const vec_t *v = f->w->points[i];
 
 			const vec_t d = DotProduct(v, plane->normal) - plane->dist;
-			if (fabsf(d) > ON_EPSILON) {
+			if (d > ON_EPSILON || d < -ON_EPSILON) {
 				continue; // v is not on face's plane
 			}
 
@@ -55,14 +55,14 @@ static void FixTJunctions_(int32_t face_num) {
 
 			for (int32_t j = 0; j < face->w->num_points; j++) {
 
-				const vec_t *v1 = face->w->points[(j + 0) % face->w->num_points];
-				const vec_t *v2 = face->w->points[(j + 1) % face->w->num_points];
+				const vec_t *v0 = face->w->points[(j + 0) % face->w->num_points];
+				const vec_t *v1 = face->w->points[(j + 1) % face->w->num_points];
 
 				vec3_t a, b;
-				VectorSubtract(v1, v, a);
+				VectorSubtract(v0, v, a);
 				const vec_t a_dist = VectorNormalize(a);
 
-				VectorSubtract(v2, v, b);
+				VectorSubtract(v1, v, b);
 				const vec_t b_dist = VectorNormalize(b);
 
 				if (a_dist < ON_EPSILON || b_dist < ON_EPSILON) {
@@ -71,10 +71,10 @@ static void FixTJunctions_(int32_t face_num) {
 
 				const vec_t d = DotProduct(a, b);
 				if (d > -1.0 + SIDE_EPSILON) {
-					continue; // v is not on the edge v1 <-> v2
+					continue; // v is not on the edge v0 <-> v1
 				}
 
-				// v sits between v1 and v2, so add it to the face
+				// v sits between v0 and v1, so add it to the face
 
 				cm_winding_t *w = Cm_AllocWinding(face->w->num_points + 1);
 				w->num_points = face->w->num_points + 1;
