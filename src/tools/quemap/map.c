@@ -431,12 +431,17 @@ static _Bool MakeBrushWindings(brush_t *ob) {
 	}
 
 	for (int32_t i = 0; i < 3; i++) {
-		if (ob->mins[0] < MIN_WORLD_COORD || ob->maxs[0] > MAX_WORLD_COORD) {
-			Com_Verbose("entity %i, brush %i: bounds out of range\n", ob->entity_num, ob->brush_num);
+		//IDBUG: all the indexes into the mins and maxs were zero (not using i)
+		if (ob->mins[i] < MIN_WORLD_COORD || ob->maxs[i] > MAX_WORLD_COORD) {
+			Mon_SendSelect(MON_WARN, ob->entity_num, ob->brush_num, "Brush bounds out of range");
+			ob->num_sides = 0;
+			break;
 		}
-		if (ob->mins[0] > MAX_WORLD_COORD || ob->maxs[0] < MIN_WORLD_COORD)
-			Com_Verbose("entity %i, brush %i: no visible sides on brush\n", ob->entity_num,
-			            ob->brush_num);
+		if (ob->mins[i] > MAX_WORLD_COORD || ob->maxs[i] < MIN_WORLD_COORD) {
+			Mon_SendSelect(MON_WARN, ob->entity_num, ob->brush_num, "No visible sides on brush");
+			ob->num_sides = 0;
+			break;
+		}
 	}
 
 	return true;
