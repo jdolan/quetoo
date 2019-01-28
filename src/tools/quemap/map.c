@@ -33,11 +33,9 @@ entity_t entities[MAX_BSP_ENTITIES];
 int32_t num_brushes;
 brush_t brushes[MAX_BSP_BRUSHES];
 
-#define MAX_BSP_SIDES (MAX_BSP_BRUSHES * 6)
-
 static int32_t num_brush_sides;
-static brush_side_t brush_sides[MAX_BSP_SIDES];
-static brush_texture_t brush_textures[MAX_BSP_SIDES];
+static brush_side_t brush_sides[MAX_BSP_BRUSH_SIDES];
+static brush_texture_t brush_textures[MAX_BSP_BRUSH_SIDES];
 
 int32_t num_planes;
 plane_t planes[MAX_BSP_PLANES];
