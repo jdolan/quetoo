@@ -285,6 +285,7 @@ void EmitEntities(void) {
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_ENTITIES, MAX_BSP_ENT_STRING);
 
 	char *out = bsp_file.entity_string;
+	*out = '\0';
 
 	for (int32_t i = 0; i < num_entities; i++) {
 		const entity_key_value_t *e = entities[i].values;
