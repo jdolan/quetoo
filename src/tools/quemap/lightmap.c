@@ -266,13 +266,15 @@ static _Bool ProjectLuxel(const lightmap_t *lm, luxel_t *l, vec_t soffs, vec_t t
 
 /**
  * @brief Iterates all lights, accumulating diffuse and directional samples to the specified pointers.
+ * @param lightmap The lightmap containing the luxel.
  * @param luxel The luxel to light.
  * @param pvs The PVS for the luxel's origin.
  * @param sample The output vector for light color, or `NULL`.
  * @param direction The output vector for ligtht direction, or `NULL`.
  * @param scale A scalar applied to both light and direction.
  */
-static void LightLuxel(const luxel_t *luxel, const byte *pvs, vec_t *sample, vec_t *direction, vec_t scale) {
+static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const byte *pvs,
+					   vec_t *sample, vec_t *direction, vec_t scale) {
 
 	for (const GList *list = lights; list; list = list->next) {
 
@@ -292,18 +294,23 @@ static void LightLuxel(const luxel_t *luxel, const byte *pvs, vec_t *sample, vec
 		VectorSubtract(light->origin, luxel->origin, dir);
 		const vec_t dist = VectorNormalize(dir);
 
-		if (light->atten != ATTEN_NONE) {
+		if (light->atten != LIGHT_ATTEN_NONE) {
 			if (dist > light->radius) {
 				continue;
 			}
 		}
 
-		const vec_t dot = DotProduct(dir, luxel->normal);
-		if (dot <= 0.0) {
-			continue;
+		vec_t dot;
+		if (light->type == LIGHT_AMBIENT) {
+			dot = 1.0;
+		} else {
+			dot = DotProduct(dir, luxel->normal);
+			if (dot <= 0.0) {
+				continue;
+			}
 		}
 
-		vec_t diffuse = Clamp(light->radius * dot, 0.0, DEFAULT_LIGHT);
+		vec_t diffuse = Clamp(light->radius * dot, 0.0, LIGHT_RADIUS);
 
 		switch (light->type) {
 			case LIGHT_INVALID:
@@ -355,7 +362,40 @@ static void LightLuxel(const luxel_t *luxel, const byte *pvs, vec_t *sample, vec
 
 		cm_trace_t trace;
 
-		if (light->type == LIGHT_SUN) {
+		if (light->type == LIGHT_AMBIENT) {
+
+			const vec_t padding_s = ((lightmap->st_maxs[0] - lightmap->st_mins[0]) - lightmap->w) * 0.5;
+			const vec_t padding_t = ((lightmap->st_maxs[1] - lightmap->st_mins[1]) - lightmap->h) * 0.5;
+
+			const vec_t s = lightmap->st_mins[0] + padding_s + luxel->s + 0.5;
+			const vec_t t = lightmap->st_mins[1] + padding_t + luxel->t + 0.5;
+
+			const vec3_t points[] = {
+				{ s + 0.0, t + 0.0, 64.0 },
+				{ s + 3.0, t + 3.0, 64.0 },
+				{ s - 3.0, t + 3.0, 64.0 },
+				{ s - 3.0, t - 3.0, 64.0 },
+				{ s + 3.0, t - 3.0, 64.0 },
+			};
+
+			vec_t ambient_occlusion = 0.0;
+			for (size_t i = 0; i < lengthof(points); i++) {
+
+				vec3_t point;
+				Matrix4x4_Transform(&lightmap->inverse_matrix, points[i], point);
+
+				Light_Trace(&trace, luxel->origin, point, CONTENTS_SOLID);
+
+				ambient_occlusion += (1.0 / lengthof(points)) * trace.fraction;
+			}
+
+			if (ambient_occlusion == 0.0) {
+				continue;
+			}
+
+			diffuse *= ambient_occlusion;
+
+		} else if (light->type == LIGHT_SUN) {
 			vec3_t sun_origin;
 
 			VectorMA(luxel->origin, MAX_WORLD_DIST, light->normal, sun_origin);
@@ -420,7 +460,7 @@ void DirectLighting(int32_t face_num) {
 
 			contribution += scale;
 
-			LightLuxel(l, pvs, l->direct, l->direction, scale);
+			LightLuxel(lm, l, pvs, l->direct, l->direction, scale);
 
 			if (!antialias) {
 				break;
@@ -462,7 +502,7 @@ void IndirectLighting(int32_t face_num) {
 			byte pvs[(MAX_BSP_LEAFS + 7) / 8];
 
 			if (ProjectLuxel(lm, l, soffs, toffs, pvs)) {
-				LightLuxel(l, pvs, l->indirect, NULL, 0.125);
+				LightLuxel(lm, l, pvs, l->indirect, NULL, 0.125);
 				break;
 			}
 		}

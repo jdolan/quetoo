@@ -38,8 +38,9 @@ light_t *LightForEntity(const GList *entities, const cm_entity_t *entity) {
 		if (Cm_EntityVector(entity, "ambient", v, 3) == 3) {
 
 			light = Mem_TagMalloc(sizeof(*light), MEM_TAG_LIGHT);
-
 			light->type = LIGHT_AMBIENT;
+			light->radius = LIGHT_RADIUS_AMBIENT;
+			light->cluster = -1;
 
 			VectorCopy(v, light->color);
 		}

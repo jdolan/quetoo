@@ -25,6 +25,7 @@
 
 #define LIGHT_COLOR (vec3_t) { 1.0, 1.0, 1.0 }
 #define LIGHT_RADIUS DEFAULT_LIGHT
+#define LIGHT_RADIUS_AMBIENT 255.0
 #define LIGHT_ANGLE_UP -1.0
 #define LIGHT_ANGLE_DOWN -2.0
 #define LIGHT_CONE 20.0
