@@ -201,7 +201,6 @@ cm_winding_t *Cm_WindingForPlane(const vec3_t normal, const vec_t dist) {
 cm_winding_t *Cm_WindingForFace(const bsp_file_t *file, const bsp_face_t *face) {
 
 	cm_winding_t *w = Cm_AllocWinding(face->num_face_vertexes);
-
 	const int32_t *fv = file->face_vertexes + face->first_face_vertex;
 
 	for (int32_t i = 0; i < face->num_face_vertexes; i++) {
@@ -214,13 +213,13 @@ cm_winding_t *Cm_WindingForFace(const bsp_file_t *file, const bsp_face_t *face) 
 		w->num_points++;
 
 		vec3_t a, b;
-		VectorSubtract(v0->position, v1->position, a);
-		VectorSubtract(v0->position, v2->position, b);
+		VectorSubtract(v1->position, v0->position, a);
+		VectorSubtract(v2->position, v1->position, b);
 
 		VectorNormalize(a);
 		VectorNormalize(b);
 
-		if (DotProduct(a, b) >= 1.0 - SIDE_EPSILON) { // skip v1
+		if (DotProduct(a, b) > 1.0 - SIDE_EPSILON) { // skip v1
 			i++;
 		}
 	}
