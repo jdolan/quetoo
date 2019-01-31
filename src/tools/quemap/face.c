@@ -226,7 +226,13 @@ static size_t PhongFacesForVertex(const bsp_vertex_t *vertex, const bsp_face_t *
 	const bsp_face_t *face = bsp_file.faces;
 	for (int32_t i = 0; i < bsp_file.num_faces; i++, face++) {
 
-		if (!(bsp_file.texinfo[face->texinfo].flags & SURF_PHONG)) {
+		const bsp_texinfo_t *texinfo = &bsp_file.texinfo[face->texinfo];
+		if (!(texinfo->flags & SURF_PHONG)) {
+			continue;
+		}
+
+		const bsp_plane_t *plane = &bsp_file.planes[face->plane_num];
+		if (DotProduct(vertex->normal, plane->normal) <= SIDE_EPSILON) {
 			continue;
 		}
 
@@ -235,13 +241,18 @@ static size_t PhongFacesForVertex(const bsp_vertex_t *vertex, const bsp_face_t *
 
 			const bsp_vertex_t *v = &bsp_file.vertexes[*fv];
 
-			if (VectorCompare(vertex->position, v->position)) {
+			vec3_t delta;
+			VectorSubtract(vertex->position, v->position, delta);
+
+			if (VectorLength(delta) < ON_EPSILON) {
 				phong_faces[count++] = face;
-				if (count == MAX_PHONG_FACES) {
-					Mon_SendPoint(MON_ERROR, vertex->position, "MAX_PHONG_FACES");
-				}
 				break;
 			}
+		}
+
+		if (count == MAX_PHONG_FACES) {
+			Mon_SendPoint(MON_ERROR, vertex->position, "MAX_PHONG_FACES");
+			break;
 		}
 	}
 
