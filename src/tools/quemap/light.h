@@ -28,7 +28,7 @@
 #define LIGHT_RADIUS_AMBIENT 255.0
 #define LIGHT_ANGLE_UP -1.0
 #define LIGHT_ANGLE_DOWN -2.0
-#define LIGHT_CONE 20.0
+#define LIGHT_CONE 22.5
 
 typedef enum {
 	LIGHT_INVALID = -1,
