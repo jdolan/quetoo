@@ -19,35 +19,41 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "tests.h"
+#pragma once
+
+#include <glib.h>
+#include <SDL_image.h>
 
 /**
- * @brief Runs the specified suite, returning the number of tests that failed.
+ * @brief An atlas node locates a surface within the atlas.
  */
-int32_t Test_Run(Suite *suite) {
+typedef struct atlas_node_s {
 
-	SRunner *runner = srunner_create(suite);
+	/**
+	 * @brief The surface.
+	 */
+	SDL_Surface *surface;
 
-	srunner_run_all(runner, CK_NORMAL);
-	const int32_t failed = srunner_ntests_failed(runner);
+	/**
+	 * @brief The surface coordinates within the compiled atlas.
+	 */
+	int32_t x, y;
 
-	srunner_free(runner);
-	return failed;
-}
+} atlas_node_t;
 
 /**
- * @brief Initializes testing facilities.
+ * @brief An atlas efficiently packs multiple surfaces into a single large surface.
  */
-void Test_Init(int32_t argc, char **argv) {
+typedef struct atlas_s {
 
-	memset(&quetoo, 0, sizeof(quetoo));
+	/**
+	 * @brief The atlas nodes.
+	 */
+	GPtrArray *nodes;
+} atlas_t;
 
-	Com_Init(argc, argv);
-}
-
-/**
- * @brief Shuts down testing facilities.
- */
-void Test_Shutdown(void) {
-
-}
+atlas_t *Atlas_Create(void);
+atlas_node_t *Atlas_Insert(atlas_t *atlas, SDL_Surface *surface);
+atlas_node_t *Atlas_Find(atlas_t *atlas, SDL_Surface *surface);
+int32_t Atlas_Compile(atlas_t *atlas, SDL_Surface *surface, int32_t start);
+void Atlas_Destroy(atlas_t *atlas);

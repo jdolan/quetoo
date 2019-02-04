@@ -145,6 +145,17 @@
 		CE32529D1F760D3F00512523 /* BindTextView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE32529B1F760D3F00512523 /* BindTextView.c */; };
 		CE32529E1F760D3F00512523 /* BindTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE32529C1F760D3F00512523 /* BindTextView.h */; };
 		CE34099021C2D52500989FC9 /* entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CE34098F21C2D52500989FC9 /* entity.c */; };
+		CE354EE822073B0E008AE0C2 /* atlas.c in Sources */ = {isa = PBXBuildFile; fileRef = CE354EDA220738BF008AE0C2 /* atlas.c */; };
+		CE354EE922073B27008AE0C2 /* libSDL2_image-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8311C5C6F0100CD0B13 /* libSDL2_image-2.0.0.dylib */; };
+		CE354EEA22073B32008AE0C2 /* atlas.h in Headers */ = {isa = PBXBuildFile; fileRef = CE354ED9220738BF008AE0C2 /* atlas.h */; };
+		CE354EED22073B7E008AE0C2 /* libatlas.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE354EE722073AD6008AE0C2 /* libatlas.a */; };
+		CE354EF722075132008AE0C2 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE51FB9121481AE300ABE14F /* libcheck.0.dylib */; };
+		CE354EF922075132008AE0C2 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
+		CE354F012207514B008AE0C2 /* check_atlas.c in Sources */ = {isa = PBXBuildFile; fileRef = CE354EEE22075054008AE0C2 /* check_atlas.c */; };
+		CE354F022207515A008AE0C2 /* libatlas.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE354EE722073AD6008AE0C2 /* libatlas.a */; };
+		CE354F03220775DD008AE0C2 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
+		CE354F0422077620008AE0C2 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
+		CE354F052207FAA9008AE0C2 /* libSDL2_image-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8311C5C6F0100CD0B13 /* libSDL2_image-2.0.0.dylib */; };
 		CE3BCDC91DB6DD81002E6C6D /* r_program_null.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3BCDB91DB6DCE0002E6C6D /* r_program_null.c */; };
 		CE3BCDCA1DB6DD87002E6C6D /* r_program_null.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3BCDBA1DB6DCE0002E6C6D /* r_program_null.h */; };
 		CE3C529421E4DF2500FEDBED /* cm_polylib.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3C529221E4DF2500FEDBED /* cm_polylib.h */; };
@@ -781,6 +792,20 @@
 			remoteGlobalIDString = CE052A7321483255003446C9;
 			remoteInfo = check_thread;
 		};
+		CE354EEB22073B72008AE0C2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE354EDB22073AD6008AE0C2;
+			remoteInfo = atlas;
+		};
+		CE354EFF22075145008AE0C2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE354EDB22073AD6008AE0C2;
+			remoteInfo = atlas;
+		};
 		CE51FBC521481F3D00ABE14F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
@@ -1195,6 +1220,15 @@
 			runOnlyForDeploymentPostprocessing = 1;
 		};
 		CE12D8F01C5CF86600CD0B13 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		CE354EFA22075132008AE0C2 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = /usr/share/man/man1/;
@@ -1870,6 +1904,11 @@
 		CE32529C1F760D3F00512523 /* BindTextView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BindTextView.h; sourceTree = "<group>"; };
 		CE34098E21C2D52500989FC9 /* entity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = entity.h; sourceTree = "<group>"; };
 		CE34098F21C2D52500989FC9 /* entity.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = entity.c; sourceTree = "<group>"; };
+		CE354ED9220738BF008AE0C2 /* atlas.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = atlas.h; sourceTree = "<group>"; };
+		CE354EDA220738BF008AE0C2 /* atlas.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = atlas.c; sourceTree = "<group>"; };
+		CE354EE722073AD6008AE0C2 /* libatlas.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libatlas.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE354EEE22075054008AE0C2 /* check_atlas.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_atlas.c; sourceTree = "<group>"; };
+		CE354EFE22075132008AE0C2 /* check_atlas */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_atlas; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE3BCDB91DB6DCE0002E6C6D /* r_program_null.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_program_null.c; sourceTree = "<group>"; };
 		CE3BCDBA1DB6DCE0002E6C6D /* r_program_null.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_program_null.h; sourceTree = "<group>"; };
 		CE3BCDC31DB6DD05002E6C6D /* null_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = null_fs.glsl; sourceTree = "<group>"; };
@@ -2217,6 +2256,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CE354EE022073AD6008AE0C2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE354F03220775DD008AE0C2 /* libglib-2.0.0.dylib in Frameworks */,
+				CE354EE922073B27008AE0C2 /* libSDL2_image-2.0.0.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE354EF522075132008AE0C2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE354F022207515A008AE0C2 /* libatlas.a in Frameworks */,
+				CE354EF722075132008AE0C2 /* libcheck.0.dylib in Frameworks */,
+				CE354F0422077620008AE0C2 /* libglib-2.0.0.dylib in Frameworks */,
+				CE354EF922075132008AE0C2 /* libSDL2-2.0.0.dylib in Frameworks */,
+				CE354F052207FAA9008AE0C2 /* libSDL2_image-2.0.0.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CE51FB87214819B000ABE14F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -2464,6 +2524,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE354EED22073B7E008AE0C2 /* libatlas.a in Frameworks */,
 				CED439621D9D3B450052BAFA /* libimage.a in Frameworks */,
 				CED439611D9D3B450052BAFA /* libcollision.a in Frameworks */,
 			);
@@ -2794,6 +2855,8 @@
 				CE12D69D1C5C58C300CD0B13 /* server */,
 				CE12D6BE1C5C58C300CD0B13 /* tests */,
 				CE12D6E01C5C58C300CD0B13 /* tools */,
+				CE354ED9220738BF008AE0C2 /* atlas.h */,
+				CE354EDA220738BF008AE0C2 /* atlas.c */,
 				CE12D6261C5C58C300CD0B13 /* cmd.c */,
 				CE12D6271C5C58C300CD0B13 /* cmd.h */,
 				CE12D6361C5C58C300CD0B13 /* common.c */,
@@ -3244,6 +3307,7 @@
 			isa = PBXGroup;
 			children = (
 				CE8E2016214836C800C18C94 /* check_ai_ann.c */,
+				CE354EEE22075054008AE0C2 /* check_atlas.c */,
 				CE12D6CB1C5C58C300CD0B13 /* check_cmd.c */,
 				CEE3A0EF21EE2A5E0070FD3E /* check_cm_polylib.c */,
 				CE12D6CD1C5C58C300CD0B13 /* check_cvar.c */,
@@ -3498,6 +3562,8 @@
 				CE052A8421483255003446C9 /* check_thread */,
 				CE8E2028214837AB00C18C94 /* check_ai_ann */,
 				CEE3A10121EE2B3F0070FD3E /* check_cm_polylib */,
+				CE354EE722073AD6008AE0C2 /* libatlas.a */,
+				CE354EFE22075132008AE0C2 /* check_atlas */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -3844,6 +3910,14 @@
 				CE69DC9F202D3EE700E5C8B1 /* miniz.h in Headers */,
 				CE80FE791C5E43AC00A21A51 /* ioapi.h in Headers */,
 				CE80FE7A1C5E43AC00A21A51 /* zip.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE354EE222073AD6008AE0C2 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE354EEA22073B32008AE0C2 /* atlas.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4299,6 +4373,41 @@
 			productReference = CE12D8F41C5CF86600CD0B13 /* quetoo-dedicated */;
 			productType = "com.apple.product-type.tool";
 		};
+		CE354EDB22073AD6008AE0C2 /* atlas */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CE354EE422073AD6008AE0C2 /* Build configuration list for PBXNativeTarget "atlas" */;
+			buildPhases = (
+				CE354EDE22073AD6008AE0C2 /* Sources */,
+				CE354EE022073AD6008AE0C2 /* Frameworks */,
+				CE354EE222073AD6008AE0C2 /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = atlas;
+			productName = game;
+			productReference = CE354EE722073AD6008AE0C2 /* libatlas.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		CE354EEF22075132008AE0C2 /* check_atlas */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CE354EFB22075132008AE0C2 /* Build configuration list for PBXNativeTarget "check_atlas" */;
+			buildPhases = (
+				CE354EF222075132008AE0C2 /* Sources */,
+				CE354EF522075132008AE0C2 /* Frameworks */,
+				CE354EFA22075132008AE0C2 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CE354F0022075145008AE0C2 /* PBXTargetDependency */,
+			);
+			name = check_atlas;
+			productName = "test-r_media";
+			productReference = CE354EFE22075132008AE0C2 /* check_atlas */;
+			productType = "com.apple.product-type.tool";
+		};
 		CE51FB89214819B000ABE14F /* check_r_media */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CE51FB90214819B000ABE14F /* Build configuration list for PBXNativeTarget "check_r_media" */;
@@ -4704,6 +4813,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				CE354EEC22073B72008AE0C2 /* PBXTargetDependency */,
 				CED438211D9D34450052BAFA /* PBXTargetDependency */,
 				CED439451D9D37BD0052BAFA /* PBXTargetDependency */,
 			);
@@ -4959,6 +5069,7 @@
 			targets = (
 				CE97719421454EEB00BBD71C /* genann */,
 				CE12D8101C5C5EF000CD0B13 /* minizip */,
+				CE354EDB22073AD6008AE0C2 /* atlas */,
 				CE80FDD91C5E3E1100A21A51 /* common */,
 				CEFC79F71D9CB408000FA6B2 /* console */,
 				CEFC7A221D9CB483000FA6B2 /* filesystem */,
@@ -4990,6 +5101,7 @@
 				CE80FD861C5E3B6F00A21A51 /* quemap */,
 				CEA029B31C5E545B00341079 /* quetoo-all */,
 				CE8E2017214837AB00C18C94 /* check_ai_ann */,
+				CE354EEF22075132008AE0C2 /* check_atlas */,
 				CE51FB9D21481DD300ABE14F /* check_cmd */,
 				CEE3A0F021EE2B3F0070FD3E /* check_cm_polylib */,
 				CE51FBB321481F2500ABE14F /* check_cvar */,
@@ -5114,6 +5226,22 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE12D8C41C5CF86600CD0B13 /* main.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE354EDE22073AD6008AE0C2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE354EE822073B0E008AE0C2 /* atlas.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE354EF222075132008AE0C2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE354F012207514B008AE0C2 /* check_atlas.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5576,6 +5704,16 @@
 			isa = PBXTargetDependency;
 			target = CE052A7321483255003446C9 /* check_thread */;
 			targetProxy = CE052A9C21483352003446C9 /* PBXContainerItemProxy */;
+		};
+		CE354EEC22073B72008AE0C2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE354EDB22073AD6008AE0C2 /* atlas */;
+			targetProxy = CE354EEB22073B72008AE0C2 /* PBXContainerItemProxy */;
+		};
+		CE354F0022075145008AE0C2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE354EDB22073AD6008AE0C2 /* atlas */;
+			targetProxy = CE354EFF22075145008AE0C2 /* PBXContainerItemProxy */;
 		};
 		CE51FBC621481F3D00ABE14F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -6073,6 +6211,36 @@
 			name = Debug;
 		};
 		CE12D8F31C5CF86600CD0B13 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		CE354EE522073AD6008AE0C2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CE354EE622073AD6008AE0C2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		CE354EFC22075132008AE0C2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CE354EFD22075132008AE0C2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -6681,6 +6849,24 @@
 			buildConfigurations = (
 				CE12D8F21C5CF86600CD0B13 /* Debug */,
 				CE12D8F31C5CF86600CD0B13 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CE354EE422073AD6008AE0C2 /* Build configuration list for PBXNativeTarget "atlas" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CE354EE522073AD6008AE0C2 /* Debug */,
+				CE354EE622073AD6008AE0C2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CE354EFB22075132008AE0C2 /* Build configuration list for PBXNativeTarget "check_atlas" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CE354EFC22075132008AE0C2 /* Debug */,
+				CE354EFD22075132008AE0C2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
