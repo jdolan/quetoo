@@ -256,12 +256,6 @@ int64_t Fs_Write(file_t *file, const void *buffer, size_t size, size_t count) {
  */
 int64_t Fs_Load(const char *filename, void **buffer) {
 	int64_t len;
-
-	typedef struct {
-		byte *data;
-		int64_t len;
-	} fs_block_t;
-
 	file_t *file;
 
 	if ((file = Fs_OpenRead(filename))) {
@@ -269,7 +263,6 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 
 		// if we can calculate the length, we can pull it easily
 		if (buffer_length != -1) {
-
 			len = buffer_length;
 
 			if (buffer) {
@@ -284,7 +277,6 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 					g_hash_table_insert(fs_state.loaded_files, *buffer,
 										(gpointer) Mem_CopyString(filename));
 				} else {
-
 					*buffer = NULL;
 				}
 			}
@@ -293,18 +285,23 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 			GList *list = NULL;
 			len = 0;
 
+			typedef struct {
+				byte *data;
+				int64_t len;
+			} fs_chunk_t;
+
 			while (!Fs_Eof(file)) {
-				fs_block_t *b = Mem_TagMalloc(sizeof(fs_block_t), MEM_TAG_FS);
+				fs_chunk_t *chunk = Mem_TagMalloc(sizeof(fs_chunk_t), MEM_TAG_FS);
 
-				b->data = Mem_LinkMalloc(FS_FILE_BUFFER, b);
-				b->len = Fs_Read(file, b->data, 1, FS_FILE_BUFFER);
+				chunk->data = Mem_LinkMalloc(FS_FILE_BUFFER, chunk);
+				chunk->len = Fs_Read(file, chunk->data, 1, FS_FILE_BUFFER);
 
-				if (b->len == -1) {
+				if (chunk->len == -1) {
 					Com_Error(ERROR_DROP, "%s: %s\n", filename, Fs_LastError());
 				}
 
-				list = g_list_append(list, b);
-				len += b->len;
+				list = g_list_append(list, chunk);
+				len += chunk->len;
 			}
 
 			if (buffer) {
@@ -313,7 +310,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 
 					GList *e = list;
 					while (e) {
-						fs_block_t *b = (fs_block_t *) e->data;
+						fs_chunk_t *b = (fs_chunk_t *) e->data;
 
 						memcpy(buf, b->data, b->len);
 						buf += (ptrdiff_t) b->len;
