@@ -20,12 +20,13 @@
  */
 
 #include <check.h>
+#include <unistd.h>
 
 #include "atlas.h"
 
 static SDL_Surface *CreateSurface(int32_t w, int32_t h, int32_t color) {
 
-	SDL_Surface *surface = SDL_CreateRGBSurface(0, w, h, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
+	SDL_Surface *surface = SDL_CreateRGBSurface(0, w, h, 24, 0, 0, 0, 0);
 
 	SDL_FillRect(surface, &(SDL_Rect) {
 		0, 0, surface->w, surface->h
@@ -36,12 +37,12 @@ static SDL_Surface *CreateSurface(int32_t w, int32_t h, int32_t color) {
 
 START_TEST(check_atlas) {
 
-	SDL_Surface *red = CreateSurface(128, 128, 0xff0000ff);
-	SDL_Surface *green = CreateSurface(256, 256, 0xff00ff00);
-	SDL_Surface *blue = CreateSurface(512, 512, 0xffff0000);
-	SDL_Surface *purple = CreateSurface(512, 512, 0xffff00ff);
+	SDL_Surface *red = CreateSurface(128, 128, 0xff0000);
+	SDL_Surface *green = CreateSurface(256, 256, 0x00ff00);
+	SDL_Surface *blue = CreateSurface(512, 512, 0x0000ff);
+	SDL_Surface *purple = CreateSurface(512, 512, 0xff00ff);
 
-	atlas_t *atlas = Atlas_Create();
+	atlas_t *atlas = Atlas_Create(1);
 
 	atlas_node_t *a = Atlas_Insert(atlas, red);
 	ck_assert_ptr_ne(NULL, a);
@@ -52,9 +53,9 @@ START_TEST(check_atlas) {
 	atlas_node_t *c = Atlas_Insert(atlas, blue);
 	ck_assert_ptr_ne(NULL, c);
 
-	SDL_Surface *surface = CreateSurface(1024, 1024, 0x00000000);
+	SDL_Surface *surface = CreateSurface(1024, 1024, 0x000000);
 
-	int32_t res = Atlas_Compile(atlas, surface, 0);
+	int32_t res = Atlas_Compile(atlas, 0, surface);
 	ck_assert_int_eq(0, res);
 
 	ck_assert_int_eq(0, c->x);
@@ -69,7 +70,7 @@ START_TEST(check_atlas) {
 	atlas_node_t *d = Atlas_Insert(atlas, purple);
 	ck_assert_ptr_ne(NULL, d);
 
-	res = Atlas_Compile(atlas, surface, 0);
+	res = Atlas_Compile(atlas, 0, surface);
 	ck_assert_int_eq(0, res);
 
 	ck_assert_int_eq(0, c->x);
@@ -91,7 +92,43 @@ START_TEST(check_atlas) {
 	SDL_FreeSurface(blue);
 	SDL_FreeSurface(purple);
 
-	IMG_SaveJPG(surface, "/tmp/check_atlas.jpg", 100);
+	IMG_SavePNG(surface, "/tmp/check_atlas.png");
+
+	SDL_FreeSurface(surface);
+
+} END_TEST
+
+START_TEST(check_atlas_random) {
+
+	srand(getpid());
+
+	atlas_t *atlas = Atlas_Create(1);
+
+	SDL_Surface *surfaces[100];
+
+	for (size_t i = 0; i < 100; i++) {
+
+		const int32_t w = rand() % 96 + 1;
+		const int32_t h = rand() % 96 + 1;
+		const int32_t color = rand() % 255 << 16 | rand() % 255 << 8 | rand() % 255;
+		
+		surfaces[i] = CreateSurface(w, h, color);
+
+		Atlas_Insert(atlas, surfaces[i]);
+	}
+
+	SDL_Surface *surface = CreateSurface(1024, 1024, 0);
+
+	const int32_t res = Atlas_Compile(atlas, 0, surface);
+	ck_assert_int_eq(0, res);
+
+	Atlas_Destroy(atlas);
+
+	IMG_SavePNG(surface, "/tmp/check_atlas_random.png");
+
+	for (size_t i = 0; i < 100; i++) {
+		SDL_FreeSurface(surfaces[i]);
+	}
 
 	SDL_FreeSurface(surface);
 
@@ -105,6 +142,7 @@ int32_t main(int32_t argc, char **argv) {
 	TCase *tcase = tcase_create("check_atlas");
 
 	tcase_add_test(tcase, check_atlas);
+	tcase_add_test(tcase, check_atlas_random);
 
 	Suite *suite = suite_create("check_atlas");
 	suite_add_tcase(suite, tcase);

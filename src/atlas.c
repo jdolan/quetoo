@@ -24,26 +24,60 @@
 #include "atlas.h"
 
 /**
- * @brief Creates a new atlas.
+ * @brief GDestroyNotify for atlas nodes.
  */
-atlas_t *Atlas_Create(void) {
+static void Atlas_FreeNode(gpointer data) {
+
+	atlas_node_t *node = data;
+
+	g_free(node->surfaces);
+	g_free(node);
+}
+
+/**
+ * @brief Creates a new layered atlas.
+ */
+atlas_t *Atlas_Create(int32_t layers) {
 
 	atlas_t *atlas = g_malloc0(sizeof(*atlas));
 	if (atlas) {
-		atlas->nodes = g_ptr_array_new_with_free_func(g_free);
+		atlas->layers = layers;
+		assert(atlas->layers);
+
+		atlas->nodes = g_ptr_array_new_with_free_func(Atlas_FreeNode);
+		atlas->tag = -1;
 	}
 
 	return atlas;
 }
 
 /**
- * @brief Inserts `surface` into `atlas`.
+ * @brief Inserts one or more layered surfaces into the atlas.
+ * @param atlas The atlas.
+ * @param ... A list of layered surfaces to insert. This list must be `atlas->layers` in length.
+ * @return The atlas node for the inserted surfaces.
  */
-atlas_node_t *Atlas_Insert(atlas_t *atlas, SDL_Surface *surface) {
+atlas_node_t *Atlas_Insert(atlas_t *atlas, ...) {
+
+	assert(atlas);
 
 	atlas_node_t *node = g_malloc0(sizeof(*node));
 	if (node) {
-		node->surface = surface;
+		node->surfaces = g_malloc0(atlas->layers * sizeof(SDL_Surface *));
+		assert(node->surfaces);
+
+		node->tag = -1;
+
+		va_list args;
+		va_start(args, atlas);
+
+		for (int32_t i = 0; i < atlas->layers; i++) {
+			node->surfaces[i] = va_arg(args, SDL_Surface *);
+		}
+
+		va_end(args);
+		assert(node->surfaces[0]);
+
 		g_ptr_array_add(atlas->nodes, node);
 	}
 
@@ -53,11 +87,14 @@ atlas_node_t *Atlas_Insert(atlas_t *atlas, SDL_Surface *surface) {
 /**
  * @return The node for `surface` or `NULL`.
  */
-atlas_node_t *Atlas_Find(atlas_t *atlas, SDL_Surface *surface) {
+atlas_node_t *Atlas_Find(atlas_t *atlas, int32_t layer, SDL_Surface *surface) {
 
-	for (guint i = 0; i < atlas->nodes->len; i++) {
+	assert(atlas);
+	assert(atlas->layers > layer);
+
+	for (size_t i = 0; i < atlas->nodes->len; i++) {
 		atlas_node_t *node = g_ptr_array_index(atlas->nodes, i);
-		if (node->surface == surface) {
+		if (node->surfaces[layer] == surface) {
 			return node;
 		}
 	}
@@ -70,55 +107,79 @@ atlas_node_t *Atlas_Find(atlas_t *atlas, SDL_Surface *surface) {
  */
 static gint Atlas_NodeComparator(gconstpointer a, gconstpointer b) {
 
-	const int32_t a_size = (*(atlas_node_t **) a)->surface->w * (*(atlas_node_t **) a)->surface->h;
-	const int32_t b_size = (*(atlas_node_t **) b)->surface->w * (*(atlas_node_t **) b)->surface->h;
+	const SDL_Surface *a_surf = (*(atlas_node_t **) a)->surfaces[0];
+	const SDL_Surface *b_surf = (*(atlas_node_t **) b)->surfaces[0];
 
-	return b_size - a_size;
+	return b_surf->h - a_surf->h;
 }
 
 /**
- * @brief Compiles `atlas` into the given surface, packing nodes as efficiently as possible.
- * @details If all nodes fit in `surface`, `0` is returned. If a node overflows, the index
- * of that node is returned. If a node exceeds the bounds of `surface`, `-1` is returned.
+ * @brief Compiles they layered `atlas` into the given list of equally sized surfaces.
+ * @details If all nodes fit in the given surface(s), `0` is returned. If a node overflows,
+ * the index of that node is returned. If a node exceeds the bounds of the output surfaces,
+ * `-1` is returned.
  * @param atlas The atlas.
- * @param surface The surface to pack nodes into.
  * @param start The node index to start packing from.
+ * @param ... The layered surfaces list to blit nodes to, which must be `atlas->layers` in length.
  * @return `0` on success, or the index of the next `start` node. `-1` on error.
  */
-int32_t Atlas_Compile(atlas_t *atlas, SDL_Surface *surface, int32_t start) {
+int32_t Atlas_Compile(atlas_t *atlas, int32_t start, ...) {
+
+	assert(atlas);
+
+	SDL_Surface *surfaces[atlas->layers];
+
+	va_list args;
+	va_start(args, start);
+
+	for (int32_t i = 0; i < atlas->layers; i++) {
+		surfaces[i] = va_arg(args, SDL_Surface *);
+	}
+
+	va_end(args);
+	assert(surfaces[0]);
+
+	atlas->tag++;
 
 	g_ptr_array_sort(atlas->nodes, Atlas_NodeComparator);
 
-	atlas_node_t *row = g_ptr_array_index(atlas->nodes, 0);
-	int32_t x = 0, y = 0;
+	int32_t x = 0, y = 0, row = 0;
 
 	for (int32_t i = start; i < (int32_t) atlas->nodes->len; i++) {
 		atlas_node_t *node = g_ptr_array_index(atlas->nodes, i);
 
-		if (node->surface->w > surface->w ||
-			node->surface->h > surface->h) {
+		if (node->surfaces[0]->w > surfaces[0]->w ||
+			node->surfaces[0]->h > surfaces[0]->h) {
 			return -1;
 		}
 
-		if (x + node->surface->w > surface->w) {
-			if (y + node->surface->h > surface->h) {
+		if (x + node->surfaces[0]->w > surfaces[0]->w) {
+			if (y + node->surfaces[0]->h > surfaces[0]->h) {
 				return i;
 			}
 			x = 0;
-			y += row->surface->h;
-			row = node;
+			y += row;
+			row = 0;
 		}
 
 		node->x = x;
 		node->y = y;
+		node->tag = atlas->tag;
 
-		SDL_BlitSurface(node->surface, &(SDL_Rect) {
-			0, 0, node->surface->w, node->surface->h
-		}, surface, &(SDL_Rect) {
-			node->x, node->y, node->surface->w, node->surface->h
-		});
+		for (int32_t layer = 0; layer < atlas->layers; layer++) {
 
-		x += node->surface->w;
+			SDL_Surface *src = node->surfaces[layer];
+			SDL_Surface *dest = surfaces[layer];
+
+			if (src && dest) {
+				SDL_BlitSurface(src, NULL, dest, &(SDL_Rect) {
+					node->x, node->y, src->w, src->h
+				});
+			}
+		}
+
+		x += node->surfaces[0]->w;
+		row = MAX(row, node->surfaces[0]->h);
 	}
 
 	return 0;
@@ -129,7 +190,8 @@ int32_t Atlas_Compile(atlas_t *atlas, SDL_Surface *surface, int32_t start) {
  */
 void Atlas_Destroy(atlas_t *atlas) {
 
-	g_ptr_array_free(atlas->nodes, 1);
-
-	g_free(atlas);
+	if (atlas) {
+		g_ptr_array_free(atlas->nodes, 1);
+		g_free(atlas);
+	}
 }
