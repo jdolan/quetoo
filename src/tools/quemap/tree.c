@@ -60,8 +60,6 @@ tree_t *AllocTree(void) {
  * @brief
  */
 void FreeTreePortals_r(node_t *node) {
-	portal_t *p, *nextp;
-	int32_t s;
 
 	// free children
 	if (node->plane_num != PLANENUM_LEAF) {
@@ -69,8 +67,9 @@ void FreeTreePortals_r(node_t *node) {
 		FreeTreePortals_r(node->children[1]);
 	}
 	// free portals
-	for (p = node->portals; p; p = nextp) {
-		s = (p->nodes[1] == node);
+	portal_t *nextp;
+	for (portal_t *p = node->portals; p; p = nextp) {
+		const int32_t s = (p->nodes[1] == node);
 		nextp = p->next[s];
 
 		RemovePortalFromNode(p, p->nodes[!s]);
@@ -83,18 +82,19 @@ void FreeTreePortals_r(node_t *node) {
  * @brief
  */
 void FreeTree_r(node_t *node) {
-	face_t *f, *nextf;
 
 	// free children
 	if (node->plane_num != PLANENUM_LEAF) {
 		FreeTree_r(node->children[0]);
 		FreeTree_r(node->children[1]);
 	}
-	// free bspbrushes
+
+	// free brushes
 	FreeBrushes(node->brushes);
 
 	// free faces
-	for (f = node->faces; f; f = nextf) {
+	face_t *nextf;
+	for (face_t *f = node->faces; f; f = nextf) {
 		nextf = f->next;
 		FreeFace(f);
 	}
