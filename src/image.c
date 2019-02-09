@@ -21,7 +21,7 @@
 
 #include "image.h"
 
-#define IMG_PALETTE "pics/colormap"
+#define IMG_PALETTE "pics/colormap.pcx"
 
 img_palette_t img_palette;
 static _Bool img_palette_initialized;
@@ -56,8 +56,8 @@ static _Bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface 
 			SDL_Surface *s;
 			if ((s = IMG_LoadTyped_RW(rw, 0, (char *) type))) {
 
-				if (!g_str_has_prefix(path, IMG_PALETTE) && s->format->format != SDL_PIXELFORMAT_ABGR8888) {
-					*surf = SDL_ConvertSurfaceFormat(s, SDL_PIXELFORMAT_ABGR8888, 0);
+				if (g_strcmp0(path, IMG_PALETTE) && s->format->format != SDL_PIXELFORMAT_RGBA32) {
+					*surf = SDL_ConvertSurfaceFormat(s, SDL_PIXELFORMAT_RGBA32, 0);
 					SDL_FreeSurface(s);
 				} else {
 					*surf = s;
