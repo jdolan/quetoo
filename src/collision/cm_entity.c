@@ -47,7 +47,7 @@ GList *Cm_LoadEntities(const char *entity_string) {
 
 			while (true) {
 
-				cm_entity_t *pair = Mem_TagMalloc(sizeof(*pair), MEM_TAG_CMODEL);
+				cm_entity_t *pair = Mem_TagMalloc(sizeof(*pair), MEM_TAG_COLLISION);
 
 				Parse_Token(&parser, PARSE_DEFAULT, pair->key, sizeof(pair->key));
 				Parse_Token(&parser, PARSE_DEFAULT, pair->value, sizeof(pair->value));

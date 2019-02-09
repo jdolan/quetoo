@@ -32,7 +32,7 @@ static void Cm_LoadBspEntities(void) {
 	GList *entities = Cm_LoadEntities(cm_bsp.bsp.entity_string);
 
 	cm_bsp.num_entities = g_list_length(entities);
-	cm_bsp.entities = Mem_TagMalloc(sizeof(cm_entity_t *) * cm_bsp.num_entities, MEM_TAG_CMODEL);
+	cm_bsp.entities = Mem_TagMalloc(sizeof(cm_entity_t *) * cm_bsp.num_entities, MEM_TAG_COLLISION);
 
 	cm_entity_t **out = cm_bsp.entities;
 	for (const GList *list = entities; list; list = list->next, out++) {
@@ -50,7 +50,7 @@ static void Cm_LoadBspTexinfos(void) {
 	const int32_t num_texinfo = cm_bsp.bsp.num_texinfo;
 	const bsp_texinfo_t *in = cm_bsp.bsp.texinfo;
 
-	cm_bsp_texinfo_t *out = cm_bsp.texinfos = Mem_TagMalloc(sizeof(cm_bsp_texinfo_t) * num_texinfo, MEM_TAG_CMODEL);
+	cm_bsp_texinfo_t *out = cm_bsp.texinfos = Mem_TagMalloc(sizeof(cm_bsp_texinfo_t) * num_texinfo, MEM_TAG_COLLISION);
 
 	for (int32_t i = 0; i < num_texinfo; i++, in++, out++) {
 
@@ -80,7 +80,7 @@ static void Cm_LoadBspPlanes(void) {
 	const bsp_plane_t *in = cm_bsp.bsp.planes;
 
 	cm_bsp_plane_t *out = cm_bsp.planes = Mem_TagMalloc(sizeof(cm_bsp_plane_t) * (num_planes + 12),
-	                                      MEM_TAG_CMODEL); // extra for box hull
+	                                      MEM_TAG_COLLISION); // extra for box hull
 
 	for (int32_t i = 0; i < num_planes; i++, in++, out++) {
 
@@ -101,7 +101,7 @@ static void Cm_LoadBspNodes(void) {
 	const bsp_node_t *in = cm_bsp.bsp.nodes;
 
 	cm_bsp_node_t *out = cm_bsp.nodes = Mem_TagMalloc(sizeof(cm_bsp_node_t) * (num_nodes + 6),
-	                                    MEM_TAG_CMODEL); // extra for box hull
+	                                    MEM_TAG_COLLISION); // extra for box hull
 
 	for (int32_t i = 0; i < num_nodes; i++, in++, out++) {
 
@@ -123,7 +123,7 @@ static void Cm_LoadBspLeafs(void) {
 	const bsp_leaf_t *in = cm_bsp.bsp.leafs;
 
 	cm_bsp_leaf_t *out = cm_bsp.leafs = Mem_TagMalloc(sizeof(cm_bsp_leaf_t) * (num_leafs + 1),
-	                                    MEM_TAG_CMODEL); // extra for box hull
+	                                    MEM_TAG_COLLISION); // extra for box hull
 
 	for (int32_t i = 0; i < num_leafs; i++, in++, out++) {
 
@@ -144,7 +144,7 @@ static void Cm_LoadBspLeafBrushes(void) {
 	const int32_t *in = cm_bsp.bsp.leaf_brushes;
 
 	int32_t *out = cm_bsp.leaf_brushes = Mem_TagMalloc(sizeof(int32_t) * (num_leaf_brushes + 1),
-	                                      MEM_TAG_CMODEL); // extra for box hull
+	                                      MEM_TAG_COLLISION); // extra for box hull
 
 	for (int32_t i = 0; i < num_leaf_brushes; i++, in++, out++) {
 
@@ -161,7 +161,7 @@ static void Cm_LoadBspBrushes(void) {
 	const bsp_brush_t *in = cm_bsp.bsp.brushes;
 
 	cm_bsp_brush_t *out = cm_bsp.brushes = Mem_TagMalloc(sizeof(cm_bsp_brush_t) * (num_brushes + 1),
-	                                       MEM_TAG_CMODEL); // extra for box hull
+	                                       MEM_TAG_COLLISION); // extra for box hull
 
 	for (int32_t i = 0; i < num_brushes; i++, in++, out++) {
 
@@ -182,7 +182,7 @@ static void Cm_LoadBspBrushSides(void) {
 	const bsp_brush_side_t *in = cm_bsp.bsp.brush_sides;
 
 	cm_bsp_brush_side_t *out = cm_bsp.brush_sides = Mem_TagMalloc(sizeof(cm_bsp_brush_side_t) *
-				(num_brush_sides + 6), MEM_TAG_CMODEL); // extra for box hull
+				(num_brush_sides + 6), MEM_TAG_COLLISION); // extra for box hull
 
 	for (int32_t i = 0; i < num_brush_sides; i++, in++, out++) {
 
@@ -233,7 +233,7 @@ static void Cm_LoadBspInlineModels(void) {
 	const int32_t num_models = cm_bsp.bsp.num_models;
 	const bsp_model_t *in = cm_bsp.bsp.models;
 
-	cm_bsp_model_t *out = cm_bsp.models = Mem_TagMalloc(sizeof(cm_bsp_model_t) * num_models, MEM_TAG_CMODEL);
+	cm_bsp_model_t *out = cm_bsp.models = Mem_TagMalloc(sizeof(cm_bsp_model_t) * num_models, MEM_TAG_COLLISION);
 
 	for (int32_t i = 0; i < num_models; i++, in++, out++) {
 
@@ -254,7 +254,7 @@ static void Cm_LoadBspAreaPortals(void) {
 
 	const int32_t num_area_portals = cm_bsp.bsp.num_area_portals;
 
-	cm_bsp.area_portals = Mem_TagMalloc(sizeof(bool) * num_area_portals, MEM_TAG_CMODEL);
+	cm_bsp.area_portals = Mem_TagMalloc(sizeof(bool) * num_area_portals, MEM_TAG_COLLISION);
 }
 
 /**
@@ -265,7 +265,7 @@ static void Cm_LoadBspAreas(void) {
 	const int32_t num_areas = cm_bsp.bsp.num_areas;
 	const bsp_area_t *in = cm_bsp.bsp.areas;
 
-	cm_bsp_area_t *out = cm_bsp.areas = Mem_TagMalloc(sizeof(cm_bsp_area_t) * num_areas, MEM_TAG_CMODEL);
+	cm_bsp_area_t *out = cm_bsp.areas = Mem_TagMalloc(sizeof(cm_bsp_area_t) * num_areas, MEM_TAG_COLLISION);
 
 	for (int32_t i = 0; i < num_areas; i++, in++, out++) {
 
@@ -308,7 +308,7 @@ static void Cm_LoadBspMaterials(const char *name) {
 	}
 
 	cm_bsp.num_materials = g_list_length(materials);
-	cm_bsp.materials = Mem_TagMalloc(sizeof(cm_material_t *) * cm_bsp.num_materials, MEM_TAG_CMODEL);
+	cm_bsp.materials = Mem_TagMalloc(sizeof(cm_material_t *) * cm_bsp.num_materials, MEM_TAG_COLLISION);
 
 	cm_material_t **out = cm_bsp.materials;
 	for (const GList *list = materials; list; list = list->next, out++) {
