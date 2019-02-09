@@ -1166,7 +1166,7 @@ _Bool ValidateUserInfo(const char *s) {
  * @brief
  */
 void SetUserInfo(char *s, const char *key, const char *value) {
-	char newi[MAX_USER_INFO_STRING], *v;
+	char newi[MAX_USER_INFO_STRING * 16], *v;
 
 	if (strstr(key, "\\") || strstr(value, "\\")) {
 		//Com_Print("Can't use keys or values with a \\\n");
@@ -1196,7 +1196,7 @@ void SetUserInfo(char *s, const char *key, const char *value) {
 
 	g_snprintf(newi, sizeof(newi), "\\%s\\%s", key, value);
 
-	if (strlen(newi) + strlen(s) > MAX_USER_INFO_STRING) {
+	if (strlen(newi) + strlen(s) > MAX_USER_INFO_STRING * 16) {
 		//Com_Print("Info string length exceeded\n");
 		return;
 	}
