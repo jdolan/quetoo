@@ -159,12 +159,14 @@ static void CreateVisPortals_r(node_t *node) {
 	CreateVisPortals_r(node->children[1]);
 }
 
-static int32_t clusterleaf;
 static void SaveClusters_r(node_t *node) {
+	static int32_t clusterleaf = 1;
+
 	if (node->plane_num == PLANENUM_LEAF) {
 		bsp_file.leafs[clusterleaf++].cluster = node->cluster;
 		return;
 	}
+
 	SaveClusters_r(node->children[0]);
 	SaveClusters_r(node->children[1]);
 }
@@ -211,7 +213,6 @@ void WritePortalFile(tree_t *tree) {
 
 	// we need to store the clusters out now because ordering
 	// issues made us do this after writebsp...
-	clusterleaf = 1;
 	SaveClusters_r(head_node);
 
 	Com_Verbose("--- WritePortalFile complete ---\n");
