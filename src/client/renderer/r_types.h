@@ -43,8 +43,6 @@ typedef enum {
 	MEDIA_OBJ, // r_model_t
 	MEDIA_BSP, //
 
-	MEDIA_LIGHTMAP, // r_lightmap_media_t
-
 	MEDIA_MATERIAL, // r_material_t
 	MEDIA_FRAMEBUFFER, // r_framebuffer_t
 
@@ -480,19 +478,34 @@ typedef struct {
 #define R_SURF_IN_LIQUID	0x2
 
 /**
- * @brief Lightmaps are packed into atlas textures. Each packed lightmap also has a corresponding
- * stain buffer. These are managed as media, so that they are freed at each level load.
+ * @brief BSP lightmaps are atlas images of indivudual surface lightmaps.
  */
 typedef struct {
-	r_media_t media;
 
+	/**
+	 * @brief The atlased lightmaps and deluxemaps, in a layered texture.
+	 */
 	r_image_t *lightmaps;
+
+	/**
+	 * @brief The atlased stainmaps, which are backed by the framebuffer.
+	 */
 	r_image_t *stainmaps;
+
+	/**
+	 * @brief The framebuffer backing the stainmaps.
+	 */
 	r_framebuffer_t *framebuffer;
+
+	/**
+	 * @brief The projection matrix into the stainmap framebuffer.
+	 */
 	matrix4x4_t projection;
+} r_bsp_lightmap_t;
 
-} r_lightmap_media_t;
-
+/**
+ * @brief Each indivudual surface lightmap has a projection matrix.
+ */
 typedef struct {
 	matrix4x4_t matrix;
 	matrix4x4_t inverse_matrix;
@@ -500,19 +513,17 @@ typedef struct {
 	vec2_t st_mins, st_maxs;
 	r_pixel_t w, h;
 
-	r_lightmap_media_t *media; // the media containing this lightmap
+	r_bsp_lightmap_t *atlas; // the lightmap atlas containing this lightmap
 	r_pixel_t s, t; // the texture coordinates into the atlas image
 
-	const byte *data; // raw lightmap data, available during level load
-
-} r_lightmap_t;
+} r_bsp_surface_lightmap_t;
 
 typedef struct {
 	cm_bsp_plane_t *plane;
 	r_bsp_texinfo_t *texinfo;
 	r_bsp_flare_t *flare;
 
-	r_lightmap_t lightmap;
+	r_bsp_surface_lightmap_t lightmap;
 
 	vec3_t mins, maxs;
 	vec2_t st_mins, st_maxs;
@@ -734,6 +745,9 @@ typedef struct {
 
 	int32_t num_elements;
 	int32_t *elements;
+
+	int32_t num_lightmaps;
+	r_bsp_lightmap_t *lightmaps;
 
 	int32_t num_surfaces;
 	r_bsp_surface_t *surfaces;

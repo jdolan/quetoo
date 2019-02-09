@@ -156,6 +156,7 @@
 		CE354F03220775DD008AE0C2 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE354F0422077620008AE0C2 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE354F052207FAA9008AE0C2 /* libSDL2_image-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8311C5C6F0100CD0B13 /* libSDL2_image-2.0.0.dylib */; };
+		CE354F0622087CFA008AE0C2 /* libatlas.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE354EE722073AD6008AE0C2 /* libatlas.a */; };
 		CE3BCDC91DB6DD81002E6C6D /* r_program_null.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3BCDB91DB6DCE0002E6C6D /* r_program_null.c */; };
 		CE3BCDCA1DB6DD87002E6C6D /* r_program_null.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3BCDBA1DB6DCE0002E6C6D /* r_program_null.h */; };
 		CE3C529421E4DF2500FEDBED /* cm_polylib.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3C529221E4DF2500FEDBED /* cm_polylib.h */; };
@@ -2389,6 +2390,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE8000001C5E4D4400A21A51 /* libminizip.a in Frameworks */,
+				CE354F0622087CFA008AE0C2 /* libatlas.a in Frameworks */,
 				CE80FFFE1C5E4D4400A21A51 /* libcollision.a in Frameworks */,
 				CE80FFFF1C5E4D4400A21A51 /* libcommon.a in Frameworks */,
 				CEFC7A9D1D9CB840000FA6B2 /* libfilesystem.a in Frameworks */,

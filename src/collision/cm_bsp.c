@@ -48,8 +48,8 @@ static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
 	BSP_LUMP_NUM_STRUCT(models, MAX_BSP_MODELS),
 	BSP_LUMP_NUM_STRUCT(area_portals, MAX_BSP_AREA_PORTALS),
 	BSP_LUMP_NUM_STRUCT(areas, MAX_BSP_AREAS),
-	BSP_LUMP_SIZE_STRUCT(vis_data, MAX_BSP_VISIBILITY),
-	BSP_LUMP_SIZE_STRUCT(lightmap_data, MAX_BSP_LIGHTING),
+	BSP_LUMP_SIZE_STRUCT(vis, MAX_BSP_VISIBILITY),
+	BSP_LUMP_NUM_STRUCT(lightmaps, MAX_BSP_LIGHTMAPS),
 };
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
@@ -248,6 +248,10 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
 		face->triangles = LittleLong(face->triangles);
 		face->num_triangles = LittleLong(face->num_triangles);
 		face->lightmap = LittleLong(face->lightmap);
+		face->lightmap_s = LittleLong(face->lightmap_s);
+		face->lightmap_t = LittleLong(face->lightmap_t);
+		face->lightmap_w = LittleLong(face->lightmap_w);
+		face->lightmap_h = LittleLong(face->lightmap_h);
 
 		face++;
 	}
@@ -699,7 +703,7 @@ void Bsp_Write(file_t *file, const bsp_file_t *bsp) {
  */
 int32_t Bsp_DecompressVis(const bsp_file_t *bsp, const byte *in, byte *out) {
 
-	const int32_t row = (bsp->vis_data->num_clusters + 7) >> 3;
+	const int32_t row = (bsp->vis->num_clusters + 7) >> 3;
 	byte *out_p = out;
 
 	do {
@@ -728,7 +732,7 @@ int32_t Bsp_DecompressVis(const bsp_file_t *bsp, const byte *in, byte *out) {
  */
 int32_t Bsp_CompressVis(const bsp_file_t *bsp, const byte *in, byte *out) {
 
-	const int32_t row = (bsp->vis_data->num_clusters + 7) >> 3;
+	const int32_t row = (bsp->vis->num_clusters + 7) >> 3;
 	byte *out_p = out;
 
 	for (int32_t j = 0; j < row; j++) {

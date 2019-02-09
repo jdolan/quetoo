@@ -51,12 +51,12 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 
 	if (texunit_lightmap->enabled) { // lightmap texture
 
-		const r_lightmap_media_t *media = surf->lightmap.media;
+		const r_bsp_lightmap_t *atlas = surf->lightmap.atlas;
 
-		R_BindLightmapTexture(media->lightmaps->texnum);
+		R_BindLightmapTexture(atlas->lightmaps->texnum);
 
 		if (texunit_stainmap->enabled) {
-			R_BindStainmapTexture(media->stainmaps->texnum);
+			R_BindStainmapTexture(atlas->stainmaps->texnum);
 		}
 	}
 

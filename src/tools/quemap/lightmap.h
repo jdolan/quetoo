@@ -22,6 +22,7 @@
 #pragma once
 
 #include "quemap.h"
+#include "atlas.h"
 #include "matrix.h"
 
 typedef struct {
@@ -34,7 +35,7 @@ typedef struct {
 } luxel_t;
 
 typedef struct {
-	const bsp_face_t *face;
+	bsp_face_t *face;
 	const bsp_plane_t *plane;
 	const bsp_texinfo_t *texinfo;
 	const cm_material_t *material;
@@ -44,6 +45,8 @@ typedef struct {
 	int16_t w, h;
 	luxel_t *luxels;
 	size_t num_luxels;
+	SDL_Surface *lightmap;
+	SDL_Surface *deluxemap;
 } lightmap_t;
 
 extern lightmap_t lightmaps[MAX_BSP_FACES];
@@ -53,3 +56,4 @@ void BuildVertexNormals(void);
 void DirectLighting(int32_t face_num);
 void IndirectLighting(int32_t face_num);
 void FinalizeLighting(int32_t face_num);
+void EmitLightmaps(void);

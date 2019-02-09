@@ -162,15 +162,15 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 
 		R_EnableTexture(texunit_lightmap, true);
 
-		R_BindLightmapTexture(surf->lightmap.media->lightmaps->texnum);
+		R_BindLightmapTexture(surf->lightmap.atlas->lightmaps->texnum);
 		
 		if (r_deluxemap->integer) {
 			R_EnableTexture(texunit_deluxemap, true);
 		}
 
-		if (surf->lightmap.media->framebuffer) {
+		if (surf->lightmap.atlas->framebuffer) {
 			R_EnableTexture(texunit_stainmap, true);
-			R_BindStainmapTexture(surf->lightmap.media->stainmaps->texnum);
+			R_BindStainmapTexture(surf->lightmap.atlas->stainmaps->texnum);
 		}
 
 		if (stage->cm->flags & STAGE_LIGHTING) { // hardware lighting

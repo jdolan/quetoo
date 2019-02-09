@@ -181,8 +181,7 @@ static void R_LoadBspLeafSurfaces(r_bsp_model_t *bsp) {
 
 
 /**
- * @brief Counts and allocates the correct number of r_bsp_vertex_t for the BSP
- * model. The vertexes are populated by r_bsp_surface_t loading.
+ * @brief
  */
 static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 
@@ -197,6 +196,53 @@ static void R_LoadBspElements(r_bsp_model_t *bsp) {
 
 	bsp->num_elements = bsp->file->num_face_elements;
 	bsp->elements = Mem_LinkMalloc(bsp->num_elements * sizeof(int32_t), bsp);
+}
+
+/**
+ * @brief
+ */
+static void R_LoadBspLightmaps(r_bsp_model_t *bsp) {
+
+	bsp->num_lightmaps = bsp->file->num_lightmaps;
+	r_bsp_lightmap_t *out = bsp->lightmaps = Mem_LinkMalloc(sizeof(r_bsp_lightmap_t) * bsp->num_lightmaps, bsp);
+
+	bsp_lightmap_t *in = bsp->file->lightmaps;
+	for (int32_t i = 0; i < bsp->num_lightmaps; i++, in++, out++) {
+		char name[MAX_QPATH];
+
+		g_snprintf(name, sizeof(name), "lightmap %d", i);
+		out->lightmaps = (r_image_t *) R_AllocMedia(name, sizeof(r_image_t), MEDIA_IMAGE);
+		out->lightmaps->media.Free = R_FreeImage;
+		out->lightmaps->type = IT_LIGHTMAP;
+		out->lightmaps->width = BSP_LIGHTMAP_WIDTH;
+		out->lightmaps->height = BSP_LIGHTMAP_WIDTH;
+		out->lightmaps->layers = BSP_LIGHTMAP_LAYERS;
+
+		R_UploadImage(out->lightmaps, GL_RGB8, (byte *) in->layers);
+
+		g_snprintf(name, sizeof(name), "stainmap %d", i);
+		out->stainmaps = (r_image_t *) R_AllocMedia(name, sizeof(r_image_t), MEDIA_IMAGE);
+		out->stainmaps->media.Free = R_FreeImage;
+		out->stainmaps->type = IT_STAINMAP;
+		out->stainmaps->width = BSP_LIGHTMAP_WIDTH;
+		out->stainmaps->height = BSP_LIGHTMAP_WIDTH;
+
+		g_strlcat(name, " framebuffer", sizeof(name));
+		out->framebuffer = R_CreateFramebuffer(name);
+
+		R_UploadImage(out->stainmaps, GL_RGBA8, NULL);
+
+		R_AttachFramebufferImage(out->framebuffer, out->stainmaps);
+
+		if (!R_FramebufferReady(out->framebuffer)) {
+			Com_Warn("Unable to allocate stainmap framebuffer");
+			out->framebuffer = NULL;
+		}
+
+		R_BindFramebuffer(FRAMEBUFFER_DEFAULT);
+
+		Matrix4x4_FromOrtho(&out->projection, 0.0, out->stainmaps->width, out->stainmaps->height, 0.0, -1.0, 1.0);
+	}
 }
 
 /**
@@ -258,16 +304,12 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
 			*oute = out->vertex + *fe;
 		}
 
-		// and lastly lightmap data
-		const byte *data;
-		if (in->lightmap == -1) {
-			data = NULL;
-		} else {
-			data = bsp->file->lightmap_data + in->lightmap;
-		}
+		out->lightmap.atlas = bsp->lightmaps + in->lightmap;
+		out->lightmap.s = in->lightmap_s;
+		out->lightmap.t = in->lightmap_t;
 
-		// to create the lightmap and deluxemap
-		R_CreateBspSurfaceLightmap(bsp, out, data);
+		// finally create the lightmap and deluxemap
+		R_CreateBspSurfaceLightmap(bsp, out);
 	}
 }
 
@@ -301,7 +343,7 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_leaf_t *leaf, r_bsp_surf
 
 		if (!(surf->texinfo->flags & SURF_SKY)) {
 
-			const r_lightmap_t *lm = &surf->lightmap;
+			const r_bsp_surface_lightmap_t *lm = &surf->lightmap;
 
 			vec3_t st;
 			Matrix4x4_Transform(&lm->matrix, v->position, st);
@@ -312,8 +354,8 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_leaf_t *leaf, r_bsp_surf
 			const vec_t padding_s = (lm->w - (lm->st_maxs[0] - lm->st_mins[0])) * 0.5;
 			const vec_t padding_t = (lm->h - (lm->st_maxs[1] - lm->st_mins[1])) * 0.5;
 
-			const vec_t s = (surf->lightmap.s + padding_s + st[0]) / lm->media->lightmaps->width;
-			const vec_t t = (surf->lightmap.t + padding_t + st[1]) / lm->media->lightmaps->height;
+			const vec_t s = (lm->s + padding_s + st[0]) / lm->atlas->lightmaps->width;
+			const vec_t t = (lm->t + padding_t + st[1]) / lm->atlas->lightmaps->height;
 
 			v->lightmap[0] = s;
 			v->lightmap[1] = t;
@@ -772,11 +814,11 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Cl_LoadingProgress(18, "elements");
 	R_LoadBspElements(mod->bsp);
 
-	Cl_LoadingProgress(20, "faces");
-	R_LoadBspSurfaces(mod->bsp);
+	Cl_LoadingProgress(20, "lightmaps");
+	R_LoadBspLightmaps(mod->bsp);
 
-	Cl_LoadingProgress(24, "lightmaps");
-	R_LoadBspSurfaceLightmaps(mod->bsp);
+	Cl_LoadingProgress(24, "faces");
+	R_LoadBspSurfaces(mod->bsp);
 
 	Cl_LoadingProgress(30, "leaf faces");
 	R_LoadBspLeafSurfaces(mod->bsp);

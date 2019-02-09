@@ -32,13 +32,33 @@
 #define MAX_BSP_AREAS			0x100
 #define MAX_BSP_PORTALS			0x20000
 #define MAX_BSP_VISIBILITY		0x200000
-#define MAX_BSP_LIGHTING		0x800000
-#define MAX_BSP_LIGHTMAP		(256 * 256) // the largest single lightmap allowed
+#define MAX_BSP_LIGHTMAPS		0x10
+
 
 /**
  * @brief Lightmap luxel size, in world units.
  */
 #define DEFAULT_BSP_LUXEL_SIZE 8
+
+/**
+ * @brief Largest single lightmap allowed for a face, in luxels.
+ */
+#define MAX_BSP_LIGHTMAP_LUXELS (256 * 256)
+
+/**
+ * @brief Lightmap atlas width and height.
+ */
+#define BSP_LIGHTMAP_WIDTH 1024
+
+/**
+ * @brief Lightmap atlas size in bytes.
+ */
+#define BSP_LIGHTMAP_SIZE (BSP_LIGHTMAP_WIDTH * BSP_LIGHTMAP_WIDTH * 3)
+
+/**
+ * @brief Lightmap and deluxemap.
+ */
+#define BSP_LIGHTMAP_LAYERS 2
 
 /**
  * @brief BSP file format lump identifiers.
@@ -133,7 +153,9 @@ typedef struct {
 	int32_t first_face_element; // element array for triangles
 	int32_t num_face_elements;
 
-	int32_t lightmap; // start of samples in lighting lump
+	int32_t lightmap;
+	int32_t lightmap_s, lightmap_t;
+	int32_t lightmap_w, lightmap_h;
 } bsp_face_t;
 
 typedef struct {
@@ -162,6 +184,10 @@ typedef struct {
 	int32_t num_sides;
 	int32_t contents;
 } bsp_brush_t;
+
+typedef struct {
+	byte layers[BSP_LIGHTMAP_LAYERS][BSP_LIGHTMAP_SIZE];
+} bsp_lightmap_t;
 
 // the visibility lump consists of a header with a count, then
 // byte offsets for the PVS and PHS of each cluster, then the raw
@@ -242,8 +268,8 @@ typedef struct {
 	int32_t num_areas;
 	bsp_area_t *areas;
 
-	int32_t lightmap_data_size;
-	byte *lightmap_data;
+	int32_t num_lightmaps;
+	bsp_lightmap_t *lightmaps;
 
 	int32_t vis_size;
 	bsp_vis_t *vis;

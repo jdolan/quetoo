@@ -88,7 +88,7 @@ static void BuildLightmapLuxels(lightmap_t *lm) {
 
 	lm->num_luxels = lm->w * lm->h;
 
-	if (lm->num_luxels > MAX_BSP_LIGHTMAP) {
+	if (lm->num_luxels > MAX_BSP_LIGHTMAP_LUXELS) {
 		const cm_winding_t *w = Cm_WindingForFace(&bsp_file, lm->face);
 		Mon_SendWinding(MON_ERROR, (const vec3_t *) w->points, w->num_points,
 						va("Surface too large to light (%zd)\n", lm->num_luxels));
@@ -510,32 +510,28 @@ void IndirectLighting(int32_t face_num) {
 }
 
 /**
- * @brief Finalize and write the lightmap data for the given face.
+ * @brief Finalize light values for the given face, and create its lightmap textures.
  */
 void FinalizeLighting(int32_t face_num) {
 
-	const lightmap_t *lm = &lightmaps[face_num];
+	lightmap_t *lm = &lightmaps[face_num];
 
 	if (lm->texinfo->flags & SURF_SKY) {
 		return;
 	}
 
-	bsp_face_t *f = &bsp_file.faces[face_num];
+	// manually setting pitch to fix possible bug in SDL2?
+	lm->lightmap = SDL_CreateRGBSurfaceWithFormat(0, lm->w, lm->h, 24, SDL_PIXELFORMAT_RGB24);
+	lm->lightmap->pitch = lm->lightmap->format->BytesPerPixel * lm->lightmap->w;
 
-	WorkLock();
+	byte *out_lm = lm->lightmap->pixels;
 
-	f->lightmap = bsp_file.lightmap_data_size;
-	bsp_file.lightmap_data_size += lm->num_luxels * 6;
+	lm->deluxemap = SDL_CreateRGBSurfaceWithFormat(0, lm->w, lm->h, 24, SDL_PIXELFORMAT_RGB24);
+	lm->deluxemap->pitch = lm->lightmap->format->BytesPerPixel * lm->deluxemap->w;
 
-	if (bsp_file.lightmap_data_size > MAX_BSP_LIGHTING) {
-		Com_Error(ERROR_FATAL, "MAX_BSP_LIGHTING\n");
-	}
-
-	WorkUnlock();
+	byte *out_dm = lm->deluxemap->pixels;
 
 	// write it out
-	byte *dest = &bsp_file.lightmap_data[f->lightmap];
-
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 		vec3_t lightmap;
@@ -552,7 +548,7 @@ void FinalizeLighting(int32_t face_num) {
 
 		// write the lightmap sample data as bytes
 		for (int32_t j = 0; j < 3; j++) {
-			*dest++ = (byte) Clamp(lightmap[j] * 255.0, 0, 255);
+			*out_lm++ = (byte) Clamp(lightmap[j] * 255.0, 0, 255);
 		}
 
 		// write the deluxemap sample data, in tangent space, also converted to bytes
@@ -564,7 +560,7 @@ void FinalizeLighting(int32_t face_num) {
 		// if the sample was lit, it will have a directional vector in world space
 		if (!VectorCompare(direction, vec3_origin)) {
 
-			vec4_t tangent;
+			vec3_t tangent;
 			vec3_t bitangent;
 
 			TangentVectors(l->normal, lm->texinfo->vecs[0], lm->texinfo->vecs[1], tangent, bitangent);
@@ -582,7 +578,87 @@ void FinalizeLighting(int32_t face_num) {
 
 		// pack floating point -1.0 to 1.0 to positive bytes (0.0 becomes 127)
 		for (int32_t j = 0; j < 3; j++) {
-			*dest++ = (byte) Clamp((deluxemap[j] + 1.0) * 0.5 * 255.0, 0, 255);
+			*out_dm++ = (byte) Clamp((deluxemap[j] + 1.0) * 0.5 * 255.0, 0, 255);
 		}
 	}
+}
+
+/**
+ * @brief
+ */
+void EmitLightmaps(void) {
+
+	bsp_file.num_lightmaps = 0;
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTMAPS, MAX_BSP_LIGHTMAPS);
+
+	atlas_t *atlas = Atlas_Create(2);
+	assert(atlas);
+
+	atlas_node_t *nodes[bsp_file.num_faces];
+
+	for (int32_t i = 0; i < bsp_file.num_faces; i++) {
+		const lightmap_t *lm = &lightmaps[i];
+
+		if (lm->texinfo->flags & SURF_SKY) {
+			continue;
+		}
+
+		nodes[i] = Atlas_Insert(atlas, lm->lightmap, lm->deluxemap);
+	}
+
+	bsp_lightmap_t *out = bsp_file.lightmaps;
+	int32_t start = 0;
+	do {
+		if (bsp_file.num_lightmaps == MAX_BSP_LIGHTMAPS) {
+			Com_Error(ERROR_FATAL, "MAX_BSP_LIGHTMAPS\n");
+		}
+
+		SDL_Surface *lightmap = SDL_CreateRGBSurfaceWithFormatFrom(out->layers[0],
+																   BSP_LIGHTMAP_WIDTH,
+																   BSP_LIGHTMAP_WIDTH,
+																   24,
+																   BSP_LIGHTMAP_WIDTH * 3,
+																   SDL_PIXELFORMAT_RGB24);
+
+		SDL_Surface *deluxemap = SDL_CreateRGBSurfaceWithFormatFrom(out->layers[1],
+																	BSP_LIGHTMAP_WIDTH,
+																	BSP_LIGHTMAP_WIDTH,
+																	24,
+																	BSP_LIGHTMAP_WIDTH * 3,
+																	SDL_PIXELFORMAT_RGB24);
+
+		start = Atlas_Compile(atlas, start, lightmap, deluxemap);
+		if (start == -1) {
+			Com_Error(ERROR_FATAL, "Ligtmap too large to atlas\n");
+		}
+
+		out++;
+		bsp_file.num_lightmaps++;
+
+		IMG_SavePNG(lightmap, va("/tmp/%s_lm_%d.png", map_base, bsp_file.num_lightmaps));
+		IMG_SavePNG(deluxemap, va("/tmp/%s_dm_%d.png", map_base, bsp_file.num_lightmaps));
+
+		SDL_FreeSurface(lightmap);
+		SDL_FreeSurface(deluxemap);
+
+	} while (start > 0);
+
+	for (int32_t i = 0; i < bsp_file.num_faces; i++) {
+		lightmap_t *lm = &lightmaps[i];
+
+		if (lm->texinfo->flags & SURF_SKY) {
+			continue;
+		}
+
+		lm->face->lightmap = nodes[i]->tag;
+		lm->face->lightmap_s = nodes[i]->x;
+		lm->face->lightmap_t = nodes[i]->y;
+		lm->face->lightmap_w = lm->w;
+		lm->face->lightmap_h = lm->h;
+
+		SDL_FreeSurface(lm->lightmap);
+		SDL_FreeSurface(lm->deluxemap);
+	}
+
+	Atlas_Destroy(atlas);
 }

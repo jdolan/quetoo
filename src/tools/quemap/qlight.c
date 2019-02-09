@@ -190,12 +190,11 @@ static void LightWorld(void) {
 		}
 	}
 
-	// finalize it and write it out
-	bsp_file.lightmap_data_size = 0;
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTMAPS, MAX_BSP_LIGHTING);
-
-	// merge direct and indirect lighting, normalize all samples
+	// finalize it and write it to per-face textures
 	Work("Finalize lighting", FinalizeLighting, bsp_file.num_faces);
+
+	// generate atlased lightmaps
+	EmitLightmaps();
 
 	g_list_free_full(entities, Mem_Free);
 
