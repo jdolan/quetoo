@@ -352,11 +352,11 @@ static void R_SetupBspSurfaces(r_bsp_model_t *bsp) {
  */
 static void R_LoadBspClusters(r_bsp_model_t *bsp) {
 
-	if (!bsp->file->vis_data_size) {
+	if (!bsp->file->vis_size) {
 		return;
 	}
 
-	bsp->num_clusters = bsp->file->vis_data->num_clusters;
+	bsp->num_clusters = bsp->file->vis->num_clusters;
 	bsp->clusters = Mem_LinkMalloc(bsp->num_clusters * sizeof(r_bsp_cluster_t), bsp);
 }
 

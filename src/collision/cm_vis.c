@@ -47,7 +47,7 @@ static int Cm_DecompressVis(int32_t cluster, byte *out, int32_t set) {
 		return MAX_BSP_LEAFS >> 3;
 	}
 
-	const bsp_vis_t *vis = cm_bsp.bsp.vis_data;
+	const bsp_vis_t *vis = cm_bsp.bsp.vis;
 	const byte *in = ((byte *) vis) + vis->bit_offsets[cluster][set];
 
 	return Bsp_DecompressVis(&cm_bsp.bsp, in, out);

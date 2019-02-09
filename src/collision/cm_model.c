@@ -453,8 +453,8 @@ cm_bsp_model_t *Cm_Model(const char *name) {
  */
 int32_t Cm_NumClusters(void) {
 
-	if (cm_bsp.bsp.vis_data) {
-		return cm_bsp.bsp.vis_data->num_clusters;
+	if (cm_bsp.bsp.vis) {
+		return cm_bsp.bsp.vis->num_clusters;
 	}
 	
 	return 0;

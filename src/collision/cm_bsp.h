@@ -245,8 +245,8 @@ typedef struct {
 	int32_t lightmap_data_size;
 	byte *lightmap_data;
 
-	int32_t vis_data_size;
-	bsp_vis_t *vis_data;
+	int32_t vis_size;
+	bsp_vis_t *vis;
 
 	// local to bsp_file_t
 	bsp_lump_id_t loaded_lumps;

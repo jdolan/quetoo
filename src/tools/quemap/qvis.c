@@ -132,7 +132,7 @@ static void ClusterMerge(uint32_t leaf_num) {
 		Com_Error(ERROR_FATAL, "VIS expansion overflow\n");
 	}
 
-	bsp_file.vis_data->bit_offsets[leaf_num][VIS_PVS] = (int32_t) (ptrdiff_t) (dest - map_vis.base);
+	bsp_file.vis->bit_offsets[leaf_num][VIS_PVS] = (int32_t) (ptrdiff_t) (dest - map_vis.base);
 
 	memcpy(dest, compressed, len);
 }
@@ -247,9 +247,9 @@ static void LoadPortals(const char *filename) {
 	// allocate vis data
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_VISIBILITY, MAX_BSP_VISIBILITY);
 
-	map_vis.base = (byte *)  bsp_file.vis_data;
-	bsp_file.vis_data->num_clusters = map_vis.portal_clusters;
-	map_vis.pointer = (byte *) &bsp_file.vis_data->bit_offsets[map_vis.portal_clusters];
+	map_vis.base = (byte *)  bsp_file.vis;
+	bsp_file.vis->num_clusters = map_vis.portal_clusters;
+	map_vis.pointer = (byte *) &bsp_file.vis->bit_offsets[map_vis.portal_clusters];
 
 	map_vis.end = map_vis.base + MAX_BSP_VISIBILITY;
 
@@ -373,7 +373,7 @@ static void CalcPHS(void) {
 			Com_Error(ERROR_FATAL, "Overflow\n");
 		}
 
-		bsp_file.vis_data->bit_offsets[i][VIS_PHS] = (int32_t) (ptrdiff_t) (dest - map_vis.base);
+		bsp_file.vis->bit_offsets[i][VIS_PHS] = (int32_t) (ptrdiff_t) (dest - map_vis.base);
 		memcpy(dest, compressed, len);
 	}
 
@@ -408,10 +408,10 @@ int32_t VIS_Main(void) {
 	
 	Com_Print("\n");
 
-	bsp_file.vis_data_size = (int32_t) (ptrdiff_t) (map_vis.pointer - map_vis.base);
+	bsp_file.vis_size = (int32_t) (ptrdiff_t) (map_vis.pointer - map_vis.base);
 
 	Com_Print("Generated %d bytes of PVS data\n", map_vis.uncompressed_size * 2);
-	Com_Print("Compressed size is %d bytes\n", bsp_file.vis_data_size);
+	Com_Print("Compressed size is %d bytes\n", bsp_file.vis_size);
 
 	WriteBSPFile(va("maps/%s.bsp", map_base));
 
