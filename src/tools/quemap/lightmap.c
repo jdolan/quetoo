@@ -509,6 +509,10 @@ void IndirectLighting(int32_t face_num) {
 	}
 }
 
+static SDL_Surface *CreateLightmapSurface(int32_t w, int32_t h, void *pixels) {
+	return SDL_CreateRGBSurfaceWithFormatFrom(pixels, w, h, 24, w * 3, SDL_PIXELFORMAT_RGB24);
+}
+
 /**
  * @brief Finalize light values for the given face, and create its lightmap textures.
  */
@@ -520,15 +524,10 @@ void FinalizeLighting(int32_t face_num) {
 		return;
 	}
 
-	// manually setting pitch to fix possible bug in SDL2?
-	lm->lightmap = SDL_CreateRGBSurfaceWithFormat(0, lm->w, lm->h, 24, SDL_PIXELFORMAT_RGB24);
-	lm->lightmap->pitch = lm->lightmap->format->BytesPerPixel * lm->lightmap->w;
-
+	lm->lightmap = CreateLightmapSurface(lm->w, lm->h, Mem_TagMalloc(lm->w * lm->h * 3, MEM_TAG_LIGHTMAP));
 	byte *out_lm = lm->lightmap->pixels;
 
-	lm->deluxemap = SDL_CreateRGBSurfaceWithFormat(0, lm->w, lm->h, 24, SDL_PIXELFORMAT_RGB24);
-	lm->deluxemap->pitch = lm->lightmap->format->BytesPerPixel * lm->deluxemap->w;
-
+	lm->deluxemap = CreateLightmapSurface(lm->w, lm->h, Mem_TagMalloc(lm->w * lm->h * 3, MEM_TAG_LIGHTMAP));
 	byte *out_dm = lm->deluxemap->pixels;
 
 	// write it out
@@ -613,30 +612,21 @@ void EmitLightmaps(void) {
 			Com_Error(ERROR_FATAL, "MAX_BSP_LIGHTMAPS\n");
 		}
 
-		SDL_Surface *lightmap = SDL_CreateRGBSurfaceWithFormatFrom(out->layers[0],
-																   BSP_LIGHTMAP_WIDTH,
-																   BSP_LIGHTMAP_WIDTH,
-																   24,
-																   BSP_LIGHTMAP_WIDTH * 3,
-																   SDL_PIXELFORMAT_RGB24);
+		const int32_t w = BSP_LIGHTMAP_WIDTH, h = BSP_LIGHTMAP_WIDTH;
 
-		SDL_Surface *deluxemap = SDL_CreateRGBSurfaceWithFormatFrom(out->layers[1],
-																	BSP_LIGHTMAP_WIDTH,
-																	BSP_LIGHTMAP_WIDTH,
-																	24,
-																	BSP_LIGHTMAP_WIDTH * 3,
-																	SDL_PIXELFORMAT_RGB24);
+		SDL_Surface *lightmap = CreateLightmapSurface(w, h, out->layers[0]);
+		SDL_Surface *deluxemap = CreateLightmapSurface(w, h, out->layers[1]);
 
 		start = Atlas_Compile(atlas, start, lightmap, deluxemap);
 		if (start == -1) {
-			Com_Error(ERROR_FATAL, "Ligtmap too large to atlas\n");
+			Com_Error(ERROR_FATAL, "Lightmap too large to atlas\n");
 		}
 
 		out++;
 		bsp_file.num_lightmaps++;
 
 		IMG_SavePNG(lightmap, va("/tmp/%s_lm_%d.png", map_base, bsp_file.num_lightmaps));
-		IMG_SavePNG(deluxemap, va("/tmp/%s_dm_%d.png", map_base, bsp_file.num_lightmaps));
+//		IMG_SavePNG(deluxemap, va("/tmp/%s_dm_%d.png", map_base, bsp_file.num_lightmaps));
 
 		SDL_FreeSurface(lightmap);
 		SDL_FreeSurface(deluxemap);
