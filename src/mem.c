@@ -196,7 +196,7 @@ void Mem_FreeTag(mem_tag_t tag) {
  * @brief Returns the total size of a memory block.
  */
 static size_t Mem_BlockSize(const size_t size) {
-	return size + sizeof(mem_block_t) + sizeof(mem_footer_t);
+	return sizeof(mem_block_t) + size + sizeof(mem_footer_t);
 }
 
 /**
