@@ -503,7 +503,7 @@ void Mem_Init(void) {
 
 	memset(&mem_state, 0, sizeof(mem_state));
 
-	mem_state.blocks = g_hash_table_new(g_direct_hash, g_direct_equal);
+	mem_state.blocks = g_hash_table_new(NULL, NULL);
 }
 
 /**
