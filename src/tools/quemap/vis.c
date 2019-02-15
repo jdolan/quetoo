@@ -95,7 +95,7 @@ static chain_winding_t *AllocChainWinding(chain_t *chain) {
 static void FreeChainWinding(const chain_t *chain, chain_winding_t *w) {
 
 	if (w->num_points == -1) {
-		Com_Error(ERROR_FATAL, "Already free");
+		Com_Error(ERROR_FATAL, "Already free\n");
 	}
 
 	for (size_t i = 0; i < lengthof(chain->windings); i++) {

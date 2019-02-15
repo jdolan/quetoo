@@ -260,7 +260,7 @@ static GLubyte R_GetElementSize(const GLenum type) {
 		case R_TYPE_FLOAT:
 			return 4;
 		default:
-			Com_Error(ERROR_DROP, "Bad GL type");
+			Com_Error(ERROR_DROP, "Invalid element type\n");
 	}
 }
 
@@ -285,7 +285,7 @@ static GLenum R_GetGLTypeFromAttribType(const r_attrib_type_t type) {
 		case R_TYPE_UNSIGNED_INT:
 			return GL_UNSIGNED_INT;
 		default:
-			Com_Error(ERROR_FATAL, "Invalid R_TYPE_* type\n");
+			Com_Error(ERROR_FATAL, "Invalid attribute type\n");
 	}
 }
 

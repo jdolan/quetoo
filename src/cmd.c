@@ -409,7 +409,7 @@ static GQueue *Cmd_Remove_(cmd_t *cmd) {
 	GQueue *queue = (GQueue *) g_hash_table_lookup(cmd_state.commands, cmd->name);
 
 	if (!g_queue_remove(queue, cmd)) {
-		Com_Error(ERROR_FATAL, "Missing command");
+		Com_Error(ERROR_FATAL, "Missing command: %s\n", cmd->name);
 	}
 
 	Mem_Free(cmd);

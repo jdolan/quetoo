@@ -539,7 +539,7 @@ void R_UseMaterial(const r_material_t *material) {
 void R_PushMatrix(const r_matrix_id_t id) {
 
 	if (r_state.matrix_stacks[id].depth == MAX_MATRIX_STACK) {
-		Com_Error(ERROR_DROP, "Matrix stack overflow");
+		Com_Error(ERROR_DROP, "Matrix stack overflow\n");
 	}
 
 	Matrix4x4_Copy(&r_state.matrix_stacks[id].matrices[r_state.matrix_stacks[id].depth++], &active_matrices[id]);
@@ -551,7 +551,7 @@ void R_PushMatrix(const r_matrix_id_t id) {
 void R_PopMatrix(const r_matrix_id_t id) {
 
 	if (r_state.matrix_stacks[id].depth == 0) {
-		Com_Error(ERROR_DROP, "Matrix stack underflow");
+		Com_Error(ERROR_DROP, "Matrix stack underflow\n");
 	}
 
 	R_SetMatrix(id, &r_state.matrix_stacks[id].matrices[--r_state.matrix_stacks[id].depth]);
@@ -706,8 +706,8 @@ void R_Setup3D(void) {
 		return;
 	}
 
-	const SDL_Rect *viewport = &r_view.viewport_3d;
-	R_SetViewport(viewport->x, viewport->y, viewport->w, viewport->h, r_state.supersample_fb != FRAMEBUFFER_DEFAULT);
+	const SDL_Rect *v = &r_view.viewport_3d;
+	R_SetViewport(v->x, v->y, v->w, v->h, r_state.supersample_fb != NULL);
 
 	// copy projection matrix
 	R_SetMatrix(R_MATRIX_PROJECTION, &r_view.matrix_base_3d);
@@ -815,10 +815,10 @@ void R_EnableScissor(const SDL_Rect *bounds) {
 void R_Setup2D(void) {
 
 	if (r_state.supersample_fb) {
-		R_BindFramebuffer(FRAMEBUFFER_DEFAULT);
+		R_BindFramebuffer(NULL);
 	}
 
-	R_SetViewport(0, 0, r_context.width, r_context.height, r_state.supersample_fb != FRAMEBUFFER_DEFAULT);
+	R_SetViewport(0, 0, r_context.width, r_context.height, r_state.supersample_fb != NULL);
 
 	R_SetMatrix(R_MATRIX_PROJECTION, &r_view.matrix_base_2d);
 
@@ -908,7 +908,7 @@ void R_InitSupersample(void) {
 		return;
 	}
 
-	R_BindFramebuffer(FRAMEBUFFER_DEFAULT);
+	R_BindFramebuffer(NULL);
 
 	R_GetError(NULL);
 

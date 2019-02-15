@@ -330,11 +330,6 @@ typedef struct {
 	uint32_t width, height; // matches color attachment
 } r_framebuffer_t;
 
-/**
- * @brief Special index to mean "use default buffer"
- */
-#define FRAMEBUFFER_DEFAULT	NULL
-
 typedef enum {
 	PARTICLE_NORMAL,
 	PARTICLE_SPARK,

@@ -50,7 +50,7 @@ static void R_FreeFramebuffer(r_media_t *media) {
 	}
 
 	if (r_framebuffer_state.current_framebuffer == fb) {
-		R_BindFramebuffer(FRAMEBUFFER_DEFAULT);
+		R_BindFramebuffer(NULL);
 	}
 
 	if (fb->framebuffer) {
@@ -103,7 +103,7 @@ void R_BindFramebuffer(const r_framebuffer_t *fb) {
 void R_AttachFramebufferImage(r_framebuffer_t *fb, r_image_t *image) {
 
 	if (fb->color) {
-		Com_Error(ERROR_FATAL, "Already has a color attachment");
+		Com_Error(ERROR_FATAL, "Already has a color attachment\n");
 	}
 
 	R_BindFramebuffer(fb);
@@ -122,11 +122,11 @@ void R_AttachFramebufferImage(r_framebuffer_t *fb, r_image_t *image) {
 void R_CreateFramebufferDepthStencilBuffers(r_framebuffer_t *fb) {
 
 	if (fb->depth_stencil) {
-		Com_Error(ERROR_FATAL, "Already has a depth/stencil attachment");
+		Com_Error(ERROR_FATAL, "Already has a depth/stencil attachment\n");
 	}
 
 	if (!fb->color) {
-		Com_Error(ERROR_FATAL, "Need color attachment for sizing");
+		Com_Error(ERROR_FATAL, "Need color attachment for sizing\n");
 	}
 
 	R_BindFramebuffer(fb);
@@ -144,6 +144,8 @@ void R_CreateFramebufferDepthStencilBuffers(r_framebuffer_t *fb) {
  * @brief See if the framebuffer is ready to be used.
  */
 _Bool R_FramebufferReady(const r_framebuffer_t *fb) {
+
 	R_BindFramebuffer(fb);
+
 	return glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
 }
