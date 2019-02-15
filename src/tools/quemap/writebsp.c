@@ -97,7 +97,7 @@ static int32_t EmitLeaf(node_t *node) {
 	leaf->first_leaf_face = bsp_file.num_leaf_faces;
 
 	int32_t s;
-	for (portal_t *p = node->portals; p; p = p->next[s]) {
+	for (const portal_t *p = node->portals; p; p = p->next[s]) {
 
 		s = (p->nodes[1] == node);
 
