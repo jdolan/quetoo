@@ -67,10 +67,10 @@ void FreeTreePortals_r(node_t *node) {
 		FreeTreePortals_r(node->children[1]);
 	}
 	// free portals
-	portal_t *nextp;
-	for (portal_t *p = node->portals; p; p = nextp) {
+	portal_t *next;
+	for (portal_t *p = node->portals; p; p = next) {
 		const int32_t s = (p->nodes[1] == node);
-		nextp = p->next[s];
+		next = p->next[s];
 
 		RemovePortalFromNode(p, p->nodes[!s]);
 		FreePortal(p);
