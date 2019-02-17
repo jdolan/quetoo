@@ -59,16 +59,14 @@ static void BuildLightmapMatrices(lightmap_t *lm) {
 }
 
 /**
- * @brief Resolves the extents, in world space and texture space, for the given lightmap.
+ * @brief Resolves the extents, in texture space, for the given lightmap.
  */
 static void BuildLightmapExtents(lightmap_t *lm) {
 
 	ClearStBounds(lm->st_mins, lm->st_maxs);
 
-	const int32_t *fv = &bsp_file.face_vertexes[lm->face->first_face_vertex];
-	for (int32_t i = 0; i < lm->face->num_face_vertexes; i++, fv++) {
-
-		const bsp_vertex_t *v = &bsp_file.vertexes[*fv];
+	const bsp_vertex_t *v = &bsp_file.vertexes[lm->face->first_vertex];
+	for (int32_t i = 0; i < lm->face->num_vertexes; i++, v++) {
 
 		vec3_t st;
 		Matrix4x4_Transform(&lm->matrix, v->position, st);
@@ -206,12 +204,11 @@ static int32_t PhongNormal_sort(const void *a, const void *b) {
  * the three nearest vertexes.
  */
 static void PhongNormal(const bsp_face_t *face, const vec3_t pos, vec3_t normal) {
-	phong_vertex_t phong_vertexes[face->num_face_vertexes], *pv = phong_vertexes;
+	phong_vertex_t phong_vertexes[face->num_vertexes], *pv = phong_vertexes;
 
-	const int32_t *fv = bsp_file.face_vertexes + face->first_face_vertex;
-	for (int32_t i = 0; i < face->num_face_vertexes; i++, fv++, pv++) {
+	const bsp_vertex_t *v = bsp_file.vertexes + face->first_vertex;
+	for (int32_t i = 0; i < face->num_vertexes; i++, v++, pv++) {
 
-		const bsp_vertex_t *v = &bsp_file.vertexes[*fv];
 		VectorCopy(v->normal, pv->normal);
 
 		vec3_t delta;
@@ -219,7 +216,7 @@ static void PhongNormal(const bsp_face_t *face, const vec3_t pos, vec3_t normal)
 		pv->dist = VectorLength(delta);
 	}
 
-	qsort(phong_vertexes, face->num_face_vertexes, sizeof(phong_vertex_t), PhongNormal_sort);
+	qsort(phong_vertexes, face->num_vertexes, sizeof(phong_vertex_t), PhongNormal_sort);
 
 	VectorClear(normal);
 	pv = phong_vertexes;
@@ -509,6 +506,9 @@ void IndirectLighting(int32_t face_num) {
 	}
 }
 
+/**
+ * @brief
+ */
 static SDL_Surface *CreateLightmapSurface(int32_t w, int32_t h, void *pixels) {
 	return SDL_CreateRGBSurfaceWithFormatFrom(pixels, w, h, 24, w * 3, SDL_PIXELFORMAT_RGB24);
 }
@@ -625,7 +625,7 @@ void EmitLightmaps(void) {
 		out++;
 		bsp_file.num_lightmaps++;
 
-		IMG_SavePNG(lightmap, va("/tmp/%s_lm_%d.png", map_base, bsp_file.num_lightmaps));
+//		IMG_SavePNG(lightmap, va("/tmp/%s_lm_%d.png", map_base, bsp_file.num_lightmaps));
 //		IMG_SavePNG(deluxemap, va("/tmp/%s_dm_%d.png", map_base, bsp_file.num_lightmaps));
 
 		SDL_FreeSurface(lightmap);
@@ -640,15 +640,48 @@ void EmitLightmaps(void) {
 			continue;
 		}
 
-		lm->face->lightmap = nodes[i]->tag;
-		lm->face->lightmap_s = nodes[i]->x;
-		lm->face->lightmap_t = nodes[i]->y;
-		lm->face->lightmap_w = lm->w;
-		lm->face->lightmap_h = lm->h;
+		lm->face->lightmap.num = nodes[i]->tag;
+		lm->face->lightmap.s = lm->s = nodes[i]->x;
+		lm->face->lightmap.t = lm->t = nodes[i]->y;
+		lm->face->lightmap.w = lm->w;
+		lm->face->lightmap.h = lm->h;
 
 		SDL_FreeSurface(lm->lightmap);
 		SDL_FreeSurface(lm->deluxemap);
 	}
 
 	Atlas_Destroy(atlas);
+}
+
+/**
+ * @brief
+ */
+void EmitLightmapTexcoords(void) {
+
+	for (int32_t i = 0; i < bsp_file.num_faces; i++) {
+		const lightmap_t *lm = &lightmaps[i];
+
+		if (lm->texinfo->flags & SURF_SKY) {
+			continue;
+		}
+
+		bsp_vertex_t *v = &bsp_file.vertexes[lm->face->first_vertex];
+		for (int32_t j = 0; j < lm->face->num_vertexes; j++, v++) {
+
+			vec3_t st;
+			Matrix4x4_Transform(&lm->matrix, v->position, st);
+
+			st[0] -= lm->st_mins[0];
+			st[1] -= lm->st_mins[1];
+
+			const vec_t padding_s = (lm->w - (lm->st_maxs[0] - lm->st_mins[0])) * 0.5;
+			const vec_t padding_t = (lm->h - (lm->st_maxs[1] - lm->st_mins[1])) * 0.5;
+
+			const vec_t s = (lm->s + padding_s + st[0]) / BSP_LIGHTMAP_WIDTH;
+			const vec_t t = (lm->t + padding_t + st[1]) / BSP_LIGHTMAP_WIDTH;
+
+			v->lightmap[0] = s;
+			v->lightmap[1] = t;
+		}
+	}
 }

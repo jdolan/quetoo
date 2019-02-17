@@ -502,14 +502,12 @@ typedef struct {
  * @brief Each indivudual surface lightmap has a projection matrix.
  */
 typedef struct {
-	matrix4x4_t matrix;
-	matrix4x4_t inverse_matrix;
+	r_bsp_lightmap_t *atlas; // the lightmap atlas containing this lightmap
 
-	vec2_t st_mins, st_maxs;
+	r_pixel_t s, t; // the texture coordinates into the atlas image
 	r_pixel_t w, h;
 
-	r_bsp_lightmap_t *atlas; // the lightmap atlas containing this lightmap
-	r_pixel_t s, t; // the texture coordinates into the atlas image
+	vec2_t st_mins, st_maxs;
 
 } r_bsp_surface_lightmap_t;
 
@@ -525,10 +523,10 @@ typedef struct {
 
 	int32_t flags; // R_SURF flags
 
-	int32_t vertex; // index into the vertex buffer
+	int32_t first_vertex;
 	int32_t num_vertexes;
 
-	int32_t element; // index into element buffer
+	int32_t first_element;
 	int32_t num_elements;
 
 	int16_t vis_frame; // PVS frame

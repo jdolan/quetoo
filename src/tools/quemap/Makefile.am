@@ -69,6 +69,7 @@ quemap_CFLAGS = \
 
 quemap_LDADD = \
 	$(top_builddir)/deps/minizip/libminizip.la \
+	$(top_builddir)/src/libatlas.la \
 	$(top_builddir)/src/collision/libcollision.la \
 	$(top_builddir)/src/net/libnet.la \
 	$(top_builddir)/src/libimage.la \

@@ -88,8 +88,23 @@ static _Bool R_StainSurface(const r_stain_t *stain, const r_bsp_surface_t *surf)
 	}
 
 	// transform the point into lightmap space
-	vec3_t st;
-	Matrix4x4_Transform(&surf->lightmap.matrix, point, st);
+	vec3_t s, t, st;
+
+	VectorNormalize2(surf->texinfo->vecs[0], s);
+	VectorNormalize2(surf->texinfo->vecs[1], t);
+
+	VectorScale(s, 1.0 / r_model_state.world->bsp->luxel_size, s);
+	VectorScale(t, 1.0 / r_model_state.world->bsp->luxel_size, t);
+
+	matrix4x4_t mat;
+	Matrix4x4_FromArrayFloatGL(&mat, (const vec_t[]) {
+		s[0], t[0], surf->plane->normal[0], 0.0,
+		s[1], t[1], surf->plane->normal[1], 0.0,
+		s[2], t[2], surf->plane->normal[2], 0.0,
+		0.0,  0.0,  -surf->plane->dist,     1.0
+	});
+
+	Matrix4x4_Transform(&mat, point, st);
 
 	st[0] -= surf->lightmap.st_mins[0];
 	st[1] -= surf->lightmap.st_mins[1];
@@ -100,8 +115,8 @@ static _Bool R_StainSurface(const r_stain_t *stain, const r_bsp_surface_t *surf)
 	// transform the radius into lightmap space, accounting for unevenly scaled textures
 	const vec_t radius_st = radius / r_model_state.world->bsp->luxel_size;
 
-	st[0] -= radius_st / 2.0;
-	st[1] -= radius_st / 2.0;
+	st[0] -= radius_st * 0.5;
+	st[1] -= radius_st * 0.5;
 
 	const vec_t radius_rounded = ceil(radius_st);
 
@@ -156,7 +171,7 @@ static _Bool R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 
 	for (int32_t i = 0; i < node->num_surfaces; i++, surf++) {
 
-		if (surf->texinfo->flags & (SURF_SKY | SURF_WARP)) {
+		if (surf->texinfo->flags & SURF_SKY) {
 			continue;
 		}
 
@@ -281,19 +296,19 @@ static void R_ExpireStains(const byte alpha) {
 			continue;
 		}
 
-		const r_bsp_lightmap_t *lightmap = surf->lightmap.atlas;
+		const r_bsp_lightmap_t *atlas = surf->lightmap.atlas;
 
-		if (!lightmap->framebuffer) {
+		if (!atlas->framebuffer) {
 			continue;
 		}
 
-		if (g_slist_find(reset, lightmap->framebuffer)) {
+		if (g_slist_find(reset, atlas->framebuffer)) {
 			continue;
 		}
 
-		reset = g_slist_prepend(reset, lightmap->framebuffer);
+		reset = g_slist_prepend(reset, atlas->framebuffer);
 
-		const r_image_t *stainmaps = lightmap->stainmaps;
+		const r_image_t *stainmaps = atlas->stainmaps;
 
 		const r_stainmap_interleave_vertex_t stain_fill[4] = {
 			{ .position = { 0, 0 }, .texcoord = { 0, 0 }, .color = { alpha, alpha, alpha, alpha } },
@@ -304,11 +319,11 @@ static void R_ExpireStains(const byte alpha) {
 
 		R_UploadToSubBuffer(&r_stainmap_state.reset_buffer, 0, sizeof(stain_fill), stain_fill, false);
 
-		R_BindFramebuffer(lightmap->framebuffer);
+		R_BindFramebuffer(atlas->framebuffer);
 
 		R_SetViewport(0, 0, stainmaps->width, stainmaps->height, true);
 
-		R_SetMatrix(R_MATRIX_PROJECTION, &lightmap->projection);
+		R_SetMatrix(R_MATRIX_PROJECTION, &atlas->projection);
 
 		R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	}
@@ -339,7 +354,7 @@ static void R_ExpireStains(const byte alpha) {
  */
 void R_AddStains(void) {
 
-	if (!r_model_state.world) {
+	if (!r_model_state.world->bsp->num_lightmaps) {
 		return;
 	}
 
@@ -558,6 +573,11 @@ void R_AddStains(void) {
  * @brief Resets the stainmaps that we have loaded.
  */
 void R_ResetStainmaps(void) {
+
+	if (!r_model_state.world->bsp->num_lightmaps) {
+		return;
+	}
+
 	R_ExpireStains(255);
 }
 

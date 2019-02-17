@@ -35,6 +35,13 @@ ssize_t LoadMaterials(const char *path, cm_asset_context_t context, GList **resu
 	GList *e = materials;
 	for (ssize_t i = 0; i < count; i++, e = e->next) {
 		Cm_ResolveMaterial((cm_material_t *) e->data, context);
+
+		// FIXME: This is a hack to load textures earlier in the BSP stage
+		// to work around memory or stack corruption that occurs in RemovePortalFromNode
+		// if we load textures in EmitFaceVertexes
+		if (context == ASSET_CONTEXT_TEXTURES) {
+			LoadDiffuseTexture(((cm_material_t *) e->data)->name);
+		}
 	}
 
 	if (result) {
@@ -85,6 +92,13 @@ SDL_Surface *LoadAsset(const cm_asset_t *asset) {
 	}
 
 	return surf;
+}
+
+/**
+ * @brief
+ */
+SDL_Surface *LoadDiffuseTexture(const char *name) {
+	return LoadAsset(&LoadMaterial(name, ASSET_CONTEXT_TEXTURES)->diffuse);
 }
 
 /**

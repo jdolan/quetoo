@@ -23,10 +23,9 @@
 #define MAX_BSP_LEAF_BRUSHES 	0x20000
 #define MAX_BSP_BRUSHES			0x8000
 #define MAX_BSP_BRUSH_SIDES		0x20000
-#define MAX_BSP_VERTEXES		0x40000
 #define MAX_BSP_FACES			0x20000
-#define MAX_BSP_FACE_VERTEXES	0x80000
-#define MAX_BSP_FACE_ELEMENTS	0x80000
+#define MAX_BSP_VERTEXES		0x80000
+#define MAX_BSP_ELEMENTS		0x80000
 #define MAX_BSP_MODELS			0x400
 #define MAX_BSP_AREA_PORTALS	0x400
 #define MAX_BSP_AREAS			0x100
@@ -75,9 +74,8 @@ typedef enum {
 	BSP_LUMP_BRUSHES,
 	BSP_LUMP_BRUSH_SIDES,
 	BSP_LUMP_VERTEXES,
+	BSP_LUMP_ELEMENTS,
 	BSP_LUMP_FACES,
-	BSP_LUMP_FACE_VERTEXES,
-	BSP_LUMP_FACE_ELEMENTS,
 	BSP_LUMP_MODELS,
 	BSP_LUMP_AREA_PORTALS,
 	BSP_LUMP_AREAS,
@@ -117,6 +115,8 @@ typedef struct {
 	vec3_t normal;
 	vec3_t tangent;
 	vec3_t bitangent;
+	vec2_t diffuse;
+	vec2_t lightmap;
 	int16_t texinfo;
 } bsp_vertex_t;
 
@@ -147,15 +147,17 @@ typedef struct {
 	int32_t plane_num;
 	int16_t texinfo;
 
-	int32_t first_face_vertex; // vertex array for polygon or triangle fan
-	int32_t num_face_vertexes;
+	int32_t first_vertex; // vertex array for polygon or triangle fan
+	int32_t num_vertexes;
 
-	int32_t first_face_element; // element array for triangles
-	int32_t num_face_elements;
+	int32_t first_element; // element array for triangles
+	int32_t num_elements;
 
-	int32_t lightmap;
-	int32_t lightmap_s, lightmap_t;
-	int32_t lightmap_w, lightmap_h;
+	struct {
+		int32_t num;
+		int32_t s, t;
+		int32_t w, h;
+	} lightmap;
 } bsp_face_t;
 
 typedef struct {
@@ -253,11 +255,8 @@ typedef struct {
 	int32_t num_faces;
 	bsp_face_t *faces;
 
-	int32_t num_face_vertexes;
-	int32_t *face_vertexes;
-
-	int32_t num_face_elements;
-	int32_t *face_elements;
+	int32_t num_elements;
+	int32_t *elements;
 
 	int32_t num_models;
 	bsp_model_t *models;

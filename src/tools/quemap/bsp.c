@@ -64,8 +64,8 @@ static void PrintBSPFileSizes(void) {
 	Com_Verbose("%5i faces         %7i bytes\n", bsp_file.num_faces,
 	            (int32_t) (bsp_file.num_faces * sizeof(bsp_face_t)));
 
-	Com_Verbose("%5i face_vertexes %7i bytes\n", bsp_file.num_face_vertexes,
-				(int32_t) (bsp_file.num_face_vertexes * sizeof(bsp_file.face_vertexes[0])));
+	Com_Verbose("%5i vertexes %7i bytes\n", bsp_file.num_vertexes,
+				(int32_t) (bsp_file.num_vertexes * sizeof(bsp_file.vertexes[0])));
 
 	Com_Verbose("%5i models        %7i bytes\n", bsp_file.num_models,
 				(int32_t) (bsp_file.num_models * sizeof(bsp_model_t)));

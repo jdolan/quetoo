@@ -43,6 +43,7 @@ typedef struct {
 	matrix4x4_t inverse_matrix;
 	vec2_t st_mins, st_maxs;
 	int16_t w, h;
+	int16_t s, t;
 	luxel_t *luxels;
 	size_t num_luxels;
 	SDL_Surface *lightmap;
@@ -57,3 +58,4 @@ void DirectLighting(int32_t face_num);
 void IndirectLighting(int32_t face_num);
 void FinalizeLighting(int32_t face_num);
 void EmitLightmaps(void);
+void EmitLightmapTexcoords(void);

@@ -196,6 +196,9 @@ static void LightWorld(void) {
 	// generate atlased lightmaps
 	EmitLightmaps();
 
+	// and vertex lightmap texcoords
+	EmitLightmapTexcoords();
+
 	g_list_free_full(entities, Mem_Free);
 
 	// free the lightmaps

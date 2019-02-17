@@ -44,12 +44,10 @@ void BuildTextureColors(void) {
 			continue;
 		}
 
-		const cm_material_t *material = LoadMaterial(tex->texture, ASSET_CONTEXT_TEXTURES);
-
 		vec_t *color = Mem_Malloc(sizeof(vec3_t));
 		VectorSet(color, 1.0, 1.0, 1.0);
 
-		SDL_Surface *surf = LoadAsset(&material->diffuse);
+		SDL_Surface *surf = LoadDiffuseTexture(tex->texture);
 		if (surf) {
 			Com_Debug(DEBUG_ALL, "Loaded %s (%dx%d)\n", tex->texture, surf->w, surf->h);
 
@@ -69,7 +67,7 @@ void BuildTextureColors(void) {
 				color[j] = (c[j] / texels) / 255.0;
 			}
 		} else {
-			Com_Warn("Couldn't load %s\n", material->diffuse.path);
+			Com_Warn("Couldn't load %s\n", tex->texture);
 		}
 
 		g_hash_table_insert(texture_colors, (gpointer) tex->texture, color);

@@ -160,17 +160,25 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 
 	if (stage->cm->flags & (STAGE_LIGHTMAP | STAGE_LIGHTING)) {
 
-		R_EnableTexture(texunit_lightmap, true);
+		if (r_lightmap->value) {
 
-		R_BindLightmapTexture(surf->lightmap.atlas->lightmaps->texnum);
-		
-		if (r_deluxemap->integer) {
-			R_EnableTexture(texunit_deluxemap, true);
-		}
+			const r_bsp_lightmap_t *atlas = surf->lightmap.atlas;
 
-		if (surf->lightmap.atlas->framebuffer) {
-			R_EnableTexture(texunit_stainmap, true);
-			R_BindStainmapTexture(surf->lightmap.atlas->stainmaps->texnum);
+			R_EnableTexture(texunit_lightmap, true);
+
+			R_BindLightmapTexture(atlas->lightmaps->texnum);
+
+			if (r_deluxemap->integer) {
+				R_EnableTexture(texunit_deluxemap, true);
+			}
+
+			if (r_stainmaps->value) {
+				if (atlas->framebuffer) {
+					R_EnableTexture(texunit_stainmap, true);
+
+					R_BindStainmapTexture(surf->lightmap.atlas->stainmaps->texnum);
+				}
+			}
 		}
 
 		if (stage->cm->flags & STAGE_LIGHTING) { // hardware lighting
@@ -422,7 +430,7 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
 		Com_Debug(DEBUG_RENDERER, "Expanded material vertex array to %u\n", r_material_state.vertex_len);
 	}
 
-	const r_bsp_vertex_t *in = r_model_state.world->bsp->vertexes + surf->vertex;
+	const r_bsp_vertex_t *in = r_model_state.world->bsp->vertexes + surf->first_vertex;
 	for (int32_t i = 0; i < surf->num_vertexes; i++, in++) {
 
 		r_material_interleave_vertex_t *out = &VERTEX_ARRAY_INDEX(r_material_vertex_count + i);
@@ -566,7 +574,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 			R_SetStageState(surf, s);
 
-			R_DrawArrays(GL_TRIANGLE_FAN, (GLint) ELEMENT_ARRAY_INDEX(si), surf->num_vertexes);
+			R_DrawArrays(GL_TRIANGLES, (GLint) ELEMENT_ARRAY_INDEX(si), surf->num_elements);
 
 			++si;
 		}

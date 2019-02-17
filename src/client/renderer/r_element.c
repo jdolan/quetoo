@@ -72,7 +72,10 @@ static void R_AddBspSurfaceElements(const r_bsp_surfaces_t *surfs, const r_eleme
 
 			e.type = type;
 			e.element = (const void *) s;
-			e.origin = (r_model_state.world->bsp->vertexes + s->vertex)->position;
+
+			const r_bsp_vertex_t *v = r_model_state.world->bsp->vertexes + s->first_vertex;
+
+			e.origin = v->position;
 
 			R_AddElement(&e);
 		}

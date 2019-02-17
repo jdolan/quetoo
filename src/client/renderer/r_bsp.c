@@ -329,7 +329,7 @@ void R_DrawBspNormals(void) {
 			continue;    // don't care
 		}
 
-		const r_bsp_vertex_t *v = r_model_state.world->bsp->vertexes + surf->vertex;
+		const r_bsp_vertex_t *v = r_model_state.world->bsp->vertexes + surf->first_vertex;
 		for (uint16_t j = 0; j < surf->num_vertexes; j++, v++) {
 
 			vec3_t angles;
@@ -405,7 +405,7 @@ void R_DrawBspLeafs(void) {
 				continue;
 			}
 
-			R_DrawArrays(GL_TRIANGLES, (*s)->element, (*s)->num_elements);
+			R_DrawArrays(GL_TRIANGLES, (*s)->first_element, (*s)->num_elements);
 		}
 	}
 

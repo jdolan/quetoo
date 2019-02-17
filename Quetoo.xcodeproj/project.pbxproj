@@ -580,7 +580,6 @@
 		CED438441D9D34450052BAFA /* r_image.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5C81C5C58C300CD0B13 /* r_image.c */; };
 		CED438451D9D34450052BAFA /* r_light.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5CA1C5C58C300CD0B13 /* r_light.c */; };
 		CED438461D9D34450052BAFA /* r_lighting.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5CC1C5C58C300CD0B13 /* r_lighting.c */; };
-		CED438471D9D34450052BAFA /* r_lightmap.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5CE1C5C58C300CD0B13 /* r_lightmap.c */; };
 		CED438481D9D34450052BAFA /* r_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5D11C5C58C300CD0B13 /* r_main.c */; };
 		CED438491D9D34450052BAFA /* r_material.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5D31C5C58C300CD0B13 /* r_material.c */; };
 		CED4384A1D9D34450052BAFA /* r_media.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5D51C5C58C300CD0B13 /* r_media.c */; };
@@ -610,7 +609,6 @@
 		CED4388B1D9D34450052BAFA /* r_image.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5C91C5C58C300CD0B13 /* r_image.h */; };
 		CED4388C1D9D34450052BAFA /* r_light.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5CB1C5C58C300CD0B13 /* r_light.h */; };
 		CED4388D1D9D34450052BAFA /* r_lighting.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5CD1C5C58C300CD0B13 /* r_lighting.h */; };
-		CED4388E1D9D34450052BAFA /* r_lightmap.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5CF1C5C58C300CD0B13 /* r_lightmap.h */; };
 		CED4388F1D9D34450052BAFA /* r_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5D01C5C58C300CD0B13 /* r_local.h */; };
 		CED438901D9D34450052BAFA /* r_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5D21C5C58C300CD0B13 /* r_main.h */; };
 		CED438911D9D34450052BAFA /* r_material.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5D41C5C58C300CD0B13 /* r_material.h */; };
@@ -1595,8 +1593,6 @@
 		CE12D5CB1C5C58C300CD0B13 /* r_light.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_light.h; sourceTree = "<group>"; };
 		CE12D5CC1C5C58C300CD0B13 /* r_lighting.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_lighting.c; sourceTree = "<group>"; };
 		CE12D5CD1C5C58C300CD0B13 /* r_lighting.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_lighting.h; sourceTree = "<group>"; };
-		CE12D5CE1C5C58C300CD0B13 /* r_lightmap.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_lightmap.c; sourceTree = "<group>"; };
-		CE12D5CF1C5C58C300CD0B13 /* r_lightmap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_lightmap.h; sourceTree = "<group>"; };
 		CE12D5D01C5C58C300CD0B13 /* r_local.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_local.h; sourceTree = "<group>"; };
 		CE12D5D11C5C58C300CD0B13 /* r_main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = r_main.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		CE12D5D21C5C58C300CD0B13 /* r_main.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_main.h; sourceTree = "<group>"; };
@@ -3047,8 +3043,6 @@
 				CE12D5CB1C5C58C300CD0B13 /* r_light.h */,
 				CE12D5CC1C5C58C300CD0B13 /* r_lighting.c */,
 				CE12D5CD1C5C58C300CD0B13 /* r_lighting.h */,
-				CE12D5CE1C5C58C300CD0B13 /* r_lightmap.c */,
-				CE12D5CF1C5C58C300CD0B13 /* r_lightmap.h */,
 				CE12D5D01C5C58C300CD0B13 /* r_local.h */,
 				CE12D5D11C5C58C300CD0B13 /* r_main.c */,
 				CE12D5D21C5C58C300CD0B13 /* r_main.h */,
@@ -4124,7 +4118,6 @@
 				CED4388C1D9D34450052BAFA /* r_light.h in Headers */,
 				CE8C734D1E0DE28000226317 /* r_stainmap.h in Headers */,
 				CED4388D1D9D34450052BAFA /* r_lighting.h in Headers */,
-				CED4388E1D9D34450052BAFA /* r_lightmap.h in Headers */,
 				CED4388F1D9D34450052BAFA /* r_local.h in Headers */,
 				CED438901D9D34450052BAFA /* r_main.h in Headers */,
 				CED438911D9D34450052BAFA /* r_material.h in Headers */,
@@ -5536,7 +5529,6 @@
 				CED438441D9D34450052BAFA /* r_image.c in Sources */,
 				CED438451D9D34450052BAFA /* r_light.c in Sources */,
 				CED438461D9D34450052BAFA /* r_lighting.c in Sources */,
-				CED438471D9D34450052BAFA /* r_lightmap.c in Sources */,
 				CED438481D9D34450052BAFA /* r_main.c in Sources */,
 				CED438491D9D34450052BAFA /* r_material.c in Sources */,
 				CED4384A1D9D34450052BAFA /* r_media.c in Sources */,

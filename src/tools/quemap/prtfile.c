@@ -159,6 +159,9 @@ static void CreateVisPortals_r(node_t *node) {
 	CreateVisPortals_r(node->children[1]);
 }
 
+/**
+ * @brief
+ */
 static void SaveClusters_r(node_t *node) {
 	static int32_t clusterleaf = 1;
 
@@ -176,22 +179,20 @@ static void SaveClusters_r(node_t *node) {
  */
 void WritePortalFile(tree_t *tree) {
 	char filename[MAX_OS_PATH];
-	node_t *head_node;
 
 	Com_Verbose("--- WritePortalFile ---\n");
 
-	head_node = tree->head_node;
 	num_visclusters = 0;
 	num_visportals = 0;
 
-	FreeTreePortals_r(head_node);
+	FreeTreePortals_r(tree->head_node);
 
 	MakeHeadnodePortals(tree);
 
-	CreateVisPortals_r(head_node);
+	CreateVisPortals_r(tree->head_node);
 
 	// set the cluster field in every leaf and count the total number of portals
-	NumberLeafs_r(head_node);
+	NumberLeafs_r(tree->head_node);
 
 	// write the file
 	g_snprintf(filename, sizeof(filename), "maps/%s.prt", map_base);
@@ -207,13 +208,13 @@ void WritePortalFile(tree_t *tree) {
 	Com_Verbose("%5i visclusters\n", num_visclusters);
 	Com_Verbose("%5i visportals\n", num_visportals);
 
-	WritePortalFile_r(head_node);
+	WritePortalFile_r(tree->head_node);
 
 	Fs_Close(prtfile);
 
 	// we need to store the clusters out now because ordering
 	// issues made us do this after writebsp...
-	SaveClusters_r(head_node);
+	SaveClusters_r(tree->head_node);
 
 	Com_Verbose("--- WritePortalFile complete ---\n");
 }

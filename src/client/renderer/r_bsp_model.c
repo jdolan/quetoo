@@ -23,7 +23,6 @@
 #include "r_gl.h"
 #include "client.h"
 
-
 /**
  * @brief
  */
@@ -185,8 +184,20 @@ static void R_LoadBspLeafSurfaces(r_bsp_model_t *bsp) {
  */
 static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 
-	bsp->num_vertexes = bsp->file->num_face_vertexes;
-	bsp->vertexes = Mem_LinkMalloc(bsp->num_vertexes * sizeof(r_bsp_vertex_t), bsp);
+	bsp->num_vertexes = bsp->file->num_vertexes;
+	r_bsp_vertex_t *out = bsp->vertexes = Mem_LinkMalloc(bsp->num_vertexes * sizeof(*out), bsp);
+
+	const bsp_vertex_t *in = bsp->file->vertexes;
+	for (int32_t i = 0; i < bsp->num_vertexes; i++, in++, out++) {
+
+		VectorCopy(in->position, out->position);
+		VectorCopy(in->normal, out->normal);
+		VectorCopy(in->tangent, out->tangent);
+		VectorCopy(in->bitangent, out->bitangent);
+
+		Vector2Copy(in->diffuse, out->diffuse);
+		Vector2Copy(in->lightmap, out->lightmap);
+	}
 }
 
 /**
@@ -194,8 +205,13 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
  */
 static void R_LoadBspElements(r_bsp_model_t *bsp) {
 
-	bsp->num_elements = bsp->file->num_face_elements;
-	bsp->elements = Mem_LinkMalloc(bsp->num_elements * sizeof(int32_t), bsp);
+	bsp->num_elements = bsp->file->num_elements;
+	int32_t *out = bsp->elements = Mem_LinkMalloc(bsp->num_elements * sizeof(*out), bsp);
+
+	const int32_t *in = bsp->file->elements;
+	for (int32_t i = 0; i < bsp->num_elements; i++, in++, out++) {
+		*out = *in;
+	}
 }
 
 /**
@@ -234,14 +250,18 @@ static void R_LoadBspLightmaps(r_bsp_model_t *bsp) {
 
 		R_AttachFramebufferImage(out->framebuffer, out->stainmaps);
 
-		if (!R_FramebufferReady(out->framebuffer)) {
-			Com_Warn("Unable to allocate stainmap framebuffer");
-			out->framebuffer = NULL;
-		}
+		R_BindFramebuffer(NULL);
 
-		R_BindFramebuffer(FRAMEBUFFER_DEFAULT);
+		Matrix4x4_FromOrtho(&out->projection, 0.0,
+							out->stainmaps->width,
+							out->stainmaps->height,
+							0.0, -1.0, 1.0);
+	}
 
-		Matrix4x4_FromOrtho(&out->projection, 0.0, out->stainmaps->width, out->stainmaps->height, 0.0, -1.0, 1.0);
+	if (bsp->num_lightmaps == 0) {
+		bsp->lightmaps = Mem_LinkMalloc(sizeof(bsp_lightmap_t), bsp);
+		bsp->lightmaps->lightmaps = r_image_state.null;
+		bsp->lightmaps->stainmaps = r_image_state.null;
 	}
 }
 
@@ -258,9 +278,6 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
 
 	bsp->num_surfaces = bsp->file->num_faces;
 	bsp->surfaces = out = Mem_LinkMalloc(bsp->num_surfaces * sizeof(*out), bsp);
-
-	r_bsp_vertex_t *outv = bsp->vertexes;
-	int32_t *oute = bsp->elements;
 
 	for (int32_t i = 0; i < bsp->num_surfaces; i++, in++, out++) {
 
@@ -280,86 +297,40 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp) {
 			out->texinfo = bsp->texinfo + in->texinfo;
 		}
 
-		// then vertexes
-		out->vertex = (int32_t) (ptrdiff_t) (outv - bsp->vertexes);
-		out->num_vertexes = in->num_face_vertexes;
+		out->first_vertex = in->first_vertex;
+		out->num_vertexes = in->num_vertexes;
 
-		const int32_t *fv = bsp->file->face_vertexes + in->first_face_vertex;
-		for (int32_t j = 0; j < in->num_face_vertexes; j++, fv++, outv++) {
+		out->first_element = in->first_element;
+		out->num_elements = in->num_elements;
 
-			const bsp_vertex_t *inv = &bsp->file->vertexes[*fv];
+		if (in->lightmap.num > -1) {
+			out->lightmap.atlas = bsp->lightmaps + in->lightmap.num;
 
-			VectorCopy(inv->position, outv->position);
-			VectorCopy(inv->normal, outv->normal);
-			VectorCopy(inv->tangent, outv->tangent);
-			VectorCopy(inv->bitangent, outv->bitangent);
+			out->lightmap.s = in->lightmap.s;
+			out->lightmap.t = in->lightmap.t;
+			out->lightmap.w = in->lightmap.w;
+			out->lightmap.h = in->lightmap.h;
+		} else {
+			out->lightmap.atlas = bsp->lightmaps;
 		}
-
-		// then elements
-		out->element = (int32_t) (ptrdiff_t) (oute - bsp->elements);
-		out->num_elements = in->num_face_elements;
-
-		const int32_t *fe = bsp->file->face_elements + in->first_face_element;
-		for (int32_t j = 0; j < in->num_face_elements; j++, fe++, oute++) {
-			*oute = out->vertex + *fe;
-		}
-
-		out->lightmap.atlas = bsp->lightmaps + in->lightmap;
-		out->lightmap.s = in->lightmap_s;
-		out->lightmap.t = in->lightmap_t;
-
-		// finally create the lightmap and deluxemap
-		R_CreateBspSurfaceLightmap(bsp, out);
 	}
 }
 
 /**
- * @brief Sets up the bsp_surface_t for rendering, resolving texture coordinates
- * and other state that could not be calculated due to dependencies.
+ * @brief Sets up the bsp_surface_t for rendering.
  */
 static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_leaf_t *leaf, r_bsp_surface_t *surf) {
 
 	ClearBounds(surf->mins, surf->maxs);
+
 	ClearStBounds(surf->st_mins, surf->st_maxs);
+	ClearStBounds(surf->lightmap.st_mins, surf->lightmap.st_maxs);
 
-	const vec_t *sdir = surf->texinfo->vecs[0];
-	const vec_t *tdir = surf->texinfo->vecs[1];
-
-	r_bsp_vertex_t *v = &bsp->vertexes[surf->vertex];
+	const r_bsp_vertex_t *v = bsp->vertexes + surf->first_vertex;
 	for (int32_t i = 0; i < surf->num_vertexes; i++, v++) {
-
-		dvec3_t position;
-		VectorCopy(v->position, position);
-
 		AddPointToBounds(v->position, surf->mins, surf->maxs);
-
-		const vec_t s = DotProduct(position, sdir) + sdir[3];
-		const vec_t t = DotProduct(position, tdir) + tdir[3];
-
-		v->diffuse[0] = s / surf->texinfo->material->diffuse->width;
-		v->diffuse[1] = t / surf->texinfo->material->diffuse->height;
-
 		AddStToBounds(v->diffuse, surf->st_mins, surf->st_maxs);
-
-		if (!(surf->texinfo->flags & SURF_SKY)) {
-
-			const r_bsp_surface_lightmap_t *lm = &surf->lightmap;
-
-			vec3_t st;
-			Matrix4x4_Transform(&lm->matrix, v->position, st);
-
-			st[0] -= lm->st_mins[0];
-			st[1] -= lm->st_mins[1];
-
-			const vec_t padding_s = (lm->w - (lm->st_maxs[0] - lm->st_mins[0])) * 0.5;
-			const vec_t padding_t = (lm->h - (lm->st_maxs[1] - lm->st_mins[1])) * 0.5;
-
-			const vec_t s = (lm->s + padding_s + st[0]) / lm->atlas->lightmaps->width;
-			const vec_t t = (lm->t + padding_t + st[1]) / lm->atlas->lightmaps->height;
-
-			v->lightmap[0] = s;
-			v->lightmap[1] = t;
-		}
+		AddStToBounds(v->lightmap, surf->lightmap.st_mins, surf->lightmap.st_maxs);
 	}
 
 	if (leaf->contents & MASK_LIQUID) {
@@ -602,8 +573,8 @@ void R_ExportBsp_f(void) {
 
 			Fs_Print(file, "f ");
 
-			for (int32_t j = 2; j < surf->num_vertexes; j++) {
-				Fs_Print(file, "%u/%u/%u ", surf->vertex, surf->vertex + j - 1, surf->vertex + j);
+			for (int32_t v = surf->first_vertex; v < surf->num_vertexes; v++) {
+				Fs_Print(file, "%d/%d/%d", v, v, v);
 			}
 
 			Fs_Print(file, "\n");
@@ -612,7 +583,7 @@ void R_ExportBsp_f(void) {
 		Fs_Print(file, "\n");
 	}
 
-	Fs_Print(file, "# %d surfaces\n\n", world->bsp->num_surfaces);
+	Fs_Print(file, "# %d faces\n\n", world->bsp->num_surfaces);
 	Fs_Close(file);
 
 	g_hash_table_destroy(materials);
@@ -774,11 +745,10 @@ static void R_LoadBspSurfacesArrays(r_model_t *mod) {
  * @brief Extra lumps we need to load for the R subsystem.
  */
 #define R_BSP_LUMPS \
-	(1 << BSP_LUMP_VERTEXES) | \
 	(1 << BSP_LUMP_LEAF_FACES) | \
+	(1 << BSP_LUMP_VERTEXES) | \
+	(1 << BSP_LUMP_ELEMENTS) | \
 	(1 << BSP_LUMP_FACES) | \
-	(1 << BSP_LUMP_FACE_VERTEXES) | \
-	(1 << BSP_LUMP_FACE_ELEMENTS) | \
 	(1 << BSP_LUMP_LIGHTMAPS)
 
 /**
@@ -829,7 +799,7 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Cl_LoadingProgress(36, "nodes");
 	R_LoadBspNodes(mod->bsp);
 
-	Cl_LoadingProgress(40, "texture coordinates");
+	Cl_LoadingProgress(40, "face extents");
 	R_SetupBspSurfaces(mod->bsp);
 
 	Cl_LoadingProgress(46, "inline models");
@@ -849,6 +819,8 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 
 	Cl_LoadingProgress(58, "sorted surfaces");
 	R_LoadBspSurfacesArrays(mod);
+
+	Bsp_UnloadLumps(mod->bsp->file, R_BSP_LUMPS);
 
 	R_InitElements(mod->bsp);
 

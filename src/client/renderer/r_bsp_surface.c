@@ -89,7 +89,7 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
  */
 static void R_DrawBspSurface_default(const r_bsp_surface_t *surf) {
 
-	R_DrawArrays(GL_TRIANGLES, surf->element, surf->num_elements);
+	R_DrawArrays(GL_TRIANGLES, surf->first_element, surf->num_elements);
 
 	r_view.num_bsp_surfaces++;
 }
@@ -179,14 +179,16 @@ void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 		R_BindDiffuseTexture(r_image_state.null->texnum);
 	}
 
-	R_EnableTexture(texunit_lightmap, true);
+	if (r_lightmap->value) {
+		R_EnableTexture(texunit_lightmap, true);
 
-	if (r_deluxemap->value) {
-		R_EnableTexture(texunit_deluxemap, true);
-	}
+		if (r_deluxemap->value) {
+			R_EnableTexture(texunit_deluxemap, true);
+		}
 
-	if (r_stainmaps->value) {
-		R_EnableTexture(texunit_stainmap, true);
+		if (r_stainmaps->value) {
+			R_EnableTexture(texunit_stainmap, true);
+		}
 	}
 
 	R_EnableLighting(program_default, true);
@@ -267,14 +269,16 @@ void R_DrawAlphaTestBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableAlphaTest(ALPHA_TEST_ENABLED_THRESHOLD);
 
-	R_EnableTexture(texunit_lightmap, true);
+	if (r_lightmap->value) {
+		R_EnableTexture(texunit_lightmap, true);
 
-	if (r_deluxemap->value) {
-		R_EnableTexture(texunit_deluxemap, true);
-	}
+		if (r_deluxemap->value) {
+			R_EnableTexture(texunit_deluxemap, true);
+		}
 
-	if (r_stainmaps->value) {
-		R_EnableTexture(texunit_stainmap, true);
+		if (r_stainmaps->value) {
+			R_EnableTexture(texunit_stainmap, true);
+		}
 	}
 
 	R_EnableLighting(program_default, true);
@@ -312,14 +316,16 @@ void R_DrawBlendBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	// blend is already enabled when this is called
 
-	R_EnableTexture(texunit_lightmap, true);
+	if (r_lightmap->value) {
+		R_EnableTexture(texunit_lightmap, true);
 
-	if (r_deluxemap->value) {
-		R_EnableTexture(texunit_deluxemap, true);
-	}
+		if (r_deluxemap->value) {
+			R_EnableTexture(texunit_deluxemap, true);
+		}
 
-	if (r_stainmaps->value) {
-		R_EnableTexture(texunit_stainmap, true);
+		if (r_stainmaps->value) {
+			R_EnableTexture(texunit_stainmap, true);
+		}
 	}
 
 	R_EnableLighting(program_default, true);

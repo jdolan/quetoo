@@ -22,6 +22,7 @@
 #include "bsp.h"
 #include "face.h"
 #include "map.h"
+#include "material.h"
 
 int32_t c_merge;
 static int32_t c_faces;
@@ -115,14 +116,15 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 	const vec_t *sdir = texinfo->vecs[0];
 	const vec_t *tdir = texinfo->vecs[1];
 
+	SDL_Surface *diffuse = LoadDiffuseTexture(texinfo->texture);
+	if (diffuse == NULL) {
+		Com_Error(ERROR_FATAL, "Failed to load %s\n", texinfo->texture);
+	}
+
 	for (int32_t i = 0; i < face->w->num_points; i++) {
 
 		if (bsp_file.num_vertexes == MAX_BSP_VERTEXES) {
 			Com_Error(ERROR_FATAL, "MAX_BSP_VERTEXES");
-		}
-
-		if (bsp_file.num_face_vertexes == MAX_BSP_FACE_VERTEXES) {
-			Com_Error(ERROR_FATAL, "MAX_BSP_FACE_VERTEXES");
 		}
 
 		bsp_vertex_t v = {
@@ -141,21 +143,14 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 		VectorCopy(planes[face->plane_num].normal, v.normal);
 		TangentVectors(v.normal, sdir, tdir, v.tangent, v.bitangent);
 
-		int32_t j;
-		for (j = 0; j < bsp_file.num_vertexes; j++) {
-			const bsp_vertex_t *v1 = &bsp_file.vertexes[j];
-			if (VectorCompare(v1->position, v.position) && v1->texinfo == v.texinfo) {
-				break;
-			}
-		}
+		const vec_t s = DotProduct(v.position, sdir) + sdir[3];
+		const vec_t t = DotProduct(v.position, tdir) + tdir[3];
 
-		if (j == bsp_file.num_vertexes) {
-			bsp_file.vertexes[bsp_file.num_vertexes] = v;
-			bsp_file.num_vertexes++;
-		}
+		v.diffuse[0] = s / diffuse->w;
+		v.diffuse[1] = t / diffuse->h;
 
-		bsp_file.face_vertexes[bsp_file.num_face_vertexes] = j;
-		bsp_file.num_face_vertexes++;
+		bsp_file.vertexes[bsp_file.num_vertexes] = v;
+		bsp_file.num_vertexes++;
 	}
 
 	return face->w->num_points;
@@ -172,9 +167,11 @@ static int32_t EmitFaceElements(const face_t *face) {
 	int32_t elements[num_elements];
 	Cm_ElementsForWinding(face->w, elements);
 
+	const bsp_face_t *f = &bsp_file.faces[face->num];
+
 	for (int32_t i = 0; i < num_elements; i++) {
-		bsp_file.face_elements[bsp_file.num_face_elements] = elements[i];
-		bsp_file.num_face_elements++;
+		bsp_file.elements[bsp_file.num_elements] = f->first_vertex + elements[i];
+		bsp_file.num_elements++;
 	}
 
 	return num_elements;
@@ -204,13 +201,13 @@ void EmitFace(face_t *face) {
 	out->plane_num = face->plane_num;
 	out->texinfo = face->texinfo;
 
-	out->first_face_vertex = bsp_file.num_face_vertexes;
-	out->num_face_vertexes = EmitFaceVertexes(face);
+	out->first_vertex = bsp_file.num_vertexes;
+	out->num_vertexes = EmitFaceVertexes(face);
 
-	out->first_face_element = bsp_file.num_face_elements;
-	out->num_face_elements = EmitFaceElements(face);
+	out->first_element = bsp_file.num_elements;
+	out->num_elements = EmitFaceElements(face);
 
-	out->lightmap = -1;
+	out->lightmap.num = -1;
 }
 
 #define MAX_PHONG_FACES 256
@@ -236,10 +233,8 @@ static size_t PhongFacesForVertex(const bsp_vertex_t *vertex, const bsp_face_t *
 			continue;
 		}
 
-		const int32_t *fv = bsp_file.face_vertexes + face->first_face_vertex;
-		for (uint16_t j = 0; j < face->num_face_vertexes; j++, fv++) {
-
-			const bsp_vertex_t *v = &bsp_file.vertexes[*fv];
+		const bsp_vertex_t *v = &bsp_file.vertexes[face->first_vertex];
+		for (uint16_t j = 0; j < face->num_vertexes; j++, v++) {
 
 			vec3_t delta;
 			VectorSubtract(vertex->position, v->position, delta);
