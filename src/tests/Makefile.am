@@ -31,6 +31,7 @@ libtests_la_LIBADD = \
 
 TESTS = \
 	check_ai_ann \
+	check_atlas \
 	check_cmd \
 	check_cvar \
 	check_filesystem \
@@ -49,6 +50,14 @@ check_ai_ann_CFLAGS = \
 check_ai_ann_LDADD = \
 	$(TESTS_LIBS) \
 	$(top_builddir)/src/ai/default/libai.la
+
+check_atlas_SOURCES = \
+	check_atlas.c
+check_atlas_CFLAGS = \
+	$(TESTS_CFLAGS)
+check_atlas_LDADD = \
+	$(TESTS_LIBS) \
+	$(top_builddir)/src/libatlas.la
 
 check_cmd_SOURCES = \
 	check_cmd.c
