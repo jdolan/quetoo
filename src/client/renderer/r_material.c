@@ -27,7 +27,6 @@ static matrix4x4_t r_texture_matrix;
 // It should fit most maps.
 #define INITIAL_VERTEX_COUNT 512
 
-// interleave constants
 typedef struct {
 	vec3_t		position;
 	u8vec4_t	color;
@@ -36,7 +35,7 @@ typedef struct {
 	vec3_t		bitangent;
 	vec2_t		diffuse;
 	u16vec2_t	lightmap;
-} r_material_interleave_vertex_t;
+} r_material_vertex_t;
 
 static r_buffer_layout_t r_material_buffer_layout[] = {
 	{
@@ -85,13 +84,9 @@ typedef struct {
 	GArray *vertex_array;
 	r_buffer_t vertex_buffer;
 	uint32_t vertex_len;
-
-	GArray *element_array;
-	uint32_t element_len;
 } r_material_state_t;
 
-#define VERTEX_ARRAY_INDEX(i) (g_array_index(r_material_state.vertex_array, r_material_interleave_vertex_t, i))
-#define ELEMENT_ARRAY_INDEX(i) (g_array_index(r_material_state.element_array, u16vec_t, i))
+#define VERTEX_ARRAY_INDEX(i) (g_array_index(r_material_state.vertex_array, r_material_vertex_t, i))
 
 static r_material_state_t r_material_state;
 
@@ -416,7 +411,7 @@ static void R_SetStageState(const r_bsp_surface_t *surf, const r_stage_t *stage)
 	}
 }
 
-static uint32_t r_material_vertex_count, r_material_index_count;
+static uint32_t r_material_vertex_count;
 
 /**
  * @brief Render the specified stage for the surface.
@@ -433,7 +428,7 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
 	const r_bsp_vertex_t *in = r_model_state.world->bsp->vertexes + surf->first_vertex;
 	for (int32_t i = 0; i < surf->num_vertexes; i++, in++) {
 
-		r_material_interleave_vertex_t *out = &VERTEX_ARRAY_INDEX(r_material_vertex_count + i);
+		r_material_vertex_t *out = &VERTEX_ARRAY_INDEX(r_material_vertex_count + i);
 
 		R_StageVertex(surf, stage, in->position, out->position);
 
@@ -454,18 +449,7 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
 		}
 	}
 
-	// expand array if we're gonna eat it
-	if (r_material_state.element_len <= r_material_index_count) {
-		r_material_state.element_len *= 2;
-		r_material_state.element_array = g_array_set_size(r_material_state.element_array, r_material_state.element_len);
-		Com_Debug(DEBUG_RENDERER, "Expanded material index array to %u\n", r_material_state.element_len);
-	}
-
-	// first # to render
-	ELEMENT_ARRAY_INDEX(r_material_index_count) = r_material_vertex_count;
-
 	r_material_vertex_count += surf->num_vertexes;
-	r_material_index_count++;
 }
 
 /**
@@ -485,7 +469,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	}
 
 	// first pass compiles vertices
-	r_material_vertex_count = r_material_index_count = 0;
+	r_material_vertex_count = 0;
 
 	for (uint32_t i = 0; i < surfs->count; i++) {
 
@@ -508,7 +492,6 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 			R_UpdateMaterialStage(m, s);
 
-			// load the texture matrix for rotations, stretches, etc..
 			R_StageTextureMatrix(surf, s);
 
 			R_SetStageState(surf, s);
@@ -549,11 +532,11 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	R_EnablePolygonOffset(true);
 
 	R_UploadToSubBuffer(&r_material_state.vertex_buffer, 0,
-	                    r_material_vertex_count * sizeof(r_material_interleave_vertex_t),
+	                    r_material_vertex_count * sizeof(r_material_vertex_t),
 	                    r_material_state.vertex_array->data, false);
 
 	// second pass draws
-	for (uint32_t i = 0, si = 0; i < surfs->count; i++) {
+	for (uint32_t i = 0, index = 0; i < surfs->count; i++) {
 
 		r_bsp_surface_t *surf = surfs->surfaces[i];
 
@@ -574,9 +557,9 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 			R_SetStageState(surf, s);
 
-			R_DrawArrays(GL_TRIANGLES, (GLint) ELEMENT_ARRAY_INDEX(si), surf->num_elements);
+			R_DrawArrays(GL_TRIANGLE_FAN, index, surf->num_vertexes);
 
-			++si;
+			index += surf->num_vertexes;
 		}
 	}
 
@@ -1093,19 +1076,16 @@ void R_InitMaterials(void) {
 	Cmd_Add("r_save_materials", R_SaveMaterials_f, CMD_RENDERER, "Write all of the loaded map materials to the disk.");
 
 	r_material_state.vertex_len = INITIAL_VERTEX_COUNT;
-	r_material_state.element_len = INITIAL_VERTEX_COUNT;
 
-	r_material_state.vertex_array = g_array_sized_new(false, true, sizeof(r_material_interleave_vertex_t),
+	r_material_state.vertex_array = g_array_sized_new(false, true, sizeof(r_material_vertex_t),
 	                                r_material_state.vertex_len);
 
 	R_CreateInterleaveBuffer(&r_material_state.vertex_buffer, &(const r_create_interleave_t) {
-		.struct_size = sizeof(r_material_interleave_vertex_t),
+		.struct_size = sizeof(r_material_vertex_t),
 		.layout = r_material_buffer_layout,
 		.hint = GL_DYNAMIC_DRAW,
-		.size = sizeof(r_material_interleave_vertex_t) * r_material_state.vertex_len
+		.size = sizeof(r_material_vertex_t) * r_material_state.vertex_len
 	});
-
-	r_material_state.element_array = g_array_sized_new(false, false, sizeof(u16vec_t), r_material_state.element_len);
 
 	Matrix4x4_CreateIdentity(&r_texture_matrix);
 }
@@ -1118,6 +1098,4 @@ void R_ShutdownMaterials(void) {
 	g_array_free(r_material_state.vertex_array, true);
 
 	R_DestroyBuffer(&r_material_state.vertex_buffer);
-
-	g_array_free(r_material_state.element_array, true);
 }
