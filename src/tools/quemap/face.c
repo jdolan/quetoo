@@ -127,29 +127,29 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 			Com_Error(ERROR_FATAL, "MAX_BSP_VERTEXES");
 		}
 
-		bsp_vertex_t v = {
+		bsp_vertex_t out = {
 			.texinfo = face->texinfo
 		};
 
-		VectorCopy(face->w->points[i], v.position);
+		VectorCopy(face->w->points[i], out.position);
 
 		if (!(texinfo->flags & SURF_NO_WELD)) {
 			for (int32_t j = 0; j < 3; j++) {
-				v.position[j] = SNAP_TO_FLOAT * floorf(v.position[j] * SNAP_TO_INT + 0.5);
+				out.position[j] = SNAP_TO_FLOAT * floorf(out.position[j] * SNAP_TO_INT + 0.5);
 			}
-			VectorCopy(v.position, face->w->points[i]);
+			VectorCopy(out.position, face->w->points[i]);
 		}
 
-		VectorCopy(planes[face->plane_num].normal, v.normal);
-		TangentVectors(v.normal, sdir, tdir, v.tangent, v.bitangent);
+		VectorCopy(planes[face->plane_num].normal, out.normal);
+		TangentVectors(out.normal, sdir, tdir, out.tangent, out.bitangent);
 
-		const vec_t s = DotProduct(v.position, sdir) + sdir[3];
-		const vec_t t = DotProduct(v.position, tdir) + tdir[3];
+		const vec_t s = DotProduct(out.position, sdir) + sdir[3];
+		const vec_t t = DotProduct(out.position, tdir) + tdir[3];
 
-		v.diffuse[0] = s / diffuse->w;
-		v.diffuse[1] = t / diffuse->h;
+		out.diffuse[0] = s / diffuse->w;
+		out.diffuse[1] = t / diffuse->h;
 
-		bsp_file.vertexes[bsp_file.num_vertexes] = v;
+		bsp_file.vertexes[bsp_file.num_vertexes] = out;
 		bsp_file.num_vertexes++;
 	}
 
