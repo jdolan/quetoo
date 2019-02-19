@@ -63,7 +63,7 @@ static node_t *BlockTree(int32_t xl, int32_t yl, int32_t xh, int32_t yh) {
 		node = block_nodes[xl + 5][yl + 5];
 		if (!node) { // return an empty leaf
 			node = AllocNode();
-			node->plane_num = PLANENUM_LEAF;
+			node->plane_num = PLANE_NUM_LEAF;
 			node->contents = 0; //CONTENTS_SOLID;
 			return node;
 		}
@@ -119,7 +119,7 @@ static void ProcessBlock_Work(int32_t blocknum) {
 	csg_brush_t *brushes = MakeBrushes(brush_start, brush_end, mins, maxs);
 	if (!brushes) {
 		node_t *node = AllocNode();
-		node->plane_num = PLANENUM_LEAF;
+		node->plane_num = PLANE_NUM_LEAF;
 		node->contents = CONTENTS_SOLID;
 		block_nodes[xblock + 5][yblock + 5] = node;
 		return;

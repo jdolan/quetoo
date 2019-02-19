@@ -62,7 +62,7 @@ tree_t *AllocTree(void) {
 void FreeTreePortals_r(node_t *node) {
 
 	// free children
-	if (node->plane_num != PLANENUM_LEAF) {
+	if (node->plane_num != PLANE_NUM_LEAF) {
 		FreeTreePortals_r(node->children[0]);
 		FreeTreePortals_r(node->children[1]);
 	}
@@ -84,7 +84,7 @@ void FreeTreePortals_r(node_t *node) {
 void FreeTree_r(node_t *node) {
 
 	// free children
-	if (node->plane_num != PLANENUM_LEAF) {
+	if (node->plane_num != PLANE_NUM_LEAF) {
 		FreeTree_r(node->children[0]);
 		FreeTree_r(node->children[1]);
 	}
@@ -124,7 +124,7 @@ void FreeTree(tree_t *tree) {
  */
 static void LeafNode(node_t *node, csg_brush_t *brushes) {
 
-	node->plane_num = PLANENUM_LEAF;
+	node->plane_num = PLANE_NUM_LEAF;
 	node->contents = 0;
 
 	for (csg_brush_t *b = brushes; b; b = b->next) {
@@ -389,7 +389,7 @@ static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
 	if (!split_side) {
 		// leaf node
 		node->side = NULL;
-		node->plane_num = PLANENUM_LEAF;
+		node->plane_num = PLANE_NUM_LEAF;
 		LeafNode(node, brushes);
 		return node;
 	}
@@ -484,7 +484,7 @@ static int32_t c_pruned;
 void PruneNodes_r(node_t *node) {
 	csg_brush_t *b, *next;
 
-	if (node->plane_num == PLANENUM_LEAF) {
+	if (node->plane_num == PLANE_NUM_LEAF) {
 		return;
 	}
 
@@ -502,7 +502,7 @@ void PruneNodes_r(node_t *node) {
 
 		// convert this node into a leaf, absorbing all brushes from its children
 
-		node->plane_num = PLANENUM_LEAF;
+		node->plane_num = PLANE_NUM_LEAF;
 		node->contents = CONTENTS_SOLID;
 		node->detail_separator = false;
 

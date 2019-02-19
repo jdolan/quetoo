@@ -139,7 +139,7 @@ static int32_t EmitLeaf(node_t *node) {
  */
 static int32_t EmitDrawNode_r(node_t *node) {
 
-	if (node->plane_num == PLANENUM_LEAF) {
+	if (node->plane_num == PLANE_NUM_LEAF) {
 		EmitLeaf(node);
 		return -bsp_file.num_leafs;
 	}
@@ -175,7 +175,7 @@ static int32_t EmitDrawNode_r(node_t *node) {
 
 	// recursively output the other nodes
 	for (int32_t i = 0; i < 2; i++) {
-		if (node->children[i]->plane_num == PLANENUM_LEAF) {
+		if (node->children[i]->plane_num == PLANE_NUM_LEAF) {
 			n->children[i] = -(bsp_file.num_leafs + 1);
 			EmitLeaf(node->children[i]);
 		} else {

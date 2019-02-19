@@ -68,7 +68,7 @@ int32_t VisibleContents(int32_t contents) {
  */
 static int32_t ClusterContents(const node_t *node) {
 
-	if (node->plane_num == PLANENUM_LEAF) {
+	if (node->plane_num == PLANE_NUM_LEAF) {
 		return node->contents;
 	}
 
@@ -131,7 +131,7 @@ _Bool Portal_VisFlood(const portal_t *p) {
  */
 static _Bool Portal_EntityFlood(const portal_t *p) {
 
-	if (p->nodes[0]->plane_num != PLANENUM_LEAF || p->nodes[1]->plane_num != PLANENUM_LEAF) {
+	if (p->nodes[0]->plane_num != PLANE_NUM_LEAF || p->nodes[1]->plane_num != PLANE_NUM_LEAF) {
 		Com_Error(ERROR_FATAL, "Not a leaf\n");
 	}
 
@@ -214,7 +214,7 @@ void MakeHeadnodePortals(tree_t *tree) {
 		bounds[1][i] = tree->maxs[i] + SIDESPACE;
 	}
 
-	tree->outside_node.plane_num = PLANENUM_LEAF;
+	tree->outside_node.plane_num = PLANE_NUM_LEAF;
 	tree->outside_node.brushes = NULL;
 	tree->outside_node.portals = NULL;
 	tree->outside_node.contents = 0;
@@ -444,7 +444,7 @@ static void MakeTreePortals_r(node_t *node) {
 		}
 	}
 
-	if (node->plane_num == PLANENUM_LEAF) {
+	if (node->plane_num == PLANE_NUM_LEAF) {
 		return;
 	}
 
@@ -492,7 +492,7 @@ static void FloodPortals_r(node_t *node, int32_t occupied) {
 static _Bool PlaceOccupant(node_t *head_node, vec3_t origin, const entity_t *occupant) {
 
 	node_t *node = head_node;
-	while (node->plane_num != PLANENUM_LEAF) {
+	while (node->plane_num != PLANE_NUM_LEAF) {
 		const plane_t *plane = &planes[node->plane_num];
 		const vec_t d = DotProduct(origin, plane->normal) - plane->dist;
 		if (d >= 0) {
@@ -608,7 +608,7 @@ static void FloodAreas_r(node_t *node) {
  */
 static void FindAreas_r(node_t *node) {
 
-	if (node->plane_num != PLANENUM_LEAF) {
+	if (node->plane_num != PLANE_NUM_LEAF) {
 		FindAreas_r(node->children[0]);
 		FindAreas_r(node->children[1]);
 		return;
@@ -640,7 +640,7 @@ static void FindAreas_r(node_t *node) {
  */
 static void SetAreaPortalAreas_r(node_t *node) {
 
-	if (node->plane_num != PLANENUM_LEAF) {
+	if (node->plane_num != PLANE_NUM_LEAF) {
 		SetAreaPortalAreas_r(node->children[0]);
 		SetAreaPortalAreas_r(node->children[1]);
 		return;
@@ -722,7 +722,7 @@ static int32_t c_solid;
 
 static void FillOutside_r(node_t *node) {
 
-	if (node->plane_num != PLANENUM_LEAF) {
+	if (node->plane_num != PLANE_NUM_LEAF) {
 		FillOutside_r(node->children[0]);
 		FillOutside_r(node->children[1]);
 		return;
@@ -819,7 +819,7 @@ static void FindPortalSide(portal_t *portal) {
 static void MarkVisibleSides_r(const node_t *node) {
 	int32_t s;
 
-	if (node->plane_num != PLANENUM_LEAF) {
+	if (node->plane_num != PLANE_NUM_LEAF) {
 		MarkVisibleSides_r(node->children[0]);
 		MarkVisibleSides_r(node->children[1]);
 		return;
@@ -913,7 +913,7 @@ static void MakeFaces_r(node_t *node) {
 	int32_t s;
 
 	// recurse down to leafs
-	if (node->plane_num != PLANENUM_LEAF) {
+	if (node->plane_num != PLANE_NUM_LEAF) {
 		MakeFaces_r(node->children[0]);
 		MakeFaces_r(node->children[1]);
 

@@ -108,7 +108,7 @@ static void FixTJunctions_(int32_t face_num) {
  */
 static void FixTJunctions_r(node_t *node) {
 
-	if (node->plane_num != PLANENUM_LEAF) {
+	if (node->plane_num != PLANE_NUM_LEAF) {
 		FixTJunctions_r(node->children[0]);
 		FixTJunctions_r(node->children[1]);
 	}

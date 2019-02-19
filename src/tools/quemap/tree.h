@@ -25,7 +25,7 @@
 #include "face.h"
 #include "map.h"
 
-#define	PLANENUM_LEAF -1
+#define	PLANE_NUM_LEAF -1
 
 typedef struct node_s {
 	// both leafs and nodes
