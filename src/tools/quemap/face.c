@@ -180,12 +180,12 @@ static int32_t EmitFaceElements(const face_t *face) {
 /**
  * @brief
  */
-void EmitFace(face_t *face) {
+int32_t EmitFace(face_t *face) {
 
 	assert(face->w->num_points > 2);
 
 	if (face->merged) {
-		return; // not a final face
+		return -1; // not a final face
 	}
 
 	// save output order so leaf can reference
@@ -208,6 +208,7 @@ void EmitFace(face_t *face) {
 	out->num_elements = EmitFaceElements(face);
 
 	out->lightmap.num = -1;
+	return bsp_file.num_faces - 1;
 }
 
 #define MAX_PHONG_FACES 256

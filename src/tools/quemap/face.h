@@ -47,5 +47,5 @@ extern int32_t c_merge;
 face_t *AllocFace(void);
 void FreeFace(face_t *f);
 face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal);
-void EmitFace(face_t *face);
+int32_t EmitFace(face_t *face);
 void PhongVertexes(void);
