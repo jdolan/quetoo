@@ -140,8 +140,7 @@ static int32_t EmitLeaf(node_t *node) {
 static int32_t EmitDrawNode_r(node_t *node) {
 
 	if (node->plane_num == PLANE_NUM_LEAF) {
-		EmitLeaf(node);
-		return -bsp_file.num_leafs;
+		Com_Error(ERROR_FATAL, "Leaf node\n");
 	}
 
 	if (node->plane_num & 1) {
