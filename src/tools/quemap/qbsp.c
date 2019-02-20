@@ -252,9 +252,7 @@ static void ProcessInlineModel(void) {
 	const int32_t end = start + e->num_brushes;
 
 	vec3_t mins, maxs;
-
-	mins[0] = mins[1] = mins[2] = MIN_WORLD_COORD;
-	maxs[0] = maxs[1] = maxs[2] = MAX_WORLD_COORD;
+	ClearBounds(mins, maxs);
 
 	csg_brush_t *brushes = MakeBrushes(start, end, mins, maxs);
 	if (!no_csg) {
