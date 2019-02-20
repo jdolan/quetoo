@@ -37,7 +37,7 @@
 /**
  * @brief Lightmap luxel size, in world units.
  */
-#define DEFAULT_BSP_LUXEL_SIZE 8
+#define DEFAULT_BSP_LUXEL_SIZE 4
 
 /**
  * @brief Largest single lightmap allowed for a face, in luxels.
@@ -47,7 +47,7 @@
 /**
  * @brief Lightmap atlas width and height.
  */
-#define BSP_LIGHTMAP_WIDTH 1024
+#define BSP_LIGHTMAP_WIDTH 2048
 
 /**
  * @brief Lightmap atlas size in bytes.
