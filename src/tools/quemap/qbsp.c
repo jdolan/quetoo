@@ -224,12 +224,12 @@ static void ProcessWorldModel(void) {
 	FloodAreas(tree);
 	MakeTreeFaces(tree);
 
-	if (!no_tjunc) {
-		FixTJunctions(tree->head_node);
-	}
-
 	if (!no_prune) {
 		PruneNodes(tree->head_node);
+	}
+
+	if (!no_tjunc) {
+		FixTJunctions(tree->head_node);
 	}
 
 	EmitNodes(tree->head_node);
@@ -267,12 +267,12 @@ static void ProcessInlineModel(void) {
 	MarkVisibleSides(tree, start, end);
 	MakeTreeFaces(tree);
 
-	if (!no_tjunc) {
-		FixTJunctions(tree->head_node);
-	}
-
 	if (!no_prune) {
 		PruneNodes(tree->head_node);
+	}
+
+	if (!no_tjunc) {
+		FixTJunctions(tree->head_node);
 	}
 
 	EmitNodes(tree->head_node);
