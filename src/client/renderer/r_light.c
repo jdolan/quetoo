@@ -107,7 +107,7 @@ void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node) {
 	}
 
 	if (node->vis_frame != r_locals.vis_frame) { // not visible
-		if (!node->model) { // and not a bsp submodel
+		if (!node->model) { // and not an inline model
 			return;
 		}
 	}

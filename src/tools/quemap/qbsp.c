@@ -244,7 +244,7 @@ static void ProcessWorldModel(void) {
 /**
  * @brief
  */
-static void ProcessSubModel(void) {
+static void ProcessInlineModel(void) {
 
 	const entity_t *e = &entities[entity_num];
 
@@ -295,7 +295,7 @@ static void ProcessModels(void) {
 		if (entity_num == 0) {
 			ProcessWorldModel();
 		} else {
-			ProcessSubModel();
+			ProcessInlineModel();
 		}
 		EndModel();
 	}

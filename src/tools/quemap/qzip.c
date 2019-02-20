@@ -193,7 +193,7 @@ static void AddModel(const char *model) {
 	const char *model_formats[] = { "md3", "obj", NULL };
 	char path[MAX_QPATH];
 
-	if (model[0] == '*') { // bsp submodel
+	if (model[0] == '*') { // inline bsp model
 		return;
 	}
 
