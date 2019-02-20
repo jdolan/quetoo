@@ -88,7 +88,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-vis"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-vis --fast"
@@ -107,7 +107,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "maps/edge.map"
+            argument = "maps/lighttest.map"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
