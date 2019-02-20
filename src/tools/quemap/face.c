@@ -116,9 +116,9 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 	const vec_t *sdir = texinfo->vecs[0];
 	const vec_t *tdir = texinfo->vecs[1];
 
-	SDL_Surface *diffuse = LoadDiffuseTexture(texinfo->texture);
+	const SDL_Surface *diffuse = LoadDiffuseTexture(texinfo->texture);
 	if (diffuse == NULL) {
-		Com_Error(ERROR_FATAL, "Failed to load %s\n", texinfo->texture);
+		Com_Warn("Failed to load %s\n", texinfo->texture);
 	}
 
 	for (int32_t i = 0; i < face->w->num_points; i++) {
@@ -146,8 +146,8 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 		const vec_t s = DotProduct(out.position, sdir) + sdir[3];
 		const vec_t t = DotProduct(out.position, tdir) + tdir[3];
 
-		out.diffuse[0] = s / diffuse->w;
-		out.diffuse[1] = t / diffuse->h;
+		out.diffuse[0] = s / (diffuse ? diffuse->w : 1.0);
+		out.diffuse[1] = t / (diffuse ? diffuse->h : 1.0);
 
 		bsp_file.vertexes[bsp_file.num_vertexes] = out;
 		bsp_file.num_vertexes++;
