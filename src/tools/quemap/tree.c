@@ -519,11 +519,15 @@ void PruneNodes_r(node_t *node) {
 			node->brushes = b;
 		}
 
-		FreeNode(node->children[0]);
-		node->children[0] = NULL;
+		// FIXME: Freeing child nodes here will cause downstream crashes when iterating
+		// or removing portals from the tree. We need to handle the portals of child
+		// nodes before we can safely free them.
 
-		FreeNode(node->children[1]);
-		node->children[1] = NULL;
+//		FreeNode(node->children[0]);
+//		node->children[0] = NULL;
+//
+//		FreeNode(node->children[1]);
+//		node->children[1] = NULL;
 
 		c_pruned++;
 	}
