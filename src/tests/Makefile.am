@@ -32,6 +32,7 @@ libtests_la_LIBADD = \
 TESTS = \
 	check_ai_ann \
 	check_atlas \
+	check_cm_polylib \
 	check_cmd \
 	check_cvar \
 	check_filesystem \
