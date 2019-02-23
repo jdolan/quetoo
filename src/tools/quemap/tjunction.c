@@ -139,5 +139,5 @@ void FixTJunctions(node_t *node) {
 
 	Com_Verbose("%5i fixed tjunctions\n", SDL_AtomicGet(&c_tjunctions));
 
-	g_ptr_array_free(faces, false);
+	g_ptr_array_free(faces, true);
 }
