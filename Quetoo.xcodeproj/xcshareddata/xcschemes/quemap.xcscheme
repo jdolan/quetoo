@@ -79,7 +79,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-bsp --no-tjunc"
+            argument = "-bsp --no-prune --no-tjunc"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -88,7 +88,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-vis"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-vis --fast"
@@ -107,7 +107,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "maps/lighttest.map"
+            argument = "maps/jgothic.map"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

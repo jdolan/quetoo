@@ -29,6 +29,12 @@
 
   #if defined(WIN32)
     #include <DbgHelp.h>
+  #else
+    #define OutputDebugString(s) fputs(s, stdout)
+  #endif
+
+  #if HAVE_EXECINFO
+    #include <execinfo.h>
   #endif
 #endif
 
@@ -74,23 +80,18 @@ static void Mem_SetStack(mem_block_t *block) {
  * @brief
  */
 static void Mem_Print(const mem_block_t *block, const char *why) {
-#if defined(WIN32) && defined(SUPER_MEMORY_PRINTS)
 	static char str[MAX_STRING_CHARS];
 	
-	g_snprintf(str, sizeof(str), "%s block 0x%" PRIXPTR " tag %i\n", why, (ULONG64) (block + 1), block->tag);
+	g_snprintf(str, sizeof(str), "%s block %p tag %i\n", why, (block + 1), block->tag);
 	OutputDebugString(str);
 
 	for (int32_t i = 3; i < 5; i++) {
-		
 		if (!block->stack[i]) {
 			break;
 		}
-
-		g_snprintf(str, sizeof(str), "  [0x%" PRIXPTR "]\n",  (ULONG64) (block->stack[i]));
+		g_snprintf(str, sizeof(str), "  [%p]\n",  (block->stack[i]));
 		OutputDebugString(str);
 	}
-#else
-#endif
 }
 #endif
 
