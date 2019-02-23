@@ -270,7 +270,7 @@ void Mon_Shutdown(const char *msg) {
 
 		g_list_free(mon_backlog);
 	} else {
-		g_list_free_full(mon_backlog, xmlFree);
+		g_list_free_full(mon_backlog, (GDestroyNotify) xmlFreeNode);
 	}
 
 	mon_backlog = NULL;
