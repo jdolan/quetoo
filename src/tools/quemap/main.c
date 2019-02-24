@@ -468,7 +468,7 @@ int32_t main(int32_t argc, char **argv) {
 	}
 
 	if (!do_bsp && !do_vis && !do_light && !do_mat && !do_zip) {
-		Com_Error(ERROR_FATAL, "No action specified. Try %s -help\n", Com_Argv(0));
+		Com_Error(ERROR_FATAL, "No action specified. Try %s --help\n", Com_Argv(0));
 	}
 
 	Thread_Init(num_threads);
