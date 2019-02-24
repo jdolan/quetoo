@@ -170,6 +170,11 @@ static int32_t EmitFaceElements(const face_t *face) {
 	const bsp_face_t *f = &bsp_file.faces[face->num];
 
 	for (int32_t i = 0; i < num_elements; i++) {
+
+		if (bsp_file.num_elements == MAX_BSP_ELEMENTS) {
+			Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
+		}
+
 		bsp_file.elements[bsp_file.num_elements] = f->first_vertex + elements[i];
 		bsp_file.num_elements++;
 	}
@@ -191,7 +196,7 @@ int32_t EmitFace(face_t *face) {
 	// save output order so leaf can reference
 	face->num = bsp_file.num_faces;
 
-	if (bsp_file.num_faces >= MAX_BSP_FACES) {
+	if (bsp_file.num_faces == MAX_BSP_FACES) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_FACES\n");
 	}
 
