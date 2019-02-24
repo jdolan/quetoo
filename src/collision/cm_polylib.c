@@ -435,6 +435,7 @@ cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, con
 
 	// find a common edge
 	p1 = p2 = NULL;
+	j = 0;
 
 	for (i = 0; i < a->num_points; i++) {
 		p1 = a->points[i];
