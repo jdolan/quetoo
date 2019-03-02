@@ -34,8 +34,9 @@ void Cm_FreeMaterial(cm_material_t *material) {
 /**
  * @brief
  */
-static uint32_t Cm_ParseContents(const char *c) {
-	uint32_t contents = 0;
+static int32_t Cm_ParseContents(const char *c) {
+
+	int32_t contents = 0;
 
 	if (strstr(c, "window")) {
 		contents |= CONTENTS_WINDOW;
@@ -71,7 +72,7 @@ static uint32_t Cm_ParseContents(const char *c) {
 /**
  * @brief
  */
-static char *Cm_UnparseContents(uint32_t contents) {
+static char *Cm_UnparseContents(int32_t contents) {
 	static char s[MAX_STRING_CHARS] = "";
 
 	if (contents & CONTENTS_WINDOW) {
@@ -108,9 +109,9 @@ static char *Cm_UnparseContents(uint32_t contents) {
 /**
  * @brief
  */
-static uint32_t Cm_ParseSurface(const char *c) {
+static int32_t Cm_ParseSurface(const char *c) {
 
-	int surface = 0;
+	int32_t surface = 0;
 
 	if (strstr(c, "light")) {
 		surface |= SURF_LIGHT;
@@ -174,7 +175,7 @@ static uint32_t Cm_ParseSurface(const char *c) {
 /**
  * @brief
  */
-static char *Cm_UnparseSurface(uint32_t surface) {
+static char *Cm_UnparseSurface(int32_t surface) {
 	static char s[MAX_STRING_CHARS] = "";
 
 	if (surface & SURF_LIGHT) {

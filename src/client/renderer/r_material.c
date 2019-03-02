@@ -322,9 +322,7 @@ static inline void R_StageColor(const r_stage_t *stage, const vec3_t v, u8vec4_t
 
 		if (stage->cm->flags & STAGE_COLOR) { // honor stage color
 			ColorDecompose3(stage->cm->color, color);
-		} else
-			// or use white
-		{
+		} else { // or use white
 			VectorSet(color, 255, 255, 255);
 		}
 
