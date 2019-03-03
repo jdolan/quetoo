@@ -649,33 +649,18 @@ typedef struct {
 } r_bsp_cluster_t;
 
 /**
- * @brief
- */
-typedef enum {
-	LIGHT_INVALID = -1,
-	LIGHT_AMBIENT,
-	LIGHT_PATCH,
-	LIGHT_POINT,
-	LIGHT_SPOT,
-	LIGHT_SUN
-} r_bsp_light_type_t;
-
-/**
  * @brief BSP light sources.
  */
 typedef struct {
-	r_bsp_light_type_t type;
+	bsp_light_type_t type;
+	bsp_light_atten_t atten;
+	vec3_t origin;
+	vec3_t color;
+	vec3_t normal;
+	vec_t radius;
+	vec_t theta;
 
 	const r_bsp_leaf_t *leaf;
-
-	/**
-	 * @see r_light_t
-	 */
-	struct {
-		vec3_t origin;
-		vec3_t color;
-		vec_t radius;
-	} light;
 
 	r_particle_t debug;
 
@@ -753,8 +738,8 @@ typedef struct {
 
 	int16_t luxel_size;
 
-	int32_t num_bsp_lights;
-	r_bsp_light_t *bsp_lights;
+	int32_t num_lights;
+	r_bsp_light_t *lights;
 
 	// sorted surfaces arrays
 	r_sorted_bsp_surfaces_t *sorted_surfaces;

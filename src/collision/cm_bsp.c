@@ -48,6 +48,7 @@ static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
 	BSP_LUMP_NUM_STRUCT(area_portals, MAX_BSP_AREA_PORTALS),
 	BSP_LUMP_NUM_STRUCT(areas, MAX_BSP_AREAS),
 	BSP_LUMP_SIZE_STRUCT(vis, MAX_BSP_VISIBILITY),
+	BSP_LUMP_NUM_STRUCT(lights, MAX_BSP_LIGHTS),
 	BSP_LUMP_NUM_STRUCT(lightmaps, MAX_BSP_LIGHTMAPS),
 };
 
@@ -347,6 +348,31 @@ static void Bsp_SwapVis(void *lump, const int32_t num) {
 	}
 }
 
+/**
+ * @brief Swap function.
+ */
+static void Bsp_SwapLights(void *lump, const int32_t num) {
+
+	bsp_light_t *light = (bsp_light_t *) lump;
+
+	for (int32_t i = 0; i < num; i++) {
+
+		light->type = LittleLong(light->type);
+		light->atten = LittleLong(light->atten);
+
+		for (int32_t j = 0; j < 3; j++) {
+			light->origin[j] = LittleFloat(light->origin[j]);
+			light->color[j] = LittleFloat(light->color[j]);
+			light->normal[j] = LittleFloat(light->normal[j]);
+		}
+
+		light->radius = LittleFloat(light->radius);
+		light->theta = LittleFloat(light->theta);
+
+		light++;
+	}
+}
+
 
 static Bsp_SwapFunction bsp_swap_funcs[BSP_LUMP_LAST] = {
 	NULL,
@@ -365,6 +391,7 @@ static Bsp_SwapFunction bsp_swap_funcs[BSP_LUMP_LAST] = {
 	Bsp_SwapAreaPortals,
 	Bsp_SwapAreas,
 	Bsp_SwapVis,
+	Bsp_SwapLights,
 	NULL,
 };
 #endif

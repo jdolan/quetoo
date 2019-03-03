@@ -31,7 +31,7 @@
  */
 typedef struct {
 	r_illumination_t illuminations[LIGHTING_MAX_ILLUMINATIONS];
-	uint16_t num_illuminations;
+	size_t num_illuminations;
 } r_illuminations_t;
 
 static r_illuminations_t r_illuminations;
@@ -88,29 +88,26 @@ static void R_AddIllumination(const r_illumination_t *il) {
  * appears directional.
  */
 static void R_AmbientIllumination(const r_lighting_t *l) {
-	r_illumination_t il;
 
-	vec_t max = 0.15;
+	const r_bsp_light_t *lights = r_model_state.world->bsp->lights;
+	if (lights && lights->type == LIGHT_AMBIENT) {
 
-	for (uint16_t i = 0; i < 3; i++) {
-		if (r_bsp_light_state.ambient[i] > max) {
-			max = r_bsp_light_state.ambient[i];
+		r_illumination_t il;
+
+		VectorMA(l->origin, LIGHTING_AMBIENT_DIST, vec3_up, il.light.origin);
+		VectorCopy(lights->color, il.light.color);
+
+		il.type = ILLUM_AMBIENT;
+		il.light.radius = LIGHTING_AMBIENT_RADIUS;
+
+		if (r_lighting->value) {
+			il.light.radius *= r_lighting->value;
 		}
+
+		il.diffuse = il.light.radius - LIGHTING_AMBIENT_DIST;
+
+		R_AddIllumination(&il);
 	}
-
-	VectorMA(l->origin, LIGHTING_AMBIENT_DIST, vec3_up, il.light.origin);
-	VectorCopy(r_bsp_light_state.ambient, il.light.color);
-
-	il.type = ILLUM_AMBIENT;
-	il.light.radius = LIGHTING_AMBIENT_RADIUS;
-
-	if (r_lighting->value) {
-		il.light.radius *= r_lighting->value;
-	}
-
-	il.diffuse = il.light.radius - LIGHTING_AMBIENT_DIST;
-
-	R_AddIllumination(&il);
 }
 
 #define LIGHTING_SUN_RADIUS 360.0
@@ -121,45 +118,54 @@ static void R_AmbientIllumination(const r_lighting_t *l) {
  * determine sun exposure, which scales the applied sun color.
  */
 static void R_SunIlluminations(const r_lighting_t *l) {
-	/*r_illumination_t il;
 
-	if (!r_bsp_light_state.sun.diffuse) {
-		return;
-	}
+	const r_bsp_light_t *bl = r_model_state.world->bsp->lights;
+	for (int32_t i = 0; i < r_model_state.world->bsp->num_lights; i++, bl++) {
 
-	const vec3_t *p = (const vec3_t *) r_lighting_points;
-
-	vec_t exposure = 0.0;
-
-	for (size_t i = 0; i < lengthof(r_lighting_points); i++) {
-		vec3_t pos;
-
-		VectorMA(p[i], MAX_WORLD_DIST, r_bsp_light_state.sun.dir, pos);
-
-		const cm_trace_t tr = Cl_Trace(p[i], pos, NULL, NULL, l->number, CONTENTS_SOLID);
-
-		if (tr.surface && (tr.surface->flags & SURF_SKY)) {
-			exposure += (1.0 / lengthof(r_lighting_points));
+		if (bl->type < LIGHT_SUN) {
+			continue;
 		}
+
+		if (bl->type > LIGHT_SUN) {
+			break;
+		}
+
+		r_illumination_t il;
+
+		const vec3_t *p = (const vec3_t *) r_lighting_points;
+
+		vec_t exposure = 0.0;
+
+		for (size_t i = 0; i < lengthof(r_lighting_points); i++) {
+			vec3_t pos;
+
+			VectorMA(p[i], MAX_WORLD_DIST, bl->normal, pos);
+
+			const cm_trace_t tr = Cl_Trace(p[i], pos, NULL, NULL, l->number, CONTENTS_SOLID);
+
+			if (tr.surface && (tr.surface->flags & SURF_SKY)) {
+				exposure += (1.0 / lengthof(r_lighting_points));
+			}
+		}
+
+		if (exposure == 0.0) {
+			return;
+		}
+
+		VectorMA(l->origin, LIGHTING_SUN_DIST, bl->normal, il.light.origin);
+		VectorScale(bl->color, exposure, il.light.color);
+
+		il.type = ILLUM_SUN;
+		il.light.radius = LIGHTING_SUN_RADIUS;
+
+		if (r_lighting->value) {
+			il.light.radius *= r_lighting->value;
+		}
+
+		il.diffuse = il.light.radius - LIGHTING_SUN_DIST;
+
+		R_AddIllumination(&il);
 	}
-
-	if (exposure == 0.0) {
-		return;
-	}
-
-	VectorMA(l->origin, LIGHTING_SUN_DIST, r_bsp_light_state.sun.dir, il.light.origin);
-	VectorScale(r_bsp_light_state.sun.color, exposure, il.light.color);
-
-	il.type = ILLUM_SUN;
-	il.light.radius = LIGHTING_SUN_RADIUS;
-
-	if (r_lighting->value) {
-		il.light.radius *= r_lighting->value;
-	}
-
-	il.diffuse = il.light.radius - LIGHTING_SUN_DIST;
-
-	R_AddIllumination(&il);*/
 }
 
 /**
@@ -215,18 +221,32 @@ static void R_StaticIlluminations(r_lighting_t *l) {
 	const r_bsp_leaf_t *leaf = R_LeafForPoint(l->origin, NULL);
 	Cm_ClusterPVS(leaf->cluster, pvs);
 
-	const r_bsp_light_t *bl = r_model_state.world->bsp->bsp_lights;
+	const r_bsp_light_t *bl = r_model_state.world->bsp->lights;
 
-	for (uint16_t i = 0; i < r_model_state.world->bsp->num_bsp_lights; i++, bl++) {
+	for (int32_t i = 0; i < r_model_state.world->bsp->num_lights; i++, bl++) {
 
-		const int16_t cluster = bl->leaf->cluster;
+		if (bl->type < LIGHT_POINT) {
+			continue;
+		}
+
+		const int32_t cluster = bl->leaf->cluster;
 		if (cluster != -1) {
 			if ((pvs[cluster >> 3] & (1 << (cluster & 7))) == 0) {
 				continue;
 			}
 		}
 
-		R_PositionalIllumination(l, ILLUM_STATIC, (const r_light_t *) & (bl->light));
+		const r_light_t light = {
+			.origin = {
+				bl->origin[0], bl->origin[1], bl->origin[2]
+			},
+			.color = {
+				bl->color[0], bl->color[1], bl->color[2]
+			},
+			.radius = bl->radius
+		};
+
+		R_PositionalIllumination(l, ILLUM_STATIC, &light);
 	}
 }
 
@@ -238,7 +258,7 @@ static void R_DynamicIlluminations(r_lighting_t *l) {
 	uint64_t light_mask = 0;
 	const r_light_t *dl = r_view.lights;
 
-	for (uint16_t i = 0; i < r_view.num_lights; i++, dl++) {
+	for (int32_t i = 0; i < r_view.num_lights; i++, dl++) {
 		if (R_PositionalIllumination(l, ILLUM_DYNAMIC, dl)) {
 			light_mask |= (uint64_t) (1 << i);
 		}
@@ -295,7 +315,7 @@ static void R_UpdateIlluminations(r_lighting_t *l) {
 	qsort(il, r_illuminations.num_illuminations, sizeof(r_illumination_t), R_CompareIllumination);
 
 	// take the strongest illuminations
-	uint16_t n = Min(r_illuminations.num_illuminations, lengthof(l->illuminations));
+	size_t n = Min(r_illuminations.num_illuminations, lengthof(l->illuminations));
 
 	// and copy them in
 	memcpy(l->illuminations, il, n * sizeof(r_illumination_t));

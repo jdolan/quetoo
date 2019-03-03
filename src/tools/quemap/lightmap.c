@@ -322,11 +322,11 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 				break;
 			case LIGHT_SPOT: {
 				const vec_t dot2 = DotProduct(dir, light->normal);
-				if (dot2 <= light->cone) {
+				if (dot2 <= light->theta) {
 					if (dot2 <= 0.1) {
 						diffuse = 0.0;
 					} else {
-						diffuse *= light->cone - (1.0 - dot2);
+						diffuse *= light->theta - (1.0 - dot2);
 					}
 				} else {
 					diffuse *= DEFAULT_BSP_PATCH_SIZE;

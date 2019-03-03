@@ -31,6 +31,7 @@
 #define MAX_BSP_AREAS			0x100
 #define MAX_BSP_PORTALS			0x20000
 #define MAX_BSP_VISIBILITY		0x200000
+#define MAX_BSP_LIGHTS			0x1000
 #define MAX_BSP_LIGHTMAPS		0x10
 
 
@@ -80,6 +81,7 @@ typedef enum {
 	BSP_LUMP_AREA_PORTALS,
 	BSP_LUMP_AREAS,
 	BSP_LUMP_VISIBILITY,
+	BSP_LUMP_LIGHTS,
 	BSP_LUMP_LIGHTMAPS,
 	BSP_LUMP_LAST
 } bsp_lump_id_t;
@@ -187,10 +189,6 @@ typedef struct {
 	int32_t contents;
 } bsp_brush_t;
 
-typedef struct {
-	byte layers[BSP_LIGHTMAP_LAYERS][BSP_LIGHTMAP_SIZE];
-} bsp_lightmap_t;
-
 // the visibility lump consists of a header with a count, then
 // byte offsets for the PVS and PHS of each cluster, then the raw
 // compressed bit vectors
@@ -214,6 +212,40 @@ typedef struct {
 	int32_t num_area_portals;
 	int32_t first_area_portal;
 } bsp_area_t;
+
+typedef enum {
+	LIGHT_INVALID = -1,
+	LIGHT_AMBIENT,
+	LIGHT_SUN,
+	LIGHT_POINT,
+	LIGHT_SPOT,
+	LIGHT_PATCH
+} bsp_light_type_t;
+
+typedef enum {
+	LIGHT_ATTEN_NONE,
+	LIGHT_ATTEN_LINEAR,
+	LIGHT_ATTEN_INVERSE_SQUARE,
+} bsp_light_atten_t;
+
+typedef struct {
+	bsp_light_type_t type;
+	bsp_light_atten_t atten;
+	vec3_t origin;
+	vec3_t color;
+	vec3_t normal;
+	vec_t radius;
+	vec_t theta;
+} bsp_light_t;
+
+/**
+ * @brief Lightmaps are atlas-packed, layered 24 bit texture objects, inlined in the BSP.
+ * @details Each layer is 2048x2048 RGB at 24bpp. The first layer contains diffuse light
+ * color, while the second layer contains diffuse light direction.
+ */
+typedef struct {
+	byte layers[BSP_LIGHTMAP_LAYERS][BSP_LIGHTMAP_SIZE];
+} bsp_lightmap_t;
 
 /**
  * @brief BSP file lumps in their native file formats. The data is stored as pointers
@@ -267,11 +299,14 @@ typedef struct {
 	int32_t num_areas;
 	bsp_area_t *areas;
 
-	int32_t num_lightmaps;
-	bsp_lightmap_t *lightmaps;
-
 	int32_t vis_size;
 	bsp_vis_t *vis;
+
+	int32_t num_lights;
+	bsp_light_t *lights;
+
+	int32_t num_lightmaps;
+	bsp_lightmap_t *lightmaps;
 
 	// local to bsp_file_t
 	bsp_lump_id_t loaded_lumps;

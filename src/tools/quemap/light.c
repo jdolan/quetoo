@@ -112,8 +112,8 @@ light_t *LightForEntity(const GList *entities, const cm_entity_t *entity) {
 		}
 
 		if (light->type == LIGHT_SPOT) {
-			if (Cm_EntityVector(entity, "_cone", &light->cone, 1) != 1) {
-				light->cone = LIGHT_CONE;
+			if (Cm_EntityVector(entity, "_cone", &light->theta, 1) != 1) {
+				light->theta = LIGHT_CONE;
 			}
 		}
 
@@ -122,7 +122,7 @@ light_t *LightForEntity(const GList *entities, const cm_entity_t *entity) {
 
 		const char *atten = Cm_EntityValue(entity, "atten") ?: Cm_EntityValue(entity, "attenuation");
 		if (atten) {
-			light->atten = (light_atten_t) strtol(atten, NULL, 10);
+			light->atten = (bsp_light_atten_t) strtol(atten, NULL, 10);
 		}
 
 		if (light->atten == LIGHT_ATTEN_NONE) {
@@ -307,4 +307,44 @@ void BuildIndirectLights(void) {
 	}
 
 	Com_Verbose("Indirect lighting for %d patches\n", g_list_length(lights));
+}
+
+/**
+ * @brief Qsort comparator for lights.
+ */
+static int32_t EmitLights_Comparator(const void *a, const void *b) {
+	return ((bsp_light_t *) a)->type - ((bsp_light_t *) b)->type;
+}
+
+/**
+ * @brief
+ */
+void EmitLights(void) {
+
+	bsp_file.num_lights = 0;
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTS, MAX_BSP_LIGHTS);
+
+	for (const GList *list = lights; list; list = list->next) {
+
+		if (bsp_file.num_lights == MAX_BSP_LIGHTS) {
+			Com_Error(ERROR_FATAL, "MAX_BSP_LIGHTS");
+		}
+
+		const light_t *in = list->data;
+		bsp_light_t *out = &bsp_file.lights[bsp_file.num_lights];
+
+		out->type = in->type;
+		out->atten = in->atten;
+		VectorCopy(in->origin, out->origin);
+		VectorCopy(in->color, out->color);
+		VectorCopy(in->normal, out->normal);
+		out->radius = in->radius;
+		out->theta = in->theta;
+
+		bsp_file.num_lights++;
+	}
+
+	qsort(bsp_file.lights, bsp_file.num_lights, sizeof(bsp_light_t), EmitLights_Comparator);
+
+	Com_Verbose("Emitted %d lights\n", bsp_file.num_lights);
 }

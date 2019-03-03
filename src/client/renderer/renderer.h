@@ -28,7 +28,6 @@
 
 #include "r_array.h"
 #include "r_atlas.h"
-#include "r_bsp_light.h"
 #include "r_bsp_model.h"
 #include "r_bsp_surface.h"
 #include "r_bsp.h"

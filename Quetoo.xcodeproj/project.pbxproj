@@ -569,7 +569,6 @@
 		CED4381E1D9D33AF0052BAFA /* libgame-pmove.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7B8A1D9D2E71000FA6B2 /* libgame-pmove.a */; };
 		CED438381D9D34450052BAFA /* r_array.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5B01C5C58C300CD0B13 /* r_array.c */; };
 		CED438391D9D34450052BAFA /* r_bsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5B21C5C58C300CD0B13 /* r_bsp.c */; };
-		CED4383A1D9D34450052BAFA /* r_bsp_light.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5B41C5C58C300CD0B13 /* r_bsp_light.c */; };
 		CED4383B1D9D34450052BAFA /* r_bsp_model.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5B61C5C58C300CD0B13 /* r_bsp_model.c */; };
 		CED4383C1D9D34450052BAFA /* r_bsp_surface.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5B81C5C58C300CD0B13 /* r_bsp_surface.c */; };
 		CED4383D1D9D34450052BAFA /* r_context.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5BA1C5C58C300CD0B13 /* r_context.c */; };
@@ -598,7 +597,6 @@
 		CED438571D9D34450052BAFA /* r_state.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5EF1C5C58C300CD0B13 /* r_state.c */; };
 		CED4387F1D9D34450052BAFA /* r_array.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5B11C5C58C300CD0B13 /* r_array.h */; };
 		CED438801D9D34450052BAFA /* r_bsp.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5B31C5C58C300CD0B13 /* r_bsp.h */; };
-		CED438811D9D34450052BAFA /* r_bsp_light.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5B51C5C58C300CD0B13 /* r_bsp_light.h */; };
 		CED438821D9D34450052BAFA /* r_bsp_model.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5B71C5C58C300CD0B13 /* r_bsp_model.h */; };
 		CED438831D9D34450052BAFA /* r_bsp_surface.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5B91C5C58C300CD0B13 /* r_bsp_surface.h */; };
 		CED438841D9D34450052BAFA /* r_context.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5BB1C5C58C300CD0B13 /* r_context.h */; };
@@ -1571,8 +1569,6 @@
 		CE12D5B11C5C58C300CD0B13 /* r_array.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_array.h; sourceTree = "<group>"; };
 		CE12D5B21C5C58C300CD0B13 /* r_bsp.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_bsp.c; sourceTree = "<group>"; };
 		CE12D5B31C5C58C300CD0B13 /* r_bsp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_bsp.h; sourceTree = "<group>"; };
-		CE12D5B41C5C58C300CD0B13 /* r_bsp_light.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_bsp_light.c; sourceTree = "<group>"; };
-		CE12D5B51C5C58C300CD0B13 /* r_bsp_light.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_bsp_light.h; sourceTree = "<group>"; };
 		CE12D5B61C5C58C300CD0B13 /* r_bsp_model.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_bsp_model.c; sourceTree = "<group>"; };
 		CE12D5B71C5C58C300CD0B13 /* r_bsp_model.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_bsp_model.h; sourceTree = "<group>"; };
 		CE12D5B81C5C58C300CD0B13 /* r_bsp_surface.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_bsp_surface.c; sourceTree = "<group>"; };
@@ -3014,8 +3010,6 @@
 				CE12D5B11C5C58C300CD0B13 /* r_array.h */,
 				CEA082331DC6EBB7001207AA /* r_atlas.c */,
 				CEA082341DC6EBB7001207AA /* r_atlas.h */,
-				CE12D5B41C5C58C300CD0B13 /* r_bsp_light.c */,
-				CE12D5B51C5C58C300CD0B13 /* r_bsp_light.h */,
 				CE12D5B61C5C58C300CD0B13 /* r_bsp_model.c */,
 				CE12D5B71C5C58C300CD0B13 /* r_bsp_model.h */,
 				CE12D5B81C5C58C300CD0B13 /* r_bsp_surface.c */,
@@ -3304,8 +3298,8 @@
 			children = (
 				CE8E2016214836C800C18C94 /* check_ai_ann.c */,
 				CE354EEE22075054008AE0C2 /* check_atlas.c */,
-				CE12D6CB1C5C58C300CD0B13 /* check_cmd.c */,
 				CEE3A0EF21EE2A5E0070FD3E /* check_cm_polylib.c */,
+				CE12D6CB1C5C58C300CD0B13 /* check_cmd.c */,
 				CE12D6CD1C5C58C300CD0B13 /* check_cvar.c */,
 				CE12D6CF1C5C58C300CD0B13 /* check_filesystem.c */,
 				CE12D6D11C5C58C300CD0B13 /* check_master.c */,
@@ -4103,7 +4097,6 @@
 				CED4387F1D9D34450052BAFA /* r_array.h in Headers */,
 				CEA082381DC6EC59001207AA /* r_atlas.h in Headers */,
 				CED438801D9D34450052BAFA /* r_bsp.h in Headers */,
-				CED438811D9D34450052BAFA /* r_bsp_light.h in Headers */,
 				CED438821D9D34450052BAFA /* r_bsp_model.h in Headers */,
 				CED438831D9D34450052BAFA /* r_bsp_surface.h in Headers */,
 				CED438841D9D34450052BAFA /* r_context.h in Headers */,
@@ -5516,7 +5509,6 @@
 				CED438381D9D34450052BAFA /* r_array.c in Sources */,
 				CEA082371DC6EC50001207AA /* r_atlas.c in Sources */,
 				CED438391D9D34450052BAFA /* r_bsp.c in Sources */,
-				CED4383A1D9D34450052BAFA /* r_bsp_light.c in Sources */,
 				CED4383B1D9D34450052BAFA /* r_bsp_model.c in Sources */,
 				CED4383C1D9D34450052BAFA /* r_bsp_surface.c in Sources */,
 				CED4383D1D9D34450052BAFA /* r_context.c in Sources */,

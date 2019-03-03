@@ -138,7 +138,7 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
 	vec4_t color;
 
 	if ((e->effects & EF_NO_LIGHTING) == 0 && r_state.max_active_lights) {
-		VectorCopy(r_bsp_light_state.ambient, color);
+		VectorClear(color);
 
 		if (!r_lighting->value) {
 			const r_illumination_t *il = e->lighting->illuminations;

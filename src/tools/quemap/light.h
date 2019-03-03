@@ -30,21 +30,6 @@
 #define LIGHT_ANGLE_DOWN -2.0
 #define LIGHT_CONE 22.5
 
-typedef enum {
-	LIGHT_INVALID = -1,
-	LIGHT_AMBIENT,
-	LIGHT_PATCH,
-	LIGHT_POINT,
-	LIGHT_SPOT,
-	LIGHT_SUN,
-} light_type_t;
-
-typedef enum {
-	LIGHT_ATTEN_NONE,
-	LIGHT_ATTEN_LINEAR,
-	LIGHT_ATTEN_INVERSE_SQUARE,
-} light_atten_t;
-
 /**
  * @brief BSP light sources may come from entities or emissive surfaces.
  */
@@ -58,12 +43,12 @@ typedef struct {
 	/**
 	 * @brief The type.
 	 */
-	light_type_t type;
+	bsp_light_type_t type;
 
 	/**
 	 * @brief The attenuation.
 	 */
-	light_atten_t atten;
+	bsp_light_atten_t atten;
 
 	/**
 	 * @brief The origin.
@@ -88,7 +73,7 @@ typedef struct {
 	/**
 	 * @brief The angle, in radians, from the normal where spotlight attenuation occurs.
 	 */
-	vec_t cone;
+	vec_t theta;
 
 } light_t;
 
@@ -96,3 +81,4 @@ extern GList *lights;
 
 void BuildDirectLights(const GList *entities);
 void BuildIndirectLights(void);
+void EmitLights(void);

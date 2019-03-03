@@ -217,12 +217,44 @@ static void R_LoadBspElements(r_bsp_model_t *bsp) {
 /**
  * @brief
  */
+static void R_LoadBspLights(r_bsp_model_t *bsp) {
+
+	bsp->num_lights = bsp->file->num_lights;
+	r_bsp_light_t *out = bsp->lights = Mem_LinkMalloc(sizeof(r_bsp_light_t) * bsp->num_lights, bsp);
+
+	const bsp_light_t *in = bsp->file->lights;
+	for (int32_t i = 0; i < bsp->num_lights; i++, in++, out++) {
+
+		out->type = in->type;
+		out->atten = in->atten;
+
+		VectorCopy(in->origin, out->origin);
+		VectorCopy(in->color, out->color);
+		VectorCopy(in->normal, out->normal);
+
+		out->radius = in->radius;
+		out->theta = in->theta;
+
+		out->leaf = R_LeafForPoint(out->origin, bsp);
+
+		out->debug.type = PARTICLE_CORONA;
+		out->debug.blend = GL_ONE;
+		out->debug.color[3] = 1.0;
+		VectorCopy(out->origin, out->debug.org);
+		VectorCopy(out->color, out->debug.color);
+		out->debug.scale = out->radius * r_draw_bsp_lights->value;
+	}
+}
+
+/**
+ * @brief
+ */
 static void R_LoadBspLightmaps(r_bsp_model_t *bsp) {
 
 	bsp->num_lightmaps = bsp->file->num_lightmaps;
 	r_bsp_lightmap_t *out = bsp->lightmaps = Mem_LinkMalloc(sizeof(r_bsp_lightmap_t) * bsp->num_lightmaps, bsp);
 
-	bsp_lightmap_t *in = bsp->file->lightmaps;
+	const bsp_lightmap_t *in = bsp->file->lightmaps;
 	for (int32_t i = 0; i < bsp->num_lightmaps; i++, in++, out++) {
 		char name[MAX_QPATH];
 
@@ -749,6 +781,7 @@ static void R_LoadBspSurfacesArrays(r_model_t *mod) {
 	(1 << BSP_LUMP_VERTEXES) | \
 	(1 << BSP_LUMP_ELEMENTS) | \
 	(1 << BSP_LUMP_FACES) | \
+	(1 << BSP_LUMP_LIGHTS) | \
 	(1 << BSP_LUMP_LIGHTMAPS)
 
 /**
@@ -834,6 +867,6 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Com_Debug(DEBUG_RENDERER, "!  Leaf surfaces:  %d\n", mod->bsp->num_leaf_surfaces);
 	Com_Debug(DEBUG_RENDERER, "!  Clusters:       %d\n", mod->bsp->num_clusters);
 	Com_Debug(DEBUG_RENDERER, "!  Inline models   %d\n", mod->bsp->num_inline_models);
-	Com_Debug(DEBUG_RENDERER, "!  Lights:         %d\n", mod->bsp->num_bsp_lights);
+	Com_Debug(DEBUG_RENDERER, "!  Lights:         %d\n", mod->bsp->num_lights);
 	Com_Debug(DEBUG_RENDERER, "!================================\n");
 }

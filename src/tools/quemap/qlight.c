@@ -173,6 +173,9 @@ static void LightWorld(void) {
 	// create direct lights out of patches and entities
 	BuildDirectLights(entities);
 
+	// write direct light sources to the BSP
+	EmitLights();
+
 	// calculate direct lighting
 	Work("Direct lighting", DirectLighting, bsp_file.num_faces);
 

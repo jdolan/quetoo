@@ -99,7 +99,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-light --indirect"
+            argument = "-light --antialias --indirect"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -107,7 +107,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "maps/jgothic.map"
+            argument = "maps/torn.map"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

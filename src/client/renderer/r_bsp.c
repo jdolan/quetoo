@@ -417,6 +417,30 @@ void R_DrawBspLeafs(void) {
 }
 
 /**
+ * @brief Developer tool for viewing static BSP light sources.
+ */
+void R_DrawBspLights(void) {
+
+	if (!r_draw_bsp_lights->value) {
+		return;
+	}
+
+	r_bsp_light_t *light = r_model_state.world->bsp->lights;
+	for (int32_t i = 0; i < r_model_state.world->bsp->num_lights; i++, light++) {
+
+		if (light->type < LIGHT_POINT) {
+			continue;
+		}
+		
+		if (light->leaf->vis_frame != r_locals.vis_frame) {
+			continue;
+		}
+
+		R_AddParticle(&light->debug);
+	}
+}
+
+/**
  * @brief Top-down BSP node recursion. Nodes identified as within the PVS by
  * R_MarkLeafs are first frustum-culled; those which fail immediately
  * return.
