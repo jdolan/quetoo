@@ -187,11 +187,10 @@ static void LightWorld(void) {
 
 			// calculate indirect lighting
 			Work("Indirect lighting", IndirectLighting, bsp_file.num_faces);
-
-			// free the indirect light sources
-			Mem_FreeTag(MEM_TAG_LIGHT);
 		}
 	}
+
+	g_list_free_full(lights, Mem_Free);
 
 	// finalize it and write it to per-face textures
 	Work("Finalize lighting", FinalizeLighting, bsp_file.num_faces);
