@@ -74,7 +74,8 @@ check_cm_polylib_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_cm_polylib_LDADD = \
 	$(TESTS_LIBS) \
-	$(top_builddir)/src/libmem.la
+	$(top_builddir)/src/libmem.la \
+	$(top_builddir)/src/collision/libcollision.la
 
 check_cvar_SOURCES = \
 	check_cvar.c
