@@ -173,7 +173,7 @@ void Mon_SendWinding_(const char *func, mon_level_t level, const vec3_t p[], uin
 	xmlSetProp(winding_msg, xmlString("level"), xmlStringf("%d", level));
 
 	xmlNodePtr winding = xmlNewNode(NULL, xmlString("winding"));
-	xmlNodeSetContent(winding, xmlStringf("%u", n));
+	xmlNodeSetContent(winding, xmlStringf("%u ", n));
 	xmlAddChild(winding_msg, winding);
 
 	vec3_t center;
