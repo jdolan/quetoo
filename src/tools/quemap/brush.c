@@ -411,7 +411,7 @@ void SplitBrush(csg_brush_t *brush, int32_t plane_num, csg_brush_t **front, csg_
 		Cm_ClipWinding(&w, plane2->normal, plane2->dist, 0); // PLANESIDE_EPSILON);
 	}
 
-	if (!w || WindingIsTiny(w)) { // the brush isn't really split
+	if (!w || WindingIsSmall(w)) { // the brush isn't really split
 
 		const int32_t side = BrushMostlyOnSide(brush, plane);
 		if (side == SIDE_FRONT) {
@@ -423,7 +423,7 @@ void SplitBrush(csg_brush_t *brush, int32_t plane_num, csg_brush_t **front, csg_
 		return;
 	}
 
-	if (WindingIsHuge(w)) {
+	if (WindingIsLarge(w)) {
 		Mon_SendWinding(MON_WARN, (const vec3_t *) w->points, w->num_points, "Large winding");
 	}
 

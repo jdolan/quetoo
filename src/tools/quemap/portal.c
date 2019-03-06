@@ -312,7 +312,7 @@ void MakeNodePortal(node_t *node) {
 		return;
 	}
 
-	if (WindingIsTiny(w)) {
+	if (WindingIsSmall(w)) {
 		c_tinyportals++;
 		Cm_FreeWinding(w);
 		return;
@@ -355,13 +355,13 @@ void SplitNodePortals(node_t *node) {
 		Cm_SplitWinding(p->winding, plane->normal, plane->dist, SPLIT_WINDING_EPSILON,
 		                   &front_winding, &back_winding);
 
-		if (front_winding && WindingIsTiny(front_winding)) {
+		if (front_winding && WindingIsSmall(front_winding)) {
 			Cm_FreeWinding(front_winding);
 			front_winding = NULL;
 			c_tinyportals++;
 		}
 
-		if (back_winding && WindingIsTiny(back_winding)) {
+		if (back_winding && WindingIsSmall(back_winding)) {
 			Cm_FreeWinding(back_winding);
 			back_winding = NULL;
 			c_tinyportals++;
