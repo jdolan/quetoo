@@ -524,13 +524,14 @@ _Bool FloodEntities(tree_t *tree) {
 	const entity_t *ent = &entities[1];
 	for (int32_t i = 1; i < num_entities; i++, ent++) {
 
-		vec3_t origin;
-		VectorForKey(ent, "origin", origin, NULL);
-		if (VectorCompare(origin, vec3_origin)) {
+		if (!ValueForKey(ent, "origin", NULL)) {
 			continue;
 		}
 
-		origin[2] += 1.0;
+		vec3_t origin;
+		VectorForKey(ent, "origin", origin, NULL);
+
+		VectorAdd(origin, vec3_up, origin);
 
 		if (PlaceOccupant(tree->head_node, origin, ent)) {
 			inside_occupied = true;
