@@ -208,24 +208,22 @@ static int32_t PlaneFromPoints(const vec3_t p0, const vec3_t p1, const vec3_t p2
  * @brief
  */
 static int32_t BrushContents(const brush_t *b) {
-	int32_t contents;
-	const brush_side_t *s;
-	int32_t i;
-	int32_t trans;
 
-	s = &b->original_sides[0];
-	contents = s->contents;
-	trans = bsp_file.texinfo[s->texinfo].flags;
-	for (i = 1; i < b->num_sides; i++, s++) {
-		trans |= bsp_file.texinfo[s->texinfo].flags;
+	const brush_side_t *s = &b->original_sides[0];
+
+	int32_t contents = s->contents;
+	int32_t surface = bsp_file.texinfo[s->texinfo].flags;
+
+	for (int32_t i = 1; i < b->num_sides; i++, s++) {
+		surface |= bsp_file.texinfo[s->texinfo].flags;
 		if (s->contents != contents) {
-			Com_Verbose("Entity %i, Brush %i: mixed face contents\n", b->entity_num, b->brush_num);
+			Mon_SendSelect(MON_WARN, b->entity_num, b->brush_num, "Mixed face contents");
 			break;
 		}
 	}
 
 	// if any side is translucent, mark the contents and change solid to window
-	if (trans & (SURF_ALPHA_TEST | SURF_BLEND_33 | SURF_BLEND_66)) {
+	if (surface & (SURF_ALPHA_TEST | SURF_BLEND_33 | SURF_BLEND_66)) {
 		contents |= CONTENTS_TRANSLUCENT;
 		if (contents & CONTENTS_SOLID) {
 			contents &= ~CONTENTS_SOLID;
