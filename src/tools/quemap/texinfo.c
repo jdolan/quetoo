@@ -25,46 +25,41 @@
 /**
  * @brief
  */
-static const vec3_t base_axis[18] = {
-// base texture axis
-	{ 0, 0, 1 },
-	{ 1, 0, 0 },
-	{ 0, -1, 0 }, // floor
-	{ 0, 0, -1 },
-	{ 1, 0, 0 },
-	{ 0, -1, 0 }, // ceiling
-	{ 1, 0, 0 },
-	{ 0, 1, 0 },
-	{ 0, 0, -1 }, // west wall
-	{ -1, 0, 0 },
-	{ 0, 1, 0 },
-	{ 0, 0, -1 }, // east wall
-	{ 0, 1, 0 },
-	{ 1, 0, 0 },
-	{ 0, 0, -1 }, // south wall
-	{ 0, -1, 0 },
-	{ 1, 0, 0 },
-	{ 0, 0, -1 }, // north wall
-};
+static void TextureAxisFromPlane(const plane_t *plane, vec3_t xv, vec3_t yv) {
+	static const vec3_t base_axis[18] = { // base texture axis
+		{ 0, 0, 1 },
+		{ 1, 0, 0 },
+		{ 0, -1, 0 }, // floor
+		{ 0, 0, -1 },
+		{ 1, 0, 0 },
+		{ 0, -1, 0 }, // ceiling
+		{ 1, 0, 0 },
+		{ 0, 1, 0 },
+		{ 0, 0, -1 }, // west wall
+		{ -1, 0, 0 },
+		{ 0, 1, 0 },
+		{ 0, 0, -1 }, // east wall
+		{ 0, 1, 0 },
+		{ 1, 0, 0 },
+		{ 0, 0, -1 }, // south wall
+		{ 0, -1, 0 },
+		{ 1, 0, 0 },
+		{ 0, 0, -1 }, // north wall
+	};
 
-static void TextureAxisFromPlane(plane_t *pln, vec3_t xv, vec3_t yv) {
-	int32_t bestaxis;
-	vec_t dot, best;
-	int32_t i;
+	int32_t best_axis = 0;
+	vec_t best = 0.0;
 
-	best = 0;
-	bestaxis = 0;
-
-	for (i = 0; i < 6; i++) {
-		dot = DotProduct(pln->normal, base_axis[i * 3]);
+	for (int32_t i = 0; i < 6; i++) {
+		const vec_t dot = DotProduct(plane->normal, base_axis[i * 3]);
 		if (dot > best) {
 			best = dot;
-			bestaxis = i;
+			best_axis = i;
 		}
 	}
 
-	VectorCopy(base_axis[bestaxis * 3 + 1], xv);
-	VectorCopy(base_axis[bestaxis * 3 + 2], yv);
+	VectorCopy(base_axis[best_axis * 3 + 1], xv);
+	VectorCopy(base_axis[best_axis * 3 + 2], yv);
 }
 
 /**
@@ -109,7 +104,7 @@ static int32_t FindTexinfo(bsp_texinfo_t *tx) {
  * @brief
  */
 int32_t TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, const vec3_t origin) {
-	vec_t ang, sinv, cosv;
+	vec_t sinv, cosv;
 
 	if (!bt->name[0]) {
 		return 0;
@@ -147,9 +142,8 @@ int32_t TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, const vec3_t
 		sinv = -1.0;
 		cosv = 0.0;
 	} else {
-		ang = Radians(bt->rotate);
-		sinv = sin(ang);
-		cosv = cos(ang);
+		sinv = sinf(Radians(bt->rotate));
+		cosv = cosf(Radians(bt->rotate));
 	}
 
 	int32_t sv;
