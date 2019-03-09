@@ -46,7 +46,7 @@ static void FixTJunctions_(int32_t face_num) {
 		for (int32_t i = 0; i < f->w->num_points; i++) {
 			const vec_t *v = f->w->points[i];
 
-			const vec_t d = DotProduct(v, plane->normal) - plane->dist;
+			const dvec_t d = DotProduct(v, plane->normal) - plane->dist;
 			if (d > ON_EPSILON || d < -ON_EPSILON) {
 				continue; // v is not on face's plane
 			}
