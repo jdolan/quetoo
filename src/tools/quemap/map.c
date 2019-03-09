@@ -191,7 +191,7 @@ int32_t FindPlane(vec3_t normal, dvec_t dist) {
 /**
  * @brief
  */
-static int32_t PlaneFromPoints(const vec3_t p0, const vec3_t p1, const vec3_t p2) {
+static int32_t PlaneFromPoints(const dvec3_t p0, const dvec3_t p1, const dvec3_t p2) {
 	vec3_t t1, t2, normal;
 
 	VectorSubtract(p0, p1, t1);
@@ -539,7 +539,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 
 			brush_side_t *side = &brush_sides[num_brush_sides];
 
-			vec3_t points[3];
+			dvec3_t points[3];
 
 			// read the three point plane definition
 			for (int32_t i = 0; i < 3; i++) {
@@ -550,7 +550,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 				}
 
 				for (int32_t j = 0; j < 3; j++) {
-					Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &points[i][j], 1);
+					Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_DOUBLE, &points[i][j], 1);
 				}
 
 				Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
