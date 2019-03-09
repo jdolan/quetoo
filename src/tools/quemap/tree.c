@@ -437,7 +437,7 @@ tree_t *BuildTree(csg_brush_t *brushes, const vec3_t mins, const vec3_t maxs) {
 
 		const vec_t volume = BrushVolume(b);
 		if (volume < micro_volume) {
-			Mon_SendSelect(MON_WARN, b->original->entity_num, b->original->brush_num, "Microbrush");
+			Mon_SendSelect(MON_WARN, b->original->entity_num, b->original->brush_num, "Micro volume");
 		}
 
 		for (int32_t i = 0; i < b->num_sides; i++) {

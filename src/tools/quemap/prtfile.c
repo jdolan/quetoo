@@ -30,9 +30,9 @@ static int32_t num_visportals;
  * @brief
  */
 static void WriteFloat(file_t *f, vec_t v) {
-	const vec_t r = floor(v + 0.5);
+	const vec_t r = floorf(v + 0.5);
 
-	if (fabs(v - r) < 0.001) {
+	if (fabsf(v - r) < SIDE_EPSILON) {
 		Fs_Print(f, "%i ", (int32_t) r);
 	} else {
 		Fs_Print(f, "%f ", v);
@@ -45,7 +45,7 @@ static void WriteFloat(file_t *f, vec_t v) {
 static void WritePortalFile_r(node_t *node) {
 	int32_t s;
 	vec3_t normal;
-	vec_t dist;
+	dvec_t dist;
 
 	// decision node
 	if (node->plane_num != PLANE_NUM_LEAF && !node->detail_separator) {
