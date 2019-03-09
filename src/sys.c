@@ -167,10 +167,8 @@ void *Sys_LoadLibrary(void *handle, const char *entry_point, void *params) {
  */
 void Sys_Backtrace(const char *msg) {
 
-	char message[MAX_STRING_CHARS] = "";
-
 #if HAVE_EXECINFO
-
+	char message[MAX_STRING_CHARS] = "";
 	void *symbols[MAX_BACKTRACE_SYMBOLS];
 	const int32_t count = backtrace(symbols, MAX_BACKTRACE_SYMBOLS);
 
@@ -198,8 +196,14 @@ void Sys_Backtrace(const char *msg) {
 
 	const SDL_MessageBoxData data = {
 		.flags = SDL_MESSAGEBOX_ERROR,
-		.title = msg ?: "Fatal Error",
-		.message = message,
+		.title = "Fatal Error",
+		.message = msg,
+		.numbuttons = 1,
+		.buttons = &(const SDL_MessageBoxButtonData) {
+			.flags = SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT | SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
+			.buttonid = 1,
+			.text = "OK"
+		}
 	};
 
 	int32_t button;
