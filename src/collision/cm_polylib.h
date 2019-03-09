@@ -45,11 +45,11 @@ cm_winding_t *Cm_ReverseWinding(const cm_winding_t *w);
 void Cm_WindingBounds(const cm_winding_t *w, vec3_t mins, vec3_t maxs);
 void Cm_WindingCenter(const cm_winding_t *w, vec3_t center);
 vec_t Cm_WindingArea(const cm_winding_t *w);
-cm_winding_t *Cm_WindingForPlane(const vec3_t normal, const vec_t dist);
+cm_winding_t *Cm_WindingForPlane(const vec3_t normal, const dvec_t dist);
 cm_winding_t *Cm_WindingForFace(const bsp_file_t *file, const bsp_face_t *face);
-void Cm_PlaneForWinding(const cm_winding_t *w, vec3_t normal, vec_t *dist);
-void Cm_SplitWinding(const cm_winding_t *w, const vec3_t normal, const vec_t dist, vec_t epsilon, cm_winding_t **front, cm_winding_t **back);
-void Cm_ClipWinding(cm_winding_t **w, const vec3_t normal, const vec_t dist, vec_t epsilon);
+void Cm_PlaneForWinding(const cm_winding_t *w, vec3_t normal, dvec_t *dist);
+void Cm_SplitWinding(const cm_winding_t *w, const vec3_t normal, const dvec_t dist, const dvec_t epsilon, cm_winding_t **front, cm_winding_t **back);
+void Cm_ClipWinding(cm_winding_t **w, const vec3_t normal, const dvec_t dist, const dvec_t epsilon);
 cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, const vec3_t normal);
 int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements);
 

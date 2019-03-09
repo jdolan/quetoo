@@ -127,7 +127,7 @@ vec_t Cm_WindingArea(const cm_winding_t *w) {
 /**
  * @brief
  */
-void Cm_PlaneForWinding(const cm_winding_t *w, vec3_t normal, vec_t *dist) {
+void Cm_PlaneForWinding(const cm_winding_t *w, vec3_t normal, dvec_t *dist) {
 	vec3_t v1, v2;
 
 	VectorSubtract(w->points[1], w->points[0], v1);
@@ -140,7 +140,7 @@ void Cm_PlaneForWinding(const cm_winding_t *w, vec3_t normal, vec_t *dist) {
 /**
  * @brief Create a massive polygon for the specified plane.
  */
-cm_winding_t *Cm_WindingForPlane(const vec3_t normal, const vec_t dist) {
+cm_winding_t *Cm_WindingForPlane(const vec3_t normal, const dvec_t dist) {
 	vec3_t org, right, up;
 
 	// find the major axis
@@ -230,12 +230,12 @@ cm_winding_t *Cm_WindingForFace(const bsp_file_t *file, const bsp_face_t *face) 
 /**
  * @brief
  */
-void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, const vec_t dist, vec_t epsilon,
+void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, const dvec_t dist, dvec_t epsilon,
 						cm_winding_t **front, cm_winding_t **back) {
 
 	const int32_t max_points = in->num_points + 4;
 
-	vec_t dists[max_points];
+	dvec_t dists[max_points];
 	int32_t sides[max_points];
 
 	int32_t counts[SIDE_BOTH + 1];
@@ -243,7 +243,7 @@ void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, const vec_t di
 
 	// determine sides for each point
 	for (int32_t i = 0; i < in->num_points; i++) {
-		const vec_t dot = DotProduct(in->points[i], normal) - dist;
+		const dvec_t dot = DotProduct(in->points[i], normal) - dist;
 		dists[i] = dot;
 		if (dot > epsilon) {
 			sides[i] = SIDE_FRONT;
@@ -305,7 +305,7 @@ void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, const vec_t di
 		// generate a split point
 		VectorCopy(in->points[(i + 1) % in->num_points], p2);
 
-		const vec_t dot = dists[i] / (dists[i] - dists[i + 1]);
+		const dvec_t dot = dists[i] / (dists[i] - dists[i + 1]);
 		for (int32_t j = 0; j < 3; j++) { // avoid round off error when possible
 			if (normal[j] == 1) {
 				mid[j] = dist;
@@ -334,12 +334,12 @@ void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, const vec_t di
 /**
  * @brief Clips the winding against the given plane.
  */
-void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, const vec_t dist, vec_t epsilon) {
+void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, const dvec_t dist, const dvec_t epsilon) {
 
 	cm_winding_t *in = *in_out;
 	const int32_t max_points = in->num_points + 4;
 
-	vec_t dists[max_points];
+	dvec_t dists[max_points];
 	int32_t sides[max_points];
 
 	int32_t counts[SIDE_BOTH + 1];
@@ -347,7 +347,7 @@ void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, const vec_t dist
 
 	// determine sides for each point
 	for (int32_t i = 0; i < in->num_points; i++) {
-		const vec_t dot = DotProduct(in->points[i], normal) - dist;
+		const dvec_t dot = DotProduct(in->points[i], normal) - dist;
 		dists[i] = dot;
 		if (dot > epsilon) {
 			sides[i] = SIDE_FRONT;
@@ -397,11 +397,11 @@ void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, const vec_t dist
 		// generate a split point
 		VectorCopy(in->points[(i + 1) % in->num_points], p2);
 
-		const vec_t dot = dists[i] / (dists[i] - dists[i + 1]);
+		const dvec_t dot = dists[i] / (dists[i] - dists[i + 1]);
 		for (int32_t j = 0; j < 3; j++) { // avoid round off error when possible
-			if (normal[j] == 1) {
+			if (normal[j] == 1.0) {
 				mid[j] = dist;
-			} else if (normal[j] == -1) {
+			} else if (normal[j] == -1.0) {
 				mid[j] = -dist;
 			} else {
 				mid[j] = p1[j] + dot * (p2[j] - p1[j]);
