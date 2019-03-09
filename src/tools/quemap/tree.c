@@ -195,7 +195,15 @@ static brush_side_t *SelectSplitSide(csg_brush_t *brushes, node_t *node) {
 	_Bool hint_split;
 
 	best_side = NULL;
-	best_value = -99999;
+	best_value = INT32_MIN;
+
+	_Bool have_structural = false;
+	for (brush = brushes; brush; brush = brush->next) {
+		if (brush->original->contents == CONTENTS_SOLID) {
+			have_structural = true;
+			break;
+		}
+	}
 
 	// the search order goes: visible-structural, visible-detail,
 	// nonvisible-structural, nonvisible-detail.
@@ -227,8 +235,11 @@ static brush_side_t *SelectSplitSide(csg_brush_t *brushes, node_t *node) {
 				if (side->surf & SURF_SKIP) {
 					continue;    // skip surfaces are never chosen
 				}
-				if (side->visible ^ (pass < 2)) {
-					continue;    // only check visible faces on first pass
+				if (!side->visible && pass < 2) {
+					continue;    // prefer visible sides on the first two passes
+				}
+				if (side->contents & CONTENTS_DETAIL && have_structural) {
+					continue;    // never split structural by detail
 				}
 
 				plane_num = side->plane_num;
@@ -286,13 +297,9 @@ static brush_side_t *SelectSplitSide(csg_brush_t *brushes, node_t *node) {
 				}
 				value -= epsilon_brush * 1000; // avoid!
 
-				if (side->contents & CONTENTS_DETAIL) {
-					//value -= 5; // try to avoid splitting on details
-				}
-
 				// never split a hint side except with another hint
 				if (hint_split && !(side->surf & SURF_HINT)) {
-					value = -9999999;
+					value = INT32_MIN;
 				}
 
 				// save off the side test so we don't need
