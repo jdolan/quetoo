@@ -311,10 +311,10 @@ int32_t TestBrushToPlane(csg_brush_t *brush, int32_t plane_num, int32_t *num_spl
 				d_back = d;
 			}
 
-			if (d > 0.1) { // PLANESIDE_EPSILON)
+			if (d > SIDE_EPSILON) { // PLANESIDE_EPSILON)
 				front = 1;
 			}
-			if (d < -0.1) { // PLANESIDE_EPSILON)
+			if (d < -SIDE_EPSILON) { // PLANESIDE_EPSILON)
 				back = 1;
 			}
 		}
@@ -391,12 +391,12 @@ void SplitBrush(csg_brush_t *brush, int32_t plane_num, csg_brush_t **front, csg_
 			}
 		}
 	}
-	if (d_front < 0.1) { // PLANESIDE_EPSILON)
+	if (d_front < ON_EPSILON) { // PLANESIDE_EPSILON)
 		// only on back
 		*back = CopyBrush(brush);
 		return;
 	}
-	if (d_back > -0.1) { // PLANESIDE_EPSILON)
+	if (d_back > -ON_EPSILON) { // PLANESIDE_EPSILON)
 		// only on front
 		*front = CopyBrush(brush);
 		return;
