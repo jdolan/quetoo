@@ -286,7 +286,7 @@ static cm_winding_t *BaseWindingForNode(const node_t *node) {
  */
 void MakeNodePortal(node_t *node) {
 	vec3_t normal;
-	vec_t dist;
+	dvec_t dist;
 	int32_t side;
 
 	cm_winding_t *w = BaseWindingForNode(node);
@@ -494,8 +494,8 @@ static _Bool PlaceOccupant(node_t *head_node, vec3_t origin, const entity_t *occ
 	node_t *node = head_node;
 	while (node->plane_num != PLANE_NUM_LEAF) {
 		const plane_t *plane = &planes[node->plane_num];
-		const vec_t d = DotProduct(origin, plane->normal) - plane->dist;
-		if (d >= 0) {
+		const dvec_t d = DotProduct(origin, plane->normal) - plane->dist;
+		if (d >= 0.0) {
 			node = node->children[0];
 		} else {
 			node = node->children[1];

@@ -26,7 +26,7 @@
 
 typedef struct {
 	vec3_t normal;
-	vec_t dist;
+	dvec_t dist;
 } plane_t;
 
 typedef enum {
