@@ -352,7 +352,7 @@ static void AddBrushBevels(brush_t *b) {
 						for (l = 0; l < w2->num_points; l++) {
 							d = DotProduct(w2->points[l], normal) - dist;
 							if (d > 0.1) {
-								break;    // point in front
+								break; // point in front
 							}
 							if (d < minBack) {
 								minBack = d;
@@ -790,12 +790,10 @@ static entity_t *ParseEntity(parser_t *parser) {
 					brush_side_t *s = &b->original_sides[j];
 					plane_t *p = &planes[s->plane_num];
 
-					const vec_t dist = p->dist - DotProduct(p->normal, origin);
+					const dvec_t dist = p->dist - DotProduct(p->normal, origin);
 
 					s->plane_num = FindPlane(p->normal, dist);
-					s->texinfo = TexinfoForBrushTexture(&planes[s->plane_num],
-														&brush_textures[s - brush_sides],
-														origin);
+					s->texinfo = TexinfoForBrushTexture(p, &brush_textures[s - brush_sides], origin);
 				}
 				MakeBrushWindings(b);
 			}
