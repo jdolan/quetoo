@@ -121,7 +121,7 @@ static chain_winding_t *ClipChainWinding(chain_t *chain, chain_winding_t *in, co
 
 	// determine sides for each point
 	for (int32_t i = 0; i < in->num_points; i++) {
-		const vec_t dot = DotProduct(in->points[i], plane->normal) - plane->dist;
+		const dvec_t dot = DotProduct(in->points[i], plane->normal) - plane->dist;
 		dists[i] = dot;
 		if (dot > ON_EPSILON) {
 			sides[i] = SIDE_FRONT;
@@ -268,7 +268,7 @@ static chain_winding_t *ClipChainWindings(chain_t *chain,
 				if (k == i || k == l) {
 					continue;
 				}
-				const vec_t d = DotProduct(source->points[k], plane.normal) - plane.dist;
+				const dvec_t d = DotProduct(source->points[k], plane.normal) - plane.dist;
 				if (d < -ON_EPSILON) { // source is on the negative side, so we want all
 					// pass and target on the positive side
 					flip_test = false;
@@ -298,7 +298,7 @@ static chain_winding_t *ClipChainWindings(chain_t *chain,
 				if (k == j) {
 					continue;
 				}
-				const vec_t d = DotProduct(pass->points[k], plane.normal) - plane.dist;
+				const dvec_t d = DotProduct(pass->points[k], plane.normal) - plane.dist;
 				if (d < -ON_EPSILON) {
 					break;
 				} else if (d > ON_EPSILON) {
@@ -321,7 +321,7 @@ static chain_winding_t *ClipChainWindings(chain_t *chain,
 				plane.dist = -plane.dist;
 			}
 			// MrE: fast check first
-			const vec_t d = DotProduct(chain->portal->origin, plane.normal) - plane.dist;
+			const dvec_t d = DotProduct(chain->portal->origin, plane.normal) - plane.dist;
 			//if completely at the back of the separator plane
 			if (d < -chain->portal->radius) {
 				return NULL;
@@ -394,7 +394,7 @@ static void RecursiveLeafFlow(portal_chain_t *chain, chain_t *prev, int32_t leaf
 
 		{
 			const plane_t *plane = &chain->portal->plane;
-			const vec_t d = DotProduct(portal->origin, plane->normal) - plane->dist;
+			const dvec_t d = DotProduct(portal->origin, plane->normal) - plane->dist;
 			if (d < -portal->radius) {
 				continue;
 			} else if (d > portal->radius) {
@@ -409,7 +409,7 @@ static void RecursiveLeafFlow(portal_chain_t *chain, chain_t *prev, int32_t leaf
 
 		{
 			const plane_t *plane = &portal->plane;
-			const vec_t d = DotProduct(chain->portal->origin, plane->normal) - plane->dist;
+			const dvec_t d = DotProduct(chain->portal->origin, plane->normal) - plane->dist;
 			if (d > chain->portal->radius) {
 				continue;
 			} else if (d < -chain->portal->radius) {
@@ -523,7 +523,7 @@ void BaseVis(int32_t portal_num) {
 
 		const cm_winding_t *w = p->winding;
 		for (j = 0; j < w->num_points; j++) {
-			const vec_t d = DotProduct(w->points[j], portal->plane.normal) - portal->plane.dist;
+			const dvec_t d = DotProduct(w->points[j], portal->plane.normal) - portal->plane.dist;
 			if (d > ON_EPSILON) {
 				break;
 			}
@@ -535,7 +535,7 @@ void BaseVis(int32_t portal_num) {
 
 		w = portal->winding;
 		for (j = 0; j < w->num_points; j++) {
-			const vec_t d = DotProduct(w->points[j], p->plane.normal) - p->plane.dist;
+			const dvec_t d = DotProduct(w->points[j], p->plane.normal) - p->plane.dist;
 			if (d < -ON_EPSILON) {
 				break;
 			}
