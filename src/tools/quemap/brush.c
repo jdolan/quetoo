@@ -136,7 +136,7 @@ static void CreateBrushWindings(csg_brush_t *brush) {
 				continue;
 			}
 			plane = &planes[brush->sides[j].plane_num ^ 1];
-			Cm_ClipWinding(&w, plane->normal, plane->dist, 0); //ON_EPSILON);
+			Cm_ClipWinding(&w, plane->normal, plane->dist, 0.0); //ON_EPSILON);
 		}
 
 		side->winding = w;
@@ -241,8 +241,8 @@ static int32_t BoxOnPlaneSide(vec3_t mins, vec3_t maxs, plane_t *plane) {
 		}
 	}
 
-	const vec_t dist1 = DotProduct(plane->normal, corners[0]) - plane->dist;
-	const vec_t dist2 = DotProduct(plane->normal, corners[1]) - plane->dist;
+	const dvec_t dist1 = DotProduct(plane->normal, corners[0]) - plane->dist;
+	const dvec_t dist2 = DotProduct(plane->normal, corners[1]) - plane->dist;
 
 	if (dist1 >= SIDE_EPSILON) {
 		side |= SIDE_FRONT;
@@ -286,7 +286,7 @@ int32_t TestBrushToPlane(csg_brush_t *brush, int32_t plane_num, int32_t *num_spl
 	}
 
 	// if both sides, count the visible faces split
-	vec_t d_front = 0.0, d_back = 0.0;
+	dvec_t d_front = 0.0, d_back = 0.0;
 
 	for (int32_t i = 0; i < brush->num_sides; i++) {
 		if (brush->sides[i].texinfo == TEXINFO_NODE) {
@@ -303,7 +303,7 @@ int32_t TestBrushToPlane(csg_brush_t *brush, int32_t plane_num, int32_t *num_spl
 		int32_t front = 0, back = 0;
 
 		for (int32_t j = 0; j < w->num_points; j++) {
-			const vec_t d = DotProduct(w->points[j], plane->normal) - plane->dist;
+			const dvec_t d = DotProduct(w->points[j], plane->normal) - plane->dist;
 			if (d > d_front) {
 				d_front = d;
 			}
@@ -340,7 +340,7 @@ int32_t TestBrushToPlane(csg_brush_t *brush, int32_t plane_num, int32_t *num_spl
  */
 static int32_t BrushMostlyOnSide(csg_brush_t *brush, plane_t *plane) {
 
-	vec_t max = 0.0;
+	dvec_t max = 0.0;
 	int32_t side = SIDE_FRONT;
 
 	for (int32_t i = 0; i < brush->num_sides; i++) {
@@ -349,7 +349,7 @@ static int32_t BrushMostlyOnSide(csg_brush_t *brush, plane_t *plane) {
 			continue;
 		}
 		for (int32_t j = 0; j < w->num_points; j++) {
-			const vec_t d = DotProduct(w->points[j], plane->normal) - plane->dist;
+			const dvec_t d = DotProduct(w->points[j], plane->normal) - plane->dist;
 			if (d > max) {
 				max = d;
 				side = SIDE_FRONT;
@@ -375,14 +375,14 @@ void SplitBrush(csg_brush_t *brush, int32_t plane_num, csg_brush_t **front, csg_
 	plane_t *plane = &planes[plane_num];
 
 	// check all points
-	vec_t d_front = 0.0, d_back = 0.0;
+	dvec_t d_front = 0.0, d_back = 0.0;
 	for (int32_t i = 0; i < brush->num_sides; i++) {
 		cm_winding_t *w = brush->sides[i].winding;
 		if (!w) {
 			continue;
 		}
 		for (int32_t j = 0; j < w->num_points; j++) {
-			const vec_t d = DotProduct(w->points[j], plane->normal) - plane->dist;
+			const dvec_t d = DotProduct(w->points[j], plane->normal) - plane->dist;
 			if (d > 0.0 && d > d_front) {
 				d_front = d;
 			}
@@ -408,7 +408,7 @@ void SplitBrush(csg_brush_t *brush, int32_t plane_num, csg_brush_t **front, csg_
 
 	for (int32_t i = 0; i < brush->num_sides && w; i++) {
 		plane_t *plane2 = &planes[brush->sides[i].plane_num ^ 1];
-		Cm_ClipWinding(&w, plane2->normal, plane2->dist, 0); // PLANESIDE_EPSILON);
+		Cm_ClipWinding(&w, plane2->normal, plane2->dist, 0.0); // PLANESIDE_EPSILON);
 	}
 
 	if (!w || WindingIsSmall(w)) { // the brush isn't really split
@@ -444,7 +444,7 @@ void SplitBrush(csg_brush_t *brush, int32_t plane_num, csg_brush_t **front, csg_
 		if (!w) {
 			continue;
 		}
-		Cm_SplitWinding(w, plane->normal, plane->dist, 0 /*PLANESIDE_EPSILON */, &cw[0], &cw[1]);
+		Cm_SplitWinding(w, plane->normal, plane->dist, 0.0 /*PLANESIDE_EPSILON */, &cw[0], &cw[1]);
 		for (int32_t j = 0; j < 2; j++) {
 			if (!cw[j]) {
 				continue;
