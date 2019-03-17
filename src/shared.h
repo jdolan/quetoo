@@ -148,10 +148,11 @@ void AnglesLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out
 
 _Bool BoxIntersect(const vec3_t mins0, const vec3_t maxs0, const vec3_t mins1, const vec3_t maxs1);
 void ProjectPointOnPlane(const vec3_t p, const vec3_t normal, vec3_t out);
-void PerpendicularVector(const vec3_t in, vec3_t out);
-void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec4_t tangent,
-                    vec3_t bitangent);
 void RotatePointAroundVector(const vec3_t p, const vec3_t dir, const vec_t degrees, vec3_t out);
+void PerpendicularVector(const vec3_t in, vec3_t out);
+void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec4_t tangent, vec3_t bitangent);
+vec_t TriangleArea(const vec3_t a, const vec3_t b, const vec3_t c);
+vec_t BarycentricCoordinates(const vec3_t a, const vec3_t b, const vec3_t c, const vec3_t p, vec3_t out);
 
 /**
  * @brief A table of approximate normal vectors is used to save bandwidth when

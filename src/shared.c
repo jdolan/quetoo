@@ -249,6 +249,46 @@ void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, v
 }
 
 /**
+ * @return The area of the triangle defined by a, b and c.
+ */
+vec_t TriangleArea(const vec3_t a, const vec3_t b, const vec3_t c) {
+	vec3_t ba;
+	vec3_t ca;
+	vec3_t cross;
+
+	VectorSubtract(b, a, ba);
+	VectorSubtract(c, a, ca);
+
+	CrossProduct(ba, ca, cross);
+	return VectorLength(cross) * 0.5;
+}
+
+/**
+ * @brief Calculates barycentric coordinates for p in the triangle defined by a, b and c.
+ * @see https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/barycentric-coordinates
+ */
+vec_t BarycentricCoordinates(const vec3_t a, const vec3_t b, const vec3_t c, const vec3_t p, vec3_t out) {
+
+	const vec_t abc = TriangleArea(a, b, c);
+	if (abc) {
+		const vec_t bcp = TriangleArea(b, c, p);
+		out[0] = bcp / abc;
+
+		const vec_t cap = TriangleArea(c, a, p);
+		out[1] = cap / abc;
+
+		const vec_t abp = TriangleArea(a, b, p);
+		out[2] = abp / abc;
+
+		return out[0] + out[1] + out[2];
+	} else {
+		VectorClear(out);
+	}
+
+	return FLT_MAX;
+}
+
+/**
  * @brief Produces the linear interpolation of the two vectors for the given fraction.
  */
 void VectorLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out) {
