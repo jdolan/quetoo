@@ -247,7 +247,7 @@ static chain_winding_t *ClipChainWindings(chain_t *chain,
 						   plane.normal[1] * plane.normal[1] +
 						   plane.normal[2] * plane.normal[2];
 
-			if (length < ON_EPSILON) {
+			if (length <= ON_EPSILON) {
 				continue;
 			}
 
