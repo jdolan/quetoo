@@ -520,7 +520,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 
 		brush->original_sides = &brush_sides[num_brush_sides];
 		brush->entity_num = num_entities - 1;
-		brush->brush_num = num_brushes - entity->first_brush;
+		brush->brush_num = num_brushes - 1 - entity->first_brush;
 
 		while (true) {
 
