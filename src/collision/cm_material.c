@@ -73,7 +73,8 @@ static int32_t Cm_ParseContents(const char *c) {
  * @brief
  */
 static char *Cm_UnparseContents(int32_t contents) {
-	static char s[MAX_STRING_CHARS] = "";
+	static char s[MAX_STRING_CHARS];
+	*s = '\0';
 
 	if (contents & CONTENTS_WINDOW) {
 		g_strlcat(s, "window ", sizeof(s));
@@ -176,7 +177,8 @@ static int32_t Cm_ParseSurface(const char *c) {
  * @brief
  */
 static char *Cm_UnparseSurface(int32_t surface) {
-	static char s[MAX_STRING_CHARS] = "";
+	static char s[MAX_STRING_CHARS];
+	*s = '\0';
 
 	if (surface & SURF_LIGHT) {
 		g_strlcat(s, "light ", sizeof(s));
