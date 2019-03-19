@@ -61,10 +61,10 @@ static _Bool PlaneEqual(const plane_t *p, const vec3_t normal, const dvec_t dist
 	const vec_t ne = NORMAL_EPSILON;
 	const dvec_t de = DIST_EPSILON;
 
-	if ((p->dist == dist || fabsl(p->dist - dist) < de) &&
-		(p->normal[0] == normal[0] || fabs(p->normal[0] - normal[0]) < ne) &&
-		(p->normal[1] == normal[1] || fabs(p->normal[1] - normal[1]) < ne) &&
-		(p->normal[2] == normal[2] || fabs(p->normal[2] - normal[2]) < ne)) {
+	if ((p->dist == dist || fabs(p->dist - dist) <= de) &&
+		(p->normal[0] == normal[0] || fabs(p->normal[0] - normal[0]) <= ne) &&
+		(p->normal[1] == normal[1] || fabs(p->normal[1] - normal[1]) <= ne) &&
+		(p->normal[2] == normal[2] || fabs(p->normal[2] - normal[2]) <= ne)) {
 		return true;
 	}
 
@@ -85,7 +85,7 @@ static inline void AddPlaneToHash(plane_t *p) {
 /**
  * @brief
  */
-static int32_t CreatePlane(vec3_t normal, vec_t dist) {
+static int32_t CreatePlane(const vec3_t normal, vec_t dist) {
 
 	// bad plane
 	if (VectorLength(normal) < 0.5) {
@@ -170,7 +170,7 @@ int32_t FindPlane(vec3_t normal, dvec_t dist) {
 
 	SnapPlane(normal, &dist);
 
-	const int32_t hash = ((int32_t) fabsl(dist)) & (PLANE_HASHES - 1);
+	const int32_t hash = ((int32_t) fabs(dist)) & (PLANE_HASHES - 1);
 
 	// search the adjacent bins as well
 	for (int32_t i = -1; i <= 1; i++) {
