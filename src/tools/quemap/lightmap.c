@@ -625,8 +625,8 @@ void EmitLightmaps(void) {
 		out++;
 		bsp_file.num_lightmaps++;
 
-		IMG_SavePNG(lightmap, va("/tmp/%s_lm_%d.png", map_base, bsp_file.num_lightmaps));
-		IMG_SavePNG(deluxemap, va("/tmp/%s_dm_%d.png", map_base, bsp_file.num_lightmaps));
+		// IMG_SavePNG(lightmap, va("/tmp/%s_lm_%d.png", map_base, bsp_file.num_lightmaps));
+		// IMG_SavePNG(deluxemap, va("/tmp/%s_dm_%d.png", map_base, bsp_file.num_lightmaps));
 
 		SDL_FreeSurface(lightmap);
 		SDL_FreeSurface(deluxemap);
