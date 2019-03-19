@@ -266,9 +266,8 @@ int32_t TestBrushToPlane(csg_brush_t *brush, int32_t plane_num, int32_t *num_spl
 	// if the brush actually uses the plane_num, we can tell the side for sure
 	for (int32_t i = 0; i < brush->num_sides; i++) {
 		const int32_t num = brush->sides[i].plane_num;
-		if (num >= MAX_BSP_PLANES) {
-			Mon_SendSelect(MON_ERROR, brush->original->entity_num, brush->original->brush_num, "Bad plane");
-		}
+		assert(num < num_planes);
+
 		if (num == plane_num) {
 			return SIDE_BACK | SIDE_FACING;
 		}

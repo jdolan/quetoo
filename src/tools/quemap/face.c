@@ -245,7 +245,7 @@ static size_t PhongFacesForVertex(const bsp_vertex_t *vertex, const bsp_face_t *
 			vec3_t delta;
 			VectorSubtract(vertex->position, v->position, delta);
 
-			if (VectorLength(delta) < ON_EPSILON) {
+			if (VectorLength(delta) <= ON_EPSILON) {
 				phong_faces[count++] = face;
 				break;
 			}

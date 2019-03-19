@@ -39,6 +39,7 @@ TESTS = \
 	check_master \
 	check_mem \
 	check_r_media \
+	check_shared \
 	check_thread
 
 noinst_PROGRAMS = $(TESTS)
@@ -118,6 +119,15 @@ check_r_media_CFLAGS = \
 check_r_media_LDADD = \
 	$(TESTS_LIBS) \
 	$(top_builddir)/src/client/renderer/librenderer.la
+
+check_shared_SOURCES = \
+	check_shared.c
+check_shared_CFLAGS = \
+	-I$(top_srcdir)/src \
+	$(TESTS_CFLAGS)
+check_shared_LDADD = \
+	$(TESTS_LIBS) \
+	$(top_builddir)/src/libshared.la
 
 check_thread_SOURCES = \
 	check_thread.c

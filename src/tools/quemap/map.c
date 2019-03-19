@@ -61,10 +61,10 @@ static _Bool PlaneEqual(const plane_t *p, const vec3_t normal, const dvec_t dist
 	const vec_t ne = NORMAL_EPSILON;
 	const dvec_t de = DIST_EPSILON;
 
-	if ((p->dist == dist || fabsl(p->dist - dist) < de) &&
-		(p->normal[0] == normal[0] || fabs(p->normal[0] - normal[0]) < ne) &&
-		(p->normal[1] == normal[1] || fabs(p->normal[1] - normal[1]) < ne) &&
-		(p->normal[2] == normal[2] || fabs(p->normal[2] - normal[2]) < ne)) {
+	if ((p->dist == dist || fabs(p->dist - dist) <= de) &&
+		(p->normal[0] == normal[0] || fabs(p->normal[0] - normal[0]) <= ne) &&
+		(p->normal[1] == normal[1] || fabs(p->normal[1] - normal[1]) <= ne) &&
+		(p->normal[2] == normal[2] || fabs(p->normal[2] - normal[2]) <= ne)) {
 		return true;
 	}
 
@@ -85,7 +85,7 @@ static inline void AddPlaneToHash(plane_t *p) {
 /**
  * @brief
  */
-static int32_t CreatePlane(vec3_t normal, vec_t dist) {
+static int32_t CreatePlane(const vec3_t normal, vec_t dist) {
 
 	// bad plane
 	if (VectorLength(normal) < 0.5) {
@@ -170,7 +170,7 @@ int32_t FindPlane(vec3_t normal, dvec_t dist) {
 
 	SnapPlane(normal, &dist);
 
-	const int32_t hash = ((int32_t) fabsl(dist)) & (PLANE_HASHES - 1);
+	const int32_t hash = ((int32_t) fabs(dist)) & (PLANE_HASHES - 1);
 
 	// search the adjacent bins as well
 	for (int32_t i = -1; i <= 1; i++) {
@@ -520,7 +520,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 
 		brush->original_sides = &brush_sides[num_brush_sides];
 		brush->entity_num = num_entities - 1;
-		brush->brush_num = num_brushes - entity->first_brush;
+		brush->brush_num = num_brushes - 1 - entity->first_brush;
 
 		while (true) {
 
@@ -675,10 +675,9 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 		// the origin brush
 		if (brush->contents & CONTENTS_ORIGIN) {
 
-			if (num_entities == 1) {
+			if (brush->entity_num == 0) {
 				Mon_SendSelect(MON_ERROR, brush->entity_num, brush->brush_num, "Origin brush in world");
-				Com_Error(ERROR_FATAL, "Entity %i, Brush %i: origin brushes not allowed in world\n",
-						  brush->entity_num, brush->brush_num);
+				return NULL;
 			}
 
 			vec3_t origin;

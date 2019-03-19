@@ -65,7 +65,7 @@ static void FixTJunctions_(int32_t face_num) {
 				VectorSubtract(v1, v, b);
 				const vec_t b_dist = VectorNormalize(b);
 
-				if (a_dist < ON_EPSILON || b_dist < ON_EPSILON) {
+				if (a_dist <= ON_EPSILON || b_dist <= ON_EPSILON) {
 					break; // face already includes v
 				}
 

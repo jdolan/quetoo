@@ -7,16 +7,16 @@
       buildImplicitDependencies = "YES">
       <BuildActionEntries>
          <BuildActionEntry
-            buildForTesting = "NO"
+            buildForTesting = "YES"
             buildForRunning = "YES"
-            buildForProfiling = "NO"
+            buildForProfiling = "YES"
             buildForArchiving = "YES"
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "CEA029B31C5E545B00341079"
-               BuildableName = "quetoo-all"
-               BlueprintName = "quetoo-all"
+               BlueprintIdentifier = "CE948B102235652600D961FA"
+               BuildableName = "check_shared"
+               BlueprintName = "check_shared"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -32,9 +32,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE12D7341C5C5B9300CD0B13"
-            BuildableName = "quetoo"
-            BlueprintName = "quetoo"
+            BlueprintIdentifier = "CE948B102235652600D961FA"
+            BuildableName = "check_shared"
+            BlueprintName = "check_shared"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -55,46 +55,19 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE12D7341C5C5B9300CD0B13"
-            BuildableName = "quetoo"
-            BlueprintName = "quetoo"
+            BlueprintIdentifier = "CE948B102235652600D961FA"
+            BuildableName = "check_shared"
+            BlueprintName = "check_shared"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
-      <CommandLineArguments>
-         <CommandLineArgument
-            argument = "-p $BUILT_PRODUCTS_DIR"
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "CK_FORK"
+            value = "no"
             isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set r_fullscreen 0 +set r_width 1280 +set r_height 800 +set r_display 0"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set r_fullscreen 1 +set r_width 0 +set r_height 0 +set r_display 1"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set r_draw_bsp_normals 2 +set r_draw_bsp_lightmaps 1 +set r_texture_mode GL_NEAREST"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set r_draw_wireframe 1 +set r_clear 1"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set ai_ann 1 +g_ai_add +debug ai"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+map torn"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set g_cheats 1 +no_clip +give all"
-            isEnabled = "YES">
-         </CommandLineArgument>
-      </CommandLineArguments>
+         </EnvironmentVariable>
+      </EnvironmentVariables>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
@@ -104,15 +77,16 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CEA029B31C5E545B00341079"
-            BuildableName = "quetoo-all"
-            BlueprintName = "quetoo-all"
+            BlueprintIdentifier = "CE948B102235652600D961FA"
+            BuildableName = "check_shared"
+            BlueprintName = "check_shared"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

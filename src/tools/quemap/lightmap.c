@@ -185,46 +185,34 @@ void BuildLightmaps(void) {
 }
 
 /**
- * @brief A bucket for resolving Phong-interpolated normal vectors.
+ * @brief For Phong-shaded luxels, calculate the interpolated normal vector using
+ * barycentric coordinates over the face's triangles.
  */
-typedef struct {
-	vec3_t normal;
-	vec_t dist;
-} phong_vertex_t;
+static void PhongLuxel(const lightmap_t *lm, const vec3_t origin, vec3_t normal) {
 
-/**
- * @brief Qsort comparator for PhongNormal.
- */
-static int32_t PhongNormal_sort(const void *a, const void *b) {
-	return ((phong_vertex_t *) a)->dist - ((phong_vertex_t *) b)->dist;
-}
+	VectorCopy(lm->plane->normal, normal);
 
-/**
- * @brief For Phong-shaded samples, calculate the interpolated normal vector using
- * the three nearest vertexes.
- */
-static void PhongNormal(const bsp_face_t *face, const vec3_t pos, vec3_t normal) {
-	phong_vertex_t phong_vertexes[face->num_vertexes], *pv = phong_vertexes;
+	vec_t best = FLT_MAX;
 
-	const bsp_vertex_t *v = bsp_file.vertexes + face->first_vertex;
-	for (int32_t i = 0; i < face->num_vertexes; i++, v++, pv++) {
+	const int32_t *e = bsp_file.elements + lm->face->first_element;
+	for (int32_t i = 0; i < lm->face->num_elements; i++, e += 3) {
 
-		VectorCopy(v->normal, pv->normal);
+		const bsp_vertex_t *a = bsp_file.vertexes + e[0];
+		const bsp_vertex_t *b = bsp_file.vertexes + e[1];
+		const bsp_vertex_t *c = bsp_file.vertexes + e[2];
 
-		vec3_t delta;
-		VectorSubtract(pos, v->position, delta);
-		pv->dist = VectorLength(delta);
-	}
+		vec3_t out;
+		const vec_t bary = BarycentricCoordinates(a->position, b->position, c->position, origin, out);
+		const vec_t delta = fabsf(1.0f - bary);
+		if (delta < best) {
+			best = delta;
 
-	qsort(phong_vertexes, face->num_vertexes, sizeof(phong_vertex_t), PhongNormal_sort);
+			VectorClear(normal);
 
-	VectorClear(normal);
-	pv = phong_vertexes;
-
-	const vec_t dist = (pv[0].dist + pv[1].dist + pv[2].dist);
-
-	for (int32_t i = 0; i < 3; i++, pv++) {
-		VectorMA(normal, 1.0 - pv->dist / dist, pv->normal, normal);
+			VectorMA(normal, out[0], a->normal, normal);
+			VectorMA(normal, out[1], b->normal, normal);
+			VectorMA(normal, out[2], c->normal, normal);
+		}
 	}
 
 	VectorNormalize(normal);
@@ -251,7 +239,7 @@ static _Bool ProjectLuxel(const lightmap_t *lm, luxel_t *l, vec_t soffs, vec_t t
 	Matrix4x4_Transform(&lm->inverse_matrix, origin_st, l->origin);
 
 	if (lm->texinfo->flags & SURF_PHONG) {
-		PhongNormal(lm->face, l->origin, l->normal);
+		PhongLuxel(lm, l->origin, l->normal);
 	} else {
 		VectorCopy(lm->plane->normal, l->normal);
 	}

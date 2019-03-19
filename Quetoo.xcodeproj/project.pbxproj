@@ -14,12 +14,16 @@
 				CE052A9E21483387003446C9 /* ShellScript */,
 			);
 			dependencies = (
+				CE948B272235660C00D961FA /* PBXTargetDependency */,
+				CE948B292235660C00D961FA /* PBXTargetDependency */,
+				CE948B2B2235660C00D961FA /* PBXTargetDependency */,
 				CE052A9121483352003446C9 /* PBXTargetDependency */,
 				CE052A9321483352003446C9 /* PBXTargetDependency */,
 				CE052A9521483352003446C9 /* PBXTargetDependency */,
 				CE052A9721483352003446C9 /* PBXTargetDependency */,
 				CE052A9921483352003446C9 /* PBXTargetDependency */,
 				CE052A9B21483352003446C9 /* PBXTargetDependency */,
+				CE948B2D2235660C00D961FA /* PBXTargetDependency */,
 				CE052A9D21483352003446C9 /* PBXTargetDependency */,
 			);
 			name = "quetoo-tests";
@@ -543,6 +547,11 @@
 		CE8E202D214838E900C18C94 /* ai.so in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FEC61C5E44E800A21A51 /* ai.so */; };
 		CE91924D2055731E007AC8FF /* tjunction.c in Sources */ = {isa = PBXBuildFile; fileRef = CE91924C2055731E007AC8FF /* tjunction.c */; };
 		CE948B0E222C130600D961FA /* libopenal.1.15.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE948B0D222C130600D961FA /* libopenal.1.15.1.dylib */; };
+		CE948B1B2235652600D961FA /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE51FB9121481AE300ABE14F /* libcheck.0.dylib */; };
+		CE948B1C2235652600D961FA /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
+		CE948B1D2235652600D961FA /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
+		CE948B232235655700D961FA /* check_shared.c in Sources */ = {isa = PBXBuildFile; fileRef = CE948B0F223564E900D961FA /* check_shared.c */; };
+		CE948B2E2235699300D961FA /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CE9771A521454F0F00BBD71C /* genann.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9771A321454F0F00BBD71C /* genann.h */; };
 		CE9771A621454F0F00BBD71C /* genann.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9771A421454F0F00BBD71C /* genann.c */; };
 		CE9771AA2145519300BBD71C /* ai_ann.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9771A82145519300BBD71C /* ai_ann.h */; };
@@ -992,6 +1001,41 @@
 			remoteGlobalIDString = CE80FEAB1C5E44E800A21A51;
 			remoteInfo = ai;
 		};
+		CE948B24223565C400D961FA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE80FDB41C5E3D4E00A21A51;
+			remoteInfo = shared;
+		};
+		CE948B262235660C00D961FA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE8E2017214837AB00C18C94;
+			remoteInfo = check_ai_ann;
+		};
+		CE948B282235660C00D961FA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE354EEF22075132008AE0C2;
+			remoteInfo = check_atlas;
+		};
+		CE948B2A2235660C00D961FA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CEE3A0F021EE2B3F0070FD3E;
+			remoteInfo = check_cm_polylib;
+		};
+		CE948B2C2235660C00D961FA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE948B102235652600D961FA;
+			remoteInfo = check_shared;
+		};
 		CE9771AD2145565800BBD71C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
@@ -1429,6 +1473,15 @@
 			runOnlyForDeploymentPostprocessing = 1;
 		};
 		CE8E2024214837AB00C18C94 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		CE948B1E2235652600D961FA /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = /usr/share/man/man1/;
@@ -2072,6 +2125,8 @@
 		CE92B3AB1D2FF7F600E9153A /* quetoo-dedicated-icon.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "quetoo-dedicated-icon.rc"; sourceTree = "<group>"; };
 		CE92B3AC1D2FF83A00E9153A /* quetoo-dedicated.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = "quetoo-dedicated.ico"; sourceTree = "<group>"; };
 		CE948B0D222C130600D961FA /* libopenal.1.15.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopenal.1.15.1.dylib; path = ../../../../opt/local/lib/libopenal.1.15.1.dylib; sourceTree = "<group>"; };
+		CE948B0F223564E900D961FA /* check_shared.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_shared.c; sourceTree = "<group>"; };
+		CE948B222235652600D961FA /* check_shared */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_shared; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE9771A121454EEB00BBD71C /* libgenann.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libgenann.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE9771A321454F0F00BBD71C /* genann.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = genann.h; sourceTree = "<group>"; };
 		CE9771A421454F0F00BBD71C /* genann.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = genann.c; sourceTree = "<group>"; };
@@ -2489,6 +2544,17 @@
 				CE8E2020214837AB00C18C94 /* libparse.a in Frameworks */,
 				CE8E2021214837AB00C18C94 /* libcheck.0.dylib in Frameworks */,
 				CE8E2022214837AB00C18C94 /* libglib-2.0.0.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE948B162235652600D961FA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE948B2E2235699300D961FA /* libshared.a in Frameworks */,
+				CE948B1B2235652600D961FA /* libcheck.0.dylib in Frameworks */,
+				CE948B1C2235652600D961FA /* libglib-2.0.0.dylib in Frameworks */,
+				CE948B1D2235652600D961FA /* libSDL2-2.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3306,6 +3372,7 @@
 				CE12D6D11C5C58C300CD0B13 /* check_master.c */,
 				CE12D6D31C5C58C300CD0B13 /* check_mem.c */,
 				CE12D6D51C5C58C300CD0B13 /* check_r_media.c */,
+				CE948B0F223564E900D961FA /* check_shared.c */,
 				CE12D6D71C5C58C300CD0B13 /* check_thread.c */,
 				CE12D6DC1C5C58C300CD0B13 /* tests.c */,
 				CE12D6DD1C5C58C300CD0B13 /* tests.h */,
@@ -3555,6 +3622,7 @@
 				CEE3A10121EE2B3F0070FD3E /* check_cm_polylib */,
 				CE354EE722073AD6008AE0C2 /* libatlas.a */,
 				CE354EFE22075132008AE0C2 /* check_atlas */,
+				CE948B222235652600D961FA /* check_shared */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -4755,6 +4823,24 @@
 			productReference = CE8E2028214837AB00C18C94 /* check_ai_ann */;
 			productType = "com.apple.product-type.tool";
 		};
+		CE948B102235652600D961FA /* check_shared */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CE948B1F2235652600D961FA /* Build configuration list for PBXNativeTarget "check_shared" */;
+			buildPhases = (
+				CE948B132235652600D961FA /* Sources */,
+				CE948B162235652600D961FA /* Frameworks */,
+				CE948B1E2235652600D961FA /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CE948B25223565C400D961FA /* PBXTargetDependency */,
+			);
+			name = check_shared;
+			productName = "test-r_media";
+			productReference = CE948B222235652600D961FA /* check_shared */;
+			productType = "com.apple.product-type.tool";
+		};
 		CE97719421454EEB00BBD71C /* genann */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CE97719E21454EEB00BBD71C /* Build configuration list for PBXNativeTarget "genann" */;
@@ -5099,6 +5185,7 @@
 				CE51FBE42148207700ABE14F /* check_master */,
 				CE052A5B214831FE003446C9 /* check_mem */,
 				CE51FB89214819B000ABE14F /* check_r_media */,
+				CE948B102235652600D961FA /* check_shared */,
 				CE052A7321483255003446C9 /* check_thread */,
 				CE052A8C2148333C003446C9 /* quetoo-tests */,
 			);
@@ -5117,7 +5204,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "$BUILT_PRODUCTS_DIR/check_cmd &&\n$BUILT_PRODUCTS_DIR/check_cvar &&\n$BUILT_PRODUCTS_DIR/check_filesystem &&\n$BUILT_PRODUCTS_DIR/check_master &&\n$BUILT_PRODUCTS_DIR/check_mem &&\n$BUILT_PRODUCTS_DIR/check_r_media &&\n$BUILT_PRODUCTS_DIR/check_thread";
+			shellScript = "#$BUILT_PRODUCTS_DIR/check_ai_ann &&\n$BUILT_PRODUCTS_DIR/check_atlas &&\n$BUILT_PRODUCTS_DIR/check_cm_polylib &&\n$BUILT_PRODUCTS_DIR/check_cmd &&\n$BUILT_PRODUCTS_DIR/check_cvar &&\n$BUILT_PRODUCTS_DIR/check_filesystem &&\n$BUILT_PRODUCTS_DIR/check_master &&\n$BUILT_PRODUCTS_DIR/check_mem &&\n$BUILT_PRODUCTS_DIR/check_r_media &&\n$BUILT_PRODUCTS_DIR/check_shared &&\n$BUILT_PRODUCTS_DIR/check_thread\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -5488,6 +5575,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CE948B132235652600D961FA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE948B232235655700D961FA /* check_shared.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CE97719521454EEB00BBD71C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -5837,6 +5932,31 @@
 			isa = PBXTargetDependency;
 			target = CE80FEAB1C5E44E800A21A51 /* ai */;
 			targetProxy = CE8E2029214837B700C18C94 /* PBXContainerItemProxy */;
+		};
+		CE948B25223565C400D961FA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE80FDB41C5E3D4E00A21A51 /* shared */;
+			targetProxy = CE948B24223565C400D961FA /* PBXContainerItemProxy */;
+		};
+		CE948B272235660C00D961FA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE8E2017214837AB00C18C94 /* check_ai_ann */;
+			targetProxy = CE948B262235660C00D961FA /* PBXContainerItemProxy */;
+		};
+		CE948B292235660C00D961FA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE354EEF22075132008AE0C2 /* check_atlas */;
+			targetProxy = CE948B282235660C00D961FA /* PBXContainerItemProxy */;
+		};
+		CE948B2B2235660C00D961FA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CEE3A0F021EE2B3F0070FD3E /* check_cm_polylib */;
+			targetProxy = CE948B2A2235660C00D961FA /* PBXContainerItemProxy */;
+		};
+		CE948B2D2235660C00D961FA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE948B102235652600D961FA /* check_shared */;
+			targetProxy = CE948B2C2235660C00D961FA /* PBXContainerItemProxy */;
 		};
 		CE9771AE2145565800BBD71C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -6523,6 +6643,20 @@
 			};
 			name = Release;
 		};
+		CE948B202235652600D961FA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CE948B212235652600D961FA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		CE97719F21454EEB00BBD71C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -7026,6 +7160,15 @@
 			buildConfigurations = (
 				CE8E2026214837AB00C18C94 /* Debug */,
 				CE8E2027214837AB00C18C94 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CE948B1F2235652600D961FA /* Build configuration list for PBXNativeTarget "check_shared" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CE948B202235652600D961FA /* Debug */,
+				CE948B212235652600D961FA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

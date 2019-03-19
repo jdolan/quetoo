@@ -112,15 +112,12 @@ void Cm_WindingCenter(const cm_winding_t *w, vec3_t center) {
  * @brief
  */
 vec_t Cm_WindingArea(const cm_winding_t *w) {
-	vec3_t d1, d2, cross;
 	vec_t area = 0.0;
 
 	for (int32_t i = 2; i < w->num_points; i++) {
-		VectorSubtract(w->points[i - 1], w->points[0], d1);
-		VectorSubtract(w->points[i], w->points[0], d2);
-		CrossProduct(d1, d2, cross);
-		area += 0.5 * VectorLength(cross);
+		area += TriangleArea(w->points[0], w->points[i - 1], w->points[i]);
 	}
+
 	return area;
 }
 

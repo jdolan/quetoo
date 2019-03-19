@@ -46,6 +46,7 @@ src/tests/check_filesystem
 src/tests/check_master
 src/tests/check_mem
 src/tests/check_r_media
+src/tests/check_shared
 src/tests/check_thread
 src/tools/quemap/quemap
 src/tools/quetoo-master/quetoo-master
