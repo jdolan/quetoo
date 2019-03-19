@@ -24,14 +24,17 @@
 #include "quemap.h"
 #include "atlas.h"
 #include "matrix.h"
+#include "pointsets.h"
 
 typedef struct {
+	uint32_t flags;
 	int32_t s, t;
 	vec3_t origin;
 	vec3_t normal;
 	vec3_t direct;
 	vec3_t direction;
 	vec3_t indirect;
+	vec_t ambient;
 } luxel_t;
 
 typedef struct {
