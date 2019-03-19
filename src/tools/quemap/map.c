@@ -675,10 +675,9 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 		// the origin brush
 		if (brush->contents & CONTENTS_ORIGIN) {
 
-			if (num_entities == 1) {
+			if (brush->entity_num == 0) {
 				Mon_SendSelect(MON_ERROR, brush->entity_num, brush->brush_num, "Origin brush in world");
-				Com_Error(ERROR_FATAL, "Entity %i, Brush %i: origin brushes not allowed in world\n",
-						  brush->entity_num, brush->brush_num);
+				return NULL;
 			}
 
 			vec3_t origin;
