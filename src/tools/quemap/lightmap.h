@@ -27,7 +27,7 @@
 #include "pointsets.h"
 
 typedef struct {
-	uint32_t flags;
+	_Bool visible;
 	int32_t s, t;
 	vec3_t origin;
 	vec3_t normal;

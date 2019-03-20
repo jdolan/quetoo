@@ -29,6 +29,66 @@
 lightmap_t lightmaps[MAX_BSP_FACES];
 
 /**
+ * @brief Dilates the lightmap into areas outside the visible regions
+ */
+static void DilateLightmap(lightmap_t *lm, int32_t radius) {
+
+	luxel_t *in = lm->luxels;
+	const int16_t w = lm->w;
+	const int16_t h = lm->h;
+	const int32_t len = lm->num_luxels;
+
+	for (int32_t i = 0; i < radius; i++) {
+
+		int32_t todo = len;
+
+		for (int32_t y = 0; y < h; y++) {
+			for (int32_t x = 0; x < w; x++) {
+
+				// top row
+				int32_t tl = (y-1)*w + (x-1);
+				int32_t tc = (y-1)*w + x;
+				int32_t tr = (y-1)*w + (x+1);
+				// middle row
+				int32_t ml = y*w + (x-1);
+				int32_t mc = y*w + x; // origin
+				int32_t mr = y*w + (x+1);
+				// bottom row
+				int32_t bl = (y+1)*w + (x-1);
+				int32_t bc = (y+1)*w + x;
+				int32_t br = (y+1)*w + (x+1);
+
+				int32_t src = 0;
+				// only dilate onto invisible samples
+				if (in[mc].visible) {
+					if (todo-- > 0) {
+						continue;
+					} else {
+						return;
+					}
+				}
+				// fill with first found visible sample, clockwise from top left
+				else if ((tl >= 0) && (tl < w) && in[tl].visible) { src = tl; }
+				else if ((tc >= 0) && (tc < w) && in[tc].visible) { src = tc; }
+				else if ((tr >= 0) && (tr < w) && in[tr].visible) { src = tr; }
+				else if ((mr >= 0) && (mr < w) && in[mr].visible) { src = mr; }
+				else if ((br >= 0) && (br < w) && in[br].visible) { src = br; }
+				else if ((bc >= 0) && (bc < w) && in[bc].visible) { src = bc; }
+				else if ((bl >= 0) && (bl < w) && in[bl].visible) { src = bl; }
+				else if ((ml >= 0) && (ml < w) && in[ml].visible) { src = ml; }
+
+				VectorCopy(in[src].direct, in[mc].direct);
+				VectorCopy(in[src].indirect, in[mc].indirect);
+				VectorCopy(&in[src].ambient, &in[mc].ambient);
+
+				// mark luxel as visible for next round
+				in[mc].visible = 1;
+			}
+		}
+	}
+}
+
+/**
  * @brief Resolves the texture projection matrices for the given lightmap.
  */
 static void BuildLightmapMatrices(lightmap_t *lm) {
@@ -246,7 +306,9 @@ static _Bool ProjectLuxel(const lightmap_t *lm, luxel_t *l, vec_t soffs, vec_t t
 
 	VectorAdd(l->origin, l->normal, l->origin);
 
-	return Light_PointPVS(l->origin, pvs);
+	const _Bool result = Light_PointPVS(l->origin, pvs);
+	l->visible = result;
+	return result;
 }
 
 /**
@@ -516,6 +578,8 @@ static SDL_Surface *CreateLightmapSurface(int32_t w, int32_t h, void *pixels) {
 void FinalizeLighting(int32_t face_num) {
 
 	lightmap_t *lm = &lightmaps[face_num];
+
+	DilateLightmap(lm, 100);
 
 	if (lm->texinfo->flags & SURF_SKY) {
 		return;
