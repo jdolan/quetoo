@@ -34,7 +34,6 @@ typedef struct {
 	vec3_t direct;
 	vec3_t direction;
 	vec3_t indirect;
-	vec_t ambient;
 } luxel_t;
 
 typedef struct {

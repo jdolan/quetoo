@@ -79,7 +79,6 @@ static void DilateLightmap(lightmap_t *lm, int32_t radius) {
 
 				VectorCopy(in[src].direct, in[mc].direct);
 				VectorCopy(in[src].indirect, in[mc].indirect);
-				VectorCopy(&in[src].ambient, &in[mc].ambient);
 
 				// mark luxel as visible for next round
 				in[mc].visible = 1;
@@ -321,7 +320,7 @@ static _Bool ProjectLuxel(const lightmap_t *lm, luxel_t *l, vec_t soffs, vec_t t
  * @param scale A scalar applied to both light and direction.
  */
 static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const byte *pvs,
-					   vec_t *sample, vec_t *direction, vec_t *ambient, vec_t scale) {
+					   vec_t *sample, vec_t *direction, vec_t scale) {
 
 	for (const GList *list = lights; list; list = list->next) {
 
@@ -449,7 +448,7 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 				ao += sample_fraction * trace.fraction;
 			}
 
-			*ambient = 1.0 - (1.0-ao) * (1.0-ao);
+			diffuse *= 1.0 - (1.0-ao) * (1.0-ao);
 
 		} else if (light->type == LIGHT_SUN) {
 			vec3_t sun_origin;
@@ -516,7 +515,7 @@ void DirectLighting(int32_t face_num) {
 
 			contribution += scale;
 
-			LightLuxel(lm, l, pvs, l->direct, l->direction, &l->ambient, scale);
+			LightLuxel(lm, l, pvs, l->direct, l->direction, scale);
 
 			if (!antialias) {
 				break;
@@ -558,7 +557,7 @@ void IndirectLighting(int32_t face_num) {
 			byte pvs[(MAX_BSP_LEAFS + 7) / 8];
 
 			if (ProjectLuxel(lm, l, soffs, toffs, pvs)) {
-				LightLuxel(lm, l, pvs, l->indirect, NULL, &l->ambient, 0.125);
+				LightLuxel(lm, l, pvs, l->indirect, NULL, 0.125);
 				break;
 			}
 		}
@@ -637,12 +636,9 @@ void FinalizeLighting(int32_t face_num) {
 		}
 
 		// pack floating point -1.0 to 1.0 to positive bytes (0.0 becomes 127)
-		for (int32_t j = 0; j < 2; j++) {
+		for (int32_t j = 0; j < 3; j++) {
 			*out_dm++ = (byte) Clamp((deluxemap[j] + 1.0) * 0.5 * 255.0, 0, 255);
 		}
-
-		// pack ambient in z channel of deluxemap;
-		*out_dm++ = (byte) Clamp(l->ambient * 255.0, 0, 255);
 	}
 }
 
