@@ -34,57 +34,22 @@ int16_t patch_size = DEFAULT_BSP_PATCH_SIZE;
 int32_t indirect_bounces = 1;
 int32_t indirect_bounce = 0;
 
-/**
- * @brief
- */
-_Bool Light_PointPVS(const vec3_t p, byte *pvs) {
-
-	if (Cm_NumClusters() == 0) {
-		Cm_ClusterPVS(0, pvs);
-		return true;
-	}
-
-	const int32_t leaf = Cm_PointLeafnum(p, 0);
-	const int32_t cluster = Cm_LeafCluster(leaf);
-
-	if (cluster == -1) {
-		return false; // in solid leaf
-	}
-
-	Cm_ClusterPVS(cluster, pvs);
-	return true;
-}
-
-/**
- * @brief
- */
-_Bool Light_InPVS(const vec3_t p1, const vec3_t p2) {
-	byte pvs[MAX_BSP_LEAFS >> 3];
-
-	const int32_t leaf1 = Cm_PointLeafnum(p1, 0);
-	const int32_t leaf2 = Cm_PointLeafnum(p2, 0);
-
-	const int32_t area1 = Cm_LeafArea(leaf1);
-	const int32_t area2 = Cm_LeafArea(leaf2);
-
-	if (!Cm_AreasConnected(area1, area2)) {
-		return false; // a door blocks sight
-	}
-
-	const int32_t cluster1 = Cm_LeafCluster(leaf1);
-	const int32_t cluster2 = Cm_LeafCluster(leaf2);
-
-	Cm_ClusterPVS(cluster1, pvs);
-
-	if ((pvs[cluster2 >> 3] & (1 << (cluster2 & 7))) == 0) {
-		return false;
-	}
-
-	return true;
-}
-
 // we use the collision detection facilities for lighting
 static cm_bsp_model_t *bsp_models[MAX_BSP_MODELS];
+
+/**
+ * @brief
+ */
+int32_t Light_PointContents(const vec3_t p) {
+
+	int32_t contents = 0;
+
+	for (int32_t i = 0; i < Cm_NumModels(); i++) {
+		contents |= Cm_PointContents(p, bsp_models[i]->head_node);
+	}
+
+	return contents;
+}
 
 /**
  * @brief
@@ -101,6 +66,21 @@ void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_
 			*trace = tr;
 		}
 	}
+}
+
+/**
+ * @brief
+ */
+int32_t Light_PVS(const lightmap_t *lm, byte *pvs) {
+
+	if (Cm_NumClusters() == 0) {
+		return Cm_ClusterPVS(0, pvs);
+	}
+
+	const int32_t leaf = (int32_t) (lm->leaf - bsp_file.leafs);
+	const int32_t cluster = Cm_LeafCluster(leaf);
+
+	return Cm_ClusterPVS(cluster, pvs);
 }
 
 /**

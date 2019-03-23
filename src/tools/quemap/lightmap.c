@@ -107,7 +107,7 @@ static void BuildLightmapLuxels(lightmap_t *lm) {
 	}
 }
 
-static _Bool ProjectLuxel(const lightmap_t *lm, luxel_t *l, vec_t soffs, vec_t toffs, byte *pvs);
+static int32_t ProjectLuxel(const lightmap_t *lm, luxel_t *l, vec_t soffs, vec_t toffs);
 
 /**
  * @brief Authors a .map file which can be imported into Radiant to view the luxel projections.
@@ -133,9 +133,7 @@ void DebugLightmapLuxels(void) {
 			luxel_t *l = lm->luxels;
 			for (size_t j = 0; j < lm->num_luxels; j++, l++) {
 
-				byte pvs[(MAX_BSP_LEAFS + 7) / 8];
-
-				ProjectLuxel(lm, l, 0.0, 0.0, pvs);
+				ProjectLuxel(lm, l, 0.0, 0.0);
 
 				Fs_Print(file, "{\n");
 				Fs_Print(file, "  \"classname\" \"info_luxel\"\n");
@@ -161,8 +159,19 @@ void BuildLightmaps(void) {
 
 	memset(lightmaps, 0, sizeof(lightmaps));
 
-	lightmap_t *lm = lightmaps;
-	for (int32_t i = 0; i < bsp_file.num_faces; i++, lm++) {
+	const bsp_leaf_t *leaf = bsp_file.leafs;
+	for (int32_t i = 0; i < bsp_file.num_leafs; i++, leaf++) {
+		const int32_t *leaf_face = bsp_file.leaf_faces + leaf->first_leaf_face;
+		for (int32_t j = 0; j < leaf->num_leaf_faces; j++, leaf_face++) {
+			lightmaps[*leaf_face].leaf = leaf;
+		}
+	}
+
+	const bsp_face_t *face = bsp_file.faces;
+	for (int32_t i = 0; i < bsp_file.num_faces; i++, face++) {
+
+		lightmap_t *lm = &lightmaps[i];
+		assert(lm->leaf);
 
 		lm->face = &bsp_file.faces[i];
 		lm->texinfo = &bsp_file.texinfo[lm->face->texinfo];
@@ -225,9 +234,9 @@ static void PhongLuxel(const lightmap_t *lm, const vec3_t origin, vec3_t normal)
  * @param soffs The S offset in texture space, for antialiasing.
  * @param toffs The T offset in texture space, for antialiasing.
  * @param pvs A pointer to receive the PVS data for the projected luxel origin.
- * @return True if the luxel projection yielded a valid position, false otherwise.
+ * @return The contents mask at the projected luxel origin.
  */
-static _Bool ProjectLuxel(const lightmap_t *lm, luxel_t *l, vec_t soffs, vec_t toffs, byte *pvs) {
+static int32_t ProjectLuxel(const lightmap_t *lm, luxel_t *l, vec_t soffs, vec_t toffs) {
 
 	const vec_t padding_s = ((lm->st_maxs[0] - lm->st_mins[0]) - lm->w) * 0.5;
 	const vec_t padding_t = ((lm->st_maxs[1] - lm->st_mins[1]) - lm->h) * 0.5;
@@ -245,8 +254,7 @@ static _Bool ProjectLuxel(const lightmap_t *lm, luxel_t *l, vec_t soffs, vec_t t
 	}
 
 	VectorAdd(l->origin, l->normal, l->origin);
-
-	return Light_PointPVS(l->origin, pvs);
+	return Light_PointContents(l->origin);
 }
 
 /**
@@ -426,6 +434,9 @@ void DirectLighting(int32_t face_num) {
 		return;
 	}
 
+	byte pvs[(MAX_BSP_LEAFS + 7) / 8];
+	Light_PVS(lm, pvs);
+
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 
@@ -437,9 +448,7 @@ void DirectLighting(int32_t face_num) {
 			const vec_t toffs = offsets[j][1];
 			const vec_t scale = offsets[j][2];
 
-			byte pvs[(MAX_BSP_LEAFS + 7) / 8];
-
-			if (!ProjectLuxel(lm, l, soffs, toffs, pvs)) {
+			if (ProjectLuxel(lm, l, soffs, toffs) == CONTENTS_SOLID) {
 				continue;
 			}
 
@@ -486,10 +495,12 @@ void IndirectLighting(int32_t face_num) {
 
 			byte pvs[(MAX_BSP_LEAFS + 7) / 8];
 
-			if (ProjectLuxel(lm, l, soffs, toffs, pvs)) {
-				LightLuxel(lm, l, pvs, l->indirect, NULL, 0.125);
-				break;
+			if (ProjectLuxel(lm, l, soffs, toffs) == CONTENTS_SOLID) {
+				continue;
 			}
+
+			LightLuxel(lm, l, pvs, l->indirect, NULL, 0.125);
+			break;
 		}
 	}
 }
