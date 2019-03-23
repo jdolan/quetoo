@@ -34,7 +34,7 @@ _Bool cm_no_vis = false;
 /**
  * @remarks `pvs` must be at least `MAX_BSP_LEAFS >> 3` in length.
  */
-static int Cm_DecompressVis(int32_t cluster, byte *out, int32_t set) {
+static int32_t Cm_DecompressVis(int32_t cluster, byte *out, int32_t set) {
 
 	if (Cm_NumClusters() == 0 || cm_no_vis) {
 		memset(out, 0xff, MAX_BSP_LEAFS >> 3);
