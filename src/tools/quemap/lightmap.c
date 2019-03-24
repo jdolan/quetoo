@@ -491,7 +491,7 @@ void IndirectLighting(int32_t face_num) {
 
 	const lightmap_t *lm = &lightmaps[face_num];
 
-	if (lm->texinfo->flags & SURF_SKY) {
+	if (lm->texinfo->flags & (SURF_SKY | SURF_LIGHT)) {
 		return;
 	}
 
