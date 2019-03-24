@@ -117,6 +117,7 @@ light_t *LightForEntity(const GList *entities, const cm_entity_t *entity) {
 			} else {
 				light->theta = LIGHT_CONE;
 			}
+			light->theta = Radians(light->theta);
 		}
 
 		VectorNegate(light->normal, light->normal);
