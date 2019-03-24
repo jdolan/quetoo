@@ -444,7 +444,7 @@ void DirectLighting(int32_t face_num) {
 		return;
 	}
 
-	byte pvs[(MAX_BSP_LEAFS + 7) / 8];
+	byte pvs[MAX_BSP_LEAFS >> 3];
 	Light_PVS(lm, pvs);
 
 	luxel_t *l = lm->luxels;
@@ -495,6 +495,9 @@ void IndirectLighting(int32_t face_num) {
 		return;
 	}
 
+	byte pvs[MAX_BSP_LEAFS >> 3];
+	Light_PVS(lm, pvs);
+
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 
@@ -502,8 +505,6 @@ void IndirectLighting(int32_t face_num) {
 
 			const vec_t soffs = offsets[j][0];
 			const vec_t toffs = offsets[j][1];
-
-			byte pvs[(MAX_BSP_LEAFS + 7) / 8];
 
 			if (ProjectLuxel(lm, l, soffs, toffs) == CONTENTS_SOLID) {
 				continue;
