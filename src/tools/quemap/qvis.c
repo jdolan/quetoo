@@ -83,9 +83,9 @@ static int32_t LeafVectorFromPortalVector(byte *portalbits, byte *leafbits) {
  * @brief Merges the portal visibility for a leaf.
  */
 static void ClusterMerge(uint32_t leaf_num) {
-	byte uncompressed[MAX_BSP_LEAFS / 8];
-	byte compressed[MAX_BSP_LEAFS / 8];
-	byte vector[MAX_BSP_PORTALS / 8];
+	byte uncompressed[MAX_BSP_LEAFS >> 3];
+	byte compressed[MAX_BSP_LEAFS >> 3];
+	byte vector[MAX_BSP_PORTALS >> 3];
 
 	if ((size_t) map_vis.portal_bytes > sizeof(vector)) {
 		Com_Error(ERROR_FATAL, "VIS overflow. Try making more brushes CONTENTS_DETAIL.\n");
