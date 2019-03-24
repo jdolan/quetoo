@@ -263,12 +263,12 @@ static int32_t ProjectLuxel(const lightmap_t *lm, luxel_t *l, vec_t soffs, vec_t
  * @param lightmap The lightmap containing the luxel.
  * @param luxel The luxel to light.
  * @param pvs The PVS for the luxel's origin.
- * @param sample The output vector for light color, or `NULL`.
+ * @param color The output vector for light color, or `NULL`.
  * @param direction The output vector for ligtht direction, or `NULL`.
  * @param scale A scalar applied to both light and direction.
  */
 static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const byte *pvs,
-					   vec_t *sample, vec_t *direction, vec_t scale) {
+					   vec_t *color, vec_t *direction, vec_t scale) {
 
 	for (const GList *list = lights; list; list = list->next) {
 
@@ -416,8 +416,8 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 			}
 		}
 
-		if (sample) {
-			VectorMA(sample, diffuse * scale, light->color, sample);
+		if (color) {
+			VectorMA(color, diffuse * scale, light->color, color);
 		}
 
 		if (direction) {
