@@ -112,7 +112,9 @@ light_t *LightForEntity(const GList *entities, const cm_entity_t *entity) {
 		}
 
 		if (light->type == LIGHT_SPOT) {
-			if (Cm_EntityVector(entity, "_cone", &light->theta, 1) != 1) {
+			if (Cm_EntityVector(entity, "_cone", &light->theta, 1) == 1) {
+				light->theta = Max(1.0, light->theta);
+			} else {
 				light->theta = LIGHT_CONE;
 			}
 		}
