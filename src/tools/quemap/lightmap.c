@@ -388,7 +388,6 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 					sample[1] * ao_radius + t,
 					sample[2] * ao_radius);
 
-				// TODO: transform for phong'd faces
 				vec3_t point;
 				Matrix4x4_Transform(&lightmap->inverse_matrix, sample, point);
 
@@ -405,7 +404,7 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 			VectorMA(luxel->origin, -MAX_WORLD_DIST, light->normal, sun_origin);
 			Light_Trace(&trace, luxel->origin, sun_origin, CONTENTS_SOLID);
 
-			if (trace.surface == NULL || !(trace.surface->flags & SURF_SKY)) {
+			if (!(trace.surface && (trace.surface->flags & SURF_SKY))) {
 				continue;
 			}
 		} else {
