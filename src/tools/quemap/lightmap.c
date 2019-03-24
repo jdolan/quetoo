@@ -23,6 +23,7 @@
 #include "light.h"
 #include "lightmap.h"
 #include "patch.h"
+#include "points.h"
 #include "polylib.h"
 #include "qlight.h"
 

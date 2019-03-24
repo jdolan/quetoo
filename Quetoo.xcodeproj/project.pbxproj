@@ -2148,7 +2148,7 @@
 		CEA936621DBCD87400A12B79 /* r_program_corona.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_program_corona.c; sourceTree = "<group>"; };
 		CEA936631DBCD87400A12B79 /* r_program_corona.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_program_corona.h; sourceTree = "<group>"; };
 		CEAD2AB3203CF7E800F1FB7E /* libopenal.1.18.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopenal.1.18.2.dylib; path = ../../../../usr/local/lib/libopenal.1.18.2.dylib; sourceTree = "<group>"; };
-		CEB3038D2247A59F000FCB07 /* pointsets.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pointsets.h; sourceTree = "<group>"; };
+		CEB3038D2247A59F000FCB07 /* points.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = points.h; sourceTree = "<group>"; };
 		CEB8D6231E00B72100043814 /* cg_input.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_input.c; sourceTree = "<group>"; };
 		CEB8D6241E00B72100043814 /* cg_input.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_input.h; sourceTree = "<group>"; };
 		CEBCE0C421CFC6AF00976E76 /* vis.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vis.h; sourceTree = "<group>"; };
@@ -3430,7 +3430,7 @@
 				CE12D6F31C5C58C300CD0B13 /* monitor.h */,
 				CE12D6F41C5C58C300CD0B13 /* patch.c */,
 				CEBDB0C2214A02B400A7AC3D /* patch.h */,
-				CEB3038D2247A59F000FCB07 /* pointsets.h */,
+				CEB3038D2247A59F000FCB07 /* points.h */,
 				CE12D6F51C5C58C300CD0B13 /* polylib.c */,
 				CE12D6F61C5C58C300CD0B13 /* polylib.h */,
 				CE12D6F71C5C58C300CD0B13 /* portal.c */,
