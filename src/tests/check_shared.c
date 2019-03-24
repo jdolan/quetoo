@@ -24,6 +24,13 @@
 
 #include "shared.h"
 
+START_TEST(check_DotProduct) {
+
+	const vec_t dot = DotProduct(vec3_up, vec3_down);
+	ck_assert(dot == -1.0);
+
+} END_TEST
+
 START_TEST(check_TriangleArea) {
 	vec3_t a, b, c;
 
@@ -84,6 +91,7 @@ int32_t main(int32_t argc, char **argv) {
 
 	TCase *tcase = tcase_create("check_shared");
 
+	tcase_add_test(tcase, check_DotProduct);
 	tcase_add_test(tcase, check_TriangleArea);
 	tcase_add_test(tcase, check_BarycentricCoordinates);
 
