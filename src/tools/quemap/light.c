@@ -89,7 +89,7 @@ light_t *LightForEntity(const GList *entities, const cm_entity_t *entity) {
 				VectorSubtract(target_origin, light->origin, light->normal);
 			} else {
 				const int32_t i = g_list_index((GList *) entities, entity);
-				Mon_SendSelect(MON_WARN, i, 0, va("Spot light at %s missing target", vtos(light->origin)));
+				Mon_SendSelect(MON_WARN, i, 0, va("%s at %s missing target", classname, vtos(light->origin)));
 				VectorCopy(vec3_down, light->normal);
 			}
 		} else {
