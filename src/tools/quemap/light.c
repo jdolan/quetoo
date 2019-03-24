@@ -111,6 +111,8 @@ light_t *LightForEntity(const GList *entities, const cm_entity_t *entity) {
 			}
 		}
 
+		VectorNormalize(light->normal);
+
 		if (light->type == LIGHT_SPOT) {
 			if (Cm_EntityVector(entity, "_cone", &light->theta, 1) == 1) {
 				light->theta = Max(1.0, light->theta);
@@ -119,9 +121,6 @@ light_t *LightForEntity(const GList *entities, const cm_entity_t *entity) {
 			}
 			light->theta = Radians(light->theta);
 		}
-
-		VectorNegate(light->normal, light->normal);
-		VectorNormalize(light->normal);
 
 		const char *atten = Cm_EntityValue(entity, "atten") ?: Cm_EntityValue(entity, "attenuation");
 		if (atten) {

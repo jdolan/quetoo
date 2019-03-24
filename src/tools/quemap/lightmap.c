@@ -285,9 +285,13 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 		}
 
 		vec3_t dir;
-		VectorSubtract(light->origin, luxel->origin, dir);
-		const vec_t dist = VectorNormalize(dir);
+		if (light->type == LIGHT_SUN) {
+			VectorNegate(light->normal, dir);
+		} else {
+			VectorSubtract(light->origin, luxel->origin, dir);
+		}
 
+		const vec_t dist = VectorNormalize(dir);
 		if (light->atten != LIGHT_ATTEN_NONE) {
 			if (dist > light->radius) {
 				continue;
@@ -318,16 +322,13 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 				diffuse *= DEFAULT_BSP_PATCH_SIZE;
 				break;
 			case LIGHT_SPOT: {
-				const vec_t dot2 = DotProduct(dir, light->normal);
-				if (dot2 <= light->theta) {
-					if (dot2 <= 0.1) {
-						diffuse = 0.0;
-					} else {
-						diffuse *= light->theta - (1.0 - dot2);
-					}
-				} else {
-					diffuse *= DEFAULT_BSP_PATCH_SIZE;
+				const vec_t phi = -DotProduct(dir, light->normal);
+				if (phi < 1.0 - light->theta) {
+					diffuse *= phi / (1.0 - light->theta);
+					diffuse *= phi / (1.0 - light->theta);
+					diffuse *= phi / (1.0 - light->theta);
 				}
+				diffuse *= DEFAULT_BSP_PATCH_SIZE;
 			}
 				break;
 			case LIGHT_SUN:
@@ -401,7 +402,7 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 		} else if (light->type == LIGHT_SUN) {
 			vec3_t sun_origin;
 
-			VectorMA(luxel->origin, MAX_WORLD_DIST, light->normal, sun_origin);
+			VectorMA(luxel->origin, -MAX_WORLD_DIST, light->normal, sun_origin);
 			Light_Trace(&trace, luxel->origin, sun_origin, CONTENTS_SOLID);
 
 			if (trace.surface == NULL || !(trace.surface->flags & SURF_SKY)) {
