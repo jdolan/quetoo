@@ -24,6 +24,7 @@
 #include "quemap.h"
 #include "atlas.h"
 #include "matrix.h"
+#include "pointsets.h"
 
 typedef struct {
 	int32_t s, t;

@@ -13,6 +13,7 @@ noinst_HEADERS = \
 	material.h \
 	monitor.h \
 	patch.h \
+	pointsets.h \
 	polylib.h \
 	portal.h \
 	prtfile.h \

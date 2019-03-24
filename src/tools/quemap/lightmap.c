@@ -363,30 +363,39 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 			const vec_t s = lightmap->st_mins[0] + padding_s + luxel->s + 0.5;
 			const vec_t t = lightmap->st_mins[1] + padding_t + luxel->t + 0.5;
 
-			const vec3_t points[] = {
-				{ s + 0.0, t + 0.0, 64.0 },
-				{ s + 3.0, t + 3.0, 64.0 },
-				{ s - 3.0, t + 3.0, 64.0 },
-				{ s - 3.0, t - 3.0, 64.0 },
-				{ s + 3.0, t - 3.0, 64.0 },
-			};
+			const vec3_t points[] = DOME_COSINE_36X;
+			const vec_t ao_radius = 64.0;
 
 			vec_t ambient_occlusion = 0.0;
+			vec_t sample_fraction = 1.0 / lengthof(points);
+
 			for (size_t i = 0; i < lengthof(points); i++) {
 
+				vec3_t sample;
+				VectorCopy(points[i], sample);
+
+				// Add some jitter to hide undersampling
+				VectorSet(sample,
+					sample[0] + Randomc() * 0.04,
+					sample[1] + Randomc() * 0.04,
+					sample[2]);
+
+				// Scale the sample and move it into position
+				VectorSet(sample,
+					sample[0] * ao_radius + s,
+					sample[1] * ao_radius + t,
+					sample[2] * ao_radius);
+
+				// TODO: transform for phong'd faces
 				vec3_t point;
-				Matrix4x4_Transform(&lightmap->inverse_matrix, points[i], point);
+				Matrix4x4_Transform(&lightmap->inverse_matrix, sample, point);
 
 				Light_Trace(&trace, luxel->origin, point, CONTENTS_SOLID);
 
-				ambient_occlusion += (1.0 / lengthof(points)) * trace.fraction;
+				ambient_occlusion += sample_fraction * trace.fraction;
 			}
 
-			if (ambient_occlusion == 0.0) {
-				continue;
-			}
-
-			diffuse *= ambient_occlusion;
+			diffuse *= 1.0 - (1.0 - ambient_occlusion) * (1.0 - ambient_occlusion);
 
 		} else if (light->type == LIGHT_SUN) {
 			vec3_t sun_origin;
