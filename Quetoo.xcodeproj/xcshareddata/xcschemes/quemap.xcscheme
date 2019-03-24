@@ -87,6 +87,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "-bsp --no-detail"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "-vis"
             isEnabled = "YES">
          </CommandLineArgument>
@@ -96,6 +100,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-light"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-light --indirect"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
