@@ -72,15 +72,17 @@ static int32_t EmitLeaf(node_t *node) {
 			Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_BRUSHES\n");
 		}
 
+		const int32_t brush_num = (int32_t) (ptrdiff_t) (brush->original - brushes);
+
 		int32_t i;
 		for (i = out->first_leaf_brush; i < bsp_file.num_leaf_brushes; i++) {
-			if (bsp_file.leaf_brushes[i] == brush->original->brush_num) {
+			if (bsp_file.leaf_brushes[i] == brush_num) {
 				break;
 			}
 		}
 
 		if (i == bsp_file.num_leaf_brushes) {
-			bsp_file.leaf_brushes[bsp_file.num_leaf_brushes] = brush->original->brush_num;
+			bsp_file.leaf_brushes[bsp_file.num_leaf_brushes] = brush_num;
 			bsp_file.num_leaf_brushes++;
 		}
 	}
