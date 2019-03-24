@@ -135,7 +135,7 @@ static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_surface_t *s) 
  * Valid weather origins and z-depths are resolved and cached.
  */
 static void Cg_LoadWeather(void) {
-	uint16_t i, j;
+	int32_t i, j;
 
 	cg_weather_state.emits = NULL;
 	cg_weather_state.time = 0;
