@@ -74,6 +74,9 @@ vec3 eyeDir;
 
 out vec4 fragColor;
 
+/**
+ * @brief Cubic interpolation helper for textureBicubic().
+ */
 vec4 cubic(float v) {
 	vec4 n = vec4(1.0, 2.0, 3.0, 4.0) - v;
 	vec4 s = n * n * n;
@@ -84,6 +87,9 @@ vec4 cubic(float v) {
 	return vec4(x, y, z, w) * (1.0/6.0);
 }
 
+/**
+ * @brief Bicubic interpolation of texels, smoother and more expensive than bilinear.
+ */
 vec4 textureBicubic(sampler2DArray sampler, vec3 coords) {
 
 	// source: http://www.java-gaming.org/index.php?topic=35123.0
