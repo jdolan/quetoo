@@ -353,7 +353,7 @@ static void PrintHelpMessage(void) {
 	Com_Print(" --brightness <float> - brightness factor\n");
 	Com_Print(" --contrast <float> - contrast factor\n");
 	Com_Print(" --saturation <float> - saturation factor\n");
-	Com_Print(" --patch <float> - surface light patch size (default 64)\n");
+	Com_Print(" --patch <float> - surface light patch size (default 16)\n");
 	Com_Print("\n");
 
 	Com_Print("-zip               ZIP stage options:\n");

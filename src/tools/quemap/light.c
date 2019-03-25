@@ -39,6 +39,7 @@ light_t *LightForEntity(const GList *entities, const cm_entity_t *entity) {
 
 			light = Mem_TagMalloc(sizeof(*light), MEM_TAG_LIGHT);
 			light->type = LIGHT_AMBIENT;
+			light->atten = LIGHT_ATTEN_NONE;
 			light->radius = LIGHT_RADIUS_AMBIENT;
 			light->cluster = -1;
 
@@ -89,7 +90,7 @@ light_t *LightForEntity(const GList *entities, const cm_entity_t *entity) {
 				VectorSubtract(target_origin, light->origin, light->normal);
 			} else {
 				const int32_t i = g_list_index((GList *) entities, entity);
-				Mon_SendSelect(MON_WARN, i, 0, va("Spot light at %s missing target", vtos(light->origin)));
+				Mon_SendSelect(MON_WARN, i, 0, va("%s at %s missing target", classname, vtos(light->origin)));
 				VectorCopy(vec3_down, light->normal);
 			}
 		} else {
@@ -111,14 +112,16 @@ light_t *LightForEntity(const GList *entities, const cm_entity_t *entity) {
 			}
 		}
 
+		VectorNormalize(light->normal);
+
 		if (light->type == LIGHT_SPOT) {
-			if (Cm_EntityVector(entity, "_cone", &light->theta, 1) != 1) {
+			if (Cm_EntityVector(entity, "_cone", &light->theta, 1) == 1) {
+				light->theta = Max(1.0, light->theta);
+			} else {
 				light->theta = LIGHT_CONE;
 			}
+			light->theta = Radians(light->theta);
 		}
-
-		VectorNegate(light->normal, light->normal);
-		VectorNormalize(light->normal);
 
 		const char *atten = Cm_EntityValue(entity, "atten") ?: Cm_EntityValue(entity, "attenuation");
 		if (atten) {
