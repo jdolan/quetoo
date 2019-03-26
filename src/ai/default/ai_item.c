@@ -108,7 +108,7 @@ _Bool Ai_CanPickupItem(const g_entity_t *self, const g_entity_t *other) {
 	} else if (ITEM_DATA(item, type) == ITEM_FLAG) {
 
 		const g_team_id_t team = CLIENT_DATA(self->client, team);
-		if (ITEM_DATA(item, tag) == team && other->owner == NULL) {
+		if ((g_team_id_t) ITEM_DATA(item, tag) == team && other->owner == NULL) {
 			return false;
 		} else {
 			return true;
