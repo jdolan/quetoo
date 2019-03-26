@@ -1675,6 +1675,12 @@ static void G_func_wall_Use(g_entity_t *self, g_entity_t *other,
 	}
 }
 
+#define WALL_TRIGGER   0x1
+#define WALL_TOGGLE    0x2
+#define WALL_START_ON  0x4
+
+#define WALL_SPAWN_FLAGS (WALL_TRIGGER | WALL_TOGGLE | WALL_START_ON)
+
 /*QUAKED func_wall (0 .5 .8) ? triggered toggle start_on
  A solid that may spawn into existence via trigger.
 
@@ -1690,30 +1696,23 @@ void G_func_wall(g_entity_t *self) {
 	self->locals.move_type = MOVE_TYPE_PUSH;
 	gi.SetModel(self, self->model);
 
-	// just a wall
-	if ((self->locals.spawn_flags & 7) == 0) {
+	if ((self->locals.spawn_flags & WALL_SPAWN_FLAGS) == 0) {
 		self->solid = SOLID_BSP;
 		gi.LinkEntity(self);
 		return;
 	}
 
-	// it must be TRIGGER_SPAWN
-	if (!(self->locals.spawn_flags & 1)) {
-		gi.Debug("Missing TRIGGER_SPAWN\n");
-		self->locals.spawn_flags |= 1;
-	}
+	// it must be triggered to use start_on or toggle
+	self->locals.spawn_flags |= WALL_TRIGGER;
 
-	// yell if the spawnflags are odd
-	if (self->locals.spawn_flags & 4) {
-		if (!(self->locals.spawn_flags & 2)) {
-			gi.Debug("START_ON without TOGGLE\n");
-			self->locals.spawn_flags |= 2;
-		}
+	// and if it's start_on, it must be toggled
+	if (self->locals.spawn_flags & WALL_START_ON) {
+		self->locals.spawn_flags |= WALL_TOGGLE;
 	}
 
 	self->locals.Use = G_func_wall_Use;
 
-	if (self->locals.spawn_flags & 4) {
+	if (self->locals.spawn_flags & WALL_START_ON) {
 		self->solid = SOLID_BSP;
 	} else {
 		self->solid = SOLID_NOT;
