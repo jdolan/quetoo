@@ -84,7 +84,7 @@ vec4 cubic(float v) {
 	float y = s.y - 4.0 * s.x;
 	float z = s.z - 4.0 * s.y + 6.0 * s.x;
 	float w = 6.0 - x - y - z;
-	return vec4(x, y, z, w) * (1.0/6.0);
+	return vec4(x, y, z, w) * (1.0 / 6.0);
 }
 
 /**
