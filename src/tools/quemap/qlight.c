@@ -52,20 +52,28 @@ int32_t Light_PointContents(const vec3_t p) {
 }
 
 /**
- * @brief
+ * @brief Lighting collision detection.
+ * @details Lighting traces are clipped to the world, and to the entity for the given lightmap.
+ * This way, inline models will self-shadow, but will not cast shadows on each other or on the
+ * world.
+ * @param lm The lightmap.
+ * @param start The starting point.
+ * @param end The desired end point.
+ * @param mask The contents mask to clip to.
+ * @return The trace.
  */
-void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask) {
+cm_trace_t Light_Trace(const lightmap_t *lm, const vec3_t start, const vec3_t end, int32_t mask) {
 
-	vec_t frac = FLT_MAX;
+	cm_trace_t trace = Cm_BoxTrace(start, end, NULL, NULL, 0, mask);
 
-	for (int32_t i = 0; i < Cm_NumModels(); i++) {
-
-		const cm_trace_t tr = Cm_BoxTrace(start, end, NULL, NULL, bsp_models[i]->head_node, mask);
-		if (tr.fraction < frac) {
-			frac = tr.fraction;
-			*trace = tr;
+	if (lm->model != bsp_file.models) {
+		cm_trace_t tr = Cm_BoxTrace(start, end, NULL, NULL, lm->model->head_node, mask);
+		if (tr.fraction < trace.fraction) {
+			trace = tr;
 		}
 	}
+
+	return trace;
 }
 
 /**

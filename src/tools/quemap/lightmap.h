@@ -37,6 +37,7 @@ typedef struct {
 typedef struct {
 	bsp_face_t *face;
 	const bsp_leaf_t *leaf;
+	const bsp_model_t *model;
 	const bsp_plane_t *plane;
 	const bsp_texinfo_t *texinfo;
 	const cm_material_t *material;

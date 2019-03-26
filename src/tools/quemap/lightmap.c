@@ -168,11 +168,20 @@ void BuildLightmaps(void) {
 		}
 	}
 
+	const bsp_model_t *model = bsp_file.models;
+	for (int32_t i = 0; i < bsp_file.num_models; i++, model++) {
+		for (int32_t j = 0; j < model->num_faces; j++) {
+			lightmaps[model->first_face + j].model = model;
+		}
+	}
+
 	const bsp_face_t *face = bsp_file.faces;
 	for (int32_t i = 0; i < bsp_file.num_faces; i++, face++) {
 
 		lightmap_t *lm = &lightmaps[i];
+
 		assert(lm->leaf);
+		assert(lm->model);
 
 		lm->face = &bsp_file.faces[i];
 		lm->texinfo = &bsp_file.texinfo[lm->face->texinfo];
@@ -355,8 +364,6 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 			continue;
 		}
 
-		cm_trace_t trace;
-
 		if (light->type == LIGHT_AMBIENT) {
 
 			const vec_t padding_s = ((lightmap->st_maxs[0] - lightmap->st_mins[0]) - lightmap->w) * 0.5;
@@ -391,7 +398,7 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 				vec3_t point;
 				Matrix4x4_Transform(&lightmap->inverse_matrix, sample, point);
 
-				Light_Trace(&trace, luxel->origin, point, CONTENTS_SOLID);
+				const cm_trace_t trace = Light_Trace(lightmap, luxel->origin, point, CONTENTS_SOLID);
 
 				ambient_occlusion += sample_fraction * trace.fraction;
 			}
@@ -402,13 +409,13 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 			vec3_t sun_origin;
 
 			VectorMA(luxel->origin, -MAX_WORLD_DIST, light->normal, sun_origin);
-			Light_Trace(&trace, luxel->origin, sun_origin, CONTENTS_SOLID);
+			const cm_trace_t trace = Light_Trace(lightmap, luxel->origin, sun_origin, CONTENTS_SOLID);
 
 			if (!(trace.surface && (trace.surface->flags & SURF_SKY))) {
 				continue;
 			}
 		} else {
-			Light_Trace(&trace, luxel->origin, light->origin, CONTENTS_SOLID);
+			const cm_trace_t trace = Light_Trace(lightmap, luxel->origin, light->origin, CONTENTS_SOLID);
 
 			if (trace.fraction < 1.0) {
 				continue;

@@ -41,7 +41,7 @@ extern int32_t indirect_bounces;
 extern int32_t indirect_bounce;
 
 int32_t Light_PointContents(const vec3_t p);
-void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask);
+cm_trace_t Light_Trace(const lightmap_t *lm, const vec3_t start, const vec3_t end, int32_t mask);
 int32_t Light_PVS(const lightmap_t *lm, byte *pvs);
 
 int32_t LIGHT_Main(void);
