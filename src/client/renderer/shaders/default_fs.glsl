@@ -418,7 +418,11 @@ void main(void) {
 
 	if (LIGHTMAP) {
 		const float layer = max(0, DRAW_BSP_LIGHTMAPS - 1);
-		lightmap = textureBicubic(SAMPLER1, vec3(uvLightmap, layer)).rgb * MODULATE;
+		lightmap = textureBicubic(SAMPLER1, vec3(uvLightmap, layer)).rgb;
+
+		#if DRAW_BSP_LIGHTMAPS == 0
+		lightmap *= MODULATE;
+		#endif
 
 		if (STAINMAP) {
 			vec4 stain = texture(SAMPLER8, uvLightmap);
@@ -498,12 +502,8 @@ void main(void) {
 	// underliquid caustics
 	CausticFragment(lightmap);
 
-#if DRAW_BSP_LIGHTMAPS == 0
-
 	fragColor.rgb *= exp(fragColor.rgb);
 	fragColor.rgb /= fragColor.rgb + 0.825;
-
-#endif
 
 	// and fog
 	FogFragment(length(point), fragColor);
@@ -513,4 +513,8 @@ void main(void) {
 
 	// and gamma
 	GammaFragment(fragColor);
+
+	#if DRAW_BSP_LIGHTMAPS
+	fragColor.rgb = LIGHTMAP ? lightmap.rgb : normal * 0.5 + 0.5;
+	#endif
 }
