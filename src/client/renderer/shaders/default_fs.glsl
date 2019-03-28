@@ -75,6 +75,60 @@ vec3 eyeDir;
 out vec4 fragColor;
 
 /**
+ * @brief Cubic interpolation helper for textureBicubic().
+ */
+vec4 cubic(float v) {
+	vec4 n = vec4(1.0, 2.0, 3.0, 4.0) - v;
+	vec4 s = n * n * n;
+	float x = s.x;
+	float y = s.y - 4.0 * s.x;
+	float z = s.z - 4.0 * s.y + 6.0 * s.x;
+	float w = 6.0 - x - y - z;
+	return vec4(x, y, z, w) * (1.0 / 6.0);
+}
+
+/**
+ * @brief Bicubic interpolation of texels, smoother and more expensive than bilinear.
+ */
+vec4 textureBicubic(sampler2DArray sampler, vec3 coords) {
+
+	// source: http://www.java-gaming.org/index.php?topic=35123.0
+
+	vec2 texCoords = coords.xy;
+	float layer = coords.z;
+
+	vec2 texSize = textureSize(sampler, 0).xy;
+	vec2 invTexSize = 1.0 / texSize;
+
+	texCoords = texCoords * texSize - 0.5;
+
+	vec2 fxy = fract(texCoords);
+	texCoords -= fxy;
+
+	vec4 xcubic = cubic(fxy.x);
+	vec4 ycubic = cubic(fxy.y);
+
+	vec4 c = texCoords.xxyy + vec2(-0.5, +1.5).xyxy;
+
+	vec4 s = vec4(xcubic.xz + xcubic.yw, ycubic.xz + ycubic.yw);
+	vec4 offset = c + vec4(xcubic.yw, ycubic.yw) / s;
+
+	offset *= invTexSize.xxyy;
+
+	vec4 sample0 = texture(sampler, vec3(offset.xz, layer));
+	vec4 sample1 = texture(sampler, vec3(offset.yz, layer));
+	vec4 sample2 = texture(sampler, vec3(offset.xw, layer));
+	vec4 sample3 = texture(sampler, vec3(offset.yw, layer));
+
+	float sx = s.x / (s.x + s.y);
+	float sy = s.z / (s.z + s.w);
+
+	return mix(
+	   mix(sample3, sample2, sx), mix(sample1, sample0, sx)
+	, sy);
+}
+
+/**
  * @brief Clamp value t to range [a,b] and map [a,b] to [0,1].
  */
 float linearstep(float a, float b, float t) {
@@ -195,7 +249,7 @@ float AmbientOcclusionHeightmap() {
 float SelfShadowHeightmap(vec3 lightDir, sampler2D tex, vec2 uv) {
 
 	// Only work on grazing angles.
- 	float angle = (0.95 - lightDir.z) * 2.0;
+	float angle = (0.95 - lightDir.z) * 2.0;
 	if (angle == 0.0) {
 		return 1.0;
 	}
@@ -226,7 +280,7 @@ float SelfShadowHeightmap(vec3 lightDir, sampler2D tex, vec2 uv) {
 	float shadowLength;
 	{
 		const float lengthScale = 0.2;
-		
+
 		// Noisy edges are better than blocky edges.
 		const float softness = 0.1;
 		float pattern = fract(dot(vec2(171.0, 231.0), gl_FragCoord.xy) / 600);
@@ -364,7 +418,7 @@ void main(void) {
 
 	if (LIGHTMAP) {
 		const float layer = max(0, DRAW_BSP_LIGHTMAPS - 1);
-		lightmap =  texture(SAMPLER1, vec3(uvLightmap, layer)).rgb * MODULATE;
+		lightmap = textureBicubic(SAMPLER1, vec3(uvLightmap, layer)).rgb * MODULATE;
 
 		if (STAINMAP) {
 			vec4 stain = texture(SAMPLER8, uvLightmap);
@@ -402,8 +456,7 @@ void main(void) {
 		if (DELUXEMAP) {
 
 			// resolve the light direction and deluxemap
-			vec4 deluxeColorHDR = texture(SAMPLER1, vec3(texcoords[1], 1));
-			vec3 lightdir = deluxeColorHDR.rgb * deluxeColorHDR.a;
+			vec3 lightdir = texture(SAMPLER1, vec3(uvLightmap, 1.0)).rgb;
 
 			deluxemap = normalize(2.0 * (lightdir + 0.5));
 

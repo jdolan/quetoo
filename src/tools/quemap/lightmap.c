@@ -75,8 +75,9 @@ static void BuildLightmapExtents(lightmap_t *lm) {
 		AddStToBounds(st, lm->st_mins, lm->st_maxs);
 	}
 
-	lm->w = floorf(lm->st_maxs[0] - lm->st_mins[0]) + 2;
-	lm->h = floorf(lm->st_maxs[1] - lm->st_mins[1]) + 2;
+	// add 2 px of padding around the lightmap for bicubic filtering
+	lm->w = floorf(lm->st_maxs[0] - lm->st_mins[0]) + 4;
+	lm->h = floorf(lm->st_maxs[1] - lm->st_mins[1]) + 4;
 }
 
 /**
