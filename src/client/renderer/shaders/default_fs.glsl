@@ -364,7 +364,10 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in floa
 	vec3 diffuseLightmapColor = lightmap.rgb * lightmapDiffuseBumpedLuma;
 	vec3 specularLightmapColor = (lightmapLuma + lightmap.rgb) * 0.5 * lightmapSpecularBumpedLuma;
 
-	fragColor.rgb = diffuse.rgb * ((diffuseLightmapColor + specularLightmapColor) + light);
+	//fragColor.rgb = diffuse.rgb * ((diffuseLightmapColor + specularLightmapColor) + light);
+
+	// temp gamma correction hax
+	fragColor.rgb = sqrt(diffuse.rgb * diffuse.rgb * (diffuseLightmapColor + specularLightmapColor + light));
 
 	// lastly modulate the alpha channel by the color
 	fragColor.a = diffuse.a * color.a;
