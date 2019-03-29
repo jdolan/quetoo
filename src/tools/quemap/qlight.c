@@ -40,12 +40,12 @@ static cm_bsp_model_t *bsp_models[MAX_BSP_MODELS];
 /**
  * @brief
  */
-int32_t Light_PointContents(const vec3_t p) {
+int32_t Light_PointContents(const lightmap_t *lm, const vec3_t p) {
 
-	int32_t contents = 0;
+	int32_t contents = Cm_PointContents(p, 0);
 
-	for (int32_t i = 0; i < Cm_NumModels(); i++) {
-		contents |= Cm_PointContents(p, bsp_models[i]->head_node);
+	if (lm->model != bsp_file.models) {
+		contents |= Cm_PointContents(p, lm->model->head_node);
 	}
 
 	return contents;

@@ -265,7 +265,7 @@ static int32_t ProjectLuxel(const lightmap_t *lm, luxel_t *l, vec_t soffs, vec_t
 	}
 
 	VectorAdd(l->origin, l->normal, l->origin);
-	return Light_PointContents(l->origin);
+	return Light_PointContents(lm, l->origin);
 }
 
 /**
