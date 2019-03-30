@@ -461,7 +461,7 @@ void main(void) {
 			// resolve the light direction and deluxemap
 			vec3 lightdir = texture(SAMPLER1, vec3(uvLightmap, 1.0)).rgb;
 
-			deluxemap = normalize(2.0 * (lightdir + 0.5));
+			deluxemap = normalize(lightdir * 2.0 - 1.0);
 
 			// resolve the bumpmap diffuse and specular scales
 			BumpFragment(deluxemap, normalmap.xyz, glossmap, lightmapDiffuseScale, lightmapSpecularScale);
