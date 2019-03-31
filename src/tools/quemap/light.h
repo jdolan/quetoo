@@ -29,6 +29,8 @@
 #define LIGHT_ANGLE_UP -1.0
 #define LIGHT_ANGLE_DOWN -2.0
 #define LIGHT_CONE 22.5
+#define LIGHT_SIZE_SUN 256.0
+#define LIGHT_SIZE_STEP 32.0
 
 /**
  * @brief BSP light sources may come from entities or emissive surfaces.
@@ -74,6 +76,11 @@ typedef struct {
 	 * @brief The angle, in radians, from the normal where spotlight attenuation occurs.
 	 */
 	vec_t theta;
+
+	/**
+	 * @brief The size of the light, in world units, to simulate area lights.
+	 */
+	vec_t size;
 
 } light_t;
 

@@ -407,19 +407,61 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 			diffuse *= 1.0 - (1.0 - ambient_occlusion) * (1.0 - ambient_occlusion);
 
 		} else if (light->type == LIGHT_SUN) {
+
 			vec3_t sun_origin;
-
 			VectorMA(luxel->origin, -MAX_WORLD_DIST, light->normal, sun_origin);
-			const cm_trace_t trace = Light_Trace(lightmap, luxel->origin, sun_origin, CONTENTS_SOLID);
 
+			cm_trace_t trace = Light_Trace(lightmap, luxel->origin, sun_origin, CONTENTS_SOLID);
 			if (!(trace.surface && (trace.surface->flags & SURF_SKY))) {
-				continue;
-			}
-		} else {
-			const cm_trace_t trace = Light_Trace(lightmap, luxel->origin, light->origin, CONTENTS_SOLID);
+				vec_t exposure = 0.0;
 
+				const int32_t num_samples = ceilf(light->size / LIGHT_SIZE_STEP);
+				for (int32_t i = 0; i < num_samples; i++) {
+
+					const vec3_t points[] = CUBE_8;
+					for (size_t j = 0; j < lengthof(points); j++) {
+
+						vec3_t point;
+						VectorMA(sun_origin, i * LIGHT_SIZE_STEP, points[j], point);
+
+						trace = Light_Trace(lightmap, luxel->origin, point, CONTENTS_SOLID);
+						if (!(trace.surface && (trace.surface->flags & SURF_SKY))) {
+							continue;
+						}
+
+						exposure += 1.0 / num_samples;
+						break;
+					}
+				}
+
+				diffuse *= exposure;
+			}
+
+		} else {
+			cm_trace_t trace = Light_Trace(lightmap, luxel->origin, light->origin, CONTENTS_SOLID);
 			if (trace.fraction < 1.0) {
-				continue;
+				vec_t exposure = 0.0;
+
+				const int32_t num_samples = ceilf(light->size / LIGHT_SIZE_STEP);
+				for (int32_t i = 0; i < num_samples; i++) {
+
+					const vec3_t points[] = CUBE_8;
+					for (size_t j = 0; j < lengthof(points); j++) {
+
+						vec3_t point;
+						VectorMA(light->origin, (i + 1) * LIGHT_SIZE_STEP, points[j], point);
+
+						trace = Light_Trace(lightmap, luxel->origin, point, CONTENTS_SOLID);
+						if (trace.fraction < 1.0) {
+							continue;
+						}
+
+						exposure += 1.0 / num_samples;
+						break;
+					}
+				}
+
+				diffuse *= exposure;
 			}
 		}
 

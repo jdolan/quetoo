@@ -123,6 +123,20 @@ light_t *LightForEntity(const GList *entities, const cm_entity_t *entity) {
 			light->theta = Radians(light->theta);
 		}
 
+		if (Cm_EntityVector(entity, "_size", &light->size, 1) == 1) {
+			if (light->size) {
+				light->size = Max(LIGHT_SIZE_STEP, light->size);
+			}
+		} else {
+			if (light->type == LIGHT_SUN) {
+				light->size = LIGHT_SIZE_SUN;
+			}
+		}
+
+		if (light->type != LIGHT_SUN) {
+			light->radius += light->size;
+		}
+
 		const char *atten = Cm_EntityValue(entity, "atten") ?: Cm_EntityValue(entity, "attenuation");
 		if (atten) {
 			light->atten = (bsp_light_atten_t) strtol(atten, NULL, 10);
