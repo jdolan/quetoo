@@ -75,8 +75,12 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_draw_bsp_normals 2 +set r_draw_bsp_lightmaps 1 +set r_texture_mode GL_NEAREST"
+            argument = "+set r_draw_bsp_lightmaps 1 +set r_texture_mode GL_NEAREST"
             isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+set r_draw_bsp_normals 2 +set r_draw_bsp_lightmaps 1 +set r_texture_mode GL_NEAREST"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_wireframe 1 +set r_clear 1"
@@ -87,7 +91,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map torn"
+            argument = "+map lighttest"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
