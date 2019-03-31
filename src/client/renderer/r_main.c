@@ -507,7 +507,7 @@ static void R_InitLocal(void) {
 	r_monochrome = Cvar_Add("r_monochrome", "0", CVAR_ARCHIVE | CVAR_R_MEDIA, "Loads all world textures as monochrome");
 	r_multisample = Cvar_Add("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls multisampling (anti-aliasing)");
 	r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax mapping effects");
-	r_render_plugin = Cvar_Add("r_render_plugin", "default", CVAR_ARCHIVE, "Specifies the active renderer plugin (default or pro)");
+	r_render_plugin = Cvar_Add("r_render_plugin", "default", CVAR_ARCHIVE, "Specifies the active renderer plugin");
 	r_saturation = Cvar_Add("r_saturation", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls texture saturation");
 	r_screenshot_format = Cvar_Add("r_screenshot_format", "png", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\", \"tga\" or \"pbm\".");
 	r_shadows = Cvar_Add("r_shadows", "2", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls the rendering of mesh model shadows");
