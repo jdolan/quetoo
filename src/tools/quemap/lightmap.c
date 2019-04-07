@@ -295,15 +295,19 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 		}
 
 		vec3_t dir;
+		vec_t dist;
 		if (light->type == LIGHT_AMBIENT) {
-			VectorClear(dir);
+			VectorSet(dir, 0.0, 0.0, 1.0);
+			dist = 0.0;
 		} else if (light->type == LIGHT_SUN) {
 			VectorNegate(light->normal, dir);
+			dist = 0.0;
 		} else {
-			VectorSubtract(light->origin, luxel->origin, dir);
+			vec3_t delta;
+			VectorSubtract(light->origin, luxel->origin, delta);
+			dist = VectorNormalize2(delta, dir);
 		}
 
-		const vec_t dist = VectorNormalize(dir);
 		if (light->atten != LIGHT_ATTEN_NONE) {
 			if (dist > light->radius) {
 				continue;
