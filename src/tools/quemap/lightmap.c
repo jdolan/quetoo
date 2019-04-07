@@ -303,9 +303,8 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 			VectorNegate(light->normal, dir);
 			dist = 0.0;
 		} else {
-			vec3_t delta;
-			VectorSubtract(light->origin, luxel->origin, delta);
-			dist = VectorNormalize2(delta, dir);
+			VectorSubtract(light->origin, luxel->origin, dir);
+			dist = VectorNormalize(dir);
 		}
 
 		if (light->atten != LIGHT_ATTEN_NONE) {
@@ -338,12 +337,10 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 				diffuse *= DEFAULT_BSP_PATCH_SIZE;
 				break;
 			case LIGHT_SPOT: {
-				const vec_t phi = -DotProduct(dir, light->normal);
-				if (phi < 1.0 - light->theta) {
-					diffuse *= phi / (1.0 - light->theta);
-					diffuse *= phi / (1.0 - light->theta);
-					diffuse *= phi / (1.0 - light->theta);
-				}
+				const vec_t cone_dot = DotProduct(dir, -light->normal);
+				const vec_t thresh = cos(light->theta);
+				const vec_t smooth = 0.03;
+				diffuse *= Smoothstep(thresh - smooth, thresh + smooth, cone_dot);
 				diffuse *= DEFAULT_BSP_PATCH_SIZE;
 			}
 				break;
