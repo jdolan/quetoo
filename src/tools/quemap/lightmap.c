@@ -295,7 +295,9 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 		}
 
 		vec3_t dir;
-		if (light->type == LIGHT_SUN) {
+		if (light->type == LIGHT_AMBIENT) {
+			VectorClear(dir);
+		} else if (light->type == LIGHT_SUN) {
 			VectorNegate(light->normal, dir);
 		} else {
 			VectorSubtract(light->origin, luxel->origin, dir);
