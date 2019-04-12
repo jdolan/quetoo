@@ -82,6 +82,14 @@ float saturate(float x){
 }
 
 /**
+ * @brief Clamps float to 0..1 range, common in HLSL.
+ */
+void TonemapFragment(inout vec3 rgb){
+	rgb *= exp(rgb);
+	rgb /= rgb + 0.825;
+}
+
+/**
  * @brief Cubic interpolation helper for textureBicubic().
  */
 vec4 cubic(float v) {
@@ -130,9 +138,7 @@ vec4 textureBicubic(sampler2DArray sampler, vec3 coords) {
 	float sx = s.x / (s.x + s.y);
 	float sy = s.z / (s.z + s.w);
 
-	return mix(
-	   mix(sample3, sample2, sx), mix(sample1, sample0, sx)
-	, sy);
+	return mix(mix(sample3, sample2, sx), mix(sample1, sample0, sx), sy);
 }
 
 /**
@@ -248,15 +254,6 @@ vec2 BumpTexcoord() {
 }
 
 /**
- * @brief Highpasses the heightmap to approximate ambient occlusion.
- */
-float AmbientOcclusionHeightmap() {
-	float heightA = texture(SAMPLER3, texcoords[0]).a;
-	float heightB = texture(SAMPLER3, texcoords[0], 4).a;
-	return (heightA - heightB) * 0.5 + 0.5;
-}
-
-/**
  * @brief Traces a ray from a point on the heightmap
  * towards the lightsource and checks for intersections.
  */
@@ -348,7 +345,7 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in floa
 
 	vec3 light = vec3(0.0);
 
-#if MAX_LIGHTS
+	#if MAX_LIGHTS
 	/*
 	 * Iterate the hardware light sources, accumulating dynamic lighting for
 	 * this fragment. A light radius of 0.0 means break.
@@ -373,14 +370,14 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in floa
 			}
 		}
 	}
-#endif
+	#endif
 
 	// now modulate the diffuse sample with the modified lightmap
 	float lightmapLuma = ToLuma(lightmap.rgb);
 
 	const float blackPointLuma = 0.015625;
 	float l = exp2(lightmapLuma) - blackPointLuma;
-	
+
 	float lmDiffLuma = l * lmDiffScale;
 	float lmSpecLuma = l * lmSpecScale;
 
@@ -507,10 +504,9 @@ void main(void) {
 
 	vec4 diffuse = vec4(1.0);
 
-	if (DIFFUSE) { // sample the diffuse texture, honoring the parallax offset
+	if (DIFFUSE) {
 		diffuse = ColorFilter(texture(SAMPLER0, uvTextures));
 
-		// see if diffuse can be discarded because of alpha test
 		if (diffuse.a < ALPHA_THRESHOLD) {
 			discard;
 		}
@@ -518,25 +514,15 @@ void main(void) {
 		TintFragment(diffuse, uvTextures);
 	}
 
-	// add any dynamic lighting to yield the final fragment color
 	LightFragment(diffuse, lightmap, normalmap.xyz, lmDiffScale, lmSpecScale);
 
-	// underliquid caustics
 	CausticFragment(lightmap);
 
-#if DRAW_BSP_LIGHTMAPS == 0
+	TonemapFragment(fragColor.rgb);
 
-	fragColor.rgb *= exp(fragColor.rgb);
-	fragColor.rgb /= fragColor.rgb + 0.825;
-
-#endif
-
-	// and fog
 	FogFragment(length(point), fragColor);
 
-	// and dithering
 	DitherFragment(fragColor.rgb);
 
-	// and gamma
 	GammaFragment(fragColor);
 }
