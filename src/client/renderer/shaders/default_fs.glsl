@@ -346,10 +346,9 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in floa
 	vec3 light = vec3(0.0);
 
 	#if MAX_LIGHTS
-	/*
-	 * Iterate the hardware light sources, accumulating dynamic lighting for
-	 * this fragment. A light radius of 0.0 means break.
-	 */
+	// Iterate the hardware light sources, accumulating dynamic lighting for
+	// this fragment. A light radius of 0.0 means break.
+
 	for (int i = 0; i < MAX_LIGHTS; i++) {
 
 		if (LIGHTS.RADIUS[i] == 0.0)
@@ -396,7 +395,7 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap, in floa
 /**
  * @brief Render caustics
  */
-void CausticFragment(in vec3 lightmap) {
+void CausticFragment(in vec3 lightmap, inout vec3 rgb) {
 	if (CAUSTIC.ENABLE) {
 		vec3 model_scale = vec3(0.024, 0.024, 0.016);
 		float time_scale = 0.6;
@@ -420,7 +419,7 @@ void CausticFragment(in vec3 lightmap) {
 		caustic_out *= clamp((lightmap * 1.6) - 0.5, 0.1, 1.0);
 
 		// add it up
-		fragColor.rgb = clamp(fragColor.rgb + caustic_out, 0.0, 1.0);
+		rgb = clamp(rgb + caustic_out, 0.0, 1.0);
 	}
 }
 
@@ -516,7 +515,7 @@ void main(void) {
 
 	LightFragment(diffuse, lightmap, normalmap.xyz, lmDiffScale, lmSpecScale);
 
-	CausticFragment(lightmap);
+	CausticFragment(lightmap, fragColor.rgb);
 
 	TonemapFragment(fragColor.rgb);
 
