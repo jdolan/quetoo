@@ -82,7 +82,9 @@ float saturate(float x){
 }
 
 /**
- * @brief Clamps float to 0..1 range, common in HLSL.
+ * @brief After lighting some fragments might contain values greater
+ * than 1.0 ("HDR"). By default these get clamped, but that is ugly.
+ * Tonemapping instead compresses the HDR range back to LDR smoothly.
  */
 void TonemapFragment(inout vec3 rgb){
 	rgb *= exp(rgb);
