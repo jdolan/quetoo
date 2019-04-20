@@ -22,6 +22,7 @@
 #pragma once
 
 #include "light.h"
+#include "lightgrid.h"
 #include "lightmap.h"
 #include "material.h"
 #include "patch.h"
@@ -37,8 +38,8 @@ extern vec_t contrast;
 extern int16_t luxel_size;
 extern int16_t patch_size;
 
-extern int32_t indirect_bounces;
-extern int32_t indirect_bounce;
+extern vec_t radiosity;
+extern int32_t num_bounces;
 
 int32_t Light_ClusterPVS(const int32_t cluster, byte *pvs);
 int32_t Light_PointPVS(const vec3_t p, int32_t head_node, byte *pvs);

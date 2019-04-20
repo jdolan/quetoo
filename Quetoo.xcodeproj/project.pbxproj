@@ -571,6 +571,7 @@
 		CEA3B48E1E0576E7004A6CF3 /* cm_material.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA3B4861E057569004A6CF3 /* cm_material.h */; };
 		CEA936661DBCD88D00A12B79 /* r_program_corona.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA936621DBCD87400A12B79 /* r_program_corona.c */; };
 		CEA936671DBCD89000A12B79 /* r_program_corona.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA936631DBCD87400A12B79 /* r_program_corona.h */; };
+		CEB112B022544B3900CE65F6 /* lightgrid.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB112AF22544B3900CE65F6 /* lightgrid.c */; };
 		CEB8D6271E00B73200043814 /* cg_input.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB8D6231E00B72100043814 /* cg_input.c */; };
 		CEBDB0C6214A02B500A7AC3D /* light.c in Sources */ = {isa = PBXBuildFile; fileRef = CEBDB0C5214A02B500A7AC3D /* light.c */; };
 		CEBDB0C9214A037900A7AC3D /* cm_entity.h in Headers */ = {isa = PBXBuildFile; fileRef = CEBDB0C7214A037800A7AC3D /* cm_entity.h */; };
@@ -2151,6 +2152,8 @@
 		CEA936621DBCD87400A12B79 /* r_program_corona.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_program_corona.c; sourceTree = "<group>"; };
 		CEA936631DBCD87400A12B79 /* r_program_corona.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_program_corona.h; sourceTree = "<group>"; };
 		CEAD2AB3203CF7E800F1FB7E /* libopenal.1.18.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopenal.1.18.2.dylib; path = ../../../../usr/local/lib/libopenal.1.18.2.dylib; sourceTree = "<group>"; };
+		CEB112AE22544B3800CE65F6 /* lightgrid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lightgrid.h; sourceTree = "<group>"; };
+		CEB112AF22544B3900CE65F6 /* lightgrid.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lightgrid.c; sourceTree = "<group>"; };
 		CEB3038D2247A59F000FCB07 /* points.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = points.h; sourceTree = "<group>"; };
 		CEB8D6231E00B72100043814 /* cg_input.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_input.c; sourceTree = "<group>"; };
 		CEB8D6241E00B72100043814 /* cg_input.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_input.h; sourceTree = "<group>"; };
@@ -3422,6 +3425,8 @@
 				CEBCE0C521CFC6CE00976E76 /* leakfile.h */,
 				CEBDB0C5214A02B500A7AC3D /* light.c */,
 				CEBDB0C4214A02B400A7AC3D /* light.h */,
+				CEB112AF22544B3900CE65F6 /* lightgrid.c */,
+				CEB112AE22544B3800CE65F6 /* lightgrid.h */,
 				CE12D6ED1C5C58C300CD0B13 /* lightmap.c */,
 				CEBDB0C3214A02B400A7AC3D /* lightmap.h */,
 				CE12D6EE1C5C58C300CD0B13 /* main.c */,
@@ -5448,6 +5453,7 @@
 				CE80FFE71C5E4D1800A21A51 /* vis.c in Sources */,
 				CE80FFE81C5E4D1800A21A51 /* leakfile.c in Sources */,
 				CEBDB0C6214A02B500A7AC3D /* light.c in Sources */,
+				CEB112B022544B3900CE65F6 /* lightgrid.c in Sources */,
 				CE80FFE91C5E4D1800A21A51 /* lightmap.c in Sources */,
 				CE80FFEA1C5E4D1800A21A51 /* main.c in Sources */,
 				CE80FFEB1C5E4D1800A21A51 /* map.c in Sources */,

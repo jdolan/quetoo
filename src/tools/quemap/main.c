@@ -264,8 +264,15 @@ static void Check_LIGHT_Options(int32_t argc) {
 			Com_Verbose("antialias: true\n");
 		} else if (!g_strcmp0(Com_Argv(i), "--indirect")) {
 			indirect = true;
-			indirect_bounces = (int32_t) strtol(Com_Argv(i + 1), NULL, 10) ? : 1;
-			Com_Verbose("indirect lighting: true\n");
+			Com_Verbose("indirect: true\n");
+		} else if (!g_strcmp0(Com_Argv(i), "--radiosity")) {
+			radiosity = atof(Com_Argv(i + 1));
+			Com_Verbose("radiosity: %g\n", radiosity);
+			i++;
+		} else if (!g_strcmp0(Com_Argv(i), "--bounce")) {
+			num_bounces = (int32_t) strtol(Com_Argv(i + 1), NULL, 10) ? : 1;
+			Com_Verbose("bounces: %d\n", num_bounces);
+			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "--brightness")) {
 			brightness = atof(Com_Argv(i + 1));
 			Com_Verbose("brightness: %g\n", brightness);
@@ -347,13 +354,15 @@ static void PrintHelpMessage(void) {
 
 	Com_Print("-light             LIGHT stage options:\n");
 	Com_Print(" --antialias - calculate extra lighting samples and average them\n");
-	Com_Print(" --indirect <integer> - calculate indirect lighting with bounces\n");
-	Com_Print(" --light-scale <float> - entity light scaling\n");
-	Com_Print(" --surface-scale <float> - surface light scaling\n");
-	Com_Print(" --brightness <float> - brightness factor\n");
-	Com_Print(" --contrast <float> - contrast factor\n");
-	Com_Print(" --saturation <float> - saturation factor\n");
-	Com_Print(" --patch <float> - surface light patch size (default 16)\n");
+	Com_Print(" --indirect - calculate indirect lighting\n");
+	Com_Print(" --bounce <integer> - indirect lighting bounces (default 1)\n");
+	Com_Print(" --radiosity <float> - radiosity level (default 0.125)\n");
+	Com_Print(" --brightness <float> - brightness (default 1.0)\n");
+	Com_Print(" --contrast <float> - contrast (default 1.0)\n");
+	Com_Print(" --saturation <float> - saturation (default 1.0)\n");
+	Com_Print(" --luxel-size <float> - luxel size (default 4)\n");
+	Com_Print(" --patch-size <float> - patch size (default 16)\n");
+
 	Com_Print("\n");
 
 	Com_Print("-zip               ZIP stage options:\n");

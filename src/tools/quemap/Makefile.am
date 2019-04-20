@@ -9,6 +9,7 @@ noinst_HEADERS = \
 	face.h \
 	leakfile.h \
 	light.h \
+	lightgrid.h \
 	lightmap.h \
 	material.h \
 	monitor.h \
@@ -38,6 +39,7 @@ quemap_SOURCES = \
 	face.c \
 	leakfile.c \
 	light.c \
+	lightgrid.c \
 	lightmap.c \
 	main.c \
 	map.c \

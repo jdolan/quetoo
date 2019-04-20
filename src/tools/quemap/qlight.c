@@ -28,11 +28,11 @@ vec_t brightness = 1.0;
 vec_t saturation = 1.0;
 vec_t contrast = 1.0;
 
-int16_t luxel_size = DEFAULT_BSP_LUXEL_SIZE;
+int16_t luxel_size = DEFAULT_BSP_LIGHTMAP_LUXEL_SIZE;
 int16_t patch_size = DEFAULT_BSP_PATCH_SIZE;
 
-int32_t indirect_bounces = 1;
-int32_t indirect_bounce = 0;
+vec_t radiosity = LIGHT_RADIOSITY;
+int32_t num_bounces = 1;
 
 // we use the collision detection facilities for lighting
 static cm_bsp_model_t *bsp_models[MAX_BSP_MODELS];
@@ -122,6 +122,12 @@ static void LightWorld(void) {
 	GList *entities = Cm_LoadEntities(bsp_file.entity_string);
 	const cm_entity_t *e = entities->data;
 
+	if (radiosity == LIGHT_RADIOSITY) {
+		if (Cm_EntityVector(e, "radiosity", &radiosity, 1) == 1) {
+			Com_Verbose("Radiosity: %g\n", radiosity);
+		}
+	}
+
 	if (brightness == 1.0) {
 		if (Cm_EntityVector(e, "brightness", &brightness, 1) == 1) {
 			Com_Verbose("Brightness: %g\n", brightness);
@@ -140,7 +146,7 @@ static void LightWorld(void) {
 		}
 	}
 
-	if (luxel_size == DEFAULT_BSP_LUXEL_SIZE) {
+	if (luxel_size == DEFAULT_BSP_LIGHTMAP_LUXEL_SIZE) {
 		vec_t v;
 		if (Cm_EntityVector(e, "luxel_size", &v, 1) == 1) {
 			luxel_size = v;
@@ -165,36 +171,45 @@ static void LightWorld(void) {
 	// build lightmaps
 	BuildLightmaps();
 
-	// create direct lights out of patches and entities
+	// build lightgrid
+	const size_t num_lightgrid = BuildLightgrid();
+
+	// build lights out of patches and entities
 	BuildDirectLights(entities);
 
-	// write direct light sources to the BSP
+	// ambient and diffuse lighting
+	Work("Direct lightmaps", DirectLightmap, bsp_file.num_faces);
+	Work("Direct lightgrid", DirectLightgrid, (int32_t) num_lightgrid);
+
+	// write lights to the BSP
 	EmitLights();
 
-	// calculate direct lighting
-	Work("Direct lighting", DirectLighting, bsp_file.num_faces);
-
 	if (indirect) {
-		for (indirect_bounce = 0; indirect_bounce < indirect_bounces; indirect_bounce++) {
+		for (int32_t i = 0; i < num_bounces; i++) {
 
-			// create indirect lights from directly lit patches
+			// build indirect lights from lightmapped patches
 			BuildIndirectLights();
 
 			// calculate indirect lighting
-			Work("Indirect lighting", IndirectLighting, bsp_file.num_faces);
+			Work("Indirect lightmaps", IndirectLightmap, bsp_file.num_faces);
+			Work("Indirect lightgrid", IndirectLightgrid, (int32_t) num_lightgrid);
 		}
 	}
 
 	g_list_free_full(lights, Mem_Free);
 
 	// finalize it and write it to per-face textures
-	Work("Finalize lighting", FinalizeLighting, bsp_file.num_faces);
+	Work("Finalizing lightmaps", FinalizeLightmap, bsp_file.num_faces);
+	Work("Finalizing lightgrid", FinalizeLightgrid, (int32_t) num_lightgrid);
 
 	// generate atlased lightmaps
 	EmitLightmaps();
 
 	// and vertex lightmap texcoords
 	EmitLightmapTexcoords();
+
+	// and lightgrid
+	EmitLightgrid();
 
 	g_list_free_full(entities, Mem_Free);
 

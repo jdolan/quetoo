@@ -490,6 +490,7 @@ typedef struct {
  */
 #define MIN_WORLD_COORD		-4096.0
 #define MAX_WORLD_COORD		 4096.0
+#define MAX_WORLD_AXIAL		(MAX_WORLD_COORD - MIN_WORLD_COORD)
 
 /**
  * @brief Therefore, the maximum distance across the world is the

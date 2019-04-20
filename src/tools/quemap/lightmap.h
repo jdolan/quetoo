@@ -26,12 +26,13 @@
 #include "matrix.h"
 
 typedef struct {
-	int32_t s, t;
+	int32_t s, t, u;
 	vec3_t origin;
 	vec3_t normal;
-	vec3_t direct;
+	vec3_t ambient;
+	vec3_t diffuse;
+	vec3_t radiosity;
 	vec3_t direction;
-	vec3_t indirect;
 } luxel_t;
 
 typedef struct {
@@ -52,12 +53,12 @@ typedef struct {
 	SDL_Surface *deluxemap;
 } lightmap_t;
 
-extern lightmap_t lightmaps[MAX_BSP_FACES];
+extern lightmap_t *lightmaps;
 
 void BuildLightmaps(void);
 void BuildVertexNormals(void);
-void DirectLighting(int32_t face_num);
-void IndirectLighting(int32_t face_num);
-void FinalizeLighting(int32_t face_num);
+void DirectLightmap(int32_t face_num);
+void IndirectLightmap(int32_t face_num);
+void FinalizeLightmap(int32_t face_num);
 void EmitLightmaps(void);
 void EmitLightmapTexcoords(void);

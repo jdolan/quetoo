@@ -21,40 +21,8 @@
 
 #pragma once
 
-#include "collision/collision.h"
-#include "common.h"
-#include "monitor.h"
-#include "work.h"
-
-/**
- * @brief Quemap .prt file magic.
- */
-#define	PORTALFILE	"PRT1"
-
-extern char map_base[MAX_QPATH];
-
-extern char map_name[MAX_OS_PATH];
-extern char bsp_name[MAX_OS_PATH];
-
-extern _Bool verbose;
-extern _Bool debug;
-
-enum {
-	MEM_TAG_QBSP = 1000,
-	MEM_TAG_EPAIR,
-	MEM_TAG_BRUSH,
-	MEM_TAG_NODE,
-	MEM_TAG_TREE,
-	MEM_TAG_PORTAL,
-	MEM_TAG_FACE,
-	MEM_TAG_QVIS,
-	MEM_TAG_VIS,
-	MEM_TAG_QLIGHT,
-	MEM_TAG_PATCH,
-	MEM_TAG_ASSET,
-	MEM_TAG_LIGHT,
-	MEM_TAG_LIGHTMAP,
-	MEM_TAG_LIGHTGRID,
-	MEM_TAG_QMAT,
-	MEM_TAG_QZIP
-};
+size_t BuildLightgrid(void);
+void DirectLightgrid(int32_t luxel_num);
+void IndirectLightgrid(int32_t luxel_num);
+void FinalizeLightgrid(int32_t luxel_num);
+void EmitLightgrid(void);

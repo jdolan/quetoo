@@ -27,7 +27,7 @@
 #include "polylib.h"
 #include "qlight.h"
 
-lightmap_t lightmaps[MAX_BSP_FACES];
+lightmap_t *lightmaps;
 
 /**
  * @brief Resolves the texture projection matrices for the given lightmap.
@@ -75,7 +75,7 @@ static void BuildLightmapExtents(lightmap_t *lm) {
 		AddStToBounds(st, lm->st_mins, lm->st_maxs);
 	}
 
-	// add 2 px of padding around the lightmap for bicubic filtering
+	// add 4 luxels of padding around the lightmap for bicubic filtering
 	lm->w = floorf(lm->st_maxs[0] - lm->st_mins[0]) + 4;
 	lm->h = floorf(lm->st_maxs[1] - lm->st_mins[1]) + 4;
 }
@@ -94,7 +94,7 @@ static void BuildLightmapLuxels(lightmap_t *lm) {
 						va("Surface too large to light (%zd)\n", lm->num_luxels));
 	}
 
-	lm->luxels = Mem_TagMalloc(sizeof(luxel_t) * lm->num_luxels, MEM_TAG_LIGHTMAP);
+	lm->luxels = Mem_TagMalloc(lm->num_luxels * sizeof(luxel_t), MEM_TAG_LIGHTMAP);
 
 	luxel_t *l = lm->luxels;
 
@@ -103,8 +103,6 @@ static void BuildLightmapLuxels(lightmap_t *lm) {
 
 			l->s = s;
 			l->t = t;
-
-			VectorCopy(lm->plane->normal, l->direction);
 		}
 	}
 }
@@ -159,7 +157,7 @@ void DebugLightmapLuxels(void) {
  */
 void BuildLightmaps(void) {
 
-	memset(lightmaps, 0, sizeof(lightmaps));
+	lightmaps = Mem_TagMalloc(sizeof(lightmap_t) * bsp_file.num_faces, MEM_TAG_LIGHTMAP);
 
 	const bsp_leaf_t *leaf = bsp_file.leafs;
 	for (int32_t i = 0; i < bsp_file.num_leafs; i++, leaf++) {
@@ -180,9 +178,6 @@ void BuildLightmaps(void) {
 	for (int32_t i = 0; i < bsp_file.num_faces; i++, face++) {
 
 		lightmap_t *lm = &lightmaps[i];
-
-		assert(lm->leaf);
-		assert(lm->model);
 
 		lm->face = &bsp_file.faces[i];
 		lm->texinfo = &bsp_file.texinfo[lm->face->texinfo];
@@ -255,8 +250,8 @@ static int32_t ProjectLuxel(const lightmap_t *lm, luxel_t *l, vec_t soffs, vec_t
 	const vec_t s = lm->st_mins[0] + padding_s + l->s + 0.5 + soffs;
 	const vec_t t = lm->st_mins[1] + padding_t + l->t + 0.5 + toffs;
 
-	const vec3_t origin_st = { s , t, 0.0 };
-	Matrix4x4_Transform(&lm->inverse_matrix, origin_st, l->origin);
+	const vec3_t st = { s , t, 0.0 };
+	Matrix4x4_Transform(&lm->inverse_matrix, st, l->origin);
 
 	if (lm->texinfo->flags & SURF_PHONG) {
 		PhongLuxel(lm, l->origin, l->normal);
@@ -269,19 +264,15 @@ static int32_t ProjectLuxel(const lightmap_t *lm, luxel_t *l, vec_t soffs, vec_t
 }
 
 /**
- * @brief Iterates all lights, accumulating diffuse and directional samples to the specified pointers.
+ * @brief Iterates all lights, accumulating color and direction to the appropriate buffers.
  * @param lightmap The lightmap containing the luxel.
  * @param luxel The luxel to light.
  * @param pvs The PVS for the luxel's origin.
- * @param color The output vector for light color, or `NULL`.
- * @param direction The output vector for ligtht direction, or `NULL`.
  * @param scale A scalar applied to both light and direction.
  */
-static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const byte *pvs,
-					   vec_t *color, vec_t *direction, vec_t scale) {
+static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *pvs, vec_t scale) {
 
 	for (const GList *list = lights; list; list = list->next) {
-
 		const light_t *light = list->data;
 
 		if (light->type == LIGHT_INVALID) {
@@ -320,30 +311,31 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 			}
 		}
 
-		vec_t diffuse = Clamp(light->radius * dot, 0.0, LIGHT_RADIUS);
+		vec_t intensity = Clamp(light->radius * dot, 0.0, LIGHT_RADIUS);
 
 		switch (light->type) {
 			case LIGHT_INVALID:
 				break;
 			case LIGHT_AMBIENT:
 				break;
-			case LIGHT_PATCH:
-				diffuse *= patch_size / DEFAULT_BSP_PATCH_SIZE;
+			case LIGHT_SUN:
 				break;
 			case LIGHT_POINT:
-				diffuse *= DEFAULT_BSP_PATCH_SIZE;
+				intensity *= DEFAULT_BSP_PATCH_SIZE;
 				break;
 			case LIGHT_SPOT: {
 				const vec_t phi = -DotProduct(dir, light->normal);
 				if (phi < 1.0 - light->theta) {
-					diffuse *= phi / (1.0 - light->theta);
-					diffuse *= phi / (1.0 - light->theta);
-					diffuse *= phi / (1.0 - light->theta);
+					intensity *= phi / (1.0 - light->theta);
+					intensity *= phi / (1.0 - light->theta);
+					intensity *= phi / (1.0 - light->theta);
 				}
-				diffuse *= DEFAULT_BSP_PATCH_SIZE;
+				intensity *= DEFAULT_BSP_PATCH_SIZE;
 			}
 				break;
-			case LIGHT_SUN:
+			case LIGHT_PATCH:
+			case LIGHT_INDIRECT:
+				intensity *= patch_size / DEFAULT_BSP_PATCH_SIZE;
 				break;
 		}
 
@@ -361,11 +353,13 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 				break;
 		}
 
-		diffuse *= atten;
+		intensity *= atten;
 
-		if (diffuse <= 0.0) {
+		if (intensity <= 0.0) {
 			continue;
 		}
+
+		const int32_t head_node = lightmap->model->head_node;
 
 		if (light->type == LIGHT_AMBIENT) {
 
@@ -406,7 +400,7 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 				ambient_occlusion += sample_fraction * trace.fraction;
 			}
 
-			diffuse *= 1.0 - (1.0 - ambient_occlusion) * (1.0 - ambient_occlusion);
+			intensity *= 1.0 - (1.0 - ambient_occlusion) * (1.0 - ambient_occlusion);
 
 		} else if (light->type == LIGHT_SUN) {
 
@@ -436,7 +430,7 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 					}
 				}
 
-				diffuse *= exposure;
+				intensity *= exposure;
 			}
 
 		} else {
@@ -463,16 +457,34 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 					}
 				}
 
-				diffuse *= exposure;
+				intensity *= exposure;
 			}
 		}
 
-		if (color) {
-			VectorMA(color, diffuse * scale, light->color, color);
+		intensity *= scale;
+
+		if (intensity <= 0.0) {
+			continue;
 		}
 
-		if (direction) {
-			VectorMA(direction, diffuse * scale / light->radius, dir, direction);
+		switch (light->type) {
+			case LIGHT_INVALID:
+				break;
+			case LIGHT_AMBIENT:
+				VectorMA(luxel->ambient, intensity, light->color, luxel->ambient);
+				VectorMA(luxel->direction, intensity, luxel->normal, luxel->direction);
+				break;
+			case LIGHT_SUN:
+			case LIGHT_POINT:
+			case LIGHT_SPOT:
+			case LIGHT_PATCH:
+				VectorMA(luxel->diffuse, intensity, light->color, luxel->diffuse);
+				VectorMA(luxel->direction, intensity, dir, luxel->direction);
+				break;
+			case LIGHT_INDIRECT:
+				VectorMA(luxel->radiosity, intensity, light->color, luxel->radiosity);
+				VectorMA(luxel->direction, intensity, luxel->normal, luxel->direction);
+				break;
 		}
 	}
 }
@@ -482,7 +494,7 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
  * We then query the light sources that are in PVS for each luxel, and accumulate their diffuse
  * and directional contributions as non-normalized floating point.
  */
-void DirectLighting(int32_t face_num) {
+void DirectLightmap(int32_t face_num) {
 
 	static const vec3_t offsets[] = {
 		{ +0.0, +0.0, 0.195346 }, { -1.0, -1.0, 0.077847 }, { +0.0, -1.0, 0.123317 },
@@ -516,7 +528,7 @@ void DirectLighting(int32_t face_num) {
 
 			contribution += scale;
 
-			LightLuxel(lm, l, pvs, l->direct, l->direction, scale);
+			LightLuxel(lm, l, pvs, scale);
 
 			if (!antialias) {
 				break;
@@ -524,7 +536,8 @@ void DirectLighting(int32_t face_num) {
 		}
 
 		if (contribution > 0.0 && contribution < 1.0) {
-			VectorScale(l->direct, 1.0 / contribution, l->direct);
+			VectorScale(l->ambient, 1.0 / contribution, l->ambient);
+			VectorScale(l->diffuse, 1.0 / contribution, l->diffuse);
 			VectorScale(l->direction, 1.0 / contribution, l->direction);
 		}
 	}
@@ -533,7 +546,7 @@ void DirectLighting(int32_t face_num) {
 /**
  * @brief Calculates indirect lighting for the given face.
  */
-void IndirectLighting(int32_t face_num) {
+void IndirectLightmap(int32_t face_num) {
 
 	static const vec2_t offsets[] = {
 		{ +0.0, +0.0 }, { -1.0, -1.0 }, { +0.0, -1.0 },
@@ -562,7 +575,7 @@ void IndirectLighting(int32_t face_num) {
 				continue;
 			}
 
-			LightLuxel(lm, l, pvs, l->indirect, NULL, 0.125);
+			LightLuxel(lm, l, pvs, radiosity);
 			break;
 		}
 	}
@@ -572,13 +585,13 @@ void IndirectLighting(int32_t face_num) {
  * @brief
  */
 static SDL_Surface *CreateLightmapSurface(int32_t w, int32_t h, void *pixels) {
-	return SDL_CreateRGBSurfaceWithFormatFrom(pixels, w, h, 24, w * 3, SDL_PIXELFORMAT_RGB24);
+	return SDL_CreateRGBSurfaceWithFormatFrom(pixels, w, h, 24, w * BSP_LIGHTMAP_BPP, SDL_PIXELFORMAT_RGB24);
 }
 
 /**
  * @brief Finalize light values for the given face, and create its lightmap textures.
  */
-void FinalizeLighting(int32_t face_num) {
+void FinalizeLightmap(int32_t face_num) {
 
 	lightmap_t *lm = &lightmaps[face_num];
 
@@ -593,13 +606,15 @@ void FinalizeLighting(int32_t face_num) {
 	byte *out_dm = lm->deluxemap->pixels;
 
 	// write it out
-	luxel_t *l = lm->luxels;
+	const luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
-		vec3_t lightmap;
+		vec3_t lightmap, deluxemap;
 
-		// start with raw sample data
-		VectorAdd(l->direct, l->indirect, lightmap);
-		//VectorCopy(l->indirect, lightmap); // uncomment this to see just indirect lighting
+		// add all color components together
+		VectorClear(lightmap);
+		VectorAdd(lightmap, l->ambient, lightmap);
+		VectorAdd(lightmap, l->diffuse, lightmap);
+		VectorAdd(lightmap, l->radiosity, lightmap);
 
 		// convert to float
 		VectorScale(lightmap, 1.0 / 255.0, lightmap);
@@ -613,13 +628,7 @@ void FinalizeLighting(int32_t face_num) {
 		}
 
 		// write the deluxemap sample data, in tangent space, also converted to bytes
-		vec3_t direction, deluxemap;
-
-		// start with the raw direction data
-		VectorCopy(l->direction, direction);
-
-		// if the sample was lit, it will have a directional vector in world space
-		if (!VectorCompare(direction, vec3_origin)) {
+		if (!VectorCompare(l->direction, vec3_origin)) {
 
 			vec3_t tangent;
 			vec3_t bitangent;
@@ -627,9 +636,9 @@ void FinalizeLighting(int32_t face_num) {
 			TangentVectors(l->normal, lm->texinfo->vecs[0], lm->texinfo->vecs[1], tangent, bitangent);
 
 			// transform it into tangent space
-			deluxemap[0] = DotProduct(direction, tangent);
-			deluxemap[1] = DotProduct(direction, bitangent);
-			deluxemap[2] = DotProduct(direction, l->normal);
+			deluxemap[0] = DotProduct(l->direction, tangent);
+			deluxemap[1] = DotProduct(l->direction, bitangent);
+			deluxemap[2] = DotProduct(l->direction, l->normal);
 
 			VectorAdd(deluxemap, vec3_up, deluxemap);
 			VectorNormalize(deluxemap);

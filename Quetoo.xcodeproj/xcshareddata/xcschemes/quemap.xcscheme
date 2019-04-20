@@ -107,7 +107,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-light --indirect"
+            argument = "-light"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -119,7 +119,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "maps/lighttest.map"
+            argument = "maps/torn.map"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

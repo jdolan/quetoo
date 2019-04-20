@@ -224,14 +224,12 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *pa
 	light_t *light = NULL;
 
 	vec2_t patch_mins, patch_maxs;
-
-	const vec_t *offset = patch_offsets[lm - lightmaps];
 	ClearStBounds(patch_mins, patch_maxs);
 
 	for (int32_t i = 0; i < patch->winding->num_points; i++) {
 
 		vec3_t point, st;
-		VectorSubtract(patch->winding->points[i], offset, point);
+		VectorSubtract(patch->winding->points[i], patch->origin, point);
 
 		Matrix4x4_Transform(&lm->matrix, point, st);
 
@@ -260,8 +258,8 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *pa
 			assert(l->s == ds);
 			assert(l->t == dt);
 
-			VectorAdd(lightmap, l->direct, lightmap);
-			VectorAdd(lightmap, l->indirect, lightmap);
+			VectorAdd(lightmap, l->diffuse, lightmap);
+			VectorAdd(lightmap, l->radiosity, lightmap);
 		}
 	}
 
@@ -270,7 +268,7 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *pa
 
 		light = Mem_TagMalloc(sizeof(*light), MEM_TAG_LIGHT);
 
-		light->type = LIGHT_PATCH;
+		light->type = LIGHT_INDIRECT;
 		light->atten = LIGHT_ATTEN_INVERSE_SQUARE;
 
 		Cm_WindingCenter(patch->winding, light->origin);
@@ -304,8 +302,7 @@ void BuildIndirectLights(void) {
 			continue;
 		}
 
-		for (const patch_t *patch = patches[i]; patch; patch = patch->next) {
-
+		for (const patch_t *patch = &patches[i]; patch; patch = patch->next) {
 			light_t *light = LightForLightmappedPatch(lm, patch);
 			if (light) {
 				lights = g_list_prepend(lights, light);

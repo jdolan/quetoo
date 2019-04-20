@@ -50,6 +50,7 @@ static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
 	BSP_LUMP_SIZE_STRUCT(vis, MAX_BSP_VISIBILITY),
 	BSP_LUMP_NUM_STRUCT(lights, MAX_BSP_LIGHTS),
 	BSP_LUMP_NUM_STRUCT(lightmaps, MAX_BSP_LIGHTMAPS),
+	BSP_LUMP_SIZE_STRUCT(lightgrid, MAX_BSP_LIGHTGRID)
 };
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
@@ -373,6 +374,18 @@ static void Bsp_SwapLights(void *lump, const int32_t num) {
 	}
 }
 
+/**
+ * @brief Swap function.
+ */
+static void Bsp_SwapLightGrid(void *lump, const int32_t num) {
+
+	bsp_lightgrid_t *lightgrid = (bsp_lightgrid_t *) lump;
+
+	for (int32_t i = 0; i < 3; i++) {
+		lightgrid->size[i] = LittleLong(lightgrid->size[i]);
+	}
+}
+
 
 static Bsp_SwapFunction bsp_swap_funcs[BSP_LUMP_LAST] = {
 	NULL,
@@ -393,6 +406,7 @@ static Bsp_SwapFunction bsp_swap_funcs[BSP_LUMP_LAST] = {
 	Bsp_SwapVis,
 	Bsp_SwapLights,
 	NULL,
+	Bsp_SwapLightGrid,
 };
 #endif
 
@@ -439,13 +453,12 @@ static void Bsp_GetLumpPosition(const bsp_header_t *file, const bsp_lump_id_t lu
 /**
  * @brief Set if the lump is valid but the ptrs do not exist.
  */
-#define LUMP_SKIPPED	(int32_t *) (ptrdiff_t) -1u
+#define LUMP_SKIPPED (int32_t *) (ptrdiff_t) -1u
 
 /**
  * @brief Convenience to calculate bsp_file offset in bytes.
  */
-#define BSP_BYTE_OFFSET(bsp, bytes) \
-	(((byte *) bsp) + bytes)
+#define BSP_BYTE_OFFSET(bsp, bytes) (((byte *) bsp) + bytes)
 
 /**
  * @brief Get the lump offset data for the specified lump. Returns false if the

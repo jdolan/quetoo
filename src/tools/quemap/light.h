@@ -30,7 +30,8 @@
 #define LIGHT_ANGLE_DOWN -2.0
 #define LIGHT_CONE 22.5
 #define LIGHT_SIZE_SUN 256.0
-#define LIGHT_SIZE_STEP 32.0
+#define LIGHT_SIZE_STEP 16.0
+#define LIGHT_RADIOSITY 0.125
 
 /**
  * @brief BSP light sources may come from entities or emissive surfaces.

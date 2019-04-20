@@ -33,12 +33,12 @@
 #define MAX_BSP_VISIBILITY		0x200000
 #define MAX_BSP_LIGHTS			0x1000
 #define MAX_BSP_LIGHTMAPS		0x10
-
+#define MAX_BSP_LIGHTGRID		0x1200000
 
 /**
  * @brief Lightmap luxel size, in world units.
  */
-#define DEFAULT_BSP_LUXEL_SIZE 4
+#define DEFAULT_BSP_LIGHTMAP_LUXEL_SIZE 4
 
 /**
  * @brief Largest single lightmap allowed for a face, in luxels.
@@ -51,14 +51,49 @@
 #define BSP_LIGHTMAP_WIDTH 2048
 
 /**
+ * @brief Lightmap atlas bytes per pixel.
+ */
+#define BSP_LIGHTMAP_BPP 3
+
+/**
  * @brief Lightmap atlas size in bytes.
  */
-#define BSP_LIGHTMAP_SIZE (BSP_LIGHTMAP_WIDTH * BSP_LIGHTMAP_WIDTH * 3)
+#define BSP_LIGHTMAP_LAYER_SIZE (BSP_LIGHTMAP_WIDTH * BSP_LIGHTMAP_WIDTH * BSP_LIGHTMAP_BPP)
 
 /**
  * @brief Lightmap and deluxemap.
  */
 #define BSP_LIGHTMAP_LAYERS 2
+
+/**
+ * @brief Lightmap layered atlas size in bytes.
+ */
+#define BSP_LIGHTMAP_SIZE (BSP_LIGHTMAP_SIZE * BSP_LIGHTMAP_LAYERS)
+
+/**
+ * @brief Lightgrid luxel size in world units.
+ */
+#define BSP_LIGHTGRID_LUXEL_SIZE 64
+
+/**
+ * @brief Lightgrid bytes per pixel.
+ */
+#define BSP_LIGHTGRID_BPP 3
+
+/**
+ * @brief Lightgrid ambient, diffuse and direction layers.
+ */
+#define BSP_LIGHTGRID_LAYERS 3
+
+/**
+ * @brief Largest lightgrid width in luxels (8192 / 64 = 128).
+ */
+#define MAX_BSP_LIGHTGRID_WIDTH (MAX_WORLD_AXIAL / BSP_LIGHTGRID_LUXEL_SIZE)
+
+/**
+ * @brief Largest lightgrid texture size in luxels.
+ */
+#define MAX_BSP_LIGHTGRID_LUXELS (MAX_BSP_LIGHTGRID_WIDTH * MAX_BSP_LIGHTGRID_WIDTH * MAX_BSP_LIGHTGRID_WIDTH)
 
 /**
  * @brief BSP file format lump identifiers.
@@ -83,6 +118,7 @@ typedef enum {
 	BSP_LUMP_VISIBILITY,
 	BSP_LUMP_LIGHTS,
 	BSP_LUMP_LIGHTMAPS,
+	BSP_LUMP_LIGHTGRID,
 	BSP_LUMP_LAST
 } bsp_lump_id_t;
 
@@ -189,17 +225,6 @@ typedef struct {
 	int32_t contents;
 } bsp_brush_t;
 
-// the visibility lump consists of a header with a count, then
-// byte offsets for the PVS and PHS of each cluster, then the raw
-// compressed bit vectors
-#define VIS_PVS	0
-#define VIS_PHS	1
-
-typedef struct {
-	int32_t num_clusters;
-	int32_t bit_offsets[8][2]; // bit_offsets[num_clusters][2]
-} bsp_vis_t;
-
 // each area has a list of portals that lead into other areas
 // when portals are closed, other areas may not be visible or
 // hearable even if the vis info says that it should be
@@ -213,13 +238,25 @@ typedef struct {
 	int32_t first_area_portal;
 } bsp_area_t;
 
+// the visibility lump consists of a header with a count, then
+// byte offsets for the PVS and PHS of each cluster, then the raw
+// compressed bit vectors
+#define VIS_PVS	0
+#define VIS_PHS	1
+
+typedef struct {
+	int32_t num_clusters;
+	int32_t bit_offsets[8][2]; // bit_offsets[num_clusters][2]
+} bsp_vis_t;
+
 typedef enum {
 	LIGHT_INVALID = -1,
 	LIGHT_AMBIENT,
 	LIGHT_SUN,
 	LIGHT_POINT,
 	LIGHT_SPOT,
-	LIGHT_PATCH
+	LIGHT_PATCH,
+	LIGHT_INDIRECT
 } bsp_light_type_t;
 
 typedef enum {
@@ -244,8 +281,18 @@ typedef struct {
  * color, while the second layer contains diffuse light direction.
  */
 typedef struct {
-	byte layers[BSP_LIGHTMAP_LAYERS][BSP_LIGHTMAP_SIZE];
+	byte layers[BSP_LIGHTMAP_LAYERS][BSP_LIGHTMAP_LAYER_SIZE];
 } bsp_lightmap_t;
+
+/**
+ * @brief Lightgrids are layered 24 bit 3D texture objects of variable size.
+ * @details Each layer is up to 128x128x128 RGB at 24bpp. The first layer contains
+ * ambient light color, the second contains diffuse light color, and the third contains
+ * diffuse light direction.
+ */
+typedef struct {
+	int32_t size[3];
+} bsp_lightgrid_t;
 
 /**
  * @brief BSP file lumps in their native file formats. The data is stored as pointers
@@ -308,7 +355,9 @@ typedef struct {
 	int32_t num_lightmaps;
 	bsp_lightmap_t *lightmaps;
 
-	// local to bsp_file_t
+	int32_t lightgrid_size;
+	bsp_lightgrid_t *lightgrid;
+
 	bsp_lump_id_t loaded_lumps;
 } bsp_file_t;
 
