@@ -109,8 +109,8 @@ extern const vec3_t vec3_forward;
 /**
  * @brief Math and trigonometry functions.
  */
-vec_t Smoothstep(vec_t min, vec_t max, vec_t val);
-vec_t Smootherstep(vec_t min, vec_t max, vec_t val);
+vec_t SmoothStep(vec_t min, vec_t max, vec_t val);
+vec_t SmootherStep(vec_t min, vec_t max, vec_t val);
 int32_t Step(int32_t value, int32_t step);
 vec_t Stepf(vec_t value, vec_t step);
 

@@ -36,12 +36,12 @@ const vec3_t vec3_forward = { 0.0, 1.0, 0.0 };
  * with the values inbetween using hermite interpolation.
  */
 
-vec_t Smoothstep(vec_t min, vec_t max, vec_t val) {
+vec_t SmoothStep(vec_t min, vec_t max, vec_t val) {
 	vec_t x = Clamp((val - min) / (max - min), 0.0, 1.0);
 	return x * x * (3.0 - 2.0 * x);
 }
 
-vec_t Smootherstep(vec_t min, vec_t max, vec_t val) {
+vec_t SmootherStep(vec_t min, vec_t max, vec_t val) {
 	vec_t x = Clamp((val - min) / (max - min), 0.0, 1.0);
 	return x * x * x * (x * (x * 6.0 - 15.0) + 10.0);
 }

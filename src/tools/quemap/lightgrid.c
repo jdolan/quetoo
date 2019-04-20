@@ -215,12 +215,10 @@ static void LightLuxel(luxel_t *luxel, const byte *pvs, vec_t scale) {
 				intensity *= DEFAULT_BSP_PATCH_SIZE;
 				break;
 			case LIGHT_SPOT: {
-				const vec_t phi = -DotProduct(dir, light->normal);
-				if (phi < 1.0 - light->theta) {
-					intensity *= phi / (1.0 - light->theta);
-					intensity *= phi / (1.0 - light->theta);
-					intensity *= phi / (1.0 - light->theta);
-				}
+				const vec_t cone_dot = DotProduct(dir, -light->normal);
+				const vec_t thresh = cosf(light->theta);
+				const vec_t smooth = 0.03;
+				intensity *= SmoothStep(thresh - smooth, thresh + smooth, cone_dot);
 				intensity *= DEFAULT_BSP_PATCH_SIZE;
 			}
 				break;
