@@ -40,12 +40,34 @@ static cm_bsp_model_t *bsp_models[MAX_BSP_MODELS];
 /**
  * @brief
  */
-int32_t Light_PointContents(const lightmap_t *lm, const vec3_t p) {
+int32_t Light_ClusterPVS(const int32_t cluster, byte *pvs) {
+
+	if (Cm_NumClusters() == 0) {
+		return Cm_ClusterPVS(0, pvs);
+	}
+
+	return Cm_ClusterPVS(cluster, pvs);
+}
+
+/**
+ * @brief
+ */
+int32_t Light_PointPVS(const vec3_t p, int32_t head_node, byte *pvs) {
+
+	const int32_t leaf = Cm_PointLeafnum(p, head_node);
+
+	return Cm_ClusterPVS(bsp_file.leafs[leaf].cluster, pvs);
+}
+
+/**
+ * @brief
+ */
+int32_t Light_PointContents(const vec3_t p, int32_t head_node) {
 
 	int32_t contents = Cm_PointContents(p, 0);
 
-	if (lm->model != bsp_file.models) {
-		contents |= Cm_PointContents(p, lm->model->head_node);
+	if (head_node) {
+		contents |= Cm_PointContents(p, head_node);
 	}
 
 	return contents;
@@ -62,33 +84,18 @@ int32_t Light_PointContents(const lightmap_t *lm, const vec3_t p) {
  * @param mask The contents mask to clip to.
  * @return The trace.
  */
-cm_trace_t Light_Trace(const lightmap_t *lm, const vec3_t start, const vec3_t end, int32_t mask) {
+cm_trace_t Light_Trace(const vec3_t start, const vec3_t end, int32_t head_node, int32_t mask) {
 
 	cm_trace_t trace = Cm_BoxTrace(start, end, NULL, NULL, 0, mask);
 
-	if (lm->model != bsp_file.models) {
-		cm_trace_t tr = Cm_BoxTrace(start, end, NULL, NULL, lm->model->head_node, mask);
+	if (head_node) {
+		cm_trace_t tr = Cm_BoxTrace(start, end, NULL, NULL,head_node, mask);
 		if (tr.fraction < trace.fraction) {
 			trace = tr;
 		}
 	}
 
 	return trace;
-}
-
-/**
- * @brief
- */
-int32_t Light_PVS(const lightmap_t *lm, byte *pvs) {
-
-	if (Cm_NumClusters() == 0) {
-		return Cm_ClusterPVS(0, pvs);
-	}
-
-	const int32_t leaf = (int32_t) (lm->leaf - bsp_file.leafs);
-	const int32_t cluster = Cm_LeafCluster(leaf);
-
-	return Cm_ClusterPVS(cluster, pvs);
 }
 
 /**

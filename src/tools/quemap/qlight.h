@@ -40,8 +40,9 @@ extern int16_t patch_size;
 extern int32_t indirect_bounces;
 extern int32_t indirect_bounce;
 
-int32_t Light_PointContents(const lightmap_t *lm, const vec3_t p);
-cm_trace_t Light_Trace(const lightmap_t *lm, const vec3_t start, const vec3_t end, int32_t mask);
-int32_t Light_PVS(const lightmap_t *lm, byte *pvs);
+int32_t Light_ClusterPVS(const int32_t cluster, byte *pvs);
+int32_t Light_PointPVS(const vec3_t p, int32_t head_node, byte *pvs);
+int32_t Light_PointContents(const vec3_t p, int32_t head_node);
+cm_trace_t Light_Trace(const vec3_t start, const vec3_t end, int32_t head_node, int32_t mask);
 
 int32_t LIGHT_Main(void);

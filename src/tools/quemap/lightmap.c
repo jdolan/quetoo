@@ -265,7 +265,7 @@ static int32_t ProjectLuxel(const lightmap_t *lm, luxel_t *l, vec_t soffs, vec_t
 	}
 
 	VectorAdd(l->origin, l->normal, l->origin);
-	return Light_PointContents(lm, l->origin);
+	return Light_PointContents(l->origin, lm->model->head_node);
 }
 
 /**
@@ -401,7 +401,7 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 				vec3_t point;
 				Matrix4x4_Transform(&lightmap->inverse_matrix, sample, point);
 
-				const cm_trace_t trace = Light_Trace(lightmap, luxel->origin, point, CONTENTS_SOLID);
+				const cm_trace_t trace = Light_Trace(luxel->origin, point, head_node, CONTENTS_SOLID);
 
 				ambient_occlusion += sample_fraction * trace.fraction;
 			}
@@ -413,7 +413,7 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 			vec3_t sun_origin;
 			VectorMA(luxel->origin, -MAX_WORLD_DIST, light->normal, sun_origin);
 
-			cm_trace_t trace = Light_Trace(lightmap, luxel->origin, sun_origin, CONTENTS_SOLID);
+			cm_trace_t trace = Light_Trace(luxel->origin, sun_origin, head_node, CONTENTS_SOLID);
 			if (!(trace.surface && (trace.surface->flags & SURF_SKY))) {
 				vec_t exposure = 0.0;
 
@@ -426,7 +426,7 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 						vec3_t point;
 						VectorMA(sun_origin, i * LIGHT_SIZE_STEP, points[j], point);
 
-						trace = Light_Trace(lightmap, luxel->origin, point, CONTENTS_SOLID);
+						trace = Light_Trace(luxel->origin, point, head_node, CONTENTS_SOLID);
 						if (!(trace.surface && (trace.surface->flags & SURF_SKY))) {
 							continue;
 						}
@@ -440,7 +440,7 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 			}
 
 		} else {
-			cm_trace_t trace = Light_Trace(lightmap, luxel->origin, light->origin, CONTENTS_SOLID);
+			cm_trace_t trace = Light_Trace(luxel->origin, light->origin, head_node, CONTENTS_SOLID);
 			if (trace.fraction < 1.0) {
 				vec_t exposure = 0.0;
 
@@ -453,7 +453,7 @@ static void LightLuxel(const lightmap_t *lightmap, const luxel_t *luxel, const b
 						vec3_t point;
 						VectorMA(light->origin, (i + 1) * LIGHT_SIZE_STEP, points[j], point);
 
-						trace = Light_Trace(lightmap, luxel->origin, point, CONTENTS_SOLID);
+						trace = Light_Trace(luxel->origin, point, head_node, CONTENTS_SOLID);
 						if (trace.fraction < 1.0) {
 							continue;
 						}
@@ -497,7 +497,7 @@ void DirectLighting(int32_t face_num) {
 	}
 
 	byte pvs[MAX_BSP_LEAFS >> 3];
-	Light_PVS(lm, pvs);
+	Light_ClusterPVS(lm->leaf->cluster, pvs);
 
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
@@ -548,7 +548,7 @@ void IndirectLighting(int32_t face_num) {
 	}
 
 	byte pvs[MAX_BSP_LEAFS >> 3];
-	Light_PVS(lm, pvs);
+	Light_ClusterPVS(lm->leaf->cluster, pvs);
 
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
