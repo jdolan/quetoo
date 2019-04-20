@@ -26,6 +26,27 @@
 static SDL_atomic_t c_tjunctions;
 static GPtrArray *faces;
 
+// FIXME/TODO temp fix since we're using old glib
+#if defined(_WIN32)
+static gboolean
+g_ptr_array_find(GPtrArray *haystack,
+				 gconstpointer needle,
+				 guint *index_) {
+	for (guint i = 0; i < haystack->len; i++) {
+		gconstpointer value = g_ptr_array_index(haystack, i);
+
+		if (value == needle) {
+			if (index_)
+				*index_ = i;
+
+			return true;
+		}
+	}
+
+	return false;
+}
+#endif
+
 /**
  * @brief
  */

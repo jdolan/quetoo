@@ -18,9 +18,6 @@
     <ClCompile Include="..\..\src\client\renderer\r_bsp.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\client\renderer\r_bsp_light.c">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\client\renderer\r_bsp_model.c">
       <Filter>src</Filter>
     </ClCompile>
@@ -49,9 +46,6 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\client\renderer\r_lighting.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\client\renderer\r_lightmap.c">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\client\renderer\r_main.c">
@@ -137,9 +131,6 @@
     <ClInclude Include="..\..\src\client\renderer\r_bsp.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\client\renderer\r_bsp_light.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_bsp_model.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -168,9 +159,6 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_lighting.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\client\renderer\r_lightmap.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_local.h">

@@ -26,12 +26,6 @@
 img_palette_t img_palette;
 static _Bool img_palette_initialized;
 
-// RGBA color masks
-#define RMASK 0x000000ff
-#define GMASK 0x0000ff00
-#define BMASK 0x00ff0000
-#define AMASK 0xff000000
-
 // image formats, tried in this order
 static const char *img_formats[] = { "tga", "png", "jpg", "pcx", NULL };
 

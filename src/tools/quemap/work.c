@@ -32,7 +32,7 @@ typedef struct {
 	int32_t percent; // last fraction of work completed
 } work_t;
 
-work_t work;
+static work_t work;
 
 /**
  * @brief Return an iteration of work, updating progress when appropriate.

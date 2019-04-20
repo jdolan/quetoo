@@ -19,30 +19,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\collision\cm_bsp.h" />
-    <ClInclude Include="..\..\src\collision\cm_entity.h" />
-    <ClInclude Include="..\..\src\collision\cm_local.h" />
-    <ClInclude Include="..\..\src\collision\cm_material.h" />
-    <ClInclude Include="..\..\src\collision\cm_model.h" />
-    <ClInclude Include="..\..\src\collision\cm_polylib.h" />
-    <ClInclude Include="..\..\src\collision\cm_test.h" />
-    <ClInclude Include="..\..\src\collision\cm_trace.h" />
-    <ClInclude Include="..\..\src\collision\cm_types.h" />
-    <ClInclude Include="..\..\src\collision\cm_vis.h" />
+    <ClCompile Include="..\..\src\atlas.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\collision\cm_bsp.c" />
-    <ClCompile Include="..\..\src\collision\cm_entity.c" />
-    <ClCompile Include="..\..\src\collision\cm_material.c" />
-    <ClCompile Include="..\..\src\collision\cm_model.c" />
-    <ClCompile Include="..\..\src\collision\cm_polylib.c" />
-    <ClCompile Include="..\..\src\collision\cm_test.c" />
-    <ClCompile Include="..\..\src\collision\cm_trace.c" />
-    <ClCompile Include="..\..\src\collision\cm_vis.c" />
+    <ClInclude Include="..\..\src\atlas.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{76EBD445-3535-4652-BE8B-7DE4F03591CE}</ProjectGuid>
-    <RootNamespace>libcmodel</RootNamespace>
+    <ProjectGuid>{D8D2FE47-8F7F-4F88-8BAA-F42F0FB669D5}</ProjectGuid>
+    <RootNamespace>libatlas</RootNamespace>
   </PropertyGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="..\build_settings.props" />
