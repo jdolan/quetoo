@@ -19,11 +19,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\collision\cmodel.h" />
     <ClInclude Include="..\..\src\collision\cm_bsp.h" />
+    <ClInclude Include="..\..\src\collision\cm_entity.h" />
     <ClInclude Include="..\..\src\collision\cm_local.h" />
     <ClInclude Include="..\..\src\collision\cm_material.h" />
     <ClInclude Include="..\..\src\collision\cm_model.h" />
+    <ClInclude Include="..\..\src\collision\cm_polylib.h" />
     <ClInclude Include="..\..\src\collision\cm_test.h" />
     <ClInclude Include="..\..\src\collision\cm_trace.h" />
     <ClInclude Include="..\..\src\collision\cm_types.h" />
@@ -31,8 +32,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\collision\cm_bsp.c" />
+    <ClCompile Include="..\..\src\collision\cm_entity.c" />
     <ClCompile Include="..\..\src\collision\cm_material.c" />
     <ClCompile Include="..\..\src\collision\cm_model.c" />
+    <ClCompile Include="..\..\src\collision\cm_polylib.c" />
     <ClCompile Include="..\..\src\collision\cm_test.c" />
     <ClCompile Include="..\..\src\collision\cm_trace.c" />
     <ClCompile Include="..\..\src\collision\cm_vis.c" />

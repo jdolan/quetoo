@@ -21,22 +21,37 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\main\winmain.c">
+      <Filter>src\main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\minizip\ioapi.c">
+      <Filter>deps\minizip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\minizip\zip.c">
+      <Filter>deps\minizip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\minizip\miniz.c">
+      <Filter>deps\minizip</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\tools\quemap\brush.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\tools\quemap\bspfile.c">
+    <ClCompile Include="..\src\tools\quemap\bsp.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
     <ClCompile Include="..\src\tools\quemap\csg.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\tools\quemap\faces.c">
+    <ClCompile Include="..\src\tools\quemap\entity.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\tools\quemap\flow.c">
+    <ClCompile Include="..\src\tools\quemap\face.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
     <ClCompile Include="..\src\tools\quemap\leakfile.c">
+      <Filter>src\tools\quemap</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tools\quemap\light.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
     <ClCompile Include="..\src\tools\quemap\lightmap.c">
@@ -48,22 +63,22 @@
     <ClCompile Include="..\src\tools\quemap\map.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\tools\quemap\material.c">
+      <Filter>src\tools\quemap</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\tools\quemap\monitor.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\tools\quemap\patches.c">
+    <ClCompile Include="..\src\tools\quemap\patch.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
     <ClCompile Include="..\src\tools\quemap\polylib.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\tools\quemap\portals.c">
+    <ClCompile Include="..\src\tools\quemap\portal.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
     <ClCompile Include="..\src\tools\quemap\prtfile.c">
-      <Filter>src\tools\quemap</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\tools\quemap\qaas.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
     <ClCompile Include="..\src\tools\quemap\qbsp.c">
@@ -81,68 +96,26 @@
     <ClCompile Include="..\src\tools\quemap\qzip.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\tools\quemap\textures.c">
+    <ClCompile Include="..\src\tools\quemap\texinfo.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\tools\quemap\threads.c">
+    <ClCompile Include="..\src\tools\quemap\tjunction.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
     <ClCompile Include="..\src\tools\quemap\tree.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\tools\quemap\vis.c">
+      <Filter>src\tools\quemap</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tools\quemap\work.c">
+      <Filter>src\tools\quemap</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\tools\quemap\writebsp.c">
-      <Filter>src\tools\quemap</Filter>
-    </ClCompile>
-    <ClCompile Include="src\main\winmain.c">
-      <Filter>src\main</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\tools\quemap\scriptlib.c">
-      <Filter>src\tools\quemap</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\tools\quemap\materials.c">
-      <Filter>src\tools\quemap</Filter>
-    </ClCompile>
-    <ClCompile Include="..\deps\minizip\ioapi.c">
-      <Filter>deps\minizip</Filter>
-    </ClCompile>
-    <ClCompile Include="..\deps\minizip\zip.c">
-      <Filter>deps\minizip</Filter>
-    </ClCompile>
-    <ClCompile Include="..\deps\minizip\miniz.c">
-      <Filter>deps\minizip</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\tools\quemap\tjunctions.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\tools\quemap\bspfile.h">
-      <Filter>src\tools\quemap</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\tools\quemap\monitor.h">
-      <Filter>src\tools\quemap</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\tools\quemap\polylib.h">
-      <Filter>src\tools\quemap</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\tools\quemap\qbsp.h">
-      <Filter>src\tools\quemap</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\tools\quemap\qlight.h">
-      <Filter>src\tools\quemap</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\tools\quemap\quemap.h">
-      <Filter>src\tools\quemap</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\tools\quemap\qvis.h">
-      <Filter>src\tools\quemap</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\tools\quemap\scriptlib.h">
-      <Filter>src\tools\quemap</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\tools\quemap\materials.h">
-      <Filter>src\tools\quemap</Filter>
-    </ClInclude>
     <ClInclude Include="..\deps\minizip\ioapi.h">
       <Filter>deps\minizip</Filter>
     </ClInclude>
@@ -152,6 +125,95 @@
     <ClInclude Include="..\deps\minizip\miniz.h">
       <Filter>deps\minizip</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\brush.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\bsp.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\csg.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\entity.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\face.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\leakfile.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\light.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\lightmap.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\map.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\material.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\monitor.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\patch.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\points.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\polylib.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\portal.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\prtfile.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\qbsp.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\qlight.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\qmat.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\quemap.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\qvis.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\qzip.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\texinfo.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\tjunction.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\tree.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\vis.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\work.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tools\quemap\writebsp.h">
+      <Filter>src\tools\quemap</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\src\tools\quemap\Makefile.am">
+      <Filter>src\tools\quemap</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\src\tools\quemap\quemap.ico">

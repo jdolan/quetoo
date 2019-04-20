@@ -32,6 +32,21 @@ const vec3_t vec3_down = { 0.0, 0.0, -1.0 };
 const vec3_t vec3_forward = { 0.0, 1.0, 0.0 };
 
 /**
+ * @brief Maps the minimum to 0 and the maximum to 1,
+ * with the values inbetween using hermite interpolation.
+ */
+
+vec_t Smoothstep(vec_t min, vec_t max, vec_t val) {
+	vec_t x = Clamp((val - min) / (max - min), 0.0, 1.0);
+	return x * x * (3.0 - 2.0 * x);
+}
+
+vec_t Smootherstep(vec_t min, vec_t max, vec_t val) {
+	vec_t x = Clamp((val - min) / (max - min), 0.0, 1.0);
+	return x * x * x * (x * (x * 6.0 - 15.0) + 10.0);
+}
+
+/**
  * @brief Make `value` stepped as specified by `step`
  */
 

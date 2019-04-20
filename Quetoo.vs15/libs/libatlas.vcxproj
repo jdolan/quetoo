@@ -19,32 +19,17 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <None Include="ai.def" />
+    <ClCompile Include="..\..\src\atlas.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\ai\ai.h" />
-    <ClInclude Include="..\src\ai\default\ai_ann.h" />
-    <ClInclude Include="..\src\ai\default\ai_goal.h" />
-    <ClInclude Include="..\src\ai\default\ai_info.h" />
-    <ClInclude Include="..\src\ai\default\ai_item.h" />
-    <ClInclude Include="..\src\ai\default\ai_local.h" />
-    <ClInclude Include="..\src\ai\default\ai_main.h" />
-    <ClInclude Include="..\src\ai\default\ai_types.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\deps\genann\genann.c" />
-    <ClCompile Include="..\src\ai\default\ai_ann.c" />
-    <ClCompile Include="..\src\ai\default\ai_goal.c" />
-    <ClCompile Include="..\src\ai\default\ai_info.c" />
-    <ClCompile Include="..\src\ai\default\ai_item.c" />
-    <ClCompile Include="..\src\ai\default\ai_main.c" />
+    <ClInclude Include="..\..\src\atlas.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{6EBF61D4-CA15-4D8A-A957-7C9CF8A3E815}</ProjectGuid>
-    <RootNamespace>ai</RootNamespace>
+    <ProjectGuid>{D8D2FE47-8F7F-4F88-8BAA-F42F0FB669D5}</ProjectGuid>
+    <RootNamespace>libatlas</RootNamespace>
   </PropertyGroup>
   <ImportGroup Label="PropertySheets">
-    <Import Project="build_settings.props" />
+    <Import Project="..\build_settings.props" />
   </ImportGroup>
   <PropertyGroup>
     <OutDir>$(QuetooOutDir)</OutDir>
@@ -52,7 +37,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="PropertySheets">
@@ -62,14 +47,5 @@
     <IncludePath>$(QuetooFullIncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(QuetooFullLibraryPath);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
-  <ItemDefinitionGroup>
-    <Link>
-      <AdditionalDependencies>glib-2.0.lib;libshared.lib;libpmove.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ModuleDefinitionFile>ai.def</ModuleDefinitionFile>
-    </Link>
-    <PostBuildEvent>
-      <Command>COPY_AI "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)"</Command>
-    </PostBuildEvent>
-  </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

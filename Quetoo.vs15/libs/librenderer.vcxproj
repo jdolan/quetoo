@@ -22,7 +22,6 @@
     <ClCompile Include="..\..\src\client\renderer\r_array.c" />
     <ClCompile Include="..\..\src\client\renderer\r_atlas.c" />
     <ClCompile Include="..\..\src\client\renderer\r_bsp.c" />
-    <ClCompile Include="..\..\src\client\renderer\r_bsp_light.c" />
     <ClCompile Include="..\..\src\client\renderer\r_bsp_model.c" />
     <ClCompile Include="..\..\src\client\renderer\r_bsp_surface.c" />
     <ClCompile Include="..\..\src\client\renderer\r_context.c" />
@@ -35,7 +34,6 @@
     <ClCompile Include="..\..\src\client\renderer\r_image.c" />
     <ClCompile Include="..\..\src\client\renderer\r_light.c" />
     <ClCompile Include="..\..\src\client\renderer\r_lighting.c" />
-    <ClCompile Include="..\..\src\client\renderer\r_lightmap.c" />
     <ClCompile Include="..\..\src\client\renderer\r_main.c" />
     <ClCompile Include="..\..\src\client\renderer\r_material.c" />
     <ClCompile Include="..\..\src\client\renderer\r_media.c" />
@@ -64,7 +62,6 @@
     <ClInclude Include="..\..\src\client\renderer\r_array.h" />
     <ClInclude Include="..\..\src\client\renderer\r_atlas.h" />
     <ClInclude Include="..\..\src\client\renderer\r_bsp.h" />
-    <ClInclude Include="..\..\src\client\renderer\r_bsp_light.h" />
     <ClInclude Include="..\..\src\client\renderer\r_bsp_model.h" />
     <ClInclude Include="..\..\src\client\renderer\r_bsp_surface.h" />
     <ClInclude Include="..\..\src\client\renderer\r_context.h" />
@@ -78,7 +75,6 @@
     <ClInclude Include="..\..\src\client\renderer\r_image.h" />
     <ClInclude Include="..\..\src\client\renderer\r_light.h" />
     <ClInclude Include="..\..\src\client\renderer\r_lighting.h" />
-    <ClInclude Include="..\..\src\client\renderer\r_lightmap.h" />
     <ClInclude Include="..\..\src\client\renderer\r_local.h" />
     <ClInclude Include="..\..\src\client\renderer\r_main.h" />
     <ClInclude Include="..\..\src\client\renderer\r_material.h" />
