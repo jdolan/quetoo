@@ -27,7 +27,7 @@ GList *lights = NULL;
 /**
  * @brief
  */
-light_t *LightForEntity(const GList *entities, const cm_entity_t *entity) {
+static light_t *LightForEntity(const GList *entities, const cm_entity_t *entity) {
 
 	light_t *light = NULL;
 
@@ -155,7 +155,7 @@ light_t *LightForEntity(const GList *entities, const cm_entity_t *entity) {
 /**
  * @brief
  */
-light_t *LightForPatch(const patch_t *patch) {
+static light_t *LightForPatch(const patch_t *patch) {
 
 	light_t *light = Mem_TagMalloc(sizeof(*light), MEM_TAG_LIGHT);
 
@@ -204,7 +204,7 @@ void BuildDirectLights(const GList *entities) {
 
 		if (texinfo->flags & SURF_LIGHT) {
 
-			for (const patch_t *patch = patches[i]; patch; patch = patch->next) {
+			for (const patch_t *patch = &patches[i]; patch; patch = patch->next) {
 				light_t *light = LightForPatch(patch);
 				if (light) {
 					lights = g_list_prepend(lights, light);
@@ -217,18 +217,16 @@ void BuildDirectLights(const GList *entities) {
 }
 
 /**
- * @return A light source for indirect light from a directly lit patch.
+ * @return An indirect light source from a directly lit patch.
  */
-light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
+static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
 
 	light_t *light = NULL;
 
 	vec2_t patch_mins, patch_maxs;
 
-	patch_mins[0] = patch_mins[1] = FLT_MAX;
-	patch_maxs[0] = patch_maxs[1] = -FLT_MAX;
-
 	const vec_t *offset = patch_offsets[lm - lightmaps];
+	ClearStBounds(patch_mins, patch_maxs);
 
 	for (int32_t i = 0; i < patch->winding->num_points; i++) {
 
@@ -237,15 +235,7 @@ light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
 
 		Matrix4x4_Transform(&lm->matrix, point, st);
 
-		for (int32_t j = 0; j < 2; j++) {
-
-			if (st[j] < patch_mins[j]) {
-				patch_mins[j] = st[j];
-			}
-			if (st[j] > patch_maxs[j]) {
-				patch_maxs[j] = st[j];
-			}
-		}
+		AddStToBounds(st, patch_mins, patch_maxs);
 	}
 
 	assert(patch_mins[0] >= lm->st_mins[0] - SIDE_EPSILON);
