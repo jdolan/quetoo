@@ -48,10 +48,10 @@ static void BuildLightmapMatrices(lightmap_t *lm) {
 		0.0,  0.0,  -lm->plane->dist,     1.0
 	});
 
-	const vec_t *offset = patch_offsets[lm - lightmaps];
+	const vec_t *origin = patches[lm - lightmaps].origin;
 
 	matrix4x4_t translate;
-	Matrix4x4_CreateTranslate(&translate, offset[0], offset[1], offset[2]);
+	Matrix4x4_CreateTranslate(&translate, origin[0], origin[1], origin[2]);
 
 	matrix4x4_t inverse;
 	Matrix4x4_Invert_Full(&inverse, &lm->matrix);

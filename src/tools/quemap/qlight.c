@@ -156,11 +156,11 @@ static void LightWorld(void) {
 		}
 	}
 
-	// turn each face into a single patch
+	// build patches
 	BuildPatches(entities);
 
 	// subdivide patches to the desired resolution
-	SubdividePatches();
+	Work("Building patches", SubdividePatch, bsp_file.num_faces);
 
 	// build lightmaps
 	BuildLightmaps();

@@ -24,8 +24,7 @@
 #include "patch.h"
 #include "qlight.h"
 
-patch_t *patches[MAX_BSP_FACES];
-vec3_t patch_offsets[MAX_BSP_FACES];
+patch_t *patches;
 
 static GHashTable *texture_colors;
 
@@ -97,13 +96,15 @@ void FreeTextureColors(void) {
 /**
  * @brief
  */
-static void BuildPatch(int32_t fn, cm_winding_t *w) {
+static patch_t *BuildPatch(const bsp_face_t *face, vec3_t origin, cm_winding_t *w) {
 
-	patch_t *patch = (patch_t *) Mem_TagMalloc(sizeof(*patch), MEM_TAG_PATCH);
-	patches[fn] = patch;
+	patch_t *patch = &patches[face - bsp_file.faces];
 
-	patch->face = &bsp_file.faces[fn];
+	patch->face = face;
+	VectorCopy(origin, patch->origin);
 	patch->winding = w;
+
+	return patch;
 }
 
 /**
@@ -124,10 +125,11 @@ static cm_entity_t *EntityForModel(const GList *entities, int32_t num) {
 }
 
 /**
- * @brief Create surface fragments for light-emitting surfaces so that light sources
- * may be computed along them.
+ * @brief Create surface fragments for emissive lights and radiosity.
  */
 void BuildPatches(const GList *entities) {
+
+	patches = Mem_TagMalloc(bsp_file.num_faces * sizeof(patch_t), MEM_TAG_PATCH);
 
 	for (int32_t i = 0; i < bsp_file.num_models; i++) {
 
@@ -137,23 +139,21 @@ void BuildPatches(const GList *entities) {
 		// inline models need to be offset into their in-use position
 		vec3_t origin;
 		if (Cm_EntityVector(ent, "origin", origin, 3) != 3) {
-			VectorCopy(vec3_origin, origin);
+			VectorClear(origin);
 		}
 
 		for (int32_t j = 0; j < mod->num_faces; j++) {
 
 			const int32_t face_num = mod->first_face + j;
-			bsp_face_t *f = &bsp_file.faces[face_num];
+			const bsp_face_t *face = &bsp_file.faces[face_num];
 
-			VectorCopy(origin, patch_offsets[face_num]);
-
-			cm_winding_t *w = Cm_WindingForFace(&bsp_file, f);
+			cm_winding_t *w = Cm_WindingForFace(&bsp_file, face);
 
 			for (int32_t k = 0; k < w->num_points; k++) {
 				VectorAdd(w->points[k], origin, w->points[k]);
 			}
 
-			BuildPatch(face_num, w);
+			BuildPatch(face, origin, w);
 		}
 	}
 }
@@ -161,12 +161,11 @@ void BuildPatches(const GList *entities) {
 /**
  * @brief
  */
-static void SubdividePatch(patch_t *patch) {
+static void SubdividePatch_r(patch_t *patch) {
 	cm_winding_t *w, *o1, *o2;
 	vec3_t mins, maxs;
 	vec3_t split;
 	vec_t dist;
-	int32_t i;
 	patch_t *newp;
 
 	w = patch->winding;
@@ -174,8 +173,9 @@ static void SubdividePatch(patch_t *patch) {
 
 	VectorClear(split);
 
+	int32_t i;
 	for (i = 0; i < 3; i++) {
-		if (floor((mins[i] + 1) / patch_size) < floor((maxs[i] - 1) / patch_size)) {
+		if (floorf((mins[i] + 1.0) / patch_size) < floorf((maxs[i] - 1.0) / patch_size)) {
 			split[i] = 1.0;
 			break;
 		}
@@ -185,12 +185,14 @@ static void SubdividePatch(patch_t *patch) {
 		return;
 	}
 
-	dist = patch_size * (1 + floor((mins[i] + 1) / patch_size));
+	dist = patch_size * (1.0 + floorf((mins[i] + 1.0) / patch_size));
 	Cm_SplitWinding(w, split, dist, ON_EPSILON, &o1, &o2);
 
 	// create a new patch
 	newp = (patch_t *) Mem_TagMalloc(sizeof(*newp), MEM_TAG_PATCH);
 	newp->face = patch->face;
+
+	VectorCopy(patch->origin, newp->origin);
 
 	patch->winding = o1;
 	newp->winding = o2;
@@ -198,22 +200,21 @@ static void SubdividePatch(patch_t *patch) {
 	newp->next = patch->next;
 	patch->next = newp;
 
-	SubdividePatch(patch);
-	SubdividePatch(newp);
+	SubdividePatch_r(patch);
+	SubdividePatch_r(newp);
 }
 
 /**
- * @brief Iterate all of the head face patches, subdividing them as necessary.
+ * @brief Subdivides the given face patch into patch_size patches.
  */
-void SubdividePatches(void) {
+void SubdividePatch(int32_t patch_num) {
 
-	for (int32_t i = 0; i < MAX_BSP_FACES; i++) {
-		patch_t *p = patches[i];
-		if (p) {
-			const bsp_texinfo_t *tex = &bsp_file.texinfo[p->face->texinfo];
-			if (!(tex->flags & SURF_SKY)) { // break it up
-				SubdividePatch(p);
-			}
-		}
+	patch_t *patch = &patches[patch_num];
+
+	const bsp_texinfo_t *tex = &bsp_file.texinfo[patch->face->texinfo];
+	if (tex->flags & SURF_SKY) {
+		return;
 	}
+
+	SubdividePatch_r(patch);
 }

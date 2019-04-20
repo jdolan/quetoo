@@ -28,15 +28,15 @@
 
 typedef struct patch_s {
 	const bsp_face_t *face;
+	vec3_t origin;
 	cm_winding_t *winding;
 	struct patch_s *next;  // next in face
 } patch_t;
 
-extern patch_t *patches[MAX_BSP_FACES];
-extern vec3_t patch_offsets[MAX_BSP_FACES];
+extern patch_t *patches;
 
 void BuildTextureColors(void);
 void GetTextureColor(const char *name, vec3_t color);
 void FreeTextureColors(void);
 void BuildPatches(const GList *entities);
-void SubdividePatches(void);
+void SubdividePatch(int32_t patch_num);
