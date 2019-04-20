@@ -962,7 +962,7 @@ ssize_t R_LoadMaterials(const char *path, cm_asset_context_t context, GList **ma
 static void R_LoadBspMaterials(r_model_t *mod, GList **materials) {
 	char path[MAX_QPATH];
 
-	g_snprintf(path, sizeof(path), "materials/%s.mat", Basename(mod->media.name));
+	g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
 
 	R_LoadMaterials(path, ASSET_CONTEXT_TEXTURES, materials);
 
@@ -1040,7 +1040,7 @@ void R_LoadModelMaterials(r_model_t *mod) {
 static ssize_t R_SaveBspMaterials(const r_model_t *mod) {
 	char path[MAX_QPATH];
 
-	g_snprintf(path, sizeof(path), "materials/%s.mat", Basename(mod->media.name));
+	g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
 
 	GList *materials = NULL;
 	for (size_t i = 0; i < mod->num_materials; i++) {

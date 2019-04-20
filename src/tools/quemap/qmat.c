@@ -31,7 +31,7 @@
 int32_t MAT_Main(void) {
 	char path[MAX_QPATH];
 
-	g_snprintf(path, sizeof(path), "materials/%s.mat", map_base);
+	g_snprintf(path, sizeof(path), "maps/%s.mat", map_base);
 
 	Com_Print("\n------------------------------------------\n");
 	Com_Print("\nGenerating %s for %s\n\n", path, map_name);

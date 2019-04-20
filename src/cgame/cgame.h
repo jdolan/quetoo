@@ -643,7 +643,7 @@ typedef struct cg_import_s {
 
 	/**
 	 * @brief Loads all materials defined in the given file.
-	 * @param path The materials file path, e.g. `"materials/torn.mat"`.
+	 * @param path The materials file path, e.g. `"maps/torn.mat"`.
 	 * @param context The asset context, e.g. `ASSET_CONTEXT_TEXTURES`.
 	 * @param materials The list of materials to prepend.
 	 * @return The number of materials loaded.

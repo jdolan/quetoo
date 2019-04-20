@@ -178,7 +178,7 @@ static void AddMaterials(const char *path, cm_asset_context_t context) {
  */
 static void AddTextures(void) {
 
-	AddMaterials(va("materials/%s.mat", map_base), ASSET_CONTEXT_TEXTURES);
+	AddMaterials(va("maps/%s.mat", map_base), ASSET_CONTEXT_TEXTURES);
 
 	for (int32_t i = 0; i < bsp_file.num_texinfo; i++) {
 		const char *name = bsp_file.texinfo[i].texture;
