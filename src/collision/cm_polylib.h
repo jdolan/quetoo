@@ -35,7 +35,7 @@ typedef struct {
 	/**
 	 * @brief The actual number of points will vary.
 	 */
-	vec3_t points[1];
+	vec3_t points[0];
 } cm_winding_t;
 
 cm_winding_t *Cm_AllocWinding(int32_t num_points);
