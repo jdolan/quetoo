@@ -55,7 +55,7 @@ const double sigmoid_dom_max = 15.0;
 double interval;
 double lookup[LOOKUP_SIZE];
 
-#ifdef __GNUC__
+#if defined(__GNUC__) && !defined(_WIN32)
 #define likely(x)       __builtin_expect(!!(x), 1)
 #define unlikely(x)     __builtin_expect(!!(x), 0)
 #define unused          __attribute__((unused))

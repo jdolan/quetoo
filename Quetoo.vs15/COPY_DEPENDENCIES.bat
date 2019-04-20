@@ -2,6 +2,7 @@ IF [%1] == [] GOTO INVALID
 IF [%2] == [] GOTO INVALID
 IF [%1] == [""] GOTO INVALID
 IF [%2] == [""] GOTO INVALID
+if "%QUETOO_HOME%" == "" GOTO INVALID
 
 set quetoo_folder=%~1
 set build_platform=%~2
@@ -30,6 +31,6 @@ call ROBO "libs/openal/bin/%build_platform%/" "%quetoo_folder%/bin/" *.dll
 GOTO DONE
 
 :INVALID
-echo "No build input folder. Gonedy."
+echo "No build input folder, or QUETOO_HOME not defined. Gonedy."
 
 :DONE

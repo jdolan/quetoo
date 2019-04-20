@@ -23,14 +23,19 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\ai\ai.h" />
+    <ClInclude Include="..\src\ai\default\ai_ann.h" />
     <ClInclude Include="..\src\ai\default\ai_goal.h" />
+    <ClInclude Include="..\src\ai\default\ai_info.h" />
     <ClInclude Include="..\src\ai\default\ai_item.h" />
     <ClInclude Include="..\src\ai\default\ai_local.h" />
     <ClInclude Include="..\src\ai\default\ai_main.h" />
     <ClInclude Include="..\src\ai\default\ai_types.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\deps\genann\genann.c" />
+    <ClCompile Include="..\src\ai\default\ai_ann.c" />
     <ClCompile Include="..\src\ai\default\ai_goal.c" />
+    <ClCompile Include="..\src\ai\default\ai_info.c" />
     <ClCompile Include="..\src\ai\default\ai_item.c" />
     <ClCompile Include="..\src\ai\default\ai_main.c" />
   </ItemGroup>
