@@ -87,8 +87,38 @@ float saturate(float x){
  * Tonemapping instead compresses the HDR range back to LDR smoothly.
  */
 void TonemapFragment(inout vec3 rgb){
+
+	/*
+
+	Some reference values for S.
+	Low values give bright LDR results, high values darker ones.
+	The tonemapper will map left (HDR) to right (LDR).
+	Arrows mark the HDR value for a 0.5 LDR value.
+
+	if S = 0.825        |    if S = 2.7182789
+	0.5000 -> 0.4998 <- |    0.5000 -> 0.2327
+	1.0000 -> 0.7672    |    1.0000 -> 0.5000 <-
+	1.5000 -> 0.8907    |    1.5000 -> 0.7121
+	2.0000 -> 0.9471    |    2.0000 -> 0.8446
+	3.0000 -> 0.9865    |    3.0000 -> 0.9568
+	4.0000 -> 0.9962    |    4.0000 -> 0.9877
+	5.0000 -> 0.9989    |    5.0000 -> 0.9964
+
+	if S = 6.7225335    |    if S = 14.7781122
+	0.5000 -> 0.1092    |    0.5000 -> 0.0528
+	1.0000 -> 0.2879    |    1.0000 -> 0.1554
+	1.5000 -> 0.5000 <- |    1.5000 -> 0.3127
+	2.0000 -> 0.6873    |    2.0000 -> 0.5000 <-
+	3.0000 -> 0.8996    |    3.0000 -> 0.8030
+	4.0000 -> 0.9701    |    4.0000 -> 0.9366
+	5.0000 -> 0.9910    |    5.0000 -> 0.9805
+
+	*/
+
+	const S = 0.825;
+
 	rgb *= exp(rgb);
-	rgb /= rgb + 0.825;
+	rgb /= rgb + S;
 }
 
 /**
