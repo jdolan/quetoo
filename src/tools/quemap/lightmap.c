@@ -590,6 +590,73 @@ static SDL_Surface *CreateLightmapSurface(int32_t w, int32_t h, void *pixels) {
 }
 
 /**
+ * @brief Blurs the ambient occlusion to get rid of noise
+ */
+static void BlurAmbient(lightmap_t *lm) {
+
+	// temporary buffer
+	vec3_t *tmp = Mem_TagMalloc(lm->w * lm->h * sizeof(vec3_t), MEM_TAG_LIGHTMAP);
+
+	for (int y = 0; y < lm->h; y++) {
+		for (int x = 0; x < lm->w; x++) {
+
+			vec3_t luxel = { 0.0, 0.0, 0.0 };
+
+			static const vec3_t offsets[] = {
+				{ +0.0, +0.0, 0.195346 }, { -1.0, -1.0, 0.077847 }, { +0.0, -1.0, 0.123317 },
+				{ +1.0, -1.0, 0.077847 }, { -1.0, +0.0, 0.123317 }, { +1.0, +0.0, 0.123317 },
+				{ -1.0, +1.0, 0.077847 }, { +0.0, +1.0, 0.123317 }, { +1.0, +1.0, 0.077847 }
+			};
+
+			vec_t valid_weight = 1.0; // to avoid loss of brightness near edges
+
+			// sum samples into luxel
+			for (size_t i = 0; i < lengthof(offsets); i++) {
+
+				int32_t x_off = offsets[i][0];
+				int32_t y_off = offsets[i][1];
+				int32_t x_pos = x + x_off;
+				int32_t y_pos = y + y_off;
+
+				// is the sample out of bounds?
+				if (x_pos < 0 || x_pos >= lm->w || y_pos < 0 || y_pos >= lm->h) {
+					// is the offset orthogonal or diagonal?
+					// remove the correct amount of total weight
+					if (abs(x_off) == abs(y_off)) {
+						valid_weight -= 0.077847;
+					} else {
+						valid_weight -= 0.123317;
+					}
+					continue;
+				}
+
+				// grab the valid sample
+				luxel_t *sample_luxel = &lm->luxels[y_pos * lm->w + x_pos];
+				vec3_t sample_value;
+				vec_t  sample_weight = offsets[i][2];
+				VectorCopy(sample_luxel->ambient, sample_value);
+				// scale the sample by it's gaussian weight
+				VectorScale(sample_value, sample_weight, sample_value);
+				// sum the sample with the luxel
+				VectorAdd(luxel, sample_value, luxel);
+
+			}
+
+			// compensate for invalid samples
+			VectorScale(luxel, 1.0 / valid_weight, luxel);
+
+			// write the luxel to the temp buffer
+			VectorCopy(luxel, tmp[y * lm->w + x]);
+		}
+	}
+
+	// copy back results from temp buffer
+	for (size_t i = 0; i < lm->num_luxels; i++) {
+		VectorCopy(tmp[i], lm->luxels[i].ambient);
+	}
+}
+
+/**
  * @brief Finalize light values for the given face, and create its lightmap textures.
  */
 void FinalizeLightmap(int32_t face_num) {
@@ -599,6 +666,8 @@ void FinalizeLightmap(int32_t face_num) {
 	if (lm->texinfo->flags & SURF_SKY) {
 		return;
 	}
+
+	BlurAmbient(lm);
 
 	lm->lightmap = CreateLightmapSurface(lm->w, lm->h, Mem_TagMalloc(lm->w * lm->h * 3, MEM_TAG_LIGHTMAP));
 	byte *out_lm = lm->lightmap->pixels;
