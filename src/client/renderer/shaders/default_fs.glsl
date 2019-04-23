@@ -115,7 +115,7 @@ void TonemapFragment(inout vec3 rgb){
 
 	*/
 
-	const S = 0.825;
+	const float S = 0.825;
 
 	rgb *= exp(rgb);
 	rgb /= rgb + S;

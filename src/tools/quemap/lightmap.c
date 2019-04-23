@@ -697,7 +697,7 @@ void FinalizeLightmap(int32_t face_num) {
 			*out_lm++ = (byte) Clamp(lightmap[j] * 255.0, 0, 255);
 		}
 
-		// write the deluxemap sample data, in tangent space, also converted to bytes
+		// write the deluxemap sample data, in tangent space
 		if (!VectorCompare(l->direction, vec3_origin)) {
 
 			vec3_t tangent;
