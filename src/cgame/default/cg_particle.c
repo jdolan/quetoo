@@ -88,7 +88,7 @@ cg_particle_t *Cg_AllocParticle(const r_particle_type_t type, cg_particles_t *pa
 
 	memset(p, 0, sizeof(cg_particle_t));
 
-	particles = particles ? particles : cg_particles_normal;
+	particles = particles ?: cg_particles_normal;
 
 	p->part.type = type;
 	p->part.image = particles->image;
@@ -126,16 +126,14 @@ static cg_particle_t *Cg_FreeParticle(cg_particle_t *p, cg_particle_t **list) {
 /**
  * @brief Allocates a particles chain for the specified image.
  */
-cg_particles_t *Cg_AllocParticles(const r_image_t *image, const _Bool use_atlas) {
-	cg_particles_t *particles;
+cg_particles_t *Cg_AllocParticles(const char *name, r_image_type_t type, _Bool use_atlas) {
 
-	particles = cgi.Malloc(sizeof(*particles), MEM_TAG_CGAME);
+	cg_particles_t *particles = cgi.Malloc(sizeof(*particles), MEM_TAG_CGAME);
 
 	if (use_atlas) {
-		particles->original_image = image;
-		cgi.AddImageToAtlas(cg_particle_atlas, image);
+		particles->image = (r_image_t *) cgi.LoadAtlasImage(cg_particle_atlas, name, type);
 	} else {
-		particles->image = image;
+		particles->image = cgi.LoadImage(name, type);
 	}
 
 	particles->next = cg_active_particles;
@@ -155,19 +153,9 @@ void Cg_InitParticles(void) {
 /**
  * @brief Called when all particle images are done loading.
  */
-void Cg_SetupParticleAtlas(void) {
+void Cg_CompileParticleAtlas(void) {
 
 	cgi.CompileAtlas(cg_particle_atlas);
-
-	cg_particles_t *ps = cg_active_particles;
-	while (ps) {
-
-		if (ps->original_image) {
-			ps->image = (const r_image_t *) cgi.GetAtlasImageFromAtlas(cg_particle_atlas, ps->original_image);
-		}
-
-		ps = ps->next;
-	}
 }
 
 /**

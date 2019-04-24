@@ -114,7 +114,7 @@ static gint Atlas_NodeComparator(gconstpointer a, gconstpointer b) {
 }
 
 /**
- * @brief Compiles they layered `atlas` into the given list of equally sized surfaces.
+ * @brief Compiles the layered `atlas` into the given list of equally sized surfaces.
  * @details If all nodes fit in the given surface(s), `0` is returned. If a node overflows,
  * the index of that node is returned. If a node exceeds the bounds of the output surfaces,
  * `-1` is returned.

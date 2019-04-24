@@ -45,6 +45,11 @@ typedef struct {
 	 */
 	int32_t tag;
 
+	/**
+	 * @brief User data.
+	 */
+	void *data;
+
 } atlas_node_t;
 
 /**
@@ -70,6 +75,7 @@ typedef struct atlas_s {
 	 * @brief The iteration identifier, which is written to nodes as they are compiled.
 	 */
 	int32_t tag;
+
 } atlas_t;
 
 atlas_t *Atlas_Create(int32_t layers);

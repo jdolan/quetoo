@@ -206,27 +206,18 @@ static void R_ParticleVerts(const r_particle_t *p, r_particle_interleave_vertex_
 static void R_ParticleTexcoords(const r_particle_t *p, r_particle_interleave_vertex_t *verts) {
 	vec_t s, t;
 
-	_Bool is_atlas = p->image && p->image->type == IT_ATLAS_IMAGE;
-
-	if (!p->image ||
-	        (!p->scroll_s && !p->scroll_t &&! is_atlas && !(p->flags & PARTICLE_FLAG_REPEAT)) ||
-	        p->type == PARTICLE_CORONA) {
-
-		for (int32_t i = 0; i < 4; ++i) {
-			Vector2Copy(default_texcoords[i], verts[i].texcoord);
-		}
-
-		return;
-	}
-
-	// atlas needs a different pipeline
-	if (is_atlas) {
-		const r_atlas_image_t *atlas_image = (const r_atlas_image_t *) p->image;
+	if (p->image && p->image->media.type == MEDIA_ATLAS_IMAGE) {
+		const r_atlas_image_t *atlas_image = (r_atlas_image_t *) p->image;
 
 		Vector2Set(verts[0].texcoord, atlas_image->texcoords[0], atlas_image->texcoords[1]);
 		Vector2Set(verts[1].texcoord, atlas_image->texcoords[2], atlas_image->texcoords[1]);
 		Vector2Set(verts[2].texcoord, atlas_image->texcoords[2], atlas_image->texcoords[3]);
 		Vector2Set(verts[3].texcoord, atlas_image->texcoords[0], atlas_image->texcoords[3]);
+
+	} else if (!p->scroll_s && !p->scroll_t && !(p->flags & PARTICLE_FLAG_REPEAT)) {
+		for (int32_t i = 0; i < 4; ++i) {
+			Vector2Copy(default_texcoords[i], verts[i].texcoord);
+		}
 	} else {
 		s = p->scroll_s * r_view.ticks / 1000.0;
 		t = p->scroll_t *r_view.ticks / 1000.0;
@@ -274,7 +265,9 @@ static void R_ParticleGeometryVerts(const r_particle_t *p, r_geometry_particle_i
 	verts->type = p->type;
 	verts->roll = p->roll;
 
-	if (p->type == PARTICLE_BEAM || p->type == PARTICLE_SPARK || p->type == PARTICLE_WIRE) { // beams are lines with starts and ends
+	if (p->type == PARTICLE_BEAM ||
+		p->type == PARTICLE_SPARK ||
+		p->type == PARTICLE_WIRE) { // beams are lines with starts and ends
 		VectorCopy(p->end, verts->end);
 	}
 
@@ -286,26 +279,17 @@ static void R_ParticleGeometryVerts(const r_particle_t *p, r_geometry_particle_i
  */
 static void R_ParticleGeometryTexcoords(const r_particle_t *p, r_geometry_particle_interleave_vertex_t *vert) {
 	vec_t s, t;
-	_Bool is_atlas = p->image && p->image->type == IT_ATLAS_IMAGE;
 
-	if (!p->image ||
-	        (!p->scroll_s && !p->scroll_t &&!is_atlas && !(p->flags & PARTICLE_FLAG_REPEAT)) ||
-	        p->type == PARTICLE_CORONA) {
-
-		Vector2Copy(default_texcoords[0], vert->texcoord0);
-		Vector2Copy(default_texcoords[2], vert->texcoord1);
-
-		return;
-	}
-
-	// atlas needs a different pipeline
-	if (is_atlas) {
-		const r_atlas_image_t *atlas_image = (const r_atlas_image_t *) p->image;
+	if (p->image && p->image->media.type == MEDIA_ATLAS_IMAGE) {
+		const r_atlas_image_t *atlas_image = (r_atlas_image_t *) p->image;
 
 		for (int32_t i = 0; i < 2; i++) {
 			vert->texcoord0[i] = atlas_image->texcoords[i];
 			vert->texcoord1[i] = atlas_image->texcoords[2 + i];
 		}
+	} else if (!p->scroll_s && !p->scroll_t && !(p->flags & PARTICLE_FLAG_REPEAT)) {
+		Vector2Copy(default_texcoords[0], vert->texcoord0);
+		Vector2Copy(default_texcoords[2], vert->texcoord1);
 	} else {
 		s = p->scroll_s * r_view.ticks / 1000.0;
 		t = p->scroll_t * r_view.ticks / 1000.0;
@@ -437,10 +421,16 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	// alter the array pointers
 	if (r_state.particle_program == program_particle) {
 		R_UseProgram(program_particle);
-		R_UseParticleData_particle(r_particle_state.weather_right, r_particle_state.weather_up, r_particle_state.splash_right, r_particle_state.splash_up);
+		R_UseParticleData_particle(r_particle_state.weather_right,
+								   r_particle_state.weather_up,
+								   r_particle_state.splash_right,
+								   r_particle_state.splash_up);
 
 		R_UseProgram(program_particle_corona);
-		R_UseParticleData_particle_corona(r_particle_state.weather_right, r_particle_state.weather_up, r_particle_state.splash_right, r_particle_state.splash_up);
+		R_UseParticleData_particle_corona(r_particle_state.weather_right,
+										  r_particle_state.weather_up,
+										  r_particle_state.splash_right,
+										  r_particle_state.splash_up);
 
 		R_BindAttributeInterleaveBuffer(&r_particle_state.geometry_verts_buffer, R_ATTRIB_MASK_ALL);
 		R_EnableTexture(texunit_lightmap, true);
@@ -460,13 +450,7 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 		const r_particle_t *p = (const r_particle_t *) e->element;
 
 		// bind the particle's texture
-		GLuint texnum = 0;
-
-		if (p->image) {
-			texnum = p->image->texnum;
-		} else if (p->type == PARTICLE_CORONA) {
-			texnum = last_texnum; // corona texture switching = no
-		}
+		const GLuint texnum = p->image ? p->image->texnum : last_texnum;
 
 		// draw pending particles
 		if ((texnum != last_texnum || p->type != last_type || p->blend != last_blend) && i > j) {

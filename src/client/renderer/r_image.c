@@ -241,10 +241,10 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 
 	if (image->layers > 0) {
 		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, format, image->width, image->height, image->layers, 0,
-			input_format,	type, data);
+			input_format, type, data);
 	} else {
 		glTexImage2D(GL_TEXTURE_2D, 0, format, image->width, image->height, 0,
-			input_format,	type, data);
+			input_format, type, data);
 	}
 
 	if (image->type & IT_MASK_MIPMAP) {
@@ -525,8 +525,6 @@ void R_InitImages(void) {
 	R_InitWarpImage();
 
 	R_InitShellImage();
-
-	R_InitAtlas();
-
+	
 	Fs_Mkdir("screenshots");
 }

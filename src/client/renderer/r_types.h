@@ -23,6 +23,7 @@
 
 #include <SDL_video.h>
 
+#include "atlas.h"
 #include "collision/collision.h"
 #include "files.h"
 #include "image.h"
@@ -38,6 +39,7 @@ typedef enum {
 	MEDIA_GENERIC, // unknown/generic type
 	MEDIA_IMAGE, // r_image_t
 	MEDIA_ATLAS, // r_atlas_t
+	MEDIA_ATLAS_IMAGE, // r_atlas_image_t
 
 	MEDIA_MD3, //
 	MEDIA_OBJ, // r_model_t
@@ -90,10 +92,9 @@ typedef enum {
 	IT_FLARE = (1 << 10) + (IT_MASK_MIPMAP | IT_MASK_FILTER | IT_MASK_MULTIPLY),
 	IT_SKY = (1 << 11) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_PIC = (1 << 12) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_ATLAS_MAP = (1 << 13) + (IT_MASK_MIPMAP), // image is an r_atlas_t*
-	IT_ATLAS_IMAGE = (1 << 14), // image is an r_atlas_image_t*
-	IT_STAINMAP = (1 << 15),
-	IT_TINTMAP = (1 << 16) + (IT_MASK_MIPMAP | IT_MASK_FILTER)
+	IT_ATLAS = (1 << 13) + (IT_MASK_MIPMAP),
+	IT_STAINMAP = (1 << 14),
+	IT_TINTMAP = (1 << 15) + (IT_MASK_MIPMAP | IT_MASK_FILTER)
 } r_image_type_t;
 
 /**
@@ -293,27 +294,22 @@ typedef struct {
 } r_image_t;
 
 /**
- * @brief An atlas is composed of multiple images stitched together to make
- * a single image. It is a sub-type of r_image_t.
+ * @brief An image atlas.
  */
 typedef struct {
-	r_image_t image;
-	GArray *images; // image list
-	GHashTable *hash; // hash of image -> image list ptr
+	r_media_t media;
+	r_image_t *image;
+	atlas_t *atlas;
 } r_atlas_t;
 
 /**
- * @brief This is a proxy structure that allows an atlased piece of texture to be
- * used in places that expect r_image_t's.
+ * @brief This is a proxy structure that allows an atlased image to be used in places
+*  that expect r_image_t's.
  */
 typedef struct {
-	r_image_t image; // this allows the individual atlas piece to be used as an image
-
-	const r_image_t *input_image; // image ptr
-	u16vec2_t position; // position in pixels
-	vec4_t texcoords; // position in texcoords
-	color_t *scratch; // scratch space for image
-	r_atlas_t *atlas; // our owner atlas
+	r_image_t image;
+	atlas_node_t *node;
+	vec4_t texcoords;
 } r_atlas_image_t;
 
 /**

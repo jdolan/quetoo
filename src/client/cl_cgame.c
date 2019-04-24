@@ -250,8 +250,7 @@ void Cl_InitCgame(void) {
 	import.LoadSurface = Img_LoadImage;
 	import.LoadImage = R_LoadImage;
 	import.CreateAtlas = R_CreateAtlas;
-	import.AddImageToAtlas = R_AddImageToAtlas;
-	import.GetAtlasImageFromAtlas = R_GetAtlasImageFromAtlas;
+	import.LoadAtlasImage = R_LoadAtlasImage;
 	import.CompileAtlas = R_CompileAtlas;
 	import.LoadMaterial = R_LoadMaterial;
 	import.LoadMaterials = R_LoadMaterials;

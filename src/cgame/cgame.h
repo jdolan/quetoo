@@ -604,28 +604,19 @@ typedef struct cg_import_s {
 	r_image_t *(*LoadImage)(const char *name, r_image_type_t type);
 
 	/**
-	 * @brief Creates a blank state for an atlas and returns it.
-	 * @param name The name to give to the atlas, e.g. `"my_atlas_is_cool"`
+	 * @brief Creates an image atlas.
+	 * @param name The name to give to the atlas, e.g. `"cg_particle_atlas"`
 	 * @return The atlas that has been created.
-	 * @remarks Start with this function, add images to it with AddImageToAtlas, then call StitchAtlas when
-	 * you are ready. You can then query positions with GetAtlasImageFromAtlas.
 	 */
 	r_atlas_t *(*CreateAtlas)(const char *name);
 
 	/**
-	 * @brief Add an image to the list of images for this atlas.
+	 * @brief Load an image into an atlas.
 	 * @param atlas The atlas to add an image to.
 	 * @param image The image to add to the atlas.
+	 * @return The atlas image, or `NULL` if the image could not be loaded.
 	 */
-	void (*AddImageToAtlas)(r_atlas_t *atlas, const r_image_t *image);
-
-	/**
-	 * @brief Resolve an atlas image from an atlas and image.
-	 * @param atlas The atlas to fetch the stitched image from.
-	 * @param image The original image you wish to query.
-	 * @return An r_atlas_image_t which contains the stitched coordinates of that image.
-	 */
-	const r_atlas_image_t *(*GetAtlasImageFromAtlas)(const r_atlas_t *atlas, const r_image_t *image);
+	r_atlas_image_t *(*LoadAtlasImage)(r_atlas_t *atlas, const char *name, r_image_type_t type);
 
 	/**
 	 * @brief Compiles the specified atlas.

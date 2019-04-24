@@ -240,14 +240,12 @@ static gint R_AddStains_Sort(gconstpointer a, gconstpointer b) {
  */
 static void R_Stain_ResolveTexcoords(const r_image_t *image, vec4_t out) {
 
-	if (image->type == IT_ATLAS_IMAGE) {
-		const r_atlas_image_t *atlas_image = (const r_atlas_image_t *) image;
-
+	if (image->media.type == MEDIA_ATLAS_IMAGE) {
+		const r_atlas_image_t *atlas_image = (r_atlas_image_t *) image;
 		Vector4Copy(atlas_image->texcoords, out);
-		return;
+	} else {
+		Vector4Set(out, 0.0, 0.0, 1.0, 1.0);
 	}
-
-	Vector4Set(out, 0, 0, 1, 1);
 }
 
 /**

@@ -233,40 +233,40 @@ void Cg_UpdateMedia(void) {
 
 	Cg_InitParticles();
 
-	cg_particles_normal = Cg_AllocParticles(cgi.LoadImage("particles/particle.tga", IT_EFFECT | IT_MASK_MULTIPLY), true);
-	cg_particles_explosion = Cg_AllocParticles(cgi.LoadImage("particles/explosion.tga", IT_EFFECT | IT_MASK_MULTIPLY), true);
+	cg_particles_normal = Cg_AllocParticles("particles/particle.tga", IT_EFFECT | IT_MASK_MULTIPLY, true);
+	cg_particles_explosion = Cg_AllocParticles("particles/explosion.tga", IT_EFFECT | IT_MASK_MULTIPLY, true);
 
 	for (uint32_t i = 0; i < lengthof(cg_particles_debris); i++) {
 		g_snprintf(name, sizeof(name), "particles/debris_%" PRIu32, i);
-		cg_particles_debris[i] = Cg_AllocParticles(cgi.LoadImage(name, IT_EFFECT | IT_MASK_MULTIPLY), true);
+		cg_particles_debris[i] = Cg_AllocParticles(name, IT_EFFECT | IT_MASK_MULTIPLY, true);
 	}
 
-	cg_particles_teleporter = Cg_AllocParticles(cgi.LoadImage("particles/teleport.tga", IT_EFFECT | IT_MASK_MULTIPLY), true);
-	cg_particles_smoke = Cg_AllocParticles(cgi.LoadImage("particles/smoke.tga", IT_EFFECT | IT_MASK_MULTIPLY), true);
-	cg_particles_steam = Cg_AllocParticles(cgi.LoadImage("particles/steam.tga", IT_EFFECT | IT_MASK_MULTIPLY), true);
-	cg_particles_bubble = Cg_AllocParticles(cgi.LoadImage("particles/bubble.tga", IT_EFFECT | IT_MASK_MULTIPLY), true);
-	cg_particles_rain = Cg_AllocParticles(cgi.LoadImage("particles/rain.tga", IT_EFFECT | IT_MASK_MULTIPLY), true);
-	cg_particles_snow = Cg_AllocParticles(cgi.LoadImage("particles/snow.tga", IT_EFFECT | IT_MASK_MULTIPLY), true);
-	cg_particles_beam = Cg_AllocParticles(cgi.LoadImage("particles/beam.tga", IT_EFFECT | IT_MASK_MULTIPLY), false);
-	cg_particles_rail_wake = Cg_AllocParticles(cgi.LoadImage("particles/rail_wake.tga", IT_EFFECT | IT_MASK_MULTIPLY), false);
-	cg_particles_tracer = Cg_AllocParticles(cgi.LoadImage("particles/tracer.tga", IT_EFFECT | IT_MASK_MULTIPLY), false);
-	cg_particles_blood = Cg_AllocParticles(cgi.LoadImage("particles/blood.tga", IT_EFFECT | IT_MASK_MULTIPLY), true);
-	cg_particles_lightning = Cg_AllocParticles(cgi.LoadImage("particles/lightning.tga", IT_EFFECT | IT_MASK_MULTIPLY), false);
-	cg_particles_rope = Cg_AllocParticles(cgi.LoadImage("particles/rope.tga", IT_EFFECT), false);
-	cg_particles_flame = Cg_AllocParticles(cgi.LoadImage("particles/flame.tga", IT_EFFECT | IT_MASK_MULTIPLY), true);
-	cg_particles_spark = Cg_AllocParticles(cgi.LoadImage("particles/spark.tga", IT_EFFECT | IT_MASK_MULTIPLY), true);
-	cg_particles_inactive = Cg_AllocParticles(cgi.LoadImage("particles/inactive.tga", IT_EFFECT | IT_MASK_MULTIPLY), true);
+	cg_particles_teleporter = Cg_AllocParticles("particles/teleport.tga", IT_EFFECT | IT_MASK_MULTIPLY, true);
+	cg_particles_smoke = Cg_AllocParticles("particles/smoke.tga", IT_EFFECT | IT_MASK_MULTIPLY, true);
+	cg_particles_steam = Cg_AllocParticles("particles/steam.tga", IT_EFFECT | IT_MASK_MULTIPLY, true);
+	cg_particles_bubble = Cg_AllocParticles("particles/bubble.tga", IT_EFFECT | IT_MASK_MULTIPLY, true);
+	cg_particles_rain = Cg_AllocParticles("particles/rain.tga", IT_EFFECT | IT_MASK_MULTIPLY, true);
+	cg_particles_snow = Cg_AllocParticles("particles/snow.tga", IT_EFFECT | IT_MASK_MULTIPLY, true);
+	cg_particles_beam = Cg_AllocParticles("particles/beam.tga", IT_EFFECT | IT_MASK_MULTIPLY, false);
+	cg_particles_rail_wake = Cg_AllocParticles("particles/rail_wake.tga", IT_EFFECT | IT_MASK_MULTIPLY, false);
+	cg_particles_tracer = Cg_AllocParticles("particles/tracer.tga", IT_EFFECT | IT_MASK_MULTIPLY, false);
+	cg_particles_blood = Cg_AllocParticles("particles/blood.tga", IT_EFFECT | IT_MASK_MULTIPLY, true);
+	cg_particles_lightning = Cg_AllocParticles("particles/lightning.tga", IT_EFFECT | IT_MASK_MULTIPLY, false);
+	cg_particles_rope = Cg_AllocParticles("particles/rope.tga", IT_EFFECT, false);
+	cg_particles_flame = Cg_AllocParticles("particles/flame.tga", IT_EFFECT | IT_MASK_MULTIPLY, true);
+	cg_particles_spark = Cg_AllocParticles("particles/spark.tga", IT_EFFECT | IT_MASK_MULTIPLY, true);
+	cg_particles_inactive = Cg_AllocParticles("particles/inactive.tga", IT_EFFECT | IT_MASK_MULTIPLY, true);
 
 	for (uint32_t i = 0; i < lengthof(cg_particles_ripple); i++) {
 		g_snprintf(name, sizeof(name), "particles/ripple_%" PRIu32, i);
-		cg_particles_ripple[i] = Cg_AllocParticles(cgi.LoadImage(name, IT_EFFECT | IT_MASK_MULTIPLY), true);
+		cg_particles_ripple[i] = Cg_AllocParticles(name, IT_EFFECT | IT_MASK_MULTIPLY, true);
 	}
 
-	cg_particles_stain_burn = Cg_AllocParticles(cgi.LoadImage("particles/stain_burn.tga", IT_EFFECT), true);
-	cg_particles_lightning_burn = Cg_AllocParticles(cgi.LoadImage("particles/lightning_burn.tga", IT_EFFECT), true);
-	cg_particles_blood_burn = Cg_AllocParticles(cgi.LoadImage("particles/stain_blood.tga", IT_EFFECT), true);
+	cg_particles_stain_burn = Cg_AllocParticles("particles/stain_burn.tga", IT_EFFECT, true);
+	cg_particles_lightning_burn = Cg_AllocParticles("particles/lightning_burn.tga", IT_EFFECT, true);
+	cg_particles_blood_burn = Cg_AllocParticles("particles/stain_blood.tga", IT_EFFECT, true);
 
-	Cg_SetupParticleAtlas();
+	Cg_CompileParticleAtlas();
 
 	cg_draw_crosshair->modified = true;
 	cg_draw_crosshair_color->modified = true;
