@@ -125,7 +125,7 @@ static void Cg_DrawVital(r_pixel_t x, const int16_t value, const int16_t icon, i
 
 	if (value < low) {
 		if (cg_draw_vitals_pulse->integer) {
-			pulse[3] = sin(cgi.client->unclamped_time / 250.0) + 0.75;
+			pulse[3] = sinf(cgi.client->unclamped_time / 250.0) + 0.75;
 		}
 		color = HUD_COLOR_STAT_LOW;
 	} else if (value < med) {
@@ -254,7 +254,7 @@ static void Cg_DrawHeldFlag(const player_state_t *ps) {
 		return;
 	}
 
-	vec4_t pulse = { 1.0, 1.0, 1.0, sin(cgi.client->unclamped_time / 150.0) + 0.75 };
+	vec4_t pulse = { 1.0, 1.0, 1.0, sinf(cgi.client->unclamped_time / 150.0) + 0.75 };
 
 	x = cgi.view->viewport.x + (HUD_PIC_HEIGHT / 2);
 	y = cgi.view->viewport.y + ((cgi.view->viewport.h / 2) - (HUD_PIC_HEIGHT * 2));
@@ -945,7 +945,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 
 	if (ps->stats[STAT_QUAD_TIME] > 0 && cg_draw_blend_powerup->value) {
 		Cg_DrawBlendFlashImage(cg_quad_blend_image,
-			fabs(sin(Radians(cgi.client->unclamped_time * 0.2))) * cg_draw_blend_powerup->value);
+			fabsf(sinf(Radians(cgi.client->unclamped_time * 0.2))) * cg_draw_blend_powerup->value);
 	}
 
 	// taken damage

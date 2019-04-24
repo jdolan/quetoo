@@ -192,10 +192,10 @@ void R_InitModels(void) {
 
 	const vec3_t null_vertices[] = {
 		{ 0.0, 0.0, -16.0 },
-		{ 16.0 * cos(0 * M_PI_2), 16.0 * sin(0 * M_PI_2), 0.0 },
-		{ 16.0 * cos(1 * M_PI_2), 16.0 * sin(1 * M_PI_2), 0.0 },
-		{ 16.0 * cos(2 * M_PI_2), 16.0 * sin(2 * M_PI_2), 0.0 },
-		{ 16.0 * cos(3 * M_PI_2), 16.0 * sin(3 * M_PI_2), 0.0 },
+		{ 16.0 * cosf(0 * M_PI_2), 16.0 * sinf(0 * M_PI_2), 0.0 },
+		{ 16.0 * cosf(1 * M_PI_2), 16.0 * sinf(1 * M_PI_2), 0.0 },
+		{ 16.0 * cosf(2 * M_PI_2), 16.0 * sinf(2 * M_PI_2), 0.0 },
+		{ 16.0 * cosf(3 * M_PI_2), 16.0 * sinf(3 * M_PI_2), 0.0 },
 		{ 0.0, 0.0, 16.0 }
 	};
 

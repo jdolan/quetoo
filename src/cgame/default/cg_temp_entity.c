@@ -693,8 +693,8 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 		VectorScale(vec, 20.0, p->vel);
 
-		const vec_t cosi = cos(i * 0.1);
-		const vec_t sini = sin(i * 0.1);
+		const vec_t cosi = cosf(i * 0.1);
+		const vec_t sini = sinf(i * 0.1);
 
 		VectorMA(p->part.org, cosi * 2.0, right, p->part.org);
 		VectorMA(p->part.org, sini * 2.0, up, p->part.org);

@@ -646,9 +646,9 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 				lat *= M_PI / 128.0;
 				lng *= M_PI / 128.0;
 
-				out_vert->normal[0] = cos(lat) * sin(lng);
-				out_vert->normal[1] = sin(lat) * sin(lng);
-				out_vert->normal[2] = cos(lng);
+				out_vert->normal[0] = cosf(lat) * sinf(lng);
+				out_vert->normal[1] = sinf(lat) * sinf(lng);
+				out_vert->normal[2] = cosf(lng);
 			}
 		}
 

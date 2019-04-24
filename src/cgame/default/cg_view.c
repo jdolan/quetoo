@@ -68,8 +68,8 @@ static void Cg_UpdateFov(void) {
 
 	cgi.view->fov[0] = fov / 2.0;
 
-	const vec_t x = cgi.context->width / tan(Radians(fov));
-	const vec_t y = atan2(cgi.context->height, x);
+	const vec_t x = cgi.context->width / tanf(Radians(fov));
+	const vec_t y = atan2f(cgi.context->height, x);
 	const vec_t a = cgi.context->height / (vec_t ) cgi.context->width;
 
 	cgi.view->fov[1] = Degrees(y) * a / 2.0;
@@ -77,7 +77,7 @@ static void Cg_UpdateFov(void) {
 	// set up projection matrix
 	const vec_t aspect = (vec_t) cgi.view->viewport_3d.w / (vec_t) cgi.view->viewport_3d.h;
 
-	const vec_t ymax = NEAR_Z * tan(Radians(cgi.view->fov[1]));
+	const vec_t ymax = NEAR_Z * tanf(Radians(cgi.view->fov[1]));
 	const vec_t ymin = -ymax;
 
 	const vec_t xmin = ymin * aspect;
@@ -220,7 +220,7 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	bob += frame_bob;
 	time = cgi.client->unclamped_time;
 
-	cgi.view->bob = sin(0.0045 * bob) * mod * mod;
+	cgi.view->bob = sinf(0.0045 * bob) * mod * mod;
 	cgi.view->bob *= cg_bob->value; // scale via cvar too
 
 	VectorMA(cgi.view->origin, -cgi.view->bob, cgi.view->forward, cgi.view->origin);

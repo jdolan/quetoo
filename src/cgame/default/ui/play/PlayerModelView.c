@@ -124,7 +124,7 @@ static void render(View *self, Renderer *renderer) {
 		// create projection matrix
 		const vec_t aspect = (vec_t) viewport.w / (vec_t) viewport.h;
 
-		const vec_t ymax = NEAR_Z * tan(Radians(40)); // Field of view
+		const vec_t ymax = NEAR_Z * tanf(Radians(40)); // Field of view
 		const vec_t ymin = -ymax;
 
 		const vec_t xmin = ymin * aspect;
@@ -145,7 +145,7 @@ static void render(View *self, Renderer *renderer) {
 
 		Matrix4x4_ConcatRotate(&mat, -25.0 - (this->zoom * -10.0), 0.0, 1.0, 0.0);
 
-		Matrix4x4_ConcatRotate(&mat, sin(Radians(cgi.client->unclamped_time * 0.05)) * 10.0, 0.0, 0.0, 1.0);
+		Matrix4x4_ConcatRotate(&mat, sinf(Radians(cgi.client->unclamped_time * 0.05)) * 10.0, 0.0, 0.0, 1.0);
 
 		cgi.EnableDepthTest(true);
 		cgi.DepthRange(0.0, 0.1);

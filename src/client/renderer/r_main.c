@@ -109,8 +109,8 @@ void R_UpdateFrustum(void) {
 	cm_bsp_plane_t *p = r_locals.frustum;
 
 	vec_t ang = Radians(r_view.fov[0]);
-	vec_t xs = sin(ang);
-	vec_t xc = cos(ang);
+	vec_t xs = sinf(ang);
+	vec_t xc = cosf(ang);
 
 	VectorScale(r_view.forward, xs, p[0].normal);
 	VectorMA(p[0].normal, xc, r_view.right, p[0].normal);
@@ -119,8 +119,8 @@ void R_UpdateFrustum(void) {
 	VectorMA(p[1].normal, -xc, r_view.right, p[1].normal);
 
 	ang = Radians(r_view.fov[1]);
-	xs = sin(ang);
-	xc = cos(ang);
+	xs = sinf(ang);
+	xc = cosf(ang);
 
 	VectorScale(r_view.forward, xs, p[2].normal);
 	VectorMA(p[2].normal, xc, r_view.up, p[2].normal);

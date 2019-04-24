@@ -251,7 +251,7 @@ static chain_winding_t *ClipChainWindings(chain_t *chain,
 				continue;
 			}
 
-			length = 1.0 / sqrt(length);
+			length = 1.0 / sqrtf(length);
 
 			plane.normal[0] *= length;
 			plane.normal[1] *= length;

@@ -467,17 +467,17 @@ static void Cg_EnergyTrail(cl_entity_t *ent, vec_t radius, int32_t color) {
 		}
 
 		vec_t angle = ltime * approximate_normals[i][0];
-		const vec_t sp = sin(angle);
-		const vec_t cp = cos(angle);
+		const vec_t sp = sinf(angle);
+		const vec_t cp = cosf(angle);
 
 		angle = ltime * approximate_normals[i][1];
-		const vec_t sy = sin(angle);
-		const vec_t cy = cos(angle);
+		const vec_t sy = sinf(angle);
+		const vec_t cy = cosf(angle);
 
 		vec3_t forward;
 		VectorSet(forward, cp * sy, cy * sy, -sp);
 
-		vec_t dist = sin(ltime + i) * radius;
+		vec_t dist = sinf(ltime + i) * radius;
 
 		p->part.scale = 0.5 + (0.05 * radius);
 		p->lifetime = PARTICLE_IMMEDIATE;
@@ -694,7 +694,7 @@ static void Cg_BfgTrail(cl_entity_t *ent) {
 
 	Cg_EnergyTrail(ent, 48.0, 206);
 
-	const vec_t mod = sin(cgi.client->unclamped_time >> 5);
+	const vec_t mod = sinf(cgi.client->unclamped_time >> 5);
 
 	cg_particle_t *p;
 	if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_explosion))) {

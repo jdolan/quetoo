@@ -494,7 +494,7 @@ typedef struct {
 
 /**
  * @brief Therefore, the maximum distance across the world is the
- * sqrt((2 * 4096.0)^2 + (2 * 4096.0)^2) = 11585.237
+ * sqrtf((2 * 4096.0)^2 + (2 * 4096.0)^2) = 11585.237
  */
 #define MAX_WORLD_DIST		 11586.0
 

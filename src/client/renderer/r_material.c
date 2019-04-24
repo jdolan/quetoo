@@ -98,11 +98,11 @@ static r_material_state_t r_material_state;
 static void R_UpdateMaterialStage(r_material_t *m, r_stage_t *s) {
 
 	if (s->cm->flags & STAGE_PULSE) {
-		s->pulse.dhz = (sin(r_view.ticks * s->cm->pulse.hz * 0.00628) + 1.0) / 2.0;
+		s->pulse.dhz = (sinf(r_view.ticks * s->cm->pulse.hz * 0.00628) + 1.0) / 2.0;
 	}
 
 	if (s->cm->flags & STAGE_STRETCH) {
-		s->stretch.dhz = (sin(r_view.ticks * s->cm->stretch.hz * 0.00628) + 1.0) / 2.0;
+		s->stretch.dhz = (sinf(r_view.ticks * s->cm->stretch.hz * 0.00628) + 1.0) / 2.0;
 		s->stretch.damp = 1.5 - s->stretch.dhz * s->cm->stretch.amp;
 	}
 

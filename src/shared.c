@@ -129,8 +129,8 @@ void RotatePointAroundVector(const vec3_t point, const vec3_t dir, const vec_t d
 	const vec_t wx = w * x, wy = w * y, wz = w * z;
 	const vec_t uu = u * u, ww = w * w, vv = v * v;
 
-	const vec_t s = sin(Radians(degrees));
-	const vec_t c = cos(Radians(degrees));
+	const vec_t s = sinf(Radians(degrees));
+	const vec_t c = cosf(Radians(degrees));
 
 	out[0] = u * (ux + vy + wz) + (x * (vv + ww) - u * (vy + wz)) * c + (vz - wy) * s;
 	out[1] = v * (ux + vy + wz) + (y * (uu + ww) - v * (ux + wz)) * c + (wx - uz) * s;
@@ -142,10 +142,10 @@ void RotatePointAroundVector(const vec3_t point, const vec3_t dir, const vec_t d
  */
 void VectorAngles(const vec3_t vector, vec3_t angles) {
 
-	const vec_t forward = sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
+	const vec_t forward = sqrtf(vector[0] * vector[0] + vector[1] * vector[1]);
 
-	vec_t pitch = ClampAngle(-Degrees(atan2(vector[2], forward)));
-	vec_t yaw = ClampAngle(Degrees(atan2(vector[1], vector[0])));
+	vec_t pitch = ClampAngle(-Degrees(atan2f(vector[2], forward)));
+	vec_t yaw = ClampAngle(Degrees(atan2f(vector[1], vector[0])));
 
 	VectorSet(angles, pitch, yaw, 0.0);
 }
@@ -157,16 +157,16 @@ void AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up) 
 	vec_t angle;
 
 	angle = Radians(angles[YAW]);
-	const vec_t sy = sin(angle);
-	const vec_t cy = cos(angle);
+	const vec_t sy = sinf(angle);
+	const vec_t cy = cosf(angle);
 
 	angle = Radians(angles[PITCH]);
-	const vec_t sp = sin(angle);
-	const vec_t cp = cos(angle);
+	const vec_t sp = sinf(angle);
+	const vec_t cp = cosf(angle);
 
 	angle = Radians(angles[ROLL]);
-	const vec_t sr = sin(angle);
-	const vec_t cr = cos(angle);
+	const vec_t sr = sinf(angle);
+	const vec_t cr = cosf(angle);
 
 	if (forward) {
 		forward[0] = cp * cy;

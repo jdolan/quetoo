@@ -827,8 +827,8 @@ static void Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		VectorAngles(aim_direction, ideal_angles);
 
 		// fuzzy angle
-		ideal_angles[0] += sin(ai_level.time / 128.0) * 4.3;
-		ideal_angles[1] += cos(ai_level.time / 164.0) * 4.0;
+		ideal_angles[0] += sinf(ai_level.time / 128.0) * 4.3;
+		ideal_angles[1] += cosf(ai_level.time / 164.0) * 4.0;
 	}
 
 	const vec_t *view_angles = &CLIENT_DATA(self->client, angles);

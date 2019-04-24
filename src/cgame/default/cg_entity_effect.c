@@ -78,12 +78,12 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 
 	if (e->effects & EF_BOB) {
 		VectorCopy(e->origin, e->termination);
-		const vec_t bob = sin(cgi.client->unclamped_time * 0.005 + ent->current.number);
+		const vec_t bob = sinf(cgi.client->unclamped_time * 0.005 + ent->current.number);
 		e->origin[2] += cg_entity_bob->value * bob;
 	}
 
 	if (e->effects & EF_PULSE) {
-		const vec_t pulse = (cos(cgi.client->unclamped_time * 0.0033 + ent->current.number) + 1.0);
+		const vec_t pulse = (cosf(cgi.client->unclamped_time * 0.0033 + ent->current.number) + 1.0);
 		const vec_t c = 1.0 - (cg_entity_pulse->value * 0.5 * pulse);
 		VectorSet(e->color, c, c, c);
 	} else {

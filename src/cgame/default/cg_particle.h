@@ -26,7 +26,7 @@
 #define PARTICLE_GRAVITY 180.0
 
 #define CORONA_SCALE(radius, flicker) \
-	((radius) + ((radius) * (flicker) * sin(0.09 * cgi.client->unclamped_time)))
+	((radius) + ((radius) * (flicker) * sinf(0.09 * cgi.client->unclamped_time)))
 
 cg_particle_t *Cg_AllocParticle(const r_particle_type_t type, cg_particles_t *particles);
 cg_particles_t *Cg_AllocParticles(const char *name, r_image_type_t type, _Bool use_atlas);
