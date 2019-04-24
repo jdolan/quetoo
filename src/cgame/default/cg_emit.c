@@ -486,7 +486,7 @@ void Cg_AddEmits(void) {
 
 		if (e->flags & EMIT_CORONA) {
 
-			cg_particle_t *p = Cg_AllocParticle(PARTICLE_CORONA, NULL, false);
+			cg_particle_t *p = Cg_AllocParticle(PARTICLE_CORONA, NULL);
 
 			if (p) {
 				VectorCopy(e->color, p->part.color);

@@ -185,7 +185,7 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 
 		ps = cgi.view->weather & WEATHER_RAIN ? cg_particles_rain : cg_particles_snow;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_WEATHER, ps, true))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_WEATHER, ps))) {
 			break;
 		}
 

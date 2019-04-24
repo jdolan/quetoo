@@ -69,9 +69,7 @@ static void Cg_UpdateFov(void) {
 	cgi.view->fov[0] = fov / 2.0;
 
 	const vec_t x = cgi.context->width / tan(Radians(fov));
-
 	const vec_t y = atan2(cgi.context->height, x);
-
 	const vec_t a = cgi.context->height / (vec_t ) cgi.context->width;
 
 	cgi.view->fov[1] = Degrees(y) * a / 2.0;

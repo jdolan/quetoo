@@ -56,7 +56,7 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 	if (contents & MASK_LIQUID) {
 		if ((contents & MASK_LIQUID) == CONTENTS_WATER) {
 
-			if (!(p = Cg_AllocParticle(PARTICLE_BUBBLE, cg_particles_bubble, false))) {
+			if (!(p = Cg_AllocParticle(PARTICLE_BUBBLE, cg_particles_bubble))) {
 				return;
 			}
 
@@ -86,7 +86,7 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 		}
 	} else if (cgi.view->weather & WEATHER_RAIN || cgi.view->weather & WEATHER_SNOW) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_steam, false))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_steam))) {
 			return;
 		}
 
@@ -148,7 +148,7 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	for (vec_t i = 0.0; i < len; i += SMOKE_DENSITY) {
 		VectorAdd(move, vec, move);
 
-		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke, false))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke))) {
 			return;
 		}
 
@@ -187,7 +187,7 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_flame, false))) {
+	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_flame))) {
 		return;
 	}
 
@@ -234,7 +234,7 @@ void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_steam, false))) {
+	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_steam))) {
 		return;
 	}
 
@@ -283,7 +283,7 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, vec_t density) {
 
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_BUBBLE, cg_particles_bubble, false))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_BUBBLE, cg_particles_bubble))) {
 			return;
 		}
 
@@ -331,7 +331,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 	const vec_t dist = VectorNormalize(delta);
 
 	while (d < dist) {
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL, true))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL))) {
 			break;
 		}
 
@@ -366,7 +366,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		}
 	}
 
-	if ((p = Cg_AllocParticle(PARTICLE_CORONA, NULL, false))) {
+	if ((p = Cg_AllocParticle(PARTICLE_CORONA, NULL))) {
 		VectorCopy(color, p->part.color);
 		VectorCopy(end, p->part.org);
 
@@ -409,7 +409,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 	while (d < dist) {
 
 		// make larger outer orange flame
-		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_flame, true))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_flame))) {
 			break;
 		}
 
@@ -434,7 +434,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 		d += 1.0;
 	}
 
-	if ((p = Cg_AllocParticle(PARTICLE_CORONA, NULL, false))) {
+	if ((p = Cg_AllocParticle(PARTICLE_CORONA, NULL))) {
 		VectorSet(p->part.color, 0.1, 0.15, 0.8);
 		VectorCopy(end, p->part.org);
 
@@ -457,12 +457,12 @@ static void Cg_EnergyTrail(cl_entity_t *ent, vec_t radius, int32_t color) {
 
 	const vec_t ltime = (vec_t) (cgi.client->unclamped_time + ent->current.number) / 300.0;
 
-	const int32_t skip = (cg_add_particles->integer ? 1 : 3);
+	const int32_t step = (cg_add_particles->integer ? 1 : 3);
 
-	for (int32_t i = 0; i < NUM_APPROXIMATE_NORMALS; i += skip) {
+	for (int32_t i = 0; i < NUM_APPROXIMATE_NORMALS; i += step) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL, true))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL))) {
 			break;
 		}
 
@@ -509,7 +509,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent) {
 
 	Cg_EnergyTrail(ent, 6.0, 107);
 
-	if ((p = Cg_AllocParticle(PARTICLE_CORONA, NULL, true))) {
+	if ((p = Cg_AllocParticle(PARTICLE_CORONA, NULL))) {
 		VectorSet(p->part.color, 0.4, 0.7, 1.0);
 		VectorCopy(ent->origin, p->part.org);
 
@@ -550,7 +550,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	while (dist > 0.0) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_lightning, true))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_lightning))) {
 			break;
 		}
 
@@ -612,7 +612,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 			if ((cgi.PointContents(pos) & MASK_LIQUID) == 0) {
 				for (i = 0; i < 6; i++) {
-					if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark, false))) {
+					if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark))) {
 						break;
 					}
 
@@ -649,7 +649,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 		ent->timestamp = cgi.client->unclamped_time + 25; // 40hz
 	}
 
-	if ((p = Cg_AllocParticle(PARTICLE_EXPLOSION, cg_particles_explosion, false))) {
+	if ((p = Cg_AllocParticle(PARTICLE_EXPLOSION, cg_particles_explosion))) {
 
 		Vector4Set(p->part.color, 0.1, 0.3, 0.9 + Randomc() * 0.1, 1.0);
 		VectorCopy(pos, p->part.org);
@@ -666,7 +666,7 @@ static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
 
 	cg_particle_t *p;
 
-	if ((p = Cg_AllocParticle(PARTICLE_WIRE, cg_particles_rope, true))) {
+	if ((p = Cg_AllocParticle(PARTICLE_WIRE, cg_particles_rope))) {
 		p->lifetime = PARTICLE_IMMEDIATE;
 
 		ColorToVec4(Cg_ResolveEffectColor(ent->current.client, EFFECT_COLOR_GREEN), p->part.color);
@@ -697,7 +697,7 @@ static void Cg_BfgTrail(cl_entity_t *ent) {
 	const vec_t mod = sin(cgi.client->unclamped_time >> 5);
 
 	cg_particle_t *p;
-	if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_explosion, true))) {
+	if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_explosion))) {
 
 		cgi.ColorFromPalette(206, p->color_start);
 
@@ -743,7 +743,7 @@ static void Cg_TeleporterTrail(cl_entity_t *ent, const color_t color) {
 	for (int32_t i = 0; i < 4; i++) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_teleporter, false))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_teleporter))) {
 			break;
 		}
 
@@ -776,7 +776,7 @@ static void Cg_SpawnPointTrail(cl_entity_t *ent, const color_t color) {
 
 	cg_particle_t *p;
 
-	if ((p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_teleporter, false))) {
+	if ((p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_teleporter))) {
 		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 		p->lifetime = 450;
 
@@ -812,7 +812,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 	while (dist > 0.0) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_blood, false))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_blood))) {
 			break;
 		}
 

@@ -67,13 +67,9 @@ static void Cg_PopParticle(cg_particle_t *p, cg_particle_t **list) {
 /**
  * @brief Allocates a free particle with the specified type and image.
  */
-cg_particle_t *Cg_AllocParticle(const r_particle_type_t type, cg_particles_t *particles, const _Bool force) {
+cg_particle_t *Cg_AllocParticle(const r_particle_type_t type, cg_particles_t *particles) {
 
 	if (!cg_add_particles->integer) {
-		return NULL;
-	}
-
-	if (cg_particle_quality->integer == 0 && !force) {
 		return NULL;
 	}
 
