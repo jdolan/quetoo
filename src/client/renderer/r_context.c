@@ -131,17 +131,29 @@ void R_InitContext(void) {
 		SDL_GL_GetAttribute(valid_attribs[i], &attr[valid_attribs[i]]);
 	}
 
-	Com_Verbose("   Buffer Sizes: r %i g %i b %i a %i depth %i stencil %i framebuffer %i\n", attr[SDL_GL_RED_SIZE],
-	            attr[SDL_GL_GREEN_SIZE], attr[SDL_GL_BLUE_SIZE], attr[SDL_GL_ALPHA_SIZE], attr[SDL_GL_DEPTH_SIZE],
-	            attr[SDL_GL_STENCIL_SIZE], attr[SDL_GL_BUFFER_SIZE]);
+	Com_Verbose("   Buffer Sizes: r %i g %i b %i a %i depth %i stencil %i framebuffer %i\n",
+				attr[SDL_GL_RED_SIZE],
+	            attr[SDL_GL_GREEN_SIZE],
+				attr[SDL_GL_BLUE_SIZE],
+				attr[SDL_GL_ALPHA_SIZE],
+				attr[SDL_GL_DEPTH_SIZE],
+	            attr[SDL_GL_STENCIL_SIZE],
+				attr[SDL_GL_BUFFER_SIZE]);
+
 	Com_Verbose("   Double-buffered: %s\n", attr[SDL_GL_DOUBLEBUFFER] ? "yes" : "no");
-	Com_Verbose("   Multisample: %i buffers, %i samples\n", attr[SDL_GL_MULTISAMPLEBUFFERS],
+
+	Com_Verbose("   Multisample: %i buffers, %i samples\n",
+				attr[SDL_GL_MULTISAMPLEBUFFERS],
 	            attr[SDL_GL_MULTISAMPLESAMPLES]);
-	Com_Verbose("   Version: %i.%i (%i flags, %i profile)\n", attr[SDL_GL_CONTEXT_MAJOR_VERSION],
-	            attr[SDL_GL_CONTEXT_MINOR_VERSION], attr[SDL_GL_CONTEXT_FLAGS], attr[SDL_GL_CONTEXT_PROFILE_MASK]);
+
+	Com_Verbose("   Version: %i.%i (%i flags, %i profile)\n",
+				attr[SDL_GL_CONTEXT_MAJOR_VERSION],
+	            attr[SDL_GL_CONTEXT_MINOR_VERSION],
+				attr[SDL_GL_CONTEXT_FLAGS],
+				attr[SDL_GL_CONTEXT_PROFILE_MASK]);
 
 	if (SDL_GL_SetSwapInterval(r_swap_interval->integer) == -1) {
-		Com_Warn("Failed to set VSync %d: %s\n", r_swap_interval->integer, SDL_GetError());
+		Com_Warn("Failed to set swap interval %d: %s\n", r_swap_interval->integer, SDL_GetError());
 	}
 
 	if (SDL_SetWindowBrightness(r_context.window, r_gamma->value) == -1) {
