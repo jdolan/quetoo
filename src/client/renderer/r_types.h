@@ -327,7 +327,7 @@ typedef struct {
 } r_framebuffer_t;
 
 typedef enum {
-	PARTICLE_NORMAL,
+	PARTICLE_DEFAULT,
 	PARTICLE_SPARK,
 	PARTICLE_ROLL,
 	PARTICLE_EXPLOSION,
@@ -1022,16 +1022,12 @@ typedef enum {
 // program index
 typedef enum {
 	R_PROGRAM_DEFAULT,
+	R_PROGRAM_NULL,
+	R_PROGRAM_PARTICLE,
 	R_PROGRAM_SHADOW,
 	R_PROGRAM_SHELL,
-	R_PROGRAM_WARP,
-	R_PROGRAM_NULL,
-	R_PROGRAM_CORONA,
 	R_PROGRAM_STAIN,
-
-	// geometry-enabled programs
-	R_PROGRAM_PARTICLE,
-	R_PROGRAM_PARTICLE_CORONA,
+	R_PROGRAM_WARP,
 
 	R_PROGRAM_TOTAL
 } r_program_id_t;

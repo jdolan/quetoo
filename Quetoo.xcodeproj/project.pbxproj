@@ -171,13 +171,10 @@
 		CE40147D204B9F4C009FD74E /* libphysfs.3.0.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE40147A204B9EF0009FD74E /* libphysfs.3.0.1.dylib */; };
 		CE40147E204B9FBB009FD74E /* libphysfs.3.0.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE40147A204B9EF0009FD74E /* libphysfs.3.0.1.dylib */; };
 		CE4898D11D8B9DE100EEACA5 /* libnet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.a */; };
-		CE4A25581FA2032700A539E7 /* corona_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA936601DBCD85400A12B79 /* corona_fs.glsl */; };
-		CE4A25591FA2032700A539E7 /* corona_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA936611DBCD85400A12B79 /* corona_vs.glsl */; };
 		CE4A255A1FA2032700A539E7 /* default_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE12D5F41C5C58C300CD0B13 /* default_fs.glsl */; };
 		CE4A255B1FA2032700A539E7 /* default_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE12D5F51C5C58C300CD0B13 /* default_vs.glsl */; };
 		CE4A255C1FA2032700A539E7 /* null_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE3BCDC31DB6DD05002E6C6D /* null_fs.glsl */; };
 		CE4A255D1FA2032700A539E7 /* null_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE3BCDC41DB6DD05002E6C6D /* null_vs.glsl */; };
-		CE4A255E1FA2032700A539E7 /* particle_corona_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE15E8C31ED3066500A9FB7A /* particle_corona_vs.glsl */; };
 		CE4A255F1FA2032700A539E7 /* particle_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE15E8C41ED3066500A9FB7A /* particle_fs.glsl */; };
 		CE4A25601FA2032700A539E7 /* particle_gs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE15E8C51ED3066500A9FB7A /* particle_gs.glsl */; };
 		CE4A25611FA2032700A539E7 /* particle_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE15E8C61ED3066500A9FB7A /* particle_vs.glsl */; };
@@ -1286,13 +1283,10 @@
 			dstPath = shaders;
 			dstSubfolderSpec = 16;
 			files = (
-				CE4A25581FA2032700A539E7 /* corona_fs.glsl in CopyFiles */,
-				CE4A25591FA2032700A539E7 /* corona_vs.glsl in CopyFiles */,
 				CE4A255A1FA2032700A539E7 /* default_fs.glsl in CopyFiles */,
 				CE4A255B1FA2032700A539E7 /* default_vs.glsl in CopyFiles */,
 				CE4A255C1FA2032700A539E7 /* null_fs.glsl in CopyFiles */,
 				CE4A255D1FA2032700A539E7 /* null_vs.glsl in CopyFiles */,
-				CE4A255E1FA2032700A539E7 /* particle_corona_vs.glsl in CopyFiles */,
 				CE4A255F1FA2032700A539E7 /* particle_fs.glsl in CopyFiles */,
 				CE4A25601FA2032700A539E7 /* particle_gs.glsl in CopyFiles */,
 				CE4A25611FA2032700A539E7 /* particle_vs.glsl in CopyFiles */,
@@ -1920,7 +1914,6 @@
 		CE12D8F41C5CF86600CD0B13 /* quetoo-dedicated */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-dedicated"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE15E8BF1ED0CAE900A9FB7A /* s_al_ext.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = s_al_ext.c; sourceTree = "<group>"; };
 		CE15E8C01ED0CAE900A9FB7A /* s_al_ext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = s_al_ext.h; sourceTree = "<group>"; };
-		CE15E8C31ED3066500A9FB7A /* particle_corona_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = particle_corona_vs.glsl; sourceTree = "<group>"; };
 		CE15E8C41ED3066500A9FB7A /* particle_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = particle_fs.glsl; sourceTree = "<group>"; };
 		CE15E8C51ED3066500A9FB7A /* particle_gs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = particle_gs.glsl; sourceTree = "<group>"; };
 		CE15E8C61ED3066500A9FB7A /* particle_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = particle_vs.glsl; sourceTree = "<group>"; };
@@ -2147,8 +2140,6 @@
 		CEA082341DC6EBB7001207AA /* r_atlas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_atlas.h; sourceTree = "<group>"; };
 		CEA3B4851E057569004A6CF3 /* cm_material.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_material.c; sourceTree = "<group>"; };
 		CEA3B4861E057569004A6CF3 /* cm_material.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_material.h; sourceTree = "<group>"; };
-		CEA936601DBCD85400A12B79 /* corona_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = corona_fs.glsl; sourceTree = "<group>"; };
-		CEA936611DBCD85400A12B79 /* corona_vs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = corona_vs.glsl; sourceTree = "<group>"; };
 		CEA936621DBCD87400A12B79 /* r_program_corona.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_program_corona.c; sourceTree = "<group>"; };
 		CEA936631DBCD87400A12B79 /* r_program_corona.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_program_corona.h; sourceTree = "<group>"; };
 		CEAD2AB3203CF7E800F1FB7E /* libopenal.1.18.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopenal.1.18.2.dylib; path = ../../../../usr/local/lib/libopenal.1.18.2.dylib; sourceTree = "<group>"; };
@@ -3167,13 +3158,10 @@
 			isa = PBXGroup;
 			children = (
 				CE585BD51ED459E2009B7C14 /* include */,
-				CEA936601DBCD85400A12B79 /* corona_fs.glsl */,
-				CEA936611DBCD85400A12B79 /* corona_vs.glsl */,
 				CE12D5F41C5C58C300CD0B13 /* default_fs.glsl */,
 				CE12D5F51C5C58C300CD0B13 /* default_vs.glsl */,
 				CE3BCDC31DB6DD05002E6C6D /* null_fs.glsl */,
 				CE3BCDC41DB6DD05002E6C6D /* null_vs.glsl */,
-				CE15E8C31ED3066500A9FB7A /* particle_corona_vs.glsl */,
 				CE15E8C41ED3066500A9FB7A /* particle_fs.glsl */,
 				CE15E8C51ED3066500A9FB7A /* particle_gs.glsl */,
 				CE15E8C61ED3066500A9FB7A /* particle_vs.glsl */,
@@ -6191,6 +6179,7 @@
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -6247,6 +6236,7 @@
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;

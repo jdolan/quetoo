@@ -174,9 +174,6 @@ void R_SortElements(void *data) {
 	}
 
 	R_SortElements_(r_element_state.elements, r_element_state.count);
-
-	R_UpdateParticleState();
-
 	R_SortParticles_(r_element_state.elements, r_element_state.count);
 }
 
@@ -185,9 +182,8 @@ void R_SortElements(void *data) {
  */
 static void R_DrawBspSurfaceElements(const r_element_t *e, const size_t count, BspSurfacesDrawFunc func) {
 	r_bsp_surfaces_t *surfs = &r_element_state.surfs;
-	size_t i;
 
-	for (i = 0; i < count; i++, e++) {
+	for (size_t i = 0; i < count; i++, e++) {
 		surfs->surfaces[i] = (r_bsp_surface_t *) e->element;
 	}
 

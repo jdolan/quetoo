@@ -100,6 +100,41 @@ void R_InitProgram_particle(r_program_t *program) {
 /**
  * @brief
  */
+void R_UseProgram_particle(void) {
+	r_particle_program_t *p = &r_particle_program;
+
+	R_ProgramParameter3fv(&p->view_origin, r_view.origin);
+	R_ProgramParameter3fv(&p->view_angles, r_view.angles);
+	R_ProgramParameter3fv(&p->view_right, r_view.right);
+	R_ProgramParameter3fv(&p->view_up, r_view.up);
+
+	// reset the common angular vectors for particle alignment
+	vec3_t v, weather_right, weather_up, splash_right[2], splash_up[2];
+	VectorCopy(r_view.angles, v);
+
+	v[0] = 0.0; // keep weather particles vertical by removing pitch
+	AngleVectors(v, NULL, weather_right, weather_up);
+
+	v[0] = -90.0; // and splash particles horizontal by setting it
+	AngleVectors(v, NULL, splash_right[0], splash_up[0]);
+
+	v[0] = 90.0; // even if they are below us
+	AngleVectors(v, NULL, splash_right[1], splash_up[1]);
+
+	R_ProgramParameter3fv(&p->weather_right, weather_right);
+	R_ProgramParameter3fv(&p->weather_up, weather_up);
+
+	for (int32_t i = 0; i < 2; i++) {
+		R_ProgramParameter3fv(&p->splash_right[i], splash_right[i]);
+		R_ProgramParameter3fv(&p->splash_up[i], splash_up[i]);
+	}
+
+	R_ProgramParameter1f(&p->ticks, r_view.ticks / 1000.0);
+}
+
+/**
+ * @brief
+ */
 void R_UseFog_particle(const r_fog_parameters_t *fog) {
 
 	r_particle_program_t *p = &r_particle_program;
@@ -112,26 +147,4 @@ void R_UseFog_particle(const r_fog_parameters_t *fog) {
 	} else {
 		R_ProgramParameter1f(&p->fog.density, 0.0);
 	}
-}
-
-
-/**
- * @brief
- */
-void R_UseParticleData_particle(vec3_t weather_right, vec3_t weather_up, vec3_t splash_right[2], vec3_t splash_up[2]) {
-	r_particle_program_t *p = &r_particle_program;
-
-	R_ProgramParameter3fv(&p->view_origin, r_view.origin);
-	R_ProgramParameter3fv(&p->view_angles, r_view.angles);
-	R_ProgramParameter3fv(&p->view_right, r_view.right);
-	R_ProgramParameter3fv(&p->view_up, r_view.up);
-	R_ProgramParameter3fv(&p->weather_right, weather_right);
-	R_ProgramParameter3fv(&p->weather_up, weather_up);
-
-	for (int32_t i = 0; i < 2; i++) {
-		R_ProgramParameter3fv(&p->splash_right[i], splash_right[i]);
-		R_ProgramParameter3fv(&p->splash_up[i], splash_up[i]);
-	}
-
-	R_ProgramParameter1f(&p->ticks, r_view.ticks / 1000.0);
 }

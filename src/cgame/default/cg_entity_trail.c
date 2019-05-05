@@ -331,7 +331,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 	const vec_t dist = VectorNormalize(delta);
 
 	while (d < dist) {
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_DEFAULT, NULL))) {
 			break;
 		}
 
@@ -457,12 +457,12 @@ static void Cg_EnergyTrail(cl_entity_t *ent, vec_t radius, int32_t color) {
 
 	const vec_t ltime = (vec_t) (cgi.client->unclamped_time + ent->current.number) / 300.0;
 
-	const int32_t step = (cg_add_particles->integer ? 1 : 3);
+	const int32_t step = (cg_particle_quality->integer ? 1 : 3);
 
 	for (int32_t i = 0; i < NUM_APPROXIMATE_NORMALS; i += step) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_DEFAULT, NULL))) {
 			break;
 		}
 

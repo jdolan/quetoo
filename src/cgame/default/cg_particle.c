@@ -84,7 +84,13 @@ cg_particle_t *Cg_AllocParticle(const r_particle_type_t type, cg_particles_t *pa
 
 	memset(p, 0, sizeof(cg_particle_t));
 
-	particles = particles ?: cg_particles_normal;
+	if (particles == NULL) {
+		if (type == PARTICLE_CORONA) {
+			particles = cg_particles_corona;
+		} else {
+			particles = cg_particles_default;
+		}
+	}
 
 	p->part.type = type;
 	p->part.image = particles->image;
@@ -126,10 +132,12 @@ cg_particles_t *Cg_AllocParticles(const char *name, r_image_type_t type, _Bool u
 
 	cg_particles_t *particles = cgi.Malloc(sizeof(*particles), MEM_TAG_CGAME);
 
-	if (use_atlas) {
-		particles->image = (r_image_t *) cgi.LoadAtlasImage(cg_particle_atlas, name, type);
-	} else {
-		particles->image = cgi.LoadImage(name, type);
+	if (name) {
+		if (use_atlas) {
+			particles->image = (r_image_t *) cgi.LoadAtlasImage(cg_particle_atlas, name, type);
+		} else {
+			particles->image = cgi.LoadImage(name, type);
+		}
 	}
 
 	particles->next = cg_active_particles;

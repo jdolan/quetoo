@@ -22,8 +22,6 @@
 #include "r_local.h"
 #include "r_gl.h"
 
-cvar_t *r_geometry_shaders;
-
 // glsl vertex and fragment shaders
 typedef struct {
 	GLenum type;
@@ -794,8 +792,6 @@ void R_InitPrograms(void) {
 
 	memset(r_state.programs, 0, sizeof(r_state.programs));
 
-	r_geometry_shaders = Cvar_Add("r_geometry_shaders", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Whether geometry shaders are enabled or not, if supported.");
-
 	if (R_LoadSimpleProgram("default", R_InitProgram_default, R_PreLink_default, program_default)) {
 		program_default->Shutdown = R_Shutdown_default;
 		program_default->Use = R_UseProgram_default;
@@ -810,6 +806,29 @@ void R_InitPrograms(void) {
 		program_default->arrays_mask = R_ATTRIB_MASK_ALL & ~R_ATTRIB_GEOMETRY_MASK;
 	}
 
+	if (R_LoadSimpleProgram("null", R_InitProgram_null, R_PreLink_null, program_null)) {
+		program_null->UseFog = R_UseFog_null;
+		program_null->UseInterpolation = R_UseInterpolation_null;
+		program_null->UseMaterial = R_UseMaterial_null;
+		program_null->UseTints = R_UseTints_null;
+		program_null->arrays_mask = R_ATTRIB_MASK_POSITION | R_ATTRIB_MASK_NEXT_POSITION | R_ATTRIB_MASK_DIFFUSE |
+									R_ATTRIB_MASK_COLOR;
+	}
+
+	R_CreateProgram("particle", program_particle);
+	R_AttachShader(program_particle, GL_VERTEX_SHADER, "particle");
+	R_AttachShader(program_particle, GL_GEOMETRY_SHADER, "particle");
+	R_AttachShader(program_particle, GL_FRAGMENT_SHADER, "particle");
+	R_PreLink_particle(program_particle);
+
+	if (R_LinkProgram(program_particle, R_InitProgram_particle)) {
+		program_particle->Use = R_UseProgram_particle;
+		program_particle->UseFog = R_UseFog_particle;
+		program_particle->arrays_mask = R_ATTRIB_MASK_POSITION | R_ATTRIB_MASK_DIFFUSE |
+										R_ATTRIB_MASK_COLOR | R_ATTRIB_MASK_LIGHTMAP | R_ATTRIB_MASK_SCALE |
+										R_ATTRIB_MASK_ROLL | R_ATTRIB_MASK_END | R_ATTRIB_MASK_TYPE;
+	}
+
 	if (R_LoadSimpleProgram("shadow", R_InitProgram_shadow, R_PreLink_shadow, program_shadow)) {
 		program_shadow->UseInterpolation = R_UseInterpolation_shadow;
 		program_shadow->arrays_mask = R_ATTRIB_MASK_POSITION | R_ATTRIB_MASK_NEXT_POSITION;
@@ -822,66 +841,14 @@ void R_InitPrograms(void) {
 		                             R_ATTRIB_MASK_NORMAL | R_ATTRIB_MASK_NEXT_NORMAL;
 	}
 
-	if (R_LoadSimpleProgram("warp", R_InitProgram_warp, R_PreLink_warp, program_warp)) {
-		program_warp->Use = R_UseProgram_warp;
-		program_warp->UseFog = R_UseFog_warp;
-		program_warp->arrays_mask = R_ATTRIB_MASK_POSITION | R_ATTRIB_MASK_DIFFUSE;
-	}
-
-	if (R_LoadSimpleProgram("null", R_InitProgram_null, R_PreLink_null, program_null)) {
-		program_null->UseFog = R_UseFog_null;
-		program_null->UseInterpolation = R_UseInterpolation_null;
-		program_null->UseMaterial = R_UseMaterial_null;
-		program_null->UseTints = R_UseTints_null;
-		program_null->arrays_mask = R_ATTRIB_MASK_POSITION | R_ATTRIB_MASK_NEXT_POSITION | R_ATTRIB_MASK_DIFFUSE |
-		                            R_ATTRIB_MASK_COLOR;
-	}
-
-	if (R_LoadSimpleProgram("corona", R_InitProgram_corona, R_PreLink_corona, program_corona)) {
-		program_corona->UseFog = R_UseFog_corona;
-		program_corona->arrays_mask = R_ATTRIB_MASK_POSITION | R_ATTRIB_MASK_DIFFUSE | R_ATTRIB_MASK_COLOR;
-	}
-
 	if (R_LoadSimpleProgram("stain", R_InitProgram_stain, R_PreLink_stain, program_stain)) {
 		program_stain->arrays_mask = R_ATTRIB_MASK_POSITION | R_ATTRIB_MASK_DIFFUSE | R_ATTRIB_MASK_COLOR;
 	}
 
-	if (r_geometry_shaders->integer) {
-		R_CreateProgram("particle", program_particle);
-		R_AttachShader(program_particle, GL_VERTEX_SHADER, "particle");
-		R_AttachShader(program_particle, GL_GEOMETRY_SHADER, "particle");
-		R_AttachShader(program_particle, GL_FRAGMENT_SHADER, "particle");
-		R_PreLink_particle(program_particle);
-
-		if (R_LinkProgram(program_particle, R_InitProgram_particle)) {
-			program_particle->UseFog = R_UseFog_particle;
-			program_particle->arrays_mask = R_ATTRIB_MASK_POSITION | R_ATTRIB_MASK_DIFFUSE |
-											R_ATTRIB_MASK_COLOR | R_ATTRIB_MASK_LIGHTMAP | R_ATTRIB_MASK_SCALE |
-											R_ATTRIB_MASK_ROLL | R_ATTRIB_MASK_END | R_ATTRIB_MASK_TYPE;
-	
-			r_state.particle_program = program_particle;
-		} else {
-			r_state.particle_program = program_null;
-		}
-
-		R_CreateProgram("particle_corona", program_particle_corona);
-		R_AttachShader(program_particle_corona, GL_VERTEX_SHADER, "particle_corona");
-		R_AttachShader(program_particle_corona, GL_GEOMETRY_SHADER, "particle");
-		R_AttachShader(program_particle_corona, GL_FRAGMENT_SHADER, "corona");
-		R_PreLink_particle(program_particle_corona);
-
-		if (R_LinkProgram(program_particle_corona, R_InitProgram_particle_corona)) {
-			program_particle_corona->UseFog = R_UseFog_particle_corona;
-			program_particle_corona->arrays_mask =	R_ATTRIB_MASK_POSITION |
-													R_ATTRIB_MASK_COLOR | R_ATTRIB_MASK_SCALE;
-	
-			r_state.corona_program = program_particle_corona;
-		} else {
-			r_state.corona_program = program_corona;
-		}
-	} else {
-		r_state.particle_program = program_null;
-		r_state.corona_program = program_corona;
+	if (R_LoadSimpleProgram("warp", R_InitProgram_warp, R_PreLink_warp, program_warp)) {
+		program_warp->Use = R_UseProgram_warp;
+		program_warp->UseFog = R_UseFog_warp;
+		program_warp->arrays_mask = R_ATTRIB_MASK_POSITION | R_ATTRIB_MASK_DIFFUSE;
 	}
 
 	R_UseProgram(program_null);

@@ -48,7 +48,8 @@ s_sample_t *cg_sample_underwater;
 s_sample_t *cg_sample_hits[2];
 s_sample_t *cg_sample_gib;
 
-cg_particles_t *cg_particles_normal;
+cg_particles_t *cg_particles_default;
+cg_particles_t *cg_particles_corona;
 cg_particles_t *cg_particles_explosion;
 cg_particles_t *cg_particles_debris[4];
 cg_particles_t *cg_particles_teleporter;
@@ -71,6 +72,7 @@ cg_particles_t *cg_particles_ripple[3];
 cg_particles_t *cg_particles_stain_burn;
 cg_particles_t *cg_particles_lightning_burn;
 cg_particles_t *cg_particles_blood_burn;
+cg_particles_t *cg_particles_corona;
 
 static GHashTable *cg_footstep_table;
 
@@ -233,7 +235,10 @@ void Cg_UpdateMedia(void) {
 
 	Cg_InitParticles();
 
-	cg_particles_normal = Cg_AllocParticles("particles/particle.tga", IT_EFFECT | IT_MASK_MULTIPLY, true);
+	cg_particles_default = Cg_AllocParticles("particles/particle.tga", IT_EFFECT | IT_MASK_MULTIPLY, true);
+	
+	cg_particles_corona = Cg_AllocParticles(NULL, 0, false);
+
 	cg_particles_explosion = Cg_AllocParticles("particles/explosion.tga", IT_EFFECT | IT_MASK_MULTIPLY, true);
 
 	for (uint32_t i = 0; i < lengthof(cg_particles_debris); i++) {

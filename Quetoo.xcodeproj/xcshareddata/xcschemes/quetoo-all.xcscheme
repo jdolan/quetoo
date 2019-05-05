@@ -76,7 +76,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_bsp_lightmaps 1 +set r_texture_mode GL_NEAREST"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_bsp_normals 2 +set r_draw_bsp_lightmaps 1 +set r_texture_mode GL_NEAREST"

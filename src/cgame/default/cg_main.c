@@ -218,7 +218,7 @@ static void Cg_Init(void) {
 	cg_hook_style = cgi.AddCvar("hook_style", "pull", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                         "Your preferred hook style. Can be either \"pull\" or \"swing\".");
 
-	cg_particle_quality = cgi.AddCvar("cg_particle_quality", "1", CVAR_ARCHIVE, "Particle quality. 0 disables most eyecandy particles, 1 enables all.");
+	cg_particle_quality = cgi.AddCvar("cg_particle_quality", "1", CVAR_ARCHIVE, "Particle quality. 0 disables some particles, 1 enables all.");
 
 	cg_predict = cgi.AddCvar("cg_predict", "1", 0, "Use client side movement prediction");
 

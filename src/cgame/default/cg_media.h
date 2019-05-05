@@ -53,7 +53,8 @@ extern s_sample_t *cg_sample_gib;
 
 s_sample_t *Cg_GetFootstepSample(const char *footsteps);
 
-extern cg_particles_t *cg_particles_normal;
+extern cg_particles_t *cg_particles_default;
+extern cg_particles_t *cg_particles_corona;
 extern cg_particles_t *cg_particles_explosion;
 extern cg_particles_t *cg_particles_debris[4];
 extern cg_particles_t *cg_particles_teleporter;

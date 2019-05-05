@@ -41,19 +41,25 @@ out VertexData {
 	vec4 color;
 	vec2 texcoord;
 	vec3 point;
+	float type;
 } out_data;
 
 void CopyCommon(void) {
 	out_data.point = (MODELVIEW_MAT * gl_in[0].gl_Position).xyz;
 	out_data.color = in_data[0].color;
+	out_data.type = in_data[0].type;
 }
 
+#define PARTICLE_DEFAULT 0
 #define PARTICLE_SPARK 1
 #define PARTICLE_ROLL 2
 #define PARTICLE_EXPLOSION 3
+#define PARTICLE_BUBBLE 4
 #define PARTICLE_BEAM 5
 #define PARTICLE_WEATHER 6
 #define PARTICLE_SPLASH 7
+#define PARTICLE_CORONA 8
+#define PARTICLE_FLARE 9
 #define PARTICLE_WIRE 10
 
 #define Radians(d) 					((d) * 0.01745329251) // * M_PI / 180.0

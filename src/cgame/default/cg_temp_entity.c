@@ -30,7 +30,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 
 	for (int32_t i = 0; i < 24; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_spark))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_DEFAULT, cg_particles_spark))) {
 			break;
 		}
 
@@ -71,7 +71,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
 		.radius = 4.0,
-		.image = cg_particles_normal->image,
+		.image = cg_particles_default->image,
 		.color = { c[0], c[1], c[2], 0.33 }
 	});
 
@@ -181,7 +181,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
 		.radius = 2.0,
-		.image = cg_particles_normal->image,
+		.image = cg_particles_default->image,
 		.color = { 0.0, 0.0, 0.0, 0.33 },
 	});
 
@@ -310,7 +310,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
 		.radius = count * 6.0,
-		.image = cg_particles_normal->image,
+		.image = cg_particles_default->image,
 		.color = { 0.5 + (Randomf() * 0.3), 0.0, 0.0, 0.1 + Randomf() * 0.2 },
 	});
 
@@ -585,7 +585,7 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
 		.radius = 16.0,
-		.image = cg_particles_normal->image,
+		.image = cg_particles_default->image,
 		.color = { color[0], color[1], color[2], 0.33 },
 	});
 
@@ -779,7 +779,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { end[0], end[1], end[2] },
 		.radius = 8.0,
-		.image = cg_particles_normal->image,
+		.image = cg_particles_default->image,
 		.color = { s.light.color[0], s.light.color[1], s.light.color[2], 0.66 },
 	});
 }
@@ -841,7 +841,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 
 	for (int32_t i = 0; i < 128; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_DEFAULT, NULL))) {
 			break;
 		}
 
@@ -877,7 +877,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
 		.radius = 96.0,
-		.image = cg_particles_normal->image,
+		.image = cg_particles_default->image,
 		.color = { c[0], c[1], c[2], 0.75 },
 	});
 
@@ -924,7 +924,7 @@ static void Cg_SplashEffect(const vec3_t org, const vec3_t dir) {
 	cg_particle_t *p;
 
 	for (int32_t i = 0; i < 10; i++) {
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_normal))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_DEFAULT, cg_particles_default))) {
 			break;
 		}
 

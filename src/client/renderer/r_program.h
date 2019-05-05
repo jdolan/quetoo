@@ -155,6 +155,4 @@ void R_SetupAttributes(void);
 void R_ShutdownPrograms(void);
 void R_InitPrograms(void);
 
-extern cvar_t *r_geometry_shaders;
-
 #endif /* __R_LOCAL_H__ */

@@ -34,7 +34,7 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
 	for (int32_t i = 0; i < 64; i++) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_DEFAULT, NULL))) {
 			break;
 		}
 
@@ -80,7 +80,7 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
 	for (int32_t i = 0; i < 32; i++) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_DEFAULT, NULL))) {
 			break;
 		}
 
@@ -126,7 +126,7 @@ static void Cg_TeleporterEffect(const vec3_t org) {
 	for (int32_t i = 0; i < 64; i++) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL))) {
+		if (!(p = Cg_AllocParticle(PARTICLE_DEFAULT, NULL))) {
 			break;
 		}
 

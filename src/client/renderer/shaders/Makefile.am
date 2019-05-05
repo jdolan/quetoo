@@ -5,13 +5,10 @@ SUBDIRS = \
 shadersdir = @PKGLIBDIR@/default/shaders
 
 shaders_DATA = \
-	corona_fs.glsl \
-	corona_vs.glsl \
 	default_fs.glsl \
 	default_vs.glsl \
 	null_fs.glsl \
 	null_vs.glsl \
-	particle_corona_vs.glsl \
 	particle_fs.glsl \
 	particle_gs.glsl \
 	particle_vs.glsl \
