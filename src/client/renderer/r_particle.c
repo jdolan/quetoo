@@ -145,7 +145,9 @@ void R_ShutdownParticles(void) {
 static void R_ParticleVerts(const r_particle_t *p, r_particle_interleave_vertex_t *verts) {
 	vec3_t v, up, right, up_right, down_right;
 
-	if (p->type == PARTICLE_BEAM || p->type == PARTICLE_SPARK || p->type == PARTICLE_WIRE) { // beams are lines with starts and ends
+	if (p->type == PARTICLE_BEAM ||
+		p->type == PARTICLE_SPARK ||
+		p->type == PARTICLE_WIRE) { // beams are lines with starts and ends
 		VectorSubtract(p->org, p->end, v);
 		VectorNormalize(v);
 		VectorCopy(v, up);
@@ -168,7 +170,6 @@ static void R_ParticleVerts(const r_particle_t *p, r_particle_interleave_vertex_
 		VectorScale(r_particle_state.weather_right, p->scale, right);
 		VectorScale(r_particle_state.weather_up, p->scale, up);
 	} else if (p->type == PARTICLE_SPLASH) { // keep it horizontal
-
 		if (p->org[2] > r_view.origin[2]) { // it's above us
 			VectorScale(r_particle_state.splash_right[0], p->scale, right);
 			VectorScale(r_particle_state.splash_up[0], p->scale, up);
