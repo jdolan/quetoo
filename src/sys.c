@@ -186,12 +186,6 @@ void Sys_Backtrace(const char *msg) {
 
 	free(strings);
 
-#else
-
-	if (!Com_WasInit(QUETOO_CLIENT)) {
-		return;
-	}
-
 #endif
 
 	const SDL_MessageBoxData data = {

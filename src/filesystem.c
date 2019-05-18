@@ -154,6 +154,10 @@ file_t *Fs_OpenWrite(const char *filename) {
 	char dir[MAX_QPATH];
 	PHYSFS_File *file;
 
+	if (PHYSFS_isInit() == 0) {
+		return NULL;
+	}
+
 	Dirname(filename, dir);
 	Fs_Mkdir(dir);
 
@@ -741,6 +745,10 @@ static void Fs_LoadedFiles_(gpointer key, gpointer value, gpointer data) {
  * @brief Shuts down the filesystem.
  */
 void Fs_Shutdown(void) {
+
+	if (PHYSFS_isInit() == 0) {
+		return;
+	}
 
 	g_hash_table_foreach(fs_state.loaded_files, Fs_LoadedFiles_, NULL);
 	g_hash_table_destroy(fs_state.loaded_files);
