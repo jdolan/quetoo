@@ -22,8 +22,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PlatformToolset Condition="'$(VisualStudioVersion)'=='15.0'">v141_Clang_C2</PlatformToolset>
-    <PlatformToolset Condition="'$(PlatformToolset)'==''">v140_Clang_C2</PlatformToolset>
+    <PlatformToolset>v141_Clang_C2</PlatformToolset>
     <QuetooOutDir>bin\$(Platform)$(Configuration)\</QuetooOutDir>
     <QuetooIntDir>tmp\$(MSBuildProjectName)\$(Platform)$(Configuration)\</QuetooIntDir>
 

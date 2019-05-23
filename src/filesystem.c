@@ -651,6 +651,12 @@ void Fs_Init(const uint32_t flags) {
 
 	memset(&fs_state, 0, sizeof(fs_state_t));
 
+	PHYSFS_Version physfs_version;
+	PHYSFS_getLinkedVersion(&physfs_version);
+
+	Com_Debug(DEBUG_FILESYSTEM, "Initializing PhysFS %i.%i.%i...\n",
+			  physfs_version.major, physfs_version.minor, physfs_version.patch);
+
 	if (PHYSFS_init(Com_Argv(0)) == 0) {
 		Com_Error(ERROR_FATAL, "%s\n", Fs_LastError());
 	}
