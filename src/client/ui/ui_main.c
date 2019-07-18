@@ -149,7 +149,7 @@ void Ui_Init(void) {
 
 	MVC_LogSetPriority(SDL_LOG_PRIORITY_DEBUG);
 
-	$$(Resource, setProvider, Ui_Data);
+	$$(Resource, addResourceProvider, Ui_Data);
 
 	Renderer *renderer = (Renderer *) $(alloc(QuetooRenderer), init);
 
@@ -168,6 +168,8 @@ void Ui_Init(void) {
  * @brief Shuts down the user interface.
  */
 void Ui_Shutdown(void) {
+
+	$$(Resource, removeResourceProvider, Ui_Data);
 
 	Ui_ShutdownEditor();
 
