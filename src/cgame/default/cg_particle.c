@@ -67,7 +67,7 @@ static void Cg_PopParticle(cg_particle_t *p, cg_particle_t **list) {
 /**
  * @brief Allocates a free particle with the specified type and image.
  */
-cg_particle_t *Cg_AllocParticle(const r_particle_type_t type, cg_particles_t *particles) {
+cg_particle_t *Cg_AllocParticle(cg_particles_t *particles) {
 
 	if (!cg_add_particles->integer) {
 		return NULL;
@@ -84,16 +84,8 @@ cg_particle_t *Cg_AllocParticle(const r_particle_type_t type, cg_particles_t *pa
 
 	memset(p, 0, sizeof(cg_particle_t));
 
-	if (particles == NULL) {
-		if (type == PARTICLE_CORONA) {
-			particles = cg_particles_corona;
-		} else {
-			particles = cg_particles_default;
-		}
-	}
-
-	p->part.type = type;
-	p->part.image = particles->image;
+	p->part.type = particles->type;
+	p->part.media = particles->media;
 
 	p->color_end[3] = p->color_start[3] = 1.0;
 
@@ -127,18 +119,23 @@ static cg_particle_t *Cg_FreeParticle(cg_particle_t *p, cg_particle_t **list) {
 
 /**
  * @brief Allocates a particles chain for the specified image.
+ * @param name The image name. If prefixed with `@`, the image will be loaded via atlas.
+ * @param image_type The image type and mask.
+ * @param type The particle type.
  */
-cg_particles_t *Cg_AllocParticles(const char *name, r_image_type_t type, _Bool use_atlas) {
+cg_particles_t *Cg_AllocParticles(const char *name, r_image_type_t image_type, r_particle_type_t type) {
 
 	cg_particles_t *particles = cgi.Malloc(sizeof(*particles), MEM_TAG_CGAME);
 
-	if (name) {
-		if (use_atlas) {
-			particles->image = (r_image_t *) cgi.LoadAtlasImage(cg_particle_atlas, name, type);
-		} else {
-			particles->image = cgi.LoadImage(name, type);
-		}
+	if (*name == '@') {
+		particles->media = (r_media_t *) cgi.LoadAtlasImage(cg_particle_atlas, name + 1, image_type);
+	} else {
+		particles->media = (r_media_t *) cgi.LoadImage(name, image_type);
 	}
+
+	assert(particles->media);
+
+	particles->type = type;
 
 	particles->next = cg_active_particles;
 	cg_active_particles = particles;

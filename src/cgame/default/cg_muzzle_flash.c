@@ -96,7 +96,7 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke))) {
+	if (!(p = Cg_AllocParticle(cg_particles_smoke))) {
 		return;
 	}
 

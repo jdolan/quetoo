@@ -90,7 +90,8 @@ typedef struct cg_particle_s {
 
 // particles are chained by image
 typedef struct cg_particles_s {
-	const r_image_t *image;
+	const r_media_t *media;
+	r_particle_type_t type;
 	cg_particle_t *particles;
 	struct cg_particles_s *next;
 } cg_particles_t;

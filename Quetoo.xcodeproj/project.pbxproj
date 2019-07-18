@@ -264,6 +264,8 @@
 		CE5530A71E5A96D60009A127 /* libparse.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5530991E5A939F0009A127 /* libparse.a */; };
 		CE5816EE1D904AD4002818F5 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CE5816EF1D904B0B002818F5 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
+		CE58CA0F228066440085469E /* cg_stain.h in Headers */ = {isa = PBXBuildFile; fileRef = CE58CA0D228066440085469E /* cg_stain.h */; };
+		CE58CA10228066440085469E /* cg_stain.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58CA0E228066440085469E /* cg_stain.c */; };
 		CE5CDC241D9F51580034757D /* libclient-renderer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CED438AD1D9D34450052BAFA /* libclient-renderer.a */; };
 		CE5CDC331D9F518B0034757D /* ui_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5CDBB21D9F45090034757D /* ui_main.c */; };
 		CE5CDC361D9F51A90034757D /* ui_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5CDBB11D9F45090034757D /* ui_local.h */; };
@@ -2024,6 +2026,8 @@
 		CE5870B11F5CE99C004CAAB2 /* MapListCollectionView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MapListCollectionView.h; sourceTree = "<group>"; };
 		CE5870BC1F5CE9AE004CAAB2 /* VideoModeSelect.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = VideoModeSelect.c; sourceTree = "<group>"; };
 		CE5870BD1F5CE9AE004CAAB2 /* VideoModeSelect.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VideoModeSelect.h; sourceTree = "<group>"; };
+		CE58CA0D228066440085469E /* cg_stain.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_stain.h; sourceTree = "<group>"; };
+		CE58CA0E228066440085469E /* cg_stain.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_stain.c; sourceTree = "<group>"; };
 		CE5CDBAC1D9F45090034757D /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE5CDBAE1D9F45090034757D /* ui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui.h; sourceTree = "<group>"; };
 		CE5CDBB11D9F45090034757D /* ui_local.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_local.h; sourceTree = "<group>"; };
@@ -3007,6 +3011,8 @@
 				CE12D5781C5C58C300CD0B13 /* cg_predict.h */,
 				CE12D5791C5C58C300CD0B13 /* cg_score.c */,
 				CE12D57A1C5C58C300CD0B13 /* cg_score.h */,
+				CE58CA0D228066440085469E /* cg_stain.h */,
+				CE58CA0E228066440085469E /* cg_stain.c */,
 				CE12D57B1C5C58C300CD0B13 /* cg_temp_entity.c */,
 				CE12D57C1C5C58C300CD0B13 /* cg_temp_entity.h */,
 				CE12D57D1C5C58C300CD0B13 /* cg_types.h */,
@@ -3939,6 +3945,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE58CA0F228066440085469E /* cg_stain.h in Headers */,
 				CE80FEA71C5E445D00A21A51 /* cgame.h in Headers */,
 				CE80FE951C5E445500A21A51 /* cg_client.h in Headers */,
 				CE80FE961C5E445500A21A51 /* cg_effect.h in Headers */,
@@ -5267,6 +5274,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE58CA10228066440085469E /* cg_stain.c in Sources */,
 				CE12D7EF1C5C5E0200CD0B13 /* cg_client.c in Sources */,
 				CEB8D6271E00B73200043814 /* cg_input.c in Sources */,
 				CE12D7F01C5C5E0200CD0B13 /* cg_effect.c in Sources */,

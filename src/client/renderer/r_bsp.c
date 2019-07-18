@@ -299,8 +299,6 @@ void R_DrawBspNormals(void) {
 		return;
 	}
 
-	R_EnableColorArray(true);
-
 	R_BindDiffuseTexture(r_image_state.null->texnum);
 
 	R_ResetArrayState(); // default arrays
@@ -350,8 +348,6 @@ void R_DrawBspNormals(void) {
 	R_SetMatrix(R_MATRIX_MODELVIEW, &modelview);
 
 	R_EnableTexture(texunit_diffuse, true);
-
-	R_EnableColorArray(false);
 }
 
 /**

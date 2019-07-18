@@ -30,7 +30,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 
 	for (int32_t i = 0; i < 24; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_DEFAULT, cg_particles_spark))) {
+		if (!(p = Cg_AllocParticle(cg_particles_spark))) {
 			break;
 		}
 
@@ -56,6 +56,10 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 		}
 
 		p->accel[2] -= 2.0 * PARTICLE_GRAVITY;
+
+		p->spark.length = 0.1 + Randomc() * 0.05;
+
+		VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 	}
 
 	vec3_t c;
@@ -71,7 +75,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
 		.radius = 4.0,
-		.image = cg_particles_default->image,
+		.media = cg_particles_default->media,
 		.color = { c[0], c[1], c[2], 0.33 }
 	});
 
@@ -89,7 +93,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 	cg_particle_t *p;
 
-	if ((p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_tracer))) {
+	if ((p = Cg_AllocParticle(cg_particles_tracer))) {
 		p->lifetime = 0.1 * VectorDistance(start, end); // 0.1ms per unit in distance
 		p->effects |= PARTICLE_EFFECT_SCALE;
 
@@ -125,7 +129,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 		Cg_BubbleTrail(org, vec, 32.0);
 	} else {
 		while (k--) {
-			if ((p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_beam))) {
+			if ((p = Cg_AllocParticle(cg_particles_beam))) {
 
 				p->effects |= PARTICLE_EFFECT_BOUNCE;
 				p->bounce = 1.5;
@@ -149,7 +153,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 			}
 		}
 
-		if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke))) {
+		if ((p = Cg_AllocParticle(cg_particles_smoke))) {
 
 			p->lifetime = 150 + Randomf() * 600;
 			p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
@@ -181,7 +185,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
 		.radius = 2.0,
-		.image = cg_particles_default->image,
+		.media = cg_particles_default->media,
 		.color = { 0.0, 0.0, 0.0, 0.33 },
 	});
 
@@ -210,7 +214,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 	for (int32_t i = 0; i < count; i++) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_blood))) {
+		if (!(p = Cg_AllocParticle(cg_particles_blood))) {
 			break;
 		}
 
@@ -239,7 +243,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
 		.radius = count * 6.0,
-		.image = cg_particles_blood_burn->image,
+		.media = cg_stain_blood,
 		.color = { 0.5 + (Randomf() * 0.3), 0.0, 0.0, 0.1 + Randomf() * 0.2 },
 	});
 }
@@ -279,7 +283,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 
 		for (int32_t j = 1; j < GIB_STREAM_COUNT; j++) {
 
-			if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_blood))) {
+			if (!(p = Cg_AllocParticle(cg_particles_blood))) {
 				break;
 			}
 
@@ -310,7 +314,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
 		.radius = count * 6.0,
-		.image = cg_particles_default->image,
+		.media = cg_particles_default->media,
 		.color = { 0.5 + (Randomf() * 0.3), 0.0, 0.0, 0.1 + Randomf() * 0.2 },
 	});
 
@@ -330,7 +334,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 	for (int32_t i = 0; i < count; i++) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark))) {
+		if (!(p = Cg_AllocParticle(cg_particles_spark))) {
 			break;
 		}
 
@@ -379,7 +383,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 static void Cg_ExplosionEffect(const vec3_t org) {
 	cg_particle_t *p;
 
-	if ((p = Cg_AllocParticle(PARTICLE_EXPLOSION, cg_particles_explosion))) {
+	if ((p = Cg_AllocParticle(cg_particles_explosion))) {
 
 		p->lifetime = 250;
 		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
@@ -400,7 +404,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 		for (int32_t i = 0; i < 10; i++) {
 
-			if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke))) {
+			if (!(p = Cg_AllocParticle(cg_particles_smoke))) {
 				break;
 			}
 
@@ -430,7 +434,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 		}
 
 		for (int32_t i = 0; i < 40; i++) {
-			if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark))) {
+			if (!(p = Cg_AllocParticle(cg_particles_spark))) {
 				break;
 			}
 
@@ -458,7 +462,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 	if (cg_particle_quality->integer) {
 		for (int32_t i = 0; i < 24; i++) {
 
-			if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_debris[Randomr(0, 4)]))) {
+			if (!(p = Cg_AllocParticle(cg_particles_debris[Randomr(0, 4)]))) {
 				break;
 			}
 
@@ -499,7 +503,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
 		.radius = 88.0 + (64.0 * Randomc() * 0.15),
-		.image = cg_particles_stain_burn->image,
+		.media = cg_stain_explosion,
 		.color = { c[0], c[1], c[2], 0.66 },
 	});
 
@@ -522,7 +526,7 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 
 	for (int32_t i = 0; i < 2; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_EXPLOSION, cg_particles_explosion))) {
+		if (!(p = Cg_AllocParticle(cg_particles_explosion))) {
 			break;
 		}
 
@@ -544,7 +548,7 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 	if (cg_particle_quality->integer && (cgi.PointContents(org) & MASK_LIQUID) == 0) {
 		for (int32_t i = 0; i < 6; i++) {
 
-			if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark))) {
+			if (!(p = Cg_AllocParticle(cg_particles_spark))) {
 				break;
 			}
 
@@ -585,7 +589,7 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
 		.radius = 16.0,
-		.image = cg_particles_default->image,
+		.media = cg_particles_default->media,
 		.color = { color[0], color[1], color[2], 0.33 },
 	});
 
@@ -645,7 +649,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 	// Rail core
 
-	if ((p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_beam))) {
+	if ((p = Cg_AllocParticle(cg_particles_beam))) {
 		p->lifetime = 1600;
 		p->effects = PARTICLE_EFFECT_COLOR;
 
@@ -672,7 +676,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 	for (int32_t i = 0; i < len && i < 2048; i += 3) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_rail_wake))) {
+		if (!(p = Cg_AllocParticle(cg_particles_rail_wake))) {
 			break;
 		}
 
@@ -723,7 +727,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		return;
 	}
 
-	if ((p = Cg_AllocParticle(PARTICLE_EXPLOSION, cg_particles_explosion))) {
+	if ((p = Cg_AllocParticle(cg_particles_explosion))) {
 		p->lifetime = 250;
 		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
@@ -742,7 +746,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 	if (cg_particle_quality->integer && (cgi.PointContents(end) & MASK_LIQUID) == 0) {
 
 		for (int32_t i = 0; i < 24; i++) {
-			if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark))) {
+			if (!(p = Cg_AllocParticle(cg_particles_spark))) {
 				break;
 			}
 
@@ -779,7 +783,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { end[0], end[1], end[2] },
 		.radius = 8.0,
-		.image = cg_particles_default->image,
+		.media = cg_particles_default->media,
 		.color = { s.light.color[0], s.light.color[1], s.light.color[2], 0.66 },
 	});
 }
@@ -791,7 +795,7 @@ static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
 	cg_particle_t *p;
 	r_sustained_light_t s;
 
-	if ((p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_beam))) {
+	if ((p = Cg_AllocParticle(cg_particles_beam))) {
 		VectorCopy(org, p->part.org);
 		VectorCopy(end, p->part.end);
 
@@ -820,7 +824,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 
 	for (int32_t i = 0; i < 4; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_EXPLOSION, cg_particles_explosion))) {
+		if (!(p = Cg_AllocParticle(cg_particles_explosion))) {
 			break;
 		}
 
@@ -841,7 +845,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 
 	for (int32_t i = 0; i < 128; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_DEFAULT, NULL))) {
+		if (!(p = Cg_AllocParticle(cg_particles_default))) {
 			break;
 		}
 
@@ -877,7 +881,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { org[0], org[1], org[2] },
 		.radius = 96.0,
-		.image = cg_particles_default->image,
+		.media = cg_particles_default->media,
 		.color = { c[0], c[1], c[2], 0.75 },
 	});
 
@@ -899,7 +903,7 @@ void Cg_RippleEffect(const vec3_t org, const vec_t size, const uint8_t viscosity
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_ripple[Randomr(0, 3)]))) {
+	if (!(p = Cg_AllocParticle(cg_particles_ripple[Randomr(0, 3)]))) {
 		return;
 	}
 
@@ -924,7 +928,7 @@ static void Cg_SplashEffect(const vec3_t org, const vec3_t dir) {
 	cg_particle_t *p;
 
 	for (int32_t i = 0; i < 10; i++) {
-		if (!(p = Cg_AllocParticle(PARTICLE_DEFAULT, cg_particles_default))) {
+		if (!(p = Cg_AllocParticle(cg_particles_default))) {
 			break;
 		}
 
@@ -953,7 +957,7 @@ static void Cg_SplashEffect(const vec3_t org, const vec3_t dir) {
 		return;
 	}
 
-	if ((p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_beam))) {
+	if ((p = Cg_AllocParticle(cg_particles_beam))) {
 
 		p->lifetime = 120 + Randomf() * 80;
 		p->effects = PARTICLE_EFFECT_COLOR;
@@ -985,7 +989,7 @@ static void Cg_HookImpactEffect(const vec3_t org, const vec3_t dir) {
 	for (int32_t i = 0; i < 32; i++) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark))) {
+		if (!(p = Cg_AllocParticle(cg_particles_spark))) {
 			break;
 		}
 

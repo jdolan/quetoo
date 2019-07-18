@@ -58,8 +58,7 @@ void R_BindAttributeInterleaveBufferOffset(const r_buffer_t *buffer, const r_att
 
 		r_attribute_mask_t this_mask = (1 << attrib);
 
-		if (!(mask & this_mask) ||
-		        !(buffer->attrib_mask & this_mask)) {
+		if (!(mask & this_mask) || !(buffer->attrib_mask & this_mask)) {
 			continue;
 		}
 
@@ -73,7 +72,7 @@ void R_BindAttributeInterleaveBufferOffset(const r_buffer_t *buffer, const r_att
  * @brief Returns whether or not a buffer is "finished".
  * Doesn't care if data is actually in the buffer.
  */
-_Bool R_ValidBuffer(const r_buffer_t *buffer) {
+_Bool R_ValidateBuffer(const r_buffer_t *buffer) {
 
 	return buffer && buffer->bufnum && buffer->size;
 }
@@ -484,7 +483,7 @@ void R_DestroyBuffer(r_buffer_t *buffer) {
 
 typedef struct r_array_state_s {
 	const r_model_t *model;
-	uint32_t arrays;
+	uint32_t attribute_mask;
 	_Bool shell;
 } r_array_state_t;
 
@@ -497,7 +496,7 @@ static r_array_state_t r_array_state;
 static _Bool R_IsEntityInterpolatable(const r_entity_t *e, const r_model_t *mod) {
 
 	if (e == NULL) {
-		return NULL;
+		return false;
 	} else if (mod == NULL) {
 		mod = e->model;
 	}
@@ -512,9 +511,11 @@ static _Bool R_IsEntityInterpolatable(const r_entity_t *e, const r_model_t *mod)
  * to r_state. This function is consulted to determine whether or not array
  * bindings are up to date.
  */
-r_attribute_mask_t R_ArraysMask(void) {
+r_attribute_mask_t R_AttributeMask(void) {
+
+	const _Bool do_interpolation = R_IsEntityInterpolatable(r_view.current_entity, NULL);
+
 	r_attribute_mask_t mask = R_ATTRIB_MASK_POSITION;
-	_Bool do_interpolation = R_IsEntityInterpolatable(r_view.current_entity, NULL);
 
 	if (do_interpolation) {
 		mask |= R_ATTRIB_MASK_NEXT_POSITION;
@@ -560,11 +561,13 @@ r_attribute_mask_t R_ArraysMask(void) {
 /**
  * @brief
  */
-static void R_SetArrayStateBsp(const r_model_t *mod, r_attribute_mask_t mask, r_attribute_mask_t attribs) {
+static void R_BindAttributesBsp(const r_model_t *mod, r_attribute_mask_t attribs) {
+
+	r_attribute_mask_t mask = r_state.active_program->attribute_mask;
 
 	if (r_array_state.model == mod) { // try to save some binds
 
-		const r_attribute_mask_t xor = r_array_state.arrays ^ attribs;
+		const r_attribute_mask_t xor = r_array_state.attribute_mask ^ attribs;
 
 		if (!xor) { // no changes, we're done
 			return;
@@ -582,13 +585,15 @@ static void R_SetArrayStateBsp(const r_model_t *mod, r_attribute_mask_t mask, r_
 /**
  * @brief
  */
-static void R_SetArrayStateMesh(const r_model_t *mod, r_attribute_mask_t mask, r_attribute_mask_t attribs) {
+static void R_BindAttributesMesh(const r_model_t *mod, r_attribute_mask_t attribs) {
 
-	_Bool use_shell_model = r_state.shell_enabled && R_ValidBuffer(&mod->mesh->shell_vertex_buffer);
+	r_attribute_mask_t mask = r_state.active_program->attribute_mask;
+
+	_Bool use_shell_model = r_state.shell_enabled && R_ValidateBuffer(&mod->mesh->shell_vertex_buffer);
 
 	if (r_array_state.model == mod) { // try to save some binds
 
-		r_attribute_mask_t xor = r_array_state.arrays ^ attribs;
+		r_attribute_mask_t xor = r_array_state.attribute_mask ^ attribs;
 
 		if (r_array_state.shell != use_shell_model) {
 			xor |= R_ATTRIB_MASK_POSITION |
@@ -608,7 +613,6 @@ static void R_SetArrayStateMesh(const r_model_t *mod, r_attribute_mask_t mask, r
 	}
 
 	if (use_shell_model) {
-
 		R_BindAttributeInterleaveBuffer(&mod->mesh->shell_vertex_buffer, mask);
 
 		// elements
@@ -657,7 +661,7 @@ static void R_SetArrayStateMesh(const r_model_t *mod, r_attribute_mask_t mask, r
 		// diffuse texcoords
 		if (mask & R_ATTRIB_MASK_DIFFUSE) {
 
-			if (R_ValidBuffer(&mod->mesh->texcoord_buffer)) {
+			if (R_ValidateBuffer(&mod->mesh->texcoord_buffer)) {
 				R_BindAttributeBuffer(R_ATTRIB_DIFFUSE, &mod->mesh->texcoord_buffer);
 			} else {
 				R_BindAttributeBuffer(R_ATTRIB_DIFFUSE, &mod->mesh->vertex_buffer);
@@ -674,17 +678,16 @@ static void R_SetArrayStateMesh(const r_model_t *mod, r_attribute_mask_t mask, r
  */
 void R_SetArrayState(const r_model_t *mod) {
 
-	r_attribute_mask_t mask = r_state.active_program->arrays_mask; // start with what the program has
-	r_attribute_mask_t arrays = R_ArraysMask(); // resolve the desired arrays mask
+	const r_attribute_mask_t attribs = R_AttributeMask(); // resolve the desired arrays mask
 
 	if (IS_BSP_MODEL(mod)) {
-		R_SetArrayStateBsp(mod, mask, arrays);
+		R_BindAttributesBsp(mod, attribs);
 	} else if (IS_MESH_MODEL(mod)) {
-		R_SetArrayStateMesh(mod, mask, arrays);
+		R_BindAttributesMesh(mod, attribs);
 	}
 
 	r_array_state.model = mod;
-	r_array_state.arrays = arrays;
+	r_array_state.attribute_mask = attribs;
 }
 
 /**
@@ -692,10 +695,10 @@ void R_SetArrayState(const r_model_t *mod) {
  */
 void R_ResetArrayState(void) {
 
-	r_attribute_mask_t mask = R_ATTRIB_MASK_ALL, arrays = R_ArraysMask(); // resolve the desired arrays mask
+	r_attribute_mask_t mask = R_ATTRIB_MASK_ALL, arrays = R_AttributeMask(); // resolve the desired arrays mask
 
 	if (r_array_state.model == NULL) {
-		const uint32_t xor = r_array_state.arrays ^ arrays;
+		const uint32_t xor = r_array_state.attribute_mask ^ arrays;
 
 		if (!xor) { // no changes, we're done
 			return;
@@ -715,11 +718,8 @@ void R_ResetArrayState(void) {
 	}
 
 	// color array
-	if (r_state.color_array_enabled) {
-
-		if (mask & R_ATTRIB_MASK_COLOR) {
-			R_UnbindAttributeBuffer(R_ATTRIB_COLOR);
-		}
+	if (mask & R_ATTRIB_MASK_COLOR) {
+		R_UnbindAttributeBuffer(R_ATTRIB_COLOR);
 	}
 
 	// normals and tangents
@@ -762,7 +762,6 @@ void R_ResetArrayState(void) {
 
 	// lightmap texcoords
 	if (texunit_lightmap->enabled) {
-
 		if (mask & R_ATTRIB_MASK_LIGHTMAP) {
 			R_UnbindAttributeBuffer(R_ATTRIB_LIGHTMAP);
 		}
@@ -772,7 +771,7 @@ void R_ResetArrayState(void) {
 	R_UnbindAttributeBuffer(R_ATTRIB_ELEMENTS);
 
 	r_array_state.model = NULL;
-	r_array_state.arrays = arrays;
+	r_array_state.attribute_mask = arrays;
 	r_array_state.shell = false;
 }
 
@@ -781,10 +780,11 @@ void R_ResetArrayState(void) {
  */
 static void R_PrepareProgram() {
 
-	// upload state data that needs to be synced up to current program
 	R_SetupAttributes();
 
-	R_UseUniforms();
+	R_UseMatrices();
+
+	R_UseColor();
 
 	R_UseAlphaTest();
 

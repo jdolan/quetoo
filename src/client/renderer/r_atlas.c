@@ -59,16 +59,21 @@ r_atlas_t *R_CreateAtlas(const char *name) {
  * @brief Add an image to the list of images for this atlas.
  */
 r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_type_t type) {
+	static int32_t pixels = 0xff0000ff;
 
-	r_atlas_image_t *atlas_image = NULL;
+	r_atlas_image_t *atlas_image = (r_atlas_image_t *) R_FindMedia(name);
+	if (!atlas_image) {
 
-	SDL_Surface *surf;
-	if (Img_LoadImage(name, &surf)) {
+		atlas_image = (r_atlas_image_t *) R_AllocMedia(name, sizeof(*atlas_image), MEDIA_ATLAS_IMAGE);
+		assert(atlas_image);
+
+		SDL_Surface *surf;
+		if (!Img_LoadImage(name, &surf)) {
+			surf = SDL_CreateRGBSurfaceWithFormatFrom(&pixels, 1, 1, 32, 4, SDL_PIXELFORMAT_RGBA32);
+		}
 
 		atlas_node_t *node = Atlas_Insert(atlas->atlas, surf);
 		assert(node);
-
-		atlas_image = (r_atlas_image_t *) R_AllocMedia(name, sizeof(*atlas_image), MEDIA_ATLAS_IMAGE);
 
 		atlas_image->image.type = type;
 		atlas_image->image.width = surf->w;

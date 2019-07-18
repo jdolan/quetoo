@@ -1,5 +1,5 @@
 /**
- * @brief Default fragment shader.
+ * @brief Default matrix uniforms for all programs.
  */
 
 uniform mat4 PROJECTION_MAT;

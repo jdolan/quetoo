@@ -74,9 +74,9 @@ extern cg_particles_t *cg_particles_spark;
 extern cg_particles_t *cg_particles_inactive;
 extern cg_particles_t *cg_particles_ripple[3];
 
-extern cg_particles_t *cg_particles_stain_burn;
-extern cg_particles_t *cg_particles_lightning_burn;
-extern cg_particles_t *cg_particles_blood_burn;
+extern r_media_t *cg_stain_blood;
+extern r_media_t *cg_stain_explosion;
+extern r_media_t *cg_stain_lightning;
 
 void Cg_UpdateMedia(void);
 #endif /* __CG_LOCAL_H__ */

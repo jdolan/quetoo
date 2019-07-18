@@ -84,13 +84,13 @@ static void R_FreeModel(r_media_t *self) {
 
 		R_DestroyBuffer(&mod->mesh->vertex_buffer);
 
-		if (R_ValidBuffer(&mod->mesh->texcoord_buffer)) {
+		if (R_ValidateBuffer(&mod->mesh->texcoord_buffer)) {
 			R_DestroyBuffer(&mod->mesh->texcoord_buffer);
 		}
 
 		R_DestroyBuffer(&mod->mesh->element_buffer);
 
-		if (R_ValidBuffer(&mod->mesh->shell_vertex_buffer)) {
+		if (R_ValidateBuffer(&mod->mesh->shell_vertex_buffer)) {
 
 			R_DestroyBuffer(&mod->mesh->shell_vertex_buffer);
 			R_DestroyBuffer(&mod->mesh->shell_element_buffer);

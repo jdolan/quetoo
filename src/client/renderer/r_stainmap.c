@@ -228,8 +228,8 @@ static gint R_AddStains_Sort(gconstpointer a, gconstpointer b) {
 		return Sign(sa->surf->lightmap.atlas - sb->surf->lightmap.atlas);
 	}
 
-	if (sa->stain->image != sb->stain->image) {
-		return Sign(sa->stain->image - sb->stain->image);
+	if (sa->stain->media != sb->stain->media) {
+		return Sign(sa->stain->media - sb->stain->media);
 	}
 
 	return 0;
@@ -238,11 +238,10 @@ static gint R_AddStains_Sort(gconstpointer a, gconstpointer b) {
 /**
  * @brief
  */
-static void R_Stain_ResolveTexcoords(const r_image_t *image, vec4_t out) {
+static void R_Stain_ResolveTexcoords(const r_media_t *media, vec4_t out) {
 
-	if (image->media.type == MEDIA_ATLAS_IMAGE) {
-		const r_atlas_image_t *atlas_image = (r_atlas_image_t *) image;
-		Vector4Copy(atlas_image->texcoords, out);
+	if (media->type == MEDIA_ATLAS_IMAGE) {
+		Vector4Copy(((r_atlas_image_t *) media)->texcoords, out);
 	} else {
 		Vector4Set(out, 0.0, 0.0, 1.0, 1.0);
 	}
@@ -477,10 +476,9 @@ void R_AddStains(void) {
 	// adjust vertices
 	for (size_t i = 0; i < r_stainmap_state.surfs_stained->len; i++) {
 		const r_stained_surf_t *stain = &g_array_index(r_stainmap_state.surfs_stained, r_stained_surf_t, i);
-		const r_image_t *image = stain->stain->image;
 
 		vec4_t texcoords;
-		R_Stain_ResolveTexcoords(image, texcoords);
+		R_Stain_ResolveTexcoords(stain->stain->media, texcoords);
 
 		const r_bsp_lightmap_t *lightmap = stain->surf->lightmap.atlas;
 		const r_image_t *stainmaps = lightmap->stainmaps;
@@ -491,7 +489,7 @@ void R_AddStains(void) {
 
 		R_SetMatrix(R_MATRIX_PROJECTION, &lightmap->projection);
 
-		R_BindDiffuseTexture(image->texnum);
+		R_BindDiffuseTexture(((r_image_t *) stain->stain->media)->texnum);
 
 		vec4_t position = { stain->point[0], stain->point[1], stain->point[0] + stain->radius, stain->point[1] + stain->radius };
 

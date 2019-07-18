@@ -40,11 +40,9 @@ void main(void) {
 
 	texcoord0 = TEXCOORD0;
 	texcoord1 = TEXCOORD1;
+	color = COLOR;
 	scale = SCALE;
 	roll = ROLL;
 	end = END;
 	type = TYPE;
-
-	// pass the color through as well
-	color = COLOR * GLOBAL_COLOR;
 }

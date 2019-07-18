@@ -25,7 +25,7 @@
 
 void R_EnableScissor(const SDL_Rect *bounds);
 void R_Color(const vec4_t color);
-const vec_t *R_GetCurrentColor(void);
+const vec_t *R_CurrentColor(void);
 void R_Setup3D(void);
 void R_Setup2D(void);
 void R_EnableColorArray(_Bool enable);
@@ -106,6 +106,8 @@ typedef struct r_state_s {
 
 	const r_program_t *active_program;
 	const r_material_t *active_material;
+
+	vec4_t color;
 
 	// fog state
 	r_fog_parameters_t active_fog_parameters;
@@ -203,8 +205,9 @@ void R_EnableShell(const r_program_t *program, _Bool enable);
 void R_EnableFog(_Bool enable);
 void R_EnableCaustic(_Bool enable);
 void R_UseMaterial(const r_material_t *material);
-void R_UseUniforms(void);
+void R_UseMatrices(void);
 void R_UseInterpolation(const vec_t lerp);
+void R_UseColor(void);
 void R_UseAlphaTest(void);
 void R_UseFog(void);
 void R_UseCaustic(void);

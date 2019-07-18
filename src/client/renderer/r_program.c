@@ -48,7 +48,7 @@ void R_UseProgram(const r_program_t *prog) {
 		}
 
 		// FIXME: required?
-		r_state.array_buffers_dirty |= prog->arrays_mask;
+		r_state.array_buffers_dirty |= prog->attribute_mask;
 	} else {
 		glUseProgram(0);
 	}
@@ -90,6 +90,7 @@ void R_ProgramVariable(r_variable_t *variable, const GLenum type, const char *na
 
 	variable->type = type;
 	g_strlcpy(variable->name, name, sizeof(variable->name));
+	variable->dirty = true;
 }
 
 /**
@@ -500,25 +501,6 @@ static void R_InitProgramUniforms(r_program_t *program) {
 	R_ProgramVariable(&program->matrix_uniforms[R_MATRIX_PROJECTION], R_UNIFORM_MAT4, "PROJECTION_MAT", false);
 	R_ProgramVariable(&program->matrix_uniforms[R_MATRIX_MODELVIEW], R_UNIFORM_MAT4, "MODELVIEW_MAT", false);
 	R_ProgramVariable(&program->matrix_uniforms[R_MATRIX_SHADOW], R_UNIFORM_MAT4, "SHADOW_MAT", false);
-
-	// initial dirtiness
-	for (r_matrix_id_t i = R_MATRIX_PROJECTION; i <= R_MATRIX_SHADOW; i++) {
-		if (program->matrix_uniforms[i].location == -1) {
-			program->matrix_dirty[i] = false;
-		} else {
-			program->matrix_dirty[i] = true;
-		}
-	}
-
-	R_ProgramVariable(&program->global_uniforms[R_GLOBALS_COLOR], R_UNIFORM_VEC4, "GLOBAL_COLOR", false);
-
-	for (r_uniform_global_t i = R_GLOBALS_COLOR; i < R_GLOBALS_TOTAL; i++) {
-		if (program->global_uniforms[i].location == -1) {
-			program->global_dirty[i] = false;
-		} else {
-			program->global_dirty[i] = true;
-		}
-	}
 }
 
 // some temporary storage, since only one program can be made at a time
@@ -605,42 +587,41 @@ static _Bool R_LinkProgram(r_program_t *out_program, void (*Init)(r_program_t *p
 void R_SetupAttributes(void) {
 
 	const r_program_t *p = (const r_program_t *) r_state.active_program;
-	const r_attribute_mask_t mask = R_ArraysMask();
+	const r_attribute_mask_t mask = R_AttributeMask();
 
-	if (p->arrays_mask & R_ATTRIB_MASK_POSITION) {
+	if (p->attribute_mask & R_ATTRIB_MASK_POSITION) {
 
 		if (mask & R_ATTRIB_MASK_POSITION) {
 
 			R_AttributePointer(R_ATTRIB_POSITION);
 
-			if (p->arrays_mask & R_ATTRIB_MASK_NEXT_POSITION) {
+			if (p->attribute_mask & R_ATTRIB_MASK_NEXT_POSITION) {
 
-				if ((mask & R_ATTRIB_MASK_NEXT_POSITION) && R_ValidBuffer(r_state.array_buffers[R_ATTRIB_NEXT_POSITION])) {
+				if ((mask & R_ATTRIB_MASK_NEXT_POSITION) && R_ValidateBuffer(r_state.array_buffers[R_ATTRIB_NEXT_POSITION])) {
 					R_AttributePointer(R_ATTRIB_NEXT_POSITION);
 				} else {
 					R_DisableAttribute(R_ATTRIB_NEXT_POSITION);
 				}
 			}
 		} else {
-
 			R_DisableAttribute(R_ATTRIB_POSITION);
 			R_DisableAttribute(R_ATTRIB_NEXT_POSITION);
 		}
 	}
 
-	if (p->arrays_mask & R_ATTRIB_MASK_COLOR) {
+	if (p->attribute_mask & R_ATTRIB_MASK_COLOR) {
 
 		if (mask & R_ATTRIB_MASK_COLOR) {
 			R_AttributePointer(R_ATTRIB_COLOR);
 		} else if (r_state.color_array_enabled) {
-			R_AttributeConstant4fv(R_ATTRIB_COLOR, R_GetCurrentColor());
+			R_AttributeConstant4fv(R_ATTRIB_COLOR, R_CurrentColor());
 		} else {
 			const vec_t white[] = { 1.0, 1.0, 1.0, 1.0 };
 			R_AttributeConstant4fv(R_ATTRIB_COLOR, white);
 		}
 	}
 
-	if (p->arrays_mask & R_ATTRIB_MASK_DIFFUSE) {
+	if (p->attribute_mask & R_ATTRIB_MASK_DIFFUSE) {
 
 		if (mask & R_ATTRIB_MASK_DIFFUSE) {
 			R_AttributePointer(R_ATTRIB_DIFFUSE);
@@ -649,7 +630,7 @@ void R_SetupAttributes(void) {
 		}
 	}
 
-	if (p->arrays_mask & R_ATTRIB_MASK_LIGHTMAP) {
+	if (p->attribute_mask & R_ATTRIB_MASK_LIGHTMAP) {
 
 		if (mask & R_ATTRIB_MASK_LIGHTMAP) {
 			R_AttributePointer(R_ATTRIB_LIGHTMAP);
@@ -658,15 +639,15 @@ void R_SetupAttributes(void) {
 		}
 	}
 
-	if (p->arrays_mask & R_ATTRIB_MASK_NORMAL) {
+	if (p->attribute_mask & R_ATTRIB_MASK_NORMAL) {
 
 		if (mask & R_ATTRIB_MASK_NORMAL) {
 
 			R_AttributePointer(R_ATTRIB_NORMAL);
 
-			if (p->arrays_mask & R_ATTRIB_MASK_NEXT_NORMAL) {
+			if (p->attribute_mask & R_ATTRIB_MASK_NEXT_NORMAL) {
 
-				if ((mask & R_ATTRIB_MASK_NEXT_NORMAL) && R_ValidBuffer(r_state.array_buffers[R_ATTRIB_NEXT_NORMAL])) {
+				if ((mask & R_ATTRIB_MASK_NEXT_NORMAL) && R_ValidateBuffer(r_state.array_buffers[R_ATTRIB_NEXT_NORMAL])) {
 					R_AttributePointer(R_ATTRIB_NEXT_NORMAL);
 				} else {
 					R_DisableAttribute(R_ATTRIB_NEXT_NORMAL);
@@ -679,15 +660,15 @@ void R_SetupAttributes(void) {
 		}
 	}
 
-	if (p->arrays_mask & R_ATTRIB_MASK_TANGENT) {
+	if (p->attribute_mask & R_ATTRIB_MASK_TANGENT) {
 
 		if (mask & R_ATTRIB_MASK_TANGENT) {
 
 			R_AttributePointer(R_ATTRIB_TANGENT);
 
-			if (p->arrays_mask & R_ATTRIB_MASK_NEXT_TANGENT) {
+			if (p->attribute_mask & R_ATTRIB_MASK_NEXT_TANGENT) {
 
-				if ((mask & R_ATTRIB_MASK_NEXT_TANGENT) && R_ValidBuffer(r_state.array_buffers[R_ATTRIB_NEXT_TANGENT])) {
+				if ((mask & R_ATTRIB_MASK_NEXT_TANGENT) && R_ValidateBuffer(r_state.array_buffers[R_ATTRIB_NEXT_TANGENT])) {
 					R_AttributePointer(R_ATTRIB_NEXT_TANGENT);
 				} else {
 					R_DisableAttribute(R_ATTRIB_NEXT_TANGENT);
@@ -700,15 +681,15 @@ void R_SetupAttributes(void) {
 		}
 	}
 
-	if (p->arrays_mask & R_ATTRIB_MASK_BITANGENT) {
+	if (p->attribute_mask & R_ATTRIB_MASK_BITANGENT) {
 
 		if (mask & R_ATTRIB_MASK_BITANGENT) {
 
 			R_AttributePointer(R_ATTRIB_BITANGENT);
 
-			if (p->arrays_mask & R_ATTRIB_MASK_NEXT_BITANGENT) {
+			if (p->attribute_mask & R_ATTRIB_MASK_NEXT_BITANGENT) {
 
-				if ((mask & R_ATTRIB_MASK_NEXT_BITANGENT) && R_ValidBuffer(r_state.array_buffers[R_ATTRIB_NEXT_BITANGENT])) {
+				if ((mask & R_ATTRIB_MASK_NEXT_BITANGENT) && R_ValidateBuffer(r_state.array_buffers[R_ATTRIB_NEXT_BITANGENT])) {
 					R_AttributePointer(R_ATTRIB_NEXT_BITANGENT);
 				}
 				else {
@@ -723,7 +704,7 @@ void R_SetupAttributes(void) {
 		}
 	}
 
-	if (p->arrays_mask & R_ATTRIB_MASK_SCALE) {
+	if (p->attribute_mask & R_ATTRIB_MASK_SCALE) {
 
 		if (mask & R_ATTRIB_MASK_SCALE) {
 			R_AttributePointer(R_ATTRIB_SCALE);
@@ -732,7 +713,7 @@ void R_SetupAttributes(void) {
 		}
 	}
 
-	if (p->arrays_mask & R_ATTRIB_MASK_ROLL) {
+	if (p->attribute_mask & R_ATTRIB_MASK_ROLL) {
 
 		if (mask & R_ATTRIB_MASK_ROLL) {
 			R_AttributePointer(R_ATTRIB_ROLL);
@@ -741,7 +722,7 @@ void R_SetupAttributes(void) {
 		}
 	}
 
-	if (p->arrays_mask & R_ATTRIB_MASK_END) {
+	if (p->attribute_mask & R_ATTRIB_MASK_END) {
 
 		if (mask & R_ATTRIB_MASK_END) {
 			R_AttributePointer(R_ATTRIB_END);
@@ -750,7 +731,7 @@ void R_SetupAttributes(void) {
 		}
 	}
 
-	if (p->arrays_mask & R_ATTRIB_MASK_TYPE) {
+	if (p->attribute_mask & R_ATTRIB_MASK_TYPE) {
 
 		if (mask & R_ATTRIB_MASK_TYPE) {
 			R_AttributePointer(R_ATTRIB_TYPE);
@@ -799,11 +780,11 @@ void R_InitPrograms(void) {
 		program_default->UseFog = R_UseFog_default;
 		program_default->UseLight = R_UseLight_default;
 		program_default->UseCaustic = R_UseCaustic_default;
-		program_default->MatricesChanged = R_MatricesChanged_default;
+		program_default->UseMatrices = R_UseMatrices_default;
 		program_default->UseAlphaTest = R_UseAlphaTest_default;
 		program_default->UseInterpolation = R_UseInterpolation_default;
 		program_default->UseTints = R_UseTints_default;
-		program_default->arrays_mask = R_ATTRIB_MASK_ALL & ~R_ATTRIB_GEOMETRY_MASK;
+		program_default->attribute_mask = R_ATTRIB_MASK_ALL & ~R_ATTRIB_GEOMETRY_MASK;
 	}
 
 	if (R_LoadSimpleProgram("null", R_InitProgram_null, R_PreLink_null, program_null)) {
@@ -811,7 +792,7 @@ void R_InitPrograms(void) {
 		program_null->UseInterpolation = R_UseInterpolation_null;
 		program_null->UseMaterial = R_UseMaterial_null;
 		program_null->UseTints = R_UseTints_null;
-		program_null->arrays_mask = R_ATTRIB_MASK_POSITION | R_ATTRIB_MASK_NEXT_POSITION | R_ATTRIB_MASK_DIFFUSE |
+		program_null->attribute_mask = R_ATTRIB_MASK_POSITION | R_ATTRIB_MASK_NEXT_POSITION | R_ATTRIB_MASK_DIFFUSE |
 									R_ATTRIB_MASK_COLOR;
 	}
 
@@ -824,31 +805,31 @@ void R_InitPrograms(void) {
 	if (R_LinkProgram(program_particle, R_InitProgram_particle)) {
 		program_particle->Use = R_UseProgram_particle;
 		program_particle->UseFog = R_UseFog_particle;
-		program_particle->arrays_mask = R_ATTRIB_MASK_POSITION | R_ATTRIB_MASK_DIFFUSE |
+		program_particle->attribute_mask = R_ATTRIB_MASK_POSITION | R_ATTRIB_MASK_DIFFUSE |
 										R_ATTRIB_MASK_COLOR | R_ATTRIB_MASK_LIGHTMAP | R_ATTRIB_MASK_SCALE |
 										R_ATTRIB_MASK_ROLL | R_ATTRIB_MASK_END | R_ATTRIB_MASK_TYPE;
 	}
 
 	if (R_LoadSimpleProgram("shadow", R_InitProgram_shadow, R_PreLink_shadow, program_shadow)) {
 		program_shadow->UseInterpolation = R_UseInterpolation_shadow;
-		program_shadow->arrays_mask = R_ATTRIB_MASK_POSITION | R_ATTRIB_MASK_NEXT_POSITION;
+		program_shadow->attribute_mask = R_ATTRIB_MASK_POSITION | R_ATTRIB_MASK_NEXT_POSITION;
 	}
 
 	if (R_LoadSimpleProgram("shell", R_InitProgram_shell, R_PreLink_shell, program_shell)) {
 		program_shell->Use = R_UseProgram_shell;
 		program_shell->UseInterpolation = R_UseInterpolation_shell;
-		program_shell->arrays_mask = R_ATTRIB_MASK_POSITION | R_ATTRIB_MASK_NEXT_POSITION | R_ATTRIB_MASK_DIFFUSE |
+		program_shell->attribute_mask = R_ATTRIB_MASK_POSITION | R_ATTRIB_MASK_NEXT_POSITION | R_ATTRIB_MASK_DIFFUSE |
 		                             R_ATTRIB_MASK_NORMAL | R_ATTRIB_MASK_NEXT_NORMAL;
 	}
 
 	if (R_LoadSimpleProgram("stain", R_InitProgram_stain, R_PreLink_stain, program_stain)) {
-		program_stain->arrays_mask = R_ATTRIB_MASK_POSITION | R_ATTRIB_MASK_DIFFUSE | R_ATTRIB_MASK_COLOR;
+		program_stain->attribute_mask = R_ATTRIB_MASK_POSITION | R_ATTRIB_MASK_DIFFUSE | R_ATTRIB_MASK_COLOR;
 	}
 
 	if (R_LoadSimpleProgram("warp", R_InitProgram_warp, R_PreLink_warp, program_warp)) {
 		program_warp->Use = R_UseProgram_warp;
 		program_warp->UseFog = R_UseFog_warp;
-		program_warp->arrays_mask = R_ATTRIB_MASK_POSITION | R_ATTRIB_MASK_DIFFUSE;
+		program_warp->attribute_mask = R_ATTRIB_MASK_POSITION | R_ATTRIB_MASK_DIFFUSE;
 	}
 
 	R_UseProgram(program_null);

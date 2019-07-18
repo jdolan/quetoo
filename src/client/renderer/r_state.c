@@ -39,8 +39,6 @@ const vec2_t default_texcoords[4] = { // useful for particles, pics, etc..
  */
 static matrix4x4_t active_matrices[R_MATRIX_TOTAL];
 
-static vec4_t active_color = { 1.0, 1.0, 1.0, 1.0 };
-
 /**
  * @brief Queries OpenGL for any errors and prints them as warnings.
  */
@@ -87,27 +85,20 @@ void R_GetError_(const char *function, const char *msg) {
  * @brief Sets the current color. Pass NULL to reset to default.
  */
 void R_Color(const vec4_t color) {
-	static const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
+	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
 
 	if (color) {
-		Vector4Copy(color, active_color);
+		Vector4Copy(color, r_state.color);
 	} else {
-		Vector4Copy(white, active_color);
-	}
-
-	for (r_program_id_t i = 0; i < R_PROGRAM_TOTAL; i++) {
-
-		if (r_state.programs[i].global_uniforms[R_GLOBALS_COLOR].location != -1) {
-			r_state.programs[i].global_dirty[R_GLOBALS_COLOR] = true;
-		}
+		Vector4Copy(white, r_state.color);
 	}
 }
 
 /**
  * @brief Get pointer to current color.
  */
-const vec_t *R_GetCurrentColor(void) {
-	return active_color;
+const vec_t *R_CurrentColor(void) {
+	return r_state.color;
 }
 
 /**
@@ -591,10 +582,10 @@ const matrix4x4_t *R_GetMatrixPtr(const r_matrix_id_t id) {
 }
 
 /**
- * @brief Uploads uniforms to the currently loaded program.
+ * @brief Uploads uniforms to the active program.
  */
-void R_UseUniforms(void) {
-	_Bool any_changed = false;
+void R_UseMatrices(void) {
+	_Bool changed = false;
 
 	for (r_matrix_id_t i = 0; i < R_MATRIX_TOTAL; i++) {
 
@@ -604,27 +595,32 @@ void R_UseUniforms(void) {
 
 		if (R_ProgramParameterMatrix4fv(&((r_program_t *) r_state.active_program)->matrix_uniforms[i],
 		                                (const GLfloat *) active_matrices[i].m)) {
-			any_changed = true;
+			changed = true;
 		}
 	}
 
-	if (any_changed) {
+	if (changed) {
 
-		if (r_state.active_program->MatricesChanged) {
-			r_state.active_program->MatricesChanged();
+		if (r_state.active_program->UseMatrices) {
+			r_state.active_program->UseMatrices();
 		}
 
 		memset(((r_program_t *) r_state.active_program)->matrix_dirty, 0, sizeof(r_state.active_program->matrix_dirty));
 	}
+}
 
-	if (r_state.active_program->global_dirty[R_GLOBALS_COLOR]) {
-		R_ProgramParameter4fv(&((r_program_t *) r_state.active_program)->global_uniforms[R_GLOBALS_COLOR], active_color);
-		((r_program_t *) r_state.active_program)->global_dirty[R_GLOBALS_COLOR] = false;
+/**
+ * @brief Uploads the color uniform to the active program.
+ */
+void R_UseColor(void) {
+
+	if (r_state.active_program->UseColor) {
+		r_state.active_program->UseColor(r_state.color);
 	}
 }
 
 /**
- * @brief Uploads the alpha threshold to the currently loaded program.
+ * @brief Uploads the alpha threshold to the active program.
  */
 void R_UseAlphaTest(void) {
 
@@ -634,7 +630,7 @@ void R_UseAlphaTest(void) {
 }
 
 /**
- * @brief Uploads the current fog data to the currently loaded program.
+ * @brief Uploads the current fog data to the active program.
  */
 void R_UseFog(void) {
 
@@ -644,7 +640,7 @@ void R_UseFog(void) {
 }
 
 /**
- * @brief Uploads the current caustic data to the currently loaded program.
+ * @brief Uploads the current caustic data to the active program.
  */
 void R_UseCaustic(void) {
 
@@ -654,7 +650,7 @@ void R_UseCaustic(void) {
 }
 
 /**
- * @brief Uploads the tint values
+ * @brief Uploads the tint values to the active program.
  */
 void R_UseTints(void) {
 
@@ -664,7 +660,7 @@ void R_UseTints(void) {
 }
 
 /**
- * @brief Uploads the interpolation value to the currently loaded program.
+ * @brief Uploads the interpolation value to the active program.
  */
 void R_UseInterpolation(const vec_t lerp) {
 

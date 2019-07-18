@@ -123,8 +123,8 @@ static void R_UpdateParticle(const r_particle_t *p, r_particle_vertex_t *out) {
 	out->roll = p->roll;
 
 	if (!p->scroll_s && !p->scroll_t && !(p->flags & PARTICLE_FLAG_REPEAT)) {
-		 if (p->image && p->image->media.type == MEDIA_ATLAS_IMAGE) {
-			 const r_atlas_image_t *atlas_image = (r_atlas_image_t *) p->image;
+		 if (p->media->type == MEDIA_ATLAS_IMAGE) {
+			 const r_atlas_image_t *atlas_image = (r_atlas_image_t *) p->media;
 			 for (int32_t i = 0; i < 2; i++) {
 				 out->texcoord0[i] = atlas_image->texcoords[i];
 				 out->texcoord1[i] = atlas_image->texcoords[2 + i];
@@ -156,7 +156,7 @@ static void R_UpdateParticle(const r_particle_t *p, r_particle_vertex_t *out) {
 	ColorDecompose(p->color, out->color);
 
 	for (int32_t i = 0; i < 3; i++) {
-		out->color[i] *= p->color[3];
+		out->color[i] = 255;//*= p->color[3];
 	}
 }
 
@@ -202,11 +202,9 @@ void R_UploadParticles(void) {
 void R_DrawParticles(const r_element_t *e, const size_t count) {
 	GLsizei i, j;
 
+	R_BlendFunc(GL_ONE, GL_ONE);
+
 	R_EnableTexture(texunit_lightmap, true);
-
-	R_EnableColorArray(true);
-
-	R_Color(NULL);
 
 	R_ResetArrayState();
 
@@ -216,48 +214,33 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 
 	const GLint base = (GLint) (intptr_t) e->data;
 
-	// these are set to -1 to immediately trigger a change.
-	r_particle_type_t last_type = -1;
-	GLenum last_blend = -1;
-	GLuint last_texnum = 0;
+	r_particle_type_t type = PARTICLE_INVALID;
+	const r_media_t *media = NULL;
 
 	for (i = j = 0; i < (GLsizei) count; i++, e++) {
 		const r_particle_t *p = (const r_particle_t *) e->element;
 
-		const GLuint texnum = p->image ? p->image->texnum : last_texnum;
+		if (p->type != type || p->media != media) {
 
-		if (i > j) { // draw pending particles
-			if (texnum != last_texnum || p->type != last_type || p->blend != last_blend) {
+			if (i > j) {
 				R_DrawArrays(GL_POINTS, base + j, i - j);
 				j = i;
 			}
-		}
 
-		// change states
-		if (p->type != last_type) {
-			if (p->type == PARTICLE_EXPLOSION || p->type == PARTICLE_CORONA) {
-				R_DepthRange(0.0, 0.999);
-			} else {
-				R_DepthRange(0.0, 1.0);
+			if (p->type != type) {
+				if (p->type == PARTICLE_FLARE) {
+					R_EnableDepthTest(false);
+				} else {
+					R_EnableDepthTest(true);
+				}
+
+				type = p->type;
 			}
 
-			if (p->type == PARTICLE_FLARE) {
-				R_EnableDepthTest(false);
-			} else {
-				R_EnableDepthTest(true);
+			if (p->media != media) {
+				R_BindDiffuseTexture(((r_image_t *) p->media)->texnum);
+				media = p->media;
 			}
-
-			last_type = p->type;
-		}
-
-		if (p->blend != last_blend) {
-			R_BlendFunc(GL_ONE, p->blend);
-			last_blend = p->blend;
-		}
-
-		if (texnum != last_texnum) {
-			R_BindDiffuseTexture(texnum);
-			last_texnum = texnum;
 		}
 	}
 
@@ -269,10 +252,6 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	R_UnbindAttributeBuffers();
 
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	R_DepthRange(0.0, 1.0);
-
-	R_EnableColorArray(false);
 
 	R_EnableDepthTest(true);
 

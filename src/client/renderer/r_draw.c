@@ -367,8 +367,6 @@ static void R_DrawChars(void) {
 
 		R_BindDiffuseTexture(r_draw.fonts[i].image->texnum);
 
-		R_EnableColorArray(true);
-
 		// alter the array pointers
 		R_BindAttributeInterleaveBuffer(&chars->vert_buffer, R_ATTRIB_MASK_ALL);
 
@@ -385,13 +383,7 @@ static void R_DrawChars(void) {
 	R_UnbindAttributeBuffer(R_ATTRIB_COLOR);
 	R_UnbindAttributeBuffer(R_ATTRIB_DIFFUSE);
 	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
-
 	R_UnbindAttributeBuffer(R_ATTRIB_ELEMENTS);
-
-	R_EnableColorArray(false);
-
-	// restore draw color
-	R_Color(NULL);
 }
 
 /**
@@ -449,8 +441,6 @@ static void R_DrawFills(void) {
 	R_UploadToBuffer(&r_draw.fill_arrays.element_buffer, r_draw.fill_arrays.element_index * sizeof(GLuint),
 	                 r_draw.fill_arrays.elements);
 
-	R_EnableColorArray(true);
-
 	// alter the array pointers
 	R_BindAttributeInterleaveBuffer(&r_draw.fill_arrays.vert_buffer, R_ATTRIB_MASK_ALL);
 	R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &r_draw.fill_arrays.element_buffer);
@@ -461,8 +451,6 @@ static void R_DrawFills(void) {
 	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
 	R_UnbindAttributeBuffer(R_ATTRIB_COLOR);
 	R_UnbindAttributeBuffer(R_ATTRIB_ELEMENTS);
-
-	R_EnableColorArray(false);
 
 	r_draw.fill_arrays.vert_index = r_draw.fill_arrays.element_index = r_draw.fill_arrays.num_fills = 0;
 }
@@ -509,8 +497,6 @@ static void R_DrawLines(void) {
 	R_UploadToBuffer(&r_draw.line_arrays.vert_buffer, r_draw.line_arrays.vert_index * sizeof(r_fill_interleave_vertex_t),
 	                 r_draw.line_arrays.verts);
 
-	R_EnableColorArray(true);
-
 	// alter the array pointers
 	R_BindAttributeInterleaveBuffer(&r_draw.line_arrays.vert_buffer, R_ATTRIB_MASK_ALL);
 
@@ -519,8 +505,6 @@ static void R_DrawLines(void) {
 	// and restore them
 	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
 	R_UnbindAttributeBuffer(R_ATTRIB_COLOR);
-
-	R_EnableColorArray(false);
 
 	r_draw.line_arrays.vert_index = 0;
 }
@@ -536,8 +520,6 @@ void R_DrawFillUI(const SDL_Rect *rect) {
 		{ rect->x + rect->w + 1, rect->y + rect->h + 1 },
 		{ rect->x - 1, rect->y + rect->h + 1 }
 	};
-
-	R_EnableColorArray(false);
 
 	R_BindDiffuseTexture(r_image_state.null->texnum);
 
@@ -561,8 +543,6 @@ void R_DrawLinesUI(const SDL_Point *points, const size_t count, const _Bool loop
 	for (size_t i = 0; i < count; ++i) {
 		Vector2Set(point_buffer[i], points[i].x + 0.5, points[i].y + 0.5);
 	}
-
-	R_EnableColorArray(false);
 
 	R_BindDiffuseTexture(r_image_state.null->texnum);
 

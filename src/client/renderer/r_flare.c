@@ -72,7 +72,7 @@ void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 
 	// and image
 	surf->flare->particle.type = PARTICLE_FLARE;
-	surf->flare->particle.image = s->image;
+	surf->flare->particle.media = (r_media_t *) s->image;
 	surf->flare->particle.blend = GL_ONE;
 }
 

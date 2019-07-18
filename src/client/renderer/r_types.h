@@ -303,8 +303,7 @@ typedef struct {
 } r_atlas_t;
 
 /**
- * @brief This is a proxy structure that allows an atlased image to be used in places
-*  that expect r_image_t's.
+ * @brief An atlas image, castable to r_image_t and r_media_t.
  */
 typedef struct {
 	r_image_t image;
@@ -327,6 +326,7 @@ typedef struct {
 } r_framebuffer_t;
 
 typedef enum {
+	PARTICLE_INVALID = -1,
 	PARTICLE_DEFAULT,
 	PARTICLE_SPARK,
 	PARTICLE_ROLL,
@@ -360,7 +360,7 @@ typedef enum {
  */
 typedef struct r_particle_s {
 	r_particle_type_t type;
-	const r_image_t *image;
+	const r_media_t *media;
 	GLenum blend;
 	vec4_t color;
 	vec_t scale;
@@ -822,7 +822,7 @@ typedef struct r_model_s {
 typedef struct {
 	vec3_t origin;
 	vec_t radius;
-	const r_image_t *image;
+	const r_media_t *media;
 	vec4_t color;
 } r_stain_t;
 

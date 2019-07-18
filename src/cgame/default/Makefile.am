@@ -17,6 +17,7 @@ noinst_HEADERS = \
 	cg_particle.h \
 	cg_predict.h \
 	cg_score.h \
+	cg_stain.h \
 	cg_temp_entity.h \
 	cg_types.h \
 	cg_ui.h \
@@ -44,6 +45,7 @@ cgame_la_SOURCES = \
 	cg_particle.c \
 	cg_predict.c \
 	cg_score.c \
+	cg_stain.c \
 	cg_temp_entity.c \
 	cg_ui.c \
 	cg_view.c

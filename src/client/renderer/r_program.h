@@ -49,6 +49,7 @@ typedef struct {
 	char name[MAX_QPATH];
 	GLint location;
 	r_variable_value_t value;
+	_Bool dirty;
 } r_variable_t;
 
 typedef r_variable_t r_attribute_t;
@@ -59,13 +60,6 @@ typedef r_variable_t r_uniform3fv_t;
 typedef r_variable_t r_uniform4fv_t;
 typedef r_variable_t r_uniform_matrix4fv_t;
 typedef r_variable_t r_sampler2d_t;
-
-// global uniforms
-typedef enum {
-	R_GLOBALS_COLOR,
-
-	R_GLOBALS_TOTAL
-} r_uniform_global_t;
 
 // fog info
 typedef struct {
@@ -84,9 +78,9 @@ typedef struct {
 
 // light info
 typedef struct {
-	r_variable_t origin;
-	r_variable_t color;
-	r_variable_t radius;
+	r_uniform3fv_t origin;
+	r_uniform3fv_t color;
+	r_uniform1f_t radius;
 } r_uniform_light_t;
 
 // caustic info
@@ -108,25 +102,23 @@ typedef struct {
 	r_program_id_t program_id; // the program ID, for easy access
 	char name[MAX_QPATH];
 
-	r_attribute_mask_t arrays_mask;
+	r_attribute_mask_t attribute_mask;
 	r_attribute_t attributes[R_ATTRIB_ALL];
 
 	r_uniform_matrix4fv_t matrix_uniforms[R_MATRIX_TOTAL];
 	_Bool matrix_dirty[R_MATRIX_TOTAL];
 
-	r_variable_t global_uniforms[R_GLOBALS_TOTAL];
-	_Bool global_dirty[R_GLOBALS_TOTAL];
-
 	void (*Init)(void);
 	void (*Shutdown)(void);
 	void (*Use)(void);
+	void (*UseColor)(const vec4_t color);
 	void (*UseMaterial)(const r_material_t *material);
 	void (*UseEntity)(const r_entity_t *e);
 	void (*UseShadow)(const r_shadow_t *s);
 	void (*UseFog)(const r_fog_parameters_t *fog);
 	void (*UseLight)(const uint16_t light_index, const matrix4x4_t *world_view, const r_light_t *light);
 	void (*UseCaustic)(const r_caustic_parameters_t *caustic);
-	void (*MatricesChanged)(void);
+	void (*UseMatrices)(void);
 	void (*UseAlphaTest)(const vec_t threshold);
 	void (*UseInterpolation)(const vec_t time_fraction);
 	void (*UseTints)(void);

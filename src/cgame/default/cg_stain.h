@@ -21,19 +21,8 @@
 
 #pragma once
 
-#include "r_types.h"
+#include "cg_types.h"
 
-#ifdef __R_LOCAL_H__
-void R_InitProgram_default(r_program_t *program);
-void R_PreLink_default(const r_program_t *program);
-void R_Shutdown_default(void);
-void R_UseProgram_default(void);
-void R_UseMaterial_default(const r_material_t *material);
-void R_UseFog_default(const r_fog_parameters_t *value);
-void R_UseLight_default(const uint16_t light_index, const matrix4x4_t *world_view, const r_light_t *light);
-void R_UseCaustic_default(const r_caustic_parameters_t *value);
-void R_UseMatrices_default(void);
-void R_UseAlphaTest_default(const vec_t threshold);
-void R_UseInterpolation_default(const vec_t time_fraction);
-void R_UseTints_default(void);
-#endif /* __R_LOCAL_H__ */
+r_media_t *Cg_LoadStain(const char *name, r_image_type_t image_type);
+void Cg_InitStains(void);
+void Cg_CompileStainAtlas(void);

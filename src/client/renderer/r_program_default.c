@@ -304,7 +304,7 @@ void R_UseCaustic_default(const r_caustic_parameters_t *caustic) {
 /**
  * @brief
  */
-void R_MatricesChanged_default(void) {
+void R_UseMatrices_default(void) {
 	r_default_program_t *p = &r_default_program;
 
 	if (r_state.active_program->matrix_dirty[R_MATRIX_MODELVIEW]) {

@@ -37,7 +37,7 @@ void R_CreateDataBuffer(r_buffer_t *buffer, const r_create_buffer_t *arguments);
 void R_CreateElementBuffer(r_buffer_t *buffer, const r_create_element_t *arguments);
 
 void R_DestroyBuffer(r_buffer_t *buffer);
-_Bool R_ValidBuffer(const r_buffer_t *buffer);
+_Bool R_ValidateBuffer(const r_buffer_t *buffer);
 
 void R_BindAttributeBufferOffset(const r_attribute_id_t target, const r_buffer_t *buffer, const GLsizei offset);
 void R_BindAttributeInterleaveBufferOffset(const r_buffer_t *buffer, const r_attribute_mask_t mask,
@@ -52,5 +52,5 @@ void R_BindAttributeInterleaveBufferOffset(const r_buffer_t *buffer, const r_att
 void R_SetArrayState(const r_model_t *mod);
 void R_ResetArrayState(void);
 void R_DrawArrays(GLenum type, GLint start, GLsizei count);
-r_attribute_mask_t R_ArraysMask(void);
+r_attribute_mask_t R_AttributeMask(void);
 #endif /* __R_LOCAL_H__ */

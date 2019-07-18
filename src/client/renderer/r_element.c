@@ -120,7 +120,7 @@ static int32_t R_SortParticles_Compare(const void *a, const void *b) {
 	const r_particle_t *bp = ((const r_particle_t *) be->element);
 
 	if (bp->type == ap->type) {
-		return (int32_t) (intptr_t) (bp->image - ap->image);
+		return (int32_t) (intptr_t) (bp->media - ap->media);
 	}
 
 	return bp->type - ap->type;
