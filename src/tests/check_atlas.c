@@ -149,7 +149,7 @@ int32_t main(int32_t argc, char **argv) {
 
 	SRunner *runner = srunner_create(suite);
 
-	srunner_run_all(runner, CK_NORMAL);
+	srunner_run_all(runner, CK_VERBOSE);
 	int32_t failed = srunner_ntests_failed(runner);
 
 	srunner_free(runner);

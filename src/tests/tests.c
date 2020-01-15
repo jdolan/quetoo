@@ -28,7 +28,7 @@ int32_t Test_Run(Suite *suite) {
 
 	SRunner *runner = srunner_create(suite);
 
-	srunner_run_all(runner, CK_NORMAL);
+	srunner_run_all(runner, CK_VERBOSE);
 	const int32_t failed = srunner_ntests_failed(runner);
 
 	srunner_free(runner);
