@@ -5,9 +5,6 @@
       location = "container:../Objectively/Objectively.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:../ObjectivelyGL/ObjectivelyGL.xcodeproj">
-   </FileRef>
-   <FileRef
       location = "container:../ObjectivelyMVC/ObjectivelyMVC.xcodeproj">
    </FileRef>
    <FileRef
