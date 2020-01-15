@@ -2,12 +2,15 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "container:Quetoo.xcodeproj">
+      location = "container:../Objectively/Objectively.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:../ObjectivelyGL/ObjectivelyGL.xcodeproj">
    </FileRef>
    <FileRef
       location = "container:../ObjectivelyMVC/ObjectivelyMVC.xcodeproj">
    </FileRef>
    <FileRef
-      location = "container:../Objectively/Objectively.xcodeproj">
+      location = "container:Quetoo.xcodeproj">
    </FileRef>
 </Workspace>
