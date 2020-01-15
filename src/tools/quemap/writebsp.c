@@ -45,6 +45,20 @@ static void EmitPlanes(void) {
 }
 
 /**
+ * @brief qsort comparator to sort leaf_faces by material
+ */
+static int32_t EmitLeaf_sortFacesByMaterial(const void *a, const void *b) {
+
+	const bsp_face_t *a_face = bsp_file.faces + *(int32_t *) a;
+	const bsp_face_t *b_face = bsp_file.faces + *(int32_t *) b;
+
+	const bsp_texinfo_t *a_tex = bsp_file.texinfo + a_face->texinfo;
+	const bsp_texinfo_t *b_tex = bsp_file.texinfo + b_face->texinfo;
+
+	return strcmp(a_tex->texture, b_tex->texture);
+}
+
+/**
  * @brief
  */
 static int32_t EmitLeaf(node_t *node) {
@@ -131,6 +145,9 @@ static int32_t EmitLeaf(node_t *node) {
 	}
 
 	out->num_leaf_faces = bsp_file.num_leaf_faces - out->first_leaf_face;
+
+	qsort(bsp_file.leaf_faces + out->first_leaf_face, out->num_leaf_faces, sizeof(int32_t), EmitLeaf_sortFacesByMaterial);
+
 	return bsp_file.num_leafs - 1;
 }
 
