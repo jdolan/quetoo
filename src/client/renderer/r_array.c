@@ -718,8 +718,11 @@ void R_ResetArrayState(void) {
 	}
 
 	// color array
-	if (mask & R_ATTRIB_MASK_COLOR) {
-		R_UnbindAttributeBuffer(R_ATTRIB_COLOR);
+	if (r_state.color_array_enabled) {
+
+		if (mask & R_ATTRIB_MASK_COLOR) {
+			R_UnbindAttributeBuffer(R_ATTRIB_COLOR);
+		}
 	}
 
 	// normals and tangents

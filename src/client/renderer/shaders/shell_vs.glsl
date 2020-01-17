@@ -32,7 +32,7 @@ void main(void) {
 						 mix(NORMAL, NEXT_NORMAL, TIME_FRACTION) * SHELL_OFFSET, 1.0);
 
 	// mvp transform into clip space
-	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * position;
+	gl_Position = PROJECTION_MAT * MODEL_VIEW_MAT * position;
 
 	// pass texcoords through
 	texcoord = TEXCOORD + OFFSET;

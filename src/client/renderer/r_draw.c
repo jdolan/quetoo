@@ -367,6 +367,8 @@ static void R_DrawChars(void) {
 
 		R_BindDiffuseTexture(r_draw.fonts[i].image->texnum);
 
+		R_EnableColorArray(true);
+
 		// alter the array pointers
 		R_BindAttributeInterleaveBuffer(&chars->vert_buffer, R_ATTRIB_MASK_ALL);
 
@@ -384,6 +386,8 @@ static void R_DrawChars(void) {
 	R_UnbindAttributeBuffer(R_ATTRIB_DIFFUSE);
 	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
 	R_UnbindAttributeBuffer(R_ATTRIB_ELEMENTS);
+
+	R_EnableColorArray(false);
 }
 
 /**
@@ -434,6 +438,8 @@ static void R_DrawFills(void) {
 
 	R_BindDiffuseTexture(r_image_state.null->texnum);
 
+	R_EnableColorArray(true);
+
 	// upload the changed data
 	R_UploadToBuffer(&r_draw.fill_arrays.vert_buffer, r_draw.fill_arrays.vert_index * sizeof(r_fill_interleave_vertex_t),
 	                 r_draw.fill_arrays.verts);
@@ -451,6 +457,8 @@ static void R_DrawFills(void) {
 	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
 	R_UnbindAttributeBuffer(R_ATTRIB_COLOR);
 	R_UnbindAttributeBuffer(R_ATTRIB_ELEMENTS);
+
+	R_EnableColorArray(false);
 
 	r_draw.fill_arrays.vert_index = r_draw.fill_arrays.element_index = r_draw.fill_arrays.num_fills = 0;
 }

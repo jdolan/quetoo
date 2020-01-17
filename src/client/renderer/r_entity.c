@@ -186,7 +186,9 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 		return;
 	}
 
-	R_BindDiffuseTexture(r_image_state.null->texnum);
+	R_BindDiffuseTexture(r_image_state.null->texnum); // TODO: Disable texture instead?
+
+	R_EnableColorArray(true);
 
 	R_BindAttributeInterleaveBuffer(&r_model_state.bound_vertice_buffer, R_ATTRIB_MASK_ALL);
 	R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &r_model_state.bound_element_buffer);
@@ -249,6 +251,8 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 	R_SetMatrix(R_MATRIX_MODELVIEW, &modelview);
 
 	R_UnbindAttributeBuffer(R_ATTRIB_ELEMENTS);
+
+	R_EnableColorArray(false);
 }
 
 /**

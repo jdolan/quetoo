@@ -23,7 +23,7 @@ out VertexData {
  * @brief
  */
 void ShadowVertex() {
-	point = MODELVIEW_MAT * SHADOW_MAT * vec4(mix(POSITION, NEXT_POSITION, TIME_FRACTION), 1.0);	
+	point = MODEL_VIEW_MAT * SHADOW_MAT * vec4(mix(POSITION, NEXT_POSITION, TIME_FRACTION), 1.0);	
 }
 
 /**

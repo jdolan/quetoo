@@ -10,7 +10,7 @@
 
 uniform vec4 LIGHT;
 uniform vec4 PLANE;
-uniform vec4 GLOBAL_COLOR;
+uniform vec4 COLOR;
 
 in VertexData {
 	vec4 point;
@@ -31,7 +31,7 @@ void ShadowFragment(void) {
 		float s = (LIGHT.w - dist) / LIGHT.w;
 		float d = dot(PLANE.xyz, normalize(delta));
 		
-		fragColor.a = min(s * d, GLOBAL_COLOR.a);
+		fragColor.a = min(s * d, COLOR.a);
 	} else {
 		discard;
 	}
@@ -42,7 +42,7 @@ void ShadowFragment(void) {
  */
 void main(void) {
 
-	fragColor = GLOBAL_COLOR;
+	fragColor = COLOR;
 
 	ShadowFragment();
 

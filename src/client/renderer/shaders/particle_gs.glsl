@@ -45,7 +45,7 @@ out VertexData {
 } out_data;
 
 void CopyCommon(void) {
-	out_data.point = (MODELVIEW_MAT * gl_in[0].gl_Position).xyz;
+	out_data.point = (MODEL_VIEW_MAT * gl_in[0].gl_Position).xyz;
 	out_data.color = in_data[0].color;
 	out_data.type = in_data[0].type;
 }
@@ -118,7 +118,7 @@ void AngleVectors(in vec3 angles, out vec3 forward, out vec3 right, out vec3 up)
 }
 
 void main(void) {
-	mat4 MVP = PROJECTION_MAT * MODELVIEW_MAT;
+	mat4 MVP = PROJECTION_MAT * MODEL_VIEW_MAT;
 	vec3 org = gl_in[0].gl_Position.xyz;
 	vec2 st0 = vec2(in_data[0].texcoord0[0], in_data[0].texcoord0[1]);
 	vec2 st1 = vec2(in_data[0].texcoord1[0], in_data[0].texcoord0[1]);

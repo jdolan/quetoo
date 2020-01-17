@@ -10,7 +10,7 @@
 #include "include/gamma.glsl"
 
 uniform float OFFSET;
-uniform vec4 GLOBAL_COLOR;
+uniform vec4 COLOR;
 
 uniform sampler2D SAMPLER0;
 uniform sampler2D SAMPLER5;
@@ -34,7 +34,7 @@ void main(void) {
 	vec2 coord = vec2(texcoord.x + warp.z, texcoord.y + warp.w);
 
 	// sample the diffuse texture, factoring in primary color as well
-	fragColor = GLOBAL_COLOR * texture(SAMPLER0, coord);
+	fragColor = COLOR * texture(SAMPLER0, coord);
 
 	// and add fog
 	FogFragment(length(point), fragColor);

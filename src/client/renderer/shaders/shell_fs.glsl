@@ -9,7 +9,7 @@
 #include "include/gamma.glsl"
 
 uniform sampler2D SAMPLER0;
-uniform vec4 GLOBAL_COLOR;
+uniform vec4 COLOR;
 
 in VertexData {
 	vec4 color;
@@ -23,7 +23,7 @@ out vec4 fragColor;
  */
 void main(void) {
 
-	fragColor = GLOBAL_COLOR * texture(SAMPLER0, texcoord);
+	fragColor = COLOR * texture(SAMPLER0, texcoord);
 
 	GammaFragment(fragColor);
 }

@@ -206,6 +206,8 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 
 	R_EnableTexture(texunit_lightmap, true);
 
+	R_EnableColorArray(true);
+
 	R_ResetArrayState();
 
 	R_UseProgram(program_particle);
@@ -256,6 +258,8 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	R_EnableDepthTest(true);
 
 	R_EnableTexture(texunit_lightmap, false);
+
+	R_EnableColorArray(false);
 
 	R_UseProgram(program_null);
 }
