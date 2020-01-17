@@ -8,7 +8,6 @@
 
 #include "include/matrix.glsl"
 
-uniform mat4 SHADOW_MAT;
 uniform vec4 LIGHT;
 uniform float TIME_FRACTION;
 
@@ -23,7 +22,7 @@ out VertexData {
  * @brief
  */
 void ShadowVertex() {
-	point = MODEL_VIEW_MAT * SHADOW_MAT * vec4(mix(POSITION, NEXT_POSITION, TIME_FRACTION), 1.0);	
+	point = MODELVIEW_MAT * SHADOW_MAT * vec4(mix(POSITION, NEXT_POSITION, TIME_FRACTION), 1.0);	
 }
 
 /**

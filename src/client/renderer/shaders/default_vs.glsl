@@ -13,7 +13,6 @@ uniform bool DIFFUSE;
 uniform bool LIGHTMAP;
 uniform bool NORMALMAP;
 
-uniform vec4 GLOBAL_COLOR;
 uniform float TIME_FRACTION;
 
 in vec3 POSITION;
@@ -83,5 +82,5 @@ void main(void) {
 	}
 
 	// pass the color through as well
-	color = COLOR * GLOBAL_COLOR;
+	color = COLOR;
 }

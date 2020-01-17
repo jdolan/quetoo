@@ -42,7 +42,7 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 				break;
 		}
 
-		R_Color(color);
+		R_Color(color); // FIXME: This does not work anymore, we need a uniform here
 	}
 
 	if (texunit_diffuse->enabled) { // diffuse texture
@@ -191,7 +191,7 @@ void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 		}
 	}
 
-	R_EnableLighting(program_default, true);
+	R_EnableLighting(true);
 
 	if (r_shadows->value) {
 		R_EnableStencilTest(GL_REPLACE, true);
@@ -203,7 +203,7 @@ void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 		R_EnableStencilTest(GL_KEEP, false);
 	}
 
-	R_EnableLighting(NULL, false);
+	R_EnableLighting(false);
 
 	R_EnableTexture(texunit_lightmap, false);
 	R_EnableTexture(texunit_deluxemap, false);
@@ -246,11 +246,11 @@ void R_DrawOpaqueWarpBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 		return;
 	}
 
-	R_EnableWarp(program_warp, true);
+	R_EnableWarp(true);
 
 	R_DrawBspSurfaces_default(surfs);
 
-	R_EnableWarp(NULL, false);
+	R_EnableWarp(false);
 }
 
 /**
@@ -281,11 +281,11 @@ void R_DrawAlphaTestBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 		}
 	}
 
-	R_EnableLighting(program_default, true);
+	R_EnableLighting(true);
 
 	R_DrawBspSurfaces_default(surfs);
 
-	R_EnableLighting(NULL, false);
+	R_EnableLighting(false);
 
 	R_EnableTexture(texunit_lightmap, false);
 	R_EnableTexture(texunit_deluxemap, false);
@@ -328,11 +328,11 @@ void R_DrawBlendBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 		}
 	}
 
-	R_EnableLighting(program_default, true);
+	R_EnableLighting(true);
 
 	R_DrawBspSurfaces_default(surfs);
 
-	R_EnableLighting(NULL, false);
+	R_EnableLighting(false);
 
 	R_EnableTexture(texunit_lightmap, false);
 	R_EnableTexture(texunit_deluxemap, false);
@@ -357,9 +357,9 @@ void R_DrawBlendWarpBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 		return;
 	}
 
-	R_EnableWarp(program_warp, true);
+	R_EnableWarp(true);
 
 	R_DrawBspSurfaces_default(surfs);
 
-	R_EnableWarp(NULL, false);
+	R_EnableWarp(false);
 }

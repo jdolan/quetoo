@@ -22,7 +22,7 @@ out VertexData {
  */
 void main(void) {
 
-	point = (MODEL_VIEW_MAT * vec4(POSITION, 1.0)).xyz;
+	point = (MODELVIEW_MAT * vec4(POSITION, 1.0)).xyz;
 
 	// mvp transform into clip space
 	gl_Position = PROJECTION_MAT * vec4(point, 1.0);

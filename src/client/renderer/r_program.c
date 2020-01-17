@@ -500,6 +500,7 @@ static void R_InitProgramUniforms(r_program_t *program) {
 
 	R_ProgramVariable(&program->matrix_uniforms[R_MATRIX_PROJECTION], R_UNIFORM_MAT4, "PROJECTION_MAT", false);
 	R_ProgramVariable(&program->matrix_uniforms[R_MATRIX_MODELVIEW], R_UNIFORM_MAT4, "MODELVIEW_MAT", false);
+	R_ProgramVariable(&program->matrix_uniforms[R_MATRIX_NORMAL], R_UNIFORM_MAT4, "NORMAL_MAT", false);
 	R_ProgramVariable(&program->matrix_uniforms[R_MATRIX_SHADOW], R_UNIFORM_MAT4, "SHADOW_MAT", false);
 }
 

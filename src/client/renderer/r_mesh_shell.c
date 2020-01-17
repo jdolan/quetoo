@@ -97,7 +97,7 @@ void R_DrawMeshShells_default(const r_entities_t *ents) {
 		return;
 	}
 
-	R_EnableShell(program_shell, true);
+	R_EnableShell(true);
 
 	for (size_t i = 0; i < ents->count; i++) {
 		const r_entity_t *e = ents->entities[i];
@@ -117,7 +117,7 @@ void R_DrawMeshShells_default(const r_entities_t *ents) {
 
 	r_view.current_entity = NULL;
 
-	R_EnableShell(NULL, false);
+	R_EnableShell(false);
 
 	R_Color(NULL);
 }

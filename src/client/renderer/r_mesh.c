@@ -377,7 +377,7 @@ void R_DrawMeshModelMaterials_default(const r_entity_t *e) {
  */
 void R_DrawMeshModels_default(const r_entities_t *ents) {
 
-	R_EnableLighting(program_default, true);
+	R_EnableLighting(true);
 
 	R_GetMatrix(R_MATRIX_MODELVIEW, &r_mesh_state.world_view);
 
@@ -414,7 +414,7 @@ void R_DrawMeshModels_default(const r_entities_t *ents) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 
-	R_EnableLighting(NULL, false);
+	R_EnableLighting(false);
 
 	R_EnableBlend(true);
 

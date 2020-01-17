@@ -3,4 +3,6 @@
  */
 
 uniform mat4 PROJECTION_MAT;
-uniform mat4 MODEL_VIEW_MAT;
+uniform mat4 MODELVIEW_MAT;
+uniform mat4 NORMAL_MAT;
+uniform mat4 SHADOW_MAT;

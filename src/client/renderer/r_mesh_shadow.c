@@ -247,7 +247,7 @@ void R_DrawMeshShadows_default(const r_entities_t *ents) {
 
 	R_PolygonOffset(R_OFFSET_FACTOR, R_OFFSET_UNITS);
 
-	R_EnableShadow(program_shadow, true);
+	R_EnableShadow(true);
 
 	R_EnableStencilTest(GL_ZERO, true);
 
@@ -264,7 +264,7 @@ void R_DrawMeshShadows_default(const r_entities_t *ents) {
 
 	r_view.current_entity = NULL;
 
-	R_EnableShadow(NULL, false);
+	R_EnableShadow(false);
 
 	R_EnableStencilTest(GL_KEEP, false);
 

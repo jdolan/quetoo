@@ -9,7 +9,6 @@
 #include "include/matrix.glsl"
 #include "include/fog.glsl"
 
-uniform vec4 GLOBAL_COLOR;
 uniform float TIME_FRACTION;
 
 in vec3 POSITION;
@@ -36,5 +35,5 @@ void main(void) {
 	texcoord = TEXCOORD;
 
 	// pass the color through as well
-	color = COLOR * GLOBAL_COLOR;
+	color = COLOR;
 }

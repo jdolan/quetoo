@@ -56,8 +56,6 @@ typedef struct {
 
 	r_uniform_caustic_t caustic;
 
-	r_uniform_matrix4fv_t normal_mat;
-
 	r_uniform1f_t alpha_threshold;
 } r_default_program_t;
 
@@ -149,8 +147,6 @@ void R_InitProgram_default(r_program_t *program) {
 
 	R_ProgramVariable(&p->caustic.enable, R_UNIFORM_INT, "CAUSTIC.ENABLE", true);
 	R_ProgramVariable(&p->caustic.color, R_UNIFORM_VEC3, "CAUSTIC.COLOR", true);
-
-	R_ProgramVariable(&p->normal_mat, R_UNIFORM_MAT4, "NORMAL_MAT", true);
 
 	R_ProgramVariable(&p->alpha_threshold, R_UNIFORM_FLOAT, "ALPHA_THRESHOLD", true);
 
@@ -305,16 +301,15 @@ void R_UseCaustic_default(const r_caustic_parameters_t *caustic) {
  * @brief
  */
 void R_UseMatrices_default(void) {
-	r_default_program_t *p = &r_default_program;
 
 	if (r_state.active_program->matrix_dirty[R_MATRIX_MODELVIEW]) {
 		// recalculate normal matrix if the modelview has changed.
-		static matrix4x4_t normalMatrix;
+		matrix4x4_t normalMatrix;
 
 		R_GetMatrix(R_MATRIX_MODELVIEW, &normalMatrix);
 		Matrix4x4_Invert_Full(&normalMatrix, &normalMatrix);
 		Matrix4x4_Transpose(&normalMatrix, &normalMatrix);
-		R_ProgramParameterMatrix4fv(&p->normal_mat, (const GLfloat *) normalMatrix.m);
+		R_SetMatrix(R_MATRIX_NORMAL, &normalMatrix);
 	}
 }
 

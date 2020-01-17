@@ -326,55 +326,34 @@ void R_EnableColorArray(_Bool enable) {
 }
 
 /**
- * @brief Enables hardware-accelerated lighting with the specified program. This
- * should be called after any texture units which will be active for lighting
- * have been enabled.
+ * @brief Enables hardware-accelerated lighting.
  */
-void R_EnableLighting(const r_program_t *program, _Bool enable) {
+void R_EnableLighting(_Bool enable) {
 
-	if (program == NULL) {
-		program = program_null;
-	}
-
-	// if the program can't use lights, lighting can't really
-	// be enabled on it.
-	if (enable && !program->UseLight) {
-		Com_Debug(DEBUG_RENDERER, "Attempted to use lights on a non-lightable program\n");
-		return;
-	}
-
-	// use the program here. this is done regardless
-	// of if lighting is supported.
-	R_UseProgram(program);
-
-	// enable fog if supported by the program.
-	R_EnableFog(enable);
-
-	R_GetError(NULL);
-
-	// if we don't actually have lighting support,
-	// don't bother turning on the lights.
 	if (!r_lighting->value || r_state.lighting_enabled == enable) {
 		return;
 	}
 
 	r_state.lighting_enabled = enable;
 
-	// set up all the lights if we're enabling
 	if (enable) {
+		R_UseProgram(program_default);
+
 		R_ResetLights();
-		R_GetError(NULL);
+	} else {
+		R_UseProgram(program_default);
 	}
+
+	// enable fog if supported by the program.
+	R_EnableFog(enable);
+
+	R_GetError(NULL);
 }
 
 /**
  * @brief Enables alpha-blended, stencil-test shadows.
  */
-void R_EnableShadow(const r_program_t *program, _Bool enable) {
-
-	if (enable && (!program || !program->id)) {
-		return;
-	}
+void R_EnableShadow(_Bool enable) {
 
 	if (!r_shadows->value || r_state.shadow_enabled == enable) {
 		return;
@@ -383,9 +362,9 @@ void R_EnableShadow(const r_program_t *program, _Bool enable) {
 	r_state.shadow_enabled = enable;
 
 	if (enable) {
-		R_UseProgram(program);
+		R_UseProgram(program_shadow);
 	} else {
-		R_UseProgram(program_null);
+		R_UseProgram(program_default);
 	}
 
 	R_EnableFog(enable);
@@ -396,11 +375,7 @@ void R_EnableShadow(const r_program_t *program, _Bool enable) {
 /**
  * @brief Enables the warp shader for drawing liquids and other effects.
  */
-void R_EnableWarp(const r_program_t *program, _Bool enable) {
-
-	if (enable && (!program || !program->id)) {
-		return;
-	}
+void R_EnableWarp(_Bool enable) {
 
 	if (!r_warp->value || r_state.warp_enabled == enable) {
 		return;
@@ -409,9 +384,9 @@ void R_EnableWarp(const r_program_t *program, _Bool enable) {
 	r_state.warp_enabled = enable;
 
 	if (enable) {
-		R_UseProgram(program);
+		R_UseProgram(program_warp);
 	} else {
-		R_UseProgram(program_null);
+		R_UseProgram(program_default);
 	}
 
 	R_EnableFog(enable);
@@ -422,11 +397,7 @@ void R_EnableWarp(const r_program_t *program, _Bool enable) {
 /**
  * @brief
  */
-void R_EnableShell(const r_program_t *program, _Bool enable) {
-
-	if (enable && (!program || !program->id)) {
-		return;
-	}
+void R_EnableShell(_Bool enable) {
 
 	if (!r_shell->value || r_state.shell_enabled == enable) {
 		return;
@@ -439,11 +410,11 @@ void R_EnableShell(const r_program_t *program, _Bool enable) {
 
 		R_BindDiffuseTexture(r_image_state.shell->texnum);
 
-		R_UseProgram(program);
+		R_UseProgram(program_shell);
 	} else {
 		R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		R_UseProgram(program_null);
+		R_UseProgram(program_default);
 	}
 
 	R_GetError(NULL);
