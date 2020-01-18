@@ -496,9 +496,9 @@ static SDL_Surface *CreateLightgridSurface(void *pixels) {
  */
 void EmitLightgrid(void) {
 
-	const size_t layer_size = lg.num_luxels * BSP_LIGHTGRID_BPP;
+	const size_t texture_size = lg.num_luxels * BSP_LIGHTGRID_BPP;
 
-	bsp_file.lightgrid_size = (int32_t) (sizeof(bsp_lightgrid_t) + layer_size * BSP_LIGHTGRID_LAYERS);
+	bsp_file.lightgrid_size = (int32_t) (sizeof(bsp_lightgrid_t) + texture_size * BSP_LIGHTGRID_TEXTURES);
 
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTGRID, bsp_file.lightgrid_size);
 
@@ -508,9 +508,9 @@ void EmitLightgrid(void) {
 
 	byte *out = (byte *) bsp_file.lightgrid + sizeof(bsp_lightgrid_t);
 
-	byte *out_amb = out + 0 * layer_size;
-	byte *out_dif = out + 1 * layer_size;
-	byte *out_dir = out + 2 * layer_size;
+	byte *out_amb = out + 0 * texture_size;
+	byte *out_dif = out + 1 * texture_size;
+	byte *out_dir = out + 2 * texture_size;
 
 	const luxel_t *l = lg.luxels;
 	for (int32_t u = 0; u < lg.size[2]; u++) {
