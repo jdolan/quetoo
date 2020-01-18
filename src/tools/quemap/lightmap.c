@@ -821,8 +821,8 @@ void EmitLightmapTexcoords(void) {
 			const vec_t s = (lm->s + padding_s + st[0]) / BSP_LIGHTMAP_WIDTH;
 			const vec_t t = (lm->t + padding_t + st[1]) / BSP_LIGHTMAP_WIDTH;
 
-			v->lightmap[0] = s;
-			v->lightmap[1] = t;
+			v->texcoords.lightmap[0] = s;
+			v->texcoords.lightmap[1] = t;
 		}
 	}
 }

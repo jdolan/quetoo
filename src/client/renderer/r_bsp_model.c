@@ -195,8 +195,14 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 		VectorCopy(in->tangent, out->tangent);
 		VectorCopy(in->bitangent, out->bitangent);
 
-		Vector2Copy(in->diffuse, out->diffuse);
-		Vector2Copy(in->lightmap, out->lightmap);
+		Vector2Copy(in->texcoords.diffuse, out->texcoords.diffuse);
+		Vector2Copy(in->texcoords.lightmap, out->texcoords.lightmap);
+
+		VectorCopy(in->lighting.ambient, out->lighting.ambient);
+		VectorCopy(in->lighting.diffuse, out->lighting.diffuse);
+		VectorCopy(in->lighting.dir, out->lighting.dir);
+
+		out->alpha = in->alpha;
 	}
 }
 
@@ -361,8 +367,8 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_leaf_t *leaf, r_bsp_surf
 	const r_bsp_vertex_t *v = bsp->vertexes + surf->first_vertex;
 	for (int32_t i = 0; i < surf->num_vertexes; i++, v++) {
 		AddPointToBounds(v->position, surf->mins, surf->maxs);
-		AddStToBounds(v->diffuse, surf->st_mins, surf->st_maxs);
-		AddStToBounds(v->lightmap, surf->lightmap.st_mins, surf->lightmap.st_maxs);
+		AddStToBounds(v->texcoords.diffuse, surf->st_mins, surf->st_maxs);
+		AddStToBounds(v->texcoords.lightmap, surf->lightmap.st_mins, surf->lightmap.st_maxs);
 	}
 
 	if (leaf->contents & MASK_LIQUID) {
@@ -574,7 +580,7 @@ void R_ExportBsp_f(void) {
 
 		Fs_Print(file, "v %f %f %f\nvt %f %f\nvn %f %f %f\n",
 				-v->position[0], v->position[2], v->position[1],
-				 v->diffuse[0], -v->diffuse[1],
+				 v->texcoords.diffuse[0], -v->texcoords.diffuse[1],
 				-v->normal[0], v->normal[2], v->normal[1]);
 	}
 	

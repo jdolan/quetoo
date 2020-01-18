@@ -624,17 +624,26 @@ typedef struct {
 } r_bsp_leaf_t;
 
 /**
- * @brief BSP vertexes include position, normal, tangent and bitangent. Because
- * lightmap texture coordinates are unique to each face, they are not calculated
- * until the renderer loads them.
+ * @brief
  */
 typedef struct {
 	vec3_t position;
 	vec3_t normal;
 	vec3_t tangent;
 	vec3_t bitangent;
-	vec2_t diffuse;
-	vec2_t lightmap;
+
+	struct {
+		vec2_t diffuse;
+		vec2_t lightmap;
+	} texcoords;
+
+	struct {
+		vec3_t ambient;
+		vec3_t diffuse;
+		vec3_t dir;
+	} lighting;
+
+	vec_t alpha;
 } r_bsp_vertex_t;
 
 /**

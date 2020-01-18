@@ -430,10 +430,10 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
 
 		R_StageVertex(surf, stage, in->position, out->position);
 
-		R_StageTexCoord(stage, in->position, in->diffuse, out->diffuse);
+		R_StageTexCoord(stage, in->position, in->texcoords.diffuse, out->diffuse);
 
 		if (texunit_lightmap->enabled) { // lightmap texcoords
-			PackTexcoords(in->lightmap, out->lightmap);
+			PackTexcoords(in->texcoords.lightmap, out->lightmap);
 		}
 
 		if (r_state.color_array_enabled) { // colors

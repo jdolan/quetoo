@@ -146,8 +146,19 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 		const vec_t s = DotProduct(out.position, sdir) + sdir[3];
 		const vec_t t = DotProduct(out.position, tdir) + tdir[3];
 
-		out.diffuse[0] = s / (diffuse ? diffuse->w : 1.0);
-		out.diffuse[1] = t / (diffuse ? diffuse->h : 1.0);
+		out.texcoords.diffuse[0] = s / (diffuse ? diffuse->w : 1.0);
+		out.texcoords.diffuse[1] = t / (diffuse ? diffuse->h : 1.0);
+
+		switch (texinfo->flags & (SURF_BLEND_33 | SURF_BLEND_66)) {
+			case SURF_BLEND_33:
+				out.alpha = 0.333;
+				break;
+			case SURF_BLEND_66:
+				out.alpha = 0.666;
+			default:
+				out.alpha = 1.0;
+				break;
+		}
 
 		bsp_file.vertexes[bsp_file.num_vertexes] = out;
 		bsp_file.num_vertexes++;

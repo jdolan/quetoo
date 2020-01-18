@@ -81,9 +81,9 @@
 #define BSP_LIGHTGRID_BPP 3
 
 /**
- * @brief Lightgrid ambient, diffuse and direction layers.
+ * @brief Lightgrid ambient, diffuse and direction textures.
  */
-#define BSP_LIGHTGRID_LAYERS 3
+#define BSP_LIGHTGRID_TEXTURES 3
 
 /**
  * @brief Largest lightgrid width in luxels (8192 / 64 = 128).
@@ -153,8 +153,19 @@ typedef struct {
 	vec3_t normal;
 	vec3_t tangent;
 	vec3_t bitangent;
-	vec2_t diffuse;
-	vec2_t lightmap;
+
+	struct {
+		vec2_t diffuse;
+		vec2_t lightmap;
+	} texcoords;
+
+	struct {
+		vec3_t ambient;
+		vec3_t diffuse;
+		vec3_t dir;
+	} lighting;
+
+	vec_t alpha;
 	int16_t texinfo;
 } bsp_vertex_t;
 
