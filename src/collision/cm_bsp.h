@@ -21,10 +21,11 @@
 #define MAX_BSP_LEAFS			0x20000
 #define MAX_BSP_LEAF_FACES		0x20000
 #define MAX_BSP_LEAF_BRUSHES 	0x20000
+#define MAX_BSP_DRAW_ELEMENTS	0x20000
 #define MAX_BSP_BRUSHES			0x8000
 #define MAX_BSP_BRUSH_SIDES		0x20000
 #define MAX_BSP_VERTEXES		0x80000
-#define MAX_BSP_ELEMENTS		0x80000
+#define MAX_BSP_ELEMENTS		0x200000
 #define MAX_BSP_FACES			0x20000
 #define MAX_BSP_MODELS			0x400
 #define MAX_BSP_AREA_PORTALS	0x400
@@ -107,6 +108,7 @@ typedef enum {
 	BSP_LUMP_LEAFS,
 	BSP_LUMP_LEAF_FACES,
 	BSP_LUMP_LEAF_BRUSHES,
+	BSP_LUMP_DRAW_ELEMENTS,
 	BSP_LUMP_BRUSHES,
 	BSP_LUMP_BRUSH_SIDES,
 	BSP_LUMP_VERTEXES,
@@ -210,6 +212,13 @@ typedef struct {
 } bsp_face_t;
 
 typedef struct {
+	int16_t texinfo;
+
+	int32_t first_element;
+	int32_t num_elements;
+} bsp_draw_elements_t;
+
+typedef struct {
 	int32_t contents; // OR of all brushes (not needed?)
 
 	int32_t cluster;
@@ -220,6 +229,9 @@ typedef struct {
 
 	int32_t first_leaf_face;
 	int32_t num_leaf_faces;
+
+	int32_t first_draw_elements;
+	int32_t num_draw_elements;
 
 	int32_t first_leaf_brush;
 	int32_t num_leaf_brushes;
@@ -347,6 +359,9 @@ typedef struct {
 
 	int32_t num_elements;
 	int32_t *elements;
+
+	int32_t num_draw_elements;
+	bsp_draw_elements_t *draw_elements;
 
 	int32_t num_models;
 	bsp_model_t *models;

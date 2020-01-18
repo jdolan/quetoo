@@ -45,9 +45,9 @@ static void EmitPlanes(void) {
 }
 
 /**
- * @brief qsort comparator to sort leaf_faces by material
+ * @brief qsort comparator for SortLeafFaces to sort by texture and then flags.
  */
-static int32_t EmitLeaf_sortFacesByMaterial(const void *a, const void *b) {
+static int32_t SortLeafFaces_compare(const void *a, const void *b) {
 
 	const bsp_face_t *a_face = bsp_file.faces + *(int32_t *) a;
 	const bsp_face_t *b_face = bsp_file.faces + *(int32_t *) b;
@@ -55,7 +55,19 @@ static int32_t EmitLeaf_sortFacesByMaterial(const void *a, const void *b) {
 	const bsp_texinfo_t *a_tex = bsp_file.texinfo + a_face->texinfo;
 	const bsp_texinfo_t *b_tex = bsp_file.texinfo + b_face->texinfo;
 
-	return strcmp(a_tex->texture, b_tex->texture);
+	const int32_t order = strcmp(a_tex->texture, b_tex->texture);
+	return order ?: a_tex->flags - b_tex->flags;
+}
+
+/**
+ * @brief Sorts `leaf`'s faces by texture in order to group them into draw commands.
+
+ */
+static void SortLeafFaces(const bsp_leaf_t *leaf) {
+
+	void *base = bsp_file.leaf_faces + leaf->first_leaf_face;
+
+	qsort(base, leaf->num_leaf_faces, sizeof(int32_t), SortLeafFaces_compare);
 }
 
 /**
@@ -146,7 +158,49 @@ static int32_t EmitLeaf(node_t *node) {
 
 	out->num_leaf_faces = bsp_file.num_leaf_faces - out->first_leaf_face;
 
-	qsort(bsp_file.leaf_faces + out->first_leaf_face, out->num_leaf_faces, sizeof(int32_t), EmitLeaf_sortFacesByMaterial);
+	SortLeafFaces(out);
+
+	// write the draw elements
+	
+	out->first_draw_elements = bsp_file.num_draw_elements;
+
+	const int32_t *lf = bsp_file.leaf_faces + out->first_leaf_face;
+	for (int32_t i = 0; i < out->num_leaf_faces; i++) {
+
+		if (bsp_file.num_draw_elements >= MAX_BSP_DRAW_ELEMENTS) {
+			Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_ELEMENTS\n");
+		}
+
+		bsp_draw_elements_t *draw = &bsp_file.draw_elements[bsp_file.num_draw_elements];
+		bsp_file.num_draw_elements++;
+
+		draw->texinfo = bsp_file.faces[*lf].texinfo;
+		draw->first_element = bsp_file.num_elements;
+
+		for (int32_t j = i; j < out->num_leaf_faces; j++, i++) {
+
+			if (SortLeafFaces_compare(lf + i, lf + j)) {
+				break;
+			}
+
+			const bsp_face_t *face = &bsp_file.faces[*(lf + j)];
+
+			if (bsp_file.num_elements + face->num_elements >= MAX_BSP_ELEMENTS) {
+				Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
+			}
+
+			memcpy(bsp_file.elements + bsp_file.num_elements,
+				   bsp_file.elements + face->first_element,
+				   sizeof(int32_t) * face->num_elements);
+
+			bsp_file.num_elements += face->num_elements;
+		}
+
+		draw->num_elements = bsp_file.num_elements - draw->first_element;
+		assert(draw->num_elements);
+	}
+
+	out->num_draw_elements = bsp_file.num_draw_elements - out->first_draw_elements;
 
 	return bsp_file.num_leafs - 1;
 }
@@ -214,12 +268,14 @@ void EmitNodes(node_t *head_node) {
 	Com_Verbose("--- WriteBSP ---\n");
 
 	const int32_t old_faces = bsp_file.num_faces;
+	const int32_t old_draw_elements = bsp_file.num_draw_elements;
 
 	bsp_file.models[bsp_file.num_models].head_node = EmitDrawNode_r(head_node);
 
 	Com_Verbose("%5i nodes with faces\n", c_facenodes);
 	Com_Verbose("%5i nodes without faces\n", c_nofaces);
 	Com_Verbose("%5i faces\n", bsp_file.num_faces - old_faces);
+	Com_Verbose("%5i draw elements\n", bsp_file.num_draw_elements - old_draw_elements);
 }
 
 /**
@@ -337,6 +393,7 @@ void BeginBSPFile(void) {
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_LEAFS, MAX_BSP_LEAFS);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_LEAF_FACES, MAX_BSP_LEAF_FACES);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_LEAF_BRUSHES, MAX_BSP_LEAF_BRUSHES);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_DRAW_ELEMENTS, MAX_BSP_DRAW_ELEMENTS);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_BRUSHES, MAX_BSP_BRUSHES);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_BRUSH_SIDES, MAX_BSP_BRUSH_SIDES);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_VERTEXES, MAX_BSP_VERTEXES);
