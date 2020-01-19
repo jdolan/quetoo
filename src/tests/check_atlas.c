@@ -135,6 +135,49 @@ START_TEST(check_atlas_random) {
 } END_TEST
 
 /**
+ * @brief This custom comparator should actually produce the worst possible packing.
+ */
+static int32_t comparator(const atlas_node_t *a, const atlas_node_t *b) {
+	return a->surfaces[0]->h - b->surfaces[0]->h;
+}
+
+START_TEST(check_atlas_custom_comparator) {
+
+	srand(getpid());
+
+	atlas_t *atlas = Atlas_Create(1);
+	atlas->comparator = comparator;
+
+	SDL_Surface *surfaces[100];
+
+	for (size_t i = 0; i < 100; i++) {
+
+		const int32_t w = rand() % 96 + 1;
+		const int32_t h = rand() % 96 + 1;
+		const int32_t color = rand() % 255 << 16 | rand() % 255 << 8 | rand() % 255;
+
+		surfaces[i] = CreateSurface(w, h, color);
+
+		Atlas_Insert(atlas, surfaces[i]);
+	}
+
+	SDL_Surface *surface = CreateSurface(1024, 1024, 0);
+
+	const int32_t res = Atlas_Compile(atlas, 0, surface);
+	ck_assert_int_eq(0, res);
+
+	Atlas_Destroy(atlas);
+
+	IMG_SavePNG(surface, "/tmp/check_atlas_custom_comparator.png");
+
+	for (size_t i = 0; i < 100; i++) {
+		SDL_FreeSurface(surfaces[i]);
+	}
+
+	SDL_FreeSurface(surface);
+} END_TEST
+
+/**
  * @brief Test entry point.
  */
 int32_t main(int32_t argc, char **argv) {
@@ -143,6 +186,7 @@ int32_t main(int32_t argc, char **argv) {
 
 	tcase_add_test(tcase, check_atlas);
 	tcase_add_test(tcase, check_atlas_random);
+	tcase_add_test(tcase, check_atlas_custom_comparator);
 
 	Suite *suite = suite_create("check_atlas");
 	suite_add_tcase(suite, tcase);

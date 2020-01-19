@@ -53,6 +53,12 @@ typedef struct {
 } atlas_node_t;
 
 /**
+ * @brief A comparator for sorting atlast nodes for packing.
+ * @details The default comparator sorts nodes by image height.
+ */
+typedef int32_t (*AtlasNodeComparator)(const atlas_node_t *a, const atlas_node_t *b);
+
+/**
  * @brief An atlas efficiently packs multiple surfaces into a single large surface.
  * @details Atlases are 3 dimensional, and can act on layers of surfaces. For example,
  * an atlas that is 2 layers deep can be used to pack lightmaps and deluxemaps into
@@ -70,6 +76,11 @@ typedef struct atlas_s {
 	 * @brief The atlas nodes.
 	 */
 	GPtrArray *nodes;
+
+	/**
+	 * @brief The comparator to sort nodes for packing.
+	 */
+	AtlasNodeComparator comparator;
 
 	/**
 	 * @brief The iteration identifier, which is written to nodes as they are compiled.

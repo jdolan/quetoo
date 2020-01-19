@@ -103,14 +103,24 @@ atlas_node_t *Atlas_Find(atlas_t *atlas, int32_t layer, SDL_Surface *surface) {
 }
 
 /**
- * @brief GCompareFunc for node sorting. Note that g_ptr_array_sort provides pointers to pointers.
+ * @brief The default node comparator.
  */
-static gint Atlas_NodeComparator(gconstpointer a, gconstpointer b) {
+static int32_t Atlas_DefaultComparator(const atlas_node_t *a, const atlas_node_t *b) {
 
-	const SDL_Surface *a_surf = (*(atlas_node_t **) a)->surfaces[0];
-	const SDL_Surface *b_surf = (*(atlas_node_t **) b)->surfaces[0];
+	return b->surfaces[0]->h - a->surfaces[0]->h;
+}
 
-	return b_surf->h - a_surf->h;
+/**
+ * @brief GCompareDataFunc for node sorting. Note that g_ptr_array_sort provides pointers to pointers.
+ */
+static gint Atlas_NodeComparator(gconstpointer a, gconstpointer b, gpointer data) {
+
+	const atlas_node_t *a_node = *(atlas_node_t **) a;
+	const atlas_node_t *b_node = *(atlas_node_t **) b;
+
+	assert(data);
+
+	return ((AtlasNodeComparator) data)(a_node, b_node);
 }
 
 /**
@@ -141,7 +151,7 @@ int32_t Atlas_Compile(atlas_t *atlas, int32_t start, ...) {
 
 	atlas->tag++;
 
-	g_ptr_array_sort(atlas->nodes, Atlas_NodeComparator);
+	g_ptr_array_sort_with_data(atlas->nodes, Atlas_NodeComparator, atlas->comparator ?: Atlas_DefaultComparator);
 
 	int32_t x = 0, y = 0, row = 0;
 
