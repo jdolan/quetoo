@@ -208,6 +208,9 @@ static void LightWorld(void) {
 	// and vertex lightmap texcoords
 	EmitLightmapTexcoords();
 
+	// regenerate the draw elements, which may have changed due to lightmaps
+	EmitDrawElements();
+
 	// and lightgrid
 	EmitLightgrid();
 

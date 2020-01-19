@@ -27,6 +27,7 @@
 #include "material.h"
 #include "patch.h"
 #include "quemap.h"
+#include "writebsp.h"
 
 extern _Bool antialias;
 extern _Bool indirect;

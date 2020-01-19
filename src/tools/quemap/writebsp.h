@@ -24,8 +24,9 @@
 #include "tree.h"
 
 void EmitEntities(void);
-void BeginBSPFile(void);
 void EmitNodes(node_t *head_node);
+void EmitDrawElements(void);
+void BeginBSPFile(void);
 void EndBSPFile(void);
 void BeginModel(void);
 void EndModel(void);

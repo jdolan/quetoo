@@ -118,9 +118,9 @@ static gint Atlas_NodeComparator(gconstpointer a, gconstpointer b, gpointer data
 	const atlas_node_t *a_node = *(atlas_node_t **) a;
 	const atlas_node_t *b_node = *(atlas_node_t **) b;
 
-	assert(data);
+	AtlasNodeComparator comparator = (AtlasNodeComparator) data;
 
-	return ((AtlasNodeComparator) data)(a_node, b_node);
+	return comparator(a_node, b_node);
 }
 
 /**
