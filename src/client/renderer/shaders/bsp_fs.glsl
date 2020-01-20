@@ -19,15 +19,22 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#define MAX_ACTIVE_LIGHTS 10
+#define MAX_ACTIVE_LIGHTS        10
 
-#define BSP_TEXTURE_DIFFUSE     (1 << 0)
-#define BSP_TEXTURE_NORMALMAP   (1 << 1)
-#define BSP_TEXTURE_GLOSSMAP    (1 << 2)
+#define TEXTURE_DIFFUSE           0
+#define TEXTURE_NORMALMAP         1
+#define TEXTURE_GLOSSMAP          2
+#define TEXTURE_LIGHTMAP          3
+#define TEXTURE_DELUXEMAP         4
+#define TEXTURE_STAINMAP          5
 
-#define BSP_TEXTURE_LIGHTMAP    (1 << 3)
-#define BSP_TEXTURE_DELUXEMAP   (1 << 4)
-#define BSP_TEXTURE_STAINMAP    (1 << 5)
+#define TEXTURE_MASK_DIFFUSE     (1 << TEXTURE_DIFFUSE)
+#define TEXTURE_MASK_NORMALMAP   (1 << TEXTURE_NORMALMAP)
+#define TEXTURE_MASK_GLOSSMAP    (1 << TEXTURE_GLOSSMAP)
+#define TEXTURE_MASK_LIGHTMAP    (1 << TEXTURE_LIGHTMAP)
+#define TEXTURE_MASK_DELUXEMAP   (1 << TEXTURE_DELUXEMAP)
+#define TEXTURE_MASK_STAINMAP    (1 << TEXTURE_STAINMAP)
+#define TEXTURE_MASK_ALL          0xff
 
 uniform int textures;
 
@@ -75,7 +82,7 @@ out vec4 out_color;
 void main(void) {
 
 	vec4 diffuse;
-	if ((textures & BSP_TEXTURE_DIFFUSE) == BSP_TEXTURE_DIFFUSE) {
+	if ((textures & TEXTURE_MASK_DIFFUSE) == TEXTURE_MASK_DIFFUSE) {
 		diffuse = texture(texture_diffuse, vertex.diffuse);
 
 		if (diffuse.a < alpha_threshold) {
@@ -86,7 +93,7 @@ void main(void) {
 	}
 
 	vec4 normalmap;
-	if ((textures & BSP_TEXTURE_NORMALMAP) == BSP_TEXTURE_NORMALMAP) {
+	if ((textures & TEXTURE_MASK_NORMALMAP) == TEXTURE_MASK_NORMALMAP) {
 		normalmap = texture(texture_normalmap, vertex.diffuse);
 		normalmap.xyz = normalize(normalmap.xyz);
 		normalmap.xy = (normalmap.xy * 2.0 - 1.0) * bump;
@@ -96,28 +103,28 @@ void main(void) {
 	}
 
 	vec4 glossmap;
-	if ((textures & BSP_TEXTURE_GLOSSMAP) == BSP_TEXTURE_GLOSSMAP) {
+	if ((textures & TEXTURE_MASK_GLOSSMAP) == TEXTURE_MASK_GLOSSMAP) {
 		glossmap = texture(texture_glossmap, vertex.diffuse);
 	} else {
 		glossmap = vec4(1.0);
 	}
 
 	vec3 lightmap;
-	if ((textures & BSP_TEXTURE_LIGHTMAP) == BSP_TEXTURE_LIGHTMAP) {
+	if ((textures & TEXTURE_MASK_LIGHTMAP) == TEXTURE_MASK_LIGHTMAP) {
 		lightmap = texture(texture_lightmap, vec3(vertex.lightmap, 0)).rgb * modulate;
 	} else {
 		lightmap = vec3(1.0);
 	}
 
 	vec3 deluxemap;
-	if ((textures & BSP_TEXTURE_DELUXEMAP) == BSP_TEXTURE_DELUXEMAP) {
+	if ((textures & TEXTURE_MASK_DELUXEMAP) == TEXTURE_MASK_DELUXEMAP) {
 		deluxemap = normalize(texture(texture_lightmap, vec3(vertex.lightmap, 1)).xyz);
 	} else {
 		deluxemap = vec3(0.0, 0.0, 1.0);
 	}
 
 	vec4 stainmap;
-	if ((textures & BSP_TEXTURE_STAINMAP) == BSP_TEXTURE_STAINMAP) {
+	if ((textures & TEXTURE_MASK_STAINMAP) == TEXTURE_MASK_STAINMAP) {
 		stainmap = texture(texture_lightmap, vec3(vertex.lightmap, 2));
 	} else {
 		stainmap = vec4(0.0);

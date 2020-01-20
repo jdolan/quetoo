@@ -44,18 +44,6 @@ typedef struct {
 		.filenames = { __VA_ARGS__, NULL } \
 	}
 
-/**
- * @brief Resolves an attribute location in the specified program.
- */
-#define GetAttributeLocation(prog, attr) \
-	prog->attributes.attr = glGetAttribLocation(prog->name, #attr)
-
-/**
- * @brief Resolves a uniform location in the specified program.
- */
-#define GetUniformLocation(prog, uniform) \
-	prog->uniforms.uniform = glGetUniformLocation(prog->name, #uniform)
-
 GLuint R_LoadShader(const r_shader_descriptor_t *desc);
 GLuint R_LoadProgram(const r_shader_descriptor_t *desc, ...);
 void R_InitPrograms(void);
