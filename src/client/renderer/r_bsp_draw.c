@@ -153,6 +153,7 @@ void R_DrawWorld(void) {
 	glUniform1f(p->uniforms.brightness, r_brightness->value);
 	glUniform1f(p->uniforms.contrast, r_contrast->value);
 	glUniform1f(p->uniforms.saturation, r_saturation->value);
+	glUniform1f(p->uniforms.gamma, r_gamma->value);
 	glUniform1f(p->uniforms.modulate, r_modulate->value);
 
 	const r_bsp_model_t *bsp = R_WorldModel()->bsp;

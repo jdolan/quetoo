@@ -19,27 +19,24 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+#version 330
 
-#include "r_types.h"
+uniform float brightness;
+uniform float contrast;
+uniform float saturation;
+uniform float gamma;
 
-#ifdef __R_LOCAL_H__
+/**
+ * @brief
+ */
+vec4 ColorFilter(in vec4 color) {
 
-#define MAX_SHADER_DESCRIPTOR_FILENAMES 8
+	vec3 luminance = vec3(0.2125, 0.7154, 0.0721);
+	vec3 bias = vec3(0.5);
 
-typedef struct {
-	GLenum type;
-	const char *filenames[MAX_SHADER_DESCRIPTOR_FILENAMES + 1];
-} r_shader_descriptor_t;
+	vec3 scaled = mix(vec3(1.0), color.rgb, gamma) * brightness;
 
-#define MakeShaderDescriptor(_type, ...) \
-	(r_shader_descriptor_t) { \
-		.type = _type, \
-		.filenames = { __VA_ARGS__, NULL } \
-	}
+	color.rgb = mix(bias, mix(vec3(dot(luminance, scaled)), scaled, saturation), contrast);
 
-GLuint R_LoadShader(const r_shader_descriptor_t *desc);
-GLuint R_LoadProgram(const r_shader_descriptor_t *desc, ...);
-void R_InitPrograms(void);
-void R_ShutdownPrograms(void);
-#endif /* __R_LOCAL_H__ */
+	return color;
+}

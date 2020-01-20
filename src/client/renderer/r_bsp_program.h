@@ -73,6 +73,7 @@ struct r_bsp_program_s {
 		GLint brightness;
 		GLint contrast;
 		GLint saturation;
+		GLint gamma;
 		GLint modulate;
 
         GLint bump;

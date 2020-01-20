@@ -29,15 +29,29 @@ GLuint R_LoadShader(const r_shader_descriptor_t *desc) {
 	GLuint shader = glCreateShader(desc->type);
 	if (shader) {
 
-		void *source;
-		const ssize_t length = Fs_Load(va("shaders/%s", desc->filename), &source);
-		if (length == -1) {
-			Com_Error(ERROR_FATAL, "Failed to load %s\n", desc->filename);
+		void *source[lengthof(desc->filenames)];
+
+		GLsizei count = 0;
+		while (count < (GLsizei) lengthof(desc->filenames)) {
+
+			const char *filename = desc->filenames[count];
+			if (filename) {
+				const ssize_t length = Fs_Load(va("shaders/%s", filename), &source[count]);
+				if (length == -1) {
+					Com_Error(ERROR_FATAL, "Failed to load %s\n", filename);
+				}
+				count++;
+			} else {
+				break;
+			}
 		}
 
-		glShaderSource(shader, 1, (const GLchar **) &source, (GLint *) &length);
+		glShaderSource(shader, count, (const GLchar **) source, NULL);
 
-		Fs_Free(source);
+		while (count--) {
+			Fs_Free(source[count]);
+		}
+		
 		glCompileShader(shader);
 
 		GLint status;
@@ -50,7 +64,7 @@ GLuint R_LoadShader(const r_shader_descriptor_t *desc) {
 			GLchar log[log_length];
 			glGetShaderInfoLog(shader, log_length, NULL, log);
 
-			Com_Error(ERROR_FATAL, "%s: %s\n", desc->filename, log);
+			Com_Error(ERROR_FATAL, "%s\n", log);
 		}
 	}
 
@@ -98,7 +112,7 @@ GLuint R_LoadProgram(const r_shader_descriptor_t *desc, ...) {
 			GLchar log[log_length];
 			glGetProgramInfoLog(program, log_length, NULL, log);
 
-			Com_Error(ERROR_FATAL, "%s: %s\n", desc->filename, log);
+			Com_Error(ERROR_FATAL, "%s\n", log);
 		}
 	}
 

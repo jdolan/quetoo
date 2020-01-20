@@ -40,7 +40,7 @@ void R_InitBspProgram(void) {
 
 	prog->name = R_LoadProgram(
 		&MakeShaderDescriptor(GL_VERTEX_SHADER, "bsp_vs.glsl"),
-		&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "bsp_fs.glsl"),
+		&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "color_filter.glsl", "bsp_fs.glsl"),
 		NULL);
 
 	glUseProgram(prog->name);
@@ -71,6 +71,7 @@ void R_InitBspProgram(void) {
 	GET_UNIFORM_LOCATION(prog, brightness);
 	GET_UNIFORM_LOCATION(prog, contrast);
 	GET_UNIFORM_LOCATION(prog, saturation);
+	GET_UNIFORM_LOCATION(prog, gamma);
 	GET_UNIFORM_LOCATION(prog, modulate);
 
 	GET_UNIFORM_LOCATION(prog, bump);
