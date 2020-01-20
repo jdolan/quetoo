@@ -24,5 +24,9 @@
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
+
+extern void R_InitBspProgram(void);
+extern void R_ShutdownBspProgram(void);
+
 void R_DrawWorld(void);
 #endif /* __R_LOCAL_H__ */

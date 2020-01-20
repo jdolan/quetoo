@@ -30,7 +30,6 @@
 #include "r_bsp.h"
 #include "r_bsp_draw.h"
 #include "r_bsp_model.h"
-#include "r_bsp_program.h"
 #include "r_context.h"
 #include "r_draw.h"
 #include "r_entity.h"

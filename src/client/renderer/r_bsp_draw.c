@@ -21,6 +21,72 @@
 
 #include "r_local.h"
 
+#define MAX_ACTIVE_LIGHTS 10
+
+typedef enum {
+	BSP_TEXTURE_DIFFUSE    = 1 << 0,
+	BSP_TEXTURE_NORMALMAP  = 1 << 1,
+	BSP_TEXTURE_GLOSSMAP   = 1 << 2,
+
+	BSP_TEXTURE_LIGHTMAP   = 1 << 3,
+	BSP_TEXTURE_DELUXEMAP  = 1 << 4,
+	BSP_TEXTURE_STAINMAP   = 1 << 5,
+
+	BSP_TEXTURE_ALL        = 0xff
+} r_bsp_program_texture_t;
+
+typedef struct {
+    GLuint name;
+
+    struct {
+        GLint in_position;
+        GLint in_normal;
+        GLint in_tangent;
+        GLint in_bitangent;
+        GLint in_diffuse;
+        GLint in_lightmap;
+		GLint in_color;
+    } attributes;
+
+    struct {
+        GLint projection;
+        GLint model_view;
+        GLint normal;
+
+		GLint textures;
+
+        GLint texture_diffuse;
+		GLint texture_normalmap;
+		GLint texture_glossmap;
+        GLint texture_lightmap;
+
+		GLint contents;
+
+		GLint color;
+		GLint alpha_threshold;
+
+		GLint brightness;
+		GLint contrast;
+		GLint saturation;
+		GLint gamma;
+		GLint modulate;
+
+        GLint bump;
+        GLint parallax;
+        GLint hardness;
+        GLint specular;
+
+		GLint light_positions[MAX_ACTIVE_LIGHTS];
+		GLint light_colors[MAX_ACTIVE_LIGHTS];
+
+		GLint fog_parameters;
+		GLint fog_color;
+
+        GLint caustics;
+    } uniforms;
+} r_bsp_program_t;
+
+static r_bsp_program_t r_bsp_program;
 static r_bsp_program_t *p = &r_bsp_program;
 
 /**
@@ -67,6 +133,15 @@ static void R_DrawBspLeaf(const r_bsp_leaf_t *leaf) {
 
 			glActiveTexture(GL_TEXTURE0 + BSP_TEXTURE_LIGHTMAP);
 			glBindTexture(GL_TEXTURE_2D_ARRAY, draw->lightmap->atlas->texnum);
+		}
+
+		switch (r_draw_bsp_lightmaps->integer) {
+			case 1:
+				textures = BSP_TEXTURE_LIGHTMAP;
+				break;
+			case 2:
+				textures = BSP_TEXTURE_DELUXEMAP;
+				break;
 		}
 
 		glUniform1i(p->uniforms.textures, textures);
@@ -194,4 +269,101 @@ void R_DrawWorld(void) {
 					   (void *) (face->first_element * sizeof(GLuint)));
 	}
 #endif
+}
+
+/**
+ * @brief
+ */
+void R_InitBspProgram(void) {
+
+	memset(p, 0, sizeof(*p));
+
+	p->name = R_LoadProgram(
+		&MakeShaderDescriptor(GL_VERTEX_SHADER, "bsp_vs.glsl"),
+		&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "color_filter.glsl", "bsp_fs.glsl"),
+		NULL);
+
+	glUseProgram(p->name);
+
+	GetAttributeLocation(p, in_position);
+	GetAttributeLocation(p, in_normal);
+	GetAttributeLocation(p, in_tangent);
+	GetAttributeLocation(p, in_bitangent);
+	GetAttributeLocation(p, in_diffuse);
+	GetAttributeLocation(p, in_lightmap);
+	GetAttributeLocation(p, in_color);
+
+	GetUniformLocation(p, projection);
+	GetUniformLocation(p, model_view);
+	GetUniformLocation(p, normal);
+
+	GetUniformLocation(p, textures);
+	GetUniformLocation(p, texture_diffuse);
+	GetUniformLocation(p, texture_normalmap);
+	GetUniformLocation(p, texture_glossmap);
+	GetUniformLocation(p, texture_lightmap);
+
+	GetUniformLocation(p, contents);
+
+	GetUniformLocation(p, color);
+	GetUniformLocation(p, alpha_threshold);
+
+	GetUniformLocation(p, brightness);
+	GetUniformLocation(p, contrast);
+	GetUniformLocation(p, saturation);
+	GetUniformLocation(p, gamma);
+	GetUniformLocation(p, modulate);
+
+	GetUniformLocation(p, bump);
+	GetUniformLocation(p, parallax);
+	GetUniformLocation(p, hardness);
+	GetUniformLocation(p, specular);
+
+	GetUniformLocation(p, light_positions[0]);
+	GetUniformLocation(p, light_positions[1]);
+	GetUniformLocation(p, light_positions[2]);
+	GetUniformLocation(p, light_positions[3]);
+	GetUniformLocation(p, light_positions[4]);
+	GetUniformLocation(p, light_positions[5]);
+	GetUniformLocation(p, light_positions[6]);
+	GetUniformLocation(p, light_positions[7]);
+	GetUniformLocation(p, light_positions[8]);
+	GetUniformLocation(p, light_positions[9]);
+
+	GetUniformLocation(p, light_colors[0]);
+	GetUniformLocation(p, light_colors[1]);
+	GetUniformLocation(p, light_colors[2]);
+	GetUniformLocation(p, light_colors[3]);
+	GetUniformLocation(p, light_colors[4]);
+	GetUniformLocation(p, light_colors[5]);
+	GetUniformLocation(p, light_colors[6]);
+	GetUniformLocation(p, light_colors[7]);
+	GetUniformLocation(p, light_colors[8]);
+	GetUniformLocation(p, light_colors[9]);
+
+	GetUniformLocation(p, fog_parameters);
+	GetUniformLocation(p, fog_color);
+
+	GetUniformLocation(p, caustics);
+
+	R_GetError(NULL);
+
+	glUniform1i(p->uniforms.texture_diffuse, BSP_TEXTURE_DIFFUSE);
+	glUniform1i(p->uniforms.texture_normalmap, BSP_TEXTURE_NORMALMAP);
+	glUniform1i(p->uniforms.texture_glossmap, BSP_TEXTURE_GLOSSMAP);
+	glUniform1i(p->uniforms.texture_lightmap, BSP_TEXTURE_LIGHTMAP);
+
+	glUniform4f(p->uniforms.color, 1.f, 1.f, 1.f, 1.f);
+
+	R_GetError(NULL);
+}
+
+/**
+ * @brief
+ */
+void R_ShutdownBspProgram(void) {
+
+	glDeleteProgram(r_bsp_program.name);
+
+	memset(&r_bsp_program, 0, sizeof(r_bsp_program));
 }

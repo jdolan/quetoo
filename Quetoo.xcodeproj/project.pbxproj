@@ -568,7 +568,6 @@
 		CED4384C1D9D34450052BAFA /* r_mesh_model.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5D91C5C58C300CD0B13 /* r_mesh_model.c */; };
 		CED4384F1D9D34450052BAFA /* r_model.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5DF1C5C58C300CD0B13 /* r_model.c */; };
 		CED438501D9D34450052BAFA /* r_particle.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5E11C5C58C300CD0B13 /* r_particle.c */; };
-		CED438521D9D34450052BAFA /* r_bsp_program.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5E51C5C58C300CD0B13 /* r_bsp_program.c */; };
 		CED438561D9D34450052BAFA /* r_sky.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5ED1C5C58C300CD0B13 /* r_sky.c */; };
 		CED438801D9D34450052BAFA /* r_bsp.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5B31C5C58C300CD0B13 /* r_bsp.h */; };
 		CED438821D9D34450052BAFA /* r_bsp_model.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5B71C5C58C300CD0B13 /* r_bsp_model.h */; };
@@ -588,7 +587,6 @@
 		CED438941D9D34450052BAFA /* r_mesh_model.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5DA1C5C58C300CD0B13 /* r_mesh_model.h */; };
 		CED438971D9D34450052BAFA /* r_model.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5E01C5C58C300CD0B13 /* r_model.h */; };
 		CED438981D9D34450052BAFA /* r_particle.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5E21C5C58C300CD0B13 /* r_particle.h */; };
-		CED4389A1D9D34450052BAFA /* r_bsp_program.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5E61C5C58C300CD0B13 /* r_bsp_program.h */; };
 		CED4389E1D9D34450052BAFA /* r_sky.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5EE1C5C58C300CD0B13 /* r_sky.h */; };
 		CED438A01D9D34450052BAFA /* r_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5F11C5C58C300CD0B13 /* r_types.h */; };
 		CED438A11D9D34450052BAFA /* renderer.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5F21C5C58C300CD0B13 /* renderer.h */; };
@@ -1592,8 +1590,6 @@
 		CE12D5E01C5C58C300CD0B13 /* r_model.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_model.h; sourceTree = "<group>"; };
 		CE12D5E11C5C58C300CD0B13 /* r_particle.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = r_particle.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		CE12D5E21C5C58C300CD0B13 /* r_particle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_particle.h; sourceTree = "<group>"; };
-		CE12D5E51C5C58C300CD0B13 /* r_bsp_program.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_bsp_program.c; sourceTree = "<group>"; };
-		CE12D5E61C5C58C300CD0B13 /* r_bsp_program.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_bsp_program.h; sourceTree = "<group>"; };
 		CE12D5ED1C5C58C300CD0B13 /* r_sky.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_sky.c; sourceTree = "<group>"; };
 		CE12D5EE1C5C58C300CD0B13 /* r_sky.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_sky.h; sourceTree = "<group>"; };
 		CE12D5F11C5C58C300CD0B13 /* r_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_types.h; sourceTree = "<group>"; };
@@ -2980,8 +2976,6 @@
 				CE12D5B91C5C58C300CD0B13 /* r_bsp_draw.h */,
 				CE12D5B61C5C58C300CD0B13 /* r_bsp_model.c */,
 				CE12D5B71C5C58C300CD0B13 /* r_bsp_model.h */,
-				CE12D5E51C5C58C300CD0B13 /* r_bsp_program.c */,
-				CE12D5E61C5C58C300CD0B13 /* r_bsp_program.h */,
 				CE12D5BA1C5C58C300CD0B13 /* r_context.c */,
 				CE12D5BB1C5C58C300CD0B13 /* r_context.h */,
 				CE12D5BE1C5C58C300CD0B13 /* r_draw.c */,
@@ -4017,7 +4011,6 @@
 				CED438801D9D34450052BAFA /* r_bsp.h in Headers */,
 				CED438831D9D34450052BAFA /* r_bsp_draw.h in Headers */,
 				CED438821D9D34450052BAFA /* r_bsp_model.h in Headers */,
-				CED4389A1D9D34450052BAFA /* r_bsp_program.h in Headers */,
 				CED438841D9D34450052BAFA /* r_context.h in Headers */,
 				CED438861D9D34450052BAFA /* r_draw.h in Headers */,
 				CED438881D9D34450052BAFA /* r_entity.h in Headers */,
@@ -5444,7 +5437,6 @@
 				CED438391D9D34450052BAFA /* r_bsp.c in Sources */,
 				CED4383C1D9D34450052BAFA /* r_bsp_draw.c in Sources */,
 				CED4383B1D9D34450052BAFA /* r_bsp_model.c in Sources */,
-				CED438521D9D34450052BAFA /* r_bsp_program.c in Sources */,
 				CED4383D1D9D34450052BAFA /* r_context.c in Sources */,
 				CED4383F1D9D34450052BAFA /* r_draw.c in Sources */,
 				CED438411D9D34450052BAFA /* r_entity.c in Sources */,
