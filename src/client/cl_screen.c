@@ -117,41 +117,6 @@ static void Cl_DrawNetGraph(void) {
 	}
 }
 
-static const char *r_state_names[] = {
-	"program binds",
-	"activeTexture changes",
-	"texture binds",
-	"buffer binds",
-	"blendFunc changes",
-	"GL_BLEND toggles",
-	"depthMask changes",
-	"GL_STENCIL toggles",
-	"stencilOp changes",
-	"stencilFunc changes",
-	"polygonOffset changes",
-	"GL_POLYGON_OFFSET toggles",
-	"viewport changes",
-	"GL_DEPTH_TEST toggles",
-	"depthRange changes",
-	"GL_SCISSOR toggles",
-	"scissor changes",
-	"program uniform changes",
-	"program attrib pointer changes",
-	"program attrib constant changes",
-	"program attrib toggles",
-};
-
-static const char *r_texnum_names[] = {
-	"diffuse",
-	"lightmap",
-	"deluxemap",
-	"normalmap",
-	"specularmap",
-	"warp",
-	"tintmap",
-	"stainmap"
-};
-
 /**
  * @brief Draws counters and performance information about the renderer.
  */
@@ -176,33 +141,27 @@ static void Cl_DrawRendererStats(void) {
 	R_DrawString(0, y, va("%d leafs", r_view.num_bsp_leafs), CON_COLOR_YELLOW);
 	y += ch;
 
-	R_DrawString(0, y, va("%d surfaces", r_view.num_bsp_surfaces), CON_COLOR_YELLOW);
+	R_DrawString(0, y, va("%d surfaces", r_view.num_bsp_faces), CON_COLOR_YELLOW);
 	y += ch;
 
-	y += ch;
-	R_DrawString(0, y, "Mesh:", CON_COLOR_CYAN);
-	y += ch;
-
-	R_DrawString(0, y, va("%d models", r_view.num_mesh_models), CON_COLOR_CYAN);
-	y += ch;
-
-	R_DrawString(0, y, va("%d tris", r_view.num_mesh_tris), CON_COLOR_CYAN);
-	y += ch;
+//	y += ch;
+//	R_DrawString(0, y, "Mesh:", CON_COLOR_CYAN);
+//	y += ch;
+//
+//	R_DrawString(0, y, va("%d models", r_view.num_mesh_models), CON_COLOR_CYAN);
+//	y += ch;
+//
+//	R_DrawString(0, y, va("%d tris", r_view.num_mesh_tris), CON_COLOR_CYAN);
+//	y += ch;
 
 	y += ch;
 	R_DrawString(0, y, "Draws:", CON_COLOR_CYAN);
 	y += ch;
 
-	R_DrawString(0, y, va("%d elements over %d batches total", r_view.num_draw_array_count + r_view.num_draw_element_count,
-	                      r_view.num_draw_arrays + r_view.num_draw_elements), CON_COLOR_CYAN);
+	R_DrawString(0, y, va("%d glDrawElements", r_view.num_draw_arrays), CON_COLOR_CYAN);
 	y += ch;
 
-	R_DrawString(0, y, va("%d elements over %d array batches", r_view.num_draw_array_count, r_view.num_draw_arrays),
-	             CON_COLOR_CYAN);
-	y += ch;
-
-	R_DrawString(0, y, va("%d elements over %d element batches", r_view.num_draw_element_count, r_view.num_draw_elements),
-	             CON_COLOR_CYAN);
+	R_DrawString(0, y, va("%d glDrawElements", r_view.num_draw_elements), CON_COLOR_CYAN);
 	y += ch;
 
 	y += ch;
@@ -213,50 +172,6 @@ static void Cl_DrawRendererStats(void) {
 	y += ch;
 
 	R_DrawString(0, y, va("%d particles", r_view.num_particles), CON_COLOR_WHITE);
-	y += ch;
-
-	uint32_t total_state_changes = 0;
-
-	for (uint32_t i = 0; i < R_STATE_TOTAL; i++) {
-		total_state_changes += r_view.num_state_changes[i];
-	}
-
-	R_DrawString(0, y, va("%d state changes", total_state_changes), CON_COLOR_WHITE);
-	y += ch;
-
-	for (uint32_t i = 0; i < R_STATE_TOTAL; i++) {
-		R_DrawString(0, y, va("- %d %s", r_view.num_state_changes[i], r_state_names[i]), CON_COLOR_WHITE);
-		y += ch;
-	}
-
-	uint32_t total_texunit_changes = 0;
-
-	for (uint32_t i = 0; i < R_TEXUNIT_TOTAL; ++i) {
-		total_texunit_changes += r_view.num_binds[i];
-	}
-
-	R_DrawString(0, y, va("%d texunit changes", total_texunit_changes), CON_COLOR_GREEN);
-	y += ch;
-
-	for (uint32_t i = 0; i < R_TEXUNIT_TOTAL; ++i) {
-		R_DrawString(0, y, va("- %d %s", r_view.num_binds[i], r_texnum_names[i]), CON_COLOR_GREEN);
-		y += ch;
-	}
-
-	y += ch;
-	R_DrawString(0, y, va("Data Buffers: %u bound, %u partial, %u full; %" PRIuPTR " bytes",
-	                      r_view.buffer_stats[R_BUFFER_DATA].bound, r_view.buffer_stats[R_BUFFER_DATA].num_partial_uploads,
-						  r_view.buffer_stats[R_BUFFER_DATA].num_full_uploads, r_view.buffer_stats[R_BUFFER_DATA].size_uploaded), CON_COLOR_GREEN);
-	
-	y += ch;
-	R_DrawString(0, y, va("Element Buffers: %u bound, %u partial, %u full; %" PRIuPTR " bytes",
-	                      r_view.buffer_stats[R_BUFFER_ELEMENT].bound, r_view.buffer_stats[R_BUFFER_ELEMENT].num_partial_uploads,
-						  r_view.buffer_stats[R_BUFFER_ELEMENT].num_full_uploads, r_view.buffer_stats[R_BUFFER_ELEMENT].size_uploaded), CON_COLOR_GREEN);
-	
-	y += ch;
-
-	R_DrawString(0, y, va("%d total buffers created (%d bytes)", R_GetNumAllocatedBuffers(),
-	                      R_GetNumAllocatedBufferBytes()), CON_COLOR_WHITE);
 	y += ch;
 
 	R_DrawString(0, y, va("cull: %d pass, %d fail", r_view.cull_passes, r_view.cull_fails), CON_COLOR_WHITE);
@@ -377,17 +292,11 @@ void Cl_UpdateScreen(void) {
 
 	if (cls.state == CL_ACTIVE) {
 
-		R_Setup3D();
+//		R_Setup3D();
 
 		R_DrawView();
 
-		R_Setup2D();
-
-		R_EnableBlend(false);
-
-		R_DrawSupersample();
-
-		R_EnableBlend(true);
+//		R_Setup2D();
 
 		Cl_DrawChat();
 
@@ -403,7 +312,7 @@ void Cl_UpdateScreen(void) {
 		}
 
 	} else {
-		R_Setup2D();
+//		R_Setup2D();
 	}
 
 	if (cls.state != CL_LOADING && cls.key_state.dest == KEY_CONSOLE) {

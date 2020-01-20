@@ -75,15 +75,15 @@ static View *init(View *self) {
  */
 static void renderMeshEntity(r_entity_t *e) {
 
-	cgi.view->current_entity = e;
-
-	cgi.SetMatrixForEntity(e);
-
-	cgi.EnableBlend(false);
-
-	cgi.DrawMeshModel(e);
-
-	cgi.EnableBlend(true);
+//	cgi.view->current_entity = e;
+//
+//	cgi.SetMatrixForEntity(e);
+//
+//	cgi.EnableBlend(false);
+//
+//	cgi.DrawMeshModel(e);
+//
+//	cgi.EnableBlend(true);
 }
 
 /**
@@ -91,9 +91,9 @@ static void renderMeshEntity(r_entity_t *e) {
  */
 static void renderMeshMaterialsEntity(r_entity_t *e) {
 
-	cgi.view->current_entity = e;
-
-	cgi.DrawMeshModelMaterials(e);
+//	cgi.view->current_entity = e;
+//
+//	cgi.DrawMeshModelMaterials(e);
 }
 
 #define NEAR_Z 1.0
@@ -115,73 +115,73 @@ static void render(View *self, Renderer *renderer) {
 	if (this->client.torso) {
 		$(this, animate);
 
-		cgi.PushMatrix(R_MATRIX_PROJECTION);
-		cgi.PushMatrix(R_MATRIX_MODELVIEW);
-
-		const SDL_Rect viewport = $(self, viewport);
-		cgi.SetViewport(viewport.x, viewport.y, viewport.w, viewport.h, false);
-
-		// create projection matrix
-		const vec_t aspect = (vec_t) viewport.w / (vec_t) viewport.h;
-
-		const vec_t ymax = NEAR_Z * tanf(Radians(40)); // Field of view
-		const vec_t ymin = -ymax;
-
-		const vec_t xmin = ymin * aspect;
-		const vec_t xmax = ymax * aspect;
-		matrix4x4_t mat;
-
-		Matrix4x4_FromFrustum(&mat, xmin, xmax, ymin, ymax, NEAR_Z, FAR_Z);
-
-		cgi.SetMatrix(R_MATRIX_PROJECTION, &mat);
-
-		// create base modelview matrix
-		Matrix4x4_CreateIdentity(&mat);
-
-		// Quake is retarded: rotate so that Z is up
-		Matrix4x4_ConcatRotate(&mat, -90.0, 1.0, 0.0, 0.0);
-		Matrix4x4_ConcatRotate(&mat,  90.0, 0.0, 0.0, 1.0);
-		Matrix4x4_ConcatTranslate(&mat, 90.0 - (this->zoom * 45.0), 0.0, 20.0 - (this->zoom * 35.0));
-
-		Matrix4x4_ConcatRotate(&mat, -25.0 - (this->zoom * -10.0), 0.0, 1.0, 0.0);
-
-		Matrix4x4_ConcatRotate(&mat, sinf(Radians(cgi.client->unclamped_time * 0.05)) * 10.0, 0.0, 0.0, 1.0);
-
-		cgi.EnableDepthTest(true);
-		cgi.DepthRange(0.0, 0.1);
-
-		// Platform base; doesn't rotate
-
-		cgi.SetMatrix(R_MATRIX_MODELVIEW, &mat);
-
-		renderMeshEntity(&this->platformBase);
-		renderMeshMaterialsEntity(&this->platformBase);
-
-		// Rotating stuff
-
-		Matrix4x4_ConcatRotate(&mat, this->yaw, 0.0, 0.0, 1.0);
-
-		cgi.SetMatrix(R_MATRIX_MODELVIEW, &mat);
-
-		renderMeshEntity(&this->legs);
-		renderMeshEntity(&this->torso);
-		renderMeshEntity(&this->head);
-		renderMeshEntity(&this->weapon);
-		renderMeshEntity(&this->platformCenter);
-
-		renderMeshMaterialsEntity(&this->legs);
-		renderMeshMaterialsEntity(&this->torso);
-		renderMeshMaterialsEntity(&this->head);
-		renderMeshMaterialsEntity(&this->weapon);
-		renderMeshMaterialsEntity(&this->platformCenter);
-
-		cgi.DepthRange(0.0, 1.0);
-		cgi.EnableDepthTest(false);
-
-		cgi.SetViewport(0, 0, cgi.context->width, cgi.context->height, false);
-
-		cgi.PopMatrix(R_MATRIX_MODELVIEW);
-		cgi.PopMatrix(R_MATRIX_PROJECTION);
+//		cgi.PushMatrix(R_MATRIX_PROJECTION);
+//		cgi.PushMatrix(R_MATRIX_MODELVIEW);
+//
+//		const SDL_Rect viewport = $(self, viewport);
+//		cgi.SetViewport(viewport.x, viewport.y, viewport.w, viewport.h, false);
+//
+//		// create projection matrix
+//		const vec_t aspect = (vec_t) viewport.w / (vec_t) viewport.h;
+//
+//		const vec_t ymax = NEAR_Z * tanf(Radians(40)); // Field of view
+//		const vec_t ymin = -ymax;
+//
+//		const vec_t xmin = ymin * aspect;
+//		const vec_t xmax = ymax * aspect;
+//		matrix4x4_t mat;
+//
+//		Matrix4x4_FromFrustum(&mat, xmin, xmax, ymin, ymax, NEAR_Z, FAR_Z);
+//
+//		cgi.SetMatrix(R_MATRIX_PROJECTION, &mat);
+//
+//		// create base modelview matrix
+//		Matrix4x4_CreateIdentity(&mat);
+//
+//		// Quake is retarded: rotate so that Z is up
+//		Matrix4x4_ConcatRotate(&mat, -90.0, 1.0, 0.0, 0.0);
+//		Matrix4x4_ConcatRotate(&mat,  90.0, 0.0, 0.0, 1.0);
+//		Matrix4x4_ConcatTranslate(&mat, 90.0 - (this->zoom * 45.0), 0.0, 20.0 - (this->zoom * 35.0));
+//
+//		Matrix4x4_ConcatRotate(&mat, -25.0 - (this->zoom * -10.0), 0.0, 1.0, 0.0);
+//
+//		Matrix4x4_ConcatRotate(&mat, sinf(Radians(cgi.client->unclamped_time * 0.05)) * 10.0, 0.0, 0.0, 1.0);
+//
+//		cgi.EnableDepthTest(true);
+//		cgi.DepthRange(0.0, 0.1);
+//
+//		// Platform base; doesn't rotate
+//
+//		cgi.SetMatrix(R_MATRIX_MODELVIEW, &mat);
+//
+//		renderMeshEntity(&this->platformBase);
+//		renderMeshMaterialsEntity(&this->platformBase);
+//
+//		// Rotating stuff
+//
+//		Matrix4x4_ConcatRotate(&mat, this->yaw, 0.0, 0.0, 1.0);
+//
+//		cgi.SetMatrix(R_MATRIX_MODELVIEW, &mat);
+//
+//		renderMeshEntity(&this->legs);
+//		renderMeshEntity(&this->torso);
+//		renderMeshEntity(&this->head);
+//		renderMeshEntity(&this->weapon);
+//		renderMeshEntity(&this->platformCenter);
+//
+//		renderMeshMaterialsEntity(&this->legs);
+//		renderMeshMaterialsEntity(&this->torso);
+//		renderMeshMaterialsEntity(&this->head);
+//		renderMeshMaterialsEntity(&this->weapon);
+//		renderMeshMaterialsEntity(&this->platformCenter);
+//
+//		cgi.DepthRange(0.0, 1.0);
+//		cgi.EnableDepthTest(false);
+//
+//		cgi.SetViewport(0, 0, cgi.context->width, cgi.context->height, false);
+//
+//		cgi.PopMatrix(R_MATRIX_MODELVIEW);
+//		cgi.PopMatrix(R_MATRIX_PROJECTION);
 	}
 }
 

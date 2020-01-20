@@ -48,7 +48,7 @@ void Cg_ResolveWeather(const char *weather) {
 
 	cgi.view->weather = WEATHER_NONE;
 
-	Vector4Set(cgi.view->fog_color, 0.75, 0.75, 0.75, 1.0);
+	Vector4Set(cgi.view->fog, 0.75, 0.75, 0.75, 1.0);
 
 	if (!weather || *weather == '\0') {
 		return;
@@ -68,13 +68,13 @@ void Cg_ResolveWeather(const char *weather) {
 		err = -1;
 
 		if (strlen(c) > 3) { // try to parse fog color
-			vec_t *f = cgi.view->fog_color;
+			vec_t *f = cgi.view->fog;
 
 			err = sscanf(c + 4, "%f %f %f %f", f, f + 1, f + 2, f + 3);
 		}
 
 		if (err != 3 && err != 4) { // default to gray
-			Vector4Set(cgi.view->fog_color, 0.75, 0.75, 0.75, 1.0);
+			Vector4Set(cgi.view->fog, 0.75, 0.75, 0.75, 1.0);
 		}
 	}
 }
@@ -83,7 +83,7 @@ void Cg_ResolveWeather(const char *weather) {
  * @brief Creates an emitter for the given surface. The number of origins for the
  * emitter depends on the area of the surface.
  */
-static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_surface_t *s) {
+static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_face_t *s) {
 	vec3_t center, delta;
 	uint16_t i;
 
@@ -147,14 +147,14 @@ static void Cg_LoadWeather(void) {
 	}
 
 	const r_bsp_model_t *bsp = cgi.WorldModel()->bsp;
-	const r_bsp_surface_t *s = bsp->surfaces;
+	const r_bsp_face_t *face = bsp->faces;
 
 	// iterate the world surfaces, testing sky surfaces
-	for (i = j = 0; i < bsp->num_surfaces; i++, s++) {
+	for (i = j = 0; i < bsp->num_faces; i++, face++) {
 
 		// for downward facing sky brushes, create an emitter
-		if ((s->texinfo->flags & SURF_SKY) && s->plane->normal[2] < -0.1) {
-			Cg_LoadWeather_(bsp, s);
+		if ((face->texinfo->flags & SURF_SKY) && face->plane->normal[2] < -0.1) {
+			Cg_LoadWeather_(bsp, face);
 			j++;
 		}
 	}

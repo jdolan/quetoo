@@ -22,9 +22,6 @@
 #include "cg_local.h"
 #include "game/default/bg_pmove.h"
 
-#define NEAR_Z 4.0
-#define FAR_Z  (MAX_WORLD_COORD * 4.0)
-
 /**
  * @brief Update the field of view, which affects the view port as well as the culling
  * frustum.
@@ -73,17 +70,6 @@ static void Cg_UpdateFov(void) {
 	const vec_t a = cgi.context->height / (vec_t ) cgi.context->width;
 
 	cgi.view->fov[1] = Degrees(y) * a / 2.0;
-
-	// set up projection matrix
-	const vec_t aspect = (vec_t) cgi.view->viewport_3d.w / (vec_t) cgi.view->viewport_3d.h;
-
-	const vec_t ymax = NEAR_Z * tanf(Radians(cgi.view->fov[1]));
-	const vec_t ymin = -ymax;
-
-	const vec_t xmin = ymin * aspect;
-	const vec_t xmax = ymax * aspect;
-
-	Matrix4x4_FromFrustum(&cgi.view->matrix_base_3d, xmin, xmax, ymin, ymax, NEAR_Z, FAR_Z);
 }
 
 /**
@@ -220,12 +206,13 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	bob += frame_bob;
 	time = cgi.client->unclamped_time;
 
-	cgi.view->bob = sinf(0.0045 * bob) * mod * mod;
-	cgi.view->bob *= cg_bob->value; // scale via cvar too
 
-	VectorMA(cgi.view->origin, -cgi.view->bob, cgi.view->forward, cgi.view->origin);
-	VectorMA(cgi.view->origin, cgi.view->bob, cgi.view->right, cgi.view->origin);
-	VectorMA(cgi.view->origin, cgi.view->bob, cgi.view->up, cgi.view->origin);
+	vec_t b = sinf(0.0045 * bob) * mod * mod;
+	b *= cg_bob->value; // scale via cvar too
+
+	VectorMA(cgi.view->origin, -b, cgi.view->forward, cgi.view->origin);
+	VectorMA(cgi.view->origin, b, cgi.view->right, cgi.view->origin);
+	VectorMA(cgi.view->origin, b, cgi.view->up, cgi.view->origin);
 }
 
 /**

@@ -21,7 +21,7 @@
 
 #pragma once
 
-vec_t R_DistanceToSurface(const vec3_t p, const r_bsp_surface_t *surf);
+vec_t R_DistanceToSurface(const vec3_t p, const r_bsp_face_t *surf);
 const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_bsp_model_t *bsp);
 _Bool R_LeafVisible(const r_bsp_leaf_t *leaf);
 _Bool R_LeafHearable(const r_bsp_leaf_t *leaf);
@@ -35,6 +35,6 @@ void R_AddBspInlineModelFlares(const r_entities_t *ents);
 void R_DrawBspLeafs(void);
 void R_DrawBspNormals(void);
 void R_DrawBspLights(void);
-void R_MarkBspSurfaces(void);
+void R_MarkBspFaces(void);
 void R_UpdateVis(void);
 #endif /* __R_LOCAL_H__ */

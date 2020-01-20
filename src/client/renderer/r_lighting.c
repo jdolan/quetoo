@@ -392,7 +392,7 @@ static void R_CastShadows(r_lighting_t *l, const r_illumination_t *il) {
 		s->shadow = shadow;
 
 		// increment the plane's shadow count
-		r_model_state.world->bsp->plane_shadows[s->plane.num]++;
+//		r_model_state.world->bsp->plane_shadows[s->plane.num]++;
 	}
 }
 
@@ -417,7 +417,7 @@ static void R_UpdateShadows(r_lighting_t *l) {
 	r_shadow_t *s = l->shadows;
 	for (size_t i = 0; i < lengthof(l->shadows); i++, s++) {
 		if (s->plane.num) {
-			r_model_state.world->bsp->plane_shadows[s->plane.num]--;
+//			r_model_state.world->bsp->plane_shadows[s->plane.num]--;
 		}
 	}
 

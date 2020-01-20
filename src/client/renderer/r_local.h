@@ -23,3 +23,4 @@
 
 #define __R_LOCAL_H__
 #include "renderer.h"
+#include "r_gl.h"

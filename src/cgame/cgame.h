@@ -670,7 +670,7 @@ typedef struct cg_import_s {
 	r_entity_t *(*AddLinkedEntity)(const r_entity_t *parent, const r_model_t *model, const char *tag_name);
 
 	/**
-	 * @brief Sets the model-view-projection matrix for the given entity.
+	 * @brief Sets the model view matrix for the given entity.
 	 * @param e The entity.
 	 */
 	void (*SetMatrixForEntity)(r_entity_t *e);
@@ -684,6 +684,7 @@ typedef struct cg_import_s {
 	 */
 	const r_model_tag_t *(*MeshModelTag)(const r_model_t *mod, const char *name, const int32_t frame);
 
+#if 0
 	/**
 	 * @brief Change the matrix identified by "id" with the values from "matrix".
 	 * @param id The matrix ID.
@@ -742,6 +743,9 @@ typedef struct cg_import_s {
 	 * @brief Change the rendering viewport.
 	 */
 	void (*SetViewport)(GLint x, GLint y, GLsizei width, GLsizei height, _Bool force);
+
+	#endif
+
 
 	/**
 	 * @brief Adds an instantaneous light to the scene for the current frame.

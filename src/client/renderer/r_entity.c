@@ -44,20 +44,20 @@ r_entity_t *R_AddEntity(const r_entity_t *ent) {
  */
 void R_RotateForEntity(const r_entity_t *e) {
 
-	if (!e) {
-		R_PopMatrix(R_MATRIX_MODELVIEW);
-		return;
-	}
-
-	R_PushMatrix(R_MATRIX_MODELVIEW);
-
-	matrix4x4_t modelview;
-
-	R_GetMatrix(R_MATRIX_MODELVIEW, &modelview);
-
-	Matrix4x4_Concat(&modelview, &modelview, &e->matrix);
-
-	R_SetMatrix(R_MATRIX_MODELVIEW, &modelview);
+//	if (!e) {
+//		R_PopMatrix(R_MATRIX_MODELVIEW);
+//		return;
+//	}
+//
+//	R_PushMatrix(R_MATRIX_MODELVIEW);
+//
+//	matrix4x4_t modelview;
+//
+//	R_GetMatrix(R_MATRIX_MODELVIEW, &modelview);
+//
+//	Matrix4x4_Concat(&modelview, &modelview, &e->matrix);
+//
+//	R_SetMatrix(R_MATRIX_MODELVIEW, &modelview);
 }
 
 /**
@@ -71,7 +71,7 @@ void R_SetMatrixForEntity(r_entity_t *e) {
 	}
 
 	if (IS_MESH_MODEL(e->model)) {
-		R_ApplyMeshModelConfig(e);
+//		R_ApplyMeshModelConfig(e);
 	}
 
 	Matrix4x4_Invert_Simple(&e->inverse_matrix, &e->matrix);
@@ -109,9 +109,9 @@ void R_CullEntities(void) {
 			ents = &r_sorted_entities.bsp_inline_entities;
 		} else if (IS_MESH_MODEL(e->model)) {
 
-			if (R_CullMeshModel(e)) {
-				continue;
-			}
+//			if (R_CullMeshModel(e)) {
+//				continue;
+//			}
 
 			R_UpdateMeshModelLighting(e);
 
@@ -134,13 +134,13 @@ void R_CullEntities(void) {
  */
 static void R_DrawNullModel(const r_entity_t *e) {
 
-	R_BindDiffuseTexture(r_image_state.null->texnum);
-
-	R_RotateForEntity(e);
-
-	R_DrawArrays(GL_TRIANGLES, 0, (GLsizei) r_model_state.null_elements_count);
-
-	R_RotateForEntity(NULL);
+//	R_BindDiffuseTexture(r_image_state.null->texnum);
+//
+//	R_RotateForEntity(e);
+//
+//	R_DrawArrays(GL_TRIANGLES, 0, (GLsizei) r_model_state.null_elements_count);
+//
+//	R_RotateForEntity(NULL);
 }
 
 /**
@@ -152,9 +152,9 @@ static void R_DrawNullModels(const r_entities_t *ents) {
 		return;
 	}
 
-	R_BindAttributeBuffer(R_ATTRIB_POSITION, &r_model_state.null_vertices);
-	R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &r_model_state.null_elements);
-
+//	R_BindAttributeBuffer(R_ATTRIB_POSITION, &r_model_state.null_vertices);
+//	R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &r_model_state.null_elements);
+//
 	for (size_t i = 0; i < ents->count; i++) {
 		const r_entity_t *e = ents->entities[i];
 
@@ -166,9 +166,9 @@ static void R_DrawNullModels(const r_entities_t *ents) {
 
 		R_DrawNullModel(e);
 	}
-
-	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
-	R_UnbindAttributeBuffer(R_ATTRIB_ELEMENTS);
+//
+//	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
+//	R_UnbindAttributeBuffer(R_ATTRIB_ELEMENTS);
 
 	r_view.current_entity = NULL;
 }
@@ -186,83 +186,73 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 		return;
 	}
 
-	R_BindDiffuseTexture(r_image_state.null->texnum); // TODO: Disable texture instead?
-
-	R_EnableColorArray(true);
-
-	R_BindAttributeInterleaveBuffer(&r_model_state.bound_vertice_buffer, R_ATTRIB_MASK_ALL);
-	R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &r_model_state.bound_element_buffer);
-
-	for (int32_t i = 0; i < 8; i++) {
-		ColorDecompose(color, r_model_state.bound_vertices[i].color);
-	}
-
-	static matrix4x4_t mat, modelview;
-
-	R_GetMatrix(R_MATRIX_MODELVIEW, &modelview);
-
-	for (size_t i = 0; i < ents->count; i++) {
-		const r_entity_t *e = ents->entities[i];
-
-		if ((e->effects & EF_WEAPON) || !IS_MESH_MODEL(e->model)) {
-			continue;
-		}
-
-		VectorSet(r_model_state.bound_vertices[0].position, e->mins[0], e->mins[1], e->mins[2]);
-		VectorSet(r_model_state.bound_vertices[1].position, e->maxs[0], e->mins[1], e->mins[2]);
-		VectorSet(r_model_state.bound_vertices[2].position, e->maxs[0], e->maxs[1], e->mins[2]);
-		VectorSet(r_model_state.bound_vertices[3].position, e->mins[0], e->maxs[1], e->mins[2]);
-
-		VectorSet(r_model_state.bound_vertices[4].position, e->mins[0], e->mins[1], e->maxs[2]);
-		VectorSet(r_model_state.bound_vertices[5].position, e->maxs[0], e->mins[1], e->maxs[2]);
-		VectorSet(r_model_state.bound_vertices[6].position, e->maxs[0], e->maxs[1], e->maxs[2]);
-		VectorSet(r_model_state.bound_vertices[7].position, e->mins[0], e->maxs[1], e->maxs[2]);
-
-		R_UploadToBuffer(&r_model_state.bound_vertice_buffer, sizeof(r_bound_interleave_vertex_t) * 8,
-		                 r_model_state.bound_vertices);
-
-		// draw box
-		const vec_t *origin;
-
-		if (e->effects & EF_BOB) {
-			origin = e->termination;
-		} else {
-			origin = e->origin;
-		}
-
-		Matrix4x4_CreateFromEntity(&mat, origin, vec3_origin, e->scale);
-
-		Matrix4x4_Concat(&mat, &modelview, &mat);
-
-		R_SetMatrix(R_MATRIX_MODELVIEW, &mat);
-
-		R_DrawArrays(GL_LINES, 0, (GLint) r_model_state.bound_element_count - 6);
-
-		// draw origin
-		Matrix4x4_CreateFromEntity(&mat, origin, e->angles, e->scale);
-
-		Matrix4x4_Concat(&mat, &modelview, &mat);
-
-		R_SetMatrix(R_MATRIX_MODELVIEW, &mat);
-
-		R_DrawArrays(GL_LINES, (GLint) r_model_state.bound_element_count - 6, 6);
-	}
-
-	R_SetMatrix(R_MATRIX_MODELVIEW, &modelview);
-
-	R_UnbindAttributeBuffer(R_ATTRIB_ELEMENTS);
-
-	R_EnableColorArray(false);
-}
-
-/**
- * @brief
- */
-void R_AddFlares(void) {
-	const r_sorted_bsp_surfaces_t *surfs = r_model_state.world->bsp->sorted_surfaces;
-
-	R_AddFlareBspSurfaces(&surfs->flare);
-	R_AddBspInlineModelFlares(&r_sorted_entities.bsp_inline_entities);
+//	R_BindDiffuseTexture(r_image_state.null->texnum); // TODO: Disable texture instead?
+//
+//	R_EnableColorArray(true);
+//
+//	R_BindAttributeInterleaveBuffer(&r_model_state.bound_vertice_buffer, R_ATTRIB_MASK_ALL);
+//	R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &r_model_state.bound_element_buffer);
+//
+//	for (int32_t i = 0; i < 8; i++) {
+//		ColorDecompose(color, r_model_state.bound_vertices[i].color);
+//	}
+//
+//	static matrix4x4_t mat, modelview;
+//
+//	R_GetMatrix(R_MATRIX_MODELVIEW, &modelview);
+//
+//	for (size_t i = 0; i < ents->count; i++) {
+//		const r_entity_t *e = ents->entities[i];
+//
+//		if ((e->effects & EF_WEAPON) || !IS_MESH_MODEL(e->model)) {
+//			continue;
+//		}
+//
+//		VectorSet(r_model_state.bound_vertices[0].position, e->mins[0], e->mins[1], e->mins[2]);
+//		VectorSet(r_model_state.bound_vertices[1].position, e->maxs[0], e->mins[1], e->mins[2]);
+//		VectorSet(r_model_state.bound_vertices[2].position, e->maxs[0], e->maxs[1], e->mins[2]);
+//		VectorSet(r_model_state.bound_vertices[3].position, e->mins[0], e->maxs[1], e->mins[2]);
+//
+//		VectorSet(r_model_state.bound_vertices[4].position, e->mins[0], e->mins[1], e->maxs[2]);
+//		VectorSet(r_model_state.bound_vertices[5].position, e->maxs[0], e->mins[1], e->maxs[2]);
+//		VectorSet(r_model_state.bound_vertices[6].position, e->maxs[0], e->maxs[1], e->maxs[2]);
+//		VectorSet(r_model_state.bound_vertices[7].position, e->mins[0], e->maxs[1], e->maxs[2]);
+//
+//		R_UploadToBuffer(&r_model_state.bound_vertice_buffer, sizeof(r_bound_interleave_vertex_t) * 8,
+//		                 r_model_state.bound_vertices);
+//
+//		// draw box
+//		const vec_t *origin;
+//
+//		if (e->effects & EF_BOB) {
+//			origin = e->termination;
+//		} else {
+//			origin = e->origin;
+//		}
+//
+//		Matrix4x4_CreateFromEntity(&mat, origin, vec3_origin, e->scale);
+//
+//		Matrix4x4_Concat(&mat, &modelview, &mat);
+//
+//		R_SetMatrix(R_MATRIX_MODELVIEW, &mat);
+//
+//		R_DrawArrays(GL_LINES, 0, (GLint) r_model_state.bound_element_count - 6);
+//
+//		// draw origin
+//		Matrix4x4_CreateFromEntity(&mat, origin, e->angles, e->scale);
+//
+//		Matrix4x4_Concat(&mat, &modelview, &mat);
+//
+//		R_SetMatrix(R_MATRIX_MODELVIEW, &mat);
+//
+//		R_DrawArrays(GL_LINES, (GLint) r_model_state.bound_element_count - 6, 6);
+//	}
+//
+//	R_SetMatrix(R_MATRIX_MODELVIEW, &modelview);
+//
+//	R_UnbindAttributeBuffer(R_ATTRIB_ELEMENTS);
+//
+//	R_EnableColorArray(false);
 }
 
 /**

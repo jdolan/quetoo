@@ -19,13 +19,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+#include "r_stain.h"
 
-#include "r_types.h"
+/**
+ * @brief
+ */
+void R_AddStain(const r_stain_t *stain) {
 
-#ifdef __R_LOCAL_H__
-void R_InitProgram_shadow(r_program_t *program);
-void R_PreLink_shadow(const r_program_t *program);
-void R_UpdateShadowLightPlane_shadow(const vec4_t light, const vec4_t plane);
-void R_UseInterpolation_shadow(const vec_t time_fraction);
-#endif /* __R_LOCAL_H__ */
+}

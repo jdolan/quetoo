@@ -26,29 +26,36 @@
 #define MAX_CHAR_VERTS MAX_CHARS * 4
 #define MAX_CHAR_ELEMENTS MAX_CHARS * 6
 
+const vec2_t default_texcoords[4] = { // useful for particles, pics, etc..
+	{ 0.0, 0.0 },
+	{ 1.0, 0.0 },
+	{ 1.0, 1.0 },
+	{ 0.0, 1.0 }
+};
+
 typedef struct {
 	s16vec2_t position;
 	u16vec2_t texcoord;
 	u8vec4_t color;
 } r_char_interleave_vertex_t;
 
-static r_buffer_layout_t r_char_buffer_layout[] = {
-	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_SHORT, .count = 2 },
-	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_UNSIGNED_SHORT, .count = 2, .normalized = true },
-	{ .attribute = R_ATTRIB_COLOR, .type = R_TYPE_UNSIGNED_BYTE, .count = 4, .normalized = true },
-	{ .attribute = -1 }
-};
+//static r_buffer_layout_t r_char_buffer_layout[] = {
+//	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_SHORT, .count = 2 },
+//	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_UNSIGNED_SHORT, .count = 2, .normalized = true },
+//	{ .attribute = R_ATTRIB_COLOR, .type = R_TYPE_UNSIGNED_BYTE, .count = 4, .normalized = true },
+//	{ .attribute = -1 }
+//};
 
 // characters are batched per frame and drawn in one shot
 // accumulate coordinates and colors as vertex arrays
 typedef struct r_char_arrays_s {
 	r_char_interleave_vertex_t verts[MAX_CHAR_VERTS];
 	uint32_t vert_index;
-	r_buffer_t vert_buffer;
+//	r_buffer_t vert_buffer;
 
 	GLuint elements[MAX_CHAR_ELEMENTS];
 	uint32_t element_index;
-	r_buffer_t element_buffer;
+//	r_buffer_t element_buffer;
 
 	uint32_t num_chars;
 } r_char_arrays_t;
@@ -62,26 +69,26 @@ typedef struct {
 	u8vec4_t color;
 } r_fill_interleave_vertex_t;
 
-static r_buffer_layout_t r_fill_buffer_layout[] = {
-	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 2 },
-	{ .attribute = R_ATTRIB_COLOR, .type = R_TYPE_UNSIGNED_BYTE, .count = 4, .normalized = true },
-	{ .attribute = -1 }
-};
+//static r_buffer_layout_t r_fill_buffer_layout[] = {
+//	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 2 },
+//	{ .attribute = R_ATTRIB_COLOR, .type = R_TYPE_UNSIGNED_BYTE, .count = 4, .normalized = true },
+//	{ .attribute = -1 }
+//};
 
 // fills (alpha-blended quads) are also batched per frame
 typedef struct r_fill_arrays_s {
 	r_fill_interleave_vertex_t verts[MAX_FILL_VERTS];
 	uint32_t vert_index;
-	r_buffer_t vert_buffer;
+//	r_buffer_t vert_buffer;
 
 	GLuint elements[MAX_FILL_ELEMENTS];
 	uint32_t element_index;
-	r_buffer_t element_buffer;
+//	r_buffer_t element_buffer;
 
 	uint32_t num_fills;
 
 	// buffer used for immediately-rendered fills
-	r_buffer_t ui_vert_buffer;
+//	r_buffer_t ui_vert_buffer;
 } r_fill_arrays_t;
 
 #define MAX_LINES 512
@@ -91,10 +98,10 @@ typedef struct r_fill_arrays_s {
 typedef struct r_line_arrays_s {
 	r_fill_interleave_vertex_t verts[MAX_LINE_VERTS];
 	uint32_t vert_index;
-	r_buffer_t vert_buffer;
+//	r_buffer_t vert_buffer;
 
 	// buffer used for immediately-rendered lines
-	r_buffer_t ui_vert_buffer;
+//	r_buffer_t ui_vert_buffer;
 } r_line_arrays_t;
 
 // each font has vertex arrays of characters to draw each frame
@@ -114,11 +121,11 @@ typedef struct {
 	u16vec2_t texcoord;
 } r_image_interleave_vertex_t;
 
-static r_buffer_layout_t r_image_buffer_layout[] = {
-	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_SHORT, .count = 2 },
-	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_UNSIGNED_SHORT, .count = 2 },
-	{ .attribute = -1 }
-};
+//static r_buffer_layout_t r_image_buffer_layout[] = {
+//	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_SHORT, .count = 2 },
+//	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_UNSIGNED_SHORT, .count = 2 },
+//	{ .attribute = -1 }
+//};
 
 // pull it all together in one structure
 typedef struct r_draw_s {
@@ -137,10 +144,10 @@ typedef struct r_draw_s {
 	r_fill_arrays_t fill_arrays;
 	r_line_arrays_t line_arrays;
 
-	r_buffer_t image_buffer;
+//	r_buffer_t image_buffer;
 	r_image_interleave_vertex_t image_vertices[4];
 
-	r_buffer_t supersample_buffer;
+//	r_buffer_t supersample_buffer;
 } r_draw_t;
 
 static r_draw_t r_draw;
@@ -161,15 +168,15 @@ static void R_MakeQuadU32(uint32_t *indices, const uint32_t vertex_id) {
 /**
  * @brief
  */
-static void R_DrawImage_(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const GLuint texnum,
-                         const r_buffer_t *buffer) {
-
-	R_BindDiffuseTexture(texnum);
-
-	R_BindAttributeInterleaveBuffer(buffer, R_ATTRIB_MASK_ALL);
-
-	R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
-}
+//static void R_DrawImage_(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const GLuint texnum,
+//                         const r_buffer_t *buffer) {
+//
+//	R_BindDiffuseTexture(texnum);
+//
+//	R_BindAttributeInterleaveBuffer(buffer, R_ATTRIB_MASK_ALL);
+//
+//	R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
+//}
 
 /**
  * @brief
@@ -181,9 +188,9 @@ void R_DrawImageResized(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, cons
 	Vector2Set(r_draw.image_vertices[2].position, x + w, y + h);
 	Vector2Set(r_draw.image_vertices[3].position, x, y + h);
 
-	R_UploadToBuffer(&r_draw.image_buffer, sizeof(r_draw.image_vertices), r_draw.image_vertices);
-
-	R_DrawImage_(x, y, w, h, image->texnum, &r_draw.image_buffer);
+//	R_UploadToBuffer(&r_draw.image_buffer, sizeof(r_draw.image_vertices), r_draw.image_vertices);
+//
+//	R_DrawImage_(x, y, w, h, image->texnum, &r_draw.image_buffer);
 }
 
 /**
@@ -192,18 +199,6 @@ void R_DrawImageResized(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, cons
 void R_DrawImage(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image) {
 
 	R_DrawImageResized(x, y, image->width * scale, image->height * scale, image);
-}
-
-/**
- * @brief
- */
-void R_DrawSupersample(void) {
-
-	if (!r_state.supersample_fb) {
-		return;
-	}
-
-	R_DrawImage_(0, 0, r_context.width, r_context.height, r_state.supersample_image->texnum, &r_draw.supersample_buffer);
 }
 
 /**
@@ -358,23 +353,23 @@ static void R_DrawChars(void) {
 			continue;
 		}
 
-		R_UploadToBuffer(&r_draw.char_arrays[i].vert_buffer,
-		                 r_draw.char_arrays[i].vert_index * sizeof(r_char_interleave_vertex_t),
-		                 r_draw.char_arrays[i].verts);
-
-		R_UploadToBuffer(&r_draw.char_arrays[i].element_buffer, r_draw.char_arrays[i].element_index * sizeof(GLuint),
-		                 r_draw.char_arrays[i].elements);
-
-		R_BindDiffuseTexture(r_draw.fonts[i].image->texnum);
-
-		R_EnableColorArray(true);
-
-		// alter the array pointers
-		R_BindAttributeInterleaveBuffer(&chars->vert_buffer, R_ATTRIB_MASK_ALL);
-
-		R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &chars->element_buffer);
-
-		R_DrawArrays(GL_TRIANGLES, 0, chars->element_index);
+//		R_UploadToBuffer(&r_draw.char_arrays[i].vert_buffer,
+//		                 r_draw.char_arrays[i].vert_index * sizeof(r_char_interleave_vertex_t),
+//		                 r_draw.char_arrays[i].verts);
+//
+//		R_UploadToBuffer(&r_draw.char_arrays[i].element_buffer, r_draw.char_arrays[i].element_index * sizeof(GLuint),
+//		                 r_draw.char_arrays[i].elements);
+//
+//		R_BindDiffuseTexture(r_draw.fonts[i].image->texnum);
+//
+//		R_EnableColorArray(true);
+//
+//		// alter the array pointers
+//		R_BindAttributeInterleaveBuffer(&chars->vert_buffer, R_ATTRIB_MASK_ALL);
+//
+//		R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &chars->element_buffer);
+//
+//		R_DrawArrays(GL_TRIANGLES, 0, chars->element_index);
 
 		chars->vert_index = 0;
 		chars->element_index = 0;
@@ -382,12 +377,12 @@ static void R_DrawChars(void) {
 	}
 
 	// restore array pointers
-	R_UnbindAttributeBuffer(R_ATTRIB_COLOR);
-	R_UnbindAttributeBuffer(R_ATTRIB_DIFFUSE);
-	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
-	R_UnbindAttributeBuffer(R_ATTRIB_ELEMENTS);
-
-	R_EnableColorArray(false);
+//	R_UnbindAttributeBuffer(R_ATTRIB_COLOR);
+//	R_UnbindAttributeBuffer(R_ATTRIB_DIFFUSE);
+//	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
+//	R_UnbindAttributeBuffer(R_ATTRIB_ELEMENTS);
+//
+//	R_EnableColorArray(false);
 }
 
 /**
@@ -436,29 +431,29 @@ static void R_DrawFills(void) {
 		return;
 	}
 
-	R_BindDiffuseTexture(r_image_state.null->texnum);
-
-	R_EnableColorArray(true);
-
-	// upload the changed data
-	R_UploadToBuffer(&r_draw.fill_arrays.vert_buffer, r_draw.fill_arrays.vert_index * sizeof(r_fill_interleave_vertex_t),
-	                 r_draw.fill_arrays.verts);
-
-	R_UploadToBuffer(&r_draw.fill_arrays.element_buffer, r_draw.fill_arrays.element_index * sizeof(GLuint),
-	                 r_draw.fill_arrays.elements);
-
-	// alter the array pointers
-	R_BindAttributeInterleaveBuffer(&r_draw.fill_arrays.vert_buffer, R_ATTRIB_MASK_ALL);
-	R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &r_draw.fill_arrays.element_buffer);
-
-	R_DrawArrays(GL_TRIANGLES, 0, r_draw.fill_arrays.element_index);
-
-	// and restore them
-	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
-	R_UnbindAttributeBuffer(R_ATTRIB_COLOR);
-	R_UnbindAttributeBuffer(R_ATTRIB_ELEMENTS);
-
-	R_EnableColorArray(false);
+//	R_BindDiffuseTexture(r_image_state.null->texnum);
+//
+//	R_EnableColorArray(true);
+//
+//	// upload the changed data
+//	R_UploadToBuffer(&r_draw.fill_arrays.vert_buffer, r_draw.fill_arrays.vert_index * sizeof(r_fill_interleave_vertex_t),
+//	                 r_draw.fill_arrays.verts);
+//
+//	R_UploadToBuffer(&r_draw.fill_arrays.element_buffer, r_draw.fill_arrays.element_index * sizeof(GLuint),
+//	                 r_draw.fill_arrays.elements);
+//
+//	// alter the array pointers
+//	R_BindAttributeInterleaveBuffer(&r_draw.fill_arrays.vert_buffer, R_ATTRIB_MASK_ALL);
+//	R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &r_draw.fill_arrays.element_buffer);
+//
+//	R_DrawArrays(GL_TRIANGLES, 0, r_draw.fill_arrays.element_index);
+//
+//	// and restore them
+//	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
+//	R_UnbindAttributeBuffer(R_ATTRIB_COLOR);
+//	R_UnbindAttributeBuffer(R_ATTRIB_ELEMENTS);
+//
+//	R_EnableColorArray(false);
 
 	r_draw.fill_arrays.vert_index = r_draw.fill_arrays.element_index = r_draw.fill_arrays.num_fills = 0;
 }
@@ -499,20 +494,20 @@ static void R_DrawLines(void) {
 		return;
 	}
 
-	R_BindDiffuseTexture(r_image_state.null->texnum);
-
-	// upload the changed data
-	R_UploadToBuffer(&r_draw.line_arrays.vert_buffer, r_draw.line_arrays.vert_index * sizeof(r_fill_interleave_vertex_t),
-	                 r_draw.line_arrays.verts);
-
-	// alter the array pointers
-	R_BindAttributeInterleaveBuffer(&r_draw.line_arrays.vert_buffer, R_ATTRIB_MASK_ALL);
-
-	R_DrawArrays(GL_LINES, 0, r_draw.line_arrays.vert_index);
-
-	// and restore them
-	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
-	R_UnbindAttributeBuffer(R_ATTRIB_COLOR);
+//	R_BindDiffuseTexture(r_image_state.null->texnum);
+//
+//	// upload the changed data
+//	R_UploadToBuffer(&r_draw.line_arrays.vert_buffer, r_draw.line_arrays.vert_index * sizeof(r_fill_interleave_vertex_t),
+//	                 r_draw.line_arrays.verts);
+//
+//	// alter the array pointers
+//	R_BindAttributeInterleaveBuffer(&r_draw.line_arrays.vert_buffer, R_ATTRIB_MASK_ALL);
+//
+//	R_DrawArrays(GL_LINES, 0, r_draw.line_arrays.vert_index);
+//
+//	// and restore them
+//	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
+//	R_UnbindAttributeBuffer(R_ATTRIB_COLOR);
 
 	r_draw.line_arrays.vert_index = 0;
 }
@@ -522,26 +517,26 @@ static void R_DrawLines(void) {
  */
 void R_DrawFillUI(const SDL_Rect *rect) {
 
-	const vec2_t verts[] = {
-		{ rect->x - 1, rect->y - 1 },
-		{ rect->x + rect->w + 1, rect->y - 1 },
-		{ rect->x + rect->w + 1, rect->y + rect->h + 1 },
-		{ rect->x - 1, rect->y + rect->h + 1 }
-	};
+//	const vec2_t verts[] = {
+//		{ rect->x - 1, rect->y - 1 },
+//		{ rect->x + rect->w + 1, rect->y - 1 },
+//		{ rect->x + rect->w + 1, rect->y + rect->h + 1 },
+//		{ rect->x - 1, rect->y + rect->h + 1 }
+//	};
 
-	R_BindDiffuseTexture(r_image_state.null->texnum);
-
-	// upload the changed data
-	R_UploadToBuffer(&r_draw.fill_arrays.ui_vert_buffer, sizeof(verts), verts);
-
-	// alter the array pointers
-	R_BindAttributeBuffer(R_ATTRIB_POSITION, &r_draw.fill_arrays.ui_vert_buffer);
-
-	// draw!
-	R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-	// and restore them
-	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
+//	R_BindDiffuseTexture(r_image_state.null->texnum);
+//
+//	// upload the changed data
+//	R_UploadToBuffer(&r_draw.fill_arrays.ui_vert_buffer, sizeof(verts), verts);
+//
+//	// alter the array pointers
+//	R_BindAttributeBuffer(R_ATTRIB_POSITION, &r_draw.fill_arrays.ui_vert_buffer);
+//
+//	// draw!
+//	R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
+//
+//	// and restore them
+//	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
 }
 
 void R_DrawLinesUI(const SDL_Point *points, const size_t count, const _Bool loop) {
@@ -552,19 +547,19 @@ void R_DrawLinesUI(const SDL_Point *points, const size_t count, const _Bool loop
 		Vector2Set(point_buffer[i], points[i].x + 0.5, points[i].y + 0.5);
 	}
 
-	R_BindDiffuseTexture(r_image_state.null->texnum);
-
-	// upload the changed data
-	R_UploadToBuffer(&r_draw.line_arrays.ui_vert_buffer, sizeof(point_buffer), point_buffer);
-
-	// alter the array pointers
-	R_BindAttributeBuffer(R_ATTRIB_POSITION, &r_draw.line_arrays.ui_vert_buffer);
-
-	// draw!
-	R_DrawArrays(loop ? GL_LINE_LOOP : GL_LINE_STRIP, 0, (GLsizei) count);
-
-	// and restore them
-	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
+//	R_BindDiffuseTexture(r_image_state.null->texnum);
+//
+//	// upload the changed data
+//	R_UploadToBuffer(&r_draw.line_arrays.ui_vert_buffer, sizeof(point_buffer), point_buffer);
+//
+//	// alter the array pointers
+//	R_BindAttributeBuffer(R_ATTRIB_POSITION, &r_draw.line_arrays.ui_vert_buffer);
+//
+//	// draw!
+//	R_DrawArrays(loop ? GL_LINE_LOOP : GL_LINE_STRIP, 0, (GLsizei) count);
+//
+//	// and restore them
+//	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
 }
 
 /**
@@ -635,85 +630,70 @@ void R_InitDraw(void) {
 
 	for (int32_t i = 0; i < MAX_FONTS; ++i) {
 
-		R_CreateInterleaveBuffer(&r_draw.char_arrays[i].vert_buffer, &(const r_create_interleave_t) {
-			.struct_size = sizeof(r_char_interleave_vertex_t),
-			.layout = r_char_buffer_layout,
-			.hint = GL_DYNAMIC_DRAW,
-			.size = sizeof(r_draw.char_arrays[i].verts)
-		});
-
-		R_CreateElementBuffer(&r_draw.char_arrays[i].element_buffer, &(const r_create_element_t) {
-			.type = R_TYPE_UNSIGNED_INT,
-			.hint = GL_DYNAMIC_DRAW,
-			.size = sizeof(r_draw.char_arrays[i].elements)
-		});
+//		R_CreateInterleaveBuffer(&r_draw.char_arrays[i].vert_buffer, &(const r_create_interleave_t) {
+//			.struct_size = sizeof(r_char_interleave_vertex_t),
+//			.layout = r_char_buffer_layout,
+//			.hint = GL_DYNAMIC_DRAW,
+//			.size = sizeof(r_draw.char_arrays[i].verts)
+//		});
+//
+//		R_CreateElementBuffer(&r_draw.char_arrays[i].element_buffer, &(const r_create_element_t) {
+//			.type = R_TYPE_UNSIGNED_INT,
+//			.hint = GL_DYNAMIC_DRAW,
+//			.size = sizeof(r_draw.char_arrays[i].elements)
+//		});
 	}
 
-	R_CreateInterleaveBuffer(&r_draw.fill_arrays.vert_buffer, &(const r_create_interleave_t) {
-		.struct_size = sizeof(r_fill_interleave_vertex_t),
-		.layout = r_fill_buffer_layout,
-		.hint = GL_DYNAMIC_DRAW,
-		.size = sizeof(r_draw.fill_arrays.verts)
-	});
-
-	R_CreateElementBuffer(&r_draw.fill_arrays.element_buffer, &(const r_create_element_t) {
-		.type = R_TYPE_UNSIGNED_INT,
-		.hint = GL_DYNAMIC_DRAW,
-		.size = sizeof(r_draw.fill_arrays.elements)
-	});
-
-	R_CreateInterleaveBuffer(&r_draw.line_arrays.vert_buffer, &(const r_create_interleave_t) {
-		.struct_size = sizeof(r_fill_interleave_vertex_t),
-		.layout = r_fill_buffer_layout,
-		.hint = GL_DYNAMIC_DRAW,
-		.size = sizeof(r_draw.line_arrays.verts)
-	});
-
-	// fill buffer only needs 4 verts
-	R_CreateDataBuffer(&r_draw.fill_arrays.ui_vert_buffer, &(const r_create_buffer_t) {
-		.element = {
-			.type = R_TYPE_FLOAT,
-			.count = 2
-		},
-		.hint = GL_DYNAMIC_DRAW,
-		.size = sizeof(vec2_t) * 4
-	});
-
-	R_CreateDataBuffer(&r_draw.line_arrays.ui_vert_buffer, &(const r_create_buffer_t) {
-		.element = {
-			.type = R_TYPE_FLOAT,
-			.count = 2
-		},
-		.hint = GL_DYNAMIC_DRAW,
-		.size = sizeof(vec2_t) * MAX_LINE_VERTS
-	});
+//	R_CreateInterleaveBuffer(&r_draw.fill_arrays.vert_buffer, &(const r_create_interleave_t) {
+//		.struct_size = sizeof(r_fill_interleave_vertex_t),
+//		.layout = r_fill_buffer_layout,
+//		.hint = GL_DYNAMIC_DRAW,
+//		.size = sizeof(r_draw.fill_arrays.verts)
+//	});
+//
+//	R_CreateElementBuffer(&r_draw.fill_arrays.element_buffer, &(const r_create_element_t) {
+//		.type = R_TYPE_UNSIGNED_INT,
+//		.hint = GL_DYNAMIC_DRAW,
+//		.size = sizeof(r_draw.fill_arrays.elements)
+//	});
+//
+//	R_CreateInterleaveBuffer(&r_draw.line_arrays.vert_buffer, &(const r_create_interleave_t) {
+//		.struct_size = sizeof(r_fill_interleave_vertex_t),
+//		.layout = r_fill_buffer_layout,
+//		.hint = GL_DYNAMIC_DRAW,
+//		.size = sizeof(r_draw.line_arrays.verts)
+//	});
+//
+//	// fill buffer only needs 4 verts
+//	R_CreateDataBuffer(&r_draw.fill_arrays.ui_vert_buffer, &(const r_create_buffer_t) {
+//		.element = {
+//			.type = R_TYPE_FLOAT,
+//			.count = 2
+//		},
+//		.hint = GL_DYNAMIC_DRAW,
+//		.size = sizeof(vec2_t) * 4
+//	});
+//
+//	R_CreateDataBuffer(&r_draw.line_arrays.ui_vert_buffer, &(const r_create_buffer_t) {
+//		.element = {
+//			.type = R_TYPE_FLOAT,
+//			.count = 2
+//		},
+//		.hint = GL_DYNAMIC_DRAW,
+//		.size = sizeof(vec2_t) * MAX_LINE_VERTS
+//	});
 
 	Vector2Set(r_draw.image_vertices[0].texcoord, 0, 0);
 	Vector2Set(r_draw.image_vertices[1].texcoord, 1, 0);
 	Vector2Set(r_draw.image_vertices[2].texcoord, 1, 1);
 	Vector2Set(r_draw.image_vertices[3].texcoord, 0, 1);
 
-	R_CreateInterleaveBuffer(&r_draw.image_buffer, &(const r_create_interleave_t) {
-		.struct_size = sizeof(r_image_interleave_vertex_t),
-		.layout = r_image_buffer_layout,
-		.hint = GL_DYNAMIC_DRAW,
-		.size = sizeof(r_draw.image_vertices)
-	});
-	
-	const r_image_interleave_vertex_t supersample_vertices[4] = {
-		{ .position = { 0, 0 }, .texcoord = { 0, 1 } },
-		{ .position = { r_context.width, 0 }, .texcoord = { 1, 1 } },
-		{ .position = { r_context.width, r_context.height }, .texcoord = { 1, 0 } },
-		{ .position = { 0, r_context.height }, .texcoord = { 0, 0 } },
-	};
-
-	R_CreateInterleaveBuffer(&r_draw.supersample_buffer, &(const r_create_interleave_t) {
-		.struct_size = sizeof(r_image_interleave_vertex_t),
-		.layout = r_image_buffer_layout,
-		.hint = GL_STATIC_DRAW,
-		.size = sizeof(supersample_vertices),
-		.data = supersample_vertices
-	});
+//	R_CreateInterleaveBuffer(&r_draw.image_buffer, &(const r_create_interleave_t) {
+//		.struct_size = sizeof(r_image_interleave_vertex_t),
+//		.layout = r_image_buffer_layout,
+//		.hint = GL_DYNAMIC_DRAW,
+//		.size = sizeof(r_draw.image_vertices)
+//	});
 }
 
 /**
@@ -723,17 +703,17 @@ void R_ShutdownDraw(void) {
 
 	for (int32_t i = 0; i < MAX_FONTS; ++i) {
 
-		R_DestroyBuffer(&r_draw.char_arrays[i].vert_buffer);
-		R_DestroyBuffer(&r_draw.char_arrays[i].element_buffer);
+//		R_DestroyBuffer(&r_draw.char_arrays[i].vert_buffer);
+//		R_DestroyBuffer(&r_draw.char_arrays[i].element_buffer);
 	}
 
-	R_DestroyBuffer(&r_draw.fill_arrays.vert_buffer);
-	R_DestroyBuffer(&r_draw.fill_arrays.element_buffer);
-	R_DestroyBuffer(&r_draw.line_arrays.vert_buffer);
-
-	R_DestroyBuffer(&r_draw.fill_arrays.ui_vert_buffer);
-	R_DestroyBuffer(&r_draw.line_arrays.ui_vert_buffer);
-
-	R_DestroyBuffer(&r_draw.image_buffer);
-	R_DestroyBuffer(&r_draw.supersample_buffer);
+//	R_DestroyBuffer(&r_draw.fill_arrays.vert_buffer);
+//	R_DestroyBuffer(&r_draw.fill_arrays.element_buffer);
+//	R_DestroyBuffer(&r_draw.line_arrays.vert_buffer);
+//
+//	R_DestroyBuffer(&r_draw.fill_arrays.ui_vert_buffer);
+//	R_DestroyBuffer(&r_draw.line_arrays.ui_vert_buffer);
+//
+//	R_DestroyBuffer(&r_draw.image_buffer);
+//	R_DestroyBuffer(&r_draw.supersample_buffer);
 }

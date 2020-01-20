@@ -22,12 +22,14 @@
 #include "r_local.h"
 #include "client.h"
 
+#if 0
+
 /**
  * @brief Allocates an initializes the flare for the specified surface, if one
  * should be applied. The flare is linked to the provided BSP model and will
  * be freed automatically.
  */
-void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
+void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_face_t *surf) {
 	vec3_t center, span;
 
 	const r_material_t *m = surf->texinfo->material;
@@ -83,7 +85,7 @@ void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
  * trace. Flares are also faded according to the angle of their surface to the
  * view origin.
  */
-void R_AddFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
+void R_AddFlareBspFaces(const r_bsp_faces_t *surfs) {
 	if (!r_flares->value || r_draw_wireframe->value) {
 		return;
 	}
@@ -93,7 +95,7 @@ void R_AddFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	}
 
 	for (size_t i = 0; i < surfs->count; i++) {
-		const r_bsp_surface_t *surf = surfs->surfaces[i];
+		const r_bsp_face_t *surf = surfs->surfaces[i];
 
 		if (surf->frame != r_locals.frame) {
 			continue;
@@ -145,3 +147,16 @@ void R_AddFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		R_AddParticle(&f->particle);
 	}
 }
+
+/**
+ * @brief
+ */
+void R_AddFlares(void) {
+	const r_sorted_bsp_faces_t *surfs = r_model_state.world->bsp->sorted_surfaces;
+
+	R_AddFlareBspFaces(&surfs->flare);
+
+	R_AddBspInlineModelFlares(&r_sorted_entities.bsp_inline_entities);
+}
+
+#endif

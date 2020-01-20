@@ -45,7 +45,7 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 			MakeOutlet("name", &self->name),
 			MakeOutlet("diffuse", &self->diffuse),
 			MakeOutlet("normalmap", &self->normalmap),
-			MakeOutlet("specularmap", &self->specularmap),
+			MakeOutlet("glossmap", &self->glossmap),
 			MakeOutlet("bumpmap", &self->bump),
 			MakeOutlet("hardness", &self->hardness),
 			MakeOutlet("specular", &self->specular),
@@ -74,7 +74,7 @@ static void setMaterial(EditorView *self, r_material_t *material) {
 		$(self->name, setDefaultText, self->material->cm->basename);
 		$(self->diffuse, setDefaultText, self->material->cm->diffuse.name);
 		$(self->normalmap, setDefaultText, self->material->cm->normalmap.name);
-		$(self->specularmap, setDefaultText, self->material->cm->specularmap.name);
+		$(self->glossmap, setDefaultText, self->material->cm->glossmap.name);
 
 		$(self->bump, setValue, (double) self->material->cm->bump);
 		$(self->hardness, setValue, (double) self->material->cm->hardness);
@@ -84,7 +84,7 @@ static void setMaterial(EditorView *self, r_material_t *material) {
 		$(self->name, setDefaultText, NULL);
 		$(self->diffuse, setDefaultText, NULL);
 		$(self->normalmap, setDefaultText, NULL);
-		$(self->specularmap, setDefaultText, NULL);
+		$(self->glossmap, setDefaultText, NULL);
 
 		$(self->bump, setValue, DEFAULT_BUMP);
 		$(self->hardness, setValue, DEFAULT_HARDNESS);

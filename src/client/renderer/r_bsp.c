@@ -77,7 +77,7 @@ _Bool R_CullBspInlineModel(const r_entity_t *e) {
 	vec3_t mins, maxs;
 	int32_t i;
 
-	if (!e->model->bsp_inline->num_surfaces) { // no surfaces
+	if (!e->model->bsp_inline->num_faces) { // no surfaces
 		return true;
 	}
 
@@ -139,51 +139,51 @@ static void R_RotateLightsForBspInlineModel(const r_entity_t *e) {
  * counter to negative to safely iterate the sorted surfaces arrays.
  */
 static void R_DrawBspInlineModel_(const r_entity_t *e) {
-	static int16_t frame = -1;
-
-	// temporarily swap the view frame so that the surface drawing
-	// routines pickup only the inline model's surfaces
-
-	const int16_t f = r_locals.frame;
-	r_locals.frame = frame--;
-
-	if (frame == INT16_MIN) {
-		frame = -1;
-	}
-
-	r_bsp_surface_t *surf = &r_model_state.world->bsp->surfaces[e->model->bsp_inline->first_surface];
-
-	for (int32_t i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
-
-		const vec_t dist = R_DistanceToSurface(r_bsp_model_org, surf);
-		if (dist > SIDE_EPSILON) { // visible, flag for rendering
-			surf->frame = r_locals.frame;
-		}
-	}
-
-	const r_sorted_bsp_surfaces_t *surfs = r_model_state.world->bsp->sorted_surfaces;
-
-	R_DrawOpaqueBspSurfaces(&surfs->opaque);
-
-	R_DrawOpaqueWarpBspSurfaces(&surfs->opaque_warp);
-
-	R_DrawAlphaTestBspSurfaces(&surfs->alpha_test);
-
-	R_EnableBlend(true);
-
-	R_EnableDepthMask(false);
-
-	R_DrawMaterialBspSurfaces(&surfs->material);
-
-	R_DrawBlendBspSurfaces(&surfs->blend);
-
-	R_DrawBlendWarpBspSurfaces(&surfs->blend_warp);
-
-	R_EnableBlend(false);
-
-	R_EnableDepthMask(true);
-
-	r_locals.frame = f; // undo the swap
+//	static int16_t frame = -1;
+//
+//	// temporarily swap the view frame so that the surface drawing
+//	// routines pickup only the inline model's surfaces
+//
+//	const int16_t f = r_locals.frame;
+//	r_locals.frame = frame--;
+//
+//	if (frame == INT16_MIN) {
+//		frame = -1;
+//	}
+//
+//	r_bsp_face_t *surf = &r_model_state.world->bsp->surfaces[e->model->bsp_inline->first_surface];
+//
+//	for (int32_t i = 0; i < e->model->bsp_inline->num_faces; i++, surf++) {
+//
+//		const vec_t dist = R_DistanceToSurface(r_bsp_model_org, surf);
+//		if (dist > SIDE_EPSILON) { // visible, flag for rendering
+//			surf->frame = r_locals.frame;
+//		}
+//	}
+//
+//	const r_sorted_bsp_faces_t *surfs = r_model_state.world->bsp->sorted_surfaces;
+//
+//	R_DrawOpaqueBspFaces(&surfs->opaque);
+//
+//	R_DrawOpaqueWarpBspFaces(&surfs->opaque_warp);
+//
+//	R_DrawAlphaTestBspFaces(&surfs->alpha_test);
+//
+//	R_EnableBlend(true);
+//
+//	R_EnableDepthMask(false);
+//
+//	R_DrawMaterialBspFaces(&surfs->material);
+//
+//	R_DrawBlendBspFaces(&surfs->blend);
+//
+//	R_DrawBlendWarpBspFaces(&surfs->blend_warp);
+//
+//	R_EnableBlend(false);
+//
+//	R_EnableDepthMask(true);
+//
+//	r_locals.frame = f; // undo the swap
 }
 
 /**
@@ -221,32 +221,32 @@ static void R_DrawBspInlineModel(const r_entity_t *e) {
  * @brief
  */
 static void R_AddBspInlineModelFlares_(const r_entity_t *e) {
-	static int16_t frame = -1;
-
-	// temporarily swap the view frame so that the surface drawing
-	// routines pickup only the inline model's surfaces
-
-	const int16_t f = r_locals.frame;
-	r_locals.frame = frame--;
-
-	if (frame == INT16_MIN) {
-		frame = -1;
-	}
-
-	r_bsp_surface_t *surf = &r_model_state.world->bsp->surfaces[e->model->bsp_inline->first_surface];
-
-	for (int32_t i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
-		const vec_t dist = R_DistanceToSurface(r_bsp_model_org, surf);
-		if (dist > SIDE_EPSILON) { // visible, flag for rendering
-			surf->frame = r_locals.frame;
-		}
-	}
-
-	const r_sorted_bsp_surfaces_t *surfs = r_model_state.world->bsp->sorted_surfaces;
-
-	R_AddFlareBspSurfaces(&surfs->flare);
-
-	r_locals.frame = f; // undo the swap
+//	static int16_t frame = -1;
+//
+//	// temporarily swap the view frame so that the surface drawing
+//	// routines pickup only the inline model's surfaces
+//
+//	const int16_t f = r_locals.frame;
+//	r_locals.frame = frame--;
+//
+//	if (frame == INT16_MIN) {
+//		frame = -1;
+//	}
+//
+//	r_bsp_face_t *surf = &r_model_state.world->bsp->surfaces[e->model->bsp_inline->first_surface];
+//
+//	for (int32_t i = 0; i < e->model->bsp_inline->num_faces; i++, surf++) {
+//		const vec_t dist = R_DistanceToSurface(r_bsp_model_org, surf);
+//		if (dist > SIDE_EPSILON) { // visible, flag for rendering
+//			surf->frame = r_locals.frame;
+//		}
+//	}
+//
+//	const r_sorted_bsp_faces_t *surfs = r_model_state.world->bsp->sorted_surfaces;
+//
+//	R_AddFlareBspFaces(&surfs->flare);
+//
+//	r_locals.frame = f; // undo the swap
 }
 
 /**
@@ -299,121 +299,121 @@ void R_DrawBspNormals(void) {
 		return;
 	}
 
-	R_EnableColorArray(true);
-
-	R_BindDiffuseTexture(r_image_state.null->texnum);
-
-	R_ResetArrayState(); // default arrays
-
-	R_BindAttributeInterleaveBuffer(&r_model_state.bound_vertice_buffer, R_ATTRIB_MASK_ALL);
-
-	R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &r_model_state.bound_element_buffer);
-
-	const r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces;
-
-	static matrix4x4_t mat, modelview;
-
-	R_GetMatrix(R_MATRIX_MODELVIEW, &modelview);
-
-	for (uint16_t i = 0; i < r_model_state.world->bsp->num_surfaces; i++, surf++) {
-
-		if (surf->vis_frame != r_locals.vis_frame) {
-			continue;    // not visible
-		}
-
-		if (surf->texinfo->flags & (SURF_SKY | SURF_WARP)) {
-			continue;    // don't care
-		}
-
-		if ((r_draw_bsp_normals->integer & 2) && !(surf->texinfo->flags & SURF_PHONG)) {
-			continue;    // don't care
-		}
-
-		const r_bsp_vertex_t *v = r_model_state.world->bsp->vertexes + surf->first_vertex;
-		for (uint16_t j = 0; j < surf->num_vertexes; j++, v++) {
-
-			vec3_t angles;
-			VectorAngles(v->normal, angles);
-			Matrix4x4_CreateFromQuakeEntity(&mat,
-											v->position[0], v->position[1], v->position[2],
-											angles[0], angles[1], angles[2],
-											1.0);
-
-			Matrix4x4_Concat(&mat, &modelview, &mat);
-
-			R_SetMatrix(R_MATRIX_MODELVIEW, &mat);
-
-			R_DrawArrays(GL_LINES, (GLint) r_model_state.bound_element_count - 6, 2);
-		}
-	}
-
-	R_SetMatrix(R_MATRIX_MODELVIEW, &modelview);
-
-	R_EnableTexture(texunit_diffuse, true);
-
-	R_EnableColorArray(false);
+//	R_EnableColorArray(true);
+//
+//	R_BindDiffuseTexture(r_image_state.null->texnum);
+//
+//	R_ResetArrayState(); // default arrays
+//
+//	R_BindAttributeInterleaveBuffer(&r_model_state.bound_vertice_buffer, R_ATTRIB_MASK_ALL);
+//
+//	R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &r_model_state.bound_element_buffer);
+//
+//	const r_bsp_face_t *surf = r_model_state.world->bsp->surfaces;
+//
+//	static matrix4x4_t mat, modelview;
+//
+//	R_GetMatrix(R_MATRIX_MODELVIEW, &modelview);
+//
+//	for (uint16_t i = 0; i < r_model_state.world->bsp->num_faces; i++, surf++) {
+//
+//		if (surf->vis_frame != r_locals.vis_frame) {
+//			continue;    // not visible
+//		}
+//
+//		if (surf->texinfo->flags & (SURF_SKY | SURF_WARP)) {
+//			continue;    // don't care
+//		}
+//
+//		if ((r_draw_bsp_normals->integer & 2) && !(surf->texinfo->flags & SURF_PHONG)) {
+//			continue;    // don't care
+//		}
+//
+//		const r_bsp_vertex_t *v = r_model_state.world->bsp->vertexes + surf->first_vertex;
+//		for (uint16_t j = 0; j < surf->num_vertexes; j++, v++) {
+//
+//			vec3_t angles;
+//			VectorAngles(v->normal, angles);
+//			Matrix4x4_CreateFromQuakeEntity(&mat,
+//											v->position[0], v->position[1], v->position[2],
+//											angles[0], angles[1], angles[2],
+//											1.0);
+//
+//			Matrix4x4_Concat(&mat, &modelview, &mat);
+//
+//			R_SetMatrix(R_MATRIX_MODELVIEW, &mat);
+//
+//			R_DrawArrays(GL_LINES, (GLint) r_model_state.bound_element_count - 6, 2);
+//		}
+//	}
+//
+//	R_SetMatrix(R_MATRIX_MODELVIEW, &modelview);
+//
+//	R_EnableTexture(texunit_diffuse, true);
+//
+//	R_EnableColorArray(false);
 }
 
 /**
  * @brief Developer tool for viewing BSP leafs and clusters.
  */
 void R_DrawBspLeafs(void) {
-	const vec4_t leaf_colors[] = { // assign each leaf a color
-		{ 0.2, 0.2, 0.2, 0.4 },
-		{ 0.8, 0.2, 0.2, 0.4 },
-		{ 0.2, 0.8, 0.2, 0.4 },
-		{ 0.2, 0.2, 0.8, 0.4 },
-		{ 0.8, 0.8, 0.2, 0.4 },
-		{ 0.2, 0.8, 0.8, 0.4 },
-		{ 0.8, 0.2, 0.8, 0.4 },
-		{ 0.8, 0.8, 0.8, 0.4 }
-	};
+//	const vec4_t leaf_colors[] = { // assign each leaf a color
+//		{ 0.2, 0.2, 0.2, 0.4 },
+//		{ 0.8, 0.2, 0.2, 0.4 },
+//		{ 0.2, 0.8, 0.2, 0.4 },
+//		{ 0.2, 0.2, 0.8, 0.4 },
+//		{ 0.8, 0.8, 0.2, 0.4 },
+//		{ 0.2, 0.8, 0.8, 0.4 },
+//		{ 0.8, 0.2, 0.8, 0.4 },
+//		{ 0.8, 0.8, 0.8, 0.4 }
+//	};
 
 	if (!r_draw_bsp_leafs->value) {
 		return;
 	}
-
-	R_SetArrayState(r_model_state.world);
-
-	R_EnableTexture(texunit_diffuse, false);
-
-	R_BindDiffuseTexture(r_image_state.null->texnum);
-
-	R_EnablePolygonOffset(true);
-
-	R_PolygonOffset(R_OFFSET_FACTOR, R_OFFSET_UNITS);
-
-	const r_bsp_leaf_t *l = r_model_state.world->bsp->leafs;
-
-	for (uint16_t i = 0; i < r_model_state.world->bsp->num_leafs; i++, l++) {
-
-		if (l->vis_frame != r_locals.vis_frame) {
-			continue;
-		}
-
-		if (r_draw_bsp_leafs->integer == 2) {
-			R_Color(leaf_colors[l->cluster % lengthof(leaf_colors)]);
-		} else {
-			R_Color(leaf_colors[i % lengthof(leaf_colors)]);
-		}
-
-		r_bsp_surface_t **s = l->first_leaf_surface;
-
-		for (uint16_t j = 0; j < l->num_leaf_surfaces; j++, s++) {
-
-			if ((*s)->vis_frame != r_locals.vis_frame) {
-				continue;
-			}
-
-			R_DrawArrays(GL_TRIANGLES, (*s)->first_element, (*s)->num_elements);
-		}
-	}
-
-	R_EnablePolygonOffset(false);
-
-	R_EnableTexture(texunit_diffuse, true);
-
-	R_Color(NULL);
+//
+//	R_SetArrayState(r_model_state.world);
+//
+//	R_EnableTexture(texunit_diffuse, false);
+//
+//	R_BindDiffuseTexture(r_image_state.null->texnum);
+//
+//	R_EnablePolygonOffset(true);
+//
+//	R_PolygonOffset(R_OFFSET_FACTOR, R_OFFSET_UNITS);
+//
+//	const r_bsp_leaf_t *l = r_model_state.world->bsp->leafs;
+//
+//	for (uint16_t i = 0; i < r_model_state.world->bsp->num_leafs; i++, l++) {
+//
+//		if (l->vis_frame != r_locals.vis_frame) {
+//			continue;
+//		}
+//
+//		if (r_draw_bsp_leafs->integer == 2) {
+//			R_Color(leaf_colors[l->cluster % lengthof(leaf_colors)]);
+//		} else {
+//			R_Color(leaf_colors[i % lengthof(leaf_colors)]);
+//		}
+//
+//		r_bsp_face_t **s = l->first_leaf_surface;
+//
+//		for (uint16_t j = 0; j < l->num_leaf_faces; j++, s++) {
+//
+//			if ((*s)->vis_frame != r_locals.vis_frame) {
+//				continue;
+//			}
+//
+//			R_DrawArrays(GL_TRIANGLES, (*s)->first_element, (*s)->num_elements);
+//		}
+//	}
+//
+//	R_EnablePolygonOffset(false);
+//
+//	R_EnableTexture(texunit_diffuse, true);
+//
+//	R_Color(NULL);
 }
 
 /**
@@ -449,7 +449,7 @@ void R_DrawBspLights(void) {
  * in that recursion must then pass a dot-product test to resolve sidedness.
  * Finally, the back-side child node is recursed.
  */
-static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
+static void R_MarkBspFaces_(r_bsp_node_t *node) {
 	int32_t side;
 
 	if (node->contents == CONTENTS_SOLID) {
@@ -474,9 +474,9 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 			}
 		}
 
-		r_bsp_surface_t **s = leaf->first_leaf_surface;
+		r_bsp_face_t **s = leaf->leaf_faces;
 
-		for (int32_t i = 0; i < leaf->num_leaf_surfaces; i++, s++) {
+		for (int32_t i = 0; i < leaf->num_leaf_faces; i++, s++) {
 			(*s)->vis_frame = r_locals.vis_frame;
 		}
 
@@ -493,12 +493,11 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 	}
 
 	// recurse down the children, front side first
-	R_MarkBspSurfaces_(node->children[side]);
+	R_MarkBspFaces_(node->children[side]);
 
 	// prune all marked surfaces to just those which are front-facing
-	r_bsp_surface_t *s = r_model_state.world->bsp->surfaces + node->first_surface;
-
-	for (int32_t i = 0; i < node->num_surfaces; i++, s++) {
+	r_bsp_face_t *s = node->faces;
+	for (int32_t i = 0; i < node->num_faces; i++, s++) {
 		if (s->vis_frame == r_locals.vis_frame) { // it's been marked
 			if ((s->flags & R_SURF_BACK_SIDE) == side) { // and it's on the right side
 				s->frame = r_locals.frame;
@@ -507,26 +506,26 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 	}
 
 	// recurse down the back side
-	R_MarkBspSurfaces_(node->children[!side]);
+	R_MarkBspFaces_(node->children[!side]);
 }
 
 /**
  * @brief Entry point for BSP recursion and surface-level visibility test.
  */
-void R_MarkBspSurfaces(void) {
+void R_MarkBspFaces(void) {
 
 	if (++r_locals.frame == INT16_MAX) { // avoid overflows, negatives are reserved
 		r_locals.frame = 0;
 	}
 
 	// flag all visible world surfaces
-	R_MarkBspSurfaces_(r_model_state.world->bsp->nodes);
+	R_MarkBspFaces_(r_model_state.world->bsp->nodes);
 }
 
 /**
  * @return The distance from the specified point to the given surface.
  */
-vec_t R_DistanceToSurface(const vec3_t p, const r_bsp_surface_t *surf) {
+vec_t R_DistanceToSurface(const vec3_t p, const r_bsp_face_t *surf) {
 	return Cm_DistanceToPlane(p, surf->plane);
 }
 

@@ -87,10 +87,9 @@ static void EmitDrawElements_(bsp_leaf_t *leaf) {
 
 		draw->texinfo = bsp_file.faces[*(lf + i)].texinfo;
 		draw->lightmap = bsp_file.faces[*(lf + i)].lightmap.num;
-
 		draw->first_element = bsp_file.num_elements;
 
-		for (int32_t j = i; j < leaf->num_leaf_faces; j++, i++) {
+		for (int32_t j = i; j < leaf->num_leaf_faces; j++) {
 
 			if (EmitDrawElements_compare(lf + i, lf + j)) {
 				break;
@@ -107,6 +106,7 @@ static void EmitDrawElements_(bsp_leaf_t *leaf) {
 				   sizeof(int32_t) * face->num_elements);
 
 			bsp_file.num_elements += face->num_elements;
+			i = j;
 		}
 
 		draw->num_elements = bsp_file.num_elements - draw->first_element;

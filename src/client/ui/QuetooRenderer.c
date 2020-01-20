@@ -126,7 +126,7 @@ static void drawTexture(const Renderer *self, GLuint texture, const SDL_Rect *re
 
 	assert(rect);
 
-	const r_image_t image = { .texnum = texture, .layers = 0 };
+	const r_image_t image = { .texnum = texture };
 
 	R_DrawImageResized(rect->x, rect->y, rect->w, rect->h, &image);
 }
@@ -162,14 +162,15 @@ static void setDrawColor(Renderer *self, const SDL_Color *color) {
 static void setClippingFrame(Renderer *self, const SDL_Rect *frame) {
 
 	if (!frame) {
-		R_EnableScissor(NULL);
+		glDisable(GL_SCISSOR_TEST);
 		return;
 	}
 
 	SDL_Window *window = SDL_GL_GetCurrentWindow();
 	const SDL_Rect scissor = MVC_TransformToWindow(window, frame);
 
-	R_EnableScissor(&scissor);
+	glEnable(GL_SCISSOR_TEST);
+	glScissor(scissor.x, scissor.y, scissor.w, scissor.h);
 }
 
 /**

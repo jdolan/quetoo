@@ -26,7 +26,6 @@
  * passes a basic visibility test.
  */
 void R_AddParticle(const r_particle_t *p) {
-	static r_element_t e;
 
 	if (r_view.num_particles == lengthof(r_view.particles)) {
 		return;
@@ -34,13 +33,16 @@ void R_AddParticle(const r_particle_t *p) {
 
 	r_view.particles[r_view.num_particles++] = *p;
 
-	e.type = ELEMENT_PARTICLE;
-
-	e.element = (const void *) p;
-	e.origin = (const vec_t *) p->org;
-
-	R_AddElement(&e);
+//	static r_element_t e;
+//	e.type = ELEMENT_PARTICLE;
+//
+//	e.element = (const void *) p;
+//	e.origin = (const vec_t *) p->org;
+//
+//	R_AddElement(&e);
 }
+
+#if 0
 
 typedef struct {
 	vec3_t start;
@@ -263,3 +265,5 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 
 	R_UseProgram(program_null);
 }
+
+#endif

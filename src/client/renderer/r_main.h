@@ -37,6 +37,7 @@ extern cvar_t *r_flares;
 extern cvar_t *r_fog;
 extern cvar_t *r_fullscreen;
 extern cvar_t *r_gamma;
+extern cvar_t *r_get_error;
 extern cvar_t *r_hardness;
 extern cvar_t *r_height;
 extern cvar_t *r_invert;
@@ -48,7 +49,6 @@ extern cvar_t *r_modulate;
 extern cvar_t *r_monochrome;
 extern cvar_t *r_multisample;
 extern cvar_t *r_parallax;
-extern cvar_t *r_render_plugin;
 extern cvar_t *r_saturation;
 extern cvar_t *r_screenshot_format;
 extern cvar_t *r_shadows;
@@ -63,6 +63,10 @@ extern cvar_t *r_width;
 
 extern r_view_t r_view;
 
+void R_GetError_(const char *function, const char *msg);
+#define R_GetError(msg) R_GetError_(__func__, msg)
+
+void R_Color(const vec4_t color);
 void R_Init(void);
 void R_Shutdown(void);
 void R_LoadMedia(void);
@@ -118,14 +122,5 @@ extern cvar_t *r_draw_wireframe;
 
 void R_UpdateFrustum(void);
 void R_InitView(void);
-
-// render mode function pointers
-extern BspSurfacesDrawFunc R_DrawOpaqueBspSurfaces;
-extern BspSurfacesDrawFunc R_DrawOpaqueWarpBspSurfaces;
-extern BspSurfacesDrawFunc R_DrawAlphaTestBspSurfaces;
-extern BspSurfacesDrawFunc R_DrawBlendBspSurfaces;
-extern BspSurfacesDrawFunc R_DrawBlendWarpBspSurfaces;
-
-extern MeshModelsDrawFunc R_DrawMeshModels;
 
 #endif /* __R_LOCAL_H__ */

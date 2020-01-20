@@ -6,7 +6,7 @@ noinst_HEADERS = \
 	r_array.h \
 	r_atlas.h \
 	r_bsp_model.h \
-	r_bsp_surface.h \
+	r_bsp_face.h \
 	r_bsp.h \
 	r_context.h \
 	r_draw.h \
@@ -52,7 +52,7 @@ librenderer_la_SOURCES = \
 	r_array.c \
 	r_atlas.c \
 	r_bsp_model.c \
-	r_bsp_surface.c \
+	r_bsp_face.c \
 	r_bsp.c \
 	r_context.c \
 	r_draw.c \

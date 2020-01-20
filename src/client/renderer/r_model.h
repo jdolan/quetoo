@@ -36,13 +36,13 @@ typedef struct {
 typedef struct {
 	r_model_t *world;
 
-	r_buffer_t null_vertices;
-	r_buffer_t null_elements;
+	GLuint null_vertices;
+	GLuint null_elements;
 	size_t null_elements_count;
 
 	r_bound_interleave_vertex_t bound_vertices[14];
-	r_buffer_t bound_vertice_buffer;
-	r_buffer_t bound_element_buffer;
+	GLuint bound_vertice_buffer;
+	GLuint bound_element_buffer;
 	size_t bound_element_count;
 } r_model_state_t;
 

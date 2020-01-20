@@ -28,11 +28,11 @@ r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context);
 ssize_t R_LoadMaterials(const char *path, cm_asset_context_t context, GList **materials);
 
 #ifdef __R_LOCAL_H__
-#define R_OFFSET_UNITS -1.0
-#define R_OFFSET_FACTOR -1.0
-
-void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs);
-void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count);
+//#define R_OFFSET_UNITS -1.0
+//#define R_OFFSET_FACTOR -1.0
+//
+//void R_DrawMaterialBspFaces(const r_bsp_faces_t *surfs);
+//void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count);
 void R_InitMaterials(void);
 void R_LoadModelMaterials(r_model_t *mod);
 void R_ShutdownMaterials(void);

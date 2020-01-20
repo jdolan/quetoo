@@ -24,5 +24,5 @@
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
-void R_DrawMeshShells_default(const r_entities_t *ents);
+void R_DrawWorld(void);
 #endif /* __R_LOCAL_H__ */

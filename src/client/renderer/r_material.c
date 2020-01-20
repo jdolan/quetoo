@@ -21,76 +21,11 @@
 
 #include "r_local.h"
 
+#if 0
+
 static matrix4x4_t r_texture_matrix;
 
-// Just a number used for the initial buffer size.
-// It should fit most maps.
-#define INITIAL_VERTEX_COUNT 512
-
-typedef struct {
-	vec3_t		position;
-	u8vec4_t	color;
-	vec3_t		normal;
-	vec3_t		tangent;
-	vec3_t		bitangent;
-	vec2_t		diffuse;
-	u16vec2_t	lightmap;
-} r_material_vertex_t;
-
-static r_buffer_layout_t r_material_buffer_layout[] = {
-	{
-		.attribute = R_ATTRIB_POSITION,
-		.type = R_TYPE_FLOAT,
-		.count = 3
-	},
-	{
-		.attribute = R_ATTRIB_COLOR,
-		.type = R_TYPE_UNSIGNED_BYTE,
-		.count = 4,
-		.normalized = true
-	},
-	{
-		.attribute = R_ATTRIB_NORMAL,
-		.type = R_TYPE_FLOAT,
-		.count = 3
-	},
-	{
-		.attribute = R_ATTRIB_TANGENT,
-		.type = R_TYPE_FLOAT,
-		.count = 3
-	},
-	{
-		.attribute = R_ATTRIB_BITANGENT,
-		.type = R_TYPE_FLOAT,
-		.count = 3
-	},
-	{
-		.attribute = R_ATTRIB_DIFFUSE,
-		.type = R_TYPE_FLOAT,
-		.count = 2
-	},
-	{
-		.attribute = R_ATTRIB_LIGHTMAP,
-		.type = R_TYPE_UNSIGNED_SHORT,
-		.count = 2,
-		.normalized = true
-	},
-	{
-		.attribute = -1
-	}
-};
-
-typedef struct {
-	GArray *vertex_array;
-	r_buffer_t vertex_buffer;
-	uint32_t vertex_len;
-} r_material_state_t;
-
-#define VERTEX_ARRAY_INDEX(i) (g_array_index(r_material_state.vertex_array, r_material_vertex_t, i))
-
-static r_material_state_t r_material_state;
-
-#define UPDATE_THRESHOLD 16
+#define UPDATE_TICKS 16
 
 /**
  * @brief Materials "think" every few milliseconds to advance animations.
@@ -136,7 +71,7 @@ static void R_UpdateMaterialStage(r_material_t *m, r_stage_t *s) {
 static void R_UpdateMaterial(r_material_t *m) {
 
 	if (!r_view.current_entity) {
-		if (r_view.ticks - m->time < UPDATE_THRESHOLD) {
+		if (r_view.ticks - m->time < UPDATE_TICKS) {
 			return;
 		}
 	}
@@ -147,7 +82,7 @@ static void R_UpdateMaterial(r_material_t *m) {
 /**
  * @brief Manages state for stages supporting static, dynamic, and per-pixel lighting.
  */
-static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage) {
+static void R_StageLighting(const r_bsp_face_t *surf, const r_stage_t *stage) {
 
 	if (!surf) { // mesh materials don't support per-stage lighting
 		return;
@@ -157,7 +92,7 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 
 		if (r_lightmap->value) {
 
-			const r_bsp_lightmap_t *atlas = surf->lightmap.atlas;
+			const r_image_t *atlas = surf->lightmap;
 
 			R_EnableTexture(texunit_lightmap, true);
 
@@ -205,7 +140,7 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 /**
  * @brief Generates a single vertex for the specified stage.
  */
-static void R_StageVertex(const r_bsp_surface_t *surf, const r_stage_t *stage, const vec3_t in, vec3_t out) {
+static void R_StageVertex(const r_bsp_face_t *surf, const r_stage_t *stage, const vec3_t in, vec3_t out) {
 
 	// TODO: vertex deformation
 	VectorCopy(in, out);
@@ -215,7 +150,7 @@ static void R_StageVertex(const r_bsp_surface_t *surf, const r_stage_t *stage, c
  * @brief Manages texture matrix manipulations for stages supporting rotations,
  * scrolls, and stretches (rotate, translate, scale).
  */
-static void R_StageTextureMatrix(const r_bsp_surface_t *surf, const r_stage_t *stage) {
+static void R_StageTextureMatrix(const r_bsp_face_t *surf, const r_stage_t *stage) {
 	static _Bool identity = true;
 	vec_t s, t;
 
@@ -358,7 +293,7 @@ static inline void R_StageColor(const r_stage_t *stage, const vec3_t v, u8vec4_t
  * @brief Manages all state for the specified surface and stage. The surface will be
  * NULL in the case of mesh stages.
  */
-static void R_SetStageState(const r_bsp_surface_t *surf, const r_stage_t *stage) {
+static void R_SetStageState(const r_bsp_face_t *surf, const r_stage_t *stage) {
 	vec4_t color;
 
 	// bind the texture
@@ -414,7 +349,7 @@ static uint32_t r_material_vertex_count;
 /**
  * @brief Render the specified stage for the surface.
  */
-static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_stage_t *stage) {
+static void R_DrawBspSurfaceMaterialStage(const r_bsp_face_t *surf, const r_stage_t *stage) {
 
 	// expand array if we're gonna eat it
 	if (r_material_state.vertex_len <= (r_material_vertex_count + surf->num_vertexes)) {
@@ -456,7 +391,7 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
  * throughout the iteration, so there is a concerted effort to restore the
  * state after all surface stages have been rendered.
  */
-void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
+void R_DrawMaterialBspFaces(const r_bsp_faces_t *surfs) {
 
 	if (!r_materials->value || r_draw_wireframe->value) {
 		return;
@@ -471,7 +406,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	for (uint32_t i = 0; i < surfs->count; i++) {
 
-		const r_bsp_surface_t *surf = surfs->surfaces[i];
+		const r_bsp_face_t *surf = surfs->surfaces[i];
 
 		if (surf->frame != r_locals.frame) {
 			continue;
@@ -536,7 +471,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	// second pass draws
 	for (uint32_t i = 0, index = 0; i < surfs->count; i++) {
 
-		r_bsp_surface_t *surf = surfs->surfaces[i];
+		r_bsp_face_t *surf = surfs->surfaces[i];
 
 		if (surf->frame != r_locals.frame) {
 			continue;
@@ -642,6 +577,7 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 
 	R_EnableColorArray(false);
 }
+#endif
 
 /**
  * @brief Register event listener for materials.
@@ -651,7 +587,7 @@ static void R_RegisterMaterial(r_media_t *self) {
 
 	R_RegisterDependency(self, (r_media_t *) mat->diffuse);
 	R_RegisterDependency(self, (r_media_t *) mat->normalmap);
-	R_RegisterDependency(self, (r_media_t *) mat->specularmap);
+	R_RegisterDependency(self, (r_media_t *) mat->glossmap);
 	R_RegisterDependency(self, (r_media_t *) mat->tintmap);
 
 	r_stage_t *s = mat->stages;
@@ -835,10 +771,10 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 				}
 			}
 
-			if (*cm->specularmap.path) {
-				material->specularmap = R_LoadImage(cm->specularmap.path, IT_SPECULARMAP);
-				if (material->specularmap->type == IT_NULL) {
-					material->specularmap = NULL;
+			if (*cm->glossmap.path) {
+				material->glossmap = R_LoadImage(cm->glossmap.path, IT_GLOSSMAP);
+				if (material->glossmap->type == IT_NULL) {
+					material->glossmap = NULL;
 				}
 			}
 
@@ -1073,19 +1009,19 @@ void R_InitMaterials(void) {
 
 	Cmd_Add("r_save_materials", R_SaveMaterials_f, CMD_RENDERER, "Write all of the loaded map materials to the disk.");
 
-	r_material_state.vertex_len = INITIAL_VERTEX_COUNT;
-
-	r_material_state.vertex_array = g_array_sized_new(false, true, sizeof(r_material_vertex_t),
-	                                r_material_state.vertex_len);
-
-	R_CreateInterleaveBuffer(&r_material_state.vertex_buffer, &(const r_create_interleave_t) {
-		.struct_size = sizeof(r_material_vertex_t),
-		.layout = r_material_buffer_layout,
-		.hint = GL_DYNAMIC_DRAW,
-		.size = sizeof(r_material_vertex_t) * r_material_state.vertex_len
-	});
-
-	Matrix4x4_CreateIdentity(&r_texture_matrix);
+//	r_material_state.vertex_len = INITIAL_VERTEX_COUNT;
+//
+//	r_material_state.vertex_array = g_array_sized_new(false, true, sizeof(r_material_vertex_t),
+//	                                r_material_state.vertex_len);
+//
+//	R_CreateInterleaveBuffer(&r_material_state.vertex_buffer, &(const r_create_interleave_t) {
+//		.struct_size = sizeof(r_material_vertex_t),
+//		.layout = r_material_buffer_layout,
+//		.hint = GL_DYNAMIC_DRAW,
+//		.size = sizeof(r_material_vertex_t) * r_material_state.vertex_len
+//	});
+//
+//	Matrix4x4_CreateIdentity(&r_texture_matrix);
 }
 
 /**
@@ -1093,7 +1029,7 @@ void R_InitMaterials(void) {
  */
 void R_ShutdownMaterials(void) {
 
-	g_array_free(r_material_state.vertex_array, true);
-
-	R_DestroyBuffer(&r_material_state.vertex_buffer);
+//	g_array_free(r_material_state.vertex_array, true);
+//
+//	R_DestroyBuffer(&r_material_state.vertex_buffer);
 }

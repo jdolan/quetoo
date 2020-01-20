@@ -127,9 +127,8 @@ void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node) {
 	const uint64_t bit = ((uint64_t) 1 << (l - r_view.lights));
 
 	// mark all surfaces in this node
-	r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces + node->first_surface;
-
-	for (int32_t i = 0; i < node->num_surfaces; i++, surf++) {
+	r_bsp_face_t *surf = node->faces;
+	for (int32_t i = 0; i < node->num_faces; i++, surf++) {
 
 		if (surf->light_frame != r_locals.light_frame) { // reset it
 			surf->light_frame = r_locals.light_frame;
@@ -171,36 +170,32 @@ void R_MarkLights(void) {
  */
 void R_EnableLights(uint64_t mask) {
 
-	if (r_state.active_program != program_default) {
-		return;
-	}
-
 	if (mask == r_locals.light_mask) { // no change
 		return;
 	}
 
-	r_locals.light_mask = mask;
-	uint16_t j = 0;
-	const matrix4x4_t *world_view = R_GetMatrixPtr(R_MATRIX_MODELVIEW);
-
-	if (mask) { // enable up to MAX_ACTIVE_LIGHT sources
-		const r_light_t *l = r_view.lights;
-
-		for (uint16_t i = 0; i < r_view.num_lights; i++, l++) {
-
-			if (j == r_state.max_active_lights) {
-				break;
-			}
-
-			const uint64_t bit = ((uint64_t ) 1 << i);
-			if (mask & bit) {
-				r_state.active_program->UseLight(j, world_view, l);
-				j++;
-			}
-		}
-	}
-
-	if (j < r_state.max_active_lights) { // disable the next light as a stop
-		r_state.active_program->UseLight(j, world_view, NULL);
-	}
+//	r_locals.light_mask = mask;
+//	uint16_t j = 0;
+//	const matrix4x4_t *world_view = R_GetMatrixPtr(R_MATRIX_MODELVIEW);
+//
+//	if (mask) { // enable up to MAX_ACTIVE_LIGHT sources
+//		const r_light_t *l = r_view.lights;
+//
+//		for (uint16_t i = 0; i < r_view.num_lights; i++, l++) {
+//
+//			if (j == r_state.max_active_lights) {
+//				break;
+//			}
+//
+//			const uint64_t bit = ((uint64_t ) 1 << i);
+//			if (mask & bit) {
+//				r_state.active_program->UseLight(j, world_view, l);
+//				j++;
+//			}
+//		}
+//	}
+//
+//	if (j < r_state.max_active_lights) { // disable the next light as a stop
+//		r_state.active_program->UseLight(j, world_view, NULL);
+//	}
 }

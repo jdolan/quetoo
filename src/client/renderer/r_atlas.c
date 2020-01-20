@@ -20,7 +20,6 @@
  */
 
 #include "r_local.h"
-#include "r_gl.h"
 
 /**
  * @brief Free event listener for atlases.

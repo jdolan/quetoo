@@ -163,8 +163,8 @@ void R_InitContext(void) {
 	int32_t dw, dh;
 	SDL_GL_GetDrawableSize(r_context.window, &dw, &dh);
 
-	r_context.render_width = r_context.width = dw;
-	r_context.render_height = r_context.height = dh;
+	r_context.width = dw;
+	r_context.height = dh;
 
 	int32_t ww, wh;
 	SDL_GetWindowSize(r_context.window, &ww, &wh);

@@ -766,8 +766,8 @@ void EmitLightmaps(void) {
 		out++;
 		bsp_file.num_lightmaps++;
 
-//		IMG_SavePNG(lightmap, va("/tmp/%s_lm_%d.png", map_base, bsp_file.num_lightmaps));
-//		IMG_SavePNG(deluxemap, va("/tmp/%s_dm_%d.png", map_base, bsp_file.num_lightmaps));
+		IMG_SavePNG(lightmap, va("/tmp/%s_lm_%d.png", map_base, bsp_file.num_lightmaps));
+		IMG_SavePNG(deluxemap, va("/tmp/%s_dm_%d.png", map_base, bsp_file.num_lightmaps));
 
 		SDL_FreeSurface(lightmap);
 		SDL_FreeSurface(deluxemap);
@@ -821,8 +821,8 @@ void EmitLightmapTexcoords(void) {
 			const vec_t s = (lm->s + padding_s + st[0]) / BSP_LIGHTMAP_WIDTH;
 			const vec_t t = (lm->t + padding_t + st[1]) / BSP_LIGHTMAP_WIDTH;
 
-			v->texcoords.lightmap[0] = s;
-			v->texcoords.lightmap[1] = t;
+			v->lightmap[0] = s;
+			v->lightmap[1] = t;
 		}
 	}
 }

@@ -155,19 +155,8 @@ typedef struct {
 	vec3_t normal;
 	vec3_t tangent;
 	vec3_t bitangent;
-
-	struct {
-		vec2_t diffuse;
-		vec2_t lightmap;
-	} texcoords;
-
-	struct {
-		vec3_t ambient;
-		vec3_t diffuse;
-		vec3_t dir;
-	} lighting;
-
-	vec_t alpha;
+	vec2_t diffuse;
+	vec2_t lightmap;
 	int16_t texinfo;
 } bsp_vertex_t;
 
@@ -211,8 +200,13 @@ typedef struct {
 	} lightmap;
 } bsp_face_t;
 
+/**
+ * @brief Faces within each leaf are grouped by texture and then merged
+ * into glDrawElements commands.
+ */
 typedef struct {
 	int16_t texinfo;
+	int32_t lightmap;
 
 	int32_t first_element;
 	int32_t num_elements;

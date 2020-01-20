@@ -33,16 +33,16 @@ typedef struct {
 	vec2_t diffuse;
 } r_sky_vertex_t;
 
-static r_buffer_layout_t r_sky_buffer_layout[] = {
-	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 3 },
-	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_FLOAT, .count = 2 },
-	{ .attribute = -1 }
-};
-
+//static r_buffer_layout_t r_sky_buffer_layout[] = {
+//	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 3 },
+//	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_FLOAT, .count = 2 },
+//	{ .attribute = -1 }
+//};
+//
 // sky structure
 typedef struct {
 	r_image_t *images[6];
-	r_buffer_t vertex_buffer;
+//	r_buffer_t vertex_buffer;
 } r_sky_t;
 
 static r_sky_t r_sky;
@@ -56,49 +56,49 @@ void R_DrawSkyBox(void) {
 		return;
 	}
 
-	matrix4x4_t modelview;
-
-	R_GetMatrix(R_MATRIX_MODELVIEW, &modelview);
-
-	R_BindAttributeInterleaveBuffer(&r_sky.vertex_buffer, R_ATTRIB_MASK_ALL);
-
-	R_PushMatrix(R_MATRIX_MODELVIEW);
-
-	Matrix4x4_ConcatTranslate(&modelview, r_view.origin[0], r_view.origin[1], r_view.origin[2]);
-
-	R_SetMatrix(R_MATRIX_MODELVIEW, &modelview);
-
-	R_EnableFog(true);
-
-	r_state.active_fog_parameters.end = FOG_END * 8.0;
-	r_state.active_program->UseFog(&r_state.active_fog_parameters);
-
-	R_BindDiffuseTexture(r_sky.images[4]->texnum);
-	R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-	R_BindDiffuseTexture(r_sky.images[5]->texnum);
-	R_DrawArrays(GL_TRIANGLE_FAN, 4, 4);
-
-	R_BindDiffuseTexture(r_sky.images[0]->texnum);
-	R_DrawArrays(GL_TRIANGLE_FAN, 8, 4);
-
-	R_BindDiffuseTexture(r_sky.images[2]->texnum);
-	R_DrawArrays(GL_TRIANGLE_FAN, 12, 4);
-
-	R_BindDiffuseTexture(r_sky.images[1]->texnum);
-	R_DrawArrays(GL_TRIANGLE_FAN, 16, 4);
-
-	R_BindDiffuseTexture(r_sky.images[3]->texnum);
-	R_DrawArrays(GL_TRIANGLE_FAN, 20, 4);
-
-	r_state.active_fog_parameters.end = FOG_END;
-	r_state.active_program->UseFog(&r_state.active_fog_parameters);
-
-	R_EnableFog(false);
-
-	R_PopMatrix(R_MATRIX_MODELVIEW);
-
-	R_UnbindAttributeBuffers();
+//	matrix4x4_t modelview;
+//
+//	R_GetMatrix(R_MATRIX_MODELVIEW, &modelview);
+//
+//	R_BindAttributeInterleaveBuffer(&r_sky.vertex_buffer, R_ATTRIB_MASK_ALL);
+//
+//	R_PushMatrix(R_MATRIX_MODELVIEW);
+//
+//	Matrix4x4_ConcatTranslate(&modelview, r_view.origin[0], r_view.origin[1], r_view.origin[2]);
+//
+//	R_SetMatrix(R_MATRIX_MODELVIEW, &modelview);
+//
+//	R_EnableFog(true);
+//
+//	r_state.active_fog_parameters.end = FOG_END * 8.0;
+//	r_state.active_program->UseFog(&r_state.active_fog_parameters);
+//
+//	R_BindDiffuseTexture(r_sky.images[4]->texnum);
+//	R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
+//
+//	R_BindDiffuseTexture(r_sky.images[5]->texnum);
+//	R_DrawArrays(GL_TRIANGLE_FAN, 4, 4);
+//
+//	R_BindDiffuseTexture(r_sky.images[0]->texnum);
+//	R_DrawArrays(GL_TRIANGLE_FAN, 8, 4);
+//
+//	R_BindDiffuseTexture(r_sky.images[2]->texnum);
+//	R_DrawArrays(GL_TRIANGLE_FAN, 12, 4);
+//
+//	R_BindDiffuseTexture(r_sky.images[1]->texnum);
+//	R_DrawArrays(GL_TRIANGLE_FAN, 16, 4);
+//
+//	R_BindDiffuseTexture(r_sky.images[3]->texnum);
+//	R_DrawArrays(GL_TRIANGLE_FAN, 20, 4);
+//
+//	r_state.active_fog_parameters.end = FOG_END;
+//	r_state.active_program->UseFog(&r_state.active_fog_parameters);
+//
+//	R_EnableFog(false);
+//
+//	R_PopMatrix(R_MATRIX_MODELVIEW);
+//
+//	R_UnbindAttributeBuffers();
 }
 
 // 4 verts for 6 sides
@@ -108,77 +108,77 @@ void R_DrawSkyBox(void) {
  * @brief
  */
 void R_InitSky(void) {
-	const r_sky_vertex_t vertexes[] = {
-		// +z (top)
-		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
-			.diffuse = { SKY_ST_MAX, SKY_ST_MIN } },
-		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
-			.diffuse = { SKY_ST_MAX, SKY_ST_MAX } },
-		{ .position = { SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
-			.diffuse = { SKY_ST_MIN, SKY_ST_MAX } },
-		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
-			.diffuse = { SKY_ST_MIN, SKY_ST_MIN } },
+//	const r_sky_vertex_t vertexes[] = {
+//		// +z (top)
+//		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
+//			.diffuse = { SKY_ST_MAX, SKY_ST_MIN } },
+//		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
+//			.diffuse = { SKY_ST_MAX, SKY_ST_MAX } },
+//		{ .position = { SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
+//			.diffuse = { SKY_ST_MIN, SKY_ST_MAX } },
+//		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
+//			.diffuse = { SKY_ST_MIN, SKY_ST_MIN } },
+//
+//		// -z (bottom)
+//		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
+//			.diffuse = { SKY_ST_MIN, SKY_ST_MAX } },
+//		{ .position = { SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
+//			.diffuse = { SKY_ST_MIN, SKY_ST_MIN } },
+//		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
+//			.diffuse = { SKY_ST_MAX, SKY_ST_MIN } },
+//		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
+//			.diffuse = { SKY_ST_MAX, SKY_ST_MAX } },
+//
+//		// +x (right)
+//		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
+//			.diffuse = { SKY_ST_MAX, SKY_ST_MIN } },
+//		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
+//			.diffuse = { SKY_ST_MAX, SKY_ST_MAX } },
+//		{ .position = { SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
+//			.diffuse = { SKY_ST_MIN, SKY_ST_MAX } },
+//		{ .position = { SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
+//			.diffuse = { SKY_ST_MIN, SKY_ST_MIN } },
+//
+//		// -x (left)
+//		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
+//			.diffuse = { SKY_ST_MAX, SKY_ST_MIN } },
+//		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
+//			.diffuse = { SKY_ST_MAX, SKY_ST_MAX } },
+//		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
+//			.diffuse = { SKY_ST_MIN, SKY_ST_MAX } },
+//		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
+//			.diffuse = { SKY_ST_MIN, SKY_ST_MIN } },
+//
+//		// +y (back)
+//		{ .position = { SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
+//			.diffuse = { SKY_ST_MAX, SKY_ST_MIN } },
+//		{ .position = { SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
+//			.diffuse = { SKY_ST_MAX, SKY_ST_MAX } },
+//		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
+//			.diffuse = { SKY_ST_MIN, SKY_ST_MAX } },
+//		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
+//			.diffuse = { SKY_ST_MIN, SKY_ST_MIN } },
+//
+//		// -y (front)
+//		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
+//			.diffuse = { SKY_ST_MAX, SKY_ST_MIN } },
+//		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
+//			.diffuse = { SKY_ST_MAX, SKY_ST_MAX } },
+//		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
+//			.diffuse = { SKY_ST_MIN, SKY_ST_MAX } },
+//		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
+//			.diffuse = { SKY_ST_MIN, SKY_ST_MIN } },
+//	};
 
-		// -z (bottom)
-		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
-			.diffuse = { SKY_ST_MIN, SKY_ST_MAX } },
-		{ .position = { SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
-			.diffuse = { SKY_ST_MIN, SKY_ST_MIN } },
-		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
-			.diffuse = { SKY_ST_MAX, SKY_ST_MIN } },
-		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
-			.diffuse = { SKY_ST_MAX, SKY_ST_MAX } },
-
-		// +x (right)
-		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
-			.diffuse = { SKY_ST_MAX, SKY_ST_MIN } },
-		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
-			.diffuse = { SKY_ST_MAX, SKY_ST_MAX } },
-		{ .position = { SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
-			.diffuse = { SKY_ST_MIN, SKY_ST_MAX } },
-		{ .position = { SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
-			.diffuse = { SKY_ST_MIN, SKY_ST_MIN } },
-
-		// -x (left)
-		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
-			.diffuse = { SKY_ST_MAX, SKY_ST_MIN } },
-		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
-			.diffuse = { SKY_ST_MAX, SKY_ST_MAX } },
-		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
-			.diffuse = { SKY_ST_MIN, SKY_ST_MAX } },
-		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
-			.diffuse = { SKY_ST_MIN, SKY_ST_MIN } },
-
-		// +y (back)
-		{ .position = { SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
-			.diffuse = { SKY_ST_MAX, SKY_ST_MIN } },
-		{ .position = { SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
-			.diffuse = { SKY_ST_MAX, SKY_ST_MAX } },
-		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, -SKY_DISTANCE },
-			.diffuse = { SKY_ST_MIN, SKY_ST_MAX } },
-		{ .position = { -SKY_DISTANCE, SKY_DISTANCE, SKY_DISTANCE },
-			.diffuse = { SKY_ST_MIN, SKY_ST_MIN } },
-
-		// -y (front)
-		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
-			.diffuse = { SKY_ST_MAX, SKY_ST_MIN } },
-		{ .position = { -SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
-			.diffuse = { SKY_ST_MAX, SKY_ST_MAX } },
-		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, -SKY_DISTANCE },
-			.diffuse = { SKY_ST_MIN, SKY_ST_MAX } },
-		{ .position = { SKY_DISTANCE, -SKY_DISTANCE, SKY_DISTANCE },
-			.diffuse = { SKY_ST_MIN, SKY_ST_MIN } },
-	};
-
-	R_CreateInterleaveBuffer(&r_sky.vertex_buffer, &(const r_create_interleave_t) {
-		.struct_size = sizeof(r_sky_vertex_t),
-		.layout = r_sky_buffer_layout,
-		.hint = GL_STATIC_DRAW,
-		.size = sizeof(r_sky_vertex_t) * MAX_SKY_VERTS,
-		.data = NULL
-	});
-
-	R_UploadToSubBuffer(&r_sky.vertex_buffer, 0, sizeof(vertexes), vertexes, false);
+//	R_CreateInterleaveBuffer(&r_sky.vertex_buffer, &(const r_create_interleave_t) {
+//		.struct_size = sizeof(r_sky_vertex_t),
+//		.layout = r_sky_buffer_layout,
+//		.hint = GL_STATIC_DRAW,
+//		.size = sizeof(r_sky_vertex_t) * MAX_SKY_VERTS,
+//		.data = NULL
+//	});
+//
+//	R_UploadToSubBuffer(&r_sky.vertex_buffer, 0, sizeof(vertexes), vertexes, false);
 }
 
 /**
@@ -186,7 +186,7 @@ void R_InitSky(void) {
  */
 void R_ShutdownSky(void) {
 
-	R_DestroyBuffer(&r_sky.vertex_buffer);
+//	R_DestroyBuffer(&r_sky.vertex_buffer);
 }
 
 /**

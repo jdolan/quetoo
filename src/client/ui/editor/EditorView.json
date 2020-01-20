@@ -61,7 +61,7 @@
                   },
                   "control": {
                     "class": "TextView",
-                    "identifier": "specularmap"
+                    "identifier": "glossmap"
                   }
                 },
                 {

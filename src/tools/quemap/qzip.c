@@ -144,7 +144,7 @@ static void AddMaterial(const cm_material_t *material) {
 	if (AddAsset(&material->diffuse)) {
 		AddAsset(&material->normalmap);
 		AddAsset(&material->heightmap);
-		AddAsset(&material->specularmap);
+		AddAsset(&material->glossmap);
 		AddAsset(&material->tintmap);
 
 		for (const cm_stage_t *stage = material->stages; stage; stage = stage->next) {

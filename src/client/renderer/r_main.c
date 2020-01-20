@@ -26,7 +26,6 @@
 #endif
 
 #include "r_local.h"
-#include "r_gl.h"
 #include "client.h"
 
 r_view_t r_view;
@@ -60,6 +59,7 @@ cvar_t *r_flares;
 cvar_t *r_fog;
 cvar_t *r_fullscreen;
 cvar_t *r_gamma;
+cvar_t *r_get_error;
 cvar_t *r_hardness;
 cvar_t *r_height;
 cvar_t *r_invert;
@@ -71,7 +71,6 @@ cvar_t *r_modulate;
 cvar_t *r_monochrome;
 cvar_t *r_multisample;
 cvar_t *r_parallax;
-cvar_t *r_render_plugin;
 cvar_t *r_saturation;
 cvar_t *r_screenshot_format;
 cvar_t *r_shadows;
@@ -84,17 +83,93 @@ cvar_t *r_swap_interval;
 cvar_t *r_warp;
 cvar_t *r_width;
 
-// render mode function pointers
-BspSurfacesDrawFunc R_DrawOpaqueBspSurfaces;
-BspSurfacesDrawFunc R_DrawOpaqueWarpBspSurfaces;
-BspSurfacesDrawFunc R_DrawAlphaTestBspSurfaces;
-BspSurfacesDrawFunc R_DrawBlendBspSurfaces;
-BspSurfacesDrawFunc R_DrawBlendWarpBspSurfaces;
-
-MeshModelsDrawFunc R_DrawMeshModels;
-
 extern cl_client_t cl;
 extern cl_static_t cls;
+
+/**
+ * @brief Queries OpenGL for any errors and prints them as warnings.
+ */
+void R_GetError_(const char *function, const char *msg) {
+
+	if (!r_get_error->integer) {
+		return;
+	}
+
+	while (true) {
+
+		const GLenum err = glGetError();
+		const char *s;
+
+		switch (err) {
+			case GL_NO_ERROR:
+				return;
+			case GL_INVALID_ENUM:
+				s = "GL_INVALID_ENUM";
+				break;
+			case GL_INVALID_VALUE:
+				s = "GL_INVALID_VALUE";
+				break;
+			case GL_INVALID_OPERATION:
+				s = "GL_INVALID_OPERATION";
+				break;
+			case GL_OUT_OF_MEMORY:
+				s = "GL_OUT_OF_MEMORY";
+				break;
+			default:
+				s = va("%" PRIx32, err);
+				break;
+		}
+
+		Com_Warn("%s threw %s: %s.\n", function, s, msg);
+
+		if (r_get_error->integer >= 2) {
+			SDL_TriggerBreakpoint();
+		}
+	}
+}
+
+/**
+ * @brief
+ */
+void R_Color(const vec4_t color) {
+
+}
+
+/**
+ * @brief
+ */
+void R_UpdateViewport(void) {
+
+	const SDL_Rect *viewport = &r_view.viewport;
+
+	glViewport(viewport->x, viewport->y, viewport->w, viewport->h);
+
+	const vec_t aspect = (vec_t) viewport->w / (vec_t) viewport->h;
+
+	const vec_t ymax = 1.0 * tanf(Radians(r_view.fov[1]));
+	const vec_t ymin = -ymax;
+
+	const vec_t xmin = ymin * aspect;
+	const vec_t xmax = ymax * aspect;
+
+	Matrix4x4_FromFrustum(&r_view.projection, xmin, xmax, ymin, ymax, 1.0, MAX_WORLD_DIST);
+
+	Matrix4x4_CreateIdentity(&r_view.model_view);
+
+	Matrix4x4_ConcatRotate(&r_view.model_view, -90.0, 1.0, 0.0, 0.0); // put Z going up
+	Matrix4x4_ConcatRotate(&r_view.model_view,  90.0, 0.0, 0.0, 1.0); // put Z going up
+
+	Matrix4x4_ConcatRotate(&r_view.model_view, -r_view.angles[ROLL],  1.0, 0.0, 0.0);
+	Matrix4x4_ConcatRotate(&r_view.model_view, -r_view.angles[PITCH], 0.0, 1.0, 0.0);
+	Matrix4x4_ConcatRotate(&r_view.model_view, -r_view.angles[YAW],   0.0, 0.0, 1.0);
+
+	Matrix4x4_ConcatTranslate(&r_view.model_view, -r_view.origin[0], -r_view.origin[1], -r_view.origin[2]);
+
+	Matrix4x4_Invert_Simple(&r_view.inverse_model_view, &r_view.model_view);
+
+	Matrix4x4_Invert_Full(&r_view.normal, &r_view.model_view);
+	Matrix4x4_Transpose(&r_view.normal, &r_view.normal);
+}
 
 /**
  * @brief Updates the clipping planes for the view frustum based on the origin
@@ -152,63 +227,29 @@ static void R_DrawDeveloperTools(void) {
  */
 void R_DrawView(void) {
 
-	// add stains first, since world uses the stainmap
-	R_AddStains();
+	R_UpdateViewport();
 
 	R_UpdateFrustum();
 
 	R_UpdateVis();
 
-	R_MarkBspSurfaces();
+	R_MarkBspFaces();
+
+	R_DrawWorld();
 
 	R_DrawSkyBox();
 
 	R_AddSustainedLights();
 
-	R_AddFlares();
+//	R_AddFlares();
 
 	R_CullEntities();
 
 	R_MarkLights();
 
-	thread_t *sort_elements = Thread_Create(R_SortElements, NULL, 0);
-
-	const r_sorted_bsp_surfaces_t *surfs = r_model_state.world->bsp->sorted_surfaces;
-
-	R_DrawOpaqueBspSurfaces(&surfs->opaque);
-
-	R_DrawOpaqueWarpBspSurfaces(&surfs->opaque_warp);
-
-	R_DrawAlphaTestBspSurfaces(&surfs->alpha_test);
-
-	R_EnableBlend(true);
-
-	R_EnableDepthMask(false);
-
-	R_DrawMaterialBspSurfaces(&surfs->material);
-
-	R_EnableBlend(false);
-
-	R_EnableDepthMask(true);
-
 	R_DrawEntities();
 
-	R_EnableBlend(true);
-
-	R_EnableDepthMask(false);
-
-	// wait for element sorting to complete
-	Thread_Wait(sort_elements);
-
-	R_DrawElements();
-
 	R_DrawDeveloperTools();
-
-	R_EnableBlend(false);
-
-	R_EnableDepthMask(true);
-
-	R_ResetArrayState();
 
 #if 0
 	vec3_t tmp;
@@ -223,30 +264,7 @@ void R_DrawView(void) {
 }
 
 /**
- * @brief Assigns surface and entity rendering function pointers for the
- * r_render_plugin plugin framework.
- */
-static void R_RenderPlugin(const char *plugin) {
-
-	r_view.plugin = R_PLUGIN_DEFAULT;
-
-	R_DrawOpaqueBspSurfaces = R_DrawOpaqueBspSurfaces_default;
-	R_DrawOpaqueWarpBspSurfaces = R_DrawOpaqueWarpBspSurfaces_default;
-	R_DrawAlphaTestBspSurfaces = R_DrawAlphaTestBspSurfaces_default;
-	R_DrawBlendBspSurfaces = R_DrawBlendBspSurfaces_default;
-	R_DrawBlendWarpBspSurfaces = R_DrawBlendWarpBspSurfaces_default;
-
-	R_DrawMeshModels = R_DrawMeshModels_default;
-
-	if (!plugin || !*plugin) {
-		return;
-	}
-
-	// assign function pointers to different renderer paths here
-}
-
-/**
- * @brief Clears the frame buffer.
+ * @brief
  */
 static void R_Clear(void) {
 
@@ -259,11 +277,6 @@ static void R_Clear(void) {
 
 	// clear the color buffer if requested
 	if (r_clear->value || r_draw_wireframe->value) {
-		bits |= GL_COLOR_BUFFER_BIT;
-	}
-
-	// or if the viewport does not occupy the entire context
-	if (r_view.viewport.x || r_view.viewport.y) {
 		bits |= GL_COLOR_BUFFER_BIT;
 	}
 
@@ -281,45 +294,15 @@ static void R_Clear(void) {
 }
 
 /**
- * @brief
+ * @brief Called at the beginning of each render frame.
  */
 void R_BeginFrame(void) {
-
-	// disable blending at the beginning of the frame
-	if (r_blend->modified) {
-		if (!r_blend->value) {
-			R_EnableBlend(false);
-		}
-		r_blend->modified = false;
-	}
-
-	// draw buffer stuff
-	if (r_draw_buffer->modified) {
-		if (!g_ascii_strcasecmp(r_draw_buffer->string, "GL_FRONT")) {
-			glDrawBuffer(GL_FRONT);
-		} else {
-			glDrawBuffer(GL_BACK);
-		}
-		r_draw_buffer->modified = false;
-	}
-
-	// render plugin stuff
-	if (r_render_plugin->modified) {
-		R_RenderPlugin(r_render_plugin->string);
-		r_render_plugin->modified = false;
-	}
-
-	if (r_state.supersample_fb) {
-		R_Clear();
-		R_BindFramebuffer(r_state.supersample_fb);
-	}
 
 	R_Clear();
 }
 
 /**
- * @brief Called at the end of each video frame to swap buffers. Also, if the
- * loading cycle has completed, media is freed here.
+ * @brief Called at the end of each render frame.
  */
 void R_EndFrame(void) {
 
@@ -341,15 +324,13 @@ void R_InitView(void) {
 
 	memset(&r_view, 0, sizeof(r_view));
 
-	R_RenderPlugin(r_render_plugin->string);
-
 	memset(&r_locals, 0, sizeof(r_locals));
 
 	r_locals.clusters[0] = r_locals.clusters[1] = -1;
 
-	Matrix4x4_FromOrtho(&r_view.matrix_base_2d, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
-
-	Matrix4x4_FromOrtho(&r_view.matrix_base_ui, 0.0, r_context.window_width, r_context.window_height, 0.0, -1.0, 1.0);
+//	Matrix4x4_FromOrtho(&r_view.projection_2d, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
+//
+//	Matrix4x4_FromOrtho(&r_view.projection_ui, 0.0, r_context.window_width, r_context.window_height, 0.0, -1.0, 1.0);
 }
 
 /**
@@ -373,7 +354,7 @@ void R_LoadMedia(void) {
 
 	Cl_LoadingProgress(55, "mopping up blood");
 
-	R_ResetStainmaps(); // clear the stainmap if we have to
+//	R_ResetStainmaps(); // clear the stainmap if we have to
 
 	Cl_LoadingProgress(60, "models");
 
@@ -398,8 +379,6 @@ void R_LoadMedia(void) {
 
 	// sky environment map
 	R_SetSky(cl.config_strings[CS_SKY]);
-
-	r_render_plugin->modified = true;
 
 	r_view.update = true;
 }
@@ -458,13 +437,6 @@ static void R_ToggleFullscreen_f(void) {
 }
 
 /**
- * @brief Resets the stainmap.
- */
-static void R_ResetStainmaps_f(void) {
-	R_ResetStainmaps();
-}
-
-/**
  * @brief Initializes console variables and commands for the renderer.
  */
 static void R_InitLocal(void) {
@@ -496,6 +468,7 @@ static void R_InitLocal(void) {
 	r_fog = Cvar_Add("r_fog", "1", CVAR_ARCHIVE, "Controls the rendering of fog effects");
 	r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = exclusive, 2 = borderless");
 	r_gamma = Cvar_Add("r_gamma", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls video gamma (brightness)");
+	r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER, "Log OpenGL errors to the console (developer tool)");
 	r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects");
 	r_height = Cvar_Add("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_invert = Cvar_Add("r_invert", "0", CVAR_ARCHIVE | CVAR_R_MEDIA, "Inverts the RGB values of all world textures");
@@ -507,7 +480,6 @@ static void R_InitLocal(void) {
 	r_monochrome = Cvar_Add("r_monochrome", "0", CVAR_ARCHIVE | CVAR_R_MEDIA, "Loads all world textures as monochrome");
 	r_multisample = Cvar_Add("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls multisampling (anti-aliasing)");
 	r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax mapping effects");
-	r_render_plugin = Cvar_Add("r_render_plugin", "default", CVAR_ARCHIVE, "Specifies the active renderer plugin");
 	r_saturation = Cvar_Add("r_saturation", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls texture saturation");
 	r_screenshot_format = Cvar_Add("r_screenshot_format", "png", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\", \"tga\" or \"pbm\".");
 	r_shadows = Cvar_Add("r_shadows", "2", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls the rendering of mesh model shadows");
@@ -524,7 +496,6 @@ static void R_InitLocal(void) {
 
 	Cmd_Add("r_dump_images", R_DumpImages_f, CMD_RENDERER, "Dump all loaded images to disk (developer tool)");
 	Cmd_Add("r_list_media", R_ListMedia_f, CMD_RENDERER, "List all currently loaded media (developer tool)");
-	Cmd_Add("r_reset_stainmaps", R_ResetStainmaps_f, CMD_RENDERER, "Reset stains, clearing all persistent stains");
 	Cmd_Add("r_restart", R_Restart_f, CMD_RENDERER, "Restart the rendering subsystem");
 	Cmd_Add("r_screenshot", R_Screenshot_f, CMD_SYSTEM | CMD_RENDERER, "Take a screenshot");
 	Cmd_Add("r_sky", R_Sky_f, CMD_RENDERER, "Sets the sky environment map");
@@ -583,15 +554,11 @@ void R_Init(void) {
 
 	R_InitMedia();
 
-	R_InitState();
-
 	R_GetError("Video initialization");
 
 	R_InitPrograms();
 
 	R_InitImages();
-
-	R_InitSupersample();
 
 	R_InitDraw();
 
@@ -599,13 +566,11 @@ void R_Init(void) {
 
 	R_InitView();
 
-	R_InitParticles();
+//	R_InitParticles();
 
 	R_InitSky();
 
 	R_InitMaterials();
-
-	R_InitStainmaps();
 
 	Com_Print("Video initialized %dx%d %s\n", r_context.width, r_context.height,
 	          (r_context.fullscreen ? "fullscreen" : "windowed"));
@@ -627,15 +592,11 @@ void R_Shutdown(void) {
 
 	R_ShutdownPrograms();
 
-	R_ShutdownParticles();
+//	R_ShutdownParticles();
 
 	R_ShutdownSky();
 
-	R_ShutdownStainmaps();
-
 	R_ShutdownMaterials();
-
-	R_ShutdownState();
 
 	R_ShutdownContext();
 

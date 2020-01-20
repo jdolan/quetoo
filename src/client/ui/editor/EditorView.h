@@ -72,9 +72,9 @@ struct EditorView {
 	TextView *normalmap;
 
 	/**
-	 * @brief The specularmap texture.
+	 * @brief The glossmap texture.
 	 */
-	TextView *specularmap;
+	TextView *glossmap;
 
 	/**
 	 * @brief The bump slider.

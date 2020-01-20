@@ -32,19 +32,12 @@ void Cl_ClearView(void) {
 	r_view.num_entities = r_view.num_lights = 0;
 	r_view.num_particles = r_view.num_stains = 0;
 
-	// reset counters
-	memset(r_view.num_binds, 0, sizeof(r_view.num_binds));
-	memset(r_view.num_state_changes, 0, sizeof(r_view.num_state_changes));
-	memset(r_view.buffer_stats, 0, sizeof(r_view.buffer_stats));
-
 	r_view.num_draw_elements = 0;
-	r_view.num_draw_element_count = 0;
 	r_view.num_draw_arrays = 0;
-	r_view.num_draw_array_count = 0;
 
-	r_view.num_bsp_surfaces = 0;
-
-	r_view.num_mesh_models = r_view.num_mesh_tris = 0;
+	r_view.num_bsp_clusters = 0;
+	r_view.num_bsp_leafs = 0;
+	r_view.num_bsp_faces = 0;
 
 	r_view.cull_passes = r_view.cull_fails = 0;
 }
@@ -60,11 +53,11 @@ static void Cl_UpdateViewSize(void) {
 
 	Cvar_SetValue(cl_view_size->name, Clamp(cl_view_size->value, 40.0, 100.0));
 
-	r_view.viewport_3d.w = r_context.render_width * cl_view_size->value / 100.0;
-	r_view.viewport_3d.h = r_context.render_height * cl_view_size->value / 100.0;
-
-	r_view.viewport_3d.x = (r_context.render_width - r_view.viewport_3d.w) / 2.0;
-	r_view.viewport_3d.y = (r_context.render_height - r_view.viewport_3d.h) / 2.0;
+//	r_view.viewport_3d.w = r_context.render_width * cl_view_size->value / 100.0;
+//	r_view.viewport_3d.h = r_context.render_height * cl_view_size->value / 100.0;
+//
+//	r_view.viewport_3d.x = (r_context.render_width - r_view.viewport_3d.w) / 2.0;
+//	r_view.viewport_3d.y = (r_context.render_height - r_view.viewport_3d.h) / 2.0;
 
 	r_view.viewport.w = r_context.width * cl_view_size->value / 100.0;
 	r_view.viewport.h = r_context.height * cl_view_size->value / 100.0;

@@ -181,6 +181,24 @@ static void Bsp_SwapLeafBrushes(void *lump, const int32_t num) {
 /**
  * @brief Swap function.
  */
+static void Bsp_SwapDrawElements(void *lump, const int32_t num) {
+
+	bsp_draw_elements_t *draw = (bsp_draw_elements_t *) lump;
+
+	for (int32_t i = 0; i < num; i++) {
+
+		draw->texinfo = LittleShort(draw->texinfo);
+		draw->lightmap = LittleLong(draw->lightmap);
+		draw->first_element = LittleLong(draw->first_element);
+		draw->num_elements = LittleLong(draw->num_elements);
+
+		draw++;
+	}
+}
+
+/**
+ * @brief Swap function.
+ */
 static void Bsp_SwapBrushes(void *lump, const int32_t num) {
 
 	bsp_brush_t *brush = (bsp_brush_t *) lump;
@@ -260,12 +278,11 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
 	for (int32_t i = 0; i < num; i++) {
 
 		face->plane_num = LittleLong(face->plane_num);
-		face->side = LittleShort(face->side);
 		face->texinfo = LittleShort(face->texinfo);
-		face->vertex = LittleLong(face->vertex);
+		face->first_vertex = LittleLong(face->first_vertex);
 		face->num_vertexes = LittleLong(face->num_vertexes);
-		face->triangles = LittleLong(face->triangles);
-		face->num_triangles = LittleLong(face->num_triangles);
+		face->first_element = LittleLong(face->first_element);
+		face->num_elements = LittleLong(face->num_elements);
 		face->lightmap.num = LittleLong(face->lightmap.num);
 		face->lightmap.s = LittleLong(face->lightmap.s);
 		face->lightmap.t = LittleLong(face->lightmap.t);
@@ -396,6 +413,7 @@ static Bsp_SwapFunction bsp_swap_funcs[BSP_LUMP_LAST] = {
 	Bsp_SwapLeafs,
 	Bsp_SwapLeafFaces,
 	Bsp_SwapLeafBrushes,
+	Bsp_SwapDrawElements,
 	Bsp_SwapBrushes,
 	Bsp_SwapBrushSides,
 	Bsp_SwapVertexes,

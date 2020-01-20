@@ -58,13 +58,13 @@ static void Cl_DrawConsole_Background(void) {
 
 		r_pixel_t y = cl_console.height * ch;
 
-		R_Color((const vec4_t) {
-			1.0, 1.0, 1.0, cl_draw_console_background_alpha->value
-		});
+//		R_Color((const vec4_t) {
+//			1.0, 1.0, 1.0, cl_draw_console_background_alpha->value
+//		});
 
 		R_DrawImage(0, (-image->height * scale) + y + ch * 1.25, scale, image);
 
-		R_Color(NULL);
+//		R_Color(NULL);
 	}
 }
 

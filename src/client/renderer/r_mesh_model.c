@@ -277,9 +277,9 @@ static void R_LoadMd3Tangents(r_model_mesh_t *mesh, r_md3_mesh_t *md3_mesh) {
 		const uint32_t i2 = tri[1];
 		const uint32_t i3 = tri[2];
 
-		const vec_t *v1 = md3_mesh->verts[i1].point;
-		const vec_t *v2 = md3_mesh->verts[i2].point;
-		const vec_t *v3 = md3_mesh->verts[i3].point;
+		const vec_t *v1 = md3_mesh->verts[i1].position;
+		const vec_t *v2 = md3_mesh->verts[i2].position;
+		const vec_t *v3 = md3_mesh->verts[i3].position;
 
 		const vec_t *w1 = md3_mesh->coords[i1].st;
 		const vec_t *w2 = md3_mesh->coords[i2].st;
@@ -345,14 +345,6 @@ typedef struct {
 	vec3_t bitangent;
 } r_md3_interleave_vertex_t;
 
-static r_buffer_layout_t r_md3_buffer_layout[] = {
-	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 3 },
-	{ .attribute = R_ATTRIB_NORMAL, .type = R_TYPE_FLOAT, .count = 3 },
-	{ .attribute = R_ATTRIB_TANGENT, .type = R_TYPE_FLOAT, .count = 3 },
-	{ .attribute = R_ATTRIB_BITANGENT, .type = R_TYPE_FLOAT, .count = 3 },
-	{ .attribute = -1 }
-};
-
 /**
  * @brief Loads and populates vertex array data for the specified MD3 model.
  *
@@ -361,102 +353,102 @@ static r_buffer_layout_t r_md3_buffer_layout[] = {
  * coordinates, because they must be interpolated at each frame.
  */
 static void R_LoadMd3VertexArrays(r_model_t *mod, r_md3_t *md3) {
-	mod->num_verts = 0;
-
-	for (uint16_t i = 0; i < mod->mesh->num_meshes; i++) {
-		const r_model_mesh_t *mesh = &mod->mesh->meshes[i];
-		mod->num_verts += mesh->num_verts;
-		mod->num_elements += mesh->num_tris * 3;
-	}
-
-	// make the scratch space
-	const size_t vert_size = mod->num_verts * sizeof(r_md3_interleave_vertex_t);
-	const size_t texcoord_size = mod->num_verts * sizeof(vec2_t);
-	const size_t elem_size = mod->num_elements * sizeof(uint32_t);
-
-	r_md3_interleave_vertex_t *vertexes = Mem_Malloc(vert_size);
-	u16vec_t *texcoords = Mem_Malloc(texcoord_size);
-	uint32_t *tris = Mem_Malloc(elem_size);
-
-	// upload initial data
-	R_CreateInterleaveBuffer(&mod->mesh->vertex_buffer, &(const r_create_interleave_t) {
-		.struct_size = sizeof(r_md3_interleave_vertex_t),
-		.layout = r_md3_buffer_layout,
-		.hint = GL_STATIC_DRAW,
-		.size = vert_size * mod->mesh->num_frames
-	});
-
-	uint32_t *out_tri = tris;
-	u16vec_t *out_texcoord = texcoords;
-
-	for (uint16_t f = 0; f < mod->mesh->num_frames; ++f) {
-		const d_md3_frame_t *frame = &md3->frames[f];
-		uint32_t vert_offset = 0;
-
-		for (uint16_t i = 0; i < mod->mesh->num_meshes; i++) { // iterate the meshes
-			const r_model_mesh_t *mesh = &mod->mesh->meshes[i];
-			const r_md3_mesh_t *md3_mesh = &md3->meshes[i];
-
-			for (uint16_t j = 0; j < mesh->num_verts; j++) {
-				const r_model_vertex_t *vert = &(md3_mesh->verts[(f * mesh->num_verts) + j]);
-
-				VectorAdd(frame->translate, vert->point, vertexes[j + vert_offset].vertex);
-				VectorCopy(vert->normal, vertexes[j + vert_offset].normal);
-				VectorCopy(vert->tangent, vertexes[j + vert_offset].tangent);
-				VectorCopy(vert->bitangent, vertexes[j + vert_offset].bitangent);
-
-				// only copy st coords once
-				if (f == 0) {
-					const d_md3_texcoord_t *tc = &md3_mesh->coords[j];
-					PackTexcoords(tc->st, out_texcoord);
-					out_texcoord += 2;
-				}
-			}
-
-			// only copy elements once
-			if (f == 0) {
-				const uint32_t *tri = md3_mesh->tris;
-
-				for (uint16_t j = 0; j < mesh->num_tris; ++j) {
-					for (uint16_t k = 0; k < 3; ++k) {
-						*out_tri++ = *tri++ + vert_offset;
-					}
-				}
-			}
-
-			vert_offset += mesh->num_verts;
-		}
-
-		// upload each frame
-		R_UploadToSubBuffer(&mod->mesh->vertex_buffer, vert_size * f, vert_size, vertexes, false);
-	}
-
-	// upload texcoords
-	R_CreateDataBuffer(&mod->mesh->texcoord_buffer, &(const r_create_buffer_t) {
-		.element = {
-			.type = R_TYPE_UNSIGNED_SHORT,
-			.count = 2,
-			.normalized = true
-		},
-		.hint = GL_STATIC_DRAW,
-		.size = texcoord_size,
-		.data = texcoords
-	});
-
-	// upload elements
-	R_CreateElementBuffer(&mod->mesh->element_buffer, &(const r_create_element_t) {
-		.type = R_TYPE_UNSIGNED_INT,
-		.hint = GL_STATIC_DRAW,
-		.size = elem_size,
-		.data = tris
-	});
-
-	// get rid of these, we don't need them any more
-	Mem_Free(texcoords);
-	Mem_Free(tris);
-	Mem_Free(vertexes);
-
-	R_GetError(mod->media.name);
+//	mod->num_verts = 0;
+//
+//	for (uint16_t i = 0; i < mod->mesh->num_meshes; i++) {
+//		const r_model_mesh_t *mesh = &mod->mesh->meshes[i];
+//		mod->num_verts += mesh->num_verts;
+//		mod->num_elements += mesh->num_tris * 3;
+//	}
+//
+//	// make the scratch space
+//	const size_t vert_size = mod->num_verts * sizeof(r_md3_interleave_vertex_t);
+//	const size_t texcoord_size = mod->num_verts * sizeof(vec2_t);
+//	const size_t elem_size = mod->num_elements * sizeof(uint32_t);
+//
+//	r_md3_interleave_vertex_t *vertexes = Mem_Malloc(vert_size);
+//	u16vec_t *texcoords = Mem_Malloc(texcoord_size);
+//	uint32_t *tris = Mem_Malloc(elem_size);
+//
+//	// upload initial data
+//	R_CreateInterleaveBuffer(&mod->mesh->vertex_buffer, &(const r_create_interleave_t) {
+//		.struct_size = sizeof(r_md3_interleave_vertex_t),
+//		.layout = r_md3_buffer_layout,
+//		.hint = GL_STATIC_DRAW,
+//		.size = vert_size * mod->mesh->num_frames
+//	});
+//
+//	uint32_t *out_tri = tris;
+//	u16vec_t *out_texcoord = texcoords;
+//
+//	for (uint16_t f = 0; f < mod->mesh->num_frames; ++f) {
+//		const d_md3_frame_t *frame = &md3->frames[f];
+//		uint32_t vert_offset = 0;
+//
+//		for (uint16_t i = 0; i < mod->mesh->num_meshes; i++) { // iterate the meshes
+//			const r_model_mesh_t *mesh = &mod->mesh->meshes[i];
+//			const r_md3_mesh_t *md3_mesh = &md3->meshes[i];
+//
+//			for (uint16_t j = 0; j < mesh->num_verts; j++) {
+//				const r_model_vertex_t *vert = &(md3_mesh->verts[(f * mesh->num_verts) + j]);
+//
+//				VectorAdd(frame->translate, vert->point, vertexes[j + vert_offset].vertex);
+//				VectorCopy(vert->normal, vertexes[j + vert_offset].normal);
+//				VectorCopy(vert->tangent, vertexes[j + vert_offset].tangent);
+//				VectorCopy(vert->bitangent, vertexes[j + vert_offset].bitangent);
+//
+//				// only copy st coords once
+//				if (f == 0) {
+//					const d_md3_texcoord_t *tc = &md3_mesh->coords[j];
+//					PackTexcoords(tc->st, out_texcoord);
+//					out_texcoord += 2;
+//				}
+//			}
+//
+//			// only copy elements once
+//			if (f == 0) {
+//				const uint32_t *tri = md3_mesh->tris;
+//
+//				for (uint16_t j = 0; j < mesh->num_tris; ++j) {
+//					for (uint16_t k = 0; k < 3; ++k) {
+//						*out_tri++ = *tri++ + vert_offset;
+//					}
+//				}
+//			}
+//
+//			vert_offset += mesh->num_verts;
+//		}
+//
+//		// upload each frame
+//		R_UploadToSubBuffer(&mod->mesh->vertex_buffer, vert_size * f, vert_size, vertexes, false);
+//	}
+//
+//	// upload texcoords
+//	R_CreateDataBuffer(&mod->mesh->texcoord_buffer, &(const r_create_buffer_t) {
+//		.element = {
+//			.type = R_TYPE_UNSIGNED_SHORT,
+//			.count = 2,
+//			.normalized = true
+//		},
+//		.hint = GL_STATIC_DRAW,
+//		.size = texcoord_size,
+//		.data = texcoords
+//	});
+//
+//	// upload elements
+//	R_CreateElementBuffer(&mod->mesh->element_buffer, &(const r_create_element_t) {
+//		.type = R_TYPE_UNSIGNED_INT,
+//		.hint = GL_STATIC_DRAW,
+//		.size = elem_size,
+//		.data = tris
+//	});
+//
+//	// get rid of these, we don't need them any more
+//	Mem_Free(texcoords);
+//	Mem_Free(tris);
+//	Mem_Free(vertexes);
+//
+//	R_GetError(mod->media.name);
 }
 
 /**
@@ -636,9 +628,9 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
 		for (l = 0; l < mod->mesh->num_frames; l++) {
 			for (j = 0; j < out_mesh->num_verts; j++, in_vert++, out_vert++) {
-				out_vert->point[0] = LittleShort(in_vert->point[0]) * MD3_XYZ_SCALE;
-				out_vert->point[1] = LittleShort(in_vert->point[1]) * MD3_XYZ_SCALE;
-				out_vert->point[2] = LittleShort(in_vert->point[2]) * MD3_XYZ_SCALE;
+				out_vert->position[0] = LittleShort(in_vert->point[0]) * MD3_XYZ_SCALE;
+				out_vert->position[1] = LittleShort(in_vert->point[1]) * MD3_XYZ_SCALE;
+				out_vert->position[2] = LittleShort(in_vert->point[2]) * MD3_XYZ_SCALE;
 
 				lat = (in_vert->norm >> 8) & 0xff;
 				lng = (in_vert->norm & 0xff);
@@ -654,7 +646,6 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
 		R_LoadMd3Tangents(out_mesh, md3_mesh);
 
-		mod->num_tris += out_mesh->num_tris;
 		out_mesh->num_elements = out_mesh->num_tris * 3;
 
 		Com_Debug(DEBUG_RENDERER, "%s: %s: %d triangles (%d elements)\n", mod->media.name, out_mesh->name, out_mesh->num_tris,
@@ -678,7 +669,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 	Mem_Free(out_md3);
 
 	Com_Debug(DEBUG_RENDERER, "%s\n  %d meshes\n  %d frames\n  %d tags\n  %d vertexes\n", mod->media.name,
-	          mod->mesh->num_meshes, mod->mesh->num_frames, mod->mesh->num_tags, mod->num_verts);
+	          mod->mesh->num_meshes, mod->mesh->num_frames, mod->mesh->num_tags, mod->mesh->num_verts);
 }
 
 /**
@@ -1082,126 +1073,18 @@ static void R_LoadObjTangents(r_model_t *mod, r_obj_t *obj) {
 typedef struct {
 	vec3_t vertex;
 	vec3_t normal;
-	u16vec2_t diffuse;
-} r_obj_shell_interleave_vertex_t;
-
-static r_buffer_layout_t r_obj_shell_buffer_layout[] = {
-	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 3 },
-	{ .attribute = R_ATTRIB_NORMAL, .type = R_TYPE_FLOAT, .count = 3 },
-	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_UNSIGNED_SHORT, .count = 2, .normalized = true },
-	{ .attribute = -1 }
-};
-
-/**
- * @brief Populates the shell array of `mod` with data from `obj`. This is only used
- * if r_shell is 2.
- */
-static void R_LoadObjShellVertexArrays(r_model_t *mod, r_obj_t *obj, GLuint *elements, const GLsizei e) {
-
-	if (r_shell->value < 2) {
-		return;
-	}
-
-	GHashTable *index_remap_table = g_hash_table_new(g_direct_hash, g_direct_equal);
-	GArray *unique_vertex_list = g_array_new(false, false, sizeof(r_obj_shell_interleave_vertex_t));
-
-	// compile list of unique vertices in the model
-	for (uint32_t vi = 0; vi < obj->verts->len; vi++) {
-		const r_obj_vertex_t *ve = &g_array_index(obj->verts, r_obj_vertex_t, vi);
-		uint32_t i;
-
-		for (i = 0; i < unique_vertex_list->len; i++) {
-			r_obj_shell_interleave_vertex_t *v = &g_array_index(unique_vertex_list, r_obj_shell_interleave_vertex_t, i);
-
-			if (VectorCompare(ve->point, v->vertex)) {
-				for (int32_t n = 0; n < 3; ++n) {
-					v->normal[n] += ve->normal[n];
-				}
-				break;
-			}
-		}
-
-		if (i == unique_vertex_list->len) {
-
-			unique_vertex_list = g_array_append_vals(unique_vertex_list, &(const r_obj_shell_interleave_vertex_t) {
-				.vertex = { ve->point[0], ve->point[1], ve->point[2] },
-				 .normal = { ve->normal[0], ve->normal[1], ve->normal[2] },
-				  .diffuse = { PackTexcoord(ve->texcoords[0]), PackTexcoord(ve->texcoords[1]) }
-			}, 1);
-		}
-
-		if (vi != i) {
-
-			g_hash_table_insert(index_remap_table, (gpointer) (ptrdiff_t) vi, (gpointer) (ptrdiff_t) i);
-		}
-	}
-
-	for (uint32_t i = 0; i < unique_vertex_list->len; i++) {
-		r_obj_shell_interleave_vertex_t *v = &g_array_index(unique_vertex_list, r_obj_shell_interleave_vertex_t, i);
-
-		VectorNormalize(v->normal);
-	}
-
-	// upload data
-	R_CreateInterleaveBuffer(&mod->mesh->shell_vertex_buffer, &(const r_create_interleave_t) {
-		.struct_size = sizeof(r_obj_shell_interleave_vertex_t),
-		.layout = r_obj_shell_buffer_layout,
-		.hint = GL_STATIC_DRAW,
-		.size = sizeof(r_obj_shell_interleave_vertex_t) * unique_vertex_list->len,
-		.data = unique_vertex_list->data
-	});
-
-	g_array_free(unique_vertex_list, true);
-
-	// remap indices
-	for (GLsizei i = 0; i < mod->num_elements; ++i) {
-		GLuint *element = &elements[i];
-		gpointer new_element;
-
-		if (g_hash_table_lookup_extended(index_remap_table, (gconstpointer) (ptrdiff_t) *element, NULL, &new_element)) {
-
-			*element = (GLuint) (ptrdiff_t) new_element;
-		}
-	}
-
-	R_CreateElementBuffer(&mod->mesh->shell_element_buffer, &(const r_create_element_t) {
-		.type = R_TYPE_UNSIGNED_INT,
-		.hint = GL_STATIC_DRAW,
-		.size = e,
-		.data = elements
-	});
-
-	g_hash_table_destroy(index_remap_table);
-}
-
-typedef struct {
-	vec3_t vertex;
-	vec3_t normal;
 	vec3_t tangent;
 	vec3_t bitangent;
 	u16vec2_t diffuse;
 } r_obj_interleave_vertex_t;
-
-static r_buffer_layout_t r_obj_buffer_layout[] = {
-	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 3 },
-	{ .attribute = R_ATTRIB_NORMAL, .type = R_TYPE_FLOAT, .count = 3 },
-	{ .attribute = R_ATTRIB_TANGENT, .type = R_TYPE_FLOAT, .count = 3 },
-	{ .attribute = R_ATTRIB_BITANGENT, .type = R_TYPE_FLOAT, .count = 3 },
-	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_UNSIGNED_SHORT, .count = 2, .normalized = true },
-	{ .attribute = -1 }
-};
 
 /**
  * @brief Populates the vertex arrays of `mod` with triangle data from `obj`.
  */
 static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 
-	mod->num_verts = obj->verts->len;
-	mod->num_tris = obj->num_tris;
-	mod->num_elements = obj->num_tris * 3;
-
-	const GLsizei v = mod->num_verts * sizeof(r_obj_interleave_vertex_t);
-	const GLsizei e = mod->num_elements * sizeof(GLuint);
+	const GLsizei v = obj->verts->len * sizeof(r_obj_interleave_vertex_t);
+	const GLsizei e = obj->num_tris * 3 * sizeof(GLuint);
 
 	r_obj_interleave_vertex_t *verts = Mem_LinkMalloc(v, mod);
 	GLuint *elements = Mem_LinkMalloc(e, mod);
@@ -1236,22 +1119,20 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 	}
 
 	// load the vertex buffer objects
-	R_CreateInterleaveBuffer(&mod->mesh->vertex_buffer, &(const r_create_interleave_t) {
-		.struct_size = sizeof(r_obj_interleave_vertex_t),
-		.layout = r_obj_buffer_layout,
-		.hint = GL_STATIC_DRAW,
-		.size = v,
-		.data = verts
-	});
-
-	R_CreateElementBuffer(&mod->mesh->element_buffer, &(const r_create_element_t) {
-		.type = R_TYPE_UNSIGNED_INT,
-		.hint = GL_STATIC_DRAW,
-		.size = e,
-		.data = elements
-	});
-
-	R_LoadObjShellVertexArrays(mod, obj, elements, e);
+//	R_CreateInterleaveBuffer(&mod->mesh->vertex_buffer, &(const r_create_interleave_t) {
+//		.struct_size = sizeof(r_obj_interleave_vertex_t),
+//		.layout = r_obj_buffer_layout,
+//		.hint = GL_STATIC_DRAW,
+//		.size = v,
+//		.data = verts
+//	});
+//
+//	R_CreateElementBuffer(&mod->mesh->element_buffer, &(const r_create_element_t) {
+//		.type = R_TYPE_UNSIGNED_INT,
+//		.hint = GL_STATIC_DRAW,
+//		.size = e,
+//		.data = elements
+//	});
 
 	// free our temporary buffers
 	Mem_Free(verts);

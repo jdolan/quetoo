@@ -240,12 +240,12 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 		p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
 	}
 
-	cgi.AddStain(&(const r_stain_t) {
-		.origin = { org[0], org[1], org[2] },
-		.radius = count * 6.0,
-		.media = cg_stain_blood,
-		.color = { 0.5 + (Randomf() * 0.3), 0.0, 0.0, 0.1 + Randomf() * 0.2 },
-	});
+//	cgi.AddStain(&(const r_stain_t) {
+//		.origin = { org[0], org[1], org[2] },
+//		.radius = count * 6.0,
+//		.media = cg_stain_blood,
+//		.color = { 0.5 + (Randomf() * 0.3), 0.0, 0.0, 0.1 + Randomf() * 0.2 },
+//	});
 }
 
 #define GIB_STREAM_DIST 180.0
