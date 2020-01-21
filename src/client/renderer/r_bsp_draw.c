@@ -98,6 +98,10 @@ static void R_DrawBspLeaf(const r_bsp_leaf_t *leaf) {
 	const r_bsp_draw_elements_t *draw = leaf->draw_elements;
 	for (int32_t i = 0; i < leaf->num_draw_elements; i++, draw++) {
 
+		if (draw->texinfo->flags & SURF_SKY) {
+			continue;
+		}
+
 		const r_material_t *material = draw->texinfo->material;
 
 		GLint textures = TEXTURE_MASK_DIFFUSE;

@@ -7,4 +7,6 @@ shaders_DATA = \
 	draw_fs.glsl \
 	draw_vs.glsl \
 	particle_fs.glsl \
-	particle_vs.glsl
+	particle_vs.glsl \
+	sky_fs.glsl \
+	sky_vs.glsl

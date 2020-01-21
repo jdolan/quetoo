@@ -24,11 +24,11 @@
 uniform mat4 projection;
 uniform mat4 model_view;
 
-layout (location = 0) in vec4 in_position;
-layout (location = 1) in vec4 in_color;
+layout (location = 0) in vec3 in_position;
+layout (location = 1) in vec2 in_diffuse;
 
 out vertex_data {
-	vec4 color;
+	vec2 diffuse;
 } vertex;
 
 /**
@@ -36,9 +36,8 @@ out vertex_data {
  */
 void main(void) {
 
-	gl_Position = projection * model_view * vec4(in_position.xyz, 1.0);
+	gl_Position = projection * model_view * vec4(in_position, 1.0);
 
-	gl_PointSize = in_position.w * 4096.0 / gl_Position.w;
-
-	vertex.color = in_color;
+	vertex.diffuse = in_diffuse;
 }
+

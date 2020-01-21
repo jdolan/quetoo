@@ -523,6 +523,8 @@
 		CE8FD2F423D611C0002FD074 /* color_filter.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE8FD2F323D60E7B002FD074 /* color_filter.glsl */; };
 		CE8FD2F723D69A32002FD074 /* particle_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE8FD2F523D69A10002FD074 /* particle_vs.glsl */; };
 		CE8FD2F823D69A32002FD074 /* particle_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE8FD2F623D69A1E002FD074 /* particle_fs.glsl */; };
+		CE8FD2FB23D70F52002FD074 /* sky_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE8FD2FA23D70A1E002FD074 /* sky_fs.glsl */; };
+		CE8FD2FC23D70F52002FD074 /* sky_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE8FD2F923D70A11002FD074 /* sky_vs.glsl */; };
 		CE91924D2055731E007AC8FF /* tjunction.c in Sources */ = {isa = PBXBuildFile; fileRef = CE91924C2055731E007AC8FF /* tjunction.c */; };
 		CE948B0E222C130600D961FA /* libopenal.1.15.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE948B0D222C130600D961FA /* libopenal.1.15.1.dylib */; };
 		CE948B1B2235652600D961FA /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE51FB9121481AE300ABE14F /* libcheck.0.dylib */; };
@@ -1248,6 +1250,8 @@
 				CE4A255D1FA2032700A539E7 /* draw_vs.glsl in CopyFiles */,
 				CE8FD2F723D69A32002FD074 /* particle_vs.glsl in CopyFiles */,
 				CE8FD2F823D69A32002FD074 /* particle_fs.glsl in CopyFiles */,
+				CE8FD2FB23D70F52002FD074 /* sky_fs.glsl in CopyFiles */,
+				CE8FD2FC23D70F52002FD074 /* sky_vs.glsl in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2019,6 +2023,8 @@
 		CE8FD2F323D60E7B002FD074 /* color_filter.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = color_filter.glsl; sourceTree = "<group>"; };
 		CE8FD2F523D69A10002FD074 /* particle_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = particle_vs.glsl; sourceTree = "<group>"; };
 		CE8FD2F623D69A1E002FD074 /* particle_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = particle_fs.glsl; sourceTree = "<group>"; };
+		CE8FD2F923D70A11002FD074 /* sky_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = sky_vs.glsl; sourceTree = "<group>"; };
+		CE8FD2FA23D70A1E002FD074 /* sky_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = sky_fs.glsl; sourceTree = "<group>"; };
 		CE91924C2055731E007AC8FF /* tjunction.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tjunction.c; sourceTree = "<group>"; };
 		CE92B3A91D2FF72200E9153A /* quemap-icon.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "quemap-icon.rc"; sourceTree = "<group>"; };
 		CE92B3AA1D2FF77800E9153A /* quemap.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = quemap.ico; sourceTree = "<group>"; };
@@ -3037,6 +3043,8 @@
 				CE3BCDC41DB6DD05002E6C6D /* draw_vs.glsl */,
 				CE8FD2F623D69A1E002FD074 /* particle_fs.glsl */,
 				CE8FD2F523D69A10002FD074 /* particle_vs.glsl */,
+				CE8FD2FA23D70A1E002FD074 /* sky_fs.glsl */,
+				CE8FD2F923D70A11002FD074 /* sky_vs.glsl */,
 				CE12D5F61C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = shaders;

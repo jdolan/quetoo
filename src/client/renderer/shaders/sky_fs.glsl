@@ -19,26 +19,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#version 330
+uniform sampler2D texture_diffuse;
 
-uniform mat4 projection;
-uniform mat4 model_view;
-
-layout (location = 0) in vec4 in_position;
-layout (location = 1) in vec4 in_color;
-
-out vertex_data {
-	vec4 color;
+in vertex_data {
+	vec2 diffuse;
 } vertex;
+
+out vec4 out_color;
 
 /**
  * @brief
  */
 void main(void) {
 
-	gl_Position = projection * model_view * vec4(in_position.xyz, 1.0);
-
-	gl_PointSize = in_position.w * 4096.0 / gl_Position.w;
-
-	vertex.color = in_color;
+	out_color = ColorFilter(texture(texture_diffuse, vertex.diffuse));
 }
