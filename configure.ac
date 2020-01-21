@@ -521,7 +521,6 @@ AC_CONFIG_FILES([
 	src/client/Makefile
 	src/client/renderer/Makefile
 	src/client/renderer/shaders/Makefile
-	src/client/renderer/shaders/include/Makefile
 	src/client/sound/Makefile
 	src/client/ui/Makefile
 	src/client/ui/editor/Makefile
