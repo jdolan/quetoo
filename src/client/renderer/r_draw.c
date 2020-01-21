@@ -515,16 +515,6 @@ static void R_InitDrawProgram(void) {
 /**
  * @brief
  */
-static void R_ShutdownDrawProgram(void) {
-
-	glDeleteProgram(r_draw_program.name);
-
-	r_draw_program.name = 0;
-}
-
-/**
- * @brief
- */
 void R_InitDraw(void) {
 
 	memset(&r_draw, 0, sizeof(r_draw));
@@ -545,8 +535,6 @@ void R_InitDraw(void) {
 
 	R_BindFont(NULL, NULL, NULL);
 
-	R_InitDrawProgram();
-
 	glGenVertexArrays(1, &r_draw.vertex_array);
 	glBindVertexArray(r_draw.vertex_array);
 
@@ -560,6 +548,18 @@ void R_InitDraw(void) {
 	R_GetError(NULL);
 
 	glBindVertexArray(0);
+
+	R_InitDrawProgram();
+}
+
+/**
+ * @brief
+ */
+static void R_ShutdownDrawProgram(void) {
+
+	glDeleteProgram(r_draw_program.name);
+
+	r_draw_program.name = 0;
 }
 
 /**

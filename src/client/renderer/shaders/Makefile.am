@@ -5,4 +5,6 @@ shaders_DATA = \
 	bsp_vs.glsl \
 	color_filter.glsl \
 	draw_fs.glsl \
-	draw_vs.glsl
+	draw_vs.glsl \
+	particle_fs.glsl \
+	particle_vs.glsl

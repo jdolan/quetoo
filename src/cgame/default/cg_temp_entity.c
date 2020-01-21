@@ -56,10 +56,6 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 		}
 
 		p->accel[2] -= 2.0 * PARTICLE_GRAVITY;
-
-		p->spark.length = 0.1 + Randomc() * 0.05;
-
-		VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 	}
 
 	vec3_t c;
@@ -107,10 +103,6 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 		VectorSubtract(end, start, p->vel);
 		VectorMA(p->vel, 4.0, p->vel, p->vel); // Ghetto indeed
 
-		p->spark.length = 0.02 + Randomf() * 0.05;
-
-		VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
-
 		p->accel[2] = -PARTICLE_GRAVITY * 3.0;
 	}
 }
@@ -147,9 +139,6 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 				p->accel[0] = Randomc() * 40.0;
 				p->accel[1] = Randomc() * 40.0;
 				p->accel[2] = -(PARTICLE_GRAVITY + (Randomf() * 60.0));
-				p->spark.length = 0.04 + Randomf() * 0.02;
-
-				VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 			}
 		}
 
@@ -164,7 +153,6 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 
 			p->scale_start = 2.0 + Randomf() * 2.0;
 			p->scale_end = 18.0 + Randomf() * 8.0;
-			p->part.roll = Randomc() * 50.0;
 
 			VectorCopy(org, p->part.org);
 			VectorScale(dir, 60.0 + (Randomc() * 60.0), p->vel);
@@ -226,7 +214,6 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 		p->color_end[3] = 0.0;
 
 		p->part.scale = Randomfr(5.0, 8.0);
-		p->part.roll = Randomc() * 100.0;
 
 		const vec_t d = Randomr(0, 32);
 		for (int32_t j = 0; j < 3; j++) {
@@ -295,7 +282,6 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 			p->color_end[3] = 0.0;
 
 			p->part.scale = Randomfr(3.0, 7.0);
-			p->part.roll = Randomc() * 100.0;
 
 			VectorCopy(o, p->part.org);
 
@@ -357,9 +343,6 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 		p->accel[0] = Randomc() * 1.0;
 		p->accel[1] = Randomc() * 1.0;
 		p->accel[2] = -0.5 * PARTICLE_GRAVITY;
-		p->spark.length = 0.15;
-
-		VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 	}
 
 	cgi.AddSustainedLight(&(const r_sustained_light_t) {
@@ -395,8 +378,6 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 		p->scale_start = 6.0;
 		p->scale_end = 128.0;
 
-		p->part.roll = Randomc() * 100.0;
-
 		VectorCopy(org, p->part.org);
 	}
 
@@ -418,8 +399,6 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 			p->scale_start = 40.0;
 			p->scale_end = 16.0;
-
-			p->part.roll = Randomc() * 60.0;
 
 			p->part.org[0] = org[0] + Randomc() * 16.0;
 			p->part.org[1] = org[1] + Randomc() * 16.0;
@@ -452,10 +431,6 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 			p->vel[2] = Randomc() * 170.0;
 
 			p->accel[2] = -PARTICLE_GRAVITY * 2.0;
-
-			p->spark.length = 0.04 + Randomf() * 0.06;
-
-			VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 		}
 	}
 
@@ -474,7 +449,6 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 			p->color_end[3] = 0.3;
 
 			p->part.scale = 3.0;
-			p->part.roll = Randomc() * 30.0;
 
 			p->part.org[0] = org[0] + Randomfr(-16.0, 16.0);
 			p->part.org[1] = org[1] + Randomfr(-16.0, 16.0);
@@ -540,8 +514,6 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 		p->scale_start = 1.5;
 		p->scale_end = 25.0 * (i + 1);
 
-		p->part.roll = 100.0 * Randomc();
-
 		VectorAdd(org, dir, p->part.org);
 	}
 
@@ -572,10 +544,6 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 			p->vel[2] = dir[2] * Randomfr(20.0, 140.0) + Randomc() * 16.0;
 
 			p->accel[2] = -PARTICLE_GRAVITY * 2.0;
-
-			p->spark.length = 0.03 + Randomf() * 0.04;
-
-			VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 		}
 	}
 
@@ -660,7 +628,6 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		p->part.scale = 8.0;
 
 		VectorCopy(start, p->part.org);
-		VectorCopy(end, p->part.end);
 	}
 
 	// Rail wake
@@ -689,8 +656,6 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 		p->scale_start = 2.0;
 		p->scale_end = 1.0;
-
-		p->part.roll = -(100.0 + ((1.0 - (i / len)) * 700.0));
 
 		VectorMA(point, 3.0, vec, point);
 		VectorCopy(point, p->part.org);
@@ -765,10 +730,6 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 			p->vel[2] += Randomc() * 100;
 
 			p->accel[2] = -PARTICLE_GRAVITY * 2.0;
-
-			p->spark.length = 0.04 + Randomf() * 0.07;
-
-			VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 		}
 	}
 
@@ -797,15 +758,12 @@ static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
 
 	if ((p = Cg_AllocParticle(cg_particles_beam))) {
 		VectorCopy(org, p->part.org);
-		VectorCopy(end, p->part.end);
 
 		p->lifetime = 50;
 
 		cgi.ColorFromPalette(200 + Randomr(0, 3), p->part.color);
 
 		p->part.scale = 6.0;
-
-		p->part.scroll_s = -4.0;
 	}
 
 	VectorCopy(end, s.light.origin);
@@ -837,8 +795,6 @@ static void Cg_BfgEffect(const vec3_t org) {
 
 		p->scale_start = 6.0;
 		p->scale_end = 48.0 * (i + 1);
-
-		p->part.roll = 100.0 * Randomc();
 
 		VectorCopy(org, p->part.org);
 	}
@@ -973,10 +929,6 @@ static void Cg_SplashEffect(const vec3_t org, const vec3_t dir) {
 		p->vel[0] += Randomc() * 8.0;
 		p->vel[1] += Randomc() * 8.0;
 
-		p->spark.length = 0.3 + Randomf() * 0.03;
-
-		VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
-
 		VectorSet(p->accel, 0.0, 0.0, -PARTICLE_GRAVITY / 2.0);
 	}
 }
@@ -1012,9 +964,6 @@ static void Cg_HookImpactEffect(const vec3_t org, const vec3_t dir) {
 		p->accel[0] = Randomc() * 2.0;
 		p->accel[1] = Randomc() * 2.0;
 		p->accel[2] = -0.5 * PARTICLE_GRAVITY;
-		p->spark.length = 0.15;
-
-		VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 	}
 
 	vec3_t v;

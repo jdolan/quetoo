@@ -184,12 +184,8 @@ typedef struct r_particle_s {
 	GLenum blend;
 	vec4_t color;
 	vec_t scale;
-	vec_t scroll_s;
-	vec_t scroll_t;
-	vec_t roll;
 	vec3_t org;
-	vec3_t end;
-	vec3_t dir;
+//	vec3_t end;
 	r_particle_flags_t flags;
 	vec_t repeat_scale;
 } r_particle_t;

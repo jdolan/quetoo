@@ -1,3 +1,4 @@
+
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
@@ -22,13 +23,12 @@
 #version 330
 
 uniform mat4 projection;
+uniform mat4 model_view;
 
-layout (location = 0) in vec2 in_position;
-layout (location = 1) in vec2 in_diffuse;
-layout (location = 2) in vec4 in_color;
+layout (location = 0) in vec4 in_position;
+layout (location = 1) in vec4 in_color;
 
 out vertex_data {
-	vec2 diffuse;
 	vec4 color;
 } vertex;
 
@@ -37,8 +37,9 @@ out vertex_data {
  */
 void main(void) {
 
-	gl_Position = projection * vec4(in_position, 0.0, 1.0);
+	gl_Position = projection * model_view * vec4(in_position.xyz, 1.0);
 
-	vertex.diffuse = in_diffuse;
+	gl_PointSize = in_position.w * 4096.0 / gl_Position.w;
+
 	vertex.color = in_color;
 }

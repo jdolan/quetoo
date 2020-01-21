@@ -102,8 +102,6 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 		p->scale_start = 1.5;
 		p->scale_end = 8.0;
 
-		p->part.roll = Randomc() * 20.0;
-
 		VectorCopy(pos, p->part.org);
 
 		VectorScale(forward, 5.0, p->vel);
@@ -163,8 +161,6 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 		p->scale_start = 1.0;
 		p->scale_end = 16.0 + (Randomf() * 16.0);
 
-		p->part.roll = Randomc() * 480.0;
-
 		VectorCopy(move, p->part.org);
 		VectorScale(vec, len, p->vel);
 
@@ -208,7 +204,6 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	}
 
 	p->accel[2] = 15.0;
-	p->part.roll = Randomc() * 100.0;
 
 	// make static flames rise
 	if (ent) {
@@ -249,8 +244,6 @@ void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
 
 	p->scale_start = 8.0;
 	p->scale_end = 20.0;
-
-	p->part.roll = Randomc() * 100.0;
 
 	VectorCopy(org, p->part.org);
 	VectorCopy(vel, p->vel);
@@ -424,7 +417,6 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 
 		p->scale_start = 3.0;
 		p->scale_end = 0.3;
-		p->part.roll = Randomc() * 100.0;
 
 		vec_t vel_scale = -150 + Randomf() * 50;
 
@@ -559,7 +551,6 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 		cgi.ColorFromPalette(12 + (Randomr(0, 4)), p->part.color);
 
 		p->part.scale = 8.0;
-		p->part.scroll_s = -8.0;
 
 		VectorCopy(pos, p->part.org);
 
@@ -568,13 +559,12 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 		}
 
 		VectorAdd(pos, delta, pos);
-		VectorCopy(pos, p->part.end);
 		VectorCopy(vel, p->vel);
 
 		dist -= 48.0;
 
 		if (dist > 12.0) {
-			VectorCopy(p->part.end, l.origin);
+			VectorCopy(p->part.org, l.origin);
 			l.radius = 90.0 + 10.0 * Randomc();
 			cgi.AddLight(&l);
 		}
@@ -637,10 +627,6 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 					p->vel[2] = dir[2] * -200.0 + Randomf() * 100.0;
 
 					p->accel[2] = -PARTICLE_GRAVITY * 3.0;
-
-					p->spark.length = 0.1 + Randomc() * 0.05;
-
-					VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 				}
 			}
 		}
@@ -681,8 +667,6 @@ static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
 		// push the hook tip back a little bit so it connects to the model
 		vec3_t forward;
 		AngleVectors(ent->angles, forward, NULL, NULL);
-
-		VectorMA(end, -3.0, forward, p->part.end);
 	}
 }
 
@@ -707,8 +691,6 @@ static void Cg_BfgTrail(cl_entity_t *ent) {
 		p->color_end[3] = 0.0;
 
 		p->part.scale = 48.0 + 12.0 * mod;
-
-		p->part.roll = Randomc() * 100.0;
 
 		VectorCopy(ent->origin, p->part.org);
 	}
@@ -834,7 +816,6 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 		p->color_end[3] = 0.0;
 
 		p->part.scale = Randomfr(3.0, 7.0);
-		p->part.roll = Randomc() * 100.0;
 
 		VectorScale(move, 20.0, p->vel);
 

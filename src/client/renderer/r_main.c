@@ -249,6 +249,8 @@ void R_DrawView(void) {
 
 	R_DrawEntities();
 
+	R_DrawParticles();
+
 	R_DrawDeveloperTools();
 
 #if 0
@@ -562,7 +564,7 @@ void R_Init(void) {
 
 	R_InitView();
 
-//	R_InitParticles();
+	R_InitParticles();
 
 	R_InitSky();
 
@@ -588,7 +590,7 @@ void R_Shutdown(void) {
 
 	R_ShutdownPrograms();
 
-//	R_ShutdownParticles();
+	R_ShutdownParticles();
 
 	R_ShutdownSky();
 

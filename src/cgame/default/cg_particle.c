@@ -180,16 +180,6 @@ void Cg_FreeParticles(void) {
 /**
  * @brief
  */
-static _Bool Cg_UpdateParticle_Spark(cg_particle_t *p, const vec_t delta, const vec_t delta_squared) {
-
-	VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
-
-	return false;
-}
-
-/**
- * @brief
- */
 static _Bool Cg_UpdateParticle_Weather(cg_particle_t *p, const vec_t delta, const vec_t delta_squared) {
 
 	// free up weather particles that have hit the ground
@@ -312,17 +302,9 @@ void Cg_AddParticles(void) {
 				_Bool free = false;
 
 				switch (p->part.type) {
-					case PARTICLE_SPARK:
-						free = Cg_UpdateParticle_Spark(p, delta, delta_squared);
-						break;
 					case PARTICLE_WEATHER:
 						free = Cg_UpdateParticle_Weather(p, delta, delta_squared);
 						break;
-					default:
-						break;
-				}
-
-				switch (p->special) {
 					default:
 						break;
 				}
@@ -346,27 +328,7 @@ void Cg_AddParticles(void) {
 				}
 			}
 
-			_Bool cull = false;
-
-			// add the particle if it's visible on our screen
-			if (p->part.type == PARTICLE_BEAM ||
-				p->part.type == PARTICLE_SPARK ||
-				p->part.type == PARTICLE_WIRE) {
-				vec3_t distance, center;
-
-				VectorSubtract(p->part.end, p->part.org, distance);
-				VectorMA(p->part.org, 0.5, distance, center);
-				const vec_t radius = VectorLength(distance);
-				cull = cgi.CullSphere(center, radius);
-			} else {
-				const vec_t radius = p->part.scale * 0.5;
-				cull = cgi.CullSphere(p->part.org, radius);
-			}
-
-			if (!cull) {
-				cgi.AddParticle(&p->part);
-			}
-
+			cgi.AddParticle(&p->part);
 			p = p->next;
 		}
 

@@ -40,10 +40,6 @@ typedef enum {
 	PARTICLE_EFFECT_BOUNCE = 1 << 2, // collide with solids
 } cg_particle_effects_t;
 
-typedef enum {
-	PARTICLE_SPECIAL_NONE
-} cg_particle_special_t;
-
 typedef struct cg_particle_s {
 	r_particle_t part; // the r_particle_t to add to the view
 
@@ -53,9 +49,6 @@ typedef struct cg_particle_s {
 	vec3_t vel;
 	vec3_t accel;
 
-	// special ID specific
-	cg_particle_special_t special; // a special ID that can be used for think routines
-
 	union {
 		struct {
 			uint32_t time; // next time to check for splat
@@ -64,6 +57,7 @@ typedef struct cg_particle_s {
 
 	// effect flag specifics
 	cg_particle_effects_t effects; // flags for effects
+
 	vec4_t color_start, color_end;
 	vec_t scale_start, scale_end;
 	vec_t bounce;
@@ -78,10 +72,6 @@ typedef struct cg_particle_s {
 			vec_t radius;
 			vec_t flicker;
 		} corona;
-
-		struct {
-			vec_t length;
-		} spark;
 	};
 
 	struct cg_particle_s *prev; // previous particle in the chain

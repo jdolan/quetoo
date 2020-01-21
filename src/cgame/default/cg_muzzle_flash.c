@@ -112,8 +112,6 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 	p->scale_start = 4.0;
 	p->scale_end = 24.0;
 
-	p->part.roll = Randomc() * 100.0;
-
 	VectorCopy(org, p->part.org);
 
 	for (int32_t j = 0; j < 2; j++) {
