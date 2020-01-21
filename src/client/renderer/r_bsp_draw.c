@@ -86,14 +86,14 @@ static struct {
 	GLint fog_color;
 
 	GLint caustics;
-} prog;
+} r_bsp_program;
 
 /**
  * @brief
  */
 static void R_DrawBspLeaf(const r_bsp_leaf_t *leaf) {
 
-	glUniform1i(prog.contents, leaf->contents);
+	glUniform1i(r_bsp_program.contents, leaf->contents);
 
 	const r_bsp_draw_elements_t *draw = leaf->draw_elements;
 	for (int32_t i = 0; i < leaf->num_draw_elements; i++, draw++) {
@@ -137,7 +137,7 @@ static void R_DrawBspLeaf(const r_bsp_leaf_t *leaf) {
 				break;
 		}
 
-		glUniform1i(prog.textures, textures);
+		glUniform1i(r_bsp_program.textures, textures);
 
 		glDrawElements(GL_TRIANGLES,
 					   draw->num_elements,
@@ -218,20 +218,20 @@ void R_DrawWorld(void) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 
-	glUseProgram(prog.name);
+	glUseProgram(r_bsp_program.name);
 
-	glUniformMatrix4fv(prog.projection, 1, GL_FALSE, (GLfloat *) r_view.projection3D.m);
-	glUniformMatrix4fv(prog.model_view, 1, GL_FALSE, (GLfloat *) r_view.model_view.m);
-	glUniformMatrix4fv(prog.normal, 1, GL_FALSE, (GLfloat *) r_view.normal.m);
+	glUniformMatrix4fv(r_bsp_program.projection, 1, GL_FALSE, (GLfloat *) r_view.projection3D.m);
+	glUniformMatrix4fv(r_bsp_program.model_view, 1, GL_FALSE, (GLfloat *) r_view.model_view.m);
+	glUniformMatrix4fv(r_bsp_program.normal, 1, GL_FALSE, (GLfloat *) r_view.normal.m);
 
-	glUniform4f(prog.color, 1.f, 1.f, 1.f, 1.f);
-	glUniform1f(prog.alpha_threshold, 0.f);
+	glUniform4f(r_bsp_program.color, 1.f, 1.f, 1.f, 1.f);
+	glUniform1f(r_bsp_program.alpha_threshold, 0.f);
 
-	glUniform1f(prog.brightness, r_brightness->value);
-	glUniform1f(prog.contrast, r_contrast->value);
-	glUniform1f(prog.saturation, r_saturation->value);
-	glUniform1f(prog.gamma, r_gamma->value);
-	glUniform1f(prog.modulate, r_modulate->value);
+	glUniform1f(r_bsp_program.brightness, r_brightness->value);
+	glUniform1f(r_bsp_program.contrast, r_contrast->value);
+	glUniform1f(r_bsp_program.saturation, r_saturation->value);
+	glUniform1f(r_bsp_program.gamma, r_gamma->value);
+	glUniform1f(r_bsp_program.modulate, r_modulate->value);
 
 	const r_bsp_model_t *bsp = R_WorldModel()->bsp;
 
@@ -240,13 +240,13 @@ void R_DrawWorld(void) {
 	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
 
-	glEnableVertexAttribArray(prog.in_position);
-	glEnableVertexAttribArray(prog.in_normal);
-	glEnableVertexAttribArray(prog.in_tangent);
-	glEnableVertexAttribArray(prog.in_bitangent);
-	glEnableVertexAttribArray(prog.in_diffuse);
-	glEnableVertexAttribArray(prog.in_lightmap);
-	glEnableVertexAttribArray(prog.in_color);
+	glEnableVertexAttribArray(r_bsp_program.in_position);
+	glEnableVertexAttribArray(r_bsp_program.in_normal);
+	glEnableVertexAttribArray(r_bsp_program.in_tangent);
+	glEnableVertexAttribArray(r_bsp_program.in_bitangent);
+	glEnableVertexAttribArray(r_bsp_program.in_diffuse);
+	glEnableVertexAttribArray(r_bsp_program.in_lightmap);
+	glEnableVertexAttribArray(r_bsp_program.in_color);
 
 	R_GetError(NULL);
 	
@@ -283,65 +283,65 @@ void R_DrawWorld(void) {
  */
 void R_InitBspProgram(void) {
 
-	memset(&prog, 0, sizeof(prog));
+	memset(&r_bsp_program, 0, sizeof(r_bsp_program));
 
-	prog.name = R_LoadProgram(
+	r_bsp_program.name = R_LoadProgram(
 			&MakeShaderDescriptor(GL_VERTEX_SHADER, "bsp_vs.glsl"),
 			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "color_filter.glsl", "bsp_fs.glsl"),
 			NULL);
 
-	glUseProgram(prog.name);
+	glUseProgram(r_bsp_program.name);
 
-	prog.in_position = glGetAttribLocation(prog.name, "in_position");
-	prog.in_normal = glGetAttribLocation(prog.name, "in_normal");
-	prog.in_tangent = glGetAttribLocation(prog.name, "in_tangent");
-	prog.in_bitangent = glGetAttribLocation(prog.name, "in_bitangent");
-	prog.in_diffuse = glGetAttribLocation(prog.name, "in_diffuse");
-	prog.in_lightmap = glGetAttribLocation(prog.name, "in_lightmap");
-	prog.in_color = glGetAttribLocation(prog.name, "in_color");
+	r_bsp_program.in_position = glGetAttribLocation(r_bsp_program.name, "in_position");
+	r_bsp_program.in_normal = glGetAttribLocation(r_bsp_program.name, "in_normal");
+	r_bsp_program.in_tangent = glGetAttribLocation(r_bsp_program.name, "in_tangent");
+	r_bsp_program.in_bitangent = glGetAttribLocation(r_bsp_program.name, "in_bitangent");
+	r_bsp_program.in_diffuse = glGetAttribLocation(r_bsp_program.name, "in_diffuse");
+	r_bsp_program.in_lightmap = glGetAttribLocation(r_bsp_program.name, "in_lightmap");
+	r_bsp_program.in_color = glGetAttribLocation(r_bsp_program.name, "in_color");
 
-	prog.projection = glGetUniformLocation(prog.name, "projection");
-	prog.model_view = glGetUniformLocation(prog.name, "model_view");
-	prog.normal = glGetUniformLocation(prog.name, "normal");
+	r_bsp_program.projection = glGetUniformLocation(r_bsp_program.name, "projection");
+	r_bsp_program.model_view = glGetUniformLocation(r_bsp_program.name, "model_view");
+	r_bsp_program.normal = glGetUniformLocation(r_bsp_program.name, "normal");
 
-	prog.textures = glGetUniformLocation(prog.name, "textures");
-	prog.texture_diffuse = glGetUniformLocation(prog.name, "texture_diffuse");
-	prog.texture_normalmap = glGetUniformLocation(prog.name, "texture_normalmap");
-	prog.texture_glossmap = glGetUniformLocation(prog.name, "texture_glossmap");
-	prog.texture_lightmap = glGetUniformLocation(prog.name, "texture_lightmap");
+	r_bsp_program.textures = glGetUniformLocation(r_bsp_program.name, "textures");
+	r_bsp_program.texture_diffuse = glGetUniformLocation(r_bsp_program.name, "texture_diffuse");
+	r_bsp_program.texture_normalmap = glGetUniformLocation(r_bsp_program.name, "texture_normalmap");
+	r_bsp_program.texture_glossmap = glGetUniformLocation(r_bsp_program.name, "texture_glossmap");
+	r_bsp_program.texture_lightmap = glGetUniformLocation(r_bsp_program.name, "texture_lightmap");
 
-	prog.contents = glGetUniformLocation(prog.name, "contents");
+	r_bsp_program.contents = glGetUniformLocation(r_bsp_program.name, "contents");
 
-	prog.color = glGetUniformLocation(prog.name, "color");
-	prog.alpha_threshold = glGetUniformLocation(prog.name, "alpha_threshold");
+	r_bsp_program.color = glGetUniformLocation(r_bsp_program.name, "color");
+	r_bsp_program.alpha_threshold = glGetUniformLocation(r_bsp_program.name, "alpha_threshold");
 
-	prog.brightness = glGetUniformLocation(prog.name, "brightness");
-	prog.contrast = glGetUniformLocation(prog.name, "contrast");
-	prog.saturation = glGetUniformLocation(prog.name, "saturation");
-	prog.gamma = glGetUniformLocation(prog.name, "gamma");
-	prog.modulate = glGetUniformLocation(prog.name, "modulate");
+	r_bsp_program.brightness = glGetUniformLocation(r_bsp_program.name, "brightness");
+	r_bsp_program.contrast = glGetUniformLocation(r_bsp_program.name, "contrast");
+	r_bsp_program.saturation = glGetUniformLocation(r_bsp_program.name, "saturation");
+	r_bsp_program.gamma = glGetUniformLocation(r_bsp_program.name, "gamma");
+	r_bsp_program.modulate = glGetUniformLocation(r_bsp_program.name, "modulate");
 
-	prog.bump = glGetUniformLocation(prog.name, "bump");
-	prog.parallax = glGetUniformLocation(prog.name, "parallax");
-	prog.hardness = glGetUniformLocation(prog.name, "hardness");
-	prog.specular = glGetUniformLocation(prog.name, "specular");
+	r_bsp_program.bump = glGetUniformLocation(r_bsp_program.name, "bump");
+	r_bsp_program.parallax = glGetUniformLocation(r_bsp_program.name, "parallax");
+	r_bsp_program.hardness = glGetUniformLocation(r_bsp_program.name, "hardness");
+	r_bsp_program.specular = glGetUniformLocation(r_bsp_program.name, "specular");
 
-	for (size_t i = 0; i < lengthof(prog.light_positions); i++) {
-		prog.light_positions[i] = glGetUniformLocation(prog.name, va("light_positions[%zd]", i));
-		prog.light_colors[i] = glGetUniformLocation(prog.name, va("light_colors[%zd]", i));
+	for (size_t i = 0; i < lengthof(r_bsp_program.light_positions); i++) {
+		r_bsp_program.light_positions[i] = glGetUniformLocation(r_bsp_program.name, va("light_positions[%zd]", i));
+		r_bsp_program.light_colors[i] = glGetUniformLocation(r_bsp_program.name, va("light_colors[%zd]", i));
 	}
 
-	prog.fog_parameters = glGetUniformLocation(prog.name, "fog_parameters");
-	prog.fog_color = glGetUniformLocation(prog.name, "fog_color");
+	r_bsp_program.fog_parameters = glGetUniformLocation(r_bsp_program.name, "fog_parameters");
+	r_bsp_program.fog_color = glGetUniformLocation(r_bsp_program.name, "fog_color");
 
-	prog.caustics = glGetUniformLocation(prog.name, "caustics");
+	r_bsp_program.caustics = glGetUniformLocation(r_bsp_program.name, "caustics");
 
-	glUniform1i(prog.texture_diffuse, TEXTURE_DIFFUSE);
-	glUniform1i(prog.texture_normalmap, TEXTURE_NORMALMAP);
-	glUniform1i(prog.texture_glossmap, TEXTURE_GLOSSMAP);
-	glUniform1i(prog.texture_lightmap, TEXTURE_LIGHTMAP);
+	glUniform1i(r_bsp_program.texture_diffuse, TEXTURE_DIFFUSE);
+	glUniform1i(r_bsp_program.texture_normalmap, TEXTURE_NORMALMAP);
+	glUniform1i(r_bsp_program.texture_glossmap, TEXTURE_GLOSSMAP);
+	glUniform1i(r_bsp_program.texture_lightmap, TEXTURE_LIGHTMAP);
 
-	glUniform4f(prog.color, 1.f, 1.f, 1.f, 1.f);
+	glUniform4f(r_bsp_program.color, 1.f, 1.f, 1.f, 1.f);
 
 	R_GetError(NULL);
 }
@@ -351,7 +351,7 @@ void R_InitBspProgram(void) {
  */
 void R_ShutdownBspProgram(void) {
 
-	glDeleteProgram(prog.name);
+	glDeleteProgram(r_bsp_program.name);
 
-	prog.name = 0;
+	r_bsp_program.name = 0;
 }
