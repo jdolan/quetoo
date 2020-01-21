@@ -789,7 +789,7 @@ typedef struct cg_import_s {
 	 * @param y The height, in pixels.
 	 * @param image The image.
 	 */
-	void (*DrawImageResized)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image);
+	void (*DrawImageRect)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image);
 
 	/**
 	 * @brief Draws a filled rectangle in orthographic projection on the screen.

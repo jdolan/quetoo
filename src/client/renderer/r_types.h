@@ -772,9 +772,14 @@ typedef struct {
 	vec2_t fov;
 
 	/**
-	 * @brief The projection matrix.
+	 * @brief The 3D projection matrix.
 	 */
-	matrix4x4_t projection;
+	matrix4x4_t projection3D;
+
+	/**
+	 * @brief The 2D projection matrix.
+	 */
+	matrix4x4_t projection2D;
 
 	/**
 	 * @brief The view origin.

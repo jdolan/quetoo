@@ -891,7 +891,7 @@ static void Cg_DrawBlendFlashImage(const r_image_t *image, const vec_t alpha) {
 	}
 
 	cgi.Color((const vec4_t) { 1.0, 1.0, 1.0, alpha });
-	cgi.DrawImageResized(0, 0, cgi.context->width, cgi.context->height, image);
+	cgi.DrawImageRect(0, 0, cgi.context->width, cgi.context->height, image);
 	cgi.Color(NULL);
 }
 

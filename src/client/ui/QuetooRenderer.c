@@ -30,32 +30,18 @@
 
 #pragma mark - QuetooRenderer
 
+static double drawScale;
+static SDL_Color drawColor;
+
 /**
  * @see Renderer::beginFrame(Renderer *self)
  * @memberof QuetooRenderer
  */
 static void beginFrame(Renderer *self) {
 
-	R_Color(NULL);
-}
+	drawScale = MVC_WindowScale(r_context.window, NULL, NULL);
 
-/**
- * @see Renderer::drawLine(const Renderer *self, const SDL_Point *points, size_t count)
- */
-static void drawLine(const Renderer *self, const SDL_Point *points) {
-
-	assert(points);
-
-	R_DrawLinesUI(points, 2, false);
-}
-
-/**
- * @see Renderer::drawLines(const Renderer *self, const SDL_Point *points, size_t count)
- */
-static void drawLines(const Renderer *self, const SDL_Point *points, size_t count) {
-	assert(points);
-
-	R_DrawLinesUI(points, count, false);
+	drawColor = Colors.White;
 }
 
 /**
@@ -93,20 +79,55 @@ static GLuint createTexture(const Renderer *self, const SDL_Surface *surface) {
 }
 
 /**
+ * @see Renderer::drawLine(const Renderer *self, const SDL_Point *points, size_t count)
+ */
+static void drawLine(const Renderer *self, const SDL_Point *points) {
+
+	assert(points);
+
+	$(self, drawLines, points, 2);
+}
+
+/**
+ * @see Renderer::drawLines(const Renderer *self, const SDL_Point *points, size_t count)
+ */
+static void drawLines(const Renderer *self, const SDL_Point *points, size_t count) {
+	assert(points);
+
+	r_pixel_t p[count][2];
+
+	for (size_t i = 0; i < count; i++) {
+		p[i][0] = points[i].x * drawScale;
+		p[i][1] = points[i].y * drawScale;
+	}
+
+	R_DrawLines((r_pixel_t *) p, count, *(int32_t *) &drawColor, -1.0);
+}
+
+
+/**
  * @see Renderer::drawRect(const Renderer *self, const SDL_Rect *rect)
  */
 static void drawRect(const Renderer *self, const SDL_Rect *rect) {
 
 	assert(rect);
 
-	const SDL_Point points[] = {
-		{ rect->x,					rect->y },
-		{ rect->x + rect->w - 1,	rect->y },
-		{ rect->x + rect->w - 1,	rect->y + rect->h - 1 },
-		{ rect->x,					rect->y + rect->h - 1 }
+	const SDL_Rect r = {
+		rect->x * drawScale,
+		rect->y * drawScale,
+		rect->w * drawScale - 1.0 * drawScale,
+		rect->h * drawScale - 1.0 * drawScale
 	};
 
-	R_DrawLinesUI(points, 4, true);
+	const r_pixel_t points[][2] = {
+		{ r.x,			r.y },
+		{ r.x + r.w,	r.y },
+		{ r.x + r.w,	r.y + r.h },
+		{ r.x,			r.y + r.h },
+		{ r.x,			r.y },
+	};
+
+	R_DrawLines((r_pixel_t *) points, lengthof(points), *(int32_t *) &drawColor, -1.0);
 }
 
 /**
@@ -116,7 +137,14 @@ static void drawRectFilled(const Renderer *self, const SDL_Rect *rect) {
 
 	assert(rect);
 
-	R_DrawFillUI(rect);
+	const SDL_Rect r = {
+		rect->x * drawScale,
+		rect->y * drawScale,
+		rect->w * drawScale,
+		rect->h * drawScale
+	};
+
+	R_DrawFill(r.x, r.y, r.w, r.h, *(int32_t *) &drawColor, -1.0);
 }
 
 /**
@@ -126,9 +154,16 @@ static void drawTexture(const Renderer *self, GLuint texture, const SDL_Rect *re
 
 	assert(rect);
 
+	const SDL_Rect r = {
+		rect->x * drawScale,
+		rect->y * drawScale,
+		rect->w * drawScale,
+		rect->h * drawScale
+	};
+
 	const r_image_t image = { .texnum = texture };
 
-	R_DrawImageResized(rect->x, rect->y, rect->w, rect->h, &image);
+	R_DrawImageRect(r.x, r.y, r.w, r.h, &image);
 }
 
 /**
@@ -145,14 +180,9 @@ static void endFrame(Renderer *self) {
 static void setDrawColor(Renderer *self, const SDL_Color *color) {
 
 	if (color) {
-		R_Color((const vec4_t) {
-			color->r / 255.0f,
-			color->g / 255.0f,
-			color->b / 255.0f,
-			color->a / 255.0f
-		});
+		drawColor = *color;
 	} else {
-		R_Color(NULL);
+		drawColor = Colors.White;
 	}
 }
 
@@ -166,8 +196,7 @@ static void setClippingFrame(Renderer *self, const SDL_Rect *frame) {
 		return;
 	}
 
-	SDL_Window *window = SDL_GL_GetCurrentWindow();
-	const SDL_Rect scissor = MVC_TransformToWindow(window, frame);
+	const SDL_Rect scissor = MVC_TransformToWindow(r_context.window, frame);
 
 	glEnable(GL_SCISSOR_TEST);
 	glScissor(scissor.x, scissor.y, scissor.w, scissor.h);

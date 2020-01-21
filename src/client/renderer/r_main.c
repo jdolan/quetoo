@@ -152,7 +152,7 @@ void R_UpdateViewport(void) {
 	const vec_t xmin = ymin * aspect;
 	const vec_t xmax = ymax * aspect;
 
-	Matrix4x4_FromFrustum(&r_view.projection, xmin, xmax, ymin, ymax, 1.0, MAX_WORLD_DIST);
+	Matrix4x4_FromFrustum(&r_view.projection3D, xmin, xmax, ymin, ymax, 1.0, MAX_WORLD_DIST);
 
 	Matrix4x4_CreateIdentity(&r_view.model_view);
 
@@ -327,10 +327,6 @@ void R_InitView(void) {
 	memset(&r_locals, 0, sizeof(r_locals));
 
 	r_locals.clusters[0] = r_locals.clusters[1] = -1;
-
-//	Matrix4x4_FromOrtho(&r_view.projection_2d, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
-//
-//	Matrix4x4_FromOrtho(&r_view.projection_ui, 0.0, r_context.window_width, r_context.window_height, 0.0, -1.0, 1.0);
 }
 
 /**

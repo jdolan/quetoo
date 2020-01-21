@@ -22,90 +22,7 @@
 #include "r_local.h"
 #include "client.h"
 
-#define MAX_CHARS 0x10000  // per font
-#define MAX_CHAR_VERTS MAX_CHARS * 4
-#define MAX_CHAR_ELEMENTS MAX_CHARS * 6
-
-const vec2_t default_texcoords[4] = { // useful for particles, pics, etc..
-	{ 0.0, 0.0 },
-	{ 1.0, 0.0 },
-	{ 1.0, 1.0 },
-	{ 0.0, 1.0 }
-};
-
 typedef struct {
-	s16vec2_t position;
-	u16vec2_t texcoord;
-	u8vec4_t color;
-} r_char_interleave_vertex_t;
-
-//static r_buffer_layout_t r_char_buffer_layout[] = {
-//	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_SHORT, .count = 2 },
-//	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_UNSIGNED_SHORT, .count = 2, .normalized = true },
-//	{ .attribute = R_ATTRIB_COLOR, .type = R_TYPE_UNSIGNED_BYTE, .count = 4, .normalized = true },
-//	{ .attribute = -1 }
-//};
-
-// characters are batched per frame and drawn in one shot
-// accumulate coordinates and colors as vertex arrays
-typedef struct r_char_arrays_s {
-	r_char_interleave_vertex_t verts[MAX_CHAR_VERTS];
-	uint32_t vert_index;
-//	r_buffer_t vert_buffer;
-
-	GLuint elements[MAX_CHAR_ELEMENTS];
-	uint32_t element_index;
-//	r_buffer_t element_buffer;
-
-	uint32_t num_chars;
-} r_char_arrays_t;
-
-#define MAX_FILLS 512
-#define MAX_FILL_VERTS MAX_FILLS * 4
-#define MAX_FILL_ELEMENTS MAX_FILLS * 6
-
-typedef struct {
-	vec2_t position;
-	u8vec4_t color;
-} r_fill_interleave_vertex_t;
-
-//static r_buffer_layout_t r_fill_buffer_layout[] = {
-//	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_FLOAT, .count = 2 },
-//	{ .attribute = R_ATTRIB_COLOR, .type = R_TYPE_UNSIGNED_BYTE, .count = 4, .normalized = true },
-//	{ .attribute = -1 }
-//};
-
-// fills (alpha-blended quads) are also batched per frame
-typedef struct r_fill_arrays_s {
-	r_fill_interleave_vertex_t verts[MAX_FILL_VERTS];
-	uint32_t vert_index;
-//	r_buffer_t vert_buffer;
-
-	GLuint elements[MAX_FILL_ELEMENTS];
-	uint32_t element_index;
-//	r_buffer_t element_buffer;
-
-	uint32_t num_fills;
-
-	// buffer used for immediately-rendered fills
-//	r_buffer_t ui_vert_buffer;
-} r_fill_arrays_t;
-
-#define MAX_LINES 512
-#define MAX_LINE_VERTS MAX_LINES * 4
-
-// lines are batched per frame too
-typedef struct r_line_arrays_s {
-	r_fill_interleave_vertex_t verts[MAX_LINE_VERTS];
-	uint32_t vert_index;
-//	r_buffer_t vert_buffer;
-
-	// buffer used for immediately-rendered lines
-//	r_buffer_t ui_vert_buffer;
-} r_line_arrays_t;
-
-// each font has vertex arrays of characters to draw each frame
-typedef struct r_font_s {
 	char name[MAX_QPATH];
 
 	r_image_t *image;
@@ -114,92 +31,232 @@ typedef struct r_font_s {
 	r_pixel_t char_height;
 } r_font_t;
 
-#define MAX_FONTS 3
+#define MAX_DRAW_FONTS 3
+
+typedef struct {
+	GLenum mode;
+	GLuint texture;
+
+	GLint first_vertex;
+	GLsizei num_vertexes;
+} r_draw_arrays_t;
+
+#define MAX_DRAW_GEOMETRY 4096
 
 typedef struct {
 	s16vec2_t position;
-	u16vec2_t texcoord;
-} r_image_interleave_vertex_t;
+	vec2_t diffuse;
+	union {
+		uint32_t uint;
+		u8vec4_t abgr;
+	} color;
+} r_draw_vertex_t;
 
-//static r_buffer_layout_t r_image_buffer_layout[] = {
-//	{ .attribute = R_ATTRIB_POSITION, .type = R_TYPE_SHORT, .count = 2 },
-//	{ .attribute = R_ATTRIB_DIFFUSE, .type = R_TYPE_UNSIGNED_SHORT, .count = 2 },
-//	{ .attribute = -1 }
-//};
+#define MAX_DRAW_VERTEXES (MAX_DRAW_GEOMETRY * 6)
 
-// pull it all together in one structure
-typedef struct r_draw_s {
+static struct {
 
 	// registered fonts
 	uint16_t num_fonts;
-	r_font_t fonts[MAX_FONTS];
+	r_font_t fonts[MAX_DRAW_FONTS];
 
 	// active font
 	r_font_t *font;
 
-	// actual text colors as ABGR uint32_tegers
+	// actual text colors as ABGR integers
 	uint32_t colors[MAX_COLORS];
 
-	r_char_arrays_t char_arrays[MAX_FONTS];
-	r_fill_arrays_t fill_arrays;
-	r_line_arrays_t line_arrays;
+	// accumulated draw arrays to draw for this frame
+	r_draw_arrays_t draw_arrays[MAX_DRAW_GEOMETRY];
+	int32_t num_draw_arrays;
 
-//	r_buffer_t image_buffer;
-	r_image_interleave_vertex_t image_vertices[4];
+	// accumulated vertexes backing the draw arrays
+	r_draw_vertex_t vertexes[MAX_DRAW_VERTEXES];
+	int32_t num_vertexes;
 
-//	r_buffer_t supersample_buffer;
-} r_draw_t;
+	// the vertex array
+	GLuint vertex_array;
 
-static r_draw_t r_draw;
+	// the vertex buffer
+	GLuint vertex_buffer;
+
+} r_draw;
 
 /**
- * @brief Make a quad by passing index to first vertex and last element ID.
+ * @brief The draw program.
  */
-static void R_MakeQuadU32(uint32_t *indices, const uint32_t vertex_id) {
-	*(indices)++ = vertex_id + 0;
-	*(indices)++ = vertex_id + 1;
-	*(indices)++ = vertex_id + 2;
+static struct {
+	GLuint name;
 
-	*(indices)++ = vertex_id + 0;
-	*(indices)++ = vertex_id + 2;
-	*(indices)++ = vertex_id + 3;
+	GLint in_position;
+	GLint in_diffuse;
+	GLint in_color;
+
+	GLint projection;
+
+	GLint texture_diffuse;
+
+	GLint brightness;
+	GLint contrast;
+	GLint saturation;
+	GLint gamma;
+} r_draw_program;
+
+/**
+ * @brief
+ */
+void R_AddDrawArrays(const r_draw_arrays_t *draw) {
+
+	if (r_draw.num_draw_arrays == MAX_DRAW_GEOMETRY) {
+		Com_Warn("MAX_DRAW_GEOMETRY\n");
+		return;
+	}
+
+	if (draw->num_vertexes == 0) {
+		return;
+	}
+
+	r_draw.draw_arrays[r_draw.num_draw_arrays] = *draw;
+	r_draw.num_draw_arrays++;
+}
+
+/**
+ * @brief Emits GL_TRIANGLES data from the specified quad.
+ */
+static void R_EmitDrawVertexes_Quad(const r_draw_vertex_t *quad) {
+
+	if (r_draw.num_vertexes + 6 > MAX_DRAW_VERTEXES) {
+		Com_Warn("MAX_DRAW_VERTEXES\n");
+		return;
+	}
+
+	r_draw.vertexes[r_draw.num_vertexes++] = quad[0];
+	r_draw.vertexes[r_draw.num_vertexes++] = quad[1];
+	r_draw.vertexes[r_draw.num_vertexes++] = quad[2];
+
+	r_draw.vertexes[r_draw.num_vertexes++] = quad[0];
+	r_draw.vertexes[r_draw.num_vertexes++] = quad[2];
+	r_draw.vertexes[r_draw.num_vertexes++] = quad[3];
 }
 
 /**
  * @brief
  */
-//static void R_DrawImage_(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const GLuint texnum,
-//                         const r_buffer_t *buffer) {
-//
-//	R_BindDiffuseTexture(texnum);
-//
-//	R_BindAttributeInterleaveBuffer(buffer, R_ATTRIB_MASK_ALL);
-//
-//	R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
-//}
+static void R_DrawChar_(r_pixel_t x, r_pixel_t y, char c, int32_t color) {
 
-/**
- * @brief
- */
-void R_DrawImageResized(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image) {
+	const uint32_t row = (uint32_t) c >> 4;
+	const uint32_t col = (uint32_t) c & 15;
 
-	Vector2Set(r_draw.image_vertices[0].position, x, y);
-	Vector2Set(r_draw.image_vertices[1].position, x + w, y);
-	Vector2Set(r_draw.image_vertices[2].position, x + w, y + h);
-	Vector2Set(r_draw.image_vertices[3].position, x, y + h);
+	const vec_t s0 = col * 0.0625;
+	const vec_t t0 = row * 0.1250;
+	const vec_t s1 = (col + 1) * 0.0625;
+	const vec_t t1 = (row + 1) * 0.1250;
 
-//	R_UploadToBuffer(&r_draw.image_buffer, sizeof(r_draw.image_vertices), r_draw.image_vertices);
-//
-//	R_DrawImage_(x, y, w, h, image->texnum, &r_draw.image_buffer);
+	color = r_draw.colors[color & (MAX_COLORS - 1)];
+
+	r_draw_vertex_t quad[4];
+
+	Vector2Set(quad[0].position, x, y);
+	Vector2Set(quad[1].position, x + r_draw.font->char_width, y);
+	Vector2Set(quad[2].position, x + r_draw.font->char_width, y + r_draw.font->char_height);
+	Vector2Set(quad[3].position, x, y + r_draw.font->char_height);
+
+	Vector2Set(quad[0].diffuse, s0, t0);
+	Vector2Set(quad[1].diffuse, s1, t0);
+	Vector2Set(quad[2].diffuse, s1, t1);
+	Vector2Set(quad[3].diffuse, s0, t1);
+
+	quad[0].color.uint = color;
+	quad[1].color.uint = color;
+	quad[2].color.uint = color;
+	quad[3].color.uint = color;
+
+	R_EmitDrawVertexes_Quad(quad);
 }
 
 /**
  * @brief
  */
-void R_DrawImage(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image) {
+void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, int32_t color) {
 
-	R_DrawImageResized(x, y, image->width * scale, image->height * scale, image);
+	r_draw_arrays_t draw = {
+		.mode = GL_TRIANGLES,
+		.texture = r_draw.font->image->texnum,
+		.first_vertex = r_draw.num_vertexes,
+		.num_vertexes = 6
+	};
+
+	R_DrawChar_(x, y, c, color);
+	R_AddDrawArrays(&draw);
 }
+
+/**
+ * @brief Return the width of the specified string in pixels. This will vary based
+ * on the currently bound font. Color escapes are omitted.
+ */
+r_pixel_t R_StringWidth(const char *s) {
+	return StrColorLen(s) * r_draw.font->char_width;
+}
+
+/**
+ * @brief
+ */
+size_t R_DrawString(r_pixel_t x, r_pixel_t y, const char *s, int32_t color) {
+	return R_DrawSizedString(x, y, s, UINT16_MAX, UINT16_MAX, color);
+}
+
+/**
+ * @brief
+ */
+size_t R_DrawBytes(r_pixel_t x, r_pixel_t y, const char *s, size_t size, int32_t color) {
+	return R_DrawSizedString(x, y, s, size, size, color);
+}
+
+/**
+ * @brief Draws at most len chars or size bytes of the specified string. Color escape
+ * sequences are not visible chars. Returns the number of chars drawn.
+ */
+size_t R_DrawSizedString(r_pixel_t x, r_pixel_t y, const char *s, size_t len, size_t size,
+                         int32_t color) {
+	size_t i, j;
+
+	r_draw_arrays_t draw = {
+		.mode = GL_TRIANGLES,
+		.texture = r_draw.font->image->texnum,
+		.first_vertex = r_draw.num_vertexes
+	};
+
+	i = j = 0;
+	while (*s && i < len && j < size) {
+
+		if (IS_COLOR(s)) {
+			color = *(s + 1) - '0';
+			j += 2;
+			s += 2;
+			continue;
+		}
+
+		if (IS_LEGACY_COLOR(s)) {
+			color = CON_COLOR_ALT;
+			j++;
+			s++;
+			continue;
+		}
+
+		R_DrawChar_(x, y, *s, color);
+		x += r_draw.font->char_width; // next char position in line
+
+		i++;
+		j++;
+		s++;
+	}
+
+	draw.num_vertexes = r_draw.num_vertexes - draw.first_vertex;
+	R_AddDrawArrays(&draw);
+
+	return i;
+}
+
 
 /**
  * @brief Binds the specified font, returning the character width and height.
@@ -236,153 +293,44 @@ void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch) {
 }
 
 /**
- * @brief Return the width of the specified string in pixels. This will vary based
- * on the currently bound font. Color escapes are omitted.
+ * @brief
  */
-r_pixel_t R_StringWidth(const char *s) {
-	return StrColorLen(s) * r_draw.font->char_width;
+void R_DrawImageRect(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image) {
+
+	r_draw_arrays_t draw = {
+		.mode = GL_TRIANGLES,
+		.texture = image->texnum,
+		.first_vertex = r_draw.num_vertexes,
+		.num_vertexes = 6
+	};
+
+	r_draw_vertex_t quad[4];
+
+	Vector2Set(quad[0].position, x, y);
+	Vector2Set(quad[1].position, x + w, y);
+	Vector2Set(quad[2].position, x + w, y + h);
+	Vector2Set(quad[3].position, x, y + h);
+
+	Vector2Set(quad[0].diffuse, 0, 0);
+	Vector2Set(quad[1].diffuse, 1, 0);
+	Vector2Set(quad[2].diffuse, 1, 1);
+	Vector2Set(quad[3].diffuse, 0, 1);
+
+	quad[0].color.uint = 0xffffffff;
+	quad[1].color.uint = 0xffffffff;
+	quad[2].color.uint = 0xffffffff;
+	quad[3].color.uint = 0xffffffff;
+
+	R_EmitDrawVertexes_Quad(quad);
+	R_AddDrawArrays(&draw);
 }
 
 /**
  * @brief
  */
-size_t R_DrawString(r_pixel_t x, r_pixel_t y, const char *s, int32_t color) {
-	return R_DrawSizedString(x, y, s, UINT16_MAX, UINT16_MAX, color);
-}
+void R_DrawImage(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image) {
 
-/**
- * @brief
- */
-size_t R_DrawBytes(r_pixel_t x, r_pixel_t y, const char *s, size_t size, int32_t color) {
-	return R_DrawSizedString(x, y, s, size, size, color);
-}
-
-/**
- * @brief Draws at most len chars or size bytes of the specified string. Color escape
- * sequences are not visible chars. Returns the number of chars drawn.
- */
-size_t R_DrawSizedString(r_pixel_t x, r_pixel_t y, const char *s, size_t len, size_t size,
-                         int32_t color) {
-	size_t i, j;
-
-	i = j = 0;
-	while (*s && i < len && j < size) {
-
-		if (IS_COLOR(s)) {
-			color = *(s + 1) - '0';
-			j += 2;
-			s += 2;
-			continue;
-		}
-
-		if (IS_LEGACY_COLOR(s)) {
-			color = CON_COLOR_ALT;
-			j++;
-			s++;
-			continue;
-		}
-
-		R_DrawChar(x, y, *s, color);
-		x += r_draw.font->char_width; // next char position in line
-
-		i++;
-		j++;
-		s++;
-	}
-
-	return i;
-}
-
-/**
- * @brief
- */
-void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, int32_t color) {
-
-	if (x > r_context.width || y > r_context.height) {
-		return;
-	}
-
-	if (c == ' ') {
-		return;    // small optimization for space
-	}
-
-	r_char_arrays_t *chars = &r_draw.char_arrays[r_draw.font - r_draw.fonts];
-
-	const uint32_t row = (uint32_t) c >> 4;
-	const uint32_t col = (uint32_t) c & 15;
-
-	const u16vec_t frow = PackTexcoord(row * 0.1250);
-	const u16vec_t fcol = PackTexcoord(col * 0.0625);
-	const u16vec_t frowe = PackTexcoord((row + 1) * 0.1250);
-	const u16vec_t fcole = PackTexcoord((col + 1) * 0.0625);
-
-	// resolve ABGR color
-	const uint32_t *abgr = &r_draw.colors[color & (MAX_COLORS - 1)];
-
-	// copy to all 4 verts
-	for (uint32_t i = 0; i < 4; ++i) {
-		memcpy(&chars->verts[chars->vert_index + i].color, abgr, sizeof(u8vec4_t));
-	}
-
-	Vector2Set(chars->verts[chars->vert_index].texcoord, fcol, frow);
-	Vector2Set(chars->verts[chars->vert_index + 1].texcoord, fcole, frow);
-	Vector2Set(chars->verts[chars->vert_index + 2].texcoord, fcole, frowe);
-	Vector2Set(chars->verts[chars->vert_index + 3].texcoord, fcol, frowe);
-
-	Vector2Set(chars->verts[chars->vert_index].position, x, y);
-	Vector2Set(chars->verts[chars->vert_index + 1].position, x + r_draw.font->char_width, y);
-	Vector2Set(chars->verts[chars->vert_index + 2].position, x + r_draw.font->char_width, y + r_draw.font->char_height);
-	Vector2Set(chars->verts[chars->vert_index + 3].position, x, y + r_draw.font->char_height);
-
-	R_MakeQuadU32(&chars->elements[chars->element_index], chars->vert_index);
-
-	chars->vert_index += 4;
-	chars->element_index += 6;
-	chars->num_chars++;
-}
-
-/**
- * @brief
- */
-static void R_DrawChars(void) {
-
-	for (uint16_t i = 0; i < r_draw.num_fonts; i++) {
-		r_char_arrays_t *chars = &r_draw.char_arrays[i];
-
-		if (!chars->vert_index) {
-			continue;
-		}
-
-//		R_UploadToBuffer(&r_draw.char_arrays[i].vert_buffer,
-//		                 r_draw.char_arrays[i].vert_index * sizeof(r_char_interleave_vertex_t),
-//		                 r_draw.char_arrays[i].verts);
-//
-//		R_UploadToBuffer(&r_draw.char_arrays[i].element_buffer, r_draw.char_arrays[i].element_index * sizeof(GLuint),
-//		                 r_draw.char_arrays[i].elements);
-//
-//		R_BindDiffuseTexture(r_draw.fonts[i].image->texnum);
-//
-//		R_EnableColorArray(true);
-//
-//		// alter the array pointers
-//		R_BindAttributeInterleaveBuffer(&chars->vert_buffer, R_ATTRIB_MASK_ALL);
-//
-//		R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &chars->element_buffer);
-//
-//		R_DrawArrays(GL_TRIANGLES, 0, chars->element_index);
-
-		chars->vert_index = 0;
-		chars->element_index = 0;
-		chars->num_chars = 0;
-	}
-
-	// restore array pointers
-//	R_UnbindAttributeBuffer(R_ATTRIB_COLOR);
-//	R_UnbindAttributeBuffer(R_ATTRIB_DIFFUSE);
-//	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
-//	R_UnbindAttributeBuffer(R_ATTRIB_ELEMENTS);
-//
-//	R_EnableColorArray(false);
+	R_DrawImageRect(x, y, image->width * scale, image->height * scale, image);
 }
 
 /**
@@ -401,67 +349,33 @@ void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, v
 		c |= (((u8vec_t) (a * 255.0)) & 0xFF) << 24;
 	}
 
-	// duplicate color data to all 4 verts
-	for (uint32_t i = 0; i < 4; ++i) {
-		memcpy(&r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + i].color, &c, sizeof(u8vec4_t));
-	}
+	r_draw_arrays_t draw = {
+		.mode = GL_TRIANGLES,
+		.texture = r_image_state.null->texnum,
+		.first_vertex = r_draw.num_vertexes,
+		.num_vertexes = 6
+	};
 
-	// populate verts
-	Vector2Set(r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index].position, x + 0.5, y + 0.5);
-	Vector2Set(r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 1].position, (x + w) + 0.5, y + 0.5);
-	Vector2Set(r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 2].position, (x + w) + 0.5, (y + h) + 0.5);
-	Vector2Set(r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 3].position, x + 0.5, (y + h) + 0.5);
+	r_draw_vertex_t quad[4];
 
-	r_draw.fill_arrays.vert_index += 4;
+	Vector2Set(quad[0].position, x, y);
+	Vector2Set(quad[1].position, x + w, y);
+	Vector2Set(quad[2].position, x + w, y + h);
+	Vector2Set(quad[3].position, x, y + h);
 
-	const GLuint fill_index = r_draw.fill_arrays.num_fills * 4;
+	quad[0].color.uint = c;
+	quad[1].color.uint = c;
+	quad[2].color.uint = c;
+	quad[3].color.uint = c;
 
-	R_MakeQuadU32(&r_draw.fill_arrays.elements[r_draw.fill_arrays.element_index], fill_index);
-	r_draw.fill_arrays.element_index += 6;
-
-	r_draw.fill_arrays.num_fills++;
+	R_EmitDrawVertexes_Quad(quad);
+	R_AddDrawArrays(&draw);
 }
 
 /**
  * @brief
  */
-static void R_DrawFills(void) {
-
-	if (!r_draw.fill_arrays.vert_index) {
-		return;
-	}
-
-//	R_BindDiffuseTexture(r_image_state.null->texnum);
-//
-//	R_EnableColorArray(true);
-//
-//	// upload the changed data
-//	R_UploadToBuffer(&r_draw.fill_arrays.vert_buffer, r_draw.fill_arrays.vert_index * sizeof(r_fill_interleave_vertex_t),
-//	                 r_draw.fill_arrays.verts);
-//
-//	R_UploadToBuffer(&r_draw.fill_arrays.element_buffer, r_draw.fill_arrays.element_index * sizeof(GLuint),
-//	                 r_draw.fill_arrays.elements);
-//
-//	// alter the array pointers
-//	R_BindAttributeInterleaveBuffer(&r_draw.fill_arrays.vert_buffer, R_ATTRIB_MASK_ALL);
-//	R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &r_draw.fill_arrays.element_buffer);
-//
-//	R_DrawArrays(GL_TRIANGLES, 0, r_draw.fill_arrays.element_index);
-//
-//	// and restore them
-//	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
-//	R_UnbindAttributeBuffer(R_ATTRIB_COLOR);
-//	R_UnbindAttributeBuffer(R_ATTRIB_ELEMENTS);
-//
-//	R_EnableColorArray(false);
-
-	r_draw.fill_arrays.vert_index = r_draw.fill_arrays.element_index = r_draw.fill_arrays.num_fills = 0;
-}
-
-/**
- * @brief
- */
-void R_DrawLine(r_pixel_t x1, r_pixel_t y1, r_pixel_t x2, r_pixel_t y2, int32_t c, vec_t a) {
+void R_DrawLines(const r_pixel_t *points, size_t count, int32_t c, vec_t a) {
 
 	if (a > 1.0) {
 		Com_Warn("Bad alpha %f\n", a);
@@ -473,93 +387,27 @@ void R_DrawLine(r_pixel_t x1, r_pixel_t y1, r_pixel_t x2, r_pixel_t y2, int32_t 
 		c |= (((u8vec_t) (a * 255.0)) & 0xFF) << 24;
 	}
 
-	// duplicate color data to 2 verts
-	for (uint32_t i = 0; i < 4; ++i) {
-		memcpy(&r_draw.line_arrays.verts[r_draw.line_arrays.vert_index + i].color, &c, sizeof(u8vec4_t));
+	r_draw_arrays_t draw = {
+		.mode = GL_LINE_STRIP,
+		.texture = r_image_state.null->texnum,
+		.first_vertex = r_draw.num_vertexes,
+		.num_vertexes = (GLsizei) count
+	};
+
+	r_draw_vertex_t *out = r_draw.vertexes + r_draw.num_vertexes;
+
+	const r_pixel_t *in = points;
+	for (size_t i = 0; i < count; i++, in += 2, out++) {
+
+		out->position[0] = *(in + 0);
+		out->position[1] = *(in + 1);
+
+		out->color.uint = c;
 	}
 
-	// populate verts
-	Vector2Set(r_draw.line_arrays.verts[r_draw.line_arrays.vert_index + 0].position, x1 + 0.5, y1 + 0.5);
-	Vector2Set(r_draw.line_arrays.verts[r_draw.line_arrays.vert_index + 1].position, x2 + 0.5, y2 + 0.5);
+	r_draw.num_vertexes += count;
 
-	r_draw.line_arrays.vert_index += 2;
-}
-
-/**
- * @brief
- */
-static void R_DrawLines(void) {
-
-	if (!r_draw.line_arrays.vert_index) {
-		return;
-	}
-
-//	R_BindDiffuseTexture(r_image_state.null->texnum);
-//
-//	// upload the changed data
-//	R_UploadToBuffer(&r_draw.line_arrays.vert_buffer, r_draw.line_arrays.vert_index * sizeof(r_fill_interleave_vertex_t),
-//	                 r_draw.line_arrays.verts);
-//
-//	// alter the array pointers
-//	R_BindAttributeInterleaveBuffer(&r_draw.line_arrays.vert_buffer, R_ATTRIB_MASK_ALL);
-//
-//	R_DrawArrays(GL_LINES, 0, r_draw.line_arrays.vert_index);
-//
-//	// and restore them
-//	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
-//	R_UnbindAttributeBuffer(R_ATTRIB_COLOR);
-
-	r_draw.line_arrays.vert_index = 0;
-}
-
-/**
- * @brief Draws a filled rect, for MVC. Uses current color.
- */
-void R_DrawFillUI(const SDL_Rect *rect) {
-
-//	const vec2_t verts[] = {
-//		{ rect->x - 1, rect->y - 1 },
-//		{ rect->x + rect->w + 1, rect->y - 1 },
-//		{ rect->x + rect->w + 1, rect->y + rect->h + 1 },
-//		{ rect->x - 1, rect->y + rect->h + 1 }
-//	};
-
-//	R_BindDiffuseTexture(r_image_state.null->texnum);
-//
-//	// upload the changed data
-//	R_UploadToBuffer(&r_draw.fill_arrays.ui_vert_buffer, sizeof(verts), verts);
-//
-//	// alter the array pointers
-//	R_BindAttributeBuffer(R_ATTRIB_POSITION, &r_draw.fill_arrays.ui_vert_buffer);
-//
-//	// draw!
-//	R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
-//
-//	// and restore them
-//	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
-}
-
-void R_DrawLinesUI(const SDL_Point *points, const size_t count, const _Bool loop) {
-
-	vec2_t point_buffer[count];
-
-	for (size_t i = 0; i < count; ++i) {
-		Vector2Set(point_buffer[i], points[i].x + 0.5, points[i].y + 0.5);
-	}
-
-//	R_BindDiffuseTexture(r_image_state.null->texnum);
-//
-//	// upload the changed data
-//	R_UploadToBuffer(&r_draw.line_arrays.ui_vert_buffer, sizeof(point_buffer), point_buffer);
-//
-//	// alter the array pointers
-//	R_BindAttributeBuffer(R_ATTRIB_POSITION, &r_draw.line_arrays.ui_vert_buffer);
-//
-//	// draw!
-//	R_DrawArrays(loop ? GL_LINE_LOOP : GL_LINE_STRIP, 0, (GLsizei) count);
-//
-//	// and restore them
-//	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
+	R_AddDrawArrays(&draw);
 }
 
 /**
@@ -567,11 +415,42 @@ void R_DrawLinesUI(const SDL_Point *points, const size_t count, const _Bool loop
  */
 void R_Draw2D(void) {
 
-	R_DrawLines();
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	R_DrawFills();
+	glUseProgram(r_draw_program.name);
 
-	R_DrawChars();
+	Matrix4x4_FromOrtho(&r_view.projection2D, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
+	glUniformMatrix4fv(r_draw_program.projection, 1, GL_FALSE, (GLfloat *) r_view.projection2D.m);
+
+	glUniform1f(r_draw_program.brightness, r_brightness->value);
+	glUniform1f(r_draw_program.contrast, r_contrast->value);
+	glUniform1f(r_draw_program.saturation, r_saturation->value);
+	glUniform1f(r_draw_program.gamma, r_gamma->value);
+
+	glBindVertexArray(r_draw.vertex_array);
+	glBindBuffer(GL_ARRAY_BUFFER, r_draw.vertex_buffer);
+	glBufferData(GL_ARRAY_BUFFER, r_draw.num_vertexes * sizeof(r_draw_vertex_t), r_draw.vertexes, GL_DYNAMIC_DRAW);
+
+	glEnableVertexAttribArray(r_draw_program.in_position);
+	glEnableVertexAttribArray(r_draw_program.in_diffuse);
+	glEnableVertexAttribArray(r_draw_program.in_color);
+
+	const r_draw_arrays_t *draw = r_draw.draw_arrays;
+	for (int32_t i = 0; i < r_draw.num_draw_arrays; i++, draw++) {
+
+		glBindTexture(GL_TEXTURE_2D, draw->texture);
+
+		glDrawArrays(draw->mode, draw->first_vertex, draw->num_vertexes);
+	}
+
+	r_draw.num_draw_arrays = 0;
+	r_draw.num_vertexes = 0;
+
+	glBlendFunc(GL_ONE, GL_ZERO);
+	glDisable(GL_BLEND);
+
+	R_GetError(NULL);
 }
 
 /**
@@ -588,8 +467,8 @@ void R_Draw2D(void) {
  */
 static void R_InitFont(char *name) {
 
-	if (r_draw.num_fonts == MAX_FONTS) {
-		Com_Error(ERROR_DROP, "MAX_FONTS reached\n");
+	if (r_draw.num_fonts == MAX_DRAW_FONTS) {
+		Com_Error(ERROR_DROP, "MAX_DRAW_FONTS\n");
 		return;
 	}
 
@@ -608,15 +487,47 @@ static void R_InitFont(char *name) {
 /**
  * @brief
  */
+static void R_InitDrawProgram(void) {
+
+	memset(&r_draw_program, 0, sizeof(r_draw_program));
+
+	r_draw_program.name = R_LoadProgram(
+			&MakeShaderDescriptor(GL_VERTEX_SHADER, "draw_vs.glsl"),
+			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "color_filter.glsl", "draw_fs.glsl"),
+			NULL);
+
+	r_draw_program.in_position = glGetAttribLocation(r_draw_program.name, "in_position");
+	r_draw_program.in_diffuse = glGetAttribLocation(r_draw_program.name, "in_diffuse");
+	r_draw_program.in_color = glGetAttribLocation(r_draw_program.name, "in_color");
+
+	r_draw_program.projection = glGetUniformLocation(r_draw_program.name, "projection");
+
+	r_draw_program.texture_diffuse = glGetUniformLocation(r_draw_program.name, "texture_diffuse");
+
+	r_draw_program.brightness = glGetUniformLocation(r_draw_program.name, "brightness");
+	r_draw_program.contrast = glGetUniformLocation(r_draw_program.name, "contrast");
+	r_draw_program.saturation = glGetUniformLocation(r_draw_program.name, "saturation");
+	r_draw_program.gamma = glGetUniformLocation(r_draw_program.name, "gamma");
+
+	glUniform1i(r_draw_program.texture_diffuse, 0);
+}
+
+/**
+ * @brief
+ */
+static void R_ShutdownDrawProgram(void) {
+
+	glDeleteProgram(r_draw_program.name);
+
+	r_draw_program.name = 0;
+}
+
+/**
+ * @brief
+ */
 void R_InitDraw(void) {
 
 	memset(&r_draw, 0, sizeof(r_draw));
-
-	R_InitFont("small");
-	R_InitFont("medium");
-	R_InitFont("large");
-
-	R_BindFont(NULL, NULL, NULL);
 
 	// set ABGR color values
 	r_draw.colors[CON_COLOR_BLACK] = 0xff000000;
@@ -628,72 +539,27 @@ void R_InitDraw(void) {
 	r_draw.colors[CON_COLOR_CYAN] = 0xffffff00;
 	r_draw.colors[CON_COLOR_WHITE] = 0xffffffff;
 
-	for (int32_t i = 0; i < MAX_FONTS; ++i) {
+	R_InitFont("small");
+	R_InitFont("medium");
+	R_InitFont("large");
 
-//		R_CreateInterleaveBuffer(&r_draw.char_arrays[i].vert_buffer, &(const r_create_interleave_t) {
-//			.struct_size = sizeof(r_char_interleave_vertex_t),
-//			.layout = r_char_buffer_layout,
-//			.hint = GL_DYNAMIC_DRAW,
-//			.size = sizeof(r_draw.char_arrays[i].verts)
-//		});
-//
-//		R_CreateElementBuffer(&r_draw.char_arrays[i].element_buffer, &(const r_create_element_t) {
-//			.type = R_TYPE_UNSIGNED_INT,
-//			.hint = GL_DYNAMIC_DRAW,
-//			.size = sizeof(r_draw.char_arrays[i].elements)
-//		});
-	}
+	R_BindFont(NULL, NULL, NULL);
 
-//	R_CreateInterleaveBuffer(&r_draw.fill_arrays.vert_buffer, &(const r_create_interleave_t) {
-//		.struct_size = sizeof(r_fill_interleave_vertex_t),
-//		.layout = r_fill_buffer_layout,
-//		.hint = GL_DYNAMIC_DRAW,
-//		.size = sizeof(r_draw.fill_arrays.verts)
-//	});
-//
-//	R_CreateElementBuffer(&r_draw.fill_arrays.element_buffer, &(const r_create_element_t) {
-//		.type = R_TYPE_UNSIGNED_INT,
-//		.hint = GL_DYNAMIC_DRAW,
-//		.size = sizeof(r_draw.fill_arrays.elements)
-//	});
-//
-//	R_CreateInterleaveBuffer(&r_draw.line_arrays.vert_buffer, &(const r_create_interleave_t) {
-//		.struct_size = sizeof(r_fill_interleave_vertex_t),
-//		.layout = r_fill_buffer_layout,
-//		.hint = GL_DYNAMIC_DRAW,
-//		.size = sizeof(r_draw.line_arrays.verts)
-//	});
-//
-//	// fill buffer only needs 4 verts
-//	R_CreateDataBuffer(&r_draw.fill_arrays.ui_vert_buffer, &(const r_create_buffer_t) {
-//		.element = {
-//			.type = R_TYPE_FLOAT,
-//			.count = 2
-//		},
-//		.hint = GL_DYNAMIC_DRAW,
-//		.size = sizeof(vec2_t) * 4
-//	});
-//
-//	R_CreateDataBuffer(&r_draw.line_arrays.ui_vert_buffer, &(const r_create_buffer_t) {
-//		.element = {
-//			.type = R_TYPE_FLOAT,
-//			.count = 2
-//		},
-//		.hint = GL_DYNAMIC_DRAW,
-//		.size = sizeof(vec2_t) * MAX_LINE_VERTS
-//	});
+	R_InitDrawProgram();
 
-	Vector2Set(r_draw.image_vertices[0].texcoord, 0, 0);
-	Vector2Set(r_draw.image_vertices[1].texcoord, 1, 0);
-	Vector2Set(r_draw.image_vertices[2].texcoord, 1, 1);
-	Vector2Set(r_draw.image_vertices[3].texcoord, 0, 1);
+	glGenVertexArrays(1, &r_draw.vertex_array);
+	glBindVertexArray(r_draw.vertex_array);
 
-//	R_CreateInterleaveBuffer(&r_draw.image_buffer, &(const r_create_interleave_t) {
-//		.struct_size = sizeof(r_image_interleave_vertex_t),
-//		.layout = r_image_buffer_layout,
-//		.hint = GL_DYNAMIC_DRAW,
-//		.size = sizeof(r_draw.image_vertices)
-//	});
+	glGenBuffers(1, &r_draw.vertex_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, r_draw.vertex_buffer);
+
+	glVertexAttribPointer(0, 2, GL_SHORT, GL_FALSE, sizeof(r_draw_vertex_t), (void *) offsetof(r_draw_vertex_t, position));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_draw_vertex_t), (void *) offsetof(r_draw_vertex_t, diffuse));
+	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_draw_vertex_t), (void *) offsetof(r_draw_vertex_t, color));
+
+	R_GetError(NULL);
+
+	glBindVertexArray(0);
 }
 
 /**
@@ -701,19 +567,8 @@ void R_InitDraw(void) {
  */
 void R_ShutdownDraw(void) {
 
-	for (int32_t i = 0; i < MAX_FONTS; ++i) {
+	glDeleteVertexArrays(1, &r_draw.vertex_array);
+	glDeleteBuffers(1, &r_draw.vertex_buffer);
 
-//		R_DestroyBuffer(&r_draw.char_arrays[i].vert_buffer);
-//		R_DestroyBuffer(&r_draw.char_arrays[i].element_buffer);
-	}
-
-//	R_DestroyBuffer(&r_draw.fill_arrays.vert_buffer);
-//	R_DestroyBuffer(&r_draw.fill_arrays.element_buffer);
-//	R_DestroyBuffer(&r_draw.line_arrays.vert_buffer);
-//
-//	R_DestroyBuffer(&r_draw.fill_arrays.ui_vert_buffer);
-//	R_DestroyBuffer(&r_draw.line_arrays.ui_vert_buffer);
-//
-//	R_DestroyBuffer(&r_draw.image_buffer);
-//	R_DestroyBuffer(&r_draw.supersample_buffer);
+	R_ShutdownDrawProgram();
 }

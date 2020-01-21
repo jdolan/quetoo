@@ -53,12 +53,6 @@ static void Cl_UpdateViewSize(void) {
 
 	Cvar_SetValue(cl_view_size->name, Clamp(cl_view_size->value, 40.0, 100.0));
 
-//	r_view.viewport_3d.w = r_context.render_width * cl_view_size->value / 100.0;
-//	r_view.viewport_3d.h = r_context.render_height * cl_view_size->value / 100.0;
-//
-//	r_view.viewport_3d.x = (r_context.render_width - r_view.viewport_3d.w) / 2.0;
-//	r_view.viewport_3d.y = (r_context.render_height - r_view.viewport_3d.h) / 2.0;
-
 	r_view.viewport.w = r_context.width * cl_view_size->value / 100.0;
 	r_view.viewport.h = r_context.height * cl_view_size->value / 100.0;
 

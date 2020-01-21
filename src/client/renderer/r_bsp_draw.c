@@ -208,8 +208,8 @@ static void R_DrawBspModel(const r_bsp_model_t *model) {
 void R_DrawWorld(void) {
 
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
 
+	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT); // okay Quake?
 
 	if (r_draw_wireframe->value) {
@@ -220,7 +220,7 @@ void R_DrawWorld(void) {
 
 	glUseProgram(prog.name);
 
-	glUniformMatrix4fv(prog.projection, 1, GL_FALSE, (GLfloat *) r_view.projection.m);
+	glUniformMatrix4fv(prog.projection, 1, GL_FALSE, (GLfloat *) r_view.projection3D.m);
 	glUniformMatrix4fv(prog.model_view, 1, GL_FALSE, (GLfloat *) r_view.model_view.m);
 	glUniformMatrix4fv(prog.normal, 1, GL_FALSE, (GLfloat *) r_view.normal.m);
 
@@ -270,6 +270,12 @@ void R_DrawWorld(void) {
 					   (void *) (face->first_element * sizeof(GLuint)));
 	}
 #endif
+
+	glActiveTexture(GL_TEXTURE0);
+
+	glCullFace(GL_BACK);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
 }
 
 /**
@@ -280,9 +286,9 @@ void R_InitBspProgram(void) {
 	memset(&prog, 0, sizeof(prog));
 
 	prog.name = R_LoadProgram(
-		&MakeShaderDescriptor(GL_VERTEX_SHADER, "bsp_vs.glsl"),
-		&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "color_filter.glsl", "bsp_fs.glsl"),
-		NULL);
+			&MakeShaderDescriptor(GL_VERTEX_SHADER, "bsp_vs.glsl"),
+			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "color_filter.glsl", "bsp_fs.glsl"),
+			NULL);
 
 	glUseProgram(prog.name);
 

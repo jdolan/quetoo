@@ -165,8 +165,8 @@
 		CE4898D11D8B9DE100EEACA5 /* libnet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.a */; };
 		CE4A255A1FA2032700A539E7 /* bsp_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE12D5F41C5C58C300CD0B13 /* bsp_fs.glsl */; };
 		CE4A255B1FA2032700A539E7 /* bsp_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE12D5F51C5C58C300CD0B13 /* bsp_vs.glsl */; };
-		CE4A255C1FA2032700A539E7 /* default_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE3BCDC31DB6DD05002E6C6D /* default_fs.glsl */; };
-		CE4A255D1FA2032700A539E7 /* default_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE3BCDC41DB6DD05002E6C6D /* default_vs.glsl */; };
+		CE4A255C1FA2032700A539E7 /* draw_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE3BCDC31DB6DD05002E6C6D /* draw_fs.glsl */; };
+		CE4A255D1FA2032700A539E7 /* draw_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE3BCDC41DB6DD05002E6C6D /* draw_vs.glsl */; };
 		CE4E07B52026524A000B276C /* common.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07B320264B15000B276C /* common.css */; };
 		CE4E07B820267825000B276C /* JoinServerViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07B6202676E7000B276C /* JoinServerViewController.css */; };
 		CE4E07CC20268832000B276C /* ResponseServiceViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07BD20267EAB000B276C /* ResponseServiceViewController.css */; };
@@ -1242,8 +1242,8 @@
 				CE4A255A1FA2032700A539E7 /* bsp_fs.glsl in CopyFiles */,
 				CE4A255B1FA2032700A539E7 /* bsp_vs.glsl in CopyFiles */,
 				CE8FD2F423D611C0002FD074 /* color_filter.glsl in CopyFiles */,
-				CE4A255C1FA2032700A539E7 /* default_fs.glsl in CopyFiles */,
-				CE4A255D1FA2032700A539E7 /* default_vs.glsl in CopyFiles */,
+				CE4A255C1FA2032700A539E7 /* draw_fs.glsl in CopyFiles */,
+				CE4A255D1FA2032700A539E7 /* draw_vs.glsl in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1857,8 +1857,8 @@
 		CE354EE722073AD6008AE0C2 /* libatlas.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libatlas.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE354EEE22075054008AE0C2 /* check_atlas.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_atlas.c; sourceTree = "<group>"; };
 		CE354EFE22075132008AE0C2 /* check_atlas */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_atlas; sourceTree = BUILT_PRODUCTS_DIR; };
-		CE3BCDC31DB6DD05002E6C6D /* default_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = default_fs.glsl; sourceTree = "<group>"; };
-		CE3BCDC41DB6DD05002E6C6D /* default_vs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = default_vs.glsl; sourceTree = "<group>"; };
+		CE3BCDC31DB6DD05002E6C6D /* draw_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = draw_fs.glsl; sourceTree = "<group>"; };
+		CE3BCDC41DB6DD05002E6C6D /* draw_vs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = draw_vs.glsl; sourceTree = "<group>"; };
 		CE3C529221E4DF2500FEDBED /* cm_polylib.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cm_polylib.h; sourceTree = "<group>"; };
 		CE3C529321E4DF2500FEDBED /* cm_polylib.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cm_polylib.c; sourceTree = "<group>"; };
 		CE40147A204B9EF0009FD74E /* libphysfs.3.0.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libphysfs.3.0.1.dylib; path = ../../../../opt/local/lib/libphysfs.3.0.1.dylib; sourceTree = "<group>"; };
@@ -3027,8 +3027,8 @@
 				CE12D5F41C5C58C300CD0B13 /* bsp_fs.glsl */,
 				CE12D5F51C5C58C300CD0B13 /* bsp_vs.glsl */,
 				CE8FD2F323D60E7B002FD074 /* color_filter.glsl */,
-				CE3BCDC31DB6DD05002E6C6D /* default_fs.glsl */,
-				CE3BCDC41DB6DD05002E6C6D /* default_vs.glsl */,
+				CE3BCDC31DB6DD05002E6C6D /* draw_fs.glsl */,
+				CE3BCDC41DB6DD05002E6C6D /* draw_vs.glsl */,
 				CE12D5F61C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = shaders;
