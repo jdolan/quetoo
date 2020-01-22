@@ -559,7 +559,7 @@ void Bsp_UnloadLump(bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
 void Bsp_UnloadLumps(bsp_file_t *bsp, const bsp_lump_id_t lump_bits) {
 
 	for (bsp_lump_id_t lump = BSP_LUMP_FIRST; lump < BSP_LUMP_LAST; lump++) {
-		if (lump_bits & (bsp_lump_id_t) (lump << 1)) {
+		if (lump_bits & (bsp_lump_id_t) (1 << lump)) {
 			Bsp_UnloadLump(bsp, lump);
 		}
 	}
