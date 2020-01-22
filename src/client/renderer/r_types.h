@@ -470,7 +470,6 @@ typedef struct {
 	 * to populate some stuff in r_bsp.
 	 */
 	cm_bsp_t *cm;
-	bsp_file_t *file;
 
 	int32_t num_texinfo;
 	r_bsp_texinfo_t *texinfo;

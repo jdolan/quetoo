@@ -46,9 +46,9 @@ static void R_LoadBspEntities(r_bsp_model_t *bsp) {
 static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
 	r_bsp_texinfo_t *out;
 
-	const bsp_texinfo_t *in = bsp->file->texinfo;
+	const bsp_texinfo_t *in = bsp->cm->file.texinfo;
 
-	bsp->num_texinfo = bsp->file->num_texinfo;
+	bsp->num_texinfo = bsp->cm->file.num_texinfo;
 	bsp->texinfo = out = Mem_LinkMalloc(bsp->num_texinfo * sizeof(*out), bsp);
 
 	for (int32_t i = 0; i < bsp->num_texinfo; i++, in++, out++) {
@@ -70,10 +70,10 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
  */
 static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 
-	bsp->num_vertexes = bsp->file->num_vertexes;
+	bsp->num_vertexes = bsp->cm->file.num_vertexes;
 	r_bsp_vertex_t *out = bsp->vertexes = Mem_LinkMalloc(bsp->num_vertexes * sizeof(*out), bsp);
 
-	const bsp_vertex_t *in = bsp->file->vertexes;
+	const bsp_vertex_t *in = bsp->cm->file.vertexes;
 	for (int32_t i = 0; i < bsp->num_vertexes; i++, in++, out++) {
 
 		VectorCopy(in->position, out->position);
@@ -105,10 +105,10 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
  */
 static void R_LoadBspElements(r_bsp_model_t *bsp) {
 
-	bsp->num_elements = bsp->file->num_elements;
+	bsp->num_elements = bsp->cm->file.num_elements;
 	GLuint *out = bsp->elements = Mem_LinkMalloc(bsp->num_elements * sizeof(*out), bsp);
 
-	const int32_t *in = bsp->file->elements;
+	const int32_t *in = bsp->cm->file.elements;
 	for (int32_t i = 0; i < bsp->num_elements; i++, in++, out++) {
 		*out = *in;
 	}
@@ -119,10 +119,10 @@ static void R_LoadBspElements(r_bsp_model_t *bsp) {
  */
 static void R_LoadBspLightmaps(r_bsp_model_t *bsp) {
 
-	bsp->num_lightmaps = bsp->file->num_lightmaps;
+	bsp->num_lightmaps = bsp->cm->file.num_lightmaps;
 	r_bsp_lightmap_t *out = bsp->lightmaps = Mem_LinkMalloc(sizeof(*out) * bsp->num_lightmaps, bsp);
 
-	const bsp_lightmap_t *in = bsp->file->lightmaps;
+	const bsp_lightmap_t *in = bsp->cm->file.lightmaps;
 	for (int32_t i = 0; i < bsp->num_lightmaps; i++, in++, out++) {
 		char name[MAX_QPATH];
 
@@ -158,10 +158,10 @@ static r_bsp_texinfo_t null_texinfo;
  */
 static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 
-	const bsp_face_t *in = bsp->file->faces;
+	const bsp_face_t *in = bsp->cm->file.faces;
 	r_bsp_face_t *out;
 
-	bsp->num_faces = bsp->file->num_faces;
+	bsp->num_faces = bsp->cm->file.num_faces;
 	bsp->faces = out = Mem_LinkMalloc(bsp->num_faces * sizeof(*out), bsp);
 
 	for (int32_t i = 0; i < bsp->num_faces; i++, in++, out++) {
@@ -206,10 +206,10 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
  */
 static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 
-	bsp->num_draw_elements = bsp->file->num_draw_elements;
+	bsp->num_draw_elements = bsp->cm->file.num_draw_elements;
 	r_bsp_draw_elements_t *out = bsp->draw_elements = Mem_LinkMalloc(bsp->num_draw_elements * sizeof(*out), bsp);
 
-	bsp_draw_elements_t *in = bsp->file->draw_elements;
+	bsp_draw_elements_t *in = bsp->cm->file.draw_elements;
 	for (int32_t i = 0; i < bsp->num_draw_elements; i++, in++, out++) {
 
 		if (in->texinfo == -1) {
@@ -238,9 +238,9 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 static void R_LoadBspLeafFaces(r_bsp_model_t *bsp) {
 	r_bsp_face_t **out;
 
-	const int32_t *in = bsp->file->leaf_faces;
+	const int32_t *in = bsp->cm->file.leaf_faces;
 
-	bsp->num_leaf_faces = bsp->file->num_leaf_faces;
+	bsp->num_leaf_faces = bsp->cm->file.num_leaf_faces;
 	bsp->leaf_faces = out = Mem_LinkMalloc(bsp->num_leaf_faces * sizeof(*out), bsp);
 
 	for (int32_t i = 0; i < bsp->num_leaf_faces; i++) {
@@ -278,9 +278,9 @@ static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent) {
 static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 	r_bsp_node_t *out;
 
-	const bsp_node_t *in = bsp->file->nodes;
+	const bsp_node_t *in = bsp->cm->file.nodes;
 
-	bsp->num_nodes = bsp->file->num_nodes;
+	bsp->num_nodes = bsp->cm->file.num_nodes;
 	bsp->nodes = out = Mem_LinkMalloc(bsp->num_nodes * sizeof(*out), bsp);
 
 	for (int32_t i = 0; i < bsp->num_nodes; i++, in++, out++) {
@@ -316,9 +316,9 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
 	r_bsp_leaf_t *out;
 
-	const bsp_leaf_t *in = bsp->file->leafs;
+	const bsp_leaf_t *in = bsp->cm->file.leafs;
 
-	bsp->num_leafs = bsp->file->num_leafs;
+	bsp->num_leafs = bsp->cm->file.num_leafs;
 	bsp->leafs = out = Mem_LinkMalloc(bsp->num_leafs * sizeof(*out), bsp);
 
 	for (int32_t i = 0; i < bsp->num_leafs; i++, in++, out++) {
@@ -386,10 +386,10 @@ static void R_SetupBspFaces(r_bsp_model_t *bsp) {
  */
 static void R_LoadBspLights(r_bsp_model_t *bsp) {
 
-	bsp->num_lights = bsp->file->num_lights;
+	bsp->num_lights = bsp->cm->file.num_lights;
 	r_bsp_light_t *out = bsp->lights = Mem_LinkMalloc(sizeof(r_bsp_light_t) * bsp->num_lights, bsp);
 
-	const bsp_light_t *in = bsp->file->lights;
+	const bsp_light_t *in = bsp->cm->file.lights;
 	for (int32_t i = 0; i < bsp->num_lights; i++, in++, out++) {
 
 		out->type = in->type;
@@ -483,9 +483,9 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 	r_bsp_inline_model_t *out;
 
-	const bsp_model_t *in = bsp->file->models;
+	const bsp_model_t *in = bsp->cm->file.models;
 
-	bsp->num_inline_models = bsp->file->num_models;;
+	bsp->num_inline_models = bsp->cm->file.num_models;
 	bsp->inline_models = out = Mem_LinkMalloc(bsp->num_inline_models * sizeof(*out), bsp);
 
 	for (int32_t i = 0; i < bsp->num_inline_models; i++, in++, out++) {
@@ -692,12 +692,10 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	bsp_header_t *file = (bsp_header_t *) buffer;
 
 	mod->bsp = Mem_LinkMalloc(sizeof(r_bsp_model_t), mod);
-
 	mod->bsp->cm = Cm_Bsp();
-	mod->bsp->file = &mod->bsp->cm->bsp;
 
 	// load in lumps that the renderer needs
-	Bsp_LoadLumps(file, mod->bsp->file, R_BSP_LUMPS);
+	Bsp_LoadLumps(file, &mod->bsp->cm->file, R_BSP_LUMPS);
 
 	Cl_LoadingProgress(2, "materials");
 	R_LoadModelMaterials(mod);
@@ -753,7 +751,7 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Cl_LoadingProgress(56, "arrays");
 	R_LoadBspVertexArray(mod);
 
-	Bsp_UnloadLumps(mod->bsp->file, R_BSP_LUMPS);
+	Bsp_UnloadLumps(&mod->bsp->cm->file, R_BSP_LUMPS);
 
 	Com_Debug(DEBUG_RENDERER, "!================================\n");
 	Com_Debug(DEBUG_RENDERER, "!R_LoadBspModel: %s\n", mod->media.name);

@@ -355,7 +355,7 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
 
 	data.trace.fraction = 1.0;
 
-	if (!cm_bsp.bsp.num_nodes) { // map not loaded
+	if (!cm_bsp.file.num_nodes) { // map not loaded
 		return data.trace;
 	}
 

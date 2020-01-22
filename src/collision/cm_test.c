@@ -168,49 +168,49 @@ static cm_box_t cm_box;
 void Cm_InitBoxHull(void) {
 	static cm_bsp_texinfo_t null_surface;
 
-	if (cm_bsp.bsp.num_planes + 12 > MAX_BSP_PLANES) {
+	if (cm_bsp.file.num_planes + 12 > MAX_BSP_PLANES) {
 		Com_Error(ERROR_DROP, "MAX_BSP_PLANES\n");
 	}
 
-	if (cm_bsp.bsp.num_nodes + 6 > MAX_BSP_NODES) {
+	if (cm_bsp.file.num_nodes + 6 > MAX_BSP_NODES) {
 		Com_Error(ERROR_DROP, "MAX_BSP_NODES\n");
 	}
 
-	if (cm_bsp.bsp.num_leafs + 1 > MAX_BSP_LEAFS) {
+	if (cm_bsp.file.num_leafs + 1 > MAX_BSP_LEAFS) {
 		Com_Error(ERROR_DROP, "MAX_BSP_LEAFS\n");
 	}
 
-	if (cm_bsp.bsp.num_leaf_brushes + 1 > MAX_BSP_LEAF_BRUSHES) {
+	if (cm_bsp.file.num_leaf_brushes + 1 > MAX_BSP_LEAF_BRUSHES) {
 		Com_Error(ERROR_DROP, "MAX_BSP_LEAF_BRUSHES\n");
 	}
 
-	if (cm_bsp.bsp.num_brushes + 1 > MAX_BSP_BRUSHES) {
+	if (cm_bsp.file.num_brushes + 1 > MAX_BSP_BRUSHES) {
 		Com_Error(ERROR_DROP, "MAX_BSP_BRUSHES\n");
 	}
 
-	if (cm_bsp.bsp.num_brush_sides + 6 > MAX_BSP_BRUSH_SIDES) {
+	if (cm_bsp.file.num_brush_sides + 6 > MAX_BSP_BRUSH_SIDES) {
 		Com_Error(ERROR_DROP, "MAX_BSP_BRUSH_SIDES\n");
 	}
 
 	// head node
-	cm_box.head_node = cm_bsp.bsp.num_nodes;
+	cm_box.head_node = cm_bsp.file.num_nodes;
 
 	// planes
-	cm_box.planes = &cm_bsp.planes[cm_bsp.bsp.num_planes];
+	cm_box.planes = &cm_bsp.planes[cm_bsp.file.num_planes];
 
 	// leaf
-	cm_box.leaf = &cm_bsp.leafs[cm_bsp.bsp.num_leafs];
+	cm_box.leaf = &cm_bsp.leafs[cm_bsp.file.num_leafs];
 	cm_box.leaf->contents = CONTENTS_MONSTER;
-	cm_box.leaf->first_leaf_brush = cm_bsp.bsp.num_leaf_brushes;
+	cm_box.leaf->first_leaf_brush = cm_bsp.file.num_leaf_brushes;
 	cm_box.leaf->num_leaf_brushes = 1;
 
 	// leaf brush
-	cm_bsp.leaf_brushes[cm_bsp.bsp.num_leaf_brushes] = cm_bsp.bsp.num_brushes;
+	cm_bsp.leaf_brushes[cm_bsp.file.num_leaf_brushes] = cm_bsp.file.num_brushes;
 
 	// brush
-	cm_box.brush = &cm_bsp.brushes[cm_bsp.bsp.num_brushes];
+	cm_box.brush = &cm_bsp.brushes[cm_bsp.file.num_brushes];
 	cm_box.brush->num_sides = 6;
-	cm_box.brush->first_brush_side = cm_bsp.bsp.num_brush_sides;
+	cm_box.brush->first_brush_side = cm_bsp.file.num_brush_sides;
 	cm_box.brush->contents = CONTENTS_MONSTER;
 
 	for (int32_t i = 0; i < 6; i++) {
@@ -221,30 +221,30 @@ void Cm_InitBoxHull(void) {
 		VectorClear(plane->normal);
 		plane->normal[i >> 1] = 1.0;
 		plane->sign_bits = Cm_SignBitsForPlane(plane);
-		plane->num = (cm_bsp.bsp.num_planes >> 1) + (i >> 1) + 1;
+		plane->num = (cm_bsp.file.num_planes >> 1) + (i >> 1) + 1;
 
 		plane = &cm_box.planes[i * 2 + 1];
 		plane->type = PLANE_ANY_X + (i >> 1);
 		VectorClear(plane->normal);
 		plane->normal[i >> 1] = -1.0;
 		plane->sign_bits = Cm_SignBitsForPlane(plane);
-		plane->num = (cm_bsp.bsp.num_planes >> 1) + (i >> 1) + 1;
+		plane->num = (cm_bsp.file.num_planes >> 1) + (i >> 1) + 1;
 
 		const int32_t side = i & 1;
 
 		// fill in nodes, one per side
 		cm_bsp_node_t *node = &cm_bsp.nodes[cm_box.head_node + i];
-		node->plane = cm_bsp.planes + (cm_bsp.bsp.num_planes + i * 2);
-		node->children[side] = -1 - cm_bsp.bsp.num_leafs;
+		node->plane = cm_bsp.planes + (cm_bsp.file.num_planes + i * 2);
+		node->children[side] = -1 - cm_bsp.file.num_leafs;
 		if (i != 5) {
 			node->children[side ^ 1] = cm_box.head_node + i + 1;
 		} else {
-			node->children[side ^ 1] = -1 - cm_bsp.bsp.num_leafs;
+			node->children[side ^ 1] = -1 - cm_bsp.file.num_leafs;
 		}
 
 		// fill in brush sides, one per side
-		cm_bsp_brush_side_t *bside = &cm_bsp.brush_sides[cm_bsp.bsp.num_brush_sides + i];
-		bside->plane = cm_bsp.planes + (cm_bsp.bsp.num_planes + i * 2 + side);
+		cm_bsp_brush_side_t *bside = &cm_bsp.brush_sides[cm_bsp.file.num_brush_sides + i];
+		bside->plane = cm_bsp.planes + (cm_bsp.file.num_planes + i * 2 + side);
 		bside->surface = &null_surface;
 	}
 }
@@ -300,7 +300,7 @@ static int32_t Cm_PointLeafnum_r(const vec3_t p, int32_t num) {
  */
 int32_t Cm_PointLeafnum(const vec3_t p, int32_t head_node) {
 
-	if (!cm_bsp.bsp.num_nodes) {
+	if (!cm_bsp.file.num_nodes) {
 		return 0;
 	}
 
@@ -317,7 +317,7 @@ int32_t Cm_PointLeafnum(const vec3_t p, int32_t head_node) {
  */
 int32_t Cm_PointContents(const vec3_t p, int32_t head_node) {
 
-	if (!cm_bsp.bsp.num_nodes) {
+	if (!cm_bsp.file.num_nodes) {
 		return 0;
 	}
 

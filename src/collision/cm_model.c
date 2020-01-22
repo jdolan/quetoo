@@ -29,7 +29,7 @@ cm_bsp_t cm_bsp;
  */
 static void Cm_LoadBspEntities(void) {
 
-	GList *entities = Cm_LoadEntities(cm_bsp.bsp.entity_string);
+	GList *entities = Cm_LoadEntities(cm_bsp.file.entity_string);
 
 	cm_bsp.num_entities = g_list_length(entities);
 	cm_bsp.entities = Mem_TagMalloc(sizeof(cm_entity_t *) * cm_bsp.num_entities, MEM_TAG_COLLISION);
@@ -47,8 +47,8 @@ static void Cm_LoadBspEntities(void) {
  */
 static void Cm_LoadBspTexinfos(void) {
 
-	const int32_t num_texinfo = cm_bsp.bsp.num_texinfo;
-	const bsp_texinfo_t *in = cm_bsp.bsp.texinfo;
+	const int32_t num_texinfo = cm_bsp.file.num_texinfo;
+	const bsp_texinfo_t *in = cm_bsp.file.texinfo;
 
 	cm_bsp_texinfo_t *out = cm_bsp.texinfos = Mem_TagMalloc(sizeof(cm_bsp_texinfo_t) * num_texinfo, MEM_TAG_COLLISION);
 
@@ -76,8 +76,8 @@ static void Cm_LoadBspTexinfos(void) {
  */
 static void Cm_LoadBspPlanes(void) {
 
-	const int32_t num_planes = cm_bsp.bsp.num_planes;
-	const bsp_plane_t *in = cm_bsp.bsp.planes;
+	const int32_t num_planes = cm_bsp.file.num_planes;
+	const bsp_plane_t *in = cm_bsp.file.planes;
 
 	cm_bsp_plane_t *out = cm_bsp.planes = Mem_TagMalloc(sizeof(cm_bsp_plane_t) * (num_planes + 12),
 	                                      MEM_TAG_COLLISION); // extra for box hull
@@ -97,8 +97,8 @@ static void Cm_LoadBspPlanes(void) {
  */
 static void Cm_LoadBspNodes(void) {
 
-	const int32_t num_nodes = cm_bsp.bsp.num_nodes;
-	const bsp_node_t *in = cm_bsp.bsp.nodes;
+	const int32_t num_nodes = cm_bsp.file.num_nodes;
+	const bsp_node_t *in = cm_bsp.file.nodes;
 
 	cm_bsp_node_t *out = cm_bsp.nodes = Mem_TagMalloc(sizeof(cm_bsp_node_t) * (num_nodes + 6),
 	                                    MEM_TAG_COLLISION); // extra for box hull
@@ -119,8 +119,8 @@ static void Cm_LoadBspNodes(void) {
  */
 static void Cm_LoadBspLeafs(void) {
 
-	const int32_t num_leafs = cm_bsp.bsp.num_leafs;
-	const bsp_leaf_t *in = cm_bsp.bsp.leafs;
+	const int32_t num_leafs = cm_bsp.file.num_leafs;
+	const bsp_leaf_t *in = cm_bsp.file.leafs;
 
 	cm_bsp_leaf_t *out = cm_bsp.leafs = Mem_TagMalloc(sizeof(cm_bsp_leaf_t) * (num_leafs + 1),
 	                                    MEM_TAG_COLLISION); // extra for box hull
@@ -140,8 +140,8 @@ static void Cm_LoadBspLeafs(void) {
  */
 static void Cm_LoadBspLeafBrushes(void) {
 
-	const int32_t num_leaf_brushes = cm_bsp.bsp.num_leaf_brushes;
-	const int32_t *in = cm_bsp.bsp.leaf_brushes;
+	const int32_t num_leaf_brushes = cm_bsp.file.num_leaf_brushes;
+	const int32_t *in = cm_bsp.file.leaf_brushes;
 
 	int32_t *out = cm_bsp.leaf_brushes = Mem_TagMalloc(sizeof(int32_t) * (num_leaf_brushes + 1),
 	                                      MEM_TAG_COLLISION); // extra for box hull
@@ -157,8 +157,8 @@ static void Cm_LoadBspLeafBrushes(void) {
  */
 static void Cm_LoadBspBrushes(void) {
 
-	const int32_t num_brushes = cm_bsp.bsp.num_brushes;
-	const bsp_brush_t *in = cm_bsp.bsp.brushes;
+	const int32_t num_brushes = cm_bsp.file.num_brushes;
+	const bsp_brush_t *in = cm_bsp.file.brushes;
 
 	cm_bsp_brush_t *out = cm_bsp.brushes = Mem_TagMalloc(sizeof(cm_bsp_brush_t) * (num_brushes + 1),
 	                                       MEM_TAG_COLLISION); // extra for box hull
@@ -178,8 +178,8 @@ static void Cm_LoadBspBrushSides(void) {
 
 	static cm_bsp_texinfo_t null_texinfo;
 
-	const int32_t num_brush_sides = cm_bsp.bsp.num_brush_sides;
-	const bsp_brush_side_t *in = cm_bsp.bsp.brush_sides;
+	const int32_t num_brush_sides = cm_bsp.file.num_brush_sides;
+	const bsp_brush_side_t *in = cm_bsp.file.brush_sides;
 
 	cm_bsp_brush_side_t *out = cm_bsp.brush_sides = Mem_TagMalloc(sizeof(cm_bsp_brush_side_t) *
 				(num_brush_sides + 6), MEM_TAG_COLLISION); // extra for box hull
@@ -188,7 +188,7 @@ static void Cm_LoadBspBrushSides(void) {
 
 		const int32_t p = in->plane_num;
 
-		if (p >= cm_bsp.bsp.num_planes) {
+		if (p >= cm_bsp.file.num_planes) {
 			Com_Error(ERROR_DROP, "Brush side %d has invalid plane %d\n", i, p);
 		}
 
@@ -197,7 +197,7 @@ static void Cm_LoadBspBrushSides(void) {
 		if (in->texinfo == -1) {
 			out->surface = &null_texinfo;
 		} else {
-			if (in->texinfo >= cm_bsp.bsp.num_texinfo) {
+			if (in->texinfo >= cm_bsp.file.num_texinfo) {
 				Com_Error(ERROR_DROP, "Brush side %d has invalid texinfo %d\n", i, in->texinfo);
 			}
 
@@ -212,7 +212,7 @@ static void Cm_LoadBspBrushSides(void) {
 static void Cm_SetupBspBrushes(void) {
 	cm_bsp_brush_t *b = cm_bsp.brushes;
 
-	for (int32_t i = 0; i < cm_bsp.bsp.num_brushes; i++, b++) {
+	for (int32_t i = 0; i < cm_bsp.file.num_brushes; i++, b++) {
 		const cm_bsp_brush_side_t *bs = cm_bsp.brush_sides + b->first_brush_side;
 
 		b->mins[0] = -bs[0].plane->dist;
@@ -230,8 +230,8 @@ static void Cm_SetupBspBrushes(void) {
  */
 static void Cm_LoadBspInlineModels(void) {
 
-	const int32_t num_models = cm_bsp.bsp.num_models;
-	const bsp_model_t *in = cm_bsp.bsp.models;
+	const int32_t num_models = cm_bsp.file.num_models;
+	const bsp_model_t *in = cm_bsp.file.models;
 
 	cm_bsp_model_t *out = cm_bsp.models = Mem_TagMalloc(sizeof(cm_bsp_model_t) * num_models, MEM_TAG_COLLISION);
 
@@ -252,7 +252,7 @@ static void Cm_LoadBspInlineModels(void) {
  */
 static void Cm_LoadBspAreaPortals(void) {
 
-	const int32_t num_area_portals = cm_bsp.bsp.num_area_portals;
+	const int32_t num_area_portals = cm_bsp.file.num_area_portals;
 
 	cm_bsp.area_portals = Mem_TagMalloc(sizeof(bool) * num_area_portals, MEM_TAG_COLLISION);
 }
@@ -262,8 +262,8 @@ static void Cm_LoadBspAreaPortals(void) {
  */
 static void Cm_LoadBspAreas(void) {
 
-	const int32_t num_areas = cm_bsp.bsp.num_areas;
-	const bsp_area_t *in = cm_bsp.bsp.areas;
+	const int32_t num_areas = cm_bsp.file.num_areas;
+	const bsp_area_t *in = cm_bsp.file.areas;
 
 	cm_bsp_area_t *out = cm_bsp.areas = Mem_TagMalloc(sizeof(cm_bsp_area_t) * num_areas, MEM_TAG_COLLISION);
 
@@ -289,8 +289,8 @@ static void Cm_LoadBspMaterials(const char *name) {
 	GList *materials = NULL;
 	Cm_LoadMaterials(path, &materials);
 
-	const bsp_texinfo_t *in = cm_bsp.bsp.texinfo;
-	for (int32_t i = 0; i < cm_bsp.bsp.num_texinfo; i++, in++) {
+	const bsp_texinfo_t *in = cm_bsp.file.texinfo;
+	for (int32_t i = 0; i < cm_bsp.file.num_texinfo; i++, in++) {
 
 		cm_material_t *material = NULL;
 
@@ -352,7 +352,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 		return &cm_bsp.models[0];
 	}
 
-	Bsp_UnloadLumps(&cm_bsp.bsp, BSP_LUMPS_ALL);
+	Bsp_UnloadLumps(&cm_bsp.file, BSP_LUMPS_ALL);
 
 	// free dynamic memory
 	Mem_Free(cm_bsp.texinfos);
@@ -391,7 +391,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 		Com_Error(ERROR_DROP, "Failed to verify %s\n", name);
 	}
 
-	if (!Bsp_LoadLumps(file, &cm_bsp.bsp, CM_BSP_LUMPS)) {
+	if (!Bsp_LoadLumps(file, &cm_bsp.file, CM_BSP_LUMPS)) {
 		Fs_Free(file);
 		Com_Error(ERROR_DROP, "Lump error loading %s\n", name);
 	}
@@ -441,7 +441,7 @@ cm_bsp_model_t *Cm_Model(const char *name) {
 
 	const int32_t num = atoi(name + 1);
 
-	if (num < 1 || num >= cm_bsp.bsp.num_models) {
+	if (num < 1 || num >= cm_bsp.file.num_models) {
 		Com_Error(ERROR_DROP, "Bad number: %d\n", num);
 	}
 
@@ -453,8 +453,8 @@ cm_bsp_model_t *Cm_Model(const char *name) {
  */
 int32_t Cm_NumClusters(void) {
 
-	if (cm_bsp.bsp.vis) {
-		return cm_bsp.bsp.vis->num_clusters;
+	if (cm_bsp.file.vis) {
+		return cm_bsp.file.vis->num_clusters;
 	}
 	
 	return 0;
@@ -464,14 +464,14 @@ int32_t Cm_NumClusters(void) {
  * @brief
  */
 int32_t Cm_NumModels(void) {
-	return cm_bsp.bsp.num_models;
+	return cm_bsp.file.num_models;
 }
 
 /**
  * @brief
  */
 const char *Cm_EntityString(void) {
-	return cm_bsp.bsp.entity_string;
+	return cm_bsp.file.entity_string;
 }
 
 /**
@@ -486,7 +486,7 @@ cm_entity_t *Cm_Worldspawn(void) {
  */
 int32_t Cm_LeafContents(const int32_t leaf_num) {
 
-	if (leaf_num < 0 || leaf_num >= cm_bsp.bsp.num_leafs) {
+	if (leaf_num < 0 || leaf_num >= cm_bsp.file.num_leafs) {
 		Com_Error(ERROR_DROP, "Bad number: %d\n", leaf_num);
 	}
 
@@ -498,7 +498,7 @@ int32_t Cm_LeafContents(const int32_t leaf_num) {
  */
 int32_t Cm_LeafCluster(const int32_t leaf_num) {
 
-	if (leaf_num < 0 || leaf_num >= cm_bsp.bsp.num_leafs) {
+	if (leaf_num < 0 || leaf_num >= cm_bsp.file.num_leafs) {
 		Com_Error(ERROR_DROP, "Bad number: %d\n", leaf_num);
 	}
 
@@ -510,7 +510,7 @@ int32_t Cm_LeafCluster(const int32_t leaf_num) {
  */
 int32_t Cm_LeafArea(const int32_t leaf_num) {
 
-	if (leaf_num < 0 || leaf_num >= cm_bsp.bsp.num_leafs) {
+	if (leaf_num < 0 || leaf_num >= cm_bsp.file.num_leafs) {
 		Com_Error(ERROR_DROP, "Bad number: %d\n", leaf_num);
 	}
 
