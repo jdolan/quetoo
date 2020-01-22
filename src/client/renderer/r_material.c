@@ -902,8 +902,8 @@ static void R_LoadBspMaterials(r_model_t *mod, GList **materials) {
 
 	R_LoadMaterials(path, ASSET_CONTEXT_TEXTURES, materials);
 
-	const bsp_texinfo_t *in = mod->bsp->file->texinfo;
-	for (int32_t i = 0; i < mod->bsp->file->num_texinfo; i++, in++) {
+	const bsp_texinfo_t *in = mod->bsp->cm->file.texinfo;
+	for (int32_t i = 0; i < mod->bsp->cm->file.num_texinfo; i++, in++) {
 
 		r_material_t *material = R_LoadMaterial(in->texture, ASSET_CONTEXT_TEXTURES);
 
