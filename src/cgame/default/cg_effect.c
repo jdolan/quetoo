@@ -142,7 +142,7 @@ static void Cg_LoadWeather(void) {
 
 	Cg_ResolveWeather(cgi.ConfigString(CS_WEATHER));
 
-	if (!(cgi.view->weather & WEATHER_PRECIP_MASK)) {
+	if (!(cgi.view->weather & (WEATHER_RAIN | WEATHER_SNOW))) {
 		return;
 	}
 
@@ -248,7 +248,7 @@ static void Cg_AddWeather(void) {
 		return;
 	}
 
-	if (!(cgi.view->weather & WEATHER_PRECIP_MASK)) {
+	if (!(cgi.view->weather & (WEATHER_RAIN | WEATHER_SNOW))) {
 		return;
 	}
 

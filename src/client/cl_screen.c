@@ -289,7 +289,7 @@ void Cl_UpdateScreen(void) {
 
 //		R_Setup3D();
 
-		R_DrawView();
+		R_DrawView(&r_view);
 
 //		R_Setup2D();
 

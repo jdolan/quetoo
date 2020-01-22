@@ -730,19 +730,23 @@ typedef struct {
  */
 typedef void (*MeshModelsDrawFunc)(const r_entities_t *ents);
 
-#define WEATHER_NONE		0
-#define WEATHER_RAIN 		1
-#define WEATHER_SNOW 		2
-#define WEATHER_FOG 		4
-#define WEATHER_PRECIP_MASK	(WEATHER_RAIN | WEATHER_SNOW)
+#define WEATHER_NONE        0x0
+#define WEATHER_RAIN        0x1
+#define WEATHER_SNOW        0x2
+#define WEATHER_FOG         0x4
 
 #define FOG_START			128.0
 #define FOG_END				2048.0
 
 /**
- * @brief Provides read-write visibility and scene management to the client.
+ * @brief Each client frame populates a view, and submits it to the renderer.
  */
 typedef struct {
+
+	/**
+	 * @brief The unclamped simulation time, in millis.
+	 */
+	uint32_t ticks;
 
 	/**
 	 * @brief The Viewport.
@@ -753,16 +757,6 @@ typedef struct {
 	 * @brief The horizontal and vertical field of view.
 	 */
 	vec2_t fov;
-
-	/**
-	 * @brief The 3D projection matrix.
-	 */
-	matrix4x4_t projection3D;
-
-	/**
-	 * @brief The 2D projection matrix.
-	 */
-	matrix4x4_t projection2D;
 
 	/**
 	 * @brief The view origin.
@@ -790,29 +784,9 @@ typedef struct {
 	vec3_t up;
 
 	/**
-	 * @brief The model view matrix.
-	 */
-	matrix4x4_t model_view;
-
-	/**
-	 * @brief The inverse model view matrix.
-	 */
-	matrix4x4_t inverse_model_view;
-
-	/**
-	 * @brief The inverse transpose model view matrix (the normal matrix).
-	 */
-	matrix4x4_t normal;
-
-	/**
-	 * @brief The contents mask at the view position.
+	 * @brief The contents mask at the view origin.
 	 */
 	int32_t contents;
-
-	/**
-	 * @brief The unclamped simulation time, in millis.
-	 */
-	uint32_t ticks;
 
 	/**
 	 * @brief If not NULL, only BSP areas matching the corresponding bits will be drawn.
@@ -822,29 +796,27 @@ typedef struct {
 	/**
 	 * @brief A bitmask of weather effects.
 	 */
-	byte weather;
+	int32_t weather;
 
 	/**
 	 * @brief The fog color.
 	 */
 	vec4_t fog;
 
-	uint16_t num_entities;
+	/**
+	 * @brief The entities to render for the current frame.
+	 */
 	r_entity_t entities[MAX_ENTITIES];
+	int32_t num_entities;
 
-	uint16_t num_particles;
 	r_particle_t particles[MAX_PARTICLES];
+	int32_t num_particles;
 
-	uint16_t num_lights;
 	r_light_t lights[MAX_LIGHTS];
+	int32_t num_lights;
 
-	uint16_t num_stains;
 	r_stain_t stains[MAX_STAINS];
-
-	r_sustained_light_t sustained_lights[MAX_LIGHTS];
-
-	const r_entity_t *current_entity; // entity being rendered
-	const r_shadow_t *current_shadow; // shadow being rendered
+	int32_t num_stains;
 
 	// counters, reset each frame
 

@@ -44,48 +44,48 @@ void R_AddLight(const r_light_t *l) {
  * @brief
  */
 void R_AddSustainedLight(const r_sustained_light_t *s) {
-	int32_t i;
+//	int32_t i;
 
-	for (i = 0; i < MAX_LIGHTS; i++)
-		if (!r_view.sustained_lights[i].sustain) {
-			break;
-		}
-
-	if (i == MAX_LIGHTS) {
-		Com_Debug(DEBUG_RENDERER, "MAX_LIGHTS reached\n");
-		return;
-	}
-
-	r_view.sustained_lights[i] = *s;
-
-	r_view.sustained_lights[i].time = r_view.ticks;
-	r_view.sustained_lights[i].sustain = r_view.ticks + s->sustain;
+//	for (i = 0; i < MAX_LIGHTS; i++)
+//		if (!r_view.sustained_lights[i].sustain) {
+//			break;
+//		}
+//
+//	if (i == MAX_LIGHTS) {
+//		Com_Debug(DEBUG_RENDERER, "MAX_LIGHTS reached\n");
+//		return;
+//	}
+//
+//	r_view.sustained_lights[i] = *s;
+//
+//	r_view.sustained_lights[i].time = r_view.ticks;
+//	r_view.sustained_lights[i].sustain = r_view.ticks + s->sustain;
 }
 
 /**
  * @brief
  */
 void R_AddSustainedLights(void) {
-	r_sustained_light_t *s;
-	int32_t i;
-
-	// sustains must be recalculated every frame
-	for (i = 0, s = r_view.sustained_lights; i < MAX_LIGHTS; i++, s++) {
-
-		if (s->sustain <= r_view.ticks) { // clear it
-			s->sustain = 0.0;
-			continue;
-		}
-
-		r_light_t l = s->light;
-
-		const vec_t intensity = (s->sustain - r_view.ticks) / (vec_t) (s->sustain - s->time);
-
-		l.radius *= intensity;
-		VectorScale(l.color, intensity, l.color);
-
-		R_AddLight(&l);
-	}
+//	r_sustained_light_t *s;
+//	int32_t i;
+//
+//	// sustains must be recalculated every frame
+//	for (i = 0, s = r_view.sustained_lights; i < MAX_LIGHTS; i++, s++) {
+//
+//		if (s->sustain <= r_view.ticks) { // clear it
+//			s->sustain = 0.0;
+//			continue;
+//		}
+//
+//		r_light_t l = s->light;
+//
+//		const vec_t intensity = (s->sustain - r_view.ticks) / (vec_t) (s->sustain - s->time);
+//
+//		l.radius *= intensity;
+//		VectorScale(l.color, intensity, l.color);
+//
+//		R_AddLight(&l);
+//	}
 }
 
 /**

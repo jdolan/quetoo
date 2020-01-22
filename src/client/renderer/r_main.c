@@ -152,23 +152,23 @@ void R_UpdateViewport(void) {
 	const vec_t xmin = ymin * aspect;
 	const vec_t xmax = ymax * aspect;
 
-	Matrix4x4_FromFrustum(&r_view.projection3D, xmin, xmax, ymin, ymax, 1.0, MAX_WORLD_DIST);
+	Matrix4x4_FromFrustum(&r_locals.projection3D, xmin, xmax, ymin, ymax, 1.0, MAX_WORLD_DIST);
 
-	Matrix4x4_CreateIdentity(&r_view.model_view);
+	Matrix4x4_CreateIdentity(&r_locals.model_view);
 
-	Matrix4x4_ConcatRotate(&r_view.model_view, -90.0, 1.0, 0.0, 0.0); // put Z going up
-	Matrix4x4_ConcatRotate(&r_view.model_view,  90.0, 0.0, 0.0, 1.0); // put Z going up
+	Matrix4x4_ConcatRotate(&r_locals.model_view, -90.0, 1.0, 0.0, 0.0); // put Z going up
+	Matrix4x4_ConcatRotate(&r_locals.model_view,  90.0, 0.0, 0.0, 1.0); // put Z going up
 
-	Matrix4x4_ConcatRotate(&r_view.model_view, -r_view.angles[ROLL],  1.0, 0.0, 0.0);
-	Matrix4x4_ConcatRotate(&r_view.model_view, -r_view.angles[PITCH], 0.0, 1.0, 0.0);
-	Matrix4x4_ConcatRotate(&r_view.model_view, -r_view.angles[YAW],   0.0, 0.0, 1.0);
+	Matrix4x4_ConcatRotate(&r_locals.model_view, -r_view.angles[ROLL],  1.0, 0.0, 0.0);
+	Matrix4x4_ConcatRotate(&r_locals.model_view, -r_view.angles[PITCH], 0.0, 1.0, 0.0);
+	Matrix4x4_ConcatRotate(&r_locals.model_view, -r_view.angles[YAW],   0.0, 0.0, 1.0);
 
-	Matrix4x4_ConcatTranslate(&r_view.model_view, -r_view.origin[0], -r_view.origin[1], -r_view.origin[2]);
+	Matrix4x4_ConcatTranslate(&r_locals.model_view, -r_view.origin[0], -r_view.origin[1], -r_view.origin[2]);
 
-	Matrix4x4_Invert_Simple(&r_view.inverse_model_view, &r_view.model_view);
+	Matrix4x4_Invert_Simple(&r_locals.inverse_model_view, &r_locals.model_view);
 
-	Matrix4x4_Invert_Full(&r_view.normal, &r_view.model_view);
-	Matrix4x4_Transpose(&r_view.normal, &r_view.normal);
+	Matrix4x4_Invert_Full(&r_locals.inverse_transpose_model_view, &r_locals.model_view);
+	Matrix4x4_Transpose(&r_locals.inverse_transpose_model_view, &r_locals.inverse_transpose_model_view);
 }
 
 /**
@@ -223,7 +223,7 @@ static void R_DrawDeveloperTools(void) {
 /**
  * @brief Main entry point for drawing the scene (world and entities).
  */
-void R_DrawView(void) {
+void R_DrawView(r_view_t *view) {
 
 	R_UpdateViewport();
 
@@ -231,7 +231,7 @@ void R_DrawView(void) {
 
 	R_UpdateVis();
 
-	R_DrawWorld();
+	R_DrawWorldModel();
 
 	R_DrawSkyBox();
 

@@ -236,7 +236,7 @@ static void R_DrawBspModel(const r_bsp_model_t *model) {
 /**
  * @brief
  */
-void R_DrawWorld(void) {
+void R_DrawWorldModel(void) {
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -252,9 +252,9 @@ void R_DrawWorld(void) {
 
 	glUseProgram(r_bsp_program.name);
 
-	glUniformMatrix4fv(r_bsp_program.projection, 1, GL_FALSE, (GLfloat *) r_view.projection3D.m);
-	glUniformMatrix4fv(r_bsp_program.model_view, 1, GL_FALSE, (GLfloat *) r_view.model_view.m);
-	glUniformMatrix4fv(r_bsp_program.normal, 1, GL_FALSE, (GLfloat *) r_view.normal.m);
+	glUniformMatrix4fv(r_bsp_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
+	glUniformMatrix4fv(r_bsp_program.model_view, 1, GL_FALSE, (GLfloat *) r_locals.model_view.m);
+	glUniformMatrix4fv(r_bsp_program.normal, 1, GL_FALSE, (GLfloat *) r_locals.inverse_transpose_model_view.m);
 
 	glUniform1f(r_bsp_program.alpha_threshold, 0.f);
 

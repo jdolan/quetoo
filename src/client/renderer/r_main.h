@@ -71,7 +71,7 @@ void R_Init(void);
 void R_Shutdown(void);
 void R_LoadMedia(void);
 void R_BeginFrame(void);
-void R_DrawView(void);
+void R_DrawView(r_view_t *view);
 void R_EndFrame(void);
 
 #ifdef __R_LOCAL_H__
@@ -90,6 +90,31 @@ extern r_config_t r_config;
 
 // private renderer structure
 typedef struct {
+
+	/**
+	 * @brief The 3D projection matrix.
+	 */
+	matrix4x4_t projection3D;
+
+	/**
+	 * @brief The 2D projection matrix.
+	 */
+	matrix4x4_t projection2D;
+
+	/**
+	 * @brief The model view matrix.
+	 */
+	matrix4x4_t model_view;
+
+	/**
+	 * @brief The inverse model view matrix.
+	 */
+	matrix4x4_t inverse_model_view;
+
+	/**
+	 * @brief The inverse transpose model view matrix (the normal matrix).
+	 */
+	matrix4x4_t inverse_transpose_model_view;
 
 	const r_bsp_leaf_t *leaf; // the leaf at the view origin
 

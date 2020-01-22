@@ -162,7 +162,7 @@ static void R_DrawNullModels(const r_entities_t *ents) {
 			continue;
 		}
 
-		r_view.current_entity = e;
+//		r_view.current_entity = e;
 
 		R_DrawNullModel(e);
 	}
@@ -170,7 +170,7 @@ static void R_DrawNullModels(const r_entities_t *ents) {
 //	R_UnbindAttributeBuffer(R_ATTRIB_POSITION);
 //	R_UnbindAttributeBuffer(R_ATTRIB_ELEMENTS);
 
-	r_view.current_entity = NULL;
+//	r_view.current_entity = NULL;
 }
 
 /**

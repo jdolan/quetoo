@@ -257,12 +257,12 @@ void R_AddBspInlineModelFlares(const r_entities_t *ents) {
 			continue;
 		}
 
-		r_view.current_entity = e;
+//		r_view.current_entity = e;
 
 		R_AddBspInlineModelFlares_(e);
 	}
 
-	r_view.current_entity = NULL;
+//	r_view.current_entity = NULL;
 }
 
 /**
@@ -277,12 +277,12 @@ void R_DrawBspInlineModels(const r_entities_t *ents) {
 			continue;
 		}
 
-		r_view.current_entity = e;
+//		r_view.current_entity = e;
 
 		R_DrawBspInlineModel(e);
 	}
 
-	r_view.current_entity = NULL;
+//	r_view.current_entity = NULL;
 }
 
 /**

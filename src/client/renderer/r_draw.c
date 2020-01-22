@@ -420,8 +420,8 @@ void R_Draw2D(void) {
 
 	glUseProgram(r_draw_program.name);
 
-	Matrix4x4_FromOrtho(&r_view.projection2D, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
-	glUniformMatrix4fv(r_draw_program.projection, 1, GL_FALSE, (GLfloat *) r_view.projection2D.m);
+	Matrix4x4_FromOrtho(&r_locals.projection2D, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
+	glUniformMatrix4fv(r_draw_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection2D.m);
 
 	glUniform1f(r_draw_program.brightness, r_brightness->value);
 	glUniform1f(r_draw_program.contrast, r_contrast->value);

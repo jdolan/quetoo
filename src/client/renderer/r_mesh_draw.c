@@ -341,7 +341,7 @@ static void R_DrawMeshPartsMaterials(const r_entity_t *e, const r_mesh_model_t *
  */
 void R_DrawMeshModel(const r_entity_t *e) {
 
-	r_view.current_entity = e;
+//	r_view.current_entity = e;
 
 	R_SetModelState(e);
 
@@ -362,7 +362,7 @@ void R_DrawMeshModelMaterials(const r_entity_t *e) {
 		return;
 	}
 
-	r_view.current_entity = e;
+//	r_view.current_entity = e;
 
 	R_SetModelState(e);
 	
