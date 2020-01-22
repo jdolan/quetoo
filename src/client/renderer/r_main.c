@@ -218,8 +218,6 @@ static void R_DrawDeveloperTools(void) {
 	R_DrawBspNormals();
 
 	R_DrawBspLights();
-
-	R_DrawBspLeafs();
 }
 
 /**
