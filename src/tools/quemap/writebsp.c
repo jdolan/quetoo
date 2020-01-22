@@ -133,7 +133,10 @@ void EmitDrawElements(void) {
 
 	bsp_leaf_t *leaf = bsp_file.leafs;
 	for (int32_t i = 0; i < bsp_file.num_leafs; i++, leaf++) {
-		EmitDrawElements_(leaf);
+
+		if (leaf->num_leaf_faces) {
+			EmitDrawElements_(leaf);
+		}
 	}
 
 	Com_Verbose("%d draw elements\n", bsp_file.num_draw_elements);
