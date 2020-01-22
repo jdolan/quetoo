@@ -106,11 +106,11 @@ void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node) {
 		return;
 	}
 
-	if (node->vis_frame != r_locals.vis_frame) { // not visible
-		if (!node->model) { // and not an inline model
-			return;
-		}
-	}
+//	if (node->vis_frame != r_locals.vis_frame) { // not visible
+//		if (!node->model) { // and not an inline model
+//			return;
+//		}
+//	}
 
 	const vec_t dist = Cm_DistanceToPlane(l->origin, node->plane);
 
@@ -148,8 +148,6 @@ void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node) {
  * that receive light.
  */
 void R_MarkLights(void) {
-	const r_bsp_model_t *bsp = r_model_state.world->bsp;
-	const r_light_t *l = r_view.lights;
 
 	r_locals.light_frame++;
 
@@ -157,10 +155,9 @@ void R_MarkLights(void) {
 		r_locals.light_frame = 0;
 	}
 
-	// mark each light against the world
-
+	const r_light_t *l = r_view.lights;
 	for (uint16_t i = 0; i < r_view.num_lights; i++, l++) {
-		R_MarkLight(l, bsp->nodes);
+		R_MarkLight(l, r_model_state.world->bsp->nodes);
 	}
 }
 

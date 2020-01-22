@@ -319,10 +319,8 @@ typedef struct {
 	int32_t first_element;
 	int32_t num_elements;
 
-	int16_t vis_frame; // PVS frame
-	int16_t frame; // renderer frame
-	int16_t light_frame; // dynamic lighting frame
-	uint64_t light_mask; // bit mask of dynamic light sources
+	int16_t light_frame;
+	uint64_t light_mask;
 } r_bsp_face_t;
 
 typedef struct {
@@ -350,7 +348,6 @@ typedef struct {
 typedef struct r_bsp_node_s {
 	// common with leaf
 	int32_t contents; // -1, to differentiate from leafs
-	int16_t vis_frame; // node needs to be traversed if current
 
 	vec3_t mins; // for bounded box culling
 	vec3_t maxs;
@@ -375,7 +372,6 @@ typedef struct r_bsp_node_s {
 typedef struct {
 	// common with node
 	int32_t contents; // will be a negative contents number
-	int16_t vis_frame; // node needs to be traversed if current
 
 	vec3_t mins; // for bounding box culling
 	vec3_t maxs;
@@ -392,6 +388,8 @@ typedef struct {
 
 	r_bsp_draw_elements_t *draw_elements;
 	int32_t num_draw_elements;
+
+	uint64_t light_mask;
 } r_bsp_leaf_t;
 
 /**
@@ -406,13 +404,6 @@ typedef struct {
 	vec2_t lightmap;
 	vec4_t color;
 } r_bsp_vertex_t;
-
-/**
- * @brief
- */
-typedef struct {
-	int16_t vis_frame; // PVS eligibility
-} r_bsp_cluster_t;
 
 /**
  * @brief BSP light sources.
@@ -500,9 +491,6 @@ typedef struct {
 
 	int32_t num_inline_models;
 	r_bsp_inline_model_t *inline_models;
-
-	int32_t num_clusters;
-	r_bsp_cluster_t *clusters;
 
 	int16_t luxel_size;
 
@@ -860,12 +848,8 @@ typedef struct {
 
 	// counters, reset each frame
 
-	uint32_t num_bsp_clusters;
 	uint32_t num_bsp_leafs;
-	uint32_t num_bsp_faces;
-
-	uint32_t cull_passes;
-	uint32_t cull_fails;
+	uint32_t num_bsp_draw_elements;
 
 	uint32_t num_draw_elements;
 	uint32_t num_draw_arrays;

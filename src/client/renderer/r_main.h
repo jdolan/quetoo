@@ -91,13 +91,10 @@ extern r_config_t r_config;
 // private renderer structure
 typedef struct {
 
-	int16_t clusters[2]; // PVS clusters at origin
+	const r_bsp_leaf_t *leaf; // the leaf at the view origin
 
 	byte vis_data_pvs[MAX_BSP_LEAFS >> 3]; // decompressed PVS at origin
 	byte vis_data_phs[MAX_BSP_LEAFS >> 3]; // decompressed PHS at origin
-
-	int16_t vis_frame; // PVS frame, negatives are special cases
-	int16_t frame; // renderer frame, negatives are special cases
 
 	int16_t light_frame; // dynamic lighting frame
 	uint64_t light_mask; // a bit mask into r_view.lights

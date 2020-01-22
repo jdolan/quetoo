@@ -35,6 +35,5 @@ void R_AddBspInlineModelFlares(const r_entities_t *ents);
 void R_DrawBspLeafs(void);
 void R_DrawBspNormals(void);
 void R_DrawBspLights(void);
-void R_MarkBspFaces(void);
 void R_UpdateVis(void);
 #endif /* __R_LOCAL_H__ */

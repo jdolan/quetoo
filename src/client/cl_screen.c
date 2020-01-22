@@ -135,13 +135,10 @@ static void Cl_DrawRendererStats(void) {
 	R_DrawString(0, y, "BSP:", CON_COLOR_YELLOW);
 	y += ch;
 
-	R_DrawString(0, y, va("%d clusters", r_view.num_bsp_clusters), CON_COLOR_YELLOW);
-	y += ch;
-
 	R_DrawString(0, y, va("%d leafs", r_view.num_bsp_leafs), CON_COLOR_YELLOW);
 	y += ch;
 
-	R_DrawString(0, y, va("%d surfaces", r_view.num_bsp_faces), CON_COLOR_YELLOW);
+	R_DrawString(0, y, va("%d glDrawElements", r_view.num_bsp_draw_elements), CON_COLOR_YELLOW);
 	y += ch;
 
 //	y += ch;
@@ -173,8 +170,6 @@ static void Cl_DrawRendererStats(void) {
 
 	R_DrawString(0, y, va("%d particles", r_view.num_particles), CON_COLOR_WHITE);
 	y += ch;
-
-	R_DrawString(0, y, va("cull: %d pass, %d fail", r_view.cull_passes, r_view.cull_fails), CON_COLOR_WHITE);
 
 	R_BindFont(NULL, NULL, NULL);
 }

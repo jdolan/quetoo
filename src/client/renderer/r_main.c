@@ -233,8 +233,6 @@ void R_DrawView(void) {
 
 	R_UpdateVis();
 
-	R_MarkBspFaces();
-
 	R_DrawWorld();
 
 	R_DrawSkyBox();
@@ -327,8 +325,6 @@ void R_InitView(void) {
 	memset(&r_view, 0, sizeof(r_view));
 
 	memset(&r_locals, 0, sizeof(r_locals));
-
-	r_locals.clusters[0] = r_locals.clusters[1] = -1;
 }
 
 /**

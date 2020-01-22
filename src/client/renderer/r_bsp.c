@@ -36,12 +36,10 @@ _Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 
 	for (i = 0; i < 4; i++) {
 		if (Cm_BoxOnPlaneSide(mins, maxs, &r_locals.frustum[i]) != SIDE_BACK) {
-			r_view.cull_fails++;
 			return false;
 		}
 	}
 
-	r_view.cull_passes++;
 	return true;
 }
 
@@ -60,12 +58,10 @@ _Bool R_CullSphere(const vec3_t point, const vec_t radius) {
 		const vec_t dist = DotProduct(point, p->normal) - p->dist;
 
 		if (dist < -radius) {
-			r_view.cull_passes++;
 			return true;
 		}
 	}
 
-	r_view.cull_fails++;
 	return false;
 }
 
@@ -101,36 +97,36 @@ _Bool R_CullBspInlineModel(const r_entity_t *e) {
  * restore light origins after the model has been drawn.
  */
 static void R_RotateLightsForBspInlineModel(const r_entity_t *e) {
-	static vec3_t light_origins[MAX_LIGHTS];
-	static int16_t frame;
-
-	// for each frame, backup the light origins
-	if (frame != r_locals.frame) {
-		for (uint16_t i = 0; i < r_view.num_lights; i++) {
-			VectorCopy(r_view.lights[i].origin, light_origins[i]);
-		}
-		frame = r_locals.frame;
-	}
-
-	// for malformed inline models, simply return
-	if (e && e->model->bsp_inline->head_node == -1) {
-		return;
-	}
-
-	// for well-formed models, iterate the lights, transforming them into model
-	// space and marking surfaces, or restoring them if the model is NULL
-
-	const r_bsp_node_t *nodes = r_model_state.world->bsp->nodes;
-	r_light_t *l = r_view.lights;
-
-	for (uint16_t i = 0; i < r_view.num_lights; i++, l++) {
-		if (e) {
-			Matrix4x4_Transform(&e->inverse_matrix, light_origins[i], l->origin);
-			R_MarkLight(l, nodes + e->model->bsp_inline->head_node);
-		} else {
-			VectorCopy(light_origins[i], l->origin);
-		}
-	}
+//	static vec3_t light_origins[MAX_LIGHTS];
+//	static int16_t frame;
+//
+//	// for each frame, backup the light origins
+//	if (frame != r_locals.frame) {
+//		for (uint16_t i = 0; i < r_view.num_lights; i++) {
+//			VectorCopy(r_view.lights[i].origin, light_origins[i]);
+//		}
+//		frame = r_locals.frame;
+//	}
+//
+//	// for malformed inline models, simply return
+//	if (e && e->model->bsp_inline->head_node == -1) {
+//		return;
+//	}
+//
+//	// for well-formed models, iterate the lights, transforming them into model
+//	// space and marking surfaces, or restoring them if the model is NULL
+//
+//	const r_bsp_node_t *nodes = r_model_state.world->bsp->nodes;
+//	r_light_t *l = r_view.lights;
+//
+//	for (uint16_t i = 0; i < r_view.num_lights; i++, l++) {
+//		if (e) {
+//			Matrix4x4_Transform(&e->inverse_matrix, light_origins[i], l->origin);
+//			R_MarkLight(l, nodes + e->model->bsp_inline->head_node);
+//		} else {
+//			VectorCopy(light_origins[i], l->origin);
+//		}
+//	}
 }
 
 /**
@@ -432,94 +428,12 @@ void R_DrawBspLights(void) {
 			continue;
 		}
 		
-		if (light->leaf->vis_frame != r_locals.vis_frame) {
+		if (!R_LeafVisible(light->leaf)) {
 			continue;
 		}
 
 		R_AddParticle(&light->debug);
 	}
-}
-
-/**
- * @brief Top-down BSP node recursion. Nodes identified as within the PVS by
- * R_MarkLeafs are first frustum-culled; those which fail immediately
- * return.
- *
- * For the rest, the front-side child node is recursed. Any surfaces marked
- * in that recursion must then pass a dot-product test to resolve sidedness.
- * Finally, the back-side child node is recursed.
- */
-static void R_MarkBspFaces_(r_bsp_node_t *node) {
-	int32_t side;
-
-	if (node->contents == CONTENTS_SOLID) {
-		return;    // solid
-	}
-
-	if (node->vis_frame != r_locals.vis_frame) {
-		return;    // not in pvs
-	}
-
-	if (R_CullBox(node->mins, node->maxs)) {
-		return;    // culled out
-	}
-
-	// if leaf node, flag surfaces to draw this frame
-	if (node->contents != CONTENTS_NODE) {
-		r_bsp_leaf_t *leaf = (r_bsp_leaf_t *) node;
-
-		if (r_view.area_bits) { // check for door connected areas
-			if (!(r_view.area_bits[leaf->area >> 3] & (1 << (leaf->area & 7)))) {
-				return;    // not visible
-			}
-		}
-
-		r_bsp_face_t **s = leaf->leaf_faces;
-
-		for (int32_t i = 0; i < leaf->num_leaf_faces; i++, s++) {
-			(*s)->vis_frame = r_locals.vis_frame;
-		}
-
-		return;
-	}
-
-	// otherwise, traverse down the appropriate sides of the node
-
-	const vec_t dist = Cm_DistanceToPlane(r_view.origin, node->plane);
-	if (dist > SIDE_EPSILON) {
-		side = 0;
-	} else {
-		side = 1;
-	}
-
-	// recurse down the children, front side first
-	R_MarkBspFaces_(node->children[side]);
-
-	// prune all marked surfaces to just those which are front-facing
-	r_bsp_face_t *s = node->faces;
-	for (int32_t i = 0; i < node->num_faces; i++, s++) {
-		if (s->vis_frame == r_locals.vis_frame) { // it's been marked
-			if ((s->flags & R_SURF_BACK_SIDE) == side) { // and it's on the right side
-				s->frame = r_locals.frame;
-			}
-		}
-	}
-
-	// recurse down the back side
-	R_MarkBspFaces_(node->children[!side]);
-}
-
-/**
- * @brief Entry point for BSP recursion and surface-level visibility test.
- */
-void R_MarkBspFaces(void) {
-
-	if (++r_locals.frame == INT16_MAX) { // avoid overflows, negatives are reserved
-		r_locals.frame = 0;
-	}
-
-	// flag all visible world surfaces
-	R_MarkBspFaces_(r_model_state.world->bsp->nodes);
 }
 
 /**
@@ -552,6 +466,12 @@ _Bool R_LeafVisible(const r_bsp_leaf_t *leaf) {
 		return false;
 	}
 
+	if (r_view.area_bits) {
+		if (!(r_view.area_bits[leaf->area >> 3] & (1 << (leaf->area & 7)))) {
+			return false;
+		}
+	}
+
 	return r_locals.vis_data_pvs[c >> 3] & (1 << (c & 7));
 }
 
@@ -569,142 +489,51 @@ _Bool R_LeafHearable(const r_bsp_leaf_t *leaf) {
 	return r_locals.vis_data_phs[c >> 3] & (1 << (c & 7));
 }
 
-#define R_CROSSING_CONTENTS_DIST 16.0
-
 /**
- * @brief Returns the cluster of any opaque contents transitions the view
- * origin is currently spanning. This allows us to bit-wise-OR in the PVS and
- * PHS data from another cluster. Returns -1 if no transition is taking place.
- */
-static int32_t R_CrossingContents(int32_t contents) {
-
-	vec3_t org;
-	VectorCopy(r_view.origin, org);
-
-	if (contents) {
-		org[2] += R_CROSSING_CONTENTS_DIST;
-	} else {
-		org[2] -= R_CROSSING_CONTENTS_DIST;
-	}
-
-	const r_bsp_leaf_t *leaf = R_LeafForPoint(org, NULL);
-
-	if (!(leaf->contents & CONTENTS_SOLID) && leaf->contents != contents) {
-		return leaf->cluster;
-	}
-
-	return -1;
-}
-
-/**
- * @brief Mark the leafs that are in the PVS for the current cluster, creating the
- * recursion path for R_MarkSurfaces. Leafs marked for the current cluster
- * will still be frustum-culled, and surfaces therein must still pass a
- * dot-product test in order to be marked as visible for the current frame.
+ * @brief Resolve the current leaf, PVS and PHS for the view origin.
  */
 void R_UpdateVis(void) {
-	int16_t clusters[2];
+	int32_t leafs[MAX_BSP_LEAFS];
 
 	if (r_lock_vis->value) {
 		return;
 	}
 
-	clusters[0] = clusters[1] = -1;
-
-	// resolve current leaf and derive the PVS clusters
-	if (r_model_state.world->bsp->num_clusters && !r_no_vis->integer) {
-
-		const r_bsp_leaf_t *leaf = R_LeafForPoint(r_view.origin, NULL);
-		if (leaf->cluster != -1) {
-
-			clusters[0] = leaf->cluster;
-			clusters[1] = R_CrossingContents(leaf->contents);
-
-			// if we have the same, valid PVS as the last frame, we're done
-			if (memcmp(clusters, r_locals.clusters, sizeof(clusters)) == 0) {
-				return;
-			}
-		}
-	}
-
-	memcpy(r_locals.clusters, clusters, sizeof(r_locals.clusters));
-
-	r_locals.vis_frame++;
-
-	if (r_locals.vis_frame == INT16_MAX) { // avoid overflows, negatives are reserved
-		r_locals.vis_frame = 0;
-	}
+	r_locals.leaf = R_LeafForPoint(r_view.origin, NULL);
 
 	// if we have no vis, mark everything and return
-	if (clusters[0] == -1 || r_no_vis->integer) {
+	if (r_locals.leaf->cluster == -1 || r_no_vis->integer) {
 
 		memset(r_locals.vis_data_pvs, 0xff, sizeof(r_locals.vis_data_pvs));
 		memset(r_locals.vis_data_phs, 0xff, sizeof(r_locals.vis_data_phs));
 
-		for (int32_t i = 0; i < r_model_state.world->bsp->num_leafs; i++) {
-			r_model_state.world->bsp->leafs[i].vis_frame = r_locals.vis_frame;
-		}
-
-		for (int32_t i = 0; i < r_model_state.world->bsp->num_nodes; i++) {
-			r_model_state.world->bsp->nodes[i].vis_frame = r_locals.vis_frame;
-		}
-
-		r_view.num_bsp_clusters = r_model_state.world->bsp->num_clusters;
-		r_view.num_bsp_leafs = r_model_state.world->bsp->num_leafs;
-
 		return;
 	}
 
-	// resolve PVS for the current cluster
-	Cm_ClusterPVS(clusters[0], r_locals.vis_data_pvs);
+	// we have a valid position, so resolve the fat PVS and fat PHS
 
-	// resolve PHS for the current cluster
-	Cm_ClusterPHS(clusters[0], r_locals.vis_data_phs);
+	memset(r_locals.vis_data_pvs, 0, sizeof(r_locals.vis_data_pvs));
+	memset(r_locals.vis_data_phs, 0, sizeof(r_locals.vis_data_phs));
 
-	// if we crossed contents, merge in the other cluster's PVS and PHS data
-	if (clusters[1] != -1 && clusters[1] != clusters[0]) {
-		byte pvs[MAX_BSP_LEAFS >> 3], phs[MAX_BSP_LEAFS >> 3];
+	vec3_t mins, maxs;
+	VectorAdd(r_view.origin, ((vec3_t) { -2.f, -2.f, -4.f }), mins);
+	VectorAdd(r_view.origin, ((vec3_t) {  2.f,  2.f,  4.f }), maxs);
 
-		Cm_ClusterPVS(clusters[1], pvs);
-		Cm_ClusterPHS(clusters[1], phs);
+	const size_t count = Cm_BoxLeafnums(mins, maxs, leafs, lengthof(leafs), NULL, 0);
+	for (size_t i = 0; i < count; i++) {
 
-		for (size_t i = 0; i < sizeof(r_locals.vis_data_pvs); i++) {
-			r_locals.vis_data_pvs[i] |= pvs[i];
-			r_locals.vis_data_phs[i] |= phs[i];
-		}
-	}
+		const int32_t cluster = Cm_LeafCluster(leafs[i]);
+		if (cluster != -1) {
+			byte pvs[MAX_BSP_LEAFS >> 3];
+			byte phs[MAX_BSP_LEAFS >> 3];
 
-	// recurse up the BSP from the visible leafs, marking a path via the nodes
-	const r_bsp_leaf_t *leaf = r_model_state.world->bsp->leafs;
+			Cm_ClusterPVS(cluster, pvs);
+			Cm_ClusterPHS(cluster, phs);
 
-	r_view.num_bsp_leafs = 0;
-	r_view.num_bsp_clusters = 0;
-
-	for (uint16_t i = 0; i < r_model_state.world->bsp->num_leafs; i++, leaf++) {
-
-		if (!R_LeafVisible(leaf)) {
-			continue;
-		}
-
-		r_view.num_bsp_leafs++;
-
-		// keep track of the number of clusters rendered each frame
-		r_bsp_cluster_t *cl = &r_model_state.world->bsp->clusters[leaf->cluster];
-
-		if (cl->vis_frame != r_locals.vis_frame) {
-			cl->vis_frame = r_locals.vis_frame;
-			r_view.num_bsp_clusters++;
-		}
-
-		r_bsp_node_t *node = (r_bsp_node_t *) leaf;
-		while (node) {
-
-			if (node->vis_frame == r_locals.vis_frame) {
-				break;
+			for (size_t i = 0; i < sizeof(r_locals.vis_data_pvs); i++) {
+				r_locals.vis_data_pvs[i] |= pvs[i];
+				r_locals.vis_data_phs[i] |= phs[i];
 			}
-
-			node->vis_frame = r_locals.vis_frame;
-			node = node->parent;
 		}
 	}
 }

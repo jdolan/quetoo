@@ -159,8 +159,7 @@ static void R_DrawBspNode(const r_bsp_node_t *node) {
 		return; // solid
 	}
 
-	if (node->vis_frame != r_locals.vis_frame) {
-		return; // not in pvs
+		return;
 	}
 
 	if (R_CullBox(node->mins, node->maxs)) {

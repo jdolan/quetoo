@@ -413,23 +413,6 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
 	}
 }
 
-
-
-/**
- * @brief Loads all r_bsp_cluster_t for the specified BSP model. Note that
- * no information is actually loaded at this point. Rather, space for the
- * clusters is allocated, to be utilized by the PVS algorithm.
- */
-static void R_LoadBspClusters(r_bsp_model_t *bsp) {
-
-	if (!bsp->file->vis_size) {
-		return;
-	}
-
-	bsp->num_clusters = bsp->file->vis->num_clusters;
-	bsp->clusters = Mem_LinkMalloc(bsp->num_clusters * sizeof(r_bsp_cluster_t), bsp);
-}
-
 /**
  * @brief Recurses the specified sub-model nodes, assigning the model so that it can
  * be quickly resolved during traces and dynamic light processing.
@@ -739,9 +722,6 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Cl_LoadingProgress(46, "inline models");
 	R_LoadBspInlineModels(mod->bsp);
 
-	Cl_LoadingProgress(48, "clusters");
-	R_LoadBspClusters(mod->bsp);
-
 	Cl_LoadingProgress(50, "lights");
 	R_LoadBspLights(mod->bsp);
 
@@ -762,7 +742,6 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Com_Debug(DEBUG_RENDERER, "!  Leafs:          %d\n", mod->bsp->num_leafs);
 	Com_Debug(DEBUG_RENDERER, "!  Leaf surfaces:  %d\n", mod->bsp->num_leaf_faces);
 	Com_Debug(DEBUG_RENDERER, "!  Draw elements:  %d\n", mod->bsp->num_draw_elements);
-	Com_Debug(DEBUG_RENDERER, "!  Clusters:       %d\n", mod->bsp->num_clusters);
 	Com_Debug(DEBUG_RENDERER, "!  Inline models   %d\n", mod->bsp->num_inline_models);
 	Com_Debug(DEBUG_RENDERER, "!  Lights:         %d\n", mod->bsp->num_lights);
 	Com_Debug(DEBUG_RENDERER, "!================================\n");
