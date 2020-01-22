@@ -351,68 +351,6 @@ void R_DrawBspNormals(void) {
 }
 
 /**
- * @brief Developer tool for viewing BSP leafs and clusters.
- */
-void R_DrawBspLeafs(void) {
-//	const vec4_t leaf_colors[] = { // assign each leaf a color
-//		{ 0.2, 0.2, 0.2, 0.4 },
-//		{ 0.8, 0.2, 0.2, 0.4 },
-//		{ 0.2, 0.8, 0.2, 0.4 },
-//		{ 0.2, 0.2, 0.8, 0.4 },
-//		{ 0.8, 0.8, 0.2, 0.4 },
-//		{ 0.2, 0.8, 0.8, 0.4 },
-//		{ 0.8, 0.2, 0.8, 0.4 },
-//		{ 0.8, 0.8, 0.8, 0.4 }
-//	};
-
-	if (!r_draw_bsp_leafs->value) {
-		return;
-	}
-//
-//	R_SetArrayState(r_model_state.world);
-//
-//	R_EnableTexture(texunit_diffuse, false);
-//
-//	R_BindDiffuseTexture(r_image_state.null->texnum);
-//
-//	R_EnablePolygonOffset(true);
-//
-//	R_PolygonOffset(R_OFFSET_FACTOR, R_OFFSET_UNITS);
-//
-//	const r_bsp_leaf_t *l = r_model_state.world->bsp->leafs;
-//
-//	for (uint16_t i = 0; i < r_model_state.world->bsp->num_leafs; i++, l++) {
-//
-//		if (l->vis_frame != r_locals.vis_frame) {
-//			continue;
-//		}
-//
-//		if (r_draw_bsp_leafs->integer == 2) {
-//			R_Color(leaf_colors[l->cluster % lengthof(leaf_colors)]);
-//		} else {
-//			R_Color(leaf_colors[i % lengthof(leaf_colors)]);
-//		}
-//
-//		r_bsp_face_t **s = l->first_leaf_surface;
-//
-//		for (uint16_t j = 0; j < l->num_leaf_faces; j++, s++) {
-//
-//			if ((*s)->vis_frame != r_locals.vis_frame) {
-//				continue;
-//			}
-//
-//			R_DrawArrays(GL_TRIANGLES, (*s)->first_element, (*s)->num_elements);
-//		}
-//	}
-//
-//	R_EnablePolygonOffset(false);
-//
-//	R_EnableTexture(texunit_diffuse, true);
-//
-//	R_Color(NULL);
-}
-
-/**
  * @brief Developer tool for viewing static BSP light sources.
  */
 void R_DrawBspLights(void) {
@@ -434,13 +372,6 @@ void R_DrawBspLights(void) {
 
 		R_AddParticle(&light->debug);
 	}
-}
-
-/**
- * @return The distance from the specified point to the given surface.
- */
-vec_t R_DistanceToSurface(const vec3_t p, const r_bsp_face_t *surf) {
-	return Cm_DistanceToPlane(p, surf->plane);
 }
 
 /**

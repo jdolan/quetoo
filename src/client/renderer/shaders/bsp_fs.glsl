@@ -45,7 +45,6 @@ uniform sampler2DArray texture_lightmap;
 
 uniform int contents;
 
-uniform vec4 color;
 uniform float alpha_threshold;
 
 uniform float modulate;
@@ -83,13 +82,13 @@ void main(void) {
 
 	vec4 diffuse;
 	if ((textures & TEXTURE_MASK_DIFFUSE) == TEXTURE_MASK_DIFFUSE) {
-		diffuse = texture(texture_diffuse, vertex.diffuse);
+		diffuse = texture(texture_diffuse, vertex.diffuse) * vertex.color;
 
 		if (diffuse.a < alpha_threshold) {
 			discard;
 		}
 	} else {
-		diffuse = color;
+		diffuse = vertex.color;
 	}
 
 	vec4 normalmap;

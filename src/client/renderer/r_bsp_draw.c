@@ -65,7 +65,6 @@ static struct {
 
 	GLint contents;
 
-	GLint color;
 	GLint alpha_threshold;
 
 	GLint brightness;
@@ -115,13 +114,15 @@ static void R_DrawBspDrawElements(const r_bsp_draw_elements_t *draw) {
 			glBindTexture(GL_TEXTURE_2D, material->glossmap->texnum);
 		}
 
-		if (draw->lightmap) {
-			textures |= TEXTURE_MASK_LIGHTMAP;
-			textures |= TEXTURE_MASK_DELUXEMAP;
-			textures |= TEXTURE_MASK_STAINMAP;
+		if (!r_draw_bsp_leafs->value) {
+			if (draw->lightmap) {
+				textures |= TEXTURE_MASK_LIGHTMAP;
+				textures |= TEXTURE_MASK_DELUXEMAP;
+				textures |= TEXTURE_MASK_STAINMAP;
 
-			glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
-			glBindTexture(GL_TEXTURE_2D_ARRAY, draw->lightmap->atlas->texnum);
+				glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
+				glBindTexture(GL_TEXTURE_2D_ARRAY, draw->lightmap->atlas->texnum);
+			}
 		}
 
 		switch (r_draw_bsp_lightmaps->integer) {
@@ -146,14 +147,34 @@ static void R_DrawBspDrawElements(const r_bsp_draw_elements_t *draw) {
  * @brief
  */
 static void R_DrawBspLeaf(const r_bsp_leaf_t *leaf) {
+	const vec4_t leaf_colors[] = { // assign each leaf a color
+		{ 0.2, 0.2, 0.2, 1.0 }, // black
+		{ 0.8, 0.2, 0.2, 1.0 }, // red
+		{ 0.2, 0.8, 0.2, 1.0 }, // green
+		{ 0.2, 0.2, 0.8, 1.0 }, // blue
+		{ 0.8, 0.8, 0.2, 1.0 }, // yellow
+		{ 0.2, 0.8, 0.8, 1.0 }, // cyan
+		{ 0.8, 0.2, 0.8, 1.0 }, // purple
+		{ 0.8, 0.4, 0.2, 1.0 }, // orange
+	};
 
 	glUniform1i(r_bsp_program.contents, leaf->contents);
+
+	if (r_draw_bsp_leafs->integer == 1) {
+		const ptrdiff_t color = leaf - r_model_state.world->bsp->leafs;
+		glVertexAttrib4fv(r_bsp_program.in_color, leaf_colors[color % lengthof(leaf_colors)]);
+	}
 
 	const r_bsp_draw_elements_t *draw = leaf->draw_elements;
 	for (int32_t i = 0; i < leaf->num_draw_elements; i++, draw++) {
 
 		if (draw->texinfo->flags & SURF_SKY) {
 			continue;
+		}
+
+		if (r_draw_bsp_leafs->integer == 2) {
+			const ptrdiff_t color = draw - r_model_state.world->bsp->draw_elements;
+			glVertexAttrib4fv(r_bsp_program.in_color, leaf_colors[color % lengthof(leaf_colors)]);
 		}
 
 		R_DrawBspDrawElements(draw);
@@ -235,7 +256,6 @@ void R_DrawWorld(void) {
 	glUniformMatrix4fv(r_bsp_program.model_view, 1, GL_FALSE, (GLfloat *) r_view.model_view.m);
 	glUniformMatrix4fv(r_bsp_program.normal, 1, GL_FALSE, (GLfloat *) r_view.normal.m);
 
-	glUniform4f(r_bsp_program.color, 1.f, 1.f, 1.f, 1.f);
 	glUniform1f(r_bsp_program.alpha_threshold, 0.f);
 
 	glUniform1f(r_bsp_program.brightness, r_brightness->value);
@@ -258,6 +278,10 @@ void R_DrawWorld(void) {
 	glEnableVertexAttribArray(r_bsp_program.in_diffuse);
 	glEnableVertexAttribArray(r_bsp_program.in_lightmap);
 	glEnableVertexAttribArray(r_bsp_program.in_color);
+
+	if (r_draw_bsp_leafs->value) {
+		glDisableVertexAttribArray(r_bsp_program.in_color);
+	}
 
 	R_GetError(NULL);
 
@@ -323,7 +347,6 @@ void R_InitBspProgram(void) {
 
 	r_bsp_program.contents = glGetUniformLocation(r_bsp_program.name, "contents");
 
-	r_bsp_program.color = glGetUniformLocation(r_bsp_program.name, "color");
 	r_bsp_program.alpha_threshold = glGetUniformLocation(r_bsp_program.name, "alpha_threshold");
 
 	r_bsp_program.brightness = glGetUniformLocation(r_bsp_program.name, "brightness");
@@ -351,8 +374,6 @@ void R_InitBspProgram(void) {
 	glUniform1i(r_bsp_program.texture_normalmap, TEXTURE_NORMALMAP);
 	glUniform1i(r_bsp_program.texture_glossmap, TEXTURE_GLOSSMAP);
 	glUniform1i(r_bsp_program.texture_lightmap, TEXTURE_LIGHTMAP);
-
-	glUniform4f(r_bsp_program.color, 1.f, 1.f, 1.f, 1.f);
 
 	R_GetError(NULL);
 }
