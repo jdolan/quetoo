@@ -91,21 +91,13 @@ static struct {
 /**
  * @brief
  */
-static void R_DrawBspLeaf(const r_bsp_leaf_t *leaf) {
+static void R_DrawBspDrawElements(const r_bsp_draw_elements_t *draw) {
 
-	glUniform1i(r_bsp_program.contents, leaf->contents);
+	const r_material_t *material = draw->texinfo->material;
 
-	const r_bsp_draw_elements_t *draw = leaf->draw_elements;
-	for (int32_t i = 0; i < leaf->num_draw_elements; i++, draw++) {
+	GLint textures = TEXTURE_MASK_DIFFUSE;
 
-		if (draw->texinfo->flags & SURF_SKY) {
-			continue;
-		}
-
-		const r_material_t *material = draw->texinfo->material;
-
-		GLint textures = TEXTURE_MASK_DIFFUSE;
-
+	if (!r_draw_wireframe->value) {
 		glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSE);
 		glBindTexture(GL_TEXTURE_2D, material->diffuse->texnum);
 
@@ -140,14 +132,35 @@ static void R_DrawBspLeaf(const r_bsp_leaf_t *leaf) {
 				textures = TEXTURE_MASK_DELUXEMAP;
 				break;
 		}
-
-		glUniform1i(r_bsp_program.textures, textures);
-
-		glDrawElements(GL_TRIANGLES,
-					   draw->num_elements,
-					   GL_UNSIGNED_INT,
-					   (void *) (draw->first_element * sizeof(GLuint)));
 	}
+
+	glUniform1i(r_bsp_program.textures, textures);
+
+	glDrawElements(GL_TRIANGLES,
+				   draw->num_elements,
+				   GL_UNSIGNED_INT,
+				   (void *) (draw->first_element * sizeof(GLuint)));
+}
+
+/**
+ * @brief
+ */
+static void R_DrawBspLeaf(const r_bsp_leaf_t *leaf) {
+
+	glUniform1i(r_bsp_program.contents, leaf->contents);
+
+	const r_bsp_draw_elements_t *draw = leaf->draw_elements;
+	for (int32_t i = 0; i < leaf->num_draw_elements; i++, draw++) {
+
+		if (draw->texinfo->flags & SURF_SKY) {
+			continue;
+		}
+
+		R_DrawBspDrawElements(draw);
+		r_view.num_bsp_draw_elements++;
+	}
+
+	r_view.num_bsp_leafs++;
 }
 
 /**
@@ -156,25 +169,19 @@ static void R_DrawBspLeaf(const r_bsp_leaf_t *leaf) {
 static void R_DrawBspNode(const r_bsp_node_t *node) {
 
 	if (node->contents == CONTENTS_SOLID) {
-		return; // solid
-	}
-
 		return;
 	}
 
 	if (R_CullBox(node->mins, node->maxs)) {
-		return; // culled out
+		return;
 	}
 
-	// draw leafs, or recurse nodes
 	if (node->contents != CONTENTS_NODE) {
 
 		const r_bsp_leaf_t *leaf = (r_bsp_leaf_t *) node;
 
-		if (r_view.area_bits) { // check for door connected areas
-			if (!(r_view.area_bits[leaf->area >> 3] & (1 << (leaf->area & 7)))) {
-				return; // not visible
-			}
+		if (!R_LeafVisible(leaf)) {
+			return;
 		}
 
 		R_DrawBspLeaf(leaf);
@@ -200,7 +207,7 @@ static void R_DrawBspNode(const r_bsp_node_t *node) {
  */
 static void R_DrawBspModel(const r_bsp_model_t *model) {
 
-	// model matrix?
+	// TODO: Model view matrix magic?
 
 	R_DrawBspNode(model->nodes);
 }
@@ -217,6 +224,7 @@ void R_DrawWorld(void) {
 
 	if (r_draw_wireframe->value) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glBindTexture(GL_TEXTURE_2D, r_image_state.null->texnum);
 	} else {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
@@ -252,20 +260,18 @@ void R_DrawWorld(void) {
 	glEnableVertexAttribArray(r_bsp_program.in_color);
 
 	R_GetError(NULL);
-	
+
 	R_DrawBspModel(bsp);
 
 #if 0
 
 	glUniform1i(r_bsp_program.textures, TEXTURE_MASK_DIFFUSE);
 
-	for (int32_t i = 0; i < bsp->num_faces; i++) {
-
-		const r_bsp_face_t *face = bsp->faces + i;
-		const r_material_t *material = face->texinfo->material;
+	const r_bsp_face_t *face = bsp->faces;
+	for (int32_t i = 0; i < bsp->num_faces; i++, face++) {
 
 		glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSE);
-		glBindTexture(GL_TEXTURE_2D, material->diffuse->texnum);
+		glBindTexture(GL_TEXTURE_2D, face->texinfo->material->diffuse->texnum);
 
 		glDrawElements(GL_TRIANGLES,
 					   face->num_elements,
@@ -275,6 +281,8 @@ void R_DrawWorld(void) {
 #endif
 
 	glActiveTexture(GL_TEXTURE0);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	glCullFace(GL_BACK);
 	glDisable(GL_CULL_FACE);
