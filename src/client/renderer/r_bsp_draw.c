@@ -63,14 +63,13 @@ static struct {
 	GLint texture_glossmap;
 	GLint texture_lightmap;
 
-	GLint contents;
-
 	GLint alpha_threshold;
 
 	GLint brightness;
 	GLint contrast;
 	GLint saturation;
 	GLint gamma;
+	
 	GLint modulate;
 
 	GLint bump;
@@ -92,11 +91,27 @@ static struct {
  */
 static void R_DrawBspDrawElements(const r_bsp_draw_elements_t *draw) {
 
-	const r_material_t *material = draw->texinfo->material;
+	GLint textures = 0;
 
-	GLint textures = TEXTURE_MASK_DIFFUSE;
+	if (r_draw_bsp_clusters->value || r_draw_wireframe->value) {
+		const vec4_t colors[] = {
+			{ 0.8, 0.2, 0.2, 0.4 }, // red
+			{ 0.2, 0.8, 0.2, 0.4 }, // green
+			{ 0.2, 0.2, 0.8, 0.4 }, // blue
+			{ 0.8, 0.8, 0.2, 0.4 }, // yellow
+			{ 0.2, 0.8, 0.8, 0.4 }, // cyan
+			{ 0.8, 0.2, 0.8, 0.4 }, // purple
+			{ 0.8, 0.4, 0.2, 0.4 }, // orange
+			{ 0.2, 0.8, 0.4, 0.4 }, // lime
+			{ 0.2, 0.4, 0.8, 0.4 }, // magenta
+		};
 
-	if (!r_draw_wireframe->value) {
+		glVertexAttrib4fv(r_bsp_program.in_color, colors[draw->cluster % lengthof(colors)]);
+	} else  {
+		const r_material_t *material = draw->texinfo->material;
+
+		textures |= TEXTURE_MASK_DIFFUSE;
+
 		glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSE);
 		glBindTexture(GL_TEXTURE_2D, material->diffuse->texnum);
 
@@ -114,15 +129,13 @@ static void R_DrawBspDrawElements(const r_bsp_draw_elements_t *draw) {
 			glBindTexture(GL_TEXTURE_2D, material->glossmap->texnum);
 		}
 
-		if (!r_draw_bsp_leafs->value) {
-			if (draw->lightmap) {
-				textures |= TEXTURE_MASK_LIGHTMAP;
-				textures |= TEXTURE_MASK_DELUXEMAP;
-				textures |= TEXTURE_MASK_STAINMAP;
+		if (draw->lightmap) {
+			textures |= TEXTURE_MASK_LIGHTMAP;
+			textures |= TEXTURE_MASK_DELUXEMAP;
+			textures |= TEXTURE_MASK_STAINMAP;
 
-				glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
-				glBindTexture(GL_TEXTURE_2D_ARRAY, draw->lightmap->atlas->texnum);
-			}
+			glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
+			glBindTexture(GL_TEXTURE_2D_ARRAY, draw->lightmap->atlas->texnum);
 		}
 
 		switch (r_draw_bsp_lightmaps->integer) {
@@ -141,86 +154,8 @@ static void R_DrawBspDrawElements(const r_bsp_draw_elements_t *draw) {
 				   draw->num_elements,
 				   GL_UNSIGNED_INT,
 				   (void *) (draw->first_element * sizeof(GLuint)));
-}
 
-/**
- * @brief
- */
-static void R_DrawBspLeaf(const r_bsp_leaf_t *leaf) {
-	const vec4_t leaf_colors[] = { // assign each leaf a color
-		{ 0.2, 0.2, 0.2, 1.0 }, // black
-		{ 0.8, 0.2, 0.2, 1.0 }, // red
-		{ 0.2, 0.8, 0.2, 1.0 }, // green
-		{ 0.2, 0.2, 0.8, 1.0 }, // blue
-		{ 0.8, 0.8, 0.2, 1.0 }, // yellow
-		{ 0.2, 0.8, 0.8, 1.0 }, // cyan
-		{ 0.8, 0.2, 0.8, 1.0 }, // purple
-		{ 0.8, 0.4, 0.2, 1.0 }, // orange
-	};
-
-	glUniform1i(r_bsp_program.contents, leaf->contents);
-
-	if (r_draw_bsp_leafs->integer == 1) {
-		const ptrdiff_t color = leaf - r_model_state.world->bsp->leafs;
-		glVertexAttrib4fv(r_bsp_program.in_color, leaf_colors[color % lengthof(leaf_colors)]);
-	}
-
-	const r_bsp_draw_elements_t *draw = leaf->draw_elements;
-	for (int32_t i = 0; i < leaf->num_draw_elements; i++, draw++) {
-
-		if (draw->texinfo->flags & SURF_SKY) {
-			continue;
-		}
-
-		if (r_draw_bsp_leafs->integer == 2) {
-			const ptrdiff_t color = draw - r_model_state.world->bsp->draw_elements;
-			glVertexAttrib4fv(r_bsp_program.in_color, leaf_colors[color % lengthof(leaf_colors)]);
-		}
-
-		R_DrawBspDrawElements(draw);
-		r_view.num_bsp_draw_elements++;
-	}
-
-	r_view.num_bsp_leafs++;
-}
-
-/**
- * @brief
- */
-static void R_DrawBspNode(const r_bsp_node_t *node) {
-
-	if (node->contents == CONTENTS_SOLID) {
-		return;
-	}
-
-	if (R_CullBox(node->mins, node->maxs)) {
-		return;
-	}
-
-	if (node->contents != CONTENTS_NODE) {
-
-		const r_bsp_leaf_t *leaf = (r_bsp_leaf_t *) node;
-
-		if (!R_LeafVisible(leaf)) {
-			return;
-		}
-
-		R_DrawBspLeaf(leaf);
-	} else {
-
-		const vec_t dist = Cm_DistanceToPlane(r_view.origin, node->plane);
-
-		int32_t side;
-		if (dist > SIDE_EPSILON) {
-			side = 0;
-		} else {
-			side = 1;
-		}
-
-		R_DrawBspNode(node->children[side]);
-
-		R_DrawBspNode(node->children[!side]);
-	}
+	r_view.num_bsp_draw_elements++;
 }
 
 /**
@@ -228,9 +163,27 @@ static void R_DrawBspNode(const r_bsp_node_t *node) {
  */
 static void R_DrawBspModel(const r_bsp_model_t *model) {
 
-	// TODO: Model view matrix magic?
+	const r_bsp_draw_elements_t *draw = model->draw_elements;
+	for (int32_t i = 0; i < model->num_draw_elements; i++, draw++) {
 
-	R_DrawBspNode(model->nodes);
+		if (draw->texinfo->flags & SURF_SKY) {
+			continue;
+		}
+
+		if (draw->texinfo->flags & SURF_MATERIAL) {
+			continue;
+		}
+
+		if (!Cm_ClusterVisible(draw->cluster, r_locals.vis_data_pvs)) {
+			continue;
+		}
+
+		if (R_CullBox(draw->mins, draw->maxs)) {
+			continue;
+		}
+
+		R_DrawBspDrawElements(draw);
+	}
 }
 
 /**
@@ -241,13 +194,15 @@ void R_DrawWorldModel(void) {
 	glEnable(GL_DEPTH_TEST);
 
 	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT); // okay Quake?
+	glCullFace(GL_FRONT);
+
+	if (r_draw_bsp_clusters->value) {
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
 
 	if (r_draw_wireframe->value) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		glBindTexture(GL_TEXTURE_2D, r_image_state.null->texnum);
-	} else {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 
 	glUseProgram(r_bsp_program.name);
@@ -279,15 +234,13 @@ void R_DrawWorldModel(void) {
 	glEnableVertexAttribArray(r_bsp_program.in_lightmap);
 	glEnableVertexAttribArray(r_bsp_program.in_color);
 
-	if (r_draw_bsp_leafs->value) {
+	if (r_draw_bsp_clusters->value || r_draw_wireframe->value) {
 		glDisableVertexAttribArray(r_bsp_program.in_color);
 	}
 
-	R_GetError(NULL);
-
+#if 1
 	R_DrawBspModel(bsp);
-
-#if 0
+#else
 
 	glUniform1i(r_bsp_program.textures, TEXTURE_MASK_DIFFUSE);
 
@@ -302,15 +255,26 @@ void R_DrawWorldModel(void) {
 					   GL_UNSIGNED_INT,
 					   (void *) (face->first_element * sizeof(GLuint)));
 	}
+
 #endif
 
 	glActiveTexture(GL_TEXTURE0);
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	if (r_draw_wireframe->value) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
 
-	glCullFace(GL_BACK);
+	if (r_draw_bsp_clusters->value) {
+		glBlendFunc(GL_ONE, GL_ZERO);
+		glDisable(GL_BLEND);
+	}
+
+	glCullFace(GL_FRONT);
 	glDisable(GL_CULL_FACE);
+
 	glDisable(GL_DEPTH_TEST);
+
+	R_GetError(NULL);
 }
 
 /**
@@ -344,8 +308,6 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_normalmap = glGetUniformLocation(r_bsp_program.name, "texture_normalmap");
 	r_bsp_program.texture_glossmap = glGetUniformLocation(r_bsp_program.name, "texture_glossmap");
 	r_bsp_program.texture_lightmap = glGetUniformLocation(r_bsp_program.name, "texture_lightmap");
-
-	r_bsp_program.contents = glGetUniformLocation(r_bsp_program.name, "contents");
 
 	r_bsp_program.alpha_threshold = glGetUniformLocation(r_bsp_program.name, "alpha_threshold");
 

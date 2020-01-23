@@ -250,20 +250,6 @@ typedef struct r_material_s {
 	r_stage_t *stages;
 } r_material_t;
 
-// bsp model memory representation
-typedef struct {
-	vec3_t mins, maxs;
-	vec3_t origin; // for sounds or lights
-	vec_t radius;
-	int32_t head_node;
-	int32_t first_surface, num_faces;
-} r_bsp_inline_model_t;
-
-/**
- * @brief Resolves a unique(ish) stencil reference value for the given plane number.
- */
-#define R_STENCIL_REF(pnum) (((pnum) % 0xff) + 1)
-
 typedef struct {
 	vec_t vecs[2][4];
 	int32_t flags;
@@ -272,6 +258,19 @@ typedef struct {
 	r_material_t *material;
 } r_bsp_texinfo_t;
 
+/**
+ * @brief BSP vertex structure.
+ */
+typedef struct {
+	vec3_t position;
+	vec3_t normal;
+	vec3_t tangent;
+	vec3_t bitangent;
+	vec2_t diffuse;
+	vec2_t lightmap;
+	vec4_t color;
+} r_bsp_vertex_t;
+
 typedef struct {
 	vec_t radius;
 	uint32_t time;
@@ -279,10 +278,6 @@ typedef struct {
 
 	r_particle_t particle;
 } r_bsp_flare_t;
-
-// r_bsp_face_t flags
-#define R_SURF_BACK_SIDE	0x1
-#define R_SURF_IN_LIQUID	0x2
 
 typedef struct {
 	r_image_t *atlas;
@@ -301,6 +296,10 @@ typedef struct {
 
 } r_bsp_face_lightmap_t;
 
+// r_bsp_face_t flags
+#define R_SURF_BACK_SIDE	0x1 // TODO: remove
+#define R_SURF_IN_LIQUID	0x2
+
 typedef struct {
 	cm_bsp_plane_t *plane;
 	r_bsp_texinfo_t *texinfo;
@@ -311,7 +310,7 @@ typedef struct {
 	vec3_t mins, maxs;
 	vec2_t st_mins, st_maxs;
 
-	int32_t flags; // R_SURF flags
+	int32_t flags; // R_SURF flags TODO: remove
 
 	int32_t first_vertex;
 	int32_t num_vertexes;
@@ -322,14 +321,6 @@ typedef struct {
 	int16_t light_frame;
 	uint64_t light_mask;
 } r_bsp_face_t;
-
-typedef struct {
-	r_bsp_texinfo_t *texinfo;
-	r_bsp_lightmap_t *lightmap;
-
-	int32_t first_element;
-	int32_t num_elements;
-} r_bsp_draw_elements_t;
 
 /**
  * @brief BSP nodes comprise the tree representation of the world. At compile
@@ -373,7 +364,7 @@ typedef struct {
 	// common with node
 	int32_t contents; // will be a negative contents number
 
-	vec3_t mins; // for bounding box culling
+	vec3_t mins; // for frustum culling
 	vec3_t maxs;
 
 	struct r_bsp_node_s *parent;
@@ -386,24 +377,34 @@ typedef struct {
 	r_bsp_face_t **leaf_faces;
 	int32_t num_leaf_faces;
 
-	r_bsp_draw_elements_t *draw_elements;
-	int32_t num_draw_elements;
-
 	uint64_t light_mask;
 } r_bsp_leaf_t;
 
 /**
- * @brief BSP vertex structure.
+ * @brief
  */
 typedef struct {
-	vec3_t position;
-	vec3_t normal;
-	vec3_t tangent;
-	vec3_t bitangent;
-	vec2_t diffuse;
-	vec2_t lightmap;
-	vec4_t color;
-} r_bsp_vertex_t;
+	int32_t cluster;
+	int32_t area;
+	
+	vec3_t mins; // for frustum culling
+	vec3_t maxs;
+
+	r_bsp_texinfo_t *texinfo;
+	r_bsp_lightmap_t *lightmap;
+
+	int32_t first_element;
+	int32_t num_elements;
+} r_bsp_draw_elements_t;
+
+// bsp model memory representation
+typedef struct {
+	vec3_t mins, maxs;
+	vec3_t origin; // for sounds or lights
+	vec_t radius;
+	int32_t head_node;
+	int32_t first_surface, num_faces;
+} r_bsp_inline_model_t;
 
 /**
  * @brief BSP light sources.
@@ -422,36 +423,6 @@ typedef struct {
 	r_particle_t debug;
 
 } r_bsp_light_t;
-
-// mesh model, used for objects
-typedef struct {
-	vec3_t position;
-	vec3_t normal;
-	vec3_t tangent;
-	vec3_t bitangent;
-} r_model_vertex_t;
-
-typedef struct {
-	char name[MD3_MAX_PATH];
-	matrix4x4_t matrix;
-} r_model_tag_t;
-
-typedef struct {
-	char name[MD3_MAX_PATH];
-
-	uint16_t num_verts;
-	uint16_t num_tris;
-	uint32_t num_elements;
-
-	r_material_t *material;
-} r_model_mesh_t;
-
-typedef struct {
-	uint16_t first_frame;
-	uint16_t num_frames;
-	uint16_t looped_frames;
-	uint16_t hz;
-} r_model_animation_t;
 
 // BSP model, used for maps
 typedef struct {
@@ -507,6 +478,36 @@ typedef struct {
 	GLuint vertex_array;
 
 } r_bsp_model_t;
+
+// mesh model, used for objects
+typedef struct {
+	vec3_t position;
+	vec3_t normal;
+	vec3_t tangent;
+	vec3_t bitangent;
+} r_model_vertex_t;
+
+typedef struct {
+	char name[MD3_MAX_PATH];
+	matrix4x4_t matrix;
+} r_model_tag_t;
+
+typedef struct {
+	char name[MD3_MAX_PATH];
+
+	uint16_t num_verts;
+	uint16_t num_tris;
+	uint32_t num_elements;
+
+	r_material_t *material;
+} r_model_mesh_t;
+
+typedef struct {
+	uint16_t first_frame;
+	uint16_t num_frames;
+	uint16_t looped_frames;
+	uint16_t hz;
+} r_model_animation_t;
 
 /**
  * @brief Provides load-time normalization of mesh models.
@@ -820,7 +821,6 @@ typedef struct {
 
 	// counters, reset each frame
 
-	uint32_t num_bsp_leafs;
 	uint32_t num_bsp_draw_elements;
 
 	uint32_t num_draw_elements;

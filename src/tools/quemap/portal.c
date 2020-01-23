@@ -604,8 +604,8 @@ static void FloodAreas_r(node_t *node) {
 }
 
 /**
- * @brief Descend the tree, and for each node that hasn't had an area set, flood fill out from there.
- * =============
+ * @brief Descend the tree, and for each node that hasn't had an area set,
+ * flood fill out from there.
  */
 static void FindAreas_r(node_t *node) {
 
@@ -649,7 +649,7 @@ static void SetAreaPortalAreas_r(node_t *node) {
 
 	if (node->contents == CONTENTS_AREA_PORTAL) {
 		if (node->area) {
-			return;    // already set
+			return; // already set
 		}
 
 		const csg_brush_t *brush = node->brushes;

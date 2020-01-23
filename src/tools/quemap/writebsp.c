@@ -45,12 +45,37 @@ static void EmitPlanes(void) {
 }
 
 /**
- * @brief qsort comparator to sort leaf faces by texinfo and lightmap.
+ * @return The cluster containing the specified face.
  */
-static int32_t EmitDrawElements_compare(const void *a, const void *b) {
+static int32_t ClusterForFace(const bsp_face_t *face) {
 
-	const bsp_face_t *a_face = bsp_file.faces + *(int32_t *) a;
-	const bsp_face_t *b_face = bsp_file.faces + *(int32_t *) b;
+	int32_t cluster = -1;
+
+	const bsp_leaf_t *leaf = bsp_file.leafs;
+	for (int32_t i = 0; i < bsp_file.num_leafs; i++, leaf++) {
+		const int32_t *lf = bsp_file.leaf_faces + leaf->first_leaf_face;
+		for (int32_t j = 0; j < leaf->num_leaf_faces; j++, lf++) {
+			if (bsp_file.faces + *lf == face) {
+				if (cluster == -1) {
+					cluster = leaf->cluster;
+				} else {
+					printf("face %d is in %d and %d\n",
+						   *lf, cluster, leaf->cluster);
+				}
+			}
+		}
+	}
+
+	return cluster;
+}
+
+/**
+ * @brief GCompareFunc to sort faces by texinfo and lightmap.
+ */
+static gint FaceCmp(gconstpointer a, gconstpointer b) {
+
+	const bsp_face_t *a_face = a;
+	const bsp_face_t *b_face = b;
 
 	const bsp_texinfo_t *a_tex = bsp_file.texinfo + a_face->texinfo;
 	const bsp_texinfo_t *b_tex = bsp_file.texinfo + b_face->texinfo;
@@ -66,58 +91,89 @@ static int32_t EmitDrawElements_compare(const void *a, const void *b) {
 }
 
 /**
- * @brief
+ * @brief Emit draw elements from the sorted faces array.
  */
-static void EmitDrawElements_(bsp_leaf_t *leaf) {
+static void EmitDrawElements_(GPtrArray *cluster, int32_t index) {
 
-	leaf->first_draw_elements = bsp_file.num_draw_elements;
+	g_ptr_array_sort(cluster, FaceCmp);
 
-	int32_t *lf = bsp_file.leaf_faces + leaf->first_leaf_face;
-
-	qsort(lf, leaf->num_leaf_faces, sizeof(int32_t), EmitDrawElements_compare);
-
-	for (int32_t i = 0; i < leaf->num_leaf_faces; i++) {
+	for (guint i = 0; i < cluster->len; i++) {
 
 		if (bsp_file.num_draw_elements >= MAX_BSP_DRAW_ELEMENTS) {
 			Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_ELEMENTS\n");
 		}
 
+		const bsp_face_t *a = g_ptr_array_index(cluster, i);
+
 		bsp_draw_elements_t *draw = &bsp_file.draw_elements[bsp_file.num_draw_elements];
 		bsp_file.num_draw_elements++;
 
-		draw->texinfo = bsp_file.faces[*(lf + i)].texinfo;
-		draw->lightmap = bsp_file.faces[*(lf + i)].lightmap.num;
+		draw->cluster = index;
+		draw->area = 0; // FIXME: Clusters don't span areas, do they?
+		draw->texinfo = a->texinfo;
+		draw->lightmap = a->lightmap.num;
 		draw->first_element = bsp_file.num_elements;
 
-		for (int32_t j = i; j < leaf->num_leaf_faces; j++) {
+		vec3_t mins, maxs;
+		ClearBounds(mins, maxs);
 
-			if (EmitDrawElements_compare(lf + i, lf + j)) {
+		for (guint j = i; j < cluster->len; j++) {
+
+			const bsp_face_t *b = g_ptr_array_index(cluster, j);
+
+			if (FaceCmp(a, b)) {
 				break;
 			}
 
-			const bsp_face_t *face = &bsp_file.faces[*(lf + j)];
-
-			if (bsp_file.num_elements + face->num_elements >= MAX_BSP_ELEMENTS) {
+			if (bsp_file.num_elements + b->num_elements >= MAX_BSP_ELEMENTS) {
 				Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
 			}
 
-			memcpy(bsp_file.elements + bsp_file.num_elements,
-				   bsp_file.elements + face->first_element,
-				   sizeof(int32_t) * face->num_elements);
+			const bsp_vertex_t *v = bsp_file.vertexes + b->first_vertex;
+			for (int32_t k = 0; k < b->num_vertexes; k++, v++) {
+				AddPointToBounds(v->position, mins, maxs);
+			}
 
-			bsp_file.num_elements += face->num_elements;
+			int32_t *src = bsp_file.elements + b->first_element;
+			int32_t *dest = bsp_file.elements + bsp_file.num_elements;
+
+			memcpy(dest, src, sizeof(int32_t) * b->num_elements);
+
+			bsp_file.num_elements += b->num_elements;
 			i = j;
 		}
+
+		VectorCopy(mins, draw->mins);
+		VectorCopy(maxs, draw->maxs);
 
 		draw->num_elements = bsp_file.num_elements - draw->first_element;
 		assert(draw->num_elements);
 	}
-
-	leaf->num_draw_elements = bsp_file.num_draw_elements - leaf->first_draw_elements;
 }
 
 /**
- * @brief Emits draw elements for all leafs. This is called both for the BSP and LIGHT
+ * @brief Qsort comparator for sorting draw elements by material.
+ */
+static int32_t DrawElementsCmp(const void *a, const void *b) {
+
+	const bsp_draw_elements_t *a_draw = a;
+	const bsp_draw_elements_t *b_draw = b;
+
+	const bsp_texinfo_t *a_tex = bsp_file.texinfo + a_draw->texinfo;
+	const bsp_texinfo_t *b_tex = bsp_file.texinfo + b_draw->texinfo;
+
+	int32_t order = strcmp(a_tex->texture, b_tex->texture);
+	if (order == 0) {
+		order = a_tex->flags - b_tex->flags;
+		if (order == 0) {
+			order = a_draw->lightmap - b_draw->lightmap;
+		}
+	}
+	return order;
+}
+
+/**
+ * @brief Emits draw elements for all clusters. This is called both for the BSP and LIGHT
  * compile phases, so care is taken to truncate the elements array and [re]allocate space.
  */
 void EmitDrawElements(void) {
@@ -131,13 +187,35 @@ void EmitDrawElements(void) {
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_ELEMENTS, MAX_BSP_ELEMENTS);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_DRAW_ELEMENTS, MAX_BSP_DRAW_ELEMENTS);
 
-	bsp_leaf_t *leaf = bsp_file.leafs;
-	for (int32_t i = 0; i < bsp_file.num_leafs; i++, leaf++) {
+	int32_t num_clusters = 1;
+	for (int32_t i = 0; i < bsp_file.num_leafs; i++) {
+		num_clusters = MAX(num_clusters, bsp_file.leafs[i].cluster);
+	}
 
-		if (leaf->num_leaf_faces) {
-			EmitDrawElements_(leaf);
+	GPtrArray **clusters = g_malloc0(sizeof(*clusters) * num_clusters);
+
+	bsp_face_t *face = bsp_file.faces;
+	for (int32_t i = 0; i < bsp_file.num_faces; i++, face++) {
+		const int32_t cluster = ClusterForFace(face);
+		if (clusters[cluster] == NULL) {
+			clusters[cluster] = g_ptr_array_new();
+		}
+		g_ptr_array_add(clusters[cluster], face);
+	}
+
+	for (int32_t i = 0; i < num_clusters; i++) {
+		if (clusters[i]) {
+			EmitDrawElements_(clusters[i], i);
+			g_ptr_array_free(clusters[i], true);
 		}
 	}
+
+	g_free(clusters);
+
+	qsort(bsp_file.draw_elements,
+		  bsp_file.num_draw_elements,
+		  sizeof(bsp_draw_elements_t),
+		  DrawElementsCmp);
 
 	Com_Verbose("%d draw elements\n", bsp_file.num_draw_elements);
 }

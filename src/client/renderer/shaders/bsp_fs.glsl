@@ -43,8 +43,6 @@ uniform sampler2D texture_normalmap;
 uniform sampler2D texture_glossmap;
 uniform sampler2DArray texture_lightmap;
 
-uniform int contents;
-
 uniform float alpha_threshold;
 
 uniform float modulate;

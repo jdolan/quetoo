@@ -26,10 +26,13 @@
 int32_t Cm_ClusterPVS(const int32_t cluster, byte *pvs);
 int32_t Cm_ClusterPHS(const int32_t cluster, byte *phs);
 
+
 void Cm_SetAreaPortalState(const int32_t portal_num, const _Bool open);
 _Bool Cm_AreasConnected(const int32_t area1, const int32_t area2);
 
 int32_t Cm_WriteAreaBits(const int32_t area, byte *out);
+
+_Bool Cm_ClusterVisible(const int32_t cluster, const byte *vis);
 _Bool Cm_HeadnodeVisible(const int32_t head_node, const byte *vis);
 
 extern _Bool cm_no_areas;

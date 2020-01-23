@@ -104,16 +104,16 @@ typedef enum {
 	BSP_LUMP_ENTITIES = BSP_LUMP_FIRST,
 	BSP_LUMP_TEXINFO,
 	BSP_LUMP_PLANES,
-	BSP_LUMP_NODES,
-	BSP_LUMP_LEAFS,
-	BSP_LUMP_LEAF_FACES,
-	BSP_LUMP_LEAF_BRUSHES,
-	BSP_LUMP_DRAW_ELEMENTS,
-	BSP_LUMP_BRUSHES,
 	BSP_LUMP_BRUSH_SIDES,
+	BSP_LUMP_BRUSHES,
 	BSP_LUMP_VERTEXES,
 	BSP_LUMP_ELEMENTS,
 	BSP_LUMP_FACES,
+	BSP_LUMP_NODES,
+	BSP_LUMP_LEAFS,
+	BSP_LUMP_LEAF_BRUSHES,
+	BSP_LUMP_LEAF_FACES,
+	BSP_LUMP_DRAW_ELEMENTS,
 	BSP_LUMP_MODELS,
 	BSP_LUMP_AREA_PORTALS,
 	BSP_LUMP_AREAS,
@@ -144,21 +144,11 @@ typedef struct {
 } bsp_header_t;
 
 typedef struct {
-	vec3_t mins, maxs;
-	vec3_t origin; // for sounds or lights
-	int32_t head_node;
-	int32_t first_face, num_faces; // inline models just draw faces without walking the bsp tree
-} bsp_model_t;
-
-typedef struct {
-	vec3_t position;
-	vec3_t normal;
-	vec3_t tangent;
-	vec3_t bitangent;
-	vec2_t diffuse;
-	vec2_t lightmap;
-	int16_t texinfo;
-} bsp_vertex_t;
+	vec4_t vecs[2]; // [s/t][xyz offset]
+	int32_t flags; // SURF_* flags
+	int32_t value; // light emission, etc
+	char texture[32]; // texture name (e.g. torn/metal1)
+} bsp_texinfo_t;
 
 // planes (x & ~1) and (x & ~1) + 1 are always opposites
 
@@ -168,20 +158,15 @@ typedef struct {
 } bsp_plane_t;
 
 typedef struct {
-	int32_t plane_num;
-	int32_t children[2]; // negative numbers are -(leafs+1), not nodes
-	int16_t mins[3]; // for frustum culling
-	int16_t maxs[3];
-	int32_t first_face;
-	int32_t num_faces; // counting both sides
-} bsp_node_t;
+	int32_t plane_num; // facing out of the leaf
+	int16_t texinfo;
+} bsp_brush_side_t;
 
 typedef struct {
-	vec4_t vecs[2]; // [s/t][xyz offset]
-	int32_t flags; // SURF_* flags
-	int32_t value; // light emission, etc
-	char texture[32]; // texture name (e.g. torn/metal1)
-} bsp_texinfo_t;
+	int32_t first_brush_side;
+	int32_t num_sides;
+	int32_t contents;
+} bsp_brush_t;
 
 typedef struct {
 	int32_t plane_num;
@@ -200,17 +185,14 @@ typedef struct {
 	} lightmap;
 } bsp_face_t;
 
-/**
- * @brief Faces within each leaf are grouped by texture and then merged
- * into glDrawElements commands.
- */
 typedef struct {
-	int16_t texinfo;
-	int32_t lightmap;
-
-	int32_t first_element;
-	int32_t num_elements;
-} bsp_draw_elements_t;
+	int32_t plane_num;
+	int32_t children[2]; // negative numbers are -(leafs+1), not nodes
+	int16_t mins[3]; // for frustum culling
+	int16_t maxs[3];
+	int32_t first_face;
+	int32_t num_faces; // counting both sides
+} bsp_node_t;
 
 typedef struct {
 	int32_t contents; // OR of all brushes (not needed?)
@@ -224,23 +206,44 @@ typedef struct {
 	int32_t first_leaf_face;
 	int32_t num_leaf_faces;
 
-	int32_t first_draw_elements;
-	int32_t num_draw_elements;
-
 	int32_t first_leaf_brush;
 	int32_t num_leaf_brushes;
 } bsp_leaf_t;
 
+/**
+ * @brief Faces within each cluster are grouped by texture and merged into
+ * glDrawElements draw commands.
+ */
 typedef struct {
-	int32_t plane_num; // facing out of the leaf
+	int32_t cluster;
+	int32_t area;
+
+	int16_t mins[3];
+	int16_t maxs[3];
+
 	int16_t texinfo;
-} bsp_brush_side_t;
+	int32_t lightmap;
+
+	int32_t first_element;
+	int32_t num_elements;
+} bsp_draw_elements_t;
 
 typedef struct {
-	int32_t first_brush_side;
-	int32_t num_sides;
-	int32_t contents;
-} bsp_brush_t;
+	vec3_t mins, maxs;
+	vec3_t origin; // for sounds or lights
+	int32_t head_node;
+	int32_t first_face, num_faces; // inline models just draw faces without walking the bsp tree
+} bsp_model_t;
+
+typedef struct {
+	vec3_t position;
+	vec3_t normal;
+	vec3_t tangent;
+	vec3_t bitangent;
+	vec2_t diffuse;
+	vec2_t lightmap;
+	int16_t texinfo;
+} bsp_vertex_t;
 
 // each area has a list of portals that lead into other areas
 // when portals are closed, other areas may not be visible or
@@ -327,32 +330,32 @@ typedef struct {
 	int32_t num_planes;
 	bsp_plane_t *planes;
 
+	int32_t num_brush_sides;
+	bsp_brush_side_t *brush_sides;
+
+	int32_t num_brushes;
+	bsp_brush_t *brushes;
+
+	int32_t num_vertexes;
+	bsp_vertex_t *vertexes;
+
+	int32_t num_elements;
+	int32_t *elements;
+
+	int32_t num_faces;
+	bsp_face_t *faces;
+
 	int32_t num_nodes;
 	bsp_node_t *nodes;
 
 	int32_t num_leafs;
 	bsp_leaf_t *leafs;
 
-	int32_t num_leaf_faces;
-	int32_t *leaf_faces;
-
 	int32_t num_leaf_brushes;
 	int32_t *leaf_brushes;
 
-	int32_t num_brushes;
-	bsp_brush_t *brushes;
-
-	int32_t num_brush_sides;
-	bsp_brush_side_t *brush_sides;
-
-	int32_t num_vertexes;
-	bsp_vertex_t *vertexes;
-
-	int32_t num_faces;
-	bsp_face_t *faces;
-
-	int32_t num_elements;
-	int32_t *elements;
+	int32_t num_leaf_faces;
+	int32_t *leaf_faces;
 
 	int32_t num_draw_elements;
 	bsp_draw_elements_t *draw_elements;

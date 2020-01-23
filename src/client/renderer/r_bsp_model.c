@@ -173,13 +173,13 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 		}
 
 		// then texinfo
-		if (in->texinfo == -1) {
-			out->texinfo = &null_texinfo;
-		} else {
+		if (in->texinfo > -1) {
 			if (in->texinfo >= bsp->num_texinfo) {
 				Com_Error(ERROR_DROP, "Bad texinfo number: %d\n", in->texinfo);
 			}
 			out->texinfo = bsp->texinfo + in->texinfo;
+		} else {
+			out->texinfo = &null_texinfo;
 		}
 
 		out->first_vertex = in->first_vertex;
@@ -189,14 +189,15 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 		out->num_elements = in->num_elements;
 
 		if (in->lightmap.num > -1) {
+			if (in->lightmap.num >= bsp->num_lightmaps) {
+				Com_Error(ERROR_FATAL, "Bad lightmap number: %d\n", in->lightmap.num);
+			}
 			out->lightmap.atlas = bsp->lightmaps + in->lightmap.num;
 
 			out->lightmap.s = in->lightmap.s;
 			out->lightmap.t = in->lightmap.t;
 			out->lightmap.w = in->lightmap.w;
 			out->lightmap.h = in->lightmap.h;
-		} else {
-			out->lightmap.atlas = bsp->lightmaps;
 		}
 	}
 }
@@ -212,19 +213,26 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 	bsp_draw_elements_t *in = bsp->cm->file.draw_elements;
 	for (int32_t i = 0; i < bsp->num_draw_elements; i++, in++, out++) {
 
-		if (in->texinfo == -1) {
-			out->texinfo = &null_texinfo;
-		} else {
+		out->cluster = in->cluster;
+		out->area = in->area;
+
+		VectorCopy(in->mins, out->mins);
+		VectorCopy(in->maxs, out->maxs);
+
+		if (in->texinfo > -1) {
 			if (in->texinfo >= bsp->num_texinfo) {
 				Com_Error(ERROR_DROP, "Bad texinfo number: %d\n", in->texinfo);
 			}
 			out->texinfo = bsp->texinfo + in->texinfo;
+		} else {
+			out->texinfo = &null_texinfo;
 		}
 
 		if (in->lightmap > -1) {
+			if (in->lightmap >= bsp->num_lightmaps) {
+				Com_Error(ERROR_FATAL, "Bad lightmap number: %d\n", in->lightmap);
+			}
 			out->lightmap = bsp->lightmaps + in->lightmap;
-		} else {
-			out->lightmap = bsp->lightmaps;
 		}
 
 		out->first_element = in->first_element;
@@ -333,9 +341,6 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
 
 		out->leaf_faces = bsp->leaf_faces + in->first_leaf_face;
 		out->num_leaf_faces = in->num_leaf_faces;
-
-		out->draw_elements = bsp->draw_elements + in->first_draw_elements;
-		out->num_draw_elements = in->num_draw_elements;
 	}
 }
 

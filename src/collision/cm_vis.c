@@ -174,6 +174,15 @@ int32_t Cm_WriteAreaBits(const int32_t area, byte *out) {
 	return bytes;
 }
 
+_Bool Cm_ClusterVisible(const int32_t cluster, const byte *vis) {
+
+	if (cluster == -1) {
+		return false;
+	}
+
+	return vis[cluster >> 3] & (1 << (cluster & 7));
+}
+
 /**
  * @brief Returns true if any leaf under head_node has a cluster that
  * is potentially visible.
@@ -185,13 +194,7 @@ _Bool Cm_HeadnodeVisible(const int32_t node_num, const byte *vis) {
 		const int32_t leaf_num = -1 - node_num;
 		const int32_t cluster = cm_bsp.leafs[leaf_num].cluster;
 
-		if (cluster == -1) {
-			return false;
-		}
-
-		if (vis[cluster >> 3] & (1 << (cluster & 7))) {
-			return true;
-		}
+		return Cm_ClusterVisible(cluster, vis);
 
 		return false;
 	}
