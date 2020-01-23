@@ -56,12 +56,8 @@ static int32_t ClusterForFace(const bsp_face_t *face) {
 		const int32_t *lf = bsp_file.leaf_faces + leaf->first_leaf_face;
 		for (int32_t j = 0; j < leaf->num_leaf_faces; j++, lf++) {
 			if (bsp_file.faces + *lf == face) {
-				if (cluster == -1) {
-					cluster = leaf->cluster;
-				} else {
-					printf("face %d is in %d and %d\n",
-						   *lf, cluster, leaf->cluster);
-				}
+				cluster = leaf->cluster;
+				break;
 			}
 		}
 	}
