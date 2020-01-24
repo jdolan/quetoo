@@ -221,14 +221,12 @@ void Cm_InitBoxHull(void) {
 		VectorClear(plane->normal);
 		plane->normal[i >> 1] = 1.0;
 		plane->sign_bits = Cm_SignBitsForPlane(plane);
-		plane->num = (cm_bsp.file.num_planes >> 1) + (i >> 1) + 1;
 
 		plane = &cm_box.planes[i * 2 + 1];
 		plane->type = PLANE_ANY_X + (i >> 1);
 		VectorClear(plane->normal);
 		plane->normal[i >> 1] = -1.0;
 		plane->sign_bits = Cm_SignBitsForPlane(plane);
-		plane->num = (cm_bsp.file.num_planes >> 1) + (i >> 1) + 1;
 
 		const int32_t side = i & 1;
 

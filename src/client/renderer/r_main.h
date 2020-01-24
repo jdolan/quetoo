@@ -30,7 +30,6 @@ extern cvar_t *r_brightness;
 extern cvar_t *r_bumpmap;
 extern cvar_t *r_caustics;
 extern cvar_t *r_contrast;
-extern cvar_t *r_deluxemap;
 extern cvar_t *r_display;
 extern cvar_t *r_draw_buffer;
 extern cvar_t *r_flares;
@@ -40,13 +39,11 @@ extern cvar_t *r_gamma;
 extern cvar_t *r_get_error;
 extern cvar_t *r_hardness;
 extern cvar_t *r_height;
-extern cvar_t *r_invert;
-extern cvar_t *r_lighting;
 extern cvar_t *r_lightmap;
+extern cvar_t *r_lights;
 extern cvar_t *r_materials;
 extern cvar_t *r_max_lights;
 extern cvar_t *r_modulate;
-extern cvar_t *r_monochrome;
 extern cvar_t *r_multisample;
 extern cvar_t *r_parallax;
 extern cvar_t *r_saturation;
@@ -122,6 +119,7 @@ typedef struct {
 	byte vis_data_phs[MAX_BSP_LEAFS >> 3]; // decompressed PHS at origin
 
 	int32_t vis_frame;
+	int32_t frame;
 
 	cm_bsp_plane_t frustum[4]; // for box culling
 } r_locals_t;
@@ -134,7 +132,7 @@ extern cvar_t *r_clear;
 extern cvar_t *r_cull;
 extern cvar_t *r_lock_vis;
 extern cvar_t *r_no_vis;
-extern cvar_t *r_draw_bsp_leafs;
+extern cvar_t *r_draw_bsp_nodes;
 extern cvar_t *r_draw_bsp_lightmaps;
 extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_wireframe;

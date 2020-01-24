@@ -168,9 +168,7 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 
 		// resolve plane
 		out->plane = bsp->cm->planes + in->plane_num;
-		if (in->plane_num & 1) {
-			out->flags |= R_SURF_BACK_SIDE;
-		}
+		out->side = in->plane_num & 1;
 
 		// then texinfo
 		if (in->texinfo > -1) {
@@ -321,12 +319,6 @@ static void R_SetupBspFace(r_bsp_model_t *bsp, r_bsp_leaf_t *leaf, r_bsp_face_t 
 		AddPointToBounds(v->position, face->mins, face->maxs);
 		AddStToBounds(v->diffuse, face->st_mins, face->st_maxs);
 		AddStToBounds(v->lightmap, face->lightmap.st_mins, face->lightmap.st_maxs);
-	}
-
-	if (leaf->contents & MASK_LIQUID) {
-		if (!(face->texinfo->flags & (SURF_SKY | SURF_BLEND_33 | SURF_BLEND_66 | SURF_WARP))) {
-			face->flags |= R_SURF_IN_LIQUID;
-		}
 	}
 
 //	R_CreateBspSurfaceFlare(bsp, face);

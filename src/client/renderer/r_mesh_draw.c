@@ -111,7 +111,7 @@ static void R_SetMeshColor(const r_entity_t *e) {
 //	if ((e->effects & EF_NO_LIGHTING) == 0 && r_state.max_active_lights) {
 //		VectorClear(color);
 //
-//		if (!r_lighting->value) {
+//		if (!r_lights->value) {
 //			const r_illumination_t *il = e->lighting->illuminations;
 //
 //			for (uint16_t i = 0; i < r_state.max_active_lights; i++, il++) {

@@ -88,7 +88,6 @@ static void Cm_LoadBspPlanes(void) {
 		out->dist = in->dist;
 		out->type = Cm_PlaneTypeForNormal(out->normal);
 		out->sign_bits = Cm_SignBitsForPlane(out);
-		out->num = (i >> 1) + 1;
 	}
 }
 

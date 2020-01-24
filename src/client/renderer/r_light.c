@@ -33,8 +33,8 @@ void R_AddLight(const r_light_t *l) {
 
 	r_view.lights[r_view.num_lights] = *l;
 
-	if (r_lighting->value) {
-		r_view.lights[r_view.num_lights].radius *= r_lighting->value;
+	if (r_lights->value) {
+		r_view.lights[r_view.num_lights].radius *= r_lights->value;
 	}
 
 	r_view.num_lights++;

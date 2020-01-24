@@ -302,9 +302,9 @@ const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_bsp_model_t *bsp) {
  */
 _Bool R_LeafVisible(const r_bsp_leaf_t *leaf) {
 
-	const int32_t c = leaf->cluster;
+	const int32_t cluster = leaf->cluster;
 
-	if (c == -1) {
+	if (cluster == -1) {
 		return false;
 	}
 
@@ -314,7 +314,7 @@ _Bool R_LeafVisible(const r_bsp_leaf_t *leaf) {
 		}
 	}
 
-	return r_locals.vis_data_pvs[c >> 3] & (1 << (c & 7));
+	return r_locals.vis_data_pvs[cluster >> 3] & (1 << (cluster & 7));
 }
 
 /**
@@ -322,13 +322,13 @@ _Bool R_LeafVisible(const r_bsp_leaf_t *leaf) {
  */
 _Bool R_LeafHearable(const r_bsp_leaf_t *leaf) {
 
-	const int32_t c = leaf->cluster;
+	const int32_t cluster = leaf->cluster;
 
-	if (c == -1) {
+	if (cluster == -1) {
 		return false;
 	}
 
-	return r_locals.vis_data_phs[c >> 3] & (1 << (c & 7));
+	return r_locals.vis_data_phs[cluster >> 3] & (1 << (cluster & 7));
 }
 
 /**
@@ -343,38 +343,35 @@ void R_UpdateVis(void) {
 
 	r_locals.leaf = R_LeafForPoint(r_view.origin, NULL);
 
-	// if we have no vis, mark everything and return
 	if (r_locals.leaf->cluster == -1 || r_no_vis->integer) {
 
 		memset(r_locals.vis_data_pvs, 0xff, sizeof(r_locals.vis_data_pvs));
 		memset(r_locals.vis_data_phs, 0xff, sizeof(r_locals.vis_data_phs));
 
-		return;
-	}
+	} else {
 
-	// we have a valid position, so resolve the fat PVS and fat PHS
+		memset(r_locals.vis_data_pvs, 0x00, sizeof(r_locals.vis_data_pvs));
+		memset(r_locals.vis_data_phs, 0x00, sizeof(r_locals.vis_data_phs));
 
-	memset(r_locals.vis_data_pvs, 0, sizeof(r_locals.vis_data_pvs));
-	memset(r_locals.vis_data_phs, 0, sizeof(r_locals.vis_data_phs));
+		vec3_t mins, maxs;
+		VectorAdd(r_view.origin, ((vec3_t) { -2.f, -2.f, -4.f }), mins);
+		VectorAdd(r_view.origin, ((vec3_t) {  2.f,  2.f,  4.f }), maxs);
 
-	vec3_t mins, maxs;
-	VectorAdd(r_view.origin, ((vec3_t) { -2.f, -2.f, -4.f }), mins);
-	VectorAdd(r_view.origin, ((vec3_t) {  2.f,  2.f,  4.f }), maxs);
+		const size_t count = Cm_BoxLeafnums(mins, maxs, leafs, lengthof(leafs), NULL, 0);
+		for (size_t i = 0; i < count; i++) {
 
-	const size_t count = Cm_BoxLeafnums(mins, maxs, leafs, lengthof(leafs), NULL, 0);
-	for (size_t i = 0; i < count; i++) {
+			const int32_t cluster = Cm_LeafCluster(leafs[i]);
+			if (cluster != -1) {
+				byte pvs[MAX_BSP_LEAFS >> 3];
+				byte phs[MAX_BSP_LEAFS >> 3];
 
-		const int32_t cluster = Cm_LeafCluster(leafs[i]);
-		if (cluster != -1) {
-			byte pvs[MAX_BSP_LEAFS >> 3];
-			byte phs[MAX_BSP_LEAFS >> 3];
+				Cm_ClusterPVS(cluster, pvs);
+				Cm_ClusterPHS(cluster, phs);
 
-			Cm_ClusterPVS(cluster, pvs);
-			Cm_ClusterPHS(cluster, phs);
-
-			for (size_t i = 0; i < sizeof(r_locals.vis_data_pvs); i++) {
-				r_locals.vis_data_pvs[i] |= pvs[i];
-				r_locals.vis_data_phs[i] |= phs[i];
+				for (size_t i = 0; i < sizeof(r_locals.vis_data_pvs); i++) {
+					r_locals.vis_data_pvs[i] |= pvs[i];
+					r_locals.vis_data_phs[i] |= phs[i];
+				}
 			}
 		}
 	}
@@ -384,7 +381,7 @@ void R_UpdateVis(void) {
 	r_bsp_leaf_t *leaf = r_model_state.world->bsp->leafs;
 	for (int32_t i = 0; i < r_model_state.world->bsp->num_leafs; i++, leaf++) {
 
-		if (R_LeafVisible(leaf)) {
+		if (R_LeafVisible(leaf) || r_locals.leaf->cluster == -1) {
 
 			leaf->lights = 0;
 

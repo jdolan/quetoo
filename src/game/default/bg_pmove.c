@@ -272,7 +272,7 @@ static _Bool Pm_CheckStep(const cm_trace_t *trace) {
 
 	if (!trace->all_solid) {
 		if (trace->ent && trace->plane.normal[2] >= PM_STEP_NORMAL) {
-			if (trace->ent != pm->ground_entity || trace->plane.num != pml.ground_plane.num) {
+			if (trace->ent != pm->ground_entity || trace->plane.dist != pml.ground_plane.dist) {
 				return true;
 			}
 		}

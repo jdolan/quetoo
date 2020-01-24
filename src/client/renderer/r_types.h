@@ -296,12 +296,10 @@ typedef struct {
 
 } r_bsp_face_lightmap_t;
 
-// r_bsp_face_t flags
-#define R_SURF_BACK_SIDE	0x1 // TODO: remove
-#define R_SURF_IN_LIQUID	0x2
-
 typedef struct {
 	cm_bsp_plane_t *plane;
+	byte side;
+
 	r_bsp_texinfo_t *texinfo;
 	r_bsp_flare_t *flare;
 
@@ -309,8 +307,6 @@ typedef struct {
 
 	vec3_t mins, maxs;
 	vec2_t st_mins, st_maxs;
-
-	int32_t flags; // R_SURF flags TODO: remove
 
 	int32_t first_vertex;
 	int32_t num_vertexes;
@@ -730,7 +726,7 @@ typedef struct {
 
 	// counters, reset each frame
 
-	uint32_t num_bsp_leafs;
+	uint32_t num_bsp_nodes;
 	uint32_t num_bsp_faces;
 
 	uint32_t num_draw_elements;

@@ -135,7 +135,7 @@ static void Cl_DrawRendererStats(void) {
 	R_DrawString(0, y, "BSP:", CON_COLOR_YELLOW);
 	y += ch;
 
-	R_DrawString(0, y, va("%d leafs", r_view.num_bsp_leafs), CON_COLOR_YELLOW);
+	R_DrawString(0, y, va("%d nodes", r_view.num_bsp_nodes), CON_COLOR_YELLOW);
 	y += ch;
 
 	R_DrawString(0, y, va("%d faces", r_view.num_bsp_faces), CON_COLOR_YELLOW);

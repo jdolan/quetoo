@@ -85,7 +85,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_draw_bsp_leafs 1"
+            argument = "+set r_draw_bsp_nodes 1"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

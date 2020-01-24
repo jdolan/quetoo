@@ -62,7 +62,6 @@ typedef struct {
 	vec_t dist;
 	uint16_t type; // for fast side tests
 	uint16_t sign_bits; // sign_x + (sign_y << 1) + (sign_z << 2)
-	uint16_t num; // the plane number, shared by both instances (sides) of a given plane
 } cm_bsp_plane_t;
 
 /**

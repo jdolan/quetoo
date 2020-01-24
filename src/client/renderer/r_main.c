@@ -39,7 +39,7 @@ cvar_t *r_clear;
 cvar_t *r_cull;
 cvar_t *r_lock_vis;
 cvar_t *r_no_vis;
-cvar_t *r_draw_bsp_leafs;
+cvar_t *r_draw_bsp_nodes;
 cvar_t *r_draw_bsp_lightmaps;
 cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_wireframe;
@@ -50,7 +50,6 @@ cvar_t *r_brightness;
 cvar_t *r_bumpmap;
 cvar_t *r_caustics;
 cvar_t *r_contrast;
-cvar_t *r_deluxemap;
 cvar_t *r_display;
 cvar_t *r_draw_buffer;
 cvar_t *r_flares;
@@ -60,13 +59,11 @@ cvar_t *r_gamma;
 cvar_t *r_get_error;
 cvar_t *r_hardness;
 cvar_t *r_height;
-cvar_t *r_invert;
-cvar_t *r_lighting;
 cvar_t *r_lightmap;
+cvar_t *r_lights;
 cvar_t *r_materials;
 cvar_t *r_max_lights;
 cvar_t *r_modulate;
-cvar_t *r_monochrome;
 cvar_t *r_multisample;
 cvar_t *r_parallax;
 cvar_t *r_saturation;
@@ -283,6 +280,8 @@ static void R_Clear(void) {
 void R_BeginFrame(void) {
 
 	R_Clear();
+
+	r_locals.frame++;
 }
 
 /**
@@ -425,7 +424,7 @@ static void R_InitLocal(void) {
 	r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER, "Controls bounded box culling routines (developer tool)");
 	r_lock_vis = Cvar_Add("r_lock_vis", "0", CVAR_DEVELOPER, "Temporarily locks the PVS lookup for world surfaces (developer tool)");
 	r_no_vis = Cvar_Add("r_no_vis", "0", CVAR_DEVELOPER, "Disables PVS refresh and lookup for world surfaces (developer tool)");
-	r_draw_bsp_leafs = Cvar_Add("r_draw_bsp_leafs", "0", CVAR_DEVELOPER, "Controls the rendering of BSP clusters (developer tool)");
+	r_draw_bsp_nodes = Cvar_Add("r_draw_bsp_nodes", "0", CVAR_DEVELOPER, "Controls the rendering of BSP clusters (developer tool)");
 	r_draw_bsp_lightmaps = Cvar_Add("r_draw_bsp_lightmaps", "0", CVAR_DEVELOPER | CVAR_R_CONTEXT, "Controls the rendering of BSP lightmap textures (developer tool)");
 	r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool)");
 	r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool)");
@@ -433,11 +432,10 @@ static void R_InitLocal(void) {
 	// settings and preferences
 	r_allow_high_dpi = Cvar_Add("r_allow_high_dpi", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Enables or disables support for High-DPI (Retina, 4K) display modes");
 	r_anisotropy = Cvar_Add("r_anisotropy", "4", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering");
-	r_brightness = Cvar_Add("r_brightness", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls texture brightness");
-	r_bumpmap = Cvar_Add("r_bumpmap", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls the intensity of bump-mapping effects");
+	r_brightness = Cvar_Add("r_brightness", "1", CVAR_ARCHIVE, "Controls texture brightness");
+	r_bumpmap = Cvar_Add("r_bumpmap", "1", CVAR_ARCHIVE, "Controls the intensity of bump-mapping effects");
 	r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Enable or disable liquid caustic effects");
-	r_contrast = Cvar_Add("r_contrast", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls texture contrast");
-	r_deluxemap = Cvar_Add("r_deluxemap", "1", CVAR_ARCHIVE, "Controls deluxemap rendering");
+	r_contrast = Cvar_Add("r_contrast", "1", CVAR_ARCHIVE, "Controls texture contrast");
 	r_display = Cvar_Add("r_display", "0", CVAR_ARCHIVE, "Specifies the default display to use");
 	r_draw_buffer = Cvar_Add("r_draw_buffer", "GL_BACK", CVAR_ARCHIVE, NULL);
 	r_flares = Cvar_Add("r_flares", "1", CVAR_ARCHIVE, "Controls the rendering of light source flares");
@@ -447,16 +445,14 @@ static void R_InitLocal(void) {
 	r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER, "Log OpenGL errors to the console (developer tool)");
 	r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects");
 	r_height = Cvar_Add("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
-	r_invert = Cvar_Add("r_invert", "0", CVAR_ARCHIVE | CVAR_R_MEDIA, "Inverts the RGB values of all world textures");
-	r_lighting = Cvar_Add("r_lighting", "1", CVAR_ARCHIVE, "Controls intensity of lighting effects");
 	r_lightmap = Cvar_Add("r_lightmap", "1", CVAR_ARCHIVE, "Controls lightmap rendering");
+	r_lights = Cvar_Add("r_lights", "1", CVAR_ARCHIVE, "Enables or disables dyanmic lighting");
 	r_materials = Cvar_Add("r_materials", "1", CVAR_ARCHIVE, "Enables or disables the materials (progressive texture effects) system");
 	r_max_lights = Cvar_Add("r_max_lights", "16", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the maximum number of lights affecting a rendered object");
 	r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls the brightness of static lighting");
-	r_monochrome = Cvar_Add("r_monochrome", "0", CVAR_ARCHIVE | CVAR_R_MEDIA, "Loads all world textures as monochrome");
 	r_multisample = Cvar_Add("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls multisampling (anti-aliasing)");
 	r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax mapping effects");
-	r_saturation = Cvar_Add("r_saturation", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls texture saturation");
+	r_saturation = Cvar_Add("r_saturation", "1", CVAR_ARCHIVE, "Controls texture saturation");
 	r_screenshot_format = Cvar_Add("r_screenshot_format", "png", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\", \"tga\" or \"pbm\".");
 	r_shadows = Cvar_Add("r_shadows", "2", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls the rendering of mesh model shadows");
 	r_shell = Cvar_Add("r_shell", "2", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls mesh shell effect (e.g. Quad Damage shell)");

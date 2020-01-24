@@ -145,39 +145,57 @@ static void R_DrawBspFace(const r_bsp_face_t *face) {
 /**
  * @brief
  */
-static void R_DrawBspLeaf(const r_bsp_leaf_t *leaf) {
+static void R_DrawBspNode(const r_bsp_node_t *node) {
 
-	if (r_draw_bsp_leafs->value) {
+	if (node->contents != CONTENTS_NODE) {
+		return;
+	}
+
+	if (node->vis_frame != r_locals.vis_frame) {
+		return;
+	}
+
+	if (R_CullBox(node->mins, node->maxs)) {
+		return;
+	}
+
+	const vec_t dist = Cm_DistanceToPlane(r_view.origin, node->plane);
+
+	int32_t side;
+	if (dist > SIDE_EPSILON) {
+		side = 0;
+	} else {
+		side = 1;
+	}
+
+	R_DrawBspNode(node->children[side]);
+
+	if (r_draw_bsp_nodes->value) {
 		const vec4_t colors[] = {
-			{ 0.2, 0.2, 0.2, 1.0 }, // black
-			{ 0.8, 0.2, 0.2, 1.0 }, // red
-			{ 0.2, 0.8, 0.2, 1.0 }, // green
-			{ 0.2, 0.2, 0.8, 1.0 }, // blue
-			{ 0.8, 0.8, 0.2, 1.0 }, // yellow
-			{ 0.2, 0.8, 0.8, 1.0 }, // cyan
-			{ 0.8, 0.2, 0.8, 1.0 }, // purple
-			{ 0.8, 0.4, 0.2, 1.0 }, // orange
+			{ 0.8, 0.2, 0.2, 1.0 },
+			{ 0.2, 0.8, 0.2, 1.0 },
+			{ 0.2, 0.2, 0.8, 1.0 },
+			{ 0.8, 0.8, 0.2, 1.0 },
+			{ 0.2, 0.8, 0.8, 1.0 },
+			{ 0.8, 0.2, 0.8, 1.0 },
+			{ 0.8, 0.4, 0.2, 1.0 },
+			{ 0.4, 0.8, 0.2, 1.0 },
+			{ 0.2, 0.4, 0.8, 1.0 },
 		};
 
-		ptrdiff_t color;
-		switch (r_draw_bsp_leafs->integer) {
-			case 1:
-				color = leaf - r_model_state.world->bsp->leafs;
-				break;
-			case 2:
-				color = leaf->cluster;
-				break;
-		}
+		const ptrdiff_t color = node - r_model_state.world->bsp->nodes;
 
 		glVertexAttrib4fv(r_bsp_program.in_color, colors[color % lengthof(colors)]);
 	}
 
-	glUniform1i(r_bsp_program.contents, leaf->contents);
+	glUniform1i(r_bsp_program.contents, node->contents);
 
-	r_bsp_face_t **lf = leaf->leaf_faces;
-	for (int32_t i = 0; i < leaf->num_leaf_faces; i++, lf++) {
+	const r_bsp_face_t *face = node->faces;
+	for (int32_t i = 0; i < node->num_faces; i++, face++) {
 
-		const r_bsp_face_t *face = *lf;
+		if (side != face->side) {
+			continue;
+		}
 
 		if (face->texinfo->flags & SURF_SKY) {
 			continue;
@@ -187,49 +205,12 @@ static void R_DrawBspLeaf(const r_bsp_leaf_t *leaf) {
 			continue;
 		}
 
-		R_DrawBspFace(*lf);
+		R_DrawBspFace(face);
 	}
 
-	r_view.num_bsp_leafs++;
-}
+	r_view.num_bsp_nodes++;
 
-/**
- * @brief
- */
-static void R_DrawBspNode(const r_bsp_node_t *node) {
-
-	if (node->contents == CONTENTS_SOLID) {
-		return;
-	}
-
-	if (R_CullBox(node->mins, node->maxs)) {
-		return;
-	}
-
-	if (node->contents != CONTENTS_NODE) {
-
-		const r_bsp_leaf_t *leaf = (r_bsp_leaf_t *) node;
-
-		if (!R_LeafVisible(leaf)) {
-			return;
-		}
-
-		R_DrawBspLeaf(leaf);
-	} else {
-
-		const vec_t dist = Cm_DistanceToPlane(r_view.origin, node->plane);
-
-		int32_t side;
-		if (dist > SIDE_EPSILON) {
-			side = 0;
-		} else {
-			side = 1;
-		}
-
-		R_DrawBspNode(node->children[side]);
-
-		R_DrawBspNode(node->children[!side]);
-	}
+	R_DrawBspNode(node->children[!side]);
 }
 
 /**
@@ -249,11 +230,6 @@ void R_DrawWorldModel(void) {
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
-
-	if (r_draw_bsp_leafs->value) {
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	}
 
 	if (r_draw_wireframe->value) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -288,7 +264,7 @@ void R_DrawWorldModel(void) {
 	glEnableVertexAttribArray(r_bsp_program.in_lightmap);
 	glEnableVertexAttribArray(r_bsp_program.in_color);
 
-	if (r_draw_bsp_leafs->value || r_draw_wireframe->value) {
+	if (r_draw_bsp_nodes->value) {
 		glDisableVertexAttribArray(r_bsp_program.in_color);
 	}
 
@@ -316,11 +292,6 @@ void R_DrawWorldModel(void) {
 
 	if (r_draw_wireframe->value) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	}
-
-	if (r_draw_bsp_leafs->value) {
-		glBlendFunc(GL_ONE, GL_ZERO);
-		glDisable(GL_BLEND);
 	}
 
 	glCullFace(GL_FRONT);
