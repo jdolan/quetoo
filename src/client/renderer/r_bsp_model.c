@@ -168,7 +168,7 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 
 		// resolve plane
 		out->plane = bsp->cm->planes + in->plane_num;
-		out->side = in->plane_num & 1;
+		out->plane_side = in->plane_num & 1;
 
 		// then texinfo
 		if (in->texinfo > -1) {

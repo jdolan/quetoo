@@ -298,7 +298,7 @@ typedef struct {
 
 typedef struct {
 	cm_bsp_plane_t *plane;
-	byte side;
+	byte plane_side;
 
 	r_bsp_texinfo_t *texinfo;
 	r_bsp_flare_t *flare;

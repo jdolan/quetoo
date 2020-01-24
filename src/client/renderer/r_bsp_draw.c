@@ -193,7 +193,7 @@ static void R_DrawBspNode(const r_bsp_node_t *node) {
 	const r_bsp_face_t *face = node->faces;
 	for (int32_t i = 0; i < node->num_faces; i++, face++) {
 
-		if (side != face->side) {
+		if (face->plane_side != side) {
 			continue;
 		}
 
