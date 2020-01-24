@@ -205,44 +205,6 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 /**
  * @brief
  */
-static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
-
-	bsp->num_draw_elements = bsp->cm->file.num_draw_elements;
-	r_bsp_draw_elements_t *out = bsp->draw_elements = Mem_LinkMalloc(bsp->num_draw_elements * sizeof(*out), bsp);
-
-	bsp_draw_elements_t *in = bsp->cm->file.draw_elements;
-	for (int32_t i = 0; i < bsp->num_draw_elements; i++, in++, out++) {
-
-		out->cluster = in->cluster;
-		out->area = in->area;
-
-		VectorCopy(in->mins, out->mins);
-		VectorCopy(in->maxs, out->maxs);
-
-		if (in->texinfo > -1) {
-			if (in->texinfo >= bsp->num_texinfo) {
-				Com_Error(ERROR_DROP, "Bad texinfo number: %d\n", in->texinfo);
-			}
-			out->texinfo = bsp->texinfo + in->texinfo;
-		} else {
-			out->texinfo = &null_texinfo;
-		}
-
-		if (in->lightmap > -1) {
-			if (in->lightmap >= bsp->num_lightmaps) {
-				Com_Error(ERROR_FATAL, "Bad lightmap number: %d\n", in->lightmap);
-			}
-			out->lightmap = bsp->lightmaps + in->lightmap;
-		}
-
-		out->first_element = in->first_element;
-		out->num_elements = in->num_elements;
-	}
-}
-
-/**
- * @brief
- */
 static void R_LoadBspLeafFaces(r_bsp_model_t *bsp) {
 	r_bsp_face_t **out;
 
@@ -256,7 +218,7 @@ static void R_LoadBspLeafFaces(r_bsp_model_t *bsp) {
 		const int32_t j = in[i];
 
 		if (j >= bsp->num_faces) {
-			Com_Error(ERROR_DROP, "Bad surface number: %d\n", j);
+			Com_Error(ERROR_DROP, "Bad face number: %d\n", j);
 		}
 
 		out[i] = bsp->faces + j;
@@ -644,8 +606,6 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mod->bsp->elements_buffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, mod->bsp->num_elements * sizeof(GLuint), mod->bsp->elements, GL_STATIC_DRAW);
 
-	R_GetError(mod->media.name);
-
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, position));
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, normal));
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, tangent));
@@ -663,10 +623,9 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
  * @brief Extra lumps we need to load for the renderer.
  */
 #define R_BSP_LUMPS \
-	(1 << BSP_LUMP_LEAF_FACES) | \
-	(1 << BSP_LUMP_DRAW_ELEMENTS) | \
 	(1 << BSP_LUMP_VERTEXES) | \
 	(1 << BSP_LUMP_ELEMENTS) | \
+	(1 << BSP_LUMP_LEAF_FACES) | \
 	(1 << BSP_LUMP_FACES) | \
 	(1 << BSP_LUMP_LIGHTS) | \
 	(1 << BSP_LUMP_LIGHTMAPS) | \
@@ -703,7 +662,7 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Cl_LoadingProgress(22, "lightmaps");
 	R_LoadBspLightmaps(mod->bsp);
 
-	Cl_LoadingProgress(24, "light grid");
+	Cl_LoadingProgress(24, "lightgrid");
 	R_LoadBspLightGrid(mod->bsp);
 
 	Cl_LoadingProgress(38, "faces");
@@ -711,9 +670,6 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 
 	Cl_LoadingProgress(30, "leaf faces");
 	R_LoadBspLeafFaces(mod->bsp);
-
-	Cl_LoadingProgress(32, "draw elements");
-	R_LoadBspDrawElements(mod->bsp);
 
 	Cl_LoadingProgress(34, "leafs");
 	R_LoadBspLeafs(mod->bsp);
@@ -739,15 +695,14 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Bsp_UnloadLumps(&mod->bsp->cm->file, R_BSP_LUMPS);
 
 	Com_Debug(DEBUG_RENDERER, "!================================\n");
-	Com_Debug(DEBUG_RENDERER, "!R_LoadBspModel: %s\n", mod->media.name);
-	Com_Debug(DEBUG_RENDERER, "!  Verts:          %d\n", mod->bsp->num_vertexes);
+	Com_Debug(DEBUG_RENDERER, "!R_LoadBspModel:   %s\n", mod->media.name);
+	Com_Debug(DEBUG_RENDERER, "!  Vertexes:       %d\n", mod->bsp->num_vertexes);
 	Com_Debug(DEBUG_RENDERER, "!  Elements:       %d\n", mod->bsp->num_elements);
 	Com_Debug(DEBUG_RENDERER, "!  Faces:          %d\n", mod->bsp->num_faces);
-	Com_Debug(DEBUG_RENDERER, "!  Nodes:          %d\n", mod->bsp->num_nodes);
 	Com_Debug(DEBUG_RENDERER, "!  Leafs:          %d\n", mod->bsp->num_leafs);
-	Com_Debug(DEBUG_RENDERER, "!  Leaf surfaces:  %d\n", mod->bsp->num_leaf_faces);
-	Com_Debug(DEBUG_RENDERER, "!  Draw elements:  %d\n", mod->bsp->num_draw_elements);
-	Com_Debug(DEBUG_RENDERER, "!  Inline models   %d\n", mod->bsp->num_inline_models);
 	Com_Debug(DEBUG_RENDERER, "!  Lights:         %d\n", mod->bsp->num_lights);
+	Com_Debug(DEBUG_RENDERER, "!  Leaf faces:     %d\n", mod->bsp->num_leaf_faces);
+	Com_Debug(DEBUG_RENDERER, "!  Lightmaps:      %d\n", mod->bsp->num_lightmaps);
+	Com_Debug(DEBUG_RENDERER, "!  Lightgrid:      %d\n", 0);
 	Com_Debug(DEBUG_RENDERER, "!================================\n");
 }

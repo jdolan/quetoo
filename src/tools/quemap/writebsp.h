@@ -25,7 +25,6 @@
 
 void EmitEntities(void);
 void EmitNodes(node_t *head_node);
-void EmitDrawElements(void);
 void BeginBSPFile(void);
 void EndBSPFile(void);
 void BeginModel(void);

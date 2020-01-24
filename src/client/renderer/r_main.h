@@ -121,8 +121,7 @@ typedef struct {
 	byte vis_data_pvs[MAX_BSP_LEAFS >> 3]; // decompressed PVS at origin
 	byte vis_data_phs[MAX_BSP_LEAFS >> 3]; // decompressed PHS at origin
 
-	int16_t light_frame; // dynamic lighting frame
-	uint64_t light_mask; // a bit mask into r_view.lights
+	int32_t vis_frame;
 
 	cm_bsp_plane_t frustum[4]; // for box culling
 } r_locals_t;
@@ -135,7 +134,7 @@ extern cvar_t *r_clear;
 extern cvar_t *r_cull;
 extern cvar_t *r_lock_vis;
 extern cvar_t *r_no_vis;
-extern cvar_t *r_draw_bsp_clusters;
+extern cvar_t *r_draw_bsp_leafs;
 extern cvar_t *r_draw_bsp_lightmaps;
 extern cvar_t *r_draw_bsp_lights;
 extern cvar_t *r_draw_bsp_normals;

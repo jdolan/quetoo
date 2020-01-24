@@ -286,71 +286,6 @@ void R_DrawBspInlineModels(const r_entities_t *ents) {
 }
 
 /**
- * @brief Developer tool for viewing BSP vertex normals. Only Phong-interpolated
- * surfaces show their normals when r_draw_bsp_normals is 2.
- */
-void R_DrawBspNormals(void) {
-
-	if (!r_draw_bsp_normals->value) {
-		return;
-	}
-
-//	R_EnableColorArray(true);
-//
-//	R_BindDiffuseTexture(r_image_state.null->texnum);
-//
-//	R_ResetArrayState(); // default arrays
-//
-//	R_BindAttributeInterleaveBuffer(&r_model_state.bound_vertice_buffer, R_ATTRIB_MASK_ALL);
-//
-//	R_BindAttributeBuffer(R_ATTRIB_ELEMENTS, &r_model_state.bound_element_buffer);
-//
-//	const r_bsp_face_t *surf = r_model_state.world->bsp->surfaces;
-//
-//	static matrix4x4_t mat, modelview;
-//
-//	R_GetMatrix(R_MATRIX_MODELVIEW, &modelview);
-//
-//	for (uint16_t i = 0; i < r_model_state.world->bsp->num_faces; i++, surf++) {
-//
-//		if (surf->vis_frame != r_locals.vis_frame) {
-//			continue;    // not visible
-//		}
-//
-//		if (surf->texinfo->flags & (SURF_SKY | SURF_WARP)) {
-//			continue;    // don't care
-//		}
-//
-//		if ((r_draw_bsp_normals->integer & 2) && !(surf->texinfo->flags & SURF_PHONG)) {
-//			continue;    // don't care
-//		}
-//
-//		const r_bsp_vertex_t *v = r_model_state.world->bsp->vertexes + surf->first_vertex;
-//		for (uint16_t j = 0; j < surf->num_vertexes; j++, v++) {
-//
-//			vec3_t angles;
-//			VectorAngles(v->normal, angles);
-//			Matrix4x4_CreateFromQuakeEntity(&mat,
-//											v->position[0], v->position[1], v->position[2],
-//											angles[0], angles[1], angles[2],
-//											1.0);
-//
-//			Matrix4x4_Concat(&mat, &modelview, &mat);
-//
-//			R_SetMatrix(R_MATRIX_MODELVIEW, &mat);
-//
-//			R_DrawArrays(GL_LINES, (GLint) r_model_state.bound_element_count - 6, 2);
-//		}
-//	}
-//
-//	R_SetMatrix(R_MATRIX_MODELVIEW, &modelview);
-//
-//	R_EnableTexture(texunit_diffuse, true);
-//
-//	R_EnableColorArray(false);
-}
-
-/**
  * @brief Developer tool for viewing static BSP light sources.
  */
 void R_DrawBspLights(void) {
@@ -464,6 +399,26 @@ void R_UpdateVis(void) {
 			for (size_t i = 0; i < sizeof(r_locals.vis_data_pvs); i++) {
 				r_locals.vis_data_pvs[i] |= pvs[i];
 				r_locals.vis_data_phs[i] |= phs[i];
+			}
+		}
+	}
+
+	r_locals.vis_frame++;
+
+	r_bsp_leaf_t *leaf = r_model_state.world->bsp->leafs;
+	for (int32_t i = 0; i < r_model_state.world->bsp->num_leafs; i++, leaf++) {
+
+		if (R_LeafVisible(leaf)) {
+
+			leaf->lights = 0;
+
+			r_bsp_node_t *node = (r_bsp_node_t *) leaf;
+			while (node) {
+				if (node->vis_frame == r_locals.vis_frame) {
+					break;
+				}
+				node->vis_frame = r_locals.vis_frame;
+				node = node->parent;
 			}
 		}
 	}

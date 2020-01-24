@@ -110,10 +110,9 @@ typedef enum {
 	BSP_LUMP_ELEMENTS,
 	BSP_LUMP_FACES,
 	BSP_LUMP_NODES,
-	BSP_LUMP_LEAFS,
 	BSP_LUMP_LEAF_BRUSHES,
 	BSP_LUMP_LEAF_FACES,
-	BSP_LUMP_DRAW_ELEMENTS,
+	BSP_LUMP_LEAFS,
 	BSP_LUMP_MODELS,
 	BSP_LUMP_AREA_PORTALS,
 	BSP_LUMP_AREAS,
@@ -169,6 +168,16 @@ typedef struct {
 } bsp_brush_t;
 
 typedef struct {
+	vec3_t position;
+	vec3_t normal;
+	vec3_t tangent;
+	vec3_t bitangent;
+	vec2_t diffuse;
+	vec2_t lightmap;
+	int16_t texinfo;
+} bsp_vertex_t;
+
+typedef struct {
 	int32_t plane_num;
 	int16_t texinfo;
 
@@ -210,40 +219,12 @@ typedef struct {
 	int32_t num_leaf_brushes;
 } bsp_leaf_t;
 
-/**
- * @brief Faces within each cluster are grouped by texture and merged into
- * glDrawElements draw commands.
- */
-typedef struct {
-	int32_t cluster;
-	int32_t area;
-
-	int16_t mins[3];
-	int16_t maxs[3];
-
-	int16_t texinfo;
-	int32_t lightmap;
-
-	int32_t first_element;
-	int32_t num_elements;
-} bsp_draw_elements_t;
-
 typedef struct {
 	vec3_t mins, maxs;
 	vec3_t origin; // for sounds or lights
 	int32_t head_node;
 	int32_t first_face, num_faces; // inline models just draw faces without walking the bsp tree
 } bsp_model_t;
-
-typedef struct {
-	vec3_t position;
-	vec3_t normal;
-	vec3_t tangent;
-	vec3_t bitangent;
-	vec2_t diffuse;
-	vec2_t lightmap;
-	int16_t texinfo;
-} bsp_vertex_t;
 
 // each area has a list of portals that lead into other areas
 // when portals are closed, other areas may not be visible or
@@ -356,9 +337,6 @@ typedef struct {
 
 	int32_t num_leaf_faces;
 	int32_t *leaf_faces;
-
-	int32_t num_draw_elements;
-	bsp_draw_elements_t *draw_elements;
 
 	int32_t num_models;
 	bsp_model_t *models;

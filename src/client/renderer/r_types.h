@@ -318,8 +318,6 @@ typedef struct {
 	int32_t first_element;
 	int32_t num_elements;
 
-	int16_t light_frame;
-	uint64_t light_mask;
 } r_bsp_face_t;
 
 /**
@@ -346,6 +344,8 @@ typedef struct r_bsp_node_s {
 	struct r_bsp_node_s *parent;
 	struct r_model_s *model;
 
+	int32_t vis_frame;
+
 	// node specific
 	cm_bsp_plane_t *plane;
 	struct r_bsp_node_s *children[2];
@@ -370,6 +370,8 @@ typedef struct {
 	struct r_bsp_node_s *parent;
 	struct r_model_s *model;
 
+	int32_t vis_frame;
+
 	// leaf specific
 	int32_t cluster;
 	int32_t area;
@@ -379,23 +381,6 @@ typedef struct {
 
 	uint64_t light_mask;
 } r_bsp_leaf_t;
-
-/**
- * @brief
- */
-typedef struct {
-	int32_t cluster;
-	int32_t area;
-	
-	vec3_t mins; // for frustum culling
-	vec3_t maxs;
-
-	r_bsp_texinfo_t *texinfo;
-	r_bsp_lightmap_t *lightmap;
-
-	int32_t first_element;
-	int32_t num_elements;
-} r_bsp_draw_elements_t;
 
 // bsp model memory representation
 typedef struct {
@@ -441,9 +426,6 @@ typedef struct {
 
 	int32_t num_elements;
 	GLuint *elements;
-
-	int32_t num_draw_elements;
-	r_bsp_draw_elements_t *draw_elements;
 
 	int32_t num_lightmaps;
 	r_bsp_lightmap_t *lightmaps;
@@ -821,7 +803,8 @@ typedef struct {
 
 	// counters, reset each frame
 
-	uint32_t num_bsp_draw_elements;
+	uint32_t num_bsp_leafs;
+	uint32_t num_bsp_faces;
 
 	uint32_t num_draw_elements;
 	uint32_t num_draw_arrays;

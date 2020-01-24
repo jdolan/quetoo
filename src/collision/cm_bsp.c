@@ -41,10 +41,9 @@ static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
 	BSP_LUMP_NUM_STRUCT(elements, MAX_BSP_ELEMENTS),
 	BSP_LUMP_NUM_STRUCT(faces, MAX_BSP_FACES),
 	BSP_LUMP_NUM_STRUCT(nodes, MAX_BSP_NODES),
-	BSP_LUMP_NUM_STRUCT(leafs, MAX_BSP_LEAFS),
 	BSP_LUMP_NUM_STRUCT(leaf_brushes, MAX_BSP_LEAF_BRUSHES),
 	BSP_LUMP_NUM_STRUCT(leaf_faces, MAX_BSP_LEAF_FACES),
-	BSP_LUMP_NUM_STRUCT(draw_elements, MAX_BSP_DRAW_ELEMENTS),
+	BSP_LUMP_NUM_STRUCT(leafs, MAX_BSP_LEAFS),
 	BSP_LUMP_NUM_STRUCT(models, MAX_BSP_MODELS),
 	BSP_LUMP_NUM_STRUCT(area_portals, MAX_BSP_AREA_PORTALS),
 	BSP_LUMP_NUM_STRUCT(areas, MAX_BSP_AREAS),
@@ -226,34 +225,6 @@ static void Bsp_SwapNodes(void *lump, const int32_t num) {
 /**
  * @brief Swap function.
  */
-static void Bsp_SwapLeafs(void *lump, const int32_t num) {
-
-	bsp_leaf_t *leaf = (bsp_leaf_t *) lump;
-
-	for (int32_t i = 0; i < num; i++) {
-
-		leaf->contents = LittleLong(leaf->contents);
-		leaf->cluster = LittleLong(leaf->cluster);
-		leaf->area = LittleLong(leaf->area);
-
-		for (int32_t j = 0; j < 3; j++) {
-			leaf->mins[j] = LittleShort(leaf->mins[j]);
-			leaf->maxs[j] = LittleShort(leaf->maxs[j]);
-		}
-
-		leaf->first_leaf_brush = LittleLong(leaf->first_leaf_brush);
-		leaf->num_leaf_brushes = LittleLong(leaf->num_leaf_brushes);
-
-		leaf->first_leaf_face = LittleLong(leaf->first_leaf_face);
-		leaf->num_leaf_faces = LittleLong(leaf->num_leaf_faces);
-
-		leaf++;
-	}
-}
-
-/**
- * @brief Swap function.
- */
 static void Bsp_SwapLeafBrushes(void *lump, const int32_t num) {
 
 	int32_t *leaf_brush = (int32_t *) lump;
@@ -278,26 +249,28 @@ static void Bsp_SwapLeafFaces(void *lump, const int32_t num) {
 /**
  * @brief Swap function.
  */
-static void Bsp_SwapDrawElements(void *lump, const int32_t num) {
+static void Bsp_SwapLeafs(void *lump, const int32_t num) {
 
-	bsp_draw_elements_t *draw = (bsp_draw_elements_t *) lump;
+	bsp_leaf_t *leaf = (bsp_leaf_t *) lump;
 
 	for (int32_t i = 0; i < num; i++) {
 
-		draw->cluster = LittleLong(draw->cluster);
-		draw->area = LittleLong(draw->area);
+		leaf->contents = LittleLong(leaf->contents);
+		leaf->cluster = LittleLong(leaf->cluster);
+		leaf->area = LittleLong(leaf->area);
 
 		for (int32_t j = 0; j < 3; j++) {
-			draw->mins[j] = LittleShort(draw->mins[j]);
-			draw->maxs[j] = LittleShort(draw->maxs[j]);
+			leaf->mins[j] = LittleShort(leaf->mins[j]);
+			leaf->maxs[j] = LittleShort(leaf->maxs[j]);
 		}
 
-		draw->texinfo = LittleShort(draw->texinfo);
-		draw->lightmap = LittleLong(draw->lightmap);
-		draw->first_element = LittleLong(draw->first_element);
-		draw->num_elements = LittleLong(draw->num_elements);
+		leaf->first_leaf_brush = LittleLong(leaf->first_leaf_brush);
+		leaf->num_leaf_brushes = LittleLong(leaf->num_leaf_brushes);
 
-		draw++;
+		leaf->first_leaf_face = LittleLong(leaf->first_leaf_face);
+		leaf->num_leaf_faces = LittleLong(leaf->num_leaf_faces);
+
+		leaf++;
 	}
 }
 
@@ -423,10 +396,9 @@ static Bsp_SwapFunction bsp_swap_funcs[BSP_LUMP_LAST] = {
 	Bsp_SwapElements,
 	Bsp_SwapFaces,
 	Bsp_SwapNodes,
-	Bsp_SwapLeafs,
 	Bsp_SwapLeafBrushes,
 	Bsp_SwapLeafFaces,
-	Bsp_SwapDrawElements,
+	Bsp_SwapLeafs,
 	Bsp_SwapModels,
 	Bsp_SwapAreaPortals,
 	Bsp_SwapAreas,

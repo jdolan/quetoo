@@ -614,9 +614,8 @@ typedef enum {
 #define EF_SHELL			(1 << 26) // environment map shell
 #define EF_ALPHATEST		(1 << 27) // alpha test
 #define EF_BLEND			(1 << 28) // alpha blend
-#define EF_NO_LIGHTING		(1 << 29) // no lighting (full bright)
-#define EF_NO_SHADOW		(1 << 30) // no shadow
-#define EF_NO_DRAW			(1u << 31) // no draw (but perhaps shadow)
+#define EF_NO_SHADOW		(1 << 29) // no shadow
+#define EF_NO_DRAW			(1 << 30) // no draw (but perhaps shadow)
 
 /**
  * @brief Entity trails are used to apply unique trail effects to entities

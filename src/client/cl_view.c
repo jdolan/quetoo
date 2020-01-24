@@ -35,7 +35,8 @@ void Cl_ClearView(void) {
 	r_view.num_draw_elements = 0;
 	r_view.num_draw_arrays = 0;
 
-	r_view.num_bsp_draw_elements = 0;
+	r_view.num_bsp_leafs = 0;
+	r_view.num_bsp_faces = 0;
 }
 
 /**
