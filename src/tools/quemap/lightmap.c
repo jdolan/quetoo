@@ -362,7 +362,7 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 
 		const int32_t head_node = lightmap->model->head_node;
 
-		if (light->type == LIGHT_AMBIENT) {
+		if (occlude_ambient && light->type == LIGHT_AMBIENT) {
 
 			const vec_t padding_s = ((lightmap->st_maxs[0] - lightmap->st_mins[0]) - lightmap->w) * 0.5;
 			const vec_t padding_t = ((lightmap->st_maxs[1] - lightmap->st_mins[1]) - lightmap->h) * 0.5;
@@ -667,7 +667,10 @@ void FinalizeLightmap(int32_t face_num) {
 		return;
 	}
 
-	BlurAmbient(lm);
+	if (occlude_ambient) {
+		// TODO: this bleeds a bit around the edges, but it's usually unnoticable.
+		BlurAmbient(lm);
+	}
 
 	lm->lightmap = CreateLightmapSurface(lm->w, lm->h, Mem_TagMalloc(lm->w * lm->h * 3, MEM_TAG_LIGHTMAP));
 	byte *out_lm = lm->lightmap->pixels;

@@ -23,6 +23,7 @@
 
 _Bool antialias = false;
 _Bool indirect = false;
+_Bool occlude_ambient = false;
 
 vec_t brightness = 1.0;
 vec_t saturation = 1.0;
