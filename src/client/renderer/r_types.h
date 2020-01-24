@@ -379,7 +379,7 @@ typedef struct {
 	r_bsp_face_t **leaf_faces;
 	int32_t num_leaf_faces;
 
-	uint64_t light_mask;
+	int64_t lights;
 } r_bsp_leaf_t;
 
 // bsp model memory representation
@@ -446,9 +446,6 @@ typedef struct {
 	r_bsp_inline_model_t *inline_models;
 
 	int16_t luxel_size;
-
-	int32_t num_lights;
-	r_bsp_light_t *lights;
 
 	// vertex buffer
 	GLuint vertex_buffer;
@@ -583,74 +580,6 @@ typedef struct {
 	uint32_t sustain;
 } r_sustained_light_t;
 
-typedef enum {
-	ILLUM_AMBIENT = 0x1,
-	ILLUM_SUN     = 0x2,
-	ILLUM_STATIC  = 0x4,
-	ILLUM_DYNAMIC = 0x8
-} r_illumination_type_t;
-
-/**
- * @brief Describes a light source contributions to point lighting.
- */
-typedef struct {
-	r_illumination_type_t type;
-	r_light_t light;
-	vec_t diffuse;
-} r_illumination_t;
-
-/**
- * @brief Describes the projection of a mesh model onto a BSP plane.
- */
-typedef struct {
-	const r_illumination_t *illumination;
-	cm_bsp_plane_t plane;
-	vec_t shadow;
-} r_shadow_t;
-
-/**
- * @brief Static lighting information is cached on the client entity structure.
- */
-typedef enum {
-	LIGHTING_DIRTY,
-	LIGHTING_READY
-} r_lighting_state_t;
-
-/**
- * @brief Up to MAX_ILLUMINATIONS illuminations are calculated for each mesh entity. The first
- * illumination in the structure is reserved for world lighting (ambient and
- * sunlight). The remaining (MAX_ILLUMINATIONS - 1) are populated by both BSP and dynamic light
- * sources, by order of their contribution.
- */
-#define MAX_ILLUMINATIONS 8
-
-/**
- * @brief Up to MAX_PLANES_PER_SHADOW shadows are cast for up to MAX_ILLUMINATIONS_PER_SHADOW illuminations.
- * These are populated by tracing from the illumination position through the lighting origin and
- * bounds. A shadow is cast for each unique plane hit.
- */
-#define MAX_ILLUMINATIONS_PER_SHADOW	(MAX_ILLUMINATIONS / 2)
-#define MAX_PLANES_PER_SHADOW			3
-#define MAX_SHADOWS						(MAX_ILLUMINATIONS_PER_SHADOW * MAX_PLANES_PER_SHADOW)
-
-/**
- * @brief Provides lighting information for mesh entities. Illuminations and
- * shadows are maintained in separate arrays because they must be sorted by
- * different criteria: for illuminations, the light that reaches the entity
- * defines priority; for shadows, the negative light that reaches the plane on
- * which the shadow is cast does.
- */
-typedef struct r_lighting_s {
-	r_lighting_state_t state;
-	uint16_t number; // entity number
-	vec3_t origin; // entity origin
-	vec_t radius; // entity radius
-	vec3_t mins, maxs; // entity bounding box in world space
-	uint64_t light_mask; // dynamic light sources mask
-	r_illumination_t illuminations[MAX_ILLUMINATIONS]; // light sources, ordered by diffuse
-	r_shadow_t shadows[MAX_SHADOWS]; // shadows, ordered by intensity
-} r_lighting_t;
-
 /**
  * @brief Entities provide a means to add model instances to the view. Entity
  * lighting is cached on the client entity so that it is only recalculated
@@ -680,8 +609,6 @@ typedef struct r_entity_s {
 	vec4_t color; // shaded color, e.g. EF_PULSE
 
 	vec3_t shell; // shell color
-
-	r_lighting_t *lighting; // static lighting information
 
 	vec4_t tints[TINT_TOTAL]; // tint colors, non-zero alpha enables the tint
 } r_entity_t;

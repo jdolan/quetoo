@@ -101,11 +101,6 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, const entity_state_t *from, ui
 	// set the current frame number and entity state
 	ent->frame_num = cl.frame.frame_num;
 	ent->current = *to;
-
-	// mark the lighting cache as dirty
-	if (bits & (U_ORIGIN | U_TERMINATION | U_ANGLES | U_MODELS | U_BOUNDS)) {
-		ent->lighting.state = LIGHTING_DIRTY;
-	}
 }
 
 /**
@@ -465,13 +460,5 @@ void Cl_UpdateEntities(void) {
 
 	if (r_view.update) {
 
-		for (size_t i = 0; i < lengthof(cl.entities); i++) {
-			r_lighting_t *lighting = &cl.entities[i].lighting;
-
-			memset(lighting, 0, sizeof(*lighting));
-
-			lighting->state = LIGHTING_DIRTY;
-			lighting->number = i;
-		}
 	}
 }

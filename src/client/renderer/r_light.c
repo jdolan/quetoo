@@ -94,23 +94,26 @@ void R_AddSustainedLights(void) {
  */
 void R_ResetLights(void) {
 
-	r_locals.light_mask = UINT64_MAX;
+//	r_locals.light_mask = UINT64_MAX;
 }
 
 /**
- * @brief Recursively populates light source bit masks for world surfaces.
+ * @brief Recursively populates light source bit masks for leafs.
  */
 void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node) {
 
-	if (node->contents != CONTENTS_NODE) { // leaf
-		return;
+	if (node->vis_frame != r_locals.vis_frame) {
+		if (!node->model) { // and not an inline model
+			return;
+		}
 	}
 
-//	if (node->vis_frame != r_locals.vis_frame) { // not visible
-//		if (!node->model) { // and not an inline model
-//			return;
-//		}
-//	}
+	if (node->contents != CONTENTS_NODE) {
+		r_bsp_leaf_t *leaf = (r_bsp_leaf_t *) node;
+
+		leaf->lights |= 1 << (l - r_view.lights);
+		return;
+	}
 
 	const vec_t dist = Cm_DistanceToPlane(l->origin, node->plane);
 
@@ -124,20 +127,6 @@ void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node) {
 		return;
 	}
 
-	const uint64_t bit = ((uint64_t) 1 << (l - r_view.lights));
-
-	// mark all surfaces in this node
-	r_bsp_face_t *surf = node->faces;
-	for (int32_t i = 0; i < node->num_faces; i++, surf++) {
-
-		if (surf->light_frame != r_locals.light_frame) { // reset it
-			surf->light_frame = r_locals.light_frame;
-			surf->light_mask = 0;
-		}
-
-		surf->light_mask |= bit; // add this light
-	}
-
 	// now go down both sides
 	R_MarkLight(l, node->children[0]);
 	R_MarkLight(l, node->children[1]);
@@ -149,11 +138,6 @@ void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node) {
  */
 void R_MarkLights(void) {
 
-	r_locals.light_frame++;
-
-	if (r_locals.light_frame == INT16_MAX) { // avoid overflows
-		r_locals.light_frame = 0;
-	}
 
 	const r_light_t *l = r_view.lights;
 	for (uint16_t i = 0; i < r_view.num_lights; i++, l++) {
@@ -161,38 +145,3 @@ void R_MarkLights(void) {
 	}
 }
 
-/**
- * @brief Enables the light sources indicated by the specified bit mask. Care
- * is taken to avoid GL state changes whenever possible.
- */
-void R_EnableLights(uint64_t mask) {
-
-	if (mask == r_locals.light_mask) { // no change
-		return;
-	}
-
-//	r_locals.light_mask = mask;
-//	uint16_t j = 0;
-//	const matrix4x4_t *world_view = R_GetMatrixPtr(R_MATRIX_MODELVIEW);
-//
-//	if (mask) { // enable up to MAX_ACTIVE_LIGHT sources
-//		const r_light_t *l = r_view.lights;
-//
-//		for (uint16_t i = 0; i < r_view.num_lights; i++, l++) {
-//
-//			if (j == r_state.max_active_lights) {
-//				break;
-//			}
-//
-//			const uint64_t bit = ((uint64_t ) 1 << i);
-//			if (mask & bit) {
-//				r_state.active_program->UseLight(j, world_view, l);
-//				j++;
-//			}
-//		}
-//	}
-//
-//	if (j < r_state.max_active_lights) { // disable the next light as a stop
-//		r_state.active_program->UseLight(j, world_view, NULL);
-//	}
-}

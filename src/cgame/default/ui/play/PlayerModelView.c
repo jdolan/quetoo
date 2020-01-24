@@ -223,32 +223,26 @@ static void updateBindings(View *self) {
 
 	this->legs.model = this->client.legs;
 	this->legs.scale = 1.0;
-	this->legs.effects = EF_NO_LIGHTING;
 	Vector4Set(this->legs.color, 1.0, 1.0, 1.0, 1.0);
 
 	this->torso.model = this->client.torso;
 	this->torso.scale = 1.0;
-	this->torso.effects = EF_NO_LIGHTING;
 	Vector4Set(this->torso.color, 1.0, 1.0, 1.0, 1.0);
 
 	this->head.model = this->client.head;
 	this->head.scale = 1.0;
-	this->head.effects = EF_NO_LIGHTING;
 	Vector4Set(this->head.color, 1.0, 1.0, 1.0, 1.0);
 
 	this->weapon.model = cgi.LoadModel("models/weapons/rocketlauncher/tris");
 	this->weapon.scale = 1.0;
-	this->weapon.effects = EF_NO_LIGHTING;
 	Vector4Set(this->weapon.color, 1.0, 1.0, 1.0, 1.0);
 
 	this->platformBase.model = cgi.LoadModel("models/objects/platform/base/tris");
 	this->platformBase.scale = 1.0;
-	this->platformBase.effects = EF_NO_LIGHTING;
 	Vector4Set(this->platformBase.color, 1.0, 1.0, 1.0, 1.0);
 
 	this->platformCenter.model = cgi.LoadModel("models/objects/platform/center/tris");
 	this->platformCenter.scale = 1.0;
-	this->platformCenter.effects = EF_NO_LIGHTING;
 	Vector4Set(this->platformCenter.color, 1.0, 1.0, 1.0, 1.0);
 
 	memcpy(this->legs.skins, this->client.legs_skins, sizeof(this->legs.skins));

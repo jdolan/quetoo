@@ -86,8 +86,6 @@ typedef struct {
 
 	matrix4x4_t matrix; // interpolated translation and rotation
 	matrix4x4_t inverse_matrix; // for box hull collision
-
-	r_lighting_t lighting; // cached static lighting info
 } cl_entity_t;
 
 // the total number of tokens info can contain

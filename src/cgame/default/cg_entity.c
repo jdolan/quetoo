@@ -461,7 +461,6 @@ static void Cg_SpeedModulus(const player_state_t *ps, vec3_t offset) {
  */
 static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 	static r_entity_t w;
-	static r_lighting_t lighting;
 	vec3_t offset, angles;
 	vec3_t velocity;
 
@@ -538,9 +537,6 @@ static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 
 	w.lerp = w.scale = 1.0;
 
-	memset(&lighting, 0, sizeof(lighting));
-	w.lighting = &lighting;
-
 	cgi.AddEntity(&w);
 }
 
@@ -551,7 +547,6 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 	r_entity_t e;
 
 	memset(&e, 0, sizeof(e));
-	e.lighting = &ent->lighting;
 	e.scale = 1.0;
 
 	// set the origin and angles so that we know where to add effects

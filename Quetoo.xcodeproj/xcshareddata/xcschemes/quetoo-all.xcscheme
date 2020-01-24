@@ -65,12 +65,12 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_fullscreen 0 +set r_width 1280 +set r_height 800 +set r_display 0 +set r_clear 1"
-            isEnabled = "YES">
+            argument = "+set r_fullscreen 0 +set r_width 1280 +set r_height 800 +set r_display 0"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_fullscreen 1 +set r_width 0 +set r_height 0 +set r_display 1"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_bsp_lightmaps 1 +set r_texture_mode GL_NEAREST"
@@ -81,8 +81,12 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_draw_wireframe 1 +set r_clear 1"
+            argument = "+set r_draw_wireframe 1 +set r_clear 1 +set cl_draw_renderer_stats 1"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+set r_draw_bsp_leafs 1"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set ai_ann 1 +g_ai_add +debug ai"

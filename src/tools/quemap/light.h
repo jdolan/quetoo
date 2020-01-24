@@ -89,4 +89,3 @@ extern GList *lights;
 
 void BuildDirectLights(const GList *entities);
 void BuildIndirectLights(void);
-void EmitLights(void);

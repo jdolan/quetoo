@@ -102,34 +102,6 @@ _Bool R_CullMeshModel(const r_entity_t *e) {
 }
 
 /**
- * @brief Updates static lighting information for the specified mesh entity.
- */
-void R_UpdateMeshModelLighting(const r_entity_t *e) {
-
-	if (e->effects & EF_NO_LIGHTING) {
-		return;
-	}
-
-	if (e->lighting->state != LIGHTING_READY) {
-
-		// update the origin and bounds based on the entity
-		if (e->effects & EF_WEAPON) {
-			VectorCopy(r_view.origin, e->lighting->origin);
-		} else {
-			VectorCopy(e->origin, e->lighting->origin);
-		}
-
-		e->lighting->radius = e->scale * e->model->radius;
-
-		// calculate scaled bounding box in world space
-		VectorMA(e->lighting->origin, e->scale, e->model->mins, e->lighting->mins);
-		VectorMA(e->lighting->origin, e->scale, e->model->maxs, e->lighting->maxs);
-	}
-
-	R_UpdateLighting(e->lighting);
-}
-
-/**
  * @brief Sets the shade color for the mesh by modulating any preset color
  * with static lighting.
  */
@@ -170,27 +142,6 @@ static void R_SetMeshColor(const r_entity_t *e) {
 //	R_Color(color);
 //
 //	Vector4Copy(color, r_mesh_state.color);
-}
-
-/**
- * @brief Populates hardware light sources with illumination information.
- */
-static void R_ApplyMeshModelLighting(const r_entity_t *e) {
-//	uint16_t i;
-//
-//	for (i = 0; i < r_state.max_active_lights; i++) {
-//		const r_illumination_t *il = &e->lighting->illuminations[i];
-//
-//		if (il->diffuse == 0.0) {
-//			break;
-//		}
-//
-//		r_state.active_program->UseLight(i, &r_mesh_state.world_view, &il->light);
-//	}
-//
-//	if (i < r_state.max_active_lights) { // disable the next light as a stop
-//		r_state.active_program->UseLight(i, &r_mesh_state.world_view, NULL);
-//	}
 }
 
 /**

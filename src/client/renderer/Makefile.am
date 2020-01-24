@@ -15,7 +15,6 @@ noinst_HEADERS = \
 	r_gl_types.h \
 	r_image.h \
 	r_light.h \
-	r_lighting.h \
 	r_local.h \
 	r_main.h \
 	r_material.h \
@@ -46,7 +45,6 @@ librenderer_la_SOURCES = \
 	r_gl.c \
 	r_image.c \
 	r_light.c \
-	r_lighting.c \
 	r_main.c \
 	r_material.c \
 	r_media.c \

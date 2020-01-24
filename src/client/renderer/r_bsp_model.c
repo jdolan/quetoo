@@ -349,38 +349,6 @@ static void R_SetupBspFaces(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief
- */
-static void R_LoadBspLights(r_bsp_model_t *bsp) {
-
-	bsp->num_lights = bsp->cm->file.num_lights;
-	r_bsp_light_t *out = bsp->lights = Mem_LinkMalloc(sizeof(r_bsp_light_t) * bsp->num_lights, bsp);
-
-	const bsp_light_t *in = bsp->cm->file.lights;
-	for (int32_t i = 0; i < bsp->num_lights; i++, in++, out++) {
-
-		out->type = in->type;
-		out->atten = in->atten;
-
-		VectorCopy(in->origin, out->origin);
-		VectorCopy(in->color, out->color);
-		VectorCopy(in->normal, out->normal);
-
-		out->radius = in->radius;
-		out->theta = in->theta;
-
-		out->leaf = R_LeafForPoint(out->origin, bsp);
-
-		out->debug.type = PARTICLE_CORONA;
-		out->debug.blend = GL_ONE;
-		out->debug.color[3] = 1.0;
-		VectorCopy(out->origin, out->debug.org);
-		VectorCopy(out->color, out->debug.color);
-		out->debug.scale = out->radius * r_draw_bsp_lights->value;
-	}
-}
-
-/**
  * @brief Recurses the specified sub-model nodes, assigning the model so that it can
  * be quickly resolved during traces and dynamic light processing.
  */
@@ -627,7 +595,6 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
 	(1 << BSP_LUMP_ELEMENTS) | \
 	(1 << BSP_LUMP_LEAF_FACES) | \
 	(1 << BSP_LUMP_FACES) | \
-	(1 << BSP_LUMP_LIGHTS) | \
 	(1 << BSP_LUMP_LIGHTMAPS) | \
 	(1 << BSP_LUMP_LIGHTGRID)
 
@@ -683,9 +650,6 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Cl_LoadingProgress(46, "inline models");
 	R_LoadBspInlineModels(mod->bsp);
 
-	Cl_LoadingProgress(50, "lights");
-	R_LoadBspLights(mod->bsp);
-
 	Cl_LoadingProgress(52, "inline models");
 	R_SetupBspInlineModels(mod);
 
@@ -700,7 +664,6 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Com_Debug(DEBUG_RENDERER, "!  Elements:       %d\n", mod->bsp->num_elements);
 	Com_Debug(DEBUG_RENDERER, "!  Faces:          %d\n", mod->bsp->num_faces);
 	Com_Debug(DEBUG_RENDERER, "!  Leafs:          %d\n", mod->bsp->num_leafs);
-	Com_Debug(DEBUG_RENDERER, "!  Lights:         %d\n", mod->bsp->num_lights);
 	Com_Debug(DEBUG_RENDERER, "!  Leaf faces:     %d\n", mod->bsp->num_leaf_faces);
 	Com_Debug(DEBUG_RENDERER, "!  Lightmaps:      %d\n", mod->bsp->num_lightmaps);
 	Com_Debug(DEBUG_RENDERER, "!  Lightgrid:      %d\n", 0);

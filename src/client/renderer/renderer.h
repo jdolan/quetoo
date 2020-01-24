@@ -36,7 +36,6 @@
 #include "r_flare.h"
 #include "r_image.h"
 #include "r_light.h"
-#include "r_lighting.h"
 #include "r_main.h"
 #include "r_material.h"
 #include "r_media.h"

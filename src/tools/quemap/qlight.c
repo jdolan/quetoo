@@ -181,9 +181,6 @@ static void LightWorld(void) {
 	Work("Direct lightmaps", DirectLightmap, bsp_file.num_faces);
 	Work("Direct lightgrid", DirectLightgrid, (int32_t) num_lightgrid);
 
-	// write lights to the BSP
-	EmitLights();
-
 	if (indirect) {
 		for (int32_t i = 0; i < num_bounces; i++) {
 

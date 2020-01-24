@@ -58,7 +58,6 @@ typedef struct cl_emit_s {
 	char model[MAX_QPATH]; // model name
 	r_model_t *mod; // model
 	const r_bsp_leaf_t *leaf; // for pvs culling
-	r_lighting_t lighting; // cached static lighting info
 	uint32_t time; // when to fire next
 } cg_emit_t;
 
@@ -478,8 +477,6 @@ void Cg_AddEmits(void) {
 			ent.lerp = 1.0;
 
 			ent.scale = e->scale;
-
-			ent.lighting = &e->lighting;
 
 			cgi.AddEntity(&ent);
 		}

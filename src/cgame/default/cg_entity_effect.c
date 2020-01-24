@@ -155,7 +155,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 			ent->timestamp = cgi.client->unclamped_time;
 		}
 
-		e->effects |= (EF_BLEND | EF_NO_LIGHTING);
+		e->effects |= (EF_BLEND | EF_NO_SHADOW);
 		e->color[3] = 1.0 - ((cgi.client->unclamped_time - ent->timestamp) / 3000.0);
 	}
 

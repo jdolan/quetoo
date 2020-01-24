@@ -117,7 +117,6 @@ typedef enum {
 	BSP_LUMP_AREA_PORTALS,
 	BSP_LUMP_AREAS,
 	BSP_LUMP_VISIBILITY,
-	BSP_LUMP_LIGHTS,
 	BSP_LUMP_LIGHTMAPS,
 	BSP_LUMP_LIGHTGRID,
 	BSP_LUMP_LAST
@@ -349,9 +348,6 @@ typedef struct {
 
 	int32_t vis_size;
 	bsp_vis_t *vis;
-
-	int32_t num_lights;
-	bsp_light_t *lights;
 
 	int32_t num_lightmaps;
 	bsp_lightmap_t *lightmaps;

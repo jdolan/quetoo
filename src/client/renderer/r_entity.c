@@ -113,8 +113,6 @@ void R_CullEntities(void) {
 //				continue;
 //			}
 
-			R_UpdateMeshModelLighting(e);
-
 			ents = &r_sorted_entities.mesh_entities;
 		}
 
