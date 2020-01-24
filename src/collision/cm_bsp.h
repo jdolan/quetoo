@@ -219,10 +219,15 @@ typedef struct {
 } bsp_leaf_t;
 
 typedef struct {
-	vec3_t mins, maxs;
-	vec3_t origin; // for sounds or lights
 	int32_t head_node;
-	int32_t first_face, num_faces; // inline models just draw faces without walking the bsp tree
+
+	vec3_t origin; // for sounds or lights
+
+	int16_t mins[3];
+	int16_t maxs[3];
+
+	int32_t first_face;
+	int32_t num_faces;
 } bsp_model_t;
 
 // each area has a list of portals that lead into other areas

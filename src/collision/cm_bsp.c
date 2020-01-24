@@ -282,15 +282,16 @@ static void Bsp_SwapModels(void *lump, const int32_t num) {
 
 	for (int32_t i = 0; i < num; i++) {
 
-		model->first_face = LittleLong(model->first_face);
-		model->num_faces = LittleLong(model->num_faces);
 		model->head_node = LittleLong(model->head_node);
 
 		for (int32_t j = 0; j < 3; j++) {
-			model->mins[j] = LittleFloat(model->mins[j]);
-			model->maxs[j] = LittleFloat(model->maxs[j]);
+			model->mins[j] = LittleShort(model->mins[j]);
+			model->maxs[j] = LittleShort(model->maxs[j]);
 			model->origin[j] = LittleFloat(model->origin[j]);
 		}
+
+		model->first_face = LittleLong(model->first_face);
+		model->num_faces = LittleLong(model->num_faces);
 
 		model++;
 	}

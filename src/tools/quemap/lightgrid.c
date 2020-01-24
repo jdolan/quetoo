@@ -61,8 +61,12 @@ static void BuildLightgridExtents(void) {
 
 	const bsp_model_t *world = bsp_file.models;
 
-	Matrix4x4_Transform(&lg.matrix, world->mins, lg.stu_mins);
-	Matrix4x4_Transform(&lg.matrix, world->maxs, lg.stu_maxs);
+	vec3_t mins, maxs;
+	VectorCopy(world->mins, mins);
+	VectorCopy(world->maxs, maxs);
+
+	Matrix4x4_Transform(&lg.matrix, mins, lg.stu_mins);
+	Matrix4x4_Transform(&lg.matrix, maxs, lg.stu_maxs);
 
 	for (int32_t i = 0; i < 3; i++) {
 		lg.size[i] = floorf(lg.stu_maxs[i] - lg.stu_mins[i]) + 2;
