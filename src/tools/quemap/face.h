@@ -38,8 +38,10 @@ typedef struct face_s {
 	int32_t texinfo;
 	int32_t plane_num;
 	int32_t contents; // faces in different contents can't merge
-	int32_t num;
+	int32_t face_num; // for leaf faces
+
 	cm_winding_t *w;
+
 } face_t;
 
 extern int32_t c_merge;
@@ -47,5 +49,5 @@ extern int32_t c_merge;
 face_t *AllocFace(void);
 void FreeFace(face_t *f);
 face_t *MergeFaces(face_t *f1, face_t *f2, const vec3_t normal);
-int32_t EmitFace(face_t *face);
+int32_t EmitFace(const face_t *face);
 void PhongVertexes(void);

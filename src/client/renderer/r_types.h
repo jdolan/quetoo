@@ -315,6 +315,17 @@ typedef struct {
 } r_bsp_face_t;
 
 /**
+ * @brief
+ */
+typedef struct {
+	r_bsp_texinfo_t *texinfo;
+	r_bsp_lightmap_t *lightmap;
+
+	int32_t first_element;
+	int32_t num_elements;
+} r_bsp_draw_elements_t;
+
+/**
  * @brief BSP nodes comprise the tree representation of the world. At compile
  * time, the map is divided into convex volumes that fall along brushes
  * (walls). These volumes become nodes. The planes these divisions create
@@ -346,6 +357,9 @@ typedef struct r_bsp_node_s {
 
 	int32_t num_faces;
 	r_bsp_face_t *faces;
+
+	int32_t num_draw_elements;
+	r_bsp_draw_elements_t *draw_elements;
 } r_bsp_node_t;
 
 /**
@@ -406,6 +420,9 @@ typedef struct {
 
 	int32_t num_faces;
 	r_bsp_face_t *faces;
+
+	int32_t num_draw_elements;
+	r_bsp_draw_elements_t *draw_elements;
 
 	int32_t num_leaf_faces;
 	r_bsp_face_t **leaf_faces;

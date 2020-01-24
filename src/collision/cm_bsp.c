@@ -40,6 +40,7 @@ static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
 	BSP_LUMP_NUM_STRUCT(vertexes, MAX_BSP_VERTEXES),
 	BSP_LUMP_NUM_STRUCT(elements, MAX_BSP_ELEMENTS),
 	BSP_LUMP_NUM_STRUCT(faces, MAX_BSP_FACES),
+	BSP_LUMP_NUM_STRUCT(draw_elements, MAX_BSP_DRAW_ELEMENTS),
 	BSP_LUMP_NUM_STRUCT(nodes, MAX_BSP_NODES),
 	BSP_LUMP_NUM_STRUCT(leaf_brushes, MAX_BSP_LEAF_BRUSHES),
 	BSP_LUMP_NUM_STRUCT(leaf_faces, MAX_BSP_LEAF_FACES),
@@ -193,6 +194,24 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
 		face->lightmap.h = LittleLong(face->lightmap.h);
 
 		face++;
+	}
+}
+
+/**
+ * @brief Swap function.
+ */
+static void Bsp_SwapDrawElements(void *lump, const int32_t num) {
+
+	bsp_draw_elements_t *draw = (int32_t *) lump;
+
+	for (int32_t i = 0; i < num; i++) {
+
+		draw->texinfo = LittleLong(draw->texinfo);
+		draw->lightmap = LittleLong(draw->lightmap);
+		draw->first_element = LittleLong(draw->first_element);
+		draw->num_elements = LittleLong(draw->num_elements);
+
+		draw++;
 	}
 }
 
@@ -370,6 +389,7 @@ static Bsp_SwapFunction bsp_swap_funcs[BSP_LUMP_LAST] = {
 	Bsp_SwapVertexes,
 	Bsp_SwapElements,
 	Bsp_SwapFaces,
+	Bsp_SwapDrawElements,
 	Bsp_SwapNodes,
 	Bsp_SwapLeafBrushes,
 	Bsp_SwapLeafFaces,

@@ -44,18 +44,113 @@ static void EmitPlanes(void) {
 	}
 }
 
+#define SURF_DRAW_ELEMENTS_MASK  ~(SURF_LIGHT | SURF_PHONG | SURF_NO_WELD | SURF_DEBUG_LUXEL)
+
 /**
- * @brief qsort comparator to sort node faces by texinfo.
+ * @brief Draw elements comparator to sort texinfo.
  */
-static int32_t EmitNode_facecmp(const void *a, const void *b) {
+static int32_t TexinfoCmp(const int32_t a, const int32_t b) {
 
-	const bsp_face_t *a_face = (bsp_face_t *) a;
-	const bsp_face_t *b_face = (bsp_face_t *) b;
+	const bsp_texinfo_t *a_tex = bsp_file.texinfo + a;
+	const bsp_texinfo_t *b_tex = bsp_file.texinfo + b;
 
-	const bsp_texinfo_t *a_tex = bsp_file.texinfo + a_face->texinfo;
-	const bsp_texinfo_t *b_tex = bsp_file.texinfo + b_face->texinfo;
+	int32_t order = strcmp(a_tex->texture, b_tex->texture);
+	if (order == 0) {
+		const int32_t a_flags = (a_tex->flags & SURF_DRAW_ELEMENTS_MASK);
+		const int32_t b_flags = (b_tex->flags & SURF_DRAW_ELEMENTS_MASK);
+		order = a_flags - b_flags;
+	}
 
-	return strcmp(a_tex->texture, b_tex->texture);
+	return order;
+}
+
+/**
+ * @brief GCompareFunc comparator to sort face_t * by texinfo.
+ */
+static gint FaceCmp(gconstpointer a, gconstpointer b) {
+
+	const face_t *a_face = *(face_t **) a;
+	const face_t *b_face = *(face_t **) b;
+
+	return TexinfoCmp(a_face->texinfo, b_face->texinfo);
+}
+
+/**
+ * @brief
+ */
+static int32_t EmitFaces(const node_t *node) {
+
+	int32_t num_faces = bsp_file.num_faces;
+
+	GPtrArray *faces = g_ptr_array_new();
+
+	for (face_t *face = node->faces; face; face = face->next) {
+		if (!face->merged) {
+			g_ptr_array_add(faces, face);
+		}
+	}
+
+	g_ptr_array_sort(faces, FaceCmp);
+
+	for (guint i = 0; i < faces->len; i++) {
+		face_t *face = g_ptr_array_index(faces, i);
+		face->face_num = EmitFace(face);
+	}
+
+	g_ptr_array_free(faces, 1);
+
+	return bsp_file.num_faces - num_faces;
+}
+
+/**
+ * @brief
+ */
+static int32_t EmitDrawElements(const bsp_node_t *node) {
+
+	int32_t num_draw_elements = bsp_file.num_draw_elements;
+
+	bsp_face_t *faces = bsp_file.faces + node->first_face;
+	for (int32_t i = 0; i < node->num_faces; i++) {
+
+		if (bsp_file.num_draw_elements >= MAX_BSP_DRAW_ELEMENTS) {
+			Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_ELEMENTS\n");
+		}
+
+		bsp_draw_elements_t *out = bsp_file.draw_elements + bsp_file.num_draw_elements;
+		bsp_file.num_draw_elements++;
+
+		const bsp_face_t *a = faces + i;
+
+		out->texinfo = a->texinfo;
+		out->lightmap = -1;
+
+		out->first_element = bsp_file.num_elements;
+
+		for (int32_t j = i; j < node->num_faces; j++) {
+
+			const bsp_face_t *b = faces + j;
+
+			if (TexinfoCmp(a->texinfo, b->texinfo)) {
+				break;
+			}
+
+			if (bsp_file.num_elements + b->num_elements >= MAX_BSP_ELEMENTS) {
+				Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
+			}
+
+			memcpy(bsp_file.elements + bsp_file.num_elements,
+				   bsp_file.elements + b->first_element,
+				   sizeof(int32_t) * b->num_elements);
+
+			bsp_file.num_elements += b->num_elements;
+			i = j;
+		}
+
+		out->num_elements = bsp_file.num_elements - out->first_element;
+		assert(out->num_elements);
+	}
+
+	return bsp_file.num_draw_elements - num_draw_elements;
 }
 
 /**
@@ -124,12 +219,12 @@ static int32_t EmitLeaf(node_t *node) {
 			face = face->merged;
 		}
 
-		assert(face->num >= 0);
-		assert(face->num <= bsp_file.num_faces);
+		assert(face->face_num > -1);
+		assert(face->face_num <= bsp_file.num_faces);
 
 		int32_t i;
 		for (i = out->first_leaf_face; i < bsp_file.num_leaf_faces; i++) {
-			if (bsp_file.leaf_faces[i] == face->num) {
+			if (bsp_file.leaf_faces[i] == face->face_num) {
 				break;
 			}
 		}
@@ -139,13 +234,13 @@ static int32_t EmitLeaf(node_t *node) {
 				Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_FACES\n");
 			}
 
-			bsp_file.leaf_faces[bsp_file.num_leaf_faces] = face->num;
+			bsp_file.leaf_faces[bsp_file.num_leaf_faces] = face->face_num;
 			bsp_file.num_leaf_faces++;
 		}
 	}
 
 	out->num_leaf_faces = bsp_file.num_leaf_faces - out->first_leaf_face;
-	return bsp_file.num_leafs - 1;
+	return (int32_t) (ptrdiff_t) (out - bsp_file.leafs);
 }
 
 /**
@@ -172,22 +267,18 @@ static int32_t EmitNode(node_t *node) {
 	VectorCopy(node->maxs, out->maxs);
 
 	out->plane_num = node->plane_num;
-	out->first_face = bsp_file.num_faces;
 
-	if (!node->faces) {
-		c_nofaces++;
-	} else {
+	if (node->faces) {
+		out->first_face = bsp_file.num_faces;
+		out->num_faces = EmitFaces(node);
+
+		out->first_draw_element = bsp_file.num_draw_elements;
+		out->num_draw_elements = EmitDrawElements(out);
+
 		c_facenodes++;
+	} else {
+		c_nofaces++;
 	}
-
-	for (face_t *f = node->faces; f; f = f->next) {
-		EmitFace(f);
-	}
-
-	out->num_faces = bsp_file.num_faces - out->first_face;
-
-	// sort the faces by texture to reduce texture state changes when rendering
-	qsort(bsp_file.faces + out->first_face, out->num_faces, sizeof(bsp_face_t), EmitNode_facecmp);
 
 	// recursively output the other nodes
 	for (int32_t i = 0; i < 2; i++) {
@@ -338,6 +429,7 @@ void BeginBSPFile(void) {
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_VERTEXES, MAX_BSP_VERTEXES);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_ELEMENTS, MAX_BSP_ELEMENTS);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_FACES, MAX_BSP_FACES);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_DRAW_ELEMENTS, MAX_BSP_DRAW_ELEMENTS);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_NODES, MAX_BSP_NODES);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_LEAF_BRUSHES, MAX_BSP_LEAF_BRUSHES);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_LEAF_FACES, MAX_BSP_LEAF_FACES);

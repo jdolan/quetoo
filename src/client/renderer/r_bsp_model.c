@@ -203,6 +203,39 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 /**
  * @brief
  */
+static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
+	r_bsp_draw_elements_t *out;
+
+	bsp->num_draw_elements = bsp->cm->file.num_draw_elements;
+	bsp->draw_elements = out = Mem_LinkMalloc(bsp->num_draw_elements * sizeof(*out), bsp);
+
+	const bsp_draw_elements_t *in = bsp->cm->file.draw_elements;
+	for (int32_t i = 0; i < bsp->num_draw_elements; i++, in++, out++) {
+
+		if (in->texinfo > -1) {
+			if (in->texinfo >= bsp->num_texinfo) {
+				Com_Error(ERROR_DROP, "Bad texinfo number: %d\n", in->texinfo);
+			}
+			out->texinfo = bsp->texinfo + in->texinfo;
+		} else {
+			out->texinfo = &null_texinfo;
+		}
+
+		if (in->lightmap > -1) {
+			if (in->lightmap >= bsp->num_lightmaps) {
+				Com_Error(ERROR_FATAL, "Bad lightmap number: %d\n", in->lightmap);
+			}
+			out->lightmap = bsp->lightmaps + in->lightmap;
+		}
+
+		out->first_element = in->first_element;
+		out->num_elements = in->num_elements;
+	}
+}
+
+/**
+ * @brief
+ */
 static void R_LoadBspLeafFaces(r_bsp_model_t *bsp) {
 	r_bsp_face_t **out;
 
@@ -215,7 +248,7 @@ static void R_LoadBspLeafFaces(r_bsp_model_t *bsp) {
 
 		const int32_t j = in[i];
 
-		if (j >= bsp->num_faces) {
+		if (j < 0 || j >= bsp->num_faces) {
 			Com_Error(ERROR_DROP, "Bad face number: %d\n", j);
 		}
 
@@ -259,8 +292,11 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 		const int32_t p = in->plane_num;
 		out->plane = bsp->cm->planes + p;
 
-		out->faces = bsp->faces + in->first_face;
 		out->num_faces = in->num_faces;
+		out->faces = bsp->faces + in->first_face;
+
+		out->num_draw_elements = in->num_draw_elements;
+		out->draw_elements = bsp->draw_elements + in->first_draw_element;
 
 		out->contents = CONTENTS_NODE; // differentiate from leafs
 
@@ -585,8 +621,9 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
 #define R_BSP_LUMPS \
 	(1 << BSP_LUMP_VERTEXES) | \
 	(1 << BSP_LUMP_ELEMENTS) | \
-	(1 << BSP_LUMP_LEAF_FACES) | \
 	(1 << BSP_LUMP_FACES) | \
+	(1 << BSP_LUMP_DRAW_ELEMENTS) | \
+	(1 << BSP_LUMP_LEAF_FACES) | \
 	(1 << BSP_LUMP_LIGHTMAPS) | \
 	(1 << BSP_LUMP_LIGHTGRID)
 
@@ -624,19 +661,22 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Cl_LoadingProgress(24, "lightgrid");
 	R_LoadBspLightGrid(mod->bsp);
 
-	Cl_LoadingProgress(38, "faces");
+	Cl_LoadingProgress(30, "faces");
 	R_LoadBspFaces(mod->bsp);
 
-	Cl_LoadingProgress(30, "leaf faces");
+	Cl_LoadingProgress(32, "draw elements");
+	R_LoadBspDrawElements(mod->bsp);
+
+	Cl_LoadingProgress(34, "leaf faces");
 	R_LoadBspLeafFaces(mod->bsp);
 
-	Cl_LoadingProgress(34, "leafs");
+	Cl_LoadingProgress(36, "leafs");
 	R_LoadBspLeafs(mod->bsp);
 
-	Cl_LoadingProgress(36, "nodes");
+	Cl_LoadingProgress(40, "nodes");
 	R_LoadBspNodes(mod->bsp);
 
-	Cl_LoadingProgress(40, "face extents");
+	Cl_LoadingProgress(44, "faces");
 	R_SetupBspFaces(mod->bsp);
 
 	Cl_LoadingProgress(46, "inline models");

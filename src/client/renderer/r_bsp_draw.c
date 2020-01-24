@@ -221,6 +221,9 @@ static void R_DrawBspModel(const r_bsp_model_t *model) {
 	R_DrawBspNode(model->nodes);
 }
 
+/**
+ * @brief
+ */
 static void R_DrawBspInlineModel(const r_bsp_inline_model_t *model) {
 
 
@@ -273,22 +276,36 @@ void R_DrawWorld(void) {
 		glDisableVertexAttribArray(r_bsp_program.in_color);
 	}
 
+#if 1
 	R_DrawBspModel(bsp);
 
-	const r_entity_t *e = r_view.entities;
-	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
-		if (e->model && e->model->type == MOD_BSP_INLINE) {
+//	const r_entity_t *e = r_view.entities;
+//	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
+//		if (e->model && e->model->type == MOD_BSP_INLINE) {
+//
+//			matrix4x4_t model_view;
+//			Matrix4x4_Concat(&model_view, &r_locals.model_view, &e->matrix);
+//
+//			glUniformMatrix4fv(r_bsp_program.model_view, 1, GL_FALSE, (GLfloat *) r_locals.model_view.m);
+//			glUniformMatrix4fv(r_bsp_program.normal, 1, GL_FALSE, (GLfloat *) r_locals.inverse_transpose_model_view.m);
+//
+//			R_DrawBspInlineModel(e->model->bsp_inline);
+//		}
+//	}
+#else
+	glUniform1i(r_bsp_program.textures, TEXTURE_MASK_DIFFUSE);
 
-			matrix4x4_t model_view;
-			Matrix4x4_Concat(&model_view, &r_locals.model_view, &e->matrix);
+	const r_bsp_face_t *face = bsp->faces;
+	for (int32_t i = 0; i < bsp->num_faces; i++, face++) {
 
-			glUniformMatrix4fv(r_bsp_program.model_view, 1, GL_FALSE, (GLfloat *) r_locals.model_view.m);
-			glUniformMatrix4fv(r_bsp_program.normal, 1, GL_FALSE, (GLfloat *) r_locals.inverse_transpose_model_view.m);
+		glBindTexture(GL_TEXTURE_2D, face->texinfo->material->diffuse->texnum);
 
-			R_DrawBspInlineModel(e->model->bsp_inline);
-
-		}
+		glDrawElements(GL_TRIANGLES,
+					   face->num_elements,
+					   GL_UNSIGNED_INT,
+					   (void *) (face->first_element * sizeof(GLuint)));
 	}
+#endif
 
 	glActiveTexture(GL_TEXTURE0);
 

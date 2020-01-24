@@ -17,22 +17,21 @@
 #define MAX_BSP_ENTITIES		0x800
 #define MAX_BSP_TEXINFO			0x4000
 #define MAX_BSP_PLANES			0x20000
-#define MAX_BSP_NODES			0x20000
-#define MAX_BSP_LEAFS			0x20000
-#define MAX_BSP_LEAF_FACES		0x20000
-#define MAX_BSP_LEAF_BRUSHES 	0x20000
-#define MAX_BSP_DRAW_ELEMENTS	0x20000
-#define MAX_BSP_BRUSHES			0x8000
 #define MAX_BSP_BRUSH_SIDES		0x20000
+#define MAX_BSP_BRUSHES			0x8000
 #define MAX_BSP_VERTEXES		0x80000
 #define MAX_BSP_ELEMENTS		0x200000
 #define MAX_BSP_FACES			0x20000
+#define MAX_BSP_DRAW_ELEMENTS	0x20000
+#define MAX_BSP_NODES			0x20000
+#define MAX_BSP_LEAF_BRUSHES 	0x20000
+#define MAX_BSP_LEAF_FACES		0x20000
+#define MAX_BSP_LEAFS			0x20000
 #define MAX_BSP_MODELS			0x400
 #define MAX_BSP_AREA_PORTALS	0x400
 #define MAX_BSP_AREAS			0x100
 #define MAX_BSP_PORTALS			0x20000
 #define MAX_BSP_VISIBILITY		0x200000
-#define MAX_BSP_LIGHTS			0x1000
 #define MAX_BSP_LIGHTMAPS		0x10
 #define MAX_BSP_LIGHTGRID		0x1200000
 
@@ -109,6 +108,7 @@ typedef enum {
 	BSP_LUMP_VERTEXES,
 	BSP_LUMP_ELEMENTS,
 	BSP_LUMP_FACES,
+	BSP_LUMP_DRAW_ELEMENTS,
 	BSP_LUMP_NODES,
 	BSP_LUMP_LEAF_BRUSHES,
 	BSP_LUMP_LEAF_FACES,
@@ -193,13 +193,29 @@ typedef struct {
 	} lightmap;
 } bsp_face_t;
 
+/**
+ * @brief Faces within each node are grouped by texture and merged into draw elements.
+ */
+typedef struct {
+	int32_t texinfo;
+	int32_t lightmap;
+
+	int32_t first_element;
+	int32_t num_elements;
+} bsp_draw_elements_t;
+
 typedef struct {
 	int32_t plane_num;
 	int32_t children[2]; // negative numbers are -(leafs+1), not nodes
+
 	int16_t mins[3]; // for frustum culling
 	int16_t maxs[3];
+
 	int32_t first_face;
 	int32_t num_faces; // counting both sides
+
+	int32_t first_draw_element;
+	int32_t num_draw_elements;
 } bsp_node_t;
 
 typedef struct {
@@ -304,17 +320,20 @@ typedef struct {
 	int32_t num_faces;
 	bsp_face_t *faces;
 
+	int32_t num_draw_elements;
+	bsp_draw_elements_t *draw_elements;
+
 	int32_t num_nodes;
 	bsp_node_t *nodes;
-
-	int32_t num_leafs;
-	bsp_leaf_t *leafs;
 
 	int32_t num_leaf_brushes;
 	int32_t *leaf_brushes;
 
 	int32_t num_leaf_faces;
 	int32_t *leaf_faces;
+
+	int32_t num_leafs;
+	bsp_leaf_t *leafs;
 
 	int32_t num_models;
 	bsp_model_t *models;

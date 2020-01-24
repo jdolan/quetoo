@@ -35,7 +35,7 @@ face_t *AllocFace(void) {
 	face_t *f = Mem_TagMalloc(sizeof(*f), MEM_TAG_FACE);
 	c_faces++;
 
-	f->num = -1;
+	f->face_num = -1;
 
 	return f;
 }
@@ -159,7 +159,7 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 /**
  * @brief Emits a vertex elements array of triangles for the given face.
  */
-static int32_t EmitFaceElements(const face_t *face) {
+static int32_t EmitFaceElements(const face_t *face, int32_t first_vertex) {
 
 	const int32_t num_triangles = (face->w->num_points - 2);
 	const int32_t num_elements = num_triangles * 3;
@@ -167,15 +167,13 @@ static int32_t EmitFaceElements(const face_t *face) {
 	int32_t elements[num_elements];
 	Cm_ElementsForWinding(face->w, elements);
 
-	const bsp_face_t *f = &bsp_file.faces[face->num];
-
 	for (int32_t i = 0; i < num_elements; i++) {
 
 		if (bsp_file.num_elements == MAX_BSP_ELEMENTS) {
 			Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
 		}
 
-		bsp_file.elements[bsp_file.num_elements] = f->first_vertex + elements[i];
+		bsp_file.elements[bsp_file.num_elements] = first_vertex + elements[i];
 		bsp_file.num_elements++;
 	}
 
@@ -185,16 +183,10 @@ static int32_t EmitFaceElements(const face_t *face) {
 /**
  * @brief
  */
-int32_t EmitFace(face_t *face) {
+int32_t EmitFace(const face_t *face) {
 
+	assert(!face->merged);
 	assert(face->w->num_points > 2);
-
-	if (face->merged) {
-		return -1; // not a final face
-	}
-
-	// save output order so leaf can reference
-	face->num = bsp_file.num_faces;
 
 	if (bsp_file.num_faces == MAX_BSP_FACES) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_FACES\n");
@@ -210,10 +202,10 @@ int32_t EmitFace(face_t *face) {
 	out->num_vertexes = EmitFaceVertexes(face);
 
 	out->first_element = bsp_file.num_elements;
-	out->num_elements = EmitFaceElements(face);
+	out->num_elements = EmitFaceElements(face, out->first_vertex);
 
 	out->lightmap.num = -1;
-	return bsp_file.num_faces - 1;
+	return (int32_t) (ptrdiff_t) (out - bsp_file.faces);
 }
 
 #define MAX_PHONG_FACES 256
