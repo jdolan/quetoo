@@ -139,7 +139,7 @@ static light_t *LightForEntity(const GList *entities, const cm_entity_t *entity)
 
 		const char *atten = Cm_EntityValue(entity, "atten") ?: Cm_EntityValue(entity, "attenuation");
 		if (atten) {
-			light->atten = (bsp_light_atten_t) strtol(atten, NULL, 10);
+			light->atten = (light_atten_t) strtol(atten, NULL, 10);
 		}
 
 		if (light->atten == LIGHT_ATTEN_NONE) {

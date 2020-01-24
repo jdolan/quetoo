@@ -249,32 +249,6 @@ typedef struct {
 	int32_t bit_offsets[8][2]; // bit_offsets[num_clusters][2]
 } bsp_vis_t;
 
-typedef enum {
-	LIGHT_INVALID = -1,
-	LIGHT_AMBIENT,
-	LIGHT_SUN,
-	LIGHT_POINT,
-	LIGHT_SPOT,
-	LIGHT_PATCH,
-	LIGHT_INDIRECT
-} bsp_light_type_t;
-
-typedef enum {
-	LIGHT_ATTEN_NONE,
-	LIGHT_ATTEN_LINEAR,
-	LIGHT_ATTEN_INVERSE_SQUARE,
-} bsp_light_atten_t;
-
-typedef struct {
-	bsp_light_type_t type;
-	bsp_light_atten_t atten;
-	vec3_t origin;
-	vec3_t color;
-	vec3_t normal;
-	vec_t radius;
-	vec_t theta;
-} bsp_light_t;
-
 /**
  * @brief Lightmaps are atlas-packed, layered 24 bit texture objects, inlined in the BSP.
  * @details Each layer is 2048x2048 RGB at 24bpp. The first layer contains diffuse light

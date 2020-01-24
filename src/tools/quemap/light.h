@@ -33,6 +33,23 @@
 #define LIGHT_SIZE_STEP 16.0
 #define LIGHT_RADIOSITY 0.125
 
+typedef enum {
+	LIGHT_INVALID = -1,
+	LIGHT_AMBIENT,
+	LIGHT_SUN,
+	LIGHT_POINT,
+	LIGHT_SPOT,
+	LIGHT_PATCH,
+	LIGHT_INDIRECT
+} light_type_t;
+
+typedef enum {
+	LIGHT_ATTEN_NONE,
+	LIGHT_ATTEN_LINEAR,
+	LIGHT_ATTEN_INVERSE_SQUARE,
+} light_atten_t;
+
+
 /**
  * @brief BSP light sources may come from entities or emissive surfaces.
  */
@@ -46,12 +63,12 @@ typedef struct {
 	/**
 	 * @brief The type.
 	 */
-	bsp_light_type_t type;
+	light_type_t type;
 
 	/**
 	 * @brief The attenuation.
 	 */
-	bsp_light_atten_t atten;
+	light_atten_t atten;
 
 	/**
 	 * @brief The origin.
