@@ -31,6 +31,7 @@
 
 extern _Bool antialias;
 extern _Bool indirect;
+extern _Bool occlude_ambient;
 
 extern vec_t brightness;
 extern vec_t saturation;
