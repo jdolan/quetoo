@@ -45,24 +45,17 @@ static void EmitPlanes(void) {
 }
 
 /**
- * @brief qsort comparator to sort leaf faces by texinfo and lightmap.
+ * @brief qsort comparator to sort node faces by texinfo.
  */
-static int32_t EmitLeafFaces_compare(const void *a, const void *b) {
+static int32_t EmitNode_facecmp(const void *a, const void *b) {
 
-	const bsp_face_t *a_face = bsp_file.faces + *(int32_t *) a;
-	const bsp_face_t *b_face = bsp_file.faces + *(int32_t *) b;
+	const bsp_face_t *a_face = (bsp_face_t *) a;
+	const bsp_face_t *b_face = (bsp_face_t *) b;
 
 	const bsp_texinfo_t *a_tex = bsp_file.texinfo + a_face->texinfo;
 	const bsp_texinfo_t *b_tex = bsp_file.texinfo + b_face->texinfo;
 
-	int32_t order = strcmp(a_tex->texture, b_tex->texture);
-	if (order == 0) {
-		order = a_tex->flags - b_tex->flags;
-		if (order == 0) {
-			order = a_face->lightmap.num - b_face->lightmap.num;
-		}
-	}
-	return order;
+	return strcmp(a_tex->texture, b_tex->texture);
 }
 
 /**
@@ -152,12 +145,6 @@ static int32_t EmitLeaf(node_t *node) {
 	}
 
 	out->num_leaf_faces = bsp_file.num_leaf_faces - out->first_leaf_face;
-
-	qsort(bsp_file.leaf_faces + out->first_leaf_face,
-		  out->num_leaf_faces,
-		  sizeof(int32_t),
-		  EmitLeafFaces_compare);
-
 	return bsp_file.num_leafs - 1;
 }
 
@@ -198,6 +185,9 @@ static int32_t EmitNode(node_t *node) {
 	}
 
 	out->num_faces = bsp_file.num_faces - out->first_face;
+
+	// sort the faces by texture to reduce texture state changes when rendering
+	qsort(bsp_file.faces + out->first_face, out->num_faces, sizeof(bsp_face_t), EmitNode_facecmp);
 
 	// recursively output the other nodes
 	for (int32_t i = 0; i < 2; i++) {
