@@ -157,7 +157,7 @@ typedef struct {
 
 typedef struct {
 	int32_t plane_num; // facing out of the leaf
-	int16_t texinfo;
+	int32_t texinfo;
 } bsp_brush_side_t;
 
 typedef struct {
@@ -173,12 +173,12 @@ typedef struct {
 	vec3_t bitangent;
 	vec2_t diffuse;
 	vec2_t lightmap;
-	int16_t texinfo;
+	int32_t texinfo;
 } bsp_vertex_t;
 
 typedef struct {
 	int32_t plane_num;
-	int16_t texinfo;
+	int32_t texinfo;
 
 	int32_t first_vertex; // vertex array for polygon or triangle fan
 	int32_t num_vertexes;
