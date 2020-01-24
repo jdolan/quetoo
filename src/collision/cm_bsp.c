@@ -109,7 +109,7 @@ static void Bsp_SwapBrushSides(void *lump, const int32_t num) {
 	for (int32_t i = 0; i < num; i++) {
 
 		brush_side->plane_num = LittleLong(brush_side->plane_num);
-		brush_side->texinfo = LittleShort(brush_side->texinfo);
+		brush_side->texinfo = LittleLong(brush_side->texinfo);
 
 		brush_side++;
 	}
@@ -153,7 +153,7 @@ static void Bsp_SwapVertexes(void *lump, const int32_t num) {
 			vertex->lightmap[j] = LittleFloat(vertex->diffuse[j]);
 		}
 
-		vertex->texinfo = LittleShort(vertex->texinfo);
+		vertex->texinfo = LittleLong(vertex->texinfo);
 
 		vertex++;
 	}
@@ -181,7 +181,7 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
 	for (int32_t i = 0; i < num; i++) {
 
 		face->plane_num = LittleLong(face->plane_num);
-		face->texinfo = LittleShort(face->texinfo);
+		face->texinfo = LittleLong(face->texinfo);
 		face->first_vertex = LittleLong(face->first_vertex);
 		face->num_vertexes = LittleLong(face->num_vertexes);
 		face->first_element = LittleLong(face->first_element);
