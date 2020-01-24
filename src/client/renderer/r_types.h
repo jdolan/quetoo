@@ -388,30 +388,10 @@ typedef struct {
 } r_bsp_inline_model_t;
 
 /**
- * @brief BSP light sources.
+ * @brief The renderer representation of the BSP model.
  */
 typedef struct {
-	bsp_light_type_t type;
-	bsp_light_atten_t atten;
-	vec3_t origin;
-	vec3_t color;
-	vec3_t normal;
-	vec_t radius;
-	vec_t theta;
 
-	const r_bsp_leaf_t *leaf;
-
-	r_particle_t debug;
-
-} r_bsp_light_t;
-
-// BSP model, used for maps
-typedef struct {
-
-	/**
-	 * @brief Reference to the cm_bsp_t that is currently loaded. We use this
-	 * to populate some stuff in r_bsp.
-	 */
 	cm_bsp_t *cm;
 
 	int32_t num_texinfo;
