@@ -218,7 +218,7 @@ void R_DrawView(r_view_t *view) {
 
 	R_MarkLights();
 
-	R_DrawWorldModel();
+	R_DrawWorld();
 
 	R_DrawSkyBox();
 

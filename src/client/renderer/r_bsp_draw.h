@@ -28,5 +28,5 @@
 extern void R_InitBspProgram(void);
 extern void R_ShutdownBspProgram(void);
 
-void R_DrawWorldModel(void);
+void R_DrawWorld(void);
 #endif /* __R_LOCAL_H__ */
