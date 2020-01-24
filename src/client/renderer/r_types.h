@@ -293,7 +293,6 @@ typedef struct {
 	r_pixel_t w, h;
 
 	vec2_t st_mins, st_maxs;
-
 } r_bsp_face_lightmap_t;
 
 typedef struct {
@@ -313,7 +312,6 @@ typedef struct {
 
 	int32_t first_element;
 	int32_t num_elements;
-
 } r_bsp_face_t;
 
 /**
@@ -346,8 +344,8 @@ typedef struct r_bsp_node_s {
 	cm_bsp_plane_t *plane;
 	struct r_bsp_node_s *children[2];
 
-	r_bsp_face_t *faces;
 	int32_t num_faces;
+	r_bsp_face_t *faces;
 } r_bsp_node_t;
 
 /**
@@ -372,8 +370,8 @@ typedef struct {
 	int32_t cluster;
 	int32_t area;
 
-	r_bsp_face_t **leaf_faces;
 	int32_t num_leaf_faces;
+	r_bsp_face_t **leaf_faces;
 
 	int64_t lights;
 } r_bsp_leaf_t;

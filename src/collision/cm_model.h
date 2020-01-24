@@ -57,11 +57,11 @@ typedef struct {
 
 	int32_t flood_valid;
 
-	cm_entity_t **entities;
 	size_t num_entities;
+	cm_entity_t **entities;
 
-	cm_material_t **materials;
 	size_t num_materials;
+	cm_material_t **materials;
 
 } cm_bsp_t;
 
