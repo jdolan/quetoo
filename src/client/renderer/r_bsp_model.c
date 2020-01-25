@@ -380,7 +380,7 @@ static void R_SetupBspFaces(r_bsp_model_t *bsp) {
  * @brief Recurses the specified sub-model nodes, assigning the model so that it can
  * be quickly resolved during traces and dynamic light processing.
  */
-static void R_SetupBspInlineModel(r_bsp_node_t *node, r_model_t *model) {
+static void R_SetupBspInlineModel(r_model_t *model, r_bsp_node_t *node) {
 
 	node->model = model;
 
@@ -388,8 +388,8 @@ static void R_SetupBspInlineModel(r_bsp_node_t *node, r_model_t *model) {
 		return;
 	}
 
-	R_SetupBspInlineModel(node->children[0], model);
-	R_SetupBspInlineModel(node->children[1], model);
+	R_SetupBspInlineModel(model, node->children[0]);
+	R_SetupBspInlineModel(model, node->children[1]);
 }
 
 /**
@@ -409,13 +409,10 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 		// copy bounds from the inline model
 		VectorCopy(m->bsp_inline->maxs, m->maxs);
 		VectorCopy(m->bsp_inline->mins, m->mins);
-		m->radius = m->bsp_inline->radius;
+//		m->radius = m->bsp_inline->radius;
 
 		// setup the nodes
-		if (m->bsp_inline->head_node != -1) {
-			r_bsp_node_t *nodes = &mod->bsp->nodes[m->bsp_inline->head_node];
-			R_SetupBspInlineModel(nodes, m);
-		}
+		R_SetupBspInlineModel(m, m->bsp_inline->head_node);
 
 		// register with the subsystem
 		R_RegisterDependency((r_media_t *) mod, (r_media_t *) m);
@@ -436,29 +433,17 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 
 	for (int32_t i = 0; i < bsp->num_inline_models; i++, in++, out++) {
 
-		for (int32_t j = 0; j < 3; j++) { // spread the bounds slightly
-			out->mins[j] = in->mins[j] - 1.0;
-			out->maxs[j] = in->maxs[j] + 1.0;
+		out->head_node = bsp->nodes + in->head_node;
 
-			out->origin[j] = in->origin[j];
+		for (int32_t j = 0; j < 3; j++) {
+			out->mins[j] = in->mins[j];
+			out->maxs[j] = in->maxs[j];
 		}
 
-		out->radius = RadiusFromBounds(out->mins, out->maxs);
-
-		out->head_node = in->head_node;
-
-		// some (old) maps have invalid inline model head_nodes
-		if (out->head_node < 0 || out->head_node >= bsp->num_nodes) {
-			Com_Warn("Bad head_node for %d: %d\n", i, out->head_node);
-			out->head_node = -1;
-		}
-
-		out->first_surface = in->first_face;
+		out->faces = bsp->faces + in->first_face;
 		out->num_faces = in->num_faces;
 	}
 }
-
-
 
 /**
  * @brief Function for exporting a BSP to an OBJ.

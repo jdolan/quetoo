@@ -91,9 +91,9 @@ static struct {
 /**
  * @brief
  */
-static void R_DrawBspFace(const r_bsp_face_t *face) {
+static void R_DrawBspElements(const r_bsp_draw_elements_t *draw) {
 
-	const r_material_t *material = face->texinfo->material;
+	const r_material_t *material = draw->texinfo->material;
 
 	GLint textures = TEXTURE_MASK_DIFFUSE;
 
@@ -114,13 +114,13 @@ static void R_DrawBspFace(const r_bsp_face_t *face) {
 		glBindTexture(GL_TEXTURE_2D, material->glossmap->texnum);
 	}
 
-	if (face->lightmap.atlas) {
+	if (draw->lightmap) {
 		textures |= TEXTURE_MASK_LIGHTMAP;
 		textures |= TEXTURE_MASK_DELUXEMAP;
 		textures |= TEXTURE_MASK_STAINMAP;
 
 		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
-		glBindTexture(GL_TEXTURE_2D_ARRAY, face->lightmap.atlas->atlas->texnum);
+		glBindTexture(GL_TEXTURE_2D_ARRAY, draw->lightmap->atlas->texnum);
 	}
 
 	switch (r_draw_bsp_lightmaps->integer) {
@@ -135,11 +135,11 @@ static void R_DrawBspFace(const r_bsp_face_t *face) {
 	glUniform1i(r_bsp_program.textures, textures);
 
 	glDrawElements(GL_TRIANGLES,
-				   face->num_elements,
+				   draw->num_elements,
 				   GL_UNSIGNED_INT,
-				   (void *) (face->first_element * sizeof(GLuint)));
+				   (void *) (draw->first_element * sizeof(GLuint)));
 
-	r_view.num_bsp_faces++;
+	r_view.num_bsp_draw_elements++;
 }
 
 /**
@@ -151,12 +151,14 @@ static void R_DrawBspNode(const r_bsp_node_t *node) {
 		return;
 	}
 
-	if (node->vis_frame != r_locals.vis_frame) {
-		return;
-	}
+	if (node->model == NULL) {
+		if (node->vis_frame != r_locals.vis_frame) {
+			return;
+		}
 
-	if (R_CullBox(node->mins, node->maxs)) {
-		return;
+		if (R_CullBox(node->mins, node->maxs)) {
+			return;
+		}
 	}
 
 	const vec_t dist = Cm_DistanceToPlane(r_view.origin, node->plane);
@@ -190,22 +192,18 @@ static void R_DrawBspNode(const r_bsp_node_t *node) {
 
 	glUniform1i(r_bsp_program.contents, node->contents);
 
-	const r_bsp_face_t *face = node->faces;
-	for (int32_t i = 0; i < node->num_faces; i++, face++) {
+	const r_bsp_draw_elements_t *draw = node->draw_elements;
+	for (int32_t i = 0; i < node->num_draw_elements; i++, draw++) {
 
-		if (face->plane_side != side) {
+		if (draw->texinfo->flags & SURF_SKY) {
 			continue;
 		}
 
-		if (face->texinfo->flags & SURF_SKY) {
+		if (draw->texinfo->flags & SURF_MATERIAL) {
 			continue;
 		}
 
-		if (face->texinfo->flags & SURF_MATERIAL) {
-			continue;
-		}
-
-		R_DrawBspFace(face);
+		R_DrawBspElements(draw);
 	}
 
 	r_view.num_bsp_nodes++;
@@ -216,17 +214,26 @@ static void R_DrawBspNode(const r_bsp_node_t *node) {
 /**
  * @brief
  */
-static void R_DrawBspModel(const r_bsp_model_t *model) {
+static void R_DrawBspEntity(const r_entity_t *e) {
 
-	R_DrawBspNode(model->nodes);
-}
+	if (R_CullBspInlineModel(e)) {
+		return;
+	}
 
-/**
- * @brief
- */
-static void R_DrawBspInlineModel(const r_bsp_inline_model_t *model) {
+	matrix4x4_t transform;
+	Matrix4x4_CreateFromEntity(&transform, e->origin, e->angles, e->scale);
 
+	matrix4x4_t model_view;
+	Matrix4x4_Concat(&model_view, &r_locals.model_view, &transform);
 
+	matrix4x4_t normal;
+	Matrix4x4_Invert_Full(&normal, &model_view);
+	Matrix4x4_Transpose(&normal, &normal);
+
+	glUniformMatrix4fv(r_bsp_program.model_view, 1, GL_FALSE, (GLfloat *) model_view.m);
+	glUniformMatrix4fv(r_bsp_program.normal, 1, GL_FALSE, (GLfloat *) normal.m);
+
+	R_DrawBspNode(e->model->bsp_inline->head_node);
 }
 
 /**
@@ -276,36 +283,14 @@ void R_DrawWorld(void) {
 		glDisableVertexAttribArray(r_bsp_program.in_color);
 	}
 
-#if 1
-	R_DrawBspModel(bsp);
+	R_DrawBspNode(bsp->nodes);
 
-//	const r_entity_t *e = r_view.entities;
-//	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
-//		if (e->model && e->model->type == MOD_BSP_INLINE) {
-//
-//			matrix4x4_t model_view;
-//			Matrix4x4_Concat(&model_view, &r_locals.model_view, &e->matrix);
-//
-//			glUniformMatrix4fv(r_bsp_program.model_view, 1, GL_FALSE, (GLfloat *) r_locals.model_view.m);
-//			glUniformMatrix4fv(r_bsp_program.normal, 1, GL_FALSE, (GLfloat *) r_locals.inverse_transpose_model_view.m);
-//
-//			R_DrawBspInlineModel(e->model->bsp_inline);
-//		}
-//	}
-#else
-	glUniform1i(r_bsp_program.textures, TEXTURE_MASK_DIFFUSE);
-
-	const r_bsp_face_t *face = bsp->faces;
-	for (int32_t i = 0; i < bsp->num_faces; i++, face++) {
-
-		glBindTexture(GL_TEXTURE_2D, face->texinfo->material->diffuse->texnum);
-
-		glDrawElements(GL_TRIANGLES,
-					   face->num_elements,
-					   GL_UNSIGNED_INT,
-					   (void *) (face->first_element * sizeof(GLuint)));
+	const r_entity_t *e = r_view.entities;
+	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
+		if (e->model && e->model->type == MOD_BSP_INLINE) {
+			R_DrawBspEntity(e);
+		}
 	}
-#endif
 
 	glActiveTexture(GL_TEXTURE0);
 

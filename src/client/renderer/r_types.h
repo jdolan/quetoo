@@ -392,11 +392,13 @@ typedef struct {
 
 // bsp model memory representation
 typedef struct {
-	vec3_t mins, maxs;
-	vec3_t origin; // for sounds or lights
-	vec_t radius;
-	int32_t head_node;
-	int32_t first_surface, num_faces;
+	r_bsp_node_t *head_node;
+
+	vec3_t mins;
+	vec3_t maxs;
+
+	r_bsp_face_t *faces;
+	int32_t num_faces;
 } r_bsp_inline_model_t;
 
 /**
@@ -721,11 +723,11 @@ typedef struct {
 
 	// counters, reset each frame
 
-	uint32_t num_bsp_nodes;
-	uint32_t num_bsp_faces;
+	int32_t num_bsp_nodes;
+	int32_t num_bsp_draw_elements;
 
-	uint32_t num_draw_elements;
-	uint32_t num_draw_arrays;
+	int32_t num_draw_elements;
+	int32_t num_draw_arrays;
 
 	_Bool update; // inform the client of state changes
 	

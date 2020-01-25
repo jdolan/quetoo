@@ -28,15 +28,10 @@ static cvar_t *cl_view_size;
  */
 void Cl_ClearView(void) {
 
-	// reset entity, light, particle and corona counts
-	r_view.num_entities = r_view.num_lights = 0;
-	r_view.num_particles = r_view.num_stains = 0;
-
-	r_view.num_draw_elements = 0;
-	r_view.num_draw_arrays = 0;
-
-	r_view.num_bsp_nodes = 0;
-	r_view.num_bsp_faces = 0;
+	r_view.num_entities = 0;
+	r_view.num_lights = 0;
+	r_view.num_particles = 0;
+	r_view.num_stains = 0;
 }
 
 /**
