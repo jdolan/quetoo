@@ -200,6 +200,9 @@ typedef struct {
 	int32_t texinfo;
 	int32_t lightmap;
 
+	int32_t first_face;
+	int32_t num_faces;
+
 	int32_t first_element;
 	int32_t num_elements;
 } bsp_draw_elements_t;

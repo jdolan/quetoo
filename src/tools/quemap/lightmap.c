@@ -159,6 +159,13 @@ void BuildLightmaps(void) {
 
 	lightmaps = Mem_TagMalloc(sizeof(lightmap_t) * bsp_file.num_faces, MEM_TAG_LIGHTMAP);
 
+	bsp_draw_elements_t *draw = bsp_file.draw_elements;
+	for (int32_t i = 0; i < bsp_file.num_draw_elements; i++, draw++) {
+		for (int32_t j = 0; j < draw->num_faces; j++) {
+			lightmaps[draw->first_face + j].draw = draw;
+		}
+	}
+
 	const bsp_leaf_t *leaf = bsp_file.leafs;
 	for (int32_t i = 0; i < bsp_file.num_leafs; i++, leaf++) {
 		const int32_t *leaf_face = bsp_file.leaf_faces + leaf->first_leaf_face;
@@ -178,6 +185,9 @@ void BuildLightmaps(void) {
 	for (int32_t i = 0; i < bsp_file.num_faces; i++, face++) {
 
 		lightmap_t *lm = &lightmaps[i];
+
+		assert(lm->leaf);
+		assert(lm->draw);
 
 		lm->face = &bsp_file.faces[i];
 		lm->texinfo = &bsp_file.texinfo[lm->face->texinfo];
@@ -790,14 +800,10 @@ void EmitLightmaps(void) {
 		lm->face->lightmap.w = lm->w;
 		lm->face->lightmap.h = lm->h;
 
+		lm->draw->lightmap = nodes[i]->tag;
+
 		SDL_FreeSurface(lm->lightmap);
 		SDL_FreeSurface(lm->deluxemap);
-	}
-
-	for (int32_t i = 0; i < bsp_file.num_draw_elements; i++) {
-		lightmap_t *lm = &lightmaps[i];
-
-		lm->
 	}
 
 	Atlas_Destroy(atlas);

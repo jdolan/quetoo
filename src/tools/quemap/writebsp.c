@@ -124,6 +124,7 @@ static int32_t EmitDrawElements(const bsp_node_t *node) {
 		out->texinfo = a->texinfo;
 		out->lightmap = -1;
 
+		out->first_face = node->first_face + i;
 		out->first_element = bsp_file.num_elements;
 
 		for (int32_t j = i; j < node->num_faces; j++) {
@@ -138,15 +139,14 @@ static int32_t EmitDrawElements(const bsp_node_t *node) {
 				Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
 			}
 
-			memcpy(bsp_file.elements + bsp_file.num_elements,
-				   bsp_file.elements + b->first_element,
-				   sizeof(int32_t) * b->num_elements);
+			memcpy(bsp_file.elements + bsp_file.num_elements, bsp_file.elements + b->first_element, sizeof(int32_t) * b->num_elements);
 
 			bsp_file.num_elements += b->num_elements;
+			out->num_elements += b->num_elements;
+			out->num_faces++;
 			i = j;
 		}
 
-		out->num_elements = bsp_file.num_elements - out->first_element;
 		assert(out->num_elements);
 	}
 
