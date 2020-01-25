@@ -239,8 +239,8 @@ static void Cm_LoadBspInlineModels(void) {
 		out->head_node = in->head_node;
 
 		for (int32_t j = 0; j < 3; j++) {
-			out->mins[j] = in->mins[j] - 1.0;
-			out->maxs[j] = in->maxs[j] + 1.0;
+			out->mins[j] = in->mins[j];
+			out->maxs[j] = in->maxs[j];
 		}
 	}
 }
