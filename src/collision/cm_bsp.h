@@ -237,8 +237,6 @@ typedef struct {
 typedef struct {
 	int32_t head_node;
 
-	vec3_t origin; // for sounds or lights
-
 	int16_t mins[3];
 	int16_t maxs[3];
 

@@ -794,6 +794,12 @@ void EmitLightmaps(void) {
 		SDL_FreeSurface(lm->deluxemap);
 	}
 
+	for (int32_t i = 0; i < bsp_file.num_draw_elements; i++) {
+		lightmap_t *lm = &lightmaps[i];
+
+		lm->
+	}
+
 	Atlas_Destroy(atlas);
 }
 

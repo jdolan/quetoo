@@ -84,9 +84,8 @@ typedef struct {
  * They are treated as their own sub-trees and recursed separately.
  */
 typedef struct {
-	vec3_t mins, maxs;
-	vec3_t origin; // for sounds or lights
 	int32_t head_node;
+	vec3_t mins, maxs;
 } cm_bsp_model_t;
 
 /**
