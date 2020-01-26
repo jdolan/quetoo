@@ -84,16 +84,19 @@ GLuint R_LoadProgram(const r_shader_descriptor_t *desc, ...) {
 		va_list args;
 		va_start(args, desc);
 
+		GLuint shaders[MAX_SHADER_DESCRIPTOR_FILENAMES];
+		int32_t i = 0;
+
 		while (desc) {
 
-			GLuint shader = R_LoadShader(desc);
-			if (shader == 0) {
+			shaders[i] = R_LoadShader(desc);
+			if (shaders[i] == 0) {
 				glDeleteProgram(program);
 				program = 0;
 				break;
 			}
 
-			glAttachShader(program, shader);
+			glAttachShader(program, shaders[i++]);
 
 			desc = va_arg(args, const r_shader_descriptor_t *);
 		}
@@ -113,28 +116,13 @@ GLuint R_LoadProgram(const r_shader_descriptor_t *desc, ...) {
 			glGetProgramInfoLog(program, log_length, NULL, log);
 
 			Com_Error(ERROR_FATAL, "%s\n", log);
+		} else {
+			while (--i > 0) {
+				glDetachShader(program, shaders[i]);
+				glDeleteShader(shaders[i]);
+			}
 		}
 	}
 
 	return program;
-}
-
-/**
- * @brief
- */
-void R_InitPrograms(void) {
-
-	R_InitBspProgram();
-
-	R_GetError(NULL);
-}
-
-/**
- * @brief
- */
-void R_ShutdownPrograms(void) {
-
-	R_ShutdownBspProgram();
-
-	R_GetError(NULL);
 }
