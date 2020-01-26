@@ -134,10 +134,6 @@ static void R_DrawBspElements(const r_bsp_draw_elements_t *draw) {
 
 	glUniform1i(r_bsp_program.textures, textures);
 
-	glDrawElements(GL_TRIANGLES,
-				   draw->num_elements,
-				   GL_UNSIGNED_INT,
-				   (void *) (draw->first_element * sizeof(GLuint)));
 	glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
 
 	r_view.num_bsp_draw_elements++;
