@@ -127,7 +127,13 @@ void main(void) {
 		stainmap = vec4(0.0);
 	}
 
-	out_color = diffuse * vec4(lightmap, 1.0) /** dot(normalmap.xyz, deluxemap.xyz)*/;
+	if (textures == TEXTURE_MASK_LIGHTMAP) {
+		out_color = vec4(lightmap, 1.0);
+	} else if (textures == TEXTURE_MASK_DELUXEMAP) {
+		out_color = vec4(deluxemap, 1.0);
+	} else {
+		out_color = diffuse * vec4(lightmap, 1.0);
+	}
 
 	out_color = ColorFilter(out_color);
 }
