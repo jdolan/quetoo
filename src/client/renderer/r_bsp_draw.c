@@ -172,6 +172,17 @@ static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in) {
 			}
 		}
 
+		switch (r_draw_bsp_lightmaps->integer) {
+			case 1:
+				tex = TEXTURE_MASK_LIGHTMAP;
+				break;
+			case 2:
+				tex = TEXTURE_MASK_DELUXEMAP;
+				break;
+			default:
+				break;
+		}
+
 		if (tex != textures) {
 			textures = tex;
 			glUniform1i(r_bsp_program.textures, textures);
