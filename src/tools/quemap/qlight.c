@@ -29,7 +29,7 @@ vec_t brightness = 1.0;
 vec_t saturation = 1.0;
 vec_t contrast = 1.0;
 
-int16_t luxel_size = DEFAULT_BSP_LIGHTMAP_LUXEL_SIZE;
+int16_t luxel_size = BSP_LIGHTMAP_LUXEL_SIZE;
 int16_t patch_size = DEFAULT_BSP_PATCH_SIZE;
 
 vec_t radiosity = LIGHT_RADIOSITY;
@@ -147,7 +147,7 @@ static void LightWorld(void) {
 		}
 	}
 
-	if (luxel_size == DEFAULT_BSP_LIGHTMAP_LUXEL_SIZE) {
+	if (luxel_size == BSP_LIGHTMAP_LUXEL_SIZE) {
 		vec_t v;
 		if (Cm_EntityVector(e, "luxel_size", &v, 1) == 1) {
 			luxel_size = v;
@@ -201,7 +201,7 @@ static void LightWorld(void) {
 	Work("Finalizing lightgrid", FinalizeLightgrid, (int32_t) num_lightgrid);
 
 	// generate atlased lightmaps
-	EmitLightmaps();
+	EmitLightmap();
 
 	// and vertex lightmap texcoords
 	EmitLightmapTexcoords();

@@ -245,13 +245,13 @@ static void LoadPortals(const char *filename) {
 	map_vis.uncompressed = Mem_TagMalloc(map_vis.uncompressed_size, MEM_TAG_PORTAL);
 
 	// allocate vis data
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_VISIBILITY, MAX_BSP_VISIBILITY);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_VIS, MAX_BSP_VIS_SIZE);
 
 	map_vis.base = (byte *)  bsp_file.vis;
 	bsp_file.vis->num_clusters = map_vis.portal_clusters;
 	map_vis.pointer = (byte *) &bsp_file.vis->bit_offsets[map_vis.portal_clusters];
 
-	map_vis.end = map_vis.base + MAX_BSP_VISIBILITY;
+	map_vis.end = map_vis.base + MAX_BSP_VIS_SIZE;
 
 	portal_t *p = map_vis.portals;
 	for (int32_t i = 0; i < map_vis.num_portals; i++) {

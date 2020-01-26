@@ -120,7 +120,6 @@ static int32_t EmitDrawElements(const bsp_node_t *node) {
 		const bsp_face_t *a = faces + i;
 
 		out->texinfo = a->texinfo;
-		out->lightmap = -1;
 
 		out->first_face = node->first_face + i;
 		out->first_element = bsp_file.num_elements;
@@ -387,7 +386,7 @@ static void EmitBrushes(void) {
  */
 void EmitEntities(void) {
 
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_ENTITIES, MAX_BSP_ENT_STRING);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_ENTITIES, MAX_BSP_ENTITIES_SIZE);
 
 	char *out = bsp_file.entity_string;
 	*out = '\0';
@@ -395,19 +394,19 @@ void EmitEntities(void) {
 	for (int32_t i = 0; i < num_entities; i++) {
 		const entity_key_value_t *e = entities[i].values;
 		if (e) {
-			g_strlcat(out, "{\n", MAX_BSP_ENT_STRING);
+			g_strlcat(out, "{\n", MAX_BSP_ENTITIES_SIZE);
 			while (e) {
-				g_strlcat(out, va(" \"%s\" \"%s\"\n", e->key, e->value), MAX_BSP_ENT_STRING);
+				g_strlcat(out, va(" \"%s\" \"%s\"\n", e->key, e->value), MAX_BSP_ENTITIES_SIZE);
 				e = e->next;
 			}
-			g_strlcat(out, "}\n", MAX_BSP_ENT_STRING);
+			g_strlcat(out, "}\n", MAX_BSP_ENTITIES_SIZE);
 		}
 	}
 
 	const size_t len = strlen(out);
 
-	if (len == MAX_BSP_ENT_STRING - 1) {
-		Com_Error(ERROR_FATAL, "MAX_BSP_ENT_STRING\n");
+	if (len == MAX_BSP_ENTITIES_SIZE - 1) {
+		Com_Error(ERROR_FATAL, "MAX_BSP_ENTITIES_SIZE\n");
 	}
 
 	bsp_file.entity_string_size = (int32_t) len + 1;

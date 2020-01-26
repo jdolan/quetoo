@@ -32,7 +32,7 @@ typedef struct {
 #define BSP_LUMP_SKIP { 0, 0, 0, 0 }
 
 static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
-	BSP_LUMP_SIZE_STRUCT(entity_string, MAX_BSP_ENT_STRING),
+	BSP_LUMP_SIZE_STRUCT(entity_string, MAX_BSP_ENTITIES_SIZE),
 	BSP_LUMP_NUM_STRUCT(texinfo, MAX_BSP_TEXINFO),
 	BSP_LUMP_NUM_STRUCT(planes, MAX_BSP_PLANES),
 	BSP_LUMP_NUM_STRUCT(brush_sides, MAX_BSP_BRUSH_SIDES),
@@ -48,9 +48,9 @@ static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
 	BSP_LUMP_NUM_STRUCT(models, MAX_BSP_MODELS),
 	BSP_LUMP_NUM_STRUCT(area_portals, MAX_BSP_AREA_PORTALS),
 	BSP_LUMP_NUM_STRUCT(areas, MAX_BSP_AREAS),
-	BSP_LUMP_SIZE_STRUCT(vis, MAX_BSP_VISIBILITY),
-	BSP_LUMP_NUM_STRUCT(lightmaps, MAX_BSP_LIGHTMAPS),
-	BSP_LUMP_SIZE_STRUCT(lightgrid, MAX_BSP_LIGHTGRID)
+	BSP_LUMP_SIZE_STRUCT(vis, MAX_BSP_VIS_SIZE),
+	BSP_LUMP_SIZE_STRUCT(lightmap, MAX_BSP_LIGHTMAP_SIZE),
+	BSP_LUMP_SIZE_STRUCT(lightgrid, MAX_BSP_LIGHTGRID_SIZE)
 };
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
@@ -187,7 +187,6 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
 		face->num_vertexes = LittleLong(face->num_vertexes);
 		face->first_element = LittleLong(face->first_element);
 		face->num_elements = LittleLong(face->num_elements);
-		face->lightmap.num = LittleLong(face->lightmap.num);
 		face->lightmap.s = LittleLong(face->lightmap.s);
 		face->lightmap.t = LittleLong(face->lightmap.t);
 		face->lightmap.w = LittleLong(face->lightmap.w);
@@ -370,7 +369,17 @@ static void Bsp_SwapVis(void *lump, const int32_t num) {
 /**
  * @brief Swap function.
  */
-static void Bsp_SwapLightGrid(void *lump, const int32_t num) {
+static void Bsp_SwapLightmap(void *lump, const int32_t num) {
+
+	bsp_lightmap_t *lightmap = (bsp_lightmap_t *) lump;
+
+	lightmap->lump = LittleLong(lightmap->lump);
+}
+
+/**
+ * @brief Swap function.
+ */
+static void Bsp_SwapLightgrid(void *lump, const int32_t num) {
 
 	bsp_lightgrid_t *lightgrid = (bsp_lightgrid_t *) lump;
 
@@ -398,8 +407,8 @@ static Bsp_SwapFunction bsp_swap_funcs[BSP_LUMP_LAST] = {
 	Bsp_SwapAreaPortals,
 	Bsp_SwapAreas,
 	Bsp_SwapVis,
-	NULL,
-	Bsp_SwapLightGrid,
+	Bsp_SwapLightmap,
+	Bsp_SwapLightgrid,
 };
 #endif
 

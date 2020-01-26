@@ -86,14 +86,14 @@ typedef enum {
 	IT_DIFFUSE =     (1 <<  5) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_LIGHTMAP =    (1 <<  6) + (IT_MASK_FILTER),
 	IT_LIGHTGRID =   (1 <<  7) + (IT_MASK_FILTER),
-	IT_NORMALMAP =   (1 <<  8) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_GLOSSMAP = (1 <<  9) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_ENVMAP =      (1 << 10) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_FLARE =       (1 << 11) + (IT_MASK_MIPMAP | IT_MASK_FILTER | IT_MASK_MULTIPLY),
-	IT_SKY =         (1 << 12) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_PIC =         (1 << 13) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_ATLAS =       (1 << 14) + (IT_MASK_MIPMAP),
-	IT_STAINMAP =    (1 << 15) + (IT_MASK_FILTER),
+	IT_STAINMAP =    (1 <<  8) + (IT_MASK_FILTER),
+	IT_NORMALMAP =   (1 <<  9) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
+	IT_GLOSSMAP =    (1 << 10) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
+	IT_ENVMAP =      (1 << 11) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
+	IT_FLARE =       (1 << 12) + (IT_MASK_MIPMAP | IT_MASK_FILTER | IT_MASK_MULTIPLY),
+	IT_SKY =         (1 << 13) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
+	IT_PIC =         (1 << 14) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
+	IT_ATLAS =       (1 << 15) + (IT_MASK_MIPMAP),
 	IT_TINTMAP =     (1 << 16) + (IT_MASK_MIPMAP | IT_MASK_FILTER)
 } r_image_type_t;
 
@@ -317,7 +317,6 @@ typedef struct {
  */
 typedef struct {
 	r_bsp_texinfo_t *texinfo;
-	r_image_t *lightmap;
 
 	struct r_bsp_node_s *node;
 
@@ -409,6 +408,22 @@ typedef struct r_bsp_inline_model_s {
 } r_bsp_inline_model_t;
 
 /**
+ * @brief
+ */
+typedef struct {
+	int32_t width;
+	r_image_t *atlas;
+} r_bsp_lightmap_t;
+
+/**
+ * @brief
+ */
+typedef struct {
+	int32_t size[3];
+	r_image_t *grid;
+} r_bsp_lightgrid_t;
+
+/**
  * @brief The renderer representation of the BSP model.
  */
 typedef struct {
@@ -423,9 +438,6 @@ typedef struct {
 
 	int32_t num_elements;
 	GLuint *elements;
-
-	int32_t num_lightmaps;
-	r_image_t **lightmaps;
 
 	int32_t num_faces;
 	r_bsp_face_t *faces;
@@ -447,6 +459,9 @@ typedef struct {
 	r_bsp_inline_model_t *inline_models;
 
 	int16_t luxel_size;
+
+	r_bsp_lightmap_t *lightmap;
+	r_bsp_lightgrid_t *lightgrid;
 
 	// vertex buffer
 	GLuint vertex_buffer;

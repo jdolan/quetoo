@@ -96,9 +96,7 @@ static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in) {
 	const r_bsp_model_t *bsp = r_model_state.world->bsp;
 
 	const r_material_t *material = NULL;
-	const r_image_t *lightmap = NULL;
-
-	GLint textures = 0;
+	GLint textures = TEXTURE_MASK_ALL;
 
 	r_bsp_draw_elements_t **sorted = bsp->draw_elements_sorted;
 	for (int32_t i = 0; i < bsp->num_draw_elements; i++, sorted++) {
@@ -154,22 +152,6 @@ static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in) {
 			glUniform1f(r_bsp_program.parallax, material->cm->parallax);
 			glUniform1f(r_bsp_program.hardness, material->cm->hardness);
 			glUniform1f(r_bsp_program.specular, material->cm->specular);
-		}
-
-		if (draw->lightmap != lightmap) {
-			lightmap = draw->lightmap;
-
-			if (draw->lightmap) {
-				tex |= TEXTURE_MASK_LIGHTMAP;
-				tex |= TEXTURE_MASK_DELUXEMAP;
-				tex |= TEXTURE_MASK_STAINMAP;
-				glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
-				glBindTexture(GL_TEXTURE_2D_ARRAY, draw->lightmap->texnum);
-			} else {
-				tex &= ~TEXTURE_MASK_LIGHTMAP;
-				tex &= ~TEXTURE_MASK_DELUXEMAP;
-				tex &= ~TEXTURE_MASK_STAINMAP;
-			}
 		}
 
 		switch (r_draw_bsp_lightmaps->integer) {
@@ -261,6 +243,9 @@ void R_DrawWorld(void) {
 	glEnableVertexAttribArray(r_bsp_program.in_diffuse);
 	glEnableVertexAttribArray(r_bsp_program.in_lightmap);
 	glEnableVertexAttribArray(r_bsp_program.in_color);
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, bsp->lightmap->atlas->texnum);
 
 	R_DrawBspDrawElements(bsp->inline_models);
 

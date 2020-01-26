@@ -28,12 +28,12 @@
 static void R_LoadBspEntities(r_bsp_model_t *bsp) {
 	const char *c;
 
-	bsp->luxel_size = DEFAULT_BSP_LIGHTMAP_LUXEL_SIZE;
+	bsp->luxel_size = BSP_LIGHTMAP_LUXEL_SIZE;
 
 	if ((c = Cm_EntityValue(Cm_Worldspawn(), "luxel_size"))) {
 		bsp->luxel_size = strtol(c, NULL, 10);
 		if (bsp->luxel_size <= 0) {
-			bsp->luxel_size = DEFAULT_BSP_LIGHTMAP_LUXEL_SIZE;
+			bsp->luxel_size = BSP_LIGHTMAP_LUXEL_SIZE;
 		}
 		Com_Debug(DEBUG_RENDERER, "Resolved luxel_size: %d\n", bsp->luxel_size);
 	}
@@ -117,34 +117,43 @@ static void R_LoadBspElements(r_bsp_model_t *bsp) {
 /**
  * @brief
  */
-static void R_LoadBspLightmaps(r_bsp_model_t *bsp) {
+static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
+	r_bsp_lightmap_t *out;
 
-	bsp->num_lightmaps = bsp->cm->file.num_lightmaps;
-	r_image_t **out = bsp->lightmaps = Mem_LinkMalloc(sizeof(*out) * bsp->num_lightmaps, bsp);
+	bsp->lightmap = out = Mem_LinkMalloc(sizeof(*out), bsp);
+	const bsp_lightmap_t *in = bsp->cm->file.lightmap;
 
-	const bsp_lightmap_t *in = bsp->cm->file.lightmaps;
-	for (int32_t i = 0; i < bsp->num_lightmaps; i++, in++, out++) {
-		char name[MAX_QPATH];
+	out->width = in->width;
 
-		g_snprintf(name, sizeof(name), "lightmap %d", i);
-		r_image_t *lightmap = (r_image_t *) R_AllocMedia(name, sizeof(r_image_t), MEDIA_IMAGE);
-		lightmap->media.Free = R_FreeImage;
-		lightmap->type = IT_LIGHTMAP;
-		lightmap->width = BSP_LIGHTMAP_WIDTH;
-		lightmap->height = BSP_LIGHTMAP_WIDTH;
-		lightmap->depth = BSP_LIGHTMAP_LAYERS;
+	out->atlas = (r_image_t *) R_AllocMedia("lightmap", sizeof(r_image_t), MEDIA_IMAGE);
+	out->atlas->media.Free = R_FreeImage;
+	out->atlas->type = IT_LIGHTMAP;
+	out->atlas->width = out->width;
+	out->atlas->height = out->width;
+	out->atlas->depth = BSP_LIGHTMAP_LAYERS;
 
-		R_UploadImage(lightmap, GL_RGB8, (byte *) in->layers);
-		*out = lightmap;
-	}
+	R_UploadImage(out->atlas, GL_RGB8, (byte *) in + sizeof(bsp_lightmap_t));
 }
 
 /**
  * @brief
  */
-static void R_LoadBspLightGrid(r_bsp_model_t *bsp) {
+static void R_LoadBspLightgrid(r_bsp_model_t *bsp) {
+	r_bsp_lightgrid_t *out;
 
-	// TODO
+	bsp->lightgrid = out = Mem_LinkMalloc(sizeof(*out), bsp);
+	const bsp_lightgrid_t *in = bsp->cm->file.lightgrid;
+
+	VectorCopy(in->size, out->size);
+
+	out->grid = (r_image_t *) R_AllocMedia("lightgrid", sizeof(r_image_t), MEDIA_IMAGE);
+	out->grid->media.Free = R_FreeImage;
+	out->grid->type = IT_LIGHTGRID;
+	out->grid->width = out->size[0];
+	out->grid->height = out->size[1];
+	out->grid->depth = out->size[2];
+
+	R_UploadImage(out->grid, GL_RGB8, (byte *) in + sizeof(bsp_lightgrid_t));
 }
 
 static r_bsp_texinfo_t null_texinfo;
@@ -182,17 +191,10 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
 		out->num_elements = in->num_elements;
 
-		if (in->lightmap.num > -1) {
-			if (in->lightmap.num >= bsp->num_lightmaps) {
-				Com_Error(ERROR_FATAL, "Bad lightmap number: %d\n", in->lightmap.num);
-			}
-			out->lightmap.atlas = *(bsp->lightmaps + in->lightmap.num);
-
-			out->lightmap.s = in->lightmap.s;
-			out->lightmap.t = in->lightmap.t;
-			out->lightmap.w = in->lightmap.w;
-			out->lightmap.h = in->lightmap.h;
-		}
+		out->lightmap.s = in->lightmap.s;
+		out->lightmap.t = in->lightmap.t;
+		out->lightmap.w = in->lightmap.w;
+		out->lightmap.h = in->lightmap.h;
 	}
 }
 
@@ -208,10 +210,8 @@ static int32_t R_DrawElementsCmp(const void *a, const void *b) {
 	if (order == 0) {
 		const int32_t a_flags = (a_draw->texinfo->flags & SURF_TEXINFO_CMP);
 		const int32_t b_flags = (b_draw->texinfo->flags & SURF_TEXINFO_CMP);
+
 		order = a_flags - b_flags;
-		if (order == 0) {
-			order = (int32_t) (ptrdiff_t) (a_draw->lightmap - b_draw->lightmap);
-		}
 	}
 
 	return order;
@@ -237,13 +237,6 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 			out->texinfo = bsp->texinfo + in->texinfo;
 		} else {
 			out->texinfo = &null_texinfo;
-		}
-
-		if (in->lightmap > -1) {
-			if (in->lightmap >= bsp->num_lightmaps) {
-				Com_Error(ERROR_FATAL, "Bad lightmap number: %d\n", in->lightmap);
-			}
-			out->lightmap = *(bsp->lightmaps + in->lightmap);
 		}
 
 		out->num_faces = in->num_faces;
@@ -624,7 +617,7 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
 	(1 << BSP_LUMP_FACES) | \
 	(1 << BSP_LUMP_DRAW_ELEMENTS) | \
 	(1 << BSP_LUMP_LEAF_FACES) | \
-	(1 << BSP_LUMP_LIGHTMAPS) | \
+	(1 << BSP_LUMP_LIGHTMAP) | \
 	(1 << BSP_LUMP_LIGHTGRID)
 
 /**
@@ -655,11 +648,11 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Cl_LoadingProgress(18, "elements");
 	R_LoadBspElements(mod->bsp);
 
-	Cl_LoadingProgress(22, "lightmaps");
-	R_LoadBspLightmaps(mod->bsp);
+	Cl_LoadingProgress(22, "lightmap");
+	R_LoadBspLightmap(mod->bsp);
 
 	Cl_LoadingProgress(24, "lightgrid");
-	R_LoadBspLightGrid(mod->bsp);
+	R_LoadBspLightgrid(mod->bsp);
 
 	Cl_LoadingProgress(30, "faces");
 	R_LoadBspFaces(mod->bsp);
@@ -695,9 +688,8 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Com_Debug(DEBUG_RENDERER, "!  Vertexes:       %d\n", mod->bsp->num_vertexes);
 	Com_Debug(DEBUG_RENDERER, "!  Elements:       %d\n", mod->bsp->num_elements);
 	Com_Debug(DEBUG_RENDERER, "!  Faces:          %d\n", mod->bsp->num_faces);
+	Com_Debug(DEBUG_RENDERER, "!  Draw elements:  %d\n", mod->bsp->num_draw_elements);
 	Com_Debug(DEBUG_RENDERER, "!  Leafs:          %d\n", mod->bsp->num_leafs);
 	Com_Debug(DEBUG_RENDERER, "!  Leaf faces:     %d\n", mod->bsp->num_leaf_faces);
-	Com_Debug(DEBUG_RENDERER, "!  Lightmaps:      %d\n", mod->bsp->num_lightmaps);
-	Com_Debug(DEBUG_RENDERER, "!  Lightgrid:      %d\n", 0);
 	Com_Debug(DEBUG_RENDERER, "!================================\n");
 }

@@ -331,7 +331,7 @@ static void Cm_LoadBspMaterials(const char *name) {
 	(1 << BSP_LUMP_MODELS) | \
 	(1 << BSP_LUMP_AREA_PORTALS) | \
 	(1 << BSP_LUMP_AREAS) | \
-	(1 << BSP_LUMP_VISIBILITY)
+	(1 << BSP_LUMP_VIS)
 
 /**
  * @brief Loads in the BSP and all sub-models for collision detection. This

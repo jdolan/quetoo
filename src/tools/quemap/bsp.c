@@ -77,10 +77,7 @@ static void PrintBSPFileSizes(void) {
 				(int32_t) (bsp_file.num_areas * sizeof(bsp_area_t)));
 
 	Com_Verbose("      vis         %7i bytes\n", bsp_file.vis_size);
-
-	Com_Verbose("%5i lightmaps     %7i bytes\n", bsp_file.num_lightmaps,
-				(int32_t) (bsp_file.num_lightmaps * sizeof(bsp_lightmap_t)));
-
+	Com_Verbose("      lightmap    %7i bytes\n", bsp_file.lightmap_size);
 	Com_Verbose("      lightgrid   %7i bytes\n", bsp_file.lightgrid_size);
 }
 

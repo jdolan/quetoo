@@ -61,5 +61,5 @@ void BuildVertexNormals(void);
 void DirectLightmap(int32_t face_num);
 void IndirectLightmap(int32_t face_num);
 void FinalizeLightmap(int32_t face_num);
-void EmitLightmaps(void);
+void EmitLightmap(void);
 void EmitLightmapTexcoords(void);

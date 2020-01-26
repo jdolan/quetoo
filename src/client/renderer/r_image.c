@@ -245,11 +245,9 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 	}
 
 	if (image->depth) {
-		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, format, image->width, image->height, image->depth, 0,
-			input_format, type, data);
+		glTexImage3D(target, 0, format, image->width, image->height, image->depth, 0, input_format, type, data);
 	} else {
-		glTexImage2D(GL_TEXTURE_2D, 0, format, image->width, image->height, 0,
-			input_format, type, data);
+		glTexImage2D(target, 0, format, image->width, image->height, 0, input_format, type, data);
 	}
 
 	if (image->type & IT_MASK_MIPMAP) {
@@ -397,20 +395,34 @@ void R_DumpImage(const r_image_t *image, const char *output) {
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
-	glBindTexture(GL_TEXTURE_2D, image->texnum);
+	GLenum target;
+	switch (image->type) {
+		case IT_LIGHTMAP:
+			target = GL_TEXTURE_2D_ARRAY;
+			break;
+		case IT_LIGHTGRID:
+			target = GL_TEXTURE_3D;
+			break;
+		default:
+			target = GL_TEXTURE_2D;
+			break;
+	}
 
-	int32_t width, height;
+	glBindTexture(target, image->texnum);
 
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
+	int32_t width, height, depth;
 
-	GLubyte *pixels = Mem_Malloc(width * height * 4);
+	glGetTexLevelParameteriv(target, 0, GL_TEXTURE_WIDTH, &width);
+	glGetTexLevelParameteriv(target, 0, GL_TEXTURE_HEIGHT, &height);
+	glGetTexLevelParameteriv(target, 0, GL_TEXTURE_DEPTH, &depth);
 
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+	GLubyte *pixels = Mem_Malloc(width * height * depth * 4);
 
-	SDL_Surface *ss = SDL_CreateRGBSurfaceFrom(pixels, width, height, 32, width * 4, RMASK, GMASK, BMASK, AMASK);
-	IMG_SavePNG_RW(ss, f, 0);
-	SDL_FreeSurface(ss);
+	glGetTexImage(target, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+	SDL_Surface *surf = SDL_CreateRGBSurfaceFrom(pixels, width, height, 32, width * 4, RMASK, GMASK, BMASK, AMASK);
+	IMG_SavePNG_RW(surf, f, 0);
+	SDL_FreeSurface(surf);
 
 	Mem_Free(pixels);
 	SDL_RWclose(f);

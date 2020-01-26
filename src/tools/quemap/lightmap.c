@@ -87,13 +87,6 @@ static void BuildLightmapExtents(lightmap_t *lm) {
 static void BuildLightmapLuxels(lightmap_t *lm) {
 
 	lm->num_luxels = lm->w * lm->h;
-
-	if (lm->num_luxels > MAX_BSP_LIGHTMAP_LUXELS) {
-		const cm_winding_t *w = Cm_WindingForFace(&bsp_file, lm->face);
-		Mon_SendWinding(MON_ERROR, (const vec3_t *) w->points, w->num_points,
-						va("Surface too large to light (%zd)\n", lm->num_luxels));
-	}
-
 	lm->luxels = Mem_TagMalloc(lm->num_luxels * sizeof(luxel_t), MEM_TAG_LIGHTMAP);
 
 	luxel_t *l = lm->luxels;
@@ -736,65 +729,10 @@ void FinalizeLightmap(int32_t face_num) {
 	}
 }
 
-//typedef struct {
-//	bsp_node_t *node;
-//	SDL_Surface *lightmap;
-//	SDL_Surface *deluxemap;
-//} node_lightmap_t;
-//
-//static SDL_Surface *NodeLightmaps(const int32_t node_num) {
-//
-//	atlas_t *atlas = Atlas_Create(2);
-//	assert(atlas);
-//
-//	atlas_node_t *nodes[bsp_file.num_faces];
-//
-//	for (int32_t i = 0; i < bsp_file.num_faces; i++) {
-//		const lightmap_t *lm = &lightmaps[i];
-//
-//		if (lm->texinfo->flags & SURF_SKY) {
-//			continue;
-//		}
-//
-//		nodes[i] = Atlas_Insert(atlas, lm->lightmap, lm->deluxemap);
-//	}
-//
-//	bsp_lightmap_t *out = bsp_file.lightmaps;
-//	int32_t start = 0;
-//	do {
-//		if (bsp_file.num_lightmaps == MAX_BSP_LIGHTMAPS) {
-//			Com_Error(ERROR_FATAL, "MAX_BSP_LIGHTMAPS\n");
-//		}
-//
-//		const int32_t w = BSP_LIGHTMAP_WIDTH, h = BSP_LIGHTMAP_WIDTH;
-//
-//		SDL_Surface *lightmap = CreateLightmapSurface(w, h, out->layers[0]);
-//		SDL_Surface *deluxemap = CreateLightmapSurface(w, h, out->layers[1]);
-//
-//		start = Atlas_Compile(atlas, start, lightmap, deluxemap);
-//		if (start == -1) {
-//			Com_Error(ERROR_FATAL, "Lightmap too large to atlas\n");
-//		}
-//
-//		out++;
-//		bsp_file.num_lightmaps++;
-//
-//		IMG_SavePNG(lightmap, va("/tmp/%s_lm_%d.png", map_base, bsp_file.num_lightmaps));
-//		IMG_SavePNG(deluxemap, va("/tmp/%s_dm_%d.png", map_base, bsp_file.num_lightmaps));
-//
-//		SDL_FreeSurface(lightmap);
-//		SDL_FreeSurface(deluxemap);
-//
-//	} while (start > 0);
-//}
-
 /**
  * @brief
  */
-void EmitLightmaps(void) {
-
-	bsp_file.num_lightmaps = 0;
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTMAPS, MAX_BSP_LIGHTMAPS);
+void EmitLightmap(void) {
 
 	atlas_t *atlas = Atlas_Create(2);
 	assert(atlas);
@@ -811,33 +749,44 @@ void EmitLightmaps(void) {
 		nodes[i] = Atlas_Insert(atlas, lm->lightmap, lm->deluxemap);
 	}
 
-	bsp_lightmap_t *out = bsp_file.lightmaps;
-	int32_t start = 0;
-	do {
-		if (bsp_file.num_lightmaps == MAX_BSP_LIGHTMAPS) {
-			Com_Error(ERROR_FATAL, "MAX_BSP_LIGHTMAPS\n");
+	int32_t width;
+	for (width = MIN_BSP_LIGHTMAP_WIDTH; width <= MAX_BSP_LIGHTMAP_WIDTH; width += 256) {
+
+		const int32_t layer_size = width * width * BSP_LIGHTMAP_BPP;
+
+		bsp_file.lightmap_size = sizeof(bsp_lightmap_t) + layer_size * BSP_LIGHTMAP_LAYERS;
+
+		Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTMAP, bsp_file.lightmap_size);
+ 		memset(bsp_file.lightmap, 0, bsp_file.lightmap_size);
+
+		bsp_file.lightmap->width = width;
+
+		byte *out = (byte *) bsp_file.lightmap + sizeof(bsp_lightmap_t);
+
+		byte *out_lm = out + 0 * layer_size;
+		byte *out_dm = out + 1 * layer_size;
+
+		SDL_Surface *lightmap = CreateLightmapSurface(width, width, out_lm);
+		SDL_Surface *deluxemap = CreateLightmapSurface(width, width, out_dm);
+
+		if (Atlas_Compile(atlas, 0, lightmap, deluxemap) == 0) {
+
+//			IMG_SavePNG(lightmap, va("/tmp/%s_lm.png", map_base));
+//			IMG_SavePNG(deluxemap, va("/tmp/%s_dm.png", map_base));
+
+			SDL_FreeSurface(lightmap);
+			SDL_FreeSurface(deluxemap);
+
+			break;
 		}
-
-		const int32_t w = BSP_LIGHTMAP_WIDTH, h = BSP_LIGHTMAP_WIDTH;
-
-		SDL_Surface *lightmap = CreateLightmapSurface(w, h, out->layers[0]);
-		SDL_Surface *deluxemap = CreateLightmapSurface(w, h, out->layers[1]);
-
-		start = Atlas_Compile(atlas, start, lightmap, deluxemap);
-		if (start == -1) {
-			Com_Error(ERROR_FATAL, "Lightmap too large to atlas\n");
-		}
-
-		out++;
-		bsp_file.num_lightmaps++;
-
-		IMG_SavePNG(lightmap, va("/tmp/%s_lm_%d.png", map_base, bsp_file.num_lightmaps));
-		IMG_SavePNG(deluxemap, va("/tmp/%s_dm_%d.png", map_base, bsp_file.num_lightmaps));
 
 		SDL_FreeSurface(lightmap);
 		SDL_FreeSurface(deluxemap);
+	}
 
-	} while (start > 0);
+	if (width > MAX_BSP_LIGHTMAP_WIDTH) {
+		Com_Error(ERROR_FATAL, "MAX_BSP_LIGHTMAP_WIDTH\n");
+	}
 
 	for (int32_t i = 0; i < bsp_file.num_faces; i++) {
 		lightmap_t *lm = &lightmaps[i];
@@ -846,13 +795,10 @@ void EmitLightmaps(void) {
 			continue;
 		}
 
-		lm->face->lightmap.num = nodes[i]->tag;
 		lm->face->lightmap.s = lm->s = nodes[i]->x;
 		lm->face->lightmap.t = lm->t = nodes[i]->y;
 		lm->face->lightmap.w = lm->w;
 		lm->face->lightmap.h = lm->h;
-
-		lm->draw->lightmap = nodes[i]->tag;
 
 		SDL_FreeSurface(lm->lightmap);
 		SDL_FreeSurface(lm->deluxemap);
@@ -885,8 +831,8 @@ void EmitLightmapTexcoords(void) {
 			const vec_t padding_s = (lm->w - (lm->st_maxs[0] - lm->st_mins[0])) * 0.5;
 			const vec_t padding_t = (lm->h - (lm->st_maxs[1] - lm->st_mins[1])) * 0.5;
 
-			const vec_t s = (lm->s + padding_s + st[0]) / BSP_LIGHTMAP_WIDTH;
-			const vec_t t = (lm->t + padding_t + st[1]) / BSP_LIGHTMAP_WIDTH;
+			const vec_t s = (lm->s + padding_s + st[0]) / bsp_file.lightmap->width;
+			const vec_t t = (lm->t + padding_t + st[1]) / bsp_file.lightmap->width;
 
 			v->lightmap[0] = s;
 			v->lightmap[1] = t;

@@ -13,7 +13,7 @@
 /**
  * @brief BSP file format limits.
  */
-#define MAX_BSP_ENT_STRING		0x40000
+#define MAX_BSP_ENTITIES_SIZE	0x40000
 #define MAX_BSP_ENTITIES		0x800
 #define MAX_BSP_TEXINFO			0x4000
 #define MAX_BSP_PLANES			0x20000
@@ -31,24 +31,25 @@
 #define MAX_BSP_AREA_PORTALS	0x400
 #define MAX_BSP_AREAS			0x100
 #define MAX_BSP_PORTALS			0x20000
-#define MAX_BSP_VISIBILITY		0x200000
-#define MAX_BSP_LIGHTMAPS		0x10
-#define MAX_BSP_LIGHTGRID		0x1200000
+#define MAX_BSP_VIS_SIZE		0x200000
+#define MAX_BSP_LIGHTMAP_SIZE	0x60000000
+#define MAX_BSP_LIGHTGRID_SIZE	0x1200000
 
 /**
- * @brief Lightmap luxel size, in world units.
+ * @brief Lightmap luxel size in world units.
  */
-#define DEFAULT_BSP_LIGHTMAP_LUXEL_SIZE 4
+#define BSP_LIGHTMAP_LUXEL_SIZE 4
 
 /**
- * @brief Largest single lightmap allowed for a face, in luxels.
+ * @brief Smallest lightmap atlas width in luxels.
  */
-#define MAX_BSP_LIGHTMAP_LUXELS (1024 * 1024)
+#define MIN_BSP_LIGHTMAP_WIDTH 1024
 
 /**
- * @brief Lightmap atlas width and height.
+ * @brief Largest lightmap atlas width in luxels.
  */
-#define BSP_LIGHTMAP_WIDTH 2048
+#define MAX_BSP_LIGHTMAP_WIDTH 4096
+
 
 /**
  * @brief Lightmap atlas bytes per pixel.
@@ -56,19 +57,14 @@
 #define BSP_LIGHTMAP_BPP 3
 
 /**
- * @brief Lightmap atlas size in bytes.
+ * @brief Largest lightmap atlas layer size in bytes.
  */
-#define BSP_LIGHTMAP_LAYER_SIZE (BSP_LIGHTMAP_WIDTH * BSP_LIGHTMAP_WIDTH * BSP_LIGHTMAP_BPP)
+#define MAX_BSP_LIGHTMAP_LAYER_SIZE (MAX_BSP_LIGHTMAP_WIDTH * MAX_BSP_LIGHTMAP_WIDTH * BSP_LIGHTMAP_BPP)
 
 /**
  * @brief Lightmap and deluxemap.
  */
 #define BSP_LIGHTMAP_LAYERS 2
-
-/**
- * @brief Lightmap layered atlas size in bytes.
- */
-#define BSP_LIGHTMAP_SIZE (BSP_LIGHTMAP_SIZE * BSP_LIGHTMAP_LAYERS)
 
 /**
  * @brief Lightgrid luxel size in world units.
@@ -116,8 +112,8 @@ typedef enum {
 	BSP_LUMP_MODELS,
 	BSP_LUMP_AREA_PORTALS,
 	BSP_LUMP_AREAS,
-	BSP_LUMP_VISIBILITY,
-	BSP_LUMP_LIGHTMAPS,
+	BSP_LUMP_VIS,
+	BSP_LUMP_LIGHTMAP,
 	BSP_LUMP_LIGHTGRID,
 	BSP_LUMP_LAST
 } bsp_lump_id_t;
@@ -187,7 +183,6 @@ typedef struct {
 	int32_t num_elements;
 
 	struct {
-		int32_t num;
 		int32_t s, t;
 		int32_t w, h;
 	} lightmap;
@@ -198,7 +193,6 @@ typedef struct {
  */
 typedef struct {
 	int32_t texinfo;
-	int32_t lightmap;
 
 	int32_t first_face;
 	int32_t num_faces;
@@ -275,12 +269,12 @@ typedef struct {
 } bsp_vis_t;
 
 /**
- * @brief Lightmaps are atlas-packed, layered 24 bit texture objects, inlined in the BSP.
- * @details Each layer is 2048x2048 RGB at 24bpp. The first layer contains diffuse light
- * color, while the second layer contains diffuse light direction.
+ * @brief Lightmaps are atlas-packed, layered 24 bit texture objects of variable size.
+ * @details The first layer contains diffuse light color, while the second layer contains
+ * diffuse light direction.
  */
 typedef struct {
-	byte layers[BSP_LIGHTMAP_LAYERS][BSP_LIGHTMAP_LAYER_SIZE];
+	int32_t width;
 } bsp_lightmap_t;
 
 /**
@@ -351,8 +345,8 @@ typedef struct {
 	int32_t vis_size;
 	bsp_vis_t *vis;
 
-	int32_t num_lightmaps;
-	bsp_lightmap_t *lightmaps;
+	int32_t lightmap_size;
+	bsp_lightmap_t *lightmap;
 
 	int32_t lightgrid_size;
 	bsp_lightgrid_t *lightgrid;

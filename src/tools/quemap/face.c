@@ -204,7 +204,6 @@ int32_t EmitFace(const face_t *face) {
 	out->first_element = bsp_file.num_elements;
 	out->num_elements = EmitFaceElements(face, out->first_vertex);
 
-	out->lightmap.num = -1;
 	return (int32_t) (ptrdiff_t) (out - bsp_file.faces);
 }
 

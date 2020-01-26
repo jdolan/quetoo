@@ -50,10 +50,8 @@ static void R_RegisterModel(r_media_t *self) {
 			R_RegisterDependency(self, (r_media_t *) texinfo->material);
 		}
 
-		r_image_t **lightmap = mod->bsp->lightmaps;
-		for (i = 0; i < mod->bsp->num_lightmaps; i++, lightmap++) {
-			R_RegisterDependency(self, (r_media_t *) *lightmap);
-		}
+		R_RegisterDependency(self, (r_media_t *) mod->bsp->lightmap->atlas);
+		R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->grid);
 
 		// keep a reference to the world model
 		r_model_state.world = mod;
