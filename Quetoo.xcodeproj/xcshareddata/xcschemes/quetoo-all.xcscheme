@@ -93,7 +93,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map torn"
+            argument = "+map jgothic"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

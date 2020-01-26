@@ -307,10 +307,10 @@ typedef struct {
 	vec3_t mins, maxs;
 	vec2_t st_mins, st_maxs;
 
-	int32_t first_vertex;
+	r_bsp_vertex_t *vertexes;
 	int32_t num_vertexes;
 
-	int32_t first_element;
+	GLvoid *elements;
 	int32_t num_elements;
 } r_bsp_face_t;
 
@@ -321,7 +321,10 @@ typedef struct {
 	r_bsp_texinfo_t *texinfo;
 	r_bsp_lightmap_t *lightmap;
 
-	int32_t first_element;
+	r_bsp_face_t *faces;
+	int32_t num_faces;
+
+	GLvoid *elements;
 	int32_t num_elements;
 } r_bsp_draw_elements_t;
 

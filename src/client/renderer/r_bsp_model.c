@@ -180,10 +180,10 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 			out->texinfo = &null_texinfo;
 		}
 
-		out->first_vertex = in->first_vertex;
+		out->vertexes = bsp->vertexes + in->first_vertex;
 		out->num_vertexes = in->num_vertexes;
 
-		out->first_element = in->first_element;
+		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
 		out->num_elements = in->num_elements;
 
 		if (in->lightmap.num > -1) {
@@ -228,7 +228,8 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 			out->lightmap = bsp->lightmaps + in->lightmap;
 		}
 
-		out->first_element = in->first_element;
+		out->faces = bsp->faces + in->first_face;
+		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
 		out->num_elements = in->num_elements;
 	}
 }
@@ -350,7 +351,7 @@ static void R_SetupBspFace(r_bsp_model_t *bsp, r_bsp_leaf_t *leaf, r_bsp_face_t 
 	ClearStBounds(face->st_mins, face->st_maxs);
 	ClearStBounds(face->lightmap.st_mins, face->lightmap.st_maxs);
 
-	const r_bsp_vertex_t *v = bsp->vertexes + face->first_vertex;
+	const r_bsp_vertex_t *v = face->vertexes;
 	for (int32_t i = 0; i < face->num_vertexes; i++, v++) {
 		AddPointToBounds(v->position, face->mins, face->maxs);
 		AddStToBounds(v->diffuse, face->st_mins, face->st_maxs);
@@ -551,7 +552,9 @@ void R_ExportBsp_f(void) {
 
 			Fs_Print(file, "f ");
 
-			for (int32_t v = face->first_vertex; v < face->num_vertexes; v++) {
+			const r_bsp_vertex_t *vertex = face->vertexes;
+			for (int32_t j = 0; j < face->num_vertexes; j++, vertex++) {
+				const int32_t v = (int32_t) (ptrdiff_t) (vertex - world->bsp->vertexes);
 				Fs_Print(file, "%d/%d/%d", v, v, v);
 			}
 
