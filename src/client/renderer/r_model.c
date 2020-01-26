@@ -174,6 +174,8 @@ void R_InitModels(void) {
 	memset(&r_model_state, 0, sizeof(r_model_state));
 
 	Cmd_Add("r_export_bsp", R_ExportBsp_f, CMD_RENDERER, "Export the current map to a .obj model.");
+
+	R_InitBspProgram();
 }
 
 /**
@@ -181,5 +183,5 @@ void R_InitModels(void) {
  */
 void R_ShutdownModels(void) {
 
-	
+	R_ShutdownBspProgram();
 }

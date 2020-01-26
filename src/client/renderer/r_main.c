@@ -568,10 +568,6 @@ void R_Init(void) {
 
 	R_InitMedia();
 
-	R_GetError("Video initialization");
-
-	R_InitPrograms();
-
 	R_InitImages();
 
 	R_InitDraw();
@@ -585,6 +581,8 @@ void R_Init(void) {
 	R_InitSky();
 
 	R_InitMaterials();
+
+	R_GetError("Video initialization");
 
 	Com_Print("Video initialized %dx%d %s\n", r_context.width, r_context.height,
 	          (r_context.fullscreen ? "fullscreen" : "windowed"));
@@ -603,8 +601,6 @@ void R_Shutdown(void) {
 	R_ShutdownDraw();
 
 	R_ShutdownModels();
-
-	R_ShutdownPrograms();
 
 	R_ShutdownParticles();
 

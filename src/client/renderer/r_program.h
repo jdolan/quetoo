@@ -46,6 +46,4 @@ typedef struct {
 
 GLuint R_LoadShader(const r_shader_descriptor_t *desc);
 GLuint R_LoadProgram(const r_shader_descriptor_t *desc, ...);
-void R_InitPrograms(void);
-void R_ShutdownPrograms(void);
 #endif /* __R_LOCAL_H__ */
