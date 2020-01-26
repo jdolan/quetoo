@@ -142,13 +142,13 @@ static void R_DrawBspElements(const r_bsp_draw_elements_t *draw) {
 /**
  * @brief
  */
-static void R_DrawBspNode(const r_bsp_node_t *node) {
+static void R_DrawBspNode(const r_entity_t *e, const r_bsp_node_t *node) {
 
 	if (node->contents != CONTENTS_NODE) {
 		return;
 	}
 
-	if (node->model == NULL) {
+	if (e == NULL) {
 		if (node->vis_frame != r_locals.vis_frame) {
 			return;
 		}
@@ -167,7 +167,7 @@ static void R_DrawBspNode(const r_bsp_node_t *node) {
 		side = 1;
 	}
 
-	R_DrawBspNode(node->children[side]);
+	R_DrawBspNode(e, node->children[side]);
 
 	if (r_draw_bsp_nodes->value) {
 		const vec4_t colors[] = {
@@ -205,7 +205,7 @@ static void R_DrawBspNode(const r_bsp_node_t *node) {
 
 	r_view.num_bsp_nodes++;
 
-	R_DrawBspNode(node->children[!side]);
+	R_DrawBspNode(e, node->children[!side]);
 }
 
 /**
@@ -230,7 +230,7 @@ static void R_DrawBspEntity(const r_entity_t *e) {
 	glUniformMatrix4fv(r_bsp_program.model_view, 1, GL_FALSE, (GLfloat *) model_view.m);
 	glUniformMatrix4fv(r_bsp_program.normal, 1, GL_FALSE, (GLfloat *) normal.m);
 
-	R_DrawBspNode(e->model->bsp_inline->head_node);
+	R_DrawBspNode(e, e->model->bsp_inline->head_node);
 }
 
 /**
@@ -280,7 +280,7 @@ void R_DrawWorld(void) {
 		glDisableVertexAttribArray(r_bsp_program.in_color);
 	}
 
-	R_DrawBspNode(bsp->nodes);
+	R_DrawBspNode(NULL, bsp->nodes);
 
 	const r_entity_t *e = r_view.entities;
 	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
