@@ -217,7 +217,7 @@ typedef struct {
 	int32_t first_face;
 	int32_t num_faces; // counting both sides
 
-	int32_t first_draw_element;
+	int32_t first_draw_elements;
 	int32_t num_draw_elements;
 } bsp_node_t;
 
@@ -245,6 +245,9 @@ typedef struct {
 
 	int32_t first_face;
 	int32_t num_faces;
+
+	int32_t first_draw_elements;
+	int32_t num_draw_elements;
 } bsp_model_t;
 
 // each area has a list of portals that lead into other areas

@@ -102,9 +102,9 @@ void R_CullEntities(void) {
 
 		if (IS_BSP_INLINE_MODEL(e->model)) {
 
-			if (R_CullBspInlineModel(e)) {
-				continue;
-			}
+//			if (R_CullBspInlineModel(e)) {
+//				continue;
+//			}
 
 			ents = &r_sorted_entities.bsp_inline_entities;
 		} else if (IS_MESH_MODEL(e->model)) {
@@ -258,7 +258,7 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
  */
 void R_DrawEntities(void) {
 
-	R_DrawBspInlineModels(&r_sorted_entities.bsp_inline_entities);
+	//R_DrawBspInlineModels(&r_sorted_entities.bsp_inline_entities);
 
 	R_DrawMeshModels(&r_sorted_entities.mesh_entities);
 

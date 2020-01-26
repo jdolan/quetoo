@@ -279,15 +279,11 @@ typedef struct {
 	r_particle_t particle;
 } r_bsp_flare_t;
 
-typedef struct {
-	r_image_t *atlas;
-} r_bsp_lightmap_t;
-
 /**
  * @brief Each indivudual surface lightmap has a projection matrix.
  */
 typedef struct {
-	r_bsp_lightmap_t *atlas; // the lightmap atlas containing this lightmap
+	r_image_t *atlas; // the lightmap atlas containing this lightmap
 
 	r_pixel_t s, t; // the texture coordinates into the atlas image
 	r_pixel_t w, h;
@@ -307,6 +303,8 @@ typedef struct {
 	vec3_t mins, maxs;
 	vec2_t st_mins, st_maxs;
 
+	struct r_bsp_node_s *node;
+
 	r_bsp_vertex_t *vertexes;
 	int32_t num_vertexes;
 
@@ -319,13 +317,16 @@ typedef struct {
  */
 typedef struct {
 	r_bsp_texinfo_t *texinfo;
-	r_bsp_lightmap_t *lightmap;
+	r_image_t *lightmap;
+
+	struct r_bsp_node_s *node;
 
 	r_bsp_face_t *faces;
 	int32_t num_faces;
 
 	GLvoid *elements;
 	int32_t num_elements;
+
 } r_bsp_draw_elements_t;
 
 /**
@@ -346,11 +347,11 @@ typedef struct r_bsp_node_s {
 	// common with leaf
 	int32_t contents; // -1, to differentiate from leafs
 
-	vec3_t mins; // for bounded box culling
+	vec3_t mins; // for frustum culling
 	vec3_t maxs;
 
 	struct r_bsp_node_s *parent;
-	struct r_model_s *model;
+	struct r_bsp_inline_model_s *model;
 
 	int32_t vis_frame;
 
@@ -363,6 +364,8 @@ typedef struct r_bsp_node_s {
 
 	int32_t num_draw_elements;
 	r_bsp_draw_elements_t *draw_elements;
+
+	int64_t lights;
 } r_bsp_node_t;
 
 /**
@@ -373,7 +376,7 @@ typedef struct r_bsp_node_s {
  */
 typedef struct {
 	// common with node
-	int32_t contents; // will be a negative contents number
+	int32_t contents;
 
 	vec3_t mins; // for frustum culling
 	vec3_t maxs;
@@ -389,12 +392,10 @@ typedef struct {
 
 	int32_t num_leaf_faces;
 	r_bsp_face_t **leaf_faces;
-
-	int64_t lights;
 } r_bsp_leaf_t;
 
 // bsp model memory representation
-typedef struct {
+typedef struct r_bsp_inline_model_s {
 	r_bsp_node_t *head_node;
 
 	vec3_t mins;
@@ -402,6 +403,9 @@ typedef struct {
 
 	r_bsp_face_t *faces;
 	int32_t num_faces;
+
+	r_bsp_draw_elements_t *draw_elements;
+	int32_t num_draw_elements;
 } r_bsp_inline_model_t;
 
 /**
@@ -421,13 +425,14 @@ typedef struct {
 	GLuint *elements;
 
 	int32_t num_lightmaps;
-	r_bsp_lightmap_t *lightmaps;
+	r_image_t **lightmaps;
 
 	int32_t num_faces;
 	r_bsp_face_t *faces;
 
 	int32_t num_draw_elements;
 	r_bsp_draw_elements_t *draw_elements;
+	r_bsp_draw_elements_t **draw_elements_sorted;
 
 	int32_t num_leaf_faces;
 	r_bsp_face_t **leaf_faces;

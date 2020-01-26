@@ -63,7 +63,9 @@ extern r_view_t r_view;
 void R_GetError_(const char *function, const char *msg);
 #define R_GetError(msg) R_GetError_(__func__, msg)
 
-void R_Color(const vec4_t color);
+void R_Color(const vec4_t color); // FIXME: this has to go
+_Bool R_CullBox(const vec3_t mins, const vec3_t maxs);
+_Bool R_CullSphere(const vec3_t point, const vec_t radius);
 void R_Init(void);
 void R_Shutdown(void);
 void R_LoadMedia(void);
@@ -104,22 +106,18 @@ typedef struct {
 	matrix4x4_t model_view;
 
 	/**
-	 * @brief The inverse model view matrix.
+	 * @brief The leaf in which the view origin resides.
 	 */
-	matrix4x4_t inverse_model_view;
-
-	/**
-	 * @brief The inverse transpose model view matrix (the normal matrix).
-	 */
-	matrix4x4_t inverse_transpose_model_view;
-
 	const r_bsp_leaf_t *leaf; // the leaf at the view origin
 
-	byte vis_data_pvs[MAX_BSP_LEAFS >> 3]; // decompressed PVS at origin
-	byte vis_data_phs[MAX_BSP_LEAFS >> 3]; // decompressed PHS at origin
+	/**
+	 * @brief The PVS and PHS data at the view origin.
+	 */
+	byte vis_data_pvs[MAX_BSP_LEAFS >> 3];
+	byte vis_data_phs[MAX_BSP_LEAFS >> 3];
 
 	int32_t vis_frame;
-	int32_t frame;
+//	int32_t frame;
 
 	cm_bsp_plane_t frustum[4]; // for box culling
 } r_locals_t;
@@ -132,7 +130,6 @@ extern cvar_t *r_clear;
 extern cvar_t *r_cull;
 extern cvar_t *r_lock_vis;
 extern cvar_t *r_no_vis;
-extern cvar_t *r_draw_bsp_nodes;
 extern cvar_t *r_draw_bsp_lightmaps;
 extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_wireframe;

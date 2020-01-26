@@ -45,14 +45,14 @@ static void R_RegisterModel(r_media_t *self) {
 	if (mod->type == MOD_BSP) {
 		uint16_t i;
 
-		const r_bsp_texinfo_t *t = mod->bsp->texinfo;
-		for (i = 0; i < mod->bsp->num_texinfo; i++, t++) {
-			R_RegisterDependency(self, (r_media_t *) t->material);
+		r_bsp_texinfo_t *texinfo = mod->bsp->texinfo;
+		for (i = 0; i < mod->bsp->num_texinfo; i++, texinfo++) {
+			R_RegisterDependency(self, (r_media_t *) texinfo->material);
 		}
 
-		const r_bsp_lightmap_t *l = mod->bsp->lightmaps;
-		for (i = 0; i < mod->bsp->num_lightmaps; i++, l++) {
-			R_RegisterDependency(self, (r_media_t *) l->atlas);
+		r_image_t **lightmap = mod->bsp->lightmaps;
+		for (i = 0; i < mod->bsp->num_lightmaps; i++, lightmap++) {
+			R_RegisterDependency(self, (r_media_t *) *lightmap);
 		}
 
 		// keep a reference to the world model

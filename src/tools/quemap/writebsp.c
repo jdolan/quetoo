@@ -44,8 +44,6 @@ static void EmitPlanes(void) {
 	}
 }
 
-#define SURF_DRAW_ELEMENTS_MASK  ~(SURF_LIGHT | SURF_PHONG | SURF_NO_WELD | SURF_DEBUG_LUXEL)
-
 /**
  * @brief Draw elements comparator to sort texinfo.
  */
@@ -56,8 +54,8 @@ static int32_t TexinfoCmp(const int32_t a, const int32_t b) {
 
 	int32_t order = strcmp(a_tex->texture, b_tex->texture);
 	if (order == 0) {
-		const int32_t a_flags = (a_tex->flags & SURF_DRAW_ELEMENTS_MASK);
-		const int32_t b_flags = (b_tex->flags & SURF_DRAW_ELEMENTS_MASK);
+		const int32_t a_flags = (a_tex->flags & SURF_TEXINFO_CMP);
+		const int32_t b_flags = (b_tex->flags & SURF_TEXINFO_CMP);
 		order = a_flags - b_flags;
 	}
 
@@ -272,7 +270,7 @@ static int32_t EmitNode(node_t *node) {
 		out->first_face = bsp_file.num_faces;
 		out->num_faces = EmitFaces(node);
 
-		out->first_draw_element = bsp_file.num_draw_elements;
+		out->first_draw_elements = bsp_file.num_draw_elements;
 		out->num_draw_elements = EmitDrawElements(out);
 
 		c_facenodes++;
@@ -475,6 +473,7 @@ void BeginModel(void) {
 	bsp_model_t *mod = &bsp_file.models[bsp_file.num_models];
 
 	mod->first_face = bsp_file.num_faces;
+	mod->first_draw_elements = bsp_file.num_draw_elements;
 
 	// bound the brushes
 	const entity_t *e = &entities[entity_num];
@@ -505,6 +504,7 @@ void EndModel(void) {
 	bsp_model_t *mod = &bsp_file.models[bsp_file.num_models];
 
 	mod->num_faces = bsp_file.num_faces - mod->first_face;
+	mod->num_draw_elements = bsp_file.num_draw_elements - mod->first_draw_elements;
 
 	bsp_file.num_models++;
 }

@@ -736,6 +736,58 @@ void FinalizeLightmap(int32_t face_num) {
 	}
 }
 
+//typedef struct {
+//	bsp_node_t *node;
+//	SDL_Surface *lightmap;
+//	SDL_Surface *deluxemap;
+//} node_lightmap_t;
+//
+//static SDL_Surface *NodeLightmaps(const int32_t node_num) {
+//
+//	atlas_t *atlas = Atlas_Create(2);
+//	assert(atlas);
+//
+//	atlas_node_t *nodes[bsp_file.num_faces];
+//
+//	for (int32_t i = 0; i < bsp_file.num_faces; i++) {
+//		const lightmap_t *lm = &lightmaps[i];
+//
+//		if (lm->texinfo->flags & SURF_SKY) {
+//			continue;
+//		}
+//
+//		nodes[i] = Atlas_Insert(atlas, lm->lightmap, lm->deluxemap);
+//	}
+//
+//	bsp_lightmap_t *out = bsp_file.lightmaps;
+//	int32_t start = 0;
+//	do {
+//		if (bsp_file.num_lightmaps == MAX_BSP_LIGHTMAPS) {
+//			Com_Error(ERROR_FATAL, "MAX_BSP_LIGHTMAPS\n");
+//		}
+//
+//		const int32_t w = BSP_LIGHTMAP_WIDTH, h = BSP_LIGHTMAP_WIDTH;
+//
+//		SDL_Surface *lightmap = CreateLightmapSurface(w, h, out->layers[0]);
+//		SDL_Surface *deluxemap = CreateLightmapSurface(w, h, out->layers[1]);
+//
+//		start = Atlas_Compile(atlas, start, lightmap, deluxemap);
+//		if (start == -1) {
+//			Com_Error(ERROR_FATAL, "Lightmap too large to atlas\n");
+//		}
+//
+//		out++;
+//		bsp_file.num_lightmaps++;
+//
+//		IMG_SavePNG(lightmap, va("/tmp/%s_lm_%d.png", map_base, bsp_file.num_lightmaps));
+//		IMG_SavePNG(deluxemap, va("/tmp/%s_dm_%d.png", map_base, bsp_file.num_lightmaps));
+//
+//		SDL_FreeSurface(lightmap);
+//		SDL_FreeSurface(deluxemap);
+//
+//	} while (start > 0);
+//}
+
 /**
  * @brief
  */

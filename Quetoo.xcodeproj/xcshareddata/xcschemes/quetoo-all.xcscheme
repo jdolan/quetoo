@@ -66,11 +66,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_fullscreen 0 +set r_width 1280 +set r_height 800 +set r_display 0"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_fullscreen 1 +set r_width 0 +set r_height 0 +set r_display 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_bsp_lightmaps 1 +set r_texture_mode GL_NEAREST"
@@ -86,14 +86,14 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_bsp_nodes 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set ai_ann 1 +g_ai_add +debug ai"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map jgothic"
+            argument = "+map torn"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

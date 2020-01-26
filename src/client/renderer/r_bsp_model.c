@@ -120,26 +120,22 @@ static void R_LoadBspElements(r_bsp_model_t *bsp) {
 static void R_LoadBspLightmaps(r_bsp_model_t *bsp) {
 
 	bsp->num_lightmaps = bsp->cm->file.num_lightmaps;
-	r_bsp_lightmap_t *out = bsp->lightmaps = Mem_LinkMalloc(sizeof(*out) * bsp->num_lightmaps, bsp);
+	r_image_t **out = bsp->lightmaps = Mem_LinkMalloc(sizeof(*out) * bsp->num_lightmaps, bsp);
 
 	const bsp_lightmap_t *in = bsp->cm->file.lightmaps;
 	for (int32_t i = 0; i < bsp->num_lightmaps; i++, in++, out++) {
 		char name[MAX_QPATH];
 
 		g_snprintf(name, sizeof(name), "lightmap %d", i);
-		out->atlas = (r_image_t *) R_AllocMedia(name, sizeof(r_image_t), MEDIA_IMAGE);
-		out->atlas->media.Free = R_FreeImage;
-		out->atlas->type = IT_LIGHTMAP;
-		out->atlas->width = BSP_LIGHTMAP_WIDTH;
-		out->atlas->height = BSP_LIGHTMAP_WIDTH;
-		out->atlas->depth = BSP_LIGHTMAP_LAYERS;
+		r_image_t *lightmap = (r_image_t *) R_AllocMedia(name, sizeof(r_image_t), MEDIA_IMAGE);
+		lightmap->media.Free = R_FreeImage;
+		lightmap->type = IT_LIGHTMAP;
+		lightmap->width = BSP_LIGHTMAP_WIDTH;
+		lightmap->height = BSP_LIGHTMAP_WIDTH;
+		lightmap->depth = BSP_LIGHTMAP_LAYERS;
 
-		R_UploadImage(out->atlas, GL_RGB8, (byte *) in->layers);
-	}
-
-	if (bsp->num_lightmaps == 0) {
-		bsp->lightmaps = Mem_LinkMalloc(sizeof(r_bsp_lightmap_t), bsp);
-		bsp->lightmaps->atlas = r_image_state.null;
+		R_UploadImage(lightmap, GL_RGB8, (byte *) in->layers);
+		*out = lightmap;
 	}
 }
 
@@ -190,7 +186,7 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 			if (in->lightmap.num >= bsp->num_lightmaps) {
 				Com_Error(ERROR_FATAL, "Bad lightmap number: %d\n", in->lightmap.num);
 			}
-			out->lightmap.atlas = bsp->lightmaps + in->lightmap.num;
+			out->lightmap.atlas = *(bsp->lightmaps + in->lightmap.num);
 
 			out->lightmap.s = in->lightmap.s;
 			out->lightmap.t = in->lightmap.t;
@@ -203,11 +199,33 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 /**
  * @brief
  */
+static int32_t R_DrawElementsCmp(const void *a, const void *b) {
+
+	r_bsp_draw_elements_t *a_draw = *(r_bsp_draw_elements_t **) a;
+	r_bsp_draw_elements_t *b_draw = *(r_bsp_draw_elements_t **) b;
+
+	int32_t order = strcmp(a_draw->texinfo->texture, b_draw->texinfo->texture);
+	if (order == 0) {
+		const int32_t a_flags = (a_draw->texinfo->flags & SURF_TEXINFO_CMP);
+		const int32_t b_flags = (b_draw->texinfo->flags & SURF_TEXINFO_CMP);
+		order = a_flags - b_flags;
+		if (order == 0) {
+			order = (int32_t) (ptrdiff_t) (a_draw->lightmap - b_draw->lightmap);
+		}
+	}
+
+	return order;
+}
+
+/**
+ * @brief
+ */
 static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 	r_bsp_draw_elements_t *out;
 
 	bsp->num_draw_elements = bsp->cm->file.num_draw_elements;
 	bsp->draw_elements = out = Mem_LinkMalloc(bsp->num_draw_elements * sizeof(*out), bsp);
+	bsp->draw_elements_sorted = Mem_LinkMalloc(bsp->num_draw_elements * sizeof (out), bsp);
 
 	const bsp_draw_elements_t *in = bsp->cm->file.draw_elements;
 	for (int32_t i = 0; i < bsp->num_draw_elements; i++, in++, out++) {
@@ -225,13 +243,19 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 			if (in->lightmap >= bsp->num_lightmaps) {
 				Com_Error(ERROR_FATAL, "Bad lightmap number: %d\n", in->lightmap);
 			}
-			out->lightmap = bsp->lightmaps + in->lightmap;
+			out->lightmap = *(bsp->lightmaps + in->lightmap);
 		}
 
+		out->num_faces = in->num_faces;
 		out->faces = bsp->faces + in->first_face;
-		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
+
 		out->num_elements = in->num_elements;
+		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
+
+		bsp->draw_elements_sorted[i] = out;
 	}
+
+	qsort(bsp->draw_elements_sorted, bsp->num_draw_elements, sizeof(out), R_DrawElementsCmp);
 }
 
 /**
@@ -258,23 +282,6 @@ static void R_LoadBspLeafFaces(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Recurses the BSP tree, setting the parent field on each node. The
- * recursion stops at leafs. This is used by the PVS algorithm to mark a path
- * to the BSP leaf in which the view origin resides.
- */
-static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent) {
-
-	node->parent = parent;
-
-	if (node->contents != CONTENTS_NODE) {
-		return;
-	}
-
-	R_SetupBspNode(node->children[0], node);
-	R_SetupBspNode(node->children[1], node);
-}
-
-/**
  * @brief Loads all r_bsp_node_t for the specified BSP model.
  */
 static void R_LoadBspNodes(r_bsp_model_t *bsp) {
@@ -293,17 +300,16 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 		const int32_t p = in->plane_num;
 		out->plane = bsp->cm->planes + p;
 
-		out->num_faces = in->num_faces;
 		out->faces = bsp->faces + in->first_face;
+		out->num_faces = in->num_faces;
 
+		out->draw_elements = bsp->draw_elements + in->first_draw_elements;
 		out->num_draw_elements = in->num_draw_elements;
-		out->draw_elements = bsp->draw_elements + in->first_draw_element;
 
 		out->contents = CONTENTS_NODE; // differentiate from leafs
 
 		for (int32_t j = 0; j < 2; j++) {
 			const int32_t c = in->children[j];
-
 			if (c >= 0) {
 				out->children[j] = bsp->nodes + c;
 			} else {
@@ -311,8 +317,6 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 			}
 		}
 	}
-
-	R_SetupBspNode(bsp->nodes, NULL); // sets nodes and leafs
 }
 
 /**
@@ -378,51 +382,33 @@ static void R_SetupBspFaces(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Recurses the specified sub-model nodes, assigning the model so that it can
- * be quickly resolved during traces and dynamic light processing.
+ * @brief
  */
-static void R_SetupBspInlineModel(r_model_t *model, r_bsp_node_t *node) {
+static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent, r_bsp_inline_model_t *model) {
 
+	node->parent = parent;
 	node->model = model;
 
 	if (node->contents != CONTENTS_NODE) {
 		return;
 	}
 
-	R_SetupBspInlineModel(model, node->children[0]);
-	R_SetupBspInlineModel(model, node->children[1]);
-}
-
-/**
- * @brief The inline models have been loaded into memory, but are not yet
- * represented as r_model_t. Convert them, and take ownership of their nodes.
- */
-static void R_SetupBspInlineModels(r_model_t *mod) {
-
-	for (int32_t i = 0; i < mod->bsp->num_inline_models; i++) {
-		r_model_t *m = Mem_TagMalloc(sizeof(r_model_t), MEM_TAG_RENDERER);
-
-		g_snprintf(m->media.name, sizeof(m->media.name), "%s#%d", mod->media.name, i);
-		m->type = MOD_BSP_INLINE;
-
-		m->bsp_inline = &mod->bsp->inline_models[i];
-
-		// copy bounds from the inline model
-		VectorCopy(m->bsp_inline->maxs, m->maxs);
-		VectorCopy(m->bsp_inline->mins, m->mins);
-//		m->radius = m->bsp_inline->radius;
-
-		// setup the nodes
-		R_SetupBspInlineModel(m, m->bsp_inline->head_node);
-
-		// register with the subsystem
-		R_RegisterDependency((r_media_t *) mod, (r_media_t *) m);
+	r_bsp_face_t *face = node->faces;
+	for (int32_t i = 0; i < node->num_faces; i++, face++) {
+		face->node = node;
 	}
+
+	r_bsp_draw_elements_t *draw = node->draw_elements;
+	for (int32_t i = 0; i < node->num_draw_elements; i++, draw++) {
+		draw->node = node;
+	}
+
+	R_SetupBspNode(node->children[0], node, model);
+	R_SetupBspNode(node->children[1], node, model);
 }
 
 /**
- * @brief Loads all r_bsp_inline_model_t for the specified BSP model. These are
- * later registered as first-class r_model_t's in R_SetupBspInlineModels.
+ * @brief
  */
 static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 	r_bsp_inline_model_t *out;
@@ -443,6 +429,32 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 
 		out->faces = bsp->faces + in->first_face;
 		out->num_faces = in->num_faces;
+
+		out->draw_elements = bsp->draw_elements + in->first_draw_elements;
+		out->num_draw_elements = in->num_draw_elements;
+
+		R_SetupBspNode(out->head_node, NULL, out);
+	}
+}
+
+/**
+ * @brief Creates an r_model_t for each inline model so that entities may reference them.
+ */
+static void R_SetupBspInlineModels(r_model_t *world) {
+
+	r_bsp_inline_model_t *in = world->bsp->inline_models;
+	for (int32_t i = 0; i < world->bsp->num_inline_models; i++, in++) {
+
+		r_model_t *out = Mem_TagMalloc(sizeof(r_model_t), MEM_TAG_RENDERER);
+
+		g_snprintf(out->media.name, sizeof(world->media.name), "%s#%d", world->media.name, i);
+		out->type = MOD_BSP_INLINE;
+		out->bsp_inline = in;
+
+		VectorCopy(in->maxs, out->maxs);
+		VectorCopy(in->mins, out->mins);
+
+		R_RegisterDependency(&world->media, &out->media);
 	}
 }
 
@@ -670,7 +682,7 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Cl_LoadingProgress(46, "inline models");
 	R_LoadBspInlineModels(mod->bsp);
 
-	Cl_LoadingProgress(52, "inline models");
+	Cl_LoadingProgress(50, "inline models");
 	R_SetupBspInlineModels(mod);
 
 	Cl_LoadingProgress(56, "arrays");

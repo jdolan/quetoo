@@ -372,6 +372,8 @@ typedef enum {
 #define SURF_NO_WELD			0x2000 // don't weld (merge vertices) during face creation
 #define SURF_DEBUG_LUXEL		0x10000000 // generate luxel debugging information in quemap
 
+#define SURF_TEXINFO_CMP        ~(SURF_LIGHT | SURF_PHONG | SURF_NO_WELD | SURF_DEBUG_LUXEL)
+
 /**
  * @brief Contents masks: frequently combined contents flags.
  */

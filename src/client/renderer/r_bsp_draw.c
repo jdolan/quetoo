@@ -91,106 +91,27 @@ static struct {
 /**
  * @brief
  */
-static void R_DrawBspElements(const r_bsp_draw_elements_t *draw) {
+static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in) {
 
-	const r_material_t *material = draw->texinfo->material;
+	const r_bsp_model_t *bsp = r_model_state.world->bsp;
 
-	GLint textures = TEXTURE_MASK_DIFFUSE;
+	const r_material_t *material = NULL;
+	const r_image_t *lightmap = NULL;
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSE);
-	glBindTexture(GL_TEXTURE_2D, material->diffuse->texnum);
+	GLint textures = 0;
 
-	if (material->normalmap) {
-		textures |= TEXTURE_MASK_NORMALMAP;
+	r_bsp_draw_elements_t **sorted = bsp->draw_elements_sorted;
+	for (int32_t i = 0; i < bsp->num_draw_elements; i++, sorted++) {
 
-		glActiveTexture(GL_TEXTURE0 + TEXTURE_NORMALMAP);
-		glBindTexture(GL_TEXTURE_2D, material->normalmap->texnum);
-	}
+		const r_bsp_draw_elements_t *draw = *sorted;
 
-	if (material->glossmap) {
-		textures |= TEXTURE_MASK_GLOSSMAP;
-
-		glActiveTexture(GL_TEXTURE0 + TEXTURE_GLOSSMAP);
-		glBindTexture(GL_TEXTURE_2D, material->glossmap->texnum);
-	}
-
-	if (draw->lightmap) {
-		textures |= TEXTURE_MASK_LIGHTMAP;
-		textures |= TEXTURE_MASK_DELUXEMAP;
-		textures |= TEXTURE_MASK_STAINMAP;
-
-		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
-		glBindTexture(GL_TEXTURE_2D_ARRAY, draw->lightmap->atlas->texnum);
-	}
-
-	switch (r_draw_bsp_lightmaps->integer) {
-		case 1:
-			textures = TEXTURE_MASK_LIGHTMAP;
-			break;
-		case 2:
-			textures = TEXTURE_MASK_DELUXEMAP;
-			break;
-	}
-
-	glUniform1i(r_bsp_program.textures, textures);
-
-	glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
-
-	r_view.num_bsp_draw_elements++;
-}
-
-/**
- * @brief
- */
-static void R_DrawBspNode(const r_entity_t *e, const r_bsp_node_t *node) {
-
-	if (node->contents != CONTENTS_NODE) {
-		return;
-	}
-
-	if (e == NULL) {
-		if (node->vis_frame != r_locals.vis_frame) {
-			return;
+		if (draw->node->model != in) {
+			continue;
 		}
 
-		if (R_CullBox(node->mins, node->maxs)) {
-			return;
+		if (draw->node->vis_frame != r_locals.vis_frame) {
+			continue;
 		}
-	}
-
-	const vec_t dist = Cm_DistanceToPlane(r_view.origin, node->plane);
-
-	int32_t side;
-	if (dist > SIDE_EPSILON) {
-		side = 0;
-	} else {
-		side = 1;
-	}
-
-	R_DrawBspNode(e, node->children[side]);
-
-	if (r_draw_bsp_nodes->value) {
-		const vec4_t colors[] = {
-			{ 0.8, 0.2, 0.2, 1.0 },
-			{ 0.2, 0.8, 0.2, 1.0 },
-			{ 0.2, 0.2, 0.8, 1.0 },
-			{ 0.8, 0.8, 0.2, 1.0 },
-			{ 0.2, 0.8, 0.8, 1.0 },
-			{ 0.8, 0.2, 0.8, 1.0 },
-			{ 0.8, 0.4, 0.2, 1.0 },
-			{ 0.4, 0.8, 0.2, 1.0 },
-			{ 0.2, 0.4, 0.8, 1.0 },
-		};
-
-		const ptrdiff_t color = node - r_model_state.world->bsp->nodes;
-
-		glVertexAttrib4fv(r_bsp_program.in_color, colors[color % lengthof(colors)]);
-	}
-
-	glUniform1i(r_bsp_program.contents, node->contents);
-
-	const r_bsp_draw_elements_t *draw = node->draw_elements;
-	for (int32_t i = 0; i < node->num_draw_elements; i++, draw++) {
 
 		if (draw->texinfo->flags & SURF_SKY) {
 			continue;
@@ -200,22 +121,72 @@ static void R_DrawBspNode(const r_entity_t *e, const r_bsp_node_t *node) {
 			continue;
 		}
 
-		R_DrawBspElements(draw);
+		if (draw->texinfo->flags & (SURF_BLEND_33 | SURF_BLEND_66)) {
+			continue;
+		}
+
+		GLint tex = textures;
+
+		if (draw->texinfo->material != material) {
+			material = draw->texinfo->material;
+
+			tex |= TEXTURE_MASK_DIFFUSE;
+			glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSE);
+			glBindTexture(GL_TEXTURE_2D, material->diffuse->texnum);
+
+			if (material->normalmap) {
+				tex |= TEXTURE_MASK_NORMALMAP;
+				glActiveTexture(GL_TEXTURE0 + TEXTURE_NORMALMAP);
+				glBindTexture(GL_TEXTURE_2D, material->normalmap->texnum);
+			} else {
+				tex &= ~TEXTURE_MASK_NORMALMAP;
+			}
+
+			if (material->glossmap) {
+				tex |= TEXTURE_MASK_GLOSSMAP;
+				glActiveTexture(GL_TEXTURE0 + TEXTURE_GLOSSMAP);
+				glBindTexture(GL_TEXTURE_2D, material->glossmap->texnum);
+			} else {
+				tex &= ~TEXTURE_MASK_GLOSSMAP;
+			}
+
+			glUniform1f(r_bsp_program.bump, material->cm->bump);
+			glUniform1f(r_bsp_program.parallax, material->cm->parallax);
+			glUniform1f(r_bsp_program.hardness, material->cm->hardness);
+			glUniform1f(r_bsp_program.specular, material->cm->specular);
+		}
+
+		if (draw->lightmap != lightmap) {
+			lightmap = draw->lightmap;
+
+			if (draw->lightmap) {
+				tex |= TEXTURE_MASK_LIGHTMAP;
+				tex |= TEXTURE_MASK_DELUXEMAP;
+				tex |= TEXTURE_MASK_STAINMAP;
+				glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
+				glBindTexture(GL_TEXTURE_2D_ARRAY, draw->lightmap->texnum);
+			} else {
+				tex &= ~TEXTURE_MASK_LIGHTMAP;
+				tex &= ~TEXTURE_MASK_DELUXEMAP;
+				tex &= ~TEXTURE_MASK_STAINMAP;
+			}
+		}
+
+		if (tex != textures) {
+			textures = tex;
+			glUniform1i(r_bsp_program.textures, textures);
+		}
+
+		glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
+
+		r_view.num_bsp_draw_elements++;
 	}
-
-	r_view.num_bsp_nodes++;
-
-	R_DrawBspNode(e, node->children[!side]);
 }
 
 /**
  * @brief
  */
 static void R_DrawBspEntity(const r_entity_t *e) {
-
-	if (R_CullBspInlineModel(e)) {
-		return;
-	}
 
 	matrix4x4_t transform;
 	Matrix4x4_CreateFromEntity(&transform, e->origin, e->angles, e->scale);
@@ -230,7 +201,7 @@ static void R_DrawBspEntity(const r_entity_t *e) {
 	glUniformMatrix4fv(r_bsp_program.model_view, 1, GL_FALSE, (GLfloat *) model_view.m);
 	glUniformMatrix4fv(r_bsp_program.normal, 1, GL_FALSE, (GLfloat *) normal.m);
 
-	R_DrawBspNode(e, e->model->bsp_inline->head_node);
+	R_DrawBspDrawElements(e->model->bsp_inline);
 }
 
 /**
@@ -249,9 +220,13 @@ void R_DrawWorld(void) {
 
 	glUseProgram(r_bsp_program.name);
 
+	matrix4x4_t normal;
+	Matrix4x4_Invert_Full(&normal, &r_locals.model_view);
+	Matrix4x4_Transpose(&normal, &normal);
+
 	glUniformMatrix4fv(r_bsp_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
 	glUniformMatrix4fv(r_bsp_program.model_view, 1, GL_FALSE, (GLfloat *) r_locals.model_view.m);
-	glUniformMatrix4fv(r_bsp_program.normal, 1, GL_FALSE, (GLfloat *) r_locals.inverse_transpose_model_view.m);
+	glUniformMatrix4fv(r_bsp_program.normal, 1, GL_FALSE, (GLfloat *) normal.m);
 
 	glUniform1f(r_bsp_program.alpha_threshold, 0.f);
 
@@ -276,11 +251,7 @@ void R_DrawWorld(void) {
 	glEnableVertexAttribArray(r_bsp_program.in_lightmap);
 	glEnableVertexAttribArray(r_bsp_program.in_color);
 
-	if (r_draw_bsp_nodes->value) {
-		glDisableVertexAttribArray(r_bsp_program.in_color);
-	}
-
-	R_DrawBspNode(NULL, bsp->nodes);
+	R_DrawBspDrawElements(bsp->inline_models);
 
 	const r_entity_t *e = r_view.entities;
 	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {

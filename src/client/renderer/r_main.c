@@ -39,7 +39,6 @@ cvar_t *r_clear;
 cvar_t *r_cull;
 cvar_t *r_lock_vis;
 cvar_t *r_no_vis;
-cvar_t *r_draw_bsp_nodes;
 cvar_t *r_draw_bsp_lightmaps;
 cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_wireframe;
@@ -131,6 +130,48 @@ void R_Color(const vec4_t color) {
 }
 
 /**
+ * @brief Returns true if the specified bounding box is completely culled by the
+ * view frustum, false otherwise.
+ */
+_Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
+	int32_t i;
+
+	if (!r_cull->value) {
+		return false;
+	}
+
+	for (i = 0; i < 4; i++) {
+		if (Cm_BoxOnPlaneSide(mins, maxs, &r_locals.frustum[i]) != SIDE_BACK) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/**
+ * @brief Returns true if the specified sphere (point and radius) is completely culled by the
+ * view frustum, false otherwise.
+ */
+_Bool R_CullSphere(const vec3_t point, const vec_t radius) {
+
+	if (!r_cull->value) {
+		return false;
+	}
+
+	for (int32_t i = 0 ; i < 4 ; i++)  {
+		const cm_bsp_plane_t *p = &r_locals.frustum[i];
+		const vec_t dist = DotProduct(point, p->normal) - p->dist;
+
+		if (dist < -radius) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
  * @brief
  */
 void R_UpdateViewport(void) {
@@ -159,11 +200,6 @@ void R_UpdateViewport(void) {
 	Matrix4x4_ConcatRotate(&r_locals.model_view, -r_view.angles[YAW],   0.0, 0.0, 1.0);
 
 	Matrix4x4_ConcatTranslate(&r_locals.model_view, -r_view.origin[0], -r_view.origin[1], -r_view.origin[2]);
-
-	Matrix4x4_Invert_Simple(&r_locals.inverse_model_view, &r_locals.model_view);
-
-	Matrix4x4_Invert_Full(&r_locals.inverse_transpose_model_view, &r_locals.model_view);
-	Matrix4x4_Transpose(&r_locals.inverse_transpose_model_view, &r_locals.inverse_transpose_model_view);
 }
 
 /**
@@ -222,8 +258,6 @@ void R_DrawView(r_view_t *view) {
 
 	R_DrawSkyBox();
 
-	R_AddSustainedLights();
-
 //	R_AddFlares();
 
 	R_CullEntities();
@@ -261,6 +295,11 @@ static void R_Clear(void) {
 		bits |= GL_COLOR_BUFFER_BIT;
 	}
 
+	// or if the viewport is less than fullscreen
+	if (r_view.viewport.x || r_view.viewport.y) {
+		bits |= GL_COLOR_BUFFER_BIT;
+	}
+
 	// or if the client is not fully loaded
 	if (cls.state != CL_ACTIVE) {
 		bits |= GL_COLOR_BUFFER_BIT;
@@ -286,8 +325,6 @@ void R_BeginFrame(void) {
 
 	r_view.num_draw_elements = 0;
 	r_view.num_draw_arrays = 0;
-
-	r_locals.frame++;
 }
 
 /**
@@ -430,7 +467,6 @@ static void R_InitLocal(void) {
 	r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER, "Controls bounded box culling routines (developer tool)");
 	r_lock_vis = Cvar_Add("r_lock_vis", "0", CVAR_DEVELOPER, "Temporarily locks the PVS lookup for world surfaces (developer tool)");
 	r_no_vis = Cvar_Add("r_no_vis", "0", CVAR_DEVELOPER, "Disables PVS refresh and lookup for world surfaces (developer tool)");
-	r_draw_bsp_nodes = Cvar_Add("r_draw_bsp_nodes", "0", CVAR_DEVELOPER, "Controls the rendering of BSP clusters (developer tool)");
 	r_draw_bsp_lightmaps = Cvar_Add("r_draw_bsp_lightmaps", "0", CVAR_DEVELOPER | CVAR_R_CONTEXT, "Controls the rendering of BSP lightmap textures (developer tool)");
 	r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool)");
 	r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool)");

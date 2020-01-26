@@ -26,17 +26,18 @@
  */
 void R_AddLight(const r_light_t *l) {
 
+	if (!r_lights->value) {
+		return;
+	}
+
 	if (r_view.num_lights == MAX_LIGHTS) {
 		Com_Debug(DEBUG_RENDERER, "MAX_LIGHTS reached\n");
 		return;
 	}
 
 	r_view.lights[r_view.num_lights] = *l;
-
-	if (r_lights->value) {
-		r_view.lights[r_view.num_lights].radius *= r_lights->value;
-	}
-
+	r_view.lights[r_view.num_lights].radius *= r_lights->value;
+	
 	r_view.num_lights++;
 }
 
@@ -89,29 +90,15 @@ void R_AddSustainedLights(void) {
 }
 
 /**
- * @brief Resets hardware light source state. Note that this is accomplished purely
- * client-side. Our internal accounting lets us avoid GL state changes.
+ * @brief Recursively populates light source bit mask for the specified node.
  */
-void R_ResetLights(void) {
-
-//	r_locals.light_mask = UINT64_MAX;
-}
-
-/**
- * @brief Recursively populates light source bit masks for leafs.
- */
-void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node) {
+static void R_MarkLight(const r_light_t *l, r_bsp_node_t *node) {
 
 	if (node->vis_frame != r_locals.vis_frame) {
-		if (!node->model) { // and not an inline model
-			return;
-		}
+		return;
 	}
 
 	if (node->contents != CONTENTS_NODE) {
-		r_bsp_leaf_t *leaf = (r_bsp_leaf_t *) node;
-
-		leaf->lights |= 1 << (l - r_view.lights);
 		return;
 	}
 
@@ -127,6 +114,9 @@ void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node) {
 		return;
 	}
 
+	// the light resides in this node, so turn it on
+	node->lights |= 1 << (l - r_view.lights);
+
 	// now go down both sides
 	R_MarkLight(l, node->children[0]);
 	R_MarkLight(l, node->children[1]);
@@ -138,9 +128,8 @@ void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node) {
  */
 void R_MarkLights(void) {
 
-
 	const r_light_t *l = r_view.lights;
-	for (uint16_t i = 0; i < r_view.num_lights; i++, l++) {
+	for (int32_t i = 0; i < r_view.num_lights; i++, l++) {
 		R_MarkLight(l, r_model_state.world->bsp->nodes);
 	}
 }
