@@ -148,11 +148,11 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 }
 
 /**
- * @brief Applies transformation and rotation for the specified linked entity. The "matrix"
+ * @brief Applies transformation and rotation for the specified linked entity. The matrix
  * component of the parent and child must be set up already. The child's matrix will be modified
  * by this function and is used instead of origin/angles/scale.
  */
-void Cg_ApplyMeshModelTag(r_entity_t *child, const r_entity_t *parent, const char *tag_name) {
+void Cg_ApplyMeshTag(r_entity_t *child, const r_entity_t *parent, const char *tag_name) {
 
 	if (!parent || !parent->model || parent->model->type != MOD_MESH) {
 		cgi.Warn("Invalid parent entity\n");
@@ -166,8 +166,8 @@ void Cg_ApplyMeshModelTag(r_entity_t *child, const r_entity_t *parent, const cha
 
 	// interpolate the tag over the frames of the parent entity
 
-	const r_model_tag_t *t1 = cgi.MeshModelTag(parent->model, tag_name, parent->old_frame);
-	const r_model_tag_t *t2 = cgi.MeshModelTag(parent->model, tag_name, parent->frame);
+	const r_mesh_tag_t *t1 = cgi.MeshTag(parent->model, tag_name, parent->old_frame);
+	const r_mesh_tag_t *t2 = cgi.MeshTag(parent->model, tag_name, parent->frame);
 
 	if (!t1 || !t2) {
 		return;
@@ -229,7 +229,7 @@ r_entity_t *Cg_AddLinkedEntity(const r_entity_t *parent, const r_model_t *model,
 
 	Matrix4x4_CreateFromEntity(&r_ent->matrix, r_ent->origin, r_ent->angles, r_ent->scale);
 
-	Cg_ApplyMeshModelTag(r_ent, parent, tag_name);
+	Cg_ApplyMeshTag(r_ent, parent, tag_name);
 
 	return r_ent;
 }
@@ -352,8 +352,8 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	Matrix4x4_CreateFromEntity(&r_torso->matrix, r_torso->origin, r_torso->angles, r_torso->scale);
 	Matrix4x4_CreateFromEntity(&r_head->matrix, r_head->origin, r_head->angles, r_head->scale);
 
-	Cg_ApplyMeshModelTag(r_torso, r_legs, "tag_torso");
-	Cg_ApplyMeshModelTag(r_head, r_torso, "tag_head");
+	Cg_ApplyMeshTag(r_torso, r_legs, "tag_torso");
+	Cg_ApplyMeshTag(r_head, r_torso, "tag_head");
 
 	if (s->model2) {
 		r_model_t *model = cgi.client->model_precache[s->model2];

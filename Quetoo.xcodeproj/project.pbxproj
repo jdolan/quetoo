@@ -179,6 +179,10 @@
 		CE4E07E120268A2B000B276C /* SystemViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07C820267EFA000B276C /* SystemViewController.css */; };
 		CE4E07E42028B0CB000B276C /* ui_data.h in Headers */ = {isa = PBXBuildFile; fileRef = CE4E07E22028B0CB000B276C /* ui_data.h */; };
 		CE4E07E52028B0CB000B276C /* ui_data.c in Sources */ = {isa = PBXBuildFile; fileRef = CE4E07E32028B0CB000B276C /* ui_data.c */; };
+		CE5022E823DE3C3600B333CE /* r_mesh_model_obj.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5022E623DE3C3600B333CE /* r_mesh_model_obj.h */; };
+		CE5022E923DE3C3600B333CE /* r_mesh_model_obj.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5022E723DE3C3600B333CE /* r_mesh_model_obj.c */; };
+		CE5022EC23DE3CF900B333CE /* r_mesh_model_md3.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5022EA23DE3CF900B333CE /* r_mesh_model_md3.h */; };
+		CE5022ED23DE3CF900B333CE /* r_mesh_model_md3.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5022EB23DE3CF900B333CE /* r_mesh_model_md3.c */; };
 		CE51FB9221481AE400ABE14F /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE51FB9121481AE300ABE14F /* libcheck.0.dylib */; };
 		CE51FB9321481B1400ABE14F /* check_r_media.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6D51C5C58C300CD0B13 /* check_r_media.c */; };
 		CE51FB9421481B2000ABE14F /* libfilesystem.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7A4C1D9CB483000FA6B2 /* libfilesystem.a */; };
@@ -1884,6 +1888,10 @@
 		CE4E07C820267EFA000B276C /* SystemViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = SystemViewController.css; sourceTree = "<group>"; };
 		CE4E07E22028B0CB000B276C /* ui_data.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ui_data.h; sourceTree = "<group>"; };
 		CE4E07E32028B0CB000B276C /* ui_data.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ui_data.c; sourceTree = "<group>"; };
+		CE5022E623DE3C3600B333CE /* r_mesh_model_obj.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_mesh_model_obj.h; sourceTree = "<group>"; };
+		CE5022E723DE3C3600B333CE /* r_mesh_model_obj.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_mesh_model_obj.c; sourceTree = "<group>"; };
+		CE5022EA23DE3CF900B333CE /* r_mesh_model_md3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_mesh_model_md3.h; sourceTree = "<group>"; };
+		CE5022EB23DE3CF900B333CE /* r_mesh_model_md3.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_mesh_model_md3.c; sourceTree = "<group>"; };
 		CE51FB8A214819B000ABE14F /* check_r_media */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_r_media; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE51FB9121481AE300ABE14F /* libcheck.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcheck.0.dylib; path = ../../../../opt/local/lib/libcheck.0.dylib; sourceTree = "<group>"; };
 		CE51FBAF21481DD300ABE14F /* check_cmd */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_cmd; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -3010,6 +3018,10 @@
 				CE12D5D81C5C58C300CD0B13 /* r_mesh_draw.h */,
 				CE12D5D91C5C58C300CD0B13 /* r_mesh_model.c */,
 				CE12D5DA1C5C58C300CD0B13 /* r_mesh_model.h */,
+				CE5022EA23DE3CF900B333CE /* r_mesh_model_md3.h */,
+				CE5022EB23DE3CF900B333CE /* r_mesh_model_md3.c */,
+				CE5022E623DE3C3600B333CE /* r_mesh_model_obj.h */,
+				CE5022E723DE3C3600B333CE /* r_mesh_model_obj.c */,
 				CE12D5DF1C5C58C300CD0B13 /* r_model.c */,
 				CE12D5E01C5C58C300CD0B13 /* r_model.h */,
 				CE12D5E11C5C58C300CD0B13 /* r_particle.c */,
@@ -4032,6 +4044,8 @@
 				CED4388F1D9D34450052BAFA /* r_local.h in Headers */,
 				CED438901D9D34450052BAFA /* r_main.h in Headers */,
 				CED438911D9D34450052BAFA /* r_material.h in Headers */,
+				CE5022E823DE3C3600B333CE /* r_mesh_model_obj.h in Headers */,
+				CE5022EC23DE3CF900B333CE /* r_mesh_model_md3.h in Headers */,
 				CED438921D9D34450052BAFA /* r_media.h in Headers */,
 				CED438931D9D34450052BAFA /* r_mesh_draw.h in Headers */,
 				CED438941D9D34450052BAFA /* r_mesh_model.h in Headers */,
@@ -5449,6 +5463,7 @@
 				CED4383D1D9D34450052BAFA /* r_context.c in Sources */,
 				CED4383F1D9D34450052BAFA /* r_draw.c in Sources */,
 				CED438411D9D34450052BAFA /* r_entity.c in Sources */,
+				CE5022ED23DE3CF900B333CE /* r_mesh_model_md3.c in Sources */,
 				CED438421D9D34450052BAFA /* r_flare.c in Sources */,
 				CE9FECDD201FEB7400F954ED /* r_gl.c in Sources */,
 				CED438441D9D34450052BAFA /* r_image.c in Sources */,
@@ -5463,6 +5478,7 @@
 				CED438501D9D34450052BAFA /* r_particle.c in Sources */,
 				CE8FD2ED23D3E034002FD074 /* r_program.c in Sources */,
 				CED438561D9D34450052BAFA /* r_sky.c in Sources */,
+				CE5022E923DE3C3600B333CE /* r_mesh_model_obj.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

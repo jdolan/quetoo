@@ -146,14 +146,14 @@ static void R_LoadBspLightgrid(r_bsp_model_t *bsp) {
 
 	VectorCopy(in->size, out->size);
 
-	out->grid = (r_image_t *) R_AllocMedia("lightgrid", sizeof(r_image_t), MEDIA_IMAGE);
-	out->grid->media.Free = R_FreeImage;
-	out->grid->type = IT_LIGHTGRID;
-	out->grid->width = out->size[0];
-	out->grid->height = out->size[1];
-	out->grid->depth = out->size[2];
+	out->volume = (r_image_t *) R_AllocMedia("lightgrid", sizeof(r_image_t), MEDIA_IMAGE);
+	out->volume->media.Free = R_FreeImage;
+	out->volume->type = IT_LIGHTGRID;
+	out->volume->width = out->size[0];
+	out->volume->height = out->size[1];
+	out->volume->depth = out->size[2];
 
-	R_UploadImage(out->grid, GL_RGB8, (byte *) in + sizeof(bsp_lightgrid_t));
+	R_UploadImage(out->volume, GL_RGB8, (byte *) in + sizeof(bsp_lightgrid_t));
 }
 
 static r_bsp_texinfo_t null_texinfo;

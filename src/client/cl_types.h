@@ -100,13 +100,13 @@ typedef struct {
 	color_t shirt, pants, helmet, color; // player and effects colors
 
 	r_model_t *head;
-	r_material_t *head_skins[MD3_MAX_MESHES];
+	r_material_t *head_skins[MAX_ENTITY_SKINS];
 
 	r_model_t *torso;
-	r_material_t *torso_skins[MD3_MAX_MESHES];
+	r_material_t *torso_skins[MAX_ENTITY_SKINS];
 
 	r_model_t *legs;
-	r_material_t *legs_skins[MD3_MAX_MESHES];
+	r_material_t *legs_skins[MAX_ENTITY_SKINS];
 
 	r_image_t *icon; // for the scoreboard
 } cl_client_info_t;

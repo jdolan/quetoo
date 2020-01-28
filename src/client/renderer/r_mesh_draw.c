@@ -33,11 +33,11 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
 
 	const r_mesh_config_t *c;
 	if (e->effects & EF_WEAPON) {
-		c = &e->model->mesh->view_config;
+		c = &e->model->mesh->config.view;
 	} else if (e->effects & EF_LINKED) {
-		c = &e->model->mesh->link_config;
+		c = &e->model->mesh->config.link;
 	} else {
-		c = &e->model->mesh->world_config;
+		c = &e->model->mesh->config.world;
 	}
 
 	Matrix4x4_ConcatTranslate(&e->matrix, c->translate[0], c->translate[1], c->translate[2]);
@@ -63,7 +63,7 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
  * @param name The name of the tag.
  * @return The tag structure.
 */
-const r_model_tag_t *R_MeshModelTag(const r_model_t *mod, const char *name, const int32_t frame) {
+const r_mesh_tag_t *R_MeshTag(const r_model_t *mod, const char *name, const int32_t frame) {
 
 	if (frame > mod->mesh->num_frames) {
 		Com_Warn("%s: Invalid frame: %d\n", mod->media.name, frame);
@@ -71,7 +71,7 @@ const r_model_tag_t *R_MeshModelTag(const r_model_t *mod, const char *name, cons
 	}
 
 	const r_mesh_model_t *model = mod->mesh;
-	const r_model_tag_t *tag = &model->tags[frame * model->num_tags];
+	const r_mesh_tag_t *tag = &model->tags[frame * model->num_tags];
 
 	for (int32_t i = 0; i < model->num_tags; i++, tag++) {
 		if (!g_strcmp0(name, tag->name)) {
@@ -180,7 +180,7 @@ static void R_SetModelState(const r_entity_t *e) {
 /**
  * @brief Sets renderer state for the specified mesh.
  */
-static void R_SetMeshState(const r_entity_t *e, const uint16_t mesh_index, const r_model_mesh_t *mesh) {
+static void R_SetMeshState(const r_entity_t *e, const uint16_t mesh_index, const r_mesh_t *mesh) {
 
 //	r_material_t *material = (r_draw_wireframe->value) ? NULL : ((mesh_index < 32 && e->skins[mesh_index]) ? e->skins[mesh_index] : mesh->material);
 //
@@ -253,7 +253,7 @@ static _Bool R_DrawMeshDiffuse(void) {
  */
 static void R_DrawMeshParts(const r_entity_t *e, const r_mesh_model_t *model) {
 //	uint32_t offset = 0;
-//	const r_model_mesh_t *mesh = model->meshes;
+//	const r_mesh_t *mesh = model->meshes;
 //
 //	for (uint16_t i = 0; i < model->num_meshes; i++, mesh++) {
 //
@@ -275,7 +275,7 @@ static void R_DrawMeshParts(const r_entity_t *e, const r_mesh_model_t *model) {
  */
 static void R_DrawMeshPartsMaterials(const r_entity_t *e, const r_mesh_model_t *model) {
 //	uint32_t offset = 0;
-//	const r_model_mesh_t *mesh = model->meshes;
+//	const r_mesh_t *mesh = model->meshes;
 //
 //	for (uint16_t i = 0; i < model->num_meshes; i++, mesh++) {
 //

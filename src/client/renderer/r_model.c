@@ -43,23 +43,23 @@ static void R_RegisterModel(r_media_t *self) {
 	r_model_t *mod = (r_model_t *) self;
 
 	if (mod->type == MOD_BSP) {
-		uint16_t i;
 
 		r_bsp_texinfo_t *texinfo = mod->bsp->texinfo;
-		for (i = 0; i < mod->bsp->num_texinfo; i++, texinfo++) {
+		for (int32_t i = 0; i < mod->bsp->num_texinfo; i++, texinfo++) {
 			R_RegisterDependency(self, (r_media_t *) texinfo->material);
 		}
 
 		R_RegisterDependency(self, (r_media_t *) mod->bsp->lightmap->atlas);
-		R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->grid);
+		R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->volume);
 
 		// keep a reference to the world model
 		r_model_state.world = mod;
 
 	} else if (IS_MESH_MODEL(mod)) {
 
-		for (uint16_t i = 0; i < mod->mesh->num_meshes; i++) {
-			R_RegisterDependency(self, (r_media_t *) mod->mesh->meshes[i].material);
+		const r_mesh_t *mesh = mod->mesh->meshes;
+		for (int32_t i = 0; i < mod->mesh->num_meshes; i++, mesh++) {
+			R_RegisterDependency(self, (r_media_t *) mesh->material);
 		}
 	}
 }
@@ -90,9 +90,7 @@ static void R_FreeModel(r_media_t *self) {
  * @brief Loads the model by the specified name.
  */
 r_model_t *R_LoadModel(const char *name) {
-	r_model_t *mod;
 	char key[MAX_QPATH];
-	size_t i;
 
 	if (!name || !name[0]) {
 		Com_Error(ERROR_DROP, "R_LoadModel: NULL name\n");
@@ -104,11 +102,13 @@ r_model_t *R_LoadModel(const char *name) {
 		StripExtension(name, key);
 	}
 
-	if (!(mod = (r_model_t *) R_FindMedia(key))) {
+	r_model_t *mod = (r_model_t *) R_FindMedia(key);
+	if (mod == NULL) {
 
 		const r_model_format_t *format = r_model_formats;
 		char filename[MAX_QPATH];
 
+		size_t i;
 		for (i = 0; i < lengthof(r_model_formats); i++, format++) {
 
 			strncpy(filename, key, MAX_QPATH);

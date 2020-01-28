@@ -24,6 +24,7 @@
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
-void R_LoadMd3Model(r_model_t *mod, void *buffer);
-void R_LoadObjModel(r_model_t *mod, void *buffer);
+r_material_t *R_ResolveModelMaterial(const r_model_t *mod, const r_mesh_t *mesh, const char *mesh_material);
+void R_LoadMeshConfigs(r_model_t *mod);
+void R_LoadMeshVertexArray(r_model_t *mod);
 #endif /* __R_LOCAL_H__ */

@@ -21,6 +21,8 @@ noinst_HEADERS = \
 	r_media.h \
 	r_mesh_draw.h \
 	r_mesh_model.h \
+	r_mesh_model_md3.h \
+	r_mesh_model_obj.h \
 	r_mesh.h \
 	r_model.h \
 	r_particle.h \
@@ -50,6 +52,8 @@ librenderer_la_SOURCES = \
 	r_media.c \
 	r_mesh_draw.c \
 	r_mesh_model.c \
+	r_mesh_model_md3.c \
+	r_mesh_model_obj.c \
 	r_model.c \
 	r_particle.c \
 	r_program.c \

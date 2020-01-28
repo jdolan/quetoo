@@ -26,15 +26,16 @@
 /**
  * @brief Quake3 .md3 model format.
  */
-#define MD3_HEADER			(('3'<<24)+('P'<<16)+('D'<<8)+'I')
+#define MD3_ID				(('3'<<24)+('P'<<16)+('D'<<8)+'I')
 #define MD3_VERSION			15
 
 #define MD3_MAX_LODS		0x4 // per model
 #define	MD3_MAX_TRIANGLES	0x2000 // per mesh
-#define MD3_MAX_VERTS		0x1000 // per mesh
+#define MD3_MAX_VERTEXES	0x1000 // per mesh
 #define MD3_MAX_SHADERS		0x100 // per mesh
+#define MD3_MIN_FRAMES		0x1 // per model
 #define MD3_MAX_FRAMES		0x400 // per model
-#define	MD3_MAX_MESHES		0x20 // per model
+#define	MD3_MAX_SURFACES	0x20 // per model
 #define MD3_MAX_TAGS		0x10 // per frame
 #define MD3_MAX_PATH		0x40 // relative file references
 #define MD3_MAX_ANIMATIONS	0x20 // see entity_animation_t
@@ -51,6 +52,10 @@ typedef struct {
 } d_md3_vertex_t;
 
 typedef struct {
+	uint32_t indexes[3];
+} d_md3_triangle_t;
+
+typedef struct {
 	vec3_t mins;
 	vec3_t maxs;
 	vec3_t translate;
@@ -59,19 +64,15 @@ typedef struct {
 } d_md3_frame_t;
 
 typedef struct {
+	char name[MD3_MAX_PATH];
 	vec3_t origin;
 	vec3_t axis[3];
-} d_md3_orientation_t;
-
-typedef struct {
-	char name[MD3_MAX_PATH];
-	d_md3_orientation_t orient;
 } d_md3_tag_t;
 
 typedef struct {
 	char name[MD3_MAX_PATH];
-	int32_t unused; // shader
-} d_md3_skin_t;
+	int32_t index;
+} d_md3_shader_t;
 
 typedef struct {
 	int32_t id;
@@ -81,17 +82,16 @@ typedef struct {
 	int32_t flags;
 
 	int32_t num_frames;
-	int32_t num_skins;
-	int32_t num_verts;
-	int32_t num_tris;
+	int32_t num_shaders;
+	int32_t num_vertexes;
+	int32_t num_triangles;
 
-	int32_t ofs_tris;
-	int32_t ofs_skins;
-	int32_t ofs_tcs;
-	int32_t ofs_verts;
-
-	int32_t size;
-} d_md3_mesh_t;
+	int32_t ofs_triangles;
+	int32_t ofs_shaders;
+	int32_t ofs_texcoords;
+	int32_t ofs_vertexes;
+	int32_t ofs_end;
+} d_md3_surface_t;
 
 typedef struct {
 	int32_t id;
@@ -103,11 +103,11 @@ typedef struct {
 
 	int32_t num_frames;
 	int32_t num_tags;
-	int32_t num_meshes;
-	int32_t num_skins;
+	int32_t num_surfaces;
+	int32_t num_shaders;
 
 	int32_t ofs_frames;
 	int32_t ofs_tags;
-	int32_t ofs_meshes;
+	int32_t ofs_surfaces;
 	int32_t ofs_end;
 } d_md3_t;

@@ -285,7 +285,7 @@ static void animate_(const r_mesh_model_t *model, cl_entity_animation_t *a, r_en
 	e->lerp = 1.0;
 	e->back_lerp = 0.0;
 
-	const r_model_animation_t *anim = &model->animations[a->animation];
+	const r_mesh_animation_t *anim = &model->animations[a->animation];
 
 	const uint32_t frameTime = 1500 / anim->hz;
 	const uint32_t animationTime = anim->num_frames * frameTime;
@@ -381,9 +381,9 @@ static void animate(PlayerModelView *self) {
 	Matrix4x4_CreateFromEntity(&self->platformBase.matrix, self->platformBase.origin, self->platformBase.angles, self->platformBase.scale);
 	Matrix4x4_CreateFromEntity(&self->platformCenter.matrix, self->platformCenter.origin, self->platformCenter.angles, self->platformCenter.scale);
 
-	Cg_ApplyMeshModelTag(&self->torso, &self->legs, "tag_torso");
-	Cg_ApplyMeshModelTag(&self->head, &self->torso, "tag_head");
-	Cg_ApplyMeshModelTag(&self->weapon, &self->torso, "tag_weapon");
+	Cg_ApplyMeshTag(&self->torso, &self->legs, "tag_torso");
+	Cg_ApplyMeshTag(&self->head, &self->torso, "tag_head");
+	Cg_ApplyMeshTag(&self->weapon, &self->torso, "tag_weapon");
 }
 
 /**

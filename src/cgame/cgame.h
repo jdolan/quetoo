@@ -682,7 +682,7 @@ typedef struct cg_import_s {
 	 * @param frame The frame to fetch the tag on.
 	 * @return The tag structure.
 	 */
-	const r_model_tag_t *(*MeshModelTag)(const r_model_t *mod, const char *name, const int32_t frame);
+	const r_mesh_tag_t *(*MeshTag)(const r_model_t *mod, const char *name, const int32_t frame);
 
 #if 0
 	/**

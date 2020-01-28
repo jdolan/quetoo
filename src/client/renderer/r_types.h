@@ -420,7 +420,7 @@ typedef struct {
  */
 typedef struct {
 	int32_t size[3];
-	r_image_t *grid;
+	r_image_t *volume;
 } r_bsp_lightgrid_t;
 
 /**
@@ -463,13 +463,8 @@ typedef struct {
 	r_bsp_lightmap_t *lightmap;
 	r_bsp_lightgrid_t *lightgrid;
 
-	// vertex buffer
 	GLuint vertex_buffer;
-
-	// elements buffer
 	GLuint elements_buffer;
-
-	// vertex array
 	GLuint vertex_array;
 
 } r_bsp_model_t;
@@ -480,29 +475,38 @@ typedef struct {
 	vec3_t normal;
 	vec3_t tangent;
 	vec3_t bitangent;
-} r_model_vertex_t;
+	vec2_t diffuse;
+} r_mesh_vertex_t;
 
 typedef struct {
-	char name[MD3_MAX_PATH];
+	vec3_t mins;
+	vec3_t maxs;
+	vec3_t translate;
+} r_mesh_frame_t;
+
+typedef struct {
+	char name[MAX_QPATH];
 	matrix4x4_t matrix;
-} r_model_tag_t;
+} r_mesh_tag_t;
 
 typedef struct {
-	char name[MD3_MAX_PATH];
-
-	uint16_t num_verts;
-	uint16_t num_tris;
-	uint32_t num_elements;
+	char name[MAX_QPATH];
 
 	r_material_t *material;
-} r_model_mesh_t;
+
+	r_mesh_vertex_t *vertexes;
+	int32_t num_vertexes;
+
+	GLvoid *elements;
+	int32_t num_elements;
+} r_mesh_t;
 
 typedef struct {
 	uint16_t first_frame;
 	uint16_t num_frames;
 	uint16_t looped_frames;
 	uint16_t hz;
-} r_model_animation_t;
+} r_mesh_animation_t;
 
 /**
  * @brief Provides load-time normalization of mesh models.
@@ -517,23 +521,34 @@ typedef struct {
 typedef struct {
 	uint32_t flags;
 
-	uint32_t num_verts;
-	uint16_t num_frames;
-	uint16_t num_tags;
-	uint16_t num_meshes;
-	uint16_t num_animations;
+	r_mesh_vertex_t *vertexes;
+	int32_t num_vertexes;
 
-	r_model_tag_t *tags;
-	r_model_mesh_t *meshes;
-	r_model_animation_t *animations;
+	GLuint *elements;
+	int32_t num_elements;
 
-	r_mesh_config_t world_config;
-	r_mesh_config_t view_config;
-	r_mesh_config_t link_config;
+	r_mesh_frame_t *frames;
+	int32_t num_frames;
+
+	r_mesh_tag_t *tags;
+	int32_t num_tags;
+
+	r_mesh_t *meshes;
+	int32_t num_meshes;
+
+	r_mesh_animation_t *animations;
+	int32_t num_animations;
+
+	struct {
+		r_mesh_config_t world;
+		r_mesh_config_t view;
+		r_mesh_config_t link;
+	} config;
 
 	// buffer data
 	GLuint vertex_buffer;
 	GLuint elements_buffer;
+	GLuint vertex_array;
 } r_mesh_model_t;
 
 /**
@@ -596,6 +611,8 @@ typedef struct {
 	uint32_t sustain;
 } r_sustained_light_t;
 
+#define MAX_ENTITY_SKINS 8
+
 /**
  * @brief Entities provide a means to add model instances to the view. Entity
  * lighting is cached on the client entity so that it is only recalculated
@@ -617,7 +634,7 @@ typedef struct r_entity_s {
 
 	vec_t scale; // for mesh models
 
-	r_material_t *skins[MD3_MAX_MESHES]; // NULL for default skin
+	r_material_t *skins[MAX_ENTITY_SKINS]; // NULL for default skin
 	uint16_t num_skins;
 
 	uint32_t effects; // e.g. EF_NO_DRAW, EF_WEAPON, ..
@@ -792,66 +809,4 @@ typedef struct {
 } r_context_t;
 
 #ifdef __R_LOCAL_H__
-
-/**
- * @brief Quake3 (MD3) model in-memory representation.
- */
-typedef struct {
-	uint32_t *tris;
-	r_model_vertex_t *verts;
-	d_md3_texcoord_t *coords;
-} r_md3_mesh_t;
-
-typedef struct {
-	uint16_t num_verts;
-	uint16_t num_tris;
-
-	d_md3_frame_t *frames;
-	r_md3_mesh_t *meshes;
-} r_md3_t;
-
-/*
- * @brief Object (OBJ) model in-memory representation.
- */
-typedef struct {
-	uint32_t position;
-	uint16_t indices[3];
-
-	vec_t *point;
-	vec_t *texcoords;
-	vec_t *normal;
-	vec3_t tangent;
-	vec3_t bitangent;
-} r_obj_vertex_t;
-
-typedef uint32_t r_obj_triangle_t[3];
-
-typedef struct {
-	char name[MAX_QPATH];
-	char material[MAX_QPATH];
-
-	uint32_t num_tris;
-} r_obj_group_t;
-
-typedef struct {
-	uint32_t num_points;
-	uint32_t num_texcoords;
-	uint32_t num_normals;
-	uint32_t num_tris;
-	uint32_t num_groups;
-
-	vec3_t *points;
-	uint32_t cur_point;
-	vec2_t *texcoords;
-	uint32_t cur_texcoord;
-	vec3_t *normals;
-	uint32_t cur_normal;
-	r_obj_group_t *groups;
-	uint32_t cur_group;
-	r_obj_triangle_t *tris;
-	uint32_t cur_tris;
-	
-	GArray *verts;
-} r_obj_t;
-
 #endif /* __R_LOCAL_H__ */

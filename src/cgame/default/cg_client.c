@@ -49,7 +49,7 @@ static void Cg_LoadClientSkin(r_material_t **skins, const r_mesh_model_t *model,
 		return;
 	}
 
-	const r_model_mesh_t *mesh = model->meshes;
+	const r_mesh_t *mesh = model->meshes;
 	for (i = 0; i < model->num_meshes; i++, mesh++) {
 
 		if (!g_ascii_strcasecmp(mesh_name, mesh->name)) {
@@ -101,7 +101,7 @@ static _Bool Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, cons
 
 	// ensure that a skin was resolved for each mesh, nullifying if not
 
-	const r_model_mesh_t *mesh = model->meshes;
+	const r_mesh_t *mesh = model->meshes;
 	for (i = 0; i < model->num_meshes; i++, mesh++) {
 
 		if (!skins[i]) {
@@ -321,12 +321,12 @@ static entity_animation_t Cg_NextAnimation(const entity_animation_t a) {
 static void Cg_AnimateClientEntity_(const r_model_t *model, cl_entity_animation_t *a) {
 	const r_mesh_model_t *mesh = model->mesh;
 
-	if (a->animation > mesh->num_animations) {
+	if ((int32_t) a->animation > mesh->num_animations) {
 		cgi.Warn("Invalid animation: %s: %d\n", model->media.name, a->animation);
 		return;
 	}
 
-	const r_model_animation_t *anim = &mesh->animations[a->animation];
+	const r_mesh_animation_t *anim = &mesh->animations[a->animation];
 
 	if (!anim->num_frames || !anim->hz) {
 		cgi.Warn("Bad animation sequence: %s: %d\n", model->media.name, a->animation);
