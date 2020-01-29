@@ -258,15 +258,15 @@ void R_DrawMeshEntities(void) {
 		for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
 			if (e->model && e->model->type == MOD_MESH) {
 
-				if (R_CullMeshEntity(e)) {
-					continue;
-				}
-
 				if (e->effects & EF_NO_DRAW) {
 					continue;
 				}
 
 				if (e->effects & EF_BLEND) {
+					continue;
+				}
+
+				if (R_CullMeshEntity(e)) {
 					continue;
 				}
 
@@ -279,14 +279,11 @@ void R_DrawMeshEntities(void) {
 
 	{
 		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		const r_entity_t *e = r_view.entities;
 		for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
 			if (e->model && e->model->type == MOD_MESH) {
-
-				if (R_CullMeshEntity(e)) {
-					continue;
-				}
 
 				if (e->effects & EF_NO_DRAW) {
 					continue;
@@ -296,10 +293,15 @@ void R_DrawMeshEntities(void) {
 					continue;
 				}
 
+				if (R_CullMeshEntity(e)) {
+					continue;
+				}
+
 				R_DrawMeshEntity(e);
 			}
 		}
 
+		glBlendFunc(GL_ONE, GL_ZERO);
 		glDisable(GL_BLEND);
 	}
 
