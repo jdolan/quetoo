@@ -336,7 +336,11 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
 			VectorCopy(frame.mins, out->mins);
 			VectorCopy(frame.maxs, out->maxs);
+			
 			VectorCopy(frame.translate, out->translate);
+
+			AddPointToBounds(out->mins, mod->mins, mod->maxs);
+			AddPointToBounds(out->maxs, mod->mins, mod->maxs);
 		}
 	}
 

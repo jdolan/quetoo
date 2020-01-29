@@ -135,6 +135,8 @@ r_model_t *R_LoadModel(const char *name) {
 
 		mod->type = format->type;
 
+		ClearBounds(mod->mins, mod->maxs);
+
 		void *buf = NULL;
 
 		Fs_Load(filename, &buf);
@@ -146,10 +148,10 @@ r_model_t *R_LoadModel(const char *name) {
 		Fs_Free(buf);
 
 		// calculate an approximate radius from the bounding box
-		vec3_t tmp;
+		vec3_t size;
 
-		VectorSubtract(mod->maxs, mod->mins, tmp);
-		mod->radius = VectorLength(tmp) / 2.0;
+		VectorSubtract(mod->maxs, mod->mins, size);
+		mod->radius = VectorLength(size) / 2.0;
 
 		R_RegisterMedia((r_media_t *) mod);
 	}
@@ -174,7 +176,7 @@ void R_InitModels(void) {
 	Cmd_Add("r_export_bsp", R_ExportBsp_f, CMD_RENDERER, "Export the current map to a .obj model.");
 
 	R_InitBspProgram();
-	
+
 	R_InitMeshProgram();
 }
 

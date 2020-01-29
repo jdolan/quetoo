@@ -447,6 +447,9 @@ static void R_SetupBspInlineModels(r_model_t *world) {
 		VectorCopy(in->maxs, out->maxs);
 		VectorCopy(in->mins, out->mins);
 
+		AddPointToBounds(out->mins, world->mins, world->maxs);
+		AddPointToBounds(out->maxs, world->mins, world->maxs);
+
 		R_RegisterDependency(&world->media, &out->media);
 	}
 }
@@ -506,22 +509,12 @@ void R_ExportBsp_f(void) {
 
 	file = Fs_OpenWrite(modelname);
 	
-	Com_Print("Calculating extents...\n");
-
-	vec3_t mins, maxs;
-	ClearBounds(mins, maxs);
-
-	const r_bsp_vertex_t *v = world->bsp->vertexes;
-	for (int32_t i = 0; i < world->bsp->num_vertexes; i++, v++) {
-		AddPointToBounds(v->position, mins, maxs);
-	}
-
 	Com_Print("Writing vertexes...\n");
 
 	Fs_Print(file, "# Wavefront OBJ exported by Quetoo\n\n");
 	Fs_Print(file, "mtllib %s\n\n", mtlname);
 
-	v = world->bsp->vertexes;
+	const r_bsp_vertex_t *v = world->bsp->vertexes;
 	for (int32_t i = 0; i <  world->bsp->num_vertexes; i++, v++) {
 
 		Fs_Print(file, "v %f %f %f\nvt %f %f\nvn %f %f %f\n",
