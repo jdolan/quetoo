@@ -723,12 +723,21 @@ typedef struct {
 	r_entity_t entities[MAX_ENTITIES];
 	int32_t num_entities;
 
+	/**
+	 * @brief The particles to render for the current frame.
+	 */
 	r_particle_t particles[MAX_PARTICLES];
 	int32_t num_particles;
 
+	/**
+	 * @brief The lights to render for the current frame.
+	 */
 	r_light_t lights[MAX_LIGHTS];
 	int32_t num_lights;
 
+	/**
+	 * @brief The stains to render for the current frame.
+	 */
 	r_stain_t stains[MAX_STAINS];
 	int32_t num_stains;
 
