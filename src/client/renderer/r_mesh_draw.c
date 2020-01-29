@@ -46,9 +46,16 @@ static struct {
 	GLint in_bitangent;
 	GLint in_diffuse;
 
+	GLint in_next_position;
+	GLint in_next_normal;
+	GLint in_next_tangent;
+	GLint in_next_bitangent;
+
 	GLint projection;
 	GLint model_view;
 	GLint normal;
+
+	GLint lerp;
 
 	GLint textures;
 
@@ -83,8 +90,6 @@ static struct {
 	GLint caustics;
 } r_mesh_program;
 
-
-
 /**
  * @brief Applies any client-side transformations specified by the model's world or
  * view configuration structure.
@@ -102,11 +107,7 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
 		c = &e->model->mesh->config.world;
 	}
 
-	Matrix4x4_ConcatTranslate(&e->matrix, c->translate[0], c->translate[1], c->translate[2]);
-	Matrix4x4_ConcatRotate(&e->matrix, c->rotate[0], 1.0, 0.0, 0.0);
-	Matrix4x4_ConcatRotate(&e->matrix, c->rotate[1], 0.0, 1.0, 0.0);
-	Matrix4x4_ConcatRotate(&e->matrix, c->rotate[2], 0.0, 0.0, 1.0);
-	Matrix4x4_ConcatScale(&e->matrix, c->scale);
+	Matrix4x4_Concat(&e->matrix, &e->matrix, &c->transform);
 
 	if (e->effects & EF_WEAPON) {
 //		vec3_t bob = { 0.2, 0.4, 0.2 };
@@ -135,8 +136,6 @@ static _Bool R_CullMeshEntity(const r_entity_t *e) {
 
 	return R_CullBox(mins, maxs);
 }
-
-
 
 /**
  * @brief
@@ -167,10 +166,31 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 	glEnableVertexAttribArray(r_mesh_program.in_bitangent);
 	glEnableVertexAttribArray(r_mesh_program.in_diffuse);
 
+	glEnableVertexAttribArray(r_mesh_program.in_next_position);
+	glEnableVertexAttribArray(r_mesh_program.in_next_normal);
+	glEnableVertexAttribArray(r_mesh_program.in_next_tangent);
+	glEnableVertexAttribArray(r_mesh_program.in_next_bitangent);
+
+	glUniform1f(r_mesh_program.lerp, e->lerp);
 	glUniform4fv(r_mesh_program.color, 1, e->color);
 
 	const r_mesh_face_t *face = mesh->faces;
 	for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
+
+		const ptrdiff_t old_frame_offset = e->old_frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) old_frame_offset + offsetof(r_mesh_vertex_t, position));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) old_frame_offset + offsetof(r_mesh_vertex_t, normal));
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) old_frame_offset + offsetof(r_mesh_vertex_t, tangent));
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) old_frame_offset + offsetof(r_mesh_vertex_t, bitangent));
+		glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) old_frame_offset + offsetof(r_mesh_vertex_t, diffuse));
+
+		const ptrdiff_t frame_offset = e->frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
+
+		glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) frame_offset + offsetof(r_mesh_vertex_t, position));
+		glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) frame_offset + offsetof(r_mesh_vertex_t, normal));
+		glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) frame_offset + offsetof(r_mesh_vertex_t, tangent));
+		glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) frame_offset + offsetof(r_mesh_vertex_t, bitangent));
 
 		GLint textures = TEXTURE_MASK_LIGHTGRID;
 
@@ -203,7 +223,8 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 
 		glUniform1i(r_mesh_program.textures, textures);
 
-		glDrawElements(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements);
+		const GLint base_vertex = (GLint) (face->vertexes - mesh->vertexes);
+		glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements, base_vertex);
 		
 		r_view.count_mesh_triangles += face->num_elements / 3;
 	}
@@ -300,9 +321,16 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.in_bitangent = glGetAttribLocation(r_mesh_program.name, "in_bitangent");
 	r_mesh_program.in_diffuse = glGetAttribLocation(r_mesh_program.name, "in_diffuse");
 
+	r_mesh_program.in_next_position = glGetAttribLocation(r_mesh_program.name, "in_next_position");
+	r_mesh_program.in_next_normal = glGetAttribLocation(r_mesh_program.name, "in_next_normal");
+	r_mesh_program.in_next_tangent = glGetAttribLocation(r_mesh_program.name, "in_next_tangent");
+	r_mesh_program.in_next_bitangent = glGetAttribLocation(r_mesh_program.name, "in_next_bitangent");
+
 	r_mesh_program.projection = glGetUniformLocation(r_mesh_program.name, "projection");
 	r_mesh_program.model_view = glGetUniformLocation(r_mesh_program.name, "model_view");
 	r_mesh_program.normal = glGetUniformLocation(r_mesh_program.name, "normal");
+
+	r_mesh_program.lerp = glGetUniformLocation(r_mesh_program.name, "lerp");
 
 	r_mesh_program.textures = glGetUniformLocation(r_mesh_program.name, "textures");
 	r_mesh_program.texture_diffuse = glGetUniformLocation(r_mesh_program.name, "texture_diffuse");

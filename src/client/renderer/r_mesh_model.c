@@ -100,6 +100,8 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 	parser_t parser;
 	char token[MAX_STRING_CHARS];
 
+	Matrix4x4_CreateIdentity(&config->transform);
+
 	if (Fs_Load(path, &buf) == -1) {
 		return;
 	}
@@ -114,28 +116,36 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 
 		if (!g_strcmp0(token, "translate")) {
 
-			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, config->translate, 3) != 3) {
+			vec3_t v;
+			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, v, 3) != 3) {
 				break;
 			}
 
+			Matrix4x4_ConcatTranslate(&config->transform, v[0], v[1], v[2]);
 			continue;
 		}
 
 		if (!g_strcmp0(token, "rotate")) {
 
-			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, config->rotate, 3) != 3) {
+			vec3_t v;
+			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, v, 3) != 3) {
 				break;
 			}
 
+			Matrix4x4_ConcatRotate(&config->transform, v[0], 1.0, 0.0, 0.0);
+			Matrix4x4_ConcatRotate(&config->transform, v[1], 0.0, 1.0, 0.0);
+			Matrix4x4_ConcatRotate(&config->transform, v[2], 0.0, 0.0, 1.0);
 			continue;
 		}
 
 		if (!g_strcmp0(token, "scale")) {
 
-			if (!Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, &config->scale, 1)) {
+			vec_t v;
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, &v, 1)) {
 				break;
 			}
 
+			Matrix4x4_ConcatScale(&config->transform, v);
 			continue;
 		}
 
@@ -162,15 +172,9 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 void R_LoadMeshConfigs(r_model_t *mod) {
 	char path[MAX_QPATH];
 
-	mod->mesh->config.world.scale = 1.0;
-
 	Dirname(mod->media.name, path);
 
 	R_LoadMeshConfig(&mod->mesh->config.world, va("%sworld.cfg", path));
-
-	// by default, additional configs inherit from world
-	mod->mesh->config.view = mod->mesh->config.link = mod->mesh->config.world;
-
 	R_LoadMeshConfig(&mod->mesh->config.view, va("%sview.cfg", path));
 	R_LoadMeshConfig(&mod->mesh->config.world, va("%slink.cfg", path));
 }

@@ -357,20 +357,20 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 
 	if (s->model2) {
 		r_model_t *model = cgi.client->model_precache[s->model2];
-		r_entity_t *m2 = Cg_AddLinkedEntity(r_torso, model, "tag_weapon");
+		r_entity_t *weapon = Cg_AddLinkedEntity(r_torso, model, "tag_weapon");
 
 		if (self_no_draw) {
-			m2->effects |= EF_NO_DRAW;
+			weapon->effects |= EF_NO_DRAW;
 		}
 	}
 
 	if (s->model3) {
 		r_model_t *model = cgi.client->model_precache[s->model3];
-		r_entity_t *m3 = Cg_AddLinkedEntity(r_torso, model, "tag_head");
-		m3->effects |= effects;
+		r_entity_t *carry = Cg_AddLinkedEntity(r_torso, model, "tag_head");
+		carry->effects |= effects;
 
 		if (self_no_draw) {
-			m3->effects |= EF_NO_DRAW;
+			carry->effects |= EF_NO_DRAW;
 		}
 	}
 

@@ -512,9 +512,7 @@ typedef struct {
  * @brief Provides load-time normalization of mesh models.
  */
 typedef struct {
-	vec3_t translate;
-	vec3_t rotate;
-	vec_t scale;
+	matrix4x4_t transform;
 	uint32_t flags; // EF_ALPHA_TEST, etc..
 } r_mesh_config_t;
 
@@ -629,15 +627,15 @@ typedef struct r_entity_s {
 
 	const r_model_t *model;
 
-	uint16_t frame, old_frame; // frame-based animations
+	int32_t frame, old_frame; // frame-based animations
 	vec_t lerp, back_lerp;
 
 	vec_t scale; // for mesh models
 
 	r_material_t *skins[MAX_ENTITY_SKINS]; // NULL for default skin
-	uint16_t num_skins;
+	int32_t num_skins;
 
-	uint32_t effects; // e.g. EF_NO_DRAW, EF_WEAPON, ..
+	int32_t effects; // e.g. EF_NO_DRAW, EF_WEAPON, ..
 
 	vec4_t color; // shaded color, e.g. EF_PULSE
 

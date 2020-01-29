@@ -25,11 +25,18 @@ uniform mat4 projection;
 uniform mat4 model_view;
 uniform mat4 normal;
 
+uniform float lerp;
+
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec3 in_normal;
 layout (location = 2) in vec3 in_tangent;
 layout (location = 3) in vec3 in_bitangent;
 layout (location = 4) in vec2 in_diffuse;
+
+layout (location = 5) in vec3 in_next_position;
+layout (location = 6) in vec3 in_next_normal;
+layout (location = 7) in vec3 in_next_tangent;
+layout (location = 8) in vec3 in_next_bitangent;
 
 out vertex_data {
 	vec3 position;
@@ -45,12 +52,17 @@ out vertex_data {
  */
 void main(void) {
 
-	gl_Position = projection * model_view * vec4(in_position, 1.0);
+	vec4 lerp_position = vec4(mix(in_position, in_next_position, lerp), 1.0);
+	vec4 lerp_normal = vec4(mix(in_normal, in_next_normal, lerp), 1.0);
+	vec4 lerp_tangent = vec4(mix(in_tangent, in_next_tangent, lerp), 1.0);
+	vec4 lerp_bitangent = vec4(mix(in_bitangent, in_next_bitangent, lerp), 1.0);
 
-	vertex.position = (model_view * vec4(in_position, 1.0)).xyz;
-	vertex.normal = normalize(vec3(normal * vec4(in_normal, 1.0)));
-	vertex.tangent = normalize(vec3(normal * vec4(in_tangent, 1.0)));
-	vertex.bitangent = normalize(vec3(normal * vec4(in_bitangent, 1.0)));
+	gl_Position = projection * model_view * lerp_position;
+
+	vertex.position = vec3(model_view * lerp_position);
+	vertex.normal = normalize(vec3(normal * lerp_normal));
+	vertex.tangent = normalize(vec3(normal * lerp_tangent));
+	vertex.bitangent = normalize(vec3(normal * lerp_bitangent));
 
 	vertex.diffuse = in_diffuse;
 

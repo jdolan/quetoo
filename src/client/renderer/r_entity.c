@@ -34,7 +34,7 @@ r_entity_t *R_AddEntity(const r_entity_t *ent) {
 	r_entity_t *e = &r_view.entities[r_view.num_entities++];
 	*e = *ent;
 
-	if (!(e->effects & EF_LINKED)) { // child models use explicit matrix, do not recompute
+	if (!(e->effects & EF_LINKED)) { // linked models use a tag matrix, do not recompute
 		Matrix4x4_CreateFromEntity(&e->matrix, e->origin, e->angles, e->scale);
 	}
 
