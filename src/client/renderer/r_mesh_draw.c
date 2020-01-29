@@ -142,16 +142,6 @@ static _Bool R_CullMeshEntity(const r_entity_t *e) {
  */
 static void R_DrawMeshEntity(const r_entity_t *e) {
 
-	matrix4x4_t model_view;
-	Matrix4x4_Concat(&model_view, &r_locals.model_view, &e->matrix);
-
-	matrix4x4_t normal;
-	Matrix4x4_Invert_Full(&normal, &model_view);
-	Matrix4x4_Transpose(&normal, &normal);
-
-	glUniformMatrix4fv(r_mesh_program.model_view, 1, GL_FALSE, (GLfloat *) model_view.m);
-	glUniformMatrix4fv(r_mesh_program.normal, 1, GL_FALSE, (GLfloat *) normal.m);
-
 	const r_mesh_model_t *mesh = e->model->mesh;
 	assert(mesh);
 
@@ -170,6 +160,16 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 	glEnableVertexAttribArray(r_mesh_program.in_next_normal);
 	glEnableVertexAttribArray(r_mesh_program.in_next_tangent);
 	glEnableVertexAttribArray(r_mesh_program.in_next_bitangent);
+
+	matrix4x4_t model_view;
+	Matrix4x4_Concat(&model_view, &r_locals.model_view, &e->matrix);
+
+	matrix4x4_t normal;
+	Matrix4x4_Invert_Full(&normal, &model_view);
+	Matrix4x4_Transpose(&normal, &normal);
+
+	glUniformMatrix4fv(r_mesh_program.model_view, 1, GL_FALSE, (GLfloat *) model_view.m);
+	glUniformMatrix4fv(r_mesh_program.normal, 1, GL_FALSE, (GLfloat *) normal.m);
 
 	glUniform1f(r_mesh_program.lerp, e->lerp);
 	glUniform4fv(r_mesh_program.color, 1, e->color);
@@ -258,36 +258,56 @@ void R_DrawMeshEntities(void) {
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID);
 	glBindTexture(GL_TEXTURE_3D, r_model_state.world->bsp->lightgrid->volume->texnum);
 
-	const r_entity_t *e = r_view.entities;
-	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
-		if (e->model && e->model->type == MOD_MESH) {
+	{
+		glEnable(GL_CULL_FACE);
 
-			if (R_CullMeshEntity(e)) {
-				continue;
-			}
+		const r_entity_t *e = r_view.entities;
+		for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
+			if (e->model && e->model->type == MOD_MESH) {
 
-			if (e->effects & EF_NO_DRAW) {
-				continue;
-			}
+				if (R_CullMeshEntity(e)) {
+					continue;
+				}
 
-			if (e->effects & EF_BLEND) {
-				glEnable(GL_BLEND);
-			}
+				if (e->effects & EF_NO_DRAW) {
+					continue;
+				}
 
-			if (e->effects & EF_WEAPON) {
-				glDepthRange(0.f, 0.3f);
-			}
+				if (e->effects & EF_BLEND) {
+					continue;
+				}
 
-			R_DrawMeshEntity(e);
-
-			if (e->effects & EF_WEAPON) {
-				glDepthRange(0.f, 1.f);
-			}
-
-			if (e->effects & EF_BLEND) {
-				glDisable(GL_BLEND);
+				R_DrawMeshEntity(e);
 			}
 		}
+
+		glDisable(GL_CULL_FACE);
+	}
+
+	{
+		glEnable(GL_BLEND);
+
+		const r_entity_t *e = r_view.entities;
+		for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
+			if (e->model && e->model->type == MOD_MESH) {
+
+				if (R_CullMeshEntity(e)) {
+					continue;
+				}
+
+				if (e->effects & EF_NO_DRAW) {
+					continue;
+				}
+
+				if (!(e->effects & EF_BLEND)) {
+					continue;
+				}
+
+				R_DrawMeshEntity(e);
+			}
+		}
+
+		glDisable(GL_BLEND);
 	}
 
 	glActiveTexture(GL_TEXTURE0);
