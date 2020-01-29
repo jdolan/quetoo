@@ -21,7 +21,69 @@
 
 #include "r_local.h"
 
-r_mesh_state_t r_mesh_state;
+#define MAX_ACTIVE_LIGHTS        10
+
+#define TEXTURE_DIFFUSE           0
+#define TEXTURE_NORMALMAP         1
+#define TEXTURE_GLOSSMAP          2
+#define TEXTURE_LIGHTGRID         6
+
+#define TEXTURE_MASK_DIFFUSE     (1 << TEXTURE_DIFFUSE)
+#define TEXTURE_MASK_NORMALMAP   (1 << TEXTURE_NORMALMAP)
+#define TEXTURE_MASK_GLOSSMAP    (1 << TEXTURE_GLOSSMAP)
+#define TEXTURE_MASK_LIGHTGRID   (1 << TEXTURE_LIGHTGRID)
+#define TEXTURE_MASK_ALL          0xff
+
+/**
+ * @brief The program.
+ */
+static struct {
+	GLuint name;
+
+	GLint in_position;
+	GLint in_normal;
+	GLint in_tangent;
+	GLint in_bitangent;
+	GLint in_diffuse;
+
+	GLint projection;
+	GLint model_view;
+	GLint normal;
+
+	GLint textures;
+
+	GLint texture_diffuse;
+	GLint texture_normalmap;
+	GLint texture_glossmap;
+	GLint texture_lightgrid;
+
+	GLint contents;
+
+	GLint color;
+	GLint alpha_threshold;
+
+	GLint brightness;
+	GLint contrast;
+	GLint saturation;
+	GLint gamma;
+
+	GLint modulate;
+
+	GLint bump;
+	GLint parallax;
+	GLint hardness;
+	GLint specular;
+
+	GLint light_positions[MAX_ACTIVE_LIGHTS];
+	GLint light_colors[MAX_ACTIVE_LIGHTS];
+
+	GLint fog_parameters;
+	GLint fog_color;
+
+	GLint caustics;
+} r_mesh_program;
+
+
 
 /**
  * @brief Applies any client-side transformations specified by the model's world or
@@ -57,36 +119,9 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
 }
 
 /**
- * @brief Returns the desired tag structure, or `NULL`.
- * @param mod The model to check for the specified tag.
- * @param frame The frame to fetch the tag on.
- * @param name The name of the tag.
- * @return The tag structure.
-*/
-const r_mesh_tag_t *R_MeshTag(const r_model_t *mod, const char *name, const int32_t frame) {
-
-	if (frame > mod->mesh->num_frames) {
-		Com_Warn("%s: Invalid frame: %d\n", mod->media.name, frame);
-		return NULL;
-	}
-
-	const r_mesh_model_t *model = mod->mesh;
-	const r_mesh_tag_t *tag = &model->tags[frame * model->num_tags];
-
-	for (int32_t i = 0; i < model->num_tags; i++, tag++) {
-		if (!g_strcmp0(name, tag->name)) {
-			return tag;
-		}
-	}
-
-	Com_Warn("%s: Tag not found: %s\n", mod->media.name, name);
-	return NULL;
-}
-
-/**
  * @return True if the specified entity was frustum-culled and can be skipped.
  */
-_Bool R_CullMeshModel(const r_entity_t *e) {
+static _Bool R_CullMeshEntity(const r_entity_t *e) {
 	vec3_t mins, maxs;
 
 	if (e->effects & EF_WEAPON) { // never cull the weapon
@@ -101,280 +136,221 @@ _Bool R_CullMeshModel(const r_entity_t *e) {
 	return R_CullBox(mins, maxs);
 }
 
-/**
- * @brief Sets the shade color for the mesh by modulating any preset color
- * with static lighting.
- */
-static void R_SetMeshColor(const r_entity_t *e) {
-//	vec4_t color;
-//
-//	if ((e->effects & EF_NO_LIGHTING) == 0 && r_state.max_active_lights) {
-//		VectorClear(color);
-//
-//		if (!r_lights->value) {
-//			const r_illumination_t *il = e->lighting->illuminations;
-//
-//			for (uint16_t i = 0; i < r_state.max_active_lights; i++, il++) {
-//
-//				if (il->diffuse == 0.0) {
-//					break;
-//				}
-//
-//				VectorMA(color, il->diffuse / il->light.radius, il->light.color, color);
-//			}
-//
-//			ColorNormalize(color, color);
-//		}
-//	} else {
-//		VectorSet(color, 1.0, 1.0, 1.0);
-//	}
-//
-//	for (int32_t i = 0; i < 3; i++) {
-//		color[i] *= e->color[i];
-//	}
-//
-//	if (e->effects & EF_BLEND) {
-//		color[3] = Clamp(e->color[3], 0.0, 1.0);
-//	} else {
-//		color[3] = 1.0;
-//	}
-//
-//	R_Color(color);
-//
-//	Vector4Copy(color, r_mesh_state.color);
-}
+
 
 /**
- * @brief Sets up the texture for tinting. Do this after UseMaterial.
+ * @brief
  */
-static void R_UpdateMeshTints(void) {
+static void R_DrawMeshEntity(const r_entity_t *e) {
 
-//	if (r_mesh_state.material && r_mesh_state.material->tintmap) {
-//		R_EnableTexture(texunit_tint, true);
-//		R_UseTints();
-//	} else {
-//		R_EnableTexture(texunit_tint, false);
-//	}
-}
+	matrix4x4_t model_view;
+	Matrix4x4_Concat(&model_view, &r_locals.model_view, &e->matrix);
 
-/**
- * @brief Sets renderer state for the specified entity.
- */
-static void R_SetModelState(const r_entity_t *e) {
+	matrix4x4_t normal;
+	Matrix4x4_Invert_Full(&normal, &model_view);
+	Matrix4x4_Transpose(&normal, &normal);
 
-	// setup VBO states
-//	R_SetArrayState(e->model);
-//
-//	if (e->effects & EF_WEAPON) {
-//		R_DepthRange(0.0, 0.3);
-//	}
-//
-//	R_RotateForEntity(e);
-//
-//	// setup lerp for animating models
-//	if (e->old_frame != e->frame) {
-//		R_UseInterpolation(e->lerp);
-//	}
-}
+	glUniformMatrix4fv(r_mesh_program.model_view, 1, GL_FALSE, (GLfloat *) model_view.m);
+	glUniformMatrix4fv(r_mesh_program.normal, 1, GL_FALSE, (GLfloat *) normal.m);
 
-/**
- * @brief Sets renderer state for the specified mesh.
- */
-static void R_SetMeshState(const r_entity_t *e, const uint16_t mesh_index, const r_mesh_face_t *face) {
+	const r_mesh_model_t *mesh = e->model->mesh;
+	assert(mesh);
 
-//	r_material_t *material = (r_draw_wireframe->value) ? NULL : ((mesh_index < 32 && e->skins[mesh_index]) ? e->skins[mesh_index] : mesh->material);
-//
-//	r_mesh_state.material = material;
-//
-//	if (!r_draw_wireframe->value) {
-//
-//		R_BindDiffuseTexture(material->diffuse->texnum);
-//
-//		R_SetMeshColor(e);
-//
-//		if (e->effects & EF_ALPHATEST) {
-//			R_EnableAlphaTest(ALPHA_TEST_ENABLED_THRESHOLD);
-//		}
-//
-//		if (e->effects & EF_BLEND) {
-//			R_EnableBlend(true);
-//			R_EnableDepthMask(false);
-//		}
-//
-//		if ((e->effects & EF_NO_LIGHTING) == 0 && r_state.lighting_enabled) {
-//
-//			R_ApplyMeshModelLighting(e);
-//		}
-//	} else {
-//		R_Color(NULL);
-//	}
-//
-//	R_UseMaterial(r_mesh_state.material);
-//
-//	R_UpdateMeshTints();
-}
+	glBindVertexArray(mesh->vertex_array);
 
-/**
- * @brief Restores renderer state for the given entity.
- */
-static void R_ResetModelState(const r_entity_t *e) {
+	glBindBuffer(GL_ARRAY_BUFFER, mesh->vertex_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->elements_buffer);
 
-//	R_RotateForEntity(NULL);
-//
-//	if (e->effects & EF_WEAPON) {
-//		R_DepthRange(0.0, 1.0);
-//	}
-//
-//	if (e->effects & EF_BLEND) {
-//		R_EnableBlend(false);
-//		R_EnableDepthMask(true);
-//	}
-//
-//	if (e->effects & EF_ALPHATEST) {
-//		R_EnableAlphaTest(ALPHA_TEST_DISABLED_THRESHOLD);
-//	}
-//
-//	R_ResetArrayState();
-//
-//	R_UseInterpolation(0.0);
-//
-//	R_EnableTexture(texunit_tint, false);
-}
+	glEnableVertexAttribArray(r_mesh_program.in_position);
+	glEnableVertexAttribArray(r_mesh_program.in_normal);
+	glEnableVertexAttribArray(r_mesh_program.in_tangent);
+	glEnableVertexAttribArray(r_mesh_program.in_bitangent);
+	glEnableVertexAttribArray(r_mesh_program.in_diffuse);
 
-/**
- * @brief Returns whether or not the main diffuse stage of a mesh should be rendered.
- */
-static _Bool R_DrawMeshDiffuse(void) {
-	return r_draw_wireframe->value || !r_materials->value || !r_mesh_state.material->cm->only_stages;
-}
+	glUniform4fv(r_mesh_program.color, 1, e->color);
 
-/**
- * @brief Draw the diffuse pass of each mesh segment for the specified model.
- */
-static void R_DrawMeshParts(const r_entity_t *e, const r_mesh_model_t *model) {
-//	uint32_t offset = 0;
-//	const r_mesh_t *mesh = model->meshes;
-//
-//	for (uint16_t i = 0; i < model->num_meshes; i++, mesh++) {
-//
-//		R_SetMeshState(e, i, mesh);
-//
-//		if (!R_DrawMeshDiffuse()) {
-//			offset += mesh->num_elements;
-//			continue;
-//		}
-//
-//		R_DrawArrays(GL_TRIANGLES, offset, mesh->num_elements);
-//
-//		offset += mesh->num_elements;
-//	}
-}
+	const r_mesh_face_t *face = mesh->faces;
+	for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
 
-/**
- * @brief Draw the material passes of each mesh segment for the specified model.
- */
-static void R_DrawMeshPartsMaterials(const r_entity_t *e, const r_mesh_model_t *model) {
-//	uint32_t offset = 0;
-//	const r_mesh_t *mesh = model->meshes;
-//
-//	for (uint16_t i = 0; i < model->num_meshes; i++, mesh++) {
-//
-//		R_SetMeshState(e, i, mesh);
-//
-//		R_DrawMeshMaterial(r_mesh_state.material, offset, mesh->num_elements);
-//
-//		offset += mesh->num_elements;
-//	}
-}
+		GLint textures = TEXTURE_MASK_LIGHTGRID;
 
-/**
- * @brief Draws the mesh model for the given entity. This only draws the base model.
- */
-void R_DrawMeshModel(const r_entity_t *e) {
+		const r_material_t *material = e->skins[i] ?: face->material;
+		if (material) {
 
-//	r_view.current_entity = e;
+			glUniform1f(r_mesh_program.bump, material->cm->bump);
+			glUniform1f(r_mesh_program.parallax, material->cm->parallax);
+			glUniform1f(r_mesh_program.hardness, material->cm->hardness);
+			glUniform1f(r_mesh_program.specular, material->cm->specular);
 
-	R_SetModelState(e);
+			if (material->diffuse) {
+				textures |= TEXTURE_MASK_DIFFUSE;
+				glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSE);
+				glBindTexture(GL_TEXTURE_2D, material->diffuse->texnum);
+			}
 
-	R_DrawMeshParts(e, e->model->mesh);
+			if (material->normalmap) {
+				textures |= TEXTURE_MASK_NORMALMAP;
+				glActiveTexture(GL_TEXTURE0 + TEXTURE_NORMALMAP);
+				glBindTexture(GL_TEXTURE_2D, material->normalmap->texnum);
+			}
 
-//	r_view.num_mesh_tris += e->model->num_tris;
-//	r_view.num_mesh_models++;
+			if (material->glossmap) {
+				textures |= TEXTURE_MASK_GLOSSMAP;
+				glActiveTexture(GL_TEXTURE0 + TEXTURE_GLOSSMAP);
+				glBindTexture(GL_TEXTURE_2D, material->glossmap->texnum);
+			}
+		}
 
-	R_ResetModelState(e); // reset state
-}
+		glUniform1i(r_mesh_program.textures, textures);
 
-/**
- * @brief Draws the mesh materials for the given entity.
- */
-void R_DrawMeshModelMaterials(const r_entity_t *e) {
-
-	if (r_draw_wireframe->value || !r_materials->value) {
-		return;
+		glDrawElements(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements);
+		
+		r_view.count_mesh_triangles += face->num_elements / 3;
 	}
 
-//	r_view.current_entity = e;
-
-	R_SetModelState(e);
-	
-	R_DrawMeshPartsMaterials(e, e->model->mesh);
-
-	R_ResetModelState(e); // reset state
+	r_view.count_mesh_models++;
 }
 
 /**
  * @brief Draws all mesh models for the current frame.
  */
-void R_DrawMeshModels(const r_entities_t *ents) {
+void R_DrawMeshEntities(void) {
 
-//	R_EnableLighting(true);
-//
-//	R_GetMatrix(R_MATRIX_MODELVIEW, &r_mesh_state.world_view);
-//
-//	if (r_draw_wireframe->value) {
-//		R_BindDiffuseTexture(r_image_state.null->texnum);
-//		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-//	}
-//
-//	for (size_t i = 0; i < ents->count; i++) {
-//		const r_entity_t *e = ents->entities[i];
-//
-//		if (e->effects & EF_NO_DRAW) {
-//			continue;
-//		}
-//
-//		R_DrawMeshModel(e);
-//	}
-//
-//	for (size_t i = 0; i < ents->count; i++) {
-//		const r_entity_t *e = ents->entities[i];
-//
-//		if (e->effects & EF_NO_DRAW) {
-//			continue;
-//		}
-//
-//		r_view.current_entity = e;
-//
-//		R_DrawMeshModelMaterials(e);
-//	}
-//
-//	r_view.current_entity = NULL;
-//
-//	if (r_draw_wireframe->value) {
-//		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-//	}
-//
-//	R_EnableLighting(false);
-//
-//	R_EnableBlend(true);
-//
-//	R_EnableDepthMask(false);
-//
-//	R_DrawMeshShadows(ents);
-//
-//	R_DrawMeshShells(ents);
-//
-//	R_EnableBlend(false);
-//
-//	R_EnableDepthMask(true);
+	glEnable(GL_DEPTH_TEST);
+
+	if (r_draw_wireframe->value) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+
+	glUseProgram(r_mesh_program.name);
+
+	glUniformMatrix4fv(r_mesh_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
+
+	glUniform1f(r_mesh_program.alpha_threshold, 0.f);
+
+	glUniform1f(r_mesh_program.brightness, r_brightness->value);
+	glUniform1f(r_mesh_program.contrast, r_contrast->value);
+	glUniform1f(r_mesh_program.saturation, r_saturation->value);
+	glUniform1f(r_mesh_program.gamma, r_gamma->value);
+	glUniform1f(r_mesh_program.modulate, r_modulate->value);
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID);
+	glBindTexture(GL_TEXTURE_3D, r_model_state.world->bsp->lightgrid->volume->texnum);
+
+	const r_entity_t *e = r_view.entities;
+	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
+		if (e->model && e->model->type == MOD_MESH) {
+
+			if (R_CullMeshEntity(e)) {
+				continue;
+			}
+
+			if (e->effects & EF_NO_DRAW) {
+				continue;
+			}
+
+			if (e->effects & EF_BLEND) {
+				glEnable(GL_BLEND);
+			}
+
+			if (e->effects & EF_WEAPON) {
+				glDepthRange(0.f, 0.3f);
+			}
+
+			R_DrawMeshEntity(e);
+
+			if (e->effects & EF_WEAPON) {
+				glDepthRange(0.f, 1.f);
+			}
+
+			if (e->effects & EF_BLEND) {
+				glDisable(GL_BLEND);
+			}
+		}
+	}
+
+	glActiveTexture(GL_TEXTURE0);
+
+	if (r_draw_wireframe->value) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
+
+	glDisable(GL_DEPTH_TEST);
+
+	R_GetError(NULL);
 }
+
+/**
+ * @brief
+ */
+void R_InitMeshProgram(void) {
+
+	memset(&r_mesh_program, 0, sizeof(r_mesh_program));
+
+	r_mesh_program.name = R_LoadProgram(
+			&MakeShaderDescriptor(GL_VERTEX_SHADER, "mesh_vs.glsl"),
+			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "color_filter.glsl", "mesh_fs.glsl"),
+			NULL);
+
+	glUseProgram(r_mesh_program.name);
+
+	r_mesh_program.in_position = glGetAttribLocation(r_mesh_program.name, "in_position");
+	r_mesh_program.in_normal = glGetAttribLocation(r_mesh_program.name, "in_normal");
+	r_mesh_program.in_tangent = glGetAttribLocation(r_mesh_program.name, "in_tangent");
+	r_mesh_program.in_bitangent = glGetAttribLocation(r_mesh_program.name, "in_bitangent");
+	r_mesh_program.in_diffuse = glGetAttribLocation(r_mesh_program.name, "in_diffuse");
+
+	r_mesh_program.projection = glGetUniformLocation(r_mesh_program.name, "projection");
+	r_mesh_program.model_view = glGetUniformLocation(r_mesh_program.name, "model_view");
+	r_mesh_program.normal = glGetUniformLocation(r_mesh_program.name, "normal");
+
+	r_mesh_program.textures = glGetUniformLocation(r_mesh_program.name, "textures");
+	r_mesh_program.texture_diffuse = glGetUniformLocation(r_mesh_program.name, "texture_diffuse");
+	r_mesh_program.texture_normalmap = glGetUniformLocation(r_mesh_program.name, "texture_normalmap");
+	r_mesh_program.texture_glossmap = glGetUniformLocation(r_mesh_program.name, "texture_glossmap");
+	r_mesh_program.texture_lightgrid = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid");
+
+	r_mesh_program.contents = glGetUniformLocation(r_mesh_program.name, "contents");
+
+	r_mesh_program.color = glGetUniformLocation(r_mesh_program.name, "color");
+	r_mesh_program.alpha_threshold = glGetUniformLocation(r_mesh_program.name, "alpha_threshold");
+
+	r_mesh_program.brightness = glGetUniformLocation(r_mesh_program.name, "brightness");
+	r_mesh_program.contrast = glGetUniformLocation(r_mesh_program.name, "contrast");
+	r_mesh_program.saturation = glGetUniformLocation(r_mesh_program.name, "saturation");
+	r_mesh_program.gamma = glGetUniformLocation(r_mesh_program.name, "gamma");
+	r_mesh_program.modulate = glGetUniformLocation(r_mesh_program.name, "modulate");
+
+	r_mesh_program.bump = glGetUniformLocation(r_mesh_program.name, "bump");
+	r_mesh_program.parallax = glGetUniformLocation(r_mesh_program.name, "parallax");
+	r_mesh_program.hardness = glGetUniformLocation(r_mesh_program.name, "hardness");
+	r_mesh_program.specular = glGetUniformLocation(r_mesh_program.name, "specular");
+
+	for (size_t i = 0; i < lengthof(r_mesh_program.light_positions); i++) {
+		r_mesh_program.light_positions[i] = glGetUniformLocation(r_mesh_program.name, va("light_positions[%zd]", i));
+		r_mesh_program.light_colors[i] = glGetUniformLocation(r_mesh_program.name, va("light_colors[%zd]", i));
+	}
+
+	r_mesh_program.fog_parameters = glGetUniformLocation(r_mesh_program.name, "fog_parameters");
+	r_mesh_program.fog_color = glGetUniformLocation(r_mesh_program.name, "fog_color");
+
+	r_mesh_program.caustics = glGetUniformLocation(r_mesh_program.name, "caustics");
+
+	glUniform1i(r_mesh_program.texture_diffuse, TEXTURE_DIFFUSE);
+	glUniform1i(r_mesh_program.texture_normalmap, TEXTURE_NORMALMAP);
+	glUniform1i(r_mesh_program.texture_glossmap, TEXTURE_GLOSSMAP);
+	glUniform1i(r_mesh_program.texture_lightgrid, TEXTURE_LIGHTGRID);
+
+	R_GetError(NULL);
+}
+
+/**
+ * @brief
+ */
+void R_ShutdownMeshProgram(void) {
+
+	glDeleteProgram(r_mesh_program.name);
+
+	r_mesh_program.name = 0;
+}
+

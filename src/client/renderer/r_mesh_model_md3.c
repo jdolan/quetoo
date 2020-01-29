@@ -393,10 +393,10 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 				const d_md3_shader_t *in_shader = (d_md3_shader_t *) (surface_base + surface.ofs_shaders);
 				for (int32_t j = 0; j < surface.num_shaders; j++, in_shader++) {
 					const d_md3_shader_t skin = R_SwapMd3Shader(in_shader);
-					out->material = R_ResolveModelMaterial(mod, out, skin.name);
+					out->material = R_ResolveMeshMaterial(mod, out, skin.name);
 				}
 			} else {
-				R_ResolveModelMaterial(mod, out, NULL);
+				out->material = R_ResolveMeshMaterial(mod, out, NULL);
 			}
 
 			{

@@ -24,12 +24,39 @@
 #include "r_local.h"
 
 /**
+ * @brief Returns the desired tag structure, or `NULL`.
+ * @param mod The model to check for the specified tag.
+ * @param frame The frame to fetch the tag on.
+ * @param name The name of the tag.
+ * @return The tag structure.
+*/
+const r_mesh_tag_t *R_MeshTag(const r_model_t *mod, const char *name, const int32_t frame) {
+
+	if (frame > mod->mesh->num_frames) {
+		Com_Warn("%s: Invalid frame: %d\n", mod->media.name, frame);
+		return NULL;
+	}
+
+	const r_mesh_model_t *model = mod->mesh;
+	const r_mesh_tag_t *tag = &model->tags[frame * model->num_tags];
+
+	for (int32_t i = 0; i < model->num_tags; i++, tag++) {
+		if (!g_strcmp0(name, tag->name)) {
+			return tag;
+		}
+	}
+
+	Com_Warn("%s: Tag not found: %s\n", mod->media.name, name);
+	return NULL;
+}
+
+/**
  * @brief Resolves a material for the specified mesh model.
  * @remarks First, it will attempt to use the material explicitly designated on the face, if
  * one exists. If that material is not found, it will attempt to load a material based on the face name.
  * Finally, if that fails, it will fall back to using model path + "skin".
  */
-r_material_t *R_ResolveModelMaterial(const r_model_t *mod, const r_mesh_face_t *face, const char *name) {
+r_material_t *R_ResolveMeshMaterial(const r_model_t *mod, const r_mesh_face_t *face, const char *name) {
 	char path[MAX_QPATH];
 	r_material_t *material;
 

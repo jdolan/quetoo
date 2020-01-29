@@ -23,8 +23,10 @@
 
 #include "r_types.h"
 
+const r_mesh_tag_t *R_MeshTag(const r_model_t *mod, const char *name, const int32_t frame);
+
 #ifdef __R_LOCAL_H__
-r_material_t *R_ResolveModelMaterial(const r_model_t *mod, const r_mesh_face_t *face, const char *mesh_material);
+r_material_t *R_ResolveMeshMaterial(const r_model_t *mod, const r_mesh_face_t *face, const char *name);
 void R_LoadMeshConfigs(r_model_t *mod);
 void R_LoadMeshVertexArray(r_model_t *mod);
 #endif /* __R_LOCAL_H__ */

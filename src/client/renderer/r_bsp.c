@@ -70,7 +70,7 @@ _Bool R_LeafHearable(const r_bsp_leaf_t *leaf) {
 /**
  * @brief
  */
-static _Bool R_CullBspInlineModel(const r_entity_t *e) {
+static _Bool R_CullBspEntity(const r_entity_t *e) {
 	vec3_t mins, maxs;
 
 	if (e->angles[0] || e->angles[1] || e->angles[2]) {
@@ -147,7 +147,7 @@ void R_UpdateVis(void) {
 
 				if (!R_CullBox(node->mins, node->maxs)) {
 					node->vis_frame = r_locals.vis_frame;
-					r_view.num_bsp_nodes++;
+					r_view.count_bsp_nodes++;
 				}
 
 				node = node->parent;
@@ -159,7 +159,7 @@ void R_UpdateVis(void) {
 	for (int32_t i = 0; i < r_view.num_entities; i++, e++) {
 		if (e->model && e->model->type == MOD_BSP_INLINE) {
 
-			if (R_CullBspInlineModel(e)) {
+			if (R_CullBspEntity(e)) {
 				continue;
 			}
 

@@ -94,6 +94,7 @@ static struct {
 static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in) {
 
 	const r_bsp_model_t *bsp = r_model_state.world->bsp;
+	assert(bsp);
 
 	const r_material_t *material = NULL;
 	GLint textures = TEXTURE_MASK_ALL;
@@ -172,7 +173,7 @@ static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in) {
 
 		glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
 
-		r_view.num_bsp_draw_elements++;
+		r_view.count_bsp_draw_elements++;
 	}
 }
 

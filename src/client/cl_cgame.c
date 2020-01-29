@@ -259,7 +259,7 @@ void Cl_InitCgame(void) {
 
 	import.AddEntity = R_AddEntity;
 	import.MeshTag = R_MeshTag;
-	import.SetMatrixForEntity = R_SetMatrixForEntity;
+//	import.SetMatrixForEntity = R_SetMatrixForEntity;
 //	import.SetMatrix = R_SetMatrix;
 //	import.GetMatrix = R_GetMatrix;
 //	import.PushMatrix = R_PushMatrix;

@@ -37,9 +37,9 @@ static void Cg_LoadClientSkin(r_material_t **skins, const r_mesh_model_t *model,
 		return;
 	}
 
-	char *skin_name, *mesh_name = line;
+	char *skin_name, *face_name = line;
 
-	if ((skin_name = strchr(mesh_name, ','))) {
+	if ((skin_name = strchr(face_name, ','))) {
 		*skin_name++ = '\0';
 
 		while (isspace(*skin_name)) {
@@ -52,7 +52,7 @@ static void Cg_LoadClientSkin(r_material_t **skins, const r_mesh_model_t *model,
 	const r_mesh_face_t *face = model->faces;
 	for (i = 0; i < model->num_faces; i++, face++) {
 
-		if (!g_ascii_strcasecmp(mesh_name, face->name)) {
+		if (!g_ascii_strcasecmp(face_name, face->name)) {
 			skins[i] = cgi.LoadMaterial(skin_name, ASSET_CONTEXT_PLAYERS);
 			break;
 		}

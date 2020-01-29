@@ -260,8 +260,6 @@ void R_DrawView(r_view_t *view) {
 
 //	R_AddFlares();
 
-	R_CullEntities();
-
 	R_DrawEntities();
 
 	R_DrawParticles();
@@ -320,11 +318,13 @@ void R_BeginFrame(void) {
 
 	R_Clear();
 
-	r_view.num_bsp_nodes = 0;
-	r_view.num_bsp_draw_elements = 0;
+	r_view.count_draw_arrays = 0;
 
-	r_view.num_draw_elements = 0;
-	r_view.num_draw_arrays = 0;
+	r_view.count_bsp_nodes = 0;
+	r_view.count_bsp_draw_elements = 0;
+
+	r_view.count_mesh_models = 0;
+	r_view.count_mesh_triangles = 0;
 }
 
 /**

@@ -135,30 +135,27 @@ static void Cl_DrawRendererStats(void) {
 	R_DrawString(0, y, "BSP:", CON_COLOR_YELLOW);
 	y += ch;
 
-	R_DrawString(0, y, va("%d nodes", r_view.num_bsp_nodes), CON_COLOR_YELLOW);
+	R_DrawString(0, y, va("%d nodes", r_view.count_bsp_nodes), CON_COLOR_YELLOW);
 	y += ch;
 
-	R_DrawString(0, y, va("%d draw elements", r_view.num_bsp_draw_elements), CON_COLOR_YELLOW);
+	R_DrawString(0, y, va("%d draw elements", r_view.count_bsp_draw_elements), CON_COLOR_YELLOW);
 	y += ch;
 
-//	y += ch;
-//	R_DrawString(0, y, "Mesh:", CON_COLOR_CYAN);
-//	y += ch;
-//
-//	R_DrawString(0, y, va("%d models", r_view.num_mesh_models), CON_COLOR_CYAN);
-//	y += ch;
-//
-//	R_DrawString(0, y, va("%d tris", r_view.num_mesh_tris), CON_COLOR_CYAN);
-//	y += ch;
-
 	y += ch;
-	R_DrawString(0, y, "Draws:", CON_COLOR_CYAN);
+	R_DrawString(0, y, "Mesh:", CON_COLOR_CYAN);
 	y += ch;
 
-	R_DrawString(0, y, va("%d glDrawElements", r_view.num_draw_arrays), CON_COLOR_CYAN);
+	R_DrawString(0, y, va("%d models", r_view.count_mesh_models), CON_COLOR_CYAN);
 	y += ch;
 
-	R_DrawString(0, y, va("%d glDrawElements", r_view.num_draw_elements), CON_COLOR_CYAN);
+	R_DrawString(0, y, va("%d triangles", r_view.count_mesh_triangles), CON_COLOR_CYAN);
+	y += ch;
+
+	y += ch;
+	R_DrawString(0, y, "2D:", CON_COLOR_CYAN);
+	y += ch;
+
+	R_DrawString(0, y, va("%d arrays", r_view.count_draw_arrays), CON_COLOR_CYAN);
 	y += ch;
 
 	y += ch;

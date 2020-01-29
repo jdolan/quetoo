@@ -71,7 +71,7 @@ static struct {
  */
 void R_DrawSkyBox(void) {
 
-	if (r_clear->value && r_draw_wireframe->value) {
+	if (r_draw_wireframe->value) {
 		return;
 	}
 

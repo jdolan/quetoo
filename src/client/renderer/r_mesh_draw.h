@@ -23,20 +23,9 @@
 
 #include "r_types.h"
 
-void R_DrawMeshModel(const r_entity_t *e);
-void R_DrawMeshModelMaterials(const r_entity_t *e);
-const r_mesh_tag_t *R_MeshTag(const r_model_t *mod, const char *name, const int32_t frame);
-
 #ifdef __R_LOCAL_H__
-typedef struct {
-	r_material_t *material;
-	matrix4x4_t world_view; // the modelview matrix pre-entity rotation
-	vec4_t color; // the last color we bound
-} r_mesh_state_t;
-
-extern r_mesh_state_t r_mesh_state;
-
 void R_ApplyMeshModelConfig(r_entity_t *e);
-_Bool R_CullMeshModel(const r_entity_t *e);
-void R_DrawMeshModels(const r_entities_t *ents);
+void R_DrawMeshEntities(void);
+void R_InitMeshProgram(void);
+void R_ShutdownMeshProgram(void);
 #endif /* __R_LOCAL_H__ */

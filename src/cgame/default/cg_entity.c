@@ -267,10 +267,10 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	e->effects |= EF_CLIENT;
 	e->effects &= ~EF_CTF_MASK;
 
-	const _Bool self_draw = (Cg_IsSelf(ent) && !cgi.client->third_person);
+	const _Bool self_no_draw = (Cg_IsSelf(ent) && !cgi.client->third_person);
 
 	// don't draw ourselves unless third person is set
-	if (self_draw) {
+	if (self_no_draw) {
 
 		e->effects |= EF_NO_DRAW;
 
@@ -359,7 +359,7 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		r_model_t *model = cgi.client->model_precache[s->model2];
 		r_entity_t *m2 = Cg_AddLinkedEntity(r_torso, model, "tag_weapon");
 
-		if (self_draw) {
+		if (self_no_draw) {
 			m2->effects |= EF_NO_DRAW;
 		}
 	}
@@ -369,7 +369,7 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		r_entity_t *m3 = Cg_AddLinkedEntity(r_torso, model, "tag_head");
 		m3->effects |= effects;
 
-		if (self_draw) {
+		if (self_no_draw) {
 			m3->effects |= EF_NO_DRAW;
 		}
 	}

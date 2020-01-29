@@ -108,7 +108,7 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 
 		vec3_t vec;
 		if (strncmp("v ", line, strlen("v ")) == 0) {
-			if (sscanf(line, "v %f %f %f", &vec[0], &vec[1], &vec[2]) == 3) {
+			if (sscanf(line, "v %f %f %f", &vec[0], &vec[2], &vec[1]) == 3) {
 				AddPointToBounds(vec, mod->mins, mod->maxs);
 				g_array_append_val(obj.v, vec);
 			}
@@ -118,7 +118,7 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 				g_array_append_val(obj.vt, vec);
 			}
 		} else if (strncmp("vn ", line, strlen("vn ")) == 0) {
-			if (sscanf(line, "vn %f %f %f", &vec[0], &vec[1], &vec[2]) == 3) {
+			if (sscanf(line, "vn %f %f %f", &vec[0], &vec[2], &vec[1]) == 3) {
 				VectorNormalize(vec);
 				g_array_append_val(obj.vn, vec);
 			}
@@ -168,6 +168,7 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 		r_mesh_face_t *face = out->faces + i;
 
 		g_strlcpy(face->name, group->name, sizeof(face->name));
+		face->material = R_ResolveMeshMaterial(mod, face, NULL);
 
 		for (int32_t j = 0; j < (int32_t) group->f->len; j++) {
 			r_obj_face_t *f = &g_array_index(group->f, r_obj_face_t, j);

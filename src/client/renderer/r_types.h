@@ -646,33 +646,6 @@ typedef struct r_entity_s {
 	vec4_t tints[TINT_TOTAL]; // tint colors, non-zero alpha enables the tint
 } r_entity_t;
 
-/**
- * @brief Entity draw lists.
- */
-typedef struct {
-	const r_entity_t *entities[MAX_ENTITIES];
-	size_t count;
-} r_entities_t;
-
-/**
- * @brief The view maintains lists of entities, sorted by render path.
- */
-typedef struct {
-	r_entities_t bsp_inline_entities;
-	r_entities_t mesh_entities;
-	r_entities_t null_entities;
-} r_sorted_entities_t;
-
-/**
- * @brief Appends a reference to the specified entity to the given entities list.
- */
-#define R_ENTITY_TO_ENTITIES(ents, ent) (ents)->entities[(ents)->count++] = ent
-
-/**
- * @brief Function prototype for mesh entity draw lists.
- */
-typedef void (*MeshModelsDrawFunc)(const r_entities_t *ents);
-
 #define WEATHER_NONE        0x0
 #define WEATHER_RAIN        0x1
 #define WEATHER_SNOW        0x2
@@ -763,11 +736,13 @@ typedef struct {
 
 	// counters, reset each frame
 
-	int32_t num_bsp_nodes;
-	int32_t num_bsp_draw_elements;
+	int32_t count_draw_arrays;
 
-	int32_t num_draw_elements;
-	int32_t num_draw_arrays;
+	int32_t count_bsp_nodes;
+	int32_t count_bsp_draw_elements;
+
+	int32_t count_mesh_models;
+	int32_t count_mesh_triangles;
 
 	_Bool update; // inform the client of state changes
 	
