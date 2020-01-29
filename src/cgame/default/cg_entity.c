@@ -380,6 +380,17 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 }
 
 /**
+ * @brief Adds weapon bob due to running, walking, crouching, etc.
+ */
+static void Cg_WeaponBob(const player_state_t *ps, vec3_t offset, vec3_t angles) {
+	const vec3_t bob = { 0.2, 0.4, 0.2 };
+
+	VectorMA(offset, cg_view.bob, bob, offset);
+
+	angles[YAW] += 1.5 * cg_view.bob;
+}
+
+/**
  * @brief Calculates a kick offset and angles based on our player's animation state.
  */
 static void Cg_WeaponOffset(cl_entity_t *ent, vec3_t offset, vec3_t angles) {
@@ -488,11 +499,15 @@ static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 
 	memset(&w, 0, sizeof(w));
 
-	// Weapon view offset
+	// Weapon offset
 
 	Cg_WeaponOffset(ent, offset, angles);
 
 	VectorCopy(cgi.view->origin, w.origin);
+
+	// Weapon bob
+
+	Cg_WeaponBob(ps, offset, angles);
 
 	// Velocity swaying
 

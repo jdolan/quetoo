@@ -24,6 +24,20 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
+
+/**
+ * @brief The client game view structure.
+ */
+typedef struct {
+
+	/**
+	 * @brief View bob.
+	 */
+	vec_t bob;
+} cg_view_t;
+
+extern cg_view_t cg_view;
+
 void Cg_UpdateView(const cl_frame_t *frame);
 void Cg_PopulateView(const cl_frame_t *frame);
 #endif /* __CG_LOCAL_H__ */

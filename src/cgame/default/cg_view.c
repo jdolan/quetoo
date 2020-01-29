@@ -22,6 +22,8 @@
 #include "cg_local.h"
 #include "game/default/bg_pmove.h"
 
+cg_view_t cg_view;
+
 /**
  * @brief Update the field of view, which affects the view port as well as the culling
  * frustum.
@@ -206,13 +208,12 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	bob += frame_bob;
 	time = cgi.client->unclamped_time;
 
+	cg_view.bob = sinf(0.0066 * bob) * mod * mod;
+	cg_view.bob *= cg_bob->value; // scale via cvar too
 
-	vec_t b = sinf(0.0045 * bob) * mod * mod;
-	b *= cg_bob->value; // scale via cvar too
-
-	VectorMA(cgi.view->origin, -b, cgi.view->forward, cgi.view->origin);
-	VectorMA(cgi.view->origin, b, cgi.view->right, cgi.view->origin);
-	VectorMA(cgi.view->origin, b, cgi.view->up, cgi.view->origin);
+	VectorMA(cgi.view->origin, -cg_view.bob, cgi.view->forward, cgi.view->origin);
+	VectorMA(cgi.view->origin,  cg_view.bob, cgi.view->right, cgi.view->origin);
+	VectorMA(cgi.view->origin,  cg_view.bob, cgi.view->up, cgi.view->origin);
 }
 
 /**
