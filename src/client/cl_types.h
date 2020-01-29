@@ -37,7 +37,7 @@ typedef struct {
 	int32_t delta_frame_num; // negatives indicate no delta
 	byte area_bits[MAX_BSP_AREAS >> 3]; // portal area visibility bits
 	player_state_t ps; // the player state
-	uint16_t num_entities; // the number of entities in the frame
+	int32_t num_entities; // the number of entities in the frame
 	uint32_t entity_state; // non-masked index into cl.entity_states array
 	_Bool valid; // false if delta parsing failed
 	_Bool interpolated; // true if this frame has been interpolated one or more times
@@ -173,7 +173,7 @@ typedef struct {
 	entity_state_t entity_states[ENTITY_STATE_BACKUP]; // accumulated each frame
 	uint32_t entity_state; // index (not wrapped) into entity states
 
-	uint16_t client_num; // our client number, which is our entity number - 1
+	int32_t client_num; // our client number, which is our entity number - 1
 
 	uint32_t suppress_count; // number of messages rate suppressed
 
@@ -298,14 +298,14 @@ typedef struct {
 	char name[32];
 	char gameplay[32];
 	char error[128];
-	uint16_t clients;
-	uint16_t max_clients;
+	int32_t clients;
+	int32_t max_clients;
 	uint32_t ping_time; // when we pinged the server
-	uint16_t ping; // server latency
+	int32_t ping; // server latency
 } cl_server_info_t;
 
 typedef struct {
-	uint16_t percent;
+	int32_t percent;
 	const char *status;
 	char mapshot[MAX_QPATH];
 } cl_loading_t;

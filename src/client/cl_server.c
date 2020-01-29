@@ -95,8 +95,8 @@ void Cl_ParseServerInfo(void) {
 		g_strlcpy(server->name, g_strchomp(info[1]), sizeof(server->name));
 		g_strlcpy(server->gameplay, g_strchomp(info[2]), sizeof(server->gameplay));
 
-		server->clients = strtoul(info[3], NULL, 10);
-		server->max_clients = strtoul(info[4], NULL, 10);
+		server->clients = atoi(info[3]);
+		server->max_clients = atoi(info[4]);
 
 		server->ping = Clamp(quetoo.ticks - server->ping_time, 1u, 999u);
 		server->error[0] = '\0';

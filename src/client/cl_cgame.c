@@ -123,9 +123,9 @@ static GList *Cl_Servers(void) {
 /**
  * @brief
  */
-static char *Cl_ConfigString(uint16_t index) {
+static char *Cl_ConfigString(int32_t index) {
 
-	if (index > MAX_CONFIG_STRINGS) {
+	if (index < 0 || index > MAX_CONFIG_STRINGS) {
 		Com_Warn("Bad index %i\n", index);
 		return "";
 	}

@@ -214,7 +214,7 @@ typedef struct {
 typedef struct {
 	r_image_t **frames;
 	uint32_t dtime;
-	uint16_t dframe;
+	uint32_t dframe;
 } r_stage_anim_t;
 
 typedef struct r_stage_s {
@@ -458,7 +458,7 @@ typedef struct {
 	int32_t num_inline_models;
 	r_bsp_inline_model_t *inline_models;
 
-	int16_t luxel_size;
+	int32_t luxel_size;
 
 	r_bsp_lightmap_t *lightmap;
 	r_bsp_lightgrid_t *lightgrid;
@@ -502,10 +502,10 @@ typedef struct {
 } r_mesh_face_t;
 
 typedef struct {
-	uint16_t first_frame;
-	uint16_t num_frames;
-	uint16_t looped_frames;
-	uint16_t hz;
+	int32_t first_frame;
+	int32_t num_frames;
+	int32_t looped_frames;
+	int32_t hz;
 } r_mesh_animation_t;
 
 /**

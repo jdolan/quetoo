@@ -54,7 +54,7 @@ int32_t Cl_PointContents(const vec3_t point) {
 
 	int32_t contents = Cm_PointContents(point, 0);
 
-	for (uint16_t i = 0; i < cl.frame.num_entities; i++) {
+	for (int32_t i = 0; i < cl.frame.num_entities; i++) {
 
 		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		const entity_state_t *s = &cl.entity_states[snum];
@@ -94,7 +94,7 @@ typedef struct {
  */
 static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 
-	for (uint16_t i = 0; i < cl.frame.num_entities; i++) {
+	for (int32_t i = 0; i < cl.frame.num_entities; i++) {
 
 		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		const entity_state_t *s = &cl.entity_states[snum];
@@ -276,7 +276,7 @@ void Cl_UpdatePrediction(void) {
 	}
 
 	// load the BSP models for prediction as well
-	for (uint16_t i = 1; i < MAX_MODELS; i++) {
+	for (int32_t i = 1; i < MAX_MODELS; i++) {
 
 		const char *s = cl.config_strings[CS_MODELS + i];
 		if (*s == '*') {

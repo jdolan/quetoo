@@ -74,7 +74,7 @@ typedef struct {
 
 // frame based material animation, lerp between consecutive images
 typedef struct {
-	uint16_t num_frames;
+	int32_t num_frames;
 	cm_asset_t *frames;
 	vec_t fps;
 } cm_stage_anim_t;

@@ -57,7 +57,7 @@ typedef struct {
 static struct {
 
 	// registered fonts
-	uint16_t num_fonts;
+	int32_t num_fonts;
 	r_font_t fonts[MAX_DRAW_FONTS];
 
 	// active font
@@ -267,7 +267,7 @@ void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch) {
 		name = "medium";
 	}
 
-	uint16_t i;
+	int32_t i;
 	for (i = 0; i < r_draw.num_fonts; i++) {
 		if (!g_strcmp0(name, r_draw.fonts[i].name)) {
 			if (r_context.high_dpi && i < r_draw.num_fonts - 1) {

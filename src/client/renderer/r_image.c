@@ -41,7 +41,7 @@ static r_texture_mode_t r_texture_modes[] = { // specifies mipmapping (texture q
  * @brief Sets the texture parameters for mipmapping and anisotropy.
  */
 static void R_TextureMode(void) {
-	uint16_t i;
+	size_t i;
 
 	for (i = 0; i < lengthof(r_texture_modes); i++) {
 		if (!g_ascii_strcasecmp(r_texture_modes[i].name, r_texture_mode->string)) {

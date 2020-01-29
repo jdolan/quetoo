@@ -121,7 +121,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 		from_number = from->number;
 	}
 
-	uint32_t index = 0;
+	int32_t index = 0;
 
 	while (true) {
 		const uint16_t number = Net_ReadShort(&net_message);
@@ -367,7 +367,7 @@ void Cl_Interpolate(void) {
 
 	Cl_UpdateLerp();
 
-	for (uint16_t i = 0; i < cl.frame.num_entities; i++) {
+	for (int32_t i = 0; i < cl.frame.num_entities; i++) {
 
 		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		cl_entity_t *ent = &cl.entities[cl.entity_states[snum].number];

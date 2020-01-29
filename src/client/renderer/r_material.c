@@ -274,7 +274,7 @@ static inline void R_StageColor(const r_stage_t *stage, const vec3_t v, u8vec4_t
 	} else if (stage->cm->flags & STAGE_DIRTMAP) {
 
 		// resolve dirtmap based on vertex position
-		const uint16_t index = (uint16_t) (v[0] + v[1]) % NUM_DIRTMAP_ENTRIES;
+		const int32_t index = (int32_t) (v[0] + v[1]) % NUM_DIRTMAP_ENTRIES;
 		if (stage->cm->flags & STAGE_COLOR) { // honor stage color
 			ColorDecompose3(stage->cm->color, color);
 		} else
@@ -594,7 +594,7 @@ static void R_RegisterMaterial(r_media_t *self) {
 	while (s) {
 		R_RegisterDependency(self, (r_media_t *) s->image);
 
-		for (uint16_t i = 0; i < s->cm->anim.num_frames; i++) {
+		for (int32_t i = 0; i < s->cm->anim.num_frames; i++) {
 			R_RegisterDependency(self, (r_media_t *) s->anim.frames[i]);
 		}
 
@@ -619,7 +619,7 @@ static int32_t R_ResolveStageAnimation(r_stage_t *stage, cm_asset_context_t cont
 	const size_t size = sizeof(r_image_t *) * stage->cm->anim.num_frames;
 	stage->anim.frames = Mem_LinkMalloc(size, stage);
 
-	uint16_t i;
+	int32_t i;
 	for (i = 0; i < stage->cm->anim.num_frames; i++) {
 
 		cm_asset_t *frame = &stage->cm->anim.frames[i];

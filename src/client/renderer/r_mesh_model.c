@@ -174,9 +174,9 @@ void R_LoadMeshConfigs(r_model_t *mod) {
 
 	Dirname(mod->media.name, path);
 
-	R_LoadMeshConfig(&mod->mesh->config.world, va("%sworld.cfg", path));
-	R_LoadMeshConfig(&mod->mesh->config.view, va("%sview.cfg", path));
-	R_LoadMeshConfig(&mod->mesh->config.world, va("%slink.cfg", path));
+	R_LoadMeshConfig(&mod->mesh->config.world, va("%s/world.cfg", path));
+	R_LoadMeshConfig(&mod->mesh->config.view, va("%s/view.cfg", path));
+	R_LoadMeshConfig(&mod->mesh->config.world, va("%s/link.cfg", path));
 }
 
 /**

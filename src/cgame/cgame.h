@@ -399,7 +399,7 @@ typedef struct cg_import_s {
 	/**
 	 * @return The configuration string at `index`.
 	 */
-	char *(*ConfigString)(uint16_t index);
+	char *(*ConfigString)(int32_t index);
 
 	/**
 	 * @defgroup network Network messaging
@@ -843,7 +843,7 @@ typedef struct cg_export_s {
 	void (*Shutdown)(void);
 	void (*ClearState)(void);
 	void (*UpdateMedia)(void);
-	void (*UpdateConfigString)(uint16_t index);
+	void (*UpdateConfigString)(int32_t index);
 	_Bool (*ParseMessage)(int32_t cmd);
 	void (*Look)(pm_cmd_t *cmd);
 	void (*Move)(pm_cmd_t *cmd);

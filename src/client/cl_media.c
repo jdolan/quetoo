@@ -95,7 +95,7 @@ GList *Cl_Mapshots(const char *mapname) {
  * @brief Update the loading progress, handle events and update the screen.
  * This should be called periodically while loading media.
  */
-void Cl_LoadingProgress(uint16_t percent, const char *status) {
+void Cl_LoadingProgress(int32_t percent, const char *status) {
 
 	cls.loading.percent = percent;
 	cls.loading.status = status;

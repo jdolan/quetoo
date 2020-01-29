@@ -29,7 +29,7 @@
 static void R_LoadMd3Animations(r_model_t *mod) {
 	char path[MAX_QPATH];
 	void *buf;
-	uint16_t skip = 0;
+	int32_t skip = 0;
 	char token[MAX_TOKEN_CHARS];
 	parser_t parser;
 
@@ -72,19 +72,19 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 		if (*token >= '0' && *token <= '9') {
 			r_mesh_animation_t *a = &mod->mesh->animations[mod->mesh->num_animations];
 
-			if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_UINT16, &a->first_frame, 1)) {
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_INT32, &a->first_frame, 1)) {
 				break;
 			}
 
-			if (!Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_NO_WRAP, PARSE_UINT16, &a->num_frames, 1)) {
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_NO_WRAP, PARSE_INT32, &a->num_frames, 1)) {
 				break;
 			}
 
-			if (!Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_NO_WRAP, PARSE_UINT16, &a->looped_frames, 1)) {
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_NO_WRAP, PARSE_INT32, &a->looped_frames, 1)) {
 				break;
 			}
 
-			if (!Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_NO_WRAP, PARSE_UINT16, &a->hz, 1)) {
+			if (!Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_NO_WRAP, PARSE_INT32, &a->hz, 1)) {
 				break;
 			}
 

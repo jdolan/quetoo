@@ -397,7 +397,7 @@ static void Cg_ParseTeamInfo(const char *s) {
  * @brief An updated configuration string has just been received from the server.
  * Refresh related variables and media that aren't managed by the engine.
  */
-static void Cg_UpdateConfigString(uint16_t i) {
+static void Cg_UpdateConfigString(int32_t i) {
 
 	const char *s = cgi.ConfigString(i);
 

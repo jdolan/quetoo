@@ -365,7 +365,7 @@ static void Cl_ParsePrint(void) {
  * @brief
  */
 static void Cl_ParseSound(void) {
-	uint16_t index;
+	int32_t index;
 
 	s_play_sample_t play = {
 		.flags = 0,

@@ -31,7 +31,7 @@ static void R_LoadBspEntities(r_bsp_model_t *bsp) {
 	bsp->luxel_size = BSP_LIGHTMAP_LUXEL_SIZE;
 
 	if ((c = Cm_EntityValue(Cm_Worldspawn(), "luxel_size"))) {
-		bsp->luxel_size = strtol(c, NULL, 10);
+		bsp->luxel_size = atoi(c);
 		if (bsp->luxel_size <= 0) {
 			bsp->luxel_size = BSP_LIGHTMAP_LUXEL_SIZE;
 		}
