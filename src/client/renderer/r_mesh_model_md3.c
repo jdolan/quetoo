@@ -359,13 +359,13 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 	}
 
 	{
-		mod->mesh->num_meshes = md3.num_surfaces;
-		mod->mesh->meshes = Mem_LinkMalloc(mod->mesh->num_meshes * sizeof(r_mesh_t), mod->mesh);
+		mod->mesh->num_faces = md3.num_surfaces;
+		mod->mesh->faces = Mem_LinkMalloc(mod->mesh->num_faces * sizeof(r_mesh_face_t), mod->mesh);
 
 		const d_md3_surface_t *in = (d_md3_surface_t *) (base + md3.ofs_surfaces);
-		r_mesh_t *out = mod->mesh->meshes;
+		r_mesh_face_t *out = mod->mesh->faces;
 
-		for (int32_t i = 0; i < mod->mesh->num_meshes; i++, out++) {
+		for (int32_t i = 0; i < mod->mesh->num_faces; i++, out++) {
 
 			const d_md3_surface_t surface = R_SwapMd3Surface(in);
 
@@ -435,8 +435,6 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 				}
 			}
 
-			mod->mesh->num_vertexes += out->num_vertexes;
-
 			{
 				out->num_elements = surface.num_triangles * 3;
 				out->elements = Mem_LinkMalloc(out->num_elements * sizeof(GLuint), mod->mesh);
@@ -454,34 +452,8 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 				}
 			}
 
-			mod->mesh->num_elements += out->num_elements;
-
 			in = (d_md3_surface_t *) (surface_base + in->ofs_end);
 		}
-	}
-
-	// we've loaded all meshes with their own vertex arrays, now we need to combine them
-
-	mod->mesh->vertexes = Mem_LinkMalloc(mod->mesh->num_vertexes * mod->mesh->num_frames * sizeof(r_mesh_vertex_t), mod->mesh);
-	mod->mesh->elements = Mem_LinkMalloc(mod->mesh->num_elements * sizeof(GLuint), mod->mesh);
-
-	r_mesh_vertex_t *vertex = mod->mesh->vertexes;
-	GLuint *elements = mod->mesh->elements;
-
-	r_mesh_t *mesh = mod->mesh->meshes;
-	for (int32_t i = 0; i < mod->mesh->num_meshes; i++, mesh++) {
-
-		memcpy(vertex, mesh->vertexes, mesh->num_vertexes * mod->mesh->num_frames * sizeof(r_mesh_vertex_t));
-		Mem_Free(mesh->vertexes);
-
-		mesh->vertexes = vertex;
-		vertex += mesh->num_vertexes * mod->mesh->num_frames;
-
-		memcpy(elements, mesh->elements, mesh->num_elements * sizeof(GLuint));
-		Mem_Free(mesh->elements);
-
-		mesh->elements = (GLvoid *) ((elements - mod->mesh->elements) * sizeof(GLuint));
-		elements += mesh->num_elements;
 	}
 
 	// and animations for player models
@@ -495,6 +467,13 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 	// and finally load the array
 	R_LoadMeshVertexArray(mod);
 
-	Com_Debug(DEBUG_RENDERER, "%s\n  %d meshes\n  %d frames\n  %d tags\n",
-			  mod->media.name, mod->mesh->num_meshes, mod->mesh->num_frames, mod->mesh->num_tags);
+	Com_Debug(DEBUG_RENDERER, "!================================\n");
+	Com_Debug(DEBUG_RENDERER, "!R_LoadMd3Model:   %s\n", mod->media.name);
+	Com_Debug(DEBUG_RENDERER, "!  Vertexes:       %d\n", mod->mesh->num_vertexes);
+	Com_Debug(DEBUG_RENDERER, "!  Elements:       %d\n", mod->mesh->num_elements);
+	Com_Debug(DEBUG_RENDERER, "!  Frames:         %d\n", mod->mesh->num_frames);
+	Com_Debug(DEBUG_RENDERER, "!  Tags:           %d\n", mod->mesh->num_tags);
+	Com_Debug(DEBUG_RENDERER, "!  Faces:          %d\n", mod->mesh->num_faces);
+	Com_Debug(DEBUG_RENDERER, "!  Animations:     %d\n", mod->mesh->num_animations);
+	Com_Debug(DEBUG_RENDERER, "!================================\n");
 }

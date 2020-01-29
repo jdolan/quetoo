@@ -77,20 +77,16 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_draw_bsp_normals 2 +set r_draw_bsp_lightmaps 1 +set r_texture_mode GL_NEAREST"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "+set r_draw_wireframe 1 +set r_clear 1 +set cl_draw_renderer_stats 1"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set r_draw_bsp_nodes 1"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set ai_ann 1 +g_ai_add +debug ai"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+debug renderer"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map torn"

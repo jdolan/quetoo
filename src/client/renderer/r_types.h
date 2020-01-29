@@ -499,7 +499,7 @@ typedef struct {
 
 	GLvoid *elements;
 	int32_t num_elements;
-} r_mesh_t;
+} r_mesh_face_t;
 
 typedef struct {
 	uint16_t first_frame;
@@ -533,8 +533,8 @@ typedef struct {
 	r_mesh_tag_t *tags;
 	int32_t num_tags;
 
-	r_mesh_t *meshes;
-	int32_t num_meshes;
+	r_mesh_face_t *faces;
+	int32_t num_faces;
 
 	r_mesh_animation_t *animations;
 	int32_t num_animations;

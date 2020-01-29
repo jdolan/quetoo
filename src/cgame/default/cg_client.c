@@ -49,10 +49,10 @@ static void Cg_LoadClientSkin(r_material_t **skins, const r_mesh_model_t *model,
 		return;
 	}
 
-	const r_mesh_t *mesh = model->meshes;
-	for (i = 0; i < model->num_meshes; i++, mesh++) {
+	const r_mesh_face_t *face = model->faces;
+	for (i = 0; i < model->num_faces; i++, face++) {
 
-		if (!g_ascii_strcasecmp(mesh_name, mesh->name)) {
+		if (!g_ascii_strcasecmp(mesh_name, face->name)) {
 			skins[i] = cgi.LoadMaterial(skin_name, ASSET_CONTEXT_PLAYERS);
 			break;
 		}
@@ -60,8 +60,8 @@ static void Cg_LoadClientSkin(r_material_t **skins, const r_mesh_model_t *model,
 }
 
 /**
- * @brief Parses the appropriate .skin file, resolving skins for each mesh
- * within the model. If a skin can not be resolved for any mesh, the entire
+ * @brief Parses the appropriate .skin file, resolving skins for each face
+ * within the model. If a skin can not be resolved for any face, the entire
  * skins array is invalidated so that the default will be loaded.
  */
 static _Bool Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, const char *skin) {
@@ -99,13 +99,12 @@ static _Bool Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, cons
 		}
 	}
 
-	// ensure that a skin was resolved for each mesh, nullifying if not
-
-	const r_mesh_t *mesh = model->meshes;
-	for (i = 0; i < model->num_meshes; i++, mesh++) {
+	// ensure that a skin was resolved for each face, nullifying if not
+	const r_mesh_face_t *face = model->faces;
+	for (i = 0; i < model->num_faces; i++, face++) {
 
 		if (!skins[i]) {
-			cgi.Debug("%s: %s has no skin\n", path, mesh->name);
+			cgi.Debug("%s: %s has no skin\n", path, face->name);
 
 			skins[0] = NULL;
 			break;

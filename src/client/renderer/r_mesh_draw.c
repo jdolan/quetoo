@@ -180,7 +180,7 @@ static void R_SetModelState(const r_entity_t *e) {
 /**
  * @brief Sets renderer state for the specified mesh.
  */
-static void R_SetMeshState(const r_entity_t *e, const uint16_t mesh_index, const r_mesh_t *mesh) {
+static void R_SetMeshState(const r_entity_t *e, const uint16_t mesh_index, const r_mesh_face_t *face) {
 
 //	r_material_t *material = (r_draw_wireframe->value) ? NULL : ((mesh_index < 32 && e->skins[mesh_index]) ? e->skins[mesh_index] : mesh->material);
 //

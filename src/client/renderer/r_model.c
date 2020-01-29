@@ -57,9 +57,9 @@ static void R_RegisterModel(r_media_t *self) {
 
 	} else if (IS_MESH_MODEL(mod)) {
 
-		const r_mesh_t *mesh = mod->mesh->meshes;
-		for (int32_t i = 0; i < mod->mesh->num_meshes; i++, mesh++) {
-			R_RegisterDependency(self, (r_media_t *) mesh->material);
+		const r_mesh_face_t *face = mod->mesh->faces;
+		for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
+			R_RegisterDependency(self, (r_media_t *) face->material);
 		}
 	}
 }

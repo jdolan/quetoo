@@ -25,29 +25,29 @@
 
 /**
  * @brief Resolves a material for the specified mesh model.
- * @remarks First, it will attempt to use the material explicitly designated on the mesh, if
- * one exists. If that material is not found, it will attempt to load a material based on the mesh's name.
+ * @remarks First, it will attempt to use the material explicitly designated on the face, if
+ * one exists. If that material is not found, it will attempt to load a material based on the face name.
  * Finally, if that fails, it will fall back to using model path + "skin".
  */
-r_material_t *R_ResolveModelMaterial(const r_model_t *mod, const r_mesh_t *mesh, const char *mesh_material) {
+r_material_t *R_ResolveModelMaterial(const r_model_t *mod, const r_mesh_face_t *face, const char *name) {
 	char path[MAX_QPATH];
 	r_material_t *material;
 
 	// try explicit material
-	if (mesh_material != NULL && mesh_material[0]) {
-		material = R_FindMaterial(mesh_material, ASSET_CONTEXT_MODELS);
+	if (name && name[0]) {
+		material = R_FindMaterial(name, ASSET_CONTEXT_MODELS);
 
 		if (material) {
 			return material;
 		}
 
-		Com_Debug(DEBUG_RENDERER, "Couldn't resolve explicit material \"%s\"\n", mesh_material);
+		Com_Debug(DEBUG_RENDERER, "Couldn't resolve explicit material \"%s\"\n", name);
 	}
 
-	// try implicit mesh name
-	if (mesh->name[0]) {
+	// try implicit face name
+	if (face->name[0]) {
 		Dirname(mod->media.name, path);
-		g_strlcat(path, mesh->name, sizeof(path));
+		g_strlcat(path, face->name, sizeof(path));
 
 		material = R_FindMaterial(path, ASSET_CONTEXT_MODELS);
 
@@ -55,11 +55,10 @@ r_material_t *R_ResolveModelMaterial(const r_model_t *mod, const r_mesh_t *mesh,
 			return material;
 		}
 
-		Com_Debug(DEBUG_RENDERER, "Couldn't resolve implicit mesh material \"%s\"\n", mesh->name);
+		Com_Debug(DEBUG_RENDERER, "Couldn't resolve implicit mesh material \"%s\"\n", face->name);
 	}
 
-	// fall back to "skin", which will have been force-loaded by
-	// R_LoadModelMaterials
+	// fall back to "skin", which will have been force-loaded by R_LoadModelMaterials
 	Dirname(mod->media.name, path);
 	g_strlcat(path, "skin", sizeof(path));
 
@@ -150,9 +149,123 @@ void R_LoadMeshConfigs(r_model_t *mod) {
 }
 
 /**
+ * @brief Calculates tangent vectors for each MD3 vertex for per-pixel
+ * lighting. See http://www.terathon.com/code/tangent.html.
+ */
+static void R_LoadMeshTangents(r_model_t *mod) {
+
+	assert(mod->mesh);
+	assert(mod->mesh->num_faces);
+
+	const r_mesh_face_t *face = mod->mesh->faces;
+	for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
+
+		for (int32_t j = 0; j < mod->mesh->num_frames; j++) {
+			r_mesh_vertex_t *v = face->vertexes + face->num_vertexes * j;
+
+			vec3_t *sdir = (vec3_t *) Mem_Malloc(face->num_vertexes * sizeof(vec3_t));
+			vec3_t *tdir = (vec3_t *) Mem_Malloc(face->num_vertexes * sizeof(vec3_t));
+
+			GLuint *e = (GLuint *) ((byte *) mod->mesh->elements + (ptrdiff_t) face->elements);
+			for (int32_t k = 0; k < face->num_elements; k += 3) {
+
+				const r_mesh_vertex_t *a = &v[e[k + 0]];
+				const r_mesh_vertex_t *b = &v[e[k + 1]];
+				const r_mesh_vertex_t *c = &v[e[k + 2]];
+
+				vec3_t s, t;
+
+				const vec_t bx_ax = b->position[0] - a->position[0];
+				const vec_t cx_ax = c->position[0] - a->position[0];
+				const vec_t by_ay = b->position[1] - a->position[1];
+				const vec_t cy_ay = c->position[1] - a->position[1];
+				const vec_t bz_az = b->position[2] - a->position[2];
+				const vec_t cz_az = c->position[2] - a->position[2];
+
+				const vec_t bs_as = b->diffuse[0] - a->diffuse[0];
+				const vec_t cs_as = c->diffuse[0] - a->diffuse[0];
+				const vec_t bt_at = b->diffuse[1] - a->diffuse[1];
+				const vec_t ct_at = c->diffuse[1] - a->diffuse[1];
+
+				const vec_t r = 1.0 / (bs_as * ct_at - cs_as * bt_at);
+
+				VectorSet(s,
+						  (ct_at * bx_ax - bt_at * cx_ax),
+						  (ct_at * by_ay - bt_at * cy_ay),
+						  (ct_at * bz_az - bt_at * cz_az));
+
+				VectorScale(s, r, s);
+
+				VectorSet(t,
+						  (bs_as * cx_ax - cs_as * bx_ax),
+						  (bs_as * cy_ay - cs_as * by_ay),
+						  (bs_as * cz_az - cs_as * bz_az));
+
+				VectorScale(t, r, t);
+
+				VectorAdd(sdir[e[k + 0]], s, sdir[e[k + 0]]);
+				VectorAdd(sdir[e[k + 1]], s, sdir[e[k + 1]]);
+				VectorAdd(sdir[e[k + 2]], s, sdir[e[k + 2]]);
+
+				VectorAdd(tdir[e[k + 0]], t, tdir[e[k + 0]]);
+				VectorAdd(tdir[e[k + 1]], t, tdir[e[k + 1]]);
+				VectorAdd(tdir[e[k + 2]], t, tdir[e[k + 2]]);
+			}
+
+			for (int32_t k = 0; k < face->num_vertexes; k++) {
+				TangentVectors(v->normal, sdir[k], tdir[k], v->tangent, v->bitangent);
+			}
+
+			Mem_Free(sdir);
+			Mem_Free(tdir);
+		}
+	}
+}
+
+/**
  * @brief
  */
 void R_LoadMeshVertexArray(r_model_t *mod) {
+
+	assert(mod->mesh);
+	assert(mod->mesh->num_faces);
+
+	{
+		const r_mesh_face_t *face = mod->mesh->faces;
+		for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
+			mod->mesh->num_vertexes += face->num_vertexes;
+			mod->mesh->num_elements += face->num_elements;
+		}
+	}
+
+	assert(mod->mesh->num_vertexes);
+	assert(mod->mesh->num_elements);
+
+	mod->mesh->vertexes = Mem_LinkMalloc(mod->mesh->num_vertexes * mod->mesh->num_frames * sizeof(r_mesh_vertex_t), mod->mesh);
+	mod->mesh->elements = Mem_LinkMalloc(mod->mesh->num_elements * sizeof(GLuint), mod->mesh);
+
+	r_mesh_vertex_t *vertex = mod->mesh->vertexes;
+	GLuint *elements = mod->mesh->elements;
+
+	{
+		r_mesh_face_t *face = mod->mesh->faces;
+		for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
+
+			memcpy(vertex, face->vertexes, face->num_vertexes * mod->mesh->num_frames * sizeof(r_mesh_vertex_t));
+			Mem_Free(face->vertexes);
+
+			face->vertexes = vertex;
+			vertex += face->num_vertexes * mod->mesh->num_frames;
+
+			memcpy(elements, face->elements, face->num_elements * sizeof(GLuint));
+			Mem_Free(face->elements);
+
+			face->elements = (GLvoid *) ((elements - mod->mesh->elements) * sizeof(GLuint));
+			elements += face->num_elements;
+		}
+	}
+
+	R_LoadMeshTangents(mod);
 
 	glGenVertexArrays(1, &mod->mesh->vertex_array);
 	glBindVertexArray(mod->mesh->vertex_array);
