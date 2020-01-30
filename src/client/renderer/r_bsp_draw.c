@@ -145,7 +145,7 @@ static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in) {
 	assert(bsp);
 
 	const r_material_t *material = NULL;
-	GLint textures = TEXTURE_MASK_ALL;
+	GLint textures = 0;
 
 	r_bsp_draw_elements_t **sorted = bsp->draw_elements_sorted;
 	for (int32_t i = 0; i < bsp->num_draw_elements; i++, sorted++) {
@@ -211,6 +211,11 @@ static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in) {
 				tex = TEXTURE_MASK_DELUXEMAP;
 				break;
 			default:
+				if (bsp->lightmap) {
+					tex |= TEXTURE_MASK_LIGHTMAP;
+				} else {
+					tex &= ~TEXTURE_MASK_LIGHTMAP;
+				}
 				break;
 		}
 
@@ -291,8 +296,10 @@ void R_DrawWorld(void) {
 	glEnableVertexAttribArray(r_bsp_program.in_lightmap);
 	glEnableVertexAttribArray(r_bsp_program.in_color);
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, bsp->lightmap->atlas->texnum);
+	if (bsp->lightmap) {
+		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
+		glBindTexture(GL_TEXTURE_2D_ARRAY, bsp->lightmap->atlas->texnum);
+	}
 
 	R_DrawBspDrawElements(bsp->inline_models);
 

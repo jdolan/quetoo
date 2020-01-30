@@ -190,7 +190,8 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 		glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) frame_offset + offsetof(r_mesh_vertex_t, tangent));
 		glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) frame_offset + offsetof(r_mesh_vertex_t, bitangent));
 
-		GLint textures = TEXTURE_MASK_LIGHTGRID;
+		const r_bsp_lightgrid_t *lg = r_model_state.world->bsp->lightgrid;
+		GLint textures = lg ? TEXTURE_MASK_LIGHTGRID : 0;
 
 		const r_material_t *material = e->skins[i] ?: face->material;
 		if (material) {
@@ -254,14 +255,17 @@ void R_DrawMeshEntities(void) {
 	glUniform1f(r_mesh_program.gamma, r_gamma->value);
 	glUniform1f(r_mesh_program.modulate, r_modulate->value);
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_AMBIENT);
-	glBindTexture(GL_TEXTURE_3D, r_model_state.world->bsp->lightgrid->ambient->texnum);
+	const r_bsp_lightgrid_t *lg = r_model_state.world->bsp->lightgrid;
+	if (lg) {
+		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_AMBIENT);
+		glBindTexture(GL_TEXTURE_3D, lg->ambient->texnum);
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_DIFFUSE);
-	glBindTexture(GL_TEXTURE_3D, r_model_state.world->bsp->lightgrid->diffuse->texnum);
+		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_DIFFUSE);
+		glBindTexture(GL_TEXTURE_3D, lg->diffuse->texnum);
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_DIRECTION);
-	glBindTexture(GL_TEXTURE_3D, r_model_state.world->bsp->lightgrid->direction->texnum);
+		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_DIRECTION);
+		glBindTexture(GL_TEXTURE_3D, lg->direction->texnum);
+	}
 
 	glUniform3fv(r_mesh_program.world_mins, 1, r_model_state.world->mins);
 	glUniform3fv(r_mesh_program.world_maxs, 1, r_model_state.world->maxs);

@@ -120,8 +120,12 @@ static void R_LoadBspElements(r_bsp_model_t *bsp) {
 static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 	r_bsp_lightmap_t *out;
 
-	bsp->lightmap = out = Mem_LinkMalloc(sizeof(*out), bsp);
 	const bsp_lightmap_t *in = bsp->cm->file.lightmap;
+	if (in == NULL) {
+		return;
+	}
+	
+	bsp->lightmap = out = Mem_LinkMalloc(sizeof(*out), bsp);
 
 	out->width = in->width;
 
@@ -141,8 +145,12 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 static void R_LoadBspLightgrid(r_bsp_model_t *bsp) {
 	r_bsp_lightgrid_t *out;
 
-	bsp->lightgrid = out = Mem_LinkMalloc(sizeof(*out), bsp);
 	const bsp_lightgrid_t *in = bsp->cm->file.lightgrid;
+	if (in == NULL) {
+		return;
+	}
+
+	bsp->lightgrid = out = Mem_LinkMalloc(sizeof(*out), bsp);
 
 	VectorCopy(in->size, out->size);
 
