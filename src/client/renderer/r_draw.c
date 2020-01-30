@@ -415,6 +415,8 @@ void R_DrawLines(const r_pixel_t *points, size_t count, int32_t c, vec_t a) {
  */
 void R_Draw2D(void) {
 
+	glViewport(0, 0, r_context.width, r_context.height);
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
