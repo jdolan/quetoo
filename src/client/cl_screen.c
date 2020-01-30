@@ -284,14 +284,9 @@ void Cl_UpdateScreen(void) {
 
 	if (cls.state == CL_ACTIVE) {
 
-//		R_Setup3D();
-
 		R_DrawView(&r_view);
 
-//		R_Setup2D();
-
 		Cl_DrawChat();
-
 		Cl_DrawNetGraph();
 		Cl_DrawCounters();
 
@@ -302,9 +297,6 @@ void Cl_UpdateScreen(void) {
 
 			cls.cgame->UpdateScreen(&cl.frame);
 		}
-
-	} else {
-//		R_Setup2D();
 	}
 
 	if (cls.state != CL_LOADING && cls.key_state.dest == KEY_CONSOLE) {
