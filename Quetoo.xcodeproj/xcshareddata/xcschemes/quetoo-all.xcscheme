@@ -74,7 +74,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_bsp_lightmaps 1 +set r_texture_mode GL_NEAREST"
-            isEnabled = "NO">
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+set r_draw_bsp_lightgrid 1"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_wireframe 1 +set r_clear 1 +set cl_draw_renderer_stats 1"

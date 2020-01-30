@@ -285,7 +285,6 @@ static d_md3_t R_SwapMd3(const d_md3_t *in) {
 	return out;
 }
 
-
 /**
  * @brief Loads the d_md3_t contents of buffer to the specified model.
  */

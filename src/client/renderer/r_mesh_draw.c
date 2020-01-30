@@ -21,18 +21,20 @@
 
 #include "r_local.h"
 
-#define MAX_ACTIVE_LIGHTS        10
+#define MAX_ACTIVE_LIGHTS           10
 
-#define TEXTURE_DIFFUSE           0
-#define TEXTURE_NORMALMAP         1
-#define TEXTURE_GLOSSMAP          2
-#define TEXTURE_LIGHTGRID         6
+#define TEXTURE_DIFFUSE              0
+#define TEXTURE_NORMALMAP            1
+#define TEXTURE_GLOSSMAP             2
+#define TEXTURE_LIGHTGRID_AMBIENT    3
+#define TEXTURE_LIGHTGRID_DIFFUSE    4
+#define TEXTURE_LIGHTGRID_DIRECTION  5
 
-#define TEXTURE_MASK_DIFFUSE     (1 << TEXTURE_DIFFUSE)
-#define TEXTURE_MASK_NORMALMAP   (1 << TEXTURE_NORMALMAP)
-#define TEXTURE_MASK_GLOSSMAP    (1 << TEXTURE_GLOSSMAP)
-#define TEXTURE_MASK_LIGHTGRID   (1 << TEXTURE_LIGHTGRID)
-#define TEXTURE_MASK_ALL          0xff
+#define TEXTURE_MASK_DIFFUSE        (1 << TEXTURE_DIFFUSE)
+#define TEXTURE_MASK_NORMALMAP      (1 << TEXTURE_NORMALMAP)
+#define TEXTURE_MASK_GLOSSMAP       (1 << TEXTURE_GLOSSMAP)
+#define TEXTURE_MASK_LIGHTGRID      (1 << TEXTURE_LIGHTGRID_AMBIENT)
+#define TEXTURE_MASK_ALL            0xff
 
 /**
  * @brief The program.
@@ -53,6 +55,7 @@ static struct {
 
 	GLint projection;
 	GLint model_view;
+	GLint model;
 	GLint normal;
 
 	GLint lerp;
@@ -62,9 +65,13 @@ static struct {
 	GLint texture_diffuse;
 	GLint texture_normalmap;
 	GLint texture_glossmap;
-	GLint texture_lightgrid;
 
-	GLint contents;
+	GLint texture_lightgrid_ambient;
+	GLint texture_lightgrid_diffuse;
+	GLint texture_lightgrid_direction;
+
+	GLint world_mins;
+	GLint world_maxs;
 
 	GLint color;
 	GLint alpha_threshold;
@@ -73,7 +80,6 @@ static struct {
 	GLint contrast;
 	GLint saturation;
 	GLint gamma;
-
 	GLint modulate;
 
 	GLint bump;
@@ -153,6 +159,8 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 	glEnableVertexAttribArray(r_mesh_program.in_next_normal);
 	glEnableVertexAttribArray(r_mesh_program.in_next_tangent);
 	glEnableVertexAttribArray(r_mesh_program.in_next_bitangent);
+
+	glUniformMatrix4fv(r_mesh_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
 
 	matrix4x4_t model_view;
 	Matrix4x4_Concat(&model_view, &r_locals.model_view, &e->matrix);
@@ -248,8 +256,17 @@ void R_DrawMeshEntities(void) {
 	glUniform1f(r_mesh_program.gamma, r_gamma->value);
 	glUniform1f(r_mesh_program.modulate, r_modulate->value);
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID);
-	glBindTexture(GL_TEXTURE_3D, r_model_state.world->bsp->lightgrid->volume->texnum);
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_AMBIENT);
+	glBindTexture(GL_TEXTURE_3D, r_model_state.world->bsp->lightgrid->ambient->texnum);
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_DIFFUSE);
+	glBindTexture(GL_TEXTURE_3D, r_model_state.world->bsp->lightgrid->diffuse->texnum);
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_DIRECTION);
+	glBindTexture(GL_TEXTURE_3D, r_model_state.world->bsp->lightgrid->direction->texnum);
+
+	glUniform3fv(r_mesh_program.world_mins, 1, r_model_state.world->mins);
+	glUniform3fv(r_mesh_program.world_maxs, 1, r_model_state.world->maxs);
 
 	{
 		glEnable(GL_CULL_FACE);
@@ -343,6 +360,7 @@ void R_InitMeshProgram(void) {
 
 	r_mesh_program.projection = glGetUniformLocation(r_mesh_program.name, "projection");
 	r_mesh_program.model_view = glGetUniformLocation(r_mesh_program.name, "model_view");
+	r_mesh_program.model = glGetUniformLocation(r_mesh_program.name, "model");
 	r_mesh_program.normal = glGetUniformLocation(r_mesh_program.name, "normal");
 
 	r_mesh_program.lerp = glGetUniformLocation(r_mesh_program.name, "lerp");
@@ -351,9 +369,13 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.texture_diffuse = glGetUniformLocation(r_mesh_program.name, "texture_diffuse");
 	r_mesh_program.texture_normalmap = glGetUniformLocation(r_mesh_program.name, "texture_normalmap");
 	r_mesh_program.texture_glossmap = glGetUniformLocation(r_mesh_program.name, "texture_glossmap");
-	r_mesh_program.texture_lightgrid = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid");
 
-	r_mesh_program.contents = glGetUniformLocation(r_mesh_program.name, "contents");
+	r_mesh_program.texture_lightgrid_ambient = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_ambient");
+	r_mesh_program.texture_lightgrid_diffuse = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_diffuse");
+	r_mesh_program.texture_lightgrid_direction = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_direction");
+
+	r_mesh_program.world_mins = glGetUniformLocation(r_mesh_program.name, "world_mins");
+	r_mesh_program.world_maxs = glGetUniformLocation(r_mesh_program.name, "world_maxs");
 
 	r_mesh_program.color = glGetUniformLocation(r_mesh_program.name, "color");
 	r_mesh_program.alpha_threshold = glGetUniformLocation(r_mesh_program.name, "alpha_threshold");
@@ -382,7 +404,10 @@ void R_InitMeshProgram(void) {
 	glUniform1i(r_mesh_program.texture_diffuse, TEXTURE_DIFFUSE);
 	glUniform1i(r_mesh_program.texture_normalmap, TEXTURE_NORMALMAP);
 	glUniform1i(r_mesh_program.texture_glossmap, TEXTURE_GLOSSMAP);
-	glUniform1i(r_mesh_program.texture_lightgrid, TEXTURE_LIGHTGRID);
+
+	glUniform1i(r_mesh_program.texture_lightgrid_ambient, TEXTURE_LIGHTGRID_AMBIENT);
+	glUniform1i(r_mesh_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
+	glUniform1i(r_mesh_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);
 
 	R_GetError(NULL);
 }

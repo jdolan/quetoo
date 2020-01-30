@@ -21,11 +21,11 @@
 
 #version 330
 
-uniform mat4 projection;
-
 layout (location = 0) in vec2 in_position;
 layout (location = 1) in vec2 in_diffuse;
 layout (location = 2) in vec4 in_color;
+
+uniform mat4 projection;
 
 out vertex_data {
 	vec2 diffuse;

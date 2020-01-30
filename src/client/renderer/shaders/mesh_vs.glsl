@@ -21,12 +21,6 @@
 
 #version 330
 
-uniform mat4 projection;
-uniform mat4 model_view;
-uniform mat4 normal;
-
-uniform float lerp;
-
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec3 in_normal;
 layout (location = 2) in vec3 in_tangent;
@@ -38,12 +32,20 @@ layout (location = 6) in vec3 in_next_normal;
 layout (location = 7) in vec3 in_next_tangent;
 layout (location = 8) in vec3 in_next_bitangent;
 
+uniform mat4 projection;
+uniform mat4 model_view;
+uniform mat4 model;
+uniform mat4 normal;
+
+uniform float lerp;
+
 out vertex_data {
 	vec3 position;
 	vec3 normal;
 	vec3 tangent;
 	vec3 bitangent;
 	vec2 diffuse;
+	vec3 world_position;
 	vec3 eye;
 } vertex;
 
@@ -69,5 +71,7 @@ void main(void) {
 	vertex.eye.x = -dot(vertex.position, vertex.tangent);
 	vertex.eye.y = -dot(vertex.position, vertex.bitangent);
 	vertex.eye.z = -dot(vertex.position, vertex.normal);
+
+	vertex.world_position = vec3(model * lerp_position);
 }
 

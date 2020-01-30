@@ -19,25 +19,33 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#define MAX_ACTIVE_LIGHTS        10
+#define MAX_ACTIVE_LIGHTS           10
 
-#define TEXTURE_DIFFUSE           0
-#define TEXTURE_NORMALMAP         1
-#define TEXTURE_GLOSSMAP          2
-#define TEXTURE_LIGHTGRID         6
+#define TEXTURE_DIFFUSE              0
+#define TEXTURE_NORMALMAP            1
+#define TEXTURE_GLOSSMAP             2
+#define TEXTURE_LIGHTGRID_AMBIENT    3
+#define TEXTURE_LIGHTGRID_DIFFUSE    4
+#define TEXTURE_LIGHTGRID_DIRECTION  5
 
-#define TEXTURE_MASK_DIFFUSE     (1 << TEXTURE_DIFFUSE)
-#define TEXTURE_MASK_NORMALMAP   (1 << TEXTURE_NORMALMAP)
-#define TEXTURE_MASK_GLOSSMAP    (1 << TEXTURE_GLOSSMAP)
-#define TEXTURE_MASK_LIGHTGRID   (1 << TEXTURE_LIGHTGRID)
-#define TEXTURE_MASK_ALL          0xff
+#define TEXTURE_MASK_DIFFUSE        (1 << TEXTURE_DIFFUSE)
+#define TEXTURE_MASK_NORMALMAP      (1 << TEXTURE_NORMALMAP)
+#define TEXTURE_MASK_GLOSSMAP       (1 << TEXTURE_GLOSSMAP)
+#define TEXTURE_MASK_LIGHTGRID      (1 << TEXTURE_LIGHTGRID_AMBIENT)
+#define TEXTURE_MASK_ALL            0xff
 
 uniform int textures;
 
 uniform sampler2D texture_diffuse;
 uniform sampler2D texture_normalmap;
 uniform sampler2D texture_glossmap;
-uniform sampler3D texture_lightgrid;
+
+uniform sampler3D texture_lightgrid_ambient;
+uniform sampler3D texture_lightgrid_diffuse;
+uniform sampler3D texture_lightgrid_direction;
+
+uniform vec3 world_mins;
+uniform vec3 world_maxs;
 
 uniform vec4 color;
 uniform float alpha_threshold;
@@ -63,6 +71,7 @@ in vertex_data {
 	vec3 tangent;
 	vec3 bitangent;
 	vec2 diffuse;
+	vec3 world_position;
 	vec3 eye;
 } vertex;
 
@@ -101,6 +110,17 @@ void main(void) {
 		glossmap = vec4(1.0);
 	}
 
-	out_color = ColorFilter(diffuse);
+	vec3 lightgrid;
+	if ((textures & TEXTURE_MASK_LIGHTGRID) == TEXTURE_MASK_LIGHTGRID) {
+		vec3 stu = vec3(1.0) - ((vertex.world_position - world_mins) / world_maxs).xzy;
+		vec3 ambient = texture(texture_lightgrid_ambient, stu).rgb;
+		vec3 diffuse = texture(texture_lightgrid_diffuse, stu).rgb;
+		vec3 direction = texture(texture_lightgrid_direction, stu).rgb;
+		lightgrid = modulate * (ambient + diffuse) ;//* dot(vertex.normal, direction);
+	} else {
+		lightgrid = vec3(1.0);
+	}
+
+	out_color = ColorFilter(diffuse * vec4(lightgrid, 1.0));
 }
 

@@ -420,7 +420,9 @@ typedef struct {
  */
 typedef struct {
 	int32_t size[3];
-	r_image_t *volume;
+	r_image_t *ambient;
+	r_image_t *diffuse;
+	r_image_t *direction;
 } r_bsp_lightgrid_t;
 
 /**

@@ -36,7 +36,7 @@
 #define TEXTURE_MASK_LIGHTMAP    (1 << TEXTURE_LIGHTMAP)
 #define TEXTURE_MASK_DELUXEMAP   (1 << TEXTURE_DELUXEMAP)
 #define TEXTURE_MASK_STAINMAP    (1 << TEXTURE_STAINMAP)
-#define TEXTURE_MASK_ALL          0xff
+#define TEXTURE_MASK_ALL         0xff
 
 /**
  * @brief The program.
@@ -87,6 +87,53 @@ static struct {
 
 	GLint caustics;
 } r_bsp_program;
+
+/**
+ * @brief
+ */
+static void R_DrawBspLightgrid(void) {
+
+	if (!r_draw_bsp_lightgrid->value) {
+		return;
+	}
+
+	const bsp_lightgrid_t *lg = r_model_state.world->bsp->cm->file.lightgrid;
+
+	if (!lg) {
+		return;
+	}
+
+	const size_t texture_size = lg->size[0] * lg->size[1] * lg->size[2] * BSP_LIGHTGRID_BPP;
+
+	const byte *ambient = (byte *) lg + sizeof(bsp_lightgrid_t);
+	const byte *diffuse = ambient + texture_size;
+
+	for (int32_t u = 0; u < lg->size[2]; u++) {
+		const byte *du = diffuse + lg->size[0] * lg->size[1] * u * BSP_LIGHTGRID_BPP;
+
+		for (int32_t t = 0; t < lg->size[1]; t++) {
+			const byte *dt = du + lg->size[0] * t * BSP_LIGHTGRID_BPP;
+
+			for (int32_t s = 0; s < lg->size[0]; s++) {
+				const byte *ds = dt + s * BSP_LIGHTGRID_BPP;
+
+				const byte r = ds[0], g = ds[1], b = ds[2];
+
+				r_particle_t p = {
+					.type = PARTICLE_DEFAULT,
+					.org = { s - 0.5, t - 0.5, u - 0.5 },
+					.color = { r, g, b, 255 },
+					.scale = BSP_LIGHTGRID_LUXEL_SIZE
+				};
+
+				VectorMA(r_model_state.world->mins, BSP_LIGHTGRID_LUXEL_SIZE, p.org, p.org);
+				VectorScale(p.color, 1.0 / 255.0, p.color);
+
+				R_AddParticle(&p);
+			}
+		}
+	}
+}
 
 /**
  * @brief
@@ -269,6 +316,8 @@ void R_DrawWorld(void) {
 	glDisable(GL_DEPTH_TEST);
 
 	R_GetError(NULL);
+
+	R_DrawBspLightgrid();
 }
 
 /**

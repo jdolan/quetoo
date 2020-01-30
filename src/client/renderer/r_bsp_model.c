@@ -146,14 +146,40 @@ static void R_LoadBspLightgrid(r_bsp_model_t *bsp) {
 
 	VectorCopy(in->size, out->size);
 
-	out->volume = (r_image_t *) R_AllocMedia("lightgrid", sizeof(r_image_t), MEDIA_IMAGE);
-	out->volume->media.Free = R_FreeImage;
-	out->volume->type = IT_LIGHTGRID;
-	out->volume->width = out->size[0];
-	out->volume->height = out->size[1];
-	out->volume->depth = out->size[2];
+	const size_t texture_size = out->size[0] * out->size[1] * out->size[2] * BSP_LIGHTGRID_BPP;
 
-	R_UploadImage(out->volume, GL_RGB8, (byte *) in + sizeof(bsp_lightgrid_t));
+	byte *ambient = (byte *) in + sizeof(bsp_lightgrid_t);
+
+	out->ambient = (r_image_t *) R_AllocMedia("lightgrid.amb", sizeof(r_image_t), MEDIA_IMAGE);
+	out->ambient->media.Free = R_FreeImage;
+	out->ambient->type = IT_LIGHTGRID;
+	out->ambient->width = out->size[0];
+	out->ambient->height = out->size[1];
+	out->ambient->depth = out->size[2];
+
+	R_UploadImage(out->ambient, GL_RGB8, ambient);
+
+	byte *diffuse = ambient + texture_size;
+
+	out->diffuse = (r_image_t *) R_AllocMedia("lightgrid.dif", sizeof(r_image_t), MEDIA_IMAGE);
+	out->diffuse->media.Free = R_FreeImage;
+	out->diffuse->type = IT_LIGHTGRID;
+	out->diffuse->width = out->size[0];
+	out->diffuse->height = out->size[1];
+	out->diffuse->depth = out->size[2];
+
+	R_UploadImage(out->diffuse, GL_RGB8, diffuse);
+
+	byte *direction = diffuse + texture_size;
+
+	out->direction = (r_image_t *) R_AllocMedia("lightgrid.dir", sizeof(r_image_t), MEDIA_IMAGE);
+	out->direction->media.Free = R_FreeImage;
+	out->direction->type = IT_LIGHTGRID;
+	out->direction->width = out->size[0];
+	out->direction->height = out->size[1];
+	out->direction->depth = out->size[2];
+
+	R_UploadImage(out->direction, GL_RGB8, direction);
 }
 
 static r_bsp_texinfo_t null_texinfo;
@@ -508,7 +534,7 @@ void R_ExportBsp_f(void) {
 	Fs_Close(file);
 
 	file = Fs_OpenWrite(modelname);
-	
+
 	Com_Print("Writing vertexes...\n");
 
 	Fs_Print(file, "# Wavefront OBJ exported by Quetoo\n\n");
@@ -674,7 +700,11 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Cl_LoadingProgress(56, "arrays");
 	R_LoadBspVertexArray(mod);
 
-	Bsp_UnloadLumps(&mod->bsp->cm->file, R_BSP_LUMPS);
+	if (r_draw_bsp_lightgrid->value) {
+		Bsp_UnloadLumps(&mod->bsp->cm->file, R_BSP_LUMPS & ~(1 << BSP_LUMP_LIGHTGRID));
+	} else {
+		Bsp_UnloadLumps(&mod->bsp->cm->file, R_BSP_LUMPS);
+	}
 
 	Com_Debug(DEBUG_RENDERER, "!================================\n");
 	Com_Debug(DEBUG_RENDERER, "!R_LoadBspModel:   %s\n", mod->media.name);

@@ -51,7 +51,6 @@ static struct {
 
 	GLint in_position;
 	GLint in_color;
-	GLint scale;
 
 	GLint projection;
 	GLint model_view;

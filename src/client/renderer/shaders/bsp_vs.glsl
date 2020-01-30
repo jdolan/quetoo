@@ -21,10 +21,6 @@
 
 #version 330
 
-uniform mat4 projection;
-uniform mat4 model_view;
-uniform mat4 normal;
-
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec3 in_normal;
 layout (location = 2) in vec3 in_tangent;
@@ -32,6 +28,10 @@ layout (location = 3) in vec3 in_bitangent;
 layout (location = 4) in vec2 in_diffuse;
 layout (location = 5) in vec2 in_lightmap;
 layout (location = 6) in vec4 in_color;
+
+uniform mat4 projection;
+uniform mat4 model_view;
+uniform mat4 normal;
 
 out vertex_data {
 	vec3 position;

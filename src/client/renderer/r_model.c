@@ -50,7 +50,10 @@ static void R_RegisterModel(r_media_t *self) {
 		}
 
 		R_RegisterDependency(self, (r_media_t *) mod->bsp->lightmap->atlas);
-		R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->volume);
+		R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->ambient);
+		R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->diffuse);
+		R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->direction);
+
 
 		// keep a reference to the world model
 		r_model_state.world = mod;
