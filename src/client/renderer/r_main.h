@@ -135,7 +135,4 @@ extern cvar_t *r_draw_bsp_lightmaps;
 extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_wireframe;
 
-void R_UpdateFrustum(void);
-void R_InitView(void);
-
 #endif /* __R_LOCAL_H__ */

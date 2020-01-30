@@ -78,7 +78,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-bsp"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-bsp --no-prune --no-tjunc"
@@ -102,7 +102,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-light"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-light --indirect"
@@ -110,7 +110,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-light --antialias --indirect"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-zip"

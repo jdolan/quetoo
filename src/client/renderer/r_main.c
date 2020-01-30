@@ -175,7 +175,7 @@ _Bool R_CullSphere(const vec3_t point, const vec_t radius) {
 /**
  * @brief
  */
-void R_UpdateViewport(void) {
+static void R_UpdateViewport(void) {
 
 	const SDL_Rect *viewport = &r_view.viewport;
 
@@ -207,7 +207,7 @@ void R_UpdateViewport(void) {
  * @brief Updates the clipping planes for the view frustum based on the origin
  * and angles for this frame.
  */
-void R_UpdateFrustum(void) {
+static void R_UpdateFrustum(void) {
 
 	if (!r_cull->value) {
 		return;
