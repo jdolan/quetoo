@@ -191,16 +191,16 @@ void R_UpdateViewport(void) {
 
 	Matrix4x4_FromFrustum(&r_locals.projection3D, xmin, xmax, ymin, ymax, 1.0, MAX_WORLD_DIST);
 
-	Matrix4x4_CreateIdentity(&r_locals.model_view);
+	Matrix4x4_CreateIdentity(&r_locals.view);
 
-	Matrix4x4_ConcatRotate(&r_locals.model_view, -90.0, 1.0, 0.0, 0.0); // put Z going up
-	Matrix4x4_ConcatRotate(&r_locals.model_view,  90.0, 0.0, 0.0, 1.0); // put Z going up
+	Matrix4x4_ConcatRotate(&r_locals.view, -90.0, 1.0, 0.0, 0.0); // put Z going up
+	Matrix4x4_ConcatRotate(&r_locals.view,  90.0, 0.0, 0.0, 1.0); // put Z going up
 
-	Matrix4x4_ConcatRotate(&r_locals.model_view, -r_view.angles[ROLL],  1.0, 0.0, 0.0);
-	Matrix4x4_ConcatRotate(&r_locals.model_view, -r_view.angles[PITCH], 0.0, 1.0, 0.0);
-	Matrix4x4_ConcatRotate(&r_locals.model_view, -r_view.angles[YAW],   0.0, 0.0, 1.0);
+	Matrix4x4_ConcatRotate(&r_locals.view, -r_view.angles[ROLL],  1.0, 0.0, 0.0);
+	Matrix4x4_ConcatRotate(&r_locals.view, -r_view.angles[PITCH], 0.0, 1.0, 0.0);
+	Matrix4x4_ConcatRotate(&r_locals.view, -r_view.angles[YAW],   0.0, 0.0, 1.0);
 
-	Matrix4x4_ConcatTranslate(&r_locals.model_view, -r_view.origin[0], -r_view.origin[1], -r_view.origin[2]);
+	Matrix4x4_ConcatTranslate(&r_locals.view, -r_view.origin[0], -r_view.origin[1], -r_view.origin[2]);
 }
 
 /**

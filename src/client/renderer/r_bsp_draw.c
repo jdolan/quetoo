@@ -53,7 +53,8 @@ static struct {
 	GLint in_color;
 
 	GLint projection;
-	GLint model_view;
+	GLint view;
+	GLint model;
 	GLint normal;
 
 	GLint textures;
@@ -229,17 +230,13 @@ static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in) {
  */
 static void R_DrawBspEntity(const r_entity_t *e) {
 
-	matrix4x4_t transform;
-	Matrix4x4_CreateFromEntity(&transform, e->origin, e->angles, e->scale);
-
-	matrix4x4_t model_view;
-	Matrix4x4_Concat(&model_view, &r_locals.model_view, &transform);
+	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
 
 	matrix4x4_t normal;
-	Matrix4x4_Invert_Full(&normal, &model_view);
+	Matrix4x4_Concat(&normal, &r_locals.view, &e->matrix);
+	Matrix4x4_Invert_Full(&normal, &normal);
 	Matrix4x4_Transpose(&normal, &normal);
 
-	glUniformMatrix4fv(r_bsp_program.model_view, 1, GL_FALSE, (GLfloat *) model_view.m);
 	glUniformMatrix4fv(r_bsp_program.normal, 1, GL_FALSE, (GLfloat *) normal.m);
 
 	R_DrawBspDrawElements(e->model->bsp_inline);
@@ -261,12 +258,14 @@ void R_DrawWorld(void) {
 
 	glUseProgram(r_bsp_program.name);
 
+	glUniformMatrix4fv(r_bsp_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
+	glUniformMatrix4fv(r_bsp_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
+	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) matrix4x4_identity.m);
+
 	matrix4x4_t normal;
-	Matrix4x4_Invert_Full(&normal, &r_locals.model_view);
+	Matrix4x4_Invert_Full(&normal, &r_locals.view);
 	Matrix4x4_Transpose(&normal, &normal);
 
-	glUniformMatrix4fv(r_bsp_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
-	glUniformMatrix4fv(r_bsp_program.model_view, 1, GL_FALSE, (GLfloat *) r_locals.model_view.m);
 	glUniformMatrix4fv(r_bsp_program.normal, 1, GL_FALSE, (GLfloat *) normal.m);
 
 	glUniform1f(r_bsp_program.alpha_threshold, 0.f);
@@ -343,7 +342,8 @@ void R_InitBspProgram(void) {
 	r_bsp_program.in_color = glGetAttribLocation(r_bsp_program.name, "in_color");
 
 	r_bsp_program.projection = glGetUniformLocation(r_bsp_program.name, "projection");
-	r_bsp_program.model_view = glGetUniformLocation(r_bsp_program.name, "model_view");
+	r_bsp_program.view = glGetUniformLocation(r_bsp_program.name, "view");
+	r_bsp_program.model = glGetUniformLocation(r_bsp_program.name, "model");
 	r_bsp_program.normal = glGetUniformLocation(r_bsp_program.name, "normal");
 
 	r_bsp_program.textures = glGetUniformLocation(r_bsp_program.name, "textures");

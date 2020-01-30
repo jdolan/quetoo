@@ -30,7 +30,8 @@ layout (location = 5) in vec2 in_lightmap;
 layout (location = 6) in vec4 in_color;
 
 uniform mat4 projection;
-uniform mat4 model_view;
+uniform mat4 view;
+uniform mat4 model;
 uniform mat4 normal;
 
 out vertex_data {
@@ -49,9 +50,9 @@ out vertex_data {
  */
 void main(void) {
 
-	gl_Position = projection * model_view * vec4(in_position, 1.0);
+	gl_Position = projection * view * model * vec4(in_position, 1.0);
 
-	vertex.position = (model_view * vec4(in_position, 1.0)).xyz;
+	vertex.position = (view * model * vec4(in_position, 1.0)).xyz;
 	vertex.normal = normalize(vec3(normal * vec4(in_normal, 1.0)));
 	vertex.tangent = normalize(vec3(normal * vec4(in_tangent, 1.0)));
 	vertex.bitangent = normalize(vec3(normal * vec4(in_bitangent, 1.0)));

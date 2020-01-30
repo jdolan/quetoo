@@ -56,7 +56,7 @@ static struct {
 	GLint in_diffuse;
 
 	GLint projection;
-	GLint model_view;
+	GLint view;
 
 	GLint texture_diffuse;
 
@@ -80,7 +80,7 @@ void R_DrawSkyBox(void) {
 	glUseProgram(r_sky_program.name);
 
 	glUniformMatrix4fv(r_sky_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
-	glUniformMatrix4fv(r_sky_program.model_view, 1, GL_FALSE, (GLfloat *) r_locals.model_view.m);
+	glUniformMatrix4fv(r_sky_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
 
 	glUniform1f(r_sky_program.brightness, r_brightness->value);
 	glUniform1f(r_sky_program.contrast, r_contrast->value);
@@ -130,7 +130,7 @@ static void R_InitSkyProgram(void) {
 	r_sky_program.in_diffuse = glGetAttribLocation(r_sky_program.name, "in_diffuse");
 
 	r_sky_program.projection = glGetUniformLocation(r_sky_program.name, "projection");
-	r_sky_program.model_view = glGetUniformLocation(r_sky_program.name, "model_view");
+	r_sky_program.view = glGetUniformLocation(r_sky_program.name, "view");
 
 	r_sky_program.texture_diffuse = glGetUniformLocation(r_sky_program.name, "texture_diffuse");
 

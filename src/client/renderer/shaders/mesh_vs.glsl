@@ -33,11 +33,14 @@ layout (location = 7) in vec3 in_next_tangent;
 layout (location = 8) in vec3 in_next_bitangent;
 
 uniform mat4 projection;
-uniform mat4 model_view;
+uniform mat4 view;
 uniform mat4 model;
 uniform mat4 normal;
 
 uniform float lerp;
+
+uniform vec3 world_mins;
+uniform vec3 world_maxs;
 
 out vertex_data {
 	vec3 position;
@@ -45,7 +48,7 @@ out vertex_data {
 	vec3 tangent;
 	vec3 bitangent;
 	vec2 diffuse;
-	vec3 world_position;
+	vec3 lightgrid;
 	vec3 eye;
 } vertex;
 
@@ -59,19 +62,20 @@ void main(void) {
 	vec4 lerp_tangent = vec4(mix(in_tangent, in_next_tangent, lerp), 1.0);
 	vec4 lerp_bitangent = vec4(mix(in_bitangent, in_next_bitangent, lerp), 1.0);
 
-	gl_Position = projection * model_view * lerp_position;
+	gl_Position = projection * view * model * lerp_position;
 
-	vertex.position = vec3(model_view * lerp_position);
+	vertex.position = vec3(view * model * lerp_position);
 	vertex.normal = normalize(vec3(normal * lerp_normal));
 	vertex.tangent = normalize(vec3(normal * lerp_tangent));
 	vertex.bitangent = normalize(vec3(normal * lerp_bitangent));
 
 	vertex.diffuse = in_diffuse;
 
+	vec3 world_position = vec3(model * lerp_position);
+	vertex.lightgrid = (world_position - world_mins) / (world_maxs - world_mins).xzy;
+
 	vertex.eye.x = -dot(vertex.position, vertex.tangent);
 	vertex.eye.y = -dot(vertex.position, vertex.bitangent);
 	vertex.eye.z = -dot(vertex.position, vertex.normal);
-
-	vertex.world_position = vec3(model * lerp_position);
 }
 

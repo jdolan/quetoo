@@ -101,9 +101,9 @@ typedef struct {
 	matrix4x4_t projection2D;
 
 	/**
-	 * @brief The model view matrix.
+	 * @brief The view matrix.
 	 */
-	matrix4x4_t model_view;
+	matrix4x4_t view;
 
 	/**
 	 * @brief The leaf in which the view origin resides.

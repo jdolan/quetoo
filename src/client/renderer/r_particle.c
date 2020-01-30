@@ -53,7 +53,7 @@ static struct {
 	GLint in_color;
 
 	GLint projection;
-	GLint model_view;
+	GLint view;
 
 	GLint texture_diffuse;
 
@@ -99,7 +99,7 @@ void R_DrawParticles(void) {
 	glUseProgram(r_particle_program.name);
 
 	glUniformMatrix4fv(r_particle_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
-	glUniformMatrix4fv(r_particle_program.model_view, 1, GL_FALSE, (GLfloat *) r_locals.model_view.m);
+	glUniformMatrix4fv(r_particle_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
 
 	glUniform1f(r_particle_program.brightness, r_brightness->value);
 	glUniform1f(r_particle_program.contrast, r_contrast->value);
@@ -143,7 +143,7 @@ static void R_InitParticleProgram(void) {
 	r_particle_program.in_color = glGetAttribLocation(r_particle_program.name, "in_color");
 
 	r_particle_program.projection = glGetUniformLocation(r_particle_program.name, "projection");
-	r_particle_program.model_view = glGetUniformLocation(r_particle_program.name, "model_view");
+	r_particle_program.view = glGetUniformLocation(r_particle_program.name, "view");
 
 	r_particle_program.texture_diffuse = glGetUniformLocation(r_particle_program.name, "texture_diffuse");
 

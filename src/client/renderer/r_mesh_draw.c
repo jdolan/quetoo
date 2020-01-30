@@ -54,8 +54,8 @@ static struct {
 	GLint in_next_bitangent;
 
 	GLint projection;
-	GLint model_view;
 	GLint model;
+	GLint view;
 	GLint normal;
 
 	GLint lerp;
@@ -162,14 +162,11 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 
 	glUniformMatrix4fv(r_mesh_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
 
-	matrix4x4_t model_view;
-	Matrix4x4_Concat(&model_view, &r_locals.model_view, &e->matrix);
-
 	matrix4x4_t normal;
-	Matrix4x4_Invert_Full(&normal, &model_view);
+	Matrix4x4_Concat(&normal, &r_locals.view, &e->matrix);
+	Matrix4x4_Invert_Full(&normal, &normal);
 	Matrix4x4_Transpose(&normal, &normal);
 
-	glUniformMatrix4fv(r_mesh_program.model_view, 1, GL_FALSE, (GLfloat *) model_view.m);
 	glUniformMatrix4fv(r_mesh_program.normal, 1, GL_FALSE, (GLfloat *) normal.m);
 
 	glUniform1f(r_mesh_program.lerp, e->lerp);
@@ -247,6 +244,7 @@ void R_DrawMeshEntities(void) {
 	glUseProgram(r_mesh_program.name);
 
 	glUniformMatrix4fv(r_mesh_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
+	glUniformMatrix4fv(r_mesh_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
 
 	glUniform1f(r_mesh_program.alpha_threshold, 0.f);
 
@@ -359,7 +357,7 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.in_next_bitangent = glGetAttribLocation(r_mesh_program.name, "in_next_bitangent");
 
 	r_mesh_program.projection = glGetUniformLocation(r_mesh_program.name, "projection");
-	r_mesh_program.model_view = glGetUniformLocation(r_mesh_program.name, "model_view");
+	r_mesh_program.view = glGetUniformLocation(r_mesh_program.name, "view");
 	r_mesh_program.model = glGetUniformLocation(r_mesh_program.name, "model");
 	r_mesh_program.normal = glGetUniformLocation(r_mesh_program.name, "normal");
 
