@@ -112,7 +112,7 @@ void main(void) {
 		vec3 ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb;
 		vec3 diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
 		vec3 direction = texture(texture_lightgrid_direction, vertex.lightgrid).rgb;
-		lightgrid = modulate * (ambient + diffuse) ;//* dot(vertex.normal, direction);
+		lightgrid = vertex.lightgrid;//modulate * (ambient + diffuse) ;//* dot(vertex.normal, direction);
 	} else {
 		lightgrid = vec3(1.0);
 	}

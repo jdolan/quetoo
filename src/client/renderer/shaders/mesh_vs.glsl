@@ -72,7 +72,8 @@ void main(void) {
 	vertex.diffuse = in_diffuse;
 
 	vec3 world_position = vec3(model * lerp_position);
-	vertex.lightgrid = (world_position - world_mins) / (world_maxs - world_mins).xzy;
+	vec3 lightgrid = (world_position - world_mins) / (world_maxs - world_mins);
+	vertex.lightgrid = vec3(lightgrid.x, lightgrid.y, lightgrid.z);
 
 	vertex.eye.x = -dot(vertex.position, vertex.tangent);
 	vertex.eye.y = -dot(vertex.position, vertex.bitangent);
