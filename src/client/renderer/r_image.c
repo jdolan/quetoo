@@ -25,15 +25,12 @@ r_image_state_t r_image_state;
 
 typedef struct {
 	const char *name;
-	GLenum minimize, maximize;
+	GLenum minify, magnify;
 } r_texture_mode_t;
 
 static r_texture_mode_t r_texture_modes[] = { // specifies mipmapping (texture quality)
 	{ "GL_NEAREST", GL_NEAREST, GL_NEAREST },
 	{ "GL_LINEAR", GL_LINEAR, GL_LINEAR },
-	{ "GL_NEAREST_MIPMAP_NEAREST", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST },
-	{ "GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR },
-	{ "GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST },
 	{ "GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR }
 };
 
@@ -54,8 +51,8 @@ static void R_TextureMode(void) {
 		return;
 	}
 
-	r_image_state.filter_min = r_texture_modes[i].minimize;
-	r_image_state.filter_mag = r_texture_modes[i].maximize;
+	r_image_state.filter_min = r_texture_modes[i].minify;
+	r_image_state.filter_mag = r_texture_modes[i].magnify;
 
 	if (r_anisotropy->value) {
 		if (GLAD_GL_EXT_texture_filter_anisotropic) {
@@ -242,6 +239,16 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 	} else {
 		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, r_image_state.filter_mag);
 		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, r_image_state.filter_mag);
+	}
+
+	if (image->type & IT_MASK_CLAMP_EDGE) {
+		glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	} else {
+		glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_REPEAT);
 	}
 
 	if (image->depth) {

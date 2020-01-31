@@ -74,6 +74,7 @@ typedef enum {
 #define IT_MASK_MIPMAP		1 << 24
 #define IT_MASK_FILTER		1 << 25
 #define IT_MASK_MULTIPLY	1 << 26
+#define IT_MASK_CLAMP_EDGE  1 << 27
 #define IT_MASK_FLAGS		(IT_MASK_MIPMAP | IT_MASK_FILTER | IT_MASK_MULTIPLY)
 
 // image categories (bits 0..23) + flags are making image types
@@ -85,7 +86,7 @@ typedef enum {
 	IT_EFFECT =      (1 <<  4) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_DIFFUSE =     (1 <<  5) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_LIGHTMAP =    (1 <<  6) + (IT_MASK_FILTER),
-	IT_LIGHTGRID =   (1 <<  7) + (IT_MASK_FILTER),
+	IT_LIGHTGRID =   (1 <<  7) + (IT_MASK_FILTER | IT_MASK_CLAMP_EDGE),
 	IT_STAINMAP =    (1 <<  8) + (IT_MASK_FILTER),
 	IT_NORMALMAP =   (1 <<  9) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_GLOSSMAP =    (1 << 10) + (IT_MASK_MIPMAP | IT_MASK_FILTER),
