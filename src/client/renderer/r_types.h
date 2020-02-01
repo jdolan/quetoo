@@ -421,6 +421,7 @@ typedef struct {
  */
 typedef struct {
 	int32_t size[3];
+	vec3_t mins, maxs;
 	r_image_t *ambient;
 	r_image_t *diffuse;
 	r_image_t *direction;

@@ -373,11 +373,11 @@ void R_LoadMedia(void) {
 
 	R_LoadModel(cl.config_strings[CS_MODELS]); // load the world
 
-	Cl_LoadingProgress(55, "mopping up blood");
+	//Cl_LoadingProgress(55, "mopping up blood");
 
 //	R_ResetStainmaps(); // clear the stainmap if we have to
 
-	Cl_LoadingProgress(60, "models");
+	Cl_LoadingProgress(66, "models");
 
 	// load all other models
 	for (uint32_t i = 1; i < MAX_MODELS && cl.config_strings[CS_MODELS + i][0]; i++) {
@@ -393,7 +393,7 @@ void R_LoadMedia(void) {
 
 	// load all known images
 	for (uint32_t i = 0; i < MAX_IMAGES && cl.config_strings[CS_IMAGES + i][0]; i++) {
-		cl.image_precache[i] = R_LoadImage(cl.config_strings[CS_IMAGES + i], IT_PIC);
+		cl.image_precache[i] = R_LoadImage(cl.config_strings[CS_IMAGES + i], IT_PIC); // FIXME: Atlas?
 	}
 
 	Cl_LoadingProgress(77, "sky");

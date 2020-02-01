@@ -93,7 +93,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map lightgrid"
+            argument = "+map torn"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

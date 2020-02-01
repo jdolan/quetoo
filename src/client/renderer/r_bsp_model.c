@@ -114,82 +114,6 @@ static void R_LoadBspElements(r_bsp_model_t *bsp) {
 	}
 }
 
-/**
- * @brief
- */
-static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
-	r_bsp_lightmap_t *out;
-
-	const bsp_lightmap_t *in = bsp->cm->file.lightmap;
-	if (in == NULL) {
-		return;
-	}
-	
-	bsp->lightmap = out = Mem_LinkMalloc(sizeof(*out), bsp);
-
-	out->width = in->width;
-
-	out->atlas = (r_image_t *) R_AllocMedia("lightmap", sizeof(r_image_t), MEDIA_IMAGE);
-	out->atlas->media.Free = R_FreeImage;
-	out->atlas->type = IT_LIGHTMAP;
-	out->atlas->width = out->width;
-	out->atlas->height = out->width;
-	out->atlas->depth = BSP_LIGHTMAP_LAYERS;
-
-	R_UploadImage(out->atlas, GL_RGB8, (byte *) in + sizeof(bsp_lightmap_t));
-}
-
-/**
- * @brief
- */
-static void R_LoadBspLightgrid(r_bsp_model_t *bsp) {
-	r_bsp_lightgrid_t *out;
-
-	const bsp_lightgrid_t *in = bsp->cm->file.lightgrid;
-	if (in == NULL) {
-		return;
-	}
-
-	bsp->lightgrid = out = Mem_LinkMalloc(sizeof(*out), bsp);
-
-	VectorCopy(in->size, out->size);
-
-	const size_t texture_size = out->size[0] * out->size[1] * out->size[2] * BSP_LIGHTGRID_BPP;
-
-	byte *ambient = (byte *) in + sizeof(bsp_lightgrid_t);
-
-	out->ambient = (r_image_t *) R_AllocMedia("lightgrid.amb", sizeof(r_image_t), MEDIA_IMAGE);
-	out->ambient->media.Free = R_FreeImage;
-	out->ambient->type = IT_LIGHTGRID;
-	out->ambient->width = out->size[0];
-	out->ambient->height = out->size[1];
-	out->ambient->depth = out->size[2];
-
-	R_UploadImage(out->ambient, GL_RGB8, ambient);
-
-	byte *diffuse = ambient + texture_size;
-
-	out->diffuse = (r_image_t *) R_AllocMedia("lightgrid.dif", sizeof(r_image_t), MEDIA_IMAGE);
-	out->diffuse->media.Free = R_FreeImage;
-	out->diffuse->type = IT_LIGHTGRID;
-	out->diffuse->width = out->size[0];
-	out->diffuse->height = out->size[1];
-	out->diffuse->depth = out->size[2];
-
-	R_UploadImage(out->diffuse, GL_RGB8, diffuse);
-
-	byte *direction = diffuse + texture_size;
-
-	out->direction = (r_image_t *) R_AllocMedia("lightgrid.dir", sizeof(r_image_t), MEDIA_IMAGE);
-	out->direction->media.Free = R_FreeImage;
-	out->direction->type = IT_LIGHTGRID;
-	out->direction->width = out->size[0];
-	out->direction->height = out->size[1];
-	out->direction->depth = out->size[2];
-
-	R_UploadImage(out->direction, GL_RGB8, direction);
-}
-
 static r_bsp_texinfo_t null_texinfo;
 
 /**
@@ -384,7 +308,9 @@ static void R_SetupBspFace(r_bsp_model_t *bsp, r_bsp_leaf_t *leaf, r_bsp_face_t 
 
 	const r_bsp_vertex_t *v = face->vertexes;
 	for (int32_t i = 0; i < face->num_vertexes; i++, v++) {
+
 		AddPointToBounds(v->position, face->mins, face->maxs);
+
 		AddStToBounds(v->diffuse, face->st_mins, face->st_maxs);
 		AddStToBounds(v->lightmap, face->lightmap.st_mins, face->lightmap.st_maxs);
 	}
@@ -467,143 +393,110 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 /**
  * @brief Creates an r_model_t for each inline model so that entities may reference them.
  */
-static void R_SetupBspInlineModels(r_model_t *world) {
+static void R_SetupBspInlineModels(r_model_t *mod) {
 
-	r_bsp_inline_model_t *in = world->bsp->inline_models;
-	for (int32_t i = 0; i < world->bsp->num_inline_models; i++, in++) {
+	r_bsp_inline_model_t *in = mod->bsp->inline_models;
+	for (int32_t i = 0; i < mod->bsp->num_inline_models; i++, in++) {
 
 		r_model_t *out = Mem_TagMalloc(sizeof(r_model_t), MEM_TAG_RENDERER);
 
-		g_snprintf(out->media.name, sizeof(world->media.name), "%s#%d", world->media.name, i);
+		g_snprintf(out->media.name, sizeof(mod->media.name), "%s#%d", mod->media.name, i);
 		out->type = MOD_BSP_INLINE;
 		out->bsp_inline = in;
 
 		VectorCopy(in->maxs, out->maxs);
 		VectorCopy(in->mins, out->mins);
 
-		AddPointToBounds(out->mins, world->mins, world->maxs);
-		AddPointToBounds(out->maxs, world->mins, world->maxs);
+		AddPointToBounds(out->mins, mod->mins, mod->maxs);
+		AddPointToBounds(out->maxs, mod->mins, mod->maxs);
 
-		R_RegisterDependency(&world->media, &out->media);
+		R_RegisterDependency(&mod->media, &out->media);
 	}
 }
 
 /**
- * @brief Function for exporting a BSP to an OBJ.
+ * @brief
  */
-void R_ExportBsp_f(void) {
-	const r_model_t *world = R_WorldModel();
+static void R_LoadBspLightmap(r_model_t *mod) {
+	r_bsp_lightmap_t *out;
 
-	if (!world) {
+	const bsp_lightmap_t *in = mod->bsp->cm->file.lightmap;
+	if (in == NULL) {
 		return;
 	}
-	
-	Com_Print("Exporting BSP...\n");
-	
-	char modelname[MAX_QPATH];
-	g_snprintf(modelname, sizeof(modelname), "export/%s.obj", Basename(world->media.name));
-	
-	char mtlname[MAX_QPATH], mtlpath[MAX_QPATH];
-	g_snprintf(mtlname, sizeof(mtlname), "%s.mtl", Basename(world->media.name));
-	g_snprintf(mtlpath, sizeof(mtlpath), "export/%s.mtl", Basename(world->media.name));
 
-	file_t *file = Fs_OpenWrite(mtlpath);
+	mod->bsp->lightmap = out = Mem_LinkMalloc(sizeof(*out), mod->bsp);
 
-	GHashTable *materials = g_hash_table_new(g_direct_hash, g_direct_equal);
-	size_t num_materials = 0;
+	out->width = in->width;
 
-	// write out unique materials
-	for (int32_t i = 0; i < world->bsp->num_faces; i++) {
-		const r_bsp_face_t *surf = &world->bsp->faces[i];
-		
-		if (!surf->texinfo->material) {
-			continue;
-		}
+	out->atlas = (r_image_t *) R_AllocMedia("lightmap", sizeof(r_image_t), MEDIA_IMAGE);
+	out->atlas->media.Free = R_FreeImage;
+	out->atlas->type = IT_LIGHTMAP;
+	out->atlas->width = out->width;
+	out->atlas->height = out->width;
+	out->atlas->depth = BSP_LIGHTMAP_LAYERS;
 
-		if (g_hash_table_contains(materials, surf->texinfo->material)) {
-			continue;
-		}
+	R_UploadImage(out->atlas, GL_RGB8, (byte *) in + sizeof(bsp_lightmap_t));
+}
 
-		const r_image_t *diffuse = surf->texinfo->material->diffuse;
-		
-		Fs_Print(file, "newmtl %s\n", diffuse->media.name);
-		Fs_Print(file, "map_Ka %s.png\n", diffuse->media.name);
-		Fs_Print(file, "map_Kd %s.png\n\n", diffuse->media.name);
+/**
+ * @brief
+ */
+static void R_LoadBspLightgrid(r_model_t *mod) {
+	r_bsp_lightgrid_t *out;
 
-		char path[MAX_OS_PATH];
-		g_snprintf(path, sizeof(path), "export/%s.png", diffuse->media.name);
-
-		R_DumpImage(diffuse, path);
-
-		g_hash_table_insert(materials, surf->texinfo->material, (gpointer) num_materials);
-		num_materials++;
-	}
-	
-	Fs_Close(file);
-
-	file = Fs_OpenWrite(modelname);
-
-	Com_Print("Writing vertexes...\n");
-
-	Fs_Print(file, "# Wavefront OBJ exported by Quetoo\n\n");
-	Fs_Print(file, "mtllib %s\n\n", mtlname);
-
-	const r_bsp_vertex_t *v = world->bsp->vertexes;
-	for (int32_t i = 0; i <  world->bsp->num_vertexes; i++, v++) {
-
-		Fs_Print(file, "v %f %f %f\nvt %f %f\nvn %f %f %f\n",
-				-v->position[0], v->position[2], v->position[1],
-				 v->diffuse[0], -v->diffuse[1],
-				-v->normal[0], v->normal[2], v->normal[1]);
-	}
-	
-	Fs_Print(file, "# %d vertexes\n\n", world->bsp->num_vertexes);
-	
-	Com_Print("Writing faces...\n");
-
-	GHashTableIter iter;
-	gpointer key;
-	g_hash_table_iter_init(&iter, materials);
-
-	while (g_hash_table_iter_next (&iter, &key, NULL)) {
-		const r_material_t *material = (const r_material_t *) key;
-		
-		Fs_Print(file, "g %s\n", material->diffuse->media.name);
-		Fs_Print(file, "usemtl %s\n", material->diffuse->media.name);
-
-		for (int32_t i = 0; i < world->bsp->num_faces; i++) {
-			const r_bsp_face_t *face = &world->bsp->faces[i];
-
-			if (!face->texinfo->material) {
-				continue;
-			}
-
-			if (face->texinfo->material != material) {
-				continue;
-			}
-
-			Fs_Print(file, "f ");
-
-			const r_bsp_vertex_t *vertex = face->vertexes;
-			for (int32_t j = 0; j < face->num_vertexes; j++, vertex++) {
-				const int32_t v = (int32_t) (ptrdiff_t) (vertex - world->bsp->vertexes);
-				Fs_Print(file, "%d/%d/%d", v, v, v);
-			}
-
-			Fs_Print(file, "\n");
-		}
-
-		Fs_Print(file, "\n");
+	const bsp_lightgrid_t *in = mod->bsp->cm->file.lightgrid;
+	if (in == NULL) {
+		return;
 	}
 
-	Fs_Print(file, "# %d faces\n\n", world->bsp->num_faces);
-	Fs_Close(file);
+	mod->bsp->lightgrid = out = Mem_LinkMalloc(sizeof(*out), mod->bsp);
 
-	g_hash_table_destroy(materials);
+	VectorCopy(in->size, out->size);
 
-	glUnmapBuffer(GL_ARRAY_BUFFER);
+	for (int32_t i = 0; i < 3; i++) {
 
-	Com_Print("Done!\n");
+		const vec_t grid_size = out->size[i] * BSP_LIGHTGRID_LUXEL_SIZE;
+		const vec_t padding = (grid_size - (mod->maxs[i] - mod->mins[i])) * 0.5;
+
+		out->mins[i] = mod->mins[i] - padding;
+		out->maxs[i] = mod->maxs[i] + padding;
+	}
+
+	const size_t texture_size = out->size[0] * out->size[1] * out->size[2] * BSP_LIGHTGRID_BPP;
+
+	byte *ambient = (byte *) in + sizeof(bsp_lightgrid_t);
+
+	out->ambient = (r_image_t *) R_AllocMedia("lightgrid.amb", sizeof(r_image_t), MEDIA_IMAGE);
+	out->ambient->media.Free = R_FreeImage;
+	out->ambient->type = IT_LIGHTGRID;
+	out->ambient->width = out->size[0];
+	out->ambient->height = out->size[1];
+	out->ambient->depth = out->size[2];
+
+	R_UploadImage(out->ambient, GL_RGB8, ambient);
+
+	byte *diffuse = ambient + texture_size;
+
+	out->diffuse = (r_image_t *) R_AllocMedia("lightgrid.dif", sizeof(r_image_t), MEDIA_IMAGE);
+	out->diffuse->media.Free = R_FreeImage;
+	out->diffuse->type = IT_LIGHTGRID;
+	out->diffuse->width = out->size[0];
+	out->diffuse->height = out->size[1];
+	out->diffuse->depth = out->size[2];
+
+	R_UploadImage(out->diffuse, GL_RGB8, diffuse);
+
+	byte *direction = diffuse + texture_size;
+
+	out->direction = (r_image_t *) R_AllocMedia("lightgrid.dir", sizeof(r_image_t), MEDIA_IMAGE);
+	out->direction->media.Free = R_FreeImage;
+	out->direction->type = IT_LIGHTGRID;
+	out->direction->width = out->size[0];
+	out->direction->height = out->size[1];
+	out->direction->depth = out->size[2];
+
+	R_UploadImage(out->direction, GL_RGB8, direction);
 }
 
 /**
@@ -666,37 +559,31 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Cl_LoadingProgress(6, "entities");
 	R_LoadBspEntities(mod->bsp);
 
-	Cl_LoadingProgress(8, "texinfo");
+	Cl_LoadingProgress(10, "texinfo");
 	R_LoadBspTexinfo(mod->bsp);
 
-	Cl_LoadingProgress(16, "vertexes");
+	Cl_LoadingProgress(14, "vertexes");
 	R_LoadBspVertexes(mod->bsp);
 
 	Cl_LoadingProgress(18, "elements");
 	R_LoadBspElements(mod->bsp);
 
-	Cl_LoadingProgress(22, "lightmap");
-	R_LoadBspLightmap(mod->bsp);
-
-	Cl_LoadingProgress(24, "lightgrid");
-	R_LoadBspLightgrid(mod->bsp);
-
-	Cl_LoadingProgress(30, "faces");
+	Cl_LoadingProgress(22, "faces");
 	R_LoadBspFaces(mod->bsp);
 
-	Cl_LoadingProgress(32, "draw elements");
+	Cl_LoadingProgress(26, "draw elements");
 	R_LoadBspDrawElements(mod->bsp);
 
-	Cl_LoadingProgress(34, "leaf faces");
+	Cl_LoadingProgress(30, "leaf faces");
 	R_LoadBspLeafFaces(mod->bsp);
 
-	Cl_LoadingProgress(36, "leafs");
+	Cl_LoadingProgress(34, "leafs");
 	R_LoadBspLeafs(mod->bsp);
 
-	Cl_LoadingProgress(40, "nodes");
+	Cl_LoadingProgress(38, "nodes");
 	R_LoadBspNodes(mod->bsp);
 
-	Cl_LoadingProgress(44, "faces");
+	Cl_LoadingProgress(42, "faces");
 	R_SetupBspFaces(mod->bsp);
 
 	Cl_LoadingProgress(46, "inline models");
@@ -705,8 +592,14 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Cl_LoadingProgress(50, "inline models");
 	R_SetupBspInlineModels(mod);
 
-	Cl_LoadingProgress(56, "arrays");
+	Cl_LoadingProgress(54, "arrays");
 	R_LoadBspVertexArray(mod);
+
+	Cl_LoadingProgress(58, "lightmap");
+	R_LoadBspLightmap(mod);
+
+	Cl_LoadingProgress(62, "lightgrid");
+	R_LoadBspLightgrid(mod);
 
 	if (r_draw_bsp_lightgrid->value) {
 		Bsp_UnloadLumps(&mod->bsp->cm->file, R_BSP_LUMPS & ~(1 << BSP_LUMP_LIGHTGRID));
@@ -723,4 +616,122 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Com_Debug(DEBUG_RENDERER, "!  Leafs:          %d\n", mod->bsp->num_leafs);
 	Com_Debug(DEBUG_RENDERER, "!  Leaf faces:     %d\n", mod->bsp->num_leaf_faces);
 	Com_Debug(DEBUG_RENDERER, "!================================\n");
+}
+
+/**
+ * @brief Function for exporting a BSP to an OBJ.
+ */
+void R_ExportBsp_f(void) {
+	const r_model_t *world = R_WorldModel();
+
+	if (!world) {
+		return;
+	}
+
+	Com_Print("Exporting BSP...\n");
+
+	char modelname[MAX_QPATH];
+	g_snprintf(modelname, sizeof(modelname), "export/%s.obj", Basename(world->media.name));
+
+	char mtlname[MAX_QPATH], mtlpath[MAX_QPATH];
+	g_snprintf(mtlname, sizeof(mtlname), "%s.mtl", Basename(world->media.name));
+	g_snprintf(mtlpath, sizeof(mtlpath), "export/%s.mtl", Basename(world->media.name));
+
+	file_t *file = Fs_OpenWrite(mtlpath);
+
+	GHashTable *materials = g_hash_table_new(g_direct_hash, g_direct_equal);
+	size_t num_materials = 0;
+
+	// write out unique materials
+	for (int32_t i = 0; i < world->bsp->num_faces; i++) {
+		const r_bsp_face_t *surf = &world->bsp->faces[i];
+
+		if (!surf->texinfo->material) {
+			continue;
+		}
+
+		if (g_hash_table_contains(materials, surf->texinfo->material)) {
+			continue;
+		}
+
+		const r_image_t *diffuse = surf->texinfo->material->diffuse;
+
+		Fs_Print(file, "newmtl %s\n", diffuse->media.name);
+		Fs_Print(file, "map_Ka %s.png\n", diffuse->media.name);
+		Fs_Print(file, "map_Kd %s.png\n\n", diffuse->media.name);
+
+		char path[MAX_OS_PATH];
+		g_snprintf(path, sizeof(path), "export/%s.png", diffuse->media.name);
+
+		R_DumpImage(diffuse, path);
+
+		g_hash_table_insert(materials, surf->texinfo->material, (gpointer) num_materials);
+		num_materials++;
+	}
+
+	Fs_Close(file);
+
+	file = Fs_OpenWrite(modelname);
+
+	Com_Print("Writing vertexes...\n");
+
+	Fs_Print(file, "# Wavefront OBJ exported by Quetoo\n\n");
+	Fs_Print(file, "mtllib %s\n\n", mtlname);
+
+	const r_bsp_vertex_t *v = world->bsp->vertexes;
+	for (int32_t i = 0; i <  world->bsp->num_vertexes; i++, v++) {
+
+		Fs_Print(file, "v %f %f %f\nvt %f %f\nvn %f %f %f\n",
+				-v->position[0], v->position[2], v->position[1],
+				 v->diffuse[0], -v->diffuse[1],
+				-v->normal[0], v->normal[2], v->normal[1]);
+	}
+
+	Fs_Print(file, "# %d vertexes\n\n", world->bsp->num_vertexes);
+
+	Com_Print("Writing faces...\n");
+
+	GHashTableIter iter;
+	gpointer key;
+	g_hash_table_iter_init(&iter, materials);
+
+	while (g_hash_table_iter_next (&iter, &key, NULL)) {
+		const r_material_t *material = (const r_material_t *) key;
+
+		Fs_Print(file, "g %s\n", material->diffuse->media.name);
+		Fs_Print(file, "usemtl %s\n", material->diffuse->media.name);
+
+		for (int32_t i = 0; i < world->bsp->num_faces; i++) {
+			const r_bsp_face_t *face = &world->bsp->faces[i];
+
+			if (!face->texinfo->material) {
+				continue;
+			}
+
+			if (face->texinfo->material != material) {
+				continue;
+			}
+
+			Fs_Print(file, "f ");
+
+			const r_bsp_vertex_t *vertex = face->vertexes;
+			for (int32_t j = 0; j < face->num_vertexes; j++, vertex++) {
+				const int32_t v = (int32_t) (ptrdiff_t) (vertex - world->bsp->vertexes);
+				Fs_Print(file, "%d/%d/%d", v, v, v);
+			}
+
+			Fs_Print(file, "\n");
+		}
+
+		Fs_Print(file, "\n");
+	}
+
+	Fs_Print(file, "# %d faces\n\n", world->bsp->num_faces);
+	Fs_Close(file);
+
+	g_hash_table_destroy(materials);
+
+	glUnmapBuffer(GL_ARRAY_BUFFER);
+
+	Com_Print("Done!\n");
 }

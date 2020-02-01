@@ -70,8 +70,8 @@ static struct {
 	GLint texture_lightgrid_diffuse;
 	GLint texture_lightgrid_direction;
 
-	GLint world_mins;
-	GLint world_maxs;
+	GLint lightgrid_mins;
+	GLint lightgrid_maxs;
 
 	GLint color;
 	GLint alpha_threshold;
@@ -265,10 +265,10 @@ void R_DrawMeshEntities(void) {
 
 		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_DIRECTION);
 		glBindTexture(GL_TEXTURE_3D, lg->direction->texnum);
-	}
 
-	glUniform3fv(r_mesh_program.world_mins, 1, r_model_state.world->mins);
-	glUniform3fv(r_mesh_program.world_maxs, 1, r_model_state.world->maxs);
+		glUniform3fv(r_mesh_program.lightgrid_mins, 1, lg->mins);
+		glUniform3fv(r_mesh_program.lightgrid_maxs, 1, lg->maxs);
+	}
 
 	{
 		glEnable(GL_CULL_FACE);
@@ -376,8 +376,8 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.texture_lightgrid_diffuse = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_diffuse");
 	r_mesh_program.texture_lightgrid_direction = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_direction");
 
-	r_mesh_program.world_mins = glGetUniformLocation(r_mesh_program.name, "world_mins");
-	r_mesh_program.world_maxs = glGetUniformLocation(r_mesh_program.name, "world_maxs");
+	r_mesh_program.lightgrid_mins = glGetUniformLocation(r_mesh_program.name, "lightgrid_mins");
+	r_mesh_program.lightgrid_maxs = glGetUniformLocation(r_mesh_program.name, "lightgrid_maxs");
 
 	r_mesh_program.color = glGetUniformLocation(r_mesh_program.name, "color");
 	r_mesh_program.alpha_threshold = glGetUniformLocation(r_mesh_program.name, "alpha_threshold");

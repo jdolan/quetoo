@@ -44,6 +44,8 @@ uniform sampler3D texture_lightgrid_ambient;
 uniform sampler3D texture_lightgrid_diffuse;
 uniform sampler3D texture_lightgrid_direction;
 
+uniform mat4 model;
+
 uniform vec4 color;
 uniform float alpha_threshold;
 
@@ -112,7 +114,9 @@ void main(void) {
 		vec3 ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb;
 		vec3 diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
 		vec3 direction = texture(texture_lightgrid_direction, vertex.lightgrid).rgb;
-		lightgrid = modulate * (ambient + diffuse) ;//* dot(vertex.normal, direction);
+
+		vec3 normal = normalize(vec3(model * vec4(vertex.normal, 1)));
+		lightgrid = modulate * (ambient + diffuse);// * (1.0 - dot(normal, direction));
 	} else {
 		lightgrid = vec3(1.0);
 	}

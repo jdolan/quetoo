@@ -39,8 +39,8 @@ uniform mat4 normal;
 
 uniform float lerp;
 
-uniform vec3 world_mins;
-uniform vec3 world_maxs;
+uniform vec3 lightgrid_mins;
+uniform vec3 lightgrid_maxs;
 
 out vertex_data {
 	vec3 position;
@@ -72,7 +72,7 @@ void main(void) {
 	vertex.diffuse = in_diffuse;
 
 	vec3 world_position = vec3(model * lerp_position);
-	vertex.lightgrid = (world_position - world_mins) / (world_maxs - world_mins);
+	vertex.lightgrid = (world_position - lightgrid_mins) / (lightgrid_maxs - lightgrid_mins);
 
 	vertex.eye.x = -dot(vertex.position, vertex.tangent);
 	vertex.eye.y = -dot(vertex.position, vertex.bitangent);
