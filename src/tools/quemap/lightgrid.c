@@ -191,15 +191,18 @@ static void LightLuxel(luxel_t *luxel, const byte *pvs, vec_t scale) {
 		}
 
 		vec3_t dir;
+		vec_t dist;
 		if (light->type == LIGHT_AMBIENT) {
-			VectorClear(dir);
+			VectorSet(dir, 0.0, 0.0, 1.0);
+			dist = 0.0;
 		} else if (light->type == LIGHT_SUN) {
 			VectorNegate(light->normal, dir);
+			dist = 0.0;
 		} else {
 			VectorSubtract(light->origin, luxel->origin, dir);
+			dist = VectorNormalize(dir);
 		}
 
-		const vec_t dist = VectorNormalize(dir);
 		if (light->atten != LIGHT_ATTEN_NONE) {
 			if (dist > light->radius) {
 				continue;
@@ -268,7 +271,7 @@ static void LightLuxel(luxel_t *luxel, const byte *pvs, vec_t scale) {
 			const vec3_t points[] = CUBE_8;
 			const vec_t ao_radius = 64.0;
 
-			vec_t ambient_occlusion = 0.0;
+			vec_t occlusion = 0.0;
 			vec_t sample_fraction = 1.0 / lengthof(points);
 
 			for (size_t i = 0; i < lengthof(points); i++) {
@@ -293,10 +296,10 @@ static void LightLuxel(luxel_t *luxel, const byte *pvs, vec_t scale) {
 
 				const cm_trace_t trace = Light_Trace(luxel->origin, point, 0, CONTENTS_SOLID);
 
-				ambient_occlusion += sample_fraction * trace.fraction;
+				occlusion += sample_fraction * trace.fraction;
 			}
 
-			intensity *= 1.0 - (1.0 - ambient_occlusion) * (1.0 - ambient_occlusion);
+			intensity *= 1.0 - (1.0 - occlusion) * (1.0 - occlusion);
 
 		} else if (light->type == LIGHT_SUN) {
 
@@ -368,18 +371,17 @@ static void LightLuxel(luxel_t *luxel, const byte *pvs, vec_t scale) {
 				break;
 			case LIGHT_AMBIENT:
 				VectorMA(luxel->ambient, intensity, light->color, luxel->ambient);
-				VectorMA(luxel->direction, intensity, luxel->normal, luxel->direction);
 				break;
 			case LIGHT_SUN:
 			case LIGHT_POINT:
 			case LIGHT_SPOT:
 			case LIGHT_PATCH:
 				VectorMA(luxel->diffuse, intensity, light->color, luxel->diffuse);
-				VectorMA(luxel->direction, intensity, dir, luxel->direction);
+				VectorMA(luxel->diffuse_dir, intensity, dir, luxel->diffuse_dir);
 				break;
 			case LIGHT_INDIRECT:
 				VectorMA(luxel->radiosity, intensity, light->color, luxel->radiosity);
-				VectorMA(luxel->direction, intensity, luxel->normal, luxel->direction);
+				VectorMA(luxel->radiosity_dir, intensity, dir, luxel->radiosity_dir);
 				break;
 		}
 	}
@@ -428,7 +430,7 @@ void DirectLightgrid(int32_t luxel_num) {
 	if (contribution > 0.0 && contribution < 1.0) {
 		VectorScale(l->ambient, 1.0 / contribution, l->ambient);
 		VectorScale(l->diffuse, 1.0 / contribution, l->diffuse);
-		VectorScale(l->direction, 1.0 / contribution, l->direction);
+		VectorScale(l->diffuse_dir, 1.0 / contribution, l->diffuse_dir);
 	}
 }
 
@@ -480,16 +482,18 @@ void FinalizeLightgrid(int32_t luxel_num) {
 	VectorScale(l->diffuse, 1.0 / 255.0, l->diffuse);
 	ColorFilter(l->diffuse, l->diffuse, brightness, saturation, contrast);
 
+	VectorNormalize(l->diffuse_dir);
+
 	VectorScale(l->radiosity, 1.0 / 255.0, l->radiosity);
 	ColorFilter(l->radiosity, l->radiosity, brightness, saturation, contrast);
 
-	VectorNormalize(l->direction);
+	VectorNormalize(l->radiosity_dir);
 }
 
 /**
  * @brief
  */
-static SDL_Surface *CreateLightgridSurface(void *pixels) {
+static SDL_Surface *CreateLightgridSurfaceFrom(void *pixels) {
 	const int32_t w = lg.size[0], h = lg.size[1];
 
 	return SDL_CreateRGBSurfaceWithFormatFrom(pixels, w, h, 24, w * BSP_LIGHTMAP_BPP, SDL_PIXELFORMAT_RGB24);
@@ -512,34 +516,44 @@ void EmitLightgrid(void) {
 
 	byte *out = (byte *) bsp_file.lightgrid + sizeof(bsp_lightgrid_t);
 
-	byte *out_amb = out + 0 * texture_size;
-	byte *out_dif = out + 1 * texture_size;
-	byte *out_dir = out + 2 * texture_size;
+	byte *out_ambient = out + 0 * texture_size;
+	byte *out_diffuse = out + 1 * texture_size;
+	byte *out_radiosity = out + 2 * texture_size;
+	byte *out_diffuse_dir = out + 3 * texture_size;
+	byte *out_radiosity_dir = out + 4 * texture_size;
 
 	const luxel_t *l = lg.luxels;
 	for (int32_t u = 0; u < lg.size[2]; u++) {
 
-		SDL_Surface *amb = CreateLightgridSurface(out_amb);
-		SDL_Surface *dif = CreateLightgridSurface(out_dif);
-		SDL_Surface *dir = CreateLightgridSurface(out_dir);
+		SDL_Surface *ambient = CreateLightgridSurfaceFrom(out_ambient);
+		SDL_Surface *diffuse = CreateLightgridSurfaceFrom(out_diffuse);
+		SDL_Surface *radiosity = CreateLightgridSurfaceFrom(out_radiosity);
+		SDL_Surface *diffuse_dir = CreateLightgridSurfaceFrom(out_diffuse_dir);
+		SDL_Surface *radiosity_dir = CreateLightgridSurfaceFrom(out_radiosity_dir);
 
 		for (int32_t t = 0; t < lg.size[1]; t++) {
 			for (int32_t s = 0; s < lg.size[0]; s++, l++) {
 
 				for (int32_t i = 0; i < 3; i++) {
-					*out_amb++ = (byte) Clamp((l->ambient[i] + l->radiosity[i]) * 255.0, 0, 255);
-					*out_dif++ = (byte) Clamp((l->diffuse[i] + 0.0) * 255.0, 0, 255);
-					*out_dir++ = (byte) Clamp((l->direction[i] + 1.0) * 0.5 * 255.0, 0, 255);
+					*out_ambient++ = (byte) Clamp(l->ambient[i] * 255.0, 0, 255);
+					*out_diffuse++ = (byte) Clamp(l->diffuse[i] * 255.0, 0, 255);
+					*out_radiosity++ = (byte) Clamp(l->radiosity[i] * 255.0, 0, 255);
+					*out_diffuse_dir++ = (byte) Clamp((l->diffuse_dir[i] + 1.0) * 0.5 * 255.0, 0, 255);
+					*out_radiosity_dir++ = (byte) Clamp((l->radiosity_dir[i] + 1.0) * 0.5 * 255.0, 0, 255);
 				}
 			}
 		}
 
-//		IMG_SavePNG(amb, va("/tmp/%s_lg_amb_%d.png", map_base, u));
-//		IMG_SavePNG(dif, va("/tmp/%s_lg_dif_%d.png", map_base, u));
-//		IMG_SavePNG(dir, va("/tmp/%s_lg_dir_%d.png", map_base, u));
+		IMG_SavePNG(ambient, va("/tmp/%s_lg_ambient_%d.png", map_base, u));
+		IMG_SavePNG(diffuse, va("/tmp/%s_lg_diffuse_%d.png", map_base, u));
+		IMG_SavePNG(radiosity, va("/tmp/%s_lg_radiosity_%d.png", map_base, u));
+		IMG_SavePNG(diffuse_dir, va("/tmp/%s_lg_diffuse_dir_%d.png", map_base, u));
+		IMG_SavePNG(radiosity_dir, va("/tmp/%s_lg_radiosity_dir_%d.png", map_base, u));
 
-		SDL_FreeSurface(amb);
-		SDL_FreeSurface(dif);
-		SDL_FreeSurface(dir);
+		SDL_FreeSurface(ambient);
+		SDL_FreeSurface(diffuse);
+		SDL_FreeSurface(diffuse_dir);
+		SDL_FreeSurface(radiosity);
+		SDL_FreeSurface(radiosity_dir);
 	}
 }

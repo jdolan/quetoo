@@ -262,9 +262,6 @@ static void Check_LIGHT_Options(int32_t argc) {
 		if (!g_strcmp0(Com_Argv(i), "--antialias") || !g_strcmp0(Com_Argv(i), "--extra")) {
 			antialias = true;
 			Com_Verbose("antialias: true\n");
-		} else if (!g_strcmp0(Com_Argv(i), "--ao")) {
-			occlude_ambient = true;
-			Com_Verbose("ambient occlusion: true\n");
 		} else if (!g_strcmp0(Com_Argv(i), "--indirect")) {
 			indirect = true;
 			Com_Verbose("indirect: true\n");

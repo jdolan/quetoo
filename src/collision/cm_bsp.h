@@ -64,7 +64,7 @@
 /**
  * @brief Lightmap and deluxemap.
  */
-#define BSP_LIGHTMAP_LAYERS 2
+#define BSP_LIGHTMAP_LAYERS 5
 
 /**
  * @brief Lightgrid luxel size in world units.
@@ -77,9 +77,9 @@
 #define BSP_LIGHTGRID_BPP 3
 
 /**
- * @brief Lightgrid ambient, diffuse and direction textures.
+ * @brief Lightgrid ambient, diffuse, diffuse direction, radiosity and radiosity direction textures.
  */
-#define BSP_LIGHTGRID_TEXTURES 3
+#define BSP_LIGHTGRID_TEXTURES 5
 
 /**
  * @brief Largest lightgrid width in luxels (8192 / 64 = 128).

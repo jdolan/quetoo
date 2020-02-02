@@ -58,9 +58,9 @@ out vertex_data {
 void main(void) {
 
 	vec4 lerp_position = vec4(mix(in_position, in_next_position, lerp), 1.0);
-	vec4 lerp_normal = vec4(mix(in_normal, in_next_normal, lerp), 1.0);
-	vec4 lerp_tangent = vec4(mix(in_tangent, in_next_tangent, lerp), 1.0);
-	vec4 lerp_bitangent = vec4(mix(in_bitangent, in_next_bitangent, lerp), 1.0);
+	vec4 lerp_normal = vec4(mix(in_normal, in_next_normal, lerp), 0.0);
+	vec4 lerp_tangent = vec4(mix(in_tangent, in_next_tangent, lerp), 0.0);
+	vec4 lerp_bitangent = vec4(mix(in_bitangent, in_next_bitangent, lerp), 0.0);
 
 	gl_Position = projection * view * model * lerp_position;
 

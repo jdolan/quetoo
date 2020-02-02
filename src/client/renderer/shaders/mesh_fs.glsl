@@ -21,18 +21,21 @@
 
 #define MAX_ACTIVE_LIGHTS           10
 
-#define TEXTURE_DIFFUSE              0
-#define TEXTURE_NORMALMAP            1
-#define TEXTURE_GLOSSMAP             2
-#define TEXTURE_LIGHTGRID_AMBIENT    3
-#define TEXTURE_LIGHTGRID_DIFFUSE    4
-#define TEXTURE_LIGHTGRID_DIRECTION  5
+#define TEXTURE_DIFFUSE                  0
+#define TEXTURE_NORMALMAP                1
+#define TEXTURE_GLOSSMAP                 2
+#define TEXTURE_LIGHTGRID                3
+#define TEXTURE_LIGHTGRID_AMBIENT        3
+#define TEXTURE_LIGHTGRID_DIFFUSE        4
+#define TEXTURE_LIGHTGRID_RADIOSITY      5
+#define TEXTURE_LIGHTGRID_DIFFUSE_DIR    6
+#define TEXTURE_LIGHTGRID_RADIOSITY_DIR  7
 
-#define TEXTURE_MASK_DIFFUSE        (1 << TEXTURE_DIFFUSE)
-#define TEXTURE_MASK_NORMALMAP      (1 << TEXTURE_NORMALMAP)
-#define TEXTURE_MASK_GLOSSMAP       (1 << TEXTURE_GLOSSMAP)
-#define TEXTURE_MASK_LIGHTGRID      (1 << TEXTURE_LIGHTGRID_AMBIENT)
-#define TEXTURE_MASK_ALL            0xff
+#define TEXTURE_MASK_DIFFUSE            (1 << TEXTURE_DIFFUSE)
+#define TEXTURE_MASK_NORMALMAP          (1 << TEXTURE_NORMALMAP)
+#define TEXTURE_MASK_GLOSSMAP           (1 << TEXTURE_GLOSSMAP)
+#define TEXTURE_MASK_LIGHTGRID          (1 << TEXTURE_LIGHTGRID)
+#define TEXTURE_MASK_ALL                0xff
 
 uniform int textures;
 
@@ -42,9 +45,9 @@ uniform sampler2D texture_glossmap;
 
 uniform sampler3D texture_lightgrid_ambient;
 uniform sampler3D texture_lightgrid_diffuse;
-uniform sampler3D texture_lightgrid_direction;
-
-uniform mat4 model;
+uniform sampler3D texture_lightgrid_diffuse_dir;
+uniform sampler3D texture_lightgrid_radiosity;
+uniform sampler3D texture_lightgrid_radiosity_dir;
 
 uniform vec4 color;
 uniform float alpha_threshold;
@@ -111,12 +114,21 @@ void main(void) {
 
 	vec3 lightgrid;
 	if ((textures & TEXTURE_MASK_LIGHTGRID) == TEXTURE_MASK_LIGHTGRID) {
-		vec3 ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb;
-		vec3 diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb;
-		vec3 direction = texture(texture_lightgrid_direction, vertex.lightgrid).rgb;
+		vec3 ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb * modulate;
+		vec3 diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb * modulate;
+		vec3 radiosity = texture(texture_lightgrid_radiosity, vertex.lightgrid).rgb * modulate;
 
-		vec3 normal = normalize(vec3(model * vec4(vertex.normal, 1)));
-		lightgrid = modulate * (ambient + diffuse);// * (1.0 - dot(normal, direction));
+		vec3 diffuse_dir = texture(texture_lightgrid_diffuse_dir, vertex.lightgrid).xyz;
+		vec3 radiosity_dir = texture(texture_lightgrid_radiosity_dir, vertex.lightgrid).xyz;
+
+		diffuse_dir = normalize(diffuse_dir * 2.0 - 1.0);
+		radiosity_dir = normalize(radiosity_dir * 2.0 - 1.0);
+
+		vec3 normal = normalize(vertex.normal);
+
+		lightgrid = ambient + 
+		            diffuse * max(0.0, dot(normal, diffuse_dir)) +
+		            radiosity * max(0.0, dot(normal, radiosity_dir));
 	} else {
 		lightgrid = vec3(1.0);
 	}

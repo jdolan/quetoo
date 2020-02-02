@@ -54,9 +54,9 @@ static void R_RegisterModel(r_media_t *self) {
 		}
 
 		if (mod->bsp->lightgrid) {
-			R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->ambient);
-			R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->diffuse);
-			R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->direction);
+			for (int32_t i = 0; i < BSP_LIGHTGRID_TEXTURES; i++) {
+				R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->textures[i]);
+			}
 		}
 
 		// keep a reference to the world model

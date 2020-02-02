@@ -21,22 +21,20 @@
 
 #include "r_local.h"
 
-#define MAX_ACTIVE_LIGHTS        10
+#define MAX_ACTIVE_LIGHTS                10
 
-#define TEXTURE_DIFFUSE           0
-#define TEXTURE_NORMALMAP         1
-#define TEXTURE_GLOSSMAP          2
-#define TEXTURE_LIGHTMAP          3
-#define TEXTURE_DELUXEMAP         4
-#define TEXTURE_STAINMAP          5
+#define TEXTURE_DIFFUSE                  0
+#define TEXTURE_NORMALMAP                1
+#define TEXTURE_GLOSSMAP                 2
+#define TEXTURE_LIGHTMAP                 3
+#define TEXTURE_STAINMAP                 4
 
-#define TEXTURE_MASK_DIFFUSE     (1 << TEXTURE_DIFFUSE)
-#define TEXTURE_MASK_NORMALMAP   (1 << TEXTURE_NORMALMAP)
-#define TEXTURE_MASK_GLOSSMAP    (1 << TEXTURE_GLOSSMAP)
-#define TEXTURE_MASK_LIGHTMAP    (1 << TEXTURE_LIGHTMAP)
-#define TEXTURE_MASK_DELUXEMAP   (1 << TEXTURE_DELUXEMAP)
-#define TEXTURE_MASK_STAINMAP    (1 << TEXTURE_STAINMAP)
-#define TEXTURE_MASK_ALL         0xff
+#define TEXTURE_MASK_DIFFUSE            (1 << TEXTURE_DIFFUSE)
+#define TEXTURE_MASK_NORMALMAP          (1 << TEXTURE_NORMALMAP)
+#define TEXTURE_MASK_GLOSSMAP           (1 << TEXTURE_GLOSSMAP)
+#define TEXTURE_MASK_LIGHTMAP           (1 << TEXTURE_LIGHTMAP)
+#define TEXTURE_MASK_STAINMAP           (1 << TEXTURE_STAINMAP)
+#define TEXTURE_MASK_ALL                0xff
 
 /**
  * @brief The program.
@@ -106,28 +104,35 @@ static void R_DrawBspLightgrid(void) {
 
 	const size_t texture_size = lg->size[0] * lg->size[1] * lg->size[2] * BSP_LIGHTGRID_BPP;
 
-	const byte *ambient = (byte *) lg + sizeof(bsp_lightgrid_t);
-	const byte *diffuse = ambient + texture_size;
+	const byte *textures = (byte *) lg + sizeof(bsp_lightgrid_t);
+	int32_t luxel = 0;
 
 	for (int32_t u = 0; u < lg->size[2]; u++) {
-		const byte *du = diffuse + lg->size[0] * lg->size[1] * u * BSP_LIGHTGRID_BPP;
-
 		for (int32_t t = 0; t < lg->size[1]; t++) {
-			const byte *dt = du + lg->size[0] * t * BSP_LIGHTGRID_BPP;
+			for (int32_t s = 0; s < lg->size[0]; s++, luxel++) {
 
-			for (int32_t s = 0; s < lg->size[0]; s++) {
-				const byte *ds = dt + s * BSP_LIGHTGRID_BPP;
+				byte r = 0, g = 0, b = 0;
 
-				const byte r = ds[0], g = ds[1], b = ds[2];
+				for (int32_t i = 0; i < BSP_LIGHTGRID_TEXTURES; i++) {
+					if (r_draw_bsp_lightgrid->integer & (1 << i)) {
+
+						const byte *texture = textures + i * texture_size;
+						const byte *color = texture + luxel * BSP_LIGHTGRID_BPP;
+
+						r += color[0];
+						g += color[1];
+						b += color[2];
+					}
+				}
 
 				r_particle_t p = {
 					.type = PARTICLE_DEFAULT,
-					.org = { s - 0.5, t - 0.5, u - 0.5 },
+					.org = { s + 0.5, t + 0.5, u + 0.5 },
 					.color = { r, g, b, 255 },
 					.scale = BSP_LIGHTGRID_LUXEL_SIZE
 				};
 
-				VectorMA(r_model_state.world->mins, BSP_LIGHTGRID_LUXEL_SIZE, p.org, p.org);
+				VectorMA(r_model_state.world->bsp->lightgrid->mins, BSP_LIGHTGRID_LUXEL_SIZE, p.org, p.org);
 				VectorScale(p.color, 1.0 / 255.0, p.color);
 
 				R_AddParticle(&p);
@@ -203,20 +208,10 @@ static void R_DrawBspDrawElements(const r_bsp_inline_model_t *in) {
 			glUniform1f(r_bsp_program.specular, material->cm->specular);
 		}
 
-		switch (r_draw_bsp_lightmaps->integer) {
-			case 1:
-				tex = TEXTURE_MASK_LIGHTMAP;
-				break;
-			case 2:
-				tex = TEXTURE_MASK_DELUXEMAP;
-				break;
-			default:
-				if (bsp->lightmap) {
-					tex |= TEXTURE_MASK_LIGHTMAP;
-				} else {
-					tex &= ~TEXTURE_MASK_LIGHTMAP;
-				}
-				break;
+		if (bsp->lightmap) {
+			tex |= TEXTURE_MASK_LIGHTMAP;
+		} else {
+			tex &= ~TEXTURE_MASK_LIGHTMAP;
 		}
 
 		if (tex != textures) {

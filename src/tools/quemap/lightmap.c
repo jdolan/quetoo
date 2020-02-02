@@ -288,8 +288,7 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 			}
 		}
 
-		vec3_t dir;
-		vec_t dist;
+		vec3_t dir; vec_t dist;
 		if (light->type == LIGHT_AMBIENT) {
 			VectorSet(dir, 0.0, 0.0, 1.0);
 			dist = 0.0;
@@ -365,7 +364,7 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 
 		const int32_t head_node = lightmap->model->head_node;
 
-		if (occlude_ambient && light->type == LIGHT_AMBIENT) {
+		if (light->type == LIGHT_AMBIENT) {
 
 			const vec_t padding_s = ((lightmap->st_maxs[0] - lightmap->st_mins[0]) - lightmap->w) * 0.5;
 			const vec_t padding_t = ((lightmap->st_maxs[1] - lightmap->st_mins[1]) - lightmap->h) * 0.5;
@@ -376,7 +375,7 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 			const vec3_t points[] = DOME_COSINE_36X;
 			const vec_t ao_radius = 64.0;
 
-			vec_t ambient_occlusion = 0.0;
+			vec_t occlusion = 0.0;
 			vec_t sample_fraction = 1.0 / lengthof(points);
 
 			for (size_t i = 0; i < lengthof(points); i++) {
@@ -401,10 +400,10 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 
 				const cm_trace_t trace = Light_Trace(luxel->origin, point, head_node, CONTENTS_SOLID);
 
-				ambient_occlusion += sample_fraction * trace.fraction;
+				occlusion += sample_fraction * trace.fraction;
 			}
 
-			intensity *= 1.0 - (1.0 - ambient_occlusion) * (1.0 - ambient_occlusion);
+			intensity *= 1.0 - (1.0 - occlusion) * (1.0 - occlusion);
 
 		} else if (light->type == LIGHT_SUN) {
 
@@ -476,18 +475,17 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 				break;
 			case LIGHT_AMBIENT:
 				VectorMA(luxel->ambient, intensity, light->color, luxel->ambient);
-				VectorMA(luxel->direction, intensity, luxel->normal, luxel->direction);
 				break;
 			case LIGHT_SUN:
 			case LIGHT_POINT:
 			case LIGHT_SPOT:
 			case LIGHT_PATCH:
 				VectorMA(luxel->diffuse, intensity, light->color, luxel->diffuse);
-				VectorMA(luxel->direction, intensity, dir, luxel->direction);
+				VectorMA(luxel->diffuse_dir, intensity, dir, luxel->diffuse_dir);
 				break;
 			case LIGHT_INDIRECT:
 				VectorMA(luxel->radiosity, intensity, light->color, luxel->radiosity);
-				VectorMA(luxel->direction, intensity, luxel->normal, luxel->direction);
+				VectorMA(luxel->radiosity_dir, intensity, dir, luxel->radiosity_dir);
 				break;
 		}
 	}
@@ -542,7 +540,7 @@ void DirectLightmap(int32_t face_num) {
 		if (contribution > 0.0 && contribution < 1.0) {
 			VectorScale(l->ambient, 1.0 / contribution, l->ambient);
 			VectorScale(l->diffuse, 1.0 / contribution, l->diffuse);
-			VectorScale(l->direction, 1.0 / contribution, l->direction);
+			VectorScale(l->diffuse_dir, 1.0 / contribution, l->diffuse_dir);
 		}
 	}
 }
@@ -588,75 +586,15 @@ void IndirectLightmap(int32_t face_num) {
 /**
  * @brief
  */
-static SDL_Surface *CreateLightmapSurface(int32_t w, int32_t h, void *pixels) {
+static SDL_Surface *CreateLightmapSurfaceFrom(int32_t w, int32_t h, void *pixels) {
 	return SDL_CreateRGBSurfaceWithFormatFrom(pixels, w, h, 24, w * BSP_LIGHTMAP_BPP, SDL_PIXELFORMAT_RGB24);
 }
 
 /**
- * @brief Blurs the ambient occlusion to get rid of noise
+ * @brief
  */
-static void BlurAmbient(lightmap_t *lm) {
-
-	// temporary buffer
-	vec3_t *tmp = Mem_TagMalloc(lm->w * lm->h * sizeof(vec3_t), MEM_TAG_LIGHTMAP);
-
-	for (int y = 0; y < lm->h; y++) {
-		for (int x = 0; x < lm->w; x++) {
-
-			vec3_t luxel = { 0.0, 0.0, 0.0 };
-
-			static const vec3_t offsets[] = {
-				{ +0.0, +0.0, 0.195346 }, { -1.0, -1.0, 0.077847 }, { +0.0, -1.0, 0.123317 },
-				{ +1.0, -1.0, 0.077847 }, { -1.0, +0.0, 0.123317 }, { +1.0, +0.0, 0.123317 },
-				{ -1.0, +1.0, 0.077847 }, { +0.0, +1.0, 0.123317 }, { +1.0, +1.0, 0.077847 }
-			};
-
-			vec_t valid_weight = 1.0; // to avoid loss of brightness near edges
-
-			// sum samples into luxel
-			for (size_t i = 0; i < lengthof(offsets); i++) {
-
-				int32_t x_off = offsets[i][0];
-				int32_t y_off = offsets[i][1];
-				int32_t x_pos = x + x_off;
-				int32_t y_pos = y + y_off;
-
-				// is the sample out of bounds?
-				if (x_pos < 0 || x_pos >= lm->w || y_pos < 0 || y_pos >= lm->h) {
-					// is the offset orthogonal or diagonal?
-					// remove the correct amount of total weight
-					if (abs(x_off) == abs(y_off)) {
-						valid_weight -= 0.077847;
-					} else {
-						valid_weight -= 0.123317;
-					}
-					continue;
-				}
-
-				// grab the valid sample
-				luxel_t *sample_luxel = &lm->luxels[y_pos * lm->w + x_pos];
-				vec3_t sample_value;
-				vec_t  sample_weight = offsets[i][2];
-				VectorCopy(sample_luxel->ambient, sample_value);
-				// scale the sample by it's gaussian weight
-				VectorScale(sample_value, sample_weight, sample_value);
-				// sum the sample with the luxel
-				VectorAdd(luxel, sample_value, luxel);
-
-			}
-
-			// compensate for invalid samples
-			VectorScale(luxel, 1.0 / valid_weight, luxel);
-
-			// write the luxel to the temp buffer
-			VectorCopy(luxel, tmp[y * lm->w + x]);
-		}
-	}
-
-	// copy back results from temp buffer
-	for (size_t i = 0; i < lm->num_luxels; i++) {
-		VectorCopy(tmp[i], lm->luxels[i].ambient);
-	}
+static SDL_Surface *CreateLightmapSurface(int32_t w, int32_t h) {
+	return CreateLightmapSurfaceFrom(w, h, Mem_TagMalloc(w * h * BSP_LIGHTMAP_BPP, MEM_TAG_LIGHTMAP));
 }
 
 /**
@@ -670,61 +608,77 @@ void FinalizeLightmap(int32_t face_num) {
 		return;
 	}
 
-	if (occlude_ambient) {
-		// TODO: this bleeds a bit around the edges, but it's usually unnoticable.
-		BlurAmbient(lm);
-	}
+	lm->ambient = CreateLightmapSurface(lm->w, lm->h);
+	byte *out_ambient = lm->ambient->pixels;
 
-	lm->lightmap = CreateLightmapSurface(lm->w, lm->h, Mem_TagMalloc(lm->w * lm->h * 3, MEM_TAG_LIGHTMAP));
-	byte *out_lm = lm->lightmap->pixels;
+	lm->diffuse = CreateLightmapSurface(lm->w, lm->h);
+	byte *out_diffuse = lm->diffuse->pixels;
 
-	lm->deluxemap = CreateLightmapSurface(lm->w, lm->h, Mem_TagMalloc(lm->w * lm->h * 3, MEM_TAG_LIGHTMAP));
-	byte *out_dm = lm->deluxemap->pixels;
+	lm->radiosity = CreateLightmapSurface(lm->w, lm->h);
+	byte *out_radiosity = lm->radiosity->pixels;
+
+	lm->diffuse_dir = CreateLightmapSurface(lm->w, lm->h);
+	byte *out_diffuse_dir = lm->diffuse_dir->pixels;
+
+	lm->radiosity_dir = CreateLightmapSurface(lm->w, lm->h);
+	byte *out_radiosity_dir = lm->radiosity_dir->pixels;
 
 	// write it out
 	const luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
-		vec3_t lightmap, deluxemap;
-
-		// add all color components together
-		VectorClear(lightmap);
-		VectorAdd(lightmap, l->ambient, lightmap);
-		VectorAdd(lightmap, l->diffuse, lightmap);
-		VectorAdd(lightmap, l->radiosity, lightmap);
+		vec3_t ambient, diffuse, radiosity;
 
 		// convert to float
-		VectorScale(lightmap, 1.0 / 255.0, lightmap);
+		VectorScale(l->ambient, 1.0 / 255.0, ambient);
+		VectorScale(l->diffuse, 1.0 / 255.0, diffuse);
+		VectorScale(l->radiosity, 1.0 / 255.0, radiosity);
 
 		// apply brightness, saturation and contrast
-		ColorFilter(lightmap, lightmap, brightness, saturation, contrast);
+		ColorFilter(ambient, ambient, brightness, saturation, contrast);
+		ColorFilter(diffuse, diffuse, brightness, saturation, contrast);
+		ColorFilter(radiosity, radiosity, brightness, saturation, contrast);
 
-		// write the lightmap sample data as bytes
+		// write the color sample data as bytes
 		for (int32_t j = 0; j < 3; j++) {
-			*out_lm++ = (byte) Clamp(lightmap[j] * 255.0, 0, 255);
+			*out_ambient++ = (byte) Clamp(ambient[j] * 255.0, 0, 255);
+			*out_diffuse++ = (byte) Clamp(diffuse[j] * 255.0, 0, 255);
+			*out_radiosity++ = (byte) Clamp(radiosity[j] * 255.0, 0, 255);
 		}
 
-		// write the deluxemap sample data, in tangent space
-		if (!VectorCompare(l->direction, vec3_origin)) {
+		// write the directional sample data, in tangent space
+		vec3_t diffuse_dir, radiosity_dir;
 
-			vec3_t tangent;
-			vec3_t bitangent;
+		vec3_t tangent, bitangent;
+		TangentVectors(l->normal, lm->texinfo->vecs[0], lm->texinfo->vecs[1], tangent, bitangent);
 
-			TangentVectors(l->normal, lm->texinfo->vecs[0], lm->texinfo->vecs[1], tangent, bitangent);
+		if (!VectorCompare(l->diffuse_dir, vec3_origin)) {
 
-			// transform it into tangent space
-			deluxemap[0] = DotProduct(l->direction, tangent);
-			deluxemap[1] = DotProduct(l->direction, bitangent);
-			deluxemap[2] = DotProduct(l->direction, l->normal);
+			diffuse_dir[0] = DotProduct(l->diffuse_dir, tangent);
+			diffuse_dir[1] = DotProduct(l->diffuse_dir, bitangent);
+			diffuse_dir[2] = DotProduct(l->diffuse_dir, l->normal);
 
-			VectorAdd(deluxemap, vec3_up, deluxemap);
-			VectorNormalize(deluxemap);
+			VectorAdd(diffuse_dir, vec3_up, diffuse_dir);
+			VectorNormalize(diffuse_dir);
 		} else {
-			VectorCopy(vec3_up, deluxemap);
+			VectorCopy(vec3_up, diffuse_dir);
+		}
+
+		if (!VectorCompare(l->radiosity_dir, vec3_origin)) {
+
+			radiosity_dir[0] = DotProduct(l->radiosity_dir, tangent);
+			radiosity_dir[1] = DotProduct(l->radiosity_dir, bitangent);
+			radiosity_dir[2] = DotProduct(l->radiosity_dir, l->normal);
+
+			VectorAdd(radiosity_dir, vec3_up, radiosity_dir);
+			VectorNormalize(radiosity_dir);
+		} else {
+			VectorCopy(vec3_up, radiosity_dir);
 		}
 
 		// pack floating point -1.0 to 1.0 to positive bytes (0.0 becomes 127)
 		for (int32_t j = 0; j < 3; j++) {
-			*out_dm++ = (byte) Clamp((deluxemap[j] + 1.0) * 0.5 * 255.0, 0, 255);
+			*out_diffuse_dir++ = (byte) Clamp((diffuse_dir[j] + 1.0) * 0.5 * 255.0, 0, 255);
+			*out_radiosity_dir++ = (byte) Clamp((radiosity_dir[j] + 1.0) * 0.5 * 255.0, 0, 255);
 		}
 	}
 }
@@ -734,7 +688,7 @@ void FinalizeLightmap(int32_t face_num) {
  */
 void EmitLightmap(void) {
 
-	atlas_t *atlas = Atlas_Create(2);
+	atlas_t *atlas = Atlas_Create(BSP_LIGHTMAP_LAYERS);
 	assert(atlas);
 
 	atlas_node_t *nodes[bsp_file.num_faces];
@@ -746,7 +700,7 @@ void EmitLightmap(void) {
 			continue;
 		}
 
-		nodes[i] = Atlas_Insert(atlas, lm->lightmap, lm->deluxemap);
+		nodes[i] = Atlas_Insert(atlas, lm->ambient, lm->diffuse, lm->radiosity, lm->diffuse_dir, lm->radiosity_dir);
 	}
 
 	int32_t width;
@@ -763,25 +717,34 @@ void EmitLightmap(void) {
 
 		byte *out = (byte *) bsp_file.lightmap + sizeof(bsp_lightmap_t);
 
-		byte *out_lm = out + 0 * layer_size;
-		byte *out_dm = out + 1 * layer_size;
+		SDL_Surface *ambient = CreateLightmapSurfaceFrom(width, width, out + 0 * layer_size);
+		SDL_Surface *diffuse = CreateLightmapSurfaceFrom(width, width, out + 1 * layer_size);
+		SDL_Surface *radiosity = CreateLightmapSurfaceFrom(width, width, out + 2 * layer_size);
+		SDL_Surface *diffuse_dir = CreateLightmapSurfaceFrom(width, width, out + 3 * layer_size);
+		SDL_Surface *radiosity_dir = CreateLightmapSurfaceFrom(width, width, out + 4 * layer_size);
 
-		SDL_Surface *lightmap = CreateLightmapSurface(width, width, out_lm);
-		SDL_Surface *deluxemap = CreateLightmapSurface(width, width, out_dm);
+		if (Atlas_Compile(atlas, 0, ambient, diffuse, radiosity, diffuse_dir, radiosity_dir) == 0) {
 
-		if (Atlas_Compile(atlas, 0, lightmap, deluxemap) == 0) {
+			IMG_SavePNG(ambient, va("/tmp/%s_lm_ambient.png", map_base));
+			IMG_SavePNG(diffuse, va("/tmp/%s_lm_diffuse.png", map_base));
+			IMG_SavePNG(radiosity, va("/tmp/%s_lm_radiosity.png", map_base));
+			IMG_SavePNG(diffuse_dir, va("/tmp/%s_lm_diffuse_dir.png", map_base));
+			IMG_SavePNG(radiosity_dir, va("/tmp/%s_lm_radiosoty_dir.png", map_base));
 
-//			IMG_SavePNG(lightmap, va("/tmp/%s_lm.png", map_base));
-//			IMG_SavePNG(deluxemap, va("/tmp/%s_dm.png", map_base));
-
-			SDL_FreeSurface(lightmap);
-			SDL_FreeSurface(deluxemap);
+			SDL_FreeSurface(ambient);
+			SDL_FreeSurface(diffuse);
+			SDL_FreeSurface(diffuse_dir);
+			SDL_FreeSurface(radiosity);
+			SDL_FreeSurface(radiosity_dir);
 
 			break;
 		}
 
-		SDL_FreeSurface(lightmap);
-		SDL_FreeSurface(deluxemap);
+		SDL_FreeSurface(ambient);
+		SDL_FreeSurface(diffuse);
+		SDL_FreeSurface(diffuse_dir);
+		SDL_FreeSurface(radiosity);
+		SDL_FreeSurface(radiosity_dir);
 	}
 
 	if (width > MAX_BSP_LIGHTMAP_WIDTH) {
@@ -800,8 +763,11 @@ void EmitLightmap(void) {
 		lm->face->lightmap.w = lm->w;
 		lm->face->lightmap.h = lm->h;
 
-		SDL_FreeSurface(lm->lightmap);
-		SDL_FreeSurface(lm->deluxemap);
+		SDL_FreeSurface(lm->ambient);
+		SDL_FreeSurface(lm->diffuse);
+		SDL_FreeSurface(lm->radiosity);
+		SDL_FreeSurface(lm->diffuse_dir);
+		SDL_FreeSurface(lm->radiosity_dir);
 	}
 
 	Atlas_Destroy(atlas);

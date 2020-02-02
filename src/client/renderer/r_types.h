@@ -412,7 +412,15 @@ typedef struct r_bsp_inline_model_s {
  * @brief
  */
 typedef struct {
+
+	/**
+	 * @brief The atlas width.
+	 */
 	int32_t width;
+
+	/**
+	 * @brief The lightmap atlas.
+	 */
 	r_image_t *atlas;
 } r_bsp_lightmap_t;
 
@@ -420,11 +428,21 @@ typedef struct {
  * @brief
  */
 typedef struct {
+
+	/**
+	 * @brief The lightgrid size in luxels.
+	 */
 	int32_t size[3];
+
+	/**
+	 * @brief The lightgrid bounds in world space.
+	 */
 	vec3_t mins, maxs;
-	r_image_t *ambient;
-	r_image_t *diffuse;
-	r_image_t *direction;
+
+	/**
+	 * @brief The lightgrid textures (ambient, diffuse, etc..).
+	 */
+	r_image_t *textures[BSP_LIGHTGRID_TEXTURES];
 } r_bsp_lightgrid_t;
 
 /**

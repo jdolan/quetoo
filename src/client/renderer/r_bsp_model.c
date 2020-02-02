@@ -465,38 +465,19 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 
 	const size_t texture_size = out->size[0] * out->size[1] * out->size[2] * BSP_LIGHTGRID_BPP;
 
-	byte *ambient = (byte *) in + sizeof(bsp_lightgrid_t);
+	byte *data = (byte *) in + sizeof(bsp_lightgrid_t);
 
-	out->ambient = (r_image_t *) R_AllocMedia("lightgrid.amb", sizeof(r_image_t), MEDIA_IMAGE);
-	out->ambient->media.Free = R_FreeImage;
-	out->ambient->type = IT_LIGHTGRID;
-	out->ambient->width = out->size[0];
-	out->ambient->height = out->size[1];
-	out->ambient->depth = out->size[2];
+	for (int32_t i = 0; i < BSP_LIGHTGRID_TEXTURES; i++, data += texture_size) {
 
-	R_UploadImage(out->ambient, GL_RGB8, ambient);
+		out->textures[i] = (r_image_t *) R_AllocMedia(va("lightgrid[%d]", i), sizeof(r_image_t), MEDIA_IMAGE);
+		out->textures[i]->media.Free = R_FreeImage;
+		out->textures[i]->type = IT_LIGHTGRID;
+		out->textures[i]->width = out->size[0];
+		out->textures[i]->height = out->size[1];
+		out->textures[i]->depth = out->size[2];
 
-	byte *diffuse = ambient + texture_size;
-
-	out->diffuse = (r_image_t *) R_AllocMedia("lightgrid.dif", sizeof(r_image_t), MEDIA_IMAGE);
-	out->diffuse->media.Free = R_FreeImage;
-	out->diffuse->type = IT_LIGHTGRID;
-	out->diffuse->width = out->size[0];
-	out->diffuse->height = out->size[1];
-	out->diffuse->depth = out->size[2];
-
-	R_UploadImage(out->diffuse, GL_RGB8, diffuse);
-
-	byte *direction = diffuse + texture_size;
-
-	out->direction = (r_image_t *) R_AllocMedia("lightgrid.dir", sizeof(r_image_t), MEDIA_IMAGE);
-	out->direction->media.Free = R_FreeImage;
-	out->direction->type = IT_LIGHTGRID;
-	out->direction->width = out->size[0];
-	out->direction->height = out->size[1];
-	out->direction->depth = out->size[2];
-
-	R_UploadImage(out->direction, GL_RGB8, direction);
+		R_UploadImage(out->textures[i], GL_RGB8, data);
+	}
 }
 
 /**

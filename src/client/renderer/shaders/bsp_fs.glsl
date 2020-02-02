@@ -19,22 +19,20 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#define MAX_ACTIVE_LIGHTS        10
+#define MAX_ACTIVE_LIGHTS               10
 
-#define TEXTURE_DIFFUSE           0
-#define TEXTURE_NORMALMAP         1
-#define TEXTURE_GLOSSMAP          2
-#define TEXTURE_LIGHTMAP          3
-#define TEXTURE_DELUXEMAP         4
-#define TEXTURE_STAINMAP          5
+#define TEXTURE_DIFFUSE                  0
+#define TEXTURE_NORMALMAP                1
+#define TEXTURE_GLOSSMAP                 2
+#define TEXTURE_LIGHTMAP                 3
+#define TEXTURE_STAINMAP                 4
 
-#define TEXTURE_MASK_DIFFUSE     (1 << TEXTURE_DIFFUSE)
-#define TEXTURE_MASK_NORMALMAP   (1 << TEXTURE_NORMALMAP)
-#define TEXTURE_MASK_GLOSSMAP    (1 << TEXTURE_GLOSSMAP)
-#define TEXTURE_MASK_LIGHTMAP    (1 << TEXTURE_LIGHTMAP)
-#define TEXTURE_MASK_DELUXEMAP   (1 << TEXTURE_DELUXEMAP)
-#define TEXTURE_MASK_STAINMAP    (1 << TEXTURE_STAINMAP)
-#define TEXTURE_MASK_ALL          0xff
+#define TEXTURE_MASK_DIFFUSE            (1 << TEXTURE_DIFFUSE)
+#define TEXTURE_MASK_NORMALMAP          (1 << TEXTURE_NORMALMAP)
+#define TEXTURE_MASK_GLOSSMAP           (1 << TEXTURE_GLOSSMAP)
+#define TEXTURE_MASK_LIGHTMAP           (1 << TEXTURE_LIGHTMAP)
+#define TEXTURE_MASK_STAINMAP           (1 << TEXTURE_STAINMAP)
+#define TEXTURE_MASK_ALL                0xff
 
 uniform int textures;
 
@@ -108,16 +106,20 @@ void main(void) {
 
 	vec3 lightmap;
 	if ((textures & TEXTURE_MASK_LIGHTMAP) == TEXTURE_MASK_LIGHTMAP) {
-		lightmap = texture(texture_lightmap, vec3(vertex.lightmap, 0)).rgb * modulate;
+		vec3 ambient = texture(texture_lightmap, vec3(vertex.lightmap, 0)).rgb * modulate;
+		vec3 diffuse = texture(texture_lightmap, vec3(vertex.lightmap, 1)).rgb * modulate;
+		vec3 radiosity = texture(texture_lightmap, vec3(vertex.lightmap, 2)).rgb * modulate;
+		vec3 diffuse_dir = texture(texture_lightmap, vec3(vertex.lightmap, 3)).xyz;
+		vec3 radiosity_dir = texture(texture_lightmap, vec3(vertex.lightmap, 4)).xyz;
+
+		diffuse_dir = normalize(diffuse_dir * 2.0 - 1.0);
+		radiosity_dir = normalize(radiosity_dir * 2.0 - 1.0);
+
+		lightmap = ambient + diffuse + radiosity;
+
+		lightmap = normalize(diffuse_dir + radiosity_dir);
 	} else {
 		lightmap = vec3(1.0);
-	}
-
-	vec3 deluxemap;
-	if ((textures & TEXTURE_MASK_DELUXEMAP) == TEXTURE_MASK_DELUXEMAP) {
-		deluxemap = normalize(texture(texture_lightmap, vec3(vertex.lightmap, 1)).xyz);
-	} else {
-		deluxemap = vec3(0.0, 0.0, 1.0);
 	}
 
 	vec4 stainmap;
@@ -127,13 +129,5 @@ void main(void) {
 		stainmap = vec4(0.0);
 	}
 
-	if (textures == TEXTURE_MASK_LIGHTMAP) {
-		out_color = vec4(lightmap, 1.0);
-	} else if (textures == TEXTURE_MASK_DELUXEMAP) {
-		out_color = vec4(deluxemap, 1.0);
-	} else {
-		out_color = diffuse * vec4(lightmap, 1.0);
-	}
-
-	out_color = ColorFilter(out_color);
+	out_color = ColorFilter(/*diffuse * */vec4(lightmap, 1.0));
 }

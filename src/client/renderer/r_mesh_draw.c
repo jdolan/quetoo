@@ -21,20 +21,23 @@
 
 #include "r_local.h"
 
-#define MAX_ACTIVE_LIGHTS           10
+#define MAX_ACTIVE_LIGHTS               10
 
-#define TEXTURE_DIFFUSE              0
-#define TEXTURE_NORMALMAP            1
-#define TEXTURE_GLOSSMAP             2
-#define TEXTURE_LIGHTGRID_AMBIENT    3
-#define TEXTURE_LIGHTGRID_DIFFUSE    4
-#define TEXTURE_LIGHTGRID_DIRECTION  5
+#define TEXTURE_DIFFUSE                  0
+#define TEXTURE_NORMALMAP                1
+#define TEXTURE_GLOSSMAP                 2
+#define TEXTURE_LIGHTGRID                3
+#define TEXTURE_LIGHTGRID_AMBIENT        3
+#define TEXTURE_LIGHTGRID_DIFFUSE        4
+#define TEXTURE_LIGHTGRID_RADIOSITY      5
+#define TEXTURE_LIGHTGRID_DIFFUSE_DIR    6
+#define TEXTURE_LIGHTGRID_RADIOSITY_DIR  7
 
-#define TEXTURE_MASK_DIFFUSE        (1 << TEXTURE_DIFFUSE)
-#define TEXTURE_MASK_NORMALMAP      (1 << TEXTURE_NORMALMAP)
-#define TEXTURE_MASK_GLOSSMAP       (1 << TEXTURE_GLOSSMAP)
-#define TEXTURE_MASK_LIGHTGRID      (1 << TEXTURE_LIGHTGRID_AMBIENT)
-#define TEXTURE_MASK_ALL            0xff
+#define TEXTURE_MASK_DIFFUSE            (1 << TEXTURE_DIFFUSE)
+#define TEXTURE_MASK_NORMALMAP          (1 << TEXTURE_NORMALMAP)
+#define TEXTURE_MASK_GLOSSMAP           (1 << TEXTURE_GLOSSMAP)
+#define TEXTURE_MASK_LIGHTGRID          (1 << TEXTURE_LIGHTGRID)
+#define TEXTURE_MASK_ALL                0xff
 
 /**
  * @brief The program.
@@ -68,7 +71,9 @@ static struct {
 
 	GLint texture_lightgrid_ambient;
 	GLint texture_lightgrid_diffuse;
-	GLint texture_lightgrid_direction;
+	GLint texture_lightgrid_radiosity;
+	GLint texture_lightgrid_diffuse_dir;
+	GLint texture_lightgrid_radiosity_dir;
 
 	GLint lightgrid_mins;
 	GLint lightgrid_maxs;
@@ -164,7 +169,8 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 
 	matrix4x4_t normal;
 	Matrix4x4_Concat(&normal, &r_locals.view, &e->matrix);
-	Matrix4x4_Invert_Full(&normal, &normal);
+	Matrix4x4_CopyRotateOnly(&normal, &normal);
+	Matrix4x4_Invert_Simple(&normal, &normal);
 	Matrix4x4_Transpose(&normal, &normal);
 
 	glUniformMatrix4fv(r_mesh_program.normal, 1, GL_FALSE, (GLfloat *) normal.m);
@@ -257,14 +263,11 @@ void R_DrawMeshEntities(void) {
 
 	const r_bsp_lightgrid_t *lg = r_model_state.world->bsp->lightgrid;
 	if (lg) {
-		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_AMBIENT);
-		glBindTexture(GL_TEXTURE_3D, lg->ambient->texnum);
 
-		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_DIFFUSE);
-		glBindTexture(GL_TEXTURE_3D, lg->diffuse->texnum);
-
-		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_DIRECTION);
-		glBindTexture(GL_TEXTURE_3D, lg->direction->texnum);
+		for (int32_t i = 0; i < BSP_LIGHTGRID_TEXTURES; i++) {
+			glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID + i);
+			glBindTexture(GL_TEXTURE_3D, lg->textures[i]->texnum);
+		}
 
 		glUniform3fv(r_mesh_program.lightgrid_mins, 1, lg->mins);
 		glUniform3fv(r_mesh_program.lightgrid_maxs, 1, lg->maxs);
@@ -374,7 +377,9 @@ void R_InitMeshProgram(void) {
 
 	r_mesh_program.texture_lightgrid_ambient = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_ambient");
 	r_mesh_program.texture_lightgrid_diffuse = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_diffuse");
-	r_mesh_program.texture_lightgrid_direction = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_direction");
+	r_mesh_program.texture_lightgrid_radiosity = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_radiosity");
+	r_mesh_program.texture_lightgrid_diffuse_dir = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_diffuse_dir");
+	r_mesh_program.texture_lightgrid_radiosity_dir = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_radiosity_dir");
 
 	r_mesh_program.lightgrid_mins = glGetUniformLocation(r_mesh_program.name, "lightgrid_mins");
 	r_mesh_program.lightgrid_maxs = glGetUniformLocation(r_mesh_program.name, "lightgrid_maxs");
@@ -409,7 +414,9 @@ void R_InitMeshProgram(void) {
 
 	glUniform1i(r_mesh_program.texture_lightgrid_ambient, TEXTURE_LIGHTGRID_AMBIENT);
 	glUniform1i(r_mesh_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
-	glUniform1i(r_mesh_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);
+	glUniform1i(r_mesh_program.texture_lightgrid_radiosity, TEXTURE_LIGHTGRID_RADIOSITY);
+	glUniform1i(r_mesh_program.texture_lightgrid_diffuse_dir, TEXTURE_LIGHTGRID_DIFFUSE_DIR);
+	glUniform1i(r_mesh_program.texture_lightgrid_radiosity_dir, TEXTURE_LIGHTGRID_RADIOSITY_DIR);
 
 	R_GetError(NULL);
 }
