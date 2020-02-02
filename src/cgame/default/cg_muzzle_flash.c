@@ -46,7 +46,7 @@ static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
 	org[2] += Cg_IsDucking(ent) ? -2.0 : 20.0;
 
 	VectorCopy(org, s.light.origin);
-	s.light.radius = 80.0;
+	s.light.origin[3] = 80.0;
 	ColorToVec3(color, s.light.color);
 	s.sustain = 450;
 
@@ -84,7 +84,7 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 	org[2] += Cg_IsDucking(ent) ? -2.0 : 20.0;
 
 	VectorCopy(org, s.light.origin);
-	s.light.radius = 120.0;
+	s.light.origin[3] = 120.0;
 	VectorSet(s.light.color, 0.8, 0.7, 0.5);
 	s.sustain = 300;
 

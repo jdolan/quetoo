@@ -370,7 +370,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 	r_light_t l;
 	VectorCopy(end, l.origin);
 	l.origin[2] += 4.0;
-	l.radius = 100.0;
+	l.origin[3] = 100.0;
 	VectorCopy(color, l.color);
 
 	cgi.AddLight(&l);
@@ -436,7 +436,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 
 	r_light_t l;
 	VectorCopy(end, l.origin);
-	l.radius = 150.0;
+	l.origin[3] = 150.0;
 	VectorSet(l.color, 0.8, 0.4, 0.2);
 
 	cgi.AddLight(&l);
@@ -510,7 +510,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent) {
 	}
 
 	VectorCopy(ent->origin, l.origin);
-	l.radius = 100.0;
+	l.origin[3] = 100.0;
 	VectorSet(l.color, 0.4, 0.7, 1.0);
 
 	cgi.AddLight(&l);
@@ -526,7 +526,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	int32_t i;
 
 	VectorCopy(start, l.origin);
-	l.radius = 90.0 + 10.0 * Randomc();
+	l.origin[3] = 90.0 + 10.0 * Randomc();
 	VectorSet(l.color, 0.6, 0.6, 1.0);
 	cgi.AddLight(&l);
 
@@ -565,13 +565,13 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 		if (dist > 12.0) {
 			VectorCopy(p->part.org, l.origin);
-			l.radius = 90.0 + 10.0 * Randomc();
+			l.origin[3] = 90.0 + 10.0 * Randomc();
 			cgi.AddLight(&l);
 		}
 	}
 
 	VectorMA(end, 12.0, dir, l.origin);
-	l.radius = 90.0 + 10.0 * Randomc();
+	l.origin[3] = 90.0 + 10.0 * Randomc();
 	cgi.AddLight(&l);
 
 	if (ent->current.animation1 != LIGHTNING_SOLID_HIT) {
@@ -697,7 +697,7 @@ static void Cg_BfgTrail(cl_entity_t *ent) {
 
 	r_light_t l;
 	VectorCopy(ent->origin, l.origin);
-	l.radius = 160.0 + 48.0 * mod;
+	l.origin[3] = 160.0 + 48.0 * mod;
 	VectorSet(l.color, 0.4, 1.0, 0.4);
 
 	cgi.AddLight(&l);
@@ -841,11 +841,11 @@ static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t 
 	r_light_t l;
 	VectorCopy(end, l.origin);
 	VectorCopy(color, l.color);
-	l.radius = 85.0;
+	l.origin[3] = 85.0;
 
 	if (ent->current.effects & EF_DESPAWN) {
 		const vec_t decay = Clamp((cgi.client->unclamped_time - ent->timestamp) / 1000.0, 0.0, 1.0);
-		l.radius *= (1.0 - decay);
+		l.origin[3] *= (1.0 - decay);
 	} else {
 		Cg_SmokeTrail(ent, start, end);
 		ent->timestamp = cgi.client->unclamped_time;

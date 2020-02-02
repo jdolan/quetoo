@@ -253,8 +253,6 @@ void R_DrawView(r_view_t *view) {
 
 	R_UpdateVis();
 
-	R_MarkLights();
-
 	R_DrawWorld();
 
 	R_DrawSkyBox();
@@ -550,6 +548,8 @@ static void R_InitConfig(void) {
 			Com_Verbose("              ^2%s^7\n", c);
 		}
 	}
+
+	R_GetError(NULL);
 }
 
 /**

@@ -78,7 +78,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_bsp_lightgrid 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_wireframe 1 +set r_clear 1 +set cl_draw_renderer_stats 1"
@@ -89,7 +89,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+debug renderer"
+            argument = "+debug renderer +set r_get_error 2"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -102,7 +102,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_cheats 1 +no_clip +give all"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>

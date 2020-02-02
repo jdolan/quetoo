@@ -101,7 +101,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_QUAD) {
-		r_light_t l = { { 0.0, 0.0, 0.0 }, { 0.3, 0.7, 0.7 }, 80.0 };
+		r_light_t l = { { 0.0, 0.0, 0.0, 80.0 }, { 0.3, 0.7, 0.7 } };
 
 		VectorCopy(e->origin, l.origin);
 		cgi.AddLight(&l);
@@ -110,7 +110,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_CTF_RED) {
-		r_light_t l = { { 0.0, 0.0, 0.0 }, { 1.0, 0.3, 0.3 }, 80.0 };
+		r_light_t l = { { 0.0, 0.0, 0.0, 80.0 }, { 1.0, 0.3, 0.3 } };
 
 		VectorCopy(e->origin, l.origin);
 		cgi.AddLight(&l);
@@ -119,7 +119,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_CTF_BLUE) {
-		r_light_t l = { { 0.0, 0.0, 0.0 }, { 0.3, 0.3, 1.0 }, 80.0 };
+		r_light_t l = { { 0.0, 0.0, 0.0 , 80.0 }, { 0.3, 0.3, 1.0 } };
 
 		VectorCopy(e->origin, l.origin);
 		cgi.AddLight(&l);
@@ -128,7 +128,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_CTF_GREEN) {
-		r_light_t l = { { 0.0, 0.0, 0.0 }, { 0.3, 1.0, 0.3 }, 80.0 };
+		r_light_t l = { { 0.0, 0.0, 0.0, 80.0 }, { 0.3, 1.0, 0.3 } };
 
 		VectorCopy(e->origin, l.origin);
 		cgi.AddLight(&l);
@@ -137,7 +137,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_CTF_ORANGE) {
-		r_light_t l = { { 0.0, 0.0, 0.0 }, { 1.0, 0.7, 0.1 }, 80.0 };
+		r_light_t l = { { 0.0, 0.0, 0.0, 80.0 }, { 1.0, 0.7, 0.1 } };
 
 		VectorCopy(e->origin, l.origin);
 		cgi.AddLight(&l);
@@ -164,7 +164,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 
 		VectorCopy(e->origin, l.origin);
 		cgi.ColorFromPalette(ent->current.client, l.color);
-		l.radius = ent->current.termination[0];
+		l.origin[3] = ent->current.termination[0];
 
 		cgi.AddLight(&l);
 	}

@@ -36,7 +36,7 @@ void R_AddLight(const r_light_t *l) {
 	}
 
 	r_view.lights[r_view.num_lights] = *l;
-	r_view.lights[r_view.num_lights].radius *= r_lights->value;
+	r_view.lights[r_view.num_lights].origin[3] *= r_lights->value;
 	
 	r_view.num_lights++;
 }
@@ -90,47 +90,22 @@ void R_AddSustainedLights(void) {
 }
 
 /**
- * @brief Recursively populates light source bit mask for the specified node.
+ * @brief
  */
-static void R_MarkLight(const r_light_t *l, r_bsp_node_t *node) {
+r_light_t *R_TransformLights(const matrix4x4_t *transform) {
+	static r_light_t lights[MAX_LIGHTS];
 
-	if (node->vis_frame != r_locals.vis_frame) {
-		return;
+	memset(lights, 0, sizeof(lights));
+
+	const r_light_t *in = r_view.lights;
+	r_light_t *out = lights;
+
+	for (int32_t i = 0; i < r_view.num_lights; i++, in++, out++) {
+
+		*out = *in;
+
+		Matrix4x4_Transform(transform, in->origin, out->origin);
 	}
 
-	if (node->contents != CONTENTS_NODE) {
-		return;
-	}
-
-	const vec_t dist = Cm_DistanceToPlane(l->origin, node->plane);
-
-	if (dist > l->radius) { // front only
-		R_MarkLight(l, node->children[0]);
-		return;
-	}
-
-	if (dist < -l->radius) { // back only
-		R_MarkLight(l, node->children[1]);
-		return;
-	}
-
-	// the light resides in this node, so turn it on
-	node->lights |= 1 << (l - r_view.lights);
-
-	// now go down both sides
-	R_MarkLight(l, node->children[0]);
-	R_MarkLight(l, node->children[1]);
+	return lights;
 }
-
-/**
- * @brief Recurses the world, populating the light source bit masks of surfaces
- * that receive light.
- */
-void R_MarkLights(void) {
-
-	const r_light_t *l = r_view.lights;
-	for (int32_t i = 0; i < r_view.num_lights; i++, l++) {
-		R_MarkLight(l, r_model_state.world->bsp->nodes);
-	}
-}
-

@@ -612,11 +612,19 @@ typedef struct {
 /**
  * @brief Dynamic light sources expire immediately and must be re-added
  * for each frame they appear.
+ * @remarks This struct is vec4 aligned.
  */
 typedef struct {
-	vec3_t origin;
-	vec3_t color;
-	vec_t radius;
+
+	/**
+	 * @brief The light origin. The forth component is the light radius.
+	 */
+	vec4_t origin;
+
+	/**
+	 * @brief The light color. The forth component is currently not used.
+	 */
+	vec4_t color;
 } r_light_t;
 
 #define MAX_LIGHTS			64

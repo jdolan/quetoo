@@ -408,7 +408,7 @@ static r_light_t *Cg_EmitLight(cg_emit_t *e) {
 	static r_light_t l;
 
 	VectorCopy(e->org, l.origin);
-	l.radius = e->radius;
+	l.origin[3] = e->radius;
 	VectorCopy(e->color, l.color);
 
 	return &l;

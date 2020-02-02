@@ -21,8 +21,6 @@
 
 #include "r_local.h"
 
-#define MAX_ACTIVE_LIGHTS                10
-
 #define TEXTURE_DIFFUSE                  0
 #define TEXTURE_NORMALMAP                1
 #define TEXTURE_GLOSSMAP                 2
@@ -62,8 +60,6 @@ static struct {
 	GLint texture_glossmap;
 	GLint texture_lightmap;
 
-	GLint contents;
-
 	GLint alpha_threshold;
 
 	GLint brightness;
@@ -78,8 +74,8 @@ static struct {
 	GLint hardness;
 	GLint specular;
 
-	GLint light_positions[MAX_ACTIVE_LIGHTS];
-	GLint light_colors[MAX_ACTIVE_LIGHTS];
+	GLint lights_block;
+	GLuint lights_buffer;
 
 	GLint fog_parameters;
 	GLint fog_color;
@@ -276,6 +272,10 @@ void R_DrawWorld(void) {
 	glUniform1f(r_bsp_program.gamma, r_gamma->value);
 	glUniform1f(r_bsp_program.modulate, r_modulate->value);
 
+	glBindBuffer(GL_UNIFORM_BUFFER, r_bsp_program.lights_buffer);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_view.lights), R_TransformLights(&r_locals.view), GL_DYNAMIC_DRAW);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_bsp_program.lights_buffer);
+
 	const r_bsp_model_t *bsp = R_WorldModel()->bsp;
 
 	glBindVertexArray(bsp->vertex_array);
@@ -332,7 +332,7 @@ void R_InitBspProgram(void) {
 
 	r_bsp_program.name = R_LoadProgram(
 			&MakeShaderDescriptor(GL_VERTEX_SHADER, "bsp_vs.glsl"),
-			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "color_filter.glsl", "bsp_fs.glsl"),
+			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "color_filter.glsl", "lights.glsl", "bsp_fs.glsl"),
 			NULL);
 
 	glUseProgram(r_bsp_program.name);
@@ -356,8 +356,6 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_glossmap = glGetUniformLocation(r_bsp_program.name, "texture_glossmap");
 	r_bsp_program.texture_lightmap = glGetUniformLocation(r_bsp_program.name, "texture_lightmap");
 
-	r_bsp_program.contents = glGetUniformLocation(r_bsp_program.contents, "contents");
-
 	r_bsp_program.alpha_threshold = glGetUniformLocation(r_bsp_program.name, "alpha_threshold");
 
 	r_bsp_program.brightness = glGetUniformLocation(r_bsp_program.name, "brightness");
@@ -371,10 +369,9 @@ void R_InitBspProgram(void) {
 	r_bsp_program.hardness = glGetUniformLocation(r_bsp_program.name, "hardness");
 	r_bsp_program.specular = glGetUniformLocation(r_bsp_program.name, "specular");
 
-	for (size_t i = 0; i < lengthof(r_bsp_program.light_positions); i++) {
-		r_bsp_program.light_positions[i] = glGetUniformLocation(r_bsp_program.name, va("light_positions[%zd]", i));
-		r_bsp_program.light_colors[i] = glGetUniformLocation(r_bsp_program.name, va("light_colors[%zd]", i));
-	}
+	r_bsp_program.lights_block = glGetUniformBlockIndex(r_bsp_program.name, "lights_block");
+	glUniformBlockBinding(r_bsp_program.name, r_bsp_program.lights_block, 0);
+	glGenBuffers(1, &r_bsp_program.lights_buffer);
 
 	r_bsp_program.fog_parameters = glGetUniformLocation(r_bsp_program.name, "fog_parameters");
 	r_bsp_program.fog_color = glGetUniformLocation(r_bsp_program.name, "fog_color");
@@ -393,6 +390,8 @@ void R_InitBspProgram(void) {
  * @brief
  */
 void R_ShutdownBspProgram(void) {
+
+	glDeleteBuffers(1, &r_bsp_program.lights_buffer);
 
 	glDeleteProgram(r_bsp_program.name);
 
