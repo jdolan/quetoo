@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#define MAX_ACTIVE_LIGHTS           10
-
 #define TEXTURE_DIFFUSE                  0
 #define TEXTURE_NORMALMAP                1
 #define TEXTURE_GLOSSMAP                 2
@@ -56,9 +54,6 @@ uniform float bump;
 uniform float parallax;
 uniform float hardness;
 uniform float specular;
-
-uniform vec4 light_positions[MAX_ACTIVE_LIGHTS];
-uniform vec3 light_colors[MAX_ACTIVE_LIGHTS];
 
 uniform vec3 fog_parameters;
 uniform vec3 fog_color;
@@ -126,6 +121,8 @@ void main(void) {
 	} else {
 		lightgrid = vec3(1.0);
 	}
+
+	lightgrid += dynamic_light(vertex.position);
 
 	out_color = ColorFilter(diffuse * vec4(lightgrid, 1.0));
 }

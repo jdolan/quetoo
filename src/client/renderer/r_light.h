@@ -27,5 +27,5 @@ void R_AddLight(const r_light_t *l);
 void R_AddSustainedLight(const r_sustained_light_t *s);
 
 #ifdef __R_LOCAL_H__
-r_light_t *R_TransformLights(const matrix4x4_t *transform);
+void R_UpdateLights(void);
 #endif /* __R_LOCAL_H__ */

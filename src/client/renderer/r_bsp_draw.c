@@ -273,7 +273,7 @@ void R_DrawWorld(void) {
 	glUniform1f(r_bsp_program.modulate, r_modulate->value);
 
 	glBindBuffer(GL_UNIFORM_BUFFER, r_bsp_program.lights_buffer);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_view.lights), R_TransformLights(&r_locals.view), GL_DYNAMIC_DRAW);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_locals.view_lights), r_locals.view_lights, GL_DYNAMIC_DRAW);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_bsp_program.lights_buffer);
 
 	const r_bsp_model_t *bsp = R_WorldModel()->bsp;

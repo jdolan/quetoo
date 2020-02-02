@@ -135,13 +135,12 @@ void R_Color(const vec4_t color) {
  * view frustum, false otherwise.
  */
 _Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
-	int32_t i;
 
 	if (!r_cull->value) {
 		return false;
 	}
 
-	for (i = 0; i < 4; i++) {
+	for (size_t i = 0; i < lengthof(r_locals.frustum); i++) {
 		if (Cm_BoxOnPlaneSide(mins, maxs, &r_locals.frustum[i]) != SIDE_BACK) {
 			return false;
 		}
@@ -160,7 +159,7 @@ _Bool R_CullSphere(const vec3_t point, const vec_t radius) {
 		return false;
 	}
 
-	for (int32_t i = 0 ; i < 4 ; i++)  {
+	for (size_t i = 0 ; i < lengthof(r_locals.frustum) ; i++)  {
 		const cm_bsp_plane_t *p = &r_locals.frustum[i];
 		const vec_t dist = DotProduct(point, p->normal) - p->dist;
 
@@ -252,6 +251,8 @@ void R_DrawView(r_view_t *view) {
 	R_UpdateFrustum();
 
 	R_UpdateVis();
+
+	R_UpdateLights();
 
 	R_DrawWorld();
 

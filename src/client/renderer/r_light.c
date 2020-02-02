@@ -92,20 +92,23 @@ void R_AddSustainedLights(void) {
 /**
  * @brief
  */
-r_light_t *R_TransformLights(const matrix4x4_t *transform) {
-	static r_light_t lights[MAX_LIGHTS];
+void R_UpdateLights(void) {
 
-	memset(lights, 0, sizeof(lights));
+	memset(r_locals.view_lights, 0, sizeof(r_locals.view_lights));
 
 	const r_light_t *in = r_view.lights;
-	r_light_t *out = lights;
+	r_light_t *out = r_locals.view_lights;
 
-	for (int32_t i = 0; i < r_view.num_lights; i++, in++, out++) {
+	for (int32_t i = 0; i < r_view.num_lights; i++, in++) {
+
+		if (R_CullSphere(in->origin, in->origin[3])) {
+			continue;
+		}
 
 		*out = *in;
 
-		Matrix4x4_Transform(transform, in->origin, out->origin);
-	}
+		Matrix4x4_Transform(&r_locals.view, in->origin, out->origin);
 
-	return lights;
+		out++;
+	}
 }

@@ -106,6 +106,11 @@ typedef struct {
 	matrix4x4_t view;
 
 	/**
+	 * @brief The view frustum, for box and sphere culling.
+	 */
+	cm_bsp_plane_t frustum[4];
+
+	/**
 	 * @brief The leaf in which the view origin resides.
 	 */
 	const r_bsp_leaf_t *leaf; // the leaf at the view origin
@@ -116,10 +121,17 @@ typedef struct {
 	byte vis_data_pvs[MAX_BSP_LEAFS >> 3];
 	byte vis_data_phs[MAX_BSP_LEAFS >> 3];
 
+	/**
+	 * @brief The PVS frame counter. World elements must reference the current
+	 * frame in order to be drawn.
+	 */
 	int32_t vis_frame;
-//	int32_t frame;
 
-	cm_bsp_plane_t frustum[4]; // for box culling
+	/**
+	 * @brief The light sources for the current view, transformed to view space.
+	 */
+	r_light_t view_lights[MAX_LIGHTS];
+
 } r_locals_t;
 
 extern r_locals_t r_locals;

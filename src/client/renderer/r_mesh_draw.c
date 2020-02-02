@@ -90,8 +90,8 @@ static struct {
 	GLint hardness;
 	GLint specular;
 
-	GLint light_positions[MAX_ACTIVE_LIGHTS];
-	GLint light_colors[MAX_ACTIVE_LIGHTS];
+	GLuint lights_buffer;
+	GLuint lights_block;
 
 	GLint fog_parameters;
 	GLint fog_color;
@@ -271,6 +271,10 @@ void R_DrawMeshEntities(void) {
 		glUniform3fv(r_mesh_program.lightgrid_maxs, 1, lg->maxs);
 	}
 
+	glBindBuffer(GL_UNIFORM_BUFFER, r_mesh_program.lights_buffer);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_locals.view_lights), r_locals.view_lights, GL_DYNAMIC_DRAW);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_mesh_program.lights_buffer);
+
 	{
 		glEnable(GL_CULL_FACE);
 
@@ -347,7 +351,7 @@ void R_InitMeshProgram(void) {
 
 	r_mesh_program.name = R_LoadProgram(
 			&MakeShaderDescriptor(GL_VERTEX_SHADER, "mesh_vs.glsl"),
-			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "color_filter.glsl", "mesh_fs.glsl"),
+			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "color_filter.glsl", "lights.glsl", "mesh_fs.glsl"),
 			NULL);
 
 	glUseProgram(r_mesh_program.name);
@@ -397,10 +401,9 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.hardness = glGetUniformLocation(r_mesh_program.name, "hardness");
 	r_mesh_program.specular = glGetUniformLocation(r_mesh_program.name, "specular");
 
-	for (size_t i = 0; i < lengthof(r_mesh_program.light_positions); i++) {
-		r_mesh_program.light_positions[i] = glGetUniformLocation(r_mesh_program.name, va("light_positions[%zd]", i));
-		r_mesh_program.light_colors[i] = glGetUniformLocation(r_mesh_program.name, va("light_colors[%zd]", i));
-	}
+	r_mesh_program.lights_block = glGetUniformBlockIndex(r_mesh_program.name, "lights_block");
+	glUniformBlockBinding(r_mesh_program.name, r_mesh_program.lights_block, 0);
+	glGenBuffers(1, &r_mesh_program.lights_buffer);
 
 	r_mesh_program.fog_parameters = glGetUniformLocation(r_mesh_program.name, "fog_parameters");
 	r_mesh_program.fog_color = glGetUniformLocation(r_mesh_program.name, "fog_color");
