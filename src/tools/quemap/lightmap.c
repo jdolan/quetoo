@@ -485,7 +485,6 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 				break;
 			case LIGHT_INDIRECT:
 				VectorMA(luxel->radiosity, intensity, light->color, luxel->radiosity);
-				VectorMA(luxel->radiosity_dir, intensity, dir, luxel->radiosity_dir);
 				break;
 		}
 	}
@@ -620,9 +619,6 @@ void FinalizeLightmap(int32_t face_num) {
 	lm->diffuse_dir = CreateLightmapSurface(lm->w, lm->h);
 	byte *out_diffuse_dir = lm->diffuse_dir->pixels;
 
-	lm->radiosity_dir = CreateLightmapSurface(lm->w, lm->h);
-	byte *out_radiosity_dir = lm->radiosity_dir->pixels;
-
 	// write it out
 	const luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
@@ -646,12 +642,12 @@ void FinalizeLightmap(int32_t face_num) {
 		}
 
 		// write the directional sample data, in tangent space
-		vec3_t diffuse_dir, radiosity_dir;
-
-		vec3_t tangent, bitangent;
-		TangentVectors(l->normal, lm->texinfo->vecs[0], lm->texinfo->vecs[1], tangent, bitangent);
+		vec3_t diffuse_dir;
 
 		if (!VectorCompare(l->diffuse_dir, vec3_origin)) {
+
+			vec3_t tangent, bitangent;
+			TangentVectors(l->normal, lm->texinfo->vecs[0], lm->texinfo->vecs[1], tangent, bitangent);
 
 			diffuse_dir[0] = DotProduct(l->diffuse_dir, tangent);
 			diffuse_dir[1] = DotProduct(l->diffuse_dir, bitangent);
@@ -663,22 +659,9 @@ void FinalizeLightmap(int32_t face_num) {
 			VectorCopy(vec3_up, diffuse_dir);
 		}
 
-		if (!VectorCompare(l->radiosity_dir, vec3_origin)) {
-
-			radiosity_dir[0] = DotProduct(l->radiosity_dir, tangent);
-			radiosity_dir[1] = DotProduct(l->radiosity_dir, bitangent);
-			radiosity_dir[2] = DotProduct(l->radiosity_dir, l->normal);
-
-			VectorAdd(radiosity_dir, vec3_up, radiosity_dir);
-			VectorNormalize(radiosity_dir);
-		} else {
-			VectorCopy(vec3_up, radiosity_dir);
-		}
-
 		// pack floating point -1.0 to 1.0 to positive bytes (0.0 becomes 127)
 		for (int32_t j = 0; j < 3; j++) {
 			*out_diffuse_dir++ = (byte) Clamp((diffuse_dir[j] + 1.0) * 0.5 * 255.0, 0, 255);
-			*out_radiosity_dir++ = (byte) Clamp((radiosity_dir[j] + 1.0) * 0.5 * 255.0, 0, 255);
 		}
 	}
 }
@@ -700,7 +683,7 @@ void EmitLightmap(void) {
 			continue;
 		}
 
-		nodes[i] = Atlas_Insert(atlas, lm->ambient, lm->diffuse, lm->radiosity, lm->diffuse_dir, lm->radiosity_dir);
+		nodes[i] = Atlas_Insert(atlas, lm->ambient, lm->diffuse, lm->radiosity, lm->diffuse_dir);
 	}
 
 	int32_t width;
@@ -721,30 +704,26 @@ void EmitLightmap(void) {
 		SDL_Surface *diffuse = CreateLightmapSurfaceFrom(width, width, out + 1 * layer_size);
 		SDL_Surface *radiosity = CreateLightmapSurfaceFrom(width, width, out + 2 * layer_size);
 		SDL_Surface *diffuse_dir = CreateLightmapSurfaceFrom(width, width, out + 3 * layer_size);
-		SDL_Surface *radiosity_dir = CreateLightmapSurfaceFrom(width, width, out + 4 * layer_size);
 
-		if (Atlas_Compile(atlas, 0, ambient, diffuse, radiosity, diffuse_dir, radiosity_dir) == 0) {
+		if (Atlas_Compile(atlas, 0, ambient, diffuse, radiosity, diffuse_dir) == 0) {
 
 			IMG_SavePNG(ambient, va("/tmp/%s_lm_ambient.png", map_base));
 			IMG_SavePNG(diffuse, va("/tmp/%s_lm_diffuse.png", map_base));
 			IMG_SavePNG(radiosity, va("/tmp/%s_lm_radiosity.png", map_base));
 			IMG_SavePNG(diffuse_dir, va("/tmp/%s_lm_diffuse_dir.png", map_base));
-			IMG_SavePNG(radiosity_dir, va("/tmp/%s_lm_radiosoty_dir.png", map_base));
 
 			SDL_FreeSurface(ambient);
 			SDL_FreeSurface(diffuse);
-			SDL_FreeSurface(diffuse_dir);
 			SDL_FreeSurface(radiosity);
-			SDL_FreeSurface(radiosity_dir);
+			SDL_FreeSurface(diffuse_dir);
 
 			break;
 		}
 
 		SDL_FreeSurface(ambient);
 		SDL_FreeSurface(diffuse);
-		SDL_FreeSurface(diffuse_dir);
 		SDL_FreeSurface(radiosity);
-		SDL_FreeSurface(radiosity_dir);
+		SDL_FreeSurface(diffuse_dir);
 	}
 
 	if (width > MAX_BSP_LIGHTMAP_WIDTH) {
@@ -767,7 +746,6 @@ void EmitLightmap(void) {
 		SDL_FreeSurface(lm->diffuse);
 		SDL_FreeSurface(lm->radiosity);
 		SDL_FreeSurface(lm->diffuse_dir);
-		SDL_FreeSurface(lm->radiosity_dir);
 	}
 
 	Atlas_Destroy(atlas);

@@ -29,7 +29,6 @@
 #define TEXTURE_LIGHTGRID_DIFFUSE        4
 #define TEXTURE_LIGHTGRID_RADIOSITY      5
 #define TEXTURE_LIGHTGRID_DIFFUSE_DIR    6
-#define TEXTURE_LIGHTGRID_RADIOSITY_DIR  7
 
 #define TEXTURE_MASK_DIFFUSE            (1 << TEXTURE_DIFFUSE)
 #define TEXTURE_MASK_NORMALMAP          (1 << TEXTURE_NORMALMAP)
@@ -45,9 +44,8 @@ uniform sampler2D texture_glossmap;
 
 uniform sampler3D texture_lightgrid_ambient;
 uniform sampler3D texture_lightgrid_diffuse;
-uniform sampler3D texture_lightgrid_diffuse_dir;
 uniform sampler3D texture_lightgrid_radiosity;
-uniform sampler3D texture_lightgrid_radiosity_dir;
+uniform sampler3D texture_lightgrid_diffuse_dir;
 
 uniform vec4 color;
 uniform float alpha_threshold;
@@ -117,18 +115,14 @@ void main(void) {
 		vec3 ambient = texture(texture_lightgrid_ambient, vertex.lightgrid).rgb * modulate;
 		vec3 diffuse = texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb * modulate;
 		vec3 radiosity = texture(texture_lightgrid_radiosity, vertex.lightgrid).rgb * modulate;
-
 		vec3 diffuse_dir = texture(texture_lightgrid_diffuse_dir, vertex.lightgrid).xyz;
-		vec3 radiosity_dir = texture(texture_lightgrid_radiosity_dir, vertex.lightgrid).xyz;
-
 		diffuse_dir = normalize(diffuse_dir * 2.0 - 1.0);
-		radiosity_dir = normalize(radiosity_dir * 2.0 - 1.0);
 
 		vec3 normal = normalize(vertex.normal);
 
-		lightgrid = ambient + 
+		lightgrid = ambient +
 		            diffuse * max(0.0, dot(normal, diffuse_dir)) +
-		            radiosity * max(0.0, dot(normal, radiosity_dir));
+					radiosity;
 	} else {
 		lightgrid = vec3(1.0);
 	}

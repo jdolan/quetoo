@@ -381,7 +381,6 @@ static void LightLuxel(luxel_t *luxel, const byte *pvs, vec_t scale) {
 				break;
 			case LIGHT_INDIRECT:
 				VectorMA(luxel->radiosity, intensity, light->color, luxel->radiosity);
-				VectorMA(luxel->radiosity_dir, intensity, dir, luxel->radiosity_dir);
 				break;
 		}
 	}
@@ -487,7 +486,6 @@ void FinalizeLightgrid(int32_t luxel_num) {
 	VectorScale(l->radiosity, 1.0 / 255.0, l->radiosity);
 	ColorFilter(l->radiosity, l->radiosity, brightness, saturation, contrast);
 
-	VectorNormalize(l->radiosity_dir);
 }
 
 /**
@@ -520,7 +518,6 @@ void EmitLightgrid(void) {
 	byte *out_diffuse = out + 1 * texture_size;
 	byte *out_radiosity = out + 2 * texture_size;
 	byte *out_diffuse_dir = out + 3 * texture_size;
-	byte *out_radiosity_dir = out + 4 * texture_size;
 
 	const luxel_t *l = lg.luxels;
 	for (int32_t u = 0; u < lg.size[2]; u++) {
@@ -529,7 +526,6 @@ void EmitLightgrid(void) {
 		SDL_Surface *diffuse = CreateLightgridSurfaceFrom(out_diffuse);
 		SDL_Surface *radiosity = CreateLightgridSurfaceFrom(out_radiosity);
 		SDL_Surface *diffuse_dir = CreateLightgridSurfaceFrom(out_diffuse_dir);
-		SDL_Surface *radiosity_dir = CreateLightgridSurfaceFrom(out_radiosity_dir);
 
 		for (int32_t t = 0; t < lg.size[1]; t++) {
 			for (int32_t s = 0; s < lg.size[0]; s++, l++) {
@@ -539,7 +535,6 @@ void EmitLightgrid(void) {
 					*out_diffuse++ = (byte) Clamp(l->diffuse[i] * 255.0, 0, 255);
 					*out_radiosity++ = (byte) Clamp(l->radiosity[i] * 255.0, 0, 255);
 					*out_diffuse_dir++ = (byte) Clamp((l->diffuse_dir[i] + 1.0) * 0.5 * 255.0, 0, 255);
-					*out_radiosity_dir++ = (byte) Clamp((l->radiosity_dir[i] + 1.0) * 0.5 * 255.0, 0, 255);
 				}
 			}
 		}
@@ -548,12 +543,10 @@ void EmitLightgrid(void) {
 		IMG_SavePNG(diffuse, va("/tmp/%s_lg_diffuse_%d.png", map_base, u));
 		IMG_SavePNG(radiosity, va("/tmp/%s_lg_radiosity_%d.png", map_base, u));
 		IMG_SavePNG(diffuse_dir, va("/tmp/%s_lg_diffuse_dir_%d.png", map_base, u));
-		IMG_SavePNG(radiosity_dir, va("/tmp/%s_lg_radiosity_dir_%d.png", map_base, u));
 
 		SDL_FreeSurface(ambient);
 		SDL_FreeSurface(diffuse);
 		SDL_FreeSurface(diffuse_dir);
 		SDL_FreeSurface(radiosity);
-		SDL_FreeSurface(radiosity_dir);
 	}
 }

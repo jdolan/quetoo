@@ -31,7 +31,6 @@
 #define TEXTURE_LIGHTGRID_DIFFUSE        4
 #define TEXTURE_LIGHTGRID_RADIOSITY      5
 #define TEXTURE_LIGHTGRID_DIFFUSE_DIR    6
-#define TEXTURE_LIGHTGRID_RADIOSITY_DIR  7
 
 #define TEXTURE_MASK_DIFFUSE            (1 << TEXTURE_DIFFUSE)
 #define TEXTURE_MASK_NORMALMAP          (1 << TEXTURE_NORMALMAP)
@@ -73,7 +72,6 @@ static struct {
 	GLint texture_lightgrid_diffuse;
 	GLint texture_lightgrid_radiosity;
 	GLint texture_lightgrid_diffuse_dir;
-	GLint texture_lightgrid_radiosity_dir;
 
 	GLint lightgrid_mins;
 	GLint lightgrid_maxs;
@@ -379,7 +377,6 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.texture_lightgrid_diffuse = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_diffuse");
 	r_mesh_program.texture_lightgrid_radiosity = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_radiosity");
 	r_mesh_program.texture_lightgrid_diffuse_dir = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_diffuse_dir");
-	r_mesh_program.texture_lightgrid_radiosity_dir = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_radiosity_dir");
 
 	r_mesh_program.lightgrid_mins = glGetUniformLocation(r_mesh_program.name, "lightgrid_mins");
 	r_mesh_program.lightgrid_maxs = glGetUniformLocation(r_mesh_program.name, "lightgrid_maxs");
@@ -416,7 +413,6 @@ void R_InitMeshProgram(void) {
 	glUniform1i(r_mesh_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
 	glUniform1i(r_mesh_program.texture_lightgrid_radiosity, TEXTURE_LIGHTGRID_RADIOSITY);
 	glUniform1i(r_mesh_program.texture_lightgrid_diffuse_dir, TEXTURE_LIGHTGRID_DIFFUSE_DIR);
-	glUniform1i(r_mesh_program.texture_lightgrid_radiosity_dir, TEXTURE_LIGHTGRID_RADIOSITY_DIR);
 
 	R_GetError(NULL);
 }

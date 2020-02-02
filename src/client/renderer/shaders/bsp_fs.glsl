@@ -110,14 +110,10 @@ void main(void) {
 		vec3 diffuse = texture(texture_lightmap, vec3(vertex.lightmap, 1)).rgb * modulate;
 		vec3 radiosity = texture(texture_lightmap, vec3(vertex.lightmap, 2)).rgb * modulate;
 		vec3 diffuse_dir = texture(texture_lightmap, vec3(vertex.lightmap, 3)).xyz;
-		vec3 radiosity_dir = texture(texture_lightmap, vec3(vertex.lightmap, 4)).xyz;
 
 		diffuse_dir = normalize(diffuse_dir * 2.0 - 1.0);
-		radiosity_dir = normalize(radiosity_dir * 2.0 - 1.0);
 
 		lightmap = ambient + diffuse + radiosity;
-
-		lightmap = normalize(diffuse_dir + radiosity_dir);
 	} else {
 		lightmap = vec3(1.0);
 	}
@@ -129,5 +125,5 @@ void main(void) {
 		stainmap = vec4(0.0);
 	}
 
-	out_color = ColorFilter(/*diffuse * */vec4(lightmap, 1.0));
+	out_color = ColorFilter(diffuse * vec4(lightmap, 1.0));
 }
