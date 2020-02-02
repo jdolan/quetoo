@@ -622,7 +622,7 @@ typedef struct {
 	vec4_t origin;
 
 	/**
-	 * @brief The light color. The forth component is currently not used.
+	 * @brief The light color. The forth component is the light intensity.
 	 */
 	vec4_t color;
 } r_light_t;

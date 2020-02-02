@@ -120,7 +120,7 @@ void main(void) {
 		stainmap = vec4(0.0);
 	}
 
-	lightmap += dynamic_light(vertex.position);
+	lightmap += dynamic_light(vertex.position, vertex.normal);
 
 	out_color = ColorFilter(diffuse * vec4(lightmap, 1.0));
 }

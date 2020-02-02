@@ -21,10 +21,12 @@
 
 #include "r_local.h"
 
+#define LIGHT_INTENSITY 0.125
+
 /**
  * @brief
  */
-void R_AddLight(const r_light_t *l) {
+void R_AddLight(const r_light_t *in) {
 
 	if (!r_lights->value) {
 		return;
@@ -35,10 +37,11 @@ void R_AddLight(const r_light_t *l) {
 		return;
 	}
 
-	r_view.lights[r_view.num_lights] = *l;
-	r_view.lights[r_view.num_lights].origin[3] *= r_lights->value;
+	r_light_t *out = &r_view.lights[r_view.num_lights++];
+
+	*out = *in;
 	
-	r_view.num_lights++;
+	out->color[3] = MAX(LIGHT_INTENSITY, out->color[3]) * r_lights->value;
 }
 
 /**

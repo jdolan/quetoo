@@ -122,7 +122,7 @@ void main(void) {
 		lightgrid = vec3(1.0);
 	}
 
-	lightgrid += dynamic_light(vertex.position);
+	lightgrid += dynamic_light(vertex.position, vertex.normal);
 
 	out_color = ColorFilter(diffuse * vec4(lightgrid, 1.0));
 }

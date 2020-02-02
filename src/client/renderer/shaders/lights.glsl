@@ -33,19 +33,31 @@ layout (std140) uniform lights_block {
 /**
  * @brief
  */
-vec3 dynamic_light(in vec3 position) {
+vec3 dynamic_light(in vec3 position, in vec3 normal) {
 
 	vec3 diffuse = vec3(0);
 
 	for (int i = 0; i < MAX_LIGHTS; i++) {
 
-		if (lights[i].origin.w == 0.0) {
+		float radius = lights[i].origin.w;
+		if (radius == 0.0) {
 			break;
 		}
 
 		float dist = distance(lights[i].origin.xyz, position);
-		if (dist < lights[i].origin.w) {
-			diffuse += lights[i].color.rgb;
+		if (dist < radius) {
+
+			vec3 dir = normalize(lights[i].origin.xyz - position);
+			if (dot(dir, normal) > 0.0) {
+
+				float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
+				atten *= atten;
+
+				float lambert = radius * dot(dir, normal) * atten;
+				float intensity = lights[i].color.a;
+
+				diffuse += lambert * lights[i].color.rgb * intensity;
+			}
 		}
 	}
 
