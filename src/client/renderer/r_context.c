@@ -176,6 +176,8 @@ void R_InitContext(void) {
 
 	r_context.fullscreen = SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_FULLSCREEN;
 
+	gladLoadGL();
+
 	R_SetWindowIcon();
 }
 

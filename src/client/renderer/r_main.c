@@ -525,9 +525,6 @@ static void R_InitConfig(void) {
 
 	memset(&r_config, 0, sizeof(r_config));
 
-	// initialize GL pointers
-	gladLoadGL();
-
 	r_config.renderer = (const char *) glGetString(GL_RENDERER);
 	r_config.vendor = (const char *) glGetString(GL_VENDOR);
 	r_config.version = (const char *) glGetString(GL_VERSION);
