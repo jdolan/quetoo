@@ -111,6 +111,8 @@ void R_DrawSkyBox(void) {
 	glBindTexture(GL_TEXTURE_2D, r_sky.images[3]->texnum);
 	glDrawArrays(GL_TRIANGLE_FAN, 20, 4);
 
+	glUseProgram(0);
+
 	glDisable(GL_DEPTH_TEST);
 }
 
@@ -126,6 +128,8 @@ static void R_InitSkyProgram(void) {
 			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "color_filter.glsl", "sky_fs.glsl"),
 			NULL);
 
+	glUseProgram(r_sky_program.name);
+
 	r_sky_program.in_position = glGetAttribLocation(r_sky_program.name, "in_position");
 	r_sky_program.in_diffuse = glGetAttribLocation(r_sky_program.name, "in_diffuse");
 
@@ -140,6 +144,8 @@ static void R_InitSkyProgram(void) {
 	r_sky_program.gamma = glGetUniformLocation(r_sky_program.name, "gamma");
 
 	glUniform1i(r_sky_program.texture_diffuse, 0);
+
+	glUseProgram(0);
 
 	R_GetError(NULL);
 }

@@ -446,6 +446,8 @@ void R_Draw2D(void) {
 		glDrawArrays(draw->mode, draw->first_vertex, draw->num_vertexes);
 	}
 
+	glUseProgram(0);
+
 	r_draw.num_draw_arrays = 0;
 	r_draw.num_vertexes = 0;
 
@@ -498,6 +500,8 @@ static void R_InitDrawProgram(void) {
 			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "color_filter.glsl", "draw_fs.glsl"),
 			NULL);
 
+	glUseProgram(r_draw_program.name);
+
 	r_draw_program.in_position = glGetAttribLocation(r_draw_program.name, "in_position");
 	r_draw_program.in_diffuse = glGetAttribLocation(r_draw_program.name, "in_diffuse");
 	r_draw_program.in_color = glGetAttribLocation(r_draw_program.name, "in_color");
@@ -512,6 +516,8 @@ static void R_InitDrawProgram(void) {
 	r_draw_program.gamma = glGetUniformLocation(r_draw_program.name, "gamma");
 
 	glUniform1i(r_draw_program.texture_diffuse, 0);
+
+	R_GetError(NULL);
 }
 
 /**
@@ -547,9 +553,9 @@ void R_InitDraw(void) {
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_draw_vertex_t), (void *) offsetof(r_draw_vertex_t, diffuse));
 	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_draw_vertex_t), (void *) offsetof(r_draw_vertex_t, color));
 
-	R_GetError(NULL);
-
 	glBindVertexArray(0);
+
+	R_GetError(NULL);
 
 	R_InitDrawProgram();
 }

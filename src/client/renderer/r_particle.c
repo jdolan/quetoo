@@ -139,6 +139,8 @@ static void R_InitParticleProgram(void) {
 			&MakeShaderDescriptor(GL_FRAGMENT_SHADER, "color_filter.glsl", "particle_fs.glsl"),
 			NULL);
 
+	glUseProgram(r_particle_program.name);
+
 	r_particle_program.in_position = glGetAttribLocation(r_particle_program.name, "in_position");
 	r_particle_program.in_color = glGetAttribLocation(r_particle_program.name, "in_color");
 
@@ -153,6 +155,8 @@ static void R_InitParticleProgram(void) {
 	r_particle_program.gamma = glGetUniformLocation(r_particle_program.name, "gamma");
 
 	glUniform1i(r_particle_program.texture_diffuse, 0);
+
+	glUseProgram(0);
 
 	R_GetError(NULL);
 }
@@ -173,9 +177,9 @@ void R_InitParticles(void) {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_particle_vertex_t), (void *) offsetof(r_particle_vertex_t, position));
 	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_particle_vertex_t), (void *) offsetof(r_particle_vertex_t, color));
 
-	R_GetError(NULL);
-
 	glBindVertexArray(0);
+
+	R_GetError(NULL);
 
 	R_InitParticleProgram();
 }

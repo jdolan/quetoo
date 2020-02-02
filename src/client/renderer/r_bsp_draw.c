@@ -307,6 +307,8 @@ void R_DrawWorld(void) {
 
 	glActiveTexture(GL_TEXTURE0);
 
+	glUseProgram(0);
+
 	if (r_draw_wireframe->value) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}

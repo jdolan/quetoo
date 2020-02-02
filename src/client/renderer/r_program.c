@@ -124,5 +124,7 @@ GLuint R_LoadProgram(const r_shader_descriptor_t *desc, ...) {
 		}
 	}
 
+	R_GetError(NULL);
+
 	return program;
 }

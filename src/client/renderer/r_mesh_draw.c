@@ -327,6 +327,8 @@ void R_DrawMeshEntities(void) {
 
 	glActiveTexture(GL_TEXTURE0);
 
+	glUseProgram(0);
+
 	if (r_draw_wireframe->value) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
@@ -414,6 +416,8 @@ void R_InitMeshProgram(void) {
 	glUniform1i(r_mesh_program.texture_lightgrid_radiosity, TEXTURE_LIGHTGRID_RADIOSITY);
 	glUniform1i(r_mesh_program.texture_lightgrid_diffuse_dir, TEXTURE_LIGHTGRID_DIFFUSE_DIR);
 
+	glUseProgram(0);
+	
 	R_GetError(NULL);
 }
 

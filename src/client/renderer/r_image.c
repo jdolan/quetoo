@@ -538,6 +538,8 @@ void R_InitImages(void) {
 	R_InitWarpImage();
 
 	R_InitShellImage();
+
+	R_GetError(NULL);
 	
 	Fs_Mkdir("screenshots");
 }
