@@ -24,7 +24,6 @@
 #include "r_types.h"
 
 void R_AddLight(const r_light_t *l);
-void R_AddSustainedLight(const r_sustained_light_t *s);
 
 #ifdef __R_LOCAL_H__
 void R_UpdateLights(void);

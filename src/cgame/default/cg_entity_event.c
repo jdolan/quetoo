@@ -60,13 +60,13 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
 		p->accel[2] = -PARTICLE_GRAVITY * 0.1;
 	}
 
-	r_sustained_light_t s;
-	VectorCopy(org, s.light.origin);
-	s.light.origin[3] = 80.0;
-	VectorSet(s.light.color, 0.9, 0.9, 0.9);
-	s.sustain = 1000;
+	cg_light_t l;
+	VectorCopy(org, l.origin);
+	l.radius = 80.0;
+	VectorSet(l.color, 0.9, 0.9, 0.9);
+	l.decay = 1000;
 
-	cgi.AddSustainedLight(&s);
+	Cg_AddLight(&l);
 }
 
 /**
@@ -106,13 +106,13 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
 		p->accel[2] = PARTICLE_GRAVITY * 0.2;
 	}
 
-	r_sustained_light_t s;
-	VectorCopy(org, s.light.origin);
-	s.light.origin[3] = 80.0;
-	VectorSet(s.light.color, 0.9, 1.0, 1.0);
-	s.sustain = 1000;
+	cg_light_t l;
+	VectorCopy(org, l.origin);
+	l.radius = 80.0;
+	VectorSet(l.color, 0.9, 1.0, 1.0);
+	l.decay = 1000;
 
-	cgi.AddSustainedLight(&s);
+	Cg_AddLight(&l);
 }
 
 /**
@@ -152,13 +152,13 @@ static void Cg_TeleporterEffect(const vec3_t org) {
 		p->accel[2] = -PARTICLE_GRAVITY * 0.1;
 	}
 
-	r_sustained_light_t s;
-	VectorCopy(org, s.light.origin);
-	s.light.origin[3] = 120.0;
-	VectorSet(s.light.color, 0.9, 0.9, 0.9);
-	s.sustain = 1000;
+	cg_light_t l;
+	VectorCopy(org, l.origin);
+	l.radius = 120.0;
+	VectorSet(l.color, 0.9, 0.9, 0.9);
+	l.decay = 1000;
 
-	cgi.AddSustainedLight(&s);
+	Cg_AddLight(&l);
 
 	const s_play_sample_t play = {
 		.sample = cg_sample_respawn,

@@ -36,6 +36,7 @@
 #include "cg_entity_trail.h"
 #include "cg_hud.h"
 #include "cg_input.h"
+#include "cg_light.h"
 #include "cg_main.h"
 #include "cg_media.h"
 #include "cg_muzzle_flash.h"

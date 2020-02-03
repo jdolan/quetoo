@@ -546,6 +546,8 @@
 		CE9771B1214557F500BBD71C /* ai_info.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9771AF214557F500BBD71C /* ai_info.h */; };
 		CE9771B2214557F500BBD71C /* ai_info.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9771B0214557F500BBD71C /* ai_info.c */; };
 		CE9CFC8F23E66CDF0009DA65 /* lights.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE9CFC8E23E65EA90009DA65 /* lights.glsl */; };
+		CE9CFC9223E792FE0009DA65 /* cg_light.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9CFC9023E792FE0009DA65 /* cg_light.h */; };
+		CE9CFC9323E792FE0009DA65 /* cg_light.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9CFC9123E792FE0009DA65 /* cg_light.c */; };
 		CE9FECDD201FEB7400F954ED /* r_gl.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9FECDA201FEB7400F954ED /* r_gl.c */; };
 		CE9FECDE201FEB7400F954ED /* r_gl.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9FECDB201FEB7400F954ED /* r_gl.h */; };
 		CE9FECDF201FEB7400F954ED /* r_gl_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9FECDC201FEB7400F954ED /* r_gl_types.h */; };
@@ -2054,6 +2056,8 @@
 		CE9771AF214557F500BBD71C /* ai_info.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ai_info.h; sourceTree = "<group>"; };
 		CE9771B0214557F500BBD71C /* ai_info.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ai_info.c; sourceTree = "<group>"; };
 		CE9CFC8E23E65EA90009DA65 /* lights.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = lights.glsl; sourceTree = "<group>"; };
+		CE9CFC9023E792FE0009DA65 /* cg_light.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_light.h; sourceTree = "<group>"; };
+		CE9CFC9123E792FE0009DA65 /* cg_light.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_light.c; sourceTree = "<group>"; };
 		CE9FECDA201FEB7400F954ED /* r_gl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_gl.c; sourceTree = "<group>"; };
 		CE9FECDB201FEB7400F954ED /* r_gl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_gl.h; sourceTree = "<group>"; };
 		CE9FECDC201FEB7400F954ED /* r_gl_types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_gl_types.h; sourceTree = "<group>"; };
@@ -2914,6 +2918,8 @@
 				CE12D56D1C5C58C300CD0B13 /* cg_hud.h */,
 				CEB8D6231E00B72100043814 /* cg_input.c */,
 				CEB8D6241E00B72100043814 /* cg_input.h */,
+				CE9CFC9023E792FE0009DA65 /* cg_light.h */,
+				CE9CFC9123E792FE0009DA65 /* cg_light.c */,
 				CE12D56E1C5C58C300CD0B13 /* cg_local.h */,
 				CE12D56F1C5C58C300CD0B13 /* cg_main.c */,
 				CE12D5701C5C58C300CD0B13 /* cg_main.h */,
@@ -3832,6 +3838,7 @@
 				CE80FEA11C5E445500A21A51 /* cg_particle.h in Headers */,
 				CE80FEA21C5E445500A21A51 /* cg_predict.h in Headers */,
 				CE80FEA31C5E445500A21A51 /* cg_score.h in Headers */,
+				CE9CFC9223E792FE0009DA65 /* cg_light.h in Headers */,
 				CE80FEA41C5E445500A21A51 /* cg_temp_entity.h in Headers */,
 				CE80FEA51C5E445500A21A51 /* cg_types.h in Headers */,
 				CE6EE4121F72919800FBC830 /* cg_ui.h in Headers */,
@@ -5146,6 +5153,7 @@
 				CE12D7FA1C5C5E0200CD0B13 /* cg_particle.c in Sources */,
 				CE12D7FB1C5C5E0200CD0B13 /* cg_predict.c in Sources */,
 				CE12D7FC1C5C5E0200CD0B13 /* cg_score.c in Sources */,
+				CE9CFC9323E792FE0009DA65 /* cg_light.c in Sources */,
 				CE12D7FD1C5C5E0200CD0B13 /* cg_temp_entity.c in Sources */,
 				CE6EE4111F72919800FBC830 /* cg_ui.c in Sources */,
 				CE12D7FE1C5C5E0200CD0B13 /* cg_view.c in Sources */,

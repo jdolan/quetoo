@@ -23,7 +23,6 @@ noinst_HEADERS = \
 	r_mesh_model.h \
 	r_mesh_model_md3.h \
 	r_mesh_model_obj.h \
-	r_mesh.h \
 	r_model.h \
 	r_particle.h \
 	r_program.h \

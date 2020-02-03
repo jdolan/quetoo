@@ -402,19 +402,6 @@ void Cg_FreeEmits(void) {
 }
 
 /**
- * @brief
- */
-static r_light_t *Cg_EmitLight(cg_emit_t *e) {
-	static r_light_t l;
-
-	VectorCopy(e->org, l.origin);
-	l.origin[3] = e->radius;
-	VectorCopy(e->color, l.color);
-
-	return &l;
-}
-
-/**
  * @brief Perform PVS and PHS filtering, returning a copy of the specified emit with
  * the correct flags stripped away for this frame.
  */
@@ -453,15 +440,19 @@ void Cg_AddEmits(void) {
 		// first add emits which fire every frame
 
 		if ((e->flags & EMIT_LIGHT) && !e->hz) {
-			cgi.AddLight(Cg_EmitLight(e));
+			Cg_AddLight(&(cg_light_t) {
+				.origin = { e->org[0], e->org[1], e->org[2] },
+				.radius = e->radius,
+				.color = { e->color[0], e->color[1], e->color[2] },
+			});
 		}
 
 		if ((e->flags & EMIT_SOUND) && e->loop) {
 			cgi.AddSample(&(const s_play_sample_t) {
 				.sample = e->sample,
-				 .origin = { e->org[0], e->org[1], e->org[2] },
-				  .attenuation = e->atten,
-				   .flags = S_PLAY_POSITIONED | S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME
+				.origin = { e->org[0], e->org[1], e->org[2] },
+				.attenuation = e->atten,
+				.flags = S_PLAY_POSITIONED | S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME
 			});
 		}
 
@@ -501,13 +492,12 @@ void Cg_AddEmits(void) {
 		}
 
 		if ((e->flags & EMIT_LIGHT) && e->hz) {
-			const r_light_t *l = Cg_EmitLight(e);
-			r_sustained_light_t s;
-
-			s.light = *l;
-			s.sustain = 1000;
-
-			cgi.AddSustainedLight(&s);
+			Cg_AddLight(&(cg_light_t) {
+				.origin = { e->org[0], e->org[1], e->org[2] },
+				.radius = e->radius,
+				.color = { e->color[0], e->color[1], e->color[2] },
+				.decay = 1000
+			});
 		}
 
 		if (e->flags & EMIT_SPARKS) {
@@ -525,9 +515,9 @@ void Cg_AddEmits(void) {
 		if ((e->flags & EMIT_SOUND) && !e->loop) {
 			cgi.AddSample(&(const s_play_sample_t) {
 				.sample = e->sample,
-				 .origin = { e->org[0], e->org[1], e->org[2] },
-				  .attenuation = e->atten,
-				   .flags = S_PLAY_POSITIONED | S_PLAY_AMBIENT
+				.origin = { e->org[0], e->org[1], e->org[2] },
+				.attenuation = e->atten,
+				.flags = S_PLAY_POSITIONED | S_PLAY_AMBIENT
 			});
 		}
 	}

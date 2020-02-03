@@ -25,7 +25,6 @@
  * @brief
  */
 static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
-	r_sustained_light_t s;
 	vec3_t forward, right, org, org2;
 
 	// project the flash just in front of the entity
@@ -45,12 +44,13 @@ static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
 	// and adjust for ducking
 	org[2] += Cg_IsDucking(ent) ? -2.0 : 20.0;
 
-	VectorCopy(org, s.light.origin);
-	s.light.origin[3] = 80.0;
-	ColorToVec3(color, s.light.color);
-	s.sustain = 450;
+	cg_light_t l;
+	VectorCopy(org, l.origin);
+	l.radius = 80.0;
+	ColorToVec3(color, l.color);
+	l.decay = 450;
 
-	cgi.AddSustainedLight(&s);
+	Cg_AddLight(&l);
 
 	if (cgi.PointContents(ent->origin) & MASK_LIQUID) {
 		VectorMA(ent->origin, 40.0, forward, org2);
@@ -63,7 +63,6 @@ static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
  */
 static void Cg_SmokeFlash(const cl_entity_t *ent) {
 	cg_particle_t *p;
-	r_sustained_light_t s;
 	vec3_t forward, right, org, org2;
 
 	// project the puff just in front of the entity
@@ -83,12 +82,12 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 	// and adjust for ducking
 	org[2] += Cg_IsDucking(ent) ? -2.0 : 20.0;
 
-	VectorCopy(org, s.light.origin);
-	s.light.origin[3] = 120.0;
-	VectorSet(s.light.color, 0.8, 0.7, 0.5);
-	s.sustain = 300;
-
-	cgi.AddSustainedLight(&s);
+	Cg_AddLight(&(cg_light_t) {
+		.origin = { org[0], org[1], org[2] },
+		.radius = 120.0,
+		.color = { 0.8, 0.7, 0.5 },
+		.decay = 300
+	});
 
 	if (cgi.PointContents(ent->origin) & MASK_LIQUID) {
 		VectorMA(ent->origin, 40.0, forward, org2);

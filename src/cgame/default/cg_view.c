@@ -339,4 +339,6 @@ void Cg_UpdateView(const cl_frame_t *frame) {
 	Cg_AddEffects();
 
 	Cg_AddParticles();
+
+	Cg_AddLights();
 }

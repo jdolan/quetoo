@@ -629,16 +629,6 @@ typedef struct {
 
 #define MAX_LIGHTS			64
 
-/**
- * @brief Sustains are light flashes which slowly decay over time. These
- * persist over multiple frames.
- */
-typedef struct {
-	r_light_t light;
-	uint32_t time;
-	uint32_t sustain;
-} r_sustained_light_t;
-
 #define MAX_ENTITY_SKINS 8
 
 /**

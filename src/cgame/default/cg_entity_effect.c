@@ -96,51 +96,50 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 
 	if (e->effects & EF_RESPAWN) {
 		const vec3_t color = { 0.5, 0.5, 0.0 };
-
 		VectorMA(e->shell, 0.5, color, e->shell);
 	}
 
 	if (e->effects & EF_QUAD) {
-		r_light_t l = { { 0.0, 0.0, 0.0, 80.0 }, { 0.3, 0.7, 0.7 } };
+		cg_light_t l = { .radius = 80.0, .color = { 0.3, 0.7, 0.7 } };
 
 		VectorCopy(e->origin, l.origin);
-		cgi.AddLight(&l);
+		Cg_AddLight(&l);
 
 		VectorMA(e->shell, 0.5, l.color, e->shell);
 	}
 
 	if (e->effects & EF_CTF_RED) {
-		r_light_t l = { { 0.0, 0.0, 0.0, 80.0 }, { 1.0, 0.3, 0.3 } };
+		cg_light_t l = { .radius = 80.0, .color = { 1.0, 0.3, 0.3 } };
 
 		VectorCopy(e->origin, l.origin);
-		cgi.AddLight(&l);
+		Cg_AddLight(&l);
 
 		VectorMA(e->shell, 0.5, l.color, e->shell);
 	}
 
 	if (e->effects & EF_CTF_BLUE) {
-		r_light_t l = { { 0.0, 0.0, 0.0 , 80.0 }, { 0.3, 0.3, 1.0 } };
+		cg_light_t l = { .radius = 80.0, .color = { 0.3, 0.3, 1.0 } };
 
 		VectorCopy(e->origin, l.origin);
-		cgi.AddLight(&l);
+		Cg_AddLight(&l);
 
 		VectorMA(e->shell, 0.5, l.color, e->shell);
 	}
 
 	if (e->effects & EF_CTF_GREEN) {
-		r_light_t l = { { 0.0, 0.0, 0.0, 80.0 }, { 0.3, 1.0, 0.3 } };
+		cg_light_t l = { .radius = 80.0, .color = { 0.3, 1.0, 0.3 } };
 
 		VectorCopy(e->origin, l.origin);
-		cgi.AddLight(&l);
+		Cg_AddLight(&l);
 
 		VectorMA(e->shell, 0.5, l.color, e->shell);
 	}
 
 	if (e->effects & EF_CTF_ORANGE) {
-		r_light_t l = { { 0.0, 0.0, 0.0, 80.0 }, { 1.0, 0.7, 0.1 } };
+		cg_light_t l = { .radius = 80.0, .color = { 1.0, 0.7, 0.1 } };
 
 		VectorCopy(e->origin, l.origin);
-		cgi.AddLight(&l);
+		Cg_AddLight(&l);
 
 		VectorMA(e->shell, 0.5, l.color, e->shell);
 	}
@@ -160,13 +159,12 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_LIGHT) {
-		r_light_t l;
+		cg_light_t l = { .radius = ent->current.termination[0] };
 
 		VectorCopy(e->origin, l.origin);
 		cgi.ColorFromPalette(ent->current.client, l.color);
-		l.origin[3] = ent->current.termination[0];
 
-		cgi.AddLight(&l);
+		Cg_AddLight(&l);
 	}
 
 	if (ent->current.trail == TRAIL_ROCKET) {

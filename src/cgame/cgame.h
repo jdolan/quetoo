@@ -758,11 +758,6 @@ typedef struct cg_import_s {
 	void (*AddParticle)(const r_particle_t *p);
 
 	/**
-	 * @brief Adds a sustained light to the scene.
-	 */
-	void (*AddSustainedLight)(const r_sustained_light_t *s);
-
-	/**
 	 * @brief Add a stain to the scene.
 	 */
 	void (*AddStain)(const r_stain_t *s);

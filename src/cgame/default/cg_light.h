@@ -19,48 +19,50 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "r_local.h"
+#pragma once
+
+#include "cg_types.h"
+
+#ifdef __CG_LOCAL_H__
 
 /**
- * @brief
+ * @brief Light sources that optionally persistent over multiple frames.
  */
-void R_AddLight(const r_light_t *in) {
+typedef struct {
 
-	if (!r_lights->value) {
-		return;
-	}
+	/**
+	 * @brief The light origin.
+	 */
+	vec3_t origin;
 
-	if (r_view.num_lights == MAX_LIGHTS) {
-		Com_Debug(DEBUG_RENDERER, "MAX_LIGHTS reached\n");
-		return;
-	}
+	/**
+	 * @brief The light radius.
+	 */
+	vec_t radius;
 
-	r_light_t *out = &r_view.lights[r_view.num_lights++];
-	*out = *in;
+	/**
+	 * @brief The light color.
+	 */
+	vec3_t color;
 
-	out->color[3] *= r_lights->value;
-}
+	/**
+	 * @brief The light intensity.
+	 */
+	vec_t intensity;
 
-/**
- * @brief
- */
-void R_UpdateLights(void) {
+	/**
+	 * @brief The decay period in milliseconds.
+	 */
+	uint32_t decay;
 
-	memset(r_locals.view_lights, 0, sizeof(r_locals.view_lights));
+	/**
+	 * @brief The time when this light was added.
+	 */
+	uint32_t time;
 
-	const r_light_t *in = r_view.lights;
-	r_light_t *out = r_locals.view_lights;
+} cg_light_t;
 
-	for (int32_t i = 0; i < r_view.num_lights; i++, in++) {
+void Cg_AddLight(const cg_light_t *s);
+void Cg_AddLights(void);
 
-		if (R_CullSphere(in->origin, in->origin[3])) {
-			continue;
-		}
-
-		*out = *in;
-
-		Matrix4x4_Transform(&r_locals.view, in->origin, out->origin);
-
-		out++;
-	}
-}
+#endif /* __CG_LOCAL_H__ */

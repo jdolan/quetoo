@@ -61,10 +61,11 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 	vec3_t c;
 	ColorToVec3(color, c);
 
-	cgi.AddSustainedLight(&(const r_sustained_light_t) {
-		.light.origin = { org[0] + dir[0], org[1] + dir[1], org[2] + dir[2], 150.0 },
-		.light.color = { c[0], c[1], c[2] },
-		.sustain = 350
+	Cg_AddLight(&(const cg_light_t) {
+		.origin = { org[0] + dir[0], org[1] + dir[1], org[2] + dir[2] },
+		.radius = 150.0,
+		.color = { c[0], c[1], c[2] },
+		.decay = 350
 	});
 
 	cgi.AddStain(&(const r_stain_t) {
@@ -76,9 +77,9 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_blaster_hit,
-		 .origin = { org[0], org[1], org[2] },
-		  .attenuation = ATTEN_NORM,
-		   .flags = S_PLAY_POSITIONED
+		.origin = { org[0], org[1], org[2] },
+		.attenuation = ATTEN_NORM,
+		.flags = S_PLAY_POSITIONED
 	});
 }
 
@@ -162,10 +163,11 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 		}
 	}
 
-	cgi.AddSustainedLight(&(const r_sustained_light_t) {
-		.light.origin = { org[0] + dir[0], org[1] + dir[1], org[2] + dir[2], 20.0 },
-		.light.color = { 0.5, 0.3, 0.2 },
-		.sustain = 250
+	Cg_AddLight(&(const cg_light_t) {
+		.origin = { org[0] + dir[0], org[1] + dir[1], org[2] + dir[2] },
+		.radius = 20.0,
+		.color = { 0.5, 0.3, 0.2 },
+		.decay = 250
 	});
 
 	cgi.AddStain(&(const r_stain_t) {
@@ -184,10 +186,10 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 
 		cgi.AddSample(&(const s_play_sample_t) {
 			.sample = cg_sample_machinegun_hit[Randomr(0, 3)],
-			 .origin = { org[0], org[1], org[2] },
-			  .attenuation = ATTEN_NORM,
-			   .flags = S_PLAY_POSITIONED,
-				.pitch = (int16_t) (Randomc() * 8)
+			.origin = { org[0], org[1], org[2] },
+			.attenuation = ATTEN_NORM,
+			.flags = S_PLAY_POSITIONED,
+			.pitch = (int16_t) (Randomc() * 8)
 		});
 	}
 }
@@ -304,9 +306,9 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_gib,
-		 .origin = { org[0], org[1], org[2] },
-		  .attenuation = ATTEN_NORM,
-		   .flags = S_PLAY_POSITIONED
+		.origin = { org[0], org[1], org[2] },
+		.attenuation = ATTEN_NORM,
+		.flags = S_PLAY_POSITIONED
 	});
 }
 
@@ -343,17 +345,18 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 		p->accel[2] = -0.5 * PARTICLE_GRAVITY;
 	}
 
-	cgi.AddSustainedLight(&(const r_sustained_light_t) {
-		.light.origin = { org[0], org[1], org[2], 80.0 },
-		.light.color = { 0.7, 0.5, 0.5 },
-		.sustain = 650
+	Cg_AddLight(&(const cg_light_t) {
+		.origin = { org[0], org[1], org[2] },
+		.radius = 80.0,
+		.color = { 0.7, 0.5, 0.5 },
+		.decay = 650
 	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_sparks,
-		 .origin = { org[0], org[1], org[2] },
-		  .attenuation = ATTEN_STATIC,
-		   .flags = S_PLAY_POSITIONED
+		.origin = { org[0], org[1], org[2] },
+		.attenuation = ATTEN_STATIC,
+		.flags = S_PLAY_POSITIONED
 	});
 }
 
@@ -461,10 +464,11 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 		}
 	}
 
-	cgi.AddSustainedLight(&(const r_sustained_light_t) {
-		.light.origin = { org[0], org[1], org[2], 200.0 },
-		.light.color = { 0.8, 0.4, 0.2 },
-		.sustain = 1000
+	Cg_AddLight(&(const cg_light_t) {
+		.origin = { org[0], org[1], org[2] },
+		.radius = 200.0,
+		.color = { 0.8, 0.4, 0.2 },
+		.decay = 1000
 	});
 
 	vec3_t c;
@@ -479,9 +483,9 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_explosion,
-		 .origin = { org[0], org[1], org[2] },
-		  .attenuation = ATTEN_NORM,
-		   .flags = S_PLAY_POSITIONED
+		.origin = { org[0], org[1], org[2] },
+		.attenuation = ATTEN_NORM,
+		.flags = S_PLAY_POSITIONED
 	});
 }
 
@@ -543,10 +547,11 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 		}
 	}
 
-	cgi.AddSustainedLight(&(const r_sustained_light_t) {
-		.light.origin = { org[0] + dir[0], org[1] + dir[1], org[2] + dir[2], 80.0 },
-		.light.color = { 0.4, 0.7, 1.0 },
-		.sustain = 250
+	Cg_AddLight(&(const cg_light_t) {
+		.origin = { org[0] + dir[0], org[1] + dir[1], org[2] + dir[2] },
+		.radius = 80.0,
+		.color = { 0.4, 0.7, 1.0 },
+		.decay = 250
 	});
 
 	cgi.AddStain(&(const r_stain_t) {
@@ -558,9 +563,9 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_hyperblaster_hit,
-		 .origin = { org[0], org[1], org[2] },
-		  .attenuation = ATTEN_NORM,
-		   .flags = S_PLAY_POSITIONED
+		.origin = { org[0], org[1], org[2] },
+		.attenuation = ATTEN_NORM,
+		.flags = S_PLAY_POSITIONED
 	});
 }
 
@@ -580,17 +585,18 @@ static void Cg_LightningDischargeEffect(const vec3_t org) {
 		Cg_BubbleTrail(org, tmp, 4.0);
 	}
 
-	cgi.AddSustainedLight(&(const r_sustained_light_t) {
-		.light.origin = { org[0], org[1], org[2], 160.0 },
-		.light.color = { 0.6, 0.6, 1.0 },
-		.sustain = 750
+	Cg_AddLight(&(const cg_light_t) {
+		.origin = { org[0], org[1], org[2] },
+		.radius = 160.0,
+		.color = { 0.6, 0.6, 1.0 },
+		.decay = 750
 	});
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_lightning_discharge,
-		 .origin = { org[0], org[1], org[2] },
-		  .attenuation = ATTEN_NORM,
-		   .flags = S_PLAY_POSITIONED
+		.origin = { org[0], org[1], org[2] },
+		.attenuation = ATTEN_NORM,
+		.flags = S_PLAY_POSITIONED
 	});
 }
 
@@ -600,14 +606,14 @@ static void Cg_LightningDischargeEffect(const vec3_t org) {
 static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir, int32_t flags, const color_t color) {
 	vec3_t vec, right, up, point;
 	cg_particle_t *p;
-	r_sustained_light_t s;
+	cg_light_t l;
 
-	VectorCopy(start, s.light.origin);
-	s.light.origin[3] = 100.0;
-	ColorToVec3(color, s.light.color);
-	s.sustain = 500;
+	VectorCopy(start, l.origin);
+	l.radius = 100.0;
+	ColorToVec3(color, l.color);
+	l.decay = 500;
 
-	cgi.AddSustainedLight(&s);
+	Cg_AddLight(&l);
 
 	// Rail core
 
@@ -671,12 +677,12 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 			Cg_BubbleTrail(point, p->part.org, 16.0);
 		}
 
-		// Add sustained lights
+		// Add decayed lights
 
 		if (i > 0 && i < len - 64.0 && i % 64 == 0) {
-			VectorCopy(point, s.light.origin);
-			s.sustain = 200;
-			cgi.AddSustainedLight(&s);
+			VectorCopy(point, l.origin);
+			l.decay = 200;
+			Cg_AddLight(&l);
 		}
 	}
 
@@ -729,17 +735,17 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 	// Impact light
 
-	VectorMA(end, -12.0, vec, s.light.origin);
-	s.light.origin[3] = 120.0;
-	s.sustain += 250;
+	VectorMA(end, -12.0, vec, l.origin);
+	l.radius = 120.0;
+	l.decay += 250;
 
-	cgi.AddSustainedLight(&s);
+	Cg_AddLight(&l);
 
 	cgi.AddStain(&(const r_stain_t) {
 		.origin = { end[0], end[1], end[2] },
 		.radius = 8.0,
 		.media = cg_particles_default->media,
-		.color = { s.light.color[0], s.light.color[1], s.light.color[2], 0.66 },
+		.color = { l.color[0], l.color[1], l.color[2], 0.66 },
 	});
 }
 
@@ -748,7 +754,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
  */
 static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
 	cg_particle_t *p;
-	r_sustained_light_t s;
+	cg_light_t l;
 
 	if ((p = Cg_AllocParticle(cg_particles_beam))) {
 		VectorCopy(org, p->part.org);
@@ -760,12 +766,12 @@ static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
 		p->part.scale = 6.0;
 	}
 
-	VectorCopy(end, s.light.origin);
-	s.light.origin[3] = 80.0;
-	VectorSet(s.light.color, 0.8, 1.0, 0.5);
-	s.sustain = 50;
+	VectorCopy(end, l.origin);
+	l.radius = 80.0;
+	VectorSet(l.color, 0.8, 1.0, 0.5);
+	l.decay = 50;
 
-	cgi.AddSustainedLight(&s);
+	Cg_AddLight(&l);
 }
 
 /**
@@ -818,10 +824,11 @@ static void Cg_BfgEffect(const vec3_t org) {
 		VectorSet(p->accel, 0.0, 0.0, -3.0 * PARTICLE_GRAVITY);
 	}
 
-	cgi.AddSustainedLight(&(const r_sustained_light_t) {
-		.light.origin = { org[0], org[1], org[2], 200.0 },
-		.light.color = { 0.8, 1.0, 0.5 },
-		.sustain = 1000
+	Cg_AddLight(&(const cg_light_t) {
+		.origin = { org[0], org[1], org[2] },
+		.radius = 200.0,
+		.color = { 0.8, 1.0, 0.5 },
+		.decay = 1000
 	});
 
 	vec3_t c;
@@ -836,9 +843,9 @@ static void Cg_BfgEffect(const vec3_t org) {
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_bfg_hit,
-		 .origin = { org[0], org[1], org[2] },
-		  .attenuation = ATTEN_NORM,
-		   .flags = S_PLAY_POSITIONED
+		.origin = { org[0], org[1], org[2] },
+		.attenuation = ATTEN_NORM,
+		.flags = S_PLAY_POSITIONED
 	});
 }
 
@@ -962,10 +969,11 @@ static void Cg_HookImpactEffect(const vec3_t org, const vec3_t dir) {
 	vec3_t v;
 	VectorAdd(org, dir, v);
 
-	cgi.AddSustainedLight(&(const r_sustained_light_t) {
-		.light.origin = { v[0], v[1], v[2], 80.0 },
-		.light.color = { 0.7, 0.5, 0.5 },
-		.sustain = 850
+	Cg_AddLight(&(const cg_light_t) {
+		.origin = { v[0], v[1], v[2] },
+		.radius = 80.0,
+		.color = { 0.7, 0.5, 0.5 },
+		.decay = 850
 	});
 }
 
