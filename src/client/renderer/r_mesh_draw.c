@@ -100,46 +100,6 @@ static struct {
 } r_mesh_program;
 
 /**
- * @brief Applies any client-side transformations specified by the model's world or
- * view configuration structure.
- */
-void R_ApplyMeshModelConfig(r_entity_t *e) {
-
-	assert(IS_MESH_MODEL(e->model));
-
-	const r_mesh_config_t *c;
-	if (e->effects & EF_WEAPON) {
-		c = &e->model->mesh->config.view;
-	} else if (e->effects & EF_LINKED) {
-		c = &e->model->mesh->config.link;
-	} else {
-		c = &e->model->mesh->config.world;
-	}
-
-	Matrix4x4_Concat(&e->matrix, &e->matrix, &c->transform);
-
-	e->effects |= c->flags;
-}
-
-/**
- * @return True if the specified entity was frustum-culled and can be skipped.
- */
-static _Bool R_CullMeshEntity(const r_entity_t *e) {
-	vec3_t mins, maxs;
-
-	if (e->effects & EF_WEAPON) { // never cull the weapon
-		return false;
-	}
-
-	// calculate scaled bounding box in world space
-
-	VectorMA(e->origin, e->scale, e->model->mins, mins);
-	VectorMA(e->origin, e->scale, e->model->maxs, maxs);
-
-	return R_CullBox(mins, maxs);
-}
-
-/**
  * @brief
  */
 static void R_DrawMeshEntity(const r_entity_t *e) {

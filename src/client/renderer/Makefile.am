@@ -4,9 +4,9 @@ SUBDIRS = \
 
 noinst_HEADERS = \
 	r_atlas.h \
+	r_bsp.h \
 	r_bsp_draw.h \
 	r_bsp_model.h \
-	r_bsp.h \
 	r_context.h \
 	r_draw.h \
 	r_entity.h \
@@ -23,6 +23,7 @@ noinst_HEADERS = \
 	r_mesh_model.h \
 	r_mesh_model_md3.h \
 	r_mesh_model_obj.h \
+	r_mesh.h \
 	r_model.h \
 	r_particle.h \
 	r_program.h \
@@ -36,9 +37,9 @@ noinst_LTLIBRARIES = \
 
 librenderer_la_SOURCES = \
 	r_atlas.c \
+	r_bsp.c \
 	r_bsp_draw.c \
 	r_bsp_model.c \
-	r_bsp.c \
 	r_context.c \
 	r_draw.c \
 	r_entity.c \
@@ -49,6 +50,7 @@ librenderer_la_SOURCES = \
 	r_main.c \
 	r_material.c \
 	r_media.c \
+	r_mesh.c \
 	r_mesh_draw.c \
 	r_mesh_model.c \
 	r_mesh_model_md3.c \
