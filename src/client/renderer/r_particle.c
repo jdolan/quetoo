@@ -75,10 +75,10 @@ void R_AddParticle(const r_particle_t *p) {
 
 	r_particle_vertex_t *out = r_particles.particles + r_view.num_particles;
 
-	VectorCopy(p->org, out->position);
-	out->position[3] = p->scale;
+	VectorCopy(p->origin, out->position);
+	out->position[3] = p->size;
 
-	ColorDecompose(p->color, out->color);
+	*(int32_t *) &out->color = p->color.u32;
 
 	r_view.particles[r_view.num_particles++] = *p;
 }
@@ -115,8 +115,6 @@ void R_DrawParticles(void) {
 
 	glBindTexture(GL_TEXTURE_2D, R_LoadImage("particles/particle", IT_EFFECT)->texnum);
 	glDrawArrays(GL_POINTS, 0, r_view.num_particles);
-
-	r_view.num_particles = 0;
 
 	glDisable(GL_PROGRAM_POINT_SIZE);
 	glDisable(GL_DEPTH_TEST);

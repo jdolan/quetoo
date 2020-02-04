@@ -53,27 +53,6 @@ extern s_sample_t *cg_sample_gib;
 
 s_sample_t *Cg_GetFootstepSample(const char *footsteps);
 
-extern cg_particles_t *cg_particles_default;
-extern cg_particles_t *cg_particles_corona;
-extern cg_particles_t *cg_particles_explosion;
-extern cg_particles_t *cg_particles_debris[4];
-extern cg_particles_t *cg_particles_teleporter;
-extern cg_particles_t *cg_particles_smoke;
-extern cg_particles_t *cg_particles_steam;
-extern cg_particles_t *cg_particles_bubble;
-extern cg_particles_t *cg_particles_rain;
-extern cg_particles_t *cg_particles_snow;
-extern cg_particles_t *cg_particles_beam;
-extern cg_particles_t *cg_particles_rail_wake;
-extern cg_particles_t *cg_particles_tracer;
-extern cg_particles_t *cg_particles_blood;
-extern cg_particles_t *cg_particles_lightning;
-extern cg_particles_t *cg_particles_rope;
-extern cg_particles_t *cg_particles_flame;
-extern cg_particles_t *cg_particles_spark;
-extern cg_particles_t *cg_particles_inactive;
-extern cg_particles_t *cg_particles_ripple[3];
-
 extern r_media_t *cg_stain_blood;
 extern r_media_t *cg_stain_explosion;
 extern r_media_t *cg_stain_lightning;

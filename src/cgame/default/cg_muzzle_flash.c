@@ -95,30 +95,25 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle(cg_particles_smoke))) {
+	if (!(p = Cg_AllocParticle())) {
 		return;
 	}
 
+	VectorCopy(org, p->origin);
+
 	p->lifetime = 500;
-	p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-	cgi.ColorFromPalette(Randomr(0, 8), p->color_start);
-	p->color_start[3] = 0.8;
+	cgi.ColorFromPalette(Randomr(0, 8), &p->color);
+	p->color.a = 200;
+	p->delta_color.a = -10;
 
-	VectorCopy(p->color_start, p->color_end);
-	p->color_end[3] = 0.0;
+	p->size = 4.0;
+	p->delta_size = 1.0;
 
-	p->scale_start = 4.0;
-	p->scale_end = 24.0;
-
-	VectorCopy(org, p->part.org);
-
-	for (int32_t j = 0; j < 2; j++) {
-		p->vel[j] = Randomc();
-	}
-	p->vel[2] = 10.0;
-
-	p->accel[2] = 5.0;
+	p->velocity[0] = Randomc();
+	p->velocity[1] = Randomc();
+	p->velocity[2] = 10.0;
+	p->acceleration[2] = 5.0;
 }
 
 /**

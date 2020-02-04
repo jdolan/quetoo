@@ -146,53 +146,6 @@ typedef struct {
 	vec4_t texcoords;
 } r_atlas_image_t;
 
-typedef enum {
-	PARTICLE_INVALID = -1,
-	PARTICLE_DEFAULT,
-	PARTICLE_SPARK,
-	PARTICLE_ROLL,
-	PARTICLE_EXPLOSION,
-	PARTICLE_BUBBLE,
-	PARTICLE_BEAM,
-	PARTICLE_WEATHER,
-	PARTICLE_SPLASH,
-	PARTICLE_CORONA,
-	PARTICLE_FLARE,
-	PARTICLE_WIRE
-} r_particle_type_t;
-
-typedef enum {
-	PARTICLE_FLAG_NONE,
-
-	/**
-	 * @brief Only for PARTICLE_BEAM - causes the beam to
-	 * repeat instead of stretch
-	 */
-	PARTICLE_FLAG_REPEAT = 1 << 0,
-
-	/**
-	 * @brief Always sort closest to camera
-	 */
-	PARTICLE_FLAG_NO_DEPTH = 1 << 1,
-} r_particle_flags_t;
-
-/**
- * @brief Particles are alpha-blended quads.
- */
-typedef struct r_particle_s {
-	r_particle_type_t type;
-	const r_media_t *media;
-	GLenum blend;
-	vec4_t color;
-	vec_t scale;
-	vec3_t org;
-//	vec3_t end;
-	r_particle_flags_t flags;
-	vec_t repeat_scale;
-} r_particle_t;
-
-#define MAX_PARTICLES		0x4000
-
 // renderer-specific material stuff
 typedef struct {
 	vec_t dhz;
@@ -277,7 +230,7 @@ typedef struct {
 	uint32_t time;
 	vec_t alpha;
 
-	r_particle_t particle;
+	//r_particle_t particle;
 } r_bsp_flare_t;
 
 /**
@@ -595,6 +548,30 @@ typedef struct r_model_s {
 #define IS_BSP_MODEL(m) (m && m->type == MOD_BSP)
 #define IS_BSP_INLINE_MODEL(m) (m && m->type == MOD_BSP_INLINE)
 #define IS_MESH_MODEL(m) (m && m->type == MOD_MESH)
+
+/**
+ * @brief Particles are alhpa blended quads.
+ */
+typedef struct {
+
+	/**
+	 * @brief The particle origin.
+	 */
+	vec3_t origin;
+
+	/**
+	 * @brief The particle size.
+	 */
+	vec_t size;
+
+	/**
+	 * @brief The particle color.
+	 */
+	color_t color;
+
+} r_particle_t;
+
+#define MAX_PARTICLES		0x4000
 
 /**
  * @brief Stains are low-resolution color effects added to the map's lightmap

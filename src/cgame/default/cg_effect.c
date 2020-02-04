@@ -175,66 +175,56 @@ void Cg_LoadEffects(void) {
  */
 static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 
-	vec3_t color;
-	cgi.ColorFromPalette(8, color);
+	color_t color;
+	cgi.ColorFromPalette(8, &color);
 
 	for (int32_t i = 0; i < e->num_origins; i++) {
-		cg_particles_t *ps;
 		cg_particle_t *p;
-		int32_t j;
 
-		ps = cgi.view->weather & WEATHER_RAIN ? cg_particles_rain : cg_particles_snow;
-
-		if (!(p = Cg_AllocParticle(ps))) {
+		if (!(p = Cg_AllocParticle())) {
 			break;
 		}
 
 		const vec_t *org = &e->origins[i * 3];
 
 		// setup the origin and end_z
-		for (j = 0; j < 3; j++) {
-			p->part.org[j] = org[j] + Randomc() * 16.0;
+		for (int32_t j = 0; j < 3; j++) {
+			p->origin[j] = org[j] + Randomc() * 16.0;
 		}
 
 		p->weather.end_z = e->end_z[i];
 
 		// keep particle z origin relatively close to the view origin
 		if (p->weather.end_z < cgi.view->origin[2]) {
-			if (p->part.org[2] - cgi.view->origin[2] > 512.0) {
-				p->part.org[2] = cgi.view->origin[2] + 256.0 + Randomf() * 256.0;
+			if (p->origin[2] - cgi.view->origin[2] > 512.0) {
+				p->origin[2] = cgi.view->origin[2] + 256.0 + Randomf() * 256.0;
 			}
 		}
 
 		if (cgi.view->weather & WEATHER_RAIN) {
-			VectorCopy(color, p->part.color);
-			p->part.color[3] = 0.4;
-			p->part.scale = 6.0;
-			// randomize the velocity and acceleration
-			for (j = 0; j < 2; j++) {
-				p->vel[j] = Randomc() * 2.0;
-				p->accel[j] = Randomc() * 2.0;
+			p->color = color;
+			p->color.a = 100;
+			p->size = 6.0;
+
+			for (int32_t j = 0; j < 2; j++) {
+				p->velocity[j] = Randomc() * 2.0;
+				p->acceleration[j] = Randomc() * 2.0;
 			}
-			p->vel[2] = -600.0;
+			p->velocity[2] = -600.0;
 		} else {
-			p->effects |= PARTICLE_EFFECT_COLOR;
-
-			VectorCopy(color, p->color_start);
-			p->color_start[3] = 0.6;
-
-			VectorCopy(color, p->color_end);
-			p->color_end[3] = 0.0;
+			p->color = color;
+			p->delta_color.a = -1;
 
 			// TODO: this may not work for extremely long snow tubes
 			p->lifetime = 500 + Randomf() * 2000;
 
-			p->part.scale = 1.5;
+			p->size = 1.5;
 
-			// randomize the velocity and acceleration
-			for (j = 0; j < 2; j++) {
-				p->vel[j] = Randomc() * 12.0;
-				p->accel[j] = Randomc() * 12.0;
+			for (int32_t j = 0; j < 2; j++) {
+				p->velocity[j] = Randomc() * 12.0;
+				p->acceleration[j] = Randomc() * 12.0;
 			}
-			p->vel[2] = -120.0;
+			p->velocity[2] = -120.0;
 		}
 	}
 }

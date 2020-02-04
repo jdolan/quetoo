@@ -25,13 +25,78 @@
 
 #define PARTICLE_GRAVITY 180.0
 
-#define CORONA_SCALE(radius, flicker) \
-	((radius) + ((radius) * (flicker) * sinf(0.09 * cgi.client->unclamped_time)))
+#define PARTICLE_TICKS          16.0
 
-cg_particle_t *Cg_AllocParticle(cg_particles_t *particles);
-cg_particles_t *Cg_AllocParticles(const char *name, r_image_type_t image_type, r_particle_type_t type);
-void Cg_InitParticles(void);
-void Cg_CompileParticleAtlas(void);
+/**
+ * @brief Client game particles can persist over multiple frames.
+ */
+typedef struct cg_particle_s {
+
+	/**
+	 * @brief The particle origin.
+	 */
+	vec3_t origin;
+
+	/**
+	 * @brief The particle velocity.
+	 */
+	vec3_t velocity;
+
+	/**
+	 * @brief The particle acceleration.
+	 */
+	vec3_t acceleration;
+
+	/**
+	 * @brief The particle color.
+	 */
+	color_t color;
+
+	/**
+	 * @brief The color to add each frame.
+	 */
+	color_t delta_color;
+
+	/**
+	 * @brief The particle scale, in world units.
+	 */
+	vec_t size;
+
+	/**
+	 * @brief The size to add each frame.
+	 */
+	vec_t delta_size;
+
+	/**
+	 * @brief Collide with solids.
+	 */
+	vec_t bounce;
+
+	/**
+	 * @brief The client time when the particle was allocated.
+	 */
+	uint32_t time;
+
+	/**
+	 * @brief The lifetime, after which point it is freed.
+	 */
+	uint32_t lifetime;
+
+	/**
+	 * @brief Particle type specified data.
+	 */
+	union {
+		struct {
+			vec_t end_z; // weather particles are freed at this Z
+		} weather;
+	};
+
+	struct cg_particle_s *prev;
+	struct cg_particle_s *next;
+} cg_particle_t;
+
+cg_particle_t *Cg_AllocParticle(void);
+cg_particle_t *Cg_FreeParticle(cg_particle_t *p);
 void Cg_FreeParticles(void);
 void Cg_AddParticles(void);
 #endif /* __CG_LOCAL_H__ */

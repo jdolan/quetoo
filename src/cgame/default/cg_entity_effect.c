@@ -49,19 +49,16 @@ static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle(cg_particles_inactive))) {
+	if (!(p = Cg_AllocParticle())) {
 		return;
 	}
 
-	p->lifetime = PARTICLE_IMMEDIATE;
+	VectorCopy(org, p->origin);
+	p->origin[2] += 50.0;
 
-	cgi.ColorFromPalette(11, p->part.color);
+	cgi.ColorFromPalette(11, &p->color);
 
-	p->part.scale = 10.0;
-
-	VectorCopy(org, p->part.org);
-	p->part.org[2] += 50.0;
-
+	p->size = 10.0;
 }
 
 /**
@@ -162,7 +159,10 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		cg_light_t l = { .radius = ent->current.termination[0] };
 
 		VectorCopy(e->origin, l.origin);
-		cgi.ColorFromPalette(ent->current.client, l.color);
+
+		color_t color;
+		cgi.ColorFromPalette(ent->current.client, &color);
+		ColorToVec3(color, l.color);
 
 		Cg_AddLight(&l);
 	}

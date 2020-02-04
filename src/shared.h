@@ -186,11 +186,11 @@ void PackTexcoords(const vec2_t in, u16vec2_t out);
 typedef union {
 	struct {
 		byte r, g, b, a;
-	}; // as separate components
+	};
 
-	byte bytes[4]; // as four bytes, for loopage
+	byte bytes[4];
 
-	uint32_t u32; // as a full uint32_t
+	uint32_t u32;
 } color_t;
 
 #define ColorFromRGBA(rr, gg, bb, aa) ({ color_t _c; _c.r = rr; _c.g = gg; _c.b = bb; _c.a = aa; _c; })

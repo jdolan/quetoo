@@ -474,15 +474,14 @@ void Cg_AddEmits(void) {
 
 		if (e->flags & EMIT_CORONA) {
 
-			cg_particle_t *p = Cg_AllocParticle(cg_particles_corona);
-
-			if (p) {
-				VectorCopy(e->color, p->part.color);
-				VectorCopy(e->org, p->part.org);
-
-				p->lifetime = PARTICLE_IMMEDIATE;
-				p->part.scale = CORONA_SCALE(e->radius, e->flicker);
-			}
+//			cg_particle_t *p = Cg_AllocParticle();
+//
+//			if (p) {
+//				VectorCopy(e->color, p->color);
+//				VectorCopy(e->org, p->origin);
+//
+//				p->part.scale = CORONA_SCALE(e->radius, e->flicker);
+//			}
 		}
 
 		// then add emits with timed events if they are due to run

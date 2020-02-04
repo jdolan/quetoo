@@ -556,11 +556,11 @@ typedef struct cg_import_s {
 	void (*AddSample)(const s_play_sample_t *play);
 
 	/**
-	 * @brief Resolves an RGB floating point color from the specified palette index.
+	 * @brief Resolves a color from the specified palette index.
 	 * @param c The palette index.
-	 * @param color The RGB floating point color.
+	 * @param color The color result.
 	 */
-	void (*ColorFromPalette)(uint8_t c, vec3_t color);
+	void (*ColorFromPalette)(uint8_t c, color_t *out);
 
 	/**
 	 * @brief Query if a box is visible on screen.

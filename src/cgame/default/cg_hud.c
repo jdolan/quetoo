@@ -853,11 +853,14 @@ static void Cg_AddBlendPalette(vec4_t blend, const uint8_t color, const vec_t al
 		return;
 	}
 
-	vec4_t blend_color;
-	cgi.ColorFromPalette(color, blend_color);
-	blend_color[3] = alpha;
+	color_t c;
+	cgi.ColorFromPalette(color, &c);
 
-	Cg_AddBlend(blend, blend_color);
+	vec4_t v;
+	ColorToVec3(c, v);
+	v[3] = alpha;
+
+	Cg_AddBlend(blend, v);
 }
 
 /**

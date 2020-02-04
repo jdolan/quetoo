@@ -122,14 +122,12 @@ static void R_DrawBspLightgrid(void) {
 				}
 
 				r_particle_t p = {
-					.type = PARTICLE_DEFAULT,
-					.org = { s + 0.5, t + 0.5, u + 0.5 },
-					.color = { r, g, b, 255 },
-					.scale = BSP_LIGHTGRID_LUXEL_SIZE
+					.origin = { s + 0.5, t + 0.5, u + 0.5 },
+					.size = BSP_LIGHTGRID_LUXEL_SIZE,
+					.color = { MIN(r, 255), MIN(g, 255), MIN(b, 255), 255 },
 				};
 
-				VectorMA(r_model_state.world->bsp->lightgrid->mins, BSP_LIGHTGRID_LUXEL_SIZE, p.org, p.org);
-				VectorScale(p.color, 1.0 / 255.0, p.color);
+				VectorMA(r_model_state.world->bsp->lightgrid->mins, BSP_LIGHTGRID_LUXEL_SIZE, p.origin, p.origin);
 
 				R_AddParticle(&p);
 			}

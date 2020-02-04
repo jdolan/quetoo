@@ -28,36 +28,34 @@
  */
 static void Cg_ItemRespawnEffect(const vec3_t org) {
 
-	vec3_t color;
-	cgi.ColorFromPalette(110, color);
+	color_t color;
+	cgi.ColorFromPalette(110, &color);
 
 	for (int32_t i = 0; i < 64; i++) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(cg_particles_default))) {
+		if (!(p = Cg_AllocParticle())) {
 			break;
 		}
 
+		p->origin[0] = org[0] + Randomc() * 8.0;
+		p->origin[1] = org[1] + Randomc() * 8.0;
+		p->origin[2] = org[2] + 8.0 + Randomf() * 8.0;
+
+		p->velocity[0] = Randomc() * 48.0;
+		p->velocity[1] = Randomc() * 48.0;
+		p->velocity[2] = Randomf() * 48.0;
+
+		p->acceleration[0] = p->acceleration[1] = 0;
+		p->acceleration[2] = -PARTICLE_GRAVITY * 0.1;
+
 		p->lifetime = 500 + Randomf() * 100;
-		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-		VectorCopy(color, p->color_start);
-		VectorCopy(color, p->color_end);
-		p->color_end[3] = 0.0;
+		p->color = color;
+		p->delta_color.a = -1;
 
-		p->scale_start = 1.0;
-		p->scale_end = 0.8;
-
-		p->part.org[0] = org[0] + Randomc() * 8.0;
-		p->part.org[1] = org[1] + Randomc() * 8.0;
-		p->part.org[2] = org[2] + 8.0 + Randomf() * 8.0;
-
-		p->vel[0] = Randomc() * 48.0;
-		p->vel[1] = Randomc() * 48.0;
-		p->vel[2] = Randomf() * 48.0;
-
-		p->accel[0] = p->accel[1] = 0;
-		p->accel[2] = -PARTICLE_GRAVITY * 0.1;
+		p->size = 1.0;
+		p->delta_size = -0.1;
 	}
 
 	cg_light_t l;
@@ -74,36 +72,34 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
  */
 static void Cg_ItemPickupEffect(const vec3_t org) {
 
-	vec3_t color;
-	cgi.ColorFromPalette(110, color);
+	color_t color;
+	cgi.ColorFromPalette(110, &color);
 
 	for (int32_t i = 0; i < 32; i++) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(cg_particles_default))) {
+		if (!(p = Cg_AllocParticle())) {
 			break;
 		}
 
+		p->origin[0] = org[0] + Randomc() * 8.0;
+		p->origin[1] = org[1] + Randomc() * 8.0;
+		p->origin[2] = org[2] + 8 + Randomc() * 16.0;
+
+		p->velocity[0] = Randomc() * 16.0;
+		p->velocity[1] = Randomc() * 16.0;
+		p->velocity[2] = Randomf() * 128.0;
+
+		p->acceleration[0] = p->acceleration[1] = 0;
+		p->acceleration[2] = PARTICLE_GRAVITY * 0.2;
+
 		p->lifetime = 500 + Randomf() * 100;
-		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-		VectorCopy(color, p->color_start);
-		VectorCopy(color, p->color_end);
-		p->color_end[3] = 0.0;
+		p->color = color;
+		p->delta_color.a = -p->lifetime / PARTICLE_TICKS;
 
-		p->scale_start = 1.0;
-		p->scale_end = 0.8;
-
-		p->part.org[0] = org[0] + Randomc() * 8.0;
-		p->part.org[1] = org[1] + Randomc() * 8.0;
-		p->part.org[2] = org[2] + 8 + Randomc() * 16.0;
-
-		p->vel[0] = Randomc() * 16.0;
-		p->vel[1] = Randomc() * 16.0;
-		p->vel[2] = Randomf() * 128.0;
-
-		p->accel[0] = p->accel[1] = 0;
-		p->accel[2] = PARTICLE_GRAVITY * 0.2;
+		p->size = 1.0;
+		p->delta_size = 0.2 * -p->lifetime / PARTICLE_TICKS;
 	}
 
 	cg_light_t l;
@@ -120,36 +116,34 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
  */
 static void Cg_TeleporterEffect(const vec3_t org) {
 
-	vec3_t color;
-	cgi.ColorFromPalette(110, color);
+	color_t color;
+	cgi.ColorFromPalette(110, &color);
 
 	for (int32_t i = 0; i < 64; i++) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(cg_particles_default))) {
+		if (!(p = Cg_AllocParticle())) {
 			break;
 		}
 
+		p->origin[0] = org[0] + Randomc() * 16.0;
+		p->origin[1] = org[1] + Randomc() * 16.0;
+		p->origin[2] = org[2] + 8.0 + Randomf() * 24.0;
+
+		p->velocity[0] = Randomc() * 24.0;
+		p->velocity[1] = Randomc() * 24.0;
+		p->velocity[2] = Randomf() * 64.0;
+
+		p->acceleration[0] = p->acceleration[1] = 0;
+		p->acceleration[2] = -PARTICLE_GRAVITY * 0.1;
+
 		p->lifetime = 500;
-		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-		VectorCopy(color, p->color_start);
-		VectorCopy(color, p->color_end);
-		p->color_end[3] = 0.0;
+		p->color = color;
+		p->delta_color.a = -p->lifetime / PARTICLE_TICKS;
 
-		p->scale_start = 1.0;
-		p->scale_end = 0.8;
-
-		p->part.org[0] = org[0] + Randomc() * 16.0;
-		p->part.org[1] = org[1] + Randomc() * 16.0;
-		p->part.org[2] = org[2] + 8.0 + Randomf() * 24.0;
-
-		p->vel[0] = Randomc() * 24.0;
-		p->vel[1] = Randomc() * 24.0;
-		p->vel[2] = Randomf() * 64.0;
-
-		p->accel[0] = p->accel[1] = 0;
-		p->accel[2] = -PARTICLE_GRAVITY * 0.1;
+		p->size = 1.0;
+		p->delta_size = 0.2 * -p->lifetime / PARTICLE_TICKS;
 	}
 
 	cg_light_t l;

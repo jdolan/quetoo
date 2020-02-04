@@ -47,7 +47,7 @@ void Img_InitPalette(void);
 /**
  * @brief Resolves an RGB color value for the given value.
  */
-void Img_ColorFromPalette(uint8_t c, vec_t *res);
+void Img_ColorFromPalette(uint8_t c, color_t *out);
 
 /**
 * @brief Write pixel data to a PNG file.

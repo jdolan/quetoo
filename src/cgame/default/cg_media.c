@@ -48,27 +48,6 @@ s_sample_t *cg_sample_underwater;
 s_sample_t *cg_sample_hits[2];
 s_sample_t *cg_sample_gib;
 
-cg_particles_t *cg_particles_default;
-cg_particles_t *cg_particles_corona;
-cg_particles_t *cg_particles_explosion;
-cg_particles_t *cg_particles_debris[4];
-cg_particles_t *cg_particles_teleporter;
-cg_particles_t *cg_particles_smoke;
-cg_particles_t *cg_particles_steam;
-cg_particles_t *cg_particles_bubble;
-cg_particles_t *cg_particles_rain;
-cg_particles_t *cg_particles_snow;
-cg_particles_t *cg_particles_beam;
-cg_particles_t *cg_particles_rail_wake;
-cg_particles_t *cg_particles_tracer;
-cg_particles_t *cg_particles_blood;
-cg_particles_t *cg_particles_lightning;
-cg_particles_t *cg_particles_rope;
-cg_particles_t *cg_particles_flame;
-cg_particles_t *cg_particles_spark;
-cg_particles_t *cg_particles_inactive;
-cg_particles_t *cg_particles_ripple[3];
-
 r_media_t *cg_stain_explosion;
 r_media_t *cg_stain_lightning;
 r_media_t *cg_stain_blood;
@@ -232,39 +211,7 @@ void Cg_UpdateMedia(void) {
 
 	Cg_InitFootsteps();
 
-	Cg_InitParticles();
-
-	cg_particles_default = Cg_AllocParticles("@particles/particle", IT_EFFECT | IT_MASK_MULTIPLY, PARTICLE_DEFAULT);
-	cg_particles_corona = Cg_AllocParticles("@particles/corona", IT_EFFECT | IT_MASK_MULTIPLY, PARTICLE_CORONA);
-	cg_particles_explosion = Cg_AllocParticles("@particles/explosion", IT_EFFECT | IT_MASK_MULTIPLY, PARTICLE_EXPLOSION);
-
-	for (uint32_t i = 0; i < lengthof(cg_particles_debris); i++) {
-		g_snprintf(name, sizeof(name), "@particles/debris_%" PRIu32, i);
-		cg_particles_debris[i] = Cg_AllocParticles(name, IT_EFFECT | IT_MASK_MULTIPLY, PARTICLE_ROLL);
-	}
-
-	cg_particles_teleporter = Cg_AllocParticles("@particles/teleport", IT_EFFECT | IT_MASK_MULTIPLY, PARTICLE_SPLASH);
-	cg_particles_smoke = Cg_AllocParticles("@particles/smoke", IT_EFFECT | IT_MASK_MULTIPLY, PARTICLE_ROLL);
-	cg_particles_steam = Cg_AllocParticles("@particles/steam", IT_EFFECT | IT_MASK_MULTIPLY, PARTICLE_ROLL);
-	cg_particles_bubble = Cg_AllocParticles("@particles/bubble", IT_EFFECT | IT_MASK_MULTIPLY, PARTICLE_BUBBLE);
-	cg_particles_rain = Cg_AllocParticles("@particles/rain", IT_EFFECT | IT_MASK_MULTIPLY, PARTICLE_WEATHER);
-	cg_particles_snow = Cg_AllocParticles("@particles/snow", IT_EFFECT | IT_MASK_MULTIPLY, PARTICLE_WEATHER);
-	cg_particles_beam = Cg_AllocParticles("particles/beam", IT_EFFECT | IT_MASK_MULTIPLY, PARTICLE_BEAM);
-	cg_particles_rail_wake = Cg_AllocParticles("@particles/rail_wake", IT_EFFECT | IT_MASK_MULTIPLY, PARTICLE_ROLL);
-	cg_particles_tracer = Cg_AllocParticles("particles/tracer", IT_EFFECT | IT_MASK_MULTIPLY, PARTICLE_SPARK);
-	cg_particles_blood = Cg_AllocParticles("@particles/blood", IT_EFFECT | IT_MASK_MULTIPLY, PARTICLE_ROLL);
-	cg_particles_lightning = Cg_AllocParticles("particles/lightning", IT_EFFECT | IT_MASK_MULTIPLY, PARTICLE_BEAM);
-	cg_particles_rope = Cg_AllocParticles("particles/rope", IT_EFFECT, PARTICLE_WIRE);
-	cg_particles_flame = Cg_AllocParticles("@particles/flame", IT_EFFECT | IT_MASK_MULTIPLY, PARTICLE_ROLL);
-	cg_particles_spark = Cg_AllocParticles("@particles/spark", IT_EFFECT | IT_MASK_MULTIPLY, PARTICLE_SPARK);
-	cg_particles_inactive = Cg_AllocParticles("@particles/inactive", IT_EFFECT | IT_MASK_MULTIPLY, PARTICLE_DEFAULT);
-
-	for (uint32_t i = 0; i < lengthof(cg_particles_ripple); i++) {
-		g_snprintf(name, sizeof(name), "@particles/ripple_%" PRIu32, i);
-		cg_particles_ripple[i] = Cg_AllocParticles(name, IT_EFFECT | IT_MASK_MULTIPLY, PARTICLE_SPLASH);
-	}
-
-	Cg_CompileParticleAtlas();
+	Cg_FreeParticles();
 
 	Cg_InitStains();
 
