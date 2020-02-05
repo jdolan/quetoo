@@ -96,10 +96,10 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
 		p->lifetime = 500 + Randomf() * 100;
 
 		p->color = color;
-		p->delta_color.a = -p->lifetime / PARTICLE_TICKS;
+		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = 1.0;
-		p->delta_size = 0.2 * -p->lifetime / PARTICLE_TICKS;
+		p->delta_size = 0.2 * -p->lifetime / PARTICLE_FRAME;
 	}
 
 	cg_light_t l;
@@ -140,10 +140,10 @@ static void Cg_TeleporterEffect(const vec3_t org) {
 		p->lifetime = 500;
 
 		p->color = color;
-		p->delta_color.a = -p->lifetime / PARTICLE_TICKS;
+		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = 1.0;
-		p->delta_size = 0.2 * -p->lifetime / PARTICLE_TICKS;
+		p->delta_size = 0.2 * -p->lifetime / PARTICLE_FRAME;
 	}
 
 	cg_light_t l;

@@ -590,7 +590,7 @@ static void Cg_DrawTeamBanner(const player_state_t *ps) {
 	x = cgi.view->viewport.x;
 	y = cgi.view->viewport.y + cgi.view->viewport.h - 64;
 
-	cgi.DrawFill(x, y, cgi.view->viewport.w, 64, color.u32, -1.0);
+	cgi.DrawFill(x, y, cgi.view->viewport.w, 64, color.abgr, -1.0);
 }
 
 /**
@@ -974,7 +974,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 		}
 
 		cgi.DrawFill(cgi.view->viewport.x, cgi.view->viewport.y,
-		             cgi.view->viewport.w, cgi.view->viewport.h, final_color.u32, -1.0);
+		             cgi.view->viewport.w, cgi.view->viewport.h, final_color.abgr, -1.0);
 	}
 }
 

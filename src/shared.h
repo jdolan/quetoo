@@ -190,12 +190,12 @@ typedef union {
 
 	byte bytes[4];
 
-	uint32_t u32;
+	uint32_t abgr;
 } color_t;
 
 #define ColorFromRGBA(rr, gg, bb, aa) ({ color_t _c; _c.r = rr; _c.g = gg; _c.b = bb; _c.a = aa; _c; })
 #define ColorFromRGB(r, g, b) ColorFromRGBA(r, g, b, 255)
-#define ColorFromU32(v) { color_t _c; _c.u32 = v; _c; }
+#define ColorFromU32(v) { color_t _c; _c.abgr = v; _c; }
 
 /**
  * @brief Color manipulating.

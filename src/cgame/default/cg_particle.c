@@ -26,6 +26,8 @@ static cg_particle_t *cg_active_particles; // list of active particles
 
 static cg_particle_t cg_particles[MAX_PARTICLES];
 
+static uint32_t cg_particle_time;
+
 /**
  * @brief Pushes the particle onto the head of specified list.
  */
@@ -82,10 +84,10 @@ cg_particle_t *Cg_AllocParticle() {
 
 	memset(p, 0, sizeof(cg_particle_t));
 
-	p->color.u32 = 0xffffffff;
+	p->color.abgr = 0xffffffff;
 	p->size = 1.0;
 
-	p->time = cgi.client->unclamped_time;
+	p->time = p->timestamp = cgi.client->unclamped_time;
 
 	Cg_PushParticle(p, &cg_active_particles);
 
@@ -119,6 +121,8 @@ void Cg_FreeParticles(void) {
 	for (size_t i = 0; i < lengthof(cg_particles); i++) {
 		Cg_PushParticle(&cg_particles[i], &cg_free_particles);
 	}
+
+	cg_particle_time = cgi.client->unclamped_time;
 }
 
 /**
@@ -145,70 +149,53 @@ static void Cg_ClipVelocity(const vec3_t in, const vec3_t normal, vec3_t out, ve
  * @brief Adds all particles that are active for this frame to the view.
  */
 void Cg_AddParticles(void) {
-	static uint32_t ticks;
 
 	if (!cg_add_particles->integer) {
 		return;
 	}
 
-	if (ticks > cgi.client->unclamped_time) {
-		ticks = 0;
-	}
-
-	const vec_t delta = (cgi.client->unclamped_time - ticks) * 0.001;
-	const vec_t delta_squared = delta * delta;
-
-	ticks = cgi.client->unclamped_time;
+	cg_particle_time = cgi.client->unclamped_time;
 
 	cg_particle_t *p = cg_active_particles;
 	while (p) {
-		// update any particles allocated in previous frames
-		if (p->time < cgi.client->unclamped_time) {
+		if (cg_particle_time - p->timestamp >= PARTICLE_FRAME) {
 
-			// get rid of expired particles
-			if (cgi.client->unclamped_time > p->time + p->lifetime) {
-				p = Cg_FreeParticle(p);
-				continue;
+			const vec_t delta = (cg_particle_time - p->timestamp) * 0.001;
+
+			vec3_t old_origin;
+			VectorCopy(p->origin, old_origin);
+
+			VectorMA(p->velocity, delta, p->acceleration, p->velocity);
+			VectorMA(p->origin, delta, p->velocity, p->origin);
+
+			if (p->bounce && cg_particle_quality->integer) {
+				const cm_trace_t tr = cgi.Trace(old_origin, p->origin, NULL, NULL, 0, MASK_SOLID);
+				if (tr.fraction < 1.0) {
+					Cg_ClipVelocity(p->velocity, tr.plane.normal, p->velocity, p->bounce);
+					VectorCopy(tr.end, p->origin);
+				}
 			}
 
-			// delta color
 			for (size_t i = 0; i < lengthof(p->color.bytes); i++) {
 				const int32_t byte = p->color.bytes[i] + (int8_t) p->delta_color.bytes[i];
 				p->color.bytes[i] = Clamp(byte, 0, 255);
 			}
 
-			// delta size
 			p->size += p->delta_size;
+			p->timestamp = cg_particle_time;
 		}
 
-		// free up particles that have disappeared
-		if (p->color.a == 0 || p->size <= 0.0) {
+		// free expired particles
+		if (cgi.client->unclamped_time > p->time + p->lifetime) {
 			p = Cg_FreeParticle(p);
 			continue;
 		}
 
-		vec3_t old_origin;
-		if (p->bounce && cg_particle_quality->integer) {
-			VectorCopy(p->origin, old_origin);
+		// or particles that have disappeared
+		if (p->color.a == 0 || p->size <= 0.0) {
+			p = Cg_FreeParticle(p);
+			continue;
 		}
-
-		for (int32_t i = 0; i < 3; i++) { // update origin and acceleration
-			p->origin[i] += p->velocity[i] * delta + p->acceleration[i] * delta_squared;
-			p->velocity[i] += p->acceleration[i] * delta;
-		}
-
-		if (p->bounce && cg_particle_quality->integer) {
-			const vec_t half_size = p->size * 0.5;
-			const vec3_t mins = { -half_size, -half_size, -half_size };
-			const vec3_t maxs = { half_size, half_size, half_size };
-			const cm_trace_t tr = cgi.Trace(old_origin, p->origin, mins, maxs, 0, MASK_SOLID);
-
-			if (tr.fraction < 1.0) {
-				Cg_ClipVelocity(p->velocity, tr.plane.normal, p->velocity, p->bounce);
-				VectorCopy(tr.end, p->origin);
-			}
-		}
-
 
 		cgi.AddParticle(&(r_particle_t) {
 			.origin = { p->origin[0], p->origin[1], p->origin[2] },

@@ -180,7 +180,7 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 			.a = (fa * 255)
 		};
 
-		cgi.DrawFill(x, y, fw, fh, c.u32, -1.0);
+		cgi.DrawFill(x, y, fw, fh, c.abgr, -1.0);
 	}
 
 	cgi.BindFont("small", &cw, &ch);

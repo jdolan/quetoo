@@ -74,7 +74,7 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 			p->lifetime = 1000 - (Randomf() * 100);
 
 			cgi.ColorFromPalette(6 + (Randomr(0, 4)), &p->color);
-			p->delta_color.a = -p->lifetime / PARTICLE_TICKS;
+			p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 			p->size = 3.0;
 			p->delta_size = -0.1;
@@ -92,7 +92,7 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 		cgi.ColorFromPalette(6 + (Randomr(0, 8)), &p->color);
 		p->color.a = 200;
 
-		p->delta_color.a = p->color.a * -p->lifetime / PARTICLE_TICKS;
+		p->delta_color.a = p->color.a * -p->lifetime / PARTICLE_FRAME;
 
 		p->size = 1.5;
 		p->delta_size = 0.1;
@@ -153,10 +153,10 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
 		p->lifetime = 1000 + Randomf() * 800;
 
-		cgi.ColorFromPalette(10 + Random() & 0x0f, &p->color);
-		p->delta_color.a = -p->lifetime / PARTICLE_TICKS;
+		p->color.abgr = 0x40808080;
+		p->delta_color.a = -2;
 
-		p->size = 1.0;
+		p->size = 10.0;
 		p->delta_size = 0.1;
 	}
 }
@@ -188,7 +188,7 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
 	cgi.ColorFromPalette(220 + (Randomr(0, 8)), &p->color);
 	p->color.a = 200;
-	p->delta_color.a = p->color.a * -p->lifetime / PARTICLE_TICKS;
+	p->delta_color.a = p->color.a * -p->lifetime / PARTICLE_FRAME;
 
 	p->size = 10.0 + Randomc();
 
@@ -231,10 +231,10 @@ void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
 	cgi.ColorFromPalette(6 + (Randomr(0, 8)), &p->color);
 	p->color.a = 50;
 
-	p->delta_color.a = -p->lifetime / PARTICLE_TICKS;
+	p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 	p->size = 8.0;
-	p->delta_size = 20.0 / p->lifetime / PARTICLE_TICKS;
+	p->delta_size = 20.0 / p->lifetime / PARTICLE_FRAME;
 }
 
 /**
@@ -276,10 +276,10 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, vec_t density) {
 
 		cgi.ColorFromPalette(6 + (Randomr(0, 4)), &p->color);
 
-		p->delta_color.a = -p->lifetime / PARTICLE_TICKS;
+		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = 1.5;
-		p->delta_size = p->size - (0.6 + Randomf() * 0.2) * -p->lifetime / PARTICLE_TICKS;
+		p->delta_size = p->size - (0.6 + Randomf() * 0.2) * -p->lifetime / PARTICLE_FRAME;
 	}
 }
 
@@ -293,11 +293,11 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 
 	vec3_t delta;
 
-	vec_t step = 1.0;
+	vec_t step = 4.0;
 
 	if (cgi.PointContents(end) & MASK_LIQUID) {
 		Cg_BubbleTrail(start, end, 12.0);
-		step = 2.0;
+		step = 6.0;
 	}
 
 	vec_t d = 0.0;
@@ -310,18 +310,15 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 			break;
 		}
 
-		p->lifetime = 200 + Randomf() * 100;
+		p->lifetime = 250 + Randomf() * 10;
 
 		VectorMA(start, d, delta, p->origin);
-		VectorScale(delta, -24.0, p->velocity);
-		VectorScale(delta, 24.0, p->acceleration);
 
 		p->color = color;
-		p->delta_color.u32 = 0x01010100;
-		p->delta_color.a = -p->lifetime / PARTICLE_TICKS;
+		p->color.a = 200;
+		p->delta_color.a = -15;
+		p->size = 4.0;
 
-		p->size = 3.0;
-		p->delta_size = 1.5 * -p->lifetime / PARTICLE_TICKS;
 		d += step;
 	}
 
@@ -370,11 +367,11 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 
 		p->lifetime = 75 + Randomf() * 75;
 
-		p->color.u32 = 0xffaa44ff;
-		p->delta_color.a = -1;
+		p->color.abgr = 0xff44aaff;
+		p->delta_color.a = -10;
 
 		p->size = 3.0;
-		p->delta_size = p->size * -p->lifetime / PARTICLE_TICKS;
+		p->delta_size = p->size * -p->lifetime / PARTICLE_FRAME;
 
 		d += 1.0;
 	}
@@ -548,9 +545,9 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 					p->lifetime = 600 + Randomf() * 300;
 
 					if (i % 3 == 0) {
-						p->color.u32 = 0xffffffff;
+						p->color.abgr = 0xffffffff;
 					} else {
-						p->color.u32 = 0xf0f0ffff;
+						p->color.abgr = 0xffffaaaa;
 					}
 
 					p->bounce = 1.15;
@@ -627,7 +624,7 @@ static void Cg_TeleporterTrail(cl_entity_t *ent, const color_t color) {
 		p->lifetime = 450;
 
 		p->color = color;
-		p->delta_color.a = -p->lifetime / PARTICLE_TICKS;
+		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = 2.0;
 	}
@@ -656,10 +653,10 @@ static void Cg_SpawnPointTrail(cl_entity_t *ent, const color_t color) {
 		p->lifetime = 450;
 
 		p->color = color;
-		p->delta_color.a = -p->lifetime / PARTICLE_TICKS;
+		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = 16.0;
-		p->delta_size = 12.0 * -p->lifetime / PARTICLE_TICKS;
+		p->delta_size = 12.0 * -p->lifetime / PARTICLE_FRAME;
 	}
 }
 
@@ -699,8 +696,8 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 			});
 		}
 
-		p->color.u32 = 0x80000080;
-		p->delta_color.a = -p->lifetime / PARTICLE_TICKS;
+		p->color.abgr = 0x80000080;
+		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = Randomfr(3.0, 7.0);
 

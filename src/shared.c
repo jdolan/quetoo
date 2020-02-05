@@ -1314,12 +1314,15 @@ _Bool ColorFromHex(const char *s, color_t *color) {
 		g_strlcat(buffer, "ff", sizeof(buffer));
 	}
 
-	if (sscanf(buffer, "%x", &color->u32) != 1) {
+	if (sscanf(buffer, "%x", &color->abgr) != 1) {
 		return false;
 	}
 
 #if G_BYTE_ORDER == G_LITTLE_ENDIAN
-	color->u32 = (((color->u32 & 0xff000000) >> 24) | ((color->u32 & 0x00ff0000) >> 8) | ((color->u32 & 0x0000ff00) << 8) | ((color->u32 & 0x000000ff) << 24));
+	color->abgr = (((color->abgr & 0xff000000) >> 24) |
+				   ((color->abgr & 0x00ff0000) >> 8) |
+				   ((color->abgr & 0x0000ff00) << 8) |
+				   ((color->abgr & 0x000000ff) << 24));
 #endif
 
 	return color;

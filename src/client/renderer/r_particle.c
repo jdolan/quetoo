@@ -39,6 +39,8 @@ typedef struct {
 	GLuint vertex_array;
 	GLuint vertex_buffer;
 
+	r_image_t *particle;
+
 } r_particles_t;
 
 static r_particles_t r_particles;
@@ -54,6 +56,8 @@ static struct {
 
 	GLint projection;
 	GLint view;
+
+	GLint viewport;
 
 	GLint texture_diffuse;
 
@@ -78,7 +82,7 @@ void R_AddParticle(const r_particle_t *p) {
 	VectorCopy(p->origin, out->position);
 	out->position[3] = p->size;
 
-	*(int32_t *) &out->color = p->color.u32;
+	*(int32_t *) &out->color = p->color.abgr;
 
 	r_view.particles[r_view.num_particles++] = *p;
 }
@@ -91,7 +95,7 @@ void R_DrawParticles(void) {
 	glDepthMask(GL_FALSE);
 
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_ONE, GL_ONE);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_PROGRAM_POINT_SIZE);
@@ -100,6 +104,8 @@ void R_DrawParticles(void) {
 
 	glUniformMatrix4fv(r_particle_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection3D.m);
 	glUniformMatrix4fv(r_particle_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
+
+	glUniform2f(r_particle_program.viewport, r_view.viewport.w, r_view.viewport.h);
 
 	glUniform1f(r_particle_program.brightness, r_brightness->value);
 	glUniform1f(r_particle_program.contrast, r_contrast->value);
@@ -113,7 +119,7 @@ void R_DrawParticles(void) {
 	glEnableVertexAttribArray(r_particle_program.in_position);
 	glEnableVertexAttribArray(r_particle_program.in_color);
 
-	glBindTexture(GL_TEXTURE_2D, R_LoadImage("particles/particle", IT_EFFECT)->texnum);
+	glBindTexture(GL_TEXTURE_2D, r_particles.particle->texnum);
 	glDrawArrays(GL_POINTS, 0, r_view.num_particles);
 
 	glDisable(GL_PROGRAM_POINT_SIZE);
@@ -123,6 +129,8 @@ void R_DrawParticles(void) {
 	glDisable(GL_BLEND);
 
 	glDepthMask(GL_TRUE);
+
+	R_GetError(NULL);
 }
 
 /**
@@ -144,6 +152,8 @@ static void R_InitParticleProgram(void) {
 
 	r_particle_program.projection = glGetUniformLocation(r_particle_program.name, "projection");
 	r_particle_program.view = glGetUniformLocation(r_particle_program.name, "view");
+
+	r_particle_program.viewport = glGetUniformLocation(r_particle_program.name, "viewport");
 
 	r_particle_program.texture_diffuse = glGetUniformLocation(r_particle_program.name, "texture_diffuse");
 
@@ -178,6 +188,8 @@ void R_InitParticles(void) {
 	glBindVertexArray(0);
 
 	R_GetError(NULL);
+
+	r_particles.particle = R_LoadImage("particles/particle", IT_PROGRAM);
 
 	R_InitParticleProgram();
 }

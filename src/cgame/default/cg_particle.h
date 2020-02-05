@@ -25,7 +25,7 @@
 
 #define PARTICLE_GRAVITY 180.0
 
-#define PARTICLE_TICKS          16.0
+#define PARTICLE_FRAME 16
 
 /**
  * @brief Client game particles can persist over multiple frames.
@@ -83,13 +83,9 @@ typedef struct cg_particle_s {
 	uint32_t lifetime;
 
 	/**
-	 * @brief Particle type specified data.
+	 * @brief The time when this particle was last updated.
 	 */
-	union {
-		struct {
-			vec_t end_z; // weather particles are freed at this Z
-		} weather;
-	};
+	uint32_t timestamp;
 
 	struct cg_particle_s *prev;
 	struct cg_particle_s *next;

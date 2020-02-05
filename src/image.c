@@ -120,7 +120,7 @@ void Img_ColorFromPalette(uint8_t c, color_t *out) {
 		Img_InitPalette();
 	}
 
-	out->u32 = img_palette[c];
+	out->abgr = img_palette[c];
 }
 
 /**

@@ -175,9 +175,6 @@ void Cg_LoadEffects(void) {
  */
 static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 
-	color_t color;
-	cgi.ColorFromPalette(8, &color);
-
 	for (int32_t i = 0; i < e->num_origins; i++) {
 		cg_particle_t *p;
 
@@ -187,24 +184,22 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 
 		const vec_t *org = &e->origins[i * 3];
 
-		// setup the origin and end_z
 		for (int32_t j = 0; j < 3; j++) {
 			p->origin[j] = org[j] + Randomc() * 16.0;
 		}
 
-		p->weather.end_z = e->end_z[i];
-
 		// keep particle z origin relatively close to the view origin
-		if (p->weather.end_z < cgi.view->origin[2]) {
+		if (e->end_z[i] < cgi.view->origin[2]) {
 			if (p->origin[2] - cgi.view->origin[2] > 512.0) {
 				p->origin[2] = cgi.view->origin[2] + 256.0 + Randomf() * 256.0;
 			}
 		}
 
+		p->lifetime = 3000 + Randomf() * 500;
+
 		if (cgi.view->weather & WEATHER_RAIN) {
-			p->color = color;
-			p->color.a = 100;
-			p->size = 6.0;
+			p->color.abgr = 0x80909090;
+			p->size = 1.0;
 
 			for (int32_t j = 0; j < 2; j++) {
 				p->velocity[j] = Randomc() * 2.0;
@@ -212,12 +207,7 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 			}
 			p->velocity[2] = -600.0;
 		} else {
-			p->color = color;
-			p->delta_color.a = -1;
-
-			// TODO: this may not work for extremely long snow tubes
-			p->lifetime = 500 + Randomf() * 2000;
-
+			p->color.abgr = 0x90f0f0f0;
 			p->size = 1.5;
 
 			for (int32_t j = 0; j < 2; j++) {
@@ -226,6 +216,9 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 			}
 			p->velocity[2] = -120.0;
 		}
+
+		// free the particle roughly when it will reach the floor
+		p->lifetime = 1000 * (p->origin[2] - e->end_z[i]) / fabsf(p->velocity[2]);
 	}
 }
 
