@@ -831,11 +831,11 @@ _Bool G_IsStationary(const g_entity_t *ent) {
 		return false;
 	}
 
-	if (!VectorCompare(vec3_origin, ent->locals.velocity)) {
+	if (!VectorCompare(vec3_zero().xyz, ent->locals.velocity)) {
 		return false;
 	}
 
-	if (!VectorCompare(vec3_origin, ent->locals.avelocity)) {
+	if (!VectorCompare(vec3_zero().xyz, ent->locals.avelocity)) {
 		return false;
 	}
 

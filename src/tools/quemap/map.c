@@ -635,7 +635,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 			// keep this side
 			side = brush->original_sides + brush->num_sides;
 			side->plane_num = plane_num;
-			side->texinfo = TexinfoForBrushTexture(&planes[plane_num], &td, vec3_origin);
+			side->texinfo = TexinfoForBrushTexture(&planes[plane_num], &td, vec3_zero().xyz);
 
 			// save the td off in case there is an origin brush and we have to recalculate the texinfo
 			brush_textures[num_brush_sides] = td;
@@ -781,7 +781,7 @@ static entity_t *ParseEntity(parser_t *parser) {
 		VectorForKey(entity, "origin", origin, NULL);
 
 		// if there was an origin brush, offset all of the planes and texinfo
-		if (!VectorCompare(origin, vec3_origin)) {
+		if (!VectorCompare(origin, vec3_zero().xyz)) {
 			for (int32_t i = 0; i < entity->num_brushes; i++) {
 				brush_t *b = &brushes[entity->first_brush + i];
 				for (int32_t j = 0; j < b->num_sides; j++) {

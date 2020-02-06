@@ -100,7 +100,7 @@ static void Cg_ViewKick(const pm_cmd_t *cmd) {
 		VectorAdd(cg_kick.kick, kick, cg_kick.kick);
 		VectorAdd(cgi.client->angles, kick, cgi.client->angles);
 
-	} else if (!VectorCompare(cg_kick.kick, vec3_origin)) {
+	} else if (!VectorCompare(cg_kick.kick, vec3_zero().xyz)) {
 
 		if (cgi.client->frame.ps.pm_state.type == PM_DEAD) {
 			return;

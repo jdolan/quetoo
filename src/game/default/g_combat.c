@@ -132,7 +132,7 @@ static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t n
 		gi.WriteByte(SV_CMD_TEMP_ENTITY);
 		gi.WriteByte(type);
 		gi.WritePosition(pos);
-		gi.WriteDir(normal ? normal : vec3_origin);
+		gi.WriteDir(normal ? normal : vec3_zero().xyz);
 		gi.Multicast(pos, MULTICAST_PVS, NULL);
 	}
 }
@@ -216,9 +216,9 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 	inflictor = inflictor ? inflictor : g_game.entities;
 	attacker = attacker ? attacker : g_game.entities;
 
-	dir = dir ? dir : vec3_origin;
+	dir = dir ? dir : vec3_zero().xyz;
 	pos = pos ? pos : target->s.origin;
-	normal = normal ? normal : vec3_origin;
+	normal = normal ? normal : vec3_zero().xyz;
 
 	if (target->client && G_HasTech(target, TECH_RESIST)) {
 		damage *= TECH_RESIST_DAMAGE_FACTOR;

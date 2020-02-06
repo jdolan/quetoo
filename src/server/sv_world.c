@@ -153,7 +153,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 			PackBounds(ent->mins, ent->maxs, &ent->s.bounds);
 			break;
 		default:
-			PackBounds(vec3_origin, vec3_origin, &ent->s.bounds);
+			PackBounds(vec3_zero().xyz, vec3_zero().xyz, &ent->s.bounds);
 			break;
 	}
 
@@ -241,7 +241,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 	sector->entities = g_list_prepend(sector->entities, ent);
 
 	// and update its clipping matrices
-	const vec_t *angles = ent->solid == SOLID_BSP ? ent->s.angles : vec3_origin;
+	const vec_t *angles = ent->solid == SOLID_BSP ? ent->s.angles : vec3_zero().xyz;
 
 	Matrix4x4_CreateFromEntity(&sent->matrix, ent->s.origin, angles, 1.0);
 	Matrix4x4_Invert_Simple(&sent->inverse_matrix, &sent->matrix);
@@ -334,8 +334,8 @@ size_t Sv_BoxEntities(const vec3_t mins, const vec3_t maxs, g_entity_t **list, c
 
 	Sv_BoxEntities_r(sv_world.sectors);
 
-	sv_world.box_mins = vec3_origin;
-	sv_world.box_maxs = vec3_origin;
+	sv_world.box_mins = vec3_zero().xyz;
+	sv_world.box_maxs = vec3_zero().xyz;
 	sv_world.box_entities = NULL;
 
 	return sv_world.num_box_entities;
@@ -490,10 +490,10 @@ cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, con
 	memset(&trace, 0, sizeof(trace));
 
 	if (!mins) {
-		mins = vec3_origin;
+		mins = vec3_zero().xyz;
 	}
 	if (!maxs) {
-		maxs = vec3_origin;
+		maxs = vec3_zero().xyz;
 	}
 
 	// clip to world

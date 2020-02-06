@@ -26,7 +26,7 @@
 
 START_TEST(check_DotProduct) {
 
-	const vec_t dot = DotProduct(vec3_up, vec3_down);
+	const vec_t dot = DotProduct(vec3_up().xyz, vec3_down);
 	ck_assert(dot == -1.0);
 
 } END_TEST

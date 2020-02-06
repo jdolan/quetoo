@@ -334,7 +334,7 @@ static void Pm_StepSlideMove(void) {
 
 	// try to step up
 
-	VectorMA(org, PM_STEP_HEIGHT, vec3_up, up);
+	VectorMA(org, PM_STEP_HEIGHT, vec3_up().xyz, up);
 	trace = pm->Trace(org, up, pm->mins, pm->maxs);
 	if (trace.all_solid) {
 		return;
@@ -381,7 +381,7 @@ static void Pm_StepSlideMove(void) {
 		// attempt to step down to remain on ground
 		if ((pm->s.flags & PMF_ON_GROUND) && pm->cmd.up <= 0) {
 
-			VectorMA(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, vec3_down, down);
+			VectorMA(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, vec3_down().xyz, down);
 			const cm_trace_t step_down = pm->Trace(pm->s.origin, down, pm->mins, pm->maxs);
 
 			if (Pm_CheckStep(&step_down)) {
@@ -397,7 +397,7 @@ static void Pm_StepSlideMove(void) {
 	VectorCopy(pm->s.origin, org1);
 	VectorCopy(pm->s.velocity, vel1);
 
-	VectorMA(org0, PM_STEP_HEIGHT, vec3_up, up);
+	VectorMA(org0, PM_STEP_HEIGHT, vec3_up().xyz, up);
 	const cm_trace_t step_up = pm->Trace(org0, up, pm->mins, pm->maxs);
 	if (!step_up.all_solid) {
 
@@ -408,7 +408,7 @@ static void Pm_StepSlideMove(void) {
 		Pm_SlideMove();
 
 		// settle to the new ground, keeping the step if and only if it was successful
-		VectorMA(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, vec3_down, down);
+		VectorMA(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, vec3_down().xyz, down);
 		const cm_trace_t step_down = pm->Trace(pm->s.origin, down, pm->mins, pm->maxs);
 
 		if (Pm_CheckStep(&step_down)) {

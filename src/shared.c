@@ -23,14 +23,6 @@
 
 #include "shared.h"
 
-const vec3_t vec3_origin = { 0.0, 0.0, 0.0 };
-
-const vec3_t vec3_up = { 0.0, 0.0, 1.0 };
-
-const vec3_t vec3_down = { 0.0, 0.0, -1.0 };
-
-const vec3_t vec3_forward = { 0.0, 1.0, 0.0 };
-
 /**
  * @brief Maps the minimum to 0 and the maximum to 1,
  * with the values inbetween using hermite interpolation.

@@ -484,7 +484,7 @@ void FinalizeLightgrid(int32_t luxel_num) {
 	VectorScale(l->radiosity, 1.0 / 255.0, l->radiosity);
 	ColorFilter(l->radiosity, l->radiosity, brightness, saturation, contrast);
 
-	if (!VectorCompare(l->diffuse_dir, vec3_origin)) {
+	if (!VectorCompare(l->diffuse_dir, vec3_zero().xyz)) {
 		VectorNormalize(l->diffuse_dir);
 	}
 }

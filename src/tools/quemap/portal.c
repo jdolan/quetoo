@@ -270,7 +270,7 @@ static cm_winding_t *BaseWindingForNode(const node_t *node) {
 		if (n->children[0] == node) { // take front
 			Cm_ClipWinding(&w, plane->normal, plane->dist, BASE_WINDING_EPSILON);
 		} else { // take back
-			VectorSubtract(vec3_origin, plane->normal, normal);
+			VectorSubtract(vec3_zero().xyz, plane->normal, normal);
 			Cm_ClipWinding(&w, normal, -plane->dist, BASE_WINDING_EPSILON);
 		}
 		node = n;
@@ -299,7 +299,7 @@ void MakeNodePortal(node_t *node) {
 			dist = p->plane.dist;
 		} else if (p->nodes[1] == node) {
 			side = 1;
-			VectorSubtract(vec3_origin, p->plane.normal, normal);
+			VectorSubtract(vec3_zero().xyz, p->plane.normal, normal);
 			dist = -p->plane.dist;
 		} else {
 			Com_Error(ERROR_FATAL, "Mis-linked portal\n");
@@ -531,7 +531,7 @@ _Bool FloodEntities(tree_t *tree) {
 		vec3_t origin;
 		VectorForKey(ent, "origin", origin, NULL);
 
-		VectorAdd(origin, vec3_up, origin);
+		VectorAdd(origin, vec3_up().xyz, origin);
 
 		if (PlaceOccupant(tree->head_node, origin, ent)) {
 			inside_occupied = true;

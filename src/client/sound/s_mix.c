@@ -87,7 +87,7 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 	}
 
 	VectorCopy(org, ch->position);
-//  	VectorMA(ch->position, S_GET_Z_ORIGIN_OFFSET(ch->play.attenuation) * 4.0, vec3_up, ch->position);
+//  	VectorMA(ch->position, S_GET_Z_ORIGIN_OFFSET(ch->play.attenuation) * 4.0, vec3_up().xyz, ch->position);
 
 	VectorSubtract(org, r_view.origin, delta);
 
@@ -187,7 +187,7 @@ void S_MixChannels(void) {
 	if (s_doppler->value) {
 		alListenerfv(AL_VELOCITY, cl.frame.ps.pm_state.velocity);
 	} else {
-		alListenerfv(AL_VELOCITY, vec3_origin);
+		alListenerfv(AL_VELOCITY, vec3_zero().xyz);
 	}
 
 	s_env.num_active_channels = 0;
@@ -203,7 +203,7 @@ void S_MixChannels(void) {
 			if (S_SpatializeChannel(ch)) {
 
 				if (ch->relative) {
-					alSourcefv(src, AL_POSITION, vec3_origin);
+					alSourcefv(src, AL_POSITION, vec3_zero().xyz);
 					S_CheckALError();
 				} else {
 					alSourcefv(src, AL_POSITION, ch->position);
@@ -212,7 +212,7 @@ void S_MixChannels(void) {
 					if (s_doppler->value) {
 						alSourcefv(src, AL_VELOCITY, ch->velocity);
 					} else {
-						alSourcefv(src, AL_VELOCITY, vec3_origin);
+						alSourcefv(src, AL_VELOCITY, vec3_zero().xyz);
 					}
 				}
 

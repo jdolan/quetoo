@@ -21,27 +21,9 @@
 
 #pragma once
 
+#include "quemath.h"
+
 #include "collision/cm_types.h"
-
-/**
- * @brief The origin (0, 0, 0).
- */
-extern const vec3_t vec3_origin;
-
-/**
- * @brief Up (0, 0, 1).
- */
-extern const vec3_t vec3_up;
-
-/**
- * @brief Down (0, 0, -1).
- */
-extern const vec3_t vec3_down;
-
-/**
- * @brief Forward (0, 1, 0).
- */
-extern const vec3_t vec3_forward;
 
 /**
  * @brief Math library.

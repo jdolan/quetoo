@@ -286,7 +286,7 @@ static chain_winding_t *ClipChainWindings(chain_t *chain,
 			// flip the normal if the source portal is backwards
 			//
 			if (flip_test) {
-				VectorSubtract(vec3_origin, plane.normal, plane.normal);
+				VectorSubtract(vec3_zero().xyz, plane.normal, plane.normal);
 				plane.dist = -plane.dist;
 			}
 			//
@@ -317,7 +317,7 @@ static chain_winding_t *ClipChainWindings(chain_t *chain,
 			// flip the normal if we want the back side
 			//
 			if (flip_clip) {
-				VectorSubtract(vec3_origin, plane.normal, plane.normal);
+				VectorSubtract(vec3_zero().xyz, plane.normal, plane.normal);
 				plane.dist = -plane.dist;
 			}
 			// MrE: fast check first

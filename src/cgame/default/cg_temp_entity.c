@@ -144,7 +144,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 			VectorCopy(org, p->origin);
 			VectorScale(dir, 60.0 + (Randomc() * 60.0), p->velocity);
 			VectorScale(dir, -80.0, p->acceleration);
-			VectorMA(p->acceleration, 20.0, vec3_up, p->acceleration);
+			VectorMA(p->acceleration, 20.0, vec3_up().xyz, p->acceleration);
 
 			p->lifetime = 150 + Randomf() * 600;
 

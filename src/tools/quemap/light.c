@@ -91,24 +91,24 @@ static light_t *LightForEntity(const GList *entities, const cm_entity_t *entity)
 			} else {
 				const int32_t i = g_list_index((GList *) entities, entity);
 				Mon_SendSelect(MON_WARN, i, 0, va("%s at %s missing target", classname, vtos(light->origin)));
-				VectorCopy(vec3_down, light->normal);
+				VectorCopy(vec3_down().xyz, light->normal);
 			}
 		} else {
 			if (light->type == LIGHT_SPOT) {
 				vec3_t angles = { 0.0, 0.0, 0.0 };
 				if (Cm_EntityVector(entity, "_angle", &angles[YAW], 1) == 1) {
 					if (angles[YAW] == LIGHT_ANGLE_UP) {
-						VectorCopy(vec3_up, light->normal);
+						VectorCopy(vec3_up().xyz, light->normal);
 					} else if (angles[YAW] == LIGHT_ANGLE_DOWN) {
-						VectorCopy(vec3_down, light->normal);
+						VectorCopy(vec3_down().xyz, light->normal);
 					} else {
 						AngleVectors(angles, light->normal, NULL, NULL);
 					}
 				} else {
-					VectorCopy(vec3_down, light->normal);
+					VectorCopy(vec3_down().xyz, light->normal);
 				}
 			} else {
-				VectorCopy(vec3_down, light->normal);
+				VectorCopy(vec3_down().xyz, light->normal);
 			}
 		}
 
@@ -263,7 +263,7 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *pa
 		}
 	}
 
-	if (!VectorCompare(lightmap, vec3_origin)) {
+	if (!VectorCompare(lightmap, vec3_zero().xyz)) {
 		vec3_t diffuse;
 
 		light = Mem_TagMalloc(sizeof(*light), MEM_TAG_LIGHT);

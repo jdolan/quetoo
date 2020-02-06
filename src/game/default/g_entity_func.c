@@ -235,7 +235,7 @@ static void G_MoveInfo_Angular_Final(g_entity_t *ent) {
 		VectorSubtract(move->start_angles, ent->s.angles, delta);
 	}
 
-	if (VectorCompare(delta, vec3_origin)) {
+	if (VectorCompare(delta, vec3_zero().xyz)) {
 		G_MoveInfo_Angular_Done(ent);
 		return;
 	}
@@ -310,7 +310,7 @@ static void G_MoveType_Push_Blocked(g_entity_t *self, g_entity_t *other) {
 	if (G_IsMeat(other)) {
 
 		if (other->solid == SOLID_DEAD) {
-			G_Damage(other, self, NULL, dir, NULL, vec3_up, 999, 0, DMG_NO_ARMOR, MOD_CRUSH);
+			G_Damage(other, self, NULL, dir, NULL, vec3_up().xyz, 999, 0, DMG_NO_ARMOR, MOD_CRUSH);
 			if (other->in_use) {
 				if (other->client) {
 					gi.WriteByte(SV_CMD_TEMP_ENTITY);
@@ -324,12 +324,12 @@ static void G_MoveType_Push_Blocked(g_entity_t *self, g_entity_t *other) {
 				}
 			}
 		} else if (other->solid == SOLID_BOX) {
-			G_Damage(other, self, NULL, dir, NULL, vec3_up, self->locals.damage, 0, DMG_NO_ARMOR, MOD_CRUSH);
+			G_Damage(other, self, NULL, dir, NULL, vec3_up().xyz, self->locals.damage, 0, DMG_NO_ARMOR, MOD_CRUSH);
 		} else {
 			gi.Debug("Unhandled blocker: %s: %s\n", etos(self), etos(other));
 		}
 	} else {
-		G_Damage(other, self, NULL, dir, NULL, vec3_up, 999, 0, 0, MOD_CRUSH);
+		G_Damage(other, self, NULL, dir, NULL, vec3_up().xyz, 999, 0, 0, MOD_CRUSH);
 		if (other->in_use) {
 			G_Explode(other, 60, 60, 80.0, 0);
 		}
@@ -620,7 +620,7 @@ static void G_func_rotating_Touch(g_entity_t *self, g_entity_t *other,
                                   const cm_bsp_texinfo_t *surf) {
 
 	if (self->locals.damage) {
-		if (!VectorCompare(self->locals.avelocity, vec3_origin)) {
+		if (!VectorCompare(self->locals.avelocity, vec3_zero().xyz)) {
 			G_Damage(other, self, NULL, NULL, NULL, NULL, self->locals.damage, 1, 0, MOD_CRUSH);
 		}
 	}
@@ -632,7 +632,7 @@ static void G_func_rotating_Touch(g_entity_t *self, g_entity_t *other,
 static void G_func_rotating_Use(g_entity_t *self, g_entity_t *other,
                                 g_entity_t *activator) {
 
-	if (!VectorCompare(self->locals.avelocity, vec3_origin)) {
+	if (!VectorCompare(self->locals.avelocity, vec3_zero().xyz)) {
 		self->s.sound = 0;
 		VectorClear(self->locals.avelocity);
 		self->locals.Touch = NULL;
@@ -1469,7 +1469,7 @@ static void G_func_door_secret_Use(g_entity_t *self, g_entity_t *other,
                                    g_entity_t *activator) {
 
 	// make sure we're not already moving
-	if (!VectorCompare(self->s.origin, vec3_origin)) {
+	if (!VectorCompare(self->s.origin, vec3_zero().xyz)) {
 		return;
 	}
 
@@ -1539,7 +1539,7 @@ static void G_func_door_secret_Move5(g_entity_t *self) {
 
 static void G_func_door_secret_Move6(g_entity_t *self) {
 
-	G_MoveInfo_Linear_Init(self, vec3_origin, G_func_door_secret_Done);
+	G_MoveInfo_Linear_Init(self, vec3_zero().xyz, G_func_door_secret_Done);
 }
 
 static void G_func_door_secret_Done(g_entity_t *self) {
@@ -1573,7 +1573,7 @@ static void G_func_door_secret_Blocked(g_entity_t *self, g_entity_t *other) {
 
 	self->locals.touch_time = g_level.time + 500;
 
-	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.damage, 1, 0, MOD_CRUSH);
+	G_Damage(other, self, self, vec3_zero().xyz, other->s.origin, vec3_zero().xyz, self->locals.damage, 1, 0, MOD_CRUSH);
 }
 
 static void G_func_door_secret_Die(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {

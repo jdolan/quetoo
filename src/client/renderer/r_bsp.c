@@ -73,7 +73,7 @@ _Bool R_LeafHearable(const r_bsp_leaf_t *leaf) {
 static _Bool R_CullBspEntity(const r_entity_t *e) {
 	vec3_t mins, maxs;
 
-	if (!VectorCompare(e->angles, vec3_origin)) {
+	if (!VectorCompare(e->angles, vec3_zero().xyz)) {
 		for (int32_t i = 0; i < 3; i++) {
 			mins[i] = e->origin[i] - e->model->radius;
 			maxs[i] = e->origin[i] + e->model->radius;

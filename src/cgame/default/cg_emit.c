@@ -140,7 +140,7 @@ void Cg_LoadEmits(void) {
 					e->flags |= EMIT_MODEL;
 				}
 
-				if (VectorCompare(e->color, vec3_origin)) { // default color
+				if (VectorCompare(e->color, vec3_zero().xyz)) { // default color
 					VectorSet(e->color, 1.0, 1.0, 1.0);
 				}
 
@@ -159,7 +159,7 @@ void Cg_LoadEmits(void) {
 					}
 				}
 
-				if (VectorCompare(e->vel, vec3_origin)) { // default velocity
+				if (VectorCompare(e->vel, vec3_zero().xyz)) { // default velocity
 
 					if (e->flags & EMIT_STEAM) {
 						VectorSet(e->vel, 0.0, 0.0, 40.0);

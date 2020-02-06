@@ -170,7 +170,7 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, vec_t size,
 
 	vec3_t pos, dir;
 
-	VectorAdd(tr.end, vec3_up, pos);
+	VectorAdd(tr.end, vec3_up().xyz, pos);
 	VectorCopy(tr.plane.normal, dir);
 
 	if (ent && size == 0.0) {
@@ -195,7 +195,7 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, vec_t size,
 	gi.Multicast(pos, MULTICAST_PVS, NULL);
 
 	if (!(tr.contents & CONTENTS_TRANSLUCENT)) {
-		VectorAdd(tr.end, vec3_down, pos);
+		VectorAdd(tr.end, vec3_down().xyz, pos);
 		VectorNegate(dir, dir);
 
 		gi.WriteByte(SV_CMD_TEMP_ENTITY);
@@ -225,8 +225,8 @@ static void G_ProjectImpactPoint(const g_entity_t *projectile, const g_entity_t 
 	// if we've hit a structural mover, project the impact point at the next server frame
 	if (G_IsStructural(other, surf)) {
 
-		if (!VectorCompare(other->locals.velocity, vec3_origin) ||
-			!VectorCompare(other->locals.avelocity, vec3_origin)) {
+		if (!VectorCompare(other->locals.velocity, vec3_zero().xyz) ||
+			!VectorCompare(other->locals.avelocity, vec3_zero().xyz)) {
 
 			vec3_t move, amove;
 
@@ -444,7 +444,7 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
 
 		mod = self->locals.spawn_flags & HAND_GRENADE ? MOD_HANDGRENADE : MOD_GRENADE;
 
-		G_Damage(self->locals.enemy, self, self->owner, dir, self->s.origin, vec3_origin,
+		G_Damage(self->locals.enemy, self, self->owner, dir, self->s.origin, vec3_zero().xyz,
 		         (int16_t) d, (int16_t) k, DMG_RADIUS, mod);
 	}
 
@@ -1226,7 +1226,7 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 
 				VectorNormalize(self->locals.velocity);
 
-				G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, vec3_origin, 5, 0, 0, MOD_HOOK);
+				G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, vec3_zero().xyz, 5, 0, 0, MOD_HOOK);
 
 				G_ClientHookDetach(self->owner);
 //			}
@@ -1286,7 +1286,7 @@ static void G_HookProjectile_Think(g_entity_t *ent) {
 		VectorScale(mover->locals.velocity, QUETOO_TICK_SECONDS, move);
 		VectorScale(mover->locals.avelocity, QUETOO_TICK_SECONDS, amove);
 
-		if (!VectorCompare(move, vec3_origin) || !VectorCompare(amove, vec3_origin)) {
+		if (!VectorCompare(move, vec3_zero().xyz) || !VectorCompare(amove, vec3_zero().xyz)) {
 			VectorNegate(amove, inverse_amove);
 			AngleVectors(inverse_amove, forward, right, up);
 

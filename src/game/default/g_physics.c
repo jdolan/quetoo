@@ -658,8 +658,8 @@ static void G_Physics_Push(g_entity_t *ent) {
 
 	// make sure all team slaves can move before committing any moves
 	for (g_entity_t *part = ent; part; part = part->locals.team_chain) {
-		if (!VectorCompare(part->locals.velocity, vec3_origin) ||
-				!VectorCompare(part->locals.avelocity, vec3_origin)) { // object is moving
+		if (!VectorCompare(part->locals.velocity, vec3_zero().xyz) ||
+				!VectorCompare(part->locals.avelocity, vec3_zero().xyz)) { // object is moving
 			vec3_t move, amove;
 
 			VectorScale(part->locals.velocity, QUETOO_TICK_SECONDS, move);
@@ -879,7 +879,7 @@ static void G_Physics_Fly(g_entity_t *ent) {
  */
 static void G_Physics_Bounce(g_entity_t *ent) {
 
-	if (ent->locals.ground_entity == NULL || VectorCompare(ent->locals.velocity, vec3_origin) == false) {
+	if (ent->locals.ground_entity == NULL || VectorCompare(ent->locals.velocity, vec3_zero().xyz) == false) {
 
 		G_Friction(ent);
 

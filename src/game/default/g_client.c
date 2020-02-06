@@ -501,7 +501,7 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 		    self,					// player
 		    self->client->locals.held_grenade, // the grenade
 		    self->s.origin,			// starting point
-		    vec3_up,				// direction
+		    vec3_up().xyz,				// direction
 		    0,						// how fast it flies
 		    120,					// damage dealt
 		    120,					// knockback
@@ -1490,7 +1490,7 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 
 					cl->locals.pain_time = g_level.time; // suppress pain sound
 
-					G_Damage(ent, NULL, NULL, vec3_up, NULL, NULL, damage, 0, DMG_NO_ARMOR, MOD_FALLING);
+					G_Damage(ent, NULL, NULL, vec3_up().xyz, NULL, NULL, damage, 0, DMG_NO_ARMOR, MOD_FALLING);
 				}
 
 				ent->s.event = event;

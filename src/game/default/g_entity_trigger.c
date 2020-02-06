@@ -30,7 +30,7 @@
  */
 static void G_Trigger_Init(g_entity_t *self) {
 
-	if (!VectorCompare(self->s.angles, vec3_origin)) {
+	if (!VectorCompare(self->s.angles, vec3_zero().xyz)) {
 		G_SetMoveDir(self->s.angles, self->locals.move_dir);
 	}
 
@@ -96,7 +96,7 @@ static void G_trigger_multiple_Touch(g_entity_t *self, g_entity_t *other,
 		}
 	}
 
-	if (!VectorCompare(self->locals.move_dir, vec3_origin)) {
+	if (!VectorCompare(self->locals.move_dir, vec3_zero().xyz)) {
 		vec3_t forward;
 
 		AngleVectors(other->s.angles, forward, NULL, NULL);
@@ -155,7 +155,7 @@ void G_trigger_multiple(g_entity_t *ent) {
 		ent->locals.Use = G_trigger_multiple_Use;
 	}
 
-	if (!VectorCompare(ent->s.angles, vec3_origin)) {
+	if (!VectorCompare(ent->s.angles, vec3_zero().xyz)) {
 		G_SetMoveDir(ent->s.angles, ent->locals.move_dir);
 	}
 

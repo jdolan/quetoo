@@ -67,5 +67,5 @@ void VectorForKey(const entity_t *ent, const char *key, vec3_t out, const vec3_t
 		}
 	}
 
-	VectorCopy(def ?: vec3_origin, out);
+	VectorCopy(def ?: vec3_zero().xyz, out);
 }

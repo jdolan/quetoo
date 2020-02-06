@@ -232,7 +232,7 @@ static void G_ClientKickAngles(g_entity_t *ent) {
 			break;
 	}
 
-	if (!VectorCompare(ent->client->locals.kick_angles, vec3_origin)) {
+	if (!VectorCompare(ent->client->locals.kick_angles, vec3_zero().xyz)) {
 		gi.WriteByte(SV_CMD_VIEW_KICK);
 		gi.WriteAngle(ent->client->locals.kick_angles[PITCH]);
 		gi.WriteAngle(ent->client->locals.kick_angles[ROLL]);

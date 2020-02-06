@@ -236,7 +236,7 @@ void G_misc_fireball(g_entity_t *self) {
 		gi.SoundIndex(va("world/lava_%d", i));
 	}
 
-	if (VectorCompare(self->s.angles, vec3_origin)) {
+	if (VectorCompare(self->s.angles, vec3_zero().xyz)) {
 		VectorSet(self->s.angles, -90.0, 0.0, 0.0);
 	}
 

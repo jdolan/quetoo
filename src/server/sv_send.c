@@ -182,7 +182,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
 	int32_t area;
 
 	if (!origin) {
-		origin = vec3_origin;
+		origin = vec3_zero().xyz;
 	}
 
 	_Bool reliable = false;

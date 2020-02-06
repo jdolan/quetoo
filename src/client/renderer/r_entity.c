@@ -156,7 +156,7 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 			origin = e->origin;
 		}
 
-		Matrix4x4_CreateFromEntity(&mat, origin, vec3_origin, e->scale);
+		Matrix4x4_CreateFromEntity(&mat, origin, vec3_zero().xyz, e->scale);
 
 		Matrix4x4_Concat(&mat, &modelview, &mat);
 

@@ -51,7 +51,7 @@ void G_ClientChaseThink(g_entity_t *ent) {
 		memcpy(&ent->client->ps, &targ->client->ps, sizeof(player_state_t));
 
 		// add in delta angles in case we've switched targets
-		if (!VectorCompare(new_delta, vec3_origin)) {
+		if (!VectorCompare(new_delta, vec3_zero().xyz)) {
 			vec3_t delta_angles;
 
 			UnpackAngles(ent->client->ps.pm_state.delta_angles, delta_angles);

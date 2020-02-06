@@ -362,13 +362,13 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
 	VectorCopy(start, data.start);
 	VectorCopy(end, data.end);
 
-	VectorCopy(mins ?: vec3_origin, data.mins);
-	VectorCopy(maxs ?: vec3_origin, data.maxs);
+	VectorCopy(mins ?: vec3_zero().xyz, data.mins);
+	VectorCopy(maxs ?: vec3_zero().xyz, data.maxs);
 
 	data.contents = contents;
 
 	// check for point special case
-	if (VectorCompare(data.mins, vec3_origin) && VectorCompare(data.maxs, vec3_origin)) {
+	if (VectorCompare(data.mins, vec3_zero().xyz) && VectorCompare(data.maxs, vec3_zero().xyz)) {
 		data.is_point = true;
 	} else {
 		data.is_point = false;
@@ -516,7 +516,7 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const ve
 void Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angles,
                      const vec3_t mins, const vec3_t maxs, vec_t *bounds_mins, vec_t *bounds_maxs) {
 
-	if (solid == SOLID_BSP && !VectorCompare(angles, vec3_origin)) {
+	if (solid == SOLID_BSP && !VectorCompare(angles, vec3_zero().xyz)) {
 		vec_t max = 0.0;
 
 		for (int32_t i = 0; i < 3; i++) {

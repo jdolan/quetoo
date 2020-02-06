@@ -296,7 +296,7 @@ static void LoadPortals(const char *filename) {
 		l->num_portals++;
 
 		p->winding = w;
-		VectorSubtract(vec3_origin, plane.normal, p->plane.normal);
+		VectorSubtract(vec3_zero().xyz, plane.normal, p->plane.normal);
 		p->plane.dist = -plane.dist;
 		p->leaf = leaf_nums[1];
 		SetPortalSphere(p);

@@ -436,7 +436,7 @@ void Cl_Interpolate(void) {
 				VectorCopy(mod->bsp_inline->mins, ent->mins);
 				VectorCopy(mod->bsp_inline->maxs, ent->maxs);
 			} else {
-				angles = vec3_origin;
+				angles = vec3_zero().xyz;
 				UnpackBounds(ent->current.bounds, ent->mins, ent->maxs);
 			}
 

@@ -170,7 +170,7 @@ cm_winding_t *Cm_WindingForPlane(const vec3_t normal, const dvec_t dist) {
 
 	CrossProduct(normal, right, up);
 
-	VectorMA(vec3_origin, dist, normal, org);
+	VectorMA(vec3_zero().xyz, dist, normal, org);
 
 	// project a really big	axis aligned box onto the plane
 	cm_winding_t *w = Cm_AllocWinding(4);

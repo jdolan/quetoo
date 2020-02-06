@@ -644,7 +644,7 @@ void FinalizeLightmap(int32_t face_num) {
 		// write the directional sample data, in tangent space
 		vec3_t diffuse_dir;
 
-		if (!VectorCompare(l->diffuse_dir, vec3_origin)) {
+		if (!VectorCompare(l->diffuse_dir, vec3_zero().xyz)) {
 
 			vec3_t tangent, bitangent;
 			TangentVectors(l->normal, lm->texinfo->vecs[0], lm->texinfo->vecs[1], tangent, bitangent);
@@ -653,10 +653,10 @@ void FinalizeLightmap(int32_t face_num) {
 			diffuse_dir[1] = DotProduct(l->diffuse_dir, bitangent);
 			diffuse_dir[2] = DotProduct(l->diffuse_dir, l->normal);
 
-			VectorAdd(diffuse_dir, vec3_up, diffuse_dir);
+			VectorAdd(diffuse_dir, vec3_up().xyz, diffuse_dir);
 			VectorNormalize(diffuse_dir);
 		} else {
-			VectorCopy(vec3_up, diffuse_dir);
+			VectorCopy(vec3_up().xyz, diffuse_dir);
 		}
 
 		// pack floating point -1.0 to 1.0 to positive bytes (0.0 becomes 127)

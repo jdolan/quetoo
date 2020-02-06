@@ -148,10 +148,10 @@ cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, con
 	memset(&trace, 0, sizeof(trace));
 
 	if (!mins) {
-		mins = vec3_origin;
+		mins = vec3_zero().xyz;
 	}
 	if (!maxs) {
-		maxs = vec3_origin;
+		maxs = vec3_zero().xyz;
 	}
 
 	// clip to world

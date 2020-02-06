@@ -72,7 +72,7 @@ static _Bool Ai_CanSee(const g_entity_t *self, const g_entity_t *other) {
 		return false;
 	}
 
-	cm_trace_t tr = aim.gi->Trace(ai->eye_origin, other->s.origin, vec3_origin, vec3_origin, self, MASK_CLIP_PROJECTILE);
+	cm_trace_t tr = aim.gi->Trace(ai->eye_origin, other->s.origin, vec3_zero().xyz, vec3_zero().xyz, self, MASK_CLIP_PROJECTILE);
 
 	if (!BoxIntersect(tr.end, tr.end, other->abs_mins, other->abs_maxs)) {
 		return false; // something was in the way of our trace
@@ -160,7 +160,7 @@ static vec_t Ai_ItemReachable(const g_entity_t *self, const g_entity_t *other) {
 		VectorCopy(fall_start, fall_end);
 		fall_end[2] -= PM_STEP_HEIGHT * 2.0;
 
-		cm_trace_t tr = aim.gi->Trace(fall_start, fall_end, vec3_origin, vec3_origin, NULL, CONTENTS_SOLID);
+		cm_trace_t tr = aim.gi->Trace(fall_start, fall_end, vec3_zero().xyz, vec3_zero().xyz, NULL, CONTENTS_SOLID);
 
 		if (tr.start_solid || tr.all_solid || tr.fraction == 1.0) {
 			return AI_ITEM_UNREACHABLE;
@@ -614,7 +614,7 @@ static void Ai_Wander(g_entity_t *self, pm_cmd_t *cmd) {
 	vec3_t end;
 	VectorMA(self->s.origin, (self->maxs[0] - self->mins[0]) * 2.0, forward, end);
 
-	cm_trace_t tr = aim.gi->Trace(self->s.origin, end, vec3_origin, vec3_origin, self, MASK_CLIP_PLAYER);
+	cm_trace_t tr = aim.gi->Trace(self->s.origin, end, vec3_zero().xyz, vec3_zero().xyz, self, MASK_CLIP_PLAYER);
 
 	if (tr.fraction < 1.0) { // hit a wall
 		vec_t angle = 45 + Randomf() * 45;

@@ -550,6 +550,10 @@
 		CE9CFC9323E792FE0009DA65 /* cg_light.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9CFC9123E792FE0009DA65 /* cg_light.c */; };
 		CE9CFC9623E7A9410009DA65 /* r_mesh.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9CFC9423E7A9410009DA65 /* r_mesh.h */; };
 		CE9CFC9823E7A9410009DA65 /* r_mesh.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9CFC9523E7A9410009DA65 /* r_mesh.c */; };
+		CE9CFC9B23EAFFD10009DA65 /* quemath.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9CFC9A23EAFFD00009DA65 /* quemath.h */; };
+		CE9CFC9D23EB3BF50009DA65 /* check_quemath.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9CFC9C23EB3BF50009DA65 /* check_quemath.c */; };
+		CE9CFCA823EB3D020009DA65 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE51FB9121481AE300ABE14F /* libcheck.0.dylib */; };
+		CE9CFCB023EB3D240009DA65 /* check_quemath.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9CFC9C23EB3BF50009DA65 /* check_quemath.c */; };
 		CE9FECDD201FEB7400F954ED /* r_gl.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9FECDA201FEB7400F954ED /* r_gl.c */; };
 		CE9FECDE201FEB7400F954ED /* r_gl.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9FECDB201FEB7400F954ED /* r_gl.h */; };
 		CE9FECDF201FEB7400F954ED /* r_gl_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9FECDC201FEB7400F954ED /* r_gl_types.h */; };
@@ -1447,6 +1451,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
+		CE9CFCAB23EB3D020009DA65 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 		CEA029F01C5E558100341079 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -2062,6 +2075,9 @@
 		CE9CFC9123E792FE0009DA65 /* cg_light.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_light.c; sourceTree = "<group>"; };
 		CE9CFC9423E7A9410009DA65 /* r_mesh.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_mesh.h; sourceTree = "<group>"; };
 		CE9CFC9523E7A9410009DA65 /* r_mesh.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_mesh.c; sourceTree = "<group>"; };
+		CE9CFC9A23EAFFD00009DA65 /* quemath.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = quemath.h; sourceTree = "<group>"; };
+		CE9CFC9C23EB3BF50009DA65 /* check_quemath.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_quemath.c; sourceTree = "<group>"; };
+		CE9CFCAF23EB3D020009DA65 /* check_quemath */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_quemath; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE9FECDA201FEB7400F954ED /* r_gl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_gl.c; sourceTree = "<group>"; };
 		CE9FECDB201FEB7400F954ED /* r_gl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_gl.h; sourceTree = "<group>"; };
 		CE9FECDC201FEB7400F954ED /* r_gl_types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_gl_types.h; sourceTree = "<group>"; };
@@ -2491,6 +2507,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CE9CFCA423EB3D020009DA65 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE9CFCA823EB3D020009DA65 /* libcheck.0.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CEA029E61C5E558100341079 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -2865,6 +2889,7 @@
 				CE12D68C1C5C58C300CD0B13 /* mem_buf.h */,
 				CE55309A1E5A93C60009A127 /* parse.c */,
 				CE55309B1E5A93C60009A127 /* parse.h */,
+				CE9CFC9A23EAFFD00009DA65 /* quemath.h */,
 				CE12D69C1C5C58C300CD0B13 /* quetoo.h */,
 				CE12D6B71C5C58C300CD0B13 /* shared-anorms.c */,
 				CE12D6B81C5C58C300CD0B13 /* shared.c */,
@@ -3268,6 +3293,7 @@
 				CE12D6CF1C5C58C300CD0B13 /* check_filesystem.c */,
 				CE12D6D11C5C58C300CD0B13 /* check_master.c */,
 				CE12D6D31C5C58C300CD0B13 /* check_mem.c */,
+				CE9CFC9C23EB3BF50009DA65 /* check_quemath.c */,
 				CE12D6D51C5C58C300CD0B13 /* check_r_media.c */,
 				CE948B0F223564E900D961FA /* check_shared.c */,
 				CE12D6D71C5C58C300CD0B13 /* check_thread.c */,
@@ -3523,6 +3549,7 @@
 				CE354EE722073AD6008AE0C2 /* libatlas.a */,
 				CE354EFE22075132008AE0C2 /* check_atlas */,
 				CE948B222235652600D961FA /* check_shared */,
+				CE9CFCAF23EB3D020009DA65 /* check_quemath */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -3930,6 +3957,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE9CFC9B23EAFFD10009DA65 /* quemath.h in Headers */,
 				CE80FE781C5E439200A21A51 /* shared.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -4734,6 +4762,23 @@
 			productReference = CE9771A121454EEB00BBD71C /* libgenann.a */;
 			productType = "com.apple.product-type.library.static";
 		};
+		CE9CFC9E23EB3D020009DA65 /* check_quemath */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CE9CFCAC23EB3D020009DA65 /* Build configuration list for PBXNativeTarget "check_quemath" */;
+			buildPhases = (
+				CE9CFCA123EB3D020009DA65 /* Sources */,
+				CE9CFCA423EB3D020009DA65 /* Frameworks */,
+				CE9CFCAB23EB3D020009DA65 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = check_quemath;
+			productName = "test-r_media";
+			productReference = CE9CFCAF23EB3D020009DA65 /* check_quemath */;
+			productType = "com.apple.product-type.tool";
+		};
 		CEA029C51C5E558100341079 /* quetoo-master */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CEA029F11C5E558100341079 /* Build configuration list for PBXNativeTarget "quetoo-master" */;
@@ -5061,6 +5106,7 @@
 				CE51FBCC21481FC100ABE14F /* check_filesystem */,
 				CE51FBE42148207700ABE14F /* check_master */,
 				CE052A5B214831FE003446C9 /* check_mem */,
+				CE9CFC9E23EB3D020009DA65 /* check_quemath */,
 				CE51FB89214819B000ABE14F /* check_r_media */,
 				CE948B102235652600D961FA /* check_shared */,
 				CE052A7321483255003446C9 /* check_thread */,
@@ -5471,6 +5517,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CE9CFCA123EB3D020009DA65 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE9CFCB023EB3D240009DA65 /* check_quemath.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CEA029CC1C5E558100341079 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -5501,6 +5555,7 @@
 				CED4384B1D9D34450052BAFA /* r_mesh_draw.c in Sources */,
 				CED4384C1D9D34450052BAFA /* r_mesh_model.c in Sources */,
 				CE5022E923DE3C3600B333CE /* r_mesh_model_obj.c in Sources */,
+				CE9CFC9D23EB3BF50009DA65 /* check_quemath.c in Sources */,
 				CE5022ED23DE3CF900B333CE /* r_mesh_model_md3.c in Sources */,
 				CED4384F1D9D34450052BAFA /* r_model.c in Sources */,
 				CE8FD2F223D48AB7002FD074 /* r_stain.c in Sources */,
@@ -6540,6 +6595,20 @@
 			};
 			name = Release;
 		};
+		CE9CFCAD23EB3D020009DA65 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CE9CFCAE23EB3D020009DA65 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		CEA029B51C5E545B00341079 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -7045,6 +7114,15 @@
 			buildConfigurations = (
 				CE97719F21454EEB00BBD71C /* Debug */,
 				CE9771A021454EEB00BBD71C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CE9CFCAC23EB3D020009DA65 /* Build configuration list for PBXNativeTarget "check_quemath" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CE9CFCAD23EB3D020009DA65 /* Debug */,
+				CE9CFCAE23EB3D020009DA65 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
