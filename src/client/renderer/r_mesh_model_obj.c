@@ -106,7 +106,7 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 
 		vec3_t vec;
 		if (strncmp("v ", line, strlen("v ")) == 0) {
-			if (sscanf(line, "v %f %f %f", &vec.x, &vec.y, &vec.z) == 3) {
+			if (sscanf(line, "v %f %f %f", &vec.x, &vec.z, &vec.y) == 3) {
 				mod->mins = vec3_minf(mod->mins, vec);
 				mod->maxs = vec3_maxf(mod->maxs, vec);
 				g_array_append_val(obj.v, vec);
