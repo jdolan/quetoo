@@ -66,12 +66,12 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		return;
 	}
 
-	if (!BoxIntersect(data->box_mins, data->box_maxs, brush->mins, brush->maxs)) {
+	if (!Cm_BoxIntersect(data->box_mins, data->box_maxs, brush->mins, brush->maxs)) {
 		return;
 	}
 
-	vec_t enter_fraction = -1.0;
-	vec_t leave_fraction = 1.0;
+	float enter_fraction = -1.0;
+	float leave_fraction = 1.0;
 
 	const cm_bsp_plane_t *clip_plane = NULL;
 	const cm_bsp_brush_side_t *clip_side = NULL;
@@ -83,10 +83,10 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
 		const cm_bsp_plane_t *plane = side->plane;
 
-		const vec_t dist = plane->dist - DotProduct(data->offsets[plane->sign_bits], plane->normal);
+		const float dist = plane->dist - vec3_dot(data->offsets[plane->sign_bits], plane->normal);
 
-		const vec_t d1 = DotProduct(data->start, plane->normal) - dist;
-		const vec_t d2 = DotProduct(data->end, plane->normal) - dist;
+		const float d1 = vec3_dot(data->start, plane->normal) - dist;
+		const float d2 = vec3_dot(data->end, plane->normal) - dist;
 
 		if (d2 > 0.0) {
 			end_outside = true; // end point is not in solid
@@ -107,7 +107,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 
 		// crosses face
 		if (d1 > d2) { // enter
-			const vec_t f = (d1 - DIST_EPSILON) / (d1 - d2);
+			const float f = (d1 - DIST_EPSILON) / (d1 - d2);
 
 			if (f > enter_fraction) {
 				enter_fraction = f;
@@ -115,7 +115,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 				clip_side = side;
 			}
 		} else { // leave
-			const vec_t f = (d1 + DIST_EPSILON) / (d1 - d2);
+			const float f = (d1 + DIST_EPSILON) / (d1 - d2);
 
 			if (f < leave_fraction) {
 				leave_fraction = f;
@@ -134,7 +134,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		}
 	} else if (enter_fraction < leave_fraction) { // pierced brush
 		if (enter_fraction > -1.0 && enter_fraction < data->trace.fraction) {
-			data->trace.fraction = Max(0.0, enter_fraction);
+			data->trace.fraction = maxf(0.0, enter_fraction);
 			data->trace.plane = *clip_plane;
 			data->trace.surface = clip_side->surface;
 			data->trace.contents = brush->contents;
@@ -151,7 +151,7 @@ static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush
 		return;
 	}
 
-	if (!BoxIntersect(data->box_mins, data->box_maxs, brush->mins, brush->maxs)) {
+	if (!Cm_BoxIntersect(data->box_mins, data->box_maxs, brush->mins, brush->maxs)) {
 		return;
 	}
 
@@ -160,9 +160,9 @@ static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush
 	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
 		const cm_bsp_plane_t *plane = side->plane;
 
-		const vec_t dist = plane->dist - DotProduct(data->offsets[plane->sign_bits], plane->normal);
+		const float dist = plane->dist - vec3_dot(data->offsets[plane->sign_bits], plane->normal);
 
-		const vec_t d1 = DotProduct(data->start, plane->normal) - dist;
+		const float d1 = vec3_dot(data->start, plane->normal) - dist;
 
 		// if completely in front of face, no intersection
 		if (d1 > 0.0) {
@@ -248,7 +248,7 @@ static void Cm_TestInLeaf(cm_trace_data_t *data, int32_t leaf_num) {
 /**
  * @brief
  */
-static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, vec_t p1f, vec_t p2f,
+static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float p2f,
                            const vec3_t p1, const vec3_t p2) {
 
 	if (data->trace.fraction <= p1f) {
@@ -266,20 +266,20 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, vec_t p1f, vec_t 
 	const cm_bsp_node_t *node = cm_bsp.nodes + num;
 	const cm_bsp_plane_t *plane = node->plane;
 
-	vec_t d1, d2, offset;
+	float d1, d2, offset;
 	if (AXIAL(plane)) {
-		d1 = p1[plane->type] - plane->dist;
-		d2 = p2[plane->type] - plane->dist;
-		offset = data->extents[plane->type];
+		d1 = p1.xyz[plane->type] - plane->dist;
+		d2 = p2.xyz[plane->type] - plane->dist;
+		offset = data->extents.xyz[plane->type];
 	} else {
-		d1 = DotProduct(plane->normal, p1) - plane->dist;
-		d2 = DotProduct(plane->normal, p2) - plane->dist;
+		d1 = vec3_dot(plane->normal, p1) - plane->dist;
+		d2 = vec3_dot(plane->normal, p2) - plane->dist;
 		if (data->is_point) {
 			offset = 0.0;
 		} else
-			offset = fabsf(data->extents[0] * plane->normal[0])
-			         + fabsf(data->extents[1] * plane->normal[1])
-			         + fabsf(data->extents[2] * plane->normal[2]);
+			offset = fabsf(data->extents.x * plane->normal.x)
+			         + fabsf(data->extents.y * plane->normal.y)
+			         + fabsf(data->extents.z * plane->normal.z);
 	}
 
 	// see which sides we need to consider
@@ -294,15 +294,15 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, vec_t p1f, vec_t 
 
 	// put the cross point DIST_EPSILON pixels on the near side
 	int32_t side;
-	vec_t frac1, frac2;
+	float frac1, frac2;
 
 	if (d1 < d2) {
-		const vec_t idist = 1.0 / (d1 - d2);
+		const float idist = 1.0 / (d1 - d2);
 		side = 1;
 		frac2 = (d1 + offset + DIST_EPSILON) * idist;
 		frac1 = (d1 - offset + DIST_EPSILON) * idist;
 	} else if (d1 > d2) {
-		const vec_t idist = 1.0 / (d1 - d2);
+		const float idist = 1.0 / (d1 - d2);
 		side = 0;
 		frac2 = (d1 - offset - DIST_EPSILON) * idist;
 		frac1 = (d1 + offset + DIST_EPSILON) * idist;
@@ -315,20 +315,20 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, vec_t p1f, vec_t 
 	vec3_t mid;
 
 	// move up to the node
-	frac1 = Clamp(frac1, 0.0, 1.0);
+	frac1 = clampf(frac1, 0.0, 1.0);
 
-	const vec_t midf1 = p1f + (p2f - p1f) * frac1;
+	const float midf1 = p1f + (p2f - p1f) * frac1;
 
-	VectorLerp(p1, p2, frac1, mid);
+	mid = vec3_mix(p1, p2, frac1);
 
 	Cm_TraceToNode(data, node->children[side], p1f, midf1, p1, mid);
 
 	// go past the node
-	frac2 = Clamp(frac2, 0.0, 1.0);
+	frac2 = clampf(frac2, 0.0, 1.0);
 
-	const vec_t midf2 = p1f + (p2f - p1f) * frac2;
+	const float midf2 = p1f + (p2f - p1f) * frac2;
 
-	VectorLerp(p1, p2, frac2, mid);
+	mid = vec3_mix(p1, p2, frac2);
 
 	Cm_TraceToNode(data, node->children[side ^ 1], midf2, p2f, mid, p2);
 }
@@ -347,7 +347,7 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, vec_t p1f, vec_t 
  *
  * @return The trace.
  */
-cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
+cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,const vec3_t mins, const vec3_t maxs,
                        const int32_t head_node, const int32_t contents) {
 
 	static __thread cm_trace_data_t data;
@@ -359,71 +359,68 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
 		return data.trace;
 	}
 
-	VectorCopy(start, data.start);
-	VectorCopy(end, data.end);
-
-	VectorCopy(mins ?: vec3_zero().xyz, data.mins);
-	VectorCopy(maxs ?: vec3_zero().xyz, data.maxs);
+	data.start = start;
+	data.end = end;
 
 	data.contents = contents;
 
 	// check for point special case
-	if (VectorCompare(data.mins, vec3_zero().xyz) && VectorCompare(data.maxs, vec3_zero().xyz)) {
+	if (vec3_equal(data.mins, vec3_zero()) && vec3_equal(data.maxs, vec3_zero())) {
 		data.is_point = true;
 	} else {
 		data.is_point = false;
 
 		// extents allow planes to be shifted to account for the box size
-		data.extents[0] = -mins[0] > maxs[0] ? -mins[0] : maxs[0];
-		data.extents[1] = -mins[1] > maxs[1] ? -mins[1] : maxs[1];
-		data.extents[2] = -mins[2] > maxs[2] ? -mins[2] : maxs[2];
+		data.extents.x = -mins.x > maxs.x ? -mins.x : maxs.x;
+		data.extents.y = -mins.y > maxs.y ? -mins.y : maxs.y;
+		data.extents.z = -mins.z > maxs.z ? -mins.z : maxs.z;
 
 		// offsets provide sign bit lookups for fast plane tests
-		data.offsets[0][0] = mins[0];
-		data.offsets[0][1] = mins[1];
-		data.offsets[0][2] = mins[2];
+		data.offsets[0].x = mins.x;
+		data.offsets[0].y = mins.y;
+		data.offsets[0].z = mins.z;
 
-		data.offsets[1][0] = maxs[0];
-		data.offsets[1][1] = mins[1];
-		data.offsets[1][2] = mins[2];
+		data.offsets[1].x = maxs.x;
+		data.offsets[1].y = mins.y;
+		data.offsets[1].z = mins.z;
 
-		data.offsets[2][0] = mins[0];
-		data.offsets[2][1] = maxs[1];
-		data.offsets[2][2] = mins[2];
+		data.offsets[2].x = mins.x;
+		data.offsets[2].y = maxs.y;
+		data.offsets[2].z = mins.z;
 
-		data.offsets[3][0] = maxs[0];
-		data.offsets[3][1] = maxs[1];
-		data.offsets[3][2] = mins[2];
+		data.offsets[3].x = maxs.x;
+		data.offsets[3].y = maxs.y;
+		data.offsets[3].z = mins.z;
 
-		data.offsets[4][0] = mins[0];
-		data.offsets[4][1] = mins[1];
-		data.offsets[4][2] = maxs[2];
+		data.offsets[4].x = mins.x;
+		data.offsets[4].y = mins.y;
+		data.offsets[4].z = maxs.z;
 
-		data.offsets[5][0] = maxs[0];
-		data.offsets[5][1] = mins[1];
-		data.offsets[5][2] = maxs[2];
+		data.offsets[5].x = maxs.x;
+		data.offsets[5].y = mins.y;
+		data.offsets[5].z = maxs.z;
 
-		data.offsets[6][0] = mins[0];
-		data.offsets[6][1] = maxs[1];
-		data.offsets[6][2] = maxs[2];
+		data.offsets[6].x = mins.x;
+		data.offsets[6].y = maxs.y;
+		data.offsets[6].z = maxs.z;
 
-		data.offsets[7][0] = maxs[0];
-		data.offsets[7][1] = maxs[1];
-		data.offsets[7][2] = maxs[2];
+		data.offsets[7].x = maxs.x;
+		data.offsets[7].y = maxs.y;
+		data.offsets[7].z = maxs.z;
 	}
 
 	for (int32_t i = 0; i < 3; i++) {
-		if (start[i] < end[i]) {
-			data.box_mins[i] = start[i] + data.mins[i] - 1.0;
-			data.box_maxs[i] = end[i] + data.maxs[i] + 1.0;
+		if (start.xyz[i] < end.xyz[i]) {
+			data.box_mins.xyz[i] = start.xyz[i] + data.mins.xyz[i] - 1.0;
+			data.box_maxs.xyz[i] = end.xyz[i] + data.maxs.xyz[i] + 1.0;
 		} else {
-			data.box_mins[i] = end[i] + data.mins[i] - 1.0;
-			data.box_maxs[i] = start[i] + data.maxs[i] + 1.0;
+			data.box_mins.xyz[i] = end.xyz[i] + data.mins.xyz[i] - 1.0;
+			data.box_maxs.xyz[i] = start.xyz[i] + data.maxs.xyz[i] + 1.0;
 		}
 	}
 
 	// check for position test special case
-	if (VectorCompare(start, end)) {
+	if (vec3_equal(start, end)) {
 		int32_t leafs[MAX_ENTITIES];
 
 		const size_t len = Cm_BoxLeafnums(data.box_mins, data.box_maxs, leafs, lengthof(leafs),
@@ -437,18 +434,18 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
 			}
 		}
 
-		VectorCopy(start, data.trace.end);
+		data.trace.end = start;
 		return data.trace;
 	}
 
 	Cm_TraceToNode(&data, head_node, 0.0, 1.0, start, end);
 
 	if (data.trace.fraction == 0.0) {
-		VectorCopy(start, data.trace.end);
+		data.trace.end = start;
 	} else if (data.trace.fraction == 1.0) {
-		VectorCopy(end, data.trace.end);
+		data.trace.end = end;
 	} else {
-		VectorLerp(start, end, data.trace.fraction, data.trace.end);
+		data.trace.end = vec3_mix(start, end, data.trace.fraction);
 	}
 
 	return data.trace;
@@ -472,14 +469,15 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
  *
  * @return The trace.
  */
-cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins,
-                                  const vec3_t maxs, const int32_t head_node, const int32_t contents,
-                                  const matrix4x4_t *matrix, const matrix4x4_t *inverse_matrix) {
+cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end,
+								  const vec3_t mins, const vec3_t maxs,
+								  const int32_t head_node, const int32_t contents,
+                                  const mat4_t *matrix, const mat4_t *inverse_matrix) {
 
 	vec3_t start0, end0;
 
-	Matrix4x4_Transform(inverse_matrix, start, start0);
-	Matrix4x4_Transform(inverse_matrix, end, end0);
+	Matrix4x4_Transform(inverse_matrix, start.xyz, start0.xyz);
+	Matrix4x4_Transform(inverse_matrix, end.xyz, end0.xyz);
 
 	// sweep the box through the model
 	cm_trace_t trace = Cm_BoxTrace(start0, end0, mins, maxs, head_node, contents);
@@ -488,16 +486,16 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const ve
 		vec4_t plane;
 
 		const cm_bsp_plane_t *p = &trace.plane;
-		const vec_t *n = p->normal;
+		const vec3_t n = p->normal;
 
-		Matrix4x4_TransformPositivePlane(matrix, n[0], n[1], n[2], p->dist, plane);
+		Matrix4x4_TransformPositivePlane(matrix, n.x, n.y, n.z, p->dist, plane.xyzw);
 
-		VectorCopy(plane, trace.plane.normal);
-		trace.plane.dist = plane[3];
+		trace.plane.normal = vec4_xyz(plane);
+		trace.plane.dist = plane.w;
 	}
 
 	// and calculate the final end point
-	VectorLerp(start, end, trace.fraction, trace.end);
+	trace.end = vec3_mix(start, end, trace.fraction);
 
 	return trace;
 }
@@ -514,39 +512,37 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const ve
  * @remarks BSP entities have asymmetrical bounding boxes, requiring special attention.
  */
 void Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angles,
-                     const vec3_t mins, const vec3_t maxs, vec_t *bounds_mins, vec_t *bounds_maxs) {
+                     const vec3_t mins, const vec3_t maxs, vec3_t *bounds_mins, vec3_t *bounds_maxs) {
 
-	if (solid == SOLID_BSP && !VectorCompare(angles, vec3_zero().xyz)) {
-		vec_t max = 0.0;
+	if (solid == SOLID_BSP && !vec3_equal(angles, vec3_zero())) {
+		float max = 0.0;
 
 		for (int32_t i = 0; i < 3; i++) {
-			vec_t v = fabsf(mins[i]);
+			float v = fabsf(mins.xyz[i]);
 			if (v > max) {
 				max = v;
 			}
-			v = fabsf(maxs[i]);
+			v = fabsf(maxs.xyz[i]);
 			if (v > max) {
 				max = v;
 			}
 		}
-		for (int32_t i = 0; i < 3; i++) {
-			bounds_mins[i] = origin[i] - max;
-			bounds_maxs[i] = origin[i] + max;
-		}
+		*bounds_mins = vec3_add(origin, vec3(-max, -max, -max));
+		*bounds_maxs = vec3_add(origin, vec3(max, max, max));
 	} else {
-		VectorAdd(origin, mins, bounds_mins);
-		VectorAdd(origin, maxs, bounds_maxs);
+		*bounds_mins = vec3_add(origin, mins);
+		*bounds_maxs = vec3_add(origin, maxs);
 	}
 
 	// spread the bounds to ensure that floating point precision doesn't preclude us from
 	// testing an entity that we do in fact need to check
 
-	bounds_mins[0] -= 1.0;
-	bounds_mins[1] -= 1.0;
-	bounds_mins[2] -= 1.0;
-	bounds_maxs[0] += 1.0;
-	bounds_maxs[1] += 1.0;
-	bounds_maxs[2] += 1.0;
+	bounds_mins->x -= 1.0;
+	bounds_mins->y -= 1.0;
+	bounds_mins->z -= 1.0;
+	bounds_maxs->x += 1.0;
+	bounds_maxs->y += 1.0;
+	bounds_maxs->z += 1.0;
 }
 
 /**
@@ -559,15 +555,15 @@ void Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angl
  * @param bounds_maxs The resulting bounds maxs, in world space.
  */
 void Cm_TraceBounds(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-                    vec_t *bounds_mins, vec_t *bounds_maxs) {
+                    vec3_t *bounds_mins, vec3_t *bounds_maxs) {
 
 	for (int32_t i = 0; i < 3; i++) {
-		if (end[i] > start[i]) {
-			bounds_mins[i] = start[i] + mins[i] - 1.0;
-			bounds_maxs[i] = end[i] + maxs[i] + 1.0;
+		if (end.xyz[i] > start.xyz[i]) {
+			bounds_mins->xyz[i] = start.xyz[i] + mins.xyz[i] - 1.0;
+			bounds_maxs->xyz[i] = end.xyz[i] + maxs.xyz[i] + 1.0;
 		} else {
-			bounds_mins[i] = end[i] + mins[i] - 1.0;
-			bounds_maxs[i] = start[i] + maxs[i] + 1.0;
+			bounds_mins->xyz[i] = end.xyz[i] + mins.xyz[i] - 1.0;
+			bounds_maxs->xyz[i] = start.xyz[i] + maxs.xyz[i] + 1.0;
 		}
 	}
 }

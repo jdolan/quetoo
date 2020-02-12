@@ -56,15 +56,10 @@ static int32_t c_clip_brushes;
 /**
  * @brief
  */
-static _Bool PlaneEqual(const plane_t *p, const vec3_t normal, const dvec_t dist) {
+static _Bool PlaneEqual(const plane_t *p, const vec3_t normal, double dist) {
 
-	const vec_t ne = NORMAL_EPSILON;
-	const dvec_t de = DIST_EPSILON;
-
-	if ((p->dist == dist || fabs(p->dist - dist) <= de) &&
-		(p->normal[0] == normal[0] || fabs(p->normal[0] - normal[0]) <= ne) &&
-		(p->normal[1] == normal[1] || fabs(p->normal[1] - normal[1]) <= ne) &&
-		(p->normal[2] == normal[2] || fabs(p->normal[2] - normal[2]) <= ne)) {
+	if ((equal_epsilon(p->dist, dist, DIST_EPSILON)) &&
+		vec3_equal_epsilon(p->normal, normal, NORMAL_EPSILON)) {
 		return true;
 	}
 
@@ -85,10 +80,10 @@ static inline void AddPlaneToHash(plane_t *p) {
 /**
  * @brief
  */
-static int32_t CreatePlane(const vec3_t normal, vec_t dist) {
+static int32_t CreatePlane(const vec3_t normal, float dist) {
 
 	// bad plane
-	if (VectorLength(normal) < 0.5) {
+	if (vec3_length(normal) < 0.5) {
 		return -1;
 	}
 
@@ -98,18 +93,18 @@ static int32_t CreatePlane(const vec3_t normal, vec_t dist) {
 	}
 
 	plane_t *a = &planes[num_planes++];
-	VectorCopy(normal, a->normal);
+	a->normal = normal;
 	a->dist = dist;
 	a->type = Cm_PlaneTypeForNormal(a->normal);
 
 	plane_t *b = &planes[num_planes++];
-	VectorNegate(normal, b->normal);
+	b->normal = vec3_negate(normal);
 	b->dist = -dist;
 	b->type = Cm_PlaneTypeForNormal(b->normal);
 
 	// always put axial planes facing positive first
 	if (AXIAL(a)) {
-		if (a->normal[0] < 0.0 || a->normal[1] < 0.0 || a->normal[2] < 0.0) {
+		if (a->normal.x < 0.0 || a->normal.y < 0.0 || a->normal.z < 0.0) {
 			plane_t temp = *a;
 			*a = *b;
 			*b = temp;
@@ -133,30 +128,30 @@ static void SnapNormal(vec3_t normal) {
 	_Bool snap = false;
 
 	for (int32_t i = 0; i < 3; i++) {
-		if (normal[i] != 0.0) {
-			if (normal[i] > -NORMAL_EPSILON && normal[i] < NORMAL_EPSILON) {
-				normal[i] = 0.0;
+		if (normal.xyz[i] != 0.0) {
+			if (normal.xyz[i] > -NORMAL_EPSILON && normal.xyz[i] < NORMAL_EPSILON) {
+				normal.xyz[i] = 0.0;
 				snap = true;
 			}
 		}
 	}
 
 	if (snap) {
-		VectorNormalize(normal);
+		normal = vec3_normalize(normal);
 	}
 }
 
 /**
  * @brief
  */
-static void SnapPlane(vec3_t normal, dvec_t *dist) {
+static void SnapPlane(vec3_t normal, double *dist) {
 
 	SnapNormal(normal);
 
 	// snap axial planes to integer distances
 	if (Cm_PlaneTypeForNormal(normal) <= PLANE_Z) {
 
-		const vec_t f = floor(*dist + 0.5);
+		const float f = floor(*dist + 0.5);
 		if (fabs(*dist - f) < DIST_EPSILON) {
 			*dist = f;
 		}
@@ -166,7 +161,7 @@ static void SnapPlane(vec3_t normal, dvec_t *dist) {
 /**
  * @brief
  */
-int32_t FindPlane(vec3_t normal, dvec_t dist) {
+int32_t FindPlane(vec3_t normal, double dist) {
 
 	SnapPlane(normal, &dist);
 
@@ -192,16 +187,14 @@ int32_t FindPlane(vec3_t normal, dvec_t dist) {
  * @brief
  */
 static int32_t PlaneFromPoints(const dvec3_t p0, const dvec3_t p1, const dvec3_t p2) {
-	vec3_t t1, t2, normal;
 
-	VectorSubtract(p0, p1, t1);
-	VectorSubtract(p2, p1, t2);
-	CrossProduct(t1, t2, normal);
-	VectorNormalize(normal);
+	const dvec3_t t1 = dvec3_subtract(p0, p1);
+	const dvec3_t t2 = dvec3_subtract(p2, p1);
 
-	const dvec_t dist = DotProduct(p0, normal);
+	const dvec3_t normal = dvec3_normalize(dvec3_cross(t1, t2));
+	const double dist = dvec3_dot(p0, normal);
 
-	return FindPlane(normal, dist);
+	return FindPlane(dvec3_cast_vec3(normal), dist);
 }
 
 /**
@@ -245,10 +238,10 @@ static void AddBrushBevels(brush_t *b) {
 	brush_texture_t tdtemp;
 	brush_side_t *s, *s2;
 	vec3_t normal;
-	vec_t dist;
+	float dist;
 	cm_winding_t *w, *w2;
 	vec3_t vec, vec2;
-	vec_t d;
+	float d;
 
 	// add the axial planes
 	order = 0;
@@ -256,7 +249,7 @@ static void AddBrushBevels(brush_t *b) {
 		for (dir = -1; dir <= 1; dir += 2, order++) {
 			// see if the plane is already present
 			for (i = 0, s = b->original_sides; i < b->num_sides; i++, s++) {
-				if (planes[s->plane_num].normal[axis] == dir) {
+				if (planes[s->plane_num].normal.xyz[axis] == dir) {
 					break;
 				}
 			}
@@ -267,12 +260,12 @@ static void AddBrushBevels(brush_t *b) {
 				}
 				num_brush_sides++;
 				b->num_sides++;
-				VectorClear(normal);
-				normal[axis] = dir;
+				normal = vec3_zero();
+				normal.xyz[axis] = dir;
 				if (dir == 1) {
-					dist = b->maxs[axis];
+					dist = b->maxs.xyz[axis];
 				} else {
-					dist = -b->mins[axis];
+					dist = -b->mins.xyz[axis];
 				}
 				s->plane_num = FindPlane(normal, dist);
 				s->texinfo = b->original_sides[0].texinfo;
@@ -308,13 +301,15 @@ static void AddBrushBevels(brush_t *b) {
 		}
 		for (j = 0; j < w->num_points; j++) {
 			k = (j + 1) % w->num_points;
-			VectorSubtract(w->points[j], w->points[k], vec);
-			if (VectorNormalize(vec) < 0.5) {
+			vec = vec3_subtract(w->points[j], w->points[k]);
+			if (vec3_length(vec) < 0.5) {
 				continue;
 			}
+			vec = vec3_normalize(vec);
 			SnapNormal(vec);
 			for (k = 0; k < 3; k++) {
-				if (vec[k] == -1.0 || vec[k] == 1.0 || (vec[k] == 0.0 && vec[(k + 1) % 3] == 0.0)) {
+				if (vec.xyz[k] == -1.0 || vec.xyz[k] == 1.0 ||
+					(vec.xyz[k] == 0.0 && vec.xyz[(k + 1) % 3] == 0.0)) {
 					break; // axial
 				}
 			}
@@ -326,18 +321,19 @@ static void AddBrushBevels(brush_t *b) {
 			for (axis = 0; axis < 3; axis++) {
 				for (dir = -1; dir <= 1; dir += 2) {
 					// construct a plane
-					VectorClear(vec2);
-					vec2[axis] = dir;
-					CrossProduct(vec, vec2, normal);
-					if (VectorNormalize(normal) < 0.5) {
+					vec2 = vec3_zero();
+					vec2.xyz[axis] = dir;
+					normal = vec3_cross(vec, vec2);
+					if (vec3_length(normal) < 0.5) {
 						continue;
 					}
-					dist = DotProduct(w->points[j], normal);
+					normal = vec3_normalize(normal);
+					dist = vec3_dot(w->points[j], normal);
 
 					// if all the points on all the sides are
 					// behind this plane, it is a proper edge bevel
 					for (k = 0; k < b->num_sides; k++) {
-						vec_t minBack;
+						float minBack;
 
 						// if this plane has already been used, skip it
 						if (PlaneEqual(&planes[b->original_sides[k].plane_num], normal, dist)) {
@@ -350,7 +346,7 @@ static void AddBrushBevels(brush_t *b) {
 						}
 						minBack = 0.0f;
 						for (l = 0; l < w2->num_points; l++) {
-							d = DotProduct(w2->points[l], normal) - dist;
+							d = vec3_dot(w2->points[l], normal) - dist;
 							if (d > 0.1) {
 								break; // point in front
 							}
@@ -396,7 +392,8 @@ static void AddBrushBevels(brush_t *b) {
  */
 static _Bool MakeBrushWindings(brush_t *ob) {
 
-	ClearBounds(ob->mins, ob->maxs);
+	ob->mins = vec3_mins();
+	ob->maxs = vec3_maxs();
 
 	for (int32_t i = 0; i < ob->num_sides; i++) {
 		const plane_t *plane = &planes[ob->original_sides[i].plane_num];
@@ -421,19 +418,20 @@ static _Bool MakeBrushWindings(brush_t *ob) {
 		if (w) {
 			side->visible = true;
 			for (int32_t j = 0; j < w->num_points; j++) {
-				AddPointToBounds(w->points[j], ob->mins, ob->maxs);
+				ob->mins = vec3_minf(ob->mins, w->points[j]);
+				ob->maxs = vec3_maxf(ob->maxs, w->points[j]);
 			}
 		}
 	}
 
 	for (int32_t i = 0; i < 3; i++) {
 		//IDBUG: all the indexes into the mins and maxs were zero (not using i)
-		if (ob->mins[i] < MIN_WORLD_COORD || ob->maxs[i] > MAX_WORLD_COORD) {
+		if (ob->mins.xyz[i] < MIN_WORLD_COORD || ob->maxs.xyz[i] > MAX_WORLD_COORD) {
 			Mon_SendSelect(MON_WARN, ob->entity_num, ob->brush_num, "Brush bounds out of range");
 			ob->num_sides = 0;
 			break;
 		}
-		if (ob->mins[i] > MAX_WORLD_COORD || ob->maxs[i] < MIN_WORLD_COORD) {
+		if (ob->mins.xyz[i] > MAX_WORLD_COORD || ob->maxs.xyz[i] < MIN_WORLD_COORD) {
 			Mon_SendSelect(MON_WARN, ob->entity_num, ob->brush_num, "No visible sides on brush");
 			ob->num_sides = 0;
 			break;
@@ -549,9 +547,9 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 					Com_Error(ERROR_FATAL, "Invalid brush %d (%s)\n", num_brushes, token);
 				}
 
-				for (int32_t j = 0; j < 3; j++) {
-					Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_DOUBLE, &points[i][j], 1);
-				}
+				Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_DOUBLE, &points[i].x, 1);
+				Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_DOUBLE, &points[i].y, 1);
+				Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_DOUBLE, &points[i].z, 1);
 
 				Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
 				if (g_strcmp0(token, ")")) {
@@ -571,11 +569,11 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 
 			g_strlcpy(td.name, token, sizeof(td.name));
 
-			Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &td.shift[0], 1);
-			Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &td.shift[1], 1);
+			Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &td.shift.x, 1);
+			Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &td.shift.y, 1);
 			Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &td.rotate, 1);
-			Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &td.scale[0], 1);
-			Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &td.scale[1], 1);
+			Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &td.scale.x, 1);
+			Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &td.scale.y, 1);
 
 			if (!Parse_IsEOL(parser)) {
 				Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_INT32, &side->contents, 1);
@@ -635,7 +633,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 			// keep this side
 			side = brush->original_sides + brush->num_sides;
 			side->plane_num = plane_num;
-			side->texinfo = TexinfoForBrushTexture(&planes[plane_num], &td, vec3_zero().xyz);
+			side->texinfo = TexinfoForBrushTexture(&planes[plane_num], &td, vec3_zero());
 
 			// save the td off in case there is an origin brush and we have to recalculate the texinfo
 			brush_textures[num_brush_sides] = td;
@@ -681,10 +679,10 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 			}
 
 			vec3_t origin;
-			VectorAdd(brush->mins, brush->maxs, origin);
-			VectorScale(origin, 0.5, origin);
+			origin = vec3_add(brush->mins, brush->maxs);
+			origin = vec3_scale(origin, 0.5);
 
-			SetValueForKey(entity, "origin", va("%g %g %g", origin[0], origin[1], origin[2]));
+			SetValueForKey(entity, "origin", va("%g %g %g", origin.x, origin.y, origin.z));
 			num_brushes--;
 			return NULL;
 		}
@@ -777,11 +775,10 @@ static entity_t *ParseEntity(parser_t *parser) {
 			}
 		}
 
-		vec3_t origin;
-		VectorForKey(entity, "origin", origin, NULL);
+		const vec3_t origin = VectorForKey(entity, "origin", vec3_zero());
 
 		// if there was an origin brush, offset all of the planes and texinfo
-		if (!VectorCompare(origin, vec3_zero().xyz)) {
+		if (!vec3_equal(origin, vec3_zero())) {
 			for (int32_t i = 0; i < entity->num_brushes; i++) {
 				brush_t *b = &brushes[entity->first_brush + i];
 				for (int32_t j = 0; j < b->num_sides; j++) {
@@ -789,7 +786,7 @@ static entity_t *ParseEntity(parser_t *parser) {
 					brush_side_t *s = &b->original_sides[j];
 					plane_t *p = &planes[s->plane_num];
 
-					const dvec_t dist = p->dist - DotProduct(p->normal, origin);
+					const double dist = p->dist - vec3_dot(p->normal, origin);
 
 					s->plane_num = FindPlane(p->normal, dist);
 					s->texinfo = TexinfoForBrushTexture(p, &brush_textures[s - brush_sides], origin);
@@ -869,14 +866,15 @@ void LoadMapFile(const char *filename) {
 		}
 	}
 
-	ClearBounds(map_mins, map_maxs);
+	map_mins = vec3_mins();
+	map_maxs = vec3_maxs();
 
 	for (int32_t i = 0; i < entities[0].num_brushes; i++) {
-		if (brushes[i].mins[0] > MAX_WORLD_COORD) {
+		if (brushes[i].mins.x > MAX_WORLD_COORD) {
 			continue; // no valid points
 		}
-		AddPointToBounds(brushes[i].mins, map_mins, map_maxs);
-		AddPointToBounds(brushes[i].maxs, map_mins, map_maxs);
+		map_mins = vec3_minf(map_mins, brushes[i].mins);
+		map_maxs = vec3_maxf(map_maxs, brushes[i].maxs);
 	}
 
 	Com_Verbose("%5i brushes\n", num_brushes);
@@ -888,7 +886,7 @@ void LoadMapFile(const char *filename) {
 	Com_Verbose("%5i planes\n", num_planes);
 	Com_Verbose("%5i area portals\n", c_area_portals);
 	Com_Verbose("size: %5.0f,%5.0f,%5.0f to %5.0f,%5.0f,%5.0f\n",
-				map_mins[0], map_mins[1], map_mins[2], map_maxs[0], map_maxs[1], map_maxs[2]);
+				map_mins.x, map_mins.y, map_mins.z, map_maxs.x, map_maxs.y, map_maxs.z);
 
 	Fs_Free(buffer);
 }

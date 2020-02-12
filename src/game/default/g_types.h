@@ -22,6 +22,7 @@
 #pragma once
 
 #include "shared.h"
+#include "color.h"
 
 /**
  * @brief Game protocol version (protocol minor version). To be incremented
@@ -75,7 +76,7 @@ typedef struct {
 	int32_t frag_limit;
 	int32_t round_limit;
 	int32_t capture_limit;
-	vec_t time_limit;
+	float time_limit;
 	char give[MAX_STRING_CHARS];
 	char music[MAX_STRING_CHARS];
 } g_map_list_map_t;
@@ -251,20 +252,16 @@ typedef enum {
 } g_entity_trail_t;
 
 /**
- * @brief Effect colors for particle trails and dynamic light flashes. Note that
- * when these are passed around, they are in the format rrggbb[aa], so don't use
- * 0x integers since they might not be the right endianness! You can force it with
- * BigLong, though.
+ * @brief Effect colors for particle trails and dynamic light flashes.
  */
-#define EFFECT_COLOR_RED		ColorFromRGB(155, 31, 0)
-#define EFFECT_COLOR_GREEN		ColorFromRGB(75, 91, 39)
-#define EFFECT_COLOR_BLUE		ColorFromRGB(11, 63, 83)
-#define EFFECT_COLOR_YELLOW		ColorFromRGB(255, 255, 83)
-#define EFFECT_COLOR_ORANGE		ColorFromRGB(255, 147, 0)
-#define EFFECT_COLOR_WHITE		ColorFromRGB(255, 255, 211)
-#define EFFECT_COLOR_PINK		ColorFromRGB(235, 151, 127)
-#define EFFECT_COLOR_PURPLE		ColorFromRGB(39, 39, 63)
-#define EFFECT_COLOR_DEFAULT	ColorFromRGBA(0, 0, 0, 0)
+#define EFFECT_COLOR_RED		color3b(155, 31, 0)
+#define EFFECT_COLOR_GREEN		color3b(75, 91, 39)
+#define EFFECT_COLOR_BLUE		color3b(11, 63, 83)
+#define EFFECT_COLOR_YELLOW		color3b(255, 255, 83)
+#define EFFECT_COLOR_ORANGE		color3b(255, 147, 0)
+#define EFFECT_COLOR_WHITE		color3b(255, 255, 211)
+#define EFFECT_COLOR_PINK		color3b(235, 151, 127)
+#define EFFECT_COLOR_PURPLE		color3b(39, 39, 63)
 
 /**
  * @brief Color palette indexes for the above.
@@ -277,7 +274,6 @@ typedef enum {
 #define PALETTE_COLOR_WHITE 216
 #define PALETTE_COLOR_PINK 247
 #define PALETTE_COLOR_PURPLE 187
-#define PALETTE_COLOR_DEFAULT 0
 
 /**
  * @brief Scoreboard background color hues.
@@ -416,8 +412,8 @@ typedef enum {
  */
 typedef struct {
 	g_armor_t tag;
-	vec_t normal_protection;
-	vec_t energy_protection;
+	float normal_protection;
+	float energy_protection;
 } g_armor_info_t;
 
 /**
@@ -600,7 +596,7 @@ typedef struct g_item_s {
 	/**
 	 * @brief A value to determine the relative priority of items.
 	 */
-	vec_t priority;
+	float priority;
 
 	/**
 	 * @brief A string list of models, sounds and images that this model will use in a game.
@@ -701,18 +697,18 @@ typedef struct {
 	uint16_t sound_middle;
 	uint16_t sound_end;
 
-	vec_t accel;
-	vec_t speed;
-	vec_t decel;
-	vec_t distance;
+	float accel;
+	float speed;
+	float decel;
+	float distance;
 
-	vec_t wait;
+	float wait;
 
 	// state data
 	g_move_state_t state;
 	vec3_t dest;
 	vec3_t dir;
-	vec_t current_speed;
+	float current_speed;
 	int32_t const_frames; // number of frames move will use move->speed
 	int32_t accel_frames; // number of frames move will accelerate
 	int32_t decel_frames; // number of frames move will decelerate
@@ -1076,7 +1072,7 @@ typedef struct {
 	int16_t max_armor;
 	int16_t max_boost_health; // max health can be boosted to
 
-	vec_t speed; // x/y speed after moving
+	float speed; // x/y speed after moving
 	vec3_t angles; // aiming direction
 	vec3_t forward, right, up; // aiming direction vectors
 	vec3_t cmd_angles; // angles sent over in the last command
@@ -1144,14 +1140,14 @@ typedef struct {
 
 	g_entity_t *target_ent;
 
-	vec_t speed, accel, decel;
+	float speed, accel, decel;
 	vec3_t move_dir;
 	vec3_t pos1, pos2;
 
 	vec3_t velocity;
 	vec3_t avelocity;
 
-	vec_t mass;
+	float mass;
 
 	uint32_t next_think;
 	void (*Think)(g_entity_t *self);
@@ -1164,7 +1160,7 @@ typedef struct {
 	uint32_t touch_time;
 	uint32_t push_time;
 	uint32_t ripple_time;
-	vec_t ripple_size;
+	float ripple_size;
 
 	int16_t health;
 	int16_t max_health;
@@ -1173,7 +1169,7 @@ typedef struct {
 	_Bool take_damage;
 	int16_t damage;
 	int16_t knockback;
-	vec_t damage_radius;
+	float damage_radius;
 	int32_t count;
 
 	g_entity_t *enemy;
@@ -1186,9 +1182,9 @@ typedef struct {
 
 	int16_t colors[2];
 
-	vec_t wait;
-	vec_t delay; // before firing targets
-	vec_t random;
+	float wait;
+	float delay; // before firing targets
+	float random;
 
 	g_entity_t *ground_entity;
 	cm_bsp_plane_t ground_plane;

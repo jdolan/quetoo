@@ -26,10 +26,10 @@
 /**
  * @brief
  */
-static vec_t SwapFloat(vec_t f) {
+static float SwapFloat(float f) {
 
 	union {
-		vec_t f;
+		float f;
 		byte b[4];
 	} dat1, dat2;
 
@@ -74,7 +74,7 @@ int32_t LittleLong(int32_t l) {
 /**
  * @brief
  */
-vec_t BigFloat(vec_t f) {
+float BigFloat(float f) {
 	if (SDL_BYTEORDER == SDL_LIL_ENDIAN) {
 		return SwapFloat(f);
 	}
@@ -84,9 +84,62 @@ vec_t BigFloat(vec_t f) {
 /**
  * @brief
  */
-vec_t LittleFloat(vec_t f) {
+float LittleFloat(float f) {
 	if (SDL_BYTEORDER == SDL_BIG_ENDIAN) {
 		return SwapFloat(f);
 	}
 	return f;
+}
+
+/**
+ * @brief
+ */
+s16vec2_t LittleShortVector2(const s16vec2_t v) {
+	return s16vec2(LittleShort(v.x),
+				   LittleShort(v.y));
+}
+
+/**
+ * @brief
+ */
+s16vec3_t LittleShortVector3(const s16vec3_t v) {
+	return s16vec3(LittleShort(v.x),
+				   LittleShort(v.y),
+				   LittleShort(v.z));
+}
+
+/**
+ * @brief
+ */
+s32vec3_t LittleLongVector3(const s32vec3_t v) {
+	return s32vec3(LittleLong(v.x),
+				   LittleLong(v.y),
+				   LittleLong(v.z));
+}
+
+/**
+ * @brief
+ */
+vec2_t LittleVector2(const vec2_t v) {
+	return vec2(LittleFloat(v.x),
+				LittleFloat(v.y));
+}
+
+/**
+ * @brief
+ */
+vec3_t LittleVector3(const vec3_t v) {
+	return vec3(LittleFloat(v.x),
+				LittleFloat(v.y),
+				LittleFloat(v.z));
+}
+
+/**
+ * @brief
+ */
+vec4_t LittleVector4(const vec4_t v) {
+	return vec4(LittleFloat(v.x),
+				LittleFloat(v.y),
+				LittleFloat(v.z),
+				LittleFloat(v.w));
 }

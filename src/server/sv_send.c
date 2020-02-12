@@ -116,7 +116,7 @@ void Sv_BroadcastCommand(const char *fmt, ...) {
 
 	Net_WriteByte(&sv.multicast, SV_CMD_CBUF_TEXT);
 	Net_WriteString(&sv.multicast, string);
-	Sv_Multicast(NULL, MULTICAST_ALL_R, NULL);
+	Sv_Multicast(vec3_zero(), MULTICAST_ALL_R, NULL);
 }
 
 /**
@@ -181,10 +181,6 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
 	byte vis[MAX_BSP_LEAFS >> 3];
 	int32_t area;
 
-	if (!origin) {
-		origin = vec3_zero().xyz;
-	}
-
 	_Bool reliable = false;
 
 	switch (to) {
@@ -243,13 +239,10 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
 
 		if (to != MULTICAST_ALL && to != MULTICAST_ALL_R) {
 			const pm_state_t *pm = &cl->entity->client->ps.pm_state;
-			vec3_t org, off;
 
-			UnpackVector(pm->view_offset, off);
-			VectorAdd(pm->origin, off, org);
+			const vec3_t org = vec3_add(pm->origin, pm->view_offset);
 
 			const int32_t leaf = Cm_PointLeafnum(org, 0);
-
 			const int32_t client_area = Cm_LeafArea(leaf);
 			if (!Cm_AreasConnected(area, client_area)) {
 				continue;
@@ -286,8 +279,6 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
  */
 void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, const uint16_t index, const uint16_t atten, const int8_t pitch) {
 
-	assert(origin || ent);
-
 	uint32_t flags = 0;
 
 	uint16_t at = atten;
@@ -296,17 +287,15 @@ void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, const uint16
 		at = ((at & 0xf0) | ATTEN_DEFAULT);
 	}
 
-	if (origin) {
-		flags |= S_ORIGIN;
-	}
-
 	if (ent) {
 		flags |= S_ENTITY;
-
 		if (ent->sv_flags & SVF_NO_CLIENT) {
 			flags |= S_ORIGIN;
-			origin = ent->s.origin;
+		} else if (!vec3_equal(origin, ent->s.origin)) {
+			flags |= S_ORIGIN;
 		}
+	} else {
+		flags |= S_ORIGIN;
 	}
 
 	if (pitch) {
@@ -331,21 +320,10 @@ void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, const uint16
 		Net_WriteByte(&sv.multicast, pitch);
 	}
 
-	vec3_t broadcast_origin;
-	if (origin) {
-		VectorCopy(origin, broadcast_origin);
-	} else {
-		if (ent->solid == SOLID_BSP) {
-			VectorLerp(ent->abs_mins, ent->abs_maxs, 0.5, broadcast_origin);
-		} else {
-			VectorCopy(ent->s.origin, broadcast_origin);
-		}
-	}
-
 	if ((atten & 0x0f) != ATTEN_NONE) {
-		Sv_Multicast(broadcast_origin, MULTICAST_PHS, NULL);
+		Sv_Multicast(origin, MULTICAST_PHS, NULL);
 	} else {
-		Sv_Multicast(broadcast_origin, MULTICAST_ALL, NULL);
+		Sv_Multicast(origin, MULTICAST_ALL, NULL);
 	}
 }
 

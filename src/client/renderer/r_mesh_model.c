@@ -90,30 +90,30 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 		if (!g_strcmp0(token, "translate")) {
 
 			vec3_t v;
-			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, v, 3) != 3) {
+			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, v.xyz, 3) != 3) {
 				break;
 			}
 
-			Matrix4x4_ConcatTranslate(&config->transform, v[0], v[1], v[2]);
+			Matrix4x4_ConcatTranslate(&config->transform, v.x, v.y, v.z);
 			continue;
 		}
 
 		if (!g_strcmp0(token, "rotate")) {
 
 			vec3_t v;
-			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, v, 3) != 3) {
+			if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, v.xyz, 3) != 3) {
 				break;
 			}
 
-			Matrix4x4_ConcatRotate(&config->transform, v[0], 1.0, 0.0, 0.0);
-			Matrix4x4_ConcatRotate(&config->transform, v[1], 0.0, 1.0, 0.0);
-			Matrix4x4_ConcatRotate(&config->transform, v[2], 0.0, 0.0, 1.0);
+			Matrix4x4_ConcatRotate(&config->transform, v.x, 1.0, 0.0, 0.0);
+			Matrix4x4_ConcatRotate(&config->transform, v.y, 0.0, 1.0, 0.0);
+			Matrix4x4_ConcatRotate(&config->transform, v.z, 0.0, 0.0, 1.0);
 			continue;
 		}
 
 		if (!g_strcmp0(token, "scale")) {
 
-			vec_t v;
+			float v;
 			if (!Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, &v, 1)) {
 				break;
 			}
@@ -179,45 +179,43 @@ static void R_LoadMeshTangents(r_model_t *mod) {
 
 				vec3_t s, t;
 
-				const vec_t bx_ax = b->position[0] - a->position[0];
-				const vec_t cx_ax = c->position[0] - a->position[0];
-				const vec_t by_ay = b->position[1] - a->position[1];
-				const vec_t cy_ay = c->position[1] - a->position[1];
-				const vec_t bz_az = b->position[2] - a->position[2];
-				const vec_t cz_az = c->position[2] - a->position[2];
+				const float bx_ax = b->position.x - a->position.x;
+				const float cx_ax = c->position.x - a->position.x;
+				const float by_ay = b->position.y - a->position.y;
+				const float cy_ay = c->position.y - a->position.y;
+				const float bz_az = b->position.z - a->position.z;
+				const float cz_az = c->position.z - a->position.z;
 
-				const vec_t bs_as = b->diffuse[0] - a->diffuse[0];
-				const vec_t cs_as = c->diffuse[0] - a->diffuse[0];
-				const vec_t bt_at = b->diffuse[1] - a->diffuse[1];
-				const vec_t ct_at = c->diffuse[1] - a->diffuse[1];
+				const float bs_as = b->diffuse.x - a->diffuse.x;
+				const float cs_as = c->diffuse.x - a->diffuse.x;
+				const float bt_at = b->diffuse.y - a->diffuse.y;
+				const float ct_at = c->diffuse.y - a->diffuse.y;
 
-				const vec_t r = 1.0 / (bs_as * ct_at - cs_as * bt_at);
+				const float r = 1.0 / (bs_as * ct_at - cs_as * bt_at);
 
-				VectorSet(s,
-						  (ct_at * bx_ax - bt_at * cx_ax),
-						  (ct_at * by_ay - bt_at * cy_ay),
-						  (ct_at * bz_az - bt_at * cz_az));
+				s = vec3(ct_at * bx_ax - bt_at * cx_ax,
+						 ct_at * by_ay - bt_at * cy_ay,
+						 ct_at * bz_az - bt_at * cz_az);
 
-				VectorScale(s, r, s);
+				s = vec3_scale(s, r);
 
-				VectorSet(t,
-						  (bs_as * cx_ax - cs_as * bx_ax),
-						  (bs_as * cy_ay - cs_as * by_ay),
-						  (bs_as * cz_az - cs_as * bz_az));
+				t = vec3(bs_as * cx_ax - cs_as * bx_ax,
+						 bs_as * cy_ay - cs_as * by_ay,
+						 bs_as * cz_az - cs_as * bz_az);
 
-				VectorScale(t, r, t);
+				t = vec3_scale(t, r);
 
-				VectorAdd(sdir[e[k + 0]], s, sdir[e[k + 0]]);
-				VectorAdd(sdir[e[k + 1]], s, sdir[e[k + 1]]);
-				VectorAdd(sdir[e[k + 2]], s, sdir[e[k + 2]]);
+				sdir[e[k + 0]] = vec3_add(sdir[e[k + 0]], s);
+				sdir[e[k + 1]] = vec3_add(sdir[e[k + 1]], s);
+				sdir[e[k + 2]] = vec3_add(sdir[e[k + 2]], s);
 
-				VectorAdd(tdir[e[k + 0]], t, tdir[e[k + 0]]);
-				VectorAdd(tdir[e[k + 1]], t, tdir[e[k + 1]]);
-				VectorAdd(tdir[e[k + 2]], t, tdir[e[k + 2]]);
+				tdir[e[k + 0]] = vec3_add(tdir[e[k + 0]], t);
+				tdir[e[k + 1]] = vec3_add(tdir[e[k + 1]], t);
+				tdir[e[k + 2]] = vec3_add(tdir[e[k + 2]], t);
 			}
 
 			for (int32_t k = 0; k < face->num_vertexes; k++) {
-				TangentVectors(v->normal, sdir[k], tdir[k], v->tangent, v->bitangent);
+				vec3_tangents(v->normal, sdir[k], tdir[k], &v->tangent, &v->bitangent);
 			}
 
 			Mem_Free(sdir);

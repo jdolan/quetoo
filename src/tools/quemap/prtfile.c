@@ -29,8 +29,8 @@ static int32_t num_visportals;
 /**
  * @brief
  */
-static void WriteFloat(file_t *f, vec_t v) {
-	const vec_t r = floorf(v + 0.5);
+static void WriteFloat(file_t *f, float v) {
+	const float r = floorf(v + 0.5);
 
 	if (fabsf(v - r) < SIDE_EPSILON) {
 		Fs_Print(f, "%i ", (int32_t) r);
@@ -45,7 +45,7 @@ static void WriteFloat(file_t *f, vec_t v) {
 static void WritePortalFile_r(node_t *node) {
 	int32_t s;
 	vec3_t normal;
-	dvec_t dist;
+	double dist;
 
 	// decision node
 	if (node->plane_num != PLANE_NUM_LEAF && !node->detail_separator) {
@@ -71,8 +71,8 @@ static void WritePortalFile_r(node_t *node) {
 			// the changeover point between different axis. interpret the
 			// plane the same way vis will, and flip the side orders if needed
 			// FIXME: is this still relevent? Yes. jgothic.
-			Cm_PlaneForWinding(w, normal, &dist);
-			if (DotProduct(p->plane.normal, normal) < 0.99) { // backwards...
+			Cm_PlaneForWinding(w, &normal, &dist);
+			if (vec3_dot(p->plane.normal, normal) < 0.99) { // backwards...
 				Fs_Print(prtfile, "%i %i %i ", w->num_points, p->nodes[1]->cluster,
 				         p->nodes[0]->cluster);
 			} else {
@@ -81,9 +81,9 @@ static void WritePortalFile_r(node_t *node) {
 			}
 			for (int32_t i = 0; i < w->num_points; i++) {
 				Fs_Print(prtfile, "(");
-				WriteFloat(prtfile, w->points[i][0]);
-				WriteFloat(prtfile, w->points[i][1]);
-				WriteFloat(prtfile, w->points[i][2]);
+				WriteFloat(prtfile, w->points[i].x);
+				WriteFloat(prtfile, w->points[i].y);
+				WriteFloat(prtfile, w->points[i].z);
 				Fs_Print(prtfile, ") ");
 			}
 			Fs_Print(prtfile, "\n");

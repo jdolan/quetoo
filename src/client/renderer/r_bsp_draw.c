@@ -98,14 +98,14 @@ static void R_DrawBspLightgrid(void) {
 		return;
 	}
 
-	const size_t texture_size = lg->size[0] * lg->size[1] * lg->size[2] * BSP_LIGHTGRID_BPP;
+	const size_t texture_size = lg->size.x * lg->size.y * lg->size.z * BSP_LIGHTGRID_BPP;
 
 	const byte *textures = (byte *) lg + sizeof(bsp_lightgrid_t);
 	int32_t luxel = 0;
 
-	for (int32_t u = 0; u < lg->size[2]; u++) {
-		for (int32_t t = 0; t < lg->size[1]; t++) {
-			for (int32_t s = 0; s < lg->size[0]; s++, luxel++) {
+	for (int32_t u = 0; u < lg->size.z; u++) {
+		for (int32_t t = 0; t < lg->size.y; t++) {
+			for (int32_t s = 0; s < lg->size.x; s++, luxel++) {
 
 				byte r = 0, g = 0, b = 0;
 
@@ -127,7 +127,7 @@ static void R_DrawBspLightgrid(void) {
 					.color = { MIN(r, 255), MIN(g, 255), MIN(b, 255), 255 },
 				};
 
-				VectorMA(r_model_state.world->bsp->lightgrid->mins, BSP_LIGHTGRID_LUXEL_SIZE, p.origin, p.origin);
+				p.origin = vec3_add(r_model_state.world->bsp->lightgrid->mins, vec3_scale(p.origin, BSP_LIGHTGRID_LUXEL_SIZE));
 
 				R_AddParticle(&p);
 			}
@@ -226,7 +226,7 @@ static void R_DrawBspEntity(const r_entity_t *e) {
 
 	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) e->matrix.m);
 
-	matrix4x4_t normal;
+	mat4_t normal;
 	Matrix4x4_Concat(&normal, &r_locals.view, &e->matrix);
 	Matrix4x4_Invert_Full(&normal, &normal);
 	Matrix4x4_Transpose(&normal, &normal);
@@ -256,7 +256,7 @@ void R_DrawWorld(void) {
 	glUniformMatrix4fv(r_bsp_program.view, 1, GL_FALSE, (GLfloat *) r_locals.view.m);
 	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, (GLfloat *) matrix4x4_identity.m);
 
-	matrix4x4_t normal;
+	mat4_t normal;
 	Matrix4x4_Invert_Full(&normal, &r_locals.view);
 	Matrix4x4_Transpose(&normal, &normal);
 

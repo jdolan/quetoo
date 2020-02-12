@@ -26,13 +26,13 @@
  */
 void G_ClientToIntermission(g_entity_t *ent) {
 
-	VectorCopy(g_level.intermission_origin, ent->s.origin);
-	VectorCopy(g_level.intermission_origin, ent->client->ps.pm_state.origin);
+	ent->s.origin = g_level.intermission_origin;
+	ent->client->ps.pm_state.origin = g_level.intermission_origin;
 
-	VectorClear(ent->client->ps.pm_state.view_angles);
-	PackAngles(g_level.intermission_angle, ent->client->ps.pm_state.delta_angles);
+	ent->client->ps.pm_state.view_angles = vec3_zero();
+	ent->client->ps.pm_state.delta_angles = g_level.intermission_angle;
 
-	VectorClear(ent->client->ps.pm_state.view_offset);
+	ent->client->ps.pm_state.view_offset = vec3_zero();
 
 	ent->client->ps.pm_state.type = PM_FREEZE;
 

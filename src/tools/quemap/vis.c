@@ -113,7 +113,7 @@ static chain_winding_t *ClipChainWinding(chain_t *chain, chain_winding_t *in, co
 
 	const int32_t max_points = in->num_points + 4;
 
-	vec_t dists[max_points];
+	float dists[max_points];
 	int32_t sides[max_points];
 
 	int32_t counts[SIDE_BOTH + 1];
@@ -121,7 +121,7 @@ static chain_winding_t *ClipChainWinding(chain_t *chain, chain_winding_t *in, co
 
 	// determine sides for each point
 	for (int32_t i = 0; i < in->num_points; i++) {
-		const dvec_t dot = DotProduct(in->points[i], plane->normal) - plane->dist;
+		const double dot = vec3_dot(in->points[i], plane->normal) - plane->dist;
 		dists[i] = dot;
 		if (dot > ON_EPSILON) {
 			sides[i] = SIDE_FRONT;
@@ -150,7 +150,7 @@ static chain_winding_t *ClipChainWinding(chain_t *chain, chain_winding_t *in, co
 	for (int32_t i = 0; i < in->num_points; i++) {
 
 		vec3_t p1, p2, mid;
-		VectorCopy(in->points[i], p1);
+		p1 = in->points[i];
 
 		if (out->num_points == MAX_POINTS_ON_CHAIN_WINDING) {
 			FreeChainWinding(chain, out);
@@ -158,13 +158,13 @@ static chain_winding_t *ClipChainWinding(chain_t *chain, chain_winding_t *in, co
 		}
 
 		if (sides[i] == SIDE_BOTH) {
-			VectorCopy(p1, out->points[out->num_points]);
+			out->points[out->num_points] = p1;
 			out->num_points++;
 			continue;
 		}
 
 		if (sides[i] == SIDE_FRONT) {
-			VectorCopy(p1, out->points[out->num_points]);
+			out->points[out->num_points] = p1;
 			out->num_points++;
 		}
 
@@ -178,20 +178,20 @@ static chain_winding_t *ClipChainWinding(chain_t *chain, chain_winding_t *in, co
 		}
 
 		// generate a split point
-		VectorCopy(in->points[(i + 1) % in->num_points], p2);
+		p2 = in->points[(i + 1) % in->num_points];
 
-		const vec_t dot = dists[i] / (dists[i] - dists[i + 1]);
+		const float dot = dists[i] / (dists[i] - dists[i + 1]);
 		for (int32_t j = 0; j < 3; j++) { // avoid round off error when possible
-			if (plane->normal[j] == 1) {
-				mid[j] = plane->dist;
-			} else if (plane->normal[j] == -1) {
-				mid[j] = -plane->dist;
+			if (plane->normal.xyz[j] == 1) {
+				mid.xyz[j] = plane->dist;
+			} else if (plane->normal.xyz[j] == -1) {
+				mid.xyz[j] = -plane->dist;
 			} else {
-				mid[j] = p1[j] + dot * (p2[j] - p1[j]);
+				mid.xyz[j] = p1.xyz[j] + dot * (p2.xyz[j] - p1.xyz[j]);
 			}
 		}
 
-		VectorCopy(mid, out->points[out->num_points]);
+		out->points[out->num_points] = mid;
 		out->num_points++;
 	}
 
@@ -226,7 +226,7 @@ static chain_winding_t *ClipChainWindings(chain_t *chain,
 		const int32_t l = (i + 1) % source->num_points;
 
 		vec3_t v1;
-		VectorSubtract(source->points[l], source->points[i], v1);
+		v1 = vec3_subtract(source->points[l], source->points[i]);
 
 		// find a vertex of pass that makes a plane that puts all of the
 		// vertexes of pass on the front side and all of the vertexes of
@@ -234,18 +234,18 @@ static chain_winding_t *ClipChainWindings(chain_t *chain,
 		for (int32_t j = 0; j < pass->num_points; j++) {
 
 			vec3_t v2;
-			VectorSubtract(pass->points[j], source->points[i], v2);
+			v2 = vec3_subtract(pass->points[j], source->points[i]);
 
 			plane_t plane;
-			plane.normal[0] = v1[1] * v2[2] - v1[2] * v2[1];
-			plane.normal[1] = v1[2] * v2[0] - v1[0] * v2[2];
-			plane.normal[2] = v1[0] * v2[1] - v1[1] * v2[0];
+			plane.normal.x = v1.y * v2.z - v1.z * v2.y;
+			plane.normal.y = v1.z * v2.x - v1.x * v2.z;
+			plane.normal.z = v1.x * v2.y - v1.y * v2.x;
 
 			// if points don't make a valid plane, skip it
 
-			vec_t length = plane.normal[0] * plane.normal[0] +
-						   plane.normal[1] * plane.normal[1] +
-						   plane.normal[2] * plane.normal[2];
+			float length = plane.normal.x * plane.normal.x +
+						   plane.normal.y * plane.normal.y +
+						   plane.normal.z * plane.normal.z;
 
 			if (length <= ON_EPSILON) {
 				continue;
@@ -253,11 +253,11 @@ static chain_winding_t *ClipChainWindings(chain_t *chain,
 
 			length = 1.0 / sqrtf(length);
 
-			plane.normal[0] *= length;
-			plane.normal[1] *= length;
-			plane.normal[2] *= length;
+			plane.normal.x *= length;
+			plane.normal.y *= length;
+			plane.normal.z *= length;
 
-			plane.dist = DotProduct(pass->points[j], plane.normal);
+			plane.dist = vec3_dot(pass->points[j], plane.normal);
 
 			//
 			// find out which side of the generated separating plane has the
@@ -268,7 +268,7 @@ static chain_winding_t *ClipChainWindings(chain_t *chain,
 				if (k == i || k == l) {
 					continue;
 				}
-				const dvec_t d = DotProduct(source->points[k], plane.normal) - plane.dist;
+				const double d = vec3_dot(source->points[k], plane.normal) - plane.dist;
 				if (d < -ON_EPSILON) { // source is on the negative side, so we want all
 					// pass and target on the positive side
 					flip_test = false;
@@ -286,7 +286,7 @@ static chain_winding_t *ClipChainWindings(chain_t *chain,
 			// flip the normal if the source portal is backwards
 			//
 			if (flip_test) {
-				VectorSubtract(vec3_zero().xyz, plane.normal, plane.normal);
+				plane.normal = vec3_negate(plane.normal);
 				plane.dist = -plane.dist;
 			}
 			//
@@ -298,7 +298,7 @@ static chain_winding_t *ClipChainWindings(chain_t *chain,
 				if (k == j) {
 					continue;
 				}
-				const dvec_t d = DotProduct(pass->points[k], plane.normal) - plane.dist;
+				const double d = vec3_dot(pass->points[k], plane.normal) - plane.dist;
 				if (d < -ON_EPSILON) {
 					break;
 				} else if (d > ON_EPSILON) {
@@ -317,11 +317,11 @@ static chain_winding_t *ClipChainWindings(chain_t *chain,
 			// flip the normal if we want the back side
 			//
 			if (flip_clip) {
-				VectorSubtract(vec3_zero().xyz, plane.normal, plane.normal);
+				plane.normal = vec3_negate(plane.normal);
 				plane.dist = -plane.dist;
 			}
 			// MrE: fast check first
-			const dvec_t d = DotProduct(chain->portal->origin, plane.normal) - plane.dist;
+			const double d = vec3_dot(chain->portal->origin, plane.normal) - plane.dist;
 			//if completely at the back of the separator plane
 			if (d < -chain->portal->radius) {
 				return NULL;
@@ -383,7 +383,7 @@ static void RecursiveLeafFlow(portal_chain_t *chain, chain_t *prev, int32_t leaf
 		}
 
 		plane_t back;
-		VectorNegate(portal->plane.normal, back.normal);
+		back.normal = vec3_negate(portal->plane.normal);
 		back.dist = -portal->plane.dist;
 
 		next->portal = portal;
@@ -394,7 +394,7 @@ static void RecursiveLeafFlow(portal_chain_t *chain, chain_t *prev, int32_t leaf
 
 		{
 			const plane_t *plane = &chain->portal->plane;
-			const dvec_t d = DotProduct(portal->origin, plane->normal) - plane->dist;
+			const double d = vec3_dot(portal->origin, plane->normal) - plane->dist;
 			if (d < -portal->radius) {
 				continue;
 			} else if (d > portal->radius) {
@@ -409,7 +409,7 @@ static void RecursiveLeafFlow(portal_chain_t *chain, chain_t *prev, int32_t leaf
 
 		{
 			const plane_t *plane = &portal->plane;
-			const dvec_t d = DotProduct(chain->portal->origin, plane->normal) - plane->dist;
+			const double d = vec3_dot(chain->portal->origin, plane->normal) - plane->dist;
 			if (d > chain->portal->radius) {
 				continue;
 			} else if (d < -chain->portal->radius) {
@@ -523,7 +523,7 @@ void BaseVis(int32_t portal_num) {
 
 		const cm_winding_t *w = p->winding;
 		for (j = 0; j < w->num_points; j++) {
-			const dvec_t d = DotProduct(w->points[j], portal->plane.normal) - portal->plane.dist;
+			const double d = vec3_dot(w->points[j], portal->plane.normal) - portal->plane.dist;
 			if (d > ON_EPSILON) {
 				break;
 			}
@@ -535,7 +535,7 @@ void BaseVis(int32_t portal_num) {
 
 		w = portal->winding;
 		for (j = 0; j < w->num_points; j++) {
-			const dvec_t d = DotProduct(w->points[j], p->plane.normal) - p->plane.dist;
+			const double d = vec3_dot(w->points[j], p->plane.normal) - p->plane.dist;
 			if (d < -ON_EPSILON) {
 				break;
 			}

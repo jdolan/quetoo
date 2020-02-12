@@ -48,4 +48,4 @@ typedef struct {
 
 void SetValueForKey(entity_t *ent, const char *key, const char *value);
 const char *ValueForKey(const entity_t *ent, const char *key, const char *def);
-void VectorForKey(const entity_t *ent, const char *key, vec3_t out, const vec3_t def);
+vec3_t VectorForKey(const entity_t *ent, const char *key, const vec3_t def);

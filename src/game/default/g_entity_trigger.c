@@ -30,7 +30,7 @@
  */
 static void G_Trigger_Init(g_entity_t *self) {
 
-	if (!VectorCompare(self->s.angles, vec3_zero().xyz)) {
+	if (!vec3_equal(self->s.angles, vec3_zero())) {
 		G_SetMoveDir(self->s.angles, self->locals.move_dir);
 	}
 
@@ -96,12 +96,12 @@ static void G_trigger_multiple_Touch(g_entity_t *self, g_entity_t *other,
 		}
 	}
 
-	if (!VectorCompare(self->locals.move_dir, vec3_zero().xyz)) {
+	if (!vec3_equal(self->locals.move_dir, vec3_zero())) {
 		vec3_t forward;
 
-		AngleVectors(other->s.angles, forward, NULL, NULL);
+		vec3_vectors(other->s.angles, &forward, NULL, NULL);
 
-		if (DotProduct(forward, self->locals.move_dir) < 0.0) {
+		if (vec3_dot(forward, self->locals.move_dir) < 0.0) {
 			return;
 		}
 	}
@@ -155,7 +155,7 @@ void G_trigger_multiple(g_entity_t *ent) {
 		ent->locals.Use = G_trigger_multiple_Use;
 	}
 
-	if (!VectorCompare(ent->s.angles, vec3_zero().xyz)) {
+	if (!vec3_equal(ent->s.angles, vec3_zero())) {
 		G_SetMoveDir(ent->s.angles, ent->locals.move_dir);
 	}
 
@@ -234,7 +234,7 @@ static void G_trigger_push_Touch(g_entity_t *self, g_entity_t *other,
 
 	if (other->locals.move_type == MOVE_TYPE_WALK || other->locals.move_type == MOVE_TYPE_BOUNCE) {
 
-		VectorScale(self->locals.move_dir, self->locals.speed * 10.0, other->locals.velocity);
+		other->locals.velocity = vec3_scale(self->locals.move_dir, self->locals.speed * 10.0);
 
 		if (other->client) {
 			other->client->ps.pm_state.flags |= PMF_TIME_PUSHED;
@@ -259,8 +259,8 @@ static void G_trigger_push_Effect(g_entity_t *self) {
 
 	g_entity_t *ent = G_AllocEntity();
 
-	VectorAdd(self->mins, self->maxs, ent->s.origin);
-	VectorScale(ent->s.origin, 0.5, ent->s.origin);
+	ent->s.origin = vec3_add(self->mins, self->maxs);
+	ent->s.origin = vec3_scale(ent->s.origin, 0.5);
 
 	ent->locals.move_type = MOVE_TYPE_NONE;
 	ent->s.trail = TRAIL_TELEPORTER;
@@ -359,7 +359,7 @@ static void G_trigger_hurt_Touch(g_entity_t *self, g_entity_t *other,
 		dflags = DMG_NO_GOD;
 	}
 
-	G_Damage(other, self, NULL, NULL, NULL, NULL, d, d, dflags, MOD_TRIGGER_HURT);
+	G_Damage(other, self, NULL, vec3_zero(), vec3_zero(), vec3_zero(), d, d, dflags, MOD_TRIGGER_HURT);
 }
 
 /*QUAKED trigger_hurt (.5 .5 .5) ? start_off toggle ? no_protection slow

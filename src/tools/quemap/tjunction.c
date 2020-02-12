@@ -65,9 +65,9 @@ static void FixTJunctions_(int32_t face_num) {
 		const plane_t *plane = &planes[face->plane_num];
 
 		for (int32_t i = 0; i < f->w->num_points; i++) {
-			const vec_t *v = f->w->points[i];
+			const vec3_t v = f->w->points[i];
 
-			const dvec_t d = DotProduct(v, plane->normal) - plane->dist;
+			const double d = vec3_dot(v, plane->normal) - plane->dist;
 			if (d > ON_EPSILON || d < -ON_EPSILON) {
 				continue; // v is not on face's plane
 			}
@@ -76,21 +76,22 @@ static void FixTJunctions_(int32_t face_num) {
 
 			for (int32_t j = 0; j < face->w->num_points; j++) {
 
-				const vec_t *v0 = face->w->points[(j + 0) % face->w->num_points];
-				const vec_t *v1 = face->w->points[(j + 1) % face->w->num_points];
+				const vec3_t v0 = face->w->points[(j + 0) % face->w->num_points];
+				const vec3_t v1 = face->w->points[(j + 1) % face->w->num_points];
 
-				vec3_t a, b;
-				VectorSubtract(v0, v, a);
-				const vec_t a_dist = VectorNormalize(a);
+				vec3_t a = vec3_subtract(v0, v);
+				const float a_dist = vec3_length(a);
+				a = vec3_normalize(a);
 
-				VectorSubtract(v1, v, b);
-				const vec_t b_dist = VectorNormalize(b);
+				vec3_t b = vec3_subtract(v1, v);
+				const float b_dist = vec3_length(b);
+				b = vec3_normalize(b);
 
 				if (a_dist <= ON_EPSILON || b_dist <= ON_EPSILON) {
 					break; // face already includes v
 				}
 
-				const vec_t d = DotProduct(a, b);
+				const float d = vec3_dot(a, b);
 				if (d > -1.0 + SIDE_EPSILON) {
 					continue; // v is not on the edge v0 <-> v1
 				}
@@ -102,11 +103,11 @@ static void FixTJunctions_(int32_t face_num) {
 
 				for (int32_t k = 0; k < w->num_points; k++) {
 					if (k <= j) {
-						VectorCopy(face->w->points[k], w->points[k]);
+						w->points[k] = face->w->points[k];
 					} else if (k == j + 1) {
-						VectorCopy(v, w->points[k]);
+						w->points[k] = v;
 					} else {
-						VectorCopy(face->w->points[k - 1], w->points[k]);
+						w->points[k] = face->w->points[k - 1];
 					}
 				}
 

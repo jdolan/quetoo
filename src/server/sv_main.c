@@ -486,7 +486,7 @@ static void Sv_UpdatePings(void) {
 		if (!count) {
 			cl->entity->client->ping = 0;
 		} else {
-			cl->entity->client->ping = total / (vec_t) count;
+			cl->entity->client->ping = total / (float) count;
 		}
 	}
 }
@@ -769,7 +769,7 @@ void Sv_Frame(const uint32_t msec) {
 	}
 
 	// clamp the frame interval to 1 second of simulation
-	frame_delta = Min(frame_delta, (uint32_t) (QUETOO_TICK_MILLIS * QUETOO_TICK_RATE));
+	frame_delta = minf(frame_delta, (uint32_t) (QUETOO_TICK_MILLIS * QUETOO_TICK_RATE));
 
 	// read any pending packets from clients
 	Sv_ReadPackets();

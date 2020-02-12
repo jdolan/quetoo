@@ -174,30 +174,25 @@ static void CalcPVS(void) {
  * @brief
  */
 static void SetPortalSphere(portal_t *p) {
-	vec3_t origin;
 
 	const cm_winding_t *w = p->winding;
-	VectorClear(origin);
+	vec3_t origin = vec3_zero();
 
 	for (int32_t i = 0; i < w->num_points; i++) {
-		VectorAdd(origin, w->points[i], origin);
+		origin = vec3_add(origin, w->points[i]);
 	}
 
-	for (int32_t i = 0; i < 3; i++) {
-		origin[i] /= w->num_points;
-	}
+	origin = vec3_scale(origin, 1.f / w->num_points);
 
-	vec_t radius = 0;
+	float radius = 0;
 	for (int32_t i = 0; i < w->num_points; i++) {
-		vec3_t delta;
-		VectorSubtract(w->points[i], origin, delta);
-		const vec_t r = VectorLength(delta);
+		const float r = vec3_distance(origin, w->points[i]);
 		if (r > radius) {
 			radius = r;
 		}
 	}
 	
-	VectorCopy(origin, p->origin);
+	p->origin = origin;
 	p->radius = radius;
 }
 
@@ -271,13 +266,15 @@ static void LoadPortals(const char *filename) {
 		for (int32_t j = 0; j < w->num_points; j++) {
 			dvec3_t v;
 
-			// scanf into double, then assign to vec_t so we don't care what size vec_t is
-			if (sscanf(s, "(%lf %lf %lf ) %n", &v[0], &v[1], &v[2], &len) != 3) {
+			// scanf into double, then assign to float so we don't care what size float is
+			if (sscanf(s, "(%lf %lf %lf ) %n", &v.x, &v.y, &v.z, &len) != 3) {
 				Com_Error(ERROR_FATAL, "Failed to read portal vertex definition %i:%i\n", i, j);
 			}
 			s += len;
 
-			VectorCopy(v, w->points[j]);
+			w->points[j].x = v.x;
+			w->points[j].y = v.y;
+			w->points[j].z = v.z;
 		}
 		if (sscanf(s, "\n%n", &len)) {
 			s += len;
@@ -285,7 +282,7 @@ static void LoadPortals(const char *filename) {
 
 		// calc plane
 		plane_t plane;
-		Cm_PlaneForWinding(w, plane.normal, &plane.dist);
+		Cm_PlaneForWinding(w, &plane.normal, &plane.dist);
 
 		// create forward portal
 		leaf_t *l = &map_vis.leafs[leaf_nums[0]];
@@ -296,7 +293,7 @@ static void LoadPortals(const char *filename) {
 		l->num_portals++;
 
 		p->winding = w;
-		VectorSubtract(vec3_zero().xyz, plane.normal, p->plane.normal);
+		p->plane.normal = vec3_negate(plane.normal);
 		p->plane.dist = -plane.dist;
 		p->leaf = leaf_nums[1];
 		SetPortalSphere(p);
@@ -313,7 +310,7 @@ static void LoadPortals(const char *filename) {
 		p->winding = Cm_AllocWinding(w->num_points);
 		p->winding->num_points = w->num_points;
 		for (int32_t j = 0; j < w->num_points; j++) {
-			VectorCopy(w->points[w->num_points - 1 - j], p->winding->points[j]);
+			p->winding->points[j] = w->points[w->num_points - 1 - j];
 		}
 
 		p->plane = plane;

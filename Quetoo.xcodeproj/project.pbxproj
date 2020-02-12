@@ -140,7 +140,6 @@
 		CE1A28501F7602F2005F62A9 /* MovementCombatViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A284C1F7602F2005F62A9 /* MovementCombatViewController.c */; };
 		CE1A28511F7602F2005F62A9 /* MovementCombatViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1A284D1F7602F2005F62A9 /* MovementCombatViewController.h */; };
 		CE1CCD9A1D9D41DA00891F05 /* libncurses.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */; };
-		CE1CCD9D1D9D49C700891F05 /* libswap.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC79D01D9CB22E000FA6B2 /* libswap.a */; };
 		CE32529D1F760D3F00512523 /* BindTextView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE32529B1F760D3F00512523 /* BindTextView.c */; };
 		CE32529E1F760D3F00512523 /* BindTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE32529C1F760D3F00512523 /* BindTextView.h */; };
 		CE34099021C2D52500989FC9 /* entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CE34098F21C2D52500989FC9 /* entity.c */; };
@@ -516,6 +515,13 @@
 		CE80FFFF1C5E4D4400A21A51 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CE88195C1F882EBE000D5AB7 /* DialogViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8819581F882D9F000D5AB7 /* DialogViewController.c */; };
 		CE88195D1F882EC3000D5AB7 /* DialogViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8819591F882D9F000D5AB7 /* DialogViewController.h */; };
+		CE89267E23EE0B5F00CF3D33 /* vector.c in Sources */ = {isa = PBXBuildFile; fileRef = CE89267223EDF85500CF3D33 /* vector.c */; };
+		CE89267F23EE0B6500CF3D33 /* vector.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9CFC9A23EAFFD00009DA65 /* vector.h */; };
+		CE89268623EE0CE800CF3D33 /* libvector.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE89267D23EE0B3800CF3D33 /* libvector.a */; };
+		CE89269323EE109C00CF3D33 /* color.c in Sources */ = {isa = PBXBuildFile; fileRef = CE89268823EE0F7300CF3D33 /* color.c */; };
+		CE89269423EE10A000CF3D33 /* color.h in Headers */ = {isa = PBXBuildFile; fileRef = CE89268723EE0F7300CF3D33 /* color.h */; };
+		CE89269923F05F1E00CF3D33 /* libcolor.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE89269223EE105C00CF3D33 /* libcolor.a */; };
+		CE89269A23F05F1E00CF3D33 /* libvector.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE89267D23EE0B3800CF3D33 /* libvector.a */; };
 		CE8E2020214837AB00C18C94 /* libparse.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5530991E5A939F0009A127 /* libparse.a */; };
 		CE8E2021214837AB00C18C94 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE51FB9121481AE300ABE14F /* libcheck.0.dylib */; };
 		CE8E2022214837AB00C18C94 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
@@ -550,10 +556,9 @@
 		CE9CFC9323E792FE0009DA65 /* cg_light.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9CFC9123E792FE0009DA65 /* cg_light.c */; };
 		CE9CFC9623E7A9410009DA65 /* r_mesh.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9CFC9423E7A9410009DA65 /* r_mesh.h */; };
 		CE9CFC9823E7A9410009DA65 /* r_mesh.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9CFC9523E7A9410009DA65 /* r_mesh.c */; };
-		CE9CFC9B23EAFFD10009DA65 /* quemath.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9CFC9A23EAFFD00009DA65 /* quemath.h */; };
-		CE9CFC9D23EB3BF50009DA65 /* check_quemath.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9CFC9C23EB3BF50009DA65 /* check_quemath.c */; };
+		CE9CFC9D23EB3BF50009DA65 /* check_vector.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9CFC9C23EB3BF50009DA65 /* check_vector.c */; };
 		CE9CFCA823EB3D020009DA65 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE51FB9121481AE300ABE14F /* libcheck.0.dylib */; };
-		CE9CFCB023EB3D240009DA65 /* check_quemath.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9CFC9C23EB3BF50009DA65 /* check_quemath.c */; };
+		CE9CFCB023EB3D240009DA65 /* check_vector.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9CFC9C23EB3BF50009DA65 /* check_vector.c */; };
 		CE9FECDD201FEB7400F954ED /* r_gl.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9FECDA201FEB7400F954ED /* r_gl.c */; };
 		CE9FECDE201FEB7400F954ED /* r_gl.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9FECDB201FEB7400F954ED /* r_gl.h */; };
 		CE9FECDF201FEB7400F954ED /* r_gl_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9FECDC201FEB7400F954ED /* r_gl_types.h */; };
@@ -632,7 +637,6 @@
 		CED439591D9D3AB20052BAFA /* libfilesystem.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7A4C1D9CB483000FA6B2 /* libfilesystem.a */; };
 		CED4395A1D9D3AB20052BAFA /* libmatrix.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7A831D9CB5C9000FA6B2 /* libmatrix.a */; };
 		CED4395E1D9D3AE40052BAFA /* libnet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.a */; };
-		CED4395F1D9D3B0E0052BAFA /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CED439611D9D3B450052BAFA /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		CED439621D9D3B450052BAFA /* libimage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7A6B1D9CB512000FA6B2 /* libimage.a */; };
 		CED439641D9D3B4F0052BAFA /* libclient-renderer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CED438AD1D9D34450052BAFA /* libclient-renderer.a */; };
@@ -659,6 +663,20 @@
 		CEE3A10621EE2DDC0070FD3E /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEE3A10721EE2DF40070FD3E /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CEE818951E280DFC003C66DD /* ai.so in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FEC61C5E44E800A21A51 /* ai.so */; };
+		CEF18C1A23F231B900B85FD8 /* libcolor.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE89269223EE105C00CF3D33 /* libcolor.a */; };
+		CEF18C1C23F3AF8100B85FD8 /* libcolor.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE89269223EE105C00CF3D33 /* libcolor.a */; };
+		CEF18C1D23F42BEE00B85FD8 /* libswap.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC79D01D9CB22E000FA6B2 /* libswap.a */; };
+		CEF18C1E23F42CB200B85FD8 /* libvector.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE89267D23EE0B3800CF3D33 /* libvector.a */; };
+		CEF18C2723F4367400B85FD8 /* libcolor.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE89269223EE105C00CF3D33 /* libcolor.a */; };
+		CEF18C2823F4369300B85FD8 /* libvector.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE89267D23EE0B3800CF3D33 /* libvector.a */; };
+		CEF18C2B23F4372000B85FD8 /* libmem.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC79DC1D9CB287000FA6B2 /* libmem.a */; };
+		CEF18C3323F4389A00B85FD8 /* libparse.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5530991E5A939F0009A127 /* libparse.a */; };
+		CEF18C3B23F43A7700B85FD8 /* libvector.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE89267D23EE0B3800CF3D33 /* libvector.a */; };
+		CEF18C3C23F43CBF00B85FD8 /* libvector.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE89267D23EE0B3800CF3D33 /* libvector.a */; };
+		CEF18C3D23F43D1200B85FD8 /* libvector.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE89267D23EE0B3800CF3D33 /* libvector.a */; };
+		CEF18C3E23F43D6B00B85FD8 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
+		CEF18C3F23F43DB600B85FD8 /* libmatrix.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7A831D9CB5C9000FA6B2 /* libmatrix.a */; };
+		CEF18C4023F4A60700B85FD8 /* libvector.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE89267D23EE0B3800CF3D33 /* libvector.a */; };
 		CEFC79A41D9CB1A6000FA6B2 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */; };
 		CEFC79A51D9CB1EE000FA6B2 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CEFC79B31D9CB22E000FA6B2 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6BA1C5C58C300CD0B13 /* swap.c */; };
@@ -703,7 +721,6 @@
 		CEFC7B8B1D9D2E9C000FA6B2 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
 		CEFC7B8C1D9D2EB5000FA6B2 /* bg_pmove.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6421C5C58C300CD0B13 /* bg_pmove.h */; };
 		CEFC7B931D9D2FB3000FA6B2 /* libgame-pmove.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7B8A1D9D2E71000FA6B2 /* libgame-pmove.a */; };
-		CEFF44DE1DE0E01100EFC902 /* libmatrix.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7A831D9CB5C9000FA6B2 /* libmatrix.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -770,13 +787,6 @@
 			remoteGlobalIDString = CE052A7321483255003446C9;
 			remoteInfo = check_thread;
 		};
-		CE354EEB22073B72008AE0C2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE354EDB22073AD6008AE0C2;
-			remoteInfo = atlas;
-		};
 		CE354EFF22075145008AE0C2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
@@ -819,110 +829,12 @@
 			remoteGlobalIDString = CEFC7A221D9CB483000FA6B2;
 			remoteInfo = filesystem;
 		};
-		CE5530A21E5A96990009A127 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE5530901E5A939F0009A127;
-			remoteInfo = parse;
-		};
-		CE5530A41E5A96B20009A127 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE5530901E5A939F0009A127;
-			remoteInfo = parse;
-		};
-		CE5CDC1C1D9F51580034757D /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CED438201D9D34450052BAFA;
-			remoteInfo = renderer;
-		};
-		CE5CDC3B1D9F51B80034757D /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE5CDC1A1D9F51580034757D;
-			remoteInfo = ui;
-		};
-		CE6EE34B1F6BFB5E00FBC830 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE6EE3141F6BFAF600FBC830;
-			remoteInfo = "cgame-ui";
-		};
-		CE6EE3871F70B69600FBC830 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CEFC79F71D9CB408000FA6B2;
-			remoteInfo = console;
-		};
-		CE6EE3B11F70BC3100FBC830 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CEFC79D11D9CB287000FA6B2;
-			remoteInfo = mem;
-		};
-		CE6EE3B31F70BE3D00FBC830 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE5530901E5A939F0009A127;
-			remoteInfo = parse;
-		};
-		CE6EE3B51F70BE6E00FBC830 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CEFC7B761D9D2E71000FA6B2;
-			remoteInfo = "game-pmove";
-		};
-		CE6EE3B81F70BF6600FBC830 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE80FE0E1C5E421900A21A51;
-			remoteInfo = collision;
-		};
-		CE6EE3C31F71459E00FBC830 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE80FE0E1C5E421900A21A51;
-			remoteInfo = collision;
-		};
 		CE6EE3C81F7147E500FBC830 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = CE80FEAB1C5E44E800A21A51;
 			remoteInfo = ai;
-		};
-		CE80FDF11C5E3E5C00A21A51 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE80FDB41C5E3D4E00A21A51;
-			remoteInfo = shared;
-		};
-		CE80FF5A1C5E494E00A21A51 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE80FDD91C5E3E1100A21A51;
-			remoteInfo = common;
-		};
-		CE80FFC31C5E4A8600A21A51 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE80FE431C5E431000A21A51;
-			remoteInfo = net;
 		};
 		CE80FFCA1C5E4B6600A21A51 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -952,19 +864,12 @@
 			remoteGlobalIDString = CE80FF6D1C5E49C400A21A51;
 			remoteInfo = server;
 		};
-		CE80FFE11C5E4CEE00A21A51 /* PBXContainerItemProxy */ = {
+		CE89268423EE0CDF00CF3D33 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = CE80FE431C5E431000A21A51;
-			remoteInfo = net;
-		};
-		CE80FFFC1C5E4D2D00A21A51 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE80FE0E1C5E421900A21A51;
-			remoteInfo = collision;
+			remoteGlobalIDString = CE89267423EE0B3800CF3D33;
+			remoteInfo = vector;
 		};
 		CE8E2029214837B700C18C94 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1008,13 +913,6 @@
 			remoteGlobalIDString = CE948B102235652600D961FA;
 			remoteInfo = check_shared;
 		};
-		CE9771AD2145565800BBD71C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE97719421454EEB00BBD71C;
-			remoteInfo = genann;
-		};
 		CEA029B71C5E546200341079 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
@@ -1035,13 +933,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = CE80FD861C5E3B6F00A21A51;
 			remoteInfo = quemap;
-		};
-		CEA029BD1C5E547700341079 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE12D8101C5C5EF000CD0B13;
-			remoteInfo = minizip;
 		};
 		CEA029BF1C5E548B00341079 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1071,145 +962,12 @@
 			remoteGlobalIDString = CEA029C51C5E558100341079;
 			remoteInfo = "quetoo-master";
 		};
-		CED438221D9D34450052BAFA /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE80FE0E1C5E421900A21A51;
-			remoteInfo = collision;
-		};
-		CED4393E1D9D366C0052BAFA /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CED438201D9D34450052BAFA;
-			remoteInfo = renderer;
-		};
-		CED439401D9D366C0052BAFA /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CED438AE1D9D344E0052BAFA;
-			remoteInfo = sound;
-		};
-		CED439441D9D37BD0052BAFA /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CEFC7A5E1D9CB512000FA6B2;
-			remoteInfo = image;
-		};
-		CED439461D9D37E80052BAFA /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CED438201D9D34450052BAFA;
-			remoteInfo = renderer;
-		};
-		CED4396F1D9D3D9C0052BAFA /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CEFC79F71D9CB408000FA6B2;
-			remoteInfo = console;
-		};
-		CEE3A0ED21E91B760070FD3E /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CEFC79E11D9CB2D2000FA6B2;
-			remoteInfo = thread;
-		};
 		CEE3A10221EE2B570070FD3E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = CE80FE0E1C5E421900A21A51;
 			remoteInfo = collision;
-		};
-		CEFC79F11D9CB300000FA6B2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CEFC79D11D9CB287000FA6B2;
-			remoteInfo = mem;
-		};
-		CEFC7A4D1D9CB4AA000FA6B2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CEFC79A61D9CB22E000FA6B2;
-			remoteInfo = swap;
-		};
-		CEFC7A6C1D9CB52E000FA6B2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CEFC7A511D9CB4FC000FA6B2;
-			remoteInfo = sys;
-		};
-		CEFC7A6E1D9CB54A000FA6B2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CEFC7A221D9CB483000FA6B2;
-			remoteInfo = filesystem;
-		};
-		CEFC7A711D9CB57D000FA6B2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CEFC7A221D9CB483000FA6B2;
-			remoteInfo = filesystem;
-		};
-		CEFC7A8D1D9CB6E9000FA6B2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CEFC7A221D9CB483000FA6B2;
-			remoteInfo = filesystem;
-		};
-		CEFC7A8F1D9CB6E9000FA6B2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CEFC7A761D9CB5C9000FA6B2;
-			remoteInfo = matrix;
-		};
-		CEFC7A911D9CB731000FA6B2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE80FDD91C5E3E1100A21A51;
-			remoteInfo = common;
-		};
-		CEFC7B8D1D9D2EDE000FA6B2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE80FDB41C5E3D4E00A21A51;
-			remoteInfo = shared;
-		};
-		CEFC7B8F1D9D2F18000FA6B2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CEFC7B761D9D2E71000FA6B2;
-			remoteInfo = pmove;
-		};
-		CEFC7B911D9D2F18000FA6B2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE80FEAB1C5E44E800A21A51;
-			remoteInfo = ai;
-		};
-		CEFC7B941D9D2FBF000FA6B2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CEFC7B761D9D2E71000FA6B2;
-			remoteInfo = pmove;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -2043,6 +1801,11 @@
 		CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libncurses.6.dylib; path = /opt/local/lib/libncurses.6.dylib; sourceTree = "<absolute>"; };
 		CE8819581F882D9F000D5AB7 /* DialogViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DialogViewController.c; sourceTree = "<group>"; };
 		CE8819591F882D9F000D5AB7 /* DialogViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DialogViewController.h; sourceTree = "<group>"; };
+		CE89267223EDF85500CF3D33 /* vector.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vector.c; sourceTree = "<group>"; };
+		CE89267D23EE0B3800CF3D33 /* libvector.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libvector.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE89268723EE0F7300CF3D33 /* color.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = color.h; sourceTree = "<group>"; };
+		CE89268823EE0F7300CF3D33 /* color.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = color.c; sourceTree = "<group>"; };
+		CE89269223EE105C00CF3D33 /* libcolor.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libcolor.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE8E2016214836C800C18C94 /* check_ai_ann.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_ai_ann.c; sourceTree = "<group>"; };
 		CE8E2028214837AB00C18C94 /* check_ai_ann */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_ai_ann; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE8FD2EA23D3E034002FD074 /* r_program.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_program.h; sourceTree = "<group>"; };
@@ -2075,9 +1838,9 @@
 		CE9CFC9123E792FE0009DA65 /* cg_light.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_light.c; sourceTree = "<group>"; };
 		CE9CFC9423E7A9410009DA65 /* r_mesh.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_mesh.h; sourceTree = "<group>"; };
 		CE9CFC9523E7A9410009DA65 /* r_mesh.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_mesh.c; sourceTree = "<group>"; };
-		CE9CFC9A23EAFFD00009DA65 /* quemath.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = quemath.h; sourceTree = "<group>"; };
-		CE9CFC9C23EB3BF50009DA65 /* check_quemath.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_quemath.c; sourceTree = "<group>"; };
-		CE9CFCAF23EB3D020009DA65 /* check_quemath */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_quemath; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE9CFC9A23EAFFD00009DA65 /* vector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vector.h; sourceTree = "<group>"; };
+		CE9CFC9C23EB3BF50009DA65 /* check_vector.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_vector.c; sourceTree = "<group>"; };
+		CE9CFCAF23EB3D020009DA65 /* check_vector */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_vector; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE9FECDA201FEB7400F954ED /* r_gl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_gl.c; sourceTree = "<group>"; };
 		CE9FECDB201FEB7400F954ED /* r_gl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_gl.h; sourceTree = "<group>"; };
 		CE9FECDC201FEB7400F954ED /* r_gl_types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_gl_types.h; sourceTree = "<group>"; };
@@ -2190,8 +1953,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				CEE818951E280DFC003C66DD /* ai.so in Frameworks */,
-				CE5530A01E5A94170009A127 /* libparse.a in Frameworks */,
+				CEF18C1A23F231B900B85FD8 /* libcolor.a in Frameworks */,
 				CED4381E1D9D33AF0052BAFA /* libgame-pmove.a in Frameworks */,
+				CE5530A01E5A94170009A127 /* libparse.a in Frameworks */,
 				CE80FDD61C5E3D9700A21A51 /* libshared.a in Frameworks */,
 				CE12D8241C5C69A800CD0B13 /* libglib-2.0.0.dylib in Frameworks */,
 				CE8040191FA90D7000931A89 /* libmysqlclient.20.dylib in Frameworks */,
@@ -2203,10 +1967,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE6EE40E1F720F3A00FBC830 /* libcgame-ui.a in Frameworks */,
+				CEF18C1C23F3AF8100B85FD8 /* libcolor.a in Frameworks */,
 				CEFC7B931D9D2FB3000FA6B2 /* libgame-pmove.a in Frameworks */,
-				CEFF44DE1DE0E01100EFC902 /* libmatrix.a in Frameworks */,
+				CEF18C3F23F43DB600B85FD8 /* libmatrix.a in Frameworks */,
 				CE5530A11E5A942E0009A127 /* libparse.a in Frameworks */,
-				CE1CCD9D1D9D49C700891F05 /* libswap.a in Frameworks */,
+				CEF18C3E23F43D6B00B85FD8 /* libshared.a in Frameworks */,
 				CE1A28221F748B59005F62A9 /* libObjectively.dylib in Frameworks */,
 				CE1A28231F748B59005F62A9 /* libObjectivelyMVC.dylib in Frameworks */,
 				CEFC79A41D9CB1A6000FA6B2 /* OpenGL.framework in Frameworks */,
@@ -2379,19 +2144,21 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE8000001C5E4D4400A21A51 /* libminizip.a in Frameworks */,
 				CE354F0622087CFA008AE0C2 /* libatlas.a in Frameworks */,
 				CE80FFFE1C5E4D4400A21A51 /* libcollision.a in Frameworks */,
+				CE89269923F05F1E00CF3D33 /* libcolor.a in Frameworks */,
 				CE80FFFF1C5E4D4400A21A51 /* libcommon.a in Frameworks */,
 				CEFC7A9D1D9CB840000FA6B2 /* libfilesystem.a in Frameworks */,
 				CEFC7AA11D9CB86C000FA6B2 /* libimage.a in Frameworks */,
 				CEFC7AA21D9CB86C000FA6B2 /* libmem.a in Frameworks */,
+				CE8000001C5E4D4400A21A51 /* libminizip.a in Frameworks */,
 				CE5530A61E5A96C00009A127 /* libparse.a in Frameworks */,
 				CE4898D11D8B9DE100EEACA5 /* libnet.a in Frameworks */,
 				CE8000021C5E4D4400A21A51 /* libshared.a in Frameworks */,
 				CEFC7A9E1D9CB840000FA6B2 /* libswap.a in Frameworks */,
 				CEFC7A9F1D9CB840000FA6B2 /* libsys.a in Frameworks */,
 				CEFC7AA01D9CB840000FA6B2 /* libthread.a in Frameworks */,
+				CE89269A23F05F1E00CF3D33 /* libvector.a in Frameworks */,
 				CE8000031C5E4ED700A21A51 /* libglib-2.0.0.dylib in Frameworks */,
 				CE40147E204B9FBB009FD74E /* libphysfs.3.0.1.dylib in Frameworks */,
 				CE8000041C5E4EED00A21A51 /* libSDL2-2.0.0.dylib in Frameworks */,
@@ -2405,6 +2172,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEF18C3B23F43A7700B85FD8 /* libvector.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2412,6 +2180,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEF18C2B23F4372000B85FD8 /* libmem.a in Frameworks */,
+				CEF18C3323F4389A00B85FD8 /* libparse.a in Frameworks */,
 				CED4394D1D9D3A030052BAFA /* libshared.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2430,6 +2200,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEF18C1E23F42CB200B85FD8 /* libvector.a in Frameworks */,
 				CE6EE3891F70B69F00FBC830 /* libconsole.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2439,8 +2210,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE9771AC2145562C00BBD71C /* libgenann.a in Frameworks */,
-				CE6EE3C71F7147CE00FBC830 /* libshared.a in Frameworks */,
 				CE6EE3B71F70BE8300FBC830 /* libgame-pmove.a in Frameworks */,
+				CE6EE3C71F7147CE00FBC830 /* libshared.a in Frameworks */,
 				CE6EE3C61F7147B700FBC830 /* libglib-2.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2474,6 +2245,22 @@
 				CE6EE3BA1F70BFA200FBC830 /* libcollision.a in Frameworks */,
 				CED4395E1D9D3AE40052BAFA /* libnet.a in Frameworks */,
 				CED439711D9D3DA00052BAFA /* libconsole.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE89267723EE0B3800CF3D33 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE89268C23EE105C00CF3D33 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEF18C1D23F42BEE00B85FD8 /* libswap.a in Frameworks */,
+				CEF18C2823F4369300B85FD8 /* libvector.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2511,6 +2298,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE89268623EE0CE800CF3D33 /* libvector.a in Frameworks */,
 				CE9CFCA823EB3D020009DA65 /* libcheck.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2564,6 +2352,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEF18C4023F4A60700B85FD8 /* libvector.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2612,6 +2401,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEF18C2723F4367400B85FD8 /* libcolor.a in Frameworks */,
 				CED439521D9D3A2E0052BAFA /* libfilesystem.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2620,6 +2410,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEF18C3C23F43CBF00B85FD8 /* libvector.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2627,7 +2418,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CED4395F1D9D3B0E0052BAFA /* libshared.a in Frameworks */,
+				CEF18C3D23F43D1200B85FD8 /* libvector.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2870,6 +2661,8 @@
 				CE354EDA220738BF008AE0C2 /* atlas.c */,
 				CE12D6261C5C58C300CD0B13 /* cmd.c */,
 				CE12D6271C5C58C300CD0B13 /* cmd.h */,
+				CE89268823EE0F7300CF3D33 /* color.c */,
+				CE89268723EE0F7300CF3D33 /* color.h */,
 				CE12D6361C5C58C300CD0B13 /* common.c */,
 				CE12D6371C5C58C300CD0B13 /* common.h */,
 				CE12D6381C5C58C300CD0B13 /* console.c */,
@@ -2889,7 +2682,6 @@
 				CE12D68C1C5C58C300CD0B13 /* mem_buf.h */,
 				CE55309A1E5A93C60009A127 /* parse.c */,
 				CE55309B1E5A93C60009A127 /* parse.h */,
-				CE9CFC9A23EAFFD00009DA65 /* quemath.h */,
 				CE12D69C1C5C58C300CD0B13 /* quetoo.h */,
 				CE12D6B71C5C58C300CD0B13 /* shared-anorms.c */,
 				CE12D6B81C5C58C300CD0B13 /* shared.c */,
@@ -2900,6 +2692,8 @@
 				CE12D6BD1C5C58C300CD0B13 /* sys.h */,
 				CE12D6DE1C5C58C300CD0B13 /* thread.c */,
 				CE12D6DF1C5C58C300CD0B13 /* thread.h */,
+				CE89267223EDF85500CF3D33 /* vector.c */,
+				CE9CFC9A23EAFFD00009DA65 /* vector.h */,
 				CE12D6801C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = src;
@@ -3293,10 +3087,10 @@
 				CE12D6CF1C5C58C300CD0B13 /* check_filesystem.c */,
 				CE12D6D11C5C58C300CD0B13 /* check_master.c */,
 				CE12D6D31C5C58C300CD0B13 /* check_mem.c */,
-				CE9CFC9C23EB3BF50009DA65 /* check_quemath.c */,
 				CE12D6D51C5C58C300CD0B13 /* check_r_media.c */,
 				CE948B0F223564E900D961FA /* check_shared.c */,
 				CE12D6D71C5C58C300CD0B13 /* check_thread.c */,
+				CE9CFC9C23EB3BF50009DA65 /* check_vector.c */,
 				CE12D6DC1C5C58C300CD0B13 /* tests.c */,
 				CE12D6DD1C5C58C300CD0B13 /* tests.h */,
 				CE12D6DA1C5C58C300CD0B13 /* Makefile.am */,
@@ -3549,7 +3343,9 @@
 				CE354EE722073AD6008AE0C2 /* libatlas.a */,
 				CE354EFE22075132008AE0C2 /* check_atlas */,
 				CE948B222235652600D961FA /* check_shared */,
-				CE9CFCAF23EB3D020009DA65 /* check_quemath */,
+				CE9CFCAF23EB3D020009DA65 /* check_vector */,
+				CE89267D23EE0B3800CF3D33 /* libvector.a */,
+				CE89269223EE105C00CF3D33 /* libcolor.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -3957,7 +3753,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE9CFC9B23EAFFD10009DA65 /* quemath.h in Headers */,
 				CE80FE781C5E439200A21A51 /* shared.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -4066,6 +3861,22 @@
 				CE80FFBC1C5E4A3200A21A51 /* sv_send.h in Headers */,
 				CE80FFBD1C5E4A3200A21A51 /* sv_types.h in Headers */,
 				CE80FFBE1C5E4A3200A21A51 /* sv_world.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE89267823EE0B3800CF3D33 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE89267F23EE0B6500CF3D33 /* vector.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE89268D23EE105C00CF3D33 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE89269423EE10A000CF3D33 /* color.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4271,9 +4082,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				CEFC7B921D9D2F18000FA6B2 /* PBXTargetDependency */,
-				CE5530A31E5A96990009A127 /* PBXTargetDependency */,
-				CEFC7B901D9D2F18000FA6B2 /* PBXTargetDependency */,
 			);
 			name = game;
 			productName = game;
@@ -4291,8 +4099,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				CE6EE34C1F6BFB5E00FBC830 /* PBXTargetDependency */,
-				CEFC7B951D9D2FBF000FA6B2 /* PBXTargetDependency */,
 			);
 			name = cgame;
 			productName = cgame;
@@ -4489,7 +4295,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				CE5CDC1B1D9F51580034757D /* PBXTargetDependency */,
 			);
 			name = "client-ui";
 			productName = game;
@@ -4547,11 +4352,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				CEA029BE1C5E547700341079 /* PBXTargetDependency */,
-				CE80FFFD1C5E4D2D00A21A51 /* PBXTargetDependency */,
-				CE80FFE21C5E4CEE00A21A51 /* PBXTargetDependency */,
-				CE5530A51E5A96B20009A127 /* PBXTargetDependency */,
-				CEE3A0EE21E91B760070FD3E /* PBXTargetDependency */,
 			);
 			name = quemap;
 			productName = quemap;
@@ -4586,8 +4386,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				CE9771AE2145565800BBD71C /* PBXTargetDependency */,
-				CE80FDF21C5E3E5C00A21A51 /* PBXTargetDependency */,
 			);
 			name = common;
 			productName = game;
@@ -4605,9 +4403,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				CEFC7A8E1D9CB6E9000FA6B2 /* PBXTargetDependency */,
-				CEFC7A901D9CB6E9000FA6B2 /* PBXTargetDependency */,
-				CE6EE3B41F70BE3D00FBC830 /* PBXTargetDependency */,
 			);
 			name = collision;
 			productName = game;
@@ -4625,7 +4420,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				CE6EE3881F70B69600FBC830 /* PBXTargetDependency */,
 			);
 			name = net;
 			productName = game;
@@ -4643,7 +4437,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				CE6EE3B61F70BE6E00FBC830 /* PBXTargetDependency */,
 			);
 			name = ai;
 			productName = game;
@@ -4661,10 +4454,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				CE6EE3C41F71459E00FBC830 /* PBXTargetDependency */,
-				CED4393F1D9D366C0052BAFA /* PBXTargetDependency */,
-				CED439411D9D366C0052BAFA /* PBXTargetDependency */,
-				CE5CDC3C1D9F51B80034757D /* PBXTargetDependency */,
 			);
 			name = client;
 			productName = game;
@@ -4682,7 +4471,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				CE80FF591C5E494E00A21A51 /* PBXTargetDependency */,
 			);
 			name = "client-null";
 			productName = game;
@@ -4700,13 +4488,44 @@
 			buildRules = (
 			);
 			dependencies = (
-				CE6EE3B91F70BF6600FBC830 /* PBXTargetDependency */,
-				CE80FFC41C5E4A8600A21A51 /* PBXTargetDependency */,
-				CED439701D9D3D9C0052BAFA /* PBXTargetDependency */,
 			);
 			name = server;
 			productName = game;
 			productReference = CE80FF7F1C5E49C400A21A51 /* libserver.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		CE89267423EE0B3800CF3D33 /* vector */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CE89267A23EE0B3800CF3D33 /* Build configuration list for PBXNativeTarget "vector" */;
+			buildPhases = (
+				CE89267523EE0B3800CF3D33 /* Sources */,
+				CE89267723EE0B3800CF3D33 /* Frameworks */,
+				CE89267823EE0B3800CF3D33 /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = vector;
+			productName = game;
+			productReference = CE89267D23EE0B3800CF3D33 /* libvector.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		CE89268923EE105C00CF3D33 /* color */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CE89268F23EE105C00CF3D33 /* Build configuration list for PBXNativeTarget "color" */;
+			buildPhases = (
+				CE89268A23EE105C00CF3D33 /* Sources */,
+				CE89268C23EE105C00CF3D33 /* Frameworks */,
+				CE89268D23EE105C00CF3D33 /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = color;
+			productName = game;
+			productReference = CE89269223EE105C00CF3D33 /* libcolor.a */;
 			productType = "com.apple.product-type.library.static";
 		};
 		CE8E2017214837AB00C18C94 /* check_ai_ann */ = {
@@ -4762,9 +4581,9 @@
 			productReference = CE9771A121454EEB00BBD71C /* libgenann.a */;
 			productType = "com.apple.product-type.library.static";
 		};
-		CE9CFC9E23EB3D020009DA65 /* check_quemath */ = {
+		CE9CFC9E23EB3D020009DA65 /* check_vector */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = CE9CFCAC23EB3D020009DA65 /* Build configuration list for PBXNativeTarget "check_quemath" */;
+			buildConfigurationList = CE9CFCAC23EB3D020009DA65 /* Build configuration list for PBXNativeTarget "check_vector" */;
 			buildPhases = (
 				CE9CFCA123EB3D020009DA65 /* Sources */,
 				CE9CFCA423EB3D020009DA65 /* Frameworks */,
@@ -4773,10 +4592,11 @@
 			buildRules = (
 			);
 			dependencies = (
+				CE89268523EE0CDF00CF3D33 /* PBXTargetDependency */,
 			);
-			name = check_quemath;
+			name = check_vector;
 			productName = "test-r_media";
-			productReference = CE9CFCAF23EB3D020009DA65 /* check_quemath */;
+			productReference = CE9CFCAF23EB3D020009DA65 /* check_vector */;
 			productType = "com.apple.product-type.tool";
 		};
 		CEA029C51C5E558100341079 /* quetoo-master */ = {
@@ -4810,9 +4630,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				CE354EEC22073B72008AE0C2 /* PBXTargetDependency */,
-				CED438211D9D34450052BAFA /* PBXTargetDependency */,
-				CED439451D9D37BD0052BAFA /* PBXTargetDependency */,
 			);
 			name = "client-renderer";
 			productName = game;
@@ -4830,7 +4647,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				CED439471D9D37E80052BAFA /* PBXTargetDependency */,
 			);
 			name = "client-sound";
 			productName = game;
@@ -4900,7 +4716,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				CEFC79F21D9CB300000FA6B2 /* PBXTargetDependency */,
 			);
 			name = thread;
 			productName = game;
@@ -4918,7 +4733,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				CEFC7A6F1D9CB54A000FA6B2 /* PBXTargetDependency */,
 			);
 			name = console;
 			productName = game;
@@ -4936,9 +4750,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				CE6EE3B21F70BC3100FBC830 /* PBXTargetDependency */,
-				CEFC7A4E1D9CB4AA000FA6B2 /* PBXTargetDependency */,
-				CEFC7A6D1D9CB52E000FA6B2 /* PBXTargetDependency */,
 			);
 			name = filesystem;
 			productName = game;
@@ -4956,7 +4767,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				CEFC7A921D9CB731000FA6B2 /* PBXTargetDependency */,
 			);
 			name = sys;
 			productName = game;
@@ -4974,7 +4784,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				CEFC7A721D9CB57D000FA6B2 /* PBXTargetDependency */,
 			);
 			name = image;
 			productName = game;
@@ -5009,7 +4818,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				CEFC7B8E1D9D2EDE000FA6B2 /* PBXTargetDependency */,
 			);
 			name = "game-pmove";
 			productName = game;
@@ -5068,6 +4876,7 @@
 				CE97719421454EEB00BBD71C /* genann */,
 				CE12D8101C5C5EF000CD0B13 /* minizip */,
 				CE354EDB22073AD6008AE0C2 /* atlas */,
+				CE89268923EE105C00CF3D33 /* color */,
 				CE80FDD91C5E3E1100A21A51 /* common */,
 				CEFC79F71D9CB408000FA6B2 /* console */,
 				CEFC7A221D9CB483000FA6B2 /* filesystem */,
@@ -5079,6 +4888,7 @@
 				CEFC79A61D9CB22E000FA6B2 /* swap */,
 				CEFC7A511D9CB4FC000FA6B2 /* sys */,
 				CEFC79E11D9CB2D2000FA6B2 /* thread */,
+				CE89267423EE0B3800CF3D33 /* vector */,
 				CE80FE0E1C5E421900A21A51 /* collision */,
 				CE80FE431C5E431000A21A51 /* net */,
 				CE80FF6D1C5E49C400A21A51 /* server */,
@@ -5106,10 +4916,10 @@
 				CE51FBCC21481FC100ABE14F /* check_filesystem */,
 				CE51FBE42148207700ABE14F /* check_master */,
 				CE052A5B214831FE003446C9 /* check_mem */,
-				CE9CFC9E23EB3D020009DA65 /* check_quemath */,
 				CE51FB89214819B000ABE14F /* check_r_media */,
 				CE948B102235652600D961FA /* check_shared */,
 				CE052A7321483255003446C9 /* check_thread */,
+				CE9CFC9E23EB3D020009DA65 /* check_vector */,
 				CE052A8C2148333C003446C9 /* quetoo-tests */,
 			);
 		};
@@ -5493,6 +5303,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CE89267523EE0B3800CF3D33 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE89267E23EE0B5F00CF3D33 /* vector.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE89268A23EE105C00CF3D33 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE89269323EE109C00CF3D33 /* color.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CE8E201A214837AB00C18C94 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -5521,7 +5347,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE9CFCB023EB3D240009DA65 /* check_quemath.c in Sources */,
+				CE9CFCB023EB3D240009DA65 /* check_vector.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5555,7 +5381,7 @@
 				CED4384B1D9D34450052BAFA /* r_mesh_draw.c in Sources */,
 				CED4384C1D9D34450052BAFA /* r_mesh_model.c in Sources */,
 				CE5022E923DE3C3600B333CE /* r_mesh_model_obj.c in Sources */,
-				CE9CFC9D23EB3BF50009DA65 /* check_quemath.c in Sources */,
+				CE9CFC9D23EB3BF50009DA65 /* check_vector.c in Sources */,
 				CE5022ED23DE3CF900B333CE /* r_mesh_model_md3.c in Sources */,
 				CED4384F1D9D34450052BAFA /* r_model.c in Sources */,
 				CE8FD2F223D48AB7002FD074 /* r_stain.c in Sources */,
@@ -5710,11 +5536,6 @@
 			target = CE052A7321483255003446C9 /* check_thread */;
 			targetProxy = CE052A9C21483352003446C9 /* PBXContainerItemProxy */;
 		};
-		CE354EEC22073B72008AE0C2 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE354EDB22073AD6008AE0C2 /* atlas */;
-			targetProxy = CE354EEB22073B72008AE0C2 /* PBXContainerItemProxy */;
-		};
 		CE354F0022075145008AE0C2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = CE354EDB22073AD6008AE0C2 /* atlas */;
@@ -5745,80 +5566,10 @@
 			target = CEFC7A221D9CB483000FA6B2 /* filesystem */;
 			targetProxy = CE51FC022148210E00ABE14F /* PBXContainerItemProxy */;
 		};
-		CE5530A31E5A96990009A127 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE5530901E5A939F0009A127 /* parse */;
-			targetProxy = CE5530A21E5A96990009A127 /* PBXContainerItemProxy */;
-		};
-		CE5530A51E5A96B20009A127 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE5530901E5A939F0009A127 /* parse */;
-			targetProxy = CE5530A41E5A96B20009A127 /* PBXContainerItemProxy */;
-		};
-		CE5CDC1B1D9F51580034757D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CED438201D9D34450052BAFA /* client-renderer */;
-			targetProxy = CE5CDC1C1D9F51580034757D /* PBXContainerItemProxy */;
-		};
-		CE5CDC3C1D9F51B80034757D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE5CDC1A1D9F51580034757D /* client-ui */;
-			targetProxy = CE5CDC3B1D9F51B80034757D /* PBXContainerItemProxy */;
-		};
-		CE6EE34C1F6BFB5E00FBC830 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE6EE3141F6BFAF600FBC830 /* cgame-ui */;
-			targetProxy = CE6EE34B1F6BFB5E00FBC830 /* PBXContainerItemProxy */;
-		};
-		CE6EE3881F70B69600FBC830 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CEFC79F71D9CB408000FA6B2 /* console */;
-			targetProxy = CE6EE3871F70B69600FBC830 /* PBXContainerItemProxy */;
-		};
-		CE6EE3B21F70BC3100FBC830 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CEFC79D11D9CB287000FA6B2 /* mem */;
-			targetProxy = CE6EE3B11F70BC3100FBC830 /* PBXContainerItemProxy */;
-		};
-		CE6EE3B41F70BE3D00FBC830 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE5530901E5A939F0009A127 /* parse */;
-			targetProxy = CE6EE3B31F70BE3D00FBC830 /* PBXContainerItemProxy */;
-		};
-		CE6EE3B61F70BE6E00FBC830 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CEFC7B761D9D2E71000FA6B2 /* game-pmove */;
-			targetProxy = CE6EE3B51F70BE6E00FBC830 /* PBXContainerItemProxy */;
-		};
-		CE6EE3B91F70BF6600FBC830 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE80FE0E1C5E421900A21A51 /* collision */;
-			targetProxy = CE6EE3B81F70BF6600FBC830 /* PBXContainerItemProxy */;
-		};
-		CE6EE3C41F71459E00FBC830 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE80FE0E1C5E421900A21A51 /* collision */;
-			targetProxy = CE6EE3C31F71459E00FBC830 /* PBXContainerItemProxy */;
-		};
 		CE6EE3C91F7147E500FBC830 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = CE80FEAB1C5E44E800A21A51 /* ai */;
 			targetProxy = CE6EE3C81F7147E500FBC830 /* PBXContainerItemProxy */;
-		};
-		CE80FDF21C5E3E5C00A21A51 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE80FDB41C5E3D4E00A21A51 /* shared */;
-			targetProxy = CE80FDF11C5E3E5C00A21A51 /* PBXContainerItemProxy */;
-		};
-		CE80FF591C5E494E00A21A51 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE80FDD91C5E3E1100A21A51 /* common */;
-			targetProxy = CE80FF5A1C5E494E00A21A51 /* PBXContainerItemProxy */;
-		};
-		CE80FFC41C5E4A8600A21A51 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE80FE431C5E431000A21A51 /* net */;
-			targetProxy = CE80FFC31C5E4A8600A21A51 /* PBXContainerItemProxy */;
 		};
 		CE80FFCB1C5E4B6600A21A51 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -5840,15 +5591,10 @@
 			target = CE80FF6D1C5E49C400A21A51 /* server */;
 			targetProxy = CE80FFD71C5E4BFA00A21A51 /* PBXContainerItemProxy */;
 		};
-		CE80FFE21C5E4CEE00A21A51 /* PBXTargetDependency */ = {
+		CE89268523EE0CDF00CF3D33 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = CE80FE431C5E431000A21A51 /* net */;
-			targetProxy = CE80FFE11C5E4CEE00A21A51 /* PBXContainerItemProxy */;
-		};
-		CE80FFFD1C5E4D2D00A21A51 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE80FE0E1C5E421900A21A51 /* collision */;
-			targetProxy = CE80FFFC1C5E4D2D00A21A51 /* PBXContainerItemProxy */;
+			target = CE89267423EE0B3800CF3D33 /* vector */;
+			targetProxy = CE89268423EE0CDF00CF3D33 /* PBXContainerItemProxy */;
 		};
 		CE8E202A214837B700C18C94 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -5880,11 +5626,6 @@
 			target = CE948B102235652600D961FA /* check_shared */;
 			targetProxy = CE948B2C2235660C00D961FA /* PBXContainerItemProxy */;
 		};
-		CE9771AE2145565800BBD71C /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE97719421454EEB00BBD71C /* genann */;
-			targetProxy = CE9771AD2145565800BBD71C /* PBXContainerItemProxy */;
-		};
 		CEA029B81C5E546200341079 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = CE12D7341C5C5B9300CD0B13 /* quetoo */;
@@ -5899,11 +5640,6 @@
 			isa = PBXTargetDependency;
 			target = CE80FD861C5E3B6F00A21A51 /* quemap */;
 			targetProxy = CEA029BB1C5E546200341079 /* PBXContainerItemProxy */;
-		};
-		CEA029BE1C5E547700341079 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE12D8101C5C5EF000CD0B13 /* minizip */;
-			targetProxy = CEA029BD1C5E547700341079 /* PBXContainerItemProxy */;
 		};
 		CEA029C01C5E548B00341079 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -5925,105 +5661,10 @@
 			target = CEA029C51C5E558100341079 /* quetoo-master */;
 			targetProxy = CEA029F81C5E560100341079 /* PBXContainerItemProxy */;
 		};
-		CED438211D9D34450052BAFA /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE80FE0E1C5E421900A21A51 /* collision */;
-			targetProxy = CED438221D9D34450052BAFA /* PBXContainerItemProxy */;
-		};
-		CED4393F1D9D366C0052BAFA /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CED438201D9D34450052BAFA /* client-renderer */;
-			targetProxy = CED4393E1D9D366C0052BAFA /* PBXContainerItemProxy */;
-		};
-		CED439411D9D366C0052BAFA /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CED438AE1D9D344E0052BAFA /* client-sound */;
-			targetProxy = CED439401D9D366C0052BAFA /* PBXContainerItemProxy */;
-		};
-		CED439451D9D37BD0052BAFA /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CEFC7A5E1D9CB512000FA6B2 /* image */;
-			targetProxy = CED439441D9D37BD0052BAFA /* PBXContainerItemProxy */;
-		};
-		CED439471D9D37E80052BAFA /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CED438201D9D34450052BAFA /* client-renderer */;
-			targetProxy = CED439461D9D37E80052BAFA /* PBXContainerItemProxy */;
-		};
-		CED439701D9D3D9C0052BAFA /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CEFC79F71D9CB408000FA6B2 /* console */;
-			targetProxy = CED4396F1D9D3D9C0052BAFA /* PBXContainerItemProxy */;
-		};
-		CEE3A0EE21E91B760070FD3E /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CEFC79E11D9CB2D2000FA6B2 /* thread */;
-			targetProxy = CEE3A0ED21E91B760070FD3E /* PBXContainerItemProxy */;
-		};
 		CEE3A10321EE2B570070FD3E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = CE80FE0E1C5E421900A21A51 /* collision */;
 			targetProxy = CEE3A10221EE2B570070FD3E /* PBXContainerItemProxy */;
-		};
-		CEFC79F21D9CB300000FA6B2 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CEFC79D11D9CB287000FA6B2 /* mem */;
-			targetProxy = CEFC79F11D9CB300000FA6B2 /* PBXContainerItemProxy */;
-		};
-		CEFC7A4E1D9CB4AA000FA6B2 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CEFC79A61D9CB22E000FA6B2 /* swap */;
-			targetProxy = CEFC7A4D1D9CB4AA000FA6B2 /* PBXContainerItemProxy */;
-		};
-		CEFC7A6D1D9CB52E000FA6B2 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CEFC7A511D9CB4FC000FA6B2 /* sys */;
-			targetProxy = CEFC7A6C1D9CB52E000FA6B2 /* PBXContainerItemProxy */;
-		};
-		CEFC7A6F1D9CB54A000FA6B2 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CEFC7A221D9CB483000FA6B2 /* filesystem */;
-			targetProxy = CEFC7A6E1D9CB54A000FA6B2 /* PBXContainerItemProxy */;
-		};
-		CEFC7A721D9CB57D000FA6B2 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CEFC7A221D9CB483000FA6B2 /* filesystem */;
-			targetProxy = CEFC7A711D9CB57D000FA6B2 /* PBXContainerItemProxy */;
-		};
-		CEFC7A8E1D9CB6E9000FA6B2 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CEFC7A221D9CB483000FA6B2 /* filesystem */;
-			targetProxy = CEFC7A8D1D9CB6E9000FA6B2 /* PBXContainerItemProxy */;
-		};
-		CEFC7A901D9CB6E9000FA6B2 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CEFC7A761D9CB5C9000FA6B2 /* matrix */;
-			targetProxy = CEFC7A8F1D9CB6E9000FA6B2 /* PBXContainerItemProxy */;
-		};
-		CEFC7A921D9CB731000FA6B2 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE80FDD91C5E3E1100A21A51 /* common */;
-			targetProxy = CEFC7A911D9CB731000FA6B2 /* PBXContainerItemProxy */;
-		};
-		CEFC7B8E1D9D2EDE000FA6B2 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE80FDB41C5E3D4E00A21A51 /* shared */;
-			targetProxy = CEFC7B8D1D9D2EDE000FA6B2 /* PBXContainerItemProxy */;
-		};
-		CEFC7B901D9D2F18000FA6B2 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CEFC7B761D9D2E71000FA6B2 /* game-pmove */;
-			targetProxy = CEFC7B8F1D9D2F18000FA6B2 /* PBXContainerItemProxy */;
-		};
-		CEFC7B921D9D2F18000FA6B2 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE80FEAB1C5E44E800A21A51 /* ai */;
-			targetProxy = CEFC7B911D9D2F18000FA6B2 /* PBXContainerItemProxy */;
-		};
-		CEFC7B951D9D2FBF000FA6B2 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CEFC7B761D9D2E71000FA6B2 /* game-pmove */;
-			targetProxy = CEFC7B941D9D2FBF000FA6B2 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -6193,7 +5834,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_EXTENSION = so;
-				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -6202,7 +5842,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_EXTENSION = so;
-				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -6544,6 +6183,38 @@
 			name = Debug;
 		};
 		CE80FF7E1C5E49C400A21A51 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		CE89267B23EE0B3800CF3D33 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CE89267C23EE0B3800CF3D33 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		CE89269023EE105C00CF3D33 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CE89269123EE105C00CF3D33 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
@@ -7091,6 +6762,24 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		CE89267A23EE0B3800CF3D33 /* Build configuration list for PBXNativeTarget "vector" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CE89267B23EE0B3800CF3D33 /* Debug */,
+				CE89267C23EE0B3800CF3D33 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CE89268F23EE105C00CF3D33 /* Build configuration list for PBXNativeTarget "color" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CE89269023EE105C00CF3D33 /* Debug */,
+				CE89269123EE105C00CF3D33 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		CE8E2025214837AB00C18C94 /* Build configuration list for PBXNativeTarget "check_ai_ann" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -7118,7 +6807,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		CE9CFCAC23EB3D020009DA65 /* Build configuration list for PBXNativeTarget "check_quemath" */ = {
+		CE9CFCAC23EB3D020009DA65 /* Build configuration list for PBXNativeTarget "check_vector" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CE9CFCAD23EB3D020009DA65 /* Debug */,

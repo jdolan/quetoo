@@ -223,22 +223,22 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 			}
 		}
 
-		if (!ColorFromHex(info[2], &ci->shirt)) {
+		if (!color_parse(info[2], &ci->shirt)) {
 			ci->shirt.a = 0;
 		}
 
-		if (!ColorFromHex(info[3], &ci->pants)) {
+		if (!color_parse(info[3], &ci->pants)) {
 			ci->pants.a = 0;
 		}
 
-		if (!ColorFromHex(info[4], &ci->helmet)) {
+		if (!color_parse(info[4], &ci->helmet)) {
 			ci->helmet.a = 0;
 		}
 
 		const int16_t hue = atoi(info[5]);
 		if (hue >= 0) {
 			const SDL_Color color = MVC_HSVToRGB(hue, 1.0, 1.0);
-			ci->color.abgr = *(int32_t *) &color;
+			ci->color.rgba = *(int32_t *) &color;
 		} else {
 			ci->color.a = 0;
 		}
@@ -251,10 +251,10 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 			}
 		}
 
-		VectorScale(PM_MINS, PM_SCALE, ci->legs->mins);
-		VectorScale(PM_MAXS, PM_SCALE, ci->legs->maxs);
+		ci->legs->mins = vec3_scale(PM_MINS, PM_SCALE);
+		ci->legs->maxs = vec3_scale(PM_MAXS, PM_SCALE);
 
-		ci->legs->radius = (ci->legs->maxs[2] - ci->legs->mins[2]) / 2.0;
+		ci->legs->radius = (ci->legs->maxs.z - ci->legs->mins.z) / 2.0;
 
 		// load sound files if we're in-game
 		if (*cgi.state > CL_DISCONNECTED) {
@@ -374,8 +374,8 @@ static void Cg_AnimateClientEntity_(const r_model_t *model, cl_entity_animation_
 		}
 	}
 
-	a->lerp = (elapsed_time % frame_duration) / (vec_t) frame_duration;
-	a->fraction = Clamp(elapsed_time / (vec_t) animation_duration, 0.0, 1.0);
+	a->lerp = (elapsed_time % frame_duration) / (float) frame_duration;
+	a->fraction = clampf(elapsed_time / (float) animation_duration, 0.0, 1.0);
 }
 
 /**

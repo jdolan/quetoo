@@ -40,8 +40,8 @@ static void G_weapon_chaingun_Think(g_entity_t *ent) {
 
 		// spawn a lightning gun where we are
 		g_entity_t *lg = G_AllocEntity_(g_media.items.weapons[WEAPON_LIGHTNING]->class_name);
-		VectorCopy(cg->s.origin, lg->s.origin);
-		VectorCopy(cg->s.angles, lg->s.angles);
+		lg->s.origin = cg->s.origin;
+		lg->s.angles = cg->s.angles;
 		lg->locals.spawn_flags = cg->locals.spawn_flags;
 
 		G_SpawnItem(lg, g_media.items.weapons[WEAPON_LIGHTNING]);
@@ -54,8 +54,8 @@ static void G_weapon_chaingun_Think(g_entity_t *ent) {
 
 				// hello bolts
 				g_entity_t *bolts = G_AllocEntity_(g_media.items.ammo[AMMO_BOLTS]->class_name);
-				VectorCopy(ammo->s.origin, bolts->s.origin);
-				VectorCopy(ammo->s.angles, bolts->s.angles);
+				bolts->s.origin = ammo->s.origin;
+				bolts->s.angles = ammo->s.angles;
 				bolts->locals.spawn_flags = ammo->locals.spawn_flags;
 
 				G_SpawnItem(bolts, g_media.items.ammo[AMMO_BOLTS]);
@@ -299,7 +299,7 @@ static const g_field_t fields[] = {
 static void G_ParseField(const char *key, const char *value, g_entity_t *ent) {
 	const g_field_t *f;
 	byte *b;
-	vec_t v;
+	float v;
 	vec3_t vec;
 
 	for (f = fields; f->name; f++) {
@@ -320,22 +320,22 @@ static void G_ParseField(const char *key, const char *value, g_entity_t *ent) {
 					*(int32_t *) (b + f->ofs) = atoi(value);
 					break;
 				case F_FLOAT:
-					*(vec_t *) (b + f->ofs) = atof(value);
+					*(float *) (b + f->ofs) = atof(value);
 					break;
 				case F_STRING:
 					*(char **) (b + f->ofs) = G_NewString(value);
 					break;
 				case F_VECTOR:
-					sscanf(value, "%f %f %f", &vec[0], &vec[1], &vec[2]);
-					((vec_t *) (b + f->ofs))[0] = vec[0];
-					((vec_t *) (b + f->ofs))[1] = vec[1];
-					((vec_t *) (b + f->ofs))[2] = vec[2];
+					sscanf(value, "%f %f %f", &vec.x, &vec.y, &vec.z);
+					((float *) (b + f->ofs))[0] = vec.x;
+					((float *) (b + f->ofs))[1] = vec.y;
+					((float *) (b + f->ofs))[2] = vec.z;
 					break;
 				case F_ANGLE:
 					v = atof(value);
-					((vec_t *) (b + f->ofs))[0] = 0;
-					((vec_t *) (b + f->ofs))[1] = v;
-					((vec_t *) (b + f->ofs))[2] = 0;
+					((float *) (b + f->ofs))[0] = 0;
+					((float *) (b + f->ofs))[1] = v;
+					((float *) (b + f->ofs))[2] = 0;
 					break;
 				default:
 					break;
@@ -548,7 +548,10 @@ static int32_t G_CreateTeamSpawnPoints_CompareFunc(gconstpointer a, gconstpointe
 	const g_entity_t *ap = (const g_entity_t *) a;
 	const g_entity_t *bp = (const g_entity_t *) b;
 
-	return Sign(VectorDistanceSquared(flag->s.origin, bp->s.origin) - VectorDistanceSquared(flag->s.origin, ap->s.origin));
+	const int32_t a_dist = vec3_distance_squared(flag->s.origin, ap->s.origin);
+	const int32_t b_dist = vec3_distance_squared(flag->s.origin, bp->s.origin);
+
+	return signf(b_dist - a_dist);
 }
 
 /**
@@ -573,7 +576,7 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
 			return; // not enough points to make a flag
 		}
 
-		vec_t furthest_dist = 0;
+		float furthest_dist = 0;
 
 		for (GSList *pa = *dm_spawns; pa; pa = pa->next) {
 			for (GSList *pb = *dm_spawns; pb; pb = pb->next) {
@@ -591,10 +594,10 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
 				}
 
 				vec3_t line;
-				VectorSubtract(pae->s.origin, pab->s.origin, line);
-				line[2] /= 10.0; // don't consider Z as heavily as X/Y
+				line = vec3_subtract(pae->s.origin, pab->s.origin);
+				line.z /= 10.0; // don't consider Z as heavily as X/Y
 
-				const vec_t dist = VectorLengthSquared(line);
+				const float dist = vec3_length_squared(line);
 
 				if (dist > furthest_dist) {
 
@@ -614,8 +617,8 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
 
 		const uint8_t r = Randomr(0, 2);
 
-		VectorCopy(reused_spawns[r]->s.origin, red_flag->s.origin);
-		VectorCopy(reused_spawns[r ^ 1]->s.origin, blue_flag->s.origin);
+		red_flag->s.origin = reused_spawns[r]->s.origin;
+		blue_flag->s.origin = reused_spawns[r ^ 1]->s.origin;
 		
 		G_SpawnItem(red_flag, g_media.items.flags[TEAM_RED]);
 		G_SpawnItem(blue_flag, g_media.items.flags[TEAM_BLUE]);
@@ -632,8 +635,8 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
 			continue;
 		}
 
-		const vec_t dist_to_red = VectorDistanceSquared(red_flag->s.origin, p->s.origin);
-		const vec_t dist_to_blue = VectorDistanceSquared(blue_flag->s.origin, p->s.origin);
+		const float dist_to_red = vec3_distance_squared(red_flag->s.origin, p->s.origin);
+		const float dist_to_blue = vec3_distance_squared(blue_flag->s.origin, p->s.origin);
 
 		if (dist_to_red < dist_to_blue) {
 			*team_red_spawns = g_slist_prepend(*team_red_spawns, p);
@@ -803,7 +806,7 @@ void G_SpawnTech(const g_item_t *item) {
 	g_entity_t *spawn = G_SelectTechSpawnPoint();
 	g_entity_t *ent = G_DropItem(spawn, item);
 
-	VectorSet(ent->locals.velocity, Randomc() * 250, Randomc() * 250, 200 + (Randomf() * 200));
+	ent->locals.velocity = vec3(Randomc() * 250, Randomc() * 250, 200 + (Randomf() * 200));
 }
 
 /**
@@ -841,7 +844,7 @@ void G_SpawnEntities(const char *name, const char *entities) {
 			if (g_ai_max_clients->integer == -1) {
 				g_game.ai_fill_slots = sv_max_clients->integer;
 			} else {
-				g_game.ai_fill_slots = Clamp(g_ai_max_clients->integer, 0, sv_max_clients->integer);
+				g_game.ai_fill_slots = clampf(g_ai_max_clients->integer, 0, sv_max_clients->integer);
 			}
 
 			g_game.ai_left_to_spawn = g_game.ai_fill_slots;
@@ -1086,7 +1089,7 @@ static void G_worldspawn(g_entity_t *ent) {
 	}
 
 	if (g_level.num_teams != -1) {
-		g_level.num_teams = Clamp(g_level.num_teams, 2, MAX_TEAMS);
+		g_level.num_teams = clampf(g_level.num_teams, 2, MAX_TEAMS);
 	}
 
 	if (map && map->ctf > -1) { // prefer maps.lst ctf
@@ -1175,7 +1178,7 @@ static void G_worldspawn(g_entity_t *ent) {
 		}
 	}
 
-	vec_t time_limit;
+	float time_limit;
 	if (map && map->time_limit > -1) { // prefer maps.lst time_limit
 		time_limit = map->time_limit;
 	} else { // or fall back on worldspawn

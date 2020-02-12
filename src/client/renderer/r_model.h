@@ -29,21 +29,12 @@ r_model_t *R_WorldModel(void);
 #ifdef __R_LOCAL_H__
 
 typedef struct {
-	vec3_t position;
-	u8vec4_t color;
-} r_bound_interleave_vertex_t;
-
-typedef struct {
 	r_model_t *world;
 
 	GLuint null_vertices;
 	GLuint null_elements;
 	size_t null_elements_count;
 
-	r_bound_interleave_vertex_t bound_vertices[14];
-	GLuint bound_vertice_buffer;
-	GLuint bound_element_buffer;
-	size_t bound_element_count;
 } r_model_state_t;
 
 extern r_model_state_t r_model_state;

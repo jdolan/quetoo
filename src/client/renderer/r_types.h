@@ -148,20 +148,20 @@ typedef struct {
 
 // renderer-specific material stuff
 typedef struct {
-	vec_t dhz;
+	float dhz;
 } r_stage_pulse_t;
 
 typedef struct {
-	vec_t dhz;
-	vec_t damp;
+	float dhz;
+	float damp;
 } r_stage_stretch_t;
 
 typedef struct {
-	vec_t deg;
+	float deg;
 } r_stage_rotate_t;
 
 typedef struct {
-	vec_t ds, dt;
+	float ds, dt;
 } r_stage_scroll_t;
 
 // frame based material animation, lerp between consecutive images
@@ -205,7 +205,7 @@ typedef struct r_material_s {
 } r_material_t;
 
 typedef struct {
-	vec_t vecs[2][4];
+	vec4_t vecs[2];
 	int32_t flags;
 	int32_t value;
 	char texture[32];
@@ -226,9 +226,9 @@ typedef struct {
 } r_bsp_vertex_t;
 
 typedef struct {
-	vec_t radius;
+	float radius;
 	uint32_t time;
-	vec_t alpha;
+	float alpha;
 
 	//r_particle_t particle;
 } r_bsp_flare_t;
@@ -385,7 +385,7 @@ typedef struct {
 	/**
 	 * @brief The lightgrid size in luxels.
 	 */
-	int32_t size[3];
+	s32vec3_t size;
 
 	/**
 	 * @brief The lightgrid bounds in world space.
@@ -461,7 +461,7 @@ typedef struct {
 
 typedef struct {
 	char name[MAX_QPATH];
-	matrix4x4_t matrix;
+	mat4_t matrix;
 } r_mesh_tag_t;
 
 typedef struct {
@@ -487,7 +487,7 @@ typedef struct {
  * @brief Provides load-time normalization of mesh models.
  */
 typedef struct {
-	matrix4x4_t transform;
+	mat4_t transform;
 	uint32_t flags; // EF_ALPHA_TEST, etc..
 } r_mesh_config_t;
 
@@ -541,7 +541,7 @@ typedef struct r_model_s {
 	size_t num_materials;
 
 	vec3_t mins, maxs;
-	vec_t radius;
+	float radius;
 
 } r_model_t;
 
@@ -562,7 +562,7 @@ typedef struct {
 	/**
 	 * @brief The particle size.
 	 */
-	vec_t size;
+	float size;
 
 	/**
 	 * @brief The particle color.
@@ -579,7 +579,7 @@ typedef struct {
  */
 typedef struct {
 	vec3_t origin;
-	vec_t radius;
+	float radius;
 	const r_media_t *media;
 	vec4_t color;
 } r_stain_t;
@@ -619,15 +619,15 @@ typedef struct r_entity_s {
 	vec3_t angles;
 	vec3_t mins, maxs;
 
-	matrix4x4_t matrix;
-	matrix4x4_t inverse_matrix;
+	mat4_t matrix;
+	mat4_t inverse_matrix;
 
 	const r_model_t *model;
 
 	int32_t frame, old_frame; // frame-based animations
-	vec_t lerp, back_lerp;
+	float lerp, back_lerp;
 
-	vec_t scale; // for mesh models
+	float scale; // for mesh models
 
 	r_material_t *skins[MAX_ENTITY_SKINS]; // NULL for default skin
 	int32_t num_skins;

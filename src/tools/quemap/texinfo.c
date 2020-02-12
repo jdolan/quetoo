@@ -48,18 +48,18 @@ static void TextureAxisFromPlane(const plane_t *plane, vec3_t xv, vec3_t yv) {
 	};
 
 	int32_t best_axis = 0;
-	vec_t best = 0.0;
+	float best = 0.0;
 
 	for (int32_t i = 0; i < 6; i++) {
-		const vec_t dot = DotProduct(plane->normal, base_axis[i * 3]);
+		const float dot = vec3_dot(plane->normal, base_axis[i * 3]);
 		if (dot > best) {
 			best = dot;
 			best_axis = i;
 		}
 	}
 
-	VectorCopy(base_axis[best_axis * 3 + 1], xv);
-	VectorCopy(base_axis[best_axis * 3 + 2], yv);
+	xv = base_axis[best_axis * 3 + 1];
+	yv = base_axis[best_axis * 3 + 2];
 }
 
 /**
@@ -104,7 +104,7 @@ static int32_t FindTexinfo(bsp_texinfo_t *tx) {
  * @brief
  */
 int32_t TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, const vec3_t origin) {
-	vec_t sinv, cosv;
+	float sinv, cosv;
 
 	if (!bt->name[0]) {
 		return 0;
@@ -118,14 +118,14 @@ int32_t TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, const vec3_t
 	TextureAxisFromPlane(plane, vecs[0], vecs[1]);
 
 	vec2_t shift;
-	shift[0] = DotProduct(origin, vecs[0]);
-	shift[1] = DotProduct(origin, vecs[1]);
+	shift.x = vec3_dot(origin, vecs[0]);
+	shift.y = vec3_dot(origin, vecs[1]);
 
-	if (!bt->scale[0]) {
-		bt->scale[0] = 1.0;
+	if (!bt->scale.x) {
+		bt->scale.x = 1.0;
 	}
-	if (!bt->scale[1]) {
-		bt->scale[1] = 1.0;
+	if (!bt->scale.y) {
+		bt->scale.y = 1.0;
 	}
 
 	// rotate axis
@@ -142,42 +142,42 @@ int32_t TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, const vec3_t
 		sinv = -1.0;
 		cosv = 0.0;
 	} else {
-		sinv = sinf(Radians(bt->rotate));
-		cosv = cosf(Radians(bt->rotate));
+		sinv = sinf(radians(bt->rotate));
+		cosv = cosf(radians(bt->rotate));
 	}
 
 	int32_t sv;
-	if (vecs[0][0]) {
+	if (vecs[0].x) {
 		sv = 0;
-	} else if (vecs[0][1]) {
+	} else if (vecs[0].y) {
 		sv = 1;
 	} else {
 		sv = 2;
 	}
 
 	int32_t tv;
-	if (vecs[1][0]) {
+	if (vecs[1].x) {
 		tv = 0;
-	} else if (vecs[1][1]) {
+	} else if (vecs[1].y) {
 		tv = 1;
 	} else {
 		tv = 2;
 	}
 
 	for (int32_t i = 0; i < 2; i++) {
-		const vec_t ns = cosv * vecs[i][sv] - sinv * vecs[i][tv];
-		const vec_t nt = sinv * vecs[i][sv] + cosv * vecs[i][tv];
-		vecs[i][sv] = ns;
-		vecs[i][tv] = nt;
+		const float ns = cosv * vecs[i].xyz[sv] - sinv * vecs[i].xyz[tv];
+		const float nt = sinv * vecs[i].xyz[sv] + cosv * vecs[i].xyz[tv];
+		vecs[i].xyz[sv] = ns;
+		vecs[i].xyz[tv] = nt;
 	}
 
 	for (int32_t i = 0; i < 2; i++)
 		for (int32_t j = 0; j < 3; j++) {
-			tx.vecs[i][j] = vecs[i][j] / bt->scale[i];
+			tx.vecs[i].xyzw[j] = vecs[i].xyz[j] / bt->scale.xy[i];
 		}
 
-	tx.vecs[0][3] = bt->shift[0] + shift[0];
-	tx.vecs[1][3] = bt->shift[1] + shift[1];
+	tx.vecs[0].w = bt->shift.x + shift.x;
+	tx.vecs[1].w = bt->shift.y + shift.y;
 	tx.flags = bt->flags;
 	tx.value = bt->value;
 

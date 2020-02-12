@@ -33,7 +33,7 @@ static const char *SOUND_PATHS[] = { "sounds/", "sound/", NULL };
  */
 size_t S_Resample(const int32_t channels, const int32_t source_rate, const int32_t dest_rate, const size_t num_frames, const int16_t *in_frames, int16_t **out_frames, size_t *out_size) {
 	
-	const vec_t stepscale = (vec_t) source_rate / (vec_t) dest_rate;
+	const float stepscale = (float) source_rate / (float) dest_rate;
 	const size_t outcount = NearestMultiple((size_t) (num_frames / stepscale), channels);
 	const size_t size = outcount * sizeof(int16_t);
 
@@ -43,7 +43,7 @@ size_t S_Resample(const int32_t channels, const int32_t source_rate, const int32
 	}
 
 	int32_t samplefrac = 0;
-	const vec_t fracstep = stepscale * 256.0;
+	const float fracstep = stepscale * 256.0;
 
 	for (size_t i = 0; i < outcount; ) {
 		for (int32_t c = 0; c < channels; c++, i++) {
@@ -60,7 +60,7 @@ size_t S_Resample(const int32_t channels, const int32_t source_rate, const int32
 /**
  * @brief
  */
-void S_ConvertSamples(const vec_t *input_samples, const sf_count_t num_samples, int16_t **out_samples, size_t *out_size) {
+void S_ConvertSamples(const float *input_samples, const sf_count_t num_samples, int16_t **out_samples, size_t *out_size) {
 	const size_t size = sizeof(int16_t) * num_samples;
 
 	if (out_size && *out_size < size) {
@@ -69,7 +69,7 @@ void S_ConvertSamples(const vec_t *input_samples, const sf_count_t num_samples, 
 	}
 
 	for (sf_count_t i = 0; i < num_samples; i++) {
-		(*out_samples)[i] = (int16_t) Clamp(input_samples[i] * 32768.0, INT16_MIN, INT16_MAX);
+		(*out_samples)[i] = (int16_t) clampf(input_samples[i] * 32768.0, INT16_MIN, INT16_MAX);
 	}
 }
 
@@ -106,7 +106,7 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 		if (!snd || sf_error(snd)) {
 			Com_Warn("%s\n", sf_strerror(snd));
 		} else {
-			const size_t raw_size = sizeof(vec_t) * info.frames * info.channels;
+			const size_t raw_size = sizeof(float) * info.frames * info.channels;
 
 			if (s_env.raw_sample_buffer_size < raw_size) {
 				s_env.raw_sample_buffer = Mem_Realloc(s_env.raw_sample_buffer, raw_size);

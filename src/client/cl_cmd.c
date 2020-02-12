@@ -38,7 +38,7 @@ void Cl_UpdateMovementCommand(uint32_t msec) {
 
 	cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
 
-	cmd->cmd.msec = Min(msec, 255u);
+	cmd->cmd.msec = minf(msec, 255u);
 
 	Cl_Look(&cmd->cmd);
 
@@ -57,7 +57,7 @@ static void Cl_FinalizeMovementCommand(void) {
 
 	const uint32_t msec = cl.unclamped_time - prev->timestamp;
 
-	cmd->cmd.msec = Min(msec, 255u);
+	cmd->cmd.msec = minf(msec, 255u);
 
 	Cl_Move(&cmd->cmd);
 

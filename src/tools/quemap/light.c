@@ -25,6 +25,72 @@
 GList *lights = NULL;
 
 /**
+ * @brief Clamps the components of the specified vector to 1.0, scaling the vector
+ * down if necessary.
+ */
+float ColorNormalize(const vec3_t in, vec3_t *out) {
+	float max = 0.0;
+
+	*out = in;
+
+	for (int32_t i = 0; i < 3; i++) { // find the brightest component
+
+		if (out->xyz[i] < 0.0) { // enforcing positive values
+			out->xyz[i] = 0.0;
+		}
+
+		if (out->xyz[i] > max) {
+			max = out->xyz[i];
+		}
+	}
+
+	if (max > 1.0) { // clamp without changing hue
+		*out = vec3_scale(*out, 1.0 / max);
+	}
+
+	return max;
+}
+
+/**
+ * @brief Applies brightness, saturation and contrast to the specified input color.
+ */
+vec3_t ColorFilter(const vec3_t in) {
+	const vec3_t luminosity = { 0.2125, 0.7154, 0.0721 };
+
+	vec3_t out;
+	ColorNormalize(in, &out);
+
+	if (brightness != 1.0) { // apply brightness
+		out = vec3_scale(out, brightness);
+		
+		ColorNormalize(out, &out);
+	}
+
+	if (contrast != 1.0) { // apply contrast
+
+		for (int32_t i = 0; i < 3; i++) {
+			out.xyz[i] -= 0.5; // normalize to -0.5 through 0.5
+			out.xyz[i] *= contrast; // scale
+			out.xyz[i] += 0.5;
+		}
+
+		ColorNormalize(out, &out);
+	}
+
+	if (saturation != 1.0) { // apply saturation
+		const float d = vec3_dot(out, luminosity);
+		vec3_t intensity;
+
+		intensity = vec3(d, d, d);
+		out = vec3_mix(intensity, out, saturation);
+
+		ColorNormalize(out, &out);
+	}
+
+	return out;
+}
+
+/**
  * @brief
  */
 static light_t *LightForEntity(const GList *entities, const cm_entity_t *entity) {
@@ -35,7 +101,7 @@ static light_t *LightForEntity(const GList *entities, const cm_entity_t *entity)
 	if (!g_strcmp0(classname, "worldspawn")) {
 
 		vec3_t v;
-		if (Cm_EntityVector(entity, "ambient", v, 3) == 3) {
+		if (Cm_EntityVector(entity, "ambient", v.xyz, 3) == 3) {
 
 			light = Mem_TagMalloc(sizeof(*light), MEM_TAG_LIGHT);
 			light->type = LIGHT_AMBIENT;
@@ -43,7 +109,7 @@ static light_t *LightForEntity(const GList *entities, const cm_entity_t *entity)
 			light->radius = LIGHT_RADIUS_AMBIENT;
 			light->cluster = -1;
 
-			VectorCopy(v, light->color);
+			light->color = v;
 		}
 	}
 
@@ -66,10 +132,10 @@ static light_t *LightForEntity(const GList *entities, const cm_entity_t *entity)
 			light->atten = LIGHT_ATTEN_INVERSE_SQUARE;
 		}
 
-		Cm_EntityVector(entity, "origin", light->origin, 3);
+		Cm_EntityVector(entity, "origin", light->origin.xyz, 3);
 
-		if (Cm_EntityVector(entity, "_color", light->color, 3) != 3) {
-			VectorSet(light->color, 1.0, 1.0, 1.0);
+		if (Cm_EntityVector(entity, "_color", light->color.xyz, 3) != 3) {
+			light->color = vec3(1.0, 1.0, 1.0);
 		}
 
 		if (Cm_EntityVector(entity, "light", &light->radius, 1) != 1) {
@@ -86,46 +152,46 @@ static light_t *LightForEntity(const GList *entities, const cm_entity_t *entity)
 			}
 			if (target) {
 				vec3_t target_origin;
-				Cm_EntityVector(target, "origin", target_origin, 3);
-				VectorSubtract(target_origin, light->origin, light->normal);
+				Cm_EntityVector(target, "origin", target_origin.xyz, 3);
+				light->normal = vec3_subtract(target_origin, light->origin);
 			} else {
 				const int32_t i = g_list_index((GList *) entities, entity);
 				Mon_SendSelect(MON_WARN, i, 0, va("%s at %s missing target", classname, vtos(light->origin)));
-				VectorCopy(vec3_down().xyz, light->normal);
+				light->normal = vec3_down();
 			}
 		} else {
 			if (light->type == LIGHT_SPOT) {
 				vec3_t angles = { 0.0, 0.0, 0.0 };
-				if (Cm_EntityVector(entity, "_angle", &angles[YAW], 1) == 1) {
-					if (angles[YAW] == LIGHT_ANGLE_UP) {
-						VectorCopy(vec3_up().xyz, light->normal);
-					} else if (angles[YAW] == LIGHT_ANGLE_DOWN) {
-						VectorCopy(vec3_down().xyz, light->normal);
+				if (Cm_EntityVector(entity, "_angle", &angles.y, 1) == 1) {
+					if (angles.y == LIGHT_ANGLE_UP) {
+						light->normal = vec3_up();
+					} else if (angles.y == LIGHT_ANGLE_DOWN) {
+						light->normal = vec3_down();
 					} else {
-						AngleVectors(angles, light->normal, NULL, NULL);
+						vec3_vectors(angles, &light->normal, NULL, NULL);
 					}
 				} else {
-					VectorCopy(vec3_down().xyz, light->normal);
+					light->normal = vec3_down();
 				}
 			} else {
-				VectorCopy(vec3_down().xyz, light->normal);
+				light->normal = vec3_down();
 			}
 		}
 
-		VectorNormalize(light->normal);
+		light->normal = vec3_normalize(light->normal);
 
 		if (light->type == LIGHT_SPOT) {
 			if (Cm_EntityVector(entity, "_cone", &light->theta, 1) == 1) {
-				light->theta = Max(1.0, light->theta);
+				light->theta = maxf(1.0, light->theta);
 			} else {
 				light->theta = LIGHT_CONE;
 			}
-			light->theta = Radians(light->theta);
+			light->theta = radians(light->theta);
 		}
 
 		if (Cm_EntityVector(entity, "_size", &light->size, 1) == 1) {
 			if (light->size) {
-				light->size = Max(LIGHT_SIZE_STEP, light->size);
+				light->size = maxf(LIGHT_SIZE_STEP, light->size);
 			}
 		} else {
 			if (light->type == LIGHT_SUN) {
@@ -165,14 +231,14 @@ static light_t *LightForPatch(const patch_t *patch) {
 	Cm_WindingCenter(patch->winding, light->origin);
 
 	const bsp_plane_t *plane = &bsp_file.planes[patch->face->plane_num];
-	VectorMA(light->origin, 4.0, plane->normal, light->origin);
+	light->origin = vec3_add(light->origin, vec3_scale(plane->normal, 4.0));
 
 	const bsp_texinfo_t *texinfo = &bsp_file.texinfo[patch->face->texinfo];
 
-	GetTextureColor(texinfo->texture, light->color);
-	const vec_t brightness = ColorNormalize(light->color, light->color);
+	light->color = GetTextureColor(texinfo->texture);
+	const float brightness = ColorNormalize(light->color, &light->color);
 	if (brightness < 1.0) {
-		VectorScale(light->color, 1.0 / brightness, light->color);
+		light->color = vec3_scale(light->color, 1.0 / brightness);
 	}
 
 	light->radius = texinfo->value ?: DEFAULT_LIGHT;
@@ -223,48 +289,48 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *pa
 
 	light_t *light = NULL;
 
-	vec2_t patch_mins, patch_maxs;
-	ClearStBounds(patch_mins, patch_maxs);
+	vec2_t patch_mins = vec2_mins();
+	vec2_t patch_maxs = vec2_maxs();
 
 	for (int32_t i = 0; i < patch->winding->num_points; i++) {
 
-		vec3_t point, st;
-		VectorSubtract(patch->winding->points[i], patch->origin, point);
+		vec3_t point = vec3_subtract(patch->winding->points[i], patch->origin);
 
-		Matrix4x4_Transform(&lm->matrix, point, st);
+		vec3_t st;
+		Matrix4x4_Transform(&lm->matrix, point.xyz, st.xyz);
 
-		AddStToBounds(st, patch_mins, patch_maxs);
+		patch_mins = vec2_minf(patch_mins, vec3_xy(st));
+		patch_maxs = vec2_maxf(patch_maxs, vec3_xy(st));
 	}
 
-	assert(patch_mins[0] >= lm->st_mins[0] - SIDE_EPSILON);
-	assert(patch_mins[1] >= lm->st_mins[1] - SIDE_EPSILON);
-	assert(patch_maxs[0] <= lm->st_maxs[0] + SIDE_EPSILON);
-	assert(patch_maxs[1] <= lm->st_maxs[1] + SIDE_EPSILON);
+	assert(patch_mins.x >= lm->st_mins.x - SIDE_EPSILON);
+	assert(patch_mins.y >= lm->st_mins.y - SIDE_EPSILON);
+	assert(patch_maxs.x <= lm->st_maxs.x + SIDE_EPSILON);
+	assert(patch_maxs.y <= lm->st_maxs.y + SIDE_EPSILON);
 
-	const int16_t w = patch_maxs[0] - patch_mins[0];
-	const int16_t h = patch_maxs[1] - patch_mins[1];
+	const int16_t w = patch_maxs.x - patch_mins.x;
+	const int16_t h = patch_maxs.y - patch_mins.y;
 
 	vec3_t lightmap;
-	VectorClear(lightmap);
+	lightmap = vec3_zero();
 
 	for (int32_t t = 0; t < h; t++) {
 		for (int32_t s = 0; s < w; s++) {
 
-			const int32_t ds = patch_mins[0] - lm->st_mins[0] + s;
-			const int32_t dt = patch_mins[1] - lm->st_mins[1] + t;
+			const int32_t ds = patch_mins.x - lm->st_mins.x + s;
+			const int32_t dt = patch_mins.y - lm->st_mins.y + t;
 
 			const luxel_t *l = &lm->luxels[dt * lm->w + ds];
 
 			assert(l->s == ds);
 			assert(l->t == dt);
 
-			VectorAdd(lightmap, l->diffuse, lightmap);
-			VectorAdd(lightmap, l->radiosity, lightmap);
+			lightmap = vec3_add(lightmap, l->diffuse);
+			lightmap = vec3_add(lightmap, l->radiosity);
 		}
 	}
 
-	if (!VectorCompare(lightmap, vec3_zero().xyz)) {
-		vec3_t diffuse;
+	if (!vec3_equal(lightmap, vec3_zero())) {
 
 		light = Mem_TagMalloc(sizeof(*light), MEM_TAG_LIGHT);
 
@@ -272,13 +338,13 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *pa
 		light->atten = LIGHT_ATTEN_INVERSE_SQUARE;
 
 		Cm_WindingCenter(patch->winding, light->origin);
-		VectorMA(light->origin, 4.0, lm->plane->normal, light->origin);
+		light->origin = vec3_add(light->origin, vec3_scale(lm->plane->normal, 4.0));
 
-		VectorScale(lightmap, 1.0 / (w * h), lightmap);
-		light->radius = ColorNormalize(lightmap, lightmap);
+		lightmap = vec3_scale(lightmap, 1.0 / (w * h));
+		light->radius = ColorNormalize(lightmap, &lightmap);
 
-		GetTextureColor(lm->texinfo->texture, diffuse);
-		VectorMultiply(lightmap, diffuse, light->color);
+		const vec3_t diffuse = GetTextureColor(lm->texinfo->texture);
+		light->color = vec3_multiply(lightmap, diffuse);
 
 		light->cluster = Cm_LeafCluster(Cm_PointLeafnum(light->origin, 0));
 	}

@@ -43,8 +43,8 @@ void BuildTextureColors(void) {
 			continue;
 		}
 
-		vec_t *color = Mem_Malloc(sizeof(vec3_t));
-		VectorSet(color, 1.0, 1.0, 1.0);
+		vec3_t *color = Mem_Malloc(sizeof(vec3_t));
+		*color = vec3(1.0, 1.0, 1.0);
 
 		SDL_Surface *surf = LoadDiffuseTexture(tex->texture);
 		if (surf) {
@@ -63,7 +63,7 @@ void BuildTextureColors(void) {
 			}
 
 			for (int32_t j = 0; j < 3; j++) {
-				color[j] = (c[j] / texels) / 255.0;
+				color->xyz[j] = (c[j] / texels) / 255.0;
 			}
 		} else {
 			Com_Warn("Couldn't load %s\n", tex->texture);
@@ -76,13 +76,13 @@ void BuildTextureColors(void) {
 /**
  * @brief
  */
-void GetTextureColor(const char *name, vec3_t color) {
+vec3_t GetTextureColor(const char *name) {
 
-	const vec_t *data = g_hash_table_lookup(texture_colors, name);
-	if (data) {
-		VectorCopy(data, color);
+	const vec3_t *color = g_hash_table_lookup(texture_colors, name);
+	if (color) {
+		return *color;
 	} else {
-		VectorSet(color, 1.0, 1.0, 1.0);
+		return vec3(1.0, 1.0, 1.0);
 	}
 }
 
@@ -101,7 +101,7 @@ static patch_t *BuildPatch(const bsp_face_t *face, vec3_t origin, cm_winding_t *
 	patch_t *patch = &patches[face - bsp_file.faces];
 
 	patch->face = face;
-	VectorCopy(origin, patch->origin);
+	patch->origin = origin;
 	patch->winding = w;
 
 	return patch;
@@ -138,8 +138,8 @@ void BuildPatches(const GList *entities) {
 
 		// inline models need to be offset into their in-use position
 		vec3_t origin;
-		if (Cm_EntityVector(ent, "origin", origin, 3) != 3) {
-			VectorClear(origin);
+		if (Cm_EntityVector(ent, "origin", origin.xyz, 3) != 3) {
+			origin = vec3_zero();
 		}
 
 		for (int32_t j = 0; j < mod->num_faces; j++) {
@@ -150,7 +150,7 @@ void BuildPatches(const GList *entities) {
 			cm_winding_t *w = Cm_WindingForFace(&bsp_file, face);
 
 			for (int32_t k = 0; k < w->num_points; k++) {
-				VectorAdd(w->points[k], origin, w->points[k]);
+				w->points[k] = vec3_add(w->points[k], origin);
 			}
 
 			BuildPatch(face, origin, w);
@@ -165,18 +165,18 @@ static void SubdividePatch_r(patch_t *patch) {
 	cm_winding_t *w, *o1, *o2;
 	vec3_t mins, maxs;
 	vec3_t split;
-	vec_t dist;
+	float dist;
 	patch_t *newp;
 
 	w = patch->winding;
-	Cm_WindingBounds(w, mins, maxs);
+	Cm_WindingBounds(w, &mins, &maxs);
 
-	VectorClear(split);
+	split = vec3_zero();
 
 	int32_t i;
 	for (i = 0; i < 3; i++) {
-		if (floorf((mins[i] + 1.0) / patch_size) < floorf((maxs[i] - 1.0) / patch_size)) {
-			split[i] = 1.0;
+		if (floorf((mins.xyz[i] + 1.0) / patch_size) < floorf((maxs.xyz[i] - 1.0) / patch_size)) {
+			split.xyz[i] = 1.0;
 			break;
 		}
 	}
@@ -185,14 +185,14 @@ static void SubdividePatch_r(patch_t *patch) {
 		return;
 	}
 
-	dist = patch_size * (1.0 + floorf((mins[i] + 1.0) / patch_size));
+	dist = patch_size * (1.0 + floorf((mins.xyz[i] + 1.0) / patch_size));
 	Cm_SplitWinding(w, split, dist, ON_EPSILON, &o1, &o2);
 
 	// create a new patch
 	newp = (patch_t *) Mem_TagMalloc(sizeof(*newp), MEM_TAG_PATCH);
 	newp->face = patch->face;
 
-	VectorCopy(patch->origin, newp->origin);
+	newp->origin = patch->origin;
 
 	patch->winding = o1;
 	newp->winding = o2;

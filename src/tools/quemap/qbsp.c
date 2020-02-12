@@ -29,7 +29,7 @@
 #include "tjunction.h"
 #include "writebsp.h"
 
-vec_t micro_volume = 0.125;
+float micro_volume = 0.125;
 
 _Bool no_prune = false;
 _Bool no_merge = false;
@@ -56,7 +56,7 @@ static node_t *block_nodes[10][10];
 static node_t *BlockTree(int32_t xl, int32_t yl, int32_t xh, int32_t yh) {
 	node_t *node;
 	vec3_t normal;
-	vec_t dist;
+	float dist;
 	int32_t mid;
 
 	if (xl == xh && yl == yh) {
@@ -74,18 +74,18 @@ static node_t *BlockTree(int32_t xl, int32_t yl, int32_t xh, int32_t yh) {
 
 	if (xh - xl > yh - yl) { // split x axis
 		mid = xl + (xh - xl) / 2 + 1;
-		normal[0] = 1;
-		normal[1] = 0;
-		normal[2] = 0;
+		normal.x = 1;
+		normal.y = 0;
+		normal.z = 0;
 		dist = mid * 1024;
 		node->plane_num = FindPlane(normal, dist);
 		node->children[0] = BlockTree(mid, yl, xh, yh);
 		node->children[1] = BlockTree(xl, yl, mid - 1, yh);
 	} else {
 		mid = yl + (yh - yl) / 2 + 1;
-		normal[0] = 0;
-		normal[1] = 1;
-		normal[2] = 0;
+		normal.x = 0;
+		normal.y = 1;
+		normal.z = 0;
 		dist = mid * 1024;
 		node->plane_num = FindPlane(normal, dist);
 		node->children[0] = BlockTree(xl, mid, xh, yh);
@@ -108,12 +108,12 @@ static void ProcessBlock_Work(int32_t blocknum) {
 
 	Com_Verbose("############### block %2i,%2i ###############\n", xblock, yblock);
 
-	mins[0] = xblock * 1024;
-	mins[1] = yblock * 1024;
-	mins[2] = MIN_WORLD_COORD;
-	maxs[0] = (xblock + 1) * 1024;
-	maxs[1] = (yblock + 1) * 1024;
-	maxs[2] = MAX_WORLD_COORD;
+	mins.x = xblock * 1024;
+	mins.y = yblock * 1024;
+	mins.z = MIN_WORLD_COORD;
+	maxs.x = (xblock + 1) * 1024;
+	maxs.y = (yblock + 1) * 1024;
+	maxs.z = MAX_WORLD_COORD;
 
 	// the brushes and chopbrushes could be cached between the passes...
 	csg_brush_t *brushes = MakeBrushes(brush_start, brush_end, mins, maxs);
@@ -146,17 +146,17 @@ static void ProcessWorldModel(void) {
 	brush_end = brush_start + e->num_brushes;
 
 	// perform per-block operations
-	if (block_xh * 1024 > map_maxs[0]) {
-		block_xh = floor(map_maxs[0] / 1024.0);
+	if (block_xh * 1024 > map_maxs.x) {
+		block_xh = floor(map_maxs.x / 1024.0);
 	}
-	if ((block_xl + 1) * 1024 < map_mins[0]) {
-		block_xl = floor(map_mins[0] / 1024.0);
+	if ((block_xl + 1) * 1024 < map_mins.x) {
+		block_xl = floor(map_mins.x / 1024.0);
 	}
-	if (block_yh * 1024 > map_maxs[1]) {
-		block_yh = floor(map_maxs[1] / 1024.0);
+	if (block_yh * 1024 > map_maxs.y) {
+		block_yh = floor(map_maxs.y / 1024.0);
 	}
-	if ((block_yl + 1) * 1024 < map_mins[1]) {
-		block_yl = floor(map_mins[1] / 1024.0);
+	if ((block_yl + 1) * 1024 < map_mins.y) {
+		block_yl = floor(map_mins.y / 1024.0);
 	}
 
 	if (block_xl < -4) {
@@ -188,13 +188,13 @@ static void ProcessWorldModel(void) {
 		tree = AllocTree();
 		tree->head_node = BlockTree(block_xl - 1, block_yl - 1, block_xh + 1, block_yh + 1);
 
-		tree->mins[0] = (block_xl) * 1024;
-		tree->mins[1] = (block_yl) * 1024;
-		tree->mins[2] = map_mins[2] - 8;
+		tree->mins.x = (block_xl) * 1024;
+		tree->mins.y = (block_yl) * 1024;
+		tree->mins.z = map_mins.z - 8;
 
-		tree->maxs[0] = (block_xh + 1) * 1024;
-		tree->maxs[1] = (block_yh + 1) * 1024;
-		tree->maxs[2] = map_maxs[2] + 8;
+		tree->maxs.x = (block_xh + 1) * 1024;
+		tree->maxs.y = (block_yh + 1) * 1024;
+		tree->maxs.z = map_maxs.z + 8;
 
 		// perform the global operations
 		MakeTreePortals(tree);
@@ -253,8 +253,8 @@ static void ProcessInlineModel(void) {
 
 	vec3_t mins, maxs;
 
-	mins[0] = mins[1] = mins[2] = MIN_WORLD_COORD;
-	maxs[0] = maxs[1] = maxs[2] = MAX_WORLD_COORD;
+	mins.x = mins.y = mins.z = MIN_WORLD_COORD;
+	maxs.x = maxs.y = maxs.z = MAX_WORLD_COORD;
 
 	csg_brush_t *brushes = MakeBrushes(start, end, mins, maxs);
 	if (!no_csg) {

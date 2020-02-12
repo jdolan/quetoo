@@ -60,11 +60,6 @@ static ThreadRunFunc ThreadTerminate = (ThreadRunFunc) &ThreadTerminate;
 SDL_threadID thread_main;
 
 /**
- * @brief The number of threads to spawn, or 0 to disable.
- */
-cvar_t *threads;
-
-/**
  * @brief Wrap the user's function in our own for introspection.
  */
 static int32_t Thread_Run(void *data) {

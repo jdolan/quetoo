@@ -123,7 +123,7 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 		ColorDecompose(color, r_model_state.bound_vertices[i].color);
 	}
 
-	static matrix4x4_t mat, modelview;
+	static mat4_t mat, modelview;
 
 	R_GetMatrix(R_MATRIX_MODELVIEW, &modelview);
 
@@ -134,21 +134,21 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 			continue;
 		}
 
-		VectorSet(r_model_state.bound_vertices[0].position, e->mins[0], e->mins[1], e->mins[2]);
-		VectorSet(r_model_state.bound_vertices[1].position, e->maxs[0], e->mins[1], e->mins[2]);
-		VectorSet(r_model_state.bound_vertices[2].position, e->maxs[0], e->maxs[1], e->mins[2]);
-		VectorSet(r_model_state.bound_vertices[3].position, e->mins[0], e->maxs[1], e->mins[2]);
+		r_model_state.bound_vertices[0].position = vec3(e->mins[0], e->mins[1], e->mins[2]);
+		r_model_state.bound_vertices[1].position = vec3(e->maxs[0], e->mins[1], e->mins[2]);
+		r_model_state.bound_vertices[2].position = vec3(e->maxs[0], e->maxs[1], e->mins[2]);
+		r_model_state.bound_vertices[3].position = vec3(e->mins[0], e->maxs[1], e->mins[2]);
 
-		VectorSet(r_model_state.bound_vertices[4].position, e->mins[0], e->mins[1], e->maxs[2]);
-		VectorSet(r_model_state.bound_vertices[5].position, e->maxs[0], e->mins[1], e->maxs[2]);
-		VectorSet(r_model_state.bound_vertices[6].position, e->maxs[0], e->maxs[1], e->maxs[2]);
-		VectorSet(r_model_state.bound_vertices[7].position, e->mins[0], e->maxs[1], e->maxs[2]);
+		r_model_state.bound_vertices[4].position = vec3(e->mins[0], e->mins[1], e->maxs[2]);
+		r_model_state.bound_vertices[5].position = vec3(e->maxs[0], e->mins[1], e->maxs[2]);
+		r_model_state.bound_vertices[6].position = vec3(e->maxs[0], e->maxs[1], e->maxs[2]);
+		r_model_state.bound_vertices[7].position = vec3(e->mins[0], e->maxs[1], e->maxs[2]);
 
 		R_UploadToBuffer(&r_model_state.bound_vertice_buffer, sizeof(r_bound_interleave_vertex_t) * 8,
 		                 r_model_state.bound_vertices);
 
 		// draw box
-		const vec_t *origin;
+		const float *origin;
 
 		if (e->effects & EF_BOB) {
 			origin = e->termination;

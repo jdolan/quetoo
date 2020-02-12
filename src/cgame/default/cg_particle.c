@@ -84,7 +84,7 @@ cg_particle_t *Cg_AllocParticle() {
 
 	memset(p, 0, sizeof(cg_particle_t));
 
-	p->color.abgr = 0xffffffff;
+	p->color = color_white;
 	p->size = 1.0;
 
 	p->time = p->timestamp = cgi.client->unclamped_time;
@@ -128,9 +128,9 @@ void Cg_FreeParticles(void) {
 /**
  * @brief Slide off of the impacted plane.
  */
-static void Cg_ClipVelocity(const vec3_t in, const vec3_t normal, vec3_t out, vec_t bounce) {
+static vec3_t Cg_ClipVelocity(const vec3_t in, const vec3_t normal, float bounce) {
 
-	vec_t backoff = DotProduct(in, normal);
+	float backoff = vec3_dot(in, normal);
 
 	if (backoff < 0.0) {
 		backoff *= bounce;
@@ -138,11 +138,7 @@ static void Cg_ClipVelocity(const vec3_t in, const vec3_t normal, vec3_t out, ve
 		backoff /= bounce;
 	}
 
-	for (int32_t i = 0; i < 3; i++) {
-
-		const vec_t change = normal[i] * backoff;
-		out[i] = in[i] - change;
-	}
+	return vec3_subtract(in, vec3_scale(normal, backoff));
 }
 
 /**
@@ -160,25 +156,25 @@ void Cg_AddParticles(void) {
 	while (p) {
 		if (cg_particle_time - p->timestamp >= PARTICLE_FRAME) {
 
-			const vec_t delta = (cg_particle_time - p->timestamp) * 0.001;
+			const float delta = (cg_particle_time - p->timestamp) * 0.001;
 
 			vec3_t old_origin;
-			VectorCopy(p->origin, old_origin);
+			old_origin = p->origin;
 
-			VectorMA(p->velocity, delta, p->acceleration, p->velocity);
-			VectorMA(p->origin, delta, p->velocity, p->origin);
+			p->velocity = vec3_add(p->velocity, vec3_scale(p->acceleration, delta));
+			p->origin = vec3_add(p->origin, vec3_scale(p->velocity, delta));
 
 			if (p->bounce && cg_particle_quality->integer) {
-				const cm_trace_t tr = cgi.Trace(old_origin, p->origin, NULL, NULL, 0, MASK_SOLID);
+				const cm_trace_t tr = cgi.Trace(old_origin, p->origin, vec3_zero(), vec3_zero(), 0, MASK_SOLID);
 				if (tr.fraction < 1.0) {
-					Cg_ClipVelocity(p->velocity, tr.plane.normal, p->velocity, p->bounce);
-					VectorCopy(tr.end, p->origin);
+					p->velocity = Cg_ClipVelocity(p->velocity, tr.plane.normal, p->bounce);
+					p->origin = tr.end;
 				}
 			}
 
 			for (size_t i = 0; i < lengthof(p->color.bytes); i++) {
 				const int32_t byte = p->color.bytes[i] + (int8_t) p->delta_color.bytes[i];
-				p->color.bytes[i] = Clamp(byte, 0, 255);
+				p->color.bytes[i] = clampf(byte, 0, 255);
 			}
 
 			p->size += p->delta_size;
@@ -198,7 +194,7 @@ void Cg_AddParticles(void) {
 		}
 
 		cgi.AddParticle(&(r_particle_t) {
-			.origin = { p->origin[0], p->origin[1], p->origin[2] },
+			.origin = p->origin,
 			.size = p->size,
 			.color = p->color
 		});

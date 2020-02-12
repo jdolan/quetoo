@@ -102,12 +102,12 @@ static void R_CompileAtlas_Node(gpointer data, gpointer user_data) {
 
 	atlas_image->image.texnum = atlas->image->texnum;
 
-	const vec_t w = atlas->image->width, h = atlas->image->height;
+	const float w = atlas->image->width, h = atlas->image->height;
 
-	atlas_image->texcoords[0] = node->x / w;
-	atlas_image->texcoords[1] = node->y / h;
-	atlas_image->texcoords[2] = (node->x + atlas_image->image.width) / w;
-	atlas_image->texcoords[3] = (node->y + atlas_image->image.height) / h;
+	atlas_image->texcoords.x = node->x / w;
+	atlas_image->texcoords.y = node->y / h;
+	atlas_image->texcoords.z = (node->x + atlas_image->image.width) / w;
+	atlas_image->texcoords.w = (node->y + atlas_image->image.height) / h;
 }
 
 /**

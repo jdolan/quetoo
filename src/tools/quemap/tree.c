@@ -51,7 +51,9 @@ void FreeNode(node_t *node) {
 tree_t *AllocTree(void) {
 
 	tree_t *tree = Mem_TagMalloc(sizeof(*tree), MEM_TAG_TREE);
-	ClearBounds(tree->mins, tree->maxs);
+
+	tree->mins = vec3_mins();
+	tree->maxs = vec3_maxs();
 
 	return tree;
 }
@@ -442,7 +444,7 @@ tree_t *BuildTree(csg_brush_t *brushes, const vec3_t mins, const vec3_t maxs) {
 	for (csg_brush_t *b = brushes; b; b = b->next) {
 		c_brushes++;
 
-		const vec_t volume = BrushVolume(b);
+		const float volume = BrushVolume(b);
 		if (volume < micro_volume) {
 			Mon_SendSelect(MON_WARN, b->original->entity_num, b->original->brush_num, "Micro volume");
 		}
@@ -464,8 +466,8 @@ tree_t *BuildTree(csg_brush_t *brushes, const vec3_t mins, const vec3_t maxs) {
 			}
 		}
 
-		AddPointToBounds(b->mins, tree->mins, tree->maxs);
-		AddPointToBounds(b->maxs, tree->mins, tree->maxs);
+		tree->mins = vec3_minf(tree->mins, b->mins);
+		tree->maxs = vec3_maxf(tree->maxs, b->maxs);
 	}
 
 	Com_Debug(DEBUG_ALL, "%5i brushes\n", c_brushes);

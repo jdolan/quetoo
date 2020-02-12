@@ -59,27 +59,26 @@ void Ai_Learn(const g_entity_t *ent, const pm_cmd_t *cmd) {
 
 	if (ent->client->ps.pm_state.type == PM_NORMAL) {
 		if (cmd->forward || cmd->right || cmd->up) {
-			vec3_t angles, forward, right, up, dir;
+			vec3_t forward, right, up, dir;
 
 			ai_ann_input_t in;
 
-            VectorCopy(ent->s.origin, in.origin);
-			VectorCopy(&ENTITY_DATA(ent, velocity), in.velocity);
+            in.origin = vec3_cast_dvec3(ent->s.origin);
+			in.velocity = vec3_cast_dvec3(ENTITY_DATA(ent, velocity));
 
 			ai_ann_output_t out;
 
-			UnpackAngles(cmd->angles, angles);
-			AngleVectors(angles, forward, right, up);
+			vec3_vectors(cmd->angles, &forward, &right, &up);
 
-			VectorClear(dir);
-			VectorMA(dir, cmd->forward, forward, dir);
-			VectorMA(dir, cmd->right, right, dir);
-			VectorMA(dir, cmd->up, up, dir);
+			dir = vec3_zero();
+			dir = vec3_add(dir, vec3_scale(forward, cmd->forward));
+			dir = vec3_add(dir, vec3_scale(right, cmd->right));
+			dir = vec3_add(dir, vec3_scale(up, cmd->up));
 
-			VectorNormalize(dir);
-			VectorCopy(dir, out.dir);
+			dir = vec3_normalize(dir);
+			out.dir = vec3_cast_dvec3(dir);
 
-			genann_train(ai_genann, (const dvec_t *) &in, (const dvec_t *) &out, AI_ANN_LEARNING_RATE);
+			genann_train(ai_genann, (const double *) &in, (const double *) &out, AI_ANN_LEARNING_RATE);
 		}
 	}
 }
@@ -87,23 +86,23 @@ void Ai_Learn(const g_entity_t *ent, const pm_cmd_t *cmd) {
 /**
  * @brief
  */
-void Ai_Predict(const g_entity_t *ent, vec3_t dir) {
+void Ai_Predict(const g_entity_t *ent, vec3_t *dir) {
 
 	if (!ai_genann) {
-		VectorClear(dir);
+		*dir = vec3_zero();
 		return;
 	}
 
 	ai_ann_input_t in;
 
-	VectorCopy(ent->s.origin, in.origin);
-	VectorCopy(&ENTITY_DATA(ent, velocity), in.velocity);
+	in.origin = vec3_cast_dvec3(ent->s.origin);
+	in.velocity = vec3_cast_dvec3(ENTITY_DATA(ent, velocity));
 
-	const ai_ann_output_t *out = (ai_ann_output_t *) genann_run(ai_genann, (const dvec_t *) &in);
+	const ai_ann_output_t *out = (ai_ann_output_t *) genann_run(ai_genann, (const double *) &in);
 	assert(out);
 
-	VectorCopy(out->dir, dir);
-	VectorNormalize(dir);
+	*dir = dvec3_cast_vec3(out->dir);
+	*dir = vec3_normalize(*dir);
 }
 
 /**

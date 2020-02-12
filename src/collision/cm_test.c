@@ -26,19 +26,19 @@
  */
 int32_t Cm_PlaneTypeForNormal(const vec3_t normal) {
 
-	if (normal[0] == 1.0 || normal[0] == -1.0) {
+	if (normal.x == 1.0 || normal.x == -1.0) {
 		return PLANE_X;
 	}
-	if (normal[1] == 1.0 || normal[1] == -1.0) {
+	if (normal.y == 1.0 || normal.y == -1.0) {
 		return PLANE_Y;
 	}
-	if (normal[2] == 1.0 || normal[2] == -1.0) {
+	if (normal.z == 1.0 || normal.z == -1.0) {
 		return PLANE_Z;
 	}
 
-	const vec_t ax = fabsf(normal[0]);
-	const vec_t ay = fabsf(normal[1]);
-	const vec_t az = fabsf(normal[2]);
+	const float ax = fabsf(normal.x);
+	const float ay = fabsf(normal.y);
+	const float az = fabsf(normal.z);
 
 	if (ax >= ay && ax >= az) {
 		return PLANE_ANY_X;
@@ -58,7 +58,7 @@ int32_t Cm_SignBitsForPlane(const cm_bsp_plane_t *p) {
 	int32_t bits = 0;
 
 	for (int32_t i = 0; i < 3; i++) {
-		if (p->normal[i] < 0.0) {
+		if (p->normal.xyz[i] < 0.0) {
 			bits |= 1 << i;
 		}
 	}
@@ -69,13 +69,29 @@ int32_t Cm_SignBitsForPlane(const cm_bsp_plane_t *p) {
 /**
  * @return The distance from `point` to `plane`.
  */
-vec_t Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
+float Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
 
 	if (AXIAL(plane)) {
-		return point[plane->type] - plane->dist;
+		return point.xyz[plane->type] - plane->dist;
 	}
 
-	return DotProduct(point, plane->normal) - plane->dist;
+	return vec3_dot(point, plane->normal) - plane->dist;
+}
+
+/**
+ * @return Non-zero if the bounding boxes intersect, zero otherwise.
+ */
+int32_t Cm_BoxIntersect(const vec3_t amins, const vec3_t amaxs, const vec3_t bmins, const vec3_t bmaxs) {
+
+	if (amins.x >= bmaxs.x || amins.y >= bmaxs.y || amins.z >= bmaxs.z) {
+		return 0;
+	}
+
+	if (amaxs.x <= bmins.x || amaxs.y <= bmins.y || amaxs.z <= bmins.z) {
+		return 0;
+	}
+
+	return 1;
 }
 
 /**
@@ -83,14 +99,14 @@ vec_t Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
  * If the box straddles the plane, SIDE_BOTH is returned.
  */
 int32_t Cm_BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const cm_bsp_plane_t *p) {
-	vec_t dist1, dist2;
+	float dist1, dist2;
 
 	// axial planes
 	if (AXIAL(p)) {
-		if (p->dist - SIDE_EPSILON <= mins[p->type]) {
+		if (p->dist - SIDE_EPSILON <= mins.xyz[p->type]) {
 			return SIDE_FRONT;
 		}
-		if (p->dist + SIDE_EPSILON >= maxs[p->type]) {
+		if (p->dist + SIDE_EPSILON >= maxs.xyz[p->type]) {
 			return SIDE_BACK;
 		}
 		return SIDE_BOTH;
@@ -99,36 +115,36 @@ int32_t Cm_BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const cm_bsp_pla
 	// general case
 	switch (p->sign_bits) {
 		case 0:
-			dist1 = DotProduct(p->normal, maxs);
-			dist2 = DotProduct(p->normal, mins);
+			dist1 = vec3_dot(p->normal, maxs);
+			dist2 = vec3_dot(p->normal, mins);
 			break;
 		case 1:
-			dist1 = p->normal[0] * mins[0] + p->normal[1] * maxs[1] + p->normal[2] * maxs[2];
-			dist2 = p->normal[0] * maxs[0] + p->normal[1] * mins[1] + p->normal[2] * mins[2];
+			dist1 = p->normal.x * mins.x + p->normal.y * maxs.y + p->normal.z * maxs.z;
+			dist2 = p->normal.x * maxs.x + p->normal.y * mins.y + p->normal.z * mins.z;
 			break;
 		case 2:
-			dist1 = p->normal[0] * maxs[0] + p->normal[1] * mins[1] + p->normal[2] * maxs[2];
-			dist2 = p->normal[0] * mins[0] + p->normal[1] * maxs[1] + p->normal[2] * mins[2];
+			dist1 = p->normal.x * maxs.x + p->normal.y * mins.y + p->normal.z * maxs.z;
+			dist2 = p->normal.x * mins.x + p->normal.y * maxs.y + p->normal.z * mins.z;
 			break;
 		case 3:
-			dist1 = p->normal[0] * mins[0] + p->normal[1] * mins[1] + p->normal[2] * maxs[2];
-			dist2 = p->normal[0] * maxs[0] + p->normal[1] * maxs[1] + p->normal[2] * mins[2];
+			dist1 = p->normal.x * mins.x + p->normal.y * mins.y + p->normal.z * maxs.z;
+			dist2 = p->normal.x * maxs.x + p->normal.y * maxs.y + p->normal.z * mins.z;
 			break;
 		case 4:
-			dist1 = p->normal[0] * maxs[0] + p->normal[1] * maxs[1] + p->normal[2] * mins[2];
-			dist2 = p->normal[0] * mins[0] + p->normal[1] * mins[1] + p->normal[2] * maxs[2];
+			dist1 = p->normal.x * maxs.x + p->normal.y * maxs.y + p->normal.z * mins.z;
+			dist2 = p->normal.x * mins.x + p->normal.y * mins.y + p->normal.z * maxs.z;
 			break;
 		case 5:
-			dist1 = p->normal[0] * mins[0] + p->normal[1] * maxs[1] + p->normal[2] * mins[2];
-			dist2 = p->normal[0] * maxs[0] + p->normal[1] * mins[1] + p->normal[2] * maxs[2];
+			dist1 = p->normal.x * mins.x + p->normal.y * maxs.y + p->normal.z * mins.z;
+			dist2 = p->normal.x * maxs.x + p->normal.y * mins.y + p->normal.z * maxs.z;
 			break;
 		case 6:
-			dist1 = p->normal[0] * maxs[0] + p->normal[1] * mins[1] + p->normal[2] * mins[2];
-			dist2 = p->normal[0] * mins[0] + p->normal[1] * maxs[1] + p->normal[2] * maxs[2];
+			dist1 = p->normal.x * maxs.x + p->normal.y * mins.y + p->normal.z * mins.z;
+			dist2 = p->normal.x * mins.x + p->normal.y * maxs.y + p->normal.z * maxs.z;
 			break;
 		case 7:
-			dist1 = DotProduct(p->normal, mins);
-			dist2 = DotProduct(p->normal, maxs);
+			dist1 = vec3_dot(p->normal, mins);
+			dist2 = vec3_dot(p->normal, maxs);
 			break;
 		default:
 			dist1 = dist2 = 0.0; // shut up compiler
@@ -218,14 +234,14 @@ void Cm_InitBoxHull(void) {
 		// fill in planes, two per side
 		cm_bsp_plane_t *plane = &cm_box.planes[i * 2];
 		plane->type = i >> 1;
-		VectorClear(plane->normal);
-		plane->normal[i >> 1] = 1.0;
+		plane->normal = vec3_zero();
+		plane->normal.xyz[i >> 1] = 1.0;
 		plane->sign_bits = Cm_SignBitsForPlane(plane);
 
 		plane = &cm_box.planes[i * 2 + 1];
 		plane->type = PLANE_ANY_X + (i >> 1);
-		VectorClear(plane->normal);
-		plane->normal[i >> 1] = -1.0;
+		plane->normal = vec3_zero();
+		plane->normal.xyz[i >> 1] = -1.0;
 		plane->sign_bits = Cm_SignBitsForPlane(plane);
 
 		const int32_t side = i & 1;
@@ -253,21 +269,21 @@ void Cm_InitBoxHull(void) {
  */
 int32_t Cm_SetBoxHull(const vec3_t mins, const vec3_t maxs, const int32_t contents) {
 
-	VectorCopy(mins, cm_box.brush->mins);
-	VectorCopy(maxs, cm_box.brush->maxs);
+	cm_box.brush->mins = mins;
+	cm_box.brush->maxs = maxs;
 
-	cm_box.planes[0].dist = maxs[0];
-	cm_box.planes[1].dist = -maxs[0];
-	cm_box.planes[2].dist = mins[0];
-	cm_box.planes[3].dist = -mins[0];
-	cm_box.planes[4].dist = maxs[1];
-	cm_box.planes[5].dist = -maxs[1];
-	cm_box.planes[6].dist = mins[1];
-	cm_box.planes[7].dist = -mins[1];
-	cm_box.planes[8].dist = maxs[2];
-	cm_box.planes[9].dist = -maxs[2];
-	cm_box.planes[10].dist = mins[2];
-	cm_box.planes[11].dist = -mins[2];
+	cm_box.planes[0].dist = maxs.x;
+	cm_box.planes[1].dist = -maxs.x;
+	cm_box.planes[2].dist = mins.x;
+	cm_box.planes[3].dist = -mins.x;
+	cm_box.planes[4].dist = maxs.y;
+	cm_box.planes[5].dist = -maxs.y;
+	cm_box.planes[6].dist = mins.y;
+	cm_box.planes[7].dist = -mins.y;
+	cm_box.planes[8].dist = maxs.z;
+	cm_box.planes[9].dist = -maxs.z;
+	cm_box.planes[10].dist = mins.z;
+	cm_box.planes[11].dist = -mins.z;
 
 	cm_box.leaf->contents = cm_box.brush->contents = contents;
 
@@ -281,7 +297,7 @@ static int32_t Cm_PointLeafnum_r(const vec3_t p, int32_t num) {
 
 	while (num >= 0) {
 		const cm_bsp_node_t *node = cm_bsp.nodes + num;
-		const vec_t dist = Cm_DistanceToPlane(p, node->plane);
+		const float dist = Cm_DistanceToPlane(p, node->plane);
 
 		if (dist < 0.0) {
 			num = node->children[1];
@@ -336,10 +352,10 @@ int32_t Cm_PointContents(const vec3_t p, int32_t head_node) {
  *
  * @return The contents mask at the specified point.
  */
-int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node, const matrix4x4_t *inverse_matrix) {
+int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node, const mat4_t *inverse_matrix) {
 	vec3_t p0;
 
-	Matrix4x4_Transform(inverse_matrix, p, p0);
+	Matrix4x4_Transform(inverse_matrix, p.xyz, p0.xyz);
 
 	return Cm_PointContents(p0, head_node);
 }
@@ -348,7 +364,7 @@ int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node, const mat
  * @brief Data binding structure for box to leaf tests.
  */
 typedef struct {
-	const vec_t *mins, *maxs;
+	vec3_t mins, maxs;
 	int32_t *list;
 	size_t len, max_len;
 	int32_t top_node;

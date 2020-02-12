@@ -142,7 +142,8 @@ r_model_t *R_LoadModel(const char *name) {
 
 		mod->type = format->type;
 
-		ClearBounds(mod->mins, mod->maxs);
+		mod->mins = vec3_mins();
+		mod->maxs = vec3_maxs();
 
 		void *buf = NULL;
 
@@ -157,8 +158,8 @@ r_model_t *R_LoadModel(const char *name) {
 		// calculate an approximate radius from the bounding box
 		vec3_t size;
 
-		VectorSubtract(mod->maxs, mod->mins, size);
-		mod->radius = VectorLength(size) / 2.0;
+		size = vec3_subtract(mod->maxs, mod->mins);
+		mod->radius = vec3_length(size) / 2.0;
 
 		R_RegisterMedia((r_media_t *) mod);
 	}

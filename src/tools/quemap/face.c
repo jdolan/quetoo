@@ -113,8 +113,8 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 
 	const bsp_texinfo_t *texinfo = &bsp_file.texinfo[face->texinfo];
 
-	const vec_t *sdir = texinfo->vecs[0];
-	const vec_t *tdir = texinfo->vecs[1];
+	const vec3_t sdir = vec4_xyz(texinfo->vecs[0]);
+	const vec3_t tdir = vec4_xyz(texinfo->vecs[1]);
 
 	const SDL_Surface *diffuse = LoadDiffuseTexture(texinfo->texture);
 	if (diffuse == NULL) {
@@ -131,23 +131,23 @@ static int32_t EmitFaceVertexes(const face_t *face) {
 			.texinfo = face->texinfo
 		};
 
-		VectorCopy(face->w->points[i], out.position);
+		out.position = face->w->points[i];
 
 		if (!(texinfo->flags & SURF_NO_WELD)) {
 			for (int32_t j = 0; j < 3; j++) {
-				out.position[j] = SNAP_TO_FLOAT * floorf(out.position[j] * SNAP_TO_INT + 0.5);
+				out.position.xyz[j] = SNAP_TO_FLOAT * floorf(out.position.xyz[j] * SNAP_TO_INT + 0.5);
 			}
-			VectorCopy(out.position, face->w->points[i]);
+			face->w->points[i] = out.position;
 		}
 
-		VectorCopy(planes[face->plane_num].normal, out.normal);
-		TangentVectors(out.normal, sdir, tdir, out.tangent, out.bitangent);
+		out.normal = planes[face->plane_num].normal;
+		vec3_tangents(out.normal, sdir, tdir, &out.tangent, &out.tangent);
 
-		const vec_t s = DotProduct(out.position, sdir) + sdir[3];
-		const vec_t t = DotProduct(out.position, tdir) + tdir[3];
+		const float s = vec3_dot(out.position, sdir) + texinfo->vecs[0].w;
+		const float t = vec3_dot(out.position, tdir) + texinfo->vecs[1].w;
 
-		out.diffuse[0] = s / (diffuse ? diffuse->w : 1.0);
-		out.diffuse[1] = t / (diffuse ? diffuse->h : 1.0);
+		out.diffuse.x = s / (diffuse ? diffuse->w : 1.0);
+		out.diffuse.y = t / (diffuse ? diffuse->h : 1.0);
 
 		bsp_file.vertexes[bsp_file.num_vertexes] = out;
 		bsp_file.num_vertexes++;
@@ -226,7 +226,7 @@ static size_t PhongFacesForVertex(const bsp_vertex_t *vertex, const bsp_face_t *
 		}
 
 		const bsp_plane_t *plane = &bsp_file.planes[face->plane_num];
-		if (DotProduct(vertex->normal, plane->normal) <= SIDE_EPSILON) {
+		if (vec3_dot(vertex->normal, plane->normal) <= SIDE_EPSILON) {
 			continue;
 		}
 
@@ -234,9 +234,9 @@ static size_t PhongFacesForVertex(const bsp_vertex_t *vertex, const bsp_face_t *
 		for (uint16_t j = 0; j < face->num_vertexes; j++, v++) {
 
 			vec3_t delta;
-			VectorSubtract(vertex->position, v->position, delta);
+			delta = vec3_subtract(vertex->position, v->position);
 
-			if (VectorLength(delta) <= ON_EPSILON) {
+			if (vec3_length(delta) <= ON_EPSILON) {
 				phong_faces[count++] = face;
 				break;
 			}
@@ -264,7 +264,7 @@ void PhongVertexes(void) {
 		const size_t count = PhongFacesForVertex(v, phong_faces);
 		if (count) {
 
-			VectorClear(v->normal);
+			v->normal = vec3_zero();
 
 			const bsp_face_t **pf = phong_faces;
 			for (size_t j = 0; j < count; j++, pf++) {
@@ -272,18 +272,18 @@ void PhongVertexes(void) {
 				const plane_t *plane = &planes[(*pf)->plane_num];
 
 				cm_winding_t *w = Cm_WindingForFace(&bsp_file, *pf);
-				VectorMA(v->normal, Cm_WindingArea(w), plane->normal, v->normal);
+				v->normal = vec3_add(v->normal, vec3_scale(plane->normal, Cm_WindingArea(w)));
 				Cm_FreeWinding(w);
 			}
 
-			VectorNormalize(v->normal);
+			v->normal = vec3_normalize(v->normal);
 
 			const bsp_texinfo_t *texinfo = &bsp_file.texinfo[v->texinfo];
 
-			const vec_t *sdir = texinfo->vecs[0];
-			const vec_t *tdir = texinfo->vecs[1];
+			const vec3_t sdir = vec4_xyz(texinfo->vecs[0]);
+			const vec3_t tdir = vec4_xyz(texinfo->vecs[1]);
 
-			TangentVectors(v->normal, sdir, tdir, v->tangent, v->bitangent);
+			vec3_tangents(v->normal, sdir, tdir, &v->tangent, &v->bitangent);
 		}
 	}
 }

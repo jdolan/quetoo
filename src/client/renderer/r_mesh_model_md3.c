@@ -140,8 +140,7 @@ static d_md3_texcoord_t R_SwapMd3Texcoord(const d_md3_texcoord_t *in) {
 	d_md3_texcoord_t out = *in;
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
-	out.st[0] = LittleFloat(out.st[0]);
-	out.st[1] = LittleFloat(out.st[1]);
+	out.st = LittleVector2(out.st);
 #endif
 
 	return out;
@@ -155,10 +154,7 @@ static d_md3_vertex_t R_SwapMd3Vertex(const d_md3_vertex_t *in) {
 	d_md3_vertex_t out = *in;
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
-	for (int32_t i = 0; i < 3; i++) {
-		out.point[i] = LittleShort(out.point[i]);
-	}
-
+	out.point = LittleShortVector3(out.point);
 	out.norm = LittleShort(out.norm);
 #endif
 
@@ -189,11 +185,9 @@ static d_md3_frame_t R_SwapMd3Frame(const d_md3_frame_t *in) {
 	d_md3_frame_t out = *in;
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
-	for (int32_t i = 0; i < 3; i++) {
-		out.mins[i] = LittleFloat(out.mins[i]);
-		out.maxs[i] = LittleFloat(out.maxs[i]);
-		out.translate[i] = LittleFloat(out.translate[i]);
-	}
+	out.mins = LittleVector3(out.mins);
+	out.maxs = LittleVector3(out.maxs);
+	out.translate = LittleVector3(out.translate);
 	out.radius = LittleFloat(out.radius);
 #endif
 
@@ -208,12 +202,10 @@ static d_md3_tag_t R_SwapMd3Tag(const d_md3_tag_t *in) {
 	d_md3_tag_t out = *in;
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
-	for (int32_t i = 0; i < 3; i++) {
-		out.origin[i] = LittleFloat(out.origin[i]);
-		out.axis[0][i] = LittleFloat(out.axis[0][i]);
-		out.axis[1][i] = LittleFloat(out.axis[1][i]);
-		out.axis[2][i] = LittleFloat(out.axis[2][i]);
-	}
+	out.origin = LittleVector3(out.origin);
+	out.axis[0] = LittleVector3(out.axis[0]);
+	out.axis[1] = LittleVector3(out.axis[1]);
+	out.axis[2] = LittleVector3(out.axis[2]);
 #endif
 
 	return out;
@@ -333,13 +325,13 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
 			const d_md3_frame_t frame = R_SwapMd3Frame(in);
 
-			VectorCopy(frame.mins, out->mins);
-			VectorCopy(frame.maxs, out->maxs);
+			out->mins = frame.mins;
+			out->maxs = frame.maxs;
 			
-			VectorCopy(frame.translate, out->translate);
+			out->translate = frame.translate;
 
-			AddPointToBounds(out->mins, mod->mins, mod->maxs);
-			AddPointToBounds(out->maxs, mod->mins, mod->maxs);
+			mod->mins = vec3_minf(mod->mins, out->mins);
+			mod->maxs = vec3_maxf(mod->maxs, out->maxs);
 		}
 	}
 
@@ -356,7 +348,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 				const d_md3_tag_t tag = R_SwapMd3Tag(in);
 
 				g_strlcpy(out->name, tag.name, MD3_MAX_PATH);
-				Matrix4x4_FromVectors(&out->matrix, tag.axis[0], tag.axis[1], tag.axis[2], tag.origin);
+				Matrix4x4_FromVectors(&out->matrix, tag.axis[0].xyz, tag.axis[1].xyz, tag.axis[2].xyz, tag.origin.xyz);
 			}
 		}
 	}
@@ -417,23 +409,23 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
 						const d_md3_vertex_t vertex = R_SwapMd3Vertex(in_vertex);
 
-						VectorScale(vertex.point, MD3_XYZ_SCALE, out_vertex->position);
+						out_vertex->position = vec3_scale(s16vec3_cast_vec3(vertex.point), MD3_XYZ_SCALE);
 
-						vec_t lat = (vertex.norm >> 8) & 0xff;
-						vec_t lon = (vertex.norm & 0xff);
+						float lat = (vertex.norm >> 8) & 0xff;
+						float lon = (vertex.norm & 0xff);
 
 						lat *= M_PI / 128.0;
 						lon *= M_PI / 128.0;
 
-						out_vertex->normal[0] = cos(lat) * sin(lon);
-						out_vertex->normal[1] = sin(lat) * sin(lon);
-						out_vertex->normal[2] = cos(lon);
+						out_vertex->normal.x = cos(lat) * sin(lon);
+						out_vertex->normal.y = sin(lat) * sin(lon);
+						out_vertex->normal.z = cos(lon);
 
-						VectorNormalize(out_vertex->normal);
+						out_vertex->normal = vec3_normalize(out_vertex->normal);
 
 						const d_md3_texcoord_t texcoord = R_SwapMd3Texcoord(in_texcoord);
 
-						Vector2Copy(texcoord.st, out_vertex->diffuse);
+						out_vertex->diffuse = texcoord.st;
 					}
 				}
 			}

@@ -308,7 +308,7 @@ void Cl_Disconnect(void) {
 	cls.state = CL_DISCONNECTED;
 
 	if (time_demo->value) {
-		const vec_t s = (quetoo.ticks - cl.time_demo_start) / 1000.0;
+		const float s = (quetoo.ticks - cl.time_demo_start) / 1000.0;
 		Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.time_demo_frames, s,
 				  cl.time_demo_frames / s);
 

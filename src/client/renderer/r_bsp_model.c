@@ -53,8 +53,8 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp) {
 
 	for (int32_t i = 0; i < bsp->num_texinfo; i++, in++, out++) {
 
-		Vector4Copy(in->vecs[0], out->vecs[0]);
-		Vector4Copy(in->vecs[1], out->vecs[1]);
+		out->vecs[0] = in->vecs[0];
+		out->vecs[1] = in->vecs[1];
 
 		out->flags = in->flags;
 		out->value = in->value;
@@ -76,15 +76,15 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 	const bsp_vertex_t *in = bsp->cm->file.vertexes;
 	for (int32_t i = 0; i < bsp->num_vertexes; i++, in++, out++) {
 
-		VectorCopy(in->position, out->position);
-		VectorCopy(in->normal, out->normal);
-		VectorCopy(in->tangent, out->tangent);
-		VectorCopy(in->bitangent, out->bitangent);
+		out->position = in->position;
+		out->normal = in->normal;
+		out->tangent = in->tangent;
+		out->bitangent = in->bitangent;
 
-		Vector2Copy(in->diffuse, out->diffuse);
-		Vector2Copy(in->lightmap, out->lightmap);
+		out->diffuse = in->diffuse;
+		out->lightmap = in->lightmap;
 
-		vec_t alpha = 1.0;
+		float alpha = 1.0;
 
 		const r_bsp_texinfo_t *texinfo = bsp->texinfo + in->texinfo;
 		switch (texinfo->flags & (SURF_BLEND_33 | SURF_BLEND_66)) {
@@ -96,7 +96,7 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 			default:
 				break;
 		}
-		Vector4Set(out->color, 1.0, 1.0, 1.0, alpha);
+		out->color = vec4(1.0, 1.0, 1.0, alpha);
 	}
 }
 
@@ -245,8 +245,8 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 
 	for (int32_t i = 0; i < bsp->num_nodes; i++, in++, out++) {
 
-		VectorCopy(in->mins, out->mins);
-		VectorCopy(in->maxs, out->maxs);
+		out->mins = s16vec3_cast_vec3(in->mins);
+		out->maxs = s16vec3_cast_vec3(in->maxs);
 
 		const int32_t p = in->plane_num;
 		out->plane = bsp->cm->planes + p;
@@ -283,8 +283,8 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
 
 	for (int32_t i = 0; i < bsp->num_leafs; i++, in++, out++) {
 
-		VectorCopy(in->mins, out->mins);
-		VectorCopy(in->maxs, out->maxs);
+		out->mins = s16vec3_cast_vec3(in->mins);
+		out->maxs = s16vec3_cast_vec3(in->maxs);
 
 		out->contents = in->contents;
 
@@ -301,18 +301,26 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
  */
 static void R_SetupBspFace(r_bsp_model_t *bsp, r_bsp_leaf_t *leaf, r_bsp_face_t *face) {
 
-	ClearBounds(face->mins, face->maxs);
+	face->mins = vec3_mins();
+	face->maxs = vec3_maxs();
 
-	ClearStBounds(face->st_mins, face->st_maxs);
-	ClearStBounds(face->lightmap.st_mins, face->lightmap.st_maxs);
+	face->st_mins = vec2_mins();
+	face->st_maxs = vec2_maxs();
+
+	face->lightmap.st_mins = vec2_mins();
+	face->lightmap.st_maxs = vec2_maxs();
 
 	const r_bsp_vertex_t *v = face->vertexes;
 	for (int32_t i = 0; i < face->num_vertexes; i++, v++) {
 
-		AddPointToBounds(v->position, face->mins, face->maxs);
+		face->mins = vec3_minf(face->mins, v->position);
+		face->maxs = vec3_maxf(face->maxs, v->position);
 
-		AddStToBounds(v->diffuse, face->st_mins, face->st_maxs);
-		AddStToBounds(v->lightmap, face->lightmap.st_mins, face->lightmap.st_maxs);
+		face->st_mins = vec2_minf(face->st_mins, v->diffuse);
+		face->st_maxs = vec2_maxf(face->st_maxs, v->diffuse);
+
+		face->lightmap.st_mins = vec2_minf(face->lightmap.st_mins, v->lightmap);
+		face->lightmap.st_maxs = vec2_maxf(face->lightmap.st_maxs, v->lightmap);
 	}
 
 //	R_CreateBspSurfaceFlare(bsp, face);
@@ -375,10 +383,8 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 
 		out->head_node = bsp->nodes + in->head_node;
 
-		for (int32_t j = 0; j < 3; j++) {
-			out->mins[j] = in->mins[j];
-			out->maxs[j] = in->maxs[j];
-		}
+		out->mins = s16vec3_cast_vec3(in->mins);
+		out->maxs = s16vec3_cast_vec3(in->maxs);
 
 		out->faces = bsp->faces + in->first_face;
 		out->num_faces = in->num_faces;
@@ -404,11 +410,11 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 		out->type = MOD_BSP_INLINE;
 		out->bsp_inline = in;
 
-		VectorCopy(in->maxs, out->maxs);
-		VectorCopy(in->mins, out->mins);
+		out->maxs = in->maxs;
+		out->mins = in->mins;
 
-		AddPointToBounds(out->mins, mod->mins, mod->maxs);
-		AddPointToBounds(out->maxs, mod->mins, mod->maxs);
+		mod->mins = vec3_minf(mod->mins, out->mins);
+		mod->maxs = vec3_maxf(mod->maxs, out->maxs);
 
 		R_RegisterDependency(&mod->media, &out->media);
 	}
@@ -452,18 +458,16 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 
 	mod->bsp->lightgrid = out = Mem_LinkMalloc(sizeof(*out), mod->bsp);
 
-	VectorCopy(in->size, out->size);
+	out->size = in->size;
 
-	for (int32_t i = 0; i < 3; i++) {
+	const vec3_t grid_size = vec3_scale(s32vec3_cast_vec3(out->size), BSP_LIGHTGRID_LUXEL_SIZE);
+	const vec3_t world_size = vec3_subtract(mod->maxs, mod->mins);
+	const vec3_t padding = vec3_scale(vec3_subtract(grid_size, world_size), 0.5);
 
-		const vec_t grid_size = out->size[i] * BSP_LIGHTGRID_LUXEL_SIZE;
-		const vec_t padding = (grid_size - (mod->maxs[i] - mod->mins[i])) * 0.5;
+	out->mins = vec3_subtract(mod->mins, padding);
+	out->maxs = vec3_add(mod->maxs, padding);
 
-		out->mins[i] = mod->mins[i] - padding;
-		out->maxs[i] = mod->maxs[i] + padding;
-	}
-
-	const size_t texture_size = out->size[0] * out->size[1] * out->size[2] * BSP_LIGHTGRID_BPP;
+	const size_t texture_size = out->size.x * out->size.y * out->size.z * BSP_LIGHTGRID_BPP;
 
 	byte *data = (byte *) in + sizeof(bsp_lightgrid_t);
 
@@ -472,9 +476,9 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 		out->textures[i] = (r_image_t *) R_AllocMedia(va("lightgrid[%d]", i), sizeof(r_image_t), MEDIA_IMAGE);
 		out->textures[i]->media.Free = R_FreeImage;
 		out->textures[i]->type = IT_LIGHTGRID;
-		out->textures[i]->width = out->size[0];
-		out->textures[i]->height = out->size[1];
-		out->textures[i]->depth = out->size[2];
+		out->textures[i]->width = out->size.x;
+		out->textures[i]->height = out->size.y;
+		out->textures[i]->depth = out->size.z;
 
 		R_UploadImage(out->textures[i], GL_RGB8, data);
 	}
@@ -663,9 +667,9 @@ void R_ExportBsp_f(void) {
 	for (int32_t i = 0; i <  world->bsp->num_vertexes; i++, v++) {
 
 		Fs_Print(file, "v %f %f %f\nvt %f %f\nvn %f %f %f\n",
-				-v->position[0], v->position[2], v->position[1],
-				 v->diffuse[0], -v->diffuse[1],
-				-v->normal[0], v->normal[2], v->normal[1]);
+				-v->position.x, v->position.z, v->position.y,
+				 v->diffuse.x, -v->diffuse.y,
+				-v->normal.x, v->normal.z, v->normal.y);
 	}
 
 	Fs_Print(file, "# %d vertexes\n\n", world->bsp->num_vertexes);

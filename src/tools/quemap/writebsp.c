@@ -37,7 +37,7 @@ static void EmitPlanes(void) {
 	for (int32_t i = 0; i < num_planes; i++, p++) {
 		bsp_plane_t *bp = &bsp_file.planes[bsp_file.num_planes];
 
-		VectorCopy(p->normal, bp->normal);
+		bp->normal = p->normal;
 		bp->dist = p->dist;
 
 		bsp_file.num_planes++;
@@ -166,8 +166,8 @@ static int32_t EmitLeaf(node_t *node) {
 	out->cluster = node->cluster;
 	out->area = node->area;
 
-	VectorCopy(node->mins, out->mins);
-	VectorCopy(node->maxs, out->maxs);
+	out->mins = vec3_cast_s16vec3(node->mins);
+	out->maxs = vec3_cast_s16vec3(node->maxs);
 
 	// write the leaf_brushes
 	out->first_leaf_brush = bsp_file.num_leaf_brushes;
@@ -260,9 +260,9 @@ static int32_t EmitNode(node_t *node) {
 	bsp_node_t *out = &bsp_file.nodes[bsp_file.num_nodes];
 	bsp_file.num_nodes++;
 
-	VectorCopy(node->mins, out->mins);
-	VectorCopy(node->maxs, out->maxs);
-
+	out->mins = vec3_cast_s16vec3(node->mins);
+	out->maxs = vec3_cast_s16vec3(node->maxs);
+	
 	out->plane_num = node->plane_num;
 
 	if (node->faces) {
@@ -314,59 +314,55 @@ void EmitNodes(node_t *head_node) {
  * @brief
  */
 static void EmitBrushes(void) {
-	int32_t i, j, bnum, s, x;
-	bsp_brush_t *db;
-	brush_t *b;
-	bsp_brush_side_t *cp;
-	vec3_t normal;
-	vec_t dist;
-	int32_t plane_num;
 
 	bsp_file.num_brush_sides = 0;
 	bsp_file.num_brushes = num_brushes;
 
-	for (bnum = 0; bnum < num_brushes; bnum++) {
-		b = &brushes[bnum];
-		db = &bsp_file.brushes[bnum];
+	for (int32_t i = 0; i < num_brushes; i++) {
+		brush_t *b = &brushes[i];
+		bsp_brush_t *out = &bsp_file.brushes[i];
 
-		db->contents = b->contents;
-		db->first_brush_side = bsp_file.num_brush_sides;
-		db->num_sides = b->num_sides;
+		out->contents = b->contents;
+		out->first_brush_side = bsp_file.num_brush_sides;
+		out->num_sides = b->num_sides;
 
-		for (j = 0; j < b->num_sides; j++) {
+		for (int32_t j = 0; j < b->num_sides; j++) {
 
 			if (bsp_file.num_brush_sides == MAX_BSP_BRUSH_SIDES) {
 				Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
 			}
 
-			cp = &bsp_file.brush_sides[bsp_file.num_brush_sides];
+			bsp_brush_side_t *bs = &bsp_file.brush_sides[bsp_file.num_brush_sides];
 			bsp_file.num_brush_sides++;
 
-			cp->plane_num = b->original_sides[j].plane_num;
-			cp->texinfo = b->original_sides[j].texinfo;
+			bs->plane_num = b->original_sides[j].plane_num;
+			bs->texinfo = b->original_sides[j].texinfo;
 		}
 
 		// add any axis planes not contained in the brush to bevel off corners
-		for (x = 0; x < 3; x++) {
-			for (s = -1; s <= 1; s += 2) {
+		for (int32_t axis = 0; axis < 3; axis++) {
+			for (int32_t side = -1; side <= 1; side += 2) {
 				// add the plane
-				VectorClear(normal);
-				normal[x] = (vec_t) s;
+				vec3_t normal = vec3_zero();
+				normal.xyz[axis] = side;
 
-				if (s == -1) {
-					dist = -b->mins[x];
+				float dist;
+				if (side == -1) {
+					dist = -b->mins.xyz[axis];
 				} else {
-					dist = b->maxs[x];
+					dist = b->maxs.xyz[axis];
 				}
 
-				plane_num = FindPlane(normal, dist);
+				const int32_t plane_num = FindPlane(normal, dist);
 
-				for (i = 0; i < b->num_sides; i++)
-					if (b->original_sides[i].plane_num == plane_num) {
+				int32_t j;
+				for (j = 0; j < b->num_sides; j++) {
+					if (b->original_sides[j].plane_num == plane_num) {
 						break;
 					}
+				}
 
-				if (i == b->num_sides) {
+				if (j == b->num_sides) {
 					if (bsp_file.num_brush_sides >= MAX_BSP_BRUSH_SIDES) {
 						Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
 					}
@@ -374,7 +370,7 @@ static void EmitBrushes(void) {
 					bsp_file.brush_sides[bsp_file.num_brush_sides].plane_num = plane_num;
 					bsp_file.brush_sides[bsp_file.num_brush_sides].texinfo = bsp_file.brush_sides[bsp_file.num_brush_sides - 1].texinfo;
 					bsp_file.num_brush_sides++;
-					db->num_sides++;
+					out->num_sides++;
 				}
 			}
 		}
@@ -480,20 +476,20 @@ void BeginModel(void) {
 	const int32_t start = e->first_brush;
 	const int32_t end = start + e->num_brushes;
 
-	vec3_t mins, maxs;
-	ClearBounds(mins, maxs);
+	vec3_t mins = vec3_mins();
+	vec3_t maxs = vec3_maxs();
 
 	for (int32_t j = start; j < end; j++) {
 		const brush_t *b = &brushes[j];
 		if (!b->num_sides) {
 			continue; // not a real brush (origin brush)
 		}
-		AddPointToBounds(b->mins, mins, maxs);
-		AddPointToBounds(b->maxs, mins, maxs);
+		mins = vec3_minf(mins, b->mins);
+		maxs = vec3_maxf(mins, b->maxs);
 	}
 
-	VectorCopy(mins, mod->mins);
-	VectorCopy(maxs, mod->maxs);
+	mod->mins = vec3_cast_s16vec3(mins);
+	mod->maxs = vec3_cast_s16vec3(maxs);;
 }
 
 /**

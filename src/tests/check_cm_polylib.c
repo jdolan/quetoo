@@ -38,14 +38,14 @@ void teardown(void) {
 	Mem_Shutdown();
 }
 
-START_TEST(Cm_ElementsForWinding_triangle) {
+START_TEST(check_Cm_ElementsForWinding_triangle) {
 
 	cm_winding_t *w = Cm_AllocWinding(3);
 	w->num_points = 3;
 
-	VectorSet(w->points[0], 0, 0, 0);
-	VectorSet(w->points[1], 1, 0, 0);
-	VectorSet(w->points[2], 0, 1, 0);
+	w->points[0] = vec3(0, 0, 0);
+	w->points[1] = vec3(1, 0, 0);
+	w->points[2] = vec3(0, 1, 0);
 
 	int32_t elements[(w->num_points - 2) * 3];
 	const int32_t num_elements = Cm_ElementsForWinding(w, elements);
@@ -58,15 +58,15 @@ START_TEST(Cm_ElementsForWinding_triangle) {
 
 } END_TEST
 
-START_TEST(Cm_ElementsForWinding_quad) {
+START_TEST(check_Cm_ElementsForWinding_quad) {
 
 	cm_winding_t *w = Cm_AllocWinding(4);
 	w->num_points = 4;
 
-	VectorSet(w->points[0], 0, 0, 0);
-	VectorSet(w->points[1], 1, 0, 0);
-	VectorSet(w->points[2], 1, 1, 0);
-	VectorSet(w->points[3], 0, 1, 0);
+	w->points[0] = vec3(0, 0, 0);
+	w->points[1] = vec3(1, 0, 0);
+	w->points[2] = vec3(1, 1, 0);
+	w->points[3] = vec3(0, 1, 0);
 
 	int32_t elements[(w->num_points - 2) * 3];
 	const int32_t num_elements = Cm_ElementsForWinding(w, elements);
@@ -83,15 +83,15 @@ START_TEST(Cm_ElementsForWinding_quad) {
 
 } END_TEST
 
-START_TEST(Cm_ElementsForWinding_skinnyQuad) {
+START_TEST(check_Cm_ElementsForWinding_skinnyQuad) {
 
 	cm_winding_t *w = Cm_AllocWinding(4);
 	w->num_points = 4;
 
-	VectorSet(w->points[0], 0, 0, 0);
-	VectorSet(w->points[1], 128, 0, 0);
-	VectorSet(w->points[2], 128, 1, 0);
-	VectorSet(w->points[3], 0, 1, 0);
+	w->points[0] = vec3(0, 0, 0);
+	w->points[1] = vec3(128, 0, 0);
+	w->points[2] = vec3(128, 1, 0);
+	w->points[3] = vec3(0, 1, 0);
 
 	int32_t elements[(w->num_points - 2) * 3];
 	const int32_t num_elements = Cm_ElementsForWinding(w, elements);
@@ -108,18 +108,18 @@ START_TEST(Cm_ElementsForWinding_skinnyQuad) {
 
 } END_TEST
 
-START_TEST(Cm_ElementsForWinding_collinearQuad) {
+START_TEST(check_Cm_ElementsForWinding_collinearQuad) {
 
 	cm_winding_t *w = Cm_AllocWinding(6);
 	w->num_points = 6;
 
-	VectorSet(w->points[0], 0, 0, 0);
-	VectorSet(w->points[1], 1, 0, 0);
-	VectorSet(w->points[2], 2, 0, 0);
+	w->points[0] = vec3(0, 0, 0);
+	w->points[1] = vec3(1, 0, 0);
+	w->points[2] = vec3(2, 0, 0);
 
-	VectorSet(w->points[3], 2, 2, 0);
-	VectorSet(w->points[4], 1, 2, 0);
-	VectorSet(w->points[5], 0, 2, 0);
+	w->points[3] = vec3(2, 2, 0);
+	w->points[4] = vec3(1, 2, 0);
+	w->points[5] = vec3(0, 2, 0);
 
 	int32_t elements[(w->num_points - 2) * 3];
 	const int32_t num_elements = Cm_ElementsForWinding(w, elements);
@@ -144,22 +144,75 @@ START_TEST(Cm_ElementsForWinding_collinearQuad) {
 
 } END_TEST
 
-START_TEST(Cm_ElementsForWinding_cornerCase) {
+START_TEST(check_Cm_ElementsForWinding_cornerCase) {
 
 	cm_winding_t *w = Cm_AllocWinding(6);
 	w->num_points = 6;
 
-	VectorSet(w->points[0], 0, 0.000, 0.000);
-	VectorSet(w->points[1], 0, -1.375, 2.000);
-	VectorSet(w->points[2], 0, -20.875, 31.375);
-	VectorSet(w->points[3], 0, -30.750, 30.750);
-	VectorSet(w->points[4], 0, -19.500, 19.500);
-	VectorSet(w->points[5], 0, -12.000, 12.000);
+	w->points[0] = vec3(0, 0.000, 0.000);
+	w->points[1] = vec3(0, -1.375, 2.000);
+	w->points[2] = vec3(0, -20.875, 31.375);
+	w->points[3] = vec3(0, -30.750, 30.750);
+	w->points[4] = vec3(0, -19.500, 19.500);
+	w->points[5] = vec3(0, -12.000, 12.000);
 
 	int32_t elements[(w->num_points - 2) * 3];
 	const int32_t num_elements = Cm_ElementsForWinding(w, elements);
 
 	ck_assert_int_eq(12, num_elements);
+
+} END_TEST
+
+START_TEST(check_Cm_TriangleArea) {
+	vec3_t a, b, c;
+
+	a = vec3(0, 0, 0);
+	b = vec3(0, 1, 0);
+	c = vec3(1, 1, 0);
+
+	const float area = Cm_TriangleArea(a, b, c);
+	ck_assert(area == 0.5);
+
+} END_TEST
+
+START_TEST(check_Cm_Barycentric) {
+	vec3_t a, b, c, p, out;
+
+	a = vec3(0, 0, 0);
+	b = vec3(0, 1, 0);
+	c = vec3(1, 1, 0);
+
+	p = vec3(0, 0, 0);
+
+	Cm_Barycentric(a, b, c, p, out);
+//	puts(vtos(out));
+	ck_assert(out[0] == 1);
+	ck_assert(out[1] == 0);
+	ck_assert(out[2] == 0);
+
+	p = vec3(0, 1, 0);
+
+	Cm_Barycentric(a, b, c, p, out);
+//	puts(vtos(out));
+	ck_assert(out[0] == 0);
+	ck_assert(out[1] == 1);
+	ck_assert(out[2] == 0);
+
+	p = vec3(1, 1, 0);
+
+	Cm_Barycentric(a, b, c, p, out);
+//	puts(vtos(out));
+	ck_assert(out[0] == 0);
+	ck_assert(out[1] == 0);
+	ck_assert(out[2] == 1);
+
+	p = vec3(0.5, 0.5, 0);
+
+	Cm_Barycentric(a, b, c, p, out);
+//	puts(vtos(out));
+	ck_assert(out[0] == 0.5);
+	ck_assert(out[1] == 0);
+	ck_assert(out[2] == 0.5);
 
 } END_TEST
 
@@ -170,17 +223,26 @@ int32_t main(int32_t argc, char **argv) {
 
 	Test_Init(argc, argv);
 
-	TCase *tcase = tcase_create("check_cm_polylib");
+	Suite *suite = suite_create("check_cm_polylib");
+
+	TCase *tcase = tcase_create("Cm_ElementsForWinding");
 	tcase_add_checked_fixture(tcase, setup, teardown);
 
-	tcase_add_test(tcase, Cm_ElementsForWinding_triangle);
-	tcase_add_test(tcase, Cm_ElementsForWinding_quad);
-	tcase_add_test(tcase, Cm_ElementsForWinding_skinnyQuad);
-	tcase_add_test(tcase, Cm_ElementsForWinding_collinearQuad);
-	tcase_add_test(tcase, Cm_ElementsForWinding_cornerCase);
+	tcase_add_test(tcase, check_Cm_ElementsForWinding_triangle);
+	tcase_add_test(tcase, check_Cm_ElementsForWinding_quad);
+	tcase_add_test(tcase, check_Cm_ElementsForWinding_skinnyQuad);
+	tcase_add_test(tcase, check_Cm_ElementsForWinding_collinearQuad);
+	tcase_add_test(tcase, check_Cm_ElementsForWinding_cornerCase);
 
-	Suite *suite = suite_create("check_cm_polylib");
 	suite_add_tcase(suite, tcase);
+
+	tcase = tcase_create("Cm_TriangleArea");
+	tcase_add_test(tcase, check_Cm_TriangleArea);
+
+	suite_add_tcase(suite, tcase);
+
+	tcase = tcase_create("Cm_Barycentric");
+	tcase_add_test(tcase, check_Cm_Barycentric);
 
 	int32_t failed = Test_Run(suite);
 

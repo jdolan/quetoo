@@ -46,15 +46,15 @@ _Bool G_OnSameTeam(const g_entity_t *ent1, const g_entity_t *ent2) {
  * @brief Returns true if the inflictor can directly damage the target. Used for
  * explosions and melee attacks.
  */
-_Bool G_CanDamage(g_entity_t *targ, g_entity_t *inflictor) {
+_Bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
 	vec3_t dest;
 	cm_trace_t tr;
 
 	// BSP sub-models need special checking because their origin is 0,0,0
 	if (targ->solid == SOLID_BSP) {
-		VectorAdd(targ->abs_mins, targ->abs_maxs, dest);
-		VectorScale(dest, 0.5, dest);
-		tr = gi.Trace(inflictor->s.origin, dest, NULL, NULL, inflictor, MASK_SOLID);
+		dest = vec3_add(targ->abs_mins, targ->abs_maxs);
+		dest = vec3_scale(dest, 0.5);
+		tr = gi.Trace(inflictor->s.origin, dest, vec3_zero(), vec3_zero(), inflictor, MASK_SOLID);
 		if (tr.fraction == 1.0) {
 			return true;
 		}
@@ -64,39 +64,39 @@ _Bool G_CanDamage(g_entity_t *targ, g_entity_t *inflictor) {
 		return false;
 	}
 
-	tr = gi.Trace(inflictor->s.origin, targ->s.origin, NULL, NULL, inflictor, MASK_SOLID);
+	tr = gi.Trace(inflictor->s.origin, targ->s.origin, vec3_zero(), vec3_zero(), inflictor, MASK_SOLID);
 	if (tr.fraction == 1.0) {
 		return true;
 	}
 
-	VectorCopy(targ->s.origin, dest);
-	dest[0] += 15.0;
-	dest[1] += 15.0;
-	tr = gi.Trace(inflictor->s.origin, dest, NULL, NULL, inflictor, MASK_SOLID);
+	dest = targ->s.origin;
+	dest.x += 15.0;
+	dest.y += 15.0;
+	tr = gi.Trace(inflictor->s.origin, dest, vec3_zero(), vec3_zero(), inflictor, MASK_SOLID);
 	if (tr.fraction == 1.0) {
 		return true;
 	}
 
-	VectorCopy(targ->s.origin, dest);
-	dest[0] += 15.0;
-	dest[1] -= 15.0;
-	tr = gi.Trace(inflictor->s.origin, dest, NULL, NULL, inflictor, MASK_SOLID);
+	dest = targ->s.origin;
+	dest.x += 15.0;
+	dest.y -= 15.0;
+	tr = gi.Trace(inflictor->s.origin, dest, vec3_zero(), vec3_zero(), inflictor, MASK_SOLID);
 	if (tr.fraction == 1.0) {
 		return true;
 	}
 
-	VectorCopy(targ->s.origin, dest);
-	dest[0] -= 15.0;
-	dest[1] += 15.0;
-	tr = gi.Trace(inflictor->s.origin, dest, NULL, NULL, inflictor, MASK_SOLID);
+	dest = targ->s.origin;
+	dest.x -= 15.0;
+	dest.y += 15.0;
+	tr = gi.Trace(inflictor->s.origin, dest, vec3_zero(), vec3_zero(), inflictor, MASK_SOLID);
 	if (tr.fraction == 1.0) {
 		return true;
 	}
 
-	VectorCopy(targ->s.origin, dest);
-	dest[0] -= 15.0;
-	dest[1] -= 15.0;
-	tr = gi.Trace(inflictor->s.origin, dest, NULL, NULL, inflictor, MASK_SOLID);
+	dest = targ->s.origin;
+	dest.x -= 15.0;
+	dest.y -= 15.0;
+	tr = gi.Trace(inflictor->s.origin, dest, vec3_zero(), vec3_zero(), inflictor, MASK_SOLID);
 	if (tr.fraction == 1.0) {
 		return true;
 	}
@@ -107,12 +107,12 @@ _Bool G_CanDamage(g_entity_t *targ, g_entity_t *inflictor) {
 /**
  * @brief Get the origin of an entity, whether brush or not
  */
-void G_GetOrigin(g_entity_t *ent, vec3_t out) {
+vec3_t G_GetOrigin(const g_entity_t *ent) {
 
 	if (ent->solid == SOLID_BSP) {
-		VectorLerp(ent->abs_mins, ent->abs_maxs, 0.5, out);
+		return vec3_mix(ent->abs_mins, ent->abs_maxs, 0.5);
 	} else {
-		VectorCopy(ent->s.origin, out);
+		return ent->s.origin;
 	}
 }
 
@@ -126,13 +126,13 @@ static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t n
 		return;
 	}
 
-	int16_t count = Clamp(damage / 50, 1, 4);
+	int16_t count = clampf(damage / 50, 1, 4);
 
 	while (count--) {
 		gi.WriteByte(SV_CMD_TEMP_ENTITY);
 		gi.WriteByte(type);
 		gi.WritePosition(pos);
-		gi.WriteDir(normal ? normal : vec3_zero().xyz);
+		gi.WriteDir(normal);
 		gi.Multicast(pos, MULTICAST_PVS, NULL);
 	}
 }
@@ -165,9 +165,9 @@ static int16_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
 	int16_t saved;
 
 	if (dflags & DMG_ENERGY) {
-		saved = Clamp(damage * armor_info->energy_protection, 0, quantity);
+		saved = clampf(damage * armor_info->energy_protection, 0, quantity);
 	} else {
-		saved = Clamp(damage * armor_info->normal_protection, 0, quantity);
+		saved = clampf(damage * armor_info->normal_protection, 0, quantity);
 	}
 
 	ent->client->locals.inventory[armor->index] -= saved;
@@ -199,9 +199,9 @@ static int16_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
  *
  * @param mod The means of death, used by the obituaries routine.
  */
-void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, const vec3_t dir,
-              const vec3_t pos, const vec3_t normal, int16_t damage, int16_t knockback, uint32_t dflags,
-              g_mod_t mod) {
+void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
+			  const vec3_t dir, const vec3_t pos, const vec3_t normal,
+			  int16_t damage, int16_t knockback, uint32_t dflags, g_mod_t mod) {
 
 	if (!target || !target->locals.take_damage) {
 		return;
@@ -215,10 +215,6 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 
 	inflictor = inflictor ? inflictor : g_game.entities;
 	attacker = attacker ? attacker : g_game.entities;
-
-	dir = dir ? dir : vec3_zero().xyz;
-	pos = pos ? pos : target->s.origin;
-	normal = normal ? normal : vec3_zero().xyz;
 
 	if (target->client && G_HasTech(target, TECH_RESIST)) {
 		damage *= TECH_RESIST_DAMAGE_FACTOR;
@@ -279,33 +275,33 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 	if (knockback && (target->locals.move_type >= MOVE_TYPE_WALK)) {
 		vec3_t ndir, knockback_vel, knockback_avel;
 
-		VectorCopy(dir, ndir);
-		VectorNormalize(ndir);
+		ndir = dir;
+		ndir = vec3_normalize(ndir);
 
 		// knock the target upwards at least a bit; it's fun
-		if (ndir[2] >= -0.25) {
-			ndir[2] = Max(0.33, ndir[2]);
-			VectorNormalize(ndir);
+		if (ndir.z >= -0.25) {
+			ndir.z = maxf(0.33, ndir.z);
+			ndir = vec3_normalize(ndir);
 		}
 
 		// ensure the target has valid mass for knockback calculation
-		const vec_t mass = Clamp(target->locals.mass, 1.0, 1000.0);
+		const float mass = clampf(target->locals.mass, 1.0, 1000.0);
 
 		// rocket jump hack
-		const vec_t scale = (target == attacker ? 1200.0 : 800.0);
+		const float scale = (target == attacker ? 1200.0 : 800.0);
 
-		VectorScale(ndir, scale * knockback / mass, knockback_vel);
-		VectorAdd(target->locals.velocity, knockback_vel, target->locals.velocity);
+		knockback_vel = vec3_scale(ndir, scale * knockback / mass);
+		target->locals.velocity = vec3_add(target->locals.velocity, knockback_vel);
 
 		// apply angular velocity (rotate)
 		if (client == NULL || (client->ps.pm_state.flags & PMF_GIBLET)) {
-			VectorSet(knockback_avel, knockback, knockback, knockback);
-			const vec_t ascale = 100.0 / mass;
+			knockback_avel = vec3(knockback, knockback, knockback);
+			const float ascale = 100.0 / mass;
 
-			VectorMA(target->locals.avelocity, ascale, knockback_avel, target->locals.avelocity);
+			target->locals.avelocity = vec3_add(target->locals.avelocity, vec3_scale(knockback_avel, ascale));
 		}
 
-		if (client && target->locals.velocity[2] >= PM_STEP_HEIGHT) { // make sure the client can leave the ground
+		if (client && target->locals.velocity.z >= PM_STEP_HEIGHT) { // make sure the client can leave the ground
 			client->ps.pm_state.flags |= PMF_TIME_PUSHED;
 			client->ps.pm_state.time = 120;
 		}
@@ -339,7 +335,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 
 		if (attacker->client && attacker != target && !G_OnSameTeam(target, attacker) &&
 			!target->locals.dead && G_HasTech(attacker, TECH_VAMPIRE)) {
-			attacker->locals.health = Min(attacker->locals.health + (damage * TECH_VAMPIRE_DAMAGE_FACTOR), attacker->locals.max_health);
+			attacker->locals.health = minf(attacker->locals.health + (damage * TECH_VAMPIRE_DAMAGE_FACTOR), attacker->locals.max_health);
 			G_PlayTechSound(attacker);
 		}
 
@@ -379,7 +375,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 		client->locals.damage_armor += damage_armor;
 		client->locals.damage_health += damage_health;
 
-		vec_t kick = (damage_armor + damage_health) / 50.0;
+		float kick = (damage_armor + damage_health) / 50.0;
 
 		if (kick > 1.0) {
 			kick = 1.0;
@@ -393,12 +389,11 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
  * @brief
  */
 void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ignore, int16_t damage,
-                    int16_t knockback, vec_t radius, g_mod_t mod) {
+                    int16_t knockback, float radius, g_mod_t mod) {
 
 	g_entity_t *ent = NULL;
 
 	while ((ent = G_FindRadius(ent, inflictor->s.origin, radius)) != NULL) {
-		vec3_t dir;
 
 		if (ent == ignore) {
 			continue;
@@ -408,11 +403,11 @@ void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ign
 			continue;
 		}
 
-		VectorSubtract(ent->s.origin, inflictor->s.origin, dir);
-		const vec_t dist = VectorNormalize(dir);
+		vec3_t dir = vec3_subtract(ent->s.origin, inflictor->s.origin);
+		const float dist = vec3_length(dir);
 
-		vec_t d = damage - 0.5 * dist;
-		const vec_t k = knockback - 0.5 * dist;
+		float d = damage - 0.5 * dist;
+		const float k = knockback - 0.5 * dist;
 
 		if (d <= 0 && k <= 0) { // too far away to be damaged
 			continue;
@@ -430,6 +425,6 @@ void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ign
 			continue;
 		}
 
-		G_Damage(ent, inflictor, attacker, dir, NULL, NULL, d, k, DMG_RADIUS, mod);
+		G_Damage(ent, inflictor, attacker, dir, vec3_zero(), vec3_zero(), d, k, DMG_RADIUS, mod);
 	}
 }

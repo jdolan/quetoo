@@ -64,16 +64,13 @@ void Cg_AddLights(void) {
 			continue;
 		}
 
-		r_light_t out;
-
-		VectorCopy(l->origin, out.origin);
-		out.origin[3] = l->radius;
-
-		VectorCopy(l->color, out.color);
-		out.color[3] = l->intensity;
+		r_light_t out = {
+			.origin = vec3_to_vec4(l->origin, l->radius),
+			.color = vec3_to_vec4(l->color, l->intensity)
+		};
 
 		if (l->decay) {
-			out.color[3] = (expiration - cgi.client->unclamped_time) / (vec_t) (l->decay);
+			out.color.w = (expiration - cgi.client->unclamped_time) / (float) (l->decay);
 		}
 
 		cgi.AddLight(&out);

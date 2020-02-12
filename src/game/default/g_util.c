@@ -29,80 +29,72 @@ void G_InitPlayerSpawn(g_entity_t *ent) {
 	vec3_t mins, maxs, delta, forward;
 
 	// up
-	const vec_t up = ceilf(fabs(PM_SCALE * PM_MINS[2] - PM_MINS[2]));
-	ent->s.origin[2] += up;
+	const float up = ceilf(fabs(PM_SCALE * PM_MINS.z - PM_MINS.z));
+	ent->s.origin.z += up;
 
 	// forward, find the old x/y size
-	VectorCopy(PM_MINS, mins);
-	VectorCopy(PM_MAXS, maxs);
-	mins[2] = maxs[2] = 0.0;
+	mins = PM_MINS;
+	maxs = PM_MAXS;
+	mins.z = maxs.z = 0.0;
 
-	VectorSubtract(maxs, mins, delta);
-	const vec_t len0 = VectorLength(delta);
+	delta = vec3_subtract(maxs, mins);
+	const float len0 = vec3_length(delta);
 
 	// and the new x/y size
-	VectorScale(delta, PM_SCALE, delta);
-	const vec_t len1 = VectorLength(delta);
+	delta = vec3_scale(delta, PM_SCALE);
+	const float len1 = vec3_length(delta);
 
-	const vec_t fwd = ceilf(len1 - len0);
+	const float fwd = ceilf(len1 - len0);
 
-	AngleVectors(ent->s.angles, forward, NULL, NULL);
-	VectorMA(ent->s.origin, fwd, forward, ent->s.origin);
+	vec3_vectors(ent->s.angles, &forward, NULL, NULL);
+	ent->s.origin = vec3_add(ent->s.origin, vec3_scale(forward, fwd));
 }
 
 /**
  * @brief Determines the initial position and directional vectors of a projectile.
  */
-void G_InitProjectile(const g_entity_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org,
-                      const float hand_scale) {
-	vec3_t view, pos;
+void G_InitProjectile(const g_entity_t *ent, vec3_t *forward, vec3_t *right, vec3_t *up, vec3_t *org, float hand) {
 
 	// resolve the projectile destination
-	UnpackVector(ent->client->ps.pm_state.view_offset, view);
-	VectorAdd(ent->s.origin, view, view);
-
-	VectorMA(view, MAX_WORLD_DIST, ent->client->locals.forward, pos);
-	const cm_trace_t tr = gi.Trace(view, pos, NULL, NULL, ent, MASK_CLIP_PROJECTILE);
-
-	VectorCopy(tr.end, pos);
+	const vec3_t start = vec3_add(ent->s.origin, ent->client->ps.pm_state.view_offset);
+	const vec3_t end = vec3_add(start, vec3_scale(ent->client->locals.forward, MAX_WORLD_DIST));
+	const cm_trace_t tr = gi.Trace(start, end, vec3_zero(), vec3_zero(), ent, MASK_CLIP_PROJECTILE);
 
 	// resolve the projectile origin
 	vec3_t ent_forward, ent_right, ent_up;
-	AngleVectors(ent->s.angles, ent_forward, ent_right, ent_up);
+	vec3_vectors(ent->s.angles, &ent_forward, &ent_right, &ent_up);
 
-	VectorMA(view, 12.0, ent_forward, org);
+	*org = vec3_add(start, vec3_scale(ent_forward, 12.0));
 
 	switch (ent->client->locals.persistent.hand) {
 		case HAND_RIGHT:
-			VectorMA(org, 6.0 * hand_scale, ent_right, org);
+			*org = vec3_add(*org, vec3_scale(ent_right, 6.0 * hand));
 			break;
 		case HAND_LEFT:
-			VectorMA(org, -6.0 * hand_scale, ent_right, org);
+			*org = vec3_add(*org, vec3_scale(ent_right, -6.0 * hand));
 			break;
 		default:
 			break;
 	}
 
 	if ((ent->client->ps.pm_state.flags & PMF_DUCKED)) {
-		VectorMA(org, -6.0, ent_up, org);
+		*org = vec3_add(*org, vec3_scale(ent_up, -6.0));
 	} else {
-		VectorMA(org, -12.0, ent_up, org);
+		*org = vec3_add(*org, vec3_scale(ent_up, -12.0));
 	}
 
 	// if the projected origin is invalid, use the entity's origin
-	if (gi.Trace(org, org, NULL, NULL, ent, MASK_CLIP_PROJECTILE).start_solid) {
-		VectorCopy(ent->s.origin, org);
+	if (gi.Trace(*org, *org, vec3_zero(), vec3_zero(), ent, MASK_CLIP_PROJECTILE).start_solid) {
+		*org = ent->s.origin;
 	}
 
 	if (forward) {
 		// return the projectile's directional vectors
-		VectorSubtract(pos, org, forward);
-		VectorNormalize(forward);
+		*forward = vec3_subtract(tr.end, *org);
+		*forward = vec3_normalize(*forward);
 
-		if (right || up) {
-			VectorAngles(forward, view);
-			AngleVectors(view, NULL, right, up);
-		}
+		const vec3_t euler = vec3_euler(*forward);
+		vec3_vectors(euler, NULL, right, up);
 	}
 }
 
@@ -183,9 +175,7 @@ g_entity_t *G_FindPtr(g_entity_t *from, ptrdiff_t field, const void *match) {
  *
  * G_FindRadius(origin, radius)
  */
-g_entity_t *G_FindRadius(g_entity_t *from, vec3_t org, vec_t rad) {
-	vec3_t delta;
-	int32_t j;
+g_entity_t *G_FindRadius(g_entity_t *from, vec3_t org, float rad) {
 
 	if (!from) {
 		from = g_game.entities;
@@ -203,12 +193,12 @@ g_entity_t *G_FindRadius(g_entity_t *from, vec3_t org, vec_t rad) {
 			continue;
 		}
 
-		for (j = 0; j < 3; j++) {
-			delta[j] = org[j] - (from->s.origin[j] + (from->mins[j] + from->maxs[j]) * 0.5);
+		if (vec3_distance(org, from->abs_mins) < rad) {
+			return from;
 		}
 
-		if (VectorLength(delta) > rad) {
-			continue;
+		if (vec3_distance(org, from->abs_maxs) < rad) {
+			return from;
 		}
 
 		return from;
@@ -353,15 +343,15 @@ void G_SetMoveDir(vec3_t angles, vec3_t move_dir) {
 	const vec3_t angles_down = { 0.0, -2.0, 0.0 };
 	const vec3_t dir_down = { 0.0, 0.0, -1.0 };
 
-	if (VectorCompare(angles, angles_up)) {
-		VectorCopy(dir_up, move_dir);
-	} else if (VectorCompare(angles, angles_down)) {
-		VectorCopy(dir_down, move_dir);
+	if (vec3_equal(angles, angles_up)) {
+		move_dir = dir_up;
+	} else if (vec3_equal(angles, angles_down)) {
+		move_dir = dir_down;
 	} else {
-		AngleVectors(angles, move_dir, NULL, NULL);
+		vec3_vectors(angles, &move_dir, NULL, NULL);
 	}
 
-	VectorClear(angles);
+	angles = vec3_zero();
 }
 
 /**
@@ -446,10 +436,9 @@ void G_FreeEntity(g_entity_t *ent) {
  */
 void G_KillBox(g_entity_t *ent) {
 	g_entity_t *ents[MAX_ENTITIES];
-	vec3_t mins, maxs;
 
-	VectorAdd(ent->s.origin, ent->mins, mins);
-	VectorAdd(ent->s.origin, ent->maxs, maxs);
+	const vec3_t mins = vec3_add(ent->s.origin, ent->mins);
+	const vec3_t maxs = vec3_add(ent->s.origin, ent->maxs);
 
 	size_t i, len = gi.BoxEntities(mins, maxs, ents, lengthof(ents), BOX_COLLIDE);
 	for (i = 0; i < len; i++) {
@@ -460,7 +449,7 @@ void G_KillBox(g_entity_t *ent) {
 
 		if (G_IsMeat(ents[i])) {
 
-			G_Damage(ents[i], NULL, ent, NULL, NULL, NULL, 999, 0, DMG_NO_GOD, MOD_TELEFRAG);
+			G_Damage(ents[i], NULL, ent, vec3_zero(), vec3_zero(), vec3_zero(), 999, 0, DMG_NO_GOD, MOD_TELEFRAG);
 
 			if (ents[i]->in_use && !ents[i]->locals.dead) {
 				break;
@@ -472,7 +461,7 @@ void G_KillBox(g_entity_t *ent) {
 
 	if (i < len) {
 		if (G_IsMeat(ent)) {
-			G_Damage(ent, NULL, ents[i], NULL, NULL, NULL, 999, 0, DMG_NO_GOD, MOD_ACT_OF_GOD);
+			G_Damage(ent, NULL, ents[i], vec3_zero(), vec3_zero(), vec3_zero(), 999, 0, DMG_NO_GOD, MOD_ACT_OF_GOD);
 		}
 	}
 }
@@ -481,7 +470,7 @@ void G_KillBox(g_entity_t *ent) {
  * @brief Kills the specified entity via explosion, potentially taking nearby
  * entities with it. Certain pickup items are reset after exploding.
  */
-void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, vec_t radius, uint32_t mod) {
+void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, float radius, uint32_t mod) {
 
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_EXPLOSION);
@@ -831,11 +820,11 @@ _Bool G_IsStationary(const g_entity_t *ent) {
 		return false;
 	}
 
-	if (!VectorCompare(vec3_zero().xyz, ent->locals.velocity)) {
+	if (!vec3_equal(vec3_zero(), ent->locals.velocity)) {
 		return false;
 	}
 
-	if (!VectorCompare(vec3_zero().xyz, ent->locals.avelocity)) {
+	if (!vec3_equal(vec3_zero(), ent->locals.avelocity)) {
 		return false;
 	}
 

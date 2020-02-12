@@ -136,11 +136,8 @@ void R_Screenshot_f(void) {
  * @brief Applies any image filtering that can not be done via GLSL.
  */
 void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
-	uint32_t color[3];
 
-	if (image->type == IT_DIFFUSE) { // compute average color
-		VectorClear(color);
-	}
+	s32vec3_t channels = s32vec3_zero();
 
 	const size_t pixels = image->width * image->height;
 	const size_t stride = format == GL_RGBA ? 4 : 3;
@@ -150,22 +147,23 @@ void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
 	for (size_t i = 0; i < pixels; i++, p += stride) {
 
 		if ((image->type & IT_MASK_MULTIPLY) && format == GL_RGBA) { // pre-multiplied alpha
-			VectorScale(p, p[3] / 255.0, p);
+			p[0] *= p[3] / 255.0;
+			p[1] *= p[3] / 255.0;
+			p[2] *= p[3] / 255.0;
 		}
 
 		if (image->type == IT_DIFFUSE) { // accumulate color
-			VectorAdd(color, p, color);
+			channels = s32vec3_add(channels, s32vec3(p[0], p[1], p[2]));
 		}
 	}
 
-	if (image->type == IT_DIFFUSE) { // average accumulated colors, normalize and brighten
-		VectorScale(color, 1.0 / pixels, color);
-		VectorScale(color, 1.0 / 255.0, image->color);
+	if (image->type == IT_DIFFUSE) { // average accumulated colors, normalize
+		vec3_t rgb = s32vec3_cast_vec3(channels);
 
-		const vec_t brightness = ColorNormalize(image->color, image->color);
-		if (brightness < 1.0) {
-			VectorScale(image->color, 1.0 / brightness, image->color);
-		}
+		rgb = vec3_scale(rgb, 1.f / pixels);
+		rgb = vec3_scale(rgb, 1.f / 255.f);
+
+		image->color = color_to_vec3(color3fv(rgb));
 	}
 }
 

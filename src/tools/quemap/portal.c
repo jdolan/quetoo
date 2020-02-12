@@ -210,8 +210,8 @@ void MakeHeadnodePortals(tree_t *tree) {
 
 	// pad with some space so there will never be null volume leafs
 	for (int32_t i = 0; i < 3; i++) {
-		bounds[0][i] = tree->mins[i] - SIDESPACE;
-		bounds[1][i] = tree->maxs[i] + SIDESPACE;
+		bounds[0].xyz[i] = tree->mins.xyz[i] - SIDESPACE;
+		bounds[1].xyz[i] = tree->maxs.xyz[i] + SIDESPACE;
 	}
 
 	tree->outside_node.plane_num = PLANE_NUM_LEAF;
@@ -228,11 +228,11 @@ void MakeHeadnodePortals(tree_t *tree) {
 
 			plane_t *plane = &p->plane;
 			if (j) {
-				plane->normal[i] = -1;
-				plane->dist = -bounds[j][i];
+				plane->normal.xyz[i] = -1;
+				plane->dist = -bounds[j].xyz[i];
 			} else {
-				plane->normal[i] = 1;
-				plane->dist = bounds[j][i];
+				plane->normal.xyz[i] = 1;
+				plane->dist = bounds[j].xyz[i];
 			}
 			p->winding = Cm_WindingForPlane(plane->normal, plane->dist);
 			AddPortalToNodes(p, tree->head_node, &tree->outside_node);
@@ -258,7 +258,6 @@ void MakeHeadnodePortals(tree_t *tree) {
  * @brief
  */
 static cm_winding_t *BaseWindingForNode(const node_t *node) {
-	vec3_t normal;
 
 	const plane_t *plane = &planes[node->plane_num];
 	cm_winding_t *w = Cm_WindingForPlane(plane->normal, plane->dist);
@@ -270,7 +269,7 @@ static cm_winding_t *BaseWindingForNode(const node_t *node) {
 		if (n->children[0] == node) { // take front
 			Cm_ClipWinding(&w, plane->normal, plane->dist, BASE_WINDING_EPSILON);
 		} else { // take back
-			VectorSubtract(vec3_zero().xyz, plane->normal, normal);
+			const vec3_t normal = vec3_negate(plane->normal);
 			Cm_ClipWinding(&w, normal, -plane->dist, BASE_WINDING_EPSILON);
 		}
 		node = n;
@@ -286,7 +285,7 @@ static cm_winding_t *BaseWindingForNode(const node_t *node) {
  */
 void MakeNodePortal(node_t *node) {
 	vec3_t normal;
-	dvec_t dist;
+	double dist;
 	int32_t side;
 
 	cm_winding_t *w = BaseWindingForNode(node);
@@ -295,11 +294,11 @@ void MakeNodePortal(node_t *node) {
 	for (const portal_t *p = node->portals; p && w; p = p->next[side]) {
 		if (p->nodes[0] == node) {
 			side = 0;
-			VectorCopy(p->plane.normal, normal);
+			normal = p->plane.normal;
 			dist = p->plane.dist;
 		} else if (p->nodes[1] == node) {
 			side = 1;
-			VectorSubtract(vec3_zero().xyz, p->plane.normal, normal);
+			normal = vec3_negate(p->plane.normal);
 			dist = -p->plane.dist;
 		} else {
 			Com_Error(ERROR_FATAL, "Mis-linked portal\n");
@@ -416,12 +415,14 @@ void SplitNodePortals(node_t *node) {
 static void CalcNodeBounds(node_t *node) {
 	int32_t s;
 
-	ClearBounds(node->mins, node->maxs);
+	node->mins = vec3_mins();
+	node->maxs = vec3_maxs();
 
 	for (portal_t *p = node->portals; p; p = p->next[s]) {
 		s = (p->nodes[1] == node);
 		for (int32_t i = 0; i < p->winding->num_points; i++) {
-			AddPointToBounds(p->winding->points[i], node->mins, node->maxs);
+			node->mins = vec3_minf(node->mins, p->winding->points[i]);
+			node->maxs = vec3_maxf(node->maxs, p->winding->points[i]);
 		}
 	}
 }
@@ -433,12 +434,12 @@ static void MakeTreePortals_r(node_t *node) {
 
 	CalcNodeBounds(node);
 
-	if (node->mins[0] >= node->maxs[0]) {
+	if (node->mins.x >= node->maxs.x) {
 		Com_Warn("Node without a volume, is your map centered?\n");
 	}
 
 	for (int32_t i = 0; i < 3; i++) {
-		if (node->mins[i] < -MAX_WORLD_COORD || node->maxs[i] > MAX_WORLD_COORD) {
+		if (node->mins.xyz[i] < -MAX_WORLD_COORD || node->maxs.xyz[i] > MAX_WORLD_COORD) {
 			Com_Warn("Node with unbounded volume, is your map centered?\n");
 			break;
 		}
@@ -494,7 +495,7 @@ static _Bool PlaceOccupant(node_t *head_node, vec3_t origin, const entity_t *occ
 	node_t *node = head_node;
 	while (node->plane_num != PLANE_NUM_LEAF) {
 		const plane_t *plane = &planes[node->plane_num];
-		const dvec_t d = DotProduct(origin, plane->normal) - plane->dist;
+		const double d = vec3_dot(origin, plane->normal) - plane->dist;
 		if (d >= 0.0) {
 			node = node->children[0];
 		} else {
@@ -528,10 +529,8 @@ _Bool FloodEntities(tree_t *tree) {
 			continue;
 		}
 
-		vec3_t origin;
-		VectorForKey(ent, "origin", origin, NULL);
-
-		VectorAdd(origin, vec3_up().xyz, origin);
+		vec3_t origin = VectorForKey(ent, "origin", vec3_zero());
+		origin = vec3_add(origin, vec3_up());
 
 		if (PlaceOccupant(tree->head_node, origin, ent)) {
 			inside_occupied = true;
@@ -770,7 +769,7 @@ static void FindPortalSide(portal_t *portal) {
 		return;
 	}
 
-	vec_t best_dot = 0.0;
+	float best_dot = 0.0;
 
 	for (int32_t j = 0; j < 2; j++) {
 		const node_t *n = portal->nodes[j];
@@ -799,7 +798,7 @@ static void FindPortalSide(portal_t *portal) {
 				const plane_t *p1 = &planes[portal->on_node->plane_num];
 				const plane_t *p2 = &planes[side->plane_num & ~1];
 
-				const vec_t dot = DotProduct(p1->normal, p2->normal);
+				const float dot = vec3_dot(p1->normal, p2->normal);
 				if (dot > best_dot) {
 					portal->side = side;
 					best_dot = dot;

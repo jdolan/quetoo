@@ -27,5 +27,5 @@
 void Ai_InitAnn(void);
 void Ai_ShutdownAnn(void);
 void Ai_Learn(const g_entity_t *ent, const pm_cmd_t *cmd);
-void Ai_Predict(const g_entity_t *ent, vec3_t dir);
+void Ai_Predict(const g_entity_t *ent, vec3_t *dir);
 #endif

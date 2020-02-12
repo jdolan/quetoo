@@ -63,9 +63,9 @@ static _Bool Cl_ValidDeltaEntity(const cl_frame_t *frame, const cl_entity_t *ent
 		return false;
 	}
 
-	VectorSubtract(ent->current.origin, to->origin, delta);
+	delta = vec3_subtract(ent->current.origin, to->origin);
 
-	if (VectorLength(delta) > MAX_DELTA_ORIGIN) {
+	if (vec3_length(delta) > MAX_DELTA_ORIGIN) {
 		return false;
 	}
 
@@ -92,8 +92,8 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, const entity_state_t *from, ui
 		ent->prev = *to; // copy the current state to the previous
 		ent->animation1.time = ent->animation2.time = 0;
 		ent->animation1.frame = ent->animation2.frame = -1;
-		VectorCopy(to->origin, ent->previous_origin);
-		ent->legs_yaw = to->angles[1];
+		ent->previous_origin = to->origin;
+		ent->legs_yaw = to->angles.y;
 	} else { // shuffle the last state to previous
 		ent->prev = ent->current;
 	}
@@ -324,8 +324,8 @@ static void Cl_UpdateLerp(void) {
 	if (no_lerp == false && cl.previous_frame) {
 		vec3_t delta;
 
-		VectorSubtract(cl.frame.ps.pm_state.origin, cl.previous_frame->ps.pm_state.origin, delta);
-		if (VectorLength(delta) > MAX_DELTA_ORIGIN) {
+		delta = vec3_subtract(cl.frame.ps.pm_state.origin, cl.previous_frame->ps.pm_state.origin);
+		if (vec3_length(delta) > MAX_DELTA_ORIGIN) {
 			Com_Debug(DEBUG_CLIENT, "%d No lerp\n", cl.frame.frame_num);
 			no_lerp = true;
 		}
@@ -344,7 +344,7 @@ static void Cl_UpdateLerp(void) {
 			cl.time = cl.frame.time - QUETOO_TICK_MILLIS;
 			cl.lerp = 0.0;
 		} else {
-			cl.lerp = 1.0 - (cl.frame.time - cl.time) / (vec_t) QUETOO_TICK_MILLIS;
+			cl.lerp = 1.0 - (cl.frame.time - cl.time) / (float) QUETOO_TICK_MILLIS;
 		}
 	}
 }
@@ -372,23 +372,23 @@ void Cl_Interpolate(void) {
 		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		cl_entity_t *ent = &cl.entities[cl.entity_states[snum].number];
 
-		if (!VectorCompare(ent->prev.origin, ent->current.origin)) {
-			VectorCopy(ent->origin, ent->previous_origin);
-			VectorLerp(ent->prev.origin, ent->current.origin, cl.lerp, ent->origin);
+		if (!vec3_equal(ent->prev.origin, ent->current.origin)) {
+			ent->previous_origin = ent->origin;
+			ent->origin = vec3_mix(ent->prev.origin, ent->current.origin, cl.lerp);
 		} else {
-			VectorCopy(ent->current.origin, ent->origin);
+			ent->origin = ent->current.origin;
 		}
 
-		if (!VectorCompare(ent->prev.termination, ent->current.termination)) {
-			VectorLerp(ent->prev.termination, ent->current.termination, cl.lerp, ent->termination);
+		if (!vec3_equal(ent->prev.termination, ent->current.termination)) {
+			ent->termination = vec3_mix(ent->prev.termination, ent->current.termination, cl.lerp);
 		} else {
-			VectorCopy(ent->current.termination, ent->termination);
+			ent->termination = ent->current.termination;
 		}
 
-		if (!VectorCompare(ent->prev.angles, ent->current.angles)) {
-			AnglesLerp(ent->prev.angles, ent->current.angles, cl.lerp, ent->angles);
+		if (!vec3_equal(ent->prev.angles, ent->current.angles)) {
+			ent->angles = vec3_mix_euler(ent->prev.angles, ent->current.angles, cl.lerp);
 		} else {
-			VectorCopy(ent->current.angles, ent->angles);
+			ent->angles = ent->current.angles;
 		}
 
 		if (ent->current.animation1 != ent->prev.animation1 || !ent->animation1.time) {
@@ -414,7 +414,7 @@ void Cl_Interpolate(void) {
 		}
 
 		if (ent->current.solid > SOLID_DEAD) {
-			const vec_t *angles;
+			vec3_t angles;
 
 			// FIXME
 			//
@@ -433,15 +433,17 @@ void Cl_Interpolate(void) {
 				assert(mod);
 				assert(mod->bsp_inline);
 
-				VectorCopy(mod->bsp_inline->mins, ent->mins);
-				VectorCopy(mod->bsp_inline->maxs, ent->maxs);
+				ent->mins = mod->bsp_inline->mins;
+				ent->maxs = mod->bsp_inline->maxs;
 			} else {
-				angles = vec3_zero().xyz;
-				UnpackBounds(ent->current.bounds, ent->mins, ent->maxs);
+				angles = vec3_zero();
+				
+				ent->mins = ent->current.mins;
+				ent->maxs = ent->current.maxs;
 			}
 
 			Cm_EntityBounds(ent->current.solid, ent->current.origin, angles, ent->mins, ent->maxs,
-			                ent->abs_mins, ent->abs_maxs);
+			                &ent->abs_mins, &ent->abs_maxs);
 
 			Matrix4x4_CreateFromEntity(&ent->matrix, ent->current.origin, angles, 1.0);
 			Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);

@@ -427,7 +427,7 @@ static size_t Parse_TypeSize(const parse_type_t type) {
  */
 static _Bool Parse_TypeParse(const parse_type_t type, const char *input, void *output) {
 	int32_t result;
-	static byte scan_buffer[sizeof(dvec_t)];
+	static byte scan_buffer[sizeof(double)];
 	const size_t type_size = Parse_TypeSize(type);
 
 	switch (type) {
@@ -442,10 +442,10 @@ static _Bool Parse_TypeParse(const parse_type_t type, const char *input, void *o
 		result = sscanf(input, "%" SCNi32, (int32_t *) scan_buffer);
 		break;
 	case PARSE_FLOAT:
-		result = sscanf(input, "%f", (vec_t *) scan_buffer);
+		result = sscanf(input, "%f", (float *) scan_buffer);
 		break;
 	case PARSE_DOUBLE:
-		result = sscanf(input, "%lf", (dvec_t *) scan_buffer);
+		result = sscanf(input, "%lf", (double *) scan_buffer);
 		break;
 	default:
 		result = 0;

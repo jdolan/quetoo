@@ -45,8 +45,8 @@ static void quickjoinAction(Control *control, const SDL_Event *event, ident send
 
 	JoinServerViewController *this = (JoinServerViewController *) sender;
 
-	const int32_t max_ping = Clamp(cg_quick_join_max_ping->integer, 0, 999);
-	const int32_t min_clients = Clamp(cg_quick_join_min_clients->integer, 0, MAX_CLIENTS);
+	const int32_t max_ping = clampf(cg_quick_join_max_ping->integer, 0, 999);
+	const int32_t min_clients = clampf(cg_quick_join_min_clients->integer, 0, MAX_CLIENTS);
 
 	uint32_t total_weight = 0;
 

@@ -26,7 +26,7 @@
 
 typedef struct {
 	vec3_t normal;
-	dvec_t dist;
+	double dist;
 } plane_t;
 
 typedef enum {
@@ -58,7 +58,7 @@ typedef struct {
 	/**
 	 * @brief The radius of the winding for this portal.
 	 */
-	vec_t radius;
+	float radius;
 
 	/**
 	 * @brief The winding for this portal.

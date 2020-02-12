@@ -58,14 +58,15 @@ const char *ValueForKey(const entity_t *ent, const char *key, const char *def) {
 /**
  * @brief
  */
-void VectorForKey(const entity_t *ent, const char *key, vec3_t out, const vec3_t def) {
+vec3_t VectorForKey(const entity_t *ent, const char *key, const vec3_t def) {
 
 	const char *value = ValueForKey(ent, key, NULL);
 	if (value) {
-		if (sscanf(value, "%f %f %f", &out[0], &out[1], &out[2]) == 3) {
-			return;
+		vec3_t out;
+		if (sscanf(value, "%f %f %f", &out.x, &out.y, &out.z) == 3) {
+			return out;
 		}
 	}
 
-	VectorCopy(def ?: vec3_zero().xyz, out);
+	return def;
 }

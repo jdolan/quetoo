@@ -144,13 +144,10 @@ static void Sv_ClientVisibility(const vec3_t org, byte *pvs, byte *phs) {
 	int32_t leafs[MAX_ENT_LEAFS];
 	int32_t clusters[MAX_ENT_CLUSTERS];
 	size_t num_clusters = 0;
-	vec3_t mins, maxs;
 
 	// spread the bounds to account for view offset
-	for (int32_t i = 0; i < 3; i++) {
-		mins[i] = org[i] - 16.0;
-		maxs[i] = org[i] + 16.0;
-	}
+	const vec3_t mins = vec3_add(org, vec3(-16.f, -16.f, -16.f));
+	const vec3_t maxs = vec3_add(org, vec3( 16.f,  16.f,  16.f));
 
 	const size_t len = Cm_BoxLeafnums(mins, maxs, leafs, lengthof(leafs), NULL, 0);
 	if (len == 0) {
@@ -203,7 +200,6 @@ static void Sv_ClientVisibility(const vec3_t org, byte *pvs, byte *phs) {
  * copies off the player state and area_bits.
  */
 void Sv_BuildClientFrame(sv_client_t *client) {
-	vec3_t org, off;
 
 	g_entity_t *cent = client->entity;
 	if (!cent->client) {
@@ -219,8 +215,8 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 
 	// find the client's PVS
 	const pm_state_t *pm = &cent->client->ps.pm_state;
-	UnpackVector(pm->view_offset, off);
-	VectorAdd(pm->origin, off, org);
+
+	const vec3_t org = vec3_add(pm->origin, pm->view_offset);
 
 	const int32_t leaf = Cm_PointLeafnum(org, 0);
 	const int32_t area = Cm_LeafArea(leaf);

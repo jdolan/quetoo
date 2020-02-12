@@ -53,8 +53,8 @@ static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
 		return;
 	}
 
-	VectorCopy(org, p->origin);
-	p->origin[2] += 50.0;
+	p->origin = org;
+	p->origin.z += 50.0;
 
 	cgi.ColorFromPalette(11, &p->color);
 
@@ -69,22 +69,22 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	e->effects = ent->current.effects;
 
 	if (e->effects & EF_ROTATE) {
-		const vec_t rotate = cgi.client->unclamped_time;
-		e->angles[YAW] = cg_entity_rotate->value * rotate / M_PI;
+		const float rotate = cgi.client->unclamped_time;
+		e->angles.y = cg_entity_rotate->value * rotate / M_PI;
 	}
 
 	if (e->effects & EF_BOB) {
-		VectorCopy(e->origin, e->termination);
-		const vec_t bob = sinf(cgi.client->unclamped_time * 0.005 + ent->current.number);
-		e->origin[2] += cg_entity_bob->value * bob;
+		e->termination = e->origin;
+		const float bob = sinf(cgi.client->unclamped_time * 0.005 + ent->current.number);
+		e->origin.z += cg_entity_bob->value * bob;
 	}
 
 	if (e->effects & EF_PULSE) {
-		const vec_t pulse = (cosf(cgi.client->unclamped_time * 0.0033 + ent->current.number) + 1.0);
-		const vec_t c = 1.0 - (cg_entity_pulse->value * 0.5 * pulse);
-		VectorSet(e->color, c, c, c);
+		const float pulse = (cosf(cgi.client->unclamped_time * 0.0033 + ent->current.number) + 1.0);
+		const float c = 1.0 - (cg_entity_pulse->value * 0.5 * pulse);
+		e->color = vec4(c, c, c, 1.f);
 	} else {
-		VectorSet(e->color, 1.0, 1.0, 1.0);
+		e->color = vec4(1.f, 1.f, 1.f, 1.f);
 	}
 
 	if (e->effects & EF_INACTIVE) {
@@ -93,55 +93,56 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 
 	if (e->effects & EF_RESPAWN) {
 		const vec3_t color = { 0.5, 0.5, 0.0 };
-		VectorMA(e->shell, 0.5, color, e->shell);
+		e->shell = vec3_add(e->shell, vec3_scale(color, 0.5));
 	}
 
 	if (e->effects & EF_QUAD) {
 		cg_light_t l = { .radius = 80.0, .color = { 0.3, 0.7, 0.7 } };
 
-		VectorCopy(e->origin, l.origin);
+		l.origin = e->origin;
 		Cg_AddLight(&l);
 
-		VectorMA(e->shell, 0.5, l.color, e->shell);
+		e->shell = vec3_add(e->shell, vec3_scale(l.color, 0.5));
 	}
 
 	if (e->effects & EF_CTF_RED) {
 		cg_light_t l = { .radius = 80.0, .color = { 1.0, 0.3, 0.3 } };
 
-		VectorCopy(e->origin, l.origin);
+		l.origin = e->origin;
 		Cg_AddLight(&l);
 
-		VectorMA(e->shell, 0.5, l.color, e->shell);
+		e->shell = vec3_add(e->shell, vec3_scale(l.color, 0.5));
 	}
 
 	if (e->effects & EF_CTF_BLUE) {
 		cg_light_t l = { .radius = 80.0, .color = { 0.3, 0.3, 1.0 } };
 
-		VectorCopy(e->origin, l.origin);
+		l.origin = e->origin;
 		Cg_AddLight(&l);
 
-		VectorMA(e->shell, 0.5, l.color, e->shell);
+		e->shell = vec3_add(e->shell, vec3_scale(l.color, 0.5));
 	}
 
 	if (e->effects & EF_CTF_GREEN) {
 		cg_light_t l = { .radius = 80.0, .color = { 0.3, 1.0, 0.3 } };
 
-		VectorCopy(e->origin, l.origin);
+		l.origin = e->origin;
 		Cg_AddLight(&l);
 
-		VectorMA(e->shell, 0.5, l.color, e->shell);
+		e->shell = vec3_add(e->shell, vec3_scale(l.color, 0.5));
 	}
 
 	if (e->effects & EF_CTF_ORANGE) {
 		cg_light_t l = { .radius = 80.0, .color = { 1.0, 0.7, 0.1 } };
 
-		VectorCopy(e->origin, l.origin);
+		l.origin = e->origin;
 		Cg_AddLight(&l);
 
-		VectorMA(e->shell, 0.5, l.color, e->shell);
+		e->shell = vec3_add(e->shell, vec3_scale(l.color, 0.5));
 	}
 
-	if (VectorNormalize(e->shell) > 0.0) {
+	if (vec3_length(e->shell) > 0.0) {
+		e->shell = vec3_normalize(e->shell);
 		e->effects |= EF_SHELL;
 	}
 
@@ -152,17 +153,17 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		}
 
 		e->effects |= (EF_BLEND | EF_NO_SHADOW);
-		e->color[3] = 1.0 - ((cgi.client->unclamped_time - ent->timestamp) / 3000.0);
+		e->color.w = 1.0 - ((cgi.client->unclamped_time - ent->timestamp) / 3000.0);
 	}
 
 	if (e->effects & EF_LIGHT) {
-		cg_light_t l = { .radius = ent->current.termination[0] };
+		cg_light_t l = { .radius = ent->current.termination.x };
 
-		VectorCopy(e->origin, l.origin);
+		l.origin = e->origin;
 
 		color_t color;
 		cgi.ColorFromPalette(ent->current.client, &color);
-		ColorToVec3(color, l.color);
+		l.color = color_to_vec3(color);
 
 		Cg_AddLight(&l);
 	}

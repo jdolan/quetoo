@@ -215,7 +215,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 				g_strlcat(in->buffer, tail, sizeof(in->buffer));
 				g_free(tail);
 
-				in->pos = Min(in->pos + strlen(text), sizeof(in->buffer) - 1);
+				in->pos = minf(in->pos + strlen(text), sizeof(in->buffer) - 1);
 			}
 			break;
 

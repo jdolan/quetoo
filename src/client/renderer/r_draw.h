@@ -23,16 +23,16 @@
 
 #include "r_types.h"
 
-void R_DrawImage(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image);
-void R_DrawImageRect(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image);
+void R_DrawImage(r_pixel_t x, r_pixel_t y, float scale, const r_image_t *image, const color_t color);
+void R_DrawImageRect(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image, const color_t color);
 void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch);
 r_pixel_t R_StringWidth(const char *s);
-size_t R_DrawString(r_pixel_t x, r_pixel_t y, const char *s, int32_t color);
-size_t R_DrawBytes(r_pixel_t x, r_pixel_t y, const char *s, size_t size, int32_t color);
-size_t R_DrawSizedString(r_pixel_t x, r_pixel_t y, const char *s, size_t len, size_t size, int32_t color);
-void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, int32_t color);
-void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, vec_t a);
-void R_DrawLines(const r_pixel_t *points, size_t count, int32_t c, vec_t a);
+size_t R_DrawString(r_pixel_t x, r_pixel_t y, const char *s, const color_t color);
+size_t R_DrawBytes(r_pixel_t x, r_pixel_t y, const char *s, size_t size, const color_t color);
+size_t R_DrawSizedString(r_pixel_t x, r_pixel_t y, const char *s, size_t len, size_t size, const color_t color);
+void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, const color_t color);
+void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const color_t color);
+void R_DrawLines(const r_pixel_t *points, size_t count, const color_t color);
 void R_Draw2D(void);
 
 #ifdef __R_LOCAL_H__

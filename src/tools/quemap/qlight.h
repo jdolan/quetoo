@@ -32,14 +32,14 @@
 extern _Bool antialias;
 extern _Bool indirect;
 
-extern vec_t brightness;
-extern vec_t saturation;
-extern vec_t contrast;
+extern float brightness;
+extern float saturation;
+extern float contrast;
 
 extern int16_t luxel_size;
 extern int16_t patch_size;
 
-extern vec_t radiosity;
+extern float radiosity;
 extern int32_t num_bounces;
 
 int32_t Light_ClusterPVS(const int32_t cluster, byte *pvs);

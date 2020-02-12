@@ -69,11 +69,8 @@ _Bool Cg_IsSelf(const cl_entity_t *ent) {
  */
 _Bool Cg_IsDucking(const cl_entity_t *ent) {
 
-	vec3_t mins, maxs;
-	UnpackBounds(ent->current.bounds, mins, maxs);
-
-	const vec_t standing_height = (PM_MAXS[2] - PM_MINS[2]) * PM_SCALE;
-	const vec_t height = maxs[2] - mins[2];
+	const float standing_height = (PM_MAXS.z - PM_MINS.z) * PM_SCALE;
+	const float height = ent->current.maxs.z - ent->current.mins.z;
 
 	return standing_height - height > PM_STOP_EPSILON;
 }
@@ -81,12 +78,12 @@ _Bool Cg_IsDucking(const cl_entity_t *ent) {
 /**
  * @brief Setup step interpolation.
  */
-void Cg_TraverseStep(cl_entity_step_t *step, uint32_t time, vec_t height) {
+void Cg_TraverseStep(cl_entity_step_t *step, uint32_t time, float height) {
 
 	const uint32_t delta = time - step->timestamp;
 
 	if (delta < step->interval) {
-		const vec_t lerp = (step->interval - delta) / (vec_t) step->interval;
+		const float lerp = (step->interval - delta) / (float) step->interval;
 		step->height = step->height * (1.0 - lerp) + height;
 	} else {
 		step->height = height;
@@ -104,7 +101,7 @@ void Cg_InterpolateStep(cl_entity_step_t *step) {
 	const uint32_t delta = cgi.client->unclamped_time - step->timestamp;
 
 	if (delta < step->interval) {
-		const vec_t lerp = (step->interval - delta) / (vec_t) step->interval;
+		const float lerp = (step->interval - delta) / (float) step->interval;
 		step->delta_height = lerp * step->height;
 	} else {
 		step->delta_height = 0.0;
@@ -140,7 +137,7 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 		Cg_InterpolateStep(&ent->step);
 
 		if (ent->step.delta_height) {
-			ent->origin[2] = ent->current.origin[2] - ent->step.delta_height;
+			ent->origin.z = ent->current.origin.z - ent->step.delta_height;
 		}
 
 		Cg_AnimateEntity(ent);
@@ -173,7 +170,7 @@ void Cg_ApplyMeshTag(r_entity_t *child, const r_entity_t *parent, const char *ta
 		return;
 	}
 
-	matrix4x4_t local, world;
+	mat4_t local, world;
 
 	Matrix4x4_Interpolate(&local, &t2->matrix, &t1->matrix, parent->back_lerp);
 	Matrix4x4_Normalize(&local, &local);
@@ -189,9 +186,9 @@ void Cg_ApplyMeshTag(r_entity_t *child, const r_entity_t *parent, const char *ta
 	// calculate final origin/angles
 	vec3_t forward;
 
-	Matrix4x4_ToVectors(&world, forward, NULL, NULL, child->origin);
+	Matrix4x4_ToVectors(&world, forward.xyz, NULL, NULL, child->origin.xyz);
 
-	VectorAngles(forward, child->angles);
+	child->angles = vec3_euler(forward);
 
 	child->scale = Matrix4x4_ScaleFromMatrix(&world);
 
@@ -212,8 +209,8 @@ r_entity_t *Cg_AddLinkedEntity(const r_entity_t *parent, const r_model_t *model,
 
 	r_entity_t ent = *parent;
 
-	VectorClear(ent.origin);
-	VectorClear(ent.angles);
+	ent.origin = vec3_zero();
+	ent.angles = vec3_zero();
 
 	ent.model = model;
 
@@ -275,23 +272,23 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		e->effects |= EF_NO_DRAW;
 
 		// keep our shadow underneath us using the predicted origin
-		e->origin[0] = cgi.view->origin[0];
-		e->origin[1] = cgi.view->origin[1];
+		e->origin.x = cgi.view->origin.x;
+		e->origin.y = cgi.view->origin.y;
 	} else {
 		Cg_BreathTrail(ent);
 	}
 
 	// set tints
 	if (ci->shirt.a) {
-		ColorToVec4(ci->shirt, e->tints[0]);
+		e->tints[0] = color_to_vec4(ci->shirt);
 	}
 
 	if (ci->pants.a) {
-		ColorToVec4(ci->pants, e->tints[1]);
+		e->tints[1] = color_to_vec4(ci->pants);
 	}
 
 	if (ci->helmet.a) {
-		ColorToVec4(ci->helmet, e->tints[2]);
+		e->tints[2] = color_to_vec4(ci->helmet);
 	}
 
 	r_entity_t head, torso, legs;
@@ -299,20 +296,20 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	// copy the specified entity to all body segments
 	head = torso = legs = *e;
 
-	vec_t leg_yaw_offset = 0.0;
+	float leg_yaw_offset = 0.0;
 
 	if ((ent->current.effects & EF_CORPSE) == 0) {
 		vec3_t right;
-		AngleVectors(legs.angles, NULL, right, NULL);
+		vec3_vectors(legs.angles, NULL, &right, NULL);
 
 		vec3_t move_dir;
-		VectorSubtract(ent->prev.origin, ent->current.origin, move_dir);
-		move_dir[2] = 0.0; // don't care about z, just x/y
+		move_dir = vec3_subtract(ent->prev.origin, ent->current.origin);
+		move_dir.z = 0.0; // don't care about z, just x/y
 
 		if (ent->animation2.animation < ANIM_LEGS_SWIM) {
-			if (VectorLength(move_dir) > CLIENT_LEGS_SPEED_EPSILON) {
-				VectorNormalize(move_dir);
-				leg_yaw_offset = DotProduct(move_dir, right) * CLIENT_LEGS_YAW_MAX;
+			if (vec3_length(move_dir) > CLIENT_LEGS_SPEED_EPSILON) {
+				move_dir = vec3_normalize(move_dir);
+				leg_yaw_offset = vec3_dot(move_dir, right) * CLIENT_LEGS_YAW_MAX;
 
 				if (ent->animation2.animation == ANIM_LEGS_BACK ||
 					ent->animation2.reverse) {
@@ -321,24 +318,24 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 			}
 		}
 
-		ent->legs_yaw = AngleLerp(ent->legs_yaw, leg_yaw_offset, CLIENT_LEGS_YAW_LERP_SPEED);
+		ent->legs_yaw = 0;//AngleLerp(ent->legs_yaw, leg_yaw_offset, CLIENT_LEGS_YAW_LERP_SPEED);
 	} else {
 		ent->legs_yaw = 0.0;
 	}
 
 	legs.model = ci->legs;
-	legs.angles[1] += ent->legs_yaw;
-	legs.angles[0] = legs.angles[2] = 0.0; // legs only use yaw
+	legs.angles.y += ent->legs_yaw;
+	legs.angles.x = legs.angles.z = 0.0; // legs only use yaw
 	memcpy(legs.skins, ci->legs_skins, sizeof(legs.skins));
 
 	torso.model = ci->torso;
-	VectorClear(torso.origin);
-	torso.angles[1] = -ent->legs_yaw; // legs twisted already, we just need to pitch/roll
+	torso.origin = vec3_zero();
+	torso.angles.y = -ent->legs_yaw; // legs twisted already, we just need to pitch/roll
 	memcpy(torso.skins, ci->torso_skins, sizeof(torso.skins));
 
 	head.model = ci->head;
-	VectorClear(head.origin);
-	head.angles[1] = 0.0; // legs twisted already, we just need to pitch/roll
+	head.origin = vec3_zero();
+	head.angles.y = 0.0; // legs twisted already, we just need to pitch/roll
 	// this is applied twice so head pivots on chest as well
 	memcpy(head.skins, ci->head_skins, sizeof(head.skins));
 
@@ -382,18 +379,18 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 /**
  * @brief Adds weapon bob due to running, walking, crouching, etc.
  */
-static void Cg_WeaponBob(const player_state_t *ps, vec3_t offset, vec3_t angles) {
+static void Cg_WeaponBob(const player_state_t *ps, vec3_t *offset, vec3_t *angles) {
 	const vec3_t bob = { 0.2, 0.4, 0.2 };
 
-	VectorMA(offset, cg_view.bob, bob, offset);
+	*offset = vec3_add(*offset, vec3_scale(bob, cg_view.bob));
 
-	angles[YAW] += 1.5 * cg_view.bob;
+	*angles = vec3_add(*angles, vec3(0.f, 1.5 * cg_view.bob, 0.f));
 }
 
 /**
  * @brief Calculates a kick offset and angles based on our player's animation state.
  */
-static void Cg_WeaponOffset(cl_entity_t *ent, vec3_t offset, vec3_t angles) {
+static void Cg_WeaponOffset(cl_entity_t *ent, vec3_t *offset, vec3_t *angles) {
 
 	const vec3_t drop_raise_offset = { -4.0, -4.0, -4.0 };
 	const vec3_t drop_raise_angles = { 25.0, -35.0, 2.0 };
@@ -401,70 +398,68 @@ static void Cg_WeaponOffset(cl_entity_t *ent, vec3_t offset, vec3_t angles) {
 	const vec3_t kick_offset = { -6.0, 0.0, 0.0 };
 	const vec3_t kick_angles = { -2.0, 0.0, 0.0 };
 
-	VectorClear(offset);
-	VectorClear(angles);
+	*offset = vec3_zero();
+	*angles = vec3_zero();
 
 	if (ent->animation1.animation == ANIM_TORSO_DROP) {
-		VectorMA(offset, ent->animation1.fraction, drop_raise_offset, offset);
-		VectorScale(drop_raise_angles, ent->animation1.fraction, angles);
+		*offset = vec3_add(*offset, vec3_scale(drop_raise_offset, ent->animation1.fraction));
+		*angles = vec3_scale(drop_raise_angles, ent->animation1.fraction);
 	} else if (ent->animation1.animation == ANIM_TORSO_RAISE) {
-		VectorMA(offset, 1.0 - ent->animation1.fraction, drop_raise_offset, offset);
-		VectorScale(drop_raise_angles, 1.0 - ent->animation1.fraction, angles);
+		*offset = vec3_add(*offset, vec3_scale(drop_raise_offset, 1.0 - ent->animation1.fraction));
+		*angles = vec3_scale(drop_raise_angles, 1.0 - ent->animation1.fraction);
 	} else if (ent->animation1.animation == ANIM_TORSO_ATTACK1) {
-		VectorMA(offset, 1.0 - ent->animation1.fraction, kick_offset, offset);
-		VectorScale(kick_angles, 1.0 - ent->animation1.fraction, angles);
+		*offset = vec3_add(*offset, vec3_scale(kick_offset, 1.0 - ent->animation1.fraction));
+		*angles = vec3_scale(kick_angles, 1.0 - ent->animation1.fraction);
 	}
 
-	VectorScale(offset, cg_bob->value, offset);
-	VectorScale(angles, cg_bob->value, angles);
+	*offset = vec3_scale(*offset, cg_bob->value);
+	*angles = vec3_scale(*angles, cg_bob->value);
 
-	offset[0] += cg_draw_weapon_x->value;
-	offset[1] += cg_draw_weapon_y->value;
-	offset[2] += cg_draw_weapon_z->value;
+	*offset = vec3_add(*offset, vec3(cg_draw_weapon_x->value, cg_draw_weapon_y->value, cg_draw_weapon_z->value));
 }
 
 /**
  * @brief Periodically calculates the player's velocity, and interpolates it
  * over a small interval to smooth out rapid changes.
  */
-static void Cg_SpeedModulus(const player_state_t *ps, vec3_t offset) {
+static void Cg_SpeedModulus(const player_state_t *ps, vec3_t *offset) {
 	static vec3_t old_speed, new_speed;
 	static uint32_t time;
 
 	if (cgi.client->unclamped_time < time) {
 		time = 0;
 
-		VectorClear(old_speed);
-		VectorClear(new_speed);
+		old_speed = vec3_zero();
+		new_speed = vec3_zero();
 	}
 
 	vec3_t speed;
 
 	const uint32_t delta = cgi.client->unclamped_time - time;
 	if (delta < 100) {
-		const vec_t lerp = delta / 100.0;
+		const float lerp = delta / 100.0;
 
-		speed[0] = old_speed[0] + lerp * (new_speed[0] - old_speed[0]);
-		speed[1] = old_speed[1] + lerp * (new_speed[1] - old_speed[1]);
-		speed[2] = old_speed[2] + lerp * (new_speed[2] - old_speed[2]);
+		speed.x = old_speed.x + lerp * (new_speed.x - old_speed.x);
+		speed.y = old_speed.y + lerp * (new_speed.y - old_speed.y);
+		speed.z = old_speed.z + lerp * (new_speed.z - old_speed.z);
 	} else {
-		VectorCopy(new_speed, old_speed);
+		old_speed = new_speed;
 
-		new_speed[0] = -Clamp(ps->pm_state.velocity[0] / 200.0, -1.0, 1.0);
-		new_speed[1] = -Clamp(ps->pm_state.velocity[1] / 200.0, -1.0, 1.0);
-		new_speed[2] = -Clamp(ps->pm_state.velocity[2] / 200.0, -0.3, 1.0);
+		new_speed.x = -clampf(ps->pm_state.velocity.x / 200.0, -1.0, 1.0);
+		new_speed.y = -clampf(ps->pm_state.velocity.y / 200.0, -1.0, 1.0);
+		new_speed.z = -clampf(ps->pm_state.velocity.z / 200.0, -0.3, 1.0);
 
-		VectorCopy(old_speed, speed);
+		speed = old_speed;
 
 		time = cgi.client->unclamped_time;
 	}
 
 	if (cg_draw_weapon_bob->modified) {
-		cg_draw_weapon_bob->value = Clamp(cg_draw_weapon_bob->value, 0.0, 2.0);
+		cg_draw_weapon_bob->value = clampf(cg_draw_weapon_bob->value, 0.0, 2.0);
 		cg_draw_weapon_bob->modified = false;
 	}
 
-	VectorScale(speed, cg_draw_weapon_bob->value, offset);
+	*offset = vec3_scale(speed, cg_draw_weapon_bob->value);
 }
 
 /**
@@ -501,52 +496,52 @@ static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 
 	// Weapon offset
 
-	Cg_WeaponOffset(ent, offset, angles);
+	Cg_WeaponOffset(ent, &offset, &angles);
 
-	VectorCopy(cgi.view->origin, w.origin);
+	w.origin = cgi.view->origin;
 
 	// Weapon bob
 
-	Cg_WeaponBob(ps, offset, angles);
+	Cg_WeaponBob(ps, &offset, &angles);
 
 	// Velocity swaying
 
-	Cg_SpeedModulus(ps, velocity);
+	Cg_SpeedModulus(ps, &velocity);
 
-	VectorAdd(w.origin, velocity, w.origin);
+	w.origin = vec3_add(w.origin, velocity);
 
 	// Hand
 
 	switch (cg_hand->integer) {
 		case HAND_LEFT:
-			offset[1] -= 5.0;
+			offset.y -= 5.0;
 			break;
 		case HAND_RIGHT:
-			offset[1] += 5.0;
+			offset.y += 5.0;
 			break;
 		default:
 			break;
 	}
 
-	VectorMA(w.origin, offset[2], cgi.view->up, w.origin);
-	VectorMA(w.origin, offset[1], cgi.view->right, w.origin);
-	VectorMA(w.origin, offset[0], cgi.view->forward, w.origin);
+	w.origin = vec3_add(w.origin, vec3_scale(cgi.view->up, offset.z));
+	w.origin = vec3_add(w.origin, vec3_scale(cgi.view->right, offset.y));
+	w.origin = vec3_add(w.origin, vec3_scale(cgi.view->forward, offset.x));
 
-	VectorAdd(cgi.view->angles, angles, w.angles);
+	w.angles = vec3_add(cgi.view->angles, angles);
 
 	// Copy state over to render entity
 
 	w.effects = EF_WEAPON | EF_NO_SHADOW;
 
-	VectorSet(w.color, 1.0, 1.0, 1.0);
+	w.color = vec4(1.0, 1.0, 1.0, 1.0);
 
 	if (cg_draw_weapon_alpha->value < 1.0) {
 		w.effects |= EF_BLEND;
-		w.color[3] = cg_draw_weapon_alpha->value;
+		w.color.w = cg_draw_weapon_alpha->value;
 	}
 
 	w.effects |= self->effects & EF_SHELL;
-	VectorCopy(self->shell, w.shell);
+	w.shell = self->shell;
 
 	w.model = cgi.client->model_precache[ps->stats[STAT_WEAPON]];
 
@@ -565,13 +560,14 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 	e.scale = 1.0;
 
 	// set the origin and angles so that we know where to add effects
-	VectorCopy(ent->origin, e.origin);
-	VectorCopy(ent->angles, e.angles);
+	e.origin = ent->origin;
+	e.angles = ent->angles;
 
 	// set the bounding box, according to the server, for debugging
 	if (ent->current.solid != SOLID_BSP) {
 		if (!Cg_IsSelf(ent) || cgi.client->third_person) {
-			UnpackBounds(ent->current.bounds, e.mins, e.maxs);
+			e.mins = ent->current.mins;
+			e.maxs = ent->current.maxs;
 		}
 	}
 

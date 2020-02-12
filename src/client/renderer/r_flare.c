@@ -41,12 +41,12 @@ void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_face_t *surf) {
 	surf->flare = Mem_LinkMalloc(sizeof(*surf->flare), bsp);
 
 	// move the flare away from the surface, into the level
-	VectorMix(surf->mins, surf->maxs, 0.5, center);
-	VectorMA(center, 2.0, surf->plane->normal, surf->flare->particle.org);
+	center = vec3_mix(surf->mins, surf->maxs, 0.5);
+	surf->flare->particle.org = vec3_add(center, vec3_scale(surf->plane->normal, 2.0);
 
 	// calculate the flare radius based on surface size
-	VectorSubtract(surf->maxs, surf->mins, span);
-	surf->flare->radius = VectorLength(span);
+	span = vec3_subtract(surf->maxs, surf->mins);
+	surf->flare->radius = vec3_length(span);
 
 	const r_stage_t *s = m->stages; // resolve the flare stage
 	while (s) {
@@ -62,9 +62,9 @@ void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_face_t *surf) {
 
 	// resolve flare color
 	if (s->cm->flags & STAGE_COLOR) {
-		VectorCopy(s->cm->color, surf->flare->particle.color);
+		surf->flare->particle.color = s->cm->color;
 	} else {
-		VectorCopy(surf->texinfo->material->diffuse->color, surf->flare->particle.color);
+		surf->flare->particle.color = surf->texinfo->material->diffuse->color;
 	}
 
 	// and scaled radius
@@ -113,22 +113,22 @@ void R_AddFlareBspFaces(const r_bsp_faces_t *surfs) {
 			cm_trace_t tr = Cl_Trace(r_view.origin, f->particle.org, NULL, NULL, 0, MASK_CLIP_PROJECTILE);
 
 			f->alpha += (tr.fraction == 1.0) ? 0.03 : -0.15; // ramp
-			f->alpha = Clamp(f->alpha, 0.0, 1.0); // clamp
+			f->alpha = clampf(f->alpha, 0.0, 1.0); // clamp
 
 			f->time = r_view.ticks;
 		}
 
 		vec3_t view;
-		VectorSubtract(f->particle.org, r_view.origin, view);
-		const vec_t dist = VectorNormalize(view);
+		view = vec3_subtract(f->particle.org, r_view.origin);
+		const float dist = view = vec3_normalize(view);
 
 		// fade according to angle
-		const vec_t cos = DotProduct(surf->plane->normal, view);
+		const float cos = vec3_dot(surf->plane->normal, view);
 		if (cos > 0.0) {
 			continue;
 		}
 
-		vec_t alpha = 0.1 + -cos * r_flares->value;
+		float alpha = 0.1 + -cos * r_flares->value;
 
 		if (alpha > 1.0) {
 			alpha = 1.0;

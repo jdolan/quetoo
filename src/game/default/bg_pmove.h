@@ -127,7 +127,7 @@
 #define PM_SNAP_DISTANCE		PM_GROUND_DIST
 
 /**
- * @brief Player bounding box scaling. VectorScale(PM_MINS, PM_SCALE, mins)..
+ * @brief Player bounding box scaling. mins = vec3_scale(PM_MINS, PM_SCALE)..
  */
 #define PM_SCALE 1.0
 
@@ -185,7 +185,7 @@ typedef struct {
 
 	pm_state_t s; // movement state (in / out)
 
-	vec_t hook_pull_speed; // hook pull speed (in)
+	float hook_pull_speed; // hook pull speed (in)
 
 	struct g_entity_s *touch_ents[PM_MAX_TOUCH_ENTS]; // entities touched (out)
 	uint16_t num_touch_ents;
@@ -198,7 +198,7 @@ typedef struct {
 	int32_t water_type; // water type and level (out)
 	pm_water_level_t water_level;
 
-	vec_t step; // traversed step height (out)
+	float step; // traversed step height (out)
 
 	// collision with the world and solid entities
 	int32_t (*PointContents)(const vec3_t point);

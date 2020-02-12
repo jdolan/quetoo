@@ -59,12 +59,12 @@ void LeakFile(tree_t *tree) {
 
 		// add the portal center
 		Cm_WindingCenter(next_portal->winding, point);
-		Fs_Print(file, "%f %f %f\n", point[0], point[1], point[2]);
+		Fs_Print(file, "%f %f %f\n", point.x, point.y, point.z);
 	}
 	
 	// add the entity origin
-	VectorForKey(node->occupant, "origin", point, NULL);
-	Fs_Print(file, "%f %f %f\n", point[0], point[1], point[2]);
+	point = VectorForKey(node->occupant, "origin", vec3_zero());
+	Fs_Print(file, "%f %f %f\n", point.x, point.y, point.z);
 
 	Fs_Close(file);
 }

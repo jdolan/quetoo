@@ -33,7 +33,7 @@ typedef struct {
 	/**
 	 * @brief View bob.
 	 */
-	vec_t bob;
+	float bob;
 } cg_view_t;
 
 extern cg_view_t cg_view;

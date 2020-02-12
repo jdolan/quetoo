@@ -55,8 +55,8 @@ typedef struct {
 	int32_t areas[2];
 	struct sv_sector_s *sector;
 
-	matrix4x4_t matrix;
-	matrix4x4_t inverse_matrix;
+	mat4_t matrix;
+	mat4_t inverse_matrix;
 } sv_entity_t;
 
 /**

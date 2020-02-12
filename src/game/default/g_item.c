@@ -157,7 +157,7 @@ static _Bool G_PickupQuadDamage(g_entity_t *ent, g_entity_t *other) {
 	uint32_t delta = 3000;
 
 	if (ent->locals.spawn_flags & SF_ITEM_DROPPED) { // receive only the time left
-		delta = Max(0, Step((ent->locals.next_think + 1000) - g_level.time, 1000));
+		delta = maxf(0, Step((ent->locals.next_think + 1000) - g_level.time, 1000));
 
 		other->client->locals.quad_damage_time = ent->locals.next_think;
 		other->client->locals.quad_countdown_time = ent->locals.next_think - delta;
@@ -381,17 +381,17 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 	if (new_armor->tag == ARMOR_SHARD) { // always take it, ignoring cap
 		if (current_armor) {
 			other->client->locals.inventory[current_armor->index] =
-			    Clamp(other->client->locals.inventory[current_armor->index] + new_armor->quantity,
+			    clampf(other->client->locals.inventory[current_armor->index] + new_armor->quantity,
 			          0, other->client->locals.max_armor);
 		} else {
 			other->client->locals.inventory[g_media.items.armor[ARMOR_JACKET]->index] =
-			    Clamp((int16_t) new_armor->quantity, 0, other->client->locals.max_armor);
+			    clampf((int16_t) new_armor->quantity, 0, other->client->locals.max_armor);
 		}
 
 		taken = true;
 	} else if (!current_armor) { // no current armor, take it
 		other->client->locals.inventory[new_armor->index] =
-		    Clamp((int16_t) new_armor->quantity, 0, other->client->locals.max_armor);
+		    clampf((int16_t) new_armor->quantity, 0, other->client->locals.max_armor);
 
 		taken = true;
 	} else {
@@ -400,32 +400,32 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 
 			// get the ratio between the new and old armor to add a portion to
 			// new armor pickup. Ganked from q2pro (thanks skuller)
-			const vec_t salvage = current_info->normal_protection / new_info->normal_protection;
+			const float salvage = current_info->normal_protection / new_info->normal_protection;
 			const int16_t salvage_count = salvage * other->client->locals.inventory[current_armor->index];
 
-			const int16_t new_count = Clamp(salvage_count + new_armor->quantity, 0, new_armor->max);
+			const int16_t new_count = clampf(salvage_count + new_armor->quantity, 0, new_armor->max);
 
 			if (new_count < other->client->locals.max_armor) {
 				other->client->locals.inventory[current_armor->index] = 0;
 
 				other->client->locals.inventory[new_armor->index] =
-				    Clamp(new_count, 0, other->client->locals.max_armor);
+				    clampf(new_count, 0, other->client->locals.max_armor);
 			}
 
 			taken = true;
 		} else {
 			// we picked up the same, or weaker
-			const vec_t salvage = new_info->normal_protection / current_info->normal_protection;
+			const float salvage = new_info->normal_protection / current_info->normal_protection;
 			const int16_t salvage_count = salvage * new_armor->quantity;
 
 			int16_t new_count = salvage_count + other->client->locals.inventory[current_armor->index];
-			new_count = Clamp(new_count, 0, current_armor->max);
+			new_count = clampf(new_count, 0, current_armor->max);
 
 			// take it
 			if (other->client->locals.inventory[current_armor->index] < new_count &&
 			        other->client->locals.inventory[current_armor->index] < other->client->locals.max_armor) {
 				other->client->locals.inventory[current_armor->index] =
-				    Clamp(new_count, 0, other->client->locals.max_armor);
+				    clampf(new_count, 0, other->client->locals.max_armor);
 
 				taken = true;
 			}
@@ -742,23 +742,19 @@ g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
 	g_entity_t *it = G_AllocEntity_(item->class_name);
 	it->owner = ent;
 
-	VectorScale(ITEM_MINS, ITEM_SCALE, it->mins);
-	VectorScale(ITEM_MAXS, ITEM_SCALE, it->maxs);
+	it->mins = vec3_scale(ITEM_MINS, ITEM_SCALE);
+	it->maxs = vec3_scale(ITEM_MAXS, ITEM_SCALE);
 
 	it->solid = SOLID_TRIGGER;
 
 	// resolve forward direction and project origin
 	if (ent->client && ent->locals.dead) {
-		vec3_t tmp;
-
-		VectorSet(tmp, 0.0, ent->client->locals.angles[1], 0.0);
-		AngleVectors(tmp, forward, NULL, NULL);
-
-		VectorMA(ent->s.origin, 24.0, forward, it->s.origin);
+		vec3_vectors(vec3(0.0, ent->client->locals.angles.y, 0.0), &forward, NULL, NULL);
+		it->s.origin = vec3_add(ent->s.origin, vec3_scale(forward, 24.0));
 	} else {
-		AngleVectors(ent->s.angles, forward, NULL, NULL);
-		VectorCopy(ent->s.origin, it->s.origin);
-		it->s.origin[2] -= it->mins[2];
+		vec3_vectors(ent->s.angles, &forward, NULL, NULL);
+		it->s.origin = ent->s.origin;
+		it->s.origin.z -= it->mins.z;
 	}
 
 	tr = gi.Trace(it->s.origin, it->s.origin, it->mins, it->maxs, ent, MASK_SOLID);
@@ -781,7 +777,7 @@ g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
 		}
 	}
 
-	VectorCopy(tr.end, it->s.origin);
+	it->s.origin = tr.end;
 
 	it->locals.spawn_flags |= SF_ITEM_DROPPED;
 	it->locals.move_type = MOVE_TYPE_BOUNCE;
@@ -798,8 +794,8 @@ g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
 		}
 	}
 
-	VectorScale(forward, 100.0, it->locals.velocity);
-	it->locals.velocity[2] = 300.0 + (Randomf() * 50.0);
+	it->locals.velocity = vec3_scale(forward, 100.0);
+	it->locals.velocity.z = 300.0 + (Randomf() * 50.0);
 
 	it->locals.Think = G_DropItem_Think;
 	it->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
@@ -838,8 +834,8 @@ static g_entity_t *G_TechEntity(const g_tech_t tech) {
 /**
  * @brief Returns the distance to the nearest enemy from the given spot.
  */
-static vec_t G_TechRangeFromSpot(const g_entity_t *spot) {
-	vec_t best_dist = FLT_MAX;
+static float G_TechRangeFromSpot(const g_entity_t *spot) {
+	float best_dist = FLT_MAX;
 	_Bool any = false;
 
 	for (g_tech_t i = TECH_HASTE; i < TECH_TOTAL; i++) {
@@ -850,8 +846,8 @@ static vec_t G_TechRangeFromSpot(const g_entity_t *spot) {
 			continue;
 		}
 
-		VectorSubtract(spot->s.origin, tech->s.origin, v);
-		const vec_t dist = VectorLength(v);
+		v = vec3_subtract(spot->s.origin, tech->s.origin);
+		const float dist = vec3_length(v);
 
 		if (dist < best_dist) {
 			best_dist = dist;
@@ -870,11 +866,11 @@ static vec_t G_TechRangeFromSpot(const g_entity_t *spot) {
 /**
  * @brief
  */
-static void G_SelectFarthestTechSpawnPoint(const g_spawn_points_t *spawn_points, g_entity_t **point, vec_t *point_dist) {
+static void G_SelectFarthestTechSpawnPoint(const g_spawn_points_t *spawn_points, g_entity_t **point, float *point_dist) {
 
 	for (size_t i = 0; i < spawn_points->count; i++) {
 		g_entity_t *spot = spawn_points->spots[i];
-		vec_t dist = G_TechRangeFromSpot(spot);
+		float dist = G_TechRangeFromSpot(spot);
 
 		if (dist > *point_dist) {
 			*point = spot;
@@ -887,7 +883,7 @@ static void G_SelectFarthestTechSpawnPoint(const g_spawn_points_t *spawn_points,
  * @brief
  */
 g_entity_t *G_SelectTechSpawnPoint(void) {
-	vec_t point_dist = -FLT_MAX;
+	float point_dist = -FLT_MAX;
 	g_entity_t *point = NULL;
 
 	if (g_level.teams || g_level.ctf) {
@@ -1030,8 +1026,8 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 	cm_trace_t tr;
 	vec3_t dest;
 
-	VectorClear(ent->locals.velocity);
-	VectorCopy(ent->s.origin, dest);
+	ent->locals.velocity = vec3_zero();
+	dest = ent->s.origin;
 
 	if (!(ent->locals.spawn_flags & SF_ITEM_HOVER)) {
 		ent->locals.move_type = MOVE_TYPE_BOUNCE;
@@ -1043,17 +1039,15 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 	if (tr.start_solid) {
 		// try thinner box
 		gi.Debug("%s in too small of a spot for large box, correcting..\n", etos(ent));
-		ent->maxs[2] /= 2.0;
+		ent->maxs.z /= 2.0;
 
 		tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, MASK_SOLID);
 		if (tr.start_solid) {
 
 			gi.Debug("%s still can't fit, trying Q2 box..\n", etos(ent));
 
-			for (int32_t i = 0; i < 3; i++) {
-				ent->maxs[i] -= 2.0;
-				ent->mins[i] += 2.0;
-			}
+			ent->mins = vec3_add(ent->mins, vec3(2.f, 2.f, 2.f));
+			ent->maxs = vec3_add(ent->maxs, vec3(-2.f, -2.f, -2.f));
 
 			// try Quake 2 box
 			tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, MASK_SOLID);
@@ -1061,7 +1055,7 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 
 				gi.Debug("%s trying higher, last attempt..\n", etos(ent));
 
-				ent->s.origin[2] += 8.0;
+				ent->s.origin.z += 8.0;
 
 				// make an effort to come up out of the floor (broken maps)
 				tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, MASK_SOLID);
@@ -1159,8 +1153,8 @@ void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
 	ent->locals.item = item;
 	G_PrecacheItem(ent->locals.item);
 
-	VectorScale(ITEM_MINS, ITEM_SCALE, ent->mins);
-	VectorScale(ITEM_MAXS, ITEM_SCALE, ent->maxs);
+	ent->mins = vec3_scale(ITEM_MINS, ITEM_SCALE);
+	ent->maxs = vec3_scale(ITEM_MAXS, ITEM_SCALE);
 
 	if (ent->model) {
 		ent->s.model1 = gi.ModelIndex(ent->model);

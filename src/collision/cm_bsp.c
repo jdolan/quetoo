@@ -69,10 +69,8 @@ static void Bsp_SwapTexinfos(void *lump, const int32_t num) {
 
 	for (int32_t i = 0; i < num; i++) {
 
-		for (int32_t j = 0; j < 4; j++) {
-			texinfo->vecs[0][j] = LittleFloat(texinfo->vecs[0][j]);
-			texinfo->vecs[1][j] = LittleFloat(texinfo->vecs[1][j]);
-		}
+		texinfo->vecs[0] = LittleVector4(texinfo->vecs[0]);
+		texinfo->vecs[1] = LittleVector4(texinfo->vecs[1]);
 
 		texinfo->flags = LittleLong(texinfo->flags);
 		texinfo->value = LittleLong(texinfo->value);
@@ -90,10 +88,7 @@ static void Bsp_SwapPlanes(void *lump, const int32_t num) {
 
 	for (int32_t i = 0; i < num; i++) {
 
-		for (int32_t j = 0; j < 3; j++) {
-			plane->normal[j] = LittleFloat(plane->normal[j]);
-		}
-
+		plane->normal = LittleVector3(plane->normal);
 		plane->dist = LittleFloat(plane->dist);
 
 		plane++;
@@ -142,17 +137,13 @@ static void Bsp_SwapVertexes(void *lump, const int32_t num) {
 
 	for (int32_t i = 0; i < num; i++) {
 
-		for (int32_t j = 0; j < 3; j++) {
-			vertex->position[j] = LittleFloat(vertex->position[j]);
-			vertex->normal[j] = LittleFloat(vertex->normal[j]);
-			vertex->tangent[j] = LittleFloat(vertex->tangent[j]);
-			vertex->bitangent[j] = LittleFloat(vertex->bitangent[j]);
-		}
+		vertex->position = LittleVector3(vertex->position);
+		vertex->normal = LittleVector3(vertex->normal);
+		vertex->tangent = LittleVector3(vertex->tangent);
+		vertex->bitangent = LittleVector3(vertex->bitangent);
 
-		for (int32_t j = 0; j < 2; j++) {
-			vertex->diffuse[j] = LittleFloat(vertex->diffuse[j]);
-			vertex->lightmap[j] = LittleFloat(vertex->diffuse[j]);
-		}
+		vertex->diffuse = LittleVector2(vertex->diffuse);
+		vertex->lightmap = LittleVector2(vertex->diffuse);
 
 		vertex->texinfo = LittleLong(vertex->texinfo);
 
@@ -201,12 +192,11 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
  */
 static void Bsp_SwapDrawElements(void *lump, const int32_t num) {
 
-	bsp_draw_elements_t *draw = (int32_t *) lump;
+	bsp_draw_elements_t *draw = (bsp_draw_elements_t *) lump;
 
 	for (int32_t i = 0; i < num; i++) {
 
 		draw->texinfo = LittleLong(draw->texinfo);
-		draw->lightmap = LittleLong(draw->lightmap);
 		draw->first_element = LittleLong(draw->first_element);
 		draw->num_elements = LittleLong(draw->num_elements);
 
@@ -227,10 +217,8 @@ static void Bsp_SwapNodes(void *lump, const int32_t num) {
 		node->children[0] = LittleLong(node->children[0]);
 		node->children[1] = LittleLong(node->children[1]);
 
-		for (int32_t j = 0; j < 3; j++) {
-			node->mins[j] = LittleShort(node->mins[j]);
-			node->maxs[j] = LittleShort(node->maxs[j]);
-		}
+		node->mins = LittleShortVector3(node->mins);
+		node->maxs = LittleShortVector3(node->maxs);
 
 		node->first_face = LittleLong(node->first_face);
 		node->num_faces = LittleLong(node->num_faces);
@@ -276,10 +264,8 @@ static void Bsp_SwapLeafs(void *lump, const int32_t num) {
 		leaf->cluster = LittleLong(leaf->cluster);
 		leaf->area = LittleLong(leaf->area);
 
-		for (int32_t j = 0; j < 3; j++) {
-			leaf->mins[j] = LittleShort(leaf->mins[j]);
-			leaf->maxs[j] = LittleShort(leaf->maxs[j]);
-		}
+		leaf->mins = LittleShortVector3(leaf->mins);
+		leaf->maxs = LittleShortVector3(leaf->maxs);
 
 		leaf->first_leaf_brush = LittleLong(leaf->first_leaf_brush);
 		leaf->num_leaf_brushes = LittleLong(leaf->num_leaf_brushes);
@@ -302,11 +288,8 @@ static void Bsp_SwapModels(void *lump, const int32_t num) {
 
 		model->head_node = LittleLong(model->head_node);
 
-		for (int32_t j = 0; j < 3; j++) {
-			model->mins[j] = LittleShort(model->mins[j]);
-			model->maxs[j] = LittleShort(model->maxs[j]);
-			model->origin[j] = LittleFloat(model->origin[j]);
-		}
+		model->mins = LittleShortVector3(model->mins);
+		model->maxs = LittleShortVector3(model->maxs);
 
 		model->first_face = LittleLong(model->first_face);
 		model->num_faces = LittleLong(model->num_faces);
@@ -373,7 +356,7 @@ static void Bsp_SwapLightmap(void *lump, const int32_t num) {
 
 	bsp_lightmap_t *lightmap = (bsp_lightmap_t *) lump;
 
-	lightmap->lump = LittleLong(lightmap->lump);
+	lightmap->width = LittleLong(lightmap->width);
 }
 
 /**
@@ -383,9 +366,7 @@ static void Bsp_SwapLightgrid(void *lump, const int32_t num) {
 
 	bsp_lightgrid_t *lightgrid = (bsp_lightgrid_t *) lump;
 
-	for (int32_t i = 0; i < 3; i++) {
-		lightgrid->size[i] = LittleLong(lightgrid->size[i]);
-	}
+	lightgrid->size = LittleLongVector3(lightgrid->size);
 }
 
 

@@ -43,7 +43,7 @@ static void Cl_UpdateViewSize(void) {
 		return;
 	}
 
-	Cvar_SetValue(cl_view_size->name, Clamp(cl_view_size->value, 40.0, 100.0));
+	Cvar_SetValue(cl_view_size->name, clampf(cl_view_size->value, 40.0, 100.0));
 
 	r_view.viewport.w = r_context.width * cl_view_size->value / 100.0;
 	r_view.viewport.h = r_context.height * cl_view_size->value / 100.0;

@@ -176,3 +176,13 @@ libthread_la_LDFLAGS = \
 	-shared
 libthread_la_LIBADD = \
 	libmem.la
+
+libvector_la_SOURCES = \
+	vector.c
+libvector_la_CFLAGS = \
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@
+libvector_la_LDFLAGS = \
+	-shared
+libvector_la_LIBADD = \
+	@BASE_LIBS@

@@ -26,7 +26,7 @@
  */
 typedef struct {
 	vec4_t position;
-	u8vec4_t color;
+	color_t color;
 } r_particle_vertex_t;
 
 /**
@@ -79,10 +79,8 @@ void R_AddParticle(const r_particle_t *p) {
 
 	r_particle_vertex_t *out = r_particles.particles + r_view.num_particles;
 
-	VectorCopy(p->origin, out->position);
-	out->position[3] = p->size;
-
-	*(int32_t *) &out->color = p->color.abgr;
+	out->position = vec3_to_vec4(p->origin, p->size);
+	out->color = p->color;
 
 	r_view.particles[r_view.num_particles++] = *p;
 }
