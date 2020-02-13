@@ -251,8 +251,8 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 			}
 		}
 
-		ci->legs->mins = vec3_scale(PM_MINS, PM_SCALE);
-		ci->legs->maxs = vec3_scale(PM_MAXS, PM_SCALE);
+		ci->legs->mins = Vec3_Scale(PM_MINS, PM_SCALE);
+		ci->legs->maxs = Vec3_Scale(PM_MAXS, PM_SCALE);
 
 		ci->legs->radius = (ci->legs->maxs.z - ci->legs->mins.z) / 2.0;
 
@@ -375,7 +375,7 @@ static void Cg_AnimateClientEntity_(const r_model_t *model, cl_entity_animation_
 	}
 
 	a->lerp = (elapsed_time % frame_duration) / (float) frame_duration;
-	a->fraction = clampf(elapsed_time / (float) animation_duration, 0.0, 1.0);
+	a->fraction = Clampf(elapsed_time / (float) animation_duration, 0.0, 1.0);
 }
 
 /**

@@ -38,10 +38,10 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
 			break;
 		}
 
-		p->origin = vec3_add(org, vec3_random_range(-8.f, 8.f));
+		p->origin = Vec3_Add(org, Vec3_RandomRange(-8.f, 8.f));
 		p->origin.z += 8.f;
 
-		p->velocity = vec3_random_range(-48.0, 48.0);
+		p->velocity = Vec3_RandomRange(-48.0, 48.0);
 		p->velocity.z = fabsf(p->velocity.z);
 
 		p->acceleration.z = -PARTICLE_GRAVITY * 0.1;
@@ -58,7 +58,7 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
 	cg_light_t l;
 	l.origin = org;
 	l.radius = 80.0;
-	l.color = vec3(0.9, 0.9, 0.9);
+	l.color = Vec3(0.9, 0.9, 0.9);
 	l.decay = 1000;
 
 	Cg_AddLight(&l);
@@ -79,10 +79,10 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
 			break;
 		}
 
-		p->origin = vec3_add(org, vec3_random_range(-8.0, 8.0));
+		p->origin = Vec3_Add(org, Vec3_RandomRange(-8.0, 8.0));
 		p->origin.z += 8.f;
 
-		p->velocity = vec3_random_range(-16.f, 16.f);
+		p->velocity = Vec3_RandomRange(-16.f, 16.f);
 		p->velocity.z += 100.f;
 
 		p->acceleration.z = PARTICLE_GRAVITY * 0.2;
@@ -99,7 +99,7 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
 	cg_light_t l;
 	l.origin = org;
 	l.radius = 80.0;
-	l.color = vec3(0.9, 1.0, 1.0);
+	l.color = Vec3(0.9, 1.0, 1.0);
 	l.decay = 1000;
 
 	Cg_AddLight(&l);
@@ -120,11 +120,11 @@ static void Cg_TeleporterEffect(const vec3_t org) {
 			break;
 		}
 
-		p->origin = vec3_add(org, vec3_random_range(-16.f, 16.f));
-		p->origin.z += random_range(8.f, 32.f);
+		p->origin = Vec3_Add(org, Vec3_RandomRange(-16.f, 16.f));
+		p->origin.z += RandomRangef(8.f, 32.f);
 
-		p->velocity = vec3_random_range(-24.f, 24.f);
-		p->velocity.z = random_range(16.f, 48.f);
+		p->velocity = Vec3_RandomRange(-24.f, 24.f);
+		p->velocity.z = RandomRangef(16.f, 48.f);
 
 		p->acceleration.z = -PARTICLE_GRAVITY * 0.1;
 
@@ -140,7 +140,7 @@ static void Cg_TeleporterEffect(const vec3_t org) {
 	cg_light_t l;
 	l.origin = org;
 	l.radius = 120.0;
-	l.color = vec3(0.9, 0.9, 0.9);
+	l.color = Vec3(0.9, 0.9, 0.9);
 	l.decay = 1000;
 
 	Cg_AddLight(&l);
@@ -214,7 +214,7 @@ static s_sample_t *Cg_Footstep(cl_entity_t *ent) {
 	vec3_t end = start;
 	end.z -= PM_STEP_HEIGHT;
 
-	cm_trace_t tr = cgi.Trace(start, end, vec3_zero(), vec3_zero(), ent->current.number, MASK_SOLID);
+	cm_trace_t tr = cgi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent->current.number, MASK_SOLID);
 
 	if (tr.fraction < 1.0 && tr.surface && tr.surface->material && *tr.surface->material->footsteps) {
 		footsteps = tr.surface->material->footsteps;

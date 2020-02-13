@@ -385,7 +385,7 @@ typedef struct {
 	/**
 	 * @brief The lightgrid size in luxels.
 	 */
-	s32vec3_t size;
+	vec3i_t size;
 
 	/**
 	 * @brief The lightgrid bounds in world space.

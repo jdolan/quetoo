@@ -34,10 +34,10 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 			break;
 		}
 
-		p->origin = vec3_add(org, dir);
+		p->origin = Vec3_Add(org, dir);
 
-		p->velocity = vec3_scale(dir, 150.0);
-		p->velocity = vec3_add(p->velocity, vec3_random_range(-50.0, 50.0));
+		p->velocity = Vec3_Scale(dir, 150.0);
+		p->velocity = Vec3_Add(p->velocity, Vec3_RandomRange(-50.0, 50.0));
 		p->acceleration.z -= 2.0 * PARTICLE_GRAVITY;
 
 		p->lifetime = 450 + g_random_double_range(0., 450.);
@@ -52,7 +52,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 	}
 
 	Cg_AddLight(&(const cg_light_t) {
-		.origin = vec3_add(org, dir),
+		.origin = Vec3_Add(org, dir),
 		.radius = 150.0,
 		.color = ColorToVector3(color),
 		.decay = 350
@@ -83,11 +83,11 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 
 		p->origin = start;
 
-		p->velocity = vec3_subtract(end, start);
-		p->velocity = vec3_add(p->velocity, vec3_scale(p->velocity, 4.0)); // Ghetto indeed
+		p->velocity = Vec3_Subtract(end, start);
+		p->velocity = Vec3_Add(p->velocity, Vec3_Scale(p->velocity, 4.0)); // Ghetto indeed
 		p->acceleration.z = -PARTICLE_GRAVITY * 3.0;
 
-		p->lifetime = 0.1 * vec3_distance(start, end); // 0.1ms per unit in distance
+		p->lifetime = 0.1 * Vec3_Distance(start, end); // 0.1ms per unit in distance
 
 		p->color.r = 255;
 		p->color.g = 220;
@@ -108,16 +108,16 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	vec3_t vec;
 
 	if (cgi.PointContents(org) & MASK_LIQUID) {
-		vec = vec3_add(org, vec3_scale(dir, 8.0));
+		vec = Vec3_Add(org, Vec3_Scale(dir, 8.0));
 		Cg_BubbleTrail(org, vec, 32.0);
 	} else {
 		while (k--) {
 			if ((p = Cg_AllocParticle())) {
 
 				p->origin = org;
-				p->velocity = vec3_scale(dir, 180.0 + Randomf() * 40.0);
+				p->velocity = Vec3_Scale(dir, 180.0 + Randomf() * 40.0);
 
-				p->acceleration = vec3_random_range(-40.f, -40.f);
+				p->acceleration = Vec3_RandomRange(-40.f, -40.f);
 				p->acceleration.z -= PARTICLE_GRAVITY;
 
 				p->bounce = 1.5;
@@ -133,9 +133,9 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 		if ((p = Cg_AllocParticle())) {
 
 			p->origin = org;
-			p->velocity = vec3_scale(dir, 60.0 + (Randomc() * 60.0));
-			p->acceleration = vec3_scale(dir, -80.0);
-			p->acceleration = vec3_add(p->acceleration, vec3_scale(vec3_up(), 20.0));
+			p->velocity = Vec3_Scale(dir, 60.0 + (Randomc() * 60.0));
+			p->acceleration = Vec3_Scale(dir, -80.0);
+			p->acceleration = Vec3_Add(p->acceleration, Vec3_Scale(Vec3_Up(), 20.0));
 
 			p->lifetime = 150 + Randomf() * 600;
 
@@ -148,7 +148,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	}
 
 	Cg_AddLight(&(const cg_light_t) {
-		.origin = vec3_add(org, dir),
+		.origin = Vec3_Add(org, dir),
 		.radius = 20.0,
 		.color = { 0.5, 0.3, 0.2 },
 		.decay = 250
@@ -190,10 +190,10 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 			break;
 		}
 
-		p->origin = vec3_add(org, vec3_random_range(-10.f, 10.f));
-		p->origin = vec3_add(p->origin, vec3_scale(dir, g_random_double_range(0., 32.)));
+		p->origin = Vec3_Add(org, Vec3_RandomRange(-10.f, 10.f));
+		p->origin = Vec3_Add(p->origin, Vec3_Scale(dir, g_random_double_range(0., 32.)));
 
-		p->velocity = vec3_random_range(-30., 30.);
+		p->velocity = Vec3_RandomRange(-30., 30.);
 		p->acceleration.z = -PARTICLE_GRAVITY / 2.0;
 
 		p->lifetime = 100 + Randomf() * 500;
@@ -234,15 +234,15 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 	for (int32_t i = 0; i < count; i++) {
 
 		// set the origin and velocity for each gib stream
-		o = vec3(Randomc() * 8.0, Randomc() * 8.0, 8.0 + Randomc() * 12.0);
-		o = vec3_add(o, org);
+		o = Vec3(Randomc() * 8.0, Randomc() * 8.0, 8.0 + Randomc() * 12.0);
+		o = Vec3_Add(o, org);
 
-		v = vec3(Randomc(), Randomc(), 0.2 + Randomf());
+		v = Vec3(Randomc(), Randomc(), 0.2 + Randomf());
 
 		dist = GIB_STREAM_DIST;
-		tmp = vec3_add(o, vec3_scale(v, dist));
+		tmp = Vec3_Add(o, Vec3_Scale(v, dist));
 
-		const cm_trace_t tr = cgi.Trace(o, tmp, vec3_zero(), vec3_zero(), 0, MASK_CLIP_PROJECTILE);
+		const cm_trace_t tr = cgi.Trace(o, tmp, Vec3_Zero(), Vec3_Zero(), 0, MASK_CLIP_PROJECTILE);
 		dist = GIB_STREAM_DIST * tr.fraction;
 
 		for (int32_t j = 1; j < GIB_STREAM_COUNT; j++) {
@@ -253,8 +253,8 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 
 			p->origin = o;
 
-			p->velocity = vec3_scale(v, dist * ((float)j / GIB_STREAM_COUNT));
-			p->velocity = vec3_add(p->velocity, vec3_random_range(-2.f, 2.f));
+			p->velocity = Vec3_Scale(v, dist * ((float)j / GIB_STREAM_COUNT));
+			p->velocity = Vec3_Add(p->velocity, Vec3_RandomRange(-2.f, 2.f));
 			p->velocity.z += 100.f;
 
 			p->acceleration.z = -PARTICLE_GRAVITY * 2.0;
@@ -295,11 +295,11 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 			break;
 		}
 
-		p->origin = vec3_add(org, vec3_random_range(-4.f, 4.f));
+		p->origin = Vec3_Add(org, Vec3_RandomRange(-4.f, 4.f));
 
-		p->velocity = vec3_add(vec3_scale(dir, 4.f), vec3_random_range(-90.f, 90.f));
+		p->velocity = Vec3_Add(Vec3_Scale(dir, 4.f), Vec3_RandomRange(-90.f, 90.f));
 
-		p->acceleration = vec3_random_range(-1.f, 1.f);
+		p->acceleration = Vec3_RandomRange(-1.f, 1.f);
 		p->acceleration.z += -0.5 * PARTICLE_GRAVITY;
 
 		p->lifetime = 500 + Randomf() * 250;
@@ -342,8 +342,8 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 				break;
 			}
 
-			p->origin = vec3_add(org, vec3_random_range(-10.f, 10.f));
-			p->velocity = vec3_random_range(-180.f, 180.f);
+			p->origin = Vec3_Add(org, Vec3_RandomRange(-10.f, 10.f));
+			p->velocity = Vec3_RandomRange(-180.f, 180.f);
 			p->acceleration.z = -PARTICLE_GRAVITY * 2.0;
 			p->lifetime = 200 + Randomf() * 300;
 
@@ -394,8 +394,8 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 
 			p->origin = org;
 
-			p->velocity = vec3_multiply(dir, vec3_random_range(20.f, 140.f));
-			p->velocity = vec3_add(p->velocity, vec3_random_range(-16.f, 16.f));
+			p->velocity = Vec3_Multiply(dir, Vec3_RandomRange(20.f, 140.f));
+			p->velocity = Vec3_Add(p->velocity, Vec3_RandomRange(-16.f, 16.f));
 
 			p->acceleration.z = -PARTICLE_GRAVITY * 2.0;
 
@@ -412,7 +412,7 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 	}
 
 	Cg_AddLight(&(const cg_light_t) {
-		.origin = vec3_add(org, dir),
+		.origin = Vec3_Add(org, dir),
 		.radius = 80.0,
 		.color = { 0.4, 0.7, 1.0 },
 		.decay = 250
@@ -427,7 +427,7 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_hyperblaster_hit,
-		.origin = vec3_add(org, dir),
+		.origin = Vec3_Add(org, dir),
 		.attenuation = ATTEN_NORM,
 		.flags = S_PLAY_POSITIONED
 	});
@@ -439,7 +439,7 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 static void Cg_LightningDischargeEffect(const vec3_t org) {
 
 	for (int32_t i = 0; i < 40; i++) {
-		Cg_BubbleTrail(org, vec3_add(org, vec3_random_range(-48.f, 48.f)), 4.0);
+		Cg_BubbleTrail(org, Vec3_Add(org, Vec3_RandomRange(-48.f, 48.f)), 4.0);
 	}
 
 	Cg_AddLight(&(const cg_light_t) {
@@ -474,13 +474,13 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 	point = start;
 
-	vec = vec3_subtract(end, start);
+	vec = Vec3_Subtract(end, start);
 
 	float len;
-	vec = vec3_normalize_length(vec, &len);
+	vec = Vec3_NormalizeLength(vec, &len);
 
-	right = vec3(vec.z, -vec.x, vec.y);
-	up = vec3_cross(vec, right);
+	right = Vec3(vec.z, -vec.x, vec.y);
+	up = Vec3_Cross(vec, right);
 
 	for (int32_t i = 0; i < len; i++) {
 
@@ -488,21 +488,21 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 			break;
 		}
 
-		point = vec3_add(point, vec);
+		point = Vec3_Add(point, vec);
 		p->origin = point;
 
-		p->velocity = vec3_scale(vec, 20.0);
+		p->velocity = Vec3_Scale(vec, 20.0);
 
 		const float cosi = cosf(i * 0.03);
 		const float sini = sinf(i * 0.03);
 
-		p->origin = vec3_add(p->origin, vec3_scale(right, cosi * 1.0));
-		p->origin = vec3_add(p->origin, vec3_scale(up, sini * 1.0));
+		p->origin = Vec3_Add(p->origin, Vec3_Scale(right, cosi * 1.0));
+		p->origin = Vec3_Add(p->origin, Vec3_Scale(up, sini * 1.0));
 
-		p->velocity = vec3_add(p->velocity, vec3_scale(right, cosi * 10.0));
-		p->velocity = vec3_add(p->velocity, vec3_scale(up, sini * 10.0));
+		p->velocity = Vec3_Add(p->velocity, Vec3_Scale(right, cosi * 10.0));
+		p->velocity = Vec3_Add(p->velocity, Vec3_Scale(up, sini * 10.0));
 
-		p->acceleration = vec3_add(right, up);
+		p->acceleration = Vec3_Add(right, up);
 
 		p->lifetime = 1500 + Randomf() * 50;
 
@@ -519,7 +519,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		}
 
 		p->origin = point;
-		p->velocity = vec3_scale(vec, 20.0);
+		p->velocity = Vec3_Scale(vec, 20.0);
 
 		p->lifetime = 1500 + Randomf() * 50;
 
@@ -556,8 +556,8 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 			p->origin = end;
 
-			p->velocity = vec3_scale(dir, 400.0 + Randomf() * 200);
-			p->velocity = vec3_add(p->velocity, vec3_random_range(-100.f, 100.f));
+			p->velocity = Vec3_Scale(dir, 400.0 + Randomf() * 200);
+			p->velocity = Vec3_Add(p->velocity, Vec3_RandomRange(-100.f, 100.f));
 
 			p->acceleration.z = -PARTICLE_GRAVITY * 2.0;
 
@@ -571,7 +571,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 	// Impact light
 
-	l.origin = vec3_add(end, vec3_scale(vec, -12.0));
+	l.origin = Vec3_Add(end, Vec3_Scale(vec, -12.0));
 	l.radius = 120.0;
 	l.decay += 250;
 
@@ -604,7 +604,7 @@ static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
 
 	l.origin = end;
 	l.radius = 80.0;
-	l.color = vec3(0.8, 1.0, 0.5);
+	l.color = Vec3(0.8, 1.0, 0.5);
 	l.decay = 50;
 
 	Cg_AddLight(&l);
@@ -622,9 +622,9 @@ static void Cg_BfgEffect(const vec3_t org) {
 			break;
 		}
 
-		p->origin = vec3_add(org, vec3_random_range(-24.f, 24.f));
-		p->velocity = vec3_random_range(-256.f, 256.f);
-		p->acceleration = vec3(0.0, 0.0, -3.0 * PARTICLE_GRAVITY);
+		p->origin = Vec3_Add(org, Vec3_RandomRange(-24.f, 24.f));
+		p->velocity = Vec3_RandomRange(-256.f, 256.f);
+		p->acceleration = Vec3(0.0, 0.0, -3.0 * PARTICLE_GRAVITY);
 
 		p->lifetime = 750;
 
@@ -696,11 +696,11 @@ static void Cg_SplashEffect(const vec3_t org, const vec3_t dir) {
 			break;
 		}
 
-		p->origin = vec3_add(org, vec3_random_range(-8.f, 8.f));
-		p->velocity = vec3_random_range(-64.f, 64.f);
+		p->origin = Vec3_Add(org, Vec3_RandomRange(-8.f, 8.f));
+		p->velocity = Vec3_RandomRange(-64.f, 64.f);
 		p->velocity.z += 36.f;
 
-		p->acceleration = vec3(0.0, 0.0, -PARTICLE_GRAVITY / 2.0);
+		p->acceleration = Vec3(0.0, 0.0, -PARTICLE_GRAVITY / 2.0);
 
 		p->lifetime = 250 + Randomc() * 150;
 
@@ -715,10 +715,10 @@ static void Cg_SplashEffect(const vec3_t org, const vec3_t dir) {
 
 		p->origin = org;
 
-		p->velocity = vec3_scale(dir, 70.0 + Randomf() * 30.0);
-		p->velocity = vec3_add(p->velocity, vec3_random_range(-8.f, 8.f));
+		p->velocity = Vec3_Scale(dir, 70.0 + Randomf() * 30.0);
+		p->velocity = Vec3_Add(p->velocity, Vec3_RandomRange(-8.f, 8.f));
 
-		p->acceleration = vec3(0.0, 0.0, -PARTICLE_GRAVITY / 2.0);
+		p->acceleration = Vec3(0.0, 0.0, -PARTICLE_GRAVITY / 2.0);
 
 		p->lifetime = 120 + Randomf() * 80;
 
@@ -741,9 +741,9 @@ static void Cg_HookImpactEffect(const vec3_t org, const vec3_t dir) {
 			break;
 		}
 
-		p->origin = vec3_add(org, vec3_random_range(-4.f, 4.f));
-		p->velocity = vec3_add(vec3_scale(dir, 9.f), vec3_random_range(-90.f, 90.f));
-		p->acceleration = vec3_random_range(-2.f, 2.f);
+		p->origin = Vec3_Add(org, Vec3_RandomRange(-4.f, 4.f));
+		p->velocity = Vec3_Add(Vec3_Scale(dir, 9.f), Vec3_RandomRange(-90.f, 90.f));
+		p->acceleration = Vec3_RandomRange(-2.f, 2.f);
 		p->acceleration.z += -0.5 * PARTICLE_GRAVITY;
 
 		p->lifetime = 100 + (Randomf() * 150);
@@ -755,7 +755,7 @@ static void Cg_HookImpactEffect(const vec3_t org, const vec3_t dir) {
 	}
 
 	Cg_AddLight(&(const cg_light_t) {
-		.origin = vec3_add(org, dir),
+		.origin = Vec3_Add(org, dir),
 		.radius = 80.0,
 		.color = { 0.7, 0.5, 0.5 },
 		.decay = 850

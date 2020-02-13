@@ -63,7 +63,7 @@ void LeakFile(tree_t *tree) {
 	}
 	
 	// add the entity origin
-	point = VectorForKey(node->occupant, "origin", vec3_zero());
+	point = VectorForKey(node->occupant, "origin", Vec3_Zero());
 	Fs_Print(file, "%f %f %f\n", point.x, point.y, point.z);
 
 	Fs_Close(file);

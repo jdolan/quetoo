@@ -73,17 +73,17 @@ _Bool R_LeafHearable(const r_bsp_leaf_t *leaf) {
 static _Bool R_CullBspEntity(const r_entity_t *e) {
 	vec3_t mins, maxs;
 
-	if (!vec3_equal(e->angles, vec3_zero())) {
-		const vec3_t radius = vec3(e->model->radius,
+	if (!Vec3_Equal(e->angles, Vec3_Zero())) {
+		const vec3_t radius = Vec3(e->model->radius,
 								   e->model->radius,
 								   e->model->radius);
 
-		mins = vec3_subtract(e->origin, radius);
-		maxs = vec3_add(e->origin, radius);
+		mins = Vec3_Subtract(e->origin, radius);
+		maxs = Vec3_Add(e->origin, radius);
 
 	} else {
-		mins = vec3_add(e->origin, e->model->mins);
-		maxs = vec3_add(e->origin, e->model->maxs);
+		mins = Vec3_Add(e->origin, e->model->mins);
+		maxs = Vec3_Add(e->origin, e->model->maxs);
 	}
 
 	return R_CullBox(mins, maxs);
@@ -112,8 +112,8 @@ void R_UpdateVis(void) {
 		memset(r_locals.vis_data_phs, 0x00, sizeof(r_locals.vis_data_phs));
 
 		vec3_t mins, maxs;
-		mins = vec3_add(r_view.origin, ((vec3_t) { -2.f, -2.f, -4.f }));
-		maxs = vec3_add(r_view.origin, ((vec3_t) {  2.f,  2.f,  4.f }));
+		mins = Vec3_Add(r_view.origin, ((vec3_t) { -2.f, -2.f, -4.f }));
+		maxs = Vec3_Add(r_view.origin, ((vec3_t) {  2.f,  2.f,  4.f }));
 
 		const size_t count = Cm_BoxLeafnums(mins, maxs, leafs, lengthof(leafs), NULL, 0);
 		for (size_t i = 0; i < count; i++) {

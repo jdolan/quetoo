@@ -113,7 +113,7 @@ static void Sv_SetConfigString(const uint16_t index, const char *val) {
 		Net_WriteShort(&sv.multicast, index);
 		Net_WriteString(&sv.multicast, val);
 
-		Sv_Multicast(vec3_zero(), MULTICAST_ALL_R, NULL);
+		Sv_Multicast(Vec3_Zero(), MULTICAST_ALL_R, NULL);
 	}
 }
 

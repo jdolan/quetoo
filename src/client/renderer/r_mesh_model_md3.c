@@ -330,8 +330,8 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 			
 			out->translate = frame.translate;
 
-			mod->mins = vec3_minf(mod->mins, out->mins);
-			mod->maxs = vec3_maxf(mod->maxs, out->maxs);
+			mod->mins = Vec3_Minf(mod->mins, out->mins);
+			mod->maxs = Vec3_Maxf(mod->maxs, out->maxs);
 		}
 	}
 
@@ -409,7 +409,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
 						const d_md3_vertex_t vertex = R_SwapMd3Vertex(in_vertex);
 
-						out_vertex->position = vec3_scale(s16vec3_cast_vec3(vertex.point), MD3_XYZ_SCALE);
+						out_vertex->position = Vec3_Scale(Vec3s_CastVec3(vertex.point), MD3_XYZ_SCALE);
 
 						float lat = (vertex.norm >> 8) & 0xff;
 						float lon = (vertex.norm & 0xff);

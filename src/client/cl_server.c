@@ -98,7 +98,7 @@ void Cl_ParseServerInfo(void) {
 		server->clients = atoi(info[3]);
 		server->max_clients = atoi(info[4]);
 
-		server->ping = clampf(quetoo.ticks - server->ping_time, 1u, 999u);
+		server->ping = Clampf(quetoo.ticks - server->ping_time, 1u, 999u);
 		server->error[0] = '\0';
 
 	} else {

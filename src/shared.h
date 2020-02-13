@@ -413,12 +413,9 @@ typedef enum {
 int32_t Step(int32_t value, int32_t step);
 
 int32_t Random(void); // 0 to (2^32)-1
-float Randomf(void); // 0.0 to 1.0
 float Randomc(void); // -1.0 to 1.0
 float Randomfr(const float min, const float max); // min to max
 int32_t Randomr(const int32_t min, const int32_t max); // min to max
-
-float AngleLerp(float from, float to, const float frac);
 
 /**
  * @brief A table of approximate normal vectors is used to save bandwidth when

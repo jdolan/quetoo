@@ -130,7 +130,7 @@ void Cg_FreeParticles(void) {
  */
 static vec3_t Cg_ClipVelocity(const vec3_t in, const vec3_t normal, float bounce) {
 
-	float backoff = vec3_dot(in, normal);
+	float backoff = Vec3_Dot(in, normal);
 
 	if (backoff < 0.0) {
 		backoff *= bounce;
@@ -138,7 +138,7 @@ static vec3_t Cg_ClipVelocity(const vec3_t in, const vec3_t normal, float bounce
 		backoff /= bounce;
 	}
 
-	return vec3_subtract(in, vec3_scale(normal, backoff));
+	return Vec3_Subtract(in, Vec3_Scale(normal, backoff));
 }
 
 /**
@@ -161,11 +161,11 @@ void Cg_AddParticles(void) {
 			vec3_t old_origin;
 			old_origin = p->origin;
 
-			p->velocity = vec3_add(p->velocity, vec3_scale(p->acceleration, delta));
-			p->origin = vec3_add(p->origin, vec3_scale(p->velocity, delta));
+			p->velocity = Vec3_Add(p->velocity, Vec3_Scale(p->acceleration, delta));
+			p->origin = Vec3_Add(p->origin, Vec3_Scale(p->velocity, delta));
 
 			if (p->bounce && cg_particle_quality->integer) {
-				const cm_trace_t tr = cgi.Trace(old_origin, p->origin, vec3_zero(), vec3_zero(), 0, MASK_SOLID);
+				const cm_trace_t tr = cgi.Trace(old_origin, p->origin, Vec3_Zero(), Vec3_Zero(), 0, MASK_SOLID);
 				if (tr.fraction < 1.0) {
 					p->velocity = Cg_ClipVelocity(p->velocity, tr.plane.normal, p->bounce);
 					p->origin = tr.end;
@@ -174,7 +174,7 @@ void Cg_AddParticles(void) {
 
 			for (size_t i = 0; i < lengthof(p->color.bytes); i++) {
 				const int32_t byte = p->color.bytes[i] + (int8_t) p->delta_color.bytes[i];
-				p->color.bytes[i] = clampf(byte, 0, 255);
+				p->color.bytes[i] = Clampf(byte, 0, 255);
 			}
 
 			p->size += p->delta_size;

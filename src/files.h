@@ -47,7 +47,7 @@ typedef struct {
 } d_md3_texcoord_t;
 
 typedef struct {
-	s16vec3_t point;
+	vec3s_t point;
 	int16_t norm;
 } d_md3_vertex_t;
 

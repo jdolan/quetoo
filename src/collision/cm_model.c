@@ -238,8 +238,8 @@ static void Cm_LoadBspInlineModels(void) {
 
 		out->head_node = in->head_node;
 
-		out->mins = s16vec3_cast_vec3(in->mins);
-		out->maxs = s16vec3_cast_vec3(in->maxs);
+		out->mins = Vec3s_CastVec3(in->mins);
+		out->maxs = Vec3s_CastVec3(in->maxs);
 	}
 }
 

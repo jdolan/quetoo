@@ -55,8 +55,8 @@ _Bool R_CullMeshEntity(const r_entity_t *e) {
 
 	// calculate scaled bounding box in world space
 
-	mins = vec3_add(e->origin, vec3_scale(e->model->mins, e->scale));
-	maxs = vec3_add(e->origin, vec3_scale(e->model->maxs, e->scale));
+	mins = Vec3_Add(e->origin, Vec3_Scale(e->model->mins, e->scale));
+	maxs = Vec3_Add(e->origin, Vec3_Scale(e->model->maxs, e->scale));
 
 	return R_CullBox(mins, maxs);
 }

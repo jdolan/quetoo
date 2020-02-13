@@ -47,7 +47,7 @@ void Cg_ResolveWeather(const char *weather) {
 
 	cgi.view->weather = WEATHER_NONE;
 
-	cgi.view->fog = vec4(0.75, 0.75, 0.75, 1.0);
+	cgi.view->fog = Vec4(0.75, 0.75, 0.75, 1.0);
 
 	if (!weather || *weather == '\0') {
 		return;
@@ -75,7 +75,7 @@ void Cg_ResolveWeather(const char *weather) {
 		}
 
 		if (err != 3 && err != 4) { // default to gray
-			cgi.view->fog = vec4(0.75, 0.75, 0.75, 1.0);
+			cgi.view->fog = Vec4(0.75, 0.75, 0.75, 1.0);
 		}
 	}
 }
@@ -91,15 +91,15 @@ static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_face_t *s) {
 
 	// resolve the leaf for the point just in front of the surface
 
-	center = vec3_mix(s->mins, s->maxs, 0.5);
-	center = vec3_add(center, vec3_scale(s->plane->normal, 1.0));
+	center = Vec3_Mix(s->mins, s->maxs, 0.5);
+	center = Vec3_Add(center, Vec3_Scale(s->plane->normal, 1.0));
 
 	e->leaf = cgi.LeafForPoint(center, bsp);
 
 	// resolve the number of origins based on surface area
-	delta = vec3_subtract(s->maxs, s->mins);
-	e->num_origins = vec3_length(delta) / 32.0;
-	e->num_origins = clampf(e->num_origins, 1, 128);
+	delta = Vec3_Subtract(s->maxs, s->mins);
+	e->num_origins = Vec3_Length(delta) / 32.0;
+	e->num_origins = Clampf(e->num_origins, 1, 128);
 
 	e->origins = cgi.Malloc(sizeof(vec4_t) * e->num_origins, MEM_TAG_CGAME_LEVEL);
 
@@ -109,15 +109,15 @@ static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_face_t *s) {
 
 		// randomize the origin over the surface
 
-		vec3_t org = vec3_add(s->mins, vec3_scale(delta, Randomf()));
-		org = vec3_add(org, s->plane->normal);
+		vec3_t org = Vec3_Add(s->mins, Vec3_Scale(delta, Randomf()));
+		org = Vec3_Add(org, s->plane->normal);
 
 		vec3_t end = org;
 		end.z -= MAX_WORLD_DIST;
 
-		cm_trace_t trace = cgi.Trace(org, end, vec3_zero(), vec3_zero(), 0, MASK_CLIP_PROJECTILE | MASK_LIQUID);
+		cm_trace_t trace = cgi.Trace(org, end, Vec3_Zero(), Vec3_Zero(), 0, MASK_CLIP_PROJECTILE | MASK_LIQUID);
 
-		*origin = vec3_to_vec4(org, trace.end.z);
+		*origin = Vec3_ToVec4(org, trace.end.z);
 	}
 
 	// push on to the linked list
@@ -181,7 +181,7 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 
 		const vec4_t origin = *(e->origins + i);
 
-		p->origin = vec3_add(vec4_xyz(origin), vec3_random_range(-16.f, 16.f));
+		p->origin = Vec3_Add(Vec4_XYZ(origin), Vec3_RandomRange(-16.f, 16.f));
 
 		// keep particle z origin relatively close to the view origin
 		if (origin.w < cgi.view->origin.z) {
@@ -196,18 +196,18 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 			p->color = Color4bv(0x90909080);
 			p->size = 1.0;
 
-			p->velocity = vec3_random_range(-2.f, 2.f);
+			p->velocity = Vec3_RandomRange(-2.f, 2.f);
 			p->velocity.z -= 600.f;
 
-			p->acceleration = vec3_random_range(-2.f, 2.f);
+			p->acceleration = Vec3_RandomRange(-2.f, 2.f);
 		} else {
 			p->color = Color4bv(0xf0f0f090);
 			p->size = 1.5;
 
-			p->velocity = vec3_random_range(-12.f, 12.f);
+			p->velocity = Vec3_RandomRange(-12.f, 12.f);
 			p->velocity.z -= 120.0;
 
-			p->acceleration = vec3_random_range(-12.f, 12.f);
+			p->acceleration = Vec3_RandomRange(-12.f, 12.f);
 		}
 
 		// free the particle roughly when it will reach the floor

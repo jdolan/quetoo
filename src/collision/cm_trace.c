@@ -83,10 +83,10 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
 		const cm_bsp_plane_t *plane = side->plane;
 
-		const float dist = plane->dist - vec3_dot(data->offsets[plane->sign_bits], plane->normal);
+		const float dist = plane->dist - Vec3_Dot(data->offsets[plane->sign_bits], plane->normal);
 
-		const float d1 = vec3_dot(data->start, plane->normal) - dist;
-		const float d2 = vec3_dot(data->end, plane->normal) - dist;
+		const float d1 = Vec3_Dot(data->start, plane->normal) - dist;
+		const float d2 = Vec3_Dot(data->end, plane->normal) - dist;
 
 		if (d2 > 0.0) {
 			end_outside = true; // end point is not in solid
@@ -134,7 +134,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		}
 	} else if (enter_fraction < leave_fraction) { // pierced brush
 		if (enter_fraction > -1.0 && enter_fraction < data->trace.fraction) {
-			data->trace.fraction = maxf(0.0, enter_fraction);
+			data->trace.fraction = Maxf(0.0, enter_fraction);
 			data->trace.plane = *clip_plane;
 			data->trace.surface = clip_side->surface;
 			data->trace.contents = brush->contents;
@@ -160,9 +160,9 @@ static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush
 	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
 		const cm_bsp_plane_t *plane = side->plane;
 
-		const float dist = plane->dist - vec3_dot(data->offsets[plane->sign_bits], plane->normal);
+		const float dist = plane->dist - Vec3_Dot(data->offsets[plane->sign_bits], plane->normal);
 
-		const float d1 = vec3_dot(data->start, plane->normal) - dist;
+		const float d1 = Vec3_Dot(data->start, plane->normal) - dist;
 
 		// if completely in front of face, no intersection
 		if (d1 > 0.0) {
@@ -272,8 +272,8 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float 
 		d2 = p2.xyz[plane->type] - plane->dist;
 		offset = data->extents.xyz[plane->type];
 	} else {
-		d1 = vec3_dot(plane->normal, p1) - plane->dist;
-		d2 = vec3_dot(plane->normal, p2) - plane->dist;
+		d1 = Vec3_Dot(plane->normal, p1) - plane->dist;
+		d2 = Vec3_Dot(plane->normal, p2) - plane->dist;
 		if (data->is_point) {
 			offset = 0.0;
 		} else
@@ -315,20 +315,20 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float 
 	vec3_t mid;
 
 	// move up to the node
-	frac1 = clampf(frac1, 0.0, 1.0);
+	frac1 = Clampf(frac1, 0.0, 1.0);
 
 	const float midf1 = p1f + (p2f - p1f) * frac1;
 
-	mid = vec3_mix(p1, p2, frac1);
+	mid = Vec3_Mix(p1, p2, frac1);
 
 	Cm_TraceToNode(data, node->children[side], p1f, midf1, p1, mid);
 
 	// go past the node
-	frac2 = clampf(frac2, 0.0, 1.0);
+	frac2 = Clampf(frac2, 0.0, 1.0);
 
 	const float midf2 = p1f + (p2f - p1f) * frac2;
 
-	mid = vec3_mix(p1, p2, frac2);
+	mid = Vec3_Mix(p1, p2, frac2);
 
 	Cm_TraceToNode(data, node->children[side ^ 1], midf2, p2f, mid, p2);
 }
@@ -365,7 +365,7 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,const vec3_t mins, c
 	data.contents = contents;
 
 	// check for point special case
-	if (vec3_equal(data.mins, vec3_zero()) && vec3_equal(data.maxs, vec3_zero())) {
+	if (Vec3_Equal(data.mins, Vec3_Zero()) && Vec3_Equal(data.maxs, Vec3_Zero())) {
 		data.is_point = true;
 	} else {
 		data.is_point = false;
@@ -420,7 +420,7 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,const vec3_t mins, c
 	}
 
 	// check for position test special case
-	if (vec3_equal(start, end)) {
+	if (Vec3_Equal(start, end)) {
 		int32_t leafs[MAX_ENTITIES];
 
 		const size_t len = Cm_BoxLeafnums(data.box_mins, data.box_maxs, leafs, lengthof(leafs),
@@ -445,7 +445,7 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,const vec3_t mins, c
 	} else if (data.trace.fraction == 1.0) {
 		data.trace.end = end;
 	} else {
-		data.trace.end = vec3_mix(start, end, data.trace.fraction);
+		data.trace.end = Vec3_Mix(start, end, data.trace.fraction);
 	}
 
 	return data.trace;
@@ -490,12 +490,12 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end,
 
 		Matrix4x4_TransformPositivePlane(matrix, n.x, n.y, n.z, p->dist, plane.xyzw);
 
-		trace.plane.normal = vec4_xyz(plane);
+		trace.plane.normal = Vec4_XYZ(plane);
 		trace.plane.dist = plane.w;
 	}
 
 	// and calculate the final end point
-	trace.end = vec3_mix(start, end, trace.fraction);
+	trace.end = Vec3_Mix(start, end, trace.fraction);
 
 	return trace;
 }
@@ -514,7 +514,7 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end,
 void Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angles,
                      const vec3_t mins, const vec3_t maxs, vec3_t *bounds_mins, vec3_t *bounds_maxs) {
 
-	if (solid == SOLID_BSP && !vec3_equal(angles, vec3_zero())) {
+	if (solid == SOLID_BSP && !Vec3_Equal(angles, Vec3_Zero())) {
 		float max = 0.0;
 
 		for (int32_t i = 0; i < 3; i++) {
@@ -527,11 +527,11 @@ void Cm_EntityBounds(const solid_t solid, const vec3_t origin, const vec3_t angl
 				max = v;
 			}
 		}
-		*bounds_mins = vec3_add(origin, vec3(-max, -max, -max));
-		*bounds_maxs = vec3_add(origin, vec3(max, max, max));
+		*bounds_mins = Vec3_Add(origin, Vec3(-max, -max, -max));
+		*bounds_maxs = Vec3_Add(origin, Vec3(max, max, max));
 	} else {
-		*bounds_mins = vec3_add(origin, mins);
-		*bounds_maxs = vec3_add(origin, maxs);
+		*bounds_mins = Vec3_Add(origin, mins);
+		*bounds_maxs = Vec3_Add(origin, maxs);
 	}
 
 	// spread the bounds to ensure that floating point precision doesn't preclude us from

@@ -127,7 +127,7 @@ static void R_DrawBspLightgrid(void) {
 					.color = { MIN(r, 255), MIN(g, 255), MIN(b, 255), 255 },
 				};
 
-				p.origin = vec3_add(r_model_state.world->bsp->lightgrid->mins, vec3_scale(p.origin, BSP_LIGHTGRID_LUXEL_SIZE));
+				p.origin = Vec3_Add(r_model_state.world->bsp->lightgrid->mins, Vec3_Scale(p.origin, BSP_LIGHTGRID_LUXEL_SIZE));
 
 				R_AddParticle(&p);
 			}

@@ -45,7 +45,7 @@ static void G_ClientDamage(g_entity_t *ent) {
 				l = 100;
 			}
 
-			const vec3_t org = vec3_add(client->ps.pm_state.origin, client->ps.pm_state.view_offset);
+			const vec3_t org = Vec3_Add(client->ps.pm_state.origin, client->ps.pm_state.view_offset);
 
 			gi.PositionedSound(org, ent, gi.SoundIndex(va("*pain%i_1", l)), ATTEN_NORM, 0);
 		}
@@ -83,8 +83,8 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 
 	// same water level, head out of water
 	if ((old_water_level == water_level) && (water_level > WATER_FEET && water_level < WATER_UNDER)) {
-		if (vec3_length(ent->locals.velocity) > 10.0) {
-			G_Ripple(ent, vec3_zero(), vec3_zero(), 0.0, false);
+		if (Vec3_Length(ent->locals.velocity) > 10.0) {
+			G_Ripple(ent, Vec3_Zero(), Vec3_Zero(), 0.0, false);
 		}
 	}
 
@@ -93,7 +93,7 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 		// head just coming out of water, play a gasp if we were down for a while
 		if (old_water_level == WATER_UNDER && water_level != WATER_UNDER && (client->locals.drown_time - g_level.time) < 8000) {
 
-			const vec3_t org = vec3_add(client->ps.pm_state.origin, client->ps.pm_state.view_offset);
+			const vec3_t org = Vec3_Add(client->ps.pm_state.origin, client->ps.pm_state.view_offset);
 
 			gi.PositionedSound(org, ent, gi.SoundIndex("*gasp_1"), ATTEN_NORM, 0);
 		}
@@ -124,7 +124,7 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 				client->locals.pain_time = g_level.time;
 
 				// and apply the damage
-				G_Damage(ent, NULL, NULL, vec3_zero(), vec3_zero(), vec3_zero(), ent->locals.damage, 0, DMG_NO_ARMOR, MOD_WATER);
+				G_Damage(ent, NULL, NULL, Vec3_Zero(), Vec3_Zero(), Vec3_Zero(), ent->locals.damage, 0, DMG_NO_ARMOR, MOD_WATER);
 			}
 		}
 	}
@@ -144,11 +144,11 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 			}
 
 			if (ent->locals.water_type & CONTENTS_LAVA) {
-				G_Damage(ent, NULL, NULL, vec3_zero(), vec3_zero(), vec3_zero(), 12 * water_level, 0, DMG_NO_ARMOR, MOD_LAVA);
+				G_Damage(ent, NULL, NULL, Vec3_Zero(), Vec3_Zero(), Vec3_Zero(), 12 * water_level, 0, DMG_NO_ARMOR, MOD_LAVA);
 			}
 
 			if (ent->locals.water_type & CONTENTS_SLIME) {
-				G_Damage(ent, NULL, NULL, vec3_zero(), vec3_zero(), vec3_zero(), 6 * water_level, 0, DMG_NO_ARMOR, MOD_SLIME);
+				G_Damage(ent, NULL, NULL, Vec3_Zero(), Vec3_Zero(), Vec3_Zero(), 6 * water_level, 0, DMG_NO_ARMOR, MOD_SLIME);
 			}
 		}
 	}
@@ -171,7 +171,7 @@ static void G_ClientWorldAngles(g_entity_t *ent) {
 	ent->s.angles.y = ent->client->locals.angles.y;
 
 	// set roll based on lateral velocity and ground entity
-	const float dot = vec3_dot(ent->locals.velocity, ent->client->locals.right);
+	const float dot = Vec3_Dot(ent->locals.velocity, ent->client->locals.right);
 
 	ent->s.angles.z = ent->locals.ground_entity ? dot * 0.015 : dot * 0.005;
 
@@ -193,10 +193,10 @@ void G_ClientDamageKick(g_entity_t *ent, const vec3_t dir, const float kick) {
 
 	ndir = vec3_normalize(dir);
 
-	const float pitch = vec3_dot(ndir, ent->client->locals.forward) * kick;
+	const float pitch = Vec3_Dot(ndir, ent->client->locals.forward) * kick;
 	ent->client->locals.kick_angles.x += pitch;
 
-	const float roll = vec3_dot(ndir, ent->client->locals.right) * kick;
+	const float roll = Vec3_Dot(ndir, ent->client->locals.right) * kick;
 	ent->client->locals.kick_angles.z += roll;
 }
 
@@ -226,14 +226,14 @@ static void G_ClientKickAngles(g_entity_t *ent) {
 			break;
 	}
 
-	if (!vec3_equal(ent->client->locals.kick_angles, vec3_zero())) {
+	if (!Vec3_Equal(ent->client->locals.kick_angles, Vec3_Zero())) {
 		gi.WriteByte(SV_CMD_VIEW_KICK);
 		gi.WriteAngle(ent->client->locals.kick_angles.x);
 		gi.WriteAngle(ent->client->locals.kick_angles.z);
 		gi.Unicast(ent, false);
 	}
 
-	ent->client->locals.kick_angles = vec3_zero();
+	ent->client->locals.kick_angles = Vec3_Zero();
 }
 
 /**
@@ -304,10 +304,10 @@ static void G_ClientAnimation(g_entity_t *ent) {
 
 		vec3_t forward;
 		
-		const vec3_t euler = vec3(0.0, ent->s.angles.y, 0.0);
-		vec3_vectors(euler, &forward, NULL, NULL);
+		const vec3_t euler = Vec3(0.0, ent->s.angles.y, 0.0);
+		Vec3_Vectors(euler, &forward, NULL, NULL);
 
-		const _Bool backwards = vec3_dot(ent->locals.velocity, forward) < -0.1;
+		const _Bool backwards = Vec3_Dot(ent->locals.velocity, forward) < -0.1;
 
 		if (ent->client->ps.pm_state.flags & PMF_DUCKED) { // ducked
 			if (cl->speed < 1.0) {

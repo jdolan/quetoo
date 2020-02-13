@@ -61,7 +61,7 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 
 	if (ch->play.flags & S_PLAY_POSITIONED) {
 		org = ch->play.origin;
-		ch->velocity = vec3_zero();
+		ch->velocity = Vec3_Zero();
 	} else if (ch->play.flags & S_PLAY_ENTITY) {
 		const cl_entity_t *ent = &cl.entities[ch->play.entity];
 
@@ -71,14 +71,14 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 
 		if (s_doppler->value) {
 			if (!ch->relative) {
-				ch->velocity = vec3_subtract(ent->current.origin, ent->prev.origin);
+				ch->velocity = Vec3_Subtract(ent->current.origin, ent->prev.origin);
 			}
 		}
 
 		if (ent->current.solid == SOLID_BSP) {
 			const r_model_t *mod = cl.model_precache[ent->current.model1];
-			center = vec3_mix(mod->mins, mod->maxs, 0.5);
-			org = vec3_add(center, ent->origin);
+			center = Vec3_Mix(mod->mins, mod->maxs, 0.5);
+			org = Vec3_Add(center, ent->origin);
 		} else {
 			if (!ch->relative) {
 				org = ent->origin;
@@ -87,9 +87,9 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 	}
 
 	ch->position = org;
-//  	ch->position = vec3_add(ch->position, vec3_scale(vec3_up().xyz, S_GET_Z_ORIGIN_OFFSET(ch->play.attenuation) * 4.0);
+//  	ch->position = vec3_add(ch->position, Vec3_Scale(Vec3_Up().xyz, S_GET_Z_ORIGIN_OFFSET(ch->play.attenuation) * 4.0);
 
-	const float dist = vec3_distance_dir(org, r_view.origin, &delta);
+	const float dist = Vec3_DistanceDir(org, r_view.origin, &delta);
 
 	float attenuation;
 	switch (ch->play.attenuation & 0x0f) {
@@ -146,7 +146,7 @@ static _Bool S_SpatializeChannel(s_channel_t *ch) {
 		if (Cm_PointContents(ch->position, 0) & MASK_LIQUID) {
 			ch->filter = s_env.effects.underwater;
 		} else {
-			const cm_trace_t tr = Cl_Trace(r_view.origin, ch->position, vec3_zero(), vec3_zero(), ch->play.entity, MASK_CLIP_PROJECTILE);
+			const cm_trace_t tr = Cl_Trace(r_view.origin, ch->position, Vec3_Zero(), Vec3_Zero(), ch->play.entity, MASK_CLIP_PROJECTILE);
 			if (tr.fraction < 1.0) {
 				ch->filter = s_env.effects.occluded;
 			}
@@ -184,7 +184,7 @@ void S_MixChannels(void) {
 	if (s_doppler->value) {
 		alListenerfv(AL_VELOCITY, cl.frame.ps.pm_state.velocity.xyz);
 	} else {
-		alListenerfv(AL_VELOCITY, vec3_zero().xyz);
+		alListenerfv(AL_VELOCITY, Vec3_Zero().xyz);
 	}
 
 	s_env.num_active_channels = 0;
@@ -200,7 +200,7 @@ void S_MixChannels(void) {
 			if (S_SpatializeChannel(ch)) {
 
 				if (ch->relative) {
-					alSourcefv(src, AL_POSITION, vec3_zero().xyz);
+					alSourcefv(src, AL_POSITION, Vec3_Zero().xyz);
 					S_CheckALError();
 				} else {
 					alSourcefv(src, AL_POSITION, ch->position.xyz);
@@ -209,7 +209,7 @@ void S_MixChannels(void) {
 					if (s_doppler->value) {
 						alSourcefv(src, AL_VELOCITY, ch->velocity.xyz);
 					} else {
-						alSourcefv(src, AL_VELOCITY, vec3_zero().xyz);
+						alSourcefv(src, AL_VELOCITY, Vec3_Zero().xyz);
 					}
 				}
 

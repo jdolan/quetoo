@@ -207,12 +207,12 @@ static void Sv_NextDownload_f(void) {
 
 	Mem_InitBuffer(&msg, buf, sizeof(buf));
 
-	int32_t len = clampf(download->size - download->count, 0, 1024);
+	int32_t len = Clampf(download->size - download->count, 0, 1024);
 
 	Net_WriteByte(&msg, SV_CMD_DOWNLOAD);
 	Net_WriteShort(&msg, len);
 
-	int32_t percent = download->count * 100 / (clampf(download->size, 1, download->size));
+	int32_t percent = download->count * 100 / (Clampf(download->size, 1, download->size));
 	Net_WriteByte(&msg, percent);
 
 	Mem_WriteBuffer(&msg, download->buffer + download->count, len);

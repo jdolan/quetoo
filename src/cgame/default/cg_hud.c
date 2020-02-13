@@ -124,7 +124,7 @@ static void Cg_DrawVital(r_pixel_t x, const int16_t value, const int16_t icon, i
 
 	if (value < low) {
 		if (cg_draw_vitals_pulse->integer) {
-			pulse.a = clampf(sinf(cgi.client->unclamped_time / 250.f), 0.75f, 1.f) * 255;
+			pulse.a = Clampf(sinf(cgi.client->unclamped_time / 250.f), 0.75f, 1.f) * 255;
 		}
 		color = HUD_COLOR_STAT_LOW;
 	} else if (value < med) {
@@ -254,7 +254,7 @@ static void Cg_DrawHeldFlag(const player_state_t *ps) {
 	}
 
 	color_t pulse = color_white;
-	pulse.a = clampf(sinf(cgi.client->unclamped_time / 150.0), 0.75f, 1.f) * 255;
+	pulse.a = Clampf(sinf(cgi.client->unclamped_time / 150.0), 0.75f, 1.f) * 255;
 
 	x = cgi.view->viewport.x + (HUD_PIC_HEIGHT / 2);
 	y = cgi.view->viewport.y + ((cgi.view->viewport.h / 2) - (HUD_PIC_HEIGHT * 2));
@@ -279,7 +279,7 @@ static void Cg_DrawHeldTech(const player_state_t *ps) {
 	}
 
 	color_t pulse = color_white;
-	pulse.a = clampf(sinf(cgi.client->unclamped_time / 150.0), 0.75f, 1.f) * 255;
+	pulse.a = Clampf(sinf(cgi.client->unclamped_time / 150.0), 0.75f, 1.f) * 255;
 
 	x = cgi.view->viewport.x + 4;
 	y = cgi.view->viewport.y + ((cgi.view->viewport.h / 2) - (HUD_PIC_HEIGHT * 4));
@@ -650,14 +650,14 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 	}
 
 	if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_WHITE) {
-		float health_frac = clampf(ps->stats[STAT_HEALTH] / 100.0, 0.0, 1.0);
+		float health_frac = Clampf(ps->stats[STAT_HEALTH] / 100.0, 0.0, 1.0);
 
 		crosshair.color.x = 1.0;
 		crosshair.color.y = health_frac;
 		crosshair.color.z = health_frac;
 	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_WHITE_GREEN) {
-		float health_frac = clampf(ps->stats[STAT_HEALTH] / 100.0, 0.0, 1.0);
-		float health_over = clampf(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 1.0);
+		float health_frac = Clampf(ps->stats[STAT_HEALTH] / 100.0, 0.0, 1.0);
+		float health_over = Clampf(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 1.0);
 
 		if (ps->stats[STAT_HEALTH] <= 100) {
 			crosshair.color.x = 1.0;
@@ -669,8 +669,8 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 			crosshair.color.z = 1.0 - health_over;
 		}
 	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_YELLOW_WHITE) {
-		float health_frac_low = clampf((ps->stats[STAT_HEALTH] - 15) / 50.0, 0.0, 1.0);
-		float health_frac_medium = clampf((ps->stats[STAT_HEALTH] - 65) / 35.0, 0.0, 1.0);
+		float health_frac_low = Clampf((ps->stats[STAT_HEALTH] - 15) / 50.0, 0.0, 1.0);
+		float health_frac_medium = Clampf((ps->stats[STAT_HEALTH] - 65) / 35.0, 0.0, 1.0);
 
 		if (ps->stats[STAT_HEALTH] <= 20) {
 			crosshair.color.x = 1.0;
@@ -686,9 +686,9 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 			crosshair.color.z = health_frac_medium;
 		}
 	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_YELLOW_WHITE_GREEN) {
-		float health_frac_low = clampf((ps->stats[STAT_HEALTH] - 15) / 50.0, 0.0, 1.0);
-		float health_frac_medium = clampf((ps->stats[STAT_HEALTH] - 65) / 35.0, 0.0, 1.0);
-		float health_over = clampf(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 1.0);
+		float health_frac_low = Clampf((ps->stats[STAT_HEALTH] - 15) / 50.0, 0.0, 1.0);
+		float health_frac_medium = Clampf((ps->stats[STAT_HEALTH] - 65) / 35.0, 0.0, 1.0);
+		float health_over = Clampf(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 1.0);
 
 		if (ps->stats[STAT_HEALTH] <= 20) {
 			crosshair.color.x = 1.0;
@@ -708,7 +708,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 			crosshair.color.z = 1.0 - health_over;
 		}
 	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_WHITE_GREEN) {
-		float health_over = (1.0 - clampf(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 1.0));
+		float health_over = (1.0 - Clampf(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 1.0));
 
 		if (ps->stats[STAT_HEALTH] <= 100) {
 			crosshair.color.x = 1.0;
@@ -933,7 +933,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 
 	if (ps->stats[STAT_QUAD_TIME] > 0 && cg_draw_blend_powerup->value) {
 		Cg_DrawBlendFlashImage(cg_quad_blend_image,
-			fabsf(sinf(radians(cgi.client->unclamped_time * 0.2))) * cg_draw_blend_powerup->value);
+			fabsf(sinf(Radians(cgi.client->unclamped_time * 0.2))) * cg_draw_blend_powerup->value);
 	}
 
 	// taken damage
@@ -1227,9 +1227,9 @@ static void Cg_DrawTargetName(const player_state_t *ps) {
 	}
 
 	vec3_t pos;
-	pos = vec3_add(cgi.view->origin, vec3_scale(cgi.view->forward, MAX_WORLD_DIST));
+	pos = Vec3_Add(cgi.view->origin, Vec3_Scale(cgi.view->forward, MAX_WORLD_DIST));
 
-	const cm_trace_t tr = cgi.Trace(cgi.view->origin, pos, vec3_zero(), vec3_zero(), 0, MASK_MEAT);
+	const cm_trace_t tr = cgi.Trace(cgi.view->origin, pos, Vec3_Zero(), Vec3_Zero(), 0, MASK_MEAT);
 	if (tr.fraction < 1.0) {
 
 		const cl_entity_t *ent = &cgi.client->entities[(ptrdiff_t) tr.ent];

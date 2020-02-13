@@ -29,7 +29,7 @@ _Bool WindingIsSmall(const cm_winding_t *w) {
 
 	int32_t valid_edges = 0;
 	for (int32_t i = 0; i < w->num_points; i++) {
-		const float dist = vec3_distance(w->points[i], w->points[(i + 1) % w->num_points]);
+		const float dist = Vec3_Distance(w->points[i], w->points[(i + 1) % w->num_points]);
 		if (dist > ON_EPSILON) {
 			if (++valid_edges == 3) {
 				return false;

@@ -142,7 +142,7 @@ void Net_WriteDir(mem_buf_t *msg, const vec3_t dir) {
 	float best_d = 0.0;
 
 	for (i = 0; i < NUM_APPROXIMATE_NORMALS; i++) {
-		const float d = vec3_dot(dir, approximate_normals[i]);
+		const float d = Vec3_Dot(dir, approximate_normals[i]);
 		if (d > best_d) {
 			best_d = d;
 			best = i;
@@ -157,13 +157,13 @@ void Net_WriteDir(mem_buf_t *msg, const vec3_t dir) {
  */
 void Net_WriteBounds(mem_buf_t *msg, const vec3_t mins, const vec3_t maxs) {
 
-	const s16vec3_t _mins = vec3_cast_s16vec3(mins);
+	const vec3s_t _mins = Vec3_CastS16Vec3(mins);
 
 	Net_WriteShort(msg, _mins.x);
 	Net_WriteShort(msg, _mins.y);
 	Net_WriteShort(msg, _mins.z);
 
-	const s16vec3_t _maxs = vec3_cast_s16vec3(maxs);
+	const vec3s_t _maxs = Vec3_CastS16Vec3(maxs);
 
 	Net_WriteShort(msg, _maxs.x);
 	Net_WriteShort(msg, _maxs.y);
@@ -241,11 +241,11 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
 		bits |= PS_PM_TYPE;
 	}
 
-	if (!vec3_equal(to->pm_state.origin, from->pm_state.origin)) {
+	if (!Vec3_Equal(to->pm_state.origin, from->pm_state.origin)) {
 		bits |= PS_PM_ORIGIN;
 	}
 
-	if (!vec3_equal(to->pm_state.velocity, from->pm_state.velocity)) {
+	if (!Vec3_Equal(to->pm_state.velocity, from->pm_state.velocity)) {
 		bits |= PS_PM_VELOCITY;
 	}
 
@@ -261,19 +261,19 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
 		bits |= PS_PM_GRAVITY;
 	}
 
-	if (!vec3_equal(to->pm_state.view_offset, from->pm_state.view_offset)) {
+	if (!Vec3_Equal(to->pm_state.view_offset, from->pm_state.view_offset)) {
 		bits |= PS_PM_VIEW_OFFSET;
 	}
 
-	if (!vec3_equal(to->pm_state.view_angles, from->pm_state.view_angles)) {
+	if (!Vec3_Equal(to->pm_state.view_angles, from->pm_state.view_angles)) {
 		bits |= PS_PM_VIEW_ANGLES;
 	}
 
-	if (!vec3_equal(to->pm_state.delta_angles, from->pm_state.delta_angles)) {
+	if (!Vec3_Equal(to->pm_state.delta_angles, from->pm_state.delta_angles)) {
 		bits |= PS_PM_DELTA_ANGLES;
 	}
 
-	if (!vec3_equal(to->pm_state.hook_position, from->pm_state.hook_position)) {
+	if (!Vec3_Equal(to->pm_state.hook_position, from->pm_state.hook_position)) {
 		bits |= PS_PM_HOOK_POSITION;
 	}
 
@@ -361,15 +361,15 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 		Com_Error(ERROR_FATAL, "Entity number >= MAX_ENTITIES\n");
 	}
 
-	if (!vec3_equal(to->origin, from->origin)) {
+	if (!Vec3_Equal(to->origin, from->origin)) {
 		bits |= U_ORIGIN;
 	}
 
-	if (!vec3_equal(from->termination, to->termination)) {
+	if (!Vec3_Equal(from->termination, to->termination)) {
 		bits |= U_TERMINATION;
 	}
 
-	if (!vec3_equal(to->angles, from->angles)) {
+	if (!Vec3_Equal(to->angles, from->angles)) {
 		bits |= U_ANGLES;
 	}
 
@@ -406,7 +406,7 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 		bits |= U_SOLID;
 	}
 
-	if (!vec3_equal(to->mins, from->mins) || !vec3_equal(to->maxs, from->maxs)) {
+	if (!Vec3_Equal(to->mins, from->mins) || !Vec3_Equal(to->maxs, from->maxs)) {
 		bits |= U_BOUNDS;
 	}
 
@@ -658,8 +658,8 @@ vec3_t Net_ReadDir(mem_buf_t *msg) {
  */
 void Net_ReadBounds(mem_buf_t *msg, vec3_t *mins, vec3_t *maxs) {
 
-	*mins = vec3(Net_ReadShort(msg), Net_ReadShort(msg), Net_ReadShort(msg));
-	*maxs = vec3(Net_ReadShort(msg), Net_ReadShort(msg), Net_ReadShort(msg));
+	*mins = Vec3(Net_ReadShort(msg), Net_ReadShort(msg), Net_ReadShort(msg));
+	*maxs = Vec3(Net_ReadShort(msg), Net_ReadShort(msg), Net_ReadShort(msg));
 }
 
 /**

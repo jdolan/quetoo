@@ -45,7 +45,7 @@ float ColorNormalize(const vec3_t in, vec3_t *out) {
 	}
 
 	if (max > 1.0) { // clamp without changing hue
-		*out = vec3_scale(*out, 1.0 / max);
+		*out = Vec3_Scale(*out, 1.0 / max);
 	}
 
 	return max;
@@ -61,7 +61,7 @@ vec3_t ColorFilter(const vec3_t in) {
 	ColorNormalize(in, &out);
 
 	if (brightness != 1.0) { // apply brightness
-		out = vec3_scale(out, brightness);
+		out = Vec3_Scale(out, brightness);
 
 		ColorNormalize(out, &out);
 	}
@@ -78,11 +78,11 @@ vec3_t ColorFilter(const vec3_t in) {
 	}
 
 	if (saturation != 1.0) { // apply saturation
-		const float d = vec3_dot(out, luminosity);
+		const float d = Vec3_Dot(out, luminosity);
 		vec3_t intensity;
 
-		intensity = vec3(d, d, d);
-		out = vec3_mix(intensity, out, saturation);
+		intensity = Vec3(d, d, d);
+		out = Vec3_Mix(intensity, out, saturation);
 
 		ColorNormalize(out, &out);
 	}
@@ -135,7 +135,7 @@ static light_t *LightForEntity(const GList *entities, const cm_entity_t *entity)
 		Cm_EntityVector(entity, "origin", light->origin.xyz, 3);
 
 		if (Cm_EntityVector(entity, "_color", light->color.xyz, 3) != 3) {
-			light->color = vec3(1.0, 1.0, 1.0);
+			light->color = Vec3(1.0, 1.0, 1.0);
 		}
 
 		if (Cm_EntityVector(entity, "light", &light->radius, 1) != 1) {
@@ -153,28 +153,28 @@ static light_t *LightForEntity(const GList *entities, const cm_entity_t *entity)
 			if (target) {
 				vec3_t target_origin;
 				Cm_EntityVector(target, "origin", target_origin.xyz, 3);
-				light->normal = vec3_subtract(target_origin, light->origin);
+				light->normal = Vec3_Subtract(target_origin, light->origin);
 			} else {
 				const int32_t i = g_list_index((GList *) entities, entity);
 				Mon_SendSelect(MON_WARN, i, 0, va("%s at %s missing target", classname, vtos(light->origin)));
-				light->normal = vec3_down();
+				light->normal = Vec3_Down();
 			}
 		} else {
 			if (light->type == LIGHT_SPOT) {
 				vec3_t angles = { 0.0, 0.0, 0.0 };
 				if (Cm_EntityVector(entity, "_angle", &angles.y, 1) == 1) {
 					if (angles.y == LIGHT_ANGLE_UP) {
-						light->normal = vec3_up();
+						light->normal = Vec3_Up();
 					} else if (angles.y == LIGHT_ANGLE_DOWN) {
-						light->normal = vec3_down();
+						light->normal = Vec3_Down();
 					} else {
-						vec3_vectors(angles, &light->normal, NULL, NULL);
+						Vec3_Vectors(angles, &light->normal, NULL, NULL);
 					}
 				} else {
-					light->normal = vec3_down();
+					light->normal = Vec3_Down();
 				}
 			} else {
-				light->normal = vec3_down();
+				light->normal = Vec3_Down();
 			}
 		}
 
@@ -182,16 +182,16 @@ static light_t *LightForEntity(const GList *entities, const cm_entity_t *entity)
 
 		if (light->type == LIGHT_SPOT) {
 			if (Cm_EntityVector(entity, "_cone", &light->theta, 1) == 1) {
-				light->theta = maxf(1.0, light->theta);
+				light->theta = Maxf(1.0, light->theta);
 			} else {
 				light->theta = LIGHT_CONE;
 			}
-			light->theta = radians(light->theta);
+			light->theta = Radians(light->theta);
 		}
 
 		if (Cm_EntityVector(entity, "_size", &light->size, 1) == 1) {
 			if (light->size) {
-				light->size = maxf(LIGHT_SIZE_STEP, light->size);
+				light->size = Maxf(LIGHT_SIZE_STEP, light->size);
 			}
 		} else {
 			if (light->type == LIGHT_SUN) {
@@ -231,14 +231,14 @@ static light_t *LightForPatch(const patch_t *patch) {
 	Cm_WindingCenter(patch->winding, light->origin);
 
 	const bsp_plane_t *plane = &bsp_file.planes[patch->face->plane_num];
-	light->origin = vec3_add(light->origin, vec3_scale(plane->normal, 4.0));
+	light->origin = Vec3_Add(light->origin, Vec3_Scale(plane->normal, 4.0));
 
 	const bsp_texinfo_t *texinfo = &bsp_file.texinfo[patch->face->texinfo];
 
 	light->color = GetTextureColor(texinfo->texture);
 	const float brightness = ColorNormalize(light->color, &light->color);
 	if (brightness < 1.0) {
-		light->color = vec3_scale(light->color, 1.0 / brightness);
+		light->color = Vec3_Scale(light->color, 1.0 / brightness);
 	}
 
 	light->radius = texinfo->value ?: DEFAULT_LIGHT;
@@ -294,13 +294,13 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *pa
 
 	for (int32_t i = 0; i < patch->winding->num_points; i++) {
 
-		vec3_t point = vec3_subtract(patch->winding->points[i], patch->origin);
+		vec3_t point = Vec3_Subtract(patch->winding->points[i], patch->origin);
 
 		vec3_t st;
 		Matrix4x4_Transform(&lm->matrix, point.xyz, st.xyz);
 
-		patch_mins = Vec2_Minf(patch_mins, vec3_xy(st));
-		patch_maxs = Vec2_Maxf(patch_maxs, vec3_xy(st));
+		patch_mins = Vec2_Minf(patch_mins, Vec3_XY(st));
+		patch_maxs = Vec2_Maxf(patch_maxs, Vec3_XY(st));
 	}
 
 	assert(patch_mins.x >= lm->st_mins.x - SIDE_EPSILON);
@@ -312,7 +312,7 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *pa
 	const int16_t h = patch_maxs.y - patch_mins.y;
 
 	vec3_t lightmap;
-	lightmap = vec3_zero();
+	lightmap = Vec3_Zero();
 
 	for (int32_t t = 0; t < h; t++) {
 		for (int32_t s = 0; s < w; s++) {
@@ -325,12 +325,12 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *pa
 			assert(l->s == ds);
 			assert(l->t == dt);
 
-			lightmap = vec3_add(lightmap, l->diffuse);
-			lightmap = vec3_add(lightmap, l->radiosity);
+			lightmap = Vec3_Add(lightmap, l->diffuse);
+			lightmap = Vec3_Add(lightmap, l->radiosity);
 		}
 	}
 
-	if (!vec3_equal(lightmap, vec3_zero())) {
+	if (!Vec3_Equal(lightmap, Vec3_Zero())) {
 
 		light = Mem_TagMalloc(sizeof(*light), MEM_TAG_LIGHT);
 
@@ -338,13 +338,13 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *pa
 		light->atten = LIGHT_ATTEN_INVERSE_SQUARE;
 
 		Cm_WindingCenter(patch->winding, light->origin);
-		light->origin = vec3_add(light->origin, vec3_scale(lm->plane->normal, 4.0));
+		light->origin = Vec3_Add(light->origin, Vec3_Scale(lm->plane->normal, 4.0));
 
-		lightmap = vec3_scale(lightmap, 1.0 / (w * h));
+		lightmap = Vec3_Scale(lightmap, 1.0 / (w * h));
 		light->radius = ColorNormalize(lightmap, &lightmap);
 
 		const vec3_t diffuse = GetTextureColor(lm->texinfo->texture);
-		light->color = vec3_multiply(lightmap, diffuse);
+		light->color = Vec3_Multiply(lightmap, diffuse);
 
 		light->cluster = Cm_LeafCluster(Cm_PointLeafnum(light->origin, 0));
 	}

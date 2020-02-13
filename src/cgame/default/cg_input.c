@@ -42,7 +42,7 @@ void Cg_ParseViewKick(void) {
 	const vec3_t kick = { cgi.ReadAngle(), 0.0, cgi.ReadAngle() };
 
 	cg_kick.prev = cg_kick.kick;
-	cg_kick.next = vec3_add(cg_kick.prev, kick);
+	cg_kick.next = Vec3_Add(cg_kick.prev, kick);
 
 	cg_kick.timestamp = cgi.client->unclamped_time;
 	cg_kick.interval = 64;
@@ -68,15 +68,15 @@ static void Cg_ViewKick(const pm_cmd_t *cmd) {
 			vec3_t delta0 = ps0->pm_state.delta_angles;
 			vec3_t delta1 = ps1->pm_state.delta_angles;
 
-			if (!vec3_equal(delta0, delta1)) {
+			if (!Vec3_Equal(delta0, delta1)) {
 				static int32_t frame;
 
 				if (cgi.client->frame.frame_num != frame) {
 					cgi.Debug("Delta kick %s\n", vtos(cg_kick.kick));
 
 					cg_kick.next = cg_kick.kick;
-					cg_kick.kick = vec3_zero();
-					cg_kick.prev = vec3_zero();
+					cg_kick.kick = Vec3_Zero();
+					cg_kick.prev = Vec3_Zero();
 
 					cg_kick.timestamp = cgi.client->unclamped_time;
 					cg_kick.interval = 1;
@@ -89,29 +89,29 @@ static void Cg_ViewKick(const pm_cmd_t *cmd) {
 
 	const uint32_t delta = cgi.client->unclamped_time - cg_kick.timestamp;
 	if (delta < cg_kick.interval) {
-		const float frac = minf(delta, cmd->msec) / (float) cg_kick.interval;
+		const float frac = Minf(delta, cmd->msec) / (float) cg_kick.interval;
 
 		vec3_t kick;
-		kick = vec3_subtract(cg_kick.next, cg_kick.prev);
-		kick = vec3_scale(kick, frac);
+		kick = Vec3_Subtract(cg_kick.next, cg_kick.prev);
+		kick = Vec3_Scale(kick, frac);
 
-		cg_kick.kick = vec3_add(cg_kick.kick, kick);
-		cgi.client->angles = vec3_add(cgi.client->angles, kick);
+		cg_kick.kick = Vec3_Add(cg_kick.kick, kick);
+		cgi.client->angles = Vec3_Add(cgi.client->angles, kick);
 
-	} else if (!vec3_equal(cg_kick.kick, vec3_zero())) {
+	} else if (!Vec3_Equal(cg_kick.kick, Vec3_Zero())) {
 
 		if (cgi.client->frame.ps.pm_state.type == PM_DEAD) {
 			return;
 		}
 
-		const float len = vec3_length(cg_kick.kick);
+		const float len = Vec3_Length(cg_kick.kick);
 		if (len < 0.1) {
-			cgi.client->angles = vec3_subtract(cgi.client->angles, cg_kick.kick);
+			cgi.client->angles = Vec3_Subtract(cgi.client->angles, cg_kick.kick);
 			memset(&cg_kick, 0, sizeof(cg_kick));
 		} else {
 
 			cg_kick.prev = cg_kick.kick;
-			cg_kick.next = vec3_zero();
+			cg_kick.next = Vec3_Zero();
 
 			cg_kick.timestamp = cgi.client->unclamped_time;
 			cg_kick.interval = 240;
@@ -184,10 +184,10 @@ static void Cg_WeaponKick(const pm_cmd_t *cmd) {
 				return;
 		}
 
-		delta = minf(degrees - kick, degrees * (cmd->msec / interval));
+		delta = Minf(degrees - kick, degrees * (cmd->msec / interval));
 
 	} else {
-		delta = -minf(kick, kick * (cmd->msec / 196.0));
+		delta = -Minf(kick, kick * (cmd->msec / 196.0));
 	}
 
 	kick += delta;

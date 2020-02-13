@@ -127,7 +127,7 @@
 #define PM_SNAP_DISTANCE		PM_GROUND_DIST
 
 /**
- * @brief Player bounding box scaling. mins = vec3_scale(PM_MINS, PM_SCALE)..
+ * @brief Player bounding box scaling. mins = Vec3_Scale(PM_MINS, PM_SCALE)..
  */
 #define PM_SCALE 1.0
 

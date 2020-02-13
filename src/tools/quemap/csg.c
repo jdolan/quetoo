@@ -164,7 +164,7 @@ csg_brush_t *MakeBrushes(int32_t start, int32_t end, const vec3_t mins, const ve
 
 	for (int32_t i = 0; i < 3; i++) {
 		vec3_t normal;
-		normal = vec3_zero();
+		normal = Vec3_Zero();
 		normal.xyz[i] = 1.0;
 		box_planes[i] = FindPlane(normal, mins.xyz[i]);
 		box_planes[i + 3] = FindPlane(normal, maxs.xyz[i]);

@@ -47,7 +47,7 @@ static void G_misc_teleporter_Touch(g_entity_t *self, g_entity_t *other,
 	other->s.origin.z += 8.0;
 
 	vec3_t forward;
-	vec3_vectors(dest->s.angles, &forward, NULL, NULL);
+	Vec3_Vectors(dest->s.angles, &forward, NULL, NULL);
 
 	if (other->client) {
 		// overwrite velocity and hold them in place briefly
@@ -57,16 +57,16 @@ static void G_misc_teleporter_Touch(g_entity_t *self, g_entity_t *other,
 		other->client->ps.pm_state.time = 20;
 
 		// set delta angles
-		other->client->ps.pm_state.delta_angles = vec3_subtract(dest->s.angles, other->client->locals.cmd_angles);
+		other->client->ps.pm_state.delta_angles = Vec3_Subtract(dest->s.angles, other->client->locals.cmd_angles);
 
-		other->locals.velocity = vec3_scale(forward, other->client->locals.speed);
+		other->locals.velocity = Vec3_Scale(forward, other->client->locals.speed);
 
-		other->client->locals.cmd_angles = vec3_zero();
-		other->client->locals.angles = vec3_zero();
+		other->client->locals.cmd_angles = Vec3_Zero();
+		other->client->locals.angles = Vec3_Zero();
 	} else {
 
-		const vec3_t vel = vec3(other->locals.velocity.x, other->locals.velocity.x, 0.0);
-		other->locals.velocity = vec3_scale(forward, vec3_length(vel));
+		const vec3_t vel = Vec3(other->locals.velocity.x, other->locals.velocity.x, 0.0);
+		other->locals.velocity = Vec3_Scale(forward, Vec3_Length(vel));
 
 		other->s.angles.y += dest->s.angles.y;
 	}
@@ -77,7 +77,7 @@ static void G_misc_teleporter_Touch(g_entity_t *self, g_entity_t *other,
 	self->s.event = EV_CLIENT_TELEPORT;
 	other->s.event = EV_CLIENT_TELEPORT;
 
-	other->s.angles = vec3_zero();
+	other->s.angles = Vec3_Zero();
 
 	G_KillBox(other); // telefrag anyone in our spot
 
@@ -108,8 +108,8 @@ void G_misc_teleporter(g_entity_t *ent) {
 		gi.SetModel(ent, ent->model);
 		ent->sv_flags = SVF_NO_CLIENT;
 	} else { // or model-less form, misc_teleporter
-		ent->mins = vec3(-32.0, -32.0, -24.0);
-		ent->maxs = vec3(32.0, 32.0, -16.0);
+		ent->mins = Vec3(-32.0, -32.0, -24.0);
+		ent->maxs = Vec3(32.0, 32.0, -16.0);
 
 		v = ent->s.origin;
 		v.z -= 16.0;
@@ -170,7 +170,7 @@ static void G_misc_fireball_Touch(g_entity_t *self, g_entity_t *other,
 		self->locals.touch_time = g_level.time;
 
 		G_Damage(other, self, NULL,
-				 self->locals.velocity, self->s.origin, vec3_zero(),
+				 self->locals.velocity, self->s.origin, Vec3_Zero(),
 				 self->locals.damage, self->locals.damage, 0, MOD_FIREBALL);
 	}
 }
@@ -185,17 +185,17 @@ static void G_misc_fireball_Fly(g_entity_t *self) {
 
 	ent->s.origin = self->s.origin;
 
-	ent->mins = vec3(-3.0, -3.0, -3.0);
-	ent->maxs = vec3(3.0, 3.0, 3.0);
+	ent->mins = Vec3(-3.0, -3.0, -3.0);
+	ent->maxs = Vec3(3.0, 3.0, 3.0);
 
-	vec3_vectors(self->s.angles, &ent->locals.velocity, NULL, NULL);
-	ent->locals.velocity = vec3_scale(ent->locals.velocity, self->locals.speed);
+	Vec3_Vectors(self->s.angles, &ent->locals.velocity, NULL, NULL);
+	ent->locals.velocity = Vec3_Scale(ent->locals.velocity, self->locals.speed);
 
 	for (int32_t i = 0; i < 3; i++) {
 		ent->locals.velocity.xyz[i] += Randomc() * 30.0;
 	}
 
-	ent->locals.avelocity = vec3(Randomc() * 10.0, Randomc() * 10.0, Randomc() * 20.0);
+	ent->locals.avelocity = Vec3(Randomc() * 10.0, Randomc() * 10.0, Randomc() * 20.0);
 
 	ent->s.trail = TRAIL_FIREBALL;
 
@@ -235,8 +235,8 @@ void G_misc_fireball(g_entity_t *self) {
 		gi.SoundIndex(va("world/lava_%d", i));
 	}
 
-	if (vec3_equal(self->s.angles, vec3_zero())) {
-		self->s.angles = vec3(-90.0, 0.0, 0.0);
+	if (Vec3_Equal(self->s.angles, Vec3_Zero())) {
+		self->s.angles = Vec3(-90.0, 0.0, 0.0);
 	}
 
 	if (self->locals.damage == 0) {

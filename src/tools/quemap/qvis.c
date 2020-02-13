@@ -176,17 +176,17 @@ static void CalcPVS(void) {
 static void SetPortalSphere(portal_t *p) {
 
 	const cm_winding_t *w = p->winding;
-	vec3_t origin = vec3_zero();
+	vec3_t origin = Vec3_Zero();
 
 	for (int32_t i = 0; i < w->num_points; i++) {
-		origin = vec3_add(origin, w->points[i]);
+		origin = Vec3_Add(origin, w->points[i]);
 	}
 
-	origin = vec3_scale(origin, 1.f / w->num_points);
+	origin = Vec3_Scale(origin, 1.f / w->num_points);
 
 	float radius = 0;
 	for (int32_t i = 0; i < w->num_points; i++) {
-		const float r = vec3_distance(origin, w->points[i]);
+		const float r = Vec3_Distance(origin, w->points[i]);
 		if (r > radius) {
 			radius = r;
 		}
@@ -264,7 +264,7 @@ static void LoadPortals(const char *filename) {
 		w->num_points = num_points;
 
 		for (int32_t j = 0; j < w->num_points; j++) {
-			dvec3_t v;
+			vec3d_t v;
 
 			// scanf into double, then assign to float so we don't care what size float is
 			if (sscanf(s, "(%lf %lf %lf ) %n", &v.x, &v.y, &v.z, &len) != 3) {
@@ -293,7 +293,7 @@ static void LoadPortals(const char *filename) {
 		l->num_portals++;
 
 		p->winding = w;
-		p->plane.normal = vec3_negate(plane.normal);
+		p->plane.normal = Vec3_Negate(plane.normal);
 		p->plane.dist = -plane.dist;
 		p->leaf = leaf_nums[1];
 		SetPortalSphere(p);

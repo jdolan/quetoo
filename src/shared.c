@@ -59,13 +59,6 @@ int32_t Random(void) {
 }
 
 /**
- * @brief Returns a pseudo-random float between 0.0 and 1.0.
- */
-float Randomf(void) {
-	return (Random()) * (1.0 / 0x7fffffff);
-}
-
-/**
  * @brief Returns a pseudo-random float between -1.0 and 1.0.
  */
 float Randomc(void) {

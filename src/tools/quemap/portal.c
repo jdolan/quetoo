@@ -269,7 +269,7 @@ static cm_winding_t *BaseWindingForNode(const node_t *node) {
 		if (n->children[0] == node) { // take front
 			Cm_ClipWinding(&w, plane->normal, plane->dist, BASE_WINDING_EPSILON);
 		} else { // take back
-			const vec3_t normal = vec3_negate(plane->normal);
+			const vec3_t normal = Vec3_Negate(plane->normal);
 			Cm_ClipWinding(&w, normal, -plane->dist, BASE_WINDING_EPSILON);
 		}
 		node = n;
@@ -298,7 +298,7 @@ void MakeNodePortal(node_t *node) {
 			dist = p->plane.dist;
 		} else if (p->nodes[1] == node) {
 			side = 1;
-			normal = vec3_negate(p->plane.normal);
+			normal = Vec3_Negate(p->plane.normal);
 			dist = -p->plane.dist;
 		} else {
 			Com_Error(ERROR_FATAL, "Mis-linked portal\n");
@@ -415,14 +415,14 @@ void SplitNodePortals(node_t *node) {
 static void CalcNodeBounds(node_t *node) {
 	int32_t s;
 
-	node->mins = vec3_mins();
-	node->maxs = vec3_maxs();
+	node->mins = Vec3_Mins();
+	node->maxs = Vec3_Maxs();
 
 	for (portal_t *p = node->portals; p; p = p->next[s]) {
 		s = (p->nodes[1] == node);
 		for (int32_t i = 0; i < p->winding->num_points; i++) {
-			node->mins = vec3_minf(node->mins, p->winding->points[i]);
-			node->maxs = vec3_maxf(node->maxs, p->winding->points[i]);
+			node->mins = Vec3_Minf(node->mins, p->winding->points[i]);
+			node->maxs = Vec3_Maxf(node->maxs, p->winding->points[i]);
 		}
 	}
 }
@@ -495,7 +495,7 @@ static _Bool PlaceOccupant(node_t *head_node, vec3_t origin, const entity_t *occ
 	node_t *node = head_node;
 	while (node->plane_num != PLANE_NUM_LEAF) {
 		const plane_t *plane = &planes[node->plane_num];
-		const double d = vec3_dot(origin, plane->normal) - plane->dist;
+		const double d = Vec3_Dot(origin, plane->normal) - plane->dist;
 		if (d >= 0.0) {
 			node = node->children[0];
 		} else {
@@ -529,8 +529,8 @@ _Bool FloodEntities(tree_t *tree) {
 			continue;
 		}
 
-		vec3_t origin = VectorForKey(ent, "origin", vec3_zero());
-		origin = vec3_add(origin, vec3_up());
+		vec3_t origin = VectorForKey(ent, "origin", Vec3_Zero());
+		origin = Vec3_Add(origin, Vec3_Up());
 
 		if (PlaceOccupant(tree->head_node, origin, ent)) {
 			inside_occupied = true;
@@ -798,7 +798,7 @@ static void FindPortalSide(portal_t *portal) {
 				const plane_t *p1 = &planes[portal->on_node->plane_num];
 				const plane_t *p2 = &planes[side->plane_num & ~1];
 
-				const float dot = vec3_dot(p1->normal, p2->normal);
+				const float dot = Vec3_Dot(p1->normal, p2->normal);
 				if (dot > best_dot) {
 					portal->side = side;
 					best_dot = dot;

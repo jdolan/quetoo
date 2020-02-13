@@ -53,14 +53,14 @@ void R_InitContext(void) {
 
 	uint32_t flags = SDL_WINDOW_OPENGL;
 
-	const int display = clampf(r_display->integer, 0, SDL_GetNumVideoDisplays() - 1);
+	const int display = Clampf(r_display->integer, 0, SDL_GetNumVideoDisplays() - 1);
 
 	if (r_allow_high_dpi->integer) {
 		flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 	}
 
-	int32_t w = maxf(0, r_width->integer);
-	int32_t h = maxf(0, r_height->integer);
+	int32_t w = Maxf(0, r_width->integer);
+	int32_t h = Maxf(0, r_height->integer);
 
 	if (w == 0 || h == 0) {
 		SDL_DisplayMode best;
@@ -91,7 +91,7 @@ void R_InitContext(void) {
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-	const int32_t s = clampf(r_multisample->integer, 0, 8);
+	const int32_t s = Clampf(r_multisample->integer, 0, 8);
 
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, s ? 1 : 0);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, s);

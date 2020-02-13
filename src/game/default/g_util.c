@@ -37,17 +37,17 @@ void G_InitPlayerSpawn(g_entity_t *ent) {
 	maxs = PM_MAXS;
 	mins.z = maxs.z = 0.0;
 
-	delta = vec3_subtract(maxs, mins);
-	const float len0 = vec3_length(delta);
+	delta = Vec3_Subtract(maxs, mins);
+	const float len0 = Vec3_Length(delta);
 
 	// and the new x/y size
-	delta = vec3_scale(delta, PM_SCALE);
-	const float len1 = vec3_length(delta);
+	delta = Vec3_Scale(delta, PM_SCALE);
+	const float len1 = Vec3_Length(delta);
 
 	const float fwd = ceilf(len1 - len0);
 
-	vec3_vectors(ent->s.angles, &forward, NULL, NULL);
-	ent->s.origin = vec3_add(ent->s.origin, vec3_scale(forward, fwd));
+	Vec3_Vectors(ent->s.angles, &forward, NULL, NULL);
+	ent->s.origin = Vec3_Add(ent->s.origin, Vec3_Scale(forward, fwd));
 }
 
 /**
@@ -56,45 +56,45 @@ void G_InitPlayerSpawn(g_entity_t *ent) {
 void G_InitProjectile(const g_entity_t *ent, vec3_t *forward, vec3_t *right, vec3_t *up, vec3_t *org, float hand) {
 
 	// resolve the projectile destination
-	const vec3_t start = vec3_add(ent->s.origin, ent->client->ps.pm_state.view_offset);
-	const vec3_t end = vec3_add(start, vec3_scale(ent->client->locals.forward, MAX_WORLD_DIST));
-	const cm_trace_t tr = gi.Trace(start, end, vec3_zero(), vec3_zero(), ent, MASK_CLIP_PROJECTILE);
+	const vec3_t start = Vec3_Add(ent->s.origin, ent->client->ps.pm_state.view_offset);
+	const vec3_t end = Vec3_Add(start, Vec3_Scale(ent->client->locals.forward, MAX_WORLD_DIST));
+	const cm_trace_t tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent, MASK_CLIP_PROJECTILE);
 
 	// resolve the projectile origin
 	vec3_t ent_forward, ent_right, ent_up;
-	vec3_vectors(ent->s.angles, &ent_forward, &ent_right, &ent_up);
+	Vec3_Vectors(ent->s.angles, &ent_forward, &ent_right, &ent_up);
 
-	*org = vec3_add(start, vec3_scale(ent_forward, 12.0));
+	*org = Vec3_Add(start, Vec3_Scale(ent_forward, 12.0));
 
 	switch (ent->client->locals.persistent.hand) {
 		case HAND_RIGHT:
-			*org = vec3_add(*org, vec3_scale(ent_right, 6.0 * hand));
+			*org = Vec3_Add(*org, Vec3_Scale(ent_right, 6.0 * hand));
 			break;
 		case HAND_LEFT:
-			*org = vec3_add(*org, vec3_scale(ent_right, -6.0 * hand));
+			*org = Vec3_Add(*org, Vec3_Scale(ent_right, -6.0 * hand));
 			break;
 		default:
 			break;
 	}
 
 	if ((ent->client->ps.pm_state.flags & PMF_DUCKED)) {
-		*org = vec3_add(*org, vec3_scale(ent_up, -6.0));
+		*org = Vec3_Add(*org, Vec3_Scale(ent_up, -6.0));
 	} else {
-		*org = vec3_add(*org, vec3_scale(ent_up, -12.0));
+		*org = Vec3_Add(*org, Vec3_Scale(ent_up, -12.0));
 	}
 
 	// if the projected origin is invalid, use the entity's origin
-	if (gi.Trace(*org, *org, vec3_zero(), vec3_zero(), ent, MASK_CLIP_PROJECTILE).start_solid) {
+	if (gi.Trace(*org, *org, Vec3_Zero(), Vec3_Zero(), ent, MASK_CLIP_PROJECTILE).start_solid) {
 		*org = ent->s.origin;
 	}
 
 	if (forward) {
 		// return the projectile's directional vectors
-		*forward = vec3_subtract(tr.end, *org);
+		*forward = Vec3_Subtract(tr.end, *org);
 		*forward = vec3_normalize(*forward);
 
-		const vec3_t euler = vec3_euler(*forward);
-		vec3_vectors(euler, NULL, right, up);
+		const vec3_t euler = Vec3_Euler(*forward);
+		Vec3_Vectors(euler, NULL, right, up);
 	}
 }
 
@@ -193,11 +193,11 @@ g_entity_t *G_FindRadius(g_entity_t *from, vec3_t org, float rad) {
 			continue;
 		}
 
-		if (vec3_distance(org, from->abs_mins) < rad) {
+		if (Vec3_Distance(org, from->abs_mins) < rad) {
 			return from;
 		}
 
-		if (vec3_distance(org, from->abs_maxs) < rad) {
+		if (Vec3_Distance(org, from->abs_maxs) < rad) {
 			return from;
 		}
 
@@ -343,15 +343,15 @@ void G_SetMoveDir(vec3_t angles, vec3_t move_dir) {
 	const vec3_t angles_down = { 0.0, -2.0, 0.0 };
 	const vec3_t dir_down = { 0.0, 0.0, -1.0 };
 
-	if (vec3_equal(angles, angles_up)) {
+	if (Vec3_Equal(angles, angles_up)) {
 		move_dir = dir_up;
-	} else if (vec3_equal(angles, angles_down)) {
+	} else if (Vec3_Equal(angles, angles_down)) {
 		move_dir = dir_down;
 	} else {
-		vec3_vectors(angles, &move_dir, NULL, NULL);
+		Vec3_Vectors(angles, &move_dir, NULL, NULL);
 	}
 
-	angles = vec3_zero();
+	angles = Vec3_Zero();
 }
 
 /**
@@ -437,8 +437,8 @@ void G_FreeEntity(g_entity_t *ent) {
 void G_KillBox(g_entity_t *ent) {
 	g_entity_t *ents[MAX_ENTITIES];
 
-	const vec3_t mins = vec3_add(ent->s.origin, ent->mins);
-	const vec3_t maxs = vec3_add(ent->s.origin, ent->maxs);
+	const vec3_t mins = Vec3_Add(ent->s.origin, ent->mins);
+	const vec3_t maxs = Vec3_Add(ent->s.origin, ent->maxs);
 
 	size_t i, len = gi.BoxEntities(mins, maxs, ents, lengthof(ents), BOX_COLLIDE);
 	for (i = 0; i < len; i++) {
@@ -449,7 +449,7 @@ void G_KillBox(g_entity_t *ent) {
 
 		if (G_IsMeat(ents[i])) {
 
-			G_Damage(ents[i], NULL, ent, vec3_zero(), vec3_zero(), vec3_zero(), 999, 0, DMG_NO_GOD, MOD_TELEFRAG);
+			G_Damage(ents[i], NULL, ent, Vec3_Zero(), Vec3_Zero(), Vec3_Zero(), 999, 0, DMG_NO_GOD, MOD_TELEFRAG);
 
 			if (ents[i]->in_use && !ents[i]->locals.dead) {
 				break;
@@ -461,7 +461,7 @@ void G_KillBox(g_entity_t *ent) {
 
 	if (i < len) {
 		if (G_IsMeat(ent)) {
-			G_Damage(ent, NULL, ents[i], vec3_zero(), vec3_zero(), vec3_zero(), 999, 0, DMG_NO_GOD, MOD_ACT_OF_GOD);
+			G_Damage(ent, NULL, ents[i], Vec3_Zero(), Vec3_Zero(), Vec3_Zero(), 999, 0, DMG_NO_GOD, MOD_ACT_OF_GOD);
 		}
 	}
 }
@@ -820,11 +820,11 @@ _Bool G_IsStationary(const g_entity_t *ent) {
 		return false;
 	}
 
-	if (!vec3_equal(vec3_zero(), ent->locals.velocity)) {
+	if (!Vec3_Equal(Vec3_Zero(), ent->locals.velocity)) {
 		return false;
 	}
 
-	if (!vec3_equal(vec3_zero(), ent->locals.avelocity)) {
+	if (!Vec3_Equal(Vec3_Zero(), ent->locals.avelocity)) {
 		return false;
 	}
 

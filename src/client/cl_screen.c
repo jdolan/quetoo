@@ -238,7 +238,7 @@ static void Cl_DrawCounters(void) {
 		velocity = cl.frame.ps.pm_state.velocity;
 		velocity.z = 0.0;
 
-		g_snprintf(spd, sizeof(spd), "%4.0fspd", vec3_length(velocity));
+		g_snprintf(spd, sizeof(spd), "%4.0fspd", Vec3_Length(velocity));
 
 		last_speed_time = quetoo.ticks;
 	}

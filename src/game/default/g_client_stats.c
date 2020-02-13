@@ -29,10 +29,10 @@ void G_ClientToIntermission(g_entity_t *ent) {
 	ent->s.origin = g_level.intermission_origin;
 	ent->client->ps.pm_state.origin = g_level.intermission_origin;
 
-	ent->client->ps.pm_state.view_angles = vec3_zero();
+	ent->client->ps.pm_state.view_angles = Vec3_Zero();
 	ent->client->ps.pm_state.delta_angles = g_level.intermission_angle;
 
-	ent->client->ps.pm_state.view_offset = vec3_zero();
+	ent->client->ps.pm_state.view_offset = Vec3_Zero();
 
 	ent->client->ps.pm_state.type = PM_FREEZE;
 

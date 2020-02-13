@@ -41,12 +41,12 @@ void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_face_t *surf) {
 	surf->flare = Mem_LinkMalloc(sizeof(*surf->flare), bsp);
 
 	// move the flare away from the surface, into the level
-	center = vec3_mix(surf->mins, surf->maxs, 0.5);
-	surf->flare->particle.org = vec3_add(center, vec3_scale(surf->plane->normal, 2.0);
+	center = Vec3_Mix(surf->mins, surf->maxs, 0.5);
+	surf->flare->particle.org = vec3_add(center, Vec3_Scale(surf->plane->normal, 2.0);
 
 	// calculate the flare radius based on surface size
-	span = vec3_subtract(surf->maxs, surf->mins);
-	surf->flare->radius = vec3_length(span);
+	span = Vec3_Subtract(surf->maxs, surf->mins);
+	surf->flare->radius = Vec3_Length(span);
 
 	const r_stage_t *s = m->stages; // resolve the flare stage
 	while (s) {
@@ -119,7 +119,7 @@ void R_AddFlareBspFaces(const r_bsp_faces_t *surfs) {
 		}
 
 		vec3_t view;
-		view = vec3_subtract(f->particle.org, r_view.origin);
+		view = Vec3_Subtract(f->particle.org, r_view.origin);
 		const float dist = view = vec3_normalize(view);
 
 		// fade according to angle

@@ -79,7 +79,7 @@ void R_AddParticle(const r_particle_t *p) {
 
 	r_particle_vertex_t *out = r_particles.particles + r_view.num_particles;
 
-	out->position = vec3_to_vec4(p->origin, p->size);
+	out->position = Vec3_ToVec4(p->origin, p->size);
 	out->color = p->color;
 
 	r_view.particles[r_view.num_particles++] = *p;

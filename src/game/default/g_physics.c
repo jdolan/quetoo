@@ -77,9 +77,9 @@ static void G_CheckWater(g_entity_t *ent) {
 	const uint8_t old_water_level = ent->locals.water_level;
 
 	if (ent->solid == SOLID_BSP) {
-		pos = vec3_mix(ent->abs_mins, ent->abs_maxs, 0.5);
-		mins = vec3_subtract(pos, ent->abs_mins);
-		maxs = vec3_subtract(ent->abs_maxs, pos);
+		pos = Vec3_Mix(ent->abs_mins, ent->abs_maxs, 0.5);
+		mins = Vec3_Subtract(pos, ent->abs_mins);
+		maxs = Vec3_Subtract(ent->abs_maxs, pos);
 	} else {
 		pos = ent->s.origin;
 		mins = ent->mins;
@@ -94,14 +94,14 @@ static void G_CheckWater(g_entity_t *ent) {
 	if (old_water_level == WATER_NONE && ent->locals.water_level == WATER_UNDER) {
 
 		if (ent->locals.move_type == MOVE_TYPE_BOUNCE) {
-			ent->locals.velocity = vec3_scale(ent->locals.velocity, 0.66);
+			ent->locals.velocity = Vec3_Scale(ent->locals.velocity, 0.66);
 		}
 
 		if (!(ent->sv_flags & SVF_NO_CLIENT)) {
 			gi.PositionedSound(pos, ent, g_media.sounds.water_in, ATTEN_IDLE, 0);
 
 			if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
-				G_Ripple(ent, vec3_zero(), vec3_zero(), 0.0, true);
+				G_Ripple(ent, Vec3_Zero(), Vec3_Zero(), 0.0, true);
 			}
 		}
 
@@ -111,7 +111,7 @@ static void G_CheckWater(g_entity_t *ent) {
 			gi.PositionedSound(pos, ent, g_media.sounds.water_out, ATTEN_IDLE, 0);
 
 			if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
-				G_Ripple(ent, vec3_zero(), vec3_zero(), 0.0, false);
+				G_Ripple(ent, Vec3_Zero(), Vec3_Zero(), 0.0, false);
 			}
 		}
 	}
@@ -194,12 +194,12 @@ static _Bool G_CorrectPosition(g_entity_t *ent) {
  */
 static void G_ClampVelocity(g_entity_t *ent) {
 
-	const float speed = vec3_length(ent->locals.velocity);
+	const float speed = Vec3_Length(ent->locals.velocity);
 
 	if (speed > MAX_SPEED) {
-		ent->locals.velocity = vec3_scale(ent->locals.velocity, MAX_SPEED / speed);
+		ent->locals.velocity = Vec3_Scale(ent->locals.velocity, MAX_SPEED / speed);
 	} else if (speed < STOP_EPSILON) {
-		ent->locals.velocity = vec3_zero();
+		ent->locals.velocity = Vec3_Zero();
 	}
 }
 
@@ -208,7 +208,7 @@ static void G_ClampVelocity(g_entity_t *ent) {
  */
 static vec3_t G_ClipVelocity(const vec3_t in, const vec3_t normal, float bounce) {
 
-	float backoff = vec3_dot(in, normal);
+	float backoff = Vec3_Dot(in, normal);
 
 	if (backoff < 0.0) {
 		backoff *= bounce;
@@ -216,7 +216,7 @@ static vec3_t G_ClipVelocity(const vec3_t in, const vec3_t normal, float bounce)
 		backoff /= bounce;
 	}
 
-	return vec3_subtract(in, vec3_scale(normal, backoff));
+	return Vec3_Subtract(in, Vec3_Scale(normal, backoff));
 }
 
 #define SPEED_STOP 150.0
@@ -232,14 +232,14 @@ static void G_Friction(g_entity_t *ent) {
 		vel.z = 0.0;
 	}
 
-	const float speed = vec3_length(vel);
+	const float speed = Vec3_Length(vel);
 
 	if (speed < 1.0) {
-		ent->locals.velocity = vec3_zero();
+		ent->locals.velocity = Vec3_Zero();
 		return;
 	}
 
-	const float control = maxf(SPEED_STOP, speed);
+	const float control = Maxf(SPEED_STOP, speed);
 
 	float friction = 0.0;
 
@@ -258,10 +258,10 @@ static void G_Friction(g_entity_t *ent) {
 		friction += PM_FRICT_WATER;
 	}
 
-	float scale = maxf(0.0, speed - (friction * control * QUETOO_TICK_SECONDS)) / speed;
+	float scale = Maxf(0.0, speed - (friction * control * QUETOO_TICK_SECONDS)) / speed;
 
-	ent->locals.velocity = vec3_scale(ent->locals.velocity, scale);
-	ent->locals.avelocity = vec3_scale(ent->locals.avelocity, scale);
+	ent->locals.velocity = Vec3_Scale(ent->locals.velocity, scale);
+	ent->locals.avelocity = Vec3_Scale(ent->locals.avelocity, scale);
 }
 
 /**
@@ -269,7 +269,7 @@ static void G_Friction(g_entity_t *ent) {
  */
 static void G_Accelerate(g_entity_t *ent, vec3_t dir, float speed, float accel) {
 
-	const float current_speed = vec3_dot(ent->locals.velocity, dir);
+	const float current_speed = Vec3_Dot(ent->locals.velocity, dir);
 	const float add_speed = speed - current_speed;
 
 	if (add_speed <= 0.0) {
@@ -282,7 +282,7 @@ static void G_Accelerate(g_entity_t *ent, vec3_t dir, float speed, float accel) 
 		accel_speed = add_speed;
 	}
 
-	ent->locals.velocity = vec3_add(ent->locals.velocity, vec3_scale(dir, accel_speed));
+	ent->locals.velocity = Vec3_Add(ent->locals.velocity, Vec3_Scale(dir, accel_speed));
 }
 
 /**
@@ -307,7 +307,7 @@ static void G_Gravity(g_entity_t *ent) {
 static void G_Currents(g_entity_t *ent) {
 	vec3_t current;
 
-	current = vec3_zero();
+	current = Vec3_Zero();
 
 	if (ent->locals.water_level) {
 
@@ -353,9 +353,9 @@ static void G_Currents(g_entity_t *ent) {
 		}
 	}
 
-	current = vec3_scale(current, PM_SPEED_CURRENT);
+	current = Vec3_Scale(current, PM_SPEED_CURRENT);
 
-	const float speed = vec3_length(current);
+	const float speed = Vec3_Length(current);
 
 	if (speed == 0.0) {
 		return;
@@ -415,8 +415,8 @@ void G_TouchOccupy(g_entity_t *ent) {
  */
 static void G_Physics_NoClip(g_entity_t *ent) {
 
-	ent->s.angles = vec3_add(ent->s.angles, vec3_scale(ent->locals.avelocity, QUETOO_TICK_SECONDS));
-	ent->s.origin = vec3_add(ent->s.origin, vec3_scale(ent->locals.velocity, QUETOO_TICK_SECONDS));
+	ent->s.angles = Vec3_Add(ent->s.angles, Vec3_Scale(ent->locals.avelocity, QUETOO_TICK_SECONDS));
+	ent->s.origin = Vec3_Add(ent->s.origin, Vec3_Scale(ent->locals.velocity, QUETOO_TICK_SECONDS));
 
 	gi.LinkEntity(ent);
 }
@@ -499,8 +499,8 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amo
 	// calculate bounds for the entire move
 	vec3_t total_mins, total_maxs;
 
-	if (!vec3_equal(self->s.angles, vec3_zero()) || !vec3_equal(amove, vec3_zero())) {
-		const float radius = vec3_distance(self->mins, self->maxs) * 0.5;
+	if (!Vec3_Equal(self->s.angles, Vec3_Zero()) || !Vec3_Equal(amove, Vec3_Zero())) {
+		const float radius = Vec3_Distance(self->mins, self->maxs) * 0.5;
 
 		for (int32_t i = 0 ; i < 3 ; i++ ) {
 			total_mins.xyz[i] = self->s.origin.xyz[i] - radius;
@@ -526,14 +526,14 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amo
 	const size_t len = gi.BoxEntities(total_mins, total_maxs, ents, lengthof(ents), BOX_ALL);
 
 	// move the pusher to it's intended position
-	self->s.origin = vec3_add(self->s.origin, move);
-	self->s.angles = vec3_add(self->s.angles, amove);
+	self->s.origin = Vec3_Add(self->s.origin, move);
+	self->s.angles = Vec3_Add(self->s.angles, amove);
 
 	gi.LinkEntity(self);
 
 	// calculate the angle vectors for rotational movement
-	inverse_amove = vec3_negate(amove);
-	vec3_vectors(inverse_amove, &forward, &right, &up);
+	inverse_amove = Vec3_Negate(amove);
+	Vec3_Vectors(inverse_amove, &forward, &right, &up);
 
 	// see if any solid entities are inside the final position
 	for (size_t i = 0; i < len; i++) {
@@ -560,18 +560,18 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amo
 			G_Physics_Push_Impact(ent);
 
 			// translate the pushed entity
-			ent->s.origin = vec3_add(ent->s.origin, move);
+			ent->s.origin = Vec3_Add(ent->s.origin, move);
 
 			// then rotate the movement to comply with the pusher's rotation
-			translate = vec3_subtract(ent->s.origin, self->s.origin);
+			translate = Vec3_Subtract(ent->s.origin, self->s.origin);
 
-			rotate.x = vec3_dot(translate, forward);
-			rotate.y = -vec3_dot(translate, right);
-			rotate.z = vec3_dot(translate, up);
+			rotate.x = Vec3_Dot(translate, forward);
+			rotate.y = -Vec3_Dot(translate, right);
+			rotate.z = Vec3_Dot(translate, up);
 
-			delta = vec3_subtract(rotate, translate);
+			delta = Vec3_Subtract(rotate, translate);
 
-			ent->s.origin = vec3_add(ent->s.origin, delta);
+			ent->s.origin = Vec3_Add(ent->s.origin, delta);
 
 			// if the move has separated us, finish up by rotating the entity
 			if (G_CorrectPosition(ent)) {
@@ -648,12 +648,12 @@ static void G_Physics_Push(g_entity_t *ent) {
 
 	// make sure all team slaves can move before committing any moves
 	for (g_entity_t *part = ent; part; part = part->locals.team_chain) {
-		if (!vec3_equal(part->locals.velocity, vec3_zero()) ||
-				!vec3_equal(part->locals.avelocity, vec3_zero())) { // object is moving
+		if (!Vec3_Equal(part->locals.velocity, Vec3_Zero()) ||
+				!Vec3_Equal(part->locals.avelocity, Vec3_Zero())) { // object is moving
 			vec3_t move, amove;
 
-			move = vec3_scale(part->locals.velocity, QUETOO_TICK_SECONDS);
-			amove = vec3_scale(part->locals.avelocity, QUETOO_TICK_SECONDS);
+			move = Vec3_Scale(part->locals.velocity, QUETOO_TICK_SECONDS);
+			amove = Vec3_Scale(part->locals.avelocity, QUETOO_TICK_SECONDS);
 
 			if ((obstacle = G_Physics_Push_Move(part, move, amove))) {
 				break; // move was blocked
@@ -739,7 +739,7 @@ static _Bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
 		}
 
 		// project desired destination
-		pos = vec3_add(ent->s.origin, vec3_scale(ent->locals.velocity, time_remaining));
+		pos = Vec3_Add(ent->s.origin, Vec3_Scale(ent->locals.velocity, time_remaining));
 
 		// trace to it
 		const cm_trace_t trace = gi.Trace(ent->s.origin, pos, ent->mins, ent->maxs, ent, mask);
@@ -752,8 +752,8 @@ static _Bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
 
 		const float time = trace.fraction * time_remaining;
 
-		ent->s.origin = vec3_add(ent->s.origin, vec3_scale(ent->locals.velocity, time));
-		ent->s.angles = vec3_add(ent->s.angles, vec3_scale(ent->locals.avelocity, time));
+		ent->s.origin = Vec3_Add(ent->s.origin, Vec3_Scale(ent->locals.velocity, time));
+		ent->s.angles = Vec3_Add(ent->s.angles, Vec3_Scale(ent->locals.avelocity, time));
 
 		time_remaining -= time;
 
@@ -776,7 +776,7 @@ static _Bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
 
 			for (int32_t i = 0; i < num_planes; i++) {
 
-				if (vec3_dot(ent->locals.velocity, planes[i]) >= 0.0) {
+				if (Vec3_Dot(ent->locals.velocity, planes[i]) >= 0.0) {
 					continue;
 				}
 
@@ -791,7 +791,7 @@ static _Bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
 						continue;
 					}
 
-					if (vec3_dot(vel, planes[j]) >= 0.0) {
+					if (Vec3_Dot(vel, planes[j]) >= 0.0) {
 						continue;
 					}
 
@@ -799,16 +799,16 @@ static _Bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
 					vel = G_ClipVelocity(vel, planes[j], PM_CLIP_BOUNCE);
 
 					// see if it goes back into the first clip plane
-					if (vec3_dot(vel, planes[i]) >= 0.0) {
+					if (Vec3_Dot(vel, planes[i]) >= 0.0) {
 						continue;
 					}
 
 					// slide the original velocity along the crease
-					cross = vec3_cross(planes[i], planes[j]);
+					cross = Vec3_Cross(planes[i], planes[j]);
 					cross = vec3_normalize(cross);
 
-					const float scale = vec3_dot(cross, ent->locals.velocity);
-					vel = vec3_scale(cross, scale);
+					const float scale = Vec3_Dot(cross, ent->locals.velocity);
+					vel = Vec3_Scale(cross, scale);
 
 					// see if there is a third plane the the new move enters
 					for (int32_t k = 0; k < num_planes; k++) {
@@ -817,12 +817,12 @@ static _Bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
 							continue;
 						}
 
-						if (vec3_dot(vel, planes[k]) >= 0.0) {
+						if (Vec3_Dot(vel, planes[k]) >= 0.0) {
 							continue;
 						}
 
 						// stop dead at a triple plane interaction
-						ent->locals.velocity = vec3_zero();
+						ent->locals.velocity = Vec3_Zero();
 						return true;
 					}
 				}
@@ -840,8 +840,8 @@ static _Bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
 		ent->s.origin = origin;
 		ent->s.angles = angles;
 
-		ent->locals.velocity = vec3_zero();
-		ent->locals.avelocity = vec3_zero();
+		ent->locals.velocity = Vec3_Zero();
+		ent->locals.avelocity = Vec3_Zero();
 	}
 
 	gi.LinkEntity(ent);
@@ -868,7 +868,7 @@ static void G_Physics_Fly(g_entity_t *ent) {
  */
 static void G_Physics_Bounce(g_entity_t *ent) {
 
-	if (ent->locals.ground_entity == NULL || vec3_equal(ent->locals.velocity, vec3_zero()) == false) {
+	if (ent->locals.ground_entity == NULL || Vec3_Equal(ent->locals.velocity, Vec3_Zero()) == false) {
 
 		G_Friction(ent);
 

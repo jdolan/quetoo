@@ -26,8 +26,8 @@
 /**
  * @brief
  */
-s16vec2_t s16vec2(int16_t x, int16_t y) {
-	return (s16vec2_t) {
+vec2s_t Vec2s(int16_t x, int16_t y) {
+	return (vec2s_t) {
 		.x = x,
 		.y = y
 	};
@@ -36,15 +36,15 @@ s16vec2_t s16vec2(int16_t x, int16_t y) {
 /**
  * @brief
  */
-s16vec2_t s16vec2_zero(void) {
-	return s16vec2(0, 0);
+vec2s_t Vec2s_Zero(void) {
+	return Vec2s(0, 0);
 }
 
 /**
  * @brief
  */
-s16vec3_t s16vec3(int16_t x, int16_t y, int16_t z) {
-	return (s16vec3_t) {
+vec3s_t Vec3s(int16_t x, int16_t y, int16_t z) {
+	return (vec3s_t) {
 		.x = x,
 		.y = y,
 		.z = z
@@ -54,7 +54,7 @@ s16vec3_t s16vec3(int16_t x, int16_t y, int16_t z) {
 /**
  * @brief.
  */
-vec3_t s16vec3_cast_vec3(const s16vec3_t v) {
+vec3_t Vec3s_CastVec3(const vec3s_t v) {
 	return (vec3_t) {
 		.x = (float) v.x,
 		.y = (float) v.y,
@@ -65,7 +65,7 @@ vec3_t s16vec3_cast_vec3(const s16vec3_t v) {
 /**
  * @brief
  */
-_Bool s16vec3_equal(const s16vec3_t a, s16vec3_t b) {
+_Bool Vec3s_Equal(const vec3s_t a, vec3s_t b) {
 	return a.x == b.x &&
 		   a.y == b.y &&
 		   a.z == b.z;
@@ -74,8 +74,8 @@ _Bool s16vec3_equal(const s16vec3_t a, s16vec3_t b) {
 /**
  * @brief
  */
-s16vec3_t s16vec3_zero(void) {
-	return s16vec3(0, 0, 0);
+vec3s_t Vec3s_Zero(void) {
+	return Vec3s(0, 0, 0);
 }
 
 #pragma mark - integer vectors
@@ -83,8 +83,8 @@ s16vec3_t s16vec3_zero(void) {
 /**
  * @brief
  */
-s32vec3_t s32vec3(int32_t x, int32_t y, int32_t z) {
-	return (s32vec3_t) {
+vec3i_t Vec3i(int32_t x, int32_t y, int32_t z) {
+	return (vec3i_t) {
 		.x = x,
 		.y = y,
 		.z = z
@@ -94,22 +94,22 @@ s32vec3_t s32vec3(int32_t x, int32_t y, int32_t z) {
 /**
  * @brief
  */
-s32vec3_t s32vec3_add(const s32vec3_t a, const s32vec3_t b) {
-	return s32vec3(a.x + b.x, a.y + b.y, a.z + b.z);
+vec3i_t Vec3i_Add(const vec3i_t a, const vec3i_t b) {
+	return Vec3i(a.x + b.x, a.y + b.y, a.z + b.z);
 }
 
 /**
  * @brief
  */
-vec3_t s32vec3_cast_vec3(const s32vec3_t v) {
-	return vec3((float) v.x, (float) v.y, (float) v.z);
+vec3_t Vec3i_CastVec3(const vec3i_t v) {
+	return Vec3((float) v.x, (float) v.y, (float) v.z);
 }
 
 /**
  * @brief
  */
-s32vec3_t s32vec3_zero(void) {
-	return s32vec3(0, 0, 0);
+vec3i_t Vec3i_Zero(void) {
+	return Vec3i(0, 0, 0);
 }
 
 #pragma mark - single precision
@@ -120,49 +120,49 @@ s32vec3_t s32vec3_zero(void) {
 /**
  * @brief
  */
-float clampf(float f, float min, float max) {
-	return minf(maxf(f, min), max);
+float Clampf(float f, float min, float max) {
+	return Minf(Maxf(f, min), max);
 }
 
 /**
  * @brief
  */
-float degrees(float radians) {
+float Degrees(float radians) {
 	return radians * RAD2DEG;
 }
 
 /**
  * @brief
  */
-_Bool equalf_epsilon(float a, float b, float epsilon) {
+_Bool EqualEpsilonf(float a, float b, float epsilon) {
 	return fabsf(a - b) <= epsilon;
 }
 
 /**
  * @brief
  */
-float minf(float a, float b) {
+float Minf(float a, float b) {
 	return a < b ? a : b;
 }
 
 /**
  * @brief
  */
-float maxf(float a, float b) {
+float Maxf(float a, float b) {
 	return a > b ? a : b;
 }
 
 /**
  * @brief
  */
-float radians(float degrees) {
+float Radians(float degrees) {
 	return degrees * DEG2RAD;
 }
 
 /**
  * @brief
  */
-float random_range(float begin, float end) {
+float RandomRangef(float begin, float end) {
 	static guint seed;
 	if (seed == 0) {
 		seed = (guint) time(NULL);
@@ -175,15 +175,22 @@ float random_range(float begin, float end) {
 /**
  * @brief
  */
-int32_t signf(float f) {
+float Randomf(void) {
+	return g_random_double();
+}
+
+/**
+ * @brief
+ */
+int32_t SignOf(float f) {
 	return (f > 0.f) - (f < 0.f);
 }
 
 /**
  * @brief
  */
-float smoothf(float f, float min, float max) {
-	const float s = clampf((f - min) / (max - min), 0.f, 1.f);
+float Smoothf(float f, float min, float max) {
+	const float s = Clampf((f - min) / (max - min), 0.f, 1.f);
 	return s * s * (3.f - 2.f * s);
 }
 
@@ -228,8 +235,8 @@ float Vec2_Dot(const vec2_t a, const vec2_t b) {
  * @brief
  */
 _Bool Vec2_EqualEpsilon(const vec2_t a, const vec2_t b, float epsilon) {
-	return equalf_epsilon(a.x, b.x, epsilon) &&
-		   equalf_epsilon(a.y, b.y, epsilon);
+	return EqualEpsilonf(a.x, b.x, epsilon) &&
+		   EqualEpsilonf(a.y, b.y, epsilon);
 }
 
 /**
@@ -257,7 +264,7 @@ float Vec2_Length(const vec2_t v) {
  * @brief
  */
 vec2_t Vec2_Maxf(const vec2_t a, const vec2_t b) {
-	return Vec2(maxf(a.x, b.x), maxf(a.y, b.y));
+	return Vec2(Maxf(a.x, b.x), Maxf(a.y, b.y));
 }
 
 /**
@@ -271,7 +278,7 @@ vec2_t Vec2_Maxs(void) {
  * @brief
  */
 vec2_t Vec2_Minf(const vec2_t a, const vec2_t b) {
-	return Vec2(minf(a.x, b.x), minf(a.y, b.y));
+	return Vec2(Minf(a.x, b.x), Minf(a.y, b.y));
 }
 
 /**
@@ -314,28 +321,28 @@ vec2_t Vec2_Zero(void) {
 /**
  * @brief
  */
-vec3_t vec3(float x, float y, float z) {
+vec3_t Vec3(float x, float y, float z) {
 	return (vec3_t) { .x = x, .y = y, .z = z};
 }
 
 /**
  * @brief
  */
-vec3_t vec3_abs(const vec3_t v) {
-	return vec3(fabsf(v.x), fabsf(v.y), fabsf(v.z));
+vec3_t Vec3_Absf(const vec3_t v) {
+	return Vec3(fabsf(v.x), fabsf(v.y), fabsf(v.z));
 }
 
 /**
  * @brief
  */
-vec3_t vec3_add(const vec3_t a, const vec3_t b) {
-	return vec3(a.x + b.x, a.y + b.y, a.z + b.z);
+vec3_t Vec3_Add(const vec3_t a, const vec3_t b) {
+	return Vec3(a.x + b.x, a.y + b.y, a.z + b.z);
 }
 
 /**
  * @brief
  */
-_Bool vec3_box_intersect(const vec3_t amins, const vec3_t amaxs, const vec3_t bmins, const vec3_t bmaxs) {
+_Bool Vec3_BoxIntersect(const vec3_t amins, const vec3_t amaxs, const vec3_t bmins, const vec3_t bmaxs) {
 
 	if (amins.x >= bmaxs.x || amins.y >= bmaxs.y || amins.z >= bmaxs.z) {
 		return false;
@@ -351,8 +358,8 @@ _Bool vec3_box_intersect(const vec3_t amins, const vec3_t amaxs, const vec3_t bm
 /**
  * @brief
  */
-dvec3_t vec3_cast_dvec3(const vec3_t v) {
-	return (dvec3_t) {
+vec3d_t Vec3_CastDVec3(const vec3_t v) {
+	return (vec3d_t) {
 		.x = (double) v.x,
 		.y = (double) v.y,
 		.z = (double) v.z
@@ -362,8 +369,8 @@ dvec3_t vec3_cast_dvec3(const vec3_t v) {
 /**
  * @brief
  */
-s16vec3_t vec3_cast_s16vec3(const vec3_t v) {
-	return (s16vec3_t) {
+vec3s_t Vec3_CastS16Vec3(const vec3_t v) {
+	return (vec3s_t) {
 		.x = (int16_t) v.x,
 		.y = (int16_t) v.y,
 		.z = (int16_t) v.z
@@ -373,8 +380,8 @@ s16vec3_t vec3_cast_s16vec3(const vec3_t v) {
 /**
  * @brief
  */
-s32vec3_t vec3_cast_s32vec3(const vec3_t v) {
-	return (s32vec3_t) {
+vec3i_t Vec3_CastS32Vec3(const vec3_t v) {
+	return (vec3i_t) {
 		.x = (int32_t) v.x,
 		.y = (int32_t) v.y,
 		.z = (int32_t) v.z
@@ -384,8 +391,8 @@ s32vec3_t vec3_cast_s32vec3(const vec3_t v) {
 /**
  * @brief
  */
-vec3_t vec3_cross(const vec3_t a, const vec3_t b) {
-	return vec3(a.y * b.z - a.z * b.y,
+vec3_t Vec3_Cross(const vec3_t a, const vec3_t b) {
+	return Vec3(a.y * b.z - a.z * b.y,
 				 a.z * b.x - a.x * b.z,
 				 a.x * b.y - a.y * b.x);
 }
@@ -393,17 +400,17 @@ vec3_t vec3_cross(const vec3_t a, const vec3_t b) {
 /**
  * @brief
  */
-vec3_t vec3_degrees(const vec3_t radians) {
-	return vec3_scale(radians, RAD2DEG);
+vec3_t Vec3_Degrees(const vec3_t radians) {
+	return Vec3_Scale(radians, RAD2DEG);
 }
 
 /**
  * @brief
  */
-float vec3_distance_dir(const vec3_t a, const vec3_t b, vec3_t *dir) {
+float Vec3_DistanceDir(const vec3_t a, const vec3_t b, vec3_t *dir) {
 	float length;
 
-	*dir = vec3_normalize_length(vec3_subtract(a, b), &length);
+	*dir = Vec3_NormalizeLength(Vec3_Subtract(a, b), &length);
 
 	return length;
 }
@@ -411,60 +418,60 @@ float vec3_distance_dir(const vec3_t a, const vec3_t b, vec3_t *dir) {
 /**
  * @brief
  */
-float vec3_distance_squared(const vec3_t a, const vec3_t b) {
-	return vec3_length_squared(vec3_subtract(a, b));
+float Vec3_DistanceSquared(const vec3_t a, const vec3_t b) {
+	return Vec3_LengthSquared(Vec3_Subtract(a, b));
 }
 
 /**
  * @brief
  */
-float vec3_distance(const vec3_t a, const vec3_t b) {
-	return vec3_length(vec3_subtract(a, b));
+float Vec3_Distance(const vec3_t a, const vec3_t b) {
+	return Vec3_Length(Vec3_Subtract(a, b));
 }
 
 /**
  * @brief
  */
-float vec3_dot(const vec3_t a, const vec3_t b) {
+float Vec3_Dot(const vec3_t a, const vec3_t b) {
 	return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
 /**
  * @brief
  */
-vec3_t vec3_down(void) {
-	return vec3_negate(vec3_up());
+vec3_t Vec3_Down(void) {
+	return Vec3_Negate(Vec3_Up());
 }
 
 /**
  * @brief
  */
-_Bool vec3_equal_epsilon(const vec3_t a, const vec3_t b, float epsilon) {
-	return equalf_epsilon(a.x, b.x, epsilon) &&
-		   equalf_epsilon(a.y, b.y, epsilon) &&
-		   equalf_epsilon(a.z, b.z, epsilon);
+_Bool Vec3_EqualEpsilon(const vec3_t a, const vec3_t b, float epsilon) {
+	return EqualEpsilonf(a.x, b.x, epsilon) &&
+		   EqualEpsilonf(a.y, b.y, epsilon) &&
+		   EqualEpsilonf(a.z, b.z, epsilon);
 }
 
 /**
  * @brief
  */
-_Bool vec3_equal(const vec3_t a, const vec3_t b) {
-	return vec3_equal_epsilon(a, b, __FLT_EPSILON__);
+_Bool Vec3_Equal(const vec3_t a, const vec3_t b) {
+	return Vec3_EqualEpsilon(a, b, __FLT_EPSILON__);
 }
 
 /**
  * @brief
  */
-vec3_t vec3_euler(const vec3_t dir) {
-	return vec3_degrees(vec3(asinf(dir.z), atan2f(dir.y, dir.x), 0.f));
+vec3_t Vec3_Euler(const vec3_t dir) {
+	return Vec3_Degrees(Vec3(asinf(dir.z), atan2f(dir.y, dir.x), 0.f));
 }
 
 /**
  * @brief
  */
-vec3_t vec3_forward(const vec3_t euler) {
-	const vec3_t radians = vec3_radians(euler);
-	return vec3(cosf(radians.x) * cosf(radians.y),
+vec3_t Vec3_Forward(const vec3_t euler) {
+	const vec3_t radians = Vec3_Radians(euler);
+	return Vec3(cosf(radians.x) * cosf(radians.y),
 				 cosf(radians.x) * sinf(radians.y),
 				 sinf(radians.x) * -1.f);
 }
@@ -472,51 +479,51 @@ vec3_t vec3_forward(const vec3_t euler) {
 /**
  * @brief
  */
-float vec3_length_squared(const vec3_t v) {
-	return vec3_dot(v, v);
+float Vec3_LengthSquared(const vec3_t v) {
+	return Vec3_Dot(v, v);
 }
 
 /**
  * @brief
  */
-float vec3_length(const vec3_t v) {
-	return sqrtf(vec3_length_squared(v));
+float Vec3_Length(const vec3_t v) {
+	return sqrtf(Vec3_LengthSquared(v));
 }
 
 /**
  * @brief
  */
-vec3_t vec3_maxf(const vec3_t a, const vec3_t b) {
-	return vec3(maxf(a.x, b.x), maxf(a.y, b.y), maxf(a.z, b.z));
+vec3_t Vec3_Maxf(const vec3_t a, const vec3_t b) {
+	return Vec3(Maxf(a.x, b.x), Maxf(a.y, b.y), Maxf(a.z, b.z));
 }
 
 /**
  * @brief
  */
-vec3_t vec3_maxs(void) {
-	return vec3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+vec3_t Vec3_Maxs(void) {
+	return Vec3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 }
 
 /**
  * @brief
  */
-vec3_t vec3_minf(const vec3_t a, const vec3_t b) {
-	return vec3(minf(a.x, b.x), minf(a.y, b.y), minf(a.z, b.z));
+vec3_t Vec3_Minf(const vec3_t a, const vec3_t b) {
+	return Vec3(Minf(a.x, b.x), Minf(a.y, b.y), Minf(a.z, b.z));
 }
 
 /**
  * @brief
  */
-vec3_t vec3_mins(void) {
-	return vec3(FLT_MAX, FLT_MAX, FLT_MAX);
+vec3_t Vec3_Mins(void) {
+	return Vec3(FLT_MAX, FLT_MAX, FLT_MAX);
 }
 
 /**
  * @brief
  */
-vec3_t vec3_mix_euler(const vec3_t a, const vec3_t b, float mix) {
+vec3_t Vec3_MixEuler(const vec3_t a, const vec3_t b, float mix) {
 
-	vec3_t delta = vec3_subtract(b, a);
+	vec3_t delta = Vec3_Subtract(b, a);
 	for (size_t i = 0; i < lengthof(delta.xyz); i++) {
 		if (delta.xyz[i] > 180.f) {
 			delta.xyz[i] -= 360.f;
@@ -525,39 +532,39 @@ vec3_t vec3_mix_euler(const vec3_t a, const vec3_t b, float mix) {
 		}
 	}
 
-	return vec3_mix(a, delta, mix);
+	return Vec3_Mix(a, delta, mix);
 }
 
 /**
  * @brief
  */
-vec3_t vec3_mix(const vec3_t a, const vec3_t b, float mix) {
-	return vec3_add(vec3_scale(a, 1.f - mix), vec3_scale(b, mix));
+vec3_t Vec3_Mix(const vec3_t a, const vec3_t b, float mix) {
+	return Vec3_Add(Vec3_Scale(a, 1.f - mix), Vec3_Scale(b, mix));
 }
 
 /**
  * @brief
  */
-vec3_t vec3_multiply(const vec3_t a, const vec3_t b) {
-	return vec3(a.x * b.x, a.y * b.y, a.z * b.z);
+vec3_t Vec3_Multiply(const vec3_t a, const vec3_t b) {
+	return Vec3(a.x * b.x, a.y * b.y, a.z * b.z);
 }
 
 /**
  * @brief
  */
-vec3_t vec3_negate(const vec3_t v) {
-	return vec3_scale(v, -1.f);
+vec3_t Vec3_Negate(const vec3_t v) {
+	return Vec3_Scale(v, -1.f);
 }
 
 /**
  * @brief
  */
-vec3_t vec3_normalize_length(const vec3_t v, float *length) {
-	*length = vec3_length(v);
+vec3_t Vec3_NormalizeLength(const vec3_t v, float *length) {
+	*length = Vec3_Length(v);
 	if (*length) {
-		return vec3_scale(v, 1.f / *length);
+		return Vec3_Scale(v, 1.f / *length);
 	} else {
-		return vec3_zero();
+		return Vec3_Zero();
 	}
 }
 
@@ -567,107 +574,107 @@ vec3_t vec3_normalize_length(const vec3_t v, float *length) {
 vec3_t vec3_normalize(const vec3_t v) {
 	float length;
 
-	return vec3_normalize_length(v, &length);
+	return Vec3_NormalizeLength(v, &length);
 }
 
 /**
  * @brief
  */
-vec3_t vec3_one(void) {
-	return vec3(1.f, 1.f, 1.f);
+vec3_t Vec3_One(void) {
+	return Vec3(1.f, 1.f, 1.f);
 }
 
 /**
  * @brief
  */
-vec3_t vec3_radians(const vec3_t degrees) {
-	return vec3_scale(degrees, DEG2RAD);
+vec3_t Vec3_Radians(const vec3_t degrees) {
+	return Vec3_Scale(degrees, DEG2RAD);
 }
 
 /**
  * @brief
  */
-vec3_t vec3_random_range(float begin, float end) {
-	return vec3(random_range(begin, end),
-				random_range(begin, end),
-				random_range(begin, end));
+vec3_t Vec3_RandomRange(float begin, float end) {
+	return Vec3(RandomRangef(begin, end),
+				RandomRangef(begin, end),
+				RandomRangef(begin, end));
 }
 
 /**
  * @brief
  */
-vec3_t vec3_random(void) {
-	return vec3_random_range(0., 1.);
+vec3_t Vec3_Random(void) {
+	return Vec3_RandomRange(0., 1.);
 }
 
 /**
  * @brief
  */
 vec3_t vec3_reflect(const vec3_t a, const vec3_t b) {
-	return vec3_add(a, vec3_scale(b, -2.0 * vec3_dot(a, b)));
+	return Vec3_Add(a, Vec3_Scale(b, -2.0 * Vec3_Dot(a, b)));
 }
 
 /**
  * @brief
  */
-vec3_t vec3_subtract(const vec3_t a, const vec3_t b) {
-	return vec3(a.x - b.x, a.y - b.y, a.z - b.z);
+vec3_t Vec3_Subtract(const vec3_t a, const vec3_t b) {
+	return Vec3(a.x - b.x, a.y - b.y, a.z - b.z);
 }
 
 /**
  * @brief
  */
-vec3_t vec3_scale(const vec3_t v, float scale) {
-	return vec3(v.x * scale, v.y * scale, v.z * scale);
+vec3_t Vec3_Scale(const vec3_t v, float scale) {
+	return Vec3(v.x * scale, v.y * scale, v.z * scale);
 }
 
 /**
  * @brief
  */
-void vec3_tangents(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec3_t *tangent, vec3_t *bitangent) {
+void Vec3_Tangents(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec3_t *tangent, vec3_t *bitangent) {
 
 	const vec3_t s = vec3_normalize(sdir);
 	const vec3_t t = vec3_normalize(tdir);
 
-	*tangent = vec3_add(s, vec3_scale(normal, -vec3_dot(s, normal)));
-	if (vec3_dot(s, *tangent) < 0.f) {
-		*tangent = vec3_negate(*tangent);
+	*tangent = Vec3_Add(s, Vec3_Scale(normal, -Vec3_Dot(s, normal)));
+	if (Vec3_Dot(s, *tangent) < 0.f) {
+		*tangent = Vec3_Negate(*tangent);
 	}
 
-	*bitangent = vec3_cross(normal, *tangent);
-	if (vec3_dot(t, *bitangent) < 0.f) {
-		*bitangent = vec3_negate(*bitangent);
+	*bitangent = Vec3_Cross(normal, *tangent);
+	if (Vec3_Dot(t, *bitangent) < 0.f) {
+		*bitangent = Vec3_Negate(*bitangent);
 	}
 }
 
 /**
  * @brief
  */
-vec4_t vec3_to_vec4(const vec3_t v, float w) {
-	return vec4(v.x, v.y, v.z, w);
+vec4_t Vec3_ToVec4(const vec3_t v, float w) {
+	return Vec4(v.x, v.y, v.z, w);
 }
 
 /**
  * @brief
  */
-vec3_t vec3_up(void) {
-	return vec3(0.f, 0.f, 1.f);
+vec3_t Vec3_Up(void) {
+	return Vec3(0.f, 0.f, 1.f);
 }
 
 /**
  * @brief
  */
-void vec3_vectors(const vec3_t euler, vec3_t *forward, vec3_t *right, vec3_t *up) {
+void Vec3_Vectors(const vec3_t euler, vec3_t *forward, vec3_t *right, vec3_t *up) {
 
-	const vec3_t f = vec3_forward(euler);
+	const vec3_t f = Vec3_Forward(euler);
 	if (forward) {
 		*forward = f;
 	}
-	const vec3_t r = vec3_cross(f, vec3_up());
+	const vec3_t r = Vec3_Cross(f, Vec3_Up());
 	if (right) {
 		*right = r;
 	}
-	const vec3_t u = vec3_cross(f, r);
+	const vec3_t u = Vec3_Cross(f, r);
 	if (up) {
 		*up = u;
 	}
@@ -676,15 +683,15 @@ void vec3_vectors(const vec3_t euler, vec3_t *forward, vec3_t *right, vec3_t *up
 /**
  * @brief
  */
-vec2_t vec3_xy(const vec3_t v) {
+vec2_t Vec3_XY(const vec3_t v) {
 	return Vec2(v.x, v.y);
 }
 
 /**
  * @brief
  */
-vec3_t vec3_zero(void) {
-	return vec3(0.f, 0.f, 0.f);
+vec3_t Vec3_Zero(void) {
+	return Vec3(0.f, 0.f, 0.f);
 }
 
 #pragma mark - vec4_t
@@ -692,21 +699,21 @@ vec3_t vec3_zero(void) {
 /**
  * @brief
  */
-vec4_t vec4(float x, float y, float z, float w) {
+vec4_t Vec4(float x, float y, float z, float w) {
 	return (vec4_t) { .x = x, .y = y, .z = z, .w = w };
 }
 
 /**
  * @brief
  */
-vec4_t vec4_add(const vec4_t a, const vec4_t b) {
-	return vec4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
+vec4_t Vec4_Add(const vec4_t a, const vec4_t b) {
+	return Vec4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
 }
 
 /**
  * @brief
  */
-_Bool vec4_equal_epsilon(const vec4_t a, const vec4_t b, float epsilon) {
+_Bool Vec4_EqualEpsilon(const vec4_t a, const vec4_t b, float epsilon) {
 	return fabsf(a.x - b.x) <= epsilon &&
 		   fabsf(a.y - b.y) <= epsilon &&
 		   fabsf(a.z - b.z) <= epsilon &&
@@ -716,50 +723,50 @@ _Bool vec4_equal_epsilon(const vec4_t a, const vec4_t b, float epsilon) {
 /**
  * @brief
  */
-_Bool vec4_equal(const vec4_t a, const vec4_t b) {
-	return vec4_equal_epsilon(a, b, __FLT_EPSILON__);
+_Bool Vec4_Equal(const vec4_t a, const vec4_t b) {
+	return Vec4_EqualEpsilon(a, b, __FLT_EPSILON__);
 }
 
 /**
  * @brief
  */
-vec4_t vec4_mix(const vec4_t a, const vec4_t b, float mix) {
-	return vec4_add(vec4_scale(a, 1.f - mix), vec4_scale(b, mix));
+vec4_t Vec4_Mix(const vec4_t a, const vec4_t b, float mix) {
+	return Vec4_Add(Vec4_Scale(a, 1.f - mix), Vec4_Scale(b, mix));
 }
 
 /**
  * @brief
  */
-vec4_t vec4_one(void) {
-	return vec4(1.f, 1.f, 1.f, 1.f);
+vec4_t Vec4_One(void) {
+	return Vec4(1.f, 1.f, 1.f, 1.f);
 }
 
 /**
  * @brief
  */
-vec4_t vec4_scale(const vec4_t v, float scale) {
-	return vec4(v.x * scale, v.y * scale, v.z * scale, v.w * scale);
+vec4_t Vec4_Scale(const vec4_t v, float scale) {
+	return Vec4(v.x * scale, v.y * scale, v.z * scale, v.w * scale);
 }
 
 /**
  * @brief
  */
-vec4_t vec4_subtract(const vec4_t a, const vec4_t b) {
-	return vec4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w);
+vec4_t Vec4_Subtract(const vec4_t a, const vec4_t b) {
+	return Vec4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w);
 }
 
 /**
  * @brief
  */
-vec3_t vec4_xyz(const vec4_t v) {
-	return vec3(v.x, v.y, v.z);
+vec3_t Vec4_XYZ(const vec4_t v) {
+	return Vec3(v.x, v.y, v.z);
 }
 
 /**
  * @brief
  */
-vec4_t vec4_zero(void) {
-	return vec4(0.f, 0.f, 0.f, 0.f);
+vec4_t Vec4_Zero(void) {
+	return Vec4(0.f, 0.f, 0.f, 0.f);
 }
 
 #pragma mark - double precision
@@ -767,17 +774,17 @@ vec4_t vec4_zero(void) {
 /**
  * @brief
  */
-_Bool equal_epsilon(double a, double b, double epsilon) {
+_Bool EqualEpsilon(double a, double b, double epsilon) {
 	return fabs(a - b) <= epsilon;
 }
 
-#pragma mark - dvec3_t
+#pragma mark - vec3d_t
 
 /**
  * @brief
  */
-dvec3_t dvec3(double x, double y, double z) {
-	return (dvec3_t) {
+vec3d_t Vec3d(double x, double y, double z) {
+	return (vec3d_t) {
 		.x = x,
 		.y = y,
 		.z = z
@@ -787,22 +794,22 @@ dvec3_t dvec3(double x, double y, double z) {
 /**
  * @brief
  */
-dvec3_t dvec3_add(const dvec3_t a, const dvec3_t b) {
-	return dvec3(a.x + b.x, a.y + b.y, a.z + b.z);
+vec3d_t Vec3d_Add(const vec3d_t a, const vec3d_t b) {
+	return Vec3d(a.x + b.x, a.y + b.y, a.z + b.z);
 }
 
 /**
  * @brief
  */
-vec3_t dvec3_cast_vec3(const dvec3_t v) {
-	return vec3(v.x, v.y, v.z);
+vec3_t Vec3d_CastVec3(const vec3d_t v) {
+	return Vec3(v.x, v.y, v.z);
 }
 
 /**
  * @brief
  */
-dvec3_t dvec3_cross(const dvec3_t a, const dvec3_t b) {
-	return dvec3(a.y * b.z - a.z * b.y,
+vec3d_t Vec3d_Cross(const vec3d_t a, const vec3d_t b) {
+	return Vec3d(a.y * b.z - a.z * b.y,
 				 a.z * b.x - a.x * b.z,
 				 a.x * b.y - a.y * b.x);
 }
@@ -810,83 +817,83 @@ dvec3_t dvec3_cross(const dvec3_t a, const dvec3_t b) {
 /**
  * @brief
  */
-double dvec3_distance_squared(const dvec3_t a, const dvec3_t b) {
-	return dvec3_length_squared(dvec3_subtract(a, b));
+double Vec3d_DistanceSquared(const vec3d_t a, const vec3d_t b) {
+	return Vec3d_LengthSquared(Vec3d_Subtract(a, b));
 }
 
 /**
  * @brief
  */
-double dvec3_distance(const dvec3_t a, const dvec3_t b) {
-	return dvec3_length(dvec3_subtract(a, b));
+double Vec3d_Distance(const vec3d_t a, const vec3d_t b) {
+	return Vec3d_Length(Vec3d_Subtract(a, b));
 }
 
 /**
  * @brief
  */
-double dvec3_dot(const dvec3_t a, const dvec3_t b) {
+double Vec3d_Dot(const vec3d_t a, const vec3d_t b) {
 	return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
 /**
  * @brief
  */
-_Bool dvec3_equal_epsilon(const dvec3_t a, const dvec3_t b, double epsilon) {
-	return equal_epsilon(a.x, b.x, epsilon) &&
-		   equal_epsilon(a.y, b.y, epsilon) &&
-		   equal_epsilon(a.z, b.z, epsilon);
+_Bool Vec3d_EqualEpsilon(const vec3d_t a, const vec3d_t b, double epsilon) {
+	return EqualEpsilon(a.x, b.x, epsilon) &&
+		   EqualEpsilon(a.y, b.y, epsilon) &&
+		   EqualEpsilon(a.z, b.z, epsilon);
 }
 
 /**
  * @brief
  */
-_Bool dvec3_equal(const dvec3_t a, const dvec3_t b) {
-	return dvec3_equal_epsilon(a, b, __DBL_EPSILON__);
+_Bool Vec3d_Equal(const vec3d_t a, const vec3d_t b) {
+	return Vec3d_EqualEpsilon(a, b, __DBL_EPSILON__);
 }
 
 /**
  * @brief
  */
-double dvec3_length_squared(const dvec3_t v) {
-	return dvec3_dot(v, v);
+double Vec3d_LengthSquared(const vec3d_t v) {
+	return Vec3d_Dot(v, v);
 }
 
 /**
  * @brief
  */
-double dvec3_length(const dvec3_t v) {
-	return sqrt(dvec3_length_squared(v));
+double Vec3d_Length(const vec3d_t v) {
+	return sqrt(Vec3d_LengthSquared(v));
 }
 
 /**
  * @brief
  */
-dvec3_t dvec3_normalize(const dvec3_t v) {
-	const double length = dvec3_length(v);
+vec3d_t Vec3d_Normalize(const vec3d_t v) {
+	const double length = Vec3d_Length(v);
 	if (length) {
-		return dvec3_scale(v, 1.0 / length);
+		return Vec3d_Scale(v, 1.0 / length);
 	} else {
-		return dvec3_zero();
+		return Vec3d_Zero();
 	}
 }
 
 /**
  * @brief
  */
-dvec3_t dvec3_scale(const dvec3_t v, double scale) {
-	return dvec3(v.x * scale, v.y * scale, v.z * scale);
+vec3d_t Vec3d_Scale(const vec3d_t v, double scale) {
+	return Vec3d(v.x * scale, v.y * scale, v.z * scale);
 }
 
 /**
  * @brief
  */
-dvec3_t dvec3_subtract(const dvec3_t a, const dvec3_t b) {
-	return dvec3(a.x - b.x, a.y - b.y, a.z - b.z);
+vec3d_t Vec3d_Subtract(const vec3d_t a, const vec3d_t b) {
+	return Vec3d(a.x - b.x, a.y - b.y, a.z - b.z);
 }
 
 /**
  * @brief
  */
-dvec3_t dvec3_zero(void) {
-	return dvec3(0., 0., 0.);
+vec3d_t Vec3d_Zero(void) {
+	return Vec3d(0., 0., 0.);
 }

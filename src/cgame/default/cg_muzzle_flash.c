@@ -28,17 +28,17 @@ static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
 	vec3_t forward, right, org, org2;
 
 	// project the flash just in front of the entity
-	vec3_vectors(ent->angles, &forward, &right, NULL );
-	org = vec3_add(ent->origin, vec3_scale(forward, 30.0));
-	org = vec3_add(org, vec3_scale(right, 6.0));
+	Vec3_Vectors(ent->angles, &forward, &right, NULL );
+	org = Vec3_Add(ent->origin, Vec3_Scale(forward, 30.0));
+	org = Vec3_Add(org, Vec3_Scale(right, 6.0));
 
-	const cm_trace_t tr = cgi.Trace(ent->origin, org, vec3_zero(), vec3_zero(), 0, MASK_CLIP_PROJECTILE);
+	const cm_trace_t tr = cgi.Trace(ent->origin, org, Vec3_Zero(), Vec3_Zero(), 0, MASK_CLIP_PROJECTILE);
 
 	if (tr.fraction < 1.0) { // firing near a wall, back it up
-		org = vec3_subtract(ent->origin, tr.end);
-		org = vec3_scale(org, 0.75);
+		org = Vec3_Subtract(ent->origin, tr.end);
+		org = Vec3_Scale(org, 0.75);
 
-		org = vec3_add(ent->origin, org);
+		org = Vec3_Add(ent->origin, org);
 	}
 
 	// and adjust for ducking
@@ -53,7 +53,7 @@ static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
 	Cg_AddLight(&l);
 
 	if (cgi.PointContents(ent->origin) & MASK_LIQUID) {
-		org2 = vec3_add(ent->origin, vec3_scale(forward, 40.0));
+		org2 = Vec3_Add(ent->origin, Vec3_Scale(forward, 40.0));
 		Cg_BubbleTrail(org, org2, 10.0);
 	}
 }
@@ -66,17 +66,17 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 	vec3_t forward, right, org, org2;
 
 	// project the puff just in front of the entity
-	vec3_vectors(ent->angles, &forward, &right, NULL );
-	org = vec3_add(ent->origin, vec3_scale(forward, 30.0));
-	org = vec3_add(org, vec3_scale(right, 6.0));
+	Vec3_Vectors(ent->angles, &forward, &right, NULL );
+	org = Vec3_Add(ent->origin, Vec3_Scale(forward, 30.0));
+	org = Vec3_Add(org, Vec3_Scale(right, 6.0));
 
-	const cm_trace_t tr = cgi.Trace(ent->origin, org, vec3_zero(), vec3_zero(), 0, MASK_CLIP_PROJECTILE);
+	const cm_trace_t tr = cgi.Trace(ent->origin, org, Vec3_Zero(), Vec3_Zero(), 0, MASK_CLIP_PROJECTILE);
 
 	if (tr.fraction < 1.0) { // firing near a wall, back it up
-		org = vec3_subtract(ent->origin, tr.end);
-		org = vec3_scale(org, 0.75);
+		org = Vec3_Subtract(ent->origin, tr.end);
+		org = Vec3_Scale(org, 0.75);
 
-		org = vec3_add(ent->origin, org);
+		org = Vec3_Add(ent->origin, org);
 	}
 
 	// and adjust for ducking
@@ -90,7 +90,7 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 	});
 
 	if (cgi.PointContents(ent->origin) & MASK_LIQUID) {
-		org2 = vec3_add(ent->origin, vec3_scale(forward, 40.0));
+		org2 = Vec3_Add(ent->origin, Vec3_Scale(forward, 40.0));
 		Cg_BubbleTrail(org, org2, 10.0);
 		return;
 	}
@@ -110,7 +110,7 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 	p->size = 4.0;
 	p->delta_size = 1.0;
 
-	p->velocity = vec3_random_range(-1.f, 1.f);
+	p->velocity = Vec3_RandomRange(-1.f, 1.f);
 	p->velocity.z += 10.f;
 
 	p->acceleration.z = 5.0;

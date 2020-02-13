@@ -63,9 +63,9 @@ static _Bool Cl_ValidDeltaEntity(const cl_frame_t *frame, const cl_entity_t *ent
 		return false;
 	}
 
-	delta = vec3_subtract(ent->current.origin, to->origin);
+	delta = Vec3_Subtract(ent->current.origin, to->origin);
 
-	if (vec3_length(delta) > MAX_DELTA_ORIGIN) {
+	if (Vec3_Length(delta) > MAX_DELTA_ORIGIN) {
 		return false;
 	}
 
@@ -324,8 +324,8 @@ static void Cl_UpdateLerp(void) {
 	if (no_lerp == false && cl.previous_frame) {
 		vec3_t delta;
 
-		delta = vec3_subtract(cl.frame.ps.pm_state.origin, cl.previous_frame->ps.pm_state.origin);
-		if (vec3_length(delta) > MAX_DELTA_ORIGIN) {
+		delta = Vec3_Subtract(cl.frame.ps.pm_state.origin, cl.previous_frame->ps.pm_state.origin);
+		if (Vec3_Length(delta) > MAX_DELTA_ORIGIN) {
 			Com_Debug(DEBUG_CLIENT, "%d No lerp\n", cl.frame.frame_num);
 			no_lerp = true;
 		}
@@ -372,21 +372,21 @@ void Cl_Interpolate(void) {
 		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		cl_entity_t *ent = &cl.entities[cl.entity_states[snum].number];
 
-		if (!vec3_equal(ent->prev.origin, ent->current.origin)) {
+		if (!Vec3_Equal(ent->prev.origin, ent->current.origin)) {
 			ent->previous_origin = ent->origin;
-			ent->origin = vec3_mix(ent->prev.origin, ent->current.origin, cl.lerp);
+			ent->origin = Vec3_Mix(ent->prev.origin, ent->current.origin, cl.lerp);
 		} else {
 			ent->origin = ent->current.origin;
 		}
 
-		if (!vec3_equal(ent->prev.termination, ent->current.termination)) {
-			ent->termination = vec3_mix(ent->prev.termination, ent->current.termination, cl.lerp);
+		if (!Vec3_Equal(ent->prev.termination, ent->current.termination)) {
+			ent->termination = Vec3_Mix(ent->prev.termination, ent->current.termination, cl.lerp);
 		} else {
 			ent->termination = ent->current.termination;
 		}
 
-		if (!vec3_equal(ent->prev.angles, ent->current.angles)) {
-			ent->angles = vec3_mix_euler(ent->prev.angles, ent->current.angles, cl.lerp);
+		if (!Vec3_Equal(ent->prev.angles, ent->current.angles)) {
+			ent->angles = Vec3_MixEuler(ent->prev.angles, ent->current.angles, cl.lerp);
 		} else {
 			ent->angles = ent->current.angles;
 		}
@@ -436,7 +436,7 @@ void Cl_Interpolate(void) {
 				ent->mins = mod->bsp_inline->mins;
 				ent->maxs = mod->bsp_inline->maxs;
 			} else {
-				angles = vec3_zero();
+				angles = Vec3_Zero();
 				
 				ent->mins = ent->current.mins;
 				ent->maxs = ent->current.maxs;

@@ -52,9 +52,9 @@ _Bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
 
 	// BSP sub-models need special checking because their origin is 0,0,0
 	if (targ->solid == SOLID_BSP) {
-		dest = vec3_add(targ->abs_mins, targ->abs_maxs);
-		dest = vec3_scale(dest, 0.5);
-		tr = gi.Trace(inflictor->s.origin, dest, vec3_zero(), vec3_zero(), inflictor, MASK_SOLID);
+		dest = Vec3_Add(targ->abs_mins, targ->abs_maxs);
+		dest = Vec3_Scale(dest, 0.5);
+		tr = gi.Trace(inflictor->s.origin, dest, Vec3_Zero(), Vec3_Zero(), inflictor, MASK_SOLID);
 		if (tr.fraction == 1.0) {
 			return true;
 		}
@@ -64,7 +64,7 @@ _Bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
 		return false;
 	}
 
-	tr = gi.Trace(inflictor->s.origin, targ->s.origin, vec3_zero(), vec3_zero(), inflictor, MASK_SOLID);
+	tr = gi.Trace(inflictor->s.origin, targ->s.origin, Vec3_Zero(), Vec3_Zero(), inflictor, MASK_SOLID);
 	if (tr.fraction == 1.0) {
 		return true;
 	}
@@ -72,7 +72,7 @@ _Bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
 	dest = targ->s.origin;
 	dest.x += 15.0;
 	dest.y += 15.0;
-	tr = gi.Trace(inflictor->s.origin, dest, vec3_zero(), vec3_zero(), inflictor, MASK_SOLID);
+	tr = gi.Trace(inflictor->s.origin, dest, Vec3_Zero(), Vec3_Zero(), inflictor, MASK_SOLID);
 	if (tr.fraction == 1.0) {
 		return true;
 	}
@@ -80,7 +80,7 @@ _Bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
 	dest = targ->s.origin;
 	dest.x += 15.0;
 	dest.y -= 15.0;
-	tr = gi.Trace(inflictor->s.origin, dest, vec3_zero(), vec3_zero(), inflictor, MASK_SOLID);
+	tr = gi.Trace(inflictor->s.origin, dest, Vec3_Zero(), Vec3_Zero(), inflictor, MASK_SOLID);
 	if (tr.fraction == 1.0) {
 		return true;
 	}
@@ -88,7 +88,7 @@ _Bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
 	dest = targ->s.origin;
 	dest.x -= 15.0;
 	dest.y += 15.0;
-	tr = gi.Trace(inflictor->s.origin, dest, vec3_zero(), vec3_zero(), inflictor, MASK_SOLID);
+	tr = gi.Trace(inflictor->s.origin, dest, Vec3_Zero(), Vec3_Zero(), inflictor, MASK_SOLID);
 	if (tr.fraction == 1.0) {
 		return true;
 	}
@@ -96,7 +96,7 @@ _Bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
 	dest = targ->s.origin;
 	dest.x -= 15.0;
 	dest.y -= 15.0;
-	tr = gi.Trace(inflictor->s.origin, dest, vec3_zero(), vec3_zero(), inflictor, MASK_SOLID);
+	tr = gi.Trace(inflictor->s.origin, dest, Vec3_Zero(), Vec3_Zero(), inflictor, MASK_SOLID);
 	if (tr.fraction == 1.0) {
 		return true;
 	}
@@ -110,7 +110,7 @@ _Bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
 vec3_t G_GetOrigin(const g_entity_t *ent) {
 
 	if (ent->solid == SOLID_BSP) {
-		return vec3_mix(ent->abs_mins, ent->abs_maxs, 0.5);
+		return Vec3_Mix(ent->abs_mins, ent->abs_maxs, 0.5);
 	} else {
 		return ent->s.origin;
 	}
@@ -126,7 +126,7 @@ static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t n
 		return;
 	}
 
-	int16_t count = clampf(damage / 50, 1, 4);
+	int16_t count = Clampf(damage / 50, 1, 4);
 
 	while (count--) {
 		gi.WriteByte(SV_CMD_TEMP_ENTITY);
@@ -165,9 +165,9 @@ static int16_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
 	int16_t saved;
 
 	if (dflags & DMG_ENERGY) {
-		saved = clampf(damage * armor_info->energy_protection, 0, quantity);
+		saved = Clampf(damage * armor_info->energy_protection, 0, quantity);
 	} else {
-		saved = clampf(damage * armor_info->normal_protection, 0, quantity);
+		saved = Clampf(damage * armor_info->normal_protection, 0, quantity);
 	}
 
 	ent->client->locals.inventory[armor->index] -= saved;
@@ -280,25 +280,25 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
 
 		// knock the target upwards at least a bit; it's fun
 		if (ndir.z >= -0.25) {
-			ndir.z = maxf(0.33, ndir.z);
+			ndir.z = Maxf(0.33, ndir.z);
 			ndir = vec3_normalize(ndir);
 		}
 
 		// ensure the target has valid mass for knockback calculation
-		const float mass = clampf(target->locals.mass, 1.0, 1000.0);
+		const float mass = Clampf(target->locals.mass, 1.0, 1000.0);
 
 		// rocket jump hack
 		const float scale = (target == attacker ? 1200.0 : 800.0);
 
-		knockback_vel = vec3_scale(ndir, scale * knockback / mass);
-		target->locals.velocity = vec3_add(target->locals.velocity, knockback_vel);
+		knockback_vel = Vec3_Scale(ndir, scale * knockback / mass);
+		target->locals.velocity = Vec3_Add(target->locals.velocity, knockback_vel);
 
 		// apply angular velocity (rotate)
 		if (client == NULL || (client->ps.pm_state.flags & PMF_GIBLET)) {
-			knockback_avel = vec3(knockback, knockback, knockback);
+			knockback_avel = Vec3(knockback, knockback, knockback);
 			const float ascale = 100.0 / mass;
 
-			target->locals.avelocity = vec3_add(target->locals.avelocity, vec3_scale(knockback_avel, ascale));
+			target->locals.avelocity = Vec3_Add(target->locals.avelocity, Vec3_Scale(knockback_avel, ascale));
 		}
 
 		if (client && target->locals.velocity.z >= PM_STEP_HEIGHT) { // make sure the client can leave the ground
@@ -335,7 +335,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
 
 		if (attacker->client && attacker != target && !G_OnSameTeam(target, attacker) &&
 			!target->locals.dead && G_HasTech(attacker, TECH_VAMPIRE)) {
-			attacker->locals.health = minf(attacker->locals.health + (damage * TECH_VAMPIRE_DAMAGE_FACTOR), attacker->locals.max_health);
+			attacker->locals.health = Minf(attacker->locals.health + (damage * TECH_VAMPIRE_DAMAGE_FACTOR), attacker->locals.max_health);
 			G_PlayTechSound(attacker);
 		}
 
@@ -403,8 +403,8 @@ void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ign
 			continue;
 		}
 
-		vec3_t dir = vec3_subtract(ent->s.origin, inflictor->s.origin);
-		const float dist = vec3_length(dir);
+		vec3_t dir = Vec3_Subtract(ent->s.origin, inflictor->s.origin);
+		const float dist = Vec3_Length(dir);
 
 		float d = damage - 0.5 * dist;
 		const float k = knockback - 0.5 * dist;
@@ -425,6 +425,6 @@ void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ign
 			continue;
 		}
 
-		G_Damage(ent, inflictor, attacker, dir, vec3_zero(), vec3_zero(), d, k, DMG_RADIUS, mod);
+		G_Damage(ent, inflictor, attacker, dir, Vec3_Zero(), Vec3_Zero(), d, k, DMG_RADIUS, mod);
 	}
 }

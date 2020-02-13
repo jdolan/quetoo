@@ -140,8 +140,8 @@ void Cg_LoadEmits(void) {
 					e->flags |= EMIT_MODEL;
 				}
 
-				if (vec3_equal(e->color, vec3_zero())) { // default color
-					e->color = vec3(1.0, 1.0, 1.0);
+				if (Vec3_Equal(e->color, Vec3_Zero())) { // default color
+					e->color = Vec3(1.0, 1.0, 1.0);
 				}
 
 				if (e->count <= 0) { // default particle count
@@ -159,15 +159,15 @@ void Cg_LoadEmits(void) {
 					}
 				}
 
-				if (vec3_equal(e->vel, vec3_zero())) { // default velocity
+				if (Vec3_Equal(e->vel, Vec3_Zero())) { // default velocity
 
 					if (e->flags & EMIT_STEAM) {
-						e->vel = vec3(0.0, 0.0, 40.0);
+						e->vel = Vec3(0.0, 0.0, 40.0);
 					}
 				}
 
 				if (e->flags & EMIT_SPARKS) { // default directional scale
-					e->dir = vec3_scale(e->dir, 40.0);
+					e->dir = Vec3_Scale(e->dir, 40.0);
 				}
 
 				if (e->scale <= 0.0) { // default mesh model scale
@@ -285,7 +285,7 @@ void Cg_LoadEmits(void) {
 				break;
 			}
 
-			vec3_vectors(e->angles, &e->dir, NULL, NULL);
+			Vec3_Vectors(e->angles, &e->dir, NULL, NULL);
 			continue;
 		}
 

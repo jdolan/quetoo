@@ -154,7 +154,7 @@ _Bool R_CullSphere(const vec3_t point, const float radius) {
 
 	for (size_t i = 0 ; i < lengthof(r_locals.frustum) ; i++)  {
 		const cm_bsp_plane_t *p = &r_locals.frustum[i];
-		const float dist = vec3_dot(point, p->normal) - p->dist;
+		const float dist = Vec3_Dot(point, p->normal) - p->dist;
 
 		if (dist < -radius) {
 			return true;
@@ -175,7 +175,7 @@ static void R_UpdateViewport(void) {
 
 	const float aspect = (float) viewport->w / (float) viewport->h;
 
-	const float ymax = 1.0 * tanf(radians(r_view.fov.y));
+	const float ymax = 1.0 * tanf(Radians(r_view.fov.y));
 	const float ymin = -ymax;
 
 	const float xmin = ymin * aspect;
@@ -207,29 +207,29 @@ static void R_UpdateFrustum(void) {
 
 	cm_bsp_plane_t *p = r_locals.frustum;
 
-	float ang = radians(r_view.fov.x);
+	float ang = Radians(r_view.fov.x);
 	float xs = sinf(ang);
 	float xc = cosf(ang);
 
-	p[0].normal = vec3_scale(r_view.forward, xs);
-	p[0].normal = vec3_add(p[0].normal, vec3_scale(r_view.right, xc));
+	p[0].normal = Vec3_Scale(r_view.forward, xs);
+	p[0].normal = Vec3_Add(p[0].normal, Vec3_Scale(r_view.right, xc));
 
-	p[1].normal = vec3_scale(r_view.forward, xs);
-	p[1].normal = vec3_add(p[1].normal, vec3_scale(r_view.right, -xc));
+	p[1].normal = Vec3_Scale(r_view.forward, xs);
+	p[1].normal = Vec3_Add(p[1].normal, Vec3_Scale(r_view.right, -xc));
 
-	ang = radians(r_view.fov.y);
+	ang = Radians(r_view.fov.y);
 	xs = sinf(ang);
 	xc = cosf(ang);
 
-	p[2].normal = vec3_scale(r_view.forward, xs);
-	p[2].normal = vec3_add(p[2].normal, vec3_scale(r_view.up, xc));
+	p[2].normal = Vec3_Scale(r_view.forward, xs);
+	p[2].normal = Vec3_Add(p[2].normal, Vec3_Scale(r_view.up, xc));
 
-	p[3].normal = vec3_scale(r_view.forward, xs);
-	p[3].normal = vec3_add(p[3].normal, vec3_scale(r_view.up, -xc));
+	p[3].normal = Vec3_Scale(r_view.forward, xs);
+	p[3].normal = Vec3_Add(p[3].normal, Vec3_Scale(r_view.up, -xc));
 
 	for (int32_t i = 0; i < 4; i++) {
 		p[i].type = PLANE_ANY_Z;
-		p[i].dist = vec3_dot (r_view.origin, p[i].normal);
+		p[i].dist = Vec3_Dot (r_view.origin, p[i].normal);
 		p[i].sign_bits = Cm_SignBitsForPlane(&p[i]);
 	}
 }
@@ -259,7 +259,7 @@ void R_DrawView(r_view_t *view) {
 
 #if 0
 	vec3_t tmp;
-	tmp = vec3_add(r_view.origin, vec3_scale(r_view.forward, MAX_WORLD_DIST);
+	tmp = vec3_add(r_view.origin, Vec3_Scale(r_view.forward, MAX_WORLD_DIST);
 
 	cm_trace_t tr = Cl_Trace(r_view.origin, tmp, NULL, NULL, 0, MASK_SOLID);
 	if (tr.fraction > 0.0 && tr.fraction < 1.0) {

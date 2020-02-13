@@ -69,7 +69,7 @@ static sv_sector_t *Sv_CreateSector(int32_t depth, vec3_t mins, vec3_t maxs) {
 		return sector;
 	}
 
-	size = vec3_subtract(maxs, mins);
+	size = Vec3_Subtract(maxs, mins);
 	if (size.x > size.y) {
 		sector->axis = 0;
 	} else {
@@ -141,7 +141,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 	}
 
 	// set the size
-	ent->size = vec3_subtract(ent->maxs, ent->mins);
+	ent->size = Vec3_Subtract(ent->maxs, ent->mins);
 
 	// encode the size into the entity state for client prediction
 	ent->s.solid = ent->solid;
@@ -154,8 +154,8 @@ void Sv_LinkEntity(g_entity_t *ent) {
 			ent->s.maxs = ent->maxs;
 			break;
 		default:
-			ent->s.mins = vec3_zero();
-			ent->s.maxs = vec3_zero();
+			ent->s.mins = Vec3_Zero();
+			ent->s.maxs = Vec3_Zero();
 			break;
 	}
 
@@ -243,7 +243,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 	sector->entities = g_list_prepend(sector->entities, ent);
 
 	// and update its clipping matrices
-	const vec3_t angles = ent->solid == SOLID_BSP ? ent->s.angles : vec3_zero();
+	const vec3_t angles = ent->solid == SOLID_BSP ? ent->s.angles : Vec3_Zero();
 
 	Matrix4x4_CreateFromEntity(&sent->matrix, ent->s.origin, angles, 1.0);
 	Matrix4x4_Invert_Simple(&sent->inverse_matrix, &sent->matrix);
@@ -336,8 +336,8 @@ size_t Sv_BoxEntities(const vec3_t mins, const vec3_t maxs, g_entity_t **list, c
 
 	Sv_BoxEntities_r(sv_world.sectors);
 
-	sv_world.box_mins = vec3_zero();
-	sv_world.box_maxs = vec3_zero();
+	sv_world.box_mins = Vec3_Zero();
+	sv_world.box_maxs = Vec3_Zero();
 	sv_world.box_entities = NULL;
 
 	return sv_world.num_box_entities;

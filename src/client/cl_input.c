@@ -202,7 +202,7 @@ float Cl_KeyState(button_t *key, uint32_t cmd_msec) {
 
 	const float frac = (msec * 1000.0) / (cmd_msec * 1000.0);
 
-	return clampf(frac, 0.0, 1.0);
+	return Clampf(frac, 0.0, 1.0);
 }
 
 /**

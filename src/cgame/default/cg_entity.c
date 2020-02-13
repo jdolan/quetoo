@@ -188,7 +188,7 @@ void Cg_ApplyMeshTag(r_entity_t *child, const r_entity_t *parent, const char *ta
 
 	Matrix4x4_ToVectors(&world, forward.xyz, NULL, NULL, child->origin.xyz);
 
-	child->angles = vec3_euler(forward);
+	child->angles = Vec3_Euler(forward);
 
 	child->scale = Matrix4x4_ScaleFromMatrix(&world);
 
@@ -209,8 +209,8 @@ r_entity_t *Cg_AddLinkedEntity(const r_entity_t *parent, const r_model_t *model,
 
 	r_entity_t ent = *parent;
 
-	ent.origin = vec3_zero();
-	ent.angles = vec3_zero();
+	ent.origin = Vec3_Zero();
+	ent.angles = Vec3_Zero();
 
 	ent.model = model;
 
@@ -300,16 +300,16 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 
 	if ((ent->current.effects & EF_CORPSE) == 0) {
 		vec3_t right;
-		vec3_vectors(legs.angles, NULL, &right, NULL);
+		Vec3_Vectors(legs.angles, NULL, &right, NULL);
 
 		vec3_t move_dir;
-		move_dir = vec3_subtract(ent->prev.origin, ent->current.origin);
+		move_dir = Vec3_Subtract(ent->prev.origin, ent->current.origin);
 		move_dir.z = 0.0; // don't care about z, just x/y
 
 		if (ent->animation2.animation < ANIM_LEGS_SWIM) {
-			if (vec3_length(move_dir) > CLIENT_LEGS_SPEED_EPSILON) {
+			if (Vec3_Length(move_dir) > CLIENT_LEGS_SPEED_EPSILON) {
 				move_dir = vec3_normalize(move_dir);
-				leg_yaw_offset = vec3_dot(move_dir, right) * CLIENT_LEGS_YAW_MAX;
+				leg_yaw_offset = Vec3_Dot(move_dir, right) * CLIENT_LEGS_YAW_MAX;
 
 				if (ent->animation2.animation == ANIM_LEGS_BACK ||
 					ent->animation2.reverse) {
@@ -329,12 +329,12 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	memcpy(legs.skins, ci->legs_skins, sizeof(legs.skins));
 
 	torso.model = ci->torso;
-	torso.origin = vec3_zero();
+	torso.origin = Vec3_Zero();
 	torso.angles.y = -ent->legs_yaw; // legs twisted already, we just need to pitch/roll
 	memcpy(torso.skins, ci->torso_skins, sizeof(torso.skins));
 
 	head.model = ci->head;
-	head.origin = vec3_zero();
+	head.origin = Vec3_Zero();
 	head.angles.y = 0.0; // legs twisted already, we just need to pitch/roll
 	// this is applied twice so head pivots on chest as well
 	memcpy(head.skins, ci->head_skins, sizeof(head.skins));
@@ -382,9 +382,9 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 static void Cg_WeaponBob(const player_state_t *ps, vec3_t *offset, vec3_t *angles) {
 	const vec3_t bob = { 0.2, 0.4, 0.2 };
 
-	*offset = vec3_add(*offset, vec3_scale(bob, cg_view.bob));
+	*offset = Vec3_Add(*offset, Vec3_Scale(bob, cg_view.bob));
 
-	*angles = vec3_add(*angles, vec3(0.f, 1.5 * cg_view.bob, 0.f));
+	*angles = Vec3_Add(*angles, Vec3(0.f, 1.5 * cg_view.bob, 0.f));
 }
 
 /**
@@ -398,24 +398,24 @@ static void Cg_WeaponOffset(cl_entity_t *ent, vec3_t *offset, vec3_t *angles) {
 	const vec3_t kick_offset = { -6.0, 0.0, 0.0 };
 	const vec3_t kick_angles = { -2.0, 0.0, 0.0 };
 
-	*offset = vec3_zero();
-	*angles = vec3_zero();
+	*offset = Vec3_Zero();
+	*angles = Vec3_Zero();
 
 	if (ent->animation1.animation == ANIM_TORSO_DROP) {
-		*offset = vec3_add(*offset, vec3_scale(drop_raise_offset, ent->animation1.fraction));
-		*angles = vec3_scale(drop_raise_angles, ent->animation1.fraction);
+		*offset = Vec3_Add(*offset, Vec3_Scale(drop_raise_offset, ent->animation1.fraction));
+		*angles = Vec3_Scale(drop_raise_angles, ent->animation1.fraction);
 	} else if (ent->animation1.animation == ANIM_TORSO_RAISE) {
-		*offset = vec3_add(*offset, vec3_scale(drop_raise_offset, 1.0 - ent->animation1.fraction));
-		*angles = vec3_scale(drop_raise_angles, 1.0 - ent->animation1.fraction);
+		*offset = Vec3_Add(*offset, Vec3_Scale(drop_raise_offset, 1.0 - ent->animation1.fraction));
+		*angles = Vec3_Scale(drop_raise_angles, 1.0 - ent->animation1.fraction);
 	} else if (ent->animation1.animation == ANIM_TORSO_ATTACK1) {
-		*offset = vec3_add(*offset, vec3_scale(kick_offset, 1.0 - ent->animation1.fraction));
-		*angles = vec3_scale(kick_angles, 1.0 - ent->animation1.fraction);
+		*offset = Vec3_Add(*offset, Vec3_Scale(kick_offset, 1.0 - ent->animation1.fraction));
+		*angles = Vec3_Scale(kick_angles, 1.0 - ent->animation1.fraction);
 	}
 
-	*offset = vec3_scale(*offset, cg_bob->value);
-	*angles = vec3_scale(*angles, cg_bob->value);
+	*offset = Vec3_Scale(*offset, cg_bob->value);
+	*angles = Vec3_Scale(*angles, cg_bob->value);
 
-	*offset = vec3_add(*offset, vec3(cg_draw_weapon_x->value, cg_draw_weapon_y->value, cg_draw_weapon_z->value));
+	*offset = Vec3_Add(*offset, Vec3(cg_draw_weapon_x->value, cg_draw_weapon_y->value, cg_draw_weapon_z->value));
 }
 
 /**
@@ -429,8 +429,8 @@ static void Cg_SpeedModulus(const player_state_t *ps, vec3_t *offset) {
 	if (cgi.client->unclamped_time < time) {
 		time = 0;
 
-		old_speed = vec3_zero();
-		new_speed = vec3_zero();
+		old_speed = Vec3_Zero();
+		new_speed = Vec3_Zero();
 	}
 
 	vec3_t speed;
@@ -445,9 +445,9 @@ static void Cg_SpeedModulus(const player_state_t *ps, vec3_t *offset) {
 	} else {
 		old_speed = new_speed;
 
-		new_speed.x = -clampf(ps->pm_state.velocity.x / 200.0, -1.0, 1.0);
-		new_speed.y = -clampf(ps->pm_state.velocity.y / 200.0, -1.0, 1.0);
-		new_speed.z = -clampf(ps->pm_state.velocity.z / 200.0, -0.3, 1.0);
+		new_speed.x = -Clampf(ps->pm_state.velocity.x / 200.0, -1.0, 1.0);
+		new_speed.y = -Clampf(ps->pm_state.velocity.y / 200.0, -1.0, 1.0);
+		new_speed.z = -Clampf(ps->pm_state.velocity.z / 200.0, -0.3, 1.0);
 
 		speed = old_speed;
 
@@ -455,11 +455,11 @@ static void Cg_SpeedModulus(const player_state_t *ps, vec3_t *offset) {
 	}
 
 	if (cg_draw_weapon_bob->modified) {
-		cg_draw_weapon_bob->value = clampf(cg_draw_weapon_bob->value, 0.0, 2.0);
+		cg_draw_weapon_bob->value = Clampf(cg_draw_weapon_bob->value, 0.0, 2.0);
 		cg_draw_weapon_bob->modified = false;
 	}
 
-	*offset = vec3_scale(speed, cg_draw_weapon_bob->value);
+	*offset = Vec3_Scale(speed, cg_draw_weapon_bob->value);
 }
 
 /**
@@ -508,7 +508,7 @@ static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 
 	Cg_SpeedModulus(ps, &velocity);
 
-	w.origin = vec3_add(w.origin, velocity);
+	w.origin = Vec3_Add(w.origin, velocity);
 
 	// Hand
 
@@ -523,17 +523,17 @@ static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 			break;
 	}
 
-	w.origin = vec3_add(w.origin, vec3_scale(cgi.view->up, offset.z));
-	w.origin = vec3_add(w.origin, vec3_scale(cgi.view->right, offset.y));
-	w.origin = vec3_add(w.origin, vec3_scale(cgi.view->forward, offset.x));
+	w.origin = Vec3_Add(w.origin, Vec3_Scale(cgi.view->up, offset.z));
+	w.origin = Vec3_Add(w.origin, Vec3_Scale(cgi.view->right, offset.y));
+	w.origin = Vec3_Add(w.origin, Vec3_Scale(cgi.view->forward, offset.x));
 
-	w.angles = vec3_add(cgi.view->angles, angles);
+	w.angles = Vec3_Add(cgi.view->angles, angles);
 
 	// Copy state over to render entity
 
 	w.effects = EF_WEAPON | EF_NO_SHADOW;
 
-	w.color = vec4(1.0, 1.0, 1.0, 1.0);
+	w.color = Vec4(1.0, 1.0, 1.0, 1.0);
 
 	if (cg_draw_weapon_alpha->value < 1.0) {
 		w.effects |= EF_BLEND;

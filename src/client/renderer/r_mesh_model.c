@@ -193,29 +193,29 @@ static void R_LoadMeshTangents(r_model_t *mod) {
 
 				const float r = 1.0 / (bs_as * ct_at - cs_as * bt_at);
 
-				s = vec3(ct_at * bx_ax - bt_at * cx_ax,
+				s = Vec3(ct_at * bx_ax - bt_at * cx_ax,
 						 ct_at * by_ay - bt_at * cy_ay,
 						 ct_at * bz_az - bt_at * cz_az);
 
-				s = vec3_scale(s, r);
+				s = Vec3_Scale(s, r);
 
-				t = vec3(bs_as * cx_ax - cs_as * bx_ax,
+				t = Vec3(bs_as * cx_ax - cs_as * bx_ax,
 						 bs_as * cy_ay - cs_as * by_ay,
 						 bs_as * cz_az - cs_as * bz_az);
 
-				t = vec3_scale(t, r);
+				t = Vec3_Scale(t, r);
 
-				sdir[e[k + 0]] = vec3_add(sdir[e[k + 0]], s);
-				sdir[e[k + 1]] = vec3_add(sdir[e[k + 1]], s);
-				sdir[e[k + 2]] = vec3_add(sdir[e[k + 2]], s);
+				sdir[e[k + 0]] = Vec3_Add(sdir[e[k + 0]], s);
+				sdir[e[k + 1]] = Vec3_Add(sdir[e[k + 1]], s);
+				sdir[e[k + 2]] = Vec3_Add(sdir[e[k + 2]], s);
 
-				tdir[e[k + 0]] = vec3_add(tdir[e[k + 0]], t);
-				tdir[e[k + 1]] = vec3_add(tdir[e[k + 1]], t);
-				tdir[e[k + 2]] = vec3_add(tdir[e[k + 2]], t);
+				tdir[e[k + 0]] = Vec3_Add(tdir[e[k + 0]], t);
+				tdir[e[k + 1]] = Vec3_Add(tdir[e[k + 1]], t);
+				tdir[e[k + 2]] = Vec3_Add(tdir[e[k + 2]], t);
 			}
 
 			for (int32_t k = 0; k < face->num_vertexes; k++) {
-				vec3_tangents(v->normal, sdir[k], tdir[k], &v->tangent, &v->bitangent);
+				Vec3_Tangents(v->normal, sdir[k], tdir[k], &v->tangent, &v->bitangent);
 			}
 
 			Mem_Free(sdir);

@@ -440,8 +440,8 @@ static void Con_PrintMatches(const console_t *console, GList *matches) {
 	}
 
 	// calculate # that can fit in a row
-	const size_t per_row = maxf(console->width / widest, 1u);
-	const size_t num_rows = maxf(num_matches / per_row, 1u);
+	const size_t per_row = Maxf(console->width / widest, 1u);
+	const size_t num_rows = Maxf(num_matches / per_row, 1u);
 
 	// simple path
 	if (per_row == 1 || (!all_simple && num_rows == 1)) {

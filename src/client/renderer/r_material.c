@@ -213,7 +213,7 @@ static inline void R_StageTexCoord(const r_stage_t *stage, const vec3_t v, const
 
 	if (stage->cm->flags & STAGE_ENVMAP) { // generate texcoords
 
-		tmp = vec3_subtract(v, r_view.origin);
+		tmp = Vec3_Subtract(v, r_view.origin);
 		tmp = vec3_normalize(tmp);
 
 		out[0] = tmp[0];

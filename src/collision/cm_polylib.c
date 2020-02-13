@@ -79,12 +79,12 @@ cm_winding_t *Cm_ReverseWinding(const cm_winding_t *w) {
  */
 void Cm_WindingBounds(const cm_winding_t *w, vec3_t *mins, vec3_t *maxs) {
 
-	*mins = vec3_mins();
-	*maxs = vec3_maxs();
+	*mins = Vec3_Mins();
+	*maxs = Vec3_Maxs();
 
 	for (int32_t i = 0; i < w->num_points; i++) {
-		*mins = vec3_minf(*mins, w->points[i]);
-		*maxs = vec3_maxf(*maxs, w->points[i]);
+		*mins = Vec3_Minf(*mins, w->points[i]);
+		*maxs = Vec3_Maxf(*maxs, w->points[i]);
 	}
 }
 
@@ -93,14 +93,14 @@ void Cm_WindingBounds(const cm_winding_t *w, vec3_t *mins, vec3_t *maxs) {
  */
 void Cm_WindingCenter(const cm_winding_t *w, vec3_t center) {
 
-	center = vec3_zero();
+	center = Vec3_Zero();
 
 	for (int32_t i = 0; i < w->num_points; i++) {
-		center = vec3_add(w->points[i], center);
+		center = Vec3_Add(w->points[i], center);
 	}
 
 	const float scale = 1.0 / w->num_points;
-	center = vec3_scale(center, scale);
+	center = Vec3_Scale(center, scale);
 }
 
 /**
@@ -122,11 +122,11 @@ float Cm_WindingArea(const cm_winding_t *w) {
 void Cm_PlaneForWinding(const cm_winding_t *w, vec3_t *normal, double *dist) {
 	vec3_t v1, v2;
 
-	v1 = vec3_subtract(w->points[1], w->points[0]);
-	v2 = vec3_subtract(w->points[2], w->points[0]);
-	*normal = vec3_cross(v2, v1);
+	v1 = Vec3_Subtract(w->points[1], w->points[0]);
+	v2 = Vec3_Subtract(w->points[2], w->points[0]);
+	*normal = Vec3_Cross(v2, v1);
 	*normal = vec3_normalize(*normal);
-	*dist = vec3_dot(w->points[0], *normal);
+	*dist = Vec3_Dot(w->points[0], *normal);
 }
 
 /**
@@ -152,35 +152,35 @@ cm_winding_t *Cm_WindingForPlane(const vec3_t normal, const double dist) {
 	switch (x) {
 		case 0:
 		case 1:
-			right = vec3(-normal.y, normal.x, 0.0);
+			right = Vec3(-normal.y, normal.x, 0.0);
 			break;
 		case 2:
-			right = vec3(0.0, -normal.z, normal.y);
+			right = Vec3(0.0, -normal.z, normal.y);
 			break;
 		default:
 			Com_Error(ERROR_FATAL, "Bad axis\n");
 	}
 
-	right = vec3_scale(right, MAX_WORLD_DIST);
+	right = Vec3_Scale(right, MAX_WORLD_DIST);
 
-	up = vec3_cross(normal, right);
+	up = Vec3_Cross(normal, right);
 
-	org = vec3_add(vec3_zero(), vec3_scale(normal, dist));
+	org = Vec3_Add(Vec3_Zero(), Vec3_Scale(normal, dist));
 
 	// project a really big	axis aligned box onto the plane
 	cm_winding_t *w = Cm_AllocWinding(4);
 
-	w->points[0] = vec3_subtract(org, right);
-	w->points[0] = vec3_add(w->points[0], up);
+	w->points[0] = Vec3_Subtract(org, right);
+	w->points[0] = Vec3_Add(w->points[0], up);
 
-	w->points[1] = vec3_add(org, right);
-	w->points[1] = vec3_add(w->points[1], up);
+	w->points[1] = Vec3_Add(org, right);
+	w->points[1] = Vec3_Add(w->points[1], up);
 
-	w->points[2] = vec3_add(org, right);
-	w->points[2] = vec3_subtract(w->points[2], up);
+	w->points[2] = Vec3_Add(org, right);
+	w->points[2] = Vec3_Subtract(w->points[2], up);
 
-	w->points[3] = vec3_subtract(org, right);
-	w->points[3] = vec3_subtract(w->points[3], up);
+	w->points[3] = Vec3_Subtract(org, right);
+	w->points[3] = Vec3_Subtract(w->points[3], up);
 
 	w->num_points = 4;
 
@@ -205,13 +205,13 @@ cm_winding_t *Cm_WindingForFace(const bsp_file_t *file, const bsp_face_t *face) 
 		w->num_points++;
 
 		vec3_t a, b;
-		a = vec3_subtract(v1->position, v0->position);
-		b = vec3_subtract(v2->position, v1->position);
+		a = Vec3_Subtract(v1->position, v0->position);
+		b = Vec3_Subtract(v2->position, v1->position);
 
 		a = vec3_normalize(a);
 		b = vec3_normalize(b);
 
-		if (vec3_dot(a, b) > 1.0 - SIDE_EPSILON) { // skip v1
+		if (Vec3_Dot(a, b) > 1.0 - SIDE_EPSILON) { // skip v1
 			i++;
 		}
 	}
@@ -235,7 +235,7 @@ void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, const double d
 
 	// determine sides for each point
 	for (int32_t i = 0; i < in->num_points; i++) {
-		const double dot = vec3_dot(in->points[i], normal) - dist;
+		const double dot = Vec3_Dot(in->points[i], normal) - dist;
 		dists[i] = dot;
 		if (dot > epsilon) {
 			sides[i] = SIDE_FRONT;
@@ -339,7 +339,7 @@ void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, const double dis
 
 	// determine sides for each point
 	for (int32_t i = 0; i < in->num_points; i++) {
-		const double dot = vec3_dot(in->points[i], normal) - dist;
+		const double dot = Vec3_Dot(in->points[i], normal) - dist;
 		dists[i] = dot;
 		if (dot > epsilon) {
 			sides[i] = SIDE_FRONT;
@@ -426,7 +426,7 @@ cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, con
 	float dot;
 
 	// find a common edge
-	p1 = p2 = vec3_zero();
+	p1 = p2 = Vec3_Zero();
 	j = 0;
 
 	for (i = 0; i < a->num_points; i++) {
@@ -458,26 +458,26 @@ cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, con
 
 	// if the slopes are colinear, the point can be removed
 	back = a->points[(i + a->num_points - 1) % a->num_points];
-	delta = vec3_subtract(p1, back);
-	cross = vec3_cross(normal, delta);
+	delta = Vec3_Subtract(p1, back);
+	cross = Vec3_Cross(normal, delta);
 	cross = vec3_normalize(cross);
 
 	back = b->points[(j + 2) % b->num_points];
-	delta = vec3_subtract(back, p1);
-	dot = vec3_dot(delta, cross);
+	delta = Vec3_Subtract(back, p1);
+	dot = Vec3_Dot(delta, cross);
 	if (dot > SIDE_EPSILON) {
 		return NULL; // not a convex polygon
 	}
 	const _Bool keep1 = dot < -SIDE_EPSILON;
 
 	back = a->points[(i + 2) % a->num_points];
-	delta = vec3_subtract(back, p2);
-	cross = vec3_cross(normal, delta);
+	delta = Vec3_Subtract(back, p2);
+	cross = Vec3_Cross(normal, delta);
 	cross = vec3_normalize(cross);
 
 	back = b->points[(j + b->num_points - 1) % b->num_points];
-	delta = vec3_subtract(back, p2);
-	dot = vec3_dot(delta, cross);
+	delta = Vec3_Subtract(back, p2);
+	dot = Vec3_Dot(delta, cross);
 	if (dot > SIDE_EPSILON) {
 		return NULL; // not a convex polygon
 	}
@@ -546,12 +546,12 @@ int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
 			point_t *c = &points[(i + 2) % num_points];
 
 			vec3_t ba, cb;
-			ba = vec3_subtract(b->position, a->position);
-			cb = vec3_subtract(c->position, b->position);
+			ba = Vec3_Subtract(b->position, a->position);
+			cb = Vec3_Subtract(c->position, b->position);
 			ba = vec3_normalize(ba);
 			cb = vec3_normalize(cb);
 
-			if (vec3_dot(ba, cb) > 1.0 - SIDE_EPSILON) {
+			if (Vec3_Dot(ba, cb) > 1.0 - SIDE_EPSILON) {
 				b->corner = 0;
 			} else {
 				b->corner = ++num_corners;
@@ -574,11 +574,11 @@ int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
 				if (!a->corner && b->corner) {
 
 					vec3_t ba, cb, cross;
-					ba = vec3_subtract(b->position, a->position);
-					cb = vec3_subtract(c->position, b->position);
-					cross = vec3_cross(ba, cb);
+					ba = Vec3_Subtract(b->position, a->position);
+					cb = Vec3_Subtract(c->position, b->position);
+					cross = Vec3_Cross(ba, cb);
 
-					const float area = 0.5 * vec3_length(cross);
+					const float area = 0.5 * Vec3_Length(cross);
 					if (area < best) {
 						best = area;
 						clip = b;
@@ -615,11 +615,11 @@ float Cm_TriangleArea(const vec3_t a, const vec3_t b, const vec3_t c) {
    vec3_t ca;
    vec3_t cross;
 
-   ba = vec3_subtract(b, a);
-   ca = vec3_subtract(c, a);
+   ba = Vec3_Subtract(b, a);
+   ca = Vec3_Subtract(c, a);
 
-   cross = vec3_cross(ba, ca);
-   return vec3_length(cross) * 0.5;
+   cross = Vec3_Cross(ba, ca);
+   return Vec3_Length(cross) * 0.5;
 }
 
 /**
@@ -641,7 +641,7 @@ float Cm_Barycentric(const vec3_t a, const vec3_t b, const vec3_t c, const vec3_
 
 	   return out->x + out->y + out->z;
    } else {
-	   *out = vec3_zero();
+	   *out = Vec3_Zero();
    }
 
    return FLT_MAX;

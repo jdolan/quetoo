@@ -75,7 +75,7 @@ float Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
 		return point.xyz[plane->type] - plane->dist;
 	}
 
-	return vec3_dot(point, plane->normal) - plane->dist;
+	return Vec3_Dot(point, plane->normal) - plane->dist;
 }
 
 /**
@@ -115,8 +115,8 @@ int32_t Cm_BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const cm_bsp_pla
 	// general case
 	switch (p->sign_bits) {
 		case 0:
-			dist1 = vec3_dot(p->normal, maxs);
-			dist2 = vec3_dot(p->normal, mins);
+			dist1 = Vec3_Dot(p->normal, maxs);
+			dist2 = Vec3_Dot(p->normal, mins);
 			break;
 		case 1:
 			dist1 = p->normal.x * mins.x + p->normal.y * maxs.y + p->normal.z * maxs.z;
@@ -143,8 +143,8 @@ int32_t Cm_BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const cm_bsp_pla
 			dist2 = p->normal.x * mins.x + p->normal.y * maxs.y + p->normal.z * maxs.z;
 			break;
 		case 7:
-			dist1 = vec3_dot(p->normal, mins);
-			dist2 = vec3_dot(p->normal, maxs);
+			dist1 = Vec3_Dot(p->normal, mins);
+			dist2 = Vec3_Dot(p->normal, maxs);
 			break;
 		default:
 			dist1 = dist2 = 0.0; // shut up compiler
@@ -234,13 +234,13 @@ void Cm_InitBoxHull(void) {
 		// fill in planes, two per side
 		cm_bsp_plane_t *plane = &cm_box.planes[i * 2];
 		plane->type = i >> 1;
-		plane->normal = vec3_zero();
+		plane->normal = Vec3_Zero();
 		plane->normal.xyz[i >> 1] = 1.0;
 		plane->sign_bits = Cm_SignBitsForPlane(plane);
 
 		plane = &cm_box.planes[i * 2 + 1];
 		plane->type = PLANE_ANY_X + (i >> 1);
-		plane->normal = vec3_zero();
+		plane->normal = Vec3_Zero();
 		plane->normal.xyz[i >> 1] = -1.0;
 		plane->sign_bits = Cm_SignBitsForPlane(plane);
 

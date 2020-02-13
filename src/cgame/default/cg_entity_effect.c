@@ -82,9 +82,9 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	if (e->effects & EF_PULSE) {
 		const float pulse = (cosf(cgi.client->unclamped_time * 0.0033 + ent->current.number) + 1.0);
 		const float c = 1.0 - (cg_entity_pulse->value * 0.5 * pulse);
-		e->color = vec4(c, c, c, 1.f);
+		e->color = Vec4(c, c, c, 1.f);
 	} else {
-		e->color = vec4(1.f, 1.f, 1.f, 1.f);
+		e->color = Vec4(1.f, 1.f, 1.f, 1.f);
 	}
 
 	if (e->effects & EF_INACTIVE) {
@@ -93,7 +93,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 
 	if (e->effects & EF_RESPAWN) {
 		const vec3_t color = { 0.5, 0.5, 0.0 };
-		e->shell = vec3_add(e->shell, vec3_scale(color, 0.5));
+		e->shell = Vec3_Add(e->shell, Vec3_Scale(color, 0.5));
 	}
 
 	if (e->effects & EF_QUAD) {
@@ -102,7 +102,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		l.origin = e->origin;
 		Cg_AddLight(&l);
 
-		e->shell = vec3_add(e->shell, vec3_scale(l.color, 0.5));
+		e->shell = Vec3_Add(e->shell, Vec3_Scale(l.color, 0.5));
 	}
 
 	if (e->effects & EF_CTF_RED) {
@@ -111,7 +111,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		l.origin = e->origin;
 		Cg_AddLight(&l);
 
-		e->shell = vec3_add(e->shell, vec3_scale(l.color, 0.5));
+		e->shell = Vec3_Add(e->shell, Vec3_Scale(l.color, 0.5));
 	}
 
 	if (e->effects & EF_CTF_BLUE) {
@@ -120,7 +120,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		l.origin = e->origin;
 		Cg_AddLight(&l);
 
-		e->shell = vec3_add(e->shell, vec3_scale(l.color, 0.5));
+		e->shell = Vec3_Add(e->shell, Vec3_Scale(l.color, 0.5));
 	}
 
 	if (e->effects & EF_CTF_GREEN) {
@@ -129,7 +129,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		l.origin = e->origin;
 		Cg_AddLight(&l);
 
-		e->shell = vec3_add(e->shell, vec3_scale(l.color, 0.5));
+		e->shell = Vec3_Add(e->shell, Vec3_Scale(l.color, 0.5));
 	}
 
 	if (e->effects & EF_CTF_ORANGE) {
@@ -138,10 +138,10 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		l.origin = e->origin;
 		Cg_AddLight(&l);
 
-		e->shell = vec3_add(e->shell, vec3_scale(l.color, 0.5));
+		e->shell = Vec3_Add(e->shell, Vec3_Scale(l.color, 0.5));
 	}
 
-	if (vec3_length(e->shell) > 0.0) {
+	if (Vec3_Length(e->shell) > 0.0) {
 		e->shell = vec3_normalize(e->shell);
 		e->effects |= EF_SHELL;
 	}

@@ -77,7 +77,7 @@ color_t Color4bv(uint32_t rgba) {
  */
 color_t Color4f(float r, float g, float b, float a) {
 
-	const float max = maxf(r, maxf(g, maxf(b, a)));
+	const float max = Maxf(r, Maxf(g, Maxf(b, a)));
 	if (max > 1.0) {
 		const float inverse = 1.0 / max;
 		r *= inverse;
@@ -86,10 +86,10 @@ color_t Color4f(float r, float g, float b, float a) {
 	}
 
 	return (color_t) {
-		.r = clampf(r, 0.f, 1.f) * 255,
-		.g = clampf(g, 0.f, 1.f) * 255,
-		.b = clampf(b, 0.f, 1.f) * 255,
-		.a = clampf(a, 0.f, 1.f) * 255
+		.r = Clampf(r, 0.f, 1.f) * 255,
+		.g = Clampf(g, 0.f, 1.f) * 255,
+		.b = Clampf(b, 0.f, 1.f) * 255,
+		.a = Clampf(a, 0.f, 1.f) * 255
 	};
 }
 
@@ -160,14 +160,14 @@ _Bool ColorParse(const char *s, color_t *color) {
  * @brief
  */
 vec3_t ColorToVector3(const color_t color) {
-	return vec3_scale(vec3(color.r, color.g, color.b), 1.f / 255.f);
+	return Vec3_Scale(Vec3(color.r, color.g, color.b), 1.f / 255.f);
 }
 
 /**
  * @brief
  */
 vec4_t ColorToVector4(const color_t color) {
-	return vec4_scale(vec4(color.r, color.g, color.b, color.a), 1.f / 255.f);
+	return Vec4_Scale(Vec4(color.r, color.g, color.b, color.a), 1.f / 255.f);
 }
 
 /**

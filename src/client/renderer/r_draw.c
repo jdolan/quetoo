@@ -44,7 +44,7 @@ typedef struct {
 #define MAX_DRAW_GEOMETRY 4096
 
 typedef struct {
-	s16vec2_t position;
+	vec2s_t position;
 	vec2_t diffuse;
 	color_t color;
 } r_draw_vertex_t;
@@ -148,10 +148,10 @@ static void R_DrawChar_(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
 
 	r_draw_vertex_t quad[4];
 
-	quad[0].position = s16vec2(x, y);
-	quad[1].position = s16vec2(x + r_draw.font->char_width, y);
-	quad[2].position = s16vec2(x + r_draw.font->char_width, y + r_draw.font->char_height);
-	quad[3].position = s16vec2(x, y + r_draw.font->char_height);
+	quad[0].position = Vec2s(x, y);
+	quad[1].position = Vec2s(x + r_draw.font->char_width, y);
+	quad[2].position = Vec2s(x + r_draw.font->char_width, y + r_draw.font->char_height);
+	quad[3].position = Vec2s(x, y + r_draw.font->char_height);
 
 	quad[0].diffuse = Vec2(s0, t0);
 	quad[1].diffuse = Vec2(s1, t0);
@@ -292,10 +292,10 @@ void R_DrawImageRect(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r
 
 	r_draw_vertex_t quad[4];
 
-	quad[0].position = s16vec2(x, y);
-	quad[1].position = s16vec2(x + w, y);
-	quad[2].position = s16vec2(x + w, y + h);
-	quad[3].position = s16vec2(x, y + h);
+	quad[0].position = Vec2s(x, y);
+	quad[1].position = Vec2s(x + w, y);
+	quad[2].position = Vec2s(x + w, y + h);
+	quad[3].position = Vec2s(x, y + h);
 
 	quad[0].diffuse = Vec2(0, 0);
 	quad[1].diffuse = Vec2(1, 0);
@@ -334,10 +334,10 @@ void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const color_
 
 	r_draw_vertex_t quad[4];
 
-	quad[0].position = s16vec2(x, y);
-	quad[1].position = s16vec2(x + w, y);
-	quad[2].position = s16vec2(x + w, y + h);
-	quad[3].position = s16vec2(x, y + h);
+	quad[0].position = Vec2s(x, y);
+	quad[1].position = Vec2s(x + w, y);
+	quad[2].position = Vec2s(x + w, y + h);
+	quad[3].position = Vec2s(x, y + h);
 
 	quad[0].color = color;
 	quad[1].color = color;

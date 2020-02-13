@@ -28,7 +28,7 @@ static void G_PlayerProjectile(g_entity_t *ent, const float scale) {
 
 	if (ent->owner) {
 		const float s = scale * g_player_projectile->value;
-		ent->locals.velocity = vec3_add(ent->locals.velocity, vec3_scale(ent->owner->locals.velocity, s));
+		ent->locals.velocity = Vec3_Add(ent->locals.velocity, Vec3_Scale(ent->owner->locals.velocity, s));
 	} else {
 		gi.Debug("No owner for %s\n", etos(ent));
 	}
@@ -59,23 +59,23 @@ static _Bool G_TakesDamage(g_entity_t *ent) {
 static void G_BubbleTrail(const vec3_t start, cm_trace_t *tr) {
 	vec3_t dir, pos;
 
-	if (vec3_equal(tr->end, start)) {
+	if (Vec3_Equal(tr->end, start)) {
 		return;
 	}
 
-	dir = vec3_subtract(tr->end, start);
+	dir = Vec3_Subtract(tr->end, start);
 	dir = vec3_normalize(dir);
-	pos = vec3_add(tr->end, vec3_scale(dir, -2));
+	pos = Vec3_Add(tr->end, Vec3_Scale(dir, -2));
 
 	if (gi.PointContents(pos) & MASK_LIQUID) {
 		tr->end = pos;
 	} else {
-		const cm_trace_t trace = gi.Trace(pos, start, vec3_zero(), vec3_zero(), tr->ent, MASK_LIQUID);
+		const cm_trace_t trace = gi.Trace(pos, start, Vec3_Zero(), Vec3_Zero(), tr->ent, MASK_LIQUID);
 		tr->end = trace.end;
 	}
 
-	pos = vec3_add(start, tr->end);
-	pos = vec3_scale(pos, 0.5);
+	pos = Vec3_Add(start, tr->end);
+	pos = Vec3_Scale(pos, 0.5);
 
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_BUBBLES);
@@ -91,8 +91,8 @@ static void G_Tracer(const vec3_t start, const vec3_t end) {
 	vec3_t dir, mid;
 	float len;
 
-	dir = vec3_subtract(end, start);
-	len = vec3_length(dir);
+	dir = Vec3_Subtract(end, start);
+	len = Vec3_Length(dir);
 
 	if (len < 128.0) {
 		return;
@@ -100,7 +100,7 @@ static void G_Tracer(const vec3_t start, const vec3_t end) {
 
 	dir = vec3_normalize(dir);
 
-	mid = vec3_add(end, vec3_scale(dir, -len + (Randomf() * 0.05 * len)));
+	mid = Vec3_Add(end, Vec3_Scale(dir, -len + (Randomf() * 0.05 * len)));
 
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_TRACER);
@@ -137,8 +137,8 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
 
 		ent->locals.ripple_time = g_level.time;
 
-		start = vec3_add(ent->s.origin, ent->maxs);
-		end = vec3_add(ent->s.origin, ent->mins);
+		start = Vec3_Add(ent->s.origin, ent->maxs);
+		end = Vec3_Add(ent->s.origin, ent->mins);
 
 		start.x = end.x = (start.x + end.x) * 0.5;
 		start.y = end.y = (start.y + end.y) * 0.5;
@@ -151,7 +151,7 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
 		end = pos2;
 	}
 
-	const cm_trace_t tr = gi.Trace(start, end, vec3_zero(), vec3_zero(), ent, MASK_LIQUID);
+	const cm_trace_t tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent, MASK_LIQUID);
 	if (tr.start_solid || tr.fraction == 1.0) {
 		gi.Debug("%s failed to resolve water\n", etos(ent));
 		return;
@@ -172,7 +172,7 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
 
 	vec3_t pos, dir;
 
-	pos = vec3_add(tr.end, vec3_up());
+	pos = Vec3_Add(tr.end, Vec3_Up());
 	dir = tr.plane.normal;
 
 	if (ent && size == 0.0) {
@@ -180,9 +180,9 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
 			size = ent->locals.ripple_size;
 		} else {
 			vec3_t bounds;
-			bounds = vec3_subtract(ent->maxs, ent->mins);
+			bounds = Vec3_Subtract(ent->maxs, ent->mins);
 
-			size = clampf(vec3_length(bounds), 12.0, 64.0);
+			size = Clampf(Vec3_Length(bounds), 12.0, 64.0);
 		}
 	}
 
@@ -197,8 +197,8 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
 	gi.Multicast(pos, MULTICAST_PVS, NULL);
 
 	if (!(tr.contents & CONTENTS_TRANSLUCENT)) {
-		pos = vec3_add(tr.end, vec3_down());
-		dir = vec3_negate(dir);
+		pos = Vec3_Add(tr.end, Vec3_Down());
+		dir = Vec3_Negate(dir);
 
 		gi.WriteByte(SV_CMD_TEMP_ENTITY);
 		gi.WriteByte(TE_RIPPLE);
@@ -227,49 +227,49 @@ static vec3_t G_ProjectImpactPoint(const g_entity_t *projectile, const g_entity_
 	// if we've hit a structural mover, project the impact point at the next server frame
 	if (G_IsStructural(other, surf)) {
 
-		if (!vec3_equal(other->locals.velocity, vec3_zero()) ||
-			!vec3_equal(other->locals.avelocity, vec3_zero())) {
+		if (!Vec3_Equal(other->locals.velocity, Vec3_Zero()) ||
+			!Vec3_Equal(other->locals.avelocity, Vec3_Zero())) {
 
 			vec3_t move, amove;
 
-			move = vec3_scale(other->locals.velocity, QUETOO_TICK_SECONDS);
-			amove = vec3_scale(other->locals.avelocity, QUETOO_TICK_SECONDS);
+			move = Vec3_Scale(other->locals.velocity, QUETOO_TICK_SECONDS);
+			amove = Vec3_Scale(other->locals.avelocity, QUETOO_TICK_SECONDS);
 
 			vec3_t inverse_amove;
-			inverse_amove = vec3_negate(amove);
+			inverse_amove = Vec3_Negate(amove);
 
 			vec3_t forward, right, up;
-			vec3_vectors(inverse_amove, &forward, &right, &up);
+			Vec3_Vectors(inverse_amove, &forward, &right, &up);
 
 			// translate the pushed entity
-			point = vec3_add(point, move);
+			point = Vec3_Add(point, move);
 
 			// then rotate the movement to comply with the pusher's rotation
 			vec3_t translate;
-			translate = vec3_subtract(point, other->s.origin);
+			translate = Vec3_Subtract(point, other->s.origin);
 
 			const vec3_t rotate = {
-				vec3_dot(translate, forward),
-				-vec3_dot(translate, right),
-				vec3_dot(translate, up)
+				Vec3_Dot(translate, forward),
+				-Vec3_Dot(translate, right),
+				Vec3_Dot(translate, up)
 			};
 
 			vec3_t delta;
-			delta = vec3_subtract(rotate, translate);
+			delta = Vec3_Subtract(rotate, translate);
 
-			point = vec3_add(point, delta);
+			point = Vec3_Add(point, delta);
 		}
 	}
 
 	// push out the desired distance, this is purely for visual effects with explosions
-	vec3_t out = vec3_add(point, vec3_scale(plane->normal, dist));
+	vec3_t out = Vec3_Add(point, Vec3_Scale(plane->normal, dist));
 
 	if (gi.PointContents(out) & CONTENTS_SOLID) {
 
 		if (projectile) { // try back along the projectile velocity
 			vec3_t dir;
 			dir = vec3_normalize(projectile->locals.velocity);
-			out = vec3_add(point, vec3_scale(dir, -dist));
+			out = Vec3_Add(point, Vec3_Scale(dir, -dist));
 			if (gi.PointContents(out) & CONTENTS_SOLID) {
 				out = point;
 			}
@@ -347,8 +347,8 @@ void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 	projectile->s.origin = start;
 	projectile->mins = mins;
 	projectile->maxs = maxs;
-	projectile->s.angles = vec3_euler(dir);
-	projectile->locals.velocity = vec3_scale(dir, speed);
+	projectile->s.angles = Vec3_Euler(dir);
+	projectile->locals.velocity = Vec3_Scale(dir, speed);
 
 	if (G_ImmediateWall(ent, projectile)) {
 		projectile->s.origin = ent->s.origin;
@@ -374,18 +374,18 @@ void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int16_t damage,
                         int16_t knockback, uint16_t hspread, uint16_t vspread, uint32_t mod) {
 
-	cm_trace_t tr = gi.Trace(ent->s.origin, start, vec3_zero(), vec3_zero(), ent, MASK_CLIP_PROJECTILE);
+	cm_trace_t tr = gi.Trace(ent->s.origin, start, Vec3_Zero(), Vec3_Zero(), ent, MASK_CLIP_PROJECTILE);
 	if (tr.fraction == 1.0) {
 		vec3_t angles, forward, right, up, end;
 
-		angles = vec3_euler(dir);
-		vec3_vectors(angles, &forward, &right, &up);
+		angles = Vec3_Euler(dir);
+		Vec3_Vectors(angles, &forward, &right, &up);
 
-		end = vec3_add(start, vec3_scale(forward, MAX_WORLD_DIST));
-		end = vec3_add(end, vec3_scale(right, Randomc() * hspread));
-		end = vec3_add(end, vec3_scale(up, Randomc() * vspread));
+		end = Vec3_Add(start, Vec3_Scale(forward, MAX_WORLD_DIST));
+		end = Vec3_Add(end, Vec3_Scale(right, Randomc() * hspread));
+		end = Vec3_Add(end, Vec3_Scale(up, Randomc() * vspread));
 
-		tr = gi.Trace(start, end, vec3_zero(), vec3_zero(), ent, MASK_CLIP_PROJECTILE);
+		tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), ent, MASK_CLIP_PROJECTILE);
 
 		G_Tracer(start, tr.end);
 	}
@@ -434,20 +434,20 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
 		float d, k, dist;
 		vec3_t v, dir;
 
-		v = vec3_add(self->locals.enemy->mins, self->locals.enemy->maxs);
-		v = vec3_add(self->locals.enemy->s.origin, vec3_scale(v, 0.5));
-		v = vec3_subtract(self->s.origin, v);
+		v = Vec3_Add(self->locals.enemy->mins, self->locals.enemy->maxs);
+		v = Vec3_Add(self->locals.enemy->s.origin, Vec3_Scale(v, 0.5));
+		v = Vec3_Subtract(self->s.origin, v);
 
-		dist = vec3_length(v);
+		dist = Vec3_Length(v);
 		d = self->locals.damage - 0.5 * dist;
 		k = self->locals.knockback - 0.5 * dist;
 
-		dir = vec3_subtract(self->locals.enemy->s.origin, self->s.origin);
+		dir = Vec3_Subtract(self->locals.enemy->s.origin, self->s.origin);
 
 		mod = self->locals.spawn_flags & HAND_GRENADE ? MOD_HANDGRENADE : MOD_GRENADE;
 
 		G_Damage(self->locals.enemy, self, self->owner,
-				 dir, self->s.origin, vec3_zero(),
+				 dir, self->s.origin, Vec3_Zero(),
 		         (int16_t) d, (int16_t) k, DMG_RADIUS, mod);
 	}
 
@@ -491,7 +491,7 @@ void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
 
 		if (G_IsStructural(other, surf)) {
 			if (g_level.time - self->locals.touch_time > 200) {
-				if (vec3_length(self->locals.velocity) > 40.0) {
+				if (Vec3_Length(self->locals.velocity) > 40.0) {
 					gi.Sound(self, g_media.sounds.grenade_hit, ATTEN_NORM, (int8_t) (Randomf() * 5.0));
 					self->locals.touch_time = g_level.time;
 				}
@@ -524,13 +524,13 @@ void G_GrenadeProjectile(g_entity_t *ent, vec3_t const start, const vec3_t dir, 
 	projectile->s.origin = start;
 	projectile->mins = mins;
 	projectile->maxs = maxs;
-	projectile->s.angles = vec3_euler(dir);
+	projectile->s.angles = Vec3_Euler(dir);
 
-	vec3_vectors(projectile->s.angles, &forward, &right, &up);
-	projectile->locals.velocity = vec3_scale(dir, speed);
+	Vec3_Vectors(projectile->s.angles, &forward, &right, &up);
+	projectile->locals.velocity = Vec3_Scale(dir, speed);
 
-	projectile->locals.velocity = vec3_add(projectile->locals.velocity, vec3_scale(up, 100.0 + Randomc() * 10.0));
-	projectile->locals.velocity = vec3_add(projectile->locals.velocity, vec3_scale(right, Randomc() * 10.0));
+	projectile->locals.velocity = Vec3_Add(projectile->locals.velocity, Vec3_Scale(up, 100.0 + Randomc() * 10.0));
+	projectile->locals.velocity = Vec3_Add(projectile->locals.velocity, Vec3_Scale(right, Randomc() * 10.0));
 
 	G_PlayerProjectile(projectile, 0.33);
 
@@ -571,13 +571,13 @@ void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile,
 	projectile->s.origin = start;
 	projectile->mins = mins;
 	projectile->maxs = maxs;
-	projectile->s.angles = vec3_euler(dir);
+	projectile->s.angles = Vec3_Euler(dir);
 
-	vec3_vectors(projectile->s.angles, &forward, &right, &up);
-	projectile->locals.velocity = vec3_scale(dir, speed);
+	Vec3_Vectors(projectile->s.angles, &forward, &right, &up);
+	projectile->locals.velocity = Vec3_Scale(dir, speed);
 
-	projectile->locals.velocity = vec3_add(projectile->locals.velocity, vec3_scale(up, 200.0 + Randomc() * 10.0));
-	projectile->locals.velocity = vec3_add(projectile->locals.velocity, vec3_scale(right, Randomc() * 10.0));
+	projectile->locals.velocity = Vec3_Add(projectile->locals.velocity, Vec3_Scale(up, 200.0 + Randomc() * 10.0));
+	projectile->locals.velocity = Vec3_Add(projectile->locals.velocity, Vec3_Scale(right, Randomc() * 10.0));
 
 	// add some of the player's velocity to the projectile
 	G_PlayerProjectile(projectile, 0.33);
@@ -657,9 +657,9 @@ void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 	projectile->s.origin = start;
 	projectile->mins = mins;
 	projectile->maxs = maxs;
-	projectile->s.angles = vec3_euler(dir);
-	projectile->locals.velocity = vec3_scale(dir, speed);
-	projectile->locals.avelocity = vec3(0.0, 0.0, 600.0);
+	projectile->s.angles = Vec3_Euler(dir);
+	projectile->locals.velocity = Vec3_Scale(dir, speed);
+	projectile->locals.avelocity = Vec3(0.0, 0.0, 600.0);
 
 	if (G_ImmediateWall(ent, projectile)) {
 		projectile->s.origin = ent->s.origin;
@@ -706,11 +706,11 @@ static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 			if (G_IsStructural(other, surf)) {
 
 				vec3_t v;
-				v = vec3_subtract(self->s.origin, self->owner->s.origin);
+				v = Vec3_Subtract(self->s.origin, self->owner->s.origin);
 
-				if (vec3_length(v) < 32.0) { // hyperblaster climbing
+				if (Vec3_Length(v) < 32.0) { // hyperblaster climbing
 					G_Damage(self->owner, self, self->owner,
-							 vec3_zero(), self->s.origin, plane->normal,
+							 Vec3_Zero(), self->s.origin, plane->normal,
 					        g_balance_hyperblaster_climb_damage->integer, 0, DMG_ENERGY, MOD_HYPERBLASTER_CLIMB);
 
 					self->owner->locals.velocity.z += g_balance_hyperblaster_climb_knockback->value;
@@ -745,8 +745,8 @@ void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t 
 	projectile->s.origin = start;
 	projectile->mins = mins;
 	projectile->maxs = maxs;
-	projectile->s.angles = vec3_euler(dir);
-	projectile->locals.velocity = vec3_scale(dir, speed);
+	projectile->s.angles = Vec3_Euler(dir);
+	projectile->locals.velocity = Vec3_Scale(dir, speed);
 
 	if (G_ImmediateWall(ent, projectile)) {
 		projectile->s.origin = ent->s.origin;
@@ -773,7 +773,7 @@ static void G_LightningProjectile_Discharge(g_entity_t *self) {
 
 	// kill ourselves
 	G_Damage(self->owner, self, self->owner,
-			 vec3_zero(), self->s.origin, vec3_zero(),
+			 Vec3_Zero(), self->s.origin, Vec3_Zero(),
 			 9999, 100, DMG_NO_ARMOR, MOD_LIGHTNING_DISCHARGE);
 
 	g_entity_t *ent = g_game.entities;
@@ -794,7 +794,7 @@ static void G_LightningProjectile_Discharge(g_entity_t *self) {
 			if (ent->locals.water_level) {
 				const int16_t dmg = 50 * ent->locals.water_level;
 
-				G_Damage(ent, self, self->owner, vec3_zero(), vec3_zero(), vec3_zero(),
+				G_Damage(ent, self, self->owner, Vec3_Zero(), Vec3_Zero(), Vec3_Zero(),
 						 dmg, 100, DMG_NO_ARMOR, MOD_LIGHTNING_DISCHARGE);
 			}
 		}
@@ -850,11 +850,11 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		return;
 	}
 
-	end = vec3_add(start, vec3_scale(forward, g_balance_lightning_length->value)); // resolve end
-	end = vec3_add(end, vec3_scale(up, 2.0 * sinf(g_level.time / 4.0)));
-	end = vec3_add(end, vec3_scale(right, 2.0 * Randomc()));
+	end = Vec3_Add(start, Vec3_Scale(forward, g_balance_lightning_length->value)); // resolve end
+	end = Vec3_Add(end, Vec3_Scale(up, 2.0 * sinf(g_level.time / 4.0)));
+	end = Vec3_Add(end, Vec3_Scale(right, 2.0 * Randomc()));
 
-	tr = gi.Trace(start, end, vec3_zero(), vec3_zero(), self, MASK_CLIP_PROJECTILE | MASK_LIQUID);
+	tr = gi.Trace(start, end, Vec3_Zero(), Vec3_Zero(), self, MASK_CLIP_PROJECTILE | MASK_LIQUID);
 
 	if (tr.contents & MASK_LIQUID) { // entered water, play sound, leave trail
 		water_start = tr.end;
@@ -864,7 +864,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 			self->locals.water_level = WATER_FEET;
 		}
 
-		tr = gi.Trace(water_start, end, vec3_zero(), vec3_zero(), self, MASK_CLIP_PROJECTILE);
+		tr = gi.Trace(water_start, end, Vec3_Zero(), Vec3_Zero(), self, MASK_CLIP_PROJECTILE);
 		G_BubbleTrail(water_start, &tr);
 
 		G_Ripple(NULL, start, end, 16.0, true);
@@ -876,7 +876,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 	}
 
 	// clear the angles for impact effects
-	self->s.angles = vec3_zero();
+	self->s.angles = Vec3_Zero();
 	self->s.animation1 = LIGHTNING_NO_HIT;
 
 	if (self->locals.damage) { // shoot, removing our damage until it is renewed
@@ -887,7 +887,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		} else { // or leave a mark
 			if (tr.contents & MASK_SOLID) {
 				if (G_IsStructural(tr.ent, tr.surface)) {
-					self->s.angles = vec3_euler(tr.plane.normal);
+					self->s.angles = Vec3_Euler(tr.plane.normal);
 					self->s.animation1 = LIGHTNING_SOLID_HIT;
 				}
 			}
@@ -925,7 +925,7 @@ void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir
 			projectile->s.origin = ent->s.origin;
 		}
 
-		projectile->s.termination = vec3_add(start, vec3_scale(dir, g_balance_lightning_length->value));
+		projectile->s.termination = Vec3_Add(start, Vec3_Scale(dir, g_balance_lightning_length->value));
 
 		projectile->owner = ent;
 		projectile->solid = SOLID_NOT;
@@ -957,7 +957,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 
 	pos = start;
 
-	cm_trace_t tr = gi.Trace(ent->s.origin, pos, vec3_zero(), vec3_zero(), ent, MASK_CLIP_PROJECTILE);
+	cm_trace_t tr = gi.Trace(ent->s.origin, pos, Vec3_Zero(), Vec3_Zero(), ent, MASK_CLIP_PROJECTILE);
 	if (tr.fraction < 1.0) {
 		pos = ent->s.origin;
 	}
@@ -973,13 +973,13 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 		liquid = true;
 	}
 
-	end = vec3_add(pos, vec3_scale(dir, MAX_WORLD_DIST));
+	end = Vec3_Add(pos, Vec3_Scale(dir, MAX_WORLD_DIST));
 
 	G_Ripple(NULL, pos, end, 24.0, true);
 
 	g_entity_t *ignore = ent;
 	while (ignore) {
-		tr = gi.Trace(pos, end, vec3_zero(), vec3_zero(), ignore, content_mask);
+		tr = gi.Trace(pos, end, Vec3_Zero(), Vec3_Zero(), ignore, content_mask);
 		if (!tr.ent) {
 			break;
 		}
@@ -1095,13 +1095,13 @@ static void G_BfgProjectile_Think(g_entity_t *self) {
 		}
 
 		const vec3_t end = G_GetOrigin(ent);
-		const vec3_t dir = vec3_subtract(end, self->s.origin);
-		const float dist = vec3_length(dir);
-		const vec3_t normal = vec3_normalize(vec3_negate(dir));
+		const vec3_t dir = Vec3_Subtract(end, self->s.origin);
+		const float dist = Vec3_Length(dir);
+		const vec3_t normal = vec3_normalize(Vec3_Negate(dir));
 
 		const float f = 1.0 - dist / self->locals.damage_radius;
 
-		G_Damage(ent, self, self->owner, dir, vec3_zero(), normal,
+		G_Damage(ent, self, self->owner, dir, Vec3_Zero(), normal,
 				 frame_damage * f, frame_knockback * f, DMG_RADIUS, MOD_BFG_LASER);
 
 		gi.WriteByte(SV_CMD_TEMP_ENTITY);
@@ -1129,7 +1129,7 @@ void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int3
 	projectile->s.origin = start;
 	projectile->mins = mins;
 	projectile->maxs = maxs;
-	projectile->locals.velocity = vec3_scale(dir, speed);
+	projectile->locals.velocity = Vec3_Scale(dir, speed);
 
 	if (G_ImmediateWall(ent, projectile)) {
 		projectile->s.origin = ent->s.origin;
@@ -1169,15 +1169,15 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other,
 
 		if (G_IsStructural(other, surf) || (G_IsMeat(other) && G_OnSameTeam(other, self->owner))) {
 
-			self->locals.velocity = vec3_zero();
-			self->locals.avelocity = vec3_zero();
+			self->locals.velocity = Vec3_Zero();
+			self->locals.avelocity = Vec3_Zero();
 
 			self->owner->client->locals.hook_pull = true;
 
 			self->locals.move_type = MOVE_TYPE_THINK;
 			self->solid = SOLID_NOT;
-			self->mins = vec3_zero();
-			self->maxs = vec3_zero();
+			self->mins = Vec3_Zero();
+			self->maxs = Vec3_Zero();
 			self->locals.enemy = other;
 
 			gi.LinkEntity(self);
@@ -1185,9 +1185,9 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other,
 			self->owner->client->ps.pm_state.hook_position = self->s.origin;
 
 			if (self->owner->client->locals.persistent.hook_style == HOOK_SWING) {
-				const float distance = vec3_distance(self->owner->s.origin, self->s.origin);
+				const float distance = Vec3_Distance(self->owner->s.origin, self->s.origin);
 
-				self->owner->client->ps.pm_state.hook_length = clampf(distance, PM_HOOK_MIN_DIST, g_hook_distance->value);
+				self->owner->client->ps.pm_state.hook_length = Clampf(distance, PM_HOOK_MIN_DIST, g_hook_distance->value);
 			}
 
 			gi.Sound(self, g_media.sounds.hook_hit, ATTEN_NORM, (int8_t) (Randomc() * 4.0));
@@ -1208,7 +1208,7 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other,
 				self->locals.velocity = vec3_normalize(self->locals.velocity);
 
 				G_Damage(other, self, self->owner,
-						 self->locals.velocity, self->s.origin, vec3_zero(),
+						 self->locals.velocity, self->s.origin, Vec3_Zero(),
 						 5, 0, 0, MOD_HOOK);
 
 				G_ClientHookDetach(self->owner);
@@ -1241,9 +1241,9 @@ static void G_HookTrail_Think(g_entity_t *ent) {
 	ent->s.termination = hook->s.origin;
 
 	vec3_t distance;
-	distance = vec3_subtract(org, hook->s.origin);
+	distance = Vec3_Subtract(org, hook->s.origin);
 
-	if (vec3_length(distance) > g_hook_distance->value) {
+	if (Vec3_Length(distance) > g_hook_distance->value) {
 
 		G_ClientHookDetach(player);
 		return;
@@ -1263,26 +1263,26 @@ static void G_HookProjectile_Think(g_entity_t *ent) {
 		g_entity_t *mover = ent->locals.enemy;
 		vec3_t move, amove, inverse_amove, forward, right, up, rotate, translate, delta;
 
-		move = vec3_scale(mover->locals.velocity, QUETOO_TICK_SECONDS);
-		amove = vec3_scale(mover->locals.avelocity, QUETOO_TICK_SECONDS);
+		move = Vec3_Scale(mover->locals.velocity, QUETOO_TICK_SECONDS);
+		amove = Vec3_Scale(mover->locals.avelocity, QUETOO_TICK_SECONDS);
 
-		if (!vec3_equal(move, vec3_zero()) || !vec3_equal(amove, vec3_zero())) {
-			inverse_amove = vec3_negate(amove);
-			vec3_vectors(inverse_amove, &forward, &right, &up);
+		if (!Vec3_Equal(move, Vec3_Zero()) || !Vec3_Equal(amove, Vec3_Zero())) {
+			inverse_amove = Vec3_Negate(amove);
+			Vec3_Vectors(inverse_amove, &forward, &right, &up);
 
 			// translate the pushed entity
-			ent->s.origin = vec3_add(ent->s.origin, move);
+			ent->s.origin = Vec3_Add(ent->s.origin, move);
 
 			// then rotate the movement to comply with the pusher's rotation
-			translate = vec3_subtract(ent->s.origin, mover->s.origin);
+			translate = Vec3_Subtract(ent->s.origin, mover->s.origin);
 
-			rotate.x = vec3_dot(translate, forward);
-			rotate.y = -vec3_dot(translate, right);
-			rotate.z = vec3_dot(translate, up);
+			rotate.x = Vec3_Dot(translate, forward);
+			rotate.y = -Vec3_Dot(translate, right);
+			rotate.z = Vec3_Dot(translate, up);
 
-			delta = vec3_subtract(rotate, translate);
+			delta = Vec3_Subtract(rotate, translate);
 
-			ent->s.origin = vec3_add(ent->s.origin, delta);
+			ent->s.origin = Vec3_Add(ent->s.origin, delta);
 
 			// FIXME: any way we can have the hook move on all axis?
 			ent->s.angles.y += amove.y;
@@ -1293,7 +1293,7 @@ static void G_HookProjectile_Think(g_entity_t *ent) {
 			ent->owner->client->ps.pm_state.hook_position = ent->s.origin;
 		}
 
-		if ((ent->owner->client->locals.persistent.hook_style == HOOK_PULL && vec3_length_squared(ent->owner->locals.velocity) > 128.0) ||
+		if ((ent->owner->client->locals.persistent.hook_style == HOOK_PULL && Vec3_LengthSquared(ent->owner->locals.velocity) > 128.0) ||
 			ent->locals.knockback != ent->owner->client->ps.pm_state.hook_length) {
 			ent->s.sound = g_media.sounds.hook_pull;
 			ent->locals.knockback = ent->owner->client->ps.pm_state.hook_length;
@@ -1313,9 +1313,9 @@ g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t d
 	projectile->owner = ent;
 
 	projectile->s.origin = start;
-	projectile->s.angles = vec3_euler(dir);
-	projectile->locals.velocity = vec3_scale(dir, g_hook_speed->value);
-	projectile->locals.avelocity = vec3(0, 0, 500);
+	projectile->s.angles = Vec3_Euler(dir);
+	projectile->locals.velocity = Vec3_Scale(dir, g_hook_speed->value);
+	projectile->locals.avelocity = Vec3(0, 0, 500);
 
 	if (G_ImmediateWall(ent, projectile)) {
 		projectile->s.origin = ent->s.origin;

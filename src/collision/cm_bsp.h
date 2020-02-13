@@ -205,8 +205,8 @@ typedef struct {
 	int32_t plane_num;
 	int32_t children[2]; // negative numbers are -(leafs+1), not nodes
 
-	s16vec3_t mins; // for frustum culling
-	s16vec3_t maxs;
+	vec3s_t mins; // for frustum culling
+	vec3s_t maxs;
 
 	int32_t first_face;
 	int32_t num_faces; // counting both sides
@@ -221,8 +221,8 @@ typedef struct {
 	int32_t cluster;
 	int32_t area;
 
-	s16vec3_t mins; // for frustum culling
-	s16vec3_t maxs;
+	vec3s_t mins; // for frustum culling
+	vec3s_t maxs;
 
 	int32_t first_leaf_face;
 	int32_t num_leaf_faces;
@@ -234,8 +234,8 @@ typedef struct {
 typedef struct {
 	int32_t head_node;
 
-	s16vec3_t mins;
-	s16vec3_t maxs;
+	vec3s_t mins;
+	vec3s_t maxs;
 
 	int32_t first_face;
 	int32_t num_faces;
@@ -284,7 +284,7 @@ typedef struct {
  * diffuse light direction.
  */
 typedef struct {
-	s32vec3_t size;
+	vec3i_t size;
 } bsp_lightgrid_t;
 
 /**

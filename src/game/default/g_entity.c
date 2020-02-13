@@ -548,10 +548,10 @@ static int32_t G_CreateTeamSpawnPoints_CompareFunc(gconstpointer a, gconstpointe
 	const g_entity_t *ap = (const g_entity_t *) a;
 	const g_entity_t *bp = (const g_entity_t *) b;
 
-	const int32_t a_dist = vec3_distance_squared(flag->s.origin, ap->s.origin);
-	const int32_t b_dist = vec3_distance_squared(flag->s.origin, bp->s.origin);
+	const int32_t a_dist = Vec3_DistanceSquared(flag->s.origin, ap->s.origin);
+	const int32_t b_dist = Vec3_DistanceSquared(flag->s.origin, bp->s.origin);
 
-	return signf(b_dist - a_dist);
+	return SignOf(b_dist - a_dist);
 }
 
 /**
@@ -594,10 +594,10 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
 				}
 
 				vec3_t line;
-				line = vec3_subtract(pae->s.origin, pab->s.origin);
+				line = Vec3_Subtract(pae->s.origin, pab->s.origin);
 				line.z /= 10.0; // don't consider Z as heavily as X/Y
 
-				const float dist = vec3_length_squared(line);
+				const float dist = Vec3_LengthSquared(line);
 
 				if (dist > furthest_dist) {
 
@@ -635,8 +635,8 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
 			continue;
 		}
 
-		const float dist_to_red = vec3_distance_squared(red_flag->s.origin, p->s.origin);
-		const float dist_to_blue = vec3_distance_squared(blue_flag->s.origin, p->s.origin);
+		const float dist_to_red = Vec3_DistanceSquared(red_flag->s.origin, p->s.origin);
+		const float dist_to_blue = Vec3_DistanceSquared(blue_flag->s.origin, p->s.origin);
 
 		if (dist_to_red < dist_to_blue) {
 			*team_red_spawns = g_slist_prepend(*team_red_spawns, p);
@@ -806,7 +806,7 @@ void G_SpawnTech(const g_item_t *item) {
 	g_entity_t *spawn = G_SelectTechSpawnPoint();
 	g_entity_t *ent = G_DropItem(spawn, item);
 
-	ent->locals.velocity = vec3(Randomc() * 250, Randomc() * 250, 200 + (Randomf() * 200));
+	ent->locals.velocity = Vec3(Randomc() * 250, Randomc() * 250, 200 + (Randomf() * 200));
 }
 
 /**
@@ -844,7 +844,7 @@ void G_SpawnEntities(const char *name, const char *entities) {
 			if (g_ai_max_clients->integer == -1) {
 				g_game.ai_fill_slots = sv_max_clients->integer;
 			} else {
-				g_game.ai_fill_slots = clampf(g_ai_max_clients->integer, 0, sv_max_clients->integer);
+				g_game.ai_fill_slots = Clampf(g_ai_max_clients->integer, 0, sv_max_clients->integer);
 			}
 
 			g_game.ai_left_to_spawn = g_game.ai_fill_slots;
@@ -1089,7 +1089,7 @@ static void G_worldspawn(g_entity_t *ent) {
 	}
 
 	if (g_level.num_teams != -1) {
-		g_level.num_teams = clampf(g_level.num_teams, 2, MAX_TEAMS);
+		g_level.num_teams = Clampf(g_level.num_teams, 2, MAX_TEAMS);
 	}
 
 	if (map && map->ctf > -1) { // prefer maps.lst ctf

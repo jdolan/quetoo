@@ -446,8 +446,8 @@ void G_ClientHookDetach(g_entity_t *ent) {
 	// see if we can backflip for style
 	if (ent->in_use && ent->locals.health > 0) {
 
-		const vec3_t velocity = vec3(ent->locals.velocity.x, ent->locals.velocity.y, 0.0);
-		const float fwd_speed = vec3_length(velocity) / 1.75;
+		const vec3_t velocity = Vec3(ent->locals.velocity.x, ent->locals.velocity.y, 0.0);
+		const float fwd_speed = Vec3_Length(velocity) / 1.75;
 
 		if (ent->locals.velocity.z > 50 && ent->locals.velocity.z > fwd_speed) {
 			G_SetAnimation(ent, ANIM_LEGS_JUMP2, true);
@@ -718,7 +718,7 @@ void G_FireHandGrenade(g_entity_t *ent) {
 
 	// figure out how fast/far to throw
 	throw_speed *= (float) hold_time / 1000;
-	throw_speed = clampf(throw_speed, 500, 1200);
+	throw_speed = Clampf(throw_speed, 500, 1200);
 
 	vec3_t forward, right, up, org;
 

@@ -166,8 +166,8 @@ static int32_t EmitLeaf(node_t *node) {
 	out->cluster = node->cluster;
 	out->area = node->area;
 
-	out->mins = vec3_cast_s16vec3(node->mins);
-	out->maxs = vec3_cast_s16vec3(node->maxs);
+	out->mins = Vec3_CastS16Vec3(node->mins);
+	out->maxs = Vec3_CastS16Vec3(node->maxs);
 
 	// write the leaf_brushes
 	out->first_leaf_brush = bsp_file.num_leaf_brushes;
@@ -260,8 +260,8 @@ static int32_t EmitNode(node_t *node) {
 	bsp_node_t *out = &bsp_file.nodes[bsp_file.num_nodes];
 	bsp_file.num_nodes++;
 
-	out->mins = vec3_cast_s16vec3(node->mins);
-	out->maxs = vec3_cast_s16vec3(node->maxs);
+	out->mins = Vec3_CastS16Vec3(node->mins);
+	out->maxs = Vec3_CastS16Vec3(node->maxs);
 	
 	out->plane_num = node->plane_num;
 
@@ -343,7 +343,7 @@ static void EmitBrushes(void) {
 		for (int32_t axis = 0; axis < 3; axis++) {
 			for (int32_t side = -1; side <= 1; side += 2) {
 				// add the plane
-				vec3_t normal = vec3_zero();
+				vec3_t normal = Vec3_Zero();
 				normal.xyz[axis] = side;
 
 				float dist;
@@ -476,20 +476,20 @@ void BeginModel(void) {
 	const int32_t start = e->first_brush;
 	const int32_t end = start + e->num_brushes;
 
-	vec3_t mins = vec3_mins();
-	vec3_t maxs = vec3_maxs();
+	vec3_t mins = Vec3_Mins();
+	vec3_t maxs = Vec3_Maxs();
 
 	for (int32_t j = start; j < end; j++) {
 		const brush_t *b = &brushes[j];
 		if (!b->num_sides) {
 			continue; // not a real brush (origin brush)
 		}
-		mins = vec3_minf(mins, b->mins);
-		maxs = vec3_maxf(mins, b->maxs);
+		mins = Vec3_Minf(mins, b->mins);
+		maxs = Vec3_Maxf(mins, b->maxs);
 	}
 
-	mod->mins = vec3_cast_s16vec3(mins);
-	mod->maxs = vec3_cast_s16vec3(maxs);;
+	mod->mins = Vec3_CastS16Vec3(mins);
+	mod->maxs = Vec3_CastS16Vec3(maxs);;
 }
 
 /**

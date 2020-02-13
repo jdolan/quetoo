@@ -65,8 +65,8 @@ void Cg_AddLights(void) {
 		}
 
 		r_light_t out = {
-			.origin = vec3_to_vec4(l->origin, l->radius),
-			.color = vec3_to_vec4(l->color, l->intensity)
+			.origin = Vec3_ToVec4(l->origin, l->radius),
+			.color = Vec3_ToVec4(l->color, l->intensity)
 		};
 
 		if (l->decay) {

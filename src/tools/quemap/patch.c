@@ -44,7 +44,7 @@ void BuildTextureColors(void) {
 		}
 
 		vec3_t *color = Mem_Malloc(sizeof(vec3_t));
-		*color = vec3(1.0, 1.0, 1.0);
+		*color = Vec3(1.0, 1.0, 1.0);
 
 		SDL_Surface *surf = LoadDiffuseTexture(tex->texture);
 		if (surf) {
@@ -82,7 +82,7 @@ vec3_t GetTextureColor(const char *name) {
 	if (color) {
 		return *color;
 	} else {
-		return vec3(1.0, 1.0, 1.0);
+		return Vec3(1.0, 1.0, 1.0);
 	}
 }
 
@@ -139,7 +139,7 @@ void BuildPatches(const GList *entities) {
 		// inline models need to be offset into their in-use position
 		vec3_t origin;
 		if (Cm_EntityVector(ent, "origin", origin.xyz, 3) != 3) {
-			origin = vec3_zero();
+			origin = Vec3_Zero();
 		}
 
 		for (int32_t j = 0; j < mod->num_faces; j++) {
@@ -150,7 +150,7 @@ void BuildPatches(const GList *entities) {
 			cm_winding_t *w = Cm_WindingForFace(&bsp_file, face);
 
 			for (int32_t k = 0; k < w->num_points; k++) {
-				w->points[k] = vec3_add(w->points[k], origin);
+				w->points[k] = Vec3_Add(w->points[k], origin);
 			}
 
 			BuildPatch(face, origin, w);
@@ -171,7 +171,7 @@ static void SubdividePatch_r(patch_t *patch) {
 	w = patch->winding;
 	Cm_WindingBounds(w, &mins, &maxs);
 
-	split = vec3_zero();
+	split = Vec3_Zero();
 
 	int32_t i;
 	for (i = 0; i < 3; i++) {

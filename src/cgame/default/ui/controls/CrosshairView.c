@@ -99,7 +99,7 @@ static void updateBindings(View *self) {
 			this->imageView->color.r = color.r;
 			this->imageView->color.g = color.g;
 			this->imageView->color.b = color.b;
-			this->imageView->color.a = clampf(cg_draw_crosshair_alpha->value * 255, 0, 255);
+			this->imageView->color.a = Clampf(cg_draw_crosshair_alpha->value * 255, 0, 255);
 		}
 	}
 

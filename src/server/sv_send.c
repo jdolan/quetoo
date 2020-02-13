@@ -116,7 +116,7 @@ void Sv_BroadcastCommand(const char *fmt, ...) {
 
 	Net_WriteByte(&sv.multicast, SV_CMD_CBUF_TEXT);
 	Net_WriteString(&sv.multicast, string);
-	Sv_Multicast(vec3_zero(), MULTICAST_ALL_R, NULL);
+	Sv_Multicast(Vec3_Zero(), MULTICAST_ALL_R, NULL);
 }
 
 /**
@@ -240,7 +240,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
 		if (to != MULTICAST_ALL && to != MULTICAST_ALL_R) {
 			const pm_state_t *pm = &cl->entity->client->ps.pm_state;
 
-			const vec3_t org = vec3_add(pm->origin, pm->view_offset);
+			const vec3_t org = Vec3_Add(pm->origin, pm->view_offset);
 
 			const int32_t leaf = Cm_PointLeafnum(org, 0);
 			const int32_t client_area = Cm_LeafArea(leaf);
@@ -291,7 +291,7 @@ void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, const uint16
 		flags |= S_ENTITY;
 		if (ent->sv_flags & SVF_NO_CLIENT) {
 			flags |= S_ORIGIN;
-		} else if (!vec3_equal(origin, ent->s.origin)) {
+		} else if (!Vec3_Equal(origin, ent->s.origin)) {
 			flags |= S_ORIGIN;
 		}
 	} else {

@@ -29,85 +29,85 @@ static void assert_flt_eq(float a, float b) {
 }
 
 static void assert_vec3_eq(const vec3_t a, const vec3_t b) {
-	ck_assert_msg(vec3_equal(a, b), "(%g %g %g) != (%g %g %g)", a.x, a.y, a.z, b.x, b.y, b.z);
+	ck_assert_msg(Vec3_Equal(a, b), "(%g %g %g) != (%g %g %g)", a.x, a.y, a.z, b.x, b.y, b.z);
 }
 
 START_TEST(_clampf) {
-	assert_flt_eq(0, clampf(-1, 0, 1));
-	assert_flt_eq(1, clampf( 1, 0, 1));
-	assert_flt_eq(0, clampf( 0, 0, 1));
+	assert_flt_eq(0, Clampf(-1, 0, 1));
+	assert_flt_eq(1, Clampf( 1, 0, 1));
+	assert_flt_eq(0, Clampf( 0, 0, 1));
 } END_TEST
 
 START_TEST(_vec3f) {
-	assert_vec3_eq(vec3(1, 2, 3), vec3(1, 2, 3));
+	assert_vec3_eq(Vec3(1, 2, 3), Vec3(1, 2, 3));
 } END_TEST
 
 START_TEST(_vec3_add) {
-	assert_vec3_eq(vec3(2, 2, 2), vec3_add(vec3(1, 1, 1), vec3(1, 1, 1)));
+	assert_vec3_eq(Vec3(2, 2, 2), Vec3_Add(Vec3(1, 1, 1), Vec3(1, 1, 1)));
 } END_TEST
 
 START_TEST(_vec3_cross) {
-	assert_vec3_eq(vec3(-3, 6, -3), vec3_cross(vec3(1, 2, 3), vec3(4, 5, 6)));
+	assert_vec3_eq(Vec3(-3, 6, -3), Vec3_Cross(Vec3(1, 2, 3), Vec3(4, 5, 6)));
 } END_TEST
 
 START_TEST(_vec3_distance) {
-	assert_flt_eq(5, vec3_distance(vec3(0, 0, 0), vec3(3, 4, 0)));
+	assert_flt_eq(5, Vec3_Distance(Vec3(0, 0, 0), Vec3(3, 4, 0)));
 } END_TEST
 
 START_TEST(_vec3_dot) {
-	assert_flt_eq( 1, vec3_dot(vec3(1, 0, 0), vec3( 1, 0, 0)));
-	assert_flt_eq(-1, vec3_dot(vec3(1, 0, 0), vec3(-1, 0, 0)));
-	assert_flt_eq( 0, vec3_dot(vec3(1, 0, 0), vec3( 0, 1, 0)));
+	assert_flt_eq( 1, Vec3_Dot(Vec3(1, 0, 0), Vec3( 1, 0, 0)));
+	assert_flt_eq(-1, Vec3_Dot(Vec3(1, 0, 0), Vec3(-1, 0, 0)));
+	assert_flt_eq( 0, Vec3_Dot(Vec3(1, 0, 0), Vec3( 0, 1, 0)));
 } END_TEST
 
 START_TEST(_vec3_down) {
-	assert_vec3_eq(vec3(0, 0, -1), vec3_down());
+	assert_vec3_eq(Vec3(0, 0, -1), Vec3_Down());
 } END_TEST
 
-START_TEST(_vec3_equal) {
-	ck_assert(vec3_equal(vec3_zero(), vec3_zero()));
-	ck_assert(vec3_equal(vec3_one(), vec3_one()));
-	ck_assert(!vec3_equal(vec3_zero(), vec3_one()));
+START_TEST(_Vec3_Equal) {
+	ck_assert(Vec3_Equal(Vec3_Zero(), Vec3_Zero()));
+	ck_assert(Vec3_Equal(Vec3_One(), Vec3_One()));
+	ck_assert(!Vec3_Equal(Vec3_Zero(), Vec3_One()));
 } END_TEST
 
-START_TEST(_vec3_euler) {
-	assert_vec3_eq(vec3(0, 0, 0), vec3_euler(vec3(1, 0, 0)));
-	assert_vec3_eq(vec3(0, 180, 0), vec3_euler(vec3(-1, 0, 0)));
-	assert_vec3_eq(vec3(0, 90, 0), vec3_euler(vec3(0, 1, 0)));
-	assert_vec3_eq(vec3(0, -90, 0), vec3_euler(vec3(0, -1, 0)));
+START_TEST(_Vec3_Euler) {
+	assert_vec3_eq(Vec3(0, 0, 0), Vec3_Euler(Vec3(1, 0, 0)));
+	assert_vec3_eq(Vec3(0, 180, 0), Vec3_Euler(Vec3(-1, 0, 0)));
+	assert_vec3_eq(Vec3(0, 90, 0), Vec3_Euler(Vec3(0, 1, 0)));
+	assert_vec3_eq(Vec3(0, -90, 0), Vec3_Euler(Vec3(0, -1, 0)));
 } END_TEST
 
-START_TEST(_vec3_length) {
-	assert_flt_eq(M_SQRT2, vec3_length(vec3(1, 1, 0)));
-	assert_flt_eq(sqrtf(3), vec3_length(vec3(1, 1, 1)));
+START_TEST(_Vec3_Length) {
+	assert_flt_eq(M_SQRT2, Vec3_Length(Vec3(1, 1, 0)));
+	assert_flt_eq(sqrtf(3), Vec3_Length(Vec3(1, 1, 1)));
 } END_TEST
 
-START_TEST(_vec3_negate) {
-	assert_vec3_eq(vec3(-1, -2, -3), vec3_negate(vec3(1, 2, 3)));
+START_TEST(_Vec3_Negate) {
+	assert_vec3_eq(Vec3(-1, -2, -3), Vec3_Negate(Vec3(1, 2, 3)));
 } END_TEST
 
 START_TEST(_vec3_normalize) {
-	assert_flt_eq(1, vec3_length(vec3_normalize(vec3(1, 1, 1))));
+	assert_flt_eq(1, Vec3_Length(vec3_normalize(Vec3(1, 1, 1))));
 } END_TEST
 
-START_TEST(_vec3_one) {
-	assert_vec3_eq(vec3(1, 1, 1), vec3_one());
+START_TEST(_Vec3_One) {
+	assert_vec3_eq(Vec3(1, 1, 1), Vec3_One());
 } END_TEST
 
-START_TEST(_vec3_radians) {
-	assert_vec3_eq(vec3(0, M_PI_2, M_PI), vec3_radians(vec3(0, 90, 180)));
+START_TEST(_Vec3_Radians) {
+	assert_vec3_eq(Vec3(0, M_PI_2, M_PI), Vec3_Radians(Vec3(0, 90, 180)));
 } END_TEST
 
-START_TEST(_vec3_subtract) {
-	assert_vec3_eq(vec3_zero(), vec3_subtract(vec3_one(), vec3_one()));
+START_TEST(_Vec3_Subtract) {
+	assert_vec3_eq(Vec3_Zero(), Vec3_Subtract(Vec3_One(), Vec3_One()));
 } END_TEST
 
-START_TEST(_vec3_scale) {
-	assert_vec3_eq(vec3(2, 2, 2), vec3_scale(vec3_one(), 2));
+START_TEST(_Vec3_Scale) {
+	assert_vec3_eq(Vec3(2, 2, 2), Vec3_Scale(Vec3_One(), 2));
 } END_TEST
 
-START_TEST(_vec3_up) {
-	assert_vec3_eq(vec3(0, 0, 1), vec3_up());
+START_TEST(_Vec3_Up) {
+	assert_vec3_eq(Vec3(0, 0, 1), Vec3_Up());
 } END_TEST
 
 int32_t main(int32_t argc, char **argv) {
@@ -127,16 +127,16 @@ int32_t main(int32_t argc, char **argv) {
 	tcase_add_test(tcase, _vec3_distance);
 	tcase_add_test(tcase, _vec3_dot);
 	tcase_add_test(tcase, _vec3_down);
-	tcase_add_test(tcase, _vec3_equal);
-	tcase_add_test(tcase, _vec3_euler);
-	tcase_add_test(tcase, _vec3_length);
-	tcase_add_test(tcase, _vec3_negate);
+	tcase_add_test(tcase, _Vec3_Equal);
+	tcase_add_test(tcase, _Vec3_Euler);
+	tcase_add_test(tcase, _Vec3_Length);
+	tcase_add_test(tcase, _Vec3_Negate);
 	tcase_add_test(tcase, _vec3_normalize);
-	tcase_add_test(tcase, _vec3_one);
-	tcase_add_test(tcase, _vec3_radians);
-	tcase_add_test(tcase, _vec3_subtract);
-	tcase_add_test(tcase, _vec3_scale);
-	tcase_add_test(tcase, _vec3_up);
+	tcase_add_test(tcase, _Vec3_One);
+	tcase_add_test(tcase, _Vec3_Radians);
+	tcase_add_test(tcase, _Vec3_Subtract);
+	tcase_add_test(tcase, _Vec3_Scale);
+	tcase_add_test(tcase, _Vec3_Up);
 
 	suite_add_tcase(suite, tcase);
 

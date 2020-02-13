@@ -465,7 +465,7 @@ int32_t main(int32_t argc, char *argv[]) {
 
 		if (time_scale->modified) {
 			time_scale->modified = false;
-			time_scale->value = clampf(time_scale->value, 0.1, 3.0);
+			time_scale->value = Clampf(time_scale->value, 0.1, 3.0);
 		}
 
 		do {

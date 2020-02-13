@@ -298,7 +298,7 @@ static void Check_LIGHT_Options(int32_t argc) {
 		}
 	}
 
-	patch_size = maxf(patch_size, luxel_size);
+	patch_size = Maxf(patch_size, luxel_size);
 }
 
 /**

@@ -67,7 +67,7 @@ static void FixTJunctions_(int32_t face_num) {
 		for (int32_t i = 0; i < f->w->num_points; i++) {
 			const vec3_t v = f->w->points[i];
 
-			const double d = vec3_dot(v, plane->normal) - plane->dist;
+			const double d = Vec3_Dot(v, plane->normal) - plane->dist;
 			if (d > ON_EPSILON || d < -ON_EPSILON) {
 				continue; // v is not on face's plane
 			}
@@ -79,19 +79,19 @@ static void FixTJunctions_(int32_t face_num) {
 				const vec3_t v0 = face->w->points[(j + 0) % face->w->num_points];
 				const vec3_t v1 = face->w->points[(j + 1) % face->w->num_points];
 
-				vec3_t a = vec3_subtract(v0, v);
-				const float a_dist = vec3_length(a);
+				vec3_t a = Vec3_Subtract(v0, v);
+				const float a_dist = Vec3_Length(a);
 				a = vec3_normalize(a);
 
-				vec3_t b = vec3_subtract(v1, v);
-				const float b_dist = vec3_length(b);
+				vec3_t b = Vec3_Subtract(v1, v);
+				const float b_dist = Vec3_Length(b);
 				b = vec3_normalize(b);
 
 				if (a_dist <= ON_EPSILON || b_dist <= ON_EPSILON) {
 					break; // face already includes v
 				}
 
-				const float d = vec3_dot(a, b);
+				const float d = Vec3_Dot(a, b);
 				if (d > -1.0 + SIDE_EPSILON) {
 					continue; // v is not on the edge v0 <-> v1
 				}

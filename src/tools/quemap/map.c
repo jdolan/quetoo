@@ -58,8 +58,8 @@ static int32_t c_clip_brushes;
  */
 static _Bool PlaneEqual(const plane_t *p, const vec3_t normal, double dist) {
 
-	if ((equal_epsilon(p->dist, dist, DIST_EPSILON)) &&
-		vec3_equal_epsilon(p->normal, normal, NORMAL_EPSILON)) {
+	if ((EqualEpsilon(p->dist, dist, DIST_EPSILON)) &&
+		Vec3_EqualEpsilon(p->normal, normal, NORMAL_EPSILON)) {
 		return true;
 	}
 
@@ -83,7 +83,7 @@ static inline void AddPlaneToHash(plane_t *p) {
 static int32_t CreatePlane(const vec3_t normal, float dist) {
 
 	// bad plane
-	if (vec3_length(normal) < 0.5) {
+	if (Vec3_Length(normal) < 0.5) {
 		return -1;
 	}
 
@@ -98,7 +98,7 @@ static int32_t CreatePlane(const vec3_t normal, float dist) {
 	a->type = Cm_PlaneTypeForNormal(a->normal);
 
 	plane_t *b = &planes[num_planes++];
-	b->normal = vec3_negate(normal);
+	b->normal = Vec3_Negate(normal);
 	b->dist = -dist;
 	b->type = Cm_PlaneTypeForNormal(b->normal);
 
@@ -186,15 +186,15 @@ int32_t FindPlane(vec3_t normal, double dist) {
 /**
  * @brief
  */
-static int32_t PlaneFromPoints(const dvec3_t p0, const dvec3_t p1, const dvec3_t p2) {
+static int32_t PlaneFromPoints(const vec3d_t p0, const vec3d_t p1, const vec3d_t p2) {
 
-	const dvec3_t t1 = dvec3_subtract(p0, p1);
-	const dvec3_t t2 = dvec3_subtract(p2, p1);
+	const vec3d_t t1 = Vec3d_Subtract(p0, p1);
+	const vec3d_t t2 = Vec3d_Subtract(p2, p1);
 
-	const dvec3_t normal = dvec3_normalize(dvec3_cross(t1, t2));
-	const double dist = dvec3_dot(p0, normal);
+	const vec3d_t normal = Vec3d_Normalize(Vec3d_Cross(t1, t2));
+	const double dist = Vec3d_Dot(p0, normal);
 
-	return FindPlane(dvec3_cast_vec3(normal), dist);
+	return FindPlane(Vec3d_CastVec3(normal), dist);
 }
 
 /**
@@ -260,7 +260,7 @@ static void AddBrushBevels(brush_t *b) {
 				}
 				num_brush_sides++;
 				b->num_sides++;
-				normal = vec3_zero();
+				normal = Vec3_Zero();
 				normal.xyz[axis] = dir;
 				if (dir == 1) {
 					dist = b->maxs.xyz[axis];
@@ -301,8 +301,8 @@ static void AddBrushBevels(brush_t *b) {
 		}
 		for (j = 0; j < w->num_points; j++) {
 			k = (j + 1) % w->num_points;
-			vec = vec3_subtract(w->points[j], w->points[k]);
-			if (vec3_length(vec) < 0.5) {
+			vec = Vec3_Subtract(w->points[j], w->points[k]);
+			if (Vec3_Length(vec) < 0.5) {
 				continue;
 			}
 			vec = vec3_normalize(vec);
@@ -321,14 +321,14 @@ static void AddBrushBevels(brush_t *b) {
 			for (axis = 0; axis < 3; axis++) {
 				for (dir = -1; dir <= 1; dir += 2) {
 					// construct a plane
-					vec2 = vec3_zero();
+					vec2 = Vec3_Zero();
 					vec2.xyz[axis] = dir;
-					normal = vec3_cross(vec, vec2);
-					if (vec3_length(normal) < 0.5) {
+					normal = Vec3_Cross(vec, vec2);
+					if (Vec3_Length(normal) < 0.5) {
 						continue;
 					}
 					normal = vec3_normalize(normal);
-					dist = vec3_dot(w->points[j], normal);
+					dist = Vec3_Dot(w->points[j], normal);
 
 					// if all the points on all the sides are
 					// behind this plane, it is a proper edge bevel
@@ -346,7 +346,7 @@ static void AddBrushBevels(brush_t *b) {
 						}
 						minBack = 0.0f;
 						for (l = 0; l < w2->num_points; l++) {
-							d = vec3_dot(w2->points[l], normal) - dist;
+							d = Vec3_Dot(w2->points[l], normal) - dist;
 							if (d > 0.1) {
 								break; // point in front
 							}
@@ -392,8 +392,8 @@ static void AddBrushBevels(brush_t *b) {
  */
 static _Bool MakeBrushWindings(brush_t *ob) {
 
-	ob->mins = vec3_mins();
-	ob->maxs = vec3_maxs();
+	ob->mins = Vec3_Mins();
+	ob->maxs = Vec3_Maxs();
 
 	for (int32_t i = 0; i < ob->num_sides; i++) {
 		const plane_t *plane = &planes[ob->original_sides[i].plane_num];
@@ -418,8 +418,8 @@ static _Bool MakeBrushWindings(brush_t *ob) {
 		if (w) {
 			side->visible = true;
 			for (int32_t j = 0; j < w->num_points; j++) {
-				ob->mins = vec3_minf(ob->mins, w->points[j]);
-				ob->maxs = vec3_maxf(ob->maxs, w->points[j]);
+				ob->mins = Vec3_Minf(ob->mins, w->points[j]);
+				ob->maxs = Vec3_Maxf(ob->maxs, w->points[j]);
 			}
 		}
 	}
@@ -537,7 +537,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 
 			brush_side_t *side = &brush_sides[num_brush_sides];
 
-			dvec3_t points[3];
+			vec3d_t points[3];
 
 			// read the three point plane definition
 			for (int32_t i = 0; i < 3; i++) {
@@ -633,7 +633,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 			// keep this side
 			side = brush->original_sides + brush->num_sides;
 			side->plane_num = plane_num;
-			side->texinfo = TexinfoForBrushTexture(&planes[plane_num], &td, vec3_zero());
+			side->texinfo = TexinfoForBrushTexture(&planes[plane_num], &td, Vec3_Zero());
 
 			// save the td off in case there is an origin brush and we have to recalculate the texinfo
 			brush_textures[num_brush_sides] = td;
@@ -679,8 +679,8 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 			}
 
 			vec3_t origin;
-			origin = vec3_add(brush->mins, brush->maxs);
-			origin = vec3_scale(origin, 0.5);
+			origin = Vec3_Add(brush->mins, brush->maxs);
+			origin = Vec3_Scale(origin, 0.5);
 
 			SetValueForKey(entity, "origin", va("%g %g %g", origin.x, origin.y, origin.z));
 			num_brushes--;
@@ -775,10 +775,10 @@ static entity_t *ParseEntity(parser_t *parser) {
 			}
 		}
 
-		const vec3_t origin = VectorForKey(entity, "origin", vec3_zero());
+		const vec3_t origin = VectorForKey(entity, "origin", Vec3_Zero());
 
 		// if there was an origin brush, offset all of the planes and texinfo
-		if (!vec3_equal(origin, vec3_zero())) {
+		if (!Vec3_Equal(origin, Vec3_Zero())) {
 			for (int32_t i = 0; i < entity->num_brushes; i++) {
 				brush_t *b = &brushes[entity->first_brush + i];
 				for (int32_t j = 0; j < b->num_sides; j++) {
@@ -786,7 +786,7 @@ static entity_t *ParseEntity(parser_t *parser) {
 					brush_side_t *s = &b->original_sides[j];
 					plane_t *p = &planes[s->plane_num];
 
-					const double dist = p->dist - vec3_dot(p->normal, origin);
+					const double dist = p->dist - Vec3_Dot(p->normal, origin);
 
 					s->plane_num = FindPlane(p->normal, dist);
 					s->texinfo = TexinfoForBrushTexture(p, &brush_textures[s - brush_sides], origin);
@@ -866,15 +866,15 @@ void LoadMapFile(const char *filename) {
 		}
 	}
 
-	map_mins = vec3_mins();
-	map_maxs = vec3_maxs();
+	map_mins = Vec3_Mins();
+	map_maxs = Vec3_Maxs();
 
 	for (int32_t i = 0; i < entities[0].num_brushes; i++) {
 		if (brushes[i].mins.x > MAX_WORLD_COORD) {
 			continue; // no valid points
 		}
-		map_mins = vec3_minf(map_mins, brushes[i].mins);
-		map_maxs = vec3_maxf(map_maxs, brushes[i].maxs);
+		map_mins = Vec3_Minf(map_mins, brushes[i].mins);
+		map_maxs = Vec3_Maxf(map_maxs, brushes[i].maxs);
 	}
 
 	Com_Verbose("%5i brushes\n", num_brushes);

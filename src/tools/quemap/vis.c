@@ -121,7 +121,7 @@ static chain_winding_t *ClipChainWinding(chain_t *chain, chain_winding_t *in, co
 
 	// determine sides for each point
 	for (int32_t i = 0; i < in->num_points; i++) {
-		const double dot = vec3_dot(in->points[i], plane->normal) - plane->dist;
+		const double dot = Vec3_Dot(in->points[i], plane->normal) - plane->dist;
 		dists[i] = dot;
 		if (dot > ON_EPSILON) {
 			sides[i] = SIDE_FRONT;
@@ -226,7 +226,7 @@ static chain_winding_t *ClipChainWindings(chain_t *chain,
 		const int32_t l = (i + 1) % source->num_points;
 
 		vec3_t v1;
-		v1 = vec3_subtract(source->points[l], source->points[i]);
+		v1 = Vec3_Subtract(source->points[l], source->points[i]);
 
 		// find a vertex of pass that makes a plane that puts all of the
 		// vertexes of pass on the front side and all of the vertexes of
@@ -234,7 +234,7 @@ static chain_winding_t *ClipChainWindings(chain_t *chain,
 		for (int32_t j = 0; j < pass->num_points; j++) {
 
 			vec3_t v2;
-			v2 = vec3_subtract(pass->points[j], source->points[i]);
+			v2 = Vec3_Subtract(pass->points[j], source->points[i]);
 
 			plane_t plane;
 			plane.normal.x = v1.y * v2.z - v1.z * v2.y;
@@ -257,7 +257,7 @@ static chain_winding_t *ClipChainWindings(chain_t *chain,
 			plane.normal.y *= length;
 			plane.normal.z *= length;
 
-			plane.dist = vec3_dot(pass->points[j], plane.normal);
+			plane.dist = Vec3_Dot(pass->points[j], plane.normal);
 
 			//
 			// find out which side of the generated separating plane has the
@@ -268,7 +268,7 @@ static chain_winding_t *ClipChainWindings(chain_t *chain,
 				if (k == i || k == l) {
 					continue;
 				}
-				const double d = vec3_dot(source->points[k], plane.normal) - plane.dist;
+				const double d = Vec3_Dot(source->points[k], plane.normal) - plane.dist;
 				if (d < -ON_EPSILON) { // source is on the negative side, so we want all
 					// pass and target on the positive side
 					flip_test = false;
@@ -286,7 +286,7 @@ static chain_winding_t *ClipChainWindings(chain_t *chain,
 			// flip the normal if the source portal is backwards
 			//
 			if (flip_test) {
-				plane.normal = vec3_negate(plane.normal);
+				plane.normal = Vec3_Negate(plane.normal);
 				plane.dist = -plane.dist;
 			}
 			//
@@ -298,7 +298,7 @@ static chain_winding_t *ClipChainWindings(chain_t *chain,
 				if (k == j) {
 					continue;
 				}
-				const double d = vec3_dot(pass->points[k], plane.normal) - plane.dist;
+				const double d = Vec3_Dot(pass->points[k], plane.normal) - plane.dist;
 				if (d < -ON_EPSILON) {
 					break;
 				} else if (d > ON_EPSILON) {
@@ -317,11 +317,11 @@ static chain_winding_t *ClipChainWindings(chain_t *chain,
 			// flip the normal if we want the back side
 			//
 			if (flip_clip) {
-				plane.normal = vec3_negate(plane.normal);
+				plane.normal = Vec3_Negate(plane.normal);
 				plane.dist = -plane.dist;
 			}
 			// MrE: fast check first
-			const double d = vec3_dot(chain->portal->origin, plane.normal) - plane.dist;
+			const double d = Vec3_Dot(chain->portal->origin, plane.normal) - plane.dist;
 			//if completely at the back of the separator plane
 			if (d < -chain->portal->radius) {
 				return NULL;
@@ -383,7 +383,7 @@ static void RecursiveLeafFlow(portal_chain_t *chain, chain_t *prev, int32_t leaf
 		}
 
 		plane_t back;
-		back.normal = vec3_negate(portal->plane.normal);
+		back.normal = Vec3_Negate(portal->plane.normal);
 		back.dist = -portal->plane.dist;
 
 		next->portal = portal;
@@ -394,7 +394,7 @@ static void RecursiveLeafFlow(portal_chain_t *chain, chain_t *prev, int32_t leaf
 
 		{
 			const plane_t *plane = &chain->portal->plane;
-			const double d = vec3_dot(portal->origin, plane->normal) - plane->dist;
+			const double d = Vec3_Dot(portal->origin, plane->normal) - plane->dist;
 			if (d < -portal->radius) {
 				continue;
 			} else if (d > portal->radius) {
@@ -409,7 +409,7 @@ static void RecursiveLeafFlow(portal_chain_t *chain, chain_t *prev, int32_t leaf
 
 		{
 			const plane_t *plane = &portal->plane;
-			const double d = vec3_dot(chain->portal->origin, plane->normal) - plane->dist;
+			const double d = Vec3_Dot(chain->portal->origin, plane->normal) - plane->dist;
 			if (d > chain->portal->radius) {
 				continue;
 			} else if (d < -chain->portal->radius) {
@@ -523,7 +523,7 @@ void BaseVis(int32_t portal_num) {
 
 		const cm_winding_t *w = p->winding;
 		for (j = 0; j < w->num_points; j++) {
-			const double d = vec3_dot(w->points[j], portal->plane.normal) - portal->plane.dist;
+			const double d = Vec3_Dot(w->points[j], portal->plane.normal) - portal->plane.dist;
 			if (d > ON_EPSILON) {
 				break;
 			}
@@ -535,7 +535,7 @@ void BaseVis(int32_t portal_num) {
 
 		w = portal->winding;
 		for (j = 0; j < w->num_points; j++) {
-			const double d = vec3_dot(w->points[j], p->plane.normal) - p->plane.dist;
+			const double d = Vec3_Dot(w->points[j], p->plane.normal) - p->plane.dist;
 			if (d < -ON_EPSILON) {
 				break;
 			}

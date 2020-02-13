@@ -52,8 +52,8 @@ tree_t *AllocTree(void) {
 
 	tree_t *tree = Mem_TagMalloc(sizeof(*tree), MEM_TAG_TREE);
 
-	tree->mins = vec3_mins();
-	tree->maxs = vec3_maxs();
+	tree->mins = Vec3_Mins();
+	tree->maxs = Vec3_Maxs();
 
 	return tree;
 }
@@ -466,8 +466,8 @@ tree_t *BuildTree(csg_brush_t *brushes, const vec3_t mins, const vec3_t maxs) {
 			}
 		}
 
-		tree->mins = vec3_minf(tree->mins, b->mins);
-		tree->maxs = vec3_maxf(tree->maxs, b->maxs);
+		tree->mins = Vec3_Minf(tree->mins, b->mins);
+		tree->maxs = Vec3_Maxf(tree->maxs, b->maxs);
 	}
 
 	Com_Debug(DEBUG_ALL, "%5i brushes\n", c_brushes);

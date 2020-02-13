@@ -44,7 +44,7 @@ static void zoomAction(Control *control, const SDL_Event *event, ident sender, i
 
 	PlayerModelView *this = (PlayerModelView *) sender;
 
-	this->zoom = clampf(this->zoom + event->wheel.y * 0.0125, 0.0, 1.0);
+	this->zoom = Clampf(this->zoom + event->wheel.y * 0.0125, 0.0, 1.0);
 }
 
 #pragma mark - Object
@@ -223,27 +223,27 @@ static void updateBindings(View *self) {
 
 	this->legs.model = this->client.legs;
 	this->legs.scale = 1.0;
-	this->legs.color = vec4(1.0, 1.0, 1.0, 1.0);
+	this->legs.color = Vec4(1.0, 1.0, 1.0, 1.0);
 
 	this->torso.model = this->client.torso;
 	this->torso.scale = 1.0;
-	this->torso.color = vec4(1.0, 1.0, 1.0, 1.0);
+	this->torso.color = Vec4(1.0, 1.0, 1.0, 1.0);
 
 	this->head.model = this->client.head;
 	this->head.scale = 1.0;
-	this->head.color = vec4(1.0, 1.0, 1.0, 1.0);
+	this->head.color = Vec4(1.0, 1.0, 1.0, 1.0);
 
 	this->weapon.model = cgi.LoadModel("models/weapons/rocketlauncher/tris");
 	this->weapon.scale = 1.0;
-	this->weapon.color = vec4(1.0, 1.0, 1.0, 1.0);
+	this->weapon.color = Vec4(1.0, 1.0, 1.0, 1.0);
 
 	this->platformBase.model = cgi.LoadModel("models/objects/platform/base/tris");
 	this->platformBase.scale = 1.0;
-	this->platformBase.color = vec4(1.0, 1.0, 1.0, 1.0);
+	this->platformBase.color = Vec4(1.0, 1.0, 1.0, 1.0);
 
 	this->platformCenter.model = cgi.LoadModel("models/objects/platform/center/tris");
 	this->platformCenter.scale = 1.0;
-	this->platformCenter.color = vec4(1.0, 1.0, 1.0, 1.0);
+	this->platformCenter.color = Vec4(1.0, 1.0, 1.0, 1.0);
 
 	memcpy(this->legs.skins, this->client.legs_skins, sizeof(this->legs.skins));
 	memcpy(this->torso.skins, this->client.torso_skins, sizeof(this->torso.skins));
@@ -338,19 +338,19 @@ static void animate(PlayerModelView *self) {
 	self->weapon.frame = 0;
 	self->weapon.lerp = 1.0;
 
-	self->legs.origin = vec3_zero();
-	self->torso.origin = vec3_zero();
-	self->head.origin = vec3_zero();
-	self->weapon.origin = vec3_zero();
-	self->platformBase.origin = vec3_zero();
-	self->platformCenter.origin = vec3_zero();
+	self->legs.origin = Vec3_Zero();
+	self->torso.origin = Vec3_Zero();
+	self->head.origin = Vec3_Zero();
+	self->weapon.origin = Vec3_Zero();
+	self->platformBase.origin = Vec3_Zero();
+	self->platformCenter.origin = Vec3_Zero();
 
-	self->legs.angles = vec3_zero();
-	self->torso.angles = vec3_zero();
-	self->head.angles = vec3_zero();
-	self->weapon.angles = vec3_zero();
-	self->platformBase.angles = vec3_zero();
-	self->platformCenter.angles = vec3_zero();
+	self->legs.angles = Vec3_Zero();
+	self->torso.angles = Vec3_Zero();
+	self->head.angles = Vec3_Zero();
+	self->weapon.angles = Vec3_Zero();
+	self->platformBase.angles = Vec3_Zero();
+	self->platformCenter.angles = Vec3_Zero();
 
 	self->legs.scale = self->torso.scale = self->head.scale = 1.0;
 	self->weapon.scale = 1.0;
@@ -359,19 +359,19 @@ static void animate(PlayerModelView *self) {
 	if (self->client.shirt.a) {
 		self->torso.tints[0] = ColorToVector4(self->client.shirt);
 	} else {
-		self->torso.tints[0] = vec4_zero();
+		self->torso.tints[0] = Vec4_Zero();
 	}
 
 	if (self->client.pants.a) {
 		self->legs.tints[1] = ColorToVector4(self->client.pants);
 	} else {
-		self->legs.tints[1] = vec4_zero();
+		self->legs.tints[1] = Vec4_Zero();
 	}
 
 	if (self->client.helmet.a) {
 		self->head.tints[2] = ColorToVector4(self->client.helmet);
 	} else {
-		self->head.tints[2] = vec4_zero();
+		self->head.tints[2] = Vec4_Zero();
 	}
 
 	Matrix4x4_CreateFromEntity(&self->legs.matrix, self->legs.origin, self->legs.angles, self->legs.scale);

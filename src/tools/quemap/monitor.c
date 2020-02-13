@@ -177,16 +177,16 @@ void Mon_SendWinding_(const char *func, mon_level_t level, const vec3_t p[], uin
 	xmlAddChild(winding_msg, winding);
 
 	vec3_t center;
-	center = vec3_zero();
+	center = Vec3_Zero();
 
 	for (int32_t i = 0; i < n; i++) {
 		xmlNodeAddContent(winding, xmlStringf("(%g %g %g)", p[i].x, p[i].y, p[i].z));
-		center = vec3_add(center, p[i]);
+		center = Vec3_Add(center, p[i]);
 	}
 
 	Mon_SendXML(winding_msg);
 
-	center = vec3_scale(center, 1.0 / n);
+	center = Vec3_Scale(center, 1.0 / n);
 	Mon_Stdio(level, va("%s: Winding with center %s: %s", func, vtos(center), msg));
 }
 

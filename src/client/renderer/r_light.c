@@ -53,7 +53,7 @@ void R_UpdateLights(void) {
 
 	for (int32_t i = 0; i < r_view.num_lights; i++, in++) {
 
-		if (R_CullSphere(vec4_xyz(in->origin), in->origin.w)) {
+		if (R_CullSphere(Vec4_XYZ(in->origin), in->origin.w)) {
 			continue;
 		}
 

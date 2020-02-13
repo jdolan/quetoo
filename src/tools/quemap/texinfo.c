@@ -51,7 +51,7 @@ static void TextureAxisFromPlane(const plane_t *plane, vec3_t xv, vec3_t yv) {
 	float best = 0.0;
 
 	for (int32_t i = 0; i < 6; i++) {
-		const float dot = vec3_dot(plane->normal, base_axis[i * 3]);
+		const float dot = Vec3_Dot(plane->normal, base_axis[i * 3]);
 		if (dot > best) {
 			best = dot;
 			best_axis = i;
@@ -118,8 +118,8 @@ int32_t TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, const vec3_t
 	TextureAxisFromPlane(plane, vecs[0], vecs[1]);
 
 	vec2_t shift;
-	shift.x = vec3_dot(origin, vecs[0]);
-	shift.y = vec3_dot(origin, vecs[1]);
+	shift.x = Vec3_Dot(origin, vecs[0]);
+	shift.y = Vec3_Dot(origin, vecs[1]);
 
 	if (!bt->scale.x) {
 		bt->scale.x = 1.0;
@@ -142,8 +142,8 @@ int32_t TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, const vec3_t
 		sinv = -1.0;
 		cosv = 0.0;
 	} else {
-		sinv = sinf(radians(bt->rotate));
-		cosv = cosf(radians(bt->rotate));
+		sinv = sinf(Radians(bt->rotate));
+		cosv = cosf(Radians(bt->rotate));
 	}
 
 	int32_t sv;

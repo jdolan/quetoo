@@ -62,17 +62,17 @@ static _Bool Ai_CanSee(const g_entity_t *self, const g_entity_t *other) {
 	// see if we're even facing the object
 	ai_locals_t *ai = Ai_GetLocals(self);
 
-	const vec3_t dir = vec3_normalize(vec3_subtract(other->s.origin, ai->eye_origin));
+	const vec3_t dir = vec3_normalize(Vec3_Subtract(other->s.origin, ai->eye_origin));
 
-	float dot = vec3_dot(ai->aim_forward, dir);
+	float dot = Vec3_Dot(ai->aim_forward, dir);
 
 	if (dot < 0.5) {
 		return false;
 	}
 
-	cm_trace_t tr = aim.gi->Trace(ai->eye_origin, other->s.origin, vec3_zero(), vec3_zero(), self, MASK_CLIP_PROJECTILE);
+	cm_trace_t tr = aim.gi->Trace(ai->eye_origin, other->s.origin, Vec3_Zero(), Vec3_Zero(), self, MASK_CLIP_PROJECTILE);
 
-	if (!vec3_box_intersect(tr.end, tr.end, other->abs_mins, other->abs_maxs)) {
+	if (!Vec3_BoxIntersect(tr.end, tr.end, other->abs_mins, other->abs_maxs)) {
 		return false; // something was in the way of our trace
 	}
 
@@ -124,7 +124,7 @@ static int32_t Ai_ItemPick_Compare(const void *a, const void *b) {
 	const ai_item_pick_t *w0 = (const ai_item_pick_t *) a;
 	const ai_item_pick_t *w1 = (const ai_item_pick_t *) b;
 
-	return signf(w1->weight - w0->weight);
+	return SignOf(w1->weight - w0->weight);
 }
 
 #define AI_ITEM_UNREACHABLE -1.0
@@ -134,13 +134,13 @@ static int32_t Ai_ItemPick_Compare(const void *a, const void *b) {
  */
 static float Ai_ItemReachable(const g_entity_t *self, const g_entity_t *other) {
 
-	vec3_t line = vec3_subtract(self->s.origin, other->s.origin);
+	vec3_t line = Vec3_Subtract(self->s.origin, other->s.origin);
 
 	if (fabs(line.z) >= PM_STEP_HEIGHT) {
 		return AI_ITEM_UNREACHABLE;
 	}
 
-	const float distance = vec3_length(line);
+	const float distance = Vec3_Length(line);
 
 	if (distance >= AI_MAX_ITEM_DISTANCE) {
 		return AI_ITEM_UNREACHABLE;
@@ -150,14 +150,14 @@ static float Ai_ItemReachable(const g_entity_t *self, const g_entity_t *other) {
 	if (distance >= 32.0) {
 
 		vec3_t fall_start;
-		fall_start = vec3_add(self->s.origin, other->s.origin);
-		fall_start = vec3_scale(fall_start, 0.5);
+		fall_start = Vec3_Add(self->s.origin, other->s.origin);
+		fall_start = Vec3_Scale(fall_start, 0.5);
 
 		vec3_t fall_end;
 		fall_end = fall_start;
 		fall_end.z -= PM_STEP_HEIGHT * 2.0;
 
-		cm_trace_t tr = aim.gi->Trace(fall_start, fall_end, vec3_zero(), vec3_zero(), NULL, CONTENTS_SOLID);
+		cm_trace_t tr = aim.gi->Trace(fall_start, fall_end, Vec3_Zero(), Vec3_Zero(), NULL, CONTENTS_SOLID);
 
 		if (tr.start_solid || tr.all_solid || tr.fraction == 1.0) {
 			return AI_ITEM_UNREACHABLE;
@@ -174,9 +174,9 @@ static void Ai_ResetWander(const g_entity_t *self, const vec3_t where_to) {
 	ai_locals_t *ai = Ai_GetLocals(self);
 	vec3_t dir;
 
-	dir = vec3_subtract(where_to, self->s.origin);
+	dir = Vec3_Subtract(where_to, self->s.origin);
 	dir = vec3_normalize(dir);
-	dir = vec3_euler(dir);
+	dir = Vec3_Euler(dir);
 
 	ai->wander_angle = dir.y;
 }
@@ -321,7 +321,7 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 		return;
 	}
 
-	const float targ_dist = vec3_distance(self->s.origin, ai->aim_target.ent->s.origin);
+	const float targ_dist = Vec3_Distance(self->s.origin, ai->aim_target.ent->s.origin);
 	const ai_range_t targ_range = Ai_GetRange(targ_dist);
 
 	ai_item_pick_t weapons[ai_num_weapons];
@@ -604,11 +604,11 @@ static void Ai_Wander(g_entity_t *self, pm_cmd_t *cmd) {
 	ai_locals_t *ai = Ai_GetLocals(self);
 
 	vec3_t forward;
-	vec3_vectors(vec3(0.f, ai->wander_angle, 0.f), &forward, NULL, NULL);
+	Vec3_Vectors(Vec3(0.f, ai->wander_angle, 0.f), &forward, NULL, NULL);
 
-	vec3_t end = vec3_add(self->s.origin, vec3_scale(forward, (self->maxs.x - self->mins.x) * 2.0));
+	vec3_t end = Vec3_Add(self->s.origin, Vec3_Scale(forward, (self->maxs.x - self->mins.x) * 2.0));
 
-	cm_trace_t tr = aim.gi->Trace(self->s.origin, end, vec3_zero(), vec3_zero(), self, MASK_CLIP_PLAYER);
+	cm_trace_t tr = aim.gi->Trace(self->s.origin, end, Vec3_Zero(), Vec3_Zero(), self, MASK_CLIP_PLAYER);
 
 	if (tr.fraction < 1.0) { // hit a wall
 		float angle = 45 + Randomf() * 45;
@@ -617,9 +617,9 @@ static void Ai_Wander(g_entity_t *self, pm_cmd_t *cmd) {
 	}
 
 	vec3_t move_dir;
-	move_dir = vec3_subtract(ai->last_origin, self->s.origin);
+	move_dir = Vec3_Subtract(ai->last_origin, self->s.origin);
 	move_dir.z = 0.0;
-	float move_len = vec3_length(move_dir);
+	float move_len = Vec3_Length(move_dir);
 
 	if (move_len < (PM_SPEED_RUN * QUETOO_TICK_SECONDS) / 8.0) {
 		ai->no_movement_frames++;
@@ -670,9 +670,9 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	vec3_t dir, angles, dest;
 	switch (ai->move_target.type) {
 		default: {
-				angles = vec3(0.0, ai->wander_angle, 0.0);
-				vec3_vectors(angles, &dir, NULL, NULL);
-				dest = vec3_add(self->s.origin, vec3_scale(dir, 1.0));
+				angles = Vec3(0.0, ai->wander_angle, 0.0);
+				Vec3_Vectors(angles, &dir, NULL, NULL);
+				dest = Vec3_Add(self->s.origin, Vec3_Scale(dir, 1.0));
 			}
 			break;
 		case AI_GOAL_ITEM:
@@ -681,27 +681,27 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 			break;
 	}
 
-	dir = vec3_subtract(dest, self->s.origin);
+	dir = Vec3_Subtract(dest, self->s.origin);
 	dir = vec3_normalize(dir);
 
 	vec3_t predicted;
 	Ai_Predict(self, &predicted);
-	if (vec3_length(predicted)) {
-		dir = vec3_add(dir, predicted);
+	if (Vec3_Length(predicted)) {
+		dir = Vec3_Add(dir, predicted);
 		dir = vec3_normalize(dir);
 	}
 
-    angles = vec3_euler(dir);
+    angles = Vec3_Euler(dir);
 
     const float delta_yaw = (CLIENT_DATA(self->client, angles)).y - angles.y;
-    vec3_vectors(vec3(0.0, delta_yaw, 0.0), &dir, NULL, NULL);
+    Vec3_Vectors(Vec3(0.0, delta_yaw, 0.0), &dir, NULL, NULL);
 
-    dir = vec3_scale(dir, PM_SPEED_RUN);
+    dir = Vec3_Scale(dir, PM_SPEED_RUN);
 
     cmd->forward = dir.x;
     cmd->right = dir.y;
 
-	predicted = vec3_scale(predicted, PM_SPEED_JUMP);
+	predicted = Vec3_Scale(predicted, PM_SPEED_JUMP);
 
 	cmd->up = predicted.z;
 
@@ -804,18 +804,18 @@ static void Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 
 	// TODO: node navigation
 	if (aim_target->type <= AI_GOAL_NAV) {
-		ideal_angles = vec3(0.0, ai->wander_angle, 0.0);
+		ideal_angles = Vec3(0.0, ai->wander_angle, 0.0);
 	} else {
 		vec3_t aim_direction;
 
 		if (aim_target->type == AI_GOAL_GHOST) {
-			aim_direction = vec3_subtract(ai->ghost_position, self->s.origin);
+			aim_direction = Vec3_Subtract(ai->ghost_position, self->s.origin);
 		} else {
-			aim_direction = vec3_subtract(aim_target->ent->s.origin, self->s.origin);
+			aim_direction = Vec3_Subtract(aim_target->ent->s.origin, self->s.origin);
 		}
 
 		aim_direction = vec3_normalize(aim_direction);
-		ideal_angles = vec3_euler(aim_direction);
+		ideal_angles = Vec3_Euler(aim_direction);
 
 		// fuzzy angle
 		ideal_angles.x += sinf(ai_level.time / 128.0) * 4.3;
@@ -828,7 +828,7 @@ static void Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 		ideal_angles.xyz[i] = Ai_CalculateAngle(self, 6.5, view_angles.xyz[i], ideal_angles.xyz[i]);
 	}
 
-	cmd->angles = vec3_subtract(ideal_angles, self->client->ps.pm_state.delta_angles);
+	cmd->angles = Vec3_Subtract(ideal_angles, self->client->ps.pm_state.delta_angles);
 }
 
 /**
@@ -842,8 +842,8 @@ static void Ai_Think(g_entity_t *self, pm_cmd_t *cmd) {
 		Ai_ClearGoal(&ai->aim_target);
 		Ai_ClearGoal(&ai->move_target);
 	} else {
-		vec3_vectors(CLIENT_DATA(self->client, angles), &ai->aim_forward, NULL, NULL);
-		ai->eye_origin = vec3_add(self->s.origin, self->client->ps.pm_state.view_offset);
+		Vec3_Vectors(CLIENT_DATA(self->client, angles), &ai->aim_forward, NULL, NULL);
+		ai->eye_origin = Vec3_Add(self->s.origin, self->client->ps.pm_state.view_offset);
 	}
 
 	// run functional goals

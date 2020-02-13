@@ -24,14 +24,14 @@
 #include "deps/genann/genann.h"
 
 typedef struct {
-    dvec3_t origin;
-	dvec3_t velocity;
+    vec3d_t origin;
+	vec3d_t velocity;
 } ai_ann_input_t;
 
 #define AI_ANN_INPUTS (sizeof(ai_ann_input_t) / sizeof(double))
 
 typedef struct {
-	dvec3_t dir;
+	vec3d_t dir;
 } ai_ann_output_t;
 
 #define AI_ANN_OUTPUTS (sizeof(ai_ann_output_t) / sizeof(double))
@@ -63,20 +63,20 @@ void Ai_Learn(const g_entity_t *ent, const pm_cmd_t *cmd) {
 
 			ai_ann_input_t in;
 
-            in.origin = vec3_cast_dvec3(ent->s.origin);
-			in.velocity = vec3_cast_dvec3(ENTITY_DATA(ent, velocity));
+            in.origin = Vec3_CastDVec3(ent->s.origin);
+			in.velocity = Vec3_CastDVec3(ENTITY_DATA(ent, velocity));
 
 			ai_ann_output_t out;
 
-			vec3_vectors(cmd->angles, &forward, &right, &up);
+			Vec3_Vectors(cmd->angles, &forward, &right, &up);
 
-			dir = vec3_zero();
-			dir = vec3_add(dir, vec3_scale(forward, cmd->forward));
-			dir = vec3_add(dir, vec3_scale(right, cmd->right));
-			dir = vec3_add(dir, vec3_scale(up, cmd->up));
+			dir = Vec3_Zero();
+			dir = Vec3_Add(dir, Vec3_Scale(forward, cmd->forward));
+			dir = Vec3_Add(dir, Vec3_Scale(right, cmd->right));
+			dir = Vec3_Add(dir, Vec3_Scale(up, cmd->up));
 
 			dir = vec3_normalize(dir);
-			out.dir = vec3_cast_dvec3(dir);
+			out.dir = Vec3_CastDVec3(dir);
 
 			genann_train(ai_genann, (const double *) &in, (const double *) &out, AI_ANN_LEARNING_RATE);
 		}
@@ -89,19 +89,19 @@ void Ai_Learn(const g_entity_t *ent, const pm_cmd_t *cmd) {
 void Ai_Predict(const g_entity_t *ent, vec3_t *dir) {
 
 	if (!ai_genann) {
-		*dir = vec3_zero();
+		*dir = Vec3_Zero();
 		return;
 	}
 
 	ai_ann_input_t in;
 
-	in.origin = vec3_cast_dvec3(ent->s.origin);
-	in.velocity = vec3_cast_dvec3(ENTITY_DATA(ent, velocity));
+	in.origin = Vec3_CastDVec3(ent->s.origin);
+	in.velocity = Vec3_CastDVec3(ENTITY_DATA(ent, velocity));
 
 	const ai_ann_output_t *out = (ai_ann_output_t *) genann_run(ai_genann, (const double *) &in);
 	assert(out);
 
-	*dir = dvec3_cast_vec3(out->dir);
+	*dir = Vec3d_CastVec3(out->dir);
 	*dir = vec3_normalize(*dir);
 }
 

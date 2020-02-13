@@ -72,7 +72,7 @@ static void WritePortalFile_r(node_t *node) {
 			// plane the same way vis will, and flip the side orders if needed
 			// FIXME: is this still relevent? Yes. jgothic.
 			Cm_PlaneForWinding(w, &normal, &dist);
-			if (vec3_dot(p->plane.normal, normal) < 0.99) { // backwards...
+			if (Vec3_Dot(p->plane.normal, normal) < 0.99) { // backwards...
 				Fs_Print(prtfile, "%i %i %i ", w->num_points, p->nodes[1]->cluster,
 				         p->nodes[0]->cluster);
 			} else {

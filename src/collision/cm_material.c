@@ -794,7 +794,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 		}
 
 		if (!strncmp(token, "tintmap.", strlen("tintmap."))) {
-			vec4_t color = vec4_one();
+			vec4_t color = Vec4_One();
 
 			if (!g_strcmp0(token, "tintmap.tint_r_default")) {
 				color = m->tintmap_defaults[TINT_R];

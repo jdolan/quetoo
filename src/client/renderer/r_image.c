@@ -137,7 +137,7 @@ void R_Screenshot_f(void) {
  */
 void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
 
-	s32vec3_t channels = s32vec3_zero();
+	vec3i_t channels = Vec3i_Zero();
 
 	const size_t pixels = image->width * image->height;
 	const size_t stride = format == GL_RGBA ? 4 : 3;
@@ -153,15 +153,15 @@ void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
 		}
 
 		if (image->type == IT_DIFFUSE) { // accumulate color
-			channels = s32vec3_add(channels, s32vec3(p[0], p[1], p[2]));
+			channels = Vec3i_Add(channels, Vec3i(p[0], p[1], p[2]));
 		}
 	}
 
 	if (image->type == IT_DIFFUSE) { // average accumulated colors, normalize
-		vec3_t rgb = s32vec3_cast_vec3(channels);
+		vec3_t rgb = Vec3i_CastVec3(channels);
 
-		rgb = vec3_scale(rgb, 1.f / pixels);
-		rgb = vec3_scale(rgb, 1.f / 255.f);
+		rgb = Vec3_Scale(rgb, 1.f / pixels);
+		rgb = Vec3_Scale(rgb, 1.f / 255.f);
 
 		image->color = ColorToVector3(Color3fv(rgb));
 	}

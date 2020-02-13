@@ -225,13 +225,13 @@ void Cl_CheckPredictionError(void) {
 		const uint32_t cmd = cls.net_chan.incoming_acknowledged & CMD_MASK;
 
 		// subtract what the server returned with what we had predicted it to be
-		pr->error = vec3_subtract(cl.frame.ps.pm_state.origin, pr->origins[cmd]);
+		pr->error = Vec3_Subtract(cl.frame.ps.pm_state.origin, pr->origins[cmd]);
 
 		// if the error is too large, it was likely a teleport or respawn, so ignore it
-		const float len = vec3_length(pr->error);
+		const float len = Vec3_Length(pr->error);
 		if (len > 64.0) {
 			Com_Debug(DEBUG_CLIENT, "Clear %s\n", vtos(pr->error));
-			pr->error = vec3_zero();
+			pr->error = Vec3_Zero();
 		} else if (len > 0.1) {
 			Com_Debug(DEBUG_CLIENT, "Error %s\n", vtos(pr->error));
 		}
@@ -243,7 +243,7 @@ void Cl_CheckPredictionError(void) {
 		pr->view.offset = cl.frame.ps.pm_state.view_offset;
 		pr->view.angles = cl.frame.ps.pm_state.view_angles;
 		
-		pr->error = vec3_zero();
+		pr->error = Vec3_Zero();
 	}
 }
 

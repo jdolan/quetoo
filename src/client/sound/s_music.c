@@ -357,7 +357,7 @@ void S_FrameMusic(void) {
 	last_state = cls.state;
 
 	if (s_music_volume->modified) {
-		const float volume = clampf(s_music_volume->value, 0.0, 1.0);
+		const float volume = Clampf(s_music_volume->value, 0.0, 1.0);
 
 		if (volume) {
 			alSourcef(s_music_state.source, AL_GAIN, volume);

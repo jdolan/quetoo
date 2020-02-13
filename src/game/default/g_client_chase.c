@@ -32,10 +32,10 @@ void G_ClientChaseThink(g_entity_t *ent) {
 
 		// calculate delta angles if switching targets
 		if (targ != ent->client->locals.old_chase_target) {
-			new_delta = vec3_subtract(ent->client->locals.angles, targ->client->locals.angles);
+			new_delta = Vec3_Subtract(ent->client->locals.angles, targ->client->locals.angles);
 			ent->client->locals.old_chase_target = targ;
 		} else {
-			new_delta = vec3_zero();
+			new_delta = Vec3_Zero();
 		}
 
 		// copy origin
@@ -51,8 +51,8 @@ void G_ClientChaseThink(g_entity_t *ent) {
 		memcpy(&ent->client->ps, &targ->client->ps, sizeof(player_state_t));
 
 		// add in delta angles in case we've switched targets
-		if (!vec3_equal(new_delta, vec3_zero())) {
-			ent->client->ps.pm_state.delta_angles = vec3_add(ent->client->ps.pm_state.delta_angles, new_delta);
+		if (!Vec3_Equal(new_delta, Vec3_Zero())) {
+			ent->client->ps.pm_state.delta_angles = Vec3_Add(ent->client->ps.pm_state.delta_angles, new_delta);
 		}
 
 		// disable the spectator's input

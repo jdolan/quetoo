@@ -96,7 +96,7 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 			default:
 				break;
 		}
-		out->color = vec4(1.0, 1.0, 1.0, alpha);
+		out->color = Vec4(1.0, 1.0, 1.0, alpha);
 	}
 }
 
@@ -245,8 +245,8 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 
 	for (int32_t i = 0; i < bsp->num_nodes; i++, in++, out++) {
 
-		out->mins = s16vec3_cast_vec3(in->mins);
-		out->maxs = s16vec3_cast_vec3(in->maxs);
+		out->mins = Vec3s_CastVec3(in->mins);
+		out->maxs = Vec3s_CastVec3(in->maxs);
 
 		const int32_t p = in->plane_num;
 		out->plane = bsp->cm->planes + p;
@@ -283,8 +283,8 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
 
 	for (int32_t i = 0; i < bsp->num_leafs; i++, in++, out++) {
 
-		out->mins = s16vec3_cast_vec3(in->mins);
-		out->maxs = s16vec3_cast_vec3(in->maxs);
+		out->mins = Vec3s_CastVec3(in->mins);
+		out->maxs = Vec3s_CastVec3(in->maxs);
 
 		out->contents = in->contents;
 
@@ -301,8 +301,8 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
  */
 static void R_SetupBspFace(r_bsp_model_t *bsp, r_bsp_leaf_t *leaf, r_bsp_face_t *face) {
 
-	face->mins = vec3_mins();
-	face->maxs = vec3_maxs();
+	face->mins = Vec3_Mins();
+	face->maxs = Vec3_Maxs();
 
 	face->st_mins = Vec2_Mins();
 	face->st_maxs = Vec2_Maxs();
@@ -313,8 +313,8 @@ static void R_SetupBspFace(r_bsp_model_t *bsp, r_bsp_leaf_t *leaf, r_bsp_face_t 
 	const r_bsp_vertex_t *v = face->vertexes;
 	for (int32_t i = 0; i < face->num_vertexes; i++, v++) {
 
-		face->mins = vec3_minf(face->mins, v->position);
-		face->maxs = vec3_maxf(face->maxs, v->position);
+		face->mins = Vec3_Minf(face->mins, v->position);
+		face->maxs = Vec3_Maxf(face->maxs, v->position);
 
 		face->st_mins = Vec2_Minf(face->st_mins, v->diffuse);
 		face->st_maxs = Vec2_Maxf(face->st_maxs, v->diffuse);
@@ -383,8 +383,8 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 
 		out->head_node = bsp->nodes + in->head_node;
 
-		out->mins = s16vec3_cast_vec3(in->mins);
-		out->maxs = s16vec3_cast_vec3(in->maxs);
+		out->mins = Vec3s_CastVec3(in->mins);
+		out->maxs = Vec3s_CastVec3(in->maxs);
 
 		out->faces = bsp->faces + in->first_face;
 		out->num_faces = in->num_faces;
@@ -413,8 +413,8 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 		out->maxs = in->maxs;
 		out->mins = in->mins;
 
-		mod->mins = vec3_minf(mod->mins, out->mins);
-		mod->maxs = vec3_maxf(mod->maxs, out->maxs);
+		mod->mins = Vec3_Minf(mod->mins, out->mins);
+		mod->maxs = Vec3_Maxf(mod->maxs, out->maxs);
 
 		R_RegisterDependency(&mod->media, &out->media);
 	}
@@ -460,12 +460,12 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 
 	out->size = in->size;
 
-	const vec3_t grid_size = vec3_scale(s32vec3_cast_vec3(out->size), BSP_LIGHTGRID_LUXEL_SIZE);
-	const vec3_t world_size = vec3_subtract(mod->maxs, mod->mins);
-	const vec3_t padding = vec3_scale(vec3_subtract(grid_size, world_size), 0.5);
+	const vec3_t grid_size = Vec3_Scale(Vec3i_CastVec3(out->size), BSP_LIGHTGRID_LUXEL_SIZE);
+	const vec3_t world_size = Vec3_Subtract(mod->maxs, mod->mins);
+	const vec3_t padding = Vec3_Scale(Vec3_Subtract(grid_size, world_size), 0.5);
 
-	out->mins = vec3_subtract(mod->mins, padding);
-	out->maxs = vec3_add(mod->maxs, padding);
+	out->mins = Vec3_Subtract(mod->mins, padding);
+	out->maxs = Vec3_Add(mod->maxs, padding);
 
 	const size_t texture_size = out->size.x * out->size.y * out->size.z * BSP_LIGHTGRID_BPP;
 

@@ -104,8 +104,8 @@ csg_brush_t *CopyBrush(const csg_brush_t *brush) {
  */
 static void SetBrushBounds(csg_brush_t *brush) {
 
-	brush->mins = vec3_mins();
-	brush->maxs = vec3_maxs();
+	brush->mins = Vec3_Mins();
+	brush->maxs = Vec3_Maxs();
 
 	for (int32_t i = 0; i < brush->num_sides; i++) {
 		const cm_winding_t *w = brush->sides[i].winding;
@@ -113,8 +113,8 @@ static void SetBrushBounds(csg_brush_t *brush) {
 			continue;
 		}
 		for (int32_t j = 0; j < w->num_points; j++) {
-			brush->mins = vec3_minf(brush->mins, w->points[j]);
-			brush->maxs = vec3_maxf(brush->maxs, w->points[j]);
+			brush->mins = Vec3_Minf(brush->mins, w->points[j]);
+			brush->maxs = Vec3_Maxf(brush->maxs, w->points[j]);
 		}
 	}
 }
@@ -158,7 +158,7 @@ csg_brush_t *BrushFromBounds(const vec3_t mins, const vec3_t maxs) {
 
 	for (int32_t i = 0; i < 3; i++) {
 		vec3_t normal;
-		normal = vec3_zero();
+		normal = Vec3_Zero();
 
 		normal.xyz[i] = 1;
 		b->sides[i].plane_num = FindPlane(normal, maxs.xyz[i]);
@@ -206,7 +206,7 @@ float BrushVolume(csg_brush_t *brush) {
 			continue;
 		}
 		plane_t *plane = &planes[brush->sides[i].plane_num];
-		const float d = -(vec3_dot(corner, plane->normal) - plane->dist);
+		const float d = -(Vec3_Dot(corner, plane->normal) - plane->dist);
 		const float area = Cm_WindingArea(w);
 		volume += d * area;
 	}
@@ -244,8 +244,8 @@ static int32_t BoxOnPlaneSide(vec3_t mins, vec3_t maxs, plane_t *plane) {
 		}
 	}
 
-	const double dist1 = vec3_dot(plane->normal, corners[0]) - plane->dist;
-	const double dist2 = vec3_dot(plane->normal, corners[1]) - plane->dist;
+	const double dist1 = Vec3_Dot(plane->normal, corners[0]) - plane->dist;
+	const double dist2 = Vec3_Dot(plane->normal, corners[1]) - plane->dist;
 
 	if (dist1 >= SIDE_EPSILON) {
 		side |= SIDE_FRONT;
@@ -305,7 +305,7 @@ int32_t TestBrushToPlane(csg_brush_t *brush, int32_t plane_num, int32_t *num_spl
 		int32_t front = 0, back = 0;
 
 		for (int32_t j = 0; j < w->num_points; j++) {
-			const double d = vec3_dot(w->points[j], plane->normal) - plane->dist;
+			const double d = Vec3_Dot(w->points[j], plane->normal) - plane->dist;
 			if (d > d_front) {
 				d_front = d;
 			}
@@ -351,7 +351,7 @@ static int32_t BrushMostlyOnSide(csg_brush_t *brush, plane_t *plane) {
 			continue;
 		}
 		for (int32_t j = 0; j < w->num_points; j++) {
-			const double d = vec3_dot(w->points[j], plane->normal) - plane->dist;
+			const double d = Vec3_Dot(w->points[j], plane->normal) - plane->dist;
 			if (d > max) {
 				max = d;
 				side = SIDE_FRONT;
@@ -384,7 +384,7 @@ void SplitBrush(csg_brush_t *brush, int32_t plane_num, csg_brush_t **front, csg_
 			continue;
 		}
 		for (int32_t j = 0; j < w->num_points; j++) {
-			const double d = vec3_dot(w->points[j], plane->normal) - plane->dist;
+			const double d = Vec3_Dot(w->points[j], plane->normal) - plane->dist;
 			if (d > 0.0 && d > d_front) {
 				d_front = d;
 			}

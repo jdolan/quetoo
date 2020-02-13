@@ -50,7 +50,7 @@ void G_func_areaportal(g_entity_t *ent) {
  */
 static void G_MoveInfo_Linear_Done(g_entity_t *ent) {
 
-	ent->locals.velocity = vec3_zero();
+	ent->locals.velocity = Vec3_Zero();
 
 	ent->locals.move_info.current_speed = 0.0;
 
@@ -64,14 +64,14 @@ static void G_MoveInfo_Linear_Final(g_entity_t *ent) {
 	g_move_info_t *move = &ent->locals.move_info;
 
 	vec3_t dir;
-	const float distance = vec3_distance_dir(move->dest, ent->s.origin, &dir);
+	const float distance = Vec3_DistanceDir(move->dest, ent->s.origin, &dir);
 
-	if (distance == 0.0 || vec3_dot(dir, move->dir) < 0.0) {
+	if (distance == 0.0 || Vec3_Dot(dir, move->dir) < 0.0) {
 		G_MoveInfo_Linear_Done(ent);
 		return;
 	}
 
-	ent->locals.velocity = vec3_scale(dir, distance / QUETOO_TICK_SECONDS);
+	ent->locals.velocity = Vec3_Scale(dir, distance / QUETOO_TICK_SECONDS);
 
 	ent->locals.Think = G_MoveInfo_Linear_Done;
 	ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
@@ -85,15 +85,15 @@ static void G_MoveInfo_Linear_Constant(g_entity_t *ent) {
 	g_move_info_t *move = &ent->locals.move_info;
 	vec3_t delta;
 
-	delta = vec3_subtract(move->dest, ent->s.origin);
-	const float distance = vec3_length(delta);
+	delta = Vec3_Subtract(move->dest, ent->s.origin);
+	const float distance = Vec3_Length(delta);
 
 	if ((move->speed * QUETOO_TICK_SECONDS) >= distance) {
 		G_MoveInfo_Linear_Final(ent);
 		return;
 	}
 
-	ent->locals.velocity = vec3_scale(move->dir, move->speed);
+	ent->locals.velocity = Vec3_Scale(move->dir, move->speed);
 
 	move->const_frames = distance / move->speed * QUETOO_TICK_RATE;
 
@@ -113,8 +113,8 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
 
 		// http://www.ajdesigner.com/constantacceleration/cavelocitya.php
 
-		delta = vec3_subtract(move->dest, ent->s.origin);
-		const float distance = vec3_length(delta);
+		delta = Vec3_Subtract(move->dest, ent->s.origin);
+		const float distance = Vec3_Length(delta);
 
 		const float accel_time = move->speed / move->accel;
 		const float decel_time = move->speed / move->decel;
@@ -175,7 +175,7 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
 		return;
 	}
 
-	ent->locals.velocity = vec3_scale(move->dir, move->current_speed);
+	ent->locals.velocity = Vec3_Scale(move->dir, move->current_speed);
 
 	ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 	ent->locals.Think = G_MoveInfo_Linear_Accelerate;
@@ -189,11 +189,11 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
 static void G_MoveInfo_Linear_Init(g_entity_t *ent, const vec3_t dest, void (*Done)(g_entity_t *)) {
 	g_move_info_t *move = &ent->locals.move_info;
 
-	ent->locals.velocity = vec3_zero();
+	ent->locals.velocity = Vec3_Zero();
 	move->current_speed = 0.0;
 
 	move->dest = dest;
-	move->dir = vec3_subtract(dest, ent->s.origin);
+	move->dir = Vec3_Subtract(dest, ent->s.origin);
 	move->dir = vec3_normalize(move->dir);
 
 	move->Done = Done;
@@ -217,7 +217,7 @@ static void G_MoveInfo_Linear_Init(g_entity_t *ent, const vec3_t dest, void (*Do
  */
 static void G_MoveInfo_Angular_Done(g_entity_t *ent) {
 
-	ent->locals.avelocity = vec3_zero();
+	ent->locals.avelocity = Vec3_Zero();
 	ent->locals.move_info.Done(ent);
 }
 
@@ -229,17 +229,17 @@ static void G_MoveInfo_Angular_Final(g_entity_t *ent) {
 	vec3_t delta;
 
 	if (move->state == MOVE_STATE_GOING_UP) {
-		delta = vec3_subtract(move->end_angles, ent->s.angles);
+		delta = Vec3_Subtract(move->end_angles, ent->s.angles);
 	} else {
-		delta = vec3_subtract(move->start_angles, ent->s.angles);
+		delta = Vec3_Subtract(move->start_angles, ent->s.angles);
 	}
 
-	if (vec3_equal(delta, vec3_zero())) {
+	if (Vec3_Equal(delta, Vec3_Zero())) {
 		G_MoveInfo_Angular_Done(ent);
 		return;
 	}
 
-	ent->locals.avelocity = vec3_scale(delta, 1.0 / QUETOO_TICK_SECONDS);
+	ent->locals.avelocity = Vec3_Scale(delta, 1.0 / QUETOO_TICK_SECONDS);
 
 	ent->locals.Think = G_MoveInfo_Angular_Done;
 	ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
@@ -254,13 +254,13 @@ static void G_MoveInfo_Angular_Begin(g_entity_t *ent) {
 
 	// set move to the vector needed to move
 	if (move->state == MOVE_STATE_GOING_UP) {
-		delta = vec3_subtract(move->end_angles, ent->s.angles);
+		delta = Vec3_Subtract(move->end_angles, ent->s.angles);
 	} else {
-		delta = vec3_subtract(move->start_angles, ent->s.angles);
+		delta = Vec3_Subtract(move->start_angles, ent->s.angles);
 	}
 
 	// calculate length of vector
-	const float len = vec3_length(delta);
+	const float len = Vec3_Length(delta);
 
 	// divide by speed to get time to reach dest
 	const float time = len / move->speed;
@@ -273,7 +273,7 @@ static void G_MoveInfo_Angular_Begin(g_entity_t *ent) {
 	const float frames = floor(time / QUETOO_TICK_SECONDS);
 
 	// scale the move vector by the time spent traveling to get velocity
-	ent->locals.avelocity = vec3_scale(delta, 1.0 / time);
+	ent->locals.avelocity = Vec3_Scale(delta, 1.0 / time);
 
 	// set next_think to trigger a think when dest is reached
 	ent->locals.next_think = g_level.time + frames * QUETOO_TICK_MILLIS;
@@ -285,7 +285,7 @@ static void G_MoveInfo_Angular_Begin(g_entity_t *ent) {
  */
 static void G_MoveInfo_Angular_Init(g_entity_t *ent, void (*Done)(g_entity_t *)) {
 
-	ent->locals.avelocity = vec3_zero();
+	ent->locals.avelocity = Vec3_Zero();
 
 	ent->locals.move_info.Done = Done;
 
@@ -309,7 +309,7 @@ static void G_MoveType_Push_Blocked(g_entity_t *self, g_entity_t *other) {
 	if (G_IsMeat(other)) {
 
 		if (other->solid == SOLID_DEAD) {
-			G_Damage(other, self, NULL, dir, vec3_zero(), vec3_up(), 999, 0, DMG_NO_ARMOR, MOD_CRUSH);
+			G_Damage(other, self, NULL, dir, Vec3_Zero(), Vec3_Up(), 999, 0, DMG_NO_ARMOR, MOD_CRUSH);
 			if (other->in_use) {
 				if (other->client) {
 					gi.WriteByte(SV_CMD_TEMP_ENTITY);
@@ -323,12 +323,12 @@ static void G_MoveType_Push_Blocked(g_entity_t *self, g_entity_t *other) {
 				}
 			}
 		} else if (other->solid == SOLID_BOX) {
-			G_Damage(other, self, NULL, dir, vec3_zero(), vec3_up(), self->locals.damage, 0, DMG_NO_ARMOR, MOD_CRUSH);
+			G_Damage(other, self, NULL, dir, Vec3_Zero(), Vec3_Up(), self->locals.damage, 0, DMG_NO_ARMOR, MOD_CRUSH);
 		} else {
 			gi.Debug("Unhandled blocker: %s: %s\n", etos(self), etos(other));
 		}
 	} else {
-		G_Damage(other, self, NULL, dir, vec3_zero(), vec3_up(), 999, 0, 0, MOD_CRUSH);
+		G_Damage(other, self, NULL, dir, Vec3_Zero(), Vec3_Up(), 999, 0, 0, MOD_CRUSH);
 		if (other->in_use) {
 			G_Explode(other, 60, 60, 80.0, 0);
 		}
@@ -369,7 +369,7 @@ static void G_func_plat_Bottom(g_entity_t *ent) {
 		if (ent->locals.move_info.sound_end) {
 			vec3_t pos;
 
-			pos = vec3_mix(ent->abs_mins, ent->abs_maxs, 0.5);
+			pos = Vec3_Mix(ent->abs_mins, ent->abs_maxs, 0.5);
 			pos.z = ent->abs_maxs.z;
 
 			gi.PositionedSound(pos, ent, ent->locals.move_info.sound_end, ATTEN_IDLE, 0);
@@ -409,7 +409,7 @@ static void G_func_plat_GoingUp(g_entity_t *ent) {
 		if (ent->locals.move_info.sound_start) {
 			vec3_t pos;
 
-			pos = vec3_mix(ent->abs_mins, ent->abs_maxs, 0.5);
+			pos = Vec3_Mix(ent->abs_mins, ent->abs_maxs, 0.5);
 			pos.z = ent->abs_maxs.z;
 
 			gi.PositionedSound(pos, ent, ent->locals.move_info.sound_start, ATTEN_IDLE, 0);
@@ -532,7 +532,7 @@ static void G_func_plat_CreateTrigger(g_entity_t *ent) {
  */
 void G_func_plat(g_entity_t *ent) {
 
-	ent->s.angles = vec3_zero();
+	ent->s.angles = Vec3_Zero();
 
 	ent->solid = SOLID_BSP;
 	ent->locals.move_type = MOVE_TYPE_PUSH;
@@ -619,8 +619,8 @@ static void G_func_rotating_Touch(g_entity_t *self, g_entity_t *other,
                                   const cm_bsp_texinfo_t *surf) {
 
 	if (self->locals.damage) {
-		if (!vec3_equal(self->locals.avelocity, vec3_zero())) {
-			G_Damage(other, self, NULL, vec3_zero(), vec3_zero(), vec3_zero(), self->locals.damage, 1, 0, MOD_CRUSH);
+		if (!Vec3_Equal(self->locals.avelocity, Vec3_Zero())) {
+			G_Damage(other, self, NULL, Vec3_Zero(), Vec3_Zero(), Vec3_Zero(), self->locals.damage, 1, 0, MOD_CRUSH);
 		}
 	}
 }
@@ -631,13 +631,13 @@ static void G_func_rotating_Touch(g_entity_t *self, g_entity_t *other,
 static void G_func_rotating_Use(g_entity_t *self, g_entity_t *other,
                                 g_entity_t *activator) {
 
-	if (!vec3_equal(self->locals.avelocity, vec3_zero())) {
+	if (!Vec3_Equal(self->locals.avelocity, Vec3_Zero())) {
 		self->s.sound = 0;
-		self->locals.avelocity = vec3_zero();
+		self->locals.avelocity = Vec3_Zero();
 		self->locals.Touch = NULL;
 	} else {
 		self->s.sound = self->locals.move_info.sound_middle;
-		self->locals.avelocity = vec3_scale(self->locals.move_dir, self->locals.speed);
+		self->locals.avelocity = Vec3_Scale(self->locals.move_dir, self->locals.speed);
 		if (self->locals.spawn_flags & ROTATE_TOUCH_PAIN) {
 			self->locals.Touch = G_func_rotating_Touch;
 		}
@@ -671,7 +671,7 @@ void G_func_rotating(g_entity_t *ent) {
 	}
 
 	// set the axis of rotation
-	ent->locals.move_dir = vec3_zero();
+	ent->locals.move_dir = Vec3_Zero();
 	if (ent->locals.spawn_flags & ROTATE_AXIS_X) {
 		ent->locals.move_dir.z = 1.0;
 	} else if (ent->locals.spawn_flags & ROTATE_AXIS_Y) {
@@ -682,7 +682,7 @@ void G_func_rotating(g_entity_t *ent) {
 
 	// check for reverse rotation
 	if (ent->locals.spawn_flags & ROTATE_REVERSE) {
-		ent->locals.move_dir = vec3_negate(ent->locals.move_dir);
+		ent->locals.move_dir = Vec3_Negate(ent->locals.move_dir);
 	}
 
 	if (!ent->locals.speed) {
@@ -849,7 +849,7 @@ void G_func_button(g_entity_t *ent) {
 	abs_move_dir.z = fabsf(ent->locals.move_dir.z);
 	dist = abs_move_dir.x * ent->size.x + abs_move_dir.y * ent->size.y
 	       + abs_move_dir.z * ent->size.z - g_game.spawn.lip;
-	ent->locals.pos2 = vec3_add(ent->locals.pos1, vec3_scale(ent->locals.move_dir, dist));
+	ent->locals.pos2 = Vec3_Add(ent->locals.pos1, Vec3_Scale(ent->locals.move_dir, dist));
 
 	ent->locals.Use = G_func_button_Use;
 
@@ -1105,8 +1105,8 @@ static void G_func_door_CreateTrigger(g_entity_t *ent) {
 	maxs = ent->abs_maxs;
 
 	for (trigger = ent->locals.team_chain; trigger; trigger = trigger->locals.team_chain) {
-		mins = vec3_minf(mins, trigger->abs_mins);
-		maxs = vec3_maxf(maxs, trigger->abs_maxs);
+		mins = Vec3_Minf(mins, trigger->abs_mins);
+		maxs = Vec3_Maxf(maxs, trigger->abs_maxs);
 	}
 
 	// expand
@@ -1250,12 +1250,12 @@ void G_func_door(g_entity_t *ent) {
 
 	// calculate second position
 	ent->locals.pos1 = ent->s.origin;
-	abs_move_dir = vec3_abs(ent->locals.move_dir);
+	abs_move_dir = Vec3_Absf(ent->locals.move_dir);
 	ent->locals.move_info.distance = abs_move_dir.x * ent->size.x +
 	                                 abs_move_dir.y * ent->size.y +
 	                                 abs_move_dir.z * ent->size.z - g_game.spawn.lip;
 
-	ent->locals.pos2 = vec3_add(ent->locals.pos1, vec3_scale(ent->locals.move_dir, ent->locals.move_info.distance));
+	ent->locals.pos2 = Vec3_Add(ent->locals.pos1, Vec3_Scale(ent->locals.move_dir, ent->locals.move_info.distance));
 
 	// if it starts open, switch the positions
 	if (ent->locals.spawn_flags & DOOR_START_OPEN) {
@@ -1327,10 +1327,10 @@ void G_func_door(g_entity_t *ent) {
  y_axis : The door will rotate along its Y axis.
  */
 void G_func_door_rotating(g_entity_t *ent) {
-	ent->s.angles = vec3_zero();
+	ent->s.angles = Vec3_Zero();
 
 	// set the axis of rotation
-	ent->locals.move_dir = vec3_zero();
+	ent->locals.move_dir = Vec3_Zero();
 	if (ent->locals.spawn_flags & DOOR_X_AXIS) {
 		ent->locals.move_dir.z = 1.0;
 	} else if (ent->locals.spawn_flags & DOOR_Y_AXIS) {
@@ -1341,7 +1341,7 @@ void G_func_door_rotating(g_entity_t *ent) {
 
 	// check for reverse rotation
 	if (ent->locals.spawn_flags & DOOR_REVERSE) {
-		ent->locals.move_dir = vec3_negate(ent->locals.move_dir);
+		ent->locals.move_dir = Vec3_Negate(ent->locals.move_dir);
 	}
 
 	if (!g_game.spawn.distance) {
@@ -1350,7 +1350,7 @@ void G_func_door_rotating(g_entity_t *ent) {
 	}
 
 	ent->locals.pos1 = ent->s.angles;
-	ent->locals.pos2 = vec3_add(ent->s.angles, vec3_scale(ent->locals.move_dir, g_game.spawn.distance));
+	ent->locals.pos2 = Vec3_Add(ent->s.angles, Vec3_Scale(ent->locals.move_dir, g_game.spawn.distance));
 	ent->locals.move_info.distance = g_game.spawn.distance;
 
 	ent->locals.move_type = MOVE_TYPE_PUSH;
@@ -1382,7 +1382,7 @@ void G_func_door_rotating(g_entity_t *ent) {
 		ent->s.angles = ent->locals.pos2;
 		ent->locals.pos2 = ent->locals.pos1;
 		ent->locals.pos1 = ent->s.angles;
-		ent->locals.move_dir = vec3_negate(ent->locals.move_dir);
+		ent->locals.move_dir = Vec3_Negate(ent->locals.move_dir);
 	}
 
 	if (ent->locals.health) {
@@ -1464,7 +1464,7 @@ static void G_func_door_secret_Use(g_entity_t *self, g_entity_t *other,
                                    g_entity_t *activator) {
 
 	// make sure we're not already moving
-	if (!vec3_equal(self->s.origin, vec3_zero())) {
+	if (!Vec3_Equal(self->s.origin, Vec3_Zero())) {
 		return;
 	}
 
@@ -1534,7 +1534,7 @@ static void G_func_door_secret_Move5(g_entity_t *self) {
 
 static void G_func_door_secret_Move6(g_entity_t *self) {
 
-	G_MoveInfo_Linear_Init(self, vec3_zero(), G_func_door_secret_Done);
+	G_MoveInfo_Linear_Init(self, Vec3_Zero(), G_func_door_secret_Done);
 }
 
 static void G_func_door_secret_Done(g_entity_t *self) {
@@ -1568,7 +1568,7 @@ static void G_func_door_secret_Blocked(g_entity_t *self, g_entity_t *other) {
 
 	self->locals.touch_time = g_level.time + 500;
 
-	G_Damage(other, self, self, vec3_zero(), other->s.origin, vec3_zero(), self->locals.damage, 1, 0, MOD_CRUSH);
+	G_Damage(other, self, self, Vec3_Zero(), other->s.origin, Vec3_Zero(), self->locals.damage, 1, 0, MOD_CRUSH);
 }
 
 static void G_func_door_secret_Die(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
@@ -1615,27 +1615,27 @@ void G_func_door_secret(g_entity_t *ent) {
 	}
 
 	// calculate positions
-	vec3_vectors(ent->s.angles, &forward, &right, &up);
-	ent->s.angles = vec3_zero();
+	Vec3_Vectors(ent->s.angles, &forward, &right, &up);
+	ent->s.angles = Vec3_Zero();
 
 	const float side = 1.0 - (ent->locals.spawn_flags & SECRET_FIRST_LEFT);
 
-	const float length = fabsf(vec3_dot(forward, ent->size));
+	const float length = fabsf(Vec3_Dot(forward, ent->size));
 
 	float width;
 	if (ent->locals.spawn_flags & SECRET_FIRST_DOWN) {
-		width = fabsf(vec3_dot(up, ent->size));
+		width = fabsf(Vec3_Dot(up, ent->size));
 	} else {
-		width = fabsf(vec3_dot(right, ent->size));
+		width = fabsf(Vec3_Dot(right, ent->size));
 	}
 
 	if (ent->locals.spawn_flags & SECRET_FIRST_DOWN) {
-		ent->locals.pos1 = vec3_add(ent->s.origin, vec3_scale(up, -1.0 * width));
+		ent->locals.pos1 = Vec3_Add(ent->s.origin, Vec3_Scale(up, -1.0 * width));
 	} else {
-		ent->locals.pos1 = vec3_add(ent->s.origin, vec3_scale(right, side * width));
+		ent->locals.pos1 = Vec3_Add(ent->s.origin, Vec3_Scale(right, side * width));
 	}
 
-	ent->locals.pos2 = vec3_add(ent->locals.pos1, vec3_scale(forward, length));
+	ent->locals.pos2 = Vec3_Add(ent->locals.pos1, Vec3_Scale(forward, length));
 
 	if (ent->locals.health) {
 		ent->locals.take_damage = true;
@@ -1740,12 +1740,12 @@ void G_func_water(g_entity_t *self) {
 
 	// calculate second position
 	self->locals.pos1 = self->s.origin;
-	abs_move_dir = vec3_abs(self->locals.move_dir);
+	abs_move_dir = Vec3_Absf(self->locals.move_dir);
 	self->locals.move_info.distance = abs_move_dir.x * self->size.x +
 									  abs_move_dir.y * self->size.y +
 									  abs_move_dir.z * self->size.z - g_game.spawn.lip;
 
-	self->locals.pos2 = vec3_add(self->locals.pos1, vec3_scale(self->locals.move_dir, self->locals.move_info.distance));
+	self->locals.pos2 = Vec3_Add(self->locals.pos1, Vec3_Scale(self->locals.move_dir, self->locals.move_info.distance));
 
 	// if it starts open, switch the positions
 	if (self->locals.spawn_flags & DOOR_START_OPEN) {
@@ -1813,7 +1813,7 @@ static void G_func_train_Wait(g_entity_t *self) {
 		} else if (self->locals.spawn_flags & TRAIN_TOGGLE) {
 			G_func_train_Next(self);
 			self->locals.spawn_flags &= ~TRAIN_START_ON;
-			self->locals.velocity = vec3_zero();
+			self->locals.velocity = Vec3_Zero();
 			self->locals.next_think = 0;
 		}
 
@@ -1857,7 +1857,7 @@ again:
 			return;
 		}
 		first = false;
-		self->s.origin = vec3_subtract(ent->s.origin, self->mins);
+		self->s.origin = Vec3_Subtract(ent->s.origin, self->mins);
 		self->s.event = EV_CLIENT_TELEPORT;
 		gi.LinkEntity(self);
 		goto again;
@@ -1873,7 +1873,7 @@ again:
 		self->s.sound = self->locals.move_info.sound_middle;
 	}
 
-	dest = vec3_subtract(ent->s.origin, self->mins);
+	dest = Vec3_Subtract(ent->s.origin, self->mins);
 	self->locals.move_info.state = MOVE_STATE_TOP;
 	self->locals.move_info.start_origin = self->s.origin;
 	self->locals.move_info.end_origin = dest;
@@ -1890,7 +1890,7 @@ static void G_func_train_Resume(g_entity_t *self) {
 
 	ent = self->locals.target_ent;
 
-	dest = vec3_subtract(ent->s.origin, self->mins);
+	dest = Vec3_Subtract(ent->s.origin, self->mins);
 	self->locals.move_info.state = MOVE_STATE_TOP;
 	self->locals.move_info.start_origin = self->s.origin;
 	self->locals.move_info.end_origin = dest;
@@ -1915,7 +1915,7 @@ static void G_func_train_Find(g_entity_t *self) {
 	}
 	self->locals.target = ent->locals.target;
 
-	self->s.origin = vec3_subtract(ent->s.origin, self->mins);
+	self->s.origin = Vec3_Subtract(ent->s.origin, self->mins);
 	gi.LinkEntity(self);
 
 	// if not triggered, start immediately
@@ -1942,7 +1942,7 @@ static void G_func_train_Use(g_entity_t *self, g_entity_t *other,
 			return;
 		}
 		self->locals.spawn_flags &= ~TRAIN_START_ON;
-		self->locals.velocity = vec3_zero();
+		self->locals.velocity = Vec3_Zero();
 		self->locals.next_think = 0;
 	} else {
 		if (self->locals.target_ent) {
@@ -1970,7 +1970,7 @@ static void G_func_train_Use(g_entity_t *self, g_entity_t *other,
 void G_func_train(g_entity_t *self) {
 	self->locals.move_type = MOVE_TYPE_PUSH;
 
-	self->s.angles = vec3_zero();
+	self->s.angles = Vec3_Zero();
 
 	if (self->locals.spawn_flags & TRAIN_BLOCK_STOPS) {
 		self->locals.damage = 0;

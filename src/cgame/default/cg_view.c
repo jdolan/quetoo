@@ -34,8 +34,8 @@ static void Cg_UpdateFov(void) {
 		return;
 	}
 
-	cg_fov->value = clampf(cg_fov->value, 10.0, 160.0);
-	cg_fov_interpolate->value = clampf(cg_fov_interpolate->value, 0.0, 10.0);
+	cg_fov->value = Clampf(cg_fov->value, 10.0, 160.0);
+	cg_fov_interpolate->value = Clampf(cg_fov_interpolate->value, 0.0, 10.0);
 
 	float fov = cg_fov->value;
 
@@ -67,11 +67,11 @@ static void Cg_UpdateFov(void) {
 
 	cgi.view->fov.x = fov / 2.0;
 
-	const float x = cgi.context->width / tanf(radians(fov));
+	const float x = cgi.context->width / tanf(Radians(fov));
 	const float y = atan2f(cgi.context->height, x);
 	const float a = cgi.context->height / (float ) cgi.context->width;
 
-	cgi.view->fov.y = degrees(y) * a / 2.0;
+	cgi.view->fov.y = Degrees(y) * a / 2.0;
 }
 
 /**
@@ -105,24 +105,24 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 
 	const float yaw = angles.y;
 
-	vec3_vectors(angles, &forward, &right, &up);
+	Vec3_Vectors(angles, &forward, &right, &up);
 
-	point = vec3_add(cgi.view->origin, vec3_scale(forward, 512.0));
+	point = Vec3_Add(cgi.view->origin, Vec3_Scale(forward, 512.0));
 
 	origin = cgi.view->origin;
 
-	origin = vec3_add(origin, vec3_scale(up, offset.z));
-	origin = vec3_add(origin, vec3_scale(right, offset.y));
-	origin = vec3_add(origin, vec3_scale(forward, offset.x));
+	origin = Vec3_Add(origin, Vec3_Scale(up, offset.z));
+	origin = Vec3_Add(origin, Vec3_Scale(right, offset.y));
+	origin = Vec3_Add(origin, Vec3_Scale(forward, offset.x));
 
 	const cm_trace_t tr = cgi.Trace(cgi.view->origin, origin, mins, maxs, 0, MASK_CLIP_PLAYER);
 	cgi.view->origin = tr.end;
 
-	point = vec3_subtract(point, cgi.view->origin);
-	cgi.view->angles = vec3_euler(point);
+	point = Vec3_Subtract(point, cgi.view->origin);
+	cgi.view->angles = Vec3_Euler(point);
 	cgi.view->angles.y = yaw;
 
-	vec3_vectors(cgi.view->angles, &cgi.view->forward, &cgi.view->right, &cgi.view->up);
+	Vec3_Vectors(cgi.view->angles, &cgi.view->forward, &cgi.view->right, &cgi.view->up);
 }
 
 /**
@@ -152,8 +152,8 @@ static float Cg_BobSpeedModulus(const player_state_t *ps) {
 		velocity.z = 0.0;
 
 		old_speed = new_speed;
-		new_speed = vec3_length(velocity) / max_speed;
-		new_speed = clampf(new_speed, 0.0, 1.0);
+		new_speed = Vec3_Length(velocity) / max_speed;
+		new_speed = Clampf(new_speed, 0.0, 1.0);
 		speed = old_speed;
 
 		time = cgi.client->unclamped_time;
@@ -187,7 +187,7 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	}
 
 	if (cg_bob->modified) {
-		cgi.SetCvarValue(cg_bob->name, clampf(cg_bob->value, 0.0, 2.0));
+		cgi.SetCvarValue(cg_bob->name, Clampf(cg_bob->value, 0.0, 2.0));
 		cg_bob->modified = false;
 	}
 
@@ -198,7 +198,7 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	const float mod = Cg_BobSpeedModulus(ps);
 
 	// then calculate how much bob to add this frame
-	float frame_bob = clampf(cgi.client->unclamped_time - time, 1u, 1000u) * mod;
+	float frame_bob = Clampf(cgi.client->unclamped_time - time, 1u, 1000u) * mod;
 
 	if (!(ps->pm_state.flags & PMF_ON_GROUND)) {
 		frame_bob *= 0.25;
@@ -210,9 +210,9 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	cg_view.bob = sinf(0.0066 * bob) * mod * mod;
 	cg_view.bob *= cg_bob->value; // scale via cvar too
 
-	cgi.view->origin = vec3_add(cgi.view->origin, vec3_scale(cgi.view->forward, -cg_view.bob));
-	cgi.view->origin = vec3_add(cgi.view->origin, vec3_scale(cgi.view->right,  cg_view.bob));
-	cgi.view->origin = vec3_add(cgi.view->origin, vec3_scale(cgi.view->up,  cg_view.bob));
+	cgi.view->origin = Vec3_Add(cgi.view->origin, Vec3_Scale(cgi.view->forward, -cg_view.bob));
+	cgi.view->origin = Vec3_Add(cgi.view->origin, Vec3_Scale(cgi.view->right,  cg_view.bob));
+	cgi.view->origin = Vec3_Add(cgi.view->origin, Vec3_Scale(cgi.view->up,  cg_view.bob));
 }
 
 /**
@@ -225,17 +225,17 @@ static void Cg_UpdateOrigin(const player_state_t *ps0, const player_state_t *ps1
 	if (Cg_UsePrediction()) {
 		const cl_predicted_state_t *pr = &cgi.client->predicted_state;
 
-		cgi.view->origin = vec3_add(pr->view.origin, pr->view.offset);
-		cgi.view->origin = vec3_add(cgi.view->origin, vec3_scale(pr->error, -(1.0 - cgi.client->lerp)));
+		cgi.view->origin = Vec3_Add(pr->view.origin, pr->view.offset);
+		cgi.view->origin = Vec3_Add(cgi.view->origin, Vec3_Scale(pr->error, -(1.0 - cgi.client->lerp)));
 
 		Cg_InterpolateStep(&cgi.client->predicted_state.step);
 		cgi.view->origin.z -= cgi.client->predicted_state.step.delta_height;
 
 	} else {
-		cgi.view->origin = vec3_mix(ps0->pm_state.origin, ps1->pm_state.origin, cgi.client->lerp);
-		const vec3_t offset = vec3_mix(ps0->pm_state.view_offset, ps1->pm_state.view_offset, cgi.client->lerp);
+		cgi.view->origin = Vec3_Mix(ps0->pm_state.origin, ps1->pm_state.origin, cgi.client->lerp);
+		const vec3_t offset = Vec3_Mix(ps0->pm_state.view_offset, ps1->pm_state.view_offset, cgi.client->lerp);
 
-		cgi.view->origin = vec3_add(cgi.view->origin, offset);
+		cgi.view->origin = Vec3_Add(cgi.view->origin, offset);
 
 		const cl_entity_t *ent = Cg_Self();
 		if (ent) {
@@ -262,7 +262,7 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
 		angles0 = ps0->pm_state.view_angles;
 		angles1 = ps1->pm_state.view_angles;
 
-		cgi.view->angles = vec3_mix_euler(angles0, angles1, cgi.client->lerp);
+		cgi.view->angles = Vec3_MixEuler(angles0, angles1, cgi.client->lerp);
 	}
 
 	angles0 = ps0->pm_state.delta_angles;
@@ -271,7 +271,7 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
 	angles = angles1;
 
 	// for small delta angles, such as riding a rotator, interpolate them
-	if (!vec3_equal(angles0, angles1)) {
+	if (!Vec3_Equal(angles0, angles1)) {
 		int32_t i;
 
 		for (i = 0; i < 3; i++) {
@@ -282,11 +282,11 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
 		}
 
 		if (i == 3) {
-			angles = vec3_mix_euler(angles0, angles1, cgi.client->lerp);
+			angles = Vec3_MixEuler(angles0, angles1, cgi.client->lerp);
 		}
 	}
 
-	cgi.view->angles = vec3_add(cgi.view->angles, angles);
+	cgi.view->angles = Vec3_Add(cgi.view->angles, angles);
 
 	if (ps1->pm_state.type == PM_DEAD) {
 		cgi.view->angles.x = 0.0;
@@ -322,7 +322,7 @@ void Cg_UpdateView(const cl_frame_t *frame) {
 
 	Cg_UpdateBob(ps1);
 
-	vec3_vectors(cgi.view->angles, &cgi.view->forward, &cgi.view->right, &cgi.view->up);
+	Vec3_Vectors(cgi.view->angles, &cgi.view->forward, &cgi.view->right, &cgi.view->up);
 
 	cgi.view->contents = cgi.PointContents(cgi.view->origin);
 

@@ -229,7 +229,7 @@ static void G_ClientGiblet_Touch(g_entity_t *self, g_entity_t *other,
 	if (surf && (surf->flags & SURF_SKY)) {
 		G_FreeEntity(self);
 	} else {
-		const float speed = vec3_length(self->locals.velocity);
+		const float speed = Vec3_Length(self->locals.velocity);
 		if (speed > 40.0 && G_IsStructural(other, surf)) {
 
 			if (g_level.time - self->locals.touch_time > 200) {
@@ -253,15 +253,15 @@ static void G_ClientCorpse_Think(g_entity_t *self) {
 			const int16_t dmg = self->locals.health;
 
 			if (self->locals.water_type & CONTENTS_LAVA) {
-				G_Damage(self, NULL, NULL, vec3_zero(), vec3_zero(), vec3_zero(), dmg, 0, DMG_NO_ARMOR, MOD_LAVA);
+				G_Damage(self, NULL, NULL, Vec3_Zero(), Vec3_Zero(), Vec3_Zero(), dmg, 0, DMG_NO_ARMOR, MOD_LAVA);
 			}
 
 			if (self->locals.water_type & CONTENTS_SLIME) {
-				G_Damage(self, NULL, NULL, vec3_zero(), vec3_zero(), vec3_zero(), dmg, 0, DMG_NO_ARMOR, MOD_SLIME);
+				G_Damage(self, NULL, NULL, Vec3_Zero(), Vec3_Zero(), Vec3_Zero(), dmg, 0, DMG_NO_ARMOR, MOD_SLIME);
 			}
 		}
 	} else {
-		const float speed = vec3_length(self->locals.velocity);
+		const float speed = Vec3_Length(self->locals.velocity);
 
 		if (!(self->s.effects & EF_DESPAWN) && speed > 30.0) {
 			self->s.trail = TRAIL_GIB;
@@ -333,7 +333,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 
 		ent->locals.velocity = self->locals.velocity;
 
-		const int16_t h = clampf(-5.0 * self->locals.health, 100, 500);
+		const int16_t h = Clampf(-5.0 * self->locals.health, 100, 500);
 
 		ent->locals.velocity.x += h * Randomc();
 		ent->locals.velocity.y += h * Randomc();
@@ -365,7 +365,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 		self->mins = mins[2];
 		self->maxs = maxs[2];
 
-		const int16_t h = clampf(-5.0 * self->locals.health, 100, 500);
+		const int16_t h = Clampf(-5.0 * self->locals.health, 100, 500);
 
 		self->locals.velocity.x += h * Randomc();
 		self->locals.velocity.y += h * Randomc();
@@ -501,7 +501,7 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 		    self,					// player
 		    self->client->locals.held_grenade, // the grenade
 		    self->s.origin,			// starting point
-		    vec3_up(),				// direction
+		    Vec3_Up(),				// direction
 		    0,						// how fast it flies
 		    120,					// damage dealt
 		    120,					// knockback
@@ -686,8 +686,8 @@ static float G_EnemyRangeFromSpot(g_entity_t *ent, g_entity_t *spot) {
 			continue;
 		}
 
-		v = vec3_subtract(spot->s.origin, other->s.origin);
-		dist = vec3_length(v);
+		v = Vec3_Subtract(spot->s.origin, other->s.origin);
+		dist = Vec3_Length(v);
 
 		if (g_level.teams || g_level.ctf) { // avoid collision with team mates
 
@@ -713,8 +713,8 @@ static _Bool G_WouldTelefrag(const vec3_t spot) {
 	g_entity_t *ents[MAX_ENTITIES];
 	vec3_t mins, maxs;
 
-	mins = vec3_add(spot, PM_MINS);
-	maxs = vec3_add(spot, PM_MAXS);
+	mins = Vec3_Add(spot, PM_MINS);
+	maxs = Vec3_Add(spot, PM_MAXS);
 
 	mins.z += PM_STEP_HEIGHT;
 	maxs.z += PM_STEP_HEIGHT;
@@ -867,14 +867,14 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 	ent->s.origin.z += PM_STEP_HEIGHT;
 
 	// and calculate delta angles
-	ent->s.angles = vec3_zero();
-	delta_angles = vec3_subtract(spawn->s.angles, cmd_angles);
+	ent->s.angles = Vec3_Zero();
+	delta_angles = Vec3_Subtract(spawn->s.angles, cmd_angles);
 
 	// pack the new origin and delta angles into the player state
 	ent->client->ps.pm_state.origin = ent->s.origin;
 	ent->client->ps.pm_state.delta_angles = delta_angles;
 
-	ent->locals.velocity = vec3_zero();
+	ent->locals.velocity = Vec3_Zero();
 
 	ent->s.effects = 0;
 	ent->s.model1 = 0;
@@ -885,8 +885,8 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 	if (ent->client->locals.persistent.spectator) { // spawn a spectator
 		ent->class_name = "spectator";
 
-		ent->mins = vec3_zero();
-		ent->maxs = vec3_zero();
+		ent->mins = Vec3_Zero();
+		ent->maxs = Vec3_Zero();
 
 		ent->solid = SOLID_NOT;
 		ent->sv_flags = SVF_NO_CLIENT;
@@ -906,8 +906,8 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		ent->solid = SOLID_BOX;
 		ent->sv_flags = 0;
 
-		ent->mins = vec3_scale(PM_MINS, PM_SCALE);
-		ent->maxs = vec3_scale(PM_MAXS, PM_SCALE);
+		ent->mins = Vec3_Scale(PM_MINS, PM_SCALE);
+		ent->maxs = Vec3_Scale(PM_MAXS, PM_SCALE);
 
 		ent->s.model1 = MODEL_CLIENT;
 		ent->s.client = ent->s.number - 1;
@@ -996,7 +996,7 @@ void G_ClientBegin(g_entity_t *ent) {
 
 	G_InitEntity(ent, "client");
 
-	ent->client->locals.cmd_angles = vec3_zero();
+	ent->client->locals.cmd_angles = Vec3_Zero();
 	ent->client->locals.persistent.first_frame = g_level.frame_num;
 
 	// force spectator if match or rounds
@@ -1173,7 +1173,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 		if (strlen(s) && strcmp(s, "default")) { // not default
 			const int32_t hue = atoi(s);
 			if (hue >= 0) {
-				cl->locals.persistent.color = minf(hue, 360);
+				cl->locals.persistent.color = Minf(hue, 360);
 			}
 		}
 	}
@@ -1242,7 +1242,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 		handicap = 100;
 	}
 
-	cl->locals.persistent.handicap_next = clampf(handicap, 50, 100);
+	cl->locals.persistent.handicap_next = Clampf(handicap, 50, 100);
 
 	// auto-switch
 	uint16_t auto_switch = strtoul(GetUserInfo(user_info, "auto_switch"), NULL, 10);
@@ -1419,13 +1419,13 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	cl->locals.angles = pm.angles;
 
 	// update the directional vectors based on new view angles
-	vec3_vectors(cl->locals.angles, &cl->locals.forward, &cl->locals.right, &cl->locals.up);
+	Vec3_Vectors(cl->locals.angles, &cl->locals.forward, &cl->locals.right, &cl->locals.up);
 
 	// update the horizontal speed scalar based on new velocity
 	velocity = ent->locals.velocity;
 	velocity.z = 0.0;
 
-	velocity = vec3_normalize_length(velocity, &cl->locals.speed);
+	velocity = Vec3_NormalizeLength(velocity, &cl->locals.speed);
 
 	// blend animations for live players
 	if (ent->locals.dead == false) {
@@ -1435,15 +1435,15 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 				vec3_t angles, forward, point;
 				cm_trace_t tr;
 
-				angles = vec3(0.0, ent->s.angles.y, 0.0);
-				vec3_vectors(angles, &forward, NULL, NULL);
+				angles = Vec3(0.0, ent->s.angles.y, 0.0);
+				Vec3_Vectors(angles, &forward, NULL, NULL);
 
-				point = vec3_add(ent->s.origin, vec3_scale(velocity, cl->locals.speed * 0.4));
+				point = Vec3_Add(ent->s.origin, Vec3_Scale(velocity, cl->locals.speed * 0.4));
 
 				// trace towards our jump destination to see if we have room to backflip
 				tr = gi.Trace(ent->s.origin, point, ent->mins, ent->maxs, ent, MASK_CLIP_PLAYER);
 
-				if (vec3_dot(velocity, forward) < -0.1 && tr.fraction == 1.0 && cl->locals.speed > 200.0) {
+				if (Vec3_Dot(velocity, forward) < -0.1 && tr.fraction == 1.0 && cl->locals.speed > 200.0) {
 					G_SetAnimation(ent, ANIM_LEGS_JUMP2, true);
 				} else {
 					G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
@@ -1491,7 +1491,7 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 
 					cl->locals.pain_time = g_level.time; // suppress pain sound
 
-					G_Damage(ent, NULL, NULL, vec3_up(), vec3_zero(), vec3_zero(), damage, 0, DMG_NO_ARMOR, MOD_FALLING);
+					G_Damage(ent, NULL, NULL, Vec3_Up(), Vec3_Zero(), Vec3_Zero(), damage, 0, DMG_NO_ARMOR, MOD_FALLING);
 				}
 
 				ent->s.event = event;
@@ -1710,7 +1710,7 @@ void G_ClientBeginFrame(g_entity_t *ent) {
 				ent->client->locals.regen_time = g_level.time + TECH_REGEN_TICK_TIME;
 
 				if (ent->locals.health < ent->locals.max_health) {
-					ent->locals.health = minf(ent->locals.health + TECH_REGEN_HEALTH, ent->locals.max_health);
+					ent->locals.health = Minf(ent->locals.health + TECH_REGEN_HEALTH, ent->locals.max_health);
 					G_PlayTechSound(ent);
 				}
 			}

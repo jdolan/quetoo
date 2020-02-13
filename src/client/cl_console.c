@@ -51,7 +51,7 @@ static void Cl_DrawConsole_Background(void) {
 		const float x_scale = r_context.width / (float) image->width;
 		const float y_scale = r_context.height / (float) image->height;
 
-		const float scale = maxf(x_scale, y_scale);
+		const float scale = Maxf(x_scale, y_scale);
 		r_pixel_t ch;
 
 		R_BindFont("small", NULL, &ch);
@@ -125,7 +125,7 @@ void Cl_DrawConsole(void) {
 
 	R_BindFont("small", &cw, &ch);
 
-	height = r_context.height * (cls.state == CL_ACTIVE ? clampf(cl_console_height->value, 0.1, 1.0) : 1.0);
+	height = r_context.height * (cls.state == CL_ACTIVE ? Clampf(cl_console_height->value, 0.1, 1.0) : 1.0);
 
 	cl_console.width = r_context.width / cw;
 	cl_console.height = (height / ch) - 1;
@@ -153,7 +153,7 @@ void Cl_DrawNotify(void) {
 
 	console_t con = {
 		.width = r_context.width / cw,
-		.height = clampf(cl_notify_lines->integer, 1, 12),
+		.height = Clampf(cl_notify_lines->integer, 1, 12),
 		.level = (PRINT_MEDIUM | PRINT_HIGH),
 	};
 
@@ -188,7 +188,7 @@ void Cl_DrawChat(void) {
 	r_pixel_t x = 1, y = r_view.viewport.y + r_view.viewport.h * 0.66;
 
 	cl_chat_console.width = r_context.width / cw / 3;
-	cl_chat_console.height = clampf(cl_chat_lines->integer, 0, 8);
+	cl_chat_console.height = Clampf(cl_chat_lines->integer, 0, 8);
 
 	if (cl_draw_chat->value && cl_chat_console.height) {
 
