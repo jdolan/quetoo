@@ -274,8 +274,7 @@ static void Cg_DrawHeldTech(const player_state_t *ps) {
 	}
 
 	const int16_t tech = ps->stats[STAT_TECH_ICON];
-
-	if (!tech) {
+	if (tech == -1) {
 		return;
 	}
 
