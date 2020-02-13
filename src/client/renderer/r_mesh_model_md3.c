@@ -140,7 +140,7 @@ static d_md3_texcoord_t R_SwapMd3Texcoord(const d_md3_texcoord_t *in) {
 	d_md3_texcoord_t out = *in;
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
-	out.st = LittleVector2(out.st);
+	out.st = LittleVec2(out.st);
 #endif
 
 	return out;
@@ -154,7 +154,7 @@ static d_md3_vertex_t R_SwapMd3Vertex(const d_md3_vertex_t *in) {
 	d_md3_vertex_t out = *in;
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
-	out.point = LittleShortVector3(out.point);
+	out.point = LittleVec3s(out.point);
 	out.norm = LittleShort(out.norm);
 #endif
 
@@ -185,9 +185,9 @@ static d_md3_frame_t R_SwapMd3Frame(const d_md3_frame_t *in) {
 	d_md3_frame_t out = *in;
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
-	out.mins = LittleVector3(out.mins);
-	out.maxs = LittleVector3(out.maxs);
-	out.translate = LittleVector3(out.translate);
+	out.mins = LittleVec3(out.mins);
+	out.maxs = LittleVec3(out.maxs);
+	out.translate = LittleVec3(out.translate);
 	out.radius = LittleFloat(out.radius);
 #endif
 
@@ -202,10 +202,10 @@ static d_md3_tag_t R_SwapMd3Tag(const d_md3_tag_t *in) {
 	d_md3_tag_t out = *in;
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
-	out.origin = LittleVector3(out.origin);
-	out.axis[0] = LittleVector3(out.axis[0]);
-	out.axis[1] = LittleVector3(out.axis[1]);
-	out.axis[2] = LittleVector3(out.axis[2]);
+	out.origin = LittleVec3(out.origin);
+	out.axis[0] = LittleVec3(out.axis[0]);
+	out.axis[1] = LittleVec3(out.axis[1]);
+	out.axis[2] = LittleVec3(out.axis[2]);
 #endif
 
 	return out;

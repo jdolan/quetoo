@@ -94,15 +94,7 @@ float LittleFloat(float f) {
 /**
  * @brief
  */
-vec2s_t LittleShortVector2(const vec2s_t v) {
-	return Vec2s(LittleShort(v.x),
-				   LittleShort(v.y));
-}
-
-/**
- * @brief
- */
-vec3s_t LittleShortVector3(const vec3s_t v) {
+vec3s_t LittleVec3s(const vec3s_t v) {
 	return Vec3s(LittleShort(v.x),
 				   LittleShort(v.y),
 				   LittleShort(v.z));
@@ -111,7 +103,7 @@ vec3s_t LittleShortVector3(const vec3s_t v) {
 /**
  * @brief
  */
-vec3i_t LittleLongVector3(const vec3i_t v) {
+vec3i_t LittleVec3i(const vec3i_t v) {
 	return Vec3i(LittleLong(v.x),
 				   LittleLong(v.y),
 				   LittleLong(v.z));
@@ -120,7 +112,7 @@ vec3i_t LittleLongVector3(const vec3i_t v) {
 /**
  * @brief
  */
-vec2_t LittleVector2(const vec2_t v) {
+vec2_t LittleVec2(const vec2_t v) {
 	return Vec2(LittleFloat(v.x),
 				LittleFloat(v.y));
 }
@@ -128,7 +120,7 @@ vec2_t LittleVector2(const vec2_t v) {
 /**
  * @brief
  */
-vec3_t LittleVector3(const vec3_t v) {
+vec3_t LittleVec3(const vec3_t v) {
 	return Vec3(LittleFloat(v.x),
 				LittleFloat(v.y),
 				LittleFloat(v.z));
@@ -137,7 +129,7 @@ vec3_t LittleVector3(const vec3_t v) {
 /**
  * @brief
  */
-vec4_t LittleVector4(const vec4_t v) {
+vec4_t LittleVec4(const vec4_t v) {
 	return Vec4(LittleFloat(v.x),
 				LittleFloat(v.y),
 				LittleFloat(v.z),
