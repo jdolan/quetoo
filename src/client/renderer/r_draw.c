@@ -153,10 +153,10 @@ static void R_DrawChar_(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
 	quad[2].position = s16vec2(x + r_draw.font->char_width, y + r_draw.font->char_height);
 	quad[3].position = s16vec2(x, y + r_draw.font->char_height);
 
-	quad[0].diffuse = vec2(s0, t0);
-	quad[1].diffuse = vec2(s1, t0);
-	quad[2].diffuse = vec2(s1, t1);
-	quad[3].diffuse = vec2(s0, t1);
+	quad[0].diffuse = Vec2(s0, t0);
+	quad[1].diffuse = Vec2(s1, t0);
+	quad[2].diffuse = Vec2(s1, t1);
+	quad[3].diffuse = Vec2(s0, t1);
 
 	quad[0].color = color;
 	quad[1].color = color;
@@ -297,10 +297,10 @@ void R_DrawImageRect(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r
 	quad[2].position = s16vec2(x + w, y + h);
 	quad[3].position = s16vec2(x, y + h);
 
-	quad[0].diffuse = vec2(0, 0);
-	quad[1].diffuse = vec2(1, 0);
-	quad[2].diffuse = vec2(1, 1);
-	quad[3].diffuse = vec2(0, 1);
+	quad[0].diffuse = Vec2(0, 0);
+	quad[1].diffuse = Vec2(1, 0);
+	quad[2].diffuse = Vec2(1, 1);
+	quad[3].diffuse = Vec2(0, 1);
 
 	quad[0].color = color;
 	quad[1].color = color;

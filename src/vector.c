@@ -192,42 +192,42 @@ float smoothf(float f, float min, float max) {
 /**
  * @brief
  */
-vec2_t vec2(float x, float y) {
+vec2_t Vec2(float x, float y) {
 	return (vec2_t) { .x = x, .y = y };
 }
 
 /**
  * @brief
  */
-vec2_t vec2_add(const vec2_t a, const vec2_t b) {
-	return vec2(a.x + b.x, a.y + b.y);
+vec2_t Vec2_Add(const vec2_t a, const vec2_t b) {
+	return Vec2(a.x + b.x, a.y + b.y);
 }
 
 /**
  * @brief
  */
-float vec2_distance_squared(const vec2_t a, const vec2_t b) {
-	return vec2_length_squared(vec2_subtract(a, b));
+float Vec2_DistanceSquared(const vec2_t a, const vec2_t b) {
+	return Vec2_LengthSquared(Vec2_Subtract(a, b));
 }
 
 /**
  * @brief
  */
-float vec2_distance(const vec2_t a, const vec2_t b) {
-	return vec2_length(vec2_subtract(a, b));
+float Vec2_Distance(const vec2_t a, const vec2_t b) {
+	return Vec2_Length(Vec2_Subtract(a, b));
 }
 
 /**
  * @brief
  */
-float vec2_dot(const vec2_t a, const vec2_t b) {
+float Vec2_Dot(const vec2_t a, const vec2_t b) {
 	return a.x * b.x + a.y * b.y;
 }
 
 /**
  * @brief
  */
-_Bool vec2_equal_epsilon(const vec2_t a, const vec2_t b, float epsilon) {
+_Bool Vec2_EqualEpsilon(const vec2_t a, const vec2_t b, float epsilon) {
 	return equalf_epsilon(a.x, b.x, epsilon) &&
 		   equalf_epsilon(a.y, b.y, epsilon);
 }
@@ -235,78 +235,78 @@ _Bool vec2_equal_epsilon(const vec2_t a, const vec2_t b, float epsilon) {
 /**
  * @brief
  */
-_Bool vec2_equal(const vec2_t a, const vec2_t b) {
-	return vec2_equal_epsilon(a, b, __FLT_EPSILON__);
+_Bool Vec2_Equal(const vec2_t a, const vec2_t b) {
+	return Vec2_EqualEpsilon(a, b, __FLT_EPSILON__);
 }
 
 /**
  * @brief
  */
-float vec2_length_squared(const vec2_t v) {
-	return vec2_dot(v, v);
+float Vec2_LengthSquared(const vec2_t v) {
+	return Vec2_Dot(v, v);
 }
 
 /**
  * @brief
  */
-float vec2_length(const vec2_t v) {
-	return sqrtf(vec2_length_squared(v));
+float Vec2_Length(const vec2_t v) {
+	return sqrtf(Vec2_LengthSquared(v));
 }
 
 /**
  * @brief
  */
-vec2_t vec2_maxf(const vec2_t a, const vec2_t b) {
-	return vec2(maxf(a.x, b.x), maxf(a.y, b.y));
+vec2_t Vec2_Maxf(const vec2_t a, const vec2_t b) {
+	return Vec2(maxf(a.x, b.x), maxf(a.y, b.y));
 }
 
 /**
  * @brief
  */
-vec2_t vec2_maxs(void) {
-	return vec2(-FLT_MAX, -FLT_MAX);
+vec2_t Vec2_Maxs(void) {
+	return Vec2(-FLT_MAX, -FLT_MAX);
 }
 
 /**
  * @brief
  */
-vec2_t vec2_minf(const vec2_t a, const vec2_t b) {
-	return vec2(minf(a.x, b.x), minf(a.y, b.y));
+vec2_t Vec2_Minf(const vec2_t a, const vec2_t b) {
+	return Vec2(minf(a.x, b.x), minf(a.y, b.y));
 }
 
 /**
  * @brief
  */
-vec2_t vec2_mins(void) {
-	return vec2(FLT_MAX, FLT_MAX);
+vec2_t Vec2_Mins(void) {
+	return Vec2(FLT_MAX, FLT_MAX);
 }
 
 /**
  * @brief
  */
-vec2_t vec2_mix(const vec2_t a, const vec2_t b, float mix) {
-	return vec2_add(vec2_scale(a, 1.f - mix), vec2_scale(b, mix));
+vec2_t Vec2_Mix(const vec2_t a, const vec2_t b, float mix) {
+	return Vec2_Add(Vec2_Scale(a, 1.f - mix), Vec2_Scale(b, mix));
 }
 
 /**
  * @brief
  */
-vec2_t vec2_scale(const vec2_t v, float scale) {
-	return vec2(v.x * scale, v.y * scale);
+vec2_t Vec2_Scale(const vec2_t v, float scale) {
+	return Vec2(v.x * scale, v.y * scale);
 }
 
 /**
  * @brief
  */
-vec2_t vec2_subtract(const vec2_t a, const vec2_t b) {
-	return vec2(a.x - b.x, a.y - b.y);
+vec2_t Vec2_Subtract(const vec2_t a, const vec2_t b) {
+	return Vec2(a.x - b.x, a.y - b.y);
 }
 
 /**
  * @brief
  */
-vec2_t vec2_zero(void) {
-	return vec2(0.f, 0.f);
+vec2_t Vec2_Zero(void) {
+	return Vec2(0.f, 0.f);
 }
 
 #pragma mark - vec3_t
@@ -677,7 +677,7 @@ void vec3_vectors(const vec3_t euler, vec3_t *forward, vec3_t *right, vec3_t *up
  * @brief
  */
 vec2_t vec3_xy(const vec3_t v) {
-	return vec2(v.x, v.y);
+	return Vec2(v.x, v.y);
 }
 
 /**

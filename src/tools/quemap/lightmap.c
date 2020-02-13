@@ -64,8 +64,8 @@ static void BuildLightmapMatrices(lightmap_t *lm) {
  */
 static void BuildLightmapExtents(lightmap_t *lm) {
 
-	lm->st_mins = vec2_mins();
-	lm->st_maxs = vec2_maxs();
+	lm->st_mins = Vec2_Mins();
+	lm->st_maxs = Vec2_Maxs();
 
 	const bsp_vertex_t *v = &bsp_file.vertexes[lm->face->first_vertex];
 	for (int32_t i = 0; i < lm->face->num_vertexes; i++, v++) {
@@ -73,8 +73,8 @@ static void BuildLightmapExtents(lightmap_t *lm) {
 		vec3_t st;
 		Matrix4x4_Transform(&lm->matrix, v->position.xyz, st.xyz);
 
-		lm->st_mins = vec2_minf(lm->st_mins, vec3_xy(st));
-		lm->st_maxs = vec2_maxf(lm->st_maxs, vec3_xy(st));
+		lm->st_mins = Vec2_Minf(lm->st_mins, vec3_xy(st));
+		lm->st_maxs = Vec2_Maxf(lm->st_maxs, vec3_xy(st));
 	}
 
 	// add 4 luxels of padding around the lightmap for bicubic filtering

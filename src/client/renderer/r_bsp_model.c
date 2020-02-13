@@ -304,11 +304,11 @@ static void R_SetupBspFace(r_bsp_model_t *bsp, r_bsp_leaf_t *leaf, r_bsp_face_t 
 	face->mins = vec3_mins();
 	face->maxs = vec3_maxs();
 
-	face->st_mins = vec2_mins();
-	face->st_maxs = vec2_maxs();
+	face->st_mins = Vec2_Mins();
+	face->st_maxs = Vec2_Maxs();
 
-	face->lightmap.st_mins = vec2_mins();
-	face->lightmap.st_maxs = vec2_maxs();
+	face->lightmap.st_mins = Vec2_Mins();
+	face->lightmap.st_maxs = Vec2_Maxs();
 
 	const r_bsp_vertex_t *v = face->vertexes;
 	for (int32_t i = 0; i < face->num_vertexes; i++, v++) {
@@ -316,11 +316,11 @@ static void R_SetupBspFace(r_bsp_model_t *bsp, r_bsp_leaf_t *leaf, r_bsp_face_t 
 		face->mins = vec3_minf(face->mins, v->position);
 		face->maxs = vec3_maxf(face->maxs, v->position);
 
-		face->st_mins = vec2_minf(face->st_mins, v->diffuse);
-		face->st_maxs = vec2_maxf(face->st_maxs, v->diffuse);
+		face->st_mins = Vec2_Minf(face->st_mins, v->diffuse);
+		face->st_maxs = Vec2_Maxf(face->st_maxs, v->diffuse);
 
-		face->lightmap.st_mins = vec2_minf(face->lightmap.st_mins, v->lightmap);
-		face->lightmap.st_maxs = vec2_maxf(face->lightmap.st_maxs, v->lightmap);
+		face->lightmap.st_mins = Vec2_Minf(face->lightmap.st_mins, v->lightmap);
+		face->lightmap.st_maxs = Vec2_Maxf(face->lightmap.st_maxs, v->lightmap);
 	}
 
 //	R_CreateBspSurfaceFlare(bsp, face);

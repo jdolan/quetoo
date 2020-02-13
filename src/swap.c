@@ -121,7 +121,7 @@ s32vec3_t LittleLongVector3(const s32vec3_t v) {
  * @brief
  */
 vec2_t LittleVector2(const vec2_t v) {
-	return vec2(LittleFloat(v.x),
+	return Vec2(LittleFloat(v.x),
 				LittleFloat(v.y));
 }
 

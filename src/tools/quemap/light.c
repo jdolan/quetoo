@@ -62,7 +62,7 @@ vec3_t ColorFilter(const vec3_t in) {
 
 	if (brightness != 1.0) { // apply brightness
 		out = vec3_scale(out, brightness);
-		
+
 		ColorNormalize(out, &out);
 	}
 
@@ -289,8 +289,8 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *pa
 
 	light_t *light = NULL;
 
-	vec2_t patch_mins = vec2_mins();
-	vec2_t patch_maxs = vec2_maxs();
+	vec2_t patch_mins = Vec2_Mins();
+	vec2_t patch_maxs = Vec2_Maxs();
 
 	for (int32_t i = 0; i < patch->winding->num_points; i++) {
 
@@ -299,8 +299,8 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *pa
 		vec3_t st;
 		Matrix4x4_Transform(&lm->matrix, point.xyz, st.xyz);
 
-		patch_mins = vec2_minf(patch_mins, vec3_xy(st));
-		patch_maxs = vec2_maxf(patch_maxs, vec3_xy(st));
+		patch_mins = Vec2_Minf(patch_mins, vec3_xy(st));
+		patch_maxs = Vec2_Maxf(patch_maxs, vec3_xy(st));
 	}
 
 	assert(patch_mins.x >= lm->st_mins.x - SIDE_EPSILON);

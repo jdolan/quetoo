@@ -248,87 +248,87 @@ float smoothf(float f, float min, float max) __attribute__ ((warn_unused_result)
 /**
  * @return A `vec2_t` with the specified components.
  */
-vec2_t vec2(float x, float y) __attribute__ ((warn_unused_result));
+vec2_t Vec2(float x, float y) __attribute__ ((warn_unused_result));
 
 /**
  * @return The vector sum of `a + b`.
  */
-vec2_t vec2_add(const vec2_t a, const vec2_t b) __attribute__ ((warn_unused_result));
+vec2_t Vec2_Add(const vec2_t a, const vec2_t b) __attribute__ ((warn_unused_result));
 
 /**
  * @return The length squared of the vector `a - b`.
  */
-float vec2_distance_squared(const vec2_t a, const vec2_t b) __attribute__ ((warn_unused_result));
+float Vec2_DistanceSquared(const vec2_t a, const vec2_t b) __attribute__ ((warn_unused_result));
 
 /**
  * @return The length of the vector `a - b`.
  */
-float vec2_distance(const vec2_t a, const vec2_t b) __attribute__ ((warn_unused_result));
+float Vec2_Distance(const vec2_t a, const vec2_t b) __attribute__ ((warn_unused_result));
 
 /**
  * @return The dot product of `a · b`.
  */
-float vec2_dot(const vec2_t a, const vec2_t b) __attribute__ ((warn_unused_result));
+float Vec2_Dot(const vec2_t a, const vec2_t b) __attribute__ ((warn_unused_result));
 
 /**
  * @return True if `a` and `b` are equal, using the specified epsilon.
  */
-_Bool vec2_equal_epsilon(const vec2_t a, const vec2_t b, float epsilon) __attribute__ ((warn_unused_result));
+_Bool Vec2_EqualEpsilon(const vec2_t a, const vec2_t b, float epsilon) __attribute__ ((warn_unused_result));
 
 /**
  * @return True if `a` and `b` are equal.
  */
-_Bool vec2_equal(const vec2_t a, const vec2_t b) __attribute__ ((warn_unused_result));
+_Bool Vec2_Equal(const vec2_t a, const vec2_t b) __attribute__ ((warn_unused_result));
 
 /**
  * @return The squared length (magnitude) of `v`.
  */
-float vec2_length_squared(const vec2_t v) __attribute__ ((warn_unused_result));
+float Vec2_LengthSquared(const vec2_t v) __attribute__ ((warn_unused_result));
 
 /**
  * @return The length (magnitude) of `v`.
  */
-float vec2_length(const vec2_t v) __attribute__ ((warn_unused_result));
+float Vec2_Length(const vec2_t v) __attribute__ ((warn_unused_result));
 
 /**
  * @return A vector containing the max components of `a` and `b`.
  */
-vec2_t vec2_maxf(const vec2_t a, const vec2_t b) __attribute__ ((warn_unused_result));
+vec2_t Vec2_Maxf(const vec2_t a, const vec2_t b) __attribute__ ((warn_unused_result));
 
 /**
  * @return The vector `(-FLT_MAX, -FLT_MAX)`.
  */
-vec2_t vec2_maxs(void) __attribute__ ((warn_unused_result));
+vec2_t Vec2_Maxs(void) __attribute__ ((warn_unused_result));
 
 /**
  * @return A vector containing the min components of `a` and `b`.
  */
-vec2_t vec2_minf(const vec2_t a, const vec2_t b) __attribute__ ((warn_unused_result));
+vec2_t Vec2_Minf(const vec2_t a, const vec2_t b) __attribute__ ((warn_unused_result));
 
 /**
  * @return The vector `(FLT_MAX, FLT_MAX)`.
  */
-vec2_t vec2_mins(void) __attribute__ ((warn_unused_result));
+vec2_t Vec2_Mins(void) __attribute__ ((warn_unused_result));
 
 /**
  * @return The linear interpolation of `a` and `b` using the specified fraction.
  */
-vec2_t vec2_mix(const vec2_t a, const vec2_t b, float mix) __attribute__ ((warn_unused_result));
+vec2_t Vec2_Mix(const vec2_t a, const vec2_t b, float mix) __attribute__ ((warn_unused_result));
 
 /**
  * @return The vector `v` scaled by `scale`.
  */
-vec2_t vec2_scale(const vec2_t v, float scale) __attribute__ ((warn_unused_result));
+vec2_t Vec2_Scale(const vec2_t v, float scale) __attribute__ ((warn_unused_result));
 
 /**
  * @return The difference of `a - b`.
  */
-vec2_t vec2_subtract(const vec2_t a, const vec2_t b) __attribute__ ((warn_unused_result));
+vec2_t Vec2_Subtract(const vec2_t a, const vec2_t b) __attribute__ ((warn_unused_result));
 
 /**
  * @return The zero vector.
  */
-vec2_t vec2_zero(void) __attribute__ ((warn_unused_result));
+vec2_t Vec2_Zero(void) __attribute__ ((warn_unused_result));
 
 #pragma mark - vec3_t
 
