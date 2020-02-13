@@ -91,7 +91,7 @@ void G_InitProjectile(const g_entity_t *ent, vec3_t *forward, vec3_t *right, vec
 	if (forward) {
 		// return the projectile's directional vectors
 		*forward = Vec3_Subtract(tr.end, *org);
-		*forward = vec3_normalize(*forward);
+		*forward = Vec3_Normalize(*forward);
 
 		const vec3_t euler = Vec3_Euler(*forward);
 		Vec3_Vectors(euler, NULL, right, up);

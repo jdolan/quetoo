@@ -178,7 +178,7 @@ static light_t *LightForEntity(const GList *entities, const cm_entity_t *entity)
 			}
 		}
 
-		light->normal = vec3_normalize(light->normal);
+		light->normal = Vec3_Normalize(light->normal);
 
 		if (light->type == LIGHT_SPOT) {
 			if (Cm_EntityVector(entity, "_cone", &light->theta, 1) == 1) {

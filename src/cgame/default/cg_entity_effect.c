@@ -142,7 +142,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (Vec3_Length(e->shell) > 0.0) {
-		e->shell = vec3_normalize(e->shell);
+		e->shell = Vec3_Normalize(e->shell);
 		e->effects |= EF_SHELL;
 	}
 

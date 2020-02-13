@@ -276,12 +276,12 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
 		vec3_t ndir, knockback_vel, knockback_avel;
 
 		ndir = dir;
-		ndir = vec3_normalize(ndir);
+		ndir = Vec3_Normalize(ndir);
 
 		// knock the target upwards at least a bit; it's fun
 		if (ndir.z >= -0.25) {
 			ndir.z = Maxf(0.33, ndir.z);
-			ndir = vec3_normalize(ndir);
+			ndir = Vec3_Normalize(ndir);
 		}
 
 		// ensure the target has valid mass for knockback calculation

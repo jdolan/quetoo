@@ -64,7 +64,7 @@ static void G_BubbleTrail(const vec3_t start, cm_trace_t *tr) {
 	}
 
 	dir = Vec3_Subtract(tr->end, start);
-	dir = vec3_normalize(dir);
+	dir = Vec3_Normalize(dir);
 	pos = Vec3_Add(tr->end, Vec3_Scale(dir, -2));
 
 	if (gi.PointContents(pos) & MASK_LIQUID) {
@@ -98,7 +98,7 @@ static void G_Tracer(const vec3_t start, const vec3_t end) {
 		return;
 	}
 
-	dir = vec3_normalize(dir);
+	dir = Vec3_Normalize(dir);
 
 	mid = Vec3_Add(end, Vec3_Scale(dir, -len + (Randomf() * 0.05 * len)));
 
@@ -268,7 +268,7 @@ static vec3_t G_ProjectImpactPoint(const g_entity_t *projectile, const g_entity_
 
 		if (projectile) { // try back along the projectile velocity
 			vec3_t dir;
-			dir = vec3_normalize(projectile->locals.velocity);
+			dir = Vec3_Normalize(projectile->locals.velocity);
 			out = Vec3_Add(point, Vec3_Scale(dir, -dist));
 			if (gi.PointContents(out) & CONTENTS_SOLID) {
 				out = point;
@@ -1097,7 +1097,7 @@ static void G_BfgProjectile_Think(g_entity_t *self) {
 		const vec3_t end = G_GetOrigin(ent);
 		const vec3_t dir = Vec3_Subtract(end, self->s.origin);
 		const float dist = Vec3_Length(dir);
-		const vec3_t normal = vec3_normalize(Vec3_Negate(dir));
+		const vec3_t normal = Vec3_Normalize(Vec3_Negate(dir));
 
 		const float f = 1.0 - dist / self->locals.damage_radius;
 
@@ -1205,7 +1205,7 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other,
 			if (g_hook_auto_refire->integer) {
 				G_ClientHookThink(self->owner, true);
 			} else {*/
-				self->locals.velocity = vec3_normalize(self->locals.velocity);
+				self->locals.velocity = Vec3_Normalize(self->locals.velocity);
 
 				G_Damage(other, self, self->owner,
 						 self->locals.velocity, self->s.origin, Vec3_Zero(),

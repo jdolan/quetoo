@@ -199,7 +199,7 @@ static void LightLuxel(luxel_t *luxel, const byte *pvs, float scale) {
 			dist = 0.0;
 		} else {
 			dist = Vec3_Distance(light->origin, luxel->origin);
-			dir = vec3_normalize(Vec3_Subtract(light->origin, luxel->origin));
+			dir = Vec3_Normalize(Vec3_Subtract(light->origin, luxel->origin));
 		}
 
 		if (light->atten != LIGHT_ATTEN_NONE) {
@@ -480,7 +480,7 @@ void FinalizeLightgrid(int32_t luxel_num) {
 	l->radiosity = ColorFilter(l->radiosity);
 
 	if (!Vec3_Equal(l->diffuse_dir, Vec3_Zero())) {
-		l->diffuse_dir = vec3_normalize(l->diffuse_dir);
+		l->diffuse_dir = Vec3_Normalize(l->diffuse_dir);
 	}
 }
 

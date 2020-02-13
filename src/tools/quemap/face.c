@@ -276,7 +276,7 @@ void PhongVertexes(void) {
 				Cm_FreeWinding(w);
 			}
 
-			v->normal = vec3_normalize(v->normal);
+			v->normal = Vec3_Normalize(v->normal);
 
 			const bsp_texinfo_t *texinfo = &bsp_file.texinfo[v->texinfo];
 

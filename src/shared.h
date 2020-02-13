@@ -22,6 +22,7 @@
 #pragma once
 
 #include "vector.h"
+#include "color.h"
 
 #include "collision/cm_types.h"
 
@@ -461,11 +462,14 @@ void StripExtension(const char *in, char *out);
 #define ESC_COLOR_TEAMCHAT	ESC_COLOR_YELLOW
 
 _Bool StrIsColor(const char *s);
+color_t ColorEsc(int32_t esc);
 size_t StrColorLen(const char *s);
 int32_t StrColorCmp(const char *s1, const char *s2);
 int32_t StrColor(const char *s);
 int32_t StrrColor(const char *s);
 void StripColors(const char *in, char *out);
+_Bool ColorParse(const char *s, color_t *color);
+const char *ColorUnparse(const color_t color);
 
 char *va(const char *format, ...) __attribute__((format(printf, 1, 2)));
 char *vtos(const vec3_t v);

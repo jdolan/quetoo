@@ -75,7 +75,7 @@ void Ai_Learn(const g_entity_t *ent, const pm_cmd_t *cmd) {
 			dir = Vec3_Add(dir, Vec3_Scale(right, cmd->right));
 			dir = Vec3_Add(dir, Vec3_Scale(up, cmd->up));
 
-			dir = vec3_normalize(dir);
+			dir = Vec3_Normalize(dir);
 			out.dir = Vec3_CastDVec3(dir);
 
 			genann_train(ai_genann, (const double *) &in, (const double *) &out, AI_ANN_LEARNING_RATE);
@@ -102,7 +102,7 @@ void Ai_Predict(const g_entity_t *ent, vec3_t *dir) {
 	assert(out);
 
 	*dir = Vec3d_CastVec3(out->dir);
-	*dir = vec3_normalize(*dir);
+	*dir = Vec3_Normalize(*dir);
 }
 
 /**

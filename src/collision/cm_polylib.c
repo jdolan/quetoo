@@ -125,7 +125,7 @@ void Cm_PlaneForWinding(const cm_winding_t *w, vec3_t *normal, double *dist) {
 	v1 = Vec3_Subtract(w->points[1], w->points[0]);
 	v2 = Vec3_Subtract(w->points[2], w->points[0]);
 	*normal = Vec3_Cross(v2, v1);
-	*normal = vec3_normalize(*normal);
+	*normal = Vec3_Normalize(*normal);
 	*dist = Vec3_Dot(w->points[0], *normal);
 }
 
@@ -208,8 +208,8 @@ cm_winding_t *Cm_WindingForFace(const bsp_file_t *file, const bsp_face_t *face) 
 		a = Vec3_Subtract(v1->position, v0->position);
 		b = Vec3_Subtract(v2->position, v1->position);
 
-		a = vec3_normalize(a);
-		b = vec3_normalize(b);
+		a = Vec3_Normalize(a);
+		b = Vec3_Normalize(b);
 
 		if (Vec3_Dot(a, b) > 1.0 - SIDE_EPSILON) { // skip v1
 			i++;
@@ -460,7 +460,7 @@ cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, con
 	back = a->points[(i + a->num_points - 1) % a->num_points];
 	delta = Vec3_Subtract(p1, back);
 	cross = Vec3_Cross(normal, delta);
-	cross = vec3_normalize(cross);
+	cross = Vec3_Normalize(cross);
 
 	back = b->points[(j + 2) % b->num_points];
 	delta = Vec3_Subtract(back, p1);
@@ -473,7 +473,7 @@ cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, con
 	back = a->points[(i + 2) % a->num_points];
 	delta = Vec3_Subtract(back, p2);
 	cross = Vec3_Cross(normal, delta);
-	cross = vec3_normalize(cross);
+	cross = Vec3_Normalize(cross);
 
 	back = b->points[(j + b->num_points - 1) % b->num_points];
 	delta = Vec3_Subtract(back, p2);
@@ -548,8 +548,8 @@ int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
 			vec3_t ba, cb;
 			ba = Vec3_Subtract(b->position, a->position);
 			cb = Vec3_Subtract(c->position, b->position);
-			ba = vec3_normalize(ba);
-			cb = vec3_normalize(cb);
+			ba = Vec3_Normalize(ba);
+			cb = Vec3_Normalize(cb);
 
 			if (Vec3_Dot(ba, cb) > 1.0 - SIDE_EPSILON) {
 				b->corner = 0;

@@ -571,7 +571,7 @@ vec3_t Vec3_NormalizeLength(const vec3_t v, float *length) {
 /**
  * @brief
  */
-vec3_t vec3_normalize(const vec3_t v) {
+vec3_t Vec3_Normalize(const vec3_t v) {
 	float length;
 
 	return Vec3_NormalizeLength(v, &length);
@@ -633,8 +633,8 @@ vec3_t Vec3_Scale(const vec3_t v, float scale) {
  */
 void Vec3_Tangents(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec3_t *tangent, vec3_t *bitangent) {
 
-	const vec3_t s = vec3_normalize(sdir);
-	const vec3_t t = vec3_normalize(tdir);
+	const vec3_t s = Vec3_Normalize(sdir);
+	const vec3_t t = Vec3_Normalize(tdir);
 
 	*tangent = Vec3_Add(s, Vec3_Scale(normal, -Vec3_Dot(s, normal)));
 	if (Vec3_Dot(s, *tangent) < 0.f) {

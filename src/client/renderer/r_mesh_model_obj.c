@@ -118,7 +118,7 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 			}
 		} else if (strncmp("vn ", line, strlen("vn ")) == 0) {
 			if (sscanf(line, "vn %f %f %f", &vec.x, &vec.z, &vec.y) == 3) {
-				vec = vec3_normalize(vec);
+				vec = Vec3_Normalize(vec);
 				g_array_append_val(obj.vn, vec);
 			}
 		} else if (strncmp("g ", line, strlen("g ")) == 0) {

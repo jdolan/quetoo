@@ -326,6 +326,32 @@ _Bool StrIsColor(const char *c) {
 }
 
 /**
+ * @return A color_t for the color specified escape sequence.
+ */
+color_t ColorEsc(int32_t esc) {
+	switch (esc) {
+		case ESC_COLOR_BLACK:
+			return color_white;
+		case ESC_COLOR_RED:
+			return color_red;
+		case ESC_COLOR_GREEN:
+			return color_green;
+		case ESC_COLOR_YELLOW:
+			return color_yellow;
+		case ESC_COLOR_BLUE:
+			return color_blue;
+		case ESC_COLOR_MAGENTA:
+			return color_magenta;
+		case ESC_COLOR_CYAN:
+			return color_cyan;
+		case ESC_COLOR_WHITE:
+			return color_white;
+	}
+
+	return color_white;
+}
+
+/**
  * @brief Strips color escape sequences from the specified input string.
  */
 void StripColors(const char *in, char *out) {
@@ -406,6 +432,39 @@ int32_t StrrColor(const char *s) {
 	}
 
 	return ESC_COLOR_DEFAULT;
+}
+
+/**
+ * @brief Attempt to convert a hexadecimal value to its string representation.
+ */
+_Bool ColorParse(const char *s, color_t *color) {
+
+	const size_t length = strlen(s);
+	if (length != 6 && length != 8) {
+		return false;
+	}
+
+	char buffer[9];
+	g_strlcpy(buffer, s, sizeof(buffer));
+
+	if (length == 6) {
+		g_strlcat(buffer, "ff", sizeof(buffer));
+	}
+
+	uint32_t rgba;
+	if (sscanf(buffer, "%x", &rgba) != 1) {
+		return false;
+	}
+
+	*color = Color4bv(rgba);
+	return true;
+}
+
+/**
+ * @brief
+ */
+const char *ColorUnparse(const color_t color) {
+	return va("%02x%02x%02x%02x", color.r, color.g, color.b, color.a);
 }
 
 /**

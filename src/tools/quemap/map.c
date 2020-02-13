@@ -137,7 +137,7 @@ static void SnapNormal(vec3_t normal) {
 	}
 
 	if (snap) {
-		normal = vec3_normalize(normal);
+		normal = Vec3_Normalize(normal);
 	}
 }
 
@@ -305,7 +305,7 @@ static void AddBrushBevels(brush_t *b) {
 			if (Vec3_Length(vec) < 0.5) {
 				continue;
 			}
-			vec = vec3_normalize(vec);
+			vec = Vec3_Normalize(vec);
 			SnapNormal(vec);
 			for (k = 0; k < 3; k++) {
 				if (vec.xyz[k] == -1.0 || vec.xyz[k] == 1.0 ||
@@ -327,7 +327,7 @@ static void AddBrushBevels(brush_t *b) {
 					if (Vec3_Length(normal) < 0.5) {
 						continue;
 					}
-					normal = vec3_normalize(normal);
+					normal = Vec3_Normalize(normal);
 					dist = Vec3_Dot(w->points[j], normal);
 
 					// if all the points on all the sides are

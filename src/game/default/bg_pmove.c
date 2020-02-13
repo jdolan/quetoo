@@ -143,7 +143,7 @@ static _Bool Pm_SlideMove(void) {
 	}
 
 	// or our original velocity
-	planes[num_planes] = vec3_normalize(pm->s.velocity);
+	planes[num_planes] = Vec3_Normalize(pm->s.velocity);
 	num_planes++;
 
 	for (bump = 0; bump < num_bumps; bump++) {
@@ -227,7 +227,7 @@ static _Bool Pm_SlideMove(void) {
 
 				// we must now slide along the crease (cross product of the planes)
 				cross = Vec3_Cross(planes[i], planes[j]);
-				cross = vec3_normalize(cross);
+				cross = Vec3_Normalize(cross);
 
 				const float scale = Vec3_Dot(cross, pm->s.velocity);
 				vel = Vec3_Scale(cross, scale);
@@ -772,7 +772,7 @@ static void Pm_CheckHook(void) {
 		}
 
 		// applies chain restrainment
-		chain_vec = vec3_normalize(chain_vec);
+		chain_vec = Vec3_Normalize(chain_vec);
 		pm->s.velocity = Vec3_Add(pm->s.velocity, Vec3_Scale(chain_vec, force));
 	}
 }
@@ -1334,8 +1334,8 @@ static void Pm_WalkMove(void) {
 	forward = Pm_ClipVelocity(pml.forward_xy, pml.ground_plane.normal, PM_CLIP_BOUNCE);
 	right = Pm_ClipVelocity(pml.right_xy, pml.ground_plane.normal, PM_CLIP_BOUNCE);
 
-	forward = vec3_normalize(forward);
-	right = vec3_normalize(right);
+	forward = Vec3_Normalize(forward);
+	right = Vec3_Normalize(right);
 
 	vel = Vec3_Zero();
 	vel = Vec3_Add(vel, Vec3_Scale(forward, pm->cmd.forward));
@@ -1378,7 +1378,7 @@ static void Pm_WalkMove(void) {
 	pm->s.velocity = Pm_ClipVelocity(pm->s.velocity, pml.ground_plane.normal, PM_CLIP_BOUNCE);
 
 	// and now scale by the speed to avoid slowing down on slopes
-	pm->s.velocity = vec3_normalize(pm->s.velocity);
+	pm->s.velocity = Vec3_Normalize(pm->s.velocity);
 	pm->s.velocity = Vec3_Scale(pm->s.velocity, speed);
 
 	// and finally, step if moving in X/Y

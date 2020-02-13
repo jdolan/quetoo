@@ -485,7 +485,7 @@ vec3_t Vec3_NormalizeLength(const vec3_t v, float *length) __attribute__ ((warn_
 /**
  * @return The normalized vector `v`.
  */
-vec3_t vec3_normalize(const vec3_t v) __attribute__ ((warn_unused_result));
+vec3_t Vec3_Normalize(const vec3_t v) __attribute__ ((warn_unused_result));
 
 /**
  * @return The vector `(1.f, 1.f, 1.f)`.

@@ -308,7 +308,7 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 
 		if (ent->animation2.animation < ANIM_LEGS_SWIM) {
 			if (Vec3_Length(move_dir) > CLIENT_LEGS_SPEED_EPSILON) {
-				move_dir = vec3_normalize(move_dir);
+				move_dir = Vec3_Normalize(move_dir);
 				leg_yaw_offset = Vec3_Dot(move_dir, right) * CLIENT_LEGS_YAW_MAX;
 
 				if (ent->animation2.animation == ANIM_LEGS_BACK ||

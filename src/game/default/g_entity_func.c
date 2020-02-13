@@ -194,7 +194,7 @@ static void G_MoveInfo_Linear_Init(g_entity_t *ent, const vec3_t dest, void (*Do
 
 	move->dest = dest;
 	move->dir = Vec3_Subtract(dest, ent->s.origin);
-	move->dir = vec3_normalize(move->dir);
+	move->dir = Vec3_Normalize(move->dir);
 
 	move->Done = Done;
 

@@ -191,7 +191,7 @@ static void G_ClientWorldAngles(g_entity_t *ent) {
 void G_ClientDamageKick(g_entity_t *ent, const vec3_t dir, const float kick) {
 	vec3_t ndir;
 
-	ndir = vec3_normalize(dir);
+	ndir = Vec3_Normalize(dir);
 
 	const float pitch = Vec3_Dot(ndir, ent->client->locals.forward) * kick;
 	ent->client->locals.kick_angles.x += pitch;

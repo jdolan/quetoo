@@ -35,8 +35,8 @@ lightmap_t *lightmaps;
 static void BuildLightmapMatrices(lightmap_t *lm) {
 
 	vec3_t s, t;
-	s = vec3_normalize(Vec4_XYZ(lm->texinfo->vecs[0]));
-	t = vec3_normalize(Vec4_XYZ(lm->texinfo->vecs[1]));
+	s = Vec3_Normalize(Vec4_XYZ(lm->texinfo->vecs[0]));
+	t = Vec3_Normalize(Vec4_XYZ(lm->texinfo->vecs[1]));
 
 	s = Vec3_Scale(s, 1.0 / luxel_size);
 	t = Vec3_Scale(t, 1.0 / luxel_size);
@@ -235,7 +235,7 @@ static vec3_t PhongLuxel(const lightmap_t *lm, const vec3_t origin) {
 		}
 	}
 
-	return vec3_normalize(normal);
+	return Vec3_Normalize(normal);
 }
 
 /**
@@ -299,7 +299,7 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
 			dist = 0.0;
 		} else {
 			dist = Vec3_Distance(light->origin, luxel->origin);
-			dir = vec3_normalize(Vec3_Subtract(light->origin, luxel->origin));
+			dir = Vec3_Normalize(Vec3_Subtract(light->origin, luxel->origin));
 		}
 
 		if (light->atten != LIGHT_ATTEN_NONE) {
@@ -653,7 +653,7 @@ void FinalizeLightmap(int32_t face_num) {
 			diffuse_dir.z = Vec3_Dot(l->diffuse_dir, l->normal);
 
 			diffuse_dir = Vec3_Add(diffuse_dir, Vec3_Up());
-			diffuse_dir = vec3_normalize(diffuse_dir);
+			diffuse_dir = Vec3_Normalize(diffuse_dir);
 		} else {
 			diffuse_dir = Vec3_Up();
 		}

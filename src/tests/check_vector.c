@@ -87,7 +87,7 @@ START_TEST(_Vec3_Negate) {
 } END_TEST
 
 START_TEST(_Vec3_Normalize) {
-	assert_flt_eq(1, Vec3_Length(vec3_normalize(Vec3(1, 1, 1))));
+	assert_flt_eq(1, Vec3_Length(Vec3_Normalize(Vec3(1, 1, 1))));
 } END_TEST
 
 START_TEST(_Vec3_One) {

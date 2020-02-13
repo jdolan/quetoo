@@ -81,11 +81,11 @@ static void FixTJunctions_(int32_t face_num) {
 
 				vec3_t a = Vec3_Subtract(v0, v);
 				const float a_dist = Vec3_Length(a);
-				a = vec3_normalize(a);
+				a = Vec3_Normalize(a);
 
 				vec3_t b = Vec3_Subtract(v1, v);
 				const float b_dist = Vec3_Length(b);
-				b = vec3_normalize(b);
+				b = Vec3_Normalize(b);
 
 				if (a_dist <= ON_EPSILON || b_dist <= ON_EPSILON) {
 					break; // face already includes v

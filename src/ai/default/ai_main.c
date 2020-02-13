@@ -62,7 +62,7 @@ static _Bool Ai_CanSee(const g_entity_t *self, const g_entity_t *other) {
 	// see if we're even facing the object
 	ai_locals_t *ai = Ai_GetLocals(self);
 
-	const vec3_t dir = vec3_normalize(Vec3_Subtract(other->s.origin, ai->eye_origin));
+	const vec3_t dir = Vec3_Normalize(Vec3_Subtract(other->s.origin, ai->eye_origin));
 
 	float dot = Vec3_Dot(ai->aim_forward, dir);
 
@@ -175,7 +175,7 @@ static void Ai_ResetWander(const g_entity_t *self, const vec3_t where_to) {
 	vec3_t dir;
 
 	dir = Vec3_Subtract(where_to, self->s.origin);
-	dir = vec3_normalize(dir);
+	dir = Vec3_Normalize(dir);
 	dir = Vec3_Euler(dir);
 
 	ai->wander_angle = dir.y;
@@ -682,13 +682,13 @@ static void Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	}
 
 	dir = Vec3_Subtract(dest, self->s.origin);
-	dir = vec3_normalize(dir);
+	dir = Vec3_Normalize(dir);
 
 	vec3_t predicted;
 	Ai_Predict(self, &predicted);
 	if (Vec3_Length(predicted)) {
 		dir = Vec3_Add(dir, predicted);
-		dir = vec3_normalize(dir);
+		dir = Vec3_Normalize(dir);
 	}
 
     angles = Vec3_Euler(dir);
@@ -814,7 +814,7 @@ static void Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 			aim_direction = Vec3_Subtract(aim_target->ent->s.origin, self->s.origin);
 		}
 
-		aim_direction = vec3_normalize(aim_direction);
+		aim_direction = Vec3_Normalize(aim_direction);
 		ideal_angles = Vec3_Euler(aim_direction);
 
 		// fuzzy angle

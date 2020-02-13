@@ -120,7 +120,7 @@ void R_AddFlareBspFaces(const r_bsp_faces_t *surfs) {
 
 		vec3_t view;
 		view = Vec3_Subtract(f->particle.org, r_view.origin);
-		const float dist = view = vec3_normalize(view);
+		const float dist = view = Vec3_Normalize(view);
 
 		// fade according to angle
 		const float cos = vec3_dot(surf->plane->normal, view);

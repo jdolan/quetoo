@@ -361,7 +361,7 @@ static void G_Currents(g_entity_t *ent) {
 		return;
 	}
 
-	current = vec3_normalize(current);
+	current = Vec3_Normalize(current);
 
 	G_Accelerate(ent, current, speed, PM_ACCEL_GROUND);
 }
@@ -805,7 +805,7 @@ static _Bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
 
 					// slide the original velocity along the crease
 					cross = Vec3_Cross(planes[i], planes[j]);
-					cross = vec3_normalize(cross);
+					cross = Vec3_Normalize(cross);
 
 					const float scale = Vec3_Dot(cross, ent->locals.velocity);
 					vel = Vec3_Scale(cross, scale);
