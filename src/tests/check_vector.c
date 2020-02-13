@@ -32,35 +32,35 @@ static void assert_vec3_eq(const vec3_t a, const vec3_t b) {
 	ck_assert_msg(Vec3_Equal(a, b), "(%g %g %g) != (%g %g %g)", a.x, a.y, a.z, b.x, b.y, b.z);
 }
 
-START_TEST(_clampf) {
+START_TEST(_Clampf) {
 	assert_flt_eq(0, Clampf(-1, 0, 1));
 	assert_flt_eq(1, Clampf( 1, 0, 1));
 	assert_flt_eq(0, Clampf( 0, 0, 1));
 } END_TEST
 
-START_TEST(_vec3f) {
+START_TEST(_Vec3f) {
 	assert_vec3_eq(Vec3(1, 2, 3), Vec3(1, 2, 3));
 } END_TEST
 
-START_TEST(_vec3_add) {
+START_TEST(_Vec3_Add) {
 	assert_vec3_eq(Vec3(2, 2, 2), Vec3_Add(Vec3(1, 1, 1), Vec3(1, 1, 1)));
 } END_TEST
 
-START_TEST(_vec3_cross) {
+START_TEST(_Vec3_Cross) {
 	assert_vec3_eq(Vec3(-3, 6, -3), Vec3_Cross(Vec3(1, 2, 3), Vec3(4, 5, 6)));
 } END_TEST
 
-START_TEST(_vec3_distance) {
+START_TEST(_Vec3_Distance) {
 	assert_flt_eq(5, Vec3_Distance(Vec3(0, 0, 0), Vec3(3, 4, 0)));
 } END_TEST
 
-START_TEST(_vec3_dot) {
+START_TEST(_Vec3_Dot) {
 	assert_flt_eq( 1, Vec3_Dot(Vec3(1, 0, 0), Vec3( 1, 0, 0)));
 	assert_flt_eq(-1, Vec3_Dot(Vec3(1, 0, 0), Vec3(-1, 0, 0)));
 	assert_flt_eq( 0, Vec3_Dot(Vec3(1, 0, 0), Vec3( 0, 1, 0)));
 } END_TEST
 
-START_TEST(_vec3_down) {
+START_TEST(_Vec3_Down) {
 	assert_vec3_eq(Vec3(0, 0, -1), Vec3_Down());
 } END_TEST
 
@@ -86,7 +86,7 @@ START_TEST(_Vec3_Negate) {
 	assert_vec3_eq(Vec3(-1, -2, -3), Vec3_Negate(Vec3(1, 2, 3)));
 } END_TEST
 
-START_TEST(_vec3_normalize) {
+START_TEST(_Vec3_Normalize) {
 	assert_flt_eq(1, Vec3_Length(vec3_normalize(Vec3(1, 1, 1))));
 } END_TEST
 
@@ -116,22 +116,22 @@ int32_t main(int32_t argc, char **argv) {
 	TCase *tcase;
 
 	tcase = tcase_create("float");
-	tcase_add_test(tcase, _clampf);
+	tcase_add_test(tcase, _Clampf);
 
 	suite_add_tcase(suite, tcase);
 
 	tcase = tcase_create("vec3");
-	tcase_add_test(tcase, _vec3f);
-	tcase_add_test(tcase, _vec3_add);
-	tcase_add_test(tcase, _vec3_cross);
-	tcase_add_test(tcase, _vec3_distance);
-	tcase_add_test(tcase, _vec3_dot);
-	tcase_add_test(tcase, _vec3_down);
+	tcase_add_test(tcase, _Vec3f);
+	tcase_add_test(tcase, _Vec3_Add);
+	tcase_add_test(tcase, _Vec3_Cross);
+	tcase_add_test(tcase, _Vec3_Distance);
+	tcase_add_test(tcase, _Vec3_Dot);
+	tcase_add_test(tcase, _Vec3_Down);
 	tcase_add_test(tcase, _Vec3_Equal);
 	tcase_add_test(tcase, _Vec3_Euler);
 	tcase_add_test(tcase, _Vec3_Length);
 	tcase_add_test(tcase, _Vec3_Negate);
-	tcase_add_test(tcase, _vec3_normalize);
+	tcase_add_test(tcase, _Vec3_Normalize);
 	tcase_add_test(tcase, _Vec3_One);
 	tcase_add_test(tcase, _Vec3_Radians);
 	tcase_add_test(tcase, _Vec3_Subtract);
