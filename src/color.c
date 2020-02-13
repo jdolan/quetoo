@@ -26,35 +26,35 @@
 /**
  * @brief
  */
-color_t color3b(byte r, byte g, byte b) {
-	return color4b(r, g, b, 255);
+color_t Color3b(byte r, byte g, byte b) {
+	return Color4b(r, g, b, 255);
 }
 
 /**
  * @brief
  */
-color_t color3bv(uint32_t rgb) {
-	return color4bv((rgb << 8) | 0x000000ff);
+color_t Color3bv(uint32_t rgb) {
+	return Color4bv((rgb << 8) | 0x000000ff);
 }
 
 /**
  * @brief
  */
-color_t color3f(float r, float g, float b) {
-	return color4f(r, g, b, 1.f);
+color_t Color3f(float r, float g, float b) {
+	return Color4f(r, g, b, 1.f);
 }
 
 /**
  * @brief
  */
-color_t color3fv(const vec3_t rgb) {
-	return color3f(rgb.x, rgb.y, rgb.z);
+color_t Color3fv(const vec3_t rgb) {
+	return Color3f(rgb.x, rgb.y, rgb.z);
 }
 
 /**
  * @brief
  */
-color_t color4b(byte r, byte g, byte b, byte a) {
+color_t Color4b(byte r, byte g, byte b, byte a) {
 	return (color_t) {
 		.r = r,
 		.g = g,
@@ -66,7 +66,7 @@ color_t color4b(byte r, byte g, byte b, byte a) {
 /**
  * @brief
  */
-color_t color4bv(uint32_t rgba) {
+color_t Color4bv(uint32_t rgba) {
 	return (color_t) {
 		.rgba = BigLong(rgba)
 	};
@@ -75,7 +75,7 @@ color_t color4bv(uint32_t rgba) {
 /**
  * @brief
  */
-color_t color4f(float r, float g, float b, float a) {
+color_t Color4f(float r, float g, float b, float a) {
 
 	const float max = maxf(r, maxf(g, maxf(b, a)));
 	if (max > 1.0) {
@@ -96,14 +96,14 @@ color_t color4f(float r, float g, float b, float a) {
 /**
  * @brief
  */
-color_t color4fv(const vec4_t rgba) {
-	return color4f(rgba.x, rgba.y, rgba.z, rgba.w);
+color_t Color4fv(const vec4_t rgba) {
+	return Color4f(rgba.x, rgba.y, rgba.z, rgba.w);
 }
 
 /**
  * @brief
  */
-color_t color_esc(int32_t esc) {
+color_t ColorEsc(int32_t esc) {
 	switch (esc) {
 		case ESC_COLOR_BLACK:
 			return color_white;
@@ -129,7 +129,7 @@ color_t color_esc(int32_t esc) {
 /**
  * @brief Attempt to convert a hexadecimal value to its string representation.
  */
-_Bool color_parse(const char *s, color_t *color) {
+_Bool ColorParse(const char *s, color_t *color) {
 	static char buffer[9];
 	static color_t temp;
 
@@ -159,20 +159,20 @@ _Bool color_parse(const char *s, color_t *color) {
 /**
  * @brief
  */
-vec3_t color_to_vec3(const color_t color) {
+vec3_t ColorToVector3(const color_t color) {
 	return vec3_scale(vec3(color.r, color.g, color.b), 1.f / 255.f);
 }
 
 /**
  * @brief
  */
-vec4_t color_to_vec4(const color_t color) {
+vec4_t ColorToVector4(const color_t color) {
 	return vec4_scale(vec4(color.r, color.g, color.b, color.a), 1.f / 255.f);
 }
 
 /**
  * @brief
  */
-const char *color_unparse(const color_t color) {
+const char *ColorUnparse(const color_t color) {
 	return va("%02x%02x%02x%02x", color.r, color.g, color.b, color.a);
 }

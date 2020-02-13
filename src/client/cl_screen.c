@@ -99,7 +99,7 @@ static void Cl_DrawNetGraph(void) {
 	x = r_context.width - NET_GRAPH_WIDTH;
 	y = r_context.height - NET_GRAPH_Y - netgraph_height;
 
-	R_DrawFill(x, y, NET_GRAPH_WIDTH, netgraph_height, color4bv(0x80808080));
+	R_DrawFill(x, y, NET_GRAPH_WIDTH, netgraph_height, Color4bv(0x80808080));
 
 	for (i = 0; i < NET_GRAPH_WIDTH; i++) {
 

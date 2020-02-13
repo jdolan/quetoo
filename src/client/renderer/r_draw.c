@@ -223,7 +223,7 @@ size_t R_DrawSizedString(r_pixel_t x, r_pixel_t y, const char *s, size_t len, si
 	while (*s && i < len && j < size) {
 
 		if (StrIsColor(s)) {
-			c = color_esc(StrColor(s));
+			c = ColorEsc(StrColor(s));
 			j += 2;
 			s += 2;
 			continue;

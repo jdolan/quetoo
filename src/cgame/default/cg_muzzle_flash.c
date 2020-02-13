@@ -47,7 +47,7 @@ static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
 	cg_light_t l;
 	l.origin = org;
 	l.radius = 80.0;
-	l.color = color_to_vec3(color);
+	l.color = ColorToVector3(color);
 	l.decay = 450;
 
 	Cg_AddLight(&l);
@@ -179,7 +179,7 @@ void Cg_ParseMuzzleFlash(void) {
 			break;
 		case MZ_HYPERBLASTER:
 			sample = cg_sample_hyperblaster_fire;
-			Cg_EnergyFlash(ent, color3b(191, 123, 111));
+			Cg_EnergyFlash(ent, Color3b(191, 123, 111));
 			pitch = (int16_t) (Randomc() * 5.0);
 			break;
 		case MZ_LIGHTNING:
@@ -192,7 +192,7 @@ void Cg_ParseMuzzleFlash(void) {
 			break;
 		case MZ_BFG10K:
 			sample = cg_sample_bfg_fire;
-			Cg_EnergyFlash(ent, color3b(75, 91, 39));
+			Cg_EnergyFlash(ent, Color3b(75, 91, 39));
 			pitch = (int16_t) (Randomc() * 2.0);
 			break;
 		case MZ_LOGOUT:

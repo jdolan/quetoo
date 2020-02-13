@@ -153,9 +153,9 @@ static void G_InitTeam(const g_team_id_t id, const char *name,
 
 	team->color = color;
 
-	color_parse(tint, &team->shirt);
-	color_parse(tint, &team->pants);
-	color_parse(tint, &team->helmet);
+	ColorParse(tint, &team->shirt);
+	ColorParse(tint, &team->pants);
+	ColorParse(tint, &team->helmet);
 
 	g_strlcpy(team->skin, DEFAULT_TEAM_SKIN, sizeof(team->skin));
 

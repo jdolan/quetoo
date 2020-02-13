@@ -643,10 +643,10 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		if (!g_strcmp0(cg_draw_crosshair_color->string, "default")) {
 			color.r = color.g = color.b = 255;
 		} else {
-			color_parse(cg_draw_crosshair_color->string, &color);
+			ColorParse(cg_draw_crosshair_color->string, &color);
 		}
 
-		crosshair.color = color_to_vec4(color);
+		crosshair.color = ColorToVector4(color);
 	}
 
 	if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_WHITE) {
@@ -748,7 +748,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 	x = (cgi.context->width - crosshair.image->width * scale) / 2.0;
 	y = (cgi.context->height - crosshair.image->height * scale) / 2.0;
 
-	cgi.DrawImage(x, y, scale, crosshair.image, color4fv(crosshair.color));
+	cgi.DrawImage(x, y, scale, crosshair.image, Color4fv(crosshair.color));
 }
 
 /**
@@ -843,7 +843,7 @@ static void Cg_AddBlendPalette(vec4_t blend, const uint8_t color, const float al
 	color_t c;
 	cgi.ColorFromPalette(color, &c);
 
-	vec4_t v = color_to_vec4(c);
+	vec4_t v = ColorToVector4(c);
 	v.w = alpha;
 
 	Cg_AddBlend(&blend, v);
@@ -879,7 +879,7 @@ static void Cg_DrawBlendFlashImage(const r_image_t *image, const float alpha) {
 		return;
 	}
 
-	const color_t color = color4f(1.0, 1.0, 1.0, alpha);
+	const color_t color = Color4f(1.0, 1.0, 1.0, alpha);
 	cgi.DrawImageRect(0, 0, cgi.context->width, cgi.context->height, image, color);
 }
 

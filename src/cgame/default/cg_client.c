@@ -223,15 +223,15 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 			}
 		}
 
-		if (!color_parse(info[2], &ci->shirt)) {
+		if (!ColorParse(info[2], &ci->shirt)) {
 			ci->shirt.a = 0;
 		}
 
-		if (!color_parse(info[3], &ci->pants)) {
+		if (!ColorParse(info[3], &ci->pants)) {
 			ci->pants.a = 0;
 		}
 
-		if (!color_parse(info[4], &ci->helmet)) {
+		if (!ColorParse(info[4], &ci->helmet)) {
 			ci->helmet.a = 0;
 		}
 

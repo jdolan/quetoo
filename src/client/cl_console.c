@@ -58,7 +58,7 @@ static void Cl_DrawConsole_Background(void) {
 
 		r_pixel_t y = cl_console.height * ch;
 
-		const color_t color = color4f(1.f, 1.f, 1.f, cl_draw_console_background_alpha->value);
+		const color_t color = Color4f(1.f, 1.f, 1.f, cl_draw_console_background_alpha->value);
 
 		R_DrawImage(0, (-image->height * scale) + y + ch * 1.25, scale, image, color);
 	}
@@ -80,7 +80,7 @@ static void Cl_DrawConsole_Buffer(void) {
 	color_t color = color_white;
 	for (size_t i = 0; i < count; i++) {
 		R_DrawString(0, y, lines[i], color);
-		color = color_esc(StrrColor(lines[i]));
+		color = ColorEsc(StrrColor(lines[i]));
 		g_free(lines[i]);
 		y += ch;
 	}
@@ -169,7 +169,7 @@ void Cl_DrawNotify(void) {
 	color_t color = color_white;
 	for (size_t i = 0; i < count; i++) {
 		R_DrawString(0, y, lines[i], color);
-		color = color_esc(StrrColor(lines[i]));
+		color = ColorEsc(StrrColor(lines[i]));
 		g_free(lines[i]);
 		y += ch;
 	}
@@ -202,7 +202,7 @@ void Cl_DrawChat(void) {
 		color_t color = color_white;
 		for (size_t i = 0; i < count; i++) {
 			R_DrawString(0, y, lines[i], color);
-			color = color_esc(StrrColor(lines[i]));
+			color = ColorEsc(StrrColor(lines[i]));
 			g_free(lines[i]);
 			y += ch;
 		}
@@ -213,7 +213,7 @@ void Cl_DrawChat(void) {
 		const int32_t esc = cls.chat_state.team_chat ? ESC_COLOR_TEAMCHAT : ESC_COLOR_CHAT;
 
 		// draw the prompt
-		R_DrawChar(0, y, ']', color_esc(esc));
+		R_DrawChar(0, y, ']', ColorEsc(esc));
 
 		// and the input, scrolling horizontally if appropriate
 		const char *s = cl_chat_console.input.buffer;

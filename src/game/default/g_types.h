@@ -254,14 +254,14 @@ typedef enum {
 /**
  * @brief Effect colors for particle trails and dynamic light flashes.
  */
-#define EFFECT_COLOR_RED		color3b(155, 31, 0)
-#define EFFECT_COLOR_GREEN		color3b(75, 91, 39)
-#define EFFECT_COLOR_BLUE		color3b(11, 63, 83)
-#define EFFECT_COLOR_YELLOW		color3b(255, 255, 83)
-#define EFFECT_COLOR_ORANGE		color3b(255, 147, 0)
-#define EFFECT_COLOR_WHITE		color3b(255, 255, 211)
-#define EFFECT_COLOR_PINK		color3b(235, 151, 127)
-#define EFFECT_COLOR_PURPLE		color3b(39, 39, 63)
+#define EFFECT_COLOR_RED		Color3b(155, 31, 0)
+#define EFFECT_COLOR_GREEN		Color3b(75, 91, 39)
+#define EFFECT_COLOR_BLUE		Color3b(11, 63, 83)
+#define EFFECT_COLOR_YELLOW		Color3b(255, 255, 83)
+#define EFFECT_COLOR_ORANGE		Color3b(255, 147, 0)
+#define EFFECT_COLOR_WHITE		Color3b(255, 255, 211)
+#define EFFECT_COLOR_PINK		Color3b(235, 151, 127)
+#define EFFECT_COLOR_PURPLE		Color3b(39, 39, 63)
 
 /**
  * @brief Color palette indexes for the above.

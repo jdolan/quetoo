@@ -143,7 +143,7 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
 		p->lifetime = 1000 + Randomf() * 800;
 
-		p->color = color4bv(0x80808040);
+		p->color = Color4bv(0x80808040);
 		p->delta_color.a = -2;
 
 		p->size = 10.0;
@@ -306,7 +306,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 	cg_light_t l;
 	l.origin = end;
 	l.radius = 100.0;
-	l.color = color_to_vec3(color);
+	l.color = ColorToVector3(color);
 
 	Cg_AddLight(&l);
 }
@@ -346,7 +346,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 
 		p->lifetime = 75 + Randomf() * 75;
 
-		p->color = color4bv(0xff44aaff);
+		p->color = Color4bv(0xff44aaff);
 		p->delta_color.a = -10;
 
 		p->size = 3.0;
@@ -524,7 +524,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 					if (i % 3 == 0) {
 						p->color = color_white;
 					} else {
-						p->color = color4bv(0xaaaaffff);
+						p->color = Color4bv(0xaaaaffff);
 					}
 
 					p->bounce = 1.15;
@@ -671,7 +671,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 			});
 		}
 
-		p->color = color4bv(0x80000080);
+		p->color = Color4bv(0x80000080);
 		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = Randomfr(3.0, 7.0);
@@ -785,7 +785,7 @@ void Cg_EntityTrail(cl_entity_t *ent) {
 			Cg_BfgTrail(ent);
 			break;
 		case TRAIL_TELEPORTER:
-			Cg_TeleporterTrail(ent, color3b(255, 255, 211));
+			Cg_TeleporterTrail(ent, Color3b(255, 255, 211));
 			break;
 		case TRAIL_PLAYER_SPAWN:
 			Cg_SpawnPointTrail(ent, ent->current.client >= MAX_TEAMS ? EFFECT_COLOR_WHITE : cg_team_info[ent->current.client].color);

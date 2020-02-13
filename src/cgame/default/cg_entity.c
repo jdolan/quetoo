@@ -280,15 +280,15 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 
 	// set tints
 	if (ci->shirt.a) {
-		e->tints[0] = color_to_vec4(ci->shirt);
+		e->tints[0] = ColorToVector4(ci->shirt);
 	}
 
 	if (ci->pants.a) {
-		e->tints[1] = color_to_vec4(ci->pants);
+		e->tints[1] = ColorToVector4(ci->pants);
 	}
 
 	if (ci->helmet.a) {
-		e->tints[2] = color_to_vec4(ci->helmet);
+		e->tints[2] = ColorToVector4(ci->helmet);
 	}
 
 	r_entity_t head, torso, legs;

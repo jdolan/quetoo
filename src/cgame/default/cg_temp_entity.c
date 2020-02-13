@@ -54,7 +54,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = vec3_add(org, dir),
 		.radius = 150.0,
-		.color = color_to_vec3(color),
+		.color = ColorToVector3(color),
 		.decay = 350
 	});
 
@@ -139,7 +139,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 
 			p->lifetime = 150 + Randomf() * 600;
 
-			p->color = color4bv(0xf0f0f0f0);
+			p->color = Color4bv(0xf0f0f0f0);
 			p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 			p->size = 2.0 + Randomf() * 2.0;
@@ -198,7 +198,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 		p->lifetime = 100 + Randomf() * 500;
 
-		p->color = color4bv(0x882200aa);
+		p->color = Color4bv(0x882200aa);
 		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = Randomfr(5.0, 8.0);
@@ -261,7 +261,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 
 			p->lifetime = 700 + Randomf() * 400;
 
-			p->color = color4bv(0x800000f8);
+			p->color = Color4bv(0x800000f8);
 			p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 			p->size = Randomfr(3.0, 7.0);
@@ -401,7 +401,7 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 
 			p->lifetime = 200 + Randomf() * 500;
 
-			p->color = color4bv(0x22aaffff);
+			p->color = Color4bv(0x22aaffff);
 			p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 			p->size = 3.5;
@@ -467,7 +467,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 	l.origin = start;
 	l.radius = 100.0;
-	l.color = color_to_vec3(color);
+	l.color = ColorToVector3(color);
 	l.decay = 500;
 
 	Cg_AddLight(&l);
@@ -678,7 +678,7 @@ void Cg_RippleEffect(const vec3_t org, const float size, const uint8_t viscosity
 
 	p->lifetime = Randomr(500, 1500) * (viscosity * 0.1);
 
-	p->color = color4bv(0x8080a0FF);
+	p->color = Color4bv(0x8080a0FF);
 	p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 	p->size = size + Randomc() * 0.5;
@@ -722,7 +722,7 @@ static void Cg_SplashEffect(const vec3_t org, const vec3_t dir) {
 
 		p->lifetime = 120 + Randomf() * 80;
 
-		p->color = color4bv(0x80e0e0e0);
+		p->color = Color4bv(0x80e0e0e0);
 		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = 1.4 + Randomf() * 0.7;

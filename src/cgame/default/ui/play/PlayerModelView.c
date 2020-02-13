@@ -357,19 +357,19 @@ static void animate(PlayerModelView *self) {
 	self->platformBase.scale = self->platformCenter.scale = 1.0;
 
 	if (self->client.shirt.a) {
-		self->torso.tints[0] = color_to_vec4(self->client.shirt);
+		self->torso.tints[0] = ColorToVector4(self->client.shirt);
 	} else {
 		self->torso.tints[0] = vec4_zero();
 	}
 
 	if (self->client.pants.a) {
-		self->legs.tints[1] = color_to_vec4(self->client.pants);
+		self->legs.tints[1] = ColorToVector4(self->client.pants);
 	} else {
 		self->legs.tints[1] = vec4_zero();
 	}
 
 	if (self->client.helmet.a) {
-		self->head.tints[2] = color_to_vec4(self->client.helmet);
+		self->head.tints[2] = ColorToVector4(self->client.helmet);
 	} else {
 		self->head.tints[2] = vec4_zero();
 	}

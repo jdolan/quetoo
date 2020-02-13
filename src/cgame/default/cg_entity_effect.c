@@ -163,7 +163,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 
 		color_t color;
 		cgi.ColorFromPalette(ent->current.client, &color);
-		l.color = color_to_vec3(color);
+		l.color = ColorToVector3(color);
 
 		Cg_AddLight(&l);
 	}

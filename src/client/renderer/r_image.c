@@ -163,7 +163,7 @@ void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
 		rgb = vec3_scale(rgb, 1.f / pixels);
 		rgb = vec3_scale(rgb, 1.f / 255.f);
 
-		image->color = color_to_vec3(color3fv(rgb));
+		image->color = ColorToVector3(Color3fv(rgb));
 	}
 }
 

@@ -1193,13 +1193,13 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	} else {
 
 		s = GetUserInfo(user_info, "shirt");
-		color_parse(s, &cl->locals.persistent.shirt);
+		ColorParse(s, &cl->locals.persistent.shirt);
 
 		s = GetUserInfo(user_info, "pants");
-		color_parse(s, &cl->locals.persistent.pants);
+		ColorParse(s, &cl->locals.persistent.pants);
 
 		s = GetUserInfo(user_info, "helmet");
-		color_parse(s, &cl->locals.persistent.helmet);
+		ColorParse(s, &cl->locals.persistent.helmet);
 	}
 
 	gchar client_info[MAX_USER_INFO_STRING] = { '\0' };
@@ -1211,13 +1211,13 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	g_strlcat(client_info, cl->locals.persistent.skin, MAX_USER_INFO_STRING);
 
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-	g_strlcat(client_info, color_unparse(cl->locals.persistent.shirt), MAX_USER_INFO_STRING);
+	g_strlcat(client_info, ColorUnparse(cl->locals.persistent.shirt), MAX_USER_INFO_STRING);
 
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-	g_strlcat(client_info, color_unparse(cl->locals.persistent.pants), MAX_USER_INFO_STRING);
+	g_strlcat(client_info, ColorUnparse(cl->locals.persistent.pants), MAX_USER_INFO_STRING);
 
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
-	g_strlcat(client_info, color_unparse(cl->locals.persistent.helmet), MAX_USER_INFO_STRING);
+	g_strlcat(client_info, ColorUnparse(cl->locals.persistent.helmet), MAX_USER_INFO_STRING);
 
 	g_strlcat(client_info, "\\", MAX_USER_INFO_STRING);
 	g_strlcat(client_info, va("%i", cl->locals.persistent.color), MAX_USER_INFO_STRING);
