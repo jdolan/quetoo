@@ -34,7 +34,7 @@ color_t color3b(byte r, byte g, byte b) {
  * @brief
  */
 color_t color3bv(uint32_t rgb) {
-	return color4bv(rgb | BigLong(0x000000ff));
+	return color4bv((rgb << 8) | 0x000000ff);
 }
 
 /**

@@ -320,16 +320,16 @@ void StripExtension(const char *in, char *out) {
 /**
  * @return The color escape sequence at `c`, or -1 if none.
  */
-int32_t StrIsColor(const char *c) {
+_Bool StrIsColor(const char *c) {
 	if (c) {
 		if (*c == ESC_COLOR) {
 			const char num = *(c + 1);
 			if (num >= '0' && num <= '7') {
-				return num - '0';
+				return true;
 			}
 		}
 	}
-	return -1;
+	return false;
 }
 
 /**

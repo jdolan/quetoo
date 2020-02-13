@@ -463,7 +463,7 @@ void StripExtension(const char *in, char *out);
 #define ESC_COLOR_CHAT		ESC_COLOR_ALT
 #define ESC_COLOR_TEAMCHAT	ESC_COLOR_YELLOW
 
-int32_t StrIsColor(const char *s);
+_Bool StrIsColor(const char *s);
 size_t StrColorLen(const char *s);
 int32_t StrColorCmp(const char *s1, const char *s2);
 int32_t StrColor(const char *s);

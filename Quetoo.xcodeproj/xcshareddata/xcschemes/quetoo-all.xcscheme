@@ -65,7 +65,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_fullscreen 1 +set r_width 1280 +set r_height 800 +set r_display 0"
+            argument = "+set r_fullscreen 0 +set r_width 1280 +set r_height 800 +set r_display 0"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

@@ -60,9 +60,6 @@ static struct {
 	// active font
 	r_font_t *font;
 
-	// text colors for escape sequences
-	color_t colors[MAX_ESC_COLORS];
-
 	// accumulated draw arrays to draw for this frame
 	r_draw_arrays_t draw_arrays[MAX_DRAW_GEOMETRY];
 	int32_t num_draw_arrays;
@@ -226,7 +223,7 @@ size_t R_DrawSizedString(r_pixel_t x, r_pixel_t y, const char *s, size_t len, si
 	while (*s && i < len && j < size) {
 
 		if (StrIsColor(s)) {
-			c = r_draw.colors[*(s + 1) - '0'];
+			c = color_esc(StrColor(s));
 			j += 2;
 			s += 2;
 			continue;
@@ -495,15 +492,6 @@ static void R_InitDrawProgram(void) {
 void R_InitDraw(void) {
 
 	memset(&r_draw, 0, sizeof(r_draw));
-
-	r_draw.colors[ESC_COLOR_BLACK] = color_black;
-	r_draw.colors[ESC_COLOR_RED] = color_red;
-	r_draw.colors[ESC_COLOR_GREEN] = color_green;
-	r_draw.colors[ESC_COLOR_YELLOW] = color_yellow;
-	r_draw.colors[ESC_COLOR_BLUE] = color_blue;
-	r_draw.colors[ESC_COLOR_MAGENTA] = color_magenta;
-	r_draw.colors[ESC_COLOR_CYAN] = color_cyan;
-	r_draw.colors[ESC_COLOR_WHITE] = color_white;
 
 	R_InitFont("small");
 	R_InitFont("medium");
