@@ -21,7 +21,6 @@
 
 #include "color.h"
 #include "swap.h"
-#include "shared.h"
 
 /**
  * @brief
@@ -103,62 +102,6 @@ color_t Color4fv(const vec4_t rgba) {
 /**
  * @brief
  */
-color_t ColorEsc(int32_t esc) {
-	switch (esc) {
-		case ESC_COLOR_BLACK:
-			return color_white;
-		case ESC_COLOR_RED:
-			return color_red;
-		case ESC_COLOR_GREEN:
-			return color_green;
-		case ESC_COLOR_YELLOW:
-			return color_yellow;
-		case ESC_COLOR_BLUE:
-			return color_blue;
-		case ESC_COLOR_MAGENTA:
-			return color_magenta;
-		case ESC_COLOR_CYAN:
-			return color_cyan;
-		case ESC_COLOR_WHITE:
-			return color_white;
-	}
-
-	return color_white;
-}
-
-/**
- * @brief Attempt to convert a hexadecimal value to its string representation.
- */
-_Bool ColorParse(const char *s, color_t *color) {
-	static char buffer[9];
-	static color_t temp;
-
-	if (!color) {
-		color = &temp;
-	}
-
-	const size_t length = strlen(s);
-	if (length != 6 && length != 8) {
-		return false;
-	}
-
-	g_strlcpy(buffer, s, sizeof(buffer));
-
-	if (length == 6) {
-		g_strlcat(buffer, "ff", sizeof(buffer));
-	}
-
-	if (sscanf(buffer, "%x", &color->rgba) != 1) {
-		return false;
-	}
-
-	color->rgba = BigLong(color->rgba);
-	return true;
-}
-
-/**
- * @brief
- */
 vec3_t ColorToVector3(const color_t color) {
 	return Vec3_Scale(Vec3(color.r, color.g, color.b), 1.f / 255.f);
 }
@@ -168,11 +111,4 @@ vec3_t ColorToVector3(const color_t color) {
  */
 vec4_t ColorToVector4(const color_t color) {
 	return Vec4_Scale(Vec4(color.r, color.g, color.b, color.a), 1.f / 255.f);
-}
-
-/**
- * @brief
- */
-const char *ColorUnparse(const color_t color) {
-	return va("%02x%02x%02x%02x", color.r, color.g, color.b, color.a);
 }

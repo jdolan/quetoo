@@ -184,35 +184,35 @@ START_TEST(check_Cm_Barycentric) {
 
 	p = Vec3(0, 0, 0);
 
-	Cm_Barycentric(a, b, c, p, out);
+	Cm_Barycentric(a, b, c, p, &out);
 //	puts(vtos(out));
-	ck_assert(out[0] == 1);
-	ck_assert(out[1] == 0);
-	ck_assert(out[2] == 0);
+	ck_assert(out.x == 1);
+	ck_assert(out.y == 0);
+	ck_assert(out.z == 0);
 
 	p = Vec3(0, 1, 0);
 
-	Cm_Barycentric(a, b, c, p, out);
+	Cm_Barycentric(a, b, c, p, &out);
 //	puts(vtos(out));
-	ck_assert(out[0] == 0);
-	ck_assert(out[1] == 1);
-	ck_assert(out[2] == 0);
+	ck_assert(out.x == 0);
+	ck_assert(out.y == 1);
+	ck_assert(out.z == 0);
 
 	p = Vec3(1, 1, 0);
 
-	Cm_Barycentric(a, b, c, p, out);
+	Cm_Barycentric(a, b, c, p, &out);
 //	puts(vtos(out));
-	ck_assert(out[0] == 0);
-	ck_assert(out[1] == 0);
-	ck_assert(out[2] == 1);
+	ck_assert(out.x == 0);
+	ck_assert(out.y == 0);
+	ck_assert(out.z == 1);
 
 	p = Vec3(0.5, 0.5, 0);
 
-	Cm_Barycentric(a, b, c, p, out);
+	Cm_Barycentric(a, b, c, p, &out);
 //	puts(vtos(out));
-	ck_assert(out[0] == 0.5);
-	ck_assert(out[1] == 0);
-	ck_assert(out[2] == 0.5);
+	ck_assert(out.x == 0.5);
+	ck_assert(out.y == 0);
+	ck_assert(out.z == 0.5);
 
 } END_TEST
 

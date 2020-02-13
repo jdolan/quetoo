@@ -72,12 +72,12 @@ START_TEST(check_Ai_Learn) {
 			}
 		};
 
-		bot.s.origin = vec3_add(origin, Vec3_Scale(vec3_down, Randomc() * 16.0);
+		bot.s.origin = Vec3_Add(origin, Vec3_Scale(Vec3_Down(), Randomc() * 16.0));
 
 		vec3_t dir;
-		Ai_Predict(&bot, dir);
+		Ai_Predict(&bot, &dir);
 
-		printf("%.2f %.2f %.2f\n", dir[0], dir[1], dir[2]);
+		printf("%.2f %.2f %.2f\n", dir.x, dir.y, dir.z);
 		ck_assert(Vec3_Length(dir) >= 1.0 - FLT_EPSILON);
 	}
 } END_TEST

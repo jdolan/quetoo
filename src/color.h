@@ -98,22 +98,6 @@ color_t Color4f(float r, float g, float b, float a);
 color_t Color4fv(const vec4_t rgba);
 
 /**
- * @return A color for the specified escape sequence.
- */
-color_t ColorEsc(int32_t esc);
-
-/**
- * @brief Parses a color from a hexadecimal string, e.g. `"deadbeef"`.
- * @return True if a color was parsed, false otherwise.
- */
-_Bool ColorParse(const char *s, color_t *color);
-
-/**
- * @return The hexadecimal string for the specified color.
- */
-const char *ColorUnparse(const color_t color);
-
-/**
  * @return A floating point vector for the specified color;
  */
 vec3_t ColorToVector3(const color_t color);
