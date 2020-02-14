@@ -97,7 +97,7 @@ void Matrix4x4_CreateScale3 (mat4_t *out, double x, double y, double z);
 void Matrix4x4_CreateFromQuakeEntity(mat4_t *out, double x, double y, double z, double pitch, double yaw,
                                      double roll, double scale);
 
-void Matrix4x4_CreateFromEntity(mat4_t *out, vec3_t origin, vec3_t angles, float scale);
+void Matrix4x4_CreateFromEntity(mat4_t *out, const vec3_t origin, const vec3_t angles, float scale);
 
 // converts a matrix4x4 to a set of 3D vectors for the 3 axial directions, and the translate
 void Matrix4x4_ToVectors(const mat4_t *in, float vx[3], float vy[3], float vz[3], float t[3]);
