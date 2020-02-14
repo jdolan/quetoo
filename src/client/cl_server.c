@@ -20,7 +20,7 @@
  */
 
 #if defined(_WIN32)
- #include <winsock2.h>
+ #include <WinSock2.h>
 #endif
 
 #include "cl_local.h"
