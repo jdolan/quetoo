@@ -89,7 +89,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+debug renderer +set r_get_error 2 +set cl_draw_renderer_stats 1"
+            argument = "+set r_get_error 2 +set cl_draw_renderer_stats 1"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -102,7 +102,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_cheats 1 +no_clip +give all"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>

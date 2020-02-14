@@ -91,16 +91,15 @@ void Cm_WindingBounds(const cm_winding_t *w, vec3_t *mins, vec3_t *maxs) {
 /**
  * @brief
  */
-void Cm_WindingCenter(const cm_winding_t *w, vec3_t center) {
+vec3_t Cm_WindingCenter(const cm_winding_t *w) {
 
-	center = Vec3_Zero();
+	vec3_t center = Vec3_Zero();
 
 	for (int32_t i = 0; i < w->num_points; i++) {
 		center = Vec3_Add(w->points[i], center);
 	}
 
-	const float scale = 1.0 / w->num_points;
-	center = Vec3_Scale(center, scale);
+	return Vec3_Scale(center, 1.0 / w->num_points);
 }
 
 /**

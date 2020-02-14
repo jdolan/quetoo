@@ -228,7 +228,7 @@ static light_t *LightForPatch(const patch_t *patch) {
 	light->type = LIGHT_PATCH;
 	light->atten = LIGHT_ATTEN_INVERSE_SQUARE;
 
-	Cm_WindingCenter(patch->winding, light->origin);
+	light->origin = Cm_WindingCenter(patch->winding);
 
 	const bsp_plane_t *plane = &bsp_file.planes[patch->face->plane_num];
 	light->origin = Vec3_Add(light->origin, Vec3_Scale(plane->normal, 4.0));
@@ -337,7 +337,7 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *pa
 		light->type = LIGHT_INDIRECT;
 		light->atten = LIGHT_ATTEN_INVERSE_SQUARE;
 
-		Cm_WindingCenter(patch->winding, light->origin);
+		light->origin = Cm_WindingCenter(patch->winding);
 		light->origin = Vec3_Add(light->origin, Vec3_Scale(lm->plane->normal, 4.0));
 
 		lightmap = Vec3_Scale(lightmap, 1.0 / (w * h));
