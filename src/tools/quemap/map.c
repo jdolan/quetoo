@@ -123,34 +123,36 @@ static int32_t CreatePlane(const vec3_t normal, float dist) {
 /**
  * @brief If the specified normal is very close to an axis, align with it.
  */
-static void SnapNormal(vec3_t normal) {
+static vec3_t SnapNormal(const vec3_t normal) {
+
+	vec3_t snapped = normal;
 
 	_Bool snap = false;
-
 	for (int32_t i = 0; i < 3; i++) {
-		if (normal.xyz[i] != 0.0) {
-			if (normal.xyz[i] > -NORMAL_EPSILON && normal.xyz[i] < NORMAL_EPSILON) {
-				normal.xyz[i] = 0.0;
+		if (snapped.xyz[i] != 0.0) {
+			if (snapped.xyz[i] > -NORMAL_EPSILON && snapped.xyz[i] < NORMAL_EPSILON) {
+				snapped.xyz[i] = 0.0;
 				snap = true;
 			}
 		}
 	}
 
 	if (snap) {
-		normal = Vec3_Normalize(normal);
+		snapped = Vec3_Normalize(snapped);
 	}
+
+	return snapped;
 }
 
 /**
  * @brief
  */
-static void SnapPlane(vec3_t normal, double *dist) {
+static void SnapPlane(vec3_t *normal, double *dist) {
 
-	SnapNormal(normal);
+	*normal = SnapNormal(*normal);
 
 	// snap axial planes to integer distances
-	if (Cm_PlaneTypeForNormal(normal) <= PLANE_Z) {
-
+	if (Cm_PlaneTypeForNormal(*normal) <= PLANE_Z) {
 		const float f = floor(*dist + 0.5);
 		if (fabs(*dist - f) < DIST_EPSILON) {
 			*dist = f;
@@ -163,7 +165,7 @@ static void SnapPlane(vec3_t normal, double *dist) {
  */
 int32_t FindPlane(vec3_t normal, double dist) {
 
-	SnapPlane(normal, &dist);
+	SnapPlane(&normal, &dist);
 
 	const int32_t hash = ((int32_t) fabs(dist)) & (PLANE_HASHES - 1);
 
@@ -306,7 +308,7 @@ static void AddBrushBevels(brush_t *b) {
 				continue;
 			}
 			vec = Vec3_Normalize(vec);
-			SnapNormal(vec);
+			vec = SnapNormal(vec);
 			for (k = 0; k < 3; k++) {
 				if (vec.xyz[k] == -1.0 || vec.xyz[k] == 1.0 ||
 					(vec.xyz[k] == 0.0 && vec.xyz[(k + 1) % 3] == 0.0)) {
