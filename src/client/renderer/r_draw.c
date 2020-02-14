@@ -142,10 +142,6 @@ static void R_EmitDrawVertexes_Quad(const r_draw_vertex_t *quad) {
  */
 static void R_DrawChar_(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
 
-	if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
-		return;
-	}
-
 	const uint32_t row = (uint32_t) c >> 4;
 	const uint32_t col = (uint32_t) c & 15;
 
@@ -178,6 +174,10 @@ static void R_DrawChar_(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
  * @brief
  */
 void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
+
+	if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
+		return;
+	}
 
 	r_draw_arrays_t draw = {
 		.mode = GL_TRIANGLES,
