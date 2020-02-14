@@ -832,24 +832,6 @@ static void Cg_AddBlend(vec4_t *blend, const vec4_t input) {
 }
 
 /**
- * @brief Perform composition of the src blend with the specified color palette index/alpha combo.
- */
-static void Cg_AddBlendPalette(vec4_t blend, const uint8_t color, const float alpha) {
-
-	if (alpha <= 0.0) {
-		return;
-	}
-
-	color_t c;
-	cgi.ColorFromPalette(color, &c);
-
-	vec4_t v = ColorToVector4(c);
-	v.w = alpha;
-
-	Cg_AddBlend(&blend, v);
-}
-
-/**
  * @brief Calculate the alpha factor for the specified blend components.
  * @param blend_start_time The start of the blend, in unclamped time.
  * @param blend_decay_time The length of the blend in milliseconds.
@@ -902,16 +884,18 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	const int32_t contents = cgi.view->contents;
 
 	if ((contents & MASK_LIQUID) && cg_draw_blend_liquid->value) {
-		uint8_t color;
+		vec4_t color;
 		if (contents & CONTENTS_LAVA) {
-			color = 71;
+			color = Vec4(.8f, .4f, .1f, 1.f);
 		} else if (contents & CONTENTS_SLIME) {
-			color = 201;
+			color = Vec4(.4f, .7f, .2f, 1.f);
 		} else {
-			color = 114;
+			color = Vec4(.4f, .5f, .6f, 1.f);
 		}
 
-		Cg_AddBlendPalette(blend, color, 0.4 * cg_draw_blend_liquid->value);
+		color.w = Clampf(cg_draw_blend_liquid->value * 0.4, 0.f, 0.4f);
+
+		Cg_AddBlend(&blend, color);
 	}
 
 	// pickups
