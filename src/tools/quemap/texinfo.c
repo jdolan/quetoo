@@ -25,7 +25,7 @@
 /**
  * @brief
  */
-static void TextureAxisFromPlane(const plane_t *plane, vec3_t xv, vec3_t yv) {
+static void TextureAxisFromPlane(const plane_t *plane, vec3_t *xv, vec3_t *yv) {
 	static const vec3_t base_axis[18] = { // base texture axis
 		{ 0, 0, 1 },
 		{ 1, 0, 0 },
@@ -58,8 +58,8 @@ static void TextureAxisFromPlane(const plane_t *plane, vec3_t xv, vec3_t yv) {
 		}
 	}
 
-	xv = base_axis[best_axis * 3 + 1];
-	yv = base_axis[best_axis * 3 + 2];
+	*xv = base_axis[best_axis * 3 + 1];
+	*yv = base_axis[best_axis * 3 + 2];
 }
 
 /**
@@ -115,7 +115,7 @@ int32_t TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, const vec3_t
 	strcpy(tx.texture, bt->name);
 
 	vec3_t vecs[2];
-	TextureAxisFromPlane(plane, vecs[0], vecs[1]);
+	TextureAxisFromPlane(plane, &vecs[0], &vecs[1]);
 
 	vec2_t shift;
 	shift.x = Vec3_Dot(origin, vecs[0]);
