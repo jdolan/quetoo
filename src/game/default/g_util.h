@@ -35,7 +35,7 @@ g_entity_t *G_FindPtr(g_entity_t *from, ptrdiff_t field, const void *match);
 g_entity_t *G_FindRadius(g_entity_t *from, vec3_t org, float rad);
 g_entity_t *G_PickTarget(char *target_name);
 void G_UseTargets(g_entity_t *ent, g_entity_t *activator);
-void G_SetMoveDir(vec3_t angles, vec3_t movedir);
+void G_SetMoveDir(g_entity_t *ent);
 char *G_GameplayName(int32_t g);
 g_gameplay_t G_GameplayByName(const char *c);
 g_team_t *G_TeamByName(const char *c);

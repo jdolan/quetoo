@@ -820,7 +820,7 @@ void G_func_button(g_entity_t *ent) {
 	vec3_t abs_move_dir;
 	float dist;
 
-	G_SetMoveDir(ent->s.angles, ent->locals.move_dir);
+	G_SetMoveDir(ent);
 	ent->locals.move_type = MOVE_TYPE_STOP;
 	ent->solid = SOLID_BSP;
 	gi.SetModel(ent, ent->model);
@@ -1216,7 +1216,7 @@ static void G_func_door_Touch(g_entity_t *self, g_entity_t *other,
 void G_func_door(g_entity_t *ent) {
 	vec3_t abs_move_dir;
 
-	G_SetMoveDir(ent->s.angles, ent->locals.move_dir);
+	G_SetMoveDir(ent);
 	ent->locals.move_type = MOVE_TYPE_PUSH;
 	ent->solid = SOLID_BSP;
 	gi.SetModel(ent, ent->model);
@@ -1733,7 +1733,7 @@ void G_func_wall(g_entity_t *self) {
 void G_func_water(g_entity_t *self) {
 	vec3_t abs_move_dir;
 
-	G_SetMoveDir(self->s.angles, self->locals.move_dir);
+	G_SetMoveDir(self);
 	self->locals.move_type = MOVE_TYPE_PUSH;
 	self->solid = SOLID_BSP;
 	gi.SetModel(self, self->model);

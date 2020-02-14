@@ -31,7 +31,7 @@
 static void G_Trigger_Init(g_entity_t *self) {
 
 	if (!Vec3_Equal(self->s.angles, Vec3_Zero())) {
-		G_SetMoveDir(self->s.angles, self->locals.move_dir);
+		G_SetMoveDir(self);
 	}
 
 	self->solid = SOLID_TRIGGER;
@@ -156,7 +156,7 @@ void G_trigger_multiple(g_entity_t *ent) {
 	}
 
 	if (!Vec3_Equal(ent->s.angles, Vec3_Zero())) {
-		G_SetMoveDir(ent->s.angles, ent->locals.move_dir);
+		G_SetMoveDir(ent);
 	}
 
 	gi.SetModel(ent, ent->model);

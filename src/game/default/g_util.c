@@ -175,7 +175,7 @@ g_entity_t *G_FindPtr(g_entity_t *from, ptrdiff_t field, const void *match) {
  *
  * G_FindRadius(origin, radius)
  */
-g_entity_t *G_FindRadius(g_entity_t *from, vec3_t org, float rad) {
+g_entity_t *G_FindRadius(g_entity_t *from, const vec3_t org, float rad) {
 
 	if (!from) {
 		from = g_game.entities;
@@ -336,22 +336,22 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 /**
  * @brief
  */
-void G_SetMoveDir(vec3_t angles, vec3_t move_dir) {
+void G_SetMoveDir(g_entity_t *ent) {
 
 	const vec3_t angles_up = { 0.0, -1.0, 0.0 };
 	const vec3_t dir_up = { 0.0, 0.0, 1.0 };
 	const vec3_t angles_down = { 0.0, -2.0, 0.0 };
 	const vec3_t dir_down = { 0.0, 0.0, -1.0 };
 
-	if (Vec3_Equal(angles, angles_up)) {
-		move_dir = dir_up;
-	} else if (Vec3_Equal(angles, angles_down)) {
-		move_dir = dir_down;
+	if (Vec3_Equal(ent->s.angles, angles_up)) {
+		ent->locals.move_dir = dir_up;
+	} else if (Vec3_Equal(ent->s.angles, angles_down)) {
+		ent->locals.move_dir = dir_down;
 	} else {
-		Vec3_Vectors(angles, &move_dir, NULL, NULL);
+		Vec3_Vectors(ent->s.angles, &ent->locals.move_dir, NULL, NULL);
 	}
 
-	angles = Vec3_Zero();
+	ent->s.angles = Vec3_Zero();
 }
 
 /**
