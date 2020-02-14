@@ -335,6 +335,10 @@ static _Bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags
 _Bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, const size_t output_len) {
 	parser_position_t old_position = { NULL, 0, 0 };
 
+	if (!parser) {
+		return false;
+	}
+
 	if (flags & PARSE_PEEK) {
 		old_position = parser->position;
 	}
