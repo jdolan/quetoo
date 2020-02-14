@@ -34,5 +34,5 @@ extern brush_t brushes[MAX_BSP_BRUSHES];
 
 extern vec3_t map_mins, map_maxs;
 
-int32_t FindPlane(vec3_t normal, double dist);
+int32_t FindPlane(const vec3_t normal, double dist);
 void LoadMapFile(const char *filename);

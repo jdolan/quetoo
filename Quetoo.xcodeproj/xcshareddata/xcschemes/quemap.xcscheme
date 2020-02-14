@@ -122,11 +122,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/lightgrid.map"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/torn.map"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/wake.map"
