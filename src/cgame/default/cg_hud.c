@@ -229,10 +229,7 @@ static void Cg_DrawPowerups(const player_state_t *ps) {
 
 	if (ps->stats[STAT_QUAD_TIME] > 0) {
 		const int32_t timer = ps->stats[STAT_QUAD_TIME];
-
 		Cg_DrawPowerup(y, timer, cgi.LoadImage("pics/i_quad", IT_PIC));
-
-		y += HUD_PIC_HEIGHT;
 	}
 
 	cgi.BindFont(NULL, NULL, NULL);

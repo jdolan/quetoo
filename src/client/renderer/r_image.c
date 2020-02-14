@@ -437,10 +437,8 @@ void R_DumpImage(const r_image_t *image, const char *output) {
  * @brief R_MediaEnumerator for R_DumpImages_f.
  */
 static void R_DumpImages_enumerator(const r_media_t *media, void *data) {
-	const r_image_t *image = NULL;
 
 	if (media->type == MEDIA_IMAGE || media->type == MEDIA_ATLAS) {
-		image = (const r_image_t *) media;
 
 		char path[MAX_OS_PATH];
 		g_snprintf(path, sizeof(path), "imgdmp/%s.png", media->name);

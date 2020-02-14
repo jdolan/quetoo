@@ -166,7 +166,6 @@ static void Cl_DrawRendererStats(void) {
 	y += ch;
 
 	R_DrawString(0, y, va("%d particles", r_view.num_particles), color_white);
-	y += ch;
 
 	R_BindFont(NULL, NULL, NULL);
 }
@@ -268,7 +267,6 @@ static void Cl_DrawCounters(void) {
 	y += ch;
 
 	R_DrawString(x, y, pps, color_white);
-	y += ch;
 
 	R_BindFont(NULL, NULL, NULL);
 }

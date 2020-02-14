@@ -953,7 +953,7 @@ void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir
  */
 void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int16_t damage,
                          int16_t knockback) {
-	vec3_t pos, end, water_pos;
+	vec3_t pos, end;
 
 	pos = start;
 
@@ -967,8 +967,6 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 
 	// are we starting in water?
 	if (gi.PointContents(pos) & MASK_LIQUID) {
-		water_pos = pos;
-
 		content_mask &= ~MASK_LIQUID;
 		liquid = true;
 	}
@@ -985,12 +983,11 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 		}
 
 		if ((tr.contents & MASK_LIQUID) && !liquid) {
-			water_pos = tr.end;
 
 			content_mask &= ~MASK_LIQUID;
 			liquid = true;
 
-			gi.PositionedSound(water_pos, NULL, g_media.sounds.water_in, ATTEN_NORM, 0);
+			gi.PositionedSound(tr.end, NULL, g_media.sounds.water_in, ATTEN_NORM, 0);
 
 			ignore = ent;
 			continue;
