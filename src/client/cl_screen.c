@@ -127,8 +127,8 @@ static void Cl_DrawRendererStats(void) {
 		return;
 	}
 
-	if (cls.state != CL_ACTIVE) {
-		return;
+	if (cls.key_state.dest == KEY_CONSOLE) {
+		y += r_context.height / 2.0;
 	}
 
 	R_BindFont("small", NULL, &ch);
@@ -154,7 +154,9 @@ static void Cl_DrawRendererStats(void) {
 	y += ch;
 	R_DrawString(0, y, "2D:", color_blue);
 	y += ch;
-
+	
+	R_DrawString(0, y, va("%d quads", r_view.count_draw_quads), color_blue);
+	y += ch;
 	R_DrawString(0, y, va("%d arrays", r_view.count_draw_arrays), color_blue);
 	y += ch;
 
@@ -293,7 +295,6 @@ void Cl_UpdateScreen(void) {
 
 		if (cls.key_state.dest != KEY_CONSOLE && cls.key_state.dest != KEY_UI) {
 			Cl_DrawNotify();
-			Cl_DrawRendererStats();
 			Cl_DrawSoundStats();
 
 			cls.cgame->UpdateScreen(&cl.frame);
@@ -309,6 +310,8 @@ void Cl_UpdateScreen(void) {
 	}
 
 	R_Draw2D();
+
+	Cl_DrawRendererStats();
 
 	R_EndFrame();
 

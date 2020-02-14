@@ -312,6 +312,7 @@ void R_BeginFrame(void) {
 	R_Clear();
 
 	r_view.count_draw_arrays = 0;
+	r_view.count_draw_quads = 0;
 
 	r_view.count_bsp_nodes = 0;
 	r_view.count_bsp_draw_elements = 0;

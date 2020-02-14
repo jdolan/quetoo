@@ -741,6 +741,7 @@ typedef struct {
 	// counters, reset each frame
 
 	int32_t count_draw_arrays;
+	int32_t count_draw_quads;
 
 	int32_t count_bsp_nodes;
 	int32_t count_bsp_draw_elements;

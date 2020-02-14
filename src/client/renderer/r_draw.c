@@ -112,6 +112,8 @@ static void R_AddDrawArrays(const r_draw_arrays_t *draw) {
 
 	r_draw.draw_arrays[r_draw.num_draw_arrays] = *draw;
 	r_draw.num_draw_arrays++;
+
+	r_view.count_draw_arrays++;
 }
 
 /**
@@ -131,12 +133,18 @@ static void R_EmitDrawVertexes_Quad(const r_draw_vertex_t *quad) {
 	r_draw.vertexes[r_draw.num_vertexes++] = quad[0];
 	r_draw.vertexes[r_draw.num_vertexes++] = quad[2];
 	r_draw.vertexes[r_draw.num_vertexes++] = quad[3];
+
+	r_view.count_draw_quads++;
 }
 
 /**
  * @brief
  */
 static void R_DrawChar_(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
+
+	if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
+		return;
+	}
 
 	const uint32_t row = (uint32_t) c >> 4;
 	const uint32_t col = (uint32_t) c & 15;
