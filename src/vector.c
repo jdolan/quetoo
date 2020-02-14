@@ -573,7 +573,6 @@ vec3_t Vec3_NormalizeLength(const vec3_t v, float *length) {
  */
 vec3_t Vec3_Normalize(const vec3_t v) {
 	float length;
-
 	return Vec3_NormalizeLength(v, &length);
 }
 
