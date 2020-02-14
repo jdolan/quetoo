@@ -472,13 +472,10 @@ tree_t *BuildTree(csg_brush_t *brushes, const vec3_t mins, const vec3_t maxs) {
 	Com_Debug(DEBUG_ALL, "%5i visible faces\n", c_vis_faces);
 	Com_Debug(DEBUG_ALL, "%5i nonvisible faces\n", c_non_vis_faces);
 
-	node_t *node = AllocNode();
+	tree->head_node = AllocNode();
+	tree->head_node->volume = BrushFromBounds(mins, maxs);
 
-	node->volume = BrushFromBounds(mins, maxs);
-
-	tree->head_node = node;
-
-	node = BuildTree_r(node, brushes);
+	BuildTree_r(tree->head_node, brushes);
 
 	return tree;
 }
