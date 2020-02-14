@@ -140,10 +140,10 @@ static void R_StageLighting(const r_bsp_face_t *surf, const r_stage_t *stage) {
 /**
  * @brief Generates a single vertex for the specified stage.
  */
-static void R_StageVertex(const r_bsp_face_t *surf, const r_stage_t *stage, const vec3_t in, vec3_t out) {
+static void R_StageVertex(const r_bsp_face_t *surf, const r_stage_t *stage, const vec3_t in, vec3_t *out) {
 
 	// TODO: vertex deformation
-	out = in;
+	*out = in;
 }
 
 /**
