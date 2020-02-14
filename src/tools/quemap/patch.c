@@ -96,7 +96,7 @@ void FreeTextureColors(void) {
 /**
  * @brief
  */
-static patch_t *BuildPatch(const bsp_face_t *face, vec3_t origin, cm_winding_t *w) {
+static patch_t *BuildPatch(const bsp_face_t *face, const vec3_t origin, cm_winding_t *w) {
 
 	patch_t *patch = &patches[face - bsp_file.faces];
 

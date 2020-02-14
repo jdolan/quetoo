@@ -218,7 +218,7 @@ float BrushVolume(csg_brush_t *brush) {
 /**
  * @return SIDE_FRONT, SIDE_BACK, or SIDE_BOTH
  */
-static int32_t BoxOnPlaneSide(vec3_t mins, vec3_t maxs, plane_t *plane) {
+static int32_t BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const plane_t *plane) {
 	int32_t side = 0;
 
 	// axial planes are easy

@@ -490,7 +490,7 @@ static void FloodPortals_r(node_t *node, int32_t occupied) {
 /**
  * @return True if the entity can be placed in a valid leaf beneath head_node, false otherwise.
  */
-static _Bool PlaceOccupant(node_t *head_node, vec3_t origin, const entity_t *occupant) {
+static _Bool PlaceOccupant(node_t *head_node, const vec3_t origin, const entity_t *occupant) {
 
 	node_t *node = head_node;
 	while (node->plane_num != PLANE_NUM_LEAF) {
