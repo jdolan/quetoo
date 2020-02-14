@@ -267,7 +267,7 @@ static void G_Friction(g_entity_t *ent) {
 /**
  * @see Pm_Accelerate
  */
-static void G_Accelerate(g_entity_t *ent, vec3_t dir, float speed, float accel) {
+static void G_Accelerate(g_entity_t *ent, const vec3_t dir, float speed, float accel) {
 
 	const float current_speed = Vec3_Dot(ent->locals.velocity, dir);
 	const float add_speed = speed - current_speed;
@@ -490,7 +490,7 @@ static void G_Physics_Push_Rotate(g_entity_t *self, g_entity_t *ent, float yaw) 
 /**
  * @brief
  */
-static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amove) {
+static g_entity_t *G_Physics_Push_Move(g_entity_t *self, const vec3_t move, const vec3_t amove) {
 	vec3_t inverse_amove, forward, right, up;
 	g_entity_t *ents[MAX_ENTITIES];
 

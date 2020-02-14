@@ -44,7 +44,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir,
                          int16_t damage, int16_t knockback);
 void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir,
                      int32_t speed, int16_t damage, int16_t knockback, float damage_radius);
-void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile, vec3_t const start,
+void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile, const vec3_t start,
                              const vec3_t dir, int32_t speed, int16_t damage, int16_t knockback, float damage_radius,
                              uint32_t timer);
 void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,

@@ -510,7 +510,7 @@ void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
 /**
  * @brief
  */
-void G_GrenadeProjectile(g_entity_t *ent, vec3_t const start, const vec3_t dir, int32_t speed,
+void G_GrenadeProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
                          int16_t damage, int16_t knockback, float damage_radius, uint32_t timer) {
 
 	const vec3_t mins = { -3.0, -3.0, -3.0 };
