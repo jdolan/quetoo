@@ -57,7 +57,7 @@ static sv_world_t sv_world;
 /**
  * @brief Builds a uniformly subdivided tree for the given world size.
  */
-static sv_sector_t *Sv_CreateSector(int32_t depth, vec3_t mins, vec3_t maxs) {
+static sv_sector_t *Sv_CreateSector(int32_t depth, const vec3_t mins, const vec3_t maxs) {
 	vec3_t size, mins1, maxs1, mins2, maxs2;
 
 	sv_sector_t *sector = &sv_world.sectors[sv_world.num_sectors];
