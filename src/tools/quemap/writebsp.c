@@ -24,6 +24,7 @@
 #include "material.h"
 #include "portal.h"
 #include "qbsp.h"
+#include "writebsp.h"
 
 static int32_t c_nofaces;
 static int32_t c_facenodes;

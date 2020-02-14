@@ -444,6 +444,7 @@ void Cg_AddEmits(void) {
 				.origin = e->org,
 				.radius = e->radius,
 				.color = e->color,
+				.decay = 0
 			});
 		}
 

@@ -21,6 +21,7 @@
 
 #include "bsp.h"
 #include "map.h"
+#include "texinfo.h"
 
 /**
  * @brief

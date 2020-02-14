@@ -99,7 +99,7 @@ static struct {
 /**
  * @brief
  */
-void R_AddDrawArrays(const r_draw_arrays_t *draw) {
+static void R_AddDrawArrays(const r_draw_arrays_t *draw) {
 
 	if (r_draw.num_draw_arrays == MAX_DRAW_GEOMETRY) {
 		Com_Warn("MAX_DRAW_GEOMETRY\n");

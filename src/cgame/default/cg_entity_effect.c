@@ -97,7 +97,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_QUAD) {
-		cg_light_t l = { .radius = 80.0, .color = { 0.3, 0.7, 0.7 } };
+		cg_light_t l = { .radius = 80.0, .color = { 0.3, 0.7, 0.7 }, .decay = 0 };
 
 		l.origin = e->origin;
 		Cg_AddLight(&l);
@@ -106,7 +106,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_CTF_RED) {
-		cg_light_t l = { .radius = 80.0, .color = { 1.0, 0.3, 0.3 } };
+		cg_light_t l = { .radius = 80.0, .color = { 1.0, 0.3, 0.3 }, .decay = 0 };
 
 		l.origin = e->origin;
 		Cg_AddLight(&l);
@@ -115,7 +115,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_CTF_BLUE) {
-		cg_light_t l = { .radius = 80.0, .color = { 0.3, 0.3, 1.0 } };
+		cg_light_t l = { .radius = 80.0, .color = { 0.3, 0.3, 1.0 }, .decay = 0 };
 
 		l.origin = e->origin;
 		Cg_AddLight(&l);
@@ -124,7 +124,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_CTF_GREEN) {
-		cg_light_t l = { .radius = 80.0, .color = { 0.3, 1.0, 0.3 } };
+		cg_light_t l = { .radius = 80.0, .color = { 0.3, 1.0, 0.3 }, .decay = 0 };
 
 		l.origin = e->origin;
 		Cg_AddLight(&l);
@@ -133,7 +133,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_CTF_ORANGE) {
-		cg_light_t l = { .radius = 80.0, .color = { 1.0, 0.7, 0.1 } };
+		cg_light_t l = { .radius = 80.0, .color = { 1.0, 0.7, 0.1 }, .decay = 0 };
 
 		l.origin = e->origin;
 		Cg_AddLight(&l);
@@ -157,7 +157,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_LIGHT) {
-		cg_light_t l = { .radius = ent->current.termination.x };
+		cg_light_t l = { .radius = ent->current.termination.x, .decay = 0 };
 
 		l.origin = e->origin;
 

@@ -107,7 +107,7 @@ static int32_t ProjectLuxel(const lightmap_t *lm, luxel_t *l, float soffs, float
 /**
  * @brief Authors a .map file which can be imported into Radiant to view the luxel projections.
  */
-void DebugLightmapLuxels(void) {
+static void DebugLightmapLuxels(void) {
 
 	file_t *file = NULL;
 

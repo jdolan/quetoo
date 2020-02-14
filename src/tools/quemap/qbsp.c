@@ -28,6 +28,7 @@
 #include "prtfile.h"
 #include "tjunction.h"
 #include "writebsp.h"
+#include "qbsp.h"
 
 float micro_volume = 0.125;
 
