@@ -255,7 +255,7 @@ static int32_t ProjectLuxel(const lightmap_t *lm, luxel_t *l, float soffs, float
 	const float s = lm->st_mins.x + padding_s + l->s + 0.5 + soffs;
 	const float t = lm->st_mins.y + padding_t + l->t + 0.5 + toffs;
 
-	const vec3_t st = { s , t, 0.0 };
+	const vec3_t st = Vec3(s , t, 0.0);
 	Matrix4x4_Transform(&lm->inverse_matrix, st.xyz, l->origin.xyz);
 
 	if (lm->texinfo->flags & SURF_PHONG) {
@@ -493,10 +493,10 @@ static void LightLuxel(const lightmap_t *lightmap, luxel_t *luxel, const byte *p
  */
 void DirectLightmap(int32_t face_num) {
 
-	static const vec3_t offsets[] = {
-		{ +0.0, +0.0, 0.195346 }, { -1.0, -1.0, 0.077847 }, { +0.0, -1.0, 0.123317 },
-		{ +1.0, -1.0, 0.077847 }, { -1.0, +0.0, 0.123317 }, { +1.0, +0.0, 0.123317 },
-		{ -1.0, +1.0, 0.077847 }, { +0.0, +1.0, 0.123317 }, { +1.0, +1.0, 0.077847 }
+	const vec3_t offsets[] = {
+		Vec3(+0.0, +0.0, 0.195346), Vec3(-1.0, -1.0, 0.077847), Vec3(+0.0, -1.0, 0.123317),
+		Vec3(+1.0, -1.0, 0.077847), Vec3(-1.0, +0.0, 0.123317), Vec3(+1.0, +0.0, 0.123317),
+		Vec3(-1.0, +1.0, 0.077847), Vec3(+0.0, +1.0, 0.123317), Vec3(+1.0, +1.0, 0.07784),
 	};
 
 	const lightmap_t *lm = &lightmaps[face_num];
@@ -545,10 +545,10 @@ void DirectLightmap(int32_t face_num) {
  */
 void IndirectLightmap(int32_t face_num) {
 
-	static const vec2_t offsets[] = {
-		{ +0.0, +0.0 }, { -1.0, -1.0 }, { +0.0, -1.0 },
-		{ +1.0, -1.0 }, { -1.0, +0.0 }, { +1.0, +0.0 },
-		{ -1.0, +1.0 }, { +0.0, +1.0 }, { +1.0, +1.0 }
+	const vec2_t offsets[] = {
+		Vec2(+0.0, +0.0), Vec2(-1.0, -1.0), Vec2(+0.0, -1.0),
+		Vec2(+1.0, -1.0), Vec2(-1.0, +0.0), Vec2(+1.0, +0.0),
+		Vec2(-1.0, +1.0), Vec2(+0.0, +1.0), Vec2(+1.0, +1.0),
 	};
 
 	const lightmap_t *lm = &lightmaps[face_num];

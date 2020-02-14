@@ -874,8 +874,8 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 		return;
 	}
 
-	vec4_t blend = { 0.0, 0.0, 0.0, 0.0 };
-
+	vec4_t blend = Vec4_Zero();
+	
 	// start with base blend based on view origin conents
 
 	const int32_t contents = cgi.view->contents;

@@ -27,24 +27,24 @@
  */
 static void TextureAxisFromPlane(const plane_t *plane, vec3_t *xv, vec3_t *yv) {
 	static const vec3_t base_axis[18] = { // base texture axis
-		{ 0, 0, 1 },
-		{ 1, 0, 0 },
-		{ 0, -1, 0 }, // floor
-		{ 0, 0, -1 },
-		{ 1, 0, 0 },
-		{ 0, -1, 0 }, // ceiling
-		{ 1, 0, 0 },
-		{ 0, 1, 0 },
-		{ 0, 0, -1 }, // west wall
-		{ -1, 0, 0 },
-		{ 0, 1, 0 },
-		{ 0, 0, -1 }, // east wall
-		{ 0, 1, 0 },
-		{ 1, 0, 0 },
-		{ 0, 0, -1 }, // south wall
-		{ 0, -1, 0 },
-		{ 1, 0, 0 },
-		{ 0, 0, -1 }, // north wall
+		{ {  0,  0,  1 } },
+		{ {  1,  0,  0 } },
+		{ {  0, -1,  0 } }, // floor
+		{ {  0,  0, -1 } },
+		{ {  1,  0,  0 } },
+		{ {  0, -1,  0 } }, // ceiling
+		{ {  1,  0,  0 } },
+		{ {  0,  1,  0 } },
+		{ {  0,  0, -1 } }, // west wall
+		{ { -1,  0,  0 } },
+		{ {  0,  1,  0 } },
+		{ {  0,  0, -1 } }, // east wall
+		{ {  0,  1,  0 } },
+		{ {  1,  0,  0 } },
+		{ {  0,  0, -1 } }, // south wall
+		{ {  0, -1,  0 } },
+		{ {  1,  0,  0 } },
+		{ {  0,  0, -1 } }, // north wall
 	};
 
 	int32_t best_axis = 0;

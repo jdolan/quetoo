@@ -303,8 +303,19 @@ static void G_ClientCorpse_Think(g_entity_t *self) {
 static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
                                uint32_t mod) {
 
-	const vec3_t mins[] = { { -6.0, -6.0, -6.0 }, { -6.0, -6.0, -6.0 }, { -4.0, -4.0, -4.0 }, { -8.0, -8.0, -8.0 } };
-	const vec3_t maxs[] = { { 6.0, 6.0, 6.0 }, { 6.0, 6.0, 6.0 }, { 4.0, 4.0, 4.0 }, { 8.0, 8.0, 8.0 } };
+	const vec3_t mins[] = {
+		Vec3(-6.0, -6.0, -6.0),
+		Vec3(-6.0, -6.0, -6.0),
+		Vec3(-4.0, -4.0, -4.0),
+		Vec3(-8.0, -8.0, -8.0),
+	};
+
+	const vec3_t maxs[] = {
+		Vec3(6.0, 6.0, 6.0),
+		Vec3(6.0, 6.0, 6.0),
+		Vec3(4.0, 4.0, 4.0),
+		Vec3(8.0, 8.0, 8.0),
+	};
 
 	uint16_t i, count = Randomr(4, 8);
 

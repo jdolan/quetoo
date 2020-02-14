@@ -22,8 +22,8 @@
 #include "g_local.h"
 #include "bg_pmove.h"
 
-const vec3_t ITEM_MINS = { -16.0, -16.0, -16.0 };
-const vec3_t ITEM_MAXS = { 16.0, 16.0, 32.0 };
+const vec3_t ITEM_MINS = { { -16.0, -16.0, -16.0 } };
+const vec3_t ITEM_MAXS = { {  16.0,  16.0,  32.0 } };
 
 #define ITEM_SCALE 1.0
 

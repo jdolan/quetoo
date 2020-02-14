@@ -338,10 +338,10 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
  */
 void G_SetMoveDir(g_entity_t *ent) {
 
-	const vec3_t angles_up = { 0.0, -1.0, 0.0 };
-	const vec3_t dir_up = { 0.0, 0.0, 1.0 };
-	const vec3_t angles_down = { 0.0, -2.0, 0.0 };
-	const vec3_t dir_down = { 0.0, 0.0, -1.0 };
+	const vec3_t angles_up = Vec3(0.0, -1.0, 0.0);
+	const vec3_t dir_up = Vec3(0.0, 0.0, 1.0 );
+	const vec3_t angles_down = Vec3(0.0, -2.0, 0.0);
+	const vec3_t dir_down = Vec3(0.0, 0.0, -1.0);
 
 	if (Vec3_Equal(ent->s.angles, angles_up)) {
 		ent->locals.move_dir = dir_up;

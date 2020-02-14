@@ -32,7 +32,7 @@ int32_t Step(int32_t value, int32_t step) {
 		return 0; // divide by zero check
 	}
 
-	return floor(value / (float) step) * step;
+	return (int32_t) floorf(value / (float) step) * step;
 }
 
 /**
@@ -62,7 +62,7 @@ int32_t Random(void) {
  * @brief Returns a pseudo-random float between -1.0 and 1.0.
  */
 float Randomc(void) {
-	return (Random()) * (2.0 / 0x7fffffff) - 1.0;
+	return (Random()) * (2.f / 0x7fffffff) - 1.f;
 }
 
 /**
@@ -506,7 +506,7 @@ char *vtos(const vec3_t v) {
 void StrLower(const char *in, char *out) {
 
 	while (*in) {
-		(*(out++)) = tolower(*(in++));
+		(*(out++)) = (char) tolower(*(in++));
 	}
 }
 

@@ -26,14 +26,14 @@
  * in Pm_Init. They are referenced in a few other places e.g. to create effects
  * at a certain body position on the player model.
  */
-const vec3_t PM_MINS = { -16.0, -16.0, -24.0 };
-const vec3_t PM_MAXS = {  16.0,  16.0,  32.0 };
+const vec3_t PM_MINS = { { -16.f, -16.f, -24.f } };
+const vec3_t PM_MAXS = { {  16.f,  16.f,  32.f } };
 
-static const vec3_t PM_DEAD_MINS = { -16.0, -16.0, -24.0 };
-static const vec3_t PM_DEAD_MAXS = {  16.0,  16.0,  -4.0 };
+static const vec3_t PM_DEAD_MINS = { { -16.f, -16.f, -24.f } };
+static const vec3_t PM_DEAD_MAXS = { {  16.f,  16.f,  -4.f } };
 
-static const vec3_t PM_GIBLET_MINS = { -8.0, -8.0, -8.0 };
-static const vec3_t PM_GIBLET_MAXS = {  8.0,  8.0,  8.0 };
+static const vec3_t PM_GIBLET_MINS = { { -8.f, -8.f, -8.f } };
+static const vec3_t PM_GIBLET_MAXS = { {  8.f,  8.f,  8.f } };
 
 static pm_move_t *pm;
 
@@ -608,10 +608,10 @@ static _Bool Pm_CheckTrickJump(void) {
 static void Pm_SnapToWalls(void) {
 
 	const vec3_t dirs[] = {
-		{  1.0,  0.0,  0.0 },
-		{ -1.0,  0.0,  0.0 },
-		{  0.0,  1.0,  0.0 },
-		{  0.0, -1.0,  0.0 }
+		Vec3( 1.0,  0.0,  0.0 ),
+		Vec3(-1.0,  0.0,  0.0 ),
+		Vec3( 0.0,  1.0,  0.0 ),
+		Vec3( 0.0, -1.0,  0.0 )
 	};
 
 	for (uint32_t i = 0; i < lengthof(dirs); i++) {

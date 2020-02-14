@@ -85,7 +85,7 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 	Cg_AddLight(&(cg_light_t) {
 		.origin = org,
 		.radius = 120.0,
-		.color = { 0.8, 0.7, 0.5 },
+		.color = Vec3(0.8, 0.7, 0.5),
 		.decay = 300
 	});
 

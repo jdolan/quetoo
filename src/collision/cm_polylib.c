@@ -224,6 +224,7 @@ cm_winding_t *Cm_WindingForFace(const bsp_file_t *file, const bsp_face_t *face) 
 void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, const double dist, double epsilon,
 						cm_winding_t **front, cm_winding_t **back) {
 
+	assert(in->num_points);
 	const int32_t max_points = in->num_points + 4;
 
 	double dists[max_points];
@@ -328,6 +329,8 @@ void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, const double d
 void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, const double dist, const double epsilon) {
 
 	cm_winding_t *in = *in_out;
+	
+	assert(in->num_points);
 	const int32_t max_points = in->num_points + 4;
 
 	double dists[max_points];

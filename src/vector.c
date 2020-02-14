@@ -114,8 +114,8 @@ vec3i_t Vec3i_Zero(void) {
 
 #pragma mark - single precision
 
-#define RAD2DEG (180.f / M_PI)
-#define DEG2RAD (M_PI / 180.f)
+#define RAD2DEG (float) (180.f / M_PI)
+#define DEG2RAD (float) (M_PI / 180.f)
 
 /**
  * @brief
@@ -169,14 +169,14 @@ float RandomRangef(float begin, float end) {
 		g_random_set_seed(seed);
 	}
 
-	return g_random_double_range(begin, end);
+	return (float) g_random_double_range(begin, end);
 }
 
 /**
  * @brief
  */
 float Randomf(void) {
-	return g_random_double();
+	return (float) g_random_double();
 }
 
 /**
@@ -561,7 +561,7 @@ vec3_t Vec3_Negate(const vec3_t v) {
  */
 vec3_t Vec3_NormalizeLength(const vec3_t v, float *length) {
 	*length = Vec3_Length(v);
-	if (*length) {
+	if (*length > 0.f) {
 		return Vec3_Scale(v, 1.f / *length);
 	} else {
 		return Vec3_Zero();
@@ -610,7 +610,7 @@ vec3_t Vec3_Random(void) {
  * @brief
  */
 vec3_t vec3_reflect(const vec3_t a, const vec3_t b) {
-	return Vec3_Add(a, Vec3_Scale(b, -2.0 * Vec3_Dot(a, b)));
+	return Vec3_Add(a, Vec3_Scale(b, -2.f * Vec3_Dot(a, b)));
 }
 
 /**
