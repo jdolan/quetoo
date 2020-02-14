@@ -163,9 +163,10 @@ static void SnapPlane(vec3_t *normal, double *dist) {
 /**
  * @brief
  */
-int32_t FindPlane(vec3_t normal, double dist) {
+int32_t FindPlane(const vec3_t normal, double dist) {
 
-	SnapPlane(&normal, &dist);
+	vec3_t snapped = normal;
+	SnapPlane(&snapped, &dist);
 
 	const int32_t hash = ((int32_t) fabs(dist)) & (PLANE_HASHES - 1);
 
@@ -175,14 +176,14 @@ int32_t FindPlane(vec3_t normal, double dist) {
 		
 		const plane_t *p = plane_hash[h];
 		while (p) {
-			if (PlaneEqual(p, normal, dist)) {
+			if (PlaneEqual(p, snapped, dist)) {
 				return (int32_t) (ptrdiff_t) (p - planes);
 			}
 			p = p->hash_chain;
 		}
 	}
 
-	return CreatePlane(normal, dist);
+	return CreatePlane(snapped, dist);
 }
 
 /**
