@@ -505,7 +505,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 				.origin = pos,
 				.radius = 8.0 + Randomf() * 4.0,
 				.media = cg_stain_lightning,
-				.color = { 0.0, 0.0, 0.0, 0.33 },
+				.color = Vec4(0.0, 0.0, 0.0, 0.33),
 			});
 
 			pos = Vec3_Add(tr.end, Vec3_Scale(tr.plane.normal, 2.0));
@@ -672,7 +672,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 				.origin = p->origin,
 				.radius = 12.0 * Randomf() * 3.0,
 				.media = cg_stain_blood,
-				.color = { 0.5 + (Randomf() * 0.3), 0.0, 0.0, 0.1 + Randomf() * 0.2 },
+				.color = Vec4(0.5 + (Randomf() * 0.3), 0.0, 0.0, 0.1 + Randomf() * 0.2),
 			});
 		}
 
@@ -693,7 +693,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
  * @brief
  */
 static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
-	const vec3_t color = { 0.9, 0.3, 0.1 };
+	const vec3_t color = Vec3(0.9, 0.3, 0.1);
 
 	if (cgi.PointContents(end) & MASK_LIQUID) {
 		return;

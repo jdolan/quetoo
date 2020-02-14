@@ -396,7 +396,7 @@ void G_TouchOccupy(g_entity_t *ent) {
 
 		if (occupied->locals.Touch) {
 			static cm_bsp_plane_t plane = {
-				.normal = { 0.0, 0.0, 1.0 },
+				.normal = { { 0.0, 0.0, 1.0 } },
 				.dist = 0.0,
 				.type = PLANE_Z
 			};

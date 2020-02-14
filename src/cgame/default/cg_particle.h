@@ -23,7 +23,7 @@
 
 #ifdef __CG_LOCAL_H__
 
-#define PARTICLE_GRAVITY 180.0
+#define PARTICLE_GRAVITY 180.f
 
 #define PARTICLE_FRAME 16
 

@@ -248,11 +248,11 @@ static vec3_t G_ProjectImpactPoint(const g_entity_t *projectile, const g_entity_
 			vec3_t translate;
 			translate = Vec3_Subtract(point, other->s.origin);
 
-			const vec3_t rotate = {
-				Vec3_Dot(translate, forward),
+			const vec3_t rotate = Vec3(
+				 Vec3_Dot(translate, forward),
 				-Vec3_Dot(translate, right),
-				Vec3_Dot(translate, up)
-			};
+				 Vec3_Dot(translate, up)
+			);
 
 			vec3_t delta;
 			delta = Vec3_Subtract(rotate, translate);
@@ -338,8 +338,8 @@ static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
                          int16_t damage, int16_t knockback) {
 
-	const vec3_t mins = { -1.0, -1.0, -1.0 };
-	const vec3_t maxs = { 1.0, 1.0, 1.0 };
+	const vec3_t mins = Vec3(-1.0, -1.0, -1.0);
+	const vec3_t maxs = Vec3( 1.0,  1.0,  1.0);
 
 	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;
@@ -513,8 +513,8 @@ void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
 void G_GrenadeProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
                          int16_t damage, int16_t knockback, float damage_radius, uint32_t timer) {
 
-	const vec3_t mins = { -3.0, -3.0, -3.0 };
-	const vec3_t maxs = { 3.0, 3.0, 3.0 };
+	const vec3_t mins = Vec3(-3.0, -3.0, -3.0);
+	const vec3_t maxs = Vec3( 3.0,  3.0,  3.0);
 
 	vec3_t forward, right, up;
 
@@ -563,8 +563,8 @@ void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile,
                              vec3_t const start, const vec3_t dir, int32_t speed, int16_t damage,
                              int16_t knockback, float damage_radius, uint32_t timer) {
 
-	const vec3_t mins = { -2.0, -2.0, -2.0 };
-	const vec3_t maxs = { 2.0, 2.0, 2.0 };
+	const vec3_t mins = Vec3(-2.0, -2.0, -2.0);
+	const vec3_t maxs = Vec3( 2.0,  2.0,  2.0);
 
 	vec3_t forward, right, up;
 
@@ -648,8 +648,8 @@ static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other,
 void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
                         int16_t damage, int16_t knockback, float damage_radius) {
 
-	const vec3_t mins = { -2.0, -2.0, -2.0 };
-	const vec3_t maxs = { 2.0, 2.0, 2.0 };
+	const vec3_t mins = Vec3(-2.0, -2.0, -2.0);
+	const vec3_t maxs = Vec3( 2.0,  2.0,  2.0);
 
 	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;
@@ -736,8 +736,8 @@ static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
                               int16_t damage, int16_t knockback) {
 
-	const vec3_t mins = { -3.0, -3.0, -3.0 };
-	const vec3_t maxs = { 3.0, 3.0, 3.0 };
+	const vec3_t mins = Vec3(-3.0, -3.0, -3.0);
+	const vec3_t maxs = Vec3( 3.0,  3.0,  3.0);
 
 	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;
@@ -1117,8 +1117,8 @@ static void G_BfgProjectile_Think(g_entity_t *self) {
 void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
                      int16_t damage, int16_t knockback, float damage_radius) {
 
-	const vec3_t mins = { -4.0, -4.0, -4.0 };
-	const vec3_t maxs = { 4.0, 4.0, 4.0 };
+	const vec3_t mins = Vec3(-4.0, -4.0, -4.0);
+	const vec3_t maxs = Vec3( 4.0,  4.0,  4.0);
 
 	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;

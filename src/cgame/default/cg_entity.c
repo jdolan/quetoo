@@ -84,13 +84,13 @@ void Cg_TraverseStep(cl_entity_step_t *step, uint32_t time, float height) {
 
 	if (delta < step->interval) {
 		const float lerp = (step->interval - delta) / (float) step->interval;
-		step->height = step->height * (1.0 - lerp) + height;
+		step->height = step->height * (1.f - lerp) + height;
 	} else {
 		step->height = height;
 		step->timestamp = time;
 	}
 
-	step->interval = 128.0 * (fabs(step->height) / PM_STEP_HEIGHT);
+	step->interval = 128.f * (fabsf(step->height) / PM_STEP_HEIGHT);
 }
 
 /**
@@ -234,17 +234,17 @@ r_entity_t *Cg_AddLinkedEntity(const r_entity_t *parent, const r_model_t *model,
 /**
  * @brief The min velocity we should apply leg rotation on.
  */
-#define CLIENT_LEGS_SPEED_EPSILON		0.5
+#define CLIENT_LEGS_SPEED_EPSILON		.5f
 
 /**
  * @brief The max yaw that we'll rotate the legs by when moving left/right.
  */
-#define CLIENT_LEGS_YAW_MAX				65.0
+#define CLIENT_LEGS_YAW_MAX				65.f
 
 /**
  * @brief The speed (0 to 1) that the legs will catch up to the current leg yaw.
  */
-#define CLIENT_LEGS_YAW_LERP_SPEED		0.1
+#define CLIENT_LEGS_YAW_LERP_SPEED		.1f
 
 /**
  * @brief Adds the numerous render entities which comprise a given client (player)
@@ -296,7 +296,7 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	// copy the specified entity to all body segments
 	head = torso = legs = *e;
 
-	float leg_yaw_offset = 0.0;
+	float leg_yaw_offset = 0.f;
 
 	if ((ent->current.effects & EF_CORPSE) == 0) {
 		vec3_t right;
@@ -304,7 +304,7 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 
 		vec3_t move_dir;
 		move_dir = Vec3_Subtract(ent->prev.origin, ent->current.origin);
-		move_dir.z = 0.0; // don't care about z, just x/y
+		move_dir.z = 0.f; // don't care about z, just x/y
 
 		if (ent->animation2.animation < ANIM_LEGS_SWIM) {
 			if (Vec3_Length(move_dir) > CLIENT_LEGS_SPEED_EPSILON) {
@@ -380,11 +380,11 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
  * @brief Adds weapon bob due to running, walking, crouching, etc.
  */
 static void Cg_WeaponBob(const player_state_t *ps, vec3_t *offset, vec3_t *angles) {
-	const vec3_t bob = { 0.2, 0.4, 0.2 };
+	const vec3_t bob = Vec3(0.2f, 0.4f, 0.2f);
 
 	*offset = Vec3_Add(*offset, Vec3_Scale(bob, cg_view.bob));
 
-	*angles = Vec3_Add(*angles, Vec3(0.f, 1.5 * cg_view.bob, 0.f));
+	*angles = Vec3_Add(*angles, Vec3(0.f, 1.5f * cg_view.bob, 0.f));
 }
 
 /**
@@ -392,11 +392,11 @@ static void Cg_WeaponBob(const player_state_t *ps, vec3_t *offset, vec3_t *angle
  */
 static void Cg_WeaponOffset(cl_entity_t *ent, vec3_t *offset, vec3_t *angles) {
 
-	const vec3_t drop_raise_offset = { -4.0, -4.0, -4.0 };
-	const vec3_t drop_raise_angles = { 25.0, -35.0, 2.0 };
+	const vec3_t drop_raise_offset = Vec3(-4.f, -4.f, -4.f);
+	const vec3_t drop_raise_angles = Vec3(25.f, -35.f, 2.f);
 
-	const vec3_t kick_offset = { -6.0, 0.0, 0.0 };
-	const vec3_t kick_angles = { -2.0, 0.0, 0.0 };
+	const vec3_t kick_offset = Vec3(-6.f, 0.f, 0.f);
+	const vec3_t kick_angles = Vec3(-2.f, 0.f, 0.f);
 
 	*offset = Vec3_Zero();
 	*angles = Vec3_Zero();
@@ -405,11 +405,11 @@ static void Cg_WeaponOffset(cl_entity_t *ent, vec3_t *offset, vec3_t *angles) {
 		*offset = Vec3_Add(*offset, Vec3_Scale(drop_raise_offset, ent->animation1.fraction));
 		*angles = Vec3_Scale(drop_raise_angles, ent->animation1.fraction);
 	} else if (ent->animation1.animation == ANIM_TORSO_RAISE) {
-		*offset = Vec3_Add(*offset, Vec3_Scale(drop_raise_offset, 1.0 - ent->animation1.fraction));
-		*angles = Vec3_Scale(drop_raise_angles, 1.0 - ent->animation1.fraction);
+		*offset = Vec3_Add(*offset, Vec3_Scale(drop_raise_offset, 1.f - ent->animation1.fraction));
+		*angles = Vec3_Scale(drop_raise_angles, 1.f - ent->animation1.fraction);
 	} else if (ent->animation1.animation == ANIM_TORSO_ATTACK1) {
-		*offset = Vec3_Add(*offset, Vec3_Scale(kick_offset, 1.0 - ent->animation1.fraction));
-		*angles = Vec3_Scale(kick_angles, 1.0 - ent->animation1.fraction);
+		*offset = Vec3_Add(*offset, Vec3_Scale(kick_offset, 1.f - ent->animation1.fraction));
+		*angles = Vec3_Scale(kick_angles, 1.f - ent->animation1.fraction);
 	}
 
 	*offset = Vec3_Scale(*offset, cg_bob->value);
@@ -437,7 +437,7 @@ static void Cg_SpeedModulus(const player_state_t *ps, vec3_t *offset) {
 
 	const uint32_t delta = cgi.client->unclamped_time - time;
 	if (delta < 100) {
-		const float lerp = delta / 100.0;
+		const float lerp = delta / 100.f;
 
 		speed.x = old_speed.x + lerp * (new_speed.x - old_speed.x);
 		speed.y = old_speed.y + lerp * (new_speed.y - old_speed.y);
@@ -445,9 +445,9 @@ static void Cg_SpeedModulus(const player_state_t *ps, vec3_t *offset) {
 	} else {
 		old_speed = new_speed;
 
-		new_speed.x = -Clampf(ps->pm_state.velocity.x / 200.0, -1.0, 1.0);
-		new_speed.y = -Clampf(ps->pm_state.velocity.y / 200.0, -1.0, 1.0);
-		new_speed.z = -Clampf(ps->pm_state.velocity.z / 200.0, -0.3, 1.0);
+		new_speed.x = -Clampf(ps->pm_state.velocity.x / 200.f, -1.f, 1.f);
+		new_speed.y = -Clampf(ps->pm_state.velocity.y / 200.f, -1.f, 1.f);
+		new_speed.z = -Clampf(ps->pm_state.velocity.z / 200.f, -.3f, 1.f);
 
 		speed = old_speed;
 
@@ -514,10 +514,10 @@ static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 
 	switch (cg_hand->integer) {
 		case HAND_LEFT:
-			offset.y -= 5.0;
+			offset.y -= 5.f;
 			break;
 		case HAND_RIGHT:
-			offset.y += 5.0;
+			offset.y += 5.f;
 			break;
 		default:
 			break;

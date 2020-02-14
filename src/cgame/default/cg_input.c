@@ -39,7 +39,7 @@ static cg_kick_t cg_kick;
  */
 void Cg_ParseViewKick(void) {
 
-	const vec3_t kick = { cgi.ReadAngle(), 0.0, cgi.ReadAngle() };
+	const vec3_t kick = Vec3(cgi.ReadAngle(), 0.0, cgi.ReadAngle());
 
 	cg_kick.prev = cg_kick.kick;
 	cg_kick.next = Vec3_Add(cg_kick.prev, kick);

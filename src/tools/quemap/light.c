@@ -55,7 +55,7 @@ float ColorNormalize(const vec3_t in, vec3_t *out) {
  * @brief Applies brightness, saturation and contrast to the specified input color.
  */
 vec3_t ColorFilter(const vec3_t in) {
-	const vec3_t luminosity = { 0.2125, 0.7154, 0.0721 };
+	const vec3_t luminosity = Vec3(0.2125, 0.7154, 0.0721);
 
 	vec3_t out;
 	ColorNormalize(in, &out);
@@ -161,7 +161,7 @@ static light_t *LightForEntity(const GList *entities, const cm_entity_t *entity)
 			}
 		} else {
 			if (light->type == LIGHT_SPOT) {
-				vec3_t angles = { 0.0, 0.0, 0.0 };
+				vec3_t angles = Vec3_Zero();
 				if (Cm_EntityVector(entity, "_angle", &angles.y, 1) == 1) {
 					if (angles.y == LIGHT_ANGLE_UP) {
 						light->normal = Vec3_Up();

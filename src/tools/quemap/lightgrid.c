@@ -112,7 +112,7 @@ static int32_t ProjectLightgridLuxel(luxel_t *l, float soffs, float toffs, float
 	const float t = lg.stu_mins.y + padding_t + l->t + 0.5 + toffs;
 	const float u = lg.stu_mins.z + padding_u + l->u + 0.5 + uoffs;
 
-	const vec3_t stu = { s, t, u };
+	const vec3_t stu = Vec3(s, t, u);
 	Matrix4x4_Transform(&lg.inverse_matrix, stu.xyz, l->origin.xyz);
 
 	return Light_PointContents(l->origin, 0);
@@ -386,12 +386,12 @@ static void LightLuxel(luxel_t *luxel, const byte *pvs, float scale) {
  */
 void DirectLightgrid(int32_t luxel_num) {
 
-	static const vec4_t offsets[] = {
-		{ +0.000, +0.000, +0.000, 0.400 },
-		{ -0.25, -0.25, -0.25, 0.075 }, { -0.25, +0.25, -0.25, 0.075 },
-		{ +0.25, -0.25, -0.25, 0.075 }, { +0.25, +0.25, -0.25, 0.075 },
-		{ -0.25, -0.25, +0.25, 0.075 }, { -0.25, +0.25, +0.25, 0.075 },
-		{ +0.25, -0.25, +0.25, 0.075 }, { +0.25, +0.25, +0.25, 0.075 },
+	const vec4_t offsets[] = {
+		Vec4(+0.00, +0.00, +0.00, 0.400),
+		Vec4(-0.25, -0.25, -0.25, 0.075), Vec4(-0.25, +0.25, -0.25, 0.075),
+		Vec4(+0.25, -0.25, -0.25, 0.075), Vec4(+0.25, +0.25, -0.25, 0.075),
+		Vec4(-0.25, -0.25, +0.25, 0.075), Vec4(-0.25, +0.25, +0.25, 0.075),
+		Vec4(+0.25, -0.25, +0.25, 0.075), Vec4(+0.25, +0.25, +0.25, 0.075),
 	};
 
 	luxel_t *l = &lg.luxels[luxel_num];
@@ -433,12 +433,12 @@ void DirectLightgrid(int32_t luxel_num) {
  */
 void IndirectLightgrid(int32_t luxel_num) {
 
-	static const vec3_t offsets[] = {
-		{ +0.000, +0.000, +0.000 },
-		{ -0.125, -0.125, -0.125 }, { -0.125, +0.125, -0.125 },
-		{ +0.125, -0.125, -0.125 }, { +0.125, +0.125, -0.125 },
-		{ -0.125, -0.125, +0.125 }, { -0.125, +0.125, +0.125 },
-		{ +0.125, -0.125, +0.125 }, { +0.125, +0.125, +0.125 },
+	const vec3_t offsets[] = {
+		Vec3(+0.000, +0.000, +0.000),
+		Vec3(-0.125, -0.125, -0.125), Vec3(-0.125, +0.125, -0.125),
+		Vec3(+0.125, -0.125, -0.125), Vec3(+0.125, +0.125, -0.125),
+		Vec3(-0.125, -0.125, +0.125), Vec3(-0.125, +0.125, +0.125),
+		Vec3(+0.125, -0.125, +0.125), Vec3(+0.125, +0.125, +0.125),
 	};
 
 	luxel_t *l = &lg.luxels[luxel_num];

@@ -54,7 +54,7 @@ static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
 	}
 
 	p->origin = org;
-	p->origin.z += 50.0;
+	p->origin.z += 50.f;
 
 	cgi.ColorFromPalette(11, &p->color);
 
@@ -75,13 +75,13 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 
 	if (e->effects & EF_BOB) {
 		e->termination = e->origin;
-		const float bob = sinf(cgi.client->unclamped_time * 0.005 + ent->current.number);
+		const float bob = sinf(cgi.client->unclamped_time * 0.005f + ent->current.number);
 		e->origin.z += cg_entity_bob->value * bob;
 	}
 
 	if (e->effects & EF_PULSE) {
-		const float pulse = (cosf(cgi.client->unclamped_time * 0.0033 + ent->current.number) + 1.0);
-		const float c = 1.0 - (cg_entity_pulse->value * 0.5 * pulse);
+		const float pulse = (cosf(cgi.client->unclamped_time * 0.0033f + ent->current.number) + 1.f);
+		const float c = 1.f - (cg_entity_pulse->value * 0.5f * pulse);
 		e->color = Vec4(c, c, c, 1.f);
 	} else {
 		e->color = Vec4(1.f, 1.f, 1.f, 1.f);
@@ -92,12 +92,12 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_RESPAWN) {
-		const vec3_t color = { 0.5, 0.5, 0.0 };
+		const vec3_t color = Vec3(0.5f, 0.5f, 0.f);
 		e->shell = Vec3_Add(e->shell, Vec3_Scale(color, 0.5));
 	}
 
 	if (e->effects & EF_QUAD) {
-		cg_light_t l = { .radius = 80.0, .color = { 0.3, 0.7, 0.7 }, .decay = 0 };
+		cg_light_t l = { .radius = 80.0, .color = Vec3(0.3f, 0.7f, 0.7f)};
 
 		l.origin = e->origin;
 		Cg_AddLight(&l);
@@ -106,7 +106,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_CTF_RED) {
-		cg_light_t l = { .radius = 80.0, .color = { 1.0, 0.3, 0.3 }, .decay = 0 };
+		cg_light_t l = { .radius = 80.0, .color = Vec3(1.f, 0.3f, 0.3f)};
 
 		l.origin = e->origin;
 		Cg_AddLight(&l);
@@ -115,7 +115,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_CTF_BLUE) {
-		cg_light_t l = { .radius = 80.0, .color = { 0.3, 0.3, 1.0 }, .decay = 0 };
+		cg_light_t l = { .radius = 80.0, .color = Vec3(0.3f, 0.3f, 1.f) };
 
 		l.origin = e->origin;
 		Cg_AddLight(&l);
@@ -124,7 +124,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_CTF_GREEN) {
-		cg_light_t l = { .radius = 80.0, .color = { 0.3, 1.0, 0.3 }, .decay = 0 };
+		cg_light_t l = { .radius = 80.0, .color = Vec3(0.3f, 1.0f, 0.3f) };
 
 		l.origin = e->origin;
 		Cg_AddLight(&l);
@@ -133,7 +133,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_CTF_ORANGE) {
-		cg_light_t l = { .radius = 80.0, .color = { 1.0, 0.7, 0.1 }, .decay = 0 };
+		cg_light_t l = { .radius = 80.0, .color = Vec3(1.f, 0.7f, 0.1f)};
 
 		l.origin = e->origin;
 		Cg_AddLight(&l);
@@ -153,7 +153,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		}
 
 		e->effects |= (EF_BLEND | EF_NO_SHADOW);
-		e->color.w = 1.0 - ((cgi.client->unclamped_time - ent->timestamp) / 3000.0);
+		e->color.w = 1.f - ((cgi.client->unclamped_time - ent->timestamp) / 3000.f);
 	}
 
 	if (e->effects & EF_LIGHT) {

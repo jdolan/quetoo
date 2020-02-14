@@ -77,18 +77,18 @@ color_t Color4bv(uint32_t rgba) {
 color_t Color4f(float r, float g, float b, float a) {
 
 	const float max = Maxf(r, Maxf(g, Maxf(b, a)));
-	if (max > 1.0) {
-		const float inverse = 1.0 / max;
+	if (max > 1.f) {
+		const float inverse = 1.f / max;
 		r *= inverse;
 		g *= inverse;
 		b *= inverse;
 	}
 
 	return (color_t) {
-		.r = Clampf(r, 0.f, 1.f) * 255,
-		.g = Clampf(g, 0.f, 1.f) * 255,
-		.b = Clampf(b, 0.f, 1.f) * 255,
-		.a = Clampf(a, 0.f, 1.f) * 255
+		.r = (byte) Clampf(r, 0.f, 1.f) * 255,
+		.g = (byte) Clampf(g, 0.f, 1.f) * 255,
+		.b = (byte) Clampf(b, 0.f, 1.f) * 255,
+		.a = (byte) Clampf(a, 0.f, 1.f) * 255
 	};
 }
 

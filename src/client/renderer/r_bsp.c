@@ -112,8 +112,8 @@ void R_UpdateVis(void) {
 		memset(r_locals.vis_data_phs, 0x00, sizeof(r_locals.vis_data_phs));
 
 		vec3_t mins, maxs;
-		mins = Vec3_Add(r_view.origin, ((vec3_t) { -2.f, -2.f, -4.f }));
-		maxs = Vec3_Add(r_view.origin, ((vec3_t) {  2.f,  2.f,  4.f }));
+		mins = Vec3_Add(r_view.origin, Vec3(-2.f, -2.f, -4.f));
+		maxs = Vec3_Add(r_view.origin, Vec3( 2.f,  2.f,  4.f));
 
 		const size_t count = Cm_BoxLeafnums(mins, maxs, leafs, lengthof(leafs), NULL, 0);
 		for (size_t i = 0; i < count; i++) {
