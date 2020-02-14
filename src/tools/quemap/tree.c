@@ -50,12 +50,7 @@ void FreeNode(node_t *node) {
  */
 tree_t *AllocTree(void) {
 
-	tree_t *tree = Mem_TagMalloc(sizeof(*tree), MEM_TAG_TREE);
-
-	tree->mins = Vec3_Mins();
-	tree->maxs = Vec3_Maxs();
-
-	return tree;
+	return Mem_TagMalloc(sizeof(tree_t), MEM_TAG_TREE);
 }
 
 /**
@@ -436,6 +431,9 @@ tree_t *BuildTree(csg_brush_t *brushes, const vec3_t mins, const vec3_t maxs) {
 	Com_Debug(DEBUG_ALL, "--- BuildTree ---\n");
 
 	tree_t *tree = AllocTree();
+
+	tree->mins = Vec3_Mins();
+	tree->maxs = Vec3_Maxs();
 
 	int32_t c_brushes = 0;
 	int32_t c_vis_faces = 0;
