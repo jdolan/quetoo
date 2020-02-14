@@ -75,7 +75,7 @@ static void BuildLightgridExtents(void) {
 /**
  * @brief
  */
-void BuildLightgridLuxels(void) {
+static void BuildLightgridLuxels(void) {
 
 	lg.num_luxels = lg.size.x * lg.size.y * lg.size.z;
 
@@ -121,7 +121,7 @@ static int32_t ProjectLightgridLuxel(luxel_t *l, float soffs, float toffs, float
 /**
  * @brief Authors a .map file which can be imported into Radiant to view the luxel projections.
  */
-void DebugLightgridLuxels(void) {
+static void DebugLightgridLuxels(void) {
 #if 0
 	const char *path = va("maps/%s.lightgrid.map", map_base);
 

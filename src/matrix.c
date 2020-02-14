@@ -1110,9 +1110,9 @@ void Matrix4x4_CreateFromQuakeEntity(mat4_t *out, double x, double y, double z, 
 }
 
 void Matrix4x4_CreateFromEntity(mat4_t *out, const vec3_t origin, const vec3_t angles, float scale) {
-	return Matrix4x4_CreateFromQuakeEntity(out, origin.x, origin.y, origin.z,
-										        angles.x, angles.y, angles.z,
-										        scale);
+	Matrix4x4_CreateFromQuakeEntity(out, origin.x, origin.y, origin.z,
+										 angles.x, angles.y, angles.z,
+										 scale);
 }
 
 void Matrix4x4_ToVectors(const mat4_t *in, float vx[3], float vy[3], float vz[3], float t[3]) {

@@ -339,7 +339,7 @@ void R_EndFrame(void) {
 /**
  * @brief Initializes the view and locals structures so that loading may begin.
  */
-void R_InitView(void) {
+static void R_InitView(void) {
 
 	memset(&r_view, 0, sizeof(r_view));
 

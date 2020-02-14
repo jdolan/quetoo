@@ -30,7 +30,7 @@
 #include <glib.h>
 
 #ifdef _WIN32
-	#include <windows.h>
+	#include <Windows.h>
 	#include <shellapi.h>
 
 /**

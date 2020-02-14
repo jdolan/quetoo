@@ -30,7 +30,7 @@
 	 #define SDL_MAIN_HANDLED
 	#endif
 
-	#include <windows.h>
+	#include <Windows.h>
 #endif
 
 #include <SDL.h>

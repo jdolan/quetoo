@@ -157,7 +157,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_LIGHT) {
-		cg_light_t l = { .radius = ent->current.termination.x };
+		cg_light_t l = { .radius = ent->current.termination.x, .decay = 0 };
 
 		l.origin = e->origin;
 

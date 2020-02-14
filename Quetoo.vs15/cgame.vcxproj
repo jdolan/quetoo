@@ -29,6 +29,7 @@
     <ClInclude Include="..\src\cgame\default\cg_entity_trail.h" />
     <ClInclude Include="..\src\cgame\default\cg_hud.h" />
     <ClInclude Include="..\src\cgame\default\cg_input.h" />
+    <ClInclude Include="..\src\cgame\default\cg_light.h" />
     <ClInclude Include="..\src\cgame\default\cg_local.h" />
     <ClInclude Include="..\src\cgame\default\cg_main.h" />
     <ClInclude Include="..\src\cgame\default\cg_media.h" />
@@ -36,6 +37,7 @@
     <ClInclude Include="..\src\cgame\default\cg_particle.h" />
     <ClInclude Include="..\src\cgame\default\cg_predict.h" />
     <ClInclude Include="..\src\cgame\default\cg_score.h" />
+    <ClInclude Include="..\src\cgame\default\cg_stain.h" />
     <ClInclude Include="..\src\cgame\default\cg_temp_entity.h" />
     <ClInclude Include="..\src\cgame\default\cg_types.h" />
     <ClInclude Include="..\src\cgame\default\cg_ui.h" />
@@ -80,12 +82,14 @@
     <ClCompile Include="..\src\cgame\default\cg_entity_trail.c" />
     <ClCompile Include="..\src\cgame\default\cg_hud.c" />
     <ClCompile Include="..\src\cgame\default\cg_input.c" />
+    <ClCompile Include="..\src\cgame\default\cg_light.c" />
     <ClCompile Include="..\src\cgame\default\cg_main.c" />
     <ClCompile Include="..\src\cgame\default\cg_media.c" />
     <ClCompile Include="..\src\cgame\default\cg_muzzle_flash.c" />
     <ClCompile Include="..\src\cgame\default\cg_particle.c" />
     <ClCompile Include="..\src\cgame\default\cg_predict.c" />
     <ClCompile Include="..\src\cgame\default\cg_score.c" />
+    <ClCompile Include="..\src\cgame\default\cg_stain.c" />
     <ClCompile Include="..\src\cgame\default\cg_temp_entity.c" />
     <ClCompile Include="..\src\cgame\default\cg_ui.c" />
     <ClCompile Include="..\src\cgame\default\cg_view.c" />
@@ -140,7 +144,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;libparse.lib;libshared.lib;libpmove.lib;libswap.lib;libmatrix.lib;SDL2.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;libvector.lib;libparse.lib;libshared.lib;libpmove.lib;libswap.lib;libmatrix.lib;SDL2.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
     </Link>

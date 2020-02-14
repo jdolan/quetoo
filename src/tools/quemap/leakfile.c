@@ -21,6 +21,7 @@
 
 #include "portal.h"
 #include "entity.h"
+#include "leakfile.h"
 
 /**
  * @brief Finds the shortest possible chain of portals that leads from the

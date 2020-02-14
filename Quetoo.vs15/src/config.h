@@ -1,3 +1,5 @@
+#define _USE_MATH_DEFINES
+
 #if defined(__clang__)
 	#define stat _stat64
 	#define unlink _unlink

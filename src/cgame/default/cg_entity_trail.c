@@ -307,6 +307,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 	l.origin = end;
 	l.radius = 100.0;
 	l.color = ColorToVector3(color);
+	l.decay = 0;
 
 	Cg_AddLight(&l);
 }
@@ -359,6 +360,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 	l.origin = end;
 	l.radius = 150.0;
 	l.color = Vec3(0.8, 0.4, 0.2);
+	l.decay = 0;
 
 	Cg_AddLight(&l);
 }
@@ -421,6 +423,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent) {
 	l.origin = ent->origin;
 	l.radius = 100.0;
 	l.color = Vec3(0.4, 0.7, 1.0);
+	l.decay = 0;
 
 	Cg_AddLight(&l);
 }
@@ -435,6 +438,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	l.origin = start;
 	l.radius = 90.0 + 10.0 * Randomc();
 	l.color = Vec3(0.6, 0.6, 1.0);
+	l.decay = 0;
 	Cg_AddLight(&l);
 
 	float dist_total;
@@ -568,6 +572,7 @@ static void Cg_BfgTrail(cl_entity_t *ent) {
 	l.origin = ent->origin;
 	l.radius = 160.0 + 48.0 * mod;
 	l.color = Vec3(0.4, 1.0, 0.4);
+	l.decay = 0;
 
 	Cg_AddLight(&l);
 }
@@ -698,6 +703,7 @@ static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t 
 	l.origin = end;
 	l.color = color;
 	l.radius = 85.0;
+	l.decay = 0;
 
 	if (ent->current.effects & EF_DESPAWN) {
 		const float decay = Clampf((cgi.client->unclamped_time - ent->timestamp) / 1000.0, 0.0, 1.0);

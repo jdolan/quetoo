@@ -140,6 +140,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libparse", "libs\libparse.vcxproj", "{FEF51ACC-31F2-41AC-B562-41F5C5988088}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libatlas", "libs\libatlas.vcxproj", "{D8D2FE47-8F7F-4F88-8BAA-F42F0FB669D5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -356,6 +358,14 @@ Global
 		{FEF51ACC-31F2-41AC-B562-41F5C5988088}.Release|Win32.Build.0 = Release|Win32
 		{FEF51ACC-31F2-41AC-B562-41F5C5988088}.Release|x64.ActiveCfg = Release|x64
 		{FEF51ACC-31F2-41AC-B562-41F5C5988088}.Release|x64.Build.0 = Release|x64
+		{D8D2FE47-8F7F-4F88-8BAA-F42F0FB669D5}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D8D2FE47-8F7F-4F88-8BAA-F42F0FB669D5}.Debug|Win32.Build.0 = Debug|Win32
+		{D8D2FE47-8F7F-4F88-8BAA-F42F0FB669D5}.Debug|x64.ActiveCfg = Debug|x64
+		{D8D2FE47-8F7F-4F88-8BAA-F42F0FB669D5}.Debug|x64.Build.0 = Debug|x64
+		{D8D2FE47-8F7F-4F88-8BAA-F42F0FB669D5}.Release|Win32.ActiveCfg = Release|Win32
+		{D8D2FE47-8F7F-4F88-8BAA-F42F0FB669D5}.Release|Win32.Build.0 = Release|Win32
+		{D8D2FE47-8F7F-4F88-8BAA-F42F0FB669D5}.Release|x64.ActiveCfg = Release|x64
+		{D8D2FE47-8F7F-4F88-8BAA-F42F0FB669D5}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -387,6 +397,7 @@ Global
 		{570EB326-F102-4C08-8B17-4C2B600BDAC7} = {12075155-7B18-4525-885E-A2CCD24EFE04}
 		{B1E86937-5A7A-48F6-9DAB-A1D2900C3AE1} = {570EB326-F102-4C08-8B17-4C2B600BDAC7}
 		{FEF51ACC-31F2-41AC-B562-41F5C5988088} = {12075155-7B18-4525-885E-A2CCD24EFE04}
+		{D8D2FE47-8F7F-4F88-8BAA-F42F0FB669D5} = {12075155-7B18-4525-885E-A2CCD24EFE04}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B8857714-34A9-463D-A04B-B95D6BCB9221}

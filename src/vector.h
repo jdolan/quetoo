@@ -513,6 +513,11 @@ vec3_t Vec3_Random(void);
 vec3_t Vec3_Scale(const vec3_t v, float scale) __attribute__ ((warn_unused_result));
 
 /**
+ * @return Reflected vector
+ */
+vec3_t Vec3_Reflect(const vec3_t a, const vec3_t b);
+
+/**
  * @return The difference of `a - b`.
  */
 vec3_t Vec3_Subtract(const vec3_t a, const vec3_t b) __attribute__ ((warn_unused_result));

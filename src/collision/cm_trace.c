@@ -31,7 +31,6 @@
  */
 typedef struct {
 	vec3_t start, end;
-	vec3_t mins, maxs;
 	vec3_t extents;
 	vec3_t offsets[8];
 	vec3_t box_mins, box_maxs;
@@ -365,7 +364,7 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,const vec3_t mins, c
 	data.contents = contents;
 
 	// check for point special case
-	if (Vec3_Equal(data.mins, Vec3_Zero()) && Vec3_Equal(data.maxs, Vec3_Zero())) {
+	if (Vec3_Equal(mins, Vec3_Zero()) && Vec3_Equal(maxs, Vec3_Zero())) {
 		data.is_point = true;
 	} else {
 		data.is_point = false;
@@ -411,11 +410,11 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,const vec3_t mins, c
 
 	for (int32_t i = 0; i < 3; i++) {
 		if (start.xyz[i] < end.xyz[i]) {
-			data.box_mins.xyz[i] = start.xyz[i] + data.mins.xyz[i] - 1.0;
-			data.box_maxs.xyz[i] = end.xyz[i] + data.maxs.xyz[i] + 1.0;
+			data.box_mins.xyz[i] = start.xyz[i] + mins.xyz[i] - 1.0;
+			data.box_maxs.xyz[i] = end.xyz[i] + maxs.xyz[i] + 1.0;
 		} else {
-			data.box_mins.xyz[i] = end.xyz[i] + data.mins.xyz[i] - 1.0;
-			data.box_maxs.xyz[i] = start.xyz[i] + data.maxs.xyz[i] + 1.0;
+			data.box_mins.xyz[i] = end.xyz[i] + mins.xyz[i] - 1.0;
+			data.box_maxs.xyz[i] = start.xyz[i] + maxs.xyz[i] + 1.0;
 		}
 	}
 

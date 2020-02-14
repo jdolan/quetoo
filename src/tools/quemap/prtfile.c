@@ -21,6 +21,7 @@
 
 #include "bsp.h"
 #include "portal.h"
+#include "prtfile.h"
 
 static file_t *prtfile;
 static int32_t num_visclusters; /* clusters the player can be in */

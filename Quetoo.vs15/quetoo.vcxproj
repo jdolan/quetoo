@@ -56,7 +56,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>libparse.lib;libcmodel.lib;libcommon.lib;libconsole.lib;libclient.lib;libfilesystem.lib;libimage.lib;libmatrix.lib;libmem.lib;libnet.lib;librenderer.lib;libserver.lib;libshared.lib;libsound.lib;libswap.lib;libsys.lib;libthread.lib;libui.lib;curses.lib;glib-2.0.lib;libcurl.lib;SDL2.lib;OpenAL32.lib;SDL2_ttf.lib;SDL2_image.lib;libsndfile.lib;physfs.lib;ws2_32.lib;opengl32.lib;Wldap32.lib;ObjectivelyMVC.lib;Objectively.lib;dbghelp.lib;dlfcn.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libatlas.lib;libparse.lib;libcmodel.lib;libcommon.lib;libconsole.lib;libclient.lib;libfilesystem.lib;libimage.lib;libmatrix.lib;libmem.lib;libnet.lib;librenderer.lib;libserver.lib;libshared.lib;libsound.lib;libswap.lib;libsys.lib;libthread.lib;libui.lib;libvector.lib;curses.lib;glib-2.0.lib;libcurl.lib;SDL2.lib;OpenAL32.lib;SDL2_ttf.lib;SDL2_image.lib;libsndfile.lib;physfs.lib;ws2_32.lib;opengl32.lib;Wldap32.lib;ObjectivelyMVC.lib;Objectively.lib;dbghelp.lib;dlfcn.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</GenerateDebugInformation>
