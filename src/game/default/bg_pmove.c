@@ -478,7 +478,7 @@ static void Pm_Friction(void) {
 /**
  * @brief Handles user intended acceleration.
  */
-static void Pm_Accelerate(vec3_t dir, float speed, float accel) {
+static void Pm_Accelerate(const vec3_t dir, float speed, float accel) {
 
 	const float current_speed = Vec3_Dot(pm->s.velocity, dir);
 	const float add_speed = speed - current_speed;
@@ -517,10 +517,8 @@ static void Pm_Gravity(void) {
 /**
  * @brief
  */
-static void Pm_Currents(vec3_t vel) {
-	vec3_t current;
-
-	current = Vec3_Zero();
+static void Pm_Currents(void) {
+	vec3_t current = Vec3_Zero();
 
 	// add water currents
 	if (pm->water_level) {
@@ -566,7 +564,11 @@ static void Pm_Currents(vec3_t vel) {
 		}
 	}
 
-	vel = Vec3_Add(vel, Vec3_Scale(current, PM_SPEED_CURRENT));
+	if (!Vec3_Equal(current, Vec3_Zero())) {
+		current = Vec3_Normalize(current);
+	}
+
+	pm->s.velocity = Vec3_Add(pm->s.velocity, Vec3_Scale(current, PM_SPEED_CURRENT));
 }
 
 /**
@@ -1122,6 +1124,8 @@ static void Pm_LadderMove(void) {
 
 	Pm_Friction();
 
+	Pm_Currents();
+
 	// user intentions in X/Y
 	vel = Vec3_Zero();
 	vel = Vec3_Add(vel, Vec3_Scale(pml.forward_xy, pm->cmd.forward));
@@ -1153,8 +1157,6 @@ static void Pm_LadderMove(void) {
 	if (pm->cmd.up > 0) { // avoid jumps when exiting ladders
 		pm->s.flags |= PMF_JUMP_HELD;
 	}
-
-	Pm_Currents(vel);
 
 	float speed;
 	dir = Vec3_NormalizeLength(vel, &speed);
@@ -1228,6 +1230,8 @@ static void Pm_WaterMove(void) {
 		}
 	}
 
+	Pm_Currents();
+
 	// user intentions on X/Y/Z
 	vel = Vec3_Add(vel, Vec3_Scale(pml.forward, pm->cmd.forward));
 	vel = Vec3_Add(vel, Vec3_Scale(pml.right, pm->cmd.right));
@@ -1249,8 +1253,6 @@ static void Pm_WaterMove(void) {
 			}
 		}
 	}
-
-	Pm_Currents(vel);
 
 	dir = Vec3_NormalizeLength(vel, &speed);
 	speed = Clampf(speed, 0, PM_SPEED_WATER);
@@ -1329,6 +1331,8 @@ static void Pm_WalkMove(void) {
 
 	Pm_Friction();
 
+	Pm_Currents();
+
 	// project the desired movement into the X/Y plane
 
 	forward = Pm_ClipVelocity(pml.forward_xy, pml.ground_plane.normal, PM_CLIP_BOUNCE);
@@ -1340,8 +1344,6 @@ static void Pm_WalkMove(void) {
 	vel = Vec3_Zero();
 	vel = Vec3_Add(vel, Vec3_Scale(forward, pm->cmd.forward));
 	vel = Vec3_Add(vel, Vec3_Scale(right, pm->cmd.right));
-
-	Pm_Currents(vel);
 
 	dir = Vec3_NormalizeLength(vel, &speed);
 
