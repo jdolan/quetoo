@@ -284,7 +284,7 @@ static vec3_t G_ProjectImpactPoint(const g_entity_t *projectile, const g_entity_
 /**
  * @brief Used to add impact marks on surfaces hit by bullets.
  */
-static void G_BulletImpact(vec3_t org, cm_bsp_plane_t *plane, cm_bsp_texinfo_t *surf) {
+static void G_BulletImpact(const vec3_t org, const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *surf) {
 
 	if (surf->flags & SURF_ALPHA_TEST) {
 		return;
