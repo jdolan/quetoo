@@ -53,8 +53,6 @@ static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
 	BSP_LUMP_SIZE_STRUCT(lightgrid, MAX_BSP_LIGHTGRID_SIZE)
 };
 
-#if SDL_BYTEORDER != SDL_LIL_ENDIAN
-
 /**
  * @brief Table of swap functions.
  */
@@ -369,29 +367,39 @@ static void Bsp_SwapLightgrid(void *lump, const int32_t num) {
 	lightgrid->size = LittleVec3i(lightgrid->size);
 }
 
+/**
+ * @brief Swap entry point.
+ */
+static void Bsp_SwapLump(const bsp_lump_id_t lump_id, void *lump, int32_t count) {
 
-static Bsp_SwapFunction bsp_swap_funcs[BSP_LUMP_LAST] = {
-	NULL,
-	Bsp_SwapTexinfos,
-	Bsp_SwapPlanes,
-	Bsp_SwapBrushSides,
-	Bsp_SwapBrushes,
-	Bsp_SwapVertexes,
-	Bsp_SwapElements,
-	Bsp_SwapFaces,
-	Bsp_SwapDrawElements,
-	Bsp_SwapNodes,
-	Bsp_SwapLeafBrushes,
-	Bsp_SwapLeafFaces,
-	Bsp_SwapLeafs,
-	Bsp_SwapModels,
-	Bsp_SwapAreaPortals,
-	Bsp_SwapAreas,
-	Bsp_SwapVis,
-	Bsp_SwapLightmap,
-	Bsp_SwapLightgrid,
-};
+	const Bsp_SwapFunction swap[BSP_LUMP_LAST] = {
+		NULL,
+		Bsp_SwapTexinfos,
+		Bsp_SwapPlanes,
+		Bsp_SwapBrushSides,
+		Bsp_SwapBrushes,
+		Bsp_SwapVertexes,
+		Bsp_SwapElements,
+		Bsp_SwapFaces,
+		Bsp_SwapDrawElements,
+		Bsp_SwapNodes,
+		Bsp_SwapLeafBrushes,
+		Bsp_SwapLeafFaces,
+		Bsp_SwapLeafs,
+		Bsp_SwapModels,
+		Bsp_SwapAreaPortals,
+		Bsp_SwapAreas,
+		Bsp_SwapVis,
+		Bsp_SwapLightmap,
+		Bsp_SwapLightgrid,
+	};
+
+	if (swap[lump_id]) {
+#if SDL_BYTEORDER != SDL_LIL_ENDIAN
+		swap[lump_id](lump, count);
 #endif
+	}
+}
 
 /**
  * @brief Calculates the effective size of the BSP file.
@@ -570,23 +578,15 @@ _Bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_
 
 	if (*lump_count) {
 		*lump_data = Mem_TagMalloc(lump.file_len, MEM_TAG_BSP | (lump_id << 16));
-	} else {
-		*lump_data = NULL;
-	}
 
-	// blit the data into memory
-	if (lump.file_ofs && lump.file_len) {
+		// blit the data into memory
+		if (lump.file_ofs && lump.file_len) {
+			const byte *src = ((byte *) file) + lump.file_ofs;
 
-		const byte *file_lump = ((byte *) file) + lump.file_ofs;
+			memcpy(*lump_data, src, lump.file_len);
 
-		memcpy(*lump_data, file_lump, lump.file_len);
-
-#if SDL_BYTEORDER != SDL_LIL_ENDIAN
-		// swap the lump if required
-		if (bsp_swap_funcs[lump_id]) {
-			bsp_swap_funcs[lump_id](*lump_data, *lump_count);
+			Bsp_SwapLump(lump_id, *lump_data, *lump_count);
 		}
-#endif
 	}
 
 	bsp->loaded_lumps |= (bsp_lump_id_t) (1 << lump_id);
