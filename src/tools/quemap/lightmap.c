@@ -775,7 +775,7 @@ void EmitLightmapTexcoords(void) {
 			const float padding_t = (lm->h - (lm->st_maxs.y - lm->st_mins.y)) * 0.5;
 
 			const float s = (lm->s + padding_s + st.x) / bsp_file.lightmap->width;
-			const float t = (lm->t + padding_t + st.x) / bsp_file.lightmap->width;
+			const float t = (lm->t + padding_t + st.y) / bsp_file.lightmap->width;
 
 			v->lightmap.x = s;
 			v->lightmap.y = t;
