@@ -31,11 +31,15 @@
  */
 typedef struct {
 	vec3_t start, end;
+
 	vec3_t extents;
+
 	vec3_t offsets[8];
+
 	vec3_t box_mins, box_maxs;
 
 	int32_t contents;
+
 	_Bool is_point;
 
 	cm_trace_t trace;
@@ -349,18 +353,18 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float 
 cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,const vec3_t mins, const vec3_t maxs,
                        const int32_t head_node, const int32_t contents) {
 
-	static __thread cm_trace_data_t data;
-	memset(&data, 0, sizeof(data));
-
-	data.trace.fraction = 1.0;
+	cm_trace_data_t data = {
+		.start = start,
+		.end = end,
+		.contents = contents,
+		.trace = {
+			.fraction = 1.f
+		}
+	};
 
 	if (!cm_bsp.file.num_nodes) { // map not loaded
 		return data.trace;
 	}
-
-	data.start = start;
-	data.end = end;
-	data.contents = contents;
 
 	// check for point special case
 	if (Vec3_Equal(mins, Vec3_Zero()) && Vec3_Equal(maxs, Vec3_Zero())) {
@@ -419,11 +423,15 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,const vec3_t mins, c
 
 	// check for position test special case
 	if (Vec3_Equal(start, end)) {
-		int32_t leafs[MAX_BSP_LEAFS];
+		static __thread int32_t leafs[MAX_BSP_LEAFS];
+		const size_t num_leafs = Cm_BoxLeafnums(data.box_mins,
+												data.box_maxs,
+												leafs,
+												lengthof(leafs),
+												NULL,
+												head_node);
 
-		const size_t len = Cm_BoxLeafnums(data.box_mins, data.box_maxs, leafs, lengthof(leafs), NULL, head_node);
-
-		for (size_t i = 0; i < len; i++) {
+		for (size_t i = 0; i < num_leafs; i++) {
 			Cm_TestInLeaf(&data, leafs[i]);
 
 			if (data.trace.all_solid) {
@@ -485,7 +493,7 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end,
 		const cm_bsp_plane_t *p = &trace.plane;
 		const vec3_t n = p->normal;
 
-		Matrix4x4_TransformPositivePlane(matrix, n.x, n.y, n.z, p->dist, plane.xyzw);
+		Matrix4x4_TransformQuakePlane(matrix, n, p->dist, &plane);
 
 		trace.plane.normal = Vec4_XYZ(plane);
 		trace.plane.dist = plane.w;
