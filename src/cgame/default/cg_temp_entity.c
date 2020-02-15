@@ -123,7 +123,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 				p->bounce = 1.5f;
 				p->lifetime = 100 + Randomf() * 350;
 
-				cgi.ColorFromPalette(221 + (Randomr(0, 8)), &p->color);
+				p->color = cgi.ColorFromPalette(221 + (Randomr(0, 8)));
 				p->color.a = 200 + Randomf() * 55;
 
 				p->size = 0.6f + Randomf() * 0.4f;
@@ -201,7 +201,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 		p->color = Color4bv(0x882200aa);
 		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
-		p->size = Randomfr(5.0, 8.0);
+		p->size = RandomRangef(5.0, 8.0);
 	}
 
 //	cgi.AddStain(&(const r_stain_t) {
@@ -264,7 +264,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 			p->color = Color4bv(0x800000f8);
 			p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
-			p->size = Randomfr(3.0, 7.0);
+			p->size = RandomRangef(3.0, 7.0);
 		}
 	}
 
@@ -304,7 +304,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 		p->lifetime = 500 + Randomf() * 250;
 
-		cgi.ColorFromPalette(221 + (Randomr(0, 8)), &p->color);
+		p->color = cgi.ColorFromPalette(221 + (Randomr(0, 8)));
 		p->color.a = 200 + Randomf() * 55;
 
 		p->size = 0.6 + Randomf() * 0.2;
@@ -347,7 +347,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 			p->acceleration.z = -PARTICLE_GRAVITY * 2.0;
 			p->lifetime = 200 + Randomf() * 300;
 
-			cgi.ColorFromPalette(221 + (Randomr(0, 8)), &p->color);
+			p->color = cgi.ColorFromPalette(221 + (Randomr(0, 8)));
 			p->color.a = 200 + Randomf() * 55;
 
 			p->size = 1.0 + Randomf() * 0.4;
@@ -597,7 +597,7 @@ static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
 
 		p->lifetime = 50;
 
-		cgi.ColorFromPalette(200 + Randomr(0, 3), &p->color);
+		p->color = cgi.ColorFromPalette(200 + Randomr(0, 3));
 
 		p->size = 6.0;
 	}
@@ -628,7 +628,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 
 		p->lifetime = 750;
 
-		cgi.ColorFromPalette(206, &p->color);
+		p->color = Color3b(60, 224, 72);
 		p->delta_color.g = 0x10;
 		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
@@ -748,7 +748,7 @@ static void Cg_HookImpactEffect(const vec3_t org, const vec3_t dir) {
 
 		p->lifetime = 100 + (Randomf() * 150);
 
-		cgi.ColorFromPalette(221 + (Randomr(0, 8)), &p->color);
+		p->color = Color3b(248, 224, 40);
 		p->color.a = 200 * Randomf() * 55;
 
 		p->size = 0.8 + Randomf() * 0.4;

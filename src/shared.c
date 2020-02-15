@@ -66,17 +66,10 @@ float Randomc(void) {
 }
 
 /**
- * @brief Returns a pseudo-random float between min and max.
- */
-float Randomfr(const float min, const float max) {
-	return (Randomf() * (max - min)) + min;
-}
-
-/**
  * @brief Returns a pseudo-random int32_t between min and max.
  */
 int32_t Randomr(const int32_t min, const int32_t max) {
-	return (int32_t) Randomfr(min, max);
+	return (int32_t) RandomRangef(min, max);
 }
 
 /**

@@ -68,7 +68,7 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 
 			p->lifetime = 1000 - (Randomf() * 100);
 
-			cgi.ColorFromPalette(6 + (Randomr(0, 4)), &p->color);
+			p->color = Color3b(160, 160, 160);
 			p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 			p->size = 3.0;
@@ -84,7 +84,7 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 
 		p->lifetime = 4000 - (Randomf() * 100);
 
-		cgi.ColorFromPalette(6 + (Randomr(0, 8)), &p->color);
+		p->color = cgi.ColorFromPalette(6 + (Randomr(0, 8)));
 		p->color.a = 200;
 
 		p->delta_color.a = p->color.a * -p->lifetime / PARTICLE_FRAME;
@@ -173,7 +173,8 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
 	p->lifetime = 1500;
 
-	cgi.ColorFromPalette(220 + (Randomr(0, 8)), &p->color);
+	const int32_t r = Random() & 15;
+	p->color = Color3b(224 + r, 180 * r, 40 + r);
 	p->color.a = 200;
 	p->delta_color.a = p->color.a * -p->lifetime / PARTICLE_FRAME;
 
@@ -211,7 +212,7 @@ void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
 
 	p->lifetime = 4500 / (5.0 + Randomf() * 0.5);
 
-	cgi.ColorFromPalette(6 + (Randomr(0, 8)), &p->color);
+	p->color = cgi.ColorFromPalette(6 + (Randomr(0, 8)));
 	p->color.a = 50;
 
 	p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
@@ -256,7 +257,7 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float density) {
 
 		p->lifetime = 1000 - (Randomf() * 100);
 
-		cgi.ColorFromPalette(6 + (Randomr(0, 4)), &p->color);
+		p->color = cgi.ColorFromPalette(6 + (Randomr(0, 4)));
 
 		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
@@ -394,13 +395,13 @@ static void Cg_EnergyTrail(cl_entity_t *ent, float radius, int32_t color) {
 		p->origin = Vec3_Add(p->origin, Vec3_Scale(approximate_normals[i], dist));
 		p->origin = Vec3_Add(p->origin, Vec3_Scale(forward, radius));
 
-		p->size = 0.5 + (0.05 * radius);
+		p->size = 1.f + (0.05f * radius);
 
 		vec3_t delta;
 		delta = Vec3_Subtract(p->origin, ent->origin);
 		dist = Vec3_Length(delta) / (3.0 * radius);
 
-		cgi.ColorFromPalette(color + dist * 7.0, &p->color);
+		p->color = cgi.ColorFromPalette(color + dist * 7.0);
 	}
 
 	if (cgi.PointContents(ent->origin) & MASK_LIQUID) {
@@ -454,7 +455,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 			break;
 		}
 
-		cgi.ColorFromPalette(12 + (Randomr(0, 4)), &p->color);
+		p->color = cgi.ColorFromPalette(12 + (Randomr(0, 4)));
 
 		p->size = 8.0;
 
@@ -672,7 +673,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 		p->color = Color4bv(0x80000080);
 		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
-		p->size = Randomfr(3.0, 7.0);
+		p->size = RandomRangef(3.0, 7.0);
 
 		p->velocity = Vec3_Scale(move, 20.0);
 

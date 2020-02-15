@@ -28,9 +28,6 @@
  */
 static void Cg_ItemRespawnEffect(const vec3_t org) {
 
-	color_t color;
-	cgi.ColorFromPalette(110, &color);
-
 	for (int32_t i = 0; i < 64; i++) {
 		cg_particle_t *p;
 
@@ -48,7 +45,7 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
 
 		p->lifetime = 500 + Randomf() * 100;
 
-		p->color = color;
+		p->color = Color3b(224, 224, 224);
 		p->delta_color.a = -1;
 
 		p->size = 1.0;
@@ -68,9 +65,6 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
  */
 static void Cg_ItemPickupEffect(const vec3_t org) {
 
-	color_t color;
-	cgi.ColorFromPalette(110, &color);
-
 	for (int32_t i = 0; i < 32; i++) {
 		cg_particle_t *p;
 
@@ -88,7 +82,7 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
 
 		p->lifetime = 500 + Randomf() * 100;
 
-		p->color = color;
+		p->color = Color3b(224, 224, 224);
 		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = 1.0;
@@ -109,9 +103,6 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
  */
 static void Cg_TeleporterEffect(const vec3_t org) {
 
-	color_t color;
-	cgi.ColorFromPalette(110, &color);
-
 	for (int32_t i = 0; i < 64; i++) {
 		cg_particle_t *p;
 
@@ -129,7 +120,7 @@ static void Cg_TeleporterEffect(const vec3_t org) {
 
 		p->lifetime = 500;
 
-		p->color = color;
+		p->color = Color3b(224, 224, 224);
 		p->delta_color.a = -p->lifetime / PARTICLE_FRAME;
 
 		p->size = 1.0;

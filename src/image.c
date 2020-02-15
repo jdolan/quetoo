@@ -114,13 +114,13 @@ void Img_InitPalette(void) {
 /**
  * @brief Returns RGB components of the specified color in the specified result array.
  */
-void Img_ColorFromPalette(uint8_t c, color_t *out) {
+color_t Img_ColorFromPalette(uint8_t c) {
 
 	if (!img_palette_initialized) {
 		Img_InitPalette();
 	}
 
-	out->rgba = img_palette[c];
+	return (color_t) img_palette[c];
 }
 
 /**

@@ -558,9 +558,9 @@ typedef struct cg_import_s {
 	/**
 	 * @brief Resolves a color from the specified palette index.
 	 * @param c The palette index.
-	 * @param color The color result.
+	 * @return The color result.
 	 */
-	void (*ColorFromPalette)(uint8_t c, color_t *out);
+	color_t (*ColorFromPalette)(uint8_t c);
 
 	/**
 	 * @brief Query if a box is visible on screen.

@@ -56,8 +56,7 @@ static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
 	p->origin = org;
 	p->origin.z += 50.f;
 
-	cgi.ColorFromPalette(11, &p->color);
-
+	p->color = color_white;
 	p->size = 10.0;
 }
 
@@ -173,8 +172,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 
 	if (e->effects & EF_LIGHT) {
 
-		color_t color;
-		cgi.ColorFromPalette(ent->current.client, &color);
+		const color_t color = cgi.ColorFromPalette(ent->current.client);
 
 		const cg_light_t l = {
 			.origin = e->origin,

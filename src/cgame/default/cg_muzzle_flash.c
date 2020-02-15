@@ -103,7 +103,7 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 
 	p->lifetime = 500;
 
-	cgi.ColorFromPalette(Randomr(0, 8), &p->color);
+	p->color = Color3b(128, 128, 128);
 	p->color.a = 200;
 	p->delta_color.a = -10;
 
