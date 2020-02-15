@@ -172,6 +172,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_LIGHT) {
+
 		color_t color;
 		cgi.ColorFromPalette(ent->current.client, &color);
 

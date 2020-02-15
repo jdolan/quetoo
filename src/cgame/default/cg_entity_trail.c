@@ -303,13 +303,11 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		d += step;
 	}
 
-	cg_light_t l;
-	l.origin = end;
-	l.radius = 100.0;
-	l.color = ColorToVector3(color);
-	l.decay = 0;
-
-	Cg_AddLight(&l);
+	Cg_AddLight(&(cg_light_t) {
+		.origin = end,
+		.radius = 100.f,
+		.color = ColorToVector3(color)
+	});
 }
 
 /**
@@ -356,13 +354,11 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 		d += 1.0;
 	}
 
-	cg_light_t l;
-	l.origin = end;
-	l.radius = 150.0;
-	l.color = Vec3(0.8, 0.4, 0.2);
-	l.decay = 0;
-
-	Cg_AddLight(&l);
+	Cg_AddLight(&(cg_light_t) {
+		.origin = end,
+		.radius = 150.f,
+		.color = Vec3(.8f, .4f, .2f)
+	});
 }
 
 /**
@@ -419,13 +415,11 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent) {
 
 	Cg_EnergyTrail(ent, 6.0, 107);
 
-	cg_light_t l;
-	l.origin = ent->origin;
-	l.radius = 100.0;
-	l.color = Vec3(0.4, 0.7, 1.0);
-	l.decay = 0;
-
-	Cg_AddLight(&l);
+	Cg_AddLight(&(cg_light_t) {
+		.origin = ent->origin,
+		.radius = 100.f,
+		.color = Vec3(.4f, .7f, 1.f)
+	});
 }
 
 /**
@@ -434,11 +428,12 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent) {
 static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	vec3_t dir, delta, pos, vel;
 
-	cg_light_t l;
-	l.origin = start;
-	l.radius = 90.0 + 10.0 * Randomc();
-	l.color = Vec3(0.6, 0.6, 1.0);
-	l.decay = 0;
+	cg_light_t l = {
+		.origin = start,
+		.radius = 90.f + RandomRangef(-10.f, 10.f),
+		.color = Vec3(.6f, .6f, 1.f)
+	};
+
 	Cg_AddLight(&l);
 
 	float dist_total;
@@ -476,13 +471,13 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 		if (dist > 12.0) {
 			l.origin = p->origin;
-			l.radius = 90.0 + 10.0 * Randomc();
+			l.radius = 90.0 + RandomRangef(-10.f, 10.f);
 			Cg_AddLight(&l);
 		}
 	}
 
 	l.origin = Vec3_Add(end, Vec3_Scale(dir, 12.0));
-	l.radius = 90.0 + 10.0 * Randomc();
+	l.radius = 90.0 + RandomRangef(-10.f, 10.f);
 	Cg_AddLight(&l);
 
 	if (ent->current.animation1 != LIGHTNING_SOLID_HIT) {
@@ -568,13 +563,11 @@ static void Cg_BfgTrail(cl_entity_t *ent) {
 
 	const float mod = sinf(cgi.client->unclamped_time >> 5);
 
-	cg_light_t l;
-	l.origin = ent->origin;
-	l.radius = 160.0 + 48.0 * mod;
-	l.color = Vec3(0.4, 1.0, 0.4);
-	l.decay = 0;
-
-	Cg_AddLight(&l);
+	Cg_AddLight(&(cg_light_t) {
+		.origin = ent->origin,
+		.radius = 160.f + 48.f * mod,
+		.color = Vec3(.4f, 1.f, .4f)
+	});
 }
 
 /**
@@ -693,17 +686,16 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
  * @brief
  */
 static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
-	const vec3_t color = Vec3(0.9, 0.3, 0.1);
 
 	if (cgi.PointContents(end) & MASK_LIQUID) {
 		return;
 	}
 
-	cg_light_t l;
-	l.origin = end;
-	l.color = color;
-	l.radius = 85.0;
-	l.decay = 0;
+	cg_light_t l = {
+		.origin = end,
+		.radius = 85.f,
+		.color = Vec3(0.9, 0.3, 0.1)
+	};
 
 	if (ent->current.effects & EF_DESPAWN) {
 		const float decay = Clampf((cgi.client->unclamped_time - ent->timestamp) / 1000.0, 0.0, 1.0);

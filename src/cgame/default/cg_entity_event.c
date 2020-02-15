@@ -55,13 +55,12 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
 		p->delta_size = -0.1;
 	}
 
-	cg_light_t l;
-	l.origin = org;
-	l.radius = 80.0;
-	l.color = Vec3(0.9, 0.9, 0.9);
-	l.decay = 1000;
-
-	Cg_AddLight(&l);
+	Cg_AddLight(&(cg_light_t) {
+		.origin = org,
+		.radius = 80.f,
+		.color = Vec3(.9f, .9f, .9f),
+		.decay = 1000
+	});
 }
 
 /**
@@ -137,13 +136,12 @@ static void Cg_TeleporterEffect(const vec3_t org) {
 		p->delta_size = 0.2 * -p->lifetime / PARTICLE_FRAME;
 	}
 
-	cg_light_t l;
-	l.origin = org;
-	l.radius = 120.0;
-	l.color = Vec3(0.9, 0.9, 0.9);
-	l.decay = 1000;
-
-	Cg_AddLight(&l);
+	Cg_AddLight(&(cg_light_t) {
+		.origin = org,
+		.radius = 120.f,
+		.color = Vec3(.9f, .9f, .9f),
+		.decay = 1000
+	});
 
 	const s_play_sample_t play = {
 		.sample = cg_sample_respawn,
