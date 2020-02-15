@@ -28,11 +28,8 @@ static cg_light_t cg_lights[MAX_LIGHTS];
 /**
  * @brief
  */
-void Cg_AddLight(const cg_light_t *s) {
+void Cg_AddLight(const cg_light_t *l) {
 	size_t i;
-
-	if (s->decay > 1000)
-		cg_lights[0].decay = 0;
 
 	for (i = 0; i < lengthof(cg_lights); i++)
 		if (cg_lights[i].radius == 0.0) {
@@ -40,11 +37,11 @@ void Cg_AddLight(const cg_light_t *s) {
 		}
 
 	if (i == lengthof(cg_lights)) {
-		cgi.Debug("MAX_LIGHTS reached\n");
+		cgi.Debug("MAX_LIGHTS\n");
 		return;
 	}
 
-	cg_lights[i] = *s;
+	cg_lights[i] = *l;
 
 	if (cg_lights[i].intensity == 0.0) {
 		cg_lights[i].intensity = LIGHT_INTENSITY;

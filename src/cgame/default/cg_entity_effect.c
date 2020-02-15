@@ -97,45 +97,60 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_QUAD) {
-		cg_light_t l = { .radius = 80.0, .color = Vec3(0.3f, 0.7f, 0.7f)};
+		const cg_light_t l = {
+			.origin = e->origin,
+			.radius = 80.0,
+			.color = Vec3(0.3f, 0.7f, 0.7f)
+		};
 
-		l.origin = e->origin;
 		Cg_AddLight(&l);
 
 		e->shell = Vec3_Add(e->shell, Vec3_Scale(l.color, 0.5));
 	}
 
 	if (e->effects & EF_CTF_RED) {
-		cg_light_t l = { .radius = 80.0, .color = Vec3(1.f, 0.3f, 0.3f)};
+		const cg_light_t l = {
+			.origin = e->origin,
+			.radius = 80.f,
+			.color = Vec3(1.f, .3f, .3f)
+		};
 
-		l.origin = e->origin;
 		Cg_AddLight(&l);
 
 		e->shell = Vec3_Add(e->shell, Vec3_Scale(l.color, 0.5));
 	}
 
 	if (e->effects & EF_CTF_BLUE) {
-		cg_light_t l = { .radius = 80.0, .color = Vec3(0.3f, 0.3f, 1.f) };
+		const cg_light_t l = {
+			.origin = e->origin,
+			.radius = 80.0,
+			.color = Vec3(0.3f, 0.3f, 1.f)
+		};
 
-		l.origin = e->origin;
 		Cg_AddLight(&l);
 
 		e->shell = Vec3_Add(e->shell, Vec3_Scale(l.color, 0.5));
 	}
 
 	if (e->effects & EF_CTF_GREEN) {
-		cg_light_t l = { .radius = 80.0, .color = Vec3(0.3f, 1.0f, 0.3f) };
+		const cg_light_t l = {
+			.origin =  e->origin,
+			.radius = 80.0,
+			.color = Vec3(0.3f, 1.0f, 0.3f)
+		};
 
-		l.origin = e->origin;
 		Cg_AddLight(&l);
 
 		e->shell = Vec3_Add(e->shell, Vec3_Scale(l.color, 0.5));
 	}
 
 	if (e->effects & EF_CTF_ORANGE) {
-		cg_light_t l = { .radius = 80.0, .color = Vec3(1.f, 0.7f, 0.1f)};
+		const cg_light_t l = {
+			.origin = e->origin,
+			.radius = 80.0,
+			.color = Vec3(1.f, 0.7f, 0.1f)
+		};
 
-		l.origin = e->origin;
 		Cg_AddLight(&l);
 
 		e->shell = Vec3_Add(e->shell, Vec3_Scale(l.color, 0.5));
@@ -157,13 +172,14 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_LIGHT) {
-		cg_light_t l = { .radius = ent->current.termination.x, .decay = 0 };
-
-		l.origin = e->origin;
-
 		color_t color;
 		cgi.ColorFromPalette(ent->current.client, &color);
-		l.color = ColorToVector3(color);
+
+		const cg_light_t l = {
+			.origin = e->origin,
+			.radius = ent->current.termination.x,
+			.color = ColorToVector3(color)
+		};
 
 		Cg_AddLight(&l);
 	}
