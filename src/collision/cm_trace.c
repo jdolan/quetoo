@@ -276,9 +276,9 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float 
 		if (data->is_point) {
 			offset = 0.0;
 		} else
-			offset = fabsf(data->extents.x * plane->normal.x)
-			         + fabsf(data->extents.y * plane->normal.y)
-			         + fabsf(data->extents.z * plane->normal.z);
+			offset = fabsf(data->extents.x * plane->normal.x) +
+			         fabsf(data->extents.y * plane->normal.y) +
+			         fabsf(data->extents.z * plane->normal.z);
 	}
 
 	// see which sides we need to consider
@@ -360,7 +360,6 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,const vec3_t mins, c
 
 	data.start = start;
 	data.end = end;
-
 	data.contents = contents;
 
 	// check for point special case
@@ -420,10 +419,9 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end,const vec3_t mins, c
 
 	// check for position test special case
 	if (Vec3_Equal(start, end)) {
-		int32_t leafs[MAX_ENTITIES];
+		int32_t leafs[MAX_BSP_LEAFS];
 
-		const size_t len = Cm_BoxLeafnums(data.box_mins, data.box_maxs, leafs, lengthof(leafs),
-		                                  NULL, head_node);
+		const size_t len = Cm_BoxLeafnums(data.box_mins, data.box_maxs, leafs, lengthof(leafs), NULL, head_node);
 
 		for (size_t i = 0; i < len; i++) {
 			Cm_TestInLeaf(&data, leafs[i]);
