@@ -155,10 +155,10 @@ static void R_DrawChar_(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
 
 	r_draw_vertex_t quad[4];
 
-	quad[0].position = Vec2s_Scale(Vec2s(x, y), r_context.window_scale);
-	quad[1].position = Vec2s_Scale(Vec2s(x + cw, y), r_context.window_scale);
-	quad[2].position = Vec2s_Scale(Vec2s(x + cw, y + ch), r_context.window_scale);
-	quad[3].position = Vec2s_Scale(Vec2s(x, y + ch), r_context.window_scale);
+	quad[0].position = Vec2s(x, y);
+	quad[1].position = Vec2s(x + cw, y);
+	quad[2].position = Vec2s(x + cw, y + ch);
+	quad[3].position = Vec2s(x, y + ch);
 
 	quad[0].diffuse = Vec2(s0, t0);
 	quad[1].diffuse = Vec2(s1, t0);
@@ -305,10 +305,10 @@ void R_DrawImageRect(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r
 
 	r_draw_vertex_t quad[4];
 
-	quad[0].position = Vec2s_Scale(Vec2s(x, y), r_context.window_scale);
-	quad[1].position = Vec2s_Scale(Vec2s(x + w, y), r_context.window_scale);
-	quad[2].position = Vec2s_Scale(Vec2s(x + w, y + h), r_context.window_scale);
-	quad[3].position = Vec2s_Scale(Vec2s(x, y + h), r_context.window_scale);
+	quad[0].position = Vec2s(x, y);
+	quad[1].position = Vec2s(x + w, y);
+	quad[2].position = Vec2s(x + w, y + h);
+	quad[3].position = Vec2s(x, y + h);
 
 	quad[0].diffuse = Vec2(0, 0);
 	quad[1].diffuse = Vec2(1, 0);
@@ -349,10 +349,10 @@ void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const color_
 
 	r_draw_vertex_t quad[4];
 
-	quad[0].position = Vec2s_Scale(Vec2s(x, y), r_context.window_scale);
-	quad[1].position = Vec2s_Scale(Vec2s(x + w, y), r_context.window_scale);
-	quad[2].position = Vec2s_Scale(Vec2s(x + w, y + h), r_context.window_scale);
-	quad[3].position = Vec2s_Scale(Vec2s(x, y + h), r_context.window_scale);
+	quad[0].position = Vec2s(x, y);
+	quad[1].position = Vec2s(x + w, y);
+	quad[2].position = Vec2s(x + w, y + h);
+	quad[3].position = Vec2s(x, y + h);
 
 	quad[0].color = color;
 	quad[1].color = color;
@@ -382,8 +382,8 @@ void R_DrawLines(const r_pixel_t *points, size_t count, const color_t color) {
 	const r_pixel_t *in = points;
 	for (size_t i = 0; i < count; i++, in += 2, out++) {
 
-		out->position.x = *(in + 0) * r_context.window_scale;
-		out->position.y = *(in + 1) * r_context.window_scale;
+		out->position.x = *(in + 0);
+		out->position.y = *(in + 1);
 
 		out->color = color;
 	}
@@ -405,7 +405,7 @@ void R_Draw2D(void) {
 
 	glUseProgram(r_draw_program.name);
 
-	Matrix4x4_FromOrtho(&r_locals.projection2D, 0.0, r_context.drawable_width, r_context.drawable_height, 0.0, -1.0, 1.0);
+	Matrix4x4_FromOrtho(&r_locals.projection2D, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
 	glUniformMatrix4fv(r_draw_program.projection, 1, GL_FALSE, (GLfloat *) r_locals.projection2D.m);
 
 	glUniform1f(r_draw_program.brightness, r_brightness->value);
