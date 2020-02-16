@@ -54,7 +54,7 @@ START_TEST(check_Ai_Learn) {
 			}
 		};
 
-		const vec3_t origin = { (i - 32) * 64.0, (i - 32) * 64.0, 0.0 };
+		const vec3_t origin = Vec3((i - 32) * 64.0, (i - 32) * 64.0, 0.0);
 
 		player.s.origin = origin;
 
