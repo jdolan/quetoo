@@ -641,7 +641,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 			ColorParse(cg_draw_crosshair_color->string, &color);
 		}
 
-		crosshair.color = ColorToVector4(color);
+		crosshair.color = Color_Vec4(color);
 	}
 
 	if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_WHITE) {

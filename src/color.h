@@ -100,9 +100,9 @@ color_t Color4fv(const vec4_t rgba);
 /**
  * @return A floating point vector for the specified color;
  */
-vec3_t ColorToVector3(const color_t color);
+vec3_t Color_Vec3(const color_t color);
 
 /**
  * @return A floating point vector for the specified color.
  */
-vec4_t ColorToVector4(const color_t color);
+vec4_t Color_Vec4(const color_t color);

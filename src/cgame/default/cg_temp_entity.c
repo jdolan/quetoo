@@ -54,7 +54,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const color_t c
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = Vec3_Add(org, dir),
 		.radius = 150.0,
-		.color = ColorToVector3(color),
+		.color = Color_Vec3(color),
 		.decay = 350
 	});
 
@@ -467,7 +467,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 	l.origin = start;
 	l.radius = 100.0;
-	l.color = ColorToVector3(color);
+	l.color = Color_Vec3(color);
 	l.decay = 500;
 
 	Cg_AddLight(&l);

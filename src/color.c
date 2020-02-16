@@ -102,13 +102,13 @@ color_t Color4fv(const vec4_t rgba) {
 /**
  * @brief
  */
-vec3_t ColorToVector3(const color_t color) {
+vec3_t Color_Vec3(const color_t color) {
 	return Vec3_Scale(Vec3(color.r, color.g, color.b), 1.f / 255.f);
 }
 
 /**
  * @brief
  */
-vec4_t ColorToVector4(const color_t color) {
+vec4_t Color_Vec4(const color_t color) {
 	return Vec4_Scale(Vec4(color.r, color.g, color.b, color.a), 1.f / 255.f);
 }

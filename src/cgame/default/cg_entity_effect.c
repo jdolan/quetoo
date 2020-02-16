@@ -177,7 +177,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		const cg_light_t l = {
 			.origin = e->origin,
 			.radius = ent->current.termination.x,
-			.color = ColorToVector3(color)
+			.color = Color_Vec3(color)
 		};
 
 		Cg_AddLight(&l);

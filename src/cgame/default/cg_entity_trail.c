@@ -307,7 +307,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 	Cg_AddLight(&(cg_light_t) {
 		.origin = end,
 		.radius = 100.f,
-		.color = ColorToVector3(color)
+		.color = Color_Vec3(color)
 	});
 }
 

@@ -47,7 +47,7 @@ static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
 	cg_light_t l;
 	l.origin = org;
 	l.radius = 80.0;
-	l.color = ColorToVector3(color);
+	l.color = Color_Vec3(color);
 	l.decay = 450;
 
 	Cg_AddLight(&l);
