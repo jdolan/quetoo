@@ -129,7 +129,9 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 			group.f = g_array_new(FALSE, FALSE, sizeof(r_obj_face_t));
 		} else if (strncmp("f ", line, strlen("f ")) == 0) {
 
-			r_obj_face_t face = { 0 };
+			r_obj_face_t face;
+			memset(&face, 0, sizeof(face));
+
 			int32_t i = 0;
 
 			char *token = line + 1;
@@ -179,11 +181,11 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 					break;
 				}
 
-				r_mesh_vertex_t v = { 0 };
-
-				v.position = g_array_index(obj.v, vec3_t, fv->v - 1);
-				v.diffuse = g_array_index(obj.vt, vec2_t, fv->vt - 1);
-				v.normal = g_array_index(obj.vn, vec3_t, fv->vn - 1);
+				const r_mesh_vertex_t v = {
+					.position = g_array_index(obj.v, vec3_t, fv->v - 1),
+					.diffuse = g_array_index(obj.vt, vec2_t, fv->vt - 1),
+					.normal = g_array_index(obj.vn, vec3_t, fv->vn - 1),
+				};
 
 				fv->el = R_FindOrAppendObjVertex(face, &v);
 			}
