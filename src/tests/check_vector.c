@@ -82,10 +82,6 @@ START_TEST(_Vec3_Length) {
 	assert_flt_eq(sqrtf(3), Vec3_Length(Vec3(1, 1, 1)));
 } END_TEST
 
-START_TEST(_Vec3_Minf) {
-	
-} END_TEST
-
 START_TEST(_Vec3_Negate) {
 	assert_vec3_eq(Vec3(-1, -2, -3), Vec3_Negate(Vec3(1, 2, 3)));
 } END_TEST
