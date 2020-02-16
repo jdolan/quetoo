@@ -296,7 +296,7 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	// copy the specified entity to all body segments
 	head = torso = legs = *e;
 
-	float leg_yaw_offset = 0.f;
+	float legs_yaw = 0.f;
 
 	if ((ent->current.effects & EF_CORPSE) == 0) {
 		vec3_t right;
@@ -309,16 +309,19 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		if (ent->animation2.animation < ANIM_LEGS_SWIM) {
 			if (Vec3_Length(move_dir) > CLIENT_LEGS_SPEED_EPSILON) {
 				move_dir = Vec3_Normalize(move_dir);
-				leg_yaw_offset = Vec3_Dot(move_dir, right) * CLIENT_LEGS_YAW_MAX;
+				legs_yaw = Vec3_Dot(move_dir, right) * CLIENT_LEGS_YAW_MAX;
 
 				if (ent->animation2.animation == ANIM_LEGS_BACK ||
 					ent->animation2.reverse) {
-					leg_yaw_offset = -leg_yaw_offset;
+					legs_yaw = -legs_yaw;
 				}
 			}
 		}
 
-		ent->legs_yaw = 0;//AngleLerp(ent->legs_yaw, leg_yaw_offset, CLIENT_LEGS_YAW_LERP_SPEED);
+		const vec3_t a = Vec3(0.f, ent->legs_yaw, 0.f);
+		const vec3_t b = Vec3(0.f, legs_yaw, 0.f);
+
+		ent->legs_yaw = Vec3_MixEuler(a, b, CLIENT_LEGS_YAW_LERP_SPEED).y;
 	} else {
 		ent->legs_yaw = 0.0;
 	}
